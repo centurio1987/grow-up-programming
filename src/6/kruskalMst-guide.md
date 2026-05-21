@@ -1,0 +1,203 @@
+# kruskalMst 해설
+
+## 성능 목표 예측
+
+| 항목 | 값 |
+|------|----|
+| 정점 V | $1 \leq V \leq 10^5$ |
+| 간선 E | $0 \leq E \leq 2 \times 10^5$ |
+| 가중치 w | $0 \leq w \leq 10^9$ |
+
+**naive 접근의 문제점:**
+모든 신장 트리(spanning tree)를 열거해 가중치 합이 최소인 것을 찾는 방법을 생각해 볼 수 있다.
+신장 트리의 수는 최대 $V^{V-2}$ (Cayley 공식)이므로 $V = 10^5$에서는 계산이 불가능하다.
+또는 Prim을 단순 배열로 구현할 경우 $O(V^2) = 10^{10}$ → 시간 초과.
+
+**목표 복잡도:** $O(E \log E)$ 시간, $O(V + E)$ 공간.
+
+**근거:** $E \leq 2 \times 10^5$이면 $E \log E \approx 2 \times 10^5 \times 18 \approx 3.6 \times 10^6$ 연산으로 충분히 빠르다.
+간선 정렬이 $O(E \log E)$를 지배하고, Union-Find(경로 압축 + 랭크 병합)의 연산당 비용은
+$O(\alpha(V)) \approx O(1)$이므로 전체 Union-Find 비용은 $O(E \cdot \alpha(V)) \approx O(E)$이다.
+
+**공간 복잡도:** 간선 배열 $O(E)$, Union-Find 배열 $O(V)$. 1D 구조만으로 충분하다.
+
+---
+
+## 목표 함수
+
+```ts
+kruskalMst(n: number, edges: [number, number, number][]): number
+```
+
+| 매개변수 | 의미 | 제약 |
+|----------|------|------|
+| `n` | 정점 개수 $V$ (인덱스: $0 \ldots n-1$) | $1 \leq n \leq 10^5$ |
+| `edges` | 무방향 간선 `[u, v, w]` 목록 | $E \leq 2 \times 10^5$ |
+| 반환값 | MST 가중치 합; 연결 그래프가 아니면 $-1$ | — |
+
+**엣지케이스:**
+
+1. **$n = 1$ (단일 정점):** 신장 트리는 간선 0개. 가중치 합 `0`을 반환한다.
+2. **비연결 그래프:** 간선을 모두 처리해도 추가된 간선 수가 $n-1$에 미치지 못하면 `-1`을 반환한다.
+3. **가중치 0 포함:** 합이 `0`이어도 유효한 MST일 수 있다. `-1`(비연결)과 혼동하지 말 것.
+4. **중복 간선(같은 `[u, v]` 쌍이 여러 개):** 정렬 후 가중치가 작은 것이 먼저 처리되므로 자동으로 최적 선택된다.
+5. **최대 입력:** $V = 10^5$, $E = 2 \times 10^5$, $w = 10^9$일 때 총합이 $10^{14}$ 수준이므로 `number` 타입의 부동소수점 정밀도를 주의한다. 필요시 `BigInt` 또는 누적 시 중간 검사를 고려한다.
+
+---
+
+## 핵심 아이디어
+
+### 원형 아이디어와 naive 접근
+
+가장 단순한 접근: 모든 $2^E$개의 간선 부분집합을 탐색해 신장 트리를 이루는 것 중 가중치 합이 최소인 것을 찾는다.
+
+```
+naive:
+  minWeight = INF
+  for each subset S of edges:
+    if S forms a spanning tree:
+      minWeight = min(minWeight, sum of weights in S)
+  return minWeight
+```
+
+$E = 2 \times 10^5$이면 $2^E$는 천문학적 수치로 시간/공간 모두 폭발한다.
+"신장 트리를 이루는지" 판단에도 $O(V + |S|)$의 DFS/BFS가 필요하다.
+
+**낭비의 정체:** 대부분의 부분집합은 사이클을 포함하거나 연결되지 않아 신장 트리가 아니다.
+유효하지 않은 후보들을 모두 검사하는 것이 낭비다.
+
+### 어떤 관찰이 돌파구가 되는가
+
+- **관찰 1 (컷 성질, Cut Property):** 그래프의 임의 컷 $(S, V \setminus S)$에서 그 컷을 건너는 간선 중 가중치가 최소인 간선은 반드시 어떤 MST에 포함된다.
+  이 성질은 MST가 "탐욕적으로" 구성될 수 있음을 보장한다.
+
+- **관찰 2:** 가중치가 가장 작은 간선부터 검토하면, 그 간선이 연결하는 두 정점이 아직 같은 컴포넌트에 속하지 않을 때만 추가하면 된다. 이것이 정확히 컷 성질을 모든 간선에 전역 적용한 것이다.
+
+- **관찰 3 (사이클 감지):** 두 끝점이 이미 같은 연결 컴포넌트에 있으면 이 간선을 추가하면 사이클이 생긴다. 컴포넌트 관리를 효율적으로 수행하는 자료구조가 Union-Find이다.
+
+### 관찰을 형식화: 상태/구조 정의
+
+**Union-Find 배열:**
+- `parent[v]`: 정점 $v$가 속하는 컴포넌트 트리의 부모. 루트이면 `parent[v] = v`.
+- `rank[v]`: 컴포넌트 트리의 높이 상한 (랭크 기반 병합에 사용).
+
+**`find(v)`:** 경로 압축을 적용해 $v$의 루트를 반환한다. 경로 상의 모든 정점이 루트를 직접 가리키도록 갱신해 이후 연산을 빠르게 만든다.
+
+**`union(u, v)`:** 두 루트를 비교해 랭크가 낮은 트리를 높은 트리 아래로 붙인다. 랭크 병합은 트리 높이를 $O(\log V)$ 이하로 유지한다.
+
+이 정의가 두 배열(parent, rank)인 이유: 단순 `parent`만으로는 선형 체인이 형성될 수 있어 `find`가 $O(V)$로 퇴화한다. 랭크까지 관리해야 트리 높이가 대수적으로 제한된다.
+
+### 점화식 또는 핵심 연산
+
+정렬된 간선 배열 $e_1, e_2, \ldots, e_E$ (가중치 오름차순)에 대해:
+
+$$
+\text{MST 포함 여부}(e_i = (u, v, w)) =
+\begin{cases}
+\text{포함} & \text{if } \text{find}(u) \neq \text{find}(v) \\
+\text{제외 (사이클)} & \text{if } \text{find}(u) = \text{find}(v)
+\end{cases}
+$$
+
+누적 가중치:
+
+$$
+W_{\text{MST}} = \sum_{\substack{e_i \text{ 포함} \\ i = 1, \ldots, E}} w(e_i)
+$$
+
+- `find(u) != find(v)`: $u$와 $v$가 다른 컴포넌트에 있음 → 이 간선이 두 컴포넌트를 잇는 최소 비용 간선임이 보장됨 (이미 가중치 오름차순으로 처리 중이므로).
+- 포함 후 `union(u, v)`: 두 컴포넌트를 하나로 합쳐 이후 같은 컴포넌트 내 간선이 다시 선택되지 않도록 한다.
+
+### 정당성 — 왜 이것이 옳은가
+
+**교환 논증(Exchange Argument):** Kruskal이 선택한 간선 집합 $T$가 최적 MST $T^*$와 다르다고 가정한다.
+$T$에 있지만 $T^*$에 없는 간선 중 가장 먼저 선택된 간선 $e = (u, v, w)$를 $T^*$에 추가하면 사이클이 생긴다.
+그 사이클 위에는 $T^*$에 있지만 $T$에 없는 간선 $e'$이 반드시 존재한다.
+$e$는 $e'$보다 먼저 정렬됐으므로 $w(e) \leq w(e')$이다.
+$e'$을 $e$로 교체해도 $T^*$는 신장 트리 조건을 유지하고 가중치가 줄어들거나 같아진다.
+이를 반복하면 $T$가 $T^*$보다 나쁘지 않음이 증명된다.
+
+**사이클 없음 보장:** `find(u) == find(v)`일 때 간선을 건너뛰므로 사이클이 절대 추가되지 않는다.
+
+**연결성 보장:** 정확히 $n-1$개 간선이 추가되면 $n$개 정점이 트리로 연결된다. 이보다 적으면 비연결 그래프이다.
+
+### 구현 디테일과 최적화
+
+- **조기 종료:** `edgesAdded == n - 1`이 되는 순간 루프를 탈출한다. 남은 간선을 처리할 필요가 없으므로 실제 수행 시간이 단축된다.
+
+- **경로 압축:** `find`에서 재귀적으로 `parent[x] = find(parent[x])`를 적용한다. 이후 같은 정점에 대한 `find` 비용이 사실상 $O(1)$로 줄어든다.
+
+- **랭크 병합:** `rank[rx] < rank[ry]`이면 `rx`를 `ry` 아래로 붙인다. 항상 키가 낮은 트리를 큰 트리 아래로 붙여야 높이 증가를 억제한다. 반대로 붙이면 $O(V)$ 높이가 될 수 있다.
+
+- **함정 — 정렬 없이 탐욕 적용:** 간선을 정렬하지 않으면 더 비싼 간선이 먼저 선택될 수 있어 MST가 아닌 신장 트리를 반환할 수 있다.
+
+- **함정 — union 반환값 무시:** `union(u, v)` 후 별도로 `find`를 다시 호출해 같은지 검사하는 방식은 중복 계산이다. `union`이 성공 여부를 반환하도록 설계하고 그 결과로 분기하는 것이 효율적이다.
+
+---
+
+## 수도 코드와 Activity Diagram
+
+### 의사코드
+
+```
+function kruskalMst(n, edges):
+    // 1. 간선 가중치 오름차순 정렬
+    sort edges by w ascending          // 불변식: edges[i].w ≤ edges[i+1].w
+
+    // 2. Union-Find 초기화
+    parent[0..n-1] = [0, 1, ..., n-1] // 불변식: parent[i]는 i가 속한 트리의 루트
+    rank[0..n-1]   = [0, 0, ..., 0]   // 불변식: rank[i]는 트리 높이 상한
+
+    function find(x):
+        if parent[x] != x:
+            parent[x] = find(parent[x])   // 경로 압축: 루트를 직접 가리키게 갱신
+        return parent[x]
+
+    function union(x, y):
+        rx = find(x);  ry = find(y)
+        if rx == ry: return false          // 이미 같은 컴포넌트 → 사이클
+        if rank[rx] < rank[ry]: swap(rx, ry)
+        parent[ry] = rx                    // 낮은 랭크 트리를 높은 랭크 아래로
+        if rank[rx] == rank[ry]: rank[rx]++
+        return true
+
+    // 3. 탐욕 간선 선택
+    totalWeight = 0
+    edgesAdded  = 0                        // 불변식: edgesAdded ≤ n-1
+
+    for (u, v, w) in sorted edges:
+        if union(u, v):                    // 사이클 없이 추가 가능?
+            totalWeight += w               // 불변식: totalWeight는 현재까지 선택된 MST 부분의 합
+            edgesAdded  += 1
+            if edgesAdded == n - 1: break  // 조기 종료: 신장 트리 완성
+
+    // 4. 결과
+    if edgesAdded == n - 1:
+        return totalWeight
+    else:
+        return -1                          // 비연결 그래프
+
+// 핵심 불변식:
+//   루프 매 반복 후, 선택된 edgesAdded개의 간선은 MST의 부분집합을 이룬다.
+```
+
+### Activity Diagram
+
+```mermaid
+flowchart TD
+    A([시작]) --> B["간선을 가중치 오름차순 정렬"]
+    B --> C["Union-Find 초기화\nparent[i]=i, rank[i]=0\nedgesAdded=0, totalWeight=0"]
+    C --> D{정렬된 간선이\n남아 있는가?}
+    D -- No --> E{edgesAdded\n== n-1?}
+    D -- Yes --> F["간선 (u, v, w) 꺼내기"]
+    F --> G{"find(u)\n==\nfind(v)?"}
+    G -- Yes(사이클 → 스킵) --> D
+    G -- No --> H["union(u, v)\ntotalWeight += w\nedgesAdded++"]
+    H --> I{edgesAdded\n== n-1?}
+    I -- Yes(신장 트리 완성) --> J([return totalWeight])
+    I -- No --> D
+    E -- Yes --> J
+    E -- No --> K([return -1])
+```
+
+**핵심 불변식:** 루프의 각 반복에서 `edgesAdded`개의 간선으로 이루어진 포레스트는 최소 신장 포레스트의 부분집합이다. `find(u) == find(v)` 검사가 항상 사이클 추가를 차단하므로, 트리 성질(간선 수 = 정점 수 - 1, 사이클 없음)이 유지된다.

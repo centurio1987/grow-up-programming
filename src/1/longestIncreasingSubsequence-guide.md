@@ -1,0 +1,159 @@
+# longestIncreasingSubsequence — 최장 증가 부분 수열 (LIS)
+
+## 성능 목표 예측
+
+| 항목 | 값 |
+|------|-----|
+| 입력 크기 | $1 \leq N \leq 100{,}000$ |
+| 원소 범위 | $-10^9 \leq A[i] \leq 10^9$ |
+
+**naive 접근의 문제점**: DP만 사용하는 $O(N^2)$ 접근에서 $dp[i] = 1 + \max_{j < i, A[j] < A[i]} dp[j]$를 계산하면 $N = 10^5$에서 $10^{10}$ 연산으로 시간 초과가 발생한다.
+
+**목표 복잡도**: 시간 $O(N \log N)$, 공간 $O(N)$. 이분 탐색을 활용해 로그 인자를 도입한다.
+
+**공간 복잡도**: 보조 배열 `tails` 하나 $O(N)$. 실제 LIS 원소를 추적하려면 추가 $O(N)$ 배열이 필요하다.
+
+---
+
+## 목표 함수
+
+```ts
+function longestIncreasingSubsequence(A: number[]): number
+```
+
+| 파라미터 | 의미 | 제약 |
+|----------|------|------|
+| `A` | 정수 배열 | $1 \leq N \leq 100{,}000$, $-10^9 \leq A[i] \leq 10^9$ |
+
+**반환값**: 엄격하게 증가하는 부분 수열의 최대 길이 ($\geq 1$).
+
+**엣지케이스**:
+
+| 입력 | 기대 출력 | 이유 |
+|------|-----------|------|
+| `[5]` | `1` | 단일 원소 |
+| `[3, 3, 3]` | `1` | 엄격 증가 아님 — 같은 값 연속 |
+| `[1, 2, 3, 4, 5]` | `5` | 단조 증가 전체가 LIS |
+| `[5, 4, 3, 2, 1]` | `1` | 단조 감소 — 하나씩만 |
+
+---
+
+## 핵심 아이디어
+
+### 원형 아이디어와 naive 접근
+
+각 위치 $i$에서 끝나는 LIS 길이를 $dp[i]$로 정의해 계산한다.
+
+```
+for i from 0 to N-1:
+    dp[i] = 1
+    for j from 0 to i-1:
+        if A[j] < A[i]:
+            dp[i] = max(dp[i], dp[j] + 1)
+```
+
+$dp[i]$를 계산할 때 모든 $j < i$를 검사해야 하므로 $O(N^2)$이다. 핵심 낭비: $j$를 선형으로 스캔하는 부분을 빠르게 처리할 수 없을까?
+
+### 어떤 관찰이 돌파구가 되는가
+
+- **관찰 1**: "길이 $k$인 증가 부분 수열 중 가장 작은 끝값"만 알면, $A[i]$가 길이 $k$를 연장할 수 있는지 $O(1)$에 판단할 수 있다.
+- **관찰 2**: 끝값이 작을수록 이후 원소를 더 많이 이어 붙일 수 있다. 따라서 각 길이에 대해 끝값의 최솟값만 유지하면 충분하다.
+- **관찰 3**: 끝값의 최솟값 배열 `tails`는 엄격 증가 순서를 유지한다. 따라서 이분 탐색으로 $A[i]$의 삽입 위치를 $O(\log N)$에 찾을 수 있다.
+
+### 관찰을 형식화: 상태/구조 정의
+
+보조 배열 `tails`를 다음과 같이 정의한다.
+
+$$tails[k] = \text{지금까지 본 원소들로 만들 수 있는 길이 } k+1 \text{인 증가 부분 수열의 끝값 최솟값}$$
+
+이 정의가 왜 이 형태여야 하는가: 각 길이마다 가장 유리한 끝값(최솟값)만 유지하면 미래 확장 가능성이 최대화된다. 모든 끝값의 후보를 저장하면 공간과 시간이 $O(N^2)$로 폭발한다.
+
+`tails`의 핵심 성질:
+
+$$tails[0] < tails[1] < \ldots < tails[|tails|-1]$$
+
+이 단조 증가 성질 덕분에 이분 탐색이 가능하다.
+
+### 점화식 또는 핵심 연산
+
+각 $A[i]$에 대해 `tails`에서 $A[i]$ 이상인 첫 위치 $pos$ (lower bound)를 이분 탐색으로 찾는다.
+
+$$pos = \min\{k \mid tails[k] \geq A[i]\}$$
+
+두 경우:
+
+1. $pos = |tails|$ (존재하지 않음): $A[i]$가 현재 가장 긴 LIS보다 크므로 `tails.push(A[i])` — LIS 길이 $+1$.
+2. $pos < |tails|$: `tails[pos] = A[i]` — 길이 $pos+1$인 LIS의 끝값을 더 작은 값으로 갱신.
+
+각 연산:
+- `tails.push(A[i])`: 새로운 최장 길이가 하나 추가됨을 나타낸다.
+- `tails[pos] = A[i]`: 길이 $pos+1$짜리 LIS의 최적 끝값을 갱신한다. $tails[pos] \geq A[i]$였으므로 더 작아져 유리해진다.
+
+결과: $|tails|$ = LIS 길이
+
+### 정당성 — 왜 이것이 옳은가
+
+귀납적으로 $tails[k]$가 길이 $k+1$인 증가 부분 수열의 끝값 최솟값임을 증명한다.
+
+초기: `tails = []`.
+
+$A[i]$ 처리 후:
+- $pos = |tails|$이면: 현재 `tails`의 모든 값이 $A[i]$보다 작으므로, $A[i]$를 이어 붙이면 길이 $|tails|+1$인 새 LIS가 만들어진다. `tails`에 추가하면 $tails[|tails|-1] = A[i]$가 길이 $|tails|$인 LIS의 최솟 끝값이 된다.
+- $pos < |tails|$이면: `tails[pos-1] < A[i] <= tails[pos]`이다. $A[i]$를 길이 $pos$인 LIS 뒤에 붙이면 길이 $pos+1$인 LIS가 만들어지고, 그 끝값이 이전 `tails[pos]`보다 작다. 따라서 `tails[pos] = A[i]`가 올바른 갱신이다.
+
+주의: `tails`의 실제 내용이 유효한 LIS를 나타내지는 않을 수 있다 (교체 때문에). 그러나 **길이**는 항상 정확하다.
+
+엄격 증가 조건: lower bound를 사용 (`tails[k] >= A[i]`)하면 같은 값을 이어 붙이지 않는다. upper bound를 사용하면 비감소 부분 수열의 LIS가 계산된다.
+
+### 구현 디테일과 최적화
+
+- **이분 탐색**: `tails`에서 $A[i]$ **이상**인 첫 위치를 찾는 lower bound를 사용한다. upper bound(`A[i]` 초과인 첫 위치)를 사용하면 같은 값의 반복을 허용해 비감소 LIS가 된다.
+- **함정**: lower bound 구현 시 `tails[mid] < x`이면 `lo = mid + 1`, 그렇지 않으면 `hi = mid`로 처리해야 한다. `<=` 대신 `<`를 사용해야 정확하다.
+- **공간**: `tails`를 별도 배열로 관리하면 LIS 길이만 얻을 수 있다. 실제 LIS 원소를 복원하려면 각 원소의 전임자 포인터를 $O(N)$ 배열로 저장해야 한다.
+- **함정**: 이분 탐색에서 `hi = len(tails) - 1`로 초기화하면 `pos = |tails|`인 경우를 처리하지 못한다. 반드시 `hi = len(tails)`로 초기화한다.
+
+---
+
+## 수도 코드와 Activity Diagram
+
+### 의사코드
+
+```
+function longestIncreasingSubsequence(A):
+    tails ← []                               // 불변식: tails[k] = 길이 k+1인 LIS의 끝값 최솟값
+                                             //          tails는 엄격 증가 순서
+
+    for each x in A:
+        lo ← 0,  hi ← len(tails)
+
+        while lo < hi:                       // lower bound 이분 탐색
+            mid ← (lo + hi) >> 1
+            if tails[mid] < x:
+                lo ← mid + 1
+            else:
+                hi ← mid
+
+        if lo == len(tails):
+            tails.push(x)                    // 새 LIS 길이 확장
+        else:
+            tails[lo] ← x                   // 끝값 갱신 (더 작은 값으로)
+
+    return len(tails)
+```
+
+### Activity Diagram
+
+```mermaid
+flowchart TD
+    A([시작]) --> B["tails = []"]
+    B --> C{다음 x 있음?}
+    C -- No --> H([return len(tails)])
+    C -- Yes --> D["lo=0, hi=len(tails)로 lower_bound 이분 탐색"]
+    D --> E{pos == len(tails)?}
+    E -- Yes --> F["tails.push(x)  // LIS 길이 +1"]
+    E -- No --> G["tails[pos] = x  // 끝값 갱신"]
+    F --> C
+    G --> C
+```
+
+**핵심 불변식**: 임의 시점에 `tails`는 엄격 증가 순서이며, `tails[k]`는 지금까지 처리한 원소들로 만들 수 있는 길이 $k+1$인 증가 부분 수열의 끝값 최솟값이다. `tails`의 실제 원소 나열이 유효한 LIS가 아닐 수 있으나 $|tails|$ = LIS 길이는 항상 정확하다.

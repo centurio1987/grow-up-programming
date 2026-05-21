@@ -1,0 +1,187 @@
+# suffixArray 해설
+
+## 성능 목표 예측
+
+| 제약 | 값 |
+|------|----|
+| 문자열 길이 $n = |s|$ | $1 \leq n \leq 10^5$ |
+
+**naive 접근의 한계:**
+접미사 배열을 정의 그대로 계산한다. 접미사 $n$개를 생성해 일반 비교 정렬로 정렬한다.
+
+```
+suffixes = [s[i..] for i in 0..n-1]
+sort(suffixes)  // 비교 정렬, 비교 1회 = O(n)
+```
+
+- 비교 1회: 최악 $O(n)$
+- 비교 정렬 전체: $O(n \log n)$ 비교 × $O(n)$ = $O(n^2 \log n)$
+- $n = 10^5$이면 $\approx 10^{10} \times 17$ → 시간 초과
+
+또한 접미사 문자열을 직접 저장하면 공간도 $O(n^2)$이 된다.
+
+낭비의 원인: 접미사 비교를 매번 처음부터 수행한다. 이미 길이 $2^k$까지 정렬된 순위를 알고 있다면, 길이 $2^{k+1}$ 정렬을 $O(n)$에 수행할 수 있다.
+
+**목표 복잡도:**
+
+| 항목 | 목표 | 근거 |
+|------|------|------|
+| 시간 | $O(n \log n)$ | $O(\log n)$ 라운드 × $O(n)$ 정렬 |
+| 공간 | $O(n)$ | rank, tmp 배열 각 1개 |
+
+## 목표 함수
+
+```ts
+function suffixArray(s: string): number[]
+```
+
+**파라미터 표:**
+
+| 파라미터 | 의미 | 제약 |
+|----------|------|------|
+| `s` | 입력 문자열 | $1 \leq |s| \leq 10^5$ |
+
+**반환값:** 길이 $n$의 배열. $\text{SA}[k] = i \iff s[i \ldots n-1]$이 사전순 $k+1$번째 접미사.
+
+**엣지케이스:**
+
+| 케이스 | 반환값 |
+|--------|--------|
+| $n = 1$ | `[0]` |
+| 모든 문자 동일 (`"aaaa"`) | `[3, 2, 1, 0]` |
+| `s = "banana"` | `[5, 3, 1, 0, 4, 2]` |
+| `s = "a"` | `[0]` |
+
+## 핵심 아이디어
+
+### 원형 아이디어와 naive 접근
+
+접미사를 직접 사전순으로 비교하는 것이 가장 단순하다.
+
+```
+sa = [0, 1, 2, ..., n-1]
+sort sa by (i, j) => s[i..] < s[j..] (사전순 비교)
+return sa
+```
+
+두 접미사를 비교할 때 공통 접두사가 긴 경우 최악 $O(n)$의 문자 비교가 필요하다.
+예: `s = "aaa...ab"` (a가 $n-1$개 후 b)에서 `s[0..]`과 `s[1..]`을 비교하면 $n-1$번 일치 후 1번 불일치 → $O(n)$.
+전체 정렬에서 $O(n \log n)$번 비교 × $O(n)$ = $O(n^2 \log n)$.
+
+### 어떤 관찰이 돌파구가 되는가
+
+- **길이 $2^k$까지 정렬된 순위를 이용해 길이 $2^{k+1}$ 순위를 $O(n)$에 계산할 수 있다.** 접미사 $s[i \ldots]$의 길이 $2^{k+1}$ 접두사는 길이 $2^k$ 접두사 두 개로 분해된다: $(s[i \ldots i+2^k-1], s[i+2^k \ldots i+2^{k+1}-1])$. 이는 순위 쌍 $(\text{rank}[i], \text{rank}[i+2^k])$에 해당한다. 순위가 정수이므로 Radix Sort로 $O(n)$에 정렬 가능하다.
+- **$O(\log n)$ 라운드면 모든 접미사가 고유 순위를 가진다.** $2^k \geq n$이면 길이 $n$ 전체를 커버하므로, 고유 순위를 갖지 않는 두 접미사는 동일하다(불가). 따라서 $\lceil \log_2 n \rceil$ 라운드면 충분하다.
+- **라운드 중간에 모든 순위가 고유해지면 조기 종료 가능하다.** 서로 다른 rank 값 수가 $n$개이면 이미 정렬 완료.
+
+### 관찰을 형식화: 상태/구조 정의
+
+**라운드 $k$의 rank 배열:**
+
+$$\text{rank}_k[i] = \text{접미사 } s[i \ldots] \text{의 길이 } 2^k \text{ 접두사의 사전 순위}$$
+
+초기값 ($k=0$, 길이 1): $\text{rank}_0[i] = \text{char code of } s[i]$
+
+라운드 $k$에서 $k+1$로의 전이:
+
+$$\text{key}(i) = \bigl(\text{rank}_k[i],\ \text{rank}_k[i + 2^k]\bigr)$$
+
+(범위 밖이면 $\text{rank}_k[i+2^k] = -1$로 처리, 가장 작은 값)
+
+이 key로 $\text{sa}$를 정렬한 뒤 새 $\text{rank}_{k+1}$을 부여한다. 같은 key → 같은 rank.
+
+이 정의가 이 형태여야 하는 이유: 두 순위 값을 이어 붙인 "2-튜플 키"로 정렬하면, 길이 $2^k$까지의 비교 결과를 $O(1)$ 정수 비교로 대체할 수 있다. 실제 문자열 비교($O(n)$)가 불필요해진다.
+
+### 점화식 또는 핵심 연산
+
+**rank 재부여:**
+
+$\text{sa}$를 key 기준으로 정렬한 후:
+
+$$\text{rank}_{k+1}[\text{sa}[0]] = 0$$
+
+$$\text{rank}_{k+1}[\text{sa}[j]] = \text{rank}_{k+1}[\text{sa}[j-1]] + \begin{cases} 1 & \text{if key}(\text{sa}[j]) \neq \text{key}(\text{sa}[j-1]) \\ 0 & \text{if key}(\text{sa}[j]) = \text{key}(\text{sa}[j-1]) \end{cases}$$
+
+- 첫째 항: 이전 원소와 key가 다르면 새로운 순위 할당
+- 둘째 항: 같은 key면 같은 순위 (아직 접미사를 구분 못하는 상태)
+
+**종료 조건:**
+$\text{rank}[\text{sa}[n-1]] = n-1$ (마지막 원소가 순위 $n-1$) → 모든 순위 고유 → 종료.
+
+### 정당성 — 왜 이것이 옳은가
+
+귀납 가정: 라운드 $k$ 종료 시 $\text{rank}_k[i]$는 $s[i \ldots i+2^k-1]$의 사전 순위를 정확히 반영한다.
+
+- 기저 ($k=0$): $\text{rank}_0[i] = \text{char code}(s[i])$는 길이 1 접두사의 사전 순위이다.
+- 귀납: 라운드 $k$에서 key = $(\text{rank}_k[i], \text{rank}_k[i+\text{gap}])$은 $s[i \ldots i+2^{k+1}-1]$을 두 반쪽 순위로 표현한다. Radix Sort는 이 2-튜플을 정렬하므로, 결과 $\text{rank}_{k+1}$은 길이 $2^{k+1}$ 접두사의 정확한 순위이다.
+
+$2^k \geq n$이면 길이 $n$ 전체가 커버되어 모든 접미사가 고유 순위를 갖는다(문자열이 다르므로). 따라서 최대 $\lceil \log_2 n \rceil$ 라운드에 완료된다.
+
+까다로운 케이스: 모든 문자가 동일한 경우(`"aaaa"`). 초기 rank가 모두 같으므로 매 라운드에서 구분이 점진적으로 이뤄진다. $\lceil \log_2 n \rceil$ 라운드 후 완료.
+
+### 구현 디테일과 최적화
+
+- **범위 밖 rank 값:** `i + gap >= n`이면 rank를 -1로 처리한다. -1은 어떤 실제 rank 값보다 작아야 한다. 범위 밖 접미사는 "더 짧은 문자열"로 취급하므로 사전순으로 더 앞에 온다.
+- **Radix Sort 대신 비교 정렬 사용:** 구현 편의상 2-튜플 키를 JavaScript/TypeScript의 기본 정렬로 처리해도 $O(n \log n)$이지만, 전체 복잡도는 $O(n \log^2 n)$이 된다. $n = 10^5$이면 허용 가능하다.
+- **조기 종료:** 라운드마다 `rank[sa[n-1]] == n-1` 조건을 체크해 모든 rank가 고유해지면 즉시 반환한다. 많은 경우 $\log n$ 라운드보다 일찍 종료된다.
+- **흔한 함정:** rank 재부여 시 `sa[j]`와 `sa[j-1]`을 비교하는데, 이전 rank 배열(`rank_k`)이 아닌 현재 재부여 중인 rank 배열을 참조하지 않도록 주의한다. 별도의 tmp 배열에 새 rank를 저장한 뒤 교체한다.
+
+## 수도 코드와 Activity Diagram
+
+### 의사코드
+
+```
+suffixArray(s):
+  n = len(s)
+  sa = [0, 1, ..., n-1]
+  rank = [charCode(s[i]) for i in 0..n-1]  // 불변식: rank[i] = s[i..i+gap-1]의 순위
+  tmp  = array of length n
+
+  gap = 1
+  while gap < n:
+    // 키 = (rank[i], rank[i+gap]) — 범위 밖은 -1
+    key = (i) => [rank[i], i + gap < n ? rank[i + gap] : -1]
+
+    sort sa by key(sa[i])           // 비교 정렬 or Radix Sort
+
+    // 새 rank 재부여
+    tmp[sa[0]] = 0
+    for j = 1 to n-1:
+      tmp[sa[j]] = tmp[sa[j-1]] +
+                   (key(sa[j]) != key(sa[j-1]) ? 1 : 0)  // 불변식 갱신
+
+    rank = copy of tmp
+
+    if rank[sa[n-1]] == n-1:
+      break                         // 모든 rank 고유 → 정렬 완료
+
+    gap *= 2
+
+  return sa
+```
+
+### Activity Diagram
+
+```mermaid
+flowchart TD
+    A["rank[i] = charCode(s[i]), sa = [0..n-1]"] --> B[gap = 1]
+    B --> C{gap < n AND rank에 중복 존재?}
+    C -- No --> Z[sa 반환]
+    C -- Yes --> D["key(i) = (rank[i], rank[i+gap] or -1)"]
+    D --> E[sa를 key 기준으로 정렬]
+    E --> F["tmp[sa[0]] = 0"]
+    F --> G{j = 1 to n-1}
+    G --> H{"key(sa[j]) != key(sa[j-1])?"}
+    H -- Yes --> I["tmp[sa[j]] = tmp[sa[j-1]] + 1"]
+    H -- No --> J["tmp[sa[j]] = tmp[sa[j-1]]"]
+    I --> K[다음 j]
+    J --> K
+    K --> G
+    G -- 완료 --> L[rank = tmp 복사]
+    L --> M{rank[sa[n-1]] == n-1?}
+    M -- Yes --> Z
+    M -- No --> N[gap *= 2]
+    N --> C
+```
+
+**핵심 불변식:** 라운드 $k$ 종료 시 $\text{rank}[i]$는 $s[i \ldots i+\text{gap}-1]$의 사전 순위를 정확히 반영한다. gap이 $n$ 이상이 되면 모든 접미사가 고유 순위를 가지므로 sa가 올바른 접미사 배열이 된다.
