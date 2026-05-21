@@ -28,6 +28,6 @@
  * @param A - 정수 배열 ($1 \leq N \leq 100{,}000$)
  * @returns 연속된 부분 배열의 곱의 최댓값
  */
-export function maximumProductSubarray(_A: number[]): number {
+export function maximumProductSubarray(A: number[]): number {
   throw new Error("Not implemented");
 }

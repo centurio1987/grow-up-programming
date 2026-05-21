@@ -25,10 +25,10 @@ export class HeavyLightDecomposition {
    * @param values - 각 정점의 초기 값 (길이 $n$)
    */
   constructor(
-    _n: number,
-    _edges: [number, number][],
-    _root: number,
-    _values: number[]
+    n: number,
+    edges: [number, number][],
+    root: number,
+    values: number[]
   ) {
     throw new Error("Not implemented");
   }
@@ -36,14 +36,14 @@ export class HeavyLightDecomposition {
   /**
    * 정점 $u$의 값을 $\text{value}$로 갱신한다.
    */
-  update(_node: number, _value: number): void {
+  update(node: number, value: number): void {
     throw new Error("Not implemented");
   }
 
   /**
    * 정점 $u$와 $v$ 사이 경로의 모든 정점 값 합을 반환한다.
    */
-  queryPath(_u: number, _v: number): number {
+  queryPath(u: number, v: number): number {
     throw new Error("Not implemented");
   }
 }

@@ -37,6 +37,6 @@
  * @param amount - 만들 금액 ($0 \leq amount \leq 10^4$)
  * @returns 최소 동전 개수, 만들 수 없으면 $-1$
  */
-export function unboundedKnapsack(_coins: number[], _amount: number): number {
+export function unboundedKnapsack(coins: number[], amount: number): number {
   throw new Error("Not implemented");
 }

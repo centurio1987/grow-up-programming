@@ -26,6 +26,6 @@
  * @param k - 목표 합
  * @returns 합이 $k$인 부분 배열의 개수
  */
-export function subarraySumEqualsK(_nums: number[], _k: number): number {
+export function subarraySumEqualsK(nums: number[], k: number): number {
   throw new Error("Not implemented");
 }

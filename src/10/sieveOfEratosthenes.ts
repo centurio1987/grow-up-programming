@@ -18,6 +18,6 @@
  * @param n - 상한 (음이 아닌 정수)
  * @returns $n$ 이하의 모든 소수 (오름차순)
  */
-export function sieveOfEratosthenes(_n: number): number[] {
+export function sieveOfEratosthenes(n: number): number[] {
   throw new Error("Not implemented");
 }

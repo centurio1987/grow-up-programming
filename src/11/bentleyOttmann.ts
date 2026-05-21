@@ -24,6 +24,6 @@ export type Segment = [Point, Point];
  * @param segments - 선분 배열 ($1 \leq n \leq 10^5$, $-10^9 \leq x, y \leq 10^9$)
  * @returns 교차하는 선분 쌍의 개수 ($\geq 0$)
  */
-export function bentleyOttmann(_segments: Segment[]): number {
+export function bentleyOttmann(segments: Segment[]): number {
   throw new Error("Not implemented");
 }

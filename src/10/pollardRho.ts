@@ -19,6 +19,6 @@
  * @param n - 인수분해 대상 정수 (bigint, $n \geq 2$, 합성수 권장)
  * @returns $n$의 비자명한 약수 ($1 < d \leq n$). 소수인 경우 $n$.
  */
-export function pollardRho(_n: bigint): bigint {
+export function pollardRho(n: bigint): bigint {
   throw new Error("Not implemented");
 }

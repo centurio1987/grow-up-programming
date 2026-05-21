@@ -27,6 +27,6 @@
  * @param t - 두 번째 문자열 ($0 \leq |t| \leq 1{,}000$)
  * @returns 공통 부분 수열의 최대 길이 ($\geq 0$)
  */
-export function longestCommonSubsequence(_s: string, _t: string): number {
+export function longestCommonSubsequence(s: string, t: string): number {
   throw new Error("Not implemented");
 }

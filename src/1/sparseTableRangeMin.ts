@@ -29,6 +29,6 @@
  * @param queries - 질의 배열 $[(l, r), \ldots]$
  * @returns 각 질의 구간의 최솟값 배열
  */
-export function sparseTableRangeMin(_A: number[], _queries: Array<[number, number]>): number[] {
+export function sparseTableRangeMin(A: number[], queries: Array<[number, number]>): number[] {
   throw new Error("Not implemented");
 }

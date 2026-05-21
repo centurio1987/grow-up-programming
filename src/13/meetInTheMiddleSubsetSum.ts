@@ -21,6 +21,6 @@
  * @param target - 목표 합 ($-10^{18} \leq \text{target} \leq 10^{18}$)
  * @returns 합이 target인 부분집합이 존재하면 `true`, 아니면 `false`
  */
-export function meetInTheMiddleSubsetSum(_nums: number[], _target: number): boolean {
+export function meetInTheMiddleSubsetSum(nums: number[], target: number): boolean {
   throw new Error("Not implemented");
 }

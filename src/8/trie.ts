@@ -23,7 +23,7 @@ export class Trie {
    *
    * @param word - 삽입할 단어 ($0 \leq |word| \leq 10^{5}$)
    */
-  insert(_word: string): void {
+  insert(word: string): void {
     throw new Error("Not implemented");
   }
 
@@ -33,7 +33,7 @@ export class Trie {
    * @param word - 검색할 단어
    * @returns `word`가 이전에 `insert`된 적이 있으면 `true`
    */
-  search(_word: string): boolean {
+  search(word: string): boolean {
     throw new Error("Not implemented");
   }
 
@@ -43,7 +43,7 @@ export class Trie {
    * @param prefix - 검사할 접두사
    * @returns 그 접두사로 시작하는 단어가 존재하면 `true`
    */
-  startsWith(_prefix: string): boolean {
+  startsWith(prefix: string): boolean {
     throw new Error("Not implemented");
   }
 }

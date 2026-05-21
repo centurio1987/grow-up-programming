@@ -32,7 +32,7 @@ export class Treap {
    *
    * @param x - 삽입할 키
    */
-  insert(_x: number): void {
+  insert(x: number): void {
     throw new Error("Not implemented");
   }
 
@@ -41,7 +41,7 @@ export class Treap {
    *
    * @param x - 삭제할 키
    */
-  delete(_x: number): void {
+  delete(x: number): void {
     throw new Error("Not implemented");
   }
 
@@ -51,7 +51,7 @@ export class Treap {
    * @param k - 순위 ($1 \leq k \leq |T|$)
    * @returns $k$번째 키
    */
-  findKth(_k: number): number {
+  findKth(k: number): number {
     throw new Error("Not implemented");
   }
 }

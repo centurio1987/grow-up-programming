@@ -22,7 +22,7 @@ export class UnionFind {
    *
    * @param n - 원소의 개수 ($1 \leq n \leq 10^5$)
    */
-  constructor(_n: number) {
+  constructor(n: number) {
     throw new Error("Not implemented");
   }
 
@@ -32,7 +32,7 @@ export class UnionFind {
    * @param x - 원소 ($0 \leq x < n$)
    * @returns 대표 원소
    */
-  find(_x: number): number {
+  find(x: number): number {
     throw new Error("Not implemented");
   }
 
@@ -42,7 +42,7 @@ export class UnionFind {
    * @param x - 원소 ($0 \leq x < n$)
    * @param y - 원소 ($0 \leq y < n$)
    */
-  union(_x: number, _y: number): void {
+  union(x: number, y: number): void {
     throw new Error("Not implemented");
   }
 
@@ -55,7 +55,7 @@ export class UnionFind {
    * @param y - 원소
    * @returns 같은 집합이면 `true`
    */
-  connected(_x: number, _y: number): boolean {
+  connected(x: number, y: number): boolean {
     throw new Error("Not implemented");
   }
 }

@@ -27,8 +27,8 @@
  * @returns 길이 $V \times V$의 거리 행렬, 도달 불가능한 경로는 `Infinity`
  */
 export function floydWarshall(
-  _n: number,
-  _edges: [number, number, number][],
+  n: number,
+  edges: [number, number, number][],
 ): number[][] {
   throw new Error("Not implemented");
 }

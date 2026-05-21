@@ -34,6 +34,6 @@
  * @param amount - 만들 금액 ($0 \leq amount \leq 10^4$)
  * @returns 조합의 수 ($\geq 0$)
  */
-export function coinChangeWays(_coins: number[], _amount: number): number {
+export function coinChangeWays(coins: number[], amount: number): number {
   throw new Error("Not implemented");
 }

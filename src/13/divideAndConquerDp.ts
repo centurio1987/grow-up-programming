@@ -23,6 +23,6 @@
  * @param k - 분할 개수 ($1 \leq k \leq n$)
  * @returns 분할 비용의 최솟값 ($\geq 0$)
  */
-export function divideAndConquerDp(_cost: number[][], _k: number): number {
+export function divideAndConquerDp(cost: number[][], k: number): number {
   throw new Error("Not implemented");
 }

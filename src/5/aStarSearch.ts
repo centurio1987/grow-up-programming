@@ -33,11 +33,11 @@
  * @returns 최단 경로 비용. 도달 불가능하면 `Infinity`
  */
 export function aStarSearch(
-  _n: number,
-  _edges: [number, number, number][],
-  _src: number,
-  _goal: number,
-  _h: (v: number) => number,
+  n: number,
+  edges: [number, number, number][],
+  src: number,
+  goal: number,
+  h: (v: number) => number,
 ): number {
   throw new Error("Not implemented");
 }

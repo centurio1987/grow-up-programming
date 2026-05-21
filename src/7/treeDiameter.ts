@@ -16,6 +16,6 @@
  * @param edges - 간선 목록 $[u, v, w]$, $0 \leq u, v < n$, $w \geq 0$
  * @returns 트리의 지름 (가중치 합)
  */
-export function treeDiameter(_n: number, _edges: [number, number, number][]): number {
+export function treeDiameter(n: number, edges: [number, number, number][]): number {
   throw new Error("Not implemented");
 }

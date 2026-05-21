@@ -14,6 +14,6 @@
  * @param A - 정수 배열 ($1 \leq N \leq 10{,}000$, $-10^9 \leq A[i] \leq 10^9$)
  * @returns 오름차순으로 정렬된 새 배열
  */
-export function insertionSort(_A: number[]): number[] {
+export function insertionSort(A: number[]): number[] {
   throw new Error("Not implemented");
 }

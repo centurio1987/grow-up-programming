@@ -33,8 +33,8 @@
  * @returns 모든 갱신 후의 배열 $A$
  */
 export function diffArrayRangeUpdate(
-  _N: number,
-  _updates: Array<[number, number, number]>,
+  N: number,
+  updates: Array<[number, number, number]>,
 ): number[] {
   throw new Error("Not implemented");
 }

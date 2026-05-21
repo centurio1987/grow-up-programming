@@ -30,10 +30,10 @@
  * @returns `{ flow }`: 소스에서 싱크로의 최대 유량
  */
 export function maxFlow(
-  _n: number,
-  _edges: [number, number, number][],
-  _source: number,
-  _sink: number,
+  n: number,
+  edges: [number, number, number][],
+  source: number,
+  sink: number,
 ): { flow: number } {
   throw new Error("Not implemented");
 }

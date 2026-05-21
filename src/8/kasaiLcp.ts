@@ -26,6 +26,6 @@
  * @param sa - $s$의 접미사 배열 (길이 $n$)
  * @returns 길이 $n$의 LCP 배열 (마지막 원소는 0)
  */
-export function kasaiLcp(_s: string, _sa: number[]): number[] {
+export function kasaiLcp(s: string, sa: number[]): number[] {
   throw new Error("Not implemented");
 }

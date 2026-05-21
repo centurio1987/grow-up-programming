@@ -22,6 +22,6 @@
  * @param s - 입력 문자열 ($1 \leq |s| \leq 10^{5}$)
  * @returns 접미사 시작 인덱스의 정렬된 배열 (길이 $n$)
  */
-export function suffixArray(_s: string): number[] {
+export function suffixArray(s: string): number[] {
   throw new Error("Not implemented");
 }

@@ -32,6 +32,6 @@
  * @param K - 분할할 부분 배열 개수 ($1 \leq K \leq N$)
  * @returns 가능한 분할들 중 부분 합 최댓값의 최솟값
  */
-export function parametricBinarySearch(_A: number[], _K: number): number {
+export function parametricBinarySearch(A: number[], K: number): number {
   throw new Error("Not implemented");
 }

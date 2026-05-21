@@ -27,9 +27,9 @@
  * @returns 최대 매칭의 크기 $|M|$
  */
 export function maxBipartiteMatching(
-  _left: number,
-  _right: number,
-  _edges: [number, number][],
+  left: number,
+  right: number,
+  edges: [number, number][],
 ): number {
   throw new Error("Not implemented");
 }

@@ -19,6 +19,6 @@
  * @param k - 반환할 상위 빈도 원소 개수 ($1 \leq k \leq$ 고유값 개수)
  * @returns 빈도 상위 $k$개 원소 (빈도 내림차순)
  */
-export function topKFrequent(_A: number[], _k: number): number[] {
+export function topKFrequent(A: number[], k: number): number[] {
   throw new Error("Not implemented");
 }

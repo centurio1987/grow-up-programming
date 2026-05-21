@@ -20,7 +20,7 @@
  * @param s - 입력 문자열 ($1 \leq |s| \leq 10^{5}$)
  */
 export class SuffixAutomaton {
-  constructor(_s: string) {
+  constructor(s: string) {
     throw new Error("Not implemented");
   }
 
@@ -39,7 +39,7 @@ export class SuffixAutomaton {
    * @param t - 검사할 문자열
    * @returns $t \in \text{Sub}(s)$ 이면 `true`, 아니면 `false`
    */
-  contains(_t: string): boolean {
+  contains(t: string): boolean {
     throw new Error("Not implemented");
   }
 }

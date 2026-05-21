@@ -28,7 +28,7 @@ export class BloomFilter {
    * @param size - 비트 배열 크기 $m$ ($1 \leq m \leq 10^6$)
    * @param hashCount - 해시 함수 개수 $k$ ($1 \leq k \leq 16$)
    */
-  constructor(_size: number, _hashCount: number) {
+  constructor(size: number, hashCount: number) {
     throw new Error("Not implemented");
   }
 
@@ -37,7 +37,7 @@ export class BloomFilter {
    *
    * @param item - 원소 (문자열)
    */
-  add(_item: string): void {
+  add(item: string): void {
     throw new Error("Not implemented");
   }
 
@@ -50,7 +50,7 @@ export class BloomFilter {
    * @param item - 원소 (문자열)
    * @returns 가능한 멤버십 여부
    */
-  has(_item: string): boolean {
+  has(item: string): boolean {
     throw new Error("Not implemented");
   }
 }

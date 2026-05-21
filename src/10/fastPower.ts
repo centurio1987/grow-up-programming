@@ -20,6 +20,6 @@
  * @param mod - 모듈러 ($m \geq 1$, bigint)
  * @returns $\text{base}^{\text{exp}} \bmod m$ ($0 \leq$ 결과 $< m$)
  */
-export function fastPower(_base: bigint, _exp: bigint, _mod: bigint): bigint {
+export function fastPower(base: bigint, exp: bigint, mod: bigint): bigint {
   throw new Error("Not implemented");
 }

@@ -31,6 +31,6 @@
  * @param dims - 행렬 차원 배열 (길이 $n + 1$, $1 \leq n \leq 100$)
  * @returns 최소 스칼라 곱셈 횟수 ($\geq 0$)
  */
-export function matrixChainMultiplication(_dims: number[]): number {
+export function matrixChainMultiplication(dims: number[]): number {
   throw new Error("Not implemented");
 }

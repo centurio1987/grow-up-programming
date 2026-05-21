@@ -22,6 +22,6 @@ export type Segment = [Point, Point];
  * @param polygon - 다각형의 정점 배열 ($3 \leq n \leq 10^5$, 단순 다각형)
  * @returns 점이 다각형 내부(경계 포함)에 있으면 `true`
  */
-export function pointInPolygon(_p: Point, _polygon: Point[]): boolean {
+export function pointInPolygon(p: Point, polygon: Point[]): boolean {
   throw new Error("Not implemented");
 }

@@ -20,8 +20,8 @@
  * @returns `{ patternIndex, position }` 매칭 결과 배열 (position 오름차순)
  */
 export function ahoCorasick(
-  _text: string,
-  _patterns: string[],
+  text: string,
+  patterns: string[],
 ): Array<{ patternIndex: number; position: number }> {
   throw new Error("Not implemented");
 }

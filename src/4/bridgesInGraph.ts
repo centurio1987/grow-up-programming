@@ -26,8 +26,8 @@
  * @returns 다리 간선들의 정렬된 배열 (각 원소는 $[u, v]$, $u < v$)
  */
 export function bridgesInGraph(
-  _n: number,
-  _edges: [number, number][],
+  n: number,
+  edges: [number, number][],
 ): [number, number][] {
   throw new Error("Not implemented");
 }

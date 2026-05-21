@@ -29,7 +29,7 @@ export class OrderStatisticTree {
    *
    * @param x - 삽입할 값
    */
-  insert(_x: number): void {
+  insert(x: number): void {
     throw new Error("Not implemented");
   }
 
@@ -38,7 +38,7 @@ export class OrderStatisticTree {
    *
    * @param x - 삭제할 값
    */
-  delete(_x: number): void {
+  delete(x: number): void {
     throw new Error("Not implemented");
   }
 
@@ -50,7 +50,7 @@ export class OrderStatisticTree {
    * @param k - 순위 ($1 \leq k \leq |S|$)
    * @returns $k$번째 원소
    */
-  kth(_k: number): number {
+  kth(k: number): number {
     throw new Error("Not implemented");
   }
 
@@ -62,7 +62,7 @@ export class OrderStatisticTree {
    * @param x - 순위를 구할 값
    * @returns $x$보다 작은 원소의 개수 ($\geq 0$)
    */
-  rank(_x: number): number {
+  rank(x: number): number {
     throw new Error("Not implemented");
   }
 }

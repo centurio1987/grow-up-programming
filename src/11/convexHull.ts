@@ -23,6 +23,6 @@ export type Segment = [Point, Point];
  * @param points - 점들의 배열 ($1 \leq n \leq 10^5$, $-10^9 \leq x, y \leq 10^9$)
  * @returns 볼록 껍질의 꼭짓점을 반시계 방향으로 정렬한 배열 (공선 중간 점 제외)
  */
-export function convexHull(_points: Point[]): Point[] {
+export function convexHull(points: Point[]): Point[] {
   throw new Error("Not implemented");
 }

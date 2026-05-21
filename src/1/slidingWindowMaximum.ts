@@ -30,6 +30,6 @@
  * @param k - 윈도우 크기 ($1 \leq k \leq N$)
  * @returns 각 윈도우 위치에서의 최댓값 배열 (길이 $N - k + 1$)
  */
-export function slidingWindowMaximum(_nums: number[], _k: number): number[] {
+export function slidingWindowMaximum(nums: number[], k: number): number[] {
   throw new Error("Not implemented");
 }

@@ -26,6 +26,6 @@
  * @param S - 합 상한 ($S \geq 0$)
  * @returns 합 $\leq S$인 가장 긴 연속 부분 배열의 길이 ($\geq 0$)
  */
-export function longestSubarrayAtMostSum(_nums: number[], _S: number): number {
+export function longestSubarrayAtMostSum(nums: number[], S: number): number {
   throw new Error("Not implemented");
 }

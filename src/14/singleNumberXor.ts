@@ -23,6 +23,6 @@
  * @param nums - 32비트 정수 배열 ($1 \leq N \leq 10^6$, $|nums[i]| < 2^{31}$)
  * @returns 홀수 번 등장하는 유일한 원소
  */
-export function singleNumberXor(_nums: number[]): number {
+export function singleNumberXor(nums: number[]): number {
   throw new Error("Not implemented");
 }

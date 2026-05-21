@@ -15,6 +15,6 @@
  * @param k - 1-based 인덱스 ($1 \leq k \leq N$)
  * @returns 정렬했을 때 $k$번째로 작은 원소
  */
-export function kthSmallest(_A: number[], _k: number): number {
+export function kthSmallest(A: number[], k: number): number {
   throw new Error("Not implemented");
 }

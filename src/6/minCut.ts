@@ -34,10 +34,10 @@
  * @returns `{ cut }`: 최소 컷 용량
  */
 export function minCut(
-  _n: number,
-  _edges: [number, number, number][],
-  _source: number,
-  _sink: number,
+  n: number,
+  edges: [number, number, number][],
+  source: number,
+  sink: number,
 ): { cut: number } {
   throw new Error("Not implemented");
 }

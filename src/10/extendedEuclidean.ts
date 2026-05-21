@@ -22,8 +22,8 @@
  * @returns `{ g, x, y }` 형태의 객체. $g = \gcd(a, b)$, $a x + b y = g$.
  */
 export function extendedEuclidean(
-  _a: bigint,
-  _b: bigint,
+  a: bigint,
+  b: bigint,
 ): { g: bigint; x: bigint; y: bigint } {
   throw new Error("Not implemented");
 }

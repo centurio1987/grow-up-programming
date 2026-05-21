@@ -23,7 +23,7 @@ export class SegmentTreeLazy {
    *
    * @param n - 배열의 크기 ($1 \leq n \leq 10^5$)
    */
-  constructor(_n: number) {
+  constructor(n: number) {
     throw new Error("Not implemented");
   }
 
@@ -36,7 +36,7 @@ export class SegmentTreeLazy {
    * @param r - 구간 끝
    * @param val - 더할 값
    */
-  rangeAdd(_l: number, _r: number, _val: number): void {
+  rangeAdd(l: number, r: number, val: number): void {
     throw new Error("Not implemented");
   }
 
@@ -49,7 +49,7 @@ export class SegmentTreeLazy {
    * @param r - 구간 끝
    * @returns 구간 합
    */
-  rangeSum(_l: number, _r: number): number {
+  rangeSum(l: number, r: number): number {
     throw new Error("Not implemented");
   }
 }

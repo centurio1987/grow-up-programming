@@ -22,6 +22,6 @@ export type Segment = [Point, Point];
  * @param points - 점 배열 ($2 \leq n \leq 10^5$, $-10^9 \leq x, y \leq 10^9$ — 정수 좌표 권장)
  * @returns 가장 먼 두 점 사이의 제곱 거리 ($\geq 0$)
  */
-export function rotatingCalipersDiameter(_points: Point[]): number {
+export function rotatingCalipersDiameter(points: Point[]): number {
   throw new Error("Not implemented");
 }

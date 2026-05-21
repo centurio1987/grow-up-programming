@@ -24,8 +24,8 @@
  * @returns 길이 $n$의 위상 정렬 결과 배열, 사이클이 존재하면 `null`
  */
 export function topologicalSort(
-  _n: number,
-  _edges: [number, number][],
+  n: number,
+  edges: [number, number][],
 ): number[] | null {
   throw new Error("Not implemented");
 }

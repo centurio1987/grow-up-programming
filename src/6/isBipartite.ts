@@ -24,8 +24,8 @@
  * @returns 이분 그래프이면 `true`, 아니면 `false`
  */
 export function isBipartite(
-  _n: number,
-  _edges: [number, number][],
+  n: number,
+  edges: [number, number][],
 ): boolean {
   throw new Error("Not implemented");
 }

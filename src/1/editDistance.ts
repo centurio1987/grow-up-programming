@@ -30,6 +30,6 @@
  * @param t - 목표 문자열 ($0 \leq |t| \leq 1{,}000$)
  * @returns 최소 편집 횟수 ($\geq 0$)
  */
-export function editDistance(_s: string, _t: string): number {
+export function editDistance(s: string, t: string): number {
   throw new Error("Not implemented");
 }

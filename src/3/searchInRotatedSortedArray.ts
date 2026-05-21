@@ -30,6 +30,6 @@
  * @param target - 찾을 목표값
  * @returns $A[i] = \text{target}$을 만족하는 인덱스, 없으면 $-1$
  */
-export function searchInRotatedSortedArray(_A: number[], _target: number): number {
+export function searchInRotatedSortedArray(A: number[], target: number): number {
   throw new Error("Not implemented");
 }

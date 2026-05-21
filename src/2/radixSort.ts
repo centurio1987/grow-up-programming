@@ -12,6 +12,6 @@
  * @param A - 비음 정수 배열 ($1 \leq N \leq 100{,}000$, $0 \leq A[i] \leq 10^9$)
  * @returns 오름차순으로 정렬된 새 배열
  */
-export function radixSort(_A: number[]): number[] {
+export function radixSort(A: number[]): number[] {
   throw new Error("Not implemented");
 }

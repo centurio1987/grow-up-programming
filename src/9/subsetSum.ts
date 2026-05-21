@@ -32,6 +32,6 @@
  * @param target - 목표 합 ($0 \leq target \leq 10^4$)
  * @returns 부분집합 합이 $target$인 것이 존재하면 `true`
  */
-export function subsetSum(_nums: number[], _target: number): boolean {
+export function subsetSum(nums: number[], target: number): boolean {
   throw new Error("Not implemented");
 }

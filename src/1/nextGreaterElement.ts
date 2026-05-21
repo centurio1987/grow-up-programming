@@ -23,6 +23,6 @@
  * @param nums - 정수 배열 ($1 \leq N \leq 100{,}000$)
  * @returns 각 위치의 NGE (없으면 $-1$)
  */
-export function nextGreaterElement(_nums: number[]): number[] {
+export function nextGreaterElement(nums: number[]): number[] {
   throw new Error("Not implemented");
 }

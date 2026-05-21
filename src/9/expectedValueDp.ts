@@ -31,6 +31,6 @@
  * @param K - 목표 합 임계값 ($0 \leq K \leq 6N$)
  * @returns 합이 $K$ 이상일 확률 ($\in [0, 1]$)
  */
-export function expectedValueDp(_N: number, _K: number): number {
+export function expectedValueDp(N: number, K: number): number {
   throw new Error("Not implemented");
 }

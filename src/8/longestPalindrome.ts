@@ -16,6 +16,6 @@
  * @param s - 입력 문자열 ($0 \leq |s| \leq 10^{5}$)
  * @returns 가장 긴 회문 부분 문자열. 빈 문자열 입력 시 빈 문자열을 반환한다.
  */
-export function longestPalindrome(_s: string): string {
+export function longestPalindrome(s: string): string {
   throw new Error("Not implemented");
 }

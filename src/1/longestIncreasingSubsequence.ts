@@ -27,6 +27,6 @@
  * @param A - 정수 배열 ($1 \leq N \leq 100{,}000$)
  * @returns 엄격 증가 LIS의 길이 ($\geq 1$)
  */
-export function longestIncreasingSubsequence(_A: number[]): number {
+export function longestIncreasingSubsequence(A: number[]): number {
   throw new Error("Not implemented");
 }

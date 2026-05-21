@@ -34,10 +34,10 @@
  * @returns `{ flow, cost }`: 최대 유량 값과 그때의 최소 비용
  */
 export function minCostMaxFlow(
-  _n: number,
-  _edges: [number, number, number, number][],
-  _source: number,
-  _sink: number,
+  n: number,
+  edges: [number, number, number, number][],
+  source: number,
+  sink: number,
 ): { flow: number; cost: number } {
   throw new Error("Not implemented");
 }

@@ -32,7 +32,7 @@ export class ConvexHullTrick {
    * @param m - 기울기 ($-10^9 \leq m \leq 10^9$, 비감소 순서)
    * @param b - 절편 ($-10^{18} \leq b \leq 10^{18}$)
    */
-  addLine(_m: number, _b: number): void {
+  addLine(m: number, b: number): void {
     throw new Error("Not implemented");
   }
 
@@ -42,7 +42,7 @@ export class ConvexHullTrick {
    * @param x - 평가 지점 ($-10^9 \leq x \leq 10^9$)
    * @returns $\min_i (m_i x + b_i)$
    */
-  query(_x: number): number {
+  query(x: number): number {
     throw new Error("Not implemented");
   }
 }

@@ -23,8 +23,8 @@
  * @returns SCC들의 배열 (각 SCC는 정렬된 정점 번호 배열)
  */
 export function stronglyConnectedComponents(
-  _n: number,
-  _edges: [number, number][],
+  n: number,
+  edges: [number, number][],
 ): number[][] {
   throw new Error("Not implemented");
 }

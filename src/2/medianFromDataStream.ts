@@ -25,7 +25,7 @@ export class MedianFinder {
    *
    * @param num - 새로 들어온 정수
    */
-  addNum(_num: number): void {
+  addNum(num: number): void {
     throw new Error("Not implemented");
   }
 

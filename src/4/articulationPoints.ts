@@ -23,8 +23,8 @@
  * @returns 단절점 정점 번호의 정렬된 배열
  */
 export function articulationPoints(
-  _n: number,
-  _edges: [number, number][],
+  n: number,
+  edges: [number, number][],
 ): number[] {
   throw new Error("Not implemented");
 }

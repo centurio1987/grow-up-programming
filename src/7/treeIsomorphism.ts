@@ -21,9 +21,9 @@
  * @returns 두 트리가 동형이면 true, 아니면 false
  */
 export function treeIsomorphism(
-  _n: number,
-  _edges1: [number, number][],
-  _edges2: [number, number][]
+  n: number,
+  edges1: [number, number][],
+  edges2: [number, number][]
 ): boolean {
   throw new Error("Not implemented");
 }

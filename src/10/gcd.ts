@@ -18,6 +18,6 @@
  * @param b - 두 번째 정수 ($-2^{63} \leq b \leq 2^{63}-1$ 범위의 bigint)
  * @returns 두 수의 최대공약수 ($\geq 0$)
  */
-export function gcd(_a: bigint, _b: bigint): bigint {
+export function gcd(a: bigint, b: bigint): bigint {
   throw new Error("Not implemented");
 }

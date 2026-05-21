@@ -17,6 +17,6 @@
  * @param pattern - 검색할 패턴 ($0 \leq m \leq 10^{5}$)
  * @returns 패턴이 등장하는 시작 인덱스의 오름차순 배열
  */
-export function findAllOccurrences(_text: string, _pattern: string): number[] {
+export function findAllOccurrences(text: string, pattern: string): number[] {
   throw new Error("Not implemented");
 }

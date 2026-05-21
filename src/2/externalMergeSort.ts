@@ -27,9 +27,9 @@
  * @returns 작성된 출력 파일 경로 (`outputPath`와 동일)
  */
 export function externalMergeSort(
-  _inputPath: string,
-  _outputPath: string,
-  _memoryLimit: number,
+  inputPath: string,
+  outputPath: string,
+  memoryLimit: number,
 ): Promise<string> {
   throw new Error("Not implemented");
 }

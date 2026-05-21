@@ -18,6 +18,6 @@
  * @param freq - 인접 파일 크기 배열 ($1 \leq n \leq 5000$, $\text{freq}[i] \geq 0$)
  * @returns 최적 병합 총 비용 ($\geq 0$)
  */
-export function knuthOptimization(_freq: number[]): number {
+export function knuthOptimization(freq: number[]): number {
   throw new Error("Not implemented");
 }

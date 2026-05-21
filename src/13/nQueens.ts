@@ -16,6 +16,6 @@
  * @param n - 보드 크기 ($1 \leq n \leq 12$)
  * @returns 가능한 배치의 수 (예: $n=4 \Rightarrow 2$, $n=8 \Rightarrow 92$)
  */
-export function nQueens(_n: number): number {
+export function nQueens(n: number): number {
   throw new Error("Not implemented");
 }

@@ -32,7 +32,7 @@ export class CountMinSketch {
    * @param width - 카운터 배열의 폭 $w$ ($1 \leq w \leq 10^4$)
    * @param depth - 해시 함수 개수 $d$ ($1 \leq d \leq 16$)
    */
-  constructor(_width: number, _depth: number) {
+  constructor(width: number, depth: number) {
     throw new Error("Not implemented");
   }
 
@@ -42,7 +42,7 @@ export class CountMinSketch {
    * @param item - 원소 (문자열)
    * @param count - 추가할 빈도 ($\geq 1$)
    */
-  update(_item: string, _count: number): void {
+  update(item: string, count: number): void {
     throw new Error("Not implemented");
   }
 
@@ -54,7 +54,7 @@ export class CountMinSketch {
    * @param item - 원소 (문자열)
    * @returns 빈도 추정값 (실제 빈도의 상한)
    */
-  estimate(_item: string): number {
+  estimate(item: string): number {
     throw new Error("Not implemented");
   }
 }

@@ -23,8 +23,8 @@
  * @returns 최소 신장 트리의 가중치 합. 연결되지 않으면 $-1$
  */
 export function primMst(
-  _n: number,
-  _edges: [number, number, number][],
+  n: number,
+  edges: [number, number, number][],
 ): number {
   throw new Error("Not implemented");
 }

@@ -27,9 +27,9 @@
  *          $s$에서 도달 가능한 음수 사이클이 있으면 `hasNegativeCycle = true`
  */
 export function bellmanFord(
-  _n: number,
-  _edges: [number, number, number][],
-  _src: number,
+  n: number,
+  edges: [number, number, number][],
+  src: number,
 ): { dist: number[]; hasNegativeCycle: boolean } {
   throw new Error("Not implemented");
 }

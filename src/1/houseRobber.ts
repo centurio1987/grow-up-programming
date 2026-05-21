@@ -32,6 +32,6 @@
  * @param nums - 각 집의 현금 ($0 \leq N \leq 100{,}000$)
  * @returns 털 수 있는 최대 금액 ($\geq 0$)
  */
-export function houseRobber(_nums: number[]): number {
+export function houseRobber(nums: number[]): number {
   throw new Error("Not implemented");
 }

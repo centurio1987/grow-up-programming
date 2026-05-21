@@ -33,6 +33,6 @@
  * @param K - 목표 자릿수 합 ($0 \leq K \leq 135$)
  * @returns 자릿수 합이 $K$인 $[1, N]$ 정수의 개수
  */
-export function digitDp(_N: number, _K: number): number {
+export function digitDp(N: number, K: number): number {
   throw new Error("Not implemented");
 }

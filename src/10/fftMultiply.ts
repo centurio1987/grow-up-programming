@@ -20,6 +20,6 @@
  * @param b - 두 번째 다항식의 계수 (낮은 차수부터)
  * @returns 두 다항식의 곱 다항식의 계수 (길이 $n + m - 1$, 빈 배열일 시 `[]`)
  */
-export function fftMultiply(_a: number[], _b: number[]): number[] {
+export function fftMultiply(a: number[], b: number[]): number[] {
   throw new Error("Not implemented");
 }

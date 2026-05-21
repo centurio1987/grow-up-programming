@@ -26,10 +26,10 @@ export class SubtreeSumQuery {
    * @param values - 각 정점의 초기 값 (길이 $n$)
    */
   constructor(
-    _n: number,
-    _edges: [number, number][],
-    _root: number,
-    _values: number[]
+    n: number,
+    edges: [number, number][],
+    root: number,
+    values: number[]
   ) {
     throw new Error("Not implemented");
   }
@@ -37,14 +37,14 @@ export class SubtreeSumQuery {
   /**
    * 정점 $u$의 값을 $\text{value}$로 갱신한다.
    */
-  update(_node: number, _value: number): void {
+  update(node: number, value: number): void {
     throw new Error("Not implemented");
   }
 
   /**
    * 정점 $u$를 루트로 하는 부분 트리의 정점 값 합을 반환한다.
    */
-  querySubtree(_node: number): number {
+  querySubtree(node: number): number {
     throw new Error("Not implemented");
   }
 }

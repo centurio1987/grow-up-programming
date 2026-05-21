@@ -27,8 +27,8 @@
  * @returns 해 $\{ x, M \}$ 또는 `null`
  */
 export function crt(
-  _remainders: bigint[],
-  _moduli: bigint[],
+  remainders: bigint[],
+  moduli: bigint[],
 ): { x: bigint; M: bigint } | null {
   throw new Error("Not implemented");
 }

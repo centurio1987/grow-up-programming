@@ -40,9 +40,9 @@
  * @returns 얻을 수 있는 최대 가치 ($\geq 0$)
  */
 export function knapsack01(
-  _weights: number[],
-  _values: number[],
-  _W: number,
+  weights: number[],
+  values: number[],
+  W: number,
 ): number {
   throw new Error("Not implemented");
 }

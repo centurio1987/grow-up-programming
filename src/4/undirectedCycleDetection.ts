@@ -18,8 +18,8 @@
  * @returns 사이클 존재 여부
  */
 export function undirectedCycleDetection(
-  _n: number,
-  _edges: [number, number][],
+  n: number,
+  edges: [number, number][],
 ): boolean {
   throw new Error("Not implemented");
 }

@@ -32,6 +32,6 @@ export type SegOp =
  * @param ops - 연산 순서 ($1 \leq Q \leq 100{,}000$)
  * @returns 모든 query 결과 배열
  */
-export function segmentTreeRangeMin(_A: number[], _ops: SegOp[]): number[] {
+export function segmentTreeRangeMin(A: number[], ops: SegOp[]): number[] {
   throw new Error("Not implemented");
 }

@@ -21,6 +21,6 @@
  * @param edges - 간선 목록 $[u, v]$, $0 \leq u, v < n$
  * @returns 각 정점 $v$에 대한 거리 합 $S(v)$ (길이 $n$)
  */
-export function treeRerooting(_n: number, _edges: [number, number][]): number[] {
+export function treeRerooting(n: number, edges: [number, number][]): number[] {
   throw new Error("Not implemented");
 }

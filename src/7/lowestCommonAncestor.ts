@@ -18,10 +18,10 @@
  * @returns 각 질의에 대한 LCA 결과 배열
  */
 export function lowestCommonAncestor(
-  _n: number,
-  _edges: [number, number][],
-  _root: number,
-  _queries: [number, number][]
+  n: number,
+  edges: [number, number][],
+  root: number,
+  queries: [number, number][]
 ): number[] {
   throw new Error("Not implemented");
 }

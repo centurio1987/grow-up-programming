@@ -35,9 +35,9 @@
  * @returns 최대 가중치 합
  */
 export function treeMaxIndependentSet(
-  _n: number,
-  _edges: [number, number][],
-  _weights: number[],
+  n: number,
+  edges: [number, number][],
+  weights: number[],
 ): number {
   throw new Error("Not implemented");
 }

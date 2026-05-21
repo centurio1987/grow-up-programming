@@ -27,8 +27,8 @@
  * @returns 각 질의의 distinct 원소 개수 (입력 순서)
  */
 export function mosAlgorithm(
-  _arr: number[],
-  _queries: [number, number][],
+  arr: number[],
+  queries: [number, number][],
 ): number[] {
   throw new Error("Not implemented");
 }

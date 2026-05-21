@@ -26,7 +26,7 @@ export class FenwickTree {
    *
    * @param n - 배열의 크기 ($1 \leq n \leq 10^5$)
    */
-  constructor(_n: number) {
+  constructor(n: number) {
     throw new Error("Not implemented");
   }
 
@@ -38,7 +38,7 @@ export class FenwickTree {
    * @param i - 갱신할 인덱스 ($1 \leq i \leq n$)
    * @param delta - 더할 값 ($\Delta \in \mathbb{Z}$)
    */
-  update(_i: number, _delta: number): void {
+  update(i: number, delta: number): void {
     throw new Error("Not implemented");
   }
 
@@ -50,7 +50,7 @@ export class FenwickTree {
    * @param i - 합산할 마지막 인덱스 ($0 \leq i \leq n$, $i = 0$이면 $0$)
    * @returns 접두사 합
    */
-  prefixSum(_i: number): number {
+  prefixSum(i: number): number {
     throw new Error("Not implemented");
   }
 
@@ -63,7 +63,7 @@ export class FenwickTree {
    * @param r - 구간 끝
    * @returns 구간 합
    */
-  rangeSum(_l: number, _r: number): number {
+  rangeSum(l: number, r: number): number {
     throw new Error("Not implemented");
   }
 }

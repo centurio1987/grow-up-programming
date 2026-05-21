@@ -31,10 +31,10 @@
  * @returns $f$를 최소화하는 $x$의 근사값 (구간 중점)
  */
 export function ternarySearch(
-  _f: (x: number) => number,
-  _lo: number,
-  _hi: number,
-  _epsilon: number,
+  f: (x: number) => number,
+  lo: number,
+  hi: number,
+  epsilon: number,
 ): number {
   throw new Error("Not implemented");
 }

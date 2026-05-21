@@ -27,6 +27,6 @@
  * @param heights - 히스토그램 높이 배열 ($1 \leq N \leq 100{,}000$)
  * @returns 최대 직사각형 넓이 ($\geq 0$)
  */
-export function largestRectangleInHistogram(_heights: number[]): number {
+export function largestRectangleInHistogram(heights: number[]): number {
   throw new Error("Not implemented");
 }

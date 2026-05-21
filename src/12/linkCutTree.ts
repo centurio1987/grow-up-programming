@@ -22,7 +22,7 @@ export class LinkCutTree {
    *
    * @param n - 노드의 개수 ($1 \leq n \leq 10^4$)
    */
-  constructor(_n: number) {
+  constructor(n: number) {
     throw new Error("Not implemented");
   }
 
@@ -32,7 +32,7 @@ export class LinkCutTree {
    * @param u - 노드 ($0 \leq u < n$)
    * @param v - 노드 ($0 \leq v < n$)
    */
-  link(_u: number, _v: number): void {
+  link(u: number, v: number): void {
     throw new Error("Not implemented");
   }
 
@@ -42,7 +42,7 @@ export class LinkCutTree {
    * @param u - 노드 ($0 \leq u < n$)
    * @param v - 노드 ($0 \leq v < n$)
    */
-  cut(_u: number, _v: number): void {
+  cut(u: number, v: number): void {
     throw new Error("Not implemented");
   }
 
@@ -53,7 +53,7 @@ export class LinkCutTree {
    * @param v - 노드
    * @returns 같은 트리이면 `true`
    */
-  connected(_u: number, _v: number): boolean {
+  connected(u: number, v: number): boolean {
     throw new Error("Not implemented");
   }
 }

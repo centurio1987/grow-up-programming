@@ -35,6 +35,6 @@ export type FenwickOp =
  * @param ops - 연산 순서대로의 배열 ($1 \leq Q \leq 100{,}000$)
  * @returns 모든 query 연산 결과 배열
  */
-export function fenwickRangeSum(_A: number[], _ops: FenwickOp[]): number[] {
+export function fenwickRangeSum(A: number[], ops: FenwickOp[]): number[] {
   throw new Error("Not implemented");
 }

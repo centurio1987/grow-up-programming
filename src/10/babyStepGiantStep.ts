@@ -22,6 +22,6 @@
  * @param m - 모듈러 ($m \geq 2$, bigint)
  * @returns $a^x \equiv b \pmod m$ 을 만족하는 가장 작은 $x \geq 0$. 해가 없으면 `-1n`.
  */
-export function babyStepGiantStep(_a: bigint, _b: bigint, _m: bigint): bigint {
+export function babyStepGiantStep(a: bigint, b: bigint, m: bigint): bigint {
   throw new Error("Not implemented");
 }

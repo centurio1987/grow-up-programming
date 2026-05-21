@@ -27,9 +27,9 @@
  * @returns 길이 $V$의 배열 $d$, 도달 불가능한 정점은 `Infinity`
  */
 export function spfa(
-  _n: number,
-  _edges: [number, number, number][],
-  _src: number,
+  n: number,
+  edges: [number, number, number][],
+  src: number,
 ): number[] {
   throw new Error("Not implemented");
 }

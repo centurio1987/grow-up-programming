@@ -17,6 +17,6 @@ export type Segment = [Point, Point];
  * @param polygon - 단순 다각형의 정점 배열 ($3 \leq n \leq 10^5$, $-10^9 \leq x, y \leq 10^9$)
  * @returns 다각형의 면적 ($\geq 0$, 부동소수)
  */
-export function polygonArea(_polygon: Point[]): number {
+export function polygonArea(polygon: Point[]): number {
   throw new Error("Not implemented");
 }

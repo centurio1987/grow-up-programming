@@ -19,9 +19,9 @@
  * @returns 길이 $n$의 배열, 인덱스 $i$의 값은 $d(i)$ (도달 불가 시 $-1$)
  */
 export function bfsShortestPath(
-  _n: number,
-  _edges: [number, number][],
-  _source: number,
+  n: number,
+  edges: [number, number][],
+  source: number,
 ): number[] {
   throw new Error("Not implemented");
 }

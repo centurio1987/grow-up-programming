@@ -15,6 +15,6 @@
  * @param arr - 정수 배열 ($1 \leq n \leq 10^5$)
  * @returns `{ min, max }` — 각각 배열의 최솟값과 최댓값
  */
-export function minMaxPair(_arr: number[]): { min: number; max: number } {
+export function minMaxPair(arr: number[]): { min: number; max: number } {
   throw new Error("Not implemented");
 }

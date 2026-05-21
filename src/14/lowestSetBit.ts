@@ -22,6 +22,6 @@
  * @param x - 32비트 정수 ($-2^{31} \leq x \leq 2^{31} - 1$)
  * @returns $x$의 최하위 1비트만 남긴 값 (0이면 0)
  */
-export function lowestSetBit(_x: number): number {
+export function lowestSetBit(x: number): number {
   throw new Error("Not implemented");
 }

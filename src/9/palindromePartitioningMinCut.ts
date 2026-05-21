@@ -36,6 +36,6 @@
  * @param s - 입력 문자열 ($1 \leq |s| \leq 2000$)
  * @returns 최소 컷 횟수 ($\geq 0$)
  */
-export function palindromePartitioningMinCut(_s: string): number {
+export function palindromePartitioningMinCut(s: string): number {
   throw new Error("Not implemented");
 }

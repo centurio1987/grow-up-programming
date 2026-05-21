@@ -30,6 +30,6 @@
  * @param n - 피보나치 인덱스 ($0 \leq n \leq 10^{18}$)
  * @returns $F_n$ — n번째 피보나치 수 (bigint)
  */
-export function matrixPowerFibonacci(_n: bigint): bigint {
+export function matrixPowerFibonacci(n: bigint): bigint {
   throw new Error("Not implemented");
 }

@@ -30,6 +30,6 @@
  * @param queries - 질의 배열 $[(l, r), \ldots]$ ($1 \leq Q \leq 100{,}000$)
  * @returns 각 질의에 대응되는 구간 합 배열
  */
-export function prefixSumRangeQuery(_A: number[], _queries: Array<[number, number]>): number[] {
+export function prefixSumRangeQuery(A: number[], queries: Array<[number, number]>): number[] {
   throw new Error("Not implemented");
 }

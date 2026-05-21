@@ -22,6 +22,6 @@
  * @param mask - 비트마스크 ($0 \leq \text{mask} \leq 2^{20}$)
  * @returns mask의 모든 부분집합을 내림차순으로 나열한 배열 (0 포함)
  */
-export function enumerateSubmasks(_mask: number): number[] {
+export function enumerateSubmasks(mask: number): number[] {
   throw new Error("Not implemented");
 }

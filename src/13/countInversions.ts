@@ -16,6 +16,6 @@
  * @param arr - 정수 배열 ($1 \leq n \leq 10^5$)
  * @returns 역순쌍의 총 개수 ($\geq 0$)
  */
-export function countInversions(_arr: number[]): number {
+export function countInversions(arr: number[]): number {
   throw new Error("Not implemented");
 }

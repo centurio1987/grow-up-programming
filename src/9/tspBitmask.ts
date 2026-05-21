@@ -32,6 +32,6 @@
  * @param dist - $n \times n$ 거리 행렬 ($1 \leq n \leq 20$)
  * @returns 최소 투어 비용 ($\geq 0$)
  */
-export function tspBitmask(_dist: number[][]): number {
+export function tspBitmask(dist: number[][]): number {
   throw new Error("Not implemented");
 }

@@ -14,6 +14,6 @@
  * @param n - 판별할 정수 ($n \leq 10^{12}$ 범위에서 권장)
  * @returns $n$이 소수이면 `true`, 아니면 `false`
  */
-export function isPrimeTrial(_n: number): boolean {
+export function isPrimeTrial(n: number): boolean {
   throw new Error("Not implemented");
 }

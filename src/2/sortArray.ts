@@ -16,6 +16,6 @@
  * @param A - 정수 배열 ($1 \leq N \leq 100{,}000$, $-10^9 \leq A[i] \leq 10^9$)
  * @returns 오름차순으로 정렬된 새 배열
  */
-export function sortArray(_A: number[]): number[] {
+export function sortArray(A: number[]): number[] {
   throw new Error("Not implemented");
 }

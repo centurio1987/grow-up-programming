@@ -26,6 +26,6 @@
  * @param p - 소수 모듈러 ($p \geq 2$, bigint)
  * @returns $\binom{n}{k} \bmod p$ ($0 \leq$ 결과 $< p$)
  */
-export function binomialModP(_n: bigint, _k: bigint, _p: bigint): bigint {
+export function binomialModP(n: bigint, k: bigint, p: bigint): bigint {
   throw new Error("Not implemented");
 }

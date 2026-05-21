@@ -22,6 +22,6 @@ export type Segment = [Point, Point];
  * @param points - 점들의 배열 ($2 \leq n \leq 10^5$, $-10^9 \leq x, y \leq 10^9$)
  * @returns 가장 가까운 두 점 사이의 유클리드 거리 ($\geq 0$)
  */
-export function closestPairOfPoints(_points: Point[]): number {
+export function closestPairOfPoints(points: Point[]): number {
   throw new Error("Not implemented");
 }

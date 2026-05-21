@@ -20,6 +20,6 @@
  * @param n - 판별할 정수 (bigint, $n < 2^{64}$)
  * @returns $n$이 소수이면 `true`, 아니면 `false`
  */
-export function millerRabin(_n: bigint): boolean {
+export function millerRabin(n: bigint): boolean {
   throw new Error("Not implemented");
 }
