@@ -1,0 +1,26 @@
+# Two Sum
+
+## 함수 인터페이스
+
+```ts
+export function twoSum(nums: number[], target: number): [number, number];
+```
+
+## 제약 조건
+
+- $1 \leq N \leq 10{,}000$ (여기서 $N$ 은 `nums` 의 길이)
+- `nums` 의 원소는 정수
+- 합이 `target` 이 되는 두 인덱스는 반드시 존재한다고 가정
+- 같은 인덱스를 두 번 사용하지 않는다
+
+## 문제 상세
+
+정수 배열 `nums` 와 목표값 `target` 이 주어진다. `nums[i] + nums[j] = target` 을 만족하는 서로 다른 두 인덱스 $(i, j)$ 를 찾아 `[i, j]` 형태로 반환한다.
+
+## 예시
+
+```ts
+twoSum([2, 7, 11, 15], 9);   // [0, 1]   (2 + 7 = 9)
+twoSum([3, 2, 4], 6);        // [1, 2]   (2 + 4 = 6)
+twoSum([3, 3], 6);           // [0, 1]   (3 + 3 = 6)
+```

@@ -1,0 +1,27 @@
+# 확률·기댓값 DP — 주사위 N회 합이 K 이상일 확률
+
+## 함수 인터페이스
+
+```ts
+export function expectedValueDp(N: number, K: number): number;
+```
+
+## 제약 조건
+
+- $1 \leq N \leq 1000$ (주사위 시행 횟수)
+- $0 \leq K \leq 6N$ (목표 합 임계값)
+
+## 문제 상세
+
+공정한 6면 주사위(눈: $1, 2, 3, 4, 5, 6$, 각 $\tfrac{1}{6}$ 확률)를 $N$ 번 던진다.
+
+나온 눈의 합이 $K$ 이상일 확률을 구해 반환한다. 반환값은 $[0, 1]$ 범위의 실수이다.
+
+## 예시
+
+```ts
+expectedValueDp(1, 1);   // 1        (1 이상은 항상 성립)
+expectedValueDp(1, 7);   // 0        (한 번에 7 이상은 불가능)
+expectedValueDp(1, 4);   // 0.5      (4, 5, 6이 나오면 됨 → 3/6)
+expectedValueDp(2, 7);   // 0.5833…  (두 번 던져 합 7 이상일 확률 21/36)
+```

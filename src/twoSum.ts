@@ -1,7 +1,3 @@
-/**
- * 정수 배열 nums와 목표값 target이 주어질 때, 합이 target이 되는 두 인덱스를 반환하라.
-  N ≤ 10,000
-*/
 export function twoSum(nums: number[], target: number): [number, number] {
   if (nums.length < 2) throw Error();
 
