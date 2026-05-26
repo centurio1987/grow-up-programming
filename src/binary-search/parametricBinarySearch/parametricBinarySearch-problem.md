@@ -1,5 +1,12 @@
 # Parametric Binary Search — Split Array Largest Sum
 
+## 중요도 · 난이도
+
+| 항목 | 값 |
+|------|-----|
+| 중요도 | ★★★ 상 — 필수 |
+| 난이도 | 중급 |
+
 ## 함수 인터페이스
 
 ```ts
