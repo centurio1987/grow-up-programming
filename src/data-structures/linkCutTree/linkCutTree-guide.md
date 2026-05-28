@@ -47,6 +47,27 @@ class LinkCutTree {
 
 ## 핵심 아이디어
 
+**핵심 아이디어**: "동적으로 변하는 트리를 여러 수직 경로로 쪼개고, 각 경로를 Splay Tree로 관리하면 간선 추가/삭제와 연결성 확인을 모두 $O(\log n)$에 처리할 수 있다."
+
+Union-Find는 간선 추가는 빠르지만 삭제를 지원하지 않는다. Link-Cut Tree는 원래 트리를 "선호 경로"들로 분해하고, 각 경로를 보조 Splay Tree로 표현한다. `access(v)` 연산으로 임의 노드에서 루트까지의 경로를 하나의 Splay Tree로 합칠 수 있으며, 이를 기반으로 간선 추가(`link`)와 삭제(`cut`), 연결성 확인(`connected`)을 분할 상환 $O(\log n)$에 수행한다.
+
+**풀이 구조**
+1. 각 노드에 left, right, parent, path\_parent, rev\_lazy 필드를 부여한다
+2. `access(v)`: $v$에서 루트까지를 하나의 선호 경로(Splay Tree)로 통합한다
+3. `makeRoot(v)`: `access(v)` 후 rev\_lazy로 경로를 반전시켜 $v$를 트리의 루트로 만든다
+4. `link(u, v)`: `makeRoot(u)` 후 u.path\_parent를 $v$로 연결한다
+5. `cut(u, v)` / `connected(u, v)`: `makeRoot(u)`, `access(v)` 후 Splay Tree 구조를 이용한다
+
+**조건**: 포레스트에서 간선 추가(`link`)와 삭제(`cut`)가 동적으로 일어나면서 연결성 확인이 반복되는 상황
+
+**대표 예시**: 동적 그래프 연결성 유지
+온라인으로 간선이 추가·제거되는 네트워크에서 "노드 $u$와 $v$가 연결되어 있는가?"를 반복 질의할 때, BFS/DFS로는 질의마다 $O(n)$이 걸리지만 Link-Cut Tree로는 $O(\log n)$ 분할 상환이 보장된다. Kruskal 최소 신장 트리의 동적 버전, 동적 LCA 등에도 활용된다.
+
+**언제 쓰나**
+간선 삭제가 없다면 Union-Find가 훨씬 단순하므로, `cut` 연산이 반드시 필요한 동적 트리 문제에서만 Link-Cut Tree를 선택한다.
+
+---
+
 ### 원형 아이디어와 naive 접근
 
 동적 포레스트에서 연결성 변경(`link`, `cut`)을 지원하면서 $O(\log n)$ 연결성 확인이 필요하다. 가장 단순한 접근은 인접 리스트로 트리를 유지하고, `connected` 시 BFS/DFS로 경로를 탐색하는 것이다. 이는 $O(n)$으로 $q$회 질의 시 $O(qn)$이 된다.

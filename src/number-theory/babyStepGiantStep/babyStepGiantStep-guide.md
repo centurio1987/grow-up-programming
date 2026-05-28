@@ -41,6 +41,26 @@ function babyStepGiantStep(a: bigint, b: bigint, m: bigint): bigint
 
 ## 핵심 아이디어
 
+**핵심 아이디어**: "탐색 공간을 두 절반으로 쪼개 각각 √m번만 계산한 뒤 해시맵으로 만나게 한다 — Meet in the Middle"
+
+이산 로그 문제 $a^x \equiv b \pmod{m}$에서 $x$를 0부터 m-1까지 순차적으로 시도하면 $O(m)$으로 m이 크면 불가능하다. 핵심 아이디어는 $x = iN - j$ 형태로 분해해 좌변(giant-step)과 우변(baby-step)을 각각 독립적으로 $O(\sqrt{m})$에 계산하고, 해시맵으로 일치하는 쌍을 찾는 것이다. 이렇게 하면 전체 탐색을 $O(\sqrt{m})$으로 줄일 수 있다.
+
+**풀이 구조**
+1. $N = \lceil \sqrt{m} \rceil$ 설정, $x = iN - j$로 분해
+2. Baby-step: $j = 0, \ldots, N-1$에 대해 $b \cdot a^j \bmod m$ 값을 해시맵에 저장
+3. Giant-step: $i = 1, \ldots, N$에 대해 $a^{iN} \bmod m$을 계산하며 해시맵 조회
+4. 매칭되면 $x = iN - j$ 반환, 끝까지 없으면 -1 반환
+
+**조건**: $a^x \equiv b \pmod{m}$을 만족하는 정수 $x \geq 0$가 존재하는 이산 로그 문제. 표준 BSGS는 $\gcd(a, m) = 1$ 조건을 전제한다.
+
+**대표 예시**: $3^x \equiv 6 \pmod{7}$ 풀기
+$N = \lceil\sqrt{7}\rceil = 3$으로 설정한다. Baby-step으로 $6 \cdot 3^0 = 6$, $6 \cdot 3^1 = 18 \equiv 4$, $6 \cdot 3^2 = 54 \equiv 5$를 해시맵에 저장한다. Giant-step에서 $A = 3^3 = 27 \equiv 6 \pmod{7}$이고 $i=1$일 때 $\text{giant} = 6$이 해시맵에 있으므로 $x = 1 \cdot 3 - 0 = 3$을 반환한다.
+
+**언제 쓰나**
+$a^x \equiv b \pmod{m}$의 형태로 지수 $x$를 구해야 하고 $m$이 $10^{12}$ 수준으로 크지만 $10^{18}$은 되지 않을 때 사용한다. 이산 로그, 위수(order) 계산, 암호학적 역산 문제에 자주 등장한다.
+
+---
+
 ### 원형 아이디어와 naive 접근
 
 $x = 0, 1, 2, \ldots, m-1$을 순차적으로 시도하며 $a^x \bmod m = b$를 찾는 방법은 $O(m)$이다. $m$이 크면 완전히 불가능하다. "탐색 공간 $[0, m)$을 두 부분으로 나눠 각각 $O(\sqrt{m})$에 처리하면 전체 $O(\sqrt{m})$이 되지 않을까?"라는 Meet-in-the-Middle 발상이 출발점이다.
