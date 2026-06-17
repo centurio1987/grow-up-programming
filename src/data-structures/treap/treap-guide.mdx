@@ -1,0 +1,339 @@
+import { AlgorithmSimulation } from "#guide-sim";
+
+# Treap 해설
+
+## 성능 목표 예측
+
+| 제약 항목 | 값 |
+|-----------|-----|
+| 원소 수 $n$ | $\leq 10^5$ |
+| 질의 수 $q$ | $\leq 10^5$ |
+| 키 값 범위 | $|x| \leq 10^9$ |
+
+**naive 접근의 문제점**: 정렬된 배열로 다중 집합을 유지하면 삽입/삭제 시 배열 이동이 $O(n)$이다. 일반 BST는 삽입 순서가 정렬된 입력이면 높이가 $O(n)$이 되어 모든 연산이 $O(n)$으로 퇴화한다. $q = 10^5$회 혼합 질의에서 총 $O(qn) = O(10^{10})$ → 불가능하다.
+
+**목표 복잡도**: 삽입·삭제·k번째 원소 조회 모두 기대 $O(\log n)$. $q \log n \approx 10^5 \times 17 \approx 1.7 \times 10^6$으로 충분하다.
+
+**공간 복잡도**: $O(n)$. 노드당 `key`, `priority`, `left`, `right`, `size` 다섯 필드를 유지한다.
+
+---
+
+## 목표 함수
+
+```ts
+class Treap {
+  constructor(): Treap
+  insert(x: number): void
+  delete(x: number): void
+  findKth(k: number): number
+}
+```
+
+| 파라미터 | 의미 | 제약 |
+|---------|------|------|
+| `x` (insert) | 삽입할 키 (중복 허용) | $|x| \leq 10^9$ |
+| `x` (delete) | 삭제할 키 (하나만) | 없으면 무시 |
+| `k` (findKth) | 1-기반 순위 | $1 \leq k \leq |T|$ |
+
+**반환값**: `findKth(k)`는 정렬된 Treap에서 $k$번째로 작은 키를 반환한다.
+
+**엣지케이스**:
+1. 동일한 키를 여러 번 `insert` 후 `delete` → 하나씩 삭제된다. 나머지 복사본은 유지.
+2. `delete(x)` when $x \notin T$ → 아무 변화 없음.
+3. `findKth(1)` → 최솟값, `findKth(|T|)` → 최댓값.
+4. 빈 Treap에서 `findKth` → 정의되지 않음 ($1 \leq k \leq |T|$ 보장 전제).
+5. 모든 키가 동일한 경우 → `findKth(k)`는 모두 같은 값을 반환한다.
+
+---
+
+## 핵심 아이디어
+
+**핵심 아이디어**: "각 노드에 무작위 우선순위를 부여해 BST와 힙 조건을 동시에 만족시키면, 어떤 입력 순서에도 기대 높이가 $O(\log n)$인 균형 트리가 된다."
+
+일반 BST는 입력이 정렬되어 있으면 높이가 $O(n)$으로 퇴화한다. Treap은 이 문제를 우아하게 해결한다. 각 노드에 난수 우선순위를 붙여 최대 힙 조건도 함께 유지하면, 삽입 순서와 무관하게 트리가 균형을 유지한다. 핵심 연산인 `split`(키 기준 분리)과 `merge`(힙 조건 기반 합치기)만 구현하면 삽입·삭제·$k$번째 원소 조회가 모두 깔끔하게 표현된다.
+
+**풀이 구조**
+1. 각 노드에 key, priority(난수), left, right, size 필드를 부여한다
+2. `split(T, x)`: 키 $< x$인 부분과 $\geq x$인 부분으로 분리하고, 매 호출 후 `pullUp`으로 size를 갱신한다
+3. `merge(L, R)`: 우선순위가 높은 쪽이 루트가 되어 두 Treap을 합친다
+4. `insert(x)`: split → 새 노드 생성 → merge 두 번으로 처리한다
+5. `delete(x)` / `findKth(k)`: split/merge와 size를 활용해 처리한다
+
+**조건**: 삽입·삭제가 동적으로 일어나고 $k$번째 원소 조회가 필요한 상황, 입력 순서를 예측할 수 없어 일반 BST가 퇴화할 위험이 있는 경우
+
+**대표 예시**: 동적 다중 집합에서 $k$번째 원소 조회
+$10^5$개의 숫자가 계속 삽입·삭제되는 집합에서 "현재 $k$번째로 작은 값은?"을 반복 조회할 때, 정렬 배열로는 삽입·삭제가 $O(n)$이지만 Treap으로는 기대 $O(\log n)$에 모든 연산을 처리한다. AVL·레드-블랙 트리보다 구현이 훨씬 단순하다.
+
+**언제 쓰나**
+동적 집합에서 순서 통계가 필요할 때 AVL/레드-블랙 트리의 복잡한 회전 케이스 없이 간결하게 구현하고 싶다면 Treap을 선택한다. 구간 분할과 병합이 자주 필요한 문제(예: 구간 반전)에도 `split`/`merge` 기반 Treap이 유용하다.
+
+---
+
+### 원형 아이디어와 naive 접근
+
+삽입 삭제와 순서 통계($k$번째 원소)를 동시에 $O(\log n)$에 처리하려면 균형 잡힌 BST가 필요하다. AVL 트리나 레드-블랙 트리는 엄격한 균형을 유지하지만, 회전 케이스가 많아 구현이 복잡하다. 입력이 정렬된 순서로 들어오면 일반 BST는 $O(n)$ 높이가 된다.
+
+**폭발 지점**: BST의 정렬 기준(키)만으로는 높이를 제어할 수 없다. "키에 의한 BST 조건"과 "다른 기준에 의한 균형"을 동시에 만족시킬 수 없을까?
+
+### 어떤 관찰이 돌파구가 되는가
+
+- **관찰 1**: 각 노드에 무작위 우선순위 `priority`를 부여하면, BST 조건(키 기준 정렬)과 최대 힙 조건(우선순위 기준)을 동시에 만족하는 트리가 유일하게 존재한다. 이것이 Treap이다.
+- **관찰 2**: 무작위 우선순위를 사용하면 Treap의 기대 높이가 $O(\log n)$임이 수학적으로 증명된다. 어떤 키 삽입 순서에 대해서도 기대값이 보장된다.
+- **관찰 3**: `split`(키 기준 분리)과 `merge`(두 Treap 합치기) 연산을 구현하면 삽입·삭제가 간결하게 표현된다. BST 조건과 힙 조건 모두 `split`/`merge` 과정에서 자연스럽게 유지된다.
+
+### 관찰을 형식화: 상태/구조 정의
+
+각 노드는 다음 필드를 갖는다:
+
+$$\text{node} = \{key, \; priority, \; left, \; right, \; size\}$$
+
+세 가지 불변식:
+1. **BST 조건**: 왼쪽 서브트리의 모든 키 $\leq$ 현재 키 $\leq$ 오른쪽 서브트리의 모든 키
+2. **최대 힙 조건**: $\text{priority}[\text{root}] \geq \text{priority}[\text{left}]$ 이고 $\text{priority}[\text{root}] \geq \text{priority}[\text{right}]$
+3. **크기 불변식**: $\text{size}(v) = \text{size}(\text{left}(v)) + \text{size}(\text{right}(v)) + 1$
+
+이 형태여야 하는 근거: BST 조건은 `findKth`와 키 탐색을 가능하게 하고, 힙 조건은 무작위 우선순위로 인해 기대 높이를 $O(\log n)$으로 제한한다. `size`는 `findKth`를 $O(\log n)$에 지원하기 위해 필요하다.
+
+### 점화식 또는 핵심 연산
+
+**split(T, x) → (L, R)**: 키 $< x$인 부분을 $L$로, 키 $\geq x$인 부분을 $R$로 분리.
+
+$$\text{split}(T, x) = \begin{cases}
+(\text{null}, \text{null}) & \text{if } T = \text{null} \\
+(\text{T with T.right} \leftarrow L', R') \text{ where } (L', R') = \text{split}(T.\text{right}, x) & \text{if } T.\text{key} < x \\
+(L', \text{T with T.left} \leftarrow R') \text{ where } (L', R') = \text{split}(T.\text{left}, x) & \text{if } T.\text{key} \geq x
+\end{cases}$$
+
+각 분기 후 `pullUp(T)`로 `size` 갱신.
+
+**merge(L, R) → T**: $\max(L) < \min(R)$인 두 Treap을 힙 조건으로 합치기.
+
+$$\text{merge}(L, R) = \begin{cases}
+R & \text{if } L = \text{null} \\
+L & \text{if } R = \text{null} \\
+L \text{ with } L.\text{right} \leftarrow \text{merge}(L.\text{right}, R) & \text{if } L.\text{priority} \geq R.\text{priority} \\
+R \text{ with } R.\text{left} \leftarrow \text{merge}(L, R.\text{left}) & \text{otherwise}
+\end{cases}$$
+
+각 분기 후 `pullUp`.
+
+**insert(x)**: `split(root, x) → (L, R)`, 새 노드 $N$ 생성, `root = merge(merge(L, N), R)`.
+
+**delete(x)**: `split(root, x) → (L, R)`, `split(R, x+1) → (M, R2)`, $M$의 루트를 제거(`merge(M.left, M.right) → M'`), `root = merge(merge(L, M'), R2)`.
+
+**findKth(v, k)**: $ls = \text{size}(\text{left}(v))$로부터:
+$$\text{findKth}(v, k) = \begin{cases}
+\text{findKth}(v.\text{left}, k) & k \leq ls \\
+v.\text{key} & k = ls + 1 \\
+\text{findKth}(v.\text{right}, k - ls - 1) & k > ls + 1
+\end{cases}$$
+
+### 정당성 — 왜 이것이 옳은가
+
+**기대 높이 $O(\log n)$**: 무작위 우선순위가 균등 분포이면, Treap의 구조는 $n$개의 원소를 무작위로 삽입한 BST의 분포와 동일하다. 이때 기대 높이는 $O(\log n)$임이 알려져 있다. 구체적으로 노드 $v$의 기대 깊이는 $O(\log n)$이다.
+
+**split/merge 정확성**: `split` 후 $L$의 모든 키 $< x$이고 $R$의 모든 키 $\geq x$임은 재귀 구조로 보장된다. BST 조건과 힙 조건 모두 `split`/`merge` 과정에서 귀납적으로 유지된다.
+
+**불변식 유지**: `pullUp`을 매 `split`/`merge` 호출 후 실행하므로 `size` 불변식이 항상 성립한다.
+
+**까다로운 케이스**: 중복 키 삭제 시 `split(R, x+1) → (M, R2)`에서 $M$에 키 $x$인 노드들이 모두 포함된다. `M`의 루트만 제거하면 하나만 삭제된다. 만약 $M$이 null이면(x가 없음) 아무것도 하지 않아야 한다.
+
+### 구현 디테일과 최적화
+
+**우선순위 생성**: `Math.random()`으로 충분하다. 같은 우선순위가 충돌할 가능성을 줄이려면 32비트 무작위 정수를 사용하면 된다.
+
+**pullUp 타이밍**: `split`과 `merge` 함수에서 반환하기 직전에 반드시 `pullUp`을 호출해야 한다. 빠뜨리면 `size`가 틀려져 `findKth`의 결과가 틀린다.
+
+**함정**: `merge(L, R)` 호출 시 $\max(L.\text{keys}) < \min(R.\text{keys})$를 전제한다. `insert`와 `delete`에서 `split` 분기 기준이 일관성 있어야 한다. `split(root, x)`는 키 $< x$와 $\geq x$로 나누고, `split(R, x+1)`은 키 $\leq x$와 $> x$로 나눠야 `delete`가 정확히 하나의 $x$를 분리한다.
+
+---
+
+## 시뮬레이션
+
+키 `{3, 5, 8}`가 들어 있는 Treap에 `insert(1)`을 수행하는 과정과, 완성된 Treap에서 `findKth(3)`을 수행하는 과정이다. 노드 라벨은 `key·p프라이오리티(size)` 형태다. 데모를 위해 우선순위를 고정한다: 5→30, 3→20, 8→25, 새 노드 1→40. BST 조건(키 좌소우대)과 최대 힙 조건(우선순위)을 동시에 만족한다. `status`로 split/merge 경로와 탐색 경로를 표시한다(`active`=현재, `visited`=지남).
+
+`insert(1)` 후 우선순위 40인 노드 1이 루트로 올라오며, 최종 정렬 순서는 `1,3,5,8`이다. `findKth(3)`의 실제 반환값은 `5`(3번째로 작은 키)이며 마지막 탐색 프레임과 일치한다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
+
+export const steps = [
+  {
+    title: "초기 Treap: {3, 5, 8}",
+    detail: "루트 5(p30). 왼쪽 3(p20), 오른쪽 8(p25). 힙 조건: 30 ≥ 20, 30 ≥ 25.",
+    root: {
+      id: "5", label: "5·p30 (size=3)",
+      children: [
+        { id: "3", label: "3·p20 (size=1)" },
+        { id: "8", label: "8·p25 (size=1)" },
+      ],
+    },
+  },
+  {
+    title: "insert(1): split(root, 1)",
+    detail: "키 < 1 / ≥ 1로 분리. 모든 키가 ≥ 1이므로 L=null, R=전체 트리.",
+    root: {
+      id: "5", label: "5·p30 (size=3)", status: "active",
+      children: [
+        { id: "3", label: "3·p20 (size=1)" },
+        { id: "8", label: "8·p25 (size=1)" },
+      ],
+    },
+  },
+  {
+    title: "새 노드 N=1·p40 생성, merge(merge(L,N), R)",
+    detail: "merge(null,N)=N. 그 다음 merge(N=p40, root5=p30).",
+    root: {
+      id: "1", label: "1·p40 (새 노드)", status: "active",
+    },
+  },
+  {
+    title: "merge: N.p40 ≥ 5.p30 → 1이 루트",
+    detail: "1이 루트가 되고 1.right = merge(null, 5) = 5 서브트리. 힙 조건 유지.",
+    root: {
+      id: "1", label: "1·p40 (size=4)", status: "active",
+      children: [
+        null,
+        {
+          id: "5", label: "5·p30 (size=3)", status: "visited",
+          children: [
+            { id: "3", label: "3·p20 (size=1)" },
+            { id: "8", label: "8·p25 (size=1)" },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    title: "insert(1) 완료. findKth(3): 루트 1",
+    detail: "ls = size(left) = 0. k=3 > ls+1=1 → 오른쪽으로, k' = 3-0-1 = 2.",
+    root: {
+      id: "1", label: "1·p40 (size=4)", status: "active",
+      children: [
+        null,
+        {
+          id: "5", label: "5·p30 (size=3)",
+          children: [
+            { id: "3", label: "3·p20 (size=1)" },
+            { id: "8", label: "8·p25 (size=1)" },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    title: "findKth: 노드 5 (k=2)",
+    detail: "ls = size(left=3) = 1. k=2 == ls+1=2 → 현재 노드가 답. return 5.",
+    root: {
+      id: "1", label: "1·p40 (size=4)", status: "visited",
+      children: [
+        null,
+        {
+          id: "5", label: "5·p30 (size=3)", status: "active",
+          children: [
+            { id: "3", label: "3·p20 (size=1)" },
+            { id: "8", label: "8·p25 (size=1)" },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    title: "findKth(3) = 5 (완료)",
+    detail: "정렬 순서 1,3,[5],8에서 3번째 키는 5.",
+    root: {
+      id: "1", label: "1·p40 (size=4)",
+      children: [
+        null,
+        {
+          id: "5", label: "5·p30 (size=3)", status: "active",
+          children: [
+            { id: "3", label: "3·p20 (size=1)" },
+            { id: "8", label: "8·p25 (size=1)" },
+          ],
+        },
+      ],
+    },
+  },
+];
+
+<AlgorithmSimulation view="tree" steps={steps} title="Treap: insert(1) 후 findKth(3)=5" />
+
+## 수도 코드와 Activity Diagram
+
+### 의사코드
+
+```
+// 각 노드: { key, priority, left, right, size }
+// 불변식:
+//   BST: left.key ≤ node.key; right.key ≥ node.key
+//   힙: node.priority ≥ left.priority; node.priority ≥ right.priority
+//   크기: node.size = sz(left) + sz(right) + 1
+
+pullUp(v):
+    v.size = sz(v.left) + sz(v.right) + 1
+
+split(T, x) → (L, R):
+    if T == null: return (null, null)
+    if T.key < x:
+        (T.right, R) = split(T.right, x)  // 오른쪽을 나눔
+        pullUp(T); return (T, R)
+    else:
+        (L, T.left) = split(T.left, x)    // 왼쪽을 나눔
+        pullUp(T); return (L, T)
+
+merge(L, R) → T:
+    if L == null: return R
+    if R == null: return L
+    if L.priority >= R.priority:           // L이 힙 우선순위 높음 → L이 루트
+        L.right = merge(L.right, R)
+        pullUp(L); return L
+    else:                                  // R이 루트
+        R.left = merge(L, R.left)
+        pullUp(R); return R
+
+insert(x):
+    N = { key=x, priority=random(), left=null, right=null, size=1 }
+    (L, R) = split(root, x)
+    root = merge(merge(L, N), R)
+
+delete(x):
+    (L, R) = split(root, x)
+    (M, R2) = split(R, x + 1)             // M에는 key=x인 노드들만
+    if M != null:
+        M = merge(M.left, M.right)         // 루트 하나만 제거
+    root = merge(merge(L, M), R2)
+
+findKth(v, k) → number:
+    ls = sz(v.left)
+    if k <= ls:    return findKth(v.left, k)
+    if k == ls+1:  return v.key            // 현재 노드가 k번째
+    return findKth(v.right, k - ls - 1)
+```
+
+### Activity Diagram
+
+```mermaid
+flowchart TD
+    A([insert: x]) --> B["(L,R) = split(root, x)"]
+    B --> C["N = 새 노드(key=x, priority=random)"]
+    C --> D["root = merge(merge(L,N), R)"]
+    D --> E([done, BST+힙 불변식 유지])
+
+    F([delete: x]) --> G["(L,R) = split(root, x)"]
+    G --> H["(M,R2) = split(R, x+1)"]
+    H --> I{M != null?}
+    I -- Yes → x 존재 --> J["M = merge(M.left, M.right)"]
+    J --> K["root = merge(merge(L,M), R2)"]
+    I -- No → x 없음 --> L["root = merge(L, R2)"]
+    K --> M([done])
+    L --> M
+
+    N([findKth: v, k]) --> O["ls = sz(v.left)"]
+    O --> P{k <= ls?}
+    P -- Yes → 왼쪽에 있음 --> Q([findKth(v.left, k)])
+    P -- No --> R{k == ls+1?}
+    R -- Yes → 현재 노드 --> S([return v.key])
+    R -- No → 오른쪽에 있음 --> T([findKth(v.right, k-ls-1)])
+```
+
+**핵심 불변식**: `pullUp`으로 `size`가 항상 $\text{size}(v) = \text{size}(v.\text{left}) + \text{size}(v.\text{right}) + 1$을 만족하고, 무작위 우선순위에 의한 최대 힙 조건과 BST 조건이 `split`/`merge` 전후에 항상 성립하므로 기대 높이 $O(\log n)$이 보장된다.

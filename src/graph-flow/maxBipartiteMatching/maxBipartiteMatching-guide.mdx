@@ -1,0 +1,386 @@
+import { AlgorithmSimulation } from "#guide-sim";
+
+# maxBipartiteMatching 해설
+
+## 성능 목표 예측
+
+| 항목 | 값 |
+|------|----|
+| 왼쪽 정점 수 L | $1 \leq L \leq 10^3$ |
+| 오른쪽 정점 수 R | $1 \leq R \leq 10^3$ |
+| 간선 E | $0 \leq E \leq L \times R \leq 10^6$ |
+
+**naive 접근의 문제점:**
+매칭의 모든 부분집합 $2^E$를 열거하고 매칭 조건(공유 정점 없음)을 확인하는 방법을 생각해볼 수 있다.
+$E \leq 10^6$이면 $2^{10^6}$ → 완전히 불가능하다.
+
+헝가리안 알고리즘(단순 증가 경로 반복): 매번 미매칭 왼쪽 정점에서 DFS로 증가 경로를 탐색한다.
+증가 경로 탐색이 $O(E)$이고, 최대 $L$번 반복하므로 $O(L \cdot E) = O(10^3 \times 10^6) = 10^9$ → 시간 초과 위험.
+
+**목표 복잡도:** $O(E\sqrt{V})$ 시간 (Hopcroft-Karp), $O(L + R + E)$ 공간.
+$V = L + R \leq 2000$, $E \leq 10^6$이면 $O(E\sqrt{V}) \approx 10^6 \times 45 \approx 4.5 \times 10^7$ → 통과 가능.
+
+**근거:** Hopcroft-Karp는 한 BFS 라운드에서 정점-서로소인 최단 증가 경로를 여러 개 동시에 찾는다. BFS 라운드 횟수가 $O(\sqrt{V})$임이 이론적으로 증명되고, 각 라운드의 비용이 $O(E)$이므로 전체 $O(E\sqrt{V})$이다.
+
+**공간 복잡도:** 인접 리스트 $O(E)$, 매칭 배열 $O(L + R)$, 거리 배열 $O(L)$. 2D 행렬 없이 1D 배열만으로 충분하다.
+
+---
+
+## 목표 함수
+
+```ts
+maxBipartiteMatching(left: number, right: number, edges: [number, number][]): number
+```
+
+| 매개변수 | 의미 | 제약 |
+|----------|------|------|
+| `left` | 왼쪽 정점 수 $L$ (인덱스: $0 \ldots L-1$) | $1 \leq L \leq 10^3$ |
+| `right` | 오른쪽 정점 수 $R$ (인덱스: $0 \ldots R-1$) | $1 \leq R \leq 10^3$ |
+| `edges` | 간선 `[u, v]` ($u \in$ 왼쪽, $v \in$ 오른쪽) | $E \leq L \times R$ |
+| 반환값 | 최대 매칭 크기 $|M|$ | — |
+
+**엣지케이스:**
+
+1. **빈 입력 / 간선 없음:** 매칭 불가능 → `0` 반환.
+2. **L 또는 R이 0:** 한쪽 집합이 없으면 매칭 불가능 → `0` 반환.
+3. **중복 간선:** 인접 리스트에 중복 등록되어도 매칭 크기에는 영향 없다. 단, DFS에서 동일 오른쪽 정점을 여러 번 방문하게 되어 비효율이 생길 수 있다. (매칭 배열로 중복 방지됨)
+4. **완전 이분 그래프 ($E = L \times R$, $L = R$):** 최대 매칭 = $\min(L, R)$.
+5. **단방향 연결:** 왼쪽 정점 하나만 오른쪽 모든 정점과 연결된 경우, 최대 매칭 = 1.
+
+---
+
+## 핵심 아이디어
+
+**핵심 아이디어**: "한 번에 증가 경로 하나씩 찾는 대신, BFS로 같은 길이의 증가 경로들을 모두 동시에 처리한다 — BFS 라운드 횟수가 $O(\sqrt{V})$로 줄어든다."
+
+단순 헝가리안 알고리즘은 매번 하나의 증가 경로를 찾아 매칭을 1 늘리므로 최대 매칭 크기 $k$번 반복한다. Hopcroft-Karp는 BFS로 레이어 그래프를 구성해 같은 최단 길이의 서로 정점-서로소인 증가 경로를 한 라운드에서 모두 소진한다. 매 라운드 후 최단 증가 경로의 길이가 늘어나고, 이 길이는 최대 $O(\sqrt{V})$번만 증가할 수 있으므로 전체 BFS 라운드 수가 $O(\sqrt{V})$로 제한된다.
+
+**풀이 구조**
+1. 왼쪽→오른쪽 방향 인접 리스트와 `matchL`, `matchR` 배열을 초기화한다.
+2. BFS로 미매칭 왼쪽 정점에서 출발하는 레이어 그래프(`dist` 배열)를 구성한다.
+3. 미매칭 오른쪽 정점에 도달하지 못하면 알고리즘을 종료한다.
+4. 미매칭 왼쪽 정점마다 DFS로 레이어 조건을 따르는 증가 경로를 탐색하고 매칭을 뒤집는다.
+5. 성공한 수를 `matching`에 더한다. 2번으로 돌아가 반복한다.
+
+**조건**: 이분 그래프($L$과 $R$ 두 집합으로 나뉘고, 간선은 집합 사이에만 존재)여야 한다. 간선은 왼쪽 정점 인덱스에서 오른쪽 정점 인덱스로만 향한다.
+
+**대표 예시**: 업무와 직원의 최대 배정
+$L$명의 직원과 $R$개의 업무, 각 직원이 담당 가능한 업무 목록이 주어졌을 때 최대 몇 쌍을 배정할 수 있는지 구하는 문제다. Hopcroft-Karp는 BFS 라운드당 여러 매칭을 동시에 처리해, 단순 DFS 반복보다 훨씬 빠르게 최대 매칭에 도달한다.
+
+**언제 쓰나**
+"이분 그래프의 최대 매칭을 구하라"는 문제에서 $L$, $R$이 수천, 간선이 수백만 규모일 때 사용한다. 단순 헝가리안이 시간 초과일 때 Hopcroft-Karp로 교체하면 $O(E\sqrt{V})$로 통과 가능해진다.
+
+---
+
+### 원형 아이디어와 naive 접근
+
+문제를 가장 단순하게 생각하면: 매칭에 포함된 간선의 최대 집합을 찾는다.
+각 미매칭 왼쪽 정점에서 DFS로 증가 경로(augmenting path)를 탐색하고, 경로를 찾을 때마다 매칭을 뒤집어 크기를 1 늘린다.
+
+```
+naive (헝가리안 DFS):
+  matching = 0
+  for u in 0..L-1:
+    visited = 배열 초기화
+    if DFS(u): matching++
+  return matching
+```
+
+**문제점:** 이 방법은 한 번에 증가 경로 하나만 처리한다.
+최대 매칭 크기가 $k$이면 $k$번 반복이 필요하고, 각 반복이 $O(E)$이므로
+$O(k \cdot E) \leq O(L \cdot E) = O(10^9)$ → 시간 초과 위험이 있다.
+
+**낭비의 정체:** 매 라운드에서 하나의 증가 경로만 처리하므로, 길이가 같은 여러 증가 경로를 순차적으로 처리하는 비효율이 발생한다.
+
+### 어떤 관찰이 돌파구가 되는가
+
+- **관찰 1 (Berge 정리):** 매칭 $M$이 최대 $\Leftrightarrow$ 증가 경로가 존재하지 않는다. 즉, 증가 경로를 모두 소진하면 최대 매칭에 도달한다.
+
+- **관찰 2 (최단 증가 경로의 구조):** 현재 매칭에 대한 모든 최단 증가 경로는 서로 정점을 공유하지 않는다(정점-서로소). 따라서 한 라운드에서 이들을 동시에 처리해도 충돌이 없다.
+
+- **관찰 3 (BFS 라운드 횟수의 한계):** 매 라운드에서 최단 증가 경로를 모두 처리하면 최단 증가 경로의 길이가 반드시 증가한다. 증가 경로 길이는 최대 $2\min(L,R) - 1$이고, 매 라운드 후 길이가 적어도 2 증가하므로 총 BFS 라운드 수는 $O(\sqrt{V})$임을 증명할 수 있다.
+
+### 관찰을 형식화: 상태/구조 정의
+
+**매칭 배열:**
+- `matchL[u]`: 왼쪽 정점 $u$가 매칭된 오른쪽 정점. 미매칭이면 `NIL(-1)`.
+- `matchR[v]`: 오른쪽 정점 $v$가 매칭된 왼쪽 정점. 미매칭이면 `NIL(-1)`.
+
+**거리 배열:**
+- `dist[u]`: BFS에서 왼쪽 정점 $u$에 할당된 레이어(거리) 값. 미매칭 왼쪽 정점에서 0으로 시작.
+  미도달이면 $\infty$로 설정해 DFS에서 제외한다.
+
+이 정의가 `matchL/matchR` 두 배열을 사용하는 이유: 오른쪽 정점 $v$에서 현재 매칭된 왼쪽 정점 `matchR[v]`를 $O(1)$에 찾아야 DFS 중 역방향 탐색이 가능하다. 단방향 배열만 쓰면 역추적 시 $O(L)$이 추가된다.
+
+### 점화식 또는 핵심 연산
+
+**BFS 레이어 할당:**
+
+$$
+\text{dist}[u] = \begin{cases}
+0 & \text{if } \text{matchL}[u] = \text{NIL} \text{ (미매칭 왼쪽)} \\
+\infty & \text{otherwise (초기값)}
+\end{cases}
+$$
+
+BFS 탐색 중 오른쪽 정점 $v$에서 `matchR[v] = w`(왼쪽)를 거쳐 $w$의 레이어를 갱신:
+
+$$
+\text{dist}[w] = \text{dist}[u] + 1 \quad \text{(단, dist[w] = ∞인 경우만)}
+$$
+
+- $\text{dist}[u] + 1$: 왼쪽 → 오른쪽 → 왼쪽으로 이어지는 교대 경로의 레이어 증가.
+- $\text{dist}[w] = \infty$ 조건: 이미 레이어가 할당된 정점을 다시 갱신하지 않아 최단 경로만 유지한다.
+
+**DFS 증가 경로 탐색 조건:**
+
+$$
+\text{레이어 유효} : \text{dist}[\text{next}] = \text{dist}[u] + 1
+$$
+
+- `next = matchR[v]`: 오른쪽 $v$가 현재 매칭된 왼쪽 정점.
+- `next == NIL`: 미매칭 오른쪽 정점 도달 → 증가 경로 발견.
+- 레이어 조건을 벗어난 간선은 탐색하지 않아 최단 경로만 따른다.
+
+### 정당성 — 왜 이것이 옳은가
+
+**BFS:** 미매칭 왼쪽 정점들을 레이어 0으로 동시에 탐색을 시작하므로, 모든 최단 증가 경로를 동시에 발견할 수 있다. 레이어 그래프는 최단 증가 경로들만으로 이루어진 DAG이다.
+
+**DFS:** 레이어 조건(`dist[next] == dist[u] + 1`)을 따르므로 최단 증가 경로만 탐색한다. 실패한 정점을 `dist[u] = ∞`로 표시해 같은 라운드에서 재방문하지 않으므로, 각 DFS 라운드의 총 비용이 $O(E)$이다.
+
+**까다로운 케이스:**
+- 오른쪽 정점 $v$가 이미 매칭됐지만($\text{matchR}[v] = w$) $w$를 통해 더 긴 증가 경로가 있을 때: DFS가 재귀적으로 $w$에서 탐색을 이어가 매칭을 뒤집어 성공한다.
+- 미매칭 오른쪽 정점이 없으면: BFS가 `found = false`를 반환하고 알고리즘이 종료된다.
+
+### 구현 디테일과 최적화
+
+- **NIL sentinel 값:** `-1`로 정의해 배열 접근 시 인덱스 오류를 방지한다. `matchR[v] == NIL`인지 확인해 미매칭 여부를 판단한다.
+
+- **dist[u] = ∞ 설정 (DFS 실패 처리):** 증가 경로를 찾지 못한 왼쪽 정점 $u$에 대해 `dist[u] = ∞`를 설정한다. 이 라운드에서 같은 $u$로 다시 DFS를 시도하면 `dist[u] == ∞`이므로 레이어 조건을 만족하는 이웃이 없어 즉시 실패한다. 이것이 데드엔드 제거(dead-end elimination)이다.
+
+- **함정 — 중복 매칭 카운트:** `DFS(u)`가 성공을 반환해도, `matching++`는 `matchL[u] == NIL`인 경우에만 수행해야 한다. DFS 내부에서 이미 매칭된 정점들의 매칭을 뒤집는 과정이 포함되어 있으므로 내부에서 카운트를 증가시키면 중복이 발생한다.
+
+- **함정 — BFS에서 t 도달 후에도 계속 탐색:** `found = true`가 된 후에도 같은 레이어의 다른 경로를 모두 탐색해야 한다. 첫 미매칭 오른쪽 정점 도달 시 즉시 BFS를 중단하면 같은 레이어의 다른 최단 증가 경로를 놓친다.
+
+---
+
+## 시뮬레이션
+
+예시 이분 그래프 `left = 3`, `right = 3`, `edges = [[0,0], [0,1], [1,0], [1,2], [2,2]]`에 대해 최대 이분 매칭을 구하는 과정이다. 왼쪽 정점은 `L0,L1,L2`, 오른쪽 정점은 `R0,R1,R2`로 표기한다(그래프 노드 id `0,1,2`는 왼쪽, `10,11,12`는 오른쪽). 증가 경로를 하나씩 찾을 때마다 매칭을 뒤집어 크기를 1 늘린다. 빨간 간선은 현재 탐색 중인 증가 경로, 회색(visited) 노드는 매칭된 정점이다. `keyValue` 패널은 `matchL`(왼쪽→오른쪽), `matchR`(오른쪽→왼쪽), 현재 매칭 크기를 보여준다.
+
+실제 반환값은 `3` (매칭 `L0-R1, L1-R0, L2-R2`)이며, 시뮬레이션 마지막 프레임과 일치한다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
+
+export const nodes = [
+  { id: 0, label: "L0", x: 25, y: 20 },
+  { id: 1, label: "L1", x: 25, y: 50 },
+  { id: 2, label: "L2", x: 25, y: 80 },
+  { id: 10, label: "R0", x: 75, y: 20 },
+  { id: 11, label: "R1", x: 75, y: 50 },
+  { id: 12, label: "R2", x: 75, y: 80 },
+];
+
+export const edges = [
+  { from: 0, to: 10, directed: false },
+  { from: 0, to: 11, directed: false },
+  { from: 1, to: 10, directed: false },
+  { from: 1, to: 12, directed: false },
+  { from: 2, to: 12, directed: false },
+];
+
+export const steps = [
+  {
+    title: "초기화",
+    detail: "matchL, matchR 모두 NIL(-1). matching=0. 미매칭 왼쪽 정점부터 증가 경로를 찾는다.",
+    nodes, edges,
+    nodeStatus: {},
+    entries: [
+      { label: "matchL", value: "[-1, -1, -1]" },
+      { label: "matchR", value: "[-1, -1, -1]" },
+      { label: "matching", value: "0" },
+    ],
+  },
+  {
+    title: "L0 탐색: L0-R0 증가 경로",
+    detail: "L0의 이웃 R0이 미매칭(NIL). 증가 경로 L0→R0 발견 → 매칭.",
+    nodes, edges,
+    nodeStatus: { 0: "active", 10: "active" },
+    activeEdge: { from: 0, to: 10 },
+    entries: [
+      { label: "matchL", value: "[0, -1, -1]" },
+      { label: "matchR", value: "[0, -1, -1]" },
+      { label: "matching", value: "1" },
+    ],
+  },
+  {
+    title: "L0-R0 매칭 확정",
+    detail: "matchL[0]=0, matchR[0]=0. matching=1.",
+    nodes, edges,
+    nodeStatus: { 0: "visited", 10: "visited" },
+    entries: [
+      { label: "matchL", value: "[0, -1, -1]" },
+      { label: "matchR", value: "[0, -1, -1]" },
+      { label: "matching", value: "1" },
+    ],
+  },
+  {
+    title: "L1 탐색: R0은 이미 매칭됨",
+    detail: "L1의 이웃 R0은 matchR[0]=L0으로 매칭됨. L0을 재배치할 수 있는지 따라간다(교대 경로).",
+    nodes, edges,
+    nodeStatus: { 1: "active", 10: "active", 0: "visited" },
+    activeEdge: { from: 1, to: 10 },
+    entries: [
+      { label: "matchL", value: "[0, -1, -1]" },
+      { label: "matchR", value: "[0, -1, -1]" },
+      { label: "matching", value: "1" },
+    ],
+  },
+  {
+    title: "증가 경로 L1→R0→L0→R1",
+    detail: "L0의 다른 이웃 R1이 미매칭. 경로를 뒤집어 L0-R1, L1-R0으로 재배치.",
+    nodes, edges,
+    nodeStatus: { 1: "active", 10: "active", 0: "active", 11: "active" },
+    activeEdge: { from: 0, to: 11 },
+    entries: [
+      { label: "matchL", value: "[1, 0, -1]" },
+      { label: "matchR", value: "[1, 0, -1]" },
+      { label: "matching", value: "2" },
+    ],
+  },
+  {
+    title: "L0-R1, L1-R0 매칭 확정",
+    detail: "교대 경로로 매칭이 하나 늘어났다. matching=2.",
+    nodes, edges,
+    nodeStatus: { 0: "visited", 1: "visited", 10: "visited", 11: "visited" },
+    entries: [
+      { label: "matchL", value: "[1, 0, -1]" },
+      { label: "matchR", value: "[1, 0, -1]" },
+      { label: "matching", value: "2" },
+    ],
+  },
+  {
+    title: "L2 탐색: L2-R2 증가 경로",
+    detail: "L2의 이웃 R2가 미매칭(NIL). 증가 경로 L2→R2 발견 → 매칭.",
+    nodes, edges,
+    nodeStatus: { 2: "active", 12: "active", 0: "visited", 1: "visited", 10: "visited", 11: "visited" },
+    activeEdge: { from: 2, to: 12 },
+    entries: [
+      { label: "matchL", value: "[1, 0, 2]" },
+      { label: "matchR", value: "[1, 0, 2]" },
+      { label: "matching", value: "3" },
+    ],
+  },
+  {
+    title: "완료: 최대 매칭 = 3",
+    detail: "모든 왼쪽 정점이 매칭됨. 더 이상 증가 경로가 없어 종료. matching=3.",
+    nodes, edges,
+    nodeStatus: { 0: "visited", 1: "visited", 2: "visited", 10: "visited", 11: "visited", 12: "visited" },
+    entries: [
+      { label: "matchL", value: "[1, 0, 2] (L0-R1, L1-R0, L2-R2)" },
+      { label: "matchR", value: "[1, 0, 2]" },
+      { label: "반환값", value: "3" },
+    ],
+  },
+];
+
+<AlgorithmSimulation view={["graph", "keyValue"]} steps={steps} title="최대 이분 매칭: L=3, R=3" />
+
+## 수도 코드와 Activity Diagram
+
+### 의사코드
+
+```
+NIL = -1
+
+function maxBipartiteMatching(L, R, edges):
+    adj[0..L-1] = []                     // 왼쪽→오른쪽 인접 리스트
+    for (u, v) in edges: adj[u].push(v)
+
+    matchL[0..L-1] = NIL                 // 불변식: matchL[u] = v이면 (u,v) ∈ 현재 매칭
+    matchR[0..R-1] = NIL                 // 불변식: matchR[v] = u이면 (u,v) ∈ 현재 매칭
+    dist[0..L-1]   = INF                 // BFS 레이어 거리
+
+    matching = 0
+    while BFS():                          // 불변식: BFS 성공 → 증가 경로 존재
+        for u in 0..L-1:
+            if matchL[u] == NIL and DFS(u):
+                matching++               // 불변식: matching은 현재 매칭 크기
+
+    return matching
+
+function BFS():
+    queue = []
+    for u in 0..L-1:
+        if matchL[u] == NIL:
+            dist[u] = 0                  // 미매칭 왼쪽 정점: 레이어 0
+            enqueue(queue, u)
+        else:
+            dist[u] = INF               // 매칭된 왼쪽 정점: 초기 미도달
+
+    found = false
+    while queue not empty:
+        u = dequeue(queue)
+        for v in adj[u]:
+            next = matchR[v]            // 오른쪽 v와 매칭된 왼쪽 정점
+            if next == NIL:
+                found = true            // 미매칭 오른쪽 도달 → 증가 경로 존재
+            elif dist[next] == INF:
+                dist[next] = dist[u] + 1  // 불변식: 최단 경로 레이어 할당
+                enqueue(queue, next)
+    return found
+
+function DFS(u):
+    for v in adj[u]:
+        next = matchR[v]
+        if next == NIL or (dist[next] == dist[u] + 1 and DFS(next)):
+            matchL[u] = v               // 불변식: 매칭 갱신 후 matchL/matchR 일관성 유지
+            matchR[v] = u
+            return true
+    dist[u] = INF                       // 실패: 이 정점은 이 라운드에서 재방문 안 함
+    return false
+
+// 핵심 불변식:
+//   BFS 성공 후 dist 배열은 미매칭 왼쪽 정점에서의 최단 레이어를 기록.
+//   DFS 성공 시 matchL[u]/matchR[v] 쌍이 항상 쌍방으로 일관성 있게 갱신됨.
+```
+
+### Activity Diagram
+
+```mermaid
+flowchart TD
+    A([시작]) --> B["인접 리스트 구성\nmatchL/matchR = NIL\ndist = INF\nmatching = 0"]
+    B --> C{BFS 성공\n(증가 경로 존재)?}
+    C -- No --> Z([return matching])
+    C -- Yes --> D["u = 0..L-1 순회"]
+    D --> E{matchL[u]\n== NIL?}
+    E -- No(매칭됨) --> F{u < L-1?}
+    E -- Yes --> G{DFS(u)\n성공?}
+    G -- Yes --> H["matching++"]
+    H --> F
+    G -- No --> F
+    F -- Yes(다음 u) --> D
+    F -- No(완료) --> C
+
+    subgraph BFS["BFS (레이어 그래프 구축)"]
+        B1["미매칭 왼쪽 → dist=0, 큐 삽입\n매칭된 왼쪽 → dist=INF"]
+        B1 --> B2["u = dequeue()\nv ∈ adj[u] 순회\nnext = matchR[v]"]
+        B2 --> B3{"next == NIL?"}
+        B3 -- Yes --> B4["found = true"]
+        B3 -- No --> B5{"dist[next]\n== INF?"}
+        B5 -- Yes --> B6["dist[next] = dist[u]+1\n큐 삽입"]
+        B5 -- No(이미 방문) --> B2
+        B4 --> B2
+        B6 --> B2
+    end
+
+    subgraph DFS["DFS (증가 경로 탐색)"]
+        D1["v ∈ adj[u] 순회\nnext = matchR[v]"]
+        D1 --> D2{"next == NIL\nor dist[next]==dist[u]+1\nand DFS(next)?"}
+        D2 -- Yes --> D3["matchL[u]=v, matchR[v]=u\nreturn true"]
+        D2 -- No(다음 v) --> D1
+        D1 -- 모두 실패 --> D4["dist[u] = INF\nreturn false"]
+    end
+```
+
+**핵심 불변식:** 각 BFS 라운드 종료 시점에서, `dist` 배열은 미매칭 왼쪽 정점으로부터의 최단 교대 경로 레이어를 기록한다. DFS에서 `matchL[u] = v`, `matchR[v] = u`를 동시에 갱신하므로 매칭 배열의 쌍방 일관성이 항상 유지된다.

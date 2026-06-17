@@ -1,0 +1,311 @@
+import { AlgorithmSimulation } from "#guide-sim";
+
+# kasaiLcp 해설
+
+## 성능 목표 예측
+
+| 제약 | 값 |
+|------|----|
+| 문자열 길이 $n = |s|$ | $1 \leq n \leq 10^5$ |
+| 입력 SA | 길이 $n$의 유효한 접미사 배열 |
+
+**naive 접근의 한계:**
+LCP 배열을 정의 그대로 계산한다고 가정하자. SA 순서대로 인접한 접미사 쌍을 비교한다.
+
+```
+for i = 0 to n-2:
+  lcp[i] = 0
+  a = sa[i], b = sa[i+1]
+  while a + lcp[i] < n and b + lcp[i] < n
+        and s[a + lcp[i]] == s[b + lcp[i]]:
+    lcp[i]++
+```
+
+각 쌍에서 최대 $O(n)$ 비교 → 전체 $O(n^2)$ 연산.
+$n = 10^5$이면 $10^{10}$ → 시간 초과.
+
+낭비의 원인: SA 순서로 계산하면 각 쌍의 LCP를 0부터 다시 세기 시작한다. 이전 쌍에서 이미 비교한 결과를 재활용하지 못한다.
+
+**목표 복잡도:**
+
+| 항목 | 목표 | 근거 |
+|------|------|------|
+| 시간 | $O(n)$ | $k$ 값의 총 증가량 ≤ $n$, 총 감소량 ≤ $n$ |
+| 공간 | $O(n)$ | rank 역배열 1개 |
+
+## 목표 함수
+
+```ts
+function kasaiLcp(s: string, sa: number[]): number[]
+```
+
+**파라미터 표:**
+
+| 파라미터 | 의미 | 제약 |
+|----------|------|------|
+| `s` | 입력 문자열 | $1 \leq |s| \leq 10^5$ |
+| `sa` | `s`의 접미사 배열 (사전순 정렬된 접미사의 시작 인덱스 배열) | 유효한 SA |
+
+**반환값:** 길이 $n$의 LCP 배열.
+$\text{LCP}[i] = \mathrm{lcp}(s[\text{SA}[i] \ldots], s[\text{SA}[i+1] \ldots])$ ($0 \leq i < n-1$), $\text{LCP}[n-1] = 0$
+
+**엣지케이스:**
+
+| 케이스 | 결과 |
+|--------|------|
+| $n = 1$ | `[0]` |
+| 모든 문자가 동일 (`"aaaa"`) | `[3, 2, 1, 0]` |
+| 모든 문자가 다름 (`"abcd"`) | `[0, 0, 0, 0]` |
+| `s = "banana"`, `sa = [5,3,1,0,4,2]` | `[1, 3, 0, 0, 2, 0]` |
+
+## 핵심 아이디어
+
+**핵심 아이디어**: "접미사 배열 순서가 아닌 원본 문자열 순서로 LCP를 계산하면, 값이 한 번에 최대 1씩만 줄어들어 전체 비교 횟수가 선형이 된다."
+
+LCP 배열을 접미사 배열 순서대로 계산하면 각 쌍을 0부터 새로 비교해야 해서 최악 O(n²)이 걸린다. Kasai 알고리즘은 원본 인덱스 순서로 계산하면 이전에 구한 LCP 값이 다음 이터레이션에서 최대 1밖에 감소하지 않는다는 관찰을 활용한다. 덕분에 비교 포인터의 총 증가량과 감소량이 각각 n을 넘지 않아 전체 O(n)이 보장된다.
+
+**풀이 구조**
+1. 접미사 배열의 역배열(inv)을 구성한다. (원본 인덱스 → SA 위치)
+2. 원본 인덱스 순서 i = 0, 1, ..., n-1로 순회한다.
+3. 각 i에서 inv[i]를 이용해 SA 내 다음 이웃 j를 찾는다.
+4. 비교 포인터 k를 이전 이터레이션 k-1부터 시작해 공통 접두사를 확장한다.
+5. LCP[inv[i]] = k로 기록하고 k를 1 감소시킨다.
+
+**조건**: 문자열의 접미사 배열이 이미 주어져 있어야 한다. 접미사 배열 구축 후 LCP 배열이 필요한 모든 상황에 적용 가능하다.
+
+**대표 예시**: `s = "banana"`, `sa = [5,3,1,0,4,2]`에서 LCP 계산
+i = 0 ("banana")부터 시작해 SA 내 이웃과 공통 접두사를 k=0부터 세고, 다음 i = 1 ("anana")에서는 k를 직전 결과 - 1부터 시작한다. 전체 비교 횟수가 약 2n으로 제한된다.
+
+**언제 쓰나**
+접미사 배열로 문자열의 다양한 통계(서로 다른 부분 문자열 수, 최장 공통 부분 문자열 등)를 구하려면 LCP 배열이 필수적이며, 이때 Kasai 알고리즘을 사용한다.
+
+---
+
+### 원형 아이디어와 naive 접근
+
+LCP 배열을 SA 순서대로 정의대로 계산한다.
+
+```
+for i = 0 to n-2:
+  a = sa[i], b = sa[i+1]
+  k = 0
+  while a+k < n and b+k < n and s[a+k] == s[b+k]:
+    k++
+  lcp[i] = k
+```
+
+각 LCP 계산을 0부터 시작하므로 총 비교 횟수가 최악 $O(n^2)$이다.
+예: `s = "aaa...a"` ($n$개)의 SA는 `[n-1, n-2, ..., 0]`이고, 각 쌍의 LCP는 1, 2, ..., $n-1$이므로 총 비교 횟수 $\approx n^2/2$.
+
+### 어떤 관찰이 돌파구가 되는가
+
+- **원본 문자열 순서로 계산하면 LCP 값이 크게 감소하지 않는다.** SA 순서가 아니라 원본 인덱스 순서 $i = 0, 1, \ldots, n-1$로 계산하면, 연속된 두 이터레이션 사이에 LCP 값이 최대 1씩만 감소한다.
+- **감소 한계 보조정리(Kasai's lemma):** 접미사 $s[i \ldots]$의 SA 내 다음 이웃과의 LCP = $h$이면, 접미사 $s[i+1 \ldots]$의 SA 내 다음 이웃과의 LCP $\geq h - 1$이다. 따라서 $s[i+1 \ldots]$을 계산할 때 비교 포인터 $k$를 $h-1$부터 시작할 수 있다.
+- **$k$의 총 증가량 ≤ $n$, 총 감소량 ≤ $n$이므로 전체 $O(n)$이다.** 각 이터레이션에서 $k$는 최대 $n$까지 증가할 수 있고, 감소는 이터레이션마다 최대 1 감소이므로 총 감소량 ≤ $n$이다.
+
+### 관찰을 형식화: 상태/구조 정의
+
+**rank 역배열(inv):**
+
+$$\text{inv}[i] = k \iff \text{SA}[k] = i$$
+
+즉, 접미사 $s[i \ldots]$가 SA 안에서 몇 번째인지를 나타낸다.
+이 배열이 필요한 이유: 원본 인덱스 $i$에서 SA 위치로 빠르게 이동($O(1)$)하기 위해서다. inv 없이 SA를 선형 탐색하면 $O(n)$ → 전체 $O(n^2)$.
+
+**계산 순서:**
+SA 순서가 아닌 원본 순서 $i = 0, 1, \ldots, n-1$로 진행한다. 각 이터레이션에서 $\text{inv}[i]$를 통해 SA 위치를 구하고, SA에서 다음 이웃의 시작 인덱스 $j = \text{SA}[\text{inv}[i]+1]$을 얻는다.
+
+비교 포인터 $k$는 이터레이션 간 "최소 $h-1$" 보조정리에 의해 전 이터레이션 값에서 1을 뺀 값부터 시작한다.
+
+### 점화식 또는 핵심 연산
+
+이터레이션 $i$에서:
+
+1. $\text{inv}[i] = n-1$이면 ($i$가 SA의 마지막, 이웃 없음): $k = 0$으로 초기화, 건너뜀
+2. $j = \text{SA}[\text{inv}[i]+1]$ (SA에서 $i$ 바로 다음 접미사의 원본 인덱스)
+3. $s[i+k] = s[j+k]$이면 $k$를 1씩 증가 (공통 접두사 확장)
+4. $\text{LCP}[\text{inv}[i]] = k$
+5. $k = \max(k-1, 0)$ (보조정리: 다음 이터레이션의 시작 포인터)
+
+보조정리의 형식화:
+$$\text{LCP}[\text{inv}[i+1]] \geq \text{LCP}[\text{inv}[i]] - 1$$
+
+따라서 $k$는 이전 이터레이션의 $k - 1$부터 시작해도 놓치는 LCP가 없다.
+
+- $k$ 증가: $s[i+k] = s[j+k]$인 동안 1씩 증가 → 전체 최대 $n$회
+- $k$ 감소: 이터레이션마다 최대 1회 감소 → 전체 최대 $n$회
+- 총 비교 횟수 $\leq 2n$ → $O(n)$
+
+### 정당성 — 왜 이것이 옳은가
+
+보조정리 증명: 접미사 $s[i \ldots]$의 SA 이웃을 $s[j \ldots]$라 하고 $\text{lcp}(s[i \ldots], s[j \ldots]) = h$라 하자.
+
+- $s[i \ldots i+h-1] = s[j \ldots j+h-1]$ (첫 $h$ 글자 일치)
+- 양쪽에서 첫 글자를 제거하면 $s[i+1 \ldots i+h-1] = s[j+1 \ldots j+h-1]$
+- 즉 $\mathrm{lcp}(s[i+1 \ldots], s[j+1 \ldots]) \geq h-1$
+
+$s[i+1 \ldots]$의 SA 이웃은 SA 내에서 $s[j+1 \ldots]$보다 더 가까울 수 있으므로, $s[i+1 \ldots]$와 그 SA 이웃의 LCP ≥ $h-1$이다.
+
+까다로운 케이스: $\text{inv}[i] = n-1$인 경우, SA에서 가장 사전순이 큰 접미사이므로 다음 이웃이 없다. $k$를 0으로 초기화해야 다음 이터레이션에서 잘못된 LCP 값을 물려주지 않는다.
+
+모든 문자가 동일한 경우: $k$는 첫 이터레이션에서 최대 $n-1$까지 증가하고, 이후 이터레이션에서 1씩 감소한다. 총 비교 횟수 $\approx 2n$으로 $O(n)$ 유지.
+
+### 구현 디테일과 최적화
+
+- **inv 배열 구성 실수:** `inv[sa[i]] = i`를 `inv[i] = sa[i]`로 반대로 채우면 SA 위치→원본 인덱스 방향이 되어 잘못된 결과가 나온다.
+- **SA 마지막 원소 처리:** `inv[i] == n-1`일 때 `sa[inv[i]+1]`은 범위 초과이다. 반드시 이 케이스를 먼저 체크해야 한다.
+- **$k$ 초기화:** `inv[i] == n-1`인 케이스에서 `k`를 0으로 리셋하지 않으면 이전 $k$ 값이 다음 이터레이션에 영향을 준다.
+- **공간 절감:** 추가 배열은 `inv`(길이 $n$)와 `lcp`(길이 $n$)뿐이다. $O(n)$ 추가 공간.
+
+## 시뮬레이션
+
+고정 입력 `s = "banana"`, `sa = [5,3,1,0,4,2]`에 대해 Kasai 알고리즘으로 LCP 배열을 구하는 과정이다. 원본 인덱스 순서 `i=0..n-1`로 순회하며, 비교 포인터 `k`를 직전 이터레이션 값에서 1만 줄여 재사용한다. array 패널은 문자열 `s`이며, 빨강(`highlight`)은 현재 처리 중인 접미사 시작 `i`와 그 SA 이웃 `j`를 표시한다. keyValue 패널은 역배열 `inv`, 현재 `k`, 누적 `lcp`(SA 위치 순)를 보여준다. `inv=[3,2,5,1,4,0]`.
+
+실제 반환값은 `[1, 3, 0, 0, 2, 0]` 이며, 시뮬레이션 마지막 프레임의 `lcp`와 일치한다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
+
+export const chars = ["b", "a", "n", "a", "n", "a"];
+
+export const steps = [
+  {
+    title: "초기화",
+    detail: "inv[sa[i]]=i → inv=[3,2,5,1,4,0]. k=0, lcp 전부 0.",
+    array: chars,
+    entries: [
+      { label: "inv", value: "[3,2,5,1,4,0]" },
+      { label: "k", value: 0 },
+      { label: "lcp (SA순)", value: "[0,0,0,0,0,0]" },
+    ],
+  },
+  {
+    title: "i=0 ('banana')",
+    detail: "inv[0]=3, 이웃 j=sa[4]=4 ('na'). s[0]='b'≠s[4]='n' → k=0. lcp[3]=0.",
+    array: chars,
+    highlight: [0, 4],
+    entries: [
+      { label: "i, j", value: "0, 4" },
+      { label: "k", value: 0 },
+      { label: "lcp (SA순)", value: "[0,0,0,0,0,0]" },
+    ],
+  },
+  {
+    title: "i=1 ('anana')",
+    detail: "inv[1]=2, 이웃 j=sa[3]=0 ('banana'). s[1]='a'≠s[0]='b' → k=0. lcp[2]=0.",
+    array: chars,
+    highlight: [1, 0],
+    entries: [
+      { label: "i, j", value: "1, 0" },
+      { label: "k", value: 0 },
+      { label: "lcp (SA순)", value: "[0,0,0,0,0,0]" },
+    ],
+  },
+  {
+    title: "i=2 ('nana') — SA 마지막",
+    detail: "inv[2]=5=n-1 → 이웃 없음. k=0으로 리셋, 건너뜀.",
+    array: chars,
+    highlight: [2],
+    entries: [
+      { label: "i, inv[i]", value: "2, 5" },
+      { label: "k", value: 0 },
+      { label: "lcp (SA순)", value: "[0,0,0,0,0,0]" },
+    ],
+  },
+  {
+    title: "i=3 ('ana')",
+    detail: "inv[3]=1, 이웃 j=sa[2]=1 ('anana'). a=a,n=n,a=a 일치 → k=3. lcp[1]=3, k--→2.",
+    array: chars,
+    highlight: [3, 1],
+    entries: [
+      { label: "i, j", value: "3, 1" },
+      { label: "k", value: 2 },
+      { label: "lcp (SA순)", value: "[0,3,0,0,0,0]" },
+    ],
+  },
+  {
+    title: "i=4 ('na')",
+    detail: "inv[4]=4, 이웃 j=sa[5]=2 ('nana'). k=2부터 비교하나 i+k=6 범위밖 → 그대로. lcp[4]=2, k--→1.",
+    array: chars,
+    highlight: [4, 2],
+    entries: [
+      { label: "i, j", value: "4, 2" },
+      { label: "k", value: 1 },
+      { label: "lcp (SA순)", value: "[0,3,0,0,2,0]" },
+    ],
+  },
+  {
+    title: "i=5 ('a')",
+    detail: "inv[5]=0, 이웃 j=sa[1]=3 ('ana'). k=1부터, i+k=6 범위밖 → 그대로. lcp[0]=1, k--→0.",
+    array: chars,
+    highlight: [5, 3],
+    entries: [
+      { label: "i, j", value: "5, 3" },
+      { label: "k", value: 0 },
+      { label: "lcp (SA순)", value: "[1,3,0,0,2,0]" },
+    ],
+  },
+  {
+    title: "완료: lcp = [1,3,0,0,2,0]",
+    detail: "모든 i 처리 완료. SA 인접 접미사 쌍의 LCP가 선형 시간에 계산됨.",
+    array: chars,
+    entries: [
+      { label: "lcp (SA순)", value: "[1,3,0,0,2,0]" },
+      { label: "반환", value: "[1,3,0,0,2,0]" },
+    ],
+  },
+];
+
+<AlgorithmSimulation view={["array", "keyValue"]} steps={steps} title="Kasai LCP: s='banana'" />
+
+## 수도 코드와 Activity Diagram
+
+### 의사코드
+
+```
+kasaiLcp(s, sa):
+  n = len(s)
+  lcp = array of length n, all 0
+  inv = array of length n            // inv[sa[i]] = i
+  for i = 0 to n-1:
+    inv[sa[i]] = i
+
+  k = 0                              // 불변식: k는 직전 접미사 LCP - 1 이상
+  for i = 0 to n-1:
+    if inv[i] == n-1:               // SA 마지막 → 이웃 없음
+      k = 0; continue
+
+    j = sa[inv[i] + 1]              // 불변식: s[i+k-1] == s[j+k-1] (이미 확인됨)
+    while i + k < n and j + k < n and s[i+k] == s[j+k]:
+      k++                           // 공통 접두사 확장
+
+    lcp[inv[i]] = k                 // SA 위치에 LCP 기록
+
+    if k > 0:
+      k--                           // 보조정리: 다음 이터레이션 시작 포인터 감소
+
+  return lcp
+```
+
+### Activity Diagram
+
+```mermaid
+flowchart TD
+    A["inv 배열 구성: inv[sa[i]] = i"] --> B[k = 0, i = 0]
+    B --> C{i < n?}
+    C -- No --> Z[lcp 반환]
+    C -- Yes --> D{inv[i] == n-1?}
+    D -- Yes --> E[k = 0, i++]
+    E --> C
+    D -- No --> F["j = sa[inv[i] + 1]"]
+    F --> G{"s[i+k] == s[j+k] AND 범위 내?"}
+    G -- Yes --> H[k++]
+    H --> G
+    G -- No --> I["lcp[inv[i]] = k"]
+    I --> J{k > 0?}
+    J -- Yes --> K[k--]
+    K --> L[i++]
+    J -- No --> L
+    L --> C
+```
+
+**핵심 불변식:** 루프 시작 시 $k$는 직전 이터레이션에서 계산된 LCP 값에서 1을 뺀 것 이상이며, $k$의 총 증가량 ≤ $n$, 총 감소량 ≤ $n$이므로 전체 루프가 $O(n)$임이 보장된다.
