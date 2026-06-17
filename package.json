@@ -3,8 +3,20 @@
   "module": "index.ts",
   "type": "module",
   "private": true,
+  "imports": {
+    "#guide-sim": "./src/_guide-sim/index.tsx"
+  },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@happy-dom/global-registrator": "^20.10.4",
+    "@mdx-js/mdx": "^3.1.1",
+    "@types/bun": "latest",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "katex": "^0.17.0",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0"
   },
   "peerDependencies": {
     "typescript": "^5"
