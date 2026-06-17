@@ -11,7 +11,7 @@ src/<유형>/<문제명>/
 ├── <문제명>.ts             # 문제 주석 + 풀이 함수
 ├── <문제명>-problem.md     # 완성된 문제 서술
 ├── <문제명>.test.ts        # 테스트 코드
-├── <문제명>-guide.md       # 문제 해설서
+├── <문제명>-guide.mdx      # 문제 해설서 (React 시뮬레이션 포함 MDX)
 └── <문제명>-analysis.md    # 풀이 분석 보고서
 ```
 
@@ -58,10 +58,12 @@ src/<유형>/<문제명>/
 /guide-for-problem <파일 경로(확장자 제외)>
 ```
 
-`src/<파일명>.ts`의 주석을 참고하여 `src/<파일명>-guide.md`를 생성합니다. 해설서는 `.claude/skills/guide-for-problem/solving-problem-canvas.md` 구조를 따르며, 핵심 아이디어는 다음 순서로 구성됩니다.
+`src/<파일명>.ts`의 주석을 참고하여 `src/<파일명>-guide.mdx`를 생성합니다. 해설서는 `.claude/skills/guide-for-problem/solving-problem-canvas.md` 구조를 따르며, 핵심 아이디어는 다음 순서로 구성됩니다.
 
 1. 원천이 되는 아이디어 및 알고리즘 설명
 2. 그 원형에서 문제의 솔루션으로 유도하는 과정 (생략 없이, 주장에는 이유를 동반)
+
+해설서는 MDX 문서로, 알고리즘 전개 과정을 단계별로 조작·재생할 수 있는 React 시뮬레이션(`## 시뮬레이션` 섹션)을 포함합니다. 시뮬레이션은 공용 모듈 `src/_guide-sim`을 `import` 해 사용하며, 각 해설서는 선언형 `steps` 데이터와 프리셋 `view`만 정의합니다.
 
 ## 테스트 실행
 
