@@ -1,17 +1,21 @@
 export function insertionSort(A: number[]): number[] {
-  const sortedA: number[] = [];
+  const sortedA = Array.from(A);
 
-  for (let item of A) {
-    sortedA.push(item);
-    for (let i = sortedA.length - 2; i >= 0; i--) {
-      if (sortedA[i]! > sortedA[sortedA.length - 1]!) {
-        let swap = sortedA[i]!;
-        sortedA[i] = sortedA[sortedA.length - 1]!;
-        sortedA[sortedA.length - 1] = swap;
+  for (let i = 1; i < sortedA.length; i++) {
+    const key = sortedA[i]!;
 
+    let j = i - 1;
+    while (j >= 0) {
+      const comparedTarget = sortedA[j]!;
+
+      if (comparedTarget > key) {
+        sortedA[j + 1] = comparedTarget;
+      } else {
         break;
       }
+      j--;
     }
+    sortedA[j + 1] = key;
   }
 
   return sortedA;
