@@ -4,5 +4,5 @@ export function ternarySearch(
   hi: number,
   epsilon: number,
 ): number {
-  throw new Error("Not implemented");
+    throw new Error("Not implemented");
 }

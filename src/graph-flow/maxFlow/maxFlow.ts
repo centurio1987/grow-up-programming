@@ -4,5 +4,5 @@ export function maxFlow(
   source: number,
   sink: number,
 ): { flow: number } {
-  throw new Error("Not implemented");
+    throw new Error("Not implemented");
 }

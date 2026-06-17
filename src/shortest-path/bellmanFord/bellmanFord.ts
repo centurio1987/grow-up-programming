@@ -3,5 +3,5 @@ export function bellmanFord(
   edges: [number, number, number][],
   src: number,
 ): { dist: number[]; hasNegativeCycle: boolean } {
-  throw new Error("Not implemented");
+    throw new Error("Not implemented");
 }

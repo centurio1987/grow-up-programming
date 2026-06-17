@@ -3,5 +3,5 @@ export function treeIsomorphism(
   edges1: [number, number][],
   edges2: [number, number][]
 ): boolean {
-  throw new Error("Not implemented");
+    throw new Error("Not implemented");
 }

@@ -3,5 +3,5 @@ export type FenwickOp =
   | { type: "query"; l: number; r: number };
 
 export function fenwickRangeSum(A: number[], ops: FenwickOp[]): number[] {
-  throw new Error("Not implemented");
+    throw new Error("Not implemented");
 }

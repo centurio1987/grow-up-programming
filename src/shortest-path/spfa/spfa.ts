@@ -3,5 +3,5 @@ export function spfa(
   edges: [number, number, number][],
   src: number,
 ): number[] {
-  throw new Error("Not implemented");
+    throw new Error("Not implemented");
 }

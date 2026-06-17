@@ -5,5 +5,5 @@ export function aStarSearch(
   goal: number,
   h: (v: number) => number,
 ): number {
-  throw new Error("Not implemented");
+    throw new Error("Not implemented");
 }

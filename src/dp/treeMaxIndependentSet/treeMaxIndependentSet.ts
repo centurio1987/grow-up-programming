@@ -3,5 +3,5 @@ export function treeMaxIndependentSet(
   edges: [number, number][],
   weights: number[],
 ): number {
-  throw new Error("Not implemented");
+    throw new Error("Not implemented");
 }

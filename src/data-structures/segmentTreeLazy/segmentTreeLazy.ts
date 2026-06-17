@@ -4,10 +4,10 @@ export class SegmentTreeLazy {
   }
 
   rangeAdd(l: number, r: number, val: number): void {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 
   rangeSum(l: number, r: number): number {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 }

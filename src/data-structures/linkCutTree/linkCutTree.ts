@@ -4,14 +4,14 @@ export class LinkCutTree {
   }
 
   link(u: number, v: number): void {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 
   cut(u: number, v: number): void {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 
   connected(u: number, v: number): boolean {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 }

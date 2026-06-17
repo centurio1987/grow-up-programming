@@ -4,5 +4,5 @@ export function minCut(
   source: number,
   sink: number,
 ): { cut: number } {
-  throw new Error("Not implemented");
+    throw new Error("Not implemented");
 }

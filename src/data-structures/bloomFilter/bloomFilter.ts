@@ -4,10 +4,10 @@ export class BloomFilter {
   }
 
   add(item: string): void {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 
   has(item: string): boolean {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 }

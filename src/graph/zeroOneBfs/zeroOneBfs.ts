@@ -3,5 +3,5 @@ export function zeroOneBfs(
   edges: [number, number, number][],
   source: number,
 ): number[] {
-  throw new Error("Not implemented");
+    throw new Error("Not implemented");
 }

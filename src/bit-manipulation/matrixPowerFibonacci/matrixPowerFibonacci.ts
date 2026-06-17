@@ -1,3 +1,3 @@
 export function matrixPowerFibonacci(n: bigint): bigint {
-  throw new Error("Not implemented");
+    throw new Error("Not implemented");
 }

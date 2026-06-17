@@ -4,10 +4,10 @@ export class SuffixAutomaton {
   }
 
   countDistinctSubstrings(): number {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 
   contains(t: string): boolean {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 }

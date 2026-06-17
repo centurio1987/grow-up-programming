@@ -4,5 +4,5 @@ export function minCostMaxFlow(
   source: number,
   sink: number,
 ): { flow: number; cost: number } {
-  throw new Error("Not implemented");
+    throw new Error("Not implemented");
 }

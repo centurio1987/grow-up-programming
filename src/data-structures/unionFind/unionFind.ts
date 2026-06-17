@@ -4,14 +4,14 @@ export class UnionFind {
   }
 
   find(x: number): number {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 
   union(x: number, y: number): void {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 
   connected(x: number, y: number): boolean {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 }

@@ -4,14 +4,14 @@ export class FenwickTree {
   }
 
   update(i: number, delta: number): void {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 
   prefixSum(i: number): number {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 
   rangeSum(l: number, r: number): number {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 }

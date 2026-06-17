@@ -9,10 +9,10 @@ export class SubtreeSumQuery {
   }
 
   update(node: number, value: number): void {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 
   querySubtree(node: number): number {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 }

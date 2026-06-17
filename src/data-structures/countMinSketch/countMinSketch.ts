@@ -4,10 +4,10 @@ export class CountMinSketch {
   }
 
   update(item: string, count: number): void {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 
   estimate(item: string): number {
-    throw new Error("Not implemented");
+      throw new Error("Not implemented");
   }
 }

@@ -1,3 +1,3 @@
 export function longestPalindrome(s: string): string {
-  throw new Error("Not implemented");
+    throw new Error("Not implemented");
 }
