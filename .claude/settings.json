@@ -5,5 +5,18 @@
       "Bash(bun*)",
       "Bash(open *)"
     ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Bash|Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./tools/generate-guides-index.sh > /dev/null"
+          }
+        ]
+      }
+    ]
   }
 }
