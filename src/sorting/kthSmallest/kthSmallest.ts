@@ -1,3 +1,5 @@
 export function kthSmallest(A: number[], k: number): number {
-  throw new Error("Not implemented");
+  A.sort((a, b) => a - b);
+
+  return A[k - 1]!;
 }
