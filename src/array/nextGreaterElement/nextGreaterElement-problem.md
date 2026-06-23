@@ -1,11 +1,16 @@
-# Next Greater Element (NGE)
+# Next Greater Element
 
-## 중요도 · 난이도
+## 한 줄 요약
 
-| 항목 | 값 |
-|------|-----|
-| 중요도 | ★★ 중 — 빈출 |
-| 난이도 | 중급 |
+> 정수 배열을 받아, 각 원소에 대해 **오른쪽에서 처음으로 자신보다 엄격하게 큰 값**을 담은 배열을 반환한다.
+
+## 스토리
+
+기상 예보 팀의 분석가 나연은 일별 기온 기록을 들여다보고 있다. 각 날짜에 대해, 이후 날들 중 처음으로 오늘보다 더 더웠던 날의 기온을 알고 싶다.
+
+단, "더 덥다"는 기준은 엄격하다. 같은 온도는 해당되지 않는다. 나연이 보는 날짜 이후로 더 더운 날이 없으면 특별 표시 $-1$을 기록한다.
+
+배열의 끝에 위치한 원소들은 오른쪽에 다음 날이 없으므로 항상 $-1$을 가진다.
 
 ## 함수 인터페이스
 
@@ -13,25 +18,33 @@
 export function nextGreaterElement(nums: number[]): number[];
 ```
 
+- `nums` — 정수 배열.
+- 반환 — 길이 $N$의 배열. `result[i]`는 `nums[i]`보다 오른쪽에 있는 원소 중 처음으로 엄격하게 큰 값. 없으면 `-1`.
+
 ## 제약 조건
 
-- $1 \leq N \leq 100{,}000$ (여기서 $N$ 은 `nums` 의 길이)
+- $1 \leq N \leq 100{,}000$ (여기서 $N$은 `nums`의 길이)
 - $-10^9 \leq nums[i] \leq 10^9$ (정수)
+- 시간 제한: 1초, 메모리 제한: 256 MB
 
 ## 문제 상세
 
-정수 배열 $nums$ 가 주어진다. 각 인덱스 $i$ 에 대해, **오른쪽에 있는 원소들 중 자신보다 엄격하게 큰 첫 번째 원소** 의 값을 구한다. 그러한 원소가 없으면 $-1$ 로 둔다.
+결과 배열 $R$의 정의:
 
-결과 배열 $R$ ($|R| = N$) 의 정의:
+$$R[i] = \begin{cases} nums[j] & j = \min\{\, j > i \mid nums[j] > nums[i] \,\} \\ -1 & \text{그런 } j \text{가 없는 경우} \end{cases}$$
 
-$$R[i] = \begin{cases} nums[j] & j = \min\{\, j > i \,\mid\, nums[j] > nums[i] \,\} \\ -1 & \text{such } j \text{ does not exist} \end{cases}$$
+"엄격하게 크다"는 $nums[j] > nums[i]$를 의미한다. 같은 값은 포함하지 않는다. 마지막 원소(`i = N-1`)는 오른쪽에 아무것도 없으므로 항상 $-1$이다.
 
 ## 예시
 
 ```ts
-nextGreaterElement([2, 1, 2, 4, 3]);    // [4, 2, 4, -1, -1]
-nextGreaterElement([4, 3, 2, 1]);       // [-1, -1, -1, -1]
-nextGreaterElement([1, 2, 3, 4]);       // [2, 3, 4, -1]
-nextGreaterElement([5]);                // [-1]
+nextGreaterElement([2, 1, 2, 4, 3]);    // [4, 2, 4, -1, -1]  — 각 원소의 다음 큰 값
+nextGreaterElement([1, 2, 3, 4]);       // [2, 3, 4, -1]  — 엄격 증가, 마지막은 -1
 nextGreaterElement([2, 7, 3, 5, 1, 6]); // [7, -1, 5, 6, 6, -1]
+
+nextGreaterElement([4, 3, 2, 1]);       // [-1, -1, -1, -1]  — 엄격 감소, 모두 -1
+nextGreaterElement([5, 5, 5]);          // [-1, -1, -1]  — 같은 값은 포함 안 됨
+
+nextGreaterElement([5]);                // [-1]  — 단일 원소, 오른쪽 없음
+nextGreaterElement([1, 2]);             // [2, -1]  — 두 원소, 첫 것만 다음 큰 값 존재
 ```

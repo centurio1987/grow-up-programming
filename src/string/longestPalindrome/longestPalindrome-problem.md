@@ -1,11 +1,14 @@
-# 최장 회문 부분 문자열 (Manacher's Algorithm)
+# 최장 회문 부분 문자열
 
-## 중요도 · 난이도
+## 한 줄 요약
 
-| 항목 | 값 |
-|------|-----|
-| 중요도 | ★ 하 — 특정 분야·고급 |
-| 난이도 | 고급 |
+> `longestPalindrome(s)`는 문자열을 받아, 그 안에서 앞뒤로 읽어도 동일한 가장 긴 부분 문자열을 반환한다.
+
+## 스토리
+
+언어학 연구소의 지호는 고대 암호문에서 좌우 대칭 구조를 가진 가장 긴 구절을 찾아야 한다. 암호문 해독의 실마리가 바로 그 대칭 구절에 숨어 있다고 한다.
+
+암호문은 수십만 자에 달하고, 가능한 모든 부분 문자열을 일일이 확인하면 해가 바뀌어도 끝나지 않는다. 지호에게는 문자열 전체를 단번에 훑으며 가장 긴 대칭 구절을 찾아주는 도구가 필요하다.
 
 ## 함수 인터페이스
 
@@ -13,27 +16,36 @@
 export function longestPalindrome(s: string): string;
 ```
 
+- `s` — 입력 문자열
+- 반환 — `s`의 부분 문자열 중 회문이면서 길이가 가장 긴 것. 동일 길이의 회문이 여러 개면 그 중 어느 하나를 반환해도 된다. 빈 문자열 입력 시 빈 문자열을 반환한다.
+
 ## 제약 조건
 
-- $0 \leq |s| \leq 10^{5}$
-- 전체 시간 복잡도는 $O(n)$ 이어야 한다
+- $0 \leq |s| \leq 10^5$
+- 문자 집합: 소문자 영문 알파벳 (`a`–`z`)
+- 시간 복잡도: $O(n)$
+- 시간 제한: 1초, 메모리 제한: 256 MB
 
 ## 문제 상세
 
-문자열 $s$가 주어질 때, $s$의 부분 문자열 중 회문(Palindrome)인 가장 긴 부분 문자열을 반환한다.
+문자열 $s$가 주어질 때, $s$의 연속 부분 문자열 $s[i \ldots j]$ 중 회문이면서 길이 $j - i + 1$이 최대인 것을 반환한다.
 
-부분 문자열 $s[i \ldots j]$가 회문이라는 것은:
+부분 문자열 $s[i \ldots j]$가 회문인 조건:
 
-$$\forall k \in [0, j - i],\; s[i + k] = s[j - k]$$
+$$\forall k \in [0,\, j - i],\; s[i + k] = s[j - k]$$
 
-답이 여러 개라면 그중 어느 하나를 반환해도 된다. 빈 문자열 입력 시 빈 문자열을 반환한다.
+답이 여러 개라면(동일 길이의 회문이 두 곳 이상) 그 중 어느 것이든 반환해도 된다.
+
+- $s$가 빈 문자열이면 빈 문자열 `""`을 반환한다.
+- 모든 문자가 다르면 길이 1의 임의 문자를 반환한다.
 
 ## 예시
 
 ```ts
-longestPalindrome("babad");   // "bab" 또는 "aba"
-longestPalindrome("cbbd");    // "bb"
-longestPalindrome("a");       // "a"
-longestPalindrome("");        // ""
-longestPalindrome("forgeeksskeegfor");  // "geeksskeeg"
+longestPalindrome("babad");             // "bab" 또는 "aba" — 길이 3의 회문 두 가지 모두 정답
+longestPalindrome("cbbd");              // "bb" — 길이 2, 짝수 회문
+longestPalindrome("racecar");           // "racecar" — 전체가 회문
+longestPalindrome("forgeeksskeegfor");  // "geeksskeeg" — 길이 10
+longestPalindrome("a");                 // "a" — 단일 문자
+longestPalindrome("");                  // "" — 빈 입력
 ```

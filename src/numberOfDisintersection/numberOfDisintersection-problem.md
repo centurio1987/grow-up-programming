@@ -1,11 +1,16 @@
 # Number of Disc Intersections
 
-## 중요도 · 난이도
+## 한 줄 요약
 
-| 항목 | 값 |
-|------|-----|
-| 중요도 | ★★★ 상 — 필수 |
-| 난이도 | 초급 |
+> 함수는 원판의 반지름 배열을 받아 서로 교차하는 원판 쌍의 수를 반환한다.
+
+## 스토리
+
+물리학 실험에서 수직 막대들이 수평 수직선 위에 일정 간격으로 꽂혀 있다. 각 막대 끝에는 원판이 달려 있는데, 원판마다 크기가 다르다. $J$번 막대는 수직선 위 좌표 $J$에 위치하고, 원판의 반지름은 $A[J]$다.
+
+연구자는 어떤 두 원판이 서로 겹치는지(경계 포함) 알고 싶다. 두 원판이 겹친다는 것은 적어도 하나의 공통점을 갖는다는 뜻이다. 교차하는 쌍이 너무 많으면 분석이 의미 없으므로, $10{,}000{,}000$을 초과하면 $-1$을 반환하기로 약속했다.
+
+주어진 원판 배열에서 교차하는 순서 없는 쌍의 수를 구하라.
 
 ## 함수 인터페이스
 
@@ -13,47 +18,42 @@
 export function solution(A: number[]): number;
 ```
 
+- `A` — 길이 $N$인 비음수 정수 배열. `A[J]`는 $J$번 원판의 반지름
+- 반환 — 교차하는 원판 쌍의 수. $10{,}000{,}000$ 초과 시 $-1$
+
 ## 제약 조건
 
-- $0 \leq N \leq 100{,}000$ (여기서 $N$ 은 `A` 의 길이)
-- 각 원소는 $0 \leq A[J] \leq 2{,}147{,}483{,}647$ 인 정수
+- $0 \leq N \leq 100{,}000$ ($N$은 `A`의 길이)
+- 각 원소는 $0 \leq A[J] \leq 2{,}147{,}483{,}647$인 정수
+- 시간 제한: 1초, 메모리 제한: 256 MB
 
 ## 문제 상세
 
-$N$ 개의 원판이 평면 위에 그려진다. $J$ 번 원판의 중심은 $(J,\, 0)$ 이고 반지름은 $A[J]$ 이다.
-두 원판 $J$, $K$ ($J \neq K$) 가 **교차** 한다는 것은 두 원판이 적어도 한 점을 공유함을 의미한다 (경계 포함):
+$J$번 원판의 중심은 $(J, 0)$이고 반지름은 $A[J]$이므로, x축 위의 구간 $[J - A[J],\; J + A[J]]$를 차지한다.
+
+두 원판 $J$, $K$ ($J \neq K$)가 교차하는 조건은 다음과 같다.
 
 $$\text{intersect}(J, K) \iff |J - K| \leq A[J] + A[K]$$
 
-교차하는 (순서 없는) 원판 쌍의 수를 반환한다.
-교차 쌍의 수가 $10{,}000{,}000$ 을 초과하면 $-1$ 을 반환한다.
+교차하는 순서 없는 쌍 $(J, K)$의 전체 수를 반환한다. 단, 이 수가 $10{,}000{,}000$을 초과하면 $-1$을 반환한다.
 
 ## 예시
 
 ```ts
-solution([1, 5, 2, 1, 4, 0]); // 11
-//
-// 원판 0: 중심 (0,0), 반지름 1 -> 구간 [-1, 1]
-// 원판 1: 중심 (1,0), 반지름 5 -> 구간 [-4, 6]
-// 원판 2: 중심 (2,0), 반지름 2 -> 구간 [0, 4]
-// 원판 3: 중심 (3,0), 반지름 1 -> 구간 [2, 4]
-// 원판 4: 중심 (4,0), 반지름 4 -> 구간 [0, 8]
-// 원판 5: 중심 (5,0), 반지름 0 -> 구간 [5, 5]
-//
-// 원판 1과 4는 다른 모든 원판과 교차하고, 원판 2는 원판 0, 3과도 추가로 교차한다.
+solution([1, 5, 2, 1, 4, 0]);
+// 11
+// 원판 0: [-1, 1], 원판 1: [-4, 6], 원판 2: [0, 4]
+// 원판 3: [2, 4],  원판 4: [0, 8],  원판 5: [5, 5]
+// 원판 1은 0, 2, 3, 4, 5 모두와 교차 (5쌍)
+// 원판 4는 0, 2, 3, 5와 교차 (4쌍, 1과의 쌍은 이미 계산)
+// 원판 2는 0, 3과 추가 교차 (2쌍)
+// 합계 11쌍
 
-solution([]);  // 0
-solution([0]); // 0
+solution([]);  // 0 — 원판이 없어 쌍 없음
+solution([0]); // 0 — 원판이 하나뿐이어서 쌍 불가
+solution([1, 1]); // 1 — 원판 0: [-1,1], 원판 1: [0,2], 1점 공유
+
+solution([0, 0, 0]);
+// 0 — 원판 0: [0,0], 원판 1: [1,1], 원판 2: [2,2]
+//     인접 원판 간 거리가 1이고 반지름 합은 0이어서 교차 불가
 ```
-
-## 원문 (참고)
-
-> We draw N discs on a plane. The discs are numbered from 0 to N − 1. An array A of N non-negative integers, specifying the radiuses of the discs, is given. The J-th disc is drawn with its center at (J, 0) and radius A[J].
->
-> We say that the J-th disc and K-th disc intersect if J ≠ K and the J-th and K-th discs have at least one common point (assuming that the discs contain their borders).
->
-> Write a function that, given an array A describing N discs as explained above, returns the number of (unordered) pairs of intersecting discs. The function should return −1 if the number of intersecting pairs exceeds 10,000,000.
->
-> Write an efficient algorithm for the following assumptions:
-> - N is an integer within the range [0..100,000];
-> - each element of array A is an integer within the range [0..2,147,483,647].
