@@ -1,11 +1,16 @@
 # Missing Integer
 
-## 중요도 · 난이도
+## 한 줄 요약
 
-| 항목 | 값 |
-|------|-----|
-| 중요도 | ★★★ 상 — 필수 |
-| 난이도 | 초급 |
+> 함수는 정수 배열을 받아 그 배열에 존재하지 않는 가장 작은 양의 정수를 반환한다.
+
+## 스토리
+
+창고 관리자가 재고 번호를 기록한 목록을 갖고 있다. 재고 번호는 양의 정수여야 하는데, 목록에는 음수와 0도 섞여 있다. 또 같은 번호가 중복 기재된 경우도 있다.
+
+관리자는 번호 1번부터 차례로 확인하며, 목록에 없는 번호 중 가장 작은 것을 다음 신규 재고 번호로 배정하려 한다. 목록에 1이 없다면 1을 배정하고, 1은 있지만 2가 없다면 2를 배정하는 방식이다.
+
+주어진 목록에서 배정해야 할 다음 재고 번호, 즉 존재하지 않는 가장 작은 양의 정수를 구하라.
 
 ## 함수 인터페이스
 
@@ -13,40 +18,38 @@
 export function missingInteger(A: number[]): number;
 ```
 
+- `A` — 길이 $N$인 정수 배열 (음수, 0, 양수 혼합 가능)
+- 반환 — `A`에 존재하지 않는 가장 작은 양의 정수
+
 ## 제약 조건
 
-- $1 \leq N \leq 100{,}000$ (여기서 $N$ 은 `A` 의 길이)
-- 각 원소는 $-1{,}000{,}000 \leq A[i] \leq 1{,}000{,}000$ 인 정수
+- $1 \leq N \leq 100{,}000$ ($N$은 `A`의 길이)
+- 각 원소는 $-1{,}000{,}000 \leq A[i] \leq 1{,}000{,}000$인 정수
+- 시간 제한: 1초, 메모리 제한: 256 MB
 
 ## 문제 상세
 
-$N$ 개의 정수로 이루어진 배열 $A$ 가 주어질 때,
-$A$ 에 존재하지 않는 **가장 작은 양의 정수** ($> 0$) 를 반환한다.
-
-양의 정수 집합 $S = \{ x \in A \mid x > 0 \}$ 에 대해:
+배열 $A$에 존재하는 양의 정수 집합을 $S = \{ x \in A \mid x > 0 \}$로 정의한다. 반환값은 $S$에 속하지 않는 가장 작은 양의 정수다.
 
 $$\text{missingInteger}(A) = \min\left( \mathbb{Z}^{+} \setminus S \right)$$
 
-즉, $1, 2, 3, \ldots$ 순으로 탐색하여 $S$ 에 없는 첫 번째 값을 반환한다.
+$1, 2, 3, \ldots$ 순으로 탐색하여 $S$에 없는 첫 번째 값을 반환한다. 음수와 0은 탐색 대상에서 제외한다.
 
 ## 예시
 
 ```ts
-missingInteger([1, 3, 6, 4, 1, 2]); // 5
-missingInteger([1, 2, 3]);          // 4
-missingInteger([-1, -3]);           // 1
+missingInteger([1, 3, 6, 4, 1, 2]);
+// 5 — 1, 2, 3, 4, 6은 있지만 5가 없음
+
+missingInteger([1, 2, 3]);
+// 4 — 1, 2, 3이 연속으로 있으므로 다음 값인 4
+
+missingInteger([-1, -3]);
+// 1 — 양의 정수가 전혀 없으므로 1이 최솟값
+
+missingInteger([2, 3, 4]);
+// 1 — 1이 목록에 없음
+
+missingInteger([1, 1, 1, 1]);
+// 2 — 1만 중복되어 있고 2가 없음
 ```
-
-## 원문 (참고)
-
-> This is a demo task.
->
-> Write a function that, given an array A of N integers, returns the smallest positive integer (greater than 0) that does not occur in A.
->
-> For example, given A = [1, 3, 6, 4, 1, 2], the function should return 5.
-> Given A = [1, 2, 3], the function should return 4.
-> Given A = [−1, −3], the function should return 1.
->
-> Write an efficient algorithm for the following assumptions:
-> - N is an integer within the range [1..100,000];
-> - each element of array A is an integer within the range [−1,000,000..1,000,000].

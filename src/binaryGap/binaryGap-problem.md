@@ -1,11 +1,16 @@
 # Binary Gap
 
-## 중요도 · 난이도
+## 한 줄 요약
 
-| 항목 | 값 |
-|------|-----|
-| 중요도 | ★★★ 상 — 필수 |
-| 난이도 | 초급 |
+> 함수는 양의 정수를 받아 이진 표현에서 두 1 사이에 끼인 0의 최대 연속 개수를 반환한다.
+
+## 스토리
+
+모든 정수는 이진수로 표현될 수 있다. 이진수를 왼쪽에서 오른쪽으로 읽다 보면, 1과 1 사이에 여러 개의 0이 끼어 있는 구간이 생기기도 한다. 이처럼 양쪽이 1로 닫혀 있는 연속된 0의 구간을 binary gap이라 부른다.
+
+예를 들어 숫자 9는 이진수로 `1001`이며, 두 1 사이에 0이 2개 끼어 있다. 반면 숫자 32는 `100000`으로, 오른쪽 끝이 1로 닫히지 않아 binary gap이 존재하지 않는다.
+
+하나의 숫자에 binary gap이 여러 개 존재할 수 있다. 그 중 가장 긴 것의 길이를 구하라.
 
 ## 함수 인터페이스
 
@@ -13,48 +18,34 @@
 export function binaryGap(n: number): number;
 ```
 
+- `n` — 분석할 양의 정수
+- 반환 — 가장 긴 binary gap의 길이. binary gap이 없으면 0.
+
 ## 제약 조건
 
 - $1 \leq n \leq 2{,}147{,}483{,}647$ (정수)
+- 시간 제한: 1초, 메모리 제한: 256 MB
 
 ## 문제 상세
 
-양의 정수 $n$ 의 이진 표현에서, **양쪽이 1로 둘러싸인 연속된 0의 부분열** 을 binary gap 이라 한다.
-
-이진 표현 $b_k b_{k-1} \cdots b_1 b_0$ 에서 1의 위치 집합을
-
-$$P = \{ i \mid b_i = 1 \}$$
-
-으로 정의하고, $P$ 를 오름차순으로 정렬한 수열을 $p_0 < p_1 < \cdots < p_{m-1}$ 이라 하면 인접한 두 1 사이의 gap 길이는
+양의 정수 $n$의 이진 표현에서, 1의 위치 집합을 $P = \{ i \mid b_i = 1 \}$로 정의한다. $P$를 오름차순으로 정렬한 수열을 $p_0 < p_1 < \cdots < p_{m-1}$이라 할 때, 인접한 두 1 사이의 gap 길이는 다음과 같다.
 
 $$g_j = p_{j+1} - p_j - 1, \quad j = 0, 1, \ldots, m - 2$$
 
-반환값은
+반환값은 다음과 같다.
 
 $$\text{binaryGap}(n) = \begin{cases} \max\{g_j\} & m \geq 2 \\ 0 & m < 2 \end{cases}$$
 
-이다.
+오른쪽 끝의 0들은 1로 닫히지 않으므로 gap으로 계산하지 않는다.
 
 ## 예시
 
-| $n$ | 이진 표현 | 반환값 |
-| --- | --- | --- |
-| 9 | `1001` | 2 |
-| 529 | `1000010001` | 4 |
-| 20 | `10100` | 1 |
-| 15 | `1111` | 0 |
-| 32 | `100000` | 0 |
-| 1041 | `10000010001` | 5 |
-
-## 원문 (참고)
-
-> A binary gap within a positive integer N is any maximal sequence of consecutive zeros that is surrounded by ones at both ends in the binary representation of N.
->
-> For example, number 9 has binary representation 1001 and contains a binary gap of length 2. The number 529 has binary representation 1000010001 and contains two binary gaps: one of length 4 and one of length 3. The number 20 has binary representation 10100 and contains one binary gap of length 1. The number 15 has binary representation 1111 and has no binary gaps. The number 32 has binary representation 100000 and has no binary gaps.
->
-> Write a function that, given a positive integer N, returns the length of its longest binary gap. The function should return 0 if N doesn't contain a binary gap.
->
-> For example, given N = 1041 the function should return 5, because N has binary representation 10000010001 and so its longest binary gap is of length 5. Given N = 32 the function should return 0, because N has binary representation '100000' and thus no binary gaps.
->
-> Write an efficient algorithm for the following assumptions:
-> - N is an integer within the range [1..2,147,483,647].
+```ts
+binaryGap(9);    // 2 — 1001: 두 1 사이에 0이 2개
+binaryGap(529);  // 4 — 1000010001: gap이 4, 3이고 최댓값은 4
+binaryGap(20);   // 1 — 10100: 1과 1 사이에 0이 1개
+binaryGap(15);   // 0 — 1111: 0이 전혀 없으므로 gap 없음
+binaryGap(32);   // 0 — 100000: 오른쪽 끝이 1로 닫히지 않아 gap 없음
+binaryGap(1041); // 5 — 10000010001: gap이 5, 3이고 최댓값은 5
+binaryGap(1);    // 0 — 1: 1이 하나뿐이어서 gap 불가
+```

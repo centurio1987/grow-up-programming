@@ -1,11 +1,16 @@
-# Best Time to Buy and Sell Stock (최대 k회 거래)
+# Best Time to Buy and Sell Stock K
 
-## 중요도 · 난이도
+## 한 줄 요약
 
-| 항목 | 값 |
-|------|-----|
-| 중요도 | ★★ 중 — 빈출 |
-| 난이도 | 중급 |
+> 날짜별 주식 가격 배열과 최대 거래 횟수 $k$를 받아, **최대 $k$번의 매수·매도**로 얻을 수 있는 최대 이익을 반환한다.
+
+## 스토리
+
+펀드 매니저 수아는 지난 $N$일간의 주가 데이터를 분석하고 있다. 회사 규정상 분기 내에 최대 $k$번까지만 거래할 수 있다.
+
+수아는 동시에 두 주식을 보유할 수 없다. 즉, 지금 보유하고 있다면 먼저 팔아야 다시 살 수 있다. 같은 날 팔고 바로 사는 것은 허용된다.
+
+이 규칙 아래에서 가능한 가장 큰 총 이익을 계산해야 한다. 거래를 전혀 하지 않아도 되며 그 경우 이익은 $0$이다.
 
 ## 함수 인터페이스
 
@@ -13,38 +18,35 @@
 export function bestTimeToBuyAndSellStockK(k: number, prices: number[]): number;
 ```
 
+- `k` — 허용되는 최대 매수·매도 쌍의 수. $k = 0$이면 거래 불가.
+- `prices` — 날짜 순서로 정렬된 주식 종가 배열.
+- 반환 — 최대 $k$번 거래로 얻을 수 있는 최대 이익. 이익이 없으면 `0`.
+
 ## 제약 조건
 
-- $1 \leq N \leq 1{,}000$ (여기서 $N$ 은 `prices` 의 길이)
+- $1 \leq N \leq 1{,}000$ (여기서 $N$은 `prices`의 길이)
 - $0 \leq k \leq 100$ (최대 거래 횟수)
-- $0 \leq prices[i] \leq 10^4$ (각 날의 주식 가격, 정수)
+- $0 \leq prices[i] \leq 10{,}000$ (각 날의 가격, 정수)
+- 시간 제한: 1초, 메모리 제한: 256 MB
 
 ## 문제 상세
 
-$i$ 번째 날의 주식 가격이 $prices[i]$ 로 주어지고, 최대 거래 횟수 $k$ 가 주어진다. 최대 $k$ 번의 매수·매도 짝을 통해 얻을 수 있는 **최대 이익** 을 반환한다.
+거래 횟수는 매수 한 번 + 매도 한 번을 한 쌍으로 센다. 동시에 두 주식을 보유하는 것은 불가능하다. 즉 이전 거래가 완료(매도)되기 전에 새로운 매수가 이루어질 수 없다.
 
-규칙:
+같은 날 매도 후 매수는 허용된다. 거래를 $k$번보다 적게 해도 된다.
 
-- 동시에 한 개의 주식만 보유 가능하다 (현재 보유 중이라면 새로 매수할 수 없다).
-- 매도 후 같은 날 다시 매수해도 된다.
-- 거래를 한 번도 하지 않을 수 있으며, 이때 이익은 $0$ 이다.
-
-$t$ 번째 매수/매도 시점을 추적하는 DP 점화식은
-
-$$buy[t][i] = \max(buy[t][i-1],\; sell[t-1][i-1] - prices[i])$$
-$$sell[t][i] = \max(sell[t][i-1],\; buy[t][i-1] + prices[i])$$
-
-이고, 최종 결과는
-
-$$\text{maxProfitK}(k, prices) = \max_{0 \leq t \leq k}\, sell[t][N-1]$$
-
-이다.
+배열이 비거나($N < 2$) $k = 0$이면 이익은 $0$이다.
 
 ## 예시
 
 ```ts
-bestTimeToBuyAndSellStockK(2, [3, 2, 6, 5, 0, 3]); // 7   ([2→6] + [0→3])
-bestTimeToBuyAndSellStockK(2, [2, 4, 1]);          // 2   ([2→4])
-bestTimeToBuyAndSellStockK(0, [1, 5, 3, 8]);       // 0   (거래 금지)
-bestTimeToBuyAndSellStockK(3, [5, 4, 3, 2, 1]);    // 0   (계속 하락)
+bestTimeToBuyAndSellStockK(2, [3, 2, 6, 5, 0, 3]); // 7  — [2→6] 이익 4 + [0→3] 이익 3
+bestTimeToBuyAndSellStockK(2, [2, 4, 1]);          // 2  — [2→4] 한 번만으로 충분
+bestTimeToBuyAndSellStockK(1, [7, 1, 5, 3, 6, 4]); // 5  — 단 한 번, 1에 사서 6에 판다
+
+bestTimeToBuyAndSellStockK(0, [1, 5, 3, 8]);       // 0  — 거래 횟수 0, 아무것도 못 함
+bestTimeToBuyAndSellStockK(3, [5, 4, 3, 2, 1]);    // 0  — 계속 하락, 이익 낼 방법 없음
+
+bestTimeToBuyAndSellStockK(2, [5]);                // 0  — 원소 하나, 거래 불가
+bestTimeToBuyAndSellStockK(100, [0, 10000]);       // 10000  — k가 충분히 크고 최대 상승폭
 ```

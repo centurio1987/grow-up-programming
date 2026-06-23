@@ -1,11 +1,16 @@
 # Tape Equilibrium
 
-## 중요도 · 난이도
+## 한 줄 요약
 
-| 항목 | 값 |
-|------|-----|
-| 중요도 | ★★★ 상 — 필수 |
-| 난이도 | 초급 |
+> 함수는 정수 배열을 받아, 배열을 두 비어있지 않은 부분으로 나눌 때 두 부분의 합 차이 절댓값의 최솟값을 반환한다.
+
+## 스토리
+
+물류 창고에서 테이프 컨베이어 위에 $N$개의 짐이 순서대로 올려져 있다. 각 짐에는 무게가 적혀 있다. 테이프를 어느 지점에서 잘라서 두 구간으로 나눌 수 있는데, 양쪽 구간은 반드시 짐이 하나 이상 있어야 한다.
+
+균형 운반을 위해 두 구간의 무게 합 차이가 최소가 되도록 자르려 한다. 자르는 위치는 테이프 위 어디서든 가능하지만 양 끝을 잘라 한쪽이 비게 되면 안 된다.
+
+모든 자르는 위치를 고려했을 때, 두 구간 합의 차이 절댓값이 가장 작은 경우의 값을 구하라.
 
 ## 함수 인터페이스
 
@@ -13,52 +18,49 @@
 export function tapeEquilibrium(A: number[]): number;
 ```
 
+- `A` — 길이 $N \geq 2$인 정수 배열
+- 반환 — 가능한 모든 분할에 대한 두 부분 합 차이 절댓값의 최솟값
+
 ## 제약 조건
 
-- $2 \leq N \leq 100{,}000$ (여기서 $N$ 은 `A` 의 길이)
-- 각 원소는 $-1{,}000 \leq A[i] \leq 1{,}000$ 인 정수
+- $2 \leq N \leq 100{,}000$ ($N$은 `A`의 길이)
+- 각 원소는 $-1{,}000 \leq A[i] \leq 1{,}000$인 정수
+- 시간 제한: 1초, 메모리 제한: 256 MB
 
 ## 문제 상세
 
-$N$ 개의 정수로 이루어진 비어있지 않은 배열 $A$ 가 주어진다.
-정수 $P$ ($1 \leq P \leq N-1$) 는 테이프를 두 개의 비어있지 않은 부분으로 나눈다:
+정수 $P$ ($1 \leq P \leq N-1$)로 배열을 다음 두 부분으로 나눈다.
 
-- 왼쪽 부분: $A[0],\, A[1],\, \ldots,\, A[P-1]$
-- 오른쪽 부분: $A[P],\, A[P+1],\, \ldots,\, A[N-1]$
+- 왼쪽 부분: $A[0], A[1], \ldots, A[P-1]$
+- 오른쪽 부분: $A[P], A[P+1], \ldots, A[N-1]$
 
-분할 지점 $P$ 에서의 차이값은 두 부분 합의 절댓값 차이로 정의된다:
+분할 지점 $P$에서의 차이값은 다음과 같다.
 
 $$D(P) = \left| \sum_{i=0}^{P-1} A[i] \;-\; \sum_{i=P}^{N-1} A[i] \right|$$
 
-가능한 모든 $P$ 에 대해 $D(P)$ 의 **최솟값** 을 반환한다:
+가능한 모든 $P$에 대해 $D(P)$의 최솟값을 반환한다.
 
 $$\text{tapeEquilibrium}(A) = \min_{1 \leq P \leq N-1} D(P)$$
 
 ## 예시
 
 ```ts
-tapeEquilibrium([3, 1, 2, 4, 3]); // 1
+tapeEquilibrium([3, 1, 2, 4, 3]);
+// 1
 // P=1: |3 - 10| = 7
-// P=2: |4 -  9| = 5
-// P=3: |6 -  7| = 1   <- 최솟값
+// P=2: |4 - 9|  = 5
+// P=3: |6 - 7|  = 1  ← 최솟값
 // P=4: |10 - 3| = 7
 
-tapeEquilibrium([1, 2]);          // 1   (P=1: |1 - 2|)
-tapeEquilibrium([-1000, 1000]);   // 2000
+tapeEquilibrium([1, 2]);
+// 1 — P=1만 가능: |1 - 2| = 1
+
+tapeEquilibrium([-1000, 1000]);
+// 2000 — P=1: |-1000 - 1000| = 2000
+
+tapeEquilibrium([5, 5, 5, 5]);
+// 0 — P=2: |10 - 10| = 0
+
+tapeEquilibrium([5, 5, 5]);
+// 5 — P=1: |5 - 10| = 5, P=2: |10 - 5| = 5, 최솟값 5
 ```
-
-## 원문 (참고)
-
-> A non-empty array A consisting of N integers is given. Array A represents numbers on a tape.
->
-> Any integer P, such that 0 < P < N, splits this tape into two non-empty parts: A[0], A[1], ..., A[P − 1] and A[P], A[P + 1], ..., A[N − 1].
->
-> The difference between the two parts is the value of: |(A[0] + A[1] + ... + A[P − 1]) − (A[P] + A[P + 1] + ... + A[N − 1])|
->
-> In other words, it is the absolute difference between the sum of the first part and the sum of the second part.
->
-> Write a function that, given a non-empty array A of N integers, returns the minimal difference that can be achieved.
->
-> Write an efficient algorithm for the following assumptions:
-> - N is an integer within the range [2..100,000];
-> - each element of array A is an integer within the range [−1,000..1,000].
