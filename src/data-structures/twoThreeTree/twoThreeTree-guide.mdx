@@ -1,0 +1,232 @@
+import { AlgorithmSimulation } from "#guide-sim";
+
+# TwoThreeTree (2-3 트리) 해설
+
+## 성능 목표 예측
+
+| 연산 | 시간복잡도 | n=10^4 기대 시간 |
+|------|-----------|----------------|
+| insert | O(log n) | < 1ms |
+| delete | O(log n) | < 1ms |
+| has | O(log n) | < 1ms |
+| inOrder | O(n) | < 10ms |
+
+---
+
+## 목표 함수
+
+| 함수 | 반환 타입 | 설명 |
+|------|-----------|------|
+| `insert(value)` | `void` | 값 삽입. 분할로 균형 유지 |
+| `delete(value)` | `boolean` | 값 삭제. 병합/재분배로 균형 유지 |
+| `has(value)` | `boolean` | 값 존재 여부 확인 |
+| `size()` | `number` | 원소 개수 |
+| `inOrder()` | `T[]` | 정렬된 배열 반환 |
+
+---
+
+## 핵심 아이디어
+
+### 원형 아이디어와 naive 접근
+
+BST(이진 탐색 트리)는 삽입 순서에 따라 최악의 경우 O(n) 높이가 된다. 균형을 맞추기 위한 회전(AVL, 레드-블랙)은 구현이 복잡하다. 더 단순한 방법은 없을까?
+
+**핵심 관찰**: 노드에 키를 여러 개 허용하면 어떨까? 키가 넘치면 위로 밀어 올리고, 부족하면 아래에서 빌리면 된다. 이 오버플로우/언더플로우 전파가 균형을 자동으로 유지한다.
+
+### 어떤 관찰이 돌파구가 되는가
+
+2-3 트리의 핵심 관찰은 **"균형은 위아래로 자라지 않고, 루트에서만 자란다"** 는 점이다.
+
+- 삽입 시 오버플로우가 리프에서 루트로 전파된다. 루트에서 분할되면 트리 높이가 1 증가한다.
+- 삭제 시 언더플로우가 리프에서 루트로 전파된다. 루트가 비면 자식이 새 루트가 되어 높이가 1 감소한다.
+- 항상 루트에서만 높이가 변하므로 **모든 리프는 항상 같은 깊이**를 유지한다.
+
+### 관찰을 형식화: 상태/구조 정의
+
+```ts
+class TwoThreeNode<T> {
+  keys: T[] = [];                    // 1 ~ 2개
+  children: TwoThreeNode<T>[] = []; // 0개(리프) 또는 2~3개
+
+  get isLeaf() { return this.children.length === 0; }
+}
+```
+
+**불변 조건 (invariant):**
+1. 각 비루트 노드는 1~2개의 키를 가진다.
+2. 내부 노드는 키 수 + 1개의 자식을 가진다.
+3. 모든 리프는 같은 깊이에 있다.
+4. keys[i-1] < child[i] 의 모든 키 < keys[i] (BST 성질)
+
+### 핵심 연산 — 분할 (split)
+
+노드에 키가 3개가 되면 분할한다.
+
+```
+[k0, k1, k2] 를 분할:
+- 왼쪽 노드: [k0]
+- 올라가는 키: k1  (부모로 삽입)
+- 오른쪽 노드: [k2]
+```
+
+분할은 재귀적으로 위로 전파된다. 루트까지 전파되면 새 루트를 만든다.
+
+```
+삽입 insert(x) 구현 스케치:
+1. 루트가 없으면: root = new Node([x])
+2. 루트가 가득 차면: 새 루트 생성 후 분할
+3. 루트부터 내려가며 가득 찬 노드를 미리 분할 (선제적 분할)
+4. 리프에 도달하면 x 삽입
+```
+
+### 핵심 연산 — 병합/재분배 (merge/redistribute)
+
+삭제 후 노드에 키가 0개가 되면 처리한다.
+
+```
+언더플로우 처리:
+1. 형제에 키가 2개: 재분배 (형제의 키 하나를 부모를 통해 가져온다)
+2. 형제에 키가 1개: 병합 (부모 키 하나를 내려받아 세 노드를 하나로 합친다)
+```
+
+병합도 재귀적으로 위로 전파된다. 루트의 키가 0개가 되면 자식이 새 루트가 된다.
+
+### 정당성
+
+- **삽입 후 불변 조건 유지**: 분할은 항상 올바른 BST 순서를 유지하고, 두 생성 노드 모두 키 1개로 시작한다.
+- **삭제 후 불변 조건 유지**: 재분배와 병합 후 BST 성질과 균형이 유지됨을 귀납적으로 증명 가능하다.
+- **높이 O(log n)**: 각 노드는 최소 1개의 키를 가지므로, 높이 h의 트리는 최소 2^h 개의 원소를 담는다.
+
+### 구현 디테일과 최적화
+
+- **중복 처리**: `has(x)` 결과가 true이면 삽입을 무시한다.
+- **내부 노드 키 삭제**: 내부 노드의 키를 삭제할 때 중위 후속자(in-order successor, 오른쪽 서브트리의 최솟값)로 대체 후 리프에서 실제 삭제한다.
+- **비교 함수**: 제네릭 타입 지원을 위해 `comparator` 함수를 생성자에서 받는다. 기본값은 `(a, b) => a < b ? -1 : a > b ? 1 : 0`.
+
+---
+
+## 시뮬레이션
+
+export const steps = [
+  {
+    title: "초기 상태",
+    detail: "빈 2-3 트리. 루트가 없다.",
+    array: [],
+    highlight: [],
+    marked: [],
+  },
+  {
+    title: "insert(5)",
+    detail: "첫 삽입. 루트 노드 생성: [5]",
+    array: [5],
+    highlight: [0],
+    marked: [],
+  },
+  {
+    title: "insert(3), insert(7)",
+    detail: "루트에 키 2개. 3-노드: [3, 7] 또는 [5]를 부모로 재배치.",
+    array: [3, 5, 7],
+    highlight: [0, 1, 2],
+    marked: [],
+  },
+  {
+    title: "insert(1) — 오버플로우 발생",
+    detail: "리프에 키 3개 발생: [1, 3, 7]. 중간 키(3)를 부모로 올리고 분할.",
+    array: [1, 3, 5, 7],
+    highlight: [1],
+    marked: [0, 2, 3],
+  },
+  {
+    title: "delete(3) — 재분배",
+    detail: "3 삭제 후 언더플로우. 형제(키 2개)에서 재분배.",
+    array: [1, 5, 7],
+    highlight: [],
+    marked: [0, 1, 2],
+  },
+];
+
+<AlgorithmSimulation view="array" steps={steps} title="2-3 트리 삽입/삭제 시뮬레이션" />
+
+## 수도 코드와 Activity Diagram
+
+### 삽입 의사코드
+
+```
+insert(x):
+  if root is undefined:
+    root = new Node([x])
+    size++
+    return
+  if has(x): return  // 중복 무시
+
+  if root.keys.length == 2:
+    newRoot = new Node([])
+    newRoot.children = [root]
+    splitChild(newRoot, 0)
+    root = newRoot
+
+  insertNonFull(root, x)
+  size++
+
+insertNonFull(node, x):
+  if node.isLeaf:
+    sortedInsert(node.keys, x)
+  else:
+    i = findChildIndex(node.keys, x)
+    if node.children[i].keys.length == 2:
+      splitChild(node, i)
+      if x > node.keys[i]: i++
+    insertNonFull(node.children[i], x)
+
+splitChild(parent, i):
+  child = parent.children[i]
+  mid = child.keys[1]          // 중간 키
+  left = new Node([child.keys[0]])
+  right = new Node([child.keys[2]])
+  if not child.isLeaf:
+    left.children = child.children[0..1]
+    right.children = child.children[2..3]
+  insert mid into parent.keys at position i
+  replace parent.children[i] with [left, right]
+```
+
+### Activity Diagram
+
+```mermaid
+flowchart TD
+  A[insert(x) 호출] --> B{루트 없음?}
+  B -- 예 --> C[루트 생성 keys=[x]] --> Z[종료]
+  B -- 아니오 --> D{has(x)?}
+  D -- 예 --> Z
+  D -- 아니오 --> E{루트가 가득 참?}
+  E -- 예 --> F[새 루트 생성 후 분할]
+  E -- 아니오 --> G[insertNonFull 호출]
+  F --> G
+  G --> H{리프 노드?}
+  H -- 예 --> I[키 정렬 삽입] --> J[size++] --> Z
+  H -- 아니오 --> K[삽입 위치 자식 탐색]
+  K --> L{자식이 가득 참?}
+  L -- 예 --> M[splitChild] --> N[인덱스 조정]
+  L -- 아니오 --> N
+  N --> G
+```
+
+```mermaid
+flowchart TD
+  A[delete(x) 호출] --> B{has(x)?}
+  B -- 아니오 --> C[false 반환]
+  B -- 예 --> D{리프에 있음?}
+  D -- 예 --> E[키 직접 제거]
+  D -- 아니오 --> F[중위 후속자로 대체]
+  F --> G[후속자를 리프에서 삭제]
+  E --> H{언더플로우?}
+  G --> H
+  H -- 아니오 --> I[size-- → true 반환]
+  H -- 예 --> J{형제에 여분 키?}
+  J -- 예 --> K[재분배]
+  J -- 아니오 --> L[병합]
+  K --> M{부모 언더플로우?}
+  L --> M
+  M -- 예 --> J
+  M -- 아니오 --> I
+```

@@ -1,0 +1,258 @@
+import { AlgorithmSimulation } from "#guide-sim";
+
+# AhoCorasick (아호-코라식) 해설
+
+## 성능 목표 예측
+
+| 연산 | 시간복잡도 | 비고 |
+|------|-----------|------|
+| constructor (Trie 구성) | O(Σm) | Σm = 모든 패턴 길이 합 |
+| constructor (실패 링크 BFS) | O(Σm · 알파벳 크기) | 일반적으로 O(Σm) |
+| search | O(n + z) | n = 텍스트 길이, z = 총 매칭 수 |
+
+공간복잡도: O(Σm · 알파벳 크기) — 노드 수 × 자식 맵
+
+---
+
+## 목표 함수
+
+| 메서드 | 입력 | 출력 | 설명 |
+|--------|------|------|------|
+| `constructor(patterns)` | string[] | — | Trie + 실패 링크 + 출력 링크 구성 |
+| `search(text)` | 문자열 | Map\<string, number[]\> | 모든 패턴의 등장 위치 동시 반환 |
+
+---
+
+## 핵심 아이디어
+
+### 원형 아이디어와 naive 접근
+
+k개의 패턴을 각각 KMP로 검색하면 O(k·n)이 걸린다. 패턴 수가 많아질수록 선형으로 느려진다.
+
+### 어떤 관찰이 돌파구가 되는가
+
+**핵심 관찰 1**: 모든 패턴을 Trie에 넣으면 텍스트의 각 위치에서 공통 접두사 탐색을 공유할 수 있다.
+
+**핵심 관찰 2**: KMP의 실패 함수는 "현재 패턴의 접두사이면서 동시에 현재까지 읽은 텍스트의 접미사인 가장 긴 문자열"로 상태를 되돌린다. 이를 Trie 전체에 적용하면, Trie의 한 노드에서 매칭 실패 시 "다른 패턴의 적절한 접두사"로 상태를 전이할 수 있다.
+
+이 두 관찰을 합치면 텍스트를 한 번만 스캔하면서 모든 패턴을 동시에 추적할 수 있다.
+
+### 관찰을 형식화
+
+**Goto 함수** `g(v, c)`: 노드 v에서 문자 c로 이동할 수 있는 자식 노드.
+
+**Failure 함수** `f(v)`: 노드 v에서 매칭 실패 시 이동할 노드. 즉, v까지의 경로 문자열의 가장 긴 진정한 접두사이면서 Trie의 어떤 패턴 접두사인 노드.
+
+**실패 링크 계산 (BFS)**:
+```
+f(root) = root
+f(root의 자식 v) = root
+
+노드 v의 자식 u = g(v, c):
+  f(u) = g(f(v), c)가 존재하면 그 노드
+         없으면 g(f(f(v)), c) ... 루트까지 재귀
+```
+
+**Output 함수** `out(v)`: v에서 매칭 완료되는 모든 패턴 집합.
+```
+out(v) = v가 패턴 끝이면 {패턴} ∪ out(f(v))
+         아니면 out(f(v))
+```
+
+### 핵심 연산
+
+**실패 링크 구성 (BFS)**:
+```
+queue = [root의 모든 자식]
+for each node v in queue (BFS):
+  for each (c, child u) in v.children:
+    // u의 실패 링크 계산
+    cur = f(v)
+    while cur != root and !cur.children.has(c):
+      cur = f(cur)
+    if cur.children.has(c) and cur.children.get(c) != u:
+      f(u) = cur.children.get(c)
+    else:
+      f(u) = root
+    // 출력 링크 합산
+    out(u) = u.output + out(f(u))
+    queue.push(u)
+```
+
+**검색**:
+```
+cur = root
+for i, ch in text:
+  while cur != root and !cur.children.has(ch):
+    cur = f(cur)  // 실패 링크로 이동
+  if cur.children.has(ch):
+    cur = cur.children.get(ch)
+  for pattern in cur.output:
+    result[pattern].push(i - pattern.length + 1)  // 시작 인덱스
+```
+
+### 정당성
+
+실패 링크 체인을 따라가면 항상 현재까지 읽은 텍스트의 접미사이면서 어떤 패턴의 접두사인 가장 긴 문자열을 가리키는 노드에 도달한다. 텍스트의 각 문자는 최대 한 번만 앞으로 이동하고, 실패 링크 이동은 총 횟수가 O(n)으로 제한된다.
+
+### 구현 디테일과 최적화
+
+- **goto 함수 완성화**: 루트에서 문자 c로 가는 자식이 없을 때 루트 자체를 반환하도록 설정하면 검색 루프를 단순화할 수 있다
+- **출력 링크 체인 vs 누적**: `output` 배열에 실패 링크 체인의 모든 패턴을 미리 누적하면 검색 시 체인 탐색 불필요 (공간-시간 트레이드오프)
+- **Map vs 배열**: 자식 노드를 Map으로 구현하면 임의 문자 지원 가능; 알파벳이 고정이면 배열이 더 빠름
+- **중복 패턴**: 같은 패턴을 여러 번 전달하면 하나로 처리
+
+---
+
+## 시뮬레이션
+
+export const steps = [
+  {
+    title: "패턴 삽입: ['he', 'she', 'his', 'hers']",
+    detail: "루트에서 각 패턴을 Trie에 삽입. h→e(end:he), h→e→r→s(end:hers), h→i→s(end:his), s→h→e(end:she)",
+    array: ["root", "h", "s", "he*", "hi", "sh", "her", "his*", "she*", "hers*"],
+    highlight: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+    marked: [3, 7, 8, 9],
+  },
+  {
+    title: "실패 링크 구성 (BFS)",
+    detail: "f(h)=root, f(s)=root, f(he)=root(e가 없음), f(hi)=root, f(sh)=h, f(her)=root, f(his)=root, f(she)=he",
+    array: ["root", "h→root", "s→root", "he→root", "hi→root", "sh→h", "her→root", "his→root", "she→he"],
+    highlight: [5, 8],
+    marked: [],
+  },
+  {
+    title: "text='ahishers' 검색 시작, i=0: 'a'",
+    detail: "cur=root, 'a' 자식 없음 → root 유지. output 없음",
+    array: ["a", "h", "i", "s", "h", "e", "r", "s"],
+    highlight: [0],
+    marked: [],
+  },
+  {
+    title: "i=1: 'h'",
+    detail: "root의 'h' 자식 → cur=h. output 없음",
+    array: ["a", "h", "i", "s", "h", "e", "r", "s"],
+    highlight: [1],
+    marked: [],
+  },
+  {
+    title: "i=2: 'i'",
+    detail: "cur=h, 'i' 자식 → cur=hi. output 없음",
+    array: ["a", "h", "i", "s", "h", "e", "r", "s"],
+    highlight: [2],
+    marked: [],
+  },
+  {
+    title: "i=3: 's'",
+    detail: "cur=hi, 's' 자식 → cur=his. output=['his'] → 시작 인덱스 = 3-3+1 = 1",
+    array: ["a", "h", "i", "s", "h", "e", "r", "s"],
+    highlight: [3],
+    marked: [1, 2, 3],
+  },
+  {
+    title: "i=4: 'h'",
+    detail: "cur=his, 실패링크→root, root의 'h'→cur=h",
+    array: ["a", "h", "i", "s", "h", "e", "r", "s"],
+    highlight: [4],
+    marked: [],
+  },
+  {
+    title: "i=5: 'e' → 'he' 매칭, i=6: 'r', i=7: 's' → 'hers' 매칭",
+    detail: "i=5: cur=he, output=['he'] → 시작 4 / i=7: cur=hers, output=['hers'] + f(hers).output=['she'와 연결]",
+    array: ["a", "h", "i", "s", "h", "e", "r", "s"],
+    highlight: [5, 6, 7],
+    marked: [4, 5, 7],
+  },
+];
+
+<AlgorithmSimulation view="array" steps={steps} title="AhoCorasick 시뮬레이션" />
+
+---
+
+## 수도 코드와 Activity Diagram
+
+### 의사코드
+
+```
+class AhoCorasickNode:
+  children: Map<char, Node>
+  failure: Node = null
+  output: string[] = []
+
+class AhoCorasick:
+  root = new Node()
+  patterns: string[]
+
+  constructor(patterns):
+    this.patterns = unique(patterns)
+    // 단계 1: Trie 구성
+    for p in patterns:
+      cur = root
+      for ch in p:
+        if !cur.children.has(ch):
+          cur.children.set(ch, new Node())
+        cur = cur.children.get(ch)
+      cur.output.push(p)
+
+    // 단계 2: BFS로 실패 링크 + 출력 링크 구성
+    queue = []
+    for (ch, child) in root.children:
+      child.failure = root
+      queue.push(child)
+
+    while queue not empty:
+      v = queue.dequeue()
+      for (c, u) in v.children:
+        cur = v.failure
+        while cur != root and !cur.children.has(c):
+          cur = cur.failure
+        if cur.children.has(c) and cur.children.get(c) != u:
+          u.failure = cur.children.get(c)
+        else:
+          u.failure = root
+        u.output = u.output + u.failure.output  // 출력 링크 체인 합산
+        queue.push(u)
+
+  search(text):
+    result = Map: pattern → []
+    for p in patterns: result.set(p, [])
+
+    cur = root
+    for i, ch in text:
+      while cur != root and !cur.children.has(ch):
+        cur = cur.failure
+      if cur.children.has(ch):
+        cur = cur.children.get(ch)
+      for p in cur.output:
+        result.get(p).push(i - p.length + 1)
+
+    return result
+```
+
+### Activity Diagram
+
+```mermaid
+flowchart TD
+  A([constructor 시작]) --> B[모든 패턴을 Trie에 삽입\nGoto 함수 구성]
+  B --> C[BFS 시작\n루트 자식들을 큐에 추가]
+  C --> D{큐가 비어있음?}
+  D -- 아니오 --> E[노드 v = 큐에서 꺼냄]
+  E --> F[v의 모든 자식 u에 대해\n실패 링크 f(u) 계산]
+  F --> G[u.output += f(u).output\n출력 링크 누적]
+  G --> H[u를 큐에 추가]
+  H --> D
+  D -- 예 --> I([오토마톤 완성])
+
+  J([search 시작]) --> K[cur = root]
+  K --> L{텍스트 문자 ch 처리}
+  L --> M{cur에 ch 자식 있음?}
+  M -- 아니오 --> N{cur == root?}
+  N -- 아니오 --> O[cur = f(cur)\n실패 링크 이동]
+  O --> M
+  N -- 예 --> P[cur 유지\n루트에서 ch로 이동 시도]
+  M -- 예 --> Q[cur = cur.children.get(ch)]
+  Q --> R[cur.output의 패턴들\n결과에 기록]
+  R --> L
+  P --> L
+  L -- 완료 --> S([결과 Map 반환])
+```

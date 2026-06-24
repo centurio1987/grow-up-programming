@@ -1,0 +1,213 @@
+import { AlgorithmSimulation } from "#guide-sim";
+
+# GraphAdjList 해설
+
+## 성능 목표 예측
+
+| 연산 | 인접 리스트 | 인접 행렬 |
+|---|---|---|
+| 공간 | O(V + E) | O(V²) |
+| addEdge | O(1) | O(1) |
+| removeEdge | O(degree) | O(1) |
+| neighbors | O(degree) | O(V) |
+| BFS / DFS | O(V + E) | O(V²) |
+| hasEdge | O(degree) | O(1) |
+
+희소 그래프(E ≪ V²)에서는 인접 리스트가 공간·시간 모두 유리하다.
+
+---
+
+## 목표 함수
+
+| 메서드 | 입력 | 출력 | 시간복잡도 |
+|---|---|---|---|
+| `addVertex(v)` | 정점 번호 | void | O(1) |
+| `addEdge(u, v, w?)` | 두 정점, 가중치 | void | O(1) |
+| `removeEdge(u, v)` | 두 정점 | void | O(degree) |
+| `neighbors(v)` | 정점 | 인접 목록 | O(1) |
+| `bfs(start)` | 시작 정점 | 방문 순서 | O(V+E) |
+| `dfs(start)` | 시작 정점 | 방문 순서 | O(V+E) |
+| `hasPath(u, v)` | 두 정점 | boolean | O(V+E) |
+| `vertexCount()` | — | 정점 수 | O(1) |
+| `edgeCount()` | — | 간선 수 | O(1) |
+
+---
+
+## 핵심 아이디어
+
+### 원형 아이디어와 naive 접근
+
+그래프를 표현하는 가장 직관적인 방법은 "모든 정점 쌍에 대해 연결 여부를 저장"하는 인접 행렬이다. V×V 행렬에서 `matrix[u][v] = weight`로 표현한다. 그러나 소셜 네트워크처럼 수천만 정점에 각자 수백 명의 친구만 있다면, V=10⁷일 때 10¹⁴ 셀이 필요하다 — 메모리 관점에서 불가능하다.
+
+### 어떤 관찰이 돌파구가 되는가
+
+**관찰**: 대부분의 실세계 그래프는 희소하다(Sparse). 각 정점이 연결하는 정점 수(차수, degree)는 V에 비해 훨씬 작다.
+
+따라서 "존재하는 간선만" 저장하면 된다. 각 정점마다 실제로 연결된 정점 목록(리스트)만 유지한다.
+
+### 관찰을 형식화
+
+```
+adjList: Map<정점, [{vertex, weight}, ...]>
+```
+
+- 정점 u에서 v로 간선 추가: `adjList.get(u).push({vertex: v, weight})`
+- 무방향이면 v→u도 추가
+- 공간: O(V + E) — 각 정점 1개 항목 + 각 간선 1~2개 항목
+
+### 핵심 연산 — BFS
+
+BFS(너비 우선 탐색)는 시작 정점에서 거리가 가까운 정점부터 방문한다.
+
+```
+function bfs(start):
+  visited = new Set([start])
+  queue = [start]
+  result = []
+
+  while queue is not empty:
+    v = queue.shift()        // 큐 앞에서 꺼냄
+    result.push(v)
+    for each neighbor w of v:
+      if w not in visited:
+        visited.add(w)
+        queue.push(w)
+
+  return result
+```
+
+### 핵심 연산 — DFS
+
+DFS(깊이 우선 탐색)는 한 방향으로 끝까지 탐색한 뒤 돌아온다.
+
+```
+function dfs(start):
+  visited = new Set()
+  result = []
+
+  function explore(v):
+    visited.add(v)
+    result.push(v)
+    for each neighbor w of v:
+      if w not in visited:
+        explore(w)
+
+  explore(start)
+  return result
+```
+
+재귀 대신 명시적 스택을 사용하면 스택 오버플로우를 방지할 수 있다.
+
+### 정당성
+
+BFS는 FIFO 큐를 사용하므로 레벨 순서(거리 순서)로 방문이 보장된다. DFS는 재귀(암묵적 스택) 또는 LIFO 스택으로 깊이 우선을 보장한다. 두 알고리즘 모두 방문 집합(visited)으로 무한 루프를 방지한다.
+
+### 구현 디테일과 최적화
+
+1. **자동 정점 생성**: `addEdge(u, v)` 호출 시 u, v가 없으면 자동으로 `addVertex`를 호출해 편의성을 높인다.
+2. **edgeCount 추적**: 간선 제거/추가 시 카운터를 업데이트. 무방향 그래프는 내부적으로 2개 항목을 추가하지만 `_edgeCount`는 1 증가.
+3. **중복 정점 방지**: `addVertex`에서 이미 존재하면 무시.
+
+---
+
+## 시뮬레이션
+
+export const bfsSteps = [
+  {
+    title: "초기 상태",
+    detail: "그래프: 0-1, 0-2, 1-3, 1-4. BFS 시작 정점 = 0",
+    array: [0, 1, 2, 3, 4],
+    highlight: [0],
+    marked: [],
+  },
+  {
+    title: "0 방문 → 큐에 1, 2 추가",
+    detail: "방문: [0], 큐: [1, 2]",
+    array: [0, 1, 2, 3, 4],
+    highlight: [1, 2],
+    marked: [0],
+  },
+  {
+    title: "1 방문 → 큐에 3, 4 추가",
+    detail: "방문: [0, 1], 큐: [2, 3, 4]",
+    array: [0, 1, 2, 3, 4],
+    highlight: [3, 4],
+    marked: [0, 1],
+  },
+  {
+    title: "2 방문",
+    detail: "방문: [0, 1, 2], 큐: [3, 4]",
+    array: [0, 1, 2, 3, 4],
+    highlight: [2],
+    marked: [0, 1, 2],
+  },
+  {
+    title: "3, 4 순서로 방문 완료",
+    detail: "방문: [0, 1, 2, 3, 4], 큐: []",
+    array: [0, 1, 2, 3, 4],
+    highlight: [],
+    marked: [0, 1, 2, 3, 4],
+  },
+];
+
+<AlgorithmSimulation view="array" steps={bfsSteps} title="BFS 탐색 시뮬레이션" />
+
+---
+
+## 수도 코드와 Activity Diagram
+
+### 의사코드
+
+```
+GraphAdjList(directed):
+  adjList = new Map()
+  directed = directed
+  _edgeCount = 0
+
+addVertex(v):
+  if v not in adjList:
+    adjList.set(v, [])
+
+addEdge(u, v, weight=1):
+  addVertex(u); addVertex(v)
+  adjList.get(u).push({vertex: v, weight})
+  if not directed:
+    adjList.get(v).push({vertex: u, weight})
+  _edgeCount += 1
+
+removeEdge(u, v):
+  adjList.set(u, adjList.get(u).filter(e => e.vertex != v))
+  if not directed:
+    adjList.set(v, adjList.get(v).filter(e => e.vertex != u))
+  _edgeCount -= 1
+
+bfs(start):
+  visited = {start}
+  queue = [start]
+  result = []
+  while queue not empty:
+    v = queue.dequeue()
+    result.push(v)
+    for {vertex: w} in adjList.get(v):
+      if w not in visited:
+        visited.add(w)
+        queue.enqueue(w)
+  return result
+```
+
+### Activity Diagram
+
+```mermaid
+flowchart TD
+  A[bfs 시작] --> B[visited = {start}, queue = deque start]
+  B --> C{queue 비어있나?}
+  C -- 아니오 --> D[v = queue.dequeue]
+  D --> E[result에 v 추가]
+  E --> F[v의 인접 정점 순회]
+  F --> G{w가 visited에 있나?}
+  G -- 아니오 --> H[visited에 w 추가, queue에 w 삽입]
+  H --> F
+  G -- 예 --> F
+  F --> C
+  C -- 예 --> I[result 반환]
+```

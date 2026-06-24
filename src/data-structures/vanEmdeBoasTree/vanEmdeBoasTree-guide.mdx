@@ -1,0 +1,286 @@
+import { AlgorithmSimulation } from "#guide-sim";
+
+# VanEmdeBoasTree (반 엠데 보아스 트리) 해설
+
+## 성능 목표 예측
+
+| 연산 | 시간복잡도 | U=2^16 기대 시간 |
+|------|-----------|----------------|
+| insert | O(log log U) | ≈ O(4) |
+| delete | O(log log U) | ≈ O(4) |
+| has | O(log log U) | ≈ O(4) |
+| min / max | O(1) | 직접 반환 |
+| successor | O(log log U) | ≈ O(4) |
+| predecessor | O(log log U) | ≈ O(4) |
+
+log log 2^16 = log 16 = 4. U=2^32(전체 IPv4)여도 log log U ≈ 5이다.
+
+---
+
+## 목표 함수
+
+| 함수 | 반환 타입 | 설명 |
+|------|-----------|------|
+| `insert(x)` | `void` | x를 집합에 삽입 |
+| `delete(x)` | `void` | x를 집합에서 제거 |
+| `has(x)` | `boolean` | x가 집합에 있는지 확인 |
+| `min()` | `number \| undefined` | 최솟값 O(1) |
+| `max()` | `number \| undefined` | 최댓값 O(1) |
+| `successor(x)` | `number \| undefined` | x보다 큰 최솟값 |
+| `predecessor(x)` | `number \| undefined` | x보다 작은 최댓값 |
+
+---
+
+## 핵심 아이디어
+
+### 원형 아이디어와 naive 접근
+
+비트 배열(bit array)로 집합을 표현하면 `insert`, `delete`, `has`가 O(1)이다. 하지만 successor/predecessor는 최악 O(U) 시간이 걸린다.
+
+이진 탐색 트리나 힙은 successor를 O(log n)에 처리하지만, 정수 키의 특성(universe 크기 U가 고정)을 활용하지 않아 O(log log U) 보다 나은 성능을 낼 수 없다.
+
+비교 기반 모델에서 sorting에 Ω(n log n) 하한이 있듯, 비교 기반 탐색에는 Ω(log n) 하한이 있다. 더 빠르려면 정수의 수치적 구조를 활용해야 한다.
+
+### 어떤 관찰이 돌파구가 되는가
+
+**핵심 관찰 1 (분할)**: universe [0, U-1]을 √U 크기의 클러스터 √U개로 나누면, 임의의 x에 대해 `high(x) = floor(x / √U)` (클러스터 번호)와 `low(x) = x mod √U` (클러스터 내 위치)를 O(1)에 계산할 수 있다.
+
+**핵심 관찰 2 (재귀)**: successor(x)를 찾으려면:
+- 먼저 x와 같은 클러스터에서 low(x)의 successor를 찾는다.
+- 같은 클러스터에 없으면 summary에서 다음 클러스터를 찾고, 그 클러스터의 min을 반환한다.
+
+이렇게 하면 재귀 깊이마다 universe가 √U로 줄어들어, T(U) = T(√U) + O(1) 점화식이 되고 T(U) = O(log log U)가 된다.
+
+**핵심 관찰 3 (min/max 별도 저장)**: min과 max를 별도로 저장하면 O(1)에 접근 가능하다. 특히 min은 clusters에 저장하지 않아도 된다(이것이 재귀의 정확성을 보장하는 미묘한 포인트다).
+
+### 관찰을 형식화: 상태/구조 정의
+
+```ts
+class VanEmdeBoasTree {
+  U: number;                              // universe 크기
+  _min: number | undefined = undefined;  // 별도 저장 (clusters에 없음)
+  _max: number | undefined = undefined;  // 별도 저장 (clusters에 있음)
+  summary: VanEmdeBoasTree | undefined;  // 크기 ceil(√U)
+  clusters: (VanEmdeBoasTree | undefined)[];  // 크기 ceil(√U), 각 클러스터는 크기 floor(√U)
+}
+
+// 헬퍼 함수
+upperSqrt(U: number) = 2 ** ceil(log2(U) / 2)  // 클러스터 수
+lowerSqrt(U: number) = 2 ** floor(log2(U) / 2) // 클러스터 크기
+high(x, U) = floor(x / lowerSqrt(U))
+low(x, U) = x mod lowerSqrt(U)
+index(h, l, U) = h * lowerSqrt(U) + l
+```
+
+**불변 조건:**
+1. min은 실제로 존재하지만 clusters에는 저장되지 않는다.
+2. max는 clusters에도 저장된다 (min == max일 때는 둘 다 저장 안 함).
+3. summary.has(i) ⟺ clusters[i]가 비어있지 않다.
+
+### 핵심 연산 — insert
+
+```
+insert(x):
+  if min is undefined:       // 기저 사례: 빈 트리
+    min = max = x
+    return
+  
+  if x < min: swap(x, min)  // 새 x를 min으로, 이전 min을 실제로 삽입
+  if x > max: max = x
+  if U == 2: return           // 기저 사례: min과 max만 있으면 됨
+  
+  h = high(x), l = low(x)
+  if clusters[h] is empty:
+    summary.insert(h)         // 클러스터 최초 생성
+    clusters[h] = new vEB(lowerSqrt(U))
+    clusters[h].insert(l)     // 이 insert는 O(1) (빈 트리에 삽입)
+  else:
+    clusters[h].insert(l)
+```
+
+min을 clusters에 저장하지 않는 트릭 덕분에, clusters[h]가 비어있는 경우의 재귀 insert가 O(1)에 완료된다. 따라서 매 재귀 단계에서 summary.insert와 clusters.insert 중 하나만 재귀적으로 실행되어 T(U) = T(√U) + O(1)이 성립한다.
+
+### 핵심 연산 — successor
+
+```
+successor(x):
+  if U == 2:
+    if x == 0 and max == 1: return 1
+    return undefined
+  
+  h = high(x), l = low(x)
+  
+  // Case 1: 같은 클러스터 내에 successor가 있다
+  if clusters[h] != undefined and l < clusters[h].max:
+    offset = clusters[h].successor(l)
+    return index(h, offset)
+  
+  // Case 2: 다음 클러스터에서 찾는다
+  nextCluster = summary.successor(h)
+  if nextCluster is undefined: return undefined
+  return index(nextCluster, clusters[nextCluster].min)
+```
+
+### 핵심 연산 — delete
+
+delete는 가장 복잡하다. min이 clusters에 없으므로 min을 삭제할 때 특별한 처리가 필요하다.
+
+```
+delete(x):
+  if min == max:            // 원소가 1개뿐
+    if x == min: min = max = undefined
+    return
+  if U == 2:               // 기저 사례
+    if x == 0: min = 1
+    else: max = 0
+    min = max = (x == 0 ? 1 : 0)
+    return
+  
+  if x == min:             // min을 삭제하는 경우
+    firstCluster = summary.min
+    x = index(firstCluster, clusters[firstCluster].min)
+    min = x                // 새 min 설정 (clusters에는 아직 있음)
+  
+  // 이제 x를 clusters에서 실제로 삭제
+  h = high(x), l = low(x)
+  clusters[h].delete(l)
+  
+  if clusters[h].min is undefined:  // 클러스터가 비었으면
+    summary.delete(h)
+    if x == max:           // max도 삭제된 경우
+      summaryMax = summary.max
+      if summaryMax is undefined: max = min
+      else: max = index(summaryMax, clusters[summaryMax].max)
+  else if x == max:
+    max = index(h, clusters[h].max)
+```
+
+### 정당성
+
+- **T(U) = T(√U) + O(1)**: 각 재귀 호출에서 summary 또는 cluster 중 하나만 재귀적으로 호출된다.
+- **T(U) = O(log log U)**: 점화식 풀면, U → √U → √√U → ... → 2 (기저 사례). 단계 수 = log log U.
+- **min 트릭의 정확성**: min이 clusters에 없으므로, clusters[h]에 원소가 없으면 vEB(lowerSqrt)에 삽입할 때 항상 빈 트리에 삽입 → O(1). 이것이 전체 O(log log U)의 핵심이다.
+
+### 구현 디테일과 최적화
+
+- **2의 거듭제곱 권장**: `upperSqrt`와 `lowerSqrt` 계산 시 비트 연산으로 구현 가능.
+- **메모리**: 재귀 구조로 최악 O(U)의 공간을 사용. n개의 원소에 대해 실제로 사용되는 공간은 O(n log log U).
+- **lazy 초기화**: clusters 배열을 처음부터 모두 초기화하면 O(U) 시간이 걸린다. 대신 undefined 상태에서 필요할 때만 생성한다.
+- **기저 사례 U=2**: summary와 clusters 없이 min, max 두 변수만으로 처리한다.
+
+---
+
+## 시뮬레이션
+
+export const steps = [
+  {
+    title: "초기 상태 (U=16)",
+    detail: "빈 vEB 트리. universe [0, 15]. min=max=undefined.",
+    array: [],
+    highlight: [],
+    marked: [],
+  },
+  {
+    title: "insert(2)",
+    detail: "빈 트리에 삽입. min=max=2. clusters에 저장 안 함.",
+    array: [2],
+    highlight: [0],
+    marked: [],
+  },
+  {
+    title: "insert(5)",
+    detail: "5 > min(2). high(5)=1, low(5)=1. clusters[1]에 1 삽입. max=5.",
+    array: [2, 5],
+    highlight: [1],
+    marked: [0],
+  },
+  {
+    title: "insert(8), insert(11)",
+    detail: "8과 11 삽입. high(8)=2, high(11)=2. 같은 클러스터 2에 저장.",
+    array: [2, 5, 8, 11],
+    highlight: [2, 3],
+    marked: [0, 1],
+  },
+  {
+    title: "successor(5)",
+    detail: "low(5)=1. clusters[1].max=1 이므로 같은 클러스터에 없음. summary.successor(1)=2. clusters[2].min=0. index(2,0)=8. 반환: 8.",
+    array: [2, 5, 8, 11],
+    highlight: [2],
+    marked: [0, 1, 3],
+  },
+  {
+    title: "delete(5)",
+    detail: "high(5)=1, low(5)=1. clusters[1].delete(1). clusters[1]이 비었으므로 summary.delete(1).",
+    array: [2, 8, 11],
+    highlight: [],
+    marked: [0, 1, 2],
+  },
+];
+
+<AlgorithmSimulation view="array" steps={steps} title="vEB 트리 삽입/삭제/successor 시뮬레이션 (U=16)" />
+
+## 수도 코드와 Activity Diagram
+
+### insert 의사코드
+
+```
+insert(x):
+  if min == undefined:
+    min = max = x; return
+  if x == min: return  // 중복
+  if x < min: [x, min] = [min, x]
+  if x > max: max = x
+  if U == 2: return
+  
+  h = high(x, U); l = low(x, U)
+  if clusters[h] == undefined:
+    clusters[h] = new vEB(lowerSqrt(U))
+    summary.insert(h)
+    clusters[h].min = clusters[h].max = l
+    // 빈 트리에 삽입 → O(1) (재귀 없음!)
+  else:
+    clusters[h].insert(l)
+```
+
+### Activity Diagram
+
+```mermaid
+flowchart TD
+  A[insert(x)] --> B{min == undefined?}
+  B -- 예 --> C[min = max = x] --> Z[종료]
+  B -- 아니오 --> D{x == min?}
+  D -- 예 --> Z
+  D -- 아니오 --> E{x < min?}
+  E -- 예 --> F[swap x, min]
+  E -- 아니오 --> G{x > max?}
+  F --> G
+  G -- 예 --> H[max = x]
+  G -- 아니오 --> I{U == 2?}
+  H --> I
+  I -- 예 --> Z
+  I -- 아니오 --> J[h = high, l = low]
+  J --> K{clusters[h] == undefined?}
+  K -- 예 --> L[clusters[h] = 새 vEB]
+  L --> M[summary.insert(h) 재귀]
+  L --> N[clusters[h].min = clusters[h].max = l: O(1)]
+  K -- 아니오 --> O[clusters[h].insert(l) 재귀]
+  M --> Z
+  N --> Z
+  O --> Z
+```
+
+```mermaid
+flowchart TD
+  A[successor(x)] --> B{U == 2?}
+  B -- 예 --> C{x==0 and max==1?}
+  C -- 예 --> D[반환 1]
+  C -- 아니오 --> E[반환 undefined]
+  B -- 아니오 --> F[h=high(x), l=low(x)]
+  F --> G{clusters[h] != undefined and l < clusters[h].max?}
+  G -- 예 --> H[offset = clusters[h].successor(l) 재귀]
+  H --> I[반환 index(h, offset)]
+  G -- 아니오 --> J[nextCluster = summary.successor(h) 재귀]
+  J --> K{nextCluster == undefined?}
+  K -- 예 --> E
+  K -- 아니오 --> L[반환 index(nextCluster, clusters[nextCluster].min)]
+```
