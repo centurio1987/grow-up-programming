@@ -1,0 +1,255 @@
+import { AlgorithmSimulation } from "#guide-sim";
+
+# Multiset 해설
+
+## 성능 목표 예측
+
+| 연산 | 배열(정렬 없음) | 배열(정렬 유지) | Multiset(이 구현) | BST 기반 Multiset |
+|------|----------------|----------------|-------------------|-------------------|
+| 삽입 | O(1)           | O(n)           | O(n)*             | O(log n)          |
+| 삭제 | O(n)           | O(n)           | O(n)*             | O(log n)          |
+| 탐색 | O(n)           | O(log n)       | O(log n)          | O(log n)          |
+| 중앙값 | O(n log n)  | O(1)           | O(1)              | O(log n)          |
+
+*배열 기반이라 이진 탐색(O(log n))으로 위치를 찾지만 실제 삽입/삭제는 O(n). n ≤ 10^4 범위에서는 실용적.
+
+---
+
+## 목표 함수
+
+| 메서드 | 설명 | 복잡도 |
+|--------|------|--------|
+| `add(item)` | 정렬 위치에 삽입 | O(n) |
+| `delete(item)` | 하나 제거, 없으면 false | O(n) |
+| `deleteAll(item)` | 전부 제거, 제거된 수 반환 | O(n) |
+| `has(item)` | 존재 여부 | O(log n) |
+| `count(item)` | 개수 반환 | O(log n) |
+| `min()` / `max()` | 최솟값 / 최댓값 | O(1) |
+| `size()` | 전체 크기 | O(1) |
+| `toArray()` | 정렬 배열 | O(n) |
+
+---
+
+## 핵심 아이디어
+
+### 원형 아이디어와 naive 접근
+
+가장 단순한 접근은 배열에 원소를 추가하고 매번 정렬하는 것입니다.
+
+```ts
+// Naive
+add(item) { this.data.push(item); this.data.sort(comparator); }
+```
+
+하지만 이미 정렬된 배열에 원소 하나를 넣을 때 전체를 다시 정렬하는 건 낭비입니다.
+
+### 어떤 관찰이 돌파구가 되는가
+
+**핵심 관찰**: 이미 정렬된 배열에서 새 원소가 들어갈 위치는 이진 탐색으로 O(log n)에 찾을 수 있습니다. 위치를 알면 `splice` 한 번으로 삽입이 완료됩니다.
+
+마찬가지로, 제거할 원소의 위치도 이진 탐색으로 O(log n)에 찾고 `splice`로 제거합니다.
+
+### 관찰을 형식화
+
+두 가지 이진 탐색 함수가 핵심입니다:
+
+- **lowerBound(item)**: `arr[i] >= item`이 되는 최초 인덱스
+  - item과 같은 원소가 있다면 그 첫 번째 위치
+  - 없다면 item이 삽입될 위치
+- **upperBound(item)**: `arr[i] > item`이 되는 최초 인덱스
+  - item보다 큰 원소들이 시작되는 위치
+
+```
+배열: [1, 2, 2, 2, 5, 7]
+        0  1  2  3  4  5
+lowerBound(2) = 1
+upperBound(2) = 4
+count(2) = upperBound - lowerBound = 3
+```
+
+### 핵심 연산
+
+**lowerBound 구현**:
+```ts
+private lowerBound(item: T): number {
+  let lo = 0, hi = this._data.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (this._comparator(this._data[mid]!, item) < 0) {
+      lo = mid + 1;  // data[mid] < item
+    } else {
+      hi = mid;      // data[mid] >= item
+    }
+  }
+  return lo;
+}
+```
+
+**add 구현**:
+```ts
+add(item: T): void {
+  const pos = this.lowerBound(item);
+  this._data.splice(pos, 0, item);
+}
+```
+
+**count 구현**:
+```ts
+count(item: T): number {
+  return this.upperBound(item) - this.lowerBound(item);
+}
+```
+
+### 정당성
+
+lowerBound의 루프 불변식: 구간 `[lo, hi)`에 반드시 답이 있습니다.
+- `comparator(data[mid], item) < 0` → data[mid] < item → 답은 mid+1 이상
+- 그 외 → data[mid] >= item → 답은 mid 이하
+- lo == hi가 되면 종료, lo가 정확히 lowerBound
+
+### 구현 디테일과 최적화
+
+1. **comparator 기본값**: 미제공 시 `(a, b) => a < b ? -1 : a > b ? 1 : 0` 사용
+2. **deleteAll 최적화**: lowerBound~upperBound 범위를 `splice(lo, hi - lo)`로 한 번에 제거
+3. **min/max**: 정렬이 유지되므로 `data[0]`과 `data[data.length - 1]`이 상수 시간
+
+---
+
+## 시뮬레이션
+
+export const steps = [
+  {
+    title: "초기 상태",
+    detail: "빈 배열에서 시작합니다.",
+    array: [],
+    highlight: [],
+    marked: [],
+  },
+  {
+    title: "add(3) 삽입",
+    detail: "lowerBound(3) = 0. 인덱스 0에 3 삽입.",
+    array: [3],
+    highlight: [0],
+    marked: [],
+  },
+  {
+    title: "add(1) 삽입",
+    detail: "lowerBound(1) = 0. 인덱스 0에 1 삽입. 3이 오른쪽으로 이동.",
+    array: [1, 3],
+    highlight: [0],
+    marked: [],
+  },
+  {
+    title: "add(2) 삽입",
+    detail: "lowerBound(2) = 1. 인덱스 1에 2 삽입.",
+    array: [1, 2, 3],
+    highlight: [1],
+    marked: [],
+  },
+  {
+    title: "add(2) 삽입 (중복)",
+    detail: "lowerBound(2) = 1. 인덱스 1에 2 삽입. 정렬 유지.",
+    array: [1, 2, 2, 3],
+    highlight: [1],
+    marked: [],
+  },
+  {
+    title: "count(2) = upperBound - lowerBound",
+    detail: "lowerBound(2)=1, upperBound(2)=3. count = 3-1 = 2.",
+    array: [1, 2, 2, 3],
+    highlight: [1, 2],
+    marked: [],
+  },
+  {
+    title: "delete(2) — 하나만 제거",
+    detail: "lowerBound(2)=1. 인덱스 1의 원소가 2이므로 splice(1,1).",
+    array: [1, 2, 3],
+    highlight: [1],
+    marked: [],
+  },
+];
+
+<AlgorithmSimulation view="array" steps={steps} title="Multiset — add / count / delete 시뮬레이션" />
+
+## 수도 코드와 Activity Diagram
+
+### 의사코드
+
+```
+class Multiset<T>:
+  data = []
+  comparator = defaultComparator
+
+  lowerBound(item):
+    lo = 0, hi = data.length
+    while lo < hi:
+      mid = (lo + hi) / 2
+      if comparator(data[mid], item) < 0:
+        lo = mid + 1
+      else:
+        hi = mid
+    return lo
+
+  upperBound(item):
+    lo = 0, hi = data.length
+    while lo < hi:
+      mid = (lo + hi) / 2
+      if comparator(data[mid], item) <= 0:
+        lo = mid + 1
+      else:
+        hi = mid
+    return lo
+
+  add(item):
+    pos = lowerBound(item)
+    data.splice(pos, 0, item)
+
+  delete(item):
+    pos = lowerBound(item)
+    if pos < data.length AND comparator(data[pos], item) == 0:
+      data.splice(pos, 1)
+      return true
+    return false
+
+  count(item):
+    return upperBound(item) - lowerBound(item)
+
+  min(): return data[0]
+  max(): return data[data.length - 1]
+```
+
+### Activity Diagram
+
+```mermaid
+flowchart TD
+  A([add item]) --> B[lowerBound 이진 탐색]
+  B --> C[삽입 위치 pos 결정]
+  C --> D[splice pos에 item 삽입]
+  D --> E([정렬 유지 완료])
+
+  F([delete item]) --> G[lowerBound 이진 탐색]
+  G --> H{data[pos] == item?}
+  H -- 예 --> I[splice pos 1개 제거]
+  H -- 아니오 --> J([false 반환])
+  I --> K([true 반환])
+
+  L([count item]) --> M[lowerBound lb]
+  M --> N[upperBound ub]
+  N --> O([ub - lb 반환])
+```
+
+---
+
+## 슬라이딩 윈도우 중앙값 적용
+
+```
+윈도우: [1, 3, -1, -3, 5, 3, 6, 7], k=3
+
+i=0: lower=[1]           upper=[]        중앙값=1
+i=1: lower=[1]           upper=[3]       중앙값=1
+i=2: lower=[-1,1]        upper=[3]       → 리밸런싱 후 lower=[-1], upper=[1,3]? 
+     → lower.max() = -1 → 중앙값 -1 ... (구현에 따라 달라짐, lower.size >= upper.size 유지)
+```
+
+lower half는 max가 중앙값, upper half는 min이 직후 값.
+두 half의 크기를 `|lower| - |upper| ≤ 1`로 유지하면 항상 `lower.max()`가 중앙값.

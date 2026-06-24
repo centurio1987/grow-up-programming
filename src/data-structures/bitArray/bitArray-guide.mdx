@@ -1,0 +1,266 @@
+import { AlgorithmSimulation } from "#guide-sim";
+
+# BitArray (비트 배열) 해설
+
+## 성능 목표 예측
+
+| 연산 | 목표 복잡도 | 비고 |
+|------|------------|------|
+| `set` | O(1) | 비트 OR 연산 1회 |
+| `clear` | O(1) | 비트 AND NOT 연산 1회 |
+| `get` | O(1) | 비트 우시프트 + AND 1회 |
+| `toggle` | O(1) | 비트 XOR 연산 1회 |
+| `count` | O(n/32) | 워드 수(= ceil(n/32))에 비례 |
+| `size` | O(1) | 변수 반환 |
+
+n = 10^6 비트 시 count는 31,250번의 워드 연산 → 수십 마이크로초 이내.
+
+**메모리 비교**:
+| 자료구조 | n=10^6 기준 |
+|---------|------------|
+| `Set<number>` | ≈ 8 MB (원소당 8바이트) |
+| `BitArray` | ≈ 0.125 MB (비트당 1비트) |
+| **절약** | **약 64배** |
+
+---
+
+## 목표 함수
+
+| 메서드 | 시그니처 | 엣지케이스 |
+|--------|----------|-----------|
+| `set` | `(index: number) => void` | 범위 밖 → no-op |
+| `clear` | `(index: number) => void` | 범위 밖 → no-op, 이미 0이어도 OK |
+| `get` | `(index: number) => boolean` | 범위 밖 → false |
+| `toggle` | `(index: number) => void` | 범위 밖 → no-op |
+| `count` | `() => number` | 모두 0 → 0, 모두 1 → size |
+
+---
+
+## 핵심 아이디어
+
+### 원형 아이디어와 naive 접근
+
+boolean 배열 `Array<boolean>`을 쓰면 간단하지만, JavaScript에서 boolean은 최소 1바이트를 차지한다. n=10^6이면 1MB, n=10^8이면 100MB. 단순하지만 메모리 비효율적이다.
+
+### 어떤 관찰이 돌파구가 되는가
+
+"방문 여부"는 0 또는 1이다 — 단 1비트면 충분하다. 32비트 정수(Uint32Array 원소)에 32개의 플래그를 밀어 넣으면 메모리 사용량이 1/32로 줄어든다.
+
+비트 연산(시프트, AND, OR, XOR, NOT)은 CPU 한 사이클에 처리되므로 성능도 우수하다.
+
+### 관찰을 형식화: 상태/구조 정의
+
+```
+words: Uint32Array(ceil(size / 32))
+_size: number
+
+비트 index의 주소:
+  wordIndex = index >>> 5        // 0-based 워드 번호
+  bitIndex  = index & 31         // 워드 내 0-based 비트 위치
+  mask      = 1 << bitIndex      // 해당 비트만 1인 마스크
+
+불변식:
+  words.length == ceil(_size / 32)
+  size 이상의 인덱스에 해당하는 비트는 항상 0
+```
+
+### 점화식 또는 핵심 연산
+
+**비트 주소 계산**:
+```
+wordIndex = index >>> 5   // 5비트 우시프트 = /32
+bitIndex  = index & 31    // 하위 5비트 추출 = %32
+mask      = 1 << bitIndex
+```
+
+**set**: `words[wordIndex] |= mask`
+- OR: 해당 비트를 강제로 1로. 나머지 비트는 변화 없음.
+
+**clear**: `words[wordIndex] &= ~mask`
+- AND NOT: 해당 비트를 강제로 0으로. 나머지 비트는 변화 없음.
+
+**get**: `return ((words[wordIndex] >>> bitIndex) & 1) === 1`
+- 해당 비트를 최하위로 이동 후 AND 1로 추출.
+
+**toggle**: `words[wordIndex] ^= mask`
+- XOR: 해당 비트만 반전. 나머지 비트는 변화 없음.
+
+**count (popcount)**:
+```
+총 count = 0
+for each word w in words:
+  w = w - ((w >>> 1) & 0x55555555)
+  w = (w & 0x33333333) + ((w >>> 2) & 0x33333333)
+  w = (w + (w >>> 4)) & 0x0f0f0f0f
+  count += (w * 0x01010101) >>> 24
+```
+
+또는 단순하게:
+```
+for each word w in words:
+  while w != 0:
+    count += w & 1
+    w >>>= 1
+```
+
+단순 루프보다 병렬 비트 덧셈 알고리즘이 약 5배 빠르다.
+
+### 정당성 — 왜 이것이 옳은가
+
+**비트 마스크 연산 정당성**:
+
+- `|= mask`: mask에서 1인 비트만 1로 변경, 나머지는 `x | 0 = x`로 유지.
+- `&= ~mask`: mask에서 1인 비트는 NOT 후 0이 되어 AND로 소거, 나머지는 `x & 1 = x`로 유지.
+- `^= mask`: mask에서 1인 비트만 `x ^ 1`로 반전, 나머지는 `x ^ 0 = x`로 유지.
+
+**popcount 병렬 비트 덧셈**:
+
+32비트를 2비트 그룹 16개로 분할해 각 그룹의 1 개수를 동시에 계산한다. 단계적으로 합산해 마지막에 전체 합을 얻는다. 이는 SWAR(SIMD Within A Register) 기법이다.
+
+**마지막 워드 패딩 안전성**:
+
+`size`가 32의 배수가 아니면 마지막 워드의 `size % 32`번째 이후 비트는 패딩이다. 생성자에서 `Uint32Array`를 생성하면 자동으로 0으로 초기화된다. `set`은 `index >= size`이면 early return하므로 패딩 영역을 건드리지 않는다. 따라서 `count`가 패딩을 세지 않는다.
+
+### 구현 디테일과 최적화
+
+1. **`>>>` vs `>>`**: JavaScript의 `>>` 는 부호 있는 우시프트, `>>>` 는 부호 없는 우시프트. Uint32Array는 unsigned이므로 `>>>` 를 써야 올바른 결과가 나온다.
+2. **`1 << bitIndex`**: JavaScript 비트 연산은 32비트로 잘린다. `bitIndex & 31`이므로 자동으로 안전한 범위.
+3. **TypeScript strict**: `words[wordIndex]`는 `noUncheckedIndexedAccess` 하에 `number | undefined`이므로 `?? 0` 기본값 처리가 필요할 수 있다. 단, 범위 체크 후 접근하면 `!` 단언 없이 안전하다.
+4. **범위 체크**: `index < 0 || index >= _size` 조건으로 모든 메서드 초반에 guard한다.
+
+---
+
+## 시뮬레이션
+
+export const steps = [
+  {
+    title: "초기 상태 (size=8, 1개 워드)",
+    detail: "Uint32Array(1). words[0] = 0b00000000 = 0. 8비트 모두 0.",
+    array: [0, 0, 0, 0, 0, 0, 0, 0],
+    highlight: [],
+    marked: [],
+  },
+  {
+    title: "set(0) — 비트 0을 1로",
+    detail: "mask = 1 << 0 = 1. words[0] |= 1 → 0b00000001.",
+    array: [1, 0, 0, 0, 0, 0, 0, 0],
+    highlight: [0],
+    marked: [],
+  },
+  {
+    title: "set(3) — 비트 3을 1로",
+    detail: "mask = 1 << 3 = 8. words[0] |= 8 → 0b00001001.",
+    array: [1, 0, 0, 1, 0, 0, 0, 0],
+    highlight: [3],
+    marked: [0],
+  },
+  {
+    title: "toggle(0) — 비트 0 반전",
+    detail: "mask = 1. words[0] ^= 1 → 0b00001000. 비트 0이 0으로.",
+    array: [0, 0, 0, 1, 0, 0, 0, 0],
+    highlight: [0],
+    marked: [3],
+  },
+  {
+    title: "set(7) — 비트 7을 1로",
+    detail: "mask = 1 << 7 = 128. words[0] |= 128 → 0b10001000.",
+    array: [0, 0, 0, 1, 0, 0, 0, 1],
+    highlight: [7],
+    marked: [3],
+  },
+  {
+    title: "count() — 1인 비트 개수",
+    detail: "popcount(0b10001000) = 2. bits 3, 7이 1이다.",
+    array: [0, 0, 0, 1, 0, 0, 0, 1],
+    highlight: [3, 7],
+    marked: [],
+  },
+];
+
+<AlgorithmSimulation view="array" steps={steps} title="BitArray 비트 연산 동작" />
+
+---
+
+## 수도 코드와 Activity Diagram
+
+### 의사코드
+
+```
+class BitArray(size):
+  if size < 1: throw RangeError
+  _size = size
+  words = new Uint32Array(ceil(size / 32))  // 자동으로 0 초기화
+
+  // 비트 주소 계산 (내부 헬퍼)
+  _addr(index) -> (wordIndex, mask):
+    return (index >>> 5, 1 << (index & 31))
+
+  set(index):
+    if index < 0 or index >= _size: return
+    (w, mask) = _addr(index)
+    words[w] |= mask           // OR: 해당 비트 1로
+
+  clear(index):
+    if index < 0 or index >= _size: return
+    (w, mask) = _addr(index)
+    words[w] &= ~mask          // AND NOT: 해당 비트 0으로
+
+  get(index):
+    if index < 0 or index >= _size: return false
+    (w, mask) = _addr(index)
+    return (words[w] & mask) != 0
+
+  toggle(index):
+    if index < 0 or index >= _size: return
+    (w, mask) = _addr(index)
+    words[w] ^= mask           // XOR: 반전
+
+  count():
+    total = 0
+    for w of words:
+      // Kernighan's bit counting (간결 버전)
+      n = w
+      while n != 0:
+        n &= n - 1             // 최하위 1비트 제거
+        total++
+    return total
+
+    // 또는 고속 SWAR popcount:
+    // n = n - ((n >>> 1) & 0x55555555)
+    // n = (n & 0x33333333) + ((n >>> 2) & 0x33333333)
+    // n = (n + (n >>> 4)) & 0x0f0f0f0f
+    // total += (n * 0x01010101) >>> 24
+
+  size(): return _size
+```
+
+### Activity Diagram
+
+```mermaid
+flowchart TD
+  A([set / clear / get / toggle]) --> B{index 유효?}
+  B -->|No| C[return / false]
+  B -->|Yes| D[wordIndex = index >>> 5]
+  D --> E[bitIndex = index & 31]
+  E --> F[mask = 1 << bitIndex]
+
+  F --> G{연산 종류?}
+  G -->|set| H[words&#91;w&#93; \|= mask]
+  G -->|clear| I[words&#91;w&#93; &= ~mask]
+  G -->|get| J["return (words[w] & mask) != 0"]
+  G -->|toggle| K[words&#91;w&#93; ^= mask]
+
+  H --> Z([완료])
+  I --> Z
+  J --> Z
+  K --> Z
+
+  L([count]) --> M[total = 0]
+  M --> N{모든 워드 순회}
+  N --> O[n = word]
+  O --> P{n != 0?}
+  P -->|Yes| Q[n &= n-1, total++]
+  Q --> P
+  P -->|No| N
+  N --> R[return total]
+```
