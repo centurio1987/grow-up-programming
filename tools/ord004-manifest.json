@@ -2198,13 +2198,13 @@
       "dir": "src/data-structures/tree/avlTree",
       "kind": "ds",
       "studyFold": true,
-      "status": "pending",
+      "status": "done",
       "g1": "pass",
-      "g4": "pass",
-      "gate": "FAIL",
-      "extReview": null,
-      "committedAt": null,
-      "note": "FAIL: 7/17. 자료구조 아닌 알고리즘 캔버스 오용·코드 없음·톤 정반대. 대규모 rewrite."
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-14T07:33:40.529Z",
+      "note": "study 재집필: ds 캔버스 5단계 전면(알고캔버스 교체), LL/RR/LR/RL 4회전 Before/After, 톤 정합. _scratch 자기검증(4회전·N=2000)."
     },
     {
       "name": "bPlusTree",
