@@ -434,13 +434,13 @@
       "dir": "src/algorithms/bit-manipulation/enumerateSubmasks",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-14T08:15:25.166Z",
+      "note": "신규 재집필(Workflow bit-manipulation), C4 mermaid·E2/B3 증명 보완 후 재게이트 PASS. _scratch 자기검증"
     },
     {
       "name": "lowestSetBit",
@@ -448,13 +448,13 @@
       "dir": "src/algorithms/bit-manipulation/lowestSetBit",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-14T08:05:51.306Z",
+      "note": "신규 재집필(Workflow bit-manipulation 배치), 게이트 PASS, _scratch 자기검증"
     },
     {
       "name": "matrixPowerFibonacci",
@@ -462,13 +462,13 @@
       "dir": "src/algorithms/bit-manipulation/matrixPowerFibonacci",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-14T08:05:51.335Z",
+      "note": "신규 재집필(Workflow bit-manipulation 배치), 게이트 PASS, _scratch 자기검증"
     },
     {
       "name": "singleNumberXor",
@@ -476,13 +476,13 @@
       "dir": "src/algorithms/bit-manipulation/singleNumberXor",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-14T08:05:51.361Z",
+      "note": "신규 재집필(Workflow bit-manipulation 배치), 게이트 PASS, _scratch 자기검증"
     },
     {
       "name": "coinChangeWays",
