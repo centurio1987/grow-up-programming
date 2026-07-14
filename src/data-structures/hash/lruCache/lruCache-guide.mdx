@@ -1,112 +1,307 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# LRUCache 해설
+# LRUCache — 최근 쓴 것은 맨 앞으로, 오래 안 쓴 것은 맨 뒤로
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 목표 복잡도 | 이유 |
-|------|------------|------|
-| `get` | O(1) 평균 | HashMap 조회 O(1) + 리스트 이동 O(1) |
-| `put` | O(1) 평균 | HashMap 삽입 O(1) + 리스트 삽입/삭제 O(1) |
-| LRU 퇴출 | O(1) | tail 노드 직접 접근 |
+HashMap과 이중 연결 리스트를 이어 붙여서, 임의 키 조회와 "사용 순서 갱신"을 모두 $O(1)$에 처리하는 캐시예요. 비결은 각 키가 리스트 노드를 직접 가리키게 만드는 것입니다 — 순서를 바꿀 때 배열처럼 원소를 밀어낼 필요 없이, 포인터 네 개만 다시 이으면 되거든요. 웹 브라우저 탭 캐시, DB 버퍼 풀, CDN 에지 캐시처럼 초당 수만 건의 조회가 몰리는 곳에서 실제로 쓰이는 구조입니다.
 
-HashMap 단독으로는 순서 추적이 O(n). 이중 연결 리스트 단독으로는 키 조회가 O(n). 두 구조를 결합하면 각자의 단점을 상쇄한다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호가 보이면 LRUCache(HashMap + DoublyLinkedList)를 떠올리세요.
 
-| 메서드 | 시그니처 | 엣지 케이스 |
-|--------|---------|------------|
-| `get` | `(key: number) => number` | 존재하지 않는 key → `-1` |
-| `put` | `(key, value) => void` | 기존 key 갱신 → 값 수정 + MRU 이동 (퇴출 없음); capacity=1 → put마다 기존 항목 퇴출 |
+- "최대 용량 `capacity`를 넘으면 **가장 오래 안 쓴 항목**부터 버려라"는 요구가 명시된다
+- `get`/`put`이 둘 다 잦고, 호출할 때마다 그 키를 "방금 쓴 것"으로 갱신해야 한다
+- 호출 횟수가 커서(문제에서 보통 $10^5$ 이상) 매 연산이 $O(1)$이어야 한다는 성능 제약이 붙는다
 
----
+naive 대안들과 비교하면 왜 두 구조를 합쳐야 하는지 바로 보입니다.
 
-## 핵심 아이디어
+```text
+Map만 쓴다면                     비용
+  조회(get/put)                  O(1)
+  "가장 오래 안 쓴 항목" 찾기      O(n)  ← 매 퇴출마다 전체를 훑어야 함
 
-### 원형 아이디어와 naive 접근
+정렬 배열(순서만 유지)로 대신한다면
+  맨 뒤(LRU) 찾기                 O(1)
+  임의 key로 위치 찾아 순서 갱신    O(n)  ← indexOf/splice 필요
 
-Map만 사용하면 O(1) 조회는 가능하지만, "가장 오래된 항목"을 찾으려면 모든 키의 마지막 사용 시각을 비교해야 한다. 삽입 순서 배열을 추가로 유지하면 퇴출은 O(1)이지만 `get`에서 MRU 갱신 시 해당 키를 배열에서 찾고 이동하는 비용이 O(n)이 된다.
-
-### 어떤 관찰이 돌파구가 되는가
-
-핵심은 두 가지 요구사항이 동시에 있다는 점이다:
-1. **임의 키로 O(1) 조회** → HashMap
-2. **사용 순서 O(1) 갱신과 LRU O(1) 제거** → DoublyLinkedList
-
-DoublyLinkedList는 노드 참조만 있으면 임의 위치 삽입·삭제가 O(1)이다. HashMap이 각 키에 대해 노드 참조를 저장하면, 두 구조를 합쳐 모든 연산을 O(1)에 해결할 수 있다.
-
-### 관찰을 형식화: 상태/구조 정의
-
-```
-HashMap:  { 1 → Node(1,10), 3 → Node(3,30), 4 → Node(4,40) }
-
-이중 연결 리스트 (MRU → LRU):
-[dummy_head] ⇄ [4:40] ⇄ [3:30] ⇄ [1:10] ⇄ [dummy_tail]
+HashMap + DoublyLinkedList
+  조회 · 순서 갱신 · 퇴출          O(1)  ← 전부
 ```
 
-- `map`: `Map<number, ListNode>` — 키 → 노드 참조
-- `head` (더미 센티넬): 리스트의 논리적 시작점. `head.next` = MRU
-- `tail` (더미 센티넬): 리스트의 논리적 끝점. `tail.prev` = LRU
-- 더미 센티넬을 사용하면 head/tail 경계에서 null 체크 없이 항상 동일한 삽입·삭제 코드를 사용할 수 있다
+비슷한 자리에 놓이는 자료구조로 LFU(Least Frequently Used) 캐시가 있습니다. 선택 기준은 단순해요 — 퇴출 기준이 "가장 최근에 안 쓴 것"이면 LRU, "가장 적게 쓴 것"이면 LFU(빈도 카운터 + 빈도별 버킷)를 씁니다.
 
-각 `ListNode`는 `key`, `value`, `prev`, `next`를 갖는다. key를 저장하는 이유는 LRU 퇴출 시 HashMap에서도 삭제해야 하기 때문이다.
+### 문제 사례와 적용 예시
 
-### 점화식 또는 핵심 연산
+- **CDN 에지 캐시**: 메모리가 제한된 에지 서버가 인기 페이지만 남기고 오래 안 찾은 페이지를 밀어냅니다.
+- **DB 버퍼 풀**: MySQL InnoDB 등이 디스크 페이지를 메모리에 캐싱할 때 LRU(변형 포함)를 씁니다.
+- **브라우저 탭/이미지 캐시**: 탭이 많아지면 오래 안 본 탭의 렌더링 상태를 버리고 다시 로드합니다.
+- **코딩 테스트 맥락**: "LRU Cache를 설계하라"는 문제 자체가 HashMap + DoublyLinkedList 조합을 직접 요구하는 대표 문제입니다.
 
-**moveToFront(node)** — 어떤 노드든 MRU로 이동:
-```
-// 1. 현재 위치에서 제거
-node.prev.next = node.next
-node.next.prev = node.prev
+## 자료구조 자세히 들여다보기
 
-// 2. head 바로 뒤에 삽입
-node.next = head.next
-node.prev = head
-head.next.prev = node
-head.next = node
-```
+### 전체 스펙: 속성과 액션
 
-**get(key)**:
-```
-if key not in map: return -1
-node = map[key]
-moveToFront(node)
-return node.value
-```
+**속성(내부 상태)**은 이렇게 정의합니다.
 
-**put(key, value)**:
-```
-if key in map:
-  node = map[key]
-  node.value = value
-  moveToFront(node)
-else:
-  node = new ListNode(key, value)
-  map[key] = node
-  insertAfterHead(node)
-  if map.size > capacity:
-    lru = tail.prev          // LRU 노드
-    removeNode(lru)
-    delete map[lru.key]
+```ts
+class ListNode {
+  key: number;
+  value: number;
+  prev: ListNode;
+  next: ListNode;
+}
+
+class LRUCache {
+  private capacity: number;
+  private map: Map<number, ListNode>; // key → 노드 참조
+  private head: ListNode; // 더미 센티넬, head.next = MRU(가장 최근 사용)
+  private tail: ListNode; // 더미 센티넬, tail.prev = LRU(가장 오래 안 씀)
+}
 ```
 
-### 정당성 — 왜 이것이 옳은가
+지켜야 할 불변식은 네 가지예요.
 
-더미 센티넬 덕분에 `moveToFront`와 `removeNode`는 노드가 head 바로 다음이든, tail 바로 앞이든, 중간이든 동일한 코드로 처리된다. 특수 케이스가 없어 버그 발생 여지가 줄어든다.
+1. `map`의 모든 `(key, node)` 쌍은 리스트 안에 살아있는 노드를 정확히 가리킵니다. $\forall k \in \text{map.keys()},\ \text{map}[k] \in \text{list}$
+2. 리스트에 들어 있는 실제 항목 수와 `map.size`는 항상 같고, 이는 capacity를 넘지 않습니다. $|\text{list}| = |\text{map}| \le \text{capacity}$
+3. `head`에서 `tail` 방향으로 순회한 순서가 "최근 사용 → 오래된 사용" 순서와 일치합니다. `head.next`가 MRU, `tail.prev`가 LRU.
+4. `head`, `tail`은 실제 데이터를 담지 않는 더미(sentinel) 노드이며 `map`에 등록되지 않습니다.
 
-HashMap은 항상 리스트 내의 살아있는 노드를 가리킨다. `put`에서 퇴출 후 `map.delete(lru.key)`를 호출해 동기화를 유지한다. 이 두 구조가 항상 같은 항목 집합을 가리키는 것이 핵심 불변식이다.
+`capacity=3`에 `1,2,3`을 순서대로 `put`하고 `4`를 하나 더 넣어 `2`가 퇴출된 상태를 그려보면:
 
-### 구현 디테일과 최적화
+```text
+map: { 1 → •, 3 → •, 4 → • }
 
-- 더미 센티넬: `head.prev = null`, `tail.next = null`. `head.next = tail`, `tail.prev = head`로 초기화.
-- `ListNode`에 `key`를 저장해야 퇴출 시 map에서 O(1) 삭제 가능.
-- JavaScript의 `Map`은 삽입 순서를 보장하므로 `Map` 자체를 LRU로 쓰는 트릭(`map.keys().next()`)도 있지만, 이는 구현 의존적이고 비직관적이므로 명시적 DoublyLinkedList 사용을 권장한다.
+[head] ⇄ [4:40] ⇄ [1:10] ⇄ [3:30] ⇄ [tail]
+ 더미형     MRU                 LRU     더미형
+```
 
----
+**액션(연산)**은 다음과 같습니다.
 
-## 시뮬레이션
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `get(key)` | `map`에서 노드를 찾아 값 반환, 찾았으면 MRU로 이동 | $O(1)$ |
+| `put(key, value)` | 있으면 값 갱신 + MRU 이동, 없으면 삽입 후 초과 시 LRU 퇴출 | $O(1)$ |
+| `moveToFront(node)` (내부) | 리스트에서 제거 후 `head` 바로 뒤에 재삽입 | $O(1)$ |
+| `removeNode(node)` (내부) | 노드를 현재 위치에서 분리 | $O(1)$ |
+| `insertAfterHead(node)` (내부) | `head` 바로 뒤에 노드 삽입 | $O(1)$ |
+
+핵심 연산 두 개를 before/after로 자세히 볼게요. (아래 값은 실행 검증을 마친 트레이스입니다 — `## 실행 시각화` 절과 동일한 입력입니다.)
+
+**① `get` 호출 시 MRU 이동.** `capacity=3`에 `1,2,3`을 넣은 뒤 `get(1)`을 호출하면:
+
+```text
+Before get(1):  [head] ⇄ [3:30] ⇄ [2:20] ⇄ [1:10] ⇄ [tail]
+                                             ↑ 이 노드를 찾음
+
+After  get(1):  [head] ⇄ [1:10] ⇄ [3:30] ⇄ [2:20] ⇄ [tail]
+                          ↑ head 바로 뒤로 이동 (MRU)
+```
+
+리스트 중간에 있던 노드가 잘려나간 자리는 `3.next = 2`로 바로 이어 붙고, 노드는 head 바로 뒤에 꽂힙니다 — 이동 거리에 상관없이 포인터 네 개만 바뀌므로 $O(1)$입니다.
+
+**② `put`으로 신규 삽입 + 퇴출.** 위 상태에서 `put(4, 40)`을 호출하면 `map.size`가 `capacity`를 넘어 LRU가 퇴출됩니다.
+
+```text
+Before put(4,40): [head] ⇄ [1:10] ⇄ [3:30] ⇄ [2:20] ⇄ [tail]
+                                                ↑ tail.prev = LRU
+
+After  put(4,40): [head] ⇄ [4:40] ⇄ [1:10] ⇄ [3:30] ⇄ [tail]
+                            ↑ 새 노드가 MRU로     (2는 리스트+map에서 모두 사라짐)
+```
+
+### 왜 모순 없이 작동하는가
+
+불변식이 항상 보존되는 이유를 귀납적으로 봅니다. 빈 캐시(불변식이 자명하게 성립)에서 시작해, 모든 연산이 불변식을 유지한 채로만 상태를 바꿉니다.
+
+- **`get`**: 값을 바꾸지 않고 `moveToFront`만 호출합니다. `moveToFront`는 "제거 후 재삽입"이므로 리스트 안의 노드 집합이 그대로 유지되고, `map`도 건드리지 않습니다 → 불변식 1, 2 그대로.
+- **`put`(기존 key 갱신)**: `node.value`만 바꾸고 `moveToFront`. 개수 변화가 없으므로 불변식 2가 유지됩니다.
+- **`put`(신규 삽입, 초과 없음)**: 새 노드를 `map`과 리스트에 **동시에** 추가하므로 두 구조의 원소 수가 함께 1씩 늘어 불변식 1, 2가 유지됩니다.
+- **`put`(신규 삽입, 초과 발생)**: 삽입으로 1개 늘고 퇴출로 1개 줄어 순증가 0 — `capacity`를 넘지 않습니다. 이때 퇴출 대상은 **항상 `tail.prev`**이고, 불변식 3(정렬 순서 유지)에 의해 `tail.prev`는 정확히 "가장 오래 안 쓴" 노드입니다. `removeNode(lru)`와 `map.delete(lru.key)`를 **같은 `key`로** 실행하므로 두 구조가 다시 같은 집합을 가리키게 됩니다.
+
+**여기서 헷갈리기 쉬운 포인트는 "리스트에서만 지우면 되는 것 아닌가?"입니다.** 퇴출할 때 `removeNode(lru)`만 하고 `map.delete(lru.key)`를 빠뜨리면, 리스트 상으로는 항목이 사라졌지만 `map`은 여전히 죽은 노드를 가리킵니다. 구체적으로, `capacity=3`에 `1,2,3`을 넣고 `get(1)`, `put(4,40)`을 실행하면 `2`가 퇴출되어야 하는데 — `map.delete`를 빠뜨린 버전으로 실행해 보면 `get(2)`가 `-1`이 아니라 **`20`**을 반환합니다(직접 실행 검증한 값입니다). `map`과 리스트가 항상 같은 키 집합을 가리켜야 한다는 불변식 1이 깨진 결과예요.
+
+**또 하나 헷갈리기 쉬운 포인트는 "기존 key를 `put`하면 퇴출이 일어나는가?"입니다.** 아닙니다 — 퇴출은 오직 **신규 삽입**으로 `map.size`가 `capacity`를 넘을 때만 일어납니다. `capacity=2`에 `put(1,10)`, `put(2,20)` 후 `put(1,999)`(기존 key 갱신)를 실행해도 `get(2)`는 여전히 `20`을 반환합니다 — 갱신은 값만 바꾸고 순서만 옮길 뿐, 새로운 슬롯을 요구하지 않기 때문입니다.
+
+잠깐, 확인 하나만 해볼까요? `capacity=2`인 캐시에 `put(1,1)`, `put(2,2)`, `get(1)`, `put(3,3)`을 순서대로 실행하면 어떤 key가 퇴출될까요? — `get(1)` 직후 순서는 MRU→LRU로 `[1, 2]`이니, `put(3,3)`이 신규 삽입이라 `capacity`를 넘고, `tail.prev`인 `2`가 퇴출됩니다(직접 실행하면 `get(2)`가 `-1`로 확인됩니다).
+
+엣지 케이스를 점검해 봅니다.
+
+```text
+빈 캐시에서 get(x)          → -1 (map에 없음)
+capacity=1                 → put마다 기존 항목 즉시 퇴출 (put(2,200) 직후 get(1) = -1)
+동일 key로 반복 put          → 값만 갱신, 퇴출 없음, MRU로만 이동
+```
+
+## 아이디어를 코드로 옮기기
+
+세 단계로 발전시켜 갑니다. 각 단계는 그 자체로 동작하는 TypeScript 코드이고, 실행해서 서로 결과가 같음을 확인했습니다 — 차이는 오직 **속도**입니다.
+
+**원형(brute force): Map + 타임스탬프.** `get`/`put` 조회는 `O(1)`이지만, 퇴출할 항목(가장 오래된 타임스탬프)을 찾으려면 전체를 훑어야 합니다.
+
+```ts
+class LRUCacheNaive {
+  private store = new Map<number, { value: number; time: number }>();
+  private clock = 0;
+  constructor(private capacity: number) {}
+
+  get(key: number): number {
+    const entry = this.store.get(key);
+    if (entry === undefined) return -1;
+    entry.time = this.clock++;
+    return entry.value;
+  }
+
+  put(key: number, value: number): void {
+    const existing = this.store.get(key);
+    if (existing !== undefined) {
+      existing.value = value;
+      existing.time = this.clock++;
+      return;
+    }
+    if (this.store.size >= this.capacity) {
+      let lruKey = -1, minTime = Infinity;
+      for (const [k, e] of this.store) {           // O(n) 전체 스캔
+        if (e.time < minTime) { minTime = e.time; lruKey = k; }
+      }
+      this.store.delete(lruKey);
+    }
+    this.store.set(key, { value, time: this.clock++ });
+  }
+}
+```
+
+퇴출마다 캐시 전체를 훑는 `for (const [k, e] of this.store)` 한 줄이 병목입니다. `capacity`가 수천 단위면 매 퇴출이 수천 번 비교를 하게 되니, 호출이 몰리는 환경에서는 그대로 쓸 수 없습니다.
+
+**개선: Map + 순서 배열.** "가장 오래된 것"을 배열 맨 앞에 두고 `shift()`로 O(1) 퇴출을 노립니다. 하지만 이번엔 **순서를 갱신하는 쪽**이 O(n)이 됩니다.
+
+```ts
+class LRUCacheOrdered {
+  private map = new Map<number, number>();
+  private order: number[] = []; // 왼쪽=LRU, 오른쪽=MRU
+  constructor(private capacity: number) {}
+
+  get(key: number): number {
+    if (!this.map.has(key)) return -1;
+    this.touch(key);
+    return this.map.get(key)!;
+  }
+
+  put(key: number, value: number): void {
+    if (this.map.has(key)) { this.map.set(key, value); this.touch(key); return; }
+    if (this.map.size >= this.capacity) {
+      const lru = this.order.shift()!;
+      this.map.delete(lru);
+    }
+    this.map.set(key, value);
+    this.order.push(key);
+  }
+
+  private touch(key: number): void {
+    const idx = this.order.indexOf(key); // O(n) — 배열에서 key 위치 탐색
+    this.order.splice(idx, 1);
+    this.order.push(key);
+  }
+}
+```
+
+`touch`의 `indexOf` + `splice`가 배열 길이에 비례하는 비용을 냅니다. 퇴출은 빨라졌지만 `get`/`put`마다 순서를 갱신해야 하니 여전히 매 호출이 O(n)이에요 — 병목이 옮겨갔을 뿐입니다.
+
+**최종: HashMap + 이중 연결 리스트(더미 센티넬).** `map`이 배열 인덱스가 아니라 **노드 참조**를 직접 들고 있으면, `touch`에 해당하는 동작이 인덱스 탐색 없이 포인터 재배선만으로 끝납니다.
+
+```ts
+class ListNode {
+  key: number;
+  value: number;
+  prev: ListNode;
+  next: ListNode;
+  constructor(key: number, value: number) {
+    this.key = key;
+    this.value = value;
+    this.prev = this;
+    this.next = this;
+  }
+}
+
+class LRUCache {
+  private map = new Map<number, ListNode>();
+  private head: ListNode; // 더미: head.next = MRU
+  private tail: ListNode; // 더미: tail.prev = LRU
+
+  constructor(private capacity: number) {
+    this.head = new ListNode(-1, -1);
+    this.tail = new ListNode(-1, -1);
+    this.head.next = this.tail;
+    this.tail.prev = this.head;
+  }
+
+  get(key: number): number {
+    const node = this.map.get(key);
+    if (node === undefined) return -1;
+    this.moveToFront(node);
+    return node.value;
+  }
+
+  put(key: number, value: number): void {
+    const existing = this.map.get(key);
+    if (existing !== undefined) {
+      existing.value = value;
+      this.moveToFront(existing);
+      return;
+    }
+    const node = new ListNode(key, value);
+    this.map.set(key, node);
+    this.insertAfterHead(node);
+    if (this.map.size > this.capacity) {
+      const lru = this.tail.prev;
+      this.removeNode(lru);
+      this.map.delete(lru.key); // 리스트와 map을 같은 key로 함께 정리
+    }
+  }
+
+  private moveToFront(node: ListNode): void {
+    this.removeNode(node);
+    this.insertAfterHead(node);
+  }
+
+  private removeNode(node: ListNode): void {
+    node.prev.next = node.next;
+    node.next.prev = node.prev;
+  }
+
+  private insertAfterHead(node: ListNode): void {
+    node.next = this.head.next;
+    node.prev = this.head;
+    this.head.next.prev = node;
+    this.head.next = node;
+  }
+}
+```
+
+가장 중요한 부분은 `insertAfterHead`의 네 줄, 그중에서도 **순서**입니다.
+
+```ts
+node.next = this.head.next;   // ① 새 노드가 "옛 MRU 참조"를 먼저 챙긴다
+node.prev = this.head;
+this.head.next.prev = node;   // ② 옛 MRU가 새 노드를 돌아본다 (head.next는 아직 안 바뀜)
+this.head.next = node;        // ③ 이제야 head가 새 노드를 가리킨다
+```
+
+`this.head.next = node`를 ②보다 먼저 써버리면, `this.head.next.prev = node`를 실행할 때 이미 `head.next`가 `node` 자신이 되어버려 `node.prev = node`라는 자기 참조가 생깁니다. 그러면 리스트가 끊어져 다음 `moveToFront`부터 잘못된 노드를 잘라내게 됩니다. 그리고 앞서 본 것처럼, 퇴출 시 `this.map.delete(lru.key)`를 빠뜨리면 `map`에 죽은 노드가 남아 삭제된 키를 조회했을 때 옛 값을 그대로 돌려주는 오답이 납니다.
+
+> 참조를 먼저 챙기고, 포인터는 나중에 바꾼다.
+
+## 실행 시각화
+
+`capacity=3`인 캐시에 `put(1,10)`, `put(2,20)`, `put(3,30)`, `get(1)`, `put(4,40)`, `get(2)`, `get(3)`을 순서대로 실행한 고정 입력입니다. 위 코드로 직접 실행해 확인한 실제 반환값은 `get(1) = 10`, `get(2) = -1`(퇴출됨), `get(3) = 30`입니다. 아래 패널의 `array`는 그 시점 캐시의 key 목록을 왼쪽(MRU)에서 오른쪽(LRU) 순으로 보여주고, `highlight`(파란색)는 방금 MRU로 이동·삽입된 항목, `marked`(주황색)는 그 단계에서 퇴출된 항목입니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const lruSteps = [
   {
@@ -173,78 +368,8 @@ export const lruSteps = [
   title="LRUCache 시뮬레이션 (배열 = MRU→LRU 순 key 목록, capacity=3)"
 />
 
-> `array` = 현재 캐시의 key 목록, 왼쪽이 MRU(가장 최근), 오른쪽이 LRU(가장 오래됨).
-> highlight(파란색): 방금 MRU로 이동된 또는 삽입된 항목. marked(주황색): 퇴출된 항목.
+## 스스로 점검하기
 
----
-
-## 수도 코드와 Activity Diagram
-
-### 의사코드
-
-```
-class ListNode:
-  key: number
-  value: number
-  prev: ListNode | null = null
-  next: ListNode | null = null
-
-class LRUCache:
-  capacity: number
-  map: Map<number, ListNode> = {}
-  head: ListNode = new ListNode(-1, -1)  // 더미
-  tail: ListNode = new ListNode(-1, -1)  // 더미
-  // 초기화: head.next = tail, tail.prev = head
-
-  get(key):
-    if key not in map: return -1
-    moveToFront(map[key])
-    return map[key].value
-
-  put(key, value):
-    if key in map:
-      map[key].value = value
-      moveToFront(map[key])
-    else:
-      node = new ListNode(key, value)
-      map[key] = node
-      insertAfterHead(node)
-      if map.size > capacity:
-        lru = tail.prev
-        removeNode(lru)
-        delete map[lru.key]
-
-  moveToFront(node):
-    removeNode(node)
-    insertAfterHead(node)
-
-  removeNode(node):
-    node.prev.next = node.next
-    node.next.prev = node.prev
-
-  insertAfterHead(node):
-    node.next = head.next
-    node.prev = head
-    head.next.prev = node
-    head.next = node
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A([put 호출: key, value]) --> B{key가\nmap에 존재?}
-  B -- 예, 갱신 --> C[node.value = value\nmoveToFront node]
-  C --> Z([완료])
-  B -- 아니오, 신규 --> D[새 ListNode 생성\nmap에 저장\ninsertAfterHead]
-  D --> E{map.size\n> capacity?}
-  E -- 아니오 --> Z
-  E -- 예, 퇴출 --> F[lru = tail.prev\nremoveNode lru\ndelete map lru.key]
-  F --> Z
-
-  subgraph moveToFront["moveToFront(node)"]
-    M1([시작]) --> M2[node.prev.next = node.next\nnode.next.prev = node.prev]
-    M2 --> M3[node.next = head.next\nnode.prev = head\nhead.next.prev = node\nhead.next = node]
-    M3 --> M4([완료])
-  end
-```
+1. `capacity=2`인 캐시에 `put(1,1)`, `put(2,2)`, `get(1)`, `put(3,3)`, `get(2)`, `get(3)`을 순서대로 실행했을 때 각 `get`의 반환값과 최종 MRU→LRU 순서를 손으로 그려보세요.
+2. `moveToFront`에서 `removeNode`를 호출하지 않고 `insertAfterHead`만 호출하면 어떤 문제가 생길까요? (힌트: 같은 노드가 리스트에 두 번 나타나면 `prev`/`next`가 서로 다른 이웃을 가리키게 됩니다.)
+3. `put`의 퇴출 로직에서 `this.map.delete(lru.key)`를 빠뜨린 채로 `capacity=1`짜리 캐시에 `put(1,10)`, `put(2,20)`, `get(1)`을 실행하면 무엇이 반환될까요? 정상 구현이라면 어떤 값이어야 하는지와 비교해 보세요.
