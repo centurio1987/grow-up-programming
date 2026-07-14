@@ -182,13 +182,13 @@
       "dir": "src/algorithms/array/houseRobber",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "done",
+      "committedAt": "2026-07-14T05:02:09.507Z",
+      "note": "신규 집필(캔버스 10단계)+외부검토 6건 반영. _scratch 자기검증(8예시·200회 교차). sim/mermaid 구본 추출 주입."
     },
     {
       "name": "kadane",
