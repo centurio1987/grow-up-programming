@@ -15,7 +15,7 @@ OUTPUT_FILE="문제_가이드_목록.md"
 
 # ── 모드 1: 구조 보존 (중요도순 문서) ─────────────────────────────────────────
 if [ -f "$OUTPUT_FILE" ] && head -1 "$OUTPUT_FILE" | grep -q "중요도순"; then
-  MISSING=$(find src -type f \( -name "*guide.md" -o -name "*guide.mdx" \) | sort | while IFS= read -r path; do
+  MISSING=$(find src -type f \( -name "*guide.md" -o -name "*guide.mdx" \) -not -path "*/_deprecated/*" | sort | while IFS= read -r path; do
     grep -qF "(./$path)" "$OUTPUT_FILE" || printf '%s\n' "$path"
   done)
 
@@ -41,7 +41,7 @@ fi
   echo "이 문서는 프로젝트에 존재하는 모든 문제 가이드 문서들을 카테고리별로 모아둔 인덱스입니다. (자동 생성됨)"
   echo ""
 
-  find src -type f \( -name "*guide.md" -o -name "*guide.mdx" \) | \
+  find src -type f \( -name "*guide.md" -o -name "*guide.mdx" \) -not -path "*/_deprecated/*" | \
   awk -F'/' '
   {
     path = $0

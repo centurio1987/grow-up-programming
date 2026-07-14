@@ -2086,13 +2086,13 @@
       "dir": "src/data-structures/range-query/fenwickTree",
       "kind": "ds",
       "studyFold": true,
-      "status": "pending",
+      "status": "done",
       "g1": "pass",
       "g4": "n/a",
-      "gate": "FAIL",
-      "extReview": null,
-      "committedAt": null,
-      "note": "FAIL: E3(스텁→스크래치 실측 기록 없음)+SHOULD C5. 16/17 MUST. 근소 미달."
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-14T04:37:12.107Z",
+      "note": "study-guide 편입(자기검증 E3 통과)+C5 폴리시. _scratch/fenwickTree.ts 실측 근거."
     },
     {
       "name": "intervalTree",
