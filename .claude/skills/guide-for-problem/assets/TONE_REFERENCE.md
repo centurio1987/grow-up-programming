@@ -6,7 +6,7 @@
 > https://chatgpt.com/share/6a547c14-0bbc-83ee-9dac-e18b0676d52f )에서 추출한 문체 특성.
 > 링크는 소실될 수 있으므로 아래 규칙이 원본을 대체한다.
 > 적용 예시 전문: `src/algorithms/array/mosAlgorithm/mosAlgorithm-guide.mdx`,
-> `src/data-structures/tree/bPlusTree/bPlusTree-study-guide.mdx`.
+> `src/data-structures/tree/bPlusTree/bPlusTree-guide.mdx`.
 
 ## 문체 규칙 10
 

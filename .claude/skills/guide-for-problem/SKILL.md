@@ -106,7 +106,7 @@ argument-hint: <file-name-without-extension>
 
 1. **필독 2건**: `assets/TONE_REFERENCE.md`(문체 규격 — 강제 적용), 그리고 대상에 맞는 모범 예시 —
    알고리즘이면 `src/algorithms/array/mosAlgorithm/mosAlgorithm-guide.mdx`,
-   자료구조면 `src/data-structures/tree/bPlusTree/bPlusTree-study-guide.mdx`.
+   자료구조면 `src/data-structures/tree/bPlusTree/bPlusTree-guide.mdx`.
 2. 경로로 캔버스를 고른다: `src/algorithms/**` → `algorithm-guide-canvas.md`,
    `src/data-structures/**` → `data-structure-guide-canvas.md`.
 3. 캔버스의 `##` 헤딩 **문구·순서를 그대로** 따르고, 각 절의 직무 주석을 집필 규격으로 삼는다.

@@ -2,7 +2,7 @@
 
 자료구조 가이드의 골격이다. **문제에 대응하는 가이드가 아니라, 자료구조 그 자체에 대한
 독립 가이드**로 작성한다(특정 문제의 입출력에 종속되지 않는다). `##`/`###` 헤딩의 문구와
-순서는 고정이다. 모범 예시(필독): `src/data-structures/tree/bPlusTree/bPlusTree-study-guide.mdx`.
+순서는 고정이다. 모범 예시(필독): `src/data-structures/tree/bPlusTree/bPlusTree-guide.mdx`.
 
 **조건부 절 규칙**: 알고리즘 캔버스와 동일 — 해당 없으면 문서에서 절을 생략하고,
 사유 한 줄을 품질 게이트 보고에 기록한다.

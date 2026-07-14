@@ -2212,13 +2212,13 @@
       "dir": "src/data-structures/tree/bPlusTree",
       "kind": "ds",
       "studyFold": true,
-      "status": "pending",
+      "status": "done",
       "g1": "pass",
       "g4": "n/a",
-      "gate": "FAIL",
-      "extReview": null,
-      "committedAt": null,
-      "note": "FAIL: E1(delete 트레이스 자기모순)+E3+SHOULD C5. 15/17 MUST. 국소 수정."
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-14T07:12:52.357Z",
+      "note": "study 편입: delete 트레이스 E1 정합화(delete(3)무갱신/delete(4)빌리기)+C5. _scratch delete 구현 자기검증."
     },
     {
       "name": "bTree",
