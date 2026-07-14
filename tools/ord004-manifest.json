@@ -378,13 +378,13 @@
       "dir": "src/algorithms/binary-search/binarySearch",
       "kind": "algo",
       "studyFold": true,
-      "status": "pending",
+      "status": "done",
       "g1": "pass",
       "g4": "pass",
-      "gate": "FAIL",
-      "extReview": null,
-      "committedAt": null,
-      "note": "FAIL: T1(격식체·ascii 전무),C1,C2,E3+SHOULD A3. 톤·시각화 부재. 중간 rewrite."
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-14T07:08:37.042Z",
+      "note": "study 재집필(T1/C1/C2)+캔버스5-8생략(하한). _scratch 자기검증(20000회 대조)."
     },
     {
       "name": "parametricBinarySearch",
