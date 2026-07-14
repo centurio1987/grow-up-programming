@@ -7,6 +7,7 @@
  * 사용: bun run tools/guide-preview/serve.ts <file.mdx> [port]
  */
 import { compile } from "@mdx-js/mdx";
+import remarkFrontmatter from "remark-frontmatter";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import { join } from "node:path";
@@ -27,7 +28,7 @@ await mkdir(cacheDir, { recursive: true });
 const source = await Bun.file(mdxPath).text();
 const compiled = String(
   await compile(source, {
-    remarkPlugins: [remarkMath],
+    remarkPlugins: [[remarkFrontmatter, ["yaml"]], remarkMath],
     rehypePlugins: [rehypeKatex],
   }),
 );
