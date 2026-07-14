@@ -1,149 +1,278 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# DaryHeap (D진 힙) 해설
+# DaryHeap (D진 힙) — 자식 수를 다이얼처럼 돌려 push/pop을 저울질하기
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| d | push | pop | 적합한 워크로드 | 비고 |
-|---|------|-----|-----------------|------|
-| 2 | O(log₂ n) | O(2 × log₂ n) | 범용 | 이진 힙과 동일 |
-| 4 | O(log₄ n) | O(4 × log₄ n) | push 중심 | siftUp 깊이 절반 |
-| 8 | O(log₈ n) | O(8 × log₈ n) | 극단적 push 중심 | 캐시 효율 최고 |
+이진 힙의 "자식 2개" 제약을 풀어, 노드마다 자식을 최대 `d`개까지 두는 배열 기반 힙이에요. 비결은 트리 높이가 $\log_d n$으로 줄어드는 대신, 내려갈 때 비교할 자식이 `d`개로 늘어나는 트레이드오프 하나뿐입니다. 그래서 삽입(push)이 추출(pop)보다 압도적으로 많은 워크로드 — 이벤트 스트림, 네트워크 패킷 큐 — 에서 `d`를 4나 8로 키우면 push가 눈에 띄게 빨라져요.
 
-n=10^6 기준:
-- d=2: siftUp 20단계, siftDown 40단계
-- d=4: siftUp 10단계, siftDown 40단계 (pop 비용 동일, push 절반)
-- d=8: siftUp 7단계, siftDown 56단계 (push 더 빠르나 pop 느림)
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호가 보이면 D진 힙을 떠올리세요.
 
-| 메서드 | 반환 타입 | 엣지케이스 |
-|--------|-----------|-----------|
-| `push(item)` | `void` | 빈 힙에도 동작 |
-| `pop()` | `T \| undefined` | 빈 힙 → `undefined` |
-| `peek()` | `T \| undefined` | 빈 힙 → `undefined`, O(1) |
-| `size()` | `number` | 0부터 시작 |
-| `isEmpty()` | `boolean` | size === 0과 동치 |
+- 우선순위 큐 연산 중 **삽입(push)이 추출(pop)보다 훨씬 많다** (이벤트 삽입 ≫ 이벤트 처리)
+- 정렬 전체를 유지할 필요는 없고 **최솟값(또는 최댓값)만 반복적으로 뽑으면** 된다
+- 표준 이진 힙(d=2)으로 이미 구현했는데 **push가 병목**으로 남아 있다
+- 데이터가 수백만 건 이상이라 **캐시 라인 활용**까지 신경 써야 한다 — `d`개 자식이 배열에 연속으로 있으면 siftDown 비교가 같은 캐시 라인 안에서 끝나는 경우가 많아요
 
----
+naive 대안들과 비교하면 D진 힙이 정확히 어느 지점을 노리는지 보입니다. $n=10^6$, `push`가 대부분인 워크로드를 가정할게요.
 
-## 핵심 아이디어
+```text
+자료구조           push               pop                비고
+정렬 안 된 배열     O(1)               O(n)                pop이 선형 탐색이라 느림
+정렬된 배열         O(n)               O(1)                삽입 위치 찾기+시프트가 병목
+이진 힙 (d=2)       O(log₂n) = 20      O(2·log₂n) = 40     범용, 이미 naive보다 압도적
+d=4 힙              O(log₄n) = 10      O(4·log₄n) = 40     push 2배 빨라짐, pop은 그대로
+d=8 힙              O(log₈n) = 7       O(8·log₈n) = 56     push 더 빠름, pop은 더 느려짐
+```
 
-### 왜 D진 힙이 필요한가
+이진 힙에서 d진 힙으로 옮겨가도 pop이 나빠지는 정도는 push가 좋아지는 정도보다 완만해요 — $d \times \log_d n$은 $d = e \approx 2.72$ 근방에서 최솟값을 가지는 함수라, `d`를 2에서 4·8로 올려도 pop 비용이 폭발적으로 늘지는 않습니다.
 
-이진 힙은 d=2인 특수 케이스이다. d를 늘리면 **트리 높이가 log_d n으로 줄어** siftUp(push) 단계가 감소한다.
+**선택 기준**: 정렬 순회나 범위 질의가 필요하면 애초에 힙이 아니라 정렬된 트리(BST, B+Tree 등)를 써야 합니다. 힙 계열 안에서는 push/pop 빈도가 비슷하면 이진 힙(d=2)을, push가 압도적으로 많으면 d=4나 8의 D진 힙을 고르세요.
 
-실제 시스템에서는 push가 pop보다 훨씬 많은 경우(이벤트 스트림, 네트워크 패킷 큐)가 흔하다. 이때 d=4 또는 d=8로 설정하면 push 비용을 줄이면서 pop 비용 증가는 상대적으로 작다.
+### 문제 사례와 적용 예시
 
-추가 이점: d개의 자식이 배열에 연속으로 저장되므로 siftDown 시 자식 비교가 같은 캐시 라인 내에서 이루어진다.
+- **이벤트 스트리밍 시스템**: 초당 수십만 건의 이벤트가 들어오고 우선순위 순으로 소비되는 큐. 삽입이 소비보다 훨씬 잦아 push 최적화가 직접 처리량으로 이어집니다.
+- **Dijkstra 최단 경로**: 간선을 완화(relax)할 때마다 큐에 push가 일어나는데, 그래프가 조밀할수록 push 횟수가 pop 횟수를 크게 앞섭니다.
+- **OS/런타임 타이머 힙**: 타이머 등록(push)은 자주 일어나지만 실제로 만료되어 꺼내는(pop) 타이머는 상대적으로 적은 경우가 많습니다.
+- **코딩 테스트 맥락**: "K개의 정렬된 리스트를 병합하라" 류 문제에서 시간 제한이 이진 힙으로는 아슬아슬할 때, `d`를 조정할 수 있는 커스텀 힙을 요구하는 변형이 나옵니다.
 
-### 원형 아이디어: 트리를 배열로
+## 자료구조 자세히 들여다보기
 
-이진 힙과 동일한 아이디어를 d로 일반화한다.
+### 전체 스펙: 속성과 액션
 
-0-indexed 배열에서:
-- **부모(i):** `Math.floor((i - 1) / d)`
-- **i의 첫 번째 자식:** `d * i + 1`
-- **i의 k번째 자식 (0-indexed):** `d * i + k + 1`
-
-d=2일 때: 부모(i) = `(i-1)/2`, 자식 = `2i+1`, `2i+2` — 이진 힙과 동일.
-
-### 어떤 관찰이 돌파구가 되는가
-
-**관찰 1:** log_d n = log n / log d. d를 늘릴수록 높이가 줄어든다.
-
-| n | d=2 | d=4 | d=8 |
-|---|-----|-----|-----|
-| 10^6 | 20 | 10 | 6.6 |
-| 10^9 | 30 | 15 | 10 |
-
-**관찰 2:** siftDown에서는 각 레벨에서 d개 자식을 비교해야 한다. d번 비교 × log_d n 레벨 = d × log_d n = d × log n / log d. d를 늘리면 log d가 분모를 키우지만 d가 분자를 키운다.
-
-미분해보면 d=e (≈2.72)에서 d × log n / log d가 최솟값이다. d=3이 이론적으로 pop에 최적이지만, 캐시 라인(64 bytes) 고려 시 d=4 또는 d=8이 실용적으로 좋다.
-
-**관찰 3 (캐시 효율):** 64바이트 캐시 라인에 8개의 int(8 bytes)가 들어간다. d=8이면 siftDown에서 자식 8개가 한 캐시 라인에 들어올 확률이 높다.
-
-### 관찰을 형식화: 상태/구조 정의
+**속성(내부 상태)** — 이 가이드에서 정의하는 인터페이스는 다음과 같습니다.
 
 ```ts
 class DaryHeap<T> {
-  data: T[];           // 레벨 오더 배열
-  d: number;           // 자식 수
-  compare: (a: T, b: T) => number;
+  private data: T[];                          // 레벨 오더 배열, 0-indexed
+  private readonly d: number;                  // 노드당 자식 수 (d >= 2)
+  private readonly compare: (a: T, b: T) => number; // a<b: 음수, a===b: 0, a>b: 양수
 }
 ```
 
-**불변식:**
-- 모든 i에 대해 `compare(data[parent(i)], data[i]) <= 0`
-- 즉, 부모 ≤ 자식 (최소 힙)
+지켜야 할 불변식은 세 가지예요.
 
-### 점화식 또는 핵심 연산
+1. **최소 힙 속성**: 루트가 아닌 모든 인덱스 $i$에 대해 부모가 자식보다 크지 않습니다.
+   $$\forall i \ge 1,\quad \text{compare}\big(data[\lfloor (i-1)/d \rfloor],\ data[i]\big) \le 0$$
+2. **완전 d진 트리**: 배열에 빈 슬롯이 없습니다. push/pop이 배열의 끝에서만 원소를 넣고 빼므로 항상 자동으로 유지돼요.
+3. **인덱스 공식**: 인덱스 $i$의 부모는 $\lfloor (i-1)/d \rfloor$, $i$의 $k$번째 자식($k=0..d-1$)은 $d \cdot i + k + 1$입니다. $d=2$를 대입하면 이진 힙의 익숙한 공식(`(i-1)/2`, `2i+1`, `2i+2`)과 정확히 같아져요.
 
-**siftUp (push 후):**
-```
-siftUp(i):
-  while i > 0:
-    p = floor((i - 1) / d)
-    if compare(data[i], data[p]) < 0:
-      swap(data, i, p)
-      i = p
-    else: break
-```
+`d=3`인 힙에 `10, 5, 15, 3`을 순서대로 push하면 배열은 `[3, 10, 15, 5]`가 되는데(뒤에서 직접 검증합니다), 이걸 트리로 그리면:
 
-**siftDown (pop 후):**
-```
-siftDown(i, size):
-  while true:
-    best = i
-    for k in 0..d-1:
-      child = d * i + k + 1
-      if child < size and compare(data[child], data[best]) < 0:
-        best = child
-    if best == i: break
-    swap(data, i, best)
-    i = best
+```text
+인덱스:    0    1    2    3
+값:        3   10   15    5
+
+트리 모양(d=3, 노드마다 자식 최대 3개):
+                  3 (idx 0)
+        ┌─────────┼─────────┐
+     10(idx1)   15(idx2)   5(idx3)
 ```
 
-**push:**
+**액션(연산)** — 이 힙이 제공하는 5가지 연산입니다.
+
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `push(item)` | 배열 끝에 추가 후 부모 방향으로 siftUp | $O(\log_d n)$ |
+| `pop()` | 루트를 저장하고, 마지막 원소를 루트로 올린 뒤 siftDown | $O(d \cdot \log_d n)$ |
+| `peek()` | 루트 값만 조회 (제거 없음) | $O(1)$ |
+| `size()` | 원소 개수 | $O(1)$ |
+| `isEmpty()` | `size() === 0`과 동치 | $O(1)$ |
+
+핵심 연산인 `push`와 `pop`을 Before/After로 자세히 볼게요. 위에서 만든 `[5, 10, 15]`에 `push(3)`을 하는 장면입니다.
+
+```text
+Before (3 append 직후, siftUp 전): [5, 10, 15, 3]
+                                              ↑ idx 3, 부모 = floor((3-1)/3) = 0 → data[0]=5
+                                              compare(3, 5) < 0 → swap!
+
+After  (siftUp 완료):              [3, 10, 15, 5]
+                                     ↑ idx 0으로 올라와 부모가 없으므로(i=0) 종료
 ```
-push(item):
-  data.push(item)
-  siftUp(data.length - 1)
+
+이번엔 `[3, 10, 15, 5]`에서 `pop()`을 실행하는 장면입니다.
+
+```text
+Before (pop 직전): [3, 10, 15, 5]
+  1) min = data[0] = 3 저장
+  2) 마지막 원소 5를 배열에서 꺼냄        → [3, 10, 15]
+  3) 꺼낸 5를 루트 자리에 채움            → [5, 10, 15]
+  4) siftDown(0): 자식 idx1(10), idx2(15) 중 최솟값(10)과 비교 → 5 < 10이라 이미 만족, 교환 없음
+
+After (pop 완료):  [5, 10, 15]   (반환값: 3)
 ```
 
-**pop:**
+### 왜 모순 없이 작동하는가
+
+**push가 불변식을 지키는 이유**: 새 원소를 배열 끝에 추가하는 순간, 트리 전체 중 딱 하나의 경로 — 새 리프에서 루트까지 — 만 불변식이 깨질 수 있습니다(다른 부분은 손대지 않았으니까요). siftUp은 그 경로를 따라 부모와 비교하며 한 칸씩 올라가고, 부모가 더 작거나 같아지는 순간 멈춥니다. 각 단계에서 "국소적으로" 부모-자식 관계를 복원하므로, 경로 전체를 다 오르면 전역적으로도 불변식이 복원됩니다.
+
+**pop이 불변식을 지키는 이유**: 루트를 빼고 마지막 원소를 그 자리에 채우면, 이번엔 반대로 **루트에서 리프 쪽으로 향하는 경로**만 깨질 수 있습니다. siftDown은 각 레벨에서 `d`개 자식 중 최솟값을 찾아 그 자식과 비교하고, 자신이 더 크면 그 자식과 swap한 뒤 한 층 내려갑니다. "가장 작은 자식"과 비교하는 것이 핵심이에요 — 아무 자식이나 골라 비교하면 그 자식보다는 작아지지만 다른 자식보다는 여전히 클 수 있어 불변식이 안 깨졌다고 잘못 판단할 수 있습니다.
+
+**완전성 유지**: push는 배열 끝에 추가만, pop은 배열 끝에서 꺼내 루트로 옮기기만 하므로, 트리에 구멍이 생길 여지가 없습니다. 배열이 곧 완전 d진 트리라는 성질이 그대로 유지돼요.
+
+여기서 헷갈리기 쉬운 포인트가 세 가지 있습니다.
+
+- **부모 공식에서 `-1`을 빼먹기 쉽습니다.** 올바른 공식은 $\lfloor (i-1)/d \rfloor$인데, `-1`을 빼먹고 $\lfloor i/d \rfloor$로 쓰는 실수가 흔해요. `d=3`인 힙에 `1, 4, 2, 5, 6, 7, 3`을 순서대로 push하는 상황으로 실제로 확인해 봅시다. 마지막 `push(3)`에서 새 원소는 인덱스 6에 놓입니다. 올바른 부모는 $\lfloor (6-1)/3 \rfloor = 1$(값 4)이라 `3 < 4`이므로 위로 올라가야 하는데, `-1`을 빼먹은 버전은 부모를 $\lfloor 6/3 \rfloor = 2$(값 2)로 잘못 계산해 `3 > 2`라고 판단하고 그 자리에서 멈춰 버립니다. 그 결과 최종 배열이 `[1, 4, 2, 5, 6, 7, 3]`(입력 그대로! 스왑이 단 한 번도 안 일어남)로 남는데, 인덱스 6(값 3)의 진짜 부모인 인덱스 1(값 4)이 `4 > 3`이라 최소 힙 불변식이 깨진 상태입니다. 반면 올바른 공식으로는 같은 입력이 `[1, 3, 2, 5, 6, 7, 4]`가 되어 불변식을 만족합니다(직접 실행해 확인했습니다).
+- **siftDown에서 "아무 자식"이 아니라 "최소 자식"과 비교해야 합니다.** 예를 들어 자식이 `[10, 3, 15]`인데 첫 번째 자식(10)하고만 비교해 버리면, 진짜 최솟값인 3(가운데 자식)을 놓치고 잘못된 자리에서 멈출 수 있어요. 반드시 `d`개 전부를 훑어 `best` 인덱스를 갱신해야 합니다.
+- **`d=1`은 힙이 아니라 사슬(연결 리스트)로 퇴화합니다.** 자식이 하나뿐이면 각 노드가 정확히 하나의 자식만 가지는 일렬 구조가 되어, 힙이 주는 "가지치기" 이점이 완전히 사라지고 최악의 경우 삽입/추출이 $O(n)$에 가까워집니다. 그래서 이 가이드의 구현은 `d >= 2`를 전제로 합니다.
+
+잠깐, 확인 하나만 해 볼까요? `d=6`인 힙에서 인덱스 10의 부모는 몇 번일까요? 공식대로 계산하면 $\lfloor (10-1)/6 \rfloor = \lfloor 9/6 \rfloor = 1$이에요.
+
+엣지 케이스를 점검해 봅니다.
+
+```text
+빈 힙                pop()/peek() → undefined, isEmpty() → true
+원소 1개              pop() → 그 값 반환, 이후 size()=0, isEmpty()=true
+d=2                   이진 힙과 완전히 동일하게 동작 (부모/자식 공식이 일치)
+중복값 [5,5,5,1,1]     pop 순서: 1, 1, 5, 5, 5 (compare가 0을 반환해도 안전)
 ```
-pop():
-  if data.length == 0: return undefined
-  min = data[0]
-  last = data.pop()  // 마지막 원소 꺼냄
-  if data.length > 0:
-    data[0] = last   // 루트로 올림
-    siftDown(0, data.length)
-  return min
+
+## 아이디어를 코드로 옮기기
+
+자연스러운 진화 단계를 따라가며 최종 구현에 도달해 봅시다.
+
+**원형(brute force)**: 정렬을 유지하지 않는 배열에 그냥 밀어 넣고, 꺼낼 때만 선형 탐색으로 최솟값을 찾습니다.
+
+```ts
+class NaivePriorityQueue<T> {
+  private data: T[] = [];
+  constructor(private compare: (a: T, b: T) => number) {}
+
+  push(item: T): void {
+    this.data.push(item); // O(1)
+  }
+
+  pop(): T | undefined {
+    if (this.data.length === 0) return undefined;
+    let minIdx = 0;
+    for (let i = 1; i < this.data.length; i++) {
+      if (this.compare(this.data[i]!, this.data[minIdx]!) < 0) minIdx = i;
+    }
+    return this.data.splice(minIdx, 1)[0]; // O(n) 탐색 + O(n) 시프트
+  }
+}
 ```
 
-### 정당성: 왜 이것이 옳은가
+push는 빠르지만 pop이 매번 전체를 훑어야 해 $O(n)$입니다. **왜 다음 단계로 가는가**: pop 비용을 줄이려면 "최솟값이 항상 접근하기 쉬운 자리에 있도록" 데이터를 부분적으로 정렬된 트리 모양으로 유지해야 합니다 — 이게 힙입니다.
 
-**힙 속성 유지:**
+**개선(이진 힙, d=2 고정)**: 자식을 2개로 제한한 트리를 배열에 얹으면 push/pop 모두 $O(\log n)$이 됩니다.
 
-- push: 새 원소를 끝에 추가하면 부모 경로만 힙 속성이 깨질 수 있다. siftUp으로 부모와 비교하며 올라가면 O(log_d n) 단계 내에 복원된다.
-- pop: 루트 제거 후 마지막 원소를 루트로 올리면 자식들이 더 클 수 있다. siftDown으로 d개 자식 중 최솟값과 비교하며 내려가면 O(d × log_d n) 단계 내에 복원된다.
+```ts
+class BinaryHeap<T> {
+  private data: T[] = [];
+  constructor(private compare: (a: T, b: T) => number) {}
 
-**완전성:** 배열의 끝에 추가/제거하므로 항상 완전 d진 트리(complete d-ary tree)가 유지된다.
+  push(item: T): void {
+    this.data.push(item);
+    let i = this.data.length - 1;
+    while (i > 0) {
+      const p = Math.floor((i - 1) / 2); // "2"가 하드코딩
+      if (this.compare(this.data[i]!, this.data[p]!) < 0) {
+        [this.data[i], this.data[p]] = [this.data[p]!, this.data[i]!];
+        i = p;
+      } else break;
+    }
+  }
+  // pop()의 siftDown도 자식 2개(2i+1, 2i+2)만 비교하는 동일한 구조입니다.
+}
+```
 
-### 구현 디테일과 최적화
+이미 naive보다 훨씬 빠르지만, `2`라는 상수가 코드 곳곳에 박혀 있어 트리 높이를 더 줄일 방법이 없습니다. **왜 다음 단계로 가는가**: push가 pop보다 압도적으로 많은 워크로드라면, 트리를 더 넓고 낮게(자식을 더 많이) 만들어 push 단계 수를 줄이고 싶습니다 — 하드코딩된 `2`를 매개변수 `d`로 일반화하면 됩니다.
 
-- **비교 최소화:** siftDown에서 `best` 인덱스를 추적해 swap 횟수를 최소화한다.
-- **경계 확인:** 자식 인덱스 `d*i+k+1 < size` 체크가 필수.
-- **1-indexed vs 0-indexed:** 0-indexed가 약간 더 복잡하지만 배열 0 슬롯 낭비가 없다.
-- **d가 2의 거듭제곱일 때:** 비트 시프트로 곱셈/나눗셈 대체 가능 (`>> log2(d)`, `<< log2(d)`).
+**최종(D진 힙, d를 매개변수화)**: 부모/자식 공식의 `2`를 전부 `d`로 바꾸고, 자식 순회를 `for` 루프로 일반화합니다.
 
----
+```ts
+class DaryHeap<T> {
+  private data: T[] = [];
+  private readonly d: number;
+  private readonly compare: (a: T, b: T) => number;
 
-## 시뮬레이션
+  constructor(d: number, compare: (a: T, b: T) => number) {
+    if (d < 2) throw new Error("d는 2 이상이어야 합니다");
+    this.d = d;
+    this.compare = compare;
+  }
+
+  size(): number {
+    return this.data.length;
+  }
+
+  isEmpty(): boolean {
+    return this.data.length === 0;
+  }
+
+  peek(): T | undefined {
+    return this.data.length > 0 ? this.data[0] : undefined;
+  }
+
+  push(item: T): void {
+    this.data.push(item);
+    this.siftUp(this.data.length - 1);
+  }
+
+  pop(): T | undefined {
+    if (this.data.length === 0) return undefined;
+    const min = this.data[0];
+    const last = this.data.pop()!;
+    if (this.data.length > 0) {
+      this.data[0] = last;   // 마지막 원소를 루트로 먼저 채우고
+      this.siftDown(0);      // 그다음 siftDown — 순서가 생명
+    }
+    return min;
+  }
+
+  private siftUp(i: number): void {
+    while (i > 0) {
+      const p = Math.floor((i - 1) / this.d); // -1을 빼먹으면 안 됨!
+      if (this.compare(this.data[i]!, this.data[p]!) < 0) {
+        [this.data[i], this.data[p]] = [this.data[p]!, this.data[i]!];
+        i = p;
+      } else {
+        break;
+      }
+    }
+  }
+
+  private siftDown(i: number): void {
+    const n = this.data.length;
+    while (true) {
+      let best = i;
+      const firstChild = this.d * i + 1;
+      for (let k = 0; k < this.d; k++) {
+        const c = firstChild + k;
+        if (c >= n) break;                       // 경계 확인 필수
+        if (this.compare(this.data[c]!, this.data[best]!) < 0) best = c; // "최소 자식" 추적
+      }
+      if (best === i) break;
+      [this.data[i], this.data[best]] = [this.data[best]!, this.data[i]!];
+      i = best;
+    }
+  }
+}
+```
+
+**가장 중요한 부분은** `pop()`의 두 줄, "마지막 원소를 꺼내 루트에 채우기 → `siftDown` 호출" 순서입니다. 이 순서를 바꿔 `siftDown`을 먼저 부르면 아직 옛 루트(방금 반환하기로 한 값)가 그대로 있는 상태에서 자식들과 비교하게 되어 완전히 엉뚱한 결과가 나옵니다.
+
+놓치기 쉬운 구현부를 짚어 둘게요.
+
+- `siftUp`의 부모 공식 `Math.floor((i - 1) / this.d)`에서 `-1`을 빼먹으면, 앞서 "왜 모순 없이 작동하는가"에서 실제로 확인한 것처럼(`[1,4,2,5,6,7,3]` → 스왑이 전혀 안 일어나 불변식이 깨짐) 조용히 잘못된 힙을 만듭니다.
+- `siftDown`의 경계 확인 `if (c >= n) break`을 빼먹으면 배열 범위 밖 원소(`undefined`)와 비교하게 됩니다.
+- `for (let k = 0; k < this.d; k++)` 루프에서 `best`를 매번 갱신해야 합니다 — 첫 자식하고만 비교하고 멈추면 진짜 최솟값 자식을 놓칩니다.
+
+> 기억법: "부모를 구할 땐 먼저 한 자리 물러서고(`-1`), 그다음 나눈다."
+
+## 실행 시각화
+
+`d=3`인 힙에 `10, 5, 15, 3`을 순서대로 push한 뒤 `pop()`을 한 번 호출하는 과정을 봅니다. 고정 입력에 대한 실제 반환값은 `pop() === 3`, pop 이후 배열은 `[5, 10, 15]`입니다(본문 코드를 추출해 `bun`으로 실행해 확인했습니다). 아래 패널의 `highlight`는 이번 단계에서 주목할 인덱스(주로 루트나 이동한 위치), `marked`는 비교에 참여한 자식 인덱스를 나타냅니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -192,97 +321,10 @@ export const steps = [
 
 <AlgorithmSimulation view="array" steps={steps} title="DaryHeap (d=3) push/pop 시뮬레이션" />
 
-## 수도 코드와 Activity Diagram
+정리하면, D진 힙은 이진 힙의 "자식 2개"라는 상수를 매개변수 `d`로 풀어 준 것뿐이지만 그 하나의 자유도가 push와 pop의 비용을 정반대 방향으로 움직입니다. `d`를 키우면 트리 높이 $\log_d n$이 줄어 `push`의 siftUp 단계가 짧아지고, 대신 `pop`의 siftDown이 매 레벨 `d`개 자식을 비교해야 해 비용이 늘어납니다. push가 압도적으로 많은 워크로드에서는 이 트레이드오프가 명백히 이득이라, 처음에 세웠던 목표(이벤트 스트림 같은 push 중심 큐의 병목 해소)를 정확히 달성합니다.
 
-### 의사코드
+## 스스로 점검하기
 
-```
-// 생성자
-DaryHeap(d, compare):
-  data = []
-  this.d = d
-  this.compare = compare
-
-// 삽입
-push(item):
-  data.append(item)
-  siftUp(data.length - 1)
-
-// siftUp
-siftUp(i):
-  while i > 0:
-    p = floor((i - 1) / d)
-    if compare(data[i], data[p]) < 0:
-      swap(data, i, p)
-      i = p
-    else: break
-
-// 최솟값 추출
-pop():
-  if data.length == 0: return undefined
-  min = data[0]
-  if data.length == 1:
-    data.pop()
-    return min
-  data[0] = data.pop()   // 마지막 원소를 루트로
-  siftDown(0)
-  return min
-
-// siftDown
-siftDown(i):
-  n = data.length
-  while true:
-    best = i
-    firstChild = d * i + 1
-    for k = 0..d-1:
-      c = firstChild + k
-      if c >= n: break
-      if compare(data[c], data[best]) < 0:
-        best = c
-    if best == i: break
-    swap(data, i, best)
-    i = best
-
-// 조회
-peek():
-  return data.length > 0 ? data[0] : undefined
-
-size():
-  return data.length
-
-isEmpty():
-  return data.length == 0
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A([push item]) --> B[data.append item]
-  B --> C[i = data.length - 1]
-  C --> D{i > 0?}
-  D -- No --> E([완료])
-  D -- Yes --> F[p = floor: i-1 / d]
-  F --> G{data_i < data_p?}
-  G -- No --> E
-  G -- Yes --> H[swap data_i, data_p]
-  H --> I[i = p]
-  I --> D
-
-  J([pop]) --> K{비어 있음?}
-  K -- Yes --> L([return undefined])
-  K -- No --> M[min = data_0]
-  M --> N[data_0 = data.pop]
-  N --> O{size > 0?}
-  O -- No --> P([return min])
-  O -- Yes --> Q[siftDown 0]
-  Q --> R([return min])
-
-  S([siftDown i]) --> T[best = i]
-  T --> U[자식 d개 중 최솟값 탐색]
-  U --> V{best == i?}
-  V -- Yes --> W([완료])
-  V -- No --> X[swap data_i, data_best]
-  X --> Y[i = best]
-  Y --> T
-```
+1. `d=4`인 빈 힙에 `1`부터 `10`까지 순서대로 push하면 최종 배열은 어떤 모양이 될까요? 부모 공식 $\lfloor (i-1)/4 \rfloor$을 이용해 손으로 그려 보세요.
+2. "왜 모순 없이 작동하는가"에서 본 `[1, 4, 2, 5, 6, 7, 3]` 반례처럼, 부모 공식에서 `-1`을 빼먹는 버그가 있다고 합시다. `d=2`(이진 힙)에서도 같은 종류의 반례를 만들 수 있을까요? 가능하다면 최소 길이의 입력을 하나 만들어 보세요.
+3. `pop()`에서 "마지막 원소를 루트에 채우기"와 "`siftDown` 호출" 두 줄의 순서를 바꾸면 어떤 값이 반환되고 배열이 어떻게 망가지는지, 본문의 `[3, 10, 15, 5]` 예시로 직접 추적해 보세요.

@@ -1,118 +1,247 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# MinHeap 해설
+# MinHeap — 완전 이진 트리를 배열에 접어 넣고, 최솟값만 루트에 묶어 두기
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 목표 복잡도 | 이유 |
-|------|------------|------|
-| `push` | O(log n) | siftUp: 트리 높이만큼 교환 |
-| `pop` | O(log n) | siftDown: 트리 높이만큼 교환 |
-| `peek` | O(1) | 배열 인덱스 0 반환 |
-| `size` / `isEmpty` | O(1) | 길이 필드 반환 |
+전체를 정렬하지 않고 **"지금 가장 작은 값이 뭐야?"**에만 빠르게 답하는 구조예요. 완전 이진 트리를 배열 하나에 그대로 접어 넣고, 모든 노드가 자식보다 작거나 같다는 느슨한 규칙(힙 속성)만 지킵니다. 그 덕분에 삽입·추출이 트리 높이 $O(\log n)$에 끝나고, 최솟값 조회는 배열의 첫 칸을 보기만 하면 되니 $O(1)$이에요.
 
-완전 이진 트리의 높이는 ⌊log₂ n⌋이므로, 교환 횟수가 로그에 비례한다. 배열 정렬 O(n log n)이나 선형 탐색 O(n)에 비해 반복적 삽입·추출에 훨씬 유리하다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호가 보이면 MinHeap(또는 우선순위 큐)을 떠올리세요.
 
-| 메서드 | 시그니처 | 엣지 케이스 |
-|--------|---------|------------|
-| `push` | `(item: T) => void` | 첫 삽입 → 교환 없음, 배열 길이 1 |
-| `pop` | `() => T \| undefined` | 빈 힙 → `undefined`; 원소 1개 → 교환 없이 반환 |
-| `peek` | `() => T \| undefined` | 빈 힙 → `undefined` |
+- "다음으로 처리할 항목", "가장 긴급한/가장 작은 값부터" 처럼 **반복적으로 최솟값(또는 최댓값)을 꺼내야** 한다
+- 삽입과 추출이 **번갈아 계속 일어나는데**, 전체를 정렬된 상태로 유지할 필요는 없다
+- "K번째로 작은 값", "스트림에서 top-K 유지", "여러 정렬 리스트 병합" 같이 **부분 순서**만 있으면 되는 문제다
 
----
+naive한 두 대안과 비교하면 왜 힙이 필요한지 체감됩니다.
 
-## 핵심 아이디어
-
-### 원형 아이디어와 naive 접근
-
-우선순위 큐를 정렬된 배열로 구현하면 `peek`은 O(1)이지만 `push`가 O(n)(삽입 위치 탐색 + 이동)이 된다. 비정렬 배열은 `push`가 O(1)이지만 `pop`이 O(n)(전체 탐색)이다. 어느 쪽이든 n이 커질수록 병목이 생긴다.
-
-### 어떤 관찰이 돌파구가 되는가
-
-**"가장 작은 값만 빠르게 꺼내면 된다"** — 전체가 정렬될 필요가 없다. 루트만 항상 최솟값이면 충분하다. 이 완화된 정렬 조건을 **힙 속성(heap property)**이라 부른다:
-
-> 모든 노드의 값은 자식보다 우선순위가 높거나 같다.
-
-완전 이진 트리는 배열로 표현할 때 포인터 없이도 인덱스 산술로 부모·자식에 O(1) 접근이 가능하다.
-
-### 관찰을 형식화: 상태/구조 정의
-
+```text
+정렬 유지 배열:  push O(n)  (삽입 위치 탐색 + 밀어내기)   pop O(1)  (앞에서 제거)
+비정렬 배열:     push O(1)  (끝에 추가)                    pop O(n)  (전체 훑어 최솟값 탐색)
+MinHeap:         push O(log n)                             pop O(log n)   peek O(1)
 ```
-힙 배열 (인덱스 0부터):
-data = [1, 3, 5, 8, 7]
 
-트리 구조:
-        1          (i=0)
+어느 naive 방법이든 원소가 많아지면 한쪽 연산이 병목이 됩니다. 힙은 "완전히 정렬" 대신 "루트만 최솟값"이라는 **완화된 조건**으로 두 연산 모두를 로그 시간에 묶어요.
+
+비슷한 용도의 자료구조와 헷갈릴 수 있는데, **전체 순서를 계속 유지하며 순회·범위 질의까지 필요하면** 정렬된 트리(BST, B+Tree)를, **최솟값만 반복해서 뽑으면 되고 순회는 필요 없으면** 힙을 고르세요.
+
+### 문제 사례와 적용 예시
+
+- **응급실 트리아지 시스템**: 환자가 도착할 때마다 긴급도로 삽입하고, 의사는 항상 가장 긴급한 환자를 꺼내 치료합니다. 매번 배열 전체를 정렬하면 환자가 늘수록 대응이 느려지지만, 힙은 삽입·추출 모두 $O(\log n)$을 유지해요.
+- **Dijkstra 최단 경로**: "아직 확정 안 된 정점 중 거리 최소"를 반복해서 꺼내는 알고리즘의 핵심 자료구조가 바로 우선순위 큐(힙)입니다.
+- **스트림에서 top-K 유지**: 실시간으로 들어오는 데이터 중 상위 K개만 유지하려면, 크기 K짜리 힙에 넣고 힙 최솟값보다 큰 값만 교체합니다.
+- **코딩 테스트 맥락**: "여러 개의 정렬된 리스트를 병합하라", "작업을 우선순위 순으로 처리하라" 같은 문제에서 직접 구현 대상이 됩니다.
+
+## 자료구조 자세히 들여다보기
+
+### 전체 스펙: 속성과 액션
+
+**속성(내부 상태)** — 이 가이드는 다음 인터페이스로 MinHeap을 정의합니다.
+
+```ts
+class MinHeap<T> {
+  private data: T[] = [];                       // 완전 이진 트리를 담는 배열, 0-indexed
+  private compare: (a: T, b: T) => number;       // compare(a, b) < 0 이면 a가 b보다 우선순위 높음
+}
+```
+
+인덱스 $i$의 부모·자식 관계는 포인터 없이 산술로만 계산됩니다.
+
+```text
+부모(i)      = ⌊(i-1)/2⌋
+왼쪽 자식(i) = 2i+1
+오른쪽 자식(i) = 2i+2
+
+data = [1, 3, 5, 8, 7] 을 트리로 펼치면:
+
+        1          (i=0, 루트)
       /   \
      3     5       (i=1, 2)
     / \
    8   7           (i=3, 4)
-
-부모(i) = ⌊(i-1)/2⌋
-왼쪽 자식(i) = 2i+1
-오른쪽 자식(i) = 2i+2
 ```
 
-**힙 속성**: `compare(data[parent], data[child]) <= 0` (부모가 자식보다 우선순위 높음).
+지켜야 할 불변식은 하나뿐이에요.
 
-### 점화식 또는 핵심 연산
+1. **힙 속성**: 루트를 제외한 모든 노드 $i$에 대해, 부모가 자식보다 우선순위가 높거나 같다.
 
-**siftUp (push 후 복원)**:
-```
-i = data.length - 1      // 새 원소 위치
-while i > 0:
-  parent = ⌊(i-1)/2⌋
-  if compare(data[i], data[parent]) < 0:
-    swap(data[i], data[parent])
-    i = parent
-  else:
-    break
-```
+$$
+\text{compare}\bigl(a_{\lfloor (i-1)/2 \rfloor},\ a_i\bigr) \le 0 \quad \forall\, i \ge 1
+$$
 
-**siftDown (pop 후 복원)**:
-```
-i = 0
-while true:
-  left = 2i+1, right = 2i+2
-  smallest = i
-  if left < size && compare(data[left], data[smallest]) < 0:
-    smallest = left
-  if right < size && compare(data[right], data[smallest]) < 0:
-    smallest = right
-  if smallest == i: break
-  swap(data[i], data[smallest])
-  i = smallest
-```
+주의할 점은, 이 불변식이 **형제끼리의 순서는 아무것도 보장하지 않는다**는 거예요. `data[1]`과 `data[2]`(둘 다 루트의 자식) 사이엔 대소 관계가 없습니다. 오직 부모-자식 방향으로만 순서가 있어요 — 그래서 "힙은 정렬된 배열이 아니다"라는 말이 나옵니다.
 
-**pop**:
-```
-result = data[0]
-data[0] = data[data.length - 1]
-data.pop()
-siftDown(0)
-return result
+**액션(연산)** — MinHeap이 제공하는 연산 전부입니다.
+
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `push(item)` | 배열 끝에 추가 후 siftUp으로 힙 속성 복원 | $O(\log n)$ |
+| `pop()` | 루트를 제거하고 마지막 원소를 루트로 옮긴 뒤 siftDown | $O(\log n)$ |
+| `peek()` | 루트(배열 0번 칸)를 제거 없이 반환 | $O(1)$ |
+| `size()` | 현재 원소 개수 반환 | $O(1)$ |
+| `isEmpty()` | 원소가 없으면 `true` | $O(1)$ |
+
+핵심 연산 두 개를 before/after로 자세히 볼게요.
+
+**① siftUp — push 직후 복원.** 새 원소는 항상 배열 끝(리프 자리)에 추가됩니다. 형제들 사이의 힙 속성은 건드리지 않았으므로, 위반이 있다면 오직 **새 노드와 그 조상들 사이**뿐이에요. 부모보다 작을 때만 교환하며 위로 올라갑니다.
+
+```text
+Before: data = [1, 5, 3], push(2) → 끝에 추가 → [1, 5, 3, 2]
+                                             i=3, parent=⌊(3-1)/2⌋=1
+
+compare(2, 5) < 0 → swap(3, 1) →            [1, 2, 3, 5]
+                                             i=1, parent=⌊(1-1)/2⌋=0
+
+compare(2, 1) >= 0 → 중단
+
+After:  data = [1, 2, 3, 5]   (힙 속성 회복)
 ```
 
-### 정당성 — 왜 이것이 옳은가
+**② siftDown — pop 직후 복원.** 루트를 꺼내고 마지막 원소를 루트 자리로 옮기면, 위반은 **루트 하나**에서만 생깁니다. 두 자식 중 더 작은 쪽과 교환하며 아래로 내려갑니다.
 
-**siftUp 정당성**: 새 원소를 끝에 추가하면 형제 간 힙 속성은 그대로다. 위반은 오직 새 노드와 그 조상 사이에서만 발생한다. 부모보다 작을 때만 교환하므로, 교환 후에는 해당 부모 위치가 두 자식보다 작음이 보장된다.
+```text
+Before: data = [1, 2, 3, 5], pop() 호출
+        result = 1 (반환할 값)
+        마지막 원소 5를 루트로 이동, 배열 길이 줄임 → [5, 2, 3]
 
-**siftDown 정당성**: pop 후 루트 자리에 마지막 원소를 놓으면 루트 하나만 위반된다. "두 자식 중 더 작은 것"과 교환하면, 교환된 자리의 다른 자식과의 관계는 그대로 유지된다(교환 전 smallest가 이미 그쪽보다 작음). 따라서 위반이 아래로 정확히 하나씩 이동하며 리프에 도달하거나 위반이 사라지면 종료된다.
+i=0: left=1(값 2), right=2(값 3) → smallest = 1(값 2가 더 작음)
+compare(2, 5) < 0 → smallest 유지 → swap(0, 1) →  [2, 5, 3]
+i=1: left=2i+1=3 (범위 밖, size=3) → 자식 없음 → 종료
 
-### 구현 디테일과 최적화
+After:  data = [2, 5, 3]   반환값 = 1
+```
 
-- `compare` 함수를 생성자에서 받아 필드에 저장한다. 클로저로 캡처하거나 `this.compare`로 사용.
-- swap은 구조 분해 할당으로 간결하게: `[arr[i], arr[j]] = [arr[j], arr[i]]`
-- siftDown에서 `2i+1 >= size`이면 자식이 없으므로 즉시 break.
-- 제네릭 힙은 숫자, 문자열, 객체 모두 지원하므로 `<` 연산자 대신 반드시 `compare` 함수를 사용해야 한다.
+### 왜 모순 없이 작동하는가
 
----
+**siftUp이 불변식을 보존하는 이유**: 새 원소를 끝에 추가한 시점엔 그 원소를 제외한 모든 부모-자식 관계가 이미 힙 속성을 만족합니다. siftUp은 "현재 노드가 부모보다 작을 때만" 교환하므로, 교환 직후에는 그 부모 자리(원래 자식이었던 값)가 **자신의 두 자식**(원래 형제 + 원래 부모였던 값)보다 작다는 것이 유지됩니다. 이 과정을 루트에 닿거나 조건이 깨질 때까지 반복하면, 끝났을 때 위반은 어디에도 남지 않습니다.
 
-## 시뮬레이션
+**siftDown이 불변식을 보존하는 이유**: pop 후 루트에 놓인 값은 두 자식 중 하나보다 클 수 있습니다(위반은 루트 한 곳). "두 자식 중 더 작은 쪽"과 교환하면, 교환되지 않은 다른 자식과의 관계는 그대로 유지돼요 — 왜냐하면 교환 전에 이미 "두 자식 중 더 작은 값"으로 선택했기 때문에, 그 값은 다른 자식보다도 작거나 같았고, 이제 그 자리로 내려간 원래 루트 값보다도 작기 때문입니다. 위반이 정확히 한 칸씩 아래로 이동하다가, 자식이 없는 리프에 도달하거나 조건이 깨지면 멈춥니다.
+
+여기서 헷갈리기 쉬운 포인트는 **`compare` 함수의 방향**입니다. `compare(a, b) < 0`은 "a가 b보다 우선순위 높다(먼저 나온다)"는 뜻이지, "a가 b보다 크다"는 뜻이 아니에요. 오름차순 숫자 힙이라면 `(a, b) => a - b`를 쓰는데, 이건 a가 더 작을 때 음수를 반환하니 "작은 값이 우선순위 높음"과 맞아떨어집니다. 만약 최대 힙을 원한다면 `(a, b) => b - a`로 부호만 뒤집으면 됩니다 — 힙 내부 로직은 손댈 필요가 없어요.
+
+잠깐, 확인 하나만 해 볼까요? `data = [1, 2, 3, 5]`에서 `pop()`을 실행하면 `siftDown` 도중 자식이 하나뿐인 경우가 나올까요? — 위 ②번 그림에서 `i=1`(값 5)에 도달했을 때 `left = 2*1+1 = 3`인데 `size = 3`(인덱스 0~2)이라 범위 밖입니다. 자식이 **없는** 경우였고, 그래서 즉시 종료됩니다.
+
+엣지 케이스를 점검해 봅니다.
+
+```text
+빈 힙에서 pop()/peek()     → undefined (data.length === 0 분기)
+원소 1개에서 push()        → 부모가 없으므로 siftUp 즉시 종료 (i=0, while i>0 미충족)
+원소 1개에서 pop()         → 마지막 원소를 자기 자신으로 옮기는 대신, 길이 0이 되므로 siftDown 생략
+동일한 우선순위 값 다수    → compare가 0을 반환 → swap 없이 그대로 둠 (안정성은 보장하지 않음)
+```
+
+## 아이디어를 코드로 옮기기
+
+바로 완성형 힙을 보이기 전에, naive한 원형이 왜 막히는지 코드로 확인하고 넘어갑니다.
+
+**원형: 정렬 유지 배열.** `push`마다 삽입 위치를 찾아 배열을 밀어내는 방식이에요. `pop`은 앞에서 꺼내기만 하면 되니 빠르지만, `push`가 문제입니다.
+
+```ts
+class SortedArrayQueue<T> {
+  private data: T[] = [];
+  constructor(private compare: (a: T, b: T) => number) {}
+
+  push(item: T): void {
+    let i = 0;
+    while (i < this.data.length && this.compare(this.data[i]!, item) <= 0) i++;
+    this.data.splice(i, 0, item); // O(n): 탐색 + 배열 밀어내기
+  }
+
+  pop(): T | undefined {
+    return this.data.shift(); // O(n): 앞 원소 제거 시 나머지 전부 밀림 (JS 배열 특성상)
+  }
+}
+```
+
+10만 건(문제 제약 $n \le 10^5$)이 반복적으로 push/pop되면 매 호출이 $O(n)$이라 전체가 $O(n^2)$까지 치솟습니다. **관찰**: `pop`은 사실 "최솟값이 어디 있는지"만 알면 되지, 나머지 원소들이 정렬돼 있을 필요는 없어요. 이 완화가 힙 속성으로 이어집니다.
+
+**최종: MinHeap.** 완전 이진 트리를 배열에 얹고, 삽입·추출마다 힙 속성만 국소적으로 복원합니다.
+
+```ts
+class MinHeap<T> {
+  private data: T[] = [];
+  private compare: (a: T, b: T) => number;
+
+  constructor(compare: (a: T, b: T) => number) {
+    this.compare = compare;
+  }
+
+  push(item: T): void {
+    this.data.push(item);
+    this.siftUp(this.data.length - 1);
+  }
+
+  pop(): T | undefined {
+    if (this.data.length === 0) return undefined;
+    const result = this.data[0];
+    const last = this.data.pop() as T;
+    if (this.data.length > 0) {
+      this.data[0] = last;
+      this.siftDown(0);
+    }
+    return result;
+  }
+
+  peek(): T | undefined {
+    return this.data[0];
+  }
+
+  size(): number {
+    return this.data.length;
+  }
+
+  isEmpty(): boolean {
+    return this.data.length === 0;
+  }
+
+  private siftUp(i: number): void {
+    while (i > 0) {
+      const p = Math.floor((i - 1) / 2);
+      if (this.compare(this.data[i]!, this.data[p]!) < 0) {
+        [this.data[i], this.data[p]] = [this.data[p]!, this.data[i]!];
+        i = p;
+      } else {
+        break;
+      }
+    }
+  }
+
+  private siftDown(i: number): void {
+    const n = this.data.length;
+    while (true) {
+      let smallest = i;
+      const l = 2 * i + 1;
+      const r = 2 * i + 2;
+      if (l < n && this.compare(this.data[l]!, this.data[smallest]!) < 0) smallest = l;
+      if (r < n && this.compare(this.data[r]!, this.data[smallest]!) < 0) smallest = r;
+      if (smallest === i) break;
+      [this.data[i], this.data[smallest]] = [this.data[smallest]!, this.data[i]!];
+      i = smallest;
+    }
+  }
+}
+```
+
+가장 중요한 부분은 **`siftDown`의 두 `if`문 순서**입니다. 왼쪽 자식과 비교해 `smallest`를 먼저 정한 뒤, 그 `smallest`를 기준으로 오른쪽 자식과 다시 비교해야 해요. 오른쪽 자식 비교를 빼먹으면 왼쪽 자식만 확인하고 멈추기 때문에, 오른쪽 자식이 더 작은 상황에서 내려가야 할 원소가 제자리에 멈춰버립니다. 실제로 `[1, 10, 2, 9, 8, 3, 4]`를 차례로 push하면 내부 배열은 `[1, 8, 2, 10, 9, 3, 4]`가 되는데, 첫 `pop()`은 반환값(1)까지는 두 버전이 같지만 내부 처리부터 갈립니다. 정상 구현은 오른쪽 자식(2)이 왼쪽 자식(8)보다 작다는 걸 확인하고 두 단계를 내려가 `[2, 8, 3, 10, 9, 4]`가 되지만, 오른쪽 자식 비교를 빼먹은 버그 버전은 왼쪽 자식(8)이 새 루트(4)보다 크다는 이유만으로 즉시 멈춰버려 `[4, 8, 2, 10, 9, 3]`으로 힙 속성이 깨진 채 남습니다. 그 결과 두 번째 `pop()`에서 버그 버전은 `2`가 아니라 **`4`**를 반환합니다 — 오른쪽 자식이 더 작은데도 확인하지 않아 내려가야 할 자리에서 멈췄기 때문이에요.
+
+- swap은 구조 분해 할당으로 짧게 씁니다: `[data[i], data[j]] = [data[j], data[i]]`.
+- `compare` 함수는 생성자에서 받아 필드로 저장해 두고, `<` 연산자 대신 항상 `compare`를 통해서만 대소를 판단해야 문자열·객체까지 제네릭하게 지원됩니다.
+- `siftDown`에서 `2i+1 >= n`이면 자식이 아예 없으므로 반복을 멈춥니다.
+
+기억법: **"왼쪽 먼저 최솟값 후보, 오른쪽은 그 후보에 도전자로"** — 순서를 지키면 두 자식 다 놓치지 않습니다.
+
+## 실행 시각화
+
+고정 입력으로 `push(5)`, `push(1)`, `push(3)`, `push(2)`를 차례로 실행하면 배열은 `[5]` → `[1, 5]`(siftUp으로 swap) → `[1, 5, 3]`(swap 없이 중단) → `[1, 2, 3, 5]`(siftUp 1회 swap)로 자랍니다. 이어서 `pop()`을 실행하면 실제 반환값은 `1`이고, 남은 배열은 `[2, 5, 3]`입니다 — 위 "아이디어를 코드로 옮기기"의 `MinHeap` 코드를 그대로 스크래치로 추출해 `bun`으로 실행한 값과 일치합니다. array 패널의 `highlight`(파란색)는 방금 제자리를 찾아 멈춘 원소, `marked`(주황색)는 그 스텝에서 swap이 일어난 자리를 뜻합니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const pushSteps = [
   {
@@ -165,81 +294,10 @@ export const pushSteps = [
   title="MinHeap push/pop 시뮬레이션 (힙 배열, 인덱스 0=루트)"
 />
 
-> `array` = 현재 힙 내부 배열. highlight(파란색): 방금 제자리를 찾은 원소. marked(주황색): swap이 일어난 자리.
+정리하면, MinHeap은 "완전히 정렬" 대신 "부모가 자식보다 작다"는 국소 규칙 하나만 지켜서 `push`·`pop` 모두 트리 높이에 비례하는 $O(\log n)$을 얻습니다. `peek`은 배열 0번 칸을 보기만 하면 되니 $O(1)$이고요. naive한 정렬 유지 배열이 $O(n)$ 벽에 부딪혔던 것과 비교하면, 힙은 딱 필요한 만큼만 순서를 지킴으로써 그 벽을 허뭅니다.
 
----
+## 스스로 점검하기
 
-## 수도 코드와 Activity Diagram
-
-### 의사코드
-
-```
-class MinHeap<T>:
-  data: T[] = []
-  compare: (a, b) => number
-
-  constructor(compare):
-    this.compare = compare
-
-  push(item):
-    data.push(item)
-    siftUp(data.length - 1)
-
-  pop():
-    if data.length == 0: return undefined
-    result = data[0]
-    last = data.pop()
-    if data.length > 0:
-      data[0] = last
-      siftDown(0)
-    return result
-
-  peek(): return data[0]  // undefined if empty
-
-  siftUp(i):
-    while i > 0:
-      p = ⌊(i-1)/2⌋
-      if compare(data[i], data[p]) < 0:
-        swap(i, p); i = p
-      else: break
-
-  siftDown(i):
-    n = data.length
-    while true:
-      smallest = i
-      l = 2i+1; r = 2i+2
-      if l < n && compare(data[l], data[smallest]) < 0: smallest = l
-      if r < n && compare(data[r], data[smallest]) < 0: smallest = r
-      if smallest == i: break
-      swap(i, smallest); i = smallest
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  subgraph PUSH["push(item)"]
-    P1([시작]) --> P2[data 끝에 item 추가]
-    P2 --> P3[i = data.length - 1]
-    P3 --> P4{i > 0?}
-    P4 -- 아니오 --> P8([완료])
-    P4 -- 예 --> P5[p = floor i-1 / 2]
-    P5 --> P6{compare data-i , data-p < 0?}
-    P6 -- 아니오, 힙 속성 만족 --> P8
-    P6 -- 예 --> P7[swap i, p\ni = p]
-    P7 --> P4
-  end
-
-  subgraph POP["pop()"]
-    Q1([시작]) --> Q2{비어있음?}
-    Q2 -- 예 --> Q9([return undefined])
-    Q2 -- 아니오 --> Q3[result = data-0\ndata-0 = data 마지막\ndata.pop]
-    Q3 --> Q4[i = 0]
-    Q4 --> Q5[smallest = i\nl=2i+1, r=2i+2]
-    Q5 --> Q6{l, r 중\n더 작은 자식?}
-    Q6 -- 자식이 i보다 작음 --> Q7[smallest = 해당 자식]
-    Q7 --> Q8[swap i, smallest\ni = smallest]
-    Q8 --> Q4
-    Q6 -- 없음, 힙 속성 만족 --> Q10([return result])
-  end
-```
+1. 빈 힙에 `7, 3, 9, 1, 5`를 순서대로 `push`했을 때 내부 배열이 어떻게 변하는지 siftUp 규칙을 손으로 따라가며 그려 보세요. 최종 배열은 무엇일까요?
+2. "힙은 정렬된 배열이다"라고 생각하는 사람에게, 위 1번에서 만든 힙 배열의 어느 두 원소를 가리키며 왜 그 생각이 틀렸는지 설명해 보세요.
+3. `siftDown`에서 두 번째 `if`문(오른쪽 자식 비교)을 지우면 어떤 입력에서 문제가 생기는지, 본문의 `[1, 10, 2, 9, 8, 3, 4]` 예시를 참고해 다른 입력으로도 재현해 보세요.

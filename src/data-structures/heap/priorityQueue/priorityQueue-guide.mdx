@@ -1,129 +1,316 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# PriorityQueue (우선순위 큐) 해설
+# PriorityQueue (우선순위 큐) — 정렬은 미루고, 최우선만 한 걸음에
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 횟수 n | naive 배열 O(n²) | 목표 힙 O(n log n) |
-|-------------|-----------------|---------------------|
-| 1,000       | ~1ms            | <1ms                |
-| 10,000      | ~100ms          | <1ms                |
-| 100,000     | ~10,000ms       | <20ms               |
-| 1,000,000   | 초과             | <200ms              |
+우선순위 큐는 원소를 넣고 뺄 때마다 전체를 정렬하지 않고도 "지금 가장 급한 것" 하나만 즉시 꺼내는 자료구조예요. 비결은 완전 이진 트리를 배열 하나에 눌러 담고, 부모가 항상 자식보다 우선순위가 높다는 **힙 속성**만 지키는 것입니다. 삽입·추출 모두 트리 높이만큼인 $O(\log n)$으로 끝나기 때문에, 다익스트라 최단 경로부터 OS 스케줄러까지 "다음에 처리할 것 하나만 빠르게 뽑는" 모든 곳에서 쓰입니다.
 
-우선순위 큐 없이 매번 배열에서 최솟값을 선형 탐색하면 O(n²), 힙을 사용하면 O(n log n).
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호들이 보이면 우선순위 큐(힙)를 떠올리세요.
 
-| 연산 | 내부 동작 | 시간 | 공간 |
-|------|-----------|------|------|
-| `enqueue` | 배열 끝 삽입 + bubbleUp | O(log n) | O(1) |
-| `dequeue` | 루트 제거 + 마지막→루트 + siftDown | O(log n) | O(1) |
-| `peek` | 배열 인덱스 0 접근 | O(1) | O(1) |
-| `size` | 배열 length 반환 | O(1) | O(1) |
-| `isEmpty` | size === 0 | O(1) | O(1) |
+- "지금까지 넣은 것들 중 최댓값/최솟값만" 반복해서 꺼내야 한다 — 전체 정렬 결과 자체는 필요 없다
+- 삽입과 추출이 번갈아 계속 일어나는데, 매번 "가장 급한 것"이 바뀐다 — 한 번 정렬해 두는 걸로는 못 버틴다
+- "K번째 최댓값", "top-K 유지", "다음 이벤트/노드 선택" 같은 문구가 등장한다
 
-**주요 엣지케이스:**
-- 빈 큐에서 `dequeue()`/`peek()` → `undefined`
-- 동일 우선순위 원소 → 임의 순서로 반환 (정렬 안정성 불보장)
-- 단일 원소 → enqueue/dequeue 후 isEmpty
+naive하게 배열만으로 풀면 왜 아쉬운지 비교해 볼게요.
 
----
-
-## 핵심 아이디어
-
-### 원형 아이디어와 naive 접근
-
-단순 배열에 삽입 후 정렬하거나, dequeue 시 최솟값 선형 탐색:
-
-```
-// 삽입 O(1) + 조회 O(n)
-enqueue: arr.push(item)
-dequeue: find min, splice → O(n)
-
-// 또는 삽입 O(n log n) + 조회 O(1)
-enqueue: arr.push(item); arr.sort(compare) → O(n log n)
-dequeue: arr.shift() → O(n)
+```text
+정렬 안 된 배열:  enqueue O(1) push          dequeue O(n) 선형 탐색 후 제거
+정렬 유지 배열:    enqueue O(n) 삽입 위치 찾기  dequeue O(1) 앞에서 꺼내기
+힙 기반 큐:        enqueue O(log n)            dequeue O(log n)
 ```
 
-n번 연산 시 총 O(n²) 또는 O(n² log n). 비효율적.
+어느 쪽으로 미루든 "느린 연산 하나"가 남아서, n번 연산을 반복하면 naive는 $O(n^2)$입니다. $n = 100{,}000$이면 비교 횟수가 대략 이렇게 벌어져요.
 
-### 어떤 관찰이 돌파구가 되는가
-
-**관찰 1:** 최솟값만 빠르게 접근하면 되지, 전체를 정렬할 필요는 없습니다.
-
-**관찰 2:** 완전 이진 트리에서 부모≤자식 관계(힙 속성)만 유지하면 루트가 항상 최솟값입니다.
-
-**관찰 3:** 배열로 완전 이진 트리를 표현하면 추가 포인터 없이 인덱스 연산만으로 O(log n) 탐색이 가능합니다.
-
-### 관찰을 형식화: 상태/구조 정의
-
-**배열 기반 완전 이진 트리:**
-```
-인덱스 i의 부모:         Math.floor((i - 1) / 2)
-인덱스 i의 왼쪽 자식:   2 * i + 1
-인덱스 i의 오른쪽 자식: 2 * i + 2
+```text
+n = 1,000     naive O(n²)  ≈ 1,000,000회        heap O(n log n)  ≈ 10,000회
+n = 100,000   naive O(n²)  ≈ 10,000,000,000회    heap O(n log n) ≈ 1,700,000회
 ```
 
-**힙 속성 불변식:** `compare(heap[parent], heap[child]) <= 0` — 부모의 우선순위가 항상 자식보다 높거나 같다.
+정렬된 전체 순서나 구간 질의(`[low, high]` 범위 조회)가 필요하면 균형 이진 탐색 트리나 B+Tree가 더 적합하고, 그냥 넣은 순서대로(FIFO) 혹은 최근 순으로(LIFO) 꺼내면 되면 큐·스택으로 충분합니다. "지금 1등만 계속 뽑아야" 하는 경우에만 힙 기반 우선순위 큐가 최선이에요.
 
-### 점화식 또는 핵심 연산
+### 문제 사례와 적용 예시
 
-```
-// bubbleUp (enqueue 후 힙 속성 복원)
-i = heap.length - 1
-while i > 0:
-  parent = Math.floor((i - 1) / 2)
-  if compare(heap[i], heap[parent]) < 0:   // 자식이 더 높은 우선순위
-    swap(heap, i, parent)
-    i = parent
-  else:
-    break                                    // 힙 속성 만족
+- **다익스트라 최단 경로**: 매 단계 "아직 방문하지 않은 노드 중 현재 거리가 가장 짧은 노드"를 우선순위 큐로 뽑으면, 배열 선형 탐색의 $O(V^2)$가 $O((V+E)\log V)$로 줄어듭니다.
+- **OS 프로세스 스케줄러**: 우선순위가 높은 프로세스를 항상 먼저 CPU에 배정하는 우선순위 스케줄링이 힙으로 구현됩니다.
+- **이벤트 기반 시뮬레이션**: 다음에 발생할 이벤트를 시간 순으로 뽑아 처리하는 discrete event simulation에서 "이벤트 큐"로 쓰입니다.
+- **코딩 테스트**: "실시간 스트림에서 top-K를 유지하라" 류 문제에서 크기 K로 고정한 힙을 유지하며 원소마다 $O(\log K)$로 갱신합니다.
 
-// siftDown (dequeue 후 힙 속성 복원)
-i = 0
-n = heap.length
-while true:
-  left  = 2 * i + 1
-  right = 2 * i + 2
-  best  = i                                  // 현재 노드, 왼쪽, 오른쪽 중 최우선
+## 자료구조 자세히 들여다보기
 
-  if left < n and compare(heap[left], heap[best]) < 0:
-    best = left
-  if right < n and compare(heap[right], heap[best]) < 0:
-    best = right
+### 전체 스펙: 속성과 액션
 
-  if best !== i:
-    swap(heap, i, best)
-    i = best
-  else:
-    break                                    // 힙 속성 만족
+**속성(내부 상태)** — 배열 하나와 비교 함수 하나가 전부예요.
+
+```ts
+class PriorityQueue<T> {
+  private heap: T[] = [];                        // 완전 이진 트리를 배열로
+  private compare: (a: T, b: T) => number;        // compare(a,b) < 0 → a가 더 높은 우선순위
+}
 ```
 
-### 정당성 — 왜 이것이 옳은가
+지켜야 할 불변식은 두 가지입니다.
 
-**enqueue 정당성:**
-- 새 원소를 끝에 삽입하면 완전 이진 트리 형태는 유지됨
-- bubbleUp이 부모와의 힙 속성을 복원하면서 위로 이동
-- 높이가 O(log n)이므로 최대 O(log n) 번 swap
+1. **모양 불변식(shape invariant).** 배열이 완전 이진 트리를 빈틈없이 표현합니다 — 인덱스 $0 \ldots n-1$이 전부 채워져 있고, 인덱스 $i$의 부모·자식은 인덱스 연산만으로 구해집니다.
 
-**dequeue 정당성:**
-- 루트가 힙 속성에 의해 항상 최우선 원소
-- 마지막 원소를 루트로 가져오면 완전 이진 트리 형태 유지
-- siftDown이 두 자식 중 더 높은 우선순위와 swap하며 힙 속성 복원
-- 높이 O(log n) → O(log n) swap
+$$
+\text{parent}(i) = \left\lfloor \frac{i-1}{2} \right\rfloor, \quad
+\text{left}(i) = 2i+1, \quad
+\text{right}(i) = 2i+2
+$$
 
-### 구현 디테일과 최적화
+2. **힙 순서 불변식(heap-order invariant).** 모든 부모는 자식보다 우선순위가 높거나 같습니다.
 
-- 비교 함수를 생성자에서 주입받아 클로저로 저장
-- TypeScript `noUncheckedIndexedAccess` 대응: 배열 접근 시 `?? undefined` 처리 또는 범위 확인
-- `dequeue`에서 원소가 1개이면 siftDown 없이 직접 pop
+$$
+\forall i \in \{1, \ldots, n-1\}: \; \text{compare}\bigl(H[\text{parent}(i)],\, H[i]\bigr) \le 0
+$$
 
----
+`heap = [1, 2, 3, 5]`를 트리와 배열로 나란히 그리면 이렇습니다.
 
-## 시뮬레이션
+```text
+트리 모양(완전 이진 트리):        배열(인덱스 순서 그대로):
+
+           1                     인덱스:  0   1   2   3
+         /   \                   값   :  [1] [2] [3] [5]
+        2     3
+       /
+      5
+
+parent(3) = ⌊(3-1)/2⌋ = 1  →  H[1]=2 ≤ H[3]=5   힙 순서 만족
+parent(1) = ⌊(1-1)/2⌋ = 0  →  H[0]=1 ≤ H[1]=2   힙 순서 만족
+```
+
+**액션(연산)** — 이 가이드가 정의하는 인터페이스 전체입니다.
+
+| 연산 | 하는 일 | 비용 |
+|------|---------|------|
+| `constructor(compare)` | 비교 함수를 주입받아 빈 힙 생성 | $O(1)$ |
+| `enqueue(item)` | 배열 끝에 삽입 후 `bubbleUp`으로 위쪽 힙 순서 복원 | $O(\log n)$ |
+| `dequeue()` | 루트(최우선 원소) 반환, 마지막 원소를 루트로 옮긴 뒤 `siftDown`으로 아래쪽 힙 순서 복원 | $O(\log n)$ |
+| `peek()` | 배열 인덱스 0 조회(제거 없음) | $O(1)$ |
+| `size()` | 배열 길이 반환 | $O(1)$ |
+| `isEmpty()` | `size() === 0` | $O(1)$ |
+
+핵심 연산인 `enqueue`와 `dequeue`를 실제 수치로 자세히 볼게요. `heap = [1, 5, 3]`에서 시작합니다.
+
+**① `enqueue(2)` — bubbleUp: 아래에서 위로 올라간다.**
+
+```text
+Before:  [1, 5, 3]                     인덱스:  0  1  2
+
+1단계: 배열 끝에 push → [1, 5, 3, 2]           인덱스 3의 값 = 2
+2단계: parent(3) = ⌊(3-1)/2⌋ = 1 → H[1]=5
+       compare(2, 5) < 0 → swap        → [1, 2, 3, 5]
+3단계: parent(1) = ⌊(1-1)/2⌋ = 0 → H[0]=1
+       compare(2, 1) < 0? 아니오(2 ≥ 1) → 종료
+
+After:   [1, 2, 3, 5]
+```
+
+**② `dequeue()` — siftDown: 위에서 아래로 내려간다.**
+
+```text
+Before:  [1, 2, 3, 5]                  인덱스:  0  1  2  3
+
+1단계: min = H[0] = 1 저장
+2단계: 마지막 원소(5)를 pop 후 루트에 배치 → [5, 2, 3]
+3단계: left=H[1]=2, right=H[2]=3. 더 작은 쪽(2)과 비교
+       compare(2, 5) < 0 → swap        → [2, 5, 3]
+4단계: 자식 인덱스(3, 4)가 범위를 벗어남 → 종료
+
+After:   [2, 5, 3]     반환값: 1
+```
+
+### 왜 모순 없이 작동하는가
+
+두 불변식이 왜 항상 유지되는지 귀납적으로 확인해 봅시다.
+
+**기저(base case).** 빈 힙은 $n=0$이라 "모든 $i \in \{1, \ldots, n-1\}$"에 해당하는 $i$ 자체가 없으므로 두 불변식 모두 공허하게(vacuously) 성립합니다.
+
+**`enqueue`가 불변식을 보존하는 이유.** 새 원소를 배열 끝(인덱스 $n$)에 push하면 모양 불변식은 그대로 유지됩니다(완전 이진 트리에 리프 하나가 정확한 자리에 추가된 것과 같아요). 힙 순서는 새로 생긴 리프와 그 조상 사이에서만 깨질 수 있는데, `bubbleUp`이 그 경로를 따라 위로 올라가며 "부모 ≤ 자식"이 될 때까지 swap합니다. 한 번 swap해서 조건이 만족되면 그 위쪽은 이미 원래 힙이었으므로 더 볼 필요가 없고, 형제 서브트리는 전혀 건드리지 않으니 그대로 유효합니다.
+
+**`dequeue`가 불변식을 보존하는 이유.** 루트를 비우고 마지막 원소를 그 자리로 옮기면 모양 불변식은 유지됩니다(리프 하나를 떼어 루트를 메꾼 것과 같아요). 힙 순서는 새 루트와 그 자손 사이에서만 깨질 수 있는데, `siftDown`이 "두 자식 중 더 높은 우선순위"와 계속 swap하며 내려가므로, 지나간 자리마다 부모 ≤ 자식이 복원됩니다. 왼쪽과 오른쪽 자식 중 **더 우선순위가 높은 쪽**과 비교해야 한다는 점이 핵심이에요 — 한쪽만 보면 안 됩니다(아래 코드 절에서 실제로 깨지는 예시를 보여드릴게요).
+
+여기서 헷갈리기 쉬운 포인트는 **부모 인덱스 공식**입니다. 1-indexed 완전 이진 트리(부모 = $\lfloor i/2 \rfloor$)로 먼저 배운 사람은 0-indexed 배열에서도 같은 공식을 쓰기 쉬운데, 실제로는 $\lfloor (i-1)/2 \rfloor$이어야 합니다. `heap = [1, 5]`에 `3`을 세 번째로 넣는 상황(인덱스 2에 저장)으로 확인해 볼게요.
+
+```text
+올바른 공식: parent(2) = ⌊(2-1)/2⌋ = 0  → H[0]=1 과 비교 (compare(3,1)≥0 → swap 안 함)
+틀린 공식:   parent(2) = ⌊2/2⌋     = 1  → H[1]=5 와 비교 (엉뚱한 노드와 비교)
+```
+
+이 예시에서는 우연히 최종 배열이 여전히 유효한 힙이 되지만(인덱스 계산이 틀렸을 뿐 결과가 항상 티가 나는 건 아니라는 게 더 위험합니다), 입력이 커지면 실제로 잘못된 값이 dequeue됩니다. 예를 들어 `[2, 7, 1, 0, 14, 11, 5, 12, 7, 14]`를 이 틀린 공식으로 순서대로 enqueue한 뒤 전부 dequeue하면 `[0, 1, 2, 7, 5, 7, 11, 12, 14, 14]`가 나오는데(실측), 정답은 `[0, 1, 2, 5, 7, 7, 11, 12, 14, 14]`입니다 — 5와 7의 순서가 뒤바뀌었어요.
+
+엣지 케이스를 점검해 봅니다.
+
+```text
+빈 힙에서 dequeue()/peek()    → undefined (heap.length === 0 즉시 반환)
+원소 1개일 때 dequeue()       → pop 후 남은 게 없으므로 siftDown 생략
+동일 우선순위 원소 다수        → 임의 순서로 반환(정렬 안정성 보장 안 됨)
+compare 함수를 반전 (b - a)   → 최솟값 대신 최댓값이 루트로 (max-heap)
+```
+
+확인 질문 하나 해볼까요? `heap = [1, 2, 3, 5]`에서 `enqueue(0)`을 하면 몇 번 swap이 일어나고 최종 배열은 어떤 모양일까요? — 답: 인덱스 4에 push된 `0`이 `parent(4)=1`(값 2)과 비교해 swap, 다시 `parent(1)=0`(값 1)과 비교해 swap. 총 **2번** swap해서 `[0, 1, 3, 5, 2]`가 됩니다(실측 확인).
+
+## 아이디어를 코드로 옮기기
+
+**원형(naive) — 정렬 없는 배열.** 삽입은 그냥 끝에 붙이면 되니 $O(1)$이지만, 뺄 때마다 전체를 훑어 최솟값을 찾아야 해서 $O(n)$입니다.
+
+```ts
+class NaivePriorityQueue<T> {
+  private arr: T[] = [];
+  constructor(private compare: (a: T, b: T) => number) {}
+
+  enqueue(item: T): void {
+    this.arr.push(item); // O(1)
+  }
+
+  dequeue(): T | undefined {
+    if (this.arr.length === 0) return undefined;
+    let bestIdx = 0;
+    for (let i = 1; i < this.arr.length; i++) {
+      if (this.compare(this.arr[i]!, this.arr[bestIdx]!) < 0) bestIdx = i;
+    }
+    const [min] = this.arr.splice(bestIdx, 1); // O(n)
+    return min;
+  }
+}
+```
+
+n번 연산을 반복하면 $O(n^2)$이 됩니다 — "이런 단서가 보이면"에서 본 바로 그 비용이에요.
+
+**개선(첫 시도, 버그 있음) — 힙 아이디어는 맞지만 자식을 하나만 본다.** 배열을 완전 이진 트리로 보고 `bubbleUp`/`siftDown`을 도입하는 방향은 맞지만, `siftDown`에서 왼쪽 자식만 비교하고 오른쪽을 빼먹는 실수가 아주 흔합니다.
+
+```ts
+// siftDown에 버그가 있는 버전 — 오른쪽 자식을 비교하지 않는다
+private siftDown(i: number): void {
+  const n = this.heap.length;
+  while (true) {
+    const left = 2 * i + 1;
+    let best = i;
+    if (left < n && this.compare(this.heap[left]!, this.heap[best]!) < 0) best = left;
+    // 버그: right = 2 * i + 2 를 아예 비교하지 않는다
+    if (best !== i) {
+      this.swap(i, best);
+      i = best;
+    } else break;
+  }
+}
+```
+
+`enqueue(1), enqueue(3), enqueue(2), enqueue(4)`를 차례로 넣으면 `heap = [1, 3, 2, 4]`가 됩니다(이건 정상). 문제는 여기서부터예요.
+
+```text
+Before: [1, 3, 2, 4]
+
+dequeue() 1회차:
+  min = 1, 마지막(4)을 루트로 → [4, 3, 2]
+  버그 있는 siftDown: left=H[1]=3만 봄. compare(3,4)<0 → swap → [3, 4, 2]
+  right=H[2]=2 는 애초에 비교 대상이 아니었다 → 종료 (2가 더 작은데 묻혀버림!)
+  반환값: 1 (정상)
+
+dequeue() 2회차:
+  min = H[0] = 3  ← 틀렸다! 진짜 최솟값은 2인데 3이 나온다.
+
+버그 있는 dequeue 순서:  [1, 3, 2, 4]
+정답이어야 할 순서:      [1, 2, 3, 4]
+```
+
+**여기서 가장 중요한 줄은 이겁니다.**
+
+```ts
+if (right < n && this.compare(this.heap[right]!, this.heap[best]!) < 0) best = right;
+```
+
+`siftDown`은 "두 자식 중 더 높은 우선순위"와 swap해야 하는데, 이 한 줄이 없으면 오른쪽 서브트리에 숨어 있는 더 급한 원소를 영영 발견하지 못합니다. 기억법: **"내려갈 땐 양손을 다 봐야 한다."**
+
+**최종 — 완전한 배열 기반 min-heap.**
+
+```ts
+class PriorityQueue<T> {
+  private heap: T[] = [];
+  constructor(private compare: (a: T, b: T) => number) {}
+
+  enqueue(item: T): void {
+    this.heap.push(item);
+    this.bubbleUp(this.heap.length - 1);
+  }
+
+  dequeue(): T | undefined {
+    if (this.heap.length === 0) return undefined;
+    const min = this.heap[0];
+    const last = this.heap.pop();
+    if (this.heap.length > 0 && last !== undefined) {
+      this.heap[0] = last;
+      this.siftDown(0);
+    }
+    return min;
+  }
+
+  peek(): T | undefined {
+    return this.heap[0];
+  }
+
+  size(): number {
+    return this.heap.length;
+  }
+
+  isEmpty(): boolean {
+    return this.heap.length === 0;
+  }
+
+  private bubbleUp(i: number): void {
+    while (i > 0) {
+      const parent = Math.floor((i - 1) / 2); // 0-indexed 배열의 부모 공식
+      const cur = this.heap[i];
+      const par = this.heap[parent];
+      if (cur === undefined || par === undefined) break;
+      if (this.compare(cur, par) < 0) {
+        this.swap(i, parent);
+        i = parent;
+      } else break;
+    }
+  }
+
+  private siftDown(i: number): void {
+    const n = this.heap.length;
+    while (true) {
+      const left = 2 * i + 1;
+      const right = 2 * i + 2;
+      let best = i;
+      if (left < n && this.compare(this.heap[left]!, this.heap[best]!) < 0) best = left;
+      if (right < n && this.compare(this.heap[right]!, this.heap[best]!) < 0) best = right;
+      if (best !== i) {
+        this.swap(i, best);
+        i = best;
+      } else break;
+    }
+  }
+
+  private swap(i: number, j: number): void {
+    const tmp = this.heap[i]!;
+    this.heap[i] = this.heap[j]!;
+    this.heap[j] = tmp;
+  }
+}
+```
+
+가장 중요한 부분은 `siftDown`에서 `left`와 `right`를 **모두** `best`와 비교하는 두 줄입니다 — 방금 본 버그가 바로 이 부분을 빼먹은 것이었죠. `noUncheckedIndexedAccess`가 켜져 있어 배열 접근 결과가 `T | undefined`로 잡히므로, 인덱스가 유효 범위 안임을 이미 확인한 지점에서는 `!`로 단언해 처리했습니다.
+
+같은 인터페이스로 `compare`만 뒤집으면(`(a, b) => b - a`) 최솟값 대신 최댓값이 루트로 오는 max-heap이 됩니다 — 다익스트라 예시의 거리 대신 "남은 배터리 최댓값" 같은 기준으로도 그대로 재사용할 수 있어요.
+
+## 실행 시각화
+
+`compare = (a, b) => a - b`(최솟값 우선)로 `enqueue(5), enqueue(1), enqueue(3), enqueue(2)`를 차례로 실행한 뒤 `dequeue()`를 두 번 호출합니다. 실제 반환값은 첫 번째가 `1`, 두 번째가 `2`이고, 두 번의 `dequeue()` 직후 배열은 각각 `[2, 5, 3]`, `[3, 5]`입니다(본문 코드로 실측). array 패널의 막대는 힙 배열 인덱스 순서 그대로이고, highlight는 방금 swap이 일어난(또는 확정된) 위치, marked는 주목할 보조 위치를 가리킵니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -179,85 +366,8 @@ export const steps = [
 
 <AlgorithmSimulation view="array" steps={steps} title="PriorityQueue 시뮬레이션 (minHeap)" />
 
----
+## 스스로 점검하기
 
-## 수도 코드와 Activity Diagram
-
-### 의사코드
-
-```
-클래스 PriorityQueue<T>:
-  heap: T[] = []
-  compare: (a: T, b: T) => number
-
-  // 불변식: 모든 i에 대해 compare(heap[parent(i)], heap[i]) <= 0
-
-  enqueue(item):
-    heap.push(item)
-    bubbleUp(heap.length - 1)
-
-  dequeue():
-    if heap.length === 0: return undefined
-    min = heap[0]
-    last = heap.pop()
-    if heap.length > 0:
-      heap[0] = last
-      siftDown(0)
-    return min
-
-  peek():
-    return heap[0]  // undefined if empty
-
-  bubbleUp(i):
-    while i > 0:
-      p = (i - 1) / 2 | 0
-      if compare(heap[i], heap[p]) < 0:
-        swap(i, p)
-        i = p
-      else: break
-
-  siftDown(i):
-    n = heap.length
-    while true:
-      best = i
-      l = 2*i+1; r = 2*i+2
-      if l < n and compare(heap[l], heap[best]) < 0: best = l
-      if r < n and compare(heap[r], heap[best]) < 0: best = r
-      if best != i: swap(i, best); i = best
-      else: break
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  subgraph enqueue["enqueue(item)"]
-    E1["heap.push(item)"] --> E2["i = heap.length - 1"]
-    E2 --> E3{"i > 0 and\ncompare(heap[i], heap[parent]) < 0?"}
-    E3 -- Yes --> E4["swap(i, parent)\ni = parent"]
-    E4 --> E3
-    E3 -- No --> E5[종료]
-  end
-
-  subgraph dequeue["dequeue()"]
-    D1{"heap 비어있음?"}
-    D1 -- Yes --> D2["undefined 반환"]
-    D1 -- No --> D3["min = heap[0]\nlast = heap.pop()"]
-    D3 --> D4{"heap 비어있음?"}
-    D4 -- No --> D5["heap[0] = last\nsiftDown(0)"]
-    D4 -- Yes --> D6["min 반환"]
-    D5 --> D6
-  end
-
-  subgraph siftDown["siftDown(i)"]
-    S1["best = i"]
-    S1 --> S2{"left/right 자식 중\n더 높은 우선순위?"}
-    S2 -- Yes --> S3["swap(i, best)\ni = best"]
-    S3 --> S1
-    S2 -- No --> S4[종료]
-  end
-
-  style E4 fill:#FF9800,color:#fff
-  style D3 fill:#2196F3,color:#fff
-  style S3 fill:#FF5722,color:#fff
-```
+1. 빈 힙에 `9, 4, 6, 1, 7`을 이 순서로 `enqueue`하면 최종 배열은 어떤 모양일까요? 위의 `bubbleUp` 규칙대로 손으로 한 단계씩 그려 보세요.
+2. `siftDown`에서 "왼쪽 자식과만 비교"하는 버그가 있는 채로 `enqueue(1), enqueue(3), enqueue(2), enqueue(4)` 후 `dequeue()`를 두 번 호출하면 왜 두 번째 반환값이 `2`가 아니라 `3`이 되는지, 자식 인덱스 계산까지 짚어 설명해 보세요.
+3. `dequeue()` 구현에서 "마지막 원소를 루트로 옮기고 `siftDown`을 호출하는" 순서를 "먼저 `siftDown`을 호출하고 마지막 원소를 옮기는" 순서로 바꾸면 어떤 문제가 생길까요? `heap = [1, 2, 3, 5]`를 예로 들어 설명해 보세요.

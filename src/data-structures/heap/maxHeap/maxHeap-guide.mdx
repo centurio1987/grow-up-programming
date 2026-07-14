@@ -1,126 +1,298 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# MaxHeap (최대 힙) 해설
+# MaxHeap — 전체를 정렬하지 않고 루트 하나만 최댓값으로 지킨다
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 횟수 n | naive 정렬 O(n log n) per op | 목표 O(log n) per op |
-|-------------|------------------------------|----------------------|
-| 1,000       | ~10ms (전체)                 | <1ms                 |
-| 10,000      | ~100ms                       | <1ms                 |
-| 100,000     | ~5,000ms                     | <20ms                |
-| Top-K (K=100, n=10^5) | O(n log n) 전체 정렬 | O(n log n) push + O(K log n) pop |
+완전 이진 트리를 배열 하나로 표현하면서 "모든 부모는 자식보다 크거나 같다"는 힙 속성만 유지하는 자료구조예요. 비결은 전체 순서를 포기하는 대신 "루트가 항상 최댓값"이라는 훨씬 약한 조건만 지키는 것입니다 — 그 덕분에 삽입·추출이 트리 높이에 비례하는 `O(log n)`에 끝나요. 실시간 스트림에서 최댓값(또는 Top-K)을 계속 뽑아내야 하는 상황의 표준 해법입니다.
 
-MaxHeap은 Top-K를 구할 때 전체 정렬보다 효율적이지 않지만 (같은 O(n log n)),
-스트리밍 환경에서 원소가 하나씩 들어올 때 최댓값을 O(log n)에 유지하는 게 핵심입니다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호가 겹치면 MaxHeap을 떠올리세요.
 
-| 연산 | 내부 동작 | 시간 | 공간 |
-|------|-----------|------|------|
-| `push` | 배열 끝 삽입 + bubbleUp | O(log n) | O(1) |
-| `pop` | 루트 제거 + 마지막→루트 + siftDown | O(log n) | O(1) |
-| `peek` | 배열 인덱스 0 접근 | O(1) | O(1) |
-| `size` | 배열 length 반환 | O(1) | O(1) |
-| `isEmpty` | size === 0 | O(1) | O(1) |
+- 데이터가 스트림처럼 계속 들어오는데, 그때그때 "지금까지의 최댓값"을 물어본다
+- Top-K, 실시간 랭킹처럼 "가장 큰 것 몇 개"를 반복 추출해야 한다
+- 삽입과 최댓값 추출이 번갈아 일어나서, 매번 전체를 다시 정렬하면 낭비다
 
-**주요 엣지케이스:**
-- 빈 힙에서 `pop()`/`peek()` → `undefined`
-- 동일값 원소 → 힙 속성에 의해 임의 순서로 pop (안정 정렬 아님)
-- 단일 원소 → push/pop 후 isEmpty
+naive 대안과 비교하면 왜 힙이 필요한지 체감됩니다.
 
----
-
-## 핵심 아이디어
-
-### MinHeap과 MaxHeap의 관계
-
-MaxHeap은 MinHeap과 구조가 완전히 동일합니다.
-유일한 차이는 힙 속성의 방향입니다:
-
-| | MinHeap | MaxHeap |
-|---|---------|---------|
-| 힙 속성 | parent ≤ child | parent ≥ child |
-| 루트 | 최솟값 | 최댓값 |
-| 비교 함수 | `compare(child, parent) < 0` 이면 swap | `compare(child, parent) > 0` 이면 swap |
-| 구현 방식 | `compare(a,b) < 0` → a 우선 | `compare(a,b) > 0` → a 우선 (방향 반전) |
-
-MinHeap 구현에서 비교 함수를 반전하면 MaxHeap이 됩니다.
-
-### 어떤 관찰이 돌파구가 되는가
-
-**관찰:** Top-K 스트림 처리에서 "현재까지의 최댓값"만 필요하다면 전체를 정렬할 필요가 없습니다.
-완전 이진 트리의 루트가 항상 최댓값을 보장하므로, O(1) peek과 O(log n) pop이면 충분합니다.
-
-### 관찰을 형식화: 상태/구조 정의
-
-**배열 기반 완전 이진 트리 (MaxHeap 속성):**
-```
-인덱스 i의 부모:         Math.floor((i - 1) / 2)
-인덱스 i의 왼쪽 자식:   2 * i + 1
-인덱스 i의 오른쪽 자식: 2 * i + 2
-
-힙 속성: compare(heap[parent], heap[child]) >= 0
-         즉, 부모가 자식보다 항상 크거나 같다
+```text
+전략               push          pop(최댓값)                    비고
+비정렬 배열         O(1)          O(n) 선형탐색                  삽입은 빠르지만 추출이 매번 전수조사
+정렬 유지 배열      O(n) 이동      O(n)(맨 앞 제거 시 배열 이동)   추출도 앞 원소 제거 시 배열 이동으로 O(n)
+MaxHeap            O(log n)      O(log n)                       둘 다 트리 높이만큼만 움직인다
 ```
 
-### 점화식 또는 핵심 연산
+정렬 유지 배열은 삽입도 추출도 배열 이동 때문에 결국 `O(n)`에 묶여 있어 — "삽입 빠름 vs 추출 빠름"의 시소가 아니라 둘 다 느린 전면 열위입니다 — MaxHeap이 `O(log n)`으로 양쪽 모두를 앞섭니다.
 
-```
-// bubbleUp (push 후 힙 속성 복원)
-i = heap.length - 1
-while i > 0:
-  parent = Math.floor((i - 1) / 2)
-  if compare(heap[i], heap[parent]) > 0:   // 자식이 더 크면 (MaxHeap)
-    swap(heap, i, parent)
-    i = parent
-  else:
-    break
+비슷한 선택지와 구분하면: 최솟값이 궁금하면 비교 함수만 반전한 MinHeap을 쓰고, "정렬된 전체 목록"이나 "범위 질의"까지 필요하면 힙만으로는 부족합니다(그때는 정렬 트리 계열을 고려하세요). MaxHeap은 오직 "지금 가장 큰 것"에만 최적화된 구조입니다.
 
-// siftDown (pop 후 힙 속성 복원)
-i = 0
-n = heap.length
-while true:
-  left  = 2 * i + 1
-  right = 2 * i + 2
-  biggest = i                               // 현재, 왼쪽, 오른쪽 중 최대
+### 문제 사례와 적용 예시
 
-  if left < n and compare(heap[left], heap[biggest]) > 0:
-    biggest = left
-  if right < n and compare(heap[right], heap[biggest]) > 0:
-    biggest = right
+- **실시간 광고 입찰 스트림**: 밀리초마다 들어오는 입찰가 중 최고가를 `O(log n)`에 유지합니다.
+- **이동 중앙값(moving median)**: 데이터를 하위 절반(MaxHeap)과 상위 절반(MinHeap) 두 힙으로 나눠 유지하면, 중앙값을 `O(log n)`에 갱신할 수 있습니다.
+- **작업 스케줄러**: 우선순위가 높은 작업을 먼저 꺼내 실행해야 하는 큐 시스템.
+- **코딩 테스트 맥락**: "K번째로 큰 수", "스트림에서 Top-N 랭킹을 실시간으로 갱신하라" 유형에서 힙을 직접 구현해야 하는 경우.
 
-  if biggest !== i:
-    swap(heap, i, biggest)
-    i = biggest
-  else:
-    break
+## 자료구조 자세히 들여다보기
+
+### 전체 스펙: 속성과 액션
+
+**속성(내부 상태)** — 배열 하나와 비교 함수로 충분합니다.
+
+```ts
+class MaxHeap<T> {
+  private heap: T[] = [];
+  private compare: (a: T, b: T) => number;
+}
 ```
 
-### 정당성 — 왜 이것이 옳은가
+인덱스 관례는 배열 인덱스 `0`이 루트인 완전 이진 트리입니다.
 
-**bubbleUp 정당성:**
-- 새 원소는 트리 맨 아래에 추가 → 완전 이진 트리 형태 유지
-- 부모보다 큰 동안 swap → 부모-자식 힙 속성 복원
-- 트리 높이 = O(log n) → 최대 O(log n) swap
+```text
+부모(i)        = ⌊(i - 1) / 2⌋
+왼쪽 자식(i)   = 2i + 1
+오른쪽 자식(i) = 2i + 2
+```
 
-**siftDown 정당성:**
-- 루트 제거 후 마지막 원소를 루트로 → 완전 이진 트리 형태 유지
-- 두 자식 중 더 큰 자식과 swap → MaxHeap 속성 복원
-  - 왜 더 큰 자식과? 더 작은 자식과 swap하면 새로운 부모가 형제보다 작아질 수 있음
-- 높이 O(log n) → O(log n) swap
+지켜야 할 핵심 불변식은 하나입니다.
 
-### 구현 디테일과 최적화
+$$\forall i > 0:\quad \text{compare}\bigl(heap[\lfloor (i-1)/2 \rfloor],\ heap[i]\bigr) \ge 0$$
 
-- `pop`에서 원소가 1개이면 siftDown 없이 직접 pop
-- TypeScript `noUncheckedIndexedAccess` 대응: 인덱스 접근 전 길이 확인
-- 비교 함수를 생성자에서 주입받아 클로저로 저장
+즉 모든 부모는 자기 자식보다 크거나 같습니다. `heap = [9, 7, 1, 3]`을 트리로 펼치면:
 
----
+```text
+heap = [9, 7, 1, 3]        인덱스:  0   1   2   3
 
-## 시뮬레이션
+           9 (0)
+         /       \
+      7 (1)      1 (2)
+      /
+   3 (3)
+
+부모(3) = ⌊(3-1)/2⌋ = 1 (값 7) → 7 ≥ 3 ✓
+부모(1) = ⌊(1-1)/2⌋ = 0 (값 9) → 9 ≥ 7 ✓
+부모(2) = ⌊(2-1)/2⌋ = 0 (값 9) → 9 ≥ 1 ✓
+```
+
+**액션(연산)** — 이 가이드가 정의하는 인터페이스 6종입니다.
+
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `constructor(compare)` | 빈 힙 생성, 비교 함수 저장 | `O(1)` |
+| `push(item)` | 배열 끝에 추가 후 `bubbleUp` | `O(log n)` |
+| `pop()` | 루트 반환, 마지막 원소를 루트로 옮기고 `siftDown` | `O(log n)` |
+| `peek()` | `heap[0]` 조회 (제거 없음) | `O(1)` |
+| `size()` | 배열 길이 반환 | `O(1)` |
+| `isEmpty()` | `size() === 0` | `O(1)` |
+
+핵심 연산 두 개를 실제 수치로 자세히 봅니다. `push(3)`, `push(9)`, `push(1)`까지 실행해 `heap = [9, 3, 1]`이 된 상태에서 시작할게요.
+
+**① push — bubbleUp으로 새 원소를 제자리로 올리기.** `push(7)`을 실행하면:
+
+```text
+Before: heap = [9, 3, 1]
+
+배열 끝에 추가         → [9, 3, 1, 7]           i = 3
+parent(3) = 1 (값 3)   compare(7, 3) = 4 > 0    → swap(3, 1) → [9, 7, 1, 3]   i = 1
+parent(1) = 0 (값 9)   compare(7, 9) = -2 ≤ 0   → 중단
+
+After: heap = [9, 7, 1, 3]
+```
+
+swap 조건을 정식으로 쓰면 $\text{compare}(heap[i],\ heap[parent(i)]) > 0 \Rightarrow \text{swap}(i, parent(i))$입니다. 조상 방향으로만 올라가므로 최악의 경우에도 트리 높이만큼, 즉 $O(\log n)$번의 swap으로 끝납니다.
+
+**② pop — 루트를 내주고 siftDown으로 복구하기.** 이어서 `pop()`을 실행하면:
+
+```text
+Before: heap = [9, 7, 1, 3]
+
+max = heap[0] = 9 저장
+last = heap.pop() = 3 (배열 마지막 원소 제거)   → heap = [9, 7, 1]
+heap가 비어있지 않으므로 heap[0] = 3            → heap = [3, 7, 1]
+
+siftDown(0):
+  left(1) = 7, right(2) = 1
+  더 큰 자식은 7 → compare(7, 3) = 4 > 0 → swap(0, 1) → heap = [7, 3, 1]
+  i = 1: 자식 없음(2·1+1 = 3 ≥ length) → 종료
+
+반환값: 9
+After: heap = [7, 3, 1]
+```
+
+### 왜 모순 없이 작동하는가
+
+**bubbleUp이 불변식을 보존하는 이유.** 새 원소는 트리 맨 끝(리프)에 추가되므로, 형제들 사이의 힙 속성은 전혀 건드리지 않습니다. 깨질 수 있는 곳은 오직 "새 노드 — 그 조상들" 관계뿐이에요. 부모보다 클 때만 swap하므로, swap 직후 그 자리에는 원래 자식이 올라가 있고 그 값이 두 자식(원래 부모 자리로 내려간 값 포함)보다 크다는 것이 보장됩니다. 이 과정을 조상 방향으로 반복하다 부모보다 작거나 같은 지점에서 멈추면, 그 지점부터 위로는 이미 힙이었으므로 전체가 다시 힙입니다.
+
+**siftDown이 불변식을 보존하는 이유.** `pop` 직후 마지막 원소를 루트에 놓으면, 위반이 있을 수 있는 곳은 루트 하나뿐입니다(그 아래 서브트리들은 원래부터 힙이었으니 건드리지 않았어요). "두 자식 중 더 큰 자식"과 swap하면, 그 값이 새 부모 자리에 앉아 형제(더 작은 자식)보다도 크므로 그 층에서는 힙 속성이 회복됩니다. 하지만 원래 있던 값(새로 내려간 값)은 자신의 새 자식들(원래 손자였던 값들)보다 작을 수 있으므로, 같은 논리를 그 위치에서 한 층 더 반복합니다 — 이게 `siftDown`이 재귀적으로 아래로 내려가는 이유예요. 트리 높이가 $O(\log n)$이므로 이 반복은 리프에 닿거나 더 이상 위반이 없을 때 최대 $O(\log n)$번 만에 끝납니다.
+
+여기서 헷갈리기 쉬운 포인트는 **"왜 하필 더 큰 자식과 swap해야 하는가"**입니다. 왼쪽 자식만 확인하고 오른쪽을 빠뜨리면(또는 무조건 작은 자식과 swap하면), 부모 자리에 실제로는 최댓값이 아닌 값이 앉게 되어 힙 속성이 조용히 깨집니다. 검증된 구체 예시로 보겠습니다. `heap = [9, 7, 8, 3, 1]`에서 `pop()`을 실행하면 올바른 결과는 `[8, 7, 1, 3]`입니다(루트를 내준 뒤 자리에 온 `1`이 왼쪽 자식 `7`, 오른쪽 자식 `8` 중 더 큰 `8`과 swap됩니다). 그런데 "왼쪽 자식만 비교하고 오른쪽 비교를 빼먹는" 실수를 한 `siftDown`으로 같은 입력을 처리하면 `[7, 3, 8, 1]`이 나옵니다 — 이 상태에서 `peek()`은 `7`을 최댓값이라 답하지만, 실제로는 인덱스 `2`에 `8`이 그대로 남아 있어 부모(`7`, 인덱스 `0`) < 자식(`8`, 인덱스 `2`)이 되어 버립니다. 힙이 깨졌는데도 겉으로는 아무 에러도 나지 않는다는 게 이 실수의 위험한 지점이에요.
+
+잠깐, 확인 하나만 해볼까요? `heap = [9, 3, 8]`에서 `pop()`을 실행하면 결과는 무엇일까요? — 정답은 `9`를 반환하고 힙은 `[8, 3]`이 됩니다. 마지막 원소 `8`이 루트로 옮겨진 뒤 자식이 `3` 하나뿐이라(`heap.length`가 `2`라 오른쪽 인덱스 `2`는 범위 밖) `compare(3, 8) ≤ 0`이라 swap 없이 바로 끝나기 때문입니다.
+
+엣지 케이스를 점검해 봅니다.
+
+```text
+빈 힙에서 pop() / peek()        → undefined (heap.length === 0에서 즉시 반환)
+원소 1개일 때 pop()             → 그 값 반환, 이후 siftDown 대상이 없어 isEmpty() === true
+동일값 여러 개를 push한 뒤 pop() → 값은 모두 올바르게 나오지만 순서는 임의(안정 정렬이 아니다)
+```
+
+## 아이디어를 코드로 옮기기
+
+MaxHeap이 `O(log n)`에 도달하기까지 자연스럽게 거치는 두 단계의 naive 접근을 먼저 지나가 봅니다.
+
+**원형 — 비정렬 배열에 매번 선형 탐색.**
+
+```ts
+function naivePush<T>(arr: T[], item: T): void {
+  arr.push(item); // O(1)
+}
+
+function naivePopMax<T>(arr: T[], compare: (a: T, b: T) => number): T | undefined {
+  if (arr.length === 0) return undefined;
+  let maxIdx = 0;
+  for (let i = 1; i < arr.length; i++) {
+    if (compare(arr[i]!, arr[maxIdx]!) > 0) maxIdx = i; // O(n) 전수조사
+  }
+  return arr.splice(maxIdx, 1)[0];
+}
+```
+
+`push(3), push(9), push(1), push(7)`을 이 방식에 적용하면 배열은 그냥 `[3, 9, 1, 7]`이고, `pop`은 네 칸을 전부 훑어 `9`를 찾은 뒤 `[3, 1, 7]`을 남깁니다(실측 확인됨) — 매 `pop`마다 `O(n)` 전수조사이므로 `K`번 뽑으면 `O(nK)`까지 늘어나요.
+
+**개선 — 정렬 유지 배열.**
+
+```ts
+function sortedPush<T>(arr: T[], item: T, compare: (a: T, b: T) => number): void {
+  let i = 0;
+  while (i < arr.length && compare(arr[i]!, item) > 0) i++; // 내림차순 위치 탐색 O(n)
+  arr.splice(i, 0, item); // 자리 확보를 위해 뒤로 밀기 O(n)
+}
+
+function sortedPopMax<T>(arr: T[]): T | undefined {
+  return arr.shift(); // 맨 앞이 항상 최댓값이지만 shift 자체가 배열 이동으로 O(n)
+}
+```
+
+이제 `pop`은 "맨 앞을 본다"는 개념적으론 `O(1)`이지만, 배열에서 앞 원소를 뺄 때의 이동 비용까지 치면 여전히 `O(n)`이고, `push`도 삽입 위치 탐색과 밀어내기로 `O(n)`입니다. 결국 정렬 유지 배열은 삽입·추출 어느 한쪽도 빠르게 만들지 못하고 둘 다 배열 이동으로 `O(n)`에 묶인 전면 열위예요 — 어느 쪽을 골라도 배열 이동에서 벗어나지 못합니다.
+
+**최종 — MaxHeap.** 완전 이진 트리를 배열로 표현하면 `push`도 `pop`도 트리 높이(`O(log n)`)만큼만 움직이면 됩니다. 아래가 이 가이드가 정의하는 인터페이스이자 실제 구현입니다.
+
+```ts
+export class MaxHeap<T> {
+  private heap: T[] = [];
+  private compare: (a: T, b: T) => number;
+
+  constructor(compare: (a: T, b: T) => number) {
+    this.compare = compare;
+  }
+
+  push(item: T): void {
+    this.heap.push(item);
+    this.bubbleUp(this.heap.length - 1);
+  }
+
+  pop(): T | undefined {
+    if (this.heap.length === 0) return undefined;
+    const max = this.heap[0];
+    const last = this.heap.pop();
+    if (this.heap.length > 0 && last !== undefined) {
+      this.heap[0] = last;
+      this.siftDown(0);
+    }
+    return max;
+  }
+
+  peek(): T | undefined {
+    return this.heap[0];
+  }
+
+  size(): number {
+    return this.heap.length;
+  }
+
+  isEmpty(): boolean {
+    return this.heap.length === 0;
+  }
+
+  private bubbleUp(start: number): void {
+    let i = start;
+    while (i > 0) {
+      const parent = Math.floor((i - 1) / 2);
+      const child = this.heap[i];
+      const parentVal = this.heap[parent];
+      if (child === undefined || parentVal === undefined) break;
+      if (this.compare(child, parentVal) > 0) {
+        this.swap(i, parent);
+        i = parent;
+      } else {
+        break;
+      }
+    }
+  }
+
+  private siftDown(start: number): void {
+    let i = start;
+    const n = this.heap.length;
+    while (true) {
+      const left = 2 * i + 1;
+      const right = 2 * i + 2;
+      let biggest = i;
+
+      if (left < n) {
+        const leftVal = this.heap[left];
+        const cur = this.heap[biggest];
+        if (leftVal !== undefined && cur !== undefined && this.compare(leftVal, cur) > 0) {
+          biggest = left;
+        }
+      }
+      if (right < n) {
+        const rightVal = this.heap[right];
+        const cur = this.heap[biggest];
+        if (rightVal !== undefined && cur !== undefined && this.compare(rightVal, cur) > 0) {
+          biggest = right;
+        }
+      }
+
+      if (biggest !== i) {
+        this.swap(i, biggest);
+        i = biggest;
+      } else {
+        break;
+      }
+    }
+  }
+
+  private swap(i: number, j: number): void {
+    const tmp = this.heap[i];
+    this.heap[i] = this.heap[j] as T;
+    this.heap[j] = tmp as T;
+  }
+}
+```
+
+가장 중요한 부분은 `siftDown`의 두 `if` 블록입니다 — 왼쪽과 오른쪽을 **모두** 검사해서 `biggest`를 갱신해야, 두 자식 중 진짜 더 큰 값과 swap됩니다. 오른쪽 `if`를 빠뜨리면 앞서 본 것처럼 `[9, 7, 8, 3, 1]`의 `pop()`이 `[8, 7, 1, 3]` 대신 `[7, 3, 8, 1]`을 내놓으며 조용히 힙 속성이 깨져요.
+
+놓치기 쉬운 지점을 더 짚어 둡니다.
+
+- `compare(a, b) > 0` 방향이 이 힙 전체가 "Max"인 유일한 지점입니다. `bubbleUp`과 `siftDown` 양쪽의 `> 0`을 `< 0`으로 뒤집기만 하면 그대로 MinHeap이 됩니다 — 구조는 완전히 동일하고 비교 방향만 반전됩니다.
+- `noUncheckedIndexedAccess`가 켜져 있어 `heap[i]`는 항상 `T | undefined`입니다. 인덱스가 배열 범위 안이라고 확신해도 `undefined` 체크를 생략하면 타입 에러가 나므로, `left < n` / `right < n`으로 범위를 먼저 확인한 뒤 값을 읽습니다.
+- `pop()`에서 원소가 정확히 1개일 때는 `heap.pop()`이 그 유일한 원소를 제거해 배열 길이가 `0`이 되므로, `heap.length > 0` 검사에 걸려 `siftDown`을 아예 호출하지 않습니다.
+
+> 왼쪽도 오른쪽도 보고 나서 더 큰 쪽으로 내려간다 — 하나라도 빼먹으면 반쪽짜리 힙이 된다.
+
+## 실행 시각화
+
+고정 입력으로 `push(3)`, `push(9)`, `push(1)`, `push(7)`을 차례로 실행한 뒤 `pop()`을 두 번 호출하는 트레이스입니다. 실제 반환값은 첫 `pop()`이 `9`, 두 번째 `pop()`이 `7`이고, 그 뒤 `peek()`은 `3`입니다 — 위 "전체 스펙"과 아래 실행 시각화가 같은 수치를 공유합니다. `array` 패널은 힙 내부 배열을, `highlight`는 그 스텝에서 최종적으로 자리를 정한 인덱스를, `marked`는 이번 스텝에서 주목할 인덱스를 보여줍니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -176,99 +348,10 @@ export const steps = [
 
 <AlgorithmSimulation view="array" steps={steps} title="MaxHeap 시뮬레이션 (숫자 최댓값 우선)" />
 
----
+정리하면, MaxHeap은 "전체를 정렬하지 않고 루트 하나만 최댓값으로 지킨다"는 완화 하나로 `push`·`pop` 모두 트리 높이에 비례하는 `O(log n)`에 끝냅니다. `bubbleUp`은 새 원소를 조상 방향으로만 올리고, `siftDown`은 두 자식 중 큰 쪽으로만 내려가므로 각각 최대 `O(log n)`번의 swap이면 충분해요. 비정렬 배열의 `O(n)` 전수조사나 정렬 유지 배열의 `O(n)` 삽입 같은 병목 없이, 스트림에서 반복되는 최댓값 질의를 애초에 목표했던 성능으로 처리합니다.
 
-## 수도 코드와 Activity Diagram
+## 스스로 점검하기
 
-### 의사코드
-
-```
-클래스 MaxHeap<T>:
-  heap: T[] = []
-  compare: (a: T, b: T) => number
-
-  // 힙 속성 불변식: compare(heap[parent(i)], heap[i]) >= 0
-  //                 즉, 모든 부모는 자식보다 크거나 같다
-
-  push(item):
-    heap.push(item)
-    bubbleUp(heap.length - 1)
-
-  pop():
-    if heap.length === 0: return undefined
-    max = heap[0]
-    last = heap.pop()
-    if heap.length > 0:
-      heap[0] = last
-      siftDown(0)
-    return max
-
-  peek():
-    return heap[0]
-
-  bubbleUp(i):
-    while i > 0:
-      p = (i - 1) / 2 | 0
-      if compare(heap[i], heap[p]) > 0:   // i가 부모보다 크면 (MaxHeap)
-        swap(i, p)
-        i = p
-      else: break
-
-  siftDown(i):
-    n = heap.length
-    while true:
-      biggest = i
-      l = 2*i+1; r = 2*i+2
-      if l < n and compare(heap[l], heap[biggest]) > 0: biggest = l
-      if r < n and compare(heap[r], heap[biggest]) > 0: biggest = r
-      if biggest != i: swap(i, biggest); i = biggest
-      else: break
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  subgraph push_flow["push(item)"]
-    P1["heap.push(item)"] --> P2["i = heap.length - 1"]
-    P2 --> P3{"i > 0 and\ncompare(heap[i], heap[parent]) > 0?"}
-    P3 -- Yes --> P4["swap(i, parent)\ni = parent"]
-    P4 --> P3
-    P3 -- No --> P5[종료]
-  end
-
-  subgraph pop_flow["pop()"]
-    D1{"heap 비어있음?"}
-    D1 -- Yes --> D2["undefined 반환"]
-    D1 -- No --> D3["max = heap[0]\nlast = heap.pop()"]
-    D3 --> D4{"heap 비어있음?"}
-    D4 -- No --> D5["heap[0] = last\nsiftDown(0)"]
-    D4 -- Yes --> D6["max 반환"]
-    D5 --> D6
-  end
-
-  subgraph sift["siftDown(i)"]
-    S1["biggest = i"]
-    S1 --> S2{"왼/오른쪽 자식 중\n현재보다 더 큰 것?"}
-    S2 -- Yes --> S3["swap(i, biggest)\ni = biggest"]
-    S3 --> S1
-    S2 -- No --> S4[종료]
-  end
-
-  style P4 fill:#FF9800,color:#fff
-  style D3 fill:#2196F3,color:#fff
-  style S3 fill:#E91E63,color:#fff
-```
-
----
-
-## MinHeap vs MaxHeap 비교표
-
-| 항목 | MinHeap (PriorityQueue) | MaxHeap |
-|------|------------------------|---------|
-| 루트 | 최솟값 | 최댓값 |
-| 힙 속성 | parent ≤ child | parent ≥ child |
-| bubbleUp 조건 | `compare(child, parent) < 0` | `compare(child, parent) > 0` |
-| siftDown 조건 | 더 작은 자식과 swap | 더 큰 자식과 swap |
-| 주요 용도 | 다익스트라, 작업 스케줄러 | Top-K, 실시간 랭킹 |
-| 구현 | 동일 구조, 비교 방향만 다름 | 동일 구조, 비교 방향만 다름 |
+1. `heap = [9, 7, 8, 3, 1]`에 `push(10)`을 실행하면 `bubbleUp`이 몇 번 swap을 하고 최종 배열은 어떤 모양이 될까요? 손으로 계산해 보세요. (힌트: 새 원소는 인덱스 `5`에 추가됩니다.)
+2. `siftDown`에서 "더 큰 자식"이 아니라 "왼쪽 자식"을 무조건 선택하도록 구현하면, 이 가이드에서 검증한 것처럼 어떤 구체적인 입력에서 힙 속성이 깨질까요? 왜 하필 그런 모양의 입력에서만 문제가 드러날까요?
+3. 이 `MaxHeap`을 그대로 `MinHeap`으로 바꾸려면 정확히 몇 줄을, 어느 줄을 바꿔야 할까요?

@@ -1,176 +1,352 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# VanEmdeBoasTree (반 엠데 보아스 트리) 해설
+# VanEmdeBoasTree — 우주를 제곱근씩 쪼개 로그의 로그까지 파고들기
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 시간복잡도 | U=2^16 기대 시간 |
-|------|-----------|----------------|
-| insert | O(log log U) | ≈ O(4) |
-| delete | O(log log U) | ≈ O(4) |
-| has | O(log log U) | ≈ O(4) |
-| min / max | O(1) | 직접 반환 |
-| successor | O(log log U) | ≈ O(4) |
-| predecessor | O(log log U) | ≈ O(4) |
+정수 universe $[0, U-1]$ 위의 집합을 표현하는 자료구조로, 최솟값·최댓값은 $O(1)$에, 삽입·삭제·존재 확인·successor·predecessor는 전부 $O(\log \log U)$에 처리해요. 비결은 하나예요 — universe를 $\sqrt U$개의 클러스터로 쪼개고 "어느 클러스터에 원소가 있는가"를 `summary`라는 자기 자신과 똑같이 생긴 부트리에게 재귀적으로 묻되, **최솟값만은 clusters에 저장하지 않고 따로 빼둡니다.** 이 트릭 하나 덕분에 "빈 클러스터에 처음 넣는 삽입"이 항상 $O(1)$로 끝나고, 재귀 점화식이 $T(U) = T(\sqrt U) + O(1)$이 되어 $O(\log \log U)$가 나와요. $U = 2^{32}$(IPv4 주소 전체)라도 $\log \log U \approx 5$번이면 충분합니다.
 
-log log 2^16 = log 16 = 4. U=2^32(전체 IPv4)여도 log log U ≈ 5이다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호들이 겹치면 vEB 트리를 떠올리세요.
 
-| 함수 | 반환 타입 | 설명 |
-|------|-----------|------|
-| `insert(x)` | `void` | x를 집합에 삽입 |
-| `delete(x)` | `void` | x를 집합에서 제거 |
-| `has(x)` | `boolean` | x가 집합에 있는지 확인 |
-| `min()` | `number \| undefined` | 최솟값 O(1) |
-| `max()` | `number \| undefined` | 최댓값 O(1) |
-| `successor(x)` | `number \| undefined` | x보다 큰 최솟값 |
-| `predecessor(x)` | `number \| undefined` | x보다 작은 최댓값 |
+- 키가 **정수이고 universe 크기 $U$가 미리 정해져** 있다 (임의 실수·문자열이 아니라 "IP 주소", "포트 번호", "0 이상 65536 미만의 정수" 같은 유한 범위)
+- **삽입·삭제가 계속 섞이는 와중**에도 min/max/successor/predecessor를 반복 조회해야 한다
+- 이진 탐색 트리·힙의 $O(\log n)$ 벽을 자릿수로도 못 뚫는데 더 빠른 탐색이 필요하다는 힌트가 있다("초당 수백만 건", "실시간" 같은 표현)
 
----
+naive 대안들과 비교하면 vEB가 왜 필요한지 체감됩니다.
 
-## 핵심 아이디어
+```text
+비트 배열(bit array)      insert/delete/has  O(1)         successor/predecessor  최악 O(U)
+균형 이진 탐색 트리         모든 연산 O(log n)              U의 수치 구조를 전혀 활용 못 함
+vEB 트리                  모든 연산 O(log log U)          U를 √U씩 재귀로 쪼개 활용
+```
 
-### 원형 아이디어와 naive 접근
+비교 기반 탐색 모델에는 $\Omega(\log n)$ 하한이 있어요 — 원소끼리 크기 비교만 해서는 이보다 빨라질 수 없습니다. vEB가 이 벽을 넘는 이유는 원소를 서로 "비교"하는 대신 정수의 자릿수 구조(`high`/`low` 분해)를 직접 이용하기 때문이에요.
 
-비트 배열(bit array)로 집합을 표현하면 `insert`, `delete`, `has`가 O(1)이다. 하지만 successor/predecessor는 최악 O(U) 시간이 걸린다.
+선택 기준도 함께 챙겨두면 좋아요. successor/predecessor 조회가 드물면 비트 배열이 구현도 쉽고 상수도 작아 더 낫고, 조회가 잦고 $U$가 커서 $\log\log U$ 이득이 절실하면 vEB, $U$가 $2^{64}$를 넘거나 원소 수 $n$이 매우 작아 $O(U)$ 메모리조차 부담스러우면 해시 기반의 압축 변형인 y-fast trie를 고려합니다.
 
-이진 탐색 트리나 힙은 successor를 O(log n)에 처리하지만, 정수 키의 특성(universe 크기 U가 고정)을 활용하지 않아 O(log log U) 보다 나은 성능을 낼 수 없다.
+### 문제 사례와 적용 예시
 
-비교 기반 모델에서 sorting에 Ω(n log n) 하한이 있듯, 비교 기반 탐색에는 Ω(log n) 하한이 있다. 더 빠르려면 정수의 수치적 구조를 활용해야 한다.
+- **네트워크 라우터의 IP 룩업**: 패킷의 목적지 주소에서 "다음 홉"을 찾는 라우팅 테이블 조회. $U = 2^{32}$라도 5번 안에 끝납니다.
+- **정수 우선순위 큐**: 다익스트라 알고리즘에서 거리 값의 범위가 정수로 제한될 때, decrease-key/extract-min을 $O(\log\log U)$에 처리해 전체 알고리즘을 가속합니다(Thorup의 정수 최단경로 알고리즘 계열).
+- **타이머·이벤트 스케줄러**: 정해진 시간 슬롯 범위 안에서 "다음으로 만료될 이벤트"를 빠르게 찾는 정밀 타이머 휠.
+- **코딩 테스트 맥락**: "정수 범위 $[0, U)$ 안에서 삽입·삭제되는 원소들에 대해 successor/predecessor를 반복 질의하라" 유형 — 좌표가 크더라도 좌표 압축으로 $U$를 줄인 뒤 vEB를 얹는 패턴으로 등장합니다.
 
-### 어떤 관찰이 돌파구가 되는가
+## 자료구조 자세히 들여다보기
 
-**핵심 관찰 1 (분할)**: universe [0, U-1]을 √U 크기의 클러스터 √U개로 나누면, 임의의 x에 대해 `high(x) = floor(x / √U)` (클러스터 번호)와 `low(x) = x mod √U` (클러스터 내 위치)를 O(1)에 계산할 수 있다.
+### 전체 스펙: 속성과 액션
 
-**핵심 관찰 2 (재귀)**: successor(x)를 찾으려면:
-- 먼저 x와 같은 클러스터에서 low(x)의 successor를 찾는다.
-- 같은 클러스터에 없으면 summary에서 다음 클러스터를 찾고, 그 클러스터의 min을 반환한다.
-
-이렇게 하면 재귀 깊이마다 universe가 √U로 줄어들어, T(U) = T(√U) + O(1) 점화식이 되고 T(U) = O(log log U)가 된다.
-
-**핵심 관찰 3 (min/max 별도 저장)**: min과 max를 별도로 저장하면 O(1)에 접근 가능하다. 특히 min은 clusters에 저장하지 않아도 된다(이것이 재귀의 정확성을 보장하는 미묘한 포인트다).
-
-### 관찰을 형식화: 상태/구조 정의
+**속성(내부 상태)** — 이 가이드에서 스스로 정의하는 인터페이스입니다.
 
 ```ts
 class VanEmdeBoasTree {
-  U: number;                              // universe 크기
-  _min: number | undefined = undefined;  // 별도 저장 (clusters에 없음)
-  _max: number | undefined = undefined;  // 별도 저장 (clusters에 있음)
-  summary: VanEmdeBoasTree | undefined;  // 크기 ceil(√U)
-  clusters: (VanEmdeBoasTree | undefined)[];  // 크기 ceil(√U), 각 클러스터는 크기 floor(√U)
+  U: number;                                   // universe 크기 [0, U-1]
+  min: number | undefined;                     // 별도 저장 — clusters엔 없음!
+  max: number | undefined;                     // 별도 저장 (min과 같으면 원소 1개)
+  summary: VanEmdeBoasTree | undefined;        // 크기 upperSqrt(U): "클러스터 i에 원소가 있나?"
+  clusters: (VanEmdeBoasTree | undefined)[];   // 크기 upperSqrt(U), 각 원소는 크기 lowerSqrt(U)
 }
-
-// 헬퍼 함수
-upperSqrt(U: number) = 2 ** ceil(log2(U) / 2)  // 클러스터 수
-lowerSqrt(U: number) = 2 ** floor(log2(U) / 2) // 클러스터 크기
-high(x, U) = floor(x / lowerSqrt(U))
-low(x, U) = x mod lowerSqrt(U)
-index(h, l, U) = h * lowerSqrt(U) + l
 ```
 
-**불변 조건:**
-1. min은 실제로 존재하지만 clusters에는 저장되지 않는다.
-2. max는 clusters에도 저장된다 (min == max일 때는 둘 다 저장 안 함).
-3. summary.has(i) ⟺ clusters[i]가 비어있지 않다.
+헬퍼 함수 세 개가 universe를 쪼개고 다시 붙입니다. $U' = \text{lowerSqrt}(U) = 2^{\lfloor \log_2 U / 2 \rfloor}$(클러스터 하나의 크기)라 하면,
 
-### 핵심 연산 — insert
+$$
+\text{high}(x) = \left\lfloor \frac{x}{U'} \right\rfloor \qquad \text{low}(x) = x \bmod U' \qquad \text{index}(h, l) = h \cdot U' + l
+$$
 
-```
-insert(x):
-  if min is undefined:       // 기저 사례: 빈 트리
-    min = max = x
-    return
-  
-  if x < min: swap(x, min)  // 새 x를 min으로, 이전 min을 실제로 삽입
-  if x > max: max = x
-  if U == 2: return           // 기저 사례: min과 max만 있으면 됨
-  
-  h = high(x), l = low(x)
-  if clusters[h] is empty:
-    summary.insert(h)         // 클러스터 최초 생성
-    clusters[h] = new vEB(lowerSqrt(U))
-    clusters[h].insert(l)     // 이 insert는 O(1) (빈 트리에 삽입)
-  else:
-    clusters[h].insert(l)
+지켜야 할 불변식은 세 가지예요.
+
+1. **min 분리**: $\min(V)$가 존재하면, 그 값은 어떤 `clusters[i]`에도 저장되지 않는다.
+2. **max는 이중 저장**: $\max(V)$는 `max` 필드와 해당 클러스터 양쪽에 존재한다(단, $\min = \max$인 원소 1개짜리 트리는 예외 — 이땐 클러스터에 아무것도 없다).
+3. **summary는 존재 색인**: $\text{summary.has}(i) \iff \text{clusters}[i]$가 정의돼 있고 비어있지 않다.
+
+재귀 구조를 그림으로 보면:
+
+```text
+vEB(U)
+ ├─ min, max                     ← O(1) 별도 저장 (min은 clusters에 없음)
+ ├─ summary : vEB(upperSqrt(U))  ← "클러스터 i에 원소가 있는가?" 를 저장하는 집합
+ └─ clusters[0..upperSqrt(U)-1]  ← 클러스터 i의 실제 내용, 각각 vEB(lowerSqrt(U))
 ```
 
-min을 clusters에 저장하지 않는 트릭 덕분에, clusters[h]가 비어있는 경우의 재귀 insert가 O(1)에 완료된다. 따라서 매 재귀 단계에서 summary.insert와 clusters.insert 중 하나만 재귀적으로 실행되어 T(U) = T(√U) + O(1)이 성립한다.
+$U = 16$인 트리에 `insert(2), insert(5), insert(8), insert(11)`을 차례로 실행하면 다음과 같은 구체적인 모양이 나옵니다(실측 확인 완료).
 
-### 핵심 연산 — successor
-
-```
-successor(x):
-  if U == 2:
-    if x == 0 and max == 1: return 1
-    return undefined
-  
-  h = high(x), l = low(x)
-  
-  // Case 1: 같은 클러스터 내에 successor가 있다
-  if clusters[h] != undefined and l < clusters[h].max:
-    offset = clusters[h].successor(l)
-    return index(h, offset)
-  
-  // Case 2: 다음 클러스터에서 찾는다
-  nextCluster = summary.successor(h)
-  if nextCluster is undefined: return undefined
-  return index(nextCluster, clusters[nextCluster].min)
+```text
+vEB(16): min=2, max=11                          ← min(2)은 clusters 어디에도 없다
+ ├─ summary(4): min=1, max=2                     "클러스터 1과 2에 원소가 있다"
+ │    ├─ clusters[1](2): min=0, max=0
+ │    └─ summary(2): min=1, max=1
+ ├─ clusters[0]  = 없음                          0~3 구간: min=2가 있지만 clusters엔 없다!
+ ├─ clusters[1](4): min=1, max=1                 5 하나 (low(5)=1)
+ ├─ clusters[2](4): min=0, max=3                 8, 11 (low=0, 3)
+ │    ├─ clusters[1](2): min=1, max=1
+ │    └─ summary(2): min=1, max=1
+ └─ clusters[3]  = 없음
 ```
 
-### 핵심 연산 — delete
+**액션(연산)** — 이 자료구조가 제공하는 연산 전부입니다.
 
-delete는 가장 복잡하다. min이 clusters에 없으므로 min을 삭제할 때 특별한 처리가 필요하다.
+| 연산 | 하는 일 | 비용 |
+|------|---------|------|
+| `insert(x)` | x를 집합에 삽입 (중복은 무시) | $O(\log \log U)$ |
+| `delete(x)` | x를 집합에서 제거 (없으면 무시) | $O(\log \log U)$ |
+| `has(x)` | x가 집합에 있는지 확인 | $O(\log \log U)$ |
+| `min()` | 최솟값 반환 (비어있으면 undefined) | $O(1)$ |
+| `max()` | 최댓값 반환 (비어있으면 undefined) | $O(1)$ |
+| `successor(x)` | x보다 큰 최솟값 반환 | $O(\log \log U)$ |
+| `predecessor(x)` | x보다 작은 최댓값 반환 | $O(\log \log U)$ |
 
-```
-delete(x):
-  if min == max:            // 원소가 1개뿐
-    if x == min: min = max = undefined
-    return
-  if U == 2:               // 기저 사례
-    if x == 0: min = 1
-    else: max = 0
-    min = max = (x == 0 ? 1 : 0)
-    return
-  
-  if x == min:             // min을 삭제하는 경우
-    firstCluster = summary.min
-    x = index(firstCluster, clusters[firstCluster].min)
-    min = x                // 새 min 설정 (clusters에는 아직 있음)
-  
-  // 이제 x를 clusters에서 실제로 삭제
-  h = high(x), l = low(x)
-  clusters[h].delete(l)
-  
-  if clusters[h].min is undefined:  // 클러스터가 비었으면
-    summary.delete(h)
-    if x == max:           // max도 삭제된 경우
-      summaryMax = summary.max
-      if summaryMax is undefined: max = min
-      else: max = index(summaryMax, clusters[summaryMax].max)
-  else if x == max:
-    max = index(h, clusters[h].max)
+핵심 연산 두 개를 자세히 볼게요.
+
+**① insert — "이미 있는 클러스터면 재귀, 처음 생기는 클러스터면 O(1)"**. 트리 `{2, 5, 8}`에 `insert(11)`을 실행하는 장면입니다.
+
+```text
+insert(11) 직전:  top min=2, max=8
+                  clusters[2](4): min=0, max=0     ← 8 하나만 (low(8)=0)
+                  summary(4): min=1, max=2         ← 이미 클러스터 1, 2를 알고 있음
+
+high(11)=2, low(11)=3.  clusters[2]는 이미 있고 비어있지 않다(min=0)
+→ summary는 건드리지 않고 clusters[2].insert(3)만 재귀 호출
+
+insert(11) 직후:  top min=2, max=11                ← 11 > max(8) 이므로 갱신
+                  clusters[2](4): min=0, max=3      ← 3 추가
+                  summary(4): min=1, max=2          ← 그대로! (이미 알고 있던 클러스터라 재확인 불필요)
 ```
 
-### 정당성
+만약 `clusters[2]`가 그때 처음 생기는 것이었다면(예: `insert(8)`이 최초 실행일 때) `clusters[2].insert(low(8))`은 빈 트리에 넣는 것이므로 재귀 없이 `min = max = low(8)`을 바로 대입하고 끝나요 — 이게 $O(1)$의 근원입니다.
 
-- **T(U) = T(√U) + O(1)**: 각 재귀 호출에서 summary 또는 cluster 중 하나만 재귀적으로 호출된다.
-- **T(U) = O(log log U)**: 점화식 풀면, U → √U → √√U → ... → 2 (기저 사례). 단계 수 = log log U.
-- **min 트릭의 정확성**: min이 clusters에 없으므로, clusters[h]에 원소가 없으면 vEB(lowerSqrt)에 삽입할 때 항상 빈 트리에 삽입 → O(1). 이것이 전체 O(log log U)의 핵심이다.
+**② successor — "같은 클러스터부터, 없으면 다음 클러스터로"**. 트리 `{2, 5, 8, 11}`에서 `successor(5)`를 찾는 과정입니다.
 
-### 구현 디테일과 최적화
+```text
+successor(5):  min=2 이므로 5 < min이 아님 (min보다 작을 때만 min을 바로 반환하는 지름길이 있다)
+               high(5)=1, low(5)=1
+               clusters[1].max = 1 이므로 low(5)=1 < 1 은 거짓 → 같은 클러스터엔 더 없음
+               summary.successor(1) = 2               ← "1 다음으로 원소가 있는 클러스터는 2"
+               clusters[2].min = 0
+               index(2, 0) = 2*4 + 0 = 8
 
-- **2의 거듭제곱 권장**: `upperSqrt`와 `lowerSqrt` 계산 시 비트 연산으로 구현 가능.
-- **메모리**: 재귀 구조로 최악 O(U)의 공간을 사용. n개의 원소에 대해 실제로 사용되는 공간은 O(n log log U).
-- **lazy 초기화**: clusters 배열을 처음부터 모두 초기화하면 O(U) 시간이 걸린다. 대신 undefined 상태에서 필요할 때만 생성한다.
-- **기저 사례 U=2**: summary와 clusters 없이 min, max 두 변수만으로 처리한다.
+반환: 8
+```
 
----
+### 왜 모순 없이 작동하는가
 
-## 시뮬레이션
+불변식이 계속 지켜지는지 귀납적으로 확인해 볼게요. **기저**: 빈 트리는 `min = max = undefined`이고 clusters도 summary도 비어 있으니 세 불변식이 자명하게 성립합니다. **보존**: `insert`가 최솟값을 갱신할 때는 새 원소와 기존 min을 **교환**해서, 원래 min이었던 값을 실제로 clusters에 삽입해요 — 그러니 삽입 후에도 "지금 시점의 min"은 여전히 clusters 밖에 있습니다. 클러스터가 방금 처음 생겼을 때만 summary에 알리므로 불변식 3(summary.has(i) ⟺ clusters[i] 비어있지 않음)도 유지돼요. `delete`가 min을 지울 때는 summary에서 "그다음으로 작은 원소가 있는 클러스터"를 찾아 그 클러스터의 min을 실제로 뽑아 새 min으로 승격시키는데, 이 값을 clusters에서 진짜로 지우기 때문에 다시 "min은 clusters 밖" 상태로 돌아갑니다.
+
+**헷갈리기 쉬운 포인트**를 세 가지 짚어 둘게요.
+
+- **min이 트리 안에 분명히 있는데 clusters를 뒤져도 안 나옵니다.** 이건 버그가 아니라 설계예요. 그래서 `has(x)`는 반드시 `x === min` 비교를 clusters를 뒤지기 **전에** 먼저 해야 합니다. 이 체크를 빼먹으면 방금 삽입한 값의 `has`가 거짓을 반환하는 실제 오류가 납니다.
+- **successor에서 "x < min이면 곧장 min 반환" 분기를 빼먹기 쉽습니다.** 이 분기가 없으면 x가 트리의 최솟값보다 작을 때 재귀가 clusters/summary를 타고 내려가 버리는데, 최솟값 자체는 clusters에 없으니 재귀가 그 값을 완전히 건너뜁니다. 실제로 트리 `{2, 5, 8, 11}`에서 `successor(0)`을 이 분기 없이 계산하면 기대값 `2` 대신 `8`이 나옵니다(실측 확인) — 2와 5를 통째로 건너뛴 것이죠.
+- **summary가 자기 자신과 똑같은 vEB 구조라는 사실을 잊기 쉽습니다.** `summary`도 `insert`/`delete`/`successor`를 그대로 재귀 호출하는 대상이지, 별도의 특수 자료구조가 아니에요. 그래서 위 트리에서 `summary`(크기 4)는 다시 자기 안에 `clusters`와 `summary`를 갖습니다(실측: `summary.clusters[1]`은 min=max=0, `summary.summary`는 min=max=1).
+
+잠깐, 확인 하나만 해 볼까요? 트리 `{2, 5, 8, 11}`에서 `predecessor(2)`는 무엇일까요? 2는 이 트리의 최솟값이니 그보다 작은 원소가 없어서 `undefined`입니다(실측 확인).
+
+엣지 케이스도 점검해 둡니다.
+
+```text
+빈 트리                       → min()/max() undefined, has/successor/predecessor 모두 실패
+원소 1개 (min == max)          → clusters/summary 어디에도 저장 안 함, delete 시 바로 min=max=undefined
+U = 2 (기저 사례)              → summary·clusters 없이 min/max 두 변수만으로 0/1 관리
+중복 insert                    → has(x)가 참이면 아무 것도 하지 않음 (집합 불변)
+없는 값 delete                 → has(x)가 거짓이면 아무 것도 하지 않음
+```
+
+## 아이디어를 코드로 옮기기
+
+가이드가 정의한 인터페이스에 맞춰 전체 연산을 구현합니다. `has`를 `insert`/`delete` 맨 앞의 방어선으로 재사용해 "중복 무시"/"없는 값 무시" 요구를 자연스럽게 만족시키는 것이 이 구현의 축이에요.
+
+```ts
+class VanEmdeBoasTree {
+  private U: number;
+  private _min: number | undefined = undefined;
+  private _max: number | undefined = undefined;
+  private summary: VanEmdeBoasTree | undefined = undefined;
+  private clusters: (VanEmdeBoasTree | undefined)[] = [];
+  private readonly lowerSqrtU: number;
+
+  constructor(U: number) {
+    this.U = U;
+    this.lowerSqrtU = U > 2 ? VanEmdeBoasTree.lowerSqrt(U) : 0;
+  }
+
+  static upperSqrt(U: number): number {
+    return 2 ** Math.ceil(Math.log2(U) / 2);
+  }
+  static lowerSqrt(U: number): number {
+    return 2 ** Math.floor(Math.log2(U) / 2);
+  }
+  private high(x: number): number {
+    return Math.floor(x / this.lowerSqrtU);
+  }
+  private low(x: number): number {
+    return x % this.lowerSqrtU;
+  }
+  private index(h: number, l: number): number {
+    return h * this.lowerSqrtU + l;
+  }
+
+  min(): number | undefined {
+    return this._min;
+  }
+  max(): number | undefined {
+    return this._max;
+  }
+
+  has(x: number): boolean {
+    if (x === this._min || x === this._max) return true; // min은 여기서만 걸린다
+    if (this.U === 2 || this._min === undefined) return false;
+    const cluster = this.clusters[this.high(x)];
+    if (cluster === undefined) return false;
+    return cluster.has(this.low(x));
+  }
+
+  insert(x: number): void {
+    if (this.has(x)) return; // 집합 의미론: 중복 무시
+    this.insertNew(x);
+  }
+
+  private insertNew(x: number): void {
+    if (this._min === undefined) {
+      this._min = x;
+      this._max = x;
+      return;
+    }
+    if (x < this._min) {
+      const tmp = this._min;
+      this._min = x; // 새 x가 min이 되고
+      x = tmp;        // 옛 min이 실제로 삽입될 값이 된다
+    }
+    if (this.U > 2) {
+      const h = this.high(x);
+      const l = this.low(x);
+      if (this.clusters[h] === undefined) {
+        this.clusters[h] = new VanEmdeBoasTree(this.lowerSqrtU);
+      }
+      if (this.clusters[h]!.min() === undefined) {
+        if (this.summary === undefined) {
+          this.summary = new VanEmdeBoasTree(VanEmdeBoasTree.upperSqrt(this.U));
+        }
+        this.summary.insertNew(h); // 클러스터가 "방금 처음" 생겼을 때만
+      }
+      this.clusters[h]!.insertNew(l); // 위 경우 빈 트리 삽입 → O(1)
+    }
+    if (x > this._max!) this._max = x;
+  }
+
+  delete(x: number): void {
+    if (!this.has(x)) return; // 없는 값의 삭제는 무시
+    this.deleteExisting(x);
+  }
+
+  private deleteExisting(x: number): void {
+    if (this._min === this._max) {
+      this._min = undefined;
+      this._max = undefined;
+      return;
+    }
+    if (this.U === 2) {
+      this._min = x === 0 ? 1 : 0;
+      this._max = this._min;
+      return;
+    }
+    if (x === this._min) {
+      const firstCluster = this.summary!.min()!;
+      x = this.index(firstCluster, this.clusters[firstCluster]!.min()!); // x 재계산이 먼저!
+      this._min = x;
+    }
+    const h = this.high(x);
+    const l = this.low(x);
+    this.clusters[h]!.deleteExisting(l);
+    if (this.clusters[h]!.min() === undefined) {
+      this.summary!.deleteExisting(h);
+      if (x === this._max) {
+        const summaryMax = this.summary!.max();
+        this._max = summaryMax === undefined
+          ? this._min
+          : this.index(summaryMax, this.clusters[summaryMax]!.max()!);
+      }
+    } else if (x === this._max) {
+      this._max = this.index(h, this.clusters[h]!.max()!);
+    }
+  }
+
+  successor(x: number): number | undefined {
+    if (this.U === 2) {
+      return x === 0 && this._max === 1 ? 1 : undefined;
+    }
+    if (this._min !== undefined && x < this._min) return this._min; // 지름길: 빼먹으면 함정
+
+    const h = this.high(x);
+    const l = this.low(x);
+    const cluster = this.clusters[h];
+    const clusterMax = cluster?.max();
+    if (clusterMax !== undefined && l < clusterMax) {
+      const offset = cluster!.successor(l)!;
+      return this.index(h, offset);
+    }
+    const succCluster = this.summary?.successor(h);
+    if (succCluster === undefined) return undefined;
+    const offset = this.clusters[succCluster]!.min()!;
+    return this.index(succCluster, offset);
+  }
+
+  predecessor(x: number): number | undefined {
+    if (this.U === 2) {
+      return x === 1 && this._min === 0 ? 0 : undefined;
+    }
+    if (this._max !== undefined && x > this._max) return this._max;
+
+    const h = this.high(x);
+    const l = this.low(x);
+    const cluster = this.clusters[h];
+    const clusterMin = cluster?.min();
+    if (clusterMin !== undefined && l > clusterMin) {
+      const offset = cluster!.predecessor(l)!;
+      return this.index(h, offset);
+    }
+    const predCluster = this.summary?.predecessor(h);
+    if (predCluster === undefined) {
+      // 요약에 답이 없다면 min 자신이 predecessor일 수도 있다 (min은 clusters에 없으니까)
+      return this._min !== undefined && x > this._min ? this._min : undefined;
+    }
+    const offset = this.clusters[predCluster]!.max()!;
+    return this.index(predCluster, offset);
+  }
+}
+```
+
+가장 중요한 부분은 `insertNew`의 이 세 줄입니다.
+
+```ts
+if (this.clusters[h]!.min() === undefined) {
+  ...
+  this.summary.insertNew(h);
+}
+this.clusters[h]!.insertNew(l);
+```
+
+클러스터가 이미 원소를 갖고 있으면(`min() !== undefined`) summary는 건드리지 않고 `clusters[h].insertNew(l)`만 재귀 호출합니다. 이때 그 재귀 호출도 결국 어딘가에서 다시 O(log log U) 크기로 쪼개지지만, **딱 하나의 재귀 경로**(summary 아니면 clusters 중 하나)만 타므로 $T(U) = T(\sqrt U) + O(1)$이 성립해요. 클러스터가 방금 비어 있었다면 `summary.insertNew(h)`도 함께 호출되지만, 그다음 `clusters[h].insertNew(l)`은 **빈 트리에 삽입**이라 재귀 없이 `min = max = l` 대입 한 줄로 끝납니다. 두 재귀가 동시에 "깊게" 들어가는 경우가 없다는 것이 이 자료구조 전체 복잡도의 핵심이에요.
+
+놓치기 쉬운 지점들을 정리합니다.
+
+- **`has`의 min/max 지름길이 clusters 검사보다 먼저 와야 합니다.** 순서를 바꾸면 min을 검색할 때 clusters를 뒤지다가 못 찾고 거짓을 반환하는 오류가 납니다.
+- **`insertNew`에서 `x < min` 스왑이 clusters 삽입보다 먼저입니다.** 스왑 전의 x로 `high`/`low`를 계산하면 엉뚱한 클러스터에 넣게 됩니다.
+- **`deleteExisting`에서 min을 지울 때 x를 먼저 재계산해야 합니다.** `x = index(firstCluster, ...)`를 건너뛰고 옛 min 값 그대로 `high(x)`/`low(x)`를 계산하면, clusters에 애초에 없던(min이라 저장 안 된) 값을 지우려다 존재하지 않는 클러스터에 접근하게 됩니다.
+- **`successor`의 "x < min" 지름길을 빼먹으면 최솟값 부근의 원소들을 통째로 건너뜁니다.** 위에서 실측한 대로, 이 분기가 없으면 `{2,5,8,11}`에서 `successor(0)`이 `2`가 아니라 `8`을 반환해요.
+
+> 기억법: **"min은 대역에 없는 왕관 — clusters엔 절대 새기지 않는다."** min을 다루는 모든 연산(has/insert/delete/successor/predecessor)은 clusters를 보기 전에 반드시 min부터 확인합니다.
+
+## 실행 시각화
+
+$U = 16$ 트리에 `insert(2), insert(5), insert(8), insert(11)`을 차례로 실행한 뒤 `successor(5)`와 `delete(5)`를 실행하는 장면입니다. 고정 입력은 위 "전체 스펙"과 "핵심 연산" 절에서 실측한 것과 동일하고, `successor(5)`의 실제 반환값은 `8`, `delete(5)` 직후 집합은 `{2, 8, 11}`입니다(둘 다 스크래치 실행으로 확인). array 패널은 그 시점까지 삽입된 원소들을 정렬 순서로, highlight는 현재 연산이 주목하는 위치를, marked는 이미 확정된 원소를 보여줍니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -219,68 +395,8 @@ export const steps = [
 
 <AlgorithmSimulation view="array" steps={steps} title="vEB 트리 삽입/삭제/successor 시뮬레이션 (U=16)" />
 
-## 수도 코드와 Activity Diagram
+## 스스로 점검하기
 
-### insert 의사코드
-
-```
-insert(x):
-  if min == undefined:
-    min = max = x; return
-  if x == min: return  // 중복
-  if x < min: [x, min] = [min, x]
-  if x > max: max = x
-  if U == 2: return
-  
-  h = high(x, U); l = low(x, U)
-  if clusters[h] == undefined:
-    clusters[h] = new vEB(lowerSqrt(U))
-    summary.insert(h)
-    clusters[h].min = clusters[h].max = l
-    // 빈 트리에 삽입 → O(1) (재귀 없음!)
-  else:
-    clusters[h].insert(l)
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A["insert(x)"] --> B{min == undefined?}
-  B -- 예 --> C[min = max = x] --> Z[종료]
-  B -- 아니오 --> D{x == min?}
-  D -- 예 --> Z
-  D -- 아니오 --> E{x < min?}
-  E -- 예 --> F[swap x, min]
-  E -- 아니오 --> G{x > max?}
-  F --> G
-  G -- 예 --> H[max = x]
-  G -- 아니오 --> I{U == 2?}
-  H --> I
-  I -- 예 --> Z
-  I -- 아니오 --> J[h = high, l = low]
-  J --> K{"clusters[h] == undefined?"}
-  K -- 예 --> L["clusters[h] = 새 vEB"]
-  L --> M["summary.insert(h) 재귀"]
-  L --> N["clusters[h].min = clusters[h].max = l: O(1)"]
-  K -- 아니오 --> O["clusters[h].insert(l) 재귀"]
-  M --> Z
-  N --> Z
-  O --> Z
-```
-
-```mermaid
-flowchart TD
-  A["successor(x)"] --> B{U == 2?}
-  B -- 예 --> C{x==0 and max==1?}
-  C -- 예 --> D[반환 1]
-  C -- 아니오 --> E[반환 undefined]
-  B -- 아니오 --> F["h=high(x), l=low(x)"]
-  F --> G{"clusters[h] != undefined and l < clusters[h].max?"}
-  G -- 예 --> H["offset = clusters[h].successor(l) 재귀"]
-  H --> I["반환 index(h, offset)"]
-  G -- 아니오 --> J["nextCluster = summary.successor(h) 재귀"]
-  J --> K{nextCluster == undefined?}
-  K -- 예 --> E
-  K -- 아니오 --> L["반환 index(nextCluster, clusters[nextCluster].min)"]
-```
+1. $U = 16$인 빈 트리에 `insert(9), insert(1), insert(4), insert(13)`을 순서대로 실행하면 `clusters` 배열의 어느 인덱스에 트리가 생성될까요? 그리고 그중 어느 삽입이 summary를 함께 갱신할까요? 손으로 `high`/`low`를 계산해 확인해 보세요.
+2. `successor`의 "x < min이면 min을 바로 반환" 분기를 빼먹었을 때 `{2, 5, 8, 11}`에서 `successor(0)`이 왜 `8`이 나오는지, 재귀 호출을 한 단계씩 따라가며 설명해 보세요. (힌트: min은 clusters에 없다는 사실이 어디서 재귀를 헛돌게 만드나요?)
+3. `delete`에서 min을 지울 때 `x = index(firstCluster, clusters[firstCluster].min())` 재계산을 빼먹고 옛 min 값으로 바로 `clusters[high(x)].delete(low(x))`를 호출하면 어떤 문제가 생길까요? `{2, 5, 8, 11}`에서 `delete(2)`를 예로 들어 구체적으로 설명해 보세요.
