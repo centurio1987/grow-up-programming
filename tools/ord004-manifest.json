@@ -532,13 +532,13 @@
       "dir": "src/algorithms/dp/knapsack01",
       "kind": "algo",
       "studyFold": true,
-      "status": "pending",
+      "status": "done",
       "g1": "pass",
       "g4": "pass",
-      "gate": "FAIL",
-      "extReview": null,
-      "committedAt": null,
-      "note": "FAIL: 10/19 MUST. TS코드 전무·시그니처 없음·마르코프 이론 없음. 대규모 rewrite."
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-14T07:29:45.980Z",
+      "note": "study 재집필: 완전탐색→2D→1D 3단 코드 사다리·마르코프 비유 명시·함정 실측. _scratch 자기검증(300회 교차)."
     },
     {
       "name": "matrixChainMultiplication",
