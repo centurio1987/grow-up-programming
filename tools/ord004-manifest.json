@@ -281,12 +281,12 @@
       "kind": "algo",
       "studyFold": true,
       "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "FAIL",
       "extReview": null,
       "committedAt": null,
-      "note": null
+      "note": "FAIL: B6(원형 brute-force 코드 없음)+SHOULD A3,C5. 18/19 MUST. 근소 미달, 경량 enrich."
     },
     {
       "name": "nextGreaterElement",
@@ -379,12 +379,12 @@
       "kind": "algo",
       "studyFold": true,
       "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "FAIL",
       "extReview": null,
       "committedAt": null,
-      "note": null
+      "note": "FAIL: T1(격식체·ascii 전무),C1,C2,E3+SHOULD A3. 톤·시각화 부재. 중간 rewrite."
     },
     {
       "name": "parametricBinarySearch",
@@ -533,12 +533,12 @@
       "kind": "algo",
       "studyFold": true,
       "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "FAIL",
       "extReview": null,
       "committedAt": null,
-      "note": null
+      "note": "FAIL: 10/19 MUST. TS코드 전무·시그니처 없음·마르코프 이론 없음. 대규모 rewrite."
     },
     {
       "name": "matrixChainMultiplication",
@@ -2087,12 +2087,12 @@
       "kind": "ds",
       "studyFold": true,
       "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "FAIL",
       "extReview": null,
       "committedAt": null,
-      "note": null
+      "note": "FAIL: E3(스텁→스크래치 실측 기록 없음)+SHOULD C5. 16/17 MUST. 근소 미달."
     },
     {
       "name": "intervalTree",
@@ -2157,12 +2157,12 @@
       "kind": "ds",
       "studyFold": true,
       "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "FAIL",
       "extReview": null,
       "committedAt": null,
-      "note": null
+      "note": "FAIL: 8/17. 잘못된(알고리즘) 캔버스 헤딩·코드 절 없음. 대규모 rewrite."
     },
     {
       "name": "kdTree",
@@ -2199,12 +2199,12 @@
       "kind": "ds",
       "studyFold": true,
       "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "FAIL",
       "extReview": null,
       "committedAt": null,
-      "note": null
+      "note": "FAIL: 7/17. 자료구조 아닌 알고리즘 캔버스 오용·코드 없음·톤 정반대. 대규모 rewrite."
     },
     {
       "name": "bPlusTree",
@@ -2213,12 +2213,12 @@
       "kind": "ds",
       "studyFold": true,
       "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "FAIL",
       "extReview": null,
       "committedAt": null,
-      "note": null
+      "note": "FAIL: E1(delete 트레이스 자기모순)+E3+SHOULD C5. 15/17 MUST. 국소 수정."
     },
     {
       "name": "bTree",
