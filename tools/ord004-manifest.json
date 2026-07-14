@@ -280,13 +280,13 @@
       "dir": "src/algorithms/array/mosAlgorithm",
       "kind": "algo",
       "studyFold": true,
-      "status": "pending",
+      "status": "done",
       "g1": "pass",
       "g4": "pass",
-      "gate": "FAIL",
-      "extReview": null,
-      "committedAt": null,
-      "note": "FAIL: B6(원형 brute-force 코드 없음)+SHOULD A3,C5. 18/19 MUST. 근소 미달, 경량 enrich."
+      "gate": "PASS",
+      "extReview": "done",
+      "committedAt": "2026-07-14T04:54:07.445Z",
+      "note": "study 편입 enrich(B6/A3/C5)+외부검토 7건 반영. _scratch 자기검증(500회 교차)."
     },
     {
       "name": "nextGreaterElement",

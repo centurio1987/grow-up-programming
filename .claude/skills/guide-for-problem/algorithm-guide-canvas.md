@@ -2,7 +2,7 @@
 
 알고리즘 가이드의 골격이다. `##` 헤딩의 **문구와 순서는 고정**이고, `###` 헤딩은 직무가 고정이되
 제목 문구는 내용에 맞춰 지을 수 있다(고정 접미·직무 주석 참조). 모범 예시(필독):
-`src/algorithms/array/mosAlgorithm/mosAlgorithm-study-guide.mdx`.
+`src/algorithms/array/mosAlgorithm/mosAlgorithm-guide.mdx`.
 
 **조건부 절 규칙**: "조건부"로 표시된 절은 해당 사항이 없으면 **문서에서 절 자체를 생략**한다
 (문서 안에 "해당 없음" 메모를 남기지 않는다 — 독자용 문서에 집필 메타를 싣지 않는다).

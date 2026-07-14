@@ -105,7 +105,7 @@ argument-hint: <file-name-without-extension>
 ### 2.1 골격 (ORD-003 canvas — 변경 금지)
 
 1. **필독 2건**: `assets/TONE_REFERENCE.md`(문체 규격 — 강제 적용), 그리고 대상에 맞는 모범 예시 —
-   알고리즘이면 `src/algorithms/array/mosAlgorithm/mosAlgorithm-study-guide.mdx`,
+   알고리즘이면 `src/algorithms/array/mosAlgorithm/mosAlgorithm-guide.mdx`,
    자료구조면 `src/data-structures/tree/bPlusTree/bPlusTree-study-guide.mdx`.
 2. 경로로 캔버스를 고른다: `src/algorithms/**` → `algorithm-guide-canvas.md`,
    `src/data-structures/**` → `data-structure-guide-canvas.md`.
