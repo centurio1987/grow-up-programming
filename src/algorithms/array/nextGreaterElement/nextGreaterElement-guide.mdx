@@ -256,7 +256,7 @@ flowchart TD
     A([시작]) --> B["result = [-1 x N] / stack = []"]
     B --> C{i < N?}
     C -- No --> H([return result])
-    C -- Yes --> D{stack 비어있지 않고 nums[stack.top()] < nums[i]?}
+    C -- Yes --> D{"stack 비어있지 않고 nums[stack.top()] < nums[i]?"}
     D -- Yes --> E["j = stack.pop() / result[j] = nums[i]"]
     E --> D
     D -- No --> F["stack.push(i)"]

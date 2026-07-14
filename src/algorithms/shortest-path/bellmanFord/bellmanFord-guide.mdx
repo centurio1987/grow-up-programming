@@ -317,14 +317,14 @@ flowchart TD
     A([시작]) --> B["dist = [Infinity × n]\ndist[src] = 0\ni = 1"]
     B --> C{"i ≤ n-1?"}
     C -- 아니오 --> G
-    C -- 예 --> D[모든 간선 (u,v,w) 순회]
+    C -- 예 --> D["모든 간선 (u,v,w) 순회"]
     D --> E{"dist[u] ≠ Inf\n& dist[u]+w 가 dist[v]보다 작은가?"}
     E -- 아니오 --> D
     E -- 예 --> F["dist[v] = dist[u]+w"]
     F --> D
     D -- 모든 간선 처리 완료 --> C2["i += 1"]
     C2 --> C
-    G[V번째 완화 검사:\n모든 간선 (u,v,w) 순회] --> H{"dist[u] ≠ Inf\n& dist[u]+w 가 dist[v]보다 작은가?"}
+    G["V번째 완화 검사:\n모든 간선 (u,v,w) 순회"] --> H{"dist[u] ≠ Inf\n& dist[u]+w 가 dist[v]보다 작은가?"}
     H -- 아니오 --> G
     H -- 예 --> I["hasNegativeCycle = true\nbreak"]
     I --> J

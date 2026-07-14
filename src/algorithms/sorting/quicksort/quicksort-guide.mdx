@@ -205,7 +205,7 @@ function partition(A, left, right):
 flowchart TD
     A([시작: sort A, left, right]) --> B{left ≥ right?}
     B -- Yes --> C([반환, 이미 정렬됨])
-    B -- No --> D[mid = left + floor(right-left)/2\nswap A_mid, A_right]
+    B -- No --> D["mid = left + floor(right-left)/2\nswap A_mid, A_right"]
     D --> E[pivot = A_right\ni = left\nj = left]
     
     E --> F{j < right?}

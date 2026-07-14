@@ -230,7 +230,7 @@ flowchart TD
     B --> C{lo <= hi?}
     C -- No --> G([-1 반환\ntarget 없음])
     C -- Yes --> D["mid = lo + ⌊(hi-lo)/2⌋\n오버플로 방지"]
-    D --> E{A[mid] vs target}
+    D --> E{"A[mid] vs target"}
     E -- "A[mid] == target" --> F([mid 반환])
     E -- "A[mid] < target\n왼쪽 전체 제거" --> H["lo = mid + 1\n불변식 유지"]
     E -- "A[mid] > target\n오른쪽 전체 제거" --> I["hi = mid - 1\n불변식 유지"]

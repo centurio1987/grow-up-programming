@@ -296,8 +296,8 @@ flowchart TD
     B -- No --> C[cur.isEnd = true, 종료]
     B -- Yes --> D["ch = 다음 문자"]
     D --> E{cur.children에 ch 존재?}
-    E -- No --> F[새 노드 생성: cur.children[ch] = new TrieNode]
-    E -- Yes --> G[cur = cur.children[ch]]
+    E -- No --> F["새 노드 생성: cur.children[ch] = new TrieNode"]
+    E -- Yes --> G["cur = cur.children[ch]"]
     F --> G
     G --> B
 ```
@@ -313,7 +313,7 @@ flowchart TD
     B -- Yes --> D["ch = 다음 문자"]
     D --> E{cur.children에 ch 존재?}
     E -- No --> F[return false]
-    E -- Yes --> G[cur = cur.children[ch]]
+    E -- Yes --> G["cur = cur.children[ch]"]
     G --> B
 ```
 

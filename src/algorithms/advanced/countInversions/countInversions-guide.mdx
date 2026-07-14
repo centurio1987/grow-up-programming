@@ -238,7 +238,7 @@ flowchart TD
     H --> J["merge(arr, lo, mid, hi) 호출"]
     I --> J
 
-    J --> K{i < |L| and j < |R|?}
+    J --> K{"i < |L| and j < |R|?"}
     K -->|No| N[남은 원소 복사]
     K -->|Yes| L{"L[i] <= R[j]?"}
     L -->|Yes| M1["arr[k]=L[i], i++, k++"]

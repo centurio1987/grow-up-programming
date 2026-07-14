@@ -226,8 +226,8 @@ class TernarySearchTree:
 ```mermaid
 flowchart TD
   A([insert 시작]) --> B{node == null?}
-  B -- 예 --> C[새 노드 생성\nchar = word[i]]
-  B -- 아니오 --> D{word[i] vs node.char}
+  B -- 예 --> C["새 노드 생성\nchar = word[i]"]
+  B -- 아니오 --> D{"word[i] vs node.char"}
   C --> D
   D -- 작음 --> E[node.left로 재귀\n같은 i 유지]
   D -- 큼 --> F[node.right로 재귀\n같은 i 유지]

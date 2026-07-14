@@ -317,7 +317,7 @@ flowchart TD
     E -- No --> F[새 leaf 노드: label=remaining, isEnd=true, 연결 후 종료]
     E -- Yes --> G["child = cur.children[firstCh]"]
     G --> H["lcp = commonPrefixLength(remaining, child.label)"]
-    H --> I{lcp == len(child.label)?}
+    H --> I{"lcp == len(child.label)?"}
     I -- Yes --> J["remaining = remaining[lcp:], cur = child"]
     J --> B
     I -- No --> K[중간 노드 mid 생성: label=공통접두사]

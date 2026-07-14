@@ -223,7 +223,7 @@ flowchart TD
     A([시작]) --> B{N == 0?}
     B -- Yes --> C([return 0])
     B -- No --> D{N == 1?}
-    D -- Yes --> E([return nums[0]])
+    D -- Yes --> E(["return nums[0]"])
     D -- No --> F["prev2 = nums[0] / prev1 = max(nums[0], nums[1])"]
     F --> G{i < N?}
     G -- Yes --> H["curr = max(prev1, prev2 + nums[i])"]

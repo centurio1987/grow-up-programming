@@ -224,7 +224,7 @@ flowchart TD
     I --> J{i < k?}
     J -- No --> K([return true, false positive 가능])
     J -- Yes --> L["pos = (h1 + i×h2) mod m"]
-    L --> M{testBit(bits, pos) == 0?}
+    L --> M{"testBit(bits, pos) == 0?"}
     M -- Yes → 확실히 없음 --> N([return false])
     M -- No → 이 비트는 1 --> O["i++"]
     O --> J

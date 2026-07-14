@@ -286,7 +286,7 @@ flowchart TD
     D --> E{"k == 1?"}
     E -->|Yes| F([0 반환])
     E -->|No| G{"k == 2?"}
-    G -->|Yes| H([dist2(h0, h1) 반환])
+    G -->|Yes| H(["dist2(h0, h1) 반환"])
     G -->|No| I["초기 j 설정:\ncross > 0인 동안 j 전진"]
     I --> J["i = 0, max_dist2 = 0"]
     J --> K["현재 쌍 (i, j) dist2 계산\nmax_dist2 갱신"]

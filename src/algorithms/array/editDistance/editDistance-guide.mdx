@@ -271,11 +271,11 @@ function editDistance(s, t):
 flowchart TD
     A([시작]) --> B["dp[i][0]=i (0..n) / dp[0][j]=j (0..m)"]
     B --> C{i <= n?}
-    C -- No --> J([return dp[n][m]])
+    C -- No --> J(["return dp[n][m]"])
     C -- Yes --> D{j <= m?}
     D -- No --> I["i++ / j=1"]
     I --> C
-    D -- Yes --> E{s[i-1] == t[j-1]?}
+    D -- Yes --> E{"s[i-1] == t[j-1]?"}
     E -- Yes --> F["dp[i][j] = dp[i-1][j-1]"]
     E -- No --> G["dp[i][j] = 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])"]
     F --> H[j++]

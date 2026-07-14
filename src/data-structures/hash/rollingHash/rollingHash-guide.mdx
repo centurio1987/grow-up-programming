@@ -194,7 +194,7 @@ flowchart TD
   A([search 시작]) --> B{m > n 또는\n빈 패턴?}
   B -- 예 --> C([빈 배열 반환])
   B -- 아니오 --> D[highPow = base^m-1 계산]
-  D --> E[patHash = hash(pattern)\nwinHash = hash(text[0..m-1])]
+  D --> E["patHash = hash(pattern)\nwinHash = hash(text[0..m-1])"]
   E --> F{모든 i in 0..n-m 반복}
   F --> G{winHash == patHash?}
   G -- 예 --> H{실제 문자열\n비교 확인}
@@ -203,7 +203,7 @@ flowchart TD
   G -- 아니오 --> K[다음 i로]
   I --> K
   J --> K
-  K --> L[해시 O(1) 갱신]
+  K --> L["해시 O(1) 갱신"]
   L --> F
   F -- 완료 --> M([결과 반환])
 ```

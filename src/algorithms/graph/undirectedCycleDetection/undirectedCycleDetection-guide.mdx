@@ -283,7 +283,7 @@ function undirectedCycleDetection(n, edges):
 ```mermaid
 flowchart TD
     A([시작]) --> B["parent = [0..n-1]\nrank = [0..0]"]
-    B --> C[다음 간선 [u, v] 선택]
+    B --> C["다음 간선 [u, v] 선택"]
     C --> D{간선 남아 있나?}
     D -- No --> G([false 반환: 사이클 없음])
     D -- Yes --> E["ru = find(u)\nrv = find(v)\n(경로 압축 적용)"]

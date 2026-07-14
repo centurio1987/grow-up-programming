@@ -245,7 +245,7 @@ function subsetSum(nums, target):
 flowchart TD
     A([시작]) --> B["dp[0]=true, dp[1..target]=false 초기화"]
     B --> C{원소 v 순회\n바깥 루프}
-    C -- 모든 원소 완료 --> G([dp[target] 반환])
+    C -- 모든 원소 완료 --> G(["dp[target] 반환"])
     C -- 원소 v 선택 --> H{"v > target?"}
     H -- Yes --> C
     H -- No --> D{x = target downto v\n안쪽 루프 감소 방향}

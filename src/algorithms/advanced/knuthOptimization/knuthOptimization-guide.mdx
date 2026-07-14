@@ -307,7 +307,7 @@ flowchart TD
     F --> G["탐색 범위 결정: lo_k = opt[i][j-1], hi_k = opt[i+1][j]"]
     G --> H["k = lo_k to min(hi_k, j-1) 반복"]
     H --> I["val = dp[i][k] + dp[k+1][j] + S(i,j)"]
-    I --> J{val < dp[i][j]?}
+    I --> J{"val < dp[i][j]?"}
     J -->|Yes| K["dp[i][j] = val, opt[i][j] = k"]
     J -->|No| L{k 범위 종료?}
     K --> L

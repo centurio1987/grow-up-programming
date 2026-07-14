@@ -245,7 +245,7 @@ function fftMultiply(a, b):
 ```mermaid
 flowchart TD
     A([시작]) --> B{a 또는 b 빈 배열?}
-    B -- Yes --> C([return []])
+    B -- Yes --> C(["return []"])
     B -- No  --> D["N = 최소 2의 거듭제곱 ≥ n+m-1\nfa, fb = 0-패딩(복소수)"]
     D --> E["FFT(fa, false)\nFFT(fb, false)"]
     E --> F["fa[k] = fa[k]*fb[k]\n(k=0..N-1, 원소별 곱)"]

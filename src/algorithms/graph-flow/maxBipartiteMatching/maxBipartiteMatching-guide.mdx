@@ -350,17 +350,17 @@ function DFS(u):
 ```mermaid
 flowchart TD
     A([시작]) --> B["인접 리스트 구성\nmatchL/matchR = NIL\ndist = INF\nmatching = 0"]
-    B --> C{BFS 성공\n(증가 경로 존재)?}
+    B --> C{"BFS 성공\n(증가 경로 존재)?"}
     C -- No --> Z([return matching])
     C -- Yes --> D["u = 0..L-1 순회"]
-    D --> E{matchL[u]\n== NIL?}
-    E -- No(매칭됨) --> F{u < L-1?}
-    E -- Yes --> G{DFS(u)\n성공?}
+    D --> E{"matchL[u]\n== NIL?"}
+    E -- "No(매칭됨)" --> F{u < L-1?}
+    E -- Yes --> G{"DFS(u)\n성공?"}
     G -- Yes --> H["matching++"]
     H --> F
     G -- No --> F
-    F -- Yes(다음 u) --> D
-    F -- No(완료) --> C
+    F -- "Yes(다음 u)" --> D
+    F -- "No(완료)" --> C
 
     subgraph BFS["BFS (레이어 그래프 구축)"]
         B1["미매칭 왼쪽 → dist=0, 큐 삽입\n매칭된 왼쪽 → dist=INF"]
@@ -369,7 +369,7 @@ flowchart TD
         B3 -- Yes --> B4["found = true"]
         B3 -- No --> B5{"dist[next]\n== INF?"}
         B5 -- Yes --> B6["dist[next] = dist[u]+1\n큐 삽입"]
-        B5 -- No(이미 방문) --> B2
+        B5 -- "No(이미 방문)" --> B2
         B4 --> B2
         B6 --> B2
     end
@@ -378,7 +378,7 @@ flowchart TD
         D1["v ∈ adj[u] 순회\nnext = matchR[v]"]
         D1 --> D2{"next == NIL\nor dist[next]==dist[u]+1\nand DFS(next)?"}
         D2 -- Yes --> D3["matchL[u]=v, matchR[v]=u\nreturn true"]
-        D2 -- No(다음 v) --> D1
+        D2 -- "No(다음 v)" --> D1
         D1 -- 모두 실패 --> D4["dist[u] = INF\nreturn false"]
     end
 ```

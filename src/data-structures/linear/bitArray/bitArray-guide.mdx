@@ -245,10 +245,10 @@ flowchart TD
   E --> F[mask = 1 << bitIndex]
 
   F --> G{연산 종류?}
-  G -->|set| H[words&#91;w&#93; \|= mask]
-  G -->|clear| I[words&#91;w&#93; &= ~mask]
+  G -->|set| H["words[w] |= mask"]
+  G -->|clear| I["words[w] &= ~mask"]
   G -->|get| J["return (words[w] & mask) != 0"]
-  G -->|toggle| K[words&#91;w&#93; ^= mask]
+  G -->|toggle| K["words[w] ^= mask"]
 
   H --> Z([완료])
   I --> Z

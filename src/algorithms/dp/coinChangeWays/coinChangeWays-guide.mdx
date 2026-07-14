@@ -236,7 +236,7 @@ function coinChangeWays(coins, amount):
 flowchart TD
     A([시작]) --> B["dp[0]=1, dp[1..amount]=0 초기화"]
     B --> C{동전 c 순회\n바깥 루프}
-    C -- 모든 동전 완료 --> G([dp[amount] 반환])
+    C -- 모든 동전 완료 --> G(["dp[amount] 반환"])
     C -- 동전 c 선택 --> D{x = c..amount 순회\n안쪽 루프}
     D -- x 순회 완료 --> C
     D -- x 처리 중 --> E["dp[x] += dp[x - c]"]

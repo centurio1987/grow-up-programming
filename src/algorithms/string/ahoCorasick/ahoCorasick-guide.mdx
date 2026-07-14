@@ -397,7 +397,7 @@ flowchart TD
     G -- Yes --> H[i++]
     G -- No --> I[cur = cur.fail]
     I --> F
-    F -- Yes --> J[cur = cur.children[ch]]
+    F -- Yes --> J["cur = cur.children[ch]"]
     J --> K[node = cur]
     K --> L{node != null AND node != root?}
     L -- No --> H

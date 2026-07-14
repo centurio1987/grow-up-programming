@@ -242,19 +242,19 @@ connected(x, y) → boolean:
 
 ```mermaid
 flowchart TD
-    A([find: x]) --> B{parent[x] == x?}
+    A([find: x]) --> B{"parent[x] == x?"}
     B -- Yes → x가 루트 --> C([return x])
     B -- No → 루트 아님 --> D["parent[x] = find(parent[x])"]
-    D --> E([return parent[x]])
+    D --> E(["return parent[x]"])
 
     F([union: x, y]) --> G["rx=find(x), ry=find(y)"]
     G --> H{rx == ry?}
     H -- Yes → 이미 같은 집합 --> I([return, 변화 없음])
-    H -- No --> J{rank[rx] >= rank[ry]?}
+    H -- No --> J{"rank[rx] >= rank[ry]?"}
     J -- No → rx 랭크 낮음 --> K["swap(rx, ry)"]
     K --> L["parent[ry] = rx"]
     J -- Yes --> L
-    L --> M{rank[rx] == rank[ry]?}
+    L --> M{"rank[rx] == rank[ry]?"}
     M -- Yes → 높이 증가 --> N["rank[rx]++"]
     N --> O([done])
     M -- No --> O

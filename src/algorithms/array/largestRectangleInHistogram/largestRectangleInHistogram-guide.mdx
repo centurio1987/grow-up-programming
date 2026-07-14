@@ -292,7 +292,7 @@ flowchart TD
     A([시작]) --> B["stack = [] / maxArea = 0"]
     B --> C{i <= N?}
     C -- Yes --> D["h = (i==N) ? 0 : heights[i]"]
-    D --> E{stack 비어있지 않고 heights[stack.top()] > h?}
+    D --> E{"stack 비어있지 않고 heights[stack.top()] > h?"}
     E -- Yes --> F["j = stack.pop() / R = i / L = (stack 비면) -1 else stack.top()"]
     F --> G["area = heights[j] * (R-L-1) / maxArea = max(maxArea, area)"]
     G --> E

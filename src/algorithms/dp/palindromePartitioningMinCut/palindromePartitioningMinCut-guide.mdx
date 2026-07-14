@@ -294,7 +294,7 @@ flowchart TD
     E -- 진행 --> G["isPal[i][j] = (s[i]==s[j]) && isPal[i+1][j-1]"]
     G --> E
     F --> H{i = 0..n-1 순회}
-    H -- 완료 --> Z([cuts[n-1] 반환])
+    H -- 완료 --> Z(["cuts[n-1] 반환"])
     H -- 진행 --> I{"isPal[0][i]?"}
     I -- Yes --> J["cuts[i] = 0"]
     J --> H

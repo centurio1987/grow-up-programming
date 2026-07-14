@@ -303,10 +303,10 @@ flowchart TD
     A([시작]) --> B["deque = [] / result = []"]
     B --> C{i < N?}
     C -- No --> L([return result])
-    C -- Yes --> D{deque.front() < i-k+1?}
+    C -- Yes --> D{"deque.front() < i-k+1?"}
     D -- Yes --> E["deque.popFront()"]
     E --> D
-    D -- No --> F{deque 비어있지 않고 nums[deque.back()] <= nums[i]?}
+    D -- No --> F{"deque 비어있지 않고 nums[deque.back()] <= nums[i]?"}
     F -- Yes --> G["deque.popBack()"]
     G --> F
     F -- No --> H["deque.pushBack(i)"]

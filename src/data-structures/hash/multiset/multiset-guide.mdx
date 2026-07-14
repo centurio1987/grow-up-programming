@@ -228,7 +228,7 @@ flowchart TD
   D --> E([정렬 유지 완료])
 
   F([delete item]) --> G[lowerBound 이진 탐색]
-  G --> H{data[pos] == item?}
+  G --> H{"data[pos] == item?"}
   H -- 예 --> I[splice pos 1개 제거]
   H -- 아니오 --> J([false 반환])
   I --> K([true 반환])

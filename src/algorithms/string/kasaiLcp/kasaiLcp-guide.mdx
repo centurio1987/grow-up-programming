@@ -293,7 +293,7 @@ flowchart TD
     A["inv 배열 구성: inv[sa[i]] = i"] --> B[k = 0, i = 0]
     B --> C{i < n?}
     C -- No --> Z[lcp 반환]
-    C -- Yes --> D{inv[i] == n-1?}
+    C -- Yes --> D{"inv[i] == n-1?"}
     D -- Yes --> E[k = 0, i++]
     E --> C
     D -- No --> F["j = sa[inv[i] + 1]"]

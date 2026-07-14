@@ -194,9 +194,9 @@ splitChild(parent, i):
 
 ```mermaid
 flowchart TD
-  A[insert(x) 호출] --> B{루트 없음?}
-  B -- 예 --> C[루트 생성 keys=[x]] --> Z[종료]
-  B -- 아니오 --> D{has(x)?}
+  A["insert(x) 호출"] --> B{루트 없음?}
+  B -- 예 --> C["루트 생성 keys=[x]"] --> Z[종료]
+  B -- 아니오 --> D{"has(x)?"}
   D -- 예 --> Z
   D -- 아니오 --> E{루트가 가득 참?}
   E -- 예 --> F[새 루트 생성 후 분할]
@@ -213,7 +213,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A[delete(x) 호출] --> B{has(x)?}
+  A["delete(x) 호출"] --> B{"has(x)?"}
   B -- 아니오 --> C[false 반환]
   B -- 예 --> D{리프에 있음?}
   D -- 예 --> E[키 직접 제거]

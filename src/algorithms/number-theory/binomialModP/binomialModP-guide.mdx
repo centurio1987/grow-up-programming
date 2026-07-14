@@ -222,7 +222,7 @@ flowchart TD
     D -- No  --> F{n < p?}
     F -- Yes --> G["fact[0..n] 전처리\n불변식: fact[i] = i! mod p"]
     G --> H["inv_k = fastPower(fact[k], p-2, p)\ninv_nk = fastPower(fact[n-k], p-2, p)"]
-    H --> I([return fact[n]*inv_k*inv_nk mod p])
+    H --> I(["return fact[n]*inv_k*inv_nk mod p"])
     F -- No  --> J["ni = n % p,  ki = k % p\n불변식: 0 <= ni,ki < p"]
     J --> K["a = binomialModP(ni, ki, p)\nb = binomialModP(n/p, k/p, p)"]
     K --> L([return a*b mod p])

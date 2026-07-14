@@ -286,20 +286,20 @@ flowchart TD
     B --> C["start = 0"]
     C --> D{start < n?}
     D -- No --> M([return true])
-    D -- Yes --> E{color[start]\n!= -1?}
-    E -- Yes(이미 방문) --> L["start++"]
+    D -- Yes --> E{"color[start]\n!= -1?"}
+    E -- "Yes(이미 방문)" --> L["start++"]
     L --> D
     E -- No --> F["color[start] = 0\nqueue = [start]"]
     F --> G{queue\n비어 있는가?}
     G -- Yes --> L
     G -- No --> H["u = dequeue()"]
     H --> I["v ∈ adj[u] 순회"]
-    I --> J{color[v] == -1?}
+    I --> J{"color[v] == -1?"}
     J -- Yes --> K["color[v] = 1 - color[u]\nenqueue(v)"]
     K --> I
-    J -- No --> N{color[v]\n== color[u]?}
-    N -- Yes(홀수 사이클) --> O([return false])
-    N -- No(정상) --> I
+    J -- No --> N{"color[v]\n== color[u]?"}
+    N -- "Yes(홀수 사이클)" --> O([return false])
+    N -- "No(정상)" --> I
     I -- 순회 완료 --> G
 ```
 

@@ -348,7 +348,7 @@ flowchart TD
     J([rangeSum: l,r]) --> K{r < lo 또는 hi < l?}
     K -- Yes --> L([return 0])
     K -- No --> M{l ≤ lo and hi ≤ r?}
-    M -- Yes → 완전 포함 --> N([return sum[v]])
+    M -- Yes → 완전 포함 --> N(["return sum[v]"])
     M -- No → 부분 포함 --> O["pushDown(v)"]
     O --> P["좌 + 우 재귀 합산"]
     P --> Q([return 합])

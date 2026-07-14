@@ -256,15 +256,15 @@ delete(x):
 flowchart TD
     A([kth: v, k]) --> B["ls = sz(v.left)"]
     B --> C{k <= ls?}
-    C -- Yes → 왼쪽에 있음 --> D([kth(v.left, k)])
+    C -- Yes → 왼쪽에 있음 --> D(["kth(v.left, k)"])
     C -- No --> E{k == ls+1?}
     E -- Yes → 현재 노드 --> F([return v.key])
-    E -- No → 오른쪽에 있음 --> G([kth(v.right, k-ls-1)])
+    E -- No → 오른쪽에 있음 --> G(["kth(v.right, k-ls-1)"])
 
     H([rank: v, x]) --> I{v == null?}
     I -- Yes --> J([return 0])
     I -- No --> K{x <= v.key?}
-    K -- Yes → 현재·오른쪽은 ≥ x --> L([rank(v.left, x)])
+    K -- Yes → 현재·오른쪽은 ≥ x --> L(["rank(v.left, x)"])
     K -- No → 왼쪽+현재 누적 --> M["sz(v.left) + 1 + rank(v.right, x)"]
     M --> N([return])
 

@@ -276,7 +276,7 @@ flowchart TD
     J --> K
     K --> G
     G -- 완료 --> L[rank = tmp 복사]
-    L --> M{rank[sa[n-1]] == n-1?}
+    L --> M{"rank[sa[n-1]] == n-1?"}
     M -- Yes --> Z
     M -- No --> N[gap *= 2]
     N --> C

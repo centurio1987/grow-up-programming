@@ -266,11 +266,11 @@ function longestCommonSubsequence(s, t):
 flowchart TD
     A([시작]) --> B["dp[0..n][0..m] = 0"]
     B --> C{i <= n?}
-    C -- No --> J([return dp[n][m]])
+    C -- No --> J(["return dp[n][m]"])
     C -- Yes --> D{j <= m?}
     D -- No --> I["i++ / j=1"]
     I --> C
-    D -- Yes --> E{s[i-1] == t[j-1]?}
+    D -- Yes --> E{"s[i-1] == t[j-1]?"}
     E -- Yes --> F["dp[i][j] = dp[i-1][j-1] + 1"]
     E -- No --> G["dp[i][j] = max(dp[i-1][j], dp[i][j-1])"]
     F --> H[j++]

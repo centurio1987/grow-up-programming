@@ -207,7 +207,7 @@ flowchart TD
   D --> E[upper bound 이진 탐색\n패턴보다 큰 첫 위치]
   E --> F{lo == hi?}
   F -- 예 --> G([빈 배열 반환])
-  F -- 아니오 --> H[SA[lo..hi] 슬라이스]
+  F -- 아니오 --> H["SA[lo..hi] 슬라이스"]
   H --> I[결과 정렬]
   I --> J([반환])
 ```

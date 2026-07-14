@@ -214,7 +214,7 @@ flowchart TD
     C -- Yes --> D{"old_r < 0?"}
     D -- Yes --> E["g=-old_r, x=-old_s, y=-old_t"]
     D -- No  --> F["g=old_r, x=old_s, y=old_t"]
-    E --> G([return {g, x, y}])
+    E --> G(["return {g, x, y}"])
     F --> G
     C -- No  --> H["q = old_r / r  (정수)"]
     H --> I["[old_r, r] = [r, old_r - q*r]\n[old_s, s] = [s, old_s - q*s]\n[old_t, t] = [t, old_t - q*t]"]

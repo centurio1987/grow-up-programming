@@ -187,12 +187,12 @@ function sieveOfEratosthenes(n):
 ```mermaid
 flowchart TD
     A([시작]) --> B{n < 2?}
-    B -- Yes --> C([return []])
+    B -- Yes --> C(["return []"])
     B -- No  --> D["isPrime[0..n] = true\nisPrime[0]=isPrime[1]=false\ni = 2"]
     D --> E{i * i ≤ n?}
     E -- No  --> F["result = isPrime true인 인덱스 수집"]
     F --> G([return result])
-    E -- Yes --> H{isPrime[i]?}
+    E -- Yes --> H{"isPrime[i]?"}
     H -- No  --> I["i++"]
     H -- Yes --> J["j = i * i"]
     J --> K{j ≤ n?}

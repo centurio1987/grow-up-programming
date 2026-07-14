@@ -260,7 +260,7 @@ flowchart TD
     B --> C{x = 1..amount 순회\n바깥 루프}
     C -- 완료 --> G{"dp[amount] == +∞?"}
     G -- Yes --> H([-1 반환])
-    G -- No --> I([dp[amount] 반환])
+    G -- No --> I(["dp[amount] 반환"])
     C -- x 처리 중 --> D{동전 c 순회\n안쪽 루프}
     D -- 완료 --> C
     D -- 진행 --> E{"c <= x AND\ndp[x-c] ≠ +∞?"}

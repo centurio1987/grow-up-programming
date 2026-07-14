@@ -318,13 +318,13 @@ flowchart TD
     C --> D{minHeap\n비어 있는가?}
     D -- Yes --> E{visitedCount\n== n?}
     D -- No --> F["(w, u) = heapPop()"]
-    F --> G{visited[u]?}
-    G -- Yes(지연 삭제 → 무시) --> D
+    F --> G{"visited[u]?"}
+    G -- "Yes(지연 삭제 → 무시)" --> D
     G -- No --> H["visited[u] = true\ntotalWeight += w\nvisitedCount++"]
     H --> I["adj[u]의 모든 (v, weight):\nnot visited[v] → heapPush((weight, v))"]
     I --> D
-    E -- Yes(연결) --> J([return totalWeight])
-    E -- No(비연결) --> K([return -1])
+    E -- "Yes(연결)" --> J([return totalWeight])
+    E -- "No(비연결)" --> K([return -1])
 ```
 
 **핵심 불변식:** 힙에서 `(w, u)`를 꺼낼 때 `visited[u] = false`이면, $w$는 현재 방문 집합 $T$와 $u$를 연결하는 간선들 중 힙이 관리하는 최솟값이다. 지연 삭제에 의해 $u$가 이후 더 작은 가중치로 다시 처리될 수 없으므로, 이 $w$가 컷 $(T, V \setminus T)$의 최소 간선임이 보장되어 컷 성질이 성립한다.

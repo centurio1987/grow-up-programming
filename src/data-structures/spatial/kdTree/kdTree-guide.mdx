@@ -232,7 +232,7 @@ flowchart TD
   B -- 예 --> Z[null 반환]
   B -- 아니오 --> C["axis = depth % 2로 정렬"]
   C --> D[mid = 중앙값 인덱스]
-  D --> E[node.point = points[mid]]
+  D --> E["node.point = points[mid]"]
   E --> F["node.left = build(points[0..mid-1], depth+1)"]
   F --> G["node.right = build(points[mid+1..], depth+1)"]
   G --> H[node 반환]

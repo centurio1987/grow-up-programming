@@ -340,17 +340,17 @@ contains(t):
 ```mermaid
 flowchart TD
     A[새 상태 cur 생성: len=last.len+1] --> B[p = last]
-    B --> C{p != -1 AND ch not in states[p].next?}
+    B --> C{"p != -1 AND ch not in states[p].next?"}
     C -- Yes --> D["states[p].next[ch] = cur, p = states[p].link"]
     D --> C
-    C -- No, p==-1 --> E[states[cur].link = 루트]
-    C -- No, q=states[p].next[ch] --> F{states[q].len == states[p].len + 1?}
-    F -- Yes --> G[states[cur].link = q]
-    F -- No --> H[clone 생성: len=states[p].len+1, link=q.link, next=q.next 복사]
-    H --> I{states[p].next[ch] == q?}
+    C -- No, p==-1 --> E["states[cur].link = 루트"]
+    C -- No, q=states[p].next[ch] --> F{"states[q].len == states[p].len + 1?"}
+    F -- Yes --> G["states[cur].link = q"]
+    F -- No --> H["clone 생성: len=states[p].len+1, link=q.link, next=q.next 복사"]
+    H --> I{"states[p].next[ch] == q?"}
     I -- Yes --> J["states[p].next[ch] = clone, p = states[p].link"]
     J --> I
-    I -- No --> K[states[q].link = clone, states[cur].link = clone]
+    I -- No --> K["states[q].link = clone, states[cur].link = clone"]
     E --> L[last = cur]
     G --> L
     K --> L

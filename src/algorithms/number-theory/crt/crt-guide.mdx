@@ -234,10 +234,10 @@ function crt(remainders, moduli):
 ```mermaid
 flowchart TD
     A([시작]) --> B{k = 0?}
-    B -- Yes --> C([return {x:0n, M:1n}])
+    B -- Yes --> C(["return {x:0n, M:1n}"])
     B -- No  --> D["cur_x = r₀ mod m₀\ncur_M = m₀\ni = 1"]
     D --> E{i ≤ k-1?}
-    E -- No  --> F([return {x:cur_x, M:cur_M}])
+    E -- No  --> F(["return {x:cur_x, M:cur_M}"])
     E -- Yes --> G["g = gcd(cur_M, mᵢ)"]
     G --> H{"(rᵢ - cur_x) mod g ≠ 0?"}
     H -- Yes --> I([return null])

@@ -357,13 +357,13 @@ flowchart TD
     D -- No --> E["(v, phase) = stack.pop()"]
     E --> F{"phase == ENTER?"}
     F -- Yes --> G["dp[v][0]=0, dp[v][1]=weights[v]\nstack.push((v, EXIT))"]
-    G --> H{adj[v]의 이웃 u 순회}
+    G --> H{"adj[v]의 이웃 u 순회"}
     H -- 완료 --> D
     H -- 진행 --> I{"u != parent[v]?"}
     I -- No --> H
     I -- Yes --> J["parent[u]=v\nstack.push((u, ENTER))"]
     J --> H
-    F -- No (EXIT) --> K{adj[v]의 이웃 u 순회}
+    F -- "No (EXIT)" --> K{"adj[v]의 이웃 u 순회"}
     K -- 완료 --> D
     K -- 진행 --> L{"u != parent[v]?"}
     L -- No --> K

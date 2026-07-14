@@ -317,7 +317,7 @@ async function externalMergeSort(inputPath, outputPath, M):
 
 ```mermaid
 flowchart TD
-    A([시작]) --> B[chunk = [], runPaths = []]
+    A([시작]) --> B["chunk = [], runPaths = []"]
     B --> C[inputPath에서 한 줄 읽기]
     C --> D{파일 끝?}
     D -- No --> E[chunk에 parseInt 추가]

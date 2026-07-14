@@ -327,21 +327,21 @@ flowchart TD
     D --> E{i < r?}
     E -- Yes --> F["p[i] = min(r-i, p[2c-i])"]
     E -- No --> G["p[i] = 0"]
-    F --> H[left = i-p[i]-1, right = i+p[i]+1]
+    F --> H["left = i-p[i]-1, right = i+p[i]+1"]
     G --> H
-    H --> I{left>=0 AND right<2n+1 AND T[left]==T[right]?}
+    H --> I{"left>=0 AND right<2n+1 AND T[left]==T[right]?"}
     I -- Yes --> J["p[i]++, left--, right++"]
     J --> I
-    I -- No --> K{i + p[i] > r?}
-    K -- Yes --> L[c = i, r = i + p[i]]
-    K -- No --> M{p[i] > p[best_c]?}
+    I -- No --> K{"i + p[i] > r?"}
+    K -- Yes --> L["c = i, r = i + p[i]"]
+    K -- No --> M{"p[i] > p[best_c]?"}
     L --> M
     M -- Yes --> N[best_c = i]
     M -- No --> O[다음 i]
     N --> O
     O --> D
     D -- 완료 --> P["start = (best_c - p[best_c]) / 2"]
-    P --> Z[s[start .. start+p[best_c]-1] 반환]
+    P --> Z["s[start .. start+p[best_c]-1] 반환"]
 ```
 
 **핵심 불변식:** 루프 내 항상 $T[c - r \ldots c + r]$은 회문이고, $r$은 단조 증가한다. 총 확장 횟수 ≤ $2n+1$이므로 전체 $O(n)$이 보장된다.

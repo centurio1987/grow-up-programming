@@ -272,7 +272,7 @@ flowchart TD
     B --> C{"n <= 1?"}
     C -- Yes --> Z0([0 반환])
     C -- No --> D{len = 2..n 순회\n구간 길이}
-    D -- 완료 --> Z([dp[1][n] 반환])
+    D -- 완료 --> Z(["dp[1][n] 반환"])
     D -- 진행 --> E{i = 1..n-len+1 순회\n구간 시작}
     E -- 완료 --> D
     E -- 진행 --> F["j = i + len - 1\ndp[i][j] = +Infinity"]

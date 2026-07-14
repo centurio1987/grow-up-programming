@@ -246,7 +246,7 @@ insert(x):
 
 ```mermaid
 flowchart TD
-  A[insert(x)] --> B{min == undefined?}
+  A["insert(x)"] --> B{min == undefined?}
   B -- 예 --> C[min = max = x] --> Z[종료]
   B -- 아니오 --> D{x == min?}
   D -- 예 --> Z
@@ -259,11 +259,11 @@ flowchart TD
   H --> I
   I -- 예 --> Z
   I -- 아니오 --> J[h = high, l = low]
-  J --> K{clusters[h] == undefined?}
-  K -- 예 --> L[clusters[h] = 새 vEB]
-  L --> M[summary.insert(h) 재귀]
-  L --> N[clusters[h].min = clusters[h].max = l: O(1)]
-  K -- 아니오 --> O[clusters[h].insert(l) 재귀]
+  J --> K{"clusters[h] == undefined?"}
+  K -- 예 --> L["clusters[h] = 새 vEB"]
+  L --> M["summary.insert(h) 재귀"]
+  L --> N["clusters[h].min = clusters[h].max = l: O(1)"]
+  K -- 아니오 --> O["clusters[h].insert(l) 재귀"]
   M --> Z
   N --> Z
   O --> Z
@@ -271,16 +271,16 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-  A[successor(x)] --> B{U == 2?}
+  A["successor(x)"] --> B{U == 2?}
   B -- 예 --> C{x==0 and max==1?}
   C -- 예 --> D[반환 1]
   C -- 아니오 --> E[반환 undefined]
-  B -- 아니오 --> F[h=high(x), l=low(x)]
-  F --> G{clusters[h] != undefined and l < clusters[h].max?}
-  G -- 예 --> H[offset = clusters[h].successor(l) 재귀]
-  H --> I[반환 index(h, offset)]
-  G -- 아니오 --> J[nextCluster = summary.successor(h) 재귀]
+  B -- 아니오 --> F["h=high(x), l=low(x)"]
+  F --> G{"clusters[h] != undefined and l < clusters[h].max?"}
+  G -- 예 --> H["offset = clusters[h].successor(l) 재귀"]
+  H --> I["반환 index(h, offset)"]
+  G -- 아니오 --> J["nextCluster = summary.successor(h) 재귀"]
   J --> K{nextCluster == undefined?}
   K -- 예 --> E
-  K -- 아니오 --> L[반환 index(nextCluster, clusters[nextCluster].min)]
+  K -- 아니오 --> L["반환 index(nextCluster, clusters[nextCluster].min)"]
 ```

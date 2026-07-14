@@ -330,10 +330,10 @@ flowchart TD
 
     N([findKth: v, k]) --> O["ls = sz(v.left)"]
     O --> P{k <= ls?}
-    P -- Yes → 왼쪽에 있음 --> Q([findKth(v.left, k)])
+    P -- Yes → 왼쪽에 있음 --> Q(["findKth(v.left, k)"])
     P -- No --> R{k == ls+1?}
     R -- Yes → 현재 노드 --> S([return v.key])
-    R -- No → 오른쪽에 있음 --> T([findKth(v.right, k-ls-1)])
+    R -- No → 오른쪽에 있음 --> T(["findKth(v.right, k-ls-1)"])
 ```
 
 **핵심 불변식**: `pullUp`으로 `size`가 항상 $\text{size}(v) = \text{size}(v.\text{left}) + \text{size}(v.\text{right}) + 1$을 만족하고, 무작위 우선순위에 의한 최대 힙 조건과 BST 조건이 `split`/`merge` 전후에 항상 성립하므로 기대 높이 $O(\log n)$이 보장된다.

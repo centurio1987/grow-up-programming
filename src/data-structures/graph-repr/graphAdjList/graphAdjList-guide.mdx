@@ -199,7 +199,7 @@ bfs(start):
 
 ```mermaid
 flowchart TD
-  A[bfs 시작] --> B[visited = {start}, queue = deque start]
+  A[bfs 시작] --> B["visited = {start}, queue = deque start"]
   B --> C{queue 비어있나?}
   C -- 아니오 --> D[v = queue.dequeue]
   D --> E[result에 v 추가]

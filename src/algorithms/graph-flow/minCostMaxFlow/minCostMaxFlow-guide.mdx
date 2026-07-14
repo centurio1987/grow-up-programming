@@ -356,7 +356,7 @@ flowchart TD
     A([시작]) --> B["잔여 그래프 구성\n정방향 cost=+a\n역방향 cost=-a"]
     B --> C["totalFlow=0, totalCost=0"]
     C --> D["SPFA(s→t 최단 비용 경로)"]
-    D --> E{dist[t] < INF?\n(경로 존재?)}
+    D --> E{"dist[t] < INF?\n(경로 존재?)"}
     E -- No --> Z(["return { flow, cost }"])
     E -- Yes --> F["경로 역추적\n병목 δ = min(잔여 용량)"]
     F --> G["경로 따라 유량 δ 흘리기\n정방향 cap -= δ\n역방향 cap += δ"]
@@ -369,9 +369,9 @@ flowchart TD
         S2 --> S3["edge ∈ graph[u] 순회\ncap>0 and dist[u]+cost < dist[to]?"]
         S3 -- Yes --> S4["dist[to] 갱신\nprevV/prevE 기록\n미큐 상태면 enqueue"]
         S4 --> S3
-        S3 -- No(다음 간선 또는 완료) --> S5{queue\n비어 있는가?}
+        S3 -- "No(다음 간선 또는 완료)" --> S5{queue\n비어 있는가?}
         S5 -- No --> S2
-        S5 -- Yes --> S6{dist[t] < INF?}
+        S5 -- Yes --> S6{"dist[t] < INF?"}
         S6 -- Yes --> S7(["경로 존재"])
         S6 -- No --> S8(["경로 없음"])
     end

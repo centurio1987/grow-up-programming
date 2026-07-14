@@ -268,7 +268,7 @@ flowchart TD
     A([mosAlgorithm]) --> B["B=sqrt(n), 질의에 origIdx 부여"]
     B --> C["정렬: (블록 번호, r) 기준"]
     C --> D["curL=0, curR=-1, distinctCount=0"]
-    D --> E{다음 정렬된 질의 (l,r,origIdx)?}
+    D --> E{"다음 정렬된 질의 (l,r,origIdx)?"}
     E -- 없음 --> F([return answers])
     E -- 있음 --> G["목표 구간 (l, r) 확인"]
     G --> H{curR < r?}

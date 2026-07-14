@@ -237,8 +237,8 @@ flowchart TD
   B --> C[BFS 시작\n루트 자식들을 큐에 추가]
   C --> D{큐가 비어있음?}
   D -- 아니오 --> E[노드 v = 큐에서 꺼냄]
-  E --> F[v의 모든 자식 u에 대해\n실패 링크 f(u) 계산]
-  F --> G[u.output += f(u).output\n출력 링크 누적]
+  E --> F["v의 모든 자식 u에 대해\n실패 링크 f(u) 계산"]
+  F --> G["u.output += f(u).output\n출력 링크 누적"]
   G --> H[u를 큐에 추가]
   H --> D
   D -- 예 --> I([오토마톤 완성])
@@ -247,10 +247,10 @@ flowchart TD
   K --> L{텍스트 문자 ch 처리}
   L --> M{cur에 ch 자식 있음?}
   M -- 아니오 --> N{cur == root?}
-  N -- 아니오 --> O[cur = f(cur)\n실패 링크 이동]
+  N -- 아니오 --> O["cur = f(cur)\n실패 링크 이동"]
   O --> M
   N -- 예 --> P[cur 유지\n루트에서 ch로 이동 시도]
-  M -- 예 --> Q[cur = cur.children.get(ch)]
+  M -- 예 --> Q["cur = cur.children.get(ch)"]
   Q --> R[cur.output의 패턴들\n결과에 기록]
   R --> L
   P --> L

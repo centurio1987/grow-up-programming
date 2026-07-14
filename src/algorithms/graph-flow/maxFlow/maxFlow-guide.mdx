@@ -368,14 +368,14 @@ function DFS(u, t, pushed):
 flowchart TD
     A([시작]) --> B["잔여 그래프 구성\n(정방향 cap=c, 역방향 cap=0 쌍)"]
     B --> C["totalFlow = 0"]
-    C --> D{BFS(s,t)\nlevel[t] ≥ 0?}
-    D -- No(도달 불가) --> Z([return totalFlow])
+    C --> D{"BFS(s,t)\nlevel[t] ≥ 0?"}
+    D -- "No(도달 불가)" --> Z([return totalFlow])
     D -- Yes --> E["iter[0..n-1] = 0"]
     E --> F["f = DFS(s, t, INF)"]
     F --> G{f > 0?}
     G -- Yes --> H["totalFlow += f"]
     H --> F
-    G -- No(차단 유량 소진) --> D
+    G -- "No(차단 유량 소진)" --> D
 
     subgraph BFS_sub["BFS (레벨 그래프 구축)"]
         B1["level[s]=0, queue=[s]\n나머지 level=-1"]
@@ -383,7 +383,7 @@ flowchart TD
         B2 --> B3["edge ∈ graph[u]:\ncap>0 and level[to]==-1\n→ level[to]=level[u]+1, enqueue"]
         B3 --> B4{queue\n비어 있는가?}
         B4 -- No --> B2
-        B4 -- Yes --> B5{level[t] != -1?}
+        B4 -- Yes --> B5{"level[t] != -1?"}
         B5 -- Yes --> B6([BFS 성공])
         B5 -- No --> B7([BFS 실패])
     end
@@ -397,7 +397,7 @@ flowchart TD
         D5 -- Yes --> D6["cap -= d\nrev.cap += d\nreturn d"]
         D5 -- No --> D7["iter[u]++"]
         D7 --> D3
-        D3 -- No(간선 소진) --> D8(["return 0"])
+        D3 -- "No(간선 소진)" --> D8(["return 0"])
     end
 ```
 

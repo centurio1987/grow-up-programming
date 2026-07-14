@@ -291,9 +291,9 @@ function longestIncreasingSubsequence(A):
 flowchart TD
     A([시작]) --> B["tails = []"]
     B --> C{다음 x 있음?}
-    C -- No --> H([return len(tails)])
+    C -- No --> H(["return len(tails)"])
     C -- Yes --> D["lo=0, hi=len(tails)로 lower_bound 이분 탐색"]
-    D --> E{pos == len(tails)?}
+    D --> E{"pos == len(tails)?"}
     E -- Yes --> F["tails.push(x)  // LIS 길이 +1"]
     E -- No --> G["tails[pos] = x  // 끝값 갱신"]
     F --> C
