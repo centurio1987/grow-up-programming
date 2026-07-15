@@ -1,39 +1,18 @@
-import { AlgorithmSimulation } from "#guide-sim";
-
-# subtreeSumQuery 해설
-
-## 성능 목표 예측
-
-### 제약 표
-
-| 항목 | 값 |
-|------|-----|
-| 정점 수 $n$ | $1 \leq n \leq 10^5$ |
-| 연산 수 | 최대 $10^5$회 (update + querySubtree 합산) |
-| 공간 | $O(n)$ |
-
-### Naive 접근의 한계
-
-부분 트리 합 질의를 가장 단순하게 구현하면 `querySubtree(u)` 호출 시 $u$를 루트로 하는 부분 트리를 DFS로 탐색하며 값을 직접 합산한다.
-
-- `querySubtree`: $O(\text{subtree size}) \leq O(n)$
-- `update`: $O(1)$ (배열 직접 갱신)
-- 질의 $q$회: 총 $O(nq) = O(10^{10})$ → 시간 초과
-
-### 목표 복잡도와 근거
-
-| 연산 | 목표 복잡도 | 근거 |
-|------|-------------|------|
-| 전처리 (생성자) | $O(n \log n)$ | Euler Tour DFS + BIT 초기화 |
-| `update` | $O(\log n)$ | BIT 점 갱신 |
-| `querySubtree` | $O(\log n)$ | BIT 구간 합 |
-| 공간 | $O(n)$ | BIT 배열 + Euler Tour 배열 |
-
-BIT(Fenwick Tree)는 $O(n)$ 공간에 구간 합 질의와 점 갱신을 각각 $O(\log n)$에 처리한다. $n = 10^5$에서 $\log n \approx 17$이므로 연산당 17회 내외로 충분히 빠르다.
-
+---
+version: 2.0.0
 ---
 
-## 목표 함수
+import { AlgorithmSimulation } from "#guide-sim";
+
+# subtreeSumQuery — DFS 시각표로 트리를 한 줄로 펴서 세는 이유
+
+## 한눈에 보는 컨셉
+
+트리의 정점 값이 계속 바뀌는 상황에서, 특정 정점을 루트로 하는 부분 트리 전체의 합을 빠르게 구하는 자료구조예요. 핵심 관찰은 DFS로 트리를 훑을 때 정점마다 매기는 **진입 시각**과 **탈출 시각**이 그 정점의 부분 트리를 배열의 **연속 구간**으로 접어 준다는 것입니다. 구간이 배열 위에 고정되고 나면, 점 갱신과 구간 합을 각각 `O(log n)`에 처리하는 Fenwick Tree(BIT) 하나로 `update`와 `querySubtree`를 모두 빠르게 만들 수 있어요.
+
+## 출발점: 가장 순진한 방법부터
+
+문제를 먼저 정확히 잡을게요.
 
 ```ts
 class SubtreeSumQuery {
@@ -42,172 +21,289 @@ class SubtreeSumQuery {
     edges: [number, number][],
     root: number,
     values: number[]
-  ): void
-
-  update(node: number, value: number): void
-  querySubtree(node: number): number
+  );
+  update(node: number, value: number): void;
+  querySubtree(node: number): number;
 }
 ```
 
-### 파라미터 표
+- `n`은 정점 수, 최대 $10^5$. `edges`는 길이 $n-1$인 무방향 간선 목록이고, 주어진 그래프는 항상 연결된 트리입니다.
+- `root`는 트리의 뿌리, `values[i]`는 정점 `i`의 초기 값(음수 가능)입니다.
+- `update(node, value)`는 정점 `node`의 값을 `value`로 **교체**합니다(누적이 아니에요). 반환값 없음.
+- `querySubtree(node)`는 `node` 자신과 `node`의 모든 자손 값의 합을 반환합니다.
+- `update`와 `querySubtree`를 합쳐 최대 $10^5$번 호출됩니다.
 
-| 파라미터 | 의미 | 제약 |
-|----------|------|------|
-| `n` | 정점의 수 | $1 \leq n \leq 10^5$ |
-| `edges` | 무방향 간선 목록 $[u, v]$ | 길이 $n - 1$ |
-| `root` | 트리의 루트 | $0 \leq \text{root} < n$ |
-| `values` | 각 정점의 초기 값 | 길이 $n$ |
-| `node` (update) | 갱신할 정점 | $0 \leq \text{node} < n$ |
-| `value` (update) | 새로운 값 (교체, 누적 아님) | 정수 |
-| `node` (querySubtree) | 부분 트리의 루트 | $0 \leq \text{node} < n$ |
+"부분 트리 합"이라는 말 자체가 이미 풀이 방향을 하나 알려줘요 — 정점 `node`의 값에 각 자식의 부분 트리 합을 재귀적으로 더하면 됩니다. 이게 가장 정직한 출발점입니다.
 
-### 반환값
-
-- `update`: 반환 없음. 내부 BIT를 갱신한다.
-- `querySubtree(u)`: 정점 $u$를 루트로 하는 부분 트리 내 모든 정점 값의 합.
-
-### 엣지케이스
-
-| 케이스 | 조건 | 기대 동작 |
-|--------|------|-----------|
-| 리프 노드 질의 | `u`의 자식 없음 | `values[u]`만 반환 |
-| 루트 노드 질의 | `querySubtree(root)` | 모든 정점 값의 합 |
-| 연속 update | `update(u, v1)`, `update(u, v2)` | 최신 `v2`만 반영 |
-| 단일 정점 | $n=1$, `querySubtree(0)` | `values[0]` 반환 |
-
----
-
-## 핵심 아이디어
-
-**핵심 아이디어**: "DFS 진입/탈출 시각을 부여하면 부분 트리가 배열의 연속 구간이 되어, BIT로 O(log n) 쿼리가 가능해진다."
-
-부분 트리 합을 매번 DFS로 탐색하면 O(n)이 걸려 많은 쿼리에서 시간 초과가 난다. Euler Tour는 DFS 중 각 정점에 진입 시각 in[v]와 탈출 시각 out[v]를 기록한다. v의 모든 자손은 in[v]와 out[v] 사이에 진입하므로, 부분 트리 합은 1차원 배열의 구간 합으로 변환된다. BIT(Fenwick Tree)로 이 구간 합을 O(log n)에 처리한다.
-
-**풀이 구조**
-1. DFS를 수행하며 각 정점에 진입 시각 in[v]와 탈출 시각 out[v]를 기록한다.
-2. 진입 시각 순서로 평탄화 배열을 만들고 BIT를 초기화한다.
-3. update(node, value): 이전 값과의 차분 delta를 구해 BIT의 in[node] 위치를 갱신한다.
-4. querySubtree(node): BIT로 구간 [in[node], out[node]]의 합을 반환한다.
-
-**조건**: 트리 위에서 부분 트리 합 쿼리와 점 갱신이 반복적으로 일어나야 할 때. 갱신이 특정 정점의 값을 교체하는 방식일 때.
-
-**대표 예시**: 루트 노드 0에 대해 `querySubtree(0)` 쿼리
-in[0] = 1, out[0] = n이므로 BIT 구간 [1, n]의 합이 반환된다. 이는 전체 정점 값의 합이다. 이후 `update(3, 10)`을 호출하면 BIT의 in[3] 위치만 delta만큼 갱신되고, 이후 정점 3을 포함하는 모든 부분 트리 쿼리에 반영된다.
-
-**언제 쓰나**
-고정된 트리 구조에서 정점 값이 자주 바뀌고, 그때마다 특정 정점의 서브트리 전체 합을 빠르게 구해야 하는 상황에서 사용한다.
-
----
-
-### 원형 아이디어와 naive 접근
-
-부분 트리 합을 직접 구하려면 DFS로 $u$의 모든 자손을 방문하며 값을 합산한다.
-
-```
-// naive querySubtree
-function querySubtree_naive(u):
-    total = values[u]
-    for each child c of u:
-        total += querySubtree_naive(c)
-    return total
+```ts
+function querySubtreeNaive(
+  node: number,
+  children: number[][],
+  values: number[]
+): number {
+  let total = values[node]!;
+  for (const child of children[node]!) {
+    total += querySubtreeNaive(child, children, values); // 자식의 부분 트리 합을 재귀적으로 더한다
+  }
+  return total;
+}
 ```
 
-이 방법에서 시간이 폭발하는 이유:
-- 최악의 경우(루트 질의) 모든 정점을 방문하여 $O(n)$.
-- 질의 $q$회 시 $O(nq) = O(10^{10})$.
-- `update`는 $O(1)$이지만 질의 비용이 너무 높다.
+`update`는 배열 한 칸을 바꾸는 일이라 `O(1)`이지만, `querySubtree`는 대상 부분 트리를 매번 DFS로 통째로 훑습니다.
 
-낭비의 본질: 같은 부분 트리 내 정점들을 질의마다 새로 탐색한다. 이 중복 탐색을 없애려면 부분 트리 정보를 **미리 구조화**해야 한다.
+```text
+n = 100,000, 질의(update + querySubtree) 최대 100,000회
 
-### 어떤 관찰이 돌파구가 되는가
+querySubtree(u): u의 부분 트리 크기만큼 방문   → 최악 O(n)  (u가 루트일 때 전체 순회)
+update(u, v):    배열 한 칸 교체                → O(1)
 
-- **관찰 1**: DFS 탐색 시 정점 $v$에 **진입 시각 $\text{in}[v]$** 와 **탈출 시각 $\text{out}[v]$** 를 부여하면, $v$의 부분 트리에 속하는 모든 정점의 진입 시각이 $[\text{in}[v], \text{out}[v]]$ 구간에 정확히 모인다.
-- **관찰 2**: 위 관찰에 따라 부분 트리 합 질의는 **1차원 배열의 구간 합 질의**로 변환된다.
-- **관찰 3**: BIT(Fenwick Tree)는 1차원 배열에서 점 갱신과 구간 합을 각각 $O(\log n)$에 처리하므로 이 구조에 딱 맞는다.
+질의가 querySubtree에 몰리면: O(n) × q = 100,000 × 100,000 = 10,000,000,000  ← 시간 초과
+```
 
-### 관찰을 형식화: 상태/구조 정의
+매 `querySubtree` 호출마다 대상 부분 트리를 처음부터 다시 훑는 게 범인이에요. 트리 모양은 그대로인데 같은 부분 트리를 두 번, 세 번 물어봐도 매번 새로 셉니다 — **이 중복 탐색을 버릴 방법이 없을까요?**
 
-**Euler Tour (DFS In/Out 타임스탬프)**:
+## 아이디어 자세히 들여다보기
 
-DFS를 수행하며 전역 타이머를 관리한다. 정점 $v$에 처음 방문할 때 `timer++` 후 $\text{in}[v] = \text{timer}$를 기록하고, $v$의 모든 자손 방문을 마친 뒤 $\text{out}[v] = \text{timer}$를 기록한다.
+### 트리를 한 줄로 펴기 — 수식과 그림
 
-**핵심 동치 관계**:
+트리 모양은 안 바뀌니, 딱 한 번만 DFS로 훑어서 "부분 트리가 배열의 어느 구간에 해당하는지"를 미리 알아 두면 어떨까요? DFS가 정점 `v`에 **처음 들어갈 때** 전역 타이머를 하나 올려 `in[v]`에 적고, `v`의 자손을 **모두 방문하고 빠져나올 때** `out[v]`에 그 시점의 타이머 값을 적습니다.
+
+```text
+트리 (자식 순서: 왼쪽부터):
+        0
+       / \
+      1   2
+     / \
+    3   4
+
+DFS 방문 순서: 0 진입 → 1 진입 → 3 진입 → 3 탈출 → 4 진입 → 4 탈출 → 1 탈출 → 2 진입 → 2 탈출 → 0 탈출
+
+정점    0   1   2   3   4
+in      1   2   5   3   4
+out     5   4   5   3   4
+```
+
+이 두 숫자가 만드는 동치 관계가 이 알고리즘 전체의 기둥입니다.
 
 $$x \in \text{subtree}(v) \iff \text{in}[v] \leq \text{in}[x] \leq \text{out}[v]$$
 
-이 동치 관계가 성립하는 이유: DFS는 $v$에 진입 후 $v$의 모든 자손을 남김없이 방문하고 탈출한다. 따라서 자손의 진입 시각은 반드시 $[\text{in}[v], \text{out}[v]]$ 내에 있다. 반대로 이 구간 밖의 정점은 $v$를 탈출한 뒤에 방문되었으므로 자손이 아니다.
+왜 성립할까요? DFS는 `v`에 진입한 뒤 `v`의 자손을 **남김없이** 방문하고서야 `v`를 탈출합니다. 그러니 자손의 진입 시각은 반드시 `[in[v], out[v]]` 안에 있어요. 반대로 이 구간 밖의 정점은 `v`에 진입하기 전에 이미 방문을 마쳤거나, `v`를 탈출한 뒤에야 방문된 것이니 자손일 수 없습니다.
 
-**1차원 평탄화 배열**:
+잠깐, 확인 하나만 해 볼까요? 위 그림에서 `in[2]`와 `out[2]`는 각각 몇일까요? 정점 2는 자식이 없는 리프이니, 진입한 순간 곧바로 탈출합니다 — 그래서 `in[2] = out[2] = 5`예요.
+
+이제 각 정점의 값을 **진입 시각 순서로** 1차원 배열에 옮겨 담습니다.
 
 $$\text{flatVal}[\text{in}[v]] = \text{values}[v] \quad (\text{모든 } v)$$
 
-이 정의가 이 형태여야 하는 이유: 다른 배열 순서(예: 임의 DFS 순서, 깊이 우선이 아닌 너비 우선)를 사용하면 부분 트리 정점들이 배열에서 연속된 구간을 점유하지 않아 구간 합으로 변환할 수 없다.
+`values = [10, 20, 30, 40, 50]`이라면 이렇게 펼쳐져요.
 
-| 상태 변수 | 의미 |
-|-----------|------|
-| `in[v]` | $v$의 DFS 진입 시각 (1-indexed) |
-| `out[v]` | $v$의 DFS 탈출 시각 |
-| `curVal[v]` | 정점 $v$의 현재 값 (delta 계산용) |
-| `bit[1..n]` | BIT 배열 |
+```text
+위치       1    2    3    4    5
+정점       0    1    3    4    2
+flatVal   10   20   40   50   30
+```
 
-### 점화식 또는 핵심 연산
+정점 1의 부분 트리 `{1, 3, 4}`는 위치 `[2, 4]`에 **연속으로** 모여 있죠? 이게 바로 부분 트리 합이 구간 합으로 바뀌는 지점이에요.
 
-**BIT 점 갱신 (`bitUpdate(i, delta)`)**:
+이 정의가 왜 하필 "DFS **진입** 순서"여야 하는지도 짚어 볼게요. 만약 너비 우선(BFS) 순서로 위치를 매겼다면 `0→1→2→3→4` 순서로 위치 `1,2,3,4,5`가 배정되고, 정점 1의 부분 트리 `{1,3,4}`는 위치 `{2,4,5}`에 흩어집니다 — 위치 3(정점 2)이 중간에 끼어들어 더는 연속 구간이 아니에요. DFS는 한 정점의 자손을 형제로 넘어가기 전에 **모두 소진**하기 때문에만 연속성이 보장됩니다.
 
-$$\text{bit}[i] \mathrel{+}= \delta, \quad i \mathrel{+}= i \mathbin{\&} (-i) \quad (\text{while } i \leq n)$$
+### 셈을 맡는 자료구조 — Fenwick Tree(BIT)
 
-- $i \mathbin{\&} (-i)$: $i$의 최하위 set bit. BIT 내 $i$를 책임지는 구간 범위를 결정한다.
-- $i$를 이 값만큼 증가시키면 $i$의 값 변화에 영향을 받는 상위 구간들을 순서대로 갱신한다.
+문제가 이제 "1차원 배열에서 특정 위치를 바꾸고(점 갱신), 어떤 구간의 합을 구하는(구간 합) 일을 반복 처리하기"로 바뀌었습니다. 이 조합이 보이면 이 프로젝트에서는 Fenwick Tree(BIT)를 씁니다 — 점 갱신과 접두사 합을 각각 `O(log n)`에 처리하는 자료구조예요. 내부 동작(비트 트릭으로 구간을 나눠 맡기는 방식)은 이미 자세히 다뤄져 있으니 직접 설명하지 않고 링크로 대신할게요: [Fenwick Tree 가이드](../../../data-structures/range-query/fenwickTree/fenwickTree-guide.mdx). 여기서는 "점 갱신 `O(log n)`, 접두사 합 조회 `O(log n)`을 제공하는 도구"로만 쓰고, 이 문제 고유의 사용법(부분 트리 구간을 접두사 합의 차로 구하기, 값 교체를 델타로 바꾸기)에 집중합니다.
 
-**BIT 구간 합 (`bitQuery(i)`)** — 접두사 합 $\sum_{j=1}^{i}$:
+### 왜 모순 없이 작동하는가
 
-$$s \mathrel{+}= \text{bit}[i], \quad i \mathrel{-}= i \mathbin{\&} (-i) \quad (\text{while } i > 0)$$
+`querySubtree(v)`가 항상 정확히 $\sum_{x \in \text{subtree}(v)} \text{values}[x]$를 반환한다는 것을 부분 트리 크기에 대한 귀납으로 보입니다.
 
-- $i \mathbin{\&} (-i)$만큼 감소시키면 $i$가 담당하는 구간을 순서대로 합산한다.
+**기저**: `v`가 리프면 `in[v] = out[v]`이므로 구간 `[in[v], out[v]]`에는 `v` 자신만 있습니다. `querySubtree(2)`를 예로 들면 `in[2] = out[2] = 5`이고 구간 합은 `flatVal[5] = 30`, 즉 `values[2] = 30`과 정확히 일치해요.
 
-**update(node, value)**:
+**귀납**: `v`가 자식 $c_1, \dots, c_k$를 가진 내부 정점이라면, 앞 절의 동치 관계에 따라 `[in[v], out[v]]`는 `v` 자신의 위치(`in[v]`) 하나와 각 자식의 구간 `[in[c_i], out[c_i]]`들의 합집합이고, 이 조각들은 서로 겹치지 않으면서 빈틈없이 `[in[v], out[v]]`를 채웁니다(DFS가 한 자식의 방문을 완전히 마친 뒤에야 다음 자식으로 넘어가기 때문). 따라서 구간 합은 `values[v] + (각 자식 부분 트리 합의 합)`이 되고, 귀납 가정에 의해 각 자식 항은 이미 정확하므로 전체도 정확합니다.
 
-$$\delta = \text{value} - \text{curVal}[\text{node}]$$
-$$\text{curVal}[\text{node}] \leftarrow \text{value}$$
-$$\text{bitUpdate}(\text{in}[\text{node}], \delta)$$
+`update` 이후에도 정확성이 유지되는 이유는, `delta = 새 값 - 이전 값`을 `in[node]` 위치 **한 곳**에만 더하기 때문이에요. `node`의 자손들은 `node`와 다른 `in` 값을 가지므로 영향을 받지 않고, `node`를 조상으로 둔 모든 정점 `w`(즉 `in[node]`가 `[in[w], out[w]]` 안에 드는 정점들)의 부분 트리 합에만 정확히 `delta`만큼 반영됩니다.
 
-- `curVal`로 이전 값을 추적하여 차분 $\delta$만 BIT에 반영한다. 이렇게 하면 BIT 내 절댓값이 아니라 변화량을 누적하는 방식으로 일관성을 유지한다.
+여기서 **헷갈리기 쉬운 포인트**가 둘 있습니다.
 
-**querySubtree(node)**:
+- **절댓값이 아니라 델타를 더해야 합니다.** `curVal[node]`로 이전 값을 추적하지 않고 새 값을 그대로 BIT에 더하면, 이전에 쌓여 있던 값 위에 새 값이 겹쳐 쌓입니다. 예를 들어 정점 3의 값이 40인 상태에서 `update(3, 100)`을 호출했을 때, 델타(60)가 아니라 100을 그대로 더하면 `querySubtree(1)`은 정답 `170`(=20+100+50) 대신 `210`이 나오고, `querySubtree(0)`은 정답 `210` 대신 `250`이 나옵니다 — 실제로 이 값들로 검증했습니다.
+- **`in[node] - 1`에서 `-1`을 빼먹으면 안 됩니다.** `querySubtree(node) = bitQuery(out[node]) - bitQuery(in[node] - 1)`인데, `in[node] - 1` 대신 `in[node]`로 빼면 `node` 자신의 값이 결과에서 통째로 빠집니다. 위와 같은 예시 트리에서 `update(3, 100)` 이후 `querySubtree(1)`을 `-1` 없이 계산하면 정답 `170` 대신 `150`(정점 1 자신의 값 20이 빠진 값)이 나옵니다.
 
-$$\text{bitQuery}(\text{out}[\text{node}]) - \text{bitQuery}(\text{in}[\text{node}] - 1)$$
+엣지 케이스도 확인해 둘게요.
 
-- $[\text{in}[v], \text{out}[v]]$ 구간의 합 = $[1, \text{out}[v]]$ 합 - $[1, \text{in}[v]-1]$ 합.
+```text
+n = 1, edges = []           → in[0]=out[0]=1, querySubtree(0) = values[0]
+리프 정점 질의               → in[v]=out[v] 이므로 flatVal[in[v]] 한 칸만 반환
+루트 정점 질의                → in[root]=1, out[root]=n 이므로 전체 합
+연속 update(u, v1), (u, v2)  → curVal[u]가 항상 최신값을 들고 있어 v2만 반영됨
+음수 값                       → delta 계산·BIT 합산 모두 부호 그대로 처리되어 문제없음
+```
 
-### 정당성 — 왜 이것이 옳은가
+## 아이디어를 코드로 옮기기
 
-`querySubtree(v)`가 정확히 $\sum_{x \in \text{subtree}(v)} \text{values}[x]$를 반환함을 귀납적으로 보인다.
+Euler Tour로 부분 트리를 구간으로 바꾸는 아이디어를 가장 직접적인 방식으로 옮겨 봅니다. 아직 BIT는 쓰지 않고, 평탄화한 배열을 **그때그때 선형으로 스캔**해서 합을 구해요.
 
-기저: 리프 노드 $v$의 경우, $\text{in}[v] = \text{out}[v]$이므로 구간 $[\text{in}[v], \text{out}[v]]$에는 $v$ 자신만 있다. `bitQuery(out[v]) - bitQuery(in[v]-1) = flatVal[in[v]] = values[v]`.
+```ts
+class SubtreeSumQueryFlatScan {
+  private in_: number[];
+  private out_: number[];
+  private flatVal: number[]; // 1-indexed, flatVal[0]은 미사용
 
-귀납: 내부 노드 $v$의 DFS 순서상 $[\text{in}[v], \text{out}[v]]$에는 $v$와 모든 자손이 포함된다 (Euler Tour 동치 관계). BIT는 이 구간의 합을 정확히 계산한다.
+  constructor(n: number, edges: [number, number][], root: number, values: number[]) {
+    this.in_ = new Array(n).fill(0);
+    this.out_ = new Array(n).fill(0);
+    this.flatVal = new Array(n + 1).fill(0);
 
-`update` 후의 정확성: $\delta = \text{new\_value} - \text{old\_value}$를 `in[node]` 위치에 더하면, `node`를 포함하는 모든 구간 질의 결과가 $\delta$만큼 변한다. `node`의 자손들의 `in` 값은 영향을 받지 않으므로 다른 부분 트리 질의는 그대로 유지된다.
+    const adj: number[][] = Array.from({ length: n }, () => []);
+    for (const [u, v] of edges) {
+      adj[u]!.push(v);
+      adj[v]!.push(u);
+    }
 
-`querySubtree(root)`의 경우: $\text{in}[\text{root}] = 1$, $\text{out}[\text{root}] = n$이므로 전체 구간 합 = 모든 정점 값의 합이 반환된다.
+    let timer = 0;
+    // 재귀 대신 반복적 DFS — n이 10^5까지 갈 수 있어 재귀는 스택 오버플로 위험이 있다
+    const stack: [number, number, number][] = [[root, -1, 0]]; // [정점, 부모, 탈출마커]
+    while (stack.length > 0) {
+      const [v, par, leaving] = stack.pop()!;
+      if (leaving) {
+        this.out_[v] = timer; // 자손을 모두 방문한 뒤에야 탈출 시각을 적는다
+      } else {
+        timer++;
+        this.in_[v] = timer;
+        stack.push([v, par, 1]); // 탈출 마커를 먼저 넣어 두고
+        const neighbors = adj[v]!;
+        for (let k = neighbors.length - 1; k >= 0; k--) {
+          const u = neighbors[k]!;
+          if (u !== par) stack.push([u, v, 0]); // 자식들을 역순으로 넣어 원래 순서로 방문
+        }
+      }
+    }
 
-### 구현 디테일과 최적화
+    for (let v = 0; v < n; v++) {
+      this.flatVal[this.in_[v]!] = values[v]!;
+    }
+  }
 
-**반복적 DFS로 Euler Tour 구현**: 재귀 깊이가 $O(n)$에 달할 수 있으므로 반복적 DFS를 사용한다. 탈출 시각 기록을 위해 스택에 "탈출 마커"를 함께 넣는 방법이 일반적이다 (예: 음수 인덱스로 표시).
+  update(node: number, value: number): void {
+    this.flatVal[this.in_[node]!] = value; // O(1) — 값을 그 자리에서 바로 교체
+  }
 
-**BIT 1-indexed**: BIT는 1-indexed로 구현한다. `in[v]`를 1부터 시작하게 타이머를 설정해야 한다.
+  querySubtree(node: number): number {
+    let total = 0;
+    for (let i = this.in_[node]!; i <= this.out_[node]!; i++) {
+      total += this.flatVal[i]!; // O(구간 길이) — 여전히 최악 O(n)
+    }
+    return total;
+  }
+}
+```
 
-**update 시 delta 계산 필수**: `update(node, value)`에서 `curVal[node]`를 관리하지 않으면 BIT에 절댓값을 직접 쓰게 되어 중복 합산 오류가 발생한다. 예를 들어 `values[v] = 3`인 상태에서 `update(v, 5)`를 호출할 때 BIT에 5를 더하면 실제 값이 8이 되는 오류가 생긴다.
+가장 중요한 부분은 `if (leaving)` 분기입니다. 탈출 마커를 정점과 함께 스택에 미리 넣어 두고, 그 마커가 다시 튀어나올 때(=해당 정점의 자손을 모두 처리한 뒤)만 `out[v]`를 적습니다. 이 순서를 지키지 않으면 자손을 채 방문하기도 전에 `out[v]`가 확정돼 버려 구간이 실제 부분 트리보다 작게 잡힙니다. 그 외에 놓치기 쉬운 지점은 `timer`를 `1`부터 시작하도록 진입 시점에 미리 증가시키는 것(`in[root] = 1`이 되어야 BIT를 1-indexed로 쓸 수 있어요)과, 자식들을 **역순으로** 스택에 넣어야 실제 방문 순서가 원래 인접 리스트 순서와 같아진다는 점입니다.
 
-**함정 - in/out 범위 혼동**: `querySubtree`는 `bitQuery(out[node]) - bitQuery(in[node] - 1)`이다. `in[node]`로 빼면 `node` 자신이 제외되므로 반드시 `in[node] - 1`을 사용해야 한다.
+## 더 빠르게 만들 단서 찾기
 
----
+`update`는 `O(1)`로 빨라졌지만, `querySubtree`는 여전히 구간을 매번 처음부터 스캔합니다. 트리 모양은 안 변했는데 값만 바뀌었을 뿐인데도, 자료구조를 배열로 바꿨을 뿐 낭비의 본질은 그대로예요.
 
-## 시뮬레이션
+```text
+flatVal:  [10, 20, 40, 50, 30]
 
-트리 `n = 5`, `edges = [[0,1], [0,2], [1,3], [1,4]]`, `root = 0`, `values = [10,20,30,40,50]`에 대해 Euler Tour로 평탄화한 뒤 연산을 처리하는 과정이다. 트리 패널의 색은 현재 질의/갱신 대상 부분 트리(active=대상 루트, frontier=구간에 포함된 자손), keyValue 패널은 in/out 타임스탬프와 BIT 구간 합 결과 스냅샷이다.
+querySubtree(0): 구간 [1, 5] 전체를 매번 선형으로 스캔  → O(n)
+같은 querySubtree(0)을 q번 반복하면: O(n) × q  ← naive 때와 다를 게 없다
+```
 
-연산 순서는 `querySubtree(1)` → `update(3, 100)` → `querySubtree(0)` 이며, 최종 `querySubtree(0)` 반환값은 `210` 으로 시뮬레이션 마지막 프레임과 일치한다.
+여기서 필요한 연산을 다시 정리해 보면 딱 두 가지뿐입니다 — **어떤 위치의 값을 바꾸기**, **어떤 접두사까지의 합을 구하기**. 이 조합을 `O(log n)`에 처리하는 자료구조가 있었죠? 바로 앞서 3번째 절에서 짚어 둔 Fenwick Tree(BIT)입니다.
+
+## 단서를 최적화로 연결하기
+
+평탄화한 배열 `flatVal`을 그대로 두는 대신, BIT 위에 값을 올립니다. 이때 주의할 점은 BIT는 "각 위치의 절댓값"이 아니라 "위치별 변화량(델타)의 누적"으로 관리해야 한다는 것이에요. 그래서 각 정점의 **현재 값**을 별도로 `curVal[]`에 기억해 두고, `update`가 호출될 때마다 `새 값 - curVal[node]`만큼만 BIT에 반영합니다.
+
+```text
+Before (선형 스캔):
+  flatVal = [10, 20, 40, 50, 30]          저장: 절댓값 직접
+  query([l, r]): l..r 순회하며 flatVal 합산   → O(구간 길이)
+
+After (BIT):
+  bit[1..5] 각 칸이 lowbit(i) 크기의 구간 합을 나눠서 책임진다
+  query([l, r]): bitQuery(r) - bitQuery(l - 1)   → O(log n)
+  update(node, value): delta = value - curVal[node]; bitUpdate(in[node], delta)  → O(log n)
+```
+
+불변식은 [Fenwick Tree 가이드](../../../data-structures/range-query/fenwickTree/fenwickTree-guide.mdx)와 같습니다 — `bit[i]`는 `flatVal[i - lowbit(i) + 1 .. i]` 구간의 합을 들고 있고, 이 덕분에 접두사 합을 `O(log n)`에 복원할 수 있어요.
+
+## 최적화 코드
+
+```ts
+class SubtreeSumQuery {
+  private n: number;
+  private in_: number[];
+  private out_: number[];
+  private curVal: number[]; // 각 정점의 현재 값 — 델타 계산용
+  private bit: number[];    // Fenwick Tree, 1-indexed
+
+  constructor(n: number, edges: [number, number][], root: number, values: number[]) {
+    this.n = n;
+    this.in_ = new Array(n).fill(0);
+    this.out_ = new Array(n).fill(0);
+    this.curVal = values.slice();
+    this.bit = new Array(n + 1).fill(0);
+
+    const adj: number[][] = Array.from({ length: n }, () => []);
+    for (const [u, v] of edges) {
+      adj[u]!.push(v);
+      adj[v]!.push(u);
+    }
+
+    let timer = 0;
+    const stack: [number, number, number][] = [[root, -1, 0]];
+    while (stack.length > 0) {
+      const [v, par, leaving] = stack.pop()!;
+      if (leaving) {
+        this.out_[v] = timer;
+      } else {
+        timer++;
+        this.in_[v] = timer;
+        stack.push([v, par, 1]);
+        const neighbors = adj[v]!;
+        for (let k = neighbors.length - 1; k >= 0; k--) {
+          const u = neighbors[k]!;
+          if (u !== par) stack.push([u, v, 0]);
+        }
+      }
+    }
+
+    for (let v = 0; v < n; v++) {
+      this.bitUpdate(this.in_[v]!, values[v]!); // 초기 값도 "0에서 values[v]로" 델타로 반영
+    }
+  }
+
+  private bitUpdate(i: number, delta: number): void {
+    for (; i <= this.n; i += i & -i) this.bit[i]! += delta;
+  }
+
+  private bitQuery(i: number): number {
+    let s = 0;
+    for (; i > 0; i -= i & -i) s += this.bit[i]!;
+    return s;
+  }
+
+  update(node: number, value: number): void {
+    const delta = value - this.curVal[node]!;
+    this.curVal[node] = value;
+    this.bitUpdate(this.in_[node]!, delta);
+  }
+
+  querySubtree(node: number): number {
+    return this.bitQuery(this.out_[node]!) - this.bitQuery(this.in_[node]! - 1);
+  }
+}
+```
+
+기본 구현과 달라진 곳은 `querySubtree`의 선형 스캔이 `bitQuery` 두 번의 차로 바뀐 것, 그리고 `update`가 `flatVal`을 직접 덮어쓰는 대신 `curVal`로 이전 값을 추적해 델타를 계산한다는 것입니다. **가장 중요한 줄은 `const delta = value - this.curVal[node]!;` 입니다.** 이 줄과 그다음 `this.curVal[node] = value;`의 순서를 지키지 않고 `curVal`을 먼저 덮어써 버리면 델타가 항상 0이 되어 버려 BIT가 갱신되지 않는 조용한 버그가 생깁니다. 그리고 `querySubtree`의 `this.in_[node]! - 1`에서 `- 1`을 빠뜨리면 앞 절에서 실측한 대로 `node` 자신의 값이 결과에서 빠집니다.
+
+> 기억법: "BIT에는 얼마가 있었는지가 아니라 얼마나 바뀌었는지를 알려줘야 한다."
+
+이제 더 최적화할 여지가 있을까요? 지금 필요한 연산은 "1차원 배열의 점 갱신 + 접두사 합"뿐이고, Fenwick Tree는 이 조합을 이미 `O(log n)`에 처리합니다. 세그먼트 트리로 바꿔도 점근 복잡도는 같고 재귀·양쪽 자식 포인터 관리 비용만 늘어나요. 갱신이 아예 없다면 오일러 투어 + Sparse Table로 질의를 `O(1)`까지 낮출 수도 있지만, 이 문제는 `update`가 필수라 해당하지 않습니다. 그래서 여기서 최적화를 마칩니다 — 전처리 `O(n log n)`, `update`·`querySubtree` 각각 `O(log n)`, 공간 `O(n)`으로 애초에 세운 목표를 달성했습니다. Mo's Algorithm 같은 구간 트릭과 달리 여기서 값진 부분은 **"트리 문제를 배열 문제로 접어서, 이미 있는 표준 자료구조(BIT)를 그대로 재사용한다"**는 패턴 자체예요. 이 패턴은 부분 트리 최솟값, 부분 트리 XOR처럼 다른 집계 함수를 세그먼트 트리로 바꿔 끼우기만 하면 그대로 재사용할 수 있습니다.
+
+## 실행 시각화
+
+트리 `n = 5`, `edges = [[0,1], [0,2], [1,3], [1,4]]`, `root = 0`, `values = [10,20,30,40,50]`에 대해 `querySubtree(1)` → `update(3, 100)` → `querySubtree(0)` 순서로 연산을 처리하는 과정입니다. 위 코드로 실제 실행하면 `querySubtree(1) = 110`, `update(3, 100)` 이후 `querySubtree(0) = 210`이 나오며, 아래 시뮬레이션의 마지막 프레임과 일치합니다. 트리 패널의 색은 현재 질의·갱신 대상 부분 트리(active=대상 루트, frontier=구간에 포함된 자손)를 나타내고, keyValue 패널은 그 순간의 `in`/`out` 타임스탬프나 BIT 구간 합 계산 스냅샷입니다.
 
 > 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
@@ -292,81 +388,26 @@ export const steps = [
 
 <AlgorithmSimulation view={["tree", "keyValue"]} steps={steps} title="Euler Tour + BIT 부분 트리 합" />
 
-## 수도 코드와 Activity Diagram
-
-### 의사코드
-
-```
-class SubtreeSumQuery:
-    in[0..n-1], out[0..n-1]   // Euler Tour 타임스탬프
-    curVal[0..n-1]              // 각 정점의 현재 값 (delta 추적용)
-    bit[1..n]                   // Fenwick Tree (1-indexed)
-
-    constructor(n, edges, root, values):
-        // 인접 리스트 구성
-        adj[0..n-1] = []
-        for each [u, v] in edges:
-            adj[u].push(v), adj[v].push(u)
-
-        // 반복적 DFS: Euler Tour 계산
-        timer = 0
-        stack = [(root, -1, false)]   // (정점, 부모, 탈출여부)
-        while stack not empty:
-            (v, par, leaving) = stack.pop()
-            if leaving:
-                out[v] = timer          // 불변식: in[v] <= out[v]
-            else:
-                in[v] = ++timer         // 불변식: in[root] = 1
-                stack.push((v, par, true))          // 탈출 마커
-                for u in adj[v] (역순, 부모 제외):
-                    stack.push((u, v, false))
-
-        // 초기 값으로 BIT 구성
-        curVal[0..n-1] = values
-        bit[1..n] = 0
-        for v in 0..n-1:
-            bitUpdate(in[v], values[v])
-
-    bitUpdate(i, delta):           // BIT 점 갱신
-        while i <= n:
-            bit[i] += delta
-            i += i & (-i)          // 불변식: i & (-i) = i의 최하위 set bit
-
-    bitQuery(i):                   // BIT 접두사 합 [1..i]
-        s = 0
-        while i > 0:
-            s += bit[i]
-            i -= i & (-i)
-        return s
-
-    update(node, value):
-        delta = value - curVal[node]   // 불변식: delta = 실제 변화량
-        curVal[node] = value
-        bitUpdate(in[node], delta)     // 불변식: in[node] 위치만 갱신
-
-    querySubtree(node):
-        // 불변식: [in[node], out[node]] = node 부분 트리의 flatVal 구간
-        return bitQuery(out[node]) - bitQuery(in[node] - 1)
-```
-
-**핵심 불변식**: $x \in \text{subtree}(v) \iff \text{in}[v] \leq \text{in}[x] \leq \text{out}[v]$. 이 동치 관계로 인해 구간 합 $[\text{in}[v], \text{out}[v]]$이 정확히 부분 트리 합이 된다.
-
-### Activity Diagram
+## 흐름 한눈에 보기
 
 ```mermaid
 flowchart TD
     A([생성자 호출]) --> B[인접 리스트 구성]
-    B --> C[반복적 DFS\nin, out 타임스탬프 계산]
-    C --> D[curVal 초기화\n= values 복사]
-    D --> E[각 정점 초기 값을\nBIT에 삽입]
+    B --> C["반복적 DFS<br/>in, out 타임스탬프 계산"]
+    C --> D["curVal 초기화<br/>= values 복사"]
+    D --> E["각 정점 초기 값을<br/>BIT에 삽입"]
     E --> F([준비 완료])
 
-    G([update node, value]) --> H[delta = value - curVal node]
-    H --> I[curVal node = value]
-    I --> J[bitUpdate in node, delta]
+    G(["update(node, value)"]) --> H["delta = value - curVal[node]"]
+    H --> I["curVal[node] = value"]
+    I --> J["bitUpdate(in[node], delta)"]
 
-    K([querySubtree node]) --> L[bitQuery out node\n- bitQuery in node - 1]
+    K(["querySubtree(node)"]) --> L["bitQuery(out[node])<br/>- bitQuery(in[node] - 1)"]
     L --> M([부분 트리 합 반환])
 ```
 
-**핵심 불변식**: `bit[i]`는 구간 $[i - \text{lowbit}(i) + 1, i]$에 속하는 `flatVal` 값들의 합을 저장하며, 이를 통해 접두사 합을 $O(\log n)$에 복원할 수 있다.
+## 스스로 점검하기
+
+1. 트리 `n = 4`, `edges = [[0,1], [1,2], [1,3]]`, `root = 0`, `values = [5, 1, 2, 3]`일 때 `in`/`out` 배열과 `querySubtree(1)`을 손으로 구해 보세요. (`in = [1, 2, 3, 4]`, `out = [4, 4, 3, 4]`이고 `querySubtree(1) = values[1] + values[2] + values[3] = 1 + 2 + 3 = 6`입니다.)
+2. 본문의 시뮬레이션 입력에서 `update(3, 100)`을 처리할 때, `curVal`을 먼저 갱신하지 않고 `delta = 100 - curVal[3]` 대신 `bitUpdate(in[3], 100)`을 그대로 호출하면 `querySubtree(1)`과 `querySubtree(0)`은 각각 얼마가 나올지 예측하고, 왜 그렇게 되는지 설명해 보세요. (정답: `querySubtree(1) = 210`, `querySubtree(0) = 250`이 나옵니다 — 원래 있던 값 40 위에 100이 그대로 더 쌓이기 때문입니다.)
+3. 만약 `update`가 "값을 교체"가 아니라 "부분 트리 전체 정점에 `delta`를 더하기"로 바뀐다면(부분 트리 범위 갱신 + 정점 하나 값 조회), 지금의 `in`/`out` 타임스탬프 골격을 그대로 쓰면서 BIT를 어떻게 바꿔야 할까요? (힌트: 지금은 "정점 하나 갱신 + 구간 합 조회"였다면, 이번엔 반대로 "구간 갱신 + 정점 하나 조회"가 됩니다 — 차분 배열(diff array) 위에 BIT를 얹는 방식을 떠올려 보세요.)
