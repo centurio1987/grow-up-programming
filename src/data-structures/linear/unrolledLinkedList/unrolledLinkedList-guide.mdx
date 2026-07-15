@@ -1,94 +1,258 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# UnrolledLinkedList 해설
+# UnrolledLinkedList — 원소 하나당 노드 하나라는 규칙을 깨다
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 단순 연결 리스트 | UnrolledLinkedList | 배열 |
-|------|--------------|-------------------|------|
-| push | O(1) | O(1) amortized | O(1) amortized |
-| pop | O(n) (tail 탐색 필요) | O(p) tail 탐색 | O(1) |
-| get(i) | O(n) | O(√n) | O(1) |
-| 캐시 효율 | 낮음 (포인터 점프) | 중간 (청크 내 연속) | 높음 |
-| 메모리 오버헤드 | n개 포인터 | p개 포인터 | 없음 |
+노드 하나에 원소를 하나씩이 아니라 고정 크기 배열(청크)로 여러 개 묶어 저장하는 연결 리스트예요. 비결은 딱 하나 — "포인터로 잇는 단위"를 원소가 아니라 원소 뭉치로 바꾸는 것입니다. 그 결과 포인터 개수가 `n`개에서 `n/chunkSize`개로 줄어 캐시 지역성이 좋아지고, 인덱스 접근도 `O(n)`이 아니라 청크 수만큼인 `O(n/chunkSize)`만 훑으면 되도록 줄어들어요.
 
-p = 청크 수 ≈ n / chunkSize. chunkSize = √n 으로 설정하면 get이 O(√n)으로 최적화된다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호가 겹치면 UnrolledLinkedList를 떠올리세요.
 
-| 함수 | 입력 | 출력 | 엣지케이스 |
-|------|------|------|-----------|
-| `push(item)` | 임의 타입 T | void | tail이 꽉 찬 경우 → 새 청크 생성 |
-| `pop()` | 없음 | T \| undefined | 빈 리스트 → undefined, tail 청크가 비면 이전 청크로 tail 교체 |
-| `get(index)` | 0-based 정수 | T \| undefined | 음수 또는 범위 초과 → undefined |
-| `size()` | 없음 | number | 상시 O(1) 유지를 위해 별도 카운터 필요 |
-| `toArray()` | 없음 | T[] | 빈 리스트 → [] |
+- 뒤쪽 삽입/삭제(`push`/`pop`)가 압도적으로 많은데, 가끔 인덱스로 원소를 찾아야(`get`) 한다
+- 원소 개수가 수만~수백만 개로 커서, 원소마다 노드 객체를 만드는 오버헤드(포인터 필드 + GC 압박)가 부담스럽다
+- 순회·순차 접근이 잦아서 메모리 상 인접 배치(캐시 지역성)가 체감 성능을 좌우하는 상황(대용량 텍스트 버퍼, 로그 인메모리 편집)이다
 
----
+naive 대안들과 비교하면 이 구조가 서는 자리가 분명해집니다. `p`는 청크 수(`p ≈ n/chunkSize`)예요.
 
-## 핵심 아이디어
-
-### 원형 아이디어와 naive 접근
-
-단순 연결 리스트는 원소마다 노드 객체를 생성해 포인터로 연결한다. 원소 접근 패턴이 순차적이어도 메모리상 노드들이 흩어져 있어 CPU가 캐시에 미리 로드해 두기 어렵다. 반면 배열은 캐시 효율이 극히 좋지만, 중간 삽입·삭제가 O(n)이다.
-
-### 어떤 관찰이 돌파구가 되는가
-
-"원소 하나당 노드 하나"라는 규칙을 깨면 어떨까? 노드 하나에 여러 원소를 배열로 묶으면 노드 수가 `n/chunkSize`로 줄어들고, 청크 내부 접근은 배열처럼 빠르다. 이것이 핵심 관찰이다.
-
-### 관찰을 형식화: 상태/구조 정의
-
-```
-head → [Chunk: items=[1,2,3,4], next] → [Chunk: items=[5,6], next=null] ← tail
+```text
+연산            단순 연결 리스트        배열              UnrolledLinkedList
+push(뒤)         O(1)                  O(1) amortized    O(1) amortized
+pop(뒤)          O(n) — tail 탐색       O(1)              O(1)(청크 내부) / O(p) 최악(경계 재탐색, thrashing 시 매 연산)
+get(i)           O(n)                  O(1)              O(p) = O(n/chunkSize)
+캐시 지역성        낮음(포인터 점프)       높음               중간(청크 내부는 연속 배열)
+메모리 오버헤드     n개 포인터             없음               p개 포인터
 ```
 
-- 각 청크는 `items: T[]`와 `next: Chunk | null`을 갖는다.
-- `head`는 첫 청크, `tail`은 마지막 청크를 O(1)로 가리킨다.
-- `_size`는 전체 원소 수를 상시 추적한다.
+**`chunkSize`는 얼마로 잡아야 할까요? 여기서 정직하게 짚고 넘어갈 부분이 있습니다.** 이 가이드가 다루는 인터페이스는 꼬리 `push`/`pop` + `get`뿐이고 중간 삽입·삭제가 없습니다. 그러면 `get(i)`의 비용은 청크 탐색 `O(p) = O(n/chunkSize)`와 청크 내부 인덱싱 `O(1)`이 전부라, `chunkSize`를 키울수록(청크 수 `p`가 줄수록) `get`은 그저 계속 빨라집니다 — 극단적으로 청크 하나에 전부 담으면 사실상 동적 배열과 다를 게 없어져요. 즉 **이 구조만 놓고 보면 `chunkSize = √n`은 이론적 최적값이 아닙니다.**
 
-### 점화식 또는 핵심 연산
+`√n`이 진짜 균형점으로 등장하는 곳은 **중간 삽입/삭제까지 지원하는 일반적인 unrolled linked list**예요. 그런 unrolled list는 청크 중간에 원소를 끼우거나 빼면 그 청크 안의 나머지 원소를 한 칸씩 밀어야 해서 `O(chunkSize)` 비용이 추가로 붙습니다. 이때는 청크 탐색 비용 `O(n/chunkSize)`(청크를 잘게 쪼갤수록 커짐)와 내부 shift 비용 `O(chunkSize)`(청크를 크게 뭉칠수록 커짐)가 서로 반대로 움직이므로, 둘을 같게 만드는 `chunkSize = √n`이 합을 최소화하는 진짜 이론적 균형점이 됩니다.
 
-**get(index) 탐색:**
+이 가이드의 구조에는 그 `O(chunkSize)` 축 자체가 없습니다. 그런데도 `chunkSize`를 무한정 키우지 않고 `√n` 근방(또는 실무에서 흔한 16~1024 같은 고정값)을 관례적으로 쓰는 이유는 순전히 실용적입니다 — 청크가 지나치게 크면 배열 하나를 통째로 재할당·복사할 때의 비용과 캐시 라인 활용 사이의 절충이 필요해지기 때문이에요. 그래서 이 문서에서 `chunkSize`는 "이 인터페이스의 이론적 최적값"이 아니라, **"일반 unrolled list에서 물려받은 관례적 기본값이자 캐시 지역성을 고려한 실용적 선택"**으로 이해하는 게 정직합니다.
 
-```
-남은_인덱스 = index
-현재 청크 = head
-while 현재 청크 != null:
-    if 남은_인덱스 < 현재 청크.items.length:
-        return 현재 청크.items[남은_인덱스]
-    남은_인덱스 -= 현재 청크.items.length
-    현재 청크 = 현재 청크.next
-return undefined
-```
+선택 기준은 이렇습니다 — **인덱스 접근이 압도적으로 우선**이면 배열, **중간 삽입/삭제**가 잦으면 단순 연결 리스트(또는 이중 연결 리스트), **대량 append/pop에 가끔 인덱스 접근**이 섞이면 UnrolledLinkedList를 고르세요.
 
-**push:**
+### 문제 사례와 적용 예시
 
-```
-if tail == null 또는 tail.items.length == chunkSize:
-    새 청크 = { items: [], next: null }
-    if tail != null: tail.next = 새 청크
-    else: head = 새 청크
-    tail = 새 청크
-tail.items.push(item)
-_size++
+- **텍스트 에디터의 줄 버퍼**: 수십만 줄짜리 로그 파일을 편집할 때, 줄마다 노드를 만들면 캐시 미스가 잦습니다. 줄들을 청크로 묶으면 스크롤(순차 접근)과 특정 줄 점프(인덱스 접근) 둘 다 감당할 수 있어요.
+- **B-Tree/B+ Tree 리프 페이지**: 데이터베이스 인덱스의 리프 노드가 여러 키를 배열로 묶어 두는 설계가 UnrolledLinkedList와 같은 발상입니다.
+- **코딩 테스트 맥락**: "원소를 계속 뒤에 추가/제거하면서, 가끔 k번째 원소를 조회하라"는 요구가 섞인 문제 — 배열만 쓰면 앞쪽 삭제가 O(n), 연결 리스트만 쓰면 조회가 O(n)이 되는 딜레마를 절충합니다.
+
+## 자료구조 자세히 들여다보기
+
+### 전체 스펙: 속성과 액션
+
+**속성(내부 상태)** — 청크 하나는 배열과 다음 청크 포인터를 갖습니다.
+
+```ts
+interface Chunk<T> {
+  items: T[];
+  next: Chunk<T> | null;
+}
 ```
 
-### 정당성 — 왜 이것이 옳은가
+리스트 전체는 `head`(첫 청크), `tail`(마지막 청크), `_size`(전체 원소 수), `chunkSize`(청크당 최대 원소 수)를 유지합니다. 지켜야 할 불변식은 네 가지예요.
 
-- 청크를 순회하면서 `items.length`를 누적하면 정확히 index가 위치한 청크와 내부 오프셋을 찾을 수 있다.
-- tail 포인터를 별도로 유지하므로 push는 항상 O(1)이다.
-- `_size` 카운터를 push/pop마다 갱신하므로 size()는 O(1)이다.
+1. 리스트에 존재하는 모든 청크 $c$에 대해 $1 \le |c.\text{items}| \le \text{chunkSize}$ — 빈 청크는 존재하는 순간 즉시 제거된다(pop이 책임진다).
+2. $\displaystyle\sum_{c \in \text{chunks}} |c.\text{items}| = \_size$ — 청크 길이의 합이 항상 전체 원소 수와 같다.
+3. 리스트가 비어 있지 않으면 `head`는 첫 청크를, `tail`은 마지막 청크를 가리킨다. 비어 있으면 둘 다 `null`이다.
+4. `head`에서 `next`를 따라가면 정확히 한 번씩 모든 청크를 거쳐 `tail`에 도달한다(사이클 없음, 단방향).
 
-### 구현 디테일과 최적화
+`chunkSize = 4`로 그려 보면 이렇습니다.
 
-- **pop의 tail 갱신:** 단방향 연결 리스트이므로 tail 청크가 빈 경우 head부터 순회해 이전 청크를 찾아야 한다. 이 비용은 O(p) = O(n/chunkSize)이다. pop이 자주 필요하면 이중 연결 리스트로 확장할 수 있다.
-- **chunkSize 선택:** n이 예측 가능하면 chunkSize = √n이 get 성능을 최적화한다. 일반적으로 16~64가 캐시 라인 크기(64바이트)에 잘 맞는다.
+```text
+head → [Chunk: items=[1,2,3,4], next] → [Chunk: items=[5], next=null] ← tail
+        (꽉 참: 4/4)                     (여유 있음: 1/4)
+```
 
----
+**액션(연산)**은 다섯 가지입니다.
 
-## 시뮬레이션
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `push(item)` | 맨 끝에 원소 추가. tail이 꽉 찼으면 새 청크 생성 | $O(1)$ amortized |
+| `pop()` | 맨 끝 원소 제거·반환. tail 청크가 비면 이전 청크로 tail 교체 | $O(1)$(청크 내부에 여유가 있을 때) / $O(p)$ 최악(tail 재탐색이 필요할 때, **amortized 아님**) |
+| `get(index)` | 0-based 인덱스의 원소 반환 | $O(p) = O(n/\text{chunkSize})$ |
+| `size()` | 전체 원소 수 반환 | $O(1)$ |
+| `toArray()` | 모든 원소를 순서대로 담은 배열 반환 | $O(n)$ |
+
+핵심 연산 두 개를 실제 값으로 자세히 따라가 볼게요. `chunkSize = 4`인 리스트에 `push(1), push(2), push(3), push(4)`를 하면 청크 하나가 꽉 찹니다.
+
+**① push(5) — 청크가 꽉 찼을 때 새 청크 생성**
+
+```text
+Before:  head → [1,2,3,4] → null                    tail = 이 청크
+                 (4/4, 꽉 참)
+
+push(5): tail.items.length(4) === chunkSize(4) → 새 청크 필요
+
+After:   head → [1,2,3,4] → [5] → null               tail = 새 청크
+                 (4/4)      (1/4)
+```
+
+**② get(4) — 누적 인덱스로 청크 찾기**
+
+```text
+remaining = 4, cur = 청크1([1,2,3,4])
+  4 < 4?  아니오 → remaining = 4 - 4 = 0, cur = 청크2([5])
+  0 < 1?  예 → return 청크2.items[0] = 5
+```
+
+### 왜 모순 없이 작동하는가
+
+**불변식이 보존되는 이유**를 push/pop 각각 귀납적으로 볼게요.
+
+- `push`: 삽입 전에 `tail.items.length === chunkSize`인지 검사합니다. 참이면 길이 0짜리 새 청크를 만들어 연결한 뒤 그 청크에 삽입하므로 삽입 직후 길이는 항상 1 — 불변식 1의 하한을 지킵니다. 거짓이면 기존 tail에 삽입해도 `chunkSize`를 넘지 않습니다 — 상한도 지켜집니다. `_size++`를 매번 같이 하므로 불변식 2도 유지됩니다.
+- `pop`: tail에서 하나를 빼고 `_size--`를 하므로 불변식 2가 유지됩니다. 뺀 후 tail이 비면(길이 0, 불변식 1 위반 직전) 즉시 그 청크를 리스트에서 떼어내 tail을 이전 청크로 교체하므로, 어떤 순간에도 리스트에 남아 있는 청크는 길이 1 이상입니다.
+- `get`: 불변식 2(청크 길이 합 = `_size`) 덕분에, `remaining`이 각 청크 길이만큼 줄어들며 청크를 옮겨 다니면 반드시 유효한 인덱스가 있는 청크에서 멈춥니다.
+
+**`pop`이 왜 amortized $O(1)$이 아닌가.** 이 구현의 청크는 `next`만 갖는 단방향 체인이고 `prev`가 없습니다. 그래서 tail 청크가 비어 "이전 청크"로 tail을 교체해야 할 때, `head`부터 다시 순회해 `cur.next === tail`을 찾아야 하고 이 재탐색은 $O(p)$입니다. amortized $O(1)$을 주장하려면(aggregate 또는 potential 논증) 이 $O(p)$ 비용을 앞선 $O(1)$ 연산들이 쌓아 둔 "저축"으로 상쇄할 수 있어야 하는데, 청크 경계에서 push 1개·pop 1개를 반복하는 패턴(thrashing)에서는 그 저축이 매번 소진돼 상쇄가 일어나지 않습니다. 실제로 `chunkSize=4`, 앞쪽에 꽉 찬 청크 1000개(p=1000)를 만들어 둔 뒤 경계에서 `push→pop`을 20회 반복하면, **매 pop마다 정확히 999번**의 재탐색 스텝이 발생하고 청크 수는 줄지 않습니다(청크가 다시 꽉 찬 상태로 복귀하기 때문). 즉 이 패턴에서 총비용은 연산 수에 비례해 $O(p)$씩 계속 쌓이므로 amortized 분석으로도 $O(1)$로 낮아지지 않습니다. 그래서 표에는 "amortized"가 아니라 "$O(1)$(청크 내부) / $O(p)$ 최악(경계 재탐색)"으로 정직하게 적었습니다.
+
+잠깐, 확인 하나 해 볼까요? `chunkSize = 4`인 리스트에 `push`를 8번 했다면 청크는 몇 개 생겼을까요? — 답은 2개입니다(`⌈8/4⌉ = 2`, 청크 길이는 각각 `[4, 4]`).
+
+**여기서 헷갈리기 쉬운 포인트는 세 가지입니다.**
+
+- **push에서 연결 순서.** 새 청크를 만들 때 "옛 tail이 새 청크를 가리키게 하는 것"과 "tail 변수 자체를 새 청크로 바꾸는 것"은 별개의 두 줄이고, **반드시 앞의 것이 먼저**입니다. 순서를 바꾸면(또는 앞의 줄을 빼먹으면) 옛 tail의 `next`가 영영 `null`로 남아 체인이 끊깁니다. 실제로 `chunkSize=4`에서 `1,2,3,4,5`를 순서대로 push한 뒤 이 줄을 빼먹은 버전으로 `toArray()`를 호출하면 `[1, 2, 3, 4]`만 나오고 `5`는 유실됩니다 — 데이터가 조용히 사라지는 겁니다.
+- **pop에서 "청크가 하나뿐인 경우"를 빠뜨리는 것.** `head === tail`인 상태에서 그 청크가 비면, 이전 청크를 찾는 순회(`cur.next !== tail`이 될 때까지 전진)는 종료 조건을 만날 수 없습니다(`cur`도 `head`, 즉 `tail`이라 `cur.next`는 애초에 `null`이지 `tail`이 아니므로 무한루프거나 `null` 역참조로 터집니다). 그래서 `head === tail`을 먼저 확인해 `head = tail = null`로 리셋하는 특수 분기가 꼭 필요합니다.
+- **get의 경계 비교 연산자.** "현재 청크에 있는가"를 판단할 때 `remaining < cur.items.length`를 써야 합니다. `<=`로 잘못 쓰면, 위 worked example(`chunkSize=4`, 청크 `[1,2,3,4]` 다음 청크 `[5]`)에서 `get(4)`가 `remaining=4, cur.items.length=4`일 때 `4 <= 4`가 참이 되어 `cur.items[4]`(존재하지 않는 인덱스, 즉 `undefined`)를 반환해 버립니다. 정답은 `5`인데 `undefined`가 나오는 것이죠.
+
+엣지 케이스도 짚어 둘게요.
+
+```text
+빈 리스트에서 pop() / get(0)                     → undefined (head===null 분기)
+청크 하나뿐인 상태에서 pop으로 마지막 원소 제거      → head=tail=null 리셋 (head===tail 분기)
+get(음수) / get(size 이상)                        → undefined (범위 체크로 즉시 컷)
+chunkSize=1인 극단값                              → 청크마다 원소 1개, 사실상 단순 연결 리스트와 동일 동작
+```
+
+## 아이디어를 코드로 옮기기
+
+**원형(naive)** 부터 봅시다. 원소 하나당 노드 하나인 단순 연결 리스트에서 `get`은 인덱스만큼 포인터를 따라가야 합니다.
+
+```ts
+interface NaiveNode<T> {
+  value: T;
+  next: NaiveNode<T> | null;
+}
+
+function naiveGet<T>(head: NaiveNode<T> | null, index: number): T | undefined {
+  let cur = head;
+  let i = 0;
+  while (cur !== null) {
+    if (i === index) return cur.value;
+    cur = cur.next;
+    i++;
+  }
+  return undefined;
+}
+```
+
+원소가 100만 개면 최악의 경우 포인터를 100만 번 밟아야 해요. 관찰: "원소를 하나씩 말고 배열로 뭉쳐서 청크 안에서는 인덱스로 바로 꺼내면, 포인터는 청크 수만큼만 밟으면 되지 않을까?" — 이 관찰을 그대로 옮긴 것이 최종 구현입니다.
+
+```ts
+interface Chunk<T> {
+  items: T[];
+  next: Chunk<T> | null;
+}
+
+class UnrolledLinkedList<T> {
+  private head: Chunk<T> | null = null;
+  private tail: Chunk<T> | null = null;
+  private _size = 0;
+  private readonly chunkSize: number;
+
+  constructor(chunkSize: number = 16) {
+    if (chunkSize < 1) throw new Error("chunkSize must be >= 1");
+    this.chunkSize = chunkSize;
+  }
+
+  push(item: T): void {
+    if (this.tail === null || this.tail.items.length === this.chunkSize) {
+      const chunk: Chunk<T> = { items: [], next: null };
+      if (this.tail !== null) {
+        this.tail.next = chunk; // ① 옛 tail이 새 청크를 가리키고
+      } else {
+        this.head = chunk;
+      }
+      this.tail = chunk; // ② 그 다음에 tail을 갈아 끼운다
+    }
+    this.tail.items.push(item);
+    this._size++;
+  }
+
+  pop(): T | undefined {
+    if (this._size === 0 || this.tail === null) return undefined;
+    const val = this.tail.items.pop();
+    this._size--;
+    if (this.tail.items.length === 0) {
+      if (this.head === this.tail) {
+        this.head = null;
+        this.tail = null;
+      } else {
+        let cur = this.head as Chunk<T>;
+        while (cur.next !== this.tail) cur = cur.next as Chunk<T>;
+        cur.next = null;
+        this.tail = cur;
+      }
+    }
+    return val;
+  }
+
+  get(index: number): T | undefined {
+    if (index < 0 || index >= this._size) return undefined;
+    let remaining = index;
+    let cur = this.head;
+    while (cur !== null) {
+      if (remaining < cur.items.length) return cur.items[remaining];
+      remaining -= cur.items.length;
+      cur = cur.next;
+    }
+    return undefined;
+  }
+
+  size(): number {
+    return this._size;
+  }
+
+  toArray(): T[] {
+    const result: T[] = [];
+    let cur = this.head;
+    while (cur !== null) {
+      result.push(...cur.items);
+      cur = cur.next;
+    }
+    return result;
+  }
+}
+```
+
+**가장 중요한 부분은 `push`의 두 줄입니다.**
+
+```ts
+this.tail.next = chunk; // ①
+this.tail = chunk;      // ②
+```
+
+①이 먼저여야 옛 tail이 새 청크를 참조에 남긴 채로 tail을 교체할 수 있어요. 순서를 바꾸면 옛 tail을 가리키던 참조가 사라져 ①을 쓸 대상 자체를 잃어버립니다.
+
+놓치기 쉬운 구현부를 더 짚으면:
+
+- `pop`의 `if (this.head === this.tail)` 분기 — 청크가 하나뿐일 때의 특수 케이스를 빼먹으면 이전 청크를 찾는 `while (cur.next !== this.tail)` 순회가 종료 조건을 못 만나 무한루프/역참조 오류로 이어집니다.
+- `get`의 `remaining < cur.items.length` — `<=`로 쓰면 청크 경계에서 한 칸 밀린 인덱스를 읽어 `undefined`를 반환하는 오프바이원 버그가 생깁니다.
+
+> 기억법: "새 청크를 이을 때는 헤어지기 전에 소개부터" — 옛 tail의 `next`를 잇고 나서야 tail을 갈아 끼운다.
+
+## 실행 시각화
+
+`chunkSize = 4`인 UnrolledLinkedList에 `push(1), push(2), push(3), push(4)`로 첫 청크를 채우고, `push(5)`로 새 청크를 만듭니다. 이어서 `get(4)`가 청크 경계를 넘어 `5`를 찾아내고, `pop()`이 두 번째 청크를 비워 tail을 첫 청크로 되돌립니다. array 패널은 각 청크의 크기(원소 개수)를 보여줍니다 — 예를 들어 `[4, 1]`은 "첫 청크 4개, 둘째 청크 1개"라는 뜻입니다. 실제 실행 결과는 `get(4) === 5`, `pop() === 5`, 이어서 `toArray() === [1, 2, 3, 4]`로 스크래치 실행 검증과 일치합니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -130,65 +294,10 @@ export const steps = [
 
 <AlgorithmSimulation view="array" steps={steps} title="UnrolledLinkedList 동작 시뮬레이션 (array = 각 청크의 크기)" />
 
-## 수도 코드와 Activity Diagram
+정리하면, 이 구조가 감당하는 연산은 `push` $O(1)$ amortized, `pop` $O(1)$(청크 내부) / $O(p)$ 최악(경계 재탐색, thrashing 패턴에서는 amortized로도 낮아지지 않음), `get(i)` $O(p) = O(n/\text{chunkSize})$입니다. 그리고 이 인터페이스(중간 삽입/삭제 없음)에서는 `chunkSize`를 키울수록 `get`이 유리해질 뿐 나빠지는 축이 없다는 것, 그래서 `√n`은 이 구조의 이론적 최적값이 아니라 관례적·실용적 기본값이라는 것을 함께 기억해 두세요.
 
-### 의사코드
+## 스스로 점검하기
 
-```
-class UnrolledLinkedList<T>:
-    head, tail: Chunk | null
-    _size: int = 0
-    chunkSize: int
-
-    push(item):
-        if tail == null or tail.items.length == chunkSize:
-            chunk = { items: [], next: null }
-            if tail != null: tail.next = chunk
-            else: head = chunk
-            tail = chunk
-        tail.items.push(item)
-        _size++
-
-    pop():
-        if _size == 0: return undefined
-        val = tail.items.pop()
-        _size--
-        if tail.items.length == 0:
-            if head == tail: head = tail = null
-            else:
-                cur = head
-                while cur.next != tail: cur = cur.next
-                cur.next = null
-                tail = cur
-        return val
-
-    get(index):
-        if index < 0 or index >= _size: return undefined
-        remaining = index
-        cur = head
-        while cur != null:
-            if remaining < cur.items.length: return cur.items[remaining]
-            remaining -= cur.items.length
-            cur = cur.next
-        return undefined
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-    A([push 시작]) --> B{tail이 null\n또는 꽉 찼는가?}
-    B -- 예 --> C[새 청크 생성\ntail.next = 새 청크\ntail = 새 청크]
-    B -- 아니오 --> D[tail.items에 item 추가]
-    C --> D
-    D --> E[_size++]
-    E --> F([끝])
-
-    G([get 시작]) --> H{index 범위\n유효한가?}
-    H -- 아니오 --> I([undefined 반환])
-    H -- 예 --> J[remaining = index\ncur = head]
-    J --> K{remaining < cur.items.length?}
-    K -- 예 --> L([cur.items/remaining/ 반환])
-    K -- 아니오 --> M[remaining -= cur.items.length\ncur = cur.next]
-    M --> K
-```
+1. `chunkSize = 3`인 빈 리스트에 `1, 2, 3, 4, 5, 6, 7`을 순서대로 push하면 청크가 몇 개 생기고 각 청크의 길이는 얼마일까요? 손으로 그려 보세요.
+2. `get`의 경계 비교를 `remaining < cur.items.length` 대신 `remaining <= cur.items.length`로 구현하면, 위 worked example(`chunkSize=4`, 청크 `[1,2,3,4]` 다음 청크 `[5]`)에서 `get(4)`는 어떤 값을 반환하게 될까요? 왜 그런 값이 나오는지 설명해 보세요.
+3. `pop()`에서 `if (this.head === this.tail)` 분기를 빼먹은 채로, 청크가 하나뿐인 리스트에서 마지막 원소를 pop하면 어떤 문제가 생길까요?

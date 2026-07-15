@@ -1960,13 +1960,13 @@
       "dir": "src/data-structures/linear/unrolledLinkedList",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-15T05:42:15.852Z",
+      "note": "신규 재집필(ds-linear), pop O(p)·√n 근거 정직화 2라운드 수정 후 재게이트 PASS, _scratch 999스텝 실측"
     },
     {
       "name": "xorLinkedList",
