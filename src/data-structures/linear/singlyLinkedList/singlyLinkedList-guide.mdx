@@ -1,101 +1,276 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# SinglyLinkedList (단방향 연결 리스트) 해설
+# SinglyLinkedList — 다음만 알아도, tail 하나로 끝까지 안다
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 목표 복잡도 | 비고 |
-|------|------------|------|
-| `prepend` | O(1) | head 포인터만 갱신 |
-| `append` | O(1) | tail 포인터 유지 시 |
-| `removeFirst` | O(1) | head 포인터만 갱신 |
-| `find` | O(n) | 선형 탐색 불가피 |
-| `toArray` | O(n) | 전체 순회 |
-| `size` | O(1) | 카운터 변수 유지 |
+각 노드가 오직 `next` 하나만 들고 다음 노드를 가리키는, 가장 단순한 형태의 연결 자료구조예요. 비결은 `head`와 함께 `tail` 포인터를 하나 더 유지하는 것 — 이 덕분에 맨 끝에 원소를 붙이는 `append`가 매번 끝까지 순회할 필요 없이 O(1)로 끝납니다. 메모리는 이중 연결 리스트의 절반만 쓰면서도, 맨 앞 삽입·제거는 그대로 O(1)을 유지해요.
 
-$n = 10^5$ 기준 O(n) 연산은 약 0.1ms 이내, O(1) 연산은 수 나노초 수준이다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호들이 보이면 단방향 연결 리스트를 떠올리세요.
 
-| 메서드 | 시그니처 | 엣지케이스 |
-|--------|----------|-----------|
-| `prepend` | `(value: T) => ListNode<T>` | 빈 리스트 → head=tail=새 노드 |
-| `append` | `(value: T) => ListNode<T>` | 빈 리스트 → head=tail=새 노드 |
-| `removeFirst` | `() => T \| undefined` | 빈 리스트 → undefined, 단일 노드 → tail도 null |
-| `find` | `(value: T) => ListNode<T> \| null` | 빈 리스트, 중복 값, 없는 값 |
-| `toArray` | `() => T[]` | 빈 리스트 → [] |
-| `size` | `() => number` | 0인 경우 |
+- 삽입·삭제가 거의 항상 리스트의 **양쪽 끝**(맨 앞 또는 맨 뒤)에서만 일어나고, 중간 삽입이나 역방향 순회는 요구되지 않는다
+- 배열처럼 앞쪽에 삽입할 때 뒤 원소를 전부 밀어야 하는 비용(O(n))을 피하고 싶다
+- 메모리를 아껴야 하는데, 이중 연결 리스트의 `prev` 포인터까지는 필요 없다
 
----
+naive한 접근과 비교하면 체감이 확실합니다. 가장 단순한 연결 리스트는 `head`만 유지하는데, 이 경우 `append`할 때마다 `head`부터 끝까지 순회해서 마지막 노드의 `next`에 연결해야 하므로 O(n)이 됩니다. 실제로 이 접근으로 10만 번 `append`하면 포인터를 약 50억(4,999,950,000)번 추적하게 됩니다 — 실용적이지 않아요. "항상 끝에 붙이는데, 왜 끝을 매번 찾아야 하는가?"라는 질문이 돌파구입니다. `tail` 포인터를 한 개 더 유지하면 끝에 대한 참조를 항상 O(1)로 얻을 수 있어요.
 
-## 핵심 아이디어
-
-### 원형 아이디어와 naive 접근
-
-가장 단순한 연결 리스트는 `head` 포인터만 유지한다. `append`할 때마다 head부터 끝까지 순회해서 마지막 노드의 `next`에 연결하면 O(n)이 된다. 10만 번 append하면 약 50억 번의 포인터 추적이 발생한다 — 실용적이지 않다.
-
-### 어떤 관찰이 돌파구가 되는가
-
-"항상 끝에 붙이는데, 왜 끝을 매번 찾아야 하는가?" — tail 포인터를 한 개 더 유지하면 끝에 대한 참조를 항상 O(1)로 접근할 수 있다.
-
-### 관찰을 형식화: 상태/구조 정의
-
-```
-상태: { head: ListNode<T> | null, tail: ListNode<T> | null, _size: number }
-
-불변식:
-  - head === null  ⟺  tail === null  ⟺  _size === 0
-  - _size === 1    ⟹  head === tail
-  - _size >= 2     ⟹  head !== tail, tail.next === null
+```text
+                맨 앞 삽입      맨 뒤 삽입(append)     노드당 메모리
+배열(Array)      O(n) — shift    O(1) 상각             데이터만
+head만 있는 리스트 O(1)          O(n) — 끝까지 순회      next 1개
+head+tail 리스트  O(1)           O(1)                  next 1개
+이중 연결 리스트   O(1)           O(1)                  next+prev 2개
 ```
 
-### 점화식 또는 핵심 연산
+비슷한 용도의 자료구조로 이중 연결 리스트가 있는데, 역방향 순회나 **임의 노드**를 O(1)에 삭제해야 하면 이중 연결 리스트를, 앞/뒤 삽입과 앞에서 제거만으로 충분하면 단방향 연결 리스트를 선택하세요.
 
-**prepend**:
-```
-새 노드 node 생성
-node.next = head
-head = node
-if tail === null: tail = node   // 빈 리스트였다면
-_size++
-```
+### 문제 사례와 적용 예시
 
-**append**:
-```
-새 노드 node 생성
-if tail !== null: tail.next = node
-else: head = node               // 빈 리스트였다면
-tail = node
-_size++
-```
+- **브라우저 방문 히스토리**: 페이지를 방문할 때마다 히스토리 맨 앞에 추가되고, "뒤로 가기"를 누르면 가장 최근 페이지가 제거됩니다. 역방향 순회가 필요 없으므로 단방향으로 충분해요.
+- **실행 취소(undo) 스택**: 되돌릴 작업들을 노드로 쌓아 두고 맨 위(=맨 앞)에서만 넣고 빼면 되는 LIFO 흐름에 자연스럽게 맞습니다.
+- **작업 큐(FIFO)**: `append`로 뒤에 넣고 `removeFirst`로 앞에서 빼면, `tail` 포인터 덕분에 양 끝 연산이 모두 O(1)인 큐가 됩니다.
+- **코딩 테스트 맥락**: "연결 리스트 뒤집기", "두 정렬 리스트 병합"처럼 노드 자체를 조작하는 문제들의 베이스 자료구조가 바로 이 구조예요.
 
-**removeFirst**:
-```
-if head === null: return undefined
-val = head.value
-head = head.next
-if head === null: tail = null   // 단일 노드를 제거했다면
-_size--
-return val
+## 자료구조 자세히 들여다보기
+
+### 전체 스펙: 속성과 액션
+
+**속성(내부 상태)** — 노드와 리스트 두 계층으로 구성됩니다.
+
+```ts
+class ListNode<T> {
+  value: T;
+  next: ListNode<T> | null = null;
+}
+
+class SinglyLinkedList<T> {
+  private head: ListNode<T> | null = null; // 첫 노드
+  private tail: ListNode<T> | null = null; // 마지막 노드 — O(1) append의 핵심
+  private count: number = 0;               // 노드 개수 캐시
+}
 ```
 
-### 정당성 — 왜 이것이 옳은가
+지켜야 할 불변식은 세 가지예요.
 
-- `append` 후 `tail`은 항상 마지막 노드를 가리키므로 다음 `append`도 O(1).
-- `removeFirst` 후 리스트가 비면 `tail`도 `null`로 초기화해야 한다. 그렇지 않으면 `tail`이 이미 해제된 노드를 가리키는 댕글링 참조가 생긴다 (GC 언어에서는 메모리 누수).
-- `_size` 카운터를 별도 유지하면 `size()`가 O(1).
+1. `head`가 비어 있음과 `tail`이 비어 있음, `count`가 0임은 항상 동시에 성립합니다.
+2. 노드가 정확히 1개면 `head`와 `tail`은 같은 노드를 가리킵니다.
+3. 노드가 1개 이상이면 마지막 노드의 `next`는 항상 `null`입니다.
 
-### 구현 디테일과 최적화
+정식으로 쓰면 이렇습니다.
 
-- `find`는 `===` 참조 비교를 사용한다. 원시 타입은 값 비교, 객체는 참조 비교로 자동 처리된다.
-- TypeScript strict mode에서 `noUncheckedIndexedAccess`가 활성화되어 있으므로, 모든 `null` 체크를 명시적으로 수행해야 한다.
-- `prepend` 직후 `append`를 호출하면 tail이 prepend로 설정된 단일 노드를 가리키고 있으므로 문제없이 동작한다.
+$$
+\text{head} = \text{null} \iff \text{tail} = \text{null} \iff \text{count} = 0
+$$
 
----
+$$
+\text{count} = 1 \implies \text{head} = \text{tail}
+$$
 
-## 시뮬레이션
+$$
+\text{count} \geq 1 \implies \text{tail.next} = \text{null}
+$$
+
+구조 전체를 그림으로 보면 이래요.
+
+```text
+head                                    tail
+ ↓                                       ↓
+[ 5 | ● ]→[ 10 | ● ]→[ 20 | ● ]→ null
+ value next          next          next
+                                   (마지막 노드의 next는 항상 null)
+```
+
+**액션(연산)** — 이 리스트가 제공하는 6개 연산입니다.
+
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `prepend(value)` | 맨 앞에 새 노드 삽입 | O(1) |
+| `append(value)` | 맨 뒤에 새 노드 삽입 (`tail` 이용) | O(1) |
+| `removeFirst()` | 맨 앞 노드 제거 후 값 반환 | O(1) |
+| `find(value)` | 값이 일치하는 첫 노드 탐색 | O(n) |
+| `toArray()` | head→tail 순서로 배열 생성 | O(n) |
+| `size()` | 현재 노드 개수 | O(1) |
+
+핵심 연산 세 개를 before/after로 자세히 볼게요.
+
+**① append — tail.next에 새 노드를 매단다.**
+
+```text
+Before: head → [5]→[10]→ null          tail = 10
+                                node = new [20]
+
+After:  head → [5]→[10]→[20]→ null     tail = 20
+                       ↑
+                 tail.next = node로 한 번에 연결 (순회 없음)
+```
+
+**② prepend — 새 노드가 head를 대신한다.**
+
+```text
+Before: head → [10]→[20]→ null         tail = 20
+
+              new [5]
+                 next → 10 (node.next = head, 먼저!)
+After:  head → [5]→[10]→[20]→ null     tail = 20 (그대로)
+```
+
+**③ removeFirst — 리스트가 비면 tail도 함께 비운다.**
+
+```text
+Before(크기 1): head → [42] → null      tail = 42
+
+After removeFirst(): head = null        tail = null (같이 비워야 함!)
+
+Before(크기 2+): head → [10]→[20]→ null tail = 20
+After removeFirst(): head → [20]→ null  tail = 20 (그대로)
+```
+
+### 왜 모순 없이 작동하는가
+
+빈 리스트(불변식이 자명하게 성립)에서 출발해, 각 연산이 불변식을 어떻게 지키는지 따라가 볼게요.
+
+- **`append`**: `tail`이 `null`이면(빈 리스트) `head`도 새 노드로 세팅하고, 아니면 `tail.next = node`로 이어 붙입니다. 어느 경우든 마지막에 `tail = node`로 갱신하므로, 연산 직후 `tail`은 항상 진짜 마지막 노드를 가리켜요. 그래서 **다음** `append`도 다시 O(1)로 끝날 수 있습니다 — 이게 tail 포인터가 계속 유효하다는 귀납의 핵심이에요.
+- **`prepend`**: `node.next = head` 다음 `head = node`로 교체하므로 새 노드가 항상 이전 리스트 전체를 그대로 물고 있습니다. `tail`은 건드리지 않되, 빈 리스트였을 때만 `tail = node`로 세팅해 불변식 1을 지켜요.
+- **`removeFirst`**: `head = head.next`로 한 칸 전진시킨 뒤, 그 결과 `head`가 `null`이 되었는지(=방금 마지막 남은 노드를 지웠는지) 검사해서 `tail`도 함께 `null`로 만듭니다. 이 검사를 빼먹으면 `tail`이 이미 리스트에서 떨어져 나간 노드를 계속 가리키는 댕글링 참조가 됩니다.
+
+**여기서 헷갈리기 쉬운 포인트는 `prepend`에서 두 줄의 순서입니다.** `node.next = head`를 먼저 하지 않고 `head = node`를 먼저 실행하면 어떻게 될까요? `head`가 이미 `node`로 바뀐 뒤에 `node.next = head`를 실행하는 셈이 되어 `node.next = node`, 즉 노드가 자기 자신을 가리키는 self-loop이 생깁니다. 이 상태에서 `toArray()`를 호출하면 `while (cur !== null)` 루프가 영원히 끝나지 않고 무한 루프에 빠져요. 기억법으로 정리하면 이렇습니다.
+
+> 새 노드가 기존 사슬을 먼저 손에 쥐고(`next`), 그다음에 head 자리를 넘겨받는다.
+
+**두 번째로 헷갈리기 쉬운 포인트는 `removeFirst` 후 `tail` 정리를 잊는 것입니다.** 노드가 1개인 리스트에서 `removeFirst`를 호출한 뒤 `tail` 갱신을 빼먹으면, `head`는 `null`인데 `tail`은 여전히 방금 제거된 노드를 가리킵니다. 이 상태에서 `append(99)`를 호출하면 코드가 `tail.next = node`로 분기해 이미 리스트에서 떨어져 나간 옛 노드에 새 노드를 매달게 되고, `head`는 여전히 `null`이라 `toArray()`는 `[]`를 반환하는데 `size()`는 1을 반환하는 모순 상태가 됩니다.
+
+잠깐, 확인 하나만 해 볼까요? 리스트가 `[5, 10, 20]`이고 `tail = 20`인 상태에서 `prepend(1)`을 하면 `tail`은 바뀔까요? — 바뀌지 않습니다. `prepend`는 `head` 쪽만 건드리므로 `tail`은 그대로 20이에요.
+
+엣지 케이스를 점검해 보면:
+
+```text
+빈 리스트에서 removeFirst()      → undefined 반환, head/tail 그대로 null
+크기 1 리스트에서 removeFirst() → head=null, tail도 null로 재설정
+find(없는 값)                    → null
+리스트에 중복 값이 있을 때 find  → head에서 가장 먼저 만나는 노드만 반환
+prepend 직후 append              → tail이 prepend로 만든 단일 노드를 가리킨 채로 시작해도 정상 동작
+```
+
+## 아이디어를 코드로 옮기기
+
+**원형(naive) — `head`만 유지.** 앞서 본 것처럼 `tail`이 없으면 `append`마다 끝까지 순회해야 합니다.
+
+```ts
+class NaiveList<T> {
+  head: ListNode<T> | null = null;
+
+  append(value: T): ListNode<T> {
+    const node = new ListNode(value);
+    if (this.head === null) {
+      this.head = node;
+      return node;
+    }
+    let cur = this.head;
+    while (cur.next !== null) cur = cur.next; // 매번 끝까지 순회 — O(n)
+    cur.next = node;
+    return node;
+  }
+}
+```
+
+10만 번 `append`를 이 코드로 반복하면 포인터 추적이 총 4,999,950,000회(약 50억 회) 일어난다는 것을 직접 실행해서 확인했습니다. `tail` 포인터 하나만 추가하면 이 순회를 통째로 없앨 수 있어요 — 그래서 다음 단계로 넘어갑니다.
+
+**최종 — `head`와 `tail`을 함께 유지.**
+
+```ts
+class ListNode<T> {
+  value: T;
+  next: ListNode<T> | null = null;
+  constructor(value: T) {
+    this.value = value;
+  }
+}
+
+class SinglyLinkedList<T> {
+  private head: ListNode<T> | null = null;
+  private tail: ListNode<T> | null = null;
+  private count = 0;
+
+  prepend(value: T): ListNode<T> {
+    const node = new ListNode(value);
+    node.next = this.head;                     // ① 새 노드가 기존 사슬을 먼저 물고
+    this.head = node;                           // ② 그다음 head 자리를 넘겨받는다
+    if (this.tail === null) this.tail = node;   // 빈 리스트였다면 tail도 새 노드
+    this.count++;
+    return node;
+  }
+
+  append(value: T): ListNode<T> {
+    const node = new ListNode(value);
+    if (this.tail === null) {
+      this.head = node;                         // 빈 리스트였다면 head도 새 노드
+    } else {
+      this.tail.next = node;
+    }
+    this.tail = node;
+    this.count++;
+    return node;
+  }
+
+  removeFirst(): T | undefined {
+    if (this.head === null) return undefined;
+    const value = this.head.value;
+    this.head = this.head.next;
+    if (this.head === null) this.tail = null;   // 마지막 노드를 지웠다면 tail도 비운다
+    this.count--;
+    return value;
+  }
+
+  find(value: T): ListNode<T> | null {
+    let cur = this.head;
+    while (cur !== null) {
+      if (cur.value === value) return cur;
+      cur = cur.next;
+    }
+    return null;
+  }
+
+  toArray(): T[] {
+    const result: T[] = [];
+    let cur = this.head;
+    while (cur !== null) {
+      result.push(cur.value);
+      cur = cur.next;
+    }
+    return result;
+  }
+
+  size(): number {
+    return this.count;
+  }
+}
+```
+
+가장 중요한 부분은 `prepend`의 `node.next = this.head; this.head = node;` 두 줄과 `removeFirst`의 `if (this.head === null) this.tail = null;` 한 줄입니다. 앞의 두 줄은 순서를 바꾸면 self-loop이 생기고, 뒤의 한 줄을 빼먹으면 `tail`이 댕글링 참조가 됩니다.
+
+놓치기 쉬운 구현 디테일을 더 짚으면:
+
+- `find`는 `===` 참조 비교를 씁니다. 원시 타입은 값 비교, 객체는 참조 비교로 자연스럽게 처리돼요.
+- TypeScript strict 모드에서 `noUncheckedIndexedAccess`가 켜져 있으므로, `head`·`tail`·`cur`에 대한 `null` 체크를 생략할 수 없습니다.
+- `append`가 빈 리스트 분기에서 `head`만 설정하고 `tail = node`를 실행하는 줄은 분기 바깥 공통 코드로 빼 뒀습니다 — 두 분기 모두 결국 `tail`을 새 노드로 갱신해야 하기 때문이에요.
+
+실제로 이 코드로 문제 예시를 실행해 보면, `append(1)`, `append(2)`, `append(3)`, `prepend(0)` 순서로 호출한 뒤 `toArray()`는 `[0, 1, 2, 3]`, `size()`는 4, `find(2)`는 `next`가 3인 노드, `find(99)`는 `null`, `removeFirst()`는 0을 반환하고 이후 `toArray()`는 `[1, 2, 3]`, `size()`는 3이 됩니다 — 실행해서 확인한 값입니다.
+
+> 기억법: "먼저 손에 쥐고, 그다음 넘겨받는다(prepend)" / "비면 같이 비운다(removeFirst의 tail)".
+
+## 실행 시각화
+
+고정 입력으로 `append(10)` → `append(20)` → `prepend(5)` → `removeFirst()`를 차례로 실행합니다. 실제로 위 코드를 그대로 실행해서 확인한 반환값은 `removeFirst() === 5`이고, 그 시점의 상태는 `head=10, tail=20, size=2`입니다. array 패널의 각 프레임은 그 순간의 `toArray()` 결과를, `highlight`는 방금 갱신된 `head`/`tail` 위치를, `marked`는 이번 연산에서 건드리지 않은 나머지 노드를 보여줍니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -144,100 +319,10 @@ export const steps = [
 
 <AlgorithmSimulation view="array" steps={steps} title="SinglyLinkedList 동작 흐름" />
 
----
+정리하면, `tail` 포인터 하나를 더 유지한다는 단 하나의 설계 결정이 `append`를 O(n)에서 O(1)로 바꿉니다. `prepend`와 `removeFirst`가 각각 `node.next = head` 먼저, `head = null`이면 `tail`도 함께 비우기라는 두 가지 순서 규칙만 지키면, 세 가지 불변식(head/tail/count의 동시성, 크기 1일 때 head=tail, 마지막 노드의 next=null)이 어떤 연산 순서에서도 깨지지 않습니다.
 
-## 수도 코드와 Activity Diagram
+## 스스로 점검하기
 
-### 의사코드
-
-```
-class ListNode<T>:
-  value: T
-  next: ListNode<T> | null = null
-
-class SinglyLinkedList<T>:
-  head: ListNode<T> | null = null   // 불변식: head===null ⟺ tail===null
-  tail: ListNode<T> | null = null
-  _size: int = 0
-
-  prepend(value):
-    node = new ListNode(value)
-    node.next = head
-    head = node
-    if tail == null:          // 빈 리스트였다면
-      tail = node
-    _size++
-    return node
-
-  append(value):
-    node = new ListNode(value)
-    if tail != null:
-      tail.next = node
-    else:
-      head = node             // 빈 리스트였다면
-    tail = node
-    _size++
-    return node
-
-  removeFirst():
-    if head == null: return undefined
-    val = head.value
-    head = head.next
-    if head == null:          // 단일 노드 제거 → tail도 null
-      tail = null
-    _size--
-    return val
-
-  find(value):
-    current = head
-    while current != null:
-      if current.value === value: return current
-      current = current.next
-    return null
-
-  toArray():
-    result = []
-    current = head
-    while current != null:
-      result.push(current.value)
-      current = current.next
-    return result
-
-  size(): return _size
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A([시작]) --> B{연산 선택}
-
-  B -->|prepend| P1[새 노드 생성]
-  P1 --> P2[node.next = head]
-  P2 --> P3{tail이 null?}
-  P3 -->|Yes| P4[tail = node]
-  P3 -->|No| P5[head = node]
-  P4 --> P5
-  P5 --> P6[_size++]
-  P6 --> Z([완료])
-
-  B -->|append| A1[새 노드 생성]
-  A1 --> A2{tail이 null?}
-  A2 -->|Yes| A3[head = node]
-  A2 -->|No| A4[tail.next = node]
-  A3 --> A5[tail = node]
-  A4 --> A5
-  A5 --> A6[_size++]
-  A6 --> Z
-
-  B -->|removeFirst| R1{head가 null?}
-  R1 -->|Yes| R2[return undefined]
-  R1 -->|No| R3[val = head.value]
-  R3 --> R4[head = head.next]
-  R4 --> R5{head가 null?}
-  R5 -->|Yes| R6[tail = null]
-  R5 -->|No| R7[_size--]
-  R6 --> R7
-  R7 --> R8[return val]
-  R8 --> Z
-```
+1. 빈 리스트에 `prepend(1)`, `append(2)`, `prepend(3)`을 순서대로 호출하면 최종 `toArray()`와 `head`/`tail`의 값은 각각 무엇일까요? 손으로 그려서 확인해 보세요.
+2. `prepend` 구현에서 `this.head = node;`를 `node.next = this.head;`보다 먼저 쓰면 어떤 구체적인 오류가 발생하나요? `toArray()`를 호출했을 때 벌어지는 일을 설명해 보세요.
+3. 리스트에 노드가 3개 있을 때 `removeFirst()`를 세 번 연속 호출하면 `tail`은 몇 번째 호출에서 `null`이 될까요? 그 시점에 `head`는 어떤 값이어야 할까요?

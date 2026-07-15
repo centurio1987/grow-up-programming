@@ -1,117 +1,273 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# DynamicArray (동적 배열) 해설
+# DynamicArray — 여유 공간을 미리 사두고, 두 배씩 늘려가는 전략
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 목표 복잡도 | 비고 |
-|------|------------|------|
-| `push` | amortized O(1) | 재할당 발생 시 O(n)이지만 총합은 O(n) |
-| `pop` | O(1) | 축소 포함 |
-| `get` / `set` | O(1) | 인덱스 직접 접근 |
-| `toArray` | O(n) | slice 복사 |
-| `size` / `capacity` | O(1) | 변수 반환 |
+크기가 고정된 배열을 감싸서, 겉보기엔 크기가 자동으로 늘고 줄어드는 것처럼 보이게 만든 자료구조예요. 비결은 하나입니다 — 슬롯이 꽉 찰 때마다 **지금 크기의 2배**짜리 새 배열을 만들어 옮겨두는 거예요. 이 덕분에 `push`는 대부분 그냥 대입 한 번으로 끝나고, 가끔 일어나는 재할당까지 합쳐도 평균적으로는 `O(1)`(amortized O(1))이 됩니다 — JavaScript `Array`, C++ `std::vector`, Java `ArrayList`가 모두 이 원리로 돌아가요.
 
-n = 10^5 push 시 총 재할당 복사 횟수: 4 + 8 + ... + 131072 ≈ 262140 ≈ 2n. 실제 오버헤드는 2배 이내.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호가 보이면 동적 배열을 떠올리세요.
 
-| 메서드 | 시그니처 | 엣지케이스 |
-|--------|----------|-----------|
-| `push` | `(item: T) => void` | 확장 시 새 배열로 복사 |
-| `pop` | `() => T \| undefined` | 빈 배열 → undefined; 축소 조건 확인 |
-| `get` | `(index: number) => T \| undefined` | 음수, size 이상 → undefined |
-| `set` | `(index: number, item: T) => void` | 범위 밖 → no-op |
-| `capacity` | `() => number` | 항상 ≥ 4 |
+- 원소 개수를 미리 알 수 없는데, **맨 뒤**에서 삽입·삭제가 반복된다
+- 그러면서 동시에 **인덱스로 임의 접근**(`get`/`set`)도 자주 일어난다
+- 제약 조건에 `n ≤ 10^5` 같은 큰 반복 횟수가 있고 "매번 O(n)이면 시간 초과"인 상황이다
 
----
+naive하게 "필요할 때마다 딱 1칸 큰 배열로 새로 복사"하면 어떻게 될까요? `n`번 push에 매번 `O(n)`짜리 복사가 붙어 총 `O(n²)`이 됩니다. 반대로 배열을 아예 고정 크기로 잡아두면 넘치는 순간 뻗어버려요. 더블링은 그 중간을 취합니다.
 
-## 핵심 아이디어
-
-### 원형 아이디어와 naive 접근
-
-가장 단순한 구현은 push마다 새 배열을 만들고 전체를 복사하는 것이다:
-```
-push(item):
-  newData = new Array(_size + 1)
-  copy _data[0.._size-1] into newData
-  newData[_size] = item
-  _data = newData
-  _size++
-```
-이는 n번의 push에 O(n²) 시간이 걸려 실용적이지 않다.
-
-### 어떤 관찰이 돌파구가 되는가
-
-"재할당을 드물게 하면 어떨까?" — 여유 공간을 미리 할당해두면 대부분의 push는 단순 대입으로 끝난다. 관건은 얼마나 여유를 줄 것인가.
-
-**2배 확장** 선택의 이유: k번째 재할당 시 복사되는 원소 수는 2^k이다. 총 복사량은 등비급수의 합으로 2n을 넘지 않는다.
-
-### 관찰을 형식화: 상태/구조 정의
-
-```
-상태:
-  _data: (T | undefined)[]   // 길이 = _capacity
-  _size: number              // 실제 원소 수
-  _capacity: number          // 내부 배열 크기
-
-불변식:
-  0 <= _size <= _capacity
-  _capacity >= 4
-  _data[_size.._capacity-1]의 값은 undefined (또는 무시)
+```text
+전략               1회 push 비용        n회 push 총 비용
+────────────────────────────────────────────────────────
+매번 새로 복사       O(n)                O(n²)   ← 너무 느림
+고정 크기 배열       O(1)                넘치면 크래시  ← 대비 불가
+더블링(2배 확장)     amortized O(1)      O(n)    ← 이 문서의 답
 ```
 
-### 점화식 또는 핵심 연산
+비슷한 목적의 자료구조로 연결 리스트(LinkedList)가 있는데, 선택 기준은 간단해요 — **맨 앞**에서의 삽입·삭제가 잦거나 중간 삽입이 잦으면 연결 리스트/Deque 쪽이 유리하고, **인덱스 접근이 잦고 변화가 뒤쪽에서만** 일어나면 동적 배열이 유리합니다.
 
-**push**:
-```
-if _size === _capacity:
-  resize(_capacity * 2)
-_data[_size] = item
-_size++
-```
+### 문제 사례와 적용 예시
 
-**pop**:
-```
-if _size === 0: return undefined
-_size--
-val = _data[_size]
-_data[_size] = undefined   // 메모리 누수 방지 (GC 힌트)
-if _size <= _capacity / 4 and _capacity > 4:
-  resize(_capacity / 2)
-return val
-```
+- **언어 표준 라이브러리**: JavaScript `Array.push`, Python `list.append`, C++ `std::vector`, Java `ArrayList`가 전부 이 더블링 전략(또는 유사한 성장 계수)을 내부에 감추고 있습니다.
+- **스트리밍 버퍼**: 크기를 예측할 수 없는 로그·이벤트를 순서대로 쌓아두는 버퍼 구현.
+- **그래프 인접 리스트**: 정점마다 간선을 몇 개나 가질지 모를 때, 정점별 동적 배열에 이웃을 `push`하며 채웁니다.
+- **코딩 테스트 맥락**: "스택을 배열로 직접 구현하라", "크기 제한 없는 큐/버퍼를 구현하라"처럼 언어 내장 배열을 못 쓰게 하고 더블링 자체를 구현시키는 문제.
 
-**resize(newCapacity)**:
-```
-newData = new Array(newCapacity)
-copy _data[0.._size-1] into newData
-_data = newData
-_capacity = newCapacity
+## 자료구조 자세히 들여다보기
+
+### 전체 스펙: 속성과 액션
+
+이 가이드에서는 다음 인터페이스를 기준으로 삼습니다.
+
+```ts
+class DynamicArray<T> {
+  private data: (T | undefined)[];  // 길이 = capacity, 내부 슬롯 블록
+  private _size: number;            // 채워진 원소 개수
+  private _capacity: number;        // 슬롯 총 개수 (data.length)
+}
 ```
 
-### 정당성 — 왜 이것이 옳은가
+지켜야 할 불변식은 세 가지예요.
 
-**분할 상환 분석 (Amortized Analysis)**:
+1. $0 \le \text{size} \le \text{capacity}$
+2. $\text{capacity} \ge 4$ (바닥 용량 — 이보다 작게는 절대 줄지 않습니다)
+3. 유효한 데이터는 인덱스 $[0, \text{size})$ 범위에만 있고, $[\text{size}, \text{capacity})$ 구간은 "쓰지 않는 여유 슬롯"입니다
 
-`push` 연산에 각 원소가 "이동 토큰" 1개를 가진다고 가정한다. 재할당 시 기존 원소 모두가 토큰을 소진한다. 2배 확장이면 재할당 직전 `_capacity / 2`개의 원소가 마지막 재할당 이후 새로 들어온 원소들이고, 이들의 토큰으로 복사 비용을 충당할 수 있다. 따라서 push당 O(1) 분할 상환 비용이 성립한다.
+전체 구조를 그림으로 보면 이렇습니다. `capacity=8`인데 `5`개만 채워진 상태예요.
 
-**Shrinking 기준이 1/4인 이유**:
+```text
+capacity = 8, size = 5
+data:  [ 1 ][ 2 ][ 3 ][ 4 ][ 5 ][   ][   ][   ]
+         0    1    2    3    4    5    6    7
+        └────────── size=5 ──────────┘└ 여유 3칸 ┘
+```
 
-1/2 기준으로 축소하면, 경계에서 pop→push→pop 반복 시 매 연산이 resize를 유발한다. 1/4 기준은 축소 후 `capacity/4`개의 push 여유를 주어 thrashing을 방지한다.
+제공하는 연산은 모두 7개입니다.
 
-### 구현 디테일과 최적화
+| 액션 | 시그니처 | 하는 일 | 비용 |
+|------|----------|---------|------|
+| `push(item)` | `(item: T) => void` | 맨 뒤에 추가. 꽉 찼으면 먼저 2배 확장 | amortized $O(1)$ (최악 $O(n)$) |
+| `pop()` | `() => T \| undefined` | 맨 뒤 원소 제거·반환. 비었으면 `undefined`. 여유가 넘치면 절반 축소 | amortized $O(1)$ |
+| `get(index)` | `(index: number) => T \| undefined` | 인덱스 조회. 범위 밖이면 `undefined` | $O(1)$ |
+| `set(index, item)` | `(index, item: T) => void` | 인덱스 교체. 범위 밖이면 no-op | $O(1)$ |
+| `size()` | `() => number` | 채워진 원소 개수 | $O(1)$ |
+| `capacity()` | `() => number` | 내부 슬롯 총 개수 | $O(1)$ |
+| `toArray()` | `() => T[]` | `[0, size)` 구간만 복사한 배열 | $O(n)$ |
 
-1. **`pop` 후 슬롯 초기화**: `_data[_size] = undefined` — GC가 참조를 해제하도록 돕는다.
-2. **정수 나눗셈**: `capacity / 4`는 비트 시프트 `capacity >> 2`로 대체 가능해 약간 빠르다.
-3. **`toArray`**: `return this._data.slice(0, this._size) as T[]` — undefined 슬롯이 포함되지 않도록 size만큼만 자른다.
-4. **TypeScript strict**: `_data`의 타입을 `(T | undefined)[]`로 선언하면 `noUncheckedIndexedAccess`와 호환된다.
+핵심 연산 두 개를 자세히 볼게요.
 
----
+**① push의 확장 조건**: $\text{size} = \text{capacity} \implies \text{capacity}' = 2 \times \text{capacity}$, 그다음에 대입합니다. 미리 늘려두는 것이지, 넘치고 나서 늘리는 게 아니에요.
 
-## 시뮬레이션
+```text
+Before: capacity=4, size=4, data=[1,2,3,4]           ← 꽉 참 (size == capacity)
+push(5) 호출
+
+  1) size == capacity(4) 이므로 resize(8)부터 먼저 실행
+  2) newData(길이 8)에 기존 4개를 복사
+  3) data[size]=data[4]=5 대입, size=5
+
+After:  capacity=8, size=5, data=[1,2,3,4,5, , , ]   ← 여유 3칸 생김
+```
+
+**② pop의 축소 조건**: $\text{size} \le \lfloor \text{capacity}/4 \rfloor \wedge \text{capacity} > 4 \implies \text{capacity}' = \text{capacity}/2$.
+
+```text
+Before: capacity=8, size=3, data=[1,2,0,...]  (pop으로 방금 size가 3이 됨)
+        3 <= floor(8/4)=2 ?  → 아니오 → 축소 없음, capacity=8 유지
+
+한 번 더 pop → size=2
+        2 <= floor(8/4)=2 ?  → 예, 그리고 capacity(8) > 4 → 축소!
+After:  capacity=4, size=2, data=[1,2,0,0]
+```
+
+### 왜 모순 없이 작동하는가
+
+**불변식이 깨지지 않는 이유(귀납)**: 시작 상태 `capacity=4, size=0`은 세 불변식을 전부 만족합니다. 이제 각 연산이 불변식을 보존한다는 걸 봅니다.
+
+- `push`는 먼저 `size===capacity`인지 검사해 **필요하면 확장부터** 하고 나서 대입하므로, 대입 시점엔 항상 `size < capacity`가 보장되어 대입 후에도 `size ≤ capacity`가 유지됩니다.
+- `pop`은 `size`를 줄인 뒤 축소 조건을 검사하는데, 축소는 `capacity > 4`일 때만 일어나므로 `capacity`가 4 밑으로 내려가는 일이 없습니다. 축소 폭도 절반이라 `size ≤ capacity/4 ≤ capacity/2`(축소 후 새 capacity)가 항상 성립해 `size ≤ capacity`도 유지됩니다.
+
+즉 어떤 시퀀스의 push/pop을 거쳐도 세 불변식은 깨지지 않습니다.
+
+**분할 상환(amortized) 분석 — 왜 평균 O(1)인가**: `n=100000`번 push를 실제로 돌려서 재할당 때 복사된 원소 수를 전부 더하면 `131068`개가 나옵니다(직접 실측한 값입니다). 이 값이 왜 `2n`을 넘지 않는지 볼게요. 재할당은 `size`가 `4, 8, 16, ..., 65536`에 도달할 때마다 일어나고, 그때 복사되는 원소 수는 그 시점의 `capacity`(=바로 그 크기)와 같습니다. 등비수열이라 총합은 다음처럼 닫힌 식으로 구해집니다.
+
+$$
+4 + 8 + 16 + \cdots + 2^{k} = 2^{k+1} - 4
+$$
+
+여기서 $2^{k}$는 `n`을 넘지 않는 마지막 확장 시점의 크기($2^{16}=65536 < 100000$)이므로 $2^{k+1} - 4 = 131068 < 2n = 200000$입니다. `n`번 push에 대해 총 복사량이 `2n` 미만이라는 뜻은, push 한 번의 "평균" 비용이 상수(`O(1)`)라는 뜻이에요 — 어쩌다 한 번은 `O(n)`짜리 재할당을 맞더라도, 그 비용을 그 사이에 있었던 수많은 값싼 push들에 나눠 갚는다고 생각하면 됩니다.
+
+**헷갈리기 쉬운 포인트**를 세 가지 짚어 둘게요.
+
+- **확장 시점은 "넘친 후"가 아니라 "꽉 찬 순간"입니다.** `size > capacity`가 되고 나서 늘리는 게 아니라, `size === capacity`일 때(더 넣을 자리가 없는 바로 그 순간) 미리 늘립니다. 조건을 `size > capacity`로 잘못 쓰면 `data[size]` 대입이 배열 길이를 넘어서 버그가 됩니다.
+- **축소 기준이 `capacity/2`가 아니라 `capacity/4`인 이유는 thrashing 방지입니다.** 실제로 기준을 `capacity/2`로 바꿔서 실측해 봤어요. `capacity=8, size=5`인 상태에서 "pop 한 번, push 한 번"을 10번 반복하면: `capacity/2` 기준은 **resize가 20번**(반복마다 2번씩, 매번!) 발생하지만, `capacity/4` 기준은 같은 반복에서 **resize가 0번**입니다. 이유는 `capacity/2` 기준이면 축소 직후 `size`가 곧바로 `capacity`와 같아져서 다음 push가 바로 재확장을 유발하기 때문이에요. `capacity/4` 기준은 축소 직후에도 `capacity/4`개만큼 push할 여유가 남아 있어 이 핑퐁이 끊깁니다.
+- **`pop` 후 슬롯을 비우지 않아도 정확성엔 문제없지만, GC 관점에선 손해입니다.** `data[size] = undefined`를 생략해도 `size`/`capacity`/`get`/`set` 동작은 전부 그대로예요. 다만 객체 원소를 담고 있었다면 그 참조가 슬롯에 남아 가비지 컬렉션이 회수하지 못합니다. 그래서 pop에서 명시적으로 지워 줍니다.
+
+작은 확인 질문 하나만 해 볼게요 — `capacity=4, size=4`인 상태에서 `push(x)`를 호출하면, `data[size]=x` 대입보다 **먼저** 일어나는 일은 무엇일까요? (정답: `size===capacity`이므로 `resize(8)`이 먼저 실행되어 `capacity`가 8이 된 다음에 대입이 일어납니다.)
+
+엣지 케이스를 점검해 봅니다.
+
+```text
+빈 배열에서 pop()              → undefined (size===0 분기)
+빈 배열에서 get(0)              → undefined (0 >= size)
+음수 인덱스 get(-1)             → undefined (index < 0)
+size와 같은 인덱스 get(size)    → undefined (index >= size, 경계 포함)
+빈 배열에서 set(0, x)           → no-op (범위 밖, size 그대로 0)
+size=1에서 pop() → size=0       → capacity는 4에서 더 줄지 않음(capacity>4 조건 불성립)
+```
+
+## 아이디어를 코드로 옮기기
+
+세 단계로 코드를 발전시킵니다. 각 단계는 앞 단계의 무엇이 문제였는지에서 출발해요.
+
+**1단계 — 원형(naive)**: 매번 정확히 필요한 만큼만 새 배열을 만들어 통째로 복사합니다.
+
+```ts
+class NaiveArray<T> {
+  private data: T[] = [];
+
+  push(item: T): void {
+    const newData = new Array<T>(this.data.length + 1);
+    for (let i = 0; i < this.data.length; i++) newData[i] = this.data[i];
+    newData[this.data.length] = item;
+    this.data = newData;
+  }
+}
+```
+
+`push` 한 번마다 `O(현재 크기)`짜리 복사가 붙어, `n`번 반복하면 총 `O(n²)`입니다. `n=10^5`면 실질적으로 시간 초과예요. 문제는 "필요할 때마다 정확히 1칸만 늘린다"는 데 있습니다 — 여유를 전혀 남기지 않으니 매번 재할당이 일어나요.
+
+**2단계 — 개선(더블링)**: 꽉 찼을 때만 재할당하되, **여유를 넉넉히(2배)** 남겨둡니다.
+
+```ts
+class DoublingOnlyArray<T> {
+  private data: (T | undefined)[];
+  private _size = 0;
+  private _capacity = 4;
+
+  constructor() {
+    this.data = new Array<T | undefined>(this._capacity);
+  }
+
+  push(item: T): void {
+    if (this._size === this._capacity) {
+      const newData = new Array<T | undefined>(this._capacity * 2);
+      for (let i = 0; i < this._size; i++) newData[i] = this.data[i];
+      this.data = newData;
+      this._capacity *= 2;
+    }
+    this.data[this._size] = item;
+    this._size++;
+  }
+}
+```
+
+이제 push는 amortized `O(1)`이 됩니다. 하지만 여기엔 `pop`이 없어요 — 원소를 잔뜩 넣었다가 대부분 빼도 `capacity`가 절대 줄지 않아 메모리를 계속 붙들고 있습니다. 그래서 축소 로직이 필요합니다.
+
+**3단계 — 최종**: 더블링에 `capacity/4` 임계 축소를 더합니다. 이게 이 가이드가 검증한 완성 버전이에요.
+
+```ts
+class DynamicArray<T> {
+  private data: (T | undefined)[];
+  private _size: number;
+  private _capacity: number;
+
+  constructor() {
+    this._capacity = 4;
+    this._size = 0;
+    this.data = new Array<T | undefined>(this._capacity);
+  }
+
+  push(item: T): void {
+    if (this._size === this._capacity) {
+      this.resize(this._capacity * 2);
+    }
+    this.data[this._size] = item;
+    this._size++;
+  }
+
+  pop(): T | undefined {
+    if (this._size === 0) return undefined;
+    this._size--;
+    const val = this.data[this._size];
+    this.data[this._size] = undefined; // GC 힌트
+    if (this._size <= this._capacity >> 2 && this._capacity > 4) {
+      this.resize(this._capacity >> 1);
+    }
+    return val;
+  }
+
+  get(index: number): T | undefined {
+    if (index < 0 || index >= this._size) return undefined;
+    return this.data[index];
+  }
+
+  set(index: number, item: T): void {
+    if (index < 0 || index >= this._size) return;
+    this.data[index] = item;
+  }
+
+  size(): number {
+    return this._size;
+  }
+
+  capacity(): number {
+    return this._capacity;
+  }
+
+  toArray(): T[] {
+    return this.data.slice(0, this._size) as T[];
+  }
+
+  private resize(newCapacity: number): void {
+    const newData = new Array<T | undefined>(newCapacity);
+    for (let i = 0; i < this._size; i++) newData[i] = this.data[i];
+    this.data = newData;
+    this._capacity = newCapacity;
+  }
+}
+```
+
+가장 중요한 부분은 `push`의 확장 조건과 `pop`의 축소 조건, 이 두 줄입니다.
+
+- `if (this._size === this._capacity) this.resize(...)` — **먼저 늘리고 나서 대입**하는 순서가 생명입니다. 순서를 바꿔 대입부터 하면 `data[size]`가 배열 길이를 벗어나요.
+- `if (this._size <= this._capacity >> 2 && this._capacity > 4)` — `>> 2`는 `/4`의 정수 나눗셈과 같고(비트 시프트라 살짝 더 빠릅니다), `capacity > 4` 가드가 없으면 불변식 2($\text{capacity} \ge 4$)가 깨집니다.
+
+놓치기 쉬운 지점이 하나 더 있어요. **`toArray`는 반드시 `slice(0, this._size)`로 잘라야 합니다.** 만약 실수로 `this.data`를 그대로 반환하면, `capacity=8, size=5`인 상태에서 `toArray()`가 `[1, 2, 3, 4, 5, undefined, undefined, undefined]`처럼 뒤쪽 여유 슬롯의 쓰레기 값까지 섞여 나옵니다 — 실제로 원소가 5개뿐인데 배열 길이가 8로 보이는 구체적인 오답이에요.
+
+기억법: "꽉 차면 먼저 두 배로, 텅 비기 훨씬 전에 미리 절반으로."
+
+## 실행 시각화
+
+고정 입력으로 `push(1), push(2), push(3), push(4), push(5)`를 실행한 뒤 `pop()`을 세 번 호출합니다. 실제로 위 최종 코드를 돌려 확인한 값은 이렇습니다 — `push(5)` 직후 `capacity()`는 `8`, `size()`는 `5`. 이어지는 `pop()` 세 번은 각각 `5`, `4`, `3`을 반환하고, 세 번째 `pop()` 뒤 `size=2, capacity=4`로 축소됩니다(`toArray()`는 최종적으로 `[1, 2]`). array 패널에서 각 칸은 슬롯 인덱스이고, `highlight`는 그 스텝에서 막 채워지거나 이동한 자리, `marked`는 이미 채워진 채 유지되는 자리를 가리킵니다. 빈 슬롯은 화면 편의상 `0`으로 표시되지만 실제로는 빈 슬롯(`undefined`)입니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -160,71 +316,10 @@ export const steps = [
 
 <AlgorithmSimulation view="array" steps={steps} title="DynamicArray 더블링 & 축소 동작" />
 
----
+정리하면, 더블링과 1/4 임계 축소라는 두 정책이 서로를 보완합니다. `push`가 꽉 찬 순간 미리 용량을 2배로 늘려두는 덕분에 재할당 총 비용이 `2n` 밑으로 묶여 amortized `O(1)`을 달성하고, `pop`이 `capacity/4` 이하일 때만(그리고 `capacity>4`일 때만) 절반으로 줄이는 덕분에 축소·확장이 서로 핑퐁을 치는 thrashing 없이 메모리도 회수됩니다. `get`/`set`/`size`/`capacity`는 인덱스나 변수를 그대로 쓰는 `O(1)` 연산이고, `toArray`만 `size`만큼 잘라 복사하는 `O(n)`입니다 — 애초에 목표했던 성능 그대로예요.
 
-## 수도 코드와 Activity Diagram
+## 스스로 점검하기
 
-### 의사코드
-
-```
-class DynamicArray<T>:
-  _data: (T | undefined)[] = new Array(4)
-  _size: int = 0
-  _capacity: int = 4        // 불변식: _capacity >= 4
-
-  push(item):
-    if _size == _capacity:
-      resize(_capacity * 2) // O(n) 복사, amortized O(1)
-    _data[_size] = item
-    _size++
-
-  pop():
-    if _size == 0: return undefined
-    _size--
-    val = _data[_size]
-    _data[_size] = undefined  // GC 힌트
-    if _size <= _capacity >> 2 and _capacity > 4:
-      resize(_capacity >> 1)  // 절반으로 축소
-    return val
-
-  get(index):
-    if index < 0 or index >= _size: return undefined
-    return _data[index]
-
-  set(index, item):
-    if index < 0 or index >= _size: return
-    _data[index] = item
-
-  resize(newCapacity):
-    newData = new Array(newCapacity)
-    for i in 0.._size-1:
-      newData[i] = _data[i]
-    _data = newData
-    _capacity = newCapacity
-
-  toArray():
-    return _data.slice(0, _size)  // undefined 슬롯 제외
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A([push item]) --> B{size == capacity?}
-  B -->|Yes| C[resize capacity × 2]
-  C --> D[_data 복사]
-  D --> E[_data&#91;size&#93; = item]
-  B -->|No| E
-  E --> F[size++]
-  F --> Z([완료])
-
-  G([pop]) --> H{size == 0?}
-  H -->|Yes| I[return undefined]
-  H -->|No| J[size--]
-  J --> K[val = _data&#91;size&#93;]
-  K --> L[_data&#91;size&#93; = undefined]
-  L --> M{size ≤ capacity/4 AND capacity > 4?}
-  M -->|Yes| N[resize capacity ÷ 2]
-  M -->|No| O[return val]
-  N --> O
-```
+1. `capacity=16, size=4`인 상태에서 `pop()`을 한 번 더 호출하면 `size=3`이 됩니다. 이때 축소가 일어날까요? `capacity/4` 조건을 손으로 계산해서 확인해 보세요.
+2. 만약 축소 기준을 `capacity/4`가 아니라 `capacity/2`로 바꾸면, `capacity=8, size=5`인 상태에서 "pop 한 번, push 한 번"을 반복할 때 몇 번째 반복부터 매번 resize가 일어날까요? 본문의 실측(20번 중 20번)을 참고해 왜 그런지 설명해 보세요.
+3. `toArray()`를 `return this.data.slice(0, this._size) as T[]` 대신 `return this.data as T[]`로 잘못 구현했다고 합시다. `capacity=8, size=5`이고 원소가 `[1,2,3,4,5]`일 때, 잘못된 `toArray()`는 정확히 어떤 배열을 반환할까요?

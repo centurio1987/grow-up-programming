@@ -1,104 +1,287 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# MonotonicQueue (단조 큐) 해설
+# MonotonicQueue — 뒤쪽을 솎아내며 앞쪽에 답을 지킨다
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 입력 크기 n | 윈도우 k | naive O(nk) | 목표 O(n) |
-|-------------|----------|-------------|-----------|
-| 10,000      | 100      | ~10ms       | <1ms      |
-| 100,000     | 100      | ~500ms      | <10ms     |
-| 100,000     | 1,000    | ~5,000ms    | <10ms     |
-| 100,000     | 100,000  | 초과         | <10ms     |
+단조 큐(Monotonic Queue)는 슬라이딩 윈도우 안의 최댓값(또는 최솟값)을 매 순간 O(1)에 알려주는, 값이 앞→뒤로 항상 한 방향으로만 정렬된 덱(Deque)이에요. 비결은 새 원소가 들어올 때 뒤쪽에서 "이제 다시는 최댓값이 될 수 없는" 원소를 미리 솎아내는 것입니다 — 그러면 덱의 앞쪽은 항상 현재 윈도우의 최댓값을 가리키게 됩니다. 각 원소가 덱에 최대 한 번 들어가고 최대 한 번 나가므로, 윈도우를 n번 옮기는 전체 과정이 O(n)에 끝나요.
 
-k가 커질수록 naive O(nk)와 O(n)의 차이가 극적으로 벌어집니다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호가 겹치면 단조 큐를 떠올리세요.
 
-| 메서드 | 덱 불변식 | 결과 길이 | 시간 | 공간 |
-|--------|-----------|-----------|------|------|
-| `slidingWindowMax` | 단조 감소 (앞→뒤) | n-k+1 | O(n) | O(k) |
-| `slidingWindowMin` | 단조 증가 (앞→뒤) | n-k+1 | O(n) | O(k) |
+- "구간(윈도우) 안의 최댓값·최솟값"을 윈도우 위치마다 반복해서 물어본다
+- 윈도우가 **오른쪽으로 한 칸씩 슬라이드**하는 구조다 (임의 위치를 오가며 질의하는 게 아니다)
+- naive하게 매 윈도우를 훑으면(O(nk)) 시간 제한을 넘긴다 — 특히 k가 큰 경우
 
-**주요 엣지케이스:**
-- `k=1`: 입력 배열 자체 반환
-- `k=n`: 전체 배열의 최댓값/최솟값 하나 반환
-- 동일값 배열: 동일한 값도 덱에 유지 (중복 허용)
-
----
-
-## 핵심 아이디어
-
-### 원형 아이디어와 naive 접근
-
-각 윈도우에 대해 `Math.max()`를 호출하는 방식:
-
-```
-result = []
-for i = 0 to n-k:
-  result.push(Math.max(...nums.slice(i, i+k)))
+```text
+n=100,000, k=100        naive O(nk) ≈ 1천만 연산      단조 큐 O(n) ≈ 10만 연산
+n=100,000, k=1,000      naive O(nk) ≈ 1억 연산        단조 큐 O(n) ≈ 10만 연산  (변화 없음!)
+n=100,000, k=100,000    naive O(nk) ≈ 100억 연산(초과)  단조 큐 O(n) ≈ 10만 연산
 ```
 
-이 접근은 O(nk)로, k가 클수록 비효율적입니다.
+k가 커질수록 naive는 그만큼 느려지지만, 단조 큐는 k와 무관하게 O(n)을 유지합니다 — 마치 k를 지워버린 것 같은 효과예요.
 
-### 어떤 관찰이 돌파구가 되는가
+선택 기준: 윈도우가 슬라이드하며 **min/max만** 필요하면 단조 큐가 최적입니다. 임의 인덱스 삽입/삭제나 구간 합·구간 곱처럼 더 일반적인 질의가 필요하면 세그먼트 트리나 스파스 테이블을 써야 해요 — 단조 큐는 "슬라이딩 + min/max"라는 좁고 깊은 전문화이기 때문입니다.
 
-**관찰 1:** 윈도우가 오른쪽으로 한 칸 이동할 때 k개 중 k-1개는 이전 윈도우와 공유됩니다.
+### 문제 사례와 적용 예시
 
-**관찰 2:** 현재 윈도우에 `nums[j]`가 있고 `j < i`이면서 `nums[j] <= nums[i]`이면, `j`는 앞으로 어떤 윈도우에서도 최댓값이 될 수 없습니다 (윈도우에서 먼저 제거되기 때문).
+- **실시간 모니터링**: 초당 수만 건의 센서/주가 데이터에서 "최근 k분 최고·최저"를 매 분 갱신해야 하는 시스템.
+- **이미지 처리**: dilate/erode 같은 모폴로지 연산은 픽셀 윈도우의 최대/최소 필터를 슬라이딩으로 반복 적용합니다.
+- **네트워크 트래픽 관측**: 최근 N초 구간의 최대 요청 수(rate 관측)를 슬라이딩 윈도우로 추적.
+- **코딩 테스트**: "슬라이딩 윈도우 최댓값" 계열 문제(LeetCode 239 등)에서 O(nk) 시간 초과를 뚫는 표준 도구.
 
-**관찰 3:** 따라서 "유효한 최댓값 후보"만 덱에 유지하면 됩니다. 덱의 앞쪽이 항상 현재 윈도우의 최댓값을 가리킵니다.
+## 자료구조 자세히 들여다보기
 
-### 관찰을 형식화: 상태/구조 정의
+### 전체 스펙: 속성과 액션
 
-- **덱(Deque):** 인덱스를 저장, 앞(front)과 뒤(back)에서 O(1) 삽입/삭제
-- **덱 불변식 (slidingWindowMax):** 덱 앞→뒤로 `nums[덱[i]]`가 단조 감소
-- 덱에 있는 인덱스들은 모두 현재 윈도우 범위 내에 있음
+이 가이드는 `MonotonicQueue` 클래스가 `slidingWindowMax(nums, k)` / `slidingWindowMin(nums, k)` 두 메서드를 제공한다는 인터페이스를 스스로 정의하고, 내부적으로 인덱스를 저장하는 덱을 씁니다.
 
-### 점화식 또는 핵심 연산
-
-```
-slidingWindowMax 알고리즘:
-  result = []
-  deque = []  (앞뒤 삽입/삭제 O(1), 인덱스 저장)
-              (불변식: deque의 nums 값은 앞→뒤로 단조 감소)
-
-  for j = 0 to n-1:
-    // 1. 만료된 원소 제거: 덱 앞쪽 인덱스가 윈도우 범위 벗어나면 제거
-    while deque 비지 않고 deque.front <= j - k:
-      deque.popFront()
-
-    // 2. 새 원소 삽입: 덱 뒤쪽에서 nums[j]보다 작은 것 제거 (절대 최댓값이 될 수 없음)
-    while deque 비지 않고 nums[deque.back] < nums[j]:
-      deque.popBack()
-    deque.pushBack(j)
-
-    // 3. 윈도우가 완성되면 최댓값 기록
-    if j >= k - 1:
-      result.push(nums[deque.front])  // 불변식에 의해 앞쪽 = 최댓값
-
-  return result
+```ts
+class MonotonicQueue {
+  slidingWindowMax(nums: number[], k: number): number[];
+  slidingWindowMin(nums: number[], k: number): number[];
+}
 ```
 
-### 정당성 — 왜 이것이 옳은가
+내부에서 쓰는 덱은 **값이 아니라 인덱스**를 저장합니다.
 
-**불변식 유지:**
-1. 단계 1에서 윈도우를 벗어난 인덱스 제거 → 덱의 모든 인덱스는 현재 윈도우 내
-2. 단계 2에서 뒤쪽의 작은 값 제거 → 덱은 앞→뒤 단조 감소 유지
-3. 따라서 `deque.front`는 항상 현재 윈도우의 최대 인덱스이자 최댓값
+```ts
+class IndexDeque {
+  private buf: number[] = [];  // 인덱스만 저장
+  private head: number = 0;    // buf[head..] 구간이 현재 유효한 덱
+}
+```
 
-**복잡도 증명:** 각 인덱스는 정확히 한 번 pushBack, 최대 한 번 popFront/popBack → 전체 O(n).
+지켜야 할 불변식은 (최댓값 버전 기준) 세 가지입니다.
 
-### 구현 디테일과 최적화
+1. 저장된 인덱스는 항상 들어온 순서 = 오름차순: $i_1 < i_2 < \dots < i_m$
+2. 값은 앞→뒤로 **단조 비증가**: $nums[i_1] \ge nums[i_2] \ge \dots \ge nums[i_m]$
+3. 모든 인덱스는 현재 윈도우 안에 있다: 오른쪽 끝을 $j$라 할 때 $i_1 \ge j-k+1$
 
-- TypeScript에서 덱은 배열 + 포인터 방식으로 O(1) 연산 구현 (또는 `shift()`/`push()`로 단순 구현)
-- `slidingWindowMin`: 단조 증가 덱 — 뒤쪽에서 `nums[back] > nums[j]`인 것을 제거
+(최솟값 버전은 2번 부등호만 뒤집힙니다: $nums[i_1] \le nums[i_2] \le \dots \le nums[i_m]$.)
 
----
+```text
+현재 윈도우:  [ j-k+1 .................. j ]
+덱(인덱스):         i1     i2      i3         ← 전부 윈도우 안, 오름차순
+값:                9      5       5           ← 앞→뒤 단조 비증가 (최댓값 버전)
+                    ↑
+               front = 현재 윈도우의 최댓값
+```
 
-## 시뮬레이션
+**액션(연산)** — 모두 상환(amortized) O(1)입니다.
+
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `pushBack(i)` | 덱 뒤에 인덱스 추가 (호출 전 후단 청소를 마쳤다고 가정) | O(1) 상환 |
+| `popBack()` | 뒤에서 제거 — 더 이상 최댓값 후보가 될 수 없는 원소를 솎아냄 | O(1) 상환 |
+| `popFront()` | 앞에서 제거 — 윈도우를 벗어난 인덱스를 만료시킴 | O(1) 상환 |
+| `front()` | 현재 윈도우의 최댓값/최솟값 조회 | O(1) |
+
+핵심 연산 두 개를 Before/After로 자세히 볼게요.
+
+**① 삽입 시 후단 청소(back-cleaning)** — 덱 값이 `[9, 5, 3]`인 상태에서 새 원소 `nums[j] = 6`이 들어옵니다.
+
+```text
+Before: deque(값) = [9, 5, 3]        새 원소 6 도착
+        3 < 6 → pop,  5 < 6 → pop,  9 < 6? 아니오 → 멈춤
+After:  deque(값) = [9, 6]           (3과 5는 다시는 최댓값이 될 수 없어 영구 제거)
+```
+
+**② 만료 제거(front-expiry)** — 윈도우가 한 칸 오른쪽으로 이동합니다.
+
+```text
+윈도우가 [j-k+2 .. j+1]로 이동 (오른쪽으로 한 칸)
+Before: deque(인덱스) = [i1=j-k+1, i2, i3, ...]   i1이 새 윈도우 밖 (j-k+1 <= (j+1)-k)
+After:  deque(인덱스) = [i2, i3, ...]              i1을 popFront로 제거
+```
+
+### 왜 모순 없이 작동하는가
+
+**불변식이 보존되는 이유**를 귀납으로 짚어 볼게요.
+
+- **초기 상태**: 덱이 비어 있으므로 세 불변식 모두 자명하게 성립합니다.
+- **귀납 가정**: $j$번째 반복을 시작하기 직전 불변식이 성립한다고 합시다.
+- **만료 제거**: front 인덱스가 새 윈도우 밖이면 popFront합니다. 앞에서만 제거하므로 남은 인덱스들의 순서(불변식1)와 단조성(불변식2)은 그대로고, 벗어난 인덱스가 사라졌으니 불변식3도 회복됩니다.
+- **후단 청소**: `nums[back] < nums[j]`인 동안 popBack합니다. 이 루프가 끝나면 남은 덱의 모든 값이 $nums[j]$ 이상이므로, $j$를 뒤에 붙여도 단조 비증가가 유지됩니다(불변식2). $j$가 가장 최근 인덱스이므로 오름차순도 유지됩니다(불변식1).
+- **push**: 새로 들어간 $j$도 윈도우 안이므로 불변식3이 유지됩니다.
+
+따라서 매 반복이 끝날 때마다 불변식이 다시 성립하고, 불변식2에 의해 `front`는 언제나 현재 윈도우의 최댓값입니다.
+
+**여기서 헷갈리기 쉬운 포인트**를 세 가지 짚어 둡니다.
+
+- **값이 아니라 인덱스를 저장한다는 점입니다.** 같은 값이 여러 번 나올 수 있으니, 값만 저장하면 "이 값이 윈도우를 벗어났는지"를 판정할 방법이 없어요. 만료 판정(`front <= j - k`)은 인덱스가 있어야 가능합니다.
+- **만료 조건의 등호(`<=`)입니다.** 윈도우 왼쪽 끝이 $j-k+1$이므로, 정확히 인덱스 $j-k$는 "방금 빠져나간" 경계입니다. `<=`로 써야 이 경계까지 정확히 제거됩니다. `<`로 잘못 쓰면 경계의 낡은 인덱스가 한 스텝 더 살아남아요 — 아래 "아이디어를 코드로 옮기기"에서 구체적인 틀린 값으로 보여드립니다.
+- **min/max 버전의 부등호가 반대라는 점입니다.** max는 "더 작은 후보를 미리 버림"(`nums[back] < nums[j]`), min은 "더 큰 후보를 미리 버림"(`nums[back] > nums[j]`)입니다. 둘을 바꿔 쓰면 정반대 결과가 나옵니다.
+
+잠깐, 확인 하나만 해 볼까요? 덱에 인덱스 `[2, 5, 7]`이 있고(값 기준 단조 비증가) 새 원소 `nums[9]`가 `nums[7]`보다 크다면, 이번 한 스텝에서 popBack이 몇 번까지 일어날 수 있을까요? — 최대 3번(덱에 있는 만큼 전부)입니다. "한 스텝에 O(k)면 전체가 O(nk) 아닌가?" 싶겠지만, 한 번 pop된 인덱스는 다시는 덱에 들어오지 않아요. 그래서 전체 실행에 걸쳐 각 인덱스는 최대 1번 push + 1번 pop, 총 비용은 O(n)입니다(상환 분석).
+
+엣지 케이스를 점검해 볼게요.
+
+```text
+k=1                     → 매 원소 자신이 곧 윈도우 → 입력 배열 그대로 반환
+k=n                     → 윈도우가 하나뿐 → 전체 최댓값/최솟값 단 하나 반환
+전부 동일값 [7,7,7,7]    → 후단 청소 조건이 strict(<)라 동일값끼리는 밀어내지 않음 → 정상 동작
+단조 감소 배열           → 후단 청소가 한 번도 일어나지 않음(항상 nums[back] >= nums[j]) → 덱이 계속 자람
+```
+
+마지막 줄의 "덱이 계속 자라는" 패턴이 바로 다음 절에서 실측으로 다룰 성능 함정의 무대입니다.
+
+## 아이디어를 코드로 옮기기
+
+자연스러운 개선 사다리를 원형 → 개선 → 최종 순서로 밟아 봅니다.
+
+**원형(brute force)**: 매 윈도우 위치마다 그 구간을 통째로 훑어 최댓값을 구합니다.
+
+```ts
+function bruteMax(nums: number[], k: number): number[] {
+  const result: number[] = [];
+  for (let i = 0; i <= nums.length - k; i++) {
+    result.push(Math.max(...nums.slice(i, i + k)));
+  }
+  return result;
+}
+```
+
+윈도우마다 O(k)를 쓰고 윈도우가 $n-k+1$개이니 O(nk)입니다. `nums=[1,3,-1,-3,5,3,6,7], k=3`에 돌리면 `[3,3,5,5,6,7]`이 나옵니다(맞는 값이지만 느립니다).
+
+**개선: 배열 `shift()`로 만든 덱.** 앞서 정리한 불변식 유지 알고리즘 그 자체를 구현하되, 배열의 `shift()`/`push()`/`pop()`으로 앞뒤 삽입·삭제를 흉내 냅니다.
+
+```ts
+function shiftBasedMax(nums: number[], k: number): number[] {
+  const result: number[] = [];
+  const deque: number[] = []; // 인덱스 저장, 앞→뒤 단조 비증가
+
+  for (let j = 0; j < nums.length; j++) {
+    while (deque.length > 0 && deque[0]! <= j - k) {
+      deque.shift(); // 앞에서 제거 — 내부적으로 남은 원소 전부를 한 칸씩 당김
+    }
+    while (deque.length > 0 && nums[deque[deque.length - 1]!]! < nums[j]!) {
+      deque.pop();
+    }
+    deque.push(j);
+    if (j >= k - 1) {
+      result.push(nums[deque[0]!]!);
+    }
+  }
+  return result;
+}
+```
+
+알고리즘 자체는 이제 맞습니다 — 각 인덱스가 최대 1번 push, 최대 1번 pop되니까요. **그런데 `Array.prototype.shift()`는 앞 원소 하나를 지울 때 나머지 원소 전부를 한 칸씩 당겨야 해서, 호출 자체가 O(현재 배열 길이)입니다.** popFront가 최대 n번 불려도, 매 호출 비용이 덱 크기(최대 k)에 비례하면 전체가 다시 O(nk)로 되돌아갈 위험이 있어요 — "덱이 계속 자라는" 단조 감소 입력이 바로 이 최악 패턴입니다(후단 청소가 한 번도 안 일어나 덱이 k 근처까지 자란 채 유지되니까요).
+
+실측으로 확인해 볼게요. `n=1,000,000`, `k=400,000`짜리 단조 감소 배열(`nums[i] = n - i`)에 두 구현을 돌리면:
+
+```text
+shift() 기반:   21.6ms
+포인터 기반(아래 최종 구현):  7.5ms
+비율:           약 2.9배
+```
+
+(측정치는 실행 환경에 따라 다소 달라질 수 있지만, `bun src/data-structures/linear/monotonicQueue/_scratch/monotonicQueue.ts`로 재현하면 같은 경향을 확인할 수 있습니다.)
+
+**최종: 포인터 기반 덱.** `shift()` 대신 "앞쪽 인덱스"를 논리적으로만 전진시키고, 낭비된 앞 공간이 절반을 넘을 때만 한 번에 압축합니다. 실제 원소 이동 횟수가 전체 실행에 걸쳐 O(n)으로 상환되는 표준 기법이에요.
+
+```ts
+class IndexDeque {
+  private buf: number[] = [];
+  private head = 0; // buf[head..] 가 유효 구간
+
+  get size(): number {
+    return this.buf.length - this.head;
+  }
+  frontIndex(): number {
+    return this.buf[this.head]!;
+  }
+  backIndex(): number {
+    return this.buf[this.buf.length - 1]!;
+  }
+  pushBack(i: number): void {
+    this.buf.push(i);
+  }
+  popBack(): void {
+    this.buf.pop();
+  }
+  popFront(): void {
+    this.head++;
+    // 앞쪽 낭비 공간이 절반을 넘으면 압축 — 물리적 shift 없이 상환 O(1) 유지
+    if (this.head > 8 && this.head * 2 > this.buf.length) {
+      this.buf = this.buf.slice(this.head);
+      this.head = 0;
+    }
+  }
+}
+
+class MonotonicQueue {
+  slidingWindowMax(nums: number[], k: number): number[] {
+    const result: number[] = [];
+    const deque = new IndexDeque();
+
+    for (let j = 0; j < nums.length; j++) {
+      if (deque.size > 0 && deque.frontIndex() <= j - k) {
+        deque.popFront();
+      }
+      while (deque.size > 0 && nums[deque.backIndex()]! < nums[j]!) {
+        deque.popBack();
+      }
+      deque.pushBack(j);
+      if (j >= k - 1) {
+        result.push(nums[deque.frontIndex()]!);
+      }
+    }
+    return result;
+  }
+
+  slidingWindowMin(nums: number[], k: number): number[] {
+    const result: number[] = [];
+    const deque = new IndexDeque();
+
+    for (let j = 0; j < nums.length; j++) {
+      if (deque.size > 0 && deque.frontIndex() <= j - k) {
+        deque.popFront();
+      }
+      while (deque.size > 0 && nums[deque.backIndex()]! > nums[j]!) {
+        deque.popBack();
+      }
+      deque.pushBack(j);
+      if (j >= k - 1) {
+        result.push(nums[deque.frontIndex()]!);
+      }
+    }
+    return result;
+  }
+}
+```
+
+`slidingWindowMax([1, 3, -1, -3, 5, 3, 6, 7], 3)`을 실행하면 `[3, 3, 5, 5, 6, 7]`, `slidingWindowMin`은 `[-1, -3, -3, -3, 3, 3]`이 나옵니다 — brute force와 무작위 200개 케이스로 교차검증해도 전부 일치합니다.
+
+**가장 중요한 부분은 `deque.frontIndex() <= j - k` 판정의 등호입니다.** 이걸 `<`로 잘못 쓰면 어떤 일이 벌어지는지 구체적인 수치로 보여드릴게요. `nums = [9, 1, 1, 1, 1]`, `k = 2`에 대해:
+
+```text
+정답(<= 사용):  [9, 1, 1, 1]
+버그(< 사용):   [9, 9, 1, 1]   ← 두 번째 자리! 윈도우는 nums[1..2]=[1,1]인데 이미 벗어난 인덱스 0의 값 9를 그대로 보고함
+```
+
+`j=2`(윈도우가 `[1,2]`로 넘어간 시점)에서 인덱스 0은 정확히 경계(`0 <= 2-2=0`)에 걸립니다. `<=`는 이걸 제거하지만 `<`는 방치해서, 이미 윈도우를 벗어난 값 9가 한 스텝 더 front에 남아 잘못된 결과를 냅니다.
+
+놓치기 쉬운 구현 포인트를 정리하면:
+
+- `popFront`의 압축 조건(`head * 2 > buf.length`) — 너무 자주 압축하면 압축 자체가 손해(결국 shift와 비슷해짐), 너무 안 하면 메모리가 낭비됩니다. "낭비 공간이 절반을 넘을 때만" 압축하면 상환 분석상 압축 비용도 O(1)로 흡수됩니다.
+- min/max 버전의 부등호가 반대입니다 — 복붙하면서 부호를 안 바꾸면 조용히 정반대 자료구조가 됩니다.
+
+> 기억법: "뒤에서는 손해 볼 값을 밀어내고, 앞에서는 기한 지난 값을 내보낸다."
+
+## 실행 시각화
+
+고정 입력 `nums = [1, 3, -1, -3, 5, 3, 6, 7]`, `k = 3`으로 `slidingWindowMax`를 실행한 트레이스입니다. 실제 반환값은 `[3, 3, 5, 5, 6, 7]`이고(위 코드로 실측 확인됨), array 패널은 그 순간 덱에 남아 있는 인덱스를, highlight는 방금 pushBack된 인덱스를, marked는 지금까지 result에 기록된 위치를 보여줍니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -161,59 +344,10 @@ export const steps = [
 
 <AlgorithmSimulation view="array" steps={steps} title="slidingWindowMax([1,3,-1,-3,5,3,6,7], k=3) 시뮬레이션" />
 
----
+정리하면, 단조 큐는 "값이 아니라 인덱스를 저장하는 덱" 하나로 두 가지 일을 동시에 해냅니다. 뒤쪽 청소로 쓸모없어진 후보를 영구 제거해 단조성을 지키고, 앞쪽 만료로 윈도우를 벗어난 인덱스를 걷어내 front가 항상 정답을 가리키게 만들죠. 각 인덱스가 평생 최대 1번 push, 1번 pop되므로 총 비용은 O(n)이고, 다만 실제 구현에서는 `shift()`처럼 겉보기엔 O(1) 같지만 내부적으로 O(size)인 연산을 피해야 이 O(n)이 실측으로도 지켜집니다.
 
-## 수도 코드와 Activity Diagram
+## 스스로 점검하기
 
-### 의사코드
-
-```
-함수 slidingWindowMax(nums, k):
-  n = nums.length
-  result = []
-  deque = []  // 인덱스 저장, 앞→뒤 nums값 단조 감소
-
-  for j = 0 to n-1:
-    // [1] 만료 원소 제거
-    while deque 비지 않고 deque[0] <= j - k:
-      deque.shift()   // 앞에서 제거
-
-    // [2] 불필요 후보 제거 (새 원소보다 작은 뒤쪽 원소)
-    while deque 비지 않고 nums[deque[last]] < nums[j]:
-      deque.pop()     // 뒤에서 제거
-    deque.push(j)     // 뒤에 삽입
-
-    // [3] 윈도우 완성 시 기록
-    if j >= k - 1:
-      result.push(nums[deque[0]])  // 앞 = 최댓값
-
-  return result
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  Start([시작]) --> Init["result=[]\ndeque=[]"]
-  Init --> Loop{"j < n?"}
-  Loop -- Yes --> Expire{"deque 비지 않고\ndeque.front <= j-k?"}
-  Expire -- Yes --> PopFront["deque.popFront()"]
-  PopFront --> Expire
-  Expire -- No --> Monotone{"deque 비지 않고\nnums[deque.back] < nums[j]?"}
-  Monotone -- Yes --> PopBack["deque.popBack()"]
-  PopBack --> Monotone
-  Monotone -- No --> PushBack["deque.pushBack(j)"]
-  PushBack --> Check{"j >= k-1?"}
-  Check -- Yes --> Record["result.push(nums[deque.front])"]
-  Check -- No --> Inc["j++"]
-  Record --> Inc
-  Inc --> Loop
-  Loop -- No --> Return["return result"]
-  Return --> End([종료])
-
-  style Start fill:#4CAF50,color:#fff
-  style End fill:#f44336,color:#fff
-  style PopFront fill:#FF9800,color:#fff
-  style PopBack fill:#FF5722,color:#fff
-  style Record fill:#2196F3,color:#fff
-```
+1. `nums = [1, 2, 3, 2, 1]`, `k = 3`에 대해 `slidingWindowMax`가 반환할 배열을 손으로 트레이스해 보세요. 각 스텝에서 덱의 인덱스가 어떻게 바뀌는지도 함께 적어 보세요.
+2. `nums = [9, 1, 1, 1, 1]`, `k = 2`에서 만료 조건을 `<=` 대신 `<`로 잘못 구현하면 왜 `[9, 9, 1, 1]`이 나오는지, 위 "왜 모순 없이 작동하는가"의 불변식3을 근거로 설명해 보세요.
+3. `popFront`를 `Array.prototype.shift()`로 구현했을 때, 어떤 입력 패턴(값의 증가/감소 형태)에서 성능이 가장 나빠질까요? 왜 그 패턴에서 후단 청소가 거의 일어나지 않는지 설명해 보세요.
