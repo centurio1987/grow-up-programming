@@ -1,229 +1,505 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# ScapegoatTree 해설
+# ScapegoatTree — 회전은 없다, 무너지면 통째로 다시 짓는다
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 상각 | 최악 (재구성 발생 시) |
-|------|------|----------------------|
-| insert | O(log n) | O(n) |
-| delete | O(log n) | O(n) |
-| has | O(log n) | O(log n) |
-| inOrder | O(n) | O(n) |
+스케이프고트 트리는 삽입·삭제마다 회전(rotation)을 하지 않는 자기 균형 이진 탐색 트리예요. 대신 균형이 일정 기준(alpha)을 넘어 깨졌을 때만 "책임져야 할" 서브트리 하나를 찾아 정렬 배열로 펼친 뒤 완전 이진 트리로 통째로 재구성합니다. 회전 케이스 분기가 통째로 사라지는 대신, 가끔 발생하는 재구성이 비용을 흡수해 삽입·삭제는 상각(amortized) `O(log n)`을 유지해요.
 
-alpha가 작을수록 재구성이 자주 발생하지만 트리가 더 균형 잡히고, alpha가 클수록 재구성이 드물지만 트리가 편향될 수 있다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호가 보이면 스케이프고트 트리를 떠올리세요.
 
-| 메서드 | 핵심 동작 |
-|--------|----------|
-| `insert(value)` | BST 삽입 → 경로 거슬러 alpha 검사 → 위반 시 rebuild |
-| `delete(value)` | deleted 마킹 → size 조건 시 전체 rebuild |
-| `has(value)` | 일반 BST 탐색 (deleted 노드는 false) |
-| `inOrder()` | 중위 순회 (deleted 제외) |
+- 삽입·삭제가 **간헐적**이라 매 연산 최악 `O(log n)` 보장보다는 **평균적으로 빠르면 충분**하다
+- 회전 로직(LL/RR/LR/RL, 색상 재조정 등) 구현·디버깅 부담을 줄이고 싶다
+- 노드에 `height`나 `color` 같은 **균형 유지용 추가 필드**를 두고 싶지 않다(메모리 제약, 구조 단순성)
+- `alpha` 하나로 "재구성 빈도 vs 개별 탐색 속도"를 조절하고 싶다
 
----
+naive 대안들과 비교하면 스케이프고트 트리가 어디에 서 있는지 보입니다.
 
-## 핵심 아이디어
+```text
+연산            plain BST(무대응)     AVL / 레드-블랙        스케이프고트
+insert/delete   O(n) 최악 (편향 방치)  O(log n) 항상 보장      O(log n) 상각 (드물게 O(n))
+불균형 대응      없음                  회전 4~8가지 케이스      "찾아서 통째로 재구성" 케이스 1개
+추가 노드 필드   없음                  height 또는 color       없음 (선택적으로 deleted 플래그만)
+```
 
-### 원형 아이디어와 naive 접근
+제약이 $n \le 10^4$, 시간 제한 1초라면 목표 성능은 넉넉합니다. `alpha = 0.65`일 때 재구성을 유발하는 depth 상한은
 
-AVL 트리와 레드-블랙 트리는 삽입/삭제마다 회전으로 균형을 유지한다. 회전 로직은 케이스가 많고 구현 오류가 나기 쉽다.
+$$\log_{1/\alpha}(n) = \frac{\ln n}{\ln(1/\alpha)}$$
 
-**스케이프고트 트리의 관점**: 균형이 깨질 때만 처리하자. 그리고 처리 방법은 회전 대신 "완전히 다시 만들기"다. 재구성 비용이 크더라도 드물게 발생하면 상각 복잡도가 O(log n)으로 유지된다.
+이고 $n = 10^4$에서 계산하면 약 21.4예요 (AVL의 이론적 최소 높이 $\log_2(10^4) \approx 13.3$보다는 여유롭지만, 여전히 매우 얕은 트리를 보장합니다).
 
-### 어떤 관찰이 돌파구가 되는가
+비슷한 용도의 자료구조 중에서 고를 때 기준은 이렇습니다 — **삽입마다 반드시 `O(log n)` 최악 성능이 보장돼야 한다면 AVL/레드-블랙 트리**를, **범위 질의가 잦다면 B+ Tree**를, **구현 단순성과 평균 성능이면 충분하다면 스케이프고트 트리**를 고르세요.
 
-**핵심 관찰**: n개 원소를 완전 이진 트리로 구성하면 높이가 $\lfloor \log_2 n \rfloor$이다. 재구성 후 트리는 최적 균형 상태다. 그리고 재구성은 상각적으로 드물게 발생한다.
+### 문제 사례와 적용 예시
 
-**alpha의 역할**: alpha에 따라 "얼마나 불균형을 허용할 것인가"를 결정한다. alpha가 크면 재구성이 드물지만 개별 탐색이 느려질 수 있다.
+- **설정 레지스트리 / 캐시 인덱스**: 읽기(`has`, `inOrder`)가 대부분이고 삽입·삭제는 드문드문 일어나는 시스템에서, 회전 로직 없이 정렬 순회가 가능한 균형 BST가 필요할 때.
+- **메모리 제약이 큰 환경**: 임베디드·저메모리 런타임에서 노드마다 `height`/`color` 필드를 추가로 들고 다니는 비용조차 아깝다면, 값과 좌우 포인터만 있는 스케이프고트 노드가 유리합니다.
+- **코딩 테스트 맥락**: "삽입·삭제가 섞인 채로 정렬 순회·존재 판별을 요구하되, 회전 구현 없이 통과시키고 싶다"는 문제에서 직접 구현 대상이 됩니다.
+- **연구용 order-statistics 자료구조**: 순위 질의(k번째 값)를 얹을 때, 회전 중에 순위 정보를 갱신하는 로직보다 재구성 시점에 한 번에 순서를 재정렬하는 쪽이 구현이 간단해 실험용 라이브러리에서 종종 채택됩니다.
 
-### 관찰을 형식화: 상태/구조 정의
+## 자료구조 자세히 들여다보기
+
+### 전체 스펙: 속성과 액션
+
+**속성(내부 상태)** — 노드는 값과 좌우 포인터, 그리고 논리 삭제 플래그만 가집니다.
 
 ```ts
 class ScapegoatNode<T> {
-  value:   T;
-  left:    ScapegoatNode<T> | undefined;
-  right:   ScapegoatNode<T> | undefined;
-  deleted: boolean;  // 논리 삭제 마킹
+  value: T;
+  left: ScapegoatNode<T> | undefined;
+  right: ScapegoatNode<T> | undefined;
+  deleted: boolean; // 논리 삭제 마킹
 }
 
 class ScapegoatTree<T> {
-  root:     ScapegoatNode<T> | undefined;
-  _size:    number;    // 논리 노드 수
-  _maxSize: number;    // 최대 도달한 논리 노드 수 (재구성 임계값 계산용)
-  alpha:    number;
+  root: ScapegoatNode<T> | undefined;
+  size: number;     // 논리 노드 수 (deleted 제외)
+  maxSize: number;   // 마지막 전체 재구성 이후 도달한 최대 논리 노드 수
+  alpha: number;      // 0.5 < alpha < 1.0
+  compare: (a: T, b: T) => number;
 }
 ```
 
-추가 필드(height, color, rank)가 없다. 노드가 단순하다.
+지켜야 할 불변식은 네 가지입니다.
 
-### 핵심 연산 1 — 삽입 후 스케이프고트 탐색
+1. **BST 순서 불변식**: 모든 노드 `v`에 대해 왼쪽 서브트리의 모든 값은 `compare` 기준으로 `v.value`보다 작고, 오른쪽 서브트리의 모든 값은 크다.
+2. **alpha-가중치 균형**: 삭제되지 않은 노드 수를 `size(v)`라 할 때, 모든 노드 `v`에 대해
+   $$\text{size}(v.\text{left}) \le \alpha \cdot \text{size}(v) \quad\text{and}\quad \text{size}(v.\text{right}) \le \alpha \cdot \text{size}(v)$$
+   이 조건은 삽입 도중 일시적으로 깨질 수 있지만, `insert` 호출이 끝난 시점에는 항상 복원되어 있습니다(다음 절에서 증명).
+3. **maxSize 불변식**: 항상 `size ≤ maxSize`. `maxSize`는 마지막 전체 재구성 이후 도달한 최댓값을 추적해 삭제 트리거를 계산하는 데 씁니다.
+4. **논리 삭제**: `deleted = true`인 노드는 `has`·`size`·`inOrder`에서 존재하지 않는 것처럼 취급됩니다.
+
+작은 예로 그려 보면:
+
+```text
+            1
+             \
+              2
+               \
+                4      ← size(4)=3, size(왼쪽=3)=1, size(오른쪽=5)=1
+               / \        1 ≤ 0.65*3=1.95 ✓ (양쪽 모두 alpha 조건 만족)
+              3   5
+```
+
+**액션(연산)** — 이 트리가 제공하는 연산 전부입니다.
+
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `insert(value)` | BST 삽입 → 경로의 depth가 임계값을 넘으면 스케이프고트를 찾아 서브트리 재구성 | `O(log n)` 상각 |
+| `delete(value)` | 논리 삭제(`deleted = true`) → `size`가 `alpha * maxSize` 아래로 떨어지면 전체 재구성 | `O(log n)` 상각 |
+| `has(value)` | 일반 BST 탐색, `deleted` 노드는 `false` | `O(log n)` |
+| `size()` | 논리 노드 수 반환 | `O(1)` |
+| `inOrder()` | 중위 순회(삭제 노드 제외) | `O(n)` |
+
+핵심 연산 두 개를 자세히 봅니다. 둘 다 `alpha = 0.65`로 고정하고, 아래 수치는 실제로 실행해 검증한 값이에요.
+
+**① insert — 삽입 후 스케이프고트 재구성.** 빈 트리에 `1, 2, 3, 4`를 순서대로 넣으면 오른쪽으로만 뻗는 사슬이 됩니다 (매 삽입이 직전 최댓값보다 크므로 BST 규칙상 항상 오른쪽으로 붙어요). 이 시점까지는 재구성이 일어나지 않습니다 — `4`를 넣었을 때 depth(간선 수)는 3, 임계값 $\log_{1/0.65}(4) \approx 3.22$이므로 `3 > 3.22`가 거짓이기 때문이에요.
+
+```text
+Before insert(5):     1 → 2 → 3 → 4   (오른쪽 사슬, depth(4)=3, threshold(size=4)≈3.22 → 통과)
+```
+
+`5`를 넣으면 depth(간선 수)가 4가 되고, 이번엔 임계값 $\log_{1/0.65}(5) \approx 3.74$를 넘습니다(`4 > 3.74`). 이제 삽입 경로 `1→2→3→4→5`를 거슬러 올라가며 각 조상에서 "자식 서브트리 크기 > alpha × 자신의 서브트리 크기"를 검사해요.
+
+- 조상 `4`(자식 `5`): $\text{size}(5) = 1 \le 0.65 \times \text{size}(4){=}2 = 1.3$ → 통과
+- 조상 `3`(자식 `4`): $\text{size}(4\text{서브트리}) = 2 > 0.65 \times \text{size}(3){=}3 = 1.95$ → **위반! `3`이 스케이프고트**
+
+`3`의 서브트리를 중위 순회하면 `[3, 4, 5]`. 이 배열로 완전 이진 트리를 재구성합니다: `mid = ⌊3/2⌋ = 1` → 새 루트는 `4`, 왼쪽은 `rebuild([3])`, 오른쪽은 `rebuild([5])`.
+
+```text
+Before (스케이프고트 3의 서브트리):     3
+                                         \
+                                          4
+                                           \
+                                            5
+
+After  (재구성 완료, 부모 2의 오른쪽에 접붙임):     2
+                                                      \
+                                                       4
+                                                      / \
+                                                     3   5
+```
+
+**② delete — 논리 삭제와 전체 재구성.** 이번엔 `1..7`을 순서대로 넣어 만든(중간에 `5`, `7` 삽입 때 각각 부분 재구성이 한 번씩 더 일어난) 7개짜리 트리에서 시작합니다.
+
+```text
+시작 트리 (size=7, maxSize=7):
+1 → 2 → 4 ┬ 3
+          └ 6 ┬ 5
+              └ 7
+```
+
+`delete(1)`, `delete(2)`를 하면 각각 `deleted` 플래그만 세우고 `size`를 6, 5로 줄입니다. 재구성 임계값은 `alpha * maxSize = 0.65 * 7 = 4.55`라서 `6 < 4.55`, `5 < 4.55` 모두 거짓 — 아직 재구성하지 않습니다. `delete(3)`을 하면 `size`가 4가 되어 `4 < 4.55`가 참이 됩니다. 이 순간 트리 전체를 중위 순회해 삭제되지 않은 값만 모으면 `[4, 5, 6, 7]`이고, 이를 통째로 재구성해요.
+
+```text
+Before delete(3) 직후 (deleted=1,2,3, 나머지 그대로):
+(1)(deleted) → (2)(deleted) → 4 ┬ (3)(deleted)
+                                └ 6 ┬ 5
+                                    └ 7
+
+After 전체 재구성 (nodes=[4,5,6,7], mid=2 → 루트 6):
+        6
+       / \
+      5   7
+     /
+    4
+```
+
+`maxSize`도 이 시점에 `size`(=4)로 리셋됩니다 — 다음 삭제 트리거는 이 새 기준으로 다시 계산돼요.
+
+### 왜 모순 없이 작동하는가
+
+**불변식 2(alpha-가중치 균형)가 재구성 직후 항상 성립하는 이유**를 봅니다. 크기 `k`인 노드 배열을 재구성하면 왼쪽은 `⌊k/2⌋`개, 오른쪽은 `k - ⌊k/2⌋ - 1`개가 됩니다. 두 값 모두 `k/2`를 넘지 않고, 문제가 강제하는 `alpha > 0.5`이므로
+
+$$\lfloor k/2 \rfloor \le k/2 < \alpha \cdot k, \qquad k - \lfloor k/2 \rfloor - 1 \le \lceil k/2 \rceil - 1 < k/2 < \alpha \cdot k$$
+
+가 항상 성립합니다. 즉 **재구성이 만든 서브트리는 그 자리에서 곧바로 alpha 조건을 만족**해요. 이것이 문제가 $\alpha > 0.5$를 강제하는 이유이기도 합니다 — $\alpha \le 0.5$라면 임계값 $\log_{1/\alpha}(n)$이 이진 트리가 이론적으로 도달 가능한 최소 높이 $\log_2(n)$ 이하로 내려가 버려서, 사실상 거의 매 삽입마다 재구성해야 하는 상황이 되고 상각 분석이 무너집니다.
+
+**재구성이 국소적으로 끝나도 전역 불변식이 회복되는 이유**: 삽입 하나가 불변식을 깰 수 있는 곳은 삽입 경로 위의 조상들뿐입니다(다른 노드는 서브트리 크기가 전혀 안 바뀌었으니까요). 경로를 거슬러 올라가다 "가장 먼저" 만나는 위반 조상을 스케이프고트로 고르면, 그보다 아래쪽은 애초에 위반이 없었고(재귀적으로 이미 확인했으므로), 재구성된 서브트리 내부는 위 부등식으로 다시 만족되며, 그보다 위쪽 조상들은 노드 개수 자체가 바뀌지 않았으니(재구성은 모양만 바꾸고 개수는 그대로) 원래부터 성립하던 조건이 그대로 유지됩니다. 그래서 삽입 하나 처리 후에는 트리 전체가 다시 불변식 2를 만족해요.
+
+잠깐, 확인 하나 해볼까요? `alpha = 0.99`로 설정하면 어떤 일이 생길까요? — 정답: 임계값이 $\log_{1/0.99}(n) = \ln(n)/\ln(1.0101\ldots)$로 커져서(분모가 0에 가까워지니 값이 급격히 커짐) 어지간한 깊이로는 위반이 잡히지 않습니다. 재구성이 거의 일어나지 않는 대신, 트리가 한쪽으로 심하게 치우친 채 오래 방치될 수 있어요.
+
+여기서 헷갈리기 쉬운 포인트 세 가지를 짚어 둡니다.
+
+- **depth를 "간선 수"로 셀지 "노드 수"로 셀지 헷갈리기 쉽습니다.** 이 가이드는 depth를 루트로부터의 간선 수(루트 자신은 depth 0)로 정의합니다. 노드 수(경로 길이)로 잘못 세면 항상 실제보다 1 크게 계산되어, 재구성이 불필요하게 일찍 일어납니다 — 아래 "아이디어를 코드로 옮기기"에서 구체적인 오답 수치로 보여 드립니다.
+- **`alpha`가 클수록 균형이 "느슨"해진다는 것.** 직관과 반대로 느껴질 수 있어요. `alpha`가 클수록 "자식이 부모의 대부분을 차지해도 괜찮다"는 뜻이라 재구성이 드물어지고, 그만큼 트리가 치우친 채로 오래 남을 수 있습니다. `alpha`가 작을수록(0.5에 가까울수록) 엄격한 균형을 요구해 재구성이 잦아집니다.
+- **논리 삭제는 즉시 트리 모양을 바꾸지 않습니다.** `delete` 직후에도 노드는 트리에 물리적으로 남아 있고 `deleted` 플래그만 세워져요. `has`·`inOrder`·`size` 모두 이 플래그를 반영해야 하며, 반영을 빼먹으면 "삭제했는데 순회에 나온다" 같은 유령 노드 버그가 생깁니다.
+
+엣지 케이스를 점검해 봅니다.
+
+```text
+빈 트리에 has(1)        → false
+빈 트리에 inOrder()      → []
+빈 트리에 delete(1)      → false (아무것도 지울 게 없음)
+크기 1 트리에 delete(v)  → 논리 삭제만으로 size=0, alpha*maxSize=alpha*1 조건 검사(0 < alpha*1 → 참) → 재구성해도 빈 트리
+중복 insert(v)           → compare 결과 0을 만나면 무시 (size 불변)
+delete 후 같은 값 재삽입 → 이 가이드는 "존재하지 않는 값의 삽입"으로 보고 deleted 플래그를 되살리며 size 증가
+```
+
+## 아이디어를 코드로 옮기기
+
+가이드가 정의한 인터페이스(제네릭 `T`, `alpha` 기본값 0.65, `comparator` 선택)에 맞춘 구현입니다. 삽입 경로를 배열로 기록해 두었다가 거꾸로 훑으며 스케이프고트를 찾는 패턴이 핵심이에요.
 
 ```ts
-function insert(value: T): void {
-  // 1. BST 삽입, 삽입 경로(깊이)를 기록
-  const depth = bstInsert(root, value);
-  _size++;
-  _maxSize = Math.max(_maxSize, _size);
+class ScapegoatNode<T> {
+  value: T;
+  left: ScapegoatNode<T> | undefined = undefined;
+  right: ScapegoatNode<T> | undefined = undefined;
+  deleted = false;
 
-  // 2. alpha 조건 검사: depth > log_{1/alpha}(size)
-  if (depth > Math.log(_size) / Math.log(1 / alpha)) {
-    // 3. 경로를 거슬러 스케이프고트 탐색
-    const scapegoat = findScapegoat(insertedNode);
-    // 4. 스케이프고트 서브트리 재구성
-    const nodes = collectInOrder(scapegoat);
-    rebuildSubtree(scapegoat, nodes);
+  constructor(value: T) {
+    this.value = value;
+  }
+}
+
+class ScapegoatTree<T> {
+  private root: ScapegoatNode<T> | undefined = undefined;
+  private _size = 0;
+  private _maxSize = 0;
+  private alpha: number;
+  private compare: (a: T, b: T) => number;
+
+  constructor(alpha = 0.65, comparator?: (a: T, b: T) => number) {
+    this.alpha = alpha;
+    this.compare = comparator ?? ((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  }
+
+  size(): number {
+    return this._size;
+  }
+
+  has(value: T): boolean {
+    let node = this.root;
+    while (node !== undefined) {
+      const c = this.compare(value, node.value);
+      if (c === 0) return !node.deleted;
+      node = c < 0 ? node.left : node.right;
+    }
+    return false;
+  }
+
+  insert(value: T): void {
+    if (this.root === undefined) {
+      this.root = new ScapegoatNode(value);
+      this._size = 1;
+      this._maxSize = 1;
+      return;
+    }
+
+    // 1. BST 삽입, 삽입 경로(루트→새 노드)를 배열에 기록
+    const path: ScapegoatNode<T>[] = [];
+    let node = this.root;
+    for (;;) {
+      const c = this.compare(value, node.value);
+      if (c === 0) {
+        if (node.deleted) {
+          node.deleted = false;
+          this._size++;
+          this._maxSize = Math.max(this._maxSize, this._size);
+        }
+        return; // 이미 존재 → 무시(set 의미론)
+      }
+      path.push(node);
+      if (c < 0) {
+        if (node.left === undefined) {
+          node.left = new ScapegoatNode(value);
+          path.push(node.left);
+          break;
+        }
+        node = node.left;
+      } else {
+        if (node.right === undefined) {
+          node.right = new ScapegoatNode(value);
+          path.push(node.right);
+          break;
+        }
+        node = node.right;
+      }
+    }
+    this._size++;
+    this._maxSize = Math.max(this._maxSize, this._size);
+
+    // 2. depth(간선 수) > 임계값이면 재구성 필요
+    const depth = path.length - 1; // 루트 depth = 0
+    const threshold = Math.log(this._size) / Math.log(1 / this.alpha);
+    if (depth > threshold) {
+      // 3. 경로를 거슬러 올라가며 "가장 가까운" 위반 조상을 찾는다
+      let scapegoatIndex = -1;
+      for (let i = path.length - 2; i >= 0; i--) {
+        const parent = path[i]!;
+        const child = path[i + 1]!;
+        if (this.subtreeSize(child) > this.alpha * this.subtreeSize(parent)) {
+          scapegoatIndex = i;
+          break;
+        }
+      }
+      const scapegoat = path[scapegoatIndex]!;
+      const parentOfScapegoat = scapegoatIndex > 0 ? path[scapegoatIndex - 1] : undefined;
+
+      // 4. 스케이프고트 서브트리를 정렬 배열로 펼친 뒤 완전 이진 트리로 재구성
+      const nodes = this.collectInOrder(scapegoat);
+      const rebuilt = this.rebuild(nodes);
+      if (parentOfScapegoat === undefined) {
+        this.root = rebuilt;
+      } else if (parentOfScapegoat.left === scapegoat) {
+        parentOfScapegoat.left = rebuilt;
+      } else {
+        parentOfScapegoat.right = rebuilt;
+      }
+    }
+  }
+
+  delete(value: T): boolean {
+    let node = this.root;
+    while (node !== undefined) {
+      const c = this.compare(value, node.value);
+      if (c === 0) {
+        if (node.deleted) return false;
+        node.deleted = true;
+        this._size--;
+        if (this._size < this.alpha * this._maxSize) {
+          const nodes = this.collectInOrder(this.root);
+          this.root = this.rebuild(nodes);
+          this._maxSize = this._size; // 재구성 기준을 새로 리셋
+        }
+        return true;
+      }
+      node = c < 0 ? node.left : node.right;
+    }
+    return false;
+  }
+
+  inOrder(): T[] {
+    return this.collectInOrder(this.root);
+  }
+
+  private subtreeSize(node: ScapegoatNode<T> | undefined): number {
+    if (node === undefined) return 0;
+    return (node.deleted ? 0 : 1) + this.subtreeSize(node.left) + this.subtreeSize(node.right);
+  }
+
+  private collectInOrder(node: ScapegoatNode<T> | undefined, out: T[] = []): T[] {
+    if (node === undefined) return out;
+    this.collectInOrder(node.left, out);
+    if (!node.deleted) out.push(node.value);
+    this.collectInOrder(node.right, out);
+    return out;
+  }
+
+  private rebuild(nodes: T[]): ScapegoatNode<T> | undefined {
+    if (nodes.length === 0) return undefined;
+    const mid = Math.floor(nodes.length / 2);
+    const node = new ScapegoatNode(nodes[mid]!);
+    node.left = this.rebuild(nodes.slice(0, mid));
+    node.right = this.rebuild(nodes.slice(mid + 1));
+    return node;
   }
 }
 ```
 
-### 핵심 연산 2 — 서브트리 재구성
+가장 중요한 부분은 스케이프고트 탐색 루프입니다 — `for (let i = path.length - 2; i >= 0; i--)`가 삽입 경로를 **새 노드에서 가까운 순서**로 훑습니다. 왜 가까운 순서여야 할까요? 위반 조상 중 가장 작은 서브트리를 재구성하는 쪽이 비용이 싸고, 상각 분석(재구성 비용은 그 이전 삽입 횟수로 갚아진다)이 이 "가장 가까운 위반"을 전제로 성립하기 때문이에요. 더 위쪽 조상을 골라도 정확성은 깨지지 않지만 상각 `O(log n)` 보장이 흔들립니다.
 
-```ts
-function rebuild(nodes: T[]): ScapegoatNode<T> | undefined {
-  if (nodes.length === 0) return undefined;
-  const mid = Math.floor(nodes.length / 2);
-  const node = new ScapegoatNode(nodes[mid]!);
-  node.left  = rebuild(nodes.slice(0, mid));
-  node.right = rebuild(nodes.slice(mid + 1));
-  return node;
-}
-```
+놓치기 쉬운 구현부를 짚어 둡니다.
 
-이 재구성은 O(k) (k = 서브트리 크기)이며, 결과는 높이가 $\lfloor \log_2 k \rfloor$인 완전 이진 트리다.
+- **`const depth = path.length - 1;`** — 여기서 `-1`을 빼먹으면 구체적으로 이런 일이 벌어집니다. `alpha=0.65`로 `1, 2, 3, 4`를 순서대로 넣을 때, 정상 구현은 `insert(4)`까지 재구성이 전혀 일어나지 않아야 해요(depth(4)=3 ≤ threshold≈3.22). 그런데 `depth = path.length`(노드 수)로 잘못 세면 `insert(2)` 시점부터 이미 `depth=2 > threshold(size=2)≈1.61`이 되어, 정상보다 세 번이나 이른 시점에 불필요한 재구성이 시작됩니다. 실제로 버그 버전을 실행해서 확인한 수치예요.
+- **`subtreeSize`는 `deleted` 노드를 세지 않습니다.** 논리 삭제된 노드를 그대로 카운트하면 alpha 조건 검사가 실제 논리 크기와 어긋나, 이미 텅 빈 서브트리를 "균형 잡혀 있다"고 오판할 수 있습니다.
+- **`collectInOrder`도 `deleted`를 건너뜁니다.** 재구성 시 살아있는 값만 배열에 담아야 죽은 노드가 새 트리에 부활하지 않습니다.
+- **삭제 임계값 비교는 `_size < alpha * _maxSize`, 삽입 임계값 비교는 `depth > threshold`** — 부등호 방향이 서로 다릅니다. 삽입은 "너무 깊으면" 재구성이고, 삭제는 "너무 작아지면(원래 최댓값 대비 논리 노드가 줄어들면)" 재구성이라 방향이 반대예요.
 
-### 핵심 연산 3 — 논리 삭제와 전체 재구성
+기억법: **"삽입은 깊어서 탈, 삭제는 헐거워서 탈"** — 두 트리거는 정반대 방향의 부등호를 씁니다.
 
-```ts
-function delete(value: T): boolean {
-  const node = find(root, value);
-  if (!node || node.deleted) return false;
-  node.deleted = true;
-  _size--;
-  // 삭제 노드가 너무 많으면 전체 재구성
-  if (_size < alpha * _maxSize) {
-    const nodes = collectInOrder(root);  // deleted 제외
-    root = rebuild(nodes);
-    _maxSize = _size;
-  }
-  return true;
-}
-```
+## 실행 시각화
 
-### 정당성 — 상각 분석
+`alpha = 0.65`로 빈 트리에 `1, 2, 3, 4, 5`를 차례로 삽입하는 과정을 봅니다. 앞 세 번(`1, 2, 3`)과 `4`까지는 오른쪽 사슬로 자라며 재구성이 없다가, `5`를 넣는 순간 depth(4)가 임계값(≈3.74)을 넘어 스케이프고트 탐색이 시작되고, 조상 `3`에서 위반이 발견되어 `[3, 4, 5]`가 `4`를 루트로 하는 완전 이진 트리로 재구성됩니다. `tree` 패널은 매 단계의 실제 트리 모양을 보여주고, `active`로 표시된 노드가 그 단계의 핵심(새로 삽입된 노드 또는 발견된 스케이프고트)입니다. 최종 `inOrder()`는 `[1, 2, 3, 4, 5]`로, 재구성 전후 값 집합은 그대로입니다.
 
-재구성 비용은 O(k). 그러나 k개 노드를 재구성하려면 그 전에 적어도 k * (1 - alpha) 번의 삽입이 있어야 한다. 따라서 삽입 n번에 대한 총 재구성 비용은 O(n log n)이 되어 연산당 상각 O(log n)이 된다.
-
-### 구현 디테일과 최적화
-
-- **depth vs 포인터 경로**: 삽입 시 경로를 스택에 기록하거나 부모 포인터를 사용해 거슬러 올라가며 스케이프고트를 찾는다.
-- **논리 삭제**: 물리 삭제 대신 `deleted` 플래그를 사용하면 재구성이 트리거될 때 한 번에 정리할 수 있어 구현이 단순하다.
-- **inOrder에서 deleted 제외**: 중위 순회 시 `deleted` 노드를 건너뛴다.
-- **중복 처리**: comparator 결과가 0이면 삽입 무시.
-
----
-
-## 시뮬레이션
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
-    title: "초기 — [10, 5, 15, 3, 7, 12, 20] 삽입",
-    detail: "7개 원소가 삽입됨. alpha=0.65. 아직 재구성 불필요.",
-    array: [10, 5, 15, 3, 7, 12, 20],
-    highlight: [],
-    marked: [0, 1, 2, 3, 4, 5, 6],
+    title: "초기 — 1, 2, 3, 4 순차 삽입",
+    detail: "alpha=0.65. 매 삽입마다 depth ≤ threshold를 만족해 재구성이 없었다 (4번째 삽입: depth=3, threshold(size=4)≈3.22).",
+    root: {
+      id: 1,
+      label: "1",
+      children: [
+        {
+          id: 2,
+          label: "2",
+          children: [
+            {
+              id: 3,
+              label: "3",
+              children: [{ id: 4, label: "4" }],
+            },
+          ],
+        },
+      ],
+    },
   },
   {
-    title: "insert(1) — 깊이 체크",
-    detail: "1이 삽입되어 깊이가 커짐. alpha 조건 검사: depth > log(8)/log(1/0.65) ≈ 5.4",
-    array: [10, 5, 15, 3, 7, 12, 20, 1],
-    highlight: [7],
-    marked: [],
+    title: "insert(5) — depth 초과 감지",
+    detail: "5가 depth 4에 삽입됨. threshold(size=5)≈3.74 < depth 4 → 재구성 조건 성립.",
+    root: {
+      id: 1,
+      label: "1",
+      children: [
+        {
+          id: 2,
+          label: "2",
+          children: [
+            {
+              id: 3,
+              label: "3",
+              children: [
+                {
+                  id: 4,
+                  label: "4",
+                  children: [{ id: 5, label: "5", status: "active" }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
   },
   {
-    title: "스케이프고트 발견",
-    detail: "경로 거슬러 올라가며 size(left) > 0.65 * size(subtree) 위반 노드를 찾음. 5가 스케이프고트.",
-    array: [10, 5, 15, 3, 7, 12, 20, 1],
-    highlight: [1],
-    marked: [0, 2, 5, 6],
+    title: "스케이프고트 탐색 — 3에서 위반 발견",
+    detail: "경로 5→4→3→2→1을 거슬러 검사. 4는 통과(size(5)=1 ≤ 0.65*2=1.3), 3에서 위반(size(4서브트리)=2 > 0.65*3=1.95) → 3이 스케이프고트.",
+    root: {
+      id: 1,
+      label: "1",
+      children: [
+        {
+          id: 2,
+          label: "2",
+          children: [
+            {
+              id: 3,
+              label: "3",
+              status: "active",
+              children: [
+                {
+                  id: 4,
+                  label: "4",
+                  status: "frontier",
+                  children: [{ id: 5, label: "5", status: "frontier" }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
   },
   {
-    title: "스케이프고트 서브트리 중위 수집",
-    detail: "5의 서브트리 중위 순회: [1, 3, 5, 7]. 이것으로 완전 이진 트리를 재구성.",
-    array: [10, 5, 15, 3, 7, 12, 20, 1],
-    highlight: [1, 3, 4, 7],
-    marked: [],
+    title: "서브트리 중위 수집 — [3, 4, 5]",
+    detail: "스케이프고트 3의 서브트리를 중위 순회하면 [3, 4, 5]. 이 배열로 완전 이진 트리를 새로 만든다.",
+    root: {
+      id: 1,
+      label: "1",
+      children: [
+        {
+          id: 2,
+          label: "2",
+          children: [
+            {
+              id: 3,
+              label: "3",
+              status: "frontier",
+              children: [
+                {
+                  id: 4,
+                  label: "4",
+                  status: "frontier",
+                  children: [{ id: 5, label: "5", status: "frontier" }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
   },
   {
-    title: "서브트리 재구성 완료",
-    detail: "중앙값 3이 새 루트. 좌=1, 우=5, 우우=7. 높이 2의 완전 이진 트리.",
-    array: [10, 3, 15, 1, 5, 12, 20, 0, 0, 0, 7],
-    highlight: [1, 3, 4, 10],
-    marked: [0, 2, 5, 6],
+    title: "재구성 완료 — 4가 새 루트",
+    detail: "mid=1 → nodes[1]=4가 새 루트. 왼쪽=rebuild([3])=3, 오른쪽=rebuild([5])=5. 2의 오른쪽 자식이 통째로 교체됨. inOrder() = [1,2,3,4,5] (값 집합은 그대로).",
+    root: {
+      id: 1,
+      label: "1",
+      children: [
+        {
+          id: 2,
+          label: "2",
+          children: [
+            {
+              id: 4,
+              label: "4",
+              status: "active",
+              children: [
+                { id: 3, label: "3", status: "visited" },
+                { id: 5, label: "5", status: "visited" },
+              ],
+            },
+          ],
+        },
+      ],
+    },
   },
 ];
 
-<AlgorithmSimulation view="array" steps={steps} title="스케이프고트 트리 — 삽입 후 서브트리 재구성" />
+<AlgorithmSimulation view="tree" steps={steps} title="스케이프고트 트리 — 삽입 후 스케이프고트 재구성" />
 
----
+## 스스로 점검하기
 
-## 수도 코드와 Activity Diagram
-
-### 의사코드
-
-```
-function insert(value):
-  depth = bstInsert(root, value)
-  size++; maxSize = max(maxSize, size)
-  if depth > log(size) / log(1/alpha):
-    node = findNode(value)
-    scapegoat = findScapegoat(node)
-    nodes = collectInOrder(scapegoat)  // deleted 제외
-    newSubtree = rebuild(nodes)
-    replaceSubtree(scapegoat, newSubtree)
-
-function rebuild(nodes):
-  if empty: return null
-  mid = len(nodes) / 2
-  root = new Node(nodes[mid])
-  root.left  = rebuild(nodes[:mid])
-  root.right = rebuild(nodes[mid+1:])
-  return root
-
-function delete(value):
-  node = find(value)
-  if not found: return false
-  node.deleted = true; size--
-  if size < alpha * maxSize:
-    nodes = collectInOrder(root)
-    root = rebuild(nodes)
-    maxSize = size
-  return true
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A([insert 호출]) --> B[BST 삽입, 깊이 기록]
-  B --> C{depth > log 임계값?}
-  C -- 아니오 --> D([완료])
-  C -- 예 --> E[스케이프고트 탐색]
-  E --> F[서브트리 중위 수집]
-  F --> G[완전 이진 트리로 rebuild]
-  G --> D
-
-  H([delete 호출]) --> I[노드 탐색]
-  I --> J{존재?}
-  J -- 아니오 --> K[false 반환]
-  J -- 예 --> L[deleted 마킹, size--]
-  L --> M{size < alpha * maxSize?}
-  M -- 아니오 --> N[true 반환]
-  M -- 예 --> O[전체 inOrder 수집]
-  O --> P[전체 트리 rebuild]
-  P --> Q[maxSize = size]
-  Q --> N
-```
+1. `alpha = 0.65`인 빈 트리에 `10, 20, 30, 40, 50, 60, 70`을 순서대로 삽입하면(오른쪽 사슬로 자람), 몇 번째 삽입에서 처음 재구성이 일어날까요? 어떤 노드가 스케이프고트가 될지 손으로 따라가 보세요. (힌트: `insert(5)` 시나리오와 같은 방식으로 depth·threshold를 계산해 보세요.)
+2. `subtreeSize`를 구현할 때 `deleted` 노드까지 세어 버리면, 논리 삭제를 여러 번 반복한 트리에서 어떤 문제가 생길까요? "재구성이 필요한데 트리거되지 않는" 구체적인 상황을 만들어 설명해 보세요.
+3. 삽입 트리거는 `depth > threshold`(초과), 삭제 트리거는 `size < alpha * maxSize`(미만)입니다. 두 부등호가 왜 반대 방향인지, "무엇이 커지면 위험하고 무엇이 작아지면 위험한가"의 관점에서 한 문장으로 설명해 보세요.

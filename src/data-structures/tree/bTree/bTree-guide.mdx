@@ -1,238 +1,487 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# BTree (B-트리) 해설
+# BTree — 노드 하나에 더 많은 키를, 트리는 더 낮게
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 시간복잡도 | t=10, n=10^4 기대 시간 |
-|------|-----------|----------------------|
-| insert | O(t · log_t n) | < 1ms |
-| delete | O(t · log_t n) | < 1ms |
-| has | O(t · log_t n) | < 1ms |
-| inOrder | O(n) | < 10ms |
+이진 탐색 트리처럼 정렬을 유지하되, 노드 하나에 키를 여러 개(최소 차수 $t$ 기준 $t-1$개부터 $2t-1$개까지) 담아 분기 수를 2가 아니라 $t$~$2t$로 늘린 다진(multiway) 탐색 트리예요. 비결은 삽입·삭제 경로를 내려가면서 가득 찬 노드는 미리 쪼개고, 모자랄 것 같은 노드는 미리 채워 두는 **선제적(preemptive) 처리**입니다. 덕분에 한 번 내려가는 것만으로 삽입·삭제가 끝나고, 트리 높이가 $O(\log_t n)$으로 눌려 노드 접근 횟수(디스크 I/O)가 극적으로 줄어듭니다.
 
-t가 클수록 트리 높이가 낮아지고 디스크 I/O는 감소하지만, 노드 내 탐색 비용이 증가한다. 실제 파일 시스템에서는 t를 수백으로 설정한다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호가 보이면 B-Tree를 떠올리세요.
 
-| 함수 | 반환 타입 | 설명 |
-|------|-----------|------|
-| `insert(value)` | `void` | 가득 찬 노드를 선제 분할하며 삽입 |
-| `delete(value)` | `boolean` | 언더플로우를 사전 보충하며 삭제 |
-| `has(value)` | `boolean` | 각 노드 내 이진/선형 탐색 |
-| `size()` | `number` | 원소 개수 |
-| `inOrder()` | `T[]` | 중위 순회 정렬 배열 |
+- 저장할 원소 수가 아주 크고(수백만~수십억), **노드 하나에 접근하는 비용 자체가 비쌀 때**(디스크 페이지 읽기, 네트워크 왕복 등)
+- 삽입·삭제가 끊임없이 섞이는데도 항상 정렬 순서와 균형 잡힌 높이를 유지해야 할 때 (정렬 배열은 삽입이 $O(n)$이라 탈락)
+- 분기가 2뿐인 이진 탐색 트리는 높이가 너무 커서 접근 횟수가 부담될 때 — 분기 수를 늘려 높이를 낮추고 싶을 때
 
----
+분기 수 $t$가 접근 횟수에 미치는 영향을 체감해 볼게요. $10^8$개의 키를 저장했다고 가정합니다.
 
-## 핵심 아이디어
+```text
+이진 탐색 트리(AVL/레드-블랙, 분기 2)
+  높이 h ≈ log2(10^8) ≈ 26.6  →  탐색 1회 ≈ 27번 노드 접근
 
-### 원형 아이디어와 naive 접근
+B-트리(t=100, 분기 최대 200)
+  높이 h ≈ log100(10^8) = 4    →  탐색 1회 ≈ 4번 노드 접근
 
-2-3 트리는 노드당 키를 2개까지 허용했다. 이를 임의의 상한 2t-1개까지 일반화하면 어떨까? 노드 하나에 더 많은 키를 담을수록 같은 원소 수에 대해 트리 높이가 낮아진다.
+노드 접근 1회가 디스크 I/O(≈10ms)라면: 270ms 대 40ms
+```
 
-높이가 낮다는 것은 디스크에서 데이터를 읽는 횟수(I/O 수)가 줄어든다는 의미다. 메모리 내 탐색보다 디스크 I/O가 10만 배 느린 환경에서 이 차이는 결정적이다.
+여기서 쓴 $h \approx \log_t n$은 "분기 수가 $t$배 늘면 높이가 그만큼 준다"는 자릿수 감각만 잡기 위한 근사치이지, 최악의 경우(모든 노드가 최소치 $t-1$개만 채워진 상태)를 반영한 엄밀한 상계는 아닙니다. 최소 채움 상태까지 고려한 정확한 높이 상계는 뒤 "전체 스펙"에서 $h \le \log_t\frac{n+1}{2}$로 직접 유도합니다.
 
-### 어떤 관찰이 돌파구가 되는가
+이 프로젝트의 제약($n \le 10^4$, $t \ge 2$)으로 좁혀서 최소 채움 상태의 최대 높이를 계산하면 이렇습니다.
 
-**관찰**: 2-3 트리의 분할/병합 알고리즘은 t에 대해 자연스럽게 일반화된다. 경계만 `keys.length == 2` 에서 `keys.length == 2t-1` 로 바꾸면 된다.
+| $t$ | $n=10^4$일 때 최대 높이 | 시사점 |
+|---|---|---|
+| 2 (최소값) | 최대 12 | 2-3-4 트리와 동급, 사실상 분기 2~4 |
+| 10 | 최대 3 | 노드당 최대 $2t-1=19$개 키 |
+| 100 | 최대 1 | 노드당 최대 199개 키 — 실제 DB 인덱스에 근접 |
 
-**선제적 분할 전략**: 삽입 경로를 내려가면서 가득 찬 노드를 미리 분할하면, 분할 후 전파를 위해 다시 올라갈 필요가 없다. 한 번의 하향 패스(top-down pass)로 삽입이 완료된다.
+$t$가 커질수록 트리는 얕아지지만 공짜는 아니에요. 노드 내부에서 원하는 키를 찾는 비용이 최대 $O(t)$(이진 탐색이면 $O(\log t)$)로 늘어납니다. 즉 "노드 접근 횟수를 줄이는 대신 노드 하나를 뒤지는 비용을 조금 더 문다"는 트레이드오프입니다. 또한 B-Tree 자체는 범위 질의(`[low, high]` 전체 나열)에 약합니다 — 데이터가 내부 노드 곳곳에도 있어서 재귀적으로 오르내려야 하거든요. 범위 질의가 잦다면 데이터를 리프에만 몰아넣고 리프를 연결 리스트로 이은 B+ Tree가 더 적합하고, 점 조회·삽입·삭제 위주라면 지금 보는 B-Tree가 공간 효율적입니다. 메모리 안에서 포인터를 타는 비용이 무시할 만하면 분기 2인 AVL·레드-블랙 트리로 충분합니다 — B-Tree는 노드 접근 자체가 병목일 때(디스크, 네트워크, 캐시 미스) 진가를 발휘합니다.
 
-마찬가지로 삭제 시에도 경로를 내려가며 언더플로우가 예상되는 노드를 미리 보충하면(fix-up), 한 번의 하향 패스로 삭제가 완료된다.
+### 문제 사례와 적용 예시
 
-### 관찰을 형식화: 상태/구조 정의
+- **파일 시스템 인덱스**: ext4, NTFS, HFS+, btrfs 같은 파일 시스템이 디렉터리 엔트리와 익스텐트 관리에 B-트리 계열 구조를 씁니다. 노드 하나가 디스크 페이지(4KB~16KB) 크기에 맞춰져 있어요.
+- **임베디드 키-값 스토어**: Berkeley DB의 B-Tree 액세스 메소드처럼, 파일 하나에 정렬된 인덱스를 통째로 얹는 저장소 엔진의 기본 구조입니다.
+- **코딩 테스트 맥락**: "삽입·삭제가 뒤섞이는 동적 정렬 컨테이너(멀티셋)를 구현하라" — JS/TS에는 정렬된 상태를 유지하는 내장 컨테이너가 없어 직접 구현 대상이 됩니다.
+- **외부 정렬·캐시 인덱스**: 메모리에 한 번에 다 올릴 수 없는 데이터를 페이지 단위로 인덱싱할 때, 페이지 하나 = 노드 하나로 대응시킵니다.
+
+## 자료구조 자세히 들여다보기
+
+### 전체 스펙: 속성과 액션
+
+**속성(내부 상태)** — 노드는 한 종류뿐입니다. 리프냐 아니냐만 플래그로 구분해요.
 
 ```ts
 class BTreeNode<T> {
-  keys: T[] = [];          // 정렬된 키. 비루트: t-1 ~ 2t-1개
+  keys: T[] = [];                 // 정렬된 키
   children: BTreeNode<T>[] = [];  // isLeaf가 false면 keys.length + 1개
   isLeaf: boolean = true;
 }
 ```
 
-**불변 조건 (invariant):**
-1. 비루트 노드: `t-1 <= keys.length <= 2t-1`
-2. 루트 노드: `1 <= keys.length <= 2t-1`
-3. 리프 노드: `children.length == 0`
-4. 내부 노드: `children.length == keys.length + 1`
-5. BST 성질: `children[i]의 모든 키 < keys[i] < children[i+1]의 모든 키`
-6. 모든 리프는 같은 깊이
+트리 전체는 `root`, 원소 수 `_size`, 최소 차수 `t`, 비교 함수 `compare`를 유지합니다. 지켜야 할 불변식은 여섯 가지예요.
 
-### 핵심 연산 — 선제적 분할 삽입
+1. 비루트 노드 $v$: $t-1 \le |\mathrm{keys}(v)| \le 2t-1$
+2. 루트 노드: $1 \le |\mathrm{keys}(v)| \le 2t-1$ (트리가 완전히 비었으면 루트 자체가 `undefined`)
+3. 리프: $|\mathrm{children}(v)| = 0$
+4. 내부 노드: $|\mathrm{children}(v)| = |\mathrm{keys}(v)| + 1$
+5. 정렬(BST) 성질: 내부 노드 $v$의 모든 $0 \le i < |\mathrm{keys}(v)|$에 대해 $\max(\mathrm{children}(v)[i]) < \mathrm{keys}(v)[i] < \min(\mathrm{children}(v)[i+1])$
+6. 모든 리프는 같은 깊이 $d$에 있다.
 
-```
-splitChild(parent, i):
-  // parent.children[i]가 가득 찼을 때 호출
-  child = parent.children[i]
-  midKey = child.keys[t-1]
-  newNode = new BTreeNode()
-  newNode.keys = child.keys[t..2t-1]        // 오른쪽 절반
-  newNode.isLeaf = child.isLeaf
-  if not child.isLeaf:
-    newNode.children = child.children[t..2t]  // 오른쪽 자식들
-  child.keys = child.keys[0..t-2]            // 왼쪽 절반
-  child.children = child.children[0..t-1]
-  
-  // 부모에 중간 키와 새 노드 삽입
-  insert midKey at parent.keys[i]
-  insert newNode at parent.children[i+1]
+$t=2$로 `1`부터 `7`까지 삽입한 뒤의 실제 트리 모양은 이렇습니다(뒤에서 직접 유도합니다).
+
+```text
+                [ 2 , 4 ]
+               /    |    \
+            [1]    [3]   [5, 6, 7]
 ```
 
-### 핵심 연산 — 삭제와 언더플로우 처리
+키가 $t-1$개 이상이라는 하한(불변식 1) 덕분에, 높이 $h$의 트리가 최소 몇 개의 원소를 담는지 깊이별로 셀 수 있습니다. 여기서 높이 $h$는 루트에서 리프까지 내려가는 **간선(edge) 수**입니다 — 루트 하나뿐인 트리는 $h=0$이에요.
 
-삭제 경로에서 키가 t-1개인 노드를 만나면 먼저 보충한다.
+- 깊이 $0$(루트): 노드 $1$개, 키는 최소 $1$개(불변식 2).
+- 깊이 $1$: 루트가 리프가 아니라면(즉 $h \ge 1$) 자식을 최소 $2$개 가집니다.
+- 깊이 $i$ ($1 \le i \le h$): 깊이 $i-1$의 각 내부 노드는 자식을 최소 $t$개씩 가지므로(불변식 4: 자식 수 = 키 수 $+1 \ge t$), 깊이 $i$의 노드 수는 최소 $2t^{i-1}$개입니다.
 
+깊이 $1$부터 $h$까지의 노드는 각각 키를 최소 $t-1$개씩 가지므로(불변식 1), 루트의 키 $1$개까지 합친 전체 키 수의 하한은 등비수열 합 $\sum_{i=1}^{h} t^{i-1} = \frac{t^h-1}{t-1}$을 이용해 다음과 같이 정리됩니다.
+
+$$
+n \;\ge\; 1 + \sum_{i=1}^{h} 2t^{i-1}(t-1) \;=\; 1 + 2(t-1)\cdot\frac{t^h-1}{t-1} \;=\; 1 + 2(t^h - 1) \;=\; 2t^h - 1
+$$
+
+정리하면 $n \ge 2t^h - 1$이고, 이를 $h$에 대해 풀면 원소 수 $n$이 정해졌을 때 높이의 상한이 나옵니다.
+
+$$
+h \;\le\; \log_t\left(\frac{n+1}{2}\right)
+$$
+
+$t=2$를 대입해도 밑이 $\log_2$로 잘 정의되므로(원래 밑을 $t-1$로 두면 $t=2$에서 $\log_1$이 되어 정의되지 않는 문제가 사라집니다), 이 식은 $t \ge 2$ 전 범위에서 안전하게 성립하는 표준 상계입니다.
+
+**액션(연산)** — 이 트리가 제공하는 5개 연산입니다.
+
+| 액션 | 시그니처 | 하는 일 | 비용 |
+|------|----------|---------|------|
+| `insert(value)` | `(value: T) => void` | 가득 찬 노드를 선제 분할하며 리프까지 내려가 삽입(중복 무시) | $O(t \log_t n)$ |
+| `delete(value)` | `(value: T) => boolean` | 언더플로우를 선제 보충하며 삭제. 성공 여부 반환 | $O(t \log_t n)$ |
+| `has(value)` | `(value: T) => boolean` | 루트부터 값을 찾을 때까지 하향 탐색 | $O(t \log_t n)$ |
+| `size()` | `() => number` | 원소 개수 | $O(1)$ |
+| `inOrder()` | `() => T[]` | 중위 순회로 정렬된 전체 배열 | $O(n)$ |
+
+`insert`/`delete`/`has`가 $O(t \log_t n)$인 이유는 간단합니다 — 높이 $O(\log_t n)$만큼 내려가면서, 각 노드에서 최대 $2t-1$개의 키를 선형 탐색(또는 이진 탐색이면 $O(\log t)$)하기 때문이에요.
+
+핵심 연산 두 개를 자세히 볼게요.
+
+**① 선제적 분할 삽입(`splitChild`)** — $t=2$, 즉 노드당 최대 $2t-1=3$개인 상태에서 노드가 가득 찼을 때 호출됩니다.
+
+```text
+Before: 가득 찬 노드 [1, 2, 3]  (2t-1 = 3개, 더는 못 넣는다)
+
+  중간 키(인덱스 t-1 = 1) = 2 를 부모로 승격
+  왼쪽 = keys[0 .. t-2] = [1]
+  오른쪽 = keys[t .. 2t-2] = [3]
+
+After:        부모에 2 삽입
+             /            \
+          [1]             [3]
 ```
-fixup(node, i):  // node.children[i]에 키가 t-1개일 때
-  if i > 0 and node.children[i-1].keys.length >= t:
-    // 왼쪽 형제에서 빌리기 (rotate right)
-    rotateRight(node, i)
-  else if i < node.children.length-1 and node.children[i+1].keys.length >= t:
-    // 오른쪽 형제에서 빌리기 (rotate left)
-    rotateLeft(node, i)
-  else:
-    // 형제와 병합
-    if i < node.children.length-1:
-      merge(node, i)       // children[i]와 children[i+1] 병합
-    else:
-      merge(node, i-1)     // children[i-1]와 children[i] 병합
+
+**② 언더플로우 처리(`fixup`)** — 삭제 경로에서 자식 노드의 키가 $t-1$개(최소치)임을 발견하면 내려가기 **전에** 먼저 채웁니다. 우선순위는 왼쪽 형제에게 빌리기 → 오른쪽 형제에게 빌리기 → 병합입니다.
+
+```text
+Before (형제가 여유 있음, t=2):
+   부모 [ 2 ]
+   /        \
+ [1]      [3, 4]     ← child(t-1=1개, 왼쪽 형제 없음) 오른쪽에서 빌림
+
+After rotateLeft:
+   부모 [ 3 ]
+   /        \
+ [1, 2]    [4]        ← 부모 키가 내려가고, 형제의 첫 키가 부모로 올라간다
 ```
 
-### 정당성
+```text
+Before (양쪽 형제 모두 t-1개, 빌릴 수 없음, t=2):
+   부모 [ 2 ]
+   /        \
+ [1]        [3]        ← 둘 다 1개뿐
 
-- **삽입 후 불변 조건**: 선제 분할로 경로상의 모든 노드가 가득 차지 않으므로, 삽입 후 상향 전파가 필요 없다.
-- **삭제 후 불변 조건**: 선제 fixup으로 경로상의 모든 노드가 t개 이상의 키를 가지므로, 삭제 후 언더플로우가 발생하지 않는다.
-- **높이 O(log_t n)**: 비루트 노드는 최소 t-1개의 키를 가지므로, 높이 h의 트리는 최소 `2*(t-1)^(h-1)` 개의 원소를 담는다.
+After merge:
+        [1, 2, 3]      ← 부모 키 2가 내려와 형제 둘을 하나로 합친다
+```
 
-### 구현 디테일과 최적화
+### 왜 모순 없이 작동하는가
 
-- 노드 내 탐색: 키가 많으면 이진 탐색 `O(log t)` 을 사용할 수 있다.
-- 메모리 지역성: 실제 구현에서는 각 노드를 디스크 페이지 크기(4KB, 16KB)에 맞추어 t를 설정한다.
-- **내부 노드 삭제**: 2-3 트리와 동일하게 in-order predecessor(왼쪽 자식의 최댓값) 또는 successor(오른쪽 자식의 최솟값)로 대체한다. 자식이 t개 이상이면 해당 자식에서 재귀 삭제, 둘 다 t-1개이면 먼저 병합 후 삭제한다.
+**삽입이 불변식을 지키는 이유**: 어떤 노드로 내려가기 전, 그 노드가 가득 차 있으면(2t-1개) 먼저 분할합니다. 분할하면 원래 $2t-1$개였던 키가 왼쪽 $t-1$개 + 승격 1개 + 오른쪽 $t-1$개로 정확히 나뉘어, 분할 직후 두 자식 모두 정확히 최소치 $t-1$개를 가집니다. 그 상태에서 하나를 더 넣어도 최대 $t$개라 상한 $2t-1$을 넘지 않아요. 귀납적으로: 루트에서 시작해 매 단계 이 성질이 보존되므로, 삽입이 끝난 어느 시점에도 불변식 1~4가 유지됩니다. 상향 전파(분할 정보를 부모로 되짚어 올리는 것)가 필요 없는 이유도 여기 있습니다 — 이미 내려가기 전에 다 처리했으니까요.
 
----
+**삭제가 불변식을 지키는 이유**: 내려갈 자식이 정확히 $t-1$개(더 줄면 위반)면 먼저 보충합니다. 형제에게 빌리면 그 형제는 $t$개 이상이었으니 하나를 잃어도 $t-1$개 이상을 유지하고, 내 노드는 $t$개가 되어 하나를 삭제해도 $t-1$개로 안전합니다. 병합하면 $t-1 + 1(\text{부모 키}) + t-1 = 2t-1$개로 상한에 딱 맞아 위반이 없습니다. 병합으로 부모가 키 하나를 잃어도, fixup은 "내려가기 전" 정책이라 부모 자신은 이미 자기 차례에 보충이 끝난 상태였기 때문에 문제가 없습니다.
 
-## 시뮬레이션
+여기서 확인 질문 하나 드릴게요. $t=2$일 때 리프가 아닌 노드가 가질 수 있는 자식의 최소·최대 개수는 몇 개일까요? 키가 $t-1 \sim 2t-1$개이므로 자식은 키 개수 $+1$, 즉 $t \sim 2t$개입니다. $t=2$면 **2개~4개**예요.
+
+**헷갈리기 쉬운 포인트** 세 가지를 짚어 둡니다.
+
+- **"분할·보충은 넣은 뒤가 아니라 내려가기 전"입니다.** naive하게 "일단 넣고 넘치면 그때 분할"하는 사후 처리 방식을 쓰면, 분할 정보를 재귀 호출의 반환값으로 부모까지 계속 전달해야 하는 추가 배관이 필요해집니다. 이 가이드가 채택한 선제적 방식은 한 번의 하향 패스만으로 끝나기 때문에 그 배관 자체가 필요 없습니다.
+- **"삭제는 항상 predecessor/successor로 대체된다"는 오해입니다.** 실제로는 양쪽 자식이 모두 딱 $t-1$개면 대체가 아니라 **병합**이 일어납니다. 뒤에 나올 `delete(2)` 트레이스가 정확히 이 경우예요 — 왼쪽 자식 `[1]`도, 오른쪽 자식 `[3]`도 $t-1=1$개뿐이라 어느 쪽에서도 predecessor·successor를 빌려올 수 없고, 두 자식이 부모 키와 함께 `[1, 2, 3]`으로 병합된 뒤에야 `2`가 리프에서 직접 제거됩니다.
+- **`rotateLeft`/`rotateRight`의 이름과 이동 방향이 헷갈립니다.** "왼쪽 형제에게서 빌린다"는 오른쪽으로 회전하는 것처럼 보이는데, 실제로 구현에서는 부모 키가 자식으로 내려가고 형제의 키가 부모로 올라가는 **3자 순환**이지, 노드 자체가 물리적으로 회전하는 게 아닙니다. 위 ascii art의 "부모 [2] → 부모 [3]"처럼 부모 값 자체가 바뀐다는 점을 놓치기 쉬워요.
+
+엣지 케이스를 점검해 볼게요.
+
+```text
+빈 트리                    → has/delete: false, inOrder: [], size: 0
+원소 1개                   → 루트 자신이 리프(높이 1). insert(42) 후 [42], delete(42) 후 다시 빈 트리
+중복 insert                → has로 걸러 무시 (size 불변)
+루트 붕괴(높이 감소, t=2)   → insert(1..5): 루트[2], 자식 [1],[3,4,5]
+                              delete(4): 루트[2], 자식 [1],[3,5]
+                              delete(5): 루트[2], 자식 [1],[3]
+                              delete(1): 양쪽 자식 모두 t-1=1개 → 병합 → 루트 자체가 리프 [2,3]으로 붕괴 (높이 2 → 1)
+```
+
+## 아이디어를 코드로 옮기기
+
+**원형과 개선.** 2-3 트리(키 최대 2개)의 분할·병합 규칙은 경계값만 $2t-1$로 바꾸면 그대로 일반화됩니다. 다만 "언제 분할·병합할지" 시점을 정하는 두 가지 전략이 있어요.
+
+- **원형(사후 처리, naive)**: 일단 자식에 넣고, 그 자식이 넘쳤으면(또는 모자라면) 분할·보충 정보를 반환값으로 부모에 돌려줘 부모가 처리하게 합니다. B+ Tree의 `insertInto`가 `{ key, right }`를 반환하던 패턴과 같아요.
+
+  ```ts
+  // 원형 스케치 — 실행 대상 아님, 아이디어만 비교용
+  function insertPostSplit(node: BTreeNode<number>, x: number): { promoted: number; right: BTreeNode<number> } | undefined {
+    // ... 자식에 재귀적으로 넣고
+    // 자식이 2t-1개를 넘겼으면 여기서 분할해 { promoted, right }를 반환
+    // 상위 호출자가 그 반환값을 받아 자기 노드에 다시 삽입 → 연쇄적으로 위로 전파될 수 있다
+    return undefined;
+  }
+  ```
+
+  이 방식은 동작은 하지만, 분할 여부를 매 재귀 프레임이 반환값으로 주고받아야 해서 코드가 왕복(내려갔다 다시 올라오는 정보 전달)에 얽매입니다.
+
+- **최종(선제적, preemptive)**: 내려가기 전에 다음에 밟을 자식이 가득 찼는지 미리 확인해 분할해 버립니다. 그러면 상향 전파가 아예 필요 없고, `insert`는 순수하게 한 번 내려가는 `void` 함수가 됩니다. 아래가 실제로 채택하고 검증한 구현입니다.
+
+```ts
+class BTreeNode<T> {
+  keys: T[] = [];
+  children: BTreeNode<T>[] = [];
+  isLeaf = true;
+}
+
+export class BTree<T> {
+  private root: BTreeNode<T> | undefined = undefined;
+  private _size = 0;
+  private t: number;
+  private compare: (a: T, b: T) => number;
+
+  constructor(t: number = 3, comparator?: (a: T, b: T) => number) {
+    if (t < 2) throw new Error("t must be >= 2");
+    this.t = t;
+    this.compare = comparator ?? ((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  }
+
+  size(): number {
+    return this._size;
+  }
+
+  has(value: T): boolean {
+    return this.findNode(this.root, value) !== undefined;
+  }
+
+  private findNode(node: BTreeNode<T> | undefined, value: T): BTreeNode<T> | undefined {
+    if (node === undefined) return undefined;
+    let i = 0;
+    while (i < node.keys.length && this.compare(value, node.keys[i]!) > 0) i++;
+    if (i < node.keys.length && this.compare(value, node.keys[i]!) === 0) return node;
+    if (node.isLeaf) return undefined;
+    return this.findNode(node.children[i], value);
+  }
+
+  insert(value: T): void {
+    if (this.has(value)) return; // 집합 의미론: 중복 무시
+
+    if (this.root === undefined) {
+      const root = new BTreeNode<T>();
+      root.keys = [value];
+      this.root = root;
+      this._size = 1;
+      return;
+    }
+
+    if (this.root.keys.length === 2 * this.t - 1) {
+      const oldRoot = this.root;
+      const newRoot = new BTreeNode<T>();
+      newRoot.isLeaf = false;
+      newRoot.children = [oldRoot];
+      this.splitChild(newRoot, 0);
+      this.root = newRoot;
+    }
+
+    this.insertNonFull(this.root, value);
+    this._size++;
+  }
+
+  private splitChild(parent: BTreeNode<T>, i: number): void {
+    const t = this.t;
+    const child = parent.children[i]!;
+    const midKey = child.keys[t - 1]!;
+
+    const right = new BTreeNode<T>();
+    right.isLeaf = child.isLeaf;
+    right.keys = child.keys.slice(t);
+    if (!child.isLeaf) right.children = child.children.slice(t);
+
+    child.keys = child.keys.slice(0, t - 1);
+    if (!child.isLeaf) child.children = child.children.slice(0, t);
+
+    parent.keys.splice(i, 0, midKey);
+    parent.children.splice(i + 1, 0, right);
+  }
+
+  private insertNonFull(node: BTreeNode<T>, value: T): void {
+    let i = node.keys.length - 1;
+    if (node.isLeaf) {
+      while (i >= 0 && this.compare(value, node.keys[i]!) < 0) i--;
+      node.keys.splice(i + 1, 0, value);
+      return;
+    }
+    while (i >= 0 && this.compare(value, node.keys[i]!) < 0) i--;
+    i++;
+    if (node.children[i]!.keys.length === 2 * this.t - 1) {
+      this.splitChild(node, i);
+      if (this.compare(value, node.keys[i]!) > 0) i++;
+    }
+    this.insertNonFull(node.children[i]!, value);
+  }
+
+  delete(value: T): boolean {
+    if (this.root === undefined || !this.has(value)) return false;
+    this.deleteHelper(this.root, value);
+    if (this.root.keys.length === 0) {
+      this.root = this.root.isLeaf ? undefined : this.root.children[0];
+    }
+    this._size--;
+    return true;
+  }
+
+  private deleteHelper(node: BTreeNode<T>, value: T): void {
+    const t = this.t;
+    let i = 0;
+    while (i < node.keys.length && this.compare(value, node.keys[i]!) > 0) i++;
+
+    if (i < node.keys.length && this.compare(value, node.keys[i]!) === 0) {
+      if (node.isLeaf) {
+        node.keys.splice(i, 1);
+        return;
+      }
+      const left = node.children[i]!;
+      const right = node.children[i + 1]!;
+      if (left.keys.length >= t) {
+        const pred = this.maxKey(left);
+        node.keys[i] = pred;
+        this.deleteHelper(left, pred);
+      } else if (right.keys.length >= t) {
+        const succ = this.minKey(right);
+        node.keys[i] = succ;
+        this.deleteHelper(right, succ);
+      } else {
+        this.mergeChildren(node, i); // 양쪽 다 t-1개 → 병합 (predecessor/successor 대체 아님!)
+        this.deleteHelper(left, value);
+      }
+      return;
+    }
+
+    if (node.isLeaf) return; // has()로 걸러졌으므로 실제로는 도달하지 않음
+
+    const child = node.children[i]!;
+    if (child.keys.length === t - 1) {
+      this.fixup(node, i);
+      let j = 0; // fixup으로 부모 키 배치가 바뀔 수 있어 값 기준으로 재탐색
+      while (j < node.keys.length && this.compare(value, node.keys[j]!) > 0) j++;
+      this.deleteHelper(node.children[j]!, value);
+    } else {
+      this.deleteHelper(child, value);
+    }
+  }
+
+  private fixup(node: BTreeNode<T>, i: number): void {
+    const t = this.t;
+    if (i > 0 && node.children[i - 1]!.keys.length >= t) {
+      this.rotateRight(node, i);
+    } else if (i < node.children.length - 1 && node.children[i + 1]!.keys.length >= t) {
+      this.rotateLeft(node, i);
+    } else if (i < node.children.length - 1) {
+      this.mergeChildren(node, i);
+    } else {
+      this.mergeChildren(node, i - 1);
+    }
+  }
+
+  private rotateRight(node: BTreeNode<T>, i: number): void {
+    const child = node.children[i]!;
+    const leftSibling = node.children[i - 1]!;
+    child.keys.unshift(node.keys[i - 1]!);
+    node.keys[i - 1] = leftSibling.keys.pop()!;
+    if (!child.isLeaf) child.children.unshift(leftSibling.children.pop()!);
+  }
+
+  private rotateLeft(node: BTreeNode<T>, i: number): void {
+    const child = node.children[i]!;
+    const rightSibling = node.children[i + 1]!;
+    child.keys.push(node.keys[i]!);
+    node.keys[i] = rightSibling.keys.shift()!;
+    if (!child.isLeaf) child.children.push(rightSibling.children.shift()!);
+  }
+
+  private mergeChildren(node: BTreeNode<T>, i: number): void {
+    const left = node.children[i]!;
+    const right = node.children[i + 1]!;
+    left.keys.push(node.keys[i]!, ...right.keys); // 왼쪽 + 부모 키 + 오른쪽
+    if (!left.isLeaf) left.children.push(...right.children);
+    node.keys.splice(i, 1);
+    node.children.splice(i + 1, 1);
+  }
+
+  private minKey(node: BTreeNode<T>): T {
+    let cur = node;
+    while (!cur.isLeaf) cur = cur.children[0]!;
+    return cur.keys[0]!;
+  }
+
+  private maxKey(node: BTreeNode<T>): T {
+    let cur = node;
+    while (!cur.isLeaf) cur = cur.children[cur.children.length - 1]!;
+    return cur.keys[cur.keys.length - 1]!;
+  }
+
+  inOrder(): T[] {
+    const result: T[] = [];
+    const walk = (node: BTreeNode<T> | undefined) => {
+      if (node === undefined) return;
+      for (let i = 0; i < node.keys.length; i++) {
+        if (!node.isLeaf) walk(node.children[i]);
+        result.push(node.keys[i]!);
+      }
+      if (!node.isLeaf) walk(node.children[node.keys.length]);
+    };
+    walk(this.root);
+    return result;
+  }
+}
+```
+
+가장 중요한 줄은 `insertNonFull`의 `if (this.compare(value, node.keys[i]!) > 0) i++;`입니다 — 방금 분할한 노드의 어느 쪽 자식으로 계속 내려갈지 결정하는 분기예요. 이걸 빼먹으면 무슨 일이 벌어지는지 구체적으로 보여드릴게요.
+
+`t=2`에서 `1, 2, ..., 7`을 순서대로 넣다가 `insert(6)` 시점에 이 줄이 없다고 가정합시다. `6`이 분할 직후에도 여전히 옛 인덱스(왼쪽 자식)로 내려가 버려서, 실제로 실행해 보면 트리가 이렇게 망가집니다.
+
+```text
+정상(줄 있음):                       버그(줄 없음):
+     [ 2 , 4 ]                            [ 2 , 4 ]
+    /    |    \                          /    |    \
+ [1]   [3]  [5,6,7]                   [1]   [3,6]  [5,7]
+                                              ↑ 6이 4보다 큰데 4의 왼쪽 자식에 들어갔다!
+
+inOrder() 정상: [1, 2, 3, 4, 5, 6, 7]     inOrder() 버그: [1, 2, 3, 6, 4, 5, 7]  ← 정렬 깨짐
+has(6) 정상: true                          has(6) 버그: false  ← 넣었는데 못 찾는다!
+```
+
+`6`이 부모 키 `4`보다 큰데도 `4`의 왼쪽 자식에 남아버려 불변식 5(정렬 성질)가 깨지고, 이후 `has(6)`은 "4보다 크니 오른쪽" 규칙만 믿고 내려가 `[5, 7]`에서 `6`을 찾다가 실패합니다 — 데이터는 트리 안에 있는데 탐색이 거짓 음성을 내는, 조용히 망가지는 전형적인 버그예요.
+
+기억법으로 정리하면:
+
+> 분할 직후엔 방금 승격된 키와 비교해서 자식 인덱스를 다시 잡는다 — "쪼갠 다음엔 어느 쪽 반쪽인지 다시 확인."
+
+`delete` 계열에서 가장 실수가 잦은 부분은 `mergeChildren`의 순서입니다. `left.keys.push(node.keys[i]!, ...right.keys)`처럼 **부모 키를 먼저, 오른쪽 키들을 그다음**에 붙여야 정렬이 유지됩니다. 순서를 바꿔 오른쪽 키들을 먼저 붙이면 부모 키가 오른쪽 키들보다 커야 하는데 중간에 끼어 정렬이 깨집니다.
+
+## 실행 시각화
+
+아래 시뮬레이션은 $t=2$로 고정하고 `insert(1)`부터 `insert(7)`까지 차례로 넣은 뒤 `delete(2)`를 실행합니다. 실제로 코드를 돌려 보면 삽입이 끝난 시점의 트리는 `root=[2, 4]`, 자식은 `[1]`, `[3]`, `[5, 6, 7]`이고 `inOrder()`는 `[1, 2, 3, 4, 5, 6, 7]`입니다. `delete(2)`는 (헷갈리기 쉬운 포인트에서 짚었듯) predecessor/successor 대체가 아니라 **병합**으로 처리되어 최종 `inOrder()`는 `[1, 3, 4, 5, 6, 7]`, `size()`는 `6`이 됩니다. array 패널은 그 시점에 트리 안에 있는 모든 값을 정렬된 배열로 보여주고, highlight는 그 순간 내부(비리프) 노드에 올라가 있는 라우팅 키를, marked는 리프에 남아 있는 값을 가리킵니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
     title: "초기 상태 (t=2)",
-    detail: "빈 B-트리. 각 노드는 최대 3개(2t-1=3)의 키를 가질 수 있다.",
+    detail: "빈 B-트리. 각 노드는 최대 2t-1=3개의 키를 가질 수 있다.",
     array: [],
     highlight: [],
     marked: [],
   },
   {
     title: "insert(1), insert(2), insert(3)",
-    detail: "루트에 키 3개: [1, 2, 3]. 아직 가득 찬 상태.",
+    detail: "루트가 리프 상태로 키 3개를 쌓는다: [1, 2, 3]. 분할 임계값(2t-1=3)에 도달했지만 다음 삽입 전까지는 그대로 유지된다.",
     array: [1, 2, 3],
     highlight: [0, 1, 2],
     marked: [],
   },
   {
-    title: "insert(4) — 루트 분할",
-    detail: "insert(4) 전 루트가 가득 참. 새 루트 생성 후 분할. 중간 키(2)가 새 루트로.",
+    title: "insert(4) — 루트 선제 분할",
+    detail: "삽입 전 루트가 이미 2t-1=3개로 가득 차 있어 새 루트를 만들고 기존 루트를 먼저 쪼갠다. 중간 키(인덱스 t-1=1의 값 2)가 새 루트로 올라가고 나머지는 [1]과 [3]으로 갈라진다. 이후 4는 오른쪽 자식에 들어가 [3, 4]가 된다.",
     array: [1, 2, 3, 4],
     highlight: [1],
     marked: [0, 2, 3],
   },
   {
-    title: "insert(5), insert(6), insert(7)",
-    detail: "리프에 추가 삽입. 오른쪽 리프가 [3,4,5,6,7] 중 [3,4,5]와 [6,7]로 분할.",
+    title: "insert(5), insert(6), insert(7) — 리프 선제 분할",
+    detail: "insert(5)는 [3,4]에 그대로 들어가 [3,4,5](임계값 도달)가 된다. insert(6) 직전 이 리프가 가득 차 있어 먼저 분할: 중간 키 4가 루트로 올라가 루트는 [2,4], 리프는 [3]과 [5]로 갈라진다. 6은 오른쪽 자식에 들어가 [5,6]. insert(7)은 그대로 [5,6]에 들어가 [5,6,7].",
     array: [1, 2, 3, 4, 5, 6, 7],
-    highlight: [3, 4],
-    marked: [0, 1, 2, 5, 6],
+    highlight: [1, 3],
+    marked: [0, 2, 4, 5, 6],
   },
   {
-    title: "delete(2) — 루트 키 삭제",
-    detail: "루트의 키 2를 삭제. 왼쪽 자식에서 in-order predecessor(1)이나 오른쪽에서 successor(3)로 대체.",
+    title: "delete(2) — predecessor/successor 대신 병합",
+    detail: "루트에서 값 2를 발견했지만 양쪽 자식 [1]과 [3]이 모두 t-1=1개뿐이라 어느 쪽에서도 빌릴 수 없다. 두 자식을 부모 키 2와 함께 [1,2,3]으로 병합한 뒤, 병합된 리프에서 2를 직접 제거한다. 루트에는 4 하나만 남는다.",
     array: [1, 3, 4, 5, 6, 7],
-    highlight: [],
-    marked: [0, 1, 2, 3, 4, 5],
+    highlight: [2],
+    marked: [0, 1, 3, 4, 5],
   },
 ];
 
 <AlgorithmSimulation view="array" steps={steps} title="B-트리 삽입/삭제 시뮬레이션 (t=2)" />
 
-## 수도 코드와 Activity Diagram
+정리하면, B-Tree는 "노드 하나에 키를 여러 개 담아 분기 수를 늘린다"는 단순한 아이디어를, "내려가기 전에 미리 분할·보충한다"는 선제적 정책으로 실현합니다. 그 덕분에 상향 전파 없이 한 번의 하향 패스만으로 `insert`·`delete`·`has`가 모두 $O(t \log_t n)$에 끝나고, $n \le 10^4$인 이 프로젝트의 제약에서는 $t$를 조금만 키워도(예: $t=10$) 높이가 3을 넘지 않는다는 것을 앞서 직접 계산으로 확인했습니다. predecessor/successor 대체와 병합을 혼동하지 않는 것, 분할 직후 자식 인덱스를 다시 잡는 것 — 이 두 가지만 정확히 지키면 불변식이 삽입·삭제가 반복되는 내내 깨지지 않습니다.
 
-### 삽입 의사코드
+## 스스로 점검하기
 
-```
-insert(x):
-  if root is undefined:
-    root = new BTreeNode(isLeaf=true)
-    root.keys = [x]
-    size++
-    return
-  if has(x): return
-
-  if root.keys.length == 2t-1:
-    oldRoot = root
-    root = new BTreeNode(isLeaf=false)
-    root.children = [oldRoot]
-    splitChild(root, 0)
-
-  insertNonFull(root, x)
-  size++
-
-insertNonFull(node, x):
-  i = upperBound(node.keys, x) - 1
-  if node.isLeaf:
-    insert x at node.keys[i+1]
-  else:
-    i++
-    if node.children[i].keys.length == 2t-1:
-      splitChild(node, i)
-      if x > node.keys[i]: i++
-    insertNonFull(node.children[i], x)
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A[insert 호출] --> B{루트 없음?}
-  B -- 예 --> C[루트 생성] --> Z[종료]
-  B -- 아니오 --> D{중복?}
-  D -- 예 --> Z
-  D -- 아니오 --> E{루트 가득 참?}
-  E -- 예 --> F[새 루트 + splitChild]
-  E -- 아니오 --> G[insertNonFull]
-  F --> G
-  G --> H{리프?}
-  H -- 예 --> I[정렬 삽입] --> J[size++] --> Z
-  H -- 아니오 --> K[자식 선택]
-  K --> L{자식 가득 참?}
-  L -- 예 --> M[splitChild + 인덱스 조정]
-  L -- 아니오 --> N[재귀 호출]
-  M --> N
-  N --> H
-```
-
-```mermaid
-flowchart TD
-  A[delete 호출] --> B{has?}
-  B -- 아니오 --> C[false 반환]
-  B -- 예 --> D[deleteHelper root]
-  D --> E{리프?}
-  E -- 예 --> F[직접 제거]
-  E -- 아니오 --> G{내부 노드에 있음?}
-  G -- 예 --> H{왼쪽 자식 >= t?}
-  H -- 예 --> I[predecessor로 대체]
-  H -- 아니오 --> J{오른쪽 자식 >= t?}
-  J -- 예 --> K[successor로 대체]
-  J -- 아니오 --> L[두 자식 병합 후 재귀]
-  G -- 아니오 --> M[올바른 자식으로 이동]
-  M --> N{자식이 t-1?}
-  N -- 예 --> O[fixup: 재분배 또는 병합]
-  N -- 아니오 --> D
-  O --> D
-  F --> P[size-- → true]
-  I --> P
-  K --> P
-  L --> P
-```
+1. `t = 3`인 트리에 `10, 20, 5, 6, 12, 30, 7, 17`을 순서대로 삽입하면 분할이 몇 번 일어날까요? 직접 손으로 그려서 최종 트리 모양을 확인해 보세요.
+2. "삭제는 항상 predecessor 또는 successor로 대체된다"고 잘못 가정하고 위 `delete(2)` 예시를 다시 풀어보면, 어느 단계에서 그 가정이 무너지나요? (힌트: 양쪽 자식의 키 개수를 세어 보세요)
+3. `insertNonFull`에서 `if (value > node.keys[i]) i++;` 줄을 지우면, `insert(6)` 이후 `6`이 어느 자식 노드에 잘못 들어가고 `has(6)`의 반환값은 무엇으로 바뀌나요? 본문의 함정 사례로 검증해 보세요.

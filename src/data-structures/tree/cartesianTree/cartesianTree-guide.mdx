@@ -1,126 +1,323 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# CartesianTree 해설
+# CartesianTree — 인덱스는 BST, 값은 힙, 두 얼굴을 한 몸에
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 시간복잡도 |
-|------|-----------|
-| `fromArray(n)` | O(n) |
-| `inOrder()` | O(n) |
-| `value()` | O(1) |
-| `left() / right()` | O(1) |
-| `size()` | O(1) |
+배열 하나를 두고 "인덱스 순서로는 BST, 값 크기로는 힙"이라는 두 규칙을 동시에 만족시키는 트리예요. 비결은 왼쪽부터 하나씩 넣으면서 **항상 오른쪽 경계(오른쪽 스파인)에만 삽입 위치를 정한다**는 관찰 하나입니다. 이 관찰 덕분에 naive하게 매번 최솟값을 찾는 $O(n^2)$ 대신, 스택 하나로 전체를 $O(n)$에 구성할 수 있어요. Range Minimum Query(RMQ) 전처리와 Treap의 뼈대가 되는 자료구조입니다.
 
-O(n²) naive 구성과 달리, 스택 기반 알고리즘은 각 원소가 스택에 최대 한 번 push, 한 번 pop → O(n) 전체.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호들이 보이면 카르테시안 트리를 떠올리세요.
 
-| 메서드 | 역할 |
-|--------|------|
-| `fromArray(arr, cmp)` | 스택 기반 O(n) 카르테시안 트리 구성 |
-| `value()` | 루트 노드 값 반환 |
-| `left() / right()` | 서브트리를 CartesianTree로 래핑하여 반환 |
-| `inOrder()` | 중위 순회 (= 원배열 복원) |
-| `size()` | 노드 수 |
+- "구간 $[l, r]$의 최솟값(또는 최댓값)을 여러 번 물어본다" — RMQ(Range Minimum Query) 신호
+- "배열 하나로 트리를 만드는데, 그 트리가 인덱스 순서(BST)와 값 크기(힙)를 동시에 지켜야 한다"
+- "배열은 고정이고(삽입·삭제 없이), 질의만 반복된다" — 정적 배열 + 반복 질의 조합
 
----
+RMQ 관점에서 접근법별 비용을 비교하면 이렇습니다($n$번 전처리 후 $q$번 질의).
 
-## 핵심 아이디어
+```text
+매번 구간 스캔(naive)      전처리 O(1),        질의 O(n)     → 총 O(qn)
+Sparse Table               전처리 O(n log n),  질의 O(1)     → 총 O(n log n + q)
+카르테시안 트리 + LCA        전처리 O(n),        질의 O(1)*    → 총 O(n + q)
+                              (*LCA를 O(1)에 답하려면 오일러 투어 + Sparse Table을
+                               트리 위에 한 번 더 얹어야 합니다. 그래도 트리 구성
+                               자체는 O(n)이라 "구간 질의를 트리 문제로 바꾸는" 전처리
+                               비용이 가장 쌉니다.)
+```
 
-### 원형 아이디어와 naive 접근
+선택 기준은 이렇습니다: 배열이 계속 삽입·삭제된다면 카르테시안 트리 대신 세그먼트 트리가 낫습니다(카르테시안 트리는 배열이 바뀔 때마다 재구성해야 함). 배열이 고정이고 질의만 반복된다면 카르테시안 트리(+LCA) 또는 Sparse Table이 유리합니다. 노드마다 무작위 우선순위를 힙 키로 쓰는 변형은 **Treap**이라 부르며, 삽입·삭제가 잦은 상황에서 self-balancing BST로 씁니다.
 
-배열 `arr`에서 카르테시안 트리를 구성하는 naive 방법:
-1. 최솟값을 찾아 루트로 설정 → O(n)
-2. 최솟값 왼쪽 배열로 재귀, 오른쪽 배열로 재귀
+### 문제 사례와 적용 예시
 
-이 방법은 O(n²) 최악 (이미 정렬된 배열에서 매번 최솟값을 찾아야 함).
+- **RMQ 전처리**: 배열에서 카르테시안 트리를 구성해두면, 구간 $[l, r]$의 최솟값은 정확히 인덱스 $l$과 $r$에 해당하는 두 리프의 LCA(최소 공통 조상)입니다.
+- **Treap**: 노드마다 무작위 우선순위를 부여해 힙 키로 쓰면, 삽입 순서에 무관하게 기대 높이 $O(\log n)$의 self-balancing BST가 됩니다 — 함수형 자료구조나 정렬 인덱스 구현에 쓰입니다.
+- **단조 스택(monotonic stack) 계열 문제와의 근친성**: "히스토그램에서 최대 직사각형" 같은 문제에서 쓰는 단조 스택이, 카르테시안 트리를 구성하는 스택 로직과 본질적으로 같은 패턴입니다.
+- **코딩 테스트 맥락**: "수백만 개의 센서 데이터에서 구간 최솟값을 반복 조회해야 하는 모니터링 시스템" — 정적 배열 + 반복 구간 질의라는 조합이 나오면 카르테시안 트리 전처리를 의심해 보세요.
 
-### 어떤 관찰이 돌파구가 되는가
+## 자료구조 자세히 들여다보기
 
-**핵심 관찰**: 카르테시안 트리를 왼쪽부터 오른쪽으로 구성할 때, 새 원소를 삽입하는 위치는 항상 "오른쪽 경계(rightmost path)"에 있다.
+### 전체 스펙: 속성과 액션
 
-왜냐하면 BST 성질에 의해 새 원소는 이미 삽입된 모든 원소의 오른쪽에 있어야 하고, 따라서 현재 루트의 오른쪽 자식, 그 오른쪽 자식, ... 경로에만 삽입될 수 있다.
-
-**스택으로 오른쪽 경계를 O(1) 유지**: 스택이 항상 현재 오른쪽 경계를 유지하도록 하면 새 원소 삽입이 O(1) 상각이 된다.
-
-### 관찰을 형식화: 상태/구조 정의
+**속성(내부 상태)** — 노드 하나는 이렇게 생겼습니다.
 
 ```ts
-// CartesianTree는 불변(immutable) 트리 노드
 class CartesianNode<T> {
   value: T;
-  left:  CartesianNode<T> | undefined;
-  right: CartesianNode<T> | undefined;
+  left: CartesianNode<T> | undefined = undefined;
+  right: CartesianNode<T> | undefined = undefined;
+  size = 1; // 자신을 포함한 서브트리의 노드 수
 }
-
-// fromArray 내부 스택
-const stack: CartesianNode<T>[] = [];
-// 불변: 스택에 있는 노드들은 위에서 아래로 값이 단조 증가
-//       (min-heap 기준, 루트에 가까울수록 작은 값)
 ```
 
-### 핵심 연산 — 스택 기반 구성
+트리 전체는 `root`와 비교자 `cmp`를 들고 있습니다. `cmp(a, b) < 0`이면 `a`가 부모 후보(기본값은 min-heap 기준, 즉 작은 값이 위로).
+
+지켜야 할 불변식은 네 가지입니다.
+
+1. **BST 성질(인덱스 기준)**: 중위 순회(inorder) 결과가 원래 배열 순서와 정확히 같습니다.
+   $$\text{inorder}(T) = [\,arr[0],\ arr[1],\ \dots,\ arr[n-1]\,]$$
+2. **힙 성질(값 기준)**: 루트가 아닌 모든 노드 $x$에 대해 부모의 값이 자식의 값보다 앞섭니다.
+   $$\forall x \ne \text{root},\quad \text{cmp}(\text{value}(\text{parent}(x)),\ \text{value}(x)) \le 0$$
+3. **동률 처리 규칙**: `cmp(a, b) === 0`인 두 값 중 배열에서 **먼저 나온 값이 항상 나중 값의 조상**(더 위)에 위치합니다.
+4. **유일성**: 위 세 규칙을 고정하면, 같은 배열 + 같은 비교자에 대해 트리는 유일하게 결정됩니다.
+
+배열 `[5, 10, 40, 10, 20]`(min-heap)을 실제로 구성하면 이런 모양이 나옵니다(직접 실행해 확인한 결과입니다 — 뒤의 "아이디어를 코드로 옮기기"에서 같은 코드로 재현합니다).
+
+```text
+        5
+         \
+          10ᵃ        ← 인덱스 1의 10
+            \
+             10ᵇ      ← 인덱스 3의 10 (10ᵃ보다 나중에 들어와 그 아래로)
+            /   \
+          40     20
+```
+
+`value()`는 `5`, `inOrder()`는 `[5, 10, 40, 10, 20]`(원배열 그대로), `size()`는 `5`를 반환합니다. `10ᵃ`가 `10ᵇ`의 조상인 것이 불변식 3(동률 처리 규칙)의 실물입니다.
+
+**액션(연산)** — 이 가이드가 정의하는 인터페이스 6개입니다.
+
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `fromArray(arr, cmp?)` | 배열에서 스택 기반으로 트리 구성(정적 메서드) | $O(n)$ |
+| `value()` | 루트 값 (빈 트리면 `undefined`) | $O(1)$ |
+| `left()` | 왼쪽 서브트리(`CartesianTree`로 래핑) | $O(1)$ |
+| `right()` | 오른쪽 서브트리 | $O(1)$ |
+| `inOrder()` | 중위 순회 = 원배열 복원 | $O(n)$ |
+| `size()` | 전체 노드 수 | $O(1)$ |
+
+핵심 연산은 단연 `fromArray`입니다. 두 번째 `10`(인덱스 3)을 처리하는 순간을 before/after로 자세히 보겠습니다.
+
+```text
+Before — v=10(인덱스 3) 처리 직전
+스택(바닥→탑): [5, 10ᵃ, 40]
+
+① cmp(10, 40) < 0 → 참 → 40을 팝. last = 40
+② 스택 탑은 이제 10ᵃ. cmp(10, 10ᵃ) < 0 → 거짓(동률은 팝하지 않는다) → 중단
+
+After
+스택(바닥→탑): [5, 10ᵃ, 10ᵇ]
+10ᵇ.left = 40        (마지막으로 팝된 노드)
+10ᵃ.right = 10ᵇ      (스택에 남은 탑의 오른쪽 자식으로 연결)
+```
+
+### 왜 모순 없이 작동하는가
+
+**스택 불변식부터 정의합니다.** 배열 앞부분 $arr[0..i-1]$까지 처리한 시점에서, 스택 $[s_1, s_2, \dots, s_k]$(바닥→탑)은 정확히 지금까지 만들어진 트리의 **오른쪽 경로(오른쪽 스파인)**이고, $s_1$이 루트이며 $s_{j+1} = s_j.\text{right}$이고 $\text{value}(s_1) \le \text{value}(s_2) \le \cdots \le \text{value}(s_k)$입니다.
+
+이 불변식이 처음(빈 배열, 빈 스택)에 성립하는 건 자명합니다. 이제 $v = arr[i]$를 처리하며 이 불변식이 그대로 유지됨을 봅니다.
+
+- **BST 성질 보존**: $v$는 지금까지 나온 어떤 원소보다도 배열 인덱스가 큽니다(가장 마지막에 추가됨). 그러니 $v$가 삽입될 수 있는 자리는 "지금까지 만들어진 트리에서 인덱스가 가장 큰 경로", 즉 오른쪽 스파인뿐입니다. 그 경로가 정확히 스택이므로, 스택만 보고 삽입 위치를 결정해도 BST 성질이 깨지지 않습니다.
+- **힙 성질 보존**: pop 조건이 `cmp(v, top) < 0`이므로, 루프가 멈춘 시점의 스택 탑(있다면)은 `cmp(v, top) < 0`이 거짓, 즉 $\text{value}(\text{top}) \le v$입니다. 새 노드는 이 `top`의 오른쪽 자식이 되므로 부모(`top`) $\le$ 자식($v$)이 그대로 성립합니다. 한편 팝된 노드들은 전부 $v$보다 큰 값이었으므로($cmp(v, \cdot) < 0$을 만족해서 팝됨), $v \le$ (팝된 노드들)도 성립합니다 — 팝된 마지막 노드가 $v$의 왼쪽 자식이 되어도 부모($v$) $\le$ 자식(팝된 노드) 관계가 유지됩니다.
+- **유일성**: 루트는 항상 배열 전체의 최솟값(동률이면 가장 왼쪽 인덱스)으로 결정됩니다. 루트가 정해지면 왼쪽 부분 배열과 오른쪽 부분 배열이 각각 독립적으로 같은 규칙을 재귀적으로 적용받으므로, 귀납적으로 트리 전체가 유일하게 결정됩니다.
+
+잠깐, 확인 하나만 해볼까요? 배열이 `[3, 1, 2]`라면 루트는 무엇일까요? 최솟값은 `1`(인덱스 1)이니 `1`이 루트이고, 왼쪽 부분 배열 `[3]`이 왼쪽 서브트리, 오른쪽 부분 배열 `[2]`가 오른쪽 서브트리가 됩니다.
+
+**여기서 헷갈리기 쉬운 포인트는 "pop 조건에 등호를 넣어도 되지 않을까"라는 생각입니다.** 실제로 `cmp(v, top) < 0`을 `cmp(v, top) <= 0`으로 바꾸면(등호 추가), 동률인 원소까지 팝해 버려 트리 모양이 달라집니다. 배열 `[10, 5, 5, 20]`로 확인해 봅시다.
+
+```text
+올바른 구현(< , 동률은 안 팝음):
+  value() = 5,  right()?.value() = 5,   right()?.right()?.value() = 20
+  (첫 번째 5가 두 번째 5의 조상 — 불변식 3대로)
+
+`<=` 버그 버전(동률도 팝함):
+  value() = 5,  right()?.value() = 20,  right()?.right()?.value() = undefined
+  (두 번째 5가 오히려 새 루트가 되고, 첫 번째 5는 그 왼쪽 아래로 밀려납니다.
+   inOrder()는 우연히 [10, 5, 5, 20]로 똑같이 나오지만, right() 체인을 타고
+   내려가는 구조 자체가 달라져 있습니다 — 값만 보고는 눈치채기 어려운 함정입니다.)
+```
+
+엣지 케이스도 점검해 둡니다.
+
+```text
+빈 배열               → value()=undefined, size()=0, inOrder()=[], left()=undefined
+원소 1개 [7]           → value()=7, size()=1, left()/right() 모두 undefined
+오름차순 [1,2,3,4,5]    → 완전히 오른쪽으로 치우친 사슬(모든 left===undefined),
+                         inOrder()는 그대로 [1,2,3,4,5]
+내림차순 [5,4,3,2,1]    → 완전히 왼쪽으로 치우친 사슬(모든 right===undefined),
+                         value()=1(마지막 원소가 루트), inOrder()는 그대로 [5,4,3,2,1]
+완전 동률 [3,3,3]       → inOrder()=[3,3,3], 먼저 들어온 3이 조상, 오른쪽으로 사슬
+```
+
+## 아이디어를 코드로 옮기기
+
+**원형 — naive 재귀, $O(n^2)$.** 정의를 그대로 옮기면 이렇습니다: 최솟값을 찾아 루트로 삼고, 그 왼쪽·오른쪽 부분 배열로 재귀합니다.
 
 ```ts
-static fromArray<T>(arr: T[], cmp = defaultCmp): CartesianTree<T> {
-  const stack: CartesianNode<T>[] = [];
-
-  for (const v of arr) {
-    const node = new CartesianNode(v);
-    let last: CartesianNode<T> | undefined;
-
-    // 새 값보다 큰 스택 탑을 팝 → 새 노드의 왼쪽 자식으로
-    while (stack.length > 0 && cmp(v, stack[stack.length-1]!.value) < 0) {
-      last = stack.pop();
-    }
-    node.left = last;  // 팝된 마지막 노드가 새 노드의 왼쪽 자식
-
-    // 스택에 원소가 있으면 스택 탑의 오른쪽 자식으로 연결
-    if (stack.length > 0) {
-      stack[stack.length-1]!.right = node;
-    }
-
-    stack.push(node);
+function buildNaive<T>(arr: T[], cmp: Cmp<T>): CartesianNode<T> | undefined {
+  if (arr.length === 0) return undefined;
+  let minIdx = 0;
+  for (let i = 1; i < arr.length; i++) {
+    if (cmp(arr[i]!, arr[minIdx]!) < 0) minIdx = i;
   }
-
-  // 스택의 바닥이 루트
-  return new CartesianTree(stack[0], arr.length, cmp);
+  const node = new CartesianNode(arr[minIdx]!);
+  node.left = buildNaive(arr.slice(0, minIdx), cmp);
+  node.right = buildNaive(arr.slice(minIdx + 1), cmp);
+  return node;
 }
 ```
 
-**단계별 예시** (`[5, 10, 40, 10, 20]`, min-heap):
+이미 정렬된 배열을 넣으면 매번 맨 앞이 최솟값이라, 최솟값 탐색 $O(n)$을 $n$번 반복 — $O(n^2)$입니다. 여기서 낭비되는 지점은 "매번 처음부터 최솟값을 다시 찾는다"는 것입니다.
 
-| 원소 | 스택 상태 | 연결 |
-|------|----------|------|
-| 5 | [5] | — |
-| 10 | [5, 10] | 5.right = 10 |
-| 40 | [5, 10, 40] | 10.right = 40 |
-| 10' | [5, 10'] | 40 팝 → 10'.left = 40; 10.right = 10' |
-| 20 | [5, 10', 10, 20] → [5, 10', 20] | ... |
+**개선 — 오른쪽 스파인을 직접 타고 내려가며 삽입, 여전히 $O(n^2)$.** "왜 모순 없이 작동하는가"에서 본 관찰(새 원소는 항상 오른쪽 스파인에만 들어간다)을 그대로 코드로 옮기면, 매번 루트부터 오른쪽 스파인을 걸어 내려가며 삽입 위치를 찾을 수 있습니다.
 
-아! 실제 처리 시 중복 값은 기존 노드 아래에 배치된다 (comparator가 `<` 이므로 같은 값은 팝하지 않음).
+```ts
+function insertViaSpineWalk<T>(
+  root: CartesianNode<T> | undefined,
+  value: T,
+  cmp: Cmp<T>,
+): CartesianNode<T> {
+  const node = new CartesianNode(value);
+  if (root === undefined) return node;
 
-### 정당성 — 두 성질의 보존
+  if (cmp(value, root.value) < 0) {
+    // 새 값이 루트보다 작다 → 새 값이 새 루트, 기존 트리 전체가 왼쪽 자식
+    node.left = root;
+    return node;
+  }
 
-**BST 성질**: 새 원소를 항상 오른쪽 경계에 삽입하므로, 중위 순회가 배열 순서를 보존한다.
+  // 오른쪽 스파인을 타고 내려가며, "이 아래는 전부 새 값보다 크다"인 지점을 찾는다
+  let cur = root;
+  while (cur.right !== undefined && cmp(value, cur.right.value) >= 0) {
+    cur = cur.right;
+  }
+  node.left = cur.right; // cur.right 아래 서브트리는 전부 새 값보다 큼 → 새 노드의 왼쪽으로
+  cur.right = node;
+  return root;
+}
+```
 
-**힙 성질**: 팝 조건이 `cmp(new, top) < 0` (새 값이 더 작음)이므로, 스택에 남은 원소들은 항상 새 원소보다 작거나 같다. 따라서 부모 ≤ 자식 관계가 유지된다.
+관찰 자체는 옳아서 최종 결과는 스택 버전과 완전히 같습니다(실행해 확인했습니다). 하지만 매 삽입마다 **루트부터 다시 걸어 내려가므로** 스파인 길이에 비례하는 $O(n)$이 걸리고, $n$번 반복하면 $O(n^2)$입니다. 여기서 다음 단계로 가는 이유는 명확합니다: 직전 삽입이 스파인의 어디서 끝났는지 우리는 이미 알고 있는데, 매번 루트부터 다시 찾는 건 낭비입니다.
 
-**유일성**: 두 성질을 모두 만족하는 트리는 배열마다 유일하다. (귀납적으로 증명 가능)
+**최종 — 스택으로 위치를 기억, $O(n)$ 상각.** 스택이 정확히 "지금 오른쪽 스파인"을 들고 있게 하면, 각 원소는 스택에 최대 한 번 push되고 최대 한 번 pop됩니다. 전체 push/pop 횟수가 $O(n)$이니, 반복문 안의 while이 가끔 여러 번 도는 것까지 합쳐도 총합은 $O(n)$입니다(각 원소가 자기 자신 딱 한 번만 pop될 수 있으므로).
 
-### 구현 디테일과 최적화
+```ts
+type Cmp<T> = (a: T, b: T) => number;
 
-- **같은 값 처리**: comparator가 `<` 기준이면 같은 값은 팝하지 않아 먼저 등장한 원소가 더 높이 위치. 이는 BST 성질(인덱스 순서)을 유지하는 자연스러운 처리다.
-- **CartesianTree 래핑**: 내부 `CartesianNode`를 외부에 노출하지 않고 `CartesianTree`로 래핑하여 인터페이스를 통일.
-- **left/right 반환 시 size 계산**: 서브트리 size를 노드에 저장하거나 생성 시점에 계산.
-- **inOrder**: 일반 중위 순회 재귀 또는 스택 기반 반복으로 구현.
+class CartesianNode<T> {
+  value: T;
+  left: CartesianNode<T> | undefined = undefined;
+  right: CartesianNode<T> | undefined = undefined;
+  size = 1;
 
----
+  constructor(value: T) {
+    this.value = value;
+  }
+}
 
-## 시뮬레이션
+function subtreeSize<T>(node: CartesianNode<T> | undefined): number {
+  return node === undefined ? 0 : node.size;
+}
+
+function computeSizes<T>(node: CartesianNode<T> | undefined): number {
+  if (node === undefined) return 0;
+  node.size = computeSizes(node.left) + computeSizes(node.right) + 1;
+  return node.size;
+}
+
+class CartesianTree<T> {
+  private constructor(
+    private readonly root: CartesianNode<T> | undefined,
+    private readonly cmp: Cmp<T>,
+  ) {}
+
+  static fromArray<T>(
+    arr: T[],
+    cmp: Cmp<T> = (a, b) => (a < b ? -1 : a > b ? 1 : 0),
+  ): CartesianTree<T> {
+    const stack: CartesianNode<T>[] = [];
+
+    for (const v of arr) {
+      const node = new CartesianNode(v);
+      let last: CartesianNode<T> | undefined;
+
+      // 새 값보다 "작지 않은(>=)" 스택 탑을 팝 — 마지막으로 팝된 노드가 새 노드의 왼쪽 자식
+      while (stack.length > 0 && cmp(v, stack[stack.length - 1]!.value) < 0) {
+        last = stack.pop();
+      }
+      node.left = last;
+
+      if (stack.length > 0) {
+        stack[stack.length - 1]!.right = node;
+      }
+
+      stack.push(node);
+    }
+
+    const root = stack.length > 0 ? stack[0] : undefined;
+    computeSizes(root); // 트리가 완성된 뒤 한 번의 후위 순회로 size를 채운다 — O(n)
+    return new CartesianTree(root, cmp);
+  }
+
+  private static wrap<T>(
+    node: CartesianNode<T> | undefined,
+    cmp: Cmp<T>,
+  ): CartesianTree<T> | undefined {
+    return node === undefined ? undefined : new CartesianTree(node, cmp);
+  }
+
+  value(): T | undefined {
+    return this.root?.value;
+  }
+
+  left(): CartesianTree<T> | undefined {
+    return CartesianTree.wrap(this.root?.left, this.cmp);
+  }
+
+  right(): CartesianTree<T> | undefined {
+    return CartesianTree.wrap(this.root?.right, this.cmp);
+  }
+
+  size(): number {
+    return subtreeSize(this.root);
+  }
+
+  inOrder(): T[] {
+    const out: T[] = [];
+    const visit = (node: CartesianNode<T> | undefined): void => {
+      if (node === undefined) return;
+      visit(node.left);
+      out.push(node.value);
+      visit(node.right);
+    };
+    visit(this.root);
+    return out;
+  }
+}
+```
+
+**가장 중요한 부분은 while 루프 다음 두 줄의 순서입니다.**
+
+```ts
+node.left = last;                              // ①
+if (stack.length > 0) {
+  stack[stack.length - 1]!.right = node;       // ②
+}
+```
+
+②는 반드시 while 루프(pop)가 **끝난 뒤**의 스택 탑을 봐야 합니다. 만약 pop 루프보다 **먼저** `stack.top.right = node`를 실행해 버리면, 아직 팝되지 않은(곧 사라질) 옛 탑에 연결해 버립니다. `[5, 10, 40, 10, 20]`의 두 번째 `10`을 처리할 때로 확인해 보면: pop 전에 `40.right = node`를 먼저 실행하고, 이어서 `40`이 팝되어 `node.left = 40`이 되면 — `40.right`와 `node.left`가 서로를 가리키는 **사이클**이 생겨 버립니다. 실제로 이 순서로 짜서 `inOrder()`를 돌려보면 재귀가 끝나지 않고 스택 오버플로우가 납니다(직접 실행해 확인했습니다).
+
+놓치기 쉬운 지점을 몇 개 더 짚습니다.
+
+- **pop 조건은 반드시 엄격한 `<`.** `<=`로 바꾸면 앞서 본 것처럼 동률 처리 규칙(불변식 3)이 깨집니다.
+- **`last`는 "마지막으로 팝된 노드"이지 "첫 번째로 팝된 노드"가 아닙니다.** while 루프가 여러 번 돌면 `last`는 계속 갱신되어, 루프가 끝났을 때는 가장 마지막에 팝된(= 스택에서 가장 아래 있던, 즉 서브트리 관점에서 가장 위에 있던) 노드가 남습니다. 이 노드가 지금까지 팝된 전체 서브트리의 루트입니다.
+- **size 계산은 트리가 완성된 뒤 한 번의 후위 순회로.** 삽입 도중에 매번 조상들의 size를 갱신하려 들면 어떤 조상까지 갱신해야 하는지 추적이 번거롭습니다. 스택 알고리즘이 끝난 뒤 루트에서 한 번의 후위 순회(`computeSizes`)로 계산하는 편이 훨씬 단순하고 여전히 $O(n)$입니다.
+
+기억법 한 줄로 정리하면 이렇습니다.
+
+> 오른쪽으로 계속 자라던 가지 중, 나보다 무거운(큰) 놈들은 팝해서 내 왼쪽 밑에 깔고, 남은 놈의 오른쪽에 내가 올라선다.
+
+## 실행 시각화
+
+고정 입력은 배열 `[5, 10, 40, 10, 20]`(min-heap, 기본 비교자)입니다. 최종적으로 `value()`는 `5`, `inOrder()`는 `[5, 10, 40, 10, 20]`(원배열 그대로), `size()`는 `5`를 반환합니다 — 위 "전체 스펙"과 "아이디어를 코드로 옮기기"에서 같은 코드로 실측한 값과 동일합니다. array 패널은 지금까지 트리에 연결된 노드 값과 스택 후보들을 순서대로 나열합니다: `0`은 아직 채워지지 않은 빈 자리(place-holder)이고, 빨간 칸(highlight)은 지금 비교·삽입 중인 위치, 회색 칸(marked)은 이미 연결이 확정된 위치를 가리킵니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -153,28 +350,28 @@ export const steps = [
   },
   {
     title: "처리: 10(새) — 팝 발생",
-    detail: "40 > 10 → 40 팝. last=40. 스택 탑=10 > 10 → 10도 팝. last=10. 스택 탑=5 < 10 → 중단.",
+    detail: "40 > 10 → 40 팝(last = 40). 스택 탑은 이제 10(이전) — cmp(10, 10) < 0은 거짓(동률은 팝하지 않는다) → 중단.",
     array: [5, 0, 10, 0, 0, 0, 40],
     highlight: [6, 2],
     marked: [],
   },
   {
     title: "10(새) 삽입",
-    detail: "10(새).left = last(=10전). 5.right = 10(새). 스택: [5, 10(새)].",
+    detail: "10(새).left = last(=40). 스택 탑 10(이전).right = 10(새). 스택: [5, 10(이전), 10(새)].",
     array: [5, 0, 10, 10, 0, 40],
     highlight: [2],
     marked: [0, 3, 5],
   },
   {
     title: "처리: 20",
-    detail: "10 < 20 → 팝 없음. 10(새).right = 20. 스택: [5, 10(새), 20].",
+    detail: "10 < 20 → 팝 없음. 10(새).right = 20. 스택: [5, 10(이전), 10(새), 20].",
     array: [5, 0, 10, 10, 0, 40, 0, 0, 20],
     highlight: [8],
     marked: [0, 2, 3, 5],
   },
   {
     title: "완성 — 루트는 스택[0] = 5",
-    detail: "카르테시안 트리 완성. inOrder = [5, 10, 40, 10, 20]. 힙 성질: 5 ≤ 10 ≤ {40, 10} ≤ 20.",
+    detail: "카르테시안 트리 완성. inOrder = [5, 10, 40, 10, 20]. 힙 성질(부모 ≤ 자식): 5 ≤ 10(이전) ≤ 10(새) ≤ {40, 20}.",
     array: [5, 0, 10, 10, 0, 40, 0, 0, 20],
     highlight: [0],
     marked: [0, 2, 3, 5, 8],
@@ -183,44 +380,10 @@ export const steps = [
 
 <AlgorithmSimulation view="array" steps={steps} title="카르테시안 트리 구성 — 스택 기반 O(n)" />
 
----
+정리하면, 카르테시안 트리는 "새 원소는 항상 오른쪽 스파인에만 들어간다"는 관찰 하나로 두 가지 성질(BST + 힙)을 동시에 $O(n)$에 지켜냅니다. 스택이 오른쪽 스파인을 그대로 담고 있다는 사실 덕분에, naive $O(n^2)$의 "매번 최솟값을 다시 찾는" 낭비도, 개선판의 "매번 루트부터 다시 걸어 내려가는" 낭비도 사라지고, 각 원소가 스택에서 딱 한 번 push되고 한 번 pop되는 것으로 전체가 끝납니다.
 
-## 수도 코드와 Activity Diagram
+## 스스로 점검하기
 
-### 의사코드
-
-```
-function fromArray(arr, cmp):
-  stack = []
-  for v in arr:
-    node = new Node(v)
-    last = undefined
-    while stack not empty and cmp(v, stack.top.value) < 0:
-      last = stack.pop()
-    node.left = last
-    if stack not empty:
-      stack.top.right = node
-    stack.push(node)
-  root = stack.bottom  // 스택의 가장 아래 = 루트
-  return new CartesianTree(root)
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A([fromArray 호출]) --> B[스택 초기화]
-  B --> C{배열에 원소 남음?}
-  C -- 아니오 --> H[스택 바닥 = 루트]
-  H --> I([CartesianTree 반환])
-  C -- 예 --> D[새 노드 생성]
-  D --> E{스택 탑 > 새 값?}
-  E -- 예 --> F[스택 팝, last = 팝된 노드]
-  F --> E
-  E -- 아니오 --> G1[node.left = last]
-  G1 --> G2{스택 비어있지 않음?}
-  G2 -- 예 --> G3[스택 탑.right = node]
-  G3 --> G4[node 스택 push]
-  G2 -- 아니오 --> G4
-  G4 --> C
-```
+1. 배열 `[8, 3, 3, 9, 1, 3]`을 min-heap 기준으로 카르테시안 트리로 직접 그려보세요. 루트는 무엇이고, 세 개의 `3` 중 어느 것이 어느 것의 조상이 될까요? (힌트: 불변식 3 — 먼저 나온 값이 조상)
+2. pop 조건을 `<`가 아니라 `<=`로 바꾸면 `[10, 5, 5, 20]`에서 `right()?.value()`가 어떻게 달라지는지 스스로 손으로 추적한 뒤, 위 "헷갈리기 쉬운 포인트"의 실측값과 맞춰 보세요. `inOrder()`는 왜 똑같이 나오는데 구조는 달라지는 걸까요?
+3. `stack.top.right = node`를 while pop 루프보다 **먼저** 실행하도록 순서를 바꾸면 어떤 문제가 생길까요? `[5, 10, 40, 10, 20]`의 두 번째 `10`을 처리하는 순간을 기준으로, 어떤 두 노드가 서로를 가리키는 사이클이 되는지 손으로 추적해 보세요.

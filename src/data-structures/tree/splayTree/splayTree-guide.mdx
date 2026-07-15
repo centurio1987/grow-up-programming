@@ -1,206 +1,534 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# SplayTree 해설
+# SplayTree — 방금 쓴 노드를 루트 곁으로
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 상각 | 최악 (단일 연산) |
-|------|------|----------------|
-| insert | O(log n) | O(n) |
-| delete | O(log n) | O(n) |
-| has | O(log n) | O(n) |
-| inOrder | O(n) | O(n) |
+스플레이 트리는 탐색·삽입·삭제 때마다 건드린 노드를 회전으로 루트까지 끌어올리는 이진 탐색 트리예요. 높이를 항상 낮게 유지하는 별도 규칙(균형 인수, 색)은 없고, 대신 "방금 접근한 것은 곧 다시 접근된다"는 지역성(locality)에 베팅합니다. 그 덕에 노드에 추가 필드 없이도(부모 포인터 하나만 있으면 충분) 상각(amortized) $O(\log n)$을 얻습니다.
 
-스플레이 트리는 포텐셜 함수(potential function)를 이용한 상각 분석으로 O(log n)을 보장한다. 단일 연산은 최악 O(n)이 가능하지만, 연속 m번 연산의 총 비용은 O(m log n) 이내다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호가 보이면 스플레이 트리를 떠올리세요.
 
-| 메서드 | 핵심 동작 |
-|--------|----------|
-| `insert(value)` | BST 삽입 → splay(삽입 노드) |
-| `delete(value)` | splay(삭제 노드) → 루트 제거 → 두 서브트리 합병 |
-| `has(value)` | BST 탐색 → splay(탐색 노드 또는 마지막 방문 노드) |
-| `min() / max()` | 최좌/최우 노드 |
-| `inOrder()` | 중위 순회 |
+- 접근 패턴에 **지역성**이 있다 — 방금 조회한 값이 곧 다시 조회될 확률이 높다(최근 로그, LRU류 캐시, 커서 이동)
+- 균형 메타데이터(height, color) 없이 **가벼운 노드**로 정렬 컨테이너를 만들고 싶다
+- 개별 연산이 가끔 느려도 괜찮고, **전체 합**만 $O(m \log n)$이면 충분하다(상각 비용 허용)
 
----
+naive BST, AVL/레드-블랙과 비교하면 이렇습니다.
 
-## 핵심 아이디어
+```text
+                평범한 BST     AVL / 레드-블랙        스플레이 트리
+최악 단일 연산   O(n)          O(log n)              O(n) (드묾, 상각 O(log n))
+추가 메타데이터  없음           height/color 1개       없음 (parent 포인터만 추가)
+반복 접근 지역성 활용 안 함     활용 안 함             직접 활용 — 핵심 이점
+회전 규칙        없음           높이차 보고 최대 1~2회  Zig / Zig-Zig / Zig-Zag 패턴 인식
+```
 
-### 원형 아이디어와 naive 접근
+선택 기준은 명확해요. **조회가 특정 원소에 몰리는 워크로드**라면 스플레이 트리, **모든 키에 고르게 접근하고 개별 연산의 worst-case 시간이 중요하다**면(예: 실시간 시스템) AVL이나 레드-블랙 트리를 쓰세요.
 
-일반 BST의 탐색 비용은 트리 높이에 비례한다. 편향된 BST는 O(n)까지 떨어진다. AVL이나 레드-블랙 트리처럼 균형 메타데이터를 유지하면 해결되지만, 추가 필드(height, color)가 필요하고 회전 로직이 복잡해진다.
+### 문제 사례와 적용 예시
 
-**스플레이 트리의 관점**: 균형을 항상 유지하지 말고, 접근 패턴 자체를 이용하자. 자주 접근하는 원소는 루트 근처로 끌어올리면 다음 접근이 빠르다.
+- **네트워크 라우터의 라우팅 테이블**: 트래픽이 몰리는 목적지 몇 개가 반복 조회되므로, 그 항목들이 루트 근처에 머물러 조회가 빨라집니다.
+- **가비지 컬렉터의 메모리 블록 탐색**: 최근에 할당·해제된 블록이 다시 참조될 가능성이 높은 지역성 패턴에 잘 맞습니다.
+- **텍스트 편집기의 커서·실행취소 스택**: 사용자가 방금 편집한 위치 근처를 계속 오가는 접근 패턴을 그대로 이용합니다.
+- **코딩 테스트 맥락**: "같은 사용자 ID가 연속으로 등장하는 로그 스트림에서 반복 조회 성능을 높여라" — 정렬 컨테이너가 기본 제공되지 않는 JS/TS 환경에서 직접 구현 대상이 됩니다.
 
-### 어떤 관찰이 돌파구가 되는가
+## 자료구조 자세히 들여다보기
 
-**스플레이 연산의 묘수**: 단순히 x를 루트로 회전시키면(zig만 반복) O(n)이 보장되지 않는다. 지그재그 패턴의 트리에서 번갈아 최소/최대를 찾으면 매번 O(n)이 된다.
+### 전체 스펙: 속성과 액션
 
-**돌파구**: 조부모가 있을 때는 부모부터 먼저 회전하는 Zig-Zig를 적용하면, 포텐셜 에너지가 감소하여 상각 O(log n)이 보장된다.
-
-### 관찰을 형식화: 상태/구조 정의
+**속성(내부 상태)** — 노드는 하나의 종류만 있어요. AVL의 `height`, 레드-블랙의 `color` 같은 균형 메타데이터가 없다는 점이 특징입니다.
 
 ```ts
 class SplayNode<T> {
-  value:  T;
-  left:   SplayNode<T> | undefined;
-  right:  SplayNode<T> | undefined;
-  parent: SplayNode<T> | undefined;
+  value: T;
+  left: SplayNode<T> | undefined = undefined;
+  right: SplayNode<T> | undefined = undefined;
+  parent: SplayNode<T> | undefined = undefined; // 회전에 필수
 }
 ```
 
-스플레이 트리는 노드에 추가 필드(height, color)가 없다. 대신 `parent` 포인터가 스플레이 연산에 필요하다.
+트리 전체로는 `root`, 원소 수 `_size`, 비교 함수 `comparator`를 유지합니다. 지켜야 할 불변식은 두 가지예요.
 
-### 핵심 연산 — splay(x)
+1. **BST 순서.** 모든 노드 $v$에 대해:
+   $$
+   \forall u \in \text{left}(v),\ u.\text{value} < v.\text{value} \quad\text{and}\quad \forall w \in \text{right}(v),\ w.\text{value} > v.\text{value}
+   $$
+   (이 프로젝트는 set 의미론이라 중복이 없으므로 등호는 없습니다.)
+2. **부모 포인터 일관성.** `v.left = u`이면 반드시 `u.parent = v`(오른쪽도 마찬가지). 회전마다 건드린 링크 양쪽을 모두 갱신해야 이게 깨지지 않습니다.
+
+여기서 헷갈리기 쉬운 포인트는 **"불변식이 두 개뿐이고, 높이에 대한 규칙이 없다"는 것**입니다. AVL을 먼저 배운 분들은 "회전 후 균형 인수가 ±1 이내인가"를 반사적으로 확인하려 하는데, 스플레이 트리엔 그런 확인이 아예 없어요. 방금 삽입을 마구 반복해 사슬(comb) 모양을 만들어 놓고 바로 다음 연산을 부르면, 그 한 번은 진짜로 $O(n)$이 걸립니다. 스플레이 트리가 보장하는 건 "이번 연산이 빠르다"가 아니라 "연속된 $m$번의 총합이 $O(m \log n)$이다"라는 상각 보장뿐입니다.
+
+`insert(10, 5, 15, 3, 7)`을 순서대로 실행하면(각 삽입마다 새 노드가 스플레이되므로) 이런 모양이 됩니다.
+
+```text
+insert(10,5,15,3,7) 완료 후:
+        7
+       / \
+      3   15
+       \  /
+        5 10
+```
+
+**액션(연산)** — 이 가이드가 정의하는 7개 전부입니다.
+
+| 액션 | 하는 일 | 비용(상각) |
+|------|---------|-----------|
+| `insert(v)` | BST 삽입 후 새 노드를 splay로 루트로 | $O(\log n)$ |
+| `delete(v)` | 존재하면 splay로 루트로 옮긴 뒤 좌우 서브트리 합병 | $O(\log n)$ |
+| `has(v)` | BST 탐색, 발견 노드(또는 마지막 방문 노드)를 splay | $O(\log n)$ |
+| `min()` | 최좌단까지 내려가 splay, 값 반환 | $O(\log n)$ |
+| `max()` | 최우단까지 내려가 splay, 값 반환 | $O(\log n)$ |
+| `inOrder()` | 중위 순회로 정렬된 배열 반환 | $O(n)$ |
+| `size()` | 카운터 반환 | $O(1)$ |
+
+핵심 연산 세 가지를 자세히 볼게요. 모두 아래 `아이디어를 코드로 옮기기` 절의 실제 구현으로 실행해 검증한 값입니다.
+
+**① has(v)의 기본 Zig.** 위에서 만든 트리(`7(3(_,5),15(10,_))`)에서 `has(3)`을 호출하면 3은 루트 7의 왼쪽 자식이라, 부모가 곧 루트인 **Zig** 한 번으로 끝납니다.
+
+```text
+Before: has(3) 호출 직전       After: 단일 회전(Zig) 후
+        7                          3
+       / \                          \
+      3   15         →               7
+       \  /                         / \
+        5 10                       5   15
+                                       /
+                                     10
+```
+
+**② splay(x)의 Zig-Zig — 진짜 힘을 보는 자리.** `insert(10,20,30,5,15,25,35)`를 순서대로 넣으면 트리가 한쪽으로 완전히 치우칩니다.
+
+```text
+insert(10,20,30,5,15,25,35) 완료 후:
+35
+ \
+  30
+   \
+    25
+     \
+      15
+     /  \
+    5    20
+     \
+      10
+```
+
+여기서 `has(5)`를 부르면 `35 → 30 → 25 → 15 → 5` 경로를 타고 내려간 뒤, 조부모·부모가 **같은 방향(왼쪽-왼쪽)**인 Zig-Zig가 연달아 두 번 일어납니다. 국소적으로 $g=25, p=15, x=5$ 구간만 떼어 보면:
+
+```text
+Before (g=25 주변):        After (Zig-Zig: rotate(15) 먼저, rotate(5)):
+      25                          5
+     /                             \
+    15                              15
+   /  \             →              /  \
+  5    20                        10    25
+   \                                   /
+    10                               20
+```
+
+$x=5$가 두 단계를 한 번에 올라간 것에 주목하세요. 뒤이어 $g=35, p=30, x=5$ 구간에서도 같은 패턴이 한 번 더 일어나 5가 최종 루트가 됩니다(전체 흐름은 `실행 시각화` 절에서 그대로 재생됩니다).
+
+**③ delete(v)의 합병.** `insert(10,5,15,3,7)` 트리에서 `delete(5)`를 부르면, 먼저 `has(5)`가 5를 루트로 스플레이합니다.
+
+```text
+delete(5) 호출:               splay(5) 직후(제거 전):        L, R 분리 후 병합:
+        7                            5                           3
+       / \                         /   \            →             \
+      3   15         →            3     7                          7
+       \  /                              \                          \
+        5 10                              15                         15
+                                          /                          /
+                                        10                          10
+```
+
+루트(5)를 떼어내면 왼쪽 서브트리 $L=\{3\}$, 오른쪽 서브트리 $R=\{7, 15, 10\}$으로 갈립니다. $L$의 최댓값(3 자신, 자식이 없으므로 스플레이가 곧바로 끝남)을 새 루트로 세우고 그 오른쪽에 $R$을 붙이면 `inOrder()`는 `[3, 7, 10, 15]`로 정렬을 유지합니다.
+
+### 왜 모순 없이 작동하는가
+
+**BST 순서가 회전으로 깨지지 않는 이유.** 회전은 딱 세 노드($x$, 부모 $p$, 그리고 걸쳐 있던 서브트리 하나)의 연결만 바꿉니다. 예를 들어 $x$가 $p$의 왼쪽 자식이면, $x$의 오른쪽 서브트리($T$, $x < T < p$인 값들)를 $p$의 왼쪽으로 옮기고 $p$ 자체를 $x$의 오른쪽에 답니다. 회전 전 순서가 $(\text{x의 왼쪽}) < x < T < p < (\text{p의 오른쪽})$이었다면, 회전 후에도 여전히 같은 순서로 나열됩니다 — 셋의 **상대적 순서는 그대로**고 누가 부모인지만 바뀌었기 때문이에요. 위 ①·②·③ 예시에서 회전 전후 `inOrder()`가 각각 그대로 유지된 것이 바로 이 논증의 실측 확인입니다.
+
+**부모 포인터가 항상 맞는 이유.** `rotate(x)`는 건드리는 네 링크 — `p`의 자식 슬롯, `x`의 반대쪽 자식, 두 노드의 `parent` — 를 예외 없이 함께 갱신합니다. 코드로 표현하면 "자식 슬롯을 바꾸는 줄"과 "그 자식의 `parent`를 바꾸는 줄"이 항상 쌍으로 붙어 있어요. 빈 트리(귀납의 기저)에서 시작해 모든 삽입·삭제·회전이 이 쌍을 지키므로, 어떤 시점의 트리에서도 부모 포인터는 실제 트리 모양과 일치합니다.
+
+**상각 $O(\log n)$의 근거(포텐셜 함수).** 노드 $v$의 `size(v)`를 그 서브트리의 노드 수, $\text{rank}(v) = \log_2(\text{size}(v))$라 하고 포텐셜을 $\Phi = \sum_{v \in T} \text{rank}(v)$로 정의합니다. Zig 한 번은 실제 비용 1에 포텐셜 변화가 상수로 묶여 상각 비용 $O(1)$입니다. Zig-Zig·Zig-Zag는 실제 비용 2지만, $x$가 부모와 조부모를 모두 지나며 $\text{rank}(x)$가 회전 전 조부모의 rank에 가깝게 뛰어오르므로 — $\log a + \log b \le 2\log\frac{a+b}{2}$ 형태의 부등식 하나로 — 포텐셜이 실제 비용보다 크게 줄어듭니다. 스플레이 한 번의 상각 비용을 다 더해 텔레스코핑하면 $3(\text{rank}(\text{root}) - \text{rank}(x)) + 1 = O(\log n)$으로 묶입니다(전체 형식 증명은 Sleator & Tarjan 1985의 Access Lemma를 참고하세요 — 여기서는 "왜 두 단계를 한 번에 도는 게 이득인가"까지만 납득하고 갑니다).
+
+여기서 헷갈리기 쉬운 포인트 세 가지를 짚어 둡니다.
+
+- **Zig-Zig에서 회전 순서를 "부모 먼저"로 지키지 않으면 균형 개선 효과가 통째로 사라집니다.** 만약 순서 구분 없이 항상 `rotate(x)`만 반복하는(조부모 존재 여부를 무시하는) "naive" 스플레이를 썼다면 어떻게 될까요? 사슬 `1-2-3-4-5-6-7`(전부 오른쪽 자식으로 이어진, 높이 7인 트리)에서 가장 깊은 노드 `has(7)`을 한 번 호출해 실측 비교해 봤습니다.
+  ```text
+  초기 사슬:            1(_,2(_,3(_,4(_,5(_,6(_,7))))))          높이 7
+
+  naive(항상 rotate(x)만 반복) has(7) 후:
+                        7(1(_,2(_,3(_,4(_,5(_,6))))),_)          높이 7 그대로!
+
+  proper(Zig-Zig 인식) has(7) 후:
+                        7(2(1,4(3,6(5,_))),_)                     높이 5로 감소
+  ```
+  naive 버전은 사슬을 뒤집어 놓았을 뿐 여전히 사슬입니다 — 다음 접근도 또 $O(n)$이라는 뜻이에요. Zig-Zig를 지킨 버전만 트리를 실제로 넓혀 놓습니다. "부모 먼저 회전"이라는 순서 하나가 상각 $O(\log n)$과 최악 $O(n)$의 갈림길입니다.
+- **`has()`가 값을 못 찾아도 스플레이는 해야 합니다.** 마지막으로 방문한 노드(찾다가 멈춘 자리)를 스플레이하지 않으면, 존재하지 않는 값 근처를 반복 조회할 때 매번 원래 깊이만큼 다시 내려가야 해서 상각 보장이 깨집니다. 아래 엣지 케이스의 `has(4)` 사례가 실측입니다.
+- **`delete`에서 $L$을 스플레이할 때는 $L$ 내부로 범위를 한정해야 합니다.** 루트를 떼어낸 뒤 `L.parent = undefined`로 먼저 끊어 놓지 않으면, $L$의 최댓값을 스플레이할 때 원래 트리 전체를 타고 올라가 버려 엉뚱한 노드가 루트가 됩니다. `L`을 독립된 트리로 만든 다음에 스플레이해야 스플레이가 "그 안에서만" 멈춥니다.
+
+잠깐, 확인 하나만 해 볼까요? 위 delete(5) 예시에서 `L = {3}`은 왜 스플레이가 사실상 공짜였을까요? — 3 자신이 이미 $L$의 최댓값(자식이 없는 리프)이라, `splay(3)`을 호출해도 `3.parent`가 이미 `undefined`라 while 루프가 즉시 끝나기 때문입니다.
+
+엣지 케이스 점검(모두 실제 구현으로 실행 검증):
+
+```text
+빈 트리                → has/delete는 false, min/max는 undefined, inOrder는 [], size는 0
+크기 1                 → has(그 값)=true, delete 후 size=0이고 root도 undefined
+중복 삽입(1을 3번)      → size=1 유지, insert가 set 의미론으로 무시(단, 스플레이는 그대로 수행)
+has(존재하지 않는 값)   → false를 반환하되 마지막 방문 노드가 루트로 스플레이됨
+delete(존재하지 않는 값) → false를 반환하되, has()가 이미 마지막 방문 노드를 스플레이해 트리 모양은 바뀔 수 있음
+```
+
+## 아이디어를 코드로 옮기기
+
+**가장 중요한 부분은 `splay(x)`의 세 갈래 분기입니다.** 조부모가 없으면(Zig) 한 번, 있으면 방향이 같은지(Zig-Zig) 다른지(Zig-Zag)에 따라 회전 두 번의 **순서**가 달라집니다. 이 분기를 코드로 옮기기 전에, 왜 필요한지부터 원형(naive)으로 확인해 볼게요.
+
+**원형(brute force): 회전 없는 그냥 BST.** 삽입·탐색만 하고 아무것도 옮기지 않으면 지역성을 전혀 활용하지 못하고, 사슬 모양 입력에서 매 연산이 $O(n)$입니다. 코드는 이 절 아래쪽 `insert`/`has`에서 `splay` 호출을 지우기만 하면 되니 따로 싣지 않을게요.
+
+**개선(하지만 틀린) 시도: 순서 구분 없는 "무조건 x를 회전"**. "루트로 올려야 하니 그냥 부모와 계속 바꿔치기하면 되지 않을까"라는 직관으로 짤 수 있는 코드입니다.
 
 ```ts
-function splay(x: SplayNode<T>): void {
+// 함정: 조부모 방향을 보지 않고 x를 부모와 무조건 맞바꾼다
+function naiveSplay<T>(x: SplayNode<T>): void {
   while (x.parent !== undefined) {
-    const p = x.parent;
-    const g = p.parent;
-
-    if (g === undefined) {
-      // Zig: 부모가 루트
-      rotate(x);
-    } else if (isLeftChild(x) === isLeftChild(p)) {
-      // Zig-Zig: 같은 방향
-      rotate(p);  // 부모를 먼저 회전
-      rotate(x);
-    } else {
-      // Zig-Zag: 다른 방향
-      rotate(x);  // x를 두 번 회전
-      rotate(x);
-    }
+    rotate(x); // Zig만 반복 — Zig-Zig/Zig-Zag 구분이 없다
   }
-  this.root = x;
 }
 ```
 
-**rotate(x)**: x가 부모의 왼쪽/오른쪽 자식인지에 따라 오른쪽/왼쪽 회전. 부모·조부모·자식 포인터를 모두 갱신해야 한다.
+앞 절의 "헷갈리기 쉬운 포인트"에서 실측했듯, 이 버전은 사슬을 사슬인 채로 뒤집기만 합니다(높이 7 → 7). 조부모를 지나칠 때 "부모를 먼저" 돌리지 않으면 얻어야 할 포텐셜 감소를 놓치기 때문이에요. 최종 구현은 이 구분을 추가합니다.
 
-### 삭제 연산
+```ts
+class SplayNode<T> {
+  value: T;
+  left: SplayNode<T> | undefined = undefined;
+  right: SplayNode<T> | undefined = undefined;
+  parent: SplayNode<T> | undefined = undefined;
 
+  constructor(value: T) {
+    this.value = value;
+  }
+}
+
+export class SplayTree<T> {
+  private root: SplayNode<T> | undefined = undefined;
+  private _size = 0;
+  private comparator: (a: T, b: T) => number;
+
+  constructor(comparator?: (a: T, b: T) => number) {
+    this.comparator = comparator ?? ((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  }
+
+  private isLeftChild(x: SplayNode<T>): boolean {
+    return x.parent !== undefined && x.parent.left === x;
+  }
+
+  private rotate(x: SplayNode<T>): void {
+    const p = x.parent!;
+    const g = p.parent;
+
+    if (this.isLeftChild(x)) {
+      p.left = x.right;
+      if (x.right !== undefined) x.right.parent = p;
+      x.right = p;
+    } else {
+      p.right = x.left;
+      if (x.left !== undefined) x.left.parent = p;
+      x.left = p;
+    }
+    p.parent = x;
+    x.parent = g;
+
+    if (g !== undefined) {
+      if (g.left === p) g.left = x;
+      else g.right = x;
+    }
+  }
+
+  private splay(x: SplayNode<T>): void {
+    while (x.parent !== undefined) {
+      const p = x.parent;
+      const g = p.parent;
+
+      if (g === undefined) {
+        this.rotate(x); // Zig
+      } else if (this.isLeftChild(x) === this.isLeftChild(p)) {
+        this.rotate(p); // Zig-Zig: 부모 먼저
+        this.rotate(x);
+      } else {
+        this.rotate(x); // Zig-Zag: x를 두 번
+        this.rotate(x);
+      }
+    }
+    this.root = x;
+  }
+
+  insert(value: T): void {
+    if (this.root === undefined) {
+      this.root = new SplayNode(value);
+      this._size = 1;
+      return;
+    }
+    let node: SplayNode<T> | undefined = this.root;
+    let parent: SplayNode<T> = this.root;
+    let cmp = 0;
+    while (node !== undefined) {
+      parent = node;
+      cmp = this.comparator(value, node.value);
+      if (cmp === 0) {
+        this.splay(node); // 중복은 무시하되, set 의미론상 스플레이는 해 준다
+        return;
+      }
+      node = cmp < 0 ? node.left : node.right;
+    }
+    const created = new SplayNode(value);
+    created.parent = parent;
+    if (cmp < 0) parent.left = created;
+    else parent.right = created;
+    this._size++;
+    this.splay(created);
+  }
+
+  has(value: T): boolean {
+    let node = this.root;
+    let last: SplayNode<T> | undefined;
+    while (node !== undefined) {
+      last = node;
+      const cmp = this.comparator(value, node.value);
+      if (cmp === 0) {
+        this.splay(node);
+        return true;
+      }
+      node = cmp < 0 ? node.left : node.right;
+    }
+    if (last !== undefined) this.splay(last); // 실패해도 마지막 방문 노드는 스플레이
+    return false;
+  }
+
+  delete(value: T): boolean {
+    if (!this.has(value)) return false; // has()가 이미 대상(또는 마지막 노드)을 루트로 스플레이
+
+    const root = this.root!;
+    const L = root.left;
+    const R = root.right;
+    if (L !== undefined) L.parent = undefined; // L을 독립 트리로 분리 — 스플레이 범위를 가둔다
+    if (R !== undefined) R.parent = undefined;
+
+    if (L === undefined) {
+      this.root = R;
+    } else {
+      let maxNode = L;
+      while (maxNode.right !== undefined) maxNode = maxNode.right;
+      this.splay(maxNode); // L 내부에서만 스플레이
+      maxNode.right = R;
+      if (R !== undefined) R.parent = maxNode;
+      this.root = maxNode;
+    }
+    this._size--;
+    return true;
+  }
+
+  min(): T | undefined {
+    if (this.root === undefined) return undefined;
+    let node = this.root;
+    while (node.left !== undefined) node = node.left;
+    this.splay(node);
+    return node.value;
+  }
+
+  max(): T | undefined {
+    if (this.root === undefined) return undefined;
+    let node = this.root;
+    while (node.right !== undefined) node = node.right;
+    this.splay(node);
+    return node.value;
+  }
+
+  inOrder(): T[] {
+    const result: T[] = [];
+    const walk = (node: SplayNode<T> | undefined): void => {
+      if (node === undefined) return;
+      walk(node.left);
+      result.push(node.value);
+      walk(node.right);
+    };
+    walk(this.root);
+    return result;
+  }
+
+  size(): number {
+    return this._size;
+  }
+}
 ```
-1. splay(삭제 노드) → 루트로
-2. L = root.left, R = root.right
-3. L.parent = undefined, R.parent = undefined
-4. L의 최대 노드를 splay → L의 오른쪽 자식이 없어짐
-5. L.right = R, R.parent = L
-6. root = L
-```
 
-### 정당성 — 포텐셜 분석
+구현에서 놓치기 쉬운 지점들:
 
-포텐셜 함수 $\Phi = \sum_{v} \log(\text{size}(v))$ 를 정의하면, splay 한 번의 상각 비용이 $O(\log n)$임을 증명할 수 있다. Zig-Zig가 핵심: 부모를 먼저 회전하면 트리의 포텐셜이 충분히 감소한다.
+- **`rotate(x)`에서 네 링크를 쌍으로 갱신하는 순서.** `p.left = x.right`(또는 그 반대) 직후 반드시 `x.right.parent = p`를 갱신해야 합니다. 이 둘을 떼어 놓으면 자식은 새 부모를 가리키는데 그 자식의 `parent`는 옛 부모를 가리키는 반쪽짜리 갱신이 생겨, 다음 스플레이에서 엉뚱한 방향으로 회전합니다.
+- **Zig-Zig는 `rotate(p)`가 먼저, Zig-Zag는 `rotate(x)`를 두 번.** 이 한 줄의 순서 차이가 앞서 실측한 대로 상각 $O(\log n)$과 매번 $O(n)$을 가릅니다.
+- **`delete`의 분리 두 줄(`L.parent = undefined`, `R.parent = undefined`)이 스플레이보다 먼저 와야 합니다.** 순서를 바꾸면 `maxNode`를 스플레이할 때 이미 떼어냈어야 할 $R$ 쪽까지 타고 올라가 버립니다.
+- **`has()`의 실패 분기에서 `last`를 스플레이하는 한 줄을 빼먹기 쉽습니다.** 반환값(`false`)에는 영향이 없어 테스트를 통과할 수도 있지만, 상각 복잡도 보장이 조용히 깨집니다.
 
-### 구현 디테일과 최적화
+> 기억법: "회전 두 번을 묶을 땐 **할아버지 먼저**(Zig-Zig), 방향이 엇갈리면 **나부터 두 번**(Zig-Zag)."
 
-- **부모 포인터 갱신**: 회전 시 조부모, 부모, 자식 포인터를 정확히 업데이트.
-- **has에서 스플레이**: 값이 없을 때는 마지막으로 방문한 노드를 스플레이.
-- **삭제에서 합병**: L이 없으면 R이 새 루트, R이 없으면 L이 새 루트.
-- **루트 추적**: 모든 연산 후 `this.root` 업데이트 필수.
+## 실행 시각화
 
----
+`insert(10, 20, 30, 5, 15, 25, 35)`를 순서대로 넣어 한쪽으로 치우친 트리를 만든 뒤 `has(5)`를 호출하는 과정을 재생합니다. 5는 깊이 4에 있고, 실제 반환값은 `true`이며, 연속된 두 번의 Zig-Zig(회전 4회)만으로 루트까지 올라옵니다. 패널은 트리 모양을 그대로 그리고, 노란/빨간 강조(`active`)가 방금 회전에 참여한 노드, 회색(`visited`)이 탐색 경로에서 지나온 노드입니다.
 
-## 시뮬레이션
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
-    title: "초기 상태 — [10, 5, 15, 3, 7] 삽입 후",
-    detail: "마지막으로 삽입한 7이 루트 근처에 위치. BST 성질 유지.",
-    array: [7, 5, 10, 3, 0, 0, 15],
-    highlight: [0],
-    marked: [],
+    title: "빌드 완료 — insert(10,20,30,5,15,25,35)",
+    detail: "매 삽입마다 새 노드가 스플레이되어 마지막 35가 루트. 의도적으로 한쪽으로 치우친 사슬 모양을 만들어 has(5)에서 스플레이의 효과를 보인다.",
+    root: {
+      id: 35,
+      children: [
+        {
+          id: 30,
+          children: [
+            {
+              id: 25,
+              children: [
+                {
+                  id: 15,
+                  children: [
+                    { id: 5, children: [{ id: 10 }] },
+                    { id: 20 },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
   },
   {
-    title: "has(3) 탐색 시작",
-    detail: "3을 찾아 왼쪽으로 이동. 3이 발견됨.",
-    array: [7, 5, 10, 3, 0, 0, 15],
-    highlight: [3],
-    marked: [],
+    title: "has(5) 탐색 경로",
+    detail: "35 → 30 → 25 → 15 → 5. 5<현재값 비교를 반복하며 내려가 깊이 4에서 발견.",
+    root: {
+      id: 35,
+      status: "visited",
+      children: [
+        {
+          id: 30,
+          status: "visited",
+          children: [
+            {
+              id: 25,
+              status: "visited",
+              children: [
+                {
+                  id: 15,
+                  status: "visited",
+                  children: [
+                    { id: 5, status: "active", children: [{ id: 10 }] },
+                    { id: 20 },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
   },
   {
-    title: "splay(3) — Zig-Zig 1단계",
-    detail: "3의 부모(5)와 조부모(7)가 같은 방향(왼쪽). Zig-Zig: 5를 먼저 오른쪽 회전.",
-    array: [5, 3, 7, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 15],
-    highlight: [0],
-    marked: [1],
+    title: "1차 Zig-Zig 1단계 — rotate(15)",
+    detail: "g=25, p=15, x=5가 모두 왼쪽 방향. 부모(15)를 먼저 25 자리로 돌린다.",
+    root: {
+      id: 35,
+      children: [
+        {
+          id: 30,
+          children: [
+            {
+              id: 15,
+              status: "active",
+              children: [
+                { id: 5, children: [{ id: 10 }] },
+                { id: 25, children: [{ id: 20 }] },
+              ],
+            },
+          ],
+        },
+      ],
+    },
   },
   {
-    title: "splay(3) — Zig-Zig 2단계",
-    detail: "이제 3의 부모(5)에서 오른쪽 회전. 3이 루트로 이동.",
-    array: [3, 0, 5, 0, 0, 0, 7, 0, 0, 0, 0, 0, 0, 0, 10],
-    highlight: [0],
-    marked: [2, 6],
+    title: "1차 Zig-Zig 2단계 — rotate(5)",
+    detail: "이어서 5를 15 자리로 회전. 5가 (35,30) 체인의 바로 아래까지 두 단계 올라왔다.",
+    root: {
+      id: 35,
+      children: [
+        {
+          id: 30,
+          children: [
+            {
+              id: 5,
+              status: "active",
+              children: [
+                {
+                  id: 15,
+                  children: [{ id: 10 }, { id: 25, children: [{ id: 20 }] }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
   },
   {
-    title: "splay(3) 완료",
-    detail: "3이 루트. inOrder: [3, 5, 7, 10, 15] 유지. 다음 접근 시 3은 O(1).",
-    array: [3, 0, 5, 0, 0, 0, 7],
-    highlight: [0],
-    marked: [2, 6],
+    title: "2차 Zig-Zig 1단계 — rotate(30)",
+    detail: "이제 g=35, p=30, x=5도 왼쪽 방향. 부모(30)를 먼저 35 자리로 돌린다.",
+    root: {
+      id: 30,
+      status: "active",
+      children: [
+        {
+          id: 5,
+          children: [
+            { id: 15, children: [{ id: 10 }, { id: 25, children: [{ id: 20 }] }] },
+          ],
+        },
+        { id: 35, status: "visited" },
+      ],
+    },
+  },
+  {
+    title: "2차 Zig-Zig 2단계 — rotate(5): has(5) 완료",
+    detail: "5가 최종 루트. has(5)는 true를 반환하고, inOrder는 [5,10,15,20,25,30,35]로 그대로 정렬돼 있다.",
+    root: {
+      id: 5,
+      status: "active",
+      children: [
+        {
+          id: 30,
+          children: [
+            { id: 15, children: [{ id: 10 }, { id: 25, children: [{ id: 20 }] }] },
+            { id: 35 },
+          ],
+        },
+      ],
+    },
   },
 ];
 
-<AlgorithmSimulation view="array" steps={steps} title="스플레이 트리 — has(3) 후 Zig-Zig 스플레이" />
+<AlgorithmSimulation view="tree" steps={steps} title="스플레이 트리 — has(5)의 연쇄 Zig-Zig" />
 
----
+정리하면, 스플레이 트리는 균형 규칙을 강제하는 대신 **접근할 때마다 대가를 조금씩 치르는** 전략이에요. `rotate`는 세 노드의 링크만 바꾸므로 BST 순서와 부모 포인터 일관성을 항상 지키고, Zig-Zig에서 "부모 먼저"라는 순서 하나가 포텐셜을 충분히 깎아 상각 $O(\log n)$을 만들어 냅니다. 위 시뮬레이션처럼 치우친 트리라도 자주 쓰는 원소를 반복해서 건드리면 스스로 얕아지고, 그 지역성이 없는 워크로드에도 최소한 상각 보장은 깨지지 않습니다.
 
-## 수도 코드와 Activity Diagram
+## 스스로 점검하기
 
-### 의사코드
-
-```
-function splay(x):
-  while x.parent != null:
-    p = x.parent
-    g = p.parent
-    if g == null:
-      rotate(x)                 // Zig
-    else if sameDir(x, p):
-      rotate(p); rotate(x)      // Zig-Zig
-    else:
-      rotate(x); rotate(x)      // Zig-Zag
-
-function delete(value):
-  node = find(value)
-  if node == null: return false
-  splay(node)
-  L = root.left;  R = root.right
-  if L == null: root = R; return true
-  if R == null: root = L; return true
-  maxL = findMax(L)
-  splay(maxL in L)
-  maxL.right = R
-  root = maxL
-  return true
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A([has 호출]) --> B[BST 탐색]
-  B --> C{값 발견?}
-  C -- 예 --> D[해당 노드 스플레이]
-  C -- 아니오 --> E[마지막 방문 노드 스플레이]
-  D --> F[true 반환]
-  E --> G[false 반환]
-
-  H([insert 호출]) --> I[BST 삽입]
-  I --> J[새 노드 스플레이]
-  J --> K([완료])
-
-  L([delete 호출]) --> M[값 탐색 & 스플레이]
-  M --> N{루트가 삭제 대상?}
-  N -- 아니오 --> O[false 반환]
-  N -- 예 --> P[루트 제거]
-  P --> Q{L 있음?}
-  Q -- 아니오 --> R[R을 루트로]
-  Q -- 예 --> S[L의 최대값 스플레이]
-  S --> T[L.right = R]
-  T --> U([true 반환])
-```
+1. 사슬 `1-2-3-4-5-6-7`에서 `has(4)`(중간 깊이 노드)를 한 번 호출하면 어떤 회전 순서(Zig/Zig-Zig/Zig-Zag)가 몇 번 일어날지 손으로 그려 보고, 결과 트리의 높이가 원래(7)보다 얼마나 낮아지는지 확인해 보세요.
+2. `naiveSplay`(조부모 방향을 무시하고 항상 `rotate(x)`만 반복)로 `insert(1,2,3,4,5)`를 순서대로 넣으면 어떤 모양이 될까요? 이어서 `has(1)`을 부르면 트리가 넓어질까요, 아니면 그대로 사슬일까요?
+3. `delete`에서 `L.parent = undefined`와 `R.parent = undefined` 두 줄을 지우면 어떤 입력에서 문제가 생길까요? "왜 모순 없이 작동하는가" 절의 세 번째 헷갈리는 포인트를 참고해 구체적인 실패 시나리오를 서술해 보세요.
