@@ -6,27 +6,7 @@
 
 ## 신규 지시
 
-<!-- ORDER:PROCESSING id=ORD-004 status=processing started=2026-07-14 -->
-<!-- 수행 중: 이 블록은 ORD-004로 처리 중입니다. 전량(176종) 완료 시 봉인됩니다. 진행 상태 단일 진실원 = tools/ord004-manifest.json -->
-
-새로 생성한 가이드 집필 skill로 이 프로젝트의 가이드를 일괄 재생성 할 것이다. 
-
-- 기존 가이드는 버전 1.0.0으로 버저닝 하여 문제 폴더 안에 "_deprecated" 폴더를 생성해서 그곳으로 옮긴다.
-- 새로 생성할 가이드는 버전 범프하여 명명한다.
-- 파일럿으로 만들었던 가이드(*-study-guide.md)는 새로 생성할 가이드에 편입시킨다.
-- react simulation과 mermaid diagram은 기존 가이드의 것을 copy & paste한다.
-- opus로 오케스트레이션 하되, sonnet으로 집필과 품질 게이트웨이를 맡긴다.
-
-```markdown
-# 품질 게이트웨이
-특정 스코어를 달성 해야 게이트웨이를 통과 할 수 있다. 어떤 항목들은 pass/fail이다.
-## 포함해야 하는 항목들
-- 문체가 가이드를 준수했나
-- 논리에 모순이 없나
-- 코드에 오류가 없고 실행 가능한가
-- 가이드의 구성 항목을 준수 했나
-- 가이드 구성 항목의 의도를 제대로 반영 했나
-```
+_(현재 처리할 신규 지시가 없습니다. 새 지시는 이 영역에 추가해 주세요.)_
 
 ## 처리 완료 (COMMITTED)
 
@@ -113,6 +93,42 @@
   - **발행**: `문제_가이드_목록.md`를 중요도순(★★★/★★/★/미분류, `알고리즘 중요도 기준 문제 목록.md` 기준)으로 재구성하고 파일럿 2종 등록. 반복되던 "인덱스 초기화" 원인(PostToolUse 훅의 전체 재생성)을 제거하기 위해 `tools/generate-guides-index.sh`를 구조 보존 모드(중요도순 문서면 누락분만 "자동 추가 (분류 대기)" 절에 추가)로 개작 — 훅 실행 후에도 구조 보존 확인 완료.
   - **경위 기록**: 2026-07-14 리포 hard reset(d68575f)과 함께 본 지시가 한 차례 철회(revoked) 봉인되었으나, 사용자 지시("ORD-003은 철회하면 안된다 복구하고 원래 하던 작업 재개해라")로 철회를 취소하고 산출물을 복구·완료함. 스킬 반영은 reset 후의 현행 스킬(d68575f 기반) 위에 재적용됨.
 <!-- /ORDER:COMMITTED id=ORD-003 -->
+
+<!-- ORDER:COMMITTED id=ORD-004 status=done committed=2026-07-16 -->
+<!-- 봉인 구획: 편집 금지. 철회하려면 신규 지시에 reverts=ORD-004 항목을 추가하세요. -->
+
+### ORD-004 — 가이드 집필 스킬로 전 가이드 176종 일괄 재생성(v2.0.0 승격)
+
+<!-- 원문(verbatim): 아래 블록은 신규 지시 영역의 원본을 그대로 보존한다. 수정 금지. -->
+
+> 새로 생성한 가이드 집필 skill로 이 프로젝트의 가이드를 일괄 재생성 할 것이다. 
+>
+> - 기존 가이드는 버전 1.0.0으로 버저닝 하여 문제 폴더 안에 "_deprecated" 폴더를 생성해서 그곳으로 옮긴다.
+> - 새로 생성할 가이드는 버전 범프하여 명명한다.
+> - 파일럿으로 만들었던 가이드(*-study-guide.md)는 새로 생성할 가이드에 편입시킨다.
+> - react simulation과 mermaid diagram은 기존 가이드의 것을 copy & paste한다.
+> - opus로 오케스트레이션 하되, sonnet으로 집필과 품질 게이트웨이를 맡긴다.
+>
+> ```markdown
+> # 품질 게이트웨이
+> 특정 스코어를 달성 해야 게이트웨이를 통과 할 수 있다. 어떤 항목들은 pass/fail이다.
+> ## 포함해야 하는 항목들
+> - 문체가 가이드를 준수했나
+> - 논리에 모순이 없나
+> - 코드에 오류가 없고 실행 가능한가
+> - 가이드의 구성 항목을 준수 했나
+> - 가이드 구성 항목의 의도를 제대로 반영 했나
+> ```
+
+- 결과: ORD-003 캔버스(알고리즘 10단계 / 자료구조 5단계)로 전 가이드 176종을 신규 재집필해 **v2.0.0으로 승격**, 구본은 각 문제 폴더 `_deprecated/`(v1.0.0)로 이동. 품질 게이트 **전종 PASS**(사실성 카테고리는 codex/agy 외부검토 반영). 진행 상태 단일 진실원 = `tools/ord004-manifest.json`(176 done).
+  - **오케스트레이션**: opus가 카테고리별 배치를 오케스트레이션하고, sonnet writer/gate 서브에이전트가 집필·채점을 맡음(Workflow 파이프라인: `tools/ord004-regen.workflow.mjs`(집필+게이트) / `ord004-incorporate.workflow.mjs`(외부검토 반영+재채점) / `ord004-transition.ts`(원자적 승격)).
+  - **집필 골격**: `guide-for-problem` 스킬의 ORD-003 캔버스 준수(한눈에보는컨셉→출발점→아이디어 자세히→코드화→최적화 사다리→실행 시각화→흐름 mermaid→스스로 점검). 파일럿 `*-study-guide`(mosAlgorithm·bPlusTree)는 각 캔버스의 모범 예시로 편입.
+  - **자산 재사용**: react simulation·mermaid는 구 가이드 것을 무손실 추출(`ord004-extract-assets.ts`)해 주입하고, copy 후 파서 검증·서사 대조.
+  - **자기검증(E3)**: 본문 코드를 `_scratch`로 추출해 `bun` 실행, 모든 수치·트레이스·시뮬 프레임을 실측 대조(대표+엣지+무작위 교차검증). 이 과정에서 구 가이드 오류 다수 정정(예: kasaiLcp aaaa 엣지값, suffixAutomaton abcabc=10→15, crt M=lcm 재설계 등).
+  - **외부검토**: number-theory·geometry·string 등 사실성 카테고리는 codex(ChatGPT)+agy(Gemini) 검토 후 **유효 지적만 반영**(문체 취향·범위초과 제안 기각). geometry 4종·string 8종은 agy 쿼터소진으로 codex 단독 검토(manifest `extReview=codex-only`, 약 2026-07-19 리셋 후 재검토 가능).
+  - **커밋**: 카테고리 배치별 승격 커밋(disjoint-set·graph-repr·range-query·spatial·number-theory·geometry·string 등). 최종 집계 algo 107 + ds 69 = **176종 전량 v2.0.0**.
+  - **경위**: 오케스트레이터 세션(595ef230)이 geometry 배치 중 컨텍스트가 초기화됐으나 백그라운드 Workflow는 초안 집필을 완주했고, 후속 세션이 게이트·외부검토·승격·커밋을 인수해 완료함(인수 산출물 보존: `~/.claude/projects/-Users-centurio-code-test/ord004-handoff/`).
+<!-- /ORDER:COMMITTED id=ORD-004 -->
 
 ## 신규 지시 (정규 위치 안내)
 
