@@ -2152,13 +2152,13 @@
       "dir": "src/data-structures/spatial/kdTree",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T03:32:29.442Z",
+      "note": "spatial 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "quadtree",
@@ -2166,13 +2166,13 @@
       "dir": "src/data-structures/spatial/quadtree",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T03:32:29.577Z",
+      "note": "spatial 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "avlTree",

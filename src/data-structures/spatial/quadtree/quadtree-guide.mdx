@@ -1,119 +1,382 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# Quadtree (쿼드트리) 해설
+# Quadtree — 먼 것끼리는 아예 비교하지 않기
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | Naive (배열) | Quadtree (평균) | Quadtree (최악, 모든 점이 한 사분면) |
-|------|------------|----------------|-------------------------------------|
-| insert | O(1) | O(log n) | O(n) |
-| query | O(n) | O(log n + k) | O(n) |
-| 충돌 감지 (전체) | O(n²) | O(n log n) | O(n²) |
-| 공간 | O(n) | O(n) | O(n) |
+2D 평면을 필요한 만큼만 재귀적으로 4등분해서 점들을 저장하는 자료구조예요. 비결은 하나입니다 — 한 사각형(노드)에 점이 `capacity`개보다 많이 몰리면 그 사각형을 NW·NE·SW·SE 4개로 쪼개고, 범위 질의(`query`)를 할 때는 질의 범위와 아예 겹치지 않는 사각형은 통째로 건너뜁니다. 그 결과 점이 균등하게 흩어져 있다면 삽입·질의가 평균 $O(\log n)$에 끝나요.
 
-n=10^4에서 query는 Naive 대비 약 **1,000배** 빠릅니다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호가 보이면 quadtree를 떠올리세요.
 
-| 메서드 | 시그니처 | 설명 |
-|--------|---------|------|
-| `constructor` | `(boundary: Rect, capacity?: number)` | 경계와 용량으로 초기화 |
-| `insert` | `(point: Point2D): boolean` | 경계 내 삽입, 경계 밖이면 false |
-| `query` | `(range: Rect): Point2D[]` | 범위와 겹치는 모든 점 반환 |
-| `size` | `(): number` | 저장된 총 점 수 반환 |
+- 2D 평면 위 점(또는 오브젝트)들에 대해 **"이 사각형 범위 안에 뭐가 있나"** 를 반복해서 물어야 한다
+- 전체 쌍을 비교하는 **충돌 감지**를 매 프레임 반복해야 하는데, n이 커서 $O(n^2)$이 감당이 안 된다
+- 점의 분포가 **공간적으로 편향**되어 있어서(어떤 구역엔 몰리고 어떤 구역엔 없고), 이 편향을 활용해 탐색량을 줄이고 싶다
 
----
+핵심은 "화면 왼쪽 위 오브젝트와 오른쪽 아래 오브젝트는 어차피 충돌할 수 없다"는 관찰이에요. 공간을 나눠 두면 비교 자체를 시도할 필요가 없는 조합을 걸러낼 수 있습니다.
 
-## 핵심 아이디어
+```text
+전체 비교 (naive)                 quadtree 질의
+n개 점, 모든 쌍 비교               range와 안 겹치는 사분면은 통째로 스킵
+O(n²)                              평균 O(log n + k)  (k = 결과 수)
 
-### 원형 아이디어와 naive 접근
+n = 10,000 이면
+naive: 약 10^8 번 비교
+quadtree: 약 10^4 * log(10^4) ≈ 10^5 번 비교 근방  →  체감 1,000배 차이
+```
 
-게임에서 모든 오브젝트 쌍의 충돌을 검사하는 방법:
+비슷한 목적의 자료구조들과 고르는 기준도 짚어 둘게요. 점 분포가 대체로 **균일**하면 구현이 더 단순한 균일 격자(uniform grid)가 오히려 낫고, 점 개수 기준으로 트리를 **항상 균형 있게** 유지하고 싶다면 k-d tree, 점이 아니라 **부피가 있는 도형**(사각형·선분)들의 집합을 다뤄야 한다면 R-tree가 더 맞습니다. quadtree는 "공간 자체를 좌표 기준으로 재귀 4등분"한다는 규칙이 고정돼 있어 구현이 단순하고 어느 영역이 어디 있는지 예측하기 쉽다는 점이 강점이에요.
+
+### 문제 사례와 적용 예시
+
+- **게임 엔진의 충돌 감지 broad-phase**: Unity의 Physics2D, Godot의 Area2D 계열은 내부적으로 공간 분할 구조로 "가까이 있을 만한 후보"만 추려낸 다음에야 정밀 충돌 검사를 합니다.
+- **지리 정보 시스템(GIS)**: "이 사각형 지도 영역 안의 상점 전부 보여줘" 같은 질의를 위한 공간 인덱스로 씁니다.
+- **이미지 압축**: 색이 균일한 영역은 통째로 두고, 색 변화가 큰 영역만 재귀적으로 4등분해 세밀하게 표현하는 quadtree 압축 기법이 있습니다.
+- **N-body 시뮬레이션(Barnes-Hut 알고리즘)**: 멀리 있는 입자 무리를 하나의 대표 질점으로 근사해 중력 계산량을 $O(n^2)$에서 $O(n \log n)$으로 줄일 때 quadtree(3D는 octree)를 씁니다.
+- **코딩 테스트 맥락**: "2D 평면에 점이 계속 추가되는데, 특정 사각형 범위 안의 점을 빠르게 세거나 나열하라"는 문제가 전형적인 quadtree 적용 대상입니다.
+
+## 자료구조 자세히 들여다보기
+
+### 전체 스펙: 속성과 액션
+
+이 가이드에서 정의하는 인터페이스는 이렇습니다.
 
 ```ts
-for (const a of objects) {
-  for (const b of objects) {
-    if (a !== b && isColliding(a, b)) handleCollision(a, b);
-  }
-}
-// O(n²) — n=1000이면 초당 60,000,000번 비교
+type Point2D = [number, number];
+type Rect = { x: number; y: number; width: number; height: number };
 ```
 
-이 방법은 화면 반대쪽에 있는 오브젝트까지 불필요하게 비교합니다.
-
-### 어떤 관찰이 돌파구가 되는가
-
-충돌은 **인접한 오브젝트 사이에서만** 발생합니다. 화면의 왼쪽 위에 있는 오브젝트와 오른쪽 아래에 있는 오브젝트는 충돌할 수 없습니다. 공간을 계층적으로 분할하면, 다른 공간에 속한 오브젝트들은 비교 대상에서 제외할 수 있습니다.
-
-### 관찰을 형식화
-
-2D 공간을 재귀적으로 4등분합니다. 각 사각형이 일정 수(`capacity`) 이상의 점을 담게 되면 NW/NE/SW/SE 4개의 자식 사각형으로 나눕니다.
-
-```
-capacity=2인 경우:
-
-초기:          점 2개 삽입:      3번째 삽입 시 4분할:
-┌──────┐       ┌──────┐          ┌───┬───┐
-│      │       │ • •  │          │ • │   │
-│      │  →    │      │    →     ├───┼───┤
-│      │       │      │          │   │ • │
-└──────┘       └──────┘          └───┴───┘
-                               (• = 점, 각 사분면이 독립 노드)
-```
-
-### 핵심 연산
-
-**subdivide (4분할):**
+**속성(내부 상태)** — 노드 하나는 다음을 가집니다.
 
 ```ts
-subdivide(): void {
-  const { x, y, width, height } = this.boundary;
-  const hw = width / 2;
-  const hh = height / 2;
-  this.nw = new Quadtree({ x,      y,      width: hw, height: hh }, this.capacity);
-  this.ne = new Quadtree({ x + hw, y,      width: hw, height: hh }, this.capacity);
-  this.sw = new Quadtree({ x,      y + hh, width: hw, height: hh }, this.capacity);
-  this.se = new Quadtree({ x + hw, y + hh, width: hw, height: hh }, this.capacity);
-  this.divided = true;
-  // 기존 점들을 자식 노드로 재배분
-  for (const p of this.points) {
-    this.nw.insert(p) || this.ne.insert(p) ||
-    this.sw.insert(p) || this.se.insert(p);
-  }
-  this.points = []; // 현재 노드의 점은 자식으로 이동
+class Quadtree {
+  boundary: Rect;              // 이 노드가 담당하는 사각형
+  capacity: number;             // 분할 없이 담을 수 있는 최대 점 수
+  maxDepth: number;             // 더 이상 분할하지 않는 깊이 한계
+  depth: number;                // 현재 노드의 깊이 (루트=0)
+  points: Point2D[];            // divided=false일 때만 값이 있음
+  divided: boolean;             // 4분할 되었는지
+  nw?: Quadtree; ne?: Quadtree; sw?: Quadtree; se?: Quadtree;
+  _size: number;                // 트리 전체 점 수 (루트에서만 의미 있게 누적)
 }
 ```
 
-**범위 겹침 검사 (intersects):**
+지켜야 할 불변식은 네 가지예요.
+
+1. **경계 소속.** 어떤 노드의 `points`에 들어 있는 점 $p=(p_x, p_y)$는 반드시 그 노드의 `boundary`$=(x, y, w, h)$ 안에 있습니다.
+   $$x \le p_x \le x + w \;\wedge\; y \le p_y \le y + h$$
+2. **용량 상한(깊이 제한 내에서).** `divided = false`이고 `depth < maxDepth`인 노드는 $|\text{points}| \le \text{capacity}$ 를 만족합니다.
+3. **4등분 분할.** `divided = true`인 노드는 자식 4개의 boundary가 부모 boundary를 정확히 4등분하며, 서로 겹치지 않고(경계선 제외) 합치면 부모 전체가 됩니다.
+   $$B = B_{nw} \cup B_{ne} \cup B_{sw} \cup B_{se}$$
+4. **size 정합성.** `_size`는 지금까지 `insert`가 `true`를 반환한 횟수와 같습니다.
+
+`capacity=2`인 트리가 점 3개를 받아 한 번 분할된 모습은 이렇습니다.
+
+```text
+boundary { x:0, y:0, w:100, h:100 }, capacity=2
+
+초기            점 2개 삽입           3번째 삽입 → 4분할
+┌──────┐        ┌──────┐              ┌───┬───┐
+│      │        │ •    │              │•• │   │   NW: (10,10),(30,30)
+│      │   →    │    • │       →      ├───┼───┤   NE: 없음
+│      │        │      │              │   │ • │   SW: 없음
+└──────┘        └──────┘              └───┴───┘   SE: (80,80)
+```
+
+**액션(연산)** — 이 자료구조가 제공하는 전부입니다.
+
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `constructor(boundary, capacity=4, maxDepth=8)` | 경계·용량·최대 깊이로 초기화 | $O(1)$ |
+| `insert(point)` | 경계 밖이면 false, 안이면 저장하거나 4분할 후 재귀 삽입 | 평균 $O(\log n)$, 최악 $O(n)$ |
+| `query(range)` | range와 겹치는 점 전부 반환, 안 겹치는 서브트리는 가지치기 | 평균 $O(\log n + k)$, 최악 $O(n)$ |
+| `size()` | 저장된 점의 총 수 | $O(1)$ |
+
+핵심 연산 두 개를 자세히 볼게요.
+
+**① subdivide — 4등분 후 재배치.** `capacity`를 초과하는 순간이 아니라, **capacity를 이미 채운 상태에서 한 번 더 삽입을 시도할 때** 호출됩니다.
+
+```text
+subdivide 직전: boundary(0,0,100,100), points=[(10,10),(80,80)], capacity=2
+
+hw = 100/2 = 50, hh = 100/2 = 50
+nw=(0,0,50,50)  ne=(50,0,50,50)
+sw=(0,50,50,50) se=(50,50,50,50)
+
+기존 점 재배치:
+(10,10) → nw.insert 성공 (0≤10≤50, 0≤10≤50)
+(80,80) → nw 실패, ne 실패, sw 실패, se 성공 (50≤80≤100, 50≤80≤100)
+
+subdivide 이후: 부모.points = [], nw.points=[(10,10)], se.points=[(80,80)]
+```
+
+**② query — 안 겹치면 서브트리 통째로 스킵.** `intersects(boundary, range)`가 겹침을 판정합니다.
 
 ```ts
-intersects(a: Rect, b: Rect): boolean {
+function intersects(a: Rect, b: Rect): boolean {
   return !(
-    b.x > a.x + a.width   ||  // b가 a의 오른쪽
-    b.x + b.width < a.x   ||  // b가 a의 왼쪽
-    b.y > a.y + a.height  ||  // b가 a의 아래쪽
-    b.y + b.height < a.y      // b가 a의 위쪽
+    b.x > a.x + a.width  ||  // b가 a의 오른쪽에 완전히 벗어남
+    b.x + b.width < a.x  ||  // b가 a의 왼쪽에 완전히 벗어남
+    b.y > a.y + a.height ||  // b가 a의 아래로 완전히 벗어남
+    b.y + b.height < a.y     // b가 a의 위로 완전히 벗어남
   );
 }
 ```
 
-### 정당성
+위 트리(`capacity=2`, `(10,10),(80,80),(30,30)` 삽입 후)에 `query({x:0,y:0,w:50,h:50})`을 실행하면:
 
-**insert 정확성:** 각 점은 자신이 속한 경계의 노드에 삽입됩니다. 분할 시 기존 점들도 올바른 자식으로 재배분되므로 점이 유실되지 않습니다.
+```text
+1단계: 루트 boundary(0,0,100,100)와 range(0,0,50,50) 겹침 → 자식 확인
+2단계: nw(0,0,50,50) 겹침 → (10,10)✓, (30,30)✓ 수집
+3단계: ne(50,0,50,50), sw(0,50,50,50) → range와 안 겹침 → 스킵
+4단계: se(50,50,50,50) → range와 "코너 한 점"에서만 맞닿아 겹침 판정(true)
+        → 하지만 se.points=[(80,80)]는 range(0,0,50,50) 내부 조건에서 탈락
+결과: [(10,10), (30,30)]   ← (80,80)은 어느 경로로도 포함되지 않는다
+```
 
-**query 정확성:** `range`와 겹치지 않는 서브트리는 가지치기됩니다. 겹치는 서브트리는 모두 탐색하므로 누락이 없습니다.
+### 왜 모순 없이 작동하는가
 
-### 구현 디테일과 최적화
+**insert가 점을 잃어버리지 않는 이유(귀납).** 빈 트리는 자명하게 불변식을 만족합니다. 어떤 시점에 불변식이 성립한다고 가정하고 `insert(point)`를 호출하면: 경계 밖이면 즉시 `false`로 끝나 불변식에 영향이 없습니다. 경계 안이고 아직 여유(`points.length < capacity`이거나 `depth ≥ maxDepth`)가 있으면 그냥 추가되어 불변식 1·2가 유지됩니다. 여유가 없으면 `subdivide()`가 호출되는데, 자식 4개의 boundary가 부모를 정확히 4등분하므로(불변식 3) 부모 안의 모든 점은 반드시 자식 중 정확히 하나에 속하고, 그 자식에 재귀적으로 삽입되어 다시 불변식 1을 만족합니다. 따라서 어떤 삽입 이후에도 전체 트리는 불변식을 유지합니다.
 
-1. **size 추적**: 삽입/실패를 추적해 O(1) size()를 구현합니다.
-2. **경계 포함 정책**: 경계선 위의 점을 일관성 있게 처리합니다 (닫힌 구간).
-3. **메모리**: 분할하지 않은 노드는 자식 참조를 null로 유지하여 메모리를 절약합니다.
+**query가 결과를 누락하지 않는 이유.** 가지치기 조건은 "`boundary`가 `range`와 안 겹치면 그 서브트리를 건너뛴다"입니다. 그 서브트리 안의 모든 점은 불변식 1에 의해 반드시 그 서브트리의 `boundary` 안에 있으므로, `boundary`가 `range`와 겹치지 않으면 그 안의 점들도 `range`와 겹칠 수 없습니다(포함 관계는 이행적입니다). 그러므로 가지치기해도 결과가 빠지지 않습니다. 반대로 겹치는 서브트리는 전부 방문해서 점 하나하나를 `range` 포함 조건으로 다시 검사하므로 거짓 양성도 없습니다.
 
----
+여기서 확인 하나만 해 볼까요? `capacity=2`인 트리에 점을 정확히 2개만 넣으면 `divided`는 `true`일까요, `false`일까요? — **`false`**입니다. `points.length`가 `capacity`와 같아진 것이지 초과한 게 아니라서, `subdivide`는 아직 호출되지 않습니다. 3번째 점을 넣으려는 시도가 들어와야 비로소 분할이 일어나요.
 
-## 시뮬레이션
+**헷갈리기 쉬운 포인트**를 세 가지 짚어 둡니다.
+
+- **"capacity를 넘으면 항상 4개의 서브트리가 있다"고 착각하기 쉽습니다.** `maxDepth`에 도달한 노드는 더 이상 분할하지 않고 capacity를 넘긴 채로 그냥 점을 계속 쌓습니다. 실제로 `capacity=1, maxDepth=8`인 트리에 같은 좌표 `(5,5)`를 1,000번 삽입하면 어딘가의 리프 노드 하나에 점 1,000개가 그대로 쌓이고, `size()`는 정확히 1000을 반환합니다 — "리프 하나에 점이 여러 개"인 상태가 버그가 아니라 설계입니다.
+- **"query 범위 밖 사분면은 무조건 가지치기된다"도 정확하지 않습니다.** `intersects`는 사각형이 **모서리 한 점에서만 맞닿아도** true를 반환합니다. 위 실행 예시에서 `range={0,0,50,50}`은 `se` 사분면의 boundary `{50,50,50,50}`과 `(50,50)` 한 점에서만 맞닿는데도 `intersects`는 겹친다고 판정해 `se`를 방문합니다. 다만 그 안의 점 `(80,80)`은 range 내부 판정에서 걸러지므로 **최종 결과에는 영향이 없습니다** — 실측: `query({0,0,50,50})` → `[[10,10],[30,30]]`.
+- **subdivide 타이밍을 "capacity 도달 즉시"로 오해하기 쉽습니다.** 실제로는 "capacity를 이미 채운 상태에서 한 번 더 삽입을 시도할 때"입니다. `capacity=2`일 때 세 번째 점 `(30,30)`을 넣는 그 순간에야 4분할이 일어나는 이유가 이것입니다.
+
+엣지 케이스를 점검해 봅시다.
+
+```text
+빈 트리에 query(어떤 range)         → []
+빈 트리에 size()                    → 0
+capacity=1, maxDepth 없이 중복 좌표 대량 삽입
+                                     → 무한 재귀 → 스택 오버플로우 (아래 코드 절 참고)
+경계 위의 점 (0,0), (100,100)       → 포함(닫힌 구간이므로 true)
+경계를 살짝 벗어난 점 (100.0001,50) → false, 저장 안 됨
+range가 boundary 전체와 정확히 일치 → 저장된 점 전부 반환
+```
+
+## 아이디어를 코드로 옮기기
+
+먼저 가장 단순한 형태부터 만들고, 어디서 문제가 생기는지 실제로 확인한 다음 고쳐보겠습니다.
+
+**원형: maxDepth 없는 버전.** 경계 확인 → 여유 있으면 저장 → 없으면 분할 후 재귀, 딱 이 규칙만 담습니다.
+
+```ts
+class QuadtreeNaive {
+  private points: Point2D[] = [];
+  private divided = false;
+  private nw?: QuadtreeNaive;
+  private ne?: QuadtreeNaive;
+  private sw?: QuadtreeNaive;
+  private se?: QuadtreeNaive;
+
+  constructor(private boundary: Rect, private capacity: number = 4) {}
+
+  private subdivide(): void {
+    const { x, y, width, height } = this.boundary;
+    const hw = width / 2;
+    const hh = height / 2;
+    this.nw = new QuadtreeNaive({ x, y, width: hw, height: hh }, this.capacity);
+    this.ne = new QuadtreeNaive({ x: x + hw, y, width: hw, height: hh }, this.capacity);
+    this.sw = new QuadtreeNaive({ x, y: y + hh, width: hw, height: hh }, this.capacity);
+    this.se = new QuadtreeNaive({ x: x + hw, y: y + hh, width: hw, height: hh }, this.capacity);
+    this.divided = true;
+    for (const p of this.points) {
+      this.nw.insert(p) || this.ne.insert(p) || this.sw.insert(p) || this.se.insert(p);
+    }
+    this.points = [];
+  }
+
+  insert(point: Point2D): boolean {
+    if (!contains(this.boundary, point)) return false;
+    if (!this.divided) {
+      if (this.points.length < this.capacity) {
+        this.points.push(point);
+        return true;
+      }
+      this.subdivide();
+    }
+    return (
+      this.nw!.insert(point) ||
+      this.ne!.insert(point) ||
+      this.sw!.insert(point) ||
+      this.se!.insert(point)
+    );
+  }
+}
+```
+
+이 버전을 `capacity=1`인 트리에 놓고 같은 좌표 `(5,5)`를 두 번만 넣어 보면 문제가 드러납니다. 두 번째 삽입에서 `subdivide`가 호출되는데, `(5,5)`는 매번 4등분된 사분면 중 정확히 하나(경계가 맞아떨어지는 쪽)에 다시 들어가고, 그 사분면도 다시 capacity를 넘겨 또 `subdivide`가 호출됩니다. 경계가 절반씩 줄어들 뿐 점의 좌표는 그대로라, 이 사분면 선택이 **끝없이 반복**됩니다. 실제로 실행하면:
+
+```text
+QuadtreeNaive({x:0,y:0,w:10,h:10}, capacity=1)에 (5,5)를 반복 삽입
+→ RangeError: Maximum call stack size exceeded
+```
+
+**개선: maxDepth 가드 추가.** 더 이상 쪼개도 소용없는 깊이에 도달하면, capacity를 넘기더라도 그냥 그 자리에 쌓아 둡니다.
+
+```ts
+class QuadtreeV2 {
+  // ...points, divided, nw/ne/sw/se는 동일...
+  constructor(
+    private boundary: Rect,
+    private capacity: number = 4,
+    private maxDepth: number = 8,
+    private depth: number = 0,
+  ) {}
+
+  insert(point: Point2D): boolean {
+    if (!contains(this.boundary, point)) return false;
+    if (!this.divided) {
+      // capacity 여유가 있거나, 더 쪼갤 수 없는 깊이면 그냥 저장
+      if (this.points.length < this.capacity || this.depth >= this.maxDepth) {
+        this.points.push(point);
+        return true;
+      }
+      this.subdivide(); // 자식 생성 시 depth + 1 전달
+    }
+    return (
+      this.nw!.insert(point) ||
+      this.ne!.insert(point) ||
+      this.sw!.insert(point) ||
+      this.se!.insert(point)
+    );
+  }
+}
+```
+
+이제 같은 시나리오(`capacity=1, maxDepth=8`)로 `(5,5)`를 1,000번 넣어도 크래시 없이 끝나고, `size()`는 정확히 1000입니다 — 깊이 8에 도달한 노드 하나가 점 1,000개를 그냥 떠안고 있는 것뿐입니다.
+
+**최종 구현.** `size()`를 O(1)로 유지하려고 삽입 성공 횟수를 세는 `insert`와, 그 안에서 재배치까지 처리하는 내부용 `insertRaw`를 분리합니다(재배치는 이미 저장된 점을 옮기는 것이라 `_size`를 다시 세면 안 되거든요).
+
+```ts
+type Point2D = [number, number];
+type Rect = { x: number; y: number; width: number; height: number };
+
+function contains(boundary: Rect, p: Point2D): boolean {
+  const [px, py] = p;
+  return (
+    px >= boundary.x &&
+    px <= boundary.x + boundary.width &&
+    py >= boundary.y &&
+    py <= boundary.y + boundary.height
+  );
+}
+
+function intersects(a: Rect, b: Rect): boolean {
+  return !(
+    b.x > a.x + a.width ||
+    b.x + b.width < a.x ||
+    b.y > a.y + a.height ||
+    b.y + b.height < a.y
+  );
+}
+
+class Quadtree {
+  private points: Point2D[] = [];
+  private divided = false;
+  private nw?: Quadtree;
+  private ne?: Quadtree;
+  private sw?: Quadtree;
+  private se?: Quadtree;
+  private _size = 0;
+
+  constructor(
+    private boundary: Rect,
+    private capacity: number = 4,
+    private maxDepth: number = 8,
+    private depth: number = 0,
+  ) {}
+
+  private subdivide(): void {
+    const { x, y, width, height } = this.boundary;
+    const hw = width / 2;
+    const hh = height / 2;
+    const nextDepth = this.depth + 1;
+    this.nw = new Quadtree({ x, y, width: hw, height: hh }, this.capacity, this.maxDepth, nextDepth);
+    this.ne = new Quadtree({ x: x + hw, y, width: hw, height: hh }, this.capacity, this.maxDepth, nextDepth);
+    this.sw = new Quadtree({ x, y: y + hh, width: hw, height: hh }, this.capacity, this.maxDepth, nextDepth);
+    this.se = new Quadtree({ x: x + hw, y: y + hh, width: hw, height: hh }, this.capacity, this.maxDepth, nextDepth);
+    this.divided = true;
+    for (const p of this.points) {
+      this.nw.insertRaw(p) || this.ne.insertRaw(p) || this.sw.insertRaw(p) || this.se.insertRaw(p);
+    }
+    this.points = [];
+  }
+
+  private insertRaw(point: Point2D): boolean {
+    if (!contains(this.boundary, point)) return false;
+    if (!this.divided) {
+      if (this.points.length < this.capacity || this.depth >= this.maxDepth) {
+        this.points.push(point);
+        return true;
+      }
+      this.subdivide();
+    }
+    return (
+      this.nw!.insertRaw(point) ||
+      this.ne!.insertRaw(point) ||
+      this.sw!.insertRaw(point) ||
+      this.se!.insertRaw(point)
+    );
+  }
+
+  insert(point: Point2D): boolean {
+    const ok = this.insertRaw(point);
+    if (ok) this._size++;
+    return ok;
+  }
+
+  query(range: Rect): Point2D[] {
+    const result: Point2D[] = [];
+    if (!intersects(this.boundary, range)) return result;
+    for (const p of this.points) {
+      if (contains(range, p)) result.push(p);
+    }
+    if (this.divided) {
+      result.push(...this.nw!.query(range));
+      result.push(...this.ne!.query(range));
+      result.push(...this.sw!.query(range));
+      result.push(...this.se!.query(range));
+    }
+    return result;
+  }
+
+  size(): number {
+    return this._size;
+  }
+}
+```
+
+가장 중요한 부분은 `insertRaw`의 첫 번째 `if` 줄입니다.
+
+```ts
+if (this.points.length < this.capacity || this.depth >= this.maxDepth) {
+```
+
+- **`||` 뒤의 `depth >= maxDepth`를 빼먹으면** 원형과 똑같이 무한 재귀 위험이 되살아납니다. 이 한 조건이 "언젠가는 재귀가 멈춘다"를 보장하는 전부예요.
+- **`subdivide` 안에서 기존 점을 재배치할 때는 반드시 `insertRaw`를 써야 합니다.** `insert`를 쓰면 이미 저장돼 있던 점을 옮기는 것뿐인데도 `_size`가 또 올라가 실제 점 개수보다 커지는 이중 카운팅 버그가 생깁니다.
+- **`this.nw!.insertRaw(point) || ...` 네 줄의 순서(nw→ne→sw→se)** 는 결과에는 영향이 없지만(정확히 하나의 자식만 `contains`를 통과하므로), 코드 전체에서 항상 같은 순서를 쓰는 것이 트레이스를 예측하기 쉽게 만듭니다.
+
+> 기억법: "**여유 있으면 쌓고, 안 되면 쪼갠다 — 단, 바닥(maxDepth)까지 가면 그냥 쌓는다.**"
+
+## 실행 시각화
+
+고정 입력으로 `capacity=2`, `boundary={x:0,y:0,width:100,height:100}`인 트리에 `(10,10)`, `(80,80)`, `(30,30)`을 순서대로 삽입하면 세 번째 삽입에서 4분할이 일어나고(`(10,10)`·`(30,30)`은 `nw`로, `(80,80)`은 `se`로), 이어서 `query({x:0,y:0,width:50,height:50})`을 실행하면 `nw` 사분면의 두 점만 결과로 나옵니다(실측: `[[10,10],[30,30]]`). array 패널은 그 시점까지 저장된 점들의 좌표 목록을 보여줍니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -146,7 +409,7 @@ export const steps = [
   },
   {
     title: "query({ x:0, y:0, w:50, h:50 })",
-    detail: "범위가 NW와 겹침 → NW 탐색: (10,10)✓, (30,30)✓. 범위가 SE와 안겹침 → SE 생략. 결과: [(10,10), (30,30)]",
+    detail: "범위가 NW와 겹침 → NW 탐색: (10,10)✓, (30,30)✓. 범위가 SE와 코너에서만 맞닿음 → SE의 (80,80)은 범위 내부 조건에서 탈락. 결과: [(10,10), (30,30)]",
     array: [[10, 10], [30, 30]],
     highlight: [0, 1],
     marked: [],
@@ -155,81 +418,8 @@ export const steps = [
 
 <AlgorithmSimulation view="array" steps={steps} title="Quadtree 삽입과 4분할" />
 
----
+## 스스로 점검하기
 
-## 수도 코드와 Activity Diagram
-
-### 의사코드
-
-```
-Quadtree.insert(point):
-  if point not in boundary: return false
-  if not divided:
-    if points.length < capacity:
-      points.push(point)
-      size += 1
-      return true
-    else:
-      subdivide()
-  // 자식 노드 중 하나에 삽입
-  if nw.insert(point): size += 1; return true
-  if ne.insert(point): size += 1; return true
-  if sw.insert(point): size += 1; return true
-  if se.insert(point): size += 1; return true
-  return false  // 도달하면 안 되는 경우
-
-Quadtree.subdivide():
-  hw ← boundary.width / 2
-  hh ← boundary.height / 2
-  nw ← new Quadtree(NW 경계, capacity)
-  ne ← new Quadtree(NE 경계, capacity)
-  sw ← new Quadtree(SW 경계, capacity)
-  se ← new Quadtree(SE 경계, capacity)
-  divided ← true
-  for each p in points: 재배분(p)
-  points ← []
-
-Quadtree.query(range):
-  if not intersects(boundary, range): return []
-  result ← []
-  for each p in points:
-    if p in range: result.push(p)
-  if divided:
-    result += nw.query(range)
-    result += ne.query(range)
-    result += sw.query(range)
-    result += se.query(range)
-  return result
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A[insert 시작] --> B{점이 boundary 내?}
-  B -- 아니오 --> Z[false 반환]
-  B -- 예 --> C{divided?}
-  C -- 아니오 --> D{points.length < capacity?}
-  D -- 예 --> E[현재 노드에 저장]
-  E --> F[size++ → true 반환]
-  D -- 아니오 --> G[subdivide 호출]
-  G --> H[자식 노드에 재귀 삽입]
-  C -- 예 --> H
-  H --> I{삽입 성공?}
-  I -- 예 --> F
-  I -- 아니오 --> Z
-```
-
-```mermaid
-flowchart TD
-  A[query 시작] --> B{boundary와 range가 겹침?}
-  B -- 아니오 --> Z[빈 배열 반환]
-  B -- 예 --> C[현재 노드 points에서 range 내 점 수집]
-  C --> D{divided?}
-  D -- 아니오 --> Z2[결과 반환]
-  D -- 예 --> E[nw.query 재귀]
-  E --> F[ne.query 재귀]
-  F --> G[sw.query 재귀]
-  G --> H[se.query 재귀]
-  H --> Z2
-```
+1. 위 시뮬레이션의 마지막 상태(`nw=[(10,10),(30,30)]`, `se=[(80,80)]`)에서 점 `(20,20)`을 하나 더 삽입하면 어느 사분면에 들어갈까요? 그 후 `query({x:0,y:0,width:50,height:50})`을 실행하면 결과가 어떻게 바뀌는지 손으로 따라가 보세요.
+2. `insertRaw`에서 `depth >= maxDepth` 조건을 빼고 실행하면 어떤 입력에서, 왜 스택 오버플로우가 나는지 본문의 원형 코드를 근거로 설명해 보세요.
+3. `subdivide()` 안에서 기존 점을 재배치할 때 `insertRaw` 대신 `insert`를 쓰면 `size()`가 실제 점 개수와 어떻게 어긋나는지, 구체적인 숫자 예시로 보여 보세요.

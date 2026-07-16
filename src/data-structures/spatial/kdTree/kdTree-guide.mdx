@@ -1,124 +1,293 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# KDTree (K-D 트리) 해설
+# KDTree — 축을 번갈아 쪼개어 먼 공간을 통째로 버리는 트리
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | Naive (선형 탐색) | KDTree (평균) | KDTree (최악) |
-|------|-----------------|--------------|--------------|
-| insert | O(1) | O(log n) | O(n) |
-| nearestNeighbor | O(n) | O(log n) | O(n) |
-| rangeSearch | O(n) | O(√n + k) | O(n) |
-| 공간 | O(n) | O(n) | O(n) |
+2차원 점들을 이진 트리로 저장하되, 레벨마다 분할 기준 축을 x, y로 번갈아 가며 바꾸는 자료구조예요. 비결은 "분할선까지의 거리"만으로 공간 전체를 가지치기(pruning)할 수 있다는 것입니다 — 지금까지 찾은 최선의 거리보다 분할선이 멀리 있다면, 그 너머 공간은 확인할 필요조차 없습니다. 덕분에 평균적으로 최근접 이웃 탐색은 $O(\log n)$, 범위 검색은 $O(\sqrt n + k)$에 끝납니다.
 
-n=10^4 기준으로 nearestNeighbor는 Naive 대비 약 **1,000배** 빠릅니다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호가 보이면 K-D 트리를 떠올리세요.
 
-| 메서드 | 시그니처 | 설명 |
-|--------|---------|------|
-| `constructor` | `(points?: Point2D[])` | 중앙값 분할로 균형 트리 초기 구성 |
-| `insert` | `(point: Point2D): void` | 리프 노드에 삽입 |
-| `nearestNeighbor` | `(query: Point2D): Point2D \| undefined` | 유클리드 최근접 점 반환 |
-| `rangeSearch` | `(min: Point2D, max: Point2D): Point2D[]` | 직사각형 범위 내 모든 점 반환 |
-| `size` | `(): number` | 저장된 점 수 반환 |
+- "가장 가까운 점 하나"를 반복해서 찾아야 한다(최근접 이웃, nearest neighbor)
+- "이 사각형 범위 안의 점을 전부" 찾아야 한다(범위 검색, range search)
+- 점의 개수가 많아서($n = 10^4$~$10^6$) 매번 전부 훑는 게 부담스럽다
 
----
+naive(선형 탐색)와 비교하면 체감이 확실합니다.
 
-## 핵심 아이디어
+```text
+                 naive(선형)   KDTree(평균)   KDTree(최악)
+insert           O(1)          O(log n)       O(n)
+nearestNeighbor  O(n)          O(log n)       O(n)
+rangeSearch      O(n)          O(√n + k)      O(n)
+```
 
-### 원형 아이디어와 naive 접근
+$n = 10^4$ 기준으로 $\dfrac{n}{\log_2 n} \approx \dfrac{10000}{13.29} \approx 750$ — nearestNeighbor 한 번을 naive 대비 약 **750배** 빠르게 끝낼 수 있다는 뜻입니다.
 
-"내 위치에서 가장 가까운 점 찾기"를 가장 단순하게 구현하면:
+비슷한 문제를 푸는 다른 구조와 비교하면 선택 기준이 보입니다: 데이터가 **거의 바뀌지 않고 1차원**이면 정렬 배열 + 이진 탐색으로 충분합니다. 데이터가 계속 삽입·삭제되거나 차원이 2개 이상이면 K-D 트리가 유리합니다. 다만 차원이 매우 높아지면(예: 수십 차원) "차원의 저주"로 가지치기 효과가 사라져 선형 탐색과 다를 바 없어지는데, 그 경우엔 근사 최근접 이웃(LSH 등)을 고려하는 것이 낫습니다.
+
+### 문제 사례와 적용 예시
+
+- **지도 앱의 "내 주변 카페 찾기"**: 현재 위치에서 가장 가까운 매장을 nearestNeighbor 한 번으로 찾습니다.
+- **게임 엔진의 충돌·근접 감지**: 화면 안 오브젝트들 중 서로 가까운 것들만 골라내는 공간 파티셔닝에 K-D 트리 계열이 쓰입니다.
+- **컴퓨터 비전의 특징점 매칭**: 이미지에서 뽑은 특징 벡터들 사이의 k-최근접 이웃 검색에 K-D 트리가 표준적으로 쓰입니다(FLANN 라이브러리 등).
+- **코딩 테스트 맥락**: "점 집합에서 특정 위치와 가장 가까운 점을 구하라", "직사각형 범위 안의 점 개수를 구하라" 류 문제의 정답 구조입니다.
+
+## 자료구조 자세히 들여다보기
+
+### 전체 스펙: 속성과 액션
+
+이 가이드에서는 다음 인터페이스로 통일합니다.
 
 ```ts
+type Point2D = [number, number];
+
+interface KDNode {
+  point: Point2D;
+  left: KDNode | null;
+  right: KDNode | null;
+}
+```
+
+`KDTree`는 `root: KDNode | null`과 저장된 점 개수 `_size: number`를 유지합니다. 지켜야 할 불변식은 세 가지입니다.
+
+1. **분할 축은 깊이로 결정됩니다.** 깊이 $d$인 노드의 분할 축은 $\text{axis}(d) = d \bmod 2$ — 짝수 깊이는 x축(0), 홀수 깊이는 y축(1)입니다.
+2. **분할이 순서를 보존합니다.** 깊이 $d$, 축 $a = \text{axis}(d)$인 노드에서, 왼쪽 서브트리의 모든 점 $p$는 $p[a] \leq \text{node.point}[a]$를, 오른쪽 서브트리의 모든 점 $p$는 $p[a] \geq \text{node.point}[a]$를 만족합니다(등호가 양쪽에 걸쳐 있는 이유는 좌표 중복 때문입니다 — 아래에서 다시 다룹니다).
+3. **`_size`는 항상 트리에 있는 노드 수와 같습니다.**
+
+균형 구성 직후에는 매 레벨에서 점이 반씩 나뉘므로 높이 $h = O(\log n)$입니다. 6개의 점 `(2,3), (5,4), (9,6), (4,7), (8,1), (7,2)`로 구성한 트리를 그려보면 이렇습니다.
+
+```text
+깊이0 (x축 분할):                (7,2)
+                                /      \
+깊이1 (y축 분할):           (5,4)      (9,6)
+                            /    \      /
+깊이2 (x축 분할):       (2,3) (4,7) (8,1)
+```
+
+**액션(연산)** 은 다섯 가지입니다.
+
+| 연산 | 하는 일 | 비용 |
+|------|---------|------|
+| `constructor(points)` | 중앙값 분할로 균형 트리 초기 구성 | $O(n \log n)$ |
+| `insert(point)` | 축을 번갈아 비교하며 리프에 삽입 | $O(\log n)$ 평균, $O(n)$ 최악 |
+| `nearestNeighbor(query)` | 가까운 서브트리 우선 탐색 + 분할선 가지치기 | $O(\log n)$ 평균, $O(n)$ 최악 |
+| `rangeSearch(min, max)` | 범위와 겹치는 서브트리만 재귀 수집 | $O(\sqrt n + k)$ 평균 |
+| `size()` | 저장된 점의 수 | $O(1)$ |
+
+핵심 연산 두 개를 자세히 볼게요.
+
+**① 초기 구성 — "중앙값을 루트로, 나머지는 재귀".** 정렬 후 중앙값 인덱스의 점을 노드로 삼고, 나머지를 반씩 좌우 서브트리로 넘깁니다.
+
+```text
+Before: 정렬 안 된 점들
+  [(2,3), (5,4), (9,6), (4,7), (8,1), (7,2)]
+
+x축(깊이0) 기준 정렬:
+  [(2,3), (4,7), (5,4), (7,2), (8,1), (9,6)]
+                          ↑ mid = ⌊6/2⌋ = 3
+
+After: 루트 = (7,2), 왼쪽 = [(2,3),(4,7),(5,4)], 오른쪽 = [(8,1),(9,6)]
+```
+
+**② nearestNeighbor — "가까운 쪽 먼저, 분할선까지 거리로 반대쪽 판단".** 쿼리 `(9, 2)`로 위 트리를 탐색해 봅니다(거리는 제곱 유클리드 거리, $\text{sqDist}$로 비교합니다 — `Math.sqrt`를 피해 성능을 아낍니다).
+
+```text
+루트 (7,2): sqDist = (9-7)² + (2-2)² = 4         best = (7,2), 4
+  axis=x, diff = 9-7 = 2 > 0 → 가까운 쪽 = 오른쪽 (9,6)
+
+  (9,6): sqDist = (9-9)² + (2-6)² = 16            best 갱신 안 됨 (16 ≥ 4)
+    axis=y, diff = 2-6 = -4 → 가까운 쪽 = 왼쪽 (8,1)
+
+    (8,1): sqDist = (9-8)² + (2-1)² = 2            best 갱신! best = (8,1), 2
+      먼 쪽(오른쪽) = null → 더 볼 것 없음
+
+    되돌아와서 먼 쪽(오른쪽) = null → 가지치기 자체가 불필요
+
+  되돌아와서 먼 쪽(왼쪽 서브트리, 루트 기준) 확인:
+    diff² = 2² = 4,  best.dist = 2  →  4 < 2 는 거짓 → 가지치기! 왼쪽 서브트리 (5,4)는 건너뜀
+
+최종: best = (8,1), 거리 = √2
+```
+
+가지치기 조건은 "분할선까지의 거리 제곱($diff^2$)이 현재 최선의 거리 제곱보다 작을 때만 반대쪽을 본다"는 것입니다. 왜 이게 안전한지는 다음 절에서 증명합니다.
+
+### 왜 모순 없이 작동하는가
+
+**분할 불변식(2번)이 유지되는 이유**는 귀납으로 볼 수 있습니다. 기저 사례: 점이 0개면 트리가 `null`이라 자명하게 불변식을 만족합니다. 귀납 단계: 점이 $k$개인 배열을 정렬해 중앙값을 노드로 뽑으면, 정의상 왼쪽 절반 배열의 모든 값은 중앙값 이하, 오른쪽 절반은 중앙값 이상입니다. 왼쪽·오른쪽 절반은 각각 $k$보다 작은 개수이므로 귀납 가정에 의해 재귀 호출 결과도 불변식을 만족합니다. `insert`가 이 불변식을 깨지 않으려면, 삽입 경로에서의 비교 연산자가 `build`가 쓰는 분할 규칙과 **정확히 같은 방향**이어야 합니다 — 이 가이드에서는 `point[axis] < node.point[axis]`이면 왼쪽, 그렇지 않으면(같거나 크면) 오른쪽으로 정했습니다. `build`가 왼쪽을 "이하", 오른쪽을 "이상"으로 나누는 것과 일치하는 선택입니다.
+
+**가지치기가 정답을 보존하는 이유**는 삼각부등식으로 설명됩니다. 깊이 $d$, 축 $a$인 노드에서 분할선은 "축 $a$ 값이 `node.point[a]`인 초평면"입니다. 쿼리에서 이 초평면까지의 거리는 $|diff| = |\text{query}[a] - \text{node.point}[a]|$이고, 반대쪽 영역에 있는 어떤 점이든 쿼리로부터의 거리는 **최소** $|diff|$ 이상입니다(초평면을 넘어가야 하니까요). 그러므로 현재 최선 거리가 이미 $|diff|$보다 작거나 같다면, 반대쪽에서 그보다 가까운 점이 나올 수 없습니다 — 안 봐도 됩니다.
+
+**여기서 헷갈리기 쉬운 포인트**가 두 가지 있습니다.
+
+- **"가까운 서브트리만 보고 멈추면 된다"는 착각입니다.** 가까운 쪽을 먼저 보는 것은 맞지만, 본 뒤에는 **반드시** 분할선 거리와 현재 최선을 비교해서 반대쪽도 검토해야 합니다. 이 확인을 건너뛰면 정답이 아예 틀립니다. 위 트레이스에서 만약 "가까운 서브트리(오른쪽, (9,6))를 방문한 뒤 그 자식(8,1)까지 내려가지 않고 멈춘다"는 실수를 하면, `nearestNeighbor([9,2])`가 거리 2인 `(7,2)`를 답으로 내놓습니다. 하지만 실제 정답은 거리 $\sqrt 2 \approx 1.414$인 `(8,1)`입니다 — (9,6)의 가까운 자식인 (8,1)은 "가까운 쪽"이므로 조건 없이 항상 방문해야 하는 노드이기 때문입니다.
+- **`rangeSearch`에서 "서브트리를 방문한다"와 "점이 결과에 포함된다"는 다른 이야기입니다.** 예를 들어 `rangeSearch([4,1], [9,5])`를 실행하면 `(4,7)`, `(2,3)`, `(9,6)` 노드도 방문은 하지만(분할선이 범위와 겹치므로 서브트리를 내려가긴 함), 각 점 자체는 범위를 벗어나 결과엔 들어가지 않습니다(`(4,7)`은 $y=7 > 5$, `(2,3)`은 $x=2 < 4$, `(9,6)`은 $y=6>5$). 최종 결과는 `[(7,2), (5,4), (8,1)]`뿐입니다.
+
+확인 질문 하나만 짚고 갈게요 — 위 트리에서 `rangeSearch([4,1],[9,5])`가 왼쪽 서브트리 `(5,4)`를 방문하는 이유는 뭘까요? 답: 분할 축(x, 깊이0)에서 `min[0]=4 ≤ node.point[0]=7`이 성립하기 때문입니다. 범위의 하한이 분할값 이하이면 왼쪽에도 겹칠 여지가 있으므로 반드시 내려가 봐야 합니다.
+
+엣지 케이스를 점검해 봅니다.
+
+```text
+빈 트리(points 없음)         → nearestNeighbor: undefined, rangeSearch: [], size: 0
+점 1개                       → 항상 그 점이 최근접 이웃, 범위 안이면 [그 점] 밖이면 []
+좌표 중복 (1,1), (1,1), (1,2) → build는 정상 동작(불변식이 "이하/이상"이라 중복 허용)
+쿼리가 저장된 점과 정확히 일치 → sqDist = 0, 그 점 자신이 최근접 이웃
+```
+
+## 아이디어를 코드로 옮기기
+
+가장 단순한 원형은 "그냥 다 훑어서 제일 가까운 점을 찾는다"입니다.
+
+```ts
+type Point2D = [number, number];
+
+function sqDist(a: Point2D, b: Point2D): number {
+  const dx = a[0] - b[0];
+  const dy = a[1] - b[1];
+  return dx * dx + dy * dy;
+}
+
+// 원형: O(n) — 점이 많아지면 매 쿼리마다 전부 훑어야 한다
 function naiveNearest(points: Point2D[], query: Point2D): Point2D {
-  return points.reduce((best, p) =>
-    dist(p, query) < dist(best, query) ? p : best
-  );
+  let best = points[0]!;
+  let bestDist = sqDist(best, query);
+  for (const p of points) {
+    const d = sqDist(p, query);
+    if (d < bestDist) {
+      bestDist = d;
+      best = p;
+    }
+  }
+  return best;
 }
 ```
 
-이 방법은 O(n)입니다. 점이 100만 개면 매 쿼리마다 100만 번 비교해야 합니다.
-
-### 어떤 관찰이 돌파구가 되는가
-
-공간에는 **구조**가 있습니다. 쿼리 점이 (3, 5)이고 현재까지 찾은 최선 거리가 2라면, x좌표가 10 이상인 모든 점은 확인할 필요가 없습니다. 분할선까지의 거리만으로 가지치기(pruning)가 가능합니다.
-
-### 관찰을 형식화
-
-2차원 공간을 이진 트리로 표현합니다:
-- **짝수 레벨(0, 2, 4, ...)**: x축 기준 분할
-- **홀수 레벨(1, 3, 5, ...)**: y축 기준 분할
-
-각 노드는 해당 점을 기준으로 공간을 두 반평면으로 나눕니다.
-
-```
-레벨 0 (x축 기준):  점 (7, 2)로 분할
-                    x < 7 → 왼쪽, x >= 7 → 오른쪽
-
-레벨 1 (y축 기준):  점 (5, 4)로 분할 (왼쪽 서브트리)
-                    y < 4 → 왼쪽, y >= 4 → 오른쪽
-```
-
-### 핵심 연산
-
-**초기 구성 (균형 트리):**
-중앙값 인덱스의 점을 루트로 삼으면 왼쪽과 오른쪽의 점 수가 균등해져 트리 높이가 O(log n)이 됩니다.
+**개선 1단계: 트리로 나누기만 하고 가지치기는 안 하기.** 축을 번갈아 분할하는 이진 트리를 만들어도, 매번 양쪽 서브트리를 전부 내려가 버리면 트리로 나눈 의미가 없습니다 — 정확하긴 하지만 여전히 $O(n)$입니다.
 
 ```ts
-function build(points: Point2D[], depth: number): KDNode | null {
-  if (points.length === 0) return null;
-  const axis = depth % 2; // 0 = x, 1 = y
-  points.sort((a, b) => a[axis] - b[axis]);
-  const mid = Math.floor(points.length / 2);
-  return {
-    point: points[mid],
-    left: build(points.slice(0, mid), depth + 1),
-    right: build(points.slice(mid + 1), depth + 1),
-  };
+// 개선 1단계: 트리 구조는 생겼지만 아직 가지치기가 없다 (여전히 O(n) 최악)
+function searchNoPruning(node: KDNode | null, query: Point2D, depth: number, best: { point: Point2D; dist: number }): void {
+  if (node === null) return;
+  const d = sqDist(node.point, query);
+  if (d < best.dist) { best.point = node.point; best.dist = d; }
+  searchNoPruning(node.left, query, depth + 1, best);   // 양쪽 다 무조건 내려간다
+  searchNoPruning(node.right, query, depth + 1, best);  // → 가지치기 이득이 없다
 }
 ```
 
-**최근접 이웃 탐색:**
+**최종: 분할선 거리로 반대쪽을 가지치기.** "가까운 쪽 먼저 → 분할선 거리가 현재 최선보다 가까울 때만 반대쪽"이라는 조건 하나만 추가하면 평균 $O(\log n)$이 됩니다.
 
 ```ts
-function nearest(node, query, depth, best):
-  if node is null: return best
-  
-  d = euclideanDist(node.point, query)
-  if d < best.dist:
-    best = { point: node.point, dist: d }
-  
-  axis = depth % 2
-  diff = query[axis] - node.point[axis]
-  
-  // 가까운 서브트리 먼저 탐색
-  [near, far] = diff <= 0 ? [node.left, node.right] : [node.right, node.left]
-  best = nearest(near, query, depth + 1, best)
-  
-  // 분할선까지의 거리가 현재 최선보다 가까우면 반대쪽도 탐색
-  if diff * diff < best.dist:
-    best = nearest(far, query, depth + 1, best)
-  
-  return best
+interface KDNode {
+  point: Point2D;
+  left: KDNode | null;
+  right: KDNode | null;
+}
+
+class KDTree {
+  private root: KDNode | null = null;
+  private _size = 0;
+
+  constructor(points: Point2D[] = []) {
+    this.root = this.build(points.slice(), 0);
+    this._size = points.length;
+  }
+
+  private build(points: Point2D[], depth: number): KDNode | null {
+    if (points.length === 0) return null;
+    const axis = depth % 2;
+    points.sort((a, b) => a[axis] - b[axis]);
+    const mid = Math.floor(points.length / 2);
+    return {
+      point: points[mid]!,
+      left: this.build(points.slice(0, mid), depth + 1),
+      right: this.build(points.slice(mid + 1), depth + 1),
+    };
+  }
+
+  insert(point: Point2D): void {
+    this.root = this.insertNode(this.root, point, 0);
+    this._size++;
+  }
+
+  private insertNode(node: KDNode | null, point: Point2D, depth: number): KDNode {
+    if (node === null) return { point, left: null, right: null };
+    const axis = depth % 2;
+    if (point[axis] < node.point[axis]) {
+      node.left = this.insertNode(node.left, point, depth + 1);
+    } else {
+      node.right = this.insertNode(node.right, point, depth + 1);
+    }
+    return node;
+  }
+
+  nearestNeighbor(query: Point2D): Point2D | undefined {
+    let best: { point: Point2D; dist: number } | undefined;
+
+    const search = (node: KDNode | null, depth: number): void => {
+      if (node === null) return;
+      const d = sqDist(node.point, query);
+      if (best === undefined || d < best.dist) {
+        best = { point: node.point, dist: d };
+      }
+      const axis = depth % 2;
+      const diff = query[axis] - node.point[axis];
+      const near = diff <= 0 ? node.left : node.right;
+      const far = diff <= 0 ? node.right : node.left;
+      search(near, depth + 1);              // 가까운 쪽은 조건 없이 방문
+      if (diff * diff < best!.dist) {        // 가장 중요한 줄: 이 조건이 곧 가지치기 전부
+        search(far, depth + 1);
+      }
+    };
+
+    search(this.root, 0);
+    return best?.point;
+  }
+
+  rangeSearch(min: Point2D, max: Point2D): Point2D[] {
+    const result: Point2D[] = [];
+    const inRange = (p: Point2D) =>
+      p[0] >= min[0] && p[0] <= max[0] && p[1] >= min[1] && p[1] <= max[1];
+
+    const collect = (node: KDNode | null, depth: number): void => {
+      if (node === null) return;
+      if (inRange(node.point)) result.push(node.point);
+      const axis = depth % 2;
+      if (min[axis] <= node.point[axis]) collect(node.left, depth + 1);
+      if (max[axis] >= node.point[axis]) collect(node.right, depth + 1);
+    };
+
+    collect(this.root, 0);
+    return result;
+  }
+
+  size(): number {
+    return this._size;
+  }
+}
 ```
 
-### 정당성
+가장 중요한 부분은 `nearestNeighbor` 안의 `if (diff * diff < best!.dist)` 한 줄입니다. 이 줄이 없으면 "개선 1단계"로 퇴화해 매번 양쪽을 다 봅니다. 반대로 이 줄의 방향을 실수로 뒤집거나(`>`로 쓰거나), `near` 방문 자체를 생략하면 — 앞 절에서 본 것처럼 `nearestNeighbor([9,2])`가 정답 `(8,1)` 대신 `(7,2)`를 내놓는 식으로 아예 틀린 답이 나옵니다.
 
-최근접 이웃 탐색의 정확성은 **분할선 가지치기 조건**에 의해 보장됩니다. 분할선까지의 최소 거리(`|diff|`)가 현재 최선 거리보다 크다면, 반대쪽 서브트리에 있는 어떤 점도 현재 최선보다 가까울 수 없습니다. 이는 유클리드 거리의 삼각 부등식으로 증명됩니다.
+구현에서 놓치기 쉬운 지점을 두 가지만 더 짚습니다.
 
-### 구현 디테일과 최적화
+- **`insert`의 비교 연산자(`<`)는 `build`의 분할 규칙과 반드시 같은 방향이어야 합니다.** `build`는 정렬 후 왼쪽을 "중앙값 이하"로 나누므로, `insert`도 "작으면 왼쪽, 아니면(같거나 크면) 오른쪽"으로 맞췄습니다. 방향이 어긋나면 나중에 같은 좌표를 검색할 때 엉뚱한 서브트리를 내려가게 됩니다.
+- **거리는 제곱값(`sqDist`)으로 비교합니다.** `Math.sqrt`는 단조 증가 함수라 대소 비교에는 필요 없고, 매 노드마다 호출하면 그만큼 느려집니다.
 
-1. **거리 비교 시 제곱 사용**: `Math.sqrt`를 피해 `dist²` 비교로 성능 향상
-2. **insert 시 깊이 추적**: 삽입 경로에서 현재 깊이를 전달해 축 방향 결정
-3. **배열 슬라이싱 대신 인덱스 사용**: 초기 구성 시 메모리 할당 최소화
+기억법: "가까운 쪽은 묻지도 따지지도 않고, 먼 쪽은 분할선 거리부터 재보고."
 
----
+## 실행 시각화
 
-## 시뮬레이션
+고정 입력은 `(2,3), (5,4), (9,6), (4,7), (8,1), (7,2)` 여섯 점입니다. 위 코드로 트리를 구성하면 루트는 `(7,2)`, 왼쪽 서브트리 루트는 `(5,4)`, 오른쪽 서브트리 루트는 `(9,6)`이 됩니다. 이어서 `nearestNeighbor([9,2])`를 실행하면 실제 반환값은 `(8,1)`(제곱거리 2, 즉 유클리드 거리 √2)입니다. array 패널은 각 단계에서 다루는 점들의 목록을 보여주고, `highlight`는 그 단계에서 방문 중인 노드, `marked`는 그 시점의 최선 후보(또는 확정된 노드)를 가리킵니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -150,90 +319,34 @@ export const steps = [
     marked: [1],
   },
   {
-    title: "nearestNeighbor([9,2]) 탐색",
-    detail: "쿼리 (9,2). 루트 (7,2): 거리=2. x>=7이므로 오른쪽 탐색 → (9,6): 거리=4. 왼쪽도 |9-7|=2 < 현재 best=2 아니므로 생략. 최종: (7,2)",
-    array: [[7,2], [9,6], [8,1]],
+    title: "nearestNeighbor([9,2]) — 루트 방문",
+    detail: "쿼리 (9,2). 루트 (7,2)와의 제곱거리 = 4. best = (7,2). axis=x, diff = 9-7 = 2 > 0 → 가까운 쪽은 오른쪽 서브트리 (9,6).",
+    array: [[7,2], [9,6], [5,4]],
+    highlight: [0],
+    marked: [0],
+  },
+  {
+    title: "가까운 서브트리 하강 — (9,6) 경유 (8,1)에서 best 갱신",
+    detail: "(9,6)과의 제곱거리 = 16 → best 그대로. axis=y, diff = 2-6 = -4 → 가까운 쪽은 왼쪽 자식 (8,1). (8,1)과의 제곱거리 = 2 → best 갱신! best = (8,1), dist = 2.",
+    array: [[9,6], [8,1]],
+    highlight: [1],
+    marked: [1],
+  },
+  {
+    title: "가지치기 확인 — 왼쪽 서브트리 생략, 최종 결과 (8,1)",
+    detail: "루트로 복귀. diff² = 2² = 4, best.dist = 2 → 4 < 2는 거짓이므로 왼쪽 서브트리 (5,4)는 가지치기. 최종 nearestNeighbor([9,2]) = (8,1), 거리 √2.",
+    array: [[8,1], [5,4]],
     highlight: [0],
     marked: [0],
   },
 ];
 
-<AlgorithmSimulation view="array" steps={steps} title="K-D 트리 구성 및 탐색" />
+<AlgorithmSimulation view="array" steps={steps} title="K-D 트리 구성 및 최근접 이웃 탐색" />
 
----
+정리하면, K-D 트리는 "축을 번갈아 분할해 절반씩 줄이는 구조"와 "분할선 거리로 반대쪽을 가지치기하는 탐색"이 함께 맞물려야 목표 복잡도가 나옵니다. 균형 구성만 있고 가지치기가 없으면 개선 1단계처럼 여전히 $O(n)$이고, 가지치기 조건 한 줄이 있어야 비로소 평균 $O(\log n)$의 nearestNeighbor와 $O(\sqrt n + k)$의 rangeSearch가 완성됩니다.
 
-## 수도 코드와 Activity Diagram
+## 스스로 점검하기
 
-### 의사코드
-
-```
-KDTree.build(points, depth):
-  if points is empty: return null
-  axis ← depth mod 2
-  sort points by points[axis]
-  mid ← floor(len(points) / 2)
-  node.point ← points[mid]
-  node.left ← build(points[0..mid-1], depth+1)
-  node.right ← build(points[mid+1..end], depth+1)
-  return node
-
-KDTree.nearestNeighbor(query):
-  best ← { point: null, dist: ∞ }
-  search(root, 0, best)
-  return best.point
-
-search(node, depth, best):
-  if node is null: return
-  d ← dist²(node.point, query)
-  if d < best.dist: best ← { node.point, d }
-  axis ← depth mod 2
-  diff ← query[axis] - node.point[axis]
-  near ← diff <= 0 ? node.left : node.right
-  far  ← diff <= 0 ? node.right : node.left
-  search(near, depth+1, best)
-  if diff² < best.dist:
-    search(far, depth+1, best)
-
-KDTree.rangeSearch(min, max):
-  result ← []
-  collectInRange(root, 0, min, max, result)
-  return result
-
-collectInRange(node, depth, min, max, result):
-  if node is null: return
-  if inRange(node.point, min, max): result.push(node.point)
-  axis ← depth mod 2
-  if min[axis] <= node.point[axis]:
-    collectInRange(node.left, depth+1, min, max, result)
-  if max[axis] >= node.point[axis]:
-    collectInRange(node.right, depth+1, min, max, result)
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A[nearestNeighbor 시작] --> B{node가 null?}
-  B -- 예 --> Z[반환]
-  B -- 아니오 --> C[현재 노드와 거리 계산]
-  C --> D{best보다 가까운가?}
-  D -- 예 --> E[best 갱신]
-  D -- 아니오 --> F
-  E --> F[가까운 서브트리 재귀 탐색]
-  F --> G{분할선 거리 < best.dist?}
-  G -- 예 --> H[먼 서브트리도 재귀 탐색]
-  G -- 아니오 --> Z
-  H --> Z
-```
-
-```mermaid
-flowchart TD
-  A[build 시작] --> B{points가 비어있나?}
-  B -- 예 --> Z[null 반환]
-  B -- 아니오 --> C["axis = depth % 2로 정렬"]
-  C --> D[mid = 중앙값 인덱스]
-  D --> E["node.point = points[mid]"]
-  E --> F["node.left = build(points[0..mid-1], depth+1)"]
-  F --> G["node.right = build(points[mid+1..], depth+1)"]
-  G --> H[node 반환]
-```
+1. `rangeSearch([4,1], [9,5])`를 손으로 따라가며 어떤 노드가 "방문"되고 어떤 노드가 "결과에 포함"되는지 표로 정리해 보세요. 방문은 됐지만 포함되지 않는 노드가 몇 개인가요? (힌트: 위 트리에서 3개입니다.)
+2. `insert`의 비교 연산자를 `<=`(왼쪽 포함)로 바꾸면, `build`가 만든 "왼쪽 이하 / 오른쪽 이상" 불변식과 어떻게 어긋나는지, 좌표가 중복되는 입력으로 예를 들어 설명해 보세요.
+3. `nearestNeighbor` 코드에서 `search(near, depth + 1)` 호출을 실수로 지우면(먼 쪽만 재귀 조건부로 남기면), `nearestNeighbor([9,2])`의 결과가 왜 틀리는지 위 시뮬레이션의 5~7단계를 근거로 설명해 보세요.
