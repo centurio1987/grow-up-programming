@@ -1316,7 +1316,13 @@
       "dir": "src/algorithms/string/ahoCorasick",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending"
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "codex-only",
+      "note": "신규 캔버스 재집필, 게이트 PASS(MUST19/19). 외부검토 codex 단독(agy 쿼터소진): 정렬비용 분리·복잡도 정합·증명골자 3건 보강·BFS 필요성 DFS크래시 실측 실증 반영",
+      "committedAt": "2026-07-16T11:05:45.250Z"
     },
     {
       "name": "findAllOccurrences",
@@ -1324,13 +1330,13 @@
       "dir": "src/algorithms/string/findAllOccurrences",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "codex-only",
+      "committedAt": "2026-07-16T11:05:45.271Z",
+      "note": "신규 캔버스 재집필, 재채점 PASS(MUST19/19). 게이트 FAIL→PASS: mermaid 흐름도를 최적화(optFail 분리폴백) 반영으로 갱신·buildFail 정당성 증명 추가. 외부검토 codex 단독(agy 쿼터소진)"
     },
     {
       "name": "kasaiLcp",
@@ -1338,13 +1344,13 @@
       "dir": "src/algorithms/string/kasaiLcp",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "codex-only",
+      "committedAt": "2026-07-16T11:05:45.291Z",
+      "note": "신규 캔버스 재집필, 게이트 PASS(MUST21/21). 집필 중 구가이드 aaaa 엣지값 오류 정정. 외부검토 codex 단독(agy 쿼터소진): 상각분석 망원합 논증 교체·Kasai보조정리 증명 보강 반영"
     },
     {
       "name": "longestPalindrome",
@@ -1352,13 +1358,13 @@
       "dir": "src/algorithms/string/longestPalindrome",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "codex-only",
+      "committedAt": "2026-07-16T11:05:45.311Z",
+      "note": "신규 캔버스 재집필, 재채점 PASS(MUST19/19). 게이트 FAIL→PASS: 캔버스 10단계 헤딩 재배치(브루트포스O(n^3)→중심확장O(n^2)→Manacher O(n) 사다리, 5·6단계 신설). 외부검토 codex 단독(agy 쿼터소진)"
     },
     {
       "name": "radixTree",
@@ -1366,7 +1372,13 @@
       "dir": "src/algorithms/string/radixTree",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending"
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "codex-only",
+      "note": "신규 캔버스 재집필, 게이트 PASS(MUST20/20). 집필 중 빈트리 startsWith 계약위반 버그 발견·정정. 외부검토 codex 단독(agy 쿼터소진): 노드수 비교 통일(12vs4)·delete힌트 버그·O(k) 2k-1 상한 증명 반영",
+      "committedAt": "2026-07-16T11:05:45.331Z"
     },
     {
       "name": "suffixArray",
@@ -1374,7 +1386,13 @@
       "dir": "src/algorithms/string/suffixArray",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending"
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "codex-only",
+      "note": "신규 캔버스 재집필, 재채점 PASS(MUST19/19). 게이트 FAIL→PASS(E3 3건): steps sa값 실측정정([5,1,3,0,2,4])·버그예시 재실행값 교체·무작위통계 시드결정론화. 외부검토 codex 단독(agy 쿼터소진)",
+      "committedAt": "2026-07-16T11:05:45.351Z"
     },
     {
       "name": "suffixAutomaton",
@@ -1382,13 +1400,13 @@
       "dir": "src/algorithms/string/suffixAutomaton",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "codex-only",
+      "committedAt": "2026-07-16T11:05:45.371Z",
+      "note": "신규 캔버스 재집필, 게이트 PASS(MUST19/19). 집필 중 구가이드 abcabc=10 오류 정정(정답15). 외부검토 codex 단독(agy 쿼터소진): potential-method 증명 모순 재작성(aggregate method)·clone 서술 정정·2n-1 상한 n≥2 조건 반영"
     },
     {
       "name": "trie",
@@ -1396,13 +1414,13 @@
       "dir": "src/algorithms/string/trie",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "codex-only",
+      "committedAt": "2026-07-16T11:05:45.390Z",
+      "note": "신규 캔버스 재집필, 게이트 PASS(MUST19/19). 외부검토 codex 단독(agy 쿼터소진): TrieNaive .some() 조기종료 트레이스 정정 등 반영. DFA 이론+Map→26배열 최적화 사다리 포함"
     },
     {
       "name": "heavyLightDecomposition",
