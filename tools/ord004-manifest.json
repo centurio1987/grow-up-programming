@@ -1494,13 +1494,13 @@
       "dir": "src/data-structures/disjoint-set/disjointSetRollback",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T03:05:00.871Z",
+      "note": "disjoint-set 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "unionFind",
@@ -1508,13 +1508,13 @@
       "dir": "src/data-structures/disjoint-set/unionFind",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T03:07:35.967Z",
+      "note": "disjoint-set 재집필(v2.0.0), 게이트 PASS(재채점: α(n)/분할상환 정의 보완)"
     },
     {
       "name": "dag",
