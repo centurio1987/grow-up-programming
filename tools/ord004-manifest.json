@@ -2082,13 +2082,13 @@
       "dir": "src/data-structures/range-query/intervalTree",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T03:24:47.570Z",
+      "note": "range-query 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "persistentSegmentTree",
@@ -2096,13 +2096,13 @@
       "dir": "src/data-structures/range-query/persistentSegmentTree",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T03:24:47.707Z",
+      "note": "range-query 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "segmentTree",
@@ -2110,13 +2110,13 @@
       "dir": "src/data-structures/range-query/segmentTree",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T03:24:47.839Z",
+      "note": "range-query 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "segmentTreeLazy",
@@ -2124,13 +2124,13 @@
       "dir": "src/data-structures/range-query/segmentTreeLazy",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T03:24:47.966Z",
+      "note": "range-query 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "sparseTable",
