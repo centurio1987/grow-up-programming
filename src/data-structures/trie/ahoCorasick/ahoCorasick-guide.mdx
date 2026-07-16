@@ -1,124 +1,330 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# AhoCorasick (아호-코라식) 해설
+# 아호-코라식(Aho-Corasick) — 실패해도 되돌아가지 않는 다중 패턴 오토마톤
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 시간복잡도 | 비고 |
-|------|-----------|------|
-| constructor (Trie 구성) | O(Σm) | Σm = 모든 패턴 길이 합 |
-| constructor (실패 링크 BFS) | O(Σm · 알파벳 크기) | 일반적으로 O(Σm) |
-| search | O(n + z) | n = 텍스트 길이, z = 총 매칭 수 |
+여러 개의 패턴을 하나의 트라이(trie)에 합쳐 넣고, 매칭이 실패하는 순간 처음부터 다시 훑지 않고 **실패 링크(failure link)** 를 따라 "지금까지 읽은 텍스트의 접미사이면서 동시에 어떤 패턴의 접두사인 가장 긴 위치"로 곧장 점프하는 오토마톤이에요. KMP의 실패 함수를 트라이 전체로 확장한 것이라고 보면 됩니다. 그 결과 텍스트를 **딱 한 번만** 스캔하면서, 패턴이 몇 개든 $O(\text{텍스트 길이} + \text{매칭 수})$ 에 전부 찾아냅니다.
 
-공간복잡도: O(Σm · 알파벳 크기) — 노드 수 × 자식 맵
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호들이 겹치면 아호-코라식을 떠올리세요.
 
-| 메서드 | 입력 | 출력 | 설명 |
-|--------|------|------|------|
-| `constructor(patterns)` | string[] | — | Trie + 실패 링크 + 출력 링크 구성 |
-| `search(text)` | 문자열 | Map\<string, number[]\> | 모든 패턴의 등장 위치 동시 반환 |
+- 찾아야 할 패턴이 **여러 개**(배열·집합으로 주어짐)이고, 텍스트는 **한 번만** 훑고 싶다
+- 패턴 수가 늘어나도 검색 시간이 그만큼 늘어나면 곤란하다(스트리밍·실시간 필터링 맥락)
+- "여러 단어가 텍스트 어디에 등장하는지 전부 구하라"는 요구가 명시적으로 나온다
 
----
+패턴 하나를 KMP로 찾는 건 $O(n)$ 이지만, 그런 검색을 패턴 $k$개에 대해 반복하면 $k$배로 느려집니다. 아호-코라식은 $k$개의 패턴을 "구성 단계"에서 미리 하나의 오토마톤으로 합쳐 두기 때문에, 검색 단계에서는 패턴 수가 아예 등장하지 않습니다.
 
-## 핵심 아이디어
+```text
+패턴 k개, 평균 길이 m, 텍스트 길이 n, 총 매칭 수 z
 
-### 원형 아이디어와 naive 접근
-
-k개의 패턴을 각각 KMP로 검색하면 O(k·n)이 걸린다. 패턴 수가 많아질수록 선형으로 느려진다.
-
-### 어떤 관찰이 돌파구가 되는가
-
-**핵심 관찰 1**: 모든 패턴을 Trie에 넣으면 텍스트의 각 위치에서 공통 접두사 탐색을 공유할 수 있다.
-
-**핵심 관찰 2**: KMP의 실패 함수는 "현재 패턴의 접두사이면서 동시에 현재까지 읽은 텍스트의 접미사인 가장 긴 문자열"로 상태를 되돌린다. 이를 Trie 전체에 적용하면, Trie의 한 노드에서 매칭 실패 시 "다른 패턴의 적절한 접두사"로 상태를 전이할 수 있다.
-
-이 두 관찰을 합치면 텍스트를 한 번만 스캔하면서 모든 패턴을 동시에 추적할 수 있다.
-
-### 관찰을 형식화
-
-**Goto 함수** `g(v, c)`: 노드 v에서 문자 c로 이동할 수 있는 자식 노드.
-
-**Failure 함수** `f(v)`: 노드 v에서 매칭 실패 시 이동할 노드. 즉, v까지의 경로 문자열의 가장 긴 진정한 접두사이면서 Trie의 어떤 패턴 접두사인 노드.
-
-**실패 링크 계산 (BFS)**:
-```
-f(root) = root
-f(root의 자식 v) = root
-
-노드 v의 자식 u = g(v, c):
-  f(u) = g(f(v), c)가 존재하면 그 노드
-         없으면 g(f(f(v)), c) ... 루트까지 재귀
+패턴마다 KMP 반복       O(k · n)         패턴이 늘수록 텍스트를 그만큼 더 훑는다
+아호-코라식 1회 스캔    O(n + z)         패턴 수는 "구성" 비용 O(Σm)에만 영향
 ```
 
-**Output 함수** `out(v)`: v에서 매칭 완료되는 모든 패턴 집합.
-```
-out(v) = v가 패턴 끝이면 {패턴} ∪ out(f(v))
-         아니면 out(f(v))
-```
+비슷한 용도의 다른 구조와 헷갈릴 수 있는데, 기준은 간단합니다 — **패턴이 딱 1개**면 KMP나 Z-알고리즘으로 충분합니다(트라이 + BFS 구성 비용이 오히려 낭비예요). **패턴이 다수이고 텍스트는 한 번만** 본다면 아호-코라식입니다.
 
-### 핵심 연산
+### 문제 사례와 적용 예시
 
-**실패 링크 구성 (BFS)**:
-```
-queue = [root의 모든 자식]
-for each node v in queue (BFS):
-  for each (c, child u) in v.children:
-    // u의 실패 링크 계산
-    cur = f(v)
-    while cur != root and !cur.children.has(c):
-      cur = f(cur)
-    if cur.children.has(c) and cur.children.get(c) != u:
-      f(u) = cur.children.get(c)
-    else:
-      f(u) = root
-    // 출력 링크 합산
-    out(u) = u.output + out(f(u))
-    queue.push(u)
+- **안티바이러스 엔진**: 악성코드 시그니처 수만~수십만 개를 하나의 오토마톤으로 컴파일해 네트워크 패킷을 한 번만 스캔합니다.
+- **네트워크 침입 탐지(IDS)**: Snort, 리눅스 커널의 `netfilter` 모듈이 다중 패턴 매칭에 이 알고리즘을 씁니다.
+- **금칙어·스팸 필터**: 채팅 서비스에서 수천 개의 금칙어를 실시간으로 걸러낼 때.
+- **코딩 테스트 맥락**: "문자열 배열이 주어질 때, 각 단어가 텍스트의 어느 위치들에서 등장하는지 전부 구하라" — 패턴 수가 많아 KMP 반복으로는 시간 제한을 넘기는 문제.
+
+## 자료구조 자세히 들여다보기
+
+### 전체 스펙: 속성과 액션
+
+**속성(내부 상태)** — 노드 하나는 이렇게 생겼습니다.
+
+```ts
+interface ACNode {
+  children: Map<string, ACNode>; // 문자 → 자식 노드 (트라이 간선)
+  fail: ACNode | null;           // 실패 링크
+  output: string[];              // 이 노드에서 "매칭 완료"로 확정되는 패턴들 (누적됨)
+}
 ```
 
-**검색**:
+트라이의 각 노드 $v$가 나타내는 문자열(루트에서 $v$까지의 경로 문자열)을 $s(v)$라고 둘게요. 지켜야 할 불변식은 세 가지입니다.
+
+1. **트라이 규칙**: `children`은 한 문자당 자식 노드가 최대 하나이고, 루트에서 임의의 노드까지의 경로 문자열은 반드시 어떤 패턴의 접두사입니다.
+2. **실패 링크의 시작점**: 루트의 직계 자식(깊이 1)은 실패 링크가 항상 루트입니다 — 한 글자짜리 문자열의 "진접두사"는 빈 문자열뿐이고, 빈 문자열에 대응하는 노드가 루트니까요.
+3. **핵심 불변식(실패 링크의 정의)**: 노드 $v$($v \ne \text{root}$)에 대해,
+
+$$
+f(v) = \text{node representing } \operatorname*{arg\,max}_{u \ne v,\ s(u)\ \text{is a proper suffix of}\ s(v),\ u \in \text{Trie}} |s(u)|
+$$
+
+즉 $f(v)$는 "$s(v)$의 진접미사(proper suffix)이면서 동시에 트라이 어딘가에 나타나는(=어떤 패턴의 접두사인) 문자열 중 가장 긴 것"에 대응하는 노드예요. 그리고 `output`은 실패 링크를 따라 누적됩니다.
+
+$$
+\text{output}(v) = \bigl(\{p : p\text{는 } v\text{에서 끝나는 패턴}\}\bigr) \cup \text{output}(f(v))
+$$
+
+패턴 `["he", "she", "his", "hers"]`로 트라이 + 실패 링크를 그려보면 이렇습니다(점선 화살표가 실패 링크, `*`는 패턴이 끝나는 노드).
+
+```text
+                         root
+                    ┌──── h ────┐      ┌── s
+                    │           │      │
+                    e           i      h
+                 ┌──┘           │      │
+                 r              s*     e*  ·······┐
+                 │             (his)  (she)       │
+                 s*                    ·          │
+               (hers)                  │ fail     │ fail
+                                        ▼          ▼
+                                    "s" 노드     "he" 노드
+
+fail(h)=root   fail(s)=root   fail(he)=root   fail(hi)=root
+fail(sh)=h     fail(her)=root
+fail(his)=s   ← his의 진접미사 "is","s" 중 트라이에 있는 건 "s" 뿐!
+fail(she)=he  ← she의 진접미사 "he","e" 중 트라이에 있는 건 "he"!
+fail(hers)=s  ← hers의 진접미사 "ers","rs","s" 중 트라이에 있는 건 "s" 뿐!
 ```
-cur = root
-for i, ch in text:
-  while cur != root and !cur.children.has(ch):
-    cur = f(cur)  // 실패 링크로 이동
-  if cur.children.has(ch):
-    cur = cur.children.get(ch)
-  for pattern in cur.output:
-    result[pattern].push(i - pattern.length + 1)  // 시작 인덱스
+
+**액션(연산)** — 이 자료구조가 제공하는 연산은 두 가지뿐입니다. 대신 `constructor`가 트라이·실패 링크·출력 링크를 한 번에 구성해 두기 때문에 `search`가 아주 가벼워져요.
+
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `constructor(patterns)` | 패턴들을 트라이로 삽입 + BFS로 실패 링크·출력 링크 구성 | $O(\Sigma m)$ ($\Sigma m$ = 모든 패턴 길이 합) |
+| `search(text)` | 텍스트를 한 번 스캔하며 모든 패턴의 등장 시작 인덱스를 수집 | $O(n + z)$ ($n$ = 텍스트 길이, $z$ = 총 매칭 수) |
+
+핵심 연산 두 개를 자세히 볼게요.
+
+**① 실패 링크 구성(BFS) — "얕은 데서 깊은 데로, 부모의 답을 재사용"**. 루트의 자식들부터 큐에 넣고, 얕은 노드부터 순서대로 처리합니다. 노드 $v$의 자식 $u$(문자 $c$로 연결)의 실패 링크를 구할 때는, **$v$의 실패 링크에서 시작해 $c$로 갈 수 있는 자리를 찾을 때까지** 실패 링크 체인을 타고 올라갑니다.
+
+```text
+Before: v.fail 은 이미 계산돼 있음(BFS라서 부모가 먼저 처리됨)
+        u = v의 자식(문자 c)
+
+cur = v.fail
+cur가 c로 가는 자식을 가질 때까지 cur = cur.fail 반복 (root에서 멈춤)
+
+After:  cur가 c로 가는 자식을 가지면 → u.fail = 그 자식
+        못 찾고 root까지 왔으면    → u.fail = root
+        u.output = u.output ∪ u.fail.output   ← 출력 링크 누적!
 ```
 
-### 정당성
+예를 들어 `his`의 실패 링크를 구하는 과정: `his`의 부모는 `hi`, `hi.fail = root`. `cur = root`에서 문자 `s`로 가는 자식이 있는지 보면 — 있습니다(`s` 패턴의 시작 노드, `she`로 이어지는 그 노드예요). 그래서 `fail(his) = "s" 노드`이지, **root가 아닙니다.**
 
-실패 링크 체인을 따라가면 항상 현재까지 읽은 텍스트의 접미사이면서 어떤 패턴의 접두사인 가장 긴 문자열을 가리키는 노드에 도달한다. 텍스트의 각 문자는 최대 한 번만 앞으로 이동하고, 실패 링크 이동은 총 횟수가 O(n)으로 제한된다.
+**② search — "실패해도 되돌아가지 않는다"**. 텍스트를 한 글자씩 읽으며 현재 노드 `cur`를 갱신합니다.
 
-### 구현 디테일과 최적화
+```text
+문자 ch 도착
+cur가 ch로 가는 자식을 가질 때까지 cur = cur.fail 반복 (root에서 멈춤)
+cur가 ch로 가는 자식을 가지면 cur = 그 자식
+cur.output에 있는 모든 패턴을 결과에 기록 (시작 인덱스 = i - 패턴길이 + 1)
+```
 
-- **goto 함수 완성화**: 루트에서 문자 c로 가는 자식이 없을 때 루트 자체를 반환하도록 설정하면 검색 루프를 단순화할 수 있다
-- **출력 링크 체인 vs 누적**: `output` 배열에 실패 링크 체인의 모든 패턴을 미리 누적하면 검색 시 체인 탐색 불필요 (공간-시간 트레이드오프)
-- **Map vs 배열**: 자식 노드를 Map으로 구현하면 임의 문자 지원 가능; 알파벳이 고정이면 배열이 더 빠름
-- **중복 패턴**: 같은 패턴을 여러 번 전달하면 하나로 처리
+패턴 `["he","she","his","hers"]`, 텍스트 `"ahishers"`(인덱스 0~7: a h i s h e r s)로 실제 실행한 결과가 이렇습니다(직접 코드를 돌려 확인한 값이에요).
 
----
+```text
+i=0 'a'  cur=root                 (매칭 없음)
+i=1 'h'  cur=h                    (매칭 없음)
+i=2 'i'  cur=hi                   (매칭 없음)
+i=3 's'  cur=his   output=["his"] → 시작 인덱스 3-3+1=1
+i=4 'h'  실패 링크 1회 이동(his→s) 후 cur=sh   ← root로 돌아간 게 아니라 "s"를 거쳐 "sh"로!
+i=5 'e'  cur=she   output=["she","he"] → she 시작 5-3+1=3, he 시작 5-2+1=4
+i=6 'r'  실패 링크 1회 이동(she→he) 후 cur=her
+i=7 's'  cur=hers  output=["hers"] → 시작 7-4+1=4
+```
 
-## 시뮬레이션
+최종 결과: `he→[4], she→[3], his→[1], hers→[4]`.
+
+### 왜 모순 없이 작동하는가
+
+**실패 링크가 항상 옳은 이유(귀납)**: BFS는 얕은 노드부터 처리하므로, 노드 $u$의 실패 링크를 계산할 때 그 부모 $v$의 실패 링크는 **이미 정확하게** 계산돼 있습니다. $v.fail$에서 시작해 문자 $c$를 따라갈 수 있는 자리를 찾을 때까지 체인을 타고 올라가는 과정 자체가, "$s(u)$의 진접미사 중 트라이에 있는 가장 긴 것"을 정확히 찾는 절차예요(실패 링크 체인은 접미사 길이가 짧아지는 방향으로만 진행되고, 루트에서 반드시 멈추니 무한 루프도 없습니다). 그러므로 빈 트라이에서 시작해 BFS 순서로 모든 노드를 처리하면, 어느 시점에도 실패 링크 불변식이 깨지지 않습니다.
+
+**헷갈리기 쉬운 포인트 하나** — "실패 링크는 항상 루트로 돌아간다"고 생각하기 쉽습니다. 위에서 봤듯 `his`의 실패 링크는 루트가 아니라 `"s"` 노드입니다. `his`의 진접미사는 `"is"`와 `"s"`인데, `"is"`는 어떤 패턴의 접두사도 아니지만 `"s"`는 `she`의 접두사라서 트라이에 존재하거든요. 이걸 놓치고 "실패하면 무조건 루트로 리셋"하도록 짜면, 정답은 맞아도(결과가 우연히 같을 수 있어서) 매 시작 위치를 사실상 다시 훑는 셈이 되어 시간복잡도가 무너집니다 — 구체적인 수치는 아래 코드 절에서 직접 확인해요.
+
+**헷갈리기 쉬운 포인트 둘** — "output은 자기 노드에서 끝나는 패턴만 기록하면 충분하다"고 생각하기 쉽습니다. 위 트레이스의 `i=5`를 보세요: `cur=she` 노드에 도달했는데 `output=["she","he"]`로 **두 패턴이 동시에** 매칭 완료됩니다. `she`가 끝나는 순간 그 접미사인 `he`도 텍스트 어딘가에서 끝난 걸로 확정되기 때문이에요(`fail(she)=he`이고 `he` 노드가 패턴의 끝이니까). 이 출력 링크 누적을 빼먹으면 `he` 패턴은 영영 발견되지 않습니다 — 실제로 그 버그를 넣고 돌려보면 `he: []`가 나와요(정상은 `he: [4]`).
+
+잠깐, 확인 하나만 해볼까요? 텍스트 `"ahishers"`에서 `i=5`(문자 `'e'`)에 도달했을 때 몇 개의 패턴이 동시에 매칭 완료될까요? — 정답은 **2개**(`she`, `he`)입니다. 위 트레이스의 `output=["she","he"]`가 그 증거예요.
+
+엣지 케이스도 점검해 둡니다(모두 실제 실행으로 확인한 값입니다).
+
+```text
+빈 패턴 배열              → search는 빈 Map({}) 반환 (patterns가 없으니 키도 없음)
+빈 텍스트                 → 모든 패턴이 키로 있고 값은 전부 []
+중복 패턴 ["ab","ab","b"] → 하나로 합쳐져 {"ab":[...], "b":[...]} (중복 키 없음)
+서로 접두사 관계 ["a","ab","abc"], text="xabcabx"
+                          → a:[1,4], ab:[1,4], abc:[1]  (한 위치에서 여러 패턴이 동시 종료)
+매칭이 전혀 없는 텍스트   → 모든 패턴 값이 []
+```
+
+## 아이디어를 코드로 옮기기
+
+`constructor(patterns: string[])`와 `search(text: string): Map<string, number[]>` 인터페이스에 맞춰, 원형 → 개선 → 최종 3단계로 발전시켜 봅니다.
+
+**원형(naive)**: 패턴마다 텍스트를 처음부터 슬라이딩 비교합니다.
+
+```ts
+function naiveMultiSearch(patterns: string[], text: string): Map<string, number[]> {
+  const result = new Map<string, number[]>();
+  for (const p of patterns) {
+    const hits: number[] = [];
+    for (let i = 0; i + p.length <= text.length; i++) {
+      if (text.slice(i, i + p.length) === p) hits.push(i);
+    }
+    result.set(p, hits);
+  }
+  return result;
+}
+```
+
+패턴이 $k$개면 텍스트를 $k$번 훑습니다 — $O(k \cdot n)$. 공통 접두사(`he`, `hers`가 `h`를 공유하는 것처럼)를 매번 따로 비교하는 것도 낭비예요. **왜 다음 단계로 가는가**: 공통 접두사를 트라이 하나로 묶으면 이 중복을 없앨 수 있습니다.
+
+**개선(Trie만, 실패 링크 없음)**: 패턴들을 트라이로 합치되, 매칭이 실패하면 다음 시작 위치에서 루트부터 다시 훑습니다.
+
+```ts
+class TrieOnlyMatcher {
+  private root: ACNode = { children: new Map(), fail: null, output: [] };
+  private patterns: string[];
+
+  constructor(patterns: string[]) {
+    this.patterns = Array.from(new Set(patterns));
+    for (const p of this.patterns) {
+      let node = this.root;
+      for (const ch of p) {
+        if (!node.children.has(ch)) node.children.set(ch, { children: new Map(), fail: null, output: [] });
+        node = node.children.get(ch)!;
+      }
+      node.output.push(p);
+    }
+  }
+
+  search(text: string): Map<string, number[]> {
+    const result = new Map<string, number[]>();
+    for (const p of this.patterns) result.set(p, []);
+    for (let start = 0; start < text.length; start++) {
+      let node = this.root;
+      for (let i = start; i < text.length; i++) {
+        const next = node.children.get(text[i]);
+        if (!next) break;
+        node = next;
+        for (const p of node.output) result.get(p)!.push(i - p.length + 1);
+      }
+    }
+    return result;
+  }
+}
+```
+
+정답은 맞습니다 — 하지만 텍스트의 매 시작 위치마다 루트에서 다시 내려가므로 최악의 경우 $O(n \cdot m)$ 입니다. 직접 재보면 차이가 확 드러나요: 패턴 `"a".repeat(49) + "b"`(길이 50), 텍스트 `"a".repeat(2000)`에 대해 문자 처리 횟수를 세어 보면 **실패 링크 있는 버전은 3,951회, 이 버전은 98,775회**입니다(약 25배). 텍스트에 `'b'`가 한 번도 안 나오니 매 시작 위치에서 49글자를 헛되이 훑고서야 포기하기 때문이에요. **왜 다음 단계로 가는가**: 매칭에 실패했을 때 "지금까지 읽은 것 중 재사용 가능한 접두사"를 버리지 않고 이어갈 방법이 필요합니다 — 그게 실패 링크입니다.
+
+**최종(Aho-Corasick 오토마톤)**:
+
+```ts
+interface ACNode {
+  children: Map<string, ACNode>;
+  fail: ACNode | null;
+  output: string[];
+}
+
+export class AhoCorasick {
+  private root: ACNode = { children: new Map(), fail: null, output: [] };
+  private patterns: string[];
+
+  constructor(patterns: string[]) {
+    this.patterns = Array.from(new Set(patterns));
+
+    // 1단계: 트라이 구성 (goto 함수)
+    for (const p of this.patterns) {
+      let node = this.root;
+      for (const ch of p) {
+        if (!node.children.has(ch)) node.children.set(ch, { children: new Map(), fail: null, output: [] });
+        node = node.children.get(ch)!;
+      }
+      node.output.push(p);
+    }
+
+    // 2단계: BFS로 실패 링크 + 출력 링크 구성
+    const queue: ACNode[] = [];
+    for (const child of this.root.children.values()) {
+      child.fail = this.root;
+      queue.push(child);
+    }
+    while (queue.length > 0) {
+      const v = queue.shift()!;
+      for (const [c, u] of v.children) {
+        let cur = v.fail!;
+        while (cur !== this.root && !cur.children.has(c)) {
+          cur = cur.fail!;
+        }
+        if (cur.children.has(c) && cur.children.get(c) !== u) {
+          u.fail = cur.children.get(c)!;
+        } else {
+          u.fail = this.root;
+        }
+        u.output = u.output.concat(u.fail.output); // 출력 링크 누적
+        queue.push(u);
+      }
+    }
+  }
+
+  search(text: string): Map<string, number[]> {
+    const result = new Map<string, number[]>();
+    for (const p of this.patterns) result.set(p, []);
+
+    let cur = this.root;
+    for (let i = 0; i < text.length; i++) {
+      const ch = text[i];
+      while (cur !== this.root && !cur.children.has(ch)) {
+        cur = cur.fail!; // 실패해도 되돌아가지 않는다 — root로 리셋이 아니라 체인을 탄다
+      }
+      if (cur.children.has(ch)) {
+        cur = cur.children.get(ch)!;
+      }
+      for (const p of cur.output) {
+        result.get(p)!.push(i - p.length + 1);
+      }
+    }
+    return result;
+  }
+}
+```
+
+가장 중요한 부분은 `search`의 이 두 줄입니다.
+
+```ts
+while (cur !== this.root && !cur.children.has(ch)) {
+  cur = cur.fail!;
+}
+```
+
+여기가 "실패해도 되돌아가지 않는다"의 전부예요. `cur`가 `root`가 아닌 한 실패 링크를 타고 이동하지, 텍스트의 다음 시작 위치로 되돌아가는 게 아닙니다. 그리고 구성 단계의 `u.output = u.output.concat(u.fail.output)` 한 줄이 출력 링크 누적입니다 — 이 줄을 빼먹으면 위에서 본 것처럼 `he` 같은 패턴이 조용히 사라집니다.
+
+> 실패 링크는 리셋 버튼이 아니라 단축키다.
+
+`delete`나 다른 갱신 연산은 없습니다 — 아호-코라식은 패턴 집합이 고정된 뒤 텍스트를 검색하는 정적(static) 오토마톤이라, 구성이 끝나면 구조가 변하지 않습니다. (위 구현은 대표 예시·엣지 케이스·200회 무작위 교차검증까지 `naiveMultiSearch`와 결과가 전부 일치함을 실행으로 확인했습니다.)
+
+## 실행 시각화
+
+패턴 `["he", "she", "his", "hers"]`로 트라이와 실패 링크를 구성한 뒤, 텍스트 `"ahishers"`를 스캔합니다. 배열 패널은 트라이 노드 목록(구성 단계) → 텍스트 문자열(검색 단계) 순으로 바뀌고, 강조(highlight)는 "지금 보는 대상", 표시(marked)는 "이번 스텝에서 매칭이 확정된 텍스트 구간"을 뜻해요. `i=4`에서 실패 링크가 루트가 아니라 `"s"` 노드로 이동하는 것과, `i=5`에서 `she`·`he`가 동시에 매칭 확정되는 것이 이 예제의 핵심 장면입니다(둘 다 실제 실행 결과와 일치).
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
     title: "패턴 삽입: ['he', 'she', 'his', 'hers']",
-    detail: "루트에서 각 패턴을 Trie에 삽입. h→e(end:he), h→e→r→s(end:hers), h→i→s(end:his), s→h→e(end:she)",
+    detail: "루트에서 각 패턴을 트라이에 삽입. h→e(end:he), h→e→r→s(end:hers), h→i→s(end:his), s→h→e(end:she)",
     array: ["root", "h", "s", "he*", "hi", "sh", "her", "his*", "she*", "hers*"],
     highlight: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
     marked: [3, 7, 8, 9],
   },
   {
     title: "실패 링크 구성 (BFS)",
-    detail: "f(h)=root, f(s)=root, f(he)=root(e가 없음), f(hi)=root, f(sh)=h, f(her)=root, f(his)=root, f(she)=he",
-    array: ["root", "h→root", "s→root", "he→root", "hi→root", "sh→h", "her→root", "his→root", "she→he"],
-    highlight: [5, 8],
+    detail: "f(h)=root, f(s)=root, f(he)=root, f(hi)=root, f(sh)=h, f(her)=root, f(his)=s(!), f(she)=he, f(hers)=s(!) — his·hers는 루트가 아니라 's' 노드로 간다",
+    array: ["root", "h→root", "s→root", "he→root", "hi→root", "sh→h", "her→root", "his→s", "she→he", "hers→s"],
+    highlight: [5, 7, 8, 9],
     marked: [],
   },
   {
@@ -129,130 +335,48 @@ export const steps = [
     marked: [],
   },
   {
-    title: "i=1: 'h'",
-    detail: "root의 'h' 자식 → cur=h. output 없음",
+    title: "i=1: 'h', i=2: 'i'",
+    detail: "root의 'h' 자식 → cur=h. 이어서 h의 'i' 자식 → cur=hi. 아직 output 없음",
     array: ["a", "h", "i", "s", "h", "e", "r", "s"],
-    highlight: [1],
+    highlight: [1, 2],
     marked: [],
   },
   {
-    title: "i=2: 'i'",
-    detail: "cur=h, 'i' 자식 → cur=hi. output 없음",
-    array: ["a", "h", "i", "s", "h", "e", "r", "s"],
-    highlight: [2],
-    marked: [],
-  },
-  {
-    title: "i=3: 's'",
+    title: "i=3: 's' → 'his' 매칭",
     detail: "cur=hi, 's' 자식 → cur=his. output=['his'] → 시작 인덱스 = 3-3+1 = 1",
     array: ["a", "h", "i", "s", "h", "e", "r", "s"],
     highlight: [3],
     marked: [1, 2, 3],
   },
   {
-    title: "i=4: 'h'",
-    detail: "cur=his, 실패링크→root, root의 'h'→cur=h",
+    title: "i=4: 'h' — 실패 링크가 root가 아니라 's'로!",
+    detail: "cur=his, 's' 자식 없음 → fail(his)='s' 노드로 1회 이동 → 's'에 'h' 자식 있음 → cur=sh. output 없음",
     array: ["a", "h", "i", "s", "h", "e", "r", "s"],
     highlight: [4],
     marked: [],
   },
   {
-    title: "i=5: 'e' → 'he' 매칭, i=6: 'r', i=7: 's' → 'hers' 매칭",
-    detail: "i=5: cur=he, output=['he'] → 시작 4 / i=7: cur=hers, output=['hers'] + f(hers).output=['she'와 연결]",
+    title: "i=5: 'e' → 'she'와 'he' 동시 매칭",
+    detail: "cur=sh, 'e' 자식 → cur=she. output=['she','he'] → she 시작 5-3+1=3, he 시작 5-2+1=4 (출력 링크 누적 덕분에 둘 다 확정)",
     array: ["a", "h", "i", "s", "h", "e", "r", "s"],
-    highlight: [5, 6, 7],
-    marked: [4, 5, 7],
+    highlight: [5],
+    marked: [3, 4, 5],
+  },
+  {
+    title: "i=6: 'r', i=7: 's' → 'hers' 매칭",
+    detail: "cur=she, 'r' 자식 없음 → fail(she)=he로 이동 → he에 'r' 자식 있음 → cur=her. 이어서 's' 자식 → cur=hers, output=['hers'] → 시작 7-4+1=4",
+    array: ["a", "h", "i", "s", "h", "e", "r", "s"],
+    highlight: [6, 7],
+    marked: [4, 5, 6, 7],
   },
 ];
 
 <AlgorithmSimulation view="array" steps={steps} title="AhoCorasick 시뮬레이션" />
 
----
+정리하면, 아호-코라식은 두 가지 발상을 결합합니다. **트라이**로 모든 패턴의 공통 접두사를 공유하고, **실패 링크**로 KMP의 실패 함수를 트라이 전체에 확장해 "매칭 실패 시 되돌아가지 않고 이어가기"를 가능하게 합니다. 여기에 **출력 링크 누적**을 더해, 한 노드에서 여러 패턴이 동시에 끝나는 경우(`she`가 끝나면 `he`도 끝난다)까지 놓치지 않고 잡아냅니다. 그 결과 구성에 $O(\Sigma m)$, 검색에 $O(n+z)$ — 패턴 수 $k$가 검색 시간에 전혀 등장하지 않는다는, 애초에 노렸던 목표를 정확히 달성합니다.
 
-## 수도 코드와 Activity Diagram
+## 스스로 점검하기
 
-### 의사코드
-
-```
-class AhoCorasickNode:
-  children: Map<char, Node>
-  failure: Node = null
-  output: string[] = []
-
-class AhoCorasick:
-  root = new Node()
-  patterns: string[]
-
-  constructor(patterns):
-    this.patterns = unique(patterns)
-    // 단계 1: Trie 구성
-    for p in patterns:
-      cur = root
-      for ch in p:
-        if !cur.children.has(ch):
-          cur.children.set(ch, new Node())
-        cur = cur.children.get(ch)
-      cur.output.push(p)
-
-    // 단계 2: BFS로 실패 링크 + 출력 링크 구성
-    queue = []
-    for (ch, child) in root.children:
-      child.failure = root
-      queue.push(child)
-
-    while queue not empty:
-      v = queue.dequeue()
-      for (c, u) in v.children:
-        cur = v.failure
-        while cur != root and !cur.children.has(c):
-          cur = cur.failure
-        if cur.children.has(c) and cur.children.get(c) != u:
-          u.failure = cur.children.get(c)
-        else:
-          u.failure = root
-        u.output = u.output + u.failure.output  // 출력 링크 체인 합산
-        queue.push(u)
-
-  search(text):
-    result = Map: pattern → []
-    for p in patterns: result.set(p, [])
-
-    cur = root
-    for i, ch in text:
-      while cur != root and !cur.children.has(ch):
-        cur = cur.failure
-      if cur.children.has(ch):
-        cur = cur.children.get(ch)
-      for p in cur.output:
-        result.get(p).push(i - p.length + 1)
-
-    return result
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A([constructor 시작]) --> B[모든 패턴을 Trie에 삽입\nGoto 함수 구성]
-  B --> C[BFS 시작\n루트 자식들을 큐에 추가]
-  C --> D{큐가 비어있음?}
-  D -- 아니오 --> E[노드 v = 큐에서 꺼냄]
-  E --> F["v의 모든 자식 u에 대해\n실패 링크 f(u) 계산"]
-  F --> G["u.output += f(u).output\n출력 링크 누적"]
-  G --> H[u를 큐에 추가]
-  H --> D
-  D -- 예 --> I([오토마톤 완성])
-
-  J([search 시작]) --> K[cur = root]
-  K --> L{텍스트 문자 ch 처리}
-  L --> M{cur에 ch 자식 있음?}
-  M -- 아니오 --> N{cur == root?}
-  N -- 아니오 --> O["cur = f(cur)\n실패 링크 이동"]
-  O --> M
-  N -- 예 --> P[cur 유지\n루트에서 ch로 이동 시도]
-  M -- 예 --> Q["cur = cur.children.get(ch)"]
-  Q --> R[cur.output의 패턴들\n결과에 기록]
-  R --> L
-  P --> L
-  L -- 완료 --> S([결과 Map 반환])
-```
+1. 패턴 `["cat", "car", "art"]`로 트라이를 그리고, 각 노드의 실패 링크를 손으로 구해 보세요. `art`의 실패 링크는 root일까요, 아닐까요? (힌트: `art`의 진접미사 중 트라이에 있는 것을 찾아보세요.)
+2. "실패 링크는 항상 root로 돌아간다"고 잘못 가정하고 구현하면, 위 실행 시각화의 `i=4` 장면에서 결과가 어떻게 달라질까요? 최종 매칭 개수(정답)는 같아도 문자 처리 횟수가 왜 늘어나는지 설명해 보세요.
+3. `search`에서 출력 링크 누적(`u.output = u.output.concat(u.fail.output)`)을 빼먹고 구현했다고 합시다. 텍스트 `"ahishers"`에 대해 `he`, `she`, `his`, `hers` 각각의 결과가 어떻게 달라질지 예측해 보세요. (실제로 이 버그를 넣고 돌리면 `he: []`가 나옵니다 — 왜 `he`만 사라질까요?)

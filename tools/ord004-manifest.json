@@ -1316,13 +1316,7 @@
       "dir": "src/algorithms/string/ahoCorasick",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "pending"
     },
     {
       "name": "findAllOccurrences",
@@ -1372,13 +1366,7 @@
       "dir": "src/algorithms/string/radixTree",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "pending"
     },
     {
       "name": "suffixArray",
@@ -1386,13 +1374,7 @@
       "dir": "src/algorithms/string/suffixArray",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "pending"
     },
     {
       "name": "suffixAutomaton",
@@ -2394,13 +2376,13 @@
       "dir": "src/data-structures/trie/ahoCorasick",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T02:32:08.074Z",
+      "note": "trie 카테고리 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "radixTree",
@@ -2408,13 +2390,13 @@
       "dir": "src/data-structures/trie/radixTree",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T02:32:08.096Z",
+      "note": "trie 카테고리 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "suffixArray",
@@ -2422,13 +2404,13 @@
       "dir": "src/data-structures/trie/suffixArray",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T02:32:08.116Z",
+      "note": "trie 카테고리 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "suffixTree",
@@ -2436,13 +2418,13 @@
       "dir": "src/data-structures/trie/suffixTree",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-15T17:17:00.512Z",
+      "note": "trie 카테고리 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "ternarySearchTree",
@@ -2450,13 +2432,13 @@
       "dir": "src/data-structures/trie/ternarySearchTree",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-15T17:17:00.533Z",
+      "note": "trie 카테고리 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "trie",
@@ -2464,13 +2446,13 @@
       "dir": "src/data-structures/trie/trie",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T02:40:11.828Z",
+      "note": "trie 카테고리 재집필(v2.0.0), 게이트 PASS"
     }
   ]
 }
