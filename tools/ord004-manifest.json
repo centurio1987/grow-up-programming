@@ -1522,13 +1522,13 @@
       "dir": "src/data-structures/graph-repr/dag",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T03:15:01.552Z",
+      "note": "graph-repr 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "graphAdjList",
@@ -1536,13 +1536,13 @@
       "dir": "src/data-structures/graph-repr/graphAdjList",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T03:15:01.679Z",
+      "note": "graph-repr 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "graphAdjMatrix",
@@ -1550,13 +1550,13 @@
       "dir": "src/data-structures/graph-repr/graphAdjMatrix",
       "kind": "ds",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "n/a",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T03:15:01.807Z",
+      "note": "graph-repr 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "hashMapChaining",
