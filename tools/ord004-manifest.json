@@ -392,13 +392,13 @@
       "dir": "src/algorithms/binary-search/parametricBinarySearch",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T02:56:11.829Z",
+      "note": "binary-search 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "searchInRotatedSortedArray",
@@ -406,13 +406,13 @@
       "dir": "src/algorithms/binary-search/searchInRotatedSortedArray",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T02:56:11.850Z",
+      "note": "binary-search 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "ternarySearch",
@@ -420,13 +420,13 @@
       "dir": "src/algorithms/binary-search/ternarySearch",
       "kind": "algo",
       "studyFold": false,
-      "status": "pending",
-      "g1": null,
-      "g4": null,
-      "gate": null,
-      "extReview": null,
-      "committedAt": null,
-      "note": null
+      "status": "done",
+      "g1": "pass",
+      "g4": "pass",
+      "gate": "PASS",
+      "extReview": "n/a",
+      "committedAt": "2026-07-16T02:56:11.870Z",
+      "note": "binary-search 재집필(v2.0.0), 게이트 PASS"
     },
     {
       "name": "enumerateSubmasks",
