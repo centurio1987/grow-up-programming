@@ -1,28 +1,53 @@
-import { AlgorithmSimulation } from "#guide-sim";
-
-# Count-Min Sketch 해설
-
-## 성능 목표 예측
-
-| 제약 항목 | 값 |
-|-----------|-----|
-| 카운터 배열 폭 $w$ | $\leq 10^4$ |
-| 해시 함수 개수(깊이) $d$ | $\leq 16$ |
-| 스트림 길이 $n$ | $\leq 10^5$ |
-
-**naive 접근의 문제점**: 원소별 정확한 빈도를 유지하는 해시 맵(`Map<string, number>`)은 고유 원소 수 $u$에 비례하는 $O(u)$ 공간이 필요하다. 스트리밍 환경에서 $u$가 수백만을 넘으면 수십 MB 이상이 소요된다. 모든 원소를 메모리에 보관하면서 정확한 카운팅을 하는 것은 실시간 네트워크 트래픽 분석이나 대용량 로그 처리에서 비현실적이다.
-
-**목표 복잡도**: 갱신과 조회 모두 $O(d)$. $d \leq 16$이므로 사실상 $O(1)$이다. 전체 스트림 처리는 $O(nd)$이다.
-
-**공간 복잡도**: $O(w \cdot d)$개의 정수. $w = 10^4$, $d = 16$이면 $1.6 \times 10^5$개 정수 ≈ 640KB. 정확도 파라미터 $\varepsilon$(허용 오차 비율)와 실패 확률 $\delta$로부터 $w = \lceil e/\varepsilon \rceil$, $d = \lceil \ln(1/\delta) \rceil$을 계산하여 공간-정확도 트레이드오프를 조절한다.
-
+---
+version: 2.0.0
 ---
 
-## 목표 함수
+import { AlgorithmSimulation } from "#guide-sim";
+
+# Count-Min Sketch — 여러 번 겹쳐 세고, 가장 깨끗한 값만 믿는다
+
+## 한눈에 보는 컨셉
+
+원소별 정확한 빈도를 저장하는 대신, $d \times w$ 크기의 작은 정수 행렬 하나만 유지하면서 $d$개의 독립 해시로 값을 겹쳐서 셉니다. 조회할 때는 그 원소가 해시된 $d$개 칸 중 **최솟값**을 돌려주는데, 이 한 번의 선택이 해시 충돌로 인한 과대추정을 크게 눌러줍니다. 카운터는 오직 증가만 하므로 추정값은 항상 실제 빈도 이상이라는 것(과소추정 없음)이 수학적으로 보장되고, 이 성질 덕분에 "많이 등장한 원소만 정확하면 되는" 스트리밍 집계 문제의 표준 도구가 되었습니다.
+
+## 언제, 왜 쓰는가
+
+### 이런 단서가 보이면
+
+다음 신호가 겹치면 Count-Min Sketch를 떠올리세요.
+
+- 스트림에 등장하는 **고유 원소 종류가 너무 많아서** 전부 저장하면 메모리가 감당 안 된다
+- "정확한 빈도"보다 **빈도 상위 원소(Heavy Hitter)** 를 가려내는 것이 진짜 목적이다
+- 메모리 상한은 고정하고 싶은데, 입력 스트림의 길이나 고유 원소 수는 사전에 알 수 없다
+- 오차가 있어도 **과소추정만은 절대 안 되는** 요구사항이다(과대추정은 허용)
+
+정확한 `Map<string, number>` 카운팅과 비교하면 공간 사용의 성격 자체가 다릅니다.
+
+```text
+Map<string, number> 기반 정확 카운팅     공간 O(u)   ← u = 고유 원소 수, 무한정 증가 가능
+Count-Min Sketch (w × d 행렬)            공간 O(w·d) ← 스트림 길이·고유 원소 수와 무관하게 고정
+```
+
+$w = 10^4$, $d = 16$이면 카운터는 $1.6 \times 10^5$개이고, 정수 4바이트 기준으로 약 640,000바이트(640KB)면 충분합니다. 고유 IP가 수백만 개인 네트워크 트래픽이라도 이 크기는 그대로예요 — **정확도를 조금 포기하고 공간을 스트림 크기와 분리시킨 것**이 핵심 트레이드오프입니다. 정확도 파라미터 $\varepsilon$(허용 오차 비율)과 실패 확률 $\delta$로부터 $w = \lceil e/\varepsilon \rceil$, $d = \lceil \ln(1/\delta) \rceil$을 계산해서 이 트레이드오프를 조절합니다.
+
+비슷한 목적의 확률적 자료구조와 헷갈릴 수 있는데, 묻고 싶은 질문으로 구분하면 쉽습니다: **존재 여부만 궁금하면 Bloom Filter, 고유 원소 "개수"(카디널리티)만 궁금하면 HyperLogLog, 원소별 "등장 횟수"(빈도) 자체가 궁금하면 Count-Min Sketch**를 씁니다.
+
+### 문제 사례와 적용 예시
+
+- **네트워크 트래픽 Heavy Hitter 탐지**: 초당 수백만 패킷이 오가는 라우터에서 특정 출발지 IP의 요청 횟수를 추적합니다. 자주 등장하는 IP(공격자 후보, 인기 서비스)는 추정값이 실제와 거의 일치하고, 희귀 IP는 오차가 있어도 탐지 목적엔 지장이 없습니다.
+- **캐시 교체 정책(TinyLFU 계열)**: 캐시에 새 항목을 넣을지 결정할 때 "이 키가 최근 얼마나 자주 요청됐는가"를 Count-Min Sketch로 근사해, 정확한 LFU 카운터를 위한 큰 메모리를 쓰지 않습니다.
+- **검색 로그 상위 쿼리 집계**: 하루 수억 건의 검색어 로그에서 인기 검색어 순위를 추정할 때, 모든 검색어를 해시 맵에 쌓는 대신 고정 크기 스케치로 근사치를 냅니다.
+- **코딩 테스트 맥락**: "스트림 길이 $n \leq 10^5$, 고유 원소 수는 알 수 없음. 원소별 등장 횟수를 과소추정 없이 근사하라" — 정확한 집계 자료구조 없이 고정 크기 자료구조로 근사해야 하는 문제로 출제됩니다.
+
+## 자료구조 자세히 들여다보기
+
+### 전체 스펙: 속성과 액션
+
+이 가이드가 정의하는 인터페이스는 다음과 같습니다.
 
 ```ts
 class CountMinSketch {
-  constructor(width: number, depth: number): CountMinSketch
+  constructor(width: number, depth: number)
   update(item: string, count: number): void
   estimate(item: string): number
 }
@@ -32,100 +57,206 @@ class CountMinSketch {
 |---------|------|------|
 | `width` | 각 행의 카운터 수 $w$ | $1 \leq w \leq 10^4$ |
 | `depth` | 해시 함수(행) 수 $d$ | $1 \leq d \leq 16$ |
-| `item` | 빈도를 갱신하거나 조회할 문자열 원소 | 임의 문자열 |
-| `count` | 해당 원소가 이번에 등장한 횟수 | $\geq 1$ |
+| `item` | 빈도를 갱신·조회할 문자열 원소 | 임의 문자열 |
+| `count` | 이번 `update`에서 더할 등장 횟수 | $\geq 1$ |
 
-**반환값**: `estimate`는 실제 빈도 $f(x)$의 상한 추정값 $\hat{f}(x)$를 반환한다. 구체적으로 $f(x) \leq \hat{f}(x)$이며, 과대추정 오차는 확률 $1 - \delta$ 이상으로 $\varepsilon N$ 이하임이 보장된다.
+**속성(내부 상태)** — $d \times w$ 정수 행렬 하나가 전부입니다.
 
-**엣지케이스**:
-1. 한 번도 `update`하지 않은 원소에 `estimate` 호출 → 0 반환 (모든 카운터가 0).
-2. 동일한 `item`에 `update`를 여러 번 호출 → 각 호출의 `count`가 누적된다.
-3. $w = 1$인 경우 → 모든 원소가 하나의 버킷을 공유하여 추정 오차가 매우 커진다.
-4. 스트림 총 합 $N$이 매우 큰 경우 → 오차 상한 $\varepsilon N$이 커지므로 희귀 원소의 추정은 부정확하다.
-5. 모든 원소가 동일한 경우 → 충돌이 없어 추정값이 실제 빈도와 일치한다.
+```ts
+class CountMinSketch {
+  private counters: number[][];   // counters[j][k], j ∈ [0,d), k ∈ [0,w)
+  private width: number;
+  private depth: number;
+}
+```
 
----
+각 행 $j$는 독립 해시 함수 $h_j$ 하나에 대응합니다.
 
-## 핵심 아이디어
+$$C \in \mathbb{Z}_{\geq 0}^{d \times w}, \quad h_j : \Sigma^* \to [0, w), \quad j = 0, 1, \ldots, d-1$$
 
-**핵심 아이디어**: "정확한 빈도 대신, 여러 독립 행의 최솟값으로 과대추정을 최소화한다."
+`width = 4`, `depth = 3`일 때 행렬을 그려보면 이렇습니다.
 
-스트리밍 데이터에서 수백만 종류의 원소 빈도를 정확히 기록하려면 메모리가 감당이 안 된다. Count-Min Sketch는 $d \times w$ 크기의 작은 행렬만 유지하면서, 각 행에 독립 해시로 빈도를 누적하고 조회할 때 모든 행의 최솟값을 반환한다. 실제 빈도보다 크거나 같은 값이 항상 나오지만, 오차는 확률적으로 작게 제한된다.
+```text
+        col0  col1  col2  col3
+h0    [  0     0     0     0  ]
+h1    [  0     0     0     0  ]
+h2    [  0     0     0     0  ]
 
-**풀이 구조**
-1. $d$개의 행, 각 행 $w$개의 카운터로 이루어진 행렬을 초기화한다
-2. 원소 추가 시: $d$개의 독립 해시 위치에 각각 빈도를 더한다
-3. 빈도 조회 시: $d$개의 해시 위치 카운터 중 최솟값을 반환한다(가장 오염이 적은 행 선택)
+한 원소 x는 각 행에서 정확히 한 칸(h_j(x) mod w)을 갖는다 — 총 d개의 목격 지점.
+```
 
-**조건**: 과대추정(상한 보장)은 허용하지만 과소추정은 절대 안 되는 환경, 실시간 스트림에서 고유 원소 수가 너무 많아 모두 저장할 수 없는 상황
+지켜야 할 불변식은 두 가지입니다.
 
-**대표 예시**: 실시간 네트워크 트래픽 Heavy Hitter 탐지
-초당 수백만 패킷이 들어오는 환경에서 특정 IP의 요청 횟수를 추적할 때, 모든 IP를 해시 맵에 저장하는 대신 Count-Min Sketch를 사용한다. 자주 등장하는 IP(Heavy Hitter)는 추정값이 실제와 거의 일치하며, 희귀 IP는 오차가 있어도 탐지 목적으로는 충분하다.
+1. **단조성**: 모든 카운터는 0에서 시작해 오직 증가만 한다. $C[j][k]$는 감소하지 않는다.
+2. **하한 불변식**: 임의 시점에서 모든 $j \in [0, d)$에 대해 $C[j][h_j(x) \bmod w] \geq f(x)$가 성립한다. 여기서 $f(x)$는 지금까지 `update`로 누적된 $x$의 실제 빈도.
 
-**언제 쓰나**
-빈도 상위 원소(Heavy Hitter) 탐지, 실시간 로그 집계, 캐시 교체 정책 등 정확한 카운팅보다 메모리 효율이 더 중요하고 약간의 과대추정이 허용될 때 사용한다.
+**액션(연산)** — 이 자료구조가 제공하는 연산은 두 개뿐입니다.
 
----
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `update(item, count)` | $d$개 행 각각의 해당 칸에 `count`를 더한다 | $O(d)$ |
+| `estimate(item)` | $d$개 행의 해당 칸 값 중 최솟값을 반환한다 | $O(d)$ |
 
-### 원형 아이디어와 naive 접근
+$d \leq 16$이므로 사실상 $O(1)$이고, 스트림 전체 처리는 $O(nd)$입니다($n$ = 스트림 이벤트 수).
 
-빈도를 정확히 추적하려면 `Map<string, number>`에 원소별 카운터를 유지하면 된다. 시간복잡도는 갱신·조회 모두 $O(1)$ 기댓값이지만, 공간이 고유 원소 수 $u$에 비례한다. 스트리밍 시나리오에서 $u$가 수백만을 넘으면 메모리를 감당할 수 없다.
+핵심 연산인 `update`를 before/after로 자세히 봅니다. `width=4, depth=3`에서 `update("ip_a", 3)`을 실행하면, $h_j(\text{"ip\_a"})$가 각각 $3, 3, 2$인 경우(뒤에서 실제 해시로 검증합니다):
 
-**폭발 지점**: 정확한 빈도를 보장하면 공간을 줄일 수 없다. 추정값이 실제 빈도보다 크거나 같은 경우(과대추정)만 허용한다면, 해시 충돌을 적극 활용하여 공간을 대폭 줄일 수 있다.
+```text
+Before                              After update("ip_a", 3)
+        c0 c1 c2 c3                        c0 c1 c2 c3
+h0   [   0  0  0  0 ]                h0 [   0  0  0  3 ]  ← col3 += 3
+h1   [   0  0  0  0 ]                h1 [   0  0  0  3 ]  ← col3 += 3
+h2   [   0  0  0  0 ]                h2 [   0  0  3  0 ]  ← col2 += 3
+```
 
-### 어떤 관찰이 돌파구가 되는가
+세 행이 서로 다른 칸(3, 3, 2)을 가리키는 게 아니라 **같은 원소인데 행마다 다른 위치**를 가리킨다는 점에 주목하세요 — 이게 "독립 해시 $d$개"의 실체입니다.
 
-- **관찰 1**: 단일 카운터 배열에 해시로 원소를 매핑하면, 충돌하는 원소들의 카운트가 합산되어 과대추정이 발생한다. 이 오차를 없애는 것은 불가능하지만, 여러 독립 행의 최솟값을 취하면 오차를 줄일 수 있다.
-- **관찰 2**: 카운터는 오직 증가만 한다. 따라서 $\hat{f}(x) \geq f(x)$는 항등적으로 성립한다. 최솟값을 취하면 "가장 충돌이 적은 행"의 추정을 얻으므로 오차를 최소화한다.
-- **관찰 3**: $d$개의 독립 해시 행이 모두 동시에 크게 오염될 확률은 지수적으로 감소한다. 실패 확률 $\delta$를 $d = \lceil \ln(1/\delta) \rceil$로 제어할 수 있다.
+### 왜 모순 없이 작동하는가
 
-### 관찰을 형식화: 상태/구조 정의
+**하한 불변식이 보존되는 이유(귀납)**: 빈 스케치는 모든 칸이 0이므로 모든 원소에 대해 $f(x) = 0 = C[j][\cdot]$로 불변식이 성립합니다(기저). 이제 `update(y, c)`가 한 번 더 일어났다고 합시다.
 
-$d \times w$ 정수 행렬 $C$를 유지한다. 각 행 $j \in [0, d)$는 독립 해시 함수 $h_j$에 대응한다.
+- $y = x$인 경우: $f(x)$가 $c$만큼 늘고, $C[j][h_j(x)]$도 정확히 $c$만큼 늘어납니다(같은 칸이 갱신되므로). 양쪽이 같이 늘어나니 부등식 방향은 그대로 유지됩니다.
+- $y \neq x$인 경우: $f(x)$는 그대로인데, 해시 충돌로 $h_j(y) = h_j(x)$라면 $C[j][h_j(x)]$가 오히려 더 커집니다. 부등식은 더 여유 있게 성립합니다.
 
-$$C \in \mathbb{Z}_{\geq 0}^{d \times w}, \quad h_j : \Sigma^* \to [0, w)$$
+두 경우 모두 $C[j][h_j(x)] \geq f(x)$가 깨지지 않으므로, 임의 시점 · 임의 행에서 불변식이 유지됩니다. `estimate`는 이 $d$개 값의 최솟값을 취하는데, 최솟값도 각 항 이상은 아니므로(최솟값 ≤ 각 항이지만, 각 항이 이미 $f(x)$ 이상이니) 여전히 $\hat{f}(x) = \min_j C[j][h_j(x)] \geq f(x)$입니다. **과소추정은 구조적으로 불가능합니다.**
 
-이 형태여야 하는 근거: 각 행이 독립 해시를 사용하므로, 특정 행에서 원소 $x$와 충돌하는 원소 집합이 다른 행과 달라진다. 모든 행에서 동시에 같은 원소들이 충돌할 가능성은 지수적으로 낮다.
+**여기서 헷갈리기 쉬운 포인트 첫 번째는 min과 max를 혼동하는 것입니다.** "여러 행을 봤으니 더 큰 값이 더 믿을 만하지 않나?"라고 생각하기 쉬운데, 정반대입니다. 충돌은 값을 실제보다 부풀리기만 하지 줄이지는 않으므로, **가장 적게 오염된(=가장 작은) 값이 실제에 가장 가깝습니다.** 앞서 계산한 대표 시나리오에서 실제로 확인해 보면, `estimate("ip_b")`를 구할 때 세 행의 값이 $[2, 6, 2]$였습니다. 만약 실수로 max를 썼다면 $6$을 반환했을 텐데, 이는 실제 빈도 $2$의 3배에 달하는 심각한 과대추정입니다. min을 쓰면 정확히 $2$가 나옵니다(실측: 뒤의 실행 시각화에서 그대로 확인됩니다).
 
-### 점화식 또는 핵심 연산
+**두 번째 헷갈리기 쉬운 포인트는 "행을 늘리면 오차가 0이 된다"는 오해입니다.** $d$를 늘리는 것은 오차를 없애는 게 아니라 **큰 오차가 날 확률을 지수적으로 줄이는 것**입니다. 행 하나가 임계 오차 $\varepsilon N$을 넘길 확률이 대략 $1/e$ 미만이라면, $d$개 행이 전부 동시에 그 임계를 넘길 확률은 $(1/e)^d$로 지수 감소합니다. 그래도 확률이 정확히 0이 되지는 않아요 — 확률적 보장이지, 결정적 보장이 아닙니다.
 
-**갱신 연산**:
-$$\text{update}(x, c) \triangleq \forall j \in [0, d), \; C[j][h_j(x) \bmod w] \mathrel{+}= c$$
+**세 번째 헷갈리기 쉬운 포인트는 "$w$를 넓히면 $d$가 필요 없다"는 오해입니다.** $w$(폭)는 한 행에서 발생하는 오차의 **크기**($\varepsilon N$)를 줄이고, $d$(깊이)는 그 오차가 **동시에 모든 행에서** 발생할 **확률**($\delta$)을 줄입니다. 둘은 서로 다른 축을 제어하므로 하나만 키워서는 다른 쪽 보장을 얻을 수 없습니다.
 
-**추정 연산**:
-$$\hat{f}(x) = \min_{0 \leq j < d} C[j][h_j(x) \bmod w]$$
+잠깐, 확인 질문 하나 — `width = 1, depth = 1`인 극단적인 스케치에 `update("x", 5)`, `update("y", 7)`을 차례로 호출하면 `estimate("x")`와 `estimate("y")`는 각각 무엇을 반환할까요? 답: **둘 다 12를 반환합니다.** 칸이 하나뿐이라 모든 원소가 `counters[0][0]`에 합쳐지기 때문에, 사실상 "전체 이벤트 합산 카운터"가 되어버립니다(실측: 스크래치 실행에서 `x=12, y=12` 확인).
 
-**정확도 보장** (확률 $\geq 1 - \delta$):
-$$f(x) \leq \hat{f}(x) \leq f(x) + \varepsilon \cdot N$$
+엣지 케이스를 마저 점검합니다.
 
-여기서 $N = \sum_y f(y)$는 스트림 총 카운트이다.
+```text
+width = 1                  → 모든 원소가 같은 칸을 공유. 오차가 최대.
+depth = 1                  → 보정할 다른 행이 없음. 충돌이 나면 그대로 부풀려진 값을 반환.
+update 안 한 원소 조회       → 모든 칸이 0이므로 estimate = 0 (실측: 검증됨)
+동일 원소 여러 번 update     → count가 그대로 누적. update(x,3) 후 update(x,1) → 실제 빈도 4.
+스트림 총합 N이 매우 큰 경우  → 오차 상한 εN도 함께 커져 희귀 원소의 추정 정확도가 떨어짐.
+```
 
-**유도**: 행 $j$에서 $x$와 충돌하는 임의 원소 $y \neq x$가 같은 버킷에 떨어질 확률은 $1/w$이다. $w = \lceil e/\varepsilon \rceil$으로 설정하면 행 $j$의 오차 기댓값이 $\varepsilon N / e$이다. Markov 부등식에 의해 단일 행이 오차 $\varepsilon N$을 초과할 확률이 $1/e$ 미만이다. $d$개 행 모두가 동시에 초과할 확률은 $(1/e)^d \leq \delta$이다.
+## 아이디어를 코드로 옮기기
 
-### 정당성 — 왜 이것이 옳은가
+세 단계로 좁혀갑니다: **정확하지만 무거운 원형 → 가볍지만 보정이 없는 개선 1 → 여러 행 + 최솟값으로 보정하는 최종판.**
 
-**하한 정당성** ($\hat{f}(x) \geq f(x)$): 카운터는 단조 증가한다. $C[j][h_j(x)]$는 $x$의 실제 빈도에 다른 원소들의 충돌 기여가 더해진 값이다. 따라서 어떤 행 $j$를 선택하든 $C[j][h_j(x)] \geq f(x)$이고, 최솟값을 취해도 $f(x)$ 이상임이 보장된다.
+**원형 — 정확한 카운팅.** 가장 단순한 방법은 해시 맵에 원소별 정확한 빈도를 저장하는 것입니다.
 
-**불변식**: 임의의 시점에서 모든 $j \in [0, d)$에 대해 $C[j][h_j(x)] \geq f(x)$가 성립한다.
+```ts
+class ExactCounter {
+  private counts = new Map<string, number>();
 
-**까다로운 케이스**: 소수의 원소가 매우 높은 빈도를 가질 때, 그 원소들이 $x$와 같은 버킷에 충돌하면 오차가 커진다. 이것이 Count-Min Sketch가 Heavy Hitter(자주 등장하는 원소)에는 잘 작동하고, 희귀 원소에는 상대적으로 부정확한 이유다. 총 카운트 $N$이 클수록 오차 상한 $\varepsilon N$도 커진다.
+  update(item: string, count: number): void {
+    this.counts.set(item, (this.counts.get(item) ?? 0) + count);
+  }
 
-### 구현 디테일과 최적화
+  estimate(item: string): number {
+    return this.counts.get(item) ?? 0;
+  }
+}
+```
 
-**해시 함수 구성**: 두 기반 해시값 $a = \text{hash}_1(x)$, $b = \text{hash}_2(x)$로 double hashing을 적용한다:
-$$h_j(x) = (a + j \cdot b) \bmod w, \quad j = 0, 1, \ldots, d-1$$
+정확도는 완벽하지만 공간이 고유 원소 수 $u$에 비례해 무한정 자랍니다. **폭발 지점**: 정확한 빈도를 유지하는 한 공간을 줄일 방법이 없습니다.
 
-**보존형 갱신(Conservative Update)**: 표준 갱신 대신, $C[j][h_j(x)] < \hat{f}(x) + c$인 행만 갱신하면 오차를 더 줄일 수 있다. 단, 먼저 `estimate`를 계산해야 하므로 구현이 복잡해진다.
+**개선 1 — 단일 해시 배열로 압축.** 정확도를 조금 포기하고, 고정 크기 배열 하나에 해시로 눌러 담아 봅니다.
 
-**함정**: 동일한 해시 씨드(seed)를 모든 행에 사용하면 독립성이 깨진다. 행마다 다른 씨드나 다른 해시 파라미터를 사용해야 한다.
+```ts
+class SingleRowSketch {
+  private counters: number[];
 
----
+  constructor(private readonly width: number) {
+    this.counters = new Array(width).fill(0);
+  }
 
-## 시뮬레이션
+  private position(item: string): number {
+    return hashToRange("1:" + item, this.width); // 아래 최종판의 해시 함수 재사용
+  }
 
-`w = 4`, `d = 3`인 Count-Min Sketch에 `update("a",3)`, `update("b",2)`, `update("a",1)`을 수행한 뒤 `estimate("a")`, `estimate("b")`를 조회한다(해시 위치는 설명을 위해 고정). matrix 패널은 d×w 카운터 행렬이며, 강조된 셀(`cells`)은 현재 원소의 d개 해시 위치다. 행1의 col2에서 a와 b가 충돌하지만, estimate는 d개 행의 최솟값을 취해 오차를 줄인다.
+  update(item: string, count: number): void {
+    this.counters[this.position(item)] += count;
+  }
 
-마지막 `estimate("b")`의 실제 반환값은 `2` (행0·행2가 2, 충돌난 행1은 6이지만 min으로 보정) 이며, 시뮬레이션 마지막 프레임과 일치한다.
+  estimate(item: string): number {
+    return this.counters[this.position(item)]; // 보정 수단이 없다 — 충돌나면 그대로 반환
+  }
+}
+```
+
+공간은 $O(w)$로 고정됐지만, 두 원소가 같은 칸에 충돌하면 **되돌릴 방법이 없습니다.** `width=4`인 스케치에 `update("ip_a", 3)`, `update("ip_b", 2)`, `update("ip_a", 1)`을 순서대로 넣으면 `"ip_a"`와 `"ip_b"`가 같은 칸에서 충돌해(실측: 뒤에서 검증), `estimate("ip_b")`가 실제 빈도 $2$가 아니라 $6$을 반환합니다 — 실제의 3배. **관찰**: 이 문제를 없앨 수는 없지만, 서로 다른 해시로 여러 번 반복하고 그중 가장 오염이 적은(작은) 값을 취하면 오차를 줄일 수 있습니다.
+
+**최종 — 여러 행 + 최솟값.**
+
+```ts
+class CountMinSketch {
+  private width: number;
+  private depth: number;
+  private counters: number[][];
+
+  constructor(width: number, depth: number) {
+    this.width = width;
+    this.depth = depth;
+    this.counters = Array.from({ length: depth }, () => new Array(width).fill(0));
+  }
+
+  private djb2(s: string): number {
+    let h = 5381 >>> 0;
+    for (let i = 0; i < s.length; i++) {
+      h = (Math.imul(h, 33) + s.charCodeAt(i)) >>> 0;
+    }
+    return h;
+  }
+
+  private mix(h: number): number {
+    h = h >>> 0;
+    h ^= h >>> 16;
+    h = Math.imul(h, 0x85ebca6b) >>> 0;
+    h ^= h >>> 13;
+    h = Math.imul(h, 0xc2b2ae35) >>> 0;
+    h ^= h >>> 16;
+    return h >>> 0;
+  }
+
+  private position(row: number, item: string): number {
+    return this.mix(this.djb2(`${row}:${item}`)) % this.width; // row를 salt로 섞어 행마다 독립적인 해시를 만든다
+  }
+
+  update(item: string, count: number): void {
+    for (let j = 0; j < this.depth; j++) {
+      const pos = this.position(j, item);
+      this.counters[j][pos] += count;      // 무조건 더한다 — 감소는 절대 없다
+    }
+  }
+
+  estimate(item: string): number {
+    let result = Infinity;
+    for (let j = 0; j < this.depth; j++) {
+      const pos = this.position(j, item);
+      result = Math.min(result, this.counters[j][pos]); // 무조건 최솟값
+    }
+    return result;
+  }
+}
+```
+
+**가장 중요한 부분은 `position` 메서드에서 `row`를 문자열 앞에 붙여 해시에 섞는 것입니다.** `` `${row}:${item}` ``처럼 행 번호를 해시 입력에 포함시키지 않고 모든 행이 `djb2(item)`만 사용하면, $d$개 행이 사실상 똑같은 위치에 똑같은 패턴으로 충돌합니다. 그러면 `min`을 아무리 여러 행에 대해 계산해도 값이 똑같으니 오차 보정 효과가 전혀 없습니다 — 행을 늘린 게 헛수고가 되는 거예요. 그리고 `update`의 `+=`와 `estimate`의 `Math.min`, 이 두 방향성이 정확도 보장의 전부입니다.
+
+> 넣을 땐 다 더하고, 꺼낼 땐 가장 작은 목격자만 믿는다.
+
+## 실행 시각화
+
+`width = 4`, `depth = 3`인 스케치에 `update("ip_a", 3)`, `update("ip_b", 2)`, `update("ip_a", 1)`을 차례로 실행한 뒤 `estimate("ip_a")`, `estimate("ip_b")`를 조회합니다. 실제 해시 위치는 `position(j, item)`을 그대로 실행해서 얻었습니다: `ip_a`는 행별로 $[3, 3, 2]$, `ip_b`는 $[2, 3, 0]$ — 행1(h1)의 열3에서 두 원소가 충돌합니다. matrix 패널은 $d \times w$ 카운터 행렬이고, 강조된 셀(`cells`)은 현재 원소가 매핑된 $d$개 위치입니다. 실제 반환값은 `estimate("ip_a") = 4`(실제 빈도와 일치), `estimate("ip_b") = 2`(충돌난 행1의 값 6을 min이 걸러내 정확한 값을 회복)이며, 아래 스크래치 실행 로그와 정확히 일치합니다.
+
+```text
+$ bun countMinSketch.ts
+pos(ip_a)= [ 3, 3, 2 ]  pos(ip_b)= [ 2, 3, 0 ]
+update(ip_a,3) -> [[0,0,0,3],[0,0,0,3],[0,0,3,0]]
+update(ip_b,2) -> [[0,0,2,3],[0,0,0,5],[2,0,3,0]]
+update(ip_a,1) -> [[0,0,2,4],[0,0,0,6],[2,0,4,0]]
+estimate(ip_a) = 4   (실제 빈도 4)
+estimate(ip_b) = 2   (실제 빈도 2)
+```
 
 > 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
@@ -134,7 +265,7 @@ export const colLabels = [0, 1, 2, 3];
 
 export const steps = [
   {
-    title: "초기화 (d=3, w=4)",
+    title: "초기화 (w=4, d=3)",
     detail: "모든 카운터 0.",
     matrix: [
       [0, 0, 0, 0],
@@ -144,121 +275,79 @@ export const steps = [
     rowLabels, colLabels,
   },
   {
-    title: 'update("a", 3)',
-    detail: "a의 해시: h0->1, h1->2, h2->0. 각 위치에 +3.",
+    title: 'update("ip_a", 3)',
+    detail: "ip_a의 해시 위치: h0->3, h1->3, h2->2. 각 위치에 +3.",
     matrix: [
-      [0, 3, 0, 0],
+      [0, 0, 0, 3],
+      [0, 0, 0, 3],
       [0, 0, 3, 0],
-      [3, 0, 0, 0],
     ],
     rowLabels, colLabels,
-    cells: [[0, 1], [1, 2], [2, 0]],
+    cells: [[0, 3], [1, 3], [2, 2]],
   },
   {
-    title: 'update("b", 2)',
-    detail: "b의 해시: h0->2, h1->2, h2->3. 각 위치에 +2. 행1 col2는 a와 충돌.",
+    title: 'update("ip_b", 2)',
+    detail: "ip_b의 해시 위치: h0->2, h1->3, h2->0. 각 위치에 +2. 행1의 열3에서 ip_a와 충돌(3 -> 5).",
     matrix: [
-      [0, 3, 2, 0],
-      [0, 0, 5, 0],
-      [3, 0, 0, 2],
+      [0, 0, 2, 3],
+      [0, 0, 0, 5],
+      [2, 0, 3, 0],
     ],
     rowLabels, colLabels,
-    cells: [[0, 2], [1, 2], [2, 3]],
+    cells: [[0, 2], [1, 3], [2, 0]],
   },
   {
-    title: 'update("a", 1)',
-    detail: "a의 위치에 +1. h0->1=4, h1->2=6, h2->0=4.",
+    title: 'update("ip_a", 1)',
+    detail: "ip_a의 위치에 +1. h0->3=4, h1->3=6, h2->2=4.",
     matrix: [
-      [0, 4, 2, 0],
-      [0, 0, 6, 0],
-      [4, 0, 0, 2],
+      [0, 0, 2, 4],
+      [0, 0, 0, 6],
+      [2, 0, 4, 0],
     ],
     rowLabels, colLabels,
-    cells: [[0, 1], [1, 2], [2, 0]],
+    cells: [[0, 3], [1, 3], [2, 2]],
   },
   {
-    title: 'estimate("a") = min(4, 6, 4) = 4',
-    detail: "a의 3개 위치 값 [4, 6, 4]의 최솟값 = 4. 실제 빈도와 일치.",
+    title: 'estimate("ip_a") = min(4, 6, 4) = 4',
+    detail: "ip_a의 3개 위치 값 [4, 6, 4]의 최솟값 = 4. 실제 빈도 4와 정확히 일치.",
     matrix: [
-      [0, 4, 2, 0],
-      [0, 0, 6, 0],
-      [4, 0, 0, 2],
+      [0, 0, 2, 4],
+      [0, 0, 0, 6],
+      [2, 0, 4, 0],
     ],
     rowLabels, colLabels,
-    cells: [[0, 1], [1, 2], [2, 0]],
+    cells: [[0, 3], [1, 3], [2, 2]],
   },
   {
-    title: 'estimate("b") = min(2, 6, 2) = 2',
-    detail: "b의 3개 위치 값 [2, 6, 2]. 행1은 충돌로 6이지만 min으로 2 반환.",
+    title: 'estimate("ip_b") = min(2, 6, 2) = 2',
+    detail: "ip_b의 3개 위치 값 [2, 6, 2]. 행1은 ip_a와 충돌해 6이지만, min이 걸러내 2를 반환.",
     matrix: [
-      [0, 4, 2, 0],
-      [0, 0, 6, 0],
-      [4, 0, 0, 2],
+      [0, 0, 2, 4],
+      [0, 0, 0, 6],
+      [2, 0, 4, 0],
     ],
     rowLabels, colLabels,
-    cells: [[0, 2], [1, 2], [2, 3]],
+    cells: [[0, 2], [1, 3], [2, 0]],
   },
   {
-    title: '완료: estimate("b") = 2',
-    detail: "과소추정 없이 실제 빈도 2를 정확히 반환.",
+    title: '완료: estimate("ip_b") = 2',
+    detail: "충돌이 없었던 두 행(h0, h2)만 강조. 과소추정 없이 실제 빈도 2를 정확히 반환.",
     matrix: [
-      [0, 4, 2, 0],
-      [0, 0, 6, 0],
-      [4, 0, 0, 2],
+      [0, 0, 2, 4],
+      [0, 0, 0, 6],
+      [2, 0, 4, 0],
     ],
     rowLabels, colLabels,
-    cells: [[0, 2], [2, 3]],
+    cells: [[0, 2], [2, 0]],
   },
 ];
 
-<AlgorithmSimulation view="matrix" steps={steps} title="Count-Min Sketch: w=4, d=3" />
+<AlgorithmSimulation view="matrix" steps={steps} title="Count-Min Sketch: width=4, depth=3" />
 
-## 수도 코드와 Activity Diagram
+정리하면, Count-Min Sketch는 **"카운터는 절대 감소하지 않는다"는 단조성 하나만으로 과소추정 없음을 보장**하고, **"$d$개 행 중 최솟값을 택한다"는 규칙 하나로 과대추정을 최대한 눌러줍니다.** 두 규칙이 합쳐져 $O(d)$ 시간·$O(wd)$ 고정 공간에 확률적 정확도 보장을 얻는 것이 이 자료구조의 전부입니다 — 애초에 목표했던 "정확한 빈도 대신 고정 크기로 근사"를 정확히 달성한 셈이에요.
 
-### 의사코드
+## 스스로 점검하기
 
-```
-class CountMinSketch(w, d):
-    C = 2D array[d][w], initialized to 0
-    // 불변식: C[j][h_j(x) mod w] ≥ f(x), ∀j ∈ [0, d)
-    //         카운터는 단조 증가하므로 과소추정은 절대 발생하지 않는다
-
-update(item, count):
-    for j in 0 .. d-1:
-        pos = hash_j(item) mod w     // 불변식: 0 ≤ pos < w
-        C[j][pos] += count           // 단조 증가 → 하한 불변식 유지
-
-estimate(item) → number:
-    result = +Infinity
-    for j in 0 .. d-1:
-        pos = hash_j(item) mod w
-        result = min(result, C[j][pos])  // 가장 오염이 적은 행 선택
-    return result                         // 반환값 ≥ 실제 빈도 항상 보장
-
-hash_j(item):
-    a = hash1(item), b = hash2(item)
-    return (a + j * b) mod w             // double hashing으로 독립성 근사
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-    A([update: item, count]) --> B["j=0"]
-    B --> C{j < d?}
-    C -- No --> D([done, 모든 d행 갱신 완료])
-    C -- Yes --> E["pos = hash_j(item) mod w"]
-    E --> F["C[j][pos] += count"]
-    F --> G["j++"]
-    G --> C
-
-    H([estimate: item]) --> I["result=+∞, j=0"]
-    I --> J{j < d?}
-    J -- No --> K([return result])
-    J -- Yes --> L["pos = hash_j(item) mod w"]
-    L --> M["result = min(result, C[j][pos])"]
-    M --> N["j++"]
-    N --> J
-```
-
-**핵심 불변식**: 갱신 후 임의의 행 $j$에서 $C[j][h_j(x) \bmod w] \geq f(x)$가 항상 성립하며, 최솟값을 취함으로써 과대추정 오차를 최소화하고 확률적 정확도 상한을 보장한다.
+1. `width = 6, depth = 2`인 스케치에 `update("p", 4)`, `update("q", 5)`를 순서대로 넣었더니 우연히 두 행 모두에서 `"p"`와 `"q"`가 같은 칸에 충돌했습니다. 이때 `estimate("p")`와 `estimate("q")`는 각각 얼마가 나올까요? (힌트: 두 행 모두 충돌하면 min이 보정할 다른 행이 없습니다)
+2. 본문의 대표 시나리오에서, `estimate` 구현이 실수로 `Math.min` 대신 배열의 **첫 번째 행 값만** 반환하도록 바뀌었다고 합시다. `estimate("ip_a")`와 `estimate("ip_b")`의 결과가 각각 어떻게 달라질까요? 실제 실행 로그의 행렬 값을 보고 계산해 보세요.
+3. `position(row, item)` 구현에서 `` `${row}:${item}` `` 대신 그냥 `item`만 해시한다면(행 번호를 섞지 않는다면), `depth`를 3에서 10으로 늘려도 정확도가 왜 전혀 개선되지 않는지 한 문장으로 설명해 보세요.

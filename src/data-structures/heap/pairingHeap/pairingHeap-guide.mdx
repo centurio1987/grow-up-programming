@@ -1,136 +1,313 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# PairingHeap (쌍 힙) 해설
+# PairingHeap — 자식은 형제 체인 하나로, 병합은 두 번 훑어서
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | Binary Heap | FibonacciHeap | PairingHeap | 비고 |
-|------|------------|---------------|-------------|------|
-| insert | O(log n) | O(1) 상각 | **O(1)** | PH 강점 |
-| extractMin | O(log n) | O(log n) 상각 | O(log n) 상각 | 유사 |
-| merge | O(n) | O(1) | **O(1)** | PH 강점 |
-| peek | O(1) | O(1) | **O(1)** | 동일 |
-| 구현 복잡도 | 낮음 | 매우 높음 | **낮음** | PH 강점 |
+PairingHeap(쌍 힙)은 각 노드가 자식 배열 대신 "첫 자식 하나(`leftChild`) + 오른쪽 형제(`nextSibling`)"만 갖는 단순한 트리 기반 힙이에요. 두 힙을 합칠 때는 두 루트 중 작은 쪽이 큰 쪽을 자식으로 삼는 `link` 연산 하나면 끝나기 때문에 insert와 merge가 `O(1)`이고, extractMin만 남은 자식들을 **Two-Pass**로 다시 이어 붙여 `O(log n)` 상각을 냅니다. Fibonacci Heap만큼 이론적으로 정교하진 않지만 구현이 훨씬 쉬우면서 실측 성능은 밀리지 않아 실무에서 즐겨 쓰입니다.
 
-실무 벤치마크: FibonacciHeap은 상수 인수가 크지만 PairingHeap은 상수가 작아 실제로 더 빠른 경우가 많다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호가 보이면 PairingHeap을 떠올리세요.
 
-| 메서드 | 반환 타입 | 엣지케이스 |
-|--------|-----------|-----------|
-| `insert(item)` | `void` | 단일 노드 힙과 merge |
-| `extractMin()` | `T \| undefined` | 빈 힙 → `undefined`, Two-Pass merge 발생 |
-| `merge(other)` | `PairingHeap<T>` | 빈 힙 병합 가능, O(1) |
-| `peek()` | `T \| undefined` | 빈 힙 → `undefined`, O(1) |
-| `size()` | `number` | 0부터 시작 |
-| `isEmpty()` | `boolean` | size === 0과 동치 |
+- 우선순위 큐 여러 개를 자주 **하나로 합쳐야** 한다(merge가 빈번하다)
+- **삽입은 아주 잦고** 최솟값 추출은 상대적으로 드물다
+- Fibonacci Heap을 쓰기엔 포인터 조작이 많아 구현 복잡도가 부담스럽다
 
----
+naive 대안들과 비교하면 PairingHeap이 노리는 자리가 뚜렷이 보입니다.
 
-## 핵심 아이디어
+```text
+연산          정렬 배열    이진 힙       피보나치 힙        PairingHeap
+insert        O(n)         O(log n)      O(1) 상각          O(1)
+merge         O(n)         O(n)          O(1)                O(1)
+extractMin    O(1)         O(log n)      O(log n) 상각       O(log n) 상각
+구현 난이도    낮음          낮음          매우 높음            낮음
+```
 
-### 왜 쌍 힙이 필요한가
+decreaseKey를 아주 많이 호출하는 그래프 알고리즘(프림·다익스트라의 이론적 최적 구현)이라면 피보나치 힙의 `O(1)` decreaseKey가 아쉽지만, 실제 상수 비용까지 고려하면 PairingHeap이 더 유리한 경우가 많습니다. 반대로 merge가 전혀 없고 삽입·추출만 반복한다면 굳이 포인터 트리를 쓸 필요 없이, 배열 기반이라 캐시 친화적인 이진 힙이 더 낫습니다 — "merge가 자주 나오는가"가 이진 힙과 PairingHeap을 가르는 기준선입니다.
 
-Fibonacci Heap은 이론적으로 아름답지만 구현이 복잡하다. 실제 코드에서는 포인터 조작 오류가 잦고, 캐시 미스가 많아 O(1)의 상수 인수가 크다.
+### 문제 사례와 적용 예시
 
-이진 힙은 구현이 쉽지만 병합이 O(n)이다.
+- **게임 서버 이벤트 큐 병합**: 몬스터 스폰, 아이템 드랍, 플레이어 액션처럼 이벤트 타입별로 따로 쌓이는 큐들을 시간 순으로 처리하려고 자주 하나로 합칩니다.
+- **이산 사건 시뮬레이션(DES)의 이벤트 스케줄러**: 네트워크 시뮬레이터나 물류 시뮬레이터에서 서브 스케줄러들의 이벤트 큐를 병합하는 연산이 반복됩니다.
+- **그래프 알고리즘의 우선순위 큐 구현체**: Prim·Dijkstra류 알고리즘에서 실무 라이브러리가 실제로 채택하는 힙 구현 중 하나입니다.
+- **코딩 테스트 맥락**: "K개의 정렬된 스트림을 병합해서 최솟값 우선으로 꺼내라", "여러 워커 큐를 합쳐 처리하라"처럼 merge 자체가 비용 병목이 되는 문제에서 등장합니다.
 
-쌍 힙은 **"단순하게, 그리고 충분히 빠르게"** 라는 철학으로 설계되었다. 자식 리스트를 형제 체인으로 표현하는 단 하나의 아이디어로 insert/merge O(1), extractMin O(log n) 상각을 달성한다.
+## 자료구조 자세히 들여다보기
 
-### 원형 아이디어: 자식 리스트를 왼쪽 자식 + 오른쪽 형제 체인으로
+### 전체 스펙: 속성과 액션
 
-전통적인 트리에서 각 노드는 자식 배열을 가진다. 쌍 힙에서는:
-- `leftChild`: 자식 중 가장 최근에 추가된 노드
-- `nextSibling`: 같은 부모의 다음 자식
-
-이 표현으로 자식 추가가 O(1)이 된다. `link(a, b)`에서 더 큰 루트의 nextSibling을 작은 루트의 leftChild로 만들면 끝이다.
-
-### 어떤 관찰이 돌파구가 되는가
-
-**관찰:** extractMin 후 남은 자식 리스트를 어떤 순서로 재결합하느냐가 상각 복잡도를 결정한다.
-
-- **Naive 단순 결합:** 왼쪽에서 오른쪽으로 순서대로 link → O(n) 가능
-- **Two-Pass merge:** 먼저 2개씩 묶은 뒤(forward), 오른쪽에서 왼쪽으로 결합(backward) → O(log n) 상각
-
-Two-Pass 방식이 핵심이다.
-
-### 관찰을 형식화: 상태/구조 정의
+**속성(내부 상태)**
 
 ```ts
 class PairingNode<T> {
   item: T;
-  leftChild: PairingNode<T> | null;   // 첫 번째 자식
-  nextSibling: PairingNode<T> | null; // 오른쪽 형제
-  parent: PairingNode<T> | null;      // 부모 (선택적)
+  leftChild: PairingNode<T> | null = null;   // 첫 번째 자식
+  nextSibling: PairingNode<T> | null = null; // 오른쪽 형제(부모의 자식 체인에서 다음 칸)
+
+  constructor(item: T) {
+    this.item = item;
+  }
 }
 
 class PairingHeap<T> {
-  root: PairingNode<T> | null;
-  _size: number;
-  compare: (a: T, b: T) => number;
+  private root: PairingNode<T> | null = null;
+  private count = 0;
+  private compare: (a: T, b: T) => number;
 }
 ```
 
-**불변식:**
-1. 최소 힙 속성: `parent.item ≤ child.item` (모든 노드)
-2. root는 전체 최솟값이다.
+지켜야 할 불변식은 두 가지입니다.
 
-### 점화식 또는 핵심 연산
+1. **최소 힙 속성**: $\forall v \neq root:\ item(parent(v)) \le item(v)$
+2. **루트가 전체 최솟값**: $item(root) = \min_{v \in H} item(v)$
 
-**두 루트 연결 (link):**
-```
-link(a, b):
-  if compare(a.item, b.item) <= 0:
-    // a가 새 루트
-    b.nextSibling = a.leftChild
-    b.parent = a
-    a.leftChild = b
-    return a
-  else:
-    // b가 새 루트
-    a.nextSibling = b.leftChild
-    a.parent = b
-    b.leftChild = a
-    return b
+자식은 배열이 아니라 형제 체인으로 표현됩니다 — 부모의 `leftChild`가 체인의 시작점입니다.
+
+```text
+                     부모
+                      │ leftChild
+                      ▼
+                    child1 ── nextSibling ──▶ child2 ── nextSibling ──▶ child3 ──▶ null
+
+     (가장 최근에 자식이 된 노드가 항상 맨 왼쪽 = leftChild 자리)
 ```
 
-**Two-Pass Merge (extractMin 내부):**
+**액션(연산)** — 이 가이드가 정의하는 6종입니다.
+
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `insert(item)` | `link(root, 새 노드)`로 삽입 | $O(1)$ |
+| `extractMin()` | root 반환 후 `twoPassMerge(root.leftChild)`로 교체 | $O(\log n)$ 상각 |
+| `merge(other)` | `link(this.root, other.root)` | $O(1)$ |
+| `peek()` | `root.item` 조회 | $O(1)$ |
+| `size()` | 카운터 반환 | $O(1)$ |
+| `isEmpty()` | `size() === 0` | $O(1)$ |
+
+핵심 연산 두 개를 그림으로 자세히 볼게요.
+
+**① link — "진 쪽이 이긴 쪽의 새 첫 자식이 된다".** 예시로 `link(3, 5)`를 실행합니다.
+
+```text
+Before: 독립된 두 싱글턴 트리
+   3 (leftChild: ∅)        5 (leftChild: ∅)
+
+compare(3, 5) ≤ 0 → 3이 승자, 5는 3의 자식이 된다
+
+After:
+   3
+   └─ leftChild → 5 (nextSibling: ∅)
 ```
-twoPassMerge(siblings):
-  if siblings == null or siblings.nextSibling == null:
-    return siblings
-  first  = siblings
-  second = siblings.nextSibling
-  rest   = second.nextSibling
-  // 연결 끊기
-  first.nextSibling = null
-  second.nextSibling = null
-  // Forward pass: 두 개씩 link
-  paired = link(first, second)
-  // Backward pass: 나머지를 오른쪽부터 link
-  return link(paired, twoPassMerge(rest))
+
+**② Two-Pass merge — "두 개씩 짝짓고(forward), 오른쪽부터 결합한다(backward)".** `insert(1), insert(8), insert(5), insert(3)`을 차례로 실행하면(각 삽입이 `link(root, 새 노드)`이므로 root는 계속 최솟값 1로 유지되고, 나중에 넣을수록 앞자리에 쌓입니다) root(1)의 자식 체인은 왼쪽부터 `[3, 5, 8]`이 됩니다. 이제 `extractMin()`을 호출한 직후를 봅니다.
+
+```text
+Before (root 1을 뗀 직후, root.leftChild 체인):
+   3 ── nextSibling ──▶ 5 ── nextSibling ──▶ 8 ── nextSibling ──▶ null
+
+Forward pass: 왼쪽부터 두 개씩 link
+   link(3, 5) → compare(3,5) ≤ 0 → 3 승리, 5는 3의 자식
+   짝지어진 결과: 3(leftChild: 5) , 나머지: [8]
+
+Backward pass: 남은 것을 오른쪽부터(재귀가 되돌아오며) 결합
+   link(3(leftChild:5), 8) → compare(3,8) ≤ 0 → 3 승리, 8이 3의 새 첫 자식(기존 5 앞에 붙는다)
+
+After:
+   3
+   └─ leftChild → 8 ── nextSibling ──▶ 5 ── nextSibling ──▶ null
 ```
 
-### 정당성: 왜 이것이 옳은가
+$m$번의 insert와 $k$번의 extractMin이 섞인 시퀀스 전체 비용은 $O((m+k)\log k)$입니다 — extractMin 1회당 상각 $O(\log k)$. 왜 하필 Two-Pass여야 이 상각이 나오는지는 바로 다음 절과 "아이디어를 코드로 옮기기"의 실측 비교에서 확인합니다.
 
-**상각 분석 (스케치):**
+### 왜 모순 없이 작동하는가
 
-m번의 insert와 k번의 extractMin이 있을 때, 총 비용은 O((m + k) log k)이다.
+**link가 최소 힙 속성을 보존하는 이유(귀납)**: 삽입 직후의 싱글턴 노드는 자식이 없어 불변식을 자명하게 만족합니다(기저 사례). `link(a, b)`가 호출될 때 `a`, `b`는 각각 이미 최소 힙 속성을 만족하는 트리의 루트라고 가정합시다(귀납 가정). 비교에서 진 쪽(예: `b`)이 이긴 쪽(`a`)의 새 자식이 될 때 `item(a) ≤ item(b)`가 보장된 상태이므로 새로 생긴 부모-자식 관계도 곧바로 불변식을 만족합니다. 나머지 서브트리들의 내부 관계는 건드리지 않았으니 그대로 유지됩니다. `extractMin`의 `twoPassMerge`는 `link`만 반복 호출하므로 결과 트리 역시 귀납적으로 불변식을 만족하고, 남은 노드들 중 최솟값이 매 `link`에서 승자로 계속 끌어올려지므로 최종 루트는 전체 최솟값이 됩니다.
 
-Two-Pass 방식은 자식 리스트를 균형 있게 결합함으로써 각 extractMin에서 처리하는 link 횟수가 O(log n)으로 제한된다. (엄밀한 증명은 포텐셜 함수를 사용하지만 여기서는 직관으로 이해한다.)
+**여기서 헷갈리기 쉬운 포인트**는 naive 방식이든 Two-Pass든 "만들어지는 최종 루트 값" 자체는 항상 같다는 점입니다 — 아이디어를 코드로 옮기며 검증하겠지만, 자식 체인 `[6, 5, 4, 3, 2]`를 naive로 합치든 Two-Pass로 합치든 최종 루트는 똑같이 `2`입니다. 둘의 차이는 정답 여부가 아니라 결과 트리의 **깊이(모양)** 입니다. naive는 깊이 5의 사슬을 만들고 Two-Pass는 깊이 3의 균형 잡힌 트리를 만듭니다. 이 모양 차이가 이후 반복되는 extractMin들의 누적 비용을 가릅니다 — 사슬이 계속 만들어지면 후속 extractMin마다 다시 그 사슬 전체를 훑어야 해서, 내림차순으로 계속 삽입한 뒤 반복 추출하는 패턴에서는 총 비용이 $O(n^2)$까지 치솟을 수 있습니다.
 
-### 구현 디테일과 최적화
+두 번째로 헷갈리는 지점은 forward/backward 방향입니다. Forward는 왼쪽부터 "두 개씩" 짝짓고, Backward는 그 결과를 재귀 호출이 가장 안쪽(리스트 끝)까지 내려갔다가 되돌아오면서 "오른쪽부터" 결합합니다. 코드에서는 `twoPassMerge(rest)`가 완전히 끝난 뒤에야 바깥쪽 `link(paired, ...)`가 실행되므로, 실질적인 결합 순서는 오른쪽에서 왼쪽입니다. 잠깐, 확인 하나 해 볼까요? "forward pass만 하고 그 결과를 다시 naive처럼 왼쪽부터 합치면 어떻게 될까요?" — 짝의 개수가 절반(5개→3개)으로 줄긴 하지만, 그 3개를 naive로 또 이어 붙이면 3개짜리 사슬이 다시 생길 수 있어 근본 해결이 아닙니다. 재귀적으로 "오른쪽부터" 결합해야 매 층마다 절반씩 줄어드는 효과가 유지됩니다.
 
-- **insert:** `link(root, singleNode)`. root가 null이면 그냥 singleNode가 새 root.
-- **merge:** 두 힙이 비어 있지 않으면 `link(root1, root2)`. O(1).
-- **extractMin:** root 제거 → `twoPassMerge(root.leftChild)`. 재귀 구현이 자연스러우나 스택 오버플로 주의 시 반복(iterative)으로도 구현 가능.
-- **재귀 vs 반복:** 재귀 구현이 더 직관적이나, n이 매우 클 때는 반복 구현이 안전하다.
+세 번째: `parent` 포인터입니다. 이 가이드가 정의한 6개 연산에는 decreaseKey가 없으므로 parent 포인터가 사실상 불필요합니다. 굳이 유지하려면 `link`·`twoPassMerge` 안에서 매번 갱신해야 하는데, 쓰지도 않을 필드를 갱신하면 코드만 늘어납니다.
 
----
+엣지 케이스 점검:
 
-## 시뮬레이션
+```text
+빈 힙 extractMin() / peek()            → undefined (root === null 분기)
+원소 1개 힙 extractMin()                → 그 값 반환, twoPassMerge(null) = null → root = null
+insert 중복 값(5, 5, 1)                 → size 정상 누적, extractMin 순서 1, 5, 5 (compare가 0이면 어느 쪽이 부모여도 무방)
+merge(빈 힙)                            → link(root, null) = root 그대로, size 그대로
+빈 힙.merge(비어있지 않은 힙)             → link(null, other.root) = other.root, size는 other 것
+```
+
+## 아이디어를 코드로 옮기기
+
+가이드가 정의한 인터페이스(`PairingNode`/`PairingHeap`, `compare` 비교자)에 맞춰 원형 → 개선 → 최종 순서로 Two-Pass merge에 도달하는 과정을 코드로 밟아봅니다.
+
+**원형(naive): 왼쪽부터 순서대로 이어 붙이기.**
+
+```ts
+function naiveMerge<T>(
+  node: PairingNode<T> | null,
+  link: (a: PairingNode<T> | null, b: PairingNode<T> | null) => PairingNode<T> | null,
+): PairingNode<T> | null {
+  if (node === null) return null;
+  let result: PairingNode<T> | null = node;
+  let cur = node.nextSibling;
+  result.nextSibling = null;
+  while (cur !== null) {
+    const next = cur.nextSibling;
+    cur.nextSibling = null;
+    result = link(result, cur); // 왼쪽 결과에 계속 이어 붙인다
+    cur = next;
+  }
+  return result;
+}
+```
+
+`insert(1)`부터 `insert(6)`까지 오름차순으로 넣으면 root는 계속 `1`로 유지되고, 나중에 넣은 값일수록 앞자리(prepend)에 쌓여 root(1)의 자식 체인은 왼쪽부터 `[6, 5, 4, 3, 2]`가 됩니다. `extractMin()`으로 `1`을 떼어낸 뒤 이 5개짜리 체인에 `naiveMerge`를 실행하면 root는 `2`로 정확하지만(값은 맞습니다!), 깊이 5의 완전한 사슬(linked list 모양)이 만들어집니다 — 실측: naive 결과의 트리 깊이는 5. 이 사슬 모양이 문제입니다. 내림차순 삽입 뒤 반복 추출 같은 패턴에서는 매 extractMin마다 $O(n)$짜리 사슬을 다시 훑어야 해서, $n$번 반복하면 총 비용이 $O(n^2)$까지 치솟을 수 있습니다.
+
+**개선: forward pass만 먼저 적용해 보기.** 사슬이 생기는 이유는 "이미 만든 결과에 하나씩 계속 이어 붙이기" 때문입니다. 그럼 처음부터 두 개씩 미리 짝지어 두면 어떨까요?
+
+```ts
+function forwardPass<T>(
+  node: PairingNode<T> | null,
+  link: (a: PairingNode<T> | null, b: PairingNode<T> | null) => PairingNode<T> | null,
+): PairingNode<T>[] {
+  const pairedRoots: PairingNode<T>[] = [];
+  let cur = node;
+  while (cur !== null) {
+    const first = cur;
+    const second: PairingNode<T> | null = cur.nextSibling;
+    if (second === null) {
+      first.nextSibling = null;
+      pairedRoots.push(first);
+      cur = null;
+    } else {
+      const rest = second.nextSibling;
+      first.nextSibling = null;
+      second.nextSibling = null;
+      pairedRoots.push(link(first, second)!);
+      cur = rest;
+    }
+  }
+  return pairedRoots;
+}
+```
+
+같은 5개짜리 체인 `[6, 5, 4, 3, 2]`에 `forwardPass`만 실행하면 짝 `(6,5)→5`, 짝 `(4,3)→3`, 그리고 홀로 남은 `2`, 이렇게 3개의 서브트리로 줄어듭니다 — 실측: 결과 루트 값은 `[5, 3, 2]`, 개수는 5개에서 3개로 줄었습니다. 개수는 절반 가까이 줄었지만, 이 3개를 다시 naive처럼 왼쪽부터 이어 붙이면 3개짜리 사슬이 또 생겨요. 절반씩 줄어드는 효과가 재귀적으로 이어지지 않으면 결국 다시 $O(n)$ 깊이로 돌아갑니다. 필요한 마지막 조각은 "이 축소된 목록도 같은 전략으로, 그것도 오른쪽부터 재귀적으로 결합"하는 것입니다.
+
+**최종: Two-Pass merge(forward + backward 재귀)와 전체 구현.**
+
+```ts
+class PairingNode<T> {
+  item: T;
+  leftChild: PairingNode<T> | null = null;
+  nextSibling: PairingNode<T> | null = null;
+
+  constructor(item: T) {
+    this.item = item;
+  }
+}
+
+class PairingHeap<T> {
+  private root: PairingNode<T> | null = null;
+  private count = 0;
+  private compare: (a: T, b: T) => number;
+
+  constructor(compare: (a: T, b: T) => number) {
+    this.compare = compare;
+  }
+
+  private link(a: PairingNode<T> | null, b: PairingNode<T> | null): PairingNode<T> | null {
+    if (a === null) return b;
+    if (b === null) return a;
+    if (this.compare(a.item, b.item) <= 0) {
+      b.nextSibling = a.leftChild;
+      a.leftChild = b;
+      return a;
+    } else {
+      a.nextSibling = b.leftChild;
+      b.leftChild = a;
+      return b;
+    }
+  }
+
+  private twoPassMerge(node: PairingNode<T> | null): PairingNode<T> | null {
+    if (node === null || node.nextSibling === null) return node;
+    const first = node;
+    const second = node.nextSibling;
+    const rest = second.nextSibling;
+    first.nextSibling = null;
+    second.nextSibling = null;
+    const paired = this.link(first, second);
+    return this.link(paired, this.twoPassMerge(rest));
+  }
+
+  insert(item: T): void {
+    const node = new PairingNode(item);
+    this.root = this.link(this.root, node);
+    this.count++;
+  }
+
+  extractMin(): T | undefined {
+    if (this.root === null) return undefined;
+    const item = this.root.item;
+    this.root = this.twoPassMerge(this.root.leftChild);
+    this.count--;
+    return item;
+  }
+
+  merge(other: PairingHeap<T>): PairingHeap<T> {
+    const result = new PairingHeap<T>(this.compare);
+    result.root = this.link(this.root, other.root);
+    result.count = this.count + other.count;
+    return result;
+  }
+
+  peek(): T | undefined {
+    return this.root?.item;
+  }
+
+  size(): number {
+    return this.count;
+  }
+
+  isEmpty(): boolean {
+    return this.count === 0;
+  }
+}
+```
+
+`twoPassMerge`가 개선 단계의 `forwardPass`와 다른 점은, 첫 두 개만 즉시 짝짓고 나머지 전체는 재귀 호출 `twoPassMerge(rest)`에 통째로 맡긴다는 것입니다. 재귀가 리스트 끝까지 내려갔다가 되돌아오면서 결합되므로 실질적인 결합은 오른쪽에서 왼쪽으로 진행됩니다. 같은 `[6, 5, 4, 3, 2]`에 `twoPassMerge`를 실행하면 root는 여전히 `2`로 같지만 깊이는 3으로 줄어듭니다 — 실측: naive 깊이 5 → Two-Pass 깊이 3.
+
+가장 중요한 부분은 `link`의 이 두 줄입니다.
+
+```ts
+b.nextSibling = a.leftChild;
+a.leftChild = b;
+```
+
+진 쪽(`b`)이 이긴 쪽(`a`)의 **새 첫 자식**이 되는 전부가 이 두 줄에 있습니다. 순서를 바꿔 `a.leftChild = b`를 먼저 쓰면, `b.nextSibling`에 대입할 때 이미 덮어써진 `a.leftChild`(= `b` 자신)를 읽게 되어 `b.nextSibling = b`라는 자기 참조가 생기고, `a`의 기존 자식들은 통째로 유실됩니다.
+
+놓치기 쉬운 지점을 몇 가지 더 짚습니다.
+
+- `twoPassMerge`에서 `first.nextSibling = null; second.nextSibling = null;`을 재귀 호출 전에 반드시 끊어야 합니다. 안 끊으면 `link` 내부에서 `nextSibling`을 새로 쓸 때 원래 형제 체인 참조가 남아 있어 예상과 다른 노드가 딸려 옵니다.
+- `extractMin`은 `root` 자체가 아니라 `root.leftChild`(자식 체인)를 `twoPassMerge`에 넘깁니다. `root` 자신은 이미 값을 꺼내 반환하고 버려지는 노드이기 때문입니다.
+- `merge`는 `this.root`와 `other.root`를 직접 `link`할 뿐 두 힙의 `compare`가 같은 규칙이라고 가정합니다. 서로 다른 비교자를 쓰는 힙끼리 합치면 불변식이 깨질 수 있어요.
+
+> 기억법: 진 사람이 이긴 사람의 맨 앞자리 자식이 된다 — link는 늘 앞에 꽂는다.
+
+## 실행 시각화
+
+고정 입력으로 `insert(1)`, `insert(8)`, `insert(5)`, `insert(3)`을 차례로 실행합니다. 매 삽입이 `link(root, 새 노드)`이므로 root는 계속 최솟값 `1`로 유지되고, 나중에 넣은 노드일수록 앞자리에 쌓여 최종적으로 root(1)의 자식 체인은 왼쪽부터 `[3, 5, 8]`이 됩니다(실측 확인). 이어서 `extractMin()`을 호출하면 `1`을 반환하면서 이 3개짜리 체인에 Two-Pass merge가 걸립니다. forward pass가 `link(3, 5)`로 먼저 묶고(3이 승리, 5가 자식), backward pass가 그 결과와 남은 `8`을 `link`해 `3`이 최종 루트가 되고 `8`이 `3`의 새 첫 자식으로 붙습니다(실측: `extractMin() === 1`, 이어지는 root(3)의 자식 체인은 `[8, 5]`). 이후 `extractMin()`을 세 번 더 호출하면 `3`, `5`, `8`이 순서대로 나와 정렬 결과와 일치함을 확인했습니다. array 패널의 각 프레임은 그 시점에 남아있는(또는 처리 중인) 값들을 보여주고, highlight는 지금 막 link되는 두 노드, marked는 아직 처리를 기다리는 나머지를 가리킵니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -141,8 +318,8 @@ export const steps = [
     marked: [],
   },
   {
-    title: "insert(5), insert(3), insert(8), insert(1)",
-    detail: "각 insert는 link(root, newNode)로 처리. 더 작은 값이 루트. 최종 root = 1.",
+    title: "insert(1), insert(8), insert(5), insert(3)",
+    detail: "각 insert는 link(root, newNode)로 처리. root는 계속 1로 유지되고, 나중에 넣은 값일수록 앞자리에 쌓인다. root(1)의 자식 체인(좌→우) = [3, 5, 8].",
     array: [1, 3, 5, 8],
     highlight: [0],
     marked: [],
@@ -179,80 +356,8 @@ export const steps = [
 
 <AlgorithmSimulation view="array" steps={steps} title="PairingHeap extractMin Two-Pass 시뮬레이션" />
 
-## 수도 코드와 Activity Diagram
+## 스스로 점검하기
 
-### 의사코드
-
-```
-// 두 루트 연결
-link(a, b):
-  if a == null: return b
-  if b == null: return a
-  if compare(a.item, b.item) <= 0:
-    b.nextSibling = a.leftChild
-    a.leftChild = b
-    return a
-  else:
-    a.nextSibling = b.leftChild
-    b.leftChild = a
-    return b
-
-// Two-Pass Merge (재귀)
-twoPassMerge(node):
-  if node == null or node.nextSibling == null:
-    return node
-  first = node
-  second = node.nextSibling
-  rest = second.nextSibling
-  first.nextSibling = null
-  second.nextSibling = null
-  return link(link(first, second), twoPassMerge(rest))
-
-// 삽입
-insert(item):
-  node = new PairingNode(item)
-  root = link(root, node)
-  _size++
-
-// 최솟값 추출
-extractMin():
-  if root == null: return undefined
-  item = root.item
-  root = twoPassMerge(root.leftChild)
-  if root != null: root.parent = null
-  _size--
-  return item
-
-// 병합
-merge(other):
-  result = new PairingHeap(compare)
-  result.root = link(this.root, other.root)
-  result._size = this._size + other._size
-  return result
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A([insert item]) --> B[PairingNode 생성]
-  B --> C[link root, newNode]
-  C --> D[root 갱신, size++]
-  D --> E([완료])
-
-  F([extractMin]) --> G{root == null?}
-  G -- Yes --> H([return undefined])
-  G -- No --> I[item = root.item]
-  I --> J[children = root.leftChild 체인]
-  J --> K[twoPassMerge children]
-  K --> L[root = 결과, size--]
-  L --> M([return item])
-
-  N([twoPassMerge siblings]) --> O{siblings이 하나 이하?}
-  O -- Yes --> P([return siblings])
-  O -- No --> Q[first=s1, second=s2, rest=s3...]
-  Q --> R[link first, second → paired]
-  R --> S[twoPassMerge rest → rightMerged]
-  S --> T[link paired, rightMerged]
-  T --> U([return 결과])
-```
+1. root가 `1`, 자식 체인이 `[3, 5, 8]`인 상태에서 `extractMin()`을 호출하면 forward pass는 어떤 두 노드를 먼저 `link`할까요? 그 다음 backward pass의 결과 root와 자식 체인을 손으로 그려 보고, 본문의 실측값과 맞는지 확인해 보세요.
+2. `naiveMerge`와 `twoPassMerge` 모두 `[6, 5, 4, 3, 2]`에 대해 최종 루트 값 `2`를 만들어내지만 트리 깊이가 다릅니다(5 대 3). 이 깊이 차이가 왜 `naiveMerge`를 반복 사용했을 때 $O(n^2)$ 위험으로 이어지는지 설명해 보세요.
+3. `twoPassMerge` 코드에서 `first.nextSibling = null; second.nextSibling = null;` 두 줄을 지우면 이어지는 `link(first, second)` 호출에서 어떤 참조 문제가 생길지, `link` 함수의 두 줄과 연결지어 설명해 보세요.

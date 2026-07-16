@@ -1,176 +1,362 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# Skip List 해설
+# Skip List — 동전을 던져 계층을 쌓는 고속도로 연결 리스트
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 기대 시간복잡도 | 공간복잡도 |
-|------|----------------|-----------|
-| `insert` | $O(\log n)$ | $O(\log n)$ (새 노드의 포인터 배열) |
-| `search` | $O(\log n)$ | $O(1)$ |
-| `delete` | $O(\log n)$ | $O(\log n)$ (update 배열) |
-| `toArray` | $O(n)$ | $O(n)$ |
-| 전체 공간 | — | $O(n)$ 기대값 (레벨당 절반으로 줄어듦) |
+정렬된 연결 리스트 위에 "고속도로" 레벨을 여러 겹 얹은 확률적 자료구조예요. 새 키를 넣을 때마다 동전을 던지듯 확률 $p$로 상위 레벨 포함 여부를 정하면, 회전 로직 하나 없이도 레벨마다 절반씩 줄어드는 계층이 저절로 만들어집니다. 그 결과 삽입·삭제·검색이 모두 기대 $O(\log n)$에 끝나면서, 구현 자체는 연결 리스트 수준으로 단순해요.
 
-p=0.5이면 레벨 k에 포함될 노드 수의 기대값은 n/2^k이다. 전체 포인터 수의 합은 기하급수 합산으로 $O(n)$. 탐색 비교 횟수의 기대값은 $O(\log n)$이며, 이는 역방향으로 진행 경로를 분석하는 backwards analysis로 엄밀하게 증명된다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호들이 겹치면 스킵 리스트를 떠올리세요.
 
-| 메서드 | 시그니처 | 엣지 케이스 |
-|--------|---------|------------|
-| `insert` | `(key: number): void` | 중복 키 → 무시 |
-| `search` | `(key: number): boolean` | 빈 리스트 → `false` |
-| `delete` | `(key: number): void` | 없는 키 → 무시; 삭제 후 최고 레벨 갱신 |
-| `toArray` | `(): number[]` | 빈 리스트 → `[]` |
+- 정렬 순서를 유지한 채 **삽입·삭제가 빈번**하게 일어난다
+- 이진 탐색 트리의 회전(rotation) 로직 없이 $O(\log n)$을 기대값으로라도 얻고 싶다
+- **락 경합 없는 동시성 확장**(lock-free)이 나중에 필요할 수 있다 — 포인터 몇 개만 원자적으로 바꾸면 되는 구조가 유리하다
+- 범위 질의보다는 **점 조회(존재 확인)와 정렬 순회**가 주된 연산이다
 
----
+naive 대안들과 비용을 비교하면 스킵 리스트가 왜 균형점인지 보입니다.
 
-## 핵심 아이디어
-
-스킵 리스트의 본질은 **계층적 고속 도로**다. 레벨 0은 모든 키를 포함하는 완전한 정렬 연결 리스트이고, 레벨 k는 레벨 k-1의 약 절반 노드만 포함한다. 탐색할 때 높은 레벨에서 큰 폭으로 뛰어넘고, 목표에 가까워지면 낮은 레벨로 내려가 세밀하게 찾는다 — 마치 고속도로에서 인터체인지를 통해 국도로 빠져나가는 것과 같다.
-
----
-
-### 원형 아이디어와 naive 접근
-
-정렬된 데이터를 빠르게 검색하는 가장 단순한 방법은 **정렬 배열**과 이진 탐색이다. 검색은 O(log n)이지만 삽입·삭제에서 O(n) 이동이 필요하다.
-
-**정렬 연결 리스트**는 삽입·삭제를 O(1)로 줄이지만, 이진 탐색이 불가능해 검색이 O(n)이 된다. 연결 리스트에서 임의 접근이 안 되기 때문이다.
-
----
-
-### 어떤 관찰이 돌파구가 되는가
-
-"연결 리스트에서도 중간 지점으로 빠르게 뛰어넘을 수 있다면?" 이 질문이 돌파구다.
-
-n개의 노드 중 n/2번째마다 '익스프레스 포인터'를 두면 레벨 1에서 최대 n/2번 이동으로 탐색 범위를 좁힌다. 거기서 다시 n/4번째마다 포인터를 두면... 이를 반복하면 log n 레벨 후 O(log n) 검색이 완성된다. 이것이 **결정론적 스킵 리스트**의 아이디어다.
-
-문제는 삽입·삭제마다 익스프레스 포인터를 재조정해야 한다는 것. 이를 **확률적으로** 해결한다 — 새 노드를 삽입할 때 동전을 던져 상위 레벨 포함 여부를 결정하면, 평균적으로 n/2^k 개의 노드가 레벨 k에 들어가 균형이 유지된다.
-
----
-
-### 관찰을 형식화: 상태/구조 정의
-
+```text
+정렬 배열        search O(log n)        insert/delete O(n)      ← 중간 삽입 시 뒤 전체를 밀어야 함
+정렬 연결 리스트  search O(n)            insert/delete O(1)      ← 임의 접근이 안 돼 이진 탐색 불가
+Skip List        search O(log n) 기대    insert/delete O(log n) 기대  ← 두 마리 토끼
 ```
-Node {
-  key:   number
-  next:  Node[]   // next[i] = 레벨 i에서의 다음 노드
+
+레드블랙 트리·AVL 트리처럼 **항상 정확한** $O(\log n)$ 보장이 필요하면 균형 이진 트리를, 구현 단순성과 lock-free 확장성이 더 중요하면 스킵 리스트를 고릅니다 — 스킵 리스트는 "최악의 경우"엔 이론상 $O(n)$까지 나빠질 수 있는 대신(모든 동전이 계속 앞면일 확률은 지수적으로 작지만 0은 아니에요), 회전 없이 삽입·삭제가 끝나는 대가를 치릅니다.
+
+### 문제 사례와 적용 예시
+
+- **Redis의 Sorted Set(ZSET)**: 점수 순으로 정렬된 멤버 집합을 스킵 리스트로 구현합니다. `ZRANGE`, `ZRANK` 같은 순위 질의가 여기서 나옵니다.
+- **LevelDB/RocksDB의 MemTable**: 디스크에 쓰기 전 메모리에서 정렬 순서를 유지하는 버퍼로 스킵 리스트를 씁니다. 삽입이 매우 잦고 락 경합을 줄여야 하는 환경이라 궁합이 좋습니다.
+- **실시간 리더보드**: 매초 수천 건의 점수 갱신과 순위 조회가 동시에 들어오는 시스템에서, 회전 로직 버그 없이 빠르게 구현하고 싶을 때 선택됩니다.
+- **코딩 테스트 맥락**: "삽입·삭제가 섞이는 스트림에서 특정 값의 존재 여부와 정렬된 전체 목록을 반복해서 답하라" — 언어에 정렬 컨테이너가 없는 환경(JS/TS)에서 직접 구현 대상이 됩니다.
+
+## 자료구조 자세히 들여다보기
+
+### 전체 스펙: 속성과 액션
+
+**속성(내부 상태)** — 노드 하나가 여러 레벨의 다음 포인터를 동시에 들고 있는 구조입니다.
+
+```ts
+type Node = {
+  key: number;
+  next: (Node | undefined)[]; // next[i] = 레벨 i에서의 다음 노드
+};
+
+// SkipList 전체가 유지하는 상태
+// head:         Node    파수꾼(sentinel), key = -Infinity, next.length = MAX_LEVEL
+// currentLevel: number  0-indexed 현재 최고 사용 레벨
+// MAX_LEVEL:    16
+// p:            0.5
+```
+
+지켜야 할 불변식은 네 가지예요.
+
+1. **레벨 0은 모든 키를 오름차순으로 포함하는 완전 정렬 리스트다**: $\forall i \in [0, n-2]: L_0[i].key < L_0[i+1].key$
+2. **상위 레벨은 하위 레벨의 부분집합이다**: $L_k \subseteq L_{k-1} \quad (1 \le k \le \text{currentLevel})$
+3. **head는 항상 $-\infty$ 파수꾼**이며 모든 레벨의 시작점이다. 별도의 null 체크 없이 head에서 탐색을 시작할 수 있는 이유가 이겁니다.
+4. **currentLevel은 현재 존재하는 노드 레벨의 최댓값 $-1$**이다(0-indexed). 리스트가 비어 있으면 0.
+
+`insert(1), insert(3), insert(5), insert(7), insert(9)`를 순서대로 넣었을 때(레벨이 각각 2, 1, 3, 1, 2로 나왔다고 합시다 — 뒤에서 실제로 검증합니다) 전체 구조는 이렇게 생깁니다.
+
+```text
+Level 2: head ------------------------> 5 ------------------------> ⊥
+Level 1: head ------------> 1 --------> 5 -------------> 9 -------> ⊥
+Level 0: head -> 1 ------> 3 --------> 5 -------> 7 ----> 9 -------> ⊥
+```
+
+레벨 1에는 {1, 5, 9}만 있고(레벨 0의 부분집합), 레벨 2에는 {5}만 있죠(레벨 1의 부분집합). 노드가 레벨 $k$까지 올라갈 확률은 $p^{k-1}$이므로($p=0.5$면 레벨 2 이상일 확률 $1/2$, 레벨 3 이상일 확률 $1/4$…), 레벨 $k$에 남는 노드의 기대 개수는 $n / 2^{k-1}$입니다. 전체 포인터 개수의 기대값은 등비수열 합으로 $\sum_{k \ge 0} n p^k = \frac{n}{1-p} = O(n)$이에요 — 레벨을 아무리 많이 둬도 공간이 선형을 넘지 않습니다.
+
+**액션(연산)** — 이 자료구조가 제공하는 4개 연산입니다.
+
+| 연산 | 하는 일 | 비용(기대) |
+|------|---------|-----------|
+| `insert(key)` | `update[]` 배열을 구성하며 하강 → 중복 확인 → `randomLevel()` → 포인터 연결 | $O(\log n)$ |
+| `search(key)` | `update[]` 없이 동일한 하강 로직으로 탐색만 | $O(\log n)$ |
+| `delete(key)` | `update[]` 구성 → 존재 확인 → 포인터 우회 → `currentLevel` 축소 | $O(\log n)$ |
+| `toArray()` | 레벨 0을 처음부터 끝까지 순회 | $O(n)$ |
+
+핵심 연산 두 개만 그림으로 자세히 볼게요.
+
+**① insert — "레벨이 자라날 때".** 위 다단계 예시에서 `1`(레벨 2)과 `3`(레벨 1)이 이미 들어간 상태에 `5`(레벨 3)를 삽입하는 순간을 봅시다.
+
+```text
+Before insert(5):
+Level 1: head --------> 1 --------> ⊥
+Level 0: head -> 1 --> 3 --------> ⊥
+                                    currentLevel = 1 (레벨 0, 1만 존재)
+
+update 구성 (currentLevel=1에서 시작해 5보다 작은 동안 전진):
+  레벨1: head.next[1]=1, 1<5 → 전진 → 1.next[1]=undefined → 정지 → update[1]=1
+  레벨0: 1.next[0]=3,   3<5 → 전진 → 3.next[0]=undefined → 정지 → update[0]=3
+
+randomLevel() = 3  →  newLevel-1(=2) > currentLevel(=1)이므로 레벨을 확장한다
+  update[2] = head  (레벨 2는 아직 아무도 없었으니 head가 직전 노드)
+  currentLevel = 2
+
+After insert(5):
+Level 2: head ------------------------> 5 --------> ⊥   ← 새로 생긴 레벨
+Level 1: head --------> 1 --------------> 5 --------> ⊥
+Level 0: head -> 1 --> 3 --------------> 5 --------> ⊥
+```
+
+**② search — "위에서 크게, 아래서 세밀하게".** 완성된 5개 예시 구조에서 `search(7)`을 실행하면:
+
+```text
+레벨2: head.next[2]=5, 5<7 → 전진 → 5.next[2]=undefined → 정지, 한 레벨 하강
+레벨1: 5.next[1]=9,   9<7? 거짓 → 그대로, 한 레벨 하강
+레벨0: 5.next[0]=7,   7<7? 거짓 → 그대로, 반복 종료
+
+최종: current = 5, current.next[0] = 7, 7 === 7 → true
+```
+
+레벨 2에서 한 번의 큰 도약(head → 5)만으로 절반 가까운 구간을 건너뛰고, 나머지는 레벨 1·0에서 미세 조정만 했다는 점이 핵심이에요. 고속도로에서 인터체인지로 크게 이동한 뒤 국도로 갈아타는 것과 똑같습니다.
+
+### 왜 모순 없이 작동하는가
+
+**불변식이 보존되는 이유(귀납)**: 빈 리스트는 불변식 1~4를 공허하게 만족합니다. `insert`는 항상 "정렬 위치"(update 배열이 가리키는 지점)에 새 노드를 끼워 넣으므로 불변식 1(레벨 0 정렬)이 깨지지 않고, 상위 레벨에는 `randomLevel()`이 뽑은 만큼만 새 노드가 추가되므로 그 노드가 참여하는 모든 상위 레벨은 여전히 레벨 0의 부분집합입니다(불변식 2). `delete`는 `update[i].next[i]`가 정확히 삭제 대상일 때만 포인터를 우회하므로, 다른 노드의 상대적 순서는 전혀 건드리지 않습니다. 즉 "삽입은 정렬된 자리 찾기 + 부분집합 추가", "삭제는 포인터 하나 건너뛰기"만 하기 때문에, 어떤 시점의 리스트에서도 네 불변식이 그대로 유지됩니다.
+
+**여기서 헷갈리기 쉬운 포인트는 비교 연산자 `<`와 `<=`를 혼동하는 것입니다.** update 배열을 구성하는 while 문은 반드시 `current.next[i].key < key`(엄격한 미만)여야 합니다. `<=`로 잘못 쓰면 무슨 일이 벌어지는지 실제로 확인해 볼게요 — 이미 `3`이 들어있는 리스트에 `insert(3)`을 다시 호출하면, `<=` 버전은 `current`가 키 `3`인 노드 자기 자신까지 전진해 버립니다. 그러면 중복 확인 코드 `current.next[0].key === key`가 검사하는 대상은 3 다음 노드(예: 5)가 되어 버려서 중복 검사가 항상 거짓으로 나오고, 새 노드 `3`이 또 삽입됩니다. 실제로 실행해 보면:
+
+```text
+버그 버전 (< 대신 <= 사용): insert(3); insert(3); toArray() → [3, 3]   ← 중복이 안 걸러짐!
+정상 버전:                  insert(3); insert(3); toArray() → [3]      ← 문제 정의대로 무시됨
+```
+
+**두 번째로 헷갈리기 쉬운 포인트는 새 노드의 레벨이 `currentLevel`을 넘어설 때 `update[i] = head`로 채우는 것을 빠뜨리는 것입니다.** 이 초기화 없이 `newLevel-1 > currentLevel`인 삽입이 일어나면, `update` 배열의 그 인덱스는 채워지지 않은 채로 남아 있다가 포인터 연결 단계(`update[i].next[i] = newNode`)에서 `undefined.next`를 읽으려다 그대로 터집니다. 실제로 재현하면 `undefined is not an object (evaluating 'update[i].next')`라는 런타임 에러가 납니다 — "가끔 터지는" 버그가 아니라 **리스트가 처음으로 그 레벨만큼 자라나는 삽입에서 항상** 재현되는 결정론적 버그예요.
+
+> 잠깐, 확인 하나만 해 볼까요? 레벨 1에 어떤 노드가 있다면, 그 노드는 반드시 레벨 0에도 있어야 할까요?
+> 네, 그래야 합니다. 불변식 2(상위 레벨 ⊆ 하위 레벨) 때문이에요. 그렇지 않다면 레벨 1에서 그 노드를 지나쳤다가 레벨 0으로 내려왔을 때, 그 노드의 키를 다시는 만날 수 없는 "구멍"이 생겨 검색이 실패합니다.
+
+엣지 케이스를 점검해 봅시다.
+
+```text
+빈 리스트에 search/toArray  → false / []            (head.next[0]이 처음부터 undefined)
+빈 리스트에 delete           → 아무 일도 안 일어남     (target === undefined에서 조기 반환)
+크기 1(원소 하나)             → 모든 레벨이 사실상 그 노드 하나만 가리킴, currentLevel은 그 노드의 레벨-1
+중복 insert                  → search로 걸러지는 게 아니라 update[0].next[0].key === key 검사로 무시
+정수 경계값(±2^31 근방)      → 일반 number 비교라 문제 없음(별도 오버플로 처리 불필요)
+```
+
+## 아이디어를 코드로 옮기기
+
+**원형(naive) — 정렬 연결 리스트.** 가장 단순하게 정렬 순서를 유지하려면, 그냥 하나짜리 연결 리스트에 정렬 위치를 찾아 끼워 넣으면 됩니다. 문제는 매번 처음부터 순회해야 한다는 것 — 임의 접근이 안 되니 이진 탐색을 쓸 수 없어요.
+
+```ts
+class NaiveNode {
+  key: number;
+  next: NaiveNode | undefined;
+  constructor(key: number) {
+    this.key = key;
+  }
 }
 
-SkipList {
-  head:         Node          // 파수꾼 노드, key = -Infinity
-  currentLevel: number        // 현재 사용 중인 최고 레벨 (0-indexed)
-  MAX_LEVEL:    16
-  p:            0.5
+class NaiveSortedList {
+  private head: NaiveNode | undefined;
+
+  insert(key: number): void {
+    let prev: NaiveNode | undefined;
+    let current = this.head;
+    while (current !== undefined && current.key < key) {
+      prev = current;
+      current = current.next;
+    }
+    if (current !== undefined && current.key === key) return; // 중복 무시
+    const node = new NaiveNode(key);
+    node.next = current;
+    if (prev === undefined) this.head = node;
+    else prev.next = node;
+  }
+
+  search(key: number): boolean {
+    let current = this.head;
+    while (current !== undefined && current.key < key) current = current.next;
+    return current !== undefined && current.key === key;
+  }
 }
 ```
 
-**파수꾼(sentinel) 노드**는 실제 키보다 항상 작은 값을 가져서 "찾으려는 키보다 작으면 앞으로 전진"하는 탐색 로직을 단순하게 만든다. 별도의 null 체크 없이 head에서 탐색을 시작할 수 있다.
+`n = 100`, 목표값 `77`일 때 이 방식은 처음부터 끝까지 최대 78번 비교합니다(직접 세어 보면 78번). 이대로는 검색이 $O(n)$입니다.
 
----
+**개선 — 결정론적 익스프레스 포인터.** "중간중간에 큰 걸음으로 뛰어넘는 포인터를 몇 개 추가하면 어떨까?"가 다음 관찰입니다. 정렬 배열 위에 $\sqrt n$ 간격으로 익스프레스 포인터를 두면, 먼저 큰 걸음으로 대략적인 구간을 찾고 그 구간 안에서만 하나씩 확인하면 됩니다.
 
-### 점화식 또는 핵심 연산
-
-**randomLevel()**: p=0.5 베르누이 시행의 연속. 기대 레벨 = 1/(1-p) = 2이며, MAX_LEVEL로 상한을 제한한다.
-
-```
-function randomLevel():
-  level = 1
-  while random() < p AND level < MAX_LEVEL:
-    level += 1
-  return level
-```
-
-**update 배열**: 삽입/삭제 모두에 쓰이는 핵심 보조 구조. `update[i]`는 레벨 i에서 목표 위치의 바로 직전(predecessor) 노드를 가리킨다.
-
-```
-// update 배열 구성 (insert와 delete 공통)
-current = head
-for i = currentLevel downto 0:
-  while current.next[i] != null AND current.next[i].key < key:
-    current = current.next[i]
-  update[i] = current
+```ts
+function deterministicExpressSearch(sortedKeys: number[], target: number): number {
+  const step = Math.max(1, Math.floor(Math.sqrt(sortedKeys.length)));
+  let comparisons = 0;
+  let i = 0;
+  // 1단계: step 간격으로 크게 점프
+  while (i + step < sortedKeys.length && sortedKeys[i + step]! < target) {
+    i += step;
+    comparisons++;
+  }
+  // 2단계: 좁은 구간에서 하나씩 확인
+  while (i < sortedKeys.length && sortedKeys[i]! < target) {
+    i++;
+    comparisons++;
+  }
+  return comparisons;
+}
 ```
 
-**삽입 후 포인터 연결**:
+같은 `n = 100`, 목표값 `77`에서 이 함수를 실제로 돌려 보면 비교 횟수가 78회에서 **14회**로 줄어듭니다. 레벨을 하나만 더 얹었는데도 효과가 이 정도예요. 그런데 여기엔 함정이 있습니다 — 원소가 삽입·삭제될 때마다 "몇 번째마다 익스프레스 포인터를 둘지"를 다시 계산해야 합니다. 배열 중간에 하나가 끼어들면 그 뒤의 모든 익스프레스 위치가 밀리기 때문에, 재조정 비용이 다시 $O(n)$이 되어 버려요. 레벨을 여러 겹 두면(로그 개수만큼) 검색은 $O(\log n)$까지 내려가지만, 재조정 비용 문제는 레벨을 늘릴수록 더 심해집니다.
+
+**최종 — 확률적 스킵 리스트.** 재조정 비용 문제를 "확률"로 우회합니다. 위치를 계산해서 포인터를 두는 대신, 새 노드를 넣을 때마다 동전을 던져 그 노드가 각 레벨에 포함될지를 독립적으로 결정합니다. 그러면 삽입 시점에 그 노드 주변의 포인터만 갱신하면 되고, 다른 노드들의 레벨은 전혀 건드릴 필요가 없어요 — 재조정이 사라집니다.
+
+```ts
+type SLNode = {
+  key: number;
+  next: (SLNode | undefined)[];
+};
+
+const MAX_LEVEL = 16;
+const P = 0.5;
+
+function randomLevel(random: () => number = Math.random): number {
+  let level = 1;
+  while (random() < P && level < MAX_LEVEL) level++;
+  return level;
+}
+
+class SkipList {
+  private head: SLNode = { key: -Infinity, next: new Array(MAX_LEVEL).fill(undefined) };
+  private currentLevel = 0; // 0-indexed 현재 최고 사용 레벨
+  private random: () => number;
+
+  constructor(random: () => number = Math.random) {
+    this.random = random; // 테스트/시연에서 결정론적 시퀀스를 주입할 수 있게 열어 둔다
+  }
+
+  insert(key: number): void {
+    const update: SLNode[] = new Array(MAX_LEVEL);
+    let current = this.head;
+    for (let i = this.currentLevel; i >= 0; i--) {
+      while (current.next[i] !== undefined && current.next[i]!.key < key) {
+        current = current.next[i]!;
+      }
+      update[i] = current;
+    }
+    const found = current.next[0];
+    if (found !== undefined && found.key === key) return; // 중복 무시
+
+    const newLevel = randomLevel(this.random);
+    if (newLevel - 1 > this.currentLevel) {
+      for (let i = this.currentLevel + 1; i <= newLevel - 1; i++) update[i] = this.head;
+      this.currentLevel = newLevel - 1;
+    }
+    const newNode: SLNode = { key, next: new Array(newLevel).fill(undefined) };
+    for (let i = 0; i < newLevel; i++) {
+      newNode.next[i] = update[i].next[i];
+      update[i].next[i] = newNode;
+    }
+  }
+
+  search(key: number): boolean {
+    let current = this.head;
+    for (let i = this.currentLevel; i >= 0; i--) {
+      while (current.next[i] !== undefined && current.next[i]!.key < key) {
+        current = current.next[i]!;
+      }
+    }
+    const next = current.next[0];
+    return next !== undefined && next.key === key;
+  }
+
+  delete(key: number): void {
+    const update: SLNode[] = new Array(MAX_LEVEL);
+    let current = this.head;
+    for (let i = this.currentLevel; i >= 0; i--) {
+      while (current.next[i] !== undefined && current.next[i]!.key < key) {
+        current = current.next[i]!;
+      }
+      update[i] = current;
+    }
+    const target = current.next[0];
+    if (target === undefined || target.key !== key) return; // 없는 키 무시
+
+    for (let i = 0; i <= this.currentLevel; i++) {
+      if (update[i].next[i] !== target) break; // 이 레벨엔 target이 없다 → 상위 레벨도 없다
+      update[i].next[i] = target.next[i];
+    }
+    while (this.currentLevel > 0 && this.head.next[this.currentLevel] === undefined) {
+      this.currentLevel--;
+    }
+  }
+
+  toArray(): number[] {
+    const result: number[] = [];
+    let current = this.head.next[0];
+    while (current !== undefined) {
+      result.push(current.key);
+      current = current.next[0];
+    }
+    return result;
+  }
+}
 ```
-newNode = Node(key, randomLevel())
-for i = 0 to newNode.level - 1:
-  newNode.next[i] = update[i].next[i]
-  update[i].next[i] = newNode
-```
 
-**삭제 시 포인터 우회**:
-```
-for i = 0 to currentLevel:
-  if update[i].next[i] != target: break
-  update[i].next[i] = target.next[i]
-```
+가장 중요한 부분은 `insert`의 두 줄, `newNode.next[i] = update[i].next[i]; update[i].next[i] = newNode;`입니다. 반드시 이 순서로 — 새 노드가 원래 다음 노드를 먼저 물려받은 뒤에야, 직전 노드가 새 노드를 가리키도록 바꿔야 체인이 끊기지 않습니다. 순서를 바꾸면 `update[i].next[i]`가 이미 `newNode`로 덮여 있어서, `newNode.next[i]`에 원래 다음 노드 대신 `newNode` 자기 자신(또는 undefined)이 들어가 리스트가 끊깁니다.
 
----
+놓치기 쉬운 구현부를 몇 가지 더 짚어 둘게요.
 
-### 정당성 — 왜 이것이 옳은가
+- **`update[]` 구성 루프의 비교 연산자는 반드시 `<`.** `<=`로 바꾸면 앞서 본 것처럼 중복 삽입이 걸러지지 않습니다.
+- **레벨 확장 시 `update[i] = head` 채우기를 빠뜨리지 말 것.** 새 노드의 레벨이 `currentLevel`을 넘어서면 그 구간의 `update`를 `head`로 미리 채워야 합니다. 안 그러면 `undefined.next` 참조로 즉시 크래시합니다.
+- **`delete`의 `break`가 조기 종료하는 이유.** `update[i].next[i] !== target`이면, 그 노드는 레벨 $i$부터는 아예 존재하지 않았다는 뜻입니다. 스킵 리스트는 "레벨 $k$에 있으면 레벨 $k-1$에도 있다"는 불변식(부분집합)의 역은 성립하지 않으므로, 낮은 레벨에서 사라진 노드를 상위 레벨에서 또 찾을 이유가 없어요.
 
-**탐색 정확성**: 레벨 0에는 모든 키가 정렬 순서로 있고, 각 상위 레벨의 포인터는 항상 레벨 0 순서를 유지한다. update 배열 구성 로직이 "내 다음 노드의 키 < 목표 키"인 한 전진하므로, 레벨 0에서 멈추는 시점의 다음 노드가 목표이거나 그보다 크다. 이 불변식이 유지되는 한 검색 결과는 항상 정확하다.
+기억법 한 줄로 정리하면:
 
-**O(log n) 기대값**: backwards analysis를 적용한다. 탐색 역방향 경로를 따라가면, 각 단계에서 "레벨 올라가기(확률 p)" 또는 "왼쪽 전진(확률 1-p)" 중 하나다. 레벨 h에서 왼쪽 끝(head)까지 도달하는 기대 비용 C(h)는 다음 점화식을 만족한다:
+> 새 노드는 유산(다음 포인터)을 먼저 물려받은 뒤에야 상속자로 지명된다.
 
-```
-C(0) = 0
-C(h) = (1-p) * (C(h) + 1) + p * (C(h-1) + 1)
-      => C(h) = 1/p + C(h-1)
-      => C(h) = h/p
-```
+## 실행 시각화
 
-MAX_LEVEL = log_{1/p}(n)으로 설정하면 C = O(log n).
+아래 시뮬레이션은 빈 스킵 리스트에서 시작해 `insert(3)`, `insert(1)`, `insert(5)`, `search(3)`, `delete(1)`을 차례로 실행합니다. 레벨 0(전체 정렬 리스트) 기준으로 `toArray()` 값을 그대로 보여주는 array 패널이에요 — 실제로 실행하면 `[3]` → `[1, 3]` → `[1, 3, 5]`가 되고, `search(3)`은 `true`, 마지막 `delete(1)` 이후에는 `[3, 5]`가 남습니다(모두 위 스크래치 검증에서 실측한 값과 일치합니다). 슬라이더나 재생 버튼으로 단계를 옮기면 각 단계의 배열 상태와 강조된 인덱스를 확인할 수 있습니다.
 
----
-
-### 구현 디테일과 최적화
-
-1. **currentLevel 관리**: 삽입 시 새 노드의 레벨이 currentLevel을 초과하면 초과 레벨의 update를 head로 설정하고 currentLevel을 올린다. 삭제 시 최고 레벨의 head.next가 null이 되면 currentLevel을 줄인다.
-
-2. **타입스크립트에서 null vs sentinel**: `next[i]`가 null인지 매번 확인하는 대신, tail sentinel 노드(key = +Infinity)를 두면 null 체크를 제거할 수 있다. 단, 여기서는 null 체크 방식이 더 직관적이다.
-
-3. **동시성(참고용)**: lock-free 스킵 리스트는 `next` 포인터를 `AtomicReference`로 만들고, 삭제 시 논리적 삭제 마킹(mark bit)을 먼저 한 뒤 물리적으로 포인터를 수정한다. Java의 `ConcurrentSkipListMap`이 이 방식을 사용한다.
-
----
-
-## 시뮬레이션
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
+    title: "초기 상태",
+    detail: "빈 스킵 리스트",
     array: [],
     highlight: [],
-    description: "초기 상태: 빈 스킵 리스트"
   },
   {
+    title: "insert(3)",
+    detail: "레벨 0에 3 삽입",
     array: [3],
     highlight: [0],
-    description: "insert(3): 레벨 0에 3 삽입"
   },
   {
+    title: "insert(1)",
+    detail: "1이 3보다 작으므로 앞에 삽입",
     array: [1, 3],
     highlight: [0],
-    description: "insert(1): 1이 3보다 작으므로 앞에 삽입"
   },
   {
+    title: "insert(5)",
+    detail: "5가 3보다 크므로 뒤에 삽입",
     array: [1, 3, 5],
     highlight: [2],
-    description: "insert(5): 5가 3보다 크므로 뒤에 삽입"
   },
   {
+    title: "search(3)",
+    detail: "레벨 0에서 3 발견 → true",
     array: [1, 3, 5],
     highlight: [1],
-    description: "search(3): 레벨 0에서 3 발견 → true"
   },
   {
+    title: "delete(1)",
+    detail: "1 제거 후 레벨 0 = [3, 5]",
     array: [3, 5],
     highlight: [],
-    description: "delete(1): 1 제거 후 레벨 0 = [3, 5]"
-  }
+  },
 ];
 
 <AlgorithmSimulation
@@ -179,94 +365,8 @@ export const steps = [
   title="Skip List 시뮬레이션 (레벨 0 기준)"
 />
 
----
+## 스스로 점검하기
 
-## 수도 코드와 Activity Diagram
-
-### 의사코드
-
-```
-class SkipList:
-  head = Node(-Infinity, MAX_LEVEL)
-  currentLevel = 0
-
-  randomLevel():
-    level = 1
-    while random() < 0.5 AND level < MAX_LEVEL:
-      level++
-    return level
-
-  insert(key):
-    update = array of MAX_LEVEL
-    current = head
-    for i = currentLevel downto 0:
-      while current.next[i] != null AND current.next[i].key < key:
-        current = current.next[i]
-      update[i] = current
-    // 중복 확인
-    if current.next[0] != null AND current.next[0].key == key:
-      return
-    // 새 노드 삽입
-    newLevel = randomLevel()
-    if newLevel > currentLevel:
-      for i = currentLevel+1 to newLevel-1:
-        update[i] = head
-      currentLevel = newLevel
-    newNode = Node(key, newLevel)
-    for i = 0 to newLevel-1:
-      newNode.next[i] = update[i].next[i]
-      update[i].next[i] = newNode
-
-  search(key):
-    current = head
-    for i = currentLevel downto 0:
-      while current.next[i] != null AND current.next[i].key < key:
-        current = current.next[i]
-    return current.next[0] != null AND current.next[0].key == key
-
-  delete(key):
-    update = array of MAX_LEVEL
-    current = head
-    for i = currentLevel downto 0:
-      while current.next[i] != null AND current.next[i].key < key:
-        current = current.next[i]
-      update[i] = current
-    target = current.next[0]
-    if target == null OR target.key != key:
-      return
-    for i = 0 to currentLevel:
-      if update[i].next[i] != target: break
-      update[i].next[i] = target.next[i]
-    while currentLevel > 0 AND head.next[currentLevel] == null:
-      currentLevel--
-
-  toArray():
-    result = []
-    current = head.next[0]
-    while current != null:
-      result.push(current.key)
-      current = current.next[0]
-    return result
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A([insert 시작]) --> B[update 배열 초기화]
-  B --> C[currentLevel에서 시작]
-  C --> D{current.next 키 < 목표 키?}
-  D -- Yes --> E[current = current.next]
-  E --> D
-  D -- No --> F[update 레벨 기록, 한 레벨 내려감]
-  F --> G{레벨 0 완료?}
-  G -- No --> D
-  G -- Yes --> H{레벨 0 다음 노드 키 == 목표?}
-  H -- Yes --> I([중복: 종료])
-  H -- No --> J[randomLevel 계산]
-  J --> K{새 레벨 > currentLevel?}
-  K -- Yes --> L[초과 레벨 update = head, currentLevel 갱신]
-  L --> M[새 노드 생성 및 포인터 연결]
-  K -- No --> M
-  M --> N([삽입 완료])
-```
+1. `insert(1), insert(3), insert(5), insert(7), insert(9)`를 레벨 `2, 1, 3, 1, 2`로 순서대로 넣는다고 할 때(본문의 다단계 예시와 동일), `search(9)`가 몇 번의 레벨 하강을 거쳐 어떤 경로로 도달하는지 손으로 그려 보세요. (힌트: 레벨 2부터 시작합니다.)
+2. `delete`의 포인터 우회 루프에서 `if (update[i].next[i] !== target) break;`를 지우고 항상 모든 레벨을 순회하도록 바꾸면, 어떤 입력에서 어떤 문제가 생길까요? (힌트: `update[i].next[i]`가 `target`이 아닌데 그 값을 `target.next[i]`로 덮어쓰면 무슨 일이 벌어질지 생각해 보세요.)
+3. 본문의 "레벨 확장 시 `update[i] = head` 채우기" 버그를 여러분이 직접 재현한다면, 어떤 삽입 시퀀스(리스트 크기, 몇 번째 삽입)에서 가장 쉽게 크래시를 낼 수 있을까요?

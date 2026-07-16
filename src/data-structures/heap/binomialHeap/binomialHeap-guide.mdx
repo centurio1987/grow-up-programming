@@ -1,122 +1,333 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# BinomialHeap (이항 힙) 해설
+# BinomialHeap — 이진수 덧셈처럼 합치는 힙
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | Binary Heap | BinomialHeap | 비고 |
-|------|------------|--------------|------|
-| insert | O(log n) | O(log n) 상각 | 단일 삽입은 유사 |
-| extractMin | O(log n) | O(log n) | 동일 |
-| peek | O(1) | O(log n) | BH는 루트 스캔 필요 |
-| merge | O(n) | **O(log n)** | BH의 핵심 강점 |
-| size | O(1) | O(1) | 동일 |
+이항 힙(Binomial Heap)은 하나의 큰 트리가 아니라, **서로 다른 차수(degree)의 이항 트리(Binomial Tree) 여러 개**를 리스트로 들고 있는 힙이에요. 비결은 딱 하나입니다 — 힙에 담긴 원소 개수 $n$을 이진수로 본다는 것이죠. 두 힙을 합칠 때는 같은 차수의 트리끼리 이진수 덧셈처럼 자리올림(carry)하며 결합하기 때문에, 이진 힙(Binary Heap)에 작은 쪽($m$개)을 하나씩 재삽입하면 $O(m \log n)$이 걸릴 병합이 **$O(\log n)$**에 끝납니다.
 
----
+## 언제, 왜 쓰는가
 
-## 목표 함수
+### 이런 단서가 보이면
 
-| 메서드 | 반환 타입 | 엣지케이스 |
-|--------|-----------|-----------|
-| `insert(item)` | `void` | 빈 힙에도 동작 |
-| `extractMin()` | `T \| undefined` | 빈 힙 → `undefined` |
-| `peek()` | `T \| undefined` | 빈 힙 → `undefined` |
-| `merge(other)` | `BinomialHeap<T>` | 빈 힙과의 병합 가능 |
-| `size()` | `number` | 0부터 시작 |
-| `isEmpty()` | `boolean` | size === 0과 동치 |
+다음 신호가 보이면 이항 힙을 떠올리세요.
 
----
+- 우선순위 큐(힙) 두 개를 **자주, 그것도 큼직하게 합쳐야** 한다("워커 A의 큐와 워커 B의 큐를 하나로")
+- 힙 크기가 그때그때 달라서, 매번 작은 쪽을 큰 쪽에 재삽입하는 비용을 감당하기 어렵다
+- `insert` / `extractMin` / `merge`만 있으면 되고, `decreaseKey`(임의 원소의 우선순위를 낮추는 연산)까지는 필요 없다 — 그게 필요해지면 이항 힙을 게으르게(lazy) 확장한 **피보나지 힙(Fibonacci Heap)**을 검토하는 편이 낫습니다.
 
-## 핵심 아이디어
+naive한 대안과 비교하면 이항 힙의 존재 이유가 뚜렷해집니다.
 
-### 왜 이항 힙이 필요한가
+```text
+merge(h1, h2) 비용
+  정렬 배열(그냥 합치고 재정렬)     O((n+m) log(n+m))
+  Binary Heap(재삽입 방식)          O(m log n)        ← 작은 쪽(m개)을 큰 쪽(n개)에 하나씩 insert
+  BinomialHeap(트리 리스트 병합)    O(log n + log m)  ← 핵심 이점
+```
 
-이진 힙은 배열 기반으로 단순하고 캐시 친화적이지만, **두 힙을 합치는 연산이 O(n)**이다. 한쪽 힙의 모든 원소를 다른 힙에 재삽입해야 하기 때문이다.
+insert·extractMin·peek·size는 이진 힙과 성능이 비슷하거나(peek만 약간 손해) 동일한데, merge만 압도적으로 유리한 셈입니다.
 
-이항 힙은 여러 개의 이항 트리 리스트로 구성함으로써 **병합을 O(log n)**으로 줄인다.
+```text
+연산         Binary Heap        BinomialHeap     비고
+insert       O(log n)           O(1) 상각        이진 카운터 증가와 동일 논리, worst-case O(log n)
+extractMin   O(log n)           O(log n)         동일
+peek         O(1)               O(log n)         BH는 루트 리스트를 훑어야 함
+merge        O(n+m) heapify     O(log n)         BH의 핵심 강점 (Binary Heap은 합쳐서 heapify; 재삽입이면 O(m log n))
+size         O(1)               O(1)             동일
+```
 
-### 원형 아이디어: 이진수 덧셈
+### 문제 사례와 적용 예시
 
-n개의 원소를 가진 힙을 이진수 n으로 표현한다고 상상하자.
+- **분산 작업 스케줄러**: 워커 노드마다 우선순위 큐(작업 큐)를 들고 있다가, 노드 하나가 죽으면 그 큐를 살아있는 다른 노드의 큐와 합쳐야 합니다. 수천 개짜리 큐 두 개를 합치는 일이 잦다면 병합 비용이 곧 병목이 됩니다.
+- **이산 사건 시뮬레이션(discrete event simulation)**: 서로 다른 시뮬레이션 서브트리에서 독립적으로 쌓인 이벤트 큐를, 메인 큐로 합류시킬 때 사용됩니다.
+- **k-way merge류 코딩 테스트**: "여러 개의 우선순위 큐를 계속 만들었다 합쳤다 하면서 최솟값을 뽑아내라" 같은 문제에서, 매번 재삽입하는 $O(m \log n)$ 병합으로는 시간 제한을 넘기기 쉬운 상황을 만듭니다.
+- **자료구조 계보 학습**: 이항 힙은 그 자체로도 쓰이지만, 더 빠른 `decreaseKey`를 갖춘 피보나치 힙의 뼈대이기도 합니다. "차수별 트리 리스트 + 같은 차수 결합"이라는 아이디어를 이해하면 피보나치 힙이 훨씬 수월해집니다.
 
-- n = 13 = **1101**₂
+## 자료구조 자세히 들여다보기
 
-이는 B₃(8개), B₂(4개), B₀(1개) 세 이항 트리로 구성된다는 의미다.
+### 전체 스펙: 속성과 액션
 
-두 힙을 합칠 때는 이진수 덧셈과 동일하게 같은 차수의 트리를 결합하고, 올림(carry)이 발생하면 다음 차수로 넘긴다.
-
-### 어떤 관찰이 돌파구가 되는가
-
-**핵심 관찰:** 같은 차수 k의 이항 트리 두 개를 합치면 반드시 차수 k+1의 이항 트리 하나가 된다.
-
-- 두 트리의 루트를 비교해 더 작은 루트가 새 루트가 된다.
-- 더 큰 루트의 트리는 새 루트의 자식 리스트 맨 앞에 붙는다.
-
-이 결합 연산은 O(1)이며, 총 결합 횟수가 O(log n)이므로 전체 병합이 O(log n)이다.
-
-### 관찰을 형식화: 상태/구조 정의
+**속성(내부 상태)**
 
 ```ts
 class BinomialNode<T> {
   item: T;
-  degree: number;         // 자식 수 = 트리 차수
-  children: BinomialNode<T>[];  // 자식 리스트 (차수 내림차순)
+  degree: number;                // 이 노드를 루트로 한 트리의 차수 (= 자식 수)
+  children: BinomialNode<T>[];   // 자식 리스트, 차수 내림차순으로 저장
   parent: BinomialNode<T> | null;
 }
 
 class BinomialHeap<T> {
-  roots: BinomialNode<T>[];  // 차수 오름차순으로 정렬된 이항 트리 루트 리스트
+  roots: BinomialNode<T>[];      // 이항 트리 루트들의 리스트, 차수 오름차순
   _size: number;
   compare: (a: T, b: T) => number;
 }
 ```
 
-**불변식:**
-1. `roots[i].degree < roots[i+1].degree` — 루트 리스트는 차수 오름차순
-2. 각 이항 트리는 최소 힙 속성 만족 (부모.item ≤ 자식.item)
-3. `roots` 리스트 길이 ≤ ⌊log₂(n)⌋ + 1
+지켜야 할 불변식은 세 가지예요.
 
-### 점화식 또는 핵심 연산
+1. **루트 리스트는 차수 오름차순이고, 같은 차수가 두 번 나오지 않는다.**
+   $\forall i,\ \text{degree}(roots_i) < \text{degree}(roots_{i+1})$
+2. **각 이항 트리는 최소 힙 속성을 만족한다.** 부모.item ≤ 모든 자식.item.
+3. **루트 리스트 길이는 $\lfloor \log_2 n \rfloor + 1$을 넘지 않는다.** $n$의 이진 표현에서 1인 비트 수만큼만 트리가 존재하기 때문입니다.
 
-**트리 결합 (linkTrees):**
-```
-linkTrees(t1: BinomialNode, t2: BinomialNode) → BinomialNode:
-  if compare(t1.item, t2.item) <= 0:
-    t2를 t1.children 맨 앞에 추가
-    t1.degree += 1
-    return t1
-  else:
-    t1을 t2.children 맨 앞에 추가
-    t2.degree += 1
-    return t2
-```
+이항 트리 자체는 재귀적으로 자랍니다. $B_0$는 노드 하나, $B_k$는 $B_{k-1}$ 두 개를 결합해서 만들어요. 실제로 `1, 2, ..., 8`을 순서대로 삽입하면 $B_3$ 트리 하나가 이렇게 만들어집니다(실측).
 
-**병합 (mergeRoots):**
-```
-mergeRoots(roots1, roots2) → roots:
-  carry = null
-  i = 0, j = 0
-  while i < len(roots1) or j < len(roots2) or carry != null:
-    현재 처리할 트리들을 모아 결합
-    carry 발생 시 다음 차수로 이월
+```text
+B3 (8개 원소 삽입 후 단일 트리로 합쳐진 모습):
+
+                    1
+         ┌──────────┼──────────┐
+         5           3          2
+      ┌──┴──┐        │
+      7     6        4
+      │
+      8
+
+깊이별 노드 수:  1,  3,  3,  1   =  C(3,0), C(3,1), C(3,2), C(3,3)
+전체 노드 수:    1+3+3+1 = 8 = 2³
 ```
 
-### 정당성: 왜 이것이 옳은가
+여기서 자식 리스트가 **차수 내림차순**(5의 차수 2 → 3의 차수 1 → 2의 차수 0)으로 저장된다는 점을 기억해 두세요. 뒤에서 `extractMin`을 다룰 때 이 순서를 뒤집는 이유가 나옵니다.
 
-이항 힙의 루트 리스트는 항상 서로 다른 차수의 트리들로만 구성된다 (이진수의 각 비트 자리가 0 또는 1이듯). 두 힙을 병합할 때 같은 차수가 충돌하면 결합하여 차수를 올리므로, 최종적으로도 각 차수에 최대 하나의 트리만 남는다.
+힙 전체는 이런 트리 여러 개를 차수 오름차순으로 늘어놓은 리스트예요. 원소 13개를 `0..12` 순서로 삽입하면(실측), $13 = 1101_2 = 8+4+1$이므로 $B_0, B_2, B_3$ 세 트리로 쪼개집니다.
 
-루트 리스트 길이가 O(log n)이므로 병합, 삽입(= 크기 1 힙과의 병합), extractMin(루트 중 최솟값 탐색 및 자식 분리)이 모두 O(log n)이 된다.
+```text
+n=13 삽입 후 루트 리스트 (차수 오름차순, 실측 degrees=[0,2,3]):
 
-### 구현 디테일과 최적화
+roots: [ B0 ]   [ B2 ]        [ B3 ]
+         │        │              │
+        12        8              0
+                 /  \          /   \
+               10    9        4     2
+               │             / \    │
+              11            6   5   3
+                            │       │
+                            7       1
 
-- **insert:** 크기 1인 임시 힙을 만들어 현재 힙과 병합한다.
-- **peek:** 루트 리스트를 순회하며 최솟값을 반환한다. O(log n).
-- **extractMin:** 루트 중 최소를 찾아 제거한 뒤, 그 자식 리스트를 역순으로 뒤집어 새 힙으로 만들고 현재 힙과 병합한다.
-- **자식 순서:** 자식은 차수 내림차순으로 저장되어 있으므로, 역순(오름차순)으로 뒤집으면 새 힙의 루트 리스트가 된다.
+각 트리 크기: 2⁰=1, 2²=4, 2³=8 → 합계 1+4+8 = 13
+```
 
----
+**액션(연산)**
 
-## 시뮬레이션
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `insert(item)` | 크기 1짜리 임시 힙을 만들어 현재 힙과 병합 | $O(1)$ 상각(이진 카운터 증가와 동일 논리, worst-case $O(\log n)$) |
+| `extractMin()` | 루트 중 최솟값을 찾아 제거, 그 자식들을 새 힙으로 만들어 재병합. 빈 힙이면 `undefined` | $O(\log n)$ |
+| `peek()` | 루트 리스트를 순회해 최솟값만 반환(제거 없음). 빈 힙이면 `undefined` | $O(\log n)$ |
+| `merge(other)` | 두 힙의 루트 리스트를 이진수 덧셈처럼 합쳐 새 힙 반환 | $O(\log n)$ |
+| `size()` | 원소 개수 | $O(1)$ |
+| `isEmpty()` | `size() === 0`과 동치 | $O(1)$ |
+
+핵심 연산 두 개를 자세히 볼게요.
+
+**① linkTrees — 같은 차수 트리 두 개를 하나로.** 차수 $k$인 두 트리를 합치면 반드시 차수 $k+1$인 트리 하나가 됩니다. 더 작은 루트가 새 루트로 남고, 더 큰 루트의 트리가 그 자식 리스트 **맨 앞**에 붙어요.
+
+```text
+Before:  t1(차수1, 루트10, 자식[20])     t2(차수1, 루트15, 자식[25])
+
+compare(10, 15) <= 0 → t1이 새 루트
+
+After:   t1(차수2, 루트10, 자식[t2, 20])
+                        │
+                루트10 ─┼─ 15 (차수1, 자식[25])
+                        └─ 20 (차수0)
+```
+
+**② mergeRoots — 이진수 덧셈.** 두 루트 리스트를 차수가 낮은 쪽부터 훑으면서, 같은 차수의 트리가 만나면 `linkTrees`로 결합해 자리올림(carry)을 만듭니다. 자리올림이 없으면 자릿수 하나에 후보가 최대 2개(각 힙에서 하나씩)지만, 자리올림이 있으면 후보가 **3개**(두 힙의 원래 트리 + 넘어온 carry)까지 생길 수 있어요.
+
+```text
+       차수:    0     1     2     3
+h1 (13):      [ ]   [ ]   [8]   [0]      ← 13 = 1101₂
+h2 (13):      [ ]   [ ]   [8]   [0]      ← 또 다른 13개짜리 힙
+
+이진수 덧셈:   1101₂ + 1101₂ = 11010₂  (=26)
+
+병합 실측 결과 degrees = [1, 3, 4]
+  차수0: 후보 0개 → 없음
+  차수1: 후보 1개(carry, 차수0끼리 결합된 결과) → 그대로 채택
+  차수2: 후보 0개 → 없음(carry도 없음)
+  차수3: 후보 2개(h1의 B3, h2의 B3) → 결합해서 carry(차수4) 생성
+  차수4: 후보 1개(방금 만든 carry) → 채택
+```
+
+### 왜 모순 없이 작동하는가
+
+**불변식 1(차수 오름차순, 중복 없음)이 보존되는 이유**를 귀납으로 봅니다. 빈 힙은 자명하게 성립합니다. `insert`는 크기 1 힙(차수 0 하나)과의 `merge`이므로 `merge`가 불변식을 보존하면 `insert`도 보존돼요. `merge`(=`mergeRoots`)는 차수를 오름차순으로 훑으면서 각 차수에 **최대 하나의 트리만** 남기고 넘어갑니다 — 후보가 2개 이상이면 반드시 `linkTrees`로 합쳐 다음 차수로 넘기기 때문에, 같은 차수가 결과 리스트에 두 번 남을 수가 없습니다. `extractMin`은 최솟값 루트 하나를 떼어내고 그 자식들(모두 서로 다른 차수 0..k-1)을 새 힙으로 만들어 다시 `merge`하므로, 역시 `merge`의 보존성에 기댈 수 있습니다.
+
+**불변식 2(최소 힙 속성)가 보존되는 이유**: `linkTrees`가 항상 "더 작은 쪽이 부모"가 되도록 결합하므로, 새로 만들어진 트리에서도 루트가 최소입니다. 원래 두 트리가 각각 힙 속성을 만족했다면, 합친 트리도 만족합니다(자식 서브트리 내부의 힙 속성은 그대로 유지되니까요).
+
+잠깐, 확인 하나 해 볼까요? **원소가 11개인 힙의 루트 리스트에는 트리가 몇 개 있을까요?** $11 = 1011_2$이므로 1인 비트가 3개 — 답은 $B_0, B_1, B_3$ 세 개입니다.
+
+**여기서 헷갈리기 쉬운 포인트**는 세 가지입니다.
+
+- **자식 리스트 순서와 `extractMin`의 역순 처리.** 자식은 차수 **내림차순**으로 저장돼 있습니다(가장 최근에 결합된, 즉 차수가 가장 높은 자식이 맨 앞). 그런데 `mergeRoots`에 넘길 새 루트 리스트는 차수 **오름차순**이어야 하죠. 그래서 `extractMin`은 떼어낸 자식 리스트를 그대로 쓰지 않고 반드시 **뒤집어서(`reverse`)** 넘깁니다. 뒤집지 않으면 차수 내림차순 리스트를 오름차순이라고 착각한 `mergeRoots`가 엉뚱한 자리에서 후보를 찾다가 트리를 놓치거나 잘못 결합합니다.
+- **3-way carry를 빼먹으면 원소가 통째로 사라집니다.** 어떤 차수에서 후보가 3개(양쪽 힙의 트리 + 넘어온 carry) 모일 수 있다는 걸 놓치고 "후보가 2개 이상이면 무조건 처음 두 개만 합친다"처럼 짜면 어떻게 될까요? 실제로 그렇게 짠 버그 버전으로 13개짜리 힙 두 개(0..12, 100..112)를 병합해 실행해 봤습니다. 올바른 구현은 `degrees=[1,3,4]`, `size=26`, 정렬 추출까지 정확히 26개가 나오는데, 버그 버전은 `_size` 카운터는 여전히 26이라고 우기지만 **실제로 루트에서 도달 가능한 노드는 18개뿐**입니다 — 차수 3 후보 3개(양쪽 B3 + 직전 carry) 중 세 번째를 조용히 버려서 $2^3=8$개짜리 서브트리 하나가 통째로 증발한 겁니다. `degrees`도 `[1,4]`로, 있어야 할 차수 3 자리가 비어 있고요. **`candidates.length === 1`(그대로 채택) / `=== 2`(결합해서 carry) / `=== 3`(첫 번째는 채택, 나머지 둘을 결합해서 carry)** — 이 세 갈래를 빠짐없이 처리해야 합니다.
+- **`linkTrees`의 `<=` 비교.** `compare(t1.item, t2.item) <= 0`처럼 등호를 포함해야 두 값이 같을 때도 한쪽으로 일관되게 결정됩니다. 등호를 빼고 `<`만 쓰면 로직 자체는 여전히 동작하지만(둘 중 하나는 항상 참이니까), 어느 쪽이 부모가 될지의 기준이 흔들리기 쉬우니 습관적으로 `<=`를 쓰는 편이 안전합니다.
+
+엣지 케이스 점검:
+
+```text
+빈 힙 insert(x)           → roots=[B0(x)], size=1
+빈 힙 extractMin()/peek() → undefined (roots.length === 0 분기)
+빈 힙과 merge             → 상대 힙의 roots를 그대로 반환 (carry 없이 통과)
+size 1 힙 extractMin()    → 자식 없음(childRoots=[]) → roots=[] 로 복귀
+같은 값 중복 삽입          → compare 결과 0 → linkTrees의 <= 분기로 항상 안정적으로 처리됨
+```
+
+## 아이디어를 코드로 옮기기
+
+`BinomialNode`와 `BinomialHeap`을 그대로 구현합니다. 가장 중요한 부분은 `mergeRoots`예요 — `insert`도 `extractMin`도 결국 이 함수 하나로 귀결되기 때문에, 여기만 정확하면 나머지는 그 위에 얇게 얹히는 얇은 껍데기에 불과합니다.
+
+```ts
+class BinomialNode<T> {
+  item: T;
+  degree: number;
+  children: BinomialNode<T>[];
+  parent: BinomialNode<T> | null;
+
+  constructor(item: T) {
+    this.item = item;
+    this.degree = 0;
+    this.children = [];
+    this.parent = null;
+  }
+}
+
+class BinomialHeap<T> {
+  private roots: BinomialNode<T>[];
+  private _size: number;
+  private compare: (a: T, b: T) => number;
+
+  constructor(compare: (a: T, b: T) => number) {
+    this.roots = [];
+    this._size = 0;
+    this.compare = compare;
+  }
+
+  private linkTrees(t1: BinomialNode<T>, t2: BinomialNode<T>): BinomialNode<T> {
+    if (this.compare(t1.item, t2.item) <= 0) {
+      t2.parent = t1;
+      t1.children.unshift(t2); // 맨 앞에 삽입 → 차수 내림차순 유지
+      t1.degree += 1;
+      return t1;
+    } else {
+      t1.parent = t2;
+      t2.children.unshift(t1);
+      t2.degree += 1;
+      return t2;
+    }
+  }
+
+  // 두 "차수 오름차순" 루트 리스트를 이진수 덧셈처럼 병합한다.
+  private mergeRoots(a: BinomialNode<T>[], b: BinomialNode<T>[]): BinomialNode<T>[] {
+    const result: BinomialNode<T>[] = [];
+    let i = 0;
+    let j = 0;
+    let carry: BinomialNode<T> | null = null;
+
+    while (i < a.length || j < b.length || carry !== null) {
+      const currentDegree =
+        carry !== null
+          ? carry.degree
+          : Math.min(
+              i < a.length ? a[i]!.degree : Infinity,
+              j < b.length ? b[j]!.degree : Infinity,
+            );
+
+      const candidates: BinomialNode<T>[] = [];
+      if (i < a.length && a[i]!.degree === currentDegree) candidates.push(a[i++]!);
+      if (j < b.length && b[j]!.degree === currentDegree) candidates.push(b[j++]!);
+      if (carry !== null && carry.degree === currentDegree) {
+        candidates.push(carry);
+        carry = null;
+      }
+
+      if (candidates.length === 1) {
+        result.push(candidates[0]!);
+      } else if (candidates.length === 2) {
+        carry = this.linkTrees(candidates[0]!, candidates[1]!);
+      } else if (candidates.length === 3) {
+        result.push(candidates[0]!);
+        carry = this.linkTrees(candidates[1]!, candidates[2]!);
+      }
+    }
+
+    return result;
+  }
+
+  insert(item: T): void {
+    const node = new BinomialNode(item);
+    this.roots = this.mergeRoots(this.roots, [node]);
+    this._size += 1;
+  }
+
+  peek(): T | undefined {
+    if (this.roots.length === 0) return undefined;
+    let min = this.roots[0]!;
+    for (const r of this.roots) {
+      if (this.compare(r.item, min.item) < 0) min = r;
+    }
+    return min.item;
+  }
+
+  extractMin(): T | undefined {
+    if (this.roots.length === 0) return undefined;
+
+    let minIndex = 0;
+    for (let k = 1; k < this.roots.length; k++) {
+      if (this.compare(this.roots[k]!.item, this.roots[minIndex]!.item) < 0) {
+        minIndex = k;
+      }
+    }
+    const minRoot = this.roots[minIndex]!;
+    this.roots.splice(minIndex, 1);
+
+    // 자식은 차수 내림차순 저장 → 뒤집어야 오름차순(mergeRoots의 전제)
+    const childRoots = [...minRoot.children].reverse();
+    for (const c of childRoots) c.parent = null;
+
+    this.roots = this.mergeRoots(this.roots, childRoots);
+    this._size -= 1;
+    return minRoot.item;
+  }
+
+  merge(other: BinomialHeap<T>): BinomialHeap<T> {
+    const merged = new BinomialHeap<T>(this.compare);
+    merged.roots = this.mergeRoots(this.roots, other.roots);
+    merged._size = this._size + other._size;
+    return merged;
+  }
+
+  size(): number {
+    return this._size;
+  }
+
+  isEmpty(): boolean {
+    return this._size === 0;
+  }
+}
+```
+
+놓치기 쉬운 지점을 다시 짚습니다.
+
+- **`t2.children.unshift(t2)`가 아니라 `t1.children.unshift(t2)`.** 결합에서 자식이 되는 쪽(진 쪽)을 이긴 쪽의 자식 리스트 **맨 앞**에 넣어야 차수 내림차순이 유지됩니다. `push`(맨 뒤에 추가)로 바꾸면 순서가 오름차순이 되어 `extractMin`의 `reverse()` 전제가 깨집니다.
+- **`extractMin`에서 `childRoots`를 `parent = null`로 되돌리는 줄.** 떼어낸 자식들은 이제 독립된 루트이므로 부모 참조를 끊어야 합니다. 잊어도 당장 `mergeRoots`의 계산 결과는 같지만, 트리를 부모 포인터로 거슬러 올라가는 다른 연산(예: `decreaseKey` 확장)을 붙이면 조용히 틀린 부모를 가리키게 됩니다.
+- **`mergeRoots`의 세 갈래(`1개 / 2개 / 3개`) 분기.** 바로 앞 절의 함정 데모(실측 `size` 26 vs 실제 도달 노드 18)가 보여주듯, 3개짜리 분기를 빼먹으면 트리 하나가 통째로 사라집니다.
+
+기억법: **"진 쪽은 이긴 쪽의 맨 앞자리 자식이 된다, 꺼낼 때는 그 줄을 거꾸로 읽는다."**
+
+정리하면, 이항 힙이 존재하는 이유는 결국 `merge`예요 — 이진 힙이라면 재삽입으로 $O(m \log n)$까지 걸릴 병합을, 같은 차수 트리를 이진수 덧셈처럼 결합해 $O(\log n)$으로 끝냅니다. 그 대가로 `insert`가 이진 힙처럼 단순 상수 시간은 아니지만, 이진 카운터 증가와 같은 상각 논리 덕분에 평균적으로는 $O(1)$이고 `extractMin` 역시 $O(\log n)$을 유지하니, "병합이 잦은 우선순위 큐"라는 목표 앞에서는 이 정도 트레이드오프가 확실히 남는 장사입니다.
+
+## 실행 시각화
+
+`insert(10)`, `insert(20)`, `insert(5)`를 차례로 실행한 뒤 `peek()`과 `extractMin()`을 호출하는 흐름을 봅니다(고정 입력, 실측 반환값 기준). `insert(20)`에서 차수 0끼리 만나 차수 1 트리로 승격되고(`linkTrees(10, 20)` → 10이 루트), `insert(5)`는 차수 0 자리가 비어 있어 그대로 추가됩니다(루트 리스트 `[B0(5), B1(10,20)]`). `peek()`은 루트 리스트를 훑어 5를 반환하고, `extractMin()`은 `B0(5)`를 제거(자식 없음)한 뒤 `B1(10,20)`만 남기며 5를 반환합니다 — 이후 `size()`는 2입니다. array 패널은 그 시점까지 삽입된 원소들과, 결합/보존된 트리를 색으로 구분해 보여줍니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -165,73 +376,8 @@ export const steps = [
 
 <AlgorithmSimulation view="array" steps={steps} title="BinomialHeap 삽입/추출 시뮬레이션" />
 
-## 수도 코드와 Activity Diagram
+## 스스로 점검하기
 
-### 의사코드
-
-```
-// 두 이항 트리 결합
-linkTrees(t1, t2):
-  if t1.item <= t2.item:
-    t2.parent = t1
-    t1.children.prepend(t2)
-    t1.degree++
-    return t1
-  else:
-    t1.parent = t2
-    t2.children.prepend(t1)
-    t2.degree++
-    return t2
-
-// 두 루트 리스트 병합 (이진수 덧셈)
-mergeHeaps(h1, h2):
-  newRoots = []
-  carry = null
-  i = 0, j = 0
-  while i < h1.roots.length or j < h2.roots.length or carry != null:
-    candidates = []
-    if i < h1.roots.length and h1.roots[i].degree == currentDegree:
-      candidates.push(h1.roots[i++])
-    if j < h2.roots.length and h2.roots[j].degree == currentDegree:
-      candidates.push(h2.roots[j++])
-    if carry != null:
-      candidates.push(carry); carry = null
-    if candidates.length == 1:
-      newRoots.push(candidates[0])
-    elif candidates.length == 2:
-      carry = linkTrees(candidates[0], candidates[1])
-    elif candidates.length == 3:
-      newRoots.push(candidates[0])
-      carry = linkTrees(candidates[1], candidates[2])
-    currentDegree++
-  return newRoots
-
-// 최솟값 추출
-extractMin(heap):
-  if heap.isEmpty(): return undefined
-  minRoot = heap.roots에서 item이 최소인 트리
-  heap.roots에서 minRoot 제거
-  childHeap = new BinomialHeap(minRoot.children 역순)
-  heap.roots = mergeHeaps(heap, childHeap)
-  heap._size--
-  return minRoot.item
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A([insert item]) --> B[크기 1 임시 힙 생성]
-  B --> C[mergeHeaps 호출]
-  C --> D{같은 차수 충돌?}
-  D -- Yes --> E[linkTrees 결합 → carry]
-  E --> D
-  D -- No --> F[루트 리스트 갱신]
-  F --> G([완료])
-
-  H([extractMin]) --> I[루트 리스트 순회]
-  I --> J[최솟값 루트 선택]
-  J --> K[루트에서 제거]
-  K --> L[자식 리스트 역순 → 새 힙]
-  L --> C
-```
+1. 빈 이항 힙에 `1`부터 `7`까지 차례로 삽입하면, 마지막 루트 리스트에는 어떤 차수의 트리들이 남을까요? $7 = 111_2$라는 사실로 손 계산해 보고, 이어서 `8`을 한 번 더 삽입하면 무슨 일이 일어나는지도 그려 보세요.
+2. `extractMin`을 구현하면서 떼어낸 자식 리스트를 `reverse()` 없이 그대로 `mergeRoots`에 넘기면 어떤 문제가 생길까요? "자식은 차수 내림차순으로 저장된다"는 사실과 "`mergeRoots`는 오름차순을 전제한다"는 사실을 연결해서 설명해 보세요.
+3. 크기 5인 힙(`A`, 차수 [0, 2])과 크기 3인 힙(`B`, 차수 [0, 1])을 병합한다고 합시다. 병합 결과의 루트 리스트는 어떤 차수들로 구성될까요? 이진수 덧셈 $101_2 + 011_2$을 손으로 계산해 자릿수(carry)가 몇 번 발생하는지 따라가 보세요.

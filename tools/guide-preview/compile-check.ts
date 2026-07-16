@@ -6,15 +6,18 @@
  *       (인자 없으면 src 하위 모든 *-guide.mdx)
  */
 import { compile } from "@mdx-js/mdx";
+import remarkFrontmatter from "remark-frontmatter";
 import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
 import { Glob } from "bun";
 
 let targets = process.argv.slice(2);
 if (targets.length === 0) {
-  targets = await Array.fromAsync(
-    new Glob("src/**/*-guide.mdx").scan({ cwd: process.cwd() }),
-  );
+  targets = (
+    await Array.fromAsync(
+      new Glob("src/**/*-guide.mdx").scan({ cwd: process.cwd() }),
+    )
+  ).filter((p) => !p.includes("/_deprecated/"));
 }
 
 let failed = 0;
@@ -22,7 +25,7 @@ for (const file of targets) {
   try {
     const src = await Bun.file(file).text();
     await compile(src, {
-      remarkPlugins: [remarkMath],
+      remarkPlugins: [[remarkFrontmatter, ["yaml"]], remarkMath],
       rehypePlugins: [rehypeKatex],
     });
     console.log(`✓ ${file}`);

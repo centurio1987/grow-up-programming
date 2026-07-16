@@ -1,77 +1,302 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# SegmentTree (세그먼트 트리) 해설
+# SegmentTree — 구간을 미리 잘라 두고, 겹치지 않게 이어붙이기
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 단순 배열 | 누적합 | **세그먼트 트리** |
-|------|-----------|--------|-------------------|
-| 빌드 | O(1) | O(n) | O(n) |
-| 구간 질의 | O(n) | O(1) | O(log n) |
-| 단일 업데이트 | O(1) | O(n) | O(log n) |
-| 범위 업데이트 | O(n) | O(n) | O(n log n)* |
+세그먼트 트리는 배열의 모든 부분구간을 일일이 저장하는 대신, 이진 트리의 각 노드에 자신이 담당하는 구간의 집계값(합·최솟값·최댓값 등)만 들려 두는 자료구조예요. 임의의 질의 구간 [l, r]이 들어오면 트리를 타고 내려가며 **겹치지 않는 O(log n)개의 노드**로 그 구간을 정확히 재조립합니다. 그 덕분에 값이 계속 바뀌는 배열에서도 구간 질의와 단일 갱신을 둘 다 O(log n)에 처리할 수 있어요.
 
-\* 범위 업데이트가 빈번하다면 Lazy Propagation(segmentTreeLazy) 버전을 사용한다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+다음 신호들이 겹치면 세그먼트 트리를 떠올리세요.
 
-| 함수 | 시그니처 | 복잡도 |
-|------|----------|--------|
-| 생성자 | `constructor(arr, merge)` | O(n) |
-| 구간 질의 | `query(l, r): number` | O(log n) |
-| 단일 갱신 | `update(i, val): void` | O(log n) |
-| 크기 반환 | `size(): number` | O(1) |
+- "구간 [l, r]의 합/최솟값/최댓값을 구하라"는 질의가 반복해서 들어온다
+- 질의 사이사이에 특정 인덱스의 값을 바꾸는 **갱신**도 섞여 있다 (갱신이 아예 없다면 더 가벼운 대안이 있어요)
+- 배열 크기와 질의 횟수가 둘 다 커서(보통 $10^5$ 이상) O(n) 전체 재계산이나 O(n) 재스캔이 위험하다
 
----
+naive 접근들과 비용을 비교해 보면 왜 세그먼트 트리가 필요한지 보입니다. 질의 Q번, 갱신 U번, 배열 크기 n이라 할 때:
 
-## 핵심 아이디어
+```text
+                질의 1회      갱신 1회      총 비용(질의+갱신)
+단순 배열 재스캔     O(n)         O(1)          O(Q·n + U)
+누적합(prefix sum)   O(1)         O(n)          O(Q + U·n)
+세그먼트 트리      O(log n)     O(log n)      O((Q+U)·log n)
+```
 
-### 원형 아이디어와 naive 접근
+n=$10^5$, Q=U=$10^4$을 넣어 보면, 단순 배열도 누적합도 $10^9$ 근처까지 치솟아 1초를 넘기기 쉽습니다. 세그먼트 트리는 $(10^4+10^4)\times 17 \approx 3.4\times10^5$로 여유가 있어요. 질의와 갱신이 "한쪽만 자주"가 아니라 **둘 다 자주** 섞일 때 세그먼트 트리가 시소의 양 끝을 동시에 붙잡아 주는 셈입니다.
 
-구간 [l, r]의 합을 매번 O(n)으로 순회하면, 질의 Q번과 업데이트 U번의 총 비용은 O((Q+U)·n)이다. n=10^5, Q=U=10^4이면 10^9 연산이 필요해 1초를 초과한다.
+비슷한 용도의 다른 자료구조와는 이렇게 구분하세요.
 
-### 어떤 관찰이 돌파구가 되는가
+- 합처럼 **역원이 있는(invertible) 연산**만 필요하고 상수 인자를 더 줄이고 싶다면 더 가벼운 **Fenwick Tree(BIT)** 로 충분합니다. 반면 최솟값·최댓값·GCD처럼 역원이 없는 연산까지 지원해야 하면 세그먼트 트리가 필요해요.
+- 갱신이 아예 없는 정적 배열이라면 전처리 O(n log n) 후 질의 O(1)인 **Sparse Table**이 더 빠릅니다.
+- 반대로 "구간 전체에 값을 더한다" 같은 **범위 갱신**이 잦다면, 이 문서의 point-update 버전 대신 Lazy Propagation을 얹은 세그먼트 트리(`segmentTreeLazy`)로 넘어가야 합니다.
 
-"구간을 미리 O(n)개 미리 계산해 두고, 겹치지 않는 구간들의 조합으로 임의 질의 구간을 표현할 수 있는가?" — 이것이 핵심 질문이다.
+### 문제 사례와 적용 예시
 
-이진 트리를 이용하면 임의 구간을 **O(log n)개** 이하의 미리 계산된 서브구간으로 분해할 수 있다. 트리의 각 노드가 특정 구간의 집계 값을 저장하므로 해당 구간 전체를 단번에 참조할 수 있다.
+- **실시간 주가 모니터링**: N개 종목의 가격이 매 초 갱신되는 와중에 "인덱스 l부터 r까지 종목 중 최저가는?" 같은 구간 질의가 수시로 들어오는 시스템.
+- **게임 리더보드**: 특정 순위 구간의 최고 점수나 합계를 조회하면서 동시에 개별 플레이어의 점수를 갱신해야 하는 랭킹 서버.
+- **코딩 테스트의 "구간 합 조회 + 값 변경" 유형**: 값 변경과 구간 합 질의가 뒤섞인 문제에서 세그먼트 트리(또는 Fenwick Tree)가 정석 풀이로 요구됩니다.
+- **RMQ 기반 LCA 계산**: 트리의 두 노드의 최소 공통 조상(LCA)을 오일러 투어 + 구간 최솟값 질의로 환원하는 고전적 기법에서 세그먼트 트리가 그 구간 최솟값 질의를 담당합니다.
 
-### 관찰을 형식화
+## 자료구조 자세히 들여다보기
 
-배열 A[0..n-1]에 대해 이진 트리를 구성한다.
+### 전체 스펙: 속성과 액션
 
-- **리프 노드**: A[i] 값 저장
-- **내부 노드**: 두 자식 구간의 merge 결과 저장
-- **루트**: A[0..n-1] 전체의 집계 값
+**속성(내부 상태)** — 이 가이드에서 정의하는 인터페이스는 다음과 같습니다.
 
-1-indexed 배열 표현을 쓰면 노드 k의 자식이 2k, 2k+1이므로 인덱스 계산이 단순해진다.
+```ts
+class SegmentTree {
+  private n: number;                          // 원본 배열 크기
+  private tree: number[];                     // 크기 4n의 내부 배열 (1-indexed)
+  private merge: (a: number, b: number) => number; // 결합 연산 (교환법칙은 불필요, 결합법칙은 필수)
+  private identity: number;                   // merge의 항등원 (완전 배제 구간에 반환)
+}
+```
 
-### 핵심 연산
+지켜야 할 불변식은 세 가지입니다.
 
-**구간 질의**: 현재 노드 구간 [start, end]와 질의 구간 [l, r]을 세 경우로 분류한다.
+1. **구간 대응**: 노드 $k$가 담당하는 구간을 $[lo_k, hi_k]$라 하면,
+   $$tree[k] = A[lo_k] \oplus A[lo_k+1] \oplus \cdots \oplus A[hi_k]$$
+   여기서 $\oplus$는 `merge` 연산입니다.
+2. **부모·자식 관계**: 노드 $k$의 왼쪽 자식은 $2k$, 오른쪽 자식은 $2k+1$이고, $lo_k = hi_k$이면 리프입니다. 리프가 아니면 $mid = \lfloor(lo_k+hi_k)/2\rfloor$ 기준으로 왼쪽 자식이 $[lo_k, mid]$, 오른쪽 자식이 $[mid+1, hi_k]$를 담당합니다.
+3. **결합법칙**: `merge`는 반드시 $(a \oplus b) \oplus c = a \oplus (b \oplus c)$를 만족해야 합니다. 재귀가 구간을 어디서 자르든(mid 위치가 달라져도) 최종 결과가 같아야 하기 때문이에요.
 
-1. 완전 포함 (l ≤ start, end ≤ r): 현재 노드 값 즉시 반환
-2. 완전 배제 (r < start 또는 end < l): 항등원 반환
-3. 부분 겹침: mid = (start+end)/2, 좌우 자식 재귀 후 merge
+`n=5`, `prices = [100, 45, 78, 23, 56]`, `merge = Math.min`으로 빌드한 트리를 실제로 그려 보면(실측):
 
-**단일 업데이트**: 리프까지 내려가 값을 교체하고, 올라오는 길에 부모 노드를 `merge(leftChild, rightChild)`로 갱신한다.
+```text
+node1[0,4]=23  ← 루트
+ ├─ node2[0,2]=45
+ │   ├─ node4[0,1]=45
+ │   │   ├─ node8[0,0]=100   (리프)
+ │   │   └─ node9[1,1]=45    (리프)
+ │   └─ node5[2,2]=78        (리프)
+ └─ node3[3,4]=23
+     ├─ node6[3,3]=23        (리프)
+     └─ node7[4,4]=56        (리프)
+```
 
-### 정당성
+배열 크기를 `4 * n`으로 넉넉히 잡는 이유는, 트리 높이가 $\lceil \log_2 n \rceil + 1$이라 리프가 아닌 노드까지 포함한 전체 노드 수가 최악의 경우(n이 2의 거듭제곱이 아닐 때) $4n$에 조금 못 미치는 수준까지 커질 수 있기 때문입니다. 정확히 계산해서 아슬아슬하게 맞추기보다 여유 있게 잡는 편이 안전해요.
 
-트리 높이가 ⌈log₂ n⌉이므로 경로 길이는 O(log n)이다. 구간 질의에서 방문하는 노드 수는 최대 4·log n임이 증명되어 있다 (각 깊이에서 최대 4개 노드만 '부분 겹침' 처리를 받는다).
+**액션(연산)** — 이 인터페이스가 제공하는 연산 전부입니다.
 
-### 구현 디테일과 최적화
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `constructor(arr, merge)` | 리프부터 상향식으로 트리를 채운다 | O(n) |
+| `query(l, r)` | [l, r] 구간에 merge를 적용한 결과 반환 | O(log n) |
+| `update(i, val)` | 인덱스 i를 val로 바꾸고 경로상의 조상을 재계산 | O(log n) |
+| `size()` | 원본 배열 크기 반환 | O(1) |
 
-- **배열 크기**: 안전하게 `4 * n`을 할당한다 (n이 2의 거제곱이 아닌 경우 대비).
-- **1-indexed vs 0-indexed**: 1-indexed 사용 시 부모/자식 계산이 비트 연산으로 단순화된다.
-- **항등원 처리**: merge 함수가 최솟값이면 항등원은 `+Infinity`, 합이면 `0`. 생성자에서 사용자에게 받거나 초기 배열로 추론한다.
-- **이터레이티브 구현**: 재귀 대신 반복문으로도 구현 가능하며 상수 인자가 작아진다.
+핵심 연산 두 개를 자세히 볼게요.
 
----
+**① query — 세 가지 경우로 분류.** 현재 노드 구간 `[start, end]`와 질의 구간 `[l, r]`을 비교합니다.
 
-## 시뮬레이션
+```text
+경우 1. 완전 배제 (r < start 또는 end < l)  → identity 반환, 더 내려가지 않는다
+경우 2. 완전 포함 (l <= start && end <= r)  → tree[node] 즉시 반환, 더 내려가지 않는다
+경우 3. 부분 겹침 (그 외)                    → 좌우 자식을 재귀 후 merge
+```
+
+`query(0, 2)`를 위 트리에서 실행한 실제 트레이스입니다(Before: 질의 전, After: 각 노드 처리 후).
+
+```text
+node1[0,4] 부분 겹침 → 재귀
+  node2[0,2] 완전 포함 → tree=45 즉시 반환      ← 안 내려가고 끝!
+  node3[3,4] 완전 배제 → identity(Infinity) 반환  ← 안 내려가고 끝!
+  merge(45, Infinity) = 45
+결과: 45
+```
+
+`node2[0,2]`가 질의 구간과 정확히 일치해서 그 밑으로는 한 걸음도 내려가지 않는다는 점이 O(log n)의 핵심입니다 — 완전 포함을 만나는 순간 해당 서브트리 전체를 통째로 재사용해요.
+
+**② update — 리프까지 내려간 뒤, 올라오며 재계산.** `update(3, 200)`을 실행한 실제 트레이스입니다.
+
+```text
+Before: node6[3,3]=23, node3[3,4]=23, node1[0,4]=23
+
+리프까지 하강: node6[3,3] 리프 갱신 → 200
+올라오며 재계산: node3[3,4] = merge(node6, node7) = merge(200, 56) = 56
+              node1[0,4] = merge(node2, node3) = merge(45, 56) = 45
+
+After: node6[3,3]=200, node3[3,4]=56, node1[0,4]=45
+```
+
+경로에 있지 않은 `node2`, `node5`, `node7`, `node9` 등은 전혀 건드리지 않습니다 — 딱 리프까지 가는 경로 하나(O(log n)개 노드)만 갱신하는 것이 이 연산의 전부예요.
+
+### 왜 모순 없이 작동하는가
+
+**불변식이 보존되는 이유**: 빈 트리는 없고(항상 최소 1개 원소로 시작), `build`가 리프부터 상향식으로 `tree[node] = merge(tree[2*node], tree[2*node+1])`를 계산하므로 처음부터 불변식 1이 성립합니다. `update`도 리프 하나만 바꾼 뒤 그 경로를 거슬러 올라가며 똑같은 식으로 재계산하므로, 경로 밖의 노드는 그대로고 경로 위의 노드만 "자식이 바뀌었으니 다시 merge"를 반복해 불변식을 되살립니다. 귀납적으로: 빌드 직후 불변식이 성립하고, 모든 `update`가 불변식을 보존하므로 어느 시점에 질의를 던져도 `tree[node]`는 정확히 그 구간의 집계값입니다.
+
+**query가 항상 정확한 이유**: 결합법칙(불변식 3) 덕분에, 질의 구간을 어떤 순서로 쪼개서 merge하든 결과가 같습니다. query가 재귀적으로 만나는 "완전 포함" 노드들은 서로 절대 겹치지 않고(부모-자식 관계상 한 노드가 완전 포함으로 반환되면 그 서브트리는 더 내려가지 않으므로), 이들을 이어 붙이면 정확히 [l, r] 구간이 됩니다.
+
+여기서 헷갈리기 쉬운 포인트를 세 가지 짚어 둘게요.
+
+- **완전 배제 검사를 완전 포함보다 먼저 해야 합니다.** `if (r < start || end < l)`을 나중에 검사하면, 질의 구간과 아예 무관한 노드에서도 "완전 포함이 아니니 부분 겹침"으로 오분류해 불필요하게(때로는 배열 범위 밖 자식까지) 재귀하게 됩니다. 순서가 정확도가 아니라 **정지 조건**을 결정한다는 점이 포인트예요.
+- **identity(항등원)를 잘못 고르면 값이 아니라 걸러내는 로직 자체가 깨집니다.** 최솟값 연산인데 항등원을 `0`으로 잘못 설정했다고 해 봅시다. 완전 배제 구간이 `0`을 반환하면, 그 `0`이 다른 진짜 값들과 `merge(0, x) = min(0, x)`로 섞여 **항상 0이 이겨버립니다.** 실제로 확인해 보면, 위와 같은 트리에서 identity를 `0`으로 두고 `query(0, 2)`를 실행하면 정답 `45` 대신 **`0`** 이 나옵니다(실측 확인). 최솟값의 항등원은 반드시 `+Infinity`, 합의 항등원은 `0`이어야 해요.
+- **merge에 결합법칙만 있으면 되고 교환법칙은 필요 없습니다.** 문자열 이어붙이기처럼 `merge(a, b) !== merge(b, a)`인 연산도 세그먼트 트리에 쓸 수 있어요. 대신 재귀에서 항상 **왼쪽 자식 결과를 먼저, 오른쪽 자식 결과를 나중에** `merge(left, right)` 순서로 넘겨야 합니다. 순서를 바꾸면 결합법칙이 있어도 원래 배열 순서와 다른 결과가 나옵니다.
+
+확인 질문 하나: `query(0, 4)`처럼 전체 구간을 질의하면 트리를 리프까지 훑어야 할까요, 아니면 더 빨리 끝날까요? — 정답은 후자입니다. 루트가 이미 `[0, 4]` 전체를 담당하므로 첫 호출에서 바로 "완전 포함"으로 걸려 **O(1)**에 끝나요. 전체 구간 질의가 오히려 가장 빠른 경우인 셈입니다.
+
+엣지 케이스를 점검해 볼게요.
+
+```text
+원소 1개(n=1)          → tree[1] = arr[0], query(0,0)은 항상 완전 포함으로 즉시 반환
+l === r (점 질의)       → 재귀가 리프 하나만 완전 포함으로 만나고 끝
+query(0, n-1) 전체 질의 → 루트에서 즉시 완전 포함, O(1)
+빈 배열(n=0)            → 트리 크기 0, query/update 호출 자체가 정의되지 않음(사전 조건 위반으로 처리)
+```
+
+## 아이디어를 코드로 옮기기
+
+**원형(naive) — 매번 처음부터 훑기.** 갱신은 배열 값 하나만 바꾸면 되니 O(1)이지만, 질의는 구간을 매번 처음부터 끝까지 스캔합니다.
+
+```ts
+class RangeMinNaive {
+  constructor(private arr: number[]) {}
+
+  query(l: number, r: number): number {
+    let m = Infinity;
+    for (let i = l; i <= r; i++) m = Math.min(m, this.arr[i]!);
+    return m; // O(r - l + 1), 최악 O(n)
+  }
+
+  update(i: number, val: number): void {
+    this.arr[i] = val; // O(1)
+  }
+}
+```
+
+질의가 자주 반복되면 이 O(n) 스캔이 그대로 누적됩니다. "구간을 미리 계산해서 재사용할 수 없을까?"라는 질문에서 다음 단계가 시작돼요.
+
+**개선 — 구간을 블록으로 미리 잘라 두기(sqrt decomposition).** 배열을 크기 $\sqrt n$짜리 블록으로 나누고, 각 블록의 최솟값을 미리 계산해 둡니다.
+
+```ts
+class RangeMinSqrt {
+  private blockSize: number;
+  private blockMin: number[];
+
+  constructor(private arr: number[]) {
+    this.blockSize = Math.ceil(Math.sqrt(arr.length));
+    const blockCount = Math.ceil(arr.length / this.blockSize);
+    this.blockMin = new Array(blockCount).fill(Infinity);
+    for (let i = 0; i < arr.length; i++) {
+      const b = Math.floor(i / this.blockSize);
+      this.blockMin[b] = Math.min(this.blockMin[b]!, arr[i]!);
+    }
+  }
+
+  query(l: number, r: number): number {
+    let m = Infinity;
+    let i = l;
+    while (i <= r) {
+      const b = Math.floor(i / this.blockSize);
+      const blockStart = b * this.blockSize;
+      const blockEnd = blockStart + this.blockSize - 1;
+      if (blockStart >= l && blockEnd <= r) {
+        m = Math.min(m, this.blockMin[b]!); // 블록 전체를 통째로 재사용
+        i = blockEnd + 1;
+      } else {
+        m = Math.min(m, this.arr[i]!); // 블록에 걸치는 가장자리는 원소 단위로
+        i++;
+      }
+    }
+    return m; // O(sqrt n)
+  }
+
+  update(i: number, val: number): void {
+    this.arr[i] = val;
+    const b = Math.floor(i / this.blockSize);
+    const blockStart = b * this.blockSize;
+    const blockEnd = Math.min(blockStart + this.blockSize, this.arr.length) - 1;
+    let m = Infinity;
+    for (let j = blockStart; j <= blockEnd; j++) m = Math.min(m, this.arr[j]!);
+    this.blockMin[b] = m; // 블록 하나만 재스캔, O(sqrt n)
+  }
+}
+```
+
+이제 질의·갱신 모두 O(sqrt n)로 균형이 잡혔습니다(실측: `[100, 45, 78, 23, 56]`에서 `query(0, 2)` → `45`, `update(3, 200)` 후 `query(0, 4)` → `45`, naive와 동일). 하지만 블록 크기가 고정이라 "가장자리 원소"는 여전히 하나씩 처리해야 해요. **블록 크기를 고정하지 않고 2배씩 키워 가며 계층적으로 미리 계산해 두면 어떨까요?** 크기 1, 2, 4, 8, ...짜리 구간을 이진 트리로 겹치지 않게 쌓으면, 임의 구간을 O(log n)개의 미리 계산된 조각으로 표현할 수 있습니다 — 이것이 세그먼트 트리입니다.
+
+**최종 — 세그먼트 트리.**
+
+```ts
+class SegmentTree {
+  private n: number;
+  private tree: number[];
+  private merge: (a: number, b: number) => number;
+  private identity: number;
+
+  constructor(arr: number[], merge: (a: number, b: number) => number, identity: number) {
+    this.n = arr.length;
+    this.tree = new Array(4 * this.n).fill(identity);
+    this.merge = merge;
+    this.identity = identity;
+    if (this.n > 0) this.build(1, 0, this.n - 1, arr);
+  }
+
+  private build(node: number, start: number, end: number, arr: number[]): void {
+    if (start === end) {
+      this.tree[node] = arr[start]!;
+      return;
+    }
+    const mid = Math.floor((start + end) / 2);
+    this.build(2 * node, start, mid, arr);
+    this.build(2 * node + 1, mid + 1, end, arr);
+    this.tree[node] = this.merge(this.tree[2 * node]!, this.tree[2 * node + 1]!);
+  }
+
+  query(l: number, r: number): number {
+    return this.queryRange(1, 0, this.n - 1, l, r);
+  }
+
+  private queryRange(node: number, start: number, end: number, l: number, r: number): number {
+    if (r < start || end < l) return this.identity; // 완전 배제 — 반드시 먼저 검사
+    if (l <= start && end <= r) return this.tree[node]!; // 완전 포함
+    const mid = Math.floor((start + end) / 2);
+    const left = this.queryRange(2 * node, start, mid, l, r);
+    const right = this.queryRange(2 * node + 1, mid + 1, end, l, r);
+    return this.merge(left, right); // 왼쪽 먼저, 오른쪽 나중 — 순서 고정
+  }
+
+  update(i: number, val: number): void {
+    this.updateAt(1, 0, this.n - 1, i, val);
+  }
+
+  private updateAt(node: number, start: number, end: number, i: number, val: number): void {
+    if (start === end) {
+      this.tree[node] = val;
+      return;
+    }
+    const mid = Math.floor((start + end) / 2);
+    if (i <= mid) this.updateAt(2 * node, start, mid, i, val);
+    else this.updateAt(2 * node + 1, mid + 1, end, i, val);
+    this.tree[node] = this.merge(this.tree[2 * node]!, this.tree[2 * node + 1]!);
+  }
+
+  size(): number {
+    return this.n;
+  }
+}
+```
+
+가장 중요한 부분은 `queryRange`의 **처음 두 줄**입니다.
+
+- `if (r < start || end < l) return this.identity;` — 완전 배제를 **가장 먼저** 검사합니다. 이 순서를 지키지 않으면 앞서 본 것처럼 무관한 구간까지 재귀에 끌려 들어갑니다.
+- `if (l <= start && end <= r) return this.tree[node]!;` — 완전 포함을 만나면 **그 자리에서 끝냅니다.** 이 조기 종료가 없으면 매번 리프까지 내려가야 해서 O(log n)이 무너집니다.
+- `this.merge(left, right)` — 왼쪽 결과를 첫 인자로, 오른쪽을 둘째 인자로 고정합니다. 교환법칙이 없는 merge(문자열 이어붙이기 등)에서 이 순서를 지키지 않으면 결과가 뒤섞입니다.
+
+기억법: **"배제 먼저, 포함 즉시, 순서는 왼→오."**
+
+## 실행 시각화
+
+`prices = [100, 45, 78, 23, 56]`에 대해 `merge = Math.min`으로 세그먼트 트리를 빌드한 뒤, `query(0, 2)`를 실행하면 `45`가 반환됩니다(실측). 이어서 `update(3, 200)`으로 인덱스 3을 200으로 바꾸면, 이전까지 전체 최솟값이던 23이 사라지고 `query(0, 4)`는 `45`를 반환합니다(실측). array 패널의 `highlight`는 현재 단계에서 비교·병합에 관여하는 인덱스를, `marked`는 이미 확정되어 더 이상 건드리지 않는 인덱스를 보여줍니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -134,74 +359,8 @@ export const steps = [
 
 <AlgorithmSimulation view="array" steps={steps} title="SegmentTree — 구간 최솟값 시뮬레이션" />
 
-## 수도 코드와 Activity Diagram
+## 스스로 점검하기
 
-### 의사코드
-
-```
-// 빌드
-build(node, start, end):
-  if start == end:
-    tree[node] = arr[start]
-    return
-  mid = (start + end) / 2
-  build(2*node, start, mid)
-  build(2*node+1, mid+1, end)
-  tree[node] = merge(tree[2*node], tree[2*node+1])
-
-// 구간 질의
-query(node, start, end, l, r):
-  if r < start OR end < l:
-    return IDENTITY          // 완전 배제
-  if l <= start AND end <= r:
-    return tree[node]        // 완전 포함
-  mid = (start + end) / 2
-  left  = query(2*node, start, mid, l, r)
-  right = query(2*node+1, mid+1, end, l, r)
-  return merge(left, right)
-
-// 단일 업데이트
-update(node, start, end, i, val):
-  if start == end:
-    arr[i] = val
-    tree[node] = val
-    return
-  mid = (start + end) / 2
-  if i <= mid:
-    update(2*node, start, mid, i, val)
-  else:
-    update(2*node+1, mid+1, end, i, val)
-  tree[node] = merge(tree[2*node], tree[2*node+1])
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A([query 호출: node, start, end, l, r]) --> B{r < start\n또는 end < l?}
-  B -- 예 완전 배제 --> C[항등원 반환]
-  B -- 아니오 --> D{l <= start\n그리고 end <= r?}
-  D -- 예 완전 포함 --> E[tree-node 반환]
-  D -- 아니오 부분 겹침 --> F[mid = start+end / 2]
-  F --> G[query 2*node start mid l r]
-  F --> H[query 2*node+1 mid+1 end l r]
-  G --> I[merge left right 반환]
-  H --> I
-  C --> Z([반환])
-  E --> Z
-  I --> Z
-```
-
-```mermaid
-flowchart TD
-  A([update 호출: node, start, end, i, val]) --> B{start == end?}
-  B -- 예 리프 --> C[tree-node = val]
-  C --> Z([반환])
-  B -- 아니오 --> D[mid = start+end / 2]
-  D --> E{i <= mid?}
-  E -- 예 --> F[update 2*node start mid i val]
-  E -- 아니오 --> G[update 2*node+1 mid+1 end i val]
-  F --> H[tree-node = merge left child right child]
-  G --> H
-  H --> Z
-```
+1. `arr = [1, 2, 3, 4, 5]`, `merge = (a, b) => a + b`인 세그먼트 트리를 손으로 빌드해 보세요. 리프부터 루트까지 각 노드가 담당하는 구간과 값을 직접 적어 보고, `query(1, 3)`의 결과를 트레이스로 확인해 보세요. (힌트: 정답은 실측상 `9`입니다.)
+2. `queryRange`에서 완전 배제 검사와 완전 포함 검사의 순서를 서로 바꾸면 어떤 문제가 생길까요? 앞서 본 "완전 배제를 나중에 검사하면" 시나리오를 자신의 말로 설명해 보세요.
+3. 이 문서의 `update(3, 200)` 예시에서, 만약 `merge(left, right)` 대신 `merge(right, left)`로 인자 순서를 바꿔 계산했다면 합 연산에서는 결과가 달라질까요, 안 달라질까요? 문자열 이어붙이기 merge라면 어떨까요?

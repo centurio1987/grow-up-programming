@@ -1,184 +1,283 @@
-import { AlgorithmSimulation } from "#guide-sim";
-
-# minCut 해설
-
-## 성능 목표 예측
-
-| 항목 | 값 |
-|------|----|
-| 정점 V | $2 \leq V \leq 500$ |
-| 간선 E | $0 \leq E \leq 10^4$ |
-| 용량 c | $0 \leq c \leq 10^6$ |
-
-**naive 접근의 문제점:**
-최소 컷을 직접 구하려면 정점 집합 $V$의 모든 분할 $(S, T)$를 열거해 컷 용량을 계산한다.
-분할의 수는 $2^V$이고, 각 분할의 컷 용량 계산이 $O(E)$이므로 $O(2^V \cdot E)$ → 완전히 불가능하다.
-
-다른 naive 접근: 모든 간선 집합의 부분집합을 제거해 $s$와 $t$를 분리시키는 최소 비용을 찾는다. 이 또한 $O(2^E)$ → 불가능하다.
-
-**목표 복잡도:** $O(V^2 \cdot E)$ (Dinic's로 최대 유량) + $O(V + E)$ (BFS로 컷 집합 결정), $O(V + E)$ 공간.
-
-**근거:** Max-Flow Min-Cut 정리에 의해 최소 컷 = 최대 유량이므로, 최대 유량 알고리즘의 복잡도가 전체를 지배한다. 최대 유량 계산 후 잔여 그래프에서 BFS 한 번으로 컷을 결정하는 추가 비용은 $O(V + E)$이다.
-
-**공간 복잡도:** 잔여 그래프 $O(V + E)$, 도달 가능 배열 $O(V)$. 추가 공간이 최소화된다.
-
+---
+version: 2.0.0
 ---
 
-## 목표 함수
+import { AlgorithmSimulation } from "#guide-sim";
+
+# minCut — 컷을 세지 않고 최대 유량 하나로 찾는 최소 컷
+
+## 한눈에 보는 컨셉
+
+정점 집합을 소스 쪽 `S`와 싱크 쪽 `T`로 나누는 모든 방법 중, `S`에서 `T`로 넘어가는 간선 용량의 합이 가장 작은 분할을 찾는 문제예요. 이 분할을 직접 나열하는 대신, **Max-Flow Min-Cut 정리** 덕분에 최대 유량 값 하나만 계산하면 그 값이 곧 최소 컷 용량이라는 사실을 이용합니다. 최대 유량을 구한 뒤 잔여 그래프에서 소스로부터 도달 가능한 정점을 BFS로 표시하기만 하면, 실제 컷에 포함되는 간선까지 `O(V+E)` 추가 비용으로 알아낼 수 있어요.
+
+## 출발점: 가장 순진한 방법부터
+
+문제를 정확히 잡고 갈게요.
 
 ```ts
-minCut(
+function minCut(
   n: number,
   edges: [number, number, number][],
   source: number,
-  sink: number
+  sink: number,
 ): { cut: number }
 ```
 
-| 매개변수 | 의미 | 제약 |
-|----------|------|------|
-| `n` | 정점 개수 $V$ (인덱스: $0 \ldots n-1$) | $2 \leq n \leq 500$ |
-| `edges` | 방향 간선 `[u, v, c]` (용량 $c$) | $E \leq 10^4$ |
-| `source` | 소스 $s$ | $s \neq t$ |
-| `sink` | 싱크 $t$ | $s \neq t$ |
-| 반환값 | `{ cut }`: 최소 $s$-$t$ 컷 용량 | — |
+정점 번호는 `0 ~ n-1`이고, `edges`의 각 원소 `[u, v, c]`는 `u`에서 `v`로 향하는 용량 `c`짜리 방향 간선입니다. 반환값 `{ cut }`은 `source`와 `sink`를 분리하는 최소 컷의 용량 합이에요. 제약은 `2 ≤ n ≤ 500`, `0 ≤ E ≤ 10^4`, `0 ≤ c ≤ 10^6`, `source ≠ sink`입니다.
 
-**엣지케이스:**
+컷의 정의부터 짚고 갈게요. 정점 집합을 두 그룹 `S`(소스 쪽), `T`(싱크 쪽)로 나누되 `source ∈ S`, `sink ∈ T`가 되도록 분할하면, 그 분할의 **컷 용량**은 `S`에서 `T`로 향하는 간선들의 용량 합이에요.
 
-1. **간선 없음:** $s$에서 $t$로의 경로 없음 → `{ cut: 0 }`.
-2. **역방향 간선만 있음:** $s \to t$ 방향 잔여 용량이 없어 유량 0 → `{ cut: 0 }`.
-3. **$s$와 $t$가 단절된 경우:** 어떤 간선도 제거 없이 이미 분리됨 → `{ cut: 0 }`.
-4. **반환값 = 최대 유량:** `{ cut }`의 값은 항상 `maxFlow`의 `flow`와 동일하다. Max-Flow Min-Cut 정리의 직접적 귀결이다.
-5. **병렬 간선:** 같은 방향의 여러 간선은 각각 별개로 처리하며, 컷 집합 판정 시에도 개별적으로 합산한다.
+$$c(S, T) = \sum_{\substack{(u,v,c) \in E \\ u \in S,\, v \in T}} c$$
 
----
+가장 정직한 방법은 가능한 모든 분할 `(S, T)`를 만들어 보고 컷 용량을 계산해서 최솟값을 취하는 것입니다.
 
-## 핵심 아이디어
-
-**핵심 아이디어**: "최소 컷의 용량 = 최대 유량이다 — 최대 유량 계산 후 잔여 그래프에서 도달 가능한 정점 집합이 최소 컷을 결정한다."
-
-정점 집합을 두 그룹 $(S, T)$로 분할해 $S \to T$ 간선 용량의 합을 최소화하는 문제는 $2^V$개의 분할을 열거하지 않아도 된다. Max-Flow Min-Cut 정리에 의해 최소 컷 용량은 최대 유량과 정확히 같고, 최대 유량 계산 후 잔여 그래프에서 소스 $s$로부터 도달 가능한 집합 $S$가 자동으로 최소 컷을 정의한다. BFS 한 번으로 컷 집합을 결정하고 원래 간선 중 $S \to T$ 방향 용량을 합산하면 된다.
-
-**풀이 구조**
-1. Dinic's 알고리즘으로 최대 유량을 계산한다(잔여 그래프 유지).
-2. 잔여 그래프에서 $s$로부터 잔여 용량 > 0인 간선을 따라 BFS를 수행한다.
-3. 도달 가능한 정점 집합 $S$, 도달 불가능한 집합 $T$를 결정한다.
-4. 원래 간선 목록에서 $u \in S$, $v \in T$인 간선의 용량을 합산한다.
-5. 합산 값을 `{ cut }`으로 반환한다.
-
-**조건**: 방향 그래프이고 소스 $s \neq$ 싱크 $t$여야 한다. 컷 용량 계산 시 잔여 그래프의 역방향 간선을 포함하면 안 되며 반드시 원래 간선 목록으로 합산해야 한다.
-
-**대표 예시**: 네트워크 통신 차단 최소 비용
-서버 $s$에서 클라이언트 $t$로의 통신을 끊으려면 어떤 링크들을 최소 비용으로 제거해야 하는가의 문제다. 최대 유량을 먼저 구하면 그 값이 곧 최소 컷이고, 잔여 그래프 BFS로 실제로 제거해야 할 링크 집합을 $O(V+E)$에 식별한다.
-
-**언제 쓰나**
-"$s$에서 $t$를 분리하는 최소 컷을 구하라" 또는 "네트워크를 분리하는 최소 비용을 구하라"는 문제에서 사용한다. Max-Flow Min-Cut 정리 덕분에 최대 유량 코드를 그대로 재활용하고 BFS 한 번만 추가하면 된다.
-
----
-
-### 원형 아이디어와 naive 접근
-
-컷의 정의에서 출발한다: 정점 집합을 $(S, T)$로 분할했을 때 $S$에서 $T$로 향하는 모든 간선의 용량 합을 최소화하는 분할을 찾는다.
-
-```
-naive:
-  minCutVal = INF
-  for each partition (S, T) of V (s ∈ S, t ∈ T):
-    cutVal = sum of c(u,v) for (u,v) with u∈S, v∈T
-    minCutVal = min(minCutVal, cutVal)
-  return minCutVal
+```ts
+function minCutNaive(
+  n: number,
+  edges: [number, number, number][],
+  s: number,
+  t: number,
+): { cut: number } {
+  let best = Infinity;
+  for (let mask = 0; mask < (1 << n); mask++) {
+    const inS = (v: number) => ((mask >> v) & 1) === 1;
+    if (!inS(s) || inS(t)) continue; // 불변식: s ∈ S, t ∈ T
+    let cutVal = 0;
+    for (const [u, v, c] of edges) {
+      if (inS(u) && !inS(v)) cutVal += c;
+    }
+    best = Math.min(best, cutVal);
+  }
+  return { cut: best };
+}
 ```
 
-분할 수가 $2^{V-2}$이므로 $V = 500$에서는 계산 불가능하다.
+작은 예로 직접 나열해 볼게요. `n=4`, `edges=[[0,1,3],[0,2,2],[1,2,1],[1,3,2],[2,3,3]]`, `source=0`, `sink=3`이면 `source`와 `sink`의 소속은 이미 고정돼 있으니, 나머지 정점 `1, 2`만 자유롭게 `S`/`T`에 배정하면 됩니다. 분할이 `2^2 = 4`가지뿐이라 전부 손으로 셀 수 있어요.
 
-**핵심 낭비:** 대부분의 분할은 컷 용량이 크다. 최소 컷과 관련 없는 분할을 모두 검사하는 것이 낭비이다.
+```text
+S = {0}       → cut = c(0,1)+c(0,2)             = 3+2   = 5
+S = {0,1}     → cut = c(0,2)+c(1,2)+c(1,3)      = 2+1+2 = 5
+S = {0,2}     → cut = c(0,1)+c(2,3)             = 3+3   = 6
+S = {0,1,2}   → cut = c(1,3)+c(2,3)             = 2+3   = 5
+                                        최소값 = 5  ✓
+```
 
-### 어떤 관찰이 돌파구가 되는가
+문제는 정점이 `n = 500`개까지 늘어난다는 거예요. `source`, `sink`를 뺀 나머지 `498`개 정점을 자유롭게 배정하는 경우의 수는 `2^498`이고, 이는 우주 전체의 원자 수(약 `10^80`)보다도 훨씬 큰 숫자입니다.
 
-- **관찰 1 (유량의 상한):** 임의의 $s$-$t$ 컷 $(S, T)$에 대해, $s$에서 $t$로 보낼 수 있는 유량은 $c(S, T)$를 초과할 수 없다. 왜냐하면 모든 유량이 $S$에서 $T$로 넘어가는 간선을 통해야 하고, 각 간선의 용량이 그 한계를 설정하기 때문이다.
-  
-  $$|f| \leq c(S, T) \quad \text{임의의 s-t 컷 (S, T)에 대해}$$
+```text
+n = 4    → 자유 정점 2개  → 2^2   = 4 가지         → 순식간
+n = 500  → 자유 정점 498개 → 2^498 ≈ 10^149.9 가지  → 완전히 불가능
+```
 
-- **관찰 2 (등호 성립 조건):** Ford-Fulkerson이 종료되는 순간, 잔여 그래프에서 $s$로부터 $t$에 도달할 수 없다. 이때 도달 가능한 집합 $S$, 불가능한 집합 $T$로 정의하면 $S \to T$ 방향의 원래 간선들은 모두 잔여 용량 0(포화 상태)이다. 따라서 이 간선들의 원래 용량 합 = 총 유량 = 최대 유량이다.
+참고로 "분할을 나열하는 대신 아예 제거할 간선의 부분집합을 나열하자"는 대안도 있지만, 이건 `2^E`가지라 `E = 10^4`에서는 더 절망적이에요. 두 naive 모두 "가능한 답의 후보를 전부 만들어 비교한다"는 구조를 벗어나지 못하는 게 근본 낭비입니다. 목표는 이 나열을 걷어내고 다항 시간 — 구체적으로는 `O(V^2 \cdot E)` 수준 — 안에 답을 내는 것이에요.
 
-- **관찰 3 (최대 유량 = 최소 컷):** 관찰 1과 2를 합치면: 최대 유량 $\leq$ 최소 컷 용량 (관찰 1), 그리고 잔여 그래프 기반 컷 용량 = 최대 유량 (관찰 2). 따라서 최대 유량 = 최소 컷 용량이다.
+그런데 위 표를 다시 보면 낌새가 하나 보입니다. `S = {0}`과 `S = {0,1,2}`처럼 완전히 다른 분할인데 컷 값이 똑같이 `5`로 나와요. **분할을 일일이 비교하지 않고도 이 최솟값 `5`를 곧바로 알아낼 방법은 없을까?** 이것이 이번 문제의 출발 단서입니다.
 
-### 관찰을 형식화: 상태/구조 정의
+## 아이디어 자세히 들여다보기
 
-**최대 유량 계산 후 잔여 그래프:** Dinic's 알고리즘으로 최대 유량을 계산하면 잔여 그래프가 포화 상태로 남는다.
+### 정점을 갈라놓는 컷 — 정의와 그림
 
-**도달 가능 집합 $S$:** 잔여 그래프에서 $s$로부터 BFS를 수행해, 잔여 용량 $> 0$인 간선을 따라 도달할 수 있는 모든 정점의 집합이다.
+앞서 쓴 컷의 정의를 정식으로 다시 쓰면 이렇습니다.
 
-$$S = \{v \in V : \text{잔여 그래프에서 } s \rightsquigarrow v\}$$
+$$S \cup T = V,\quad S \cap T = \emptyset,\quad \text{source} \in S,\quad \text{sink} \in T$$
 
-$$T = V \setminus S \quad (\text{불변식: } t \in T)$$
+이 조건을 만족하는 분할 하나하나가 **s-t 컷**이고, 그 값이 위에서 정의한 `c(S, T)`예요. `S = {0}`인 경우를 그림으로 그려 보면 이렇습니다.
 
-이 정의가 $S$를 "도달 가능"으로 정의하는 이유: 최대 유량 후에는 $t$에 도달 불가($t \in T$)이고, $S \to T$ 방향 모든 원래 간선이 포화 상태여서 컷 용량과 유량이 정확히 일치하기 때문이다. $S$를 다른 방식으로 정의하면 이 일치가 보장되지 않는다.
+```text
+      S = {0}                 T = {1, 2, 3}
+     ┌─────┐        3       ┌─────┐
+     │  0  │ ──────────────▶│  1  │
+     └──┬──┘                └─────┘
+        │           2       ┌─────┐
+        └──────────────────▶│  2  │
+                             └─────┘
+   컷 간선(S→T만): 0→1(3), 0→2(2)  →  c(S,T) = 5
+   1→2, 1→3, 2→3은 양 끝이 모두 T 안에 있어 컷에 포함되지 않는다
+```
 
-**컷 용량 계산:**
+**왜 하필 "정점을 두 편으로 가르는" 형태로 정의할까요?** 앞서 언급한 "제거할 간선 부분집합을 직접 고르는" 정의도 같은 최적값을 주긴 합니다(어떤 분할 `(S,T)`든, 그 경계 간선들만 제거하면 `s`와 `t`가 분리되니까요). 하지만 간선 집합 기준 정의는 "어떤 간선을 제거할지"를 조합적으로 탐색해야 해서 실마리가 안 보여요. 반면 정점 분할 기준 정의는 뒤에 볼 최대 유량 이론과 곧바로 이어지는 구조를 갖고 있습니다 — 이 연결고리가 다음 절의 핵심이에요.
 
-$$c(S, T) = \sum_{\substack{(u, v, c) \in \text{원래 간선} \\ u \in S, \; v \in T}} c(u, v)$$
+확인 질문 하나만 해 볼까요? `S = {0, 2}`라면 컷에 포함되는 간선은 무엇일까요? (위 표를 보면 `0→1(3)`과 `2→3(3)`, 합 `6`이죠 — `1`이 `T`에 남아 있으니 `1→2`, `1→3`은 `u`가 `T`라서 제외됩니다.)
 
-원래 간선을 기준으로 계산한다. 잔여 그래프의 역방향 간선은 포함하지 않는다.
+### 단서를 설명해 주는 이론 — Max-Flow Min-Cut 정리
 
-### 점화식 또는 핵심 연산
+분할을 일일이 세지 않고도 최소 컷을 알아낼 수 있다는 낌새는 이미 이론화되어 있어요. 바로 **Max-Flow Min-Cut 정리**입니다: "$s$에서 $t$로 흘릴 수 있는 최대 유량 = $s$-$t$ 컷 중 최소 용량". 이 정리는 두 방향의 부등식이 만나 등호가 되는 구조로 증명됩니다.
 
-**포화 조건 (최대 유량 후):**
+**1단계(약한 쌍대성, 항상 성립)**: 임의의 유량 $f$와 임의의 컷 $(S,T)$에 대해, $f$가 $s$에서 $t$로 흘러가려면 반드시 $S \to T$ 경계를 건너야 해요. 그 경계의 용량 합이 $c(S,T)$이니,
 
-$$
-\text{포화}: \text{잔여 용량}(u \to v) = 0 \quad \forall u \in S, v \in T
-$$
+$$|f| \leq c(S, T) \quad \text{(임의의 유량, 임의의 컷 쌍에 대해)}$$
 
-즉, $s$로부터 $t$로의 잔여 경로가 없으므로:
+이 부등식은 어떤 유량·어떤 컷을 골라도 항상 성립하는 기저 사실입니다. 따라서 최대 유량 $\leq$ 최소 컷도 자동으로 따라와요.
 
-$$
-\text{BFS 도달 여부}: \text{reachable}[v] = \begin{cases} \text{true} & \text{if } s \rightsquigarrow v \text{ (잔여 용량 > 0)} \\ \text{false} & \text{otherwise} \end{cases}
-$$
+**2단계(강한 쌍대성, 등호를 만드는 특정 구성)**: 이제 $f^*$를 최대 유량이라 하고, 잔여 그래프에서 소스 $s$로부터 도달 가능한 정점 집합을 $S^*$로 정의합니다. 최대 유량이 흐르는 순간이므로 $s$에서 $t$로의 잔여 경로가 없고, 따라서 $t \notin S^*$가 강제돼요(즉 $t \in T^* = V \setminus S^*$, 유효한 컷). 이때 $S^* \to T^*$ 방향의 **원래 간선**은 전부 포화 상태(잔여 용량 0)입니다 — 그렇지 않다면 그 간선을 타고 더 나아갈 수 있어 도달 가능 집합에 모순이 생기니까요. 포화됐다는 건 흘린 유량이 원래 용량과 같다는 뜻이니,
 
-**컷 용량:**
+$$c(S^*, T^*) = \sum_{u \in S^*, v \in T^*} c(u,v) = \sum_{u \in S^*, v \in T^*} f(u,v) = |f^*|$$
 
-$$
-\text{cut} = \sum_{\substack{(u, v, c) \in \text{edges} \\ \text{reachable}[u] = \text{true} \\ \text{reachable}[v] = \text{false}}} c
-$$
+1단계에서 $|f^*| \leq c(S^*,T^*)$였는데, 2단계에서 $c(S^*,T^*) = |f^*|$인 특정 컷을 찾았으니, 이 컷이 곧 최소 컷이고 그 값은 최대 유량과 정확히 같습니다.
 
-- $\text{reachable}[u] = \text{true}$, $\text{reachable}[v] = \text{false}$: 간선이 $S$에서 $T$로 넘어가는 컷 간선임.
-- 이 간선들은 최대 유량 후 모두 포화 상태이므로, 원래 용량의 합이 곧 컷 용량이자 최대 유량이다.
+$$\min_{(S,T)} c(S,T) = \max f = |f^*|$$
 
-### 정당성 — 왜 이것이 옳은가
+이 등식이 이번 풀이의 전부예요 — **최대 유량을 구하는 어떤 알고리즘이든 그대로 가져다 쓰고**, 잔여 그래프에서 도달 가능 집합 $S^*$를 BFS로 찾은 뒤 원래 간선 중 $S^* \to T^*$ 방향의 용량만 더하면 됩니다. 최대 유량 계산에는 이 프로젝트의 [maxFlow 가이드](../maxFlow/maxFlow-guide.mdx)에서 다루는 Dinic's 알고리즘을 그대로 재사용해요(레벨 그래프·차단 유량 같은 Dinic's 내부 동작 자체는 그 가이드가 훨씬 자세히 다룹니다). 목표 복잡도는 Dinic's의 `O(V^2 \cdot E)`에 BFS 한 번의 `O(V+E)`를 더한 것으로, `V ≤ 500`, `E ≤ 10^4` 규모에서 충분히 빠릅니다. 이 "$\text{cut} = \text{flow}$" 등식은 코드 절의 자기 검증에도 그대로 쓰이니 기억해 두세요.
 
-**약한 쌍대성:** 임의의 유량 $f$와 임의의 $s$-$t$ 컷 $(S, T)$에 대해 유량 보존 법칙에 의해:
+### 왜 모순 없이 작동하는가
 
-$$|f| = \sum_{\substack{u \in S, v \in T}} f(u,v) - \sum_{\substack{u \in T, v \in S}} f(u,v) \leq \sum_{\substack{u \in S, v \in T}} c(u,v) = c(S,T)$$
+이 알고리즘이 옳다는 걸 다시 한 문장으로 요약하면 이렇습니다.
 
-따라서 최대 유량 $\leq$ 최소 컷.
+> 최대 유량을 구한 뒤 잔여 그래프에서 도달 가능한 집합 $S^*$를 잡으면, $S^* \to T^*$ 방향의 원래 간선은 전부 포화 상태이고, 그 용량 합은 앞 절의 두 부등식이 만나 등호가 되는 지점 — 즉 최대 유량과 정확히 같다.
 
-**강한 쌍대성 (등호 성립):** 최대 유량 $f^*$ 달성 후 잔여 그래프에서 $s \to t$ 경로가 없다. $S$를 도달 가능 집합으로 정의하면, $S \to T$ 원래 간선은 모두 포화($\text{잔여용량} = 0 = c - f$, 즉 $f = c$). 따라서:
+기저(1단계: 임의의 유량-컷 쌍은 $|f| \leq c(S,T)$)와 핵심 단계(2단계: 종료 시점의 $S^*$가 등호를 달성)를 합치면, 이 알고리즘이 반환하는 값이 반드시 최소 컷임이 보장돼요. 다른 컷을 시도할 필요가 없는 이유도 여기 있습니다 — $S^*$보다 작은 컷은 1단계에 의해 존재할 수 없거든요.
 
-$$c(S,T) = \sum_{\substack{u \in S, v \in T}} c(u,v) = \sum_{\substack{u \in S, v \in T}} f(u,v) = |f^*|$$
+여기서 **헷갈리기 쉬운 포인트**가 둘 있어요.
 
-**까다로운 케이스:**
-- $T \to S$ 방향 간선(역방향)은 컷 용량에 포함하지 않는다: 역방향 간선의 잔여 용량은 흘린 유량을 나타내며, 컷 용량 정의에서 역방향은 제외된다.
-- 원래 간선 목록으로 컷을 계산해야 한다: 잔여 그래프의 역방향 간선까지 합산하면 컷이 과대 계산된다.
+- **컷 용량을 셀 때 `!reachable[v]` 조건을 빠뜨리면 안 됩니다.** "u가 S에 있으면 u에서 나가는 간선은 다 컷이다"라고 착각하기 쉬운데, 그 간선의 도착점 `v`가 여전히 `S` 안에 있을 수도 있어요. `n=3`, `edges=[[0,1,10],[1,2,5]]`, `source=0`, `sink=2`를 예로 들면, 최대 유량 계산 후 잔여 그래프에서 `reachable = {0, 1}`이 됩니다(`0→1`은 잔여 용량 `5`가 남아 `1`까지 도달 가능, `1→2`는 포화라 `2`엔 못 감).
 
-### 구현 디테일과 최적화
+```text
+reachable = {0, 1},  T = {2}
 
-- **최대 유량과 컷의 분리:** 최대 유량 알고리즘 실행 후 잔여 그래프를 그대로 사용해 BFS로 컷을 결정한다. 별도의 잔여 그래프를 복사할 필요 없이 Dinic's의 `graph` 배열을 그대로 재활용한다.
+틀린 방법(v 체크 누락): u ∈ S인 간선을 전부 더함
+  → c(0,1) + c(1,2) = 10 + 5 = 15   ✗ (0→1은 S 내부 간선인데 포함시킴)
 
-- **컷 용량 계산 시 원래 간선 사용:** 입력 `edges` 배열을 순회하며 `reachable[u] && !reachable[v]`인 간선의 용량을 합산한다. 잔여 그래프의 역방향 간선을 포함하지 않도록 주의한다.
+맞는 방법(u ∈ S, v ∈ T 모두 확인):
+  → c(1,2) = 5                       ✓ (실제 최소 컷과 일치)
+```
 
-- **반환값 검증:** 이론적으로 `cutCapacity == maxFlowValue`가 성립해야 한다. 구현 오류 탐지를 위해 개발 중 이 등식을 단언(assertion)으로 확인할 수 있다.
+- **원래 간선의 용량을 더해야지, 잔여 용량을 더하면 안 됩니다.** 같은 원리로 "포화된 간선의 잔여 용량을 더하면 되겠지"라고 생각하면 정반대로 틀려요. 앞의 `n=4` 예시(`source=0`, `sink=3`, 최대 유량 `5`)에서 `reachable = {0}`뿐이고, 컷 간선 `0→1`, `0→2`는 최대 유량 후 둘 다 포화(잔여 용량 `0`)돼 있습니다.
 
-- **함정 — 역방향 간선을 컷 합산에 포함:** 잔여 그래프 전체를 순회하면 역방향 간선(초기 용량 0, 현재 흘린 유량만큼 용량 있음)까지 포함되어 컷이 2배가 될 수 있다.
+```text
+틀린 방법(잔여 용량을 더함): 0 + 0 = 0            ✗
+맞는 방법(원래 edges 배열의 c를 더함): 3 + 2 = 5   ✓
+```
 
-- **함정 — BFS에서 `cap > 0` 조건 누락:** 포화된 간선을 따라 탐색하면 $T$ 정점이 $S$에 포함되어 컷 집합이 잘못 결정된다.
+> 기억법: "컷은 **원래 간선**으로, 방향은 **S→T로만**." 잔여 그래프는 도달 가능 집합을 찾는 데만 쓰고, 합산은 항상 입력으로 받은 `edges`로 되돌아갑니다.
 
----
+엣지 케이스에서도 이 틀이 그대로 작동하는지 점검해 볼게요.
 
-## 시뮬레이션
+```text
+간선 없음 (edges=[])            → reachable={s}뿐, 컷 간선 0개 → cut = 0
+s-t가 원래부터 단절            → t 도달 불가 → 최대 유량 0 → cut = 0
+s→t 간선 하나뿐 (cap=10)        → 최대 유량 10 → reachable={s} → cut = 10
+병렬 간선 (0→1 cap 3, 0→1 cap 4) → 둘 다 S→T 컷 간선 → cut = 3+4 = 7
+```
 
-방향 네트워크 `n = 4`, `edges = [[0,1,3], [0,2,2], [1,2,1], [1,3,2], [2,3,3]]`, `source = 0`, `sink = 3`에 대해 Max-Flow Min-Cut으로 최소 컷을 구하는 과정이다. 먼저 Dinic's로 최대 유량을 흘린 뒤(maxFlow 해설과 동일 네트워크), 잔여 그래프에서 s로부터 BFS로 도달 집합 S를 찾고 S→T 원래 간선 용량을 합산한다. 그래프 패널의 간선 가중치는 잔여 용량이고, 노드 색은 S(visited)·T(default)·컷 정점(active), `activeEdge`는 합산 중인 컷 간선이다.
+## 아이디어를 코드로 옮기기
 
-실제 반환값은 `{ cut: 5 }` (최대 유량 5와 동일, 컷 = {s} → 나머지)이며, 시뮬레이션 마지막 프레임의 cutCapacity와 일치한다.
+먼저 잔여 그래프를 만들고 Dinic's로 최대 유량을 구합니다. Dinic's 자체의 상세 설명(레벨 배열, 차단 유량, `iter` 포인터의 역할)은 [maxFlow 가이드](../maxFlow/maxFlow-guide.mdx)에서 다루므로, 여기서는 컷 문제에 맞춰 그대로 재사용한다는 것만 확인하고 넘어갈게요.
+
+```ts
+type ResidualEdge = { to: number; cap: number; rev: number };
+
+function buildResidualGraph(
+  n: number,
+  edges: [number, number, number][],
+): ResidualEdge[][] {
+  const graph: ResidualEdge[][] = Array.from({ length: n }, () => []);
+  const addEdge = (u: number, v: number, c: number) => {
+    graph[u].push({ to: v, cap: c, rev: graph[v].length });
+    graph[v].push({ to: u, cap: 0, rev: graph[u].length - 1 });
+  };
+  for (const [u, v, c] of edges) addEdge(u, v, c);
+  return graph;
+}
+
+function dinicMaxFlow(
+  graph: ResidualEdge[][],
+  n: number,
+  s: number,
+  t: number,
+): number {
+  let totalFlow = 0;
+  const level = new Array<number>(n).fill(-1);
+  const iter = new Array<number>(n).fill(0);
+
+  const bfs = (): boolean => {
+    level.fill(-1);
+    level[s] = 0;
+    const queue = [s];
+    let qi = 0;
+    while (qi < queue.length) {
+      const u = queue[qi++]!;
+      for (const e of graph[u]!) {
+        if (e.cap > 0 && level[e.to] === -1) {
+          level[e.to] = level[u]! + 1;
+          queue.push(e.to);
+        }
+      }
+    }
+    return level[t] !== -1;
+  };
+
+  const dfs = (u: number, pushed: number): number => {
+    if (u === t) return pushed;
+    for (; iter[u]! < graph[u]!.length; iter[u]!++) {
+      const e = graph[u]![iter[u]!]!;
+      if (e.cap > 0 && level[e.to] === level[u]! + 1) {
+        const d = dfs(e.to, Math.min(pushed, e.cap));
+        if (d > 0) {
+          e.cap -= d;
+          graph[e.to]![e.rev]!.cap += d;
+          return d;
+        }
+      }
+    }
+    return 0;
+  };
+
+  while (bfs()) {
+    iter.fill(0);
+    let f: number;
+    while ((f = dfs(s, Infinity)) > 0) totalFlow += f;
+  }
+  return totalFlow;
+}
+```
+
+여기까지는 최대 유량만 구합니다. 이번 문제의 진짜 알맹이는 그다음 두 단계 — 잔여 그래프 BFS와 원래 간선 합산 — 이에요.
+
+```ts
+function minCut(
+  n: number,
+  edges: [number, number, number][],
+  source: number,
+  sink: number,
+): { cut: number } {
+  const graph = buildResidualGraph(n, edges);
+  const maxFlowValue = dinicMaxFlow(graph, n, source, sink);
+
+  const reachable = new Array<boolean>(n).fill(false);
+  reachable[source] = true;
+  const queue = [source];
+  let qi = 0;
+  while (qi < queue.length) {
+    const u = queue[qi++]!;
+    for (const e of graph[u]!) {
+      if (e.cap > 0 && !reachable[e.to]) {
+        reachable[e.to] = true;
+        queue.push(e.to);
+      }
+    }
+  }
+
+  let cutCapacity = 0;
+  for (const [u, v, c] of edges) {
+    if (reachable[u] && !reachable[v]) cutCapacity += c;
+  }
+
+  console.assert(
+    cutCapacity === maxFlowValue,
+    `Max-Flow Min-Cut 불일치: cut=${cutCapacity}, flow=${maxFlowValue}`,
+  );
+
+  return { cut: cutCapacity };
+}
+```
+
+**가장 중요한 줄은 `if (e.cap > 0 && !reachable[e.to])`와 `if (reachable[u] && !reachable[v])` 두 곳입니다.** 앞의 것은 BFS가 "잔여 용량이 남은 간선만" 따라가게 강제해서(포화된 간선은 건너뜀) 정확한 도달 가능 집합을 만들고, 뒤의 것은 앞 절에서 짚은 두 함정(`v` 체크 누락, 잔여 용량 사용)을 동시에 막습니다 — `reachable[u]`로 시작점이 `S`인지, `!reachable[v]`로 도착점이 정말 `T`인지 확인한 뒤에야 **원래 용량 `c`**를 더해요. 그 밖에 놓치기 쉬운 지점은 `graph[u].push(...)`와 `graph[v].push(...)`의 `rev` 값입니다 — 정방향을 넣기 *전에* `graph[v].length`를 미리 읽어 역방향의 `rev`로 쓰고, 역방향을 넣은 *후에* `graph[u].length - 1`을 정방향의 `rev`로 씁니다. 순서를 바꾸면 두 간선이 서로 다른 짝을 가리켜 유량 갱신이 조용히 어긋나요.
+
+## 실행 시각화
+
+방향 네트워크 `n = 4`, `edges = [[0,1,3], [0,2,2], [1,2,1], [1,3,2], [2,3,3]]`, `source = 0`, `sink = 3`에 대해 Max-Flow Min-Cut으로 최소 컷을 구하는 과정입니다. 먼저 Dinic's로 최대 유량을 흘린 뒤, 잔여 그래프에서 `s`로부터 BFS로 도달 집합 `S`를 찾고 `S→T` 원래 간선 용량을 합산해요. 그래프 패널의 간선 가중치는 잔여 용량이고, 노드 색은 `S`(visited)·`T`(default)·컷 정점(active), `activeEdge`는 합산 중인 컷 간선입니다.
+
+실제 반환값은 `{ cut: 5 }`(최대 유량 `5`와 동일, 컷은 `{s}` → 나머지)이며, 시뮬레이션 마지막 프레임의 `cutCapacity`와 일치합니다.
 
 > 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
@@ -284,47 +383,7 @@ export const steps = [
 
 <AlgorithmSimulation view={["graph", "keyValue"]} steps={steps} title="Min Cut (Max-Flow Min-Cut): s=0, t=3" />
 
-## 수도 코드와 Activity Diagram
-
-### 의사코드
-
-```
-function minCut(n, edges, s, t):
-    // 1. Dinic's로 최대 유량 계산 (잔여 그래프 graph 유지)
-    graph = buildResidualGraph(n, edges)   // 정방향+역방향 쌍
-    maxFlowValue = runDinic(graph, n, s, t) // maxFlow 수도 코드 참고
-
-    // 2. 잔여 그래프에서 s 도달 가능 집합 S 계산
-    reachable[0..n-1] = false
-    BFS(s, graph, reachable)              // 불변식: reachable[v] = (s → v 잔여 경로 존재)
-
-    // 3. 원래 간선 중 S→T 컷 간선의 용량 합
-    cutCapacity = 0
-    for (u, v, c) in edges:              // 불변식: 원래 간선만 순회 (역방향 제외)
-        if reachable[u] and not reachable[v]:
-            cutCapacity += c             // 불변식: 이 간선은 포화 상태 (최대 유량 후)
-
-    // 검증: cutCapacity == maxFlowValue (Max-Flow Min-Cut 정리)
-    return { cut: cutCapacity }
-
-function BFS(s, graph, reachable):
-    queue = [s]
-    reachable[s] = true                   // 불변식: s는 항상 S에 속함
-    while queue not empty:
-        u = dequeue(queue)
-        for edge in graph[u]:
-            if edge.cap > 0 and not reachable[edge.to]:  // 잔여 용량>0 간선만
-                reachable[edge.to] = true
-                enqueue(queue, edge.to)
-    // 불변식: BFS 종료 후 reachable[t] = false (최대 유량 후에는 t 도달 불가)
-
-// 핵심 불변식:
-//   최대 유량 계산 후, s→T 방향의 모든 원래 간선은 포화 상태.
-//   reachable[u] && !reachable[v] → (u, v)는 컷 간선 → 포화 → c(u,v) = f(u,v).
-//   따라서 cutCapacity = maxFlowValue.
-```
-
-### Activity Diagram
+## 흐름 한눈에 보기
 
 ```mermaid
 flowchart TD
@@ -345,4 +404,8 @@ flowchart TD
     end
 ```
 
-**핵심 불변식:** Dinic's 종료 후 잔여 그래프에서 $s$로부터 $t$로의 경로가 존재하지 않으므로, BFS로 결정된 $S$에서 $T$로 향하는 모든 원래 간선은 포화 상태이다. 이 간선들의 용량 합이 최소 컷이자 최대 유량과 동일함이 Max-Flow Min-Cut 정리에 의해 보장된다.
+## 스스로 점검하기
+
+1. `n=4`, `edges=[[0,1,100],[1,2,100],[2,3,1]]`, `source=0`, `sink=3`에서 `reachable` 집합과 `cut` 값을 손으로 구해 보세요. (힌트: 병목은 `2→3`의 용량 `1`뿐이라 `0→1`, `1→2`는 최대 유량 후에도 잔여 용량이 남습니다. 답: `reachable = {0,1,2}`, `cut = 1`.)
+2. `n=3`, `edges=[[0,1,10],[1,2,5]]`, `source=0`, `sink=2`에서 "`u ∈ S`인 간선을 전부 더한다"는 잘못된 규칙을 쓰면 몇이 나올까요? 왜 실제 정답 `5`보다 커지는지, `reachable` 집합을 근거로 설명해 보세요.
+3. 만약 정점에도 "이 정점을 지나는 유량은 얼마를 넘을 수 없다"는 용량이 붙는다면(정점 컷), 지금까지 배운 `minCut`을 어떻게 고쳐야 할까요? (힌트: 정점 `v`를 `v_in`, `v_out` 두 개로 쪼개고 그 사이에 정점 용량만큼의 간선을 하나 추가하면, 정점 컷 문제가 다시 지금 배운 간선 컷 문제로 환원됩니다.)

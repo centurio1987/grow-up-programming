@@ -1,35 +1,61 @@
 #!/usr/bin/env bash
 
-# 스크립트가 위치한 디렉토리의 부모(프로젝트 루트)로 이동
+# 가이드 인덱스(문제_가이드_목록.md) 갱신 스크립트.
+#
+# 두 가지 모드:
+#   1) 구조 보존 모드 — 인덱스 첫 줄에 "중요도순"이 있으면(사람이 관리하는 중요도별 구성),
+#      기존 내용은 한 글자도 건드리지 않고, 아직 링크되지 않은 가이드 파일만
+#      "### 자동 추가 (분류 대기)" 절에 덧붙인다. 누락이 없으면 아무것도 하지 않는다.
+#      ⚠ 이 모드에서 전체 재생성은 금지다 — 중요도 구조가 초기화된다(반복 지적된 사고).
+#   2) 전체 재생성 모드 (레거시) — 중요도순 문서가 아닐 때만, 카테고리별 알파벳순으로 생성한다.
+
 cd "$(dirname "$0")/.." || exit 1
 
 OUTPUT_FILE="문제_가이드_목록.md"
 
+# ── 모드 1: 구조 보존 (중요도순 문서) ─────────────────────────────────────────
+if [ -f "$OUTPUT_FILE" ] && head -1 "$OUTPUT_FILE" | grep -q "중요도순"; then
+  MISSING=$(find src -type f \( -name "*guide.md" -o -name "*guide.mdx" \) -not -path "*/_deprecated/*" | sort | while IFS= read -r path; do
+    grep -qF "(./$path)" "$OUTPUT_FILE" || printf '%s\n' "$path"
+  done)
+
+  [ -z "$MISSING" ] && exit 0
+
+  if ! grep -q "^### 자동 추가 (분류 대기)" "$OUTPUT_FILE"; then
+    printf '\n### 자동 추가 (분류 대기)\n\n' >> "$OUTPUT_FILE"
+    printf '<!-- 스크립트가 새 가이드를 임시로 넣는 자리입니다. 알맞은 중요도 기법 줄로 수동 이동해 주세요. -->\n' >> "$OUTPUT_FILE"
+  fi
+
+  printf '%s\n' "$MISSING" | while IFS= read -r path; do
+    [ -z "$path" ] && continue
+    name=$(basename "$path" | sed -E 's/-guide\.mdx?$//')
+    printf -- '- [%s](./%s)\n' "$name" "$path" >> "$OUTPUT_FILE"
+  done
+  exit 0
+fi
+
+# ── 모드 2: 전체 재생성 (레거시 — 중요도순 문서가 아닐 때만) ──────────────────
 {
   echo "# 문제 가이드 목록"
   echo ""
   echo "이 문서는 프로젝트에 존재하는 모든 문제 가이드 문서들을 카테고리별로 모아둔 인덱스입니다. (자동 생성됨)"
   echo ""
-  
-  # src 디렉토리 하위의 모든 guide 파일을 찾고 awk를 이용해 처리
-  find src -type f \( -name "*guide.md" -o -name "*guide.mdx" \) | \
+
+  find src -type f \( -name "*guide.md" -o -name "*guide.mdx" \) -not -path "*/_deprecated/*" | \
   awk -F'/' '
   {
     path = $0
     filename = $NF
-    
-    # 파일명에서 -guide.md 또는 -guide.mdx 제거하여 문제 이름 추출
+
     sub(/-guide\.mdx?$/, "", filename)
     problem_name = filename
-    
-    # 경로 길이에 따라 카테고리 분류 (기본은 src/카테고리명/문제명/파일 형태이므로 NF=4)
+
     if (NF >= 4) {
       category = $2
     } else {
       category = "기본"
     }
-    
-    # 탭으로 구분하여 출력 (정렬용)
+
     print category "\t" problem_name "\t" path
   }' | \
   sort -k1,1 -k2,2 | \
@@ -39,7 +65,7 @@ OUTPUT_FILE="문제_가이드_목록.md"
     category = $1
     problem_name = $2
     path = $3
-    
+
     if (category != last_category) {
       if (last_category != "") {
         print ""

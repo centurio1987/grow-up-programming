@@ -1,236 +1,372 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# CuckooFilter 해설
+# CuckooFilter — 지문만 남기고, 자리가 없으면 쫓아낸다
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 시간복잡도 | 설명 |
-|------|-----------|------|
-| `add` | O(1) 평균 | 재배치 체인이 짧을 때. 최악 O(용량) |
-| `has` | O(1) | 두 버킷만 확인 |
-| `delete` | O(1) | 두 버킷에서 지문 탐색 |
-| `size` | O(1) | 카운터 반환 |
-| `loadFactor` | O(1) | 카운터 / 전체 슬롯 수 |
+원소 전체를 저장하는 대신 짧은 지문(fingerprint) 하나만 두 개의 후보 버킷 중 한 곳에 넣는 확률적 멤버십 필터예요. 두 후보 버킷은 `bucket2 = bucket1 XOR hash(fp)`라는 대칭 공식으로 묶여 있어서, 지문만 들고 있어도 반대쪽 버킷 위치를 그 자리에서 계산해 낼 수 있습니다. 이 성질 덕분에 BloomFilter가 못 하는 안전한 원소 삭제를 O(1)에 지원하면서도, 조회·삽입은 평균 O(1)을 그대로 유지해요.
 
----
+## 언제, 왜 쓰는가
 
-## 목표 함수
+### 이런 단서가 보이면
 
-| 메서드 | 입력 | 출력 | 불변식 |
-|--------|------|------|--------|
-| `add(item)` | 문자열 | `boolean` | 성공 후 `has(item) === true` |
-| `has(item)` | 문자열 | `boolean` | false negative 없음 |
-| `delete(item)` | 문자열 | `boolean` | 성공 후 `has(item) === false` |
-| `size()` | — | `number` | add 성공마다 +1, delete 성공마다 -1 |
-| `loadFactor()` | — | `[0,1]` | `size() / (numBuckets * bucketSize)` |
+다음 신호가 겹치면 CuckooFilter를 떠올리세요.
 
----
+- "이 값을 본 적이 있는가?" 같은 **멤버십 확인**만 필요하고, 원소 자체를 돌려받을 필요는 없다
+- 항목이 수십만~수백만 개인데 **메모리는 빠듯하다** (원소 전체를 못 들고 다닌다)
+- **삭제**가 자주 일어난다 — 블랙리스트 해제, 캐시 무효화, TTL 만료 등
+- 약간의 **오탐(false positive)**은 감수할 수 있지만 **미탐(false negative)**은 절대 안 된다(추가한 건 반드시 있다고 나와야 한다)
 
-## 핵심 아이디어
+naive한 대안들과 체감 비용을 비교해 보면 이렇습니다.
 
-### 원형 아이디어와 naive 접근
-
-가장 단순한 멤버십 필터는 해시 집합(`Set<string>`)이다. 정확하지만 원소 하나에 수십 바이트를 쓴다. BloomFilter는 비트 배열로 메모리를 극적으로 줄이지만 삭제를 지원하지 않는다. 여러 원소가 같은 비트를 공유하기 때문이다.
-
-### 어떤 관찰이 돌파구가 되는가
-
-**지문(fingerprint)만 저장하면 어떨까?** 원소 전체 대신 짧은 해시값만 버킷에 넣는다면 공간을 절약하면서도 슬롯 단위 삭제가 가능하다. 문제는 "두 번째 버킷 위치를 어떻게 계산하느냐"다. 원소 자체가 없으면 `hash(item)`을 다시 부를 수 없다.
-
-**XOR 대칭성**이 해결책이다:
-
-```
-bucket2 = bucket1 XOR hash(fingerprint)
+```text
+자료구조         원소당 메모리        삭제      조회/삽입
+Set<string>      원소 전체(수십 B)     가능      O(1)
+BloomFilter       ~1.44f 비트         불가      O(1) — 없다는 확정 가능, 있다는 오탐 가능
+CuckooFilter        ~f 비트(지문)      가능      O(1) 평균 — 오탐 가능, 미탐은 없음
 ```
 
-`bucket2`에 있는 항목의 `bucket1`을 복원하려면:
+BloomFilter는 여러 원소가 같은 비트를 공유하기 때문에 비트 하나를 껐을 때 다른 원소까지 "없다"고 오판할 위험이 있어 삭제를 지원하지 못해요. CuckooFilter는 슬롯마다 지문을 독립적으로 저장하므로 슬롯 하나만 지우면 그만입니다. **선택 기준은 간단합니다 — 삭제가 필요 없다면 BloomFilter가 더 간단하고 같은 오탐률 기준으로 공간도 살짝 더 아낍니다. 삭제가 필요해지는 순간 CuckooFilter로 갈아탑니다.**
 
-```
-bucket1 = bucket2 XOR hash(fingerprint)
-```
+### 문제 사례와 적용 예시
 
-두 번째 버킷에 있을 때도 지문만으로 첫 번째 버킷을 알 수 있다. 이것이 CuckooFilter의 핵심이다.
+- **네트워크 방화벽 블랙리스트**: 악성 IP를 지문으로 등록해 두고 패킷마다 `has`로 즉시 확인합니다. 차단을 해제해야 할 때 `delete`로 지문 하나만 지우면 되고, BloomFilter처럼 필터 전체를 재구성할 필요가 없습니다.
+- **캐시 admission 필터**: 캐시에 새 항목을 넣기 전에 "예전에 한 번이라도 요청된 적이 있는가"를 확인해, 딱 한 번만 조회되고 마는 항목(one-hit wonder)이 캐시 공간을 낭비하지 않도록 걸러냅니다. 시간이 지나 오래된 기록은 삭제해 공간을 회수합니다.
+- **웹 크롤러의 중복 URL 검사**: 이미 방문한 URL을 지문으로 저장해 재방문을 막되, 만료된 URL은 주기적으로 삭제해 필터를 가볍게 유지합니다.
+- **코딩 테스트 맥락**: "대량 스트림이 들어오는 동안 중복 여부를 O(1)에 판정하되, 특정 항목이 무효화되면 삭제도 지원하라" 류의 문제에서 직접 구현 대상이 됩니다.
 
-### 관찰을 형식화: 상태/구조 정의
+## 자료구조 자세히 들여다보기
 
-```
-BucketArray = Array<Array<number | null>>
-  // [numBuckets][bucketSize] 크기의 2차원 배열
-  // 각 슬롯에는 fingerprint(0이 아닌 정수) 또는 null 저장
+### 전체 스펙: 속성과 액션
 
-numBuckets  = capacity / bucketSize (2의 거듭제곱으로 올림)
-bucketSize  = 4 (고정 — 통상적인 최적값)
-fpMask      = (1 << fingerprintSize) - 1
-```
+**속성(내부 상태)** — 버킷이 여러 개, 버킷마다 슬롯이 여러 개인 2차원 배열이 전부예요.
 
-### 점화식 또는 핵심 연산
+```text
+BucketArray = number[numBuckets][bucketSize]
+  // 슬롯 값 0        → 빈 슬롯
+  // 슬롯 값 1..2^f-1 → 지문(fingerprint), f = fingerprintSize
 
-**지문 계산:**
-```
-fp = fnv1a(item) & fpMask
-if fp === 0: fp = 1  // 0은 "빈 슬롯" 표시자이므로 금지
+numBuckets = nextPowerOfTwo(capacity / bucketSize)   // 반드시 2의 거듭제곱
+bucketSize = 2                                       // 이 가이드의 데모 상수(실무 표준은 4)
+fpMask     = (1 << fingerprintSize) - 1
+count      = 살아있는(0이 아닌) 슬롯 수의 합
 ```
 
-**두 버킷 인덱스:**
-```
-i1 = fnv1a(item) % numBuckets
-i2 = (i1 XOR fnv1a(fp)) % numBuckets
-```
+지켜야 할 불변식은 세 가지입니다.
 
-**삽입:**
-```
-insert(item):
-  fp = fingerprint(item)
-  i1, i2 = bucketIndices(item)
-  if bucket[i1] has empty slot: place fp in i1; return true
-  if bucket[i2] has empty slot: place fp in i2; return true
-  // 재배치
-  i = random choice of {i1, i2}
-  for k in 0..MAX_KICKS:
-    swap fp with random entry in bucket[i]
-    i = i XOR fnv1a(fp) % numBuckets  // 퇴출된 항목의 대체 버킷
-    if bucket[i] has empty slot: place fp; return true
-  return false  // 필터 포화
+1. **슬롯 값의 범위**: $\text{slot} \in \{0\} \cup [1,\ 2^f - 1]$. 0은 "빈 슬롯" 전용 표식이라 지문으로 쓸 수 없습니다.
+2. **후보 버킷의 대칭성(핵심)**: 항목 $x$의 지문을 $fp$, 첫 버킷을 $i_1$이라 하면 $\delta = h_2(fp) \bmod m$에 대해
+
+$$i_2 = i_1 \oplus \delta, \qquad i_1 = i_2 \oplus \delta$$
+
+   XOR은 자기 자신을 두 번 적용하면 원래 값으로 돌아오므로($a \oplus \delta \oplus \delta = a$), **어느 쪽 버킷에서 출발해도 같은 공식으로 반대쪽을 계산**할 수 있습니다. 원소 자체가 없어도 지문 $fp$만 있으면 재배치가 가능한 이유가 바로 이거예요.
+3. **count는 실제 슬롯 점유 수와 항상 같다**: $\text{count} = \sum_{i,s} \mathbb{1}[\text{buckets}[i][s] \neq 0]$.
+
+버킷 4개, 슬롯 2개짜리 필터를 그려 보면 이렇습니다(값은 뒤에서 실제로 삽입해 볼 예시).
+
+```text
+       버킷0       버킷1       버킷2       버킷3
+      [ .  . ]   [ .  . ]   [ .  . ]   [ .  . ]
+        ↑슬롯 값: '.'은 0(빈 슬롯), 채워지면 1~255 사이의 지문(f=8일 때)
 ```
 
-### 정당성 — 왜 이것이 옳은가
+**액션(연산)** — 이 가이드가 정의하는 인터페이스 전체입니다.
 
-- **false negative 없음**: 삽입 성공 후 `fp`는 `i1` 또는 `i2` 중 하나에 반드시 존재한다. `has`는 두 버킷을 모두 확인하므로 놓칠 수 없다.
-- **false positive 가능**: 다른 원소가 우연히 같은 `fp`와 같은 버킷 인덱스를 가지면 잘못된 `true` 반환. 확률 ≈ `2 * bucketSize / 2^fingerprintSize`.
-- **삭제 안전성**: 같은 지문이 두 개 이상 있을 수 있으므로, 삭제 시 슬롯 하나만 제거한다. 중복 삽입이 여러 번 되면 그만큼 여러 번 삭제해야 온전히 제거된다.
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `add(item)` | 지문 계산 → 두 후보 버킷 중 빈 슬롯에 배치, 없으면 재배치(Kick) | $O(1)$ 평균, 재배치 실패 시 $O(\text{MAX\_KICKS})$ |
+| `has(item)` | 두 후보 버킷만 확인 | $O(1)$ |
+| `delete(item)` | 두 후보 버킷에서 지문을 찾아 슬롯 하나만 제거 | $O(1)$ |
+| `size()` | 카운터 반환 | $O(1)$ |
+| `loadFactor()` | `size() / (numBuckets * bucketSize)` | $O(1)$ |
 
-### 구현 디테일과 최적화
+핵심 연산 둘을 자세히 볼게요. 아래 예시는 `capacity=8, fingerprintSize=8` → `numBuckets=4, bucketSize=2`로 만든 필터에 `"sun"`, `"blue"`, `"hill"`, `"lake"`를 차례로 넣어 버킷 1과 버킷 2를 각각 가득 채운 상태입니다(실측: `fingerprint('sun')=0x61`, `fingerprint('blue')=0xcd`, 둘 다 $i_1=1, i_2=0$ / `fingerprint('hill')=0x6a`, `fingerprint('lake')=0x3e`, 둘 다 $i_1=2, i_2=1$).
 
-1. **해시 함수**: FNV-1a 또는 MurmurHash3이 적합하다. JavaScript 정수 범위를 감안해 32비트 연산으로 처리한다.
-2. **`numBuckets`는 2의 거듭제곱**: `% numBuckets` 대신 `& (numBuckets - 1)` 비트 마스크로 나머지 연산 속도를 높인다.
-3. **`MAX_KICKS`**: 통상 500으로 설정. 부하율 95% 이상에서 재배치 실패 확률이 급증한다.
-4. **버킷 크기 4**: 캐시 라인 친화적이고 부하율 95%까지 허용한다.
+**① add — 두 버킷이 모두 가득 찼을 때의 재배치(Kick)**. `add('dog')`를 실행하면 `fingerprint('dog') = 0x9`, $i_1=1, i_2=2$인데 둘 다 꽉 차 있습니다.
 
----
+```text
+Before:  버킷0[ .   . ]  버킷1[ 97  205 ]  버킷2[ 106  62 ]  버킷3[ .   . ]
+                            (sun)(blue)      (hill)(lake)
 
-## 시뮬레이션
+add('dog'): i1=1 가득, i2=2도 가득 → i1에서 슬롯 0(값 97=sun의 지문)을 쫓아낸다
+            쫓겨난 97의 새 자리 = index2From(1, 97) = 0  ← sun의 원래 i2와 정확히 일치
+            버킷0이 비어 있으므로 그곳에 97을 배치, 버킷1의 빈 슬롯에 dog(9)를 배치
+
+After:   버킷0[ 97  . ]  버킷1[ 9   205 ]  버킷2[ 106  62 ]  버킷3[ .   . ]
+                (sun)      (dog)(blue)
+```
+
+**② delete — 슬롯 하나만 지우면 끝**. 위 상태에서 `delete('dog')`를 호출하면 $i_1=1, i_2=2$를 다시 계산해 버킷 1에서 지문 9를 찾아 제거합니다.
+
+```text
+Before:  버킷1[ 9   205 ]
+delete('dog'): 버킷1에서 지문 9 검색 → 슬롯 0에서 발견 → 그 슬롯만 0으로
+After:   버킷1[ 0   205 ]
+```
+
+### 왜 모순 없이 작동하는가
+
+**false negative가 없는 이유**를 귀납으로 짚어 볼게요. 주장은 이겁니다 — *"add가 성공한 뒤라면, 그 항목의 지문은 항상 $i_1$ 또는 $i_2$ 둘 중 한 버킷에 있다."*
+
+- **기저**: 처음 배치될 때는 `placeIfRoom(i1, fp)` 또는 `placeIfRoom(i2, fp)`로 직접 넣으므로 자명하게 성립합니다.
+- **귀납 단계**: 지문 $fp$가 버킷 $i_1$에 있다가 재배치로 쫓겨났다고 합시다. 쫓겨난 뒤의 새 목적지는 항상 `index2From(현재 버킷, fp)`로 계산되는데, 불변식 2번(XOR 자기 역원)에 의해 이 값은 정확히 $i_2$가 됩니다. 반대로 $i_2$에서 쫓겨나면 정확히 $i_1$로 돌아옵니다. **몇 번을 쫓겨나든, 지문은 자신의 두 후보 버킷 $\{i_1, i_2\}$ 사이를 오갈 뿐 제3의 버킷으로는 절대 가지 않습니다.** `has`는 그 두 버킷만 확인하므로, add가 성공한 항목을 절대 놓치지 않습니다.
+
+**오탐(false positive) 확률**도 짚어 두면 좋습니다. `has`는 최대 $2b$개의 지문과 비교합니다($b$=bucketSize). 무관한 지문 하나가 우연히 같은 값일 확률은 $1/2^f$이므로, 합집합 상한으로
+
+$$\varepsilon \le \frac{2b}{2^f}$$
+
+$b=2, f=8$인 이 가이드의 예시라면 $\varepsilon \le 4/256 \approx 1.56\%$입니다. $f$를 늘리면 오탐률은 지수적으로 줄어들지만 지문 하나당 메모리는 늘어나요 — 이게 CuckooFilter의 유일한 트레이드오프입니다.
+
+여기서 헷갈리기 쉬운 포인트를 세 가지 짚어 둘게요.
+
+- **쫓겨난 지문이 "아무 데나" 가는 게 아닙니다.** 위 예시에서 `sun`의 지문(97)이 버킷 1에서 쫓겨났을 때 새로 간 곳은 정확히 버킷 0이었어요 — 이게 `sun`의 원래 $i_2$였기 때문입니다(우연이 아니라 불변식 2번의 필연적 결과). 쫓겨난 지문이 자기 자신의 두 후보 버킷이 아닌 곳으로 간다면 그건 구현 버그입니다.
+- **`delete` 이후 `has`가 항상 `false`가 되는 건 아닙니다.** 서로 다른 두 항목이 우연히 같은 지문 **그리고** 같은 버킷 쌍을 가지면(지문 공간이 좁을수록 흔해집니다), 한쪽을 지워도 다른 쪽이 같은 자리에 같은 지문을 남겨 놓을 수 있어요. 실측으로 확인한 사례: `fingerprintSize=8`인 필터에서 `"c-0"`과 `"c-336"`은 둘 다 `fingerprint = 0xe7`, $(i_1, i_2) = (3, 0)$으로 완전히 같은 버킷 쌍을 갖습니다. 둘 다 넣은 뒤 `delete("c-0")`을 호출해도 `has("c-0")`은 여전히 `true`예요 — `"c-336"`이 같은 지문을 그 자리에 남겨 놓았기 때문입니다. 이건 버그가 아니라 확률적 자료구조의 본질적인 한계이고, 앞의 오탐 확률식이 바로 이 현상의 크기를 말해 줍니다.
+- **지문 0은 예약값입니다.** `fingerprint(x)`를 계산했더니 우연히 0이 나오면 반드시 1로 바꿔야 합니다. 빈 슬롯 표식과 겹치면 그 슬롯이 채워졌는지 비어 있는지 구분할 수 없게 돼요(코드 절에서 실제로 재현해 봅니다).
+
+> 확인 하나만 해 볼까요? 위 예시에서 `sun`의 지문이 버킷 0으로 옮겨간 뒤에 `has('sun')`을 호출하면 어느 버킷을 확인해야 할까요? 정답은 "몰라도 상관없다"입니다 — `has`는 `sun`의 $i_1=1$과 $i_2=0$을 그때그때 다시 계산해서 **둘 다** 확인하므로, 지문이 지금 어느 쪽에 있는지 추적할 필요가 없어요(실측: 버킷 1엔 없고 버킷 0에서 97을 발견해 `true`).
+
+> **기억법**: "쫓겨나도 집은 두 채뿐 — XOR을 두 번 하면 제자리."
+
+엣지 케이스도 점검해 둡니다.
+
+```text
+빈 필터에 has/delete            → false / false (모든 버킷이 비어 있음)
+같은 항목을 두 번 add            → 슬롯 두 개를 따로 사용(중복 허용), delete 한 번에 하나만 제거
+fp가 우연히 0이 되는 원소        → 1로 강제 치환(0은 빈 슬롯 표식이므로 절대 저장 금지)
+필터가 거의 가득 참(load→1)     → MAX_KICKS 초과로 add가 false 반환(포화). 실측: 8슬롯 필터에
+                                    40개를 순서대로 add하면 8개만 성공, 32개는 false, loadFactor=1
+```
+
+## 아이디어를 코드로 옮기기
+
+앞서 정의한 인터페이스(`capacity`, `fingerprintSize=8`, `add`/`has`/`delete`/`size`/`loadFactor`)에 맞춰 그대로 구현합니다. 해시는 표준 FNV-1a를 쓰고, "지문을 다시 섞어 반대쪽 버킷을 구하는" 두 번째 해시는 Murmur3 계열의 비트 혼합 함수(fmix32)를 씁니다.
+
+```ts
+const BUCKET_SIZE = 2; // 데모 상수(실무 표준은 4 — 캐시 라인 친화적이고 부하율 95%까지 허용)
+
+function fnv1a(input: string): number {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return hash >>> 0;
+}
+
+function fmix32(h: number): number {
+  h = h >>> 0;
+  h ^= h >>> 16;
+  h = Math.imul(h, 0x85ebca6b) >>> 0;
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xc2b2ae35) >>> 0;
+  h ^= h >>> 16;
+  return h >>> 0;
+}
+
+function nextPowerOfTwo(n: number): number {
+  let p = 1;
+  while (p < n) p *= 2;
+  return p;
+}
+
+class CuckooFilter {
+  private buckets: number[][];
+  private numBuckets: number;
+  private fpMask: number;
+  private count = 0;
+  private readonly MAX_KICKS = 500;
+
+  constructor(capacity: number, fingerprintSize: number = 8) {
+    this.numBuckets = nextPowerOfTwo(Math.ceil(capacity / BUCKET_SIZE));
+    this.buckets = Array.from({ length: this.numBuckets }, () =>
+      Array(BUCKET_SIZE).fill(0),
+    );
+    this.fpMask = (1 << fingerprintSize) - 1;
+  }
+
+  private fingerprint(item: string): number {
+    const fp = fnv1a(item) & this.fpMask;
+    return fp === 0 ? 1 : fp; // 0은 "빈 슬롯" 표식이므로 절대 금지
+  }
+
+  private index1(item: string): number {
+    return fnv1a(item) & (this.numBuckets - 1);
+  }
+
+  // XOR 자기 역원: index2From(index2From(i, fp), fp) === i
+  private index2From(index: number, fp: number): number {
+    return (index ^ (fmix32(fp) & (this.numBuckets - 1))) & (this.numBuckets - 1);
+  }
+
+  private indices(item: string): [number, number] {
+    const fp = this.fingerprint(item);
+    const i1 = this.index1(item);
+    const i2 = this.index2From(i1, fp);
+    return [i1, i2];
+  }
+
+  add(item: string): boolean {
+    const fp = this.fingerprint(item);
+    const i1 = this.index1(item);
+    const i2 = this.index2From(i1, fp);
+
+    if (this.placeIfRoom(i1, fp)) return true;
+    if (this.placeIfRoom(i2, fp)) return true;
+
+    // 실무 구현은 i1/i2와 슬롯을 무작위로 고른다(사이클 회피). 이 가이드는 손 추적이
+    // 가능하도록 "i1부터, 슬롯 0부터"로 고정한다.
+    let i = i1;
+    let kicked = fp;
+    for (let k = 0; k < this.MAX_KICKS; k++) {
+      const slot = 0;
+      const evicted = this.buckets[i]![slot]!;
+      this.buckets[i]![slot] = kicked;
+      kicked = evicted;
+      i = this.index2From(i, kicked);
+      if (this.placeIfRoom(i, kicked)) return true;
+    }
+    return false; // 필터 포화
+  }
+
+  private placeIfRoom(bucketIdx: number, fp: number): boolean {
+    const bucket = this.buckets[bucketIdx]!;
+    for (let s = 0; s < bucket.length; s++) {
+      if (bucket[s] === 0) {
+        bucket[s] = fp;
+        this.count++;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  has(item: string): boolean {
+    const [i1, i2] = this.indices(item);
+    const fp = this.fingerprint(item);
+    return this.buckets[i1]!.includes(fp) || this.buckets[i2]!.includes(fp);
+  }
+
+  delete(item: string): boolean {
+    const [i1, i2] = this.indices(item);
+    const fp = this.fingerprint(item);
+    for (const idx of [i1, i2]) {
+      const bucket = this.buckets[idx]!;
+      const pos = bucket.indexOf(fp);
+      if (pos !== -1) {
+        bucket[pos] = 0;
+        this.count--;
+        return true;
+      }
+    }
+    return false;
+  }
+
+  size(): number {
+    return this.count;
+  }
+
+  loadFactor(): number {
+    return this.count / (this.numBuckets * BUCKET_SIZE);
+  }
+}
+```
+
+**가장 중요한 줄은 `index2From`입니다.** `i1`을 구할 땐 `fnv1a(item)`을, 반대쪽을 구할 땐 `fmix32(fp)`를 XOR로 섞는데, 이 한 줄이 "원소 없이 지문만으로 반대쪽 버킷을 계산한다"는 CuckooFilter 전체 아이디어의 구현체예요. 놓치기 쉬운 지점들을 짚어 둡니다.
+
+- **`fingerprint`의 `fp === 0 ? 1 : fp` 가드를 빼면 어떻게 될까요?** 실제로 `"zero-110"`이라는 문자열은 가드 없이 계산하면 `fp = 0`이 나옵니다($i_1 = 0$). 가드 없이 버킷 0 슬롯 0에 그대로 저장하면 슬롯 값이 여전히 `0`이라 "빈 슬롯"과 구분되지 않아요. 실측으로 재현하면: 가드를 뺀 채 `"zero-110"`을 넣은 직후 버킷 상태를 출력해도 `[0, 0]`으로 아무 변화가 없어 보이고, 뒤이어 다른 항목(`fp=119`)을 같은 버킷에 넣으면 그 항목이 슬롯 0을 "빈 자리"로 착각해 `zero-110`의 흔적을 덮어써 버립니다 — `zero-110`은 카운터만 증가한 채 조회 불가능한 유령 데이터가 됩니다. 이게 지문 0을 예약해야 하는 이유예요.
+- **`add`에서 `i1`, `i2`를 먼저 각각 시도한 뒤에야 kick으로 넘어갑니다.** 순서를 바꿔 곧장 kick부터 하면 빈 슬롯이 있는데도 불필요하게 기존 항목을 쫓아내게 됩니다.
+- **kick 루프의 세 줄(`evicted` 저장 → `kicked`로 교체 → `i` 갱신)은 순서가 생명입니다.** `this.buckets[i][slot] = kicked`를 `evicted`를 저장하기 전에 실행하면 원래 있던 지문을 잃어버려요.
+- **`MAX_KICKS`를 초과하면 반드시 `false`를 반환해야 합니다.** 무한 루프를 막는 안전장치이자, 필터가 사실상 가득 찼다는 신호입니다.
+
+## 실행 시각화
+
+아래 시뮬레이션은 `capacity=8, fingerprintSize=8`(→ `numBuckets=4`, `bucketSize=2`)인 필터에 `"sun"`, `"blue"`, `"hill"`, `"lake"`, `"dog"`를 순서대로 삽입한 뒤 `has`와 `delete`까지 실행한 전체 과정입니다. array 패널의 인덱스 0~7은 버킷 0~3의 슬롯 0~1을 순서대로 펼친 것이고(인덱스 = 버킷번호×2 + 슬롯번호), 값 0은 빈 슬롯, 그 외 숫자는 지문(10진수)입니다. 고정 입력에 대한 실제 반환값은 `add('dog') → true`, `has('dog') → true`, `has('sun') → true`(쫓겨난 뒤에도 정확히 발견됨), `delete('dog') → true`, 최종 `size() → 4`, `loadFactor() → 0.5`입니다.
+
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
     title: "초기 상태",
-    detail: "버킷 4개, 각 버킷 크기 2. 모든 슬롯이 비어 있다(0).",
+    detail: "버킷 4개, 각 버킷 슬롯 2개. 모든 슬롯이 비어 있다(0). numBuckets=4, bucketSize=2.",
     array: [0, 0, 0, 0, 0, 0, 0, 0],
     highlight: [],
     marked: [],
   },
   {
-    title: "add('hello') — 지문 계산",
-    detail: "fingerprint('hello') = 0xAB. i1 = hash('hello') % 4 = 1, i2 = 1 XOR hash(0xAB) % 4 = 3",
+    title: "add('sun') — 지문·버킷 계산",
+    detail: "fingerprint('sun') = 0x61(97). i1 = 1(인덱스 2,3), i2 = 0(인덱스 0,1) — 두 후보를 모두 살펴본다.",
     array: [0, 0, 0, 0, 0, 0, 0, 0],
-    highlight: [2, 3, 6, 7],
+    highlight: [0, 1, 2, 3],
     marked: [],
   },
   {
-    title: "add('hello') — 버킷 1에 삽입",
-    detail: "버킷 1의 슬롯 0이 비어 있어 지문 0xAB를 삽입한다.",
-    array: [0, 0, 171, 0, 0, 0, 0, 0],
+    title: "add('sun') — 버킷 1 슬롯 0에 삽입",
+    detail: "버킷 1(인덱스 2,3)의 슬롯 0이 비어 있어 지문 97을 그대로 넣는다.",
+    array: [0, 0, 97, 0, 0, 0, 0, 0],
     highlight: [2],
     marked: [2],
   },
   {
-    title: "add('world') — 버킷 1이 가득 참",
-    detail: "fingerprint('world') = 0xCD. i1 = 1, i2 = 2. 버킷 1 슬롯 1에 삽입.",
-    array: [0, 0, 171, 205, 0, 0, 0, 0],
+    title: "add('blue') — 버킷 1이 가득 참",
+    detail: "fingerprint('blue') = 0xcd(205). i1 = 1, i2 = 0 — 버킷 1 슬롯 1에 삽입되어 버킷 1이 가득 찬다.",
+    array: [0, 0, 97, 205, 0, 0, 0, 0],
     highlight: [2, 3],
     marked: [2, 3],
   },
   {
-    title: "add('foo') — 충돌, 재배치(Kick)",
-    detail: "fingerprint('foo') = 0xEF. i1 = 1 — 버킷 1이 가득 참. 0xAB를 버킷 3으로 쫓아내고 0xEF 삽입.",
-    array: [0, 0, 239, 205, 0, 0, 171, 0],
-    highlight: [2, 6],
-    marked: [2, 3, 6],
+    title: "add('hill') — 버킷 2에 삽입",
+    detail: "fingerprint('hill') = 0x6a(106). i1 = 2, i2 = 1 — 버킷 2 슬롯 0에 삽입.",
+    array: [0, 0, 97, 205, 106, 0, 0, 0],
+    highlight: [4],
+    marked: [4],
   },
   {
-    title: "has('hello') — 두 버킷 확인",
-    detail: "i1 = 1, i2 = 3. 버킷 3 슬롯 0에 0xAB가 있다 → true 반환.",
-    array: [0, 0, 239, 205, 0, 0, 171, 0],
-    highlight: [2, 3, 6, 7],
-    marked: [6],
+    title: "add('lake') — 버킷 2도 가득 참",
+    detail: "fingerprint('lake') = 0x3e(62). i1 = 2, i2 = 1 — 버킷 2 슬롯 1에 삽입되어 버킷 2도 가득 찬다.",
+    array: [0, 0, 97, 205, 106, 62, 0, 0],
+    highlight: [4, 5],
+    marked: [4, 5],
   },
   {
-    title: "delete('hello') — 지문 제거",
-    detail: "버킷 3에서 0xAB를 찾아 제거. has('hello')는 이제 false.",
-    array: [0, 0, 239, 205, 0, 0, 0, 0],
-    highlight: [6],
-    marked: [2, 3],
+    title: "add('dog') — 충돌, 재배치(Kick)",
+    detail: "fingerprint('dog') = 0x9(9). i1 = 1(가득), i2 = 2(가득) — 버킷 1에서 97(sun)을 쫓아내 버킷 0으로 재배치하고, 빈 자리에 dog(9)를 넣는다.",
+    array: [97, 0, 9, 205, 106, 62, 0, 0],
+    highlight: [0, 2],
+    marked: [0, 2, 3, 4, 5],
+  },
+  {
+    title: "has('dog') — 두 버킷 확인",
+    detail: "i1 = 1, i2 = 2. 버킷 1 슬롯 0에서 지문 9를 발견 → true.",
+    array: [97, 0, 9, 205, 106, 62, 0, 0],
+    highlight: [2, 3, 4, 5],
+    marked: [2],
+  },
+  {
+    title: "has('sun') — 쫓겨난 항목도 정확히 발견",
+    detail: "i1 = 1, i2 = 0. 버킷 1(9, 205)엔 없지만 버킷 0 슬롯 0에서 97을 발견 → true.",
+    array: [97, 0, 9, 205, 106, 62, 0, 0],
+    highlight: [2, 3, 0, 1],
+    marked: [0],
+  },
+  {
+    title: "delete('dog') — 지문 제거",
+    detail: "버킷 1 슬롯 0에서 지문 9를 찾아 제거. has('dog')는 이제 false. size() = 4, loadFactor() = 0.5.",
+    array: [97, 0, 0, 205, 106, 62, 0, 0],
+    highlight: [2],
+    marked: [],
   },
 ];
 
 <AlgorithmSimulation view="array" steps={steps} title="CuckooFilter 시뮬레이션 (버킷 4개, 슬롯 2개)" />
 
-## 수도 코드와 Activity Diagram
+정리하면, CuckooFilter는 "지문만 저장 + XOR 대칭 재배치"라는 두 가지 설계 결정으로 목표를 달성합니다. 원소 대신 짧은 지문만 저장하니 메모리가 절약되고, 두 후보 버킷이 XOR로 서로를 계산할 수 있으니 원소 원본 없이도 재배치(kick)가 가능해요. 그 결과 삽입·조회·삭제가 모두 평균 $O(1)$을 유지하면서, BloomFilter가 포기했던 삭제까지 안전하게 지원합니다 — 다만 오탐 확률 $\varepsilon \le 2b/2^f$은 확률적 자료구조로서 감수해야 할 몫입니다.
 
-### 의사코드
+## 스스로 점검하기
 
-```
-class CuckooFilter(capacity, fingerprintSize):
-  numBuckets = nextPowerOfTwo(capacity / 4)
-  buckets    = 2D array [numBuckets][4], filled with null
-  count      = 0
-  fpMask     = (1 << fingerprintSize) - 1
-  MAX_KICKS  = 500
-
-  fingerprint(item):
-    fp = fnv1a(item) & fpMask
-    return fp if fp != 0 else 1
-
-  indices(item):
-    fp = fingerprint(item)
-    i1 = fnv1a(item) & (numBuckets - 1)
-    i2 = (i1 XOR (fnv1a(fp) & (numBuckets - 1))) & (numBuckets - 1)
-    return i1, i2
-
-  add(item):
-    fp = fingerprint(item)
-    i1, i2 = indices(item)
-    if buckets[i1] has null slot:
-      place fp there; count++; return true
-    if buckets[i2] has null slot:
-      place fp there; count++; return true
-    i = random(i1, i2)
-    for _ in 0..MAX_KICKS:
-      swap fp with random slot in buckets[i]
-      i = (i XOR (fnv1a(fp) & (numBuckets - 1))) & (numBuckets - 1)
-      if buckets[i] has null slot:
-        place fp there; count++; return true
-    return false
-
-  has(item):
-    fp = fingerprint(item)
-    i1, i2 = indices(item)
-    return fp in buckets[i1] OR fp in buckets[i2]
-
-  delete(item):
-    fp = fingerprint(item)
-    i1, i2 = indices(item)
-    if fp in buckets[i1]: remove one fp from i1; count--; return true
-    if fp in buckets[i2]: remove one fp from i2; count--; return true
-    return false
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A([add 시작]) --> B[지문 fp 계산]
-  B --> C[i1, i2 계산]
-  C --> D{버킷 i1에\n빈 슬롯?}
-  D -- 예 --> E[i1에 fp 삽입\ncount++]
-  D -- 아니오 --> F{버킷 i2에\n빈 슬롯?}
-  F -- 예 --> G[i2에 fp 삽입\ncount++]
-  F -- 아니오 --> H[i1 또는 i2 무작위 선택]
-  H --> I[fp ↔ 기존 항목 교환\n퇴출된 fp의 대체 버킷으로 i 갱신]
-  I --> J{빈 슬롯\n발견?}
-  J -- 예 --> K[해당 버킷에 삽입\ncount++]
-  J -- 아니오 --> L{MAX_KICKS\n초과?}
-  L -- 아니오 --> I
-  L -- 예 --> M[false 반환\n필터 포화]
-  E --> N([true 반환])
-  G --> N
-  K --> N
-```
+1. `capacity=8, fingerprintSize=8`인 필터에 `"sun"`, `"hill"`을 넣은 뒤 `"blue"`를 넣으면(위 시뮬레이션의 처음 세 단계) 어떤 버킷이 채워질까요? 손으로 $i_1, i_2$를 그려서 확인해 보세요.
+2. `fingerprint` 함수에서 `fp === 0 ? 1 : fp` 가드를 지웠다고 가정해 봅시다. 어떤 문자열을 넣었을 때 그 항목이 "카운터에는 잡히지만 절대 조회되지 않는" 유령 데이터가 될까요? (힌트: 지문이 0이 되는 경우와 빈 슬롯 표식이 어떻게 충돌하는지 생각해 보세요.)
+3. 위 시뮬레이션의 `add('dog')` 단계에서 만약 kick 대상을 `i1`이 아니라 `i2`(버킷 2)에서 골랐다면, 최종 버킷 배치는 어떻게 달라질까요? `hill`과 `lake`의 지문·후보 버킷을 참고해 직접 추적해 보세요.

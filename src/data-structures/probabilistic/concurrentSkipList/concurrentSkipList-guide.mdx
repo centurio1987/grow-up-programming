@@ -1,150 +1,339 @@
+---
+version: 2.0.0
+---
+
 import { AlgorithmSimulation } from "#guide-sim";
 
-# ConcurrentSkipList 해설
+# ConcurrentSkipList — 동전을 던져 층을 쌓고, 위층부터 내려오며 좁히기
 
-## 성능 목표 예측
+## 한눈에 보는 컨셉
 
-| 연산 | 정렬 배열 | BST (균형) | 스킵 리스트 (평균) | 스킵 리스트 (최악) |
-|------|----------|-----------|-------------------|-------------------|
-| 삽입 | O(n)     | O(log n)  | O(log n)          | O(n)              |
-| 삭제 | O(n)     | O(log n)  | O(log n)          | O(n)              |
-| 탐색 | O(log n) | O(log n)  | O(log n)          | O(n)              |
-| min/max | O(1)  | O(log n)  | O(1)              | O(1)              |
+여러 층의 정렬된 연결 리스트를 쌓아 올린 구조예요. 새 원소를 넣을 때마다 동전을 던지듯 확률 p=0.5로 상위 층에도 포함시켜, 위층은 듬성듬성한 고속도로처럼 크게 건너뛰고 아래층은 촘촘한 골목길처럼 정밀하게 좁혀갑니다. 회전이나 재균형 로직 없이도 평균 O(log n) 삽입·탐색·삭제를 얻을 수 있어, Java의 `ConcurrentSkipListMap`처럼 락-프리 동시성 자료구조의 뼈대로 즐겨 쓰입니다.
 
-최악(O(n))은 랜덤 레벨이 극단적으로 편향될 때이며, 기대 확률은 극히 낮습니다.
+## 언제, 왜 쓰는가
 
----
+### 이런 단서가 보이면
 
-## 목표 함수
+정렬 배열은 탐색이 빠르지만(이진 탐색 O(log n)) 삽입 때마다 뒤 원소를 밀어야 해서 O(n)이 듭니다. 정렬 연결 리스트는 정반대로, 삽입 자체(포인터 잇기)는 O(1)이지만 위치를 찾으려면 처음부터 순회해야 해서 O(n)이 듭니다. 탐색과 삽입이 서로를 갉아먹는 이 시소 관계를 균형 이진 탐색 트리(AVL, Red-Black)로 끊을 수는 있지만, 회전 로직이 복잡하고 여러 스레드가 동시에 회전하려면 잠금이 필요합니다. 스킵 리스트는 회전 대신 확률(동전 던지기)로 균형을 잡아, 트리 재조정 없이 O(log n) 평균 성능을 얻습니다 — 바꾸는 것이 포인터 몇 개뿐이라 lock-free 구현으로 확장하기도 더 쉽습니다.
 
-| 메서드 | 설명 | 복잡도 |
-|--------|------|--------|
-| `insert(value)` | 삽입, 중복 무시 | O(log n) 평균 |
-| `delete(value)` | 제거, 없으면 false | O(log n) 평균 |
-| `has(value)` | 존재 여부 | O(log n) 평균 |
-| `min()` / `max()` | 최솟값 / 최댓값 | O(1) |
+```text
+자료구조          삽입           탐색         비고
+정렬 배열         O(n)          O(log n)     삽입 시 뒤 원소 전부 밀림
+정렬 연결 리스트   O(1)*         O(n)         *위치를 찾은 뒤에는 O(1), 찾는 과정 자체가 O(n)
+균형 BST          O(log n)      O(log n)     회전으로 균형 유지, 동시성 제어 복잡
+스킵 리스트        O(log n) 평균  O(log n) 평균 회전 없이 동전 던지기로 균형
+```
+
+다음 신호들이 겹치면 스킵 리스트를 떠올리세요.
+
+- 정렬 순서를 유지한 채로 삽입·삭제·탐색이 **섞여서** 자주 일어난다 (예: 실시간 랭킹보드)
+- 순위 범위 조회나 전체 정렬 순회도 함께 필요하다
+- 나중에 멀티스레드로 확장할 가능성이 있어, 회전 기반 트리보다 포인터 단위로 갱신되는 구조가 유리하다
+- 최악 성능 보장보다 구현 단순성과 평균 성능이 더 중요하다
+
+선택 기준: 최악의 경우에도 O(log n)을 반드시 보장해야 한다면 균형 BST를 고르고, 평균 성능으로 충분하면서 구현 단순성과 lock-free 확장 가능성이 더 중요하다면 스킵 리스트를 고르세요.
+
+### 문제 사례와 적용 예시
+
+- **실시간 랭킹보드**: 수천 명이 동시에 점수를 갱신하고, "내 순위는?"을 실시간으로 조회합니다. 정렬된 배열은 삽입이 O(n)이라 감당이 안 되고, 균형 트리는 회전 때문에 동시 접근 제어가 까다롭습니다.
+- **Java `ConcurrentSkipListMap`**: `TreeMap`의 멀티스레드 대체제로, 락 없이 여러 스레드가 동시에 읽고 쓸 수 있는 정렬 맵/집합입니다.
+- **Redis Sorted Set(ZSET)**: 내부적으로 skip list와 해시 테이블을 함께 써서 점수 기반 정렬·순위 조회를 구현합니다.
+- **코딩 테스트 맥락**: "정렬된 집합을 유지하며 삽입·삭제·k번째 값 조회"류 문제 — JS/TS에는 내장 정렬 컨테이너(`TreeSet` 같은)가 없어 직접 구현 대상이 됩니다.
+
+이 가이드의 구현은 단일 스레드에서 같은 인터페이스와 평균 성능을 재현하는 연습용입니다. 실전 lock-free 버전과 비교하면 이렇습니다.
+
+| 특성 | 이 구현(연습) | Java `ConcurrentSkipListMap` |
+|------|---------------|-------------------------------|
+| 스레드 안전 | 단일 스레드 | lock-free, 멀티스레드 |
+| 삭제 방식 | 즉시 포인터 재배선 | `AtomicMarkableReference`로 논리 삭제 표시 후 물리적 제거 분리 |
+| 의미론 | 집합(중복 무시) | 키-값 맵 |
+| 범위 질의 | `toArray` 후 직접 필터 | `subMap`/`headMap`/`tailMap` 내장 |
+
+실전 구현은 노드를 바로 끊지 않고 "삭제 예정" 표시부터 남긴 뒤 물리적으로 제거해, 동시에 그 노드를 읽고 있는 다른 스레드가 끊어진 포인터를 밟지 않도록 합니다.
+
+## 자료구조 자세히 들여다보기
+
+### 전체 스펙: 속성과 액션
+
+**속성(내부 상태)** — 노드는 한 종류뿐이고, Head/Tail도 같은 타입의 sentinel입니다.
+
+```ts
+interface SkipNode<T> {
+  value: T | null;        // null은 Head/Tail sentinel 전용
+  forward: SkipNode<T>[]; // forward[i] = 레벨 i에서 다음 노드
+}
+```
+
+리스트 전체는 `maxLevel`(기본 16), `comparator`, `head`/`tail` sentinel, `level`(현재 실제로 쓰이는 최고 레벨), `size`, 그리고 이 구현이 `max()`를 O(1)로 만들기 위해 추가로 들고 있는 `maxNode`를 가집니다.
+
+지켜야 할 불변식은 다섯 가지입니다.
+
+1. 레벨 0은 모든 원소를 comparator 기준 오름차순으로 포함한다: $\forall i,\ \text{compare}(x_i, x_{i+1}) < 0$.
+2. 레벨 $k$($k \geq 1$)에 있는 노드는 반드시 레벨 $k-1$에도 있다 — "위에 있으면 아래에도 있다"는 부분집합 성질. $\text{level}(x) > k \Rightarrow \text{level}(x) > k-1$.
+3. 각 노드의 높이(`forward` 배열 길이)는 독립적으로 $P(\text{height} \geq k) = p^{\,k-1}$ ($p=0.5$)을 따르는 기하분포이며, 레벨 $k$(0-indexed)의 기대 노드 수는 $E[|L_k|] = n \cdot p^{k} = n / 2^{k}$.
+4. Head/Tail은 sentinel(`value = null`)이며 모든 레벨에서 시작점·끝점 역할을 한다. 실제 비교는 절대 sentinel과 하지 않는다 — 항상 `forward !== tail`부터 확인한다.
+5. (이 구현 고유) `maxNode`는 항상 레벨 0의 마지막 실제 노드를 가리키거나, 리스트가 비어 있으면 `null`이다.
+
+값 1, 2, 3, 5, 7, 9를 넣었을 때 나올 수 있는 한 가지 경우를 그려보면 이렇습니다(동전 던지기 결과를 1→레벨2, 2→레벨1, 3→레벨3, 5→레벨1, 7→레벨2, 9→레벨1로 고정해 직접 실행한 결과입니다).
+
+```text
+레벨 2: Head -> 3 -------------------------------> Tail
+레벨 1: Head -> 1 ------> 3 ------> 7 ------------> Tail
+레벨 0: Head -> 1 -> 2 -> 3 -> 5 -> 7 -> 9 -> Tail
+```
+
+**액션(연산)** — 이 자료구조가 제공하는 연산 전부입니다.
+
+| 액션 | 하는 일 | 비용 |
+|------|---------|------|
+| `insert(v)` | `findUpdate`로 각 레벨 선행 노드 파악 → 새 레벨 결정 → 포인터 삽입 | O(log n) 평균, O(n) 최악 |
+| `delete(v)` | `findUpdate`로 선행 노드 파악 → 각 레벨에서 포인터 우회, `maxNode` 갱신 | O(log n) 평균, O(n) 최악 |
+| `has(v)` | 최상위 레벨부터 내려오며 좁혀 레벨 0에서 확인 | O(log n) 평균, O(n) 최악 |
+| `min()` | `head.forward[0]`의 값 | O(1) |
+| `max()` | `maxNode`의 값 | O(1) |
 | `toArray()` | 레벨 0 순회 | O(n) |
-| `size()` | 원소 수 | O(1) |
+| `size()` | 저장된 카운터 반환 | O(1) |
 
----
+핵심 연산 두 가지를 자세히 볼게요.
 
-## 핵심 아이디어
+**① `has` — 계단식 하강 경로.** 위 구조에서 `has(7)`을 실행하면 이런 경로를 탑니다(직접 실행해 확인한 값입니다).
 
-### 원형 아이디어와 naive 접근
-
-정렬된 연결 리스트는 삽입 위치를 찾는 데 O(n)이 걸립니다. 한 번에 여러 노드를 건너뛸 수 없기 때문입니다.
-
-### 어떤 관찰이 돌파구가 되는가
-
-**관찰**: 상위 레벨에서는 듬성듬성한 "인덱스"처럼 사용하면 크게 건너뛸 수 있습니다. 마치 고속도로(상위 레벨) → 국도(중간 레벨) → 골목길(레벨 0) 순으로 탐색하는 것과 같습니다.
-
-각 노드는 확률 p=0.5로 상위 레벨에도 포함됩니다. 기댓값으로 레벨 k에는 n/2^k개의 노드가 있습니다.
-
-### 관찰을 형식화
-
-**스킵 리스트 구조**:
-
-```
-레벨 2: [Head] --------------------> [3] ---------> [Tail]
-레벨 1: [Head] -----> [1] --------> [3] -> [7] ---> [Tail]
-레벨 0: [Head] -> [1] -> [2] -> [3] -> [5] -> [7] -> [9] -> [Tail]
+```text
+레벨 2: Head → 3            (3<7 이므로 전진, 3.forward[2]=Tail → 정지)
+레벨 1: 3 → 3               (3.forward[1]=7, compare(7,7)=0 → 전진하지 않고 정지)
+레벨 0: 3 → 5               (3.forward[0]=5, 5<7 전진 → 5.forward[0]=7, compare(7,7)=0 → 정지)
+최종 확인: 5.forward[0] = 7, compare(7,7)=0 → true
 ```
 
-- 레벨 0은 모든 원소를 담은 정렬된 연결 리스트
-- 레벨 k는 레벨 k-1의 부분 집합 (각 원소가 p=0.5 확률로 포함)
-- Head는 모든 레벨에서 시작점, Tail은 모든 레벨에서 끝점 (sentinel)
+총 비교 횟수는 5회(레벨2: 1, 레벨1: 1, 레벨0: 2, 최종 확인: 1)입니다. 원소가 6개뿐인 이 예시에서는 레벨 0만 훑는 것과 큰 차이가 안 나 보이지만, 원소 수 $n$이 커질수록 레벨 수가 $\log n$으로 늘어나면서 "위에서 크게 건너뛰고 아래에서 세밀하게 좁히는" 구조의 이득이 커집니다 — 레벨 0만 있는 단순 연결 리스트는 언제나 O(n)이지만, 계단식 하강은 평균 O(log n)입니다.
 
-### 핵심 연산
+**② `insert` — 레벨 승격 시 포인터 재배선(Before/After).** `insert(3)`만 실행된 상태(레벨=1)에서 `insert(1)`이 `randomLevel()=2`를 뽑았다고 합시다.
 
-**탐색 (has)**:
+Before:
+```text
+레벨 0: Head -> 3 -> Tail
+```
+
+`findUpdate(1)`은 모든 `update[i] = Head`를 반환합니다(1이 3보다 작아 전진하지 않으므로). 레벨 1은 아직 없으므로 새로 만듭니다.
+
+After:
+```text
+레벨 1: Head -> 1 -------> Tail
+레벨 0: Head -> 1 -> 3 -> Tail
+```
+
+포인터 재배선은 레벨마다 딱 두 줄입니다.
+
 ```ts
-has(value) {
-  let current = head;
-  for (let level = this._level - 1; level >= 0; level--) {
-    while (current.forward[level] !== tail &&
-           comparator(current.forward[level].value, value) < 0) {
-      current = current.forward[level];
+newNode.forward[i] = update[i].forward[i]; // ① 새 노드가 기존 다음 노드를 먼저 물려받고
+update[i].forward[i] = newNode;            // ② 그 다음에 선행 노드가 새 노드를 가리킨다
+```
+
+이 두 줄의 순서가 왜 중요한지는 "아이디어를 코드로 옮기기"에서 구체적인 오작동 시나리오로 보여드릴게요.
+
+### 왜 모순 없이 작동하는가
+
+불변식 1(레벨 0 정렬)과 불변식 2(상위 레벨은 하위 레벨의 부분집합)이 모든 연산 뒤에도 보존됨을 봅니다.
+
+- **기저**: 빈 리스트는 두 불변식을 공허하게 만족합니다.
+- **삽입**: `findUpdate`가 반환하는 `update[i]`는 "레벨 $i$에서 `value`보다 작은 마지막 노드"입니다 — while 루프가 `compare(...) < 0`인 동안만 전진하기 때문입니다. 따라서 `update[i]`와 `update[i].forward[i]` 사이에 새 노드를 끼워 넣어도 레벨 $i$의 정렬 순서(불변식 1)는 깨지지 않습니다. 또한 새 노드는 `randomLevel()`이 정한 높이 $h$만큼만, 레벨 $0..h-1$ 전부에 **동시에** 삽입되므로(코드의 `for i = 0 to h-1` 루프), "레벨 $k$에 있으면 레벨 $k-1$에도 있다"(불변식 2)가 그대로 유지됩니다.
+- **삭제**: 각 레벨에서 `update[i].forward[i]`가 `target`과 같을 때만 우회시키므로, `target`이 실제로 링크돼 있던 레벨에서만 정확히 제거됩니다.
+
+여기서 헷갈리기 쉬운 포인트를 세 가지 짚어 둘게요.
+
+- **delete의 `break`는 "더 볼 필요 없다"는 최적화가 아니라 구조적 필연입니다.** 불변식 2 덕분에, 어떤 레벨 $i$에서 `update[i].forward[i] !== target`이라면 `target`은 애초에 레벨 $i$ 이상에 존재하지 않았다는 뜻입니다. `target`이 레벨 $i$에 있었다면 `findUpdate`가 반환한 `update[i]`는 정확히 `target`의 레벨 $i$ 선행 노드였어야 하기 때문이에요. 그러므로 $i$를 0부터 늘려가며 첫 불일치를 만나는 순간 반복을 멈춰도 안전합니다.
+- **노드 하나의 "높이"(자신의 `forward` 배열 길이)와 리스트 전체의 `level`(현재 쓰이는 최고 레벨)을 섞는 것도 흔한 실수입니다.** 새 노드의 `randomLevel()`이 5가 나와도 리스트 전체 `level`이 반드시 5로 오르는 건 아닙니다(이미 더 높은 노드가 있다면 그대로예요). 반대로 삭제로 최고 레벨이 텅 비면 `while (level > 1 && head.forward[level-1] === tail) level--`로 `level`을 낮춰야 다음 탐색이 빈 레벨을 헛도는 낭비를 피합니다.
+- **커스텀 comparator를 넣으면 `min()`/`max()`의 "의미"가 숫자 크기가 아니라 comparator 순서를 따릅니다.** `(a, b) => b - a`(내림차순)로 만든 리스트에 1, 3, 2를 넣으면 `toArray()`는 `[3, 2, 1]`이고, `min()`은 3, `max()`는 1입니다(직접 실행해 확인한 값입니다) — "가장 작은 수"가 아니라 "정렬 순서상 첫 번째/마지막"이라는 뜻이에요.
+
+잠깐, 확인 하나만 해 볼까요? 위 고정 구조(1, 2, 3, 5, 7, 9, 레벨은 각각 2, 1, 3, 1, 2, 1)에서 `has(6)`을 실행하면 몇 번 비교한 뒤 무엇이 반환될까요? — 직접 실행해 보면 5번 비교 후 `false`입니다(6은 5와 7 사이에서 걸립니다).
+
+엣지 케이스를 점검해 봅니다.
+
+```text
+빈 리스트에서 has/delete   → false / false (head.forward[0] === tail로 즉시 판정)
+size = 1일 때 delete       → head.forward[0]이 다시 tail이 되며 완전히 빈 상태로 복귀, maxNode = null
+중복 insert 3회            → size는 1로 유지(has로 걸러 무시)
+음수 포함 삽입              → comparator가 숫자 비교면 -100 같은 값도 정렬 순서에 자연히 놓임
+```
+
+## 아이디어를 코드로 옮기기
+
+정렬 순서를 유지하며 삽입하는 방법에는 여러 단계가 있습니다. 원형부터 스킵 리스트까지 한 단계씩 밟아 봅시다.
+
+**원형(naive) — 정렬 배열.**
+
+```ts
+class NaiveSortedSet<T> {
+  private items: T[] = [];
+  constructor(private compare: (a: T, b: T) => number) {}
+
+  insert(value: T): void {
+    let i = 0;
+    while (i < this.items.length && this.compare(this.items[i]!, value) < 0) i++;
+    if (i < this.items.length && this.compare(this.items[i]!, value) === 0) return; // 중복
+    this.items.splice(i, 0, value); // 삽입 지점 뒤 원소를 전부 한 칸씩 밀어야 함 → O(n)
+  }
+}
+```
+
+`splice(i, 0, value)`는 배열 길이가 $n$일 때 최악 $O(n)$개의 원소를 이동합니다. 1만 개를 순서대로 삽입하면 총 이동 횟수가 $O(n^2)$까지 치솟습니다.
+
+**개선 — 정렬 연결 리스트.**
+
+```ts
+interface ListNode<T> { value: T; next: ListNode<T> | null; }
+
+function insertSorted<T>(
+  head: ListNode<T> | null,
+  value: T,
+  compare: (a: T, b: T) => number,
+): ListNode<T> {
+  const dummy: ListNode<T> = { value, next: head }; // 임시 sentinel
+  let prev = dummy;
+  while (prev.next !== null && compare(prev.next.value, value) < 0) prev = prev.next; // 여전히 O(n) 순회
+  prev.next = { value, next: prev.next }; // 연결만 바꾸면 되므로 이 자체는 O(1)
+  return dummy.next!;
+}
+```
+
+삽입 동작 자체(포인터 두 개 잇기)는 $O(1)$로 줄었지만, "어디에 끼워 넣을지" 찾는 순회가 여전히 $O(n)$입니다. 배열의 문제를 연결 리스트로 옮겼을 뿐, 전체 삽입 비용은 그대로예요. 이진 탐색으로 위치를 빨리 찾고 싶어도 연결 리스트는 임의 접근이 안 되니 불가능합니다.
+
+**최종 — 스킵 리스트.** 이 순회 $O(n)$을 깨는 방법이 바로 상위 레벨의 "익스프레스 포인터"입니다. 아래는 이 가이드가 정의한 인터페이스(제네릭 `T`, 선택적 `comparator`, `maxLevel` 기본 16)에 맞춘 전체 구현입니다.
+
+```ts
+interface SkipNode<T> {
+  value: T | null;
+  forward: SkipNode<T>[];
+}
+
+class ConcurrentSkipList<T> {
+  private maxLevel: number;
+  private compare: (a: T, b: T) => number;
+  private head: SkipNode<T>;
+  private tail: SkipNode<T>;
+  private level: number;
+  private count: number;
+  private maxNode: SkipNode<T> | null; // 레벨 0 마지막 실제 노드 (O(1) max용)
+
+  constructor(maxLevel: number = 16, comparator?: (a: T, b: T) => number) {
+    this.maxLevel = maxLevel;
+    this.compare = comparator ?? ((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    this.tail = { value: null, forward: [] };
+    this.head = { value: null, forward: new Array(maxLevel).fill(this.tail) };
+    this.level = 1;
+    this.count = 0;
+    this.maxNode = null;
+  }
+
+  private randomLevel(): number {
+    let lvl = 1;
+    while (Math.random() < 0.5 && lvl < this.maxLevel) lvl++;
+    return lvl;
+  }
+
+  private findUpdate(value: T): SkipNode<T>[] {
+    const update: SkipNode<T>[] = new Array(this.maxLevel).fill(this.head);
+    let current = this.head;
+    for (let lv = this.level - 1; lv >= 0; lv--) {
+      while (
+        current.forward[lv] !== this.tail &&
+        this.compare(current.forward[lv]!.value as T, value) < 0
+      ) {
+        current = current.forward[lv]!;
+      }
+      update[lv] = current;
     }
+    return update;
   }
-  const candidate = current.forward[0];
-  return candidate !== null && candidate !== tail &&
-         comparator(candidate.value, value) === 0;
-}
-```
 
-**findUpdate — 삽입/삭제 공통 준비 단계**:
-```ts
-findUpdate(value) {
-  const update: SkipNode<T>[] = new Array(maxLevel).fill(head);
-  let current = head;
-  for (let level = this._level - 1; level >= 0; level--) {
-    while (current.forward[level] !== tail &&
-           comparator(current.forward[level].value!, value) < 0) {
-      current = current.forward[level];
+  has(value: T): boolean {
+    const update = this.findUpdate(value);
+    const candidate = update[0]!.forward[0]!;
+    return candidate !== this.tail && this.compare(candidate.value as T, value) === 0;
+  }
+
+  insert(value: T): void {
+    const update = this.findUpdate(value);
+    const candidate = update[0]!.forward[0]!;
+    if (candidate !== this.tail && this.compare(candidate.value as T, value) === 0) return; // 중복 무시
+
+    const newLevel = this.randomLevel();
+    if (newLevel > this.level) {
+      for (let i = this.level; i < newLevel; i++) update[i] = this.head;
+      this.level = newLevel;
     }
-    update[level] = current;
+
+    const newNode: SkipNode<T> = { value, forward: new Array(newLevel) };
+    for (let i = 0; i < newLevel; i++) {
+      newNode.forward[i] = update[i]!.forward[i]!; // ① 먼저 물려받고
+      update[i]!.forward[i] = newNode;              // ② 그 다음 상속자로 지명
+    }
+    if (newNode.forward[0] === this.tail) this.maxNode = newNode; // 레벨 0 맨 끝이면 새 최댓값
+    this.count++;
   }
-  return update;
+
+  delete(value: T): boolean {
+    const update = this.findUpdate(value);
+    const target = update[0]!.forward[0]!;
+    if (target === this.tail || this.compare(target.value as T, value) !== 0) return false;
+
+    for (let i = 0; i < this.level; i++) {
+      if (update[i]!.forward[i] !== target) break; // target이 없던 레벨 — 더 볼 필요 없음
+      update[i]!.forward[i] = target.forward[i]!;
+    }
+    while (this.level > 1 && this.head.forward[this.level - 1] === this.tail) {
+      this.level--;
+    }
+    if (this.maxNode === target) {
+      // update[0]는 findUpdate가 이미 계산해 둔 target의 레벨 0 직전 노드
+      this.maxNode = update[0] === this.head ? null : update[0]!;
+    }
+    this.count--;
+    return true;
+  }
+
+  min(): T | undefined {
+    const first = this.head.forward[0]!;
+    return first === this.tail ? undefined : (first.value as T);
+  }
+
+  max(): T | undefined {
+    return this.maxNode === null ? undefined : (this.maxNode.value as T);
+  }
+
+  toArray(): T[] {
+    const result: T[] = [];
+    let current = this.head.forward[0]!;
+    while (current !== this.tail) {
+      result.push(current.value as T);
+      current = current.forward[0]!;
+    }
+    return result;
+  }
+
+  size(): number {
+    return this.count;
+  }
 }
 ```
 
-**insert**:
-```ts
-insert(value) {
-  const update = findUpdate(value);
-  const candidate = update[0].forward[0];
-  if (candidate !== tail && comparator(candidate.value!, value) === 0) return; // 중복
+가장 중요한 부분은 `insert`의 포인터 재배선 두 줄의 순서입니다. `newNode.forward[i] = update[i].forward[i]`를 **반드시 먼저** 써야 합니다. 순서를 바꿔 `update[i].forward[i] = newNode`를 먼저 실행하면, 다음 줄의 `update[i].forward[i]`는 이미 `newNode` 자신을 가리키고 있어서 `newNode.forward[i] = newNode`가 되어버립니다 — 자기 자신을 가리키는 포인터가 생겨 `toArray()`가 그 노드에서 영원히 맴돕니다.
 
-  const newLevel = randomLevel();
-  if (newLevel > this._level) {
-    for (let i = this._level; i < newLevel; i++) update[i] = head;
-    this._level = newLevel;
-  }
+구현에서 놓치기 쉬운 지점을 몇 가지 더 짚어 둘게요.
 
-  const newNode = { value, forward: new Array(newLevel).fill(null) };
-  for (let i = 0; i < newLevel; i++) {
-    newNode.forward[i] = update[i].forward[i];
-    update[i].forward[i] = newNode;
-  }
-  this._size++;
-}
-```
+- **`delete`의 `break`는 최적화가 아니라 정확성의 일부입니다.** 위 "왜 모순 없이 작동하는가"에서 다룬 것처럼, `update[i].forward[i] !== target`이 관측되는 순간은 `target`이 그 레벨 이상에는 애초에 없었다는 뜻입니다.
+- **`maxNode` 관리는 두 지점에서만 일어나고, 둘 다 추가 순회가 없습니다.** `insert`에서는 `newNode.forward[0] === tail`일 때만(레벨 0의 맨 끝에 꽂혔을 때만) 갱신하고, `delete`에서는 지워진 노드가 기존 `maxNode`였을 때만 `update[0]`으로 교체합니다 — `update[0]`은 `findUpdate`가 이미 계산해 둔 값이라 O(1)을 유지합니다.
+- **`level` 축소 루프의 조건 순서.** `this.level > 1`을 먼저 확인해야 합니다. 리스트가 완전히 비어도 `level`이 0이 되면 안 되고(다음 `insert`가 레벨 0 접근에서 깨집니다), 최소 1은 유지해야 해요.
 
-**delete**:
-```ts
-delete(value) {
-  const update = findUpdate(value);
-  const target = update[0].forward[0];
-  if (!target || target === tail || comparator(target.value!, value) !== 0) return false;
+기억법:
 
-  for (let i = 0; i < this._level; i++) {
-    if (update[i].forward[i] !== target) break;
-    update[i].forward[i] = target.forward[i];
-  }
-  // 빈 레벨 정리
-  while (this._level > 1 && head.forward[this._level - 1] === tail) {
-    this._level--;
-  }
-  this._size--;
-  return true;
-}
-```
+> 새 노드가 유산(다음 노드)을 먼저 물려받은 뒤에, 선행 노드가 새 노드를 상속자로 지명한다.
 
-### 정당성
+## 실행 시각화
 
-레벨 k의 기대 노드 수는 n·(1/2)^k. 탐색 시 각 레벨에서 건너뛰는 평균 거리는 2입니다. 총 레벨은 log₂n이므로 기대 비교 횟수는 O(log n).
+고정 입력은 `insert(3)` → `insert(1)` → `insert(7)` → `has(3)` → `delete(1)` 순서입니다. 실제 반환값은 `has(3) = true`, `delete(1) = true`이고, 최종 `toArray()`는 `[3, 7]`입니다(모두 위 코드를 그대로 실행해 확인했습니다). array 패널의 각 칸은 레벨 0 체인을 Head/Tail sentinel까지 포함해 보여주고, highlight는 방금 조작이 집중된 위치, marked는 그 연산으로 영향받은 주변 위치를 가리킵니다.
 
-randomLevel의 확률적 균형 덕분에 특정 입력에 편향되지 않습니다 (BST와 달리 정렬된 입력에도 안전).
-
-### 구현 디테일과 최적화
-
-1. **Sentinel (Head / Tail)**: 실제 값을 null로 설정한 더미 노드. 경계 조건(빈 리스트, 최솟값/최댓값 삽입) 처리가 단순해짐
-2. **min / max**: Head.forward[0]이 최솟값, 레벨 0의 Tail 직전 노드가 최댓값 — O(1)을 위해 별도 tail sentinel 사용
-3. **_level 유지**: delete 후 빈 레벨(head.forward[level] === tail)을 정리해 탐색 효율 유지
-
----
-
-## 시뮬레이션
+> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
@@ -177,7 +366,7 @@ export const steps = [
   },
   {
     title: "has(3) — 탐색",
-    detail: "레벨 1에서 Head → 1(작음) → 3(같음). 레벨 0으로 내려가 확인. true.",
+    detail: "레벨 1에서 Head→1로 전진(1<3), 1의 레벨 1 다음은 Tail이라 레벨 0으로 하강. 레벨 0에서 1→3 발견(같음). true.",
     array: ["Head", 1, 3, 7, "Tail"],
     highlight: [2],
     marked: [],
@@ -193,94 +382,10 @@ export const steps = [
 
 <AlgorithmSimulation view="array" steps={steps} title="ConcurrentSkipList — 레벨 0 기준 시뮬레이션" />
 
-## 수도 코드와 Activity Diagram
+정리하면, 스킵 리스트는 "각 노드를 확률 p=0.5로 상위 레벨에도 올린다"는 단 하나의 규칙으로 회전 없는 균형을 얻습니다. `findUpdate`가 매 레벨의 선행 노드를 한 번의 하향 탐색으로 모아 두면, `insert`와 `delete`는 그 결과를 재사용해 포인터 몇 개만 갈아 끼우면 끝나요. 덕분에 삽입·삭제·탐색은 평균 $O(\log n)$을 유지하고, `min`/`max`/`size`는 sentinel과 `maxNode` 포인터 덕분에 정확히 $O(1)$입니다 — 애초에 노렸던 "정렬 순서를 유지하면서도 삽입·삭제가 빠른" 목표를 회전 로직 없이 달성한 셈입니다.
 
-### 의사코드
+## 스스로 점검하기
 
-```
-class ConcurrentSkipList(maxLevel, comparator):
-  head = sentinel(null, forward=[null]*maxLevel)
-  tail = sentinel(null, forward=[])
-  head.forward = [tail]*maxLevel
-  level = 1
-  size = 0
-
-  randomLevel():
-    lvl = 1
-    while random() < 0.5 AND lvl < maxLevel:
-      lvl++
-    return lvl
-
-  findUpdate(value):
-    update = [head]*maxLevel
-    cur = head
-    for lv = level-1 downto 0:
-      while cur.forward[lv] != tail AND comparator(cur.forward[lv].value, value) < 0:
-        cur = cur.forward[lv]
-      update[lv] = cur
-    return update
-
-  insert(value):
-    update = findUpdate(value)
-    candidate = update[0].forward[0]
-    if candidate != tail AND comparator(candidate.value, value) == 0: return  // 중복
-    lvl = randomLevel()
-    if lvl > level:
-      for i = level to lvl-1: update[i] = head
-      level = lvl
-    node = newNode(value, lvl)
-    for i = 0 to lvl-1:
-      node.forward[i] = update[i].forward[i]
-      update[i].forward[i] = node
-    size++
-
-  delete(value):
-    update = findUpdate(value)
-    target = update[0].forward[0]
-    if target == tail OR comparator(target.value, value) != 0: return false
-    for i = 0 to level-1:
-      if update[i].forward[i] != target: break
-      update[i].forward[i] = target.forward[i]
-    while level > 1 AND head.forward[level-1] == tail: level--
-    size--
-    return true
-```
-
-### Activity Diagram
-
-```mermaid
-flowchart TD
-  A([insert value]) --> B[findUpdate value]
-  B --> C{candidate == value?}
-  C -- 예 duplicate --> D([종료 무시])
-  C -- 아니오 --> E[randomLevel 결정]
-  E --> F{newLevel > _level?}
-  F -- 예 --> G[update 상위 레벨 head로 채움]
-  G --> H[_level = newLevel]
-  F -- 아니오 --> H
-  H --> I[newNode 생성]
-  I --> J[각 레벨 forward 포인터 연결]
-  J --> K[size++]
-  K --> L([삽입 완료])
-
-  M([delete value]) --> N[findUpdate value]
-  N --> O{target == value?}
-  O -- 아니오 --> P([false 반환])
-  O -- 예 --> Q[각 레벨에서 target 제거]
-  Q --> R[빈 레벨 정리]
-  R --> S[size--]
-  S --> T([true 반환])
-```
-
----
-
-## Java ConcurrentSkipListMap과의 비교
-
-| 특성 | 이 구현 | Java ConcurrentSkipListMap |
-|------|---------|---------------------------|
-| 스레드 안전 | 단일 스레드 | lock-free, 멀티스레드 |
-| 알고리즘 | 기본 스킵 리스트 | CAS 기반 lock-free |
-| 중복 | 무시 (Set) | 키-값 쌍 (Map) |
-| 범위 쿼리 | toArray 후 필터 | subMap, headMap, tailMap |
-
-Java 구현은 `AtomicMarkableReference`로 삭제 마킹(logical delete) 후 물리적 제거를 분리해, 동시 읽기 중에도 안전한 삭제를 보장합니다. 이 연습 구현은 그 인터페이스와 평균 성능을 단일 스레드에서 재현합니다.
+1. 위 고정 구조(1, 2, 3, 5, 7, 9, 레벨은 각각 2, 1, 3, 1, 2, 1)에서 `has(4)`를 실행하면 각 레벨에서 몇 번 비교가 일어나고 최종 결과는 무엇일까요? 손으로 경로를 그려 보세요.
+2. `insert`의 포인터 재배선 두 줄의 순서를 바꾸면 무슨 일이 벌어질지, 위 Before/After 그림의 `insert(1)` 장면을 이용해 설명해 보세요.
+3. 같은 고정 구조에서 `delete(7)`을 실행하면 각 레벨의 링크가 어떻게 바뀔까요? 그리고 이때 `maxNode`는 갱신될까요, 그대로일까요? (힌트: 7이 그 시점의 최댓값인지 먼저 확인하세요.)
