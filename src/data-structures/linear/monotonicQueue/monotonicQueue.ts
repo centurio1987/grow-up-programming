@@ -28,7 +28,7 @@ export class MonotonicQueue {
    * @returns 각 윈도우의 최댓값 배열
    */
   slidingWindowMax(nums: number[], k: number): number[] {
-    throw new Error("Not implemented");
+    const arr: number[] = [];
   }
 
   /**
@@ -41,5 +41,17 @@ export class MonotonicQueue {
    */
   slidingWindowMin(nums: number[], k: number): number[] {
     throw new Error("Not implemented");
+  }
+}
+
+class Deque {
+  private front: number;
+  private back: number;
+  private buf: number[];
+
+  constructor() {
+    this.front = -1;
+    this.back = -1;
+    this.buf = [];
   }
 }

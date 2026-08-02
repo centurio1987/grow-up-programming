@@ -1,0 +1,33 @@
+{
+  "$schema": "authoring-kit/lock@1",
+  "schema_version": 1,
+  "project": {
+    "label": "grow-up-programming",
+    "key": "fcd5ef7d64d0"
+  },
+  "plugin": {
+    "name": "authoring-kit",
+    "version": "0.1.0"
+  },
+  "principles": {
+    "source": "/Users/centurio/.claude/authoring-scratch/principles",
+    "remote": "git@github.com:centurio1987/my-claude-env.git",
+    "revision": "ac4f9e4361098f9c12a698e13217af773c101ac0",
+    "files": {
+      "L0_MACHINE_RHYTHM.md": "sha256:373417baf0f950b9",
+      "L0_NATURAL_KOREAN.md": "sha256:7667643d336c1b2e",
+      "L0_PRINCIPLES.md": "sha256:d38ca7718e03c83e",
+      "QUALITY_RUBRIC.md": "sha256:4a70933ce99a9222"
+    }
+  },
+  "voices": {
+    "ppangto-teacher": "sha256:a696a2efc116e1d2",
+    "tony": "sha256:033ca2318e44f839",
+    "yundeok": "sha256:479bdc58cd10bd27"
+  },
+  "specs": {
+    "algo-guide": "sha256:cf47e11e678eb439",
+    "ds-guide": "sha256:a29f5f622668c524",
+    "problem": "sha256:873ba5b5fb692eda"
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "$schema": "authoring-kit/spec@1",
+  "schema_version": 1,
+  "id": "ds-guide",
+  "label": "자료구조 가이드",
+  "version": "1.0.0",
+  "source": {
+    "origin": "reverse-extraction",
+    "refs": [
+      "code_test ORD-003 — .claude/skills/guide-for-problem/data-structure-guide-canvas.md (5단계 골격)",
+      "code_test .claude/skills/guide-for-problem/assets/QUALITY_CHECKLIST.md (B·C·D·G축)"
+    ],
+    "note": "알고리즘 가이드와 달리 **문제에 종속되지 않는 독립 가이드**다. 그래서 '순진한 방법 → 최적화' 유도 서사가 없고, 대신 스펙 전수 설명과 '언제 쓰는가'가 중심이다."
+  },
+
+  "voice": { "default": "ppangto-teacher", "allowed": ["ppangto-teacher"] },
+
+  "sections": [
+    { "id": "title",   "label": "제목 + 부제",        "required": true, "order": 5,
+      "heading": "# {자료구조 이름} — {직관을 담은 부제}", "heading_fixed": false },
+    { "id": "concept", "label": "한눈에 보는 컨셉",     "required": true, "order": 10,
+      "heading": "## 한눈에 보는 컨셉", "heading_fixed": true },
+    { "id": "when",    "label": "언제, 왜 쓰는가",      "required": true, "order": 20,
+      "heading": "## 언제, 왜 쓰는가", "heading_fixed": true, "container": true },
+    { "id": "when.clue", "label": "이런 단서가 보이면",  "required": true, "order": 21,
+      "heading": "### 이런 단서가 보이면", "heading_fixed": true, "parent": "when" },
+    { "id": "detail",  "label": "자료구조 자세히 들여다보기", "required": true, "order": 30,
+      "heading": "## 자료구조 자세히 들여다보기", "heading_fixed": true, "container": true },
+    { "id": "detail.spec", "label": "전체 스펙: 속성과 액션", "required": true, "order": 31,
+      "heading": "### 전체 스펙: 속성과 액션", "heading_fixed": true, "parent": "detail" },
+    { "id": "impl",    "label": "아이디어를 코드로 옮기기", "required": true, "order": 40,
+      "heading": "## 아이디어를 코드로 옮기기", "heading_fixed": true },
+    { "id": "sim",     "label": "실행 시각화",          "required": true, "order": 50,
+      "heading": "## 실행 시각화", "heading_fixed": true },
+    { "id": "selfcheck", "label": "스스로 점검하기",     "required": true, "order": 60,
+      "heading": "## 스스로 점검하기", "heading_fixed": true }
+  ],
+
+  "principles": [
+    { "code": "B1", "level": "MUST", "axis": "structure",
+      "text": "스펙 전수 — 속성과 액션을 빠짐없이 설명한다. 이름만 나열하고 넘어가지 않는다" },
+    { "code": "B2", "level": "MUST", "axis": "structure",
+      "text": "단서 → 선택 연결 — 문제에서 어떤 근거·단서가 보일 때 이 자료구조를 떠올려야 하는지 명시한다" },
+    { "code": "B3", "level": "MUST", "axis": "evidence",
+      "text": "각 액션의 복잡도가 왜 그렇게 되는지 근거가 붙는다" },
+    { "code": "B4", "level": "SHOULD", "axis": "scope-principle",
+      "text": "대안 자료구조 대비 이 구조의 위치(무엇을 얻고 무엇을 포기하는가)" },
+
+    { "code": "C1", "level": "MUST", "axis": "structure",
+      "text": "인터페이스 정의 — 가이드가 스스로 정의한 인터페이스가 있고, 구현이 그것에 맞는다" },
+    { "code": "C2", "level": "SHOULD", "axis": "structure",
+      "text": "마무리 — 핵심 재진술 + 복잡도 결론. `impl` 절 끝의 정리로 충족한다" },
+
+    { "code": "D1", "level": "MUST", "axis": "scope-principle",
+      "text": "다각 조명 — 최소 한 개념을 2개 이상 관점(스펙 + 도식, 원리 + 시뮬)으로 비춘다" },
+    { "code": "D3", "level": "IF-APPLICABLE", "axis": "scope-principle",
+      "text": "도식 — 핵심 개념 직후 그림이 있고 상태 변화 연산에 before/after 가 있다" },
+    { "code": "D4", "level": "MUST", "axis": "scope-principle",
+      "text": "시뮬레이션 위탁 규약 — `실행 시각화`가 `#guide-sim` import + 선언형 `steps`만 쓴다" },
+    { "code": "D6", "level": "MUST", "axis": "scope-principle",
+      "text": "함정 포인팅 — 놓치기 쉬운 구현부(순서가 생명인 두 줄, 경계 비교 연산자, 인덱스 변환)를 직접 짚는다" },
+
+    { "code": "E5", "level": "MUST", "axis": "evidence",
+      "text": "본문 코드 자기 검증 — 가이드가 싣는 코드가 그 자체로 실행 가능하고 본문 주장과 일치한다" },
+    { "code": "E6", "level": "IF-APPLICABLE", "axis": "evidence",
+      "text": "분량상 코드 대신 흐름 서술로 대체한 보조 연산이 있으면, 그 사실을 본문에 명시했는가" },
+
+    { "code": "G1", "level": "MUST", "axis": "structure",
+      "text": "빌드 통과 — `commands.build` 가 통과한다" },
+    { "code": "G2", "level": "IF-APPLICABLE", "axis": "structure",
+      "text": "시뮬 위탁 규약 — 문제별 JSX/Hook·외부 라이브러리 import 가 없다" },
+    { "code": "G3", "level": "IF-APPLICABLE", "axis": "evidence",
+      "text": "시뮬 정확성 — 고정 입력·마지막 프레임 결과가 본문 반환값과 일치한다" }
+  ],
+
+  "conditional_rule": "조건부 절은 해당 사항이 없으면 문서에서 절 자체를 생략한다. 문서 안에 '해당 없음' 메모를 남기지 않는다. 생략 사유는 품질 게이트 보고에만 기록한다.",
+
+  "template": {
+    "kind": "canvas-md",
+    "template_ref": "ds-guide-canvas",
+    "slot_style": "brace-descriptive",
+    "outputs": [{ "format": "mdx", "location": "dirs.content" }]
+  },
+
+  "placeholders": {
+    "profile": "std-v1",
+    "legacy_accept": ["brace-descriptive", "html-comment-instruction"]
+  },
+
+  "gate": {
+    "rubric": "default",
+    "max_rounds": 3,
+    "external_review": { "enabled": true, "axes": "review-axes/guide.md",
+                         "failure_policy": "hard-fail", "redact": "none" }
+  }
+}

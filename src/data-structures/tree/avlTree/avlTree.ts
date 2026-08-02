@@ -27,8 +27,8 @@
 
 class AVLNode<T> {
   value: T;
-  left: AVLNode<T> | undefined = undefined;
-  right: AVLNode<T> | undefined = undefined;
+  left: AVLNode<T> | null = null;
+  right: AVLNode<T> | null = null;
   height: number = 1;
 
   constructor(value: T) {
@@ -38,7 +38,7 @@ class AVLNode<T> {
 }
 
 export class AVLTree<T> {
-  private root: AVLNode<T> | undefined = undefined;
+  private root: AVLNode<T> | null = null;
   private _size = 0;
   private comparator: (a: T, b: T) => number;
 
@@ -48,7 +48,42 @@ export class AVLTree<T> {
   }
 
   insert(value: T): void {
-    throw new Error("Not implemented");
+    if (this.root === null) {
+      this.root = new AVLNode<T>(value);
+      return;
+    }
+
+    let node: null | AVLNode<T> = this.root;
+    const stack: AVLNode<T>[] = [];
+
+    while (node !== null) {
+      if (this.comparator(node.value, value) === 0) {
+        return;
+      } else if (this.comparator(node.value, value) === -1) {
+        stack.push(node);
+        if (node.right === null) {
+          node.right = new AVLNode(value);
+          while (node.left === null && stack.length !== 0) {
+            node = stack.pop()!;
+            node.height++;
+          }
+          return;
+        }
+        node = node.right;
+      } else {
+        stack.push(node);
+        if (node.left === null) {
+          node.left = new AVLNode(value);
+          while (node.right === null && stack.length !== 0) {
+            node = stack.pop()!;
+            node.height++;
+          }
+          return;
+        }
+
+        node = node.left;
+      }
+    }
   }
 
   delete(value: T): boolean {
@@ -56,26 +91,79 @@ export class AVLTree<T> {
   }
 
   has(value: T): boolean {
-    throw new Error("Not implemented");
+    let node: null | AVLNode<T> = this.root;
+
+    while (node !== null) {
+      if (this.comparator(node.value, value) === 0) {
+        return true;
+      } else if (this.comparator(node.value, value) === -1) {
+        node = node.right;
+      } else {
+        node = node.left;
+      }
+    }
+
+    return false;
   }
 
-  min(): T | undefined {
-    throw new Error("Not implemented");
+  min(): T | null {
+    if (this.root === null) return null;
+
+    let node: null | AVLNode<T> = this.root;
+
+    while (node.left !== null) {
+      node = node.left;
+    }
+
+    return node.value;
   }
 
-  max(): T | undefined {
-    throw new Error("Not implemented");
+  max(): T | null {
+    if (this.root === null) return null;
+
+    let node: null | AVLNode<T> = this.root;
+
+    while (node.right !== null) {
+      node = node.right;
+    }
+
+    return node.value;
   }
 
   inOrder(): T[] {
-    throw new Error("Not implemented");
+    const arr: T[] = [];
+    const stack: AVLNode<T>[] = [];
+
+    if (this.root === null) return arr;
+
+    let node: null | AVLNode<T> = this.root;
+    stack.push(node);
+
+    while (stack.length !== 0) {
+      if (node !== null && node.left !== null) {
+        node = node.left;
+        stack.push(node);
+      } else {
+        node = stack.pop() as AVLNode<T>;
+        arr.push(node.value);
+
+        if (node.right !== null) {
+          node = node.right;
+          stack.push(node);
+        } else {
+          node = null;
+        }
+      }
+    }
+
+    return arr;
   }
 
   size(): number {
-    throw new Error("Not implemented");
+    return this._size;
   }
 
   height(): number {
-    throw new Error("Not implemented");
+    return this.root?.height ?? 0;
   }
 }

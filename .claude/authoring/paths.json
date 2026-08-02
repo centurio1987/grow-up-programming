@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "_note": "경로·명령 바인딩. spec 은 논리(항목·작성법·원칙·퍼소나)만 담고, 물리적 위치와 실행 명령은 전부 여기 모은다. 같은 spec 을 다른 프로젝트에서 쓰려면 이 파일만 갈아 끼우면 된다.",
+
+  "dirs": {
+    "content": "src/<유형>/<문제명>",
+    "index": "문제_가이드_목록.md"
+  },
+
+  "templates": {
+    "algo-guide-canvas": ".claude/skills/guide-for-problem/algorithm-guide-canvas.md",
+    "ds-guide-canvas": ".claude/skills/guide-for-problem/data-structure-guide-canvas.md",
+    "sim-scaffold": ".claude/skills/guide-for-problem/simulation-scaffold.md"
+  },
+
+  "commands": {
+    "build": "bun run tools/guide-preview/compile-check.ts {file}",
+    "mermaid_check": "bun run tools/guide-preview/check-mermaid.ts {file}",
+    "test": "bun test {file}",
+    "index": "./tools/generate-guides-index.sh"
+  },
+
+  "exemplars": {
+    "algo-guide": "src/algorithms/array/mosAlgorithm/mosAlgorithm-guide.mdx",
+    "ds-guide": "src/data-structures/tree/bPlusTree/bPlusTree-guide.mdx"
+  }
+}
