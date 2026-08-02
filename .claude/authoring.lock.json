@@ -17,11 +17,11 @@
       "L0_MACHINE_RHYTHM.md": "sha256:373417baf0f950b9",
       "L0_NATURAL_KOREAN.md": "sha256:7667643d336c1b2e",
       "L0_PRINCIPLES.md": "sha256:d38ca7718e03c83e",
-      "QUALITY_RUBRIC.md": "sha256:4a70933ce99a9222"
+      "QUALITY_RUBRIC.md": "sha256:3ff7a5984affd6ae"
     }
   },
   "voices": {
-    "ppangto-teacher": "sha256:a696a2efc116e1d2",
+    "ppangto-teacher": "sha256:0dcaab1555195962",
     "tony": "sha256:033ca2318e44f839",
     "yundeok": "sha256:479bdc58cd10bd27"
   },
