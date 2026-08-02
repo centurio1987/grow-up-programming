@@ -84,7 +84,6 @@ Skill(authoring-kit:authoring-write) --spec problem
 - `../../authoring/specs/problem/` — 항목 구성 · 항목별 작성 방법 · 힌트 누출 자가 점검
 - `../../authoring/paths.json` — 경로·빌드 명령
 - `../../authoring.lock.json` — 이 프로젝트가 서 있는 규칙 조합
-- `../_deprecated/README.md` — 플러그인이 대체한 구 자산과 대응표
 
 ## 주의
 

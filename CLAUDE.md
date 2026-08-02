@@ -27,7 +27,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 집필 진입점은 그대로 `guide-for-problem` · `gen-problem` 이고, 둘 다 내부에서
 `authoring-kit:authoring-write` 로 넘긴다. 플러그인이 없으면 **명확히 실패한다** —
-구 경로로 조용히 돌아가지 않는다. `.claude/skills/_deprecated/` 는 복구용이지 우회로가 아니다.
+구 경로로 조용히 돌아가지 않는다. 구 자산은 git 이력에만 남아 있다.
 
 ## Runtime & Package Manager
 

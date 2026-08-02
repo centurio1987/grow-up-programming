@@ -34,7 +34,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py lock
 ```
 
 - 플러그인이 없으면 **여기서 멈춘다.** 구 경로로 조용히 돌아가지 않는다 —
-  그러면 어떤 규칙으로 쓰였는지 알 수 없게 된다. `_deprecated/` 의 구 자산은 복구용이지 우회로가 아니다.
+  그러면 어떤 규칙으로 쓰였는지 알 수 없게 된다. 구 자산은 git 이력에만 남아 있다 — 복구는 되돌리기지 우회로가 아니다.
 - `lock` 이 stale 이면 규칙이 바뀐 것이다. 무엇이 바뀌었는지 확인하고 진행할지 정한다.
 
 ### 1. 리서치
@@ -81,7 +81,6 @@ Skill(authoring-kit:authoring-write) --spec <algo-guide|ds-guide>
 - `../../authoring/paths.json` — 경로·빌드 명령
 - `../../authoring.lock.json` — 이 프로젝트가 서 있는 규칙 조합
 - `solving-problem-canvas.md` — **구 템플릿(ORD-003 이전). 새 집필에 사용 금지** (이력 보존용)
-- `../_deprecated/README.md` — 플러그인이 대체한 구 자산과 대응표
 
 ## 주의
 
