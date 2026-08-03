@@ -17,8 +17,8 @@
 export class BinomialHeap<T> {
   constructor(compare: (a: T, b: T) => number)
   insert(item: T): void         // O(log n) 상각
-  extractMin(): T | undefined   // O(log n)
-  peek(): T | undefined         // O(log n)
+  extractMin(): T | null   // O(log n)
+  peek(): T | null         // O(log n)
   merge(other: BinomialHeap<T>): BinomialHeap<T>  // O(log n)
   size(): number                // O(1)
   isEmpty(): boolean            // O(1)
@@ -28,7 +28,7 @@ export class BinomialHeap<T> {
 ## 제약 조건
 
 - 비교 함수 `compare(a, b)`는 a < b이면 음수, a === b이면 0, a > b이면 양수를 반환한다.
-- `extractMin`과 `peek`은 힙이 비어 있으면 `undefined`를 반환한다.
+- `extractMin`과 `peek`은 힙이 비어 있으면 `null`을 반환한다.
 - `merge`는 두 원본 힙을 파괴하지 않아도 되지만, 파괴적 병합(destructive merge)도 허용한다.
 - 시간 제한: 1초, 메모리 제한: 256 MB
 

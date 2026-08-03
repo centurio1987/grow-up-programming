@@ -19,8 +19,8 @@ export class MinHeap<T> {
   // compare(a, b) < 0 이면 a가 b보다 우선순위 높음 (a가 먼저 pop 됨)
 
   push(item: T): void       // O(log n), 힙에 원소 삽입
-  pop(): T | undefined      // O(log n), 최상위(최소) 원소 제거 후 반환
-  peek(): T | undefined     // O(1),     최상위 원소를 제거하지 않고 반환
+  pop(): T | null      // O(log n), 최상위(최소) 원소 제거 후 반환
+  peek(): T | null     // O(1),     최상위 원소를 제거하지 않고 반환
   size(): number            // O(1)
   isEmpty(): boolean        // O(1)
 }
@@ -30,8 +30,8 @@ export class MinHeap<T> {
 |--------|------|
 | `constructor(compare)` | `compare(a, b) < 0`이면 a가 b보다 높은 우선순위. `(a, b) => a - b`면 오름차순 최소 힙 |
 | `push(item)` | 아이템을 힙에 삽입하고 힙 속성을 복원한다(siftUp) |
-| `pop()` | 최상위 아이템을 제거하고 반환한다(siftDown). 비어있으면 `undefined` |
-| `peek()` | 최상위 아이템을 반환하되 제거하지 않는다. 비어있으면 `undefined` |
+| `pop()` | 최상위 아이템을 제거하고 반환한다(siftDown). 비어있으면 `null` |
+| `peek()` | 최상위 아이템을 반환하되 제거하지 않는다. 비어있으면 `null` |
 | `size()` | 현재 저장된 아이템 개수를 반환한다 |
 | `isEmpty()` | 힙이 비어있으면 `true` |
 
@@ -71,7 +71,7 @@ heap.size();   // 3
 heap.pop();    // 1  (최솟값 제거)
 heap.pop();    // 3
 heap.pop();    // 5
-heap.pop();    // undefined (빈 힙)
+heap.pop();    // null (빈 힙)
 
 // 객체 우선순위 큐 (긴급도 오름차순)
 type Patient = { name: string; urgency: number };

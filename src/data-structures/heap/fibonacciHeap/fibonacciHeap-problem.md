@@ -23,10 +23,10 @@ export class FibNode<T> {
 export class FibonacciHeap<T> {
   constructor(compare: (a: T, b: T) => number)
   insert(item: T): FibNode<T>              // O(1) 상각
-  extractMin(): T | undefined              // O(log n) 상각
+  extractMin(): T | null              // O(log n) 상각
   decreaseKey(node: FibNode<T>, newItem: T): void  // O(1) 상각
   merge(other: FibonacciHeap<T>): FibonacciHeap<T>  // O(1)
-  peek(): T | undefined                    // O(1)
+  peek(): T | null                    // O(1)
   size(): number                           // O(1)
   isEmpty(): boolean                       // O(1)
 }
@@ -36,7 +36,7 @@ export class FibonacciHeap<T> {
 
 - 비교 함수 `compare(a, b)`는 a < b이면 음수, a === b이면 0, a > b이면 양수를 반환한다.
 - `decreaseKey`는 반드시 기존 값보다 작거나 같은 값으로만 호출된다고 가정한다.
-- `extractMin`과 `peek`은 힙이 비어 있으면 `undefined`를 반환한다.
+- `extractMin`과 `peek`은 힙이 비어 있으면 `null`을 반환한다.
 - 시간 제한: 1초, 메모리 제한: 256 MB
 
 ## 문제 상세

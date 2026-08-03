@@ -22,8 +22,8 @@ MinHeap과 구조는 동일하지만 비교 방향이 반전됩니다.
 export class MaxHeap<T> {
   constructor(compare: (a: T, b: T) => number)
   push(item: T): void
-  pop(): T | undefined
-  peek(): T | undefined
+  pop(): T | null
+  peek(): T | null
   size(): number
   isEmpty(): boolean
 }
@@ -33,8 +33,8 @@ export class MaxHeap<T> {
 |--------|------|--------|-----------|
 | `constructor(compare)` | 비교 함수로 최대 힙 생성 | — | O(1) |
 | `push(item)` | 원소 삽입 | `void` | O(log n) |
-| `pop()` | 최댓값 원소 제거 및 반환 | `T \| undefined` | O(log n) |
-| `peek()` | 최댓값 원소 조회 (제거 안 함) | `T \| undefined` | O(1) |
+| `pop()` | 최댓값 원소 제거 및 반환 | `T \| null` | O(log n) |
+| `peek()` | 최댓값 원소 조회 (제거 안 함) | `T \| null` | O(1) |
 | `size()` | 현재 원소 수 | `number` | O(1) |
 | `isEmpty()` | 비어있으면 true | `boolean` | O(1) |
 

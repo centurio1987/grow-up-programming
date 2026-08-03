@@ -19,8 +19,8 @@ export class AVLTree<T> {
   insert(value: T): void      // O(log n)
   delete(value: T): boolean   // O(log n)
   has(value: T): boolean      // O(log n)
-  min(): T | undefined        // O(log n)
-  max(): T | undefined        // O(log n)
+  min(): T | null        // O(log n)
+  max(): T | null        // O(log n)
   inOrder(): T[]              // O(n) 정렬된 배열
   size(): number              // O(1)
   height(): number            // O(1) 루트의 높이
@@ -32,8 +32,8 @@ export class AVLTree<T> {
 | `insert(value)` | 값을 삽입하고 균형 유지. 중복 시 무시 | `void` |
 | `delete(value)` | 값을 삭제하고 균형 유지 | 삭제 성공 여부 `boolean` |
 | `has(value)` | 값이 존재하는지 확인 | `boolean` |
-| `min()` | 최솟값 반환 | `T \| undefined` |
-| `max()` | 최댓값 반환 | `T \| undefined` |
+| `min()` | 최솟값 반환 | `T \| null` |
+| `max()` | 최댓값 반환 | `T \| null` |
 | `inOrder()` | 중위 순회로 정렬 배열 반환 | `T[]` |
 | `size()` | 전체 노드 수 | `number` |
 | `height()` | 루트 기준 트리 높이 | `number` |

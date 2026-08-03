@@ -45,7 +45,7 @@ B-트리와 달리 두 종류의 노드가 구분된다.
 // 리프 노드: 실제 데이터 저장 + 다음 리프 포인터
 BPlusLeafNode<T> {
   keys: T[]                       // 실제 데이터
-  next: BPlusLeafNode<T> | undefined  // 다음 리프로의 연결
+  next: BPlusLeafNode<T> | null  // 다음 리프로의 연결
 }
 
 // 내부 노드: 라우팅 키만 저장

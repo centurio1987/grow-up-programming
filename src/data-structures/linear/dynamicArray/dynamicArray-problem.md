@@ -16,8 +16,8 @@ JavaScript의 `Array`는 개발자가 크기를 신경 쓰지 않아도 자동�
 ```ts
 export class DynamicArray<T> {
   push(item: T): void;              // amortized O(1) — 뒤에 추가, 필요 시 2배 확장
-  pop(): T | undefined;             // O(1) — 뒤에서 제거, 필요 시 절반 축소
-  get(index: number): T | undefined; // O(1) — 인덱스 접근
+  pop(): T | null;             // O(1) — 뒤에서 제거, 필요 시 절반 축소
+  get(index: number): T | null; // O(1) — 인덱스 접근
   set(index: number, item: T): void; // O(1) — 인덱스 교체
   size(): number;                    // O(1) — 원소 개수
   capacity(): number;                // O(1) — 내부 배열 크기
@@ -28,8 +28,8 @@ export class DynamicArray<T> {
 | 메서드 | 설명 | 반환값 |
 |--------|------|--------|
 | `push(item)` | 맨 뒤에 원소 추가 (확장 가능) | `void` |
-| `pop()` | 맨 뒤 원소 제거 (축소 가능) | `T \| undefined` |
-| `get(index)` | index번 원소 조회 | `T \| undefined` |
+| `pop()` | 맨 뒤 원소 제거 (축소 가능) | `T \| null` |
+| `get(index)` | index번 원소 조회 | `T \| null` |
 | `set(index, item)` | index번 원소 교체 | `void` |
 | `size()` | 현재 원소 개수 | `number` |
 | `capacity()` | 내부 배열 슬롯 개수 | `number` |
@@ -42,7 +42,7 @@ export class DynamicArray<T> {
 - 초기 `capacity = 4`
 - `push` 시 `size > capacity` → `capacity *= 2`
 - `pop` 시 `size <= capacity / 4` 이고 `capacity > 4` → `capacity /= 2`
-- `get`/`set` 에서 인덱스가 `[0, size)` 범위를 벗어나면 각각 `undefined` 반환 / no-op
+- `get`/`set` 에서 인덱스가 `[0, size)` 범위를 벗어나면 각각 `null` 반환 / no-op
 
 ## 문제 상세
 

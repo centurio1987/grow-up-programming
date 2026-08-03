@@ -17,8 +17,8 @@
 export class DaryHeap<T> {
   constructor(d: number, compare: (a: T, b: T) => number)
   push(item: T): void      // O(log_d n)
-  pop(): T | undefined     // O(d * log_d n)
-  peek(): T | undefined    // O(1)
+  pop(): T | null     // O(d * log_d n)
+  peek(): T | null    // O(1)
   size(): number           // O(1)
   isEmpty(): boolean       // O(1)
 }
@@ -28,7 +28,7 @@ export class DaryHeap<T> {
 
 - `d ≥ 2` (d=1은 연결 리스트로 퇴화)
 - 비교 함수 `compare(a, b)`는 a < b이면 음수, a === b이면 0, a > b이면 양수를 반환한다.
-- `pop`과 `peek`은 힙이 비어 있으면 `undefined`를 반환한다.
+- `pop`과 `peek`은 힙이 비어 있으면 `null`을 반환한다.
 - 내부 저장소는 배열(0-indexed)을 사용한다.
 - 시간 제한: 1초, 메모리 제한: 256 MB
 

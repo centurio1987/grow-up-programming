@@ -21,8 +21,8 @@ export class Multiset<T> {
   deleteAll(item: T): number      // 해당 원소 전부 제거, 제거된 수 반환
   has(item: T): boolean           // O(log n)
   count(item: T): number          // 특정 원소 개수, O(log n)
-  min(): T | undefined            // O(1)
-  max(): T | undefined            // O(1)
+  min(): T | null            // O(1)
+  max(): T | null            // O(1)
   size(): number                  // 총 원소 수 (중복 포함), O(1)
   toArray(): T[]                  // 정렬된 배열, O(n)
 }

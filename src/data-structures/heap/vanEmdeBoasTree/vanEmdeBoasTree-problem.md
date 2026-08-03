@@ -20,10 +20,10 @@ export class VanEmdeBoasTree {
   insert(x: number): void        // O(log log U)
   delete(x: number): void        // O(log log U)
   has(x: number): boolean        // O(log log U)
-  min(): number | undefined      // O(1)
-  max(): number | undefined      // O(1)
-  successor(x: number): number | undefined   // O(log log U)
-  predecessor(x: number): number | undefined // O(log log U)
+  min(): number | null      // O(1)
+  max(): number | null      // O(1)
+  successor(x: number): number | null   // O(log log U)
+  predecessor(x: number): number | null // O(log log U)
 }
 ```
 
@@ -43,8 +43,8 @@ universe [0, U-1]을 √U 크기의 클러스터 √U개로 분할한다.
 
 ```
 vEB(U) {
-  min: number | undefined   // 별도 저장 (O(1) 접근)
-  max: number | undefined   // 별도 저장 (O(1) 접근)
+  min: number | null   // 별도 저장 (O(1) 접근)
+  max: number | null   // 별도 저장 (O(1) 접근)
   summary: vEB(√U)          // 어느 클러스터에 원소가 있는지
   clusters: vEB(√U)[]       // 각 클러스터의 내용, 크기 √U
 }
@@ -74,7 +74,7 @@ vEB(U) {
 2. clusters[high(x)]에서 low(x) 삭제.
 3. 삭제 후 클러스터가 비었으면 summary에서 high(x) 삭제.
 4. x === max이면: 새 max 계산.
-5. 트리에 원소가 1개만 있을 때는 min = max = undefined.
+5. 트리에 원소가 1개만 있을 때는 min = max = null.
 
 ### successor(x)
 
@@ -98,7 +98,7 @@ console.log(veb.min());            // 2
 console.log(veb.max());            // 11
 console.log(veb.successor(5));     // 8
 console.log(veb.successor(8));     // 11
-console.log(veb.successor(11));    // undefined
+console.log(veb.successor(11));    // null
 console.log(veb.predecessor(8));   // 5
 
 veb.delete(5);

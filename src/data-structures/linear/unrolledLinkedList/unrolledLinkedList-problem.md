@@ -18,8 +18,8 @@ UnrolledLinkedList는 이 문제를 해결하기 위해 각 노드(청크)에 �
 export class UnrolledLinkedList<T> {
   constructor(chunkSize: number = 16)
   push(item: T): void
-  pop(): T | undefined
-  get(index: number): T | undefined
+  pop(): T | null
+  get(index: number): T | null
   size(): number
   toArray(): T[]
 }
@@ -37,8 +37,8 @@ export class UnrolledLinkedList<T> {
 ## 제약 조건
 
 - `chunkSize`는 1 이상의 정수여야 한다.
-- `get(index)`에서 index가 0 미만이거나 size() 이상이면 `undefined`를 반환한다.
-- `pop()`에서 리스트가 비어 있으면 `undefined`를 반환한다.
+- `get(index)`에서 index가 0 미만이거나 size() 이상이면 `null`을 반환한다.
+- `pop()`에서 리스트가 비어 있으면 `null`을 반환한다.
 - 내부 연결 리스트 구조는 단방향(singly linked)으로 구현한다.
 - 시간 제한: 1초, 메모리 제한: 256 MB
 

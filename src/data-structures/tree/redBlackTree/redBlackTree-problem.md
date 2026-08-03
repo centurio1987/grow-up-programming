@@ -19,8 +19,8 @@ export class RedBlackTree<T> {
   insert(value: T): void      // O(log n)
   delete(value: T): boolean   // O(log n)
   has(value: T): boolean      // O(log n)
-  min(): T | undefined
-  max(): T | undefined
+  min(): T | null
+  max(): T | null
   inOrder(): T[]
   size(): number
 }
@@ -31,8 +31,8 @@ export class RedBlackTree<T> {
 | `insert(value)` | 삽입 후 채색 규칙 복구. 중복 시 무시 | `void` |
 | `delete(value)` | 삭제 후 채색 규칙 복구 | `boolean` |
 | `has(value)` | 값 존재 여부 | `boolean` |
-| `min()` | 최솟값 | `T \| undefined` |
-| `max()` | 최댓값 | `T \| undefined` |
+| `min()` | 최솟값 | `T \| null` |
+| `max()` | 최댓값 | `T \| null` |
 | `inOrder()` | 중위 순회 배열 | `T[]` |
 | `size()` | 노드 수 | `number` |
 

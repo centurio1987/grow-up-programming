@@ -20,9 +20,9 @@ export class CartesianTree<T> {
     comparator?: (a: T, b: T) => number
   ): CartesianTree<T>
 
-  value(): T | undefined        // 루트 값 (빈 트리면 undefined)
-  left(): CartesianTree<T> | undefined
-  right(): CartesianTree<T> | undefined
+  value(): T | null        // 루트 값 (빈 트리면 null)
+  left(): CartesianTree<T> | null
+  right(): CartesianTree<T> | null
   inOrder(): T[]                // 원래 배열 순서 복원
   size(): number
 }
@@ -31,9 +31,9 @@ export class CartesianTree<T> {
 | 메서드 | 설명 | 반환값 |
 |--------|------|--------|
 | `fromArray(arr, cmp?)` | 배열에서 O(n) 카르테시안 트리 구성 | `CartesianTree<T>` |
-| `value()` | 루트 값 (배열 전체 최솟값) | `T \| undefined` |
-| `left()` | 왼쪽 서브트리 | `CartesianTree<T> \| undefined` |
-| `right()` | 오른쪽 서브트리 | `CartesianTree<T> \| undefined` |
+| `value()` | 루트 값 (배열 전체 최솟값) | `T \| null` |
+| `left()` | 왼쪽 서브트리 | `CartesianTree<T> \| null` |
+| `right()` | 오른쪽 서브트리 | `CartesianTree<T> \| null` |
 | `inOrder()` | 중위 순회 = 원래 배열 복원 | `T[]` |
 | `size()` | 전체 노드 수 | `number` |
 
@@ -86,7 +86,7 @@ export class CartesianTree<T> {
 const tree = CartesianTree.fromArray([5, 10, 40, 10, 20]);
 tree.value();    // 5 (배열 최솟값)
 tree.inOrder();  // [5, 10, 40, 10, 20] (원배열 복원)
-tree.left();     // undefined (5 왼쪽에 없음)
+tree.left();     // null (5 왼쪽에 없음)
 tree.right()?.value();  // 10
 
 // max-heap 기준

@@ -23,7 +23,7 @@ export class KDTree {
   insert(point: Point2D): void
   // 새 점 삽입 — O(log n) 평균
 
-  nearestNeighbor(query: Point2D): Point2D | undefined
+  nearestNeighbor(query: Point2D): Point2D | null
   // 가장 가까운 점 반환 (유클리드 거리 기준) — O(log n) 평균
 
   rangeSearch(min: Point2D, max: Point2D): Point2D[]

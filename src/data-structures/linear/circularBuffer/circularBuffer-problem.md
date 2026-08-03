@@ -17,8 +17,8 @@
 export class CircularBuffer<T> {
   constructor(capacity: number)  // 버퍼 최대 용량 설정, capacity >= 1
   write(item: T): void           // 뒤에 추가, 꽉 차면 가장 오래된 항목 덮어씀
-  read(): T | undefined          // 가장 오래된 항목 제거 후 반환, 비어있으면 undefined
-  peek(): T | undefined          // 가장 오래된 항목 조회 (제거 없음), 비어있으면 undefined
+  read(): T | null          // 가장 오래된 항목 제거 후 반환, 비어있으면 null
+  peek(): T | null          // 가장 오래된 항목 조회 (제거 없음), 비어있으면 null
   isFull(): boolean              // 꽉 찼으면 true
   isEmpty(): boolean             // 비어있으면 true
   size(): number                 // 현재 아이템 개수
@@ -54,7 +54,7 @@ $$\text{size} = \text{(isFull)} ? \text{capacity} : (\text{tail} - \text{head} +
 - 꽉 찬 경우: `buf[tail] = item`, `tail = (tail + 1) % capacity`, `head = (head + 1) % capacity` (오래된 항목 자동 제거)
 
 **read 동작**:
-- 비어있으면 `undefined`
+- 비어있으면 `null`
 - 아니면: `x = buf[head]`, `head = (head + 1) % capacity`, `count--`, return x
 
 ## 예시
@@ -76,5 +76,5 @@ console.log(buf.read());    // 3
 console.log(buf.size());    // 1
 console.log(buf.read());    // 4
 console.log(buf.isEmpty()); // true
-console.log(buf.read());    // undefined
+console.log(buf.read());    // null
 ```

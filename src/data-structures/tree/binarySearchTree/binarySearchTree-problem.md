@@ -19,8 +19,8 @@ export class BinarySearchTree {
   search(key: number): boolean
   delete(key: number): void       // 자식이 둘인 경우 오른쪽 서브트리 최솟값(in-order successor)으로 대체
   inorder(): number[]             // 중위 순회 결과 (오름차순 정렬)
-  min(): number | undefined       // 빈 트리이면 undefined
-  max(): number | undefined       // 빈 트리이면 undefined
+  min(): number | null       // 빈 트리이면 null
+  max(): number | null       // 빈 트리이면 null
 }
 // 평균 O(log n), 정렬된 입력 시 최악 O(n)
 ```
@@ -31,8 +31,8 @@ export class BinarySearchTree {
 | `search(key)` | 키 존재 여부 확인 | `boolean` |
 | `delete(key)` | 키 제거. 자식이 둘이면 in-order successor로 대체 | `void` |
 | `inorder()` | 중위 순회로 오름차순 배열 반환 | `number[]` |
-| `min()` | 최솟값 반환. 빈 트리면 `undefined` | `number \| undefined` |
-| `max()` | 최댓값 반환. 빈 트리면 `undefined` | `number \| undefined` |
+| `min()` | 최솟값 반환. 빈 트리면 `null` | `number \| null` |
+| `max()` | 최댓값 반환. 빈 트리면 `null` | `number \| null` |
 
 ## 제약 조건
 

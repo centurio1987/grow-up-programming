@@ -19,8 +19,8 @@ export class SplayTree<T> {
   insert(value: T): void      // O(log n) 상각
   delete(value: T): boolean   // O(log n) 상각
   has(value: T): boolean      // O(log n) 상각
-  min(): T | undefined
-  max(): T | undefined
+  min(): T | null
+  max(): T | null
   inOrder(): T[]
   size(): number
 }
@@ -31,8 +31,8 @@ export class SplayTree<T> {
 | `insert(value)` | BST 삽입 후 해당 노드를 루트로 스플레이 | `void` |
 | `delete(value)` | 노드 스플레이 후 제거, 두 서브트리 합병 | `boolean` |
 | `has(value)` | 탐색 후 해당 노드(또는 최근 방문 노드)를 스플레이 | `boolean` |
-| `min()` | 최솟값 | `T \| undefined` |
-| `max()` | 최댓값 | `T \| undefined` |
+| `min()` | 최솟값 | `T \| null` |
+| `max()` | 최댓값 | `T \| null` |
 | `inOrder()` | 중위 순회 배열 | `T[]` |
 | `size()` | 노드 수 | `number` |
 

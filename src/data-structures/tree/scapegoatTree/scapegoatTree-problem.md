@@ -66,8 +66,8 @@ $$\text{size}(v.\text{right}) \leq \alpha \cdot \text{size}(v)$$
 ### 서브트리 재구성
 
 ```
-function rebuild(nodes: T[]): Node | undefined:
-  if nodes.length == 0: return undefined
+function rebuild(nodes: T[]): Node | null:
+  if nodes.length == 0: return null
   mid = floor(nodes.length / 2)
   node = new Node(nodes[mid])
   node.left  = rebuild(nodes[0..mid-1])

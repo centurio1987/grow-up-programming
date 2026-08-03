@@ -17,9 +17,9 @@ Fibonacci Heap은 이론적으로 완벽하지만 구현이 매우 복잡하고 
 export class PairingHeap<T> {
   constructor(compare: (a: T, b: T) => number)
   insert(item: T): void                          // O(1)
-  extractMin(): T | undefined                    // O(log n) 상각
+  extractMin(): T | null                    // O(log n) 상각
   merge(other: PairingHeap<T>): PairingHeap<T>  // O(1)
-  peek(): T | undefined                          // O(1)
+  peek(): T | null                          // O(1)
   size(): number                                 // O(1)
   isEmpty(): boolean                             // O(1)
 }
@@ -28,7 +28,7 @@ export class PairingHeap<T> {
 ## 제약 조건
 
 - 비교 함수 `compare(a, b)`는 a < b이면 음수, a === b이면 0, a > b이면 양수를 반환한다.
-- `extractMin`과 `peek`은 힙이 비어 있으면 `undefined`를 반환한다.
+- `extractMin`과 `peek`은 힙이 비어 있으면 `null`을 반환한다.
 - 시간 제한: 1초, 메모리 제한: 256 MB
 
 ## 문제 상세

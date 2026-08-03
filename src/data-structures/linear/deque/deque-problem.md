@@ -17,10 +17,10 @@
 export class Deque<T> {
   pushFront(item: T): void   // 덱 앞에 추가, amortized O(1)
   pushBack(item: T): void    // 덱 뒤에 추가, amortized O(1)
-  popFront(): T | undefined  // 앞 제거 후 반환, 비어있으면 undefined
-  popBack(): T | undefined   // 뒤 제거 후 반환, 비어있으면 undefined
-  peekFront(): T | undefined // 앞 조회 (제거 없음), 비어있으면 undefined
-  peekBack(): T | undefined  // 뒤 조회 (제거 없음), 비어있으면 undefined
+  popFront(): T | null  // 앞 제거 후 반환, 비어있으면 null
+  popBack(): T | null   // 뒤 제거 후 반환, 비어있으면 null
+  peekFront(): T | null // 앞 조회 (제거 없음), 비어있으면 null
+  peekBack(): T | null  // 뒤 조회 (제거 없음), 비어있으면 null
   isEmpty(): boolean         // 비어있으면 true
   size(): number             // 현재 아이템 개수
 }
@@ -71,5 +71,5 @@ console.log(dq.popBack());   // 2
 console.log(dq.size());      // 1
 console.log(dq.popFront());  // 1
 console.log(dq.isEmpty());   // true
-console.log(dq.popBack());   // undefined
+console.log(dq.popBack());   // null
 ```

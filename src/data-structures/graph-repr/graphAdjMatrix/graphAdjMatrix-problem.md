@@ -19,7 +19,7 @@ export class GraphAdjMatrix {
   addEdge(u: number, v: number, weight?: number): void
   removeEdge(u: number, v: number): void
   hasEdge(u: number, v: number): boolean
-  weight(u: number, v: number): number | undefined
+  weight(u: number, v: number): number | null
   neighbors(v: number): number[]
   bfs(start: number): number[]
   dfs(start: number): number[]
@@ -38,7 +38,7 @@ export class GraphAdjMatrix {
 
 **표현 방식**
 
-`matrix[u][v]`에 가중치를 저장한다. 간선이 없으면 `undefined`(또는 `null`)으로 초기화한다.
+`matrix[u][v]`에 가중치를 저장한다. 간선이 없으면 `null`로 초기화한다.
 
 ```
 matrix = [
@@ -64,7 +64,7 @@ matrix = [
 neighbors(v):
   result = []
   for u in 0..V-1:
-    if matrix[v][u] is not undefined:
+    if matrix[v][u] is not null:
       result.push(u)
   return result
 ```

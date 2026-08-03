@@ -16,8 +16,8 @@
 ```ts
 export class Queue<T> {
   enqueue(item: T): void     // 큐 뒤에 아이템 추가, amortized O(1)
-  dequeue(): T | undefined   // 큐 앞 아이템 제거 후 반환, 비어있으면 undefined
-  front(): T | undefined     // 큐 앞 아이템 제거 없이 반환, 비어있으면 undefined
+  dequeue(): T | null   // 큐 앞 아이템 제거 후 반환, 비어있으면 null
+  front(): T | null     // 큐 앞 아이템 제거 없이 반환, 비어있으면 null
   isEmpty(): boolean         // 큐가 비어있으면 true
   size(): number             // 현재 아이템 개수 반환
 }
@@ -62,6 +62,6 @@ console.log(q.dequeue());  // 2
 console.log(q.size());     // 1
 console.log(q.isEmpty());  // false
 console.log(q.dequeue());  // 3
-console.log(q.dequeue());  // undefined (비어있음)
+console.log(q.dequeue());  // null (비어있음)
 console.log(q.isEmpty());  // true
 ```

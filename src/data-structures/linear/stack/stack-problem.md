@@ -17,8 +17,8 @@
 ```ts
 export class Stack<T> {
   push(item: T): void;
-  pop(): T | undefined;
-  peek(): T | undefined;
+  pop(): T | null;
+  peek(): T | null;
   isEmpty(): boolean;
   size(): number;
 }
@@ -27,8 +27,8 @@ export class Stack<T> {
 | 메서드 | 설명 | 반환 |
 |--------|------|------|
 | `push(item)` | 아이템을 스택 맨 위에 추가한다 | `void` |
-| `pop()` | 맨 위 아이템을 제거하고 반환한다. 비어있으면 `undefined` | `T \| undefined` |
-| `peek()` | 맨 위 아이템을 제거하지 않고 반환한다. 비어있으면 `undefined` | `T \| undefined` |
+| `pop()` | 맨 위 아이템을 제거하고 반환한다. 비어있으면 `null` | `T \| null` |
+| `peek()` | 맨 위 아이템을 제거하지 않고 반환한다. 비어있으면 `null` | `T \| null` |
 | `isEmpty()` | 스택이 비어있으면 `true` 반환 | `boolean` |
 | `size()` | 현재 아이템 개수 반환 | `number` |
 
@@ -45,7 +45,7 @@ export class Stack<T> {
 
 내부 저장소는 자유롭게 선택할 수 있지만, `push` / `pop` / `peek` 세 연산 모두 최악의 경우 O(1) 또는 amortized O(1)이어야 한다. `isEmpty()`와 `size()`는 O(1)이어야 한다.
 
-`pop()`과 `peek()`은 스택이 비어있을 때 예외를 던지지 않고 `undefined`를 반환한다.
+`pop()`과 `peek()`은 스택이 비어있을 때 예외를 던지지 않고 `null`을 반환한다.
 
 ## 예시
 
@@ -68,6 +68,6 @@ stack.peek();    // 1
 stack.size();    // 1
 
 stack.pop();     // 1
-stack.pop();     // undefined  (빈 스택에서 pop)
+stack.pop();     // null  (빈 스택에서 pop)
 stack.isEmpty(); // true
 ```

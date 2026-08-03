@@ -19,8 +19,8 @@ export class ConcurrentSkipList<T> {
   insert(value: T): void          // O(log n) 평균
   delete(value: T): boolean       // O(log n) 평균
   has(value: T): boolean          // O(log n) 평균
-  min(): T | undefined
-  max(): T | undefined
+  min(): T | null
+  max(): T | null
   toArray(): T[]                  // 정렬된 배열
   size(): number
 }

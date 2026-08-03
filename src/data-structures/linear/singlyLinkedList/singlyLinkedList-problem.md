@@ -23,7 +23,7 @@ export class ListNode<T> {
 export class SinglyLinkedList<T> {
   prepend(value: T): ListNode<T>;     // O(1) — 맨 앞 삽입
   append(value: T): ListNode<T>;      // O(1) — 맨 뒤 삽입 (tail 포인터 이용)
-  removeFirst(): T | undefined;       // O(1) — 맨 앞 제거
+  removeFirst(): T | null;       // O(1) — 맨 앞 제거
   find(value: T): ListNode<T> | null; // O(n) — 선형 탐색
   toArray(): T[];                     // O(n) — 전체 순회
   size(): number;                     // O(1) — 현재 개수
@@ -34,7 +34,7 @@ export class SinglyLinkedList<T> {
 |--------|------|--------|
 | `prepend(value)` | 리스트 맨 앞에 노드 삽입 | 삽입된 `ListNode<T>` |
 | `append(value)` | 리스트 맨 뒤에 노드 삽입 | 삽입된 `ListNode<T>` |
-| `removeFirst()` | 맨 앞 노드 제거 후 값 반환 | `T \| undefined` |
+| `removeFirst()` | 맨 앞 노드 제거 후 값 반환 | `T \| null` |
 | `find(value)` | 값 일치 첫 노드 탐색 | `ListNode<T> \| null` |
 | `toArray()` | head→tail 순 배열 | `T[]` |
 | `size()` | 노드 개수 | `number` |
@@ -44,7 +44,7 @@ export class SinglyLinkedList<T> {
 - $n \leq 10^5$ (노드 개수)
 - 시간 제한: 1초, 메모리 제한: 256 MB
 - `find`는 참조 동일성(===)으로 비교한다
-- 빈 리스트에서 `removeFirst`를 호출하면 `undefined`를 반환한다
+- 빈 리스트에서 `removeFirst`를 호출하면 `null`을 반환한다
 
 ## 문제 상세
 

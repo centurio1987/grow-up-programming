@@ -17,7 +17,7 @@
 export class HashMapChaining<K, V> {
   constructor(initialCapacity: number = 16)
   set(key: K, value: V): void      // O(1) 평균
-  get(key: K): V | undefined       // O(1) 평균
+  get(key: K): V | null       // O(1) 평균
   has(key: K): boolean             // O(1) 평균
   delete(key: K): boolean          // O(1) 평균, 삭제 성공 시 true
   size(): number                   // O(1)
@@ -29,7 +29,7 @@ export class HashMapChaining<K, V> {
 | 메서드 | 설명 | 반환 |
 |--------|------|------|
 | `set(key, value)` | 키-값 쌍 삽입 또는 값 갱신 | `void` |
-| `get(key)` | 키에 대응하는 값 조회 | `V \| undefined` |
+| `get(key)` | 키에 대응하는 값 조회 | `V \| null` |
 | `has(key)` | 키 존재 여부 확인 | `boolean` |
 | `delete(key)` | 키 삭제, 성공 시 `true` | `boolean` |
 | `size()` | 현재 저장된 항목 수 | `number` |
@@ -88,7 +88,7 @@ map.set("age", 30);
 
 console.log(map.get("name"));  // 42
 console.log(map.get("age"));   // 30
-console.log(map.get("none"));  // undefined
+console.log(map.get("none"));  // null
 
 console.log(map.has("name"));  // true
 console.log(map.has("none"));  // false

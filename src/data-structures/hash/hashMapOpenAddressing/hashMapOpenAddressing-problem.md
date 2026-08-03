@@ -17,7 +17,7 @@
 export class HashMapOpenAddressing<K, V> {
   constructor(initialCapacity: number = 16)
   set(key: K, value: V): void      // O(1) 평균
-  get(key: K): V | undefined       // O(1) 평균
+  get(key: K): V | null       // O(1) 평균
   has(key: K): boolean             // O(1) 평균
   delete(key: K): boolean          // tombstone 마커 사용
   size(): number                   // O(1)
@@ -27,7 +27,7 @@ export class HashMapOpenAddressing<K, V> {
 | 메서드 | 설명 | 반환 |
 |--------|------|------|
 | `set(key, value)` | 키-값 쌍 삽입 또는 값 갱신 | `void` |
-| `get(key)` | 키에 대응하는 값 조회 | `V \| undefined` |
+| `get(key)` | 키에 대응하는 값 조회 | `V \| null` |
 | `has(key)` | 키 존재 여부 확인 | `boolean` |
 | `delete(key)` | tombstone으로 키 삭제, 성공 시 `true` | `boolean` |
 | `size()` | 살아있는 항목 수 | `number` |

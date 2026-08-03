@@ -21,8 +21,8 @@
 export class PriorityQueue<T> {
   constructor(compare: (a: T, b: T) => number)
   enqueue(item: T): void
-  dequeue(): T | undefined
-  peek(): T | undefined
+  dequeue(): T | null
+  peek(): T | null
   size(): number
   isEmpty(): boolean
 }
@@ -32,8 +32,8 @@ export class PriorityQueue<T> {
 |--------|------|--------|-----------|
 | `constructor(compare)` | 비교 함수로 우선순위 큐 생성 | — | O(1) |
 | `enqueue(item)` | 원소 삽입 | `void` | O(log n) |
-| `dequeue()` | 최우선 원소 제거 및 반환 | `T \| undefined` | O(log n) |
-| `peek()` | 최우선 원소 조회 (제거 안 함) | `T \| undefined` | O(1) |
+| `dequeue()` | 최우선 원소 제거 및 반환 | `T \| null` | O(log n) |
+| `peek()` | 최우선 원소 조회 (제거 안 함) | `T \| null` | O(1) |
 | `size()` | 현재 원소 수 | `number` | O(1) |
 | `isEmpty()` | 비어있으면 true | `boolean` | O(1) |
 
