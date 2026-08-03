@@ -29,6 +29,8 @@
  */
 
 export class DynamicArray<T> {
+  // 아직 채워지지 않은 슬롯(size 이상 capacity 미만)은 값이 "없는" 것이 아니라
+  // 프로퍼티 자체가 정의되지 않은 상태이므로 undefined로 둔다.
   private _data: (T | undefined)[];
   private _size: number;
   private _capacity: number;
@@ -50,17 +52,17 @@ export class DynamicArray<T> {
   /**
    * 맨 뒤 원소를 제거하고 반환한다.
    * 원소 개수가 capacity의 1/4 이하이고 capacity > 4이면 절반으로 축소한다.
-   * 비어있으면 undefined를 반환한다.
+   * 비어있으면 null을 반환한다.
    */
-  pop(): T | undefined {
+  pop(): T | null {
     throw new Error("Not implemented");
   }
 
   /**
    * index번 원소를 반환한다.
-   * 범위를 벗어나면 undefined를 반환한다.
+   * 범위를 벗어나면 null을 반환한다.
    */
-  get(index: number): T | undefined {
+  get(index: number): T | null {
     throw new Error("Not implemented");
   }
 

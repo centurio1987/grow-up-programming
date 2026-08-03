@@ -49,7 +49,7 @@ describe("PriorityQueue", () => {
       const result: number[] = [];
       while (!pq.isEmpty()) {
         const val = pq.dequeue();
-        if (val !== undefined) result.push(val);
+        if (val !== null) result.push(val);
       }
       expect(result).toEqual([1, 2, 3, 4, 5]);
     });
@@ -60,7 +60,7 @@ describe("PriorityQueue", () => {
       const result: number[] = [];
       while (!pq.isEmpty()) {
         const val = pq.dequeue();
-        if (val !== undefined) result.push(val);
+        if (val !== null) result.push(val);
       }
       expect(result).toEqual([1, 2, 3, 4, 5]);
     });
@@ -112,14 +112,14 @@ describe("PriorityQueue", () => {
   });
 
   describe("엣지 케이스", () => {
-    test("빈 큐에서 dequeue하면 undefined", () => {
+    test("빈 큐에서 dequeue하면 null", () => {
       const pq = new PriorityQueue<number>(minCompare);
-      expect(pq.dequeue()).toBeUndefined();
+      expect(pq.dequeue()).toBeNull();
     });
 
-    test("빈 큐에서 peek하면 undefined", () => {
+    test("빈 큐에서 peek하면 null", () => {
       const pq = new PriorityQueue<number>(minCompare);
-      expect(pq.peek()).toBeUndefined();
+      expect(pq.peek()).toBeNull();
     });
 
     test("단일 원소 enqueue/dequeue", () => {
@@ -197,7 +197,7 @@ describe("PriorityQueue", () => {
       const results: number[] = [];
       while (!pq.isEmpty()) {
         const val = pq.dequeue();
-        if (val !== undefined) results.push(val);
+        if (val !== null) results.push(val);
       }
       const elapsed = performance.now() - start;
       // 결과가 정렬되어야 함

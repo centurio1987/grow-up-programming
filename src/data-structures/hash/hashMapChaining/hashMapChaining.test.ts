@@ -9,9 +9,9 @@ describe("HashMapChaining", () => {
       expect(map.get("apple")).toBe(1);
     });
 
-    test("없는 키는 undefined를 반환한다", () => {
+    test("없는 키는 null을 반환한다", () => {
       const map = new HashMapChaining<string, number>();
-      expect(map.get("missing")).toBeUndefined();
+      expect(map.get("missing")).toBeNull();
     });
 
     test("has는 키 존재 여부를 반환한다", () => {
@@ -21,11 +21,11 @@ describe("HashMapChaining", () => {
       expect(map.has("y")).toBe(false);
     });
 
-    test("delete 후 get은 undefined를 반환한다", () => {
+    test("delete 후 get은 null을 반환한다", () => {
       const map = new HashMapChaining<string, number>();
       map.set("foo", 42);
       expect(map.delete("foo")).toBe(true);
-      expect(map.get("foo")).toBeUndefined();
+      expect(map.get("foo")).toBeNull();
     });
 
     test("delete는 없는 키에 false를 반환한다", () => {
@@ -90,7 +90,7 @@ describe("HashMapChaining", () => {
       map.set("ab", 1);
       map.set("ba", 2);
       map.delete("ab");
-      expect(map.get("ab")).toBeUndefined();
+      expect(map.get("ab")).toBeNull();
       expect(map.get("ba")).toBe(2);
     });
   });
@@ -120,9 +120,9 @@ describe("HashMapChaining", () => {
   });
 
   describe("엣지", () => {
-    test("빈 맵에서 get은 undefined를 반환한다", () => {
+    test("빈 맵에서 get은 null을 반환한다", () => {
       const map = new HashMapChaining<string, number>();
-      expect(map.get("anything")).toBeUndefined();
+      expect(map.get("anything")).toBeNull();
     });
 
     test("같은 키에 set 두 번 시 값을 덮어쓴다", () => {

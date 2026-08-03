@@ -32,14 +32,14 @@ describe("Queue", () => {
   });
 
   describe("엣지", () => {
-    test("빈 큐에서 dequeue는 undefined를 반환한다", () => {
+    test("빈 큐에서 dequeue는 null을 반환한다", () => {
       const q = new Queue<number>();
-      expect(q.dequeue()).toBeUndefined();
+      expect(q.dequeue()).toBeNull();
     });
 
-    test("빈 큐에서 front는 undefined를 반환한다", () => {
+    test("빈 큐에서 front는 null을 반환한다", () => {
       const q = new Queue<number>();
-      expect(q.front()).toBeUndefined();
+      expect(q.front()).toBeNull();
     });
 
     test("isEmpty — enqueue/dequeue 후 정확히 동작한다", () => {

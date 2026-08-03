@@ -62,14 +62,14 @@ describe("MinHeap", () => {
   });
 
   describe("엣지", () => {
-    test("빈 힙에서 pop은 undefined를 반환한다", () => {
+    test("빈 힙에서 pop은 null을 반환한다", () => {
       const h = new MinHeap<number>((a, b) => a - b);
-      expect(h.pop()).toBeUndefined();
+      expect(h.pop()).toBeNull();
     });
 
-    test("빈 힙에서 peek은 undefined를 반환한다", () => {
+    test("빈 힙에서 peek은 null을 반환한다", () => {
       const h = new MinHeap<number>((a, b) => a - b);
-      expect(h.peek()).toBeUndefined();
+      expect(h.peek()).toBeNull();
     });
 
     test("isEmpty는 상태에 따라 정확히 동작한다", () => {

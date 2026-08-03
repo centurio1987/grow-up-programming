@@ -35,9 +35,9 @@ type RBColor = "RED" | "BLACK";
 
 class RBNode<T> {
   value: T;
-  left: RBNode<T> | undefined = undefined;
-  right: RBNode<T> | undefined = undefined;
-  parent: RBNode<T> | undefined = undefined;
+  left: RBNode<T> | null = null;
+  right: RBNode<T> | null = null;
+  parent: RBNode<T> | null = null;
   color: RBColor = "RED";
 
   constructor(value: T) {
@@ -47,7 +47,7 @@ class RBNode<T> {
 }
 
 export class RedBlackTree<T> {
-  private root: RBNode<T> | undefined = undefined;
+  private root: RBNode<T> | null = null;
   private _size = 0;
   private comparator: (a: T, b: T) => number;
 
@@ -68,11 +68,11 @@ export class RedBlackTree<T> {
     throw new Error("Not implemented");
   }
 
-  min(): T | undefined {
+  min(): T | null {
     throw new Error("Not implemented");
   }
 
-  max(): T | undefined {
+  max(): T | null {
     throw new Error("Not implemented");
   }
 

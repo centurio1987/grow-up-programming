@@ -38,11 +38,11 @@ export class DaryHeap<T> {
     throw new Error("Not implemented");
   }
 
-  pop(): T | undefined {
+  pop(): T | null {
     throw new Error("Not implemented");
   }
 
-  peek(): T | undefined {
+  peek(): T | null {
     throw new Error("Not implemented");
   }
 

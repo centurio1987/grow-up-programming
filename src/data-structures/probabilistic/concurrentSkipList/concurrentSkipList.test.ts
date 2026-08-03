@@ -105,10 +105,10 @@ describe("ConcurrentSkipList", () => {
   });
 
   describe("엣지", () => {
-    test("빈 리스트 — min/max는 undefined", () => {
+    test("빈 리스트 — min/max는 null", () => {
       const sl = new ConcurrentSkipList<number>();
-      expect(sl.min()).toBeUndefined();
-      expect(sl.max()).toBeUndefined();
+      expect(sl.min()).toBeNull();
+      expect(sl.max()).toBeNull();
       expect(sl.size()).toBe(0);
       expect(sl.toArray()).toEqual([]);
     });
@@ -119,8 +119,8 @@ describe("ConcurrentSkipList", () => {
       sl.delete(42);
       expect(sl.size()).toBe(0);
       expect(sl.has(42)).toBe(false);
-      expect(sl.min()).toBeUndefined();
-      expect(sl.max()).toBeUndefined();
+      expect(sl.min()).toBeNull();
+      expect(sl.max()).toBeNull();
     });
 
     test("음수 포함 정렬", () => {

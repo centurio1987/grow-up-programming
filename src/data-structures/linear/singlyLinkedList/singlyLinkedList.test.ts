@@ -80,9 +80,9 @@ describe("SinglyLinkedList", () => {
   });
 
   describe("엣지", () => {
-    test("빈 리스트에서 removeFirst는 undefined를 반환한다", () => {
+    test("빈 리스트에서 removeFirst는 null을 반환한다", () => {
       const list = new SinglyLinkedList<number>();
-      expect(list.removeFirst()).toBeUndefined();
+      expect(list.removeFirst()).toBeNull();
     });
 
     test("빈 리스트에서 find는 null을 반환한다", () => {

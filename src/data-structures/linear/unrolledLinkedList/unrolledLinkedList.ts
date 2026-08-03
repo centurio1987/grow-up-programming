@@ -49,7 +49,7 @@ export class UnrolledLinkedList<T> {
    * tail 청크가 비면 이전 청크를 찾아 tail을 업데이트한다.
    * amortized O(1)
    */
-  pop(): T | undefined {
+  pop(): T | null {
     throw new Error("Not implemented");
   }
 
@@ -58,7 +58,7 @@ export class UnrolledLinkedList<T> {
    * 청크를 순회하며 누적 인덱스를 계산해 위치를 찾는다.
    * O(√n) — 청크 수 ≈ n/chunkSize
    */
-  get(index: number): T | undefined {
+  get(index: number): T | null {
     throw new Error("Not implemented");
   }
 

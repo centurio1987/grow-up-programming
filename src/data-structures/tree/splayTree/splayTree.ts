@@ -31,9 +31,9 @@
 
 class SplayNode<T> {
   value: T;
-  left: SplayNode<T> | undefined = undefined;
-  right: SplayNode<T> | undefined = undefined;
-  parent: SplayNode<T> | undefined = undefined;
+  left: SplayNode<T> | null = null;
+  right: SplayNode<T> | null = null;
+  parent: SplayNode<T> | null = null;
 
   constructor(value: T) {
     this.value = value;
@@ -42,7 +42,7 @@ class SplayNode<T> {
 }
 
 export class SplayTree<T> {
-  private root: SplayNode<T> | undefined = undefined;
+  private root: SplayNode<T> | null = null;
   private _size = 0;
   private comparator: (a: T, b: T) => number;
 
@@ -63,11 +63,11 @@ export class SplayTree<T> {
     throw new Error("Not implemented");
   }
 
-  min(): T | undefined {
+  min(): T | null {
     throw new Error("Not implemented");
   }
 
-  max(): T | undefined {
+  max(): T | null {
     throw new Error("Not implemented");
   }
 

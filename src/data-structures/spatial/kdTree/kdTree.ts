@@ -38,7 +38,7 @@ export class KDTree {
     throw new Error("Not implemented");
   }
 
-  nearestNeighbor(query: Point2D): Point2D | undefined {
+  nearestNeighbor(query: Point2D): Point2D | null {
     throw new Error("Not implemented");
   }
 

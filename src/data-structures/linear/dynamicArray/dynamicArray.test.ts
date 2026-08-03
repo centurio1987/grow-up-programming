@@ -79,17 +79,17 @@ describe("DynamicArray", () => {
   });
 
   describe("엣지", () => {
-    test("빈 배열에서 pop은 undefined를 반환한다", () => {
+    test("빈 배열에서 pop은 null을 반환한다", () => {
       const arr = new DynamicArray<number>();
-      expect(arr.pop()).toBeUndefined();
+      expect(arr.pop()).toBeNull();
     });
 
-    test("범위를 벗어난 get은 undefined를 반환한다", () => {
+    test("범위를 벗어난 get은 null을 반환한다", () => {
       const arr = new DynamicArray<number>();
       arr.push(1);
-      expect(arr.get(-1)).toBeUndefined();
-      expect(arr.get(1)).toBeUndefined();
-      expect(arr.get(100)).toBeUndefined();
+      expect(arr.get(-1)).toBeNull();
+      expect(arr.get(1)).toBeNull();
+      expect(arr.get(100)).toBeNull();
     });
 
     test("범위를 벗어난 set은 아무것도 하지 않는다", () => {

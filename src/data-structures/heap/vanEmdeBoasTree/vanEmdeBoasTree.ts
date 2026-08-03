@@ -17,10 +17,10 @@
  * - insert(x): x를 집합에 삽입한다
  * - delete(x): x를 집합에서 제거한다
  * - has(x): x가 집합에 존재하면 true 반환
- * - min(): 집합의 최솟값 반환 (비어있으면 undefined)
- * - max(): 집합의 최댓값 반환 (비어있으면 undefined)
- * - successor(x): x보다 큰 최솟값 반환 (없으면 undefined)
- * - predecessor(x): x보다 작은 최댓값 반환 (없으면 undefined)
+ * - min(): 집합의 최솟값 반환 (비어있으면 null)
+ * - max(): 집합의 최댓값 반환 (비어있으면 null)
+ * - successor(x): x보다 큰 최솟값 반환 (없으면 null)
+ * - predecessor(x): x보다 작은 최댓값 반환 (없으면 null)
  *
  * 시간복잡도:
  * - insert: O(log log U)
@@ -34,10 +34,10 @@
 
 export class VanEmdeBoasTree {
   private U: number; // universe 크기
-  private _min: number | undefined = undefined;
-  private _max: number | undefined = undefined;
-  private summary: VanEmdeBoasTree | undefined = undefined;
-  private clusters: (VanEmdeBoasTree | undefined)[] = [];
+  private _min: number | null = null;
+  private _max: number | null = null;
+  private summary: VanEmdeBoasTree | null = null;
+  private clusters: (VanEmdeBoasTree | null)[] = [];
 
   /**
    * @param U universe 크기 (2의 거듭제곱 권장). [0, U-1] 범위의 정수를 저장한다.
@@ -68,30 +68,30 @@ export class VanEmdeBoasTree {
   }
 
   /**
-   * 집합의 최솟값을 반환한다. 비어있으면 undefined.
+   * 집합의 최솟값을 반환한다. 비어있으면 null.
    */
-  min(): number | undefined {
+  min(): number | null {
     throw new Error("Not implemented");
   }
 
   /**
-   * 집합의 최댓값을 반환한다. 비어있으면 undefined.
+   * 집합의 최댓값을 반환한다. 비어있으면 null.
    */
-  max(): number | undefined {
+  max(): number | null {
     throw new Error("Not implemented");
   }
 
   /**
-   * x보다 크면서 집합에 존재하는 최솟값을 반환한다. 없으면 undefined.
+   * x보다 크면서 집합에 존재하는 최솟값을 반환한다. 없으면 null.
    */
-  successor(x: number): number | undefined {
+  successor(x: number): number | null {
     throw new Error("Not implemented");
   }
 
   /**
-   * x보다 작으면서 집합에 존재하는 최댓값을 반환한다. 없으면 undefined.
+   * x보다 작으면서 집합에 존재하는 최댓값을 반환한다. 없으면 null.
    */
-  predecessor(x: number): number | undefined {
+  predecessor(x: number): number | null {
     throw new Error("Not implemented");
   }
 }

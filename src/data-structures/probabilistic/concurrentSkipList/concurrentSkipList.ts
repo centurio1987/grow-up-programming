@@ -61,13 +61,13 @@ export class ConcurrentSkipList<T> {
     throw new Error("Not implemented");
   }
 
-  /** 최솟값을 반환합니다. 비어있으면 undefined. O(1) */
-  min(): T | undefined {
+  /** 최솟값을 반환합니다. 비어있으면 null. O(1) */
+  min(): T | null {
     throw new Error("Not implemented");
   }
 
-  /** 최댓값을 반환합니다. 비어있으면 undefined. O(1) */
-  max(): T | undefined {
+  /** 최댓값을 반환합니다. 비어있으면 null. O(1) */
+  max(): T | null {
     throw new Error("Not implemented");
   }
 

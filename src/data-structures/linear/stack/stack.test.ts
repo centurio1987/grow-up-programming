@@ -32,14 +32,14 @@ describe("Stack", () => {
   });
 
   describe("엣지", () => {
-    test("빈 스택에서 pop은 undefined를 반환한다", () => {
+    test("빈 스택에서 pop은 null을 반환한다", () => {
       const s = new Stack<number>();
-      expect(s.pop()).toBeUndefined();
+      expect(s.pop()).toBeNull();
     });
 
-    test("빈 스택에서 peek은 undefined를 반환한다", () => {
+    test("빈 스택에서 peek은 null을 반환한다", () => {
       const s = new Stack<number>();
-      expect(s.peek()).toBeUndefined();
+      expect(s.peek()).toBeNull();
     });
 
     test("isEmpty는 비었을 때 true를 반환한다", () => {

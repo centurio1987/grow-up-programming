@@ -49,11 +49,11 @@ export class BinomialHeap<T> {
     throw new Error("Not implemented");
   }
 
-  extractMin(): T | undefined {
+  extractMin(): T | null {
     throw new Error("Not implemented");
   }
 
-  peek(): T | undefined {
+  peek(): T | null {
     throw new Error("Not implemented");
   }
 

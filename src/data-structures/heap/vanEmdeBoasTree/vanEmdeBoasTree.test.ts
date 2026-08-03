@@ -41,14 +41,14 @@ describe("VanEmdeBoasTree", () => {
   });
 
   describe("min / max", () => {
-    test("빈 트리의 min은 undefined이다", () => {
+    test("빈 트리의 min은 null이다", () => {
       const veb = new VanEmdeBoasTree(16);
-      expect(veb.min()).toBeUndefined();
+      expect(veb.min()).toBeNull();
     });
 
-    test("빈 트리의 max는 undefined이다", () => {
+    test("빈 트리의 max는 null이다", () => {
       const veb = new VanEmdeBoasTree(16);
-      expect(veb.max()).toBeUndefined();
+      expect(veb.max()).toBeNull();
     });
 
     test("단일 원소 삽입 후 min과 max가 그 값이다", () => {
@@ -113,8 +113,8 @@ describe("VanEmdeBoasTree", () => {
       const veb = new VanEmdeBoasTree(16);
       veb.insert(5);
       veb.delete(5);
-      expect(veb.min()).toBeUndefined();
-      expect(veb.max()).toBeUndefined();
+      expect(veb.min()).toBeNull();
+      expect(veb.max()).toBeNull();
     });
 
     test("0 삭제 후 min이 업데이트된다", () => {
@@ -134,10 +134,10 @@ describe("VanEmdeBoasTree", () => {
       expect(veb.successor(10)).toBe(15);
     });
 
-    test("최댓값의 successor는 undefined이다", () => {
+    test("최댓값의 successor는 null이다", () => {
       const veb = new VanEmdeBoasTree(64);
       for (const v of [5, 10, 15]) veb.insert(v);
-      expect(veb.successor(15)).toBeUndefined();
+      expect(veb.successor(15)).toBeNull();
     });
 
     test("없는 값의 successor도 올바르게 반환한다", () => {
@@ -146,9 +146,9 @@ describe("VanEmdeBoasTree", () => {
       expect(veb.successor(7)).toBe(10);
     });
 
-    test("빈 트리의 successor는 undefined이다", () => {
+    test("빈 트리의 successor는 null이다", () => {
       const veb = new VanEmdeBoasTree(16);
-      expect(veb.successor(5)).toBeUndefined();
+      expect(veb.successor(5)).toBeNull();
     });
 
     test("단일 원소 트리에서 그 원소보다 작은 값의 successor는 그 원소이다", () => {
@@ -164,7 +164,7 @@ describe("VanEmdeBoasTree", () => {
       expect(veb.successor(5)).toBe(9);
       expect(veb.successor(9)).toBe(13);
       expect(veb.successor(13)).toBe(17);
-      expect(veb.successor(17)).toBeUndefined();
+      expect(veb.successor(17)).toBeNull();
     });
 
     test("0의 successor를 찾을 수 있다", () => {
@@ -182,10 +182,10 @@ describe("VanEmdeBoasTree", () => {
       expect(veb.predecessor(15)).toBe(10);
     });
 
-    test("최솟값의 predecessor는 undefined이다", () => {
+    test("최솟값의 predecessor는 null이다", () => {
       const veb = new VanEmdeBoasTree(64);
       for (const v of [5, 10, 15]) veb.insert(v);
-      expect(veb.predecessor(5)).toBeUndefined();
+      expect(veb.predecessor(5)).toBeNull();
     });
 
     test("없는 값의 predecessor도 올바르게 반환한다", () => {
@@ -194,9 +194,9 @@ describe("VanEmdeBoasTree", () => {
       expect(veb.predecessor(13)).toBe(10);
     });
 
-    test("빈 트리의 predecessor는 undefined이다", () => {
+    test("빈 트리의 predecessor는 null이다", () => {
       const veb = new VanEmdeBoasTree(16);
-      expect(veb.predecessor(5)).toBeUndefined();
+      expect(veb.predecessor(5)).toBeNull();
     });
 
     test("predecessor 체인이 올바르다", () => {
@@ -206,7 +206,7 @@ describe("VanEmdeBoasTree", () => {
       expect(veb.predecessor(14)).toBe(10);
       expect(veb.predecessor(10)).toBe(6);
       expect(veb.predecessor(6)).toBe(2);
-      expect(veb.predecessor(2)).toBeUndefined();
+      expect(veb.predecessor(2)).toBeNull();
     });
   });
 
@@ -224,7 +224,7 @@ describe("VanEmdeBoasTree", () => {
       const veb = new VanEmdeBoasTree(64);
       for (const v of [3, 9, 17, 31, 47]) veb.insert(v);
       const s = veb.successor(9);
-      if (s !== undefined) {
+      if (s !== null) {
         expect(veb.predecessor(s)).toBe(9);
       }
     });
@@ -282,7 +282,7 @@ describe("VanEmdeBoasTree", () => {
       veb.insert(5);
       expect(veb.min()).toBe(5);
       expect(veb.max()).toBe(5);
-      expect(veb.successor(5)).toBeUndefined();
+      expect(veb.successor(5)).toBeNull();
     });
   });
 

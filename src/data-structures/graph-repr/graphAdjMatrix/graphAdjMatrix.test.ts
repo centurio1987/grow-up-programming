@@ -35,9 +35,9 @@ describe("GraphAdjMatrix", () => {
       expect(g.weight(2, 0)).toBe(7); // 무방향
     });
 
-    test("간선 없는 정점 weight — undefined 반환", () => {
+    test("간선 없는 정점 weight — null 반환", () => {
       const g = new GraphAdjMatrix(3);
-      expect(g.weight(0, 2)).toBeUndefined();
+      expect(g.weight(0, 2)).toBeNull();
     });
 
     test("간선 제거 후 hasEdge false", () => {

@@ -7,7 +7,7 @@
  *
  * 요구사항:
  * - set(key, value): 키-값 쌍을 삽입하거나 값을 갱신한다.
- * - get(key): 키에 해당하는 값을 반환하거나 undefined를 반환한다.
+ * - get(key): 키에 해당하는 값을 반환하거나 null을 반환한다.
  * - has(key): 키 존재 여부를 반환한다.
  * - delete(key): 키를 삭제하고 성공 여부를 반환한다.
  * - size(): 현재 저장된 항목 수를 반환한다.
@@ -44,7 +44,7 @@ export class HashMapChaining<K, V> {
     throw new Error("Not implemented");
   }
 
-  get(key: K): V | undefined {
+  get(key: K): V | null {
     throw new Error("Not implemented");
   }
 

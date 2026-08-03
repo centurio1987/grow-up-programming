@@ -42,17 +42,17 @@ export class MaxHeap<T> {
 
   /**
    * 힙에서 최댓값 원소를 꺼내 반환한다.
-   * 힙이 비어있으면 undefined를 반환한다.
+   * 힙이 비어있으면 null을 반환한다.
    */
-  pop(): T | undefined {
+  pop(): T | null {
     throw new Error("Not implemented");
   }
 
   /**
    * 힙에서 최댓값 원소를 꺼내지 않고 조회한다.
-   * 힙이 비어있으면 undefined를 반환한다.
+   * 힙이 비어있으면 null을 반환한다.
    */
-  peek(): T | undefined {
+  peek(): T | null {
     throw new Error("Not implemented");
   }
 

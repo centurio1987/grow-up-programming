@@ -109,10 +109,10 @@ describe("SplayTree", () => {
   });
 
   describe("엣지", () => {
-    test("빈 트리 min/max는 undefined", () => {
+    test("빈 트리 min/max는 null", () => {
       const tree = new SplayTree<number>();
-      expect(tree.min()).toBeUndefined();
-      expect(tree.max()).toBeUndefined();
+      expect(tree.min()).toBeNull();
+      expect(tree.max()).toBeNull();
     });
 
     test("빈 트리 inOrder는 빈 배열", () => {
@@ -141,7 +141,7 @@ describe("SplayTree", () => {
       tree.insert(42);
       tree.delete(42);
       expect(tree.size()).toBe(0);
-      expect(tree.min()).toBeUndefined();
+      expect(tree.min()).toBeNull();
     });
 
     test("두 자식 있는 노드 삭제 후 정렬 유지", () => {

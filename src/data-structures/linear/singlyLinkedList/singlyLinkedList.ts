@@ -54,9 +54,9 @@ export class SinglyLinkedList<T> {
 
   /**
    * 맨 앞 노드를 제거하고 그 값을 반환한다.
-   * 리스트가 비어있으면 undefined를 반환한다.
+   * 리스트가 비어있으면 null을 반환한다.
    */
-  removeFirst(): T | undefined {
+  removeFirst(): T | null {
     throw new Error("Not implemented");
   }
 

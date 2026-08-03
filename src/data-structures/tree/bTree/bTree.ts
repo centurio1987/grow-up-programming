@@ -30,7 +30,7 @@ class BTreeNode<T> {
 }
 
 export class BTree<T> {
-  private root: BTreeNode<T> | undefined = undefined;
+  private root: BTreeNode<T> | null = null;
   private _size = 0;
   private t: number; // 최소 차수
   private compare: (a: T, b: T) => number;

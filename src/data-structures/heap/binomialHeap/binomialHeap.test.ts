@@ -20,7 +20,7 @@ describe("BinomialHeap", () => {
       const result: number[] = [];
       while (!heap.isEmpty()) {
         const min = heap.extractMin();
-        if (min !== undefined) result.push(min);
+        if (min !== null) result.push(min);
       }
       expect(result).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     });
@@ -89,7 +89,7 @@ describe("BinomialHeap", () => {
       const result: number[] = [];
       while (!merged.isEmpty()) {
         const min = merged.extractMin();
-        if (min !== undefined) result.push(min);
+        if (min !== null) result.push(min);
       }
       expect(result).toEqual([1, 2, 3, 6, 7, 8]);
     });
@@ -134,14 +134,14 @@ describe("BinomialHeap", () => {
   });
 
   describe("엣지", () => {
-    test("빈 힙에서 extractMin은 undefined를 반환한다", () => {
+    test("빈 힙에서 extractMin은 null을 반환한다", () => {
       const heap = new BinomialHeap(cmp);
-      expect(heap.extractMin()).toBeUndefined();
+      expect(heap.extractMin()).toBeNull();
     });
 
-    test("빈 힙에서 peek은 undefined를 반환한다", () => {
+    test("빈 힙에서 peek은 null을 반환한다", () => {
       const heap = new BinomialHeap(cmp);
-      expect(heap.peek()).toBeUndefined();
+      expect(heap.peek()).toBeNull();
     });
 
     test("단 하나의 원소만 있을 때 peek이 올바르다", () => {
@@ -192,7 +192,7 @@ describe("BinomialHeap", () => {
       for (let i = 0; i < 5_000; i++) {
         heap.insert(Math.floor(Math.random() * 100_000));
         const min = heap.extractMin();
-        if (min !== undefined) {
+        if (min !== null) {
           expect(min).toBeGreaterThanOrEqual(last);
           last = min;
         }

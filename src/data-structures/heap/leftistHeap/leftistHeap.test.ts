@@ -20,7 +20,7 @@ describe("LeftistHeap", () => {
       const result: number[] = [];
       while (!heap.isEmpty()) {
         const min = heap.extractMin();
-        if (min !== undefined) result.push(min);
+        if (min !== null) result.push(min);
       }
       expect(result).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     });
@@ -89,7 +89,7 @@ describe("LeftistHeap", () => {
       const result: number[] = [];
       while (!merged.isEmpty()) {
         const min = merged.extractMin();
-        if (min !== undefined) result.push(min);
+        if (min !== null) result.push(min);
       }
       expect(result).toEqual([1, 2, 3, 6, 7, 8]);
     });
@@ -144,14 +144,14 @@ describe("LeftistHeap", () => {
   });
 
   describe("엣지", () => {
-    test("빈 힙에서 extractMin은 undefined를 반환한다", () => {
+    test("빈 힙에서 extractMin은 null을 반환한다", () => {
       const heap = new LeftistHeap(cmp);
-      expect(heap.extractMin()).toBeUndefined();
+      expect(heap.extractMin()).toBeNull();
     });
 
-    test("빈 힙에서 peek은 undefined를 반환한다", () => {
+    test("빈 힙에서 peek은 null을 반환한다", () => {
       const heap = new LeftistHeap(cmp);
-      expect(heap.peek()).toBeUndefined();
+      expect(heap.peek()).toBeNull();
     });
 
     test("음수 포함 삽입 시 올바르게 추출된다", () => {
@@ -197,7 +197,7 @@ describe("LeftistHeap", () => {
       for (let i = 0; i < 5_000; i++) {
         heap.insert(Math.floor(Math.random() * 100_000));
         const min = heap.extractMin();
-        if (min !== undefined) {
+        if (min !== null) {
           expect(min).toBeGreaterThanOrEqual(last);
           last = min;
         }

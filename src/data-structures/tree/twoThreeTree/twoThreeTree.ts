@@ -33,7 +33,7 @@ class TwoThreeNode<T> {
 }
 
 export class TwoThreeTree<T> {
-  private root: TwoThreeNode<T> | undefined = undefined;
+  private root: TwoThreeNode<T> | null = null;
   private _size = 0;
   private compare: (a: T, b: T) => number;
 

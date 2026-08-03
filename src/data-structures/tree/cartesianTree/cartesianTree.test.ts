@@ -27,11 +27,11 @@ describe("CartesianTree", () => {
     });
 
     test("left()와 right()의 루트가 각 서브배열 최솟값", () => {
-      // [5, 10, 40, 10, 20] → 루트=5(인덱스0), left=undefined, right=[10,40,10,20]
+      // [5, 10, 40, 10, 20] → 루트=5(인덱스0), left=null, right=[10,40,10,20]
       const tree = CartesianTree.fromArray([5, 10, 40, 10, 20]);
-      expect(tree.left()).toBeUndefined();
+      expect(tree.left()).toBeNull();
       const right = tree.right();
-      expect(right).toBeDefined();
+      expect(right).not.toBeNull();
       expect(right?.value()).toBe(10);
     });
 
@@ -64,14 +64,14 @@ describe("CartesianTree", () => {
     });
 
     test("힙 성질: 재귀적으로 모든 노드의 값 <= 자식 값", () => {
-      function checkHeap(tree: CartesianTree<number> | undefined): boolean {
-        if (tree === undefined) return true;
+      function checkHeap(tree: CartesianTree<number> | null): boolean {
+        if (tree === null) return true;
         const v = tree.value();
-        if (v === undefined) return true;
+        if (v === null) return true;
         const l = tree.left();
         const r = tree.right();
-        if (l !== undefined && (l.value() ?? Infinity) < v) return false;
-        if (r !== undefined && (r.value() ?? Infinity) < v) return false;
+        if (l !== null && (l.value() ?? Infinity) < v) return false;
+        if (r !== null && (r.value() ?? Infinity) < v) return false;
         return checkHeap(l) && checkHeap(r);
       }
       const arr = [5, 10, 40, 10, 20, 3, 15];
@@ -92,7 +92,7 @@ describe("CartesianTree", () => {
       const arr = [1, 2, 3, 4, 5];
       const tree = CartesianTree.fromArray(arr);
       expect(tree.value()).toBe(1);
-      expect(tree.left()).toBeUndefined();
+      expect(tree.left()).toBeNull();
       expect(tree.right()?.value()).toBe(2);
       expect(tree.inOrder()).toEqual(arr);
     });
@@ -102,7 +102,7 @@ describe("CartesianTree", () => {
       const arr = [5, 4, 3, 2, 1];
       const tree = CartesianTree.fromArray(arr);
       expect(tree.value()).toBe(1);
-      expect(tree.right()).toBeUndefined();
+      expect(tree.right()).toBeNull();
       expect(tree.inOrder()).toEqual(arr);
     });
 
@@ -115,9 +115,9 @@ describe("CartesianTree", () => {
   });
 
   describe("엣지", () => {
-    test("빈 배열 — value() undefined", () => {
+    test("빈 배열 — value() null", () => {
       const tree = CartesianTree.fromArray<number>([]);
-      expect(tree.value()).toBeUndefined();
+      expect(tree.value()).toBeNull();
       expect(tree.size()).toBe(0);
       expect(tree.inOrder()).toEqual([]);
     });
@@ -125,8 +125,8 @@ describe("CartesianTree", () => {
     test("단일 원소 배열", () => {
       const tree = CartesianTree.fromArray([42]);
       expect(tree.value()).toBe(42);
-      expect(tree.left()).toBeUndefined();
-      expect(tree.right()).toBeUndefined();
+      expect(tree.left()).toBeNull();
+      expect(tree.right()).toBeNull();
       expect(tree.inOrder()).toEqual([42]);
     });
 
@@ -134,14 +134,14 @@ describe("CartesianTree", () => {
       const tree = CartesianTree.fromArray([2, 1]);
       expect(tree.value()).toBe(1);
       expect(tree.left()?.value()).toBe(2);
-      expect(tree.right()).toBeUndefined();
+      expect(tree.right()).toBeNull();
       expect(tree.inOrder()).toEqual([2, 1]);
     });
 
     test("두 원소 배열 [1, 2]", () => {
       const tree = CartesianTree.fromArray([1, 2]);
       expect(tree.value()).toBe(1);
-      expect(tree.left()).toBeUndefined();
+      expect(tree.left()).toBeNull();
       expect(tree.right()?.value()).toBe(2);
       expect(tree.inOrder()).toEqual([1, 2]);
     });

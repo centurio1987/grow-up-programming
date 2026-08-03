@@ -9,8 +9,8 @@
  * - delete(key): 키를 BST에서 제거한다. 없으면 무시한다.
  *   자식이 둘인 경우 오른쪽 서브트리의 최솟값(in-order successor)으로 대체한다.
  * - inorder(): 중위 순회 결과를 오름차순 배열로 반환한다.
- * - min(): BST의 최솟값을 반환한다. 비어있으면 undefined를 반환한다.
- * - max(): BST의 최댓값을 반환한다. 비어있으면 undefined를 반환한다.
+ * - min(): BST의 최솟값을 반환한다. 비어있으면 null을 반환한다.
+ * - max(): BST의 최댓값을 반환한다. 비어있으면 null을 반환한다.
  *
  * 시간복잡도 (균형 트리 기준):
  * - insert / search / delete: O(log n) 평균, O(n) 최악
@@ -33,11 +33,11 @@ export class BinarySearchTree {
     throw new Error("Not implemented");
   }
 
-  min(): number | undefined {
+  min(): number | null {
     throw new Error("Not implemented");
   }
 
-  max(): number | undefined {
+  max(): number | null {
     throw new Error("Not implemented");
   }
 }

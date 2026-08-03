@@ -153,10 +153,10 @@ describe("Multiset", () => {
   });
 
   describe("엣지", () => {
-    test("빈 컬렉션 — min/max는 undefined", () => {
+    test("빈 컬렉션 — min/max는 null", () => {
       const ms = new Multiset<number>();
-      expect(ms.min()).toBeUndefined();
-      expect(ms.max()).toBeUndefined();
+      expect(ms.min()).toBeNull();
+      expect(ms.max()).toBeNull();
       expect(ms.size()).toBe(0);
       expect(ms.toArray()).toEqual([]);
     });
@@ -167,7 +167,7 @@ describe("Multiset", () => {
       ms.delete(42);
       expect(ms.size()).toBe(0);
       expect(ms.has(42)).toBe(false);
-      expect(ms.min()).toBeUndefined();
+      expect(ms.min()).toBeNull();
     });
 
     test("음수 포함 정렬", () => {

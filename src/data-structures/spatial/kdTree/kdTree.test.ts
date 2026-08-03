@@ -72,9 +72,9 @@ describe("KDTree", () => {
       expect(result).toEqual([1, 1]);
     });
 
-    test("빈 트리에서 nearestNeighbor는 undefined를 반환한다", () => {
+    test("빈 트리에서 nearestNeighbor는 null을 반환한다", () => {
       const tree = new KDTree();
-      expect(tree.nearestNeighbor([0, 0])).toBeUndefined();
+      expect(tree.nearestNeighbor([0, 0])).toBeNull();
     });
   });
 

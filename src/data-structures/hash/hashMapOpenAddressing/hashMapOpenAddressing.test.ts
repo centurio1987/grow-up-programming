@@ -9,9 +9,9 @@ describe("HashMapOpenAddressing", () => {
       expect(map.get("hello")).toBe(42);
     });
 
-    test("없는 키는 undefined를 반환한다", () => {
+    test("없는 키는 null을 반환한다", () => {
       const map = new HashMapOpenAddressing<string, number>();
-      expect(map.get("missing")).toBeUndefined();
+      expect(map.get("missing")).toBeNull();
     });
 
     test("has는 키 존재 여부를 반환한다", () => {
@@ -21,11 +21,11 @@ describe("HashMapOpenAddressing", () => {
       expect(map.has("y")).toBe(false);
     });
 
-    test("delete 후 get은 undefined를 반환한다", () => {
+    test("delete 후 get은 null을 반환한다", () => {
       const map = new HashMapOpenAddressing<string, number>();
       map.set("foo", 99);
       expect(map.delete("foo")).toBe(true);
-      expect(map.get("foo")).toBeUndefined();
+      expect(map.get("foo")).toBeNull();
       expect(map.has("foo")).toBe(false);
     });
 
@@ -136,9 +136,9 @@ describe("HashMapOpenAddressing", () => {
   });
 
   describe("엣지", () => {
-    test("빈 맵에서 get은 undefined를 반환한다", () => {
+    test("빈 맵에서 get은 null을 반환한다", () => {
       const map = new HashMapOpenAddressing<string, number>();
-      expect(map.get("anything")).toBeUndefined();
+      expect(map.get("anything")).toBeNull();
     });
 
     test("숫자 키도 올바르게 동작한다", () => {

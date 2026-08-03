@@ -75,10 +75,10 @@ describe("BinarySearchTree", () => {
   });
 
   describe("엣지", () => {
-    test("빈 트리에서 min / max는 undefined를 반환한다", () => {
+    test("빈 트리에서 min / max는 null을 반환한다", () => {
       const bst = new BinarySearchTree();
-      expect(bst.min()).toBeUndefined();
-      expect(bst.max()).toBeUndefined();
+      expect(bst.min()).toBeNull();
+      expect(bst.max()).toBeNull();
     });
 
     test("중복 삽입은 무시된다", () => {
@@ -190,7 +190,7 @@ describe("BinarySearchTree", () => {
       bst.insert(50);
       bst.delete(50);
       expect(bst.inorder()).toEqual([]);
-      expect(bst.min()).toBeUndefined();
+      expect(bst.min()).toBeNull();
       bst.insert(7);
       expect(bst.inorder()).toEqual([7]);
     });
@@ -219,8 +219,8 @@ describe("BinarySearchTree", () => {
 
           try {
             expect(bst.inorder()).toEqual(keys);
-            expect(bst.min()).toBe(keys[0]);
-            expect(bst.max()).toBe(keys[n - 1]);
+            expect(bst.min()).toBe(keys[0] ?? null);
+            expect(bst.max()).toBe(keys[n - 1] ?? null);
             for (const k of keys) expect(bst.search(k)).toBe(true);
             expect(bst.search(5)).toBe(false);
           } catch (error) {
@@ -246,8 +246,8 @@ describe("BinarySearchTree", () => {
               expect(bst.inorder()).toEqual(remaining);
               expect(bst.search(target)).toBe(false);
               for (const k of remaining) expect(bst.search(k)).toBe(true);
-              expect(bst.min()).toBe(remaining[0]);
-              expect(bst.max()).toBe(remaining[remaining.length - 1]);
+              expect(bst.min()).toBe(remaining[0] ?? null);
+              expect(bst.max()).toBe(remaining[remaining.length - 1] ?? null);
             } catch (error) {
               throw new Error(
                 `삽입 순서 ${JSON.stringify(order)}, delete(${target}): ${(error as Error).message}`
@@ -274,8 +274,8 @@ describe("BinarySearchTree", () => {
 
               try {
                 expect(bst.inorder()).toEqual(expected);
-                expect(bst.min()).toBe(expected[0]);
-                expect(bst.max()).toBe(expected[expected.length - 1]);
+                expect(bst.min()).toBe(expected[0] ?? null);
+                expect(bst.max()).toBe(expected[expected.length - 1] ?? null);
               } catch (error) {
                 throw new Error(
                   `삽입 순서 ${JSON.stringify(order)}, 삭제 순서 ${JSON.stringify(deleteOrder)}, delete(${target})까지: ${(error as Error).message}`
@@ -328,11 +328,11 @@ describe("BinarySearchTree", () => {
             expect(bst.inorder()).toEqual(expected);
             for (const k of model) expect(bst.search(k)).toBe(true);
             if (expected.length === 0) {
-              expect(bst.min()).toBeUndefined();
-              expect(bst.max()).toBeUndefined();
+              expect(bst.min()).toBeNull();
+              expect(bst.max()).toBeNull();
             } else {
-              expect(bst.min()).toBe(expected[0]);
-              expect(bst.max()).toBe(expected[expected.length - 1]);
+              expect(bst.min()).toBe(expected[0] ?? null);
+              expect(bst.max()).toBe(expected[expected.length - 1] ?? null);
             }
           } catch (error) {
             throw new Error(

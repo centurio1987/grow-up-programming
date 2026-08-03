@@ -5,8 +5,8 @@
  *
  * 요구사항:
  * - enqueue(item): 큐 뒤에 아이템을 추가한다.
- * - dequeue(): 큐 앞에서 아이템을 제거하고 반환한다. 비어있으면 undefined를 반환한다.
- * - front(): 큐 앞 아이템을 제거 없이 반환한다. 비어있으면 undefined를 반환한다.
+ * - dequeue(): 큐 앞에서 아이템을 제거하고 반환한다. 비어있으면 null을 반환한다.
+ * - front(): 큐 앞 아이템을 제거 없이 반환한다. 비어있으면 null을 반환한다.
  * - isEmpty(): 큐가 비어있으면 true를 반환한다.
  * - size(): 현재 아이템 개수를 반환한다.
  *
@@ -18,11 +18,11 @@ export class Queue<T> {
     throw new Error("Not implemented");
   }
 
-  dequeue(): T | undefined {
+  dequeue(): T | null {
     throw new Error("Not implemented");
   }
 
-  front(): T | undefined {
+  front(): T | null {
     throw new Error("Not implemented");
   }
 

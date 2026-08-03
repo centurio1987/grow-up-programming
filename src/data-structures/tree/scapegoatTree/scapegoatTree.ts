@@ -30,8 +30,8 @@
 
 class ScapegoatNode<T> {
   value: T;
-  left: ScapegoatNode<T> | undefined = undefined;
-  right: ScapegoatNode<T> | undefined = undefined;
+  left: ScapegoatNode<T> | null = null;
+  right: ScapegoatNode<T> | null = null;
   deleted: boolean = false; // 논리 삭제 마킹
 
   constructor(value: T) {
@@ -41,7 +41,7 @@ class ScapegoatNode<T> {
 }
 
 export class ScapegoatTree<T> {
-  private root: ScapegoatNode<T> | undefined = undefined;
+  private root: ScapegoatNode<T> | null = null;
   private _size = 0;        // 논리 노드 수 (deleted 제외)
   private _maxSize = 0;     // 재구성 임계값 추적용
   private alpha: number;

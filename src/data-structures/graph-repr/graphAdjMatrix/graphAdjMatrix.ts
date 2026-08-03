@@ -12,7 +12,7 @@
  * - addEdge: 간선 추가 (undirected면 양방향 추가, 가중치 기본값 1)
  * - removeEdge: 간선 제거
  * - hasEdge: 두 정점 간 간선 존재 여부 O(1) 확인
- * - weight: 두 정점 간 가중치 반환 (없으면 undefined)
+ * - weight: 두 정점 간 가중치 반환 (없으면 null)
  * - neighbors: 특정 정점과 연결된 정점 목록
  * - bfs: 너비 우선 탐색으로 방문 순서 반환
  * - dfs: 깊이 우선 탐색으로 방문 순서 반환
@@ -32,7 +32,7 @@
  */
 
 export class GraphAdjMatrix {
-  private matrix: (number | undefined)[][];
+  private matrix: (number | null)[][];
   private directed: boolean;
   private size: number;
 
@@ -52,7 +52,7 @@ export class GraphAdjMatrix {
     throw new Error("Not implemented");
   }
 
-  weight(u: number, v: number): number | undefined {
+  weight(u: number, v: number): number | null {
     throw new Error("Not implemented");
   }
 

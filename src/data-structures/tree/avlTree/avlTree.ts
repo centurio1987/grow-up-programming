@@ -27,8 +27,8 @@
 
 class AVLNode<T> {
   value: T;
-  left: AVLNode<T> | undefined = undefined;
-  right: AVLNode<T> | undefined = undefined;
+  left: AVLNode<T> | null = null;
+  right: AVLNode<T> | null = null;
   height: number = 1;
 
   constructor(value: T) {
@@ -38,7 +38,7 @@ class AVLNode<T> {
 }
 
 export class AVLTree<T> {
-  private root: AVLNode<T> | undefined = undefined;
+  private root: AVLNode<T> | null = null;
   private _size = 0;
   private comparator: (a: T, b: T) => number;
 
@@ -59,11 +59,11 @@ export class AVLTree<T> {
     throw new Error("Not implemented");
   }
 
-  min(): T | undefined {
+  min(): T | null {
     throw new Error("Not implemented");
   }
 
-  max(): T | undefined {
+  max(): T | null {
     throw new Error("Not implemented");
   }
 

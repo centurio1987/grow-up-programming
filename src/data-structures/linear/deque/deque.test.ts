@@ -46,14 +46,14 @@ describe("Deque", () => {
   });
 
   describe("엣지", () => {
-    test("빈 덱에서 popFront는 undefined를 반환한다", () => {
+    test("빈 덱에서 popFront는 null을 반환한다", () => {
       const d = new Deque<number>();
-      expect(d.popFront()).toBeUndefined();
+      expect(d.popFront()).toBeNull();
     });
 
-    test("빈 덱에서 popBack은 undefined를 반환한다", () => {
+    test("빈 덱에서 popBack은 null을 반환한다", () => {
       const d = new Deque<number>();
-      expect(d.popBack()).toBeUndefined();
+      expect(d.popBack()).toBeNull();
     });
 
     test("peekFront / peekBack은 원소를 제거하지 않는다", () => {

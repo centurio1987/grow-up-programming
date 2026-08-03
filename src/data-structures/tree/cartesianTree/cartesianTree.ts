@@ -33,8 +33,8 @@
 
 class CartesianNode<T> {
   value: T;
-  left: CartesianNode<T> | undefined = undefined;
-  right: CartesianNode<T> | undefined = undefined;
+  left: CartesianNode<T> | null = null;
+  right: CartesianNode<T> | null = null;
 
   constructor(value: T) {
     this.value = value;
@@ -43,12 +43,12 @@ class CartesianNode<T> {
 }
 
 export class CartesianTree<T> {
-  private _root: CartesianNode<T> | undefined = undefined;
+  private _root: CartesianNode<T> | null = null;
   private _size = 0;
   private comparator: (a: T, b: T) => number;
 
   private constructor(
-    root: CartesianNode<T> | undefined,
+    root: CartesianNode<T> | null,
     size: number,
     comparator: (a: T, b: T) => number
   ) {
@@ -69,15 +69,15 @@ export class CartesianTree<T> {
     throw new Error("Not implemented");
   }
 
-  value(): T | undefined {
+  value(): T | null {
     throw new Error("Not implemented");
   }
 
-  left(): CartesianTree<T> | undefined {
+  left(): CartesianTree<T> | null {
     throw new Error("Not implemented");
   }
 
-  right(): CartesianTree<T> | undefined {
+  right(): CartesianTree<T> | null {
     throw new Error("Not implemented");
   }
 

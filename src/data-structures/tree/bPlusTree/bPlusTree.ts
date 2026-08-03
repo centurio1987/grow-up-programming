@@ -26,7 +26,7 @@
 
 class BPlusLeafNode<T> {
   keys: T[] = [];
-  next: BPlusLeafNode<T> | undefined = undefined;
+  next: BPlusLeafNode<T> | null = null;
   readonly isLeaf = true;
 }
 
@@ -39,7 +39,7 @@ class BPlusInternalNode<T> {
 type BPlusNode<T> = BPlusInternalNode<T> | BPlusLeafNode<T>;
 
 export class BPlusTree<T> {
-  private root: BPlusNode<T> | undefined = undefined;
+  private root: BPlusNode<T> | null = null;
   private _size = 0;
   private t: number; // 최소 차수
   private compare: (a: T, b: T) => number;

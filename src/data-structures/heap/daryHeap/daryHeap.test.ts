@@ -20,7 +20,7 @@ describe("DaryHeap", () => {
       const result: number[] = [];
       while (!heap.isEmpty()) {
         const min = heap.pop();
-        if (min !== undefined) result.push(min);
+        if (min !== null) result.push(min);
       }
       expect(result).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     });
@@ -61,7 +61,7 @@ describe("DaryHeap", () => {
       const result: number[] = [];
       while (!heap.isEmpty()) {
         const v = heap.pop();
-        if (v !== undefined) result.push(v);
+        if (v !== null) result.push(v);
       }
       expect(result).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
     });
@@ -84,7 +84,7 @@ describe("DaryHeap", () => {
       const result: number[] = [];
       while (!heap.isEmpty()) {
         const v = heap.pop();
-        if (v !== undefined) result.push(v);
+        if (v !== null) result.push(v);
       }
       expect(result).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
     });
@@ -142,14 +142,14 @@ describe("DaryHeap", () => {
   });
 
   describe("엣지", () => {
-    test("빈 힙에서 pop은 undefined를 반환한다", () => {
+    test("빈 힙에서 pop은 null을 반환한다", () => {
       const heap = new DaryHeap(2, (a: number, b: number) => a - b);
-      expect(heap.pop()).toBeUndefined();
+      expect(heap.pop()).toBeNull();
     });
 
-    test("빈 힙에서 peek은 undefined를 반환한다", () => {
+    test("빈 힙에서 peek은 null을 반환한다", () => {
       const heap = new DaryHeap(2, (a: number, b: number) => a - b);
-      expect(heap.peek()).toBeUndefined();
+      expect(heap.peek()).toBeNull();
     });
 
     test("단일 원소 힙에서 pop 후 isEmpty는 true", () => {

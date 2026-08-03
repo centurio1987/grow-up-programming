@@ -42,21 +42,21 @@ describe("UnrolledLinkedList", () => {
   });
 
   describe("엣지 케이스", () => {
-    test("빈 리스트에서 pop은 undefined를 반환한다", () => {
+    test("빈 리스트에서 pop은 null을 반환한다", () => {
       const list = new UnrolledLinkedList<number>();
-      expect(list.pop()).toBeUndefined();
+      expect(list.pop()).toBeNull();
     });
 
-    test("빈 리스트에서 get은 undefined를 반환한다", () => {
+    test("빈 리스트에서 get은 null을 반환한다", () => {
       const list = new UnrolledLinkedList<number>();
-      expect(list.get(0)).toBeUndefined();
+      expect(list.get(0)).toBeNull();
     });
 
-    test("범위를 벗어난 인덱스로 get하면 undefined를 반환한다", () => {
+    test("범위를 벗어난 인덱스로 get하면 null을 반환한다", () => {
       const list = new UnrolledLinkedList<number>();
       list.push(1);
       list.push(2);
-      expect(list.get(5)).toBeUndefined();
+      expect(list.get(5)).toBeNull();
     });
 
     test("빈 리스트의 toArray는 빈 배열을 반환한다", () => {

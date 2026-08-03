@@ -51,7 +51,7 @@ describe("MaxHeap", () => {
       const result: number[] = [];
       while (!heap.isEmpty()) {
         const val = heap.pop();
-        if (val !== undefined) result.push(val);
+        if (val !== null) result.push(val);
       }
       expect(result).toEqual([5, 4, 3, 2, 1]);
     });
@@ -62,7 +62,7 @@ describe("MaxHeap", () => {
       const result: number[] = [];
       while (!heap.isEmpty()) {
         const val = heap.pop();
-        if (val !== undefined) result.push(val);
+        if (val !== null) result.push(val);
       }
       expect(result).toEqual([5, 4, 3, 2, 1]);
     });
@@ -73,7 +73,7 @@ describe("MaxHeap", () => {
       const result: number[] = [];
       while (!heap.isEmpty()) {
         const val = heap.pop();
-        if (val !== undefined) result.push(val);
+        if (val !== null) result.push(val);
       }
       // 내림차순 정렬 확인
       for (let i = 0; i < result.length - 1; i++) {
@@ -94,7 +94,7 @@ describe("MaxHeap", () => {
       const top3: number[] = [];
       for (let i = 0; i < 3; i++) {
         const val = heap.pop();
-        if (val !== undefined) top3.push(val);
+        if (val !== null) top3.push(val);
       }
       expect(top3).toEqual([9, 6, 5]);
     });
@@ -125,14 +125,14 @@ describe("MaxHeap", () => {
   });
 
   describe("엣지 케이스", () => {
-    test("빈 힙에서 pop하면 undefined", () => {
+    test("빈 힙에서 pop하면 null", () => {
       const heap = new MaxHeap<number>(numCompare);
-      expect(heap.pop()).toBeUndefined();
+      expect(heap.pop()).toBeNull();
     });
 
-    test("빈 힙에서 peek하면 undefined", () => {
+    test("빈 힙에서 peek하면 null", () => {
       const heap = new MaxHeap<number>(numCompare);
-      expect(heap.peek()).toBeUndefined();
+      expect(heap.peek()).toBeNull();
     });
 
     test("단일 원소 push/pop", () => {
@@ -203,7 +203,7 @@ describe("MaxHeap", () => {
       const results: number[] = [];
       while (!heap.isEmpty()) {
         const val = heap.pop();
-        if (val !== undefined) results.push(val);
+        if (val !== null) results.push(val);
       }
       // 인접 원소 비교로 내림차순 확인
       for (let i = 0; i < results.length - 1; i++) {
@@ -224,7 +224,7 @@ describe("MaxHeap", () => {
       const results: number[] = [];
       while (!heap.isEmpty()) {
         const val = heap.pop();
-        if (val !== undefined) results.push(val);
+        if (val !== null) results.push(val);
       }
       const elapsed = performance.now() - start;
       expect(results[0]).toBe(n);     // 최댓값 먼저
@@ -255,7 +255,7 @@ describe("MaxHeap", () => {
       const topK: number[] = [];
       for (let i = 0; i < k; i++) {
         const val = heap.pop();
-        if (val !== undefined) topK.push(val);
+        if (val !== null) topK.push(val);
       }
       const elapsed = performance.now() - start;
       expect(topK).toHaveLength(k);

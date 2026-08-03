@@ -61,14 +61,14 @@ describe("CircularBuffer", () => {
   });
 
   describe("엣지", () => {
-    test("빈 버퍼에서 read는 undefined를 반환한다", () => {
+    test("빈 버퍼에서 read는 null을 반환한다", () => {
       const buf = new CircularBuffer<number>(3);
-      expect(buf.read()).toBeUndefined();
+      expect(buf.read()).toBeNull();
     });
 
-    test("빈 버퍼에서 peek은 undefined를 반환한다", () => {
+    test("빈 버퍼에서 peek은 null을 반환한다", () => {
       const buf = new CircularBuffer<number>(3);
-      expect(buf.peek()).toBeUndefined();
+      expect(buf.peek()).toBeNull();
     });
 
     test("peek은 원소를 제거하지 않는다", () => {

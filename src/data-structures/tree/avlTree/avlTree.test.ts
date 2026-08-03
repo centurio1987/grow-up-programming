@@ -141,10 +141,10 @@ describe("AVLTree", () => {
   });
 
   describe("엣지", () => {
-    test("빈 트리 min/max는 undefined", () => {
+    test("빈 트리 min/max는 null", () => {
       const tree = new AVLTree<number>();
-      expect(tree.min()).toBeUndefined();
-      expect(tree.max()).toBeUndefined();
+      expect(tree.min()).toBeNull();
+      expect(tree.max()).toBeNull();
     });
 
     test("빈 트리 inOrder는 빈 배열", () => {
