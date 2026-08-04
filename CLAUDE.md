@@ -9,6 +9,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 주석에 적힌 문제를 보고, 문제를 풀기 위해 필요한 함수를 선언합니다.
 - 주석에 적힌 문제와 함수를 보고, 대응하는 테스트 코드를 생성해야 합니다.
 
+## 집필 규칙의 정본은 플러그인이다
+
+문제 문서와 해설 가이드의 **골격·문체·품질 기준은 이 저장소에 없다.**
+`authoring-kit` 플러그인의 명세(spec)와 퍼소나(voice)에 산다.
+
+| 무엇 | 어디 |
+| --- | --- |
+| 항목 구성 · 항목별 작성 방법 · 범위 원칙 | `.claude/authoring/specs/{algo-guide,ds-guide,problem}/` |
+| 경로 · 빌드 명령 | `.claude/authoring/paths.json` |
+| 지금 서 있는 규칙 조합 | `.claude/authoring.lock.json` |
+| 공통 원칙 · 퍼소나 문체 | 플러그인 + `~/.claude/authoring/` (전역 — 여러 프로젝트가 함께 쓴다) |
+| 템플릿(캔버스) · 시뮬 규격 | `.claude/skills/guide-for-problem/` (프로젝트 소유) |
+
+**규칙을 스킬 문서에 다시 쓰지 않는다.** 세 프로젝트가 같은 규칙을 각자 한 벌씩 들고 있다가
+갈라진 것을 정리한 결과다. 바꾸려면 spec 이나 voice 를 고친다.
+
+집필 진입점은 그대로 `guide-for-problem` · `gen-problem` 이고, 둘 다 내부에서
+`authoring-kit:authoring-write` 로 넘긴다. 플러그인이 없으면 **명확히 실패한다** —
+구 경로로 조용히 돌아가지 않는다. 구 자산은 git 이력에만 남아 있다.
+
 ## Runtime & Package Manager
 
 This project uses **Bun** exclusively. Do not use Node.js, npm, yarn, pnpm, or npx.

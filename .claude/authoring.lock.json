@@ -1,0 +1,35 @@
+{
+  "$schema": "authoring-kit/lock@1",
+  "schema_version": 1,
+  "project": {
+    "label": "grow-up-programming",
+    "key": "fcd5ef7d64d0"
+  },
+  "plugin": {
+    "name": "authoring-kit",
+    "version": "0.2.0"
+  },
+  "principles": {
+    "source": "/Users/centurio/.claude/authoring/principles",
+    "remote": "git@github.com:centurio1987/my-claude-env.git",
+    "revision": "93547114e85336b9a4e40057235e07572a4f0806",
+    "files": {
+      "L0_MACHINE_RHYTHM.md": "sha256:58cfdb86f7b7c8b0",
+      "L0_NATURAL_KOREAN.md": "sha256:69b63b53c8ab8b12",
+      "L0_PRINCIPLES.md": "sha256:b11c70ec0e997b92",
+      "QUALITY_RUBRIC.md": "sha256:0620478120e91308"
+    }
+  },
+  "voices": {
+    "ppangto": "sha256:b677605294375577",
+    "ppangtolab-prof": "sha256:608c357bb354a8d2",
+    "ppangtolab-researcher": "sha256:9aa16d4b24e7fca0",
+    "ppangtolab-teacher": "sha256:75333be9f082778d",
+    "yundeok": "sha256:b35dc23799c2187a"
+  },
+  "specs": {
+    "algo-guide": "sha256:94bee0e9d9229fb4",
+    "ds-guide": "sha256:6d627cf72be67167",
+    "problem": "sha256:6794ecf26dc9e5ff"
+  }
+}
