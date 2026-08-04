@@ -72,8 +72,8 @@
     ```text
     문제는 제거한다.
     ```
-- `KAN-003` [P0-a·3] 규약2 — 계약 스위트 규격(축1~3·성장률 판정) — 생성:ai · 최종:ai · 갱신:2026-08-02
-  - 메모: 공수 L·리스크 상. runContract(factory,opts). 축1 동작(언어 중립 JSON vector는 이 축 전용)/축2 불변식/축3 복잡도. 축3은 절대 카운트 금지, 구현이 __cost만 노출하고 성장비율 r=C(4n)/C(n)로 판정. n∈{2^10,2^12,2^14}, 허용치 ±30%, worst=단일 최대·amortized=시퀀스 평균·expected=seed 5개 중앙값, 균형 구조는 높이 직접 검사. 적대적 입력 필수. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
+- `KAN-003` [P0-a·3] 규약2 — 계약 스위트 규격(축1~3·성장률 판정) — 생성:ai · 최종:ai · 갱신:2026-08-04
+  - 메모: 공수 L·리스크 상. runContract(factory,opts). 축1 동작(언어 중립 JSON vector 는 이 축 전용)/축2 불변식/축3 복잡도. 축3 은 절대 카운트 금지, 구현이 __cost 만 노출하고 성장비율 r=C(4n)/C(n) 로 판정. n∈{2^10,2^12,2^14}, 허용치 ±30%, worst=단일 최대·amortized=시퀀스 평균·expected=seed 5개 중앙값, 균형 구조는 높이 직접 검사. 적대적 입력 필수. **B1 에서 숙제가 하나 추가됐다(2026-08-04): 동시성 축을 별도로 정의해야 한다.** KAN-007 이 concurrentSkipList 를 Rust 전용으로 존치하기로 확정하면서 계약에 선형화(linearizability)와 진행 보장(lock-freedom)이 들어왔는데, 3축은 __cost 누적 카운터 기반이라 이것을 담지 못한다. 대상은 현재 concurrentSkipList 하나뿐이므로 축을 3축과 대등하게 세울지 부속 등급으로 둘지도 여기서 정한다. **검증 등급 이름을 이 카드가 확정한다** — 그전까지 docs/ORD-006-inventory.tsv 의 verification_grade 열은 전 행 '-' 로 비어 있다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md / docs/ORD-006-conventions.md
   - 원문:
     ```text
     테스트는 자료구조가 제대로 작동하며, 불변식을 지키고, 해당 자료구조로써 필요충분조건을 충족했는지 파악한다.
