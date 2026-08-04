@@ -53,6 +53,22 @@ Test files use `bun:test` (Jest-compatible API):
 import { test, expect } from "bun:test";
 ```
 
+## 검증 명령 (이 이름 그대로 쓴다)
+
+```bash
+bun test                                        # 테스트
+bunx tsc --noEmit                               # 타입
+bunx --bun @biomejs/biome check <경로>          # 린트·포맷 (--write 로 수정)
+bun run tools/check-citations.ts                # 문서·코드의 `경로:줄번호` 인용 검증
+```
+
+**`bunx biome` 을 쓰지 않는다.** npm 의 `biome` 은 이 저장소가 설정한 `@biomejs/biome`
+(`biome.json`)와 **다른 패키지**다. 아무것도 검사하지 않고 exit 0 을 돌려주므로, 그걸로
+"린트 통과"를 확인하면 확인한 적이 없는 것이 통과로 보고된다. 실제로 한 번 그렇게 보고됐다.
+
+린트 기준선: 저장소 전체는 미정리 상태다(`noNonNullAssertion` 다수, 대부분 `_scratch/`·
+`_deprecated/`). **새로 쓰는 파일은 경고 0 으로 둔다.** 전체 정리는 별건이다.
+
 ## Preferred APIs (use Bun built-ins, not npm packages)
 
 | Task | Use | Avoid |
