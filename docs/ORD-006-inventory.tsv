@@ -21,7 +21,7 @@ src/data-structures/heap/priorityQueue	heap	priorityQueue	-	-	-	98	373	false
 src/data-structures/heap/vanEmdeBoasTree	heap	vanEmdeBoasTree	-	-	-	107	402	false
 src/data-structures/linear/bitArray	linear	bitArray	-	-	-	96	320	false
 src/data-structures/linear/circularBuffer	linear	circularBuffer	-	-	-	80	312	false
-src/data-structures/linear/deque	linear	deque	A	-	-	75	720	false
+src/data-structures/linear/deque	linear	deque	A	complexity	-	0	720	true
 src/data-structures/linear/doublyLinkedList	linear	doublyLinkedList	-	-	-	78	312	false
 src/data-structures/linear/dynamicArray	linear	dynamicArray	-	-	-	78	325	false
 src/data-structures/linear/gapBuffer	linear	gapBuffer	-	-	-	81	319	false

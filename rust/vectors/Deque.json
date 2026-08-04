@@ -1,0 +1,1010 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "Deque",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 덱에서 pop·peek 은 양쪽 모두 null 이고 상태를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "popFront",
+          "expect": null
+        },
+        {
+          "op": "popBack",
+          "expect": null
+        },
+        {
+          "op": "peekFront",
+          "expect": null
+        },
+        {
+          "op": "peekBack",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "원소가 하나면 양 끝이 같은 원소를 가리킨다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "pushBack",
+          "arg": 7
+        },
+        {
+          "op": "peekFront",
+          "expect": 7
+        },
+        {
+          "op": "peekBack",
+          "expect": 7
+        },
+        {
+          "op": "popBack",
+          "expect": 7
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "한쪽으로 넣고 반대쪽으로 빼면 넣은 순서로 나온다 (큐)",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "pushBack",
+          "arg": 1
+        },
+        {
+          "op": "pushBack",
+          "arg": 2
+        },
+        {
+          "op": "pushBack",
+          "arg": 3
+        },
+        {
+          "op": "popFront",
+          "expect": 1
+        },
+        {
+          "op": "popFront",
+          "expect": 2
+        },
+        {
+          "op": "popFront",
+          "expect": 3
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "한쪽으로 넣고 같은 쪽으로 빼면 역순으로 나온다 (스택)",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "pushFront",
+          "arg": 1
+        },
+        {
+          "op": "pushFront",
+          "arg": 2
+        },
+        {
+          "op": "pushFront",
+          "arg": 3
+        },
+        {
+          "op": "popFront",
+          "expect": 3
+        },
+        {
+          "op": "popFront",
+          "expect": 2
+        },
+        {
+          "op": "popFront",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "양쪽에서 넣으면 나중에 넣은 앞 원소가 더 앞에 온다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "pushBack",
+          "arg": 1
+        },
+        {
+          "op": "pushBack",
+          "arg": 2
+        },
+        {
+          "op": "pushFront",
+          "arg": 0
+        },
+        {
+          "op": "peekFront",
+          "expect": 0
+        },
+        {
+          "op": "peekBack",
+          "expect": 2
+        },
+        {
+          "op": "popFront",
+          "expect": 0
+        },
+        {
+          "op": "popBack",
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "비웠다가 다시 채워도 양 끝이 어긋나지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "pushFront",
+          "arg": 5
+        },
+        {
+          "op": "popBack",
+          "expect": 5
+        },
+        {
+          "op": "popFront",
+          "expect": null
+        },
+        {
+          "op": "pushBack",
+          "arg": 6
+        },
+        {
+          "op": "peekFront",
+          "expect": 6
+        },
+        {
+          "op": "peekBack",
+          "expect": 6
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "peekBack",
+          "expect": null
+        },
+        {
+          "op": "pushFront",
+          "arg": 52
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "popFront",
+          "expect": 52
+        },
+        {
+          "op": "peekFront",
+          "expect": null
+        },
+        {
+          "op": "peekBack",
+          "expect": null
+        },
+        {
+          "op": "popBack",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "popBack",
+          "expect": null
+        },
+        {
+          "op": "popBack",
+          "expect": null
+        },
+        {
+          "op": "pushBack",
+          "arg": 40
+        },
+        {
+          "op": "pushBack",
+          "arg": 15
+        },
+        {
+          "op": "popBack",
+          "expect": 15
+        },
+        {
+          "op": "pushFront",
+          "arg": 39
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "popFront",
+          "expect": 39
+        },
+        {
+          "op": "pushBack",
+          "arg": 4
+        },
+        {
+          "op": "popBack",
+          "expect": 4
+        },
+        {
+          "op": "peekFront",
+          "expect": 40
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "popFront",
+          "expect": 40
+        },
+        {
+          "op": "pushBack",
+          "arg": 65
+        },
+        {
+          "op": "peekFront",
+          "expect": 65
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pushBack",
+          "arg": 72
+        },
+        {
+          "op": "popBack",
+          "expect": 72
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "pushBack",
+          "arg": 75
+        },
+        {
+          "op": "pushBack",
+          "arg": 32
+        },
+        {
+          "op": "popBack",
+          "expect": 32
+        },
+        {
+          "op": "pushBack",
+          "arg": 15
+        },
+        {
+          "op": "peekBack",
+          "expect": 15
+        },
+        {
+          "op": "peekFront",
+          "expect": 65
+        },
+        {
+          "op": "pushBack",
+          "arg": 26
+        },
+        {
+          "op": "pushFront",
+          "arg": 62
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pushBack",
+          "arg": 98
+        },
+        {
+          "op": "peekBack",
+          "expect": 98
+        },
+        {
+          "op": "popBack",
+          "expect": 98
+        },
+        {
+          "op": "popFront",
+          "expect": 62
+        },
+        {
+          "op": "peekBack",
+          "expect": 26
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "peekBack",
+          "expect": 26
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "pushFront",
+          "arg": 3
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "popFront",
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "peekFront",
+          "expect": 65
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "peekBack",
+          "expect": 26
+        },
+        {
+          "op": "pushBack",
+          "arg": 67
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "pushBack",
+          "arg": 97
+        },
+        {
+          "op": "pushBack",
+          "arg": 38
+        },
+        {
+          "op": "pushFront",
+          "arg": 40
+        },
+        {
+          "op": "popFront",
+          "expect": 40
+        },
+        {
+          "op": "peekBack",
+          "expect": 38
+        },
+        {
+          "op": "peekFront",
+          "expect": 65
+        },
+        {
+          "op": "peekFront",
+          "expect": 65
+        },
+        {
+          "op": "pushFront",
+          "arg": 80
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "popFront",
+          "expect": 80
+        },
+        {
+          "op": "pushBack",
+          "arg": 30
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "popFront",
+          "expect": 65
+        },
+        {
+          "op": "pushBack",
+          "arg": 65
+        },
+        {
+          "op": "peekFront",
+          "expect": 75
+        },
+        {
+          "op": "popFront",
+          "expect": 75
+        },
+        {
+          "op": "pushFront",
+          "arg": 14
+        },
+        {
+          "op": "pushFront",
+          "arg": 30
+        },
+        {
+          "op": "peekBack",
+          "expect": 65
+        },
+        {
+          "op": "peekBack",
+          "expect": 65
+        },
+        {
+          "op": "pushFront",
+          "arg": 50
+        },
+        {
+          "op": "peekFront",
+          "expect": 50
+        },
+        {
+          "op": "pushBack",
+          "arg": 79
+        },
+        {
+          "op": "popFront",
+          "expect": 50
+        },
+        {
+          "op": "size",
+          "expect": 10
+        },
+        {
+          "op": "size",
+          "expect": 10
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pushFront",
+          "arg": 18
+        },
+        {
+          "op": "pushFront",
+          "arg": 98
+        },
+        {
+          "op": "popFront",
+          "expect": 98
+        },
+        {
+          "op": "peekBack",
+          "expect": 79
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pushFront",
+          "arg": 25
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pushBack",
+          "arg": 9
+        },
+        {
+          "op": "pushBack",
+          "arg": 40
+        },
+        {
+          "op": "peekFront",
+          "expect": 25
+        },
+        {
+          "op": "popFront",
+          "expect": 25
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "popFront",
+          "expect": 18
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peekBack",
+          "expect": 40
+        },
+        {
+          "op": "peekBack",
+          "expect": 40
+        },
+        {
+          "op": "pushBack",
+          "arg": 38
+        },
+        {
+          "op": "popFront",
+          "expect": 30
+        },
+        {
+          "op": "pushBack",
+          "arg": 26
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "pushBack",
+          "arg": 32
+        },
+        {
+          "op": "pushFront",
+          "arg": 3
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "popBack",
+          "expect": 32
+        },
+        {
+          "op": "pushBack",
+          "arg": 14
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "popFront",
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 14
+        },
+        {
+          "op": "peekFront",
+          "expect": 14
+        },
+        {
+          "op": "popBack",
+          "expect": 14
+        },
+        {
+          "op": "peekBack",
+          "expect": 26
+        },
+        {
+          "op": "popFront",
+          "expect": 14
+        },
+        {
+          "op": "pushBack",
+          "arg": 53
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pushFront",
+          "arg": 20
+        },
+        {
+          "op": "peekBack",
+          "expect": 53
+        },
+        {
+          "op": "peekBack",
+          "expect": 53
+        },
+        {
+          "op": "pushFront",
+          "arg": 32
+        },
+        {
+          "op": "popBack",
+          "expect": 53
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peekBack",
+          "expect": 26
+        },
+        {
+          "op": "popFront",
+          "expect": 32
+        },
+        {
+          "op": "popFront",
+          "expect": 20
+        },
+        {
+          "op": "peekFront",
+          "expect": 15
+        },
+        {
+          "op": "pushFront",
+          "arg": 92
+        },
+        {
+          "op": "peekFront",
+          "expect": 92
+        },
+        {
+          "op": "peekFront",
+          "expect": 92
+        },
+        {
+          "op": "peekBack",
+          "expect": 26
+        },
+        {
+          "op": "pushFront",
+          "arg": 7
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pushBack",
+          "arg": 71
+        },
+        {
+          "op": "popFront",
+          "expect": 7
+        },
+        {
+          "op": "peekBack",
+          "expect": 71
+        },
+        {
+          "op": "popFront",
+          "expect": 92
+        },
+        {
+          "op": "peekFront",
+          "expect": 15
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "pushFront",
+          "arg": 11
+        },
+        {
+          "op": "pushBack",
+          "arg": 68
+        },
+        {
+          "op": "pushFront",
+          "arg": 52
+        },
+        {
+          "op": "popBack",
+          "expect": 68
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "popFront",
+          "expect": 52
+        },
+        {
+          "op": "pushFront",
+          "arg": 99
+        },
+        {
+          "op": "size",
+          "expect": 15
+        },
+        {
+          "op": "pushFront",
+          "arg": 86
+        },
+        {
+          "op": "pushFront",
+          "arg": 39
+        },
+        {
+          "op": "peekFront",
+          "expect": 39
+        },
+        {
+          "op": "peekFront",
+          "expect": 39
+        },
+        {
+          "op": "popBack",
+          "expect": 71
+        },
+        {
+          "op": "peekBack",
+          "expect": 26
+        },
+        {
+          "op": "pushBack",
+          "arg": 28
+        },
+        {
+          "op": "size",
+          "expect": 17
+        },
+        {
+          "op": "peekFront",
+          "expect": 39
+        },
+        {
+          "op": "peekFront",
+          "expect": 39
+        },
+        {
+          "op": "pushFront",
+          "arg": 16
+        },
+        {
+          "op": "peekFront",
+          "expect": 16
+        },
+        {
+          "op": "pushBack",
+          "arg": 15
+        },
+        {
+          "op": "peekBack",
+          "expect": 15
+        },
+        {
+          "op": "peekFront",
+          "expect": 16
+        },
+        {
+          "op": "pushFront",
+          "arg": 6
+        },
+        {
+          "op": "pushFront",
+          "arg": 40
+        },
+        {
+          "op": "peekBack",
+          "expect": 15
+        },
+        {
+          "op": "peekBack",
+          "expect": 15
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peekBack",
+          "expect": 15
+        },
+        {
+          "op": "peekBack",
+          "expect": 15
+        },
+        {
+          "op": "size",
+          "expect": 21
+        },
+        {
+          "op": "pushFront",
+          "arg": 86
+        },
+        {
+          "op": "size",
+          "expect": 22
+        },
+        {
+          "op": "pushFront",
+          "arg": 82
+        },
+        {
+          "op": "peekFront",
+          "expect": 82
+        },
+        {
+          "op": "peekFront",
+          "expect": 82
+        },
+        {
+          "op": "popFront",
+          "expect": 82
+        },
+        {
+          "op": "pushFront",
+          "arg": 8
+        },
+        {
+          "op": "peekBack",
+          "expect": 15
+        },
+        {
+          "op": "popBack",
+          "expect": 15
+        },
+        {
+          "op": "pushFront",
+          "arg": 50
+        },
+        {
+          "op": "peekFront",
+          "expect": 50
+        },
+        {
+          "op": "peekBack",
+          "expect": 28
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "popBack",
+          "expect": 28
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pushFront",
+          "arg": 39
+        },
+        {
+          "op": "peekBack",
+          "expect": 26
+        },
+        {
+          "op": "pushBack",
+          "arg": 87
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pushFront",
+          "arg": 18
+        },
+        {
+          "op": "peekBack",
+          "expect": 87
+        },
+        {
+          "op": "pushFront",
+          "arg": 80
+        },
+        {
+          "op": "size",
+          "expect": 26
+        }
+      ]
+    }
+  ]
+}

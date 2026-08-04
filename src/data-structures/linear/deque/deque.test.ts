@@ -1,111 +1,24 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `linear/deque` 계약 스위트 실행부(규약2).
+ *
+ * 여기에는 `runContract` 호출만 둔다. 무엇을 검사하는지는 `./deque.contract.ts` 에 있고,
+ * 계약 자체는 `./deque.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다.
+ * 축3은 계측기가 붙은 정본에만 돈다 — 학습자 스텁에 `__cost` 를 요구하지 않는다.
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 고정 n 의 벽시계 임계값은 복잡도 등급이 아니라
+ * 그 기계의 상수를 잰다.
+ */
+
+import { runContract } from "../../_contract/runContract";
+import { Deque as Reference } from "./_reference/deque";
 import { Deque } from "./deque";
+import { dequeContract } from "./deque.contract";
 
-describe("Deque", () => {
-  describe("기본", () => {
-    test("pushBack 후 popFront는 FIFO로 반환한다", () => {
-      const d = new Deque<number>();
-      d.pushBack(1);
-      d.pushBack(2);
-      d.pushBack(3);
-      expect(d.popFront()).toBe(1);
-      expect(d.popFront()).toBe(2);
-      expect(d.popFront()).toBe(3);
-    });
+runContract(() => new Deque<number>(), dequeContract, { label: "스텁" });
 
-    test("pushFront 후 popFront는 LIFO로 반환한다", () => {
-      const d = new Deque<number>();
-      d.pushFront(1);
-      d.pushFront(2);
-      d.pushFront(3);
-      expect(d.popFront()).toBe(3);
-      expect(d.popFront()).toBe(2);
-      expect(d.popFront()).toBe(1);
-    });
-
-    test("pushBack 후 popBack은 LIFO로 반환한다", () => {
-      const d = new Deque<number>();
-      d.pushBack(1);
-      d.pushBack(2);
-      d.pushBack(3);
-      expect(d.popBack()).toBe(3);
-      expect(d.popBack()).toBe(2);
-      expect(d.popBack()).toBe(1);
-    });
-
-    test("혼합 — 앞/뒤 번갈아 삽입 후 순서 검증", () => {
-      const d = new Deque<number>();
-      d.pushBack(2);
-      d.pushFront(1);
-      d.pushBack(3);
-      // 순서: 1, 2, 3
-      expect(d.popFront()).toBe(1);
-      expect(d.popFront()).toBe(2);
-      expect(d.popFront()).toBe(3);
-    });
-  });
-
-  describe("엣지", () => {
-    test("빈 덱에서 popFront는 null을 반환한다", () => {
-      const d = new Deque<number>();
-      expect(d.popFront()).toBeNull();
-    });
-
-    test("빈 덱에서 popBack은 null을 반환한다", () => {
-      const d = new Deque<number>();
-      expect(d.popBack()).toBeNull();
-    });
-
-    test("peekFront / peekBack은 원소를 제거하지 않는다", () => {
-      const d = new Deque<number>();
-      d.pushBack(10);
-      d.pushBack(20);
-      expect(d.peekFront()).toBe(10);
-      expect(d.peekBack()).toBe(20);
-      expect(d.size()).toBe(2);
-    });
-
-    test("isEmpty — 삽입/삭제 후 정확히 동작한다", () => {
-      const d = new Deque<number>();
-      expect(d.isEmpty()).toBe(true);
-      d.pushBack(1);
-      expect(d.isEmpty()).toBe(false);
-      d.popFront();
-      expect(d.isEmpty()).toBe(true);
-    });
-  });
-
-  describe("바운더리", () => {
-    test("단일 원소 — pushFront/popBack", () => {
-      const d = new Deque<number>();
-      d.pushFront(7);
-      expect(d.popBack()).toBe(7);
-      expect(d.isEmpty()).toBe(true);
-    });
-
-    test("peekFront / peekBack이 같은 경우 — 원소 1개", () => {
-      const d = new Deque<number>();
-      d.pushBack(42);
-      expect(d.peekFront()).toBe(42);
-      expect(d.peekBack()).toBe(42);
-    });
-  });
-
-  describe("성능", () => {
-    test("10^6 push/pop을 200ms 이내에 처리한다", () => {
-      const d = new Deque<number>();
-      const N = 1_000_000;
-      const start = performance.now();
-      for (let i = 0; i < N; i++) {
-        if (i % 2 === 0) d.pushBack(i);
-        else d.pushFront(i);
-      }
-      for (let i = 0; i < N; i++) {
-        if (i % 2 === 0) d.popFront();
-        else d.popBack();
-      }
-      expect(performance.now() - start).toBeLessThan(200);
-      expect(d.isEmpty()).toBe(true);
-    });
-  });
+runContract(() => new Reference<number>(), dequeContract, {
+  label: "정본",
+  cost: { kind: "self-reported", make: () => new Reference<number>() },
 });

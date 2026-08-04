@@ -21,6 +21,7 @@ import { join, resolve } from "node:path";
 import { rngFrom } from "../src/data-structures/_contract/judge.ts";
 import type { ContractSpec } from "../src/data-structures/_contract/runContract.ts";
 import { multisetContract } from "../src/data-structures/hash/multiset/multiset.contract.ts";
+import { dequeContract } from "../src/data-structures/linear/deque/deque.contract.ts";
 import { stackContract } from "../src/data-structures/linear/stack/stack.contract.ts";
 
 const root = resolve(import.meta.dir, "..");
@@ -115,7 +116,11 @@ function buildVector<Impl, Model>(spec: ContractSpec<Impl, Model>): Vector {
 }
 
 // biome-ignore lint/suspicious/noExplicitAny: 여러 구조의 spec 을 한 배열에 담는 자리다
-const SPECS: ContractSpec<any, any>[] = [stackContract, multisetContract];
+const SPECS: ContractSpec<any, any>[] = [
+  stackContract,
+  multisetContract,
+  dequeContract,
+];
 
 const check = Bun.argv.includes("--check");
 const drifted: string[] = [];

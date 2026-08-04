@@ -74,6 +74,7 @@ const VERIFICATION_GRADES: Record<
 > = {
   "linear/stack": "basic",
   "hash/multiset": "complexity",
+  "linear/deque": "complexity",
 };
 
 /** ORDER.md:39-63 진단 표 9종. 키는 `<category>/<name>`. 이 표 밖은 전부 `-`. */
@@ -116,7 +117,9 @@ const rows: string[][] = [];
 const seenKeys = new Set<string>();
 
 for (const category of categories) {
-  const names = (await readdir(join(scanRoot, category), { withFileTypes: true }))
+  const names = (
+    await readdir(join(scanRoot, category), { withFileTypes: true })
+  )
     .filter((e) => e.isDirectory() && !e.name.startsWith("_"))
     .map((e) => e.name)
     .sort();
@@ -144,7 +147,11 @@ for (const category of categories) {
 for (const [label, table, source] of [
   ["결함등급", DEFECT_GRADES, "ORDER.md:39-63 진단 표"],
   ["에스컬레이션", ESCALATION, "docs/ORD-006-conventions.md 확정 판정 표"],
-  ["검증등급", VERIFICATION_GRADES, "docs/ORD-006-conventions.md §규약1 판정 절차"],
+  [
+    "검증등급",
+    VERIFICATION_GRADES,
+    "docs/ORD-006-conventions.md §규약1 판정 절차",
+  ],
 ] as const) {
   const missing = Object.keys(table).filter((k) => !seenKeys.has(k));
   if (missing.length > 0) {
@@ -185,4 +192,6 @@ const tsv = [COLUMNS.join("\t"), ...rows.map((r) => r.join("\t"))].join("\n");
 await Bun.write(outPath, `${tsv}\n`);
 
 const graded = rows.filter((r) => r[3] !== "-").length;
-console.log(`${outPath}: ${rows.length} 행 (카테고리 ${categories.length}종, 결함등급 부여 ${graded}종)`);
+console.log(
+  `${outPath}: ${rows.length} 행 (카테고리 ${categories.length}종, 결함등급 부여 ${graded}종)`,
+);

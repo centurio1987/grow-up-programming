@@ -15,6 +15,10 @@ import {
   type MultisetContract,
   multisetContract,
 } from "../hash/multiset/multiset.contract";
+import {
+  type DequeContract,
+  dequeContract,
+} from "../linear/deque/deque.contract";
 import { Stack as ReferenceStack } from "../linear/stack/_reference/stack";
 import {
   type StackContract,
@@ -22,6 +26,8 @@ import {
 } from "../linear/stack/stack.contract";
 import { FrontPushStack } from "./_fixtures/frontPushStack";
 import { SortedArrayMultiset } from "./_fixtures/sortedArrayMultiset";
+import { TwoArrayDeque } from "./_fixtures/twoArrayDeque";
+import { UnshiftDeque } from "./_fixtures/unshiftDeque";
 import { expectedRatio, judgeGrowth, statistic } from "./judge";
 import {
   type CostScenario,
@@ -115,6 +121,16 @@ const frontPushStack: CostSource<StackContract<number>> = {
   make: () => new FrontPushStack<number>(),
 };
 
+const unshiftDeque: CostSource<DequeContract<number>> = {
+  kind: "self-reported",
+  make: () => new UnshiftDeque<number>(),
+};
+
+const twoArrayDeque: CostSource<DequeContract<number>> = {
+  kind: "self-reported",
+  make: () => new TwoArrayDeque<number>(),
+};
+
 const referenceMultiset: CostSource<MultisetContract<number>> = {
   kind: "injected",
   make: (tick) =>
@@ -204,6 +220,36 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     );
     expect(verdict.ok).toBe(false);
     expect(verdict.reason).toContain("외부 계수보다 작다");
+  });
+
+  test("배열 하나에 unshift 를 쓰는 덱은 앞쪽을 건드리는 전 시나리오에서 걸린다", () => {
+    const failing = dequeContract.scenarios
+      .filter((scenario) => scenario.qualifier === "amortized")
+      .map((scenario) => judgeScenario(unshiftDeque, scenario, "complexity"));
+
+    expect(failing.every((verdict) => !verdict.ok)).toBe(true);
+    // 앞을 건드릴 때마다 뒤 원소 전부가 밀리므로 비율이 1 이 아니라 4 쪽으로 간다.
+    for (const verdict of failing) {
+      const stats = verdict.points.map((point) => point.stat);
+      expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeGreaterThan(3);
+    }
+  });
+
+  test("두 배열 덱은 앞뒤를 번갈아 뺄 때만 걸린다 — 큐 패턴에서는 상각이 옳다", () => {
+    const queuePattern = judgeScenario(
+      twoArrayDeque,
+      scenarioOf(dequeContract, "pushBack", true),
+      "complexity",
+    );
+    expect(queuePattern.ok).toBe(true);
+
+    const alternating = judgeScenario(
+      twoArrayDeque,
+      scenarioOf(dequeContract, "popBack", true),
+      "complexity",
+    );
+    expect(alternating.ok).toBe(false);
+    expect(alternating.reason).toContain("O(1)");
   });
 });
 
