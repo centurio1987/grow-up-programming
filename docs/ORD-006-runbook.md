@@ -80,6 +80,7 @@
 
 - `docs/ORD-006-inventory.tsv` 69행 생성(카테고리 10종). 양방향 diff 일치, path 중복 0, 전 행 9열
 - TSV 헤더는 ASCII다 — `path · category · name · defect_grade · verification_grade · escalation · problem_lines · guide_lines · has_reference`. 위 한글 열 이름과 순서가 같다. 하위 도구가 `cut -f1`로 path를 뽑기 때문에 헤더를 한글로 두지 않았다
+- **값도 ASCII다**(B1에서 확정). `escalation`은 `(가)`/`(나)`가 아니라 `req`/`opt`로 적는다 — `en_US.UTF-8` 로케일의 `awk`·`uniq`가 `가`와 `나`를 같은 문자열로 판정하기 때문이다. 도구가 전 열에 대해 비 ASCII를 거부한다(`assertAscii`)
 - 결함등급 분포 A 4 · B 2 · C 3 · `-` 60. `trie/ternarySearchTree`는 진단 표 본문이 아니라 각주(`ORDER.md:63`)라 `-`로 뒀다 — 이 건은 KAN-023이 따로 들고 있다
 - `verification_grade`·`escalation`은 전 행 `-`. B1·B2가 채운다
 - `has_reference`는 전 행 `false`. `_reference/`는 아직 한 곳도 없고 각 구조 디렉터리에는 `_deprecated/`(69종)·`_scratch/`(50종)만 있다. 규약2가 `_reference/`를 도입하면 이 열이 진척 지표가 된다

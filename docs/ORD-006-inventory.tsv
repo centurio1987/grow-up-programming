@@ -32,9 +32,9 @@ src/data-structures/linear/queue	linear	queue	C	-	-	67	307	false
 src/data-structures/linear/singlyLinkedList	linear	singlyLinkedList	-	-	-	76	328	false
 src/data-structures/linear/stack	linear	stack	-	-	-	73	272	false
 src/data-structures/linear/unrolledLinkedList	linear	unrolledLinkedList	A	-	-	79	303	false
-src/data-structures/linear/xorLinkedList	linear	xorLinkedList	B	-	-	94	331	false
+src/data-structures/linear/xorLinkedList	linear	xorLinkedList	B	-	opt	94	331	false
 src/data-structures/probabilistic/bloomFilter	probabilistic	bloomFilter	-	-	-	72	337	false
-src/data-structures/probabilistic/concurrentSkipList	probabilistic	concurrentSkipList	B	-	-	92	391	false
+src/data-structures/probabilistic/concurrentSkipList	probabilistic	concurrentSkipList	B	-	req	92	391	false
 src/data-structures/probabilistic/countMinSketch	probabilistic	countMinSketch	-	-	-	72	353	false
 src/data-structures/probabilistic/cuckooFilter	probabilistic	cuckooFilter	-	-	-	93	372	false
 src/data-structures/probabilistic/hyperLogLog	probabilistic	hyperLogLog	-	-	-	95	374	false

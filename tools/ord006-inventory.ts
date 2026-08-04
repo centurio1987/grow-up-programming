@@ -42,6 +42,24 @@ const COLUMNS = [
   "has_reference",
 ] as const;
 
+/**
+ * 규약4 언어 에스컬레이션 **확정** 판정. 키는 `<category>/<name>`.
+ *
+ * 출처는 docs/ORD-006-conventions.md 의 확정 판정 표 하나뿐이다.
+ * 전략 표(docs/ORD-006-strategy.md:190-204)의 목록은 착수 시점의 **예상**이므로 넣지 않는다.
+ * 결함등급과 같은 규칙 — 확정된 것만 적고 추정하지 않는다.
+ *
+ * 값이 `(가)`/`(나)` 가 아니라 `req`/`opt` 인 이유: en_US.UTF-8 로케일의 awk·uniq 는
+ * `가` 와 `나` 를 같은 문자열로 판정한다(`awk '$6=="가"'` 가 두 등급을 모두 잡는다).
+ * 기계가 읽는 열은 ASCII 로 둔다 — 아래 assertAscii 가 이를 강제한다.
+ */
+const ESCALATION: Record<string, "req" | "opt"> = {
+  // (가) Rust 필수 — 선형화·진행 보장은 단일 스레드 TS 에서 표현 불가
+  "probabilistic/concurrentSkipList": "req",
+  // (나) Rust 선택 — 계약은 TS 로 충족, 포인터 XOR 의 메모리 이득만 측정 불가
+  "linear/xorLinkedList": "opt",
+};
+
 /** ORDER.md:39-63 진단 표 9종. 키는 `<category>/<name>`. 이 표 밖은 전부 `-`. */
 const DEFECT_GRADES: Record<string, "A" | "B" | "C"> = {
   "hash/multiset": "A",
@@ -96,8 +114,8 @@ for (const category of categories) {
       category,
       name,
       DEFECT_GRADES[key] ?? "-",
-      "-", // 검증등급후보 — B2 에서 채운다
-      "-", // 에스컬레이션후보 — B1 에서 채운다
+      "-", // 검증등급후보 — 등급 체계가 B2(규약2)에서 정해진 뒤에 채운다
+      ESCALATION[key] ?? "-",
       String(await countLines(join(dir, `${name}-problem.md`))),
       String(await countLines(join(dir, `${name}-guide.mdx`))),
       String(await isDir(join(dir, "_reference"))),
@@ -105,15 +123,46 @@ for (const category of categories) {
   }
 }
 
-// 진단 표의 키가 실제 디렉터리와 어긋나면(오타·이동·삭제) 조용히 `-` 로 새지 않도록 여기서 멈춘다.
-const missing = Object.keys(DEFECT_GRADES).filter((k) => !seenKeys.has(k));
-if (missing.length > 0) {
-  console.error(
-    `진단 표의 키가 실제 구조와 맞지 않습니다: ${missing.join(", ")}\n` +
-      "ORDER.md:39-63 과 src/data-structures/ 를 대조하십시오.",
-  );
-  process.exit(1);
+// 판정 표의 키가 실제 디렉터리와 어긋나면(오타·이동·삭제) 조용히 `-` 로 새지 않도록 여기서 멈춘다.
+// multiset 의 tree/ 이동처럼 경로가 바뀌는 후속 작업이 예정돼 있어 이 가드가 실제로 걸린다.
+for (const [label, table, source] of [
+  ["결함등급", DEFECT_GRADES, "ORDER.md:39-63 진단 표"],
+  ["에스컬레이션", ESCALATION, "docs/ORD-006-conventions.md 확정 판정 표"],
+] as const) {
+  const missing = Object.keys(table).filter((k) => !seenKeys.has(k));
+  if (missing.length > 0) {
+    console.error(
+      `${label} 키가 실제 구조와 맞지 않습니다: ${missing.join(", ")}\n` +
+        `${source} 와 src/data-structures/ 를 대조하십시오.`,
+    );
+    process.exit(1);
+  }
 }
+
+/**
+ * 값 열에 비 ASCII 가 섞이면 멈춘다.
+ *
+ * en_US.UTF-8 로케일에서 awk·uniq 는 한글 자모를 서로 같다고 판정한다(`가` == `나`).
+ * 등급 열에 한글을 넣으면 하위 필터가 두 등급을 조용히 한 덩어리로 센다.
+ * path·name 은 원래 ASCII 이므로 전 열에 걸어도 무해하고, 앞으로 열이 늘어도 자동으로 지켜진다.
+ */
+function assertAscii(rows: string[][]): void {
+  const bad = rows.flatMap((r, i) =>
+    r
+      .map((v, c) => ({ v, c }))
+      .filter(({ v }) => !/^[\x20-\x7e]*$/.test(v))
+      .map(({ v, c }) => `${i + 2}행 ${COLUMNS[c]}="${v}"`),
+  );
+  if (bad.length > 0) {
+    console.error(
+      `TSV 값에 비 ASCII 가 섞였습니다: ${bad.join(", ")}\n` +
+        "로케일에 따라 awk·uniq 가 한글 값을 구분하지 못합니다. ASCII 코드로 바꾸십시오.",
+    );
+    process.exit(1);
+  }
+}
+
+assertAscii(rows);
 
 const tsv = [COLUMNS.join("\t"), ...rows.map((r) => r.join("\t"))].join("\n");
 await Bun.write(outPath, `${tsv}\n`);
