@@ -12,10 +12,10 @@
   "principles": {
     "source": "/Users/centurio/.claude/authoring/principles",
     "remote": "git@github.com:centurio1987/my-claude-env.git",
-    "revision": "f4e11e67cacbe8615f154232c26ada49214a0480",
+    "revision": "0f08bb2d81b25246fb5b980c0b4823c2ef6e8627",
     "files": {
-      "L0_MACHINE_RHYTHM.md": "sha256:9e86c819fab307a0",
-      "L0_NATURAL_KOREAN.md": "sha256:16d6cfd64e530789",
+      "L0_MACHINE_RHYTHM.md": "sha256:97dd9725166037d8",
+      "L0_NATURAL_KOREAN.md": "sha256:da59678c9479aba4",
       "L0_PRINCIPLES.md": "sha256:b11c70ec0e997b92",
       "QUALITY_RUBRIC.md": "sha256:796a3779a981fb08"
     }
@@ -24,12 +24,12 @@
     "ppangto": "sha256:b677605294375577",
     "ppangtolab-prof": "sha256:608c357bb354a8d2",
     "ppangtolab-researcher": "sha256:9aa16d4b24e7fca0",
-    "ppangtolab-teacher": "sha256:75333be9f082778d",
+    "ppangtolab-teacher": "sha256:7420319874792a3d",
     "yundeok": "sha256:b35dc23799c2187a"
   },
   "specs": {
-    "algo-guide": "sha256:94bee0e9d9229fb4",
-    "ds-guide": "sha256:6d627cf72be67167",
+    "algo-guide": "sha256:0c9f9055cb036aeb",
+    "ds-guide": "sha256:46fac4b5f40e16ed",
     "problem": "sha256:6794ecf26dc9e5ff"
   }
 }

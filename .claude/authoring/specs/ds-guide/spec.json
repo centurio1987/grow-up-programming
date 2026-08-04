@@ -3,78 +3,103 @@
   "schema_version": 1,
   "id": "ds-guide",
   "label": "자료구조 가이드",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "source": {
     "origin": "reverse-extraction",
     "refs": [
       "code_test ORD-003 — .claude/skills/guide-for-problem/data-structure-guide-canvas.md (5단계 골격)",
-      "code_test .claude/skills/guide-for-problem/assets/QUALITY_CHECKLIST.md (B·C·D·G축)"
+      "code_test ORD-006 B4 — docs/ORD-006-conventions.md §규약3 (8단계 골격 · 문제 종속 제거 · 코드 추출)"
     ],
-    "note": "알고리즘 가이드와 달리 **문제에 종속되지 않는 독립 가이드**다. 그래서 '순진한 방법 → 최적화' 유도 서사가 없고, 대신 스펙 전수 설명과 '언제 쓰는가'가 중심이다."
+    "note": "2.0.0 에서 골격이 5단계에서 8단계로 바뀌었다. 가이드가 문제가 아니라 **자료구조**를 다루도록 문제 종속 절(when.clue)을 걷어내고, 계약의 정본을 `<name>.ts` 헤더로 넘기고, 본문 코드를 `_reference/` 추출로 바꿨다. 규격의 정본은 code_test 의 `docs/ORD-006-conventions.md` §규약3 이다."
   },
 
   "voice": { "default": "ppangtolab-teacher", "allowed": ["ppangtolab-teacher"] },
 
   "sections": [
-    { "id": "title",   "label": "제목 + 부제",        "required": true, "order": 5,
+    { "id": "title", "label": "제목 + 부제", "required": true, "order": 5,
       "heading": "# {자료구조 이름} — {직관을 담은 부제}", "heading_fixed": false },
-    { "id": "concept", "label": "한눈에 보는 컨셉",     "required": true, "order": 10,
-      "heading": "## 한눈에 보는 컨셉", "heading_fixed": true },
-    { "id": "when",    "label": "언제, 왜 쓰는가",      "required": true, "order": 20,
-      "heading": "## 언제, 왜 쓰는가", "heading_fixed": true, "container": true },
-    { "id": "when.clue", "label": "이런 단서가 보이면",  "required": true, "order": 21,
-      "heading": "### 이런 단서가 보이면", "heading_fixed": true, "parent": "when" },
-    { "id": "detail",  "label": "자료구조 자세히 들여다보기", "required": true, "order": 30,
-      "heading": "## 자료구조 자세히 들여다보기", "heading_fixed": true, "container": true },
-    { "id": "detail.spec", "label": "전체 스펙: 속성과 액션", "required": true, "order": 31,
-      "heading": "### 전체 스펙: 속성과 액션", "heading_fixed": true, "parent": "detail" },
-    { "id": "impl",    "label": "아이디어를 코드로 옮기기", "required": true, "order": 40,
-      "heading": "## 아이디어를 코드로 옮기기", "heading_fixed": true },
-    { "id": "sim",     "label": "실행 시각화",          "required": true, "order": 50,
-      "heading": "## 실행 시각화", "heading_fixed": true },
-    { "id": "selfcheck", "label": "스스로 점검하기",     "required": true, "order": 60,
+
+    { "id": "overview", "label": "개요", "required": true, "order": 10,
+      "heading": "## 개요", "heading_fixed": true },
+
+    { "id": "need", "label": "이 구조가 필요한 이유", "required": true, "order": 20,
+      "heading": "## 이 구조가 필요한 이유", "heading_fixed": true, "container": true },
+    { "id": "need.cases", "label": "쓰이는 자리", "required": true, "order": 21,
+      "heading": "### 쓰이는 자리", "heading_fixed": true, "parent": "need" },
+
+    { "id": "naive", "label": "단순한 구현의 한계", "required": true, "order": 30,
+      "heading": "## 단순한 구현의 한계", "heading_fixed": true, "container": true },
+    { "id": "naive.limit", "label": "순진한 설계는 어디서 상한을 넘는가", "required": true, "order": 31,
+      "heading": "### 순진한 설계는 어디서 상한을 넘는가", "heading_fixed": true, "parent": "naive" },
+    { "id": "naive.rule", "label": "실패에서 끌어내는 설계 규칙", "required": true, "order": 32,
+      "heading": "### 실패에서 끌어내는 설계 규칙", "heading_fixed": true, "parent": "naive" },
+
+    { "id": "contract", "label": "불변식과 연산별 복잡도 조건", "required": true, "order": 40,
+      "heading": "## 불변식과 연산별 복잡도 조건", "heading_fixed": true },
+
+    { "id": "impl", "label": "구현 (TypeScript)", "required": true, "order": 50,
+      "heading": "## 구현 (TypeScript)", "heading_fixed": true },
+
+    { "id": "escalation", "label": "TypeScript의 한계와 대체 언어", "required": false, "order": 60,
+      "heading": "## TypeScript의 한계와 대체 언어", "heading_fixed": true,
+      "condition": "규약4 에스컬레이션 등급이 (가) 또는 (나)일 때만 둔다. (-)면 절을 생략한다" },
+
+    { "id": "trace", "label": "단계별 동작 확인", "required": true, "order": 70,
+      "heading": "## 단계별 동작 확인", "heading_fixed": true },
+
+    { "id": "selfcheck", "label": "스스로 점검하기", "required": true, "order": 80,
       "heading": "## 스스로 점검하기", "heading_fixed": true }
   ],
 
   "principles": [
     { "code": "B1", "level": "MUST", "axis": "structure",
-      "text": "스펙 전수 — 속성과 액션을 빠짐없이 설명한다. 이름만 나열하고 넘어가지 않는다" },
+      "text": "계약 전수 — `<name>.ts` 헤더의 연산 계약 표 **모든 행**을 본문에서 다룬다. 이름만 나열하고 넘어가면 미흡" },
     { "code": "B2", "level": "MUST", "axis": "structure",
-      "text": "단서 → 선택 연결 — 문제에서 어떤 근거·단서가 보일 때 이 자료구조를 떠올려야 하는지 명시한다" },
+      "text": "선택 근거를 **연산과 복잡도**에서 끌어온다. 문제 상황·입력 형태·출제 유형에서 끌어오지 않는다 — 이 가이드는 특정 문제에 종속되지 않는다" },
     { "code": "B3", "level": "MUST", "axis": "evidence",
-      "text": "각 액션의 복잡도가 왜 그렇게 되는지 근거가 붙는다" },
+      "text": "각 연산의 복잡도가 왜 그렇게 되는지 근거가 붙는다" },
     { "code": "B4", "level": "SHOULD", "axis": "scope-principle",
-      "text": "대안 자료구조 대비 이 구조의 위치(무엇을 얻고 무엇을 포기하는가)" },
+      "text": "대안 구조 대비 이 구조의 위치(무엇을 얻고 무엇을 포기하는가). **사용 조건이 달라지면 다른 구현이 적합하다**는 진술을 `impl` 절에 포함한다" },
+    { "code": "B5", "level": "MUST", "axis": "scope-principle",
+      "text": "`need.cases` 의 사례는 요구를 **연산 집합과 호출 빈도**로 번역한다. 번역이 없으면 그것은 사례가 아니라 스토리다" },
+    { "code": "B6", "level": "IF-APPLICABLE", "axis": "scope-principle",
+      "text": "`escalation` 절은 규약4 등급이 (가)·(나)일 때만 둔다. 판정과 근거 한 줄을 함께 적는다" },
 
     { "code": "C1", "level": "MUST", "axis": "structure",
-      "text": "인터페이스 정의 — 가이드가 스스로 정의한 인터페이스가 있고, 구현이 그것에 맞는다" },
+      "text": "계약을 다시 정의하지 않는다 — 계약의 정본은 `<name>.ts` 헤더 한 곳이다. 가이드는 그 계약이 **왜 그 조건인지**를 쓰고, 계약 표를 복사해 오지 않는다" },
     { "code": "C2", "level": "SHOULD", "axis": "structure",
       "text": "마무리 — 핵심 재진술 + 복잡도 결론. `impl` 절 끝의 정리로 충족한다" },
 
     { "code": "D1", "level": "MUST", "axis": "scope-principle",
-      "text": "다각 조명 — 최소 한 개념을 2개 이상 관점(스펙 + 도식, 원리 + 시뮬)으로 비춘다" },
+      "text": "다각 조명 — 최소 한 개념을 2개 이상 관점(조건 + 도식, 원리 + 실행 확인)으로 비춘다" },
     { "code": "D3", "level": "IF-APPLICABLE", "axis": "scope-principle",
       "text": "도식 — 핵심 개념 직후 그림이 있고 상태 변화 연산에 before/after 가 있다" },
     { "code": "D4", "level": "MUST", "axis": "scope-principle",
-      "text": "시뮬레이션 위탁 규약 — `실행 시각화`가 `#guide-sim` import + 선언형 `steps`만 쓴다" },
+      "text": "시뮬레이션 위탁 규약 — `단계별 동작 확인`이 `#guide-sim` import + 선언형 `steps`만 쓴다" },
     { "code": "D6", "level": "MUST", "axis": "scope-principle",
-      "text": "함정 포인팅 — 놓치기 쉬운 구현부(순서가 생명인 두 줄, 경계 비교 연산자, 인덱스 변환)를 직접 짚는다" },
+      "text": "놓치기 쉬운 구현부 포인팅 — 순서가 생명인 두 줄, 경계 비교 연산자, 인덱스 변환을 직접 짚는다" },
 
+    { "code": "E3", "level": "MUST", "axis": "evidence",
+      "text": "`naive` 절의 수치 근거 — 순진한 설계를 **실제로 돌린 값**으로 대조한다. `느리다`·`비효율적이다` 류 형용사 서술은 근거가 아니다" },
+    { "code": "E4", "level": "MUST", "axis": "evidence",
+      "text": "`impl` 절의 성장률 확인 — 계약 상한을 $r = C(4n)/C(n)$ 실측으로 보인다(규약2 축3). 벽시계 수치를 근거로 쓰지 않는다" },
     { "code": "E5", "level": "MUST", "axis": "evidence",
-      "text": "본문 코드 자기 검증 — 가이드가 싣는 코드가 그 자체로 실행 가능하고 본문 주장과 일치한다" },
+      "text": "본문 코드는 `_reference/` 에서 **추출한다** — `// #region guide:core` 구간을 ` ```ts guide-core=<경로>[#<구간>] ` 펜스로 싣는다. 손으로 옮겨 적으면 위반이다" },
     { "code": "E6", "level": "IF-APPLICABLE", "axis": "evidence",
       "text": "분량상 코드 대신 흐름 서술로 대체한 보조 연산이 있으면, 그 사실을 본문에 명시했는가" },
     { "code": "E7", "level": "MUST", "axis": "evidence",
-      "text": "복잡도 진술의 완전성 — 각 액션의 복잡도가 **무엇을 센 값인지** 밝힌다. 출력 크기에 비례하는 항(`+k`)·전처리·상환 항이 있으면 어디서 오는지 설명한다. 기호만 표에 적고 넘어가면 미흡" },
-    { "code": "E8", "level": "IF-APPLICABLE", "axis": "evidence",
-      "text": "복잡도 보장의 종류 — 최악 보장인지 기대값인지 상환인지 구분해 밝힌다. 해시 기반·확률적 구조나 재구성 비용이 있는 구조면 반드시" },
+      "text": "복잡도 진술의 완전성 — 각 연산의 복잡도가 **무엇을 센 값인지** 밝힌다. 출력 크기에 비례하는 항(`+k`)·전처리·상환 항이 있으면 어디서 오는지 설명한다. 기호만 표에 적고 넘어가면 미흡" },
+    { "code": "E8", "level": "MUST", "axis": "evidence",
+      "text": "복잡도 보장의 종류 — `worst`·`amortized`·`expected` 중 무엇인지 연산마다 밝힌다. 계약이 한정자를 연산마다 요구하므로(규약1) 가이드도 연산마다 밝힌다" },
 
     { "code": "G1", "level": "MUST", "axis": "structure",
       "text": "빌드 통과 — `commands.build` 가 통과한다" },
     { "code": "G2", "level": "IF-APPLICABLE", "axis": "structure",
       "text": "시뮬 위탁 규약 — 문제별 JSX/Hook·외부 라이브러리 import 가 없다" },
     { "code": "G3", "level": "IF-APPLICABLE", "axis": "evidence",
-      "text": "시뮬 정확성 — 고정 입력·마지막 프레임 결과가 본문 반환값과 일치한다" }
+      "text": "시뮬 정확성 — 고정 입력·마지막 프레임 결과가 본문 반환값과 일치한다" },
+    { "code": "G4", "level": "MUST", "axis": "evidence",
+      "text": "코드 추출 일치 — `bun run tools/guide-core.ts check` 가 통과한다. 펜스 본문이 정본 추출본과 한 글자라도 다르면 실패한다" }
   ],
 
   "conditional_rule": "조건부 절은 해당 사항이 없으면 문서에서 절 자체를 생략한다. 문서 안에 '해당 없음' 메모를 남기지 않는다. 생략 사유는 품질 게이트 보고에만 기록한다.",

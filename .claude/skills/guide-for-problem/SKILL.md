@@ -20,7 +20,7 @@ argument-hint: <file-name-without-extension>
 | 대상 | spec | 골격 |
 | --- | --- | --- |
 | `src/algorithms/**` | `algo-guide` | 10단계 — 순진한 방법에서 출발해 관찰로 단서를 얻고 최적화로 |
-| `src/data-structures/**` | `ds-guide` | 5단계 — 스펙 전수 + 언제 쓰는가 (문제 비종속 독립 가이드) |
+| `src/data-structures/**` | `ds-guide` | 8단계 — 계약에서 출발해 그 계약을 지키는 구현으로 (문제 비종속 독립 가이드) |
 
 voice 는 둘 다 `ppangtolab-teacher`(빵토랩 선생님)다.
 
