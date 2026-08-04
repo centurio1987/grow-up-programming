@@ -1,6 +1,6 @@
 {
   "next_id": 32,
-  "next_seq": 77,
+  "next_seq": 79,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -135,15 +135,15 @@
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-012": {
-      "col": "backlog",
+      "col": "done",
       "title": "[P0-b·12] CI 3모드 구성",
-      "memo": "공수 M·리스크 중. ①스위트 자기검증(_fixtures/broken/이 **축3에서** 실패해야 통과 — 컴파일 에러·예외와 계약 위반을 구분해 단언) ②정본 검증(_reference/ 녹색) ③실습 채점(스텁, CI 판정 제외·별도 리포팅). 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "memo": "공수 M·리스크 중. **B6 완료(2026-08-04). tools/ci.ts + .github/workflows/ci.yml.** 이 저장소의 테스트는 일부러 실패한다(학습자 스텁이 Not implemented 를 던진다) — bun test 하나로는 판정이 안 되고 무엇이 실패해야 정상인지를 모드로 갈라야 한다. **모드 ① 자기검증** = 결함 fixture 가 **축3에서** 걸리는가. \"무언가 실패\"로는 불충분하다는 요구를 하네스 자기시험이 이미 만족한다 — judgeScenario 의 **반환값**을 보므로 어느 축이 어떤 사유로 걸렸는지까지 단언한다(컴파일 에러·예외로 죽은 것과 구분된다). 여기에 추출기·판정기 자기시험(tools/)을 묶었다. **모드 ② 정본 검증** = bun test src/data-structures -t 정본 으로 _reference/ 만 골라 돈다(29 pass, 1300 filtered out). runContract 의 describe 라벨이 `[정본]`/`[스텁]` 이라 이름 필터로 갈린다. **모드 ③ 실습 채점** = 스텁. 판정에서 제외하고 로그로만 남긴다(continue-on-error). **gates 모드** = 타입 · 계약 정합(KAN-014) · 가이드 추출 일치(KAN-013) · 언어 중립 vector(B5) · 인용(B3) · 문서 링크(KAN-015). `bun run tools/ci.ts all` 이 10단계를 돌고 ③만 제외한다 — 로컬과 CI 가 같은 명령을 쓴다. **워크플로 잡 둘**: TS(bun) · Rust(cargo test + RUSTFLAGS=--cfg loom 축4). 린트는 저장소 기준선이 미정리라 --changed --since=origin/main 으로 바뀐 파일만 건다 — 전체를 걸면 상시 빨강이 되어 판정에 못 쓰인다. 타입도 같은 이유로 손봤다(_scratch/·_deprecated/ 제외, 상세는 KAN-014 메모). **CI 는 아직 실제로 돌려 보지 않았다** — origin 에 푸시된 적이 없다. 첫 푸시 때 확인이 필요하다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md:207-213",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-02",
+      "갱신": "2026-08-04",
       "title_hash": "2c0e1c74cea26b0322937924f550021b708d54a6",
-      "memo_hash": "0d8a2b7543f1db350f2f4ed1fc8e4f14c4b044e9",
+      "memo_hash": "635d7719b68f85eead76fa8e4a059d81dc978d9d",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-013": {
@@ -380,7 +380,6 @@
     "KAN-009",
     "KAN-010",
     "KAN-011",
-    "KAN-012",
     "KAN-013",
     "KAN-016",
     "KAN-017",
@@ -406,9 +405,29 @@
     "KAN-004",
     "KAN-006",
     "KAN-015",
-    "KAN-014"
+    "KAN-014",
+    "KAN-012"
   ],
   "recent": [
+    {
+      "seq": 78,
+      "t": "2026-08-04T20:55",
+      "a": "ai",
+      "id": "KAN-012",
+      "op": "move",
+      "from": "backlog",
+      "to": "done"
+    },
+    {
+      "seq": 77,
+      "t": "2026-08-04T20:55",
+      "a": "ai",
+      "id": "KAN-012",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 M·리스크 중. ①스위트 자기검증(_fixtures/broken/이 **축3에서** 실패해야 통과 — 컴파일 에러·예외와 계약 위반을 구분해 단언) ②정본 검증(_reference/ 녹색) ③실습 채점(스텁, CI 판정 제외·별도 리포팅). 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "after": "공수 M·리스크 중. **B6 완료(2026-08-04). tools/ci.ts + .github/workflows/ci.yml.** 이 저장소의 테스트는 일부러 실패한다(학습자 스텁이 Not implemented 를 던진다) — bun test 하나로는 판정이 안 되고 무엇이 실패해야 정상인지를 모드로 갈라야 한다. **모드 ① 자기검증** = 결함 fixture 가 **축3에서** 걸리는가. \"무언가 실패\"로는 불충분하다는 요구를 하네스 자기시험이 이미 만족한다 — judgeScenario 의 **반환값**을 보므로 어느 축이 어떤 사유로 걸렸는지까지 단언한다(컴파일 에러·예외로 죽은 것과 구분된다). 여기에 추출기·판정기 자기시험(tools/)을 묶었다. **모드 ② 정본 검증** = bun test src/data-structures -t 정본 으로 _reference/ 만 골라 돈다(29 pass, 1300 filtered out). runContract 의 describe 라벨이 `[정본]`/`[스텁]` 이라 이름 필터로 갈린다. **모드 ③ 실습 채점** = 스텁. 판정에서 제외하고 로그로만 남긴다(continue-on-error). **gates 모드** = 타입 · 계약 정합(KAN-014) · 가이드 추출 일치(KAN-013) · 언어 중립 vector(B5) · 인용(B3) · 문서 링크(KAN-015). `bun run tools/ci.ts all` 이 10단계를 돌고 ③만 제외한다 — 로컬과 CI 가 같은 명령을 쓴다. **워크플로 잡 둘**: TS(bun) · Rust(cargo test + RUSTFLAGS=--cfg loom 축4). 린트는 저장소 기준선이 미정리라 --changed --since=origin/main 으로 바뀐 파일만 건다 — 전체를 걸면 상시 빨강이 되어 판정에 못 쓰인다. 타입도 같은 이유로 손봤다(_scratch/·_deprecated/ 제외, 상세는 KAN-014 메모). **CI 는 아직 실제로 돌려 보지 않았다** — origin 에 푸시된 적이 없다. 첫 푸시 때 확인이 필요하다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md:207-213"
+    },
     {
       "seq": 76,
       "t": "2026-08-04T20:54",
@@ -880,28 +899,6 @@
       "field": "memo",
       "before": "공수 M·리스크 하. 개요/이 구조가 필요한 이유/단순한 구현의 한계/불변식과 연산별 복잡도 조건/구현(TS)/TS의 한계와 대체 언어(조건부)/단계별 동작 확인/스스로 점검하기. **절 제목은 제목만 읽고 내용을 알 수 있어야 한다** — ORD-005 '왜 이 모양이어야 하는가'가 이 기준에 미달해 교체. 과장·구어 표현 금지. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
       "after": "공수 M·리스크 중. 개요/이 구조가 필요한 이유/단순한 구현의 한계/불변식과 연산별 복잡도 조건/구현(TS)/TS의 한계와 대체 언어(조건부)/단계별 동작 확인/스스로 점검하기. **고칠 곳은 세 곳 + lock** — .claude/authoring/specs/ds-guide/spec.json(sections[] 골격 정본)·spec.md(항목별 작성법)·.claude/skills/guide-for-problem/data-structure-guide-canvas.md(템플릿), 그리고 authoring.py lock 재생성. 캔버스만 고치면 집필기가 spec 을 읽으므로 반영되지 않는다. **현행 ds-guide spec 은 문제 종속이 required/MUST 로 박혀 있다** — when.clue 절과 원칙 B2('문제에서 어떤 단서가 보일 때')를 '이 구조가 필요한 이유'로 대체, detail.spec 은 4단계로 흡수. E7·E8(복잡도가 무엇을 센 값인지·최악/기대/상환 구분)은 축3과 같은 요구라 승계. 절 제목은 제목만 읽고 내용을 알 수 있어야 한다 — ORD-005 '왜 이 모양이어야 하는가'가 미달해 교체. 과장·구어 표현 금지. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md 규약3(rev4)"
-    },
-    {
-      "seq": 28,
-      "t": "2026-08-02T23:36",
-      "a": "ai",
-      "id": "KAN-028",
-      "op": "create",
-      "col": "backlog",
-      "title": "[P4·28] P4-C군 — 에스컬레이션 (나) 후보(Rust 실측 동반)",
-      "memo": "공수 L·리스크 중. 카드 25 분류 결과에 따름. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
-      "verbatim": ""
-    },
-    {
-      "seq": 27,
-      "t": "2026-08-02T23:36",
-      "a": "ai",
-      "id": "KAN-027",
-      "op": "create",
-      "col": "backlog",
-      "title": "[P4·27] P4-B군 — complexity 등급(축3 필요, 에스컬레이션 불필요)",
-      "memo": "공수 L·리스크 중. 카드 25 분류 결과에 따름. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
-      "verbatim": ""
     }
   ]
 }
