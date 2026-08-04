@@ -15,9 +15,15 @@ OUTPUT_FILE="문제_가이드_목록.md"
 
 # ── 모드 1: 구조 보존 (중요도순 문서) ─────────────────────────────────────────
 if [ -f "$OUTPUT_FILE" ] && head -1 "$OUTPUT_FILE" | grep -q "중요도순"; then
-  MISSING=$(find src -type f \( -name "*guide.md" -o -name "*guide.mdx" \) -not -path "*/_deprecated/*" | sort | while IFS= read -r path; do
-    grep -qF "(./$path)" "$OUTPUT_FILE" || printf '%s\n' "$path"
-  done)
+  # 인덱스를 한 번만 읽고 메모리에서 대조한다. 예전엔 가이드마다 grep 을 새로 띄워서
+  # (가이드 180개 기준) 한 번 도는 데 ~0.27초가 걸렸다 — PostToolUse 는 루프를 막으므로
+  # 그 비용이 툴 호출마다 붙었다. 판정 자체는 그대로다: 인덱스 어디든 `(./<경로>)` 가
+  # 문자 그대로 있으면 링크된 것으로 본다.
+  MISSING=$(find src -type f \( -name "*guide.md" -o -name "*guide.mdx" \) -not -path "*/_deprecated/*" | sort |
+    awk -v idx="$OUTPUT_FILE" '
+      BEGIN { while ((getline line < idx) > 0) buf = buf line "\n" }
+      index(buf, "(./" $0 ")") == 0 { print }
+    ')
 
   [ -z "$MISSING" ] && exit 0
 
