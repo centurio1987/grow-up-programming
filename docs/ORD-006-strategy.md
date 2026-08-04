@@ -1,7 +1,8 @@
 # 자료구조 트랙 재집필 전략 (ORD-006)
 
 > **ORD-006 전략 전문.** 지시 원문과 진단 결과는 `ORDER.md`의 ORD-006 항목에, 작업 단위는 `KANBAN.md`에 있다.
-> 승인 2026-08-02 · rev3(외부 검토 2회 반영) · 새 세션은 이 문서 → `ORDER.md` → `KANBAN.md` 순으로 읽는다.
+> 승인 2026-08-02 · rev3(외부 검토 2회 반영) · rev4 2026-08-04(집필 엔진 `authoring-kit` 이관 반영)
+> · 새 세션은 이 문서 → `ORDER.md` → `KANBAN.md` 순으로 읽는다.
 
 ## Context
 
@@ -142,7 +143,30 @@ $n = 2^{10}$ 기준 $O(\log n)$의 기대 비율은 $4 \times 12/10 = 4.8$이다
 
 ## 규약 3 — 가이드 캔버스 8단계
 
-`assets/data-structure-guide-canvas.md` 개정.
+**고치는 대상은 캔버스 한 장이 아니라 세 곳 + lock 이다** (rev4 — 집필 엔진 이관 반영). rev3은 `assets/data-structure-guide-canvas.md`
+한 파일을 지목했는데, 그 파일은 존재하지 않고 골격의 정본도 캔버스가 아니다.
+
+| 파일 | 고치는 것 |
+|---|---|
+| `.claude/authoring/specs/ds-guide/spec.json` | **골격 정본.** `sections[]`(`heading_fixed: true`)를 8단계로 교체하고 `principles`를 정합화 |
+| `.claude/authoring/specs/ds-guide/spec.md` | 항목별 작성 방법을 8단계에 맞춰 다시 씀 |
+| `.claude/skills/guide-for-problem/data-structure-guide-canvas.md` | 템플릿. spec 이 `template_ref: ds-guide-canvas` → `paths.json` 으로 가리킨다 |
+| `.claude/authoring.lock.json` | spec 해시 갱신 (`authoring.py lock`). 안 하면 다음 집필이 stale 경고로 멈춘다 |
+
+**캔버스만 고치면 반영되지 않는다.** 집필기(`authoring-kit:authoring-write`)는 spec 의 `sections[]`를 골격으로 읽고
+캔버스는 그 렌더 템플릿으로 쓴다. 셋이 어긋나면 spec 이 이긴다.
+
+**현행 ds-guide spec 은 ORD-006 과 정면 충돌한다** — 이 개정의 핵심이 여기 있다.
+
+- `sections[].when.clue`("이런 단서가 보이면")와 원칙 `B2`("**문제에서** 어떤 근거·단서가 보일 때 이 자료구조를
+  떠올려야 하는지 명시한다")가 **required/MUST** 로 박혀 있다. 문제 종속을 걷어내겠다는 ORD-006 과 반대다.
+  절을 지우는 것이 아니라 **"이 구조가 필요한 이유"(2단계)로 대체**한다 — 선택 근거는 남기되 근거를 문제가 아니라
+  연산·복잡도에서 끌어온다.
+- `detail.spec`("전체 스펙: 속성과 액션")은 4단계(불변식과 연산별 복잡도 조건)로 흡수된다.
+- 반대로 `E7`(복잡도가 무엇을 센 값인지 밝힘)·`E8`(최악/기대/상환 구분)은 **그대로 승계한다.** 규약 2의 축3 판정과
+  같은 것을 요구하고 있어서 손댈 이유가 없다.
+- 새로 필요한 원칙: 3단계(단순한 구현의 한계) 수치 근거, 6단계(대체 언어) 조건부 절, 5단계의 "사용 조건이 달라지면
+  다른 구현이 적합" 진술.
 
 **절 제목은 제목만 읽고 그 절의 내용을 알 수 있어야 한다.** ORD-005의 `## 왜 이 모양이어야 하는가`는 이 기준에 미달한다 — "모양"이 무엇을 가리키는지 제목에 없다. 내용은 승계하되 제목을 바꾼다. 아래 8개 제목을 같은 기준으로 다시 지었다.
 
@@ -188,17 +212,58 @@ $n = 2^{10}$ 기준 $O(\log n)$의 기대 비율은 $4 \times 12/10 = 4.8$이다
 | ② 정본 검증 | `_reference/` | 녹색 | 포함 |
 | ③ 실습 채점 | `<name>.ts` 스텁 | 미구현 실패가 정상 | **제외** (별도 리포팅) |
 
+## 집필 엔진 (rev4 — `authoring-kit` 이관 반영)
+
+이 전략은 2026-08-03 에 섰고, **집필 규칙을 `authoring-kit` 플러그인으로 옮긴 브랜치는 그다음 날 병합**됐다(`d5591d1`).
+그래서 rev3 의 파이프라인 서술은 이관 전 세계를 가리킨다. 지금 서 있는 구조는 이렇다.
+
+```
+guide-for-problem / gen-problem       진입점. 어느 spec 으로 쓸지 고르고 넘기기만 한다
+        ↓ Skill(authoring-kit:authoring-write) --spec <id>
+.claude/authoring/specs/{algo-guide,ds-guide,problem}/   골격·항목별 작성법 (정본)
+.claude/authoring/paths.json                              경로·빌드 명령 바인딩
+.claude/authoring.lock.json                               지금 서 있는 규칙 조합(해시)
+~/.claude/authoring/principles + 플러그인 voice           공통 원칙·퍼소나 (전역)
+```
+
+**경로 라우팅은 이미 있다.** `guide-for-problem` 은 `src/data-structures/**` → `ds-guide`,
+`src/algorithms/**` → `algo-guide` 로 spec 을 고른다. 그래서 rev3 이 계획한 **`guide-for-structure` 스킬 신설은 철회한다** —
+자료구조 트랙을 가르는 축은 이제 스킬이 아니라 spec 이고, 스킬을 하나 더 만들면 방금 한 벌로 합친 규칙이 다시 갈라진다
+(`CLAUDE.md`: *"규칙을 스킬 문서에 다시 쓰지 않는다"*). 자료구조 트랙의 골격 변경은 **전부 `ds-guide` spec 개정으로 처리**한다.
+
+**전제: 이 프로젝트에서 플러그인이 실제로 잡혀야 한다.** 진입점 두 스킬 모두 0단계에서
+`${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py status` 를 돌리고 **없으면 거기서 멈춘다**(구 경로 폴백 없음).
+rev4 작성 시점에 이 프로젝트에는 플러그인이 걸려 있지 않았고(다른 프로젝트에 project 스코프로만 설치), lock 은
+`0.2.0` 을 가리키는데 캐시 설치본은 `0.3.0` 이었다. **그 상태로는 P1 파일럿이 집필 단계에 진입하지 못한다.**
+
+**2026-08-04 해소 완료 (KAN-029).**
+
+```
+claude plugin install authoring-kit@centurio87-plugins --scope project   # 0.3.0, 스킬 6종 등록
+python3 …/authoring.py lock --update                                     # 0.2.0 → 0.3.0 재고정
+```
+
+- 활성화 기록은 `.claude/settings.json` 의 `enabledPlugins` 에 남는다 — 리포에 들어가므로 워크트리를 옮겨도 따라간다.
+- lock 변경분은 **플러그인 버전 + `QUALITY_RUBRIC.md` 해시 + principles revision 뿐이고 spec·voice 해시는 불변**이다.
+  0.3.0 승격이 프로젝트 spec 3종을 무효화하지 않는다는 뜻이다.
+- 루브릭 변경분의 실체는 **H축(이해 게이트) 신설** — 집필자가 자기 글을 채점하지 않는 유일한 축. ORD-005·006 방향과
+  같아서 그대로 수용했다.
+
 ## 파이프라인·문서 변경
 
 | 대상 | 변경 |
 |---|---|
-| `.claude/skills/guide-for-problem/` | algorithms 전용으로 존치. 자료구조용 `guide-for-structure` 신설(자산 공유) |
-| `.claude/skills/gen-problem/` | data-structures 대상 폐기 명시 |
+| `.claude/authoring/specs/ds-guide/` | **골격 정본.** 8단계로 개정 + 문제 종속 원칙(`B2`·`when.clue`) 제거 → 규약 3 |
+| `.claude/authoring/specs/problem/` | 적용 범위를 `algorithms/` 로 한정한다고 명시. 자료구조 문제 문서는 더 만들지 않는다 |
+| `.claude/authoring/paths.json` | `exemplars.ds-guide` 가 `bPlusTree-guide.mdx`(구 5단계)를 가리킨다. 파일럿 산출물로 교체 |
+| `.claude/authoring.lock.json` | spec 개정마다 `authoring.py lock` 재생성. 플러그인 버전도 여기서 고정 |
+| `.claude/skills/guide-for-problem/` | 존치. 라우팅 표의 `ds-guide` 행을 "5단계"→"8단계"로 정정. **`guide-for-structure` 신설은 철회** |
+| `.claude/skills/gen-problem/` | data-structures 대상 폐기 명시 (spec 범위 한정과 짝) |
 | `CLAUDE.md` | "코드 테스트 문제 풀이 목적 / 주석에 적힌 문제를 보고" 문구가 새 방향과 **정면 충돌**. 자료구조 트랙 서술 추가 |
 | `ORDER.md` | ORD-006 원문(verbatim) 봉인 (ORD-001~005 관례) |
 | 메모리 `guide-quality-standard.md` | ORD-006 반영 |
 | `rust/` | **점진 도입** — P0-a에서 최소 crate 구조만, 이후 (가) 판정 구조만 추가 |
-| 게이트 | 승계 + **타입체크·lint·MDX 빌드·코드 추출 일치** 추가. 신캔버스 호환 점검 필요 |
+| 게이트 | 루브릭·외부 검토는 **플러그인의 `authoring-gate` + spec 의 `gate.external_review`** 로 이미 넘어갔다(`review-guide.sh` 는 이관 때 사라졌다). 프로젝트가 계속 소유하는 것은 `comprehension-gate.sh`·`check-mermaid.ts`·`compile-check.ts`. 여기에 **타입체크·lint·코드 추출 일치**를 추가하고, 8단계 캔버스 호환을 점검한다 |
 | problem 삭제 | 참조 스윕 + migration note. redirect 인프라는 만들지 않는다(외부 소비자 없음, git 히스토리 보존) |
 
 ## 공통 DoD (구조 1종)
@@ -208,10 +273,11 @@ $n = 2^{10}$ 기준 $O(\log n)$의 기대 비율은 $4 \times 12/10 = 4.8$이다
 3. `_reference/` 대표 구현 + 명세 정합 검사 통과
 4. `<name>.contract.ts` — 검증 등급에 맞는 축
 5. CI 3모드가 각각 의도대로
-6. `<name>-guide.mdx` — 캔버스 8단계, 코드는 region 추출
+6. `<name>-guide.mdx` — **`ds-guide` spec 으로 집필**(캔버스 8단계), 코드는 region 추출
 7. 에스컬레이션 판정 기록 — (가)/(나)/해당없음 + 근거
 8. (가)면 Rust 포트가 같은 JSON vector(축1) 통과 + 축2·3은 언어별 계측
 9. 게이트 통과 — 이해 게이트 0, mermaid, 타입체크, MDX 빌드, 추출 일치, 외부 검토
+10. 완료 보고에 **`resolve` 해시**(어떤 규칙 조합으로 쓰였는지)를 남긴다 — lock 이 stale 인 채 쓴 글을 나중에 가려낼 수 있어야 한다
 
 ## 칸반 카드 (공수 S/M/L · 리스크 상/중/하)
 
@@ -224,7 +290,8 @@ $n = 2^{10}$ 기준 $O(\log n)$의 기대 비율은 $4 \times 12/10 = 4.8$이다
 | 1 | `ORD-006 봉인` — 지시 원문 + **진단 9건 표 이관**. 최우선 | S | 하 |
 | 2 | `규약1: 명세 규격` — JSDoc 규격·검증 등급 판정 규칙·주입 정책·정합 검사 | M | 중 |
 | 3 | `규약2: 계약 스위트 규격` — `runContract`, 축1~3, **성장률 판정 수치 규격**, 적대적 입력 생성기, seed·재현 | L | **상** |
-| 4 | `규약3: 캔버스 8단계 개정` | M | 하 |
+| 4 | `규약3: 캔버스 8단계 개정` — **`ds-guide` spec(정본) + 캔버스 + lock 3종 동시** | M | 중 |
+| 29 | `집필 엔진 가용성 확보` — 플러그인 설치·활성화, lock 의 플러그인 버전 재고정. **rev4 신설. P1 파일럿 착수 전 필수** | S | 중 |
 | 5 | `규약4: (가)/(나) 판정 기준` | S | 하 |
 | 6 | `Rust 최소 crate 구조 확정` — 워크스페이스 경계, vector 공유 위치, TS↔Rust API 대응 | M | 중 |
 | 7 | `처분 결정 3건` — `concurrentSkipList`(개명/Rust전용/삭제 + 판정 기준) · `xorLinkedList`(Rust unsafe/역사적 처분) · `multiset` 재분류 원칙 | M | 중 |
@@ -246,7 +313,7 @@ $n = 2^{10}$ 기준 $O(\log n)$의 기대 비율은 $4 \times 12/10 = 4.8$이다
 | 13 | `가이드↔코드 region 추출 파이프라인 + 일치 검사` | M | 중 |
 | 14 | `게이트 확장` — 타입체크·MDX 빌드·신캔버스 호환 점검 | M | 중 |
 | 15 | `problem 참조 스윕 + 링크 무결성 도구` | S | 하 |
-| 16 | `guide-for-structure 스킬 신설 + 회귀 fixture` — 샘플 입력 → 산출물 → 게이트 통과 확인 | L | 중 |
+| 16 | `ds-guide 집필 경로 정합 + 회귀 골든` — **스킬 신설 아님**(철회). 라우팅 표 정정 · `exemplars.ds-guide` 를 파일럿 산출물로 교체 · `problem` spec 범위를 algorithms 로 한정 · 샘플 입력 → 산출물 → 게이트 통과 확인 | M | 중 |
 | 17 | `CLAUDE.md 자료구조 트랙 서술` | S | 하 |
 | 18 | `메모리 guide-quality-standard 갱신` | S | 하 |
 
@@ -281,11 +348,14 @@ $n = 2^{10}$ 기준 $O(\log n)$의 기대 비율은 $4 \times 12/10 = 4.8$이다
 - **모드②** `_reference/` 녹색 + 명세 정합 검사
 - `cargo test --workspace` — (가) 구조가 같은 JSON vector(축1) 통과
 - `tsc --noEmit` / lint / MDX 빌드 / region 추출 일치
-- `comprehension-gate.sh` 종료코드 0 (2=미실행은 통과 아님) / `check-mermaid.ts` / `review-guide.sh`
+- `comprehension-gate.sh` 종료코드 0 (2=미실행은 통과 아님) / `check-mermaid.ts` / `compile-check.ts`
+- `authoring.py status` · `lock` 이 깨끗한 상태에서 집필됐는지 (stale lock 으로 쓴 글은 규칙 조합을 특정할 수 없다)
 - 링크 무결성 — problem 삭제·스킬 분기 후 broken link 0
 
 ## 핸드오프
 
-새 세션이 읽어야 하는 것: ① `ORDER.md` ORD-006(지시 원문 + 진단 표) ② `KANBAN.md`(카드 + verbatim) ③ 규약 1~4 + 공통 DoD ④ 메모리 ⑤ `_bench/`.
+새 세션이 읽어야 하는 것: ① `ORDER.md` ORD-006(지시 원문 + 진단 표) ② `KANBAN.md`(카드 + verbatim) ③ 규약 1~4 + 공통 DoD
+④ 메모리 ⑤ `_bench/` ⑥ **집필 엔진** — `CLAUDE.md` 의 "집필 규칙의 정본은 플러그인이다" 절과
+`.claude/authoring/specs/ds-guide/` · `paths.json` · `authoring.lock.json`.
 
 **리스크:** 진단 표와 deque 실측이 지금 세션 산물에만 있다. 카드 1과 카드 8의 `_bench/` 이관을 최우선으로 처리한다. 벤치는 수치만이 아니라 **재현 명령·입력·환경(bun 버전, 머신)** 까지 고정해야 기록이 아닌 검증 가능한 지식이 된다.

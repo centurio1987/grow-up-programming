@@ -17,12 +17,12 @@
   - 메모: 공수 M·리스크 중. ①스위트 자기검증(_fixtures/broken/이 **축3에서** 실패해야 통과 — 컴파일 에러·예외와 계약 위반을 구분해 단언) ②정본 검증(_reference/ 녹색) ③실습 채점(스텁, CI 판정 제외·별도 리포팅). 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
 - `KAN-013` [P0-b·13] 가이드↔코드 region 추출 파이프라인 + 일치 검사 — 생성:ai · 최종:ai · 갱신:2026-08-02
   - 메모: 공수 M·리스크 중. 가이드는 코드를 복제하지 않는다. `// #region guide:core` 마커로 _reference/에서 추출. 추출 순서·범위·import 제거 규칙 규격화 후 게이트에 편입. 이 정책이 없으면 가이드 코드가 다시 무검증으로 남는다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
-- `KAN-014` [P0-b·14] 게이트 확장 — 타입체크·MDX 빌드·신캔버스 호환 점검 — 생성:ai · 최종:ai · 갱신:2026-08-02
-  - 메모: 공수 M·리스크 중. 기존 3종(comprehension-gate.sh·review-guide.sh·check-mermaid.ts) 승계 + tsc --noEmit·lint·MDX 빌드 추가. 기존 게이트가 '문제 풀이 가이드' 전제에 묶여 있는지, 8단계 캔버스를 이해하는지 먼저 점검. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
+- `KAN-014` [P0-b·14] 게이트 확장 — 타입체크·MDX 빌드·신캔버스 호환 점검 — 생성:ai · 최종:ai · 갱신:2026-08-04
+  - 메모: 공수 M·리스크 중. **게이트 소유권이 바뀌었다(rev4).** 루브릭 채점·외부 검토는 authoring-kit 의 authoring-gate + spec 의 gate.external_review 로 넘어갔고 review-guide.sh 는 이관 때 사라졌다 — 승계 대상이 아니다. 프로젝트가 계속 소유하는 것은 comprehension-gate.sh(이해 게이트)·check-mermaid.ts·compile-check.ts 셋. 여기에 tsc --noEmit·lint·코드 추출 일치를 추가한다. 기존 게이트가 '문제 풀이 가이드' 전제에 묶여 있는지, 8단계 캔버스를 이해하는지 먼저 점검. authoring.py status/lock 이 깨끗한 상태에서 집필됐는지도 게이트 항목. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
 - `KAN-015` [P0-b·15] problem 참조 스윕 + 링크 무결성 도구 — 생성:ai · 최종:ai · 갱신:2026-08-02
   - 메모: 공수 S·리스크 하. 삭제 전 문서·스킬·인덱스·README 참조 검색. algorithms는 유지하고 data-structures만 제거하므로 경계 조건 주의. migration note까지만 — redirect 인프라는 만들지 않는다(외부 소비자 없음, git 히스토리 보존). 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
-- `KAN-016` [P0-b·16] guide-for-structure 스킬 신설 + 회귀 fixture — 생성:ai · 최종:ai · 갱신:2026-08-02
-  - 메모: 공수 L·리스크 중. guide-for-problem은 algorithms 전용으로 축소, 자산 공유. 샘플 입력→산출물→게이트 통과까지 확인하는 fixture 필수 — 없으면 스킬 변경이 또 무검증 생성기를 만든다. gen-problem은 data-structures 대상 폐기 명시. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
+- `KAN-016` [P0-b·16] ds-guide 집필 경로 정합 + 회귀 골든 (guide-for-structure 신설 철회) — 생성:ai · 최종:ai · 갱신:2026-08-04
+  - 메모: 공수 M·리스크 중. **guide-for-structure 신설은 철회한다(rev4).** guide-for-problem 이 이미 src/data-structures/** → ds-guide spec 으로 라우팅하므로, 자료구조 트랙을 가르는 축은 스킬이 아니라 spec 이다. 스킬을 더 만들면 authoring-kit 이관으로 한 벌로 합친 규칙이 다시 갈라진다(CLAUDE.md: '규칙을 스킬 문서에 다시 쓰지 않는다'). 할 일: ①guide-for-problem 라우팅 표의 ds-guide 행 '5단계'→'8단계' 정정 ②paths.json exemplars.ds-guide 가 구 5단계 bPlusTree-guide.mdx 를 가리키므로 파일럿 산출물로 교체(spec.md 가 '모범 예시 필독'으로 참조) ③problem spec 적용 범위를 algorithms/ 로 한정 명시 + gen-problem 의 data-structures 대상 폐기와 짝 ④샘플 입력→산출물→게이트 통과 회귀 fixture. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md 집필 엔진(rev4)
 - `KAN-017` [P0-b·17] CLAUDE.md 자료구조 트랙 서술 추가 — 생성:ai · 최종:ai · 갱신:2026-08-02
   - 메모: 공수 S·리스크 하. 현행 '이 프로젝트는 코드 테스트 문제 풀이 목적 / 주석에 적힌 문제를 보고 함수를 선언'이 새 방향과 정면 충돌. 안 고치면 새 세션이 문제 풀이 프레임으로 회귀한다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
 - `KAN-018` [P0-b·18] 메모리 guide-quality-standard 갱신 — 생성:ai · 최종:ai · 갱신:2026-08-02
@@ -72,8 +72,8 @@
     ```text
     테스트는 자료구조가 제대로 작동하며, 불변식을 지키고, 해당 자료구조로써 필요충분조건을 충족했는지 파악한다.
     ```
-- `KAN-004` [P0-a·4] 규약3 — 가이드 캔버스 8단계 개정 — 생성:ai · 최종:ai · 갱신:2026-08-02
-  - 메모: 공수 M·리스크 하. 개요/이 구조가 필요한 이유/단순한 구현의 한계/불변식과 연산별 복잡도 조건/구현(TS)/TS의 한계와 대체 언어(조건부)/단계별 동작 확인/스스로 점검하기. **절 제목은 제목만 읽고 내용을 알 수 있어야 한다** — ORD-005 '왜 이 모양이어야 하는가'가 이 기준에 미달해 교체. 과장·구어 표현 금지. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
+- `KAN-004` [P0-a·4] 규약3 — 가이드 캔버스 8단계 개정 — 생성:ai · 최종:ai · 갱신:2026-08-04
+  - 메모: 공수 M·리스크 중. 개요/이 구조가 필요한 이유/단순한 구현의 한계/불변식과 연산별 복잡도 조건/구현(TS)/TS의 한계와 대체 언어(조건부)/단계별 동작 확인/스스로 점검하기. **고칠 곳은 세 곳 + lock** — .claude/authoring/specs/ds-guide/spec.json(sections[] 골격 정본)·spec.md(항목별 작성법)·.claude/skills/guide-for-problem/data-structure-guide-canvas.md(템플릿), 그리고 authoring.py lock 재생성. 캔버스만 고치면 집필기가 spec 을 읽으므로 반영되지 않는다. **현행 ds-guide spec 은 문제 종속이 required/MUST 로 박혀 있다** — when.clue 절과 원칙 B2('문제에서 어떤 단서가 보일 때')를 '이 구조가 필요한 이유'로 대체, detail.spec 은 4단계로 흡수. E7·E8(복잡도가 무엇을 센 값인지·최악/기대/상환 구분)은 축3과 같은 요구라 승계. 절 제목은 제목만 읽고 내용을 알 수 있어야 한다 — ORD-005 '왜 이 모양이어야 하는가'가 미달해 교체. 과장·구어 표현 금지. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md 규약3(rev4)
   - 원문:
     ```text
     가이드는 문제가 아니라, 자료구조 자체에 집중한다. 목적, 목적을 충족할 수 있는 최적화된 형태의 구현을 작성하기 위한 과정이 포함되어야 한다.
@@ -96,5 +96,11 @@
 ## 진행 중
 
 ## 검토
+- `KAN-029` [P0-a·29] 집필 엔진 가용성 확보 — 플러그인 설치·활성화 + lock 버전 재고정 — 생성:ai · 최종:ai · 갱신:2026-08-04
+  - 메모: 공수 S·리스크 중. **rev4 신설. P1 파일럿 착수 전 필수 관문.** guide-for-problem·gen-problem 둘 다 0단계에서 authoring.py status 를 돌리고 없으면 거기서 멈춘다(구 경로 폴백 없음) — 엔진이 안 잡히면 KAN-008~010 파일럿이 집필 단계에 진입조차 못 한다. **2026-08-04 처리 완료:** ①claude plugin install authoring-kit@centurio87-plugins --scope project → 0.3.0 enabled, 스킬 6종(authoring-write·gate·method·spec·voice·doctor) 등록. .claude/settings.json 의 enabledPlugins 에 기록돼 워크트리와 무관하게 따라간다 ②authoring.py lock --update → plugin 0.2.0→0.3.0, principles revision 9354711→6484b5c, QUALITY_RUBRIC 해시 갱신. **spec·voice 해시는 불변** = 0.3.0 승격이 프로젝트 spec 3종을 무효화하지 않는다 ③루브릭 변경분은 H축(이해 게이트) 신설 — ORD-005/006 방향과 일치해 그대로 수용 ④status 정상(spec 3종·voice 5종 인식), lock 최신. **남은 확인: 세션 재시작 후 Skill(authoring-kit:authoring-write) 가 실제로 뜨는지.** 근거: docs/ORD-006-strategy.md 집필 엔진(rev4)
+  - 원문:
+    ```text
+    집필 엔진은 개선했다. kan-001 계획에 새로운 집필 엔진을 사용하는 것이 고려 됐는지 확인하고 안 되어 있으면 반영해라. 계획에서 고려하지 않아도, 자연스럽게 작용하는 것이면 그냥 둬도 된다.
+    ```
 
 ## 완료
