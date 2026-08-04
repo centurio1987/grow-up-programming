@@ -1,6 +1,6 @@
 {
   "next_id": 32,
-  "next_seq": 73,
+  "next_seq": 75,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -171,15 +171,15 @@
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-015": {
-      "col": "backlog",
+      "col": "done",
       "title": "[P0-b·15] problem 참조 스윕 + 링크 무결성 도구",
-      "memo": "공수 S·리스크 하. 삭제 전 문서·스킬·인덱스·README 참조 검색. algorithms는 유지하고 data-structures만 제거하므로 경계 조건 주의. migration note까지만 — redirect 인프라는 만들지 않는다(외부 소비자 없음, git 히스토리 보존). 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "memo": "공수 S·리스크 하. **B6 완료(2026-08-04). tools/check-links.ts 신설.** 두 모드다. `check` — 전 문서의 마크다운 링크가 실재하는 파일을 가리키는가(현재 256건 통과). `refs <경로|디렉터리>` — 그 경로를 가리키는 곳을 전부 찾는다. **판정이 링크 문법이 아니라 문자열 포함이라** JSON 값(ord004-manifest.json)·셸 인자에 박힌 경로도 걸린다. 손 grep 은 패턴을 빠뜨리고 빠뜨린 것을 본인이 알 수 없다(B3 인용 사고와 같은 사유). **오탐 셋을 걸러 낸다**: 코드 블록·인라인 코드(ascii 도식과 LaTeX 아래첨자가 `[a](b)` 꼴을 만든다) · HTML 주석(캔버스 집필 지시의 예시 경로는 산출물 위치 기준이라 여기서 안 풀린다) · 경로처럼 생기지 않은 것(MDX 안 JS 문자열의 `[2,6](+4)`). 걸러 내기 전 37건이던 오탐이 0이 됐다. 음성 시험: 없는 링크 주입 시 exit 1. **리다이렉트 인프라는 만들지 않았다** — 외부 소비자가 없고 git 이력이 남는다. **KAN-019 가 쓸 결과가 이미 나온다**: hash/multiset 을 가리키는 곳 6자리(tools/check-citations.ts:28 · tools/ord004-manifest.json:1637-1638 · tools/emit-vectors.ts:23 · 문제_가이드_목록.md:14 · docs/ORD-006-runbook.md:313). 이동 전 이 여섯을 함께 고친다. CLAUDE.md 검증 명령 등록. 근거: ORDER.md ORD-006 / CLAUDE.md 검증 명령",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-02",
+      "갱신": "2026-08-04",
       "title_hash": "823dbb361992151cc4ddf6a44ee818a2663822dd",
-      "memo_hash": "6a6560e07ba0da25b85594db469eb78a0bc3fcb8",
+      "memo_hash": "d6ffcf2b9f99a7224cded210aa3f0a342dec8de6",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-016": {
@@ -383,7 +383,6 @@
     "KAN-012",
     "KAN-013",
     "KAN-014",
-    "KAN-015",
     "KAN-016",
     "KAN-017",
     "KAN-018",
@@ -406,9 +405,29 @@
     "KAN-002",
     "KAN-003",
     "KAN-004",
-    "KAN-006"
+    "KAN-006",
+    "KAN-015"
   ],
   "recent": [
+    {
+      "seq": 74,
+      "t": "2026-08-04T20:53",
+      "a": "ai",
+      "id": "KAN-015",
+      "op": "move",
+      "from": "backlog",
+      "to": "done"
+    },
+    {
+      "seq": 73,
+      "t": "2026-08-04T20:53",
+      "a": "ai",
+      "id": "KAN-015",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 S·리스크 하. 삭제 전 문서·스킬·인덱스·README 참조 검색. algorithms는 유지하고 data-structures만 제거하므로 경계 조건 주의. migration note까지만 — redirect 인프라는 만들지 않는다(외부 소비자 없음, git 히스토리 보존). 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "after": "공수 S·리스크 하. **B6 완료(2026-08-04). tools/check-links.ts 신설.** 두 모드다. `check` — 전 문서의 마크다운 링크가 실재하는 파일을 가리키는가(현재 256건 통과). `refs <경로|디렉터리>` — 그 경로를 가리키는 곳을 전부 찾는다. **판정이 링크 문법이 아니라 문자열 포함이라** JSON 값(ord004-manifest.json)·셸 인자에 박힌 경로도 걸린다. 손 grep 은 패턴을 빠뜨리고 빠뜨린 것을 본인이 알 수 없다(B3 인용 사고와 같은 사유). **오탐 셋을 걸러 낸다**: 코드 블록·인라인 코드(ascii 도식과 LaTeX 아래첨자가 `[a](b)` 꼴을 만든다) · HTML 주석(캔버스 집필 지시의 예시 경로는 산출물 위치 기준이라 여기서 안 풀린다) · 경로처럼 생기지 않은 것(MDX 안 JS 문자열의 `[2,6](+4)`). 걸러 내기 전 37건이던 오탐이 0이 됐다. 음성 시험: 없는 링크 주입 시 exit 1. **리다이렉트 인프라는 만들지 않았다** — 외부 소비자가 없고 git 이력이 남는다. **KAN-019 가 쓸 결과가 이미 나온다**: hash/multiset 을 가리키는 곳 6자리(tools/check-citations.ts:28 · tools/ord004-manifest.json:1637-1638 · tools/emit-vectors.ts:23 · 문제_가이드_목록.md:14 · docs/ORD-006-runbook.md:313). 이동 전 이 여섯을 함께 고친다. CLAUDE.md 검증 명령 등록. 근거: ORDER.md ORD-006 / CLAUDE.md 검증 명령"
+    },
     {
       "seq": 72,
       "t": "2026-08-04T20:39",
@@ -885,28 +904,6 @@
       "col": "backlog",
       "title": "[P4·25] P4 분류 확정 — 60종을 3군에 배정",
       "memo": "공수 M·리스크 중. 카테고리가 아니라 난이도 기준(검증 등급·에스컬레이션 필요성·가이드 수정량)으로 분류하고 군별 공수 추정. **'결함 없음 60종'은 작업 없음이 아니다** — problem 삭제·명세·검증 등급·캔버스 8단계·코드 추출이 전원 붙는다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
-      "verbatim": ""
-    },
-    {
-      "seq": 24,
-      "t": "2026-08-02T23:36",
-      "a": "ai",
-      "id": "KAN-024",
-      "op": "create",
-      "col": "backlog",
-      "title": "[P3·24] concurrentSkipList 처분 실행",
-      "memo": "공수 M·리스크 중. 카드 7 결정 이행. 존치 시 concurrency 등급(선형화·동시성 스트레스) 필요. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
-      "verbatim": ""
-    },
-    {
-      "seq": 23,
-      "t": "2026-08-02T23:36",
-      "a": "ai",
-      "id": "KAN-023",
-      "op": "create",
-      "col": "backlog",
-      "title": "[P3·23] ternarySearchTree 근거 정정",
-      "memo": "공수 S·리스크 하. 스토리 :10이 '일반 Trie는 노드마다 26개 포인터 낭비'를 근거로 드나 이 리포의 trie는 Map<string,TrieNode> 희소 구조라 전제 불성립. 교차 불일치. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
       "verbatim": ""
     }
   ]
