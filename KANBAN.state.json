@@ -1,6 +1,6 @@
 {
   "next_id": 32,
-  "next_seq": 69,
+  "next_seq": 70,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -185,13 +185,13 @@
     "KAN-016": {
       "col": "backlog",
       "title": "[P0-b·16] ds-guide 집필 경로 정합 + 회귀 골든 (guide-for-structure 신설 철회)",
-      "memo": "공수 M·리스크 중. **guide-for-structure 신설은 철회한다(rev4).** guide-for-problem 이 이미 src/data-structures/** → ds-guide spec 으로 라우팅하므로, 자료구조 트랙을 가르는 축은 스킬이 아니라 spec 이다. 스킬을 더 만들면 authoring-kit 이관으로 한 벌로 합친 규칙이 다시 갈라진다(CLAUDE.md: '규칙을 스킬 문서에 다시 쓰지 않는다'). 할 일: ①guide-for-problem 라우팅 표의 ds-guide 행 '5단계'→'8단계' 정정 ②paths.json exemplars.ds-guide 가 구 5단계 bPlusTree-guide.mdx 를 가리키므로 파일럿 산출물로 교체(spec.md 가 '모범 예시 필독'으로 참조) ③problem spec 적용 범위를 algorithms/ 로 한정 명시 + gen-problem 의 data-structures 대상 폐기와 짝 ④샘플 입력→산출물→게이트 통과 회귀 fixture. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md 집필 엔진(rev4)",
+      "memo": "공수 M·리스크 중. **guide-for-structure 신설은 철회한다(rev4).** guide-for-problem 이 이미 src/data-structures/** → ds-guide spec 으로 라우팅하므로, 자료구조 트랙을 가르는 축은 스킬이 아니라 spec 이다. 스킬을 더 만들면 authoring-kit 이관으로 한 벌로 합친 규칙이 다시 갈라진다(CLAUDE.md: \"규칙을 스킬 문서에 다시 쓰지 않는다\"). **B4 가 ①을 처리했다(2026-08-04)** — SKILL.md 라우팅 표의 ds-guide 행을 \"5단계 — 스펙 전수 + 언제 쓰는가\"에서 \"8단계 — 계약에서 출발해 그 계약을 지키는 구현으로\"로 고쳤다. 남은 할 일 셋: ②paths.json exemplars.ds-guide 가 구 5단계 bPlusTree-guide.mdx 를 가리킨다(spec.md 도 \"모범 예시 필독\"으로 같은 파일을 참조). **B4 에서 지우지 않은 이유는 8단계로 쓰인 가이드가 아직 하나도 없어서다** — 지금 지우면 예시가 없는 상태가 된다. 첫 8단계 산출물(KAN-008 deque)이 나오면 그때 교체한다 ③problem spec 적용 범위를 algorithms/ 로 한정 명시 + gen-problem 의 data-structures 대상 폐기와 짝 ④샘플 입력→산출물→게이트 통과 회귀 fixture. **집필 전 확인 항목이 하나 늘었다** — 집필 원칙(~/.claude/authoring/principles)은 배치 도중에도 전진한다(B4 한 세션에 두 번). authoring.py lock 을 시작과 끝에 본다. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md §규약3 / docs/ORD-006-strategy.md 집필 엔진(rev4)",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
       "갱신": "2026-08-04",
       "title_hash": "696add1be50c9b66a6a77314515ac26ca259cc4b",
-      "memo_hash": "0d102e092458dec6a2b23335e95dc2a66be52f90",
+      "memo_hash": "8cb3d7a33ac2352eccf9b600082370ee3aadc01f",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-017": {
@@ -409,6 +409,16 @@
     "KAN-004"
   ],
   "recent": [
+    {
+      "seq": 69,
+      "t": "2026-08-04T18:36",
+      "a": "ai",
+      "id": "KAN-016",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 M·리스크 중. **guide-for-structure 신설은 철회한다(rev4).** guide-for-problem 이 이미 src/data-structures/** → ds-guide spec 으로 라우팅하므로, 자료구조 트랙을 가르는 축은 스킬이 아니라 spec 이다. 스킬을 더 만들면 authoring-kit 이관으로 한 벌로 합친 규칙이 다시 갈라진다(CLAUDE.md: '규칙을 스킬 문서에 다시 쓰지 않는다'). 할 일: ①guide-for-problem 라우팅 표의 ds-guide 행 '5단계'→'8단계' 정정 ②paths.json exemplars.ds-guide 가 구 5단계 bPlusTree-guide.mdx 를 가리키므로 파일럿 산출물로 교체(spec.md 가 '모범 예시 필독'으로 참조) ③problem spec 적용 범위를 algorithms/ 로 한정 명시 + gen-problem 의 data-structures 대상 폐기와 짝 ④샘플 입력→산출물→게이트 통과 회귀 fixture. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md 집필 엔진(rev4)",
+      "after": "공수 M·리스크 중. **guide-for-structure 신설은 철회한다(rev4).** guide-for-problem 이 이미 src/data-structures/** → ds-guide spec 으로 라우팅하므로, 자료구조 트랙을 가르는 축은 스킬이 아니라 spec 이다. 스킬을 더 만들면 authoring-kit 이관으로 한 벌로 합친 규칙이 다시 갈라진다(CLAUDE.md: \"규칙을 스킬 문서에 다시 쓰지 않는다\"). **B4 가 ①을 처리했다(2026-08-04)** — SKILL.md 라우팅 표의 ds-guide 행을 \"5단계 — 스펙 전수 + 언제 쓰는가\"에서 \"8단계 — 계약에서 출발해 그 계약을 지키는 구현으로\"로 고쳤다. 남은 할 일 셋: ②paths.json exemplars.ds-guide 가 구 5단계 bPlusTree-guide.mdx 를 가리킨다(spec.md 도 \"모범 예시 필독\"으로 같은 파일을 참조). **B4 에서 지우지 않은 이유는 8단계로 쓰인 가이드가 아직 하나도 없어서다** — 지금 지우면 예시가 없는 상태가 된다. 첫 8단계 산출물(KAN-008 deque)이 나오면 그때 교체한다 ③problem spec 적용 범위를 algorithms/ 로 한정 명시 + gen-problem 의 data-structures 대상 폐기와 짝 ④샘플 입력→산출물→게이트 통과 회귀 fixture. **집필 전 확인 항목이 하나 늘었다** — 집필 원칙(~/.claude/authoring/principles)은 배치 도중에도 전진한다(B4 한 세션에 두 번). authoring.py lock 을 시작과 끝에 본다. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md §규약3 / docs/ORD-006-strategy.md 집필 엔진(rev4)"
+    },
     {
       "seq": 68,
       "t": "2026-08-04T18:35",
@@ -901,17 +911,6 @@
       "col": "backlog",
       "title": "[P2·20] unrolledLinkedList 재집필 — 양방향 연결",
       "memo": "공수 M·리스크 하. 표는 pop() O(1) amortized인데 상세는 'head부터 순회 O(p)'. 에스컬레이션 (나) 판정 예상 — 점근 계약은 TS로 충족, 캐시 지역성만 Rust 실측. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
-      "verbatim": ""
-    },
-    {
-      "seq": 19,
-      "t": "2026-08-02T23:36",
-      "a": "ai",
-      "id": "KAN-019",
-      "op": "create",
-      "col": "backlog",
-      "title": "[P2·19] multiset 재집필 — 균형 BST 전환",
-      "memo": "공수 L·리스크 중. **A급 최악**: 스토리가 '배열 정렬은 O(K) 삽입'을 이기겠다며 O(log K)를 약속해놓고 인터페이스는 O(n) splice를 처방 — 이기겠다던 그 자료구조를 그대로 처방. 카드 7의 재분류 원칙 적용. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
       "verbatim": ""
     }
   ]
