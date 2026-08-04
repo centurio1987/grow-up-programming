@@ -9,11 +9,11 @@
   "hooks": {
     "PostToolUse": [
       {
-        "matcher": "Bash|Write|Edit",
+        "matcher": "Write|Edit",
         "hooks": [
           {
             "type": "command",
-            "command": "./tools/generate-guides-index.sh > /dev/null"
+            "command": "if [ -x \"$CLAUDE_PROJECT_DIR/tools/generate-guides-index.sh\" ]; then \"$CLAUDE_PROJECT_DIR/tools/generate-guides-index.sh\" > /dev/null; fi"
           }
         ]
       }
