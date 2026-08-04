@@ -22,6 +22,7 @@
 
   "exemplars": {
     "algo-guide": "src/algorithms/array/mosAlgorithm/mosAlgorithm-guide.mdx",
-    "ds-guide": "src/data-structures/tree/bPlusTree/bPlusTree-guide.mdx"
+    "_note_ds-guide": "8단계 골격(ds-guide spec 2.0.0)으로 쓰인 첫 산출물이다. 구 5단계 예시(tree/bPlusTree)를 이것으로 교체했다 — 규칙과 예시가 다른 골격을 들고 있으면 예시가 이긴다.",
+    "ds-guide": "src/data-structures/linear/deque/deque-guide.mdx"
   }
 }

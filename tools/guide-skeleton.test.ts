@@ -17,6 +17,14 @@ const root = resolve(import.meta.dir, "..");
 const SPEC = ".claude/authoring/specs/ds-guide/spec.json";
 const FIXTURE = "tools/_fixtures/ds-guide-skeleton.mdx";
 
+/**
+ * 8단계로 **재집필이 끝난** 가이드. 재집필 카드가 여기 한 줄을 더한다.
+ *
+ * 나머지 68종은 아직 옛 5단계 문형이므로 대상이 아니다. 목록을 자동으로 만들지 않는 이유는
+ * "아직 안 옮긴 것"과 "옮겼는데 골격이 틀린 것"을 구분해야 하기 때문이다.
+ */
+const REWRITTEN = ["src/data-structures/linear/deque/deque-guide.mdx"];
+
 interface Section {
   id: string;
   required: boolean;
@@ -101,3 +109,31 @@ test("본문에 계측이 새어 나오지 않는다", () => {
   // 추출이 걷어 내므로, 보이면 손으로 옮겨 적었다는 뜻이다(§규약3 E5).
   expect(fixture).not.toContain("__cost");
 });
+
+// ─── 재집필이 끝난 실제 가이드 ──────────────────────────────────────────────
+
+for (const path of REWRITTEN) {
+  const source = await Bun.file(join(root, path)).text();
+  const found = headings(source);
+
+  test(`${path} — 필수 절이 spec 순서대로 있다`, () => {
+    const required = ordered.filter((s) => s.required && s.heading_fixed);
+    for (const section of required) {
+      expect(found).toContain(section.heading);
+    }
+    const positions = required.map((s) => found.indexOf(s.heading));
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+  });
+
+  test(`${path} — spec 이 모르는 \`##\` 절이 없다`, () => {
+    const known = new Set(ordered.map((s) => s.heading));
+    const strays = found
+      .filter((h) => h.startsWith("## "))
+      .filter((h) => !known.has(h));
+    expect(strays).toEqual([]);
+  });
+
+  test(`${path} — 본문에 계측이 새어 나오지 않는다`, () => {
+    expect(source).not.toContain("__cost");
+  });
+}
