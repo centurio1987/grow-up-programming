@@ -1,6 +1,6 @@
 {
   "next_id": 33,
-  "next_seq": 97,
+  "next_seq": 99,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -221,13 +221,13 @@
     "KAN-019": {
       "col": "backlog",
       "title": "[P2·19] multiset 재집필 — 균형 BST 전환",
-      "memo": "공수 L·리스크 중. **A급 최악**: 스토리가 '배열 정렬은 O(K) 삽입'을 이기겠다며 O(log K)를 약속해놓고 인터페이스는 O(n) splice 를 처방 — 이기겠다던 그 자료구조를 그대로 처방했다. **KAN-007 결정 확정(2026-08-04): hash/multiset → tree/multiset 재분류.** 규약4 (-) 등급(균형 BST 로 O(log n) 계약이 TS 안에서 닫힌다). 근거: hash/ 는 순서를 약속하지 않는 계열(hashMapChaining·hashSet·lruCache)인데 multiset 의 계약은 정렬 순서 유지다. 확정된 분류 원칙은 '카테고리는 계약(ADT)으로 가른다'이며 tree/ 가 구현 이름이라는 모순은 KAN-031 이 닫을 때까지 남는다. **디렉터리 이동을 이 카드가 실행한다** — B1 에서 옮기지 않은 이유는 경로가 바뀌면 문제_가이드_목록.md · tools/ord004-manifest.json · 가이드 인덱스가 함께 흔들리는데 참조 스윕 도구가 KAN-015 이기 때문이다. **선행: KAN-015.** 이동 후 bun run tools/ord006-inventory.ts 로 TSV 의 path·category 를 재생성한다(도구의 결함등급 키 가드가 걸리므로 DEFECT_GRADES 키도 함께 고쳐야 한다). **미결(이 카드가 판단): tree/orderStatisticTree 의 계약이 multiset 을 포섭한다** — insert 중복 허용·delete·kth·rank 로 count(x)=rank(x+)-rank(x), min=kth(1), max=kth(size)가 전부 나온다. 두 구조를 합칠지 따로 둘지 여기서 정한다. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md 처분 결정",
+      "memo": "공수 L·리스크 중. **A급 최악**: 스토리가 '배열 정렬은 O(K) 삽입'을 이기겠다며 O(log K)를 약속해놓고 인터페이스는 O(n) splice 를 처방 — 이기겠다던 그 자료구조를 그대로 처방했다. **KAN-007 결정 확정(2026-08-04): hash/multiset → tree/multiset 재분류.** 규약4 (-) 등급(균형 BST 로 O(log n) 계약이 TS 안에서 닫힌다). 근거: hash/ 는 순서를 약속하지 않는 계열(hashMapChaining·hashSet·lruCache)인데 multiset 의 계약은 정렬 순서 유지다. 확정된 분류 원칙은 '카테고리는 계약(ADT)으로 가른다'이며 tree/ 가 구현 이름이라는 모순은 KAN-031 이 닫을 때까지 남는다. **디렉터리 이동을 이 카드가 실행한다** — B1 에서 옮기지 않은 이유는 경로가 바뀌면 문제_가이드_목록.md · tools/ord004-manifest.json · 가이드 인덱스가 함께 흔들리는데 참조 스윕 도구가 KAN-015 이기 때문이다. **선행: KAN-015.** 이동 후 bun run tools/ord006-inventory.ts 로 TSV 의 path·category 를 재생성한다(도구의 결함등급 키 가드가 걸리므로 DEFECT_GRADES 키도 함께 고쳐야 한다). **미결(이 카드가 판단): tree/orderStatisticTree 의 계약이 multiset 을 포섭한다** — insert 중복 허용·delete·kth·rank 로 count(x)=rank(x+)-rank(x), min=kth(1), max=kth(size)가 전부 나온다. 두 구조를 합칠지 따로 둘지 여기서 정한다. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md 처분 결정 **B10 이 이 카드의 입력을 바꿨다(2026-08-05).** ① **계약·스위트의 불변식 셋을 이미 고쳐 뒀다** — 1번(toArray 비내림차순)과 2번의 has 절은 계약 표의 의미 열이 이미 적고 있어 축1로 갔고, 그 자리에 min()·max() 대 toArray() 양 끝의 정합이 들어왔다. 재집필이 다시 판정할 것은 나머지 다섯 항목과 가이드다. ② **선행 KAN-015 는 B6 에서 풀렸다** — 이 카드는 실행 대기지 판단 대기가 아니다. ③ **벽시계 게이트가 이제 계약을 적은 구조를 본다** — 새 test 파일에 performance.now 를 두면 bun run tools/check-contract.ts 가 그 자리에서 실패한다. 불변식 개수 게이트도 같은 파일에 있다. ④ 규약4 (-) 등급이므로 가이드 6단계는 절째로 생략한다. 진입 카드는 docs/ORD-006-runbook.md 「B11」.",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-04",
+      "갱신": "2026-08-05",
       "title_hash": "83a6f8dc1c0509aec124f79dd34b07baf003e5a4",
-      "memo_hash": "476ebfce2014c5612754835aedfa4bb7222a3325",
+      "memo_hash": "9f48bb5e7f95456dacccd931a9349e99d1f82695",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-020": {
@@ -293,13 +293,13 @@
     "KAN-025": {
       "col": "backlog",
       "title": "[P4·25] P4 분류 확정 — 60종을 3군에 배정",
-      "memo": "공수 M·리스크 중. 카테고리가 아니라 난이도 기준(검증 등급·에스컬레이션 필요성·가이드 수정량)으로 분류하고 군별 공수 추정. **\"결함 없음 60종\"은 작업 없음이 아니다** — problem 삭제·명세·검증 등급·캔버스 8단계·코드 추출이 전원 붙는다. **B2 가 이 카드에 순서 문제를 하나 남겼다(2026-08-04).** 검증 등급 판정 절차는 확정됐지만(docs/ORD-006-conventions.md §규약1, 4단계) **등급은 계약에서 기계적으로 따라 나오므로 계약을 적기 전에는 판정할 수 없다.** 이 카드는 계약 집필 전에 60종을 분류해야 하니 순서가 거꾸로다. 해법: 이 카드는 **잠정 판정**만 한다 — 목적이 공수 추정이지 계약 확정이 아니기 때문이다. **잠정 판정을 docs/ORD-006-inventory.tsv 에 넣지 않는다.** 그 열은 확정분 전용이고 tools/ord006-inventory.ts 의 VERIFICATION_GRADES 결정 맵이 이를 강제한다(맵에 없는 구조는 전부 미판정). 확정 판정은 각 재집필 카드가 계약을 적을 때 나오고, 그때 맵에 박는다. 잠정 판정의 기준선은 시범 2종이다 — linear/stack 이 basic 의 실제 예(불변식 절이 비고 상한이 자명한 구현으로 달성됨), hash/multiset 이 complexity 의 실제 예(O(log n) 상한을 정렬 배열로 달성 불가)다. 판정이 갈리면 §규약1 이 요구하는 반례를 적는다 — 자명한 구현으로 하면 어느 연산이 상한을 넘는가. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md / docs/ORD-006-conventions.md §규약1",
+      "memo": "공수 M·리스크 중. 카테고리가 아니라 난이도 기준(검증 등급·에스컬레이션 필요성·가이드 수정량)으로 분류하고 군별 공수 추정. **\"결함 없음 60종\"은 작업 없음이 아니다** — problem 삭제·명세·검증 등급·캔버스 8단계·코드 추출이 전원 붙는다. **B2 가 이 카드에 순서 문제를 하나 남겼다(2026-08-04).** 검증 등급 판정 절차는 확정됐지만(docs/ORD-006-conventions.md §규약1, 4단계) **등급은 계약에서 기계적으로 따라 나오므로 계약을 적기 전에는 판정할 수 없다.** 이 카드는 계약 집필 전에 60종을 분류해야 하니 순서가 거꾸로다. 해법: 이 카드는 **잠정 판정**만 한다 — 목적이 공수 추정이지 계약 확정이 아니기 때문이다. **잠정 판정을 docs/ORD-006-inventory.tsv 에 넣지 않는다.** 그 열은 확정분 전용이고 tools/ord006-inventory.ts 의 VERIFICATION_GRADES 결정 맵이 이를 강제한다(맵에 없는 구조는 전부 미판정). 확정 판정은 각 재집필 카드가 계약을 적을 때 나오고, 그때 맵에 박는다. 잠정 판정의 기준선은 시범 2종이다 — linear/stack 이 basic 의 실제 예(불변식 절이 비고 상한이 자명한 구현으로 달성됨), hash/multiset 이 complexity 의 실제 예(O(log n) 상한을 정렬 배열로 달성 불가)다. 판정이 갈리면 §규약1 이 요구하는 반례를 적는다 — 자명한 구현으로 하면 어느 연산이 상한을 넘는가. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md / docs/ORD-006-conventions.md §규약1 **B10 이 기준선을 갱신했다(2026-08-05).** 시범 2종이 아니라 **실제 판정 다섯**이 기준선이다 — linear/stack=basic · linear/xorLinkedList=invariant · hash/multiset·linear/deque·range-query/intervalTree=complexity. concurrency 만 실물 예가 없고 KAN-024 가 만든다. **잠정 판정에서 가장 쓸모 있는 것은 linear/deque 다** — 불변식 절이 비었는데 basic 이 아니다. 판정 절차가 상한(2번)을 불변식(3번)보다 먼저 보기 때문이고, '불변식이 없으니 basic' 으로 새는 것을 막는 유일한 반례다. 불변식 판별은 B10 이 통합한 두 물음을 쓴다(docs/ORD-006-conventions.md §규약1 「불변식 판별 절차」).",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-04",
+      "갱신": "2026-08-05",
       "title_hash": "1a176c70f255f8f5b2bac08187e6b7c5324846f3",
-      "memo_hash": "a275f29eb60ca27c5e285017f1a6f7a674f960ee",
+      "memo_hash": "c4891f311ef93466a1e5069e5ae0024e49173d73",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-026": {
@@ -422,6 +422,26 @@
     "KAN-011"
   ],
   "recent": [
+    {
+      "seq": 98,
+      "t": "2026-08-05T01:46",
+      "a": "ai",
+      "id": "KAN-019",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 L·리스크 중. **A급 최악**: 스토리가 '배열 정렬은 O(K) 삽입'을 이기겠다며 O(log K)를 약속해놓고 인터페이스는 O(n) splice 를 처방 — 이기겠다던 그 자료구조를 그대로 처방했다. **KAN-007 결정 확정(2026-08-04): hash/multiset → tree/multiset 재분류.** 규약4 (-) 등급(균형 BST 로 O(log n) 계약이 TS 안에서 닫힌다). 근거: hash/ 는 순서를 약속하지 않는 계열(hashMapChaining·hashSet·lruCache)인데 multiset 의 계약은 정렬 순서 유지다. 확정된 분류 원칙은 '카테고리는 계약(ADT)으로 가른다'이며 tree/ 가 구현 이름이라는 모순은 KAN-031 이 닫을 때까지 남는다. **디렉터리 이동을 이 카드가 실행한다** — B1 에서 옮기지 않은 이유는 경로가 바뀌면 문제_가이드_목록.md · tools/ord004-manifest.json · 가이드 인덱스가 함께 흔들리는데 참조 스윕 도구가 KAN-015 이기 때문이다. **선행: KAN-015.** 이동 후 bun run tools/ord006-inventory.ts 로 TSV 의 path·category 를 재생성한다(도구의 결함등급 키 가드가 걸리므로 DEFECT_GRADES 키도 함께 고쳐야 한다). **미결(이 카드가 판단): tree/orderStatisticTree 의 계약이 multiset 을 포섭한다** — insert 중복 허용·delete·kth·rank 로 count(x)=rank(x+)-rank(x), min=kth(1), max=kth(size)가 전부 나온다. 두 구조를 합칠지 따로 둘지 여기서 정한다. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md 처분 결정",
+      "after": "공수 L·리스크 중. **A급 최악**: 스토리가 '배열 정렬은 O(K) 삽입'을 이기겠다며 O(log K)를 약속해놓고 인터페이스는 O(n) splice 를 처방 — 이기겠다던 그 자료구조를 그대로 처방했다. **KAN-007 결정 확정(2026-08-04): hash/multiset → tree/multiset 재분류.** 규약4 (-) 등급(균형 BST 로 O(log n) 계약이 TS 안에서 닫힌다). 근거: hash/ 는 순서를 약속하지 않는 계열(hashMapChaining·hashSet·lruCache)인데 multiset 의 계약은 정렬 순서 유지다. 확정된 분류 원칙은 '카테고리는 계약(ADT)으로 가른다'이며 tree/ 가 구현 이름이라는 모순은 KAN-031 이 닫을 때까지 남는다. **디렉터리 이동을 이 카드가 실행한다** — B1 에서 옮기지 않은 이유는 경로가 바뀌면 문제_가이드_목록.md · tools/ord004-manifest.json · 가이드 인덱스가 함께 흔들리는데 참조 스윕 도구가 KAN-015 이기 때문이다. **선행: KAN-015.** 이동 후 bun run tools/ord006-inventory.ts 로 TSV 의 path·category 를 재생성한다(도구의 결함등급 키 가드가 걸리므로 DEFECT_GRADES 키도 함께 고쳐야 한다). **미결(이 카드가 판단): tree/orderStatisticTree 의 계약이 multiset 을 포섭한다** — insert 중복 허용·delete·kth·rank 로 count(x)=rank(x+)-rank(x), min=kth(1), max=kth(size)가 전부 나온다. 두 구조를 합칠지 따로 둘지 여기서 정한다. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md 처분 결정 **B10 이 이 카드의 입력을 바꿨다(2026-08-05).** ① **계약·스위트의 불변식 셋을 이미 고쳐 뒀다** — 1번(toArray 비내림차순)과 2번의 has 절은 계약 표의 의미 열이 이미 적고 있어 축1로 갔고, 그 자리에 min()·max() 대 toArray() 양 끝의 정합이 들어왔다. 재집필이 다시 판정할 것은 나머지 다섯 항목과 가이드다. ② **선행 KAN-015 는 B6 에서 풀렸다** — 이 카드는 실행 대기지 판단 대기가 아니다. ③ **벽시계 게이트가 이제 계약을 적은 구조를 본다** — 새 test 파일에 performance.now 를 두면 bun run tools/check-contract.ts 가 그 자리에서 실패한다. 불변식 개수 게이트도 같은 파일에 있다. ④ 규약4 (-) 등급이므로 가이드 6단계는 절째로 생략한다. 진입 카드는 docs/ORD-006-runbook.md 「B11」."
+    },
+    {
+      "seq": 97,
+      "t": "2026-08-05T01:46",
+      "a": "ai",
+      "id": "KAN-025",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 M·리스크 중. 카테고리가 아니라 난이도 기준(검증 등급·에스컬레이션 필요성·가이드 수정량)으로 분류하고 군별 공수 추정. **\"결함 없음 60종\"은 작업 없음이 아니다** — problem 삭제·명세·검증 등급·캔버스 8단계·코드 추출이 전원 붙는다. **B2 가 이 카드에 순서 문제를 하나 남겼다(2026-08-04).** 검증 등급 판정 절차는 확정됐지만(docs/ORD-006-conventions.md §규약1, 4단계) **등급은 계약에서 기계적으로 따라 나오므로 계약을 적기 전에는 판정할 수 없다.** 이 카드는 계약 집필 전에 60종을 분류해야 하니 순서가 거꾸로다. 해법: 이 카드는 **잠정 판정**만 한다 — 목적이 공수 추정이지 계약 확정이 아니기 때문이다. **잠정 판정을 docs/ORD-006-inventory.tsv 에 넣지 않는다.** 그 열은 확정분 전용이고 tools/ord006-inventory.ts 의 VERIFICATION_GRADES 결정 맵이 이를 강제한다(맵에 없는 구조는 전부 미판정). 확정 판정은 각 재집필 카드가 계약을 적을 때 나오고, 그때 맵에 박는다. 잠정 판정의 기준선은 시범 2종이다 — linear/stack 이 basic 의 실제 예(불변식 절이 비고 상한이 자명한 구현으로 달성됨), hash/multiset 이 complexity 의 실제 예(O(log n) 상한을 정렬 배열로 달성 불가)다. 판정이 갈리면 §규약1 이 요구하는 반례를 적는다 — 자명한 구현으로 하면 어느 연산이 상한을 넘는가. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md / docs/ORD-006-conventions.md §규약1",
+      "after": "공수 M·리스크 중. 카테고리가 아니라 난이도 기준(검증 등급·에스컬레이션 필요성·가이드 수정량)으로 분류하고 군별 공수 추정. **\"결함 없음 60종\"은 작업 없음이 아니다** — problem 삭제·명세·검증 등급·캔버스 8단계·코드 추출이 전원 붙는다. **B2 가 이 카드에 순서 문제를 하나 남겼다(2026-08-04).** 검증 등급 판정 절차는 확정됐지만(docs/ORD-006-conventions.md §규약1, 4단계) **등급은 계약에서 기계적으로 따라 나오므로 계약을 적기 전에는 판정할 수 없다.** 이 카드는 계약 집필 전에 60종을 분류해야 하니 순서가 거꾸로다. 해법: 이 카드는 **잠정 판정**만 한다 — 목적이 공수 추정이지 계약 확정이 아니기 때문이다. **잠정 판정을 docs/ORD-006-inventory.tsv 에 넣지 않는다.** 그 열은 확정분 전용이고 tools/ord006-inventory.ts 의 VERIFICATION_GRADES 결정 맵이 이를 강제한다(맵에 없는 구조는 전부 미판정). 확정 판정은 각 재집필 카드가 계약을 적을 때 나오고, 그때 맵에 박는다. 잠정 판정의 기준선은 시범 2종이다 — linear/stack 이 basic 의 실제 예(불변식 절이 비고 상한이 자명한 구현으로 달성됨), hash/multiset 이 complexity 의 실제 예(O(log n) 상한을 정렬 배열로 달성 불가)다. 판정이 갈리면 §규약1 이 요구하는 반례를 적는다 — 자명한 구현으로 하면 어느 연산이 상한을 넘는가. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md / docs/ORD-006-conventions.md §규약1 **B10 이 기준선을 갱신했다(2026-08-05).** 시범 2종이 아니라 **실제 판정 다섯**이 기준선이다 — linear/stack=basic · linear/xorLinkedList=invariant · hash/multiset·linear/deque·range-query/intervalTree=complexity. concurrency 만 실물 예가 없고 KAN-024 가 만든다. **잠정 판정에서 가장 쓸모 있는 것은 linear/deque 다** — 불변식 절이 비었는데 basic 이 아니다. 판정 절차가 상한(2번)을 불변식(3번)보다 먼저 보기 때문이고, '불변식이 없으니 basic' 으로 새는 것을 막는 유일한 반례다. 불변식 판별은 B10 이 통합한 두 물음을 쓴다(docs/ORD-006-conventions.md §규약1 「불변식 판별 절차」)."
+    },
     {
       "seq": 96,
       "t": "2026-08-05T01:45",
@@ -887,26 +907,6 @@
       "field": "memo",
       "before": "공수 M·리스크 중. 카드 7 결정 이행. 존치 시 concurrency 등급(선형화·동시성 스트레스) 필요. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
       "after": "공수 L·리스크 상(B1 에서 M·중 → L·상 상향). **KAN-007 결정 확정(2026-08-04): Rust 전용으로 존치.** 개명도 삭제도 아니다 — 이름을 지키고 실체를 Rust 로 채운다. 규약4 (가) 등급(TSV escalation=req). 근거: 현행은 probabilistic/skipList 와 계약이 같고(MAX_LEVEL 16·p=0.5·평균 O(log n)), 실제 차이는 동시성이 아니라 제네릭이었다. 이름을 정당화하려면 계약에 **선형화(linearizability)와 진행 보장(lock-freedom)** 이 들어와야 한다. 할 일 ① 계약 명세에 선형화·진행 보장 명시 ② Rust lock-free 구현(CAS·마킹 삭제) ③ 동시성 검증. **선행 둘** — KAN-006(Rust crate 구조), 그리고 KAN-003(규약2)이 **동시성 축을 정의해야 한다**. 3축 스위트는 __cost 누적 카운터 기반이라 동시성을 담지 못한다. 이 구조 하나 때문에 CI 에 축이 하나 는다는 것이 존치의 확정된 비용이다. skipList 의 제네릭 승격 여부는 이 카드에 딸린 문제가 아니다(KAN-025). 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md 처분 결정"
-    },
-    {
-      "seq": 48,
-      "t": "2026-08-04T16:53",
-      "a": "ai",
-      "id": "KAN-031",
-      "op": "create",
-      "col": "backlog",
-      "title": "카테고리 전면 재편 — 계약(ADT) 기준으로 10개 분류 재정의",
-      "memo": "공수 L·리스크 상. **B1 분류 원칙 확정에서 파생(2026-08-04).** 원칙은 docs/ORD-006-conventions.md 분류 원칙 절에 확정돼 있다 — 카테고리는 계약(ADT)으로 가르고 구현으로 가르지 않는다. 근거는 ORD-006 의 핵심 결정('명세에 내부 표현을 처방하지 않는다')과 구현 기준 분류가 양립 불가라는 것이다. 구현이 자유로우면 구현으로 나눈 카테고리는 정해지지 않는다. **현행 10개 카테고리는 세 종류가 섞여 있다** — 계약 이름(disjoint-set·heap·linear) · 구현 기법 이름(hash·tree·trie) · 용도 이름(range-query·spatial·graph-repr·probabilistic). 할 일 ① 계약 축으로 카테고리 집합을 재정의 ② 69종을 재배정 ③ 경로 변경에 딸린 참조 스윕(문제_가이드_목록.md · tools/ord004-manifest.json · 가이드 인덱스 · TSV 재생성). **선행: KAN-015(참조 스윕 도구) 필수** — 도구 없이 옮기면 링크가 조용히 깨진다. KAN-025(P4 분류) 이후가 자연스럽다. B1 에서는 명백한 오분류 한 건(hash/multiset → tree/)만 교정하기로 했고, tree/ 가 구현 이름이라는 모순은 이 카드가 닫힐 때까지 남는다. **주의: 이 카드 신설로 KAN-001 봉인 조건이 29장→30장으로 늘어난다.** 근거: docs/ORD-006-conventions.md 분류 원칙",
-      "verbatim": "1.a, 2.c, 3.a"
-    },
-    {
-      "seq": 47,
-      "t": "2026-08-04T16:53",
-      "a": "ai",
-      "id": "KAN-005",
-      "op": "move",
-      "from": "todo",
-      "to": "done"
     }
   ]
 }
