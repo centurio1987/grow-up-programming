@@ -87,7 +87,7 @@
     { "code": "D5", "level": "IF-APPLICABLE", "axis": "scope-principle",
       "text": "구현/코드 — 코드가 맥락 없이 먼저 나오지 않고, 의미 단위 설명이 붙는다" },
     { "code": "D6", "level": "MUST",   "axis": "scope-principle",
-      "text": "함정 포인팅 — 독자가 빠지기 쉬운 실수를 구체적 잘못 시나리오로 보인다" },
+      "text": "실수 포인팅 — 독자가 자주 어긋나는 자리를 구체적 잘못 시나리오로 보인다" },
 
     { "code": "E5", "level": "MUST",   "axis": "evidence",
       "text": "본문 코드 자기 검증 — 가이드가 싣는 코드가 그 자체로 실행 가능하고, 본문의 주장과 일치한다" },
