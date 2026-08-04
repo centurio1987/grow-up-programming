@@ -90,8 +90,6 @@
     ```
 - `KAN-006` [P0-a·6] Rust 최소 crate 구조 확정 — 생성:ai · 최종:ai · 갱신:2026-08-02
   - 메모: 공수 M·리스크 중. 워크스페이스 경계, JSON vector 공유 위치(rust/vectors/), TS↔Rust API 대응 규칙. (가) 판정 구조만 점진 추가 — 처음부터 69종 crate 만들지 않는다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
-- `KAN-007` [P0-a·7] 처분 결정 3건 — concurrentSkipList·xorLinkedList·multiset — 생성:ai · 최종:ai · 갱신:2026-08-02
-  - 메모: 공수 M·리스크 중. concurrentSkipList: 개명/Rust 전용/삭제 중 택1 + 판정 기준(단일 스레드 TS에서 lock-free 계약 검증 불가). xorLinkedList: Rust unsafe 포트 vs '안전 언어에서 사라진 역사적 구조'로 처분. multiset: hash/→tree/ 재분류 원칙(ADT 관점 vs 구현 관점). **결과가 P1 파일럿 구성과 규약4에 영향하므로 P1 착수 전 필수.** 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
 
 ## 진행 중
 
@@ -110,3 +108,5 @@
     ```text
     kan-001에 대한 실행 계획을 세워라. 토큰을 고려해서 배치 전략을 반영해서 전략 수립해라.
     ```
+- `KAN-007` [P0-a·7] 처분 결정 3건 — concurrentSkipList·xorLinkedList·multiset — 생성:ai · 최종:ai · 갱신:2026-08-04
+  - 메모: 공수 M·리스크 중. **2026-08-04 확정(B1).** 근거 전문은 docs/ORD-006-conventions.md 처분 결정 절. ① **concurrentSkipList = Rust 전용 존치**((가) 등급). 현행은 probabilistic/skipList 와 계약이 같다 — 둘 다 MAX_LEVEL 16·p=0.5·평균 O(log n) 이고, 실제 차이는 동시성이 아니라 제네릭(T + comparator + min/max/size)이었다. 이름을 정당화하려면 계약에 선형화·진행 보장이 들어와야 하는데 단일 스레드 TS 는 그것을 표현도 검증도 못 한다 → 실행은 KAN-024, 선행 KAN-006 ② **xorLinkedList = 존치하되 성격 전환**((나) 등급). 삭제하지 않고 가이드 주제를 'XOR 트릭 연습'에서 '이 구조가 왜 현대 언어에서 성립하지 않는가'(GC·메모리 모델·포인터 프로버넌스)로 바꾼다. Map 노드 테이블이 아끼려던 포인터보다 커서 메모리 이득이 음수라는 사실을 계약에 명시한다. Rust 포트는 선택이며, 주소 XOR 로 유효 포인터를 복원하는 것이 Rust 엄격 프로버넌스에서 성립하지 않는다는 제약을 함께 서술해야 한다 → 실행은 KAN-010 ③ **multiset = tree/ 로 재분류**((-) 등급). hash/ 는 순서를 약속하지 않는 계열인데 multiset 의 계약은 정렬 순서 유지다. 분류 원칙을 '카테고리는 계약(ADT)으로 가른다, 구현으로 가르지 않는다'로 확정했고, 전면 재편은 KAN-031 로 분리했다. 디렉터리 이동은 참조 스윕 도구(KAN-015) 없이 하면 링크가 조용히 깨지므로 KAN-019 에서 실행한다. **부수 발견:** tree/orderStatisticTree 의 계약이 multiset 을 포섭한다(count=rank 차, min=kth(1), max=kth(size)) — 합칠지는 KAN-019 판단. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md
