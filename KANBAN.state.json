@@ -1,6 +1,6 @@
 {
   "next_id": 33,
-  "next_seq": 95,
+  "next_seq": 96,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -125,13 +125,13 @@
     "KAN-011": {
       "col": "backlog",
       "title": "[P1·11] 파일럿 회고 — 규약 1~4에 반영",
-      "memo": "공수 S·리스크 하. 파일럿에서 드러난 규약 결함을 규약에 되돌려 고친다. **P0-b·P2 착수 전 필수 관문.** 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "memo": "공수 S·리스크 하. **2026-08-05 완료(B10).** 파일럿 회고 — 규약 넷을 되돌려 맞췄다. 정본은 docs/ORD-006-conventions.md 「파일럿 회고 (B10 확정)」. ① **불변식 판별 기준 셋(B2·B8·B9)을 한 절차로 합쳤다** — 물음은 둘이다: 그 양을 읽는 공개 연산이 하나면 불변식이 아니고(축1이 본다), 둘 이상이면 그 정합을 어느 계약 줄이 이미 적고 있는지 본다. 절차가 하네스 구조에서 따라 나온다 — 축1이 매 연산 반환값을 참조 모델과 대조하므로(src/data-structures/_contract/runContract.ts:246) 경로가 하나인 성질은 이미 판정이 끝난 것이고 축2가 혼자 말할 수 있는 것은 정합뿐이다. ② **소급 적용에서 hash/multiset 의 불변식 둘이 자리를 옮겼다** — 1번(toArray 비내림차순)과 2번의 has 절은 계약 표의 의미 열이 이미 적고 있어 축1로 갔고, 그 자리에 경로가 둘인데 아무도 대조하지 않던 min/max 대 toArray 양 끝이 들어왔다. 새 불변식은 StaleMinMultiset(최소를 캐시하고 delete 에서 갱신 누락)이 실제로 걸린다. **재집필 3종(deque·intervalTree·xorLinkedList)은 하나도 바뀌지 않았다** — 기준이 흔들린 구간이 B2~B3 이었다. ③ **강제 지점 둘을 tools/check-contract.ts 에 박았다** — 불변식 개수 표류(헤더 항목 수 ↔ spec.invariants.length)와 벽시계(구문 트리에서 performance.now 호출을 센다. grep 이 아닌 이유는 stack.test.ts:8·multiset.test.ts:9 가 '벽시계를 없앴다'를 산문으로 적어 거짓 양성이 되기 때문. 실측 두 파일 0곳 대 tree/avlTree 4곳·linear/queue 2곳). 불변 사실 7 에 강제 지점이 하나도 없었다. ④ **미결 전수 확인** — 규약 넷의 「남기는 것」 15건과 처분 결정 후속을 전부 훑었다. **열린 것은 둘뿐이고 둘 다 실행 대기지 판단 대기가 아니다**: KAN-019(선행 KAN-015 는 B6 에서 풀림) · KAN-024(선행 KAN-006·KAN-003 둘 다 풀림). ⑤ **집필 규칙은 움직이지 않는다** — spec.json·spec.md·캔버스·authoring.lock.json 넷 다 그대로. 골격 정본은 불변식의 판별 기준을 담지 않는다. authoring.py lock 은 시작·종료 모두 최신. ⑥ **KAN-025 기준선 갱신** — 시범 2종에서 실제 판정 다섯으로. 불변 사실 41(규격을 고치면 실물 예도 같은 배치에서)·42(산문 기준은 강제 지점 없이 샌다) 신설. 수치: 451 pass / 2424 fail(B9 448 에서 +3), ci all 10단계 통과, 인용 32건·링크 254건, tsc 무출력, 새로 손댄 두 파일 biome 경고 0. 변경 파일: docs/ORD-006-conventions.md · docs/ORD-006-runbook.md · tools/check-contract.ts · src/data-structures/hash/multiset/{multiset.ts,multiset.contract.ts} · src/data-structures/_contract/runContract.test.ts. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-02",
+      "갱신": "2026-08-05",
       "title_hash": "c3613d45b972a466465994f35dbe62f9babab3de",
-      "memo_hash": "da26e1752b1f56b42fdd6008be41c4e36f7dd2b4",
+      "memo_hash": "e3de7d296a3adf2ed042e72b3b3f93a280d573e3",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-012": {
@@ -401,6 +401,7 @@
     "KAN-028",
     "KAN-031",
     "KAN-001",
+    "KAN-032",
     "KAN-029",
     "KAN-030",
     "KAN-007",
@@ -418,10 +419,19 @@
     "KAN-008",
     "KAN-016",
     "KAN-009",
-    "KAN-010",
-    "KAN-032"
+    "KAN-010"
   ],
   "recent": [
+    {
+      "seq": 95,
+      "t": "2026-08-05T01:44",
+      "a": "ai",
+      "id": "KAN-011",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 S·리스크 하. 파일럿에서 드러난 규약 결함을 규약에 되돌려 고친다. **P0-b·P2 착수 전 필수 관문.** 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "after": "공수 S·리스크 하. **2026-08-05 완료(B10).** 파일럿 회고 — 규약 넷을 되돌려 맞췄다. 정본은 docs/ORD-006-conventions.md 「파일럿 회고 (B10 확정)」. ① **불변식 판별 기준 셋(B2·B8·B9)을 한 절차로 합쳤다** — 물음은 둘이다: 그 양을 읽는 공개 연산이 하나면 불변식이 아니고(축1이 본다), 둘 이상이면 그 정합을 어느 계약 줄이 이미 적고 있는지 본다. 절차가 하네스 구조에서 따라 나온다 — 축1이 매 연산 반환값을 참조 모델과 대조하므로(src/data-structures/_contract/runContract.ts:246) 경로가 하나인 성질은 이미 판정이 끝난 것이고 축2가 혼자 말할 수 있는 것은 정합뿐이다. ② **소급 적용에서 hash/multiset 의 불변식 둘이 자리를 옮겼다** — 1번(toArray 비내림차순)과 2번의 has 절은 계약 표의 의미 열이 이미 적고 있어 축1로 갔고, 그 자리에 경로가 둘인데 아무도 대조하지 않던 min/max 대 toArray 양 끝이 들어왔다. 새 불변식은 StaleMinMultiset(최소를 캐시하고 delete 에서 갱신 누락)이 실제로 걸린다. **재집필 3종(deque·intervalTree·xorLinkedList)은 하나도 바뀌지 않았다** — 기준이 흔들린 구간이 B2~B3 이었다. ③ **강제 지점 둘을 tools/check-contract.ts 에 박았다** — 불변식 개수 표류(헤더 항목 수 ↔ spec.invariants.length)와 벽시계(구문 트리에서 performance.now 호출을 센다. grep 이 아닌 이유는 stack.test.ts:8·multiset.test.ts:9 가 '벽시계를 없앴다'를 산문으로 적어 거짓 양성이 되기 때문. 실측 두 파일 0곳 대 tree/avlTree 4곳·linear/queue 2곳). 불변 사실 7 에 강제 지점이 하나도 없었다. ④ **미결 전수 확인** — 규약 넷의 「남기는 것」 15건과 처분 결정 후속을 전부 훑었다. **열린 것은 둘뿐이고 둘 다 실행 대기지 판단 대기가 아니다**: KAN-019(선행 KAN-015 는 B6 에서 풀림) · KAN-024(선행 KAN-006·KAN-003 둘 다 풀림). ⑤ **집필 규칙은 움직이지 않는다** — spec.json·spec.md·캔버스·authoring.lock.json 넷 다 그대로. 골격 정본은 불변식의 판별 기준을 담지 않는다. authoring.py lock 은 시작·종료 모두 최신. ⑥ **KAN-025 기준선 갱신** — 시범 2종에서 실제 판정 다섯으로. 불변 사실 41(규격을 고치면 실물 예도 같은 배치에서)·42(산문 기준은 강제 지점 없이 샌다) 신설. 수치: 451 pass / 2424 fail(B9 448 에서 +3), ci all 10단계 통과, 인용 32건·링크 254건, tsc 무출력, 새로 손댄 두 파일 biome 경고 0. 변경 파일: docs/ORD-006-conventions.md · docs/ORD-006-runbook.md · tools/check-contract.ts · src/data-structures/hash/multiset/{multiset.ts,multiset.contract.ts} · src/data-structures/_contract/runContract.test.ts. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md"
+    },
     {
       "seq": 94,
       "t": "2026-08-05T01:31",
@@ -898,15 +908,6 @@
       "field": "memo",
       "before": "공수 S·리스크 하. (가) TS로 계약 충족 불가→Rust 필수(포인터 산술·원자적 연산·정수 폭 제어). (나) 점근 계약은 TS로 되나 실측 불가→Rust 선택(캐시 레이아웃·결정적 지연). 구조마다 판정+근거 1줄 기록. Python은 정의만 두고 산출물 요구 보류. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
       "after": "공수 S·리스크 하. **2026-08-04 완료(B1).** 산출: docs/ORD-006-conventions.md 규약4 절. (가) TS 로 명세 계약 자체를 만족 불가 → Rust 필수(포인터 산술·원자적 연산·정수 폭 제어). (나) 점근 계약은 TS 로 되나 실측 근거를 TS 에서 못 보임 → Rust 선택(캐시 레이아웃·GC 없는 결정적 지연). (-) 계약도 근거도 TS 안에서 닫힌다(기본값). **판정 절차 4단계를 명문화했다** — 계약 확정 → TS 로 표현 가능한가((가) 판정) → 뒷받침 수치를 TS 에서 낼 수 있는가((나) 판정) → 가이드에 판정과 근거 한 줄. **(나)는 Rust 를 강제하지 않는다** — 산출물 없이 실측 불가 사유만 서술해도 계약 위반이 아니다. 강제는 (가)뿐. 확정 판정 3건은 KAN-007 참조(concurrentSkipList=(가)/req, xorLinkedList=(나)/opt, multiset=(-)). 전략 표의 예상 목록(rollingHash·bitArray·unrolledLinkedList·bPlusTree)은 **미확정이라 인벤토리에 넣지 않았다** — 결함등급과 같은 규칙으로 추정하지 않는다. Python 은 정의만 두고 산출물 요구 보류. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md"
-    },
-    {
-      "seq": 45,
-      "t": "2026-08-04T16:52",
-      "a": "ai",
-      "id": "KAN-007",
-      "op": "move",
-      "from": "todo",
-      "to": "done"
     }
   ]
 }
