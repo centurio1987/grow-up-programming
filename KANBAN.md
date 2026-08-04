@@ -27,8 +27,8 @@
   - 메모: 공수 S·리스크 하. 현행 '이 프로젝트는 코드 테스트 문제 풀이 목적 / 주석에 적힌 문제를 보고 함수를 선언'이 새 방향과 정면 충돌. 안 고치면 새 세션이 문제 풀이 프레임으로 회귀한다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
 - `KAN-018` [P0-b·18] 메모리 guide-quality-standard 갱신 — 생성:ai · 최종:ai · 갱신:2026-08-02
   - 메모: 공수 S·리스크 하. ORD-006 반영(캔버스 8단계·축3 성장률·에스컬레이션 2등급·검증 등급). 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
-- `KAN-019` [P2·19] multiset 재집필 — 균형 BST 전환 — 생성:ai · 최종:ai · 갱신:2026-08-02
-  - 메모: 공수 L·리스크 중. **A급 최악**: 스토리가 '배열 정렬은 O(K) 삽입'을 이기겠다며 O(log K)를 약속해놓고 인터페이스는 O(n) splice를 처방 — 이기겠다던 그 자료구조를 그대로 처방. 카드 7의 재분류 원칙 적용. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
+- `KAN-019` [P2·19] multiset 재집필 — 균형 BST 전환 — 생성:ai · 최종:ai · 갱신:2026-08-04
+  - 메모: 공수 L·리스크 중. **A급 최악**: 스토리가 '배열 정렬은 O(K) 삽입'을 이기겠다며 O(log K)를 약속해놓고 인터페이스는 O(n) splice 를 처방 — 이기겠다던 그 자료구조를 그대로 처방했다. **KAN-007 결정 확정(2026-08-04): hash/multiset → tree/multiset 재분류.** 규약4 (-) 등급(균형 BST 로 O(log n) 계약이 TS 안에서 닫힌다). 근거: hash/ 는 순서를 약속하지 않는 계열(hashMapChaining·hashSet·lruCache)인데 multiset 의 계약은 정렬 순서 유지다. 확정된 분류 원칙은 '카테고리는 계약(ADT)으로 가른다'이며 tree/ 가 구현 이름이라는 모순은 KAN-031 이 닫을 때까지 남는다. **디렉터리 이동을 이 카드가 실행한다** — B1 에서 옮기지 않은 이유는 경로가 바뀌면 문제_가이드_목록.md · tools/ord004-manifest.json · 가이드 인덱스가 함께 흔들리는데 참조 스윕 도구가 KAN-015 이기 때문이다. **선행: KAN-015.** 이동 후 bun run tools/ord006-inventory.ts 로 TSV 의 path·category 를 재생성한다(도구의 결함등급 키 가드가 걸리므로 DEFECT_GRADES 키도 함께 고쳐야 한다). **미결(이 카드가 판단): tree/orderStatisticTree 의 계약이 multiset 을 포섭한다** — insert 중복 허용·delete·kth·rank 로 count(x)=rank(x+)-rank(x), min=kth(1), max=kth(size)가 전부 나온다. 두 구조를 합칠지 따로 둘지 여기서 정한다. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md 처분 결정
 - `KAN-020` [P2·20] unrolledLinkedList 재집필 — 양방향 연결 — 생성:ai · 최종:ai · 갱신:2026-08-02
   - 메모: 공수 M·리스크 하. 표는 pop() O(1) amortized인데 상세는 'head부터 순회 O(p)'. 에스컬레이션 (나) 판정 예상 — 점근 계약은 TS로 충족, 캐시 지역성만 Rust 실측. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
 - `KAN-021` [P3·21] suffixArray·suffixTree 구성 복잡도 정합 — 생성:ai · 최종:ai · 갱신:2026-08-02
