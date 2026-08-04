@@ -37,8 +37,8 @@
   - 메모: 공수 S·리스크 하. 문제 상세 :51의 '두 개의 스택으로 구현하는 방식도 유효하다'가 deque와 같은 권유. 링 버퍼 미언급. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
 - `KAN-023` [P3·23] ternarySearchTree 근거 정정 — 생성:ai · 최종:ai · 갱신:2026-08-02
   - 메모: 공수 S·리스크 하. 스토리 :10이 '일반 Trie는 노드마다 26개 포인터 낭비'를 근거로 드나 이 리포의 trie는 Map<string,TrieNode> 희소 구조라 전제 불성립. 교차 불일치. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
-- `KAN-024` [P3·24] concurrentSkipList 처분 실행 — 생성:ai · 최종:ai · 갱신:2026-08-02
-  - 메모: 공수 M·리스크 중. 카드 7 결정 이행. 존치 시 concurrency 등급(선형화·동시성 스트레스) 필요. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
+- `KAN-024` [P3·24] concurrentSkipList 처분 실행 — 생성:ai · 최종:ai · 갱신:2026-08-04
+  - 메모: 공수 L·리스크 상(B1 에서 M·중 → L·상 상향). **KAN-007 결정 확정(2026-08-04): Rust 전용으로 존치.** 개명도 삭제도 아니다 — 이름을 지키고 실체를 Rust 로 채운다. 규약4 (가) 등급(TSV escalation=req). 근거: 현행은 probabilistic/skipList 와 계약이 같고(MAX_LEVEL 16·p=0.5·평균 O(log n)), 실제 차이는 동시성이 아니라 제네릭이었다. 이름을 정당화하려면 계약에 **선형화(linearizability)와 진행 보장(lock-freedom)** 이 들어와야 한다. 할 일 ① 계약 명세에 선형화·진행 보장 명시 ② Rust lock-free 구현(CAS·마킹 삭제) ③ 동시성 검증. **선행 둘** — KAN-006(Rust crate 구조), 그리고 KAN-003(규약2)이 **동시성 축을 정의해야 한다**. 3축 스위트는 __cost 누적 카운터 기반이라 동시성을 담지 못한다. 이 구조 하나 때문에 CI 에 축이 하나 는다는 것이 존치의 확정된 비용이다. skipList 의 제네릭 승격 여부는 이 카드에 딸린 문제가 아니다(KAN-025). 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md 처분 결정
 - `KAN-025` [P4·25] P4 분류 확정 — 60종을 3군에 배정 — 생성:ai · 최종:ai · 갱신:2026-08-02
   - 메모: 공수 M·리스크 중. 카테고리가 아니라 난이도 기준(검증 등급·에스컬레이션 필요성·가이드 수정량)으로 분류하고 군별 공수 추정. **'결함 없음 60종'은 작업 없음이 아니다** — problem 삭제·명세·검증 등급·캔버스 8단계·코드 추출이 전원 붙는다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
 - `KAN-026` [P4·26] P4-A군 — basic/invariant 등급(축3 불필요) — 생성:ai · 최종:ai · 갱신:2026-08-02
