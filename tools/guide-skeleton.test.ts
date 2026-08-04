@@ -23,7 +23,10 @@ const FIXTURE = "tools/_fixtures/ds-guide-skeleton.mdx";
  * 나머지 68종은 아직 옛 5단계 문형이므로 대상이 아니다. 목록을 자동으로 만들지 않는 이유는
  * "아직 안 옮긴 것"과 "옮겼는데 골격이 틀린 것"을 구분해야 하기 때문이다.
  */
-const REWRITTEN = ["src/data-structures/linear/deque/deque-guide.mdx"];
+const REWRITTEN = [
+  "src/data-structures/linear/deque/deque-guide.mdx",
+  "src/data-structures/range-query/intervalTree/intervalTree-guide.mdx",
+];
 
 interface Section {
   id: string;
