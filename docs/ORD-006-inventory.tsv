@@ -21,7 +21,7 @@ src/data-structures/heap/priorityQueue	heap	priorityQueue	-	-	-	98	373	false
 src/data-structures/heap/vanEmdeBoasTree	heap	vanEmdeBoasTree	-	-	-	107	402	false
 src/data-structures/linear/bitArray	linear	bitArray	-	-	-	96	320	false
 src/data-structures/linear/circularBuffer	linear	circularBuffer	-	-	-	80	312	false
-src/data-structures/linear/deque	linear	deque	A	complexity	-	0	720	true
+src/data-structures/linear/deque	linear	deque	A	complexity	-	0	318	true
 src/data-structures/linear/doublyLinkedList	linear	doublyLinkedList	-	-	-	78	312	false
 src/data-structures/linear/dynamicArray	linear	dynamicArray	-	-	-	78	325	false
 src/data-structures/linear/gapBuffer	linear	gapBuffer	-	-	-	81	319	false
@@ -41,7 +41,7 @@ src/data-structures/probabilistic/hyperLogLog	probabilistic	hyperLogLog	-	-	-	95
 src/data-structures/probabilistic/minHash	probabilistic	minHash	-	-	-	102	361	false
 src/data-structures/probabilistic/skipList	probabilistic	skipList	-	-	-	86	372	false
 src/data-structures/range-query/fenwickTree	range-query	fenwickTree	-	-	-	72	248	false
-src/data-structures/range-query/intervalTree	range-query	intervalTree	A	-	-	128	373	false
+src/data-structures/range-query/intervalTree	range-query	intervalTree	A	complexity	-	0	373	true
 src/data-structures/range-query/persistentSegmentTree	range-query	persistentSegmentTree	-	-	-	128	314	false
 src/data-structures/range-query/segmentTree	range-query	segmentTree	-	-	-	97	366	false
 src/data-structures/range-query/segmentTreeLazy	range-query	segmentTreeLazy	-	-	-	72	368	false

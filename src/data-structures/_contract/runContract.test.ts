@@ -5,8 +5,9 @@
  * 스위트가 그 시험을 통과한다. 그래서 여기서 보는 것은 반대쪽이다 — 계약을 어긴 구현을
  * 실제로 **떨어뜨리는가**.
  *
- * 결함 fixture 는 `_fixtures/` 에 있고 둘 다 동작상 옳다. 축1·축2로는 잡히지 않고
- * 축3만이 잡는다.
+ * `_fixtures/` 의 결함 fixture 는 **전부 동작상 옳다.** 축1·축2로는 잡히지 않고 축3만이
+ * 잡는다. 축2가 잡는 종류의 결함은 성격이 반대라 여기 인라인으로 둔다 — 그쪽은 동작이
+ * 틀린 구현이고, 그 자리에서 무엇이 깨졌는지를 이름으로 말하는 것이 불변식의 일이다.
  */
 
 import { describe, expect, test } from "bun:test";
@@ -24,9 +25,16 @@ import {
   type StackContract,
   stackContract,
 } from "../linear/stack/stack.contract";
+import { IntervalTree as ReferenceIntervalTree } from "../range-query/intervalTree/_reference/intervalTree";
+import {
+  type IntervalTreeContract,
+  intervalTreeContract,
+} from "../range-query/intervalTree/intervalTree.contract";
 import { FrontPushStack } from "./_fixtures/frontPushStack";
+import { ScanIntervalList } from "./_fixtures/scanIntervalList";
 import { SortedArrayMultiset } from "./_fixtures/sortedArrayMultiset";
 import { TwoArrayDeque } from "./_fixtures/twoArrayDeque";
+import { UnbalancedIntervalTree } from "./_fixtures/unbalancedIntervalTree";
 import { UnshiftDeque } from "./_fixtures/unshiftDeque";
 import { expectedRatio, judgeGrowth, statistic } from "./judge";
 import {
@@ -156,6 +164,21 @@ function sortedArrayMultiset(
   };
 }
 
+const referenceIntervalTree: CostSource<IntervalTreeContract> = {
+  kind: "self-reported",
+  make: () => new ReferenceIntervalTree(),
+};
+
+const unbalancedIntervalTree: CostSource<IntervalTreeContract> = {
+  kind: "self-reported",
+  make: () => new UnbalancedIntervalTree(),
+};
+
+const scanIntervalList: CostSource<IntervalTreeContract> = {
+  kind: "self-reported",
+  make: () => new ScanIntervalList(),
+};
+
 describe("축3 — 정본은 통과한다", () => {
   test("Stack 정본의 push·pop 이 amortized O(1) 계약 안에 있다", () => {
     const verdict = judgeScenario(
@@ -174,6 +197,19 @@ describe("축3 — 정본은 통과한다", () => {
         "complexity",
       );
       expect(verdict.reason).toBe("");
+    }
+  });
+
+  test("IntervalTree 정본이 여섯 시나리오를 전부 지킨다", () => {
+    for (const scenario of intervalTreeContract.scenarios) {
+      const verdict = judgeScenario(
+        referenceIntervalTree,
+        scenario,
+        "complexity",
+      );
+      expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
+        `${scenario.covers.join("·")}: `,
+      );
     }
   });
 });
@@ -250,6 +286,154 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     );
     expect(alternating.ok).toBe(false);
     expect(alternating.reason).toContain("O(1)");
+  });
+
+  test("균형을 안 잡는 증강 BST 는 오름차순 삽입에서만 걸린다 — 무작위 삽입은 통과한다", () => {
+    const random = judgeScenario(
+      unbalancedIntervalTree,
+      scenarioOf(intervalTreeContract, "insert", false),
+      "complexity",
+    );
+    // 무작위 순서로 들어온 키는 그 자체로 대체로 균형 잡힌 트리를 만든다.
+    expect(random.ok).toBe(true);
+
+    const sorted = judgeScenario(
+      unbalancedIntervalTree,
+      scenarioOf(intervalTreeContract, "insert", true),
+      "complexity",
+    );
+    expect(sorted.ok).toBe(false);
+    expect(sorted.reason).toContain("O(log n)");
+    const stats = sorted.points.map((point) => point.stat);
+    expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeGreaterThan(3);
+  });
+
+  test("전부 훑는 목록은 질의에서 걸리고 삽입에서는 통과한다 — 반대쪽에서 걸린다", () => {
+    for (const adversarial of [false, true]) {
+      const insert = judgeScenario(
+        scanIntervalList,
+        scenarioOf(intervalTreeContract, "insert", adversarial),
+        "complexity",
+      );
+      // 배열 뒤에 붙이기만 하므로 삽입은 두 입력 모두에서 상수다.
+      expect(insert.ok).toBe(true);
+    }
+
+    for (const covers of ["stabQuery", "overlapQuery"]) {
+      const query = judgeScenario(
+        scanIntervalList,
+        scenarioOf(intervalTreeContract, covers, true),
+        "complexity",
+      );
+      expect(query.ok).toBe(false);
+      expect(query.reason).toContain("O(log n)");
+    }
+  });
+});
+
+/**
+ * 축2가 잡으라고 있는 결함 둘. `_fixtures/` 의 넷과 달리 **동작이 틀린 구현**이라 축1도 함께
+ * 잡는다. 다른 것은 실패가 말해 주는 내용이다 — 축1은 몇 번째 호출에서 값이 갈렸는지를
+ * 말하고, 축2는 무엇이 깨졌는지를 이름으로 말한다.
+ */
+class LowKeyedIndex implements IntervalTreeContract {
+  /** 시작점만 키로 잡았다. 시작점이 같은 구간을 넣으면 앞의 것이 조용히 밀려난다. */
+  #byLow = new Map<number, [number, number]>();
+  #inserted = 0;
+
+  insert(low: number, high: number): void {
+    this.#byLow.set(low, [low, high]);
+    this.#inserted += 1;
+  }
+
+  delete(low: number, high: number): boolean {
+    const stored = this.#byLow.get(low);
+    if (stored === undefined || stored[1] !== high) return false;
+    this.#byLow.delete(low);
+    this.#inserted -= 1;
+    return true;
+  }
+
+  stabQuery(point: number): [number, number][] {
+    return this.overlapQuery(point, point);
+  }
+
+  overlapQuery(low: number, high: number): [number, number][] {
+    const found: [number, number][] = [];
+    for (const stored of this.#byLow.values()) {
+      if (stored[0] <= high && low <= stored[1]) found.push([...stored]);
+    }
+    return found;
+  }
+
+  size(): number {
+    return this.#inserted;
+  }
+}
+
+class SplitQueryIndex implements IntervalTreeContract {
+  #items: [number, number][] = [];
+
+  insert(low: number, high: number): void {
+    this.#items.push([low, high]);
+  }
+
+  delete(low: number, high: number): boolean {
+    const at = this.#items.findIndex(
+      (stored) => stored[0] === low && stored[1] === high,
+    );
+    if (at < 0) return false;
+    this.#items.splice(at, 1);
+    return true;
+  }
+
+  /** 구간 질의와 따로 썼고, 끝점 비교가 한 글자 다르다. 끝점에 정확히 닿는 구간을 놓친다. */
+  stabQuery(point: number): [number, number][] {
+    return this.#items
+      .filter((stored) => stored[0] <= point && point < stored[1])
+      .map((stored) => [...stored] as [number, number]);
+  }
+
+  overlapQuery(low: number, high: number): [number, number][] {
+    return this.#items
+      .filter((stored) => stored[0] <= high && low <= stored[1])
+      .map((stored) => [...stored] as [number, number]);
+  }
+
+  size(): number {
+    return this.#items.length;
+  }
+}
+
+describe("축2 — 불변식이 상태의 성질을 실제로 잡는다", () => {
+  const [completeness, agreement] = intervalTreeContract.invariants;
+
+  test("불변식 절이 둘이고 정본은 둘 다 만족한다", () => {
+    expect(intervalTreeContract.invariants).toHaveLength(2);
+    const impl = new ReferenceIntervalTree();
+    impl.insert(1, 5);
+    impl.insert(1, 9);
+    impl.insert(3, 3);
+    for (const invariant of intervalTreeContract.invariants) {
+      expect(invariant.check(impl)).toBeNull();
+    }
+  });
+
+  test("세고 있는 수와 내놓을 수 있는 수가 갈리면 불변식 1이 잡는다", () => {
+    const impl = new LowKeyedIndex();
+    impl.insert(1, 5);
+    impl.insert(1, 9);
+    expect(completeness?.check(impl)).toContain("전 범위 질의 1개 / size 2");
+    // 두 질의는 서로 갈리지 않는다 — 같은 것을 잃었기 때문이다.
+    expect(agreement?.check(impl)).toBeNull();
+  });
+
+  test("두 질의를 따로 쓰면 불변식 2가 갈림을 잡는다", () => {
+    const impl = new SplitQueryIndex();
+    impl.insert(1, 5);
+    // 잃은 것이 없으므로 개수는 맞는다. 갈리는 것은 끝점 하나에서다.
+    expect(completeness?.check(impl)).toBeNull();
+    expect(agreement?.check(impl)).toContain("p=5");
   });
 });
 

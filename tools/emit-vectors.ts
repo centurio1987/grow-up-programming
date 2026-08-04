@@ -23,6 +23,7 @@ import type { ContractSpec } from "../src/data-structures/_contract/runContract.
 import { multisetContract } from "../src/data-structures/hash/multiset/multiset.contract.ts";
 import { dequeContract } from "../src/data-structures/linear/deque/deque.contract.ts";
 import { stackContract } from "../src/data-structures/linear/stack/stack.contract.ts";
+import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
 
 const root = resolve(import.meta.dir, "..");
 const OUT_DIR = "rust/vectors";
@@ -120,6 +121,7 @@ const SPECS: ContractSpec<any, any>[] = [
   stackContract,
   multisetContract,
   dequeContract,
+  intervalTreeContract,
 ];
 
 const check = Bun.argv.includes("--check");

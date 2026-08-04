@@ -1,0 +1,2612 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "IntervalTree",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 색인에서 두 질의는 빈 배열이고 delete 는 false 다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "stabQuery",
+          "arg": 3,
+          "expect": []
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            0,
+            10
+          ],
+          "expect": []
+        },
+        {
+          "op": "delete",
+          "arg": [
+            1,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 0
+        }
+      ]
+    },
+    {
+      "name": "끝점에 닿기만 해도 겹침이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            5
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            5,
+            9
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 5,
+          "expect": [
+            [
+              1,
+              5
+            ],
+            [
+              5,
+              9
+            ]
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 1,
+          "expect": [
+            [
+              1,
+              5
+            ]
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 9,
+          "expect": [
+            [
+              5,
+              9
+            ]
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            5,
+            5
+          ],
+          "expect": [
+            [
+              1,
+              5
+            ],
+            [
+              5,
+              9
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "한 칸만 비껴가면 겹치지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": [
+            3,
+            7
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 2,
+          "expect": []
+        },
+        {
+          "op": "stabQuery",
+          "arg": 8,
+          "expect": []
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            8,
+            12
+          ],
+          "expect": []
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": []
+        }
+      ]
+    },
+    {
+      "name": "덮인 구간과 덮는 구간이 서로를 찾는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            20
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            8,
+            9
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            8,
+            9
+          ],
+          "expect": [
+            [
+              0,
+              20
+            ],
+            [
+              8,
+              9
+            ]
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            0,
+            20
+          ],
+          "expect": [
+            [
+              0,
+              20
+            ],
+            [
+              8,
+              9
+            ]
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 8,
+          "expect": [
+            [
+              0,
+              20
+            ],
+            [
+              8,
+              9
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "같은 구간을 두 번 넣으면 두 벌이고 한 번 지우면 한 벌이 남는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": [
+            4,
+            6
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            4,
+            6
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "stabQuery",
+          "arg": 5,
+          "expect": [
+            [
+              4,
+              6
+            ],
+            [
+              4,
+              6
+            ]
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            4,
+            6
+          ],
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "stabQuery",
+          "arg": 5,
+          "expect": [
+            [
+              4,
+              6
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "없는 구간을 지우면 false 이고 있던 것은 그대로다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            4
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            2,
+            5
+          ],
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": [
+            3,
+            4
+          ],
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "stabQuery",
+          "arg": 3,
+          "expect": [
+            [
+              2,
+              4
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "시작점이 같고 끝점만 다른 구간이 서로를 밀어내지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": [
+            5,
+            6
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            5,
+            15
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 12,
+          "expect": [
+            [
+              5,
+              15
+            ]
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            5,
+            6
+          ],
+          "expect": true
+        },
+        {
+          "op": "stabQuery",
+          "arg": 5,
+          "expect": [
+            [
+              5,
+              15
+            ]
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "가장 긴 구간을 지우고 나면 가지치기가 다시 좁아진다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            18
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            3
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 17,
+          "expect": [
+            [
+              1,
+              18
+            ]
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            1,
+            18
+          ],
+          "expect": true
+        },
+        {
+          "op": "stabQuery",
+          "arg": 17,
+          "expect": []
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            0,
+            3
+          ],
+          "expect": [
+            [
+              0,
+              1
+            ],
+            [
+              2,
+              3
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "overlapQuery",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": []
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": [
+            9,
+            11
+          ],
+          "expect": false
+        },
+        {
+          "op": "stabQuery",
+          "arg": 23,
+          "expect": []
+        },
+        {
+          "op": "stabQuery",
+          "arg": 11,
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            6,
+            6
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            7,
+            7
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            12,
+            13
+          ],
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 19,
+          "expect": []
+        },
+        {
+          "op": "delete",
+          "arg": [
+            3,
+            5
+          ],
+          "expect": false
+        },
+        {
+          "op": "stabQuery",
+          "arg": 18,
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            11,
+            12
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            15,
+            15
+          ],
+          "expect": []
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            2,
+            3
+          ],
+          "expect": []
+        },
+        {
+          "op": "stabQuery",
+          "arg": 5,
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            11,
+            13
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            4,
+            4
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            13,
+            13
+          ],
+          "expect": [
+            [
+              11,
+              13
+            ]
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            6,
+            7
+          ],
+          "expect": [
+            [
+              6,
+              6
+            ],
+            [
+              7,
+              7
+            ]
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            15,
+            18
+          ],
+          "expect": []
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            14,
+            17
+          ],
+          "expect": []
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            3
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            14,
+            16
+          ],
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            2,
+            4
+          ],
+          "expect": [
+            [
+              0,
+              3
+            ],
+            [
+              4,
+              4
+            ]
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "insert",
+          "arg": [
+            15,
+            15
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            1,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": [
+            10,
+            12
+          ],
+          "expect": false
+        },
+        {
+          "op": "stabQuery",
+          "arg": 1,
+          "expect": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              3
+            ]
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "delete",
+          "arg": [
+            2,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "delete",
+          "arg": [
+            2,
+            4
+          ],
+          "expect": false
+        },
+        {
+          "op": "stabQuery",
+          "arg": 7,
+          "expect": [
+            [
+              7,
+              7
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            2
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            10,
+            12
+          ],
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": [
+            8,
+            10
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            12,
+            13
+          ],
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 10
+        },
+        {
+          "op": "size",
+          "expect": 10
+        },
+        {
+          "op": "size",
+          "expect": 10
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            2
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 11
+        },
+        {
+          "op": "delete",
+          "arg": [
+            11,
+            14
+          ],
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": [
+            4,
+            7
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            12,
+            12
+          ],
+          "expect": [
+            [
+              11,
+              12
+            ],
+            [
+              11,
+              13
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            3
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 6,
+          "expect": [
+            [
+              4,
+              7
+            ],
+            [
+              6,
+              6
+            ]
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "delete",
+          "arg": [
+            14,
+            17
+          ],
+          "expect": false
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            10,
+            10
+          ],
+          "expect": [
+            [
+              8,
+              10
+            ]
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            4,
+            4
+          ],
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": [
+            14,
+            17
+          ],
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": [
+            5,
+            5
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            12,
+            13
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            2,
+            5
+          ],
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": [
+            14,
+            16
+          ],
+          "expect": false
+        },
+        {
+          "op": "stabQuery",
+          "arg": 16,
+          "expect": []
+        },
+        {
+          "op": "delete",
+          "arg": [
+            3,
+            5
+          ],
+          "expect": false
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            12,
+            12
+          ],
+          "expect": [
+            [
+              11,
+              12
+            ],
+            [
+              11,
+              13
+            ],
+            [
+              12,
+              13
+            ]
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            10,
+            12
+          ],
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": [
+            5,
+            6
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 15
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            5,
+            6
+          ],
+          "expect": [
+            [
+              4,
+              7
+            ],
+            [
+              5,
+              5
+            ],
+            [
+              5,
+              6
+            ],
+            [
+              6,
+              6
+            ]
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            0,
+            3
+          ],
+          "expect": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              3
+            ]
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 13,
+          "expect": [
+            [
+              11,
+              13
+            ],
+            [
+              12,
+              13
+            ]
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            1,
+            1
+          ],
+          "expect": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              3
+            ]
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 15
+        },
+        {
+          "op": "insert",
+          "arg": [
+            11,
+            12
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            4,
+            6
+          ],
+          "expect": [
+            [
+              4,
+              7
+            ],
+            [
+              5,
+              5
+            ],
+            [
+              5,
+              6
+            ],
+            [
+              6,
+              6
+            ]
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 16
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            1
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              3
+            ]
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            12,
+            13
+          ],
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": [
+            15,
+            18
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            13,
+            13
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            9,
+            11
+          ],
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": [
+            11,
+            11
+          ],
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": [
+            15,
+            17
+          ],
+          "expect": false
+        },
+        {
+          "op": "stabQuery",
+          "arg": 1,
+          "expect": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            9,
+            9
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            10,
+            12
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            1
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 16,
+          "expect": [
+            [
+              15,
+              18
+            ]
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            12,
+            14
+          ],
+          "expect": [
+            [
+              10,
+              12
+            ],
+            [
+              11,
+              12
+            ],
+            [
+              11,
+              12
+            ],
+            [
+              11,
+              13
+            ],
+            [
+              13,
+              13
+            ]
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            15,
+            15
+          ],
+          "expect": [
+            [
+              15,
+              15
+            ],
+            [
+              15,
+              18
+            ]
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 21
+        },
+        {
+          "op": "size",
+          "expect": 21
+        },
+        {
+          "op": "insert",
+          "arg": [
+            13,
+            15
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 8,
+          "expect": [
+            [
+              8,
+              10
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            3
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "stabQuery",
+          "arg": 16,
+          "expect": [
+            [
+              15,
+              18
+            ]
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 23
+        },
+        {
+          "op": "stabQuery",
+          "arg": 18,
+          "expect": [
+            [
+              15,
+              18
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            6,
+            8
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            13,
+            16
+          ],
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            4
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            12,
+            15
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            14,
+            17
+          ],
+          "expect": false
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            7,
+            9
+          ],
+          "expect": [
+            [
+              4,
+              7
+            ],
+            [
+              6,
+              8
+            ],
+            [
+              7,
+              7
+            ],
+            [
+              8,
+              10
+            ],
+            [
+              9,
+              9
+            ]
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 4,
+          "expect": [
+            [
+              2,
+              4
+            ],
+            [
+              4,
+              7
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            15,
+            17
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            9,
+            11
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            5
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": [
+            15,
+            17
+          ],
+          "expect": true
+        },
+        {
+          "op": "stabQuery",
+          "arg": 0,
+          "expect": [
+            [
+              0,
+              3
+            ]
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            0,
+            3
+          ],
+          "expect": [
+            [
+              0,
+              3
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              2,
+              5
+            ]
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 27
+        },
+        {
+          "op": "insert",
+          "arg": [
+            10,
+            13
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 14,
+          "expect": [
+            [
+              12,
+              15
+            ],
+            [
+              13,
+              15
+            ]
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 14,
+          "expect": [
+            [
+              12,
+              15
+            ],
+            [
+              13,
+              15
+            ]
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 18,
+          "expect": [
+            [
+              15,
+              18
+            ]
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 28
+        },
+        {
+          "op": "delete",
+          "arg": [
+            12,
+            14
+          ],
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": [
+            2,
+            5
+          ],
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": [
+            15,
+            17
+          ],
+          "expect": false
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            6,
+            6
+          ],
+          "expect": [
+            [
+              4,
+              7
+            ],
+            [
+              5,
+              6
+            ],
+            [
+              6,
+              6
+            ],
+            [
+              6,
+              8
+            ]
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            10,
+            13
+          ],
+          "expect": [
+            [
+              8,
+              10
+            ],
+            [
+              9,
+              11
+            ],
+            [
+              10,
+              12
+            ],
+            [
+              10,
+              13
+            ],
+            [
+              11,
+              12
+            ],
+            [
+              11,
+              12
+            ],
+            [
+              11,
+              13
+            ],
+            [
+              12,
+              15
+            ],
+            [
+              13,
+              13
+            ],
+            [
+              13,
+              15
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            3
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            3,
+            4
+          ],
+          "expect": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              4,
+              7
+            ]
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            0,
+            0
+          ],
+          "expect": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            4,
+            7
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            6,
+            8
+          ],
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": [
+            10,
+            13
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            7,
+            7
+          ],
+          "expect": [
+            [
+              4,
+              7
+            ],
+            [
+              4,
+              7
+            ],
+            [
+              7,
+              7
+            ]
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 21,
+          "expect": []
+        },
+        {
+          "op": "stabQuery",
+          "arg": 21,
+          "expect": []
+        },
+        {
+          "op": "size",
+          "expect": 29
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            3,
+            5
+          ],
+          "expect": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              4
+            ],
+            [
+              4,
+              7
+            ],
+            [
+              4,
+              7
+            ],
+            [
+              5,
+              5
+            ],
+            [
+              5,
+              6
+            ]
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            9,
+            12
+          ],
+          "expect": [
+            [
+              8,
+              10
+            ],
+            [
+              9,
+              9
+            ],
+            [
+              9,
+              11
+            ],
+            [
+              10,
+              12
+            ],
+            [
+              10,
+              13
+            ],
+            [
+              10,
+              13
+            ],
+            [
+              11,
+              12
+            ],
+            [
+              11,
+              12
+            ],
+            [
+              11,
+              13
+            ],
+            [
+              12,
+              15
+            ]
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            14,
+            14
+          ],
+          "expect": false
+        },
+        {
+          "op": "stabQuery",
+          "arg": 5,
+          "expect": [
+            [
+              4,
+              7
+            ],
+            [
+              4,
+              7
+            ],
+            [
+              5,
+              5
+            ],
+            [
+              5,
+              6
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            8,
+            9
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            4,
+            7
+          ],
+          "expect": [
+            [
+              2,
+              4
+            ],
+            [
+              4,
+              7
+            ],
+            [
+              4,
+              7
+            ],
+            [
+              5,
+              5
+            ],
+            [
+              5,
+              6
+            ],
+            [
+              6,
+              6
+            ],
+            [
+              7,
+              7
+            ]
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 30
+        },
+        {
+          "op": "stabQuery",
+          "arg": 4,
+          "expect": [
+            [
+              2,
+              4
+            ],
+            [
+              4,
+              7
+            ],
+            [
+              4,
+              7
+            ]
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 12,
+          "expect": [
+            [
+              10,
+              12
+            ],
+            [
+              10,
+              13
+            ],
+            [
+              10,
+              13
+            ],
+            [
+              11,
+              12
+            ],
+            [
+              11,
+              12
+            ],
+            [
+              11,
+              13
+            ],
+            [
+              12,
+              15
+            ]
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            15,
+            17
+          ],
+          "expect": false
+        },
+        {
+          "op": "stabQuery",
+          "arg": 11,
+          "expect": [
+            [
+              9,
+              11
+            ],
+            [
+              10,
+              12
+            ],
+            [
+              10,
+              13
+            ],
+            [
+              10,
+              13
+            ],
+            [
+              11,
+              12
+            ],
+            [
+              11,
+              12
+            ],
+            [
+              11,
+              13
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            6,
+            6
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 0,
+          "expect": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ]
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 8,
+          "expect": [
+            [
+              8,
+              9
+            ],
+            [
+              8,
+              10
+            ]
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 5,
+          "expect": [
+            [
+              4,
+              7
+            ],
+            [
+              4,
+              7
+            ],
+            [
+              5,
+              5
+            ],
+            [
+              5,
+              6
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            4,
+            5
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            10,
+            12
+          ],
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": [
+            6,
+            6
+          ]
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            8,
+            8
+          ],
+          "expect": [
+            [
+              8,
+              9
+            ],
+            [
+              8,
+              10
+            ]
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 0,
+          "expect": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            5,
+            7
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 33
+        },
+        {
+          "op": "delete",
+          "arg": [
+            9,
+            11
+          ],
+          "expect": true
+        },
+        {
+          "op": "stabQuery",
+          "arg": 9,
+          "expect": [
+            [
+              8,
+              9
+            ],
+            [
+              8,
+              10
+            ],
+            [
+              9,
+              9
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            9,
+            11
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 0,
+          "expect": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ]
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            1,
+            3
+          ],
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 32
+        },
+        {
+          "op": "size",
+          "expect": 32
+        },
+        {
+          "op": "stabQuery",
+          "arg": 19,
+          "expect": []
+        },
+        {
+          "op": "stabQuery",
+          "arg": 0,
+          "expect": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ]
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            14,
+            14
+          ],
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": [
+            13,
+            16
+          ],
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": [
+            12,
+            15
+          ],
+          "expect": true
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            2,
+            2
+          ],
+          "expect": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              4
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            10,
+            11
+          ]
+        },
+        {
+          "op": "stabQuery",
+          "arg": 10,
+          "expect": [
+            [
+              8,
+              10
+            ],
+            [
+              9,
+              11
+            ],
+            [
+              10,
+              11
+            ],
+            [
+              10,
+              13
+            ],
+            [
+              10,
+              13
+            ]
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            10,
+            13
+          ],
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 31
+        },
+        {
+          "op": "insert",
+          "arg": [
+            14,
+            16
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            13,
+            15
+          ],
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": [
+            5,
+            8
+          ],
+          "expect": false
+        },
+        {
+          "op": "stabQuery",
+          "arg": 20,
+          "expect": []
+        },
+        {
+          "op": "delete",
+          "arg": [
+            14,
+            15
+          ],
+          "expect": false
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            2,
+            3
+          ],
+          "expect": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              4
+            ]
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            11,
+            12
+          ],
+          "expect": true
+        },
+        {
+          "op": "stabQuery",
+          "arg": 11,
+          "expect": [
+            [
+              9,
+              11
+            ],
+            [
+              10,
+              11
+            ],
+            [
+              10,
+              13
+            ],
+            [
+              11,
+              12
+            ],
+            [
+              11,
+              13
+            ]
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            11,
+            13
+          ],
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 29
+        },
+        {
+          "op": "insert",
+          "arg": [
+            15,
+            16
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            6,
+            8
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            8,
+            9
+          ],
+          "expect": true
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            14,
+            16
+          ],
+          "expect": [
+            [
+              14,
+              16
+            ],
+            [
+              15,
+              15
+            ],
+            [
+              15,
+              16
+            ],
+            [
+              15,
+              18
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            5,
+            6
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            8,
+            8
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            5,
+            6
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            10,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": [
+            10,
+            12
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 34
+        },
+        {
+          "op": "size",
+          "expect": 34
+        },
+        {
+          "op": "delete",
+          "arg": [
+            7,
+            9
+          ],
+          "expect": false
+        },
+        {
+          "op": "overlapQuery",
+          "arg": [
+            1,
+            3
+          ],
+          "expect": [
+            [
+              0,
+              3
+            ],
+            [
+              0,
+              3
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              2,
+              4
+            ]
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": [
+            4,
+            7
+          ],
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 33
+        }
+      ]
+    }
+  ]
+}

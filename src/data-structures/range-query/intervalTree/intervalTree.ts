@@ -1,81 +1,74 @@
 /**
- * IntervalTree (구간 트리)
+ * IntervalTree — 겹치는 구간을 저장 수가 아니라 답 수에 매인 비용으로 찾는 색인.
  *
- * 구간 집합을 관리하고 특정 점 또는 구간과 겹치는 구간을 효율적으로 검색한다.
- * 내부적으로 Augmented BST(증강 BST)를 사용하며, 각 노드는 서브트리 내
- * 모든 구간의 최대 high 값(maxHigh)을 추가로 저장한다.
+ * **목적.** 구간 `[low, high]` 를 넣고 빼면서, 주어진 점 또는 주어진 구간과 겹치는 구간을
+ * **빠짐없이** 돌려주는 것. 질의 비용이 저장된 구간 수가 아니라 그중 답이 되는 수에 매이는
+ * 것이 이 계약의 내용이다.
+ * 구간 병합·합집합 길이·k 번째 구간·구간에 붙인 임의 데이터는 이 계약에 없다. 되읽을 연산이
+ * 없는 값은 관측되지 않고, 관측되지 않는 것은 계약이 될 수 없다.
  *
- * [스토리] 회의실 예약 충돌 감지
- * [start, end] 시간대로 예약을 관리하고, 새 예약이 기존 예약과
- * 겹치는지 O(log n)에 확인하며, 충돌하는 모든 예약을 O(k + log n)에 반환한다.
+ * **불변식.** 둘이다. 각 연산이 국소적으로 옳아 보여도 깨질 수 있고, 공개 연산만으로
+ * 관측된다.
+ * 1. 넣은 것을 전부 되찾는다. 저장된 모든 구간을 덮는 범위로 `overlapQuery` 를 부르면
+ *    결과 수가 `size()` 와 같다. 세고 있는 수와 실제로 내놓을 수 있는 수가 갈리지 않는다.
+ * 2. 두 질의가 갈리지 않는다. 임의의 `p` 에 대해 `stabQuery(p)` 의 결과와
+ *    `overlapQuery(p, p)` 의 결과가 같은 집합이다.
  *
- * 요구사항:
- * - insert(low, high, data?): 구간 삽입, O(log n)
- * - delete(low, high): 구간 삭제, O(log n)
- * - stabQuery(point): 점을 포함하는 모든 구간 반환, O(k + log n)
- * - overlapQuery(low, high): 겹치는 모든 구간 반환, O(k + log n)
- * - size(): 현재 저장된 구간 수, O(1)
+ * 셋째 후보였던 **건전성**(*"돌려준 구간이 실제로 겹친다"*)은 불변식이 아니다. 그것은
+ * 상태의 성질이 아니라 `overlapQuery` **한 연산의 의미 그 자체**이고, 한 연산의 의미는
+ * 참조 모델과의 대조가 본다.
  *
- * 시간복잡도:
- * - insert: O(log n) (균형 유지 시)
- * - delete: O(log n)
- * - stabQuery: O(k + log n), k = 결과 구간 수
- * - overlapQuery: O(k + log n)
+ * **연산 계약.** n 은 저장된 구간 수, k 는 **그 질의가 돌려주는 구간 수**다.
  *
- * 공간복잡도: O(n)
+ * | 연산 | 의미 | 상한 | 한정자 |
+ * |---|---|---|---|
+ * | `insert(low, high)` | `[low, high]` 를 하나 넣는다. 같은 구간을 여러 번 넣으면 여러 벌로 센다 | O(log n) | expected |
+ * | `delete(low, high)` | 같은 구간 하나를 지우고 `true`. 없으면 `false`, 상태는 불변 | O(log n) | expected |
+ * | `stabQuery(point)` | `low <= point <= high` 인 구간 전부 | O((k+1) log n) | expected |
+ * | `overlapQuery(low, high)` | 질의 구간과 겹치는 구간 전부. 겹침은 `low <= 저장high && 저장low <= high` | O((k+1) log n) | expected |
+ * | `size()` | 저장된 구간 수 | O(1) | worst |
+ *
+ * 두 질의의 상한에 `k + 1` 이 곱해져 있는 것은 의도한 계약이다. 더 강한 `O(log n + k)` 를
+ * 적으면 답 하나마다 뿌리 쪽에서 다시 내려오는 설계가 전부 계약 위반이 된다 — 아무도
+ * 금지한 적이 없는데 금지된다. 한정자를 가장 약한 것으로 적는 것과 같은 이유다.
+ *
+ * **결과 순서를 약속하지 않는다.** 두 질의는 집합을 돌려주고, 배열이라는 것은 그 집합을
+ * 담는 그릇일 뿐이다. 순서를 약속하면 그것이 곧 순회 순서의 처방이 된다.
+ *
+ * **주입 정책.** 주입받는 것은 없다. 경계는 `number` 이고 순서는 언어의 수 비교를 쓰므로
+ * 비교자를 받을 자리가 없다.
+ * - 호출자가 지켜야 할 조건은 하나다 — `low <= high`. 어기면 이 계약은 아무것도 약속하지
+ *   않는다. 빈 구간을 표현할 방법이 계약에 없기 때문이다.
+ * - 예외를 던지는 연산이 없다. 없는 구간의 `delete` 는 `false`, 빈 색인의 질의는 빈 배열이다.
+ *
+ * **검증 등급.** `complexity`.
+ * 상한이 자명한 구현으로 달성되지 않는다. 반례가 둘이다 — 배열에 담고 전부 훑는 구현은
+ * 질의가 k 와 무관하게 O(n) 이고, 균형을 스스로 잡지 않는 탐색 트리는 시작점이 오름차순인
+ * 입력에서 사슬이 되어 `insert` 가 O(n) 이 된다. 상한을 지키려면 비자명한 설계가 필요하다.
+ *
+ * **필요충분조건.**
+ * - 의미: 겹치는 구간을 **빠짐없이, 겹치는 것만** 돌려주지 못하면 구간 색인이 아니다. 하나라도
+ *   놓치면 그건 근사 색인이고, 겹치지 않는 것을 섞어 돌려주면 그건 답이 아니라 후보 목록이다.
+ * - 비용: 둘 다 지키더라도 질의가 답 수가 아니라 **저장 수에 비례하면** 구간 색인이 아니다.
+ *   그건 구간 배열이고, 겹침 검사를 그냥 전부 해 본 것이다.
  */
 export class IntervalTree {
-  private _size: number;
-
-  constructor() {
+  insert(low: number, high: number): void {
     throw new Error("Not implemented");
   }
 
-  /**
-   * [low, high] 구간을 삽입한다. 선택적으로 임의 데이터를 연결할 수 있다.
-   * @param low 구간 왼쪽 경계 (inclusive)
-   * @param high 구간 오른쪽 경계 (inclusive)
-   * @param data 구간에 연결할 임의 데이터 (optional)
-   */
-  insert(low: number, high: number, data?: unknown): void {
-    throw new Error("Not implemented");
-  }
-
-  /**
-   * [low, high] 구간을 삭제한다.
-   * @param low 구간 왼쪽 경계
-   * @param high 구간 오른쪽 경계
-   * @returns 삭제 성공 여부
-   */
   delete(low: number, high: number): boolean {
     throw new Error("Not implemented");
   }
 
-  /**
-   * 주어진 점(point)을 포함하는 모든 구간을 반환한다.
-   * 포함 조건: low <= point <= high
-   * @param point 질의할 점
-   * @returns 조건을 만족하는 구간의 배열 [[low, high], ...]
-   */
-  stabQuery(point: number): Array<[number, number]> {
+  stabQuery(point: number): [number, number][] {
     throw new Error("Not implemented");
   }
 
-  /**
-   * [low, high]와 겹치는 모든 구간을 반환한다.
-   * 겹침 조건: !(high < storedLow || storedHigh < low)
-   * 즉, 두 구간이 완전히 분리되지 않으면 겹침으로 판정.
-   * @param low 질의 구간 왼쪽 경계
-   * @param high 질의 구간 오른쪽 경계
-   * @returns 겹치는 구간의 배열 [[low, high], ...]
-   */
-  overlapQuery(low: number, high: number): Array<[number, number]> {
+  overlapQuery(low: number, high: number): [number, number][] {
     throw new Error("Not implemented");
   }
 
-  /**
-   * 현재 저장된 구간의 수를 반환한다.
-   */
   size(): number {
     throw new Error("Not implemented");
   }
