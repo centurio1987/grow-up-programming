@@ -1,6 +1,6 @@
 {
-  "next_id": 31,
-  "next_seq": 48,
+  "next_id": 32,
+  "next_seq": 49,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -361,6 +361,18 @@
       "title_hash": "6434723462be24bdf3f2f8bbbee6b743c4152bf6",
       "memo_hash": "83eb983bc882f84532ffd4f3bc8b843b3007027a",
       "verbatim_hash": "f93899b1707c6fc40fb365b480f9c6e821b74b05"
+    },
+    "KAN-031": {
+      "col": "backlog",
+      "title": "카테고리 전면 재편 — 계약(ADT) 기준으로 10개 분류 재정의",
+      "memo": "공수 L·리스크 상. **B1 분류 원칙 확정에서 파생(2026-08-04).** 원칙은 docs/ORD-006-conventions.md 분류 원칙 절에 확정돼 있다 — 카테고리는 계약(ADT)으로 가르고 구현으로 가르지 않는다. 근거는 ORD-006 의 핵심 결정('명세에 내부 표현을 처방하지 않는다')과 구현 기준 분류가 양립 불가라는 것이다. 구현이 자유로우면 구현으로 나눈 카테고리는 정해지지 않는다. **현행 10개 카테고리는 세 종류가 섞여 있다** — 계약 이름(disjoint-set·heap·linear) · 구현 기법 이름(hash·tree·trie) · 용도 이름(range-query·spatial·graph-repr·probabilistic). 할 일 ① 계약 축으로 카테고리 집합을 재정의 ② 69종을 재배정 ③ 경로 변경에 딸린 참조 스윕(문제_가이드_목록.md · tools/ord004-manifest.json · 가이드 인덱스 · TSV 재생성). **선행: KAN-015(참조 스윕 도구) 필수** — 도구 없이 옮기면 링크가 조용히 깨진다. KAN-025(P4 분류) 이후가 자연스럽다. B1 에서는 명백한 오분류 한 건(hash/multiset → tree/)만 교정하기로 했고, tree/ 가 구현 이름이라는 모순은 이 카드가 닫힐 때까지 남는다. **주의: 이 카드 신설로 KAN-001 봉인 조건이 29장→30장으로 늘어난다.** 근거: docs/ORD-006-conventions.md 분류 원칙",
+      "verbatim": "1.a, 2.c, 3.a",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-08-04",
+      "title_hash": "c02aea0ee6dfde5934871c6a1d983e2c824ab9fa",
+      "memo_hash": "1bee913ac331c535ad37e4ac281cbf4ad09d2929",
+      "verbatim_hash": "6c034e9d830ae9052d965fefaca2f0149974c6b3"
     }
   },
   "order": [
@@ -393,9 +405,21 @@
     "KAN-029",
     "KAN-030",
     "KAN-007",
-    "KAN-005"
+    "KAN-005",
+    "KAN-031"
   ],
   "recent": [
+    {
+      "seq": 48,
+      "t": "2026-08-04T16:53",
+      "a": "ai",
+      "id": "KAN-031",
+      "op": "create",
+      "col": "backlog",
+      "title": "카테고리 전면 재편 — 계약(ADT) 기준으로 10개 분류 재정의",
+      "memo": "공수 L·리스크 상. **B1 분류 원칙 확정에서 파생(2026-08-04).** 원칙은 docs/ORD-006-conventions.md 분류 원칙 절에 확정돼 있다 — 카테고리는 계약(ADT)으로 가르고 구현으로 가르지 않는다. 근거는 ORD-006 의 핵심 결정('명세에 내부 표현을 처방하지 않는다')과 구현 기준 분류가 양립 불가라는 것이다. 구현이 자유로우면 구현으로 나눈 카테고리는 정해지지 않는다. **현행 10개 카테고리는 세 종류가 섞여 있다** — 계약 이름(disjoint-set·heap·linear) · 구현 기법 이름(hash·tree·trie) · 용도 이름(range-query·spatial·graph-repr·probabilistic). 할 일 ① 계약 축으로 카테고리 집합을 재정의 ② 69종을 재배정 ③ 경로 변경에 딸린 참조 스윕(문제_가이드_목록.md · tools/ord004-manifest.json · 가이드 인덱스 · TSV 재생성). **선행: KAN-015(참조 스윕 도구) 필수** — 도구 없이 옮기면 링크가 조용히 깨진다. KAN-025(P4 분류) 이후가 자연스럽다. B1 에서는 명백한 오분류 한 건(hash/multiset → tree/)만 교정하기로 했고, tree/ 가 구현 이름이라는 모순은 이 카드가 닫힐 때까지 남는다. **주의: 이 카드 신설로 KAN-001 봉인 조건이 29장→30장으로 늘어난다.** 근거: docs/ORD-006-conventions.md 분류 원칙",
+      "verbatim": "1.a, 2.c, 3.a"
+    },
     {
       "seq": 47,
       "t": "2026-08-04T16:53",
