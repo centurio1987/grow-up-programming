@@ -18,5 +18,8 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "authoring-kit@centurio87-plugins": true
   }
 }
