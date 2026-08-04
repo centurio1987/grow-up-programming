@@ -40,6 +40,9 @@
 29. 가이드 본문 코드는 `bun run tools/guide-core.ts check` 가 `_reference/` 추출본과 대조한다. 손으로 옮겨 적으면 한 글자 차이도 걸린다.
 30. `함정`·`덫`·`지뢰` 를 **명사째로** 쓰지 않는다(원칙 D12). D5(은유 동사)와 별개 조항이다.
 31. **집필 원칙(`~/.claude/authoring/principles`)은 배치 도중에도 전진한다.** B4 한 세션 동안 두 번 움직였다. 배치 시작에 `authoring.py lock` 을 보고, 끝낼 때 다시 본다.
+32. 검증은 **`bun run tools/ci.ts all` 하나**로 돈다. CI 가 도는 것과 같은 3모드 + 게이트다. 이 저장소의 테스트는 일부러 실패하므로(스텁) `bun test` 하나로는 판정이 안 된다.
+33. 파일을 **지우거나 옮기기 전에 `bun run tools/check-links.ts refs <경로>`** 를 돌린다. 손 grep 은 패턴을 빠뜨리고, 빠뜨린 것을 본인이 알 수 없다.
+34. `_scratch/`·`_deprecated/` 는 **타입 검사 대상이 아니다**(`tsconfig.json` exclude). 살아 있는 코드가 그 둘을 참조하지 않는 것을 확인하고 뺐다 — 오류 1048건이 상시로 뜨면 그 검사는 판정에 못 쓰인다.
 
 ## 배치 규약
 
@@ -61,8 +64,9 @@
 | B3 | 003 | 완료 | B2 | conventions §규약2, `_contract/` 하네스, 시범 2종 정본 |
 | B4 | 004 | 완료 | — | conventions §규약3, ds-guide spec 8단계, `tools/guide-core.ts` |
 | B5 | 006 | 완료 | B1 | `rust/`, 축4 하네스, 언어 중립 vector |
-| B6 | 012~018 | **다음** | B3·B4·B5 | 인프라 7장(게이트·CI·스윕·경로 정합) |
-| B7~ | 008~028 | 대기 | B6 | 계획서 §4 |
+| B6 | 012~018 | 완료 | B3·B4·B5 | 인프라 6장 완료 + 016 부분(모범 예시는 B7 대기) |
+| B7 | 008 | **다음** | B6 | deque 재집필 — 규약 1~3 첫 통합 파일럿 |
+| B8~ | 009~028 | 대기 | B7 | 계획서 §4 |
 | 최종 | 001 봉인 | 대기 | 전 카드 | ORD-006 COMMITTED |
 
 ## 배치별 진입 카드
@@ -284,7 +288,7 @@
 - **수치**: Rust 테스트 14건(축1 재생 5 · 판정기 7 · loom 2). `cargo test` 통과,
   `RUSTFLAGS="--cfg loom" cargo test --test loom --release` 통과. `rust/target` 은 gitignore
 
-### B6 — 인프라 7장 (다음)
+### B6 — 인프라 7장 (완료)
 
 - **읽을 것**: 이 문서, `docs/ORD-006-conventions.md` 전문, `docs/ORD-006-strategy.md:207-213`(CI 3모드),
   `KANBAN.md` 의 KAN-012~018 메모
@@ -303,6 +307,56 @@
   함께 돈다
 - **끝낼 때**: 각 카드 메모 + 이 문서의 B7 진입 카드
 
+**2026-08-04 결과**
+
+- **도구 셋을 만들었다.** `tools/check-links.ts`(KAN-015) · `tools/check-contract.ts`(KAN-014) ·
+  `tools/ci.ts`(KAN-012). 셋 다 음성 시험으로 확인했다 — 어긋난 입력을 넣어 실제로 실패하는지
+  본 뒤에 통과를 믿는다
+- **KAN-015 참조 스윕.** `refs` 는 링크 문법이 아니라 **문자열 포함**으로 본다. JSON 값과
+  셸 인자에 박힌 경로도 걸려야 하기 때문이다. `check` 는 오탐 셋을 걸러 낸다 — 코드 블록·
+  인라인 코드(ascii 도식과 LaTeX 아래첨자가 `[a](b)` 꼴을 만든다) · HTML 주석(캔버스 집필
+  지시의 예시 경로는 산출물 위치 기준이라 여기서 안 풀린다) · 경로처럼 생기지 않은 것.
+  걸러 내기 전 37건이던 오탐이 0이 됐고, 링크 256건이 통과한다. **KAN-019 가 쓸 답이 이미
+  나왔다** — `hash/multiset` 을 가리키는 곳 6자리
+- **KAN-014 정합 게이트.** 규약1(명세↔스텁·정본)과 규약2(계약 표↔축3 시나리오 커버리지)가
+  넘긴 숙제 둘을 갚았다. 하네스는 헤더 JSDoc 을 파싱하지 않으므로 이 대조를 할 수 없다.
+  음성 시험 3건 — covers 에서 `size` 제거 / 등급 갈림 / 정본에 `clear` 추가
+- **KAN-012 CI 3모드.** 이 저장소의 테스트는 일부러 실패하므로 모드를 갈라야 한다.
+  ②는 `bun test -t 정본` 으로 `_reference/` 만 골라 돌고(29 pass), ③은 판정에서 제외한다.
+  `bun run tools/ci.ts all` 이 10단계를 돌며 **로컬과 CI 가 같은 명령을 쓴다**.
+  워크플로는 TS 잡 + Rust 잡(`--cfg loom` 축4)
+- **타입 검사를 판정에 쓸 수 있게 고쳤다.** `_scratch/`·`_deprecated/` 에서 오류 1048건이
+  상시로 떠서 `bunx tsc --noEmit` 이 판정에 못 쓰였다 — 그 상태가 곧 "검사하지 않는 검사"다.
+  살아 있는 코드가 그 둘을 참조하지 않음을 확인하고 뺐고, 남은 진짜 오류 1건
+  (`tools/ord004-transition.ts:18`)을 고쳤다. 이제 저장소 전체 tsc 가 0이다
+- **KAN-016 은 넷 중 셋만 끝났다.** ③ `problem` spec 을 `src/algorithms/` 전용으로 못 박고
+  (자료구조에 적용하면 지운 문제 문서가 되살아난다) ④ 골격 회귀 fixture 를 만들었다.
+  **② 모범 예시 교체는 8단계 산출물이 없어 못 한다** — 지금 지우면 예시가 없는 상태가 된다.
+  이 카드는 열어 둔 채 B7 을 기다린다
+- **펜스 왕복이 실물 파일에서 처음 확인됐다.** B4 가 추출기만 만들고 남긴 자리다.
+  `tools/_fixtures/ds-guide-skeleton.mdx` 가 8단계 골격과 실제 `guide-core` 펜스를 담고,
+  `tools/guide-skeleton.test.ts` 가 spec 의 `sections[]` 와 정본 추출본 양쪽에 대조한다.
+  **spec 제목을 고치면 그 자리에서 실패한다** — 규칙·템플릿·예시가 갈라지는 것을 막는 기계다
+- **수치**: 테스트 375 pass / 2451 fail. B4 의 369 에서 **+6** 이고 전부 골격 회귀 시험이다
+  (`tools/` 자기시험 누계 24건). `bun run tools/ci.ts all` 통과(10단계, ③ 제외).
+  tsc 저장소 전체 0. Rust 14건 통과
+
+### B7 — deque 재집필 (다음)
+
+- **읽을 것**: 이 문서, `docs/ORD-006-conventions.md` §규약1·§규약2·§규약3, `KANBAN.md` 의 KAN-008 메모,
+  시범 2종(`linear/stack`·`hash/multiset`)의 `.ts`·`.contract.ts`·`.test.ts`·`_reference/`
+- **카드**: KAN-008
+- **할 것** — **규약 1~3을 처음으로 함께 도는 파일럿이다**
+  1. 규약1 — `deque-problem.md` 제거, 헤더 JSDoc 여섯 항목. **한정자를 연산마다 적고 가장 약한
+     것을 적는다**(용량 확장이 있으므로 넣고 빼기는 `amortized` 다)
+  2. 규약2 — `_reference/deque.ts` 정본 + `deque.contract.ts` + `runContract` 호출부.
+     **적대적 입력은 하나로 부족하다** — 큐 패턴과 역큐 패턴을 각각 시나리오로 둔다
+  3. 규약3 — **8단계 골격의 첫 산출물이자 `guide-core` 펜스의 첫 실전 왕복**이다
+  4. 지우기 전에 `bun run tools/check-links.ts refs` 를 돌린다(불변 사실 33)
+  5. 두 배열 처방 제거, 링 버퍼를 대표 구현으로 두되 **"정답"으로 고정하지 않는다**
+- **끝낼 때**: `bun run tools/ci.ts all` 통과 + KAN-016 의 모범 예시를 이 산출물로 교체 +
+  KAN-008 메모 + 이 문서의 B8 진입 카드
+
 ## 참조 (필요할 때만)
 
 | 찾는 것 | 위치 |
@@ -314,7 +368,10 @@
 | 규약2 계약 스위트 · 축3 판정 수치 | **`docs/ORD-006-conventions.md` §규약2**(정본). 초안은 `docs/ORD-006-strategy.md:96-142` |
 | 계약 스위트 하네스 | `src/data-structures/_contract/` — `runContract.ts`(축1~3) · `judge.ts`(판정 순수부) · `_fixtures/`(결함 fixture) |
 | 계약 스위트 실물 예 | `linear/stack`(`basic`), `hash/multiset`(`complexity`) — `.contract.ts` · `.test.ts` · `_reference/` |
-| 검증 명령(테스트·타입·린트·인용) | `CLAUDE.md` 검증 명령 절 |
+| 검증 명령 | **`bun run tools/ci.ts all`**(3모드+게이트). 낱개는 `CLAUDE.md` 검증 명령 절 |
+| 참조 스윕(지우기·옮기기 전) | `bun run tools/check-links.ts refs <경로>` |
+| 명세↔스위트 정합 게이트 | `tools/check-contract.ts` |
+| Rust 하네스(축1 재생·축4) | `rust/README.md` · `rust/contract/` · vector 는 `tools/emit-vectors.ts` 가 뽑는다 |
 | 규약3 가이드 골격 8단계 | **`docs/ORD-006-conventions.md` §규약3**(정본). 초안은 `docs/ORD-006-strategy.md:144-184` |
 | 가이드 골격 정본(집필기가 읽는 것) | `.claude/authoring/specs/ds-guide/spec.json` `sections[]` · 작성법은 같은 폴더 `spec.md` |
 | 가이드 코드 추출 도구 | `tools/guide-core.ts`(`extract`·`check`) · 자기시험 `tools/guide-core.test.ts` |
