@@ -1,6 +1,6 @@
 {
   "next_id": 31,
-  "next_seq": 46,
+  "next_seq": 48,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -51,15 +51,15 @@
       "verbatim_hash": "3bc986d7ab57b99f41badff6ae29beb1ea16f015"
     },
     "KAN-005": {
-      "col": "todo",
+      "col": "done",
       "title": "[P0-a·5] 규약4 — 언어 에스컬레이션 (가)/(나) 2등급 기준",
-      "memo": "공수 S·리스크 하. (가) TS로 계약 충족 불가→Rust 필수(포인터 산술·원자적 연산·정수 폭 제어). (나) 점근 계약은 TS로 되나 실측 불가→Rust 선택(캐시 레이아웃·결정적 지연). 구조마다 판정+근거 1줄 기록. Python은 정의만 두고 산출물 요구 보류. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "memo": "공수 S·리스크 하. **2026-08-04 완료(B1).** 산출: docs/ORD-006-conventions.md 규약4 절. (가) TS 로 명세 계약 자체를 만족 불가 → Rust 필수(포인터 산술·원자적 연산·정수 폭 제어). (나) 점근 계약은 TS 로 되나 실측 근거를 TS 에서 못 보임 → Rust 선택(캐시 레이아웃·GC 없는 결정적 지연). (-) 계약도 근거도 TS 안에서 닫힌다(기본값). **판정 절차 4단계를 명문화했다** — 계약 확정 → TS 로 표현 가능한가((가) 판정) → 뒷받침 수치를 TS 에서 낼 수 있는가((나) 판정) → 가이드에 판정과 근거 한 줄. **(나)는 Rust 를 강제하지 않는다** — 산출물 없이 실측 불가 사유만 서술해도 계약 위반이 아니다. 강제는 (가)뿐. 확정 판정 3건은 KAN-007 참조(concurrentSkipList=(가)/req, xorLinkedList=(나)/opt, multiset=(-)). 전략 표의 예상 목록(rollingHash·bitArray·unrolledLinkedList·bPlusTree)은 **미확정이라 인벤토리에 넣지 않았다** — 결함등급과 같은 규칙으로 추정하지 않는다. Python 은 정의만 두고 산출물 요구 보류. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md",
       "verbatim": "typescript에서 최적화 할 수 없다면 최적화 불가능한 이유를 서술하고, 차선책을 제시한다. 그리고 최적화 가능한 언어를 채택해서 해당 언어로 최적화 과정을 보인다. 최적화를 위해 채택할 언어의 우선순위는 typescript, rust, python 순이다.",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-02",
+      "갱신": "2026-08-04",
       "title_hash": "488c8106d9b78e5bb0ae0d7640f7aec0c41f9e44",
-      "memo_hash": "7550d972d76136c416507202a9131638af24438b",
+      "memo_hash": "83c21539c2ab00e887f90190fcb95ce718c2e57a",
       "verbatim_hash": "996726d0636d1311fdff877549784509f43cdc93"
     },
     "KAN-006": {
@@ -389,13 +389,32 @@
     "KAN-002",
     "KAN-003",
     "KAN-004",
-    "KAN-005",
     "KAN-006",
     "KAN-029",
     "KAN-030",
-    "KAN-007"
+    "KAN-007",
+    "KAN-005"
   ],
   "recent": [
+    {
+      "seq": 47,
+      "t": "2026-08-04T16:53",
+      "a": "ai",
+      "id": "KAN-005",
+      "op": "move",
+      "from": "todo",
+      "to": "done"
+    },
+    {
+      "seq": 46,
+      "t": "2026-08-04T16:53",
+      "a": "ai",
+      "id": "KAN-005",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 S·리스크 하. (가) TS로 계약 충족 불가→Rust 필수(포인터 산술·원자적 연산·정수 폭 제어). (나) 점근 계약은 TS로 되나 실측 불가→Rust 선택(캐시 레이아웃·결정적 지연). 구조마다 판정+근거 1줄 기록. Python은 정의만 두고 산출물 요구 보류. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "after": "공수 S·리스크 하. **2026-08-04 완료(B1).** 산출: docs/ORD-006-conventions.md 규약4 절. (가) TS 로 명세 계약 자체를 만족 불가 → Rust 필수(포인터 산술·원자적 연산·정수 폭 제어). (나) 점근 계약은 TS 로 되나 실측 근거를 TS 에서 못 보임 → Rust 선택(캐시 레이아웃·GC 없는 결정적 지연). (-) 계약도 근거도 TS 안에서 닫힌다(기본값). **판정 절차 4단계를 명문화했다** — 계약 확정 → TS 로 표현 가능한가((가) 판정) → 뒷받침 수치를 TS 에서 낼 수 있는가((나) 판정) → 가이드에 판정과 근거 한 줄. **(나)는 Rust 를 강제하지 않는다** — 산출물 없이 실측 불가 사유만 서술해도 계약 위반이 아니다. 강제는 (가)뿐. 확정 판정 3건은 KAN-007 참조(concurrentSkipList=(가)/req, xorLinkedList=(나)/opt, multiset=(-)). 전략 표의 예상 목록(rollingHash·bitArray·unrolledLinkedList·bPlusTree)은 **미확정이라 인벤토리에 넣지 않았다** — 결함등급과 같은 규칙으로 추정하지 않는다. Python 은 정의만 두고 산출물 요구 보류. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md"
+    },
     {
       "seq": 45,
       "t": "2026-08-04T16:52",

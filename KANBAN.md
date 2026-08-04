@@ -82,12 +82,6 @@
     
     무너지긴 뭐가 무너져. 오버좀 하지 마라. 정상적인 표현으로 적어. 연산이 싸긴 뭐가 싸. 장사하냐
     ```
-- `KAN-005` [P0-a·5] 규약4 — 언어 에스컬레이션 (가)/(나) 2등급 기준 — 생성:ai · 최종:ai · 갱신:2026-08-02
-  - 메모: 공수 S·리스크 하. (가) TS로 계약 충족 불가→Rust 필수(포인터 산술·원자적 연산·정수 폭 제어). (나) 점근 계약은 TS로 되나 실측 불가→Rust 선택(캐시 레이아웃·결정적 지연). 구조마다 판정+근거 1줄 기록. Python은 정의만 두고 산출물 요구 보류. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
-  - 원문:
-    ```text
-    typescript에서 최적화 할 수 없다면 최적화 불가능한 이유를 서술하고, 차선책을 제시한다. 그리고 최적화 가능한 언어를 채택해서 해당 언어로 최적화 과정을 보인다. 최적화를 위해 채택할 언어의 우선순위는 typescript, rust, python 순이다.
-    ```
 - `KAN-006` [P0-a·6] Rust 최소 crate 구조 확정 — 생성:ai · 최종:ai · 갱신:2026-08-02
   - 메모: 공수 M·리스크 중. 워크스페이스 경계, JSON vector 공유 위치(rust/vectors/), TS↔Rust API 대응 규칙. (가) 판정 구조만 점진 추가 — 처음부터 69종 crate 만들지 않는다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
 
@@ -110,3 +104,9 @@
     ```
 - `KAN-007` [P0-a·7] 처분 결정 3건 — concurrentSkipList·xorLinkedList·multiset — 생성:ai · 최종:ai · 갱신:2026-08-04
   - 메모: 공수 M·리스크 중. **2026-08-04 확정(B1).** 근거 전문은 docs/ORD-006-conventions.md 처분 결정 절. ① **concurrentSkipList = Rust 전용 존치**((가) 등급). 현행은 probabilistic/skipList 와 계약이 같다 — 둘 다 MAX_LEVEL 16·p=0.5·평균 O(log n) 이고, 실제 차이는 동시성이 아니라 제네릭(T + comparator + min/max/size)이었다. 이름을 정당화하려면 계약에 선형화·진행 보장이 들어와야 하는데 단일 스레드 TS 는 그것을 표현도 검증도 못 한다 → 실행은 KAN-024, 선행 KAN-006 ② **xorLinkedList = 존치하되 성격 전환**((나) 등급). 삭제하지 않고 가이드 주제를 'XOR 트릭 연습'에서 '이 구조가 왜 현대 언어에서 성립하지 않는가'(GC·메모리 모델·포인터 프로버넌스)로 바꾼다. Map 노드 테이블이 아끼려던 포인터보다 커서 메모리 이득이 음수라는 사실을 계약에 명시한다. Rust 포트는 선택이며, 주소 XOR 로 유효 포인터를 복원하는 것이 Rust 엄격 프로버넌스에서 성립하지 않는다는 제약을 함께 서술해야 한다 → 실행은 KAN-010 ③ **multiset = tree/ 로 재분류**((-) 등급). hash/ 는 순서를 약속하지 않는 계열인데 multiset 의 계약은 정렬 순서 유지다. 분류 원칙을 '카테고리는 계약(ADT)으로 가른다, 구현으로 가르지 않는다'로 확정했고, 전면 재편은 KAN-031 로 분리했다. 디렉터리 이동은 참조 스윕 도구(KAN-015) 없이 하면 링크가 조용히 깨지므로 KAN-019 에서 실행한다. **부수 발견:** tree/orderStatisticTree 의 계약이 multiset 을 포섭한다(count=rank 차, min=kth(1), max=kth(size)) — 합칠지는 KAN-019 판단. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md
+- `KAN-005` [P0-a·5] 규약4 — 언어 에스컬레이션 (가)/(나) 2등급 기준 — 생성:ai · 최종:ai · 갱신:2026-08-04
+  - 메모: 공수 S·리스크 하. **2026-08-04 완료(B1).** 산출: docs/ORD-006-conventions.md 규약4 절. (가) TS 로 명세 계약 자체를 만족 불가 → Rust 필수(포인터 산술·원자적 연산·정수 폭 제어). (나) 점근 계약은 TS 로 되나 실측 근거를 TS 에서 못 보임 → Rust 선택(캐시 레이아웃·GC 없는 결정적 지연). (-) 계약도 근거도 TS 안에서 닫힌다(기본값). **판정 절차 4단계를 명문화했다** — 계약 확정 → TS 로 표현 가능한가((가) 판정) → 뒷받침 수치를 TS 에서 낼 수 있는가((나) 판정) → 가이드에 판정과 근거 한 줄. **(나)는 Rust 를 강제하지 않는다** — 산출물 없이 실측 불가 사유만 서술해도 계약 위반이 아니다. 강제는 (가)뿐. 확정 판정 3건은 KAN-007 참조(concurrentSkipList=(가)/req, xorLinkedList=(나)/opt, multiset=(-)). 전략 표의 예상 목록(rollingHash·bitArray·unrolledLinkedList·bPlusTree)은 **미확정이라 인벤토리에 넣지 않았다** — 결함등급과 같은 규칙으로 추정하지 않는다. Python 은 정의만 두고 산출물 요구 보류. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md
+  - 원문:
+    ```text
+    typescript에서 최적화 할 수 없다면 최적화 불가능한 이유를 서술하고, 차선책을 제시한다. 그리고 최적화 가능한 언어를 채택해서 해당 언어로 최적화 과정을 보인다. 최적화를 위해 채택할 언어의 우선순위는 typescript, rust, python 순이다.
+    ```
