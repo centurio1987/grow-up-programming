@@ -1,0 +1,66 @@
+name: CI
+
+# ORD-006 CI 3모드. 정본은 `docs/ORD-006-conventions.md` 와 `tools/ci.ts` 헤더다.
+#
+# 이 저장소의 테스트는 **일부러 실패한다** — 학습자 스텁이 `Not implemented` 를 던진다.
+# 그래서 `bun test` 하나로는 판정이 안 되고, 무엇이 실패해야 정상인지를 모드로 가른다.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  typescript:
+    name: TS — 자기검증·정본·게이트
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # biome --changed 가 기준 커밋을 봐야 한다
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+
+      # ① 결함 fixture 가 **축3에서** 걸리는가. "무언가 실패"로는 불충분하다.
+      - name: 모드 ① 스위트 자기검증
+        run: bun run tools/ci.ts self
+
+      # ② 정본이 계약을 지키는가.
+      - name: 모드 ② 정본 검증
+        run: bun run tools/ci.ts reference
+
+      - name: 게이트 (타입·계약 정합·추출 일치·vector·인용·링크)
+        run: bun run tools/ci.ts gates
+
+      # 저장소 전체 린트 기준선은 미정리다(대부분 `_scratch/`·`_deprecated/`).
+      # 그래서 **바뀐 파일만** 건다 — 전체를 걸면 상시 빨강이 되어 판정에 못 쓰인다.
+      - name: 린트 (바뀐 파일만)
+        run: bunx --bun @biomejs/biome check --changed --since=origin/main
+
+      # ③ 스텁은 미구현 실패가 정상이므로 **판정에서 제외**하고 로그로만 남긴다.
+      - name: 모드 ③ 실습 채점 (판정 제외)
+        continue-on-error: true
+        run: bun run tools/ci.ts practice
+
+  rust:
+    name: Rust — 축1 재생·축4 동시성
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: rust
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: rust
+
+      - name: 축1 vector 재생 + 판정기 자기시험
+        run: cargo test
+
+      # 축4는 `--cfg loom` 으로만 켜진다. 원자 연산이 loom 의 것으로 바뀌어야
+      # 스케줄을 훑을 수 있기 때문이다.
+      - name: 축4 선형화·진행 보장 (loom)
+        run: cargo test --test loom --release
+        env:
+          RUSTFLAGS: --cfg loom

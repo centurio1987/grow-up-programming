@@ -29,5 +29,11 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
-  }
+  },
+
+  // 살아 있는 코드가 참조하지 않는 두 곳은 타입 검사 대상이 아니다.
+  // `_deprecated/`는 이력 보존용 사본이고 `_scratch/`는 습작이다. 둘을 넣으면 오류
+  // 1048건이 상시로 떠서 `bunx tsc --noEmit` 이 판정에 못 쓰인다 — 그 상태가 곧
+  // "검사하지 않는 검사"다(ORD-006 KAN-012).
+  "exclude": ["**/_deprecated/**", "**/_scratch/**", "node_modules"]
 }

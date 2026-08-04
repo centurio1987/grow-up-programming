@@ -15,7 +15,7 @@ import { mkdir, rename } from "node:fs/promises";
 
 function flag(name: string, dflt: string | null = null): string | null {
   const i = process.argv.indexOf(name);
-  return i >= 0 ? process.argv[i + 1] : dflt;
+  return i >= 0 ? (process.argv[i + 1] ?? dflt) : dflt;
 }
 
 const [name, newPath] = process.argv.slice(2);

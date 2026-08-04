@@ -55,6 +55,19 @@ import { test, expect } from "bun:test";
 
 ## 검증 명령 (이 이름 그대로 쓴다)
 
+**한 번에 다 돌리려면 `bun run tools/ci.ts all`.** CI 가 도는 것과 같은 3모드 + 게이트다.
+이 저장소의 테스트는 **일부러 실패한다**(학습자 스텁이 `Not implemented` 를 던진다) —
+그래서 `bun test` 하나로는 판정이 안 되고 모드를 갈라야 한다.
+
+```bash
+bun run tools/ci.ts self       # ① 결함 fixture 가 축3에서 걸리는가
+bun run tools/ci.ts reference  # ② _reference/ 정본이 계약을 지키는가
+bun run tools/ci.ts practice   # ③ 스텁 채점 — 미구현 실패가 정상, 판정 제외
+bun run tools/ci.ts gates      # 타입·계약 정합·추출 일치·vector·인용·링크
+```
+
+낱개로 쓸 때:
+
 ```bash
 bun test                                        # 테스트
 bunx tsc --noEmit                               # 타입
