@@ -1,6 +1,6 @@
 {
   "next_id": 32,
-  "next_seq": 64,
+  "next_seq": 65,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -65,13 +65,13 @@
     "KAN-006": {
       "col": "todo",
       "title": "[P0-a·6] Rust 최소 crate 구조 확정",
-      "memo": "공수 M·리스크 중. 워크스페이스 경계, JSON vector 공유 위치(rust/vectors/), TS↔Rust API 대응 규칙. (가) 판정 구조만 점진 추가 — 처음부터 69종 crate 만들지 않는다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "memo": "공수 M·리스크 중. rust/ crate 구조(워크스페이스·모듈·테스트 배치·CI). **KAN-024(concurrentSkipList Rust 구현)의 선행이다.** **B3 가 이 카드에 둘을 얹었다(2026-08-04).** ① **축4 동시성 하네스가 이 카드에 딸린다.** 규약2가 축4를 정의했지만 TS 하네스에는 넣지 않았다 — 대상이 concurrentSkipList 하나이고 규약4 (가) 등급이라 Rust 전용이기 때문이다. TS 쪽 runContract 는 grade:\"concurrency\" 를 받으면 실패시킨다. 축4가 보는 것 둘: **선형화(linearizability)** — 동시 실행 히스토리에 대해 각 연산이 호출과 반환 사이 한 시점에 일어난 것으로 볼 수 있는 순차 순서가 존재하고 그것이 축1 참조 모델과 일치하는가. **진행 보장(lock-freedom)** — 임의 스레드를 임의 시점에 멈춰도 나머지가 유한 단계에 완료하는가. 축4는 __cost 를 쓰지 않는다(3축이 누적 카운터 기반이라 선형화를 담지 못한다는 B1 지적의 해소는 담게 만드는 것이 아니라 축을 따로 세우는 것이었다). 실행 도구 선택(loom·shuttle 등)이 이 카드의 판단이다. ② **언어 중립 JSON test vector 형식 확정.** 축1 전용이고, 값이 생기는 시점이 두 번째 언어가 들어오는 이 배치다. B3 에서 형식을 미리 고정하지 않은 이유는 검증하지 않은 규격이 하나 느는 것뿐이기 때문이다. TS 하네스의 ContractSpec.edges 가 이미 {op, arg} 시퀀스 형태라 그것이 출발점이다. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md §규약2 / KAN-007 처분 결정",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-02",
+      "갱신": "2026-08-04",
       "title_hash": "40e87f1eb5be2ef892f13e175f1b4ed55c33a14f",
-      "memo_hash": "98f34c84ed1032b6ca5d3d225610db1cdaaedba6",
+      "memo_hash": "65838fcabe45429c2df964249c6cb8bf76310b06",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-007": {
@@ -409,6 +409,16 @@
     "KAN-003"
   ],
   "recent": [
+    {
+      "seq": 64,
+      "t": "2026-08-04T18:02",
+      "a": "ai",
+      "id": "KAN-006",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 M·리스크 중. 워크스페이스 경계, JSON vector 공유 위치(rust/vectors/), TS↔Rust API 대응 규칙. (가) 판정 구조만 점진 추가 — 처음부터 69종 crate 만들지 않는다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "after": "공수 M·리스크 중. rust/ crate 구조(워크스페이스·모듈·테스트 배치·CI). **KAN-024(concurrentSkipList Rust 구현)의 선행이다.** **B3 가 이 카드에 둘을 얹었다(2026-08-04).** ① **축4 동시성 하네스가 이 카드에 딸린다.** 규약2가 축4를 정의했지만 TS 하네스에는 넣지 않았다 — 대상이 concurrentSkipList 하나이고 규약4 (가) 등급이라 Rust 전용이기 때문이다. TS 쪽 runContract 는 grade:\"concurrency\" 를 받으면 실패시킨다. 축4가 보는 것 둘: **선형화(linearizability)** — 동시 실행 히스토리에 대해 각 연산이 호출과 반환 사이 한 시점에 일어난 것으로 볼 수 있는 순차 순서가 존재하고 그것이 축1 참조 모델과 일치하는가. **진행 보장(lock-freedom)** — 임의 스레드를 임의 시점에 멈춰도 나머지가 유한 단계에 완료하는가. 축4는 __cost 를 쓰지 않는다(3축이 누적 카운터 기반이라 선형화를 담지 못한다는 B1 지적의 해소는 담게 만드는 것이 아니라 축을 따로 세우는 것이었다). 실행 도구 선택(loom·shuttle 등)이 이 카드의 판단이다. ② **언어 중립 JSON test vector 형식 확정.** 축1 전용이고, 값이 생기는 시점이 두 번째 언어가 들어오는 이 배치다. B3 에서 형식을 미리 고정하지 않은 이유는 검증하지 않은 규격이 하나 느는 것뿐이기 때문이다. TS 하네스의 ContractSpec.edges 가 이미 {op, arg} 시퀀스 형태라 그것이 출발점이다. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md §규약2 / KAN-007 처분 결정"
+    },
     {
       "seq": 63,
       "t": "2026-08-04T18:02",
@@ -907,17 +917,6 @@
       "col": "backlog",
       "title": "[P0-b·15] problem 참조 스윕 + 링크 무결성 도구",
       "memo": "공수 S·리스크 하. 삭제 전 문서·스킬·인덱스·README 참조 검색. algorithms는 유지하고 data-structures만 제거하므로 경계 조건 주의. migration note까지만 — redirect 인프라는 만들지 않는다(외부 소비자 없음, git 히스토리 보존). 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
-      "verbatim": ""
-    },
-    {
-      "seq": 14,
-      "t": "2026-08-02T23:36",
-      "a": "ai",
-      "id": "KAN-014",
-      "op": "create",
-      "col": "backlog",
-      "title": "[P0-b·14] 게이트 확장 — 타입체크·MDX 빌드·신캔버스 호환 점검",
-      "memo": "공수 M·리스크 중. 기존 3종(comprehension-gate.sh·review-guide.sh·check-mermaid.ts) 승계 + tsc --noEmit·lint·MDX 빌드 추가. 기존 게이트가 '문제 풀이 가이드' 전제에 묶여 있는지, 8단계 캔버스를 이해하는지 먼저 점검. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
       "verbatim": ""
     }
   ]
