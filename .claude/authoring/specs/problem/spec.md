@@ -3,6 +3,15 @@
 > **층: L2 (글 명세)** · 적용 voice: `ppangtolab-teacher` (빵토랩 선생님)
 > 출처: `gen-problem/SKILL.md` §2.1(문제 골격, 변경 금지) + `PROBLEM_QUALITY_CHECKLIST.md`
 
+## 적용 범위 — `src/algorithms/` 전용
+
+**`src/data-structures/` 는 이 spec 의 대상이 아니다.** ORD-006 이 자료구조에서 문제 문서를
+걷어내고 그 자리를 계약 명세(`<name>.ts` 헤더 JSDoc)로 대체했다. 자료구조는 문제를 풀지
+않고 **계약을 지킨다** — 다루는 것이 문제가 아니라 구조 자체다.
+
+자료구조 대상에 이 spec 을 적용하면 지운 문제 문서가 되살아난다. 자료구조에서 쓸 것은
+`ds-guide` spec 이고, 규격의 정본은 `docs/ORD-006-conventions.md` 다.
+
 ## 이 글의 목적 — 가이드와 정반대다
 
 가이드는 **이해시키는** 글이고, 문제는 **풀게 하는** 글이다.

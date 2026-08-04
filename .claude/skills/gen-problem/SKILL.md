@@ -15,6 +15,15 @@ argument-hint: <file-name-without-extension>
 > **집필 규칙은 이 파일에 없다.** 문제 골격·금기·품질 기준은 `authoring-kit` 플러그인의
 > `problem` 명세에 산다. 이 스킬은 **입력을 모아 넘기고 결과를 발행하는 일**만 한다.
 
+## 적용 범위 — `src/algorithms/` 전용
+
+**`src/data-structures/` 대상으로 이 스킬을 부르지 않는다.** 자료구조는 문제를 풀지 않고
+계약을 지킨다(ORD-006). 그 트랙에서 `<name>-problem.md` 는 제거 대상이고, 자리를 `<name>.ts`
+헤더 JSDoc 의 계약 명세가 대신한다. 여기서 문제 문서를 만들면 지운 것이 되살아난다.
+
+자료구조 대상이면 `guide-for-problem`(→ `ds-guide` spec)으로 간다. 규격의 정본은
+`docs/ORD-006-conventions.md` 다.
+
 ## 명세
 
 | | |
