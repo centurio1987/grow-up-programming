@@ -1,0 +1,926 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "Stack",
+  "grade": "basic",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 스택에서 pop·peek 은 null 이고 상태를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "꺼내는 순서가 넣은 순서의 역순이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "push",
+          "arg": 2
+        },
+        {
+          "op": "push",
+          "arg": 3
+        },
+        {
+          "op": "pop",
+          "expect": 3
+        },
+        {
+          "op": "pop",
+          "expect": 2
+        },
+        {
+          "op": "pop",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "pop 뒤의 peek 은 새 top 을 돌려준다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 10
+        },
+        {
+          "op": "push",
+          "arg": 20
+        },
+        {
+          "op": "pop",
+          "expect": 20
+        },
+        {
+          "op": "peek",
+          "expect": 10
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "비웠다가 다시 채워도 계약이 유지된다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 7
+        },
+        {
+          "op": "pop",
+          "expect": 7
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 8
+        },
+        {
+          "op": "peek",
+          "expect": 8
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "push",
+          "arg": 52
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "pop",
+          "expect": 52
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 40
+        },
+        {
+          "op": "pop",
+          "expect": 40
+        },
+        {
+          "op": "push",
+          "arg": 48
+        },
+        {
+          "op": "push",
+          "arg": 39
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": 39
+        },
+        {
+          "op": "push",
+          "arg": 4
+        },
+        {
+          "op": "peek",
+          "expect": 4
+        },
+        {
+          "op": "peek",
+          "expect": 4
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": 4
+        },
+        {
+          "op": "pop",
+          "expect": 48
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "push",
+          "arg": 72
+        },
+        {
+          "op": "peek",
+          "expect": 72
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "pop",
+          "expect": 72
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "push",
+          "arg": 32
+        },
+        {
+          "op": "peek",
+          "expect": 32
+        },
+        {
+          "op": "pop",
+          "expect": 32
+        },
+        {
+          "op": "push",
+          "arg": 72
+        },
+        {
+          "op": "peek",
+          "expect": 72
+        },
+        {
+          "op": "push",
+          "arg": 26
+        },
+        {
+          "op": "push",
+          "arg": 62
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "pop",
+          "expect": 62
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 26
+        },
+        {
+          "op": "pop",
+          "expect": 26
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "push",
+          "arg": 3
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "pop",
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "peek",
+          "expect": 72
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "push",
+          "arg": 67
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "push",
+          "arg": 97
+        },
+        {
+          "op": "push",
+          "arg": 38
+        },
+        {
+          "op": "push",
+          "arg": 40
+        },
+        {
+          "op": "pop",
+          "expect": 40
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 38
+        },
+        {
+          "op": "peek",
+          "expect": 38
+        },
+        {
+          "op": "push",
+          "arg": 80
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "pop",
+          "expect": 80
+        },
+        {
+          "op": "push",
+          "arg": 30
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "pop",
+          "expect": 30
+        },
+        {
+          "op": "push",
+          "arg": 65
+        },
+        {
+          "op": "peek",
+          "expect": 65
+        },
+        {
+          "op": "pop",
+          "expect": 65
+        },
+        {
+          "op": "push",
+          "arg": 14
+        },
+        {
+          "op": "push",
+          "arg": 30
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "push",
+          "arg": 50
+        },
+        {
+          "op": "peek",
+          "expect": 50
+        },
+        {
+          "op": "pop",
+          "expect": 50
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": 30
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "push",
+          "arg": 18
+        },
+        {
+          "op": "push",
+          "arg": 98
+        },
+        {
+          "op": "pop",
+          "expect": 98
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "push",
+          "arg": 25
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": 25
+        },
+        {
+          "op": "push",
+          "arg": 14
+        },
+        {
+          "op": "peek",
+          "expect": 14
+        },
+        {
+          "op": "peek",
+          "expect": 14
+        },
+        {
+          "op": "pop",
+          "expect": 14
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "pop",
+          "expect": 18
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": 14
+        },
+        {
+          "op": "pop",
+          "expect": 38
+        },
+        {
+          "op": "pop",
+          "expect": 97
+        },
+        {
+          "op": "pop",
+          "expect": 67
+        },
+        {
+          "op": "pop",
+          "expect": 72
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "push",
+          "arg": 32
+        },
+        {
+          "op": "push",
+          "arg": 3
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": 3
+        },
+        {
+          "op": "pop",
+          "expect": 32
+        },
+        {
+          "op": "push",
+          "arg": 82
+        },
+        {
+          "op": "pop",
+          "expect": 82
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "push",
+          "arg": 20
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "push",
+          "arg": 32
+        },
+        {
+          "op": "peek",
+          "expect": 32
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": 32
+        },
+        {
+          "op": "pop",
+          "expect": 20
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "push",
+          "arg": 92
+        },
+        {
+          "op": "peek",
+          "expect": 92
+        },
+        {
+          "op": "peek",
+          "expect": 92
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "push",
+          "arg": 7
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "push",
+          "arg": 71
+        },
+        {
+          "op": "pop",
+          "expect": 71
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": 7
+        },
+        {
+          "op": "peek",
+          "expect": 92
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "push",
+          "arg": 11
+        },
+        {
+          "op": "push",
+          "arg": 68
+        },
+        {
+          "op": "push",
+          "arg": 52
+        },
+        {
+          "op": "pop",
+          "expect": 52
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": 68
+        },
+        {
+          "op": "push",
+          "arg": 99
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "push",
+          "arg": 86
+        },
+        {
+          "op": "push",
+          "arg": 39
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 39
+        },
+        {
+          "op": "pop",
+          "expect": 39
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "push",
+          "arg": 28
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 28
+        },
+        {
+          "op": "push",
+          "arg": 16
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": 16
+        },
+        {
+          "op": "push",
+          "arg": 64
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "push",
+          "arg": 6
+        },
+        {
+          "op": "push",
+          "arg": 40
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "push",
+          "arg": 86
+        },
+        {
+          "op": "size",
+          "expect": 9
+        },
+        {
+          "op": "push",
+          "arg": 82
+        },
+        {
+          "op": "peek",
+          "expect": 82
+        },
+        {
+          "op": "peek",
+          "expect": 82
+        },
+        {
+          "op": "pop",
+          "expect": 82
+        },
+        {
+          "op": "push",
+          "arg": 8
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": 8
+        },
+        {
+          "op": "push",
+          "arg": 50
+        },
+        {
+          "op": "peek",
+          "expect": 50
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 10
+        },
+        {
+          "op": "peek",
+          "expect": 50
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        }
+      ]
+    }
+  ]
+}

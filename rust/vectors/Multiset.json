@@ -1,0 +1,1299 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "Multiset",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 컬렉션 — min·max 는 null, size 는 0",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        }
+      ]
+    },
+    {
+      "name": "중복 다중도가 size 와 count 에 함께 반영된다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 5
+        },
+        {
+          "op": "add",
+          "arg": 5
+        },
+        {
+          "op": "add",
+          "arg": 5
+        },
+        {
+          "op": "count",
+          "arg": 5,
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "delete",
+          "arg": 5,
+          "expect": true
+        },
+        {
+          "op": "count",
+          "arg": 5,
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 2
+        }
+      ]
+    },
+    {
+      "name": "없는 원소의 delete·deleteAll 은 상태를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 1
+        },
+        {
+          "op": "delete",
+          "arg": 9,
+          "expect": false
+        },
+        {
+          "op": "deleteAll",
+          "arg": 9,
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "삽입 순서와 무관하게 비내림차순이 유지된다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 3
+        },
+        {
+          "op": "add",
+          "arg": 1
+        },
+        {
+          "op": "add",
+          "arg": 2
+        },
+        {
+          "op": "add",
+          "arg": 1
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 3
+        }
+      ]
+    },
+    {
+      "name": "deleteAll 은 동등 원소를 전부 지우고 지운 수를 돌려준다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 7
+        },
+        {
+          "op": "add",
+          "arg": 7
+        },
+        {
+          "op": "add",
+          "arg": 7
+        },
+        {
+          "op": "add",
+          "arg": 8
+        },
+        {
+          "op": "deleteAll",
+          "arg": 7,
+          "expect": 3
+        },
+        {
+          "op": "has",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            8
+          ]
+        }
+      ]
+    },
+    {
+      "name": "전부 지웠다가 다시 채워도 계약이 유지된다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 4
+        },
+        {
+          "op": "delete",
+          "arg": 4,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "add",
+          "arg": 6
+        },
+        {
+          "op": "add",
+          "arg": 2
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            2,
+            6
+          ]
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "add",
+          "arg": 8
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            8
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            8
+          ]
+        },
+        {
+          "op": "deleteAll",
+          "arg": 9,
+          "expect": 0
+        },
+        {
+          "op": "max",
+          "expect": 8
+        },
+        {
+          "op": "has",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "count",
+          "arg": 7,
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 6,
+          "expect": false
+        },
+        {
+          "op": "deleteAll",
+          "arg": 2,
+          "expect": 0
+        },
+        {
+          "op": "count",
+          "arg": 1,
+          "expect": 0
+        },
+        {
+          "op": "has",
+          "arg": 12,
+          "expect": false
+        },
+        {
+          "op": "deleteAll",
+          "arg": 3,
+          "expect": 0
+        },
+        {
+          "op": "add",
+          "arg": 6
+        },
+        {
+          "op": "min",
+          "expect": 6
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "deleteAll",
+          "arg": 3,
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 6
+        },
+        {
+          "op": "count",
+          "arg": 12,
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 11,
+          "expect": false
+        },
+        {
+          "op": "count",
+          "arg": 12,
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            6,
+            8
+          ]
+        },
+        {
+          "op": "deleteAll",
+          "arg": 12,
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 5,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 11,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 6
+        },
+        {
+          "op": "delete",
+          "arg": 4,
+          "expect": false
+        },
+        {
+          "op": "add",
+          "arg": 9
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "deleteAll",
+          "arg": 15,
+          "expect": 0
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "has",
+          "arg": 4,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            6,
+            8,
+            9
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            6,
+            8,
+            9
+          ]
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            6,
+            8,
+            9
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            6,
+            8,
+            9
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "deleteAll",
+          "arg": 14,
+          "expect": 0
+        },
+        {
+          "op": "count",
+          "arg": 14,
+          "expect": 0
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "delete",
+          "arg": 10,
+          "expect": false
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            6,
+            8,
+            9
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 6,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 6,
+          "expect": false
+        },
+        {
+          "op": "deleteAll",
+          "arg": 10,
+          "expect": 0
+        },
+        {
+          "op": "count",
+          "arg": 8,
+          "expect": 1
+        },
+        {
+          "op": "add",
+          "arg": 12
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "deleteAll",
+          "arg": 2,
+          "expect": 0
+        },
+        {
+          "op": "deleteAll",
+          "arg": 14,
+          "expect": 0
+        },
+        {
+          "op": "deleteAll",
+          "arg": 2,
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 8
+        },
+        {
+          "op": "count",
+          "arg": 5,
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 2,
+          "expect": false
+        },
+        {
+          "op": "add",
+          "arg": 4
+        },
+        {
+          "op": "max",
+          "expect": 12
+        },
+        {
+          "op": "min",
+          "expect": 4
+        },
+        {
+          "op": "delete",
+          "arg": 8,
+          "expect": true
+        },
+        {
+          "op": "count",
+          "arg": 3,
+          "expect": 0
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "deleteAll",
+          "arg": 15,
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            4,
+            9,
+            12
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "add",
+          "arg": 2
+        },
+        {
+          "op": "add",
+          "arg": 15
+        },
+        {
+          "op": "deleteAll",
+          "arg": 11,
+          "expect": 0
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "add",
+          "arg": 4
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "delete",
+          "arg": 1,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 6,
+          "expect": false
+        },
+        {
+          "op": "count",
+          "arg": 4,
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "deleteAll",
+          "arg": 14,
+          "expect": 0
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "min",
+          "expect": 2
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "deleteAll",
+          "arg": 6,
+          "expect": 0
+        },
+        {
+          "op": "deleteAll",
+          "arg": 3,
+          "expect": 0
+        },
+        {
+          "op": "deleteAll",
+          "arg": 14,
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            2,
+            4,
+            4,
+            9,
+            12,
+            15
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 5,
+          "expect": false
+        },
+        {
+          "op": "add",
+          "arg": 0
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "has",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 13,
+          "expect": false
+        },
+        {
+          "op": "deleteAll",
+          "arg": 14,
+          "expect": 0
+        },
+        {
+          "op": "count",
+          "arg": 6,
+          "expect": 0
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "has",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "count",
+          "arg": 12,
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "add",
+          "arg": 3
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "add",
+          "arg": 5
+        },
+        {
+          "op": "has",
+          "arg": 13,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "has",
+          "arg": 5,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "add",
+          "arg": 14
+        },
+        {
+          "op": "count",
+          "arg": 9,
+          "expect": 1
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 1,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 10
+        },
+        {
+          "op": "delete",
+          "arg": 11,
+          "expect": false
+        },
+        {
+          "op": "deleteAll",
+          "arg": 10,
+          "expect": 0
+        },
+        {
+          "op": "deleteAll",
+          "arg": 8,
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            3,
+            4,
+            4,
+            5,
+            9,
+            12,
+            14,
+            15
+          ]
+        },
+        {
+          "op": "add",
+          "arg": 1
+        },
+        {
+          "op": "delete",
+          "arg": 10,
+          "expect": false
+        },
+        {
+          "op": "add",
+          "arg": 8
+        },
+        {
+          "op": "has",
+          "arg": 12,
+          "expect": true
+        },
+        {
+          "op": "deleteAll",
+          "arg": 1,
+          "expect": 1
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            3,
+            4,
+            4,
+            5,
+            8,
+            9,
+            12,
+            14,
+            15
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            3,
+            4,
+            4,
+            5,
+            8,
+            9,
+            12,
+            14,
+            15
+          ]
+        },
+        {
+          "op": "add",
+          "arg": 13
+        },
+        {
+          "op": "delete",
+          "arg": 6,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "count",
+          "arg": 6,
+          "expect": 0
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "delete",
+          "arg": 4,
+          "expect": true
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            3,
+            4,
+            5,
+            8,
+            9,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "count",
+          "arg": 0,
+          "expect": 1
+        },
+        {
+          "op": "delete",
+          "arg": 9,
+          "expect": true
+        },
+        {
+          "op": "deleteAll",
+          "arg": 2,
+          "expect": 1
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "add",
+          "arg": 1
+        },
+        {
+          "op": "add",
+          "arg": 6
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "size",
+          "expect": 11
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            1,
+            3,
+            4,
+            5,
+            6,
+            8,
+            12,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "op": "add",
+          "arg": 13
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            1,
+            3,
+            4,
+            5,
+            6,
+            8,
+            12,
+            13,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "op": "add",
+          "arg": 13
+        },
+        {
+          "op": "count",
+          "arg": 9,
+          "expect": 0
+        },
+        {
+          "op": "has",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": 10
+        },
+        {
+          "op": "has",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "count",
+          "arg": 8,
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "size",
+          "expect": 14
+        },
+        {
+          "op": "count",
+          "arg": 12,
+          "expect": 1
+        },
+        {
+          "op": "add",
+          "arg": 6
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "delete",
+          "arg": 13,
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 14
+        },
+        {
+          "op": "add",
+          "arg": 2
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "add",
+          "arg": 12
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            6,
+            8,
+            10,
+            12,
+            12,
+            13,
+            13,
+            14,
+            15
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 14,
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 16
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "count",
+          "arg": 9,
+          "expect": 0
+        },
+        {
+          "op": "has",
+          "arg": 3,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 15,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "add",
+          "arg": 9
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            1,
+            3,
+            4,
+            5,
+            6,
+            6,
+            8,
+            9,
+            10,
+            12,
+            12,
+            13,
+            13,
+            14
+          ]
+        },
+        {
+          "op": "deleteAll",
+          "arg": 0,
+          "expect": 1
+        },
+        {
+          "op": "count",
+          "arg": 5,
+          "expect": 1
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            3,
+            4,
+            5,
+            6,
+            6,
+            8,
+            9,
+            10,
+            12,
+            12,
+            13,
+            13,
+            14
+          ]
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "count",
+          "arg": 0,
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "add",
+          "arg": 12
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            3,
+            4,
+            5,
+            6,
+            6,
+            8,
+            9,
+            10,
+            12,
+            12,
+            12,
+            13,
+            13,
+            14
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 10,
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 14
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "has",
+          "arg": 9,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 14
+        },
+        {
+          "op": "size",
+          "expect": 14
+        },
+        {
+          "op": "has",
+          "arg": 12,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "deleteAll",
+          "arg": 2,
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            3,
+            4,
+            5,
+            6,
+            6,
+            8,
+            9,
+            12,
+            12,
+            12,
+            13,
+            13,
+            14
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "count",
+          "arg": 10,
+          "expect": 0
+        },
+        {
+          "op": "has",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "min",
+          "expect": 1
+        }
+      ]
+    }
+  ]
+}

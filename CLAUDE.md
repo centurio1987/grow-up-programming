@@ -61,6 +61,14 @@ bunx tsc --noEmit                               # 타입
 bunx --bun @biomejs/biome check <경로>          # 린트·포맷 (--write 로 수정)
 bun run tools/check-citations.ts                # 문서·코드의 `경로:줄번호` 인용 검증
 bun run tools/guide-core.ts check               # 가이드 코드가 `_reference/` 추출본과 같은지 검증
+bun run tools/emit-vectors.ts --check           # 언어 중립 test vector 가 계약과 어긋났는지 검증
+```
+
+Rust 쪽(축1 재생 · 축4 동시성)은 `rust/`에 있다. 실행 방법과 한계는 `rust/README.md`.
+
+```bash
+cd rust && cargo test                                              # 축1 + 판정기 자기시험
+cd rust && RUSTFLAGS="--cfg loom" cargo test --test loom --release # 축4 선형화·진행 보장
 ```
 
 **`bunx biome` 을 쓰지 않는다.** npm 의 `biome` 은 이 저장소가 설정한 `@biomejs/biome`

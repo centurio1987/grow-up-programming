@@ -1,0 +1,25 @@
+[workspace]
+resolver = "3"
+members = ["contract", "structures"]
+
+# 계약 스위트의 Rust 쪽이다. 규격의 정본은 `docs/ORD-006-conventions.md` §규약2 다.
+#
+# - `contract` — 하네스. 축1(언어 중립 vector 재생)과 축4(선형화·진행 보장)를 돈다.
+# - `structures` — 구조 구현이 들어올 자리. 지금은 비어 있고 KAN-024 가 채운다.
+#
+# 축2·축3은 여기 없다. 불변식과 성장률은 TS 하네스가 돌고, Rust 로 오는 구조는
+# 규약4 (가) 등급 — 즉 **TS 로 계약을 표현조차 못 하는 것**뿐이기 때문이다.
+
+[workspace.package]
+edition = "2024"
+version = "0.1.0"
+publish = false
+
+[workspace.lints.rust]
+# loom 은 `--cfg loom` 으로만 켜진다. 그 cfg 를 아는 이름으로 등록해 경고를 없앤다.
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(loom)'] }
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+loom = "0.7"
