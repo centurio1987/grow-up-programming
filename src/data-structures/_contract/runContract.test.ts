@@ -569,6 +569,96 @@ describe("축2 — 관측 경로가 둘이라야 정합을 물을 수 있다", (
   });
 });
 
+/**
+ * 최소·최대를 필드에 들어 두고 `add` 에서만 갱신한다. 지울 때 갱신을 빠뜨렸다.
+ *
+ * 이 구현은 **동작상 옳아 보인다** — `toArray()` 는 정렬돼 있고 개수도 다중도도 맞는다.
+ * 갈리는 것은 최소를 읽는 두 길뿐이다. B10 이 `hash/multiset` 에 이 불변식을 새로 넣은
+ * 근거가 이 구현이다.
+ */
+class StaleMinMultiset implements MultisetContract<number> {
+  #items: number[] = [];
+  #min: number | null = null;
+  #max: number | null = null;
+
+  add(item: number): void {
+    const at = this.#items.findIndex((value) => value > item);
+    this.#items.splice(at < 0 ? this.#items.length : at, 0, item);
+    if (this.#min === null || item < this.#min) this.#min = item;
+    if (this.#max === null || item > this.#max) this.#max = item;
+  }
+
+  delete(item: number): boolean {
+    const at = this.#items.indexOf(item);
+    if (at < 0) return false;
+    this.#items.splice(at, 1);
+    // 여기서 #min·#max 를 다시 잡아야 하는데 잡지 않는다.
+    return true;
+  }
+
+  deleteAll(item: number): number {
+    let removed = 0;
+    while (this.delete(item)) removed += 1;
+    return removed;
+  }
+
+  has(item: number): boolean {
+    return this.#items.includes(item);
+  }
+
+  count(item: number): number {
+    return this.#items.filter((value) => value === item).length;
+  }
+
+  min(): number | null {
+    return this.#min;
+  }
+
+  max(): number | null {
+    return this.#max;
+  }
+
+  size(): number {
+    return this.#items.length;
+  }
+
+  toArray(): number[] {
+    return [...this.#items];
+  }
+}
+
+describe("축2 — B10 이 multiset 의 불변식 한 자리를 갈았다", () => {
+  const [counted, multiplicity, ends] = multisetContract.invariants;
+
+  test("불변식 절이 셋이고 정본은 셋 다 만족한다", () => {
+    expect(multisetContract.invariants).toHaveLength(3);
+    const impl = new ReferenceMultiset<number>();
+    for (const value of [5, 1, 5, 9]) impl.add(value);
+    impl.delete(1);
+    for (const invariant of multisetContract.invariants) {
+      expect(invariant.check(impl)).toBeNull();
+    }
+  });
+
+  test("최소를 캐시하고 지울 때 갱신을 빠뜨리면 불변식 3이 잡는다", () => {
+    const impl = new StaleMinMultiset();
+    for (const value of [1, 5, 9]) impl.add(value);
+    expect(ends?.check(impl)).toBeNull();
+
+    impl.delete(1);
+    // 개수도 다중도도 맞는다. 갈리는 것은 최소를 읽는 두 길뿐이다.
+    expect(counted?.check(impl)).toBeNull();
+    expect(multiplicity?.check(impl)).toBeNull();
+    expect(ends?.check(impl)).toContain("min 1 인데 첫 원소 5");
+  });
+
+  test("정렬 순서는 축2가 아니라 축1이 본다 — 읽는 길이 하나뿐이다", () => {
+    // `toArray()` 의 의미 열이 「비내림차순 배열의 사본」이므로 참조 모델과의 대조가 판정한다.
+    const names = multisetContract.invariants.map((invariant) => invariant.name);
+    expect(names.some((name) => name.includes("비내림차순"))).toBe(false);
+  });
+});
+
 describe("축3 — 하네스가 계측을 신뢰하지 않는다", () => {
   test("amortized 계약은 n 회 측정을 요구한다", () => {
     const verdict = judgeScenario(

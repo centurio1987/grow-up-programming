@@ -185,20 +185,16 @@ export const multisetContract: ContractSpec<MultisetContract<number>, Model> = {
     },
   ],
 
-  /** 헤더 불변식 절의 셋을 그대로 옮긴 것이다. */
+  /**
+   * 헤더 불변식 절의 셋을 그대로 옮긴 것이다.
+   *
+   * **B10 에서 한 자리가 갈렸다.** 옛 1번(`toArray()` 가 비내림차순)은 정렬을 읽는 경로가
+   * `toArray()` 하나뿐이라 불변식이 아니고, 계약 표의 의미 열이 이미 그것을 적고 있다
+   * (`src/data-structures/hash/multiset/multiset.ts:29`) — 축1이 참조 모델과 대조한다.
+   * `has(x) === (count(x) > 0)` 도 같은 이유로 빠졌다. `has` 의 의미 열이 그 문장이다.
+   * 그 자리에 경로가 둘인데 아무도 대조하지 않던 것(`min`·`max` 대 양 끝)이 들어왔다.
+   */
   invariants: [
-    {
-      name: "toArray() 는 비교자 기준 비내림차순이다",
-      check: (impl) => {
-        const items = impl.toArray();
-        for (let at = 1; at < items.length; at++) {
-          if ((items[at - 1] as number) > (items[at] as number)) {
-            return `${at - 1}번째 ${items[at - 1]} > ${at}번째 ${items[at]}`;
-          }
-        }
-        return null;
-      },
-    },
     {
       name: "toArray().length 와 size() 가 같다",
       check: (impl) => {
@@ -208,7 +204,7 @@ export const multisetContract: ContractSpec<MultisetContract<number>, Model> = {
       },
     },
     {
-      name: "count(x) 는 toArray() 안의 동등 원소 수와 같고 has(x) 와 정합한다",
+      name: "count(x) 는 toArray() 안의 동등 원소 수와 같다",
       check: (impl) => {
         const items = impl.toArray();
         for (let value = 0; value < DOMAIN; value++) {
@@ -216,11 +212,23 @@ export const multisetContract: ContractSpec<MultisetContract<number>, Model> = {
           const actual = items.filter((item) => item === value).length;
           if (counted !== actual)
             return `count(${value})=${counted} 인데 실제 ${actual}`;
-          if (impl.has(value) !== counted > 0) {
-            return `has(${value})=${impl.has(value)} 인데 count=${counted}`;
-          }
         }
         return null;
+      },
+    },
+    {
+      name: "min()·max() 가 toArray() 의 양 끝과 동등하다",
+      check: (impl) => {
+        const items = impl.toArray();
+        if (items.length === 0) {
+          // 빈 컨테이너에서 둘 다 null 인 것은 계약 표가 적은 의미이므로 축1의 몫이다.
+          return null;
+        }
+        const min = impl.min();
+        const max = impl.max();
+        if (min !== items[0]) return `min ${min} 인데 첫 원소 ${items[0]}`;
+        const last = items[items.length - 1];
+        return max === last ? null : `max ${max} 인데 마지막 원소 ${last}`;
       },
     },
   ],
