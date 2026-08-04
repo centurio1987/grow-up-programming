@@ -6,7 +6,8 @@
  * 이 TSV 하나만 읽고 분류하도록 하는 것이다.
  *
  * 결함등급의 출처는 ORDER.md:39-63 진단 표 **하나뿐이다.** 9종만 채우고 나머지 60종은 `-` 로 둔다.
- * 추정해서 채우지 않는다. 검증등급·에스컬레이션 후보 열도 B1·B2 전까지는 `-` 다.
+ * 검증등급·에스컬레이션도 같은 규칙 — 확정된 것만 적고 추정으로 메우지 않는다.
+ * 세 열 모두 아래 결정 맵이 유일한 출처이고, 맵에 없는 구조는 `-` 다.
  *
  * TSV 열 이름은 ASCII 로 쓴다(런북의 한글 열 이름과의 대응은 COLUMNS 주석 참조).
  * 하위 도구가 `cut -f1` 로 path 를 뽑아 쓰기 때문이다.
@@ -58,6 +59,21 @@ const ESCALATION: Record<string, "req" | "opt"> = {
   "probabilistic/concurrentSkipList": "req",
   // (나) Rust 선택 — 계약은 TS 로 충족, 포인터 XOR 의 메모리 이득만 측정 불가
   "linear/xorLinkedList": "opt",
+};
+
+/**
+ * 규약1 검증 등급 **확정** 판정. 키는 `<category>/<name>`.
+ *
+ * 출처는 docs/ORD-006-conventions.md §규약1 의 판정 절차다. 계약을 적은 구조만 채운다 —
+ * 등급은 계약에서 기계적으로 따라 나오므로 계약 없이 매기면 그건 추정이다.
+ * 69종 일괄 판정은 KAN-025 의 일이고, B2 는 시범 2종만 채웠다.
+ */
+const VERIFICATION_GRADES: Record<
+  string,
+  "basic" | "invariant" | "complexity" | "concurrency"
+> = {
+  "linear/stack": "basic",
+  "hash/multiset": "complexity",
 };
 
 /** ORDER.md:39-63 진단 표 9종. 키는 `<category>/<name>`. 이 표 밖은 전부 `-`. */
@@ -114,7 +130,7 @@ for (const category of categories) {
       category,
       name,
       DEFECT_GRADES[key] ?? "-",
-      "-", // 검증등급후보 — 등급 체계가 B2(규약2)에서 정해진 뒤에 채운다
+      VERIFICATION_GRADES[key] ?? "-",
       ESCALATION[key] ?? "-",
       String(await countLines(join(dir, `${name}-problem.md`))),
       String(await countLines(join(dir, `${name}-guide.mdx`))),
@@ -128,6 +144,7 @@ for (const category of categories) {
 for (const [label, table, source] of [
   ["결함등급", DEFECT_GRADES, "ORDER.md:39-63 진단 표"],
   ["에스컬레이션", ESCALATION, "docs/ORD-006-conventions.md 확정 판정 표"],
+  ["검증등급", VERIFICATION_GRADES, "docs/ORD-006-conventions.md §규약1 판정 절차"],
 ] as const) {
   const missing = Object.keys(table).filter((k) => !seenKeys.has(k));
   if (missing.length > 0) {
