@@ -1,6 +1,6 @@
 {
   "next_id": 32,
-  "next_seq": 56,
+  "next_seq": 58,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -15,15 +15,15 @@
       "verbatim_hash": "21ea2712c59674740b1895e16f7f0d8a9e13fe4c"
     },
     "KAN-002": {
-      "col": "todo",
+      "col": "done",
       "title": "[P0-a·2] 규약1 — 자료구조 명세 규격(.ts 헤더 JSDoc)",
-      "memo": "공수 M·리스크 중. 목적/불변식/연산 계약(worst·amortized·expected 구분)/주입 정책/검증 등급/필요충분조건. **내부 표현·알고리즘 처방 금지**(A급 결함 4건의 직접 원인). 검증 등급 판정 규칙 1문장 고정. _reference/ 정합 검사 스크립트. linear/stack 문형이 모범. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "memo": "공수 M·리스크 중. **B2 완료(2026-08-04) — 규격 확정.** 정본은 docs/ORD-006-conventions.md §규약1 이다. ① 명세는 <name>.ts 헤더 JSDoc **한 곳**이고 메서드별 JSDoc 을 두지 않는다 — 삭제 전 multiset.ts 가 헤더(:25)에서 delete 를 O(log n), 같은 파일 메서드 JSDoc(:42)에서 O(n) 으로 적어 한 파일 안에서 계약이 두 값을 가졌다. ② 여섯 항목 고정(목적·불변식·연산 계약·주입 정책·검증 등급·필요충분조건), 빈 항목은 지우지 않고 \"없다 + 이유\"로 남긴다. ③ 복잡도 한정자를 연산마다 달고 **가장 약한 것**을 적는다 — 강한 한정자는 정당한 구현을 배제하는 우회 처방이다. ④ 전략 :92 의 판정 규칙 한 문장을 **4단계 절차로 대체**했다. 원문이 basic/invariant 를 묶어 둬 네 등급 중 둘의 판정이 주관으로 남았다. 3번 조건이 \"불변식 절이 비어 있는가\" 라서 이제 명세만 읽고 기계적으로 판정된다. ⑤ 금지 5종, 그중 3번(**스텁 클래스 본문의 private 필드·메서드**)이 신설이다 — 전략의 금지 조항은 산문만 겨눴다. **시범 2종**: linear/stack=basic, hash/multiset=complexity. multiset 은 금지 5종이 한 파일에 다 있었고, 걷어내니 add 가 O(n)에서 O(log n)으로 바뀌며 그 순간 등급이 결정됐다. 두 구조의 -problem.md 는 참조 전수 검색 후 삭제했다. **이 카드에서 빠진 것 하나** — _reference/ 정합 검사 스크립트는 KAN-014(게이트 확장)로 넘겼다. _reference/ 가 69종 전부 없어(has_reference=false 69) 검사 대상이 0 이고, _reference/ 도입 자체가 규약2(KAN-003)의 일이다. **새 카드를 만들지 않았으므로 KAN-001 봉인 조건은 30장 그대로다.** 근거: docs/ORD-006-conventions.md §규약1 / ORDER.md ORD-006",
       "verbatim": "문제는 제거한다.",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-02",
+      "갱신": "2026-08-04",
       "title_hash": "240be449b7c9f5b3ce32e7e04e21f272fde35247",
-      "memo_hash": "6346a578710d9cb832e1847f2d5e7c631df3a724",
+      "memo_hash": "a11cac790ca053ea6f7e3c585ab9b86482ea4698",
       "verbatim_hash": "fbeb61f22d0126e0cd1bd6638ccdfc1c862e2fc1"
     },
     "KAN-003": {
@@ -397,8 +397,8 @@
     "KAN-026",
     "KAN-027",
     "KAN-028",
+    "KAN-031",
     "KAN-001",
-    "KAN-002",
     "KAN-003",
     "KAN-004",
     "KAN-006",
@@ -406,9 +406,28 @@
     "KAN-030",
     "KAN-007",
     "KAN-005",
-    "KAN-031"
+    "KAN-002"
   ],
   "recent": [
+    {
+      "seq": 57,
+      "t": "2026-08-04T17:25",
+      "a": "ai",
+      "id": "KAN-002",
+      "op": "move",
+      "from": "todo",
+      "to": "done"
+    },
+    {
+      "seq": 56,
+      "t": "2026-08-04T17:25",
+      "a": "ai",
+      "id": "KAN-002",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 M·리스크 중. 목적/불변식/연산 계약(worst·amortized·expected 구분)/주입 정책/검증 등급/필요충분조건. **내부 표현·알고리즘 처방 금지**(A급 결함 4건의 직접 원인). 검증 등급 판정 규칙 1문장 고정. _reference/ 정합 검사 스크립트. linear/stack 문형이 모범. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "after": "공수 M·리스크 중. **B2 완료(2026-08-04) — 규격 확정.** 정본은 docs/ORD-006-conventions.md §규약1 이다. ① 명세는 <name>.ts 헤더 JSDoc **한 곳**이고 메서드별 JSDoc 을 두지 않는다 — 삭제 전 multiset.ts 가 헤더(:25)에서 delete 를 O(log n), 같은 파일 메서드 JSDoc(:42)에서 O(n) 으로 적어 한 파일 안에서 계약이 두 값을 가졌다. ② 여섯 항목 고정(목적·불변식·연산 계약·주입 정책·검증 등급·필요충분조건), 빈 항목은 지우지 않고 \"없다 + 이유\"로 남긴다. ③ 복잡도 한정자를 연산마다 달고 **가장 약한 것**을 적는다 — 강한 한정자는 정당한 구현을 배제하는 우회 처방이다. ④ 전략 :92 의 판정 규칙 한 문장을 **4단계 절차로 대체**했다. 원문이 basic/invariant 를 묶어 둬 네 등급 중 둘의 판정이 주관으로 남았다. 3번 조건이 \"불변식 절이 비어 있는가\" 라서 이제 명세만 읽고 기계적으로 판정된다. ⑤ 금지 5종, 그중 3번(**스텁 클래스 본문의 private 필드·메서드**)이 신설이다 — 전략의 금지 조항은 산문만 겨눴다. **시범 2종**: linear/stack=basic, hash/multiset=complexity. multiset 은 금지 5종이 한 파일에 다 있었고, 걷어내니 add 가 O(n)에서 O(log n)으로 바뀌며 그 순간 등급이 결정됐다. 두 구조의 -problem.md 는 참조 전수 검색 후 삭제했다. **이 카드에서 빠진 것 하나** — _reference/ 정합 검사 스크립트는 KAN-014(게이트 확장)로 넘겼다. _reference/ 가 69종 전부 없어(has_reference=false 69) 검사 대상이 0 이고, _reference/ 도입 자체가 규약2(KAN-003)의 일이다. **새 카드를 만들지 않았으므로 KAN-001 봉인 조건은 30장 그대로다.** 근거: docs/ORD-006-conventions.md §규약1 / ORDER.md ORD-006"
+    },
     {
       "seq": 55,
       "t": "2026-08-04T16:56",
@@ -906,28 +925,6 @@
       "col": "backlog",
       "title": "[P1·8] deque 재집필 — 배열/버퍼 계열 파일럿",
       "memo": "공수 L·리스크 중. 두 배열 처방 제거, 링 버퍼를 대표 구현으로(단 '정답'으로 고정 금지). 축3에 큐·역큐 적대 패턴. _bench/로 실측 이관 — 수치뿐 아니라 재현 명령·입력·환경(bun 버전·머신)까지 고정. 현 실측: 큐 패턴 이동 2.95 vs 0.55, 지연 스파이크 7.7ms vs 0.015ms. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
-      "verbatim": ""
-    },
-    {
-      "seq": 7,
-      "t": "2026-08-02T23:36",
-      "a": "ai",
-      "id": "KAN-007",
-      "op": "create",
-      "col": "todo",
-      "title": "[P0-a·7] 처분 결정 3건 — concurrentSkipList·xorLinkedList·multiset",
-      "memo": "공수 M·리스크 중. concurrentSkipList: 개명/Rust 전용/삭제 중 택1 + 판정 기준(단일 스레드 TS에서 lock-free 계약 검증 불가). xorLinkedList: Rust unsafe 포트 vs '안전 언어에서 사라진 역사적 구조'로 처분. multiset: hash/→tree/ 재분류 원칙(ADT 관점 vs 구현 관점). **결과가 P1 파일럿 구성과 규약4에 영향하므로 P1 착수 전 필수.** 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
-      "verbatim": ""
-    },
-    {
-      "seq": 6,
-      "t": "2026-08-02T23:36",
-      "a": "ai",
-      "id": "KAN-006",
-      "op": "create",
-      "col": "todo",
-      "title": "[P0-a·6] Rust 최소 crate 구조 확정",
-      "memo": "공수 M·리스크 중. 워크스페이스 경계, JSON vector 공유 위치(rust/vectors/), TS↔Rust API 대응 규칙. (가) 판정 구조만 점진 추가 — 처음부터 69종 crate 만들지 않는다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
       "verbatim": ""
     }
   ]
