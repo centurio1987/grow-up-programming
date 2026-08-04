@@ -8,7 +8,7 @@ src/data-structures/hash/hashMapChaining	hash	hashMapChaining	-	-	-	103	380	fals
 src/data-structures/hash/hashMapOpenAddressing	hash	hashMapOpenAddressing	-	-	-	102	411	false
 src/data-structures/hash/hashSet	hash	hashSet	-	-	-	126	380	false
 src/data-structures/hash/lruCache	hash	lruCache	-	-	-	74	375	false
-src/data-structures/hash/multiset	hash	multiset	A	complexity	-	0	345	false
+src/data-structures/hash/multiset	hash	multiset	A	complexity	-	0	345	true
 src/data-structures/hash/rollingHash	hash	rollingHash	-	-	-	79	304	false
 src/data-structures/heap/binomialHeap	heap	binomialHeap	-	-	-	78	383	false
 src/data-structures/heap/daryHeap	heap	daryHeap	-	-	-	106	330	false
@@ -30,7 +30,7 @@ src/data-structures/linear/monotonicStack	linear	monotonicStack	-	-	-	87	305	fal
 src/data-structures/linear/pieceTable	linear	pieceTable	-	-	-	82	338	false
 src/data-structures/linear/queue	linear	queue	C	-	-	67	307	false
 src/data-structures/linear/singlyLinkedList	linear	singlyLinkedList	-	-	-	76	328	false
-src/data-structures/linear/stack	linear	stack	-	basic	-	0	272	false
+src/data-structures/linear/stack	linear	stack	-	basic	-	0	272	true
 src/data-structures/linear/unrolledLinkedList	linear	unrolledLinkedList	A	-	-	79	303	false
 src/data-structures/linear/xorLinkedList	linear	xorLinkedList	B	-	opt	94	331	false
 src/data-structures/probabilistic/bloomFilter	probabilistic	bloomFilter	-	-	-	72	337	false
