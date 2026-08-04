@@ -1,6 +1,6 @@
 {
   "next_id": 32,
-  "next_seq": 84,
+  "next_seq": 86,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -207,15 +207,15 @@
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-018": {
-      "col": "backlog",
+      "col": "done",
       "title": "[P0-b·18] 메모리 guide-quality-standard 갱신",
-      "memo": "공수 S·리스크 하. ORD-006 반영(캔버스 8단계·축3 성장률·에스컬레이션 2등급·검증 등급). 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "memo": "공수 S·리스크 하. **B6 완료(2026-08-04).** 메모리 2건을 ORD-006 현행으로 갱신했다(~/.claude/projects/-Users-centurio-code-test/memory/). **guide-quality-standard** — ORD-005 서술을 8단계 골격으로 교체. 규칙의 정본이 저장소가 아니라 authoring-kit spec 이라는 것을 머리에 놓고, 바뀐 것 넷(문제 종속 제거·코드는 _reference/ 추출·계약 표 복사 금지·활용 사례는 2단계 하위 절)과 승계 자산(이해 게이트·캔버스 판별·「왜 이 모양이어야 하는가」의 내용)을 갈랐다. Why 를 한 층 위로 올렸다 — huffmanTree 때는 규칙 간 충돌이었고, ORD-006 이 드러낸 것은 **규칙·템플릿·모범 예시 셋이 서로 다른 골격을 들고 있었다**는 것이다. How to apply 에 「집필 원칙은 배치 도중에도 전진한다」를 넣었다(B4 한 세션에 두 번). **ds-track-ord006** — 3축→4축, 규약 1~4 전부 확정 + 인프라 완비로 갱신. 정본 위치 표(규약1~4·하네스·게이트)를 넣고, 놓치면 안 되는 것을 셋에서 다섯으로 늘렸다(추가분: 등급은 축을 켜고 끄지 않고 엄격도를 가른다 · 적대적 입력은 하나로 부족하다). 다음 할 일이 KAN-008 이라는 것과 KAN-019 전에 check-links refs 를 돌린다는 것을 명시했다. MEMORY.md 인덱스 두 줄도 함께 고쳤다. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-02",
+      "갱신": "2026-08-04",
       "title_hash": "f5e7ed557dc7ec12bb6a83ab835013be9d791642",
-      "memo_hash": "39d81c4dca802ac00c708c6797fe8345c90792a1",
+      "memo_hash": "1d4bedcb9b03f889f2250f09e3414c98d147c1f7",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-019": {
@@ -381,7 +381,6 @@
     "KAN-010",
     "KAN-011",
     "KAN-016",
-    "KAN-018",
     "KAN-019",
     "KAN-020",
     "KAN-021",
@@ -406,9 +405,29 @@
     "KAN-014",
     "KAN-012",
     "KAN-013",
-    "KAN-017"
+    "KAN-017",
+    "KAN-018"
   ],
   "recent": [
+    {
+      "seq": 85,
+      "t": "2026-08-04T20:58",
+      "a": "ai",
+      "id": "KAN-018",
+      "op": "move",
+      "from": "backlog",
+      "to": "done"
+    },
+    {
+      "seq": 84,
+      "t": "2026-08-04T20:58",
+      "a": "ai",
+      "id": "KAN-018",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 S·리스크 하. ORD-006 반영(캔버스 8단계·축3 성장률·에스컬레이션 2등급·검증 등급). 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "after": "공수 S·리스크 하. **B6 완료(2026-08-04).** 메모리 2건을 ORD-006 현행으로 갱신했다(~/.claude/projects/-Users-centurio-code-test/memory/). **guide-quality-standard** — ORD-005 서술을 8단계 골격으로 교체. 규칙의 정본이 저장소가 아니라 authoring-kit spec 이라는 것을 머리에 놓고, 바뀐 것 넷(문제 종속 제거·코드는 _reference/ 추출·계약 표 복사 금지·활용 사례는 2단계 하위 절)과 승계 자산(이해 게이트·캔버스 판별·「왜 이 모양이어야 하는가」의 내용)을 갈랐다. Why 를 한 층 위로 올렸다 — huffmanTree 때는 규칙 간 충돌이었고, ORD-006 이 드러낸 것은 **규칙·템플릿·모범 예시 셋이 서로 다른 골격을 들고 있었다**는 것이다. How to apply 에 「집필 원칙은 배치 도중에도 전진한다」를 넣었다(B4 한 세션에 두 번). **ds-track-ord006** — 3축→4축, 규약 1~4 전부 확정 + 인프라 완비로 갱신. 정본 위치 표(규약1~4·하네스·게이트)를 넣고, 놓치면 안 되는 것을 셋에서 다섯으로 늘렸다(추가분: 등급은 축을 켜고 끄지 않고 엄격도를 가른다 · 적대적 입력은 하나로 부족하다). 다음 할 일이 KAN-008 이라는 것과 KAN-019 전에 check-links refs 를 돌린다는 것을 명시했다. MEMORY.md 인덱스 두 줄도 함께 고쳤다. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md"
+    },
     {
       "seq": 83,
       "t": "2026-08-04T20:57",
@@ -876,26 +895,6 @@
       "op": "move",
       "from": "todo",
       "to": "review"
-    },
-    {
-      "seq": 35,
-      "t": "2026-08-04T14:37",
-      "a": "ai",
-      "id": "KAN-029",
-      "op": "edit",
-      "field": "memo",
-      "before": "공수 S·리스크 중. **rev4 신설. P1 파일럿 착수 전 필수 관문.** guide-for-problem·gen-problem 둘 다 0단계에서 ${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py status 를 돌리고 없으면 거기서 멈춘다(구 경로 폴백 없음) — 즉 엔진이 안 잡히면 KAN-008~010 파일럿이 집필 단계에 진입조차 못 한다. 2026-08-04 확인: ~/.claude/plugins/installed_plugins.json 의 authoring-kit 항목은 다른 프로젝트(centurio1987.github.io)에 project 스코프로만 걸려 있고 enabledPlugins 에도 없다. 또 .claude/authoring.lock.json 은 플러그인 0.2.0 을 가리키는데 캐시 설치본은 0.3.0(0.2.0 은 .orphaned_at 표시). 할 일: 이 프로젝트에 설치·활성화 → authoring.py status/lock 통과 확인 → 버전 재고정 후 lock 커밋. 0.2.0→0.3.0 은 L0 원칙·루브릭·voice 자산이 전부 바뀌었으므로 무엇이 바뀌었는지 확인하고 올린다. 근거: docs/ORD-006-strategy.md 집필 엔진(rev4)",
-      "after": "공수 S·리스크 중. **rev4 신설. P1 파일럿 착수 전 필수 관문.** guide-for-problem·gen-problem 둘 다 0단계에서 authoring.py status 를 돌리고 없으면 거기서 멈춘다(구 경로 폴백 없음) — 엔진이 안 잡히면 KAN-008~010 파일럿이 집필 단계에 진입조차 못 한다. **2026-08-04 처리 완료:** ①claude plugin install authoring-kit@centurio87-plugins --scope project → 0.3.0 enabled, 스킬 6종(authoring-write·gate·method·spec·voice·doctor) 등록. .claude/settings.json 의 enabledPlugins 에 기록돼 워크트리와 무관하게 따라간다 ②authoring.py lock --update → plugin 0.2.0→0.3.0, principles revision 9354711→6484b5c, QUALITY_RUBRIC 해시 갱신. **spec·voice 해시는 불변** = 0.3.0 승격이 프로젝트 spec 3종을 무효화하지 않는다 ③루브릭 변경분은 H축(이해 게이트) 신설 — ORD-005/006 방향과 일치해 그대로 수용 ④status 정상(spec 3종·voice 5종 인식), lock 최신. **남은 확인: 세션 재시작 후 Skill(authoring-kit:authoring-write) 가 실제로 뜨는지.** 근거: docs/ORD-006-strategy.md 집필 엔진(rev4)"
-    },
-    {
-      "seq": 34,
-      "t": "2026-08-04T14:20",
-      "a": "ai",
-      "id": "KAN-016",
-      "op": "edit",
-      "field": "title",
-      "before": "ds-guide 집필 경로 정합 + 회귀 골든 (스킬 신설 철회)",
-      "after": "[P0-b·16] ds-guide 집필 경로 정합 + 회귀 골든 (guide-for-structure 신설 철회)"
     }
   ]
 }
