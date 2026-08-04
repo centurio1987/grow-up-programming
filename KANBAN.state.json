@@ -1,6 +1,6 @@
 {
-  "next_id": 30,
-  "next_seq": 39,
+  "next_id": 31,
+  "next_seq": 40,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -349,6 +349,18 @@
       "title_hash": "a6ec628d1d41a240d9e1a4d2243385124a9fcc63",
       "memo_hash": "797685b7543641dcfc504790c5db7cb8ebd18b34",
       "verbatim_hash": "0738cdbb3e5abfbaff456bf71b4837eca4921fd0"
+    },
+    "KAN-030": {
+      "col": "todo",
+      "title": "[P0-a·30] ORD-006 배치 인프라 — 런북 + 구조 인벤토리",
+      "memo": "공수 S·리스크 하. 실행 계획(~/.claude/plans/kan-001-jazzy-charm.md) §2-3 파생. **목적은 세션 진입 비용 절감** — 현행 핸드오프는 ORDER.md(21KB)+KANBAN.md(18KB)+strategy.md(27KB) 통독을 요구하고, 이는 세션당 약 2만 토큰(추정)이다. 계획상 실행 단위가 60~90세션이라 이 상수가 전체 예산을 지배한다. 산출 ① docs/ORD-006-runbook.md — 불변 사실 20줄 + 배치 지도 + 배치별 필독 3개 이하. **처음부터 완성형으로 쓰지 않는다**(B0 에서는 불변 사실 + 현재/다음 배치까지만, 배치 종료마다 한 칸씩 채운다) ② docs/ORD-006-inventory.tsv 69행(path·category·name·결함등급·검증등급후보·에스컬레이션후보·problem_lines·guide_lines·has_reference) + tools/ord006-inventory.ts. 결함등급 열의 출처는 ORDER.md:39-63 진단 표 하나뿐 — 9종만 채우고 나머지 60종은 '-' 로 두고 추정해서 채우지 않는다. **검증은 행 수가 아니라 양방향 diff** — 실제 구조 디렉터리 목록과 TSV path 집합이 서로 빠짐없이 대응하는지 확인한다(행 수 세기로는 누락·중복·오타 path 를 못 잡는다). KAN-025(P4 분류)가 이 TSV 를 그대로 입력으로 써서 60종을 다시 읽지 않는다. **주의: 이 카드 신설로 KAN-001 봉인 조건이 28장→29장으로 늘어난다.** 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "verbatim": "kan-001에 대한 실행 계획을 세워라. 토큰을 고려해서 배치 전략을 반영해서 전략 수립해라.",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-08-04",
+      "title_hash": "6434723462be24bdf3f2f8bbbee6b743c4152bf6",
+      "memo_hash": "690a9cf4f650a2d47bd0981c0507a2156b0b73ab",
+      "verbatim_hash": "f93899b1707c6fc40fb365b480f9c6e821b74b05"
     }
   },
   "order": [
@@ -380,9 +392,21 @@
     "KAN-005",
     "KAN-006",
     "KAN-007",
-    "KAN-029"
+    "KAN-029",
+    "KAN-030"
   ],
   "recent": [
+    {
+      "seq": 39,
+      "t": "2026-08-04T16:18",
+      "a": "ai",
+      "id": "KAN-030",
+      "op": "create",
+      "col": "todo",
+      "title": "[P0-a·30] ORD-006 배치 인프라 — 런북 + 구조 인벤토리",
+      "memo": "공수 S·리스크 하. 실행 계획(~/.claude/plans/kan-001-jazzy-charm.md) §2-3 파생. **목적은 세션 진입 비용 절감** — 현행 핸드오프는 ORDER.md(21KB)+KANBAN.md(18KB)+strategy.md(27KB) 통독을 요구하고, 이는 세션당 약 2만 토큰(추정)이다. 계획상 실행 단위가 60~90세션이라 이 상수가 전체 예산을 지배한다. 산출 ① docs/ORD-006-runbook.md — 불변 사실 20줄 + 배치 지도 + 배치별 필독 3개 이하. **처음부터 완성형으로 쓰지 않는다**(B0 에서는 불변 사실 + 현재/다음 배치까지만, 배치 종료마다 한 칸씩 채운다) ② docs/ORD-006-inventory.tsv 69행(path·category·name·결함등급·검증등급후보·에스컬레이션후보·problem_lines·guide_lines·has_reference) + tools/ord006-inventory.ts. 결함등급 열의 출처는 ORDER.md:39-63 진단 표 하나뿐 — 9종만 채우고 나머지 60종은 '-' 로 두고 추정해서 채우지 않는다. **검증은 행 수가 아니라 양방향 diff** — 실제 구조 디렉터리 목록과 TSV path 집합이 서로 빠짐없이 대응하는지 확인한다(행 수 세기로는 누락·중복·오타 path 를 못 잡는다). KAN-025(P4 분류)가 이 TSV 를 그대로 입력으로 써서 60종을 다시 읽지 않는다. **주의: 이 카드 신설로 KAN-001 봉인 조건이 28장→29장으로 늘어난다.** 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "verbatim": "kan-001에 대한 실행 계획을 세워라. 토큰을 고려해서 배치 전략을 반영해서 전략 수립해라."
+    },
     {
       "seq": 38,
       "t": "2026-08-04T16:17",
