@@ -1,6 +1,6 @@
 {
   "next_id": 32,
-  "next_seq": 75,
+  "next_seq": 77,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -159,15 +159,15 @@
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-014": {
-      "col": "backlog",
+      "col": "done",
       "title": "[P0-b·14] 게이트 확장 — 타입체크·MDX 빌드·신캔버스 호환 점검",
-      "memo": "공수 M·리스크 중. **게이트 소유권이 바뀌었다(rev4).** 루브릭 채점·외부 검토는 authoring-kit 의 authoring-gate + spec 의 gate.external_review 로 넘어갔고 review-guide.sh 는 이관 때 사라졌다 — 승계 대상이 아니다. 프로젝트가 계속 소유하는 것은 comprehension-gate.sh(이해 게이트)·check-mermaid.ts·compile-check.ts 셋. 여기에 tsc --noEmit·lint·코드 추출 일치를 추가한다. 기존 게이트가 \"문제 풀이 가이드\" 전제에 묶여 있는지, 8단계 캔버스를 이해하는지 먼저 점검. authoring.py status/lock 이 깨끗한 상태에서 집필됐는지도 게이트 항목. **B3 로 선행이 풀렸다(2026-08-04) — KAN-003 완료, _reference/ 가 실물로 생겼다**(시범 2종, docs/ORD-006-inventory.tsv has_reference 2행 true). **이 카드가 지는 파싱 게이트 둘.** ① **명세↔_reference/ 정합 검사**(B2 이관분) — 명세는 스텁 헤더에 있고 구현은 _reference/ 에 있어 둘이 따로 놀 수 있으므로, _reference/ 가 헤더 JSDoc 에 선언된 시그니처·주입 정책을 실제로 구현하는지 본다. 파싱 대상은 헤더 한 곳으로 고정돼 있다(규약1 이 메서드별 JSDoc 을 금지했다). ② **계약 표 전 행이 시나리오에 덮이는지 검사**(B3 이관분) — 하네스는 헤더 JSDoc 을 파싱하지 않으므로 <name>.contract.ts 의 scenarios[].covers 를 계약 표와 대조할 수 없다. 덮이지 않은 행은 검사되지 않는 상한이고 그게 ORD-006 이 고치려는 결함이다. 면제는 생성자처럼 n 에 대해 반복 호출되지 않는 연산 하나뿐(§규약2). 헤더의 **검증 등급**과 contract.ts 의 grade 가 같은지도 여기서 본다. **이미 만들어진 게이트 하나를 승계한다** — tools/check-citations.ts(B3 신설). 경로 있는 인용이 실재하는 비어 있지 않은 줄을 가리키는지 검사한다. CI 3모드에 어디로 넣을지가 이 카드의 일이다. **린트 명령을 틀리지 않게 주의한다** — bunx biome 는 다른 패키지이고 아무것도 검사하지 않는다. bunx --bun @biomejs/biome check 다(CLAUDE.md 검증 명령). 저장소 전체 린트 기준선은 미정리(noNonNullAssertion 1452건 등, 대부분 _scratch/·_deprecated/)이므로 게이트는 신규·변경 파일만 걸어야 한다. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md §규약1·§규약2",
+      "memo": "공수 M·리스크 중. **B6 완료(2026-08-04). tools/check-contract.ts 신설 — 규약1·규약2가 넘긴 파싱 게이트 둘을 여기서 갚았다.** 하네스는 헤더 JSDoc 을 파싱하지 않으므로 이 대조를 할 수 없다. 보는 것 여섯: ① 명세 여섯 항목이 전부 있는가(빈 항목은 지우지 않고 「없다 + 이유」로 남긴다) ② 검증 등급을 읽을 수 있고 4종 중 하나인가 ③ **계약 표의 연산이 스텁·정본에 실제로 있는가**(B2 이관분 — 명세는 스텁 헤더에 있고 구현은 _reference/ 에 있어 따로 놀 수 있다) ④ 스텁·정본에 계약 표에 없는 공개 연산이 있는가(계약에 없는 표면은 검사되지 않는다) ⑤ **계약 표의 각 행이 축3 시나리오에 덮이는가**(B3 이관분 — 덮이지 않은 행은 검사되지 않는 상한이고 그것이 ORD-006 이 고치려는 결함 그 자체다. 면제는 생성자 하나뿐) ⑥ 헤더 검증 등급과 contract.ts grade 가 같은가. **음성 시험 3건**으로 확인했다 — covers 에서 size 제거 / 등급 갈림 / 정본에 clear 추가. 셋 다 정확한 진단으로 exit 1. 계약 표가 없는 구조는 아직 규약1로 안 옮겨진 것이라 대상이 아니다(지금 2종, 재집필이 진행되면 자동으로 는다). 파싱은 ts-morph(이미 devDependency)로 클래스 멤버를, 정규식으로 헤더 표를 읽는다. **승계한 게이트**: tools/check-citations.ts(B3) · tools/guide-core.ts check(B4) · tools/check-links.ts(KAN-015) · tools/emit-vectors.ts --check(B5). 전부 KAN-012 의 gates 모드에 묶였다. **타입 게이트를 판정에 쓸 수 있게 고쳤다** — _scratch/·_deprecated/ 에서 오류 1048건이 상시로 떠서 bunx tsc --noEmit 이 판정에 못 쓰였다. 살아 있는 코드가 그 둘을 참조하지 않음을 확인하고 tsconfig 에서 제외, 남은 진짜 오류 1건(tools/ord004-transition.ts:18) 수정. 저장소 전체 tsc 0. 린트는 기준선이 미정리라 CI 에서 바뀐 파일만 건다(--changed --since=origin/main). 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md §규약1·§규약2",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
       "갱신": "2026-08-04",
       "title_hash": "d9a36fabb8f6d9016f5af770d6aa642a17ac2d12",
-      "memo_hash": "4f5cb6e9d7d1c3c2766e1421b52c2b6087b446b4",
+      "memo_hash": "a1346d38c4a7001dc16d5afc11b9baab1ba3f14f",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-015": {
@@ -382,7 +382,6 @@
     "KAN-011",
     "KAN-012",
     "KAN-013",
-    "KAN-014",
     "KAN-016",
     "KAN-017",
     "KAN-018",
@@ -406,9 +405,29 @@
     "KAN-003",
     "KAN-004",
     "KAN-006",
-    "KAN-015"
+    "KAN-015",
+    "KAN-014"
   ],
   "recent": [
+    {
+      "seq": 76,
+      "t": "2026-08-04T20:54",
+      "a": "ai",
+      "id": "KAN-014",
+      "op": "move",
+      "from": "backlog",
+      "to": "done"
+    },
+    {
+      "seq": 75,
+      "t": "2026-08-04T20:54",
+      "a": "ai",
+      "id": "KAN-014",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 M·리스크 중. **게이트 소유권이 바뀌었다(rev4).** 루브릭 채점·외부 검토는 authoring-kit 의 authoring-gate + spec 의 gate.external_review 로 넘어갔고 review-guide.sh 는 이관 때 사라졌다 — 승계 대상이 아니다. 프로젝트가 계속 소유하는 것은 comprehension-gate.sh(이해 게이트)·check-mermaid.ts·compile-check.ts 셋. 여기에 tsc --noEmit·lint·코드 추출 일치를 추가한다. 기존 게이트가 \"문제 풀이 가이드\" 전제에 묶여 있는지, 8단계 캔버스를 이해하는지 먼저 점검. authoring.py status/lock 이 깨끗한 상태에서 집필됐는지도 게이트 항목. **B3 로 선행이 풀렸다(2026-08-04) — KAN-003 완료, _reference/ 가 실물로 생겼다**(시범 2종, docs/ORD-006-inventory.tsv has_reference 2행 true). **이 카드가 지는 파싱 게이트 둘.** ① **명세↔_reference/ 정합 검사**(B2 이관분) — 명세는 스텁 헤더에 있고 구현은 _reference/ 에 있어 둘이 따로 놀 수 있으므로, _reference/ 가 헤더 JSDoc 에 선언된 시그니처·주입 정책을 실제로 구현하는지 본다. 파싱 대상은 헤더 한 곳으로 고정돼 있다(규약1 이 메서드별 JSDoc 을 금지했다). ② **계약 표 전 행이 시나리오에 덮이는지 검사**(B3 이관분) — 하네스는 헤더 JSDoc 을 파싱하지 않으므로 <name>.contract.ts 의 scenarios[].covers 를 계약 표와 대조할 수 없다. 덮이지 않은 행은 검사되지 않는 상한이고 그게 ORD-006 이 고치려는 결함이다. 면제는 생성자처럼 n 에 대해 반복 호출되지 않는 연산 하나뿐(§규약2). 헤더의 **검증 등급**과 contract.ts 의 grade 가 같은지도 여기서 본다. **이미 만들어진 게이트 하나를 승계한다** — tools/check-citations.ts(B3 신설). 경로 있는 인용이 실재하는 비어 있지 않은 줄을 가리키는지 검사한다. CI 3모드에 어디로 넣을지가 이 카드의 일이다. **린트 명령을 틀리지 않게 주의한다** — bunx biome 는 다른 패키지이고 아무것도 검사하지 않는다. bunx --bun @biomejs/biome check 다(CLAUDE.md 검증 명령). 저장소 전체 린트 기준선은 미정리(noNonNullAssertion 1452건 등, 대부분 _scratch/·_deprecated/)이므로 게이트는 신규·변경 파일만 걸어야 한다. 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md §규약1·§규약2",
+      "after": "공수 M·리스크 중. **B6 완료(2026-08-04). tools/check-contract.ts 신설 — 규약1·규약2가 넘긴 파싱 게이트 둘을 여기서 갚았다.** 하네스는 헤더 JSDoc 을 파싱하지 않으므로 이 대조를 할 수 없다. 보는 것 여섯: ① 명세 여섯 항목이 전부 있는가(빈 항목은 지우지 않고 「없다 + 이유」로 남긴다) ② 검증 등급을 읽을 수 있고 4종 중 하나인가 ③ **계약 표의 연산이 스텁·정본에 실제로 있는가**(B2 이관분 — 명세는 스텁 헤더에 있고 구현은 _reference/ 에 있어 따로 놀 수 있다) ④ 스텁·정본에 계약 표에 없는 공개 연산이 있는가(계약에 없는 표면은 검사되지 않는다) ⑤ **계약 표의 각 행이 축3 시나리오에 덮이는가**(B3 이관분 — 덮이지 않은 행은 검사되지 않는 상한이고 그것이 ORD-006 이 고치려는 결함 그 자체다. 면제는 생성자 하나뿐) ⑥ 헤더 검증 등급과 contract.ts grade 가 같은가. **음성 시험 3건**으로 확인했다 — covers 에서 size 제거 / 등급 갈림 / 정본에 clear 추가. 셋 다 정확한 진단으로 exit 1. 계약 표가 없는 구조는 아직 규약1로 안 옮겨진 것이라 대상이 아니다(지금 2종, 재집필이 진행되면 자동으로 는다). 파싱은 ts-morph(이미 devDependency)로 클래스 멤버를, 정규식으로 헤더 표를 읽는다. **승계한 게이트**: tools/check-citations.ts(B3) · tools/guide-core.ts check(B4) · tools/check-links.ts(KAN-015) · tools/emit-vectors.ts --check(B5). 전부 KAN-012 의 gates 모드에 묶였다. **타입 게이트를 판정에 쓸 수 있게 고쳤다** — _scratch/·_deprecated/ 에서 오류 1048건이 상시로 떠서 bunx tsc --noEmit 이 판정에 못 쓰였다. 살아 있는 코드가 그 둘을 참조하지 않음을 확인하고 tsconfig 에서 제외, 남은 진짜 오류 1건(tools/ord004-transition.ts:18) 수정. 저장소 전체 tsc 0. 린트는 기준선이 미정리라 CI 에서 바뀐 파일만 건다(--changed --since=origin/main). 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md §규약1·§규약2"
+    },
     {
       "seq": 74,
       "t": "2026-08-04T20:53",
@@ -882,28 +901,6 @@
       "col": "backlog",
       "title": "[P4·27] P4-B군 — complexity 등급(축3 필요, 에스컬레이션 불필요)",
       "memo": "공수 L·리스크 중. 카드 25 분류 결과에 따름. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
-      "verbatim": ""
-    },
-    {
-      "seq": 26,
-      "t": "2026-08-02T23:36",
-      "a": "ai",
-      "id": "KAN-026",
-      "op": "create",
-      "col": "backlog",
-      "title": "[P4·26] P4-A군 — basic/invariant 등급(축3 불필요)",
-      "memo": "공수 L·리스크 하. 카드 25 분류 결과에 따름. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
-      "verbatim": ""
-    },
-    {
-      "seq": 25,
-      "t": "2026-08-02T23:36",
-      "a": "ai",
-      "id": "KAN-025",
-      "op": "create",
-      "col": "backlog",
-      "title": "[P4·25] P4 분류 확정 — 60종을 3군에 배정",
-      "memo": "공수 M·리스크 중. 카테고리가 아니라 난이도 기준(검증 등급·에스컬레이션 필요성·가이드 수정량)으로 분류하고 군별 공수 추정. **'결함 없음 60종'은 작업 없음이 아니다** — problem 삭제·명세·검증 등급·캔버스 8단계·코드 추출이 전원 붙는다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
       "verbatim": ""
     }
   ]
