@@ -92,12 +92,6 @@
   - 메모: 공수 M·리스크 중. 워크스페이스 경계, JSON vector 공유 위치(rust/vectors/), TS↔Rust API 대응 규칙. (가) 판정 구조만 점진 추가 — 처음부터 69종 crate 만들지 않는다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
 - `KAN-007` [P0-a·7] 처분 결정 3건 — concurrentSkipList·xorLinkedList·multiset — 생성:ai · 최종:ai · 갱신:2026-08-02
   - 메모: 공수 M·리스크 중. concurrentSkipList: 개명/Rust 전용/삭제 중 택1 + 판정 기준(단일 스레드 TS에서 lock-free 계약 검증 불가). xorLinkedList: Rust unsafe 포트 vs '안전 언어에서 사라진 역사적 구조'로 처분. multiset: hash/→tree/ 재분류 원칙(ADT 관점 vs 구현 관점). **결과가 P1 파일럿 구성과 규약4에 영향하므로 P1 착수 전 필수.** 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
-- `KAN-030` [P0-a·30] ORD-006 배치 인프라 — 런북 + 구조 인벤토리 — 생성:ai · 최종:ai · 갱신:2026-08-04
-  - 메모: 공수 S·리스크 하. 실행 계획(~/.claude/plans/kan-001-jazzy-charm.md) §2-3 파생. **목적은 세션 진입 비용 절감** — 현행 핸드오프는 ORDER.md(21KB)+KANBAN.md(18KB)+strategy.md(27KB) 통독을 요구했다. **2026-08-04 완료.** ① docs/ORD-006-runbook.md — 불변 사실 15항 + 배치 규약 + 배치 지도 + 배치별 진입 카드. 완성형으로 쓰지 않고 배치 종료마다 한 칸씩 채운다(현재 B0·B0 프라임 결과 기재, B1 진입 카드 신설) ② docs/ORD-006-inventory.tsv **69행** + tools/ord006-inventory.ts. 헤더는 ASCII 9열(path·category·name·defect_grade·verification_grade·escalation·problem_lines·guide_lines·has_reference) — 하위 도구가 cut -f1 로 path 를 뽑기 때문. **검증: 양방향 diff 일치**(find 결과 69 vs TSV path 69, diff 무출력), path 중복 0, 전 행 9열, 재실행 동일(멱등), problem_lines·guide_lines 는 69종 전부 wc -l 과 교차검증. 결함등급 분포 A 4·B 2·C 3·미분류 60 — ORDER.md:39-63 진단 표 9종만 채우고 추정하지 않았다. trie/ternarySearchTree 는 표 본문이 아니라 각주(:63)라 미분류이며 KAN-023 이 따로 들고 있다. has_reference 는 전 행 false(_reference/ 미도입, 현재는 _deprecated/ 69종·_scratch/ 50종만 존재). 진단 표 키가 실제 디렉터리와 어긋나면 도구가 exit 1 로 멈춘다. KAN-025(P4 분류)가 이 TSV 를 입력으로 써서 60종을 다시 읽지 않는다. **주의: 이 카드 신설로 KAN-001 봉인 조건이 28장→29장으로 늘어났다.** 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
-  - 원문:
-    ```text
-    kan-001에 대한 실행 계획을 세워라. 토큰을 고려해서 배치 전략을 반영해서 전략 수립해라.
-    ```
 
 ## 진행 중
 
@@ -109,4 +103,10 @@
   - 원문:
     ```text
     집필 엔진은 개선했다. kan-001 계획에 새로운 집필 엔진을 사용하는 것이 고려 됐는지 확인하고 안 되어 있으면 반영해라. 계획에서 고려하지 않아도, 자연스럽게 작용하는 것이면 그냥 둬도 된다.
+    ```
+- `KAN-030` [P0-a·30] ORD-006 배치 인프라 — 런북 + 구조 인벤토리 — 생성:ai · 최종:ai · 갱신:2026-08-04
+  - 메모: 공수 S·리스크 하. 실행 계획(~/.claude/plans/kan-001-jazzy-charm.md) §2-3 파생. **목적은 세션 진입 비용 절감** — 현행 핸드오프는 ORDER.md(21KB)+KANBAN.md(18KB)+strategy.md(27KB) 통독을 요구했다. **2026-08-04 완료.** ① docs/ORD-006-runbook.md — 불변 사실 15항 + 배치 규약 + 배치 지도 + 배치별 진입 카드. 완성형으로 쓰지 않고 배치 종료마다 한 칸씩 채운다(현재 B0·B0 프라임 결과 기재, B1 진입 카드 신설) ② docs/ORD-006-inventory.tsv **69행** + tools/ord006-inventory.ts. 헤더는 ASCII 9열(path·category·name·defect_grade·verification_grade·escalation·problem_lines·guide_lines·has_reference) — 하위 도구가 cut -f1 로 path 를 뽑기 때문. **검증: 양방향 diff 일치**(find 결과 69 vs TSV path 69, diff 무출력), path 중복 0, 전 행 9열, 재실행 동일(멱등), problem_lines·guide_lines 는 69종 전부 wc -l 과 교차검증. 결함등급 분포 A 4·B 2·C 3·미분류 60 — ORDER.md:39-63 진단 표 9종만 채우고 추정하지 않았다. trie/ternarySearchTree 는 표 본문이 아니라 각주(:63)라 미분류이며 KAN-023 이 따로 들고 있다. has_reference 는 전 행 false(_reference/ 미도입, 현재는 _deprecated/ 69종·_scratch/ 50종만 존재). 진단 표 키가 실제 디렉터리와 어긋나면 도구가 exit 1 로 멈춘다. KAN-025(P4 분류)가 이 TSV 를 입력으로 써서 60종을 다시 읽지 않는다. **주의: 이 카드 신설로 KAN-001 봉인 조건이 28장→29장으로 늘어났다.** 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
+  - 원문:
+    ```text
+    kan-001에 대한 실행 계획을 세워라. 토큰을 고려해서 배치 전략을 반영해서 전략 수립해라.
     ```
