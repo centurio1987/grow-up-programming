@@ -63,6 +63,7 @@ bun run tools/check-citations.ts                # 문서·코드의 `경로:줄�
 bun run tools/guide-core.ts check               # 가이드 코드가 `_reference/` 추출본과 같은지 검증
 bun run tools/emit-vectors.ts --check           # 언어 중립 test vector 가 계약과 어긋났는지 검증
 bun run tools/check-links.ts check              # 문서 링크가 실재하는 파일을 가리키는지 검증
+bun run tools/check-contract.ts                 # 명세↔스텁↔정본↔스위트 정합 검증
 ```
 
 파일을 **지우거나 옮기기 전에** 참조를 훑는다. 손 grep 은 패턴을 빠뜨린다.
