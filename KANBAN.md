@@ -102,11 +102,11 @@
 ## 진행 중
 
 ## 검토
+
+## 완료
 - `KAN-029` [P0-a·29] 집필 엔진 가용성 확보 — 플러그인 설치·활성화 + lock 버전 재고정 — 생성:ai · 최종:ai · 갱신:2026-08-04
-  - 메모: 공수 S·리스크 중. **rev4 신설. P1 파일럿 착수 전 필수 관문.** guide-for-problem·gen-problem 둘 다 0단계에서 authoring.py status 를 돌리고 없으면 거기서 멈춘다(구 경로 폴백 없음). **2026-08-04 1차 처리:** 플러그인 project 스코프 설치(0.3.0, 스킬 6종) + lock 0.2.0→0.3.0 재고정. **2026-08-04 재점검(B0):** ① lock 이 다시 stale — principles 가 f4e11e6 으로 전진했고 내용은 D5(지어낸 은유 동사 금지)·F5(가짜 질문 부정 도입 금지) 신설이다. ORD-006 원문 '무너지긴 뭐가 무너져. 오버좀 하지 마라' 와 같은 요구라 수용하고 lock --update 로 재고정했다. **spec·voice·QUALITY_RUBRIC 해시는 불변** = ds-guide spec 3종 무효화 없음 ② authoring.py status 정상(spec 3종·voice 5종), lock 최신 ③ **그러나 이 세션의 스킬 목록에 authoring-kit:* 6종이 없다.** /clear 는 플러그인을 재적재하지 않는다(설치 시각 14:36 < 현 CLI 프로세스 시작 시각). **CLI 프로세스를 완전히 재시작한 뒤 Skill(authoring-kit:authoring-write) 가 실제로 뜨는지 확인해야 종결 가능.** 그때까지 검토 유지 — 이게 안 되면 KAN-008~010 파일럿이 집필 단계에 진입하지 못한다. 근거: docs/ORD-006-strategy.md 집필 엔진(rev4)
+  - 메모: 공수 S·리스크 중. **rev4 신설. P1 파일럿 착수 전 필수 관문.** guide-for-problem·gen-problem 둘 다 0단계에서 authoring.py status 를 돌리고 없으면 거기서 멈춘다(구 경로 폴백 없음). **2026-08-04 1차 처리:** 플러그인 project 스코프 설치(0.3.0, 스킬 6종) + lock 0.2.0→0.3.0 재고정. **2026-08-04 재점검(B0):** lock 이 다시 stale 이라 재고정했다 — principles f4e11e6(D5 지어낸 은유 동사 금지·F5 가짜 질문 부정 도입 금지 신설). spec·voice·QUALITY_RUBRIC 해시는 불변 = ds-guide spec 3종 무효화 없음. **2026-08-04 종결(B0'):** CLI 재시작 후 스킬 목록에 authoring-kit:* 5종(authoring-doctor·gate·spec·voice·write)이 적재 확인됐다. 6번째 authoring-method 는 SKILL.md 에 disable-model-invocation: true 로 선언된 **내부 스킬**이라 모델 목록에 뜨지 않는 것이 정상이다(워커가 authoring-write 경유로 호출). 누락이 아니다. 집필 진입점 Skill(authoring-kit:authoring-write) 가용 → KAN-008~010 파일럿의 집필 단계 차단이 풀렸다. 근거: docs/ORD-006-strategy.md 집필 엔진(rev4)
   - 원문:
     ```text
     집필 엔진은 개선했다. kan-001 계획에 새로운 집필 엔진을 사용하는 것이 고려 됐는지 확인하고 안 되어 있으면 반영해라. 계획에서 고려하지 않아도, 자연스럽게 작용하는 것이면 그냥 둬도 된다.
     ```
-
-## 완료
