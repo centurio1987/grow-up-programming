@@ -25,6 +25,11 @@ import {
   type StackContract,
   stackContract,
 } from "../linear/stack/stack.contract";
+import { XorLinkedList as ReferenceXorLinkedList } from "../linear/xorLinkedList/_reference/xorLinkedList";
+import {
+  type XorLinkedListContract,
+  xorLinkedListContract,
+} from "../linear/xorLinkedList/xorLinkedList.contract";
 import { IntervalTree as ReferenceIntervalTree } from "../range-query/intervalTree/_reference/intervalTree";
 import {
   type IntervalTreeContract,
@@ -33,6 +38,7 @@ import {
 import { FrontPushStack } from "./_fixtures/frontPushStack";
 import { ScanIntervalList } from "./_fixtures/scanIntervalList";
 import { SortedArrayMultiset } from "./_fixtures/sortedArrayMultiset";
+import { TailScanList } from "./_fixtures/tailScanList";
 import { TwoArrayDeque } from "./_fixtures/twoArrayDeque";
 import { UnbalancedIntervalTree } from "./_fixtures/unbalancedIntervalTree";
 import { UnshiftDeque } from "./_fixtures/unshiftDeque";
@@ -179,6 +185,16 @@ const scanIntervalList: CostSource<IntervalTreeContract> = {
   make: () => new ScanIntervalList(),
 };
 
+const referenceXorLinkedList: CostSource<XorLinkedListContract> = {
+  kind: "self-reported",
+  make: () => new ReferenceXorLinkedList(),
+};
+
+const tailScanList: CostSource<XorLinkedListContract> = {
+  kind: "self-reported",
+  make: () => new TailScanList(),
+};
+
 describe("축3 — 정본은 통과한다", () => {
   test("Stack 정본의 push·pop 이 amortized O(1) 계약 안에 있다", () => {
     const verdict = judgeScenario(
@@ -206,6 +222,19 @@ describe("축3 — 정본은 통과한다", () => {
         referenceIntervalTree,
         scenario,
         "complexity",
+      );
+      expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
+        `${scenario.covers.join("·")}: `,
+      );
+    }
+  });
+
+  test("XorLinkedList 정본이 네 시나리오를 전부 지킨다 — 회귀 수준으로", () => {
+    for (const scenario of xorLinkedListContract.scenarios) {
+      const verdict = judgeScenario(
+        referenceXorLinkedList,
+        scenario,
+        "invariant",
       );
       expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
         `${scenario.covers.join("·")}: `,
@@ -329,10 +358,33 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       expect(query.reason).toContain("O(log n)");
     }
   });
+
+  test("뒤 끝을 안 들고 매번 훑는 사슬은 붙이기에서만 걸리고 나머지 셋은 통과한다", () => {
+    const append = judgeScenario(
+      tailScanList,
+      scenarioOf(xorLinkedListContract, "append", false),
+      "invariant",
+    );
+    expect(append.ok).toBe(false);
+    expect(append.reason).toContain("O(1)");
+    const stats = append.points.map((point) => point.stat);
+    expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeGreaterThan(3);
+
+    // 순회 둘은 상한이 O(n) 이라 전부 훑어도 계약 안이고, size 는 세어 두면 상수다.
+    // **축3이 이 계약에서 잡을 수 있는 것은 위의 한 자리뿐**이라는 것이 이 검사의 내용이다.
+    for (const covers of ["toArray", "toArrayReverse", "size"]) {
+      const verdict = judgeScenario(
+        tailScanList,
+        scenarioOf(xorLinkedListContract, covers, false),
+        "invariant",
+      );
+      expect(`${covers}: ${verdict.reason}`).toBe(`${covers}: `);
+    }
+  });
 });
 
 /**
- * 축2가 잡으라고 있는 결함 둘. `_fixtures/` 의 넷과 달리 **동작이 틀린 구현**이라 축1도 함께
+ * 축2가 잡으라고 있는 결함들. `_fixtures/` 의 것들과 달리 **동작이 틀린 구현**이라 축1도 함께
  * 잡는다. 다른 것은 실패가 말해 주는 내용이다 — 축1은 몇 번째 호출에서 값이 갈렸는지를
  * 말하고, 축2는 무엇이 깨졌는지를 이름으로 말한다.
  */
@@ -434,6 +486,86 @@ describe("축2 — 불변식이 상태의 성질을 실제로 잡는다", () => 
     // 잃은 것이 없으므로 개수는 맞는다. 갈리는 것은 끝점 하나에서다.
     expect(completeness?.check(impl)).toBeNull();
     expect(agreement?.check(impl)).toContain("p=5");
+  });
+});
+
+/** 자리를 정해 두고 넘치면 앞에서부터 버리는데, 붙인 횟수는 그대로 센다. */
+class CappedLogList implements XorLinkedListContract {
+  #values: number[] = [];
+  #appended = 0;
+
+  append(value: number): void {
+    this.#values.push(value);
+    if (this.#values.length > 8) this.#values.shift();
+    this.#appended += 1;
+  }
+
+  toArray(): number[] {
+    return [...this.#values];
+  }
+
+  toArrayReverse(): number[] {
+    return [...this.#values].reverse();
+  }
+
+  size(): number {
+    return this.#appended;
+  }
+}
+
+/** 방향마다 이음을 따로 들었다. 뒤쪽 벌에 붙이는 자리가 앞쪽 벌과 같아서 두 벌이 갈린다. */
+class TwoChainList implements XorLinkedListContract {
+  #forward: number[] = [];
+  #backward: number[] = [];
+
+  append(value: number): void {
+    this.#forward.push(value);
+    this.#backward.push(value);
+  }
+
+  toArray(): number[] {
+    return [...this.#forward];
+  }
+
+  toArrayReverse(): number[] {
+    return [...this.#backward];
+  }
+
+  size(): number {
+    return this.#forward.length;
+  }
+}
+
+describe("축2 — 관측 경로가 둘이라야 정합을 물을 수 있다", () => {
+  const [counted, agreed] = xorLinkedListContract.invariants;
+
+  test("불변식 절이 둘이고 정본은 둘 다 만족한다", () => {
+    expect(xorLinkedListContract.invariants).toHaveLength(2);
+    const impl = new ReferenceXorLinkedList();
+    for (const value of [3, 0, -1, 3]) impl.append(value);
+    for (const invariant of xorLinkedListContract.invariants) {
+      expect(invariant.check(impl)).toBeNull();
+    }
+  });
+
+  test("자리가 넘쳐 앞을 버리면 불변식 1이 잡는다", () => {
+    const impl = new CappedLogList();
+    for (let i = 0; i < 9; i++) impl.append(i);
+    expect(counted?.check(impl)).toContain("순회 8개 / size 9");
+    // 버린 뒤에도 두 방향은 서로의 역순이다 — 같은 것을 잃었기 때문이다.
+    expect(agreed?.check(impl)).toBeNull();
+  });
+
+  test("방향마다 이음을 따로 들면 불변식 2가 갈림을 잡는다", () => {
+    const impl = new TwoChainList();
+    impl.append(1);
+    // 원소가 하나면 뒤집어도 같으므로 아직 갈리지 않는다.
+    expect(agreed?.check(impl)).toBeNull();
+
+    impl.append(2);
+    // 잃은 것이 없으므로 개수는 맞는다. 갈리는 것은 순서다.
+    expect(counted?.check(impl)).toBeNull();
+    expect(agreed?.check(impl)).toContain("0번째에서 갈린다");
   });
 });
 

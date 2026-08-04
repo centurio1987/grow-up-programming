@@ -1,83 +1,70 @@
 /**
- * XorLinkedList (XOR 연결 리스트)
+ * XorLinkedList — 뒤로만 자라고 양쪽 방향으로 읽히는 수열.
  *
- * 임베디드 시스템처럼 메모리가 제한된 환경에서 이중 연결 리스트의
- * prev/next 두 포인터 대신 XOR 연산 하나로 양방향 순회를 구현한다.
+ * **목적.** 값을 뒤 끝에만 붙이고, 저장된 전체를 앞→뒤와 뒤→앞 **두 방향으로** 읽어 주는 것.
+ * 중간 삽입·삭제·임의 위치 접근·값 탐색은 이 계약에 없다 — 그것들이 필요하면
+ * `linear/doublyLinkedList` 의 계약이지 이 계약이 아니다.
  *
- * JavaScript에는 포인터 산술이 없으므로 Map<number, XorNode>를 이용해
- * 노드 ID를 포인터처럼 사용하고 XOR 연산을 시뮬레이션한다.
+ * **공간 비용도 이 계약에 없다.** 이 구조가 태어난 이유가 공간이었으므로, 없다는 사실을
+ * 여기 적어 둔다. 계약은 그 계약을 만족하는 **모든** 구현에 대해 참인 문장만 담는데,
+ * "원소당 참조를 하나 아낀다"는 특정 내부 표현에 대한 진술이라 그 조건을 못 지킨다.
+ * 아꼈는가 오히려 더 썼는가는 `xorLinkedList-guide.mdx` 가 수를 세어 답한다.
  *
- * 핵심 원리:
- *   node.xorId = prevId XOR nextId
- *   순방향: nextId = node.xorId XOR prevId
- *   역방향: prevId = node.xorId XOR nextId
+ * **불변식.** 둘이다. 둘 다 **관측 경로가 둘**이라서 성립한다 — 구현이 두 경로를 따로
+ * 유지할 수 있고, 따로 유지하는 순간 갈릴 수 있다.
  *
- * 요구사항:
- * - append(value): 리스트 맨 뒤에 값을 추가한다. O(1)
- * - toArray(): 앞→뒤 순서로 모든 값을 배열로 반환한다. O(n)
- * - toArrayReverse(): 뒤→앞 순서로 모든 값을 배열로 반환한다. O(n)
- * - size(): 노드 개수를 반환한다. O(1)
+ * 1. `size()` 와 `toArray().length` 가 같다. 세고 있는 수와 내놓을 수 있는 수가 같은가를
+ *    묻는다. 이어 둔 것이 중간에서 끊기면 순회는 거기서 조용히 멈추는데, 그때도 `append` 는
+ *    자기 자리에서 옳고 `size()` 도 자기 자리에서 옳다.
+ * 2. `toArrayReverse()` 는 `toArray()` 를 뒤집은 것과 같다. 두 방향이 **같은 수열**을 읽는가를
+ *    묻는다. 방향마다 이음을 따로 들고 한쪽만 갱신하면 각 순회는 각각 완주하면서 서로 다른
+ *    수열을 내놓는다.
  *
- * 시간복잡도:
- * - append: O(1) (tail 포인터 유지)
- * - toArray: O(n)
- * - toArrayReverse: O(n)
- * - size: O(1)
+ * **연산 계약.** 상한은 저장된 원소 수 n 에 대한 것이다.
+ *
+ * | 연산 | 의미 | 상한 | 한정자 |
+ * |---|---|---|---|
+ * | `append(value)` | `value` 를 뒤 끝에 놓는다. 직후 `size()` 는 1 늘고 `toArray()` 의 마지막 값이 `value` 다 | O(1) | amortized |
+ * | `toArray()` | 앞 끝에서 뒤 끝까지의 값 전부를 그 순서로 돌려준다. 비어 있으면 빈 배열 | O(n) | worst |
+ * | `toArrayReverse()` | 뒤 끝에서 앞 끝까지의 값 전부를 그 순서로 돌려준다. 비어 있으면 빈 배열 | O(n) | worst |
+ * | `size()` | 현재 원소 수 | O(1) | worst |
+ *
+ * `append` 가 `amortized` 인 것은 자리를 늘려 가며 담는 구현을 배제하지 않기 위해서다.
+ * 두 순회가 `worst` 인 것은 그 자리에서 두 한정자가 **같은 구현 집합을 배제하기** 때문이다 —
+ * 원소 n 개를 돌려주는 연산은 어느 구현에서도 호출 하나가 n 에 비례하므로 상각할 여지가
+ * 없다. 약한 쪽을 적는 규칙은 강한 쪽이 구현을 더 배제할 때를 위한 것이고, 배제하는 것이
+ * 같으면 강한 쪽을 적어도 처방이 되지 않는다.
+ *
+ * **주입 정책.** 없다. 값은 `number` 이고 비교·해시·동등성을 쓰지 않으므로 주입할 것이 없다.
+ * 제네릭 범위를 두지 않는 이유도 같다 — 값에 요구하는 성질이 하나도 없어서 `T` 를 열어도
+ * 계약에 새로 적을 조건이 생기지 않는다. 예외를 던지는 연산은 없고, 빈 수열에서 두 순회는
+ * 빈 배열을 돌려준다.
+ *
+ * **검증 등급.** `invariant`.
+ * 상한은 자명한 구현으로 달성된다 — 배열 하나에 뒤로 붙이기·그대로 복사·거꾸로 복사·길이면
+ * 네 행이 모두 나오고, 어느 행도 넘지 않는다. 그래서 `complexity` 가 아니다. 불변식 절에
+ * 내용이 있으므로 `invariant` 다.
+ *
+ * **필요충분조건.**
+ * - 의미: 두 순회가 **같은 수열을 반대 방향으로** 읽지 않으면 이 구조가 아니다. 한 방향만
+ *   읽히면 단일 연결 리스트이고, 두 방향이 서로 다른 수열을 읽으면 그건 한 수열이 아니라
+ *   두 수열이다.
+ * - 비용: `append` 가 상수 상각을 넘으면 이 구조가 아니다. 붙일 때마다 앞에서부터 훑어
+ *   뒤 끝을 찾으면 n 회 붙이기가 O(n²) 이 되고, 그건 뒤 끝을 모르는 수열이다.
  */
-
-export class XorNode {
-  id: number;
-  value: number;
-  /** prev.id XOR next.id */
-  xorId: number;
-
-  constructor(id: number, value: number) {
-    this.id = id;
-    this.value = value;
-    this.xorId = 0; // 초기에는 prev=null(0), next=null(0) → XOR = 0
-  }
-}
-
 export class XorLinkedList {
-  /** 노드 ID → XorNode 매핑. ID=0은 null(경계 센티넬)을 의미한다 */
-  private store: Map<number, XorNode>;
-  private headId: number; // 0이면 빈 리스트
-  private tailId: number; // 0이면 빈 리스트
-  private _size: number;
-  private nextId: number; // 다음에 생성할 노드 ID (1부터 시작)
-
-  constructor() {
-    this.store = new Map();
-    this.headId = 0;
-    this.tailId = 0;
-    this._size = 0;
-    this.nextId = 1; // 0은 "null"을 나타내는 센티넬
-  }
-
-  /**
-   * 리스트 맨 뒤에 값을 추가한다.
-   */
   append(value: number): void {
     throw new Error("Not implemented");
   }
 
-  /**
-   * head → tail 순서로 모든 값의 배열을 반환한다.
-   */
   toArray(): number[] {
     throw new Error("Not implemented");
   }
 
-  /**
-   * tail → head 순서로 모든 값의 배열을 반환한다.
-   */
   toArrayReverse(): number[] {
     throw new Error("Not implemented");
   }
 
-  /**
-   * 리스트의 노드 개수를 반환한다.
-   */
   size(): number {
     throw new Error("Not implemented");
   }

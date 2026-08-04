@@ -76,6 +76,7 @@ const VERIFICATION_GRADES: Record<
   "hash/multiset": "complexity",
   "linear/deque": "complexity",
   "range-query/intervalTree": "complexity",
+  "linear/xorLinkedList": "invariant",
 };
 
 /** ORDER.md:39-63 진단 표 9종. 키는 `<category>/<name>`. 이 표 밖은 전부 `-`. */
