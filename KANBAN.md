@@ -56,7 +56,7 @@
 
 ## 할 일
 - `KAN-001` [P0-a·1] ORD-006 봉인 — 지시 원문·진단 9건 표 이관 — 생성:ai · 최종:ai · 갱신:2026-08-04
-  - 메모: 공수 S·리스크 하. ORDER.md 신규 지시에 원문+진단표 기재, docs/ORD-006-strategy.md에 전략 전문 보존. 전 카드 완료 시 COMMITTED로 봉인. **이관분 완료 확인(2026-08-04)** — ORDER.md:13-24 원문 verbatim, :39-63 진단 9건 표, docs/ORD-006-strategy.md 전문이 모두 존재한다. **잔여 작업 = 봉인뿐.** 선행조건은 KAN-002~030 전 카드 완료. 실행 계획(배치 B0~최종)은 ~/.claude/plans/kan-001-jazzy-charm.md. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
+  - 메모: 공수 S·리스크 하. ORDER.md 신규 지시에 원문+진단표 기재, docs/ORD-006-strategy.md 에 전략 전문 보존. 전 카드 완료 시 COMMITTED 로 봉인. **이관분 완료 확인(2026-08-04)** — ORDER.md:13-24 원문 verbatim, :39-63 진단 9건 표, docs/ORD-006-strategy.md 전문이 모두 존재한다. **잔여 작업 = 봉인뿐.** 선행조건은 KAN-002~031 **전 30장** 완료(KAN-030 신설로 29장, KAN-031 신설로 30장이 됐다). 실행 계획(배치 B0~최종)은 ~/.claude/plans/kan-001-jazzy-charm.md 이고, 세션 진입점은 docs/ORD-006-runbook.md 다. 확정된 규약은 docs/ORD-006-conventions.md 에 쌓인다 — 전략과 어긋나면 conventions 가 정본이다. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md
   - 원문:
     ```text
     자료구조 본래의 목적과 장점을 호도하는 문제와 가이드는 필요 없다. 지금 자료구조 싹 다 진단해
