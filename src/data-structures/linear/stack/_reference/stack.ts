@@ -8,6 +8,7 @@
  * 건드리므로 연산당 1이다. 이 구조에는 주입점이 없어 밖에서 셀 수 있는 양이 없다 —
  * 그래서 자기 보고이고, 무엇을 세는지를 여기 적는 것이 §규약2가 요구하는 전부다.
  */
+// #region guide:core
 export class Stack<T> {
   #items: T[] = [];
 
@@ -41,3 +42,4 @@ export class Stack<T> {
     return this.#items.length;
   }
 }
+// #endregion

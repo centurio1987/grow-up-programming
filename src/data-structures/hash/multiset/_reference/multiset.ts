@@ -12,6 +12,7 @@
  * 그것을 만족하는 아무 구현이나 여기 올 수 있고, 바뀌어도 `../multiset.ts` 는 그대로다.
  */
 
+// #region guide:core/types
 type Comparator<T> = (a: T, b: T) => number;
 
 interface Node<T> {
@@ -34,7 +35,9 @@ function defaultComparator<T>(a: T, b: T): number {
   if (left > right) return 1;
   return 0;
 }
+// #endregion
 
+// #region guide:core/class
 export class Multiset<T> {
   #root: Node<T> | null = null;
   #compareWith: Comparator<T>;
@@ -228,3 +231,4 @@ export class Multiset<T> {
     return x >>> 0;
   }
 }
+// #endregion
