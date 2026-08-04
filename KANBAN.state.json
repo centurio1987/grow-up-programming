@@ -1,17 +1,17 @@
 {
   "next_id": 30,
-  "next_seq": 37,
+  "next_seq": 38,
   "cards": {
     "KAN-001": {
       "col": "todo",
       "title": "[P0-a·1] ORD-006 봉인 — 지시 원문·진단 9건 표 이관",
-      "memo": "공수 S·리스크 하. ORDER.md 신규 지시에 원문+진단표 기재, docs/ORD-006-strategy.md에 전략 전문 보존. 전 카드 완료 시 COMMITTED로 봉인. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "memo": "공수 S·리스크 하. ORDER.md 신규 지시에 원문+진단표 기재, docs/ORD-006-strategy.md에 전략 전문 보존. 전 카드 완료 시 COMMITTED로 봉인. **이관분 완료 확인(2026-08-04)** — ORDER.md:13-24 원문 verbatim, :39-63 진단 9건 표, docs/ORD-006-strategy.md 전문이 모두 존재한다. **잔여 작업 = 봉인뿐.** 선행조건은 KAN-002~030 전 카드 완료. 실행 계획(배치 B0~최종)은 ~/.claude/plans/kan-001-jazzy-charm.md. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
       "verbatim": "자료구조 본래의 목적과 장점을 호도하는 문제와 가이드는 필요 없다. 지금 자료구조 싹 다 진단해\n\n- 문제는 제거한다.\n- 테스트는 자료구조가 제대로 작동하며, 불변식을 지키고, 해당 자료구조로써 필요충분조건을 충족했는지 파악한다.\n- 가이드는 문제가 아니라, 자료구조 자체에 집중한다. 목적, 목적을 충족할 수 있는 최적화된 형태의 구현을 작성하기 위한 과정이 포함되어야 한다. typescript에서 최적화 할 수 없다면 최적화 불가능한 이유를 서술하고, 차선책을 제시한다. 그리고 최적화 가능한 언어를 채택해서 해당 언어로 최적화 과정을 보인다. 최적화를 위해 채택할 언어의 우선순위는 typescript, rust, python 순이다.\n- 위 요구사항을 준수하여 자료 구조 재집필 전략을 세우고, 칸반 태스크를 정의해라. 칸반 카드 정의 과정에서 지시 사항이 소실되거나 무시 되지 않고, 새로운 세션에서 태스크를 수행할 때 지금 세운 전략이 완벽히 핸드오프 가능해야 한다.",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-02",
+      "갱신": "2026-08-04",
       "title_hash": "59051ebff71db5b28c2628d1ffeddfc935a566d6",
-      "memo_hash": "e448a32a2e9ffead411f017e7cd1c12e933a168c",
+      "memo_hash": "d16351a7b9245006c295a24bbb37e1949b9f7b67",
       "verbatim_hash": "21ea2712c59674740b1895e16f7f0d8a9e13fe4c"
     },
     "KAN-002": {
@@ -383,6 +383,16 @@
     "KAN-029"
   ],
   "recent": [
+    {
+      "seq": 37,
+      "t": "2026-08-04T16:16",
+      "a": "ai",
+      "id": "KAN-001",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 S·리스크 하. ORDER.md 신규 지시에 원문+진단표 기재, docs/ORD-006-strategy.md에 전략 전문 보존. 전 카드 완료 시 COMMITTED로 봉인. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "after": "공수 S·리스크 하. ORDER.md 신규 지시에 원문+진단표 기재, docs/ORD-006-strategy.md에 전략 전문 보존. 전 카드 완료 시 COMMITTED로 봉인. **이관분 완료 확인(2026-08-04)** — ORDER.md:13-24 원문 verbatim, :39-63 진단 9건 표, docs/ORD-006-strategy.md 전문이 모두 존재한다. **잔여 작업 = 봉인뿐.** 선행조건은 KAN-002~030 전 카드 완료. 실행 계획(배치 B0~최종)은 ~/.claude/plans/kan-001-jazzy-charm.md. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md"
+    },
     {
       "seq": 36,
       "t": "2026-08-04T14:37",
