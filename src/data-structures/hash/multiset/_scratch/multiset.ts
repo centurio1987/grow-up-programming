@@ -38,7 +38,10 @@ export class Multiset<T> {
 
   delete(item: T): boolean {
     const pos = this.lowerBound(item);
-    if (pos < this._data.length && this._comparator(this._data[pos]!, item) === 0) {
+    if (
+      pos < this._data.length &&
+      this._comparator(this._data[pos]!, item) === 0
+    ) {
       this._data.splice(pos, 1);
       return true;
     }
@@ -54,7 +57,9 @@ export class Multiset<T> {
 
   has(item: T): boolean {
     const pos = this.lowerBound(item);
-    return pos < this._data.length && this._comparator(this._data[pos]!, item) === 0;
+    return (
+      pos < this._data.length && this._comparator(this._data[pos]!, item) === 0
+    );
   }
 
   count(item: T): number {
@@ -132,7 +137,11 @@ console.log("\n=== 3. 실행 시각화 steps 트레이스 (구 가이드 steps �
 
   ms.add(3);
   assertEq(ms.toArray(), [3], "add(3)");
-  assertEq(ms.__lowerBound(3) === 0, true, "lowerBound(3) before add was 0 (checked pre-add manually below)");
+  assertEq(
+    ms.__lowerBound(3) === 0,
+    true,
+    "lowerBound(3) before add was 0 (checked pre-add manually below)",
+  );
 
   const ms2 = new Multiset<number>();
   ms2.add(3);
@@ -185,13 +194,16 @@ console.log("\n=== 4. 엣지 케이스 ===");
   assertEq(boundary.__lowerBound(1), 0, "lowerBound(1) < all -> 0");
 }
 
-console.log("\n=== 5. 함정 재현: lowerBound를 upperBound 공식으로 잘못 구현하면? ===");
+console.log(
+  "\n=== 5. 함정 재현: lowerBound를 upperBound 공식으로 잘못 구현하면? ===",
+);
 {
   // <= 를 사용하는(원래 upperBound 공식) 버전을 lowerBound 대신 delete에 쓰면
   // 어떤 값이 나오는지 수치로 확인한다.
   class BuggyMultiset<T> {
     private _data: T[] = [];
-    private _comparator: (a: T, b: T) => number = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+    private _comparator: (a: T, b: T) => number = (a, b) =>
+      a < b ? -1 : a > b ? 1 : 0;
     add(item: T) {
       let lo = 0,
         hi = this._data.length;
@@ -215,7 +227,10 @@ console.log("\n=== 5. 함정 재현: lowerBound를 upperBound 공식으로 잘�
         else hi = mid;
       }
       const pos = lo; // 실제로는 upperBound(item)
-      if (pos < this._data.length && this._comparator(this._data[pos]!, item) === 0) {
+      if (
+        pos < this._data.length &&
+        this._comparator(this._data[pos]!, item) === 0
+      ) {
         this._data.splice(pos, 1);
         return true;
       }
@@ -228,7 +243,11 @@ console.log("\n=== 5. 함정 재현: lowerBound를 upperBound 공식으로 잘�
   const result = bug.buggyDelete(2);
   console.log("buggyDelete(2) on [1,2,2,3] =>", result, bug.toArray());
   assertEq(result, false, "버그 버전 delete(2)는 잘못 false를 반환한다");
-  assertEq(bug.toArray(), [1, 2, 2, 3], "버그 버전은 아무것도 지우지 못한다(2가 분명히 있는데도)");
+  assertEq(
+    bug.toArray(),
+    [1, 2, 2, 3],
+    "버그 버전은 아무것도 지우지 못한다(2가 분명히 있는데도)",
+  );
 }
 
 console.log("\n=== 6. 코드 진화 사다리 — 원형(naive sort) 함정 재현 ===");
@@ -249,14 +268,19 @@ console.log("\n=== 6. 코드 진화 사다리 — 원형(naive sort) 함정 재�
   naive.add(1);
   naive.add(2);
   console.log("naive.add(10); add(1); add(2) =>", naive.toArray());
-  assertEq(naive.toArray(), [1, 10, 2], "comparator 없는 기본 sort()의 사전식 정렬 결과");
+  assertEq(
+    naive.toArray(),
+    [1, 10, 2],
+    "comparator 없는 기본 sort()의 사전식 정렬 결과",
+  );
 }
 
 console.log("\n=== 7. 개선 단계(선형 탐색) 정확성 확인 ===");
 {
   class MultisetLinear<T> {
     private data: T[] = [];
-    private cmp: (a: T, b: T) => number = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+    private cmp: (a: T, b: T) => number = (a, b) =>
+      a < b ? -1 : a > b ? 1 : 0;
     add(item: T): void {
       let i = 0;
       while (i < this.data.length && this.cmp(this.data[i]!, item) < 0) i++;
@@ -270,10 +294,16 @@ console.log("\n=== 7. 개선 단계(선형 탐색) 정확성 확인 ===");
   lin.add(10);
   lin.add(1);
   lin.add(2);
-  assertEq(lin.toArray(), [1, 2, 10], "선형 탐색 버전은 comparator 기준으로 올바르게 정렬됨");
+  assertEq(
+    lin.toArray(),
+    [1, 2, 10],
+    "선형 탐색 버전은 comparator 기준으로 올바르게 정렬됨",
+  );
 }
 
-console.log("\n=== 8. 슬라이딩 윈도우 중앙값 (lower/upper 2-multiset, k=3) ===");
+console.log(
+  "\n=== 8. 슬라이딩 윈도우 중앙값 (lower/upper 2-multiset, k=3) ===",
+);
 {
   // lower: 작은 절반, upper: 큰 절반. 둘 다 오름차순 comparator(기본값)를 그대로 쓴다.
   // lower.max()는 lower 안에서 가장 큰 값(=중앙값 후보), upper.min()은 upper 안에서 가장 작은 값.
@@ -309,7 +339,9 @@ console.log("\n=== 8. 슬라이딩 윈도우 중앙값 (lower/upper 2-multiset, 
       rebalance();
       if (i >= k - 1) {
         const median =
-          k % 2 === 1 ? (lower.max() as number) : ((lower.max() as number) + (upper.min() as number)) / 2;
+          k % 2 === 1
+            ? (lower.max() as number)
+            : ((lower.max() as number) + (upper.min() as number)) / 2;
         result.push(median);
       }
     }
@@ -319,9 +351,13 @@ console.log("\n=== 8. 슬라이딩 윈도우 중앙값 (lower/upper 2-multiset, 
   function bruteSlidingWindowMedian(vals: number[], k: number): number[] {
     const result: number[] = [];
     for (let i = k - 1; i < vals.length; i++) {
-      const window = vals.slice(i - k + 1, i + 1).slice().sort((a, b) => a - b);
+      const window = vals
+        .slice(i - k + 1, i + 1)
+        .slice()
+        .sort((a, b) => a - b);
       const mid = Math.floor(k / 2);
-      const median = k % 2 === 1 ? window[mid]! : (window[mid - 1]! + window[mid]!) / 2;
+      const median =
+        k % 2 === 1 ? window[mid]! : (window[mid - 1]! + window[mid]!) / 2;
       result.push(median);
     }
     return result;
@@ -362,7 +398,9 @@ console.log("\n=== 9. 무작위 교차검증 (brute-force 정렬 배열과 비�
         const r2 = idx !== -1;
         if (r2) brute.splice(idx, 1);
         if (r1 !== r2) {
-          console.error(`FAIL trial ${trial} step ${i}: delete(${v}) ms=${r1} brute=${r2}`);
+          console.error(
+            `FAIL trial ${trial} step ${i}: delete(${v}) ms=${r1} brute=${r2}`,
+          );
           fails++;
         }
       } else if (roll < 0.85) {
@@ -370,24 +408,32 @@ console.log("\n=== 9. 무작위 교차검증 (brute-force 정렬 배열과 비�
         const bruteRemoved = brute.filter((x) => x === v).length;
         brute = brute.filter((x) => x !== v);
         if (removed !== bruteRemoved) {
-          console.error(`FAIL trial ${trial} step ${i}: deleteAll(${v}) ms=${removed} brute=${bruteRemoved}`);
+          console.error(
+            `FAIL trial ${trial} step ${i}: deleteAll(${v}) ms=${removed} brute=${bruteRemoved}`,
+          );
           fails++;
         }
       } else {
         const c1 = ms.count(v);
         const c2 = brute.filter((x) => x === v).length;
         if (c1 !== c2) {
-          console.error(`FAIL trial ${trial} step ${i}: count(${v}) ms=${c1} brute=${c2}`);
+          console.error(
+            `FAIL trial ${trial} step ${i}: count(${v}) ms=${c1} brute=${c2}`,
+          );
           fails++;
         }
       }
       const arr = ms.toArray();
       if (JSON.stringify(arr) !== JSON.stringify(brute)) {
-        console.error(`FAIL trial ${trial} step ${i}: toArray mismatch ms=${JSON.stringify(arr)} brute=${JSON.stringify(brute)}`);
+        console.error(
+          `FAIL trial ${trial} step ${i}: toArray mismatch ms=${JSON.stringify(arr)} brute=${JSON.stringify(brute)}`,
+        );
         fails++;
       }
       if (ms.size() !== brute.length) {
-        console.error(`FAIL trial ${trial} step ${i}: size mismatch ms=${ms.size()} brute=${brute.length}`);
+        console.error(
+          `FAIL trial ${trial} step ${i}: size mismatch ms=${ms.size()} brute=${brute.length}`,
+        );
         fails++;
       }
       const mn = ms.min();
@@ -395,7 +441,9 @@ console.log("\n=== 9. 무작위 교차검증 (brute-force 정렬 배열과 비�
       const bmn = brute.length ? brute[0] : undefined;
       const bmx = brute.length ? brute[brute.length - 1] : undefined;
       if (mn !== bmn || mx !== bmx) {
-        console.error(`FAIL trial ${trial} step ${i}: min/max mismatch ms=(${mn},${mx}) brute=(${bmn},${bmx})`);
+        console.error(
+          `FAIL trial ${trial} step ${i}: min/max mismatch ms=(${mn},${mx}) brute=(${bmn},${bmx})`,
+        );
         fails++;
       }
     }
@@ -408,7 +456,9 @@ console.log("\n=== 9. 무작위 교차검증 (brute-force 정렬 배열과 비�
   }
 }
 
-console.log("\n=== 10. add(4) on [1,2,2,2,5,7] — before/after 및 이진 탐색 좁혀가기 ===");
+console.log(
+  "\n=== 10. add(4) on [1,2,2,2,5,7] — before/after 및 이진 탐색 좁혀가기 ===",
+);
 {
   const ms = new Multiset<number>();
   for (const x of [1, 2, 2, 2, 5, 7]) ms.add(x);
