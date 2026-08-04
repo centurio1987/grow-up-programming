@@ -8,10 +8,11 @@ import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
 GlobalRegistrator.register();
 // React act() 환경 플래그
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT =
-  true;
+(
+  globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
 
-import { test, expect } from "bun:test";
+import { expect, test } from "bun:test";
 import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { AlgorithmSimulation, type Frame } from "#guide-sim";
@@ -113,5 +114,29 @@ test("리셋이 첫 프레임으로 되돌린다", async () => {
   expect(counter(container)).toBe("2 / 3");
   await act(async () => reset.click());
   expect(counter(container)).toBe("1 / 3");
+  await act(async () => root.unmount());
+});
+
+test("tree 뷰가 빈 자식 자리(null)를 좌우 구분이 남게 그린다", async () => {
+  // 자식이 하나뿐인 이진 트리는 그것이 왼쪽인지 오른쪽인지가 의미를 가진다.
+  // 빈 자리를 빠뜨리면 다른 트리가 그려지고, 예전에는 그 자리에서 렌더가 죽었다.
+  const treeSteps: Frame[] = [
+    {
+      title: "오른쪽 자식만 있는 노드",
+      root: {
+        id: "root",
+        label: "[1,5]",
+        children: [null, { id: "child", label: "[3,8]" }],
+      },
+    },
+  ];
+  const container = document.createElement("div");
+  document.body.appendChild(container);
+  const root = createRoot(container);
+  await act(async () => {
+    root.render(<AlgorithmSimulation view="tree" steps={treeSteps} />);
+  });
+  expect(container.textContent).toContain("[3,8]");
+  expect(container.querySelectorAll(".gs-tree-gap").length).toBe(1);
   await act(async () => root.unmount());
 });

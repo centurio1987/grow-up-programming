@@ -9,8 +9,12 @@
  *
  * ```bash
  * bun run tools/guide-core.ts extract <정본.ts> [구간이름]   # 추출본을 stdout 으로
- * bun run tools/guide-core.ts check                          # 구간·펜스·구문 전수 검사
+ * bun run tools/guide-core.ts check                          # 구간·펜스·구문·시뮬 전수 검사
  * ```
+ *
+ * `check` 가 시뮬레이션 호출까지 보는 이유는 그것도 **아무도 검사하지 않는 본문**이기
+ * 때문이다. MDX 는 빌드 시점에 렌더되지 않으므로 `<AlgorithmSimulation>` 에 `view` 를
+ * 빠뜨려도 조용히 커밋된다. B7 이 실제로 하나 빠뜨렸고, B8 에서 전수 검색으로 찾았다.
  */
 
 import { mkdtempSync } from "node:fs";
@@ -239,6 +243,35 @@ export function parseFences(source: string, guide: string): Fence[] {
   return fences;
 }
 
+export interface SimCall {
+  /** 1부터 세는 줄 번호. */
+  at: number;
+  /** 한 줄로 눕힌 호출문. 보고에 그대로 싣는다. */
+  text: string;
+  hasView: boolean;
+}
+
+/**
+ * 가이드 본문의 `<AlgorithmSimulation>` 호출을 훑는다.
+ *
+ * `view` 는 어느 패널로 그릴지 고르는 값이고 **기본값이 없다.** 빠뜨리면 렌더 시점에
+ * 시뮬레이션이 통째로 죽는데, MDX 는 빌드 때 렌더되지 않으므로 조용히 커밋된다.
+ */
+export function parseSimCalls(source: string): SimCall[] {
+  const calls: SimCall[] = [];
+  for (const match of source.matchAll(/<AlgorithmSimulation\b[\s\S]*?\/>/g)) {
+    calls.push({
+      at: source.slice(0, match.index).split("\n").length,
+      text: match[0]
+        .split("\n")
+        .map((line) => line.trim())
+        .join(" "),
+      hasView: /\bview\s*=/.test(match[0]),
+    });
+  }
+  return calls;
+}
+
 async function main(): Promise<void> {
   const [command, ...rest] = Bun.argv.slice(2);
 
@@ -288,6 +321,7 @@ async function main(): Promise<void> {
   }
 
   let fenceCount = 0;
+  let simCount = 0;
   const guides: string[] = [];
   for (const scanRoot of SCAN_ROOTS) {
     guides.push(
@@ -296,6 +330,16 @@ async function main(): Promise<void> {
   }
   for (const guide of guides) {
     const source = await Bun.file(join(root, guide)).text();
+
+    for (const call of parseSimCalls(source)) {
+      simCount++;
+      if (call.hasView) continue;
+      problems.push(
+        `${guide}:${call.at} — <AlgorithmSimulation> 에 view prop 이 없다: ${call.text}. ` +
+          "뷰를 못 고르면 렌더 시점에 시뮬레이션이 통째로 죽는다",
+      );
+    }
+
     let fences: Fence[];
     try {
       fences = parseFences(source, guide);
@@ -370,7 +414,8 @@ async function main(): Promise<void> {
 
   console.log(
     `정본 ${marked.size}개의 guide:core 구간이 타입 검사를 통과하고, ` +
-      `가이드 펜스 ${fenceCount}건이 추출본과 일치한다.`,
+      `가이드 펜스 ${fenceCount}건이 추출본과 일치한다. ` +
+      `시뮬레이션 호출 ${simCount}건에 view 가 붙어 있다.`,
   );
 }
 

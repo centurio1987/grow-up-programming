@@ -11,7 +11,8 @@
  * 테마: 색상은 하드코딩하지 않고 `var(--guide-sim-*, 폴백)` CSS 변수로 작성해
  * 호스트의 다크/라이트 테마를 상속한다.
  */
-import React, { useEffect, useRef, useState } from "react";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 
 /* ────────────────────────── 프레임 스키마 ────────────────────────── */
 
@@ -72,7 +73,11 @@ export interface TreeNodeData {
   id: string | number;
   label?: string;
   status?: GraphNodeStatus;
-  children?: TreeNodeData[];
+  /**
+   * 자식 목록. **빈 자리는 `null` 로 둔다** — 이진 트리는 자식이 하나뿐일 때 그것이
+   * 왼쪽인지 오른쪽인지가 의미를 가지므로, 빠뜨리면 다른 트리가 그려진다.
+   */
+  children?: (TreeNodeData | null)[];
 }
 /** `view="tree"` — 트리/재귀 구조. */
 export interface TreeFrame extends BaseFrame {
@@ -179,7 +184,11 @@ function GraphView({ frame }: { frame: Frame }) {
       (String(e.from) === String(active.to) &&
         String(e.to) === String(active.from)));
   return (
-    <svg className="gs-graph" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
+    <svg
+      className="gs-graph"
+      viewBox="0 0 100 100"
+      preserveAspectRatio="xMidYMid meet"
+    >
       {edges.map((e, i) => {
         const a = pos.get(String(e.from));
         const b = pos.get(String(e.to));
@@ -268,20 +277,28 @@ function PriorityQueueView({ frame }: { frame: Frame }) {
 }
 
 function TreeView({ frame }: { frame: Frame }) {
-  const renderNode = (node: TreeNodeData) => (
-    <li key={String(node.id)}>
-      <span className="gs-tree-node" style={{ background: statusColor(node.status) }}>
-        {node.label ?? node.id}
-      </span>
-      {node.children && node.children.length > 0 && (
-        <ul>{node.children.map(renderNode)}</ul>
-      )}
-    </li>
-  );
+  const renderNode = (node: TreeNodeData | null, index: number) =>
+    node === null ? (
+      <li key={`gs-tree-gap-${index}`}>
+        <span className="gs-tree-gap">·</span>
+      </li>
+    ) : (
+      <li key={String(node.id)}>
+        <span
+          className="gs-tree-node"
+          style={{ background: statusColor(node.status) }}
+        >
+          {node.label ?? node.id}
+        </span>
+        {node.children && node.children.length > 0 && (
+          <ul>{node.children.map(renderNode)}</ul>
+        )}
+      </li>
+    );
   if (!frame.root) return <div className="gs-tree gs-empty">(빈 트리)</div>;
   return (
     <div className="gs-tree">
-      <ul>{renderNode(frame.root)}</ul>
+      <ul>{renderNode(frame.root, 0)}</ul>
     </div>
   );
 }
@@ -341,7 +358,10 @@ function KeyValueView({ frame }: { frame: Frame }) {
   );
 }
 
-const VIEW_REGISTRY: Record<ViewName, (props: { frame: Frame }) => React.JSX.Element> = {
+const VIEW_REGISTRY: Record<
+  ViewName,
+  (props: { frame: Frame }) => React.JSX.Element
+> = {
   array: ArrayView,
   graph: GraphView,
   priorityQueue: PriorityQueueView,
@@ -524,6 +544,10 @@ function SimStyle() {
   display: inline-flex; align-items: center; justify-content: center;
   min-width: 28px; height: 28px; padding: 0 6px; border-radius: 50%;
   color: #fff; font-size: 12px; font-weight: 600;
+}
+.guide-sim .gs-tree-gap {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 28px; height: 28px; opacity: 0.35; font-size: 12px;
 }
 
 .guide-sim .gs-matrix { border-collapse: collapse; font-size: 13px; }

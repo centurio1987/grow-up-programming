@@ -12,6 +12,7 @@ import {
   GuideCoreError,
   parseFences,
   parseRegions,
+  parseSimCalls,
   stripInstrumentation,
 } from "./guide-core.ts";
 
@@ -171,4 +172,32 @@ test("닫히지 않은 펜스는 오류다", () => {
 
 test("guide-core 표시가 없는 코드 펜스는 대조 대상이 아니다", () => {
   expect(parseFences("```ts\nconst a = 1;\n```\n", "g.mdx")).toHaveLength(0);
+});
+
+test("view 없는 시뮬레이션 호출을 줄 번호와 함께 짚는다", () => {
+  const guide = [
+    "본문",
+    '<AlgorithmSimulation view="array" steps={steps} />',
+    "",
+    "<AlgorithmSimulation steps={steps} />",
+  ].join("\n");
+  const calls = parseSimCalls(guide);
+  expect(calls.map((call) => call.hasView)).toEqual([true, false]);
+  expect(calls[1]?.at).toBe(4);
+});
+
+test("여러 줄에 걸친 호출도 한 호출로 읽고 view 를 찾는다", () => {
+  const guide = [
+    "<AlgorithmSimulation",
+    '  view="tree"',
+    "  steps={steps}",
+    "/>",
+  ].join("\n");
+  const calls = parseSimCalls(guide);
+  expect(calls).toHaveLength(1);
+  expect(calls[0]?.hasView).toBe(true);
+  // 보고에 그대로 실을 수 있게 한 줄로 눕힌다.
+  expect(calls[0]?.text).toBe(
+    '<AlgorithmSimulation view="tree" steps={steps} />',
+  );
 });
