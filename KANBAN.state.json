@@ -1,6 +1,6 @@
 {
   "next_id": 32,
-  "next_seq": 58,
+  "next_seq": 59,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -161,13 +161,13 @@
     "KAN-014": {
       "col": "backlog",
       "title": "[P0-b·14] 게이트 확장 — 타입체크·MDX 빌드·신캔버스 호환 점검",
-      "memo": "공수 M·리스크 중. **게이트 소유권이 바뀌었다(rev4).** 루브릭 채점·외부 검토는 authoring-kit 의 authoring-gate + spec 의 gate.external_review 로 넘어갔고 review-guide.sh 는 이관 때 사라졌다 — 승계 대상이 아니다. 프로젝트가 계속 소유하는 것은 comprehension-gate.sh(이해 게이트)·check-mermaid.ts·compile-check.ts 셋. 여기에 tsc --noEmit·lint·코드 추출 일치를 추가한다. 기존 게이트가 '문제 풀이 가이드' 전제에 묶여 있는지, 8단계 캔버스를 이해하는지 먼저 점검. authoring.py status/lock 이 깨끗한 상태에서 집필됐는지도 게이트 항목. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "memo": "공수 M·리스크 중. **게이트 소유권이 바뀌었다(rev4).** 루브릭 채점·외부 검토는 authoring-kit 의 authoring-gate + spec 의 gate.external_review 로 넘어갔고 review-guide.sh 는 이관 때 사라졌다 — 승계 대상이 아니다. 프로젝트가 계속 소유하는 것은 comprehension-gate.sh(이해 게이트)·check-mermaid.ts·compile-check.ts 셋. 여기에 tsc --noEmit·lint·코드 추출 일치를 추가한다. 기존 게이트가 \"문제 풀이 가이드\" 전제에 묶여 있는지, 8단계 캔버스를 이해하는지 먼저 점검. authoring.py status/lock 이 깨끗한 상태에서 집필됐는지도 게이트 항목. **B2 에서 항목이 하나 넘어왔다(2026-08-04): 명세↔_reference/ 정합 검사 스크립트.** 원래 KAN-002(규약1) 범위였으나 검사 대상이 0 이라 그 배치에서 쓸 수 없었다 — _reference/ 는 69종 전부 없고(docs/ORD-006-inventory.tsv has_reference=false 69), 도입 자체가 규약2(KAN-003)의 일이다. 검사 내용은 전략 :94 에 있다 — 명세는 스텁에 있고 구현은 _reference/ 에 있어 둘이 따로 놀 수 있으므로, _reference/ 가 헤더 JSDoc 에 선언된 시그니처·검증 등급·주입 정책을 실제로 구현하는지 본다. 파싱 대상은 헤더 한 곳으로 고정돼 있다(규약1 이 메서드별 JSDoc 을 금지했다). **선행: KAN-003(_reference/ 도입).** 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md:94 / docs/ORD-006-conventions.md §규약1",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
       "갱신": "2026-08-04",
       "title_hash": "d9a36fabb8f6d9016f5af770d6aa642a17ac2d12",
-      "memo_hash": "52e19c4037bfeb25ecc2f7efac279e0a180f7092",
+      "memo_hash": "65452a9d68de43d8f9eaff76f7933aa05eeb5186",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-015": {
@@ -409,6 +409,16 @@
     "KAN-002"
   ],
   "recent": [
+    {
+      "seq": 58,
+      "t": "2026-08-04T17:25",
+      "a": "ai",
+      "id": "KAN-014",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 M·리스크 중. **게이트 소유권이 바뀌었다(rev4).** 루브릭 채점·외부 검토는 authoring-kit 의 authoring-gate + spec 의 gate.external_review 로 넘어갔고 review-guide.sh 는 이관 때 사라졌다 — 승계 대상이 아니다. 프로젝트가 계속 소유하는 것은 comprehension-gate.sh(이해 게이트)·check-mermaid.ts·compile-check.ts 셋. 여기에 tsc --noEmit·lint·코드 추출 일치를 추가한다. 기존 게이트가 '문제 풀이 가이드' 전제에 묶여 있는지, 8단계 캔버스를 이해하는지 먼저 점검. authoring.py status/lock 이 깨끗한 상태에서 집필됐는지도 게이트 항목. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "after": "공수 M·리스크 중. **게이트 소유권이 바뀌었다(rev4).** 루브릭 채점·외부 검토는 authoring-kit 의 authoring-gate + spec 의 gate.external_review 로 넘어갔고 review-guide.sh 는 이관 때 사라졌다 — 승계 대상이 아니다. 프로젝트가 계속 소유하는 것은 comprehension-gate.sh(이해 게이트)·check-mermaid.ts·compile-check.ts 셋. 여기에 tsc --noEmit·lint·코드 추출 일치를 추가한다. 기존 게이트가 \"문제 풀이 가이드\" 전제에 묶여 있는지, 8단계 캔버스를 이해하는지 먼저 점검. authoring.py status/lock 이 깨끗한 상태에서 집필됐는지도 게이트 항목. **B2 에서 항목이 하나 넘어왔다(2026-08-04): 명세↔_reference/ 정합 검사 스크립트.** 원래 KAN-002(규약1) 범위였으나 검사 대상이 0 이라 그 배치에서 쓸 수 없었다 — _reference/ 는 69종 전부 없고(docs/ORD-006-inventory.tsv has_reference=false 69), 도입 자체가 규약2(KAN-003)의 일이다. 검사 내용은 전략 :94 에 있다 — 명세는 스텁에 있고 구현은 _reference/ 에 있어 둘이 따로 놀 수 있으므로, _reference/ 가 헤더 JSDoc 에 선언된 시그니처·검증 등급·주입 정책을 실제로 구현하는지 본다. 파싱 대상은 헤더 한 곳으로 고정돼 있다(규약1 이 메서드별 JSDoc 을 금지했다). **선행: KAN-003(_reference/ 도입).** 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md:94 / docs/ORD-006-conventions.md §규약1"
+    },
     {
       "seq": 57,
       "t": "2026-08-04T17:25",
@@ -914,17 +924,6 @@
       "col": "backlog",
       "title": "[P1·9] intervalTree 재집필 — 트리 계열 파일럿",
       "memo": "공수 L·리스크 상. 균형 없는 BST→증강 레드-블랙. 축3의 난제(균형성·높이 검증)를 여기서 규격화. 적대 입력=시작시간 정렬(스토리의 실제 접근 패턴). 현재 표는 전부 O(log n) 주장인데 회전·균형 언급 0건. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
-      "verbatim": ""
-    },
-    {
-      "seq": 8,
-      "t": "2026-08-02T23:36",
-      "a": "ai",
-      "id": "KAN-008",
-      "op": "create",
-      "col": "backlog",
-      "title": "[P1·8] deque 재집필 — 배열/버퍼 계열 파일럿",
-      "memo": "공수 L·리스크 중. 두 배열 처방 제거, 링 버퍼를 대표 구현으로(단 '정답'으로 고정 금지). 축3에 큐·역큐 적대 패턴. _bench/로 실측 이관 — 수치뿐 아니라 재현 명령·입력·환경(bun 버전·머신)까지 고정. 현 실측: 큐 패턴 이동 2.95 vs 0.55, 지연 스파이크 7.7ms vs 0.015ms. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
       "verbatim": ""
     }
   ]
