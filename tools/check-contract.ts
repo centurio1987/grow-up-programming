@@ -55,6 +55,25 @@ function headerDoc(source: string): string | null {
     .join("\n");
 }
 
+/**
+ * 불변식 절의 번호 항목 수. 절이 「없다」면 0 이다.
+ *
+ * 세는 이유는 B2 가 놓친 것이 여기였기 때문이다(§규약1 「불변식 판별 절차」). 판별 자체는
+ * 기계가 못 한다 — 관측 경로가 몇인지는 계약을 읽어야 안다. 이 게이트가 막는 것은 **개수
+ * 표류**뿐이다. 헤더가 셋을 적고 스위트가 둘을 도는 상태를 조용히 지나가지 않게 한다.
+ */
+function invariantCount(doc: string): number {
+  const marker = "**불변식.**";
+  const start = doc.indexOf(marker);
+  if (start < 0) return 0;
+  const after = doc.slice(start + marker.length);
+  const nextAt = SECTION_ORDER.map((section) => after.indexOf(`**${section}.**`))
+    .filter((at) => at >= 0)
+    .sort((a, b) => a - b)[0];
+  const clause = nextAt === undefined ? after : after.slice(0, nextAt);
+  return clause.split("\n").filter((line) => /^\d+\.\s/.test(line)).length;
+}
+
 function parseContract(doc: string): Contract {
   const ops: string[] = [];
   for (const line of doc.split("\n")) {
@@ -91,6 +110,25 @@ function publicMethods(path: string, project: Project): string[] {
     }
   }
   return names;
+}
+
+/**
+ * 살아 있는 벽시계 단정의 수(불변 사실 7). 계약을 적은 구조에만 묻는다.
+ *
+ * 문자열 검색을 쓰지 않는 이유가 있다 — `stack.test.ts:8` 과 `multiset.test.ts:9` 는
+ * *"벽시계 성능 테스트를 없앴다"* 를 **산문으로** 적고 있어서 `performance.now` 가 파일에
+ * 남아 있다. grep 게이트였다면 그 둘이 거짓 양성이 된다. 구문 트리에서 실제 호출만 센다.
+ *
+ * 아직 재집필하지 않은 64종은 계약 표가 없어 이 게이트의 대상이 아니다. 재집필이 끝나
+ * 계약이 붙는 순간 자동으로 대상이 된다.
+ */
+function wallClockCalls(path: string, project: Project): number {
+  const file = project.addSourceFileAtPath(path);
+  let found = 0;
+  for (const call of file.getDescendantsOfKind(SyntaxKind.CallExpression)) {
+    if (call.getExpression().getText() === "performance.now") found += 1;
+  }
+  return found;
 }
 
 async function structureDirs(): Promise<string[]> {
@@ -141,7 +179,20 @@ for (const dir of await structureDirs()) {
     );
   }
 
-  // ① 명세 ↔ 스텁·정본. 계약 표의 연산이 실제로 그 자리에 있는가.
+  // ① 벽시계. 축3이 자리를 가져갔으므로 계약을 적은 구조에는 남아 있으면 안 된다.
+  const testPath = join(root, dir, `${name}.test.ts`);
+  if (await Bun.file(testPath).exists()) {
+    const walls = wallClockCalls(testPath, project);
+    if (walls > 0) {
+      problems.push(
+        `${dir}/${name}.test.ts — 벽시계 단정이 ${walls}곳 살아 있다. ` +
+          "고정 n 의 임계값은 복잡도 등급이 아니라 그 기계의 상수를 잰다(불변 사실 7). " +
+          "자리는 축3이다",
+      );
+    }
+  }
+
+  // ② 명세 ↔ 스텁·정본. 계약 표의 연산이 실제로 그 자리에 있는가.
   const declared = contract.ops.filter((op) => op !== "constructor");
   for (const [label, path] of [
     ["스텁", stubPath],
@@ -166,17 +217,24 @@ for (const dir of await structureDirs()) {
     }
   }
 
-  // ② 명세 ↔ 계약 스위트. 등급이 같은가, 표의 각 행이 시나리오에 덮이는가.
+  // ③ 명세 ↔ 계약 스위트. 등급이 같은가, 표의 각 행이 시나리오에 덮이는가.
   const contractPath = join(root, dir, `${name}.contract.ts`);
   if (!(await Bun.file(contractPath).exists())) continue;
 
   const module = (await import(contractPath)) as Record<string, unknown>;
   const spec = Object.values(module).find(
-    (value): value is { grade: string; scenarios: { covers: string[] }[] } =>
+    (
+      value,
+    ): value is {
+      grade: string;
+      scenarios: { covers: string[] }[];
+      invariants: unknown[];
+    } =>
       typeof value === "object" &&
       value !== null &&
       "grade" in value &&
-      "scenarios" in value,
+      "scenarios" in value &&
+      "invariants" in value,
   );
   if (spec === undefined) {
     problems.push(`${dir}/${name}.contract.ts — ContractSpec 을 찾지 못했다`);
@@ -186,6 +244,14 @@ for (const dir of await structureDirs()) {
   if (spec.grade !== contract.grade) {
     problems.push(
       `${dir} — 검증 등급이 갈린다: 헤더 \`${contract.grade}\` / contract.ts \`${spec.grade}\``,
+    );
+  }
+
+  const declaredInvariants = invariantCount(doc);
+  if (declaredInvariants !== spec.invariants.length) {
+    problems.push(
+      `${dir} — 불변식 수가 갈린다: 헤더 ${declaredInvariants}개 / contract.ts ` +
+        `${spec.invariants.length}개. 헤더가 정본이고 스위트는 옮긴 것이다(§규약1)`,
     );
   }
 
