@@ -1,6 +1,6 @@
 {
   "next_id": 32,
-  "next_seq": 70,
+  "next_seq": 71,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -89,13 +89,13 @@
     "KAN-008": {
       "col": "backlog",
       "title": "[P1·8] deque 재집필 — 배열/버퍼 계열 파일럿",
-      "memo": "공수 L·리스크 중. 두 배열 처방 제거, 링 버퍼를 대표 구현으로(단 '정답'으로 고정 금지). 축3에 큐·역큐 적대 패턴. _bench/로 실측 이관 — 수치뿐 아니라 재현 명령·입력·환경(bun 버전·머신)까지 고정. 현 실측: 큐 패턴 이동 2.95 vs 0.55, 지연 스파이크 7.7ms vs 0.015ms. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "memo": "공수 L·리스크 중. 두 배열 처방 제거, 링 버퍼를 대표 구현으로(단 \"정답\"으로 고정 금지). 축3에 큐·역큐 적대 패턴. _bench/로 실측 이관 — 수치뿐 아니라 재현 명령·입력·환경(bun 버전·머신)까지 고정. 현 실측: 큐 패턴 이동 2.95 vs 0.55, 지연 스파이크 7.7ms vs 0.015ms. **이 카드가 규약 1~3 을 전부 처음으로 함께 도는 첫 파일럿이다(B4 에서 확정, 2026-08-04).** 지는 것 넷. ① 규약1 — deque-problem.md 제거, .ts 헤더 JSDoc 여섯 항목. **한정자를 연산마다 적고 가장 약한 것을 적는다**(링 버퍼 확장이 있으므로 push 류는 amortized 가 맞다. worst 로 적으면 확장 구현이 배제된다) ② 규약2 — _reference/deque.ts 정본 + deque.contract.ts + runContract 호출부. 적대적 입력은 하나로 부족하다(§규약2) — 큐 패턴과 역큐 패턴을 각각 시나리오로 둔다 ③ 규약3 — **8단계 골격의 첫 산출물이자 guide-core 펜스의 첫 왕복이다.** 현재 저장소의 펜스는 0건이고, 이 카드가 ```ts guide-core=<경로>#<구간> 을 처음 박는다. bun run tools/guide-core.ts check 가 통과해야 한다. 활용 사례는 2단계 하위 절 「쓰이는 자리」에 두되 요구를 연산 집합과 호출 빈도로 번역해서 적는다 ④ **이 산출물이 나오면 KAN-016 이 paths.json exemplars.ds-guide 를 이것으로 교체한다** — 현재 모범 예시 bPlusTree-guide.mdx 는 구 5단계 문형이다. **집필 전 확인**: authoring.py status/lock. 플러그인이 안 잡히면 거기서 멈춘다(구 경로 폴백 없음). 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md §규약1·§규약2·§규약3",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-02",
+      "갱신": "2026-08-04",
       "title_hash": "8d3ca50e8552f6de58444d31a1ecaa02743fa1bf",
-      "memo_hash": "ba6b960e3814190c9d211c2d36b139453fb665a8",
+      "memo_hash": "2faee8dcce624d6b8deba61952d4ebfdaa36cf42",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-009": {
@@ -409,6 +409,16 @@
     "KAN-004"
   ],
   "recent": [
+    {
+      "seq": 70,
+      "t": "2026-08-04T18:36",
+      "a": "ai",
+      "id": "KAN-008",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 L·리스크 중. 두 배열 처방 제거, 링 버퍼를 대표 구현으로(단 '정답'으로 고정 금지). 축3에 큐·역큐 적대 패턴. _bench/로 실측 이관 — 수치뿐 아니라 재현 명령·입력·환경(bun 버전·머신)까지 고정. 현 실측: 큐 패턴 이동 2.95 vs 0.55, 지연 스파이크 7.7ms vs 0.015ms. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
+      "after": "공수 L·리스크 중. 두 배열 처방 제거, 링 버퍼를 대표 구현으로(단 \"정답\"으로 고정 금지). 축3에 큐·역큐 적대 패턴. _bench/로 실측 이관 — 수치뿐 아니라 재현 명령·입력·환경(bun 버전·머신)까지 고정. 현 실측: 큐 패턴 이동 2.95 vs 0.55, 지연 스파이크 7.7ms vs 0.015ms. **이 카드가 규약 1~3 을 전부 처음으로 함께 도는 첫 파일럿이다(B4 에서 확정, 2026-08-04).** 지는 것 넷. ① 규약1 — deque-problem.md 제거, .ts 헤더 JSDoc 여섯 항목. **한정자를 연산마다 적고 가장 약한 것을 적는다**(링 버퍼 확장이 있으므로 push 류는 amortized 가 맞다. worst 로 적으면 확장 구현이 배제된다) ② 규약2 — _reference/deque.ts 정본 + deque.contract.ts + runContract 호출부. 적대적 입력은 하나로 부족하다(§규약2) — 큐 패턴과 역큐 패턴을 각각 시나리오로 둔다 ③ 규약3 — **8단계 골격의 첫 산출물이자 guide-core 펜스의 첫 왕복이다.** 현재 저장소의 펜스는 0건이고, 이 카드가 ```ts guide-core=<경로>#<구간> 을 처음 박는다. bun run tools/guide-core.ts check 가 통과해야 한다. 활용 사례는 2단계 하위 절 「쓰이는 자리」에 두되 요구를 연산 집합과 호출 빈도로 번역해서 적는다 ④ **이 산출물이 나오면 KAN-016 이 paths.json exemplars.ds-guide 를 이것으로 교체한다** — 현재 모범 예시 bPlusTree-guide.mdx 는 구 5단계 문형이다. **집필 전 확인**: authoring.py status/lock. 플러그인이 안 잡히면 거기서 멈춘다(구 경로 폴백 없음). 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md §규약1·§규약2·§규약3"
+    },
     {
       "seq": 69,
       "t": "2026-08-04T18:36",
@@ -900,17 +910,6 @@
       "col": "backlog",
       "title": "[P3·21] suffixArray·suffixTree 구성 복잡도 정합",
       "memo": "공수 M·리스크 중. naive O(n² log n)/O(n²)를 명시는 했으나 스토리가 30억 염기 BLAST. naive 유지 시 스토리 스케일 조정, 또는 O(n log n)/Ukkonen 승격 중 택1. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
-      "verbatim": ""
-    },
-    {
-      "seq": 20,
-      "t": "2026-08-02T23:36",
-      "a": "ai",
-      "id": "KAN-020",
-      "op": "create",
-      "col": "backlog",
-      "title": "[P2·20] unrolledLinkedList 재집필 — 양방향 연결",
-      "memo": "공수 M·리스크 하. 표는 pop() O(1) amortized인데 상세는 'head부터 순회 O(p)'. 에스컬레이션 (나) 판정 예상 — 점근 계약은 TS로 충족, 캐시 지역성만 Rust 실측. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
       "verbatim": ""
     }
   ]
