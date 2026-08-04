@@ -1,6 +1,6 @@
 {
   "next_id": 32,
-  "next_seq": 86,
+  "next_seq": 88,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -87,15 +87,15 @@
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-008": {
-      "col": "backlog",
+      "col": "done",
       "title": "[P1·8] deque 재집필 — 배열/버퍼 계열 파일럿",
-      "memo": "공수 L·리스크 중. 두 배열 처방 제거, 링 버퍼를 대표 구현으로(단 \"정답\"으로 고정 금지). 축3에 큐·역큐 적대 패턴. _bench/로 실측 이관 — 수치뿐 아니라 재현 명령·입력·환경(bun 버전·머신)까지 고정. 현 실측: 큐 패턴 이동 2.95 vs 0.55, 지연 스파이크 7.7ms vs 0.015ms. **이 카드가 규약 1~3 을 전부 처음으로 함께 도는 첫 파일럿이다(B4 에서 확정, 2026-08-04).** 지는 것 넷. ① 규약1 — deque-problem.md 제거, .ts 헤더 JSDoc 여섯 항목. **한정자를 연산마다 적고 가장 약한 것을 적는다**(링 버퍼 확장이 있으므로 push 류는 amortized 가 맞다. worst 로 적으면 확장 구현이 배제된다) ② 규약2 — _reference/deque.ts 정본 + deque.contract.ts + runContract 호출부. 적대적 입력은 하나로 부족하다(§규약2) — 큐 패턴과 역큐 패턴을 각각 시나리오로 둔다 ③ 규약3 — **8단계 골격의 첫 산출물이자 guide-core 펜스의 첫 왕복이다.** 현재 저장소의 펜스는 0건이고, 이 카드가 ```ts guide-core=<경로>#<구간> 을 처음 박는다. bun run tools/guide-core.ts check 가 통과해야 한다. 활용 사례는 2단계 하위 절 「쓰이는 자리」에 두되 요구를 연산 집합과 호출 빈도로 번역해서 적는다 ④ **이 산출물이 나오면 KAN-016 이 paths.json exemplars.ds-guide 를 이것으로 교체한다** — 현재 모범 예시 bPlusTree-guide.mdx 는 구 5단계 문형이다. **집필 전 확인**: authoring.py status/lock. 플러그인이 안 잡히면 거기서 멈춘다(구 경로 폴백 없음). 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md §규약1·§규약2·§규약3",
+      "memo": "공수 L·리스크 중. **B7 완료(2026-08-04). 규약 1~3 이 한 구조에서 처음으로 함께 돌았고 전부 통과한다**(bun run tools/ci.ts all 10단계). **규약1** — deque-problem.md 제거(참조 스윕 결과 가리키는 곳 0), 헤더 JSDoc 여섯 항목. 불변식은 \"없다 + 이유\"(앞과 뒤가 같은 수열의 두 끝이라는 사실은 peek 들의 의미가 정의한다). 한정자가 갈린다 — 넣고 빼기 넷은 amortized, 보기 넷은 worst. **검증 등급 complexity 이고 불변식은 공집합이다** — 판정 절차가 상한(2번)을 불변식(3번)보다 먼저 보기 때문이고, **공집합 축2가 basic 의 전유물이 아님을 보이는 첫 사례다**(§규약2에 기록). 반례: 배열 하나에 unshift 를 쓰면 pushFront 가 O(n). **규약2** — _reference/deque.ts(링 버퍼) + deque.contract.ts(시나리오 5개가 여덟 행 전부 커버, 그중 3개 적대적) + runContract 호출부. 벽시계 테스트 삭제. **결함 fixture 둘**: unshiftDeque(명세가 든 반례 그 자체) · twoArrayDeque(진단이 지적한 **처방된 구현**). 둘 다 동작상 옳아 축1·축2 통과. **적대적 입력이 하나로 부족하다는 두 번째 사례가 더 극단적이다** — 두 배열 덱은 **다섯 중 넷을 통과한다**(큐 패턴에서 상각이 실제로 옳다, r=1.00). 앞뒤 교대 하나에서만 r=4.00 이고, 그 패턴은 덱의 대표 용도인 팰린드롬 검사와 같은 모양이다. **규약3** — 8단계 골격의 첫 산출물이자 guide-core 펜스의 첫 실전 왕복. 문제 스토리 제거, 2단계 사례 넷을 전부 연산 집합과 호출 빈도로 번역, 3단계 근거를 **벽시계에서 성장률로 교체**(같은 배열의 shift 는 시간으로 재면 엔진 최적화 때문에 늘지 않아 결함 구현이 통과해 버린다 — 불변 사실 7 의 실물 사례), 대표 구현을 두 배열에서 링 버퍼로(진단 권고, 단 \"정답\"으로 고정하지 않고 사용 조건이 달라지면 다른 구현이 적합하다는 진술 포함), 6단계는 규약4 (-) 등급이라 생략, 시뮬레이션을 링 버퍼용으로 새로 씀(반환값 실측 확인). **측정값**(연산당 건드린 칸 수, n=1024/4096/16384): 앞으로만 넣기 링버퍼 1.99/2.00/2.00 vs unshift 512.50/2048.50/8192.50 · 큐 패턴 둘 다 1.50 · 앞뒤 교대 링버퍼 1.00 vs 두배열 513.50/2049.50/8193.50. **딸린 결과**: KAN-016 ② 해소(모범 예시를 이 산출물로 교체) · 골격 회귀 목록 신설(tools/guide-skeleton.test.ts REWRITTEN) · 인벤토리 complexity/has_reference=true/problem_lines=0 · 언어 중립 vector 3종째. 테스트 396 pass(B6 375 에서 +21). 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md §규약1·§규약2·§규약3",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
       "갱신": "2026-08-04",
       "title_hash": "8d3ca50e8552f6de58444d31a1ecaa02743fa1bf",
-      "memo_hash": "2faee8dcce624d6b8deba61952d4ebfdaa36cf42",
+      "memo_hash": "dd635b014e8860a359a57a70311d35a43033ed5d",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-009": {
@@ -376,7 +376,6 @@
     }
   },
   "order": [
-    "KAN-008",
     "KAN-009",
     "KAN-010",
     "KAN-011",
@@ -406,9 +405,29 @@
     "KAN-012",
     "KAN-013",
     "KAN-017",
-    "KAN-018"
+    "KAN-018",
+    "KAN-008"
   ],
   "recent": [
+    {
+      "seq": 87,
+      "t": "2026-08-04T21:25",
+      "a": "ai",
+      "id": "KAN-008",
+      "op": "move",
+      "from": "backlog",
+      "to": "done"
+    },
+    {
+      "seq": 86,
+      "t": "2026-08-04T21:25",
+      "a": "ai",
+      "id": "KAN-008",
+      "op": "edit",
+      "field": "memo",
+      "before": "공수 L·리스크 중. 두 배열 처방 제거, 링 버퍼를 대표 구현으로(단 \"정답\"으로 고정 금지). 축3에 큐·역큐 적대 패턴. _bench/로 실측 이관 — 수치뿐 아니라 재현 명령·입력·환경(bun 버전·머신)까지 고정. 현 실측: 큐 패턴 이동 2.95 vs 0.55, 지연 스파이크 7.7ms vs 0.015ms. **이 카드가 규약 1~3 을 전부 처음으로 함께 도는 첫 파일럿이다(B4 에서 확정, 2026-08-04).** 지는 것 넷. ① 규약1 — deque-problem.md 제거, .ts 헤더 JSDoc 여섯 항목. **한정자를 연산마다 적고 가장 약한 것을 적는다**(링 버퍼 확장이 있으므로 push 류는 amortized 가 맞다. worst 로 적으면 확장 구현이 배제된다) ② 규약2 — _reference/deque.ts 정본 + deque.contract.ts + runContract 호출부. 적대적 입력은 하나로 부족하다(§규약2) — 큐 패턴과 역큐 패턴을 각각 시나리오로 둔다 ③ 규약3 — **8단계 골격의 첫 산출물이자 guide-core 펜스의 첫 왕복이다.** 현재 저장소의 펜스는 0건이고, 이 카드가 ```ts guide-core=<경로>#<구간> 을 처음 박는다. bun run tools/guide-core.ts check 가 통과해야 한다. 활용 사례는 2단계 하위 절 「쓰이는 자리」에 두되 요구를 연산 집합과 호출 빈도로 번역해서 적는다 ④ **이 산출물이 나오면 KAN-016 이 paths.json exemplars.ds-guide 를 이것으로 교체한다** — 현재 모범 예시 bPlusTree-guide.mdx 는 구 5단계 문형이다. **집필 전 확인**: authoring.py status/lock. 플러그인이 안 잡히면 거기서 멈춘다(구 경로 폴백 없음). 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md §규약1·§규약2·§규약3",
+      "after": "공수 L·리스크 중. **B7 완료(2026-08-04). 규약 1~3 이 한 구조에서 처음으로 함께 돌았고 전부 통과한다**(bun run tools/ci.ts all 10단계). **규약1** — deque-problem.md 제거(참조 스윕 결과 가리키는 곳 0), 헤더 JSDoc 여섯 항목. 불변식은 \"없다 + 이유\"(앞과 뒤가 같은 수열의 두 끝이라는 사실은 peek 들의 의미가 정의한다). 한정자가 갈린다 — 넣고 빼기 넷은 amortized, 보기 넷은 worst. **검증 등급 complexity 이고 불변식은 공집합이다** — 판정 절차가 상한(2번)을 불변식(3번)보다 먼저 보기 때문이고, **공집합 축2가 basic 의 전유물이 아님을 보이는 첫 사례다**(§규약2에 기록). 반례: 배열 하나에 unshift 를 쓰면 pushFront 가 O(n). **규약2** — _reference/deque.ts(링 버퍼) + deque.contract.ts(시나리오 5개가 여덟 행 전부 커버, 그중 3개 적대적) + runContract 호출부. 벽시계 테스트 삭제. **결함 fixture 둘**: unshiftDeque(명세가 든 반례 그 자체) · twoArrayDeque(진단이 지적한 **처방된 구현**). 둘 다 동작상 옳아 축1·축2 통과. **적대적 입력이 하나로 부족하다는 두 번째 사례가 더 극단적이다** — 두 배열 덱은 **다섯 중 넷을 통과한다**(큐 패턴에서 상각이 실제로 옳다, r=1.00). 앞뒤 교대 하나에서만 r=4.00 이고, 그 패턴은 덱의 대표 용도인 팰린드롬 검사와 같은 모양이다. **규약3** — 8단계 골격의 첫 산출물이자 guide-core 펜스의 첫 실전 왕복. 문제 스토리 제거, 2단계 사례 넷을 전부 연산 집합과 호출 빈도로 번역, 3단계 근거를 **벽시계에서 성장률로 교체**(같은 배열의 shift 는 시간으로 재면 엔진 최적화 때문에 늘지 않아 결함 구현이 통과해 버린다 — 불변 사실 7 의 실물 사례), 대표 구현을 두 배열에서 링 버퍼로(진단 권고, 단 \"정답\"으로 고정하지 않고 사용 조건이 달라지면 다른 구현이 적합하다는 진술 포함), 6단계는 규약4 (-) 등급이라 생략, 시뮬레이션을 링 버퍼용으로 새로 씀(반환값 실측 확인). **측정값**(연산당 건드린 칸 수, n=1024/4096/16384): 앞으로만 넣기 링버퍼 1.99/2.00/2.00 vs unshift 512.50/2048.50/8192.50 · 큐 패턴 둘 다 1.50 · 앞뒤 교대 링버퍼 1.00 vs 두배열 513.50/2049.50/8193.50. **딸린 결과**: KAN-016 ② 해소(모범 예시를 이 산출물로 교체) · 골격 회귀 목록 신설(tools/guide-skeleton.test.ts REWRITTEN) · 인벤토리 complexity/has_reference=true/problem_lines=0 · 언어 중립 vector 3종째. 테스트 396 pass(B6 375 에서 +21). 근거: ORDER.md ORD-006 / docs/ORD-006-conventions.md §규약1·§규약2·§규약3"
+    },
     {
       "seq": 85,
       "t": "2026-08-04T20:58",
@@ -876,25 +895,6 @@
       "field": "memo",
       "before": "공수 S·리스크 중. **rev4 신설. P1 파일럿 착수 전 필수 관문.** guide-for-problem·gen-problem 둘 다 0단계에서 authoring.py status 를 돌리고 없으면 거기서 멈춘다(구 경로 폴백 없음) — 엔진이 안 잡히면 KAN-008~010 파일럿이 집필 단계에 진입조차 못 한다. **2026-08-04 처리 완료:** ①claude plugin install authoring-kit@centurio87-plugins --scope project → 0.3.0 enabled, 스킬 6종(authoring-write·gate·method·spec·voice·doctor) 등록. .claude/settings.json 의 enabledPlugins 에 기록돼 워크트리와 무관하게 따라간다 ②authoring.py lock --update → plugin 0.2.0→0.3.0, principles revision 9354711→6484b5c, QUALITY_RUBRIC 해시 갱신. **spec·voice 해시는 불변** = 0.3.0 승격이 프로젝트 spec 3종을 무효화하지 않는다 ③루브릭 변경분은 H축(이해 게이트) 신설 — ORD-005/006 방향과 일치해 그대로 수용 ④status 정상(spec 3종·voice 5종 인식), lock 최신. **남은 확인: 세션 재시작 후 Skill(authoring-kit:authoring-write) 가 실제로 뜨는지.** 근거: docs/ORD-006-strategy.md 집필 엔진(rev4)",
       "after": "공수 S·리스크 중. **rev4 신설. P1 파일럿 착수 전 필수 관문.** guide-for-problem·gen-problem 둘 다 0단계에서 authoring.py status 를 돌리고 없으면 거기서 멈춘다(구 경로 폴백 없음). **2026-08-04 1차 처리:** 플러그인 project 스코프 설치(0.3.0, 스킬 6종) + lock 0.2.0→0.3.0 재고정. **2026-08-04 재점검(B0):** ① lock 이 다시 stale — principles 가 f4e11e6 으로 전진했고 내용은 D5(지어낸 은유 동사 금지)·F5(가짜 질문 부정 도입 금지) 신설이다. ORD-006 원문 '무너지긴 뭐가 무너져. 오버좀 하지 마라' 와 같은 요구라 수용하고 lock --update 로 재고정했다. **spec·voice·QUALITY_RUBRIC 해시는 불변** = ds-guide spec 3종 무효화 없음 ② authoring.py status 정상(spec 3종·voice 5종), lock 최신 ③ **그러나 이 세션의 스킬 목록에 authoring-kit:* 6종이 없다.** /clear 는 플러그인을 재적재하지 않는다(설치 시각 14:36 < 현 CLI 프로세스 시작 시각). **CLI 프로세스를 완전히 재시작한 뒤 Skill(authoring-kit:authoring-write) 가 실제로 뜨는지 확인해야 종결 가능.** 그때까지 검토 유지 — 이게 안 되면 KAN-008~010 파일럿이 집필 단계에 진입하지 못한다. 근거: docs/ORD-006-strategy.md 집필 엔진(rev4)"
-    },
-    {
-      "seq": 37,
-      "t": "2026-08-04T16:16",
-      "a": "ai",
-      "id": "KAN-001",
-      "op": "edit",
-      "field": "memo",
-      "before": "공수 S·리스크 하. ORDER.md 신규 지시에 원문+진단표 기재, docs/ORD-006-strategy.md에 전략 전문 보존. 전 카드 완료 시 COMMITTED로 봉인. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md",
-      "after": "공수 S·리스크 하. ORDER.md 신규 지시에 원문+진단표 기재, docs/ORD-006-strategy.md에 전략 전문 보존. 전 카드 완료 시 COMMITTED로 봉인. **이관분 완료 확인(2026-08-04)** — ORDER.md:13-24 원문 verbatim, :39-63 진단 9건 표, docs/ORD-006-strategy.md 전문이 모두 존재한다. **잔여 작업 = 봉인뿐.** 선행조건은 KAN-002~030 전 카드 완료. 실행 계획(배치 B0~최종)은 ~/.claude/plans/kan-001-jazzy-charm.md. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md"
-    },
-    {
-      "seq": 36,
-      "t": "2026-08-04T14:37",
-      "a": "ai",
-      "id": "KAN-029",
-      "op": "move",
-      "from": "todo",
-      "to": "review"
     }
   ]
 }
