@@ -25,7 +25,9 @@ function headPtrStream(n: number) {
 }
 
 for (const n of [100000, 300000, 500000]) {
-  console.log(`n=${n} naive(push2+shift2 interleaved): ${naiveStream(n).toFixed(1)}ms`);
+  console.log(
+    `n=${n} naive(push2+shift2 interleaved): ${naiveStream(n).toFixed(1)}ms`,
+  );
 }
 
 // burst 패턴: 다량 push 후 다량 shift (프린터 대기열이 몰릴 때)
@@ -41,6 +43,8 @@ function naiveBurst(n: number, bursts: number) {
 }
 for (const n of [200000]) {
   for (const bursts of [1, 10, 100, 1000]) {
-    console.log(`n=${n} bursts=${bursts} naive burst: ${naiveBurst(n, bursts).toFixed(1)}ms`);
+    console.log(
+      `n=${n} bursts=${bursts} naive burst: ${naiveBurst(n, bursts).toFixed(1)}ms`,
+    );
   }
 }

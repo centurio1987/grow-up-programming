@@ -1,0 +1,1014 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "Queue",
+  "grade": "basic",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 큐에서 dequeue·front 는 null 이고 상태를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "dequeue",
+          "expect": null
+        },
+        {
+          "op": "front",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "dequeue",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        }
+      ]
+    },
+    {
+      "name": "먼저 들어온 것이 먼저 나간다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 2
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "front 는 상태를 바꾸지 않고, 직후 dequeue 가 같은 값을 준다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 7
+        },
+        {
+          "op": "enqueue",
+          "arg": 8
+        },
+        {
+          "op": "front",
+          "expect": 7
+        },
+        {
+          "op": "front",
+          "expect": 7
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": 7
+        },
+        {
+          "op": "front",
+          "expect": 8
+        }
+      ]
+    },
+    {
+      "name": "비웠다가 다시 채워도 순서가 어긋나지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 2
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "front",
+          "expect": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "넣기와 꺼내기를 번갈아 해도 한 칸짜리 큐가 된다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": 2
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "front",
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "빈 큐에서 꺼낸 뒤에도 다음 넣기가 정상이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "dequeue",
+          "expect": null
+        },
+        {
+          "op": "enqueue",
+          "arg": 5
+        },
+        {
+          "op": "front",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "enqueue",
+          "arg": 52
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 52
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "front",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "front",
+          "expect": null
+        },
+        {
+          "op": "front",
+          "expect": null
+        },
+        {
+          "op": "enqueue",
+          "arg": 40
+        },
+        {
+          "op": "dequeue",
+          "expect": 40
+        },
+        {
+          "op": "enqueue",
+          "arg": 48
+        },
+        {
+          "op": "enqueue",
+          "arg": 39
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 48
+        },
+        {
+          "op": "enqueue",
+          "arg": 4
+        },
+        {
+          "op": "front",
+          "expect": 39
+        },
+        {
+          "op": "front",
+          "expect": 39
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 39
+        },
+        {
+          "op": "dequeue",
+          "expect": 4
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "front",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "enqueue",
+          "arg": 72
+        },
+        {
+          "op": "front",
+          "expect": 72
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 72
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "enqueue",
+          "arg": 32
+        },
+        {
+          "op": "front",
+          "expect": 32
+        },
+        {
+          "op": "dequeue",
+          "expect": 32
+        },
+        {
+          "op": "enqueue",
+          "arg": 72
+        },
+        {
+          "op": "front",
+          "expect": 72
+        },
+        {
+          "op": "enqueue",
+          "arg": 26
+        },
+        {
+          "op": "enqueue",
+          "arg": 62
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": 72
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "front",
+          "expect": 26
+        },
+        {
+          "op": "dequeue",
+          "expect": 26
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": 62
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "front",
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 67
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "enqueue",
+          "arg": 97
+        },
+        {
+          "op": "enqueue",
+          "arg": 38
+        },
+        {
+          "op": "enqueue",
+          "arg": 40
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "front",
+          "expect": 67
+        },
+        {
+          "op": "front",
+          "expect": 67
+        },
+        {
+          "op": "enqueue",
+          "arg": 80
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "dequeue",
+          "expect": 67
+        },
+        {
+          "op": "enqueue",
+          "arg": 30
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "dequeue",
+          "expect": 97
+        },
+        {
+          "op": "enqueue",
+          "arg": 65
+        },
+        {
+          "op": "front",
+          "expect": 38
+        },
+        {
+          "op": "dequeue",
+          "expect": 38
+        },
+        {
+          "op": "enqueue",
+          "arg": 14
+        },
+        {
+          "op": "enqueue",
+          "arg": 30
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 50
+        },
+        {
+          "op": "front",
+          "expect": 40
+        },
+        {
+          "op": "dequeue",
+          "expect": 40
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 80
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "enqueue",
+          "arg": 18
+        },
+        {
+          "op": "enqueue",
+          "arg": 98
+        },
+        {
+          "op": "dequeue",
+          "expect": 30
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "enqueue",
+          "arg": 25
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 65
+        },
+        {
+          "op": "enqueue",
+          "arg": 14
+        },
+        {
+          "op": "front",
+          "expect": 14
+        },
+        {
+          "op": "front",
+          "expect": 14
+        },
+        {
+          "op": "dequeue",
+          "expect": 14
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "dequeue",
+          "expect": 30
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 50
+        },
+        {
+          "op": "dequeue",
+          "expect": 18
+        },
+        {
+          "op": "dequeue",
+          "expect": 98
+        },
+        {
+          "op": "dequeue",
+          "expect": 25
+        },
+        {
+          "op": "dequeue",
+          "expect": 14
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "enqueue",
+          "arg": 32
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 32
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "enqueue",
+          "arg": 82
+        },
+        {
+          "op": "dequeue",
+          "expect": 82
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "front",
+          "expect": null
+        },
+        {
+          "op": "front",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "dequeue",
+          "expect": null
+        },
+        {
+          "op": "dequeue",
+          "expect": null
+        },
+        {
+          "op": "front",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "enqueue",
+          "arg": 20
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 32
+        },
+        {
+          "op": "front",
+          "expect": 20
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 20
+        },
+        {
+          "op": "dequeue",
+          "expect": 32
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "enqueue",
+          "arg": 92
+        },
+        {
+          "op": "front",
+          "expect": 92
+        },
+        {
+          "op": "front",
+          "expect": 92
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 7
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "enqueue",
+          "arg": 71
+        },
+        {
+          "op": "dequeue",
+          "expect": 92
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 7
+        },
+        {
+          "op": "front",
+          "expect": 71
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 11
+        },
+        {
+          "op": "enqueue",
+          "arg": 68
+        },
+        {
+          "op": "enqueue",
+          "arg": 52
+        },
+        {
+          "op": "dequeue",
+          "expect": 71
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 11
+        },
+        {
+          "op": "enqueue",
+          "arg": 99
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "enqueue",
+          "arg": 86
+        },
+        {
+          "op": "enqueue",
+          "arg": 39
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "front",
+          "expect": 68
+        },
+        {
+          "op": "dequeue",
+          "expect": 68
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 28
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "front",
+          "expect": 52
+        },
+        {
+          "op": "enqueue",
+          "arg": 16
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 52
+        },
+        {
+          "op": "enqueue",
+          "arg": 64
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 6
+        },
+        {
+          "op": "enqueue",
+          "arg": 40
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "enqueue",
+          "arg": 86
+        },
+        {
+          "op": "size",
+          "expect": 9
+        },
+        {
+          "op": "enqueue",
+          "arg": 82
+        },
+        {
+          "op": "front",
+          "expect": 99
+        },
+        {
+          "op": "front",
+          "expect": 99
+        },
+        {
+          "op": "dequeue",
+          "expect": 99
+        },
+        {
+          "op": "enqueue",
+          "arg": 8
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 86
+        },
+        {
+          "op": "enqueue",
+          "arg": 50
+        },
+        {
+          "op": "front",
+          "expect": 39
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 10
+        },
+        {
+          "op": "front",
+          "expect": 39
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        }
+      ]
+    }
+  ]
+}

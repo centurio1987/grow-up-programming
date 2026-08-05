@@ -115,7 +115,11 @@ console.log("=== 대표 시나리오 (시뮬레이션 steps와 1:1 대응) ===")
   const q = new Queue<number>();
   assertEqual(q.isEmpty(), true, "초기 상태 isEmpty");
   q.enqueue(1);
-  assertEqual([...(q as any).items].filter((v: any) => v !== undefined), [1], "enqueue(1) 후 배열");
+  assertEqual(
+    [...(q as any).items].filter((v: any) => v !== undefined),
+    [1],
+    "enqueue(1) 후 배열",
+  );
   assertEqual(q.size(), 1, "enqueue(1) 후 size");
   q.enqueue(2);
   assertEqual(q.size(), 2, "enqueue(2) 후 size");
@@ -160,9 +164,17 @@ console.log("\n=== 원형(naive) vs 최종 — 결과 동일성 (소규모) ==="
       naive.enqueue(op[1]);
       final.enqueue(op[1]);
     } else if (op[0] === "dequeue") {
-      assertEqual(final.dequeue(), naive.dequeue(), `dequeue 동일성 (${JSON.stringify(op)})`);
+      assertEqual(
+        final.dequeue(),
+        naive.dequeue(),
+        `dequeue 동일성 (${JSON.stringify(op)})`,
+      );
     } else {
-      assertEqual(final.front(), naive.front(), `front 동일성 (${JSON.stringify(op)})`);
+      assertEqual(
+        final.front(),
+        naive.front(),
+        `front 동일성 (${JSON.stringify(op)})`,
+      );
     }
   }
 }
@@ -209,7 +221,11 @@ console.log("\n=== 1단계(head 포인터, 압축 없음) — 메모리 누수 �
     q.dequeue();
   }
   assertEqual(q.size(), 0, "1단계: N회 enqueue+dequeue 후 size()");
-  assertEqual(q.rawLength(), N, "1단계: 내부 배열 길이 — size()는 0인데 배열은 그대로 N칸");
+  assertEqual(
+    q.rawLength(),
+    N,
+    "1단계: 내부 배열 길이 — size()는 0인데 배열은 그대로 N칸",
+  );
 }
 
 console.log("\n=== 2단계(최종, 압축 적용) — 메모리 상한 확인 ===");
@@ -231,7 +247,9 @@ console.log("\n=== 2단계(최종, 압축 적용) — 메모리 상한 확인 ==
   }
 }
 
-console.log("\n=== 성능 목표 검증: naive O(n) vs 최종 O(1) 체감 (문제 제약 n=10^6) ===");
+console.log(
+  "\n=== 성능 목표 검증: naive O(n) vs 최종 O(1) 체감 (문제 제약 n=10^6) ===",
+);
 {
   const n = 1_000_000;
   const naive = new NaiveQueue<number>();
@@ -252,7 +270,9 @@ console.log("\n=== 성능 목표 검증: naive O(n) vs 최종 O(1) 체감 (문�
     console.error("FAIL: 최종 구현이 naive보다 느림 — 성능 주장 재검토 필요");
     process.exitCode = 1;
   } else {
-    console.log(`OK: 최종 구현이 naive보다 빠름 (배율 ${(naiveMs / Math.max(finalMs, 0.01)).toFixed(1)}x)`);
+    console.log(
+      `OK: 최종 구현이 naive보다 빠름 (배율 ${(naiveMs / Math.max(finalMs, 0.01)).toFixed(1)}x)`,
+    );
   }
 }
 

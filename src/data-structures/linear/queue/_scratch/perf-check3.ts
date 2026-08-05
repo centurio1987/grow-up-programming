@@ -17,5 +17,7 @@ function finalFull(n: number) {
   return performance.now() - t0;
 }
 for (const n of [1000000]) {
-  console.log(`n=${n} naive: ${naiveFull(n).toFixed(1)}ms, final(head++): ${finalFull(n).toFixed(2)}ms`);
+  console.log(
+    `n=${n} naive: ${naiveFull(n).toFixed(1)}ms, final(head++): ${finalFull(n).toFixed(2)}ms`,
+  );
 }

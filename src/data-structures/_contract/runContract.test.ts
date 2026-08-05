@@ -15,6 +15,11 @@ import {
   type DequeContract,
   dequeContract,
 } from "../linear/deque/deque.contract";
+import { Queue as ReferenceQueue } from "../linear/queue/_reference/queue";
+import {
+  type QueueContract,
+  queueContract,
+} from "../linear/queue/queue.contract";
 import { Stack as ReferenceStack } from "../linear/stack/_reference/stack";
 import {
   type StackContract,
@@ -56,6 +61,7 @@ import { RootedSuffixTree } from "./_fixtures/rootedSuffixTree";
 import { ScanIntervalList } from "./_fixtures/scanIntervalList";
 import { ScanningSuffixArray } from "./_fixtures/scanningSuffixArray";
 import { ScanningSuffixTree } from "./_fixtures/scanningSuffixTree";
+import { ShiftQueue } from "./_fixtures/shiftQueue";
 import { SortedArrayMultiset } from "./_fixtures/sortedArrayMultiset";
 import { SortedSuffixArray } from "./_fixtures/sortedSuffixArray";
 import { SpliceArrayList } from "./_fixtures/spliceArrayList";
@@ -63,6 +69,7 @@ import { TailScanList } from "./_fixtures/tailScanList";
 import { TwoArrayDeque } from "./_fixtures/twoArrayDeque";
 import { UnbalancedIntervalTree } from "./_fixtures/unbalancedIntervalTree";
 import { UnshiftDeque } from "./_fixtures/unshiftDeque";
+import { UnshiftQueue } from "./_fixtures/unshiftQueue";
 import { expectedRatio, judgeGrowth, statistic } from "./judge";
 import {
   type CostScenario,
@@ -317,6 +324,19 @@ const scanningSuffixTree: CostSource<SuffixTreeShell> = {
   make: () => new SuffixTreeShell((s) => new ScanningSuffixTree(s)),
 };
 
+const referenceQueue: CostSource<QueueContract<number>> = {
+  kind: "self-reported",
+  make: () => new ReferenceQueue<number>(),
+};
+const shiftQueue: CostSource<QueueContract<number>> = {
+  kind: "self-reported",
+  make: () => new ShiftQueue<number>(),
+};
+const unshiftQueue: CostSource<QueueContract<number>> = {
+  kind: "self-reported",
+  make: () => new UnshiftQueue<number>(),
+};
+
 const spliceArrayList: CostSource<UnrolledLinkedListContract<number>> = {
   kind: "self-reported",
   make: () => new SpliceArrayList<number>(),
@@ -376,6 +396,15 @@ describe("축3 — 정본은 통과한다", () => {
         scenario,
         "complexity",
       );
+      expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
+        `${scenario.covers.join("·")}: `,
+      );
+    }
+  });
+
+  test("Queue 정본이 세 시나리오를 전부 지킨다 — 회귀 수준으로", () => {
+    for (const scenario of queueContract.scenarios) {
+      const verdict = judgeScenario(referenceQueue, scenario, "basic");
       expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
         `${scenario.covers.join("·")}: `,
       );
@@ -640,6 +669,45 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     }
     return result;
   }
+
+  test("큐의 두 결함이 서로 반대쪽에서 걸린다 — 넣기와 꺼내기", () => {
+    // 앞을 실제로 지우는 구현: 꺼내기만 무너진다.
+    const drain = judgeScenario(
+      shiftQueue,
+      scenarioOf(queueContract, "dequeue", true),
+      "basic",
+    );
+    expect(drain.ok).toBe(false);
+    expect(drain.reason).toContain("O(1)");
+    for (const covers of ["enqueue", "front"]) {
+      const verdict = judgeScenario(
+        shiftQueue,
+        scenarioOf(queueContract, covers, false),
+        "basic",
+      );
+      expect(`${covers}: ${verdict.reason}`).toBe(`${covers}: `);
+    }
+
+    // 앞에 끼워 넣는 구현: 넣기만 무너진다. 한쪽만 두면 다른 쪽이 통과한다.
+    const fill = judgeScenario(
+      unshiftQueue,
+      scenarioOf(queueContract, "enqueue", false),
+      "basic",
+    );
+    expect(fill.ok).toBe(false);
+    expect(fill.reason).toContain("O(1)");
+    for (const [covers, adversarial] of [
+      ["dequeue", true],
+      ["front", false],
+    ] as const) {
+      const verdict = judgeScenario(
+        unshiftQueue,
+        scenarioOf(queueContract, covers, adversarial),
+        "basic",
+      );
+      expect(`${covers}: ${verdict.reason}`).toBe(`${covers}: `);
+    }
+  });
 
   test("접미사를 통째로 견주어 정렬하면 반복 입력에서만 걸린다", () => {
     expect(outcomes(sortedSuffixArray, suffixArrayContract)).toEqual({

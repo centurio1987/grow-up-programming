@@ -1,92 +1,24 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `linear/queue` 계약 스위트 실행부(규약2).
+ *
+ * 여기에는 `runContract` 호출만 둔다. 무엇을 검사하는지는 `./queue.contract.ts` 에 있고,
+ * 계약 자체는 `./queue.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다.
+ * 축3은 계측기가 붙은 정본에만 돈다 — 학습자 스텁에 `__cost` 를 요구하지 않는다.
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 고정 n 의 임계값이 재는 것은 복잡도 등급이
+ * 아니라 그 기계의 상수다. 자리는 축3이다.
+ */
+
+import { runContract } from "../../_contract/runContract";
+import { Queue as Reference } from "./_reference/queue";
 import { Queue } from "./queue";
+import { queueContract } from "./queue.contract";
 
-describe("Queue", () => {
-  describe("기본", () => {
-    test("enqueue 후 front는 첫 번째 원소를 반환한다", () => {
-      const q = new Queue<number>();
-      q.enqueue(1);
-      q.enqueue(2);
-      expect(q.front()).toBe(1);
-    });
+runContract(() => new Queue<number>(), queueContract, { label: "스텁" });
 
-    test("dequeue는 FIFO 순서로 반환한다", () => {
-      const q = new Queue<number>();
-      q.enqueue(1);
-      q.enqueue(2);
-      q.enqueue(3);
-      expect(q.dequeue()).toBe(1);
-      expect(q.dequeue()).toBe(2);
-      expect(q.dequeue()).toBe(3);
-    });
-
-    test("size는 현재 원소 개수를 반환한다", () => {
-      const q = new Queue<string>();
-      expect(q.size()).toBe(0);
-      q.enqueue("a");
-      q.enqueue("b");
-      expect(q.size()).toBe(2);
-      q.dequeue();
-      expect(q.size()).toBe(1);
-    });
-  });
-
-  describe("엣지", () => {
-    test("빈 큐에서 dequeue는 null을 반환한다", () => {
-      const q = new Queue<number>();
-      expect(q.dequeue()).toBeNull();
-    });
-
-    test("빈 큐에서 front는 null을 반환한다", () => {
-      const q = new Queue<number>();
-      expect(q.front()).toBeNull();
-    });
-
-    test("isEmpty — enqueue/dequeue 후 정확히 동작한다", () => {
-      const q = new Queue<number>();
-      expect(q.isEmpty()).toBe(true);
-      q.enqueue(1);
-      expect(q.isEmpty()).toBe(false);
-      q.dequeue();
-      expect(q.isEmpty()).toBe(true);
-    });
-
-    test("모든 원소를 dequeue한 뒤 다시 enqueue 가능하다", () => {
-      const q = new Queue<number>();
-      q.enqueue(1);
-      q.dequeue();
-      q.enqueue(2);
-      expect(q.front()).toBe(2);
-      expect(q.size()).toBe(1);
-    });
-  });
-
-  describe("바운더리", () => {
-    test("단일 원소 enqueue/dequeue", () => {
-      const q = new Queue<number>();
-      q.enqueue(99);
-      expect(q.size()).toBe(1);
-      expect(q.dequeue()).toBe(99);
-      expect(q.isEmpty()).toBe(true);
-    });
-
-    test("제네릭 타입 — 객체 큐", () => {
-      const q = new Queue<{ id: number }>();
-      q.enqueue({ id: 1 });
-      q.enqueue({ id: 2 });
-      expect(q.dequeue()?.id).toBe(1);
-    });
-  });
-
-  describe("성능", () => {
-    test("10^6 enqueue/dequeue를 200ms 이내에 처리한다", () => {
-      const q = new Queue<number>();
-      const N = 1_000_000;
-      const start = performance.now();
-      for (let i = 0; i < N; i++) q.enqueue(i);
-      for (let i = 0; i < N; i++) q.dequeue();
-      expect(performance.now() - start).toBeLessThan(200);
-      expect(q.isEmpty()).toBe(true);
-    });
-  });
+runContract(() => new Reference<number>(), queueContract, {
+  label: "정본",
+  cost: { kind: "self-reported", make: () => new Reference<number>() },
 });

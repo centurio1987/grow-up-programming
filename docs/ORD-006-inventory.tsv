@@ -27,7 +27,7 @@ src/data-structures/linear/gapBuffer	linear	gapBuffer	-	-	-	81	319	false
 src/data-structures/linear/monotonicQueue	linear	monotonicQueue	-	-	-	77	765	false
 src/data-structures/linear/monotonicStack	linear	monotonicStack	-	-	-	87	305	false
 src/data-structures/linear/pieceTable	linear	pieceTable	-	-	-	82	338	false
-src/data-structures/linear/queue	linear	queue	C	-	-	67	307	false
+src/data-structures/linear/queue	linear	queue	C	basic	-	0	307	true
 src/data-structures/linear/singlyLinkedList	linear	singlyLinkedList	-	-	-	76	328	false
 src/data-structures/linear/stack	linear	stack	-	basic	-	0	272	true
 src/data-structures/linear/unrolledLinkedList	linear	unrolledLinkedList	A	complexity	-	0	650	true
@@ -64,7 +64,7 @@ src/data-structures/tree/treap	tree	treap	-	-	-	76	403	false
 src/data-structures/tree/twoThreeTree	tree	twoThreeTree	-	-	-	91	493	false
 src/data-structures/trie/ahoCorasick	trie	ahoCorasick	-	-	-	84	382	false
 src/data-structures/trie/radixTree	trie	radixTree	-	-	-	78	424	false
-src/data-structures/trie/suffixArray	trie	suffixArray	C	complexity	-	0	311	true
-src/data-structures/trie/suffixTree	trie	suffixTree	C	complexity	-	0	362	true
+src/data-structures/trie/suffixArray	trie	suffixArray	C	complexity	-	0	592	true
+src/data-structures/trie/suffixTree	trie	suffixTree	C	complexity	-	0	934	true
 src/data-structures/trie/ternarySearchTree	trie	ternarySearchTree	-	-	-	81	365	false
 src/data-structures/trie/trie	trie	trie	-	-	-	76	315	false

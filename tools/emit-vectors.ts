@@ -26,6 +26,7 @@ import { unrolledLinkedListContract } from "../src/data-structures/linear/unroll
 import { xorLinkedListContract } from "../src/data-structures/linear/xorLinkedList/xorLinkedList.contract.ts";
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
 import { multisetContract } from "../src/data-structures/tree/multiset/multiset.contract.ts";
+import { queueContract } from "../src/data-structures/linear/queue/queue.contract.ts";
 import { suffixArrayContract } from "../src/data-structures/trie/suffixArray/suffixArray.contract.ts";
 import { suffixTreeContract } from "../src/data-structures/trie/suffixTree/suffixTree.contract.ts";
 
@@ -128,6 +129,7 @@ const SPECS: ContractSpec<any, any>[] = [
   intervalTreeContract,
   xorLinkedListContract,
   unrolledLinkedListContract,
+  queueContract,
   suffixArrayContract,
   suffixTreeContract,
 ];
