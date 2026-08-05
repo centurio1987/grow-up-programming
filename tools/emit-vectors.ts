@@ -28,6 +28,7 @@ import { intervalTreeContract } from "../src/data-structures/range-query/interva
 import { multisetContract } from "../src/data-structures/tree/multiset/multiset.contract.ts";
 import { queueContract } from "../src/data-structures/linear/queue/queue.contract.ts";
 import { suffixArrayContract } from "../src/data-structures/trie/suffixArray/suffixArray.contract.ts";
+import { ternarySearchTreeContract } from "../src/data-structures/trie/ternarySearchTree/ternarySearchTree.contract.ts";
 import { suffixTreeContract } from "../src/data-structures/trie/suffixTree/suffixTree.contract.ts";
 
 const root = resolve(import.meta.dir, "..");
@@ -132,6 +133,7 @@ const SPECS: ContractSpec<any, any>[] = [
   queueContract,
   suffixArrayContract,
   suffixTreeContract,
+  ternarySearchTreeContract,
 ];
 
 const check = Bun.argv.includes("--check");

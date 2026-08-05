@@ -1,0 +1,1282 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "TernarySearchTree",
+  "grade": "invariant",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 집합 — 무엇을 물어도 없다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "search",
+          "arg": "a",
+          "expect": false
+        },
+        {
+          "op": "startsWith",
+          "arg": "",
+          "expect": false
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "",
+          "expect": []
+        },
+        {
+          "op": "delete",
+          "arg": "a",
+          "expect": false
+        }
+      ]
+    },
+    {
+      "name": "빈 낱말도 낱말이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": ""
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "startsWith",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "",
+          "expect": [
+            ""
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": false
+        }
+      ]
+    },
+    {
+      "name": "같은 낱말을 두 번 넣어도 하나다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": "ab"
+        },
+        {
+          "op": "insert",
+          "arg": "ab"
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "delete",
+          "arg": "ab",
+          "expect": true
+        },
+        {
+          "op": "search",
+          "arg": "ab",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 0
+        }
+      ]
+    },
+    {
+      "name": "접두사는 낱말이 아니다 — 담기지 않은 접두사는 search 가 거짓이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": "abc"
+        },
+        {
+          "op": "search",
+          "arg": "ab",
+          "expect": false
+        },
+        {
+          "op": "startsWith",
+          "arg": "ab",
+          "expect": true
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "ab",
+          "expect": [
+            "abc"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "abc",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "한 낱말을 지워도 접두사를 나눠 쓰는 낱말은 남는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": "ab"
+        },
+        {
+          "op": "insert",
+          "arg": "abc"
+        },
+        {
+          "op": "delete",
+          "arg": "ab",
+          "expect": true
+        },
+        {
+          "op": "search",
+          "arg": "abc",
+          "expect": true
+        },
+        {
+          "op": "startsWith",
+          "arg": "ab",
+          "expect": true
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "ab",
+          "expect": [
+            "abc"
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "없는 낱말을 지우면 false 이고 상태는 그대로다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": "ab"
+        },
+        {
+          "op": "delete",
+          "arg": "ac",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "a",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "search",
+          "arg": "ab",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "같은 자리의 다른 문자들이 서로를 가리지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": "b"
+        },
+        {
+          "op": "insert",
+          "arg": "a"
+        },
+        {
+          "op": "insert",
+          "arg": "c"
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "",
+          "expect": [
+            "a",
+            "b",
+            "c"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "search",
+          "arg": "c",
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "b",
+          "expect": true
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "",
+          "expect": [
+            "a",
+            "c"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "delete",
+          "arg": "",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "cab",
+          "expect": false
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "c",
+          "expect": []
+        },
+        {
+          "op": "startsWith",
+          "arg": "a",
+          "expect": false
+        },
+        {
+          "op": "startsWith",
+          "arg": "",
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": "a"
+        },
+        {
+          "op": "startsWith",
+          "arg": "aaa",
+          "expect": false
+        },
+        {
+          "op": "startsWith",
+          "arg": "ca",
+          "expect": false
+        },
+        {
+          "op": "search",
+          "arg": "bc",
+          "expect": false
+        },
+        {
+          "op": "search",
+          "arg": "bc",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "search",
+          "arg": "aab",
+          "expect": false
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": false
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "aa",
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": "ca"
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "a",
+          "expect": [
+            "a"
+          ]
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "ccc",
+          "expect": []
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "insert",
+          "arg": ""
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "search",
+          "arg": "bcc",
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": "ca"
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "insert",
+          "arg": "a"
+        },
+        {
+          "op": "startsWith",
+          "arg": "b",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "ac",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "search",
+          "arg": "aab",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": ""
+        },
+        {
+          "op": "search",
+          "arg": "ba",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "ac",
+          "expect": false
+        },
+        {
+          "op": "search",
+          "arg": "cca",
+          "expect": false
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "search",
+          "arg": "ca",
+          "expect": true
+        },
+        {
+          "op": "search",
+          "arg": "cca",
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": ""
+        },
+        {
+          "op": "startsWith",
+          "arg": "ac",
+          "expect": false
+        },
+        {
+          "op": "search",
+          "arg": "cbc",
+          "expect": false
+        },
+        {
+          "op": "search",
+          "arg": "a",
+          "expect": false
+        },
+        {
+          "op": "search",
+          "arg": "c",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "insert",
+          "arg": "a"
+        },
+        {
+          "op": "insert",
+          "arg": "baa"
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "c",
+          "expect": [
+            "ca"
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": "c",
+          "expect": false
+        },
+        {
+          "op": "startsWith",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "caa",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "aa",
+          "expect": false
+        },
+        {
+          "op": "startsWith",
+          "arg": "bbb",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "delete",
+          "arg": "ba",
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": "aca"
+        },
+        {
+          "op": "delete",
+          "arg": "b",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "insert",
+          "arg": ""
+        },
+        {
+          "op": "search",
+          "arg": "ab",
+          "expect": false
+        },
+        {
+          "op": "startsWith",
+          "arg": "aac",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "insert",
+          "arg": "abb"
+        },
+        {
+          "op": "delete",
+          "arg": "c",
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": "c"
+        },
+        {
+          "op": "delete",
+          "arg": "aa",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": "ba"
+        },
+        {
+          "op": "insert",
+          "arg": ""
+        },
+        {
+          "op": "startsWith",
+          "arg": "bc",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "ca",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "insert",
+          "arg": "bbb"
+        },
+        {
+          "op": "insert",
+          "arg": ""
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "a",
+          "expect": [
+            "a",
+            "abb",
+            "aca"
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": "cc",
+          "expect": false
+        },
+        {
+          "op": "startsWith",
+          "arg": "abc",
+          "expect": false
+        },
+        {
+          "op": "search",
+          "arg": "caa",
+          "expect": false
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "",
+          "expect": [
+            "",
+            "a",
+            "abb",
+            "aca",
+            "ba",
+            "baa",
+            "bbb",
+            "c"
+          ]
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "bcc",
+          "expect": []
+        },
+        {
+          "op": "delete",
+          "arg": "b",
+          "expect": false
+        },
+        {
+          "op": "startsWith",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": "bab"
+        },
+        {
+          "op": "delete",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": "aab"
+        },
+        {
+          "op": "search",
+          "arg": "bba",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "",
+          "expect": false
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "abc",
+          "expect": []
+        },
+        {
+          "op": "delete",
+          "arg": "bb",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "cbc",
+          "expect": false
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "",
+          "expect": [
+            "a",
+            "aab",
+            "abb",
+            "aca",
+            "ba",
+            "baa",
+            "bab",
+            "bbb",
+            "c"
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": "bcb"
+        },
+        {
+          "op": "delete",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "ca",
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": "caa"
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "",
+          "expect": [
+            "aab",
+            "abb",
+            "aca",
+            "ba",
+            "baa",
+            "bab",
+            "bbb",
+            "bcb",
+            "c",
+            "caa"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": false
+        },
+        {
+          "op": "search",
+          "arg": "abc",
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": "cb"
+        },
+        {
+          "op": "startsWith",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "startsWith",
+          "arg": "bcc",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "bc",
+          "expect": false
+        },
+        {
+          "op": "startsWith",
+          "arg": "aba",
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": "bc"
+        },
+        {
+          "op": "search",
+          "arg": "cba",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "bc",
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "ba",
+          "expect": true
+        },
+        {
+          "op": "startsWith",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "b",
+          "expect": false
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": false
+        },
+        {
+          "op": "search",
+          "arg": "a",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "ab",
+          "expect": false
+        },
+        {
+          "op": "search",
+          "arg": "bab",
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": ""
+        },
+        {
+          "op": "startsWith",
+          "arg": "cb",
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "bb",
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": "bb"
+        },
+        {
+          "op": "insert",
+          "arg": "a"
+        },
+        {
+          "op": "delete",
+          "arg": "cbc",
+          "expect": false
+        },
+        {
+          "op": "startsWith",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "search",
+          "arg": "abc",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "startsWith",
+          "arg": "cba",
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": ""
+        },
+        {
+          "op": "delete",
+          "arg": "b",
+          "expect": false
+        },
+        {
+          "op": "startsWith",
+          "arg": "b",
+          "expect": true
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "acb",
+          "expect": []
+        },
+        {
+          "op": "startsWith",
+          "arg": "bbb",
+          "expect": true
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "ca",
+          "expect": [
+            "caa"
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "startsWith",
+          "arg": "aa",
+          "expect": true
+        },
+        {
+          "op": "search",
+          "arg": "bb",
+          "expect": true
+        },
+        {
+          "op": "startsWith",
+          "arg": "c",
+          "expect": true
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "aca",
+          "expect": [
+            "aca"
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": "b"
+        },
+        {
+          "op": "startsWith",
+          "arg": "bc",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 14
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "",
+          "expect": [
+            "",
+            "a",
+            "aab",
+            "abb",
+            "aca",
+            "b",
+            "baa",
+            "bab",
+            "bb",
+            "bbb",
+            "bcb",
+            "c",
+            "caa",
+            "cb"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": "b"
+        },
+        {
+          "op": "search",
+          "arg": "aa",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "cc",
+          "expect": false
+        },
+        {
+          "op": "startsWith",
+          "arg": "b",
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "bcc",
+          "expect": []
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "b",
+          "expect": [
+            "b",
+            "baa",
+            "bab",
+            "bb",
+            "bbb",
+            "bcb"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "caa",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "delete",
+          "arg": "abb",
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": ""
+        },
+        {
+          "op": "insert",
+          "arg": "ac"
+        },
+        {
+          "op": "search",
+          "arg": "a",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "cc",
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": "bba"
+        },
+        {
+          "op": "insert",
+          "arg": "acc"
+        },
+        {
+          "op": "search",
+          "arg": "c",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 15
+        },
+        {
+          "op": "insert",
+          "arg": "abb"
+        },
+        {
+          "op": "insert",
+          "arg": ""
+        },
+        {
+          "op": "search",
+          "arg": "b",
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": "aab"
+        },
+        {
+          "op": "search",
+          "arg": "a",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "cac",
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 15
+        },
+        {
+          "op": "insert",
+          "arg": ""
+        },
+        {
+          "op": "insert",
+          "arg": "c"
+        },
+        {
+          "op": "delete",
+          "arg": "b",
+          "expect": true
+        },
+        {
+          "op": "startsWith",
+          "arg": "b",
+          "expect": true
+        },
+        {
+          "op": "startsWith",
+          "arg": "cc",
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": "b"
+        },
+        {
+          "op": "startsWith",
+          "arg": "cac",
+          "expect": false
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "aca",
+          "expect": [
+            "aca"
+          ]
+        },
+        {
+          "op": "startsWith",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "",
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": "b"
+        },
+        {
+          "op": "search",
+          "arg": "aa",
+          "expect": false
+        },
+        {
+          "op": "search",
+          "arg": "cb",
+          "expect": true
+        },
+        {
+          "op": "startsWith",
+          "arg": "cac",
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": ""
+        },
+        {
+          "op": "delete",
+          "arg": "ba",
+          "expect": false
+        },
+        {
+          "op": "startsWith",
+          "arg": "cb",
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "cb",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 15
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "ac",
+          "expect": [
+            "ac",
+            "aca",
+            "acc"
+          ]
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "b",
+          "expect": [
+            "b",
+            "baa",
+            "bab",
+            "bb",
+            "bba",
+            "bbb",
+            "bcb"
+          ]
+        },
+        {
+          "op": "wordsWithPrefix",
+          "arg": "cac",
+          "expect": []
+        },
+        {
+          "op": "startsWith",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "startsWith",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "bac",
+          "expect": false
+        }
+      ]
+    }
+  ]
+}

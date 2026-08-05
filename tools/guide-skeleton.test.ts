@@ -32,6 +32,7 @@ const REWRITTEN = [
   "src/data-structures/tree/multiset/multiset-guide.mdx",
   "src/data-structures/trie/suffixArray/suffixArray-guide.mdx",
   "src/data-structures/trie/suffixTree/suffixTree-guide.mdx",
+  "src/data-structures/trie/ternarySearchTree/ternarySearchTree-guide.mdx",
 ];
 
 interface Section {

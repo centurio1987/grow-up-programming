@@ -55,8 +55,14 @@ import {
   Rebuildable as SuffixTreeShell,
   suffixTreeContract,
 } from "../trie/suffixTree/suffixTree.contract";
+import { TernarySearchTree as ReferenceTernarySearchTree } from "../trie/ternarySearchTree/_reference/ternarySearchTree";
+import {
+  type TernarySearchTreeContract,
+  ternarySearchTreeContract,
+} from "../trie/ternarySearchTree/ternarySearchTree.contract";
 import { FixedChunkList } from "./_fixtures/fixedChunkList";
 import { FrontPushStack } from "./_fixtures/frontPushStack";
+import { MapWordSet } from "./_fixtures/mapWordSet";
 import { RootedSuffixTree } from "./_fixtures/rootedSuffixTree";
 import { ScanIntervalList } from "./_fixtures/scanIntervalList";
 import { ScanningSuffixArray } from "./_fixtures/scanningSuffixArray";
@@ -64,6 +70,7 @@ import { ScanningSuffixTree } from "./_fixtures/scanningSuffixTree";
 import { ShiftQueue } from "./_fixtures/shiftQueue";
 import { SortedArrayMultiset } from "./_fixtures/sortedArrayMultiset";
 import { SortedSuffixArray } from "./_fixtures/sortedSuffixArray";
+import { SortedWordSet } from "./_fixtures/sortedWordSet";
 import { SpliceArrayList } from "./_fixtures/spliceArrayList";
 import { TailScanList } from "./_fixtures/tailScanList";
 import { TwoArrayDeque } from "./_fixtures/twoArrayDeque";
@@ -337,6 +344,19 @@ const unshiftQueue: CostSource<QueueContract<number>> = {
   make: () => new UnshiftQueue<number>(),
 };
 
+const referenceTernarySearchTree: CostSource<TernarySearchTreeContract> = {
+  kind: "self-reported",
+  make: () => new ReferenceTernarySearchTree(),
+};
+const mapWordSet: CostSource<TernarySearchTreeContract> = {
+  kind: "self-reported",
+  make: () => new MapWordSet(),
+};
+const sortedWordSet: CostSource<TernarySearchTreeContract> = {
+  kind: "self-reported",
+  make: () => new SortedWordSet(),
+};
+
 const spliceArrayList: CostSource<UnrolledLinkedListContract<number>> = {
   kind: "self-reported",
   make: () => new SpliceArrayList<number>(),
@@ -405,6 +425,19 @@ describe("축3 — 정본은 통과한다", () => {
   test("Queue 정본이 세 시나리오를 전부 지킨다 — 회귀 수준으로", () => {
     for (const scenario of queueContract.scenarios) {
       const verdict = judgeScenario(referenceQueue, scenario, "basic");
+      expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
+        `${scenario.covers.join("·")}: `,
+      );
+    }
+  });
+
+  test("TernarySearchTree 정본이 다섯 시나리오를 전부 지킨다", () => {
+    for (const scenario of ternarySearchTreeContract.scenarios) {
+      const verdict = judgeScenario(
+        referenceTernarySearchTree,
+        scenario,
+        "invariant",
+      );
       expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
         `${scenario.covers.join("·")}: `,
       );
@@ -658,6 +691,19 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
    * 둘 이상** 있기 때문이다(구성만 재는 것과 구성+LRS 를 함께 재는 것). 무엇이 통과하고
    * 무엇이 걸리는지가 이 자리의 내용이므로 전부 이름으로 적는다.
    */
+  function outcomesAt<Impl>(
+    cost: CostSource<Impl>,
+    spec: { scenarios: readonly CostScenario<Impl>[] },
+    grade: "basic" | "invariant" | "complexity",
+  ): Record<string, boolean> {
+    const result: Record<string, boolean> = {};
+    for (const scenario of spec.scenarios) {
+      const label = `${scenario.covers.join("·")}${scenario.adversarial ? " (적대적)" : ""}`;
+      result[label] = judgeScenario(cost, scenario, grade).ok;
+    }
+    return result;
+  }
+
   function outcomes<Impl>(
     cost: CostSource<Impl>,
     spec: { scenarios: readonly CostScenario<Impl>[] },
@@ -707,6 +753,35 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       );
       expect(`${covers}: ${verdict.reason}`).toBe(`${covers}: `);
     }
+  });
+
+  test("표 하나에 담으면 접두사 질의에서만 걸린다", () => {
+    expect(
+      outcomesAt(mapWordSet, ternarySearchTreeContract, "invariant"),
+    ).toEqual({
+      insert: true,
+      search: true,
+      // 낱말을 통째로 열쇠로 삼으면 접두사로 묶이지 않는다. 명세의 필요충분조건이
+      // 검사되는 자리가 여기다.
+      "startsWith·wordsWithPrefix (적대적)": false,
+      "delete (적대적)": true,
+      size: true,
+    });
+  });
+
+  test("정렬 배열은 반대쪽에서 걸리고, 어긴 자리 하나를 축3이 놓친다", () => {
+    expect(
+      outcomesAt(sortedWordSet, ternarySearchTreeContract, "invariant"),
+    ).toEqual({
+      insert: false,
+      // **계약 위반인데 통과한다.** 이분 탐색이라 O(m log n) 이고 계약은 O(m) 인데,
+      // 크기가 4배 오를 때 로그 인수가 바꾸는 비율이 1.2 배뿐이라 허용 구간 안이다
+      // (§규약2 「로그 인수는 축3의 해상도 아래에 있다」).
+      search: true,
+      "startsWith·wordsWithPrefix (적대적)": true,
+      "delete (적대적)": false,
+      size: true,
+    });
   });
 
   test("접미사를 통째로 견주어 정렬하면 반복 입력에서만 걸린다", () => {

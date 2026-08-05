@@ -81,6 +81,7 @@ const VERIFICATION_GRADES: Record<
   "trie/suffixArray": "complexity",
   "trie/suffixTree": "complexity",
   "linear/queue": "basic",
+  "trie/ternarySearchTree": "invariant",
 };
 
 /** ORDER.md:39-63 진단 표 9종. 키는 `<category>/<name>`. 이 표 밖은 전부 `-`. */
