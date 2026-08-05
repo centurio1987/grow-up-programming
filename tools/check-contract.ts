@@ -28,6 +28,15 @@ const SCENARIO_EXEMPT = new Set(["constructor"]);
 
 const GRADES = new Set(["basic", "invariant", "complexity", "concurrency"]);
 
+/**
+ * 정본이 계측 단위 규격을 가리키고 있는지 보는 표지.
+ *
+ * B14 외부 검토가 잡은 것이 이 자리다 — 정본 여섯이 *"읽거나 쓸 때마다 1"*, *"접근 1회당 1"*
+ * 처럼 저마다 다르게 적어 두고 실제로는 전부 **지나간 칸 수**를 세고 있었다. 무엇을 세는지가
+ * 파일마다 갈리면 §규약2 의 실측 표를 나란히 읽을 수 없다.
+ */
+const COST_UNIT_MARK = "§규약2 계측 단위";
+
 interface Contract {
   /** 연산 계약 표의 행에서 뽑은 연산 이름. */
   ops: string[];
@@ -219,7 +228,21 @@ for (const dir of await structureDirs()) {
     }
   }
 
-  // ③ 명세 ↔ 계약 스위트. 등급이 같은가, 표의 각 행이 시나리오에 덮이는가.
+  // ③ 정본의 계측 단위. 무엇을 세는지가 파일마다 갈리면 실측 표를 나란히 못 읽는다.
+  //    기계가 볼 수 있는 것은 **규격을 가리키고 있는가**뿐이다 — 세는 코드가 그 단위와
+  //    맞는지는 못 본다. 그 한계를 규격에 적어 두었다(§규약2 「계측 단위」).
+  const referencePath = join(root, dir, "_reference", `${name}.ts`);
+  if (await Bun.file(referencePath).exists()) {
+    const source = await Bun.file(referencePath).text();
+    if (source.includes("__cost") && !source.includes(COST_UNIT_MARK)) {
+      problems.push(
+        `${dir}/_reference/${name}.ts — 계측 단위가 규격을 가리키지 않는다. ` +
+          `\`${COST_UNIT_MARK}\` 를 인용해 무엇을 세는지 적는다(§규약2)`,
+      );
+    }
+  }
+
+  // ④ 명세 ↔ 계약 스위트. 등급이 같은가, 표의 각 행이 시나리오에 덮이는가.
   const contractPath = join(root, dir, `${name}.contract.ts`);
   if (!(await Bun.file(contractPath).exists())) continue;
 
