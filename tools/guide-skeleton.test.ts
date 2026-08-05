@@ -29,6 +29,8 @@ const REWRITTEN = [
   "src/data-structures/linear/xorLinkedList/xorLinkedList-guide.mdx",
   "src/data-structures/range-query/intervalTree/intervalTree-guide.mdx",
   "src/data-structures/tree/multiset/multiset-guide.mdx",
+  "src/data-structures/trie/suffixArray/suffixArray-guide.mdx",
+  "src/data-structures/trie/suffixTree/suffixTree-guide.mdx",
 ];
 
 interface Section {

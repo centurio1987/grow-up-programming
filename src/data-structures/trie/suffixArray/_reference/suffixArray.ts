@@ -124,7 +124,10 @@ export class SuffixArray {
     if (n === 0) return;
 
     let sa = this.#rankByFirstChar();
-    let rank = this.#classify(sa, (i) => this.#s.charCodeAt(i));
+    let rank = this.#classify(
+      sa,
+      (a, b) => this.#s.charCodeAt(a) === this.#s.charCodeAt(b),
+    );
 
     // 회차는 최대 $\lceil \log_2 n \rceil$ 이다 — 회차마다 구별하는 접두사 길이가 2배가 되고
     // 그 길이가 n 에 닿으면 접미사는 길이가 서로 달라 전부 갈린다.
@@ -141,10 +144,14 @@ export class SuffixArray {
 
       // 첫째 열 기준으로 **안정하게** 세어 담는다. 그래야 둘째 열 순서가 살아남는다.
       sa = this.#stableCountingSort(bySecond, (i) => rank[i] as number, n);
-      rank = this.#classify(sa, (i) =>
-        i + k < n
-          ? (rank[i] as number) * (n + 1) + (rank[i + k] as number) + 1
-          : (rank[i] as number) * (n + 1),
+      // 순위 쌍을 하나의 정수로 합치지 않는다. 합치면 키가 $n^2$ 규모가 되어 $n$ 이 $10^8$
+      // 근처에서 배정밀도 정수 한계를 넘고, 그 순간 순서가 조용히 깨진다. 쌍을 쌍인 채로 견준다.
+      const previous = rank;
+      const second = (i: number): number =>
+        i + k < n ? (previous[i + k] as number) : -1;
+      rank = this.#classify(
+        sa,
+        (a, b) => previous[a] === previous[b] && second(a) === second(b),
       );
     }
 
@@ -212,17 +219,19 @@ export class SuffixArray {
     );
   }
 
-  /** 늘어놓은 순서에서 이웃끼리 키를 견주어 순위를 매긴다. 키가 같으면 순위도 같다. */
-  #classify(sa: readonly number[], keyOf: (i: number) => number): number[] {
+  /** 늘어놓은 순서에서 이웃끼리 견주어 순위를 매긴다. 같다고 판정되면 순위도 같다. */
+  #classify(
+    sa: readonly number[],
+    same: (a: number, b: number) => boolean,
+  ): number[] {
     const rank = new Array<number>(this.#s.length).fill(0);
     let next = 0;
     let previous: number | null = null;
     for (const start of sa) {
       this.__cost += 1;
-      const key = keyOf(start);
-      if (previous !== null && key !== previous) next += 1;
+      if (previous !== null && !same(previous, start)) next += 1;
       rank[start] = next;
-      previous = key;
+      previous = start;
     }
     return rank;
   }

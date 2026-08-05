@@ -236,7 +236,10 @@ export class SuffixTree {
   #sortSuffixes(): number[] {
     const n = this.#s.length;
     let sa = this.#byFirstChar();
-    let rank = this.#classify(sa, (i) => this.#s.charCodeAt(i));
+    let rank = this.#classify(
+      sa,
+      (a, b) => this.#s.charCodeAt(a) === this.#s.charCodeAt(b),
+    );
 
     for (let k = 1; k < n; k *= 2) {
       if ((rank[sa[n - 1] as number] as number) === n - 1) break;
@@ -247,10 +250,14 @@ export class SuffixTree {
         if (start >= k) bySecond.push(start - k);
       }
       sa = this.#countingSort(bySecond, (i) => rank[i] as number, n);
-      rank = this.#classify(sa, (i) =>
-        i + k < n
-          ? (rank[i] as number) * (n + 1) + (rank[i + k] as number) + 1
-          : (rank[i] as number) * (n + 1),
+      // 순위 쌍을 하나의 정수로 합치지 않는다. 합치면 키가 $n^2$ 규모가 되어 $n$ 이 $10^8$
+      // 근처에서 배정밀도 정수 한계를 넘고, 그 순간 순서가 조용히 깨진다. 쌍을 쌍인 채로 견준다.
+      const previous = rank;
+      const second = (i: number): number =>
+        i + k < n ? (previous[i + k] as number) : -1;
+      rank = this.#classify(
+        sa,
+        (a, b) => previous[a] === previous[b] && second(a) === second(b),
       );
     }
     return sa;
@@ -305,16 +312,18 @@ export class SuffixTree {
     return out;
   }
 
-  #classify(sa: readonly number[], keyOf: (i: number) => number): number[] {
+  #classify(
+    sa: readonly number[],
+    same: (a: number, b: number) => boolean,
+  ): number[] {
     const rank = new Array<number>(this.#s.length).fill(0);
     let next = 0;
     let previous: number | null = null;
     for (const start of sa) {
       this.__cost += 1;
-      const key = keyOf(start);
-      if (previous !== null && key !== previous) next += 1;
+      if (previous !== null && !same(previous, start)) next += 1;
       rank[start] = next;
-      previous = key;
+      previous = start;
     }
     return rank;
   }

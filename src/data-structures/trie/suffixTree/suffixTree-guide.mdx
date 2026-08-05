@@ -1,362 +1,934 @@
 ---
-version: 2.0.0
+version: 3.0.0
 ---
 
 import { AlgorithmSimulation } from "#guide-sim";
 
-# SuffixTree — 모든 접미사를 한 트라이에 몰아넣고, 패턴 검색을 접두사 찾기로 바꾸기
+# SuffixTree — 부분 문자열을 공통 접두사로 묶고, 질의는 패턴 길이만큼만
 
-## 한눈에 보는 컨셉
+## 개요
 
-문자열 $s$의 모든 접미사 $s[0..n{-}1],\, s[1..n{-}1],\, \dots,\, s[n{-}1..n{-}1]$을 압축 트라이(Radix Tree) 하나에 삽입해 두는 자료구조예요. 비결은 딱 한 줄로 요약됩니다 — **패턴 $p$가 $s$의 부분 문자열이라는 것은, $p$가 $s$의 어떤 접미사의 접두사라는 것과 정확히 같은 말**입니다. 이 동치 관계 덕분에 "부분 문자열 검색"이라는 문제가 "트라이에서 접두사 따라 내려가기"로 바뀌고, 전처리에 Naive $O(n^2)$를 한 번 들이면 이후 패턴 검색은 패턴 길이 $m$에만 비례하는 $O(m)$으로 끝납니다.
+접미사 트리는 고정된 문자열 하나를 받아 그 **접미사를 전부 담고 공통 접두사에 따라 묶어 두는** 색인입니다. 모든 부분 문자열은 어떤 접미사의 접두사이므로, 접미사만 담아도 패턴으로 시작하는 자리 전부가 한 노드 아래에 모이고 질의는 뿌리에서 패턴 길이만큼만 내려가면 끝납니다. 구성이 `O(n log n)`, `contains` 와 `count` 가 `O(m)`, `findAll` 이 `O(m + k)` 입니다.
 
-## 언제, 왜 쓰는가
+## 이 구조가 필요한 이유
 
-### 이런 단서가 보이면
+이 구조가 약속하는 것은 하나입니다 — **질의 비용이 색인한 문자열의 길이에 기대지 않는다.** 계약 스위트로 실제로 재 보면, 색인을 1,024 자에서 16,384 자로 열여섯 배 키워도 길이 4 인 패턴에 드는 비용이 16 에서 움직이지 않습니다. 색인이 커지는 동안 질의는 제자리입니다.
 
-다음 신호가 보이면 접미사 트리를 떠올리세요.
+쓰는 단위를 먼저 정하고 갑시다. 계약도 정본도 문자열을 **UTF-16 코드 단위의 수열**로 봅니다 — 길이는 `s.length`, 문자 비교는 `charCodeAt` 기준이에요. 아래에서 $n$ 은 색인한 문자열의 코드 단위 길이, $m$ 은 패턴의 코드 단위 길이, $k$ 는 답의 개수입니다. 기본 다국어 평면 밖의 문자(서로게이트 쌍)는 코드 단위 두 개로 세어지므로, "문자 하나"가 아니라 "코드 단위 하나"가 이 글의 세는 단위입니다.
 
-- 같은 문자열 $s$에 대해 **서로 다른 패턴으로 존재 여부·등장 위치를 반복해서** 물어야 한다
-- "가장 긴 반복되는 부분 문자열"처럼 **문자열 내부의 반복 구조 자체**를 물어보는 요구가 있다
-- $s$는 한 번만 정해지고, 그 위에서 짧은 패턴 $m$에 대한 쿼리를 **아주 많이** 던진다(쿼리당 비용을 $m$에만 묶고 싶다)
+한 번에 내거는 질의는 다섯입니다. 패턴이 있는지(`contains`), 몇 자리에서 시작하는지(`count`), 그 자리가 어디인지(`findAll`), 두 번 이상 나타나는 가장 긴 부분 문자열이 무엇인지(`longestRepeatedSubstring`), 그리고 색인한 길이가 얼마인지(`length`). 여기에 색인을 짓는 `constructor` 가 붙어 여섯 행이 계약 표를 채웁니다.
 
-매번 KMP로 검색하는 방식과 비교하면 효과가 뚜렷합니다.
+빈 패턴의 답도 계약이 정해 둡니다. `count` 의 조건 `0 <= i <= n - m` 에 `m = 0` 을 넣으면 `0 <= i <= n` 이므로 `count("")` 는 `n + 1` 이고 `findAll("")` 은 `0..n` 이에요. **원문에 없는 자리를 답에 넣는 것이 아니라 빈 문자열이 끝자리에서도 시작한다**는 사실입니다. 이 자리를 빼면 `contains("")` 가 `count("") > 0` 과 갈립니다.
+
+하나만 필요하면 색인이 필요 없습니다. 원문을 앞에서부터 훑으면 `contains` 하나는 `O(n)` 에 끝나고, 질의를 한 번만 던질 것이라면 색인을 짓는 비용이 그보다 큽니다. **색인은 짓는 비용과 묻는 비용을 나누는 물건이고, 그 나눔이 이득이 되려면 묻는 쪽이 여러 번이어야 합니다.**
+
+비슷한 것을 약속하는 구조가 바로 옆에 있습니다. `trie/suffixArray` 는 같은 문자열을 색인하고 `longestRepeatedSubstring` 을 같은 이름으로 내겁니다. **두 계약이 갈리는 자리는 질의 상한 하나입니다** — 배열 쪽 `range` 가 `O(m log n)` 이고 트리 쪽 `contains` 와 `count` 는 `O(m)` 입니다. 색인 크기가 질의에 들어오지 않는다는 것, 그것이 트리를 따로 두는 이유예요. 이 한 줄을 계약에서 빼면 접미사 트리의 계약은 접미사 배열의 계약에 담깁니다. 연산 이름만 다른 같은 약속이 되는 것이죠.
+
+여기서 두 층위를 갈라 두어야 합니다. **담는 정보가 같다는 것과 질의 비용이 같다는 것은 다릅니다.** 접미사 배열에 이웃 공통 접두사 배열을 붙이면 트리를 그대로 복원할 수 있으니 정보 층위에서는 같은 것을 담습니다. 그런데 배열 위에서 패턴이 시작하는 구간을 찾으려면 순서를 로그 번 갈라야 하므로 질의가 `O(m log n)` 이고, 트리는 패턴을 따라 내려가 `O(m)` 이에요. 「같은 구조인가」를 가르는 것은 정보 층위가 아니라 이 비용 층위입니다 — **정보가 같다는 사실은 그 판정의 입력이 아닙니다.**
+
+반대로 배열에는 있고 여기에는 없는 것도 분명합니다. 사전순 순위를 관측하는 연산(`at`·`rankOf`)이 없습니다. 순서를 관측할 수 있게 하려면 그 순서를 실제로 들고 있어야 하는데, 이 계약이 요구하는 것은 순서가 아니라 **공통 접두사에 따른 묶음**이기 때문이에요. 문자열을 고치는 연산도 없습니다 — 색인한 문자열은 생성 시점에 정해지고 그 뒤로 바뀌지 않습니다.
+
+### 쓰이는 자리
+
+사례를 **연산 집합과 호출 빈도**로 옮겨 적습니다. 옮겨 적어 보면 그 자리가 정말 이 계약을 요구하는지가 드러납니다.
+
+- **참조 서열에서 짧은 조각 찾기** — 참조 문자열을 한 번 색인하고(`constructor` 1회), 읽어 들인 조각마다 `contains` 로 있는지, `count` 로 몇 자리인지, `findAll` 로 어느 자리인지 묻습니다. 조각 길이 $m$ 은 수십 자로 고정이고 호출 횟수는 조각 수 $q$ 만큼입니다. 전체가 `O(n log n) + O(q(m + k))` 이고, **색인 길이 $n$ 이 질의 항에 들어오지 않습니다.** 조각을 많이 던질수록 색인 쪽 항이 상대적으로 작아집니다.
+- **반복 조각을 참조로 바꾸는 압축(LZ 계열)** — `longestRepeatedSubstring` 을 한 번 부르고 `findAll` 로 그 조각이 나타나는 자리를 전부 받습니다. 계약이 `longestRepeatedSubstring` 의 상한을 구성과 묶어 적었으므로 두 호출을 합쳐 `O(n log n) + O(m + k)` 입니다.
+- **같은 문서에서 검색어를 바꿔 가며 찾기** — `length` 로 범위를 확인하고 검색어마다 `contains` 와 `findAll` 을 부릅니다. 여기서 조건 하나가 드러납니다. 문서를 한 글자라도 고치면 색인을 통째로 다시 지어야 합니다 — 이 계약에 상태를 바꾸는 연산이 없으니까요. **문서가 자주 바뀌면 그것은 이 구조의 사례가 아닙니다.**
+
+세 사례 모두 색인을 한 번 짓고 질의를 여러 번 던집니다. 짓자마자 한 번만 묻는 사례는 위에 없습니다. 있었다면 그것은 접미사 트리의 사례가 아니라 원문 훑기의 사례입니다.
+
+## 단순한 구현의 한계
+
+### 순진한 설계는 어디서 상한을 넘는가
+
+이 구조를 모른 채 같은 요구를 받으면 대개 이런 답이 나옵니다. **접미사를 하나씩 뿌리부터 내려가며 압축 트라이에 넣는다.** 트라이 삽입은 아는 절차이고, 접미사 $n$ 개를 차례로 넣으면 트리가 완성됩니다. 이 설계로 지은 트리는 **모양이 옳습니다** — 계약 스위트의 축1(동작)과 축2(불변식)를 전부 통과합니다. 저장소에 결함 fixture 로 들어 있는 `rootedSuffixTree` 가 바로 그것이죠.
+
+무작위 문자열로 재면 성장률도 통과합니다.
 
 ```text
-전략             1회 쿼리        q회 쿼리 누적                비고
-KMP (매번 처음부터)  O(n+m)       O(q(n+m))                  전처리 없음, s가 커지면 쿼리마다 비쌈
-접미사 배열         O(m log n)    O(n log n) + O(q · m log n)  이진 탐색 필요, 공간은 절약
-접미사 트리         O(m)         O(n²) + O(q · m)            Naive 구성, 쿼리는 이 중 가장 빠름
+구성 · 무작위 문자열(알파벳 2) — 계약 O(n log n)
+계약 스위트 축3이 센 작업량. 벽시계가 아니다
+
+  대상          1024      4096     16384        r         판정
+  정본        38,846   155,578   622,506   4.00 / 4.00   통과
+  뿌리부터    13,113    60,733   276,707   4.63 / 4.56   통과
 ```
 
-선택 기준은 간단해요. **구성 비용을 감당할 수 있고 쿼리를 많이 던질 것이라면 접미사 트리**, 반대로 $n$이 매우 커서 $O(n^2)$ 구성 자체가 부담이라면 접미사 배열이나(구성 $O(n \log n)$) Ukkonen's 알고리즘(구성 $O(n)$)을 고려합니다.
+절대 비용은 오히려 정본의 3분의 1입니다. 무작위 문자열에서는 이웃한 접미사끼리 겹치는 길이가 짧아 뿌리부터 내려가도 몇 걸음이면 끝나기 때문이고, 접미사 순서를 먼저 짓는 정본이 여기서는 손해를 봅니다. **적대적 입력을 하나만 두었다면 이 설계가 그대로 통과했을 겁니다.**
 
-### 문제 사례와 적용 예시
+같은 문자를 반복한 입력에서 달라집니다.
 
-- **유전체 서열 분석(BLAST 등)**: 약 30억 염기로 이루어진 DNA 문자열에서 특정 패턴이 어디에, 몇 번 등장하는지를 수시로 검색합니다.
-- **텍스트 에디터의 Find 최적화**: 같은 문서에서 사용자가 검색어를 바꿔가며 여러 번 찾을 때, 문서를 매번 처음부터 훑지 않습니다.
-- **데이터 압축(LZ 계열)**: 반복되는 부분 문자열을 찾아 짧은 참조로 치환하는 것이 압축의 핵심인데, 이 반복 구조를 접미사 트리로 빠르게 찾습니다.
-- **코딩 테스트 맥락**: "문자열 $s$에서 패턴 여러 개를 검색하라", "$s$에서 두 번 이상 등장하는 가장 긴 부분 문자열을 구하라" 같은 문제가 직접적인 적용 대상입니다.
+```text
+구성 · 같은 문자 반복("aaaa…") — 계약 O(n log n) · 적대적
 
-## 자료구조 자세히 들여다보기
+  대상            1024        4096         16384          r          판정
+  정본          60,419     282,627     1,294,339   4.68 / 4.58     통과
+  뿌리부터     525,826   8,394,754   134,242,306  15.96 / 15.99   실패
+```
 
-### 전체 스펙: 속성과 액션
+$n = 16384$ 에서 정본의 **104 배**입니다. 성장률 15.96 은 이차의 값이에요 — $n$ 을 4배로 키우면 비용이 $4^2 = 16$ 배가 되니까요. 계약 `O(n log n)` 이 요구하는 값은 4.80 이고 판별 구간은 3.36 ~ 6.24 이므로, 15.96 은 구간 밖입니다.
 
-**속성(내부 상태)** — 트리는 다음 형태의 노드로 구성됩니다.
+왜 이차가 되는지는 손으로 세면 바로 보입니다.
 
-```ts
-interface SuffixNode {
-  children: Map<string, SuffixNode>; // 에지 첫 글자 → 자식 노드
-  label: string;                     // 이 에지의 레이블(압축된 문자열 조각)
-  indices: number[];                 // 이 노드를 지나는 모든 접미사의 시작 인덱스 (합집합)
+```text
+"aaaa" 에 접미사를 뿌리부터 하나씩 넣을 때 "다시 내려간" 코드 단위 수
+
+  i=0   "aaaa" 를 넣는다      0     트리가 비어 있다
+  i=1   "aaa"  를 넣는다      3     이미 만들어 둔 사슬을 처음부터 다시 훑는다
+  i=2   "aa"   를 넣는다      2
+  i=3   "a"    를 넣는다      1
+
+  합 = (n-1) + (n-2) + … + 1 = n(n-1)/2
+```
+
+$i$ 번째 접미사가 이미 트리에 있는 것과 겹치는 길이만큼 매번 뿌리부터 다시 내려갑니다. 같은 문자가 반복되면 그 겹치는 길이가 곧 남은 길이 전체이고, 그래서 합이 $\Theta(n^2)$ 이 됩니다. 이 실패는 운이 나쁠 때 나는 것이 아니라 **입력 패턴이 정해지면 항상** 납니다.
+
+이 구조의 옛 문제 문서(지금은 지워진 `suffixTree-problem.md`)가 정확히 이 자리에서 어긋나 있었습니다. 비용 표에 구성을 `O(n²) Naive` 로 공시해 놓고, 같은 문서 첫 문단에서 30억 염기 규모의 유전체 검색을 대표 사례로 들었어요. 두 문장이 함께 서지 못한다는 것을 위 표가 보여 줍니다.
+
+실패가 구성 쪽에만 있는 것도 아닙니다. 트리를 정본과 똑같이 지어 놓고 **질의만 원문을 앞에서부터 훑는** 설계를 계약 스위트가 함께 재고 있습니다(`scanningSuffixTree`).
+
+```text
+contains·count · 패턴 길이 4 로 고정하고 색인 크기만 키움
+계약 상한은 O(m) 이고, m 을 상수로 눌렀으므로 n 에 대한 기대 비율은 1.00
+
+  대상           1024      4096     16384        r         판정
+  정본             16        16        16   1.00 / 1.00   통과
+  원문 훑기     1,077     4,149    16,437   3.85 / 3.96   실패
+```
+
+패턴 길이 $m$ 을 상수로 눌렀으므로 이 시나리오가 재는 것은 하나입니다 — **색인이 커질 때 질의 비용이 따라 커지는가.** 정본은 16 에서 움직이지 않고, 원문을 훑는 쪽은 $n$ 에 비례해 늘어납니다. 여기서도 답 자체는 옳습니다. 축1과 축2를 통과하고 축3만이 잡습니다.
+
+두 설계가 **서로 반대쪽에서 걸립니다.** 하나는 구성 시나리오에서만, 다른 하나는 질의 시나리오에서만 걸리고 겹치는 자리가 없습니다. 어느 한쪽만 두었다면 나머지 하나가 계약을 지키는 구현으로 통과했을 겁니다.
+
+### 실패에서 끌어내는 설계 규칙
+
+관찰은 하나입니다 — **다시 내려가는 길이는 직전에 넣은 접미사와 겹치는 길이 그 자체다.**
+
+뿌리부터 내려가는 설계가 매번 다시 훑는 것은 이미 만들어 둔 부분입니다. 그 길이를 미리 알고 있다면 다시 훑을 이유가 없습니다. 그리고 그 길이를 알려 주는 순서가 있습니다 — **사전순**입니다. 사전순으로 이웃한 두 접미사의 공통 접두사 길이가 정확히 그 값이에요. `banana` 로 확인해 봅시다.
+
+```text
+사전순 접미사와 이웃 공통 접두사 (s = "banana")
+
+  순위  시작   접미사      직전과 겹치는 길이
+   0      5   a                  -
+   1      3   ana                1     "a"
+   2      1   anana              3     "ana"
+   3      0   banana             0
+   4      4   na                 0
+   5      2   nana               2     "na"
+```
+
+순위 1 의 `ana` 를 넣을 때 직전에 넣은 `a` 와 첫 한 글자가 겹칩니다. 그 한 글자는 이미 트리에 있으므로, 뿌리로 돌아가지 않고 지금 서 있는 경로에서 깊이 1 까지만 되감으면 됩니다.
+
+**직전 하나만 봐도 되는 이유**를 짚고 갑시다. 여기서 걸려 있는 불변식은 둘이에요.
+
+1. **스택에 남은 경로가 곧 직전에 넣은 접미사의 경로다.** 잎을 붙일 때마다 그 잎까지의 노드를 스택에 그대로 쌓으므로, $k$ 번째 걸음을 시작할 때 스택에는 $k-1$ 번째 접미사의 뿌리부터 잎까지가 들어 있습니다.
+2. **새 접미사를 붙일 깊이가 정확히 `LCP(직전, 현재)` 다.** 사전순은 공통 접두사가 긴 접미사끼리 이웃하게 놓는 순서라, 순위 $k$ 의 접미사가 **앞선 $k$ 개 중 어느 것과 겹치는 최대 길이**가 곧 직전 하나와 겹치는 길이입니다. 순위가 $j < k-1$ 인 접미사와 더 길게 겹칠 수는 없어요 — 사전순에서 $\mathrm{LCP}(j, k) = \min(\mathrm{LCP}(j, j{+}1), \dots, \mathrm{LCP}(k{-}1, k))$ 이므로 그 값은 `LCP(직전, 현재)` 이하니까요.
+
+둘을 합치면 "지금 스택에서 깊이 `shared` 까지만 되감으면 그 아래가 새 접미사가 붙을 자리"가 됩니다. 앞선 접미사를 전부 뒤질 이유가 없는 것이죠.
+
+```text
+Before: 순위 1 "ana"(3) 을 넣기 직전. 경로는 뿌리 → "a"
+
+  root
+   └── "a"                      깊이 1, 경로 끝
+
+After: 겹치는 길이가 1 이라 되감을 것이 없다. 그 자리에 잎을 붙인다
+
+  root
+   └── "a"
+        └──[na]── "ana"         깊이 3. 간선 라벨은 원문에서 읽는다
+```
+
+되감기의 총량이 왜 선형인지도 끝까지 따라가 봅시다. 세 단계로 내려옵니다.
+
+- **떼어 낸 노드는 다시 스택에 올라오지 않습니다.** 스택에 들어가는 것은 그 걸음에서 새로 만든 노드뿐이고(중간 노드 하나, 잎 하나), `pop` 된 노드를 다시 `push` 하는 자리가 없어요. 그러므로 되감기 횟수의 총합은 **스택에 올라간 노드 수 이하**입니다.
+- **스택에 올라가는 노드 수가 선형입니다.** 접미사마다 잎이 정확히 하나 생기니 잎이 $n$ 개, 중간 노드는 걸음마다 많아야 하나 생기니 $n$ 개 이하입니다. 합쳐 $2n$ 을 넘지 않아요.
+- 따라서 되감기 총량이 $O(n)$ 이고, 노드를 만드는 일도 $O(n)$ 이라 **트리를 쌓는 부분 전체가 $O(n)$** 입니다.
+
+중간 노드가 걸음마다 많아야 하나인 이유는 코드에 그대로 보입니다 — ②의 `if` 는 반복문이 아니라 한 번 도는 분기예요. 되감기가 여러 노드를 떼어 내도 그중 간선 한가운데가 되는 자리는 `shared` 깊이 하나뿐이니까요.
+
+> 사전순으로 넣으면, 직전 접미사와 겹치는 만큼은 이미 지어져 있다.
+
+그러면 비용이 어디로 갔을까요? **접미사를 사전순으로 늘어놓는 일**로 갔습니다. 위 표가 곧 접미사 배열과 이웃 공통 접두사 배열이고, 그 둘만 있으면 트리를 다시 그릴 수 있어요 — **정보 층위에서 같은 것을 담는다**는 2단계의 그 이야기입니다. 정본은 순위 배가로 그 순서를 짓고 그 부분이 $\Theta(n \log n)$ 입니다. 전체 구성 비용을 정하는 것은 트리를 쌓는 $O(n)$ 이 아니라 순서를 짓는 이쪽이에요.
+
+이웃 공통 접두사 길이를 구하는 쪽도 선형입니다. 정본의 `#neighborLcp` 가 그 일을 하는데, 근거는 한 부등식이에요 — **$h_i \ge h_{i-1} - 1$.** 여기서 $h_i$ 는 시작 위치 $i$ 인 접미사와 그 직전 순위 접미사의 공통 접두사 길이입니다.
+
+- 시작 위치 $i-1$ 의 접미사가 앞에서 $h_{i-1}$ 자를 어떤 접미사와 공유했다면, 두 접미사에서 첫 글자를 뗀 것끼리는 $h_{i-1} - 1$ 자를 공유합니다.
+- 첫 글자를 뗀 앞엣것이 바로 시작 위치 $i$ 의 접미사이고, 뒤엣것은 순서상 $i$ 보다 앞에 있습니다.
+- 사전순에서 $\mathrm{LCP}$ 는 순서가 가까울수록 크므로, $i$ 의 **직전 순위** 접미사와의 공유 길이는 그것보다 작지 않습니다. 그래서 $h_i \ge h_{i-1} - 1$ 입니다.
+
+그래서 코드가 걸음마다 `h` 를 1 만 깎고 시작합니다(`if (h > 0) h -= 1`). 감소가 걸음당 최대 1 이고 걸음이 $n$ 번이니 총 감소가 $n$ 이하이며, `h` 는 $n$ 을 넘지 못하므로 **증가의 총량도 $2n$ 이하**입니다. 안쪽 `while` 이 도는 횟수의 합이 곧 그 증가량이라 전체가 $O(n)$ 이에요.
+
+어디까지가 필연이고 어디부터가 관례인지 갈라 둘게요. **겹치는 만큼을 다시 훑지 않는다**는 것이 필연입니다. 그것을 사전순으로 얻는다는 것도 필연에 가깝습니다 — 겹침이 큰 접미사끼리 이웃하게 만드는 순서가 사전순이니까요. 반면 그 순서를 **순위 배가로 짓는다**는 것은 관례입니다. 유도 정렬로 짓는 계열도 있고, 접미사 링크를 들고 다니며 트리를 한 번에 짓는 계열은 순서를 아예 짓지 않습니다.
+
+그 계열이 더 빠르다는 것도 숨길 이유가 없습니다. 접미사 링크로 한 번에 짓는 구성은 $O(n)$ 이라 여기 실린 $\Theta(n \log n)$ 보다 낮은 계급이에요. 그런데도 정본이 그쪽이 아닌 이유는 규약2 가 **정본에 계약과 같은 성장 계급**을 요구하기 때문입니다 — 계약보다 빠른 구현을 정본으로 세우면 축3이 재는 것이 계약의 상한이 아니라 그 구현의 여유가 됩니다. 계약이 `O(n)` 을 적지 않은 이유는 다음 절에서 봅니다.
+
+질의 쪽에서 끌어낸 규칙은 더 짧습니다 — **패턴을 따라 내려가는 일에 색인 크기가 들어오면 안 된다.** 트리를 다 지어 놓고 원문을 훑으면 색인은 지었는데 쓰지 않은 것이고, 그러면 남는 것은 원문 그대로입니다.
+
+두 규칙이 다음 절에서 계약의 필요충분조건 두 줄로 나타납니다.
+
+## 불변식과 연산별 복잡도 조건
+
+계약 전문은 `suffixTree.ts` 헤더에 있습니다. 여기서는 그 조건이 **왜 그 모양인지**를 봅니다.
+
+**불변식 절은 비어 있습니다.** 그런데 그 근거가 "상태를 바꾸는 연산이 없으니까"는 아닙니다. 계약 헤더는 판별 절차를 실제로 돌린 결과로 비었다고 적고 있고, 후보를 셋 걸러냈어요.
+
+- **관측 경로가 둘인 성질** — `count(p)` 와 `findAll(p).length` 가 같은 수를 말하고 `contains(p)` 는 그 수가 0 인지를 말합니다. 어긋나면 분명 결함인데도 불변식이 아닌 이유는, 그 정합이 **각 연산의 의미에 이미 적혀 있기** 때문입니다. 세 연산이 다 패턴이 시작하는 자리를 각각 다른 형태로 돌려주기로 되어 있으니까요. 대조는 축1이 참조 모델과 합니다.
+- **내부 표현의 성질** — 서브트리 개수가 자식의 합과 같다, 자식 간선의 첫 문자가 서로 다르다, 깊이가 내려가며 는다. 셋 다 정본에서 참이지만 불변식 후보가 아닙니다. **적는 순간 그것이 트리라는 표현을 처방하기** 때문이에요. 이 계약은 트리를 요구한 적이 없습니다 — 요구하는 것은 상한뿐이고, 아래 5단계의 코드는 그 상한을 만족하는 여럿 중 하나입니다.
+
+여기에 하나가 더 붙습니다. 상태를 바꾸는 연산이 없으므로 축2가 볼 수 있는 상태는 생성 직후 하나뿐이고, 그 하나에서 관측값들이 서로 맞는지는 축1이 이미 매 연산 대조합니다. **불변 구조에서는 판별 결과와 무관하게 축2가 축1보다 더 잡는 것이 없어요.**
+
+**질의 상한을 `O(m)` 으로 적은 것이 이 계약의 중심입니다.** `O(m log n)` 으로 적으면 정렬된 접미사 순서에 이분 탐색을 붙인 구현이 계약을 만족하고, 그 순간 이 계약은 `trie/suffixArray` 의 계약에 담깁니다. 2단계에서 말한 "따로 있는 이유"가 계약에서 사라지는 것입니다.
+
+`findAll` 만 상한에 `+ k` 가 붙습니다. $k$ 는 답의 개수이고, 그 항은 양쪽에서 조여집니다.
+
+- **하한** — 자리를 $k$ 개 돌려주려면 $k$ 개를 적어도 한 번씩은 만져야 합니다. 어떤 구현으로도 못 줄이는 항이에요.
+- **상한** — 정본은 답에 닿은 노드의 서브트리를 통째로 훑는데, 그 서브트리의 **노드 수도 $O(k)$** 입니다. 이 트리의 노드는 두 종류뿐이거든요. 접미사가 끝나는 노드(`ends >= 0`)는 답을 하나씩 보태니 $k$ 개이고, 나머지는 간선을 가른 자리에 끼워 넣은 노드라 **자식이 반드시 둘 이상**입니다(②가 떼어 낸 노드와 새 잎을 함께 답니다). 자식이 둘 이상인 노드의 수는 잎 수보다 하나 적은 값을 넘지 못하고 잎은 전부 답을 보태는 쪽이므로, 그 수도 $k$ 미만이에요. 합쳐 $2k$ 를 넘지 않습니다. 패턴을 따라 내려간 $O(m)$ 과 합쳐 `O(m + k)` 가 되는 것이죠.
+
+반대로 `count` 에는 `+ k` 가 없습니다. 개수만 답하면 되므로 자리를 하나하나 만질 이유가 없고, 정본은 그 수를 노드에 미리 담아 둡니다. **같은 정보를 묻는데 상한이 다른 이유가 여기 있습니다.**
+
+`length()` 는 `O(1)` 입니다. 색인한 길이는 구성 때 이미 정해져 있으니 읽어 돌려주면 끝이에요. 이 연산이 계약에 있는 이유는 사소해서가 아니라, 색인이 원문의 무엇을 알고 있어야 하는지를 정하기 때문입니다.
+
+**구성 상한 `O(n log n)` 은 따라 나온 값이 아니라 고른 값입니다.** 여기서 물음이 둘로 갈리는데, 섞으면 답이 엉킵니다. 하나는 *계약이 왜 이 상한을 요구하는가*이고 다른 하나는 *이 구현이 왜 그 상한을 만족하는가*예요. 앞의 것부터 봅시다.
+
+계약 쪽에서 목적이 요구하는 것은 이차보다 빠를 것 하나뿐이고, 그 아래에는 후보가 여럿인데 어느 것도 하한이 아닙니다. 그래서 양쪽에서 잘라 하나를 골랐습니다.
+
+- **이차 이상이면 계약이 뜻을 잃습니다.** 3단계의 뿌리부터 넣는 설계가 그 상한이고, 그것이 상한이면 이 구조를 따로 둘 이유를 계약이 말하지 못합니다.
+- **`O(n)` 을 적으면 정본이 한 계열로 좁혀집니다.** 선형 구성은 실제로 있습니다 — 접미사 링크를 들고 다니며 한 번의 훑기로 짓는 계열이 그것입니다. 그런데 그 값을 상한으로 적으면 접미사 순서를 먼저 짓고 트리를 얹는 구현이 전부 계약 위반이 됩니다. 그 구현을 배제할 이유가 이 계약의 목적에는 없습니다. **계약이 `O(n)` 을 적지 않은 것은 선형 구성을 몰라서가 아니라, 적으면 처방이 되기 때문입니다.**
+
+뒤의 물음은 구현 쪽 이야기이고 답이 3단계에 이미 나왔습니다. 순위 배가가 회차마다 세어 담기로 $O(n)$ 을 쓰고 회차가 많아야 $\lceil \log_2 n \rceil$ 이라 $\Theta(n \log n)$, 이웃 공통 접두사 계산이 $O(n)$, 트리를 쌓는 부분이 $O(n)$ 입니다. **전체를 정하는 것은 순서를 짓는 항 하나예요.** 이 값이 계약의 상한과 같은 계급이라는 점이 정본의 자격이고, 그래서 축3이 재는 것이 곧 계약의 상한이 됩니다.
+
+`longestRepeatedSubstring` 의 상한은 구성과 묶여 있습니다. 인자가 없고 색인이 바뀌지 않으므로 그 값은 색인 시점에 이미 정해져 있어요. 구성 때 계산해 두면 호출이 `O(1)` 이고 호출 때 계산하면 `O(n)` 인데, **둘 다 이 계약의 목적을 해치지 않습니다.** 나누어 적으면 그중 하나를 처방하게 되므로 묶어 적습니다. 계약 스위트도 이 둘을 한 걸음으로 재고 있습니다.
+
+**정본은 그중 뒤쪽, 호출 때 계산하는 구현입니다.** `longestRepeatedSubstring` 이 매 호출 전체 노드를 순회하므로 호출당 $O(n)$ 이에요. 구성과 합친 첫 호출이 `O(n log n)` 이라 계약을 지키지만, 두 번째 호출도 다시 $O(n)$ 을 씁니다. 이 값은 색인이 사는 동안 바뀌지 않으니 여러 번 필요하면 **호출자가 받아서 들고 있으면 됩니다** — 계약이 적는 것은 한 번 얻는 비용이니까요. 호출 때 계산하는 구현을 $q$ 번 부르면 $O(n \log n + qn)$ 이고 미리 계산해 둔 구현은 $O(n \log n + q)$ 인데, 그 차이를 계약의 문장으로 올리면 다시 그중 하나를 처방하게 됩니다.
+
+**`findAll` 의 순서를 정하지 않는 것이 계약입니다.** 정하면 그 순서를 만드는 방법까지 정하게 되니까요. 위치 오름차순을 요구하면 답을 모은 뒤 정렬하거나($k \log k$ 가 붙습니다) 자식을 위치 순으로 들고 다녀야 하는데, 둘 다 이 계약의 목적과 무관한 처방입니다. 정본을 실제로 돌리면 이렇습니다.
+
+```text
+new SuffixTree("banana").findAll("ana")   →   [3, 1]
+```
+
+오름차순이 아닙니다. 계약이 순서를 정하지 않았으므로 이것은 결함이 아니고, 계약 스위트도 양쪽을 정렬해서 대조합니다. **접미사 배열 쪽은 정반대입니다** — 거기서는 순서가 관측값 자체라 정하는 것이 계약이에요. `at(rank)` 가 무엇을 돌려주는지는 어느 순서인지를 적지 않으면 정해지지 않습니다. 두 구조의 성격 차이가 이 대비에 가장 짧게 들어 있습니다. 한쪽은 순서를 자유로 남기고, 다른 쪽은 순서가 있어야 계약이 성립합니다.
+
+**한정자는 여섯 연산 모두 `worst` 입니다.** 계약이 가장 약한 한정자를 적는 것이 원칙인데, 약한 쪽을 적는 규칙에는 조건이 하나 붙습니다. 두 한정자가 **같은 구현 집합을 배제하면** 강한 쪽을 적어도 처방이 되지 않는다는 조건이에요. 여기가 그 자리입니다. 상환이 성립하려면 비용이 작은 호출과 큰 호출이 한 열에 섞여야 하는데, 상태를 바꾸는 연산이 없으니 호출마다 색인이 같은 상태이고 비용을 나눌 자리가 생기지 않습니다. 무작위성을 쓰는 자리도 없으니 `expected` 도 마찬가지고요. 그럴 때는 더 말이 되는 쪽을 적습니다.
+
+**검증 등급은 `complexity` 입니다.** 구성 상한이 자명한 구현으로 달성되지 않기 때문이고, 그 반례가 3단계에서 실제로 돌려 본 두 fixture 입니다. 등급을 고른 것이 아니라 계약에서 따라 나온 것이라는 점이 중요합니다 — 계약이 바뀌면 등급도 다시 판정됩니다.
+
+정리하면 필요충분조건이 두 줄입니다. **의미 쪽**은 어떤 패턴에 대해서든 그 패턴으로 시작하는 자리 전부가 한 자리에 모여 있고 패턴을 따라가는 것만으로 그 자리를 찾을 수 있어야 한다는 것. **비용 쪽**은 질의가 색인 크기에 기대지 않고 구성이 이차에 가지 않아야 한다는 것. 앞을 포기하면 남는 것이 원문 그대로이고, 뒤의 어느 한쪽을 포기하면 3단계의 두 fixture 중 하나가 됩니다.
+
+## 구현 (TypeScript)
+
+아래 코드는 `_reference/suffixTree.ts` 에서 그대로 가져온 것입니다. 손으로 옮겨 적지 않았고, 정본이 바뀌면 이 블록도 함께 바뀝니다.
+
+노드부터 봅시다.
+
+```ts guide-core=src/data-structures/trie/suffixTree/_reference/suffixTree.ts#types
+interface Node {
+  /** 뿌리에서 이 노드까지의 **문자 수**. 간선 길이의 합이다. */
+  depth: number;
+  /** 이 노드의 경로 문자열이 나타나는 자리 하나. 간선 라벨을 원문에서 읽는 데 쓴다. */
+  start: number;
+  /** 간선의 첫 문자(코드 단위) → 자식. */
+  children: Map<number, Node>;
+  /** 이 노드에서 끝나는 접미사의 시작 위치. 없으면 -1. */
+  ends: number;
+  /** 서브트리에 담긴 접미사 시작 위치의 수. 곧 이 노드 경로 문자열의 출현 횟수다. */
+  occurrences: number;
 }
 ```
 
-루트에서 어떤 노드 $v$까지 에지 레이블을 순서대로 이어 붙인 문자열을 $P_v$(경로 문자열)라 부를게요. 지켜야 할 불변식은 두 가지입니다.
+**간선 라벨을 문자열로 들고 있지 않은 것이 이 표현의 핵심입니다.** 라벨을 문자열로 떼어 두면 라벨 길이의 합이 $\Theta(n^2)$ 이 될 수 있어요 — `"aaaa…"` 에서 잎마다 남은 길이 전체를 문자열로 들게 되니까요. 대신 `start` 와 두 깊이로 가리킵니다. 어떤 노드의 간선 라벨은 원문의 `[start + 부모.depth, start + 이 노드.depth)` 구간이고, 필요할 때 원문에서 읽습니다.
 
-1. **경로 압축**: 형제 에지는 첫 글자가 겹치지 않는다. 한 노드의 두 자식 에지는 항상 서로 다른 문자로 시작한다.
-2. **indices의 정의**: 각 노드 $v$의 `indices`는 정확히 이 집합과 같다.
-
-$$
-\text{indices}(v) = \{\, i \mid 0 \le i < n,\ s[i .. i+|P_v|) = P_v \,\}
-$$
-
-말로 풀면 "$v$까지의 경로 문자열 $P_v$를 접두사로 갖는 접미사들의 시작 인덱스 전체"입니다. 이 정의가 바로 `findAll`과 `longestRepeatedSubstring`의 정확성 근거가 됩니다 — **`indices(v)`의 크기는 곧 $P_v$가 $s$에 등장하는 횟수**예요.
-
-$s = \text{"banana"}$의 접미사 6개(`banana(0) anana(1) nana(2) ana(3) na(4) a(5)`)를 전부 삽입한 최종 트리는 이렇게 생겼습니다.
-
-```text
-                    ROOT
-        ┌────────────┼────────────┐
-     "banana"        "a"          "na"
-     idx=[0]      idx=[1,3,5]   idx=[2,4]
-                      │             │
-                     "na"          "na"
-                   idx=[1,3]      idx=[2]
-                      │
-                     "na"
-                   idx=[1]
-```
-
-`"a"` 노드의 경로 문자열은 `"a"`(등장 3회), 그 아래 `"na"` 노드의 경로 문자열은 `"a"+"na"="ana"`(등장 2회) — 실제로 "ana"는 인덱스 1과 3에서 시작하는 두 접미사가 공유하는 접두사입니다.
-
-**액션(연산)** — 이 가이드가 정의하는 인터페이스는 4가지입니다.
-
-| 액션 | 하는 일 | 비용 |
-|------|---------|------|
-| `constructor(s)` | 접미사 $s[i..n{-}1]$ ($i=0,\dots,n{-}1$)을 순서대로 압축 트라이에 삽입 | $O(n^2)$ (Naive: 접미사 $n$개 × 평균 삽입 비교 $O(n)$) |
-| `search(pattern)` | 루트에서 패턴을 따라 내려가며 존재 여부 확인 | $O(m)$ |
-| `findAll(pattern)` | 패턴이 끝나는 노드의 `indices`를 반환 | $O(m + k)$ ($k$ = 등장 횟수) |
-| `longestRepeatedSubstring()` | `indices.length >= 2`인 가장 깊은 노드의 경로 문자열 | $O(n)$ (DFS 1회, 전체 에지 길이 합은 $O(n^2)$이지만 순회 자체는 노드 수·에지 수에 비례) |
-
-핵심 연산인 **삽입 중 에지 분할**을 자세히 볼게요. `"anana"`(idx=1)가 이미 있는 상태에서 `"ana"`(idx=3)를 삽입하면 두 문자열의 공통 접두사 `"ana"`(3글자) 지점에서 에지가 갈라집니다.
-
-```text
-Before:  ROOT ── "anana"  idx=[1]
-
-After:   ROOT ── "ana"  idx=[1, 3]     ← 새 분기점. 공통 접두사 길이만큼만 자른 것
-                   │
-                  "na"  idx=[1]         ← 원래 "anana" 에지의 나머지 조각
-```
-
-여기서 분기점(`mid`)의 `indices`는 **원래 자식이 갖고 있던 `[1]`에 새 인덱스 `3`을 더한 `[1, 3]`**이 되어야 합니다. 왜 그래야 하는지는 바로 다음 절에서 짚어 볼게요.
-
-### 왜 모순 없이 작동하는가
-
-**`indices(v)` 불변식이 삽입 내내 보존되는 이유**를 귀납적으로 봅시다.
-
-- **기저**: 빈 트리에서는 모든 `indices`가 공집합이고, 이는 정의를 공허하게 만족합니다.
-- **귀납 단계**: 접미사 $i$를 삽입하는 도중 노드 $v$를 방문할 때마다 $i$를 `indices(v)`에 더합니다(`insertSuffix` 진입 시 `node.indices.push(idx)`). $v$를 방문했다는 것은 접미사 $i$가 $P_v$를 접두사로 갖는다는 뜻이므로, 이 갱신은 정의와 정확히 일치합니다.
-- **분할이 있는 경우**: 에지를 자를 때 경로 문자열 $P_v$ 자체는 바뀌지 않습니다 — `"anana"`가 `"ana"+"na"`로 나뉘어도 이어 붙이면 여전히 `"anana"`예요. 다만 자식(`"na"`)이 이제 새 분기점(`"ana"`) 아래 놓이므로, 분기점의 경로 문자열은 원래 자식의 경로 문자열보다 **짧은 접두사**가 됩니다. 그 짧은 접두사를 가진 접미사는 (a) 기존 자식으로 내려갔던 접미사들 전부(그들도 당연히 더 짧은 접두사를 갖습니다)와 (b) 지금 삽입 중인 새 접미사입니다. 그래서 `mid.indices = [...child.indices(분할 전), idx]`가 정확히 옳은 값이에요.
-
-**여기서 헷갈리기 쉬운 포인트는 mid.indices를 `[idx]`로만 채워도 된다고 착각하는 것입니다.** "새로 만든 분기점이니 새 인덱스만 넣으면 되지 않나?"라고 생각하기 쉬운데, 분기점은 기존 자식의 새로운 조상이 된 것이지 기존 접미사들과 무관한 노드가 아닙니다. 실제로 이렇게 잘못 짜면 `findAll("ana")`가 `[1, 3]` 대신 `[3]`만 반환합니다 — 인덱스 1에서 시작하는 `"anana"` 접미사가 `"ana"`를 접두사로 갖는다는 사실이 통째로 누락되는 거예요. 코드 절에서 이 버그를 실제로 재현하고 고쳐 보겠습니다.
-
-잠깐, 확인 하나만 해 볼까요? 위 최종 트리에서 `findAll("na")`를 부르면 어떤 인덱스가 나올까요? (힌트: 패턴 `"na"`는 루트에서 첫 글자 `'n'`을 따라갑니다.) — 정답은 `[2, 4]`입니다. `'a'` 쪽 자식 아래에도 `"na"`라는 레이블이 있지만, 그건 경로 문자열이 `"a"+"na"="ana"`인 별개의 노드예요. 패턴이 `'n'`으로 시작하니 루트에서 바로 오른쪽 `"na"`(경로 문자열 자체가 `"na"`, indices=`[2, 4]`) 노드로 가야 합니다. 레이블 문자열이 같아도 경로가 다르면 완전히 다른 노드라는 걸 확인하는 질문이었어요.
-
-**두 번째로 헷갈리기 쉬운 포인트는 "가장 긴 반복 부분 문자열 = 자식이 2개 이상인 노드"라고 단정하는 것입니다.** 자식 수가 아니라 **`indices.length >= 2`**가 정확한 기준이에요. 예를 들어 $s = \text{"abbb"}$를 생각해 보면, 경로 문자열 `"bb"`에 해당하는 노드는 자식이 딱 1개뿐인데도(한쪽 접미사는 여기서 끝나고, 다른 한쪽만 더 이어짐) `"bb"`는 인덱스 1과 2에서 두 번 등장하는 진짜 반복 문자열입니다. 자식 수 기준으로 판정하면 이 경우를 통째로 놓칩니다 — 코드 절에서 실측으로 확인해 볼게요.
-
-**세 번째로 헷갈리기 쉬운 포인트는 패턴이 에지 레이블의 정확히 끝에서 끝나야 존재로 인정된다고 생각하는 것입니다.** `search("ban")`을 `"banana"` 트리에서 실행하면, 루트의 `"banana"` 에지 중간(3글자)에서 패턴이 소진됩니다. 에지를 끝까지 다 타지 않았어도 **패턴이 그 에지의 접두사이기만 하면** 존재하는 겁니다. "에지 끝까지 다 못 갔으니 실패"라고 잘못 판단하면 `search("ban")`이 거짓으로 나오는데, 실제로는 `"ban"`이 `"banana"`의 부분 문자열이므로 참이어야 합니다.
-
-엣지 케이스도 점검해 둡시다.
-
-```text
-|s| = 1 (예: "a")           → search("a")=true, findAll("a")=[0], LRS=""(반복 없음)
-모든 문자가 같음 (예: "aaaa") → findAll("a")=[0,1,2,3], findAll("aa")=[0,1,2], LRS="aaa"
-반복이 전혀 없음 (예: "abc")  → longestRepeatedSubstring()="" (indices.length>=2인 노드가 없음)
-pattern = s 전체              → findAll(s) = [0] (접미사 중 딱 하나만 s 전체와 일치)
-```
-
-## 아이디어를 코드로 옮기기
-
-먼저 삽입과 `findAll`을 원형대로 짜 보고, 실측으로 버그를 잡은 뒤 최종 코드로 갑니다.
-
-**시도 1 (원형, 버그 있음)** — "분기점이니 새 인덱스만 담으면 된다"는 직관을 그대로 코드로 옮기면 이렇게 됩니다.
-
-```ts
-// 버그 버전: mid.indices를 새 idx로만 초기화 (child의 기존 indices를 물려받지 않음)
-const mid: SuffixNode = {
-  children: new Map(),
-  label: child.label.slice(0, common),
-  indices: [idx], // ← 여기가 문제
-};
-```
-
-이 버전으로 `"banana"`를 구성하고 `findAll("ana")`를 부르면 실측 결과는 다음과 같습니다.
-
-```text
-buggy.findAll('ana').sort()  = [3]        ← 잘못된 결과
-정상 버전.findAll('ana').sort() = [1, 3]   ← 올바른 결과
-```
-
-인덱스 1(`"anana"`가 시작하는 자리)이 통째로 빠졌어요. **관찰**: 분기점은 기존 자식의 새 조상이므로, 기존 자식이 이미 갖고 있던 `indices`를 그대로 물려받아야 합니다.
-
-**최종 코드**입니다.
-
-```ts
-interface SuffixNode {
-  children: Map<string, SuffixNode>;
-  label: string;
-  indices: number[];
-}
-
-function commonPrefixLength(a: string, b: string): number {
-  const max = Math.min(a.length, b.length);
-  let i = 0;
-  while (i < max && a[i] === b[i]) i++;
-  return i;
-}
-
-class SuffixTree {
-  private root: SuffixNode;
-  private s: string;
+```ts guide-core=src/data-structures/trie/suffixTree/_reference/suffixTree.ts#class
+export class SuffixTree {
+  #s: string;
+  #root: Node = {
+    depth: 0,
+    start: 0,
+    children: new Map(),
+    ends: -1,
+    occurrences: 0,
+  };
 
   constructor(s: string) {
-    this.s = s;
-    this.root = { children: new Map(), label: "", indices: [] };
-    for (let i = 0; i < s.length; i++) {
-      this.insertSuffix(this.root, s.slice(i), i);
-    }
+    this.#s = s;
+    this.#build();
   }
 
-  private insertSuffix(node: SuffixNode, remaining: string, idx: number): void {
-    node.indices.push(idx); // 이 노드를 지나는 접미사 목록에 idx를 더한다
-    if (remaining === "") return;
-
-    const firstChar = remaining[0]!;
-    const child = node.children.get(firstChar);
-
-    if (child === undefined) {
-      // 이 글자로 시작하는 에지가 없다 → 새 에지를 그대로 삽입
-      node.children.set(firstChar, { children: new Map(), label: remaining, indices: [idx] });
-      return;
-    }
-
-    const common = commonPrefixLength(child.label, remaining);
-
-    if (common === child.label.length) {
-      // 자식 에지를 완전히 소비했다 → 더 내려간다 (idx는 재귀 진입 시 자동으로 기록됨)
-      this.insertSuffix(child, remaining.slice(common), idx);
-      return;
-    }
-
-    // 에지 분할: 공통 접두사 지점에서 자른다
-    const mid: SuffixNode = {
-      children: new Map(),
-      label: child.label.slice(0, common),
-      indices: [...child.indices, idx], // 기존 자식의 접미사들 + 새 idx (합집합!)
-    };
-    child.label = child.label.slice(common);
-    mid.children.set(child.label[0]!, child);
-
-    const rest = remaining.slice(common);
-    if (rest !== "") {
-      mid.children.set(rest[0]!, { children: new Map(), label: rest, indices: [idx] });
-    }
-    node.children.set(firstChar, mid);
+  length(): number {
+    return this.#s.length;
   }
 
-  private findNode(pattern: string): SuffixNode | undefined {
-    let node = this.root;
-    let remaining = pattern;
-    while (remaining.length > 0) {
-      const child = node.children.get(remaining[0]!);
-      if (child === undefined) return undefined;
-      const common = commonPrefixLength(child.label, remaining);
-      if (common === remaining.length) return child; // 에지 중간이든 끝이든, 패턴이 소진되면 존재
-      if (common < child.label.length) return undefined; // 에지 끝까지 못 감 = 불일치
-      remaining = remaining.slice(common);
+  contains(pattern: string): boolean {
+    return this.#locus(pattern) !== null;
+  }
+
+  count(pattern: string): number {
+    const node = this.#locus(pattern);
+    return node === null ? 0 : node.occurrences;
+  }
+
+  findAll(pattern: string): number[] {
+    const node = this.#locus(pattern);
+    if (node === null) return [];
+    const found: number[] = [];
+    const stack: Node[] = [node];
+    while (stack.length > 0) {
+      const current = stack.pop() as Node;
+      if (current.ends >= 0) found.push(current.ends);
+      for (const child of current.children.values()) stack.push(child);
+    }
+    return found;
+  }
+
+  /** 자식이 둘 이상이거나 스스로 접미사 끝이면서 자식이 있는 노드 중 가장 깊은 것의 경로. */
+  longestRepeatedSubstring(): string {
+    let best: Node | null = null;
+    const stack: Node[] = [this.#root];
+    while (stack.length > 0) {
+      const current = stack.pop() as Node;
+      if (
+        current.depth > 0 &&
+        current.occurrences >= 2 &&
+        (best === null || current.depth > best.depth)
+      )
+        best = current;
+      for (const child of current.children.values()) stack.push(child);
+    }
+    if (best === null) return "";
+    return this.#s.slice(best.start, best.start + best.depth);
+  }
+
+  /**
+   * 패턴을 따라 내려가 그 패턴이 끝나는 노드를 찾는다. 없으면 `null`.
+   *
+   * 뿌리에서 시작해 **패턴의 문자만큼만** 내려가므로 비용이 $O(m)$ 이다. 색인한 문자열의
+   * 길이가 여기 들어오지 않는 것이 이 구조의 계약이다. 패턴이 간선 한가운데에서 끝나면
+   * 그 간선의 아래쪽 노드를 돌려준다 — 그 노드의 서브트리가 곧 패턴의 출현 자리 전부다.
+   */
+  #locus(pattern: string): Node | null {
+    let node = this.#root;
+    let matched = 0;
+    while (matched < pattern.length) {
+      const child = node.children.get(pattern.charCodeAt(matched));
+      if (child === undefined) return null;
+      // 간선 라벨은 원문의 `[start + node.depth, start + child.depth)` 구간이다.
+      for (
+        let at = node.depth;
+        at < child.depth && matched < pattern.length;
+        at += 1, matched += 1
+      ) {
+        if (
+          this.#s.charCodeAt(child.start + at) !== pattern.charCodeAt(matched)
+        )
+          return null;
+      }
       node = child;
     }
     return node;
   }
 
-  search(pattern: string): boolean {
-    if (pattern === "") return true;
-    return this.findNode(pattern) !== undefined;
+  /**
+   * 사전순으로 늘어놓은 접미사와 이웃끼리의 공통 접두사 길이로 트리를 쌓는다.
+   *
+   * 접미사를 사전순으로 하나씩 넣으면 **직전에 넣은 접미사와 겹치는 만큼은 이미 만들어져
+   * 있다.** 그 길이가 곧 이웃 공통 접두사이므로, 뿌리로 돌아가지 않고 지금 경로에서 그
+   * 깊이까지만 되감으면 된다. 되감기의 총량이 쌓기의 총량을 넘지 않아 전체가 $O(n)$ 이다.
+   */
+  #build(): void {
+    const s = this.#s;
+    const n = s.length;
+    // 뿌리의 경로 문자열은 빈 문자열이고, 빈 문자열은 마지막 자리 n 에서도 시작한다.
+    // 잎이 담는 것은 접미사의 시작 `0..n-1` 뿐이라 그 한 자리를 뿌리가 직접 든다.
+    this.#root.ends = n;
+    if (n === 0) {
+      this.#countOccurrences();
+      return;
+    }
+
+    const sa = this.#sortSuffixes();
+    const lcp = this.#neighborLcp(sa);
+
+    // 뿌리에서 지금 자리까지의 경로. 깊이가 증가하는 순서로 쌓인다.
+    const path: Node[] = [this.#root];
+    for (let k = 0; k < n; k++) {
+      const shared = k === 0 ? 0 : (lcp[k] as number);
+
+      // ① 겹치는 깊이보다 깊은 노드를 경로에서 떼어 낸다.
+      let detached: Node | null = null;
+      while ((path[path.length - 1] as Node).depth > shared) {
+        detached = path.pop() as Node;
+      }
+
+      // ② 떼어 낸 자리가 간선 한가운데면 그 자리에 노드를 새로 끼운다.
+      const parent = path[path.length - 1] as Node;
+      if (detached !== null && parent.depth < shared) {
+        const middle: Node = {
+          depth: shared,
+          start: detached.start,
+          children: new Map([
+            [s.charCodeAt(detached.start + shared), detached],
+          ]),
+          ends: -1,
+          occurrences: 0,
+        };
+        parent.children.set(
+          s.charCodeAt(detached.start + parent.depth),
+          middle,
+        );
+        path.push(middle);
+      }
+
+      // ③ 새 접미사의 잎을 붙인다.
+      const top = path[path.length - 1] as Node;
+      const start = sa[k] as number;
+      const leaf: Node = {
+        depth: n - start,
+        start,
+        children: new Map(),
+        ends: start,
+        occurrences: 0,
+      };
+      top.children.set(s.charCodeAt(start + top.depth), leaf);
+      path.push(leaf);
+    }
+
+    this.#countOccurrences();
   }
 
-  findAll(pattern: string): number[] {
-    if (pattern === "") return this.root.indices.slice();
-    const node = this.findNode(pattern);
-    return node ? node.indices.slice() : [];
+  /**
+   * 서브트리의 접미사 수를 아래에서 위로 모은다.
+   *
+   * 재귀를 쓰지 않는다 — 같은 문자가 반복되는 입력에서 트리가 깊이 n 의 사슬이 되므로
+   * 호출 스택이 넘친다.
+   */
+  #countOccurrences(): void {
+    const order: Node[] = [];
+    const stack: Node[] = [this.#root];
+    while (stack.length > 0) {
+      const current = stack.pop() as Node;
+      order.push(current);
+      for (const child of current.children.values()) stack.push(child);
+    }
+    for (let i = order.length - 1; i >= 0; i--) {
+      const node = order[i] as Node;
+      let total = node.ends >= 0 ? 1 : 0;
+      for (const child of node.children.values()) total += child.occurrences;
+      node.occurrences = total;
+    }
   }
 
-  longestRepeatedSubstring(): string {
-    let best = "";
-    const dfs = (node: SuffixNode, path: string) => {
-      if (node !== this.root && node.indices.length >= 2 && path.length > best.length) {
-        best = path; // indices.length >= 2 = 이 경로 문자열이 실제로 두 번 이상 등장한다
+  /** 순위 배가. 회차마다 순위 쌍을 정수 키로 보고 세어 담는다. */
+  #sortSuffixes(): number[] {
+    const n = this.#s.length;
+    let sa = this.#byFirstChar();
+    let rank = this.#classify(
+      sa,
+      (a, b) => this.#s.charCodeAt(a) === this.#s.charCodeAt(b),
+    );
+
+    for (let k = 1; k < n; k *= 2) {
+      if ((rank[sa[n - 1] as number] as number) === n - 1) break;
+      const bySecond: number[] = [];
+      for (let i = n - k; i < n; i++) bySecond.push(i);
+      for (const start of sa) {
+        if (start >= k) bySecond.push(start - k);
       }
-      for (const child of node.children.values()) {
-        dfs(child, path + child.label);
+      sa = this.#countingSort(bySecond, (i) => rank[i] as number, n);
+      // 순위 쌍을 하나의 정수로 합치지 않는다. 합치면 키가 $n^2$ 규모가 되어 $n$ 이 $10^8$
+      // 근처에서 배정밀도 정수 한계를 넘고, 그 순간 순서가 조용히 깨진다. 쌍을 쌍인 채로 견준다.
+      const previous = rank;
+      const second = (i: number): number =>
+        i + k < n ? (previous[i + k] as number) : -1;
+      rank = this.#classify(
+        sa,
+        (a, b) => previous[a] === previous[b] && second(a) === second(b),
+      );
+    }
+    return sa;
+  }
+
+  #byFirstChar(): number[] {
+    const n = this.#s.length;
+    const seen = new Set<number>();
+    for (let i = 0; i < n; i++) {
+      seen.add(this.#s.charCodeAt(i));
+    }
+    const codes = [...seen].sort((a, b) => a - b);
+    const narrow = new Map<number, number>();
+    codes.forEach((code, index) => {
+      narrow.set(code, index);
+    });
+    const items: number[] = [];
+    for (let i = 0; i < n; i++) items.push(i);
+    return this.#countingSort(
+      items,
+      (i) => narrow.get(this.#s.charCodeAt(i)) as number,
+      codes.length,
+    );
+  }
+
+  #countingSort(
+    items: readonly number[],
+    keyOf: (item: number) => number,
+    keys: number,
+  ): number[] {
+    const count = new Array<number>(keys).fill(0);
+    for (const item of items) {
+      count[keyOf(item)] = (count[keyOf(item)] as number) + 1;
+    }
+    let sum = 0;
+    for (let key = 0; key < keys; key++) {
+      const here = count[key] as number;
+      count[key] = sum;
+      sum += here;
+    }
+    const out = new Array<number>(items.length);
+    for (const item of items) {
+      const key = keyOf(item);
+      out[count[key] as number] = item;
+      count[key] = (count[key] as number) + 1;
+    }
+    return out;
+  }
+
+  #classify(
+    sa: readonly number[],
+    same: (a: number, b: number) => boolean,
+  ): number[] {
+    const rank = new Array<number>(this.#s.length).fill(0);
+    let next = 0;
+    let previous: number | null = null;
+    for (const start of sa) {
+      if (previous !== null && !same(previous, start)) next += 1;
+      rank[start] = next;
+      previous = start;
+    }
+    return rank;
+  }
+
+  /** 순서에서 이웃한 두 접미사의 최장 공통 접두사 길이(Kasai). */
+  #neighborLcp(sa: readonly number[]): number[] {
+    const s = this.#s;
+    const n = s.length;
+    const rank = new Array<number>(n).fill(0);
+    sa.forEach((start, at) => {
+      rank[start] = at;
+    });
+    const lcp = new Array<number>(n).fill(0);
+    let h = 0;
+    for (let i = 0; i < n; i++) {
+      const r = rank[i] as number;
+      if (r === 0) {
+        h = 0;
+        continue;
       }
-    };
-    dfs(this.root, "");
-    return best;
+      const j = sa[r - 1] as number;
+      while (
+        i + h < n &&
+        j + h < n &&
+        s.charCodeAt(i + h) === s.charCodeAt(j + h)
+      ) {
+        h += 1;
+      }
+      lcp[r] = h;
+      if (h > 0) h -= 1;
+    }
+    return lcp;
   }
 }
 ```
 
-`longestRepeatedSubstring`도 같은 방식으로 검증했습니다. $s = \text{"abbb"}$에서 "자식 수 $\ge 2$" 기준과 "`indices.length` $\ge 2$" 기준을 나란히 실행하면:
+**가장 중요한 부분은 `#locus` 의 두 겹 반복문입니다.** 바깥 반복문이 노드를 하나 내려가고 안쪽 반복문이 그 간선 라벨을 패턴과 견주는데, 안쪽이 도는 횟수의 합이 **패턴 길이를 넘지 않습니다** — `matched` 가 안쪽에서만 늘고 절대 줄지 않으니까요. 색인한 문자열의 길이가 이 두 반복문 어디에도 나타나지 않는 것, 그것이 이 계약의 중심 문장이 코드가 된 자리입니다.
+
+다만 그 $O(m)$ 은 **전제 하나 위에 섭니다.** 자식 조회 `node.children.get(...)` 이 상수여야 해요. 여기서는 `Map` 을 쓰고 그 조회를 상수로 봅니다. 자식을 알파벳 크기 $\sigma$ 의 배열로 들면 조회는 진짜 상수가 되는 대신 노드마다 $\sigma$ 칸을 잡고, 정렬된 목록을 이분 탐색으로 들면 $O(m \log \sigma)$ 가 붙습니다. **알파벳이 커질 때 어느 항이 나타나느냐가 표현마다 다르다**는 뜻이고, 계약은 그중 무엇도 처방하지 않습니다.
+
+잠깐 확인 하나만 해 볼까요? `new SuffixTree("banana").count("")` 는 몇을 돌려줄까요? 답은 **7** 입니다. 계약 조건 `0 <= i <= n - m` 에 `m = 0` 을 넣으면 `0 <= i <= 6` 이라 자리가 일곱이고, `findAll("")` 도 `0..6` 을 전부 돌려줍니다. **잎이 담는 것은 접미사의 시작 `0..n-1` 여섯 개뿐**이라, 남은 자리 `n` 을 `#build` 의 `this.#root.ends = n` 한 줄이 직접 듭니다. 원문에 없는 자리를 끼워 넣은 것이 아니라 빈 문자열이 끝자리에서도 시작한다는 사실이에요.
+
+놓치기 쉬운 자리 일곱을 짚어 둘게요.
+
+- **`#build` 안 세 단계의 순서.** 경로에서 떼어 내고(①), 필요하면 중간 노드를 끼우고(②), 잎을 붙입니다(③). ②를 ①보다 먼저 하면 어디에 끼울지를 아직 모르고, ③을 ②보다 먼저 하면 잎이 중간 노드가 아니라 그 위 노드에 붙어 깊이가 어긋납니다.
+- **`parent.depth < shared` 의 부등호.** 겹치는 깊이가 부모의 깊이와 **같으면** 중간 노드를 만들지 않습니다. 이미 그 깊이의 노드가 경로에 있으니까요. `<=` 로 바꾸면 부모와 깊이가 같은 노드가 하나 더 생겨 길이 0 인 간선이 끼어들고, 그 직후 ③이 붙이는 잎이 부모가 아니라 그 노드 **아래로** 들어갑니다. `"banana"` 에서 실제로 그렇게 되어 `contains("banana")` 가 `false` 를 돌려줍니다 — `"banana"` 잎이 뿌리의 `'a'` 간선 아래에 숨어 버리니까요.
+- **`#locus` 가 간선 한가운데에서 끝나는 패턴에 대해 아래쪽 노드를 돌려주는 것.** `contains("ban")` 은 `"banana"` 간선의 세 글자째에서 패턴이 소진되는데, 이때 돌려주는 것은 그 간선의 아래쪽 노드입니다. 그 노드의 서브트리가 곧 `"ban"` 의 출현 자리 전부이므로 `count` 와 `findAll` 이 그대로 맞습니다. 안쪽 반복문의 조건 `matched < pattern.length` 가 이 자리를 담당해요.
+- **`middle.start` 에 `detached.start` 를 그대로 쓰는 것.** 새로 끼우는 노드의 경로 문자열은 뿌리부터 `shared` 깊이까지인데, 그 구간의 문자는 **떼어 낸 노드가 이미 가리키고 있습니다.** `detached` 의 경로 문자열이 `shared` 자리까지는 새 노드의 경로 문자열과 글자 그대로 같으니까요(그래서 `shared` 만큼 겹친 것입니다). `start` 는 "이 경로 문자열이 나타나는 자리 하나"를 가리킬 뿐이라 아무 출현 자리나 되고, 떼어 낸 노드의 것이 그 조건을 만족합니다.
+- **`#countOccurrences` 가 `count` 의 상한을 떠받치는 것.** 구성 마지막의 이 전체 순회는 $O(n)$ 이라 전체 `O(n log n)` 에 묻혀 보이지 않지만, **이 사전 집계가 없으면 `count` 가 `O(m)` 이 되지 않습니다.** 집계가 없으면 `count` 는 닿은 노드의 서브트리를 세어야 하고 그 비용이 $O(k)$ 라, `count` 가 `findAll` 과 같은 상한으로 내려앉아요. 계약이 둘의 상한을 갈라 적은 것이 이 한 번의 순회를 요구하는 셈입니다.
+- **재귀를 쓰지 않는 것.** `findAll`·`longestRepeatedSubstring`·`#countOccurrences` 가 전부 명시적 스택입니다. 같은 문자가 반복되는 입력에서 트리가 깊이 $n$ 의 사슬이 되기 때문이에요 — `"aaaa…"` 를 색인하면 노드가 한 줄로 늘어섭니다. 재귀로 짜면 그 깊이가 그대로 호출 스택 깊이가 되어 넘칩니다. 3단계에서 이차를 만든 그 입력이 여기서는 스택을 넘기는 입력입니다. **이 사슬 모양은 이 구현이 종료 문자를 붙이지 않는 데서 옵니다** — 접미사 트리를 소개하는 글은 원문에 없는 고유 문자(`$` 같은)를 끝에 붙여 모든 접미사가 잎에서 끝나게 만드는 경우가 많고, 그러면 `"aaaa…"` 도 뿌리에서 갈라지는 모양이 됩니다. 계약이 종료 문자를 요구하지 않으므로 여기서는 붙이지 않고, 대신 접미사가 내부 노드에서 끝나는 것을 `ends` 로 표시합니다.
+- **순위 쌍을 하나의 정수로 합치지 않는 것.** `#sortSuffixes` 는 회차마다 `(현재 순위, k 칸 뒤 순위)` 쌍으로 다시 갈라야 하는데, 두 순위를 `rank[i] * (n + 1) + rank[i + k]` 처럼 한 정수로 접으면 키가 $n^2$ 규모가 됩니다. $n$ 이 $10^8$ 근처면 그 값이 배정밀도 정수의 안전 범위를 넘고, **넘는 순간 서로 다른 쌍이 같은 키가 되어 순서가 조용히 깨집니다.** 예외도 안 나고 작은 입력에서는 재현되지 않는 종류예요. 정본은 `#classify` 에 같음 판정 함수를 넘겨 쌍을 쌍인 채로 견줍니다.
+
+`longestRepeatedSubstring` 의 문서 주석과 조건문이 서로 달라 보이는 것도 짚어 둘게요. 주석은 *"자식이 둘 이상이거나 스스로 접미사 끝이면서 자식이 있는 노드"* 라 적는데 코드는 `current.occurrences >= 2` 하나만 봅니다. **둘은 같은 조건의 두 표현입니다.** `occurrences` 는 그 노드의 서브트리에 담긴 접미사 시작 위치의 수이고, 그 수가 곧 이 노드 경로 문자열이 원문에 나타나는 횟수예요. 그 값이 2 이상이면 경로 문자열이 서로 다른 두 자리에서 시작한다는 뜻이고, 두 출현이 갈리는 모양은 둘뿐입니다 — 다음 문자가 서로 달라 **자식이 둘 이상**이 되거나, 한 출현이 이 노드에서 끝나(`ends >= 0`) 나머지를 자식이 받거나. 주석은 그 두 모양을 열거했고 코드는 세는 쪽으로 적었을 뿐입니다.
+
+**성장률로 조건 충족을 확인합니다.** 계약 스위트 축3이 다섯 시나리오를 판별 수준(±30%)으로 재고, 정본은 전부 통과합니다.
 
 ```text
-s="abbb": children.size>=2 기준 = ""    ← "bb" 노드의 자식이 1개뿐이라 놓친다
-          indices.length>=2 기준 = "bb"  ← 올바른 답 (브루트포스로도 "bb" 확인됨)
+정본의 축3 실측 — r = C(4n)/C(n), n = 1024 → 4096 → 16384
+
+  넷째·다섯째 행은 패턴 길이 m 과 답의 개수 k 를 상수로 눌러 두고 색인 크기 n 만
+  키운다(§규약2 시나리오 규칙 3). 그러므로 그 행의 기대 비율 1.00 은 "n 에 대한
+  성장이 없다"는 뜻이지, 계약의 O(m)·O(m+k) 를 O(1) 로 고쳐 적은 것이 아니다.
+
+  시나리오                            계약 상한     n 에 대한 기대   실측 r        판정
+  구성 · 무작위(알파벳 2)             O(n log n)    4.80           4.00 / 4.00   통과
+  구성 · 같은 문자 반복               O(n log n)    4.80           4.68 / 4.58   통과
+  구성 + LRS · 주기 문자열("abab…")   O(n log n)    4.80           4.65 / 4.56   통과
+  contains·count · 패턴 길이 4 고정   O(m)          1.00           1.00 / 1.00   통과
+  findAll·length · 패턴 길이 8 고정   O(m+k) · O(1) 1.00           1.08 / 1.07   통과
 ```
 
-가장 중요한 부분은 두 곳입니다.
+무작위 행이 4.80 이 아니라 4.00 인 것은 기대값 미달이 아닙니다. 순위 배가의 회차는 많아야 $\lceil \log_2 n \rceil$ 인데 접미사가 다 갈리면 그 전에 멈추고, 무작위 문자열에서는 몇 회차 만에 다 갈립니다. 4.00 은 그 조기 종료의 결과이고 허용 구간 3.36 ~ 6.24 안이고요.
 
-- **`mid.indices: [...child.indices, idx]`** — 분할 시 기존 접미사 목록을 물려받는 이 한 줄이 없으면 `findAll`이 결과를 빠뜨립니다.
-- **`node.indices.length >= 2` (LRS 판정)** — `children.size` 대신 `indices.length`를 써야, "한쪽은 여기서 끝나고 다른 쪽은 계속되는" 경우도 반복으로 잡아냅니다.
-- **`findNode`의 `common === remaining.length` 조기 반환** — 에지 끝까지 다 가지 않아도 패턴이 소진되면 존재로 인정해야 합니다. 순서를 바꿔 `common === child.label.length`를 먼저 검사하면 `search("ban")`처럼 에지 중간에서 끝나는 패턴이 거짓으로 잘못 판정됩니다.
+뒤 두 행이 무엇을 재는지는 한 번 더 정해 둘게요. 다섯째 시나리오는 알파벳을 26 으로 넓히고 패턴을 8 자로 잡아 **$k$ 가 사실상 1 에 머물게** 만들어 둔 것이고, 넷째는 패턴을 4 자로 고정해 $m$ 을 눌러 둔 것입니다. 두 변수를 상수로 묶고 나면 남는 변수가 $n$ 하나이므로, 그 방향으로 계약이 요구하는 성장은 **없음**입니다. `length` 는 계약이 처음부터 `O(1)` 이라 같은 걸음에서 함께 재고요.
 
-> 에지를 자르면 발자국(indices)도 그대로 상속해야 한다 — 안 그러면 발자국을 잃어버린다.
+**여기서 정직하게 적어 둘 것이 하나 있습니다.** 축3은 이 구조와 접미사 배열을 가르지 못합니다. 두 구조를 가르는 것은 질의 상한의 로그 인수 하나인데, 그 인수가 판정기의 해상도 아래에 있어요.
 
-## 실행 시각화
+```text
+질의 · 색인 크기만 키움 — 두 구조의 정본을 나란히
 
-$s = \text{"banana"}$에 접미사 6개를 순서대로(`banana(0) → anana(1) → nana(2) → ana(3) → na(4) → a(5)`) 삽입하면 두 번의 에지 분할이 일어나 위에서 본 최종 트리가 만들어집니다. 이어서 `search("ana")`는 `true`, `findAll("ana")`는 `[1, 3]`, `longestRepeatedSubstring()`은 `"ana"`(길이 3, 인덱스 `[1, 3]`에서 반복)를 반환합니다 — 모두 스크래치 실행으로 확인한 실제 값입니다. array 패널은 각 단계에서 루트 자식 목록 또는 탐색 결과를 보여줍니다.
+  접미사 배열 range(m=4)     75    90   110   r = 1.20 / 1.22   계약 O(m log n)
+  접미사 트리 contains(m=4)  16    16    16   r = 1.00 / 1.00   계약 O(m)
+
+  둘 다 m 을 4 로 고정했으므로 재는 것은 색인 크기 n 에 대한 성장뿐이다.
+  그 축에서 배열은 log n, 트리는 상수를 기대한다.
+
+  허용 구간:  상수 → 0.70 ~ 1.30      배열의 1.20 이 이 안에 있다
+              log n → 0.84 ~ 1.56     트리의 1.00 이 이 안에 있다
+```
+
+두 값이 **서로의 허용 구간 안**에 있습니다. 로그 성장을 상수 계약에 넣어도 통과하고, 상수 성장을 로그 계약에 넣어도 통과합니다. 축3이 실제로 잡는 것은 **이차 이탈**이고(3단계의 15.96 이 그것입니다), 두 구조를 가르는 로그 인수는 계약이 말하되 축3이 보지 못하는 자리예요. 이 사실을 두고 판정 항목을 하나 더 만들지 않는 것이 규약2 의 결정이고, 그래서 그 자리를 가이드가 받습니다 — 지금 이 문단이 그 자리입니다.
+
+**사용 조건이 달라지면 다른 구현이 적합합니다.** 계약은 구현을 처방하지 않으므로 여기 실린 것은 계약을 만족하는 여럿 중 하나입니다. 구성 시간이 정말 급하면 접미사 링크로 한 번에 짓는 계열이 $O(n)$ 이라 더 낫고, 대신 코드가 길어지고 접미사 링크라는 상태를 하나 더 들게 됩니다. `longestRepeatedSubstring` 을 여러 번 부를 것이라면 그 값을 구성 때 계산해 두는 편이 낫고요 — 계약이 둘 다 허용하므로 그쪽도 정당한 구현입니다.
+
+메모리가 급한 쪽은 이야기가 다릅니다. 트리를 아예 만들지 않고 접미사 배열과 이웃 공통 접두사 배열 두 벌만 들고 있어도 **정보 층위에서는 같은 것이 남습니다.** 그런데 그때 질의는 `O(m log n)` 이 되므로 **비용 층위에서 다른 약속**이 되고, 그러면 그것은 이 계약이 아니라 `trie/suffixArray` 의 계약이에요. 2단계에서 갈라 둔 두 층위가 여기서 실제로 갈라집니다.
+
+복잡도를 정리하면 이렇습니다. 구성이 `worst O(n log n)` 이고 그 값을 정하는 것은 접미사 순서를 짓는 쪽입니다. 트리를 쌓는 부분과 이웃 공통 접두사를 구하는 부분은 각각 `O(n)` 이라 전체 차수에 영향이 없어요. 질의는 `contains`·`count` 가 `worst O(m)`, `findAll` 이 `worst O(m + k)`, `length` 가 `worst O(1)` 이고, `longestRepeatedSubstring` 은 구성과 합쳐 `worst O(n log n)`(정본은 호출당 $O(n)$)입니다. **색인 크기 $n$ 은 질의 상한 어디에도 나타나지 않습니다.**
+
+## 단계별 동작 확인
+
+문자열 `"banana"` 를 색인하는 장면입니다. 위 패널은 그 시점의 트리를, 아래 항목은 같은 시점의 `shared` 값과 경로를 보여 줍니다. `shared` 는 직전 접미사와 겹치는 길이예요.
+
+**패널의 노드 라벨은 경로 문자열이지 간선 라벨이 아닙니다.** 둘을 헷갈리면 다른 트리를 읽게 되니 최종 모양으로 한 번 갈라 둘게요. 경로 문자열은 뿌리부터 그 노드까지를 이어 붙인 것이고, 간선 라벨은 부모의 경로 문자열을 뺀 나머지입니다.
+
+```text
+s = "banana" 를 색인한 최종 트리 — 간선 위가 라벨, 노드 옆이 경로 문자열과 깊이
+
+  root                                            경로 ""        깊이 0  ×7
+   ├──[a]──────── "a"                             경로 "a"       깊이 1  ×3
+   │               └──[na]──── "ana"              경로 "ana"     깊이 3  ×2
+   │                            └──[na]── "anana" 경로 "anana"   깊이 5  ×1
+   ├──[banana]─── "banana"                        경로 "banana"  깊이 6  ×1
+   └──[na]─────── "na"                            경로 "na"      깊이 2  ×2
+                   └──[na]──── "nana"             경로 "nana"    깊이 4  ×1
+
+  간선 라벨 [na] 가 세 자리에 나오지만 경로 문자열은 각각 "ana"·"anana"·"nana" 로 다르다.
+  라벨이 같아도 경로가 다르면 다른 노드다.
+```
+
+깊이가 곧 경로 문자열의 코드 단위 길이이고, `×` 뒤의 수가 그 경로 문자열이 원문에 나타나는 횟수입니다. 정본을 실제로 돌린 결과는 `count("ana") = 2`, `findAll("ana") = [3, 1]`, `longestRepeatedSubstring() = "ana"` 이고, 마지막 세 프레임이 그 값이에요.
 
 > 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
-    title: "s = 'banana'의 모든 접미사",
-    detail: "i=0부터 5까지 총 6개 접미사를 순서대로 삽입한다",
-    array: ["banana(0)", "anana(1)", "nana(2)", "ana(3)", "na(4)", "a(5)"],
-    highlight: [0, 1, 2, 3, 4, 5],
-    marked: [],
+    title: "사전순 접미사와 이웃 공통 접두사",
+    detail:
+      "구성은 두 단계다. 먼저 접미사를 사전순으로 늘어놓고 이웃끼리 겹치는 길이를 구한다",
+    root: { id: "root", label: "root · 경로 \"\" · 깊이 0", status: "active" },
+    entries: [
+      { label: "사전순", value: "a(5) ana(3) anana(1) banana(0) na(4) nana(2)" },
+      { label: "겹침", value: "- 1 3 0 0 2" },
+      { label: "경로", value: "root" },
+    ],
   },
   {
-    title: "insert('banana', 0)",
-    detail: "b로 시작하는 자식이 없어 'banana' 에지를 그대로 삽입한다",
-    array: ["ROOT", "b:'banana'(idx=[0])"],
-    highlight: [1],
-    marked: [],
+    title: "순위 0 — \"a\"(5) 를 넣는다",
+    detail: "겹치는 길이 0. 뿌리에 잎을 붙인다",
+    root: {
+      id: "root",
+      label: "root · 경로 \"\" · 깊이 0",
+      children: [{ id: "a", label: "경로 \"a\" · 깊이 1", status: "active" }],
+    },
+    entries: [
+      { label: "shared", value: 0 },
+      { label: "되감은 노드", value: 0 },
+      { label: "경로", value: "root → \"a\"" },
+    ],
   },
   {
-    title: "insert('anana', 1)",
-    detail: "a로 시작하는 자식이 없어 'anana' 에지를 그대로 삽입한다",
-    array: ["ROOT", "b:'banana'(idx=[0])", "a:'anana'(idx=[1])"],
-    highlight: [2],
-    marked: [],
+    title: "순위 1 — \"ana\"(3) 을 넣는다",
+    detail:
+      "겹치는 길이 1. 경로 끝의 깊이가 이미 1 이라 되감을 것이 없다. 그 자리에 붙인다",
+    root: {
+      id: "root",
+      label: "root · 경로 \"\" · 깊이 0",
+      children: [
+        {
+          id: "a",
+          label: "경로 \"a\" · 깊이 1",
+          status: "visited",
+          children: [{ id: "ana", label: "경로 \"ana\" · 깊이 3", status: "active" }],
+        },
+      ],
+    },
+    entries: [
+      { label: "shared", value: 1 },
+      { label: "되감은 노드", value: 0 },
+      { label: "경로", value: "root → \"a\" → \"ana\"" },
+    ],
   },
   {
-    title: "insert('nana', 2)",
-    detail: "n으로 시작하는 자식이 없어 'nana' 에지를 그대로 삽입한다",
-    array: ["ROOT", "b:'banana'(idx=[0])", "a:'anana'(idx=[1])", "n:'nana'(idx=[2])"],
-    highlight: [3],
-    marked: [],
+    title: "순위 2 — \"anana\"(1) 을 넣는다",
+    detail: "겹치는 길이 3. 경로 끝의 깊이가 3 이라 여기서도 되감지 않는다",
+    root: {
+      id: "root",
+      label: "root · 경로 \"\" · 깊이 0",
+      children: [
+        {
+          id: "a",
+          label: "경로 \"a\" · 깊이 1",
+          status: "visited",
+          children: [
+            {
+              id: "ana",
+              label: "경로 \"ana\" · 깊이 3",
+              status: "visited",
+              children: [{ id: "anana", label: "경로 \"anana\" · 깊이 5", status: "active" }],
+            },
+          ],
+        },
+      ],
+    },
+    entries: [
+      { label: "shared", value: 3 },
+      { label: "되감은 노드", value: 0 },
+      { label: "경로", value: "root → \"a\" → \"ana\" → \"anana\"" },
+    ],
   },
   {
-    title: "insert('ana', 3): 'anana' 에지 분할",
-    detail: "'ana'와 'anana'의 공통 접두사는 'ana'(3글자). 분기점 'ana'(idx=[1,3]) 생성, 남은 'na'(idx=[1])는 기존 자식으로",
-    array: ["ROOT", "b:'banana'(idx=[0])", "a:'ana'(idx=[1,3])", "  └ n:'na'(idx=[1])", "n:'nana'(idx=[2])"],
-    highlight: [2, 3],
-    marked: [],
+    title: "순위 3 — \"banana\"(0) 을 넣는다",
+    detail:
+      "겹치는 길이 0. 경로에서 깊이 0 보다 깊은 노드 셋을 떼어 내고 뿌리에 붙인다",
+    root: {
+      id: "root",
+      label: "root · 경로 \"\" · 깊이 0",
+      children: [
+        {
+          id: "a",
+          label: "경로 \"a\" · 깊이 1",
+          children: [
+            { id: "ana", label: "경로 \"ana\" · 깊이 3", children: [{ id: "anana", label: "경로 \"anana\" · 깊이 5" }] },
+          ],
+        },
+        { id: "banana", label: "경로 \"banana\" · 깊이 6", status: "active" },
+      ],
+    },
+    entries: [
+      { label: "shared", value: 0 },
+      { label: "되감은 노드", value: 3 },
+      { label: "경로", value: "root → \"banana\"" },
+    ],
   },
   {
-    title: "insert('na', 4): 'nana' 에지 분할",
-    detail: "'na'와 'nana'의 공통 접두사 'na'(2글자). 분기점 'na'(idx=[2,4]) 생성, 남은 'na'(idx=[2])는 기존 자식으로",
-    array: ["ROOT", "b:'banana'(idx=[0])", "a:'ana'(idx=[1,3])", "n:'na'(idx=[2,4])", "  └ n:'na'(idx=[2])"],
-    highlight: [3, 4],
-    marked: [],
+    title: "순위 4 — \"na\"(4) 를 넣는다",
+    detail: "겹치는 길이 0. 다시 뿌리까지 되감고 붙인다",
+    root: {
+      id: "root",
+      label: "root · 경로 \"\" · 깊이 0",
+      children: [
+        {
+          id: "a",
+          label: "경로 \"a\" · 깊이 1",
+          children: [
+            { id: "ana", label: "경로 \"ana\" · 깊이 3", children: [{ id: "anana", label: "경로 \"anana\" · 깊이 5" }] },
+          ],
+        },
+        { id: "banana", label: "경로 \"banana\" · 깊이 6" },
+        { id: "na", label: "경로 \"na\" · 깊이 2", status: "active" },
+      ],
+    },
+    entries: [
+      { label: "shared", value: 0 },
+      { label: "되감은 노드", value: 1 },
+      { label: "경로", value: "root → \"na\"" },
+    ],
   },
   {
-    title: "insert('a', 5): 'ana' 에지 분할 → 최종 트리",
-    detail: "'ana'와 'a'의 공통 접두사 'a'(1글자). 최상위 'a' 에지가 'a'(idx=[1,3,5])로 줄고, 그 아래 'na'(idx=[1,3])가 이어진다",
-    array: ["ROOT", "b:'banana'(idx=[0])", "a:'a'(idx=[1,3,5])", "  └ n:'na'(idx=[1,3])", "n:'na'(idx=[2,4])"],
-    highlight: [2, 3],
-    marked: [4],
+    title: "순위 5 — \"nana\"(2) 를 넣는다",
+    detail: "겹치는 길이 2. 경로 끝의 깊이가 2 라 되감지 않고 그 아래에 붙인다",
+    root: {
+      id: "root",
+      label: "root · 경로 \"\" · 깊이 0",
+      children: [
+        {
+          id: "a",
+          label: "경로 \"a\" · 깊이 1",
+          children: [
+            { id: "ana", label: "경로 \"ana\" · 깊이 3", children: [{ id: "anana", label: "경로 \"anana\" · 깊이 5" }] },
+          ],
+        },
+        { id: "banana", label: "경로 \"banana\" · 깊이 6" },
+        {
+          id: "na",
+          label: "경로 \"na\" · 깊이 2",
+          status: "visited",
+          children: [{ id: "nana", label: "경로 \"nana\" · 깊이 4", status: "active" }],
+        },
+      ],
+    },
+    entries: [
+      { label: "shared", value: 2 },
+      { label: "되감은 노드", value: 0 },
+      { label: "경로", value: "root → \"na\" → \"nana\"" },
+    ],
   },
   {
-    title: "search('ana'): 루트 → 'a' → 'na' 소비",
-    detail: "패턴 'ana' = 'a'(1글자, 전체 소비) + 'na'(2글자, 전체 소비) → 패턴이 정확히 소진됨 → true",
-    array: ["탐색 경로: a → na", "남은 패턴: (없음)", "결과: true"],
-    highlight: [2],
-    marked: [0, 1],
+    title: "서브트리 집계 — 출현 횟수를 아래에서 위로 모은다",
+    detail:
+      "각 노드가 자기에서 끝나는 접미사 1 개와 자식들의 합을 더한다. 뿌리가 7 인 것은 빈 패턴이 n+1 자리에서 시작하기 때문이다",
+    root: {
+      id: "root",
+      label: "root · 경로 \"\" · 깊이 0 · ×7",
+      children: [
+        {
+          id: "a",
+          label: "경로 \"a\" · 깊이 1 · ×3",
+          children: [
+            {
+              id: "ana",
+              label: "경로 \"ana\" · 깊이 3 · ×2",
+              children: [{ id: "anana", label: "경로 \"anana\" · 깊이 5 · ×1" }],
+            },
+          ],
+        },
+        { id: "banana", label: "경로 \"banana\" · 깊이 6 · ×1" },
+        {
+          id: "na",
+          label: "경로 \"na\" · 깊이 2 · ×2",
+          children: [{ id: "nana", label: "경로 \"nana\" · 깊이 4 · ×1" }],
+        },
+      ],
+    },
+    entries: [
+      { label: "root 의 출현", value: "×7 = 자기 1 + 3 + 1 + 2" },
+      { label: "\"a\" 의 출현", value: "×3 = 자기 1 + \"ana\" 2" },
+      { label: "\"na\" 의 출현", value: "×2 = 자기 1 + \"nana\" 1" },
+    ],
   },
   {
-    title: "findAll('ana'): 'a'→'na' 노드의 indices 수집",
-    detail: "패턴 소진 지점의 노드에 도달, 그 노드의 indices=[1,3]을 그대로 반환",
-    array: ["도달 노드: a → na", "indices: [1, 3]"],
-    highlight: [1],
-    marked: [0],
+    title: "count(\"ana\") — 패턴을 따라 내려간다",
+    detail:
+      "뿌리에서 'a' 로 한 칸, 간선 라벨 \"na\" 를 두 글자 견주어 \"ana\" 노드에 닿는다. 그 노드에 담긴 수가 답이다",
+    root: {
+      id: "root",
+      label: "root · 경로 \"\" · 깊이 0 · ×7",
+      status: "visited",
+      children: [
+        {
+          id: "a",
+          label: "경로 \"a\" · 깊이 1 · ×3",
+          status: "visited",
+          children: [
+            {
+              id: "ana",
+              label: "경로 \"ana\" · 깊이 3 · ×2",
+              status: "active",
+              children: [{ id: "anana", label: "경로 \"anana\" · 깊이 5 · ×1" }],
+            },
+          ],
+        },
+        { id: "banana", label: "경로 \"banana\" · 깊이 6 · ×1" },
+        {
+          id: "na",
+          label: "경로 \"na\" · 깊이 2 · ×2",
+          children: [{ id: "nana", label: "경로 \"nana\" · 깊이 4 · ×1" }],
+        },
+      ],
+    },
+    entries: [
+      { label: "견준 문자", value: "3 (= 패턴 길이)" },
+      { label: "색인 길이 n", value: "6 — 비용에 들어오지 않는다" },
+      { label: "count(\"ana\")", value: 2 },
+    ],
   },
   {
-    title: "longestRepeatedSubstring(): 가장 깊은 반복 노드",
-    detail: "indices.length>=2인 후보 중 경로 길이가 가장 긴 것은 'a'+'na'='ana'(길이3, 등장 2회)",
-    array: ["후보: a (길이1, 3회)", "후보: na (길이2, 2회)", "후보: ana (길이3, 2회)", "LRS = 'ana'"],
-    highlight: [3],
-    marked: [0, 1, 2],
+    title: "findAll(\"ana\") — 닿은 노드의 서브트리를 모은다",
+    detail:
+      "\"ana\" 노드에서 끝나는 접미사 3 과 그 아래 \"anana\" 에서 끝나는 1. 스택으로 훑으므로 나오는 순서가 오름차순이 아니다",
+    root: {
+      id: "root",
+      label: "root · 경로 \"\" · 깊이 0 · ×7",
+      children: [
+        {
+          id: "a",
+          label: "경로 \"a\" · 깊이 1 · ×3",
+          status: "visited",
+          children: [
+            {
+              id: "ana",
+              label: "경로 \"ana\" · 깊이 3 · ×2 (끝 3)",
+              status: "active",
+              children: [
+                { id: "anana", label: "경로 \"anana\" · 깊이 5 · ×1 (끝 1)", status: "active" },
+              ],
+            },
+          ],
+        },
+        { id: "banana", label: "경로 \"banana\" · 깊이 6 · ×1" },
+        {
+          id: "na",
+          label: "경로 \"na\" · 깊이 2 · ×2",
+          children: [{ id: "nana", label: "경로 \"nana\" · 깊이 4 · ×1" }],
+        },
+      ],
+    },
+    entries: [
+      { label: "모은 자리", value: "3, 1" },
+      { label: "findAll(\"ana\")", value: "[3, 1]" },
+      { label: "계약", value: "순서를 정하지 않는다" },
+    ],
+  },
+  {
+    title: "longestRepeatedSubstring() — 출현 2 이상인 가장 깊은 노드",
+    detail:
+      "후보는 \"a\"(깊이 1, ×3) · \"na\"(깊이 2, ×2) · \"ana\"(깊이 3, ×2) 셋. 가장 깊은 것이 답이다",
+    root: {
+      id: "root",
+      label: "root · 경로 \"\" · 깊이 0 · ×7",
+      children: [
+        {
+          id: "a",
+          label: "경로 \"a\" · 깊이 1 · ×3",
+          status: "frontier",
+          children: [
+            {
+              id: "ana",
+              label: "경로 \"ana\" · 깊이 3 · ×2",
+              status: "active",
+              children: [{ id: "anana", label: "경로 \"anana\" · 깊이 5 · ×1" }],
+            },
+          ],
+        },
+        { id: "banana", label: "경로 \"banana\" · 깊이 6 · ×1" },
+        {
+          id: "na",
+          label: "경로 \"na\" · 깊이 2 · ×2",
+          status: "frontier",
+          children: [{ id: "nana", label: "경로 \"nana\" · 깊이 4 · ×1" }],
+        },
+      ],
+    },
+    entries: [
+      { label: "후보", value: "\"a\" 1 · \"na\" 2 · \"ana\" 3" },
+      { label: "가장 깊은 것", value: "깊이 3" },
+      { label: "결과", value: "\"ana\"" },
+    ],
   },
 ];
 
-<AlgorithmSimulation view="array" steps={steps} title="SuffixTree 시뮬레이션 ('banana')" />
-
-정리하면, 접미사 트리는 딱 하나의 관찰 — "부분 문자열 검색은 접미사의 접두사 검색과 같다" — 을 자료구조로 구현한 결과예요. 삽입마다 `indices`를 정직하게 합집합으로 유지하기만 하면(`mid.indices = [...child.indices, idx]`), `search`는 $O(m)$, `findAll`은 $O(m+k)$, `longestRepeatedSubstring`은 `indices.length >= 2`인 가장 깊은 노드를 찾는 $O(n)$짜리 DFS 한 번으로 정확히 끝납니다. `s="mississippi"`에서도 `findAll("issi")`는 `[1, 4]`, `longestRepeatedSubstring()`은 `"issi"`(길이 4)로, 같은 코드가 그대로 맞아떨어지는 것을 실측으로 확인했습니다.
+<AlgorithmSimulation view={["tree", "keyValue"]} steps={steps} title="SuffixTree — banana 를 색인하고 묻기" />
 
 ## 스스로 점검하기
 
-1. $s = \text{"aaaa"}$에 대해 이 가이드의 트리를 손으로(또는 종이에) 그려 보세요. `findAll("aa")`는 어떤 인덱스를 반환해야 할까요? (정답을 정하고 나서, 왜 `findAll("a")`의 결과 개수와 다른지 설명해 보세요.)
-2. `longestRepeatedSubstring`을 "자식이 2개 이상인 노드"로 판정하도록 구현하면, 어떤 문자열에서 잘못된(더 짧은) 답을 낼 수 있을까요? 본문의 `"abbb"` 예시 말고 스스로 하나 더 만들어 보세요.
-3. `findNode`에서 `if (common === remaining.length) return child;`를 빼고 `if (common < child.label.length) return undefined;`만 남기면, `search("ban")` 같은 호출이 왜 잘못된 결과를 내는지 실행 흐름을 따라가며 설명해 보세요.
+1. 문자열 `"aaaa"` 를 색인한 트리를 직접 그려 보세요. 사전순 접미사와 이웃 공통 접두사를 먼저 적고, 각 순위에서 되감는 노드가 몇 개인지 세어 보세요. 그 합이 3단계에서 본 뿌리부터 넣는 설계의 "다시 내려간" 길이의 합과 어떻게 다른지 함께 설명해 보세요.
+2. `#build` 에서 `parent.depth < shared` 를 `parent.depth <= shared` 로 바꾸면 `contains("banana")` 가 `false` 가 됩니다. 위 시뮬레이션의 순위 3(`"banana"` 를 넣는 자리)을 따라가며 잎이 어디에 붙게 되는지 그려 보세요. 그리고 `"aaaa"` 를 색인할 때는 왜 같은 증상이 나타나지 않는지도 함께 설명해 보세요 — 힌트는 그 입력에서 `detached` 가 무엇으로 남는가입니다.
+3. `count` 를 `findAll(pattern).length` 로 갈아 끼우면 답은 그대로입니다. 그런데 계약 표의 어느 행이 깨지는지, 그리고 그 깨짐을 계약 스위트의 어느 시나리오가 잡을지 짚어 보세요. 답의 개수 $k$ 를 상수로 눌러 놓은 시나리오와 그렇지 않은 시나리오를 나누어 답하면 좋습니다.
