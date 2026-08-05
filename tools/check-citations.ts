@@ -19,20 +19,21 @@ import { join, resolve } from "node:path";
 
 const root = resolve(import.meta.dir, "..");
 
-/** 인용을 찾아 볼 파일들. 살아 있는 작업 문서와 이번 규약이 낳은 코드다. */
-const SCAN_GLOBS = [
-  "docs",
-  "tools",
-  "src/data-structures/_contract",
-  "src/data-structures/linear/stack",
-  "src/data-structures/tree/multiset",
-];
+/**
+ * 인용을 찾아 볼 파일들.
+ *
+ * **B11 에서 둘을 넓혔다.** 그전에는 재집필한 구조를 한 줄씩 손으로 등록하는 목록이었고
+ * `.mdx` 가 확장자에 없었다. 둘 다 조용한 구멍이다 — 등록을 빠뜨린 구조와 가이드 전부가
+ * 검사 밖이었고, B7~B9 산출물 셋이 실제로 그 밖에 있었다. 목록을 `src/data-structures`
+ * 하나로 바꾸면 재집필이 늘 때 아무도 손댈 것이 없다.
+ */
+const SCAN_GLOBS = ["docs", "tools", "src/data-structures"];
 
-const SCAN_EXTENSIONS = [".md", ".ts"];
+const SCAN_EXTENSIONS = [".md", ".mdx", ".ts"];
 
 /** 경로에 `/` 가 있는 인용만 잡는다. 앞의 문자 클래스가 백틱·괄호·공백을 끊어 준다. */
 const CITATION =
-  /([A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)+\.(?:md|ts|tsx|json|tsv)):(\d+)(?:-(\d+))?/g;
+  /([A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)+\.(?:md|mdx|ts|tsx|json|tsv)):(\d+)(?:-(\d+))?/g;
 
 interface Problem {
   where: string;

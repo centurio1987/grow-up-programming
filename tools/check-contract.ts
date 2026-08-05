@@ -67,7 +67,9 @@ function invariantCount(doc: string): number {
   const start = doc.indexOf(marker);
   if (start < 0) return 0;
   const after = doc.slice(start + marker.length);
-  const nextAt = SECTION_ORDER.map((section) => after.indexOf(`**${section}.**`))
+  const nextAt = SECTION_ORDER.map((section) =>
+    after.indexOf(`**${section}.**`),
+  )
     .filter((at) => at >= 0)
     .sort((a, b) => a - b)[0];
   const clause = nextAt === undefined ? after : after.slice(0, nextAt);
