@@ -1750,3 +1750,106 @@ seed 별 평균의 중앙값이다. 상각만 보장하는 구현을 `worst` 계
 B16 은 이 덩어리를 아홉 배치로 잡았다. 판정 뒤에는 **계약 다섯 + 성격 전환 넷**이고,
 성격 전환은 계약을 새로 적지 않으므로(정본의 계약을 그대로 쓰고 가이드만 다시 쓴다)
 배치 하나에 둘씩 묶인다. **아홉 배치 → 다섯~일곱 배치.**
+
+### 연산 집합이 계약을 가른다 — 힙 여덟의 판정 (B18 확정)
+
+**덩어리 둘째다.** 대상은 `heap/minHeap` · `heap/maxHeap` · `heap/priorityQueue` ·
+`heap/daryHeap` · `heap/binomialHeap` · `heap/leftistHeap` · `heap/pairingHeap` ·
+`heap/fibonacciHeap` 여덟이다. B17 의 4단계를 그대로 돌렸고 **판정은 여덟 → 계약 넷**이다.
+
+#### 1단계 — 표면 차이 넷 중 셋이 계약의 차이가 아니었다
+
+| 구조 | 물려받은 표면 | 물려받은 상한 |
+|---|---|---|
+| `minHeap` | push·pop·peek·size·isEmpty | push·pop O(log n), 나머지 O(1) |
+| `maxHeap` | push·pop·peek·size·isEmpty | 같음 |
+| `priorityQueue` | enqueue·dequeue·peek·size·isEmpty | 같음 |
+| `daryHeap` | push·pop·peek·size·isEmpty (생성자 **d**) | push O(log_d n), pop O(d·log_d n) |
+| `binomialHeap` | insert·extractMin·peek·**merge**·size·isEmpty | insert O(log n) 상각, peek O(log n), merge O(log n) |
+| `leftistHeap` | insert·extractMin·**merge**·peek·size·isEmpty | 전부 O(log n), peek O(1) |
+| `pairingHeap` | insert·extractMin·**merge**·peek·size·isEmpty | insert·merge O(1), extractMin O(log n) 상각 |
+| `fibonacciHeap` | insert·extractMin·**decreaseKey**·**merge**·peek·size·isEmpty | insert·merge·decreaseKey O(1), extractMin O(log n) 상각 |
+
+1. **내부 표현 누출** — `daryHeap` 생성자의 `d`. 갈래 수는 내부 표현이다. 빼고 나면
+   $d$ 가 상수이므로 $O(\log_d n)$ 과 $O(d\log_d n)$ 이 둘 다 $O(\log n)$ 이고, 축3은
+   상수 배수를 판정에 넣지 않는다(불변 사실 6).
+2. **이름만 다른 같은 연산** — `push`/`enqueue`/`insert`, `pop`/`dequeue`/`extractMin`.
+   문서의 차이다.
+3. **배제하는 것이 없는 차이** — `binomialHeap.peek` 의 O(log n). 뿌리 목록을 훑는
+   구현을 그대로 적은 값인데, 최소를 가리키는 자리 하나를 들고 있으면 같은 구현이
+   O(1) 이다. **O(1) 로 적어도 배제되는 구현 계열이 없다.**
+4. **진짜 차이** — `merge` 의 유무와 상한, `decreaseKey` 의 유무. 아래 3단계가 이것만 본다.
+
+**`minHeap` 과 `maxHeap` 은 이 덩어리에서 가장 깨끗하게 접힌다.** 둘 다 생성자로 비교자를
+받으므로 계약이 글자 하나 다르지 않다 — 「최솟값」과 「최댓값」은 비교자를 뒤집은 같은
+문장이다. `priorityQueue` 도 연산 이름만 다르다.
+
+#### 2단계 — 등급은 이 덩어리를 가르지 못한다
+
+여덟 다 `complexity` 다. 자명한 구현이 둘 다 막힌다 — 정렬하지 않은 배열은 `pop` 이
+$O(n)$ 이고 정렬한 배열은 `push` 가 $O(n)$ 이다. `tree/multiset` 이 `complexity` 가 된
+것과 같은 모양이고, 그래서 B17 과 달리 **등급이 반례를 대신해 주지 않는다.**
+
+#### 3단계 — 연산 집합과 그 상한이 넷으로 가른다
+
+| 계약 | 구조 | 반례 |
+|---|---|---|
+| **A** 기본 우선순위 큐 — 넣기·빼기 O(log n), 보기 O(1) | `minHeap`·`maxHeap`·`priorityQueue`·`daryHeap` | — |
+| **B** 합칠 수 있는 우선순위 큐 — 합치기 `worst O(log n)` | `binomialHeap`·`leftistHeap` | 배열 이진 힙은 A 를 만족하고 B 를 만족하지 못한다(배열 둘을 합치면 $\Theta(n)$) |
+| **C** 상수 시간 넣기·합치기 — 빼기 `amortized O(log n)` | `pairingHeap` | 좌편향 힙은 B 를 만족하고 C 를 만족하지 못한다(합치기가 $O(\log n)$). 페어링 힙은 C 를 만족하고 B 를 만족하지 못한다(빼기가 상각만 보장한다) |
+| **D** 키 낮추기 — `amortized O(1)` | `fibonacciHeap` | 페어링 힙은 C 를 만족하고 D 를 만족하지 못한다 |
+
+**A ⊂ B ⊂ D 이고 C 는 B 와 서로 담지 않는다.** 담는 쪽이 더 좁으므로 넷은 다른 구조다.
+C 와 B 가 서로 담지 않는 것은 불변 사실 54 의 셋째 줄이고, 반례가 양쪽에 하나씩 있다.
+
+**`binomialHeap` 과 `leftistHeap` 이 접히는 근거는 물려받은 주장 하나를 고친 뒤에 나온다.**
+이항 힙의 `insert` 가 「O(log n) 상각」으로 적혀 있는데 캐리 전파가 최대 $\log n$ 단계라
+**최악도 $O(\log n)$** 이다. 물려받은 문서가 상각으로 적은 것은 $O(1)$ 상각이라는 더 센
+사실을 약하게 옮겨 적은 것이고, 계약이 배제하려는 것을 배제하는 데 상각이 필요하지 않다.
+바로잡고 나면 둘의 여섯 행이 이름·의미·상한·한정자까지 같다.
+
+**네 계약 전부 `tree/multiset` 과 갈린다.** 배열 이진 힙은 A 를 만족하고 `multiset` 을
+만족하지 못하며(`has` 가 $O(n)$), 트립은 `multiset` 을 만족하고 A 를 만족하지 못한다
+(`min` 이 $O(\log n)$ 이지 $O(1)$ 이 아니다). 서로 담지 않는다.
+
+#### 4단계 — 축이 이 갈림을 보는가
+
+**A·B·D 사이는 축1이 본다.** 갈리는 자리가 연산의 유무(`merge`·`decreaseKey`)라서
+계약 스위트의 행 자체가 다르다. B17 의 넷(표면이 같고 한정자만 갈렸다)과 반대쪽 끝이다.
+
+**B 와 C 사이는 상한으로 안 보이고 한정자로 보인다.** 두 계약을 가르는 상한 차이가
+`insert`·`merge` 의 $O(1)$ 대 $O(\log n)$ 인데, 이것이 정확히 **로그 인수 하나**라
+허용 구간이 겹친다 — $O(1)$ 은 0.70~1.30, $O(\log n)$ 은 0.84~1.56 이고 실측 1.2 가
+양쪽 모두를 통과한다(불변 사실 53). 남는 것이 한정자다. 페어링 힙의 `extractMin` 은
+단일 호출이 $\Theta(n)$ 까지 가므로(넣기만 $n$ 번 한 뒤의 첫 빼기가 뿌리 $n$ 개를
+짝짓는다) **`worst` 통계로 재면 걸린다.** 불변 사실 63 이 요구하는 적대적 시나리오가
+여기서는 「넣기 $n$ 번 뒤 빼기 한 번」이다.
+
+#### 판정 결과 — 여덟 → 계약 넷
+
+| 계약 | 정본 | 같은 계약으로 묶이는 이름 | 처분 |
+|---|---|---|---|
+| A 기본 우선순위 큐 | `heap/priorityQueue` | `minHeap` · `maxHeap` · `daryHeap` | 존치 + 성격 전환 |
+| B 합칠 수 있는 우선순위 큐 | `heap/leftistHeap` | `binomialHeap` | 존치 + 성격 전환 |
+| C 상수 시간 넣기·합치기 | `heap/pairingHeap` | — | 단독 |
+| D 키 낮추기 | `heap/fibonacciHeap` | — | 단독 |
+
+**A 의 정본은 임시가 아니다.** B17 에서 정본 이름이 임시로 남은 이유는 덩어리 안에 계약
+이름이 하나도 없었기 때문인데(불변 사실 64), 이 덩어리에는 있다 — **우선순위 큐가 ADT
+이름이고 힙이 구현 이름이다.** `minHeap`·`maxHeap`·`daryHeap` 은 전부 구현을 가리키므로
+정본이 될 수 없다. 그래서 이 자리는 KAN-031 로 넘기지 않는다. 다만 **카테고리 이름
+`heap/` 은 여전히 구현 이름이고** 그것은 KAN-031 의 대상이다.
+
+**B 의 정본은 임시다.** `binomialHeap` 과 `leftistHeap` 둘 다 구현 이름이고, 이 계약의
+ADT 이름(합칠 수 있는 우선순위 큐)에 해당하는 디렉터리가 없다. 불변 사실 64 를 적용해
+**물려받은 표면이 병합 계약과 정확히 같은 이름**을 골랐다 — `binomialHeap` 은 `peek` 를
+O(log n) 으로, `insert` 를 상각으로 적어 두 행이 어긋나 있다.
+
+**삭제하지 않는다.** 넷의 가이드 주제가 「왜 이 기법이 계약으로 갈리지 않는가」가 된다.
+d 갈래 힙은 특히 그 자리가 뚜렷하다 — 갈래 수를 늘리면 넣기가 싸지고 빼기가 비싸지는
+교환이 실재하는데, 그 교환이 전부 상수 배수라 계약의 문장이 되지 못한다.
+
+#### 공수에 미치는 영향
+
+B16 은 이 덩어리를 여덟 배치로 잡았다. 판정 뒤에는 **계약 넷 + 성격 전환 넷**이다.
+**여덟 배치 → 넷~여섯 배치.**
