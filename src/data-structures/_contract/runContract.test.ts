@@ -11,11 +11,6 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import { Multiset as ReferenceMultiset } from "../tree/multiset/_reference/multiset";
-import {
-  type MultisetContract,
-  multisetContract,
-} from "../tree/multiset/multiset.contract";
 import {
   type DequeContract,
   dequeContract,
@@ -25,6 +20,11 @@ import {
   type StackContract,
   stackContract,
 } from "../linear/stack/stack.contract";
+import { UnrolledLinkedList as ReferenceUnrolledLinkedList } from "../linear/unrolledLinkedList/_reference/unrolledLinkedList";
+import {
+  type UnrolledLinkedListContract,
+  unrolledLinkedListContract,
+} from "../linear/unrolledLinkedList/unrolledLinkedList.contract";
 import { XorLinkedList as ReferenceXorLinkedList } from "../linear/xorLinkedList/_reference/xorLinkedList";
 import {
   type XorLinkedListContract,
@@ -35,9 +35,16 @@ import {
   type IntervalTreeContract,
   intervalTreeContract,
 } from "../range-query/intervalTree/intervalTree.contract";
+import { Multiset as ReferenceMultiset } from "../tree/multiset/_reference/multiset";
+import {
+  type MultisetContract,
+  multisetContract,
+} from "../tree/multiset/multiset.contract";
+import { FixedChunkList } from "./_fixtures/fixedChunkList";
 import { FrontPushStack } from "./_fixtures/frontPushStack";
 import { ScanIntervalList } from "./_fixtures/scanIntervalList";
 import { SortedArrayMultiset } from "./_fixtures/sortedArrayMultiset";
+import { SpliceArrayList } from "./_fixtures/spliceArrayList";
 import { TailScanList } from "./_fixtures/tailScanList";
 import { TwoArrayDeque } from "./_fixtures/twoArrayDeque";
 import { UnbalancedIntervalTree } from "./_fixtures/unbalancedIntervalTree";
@@ -70,6 +77,21 @@ describe("판정 — 순수 부분", () => {
     // log2(4096)/log2(1024) = 12/10
     expect(expectedRatio("O(log n)", 1024)).toBeCloseTo(1.2, 10);
     expect(expectedRatio("O(log n)", 4096)).toBeCloseTo(14 / 12, 10);
+    // sqrt(4n)/sqrt(n) = 2. n 에 기대지 않는 유일한 비상수 상한이다.
+    expect(expectedRatio("O(sqrt n)", 1024)).toBe(2);
+    expect(expectedRatio("O(sqrt n)", 16384)).toBe(2);
+  });
+
+  test("판정은 상한을 넘는 쪽만이 아니라 성장 계급을 벗어나는 쪽 전부를 잡는다", () => {
+    // O(sqrt n) 계약에 O(log n) 구현을 넣으면 계약을 **어기지 않았는데도** 실패한다.
+    // 축3은 "상한 이하인가"가 아니라 "적어 놓은 계급인가"를 본다. 정본을 고를 때
+    // 계약보다 빠른 구현을 쓸 수 없는 이유가 이것이다(§규약2).
+    const faster = judgeGrowth("O(sqrt n)", "discriminating", [
+      { n: 1024, stat: 10 },
+      { n: 4096, stat: 12 },
+    ]);
+    expect(faster.ok).toBe(false);
+    expect(faster.reason).toContain("O(sqrt n)");
   });
 
   test("한정자는 기대 비율이 아니라 통계를 바꾼다", () => {
@@ -195,6 +217,23 @@ const tailScanList: CostSource<XorLinkedListContract> = {
   make: () => new TailScanList(),
 };
 
+const referenceUnrolledLinkedList: CostSource<
+  UnrolledLinkedListContract<number>
+> = {
+  kind: "self-reported",
+  make: () => new ReferenceUnrolledLinkedList<number>(),
+};
+
+const fixedChunkList: CostSource<UnrolledLinkedListContract<number>> = {
+  kind: "self-reported",
+  make: () => new FixedChunkList<number>(),
+};
+
+const spliceArrayList: CostSource<UnrolledLinkedListContract<number>> = {
+  kind: "self-reported",
+  make: () => new SpliceArrayList<number>(),
+};
+
 describe("축3 — 정본은 통과한다", () => {
   test("Stack 정본의 push·pop 이 amortized O(1) 계약 안에 있다", () => {
     const verdict = judgeScenario(
@@ -235,6 +274,19 @@ describe("축3 — 정본은 통과한다", () => {
         referenceXorLinkedList,
         scenario,
         "invariant",
+      );
+      expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
+        `${scenario.covers.join("·")}: `,
+      );
+    }
+  });
+
+  test("UnrolledLinkedList 정본이 일곱 시나리오를 전부 지킨다", () => {
+    for (const scenario of unrolledLinkedListContract.scenarios) {
+      const verdict = judgeScenario(
+        referenceUnrolledLinkedList,
+        scenario,
+        "complexity",
       );
       expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
         `${scenario.covers.join("·")}: `,
@@ -380,6 +432,80 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       );
       expect(`${covers}: ${verdict.reason}`).toBe(`${covers}: `);
     }
+  });
+
+  test("크기를 고정한 묶음 목록은 위치 연산 셋과 뒤 끝 빼기에서 걸린다 — 넣기는 통과한다", () => {
+    // 처방받았던 그 구현이다. 묶음 크기가 상수라 묶음 수가 n 에 비례하고, 그 하나가
+    // 네 자리를 동시에 무너뜨린다. **진단이 지목한 것은 `pop` 하나였다.**
+    const drain = judgeScenario(
+      fixedChunkList,
+      scenarioOf(unrolledLinkedListContract, "pop", true),
+      "complexity",
+    );
+    expect(drain.ok).toBe(false);
+    expect(drain.reason).toContain("O(1)");
+
+    for (const covers of ["get", "insert", "remove"]) {
+      const verdict = judgeScenario(
+        fixedChunkList,
+        scenarioOf(unrolledLinkedListContract, covers, true),
+        "complexity",
+      );
+      expect(verdict.ok).toBe(false);
+      expect(verdict.reason).toContain("O(sqrt n)");
+      const stats = verdict.points.map((point) => point.stat);
+      // 선형 이탈이다. sqrt 계약의 기대 2.0 이 아니라 4.0 쪽에 붙는다.
+      expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeGreaterThan(3);
+    }
+
+    // 표가 맞게 적었던 셋. 결함이 있는 구현인데 이 셋에서는 정본과 구별되지 않는다.
+    for (const covers of ["push", "size", "toArray"]) {
+      const verdict = judgeScenario(
+        fixedChunkList,
+        scenarioOf(unrolledLinkedListContract, covers, false),
+        "complexity",
+      );
+      expect(`${covers}: ${verdict.reason}`).toBe(`${covers}: `);
+    }
+  });
+
+  test("배열 하나는 반대쪽에서 걸린다 — 위치 삽입·제거만 무너지고 읽기는 오히려 상수다", () => {
+    for (const covers of ["insert", "remove"]) {
+      const verdict = judgeScenario(
+        spliceArrayList,
+        scenarioOf(unrolledLinkedListContract, covers, true),
+        "complexity",
+      );
+      expect(verdict.ok).toBe(false);
+      expect(verdict.reason).toContain("O(sqrt n)");
+    }
+
+    for (const covers of ["push", "size", "toArray"]) {
+      const verdict = judgeScenario(
+        spliceArrayList,
+        scenarioOf(unrolledLinkedListContract, covers, false),
+        "complexity",
+      );
+      expect(`${covers}: ${verdict.reason}`).toBe(`${covers}: `);
+    }
+    const drain = judgeScenario(
+      spliceArrayList,
+      scenarioOf(unrolledLinkedListContract, "pop", true),
+      "complexity",
+    );
+    expect(drain.ok).toBe(true);
+
+    // **읽기는 상수라 걸리는데, 느려서가 아니라 빨라서 걸린다.** 이 구현은 `get` 계약을
+    // 어기지 않았다 — 판정이 성장 계급을 보기 때문에 계급 아래도 벗어남이다.
+    // 위 「판정 — 순수 부분」의 같은 성질을 실물 구현에서 확인하는 자리다.
+    const read = judgeScenario(
+      spliceArrayList,
+      scenarioOf(unrolledLinkedListContract, "get", true),
+      "complexity",
+    );
+    expect(read.ok).toBe(false);
+    const stats = read.points.map((point) => point.stat);
+    expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeLessThan(1.4);
   });
 });
 
@@ -654,7 +780,9 @@ describe("축2 — B10 이 multiset 의 불변식 한 자리를 갈았다", () =
 
   test("정렬 순서는 축2가 아니라 축1이 본다 — 읽는 길이 하나뿐이다", () => {
     // `toArray()` 의 의미 열이 「비내림차순 배열의 사본」이므로 참조 모델과의 대조가 판정한다.
-    const names = multisetContract.invariants.map((invariant) => invariant.name);
+    const names = multisetContract.invariants.map(
+      (invariant) => invariant.name,
+    );
     expect(names.some((name) => name.includes("비내림차순"))).toBe(false);
   });
 });

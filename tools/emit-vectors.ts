@@ -20,11 +20,12 @@
 import { join, resolve } from "node:path";
 import { rngFrom } from "../src/data-structures/_contract/judge.ts";
 import type { ContractSpec } from "../src/data-structures/_contract/runContract.ts";
-import { multisetContract } from "../src/data-structures/tree/multiset/multiset.contract.ts";
 import { dequeContract } from "../src/data-structures/linear/deque/deque.contract.ts";
 import { stackContract } from "../src/data-structures/linear/stack/stack.contract.ts";
+import { unrolledLinkedListContract } from "../src/data-structures/linear/unrolledLinkedList/unrolledLinkedList.contract.ts";
 import { xorLinkedListContract } from "../src/data-structures/linear/xorLinkedList/xorLinkedList.contract.ts";
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
+import { multisetContract } from "../src/data-structures/tree/multiset/multiset.contract.ts";
 
 const root = resolve(import.meta.dir, "..");
 const OUT_DIR = "rust/vectors";
@@ -124,6 +125,7 @@ const SPECS: ContractSpec<any, any>[] = [
   dequeContract,
   intervalTreeContract,
   xorLinkedListContract,
+  unrolledLinkedListContract,
 ];
 
 const check = Bun.argv.includes("--check");

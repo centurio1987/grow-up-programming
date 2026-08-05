@@ -1,77 +1,94 @@
 /**
- * UnrolledLinkedList (펼침 연결 리스트)
+ * UnrolledLinkedList — 위치로 읽고 고치는 수열. 위치 연산의 비용이 원소 수보다 느리게 자란다.
  *
- * 각 노드가 최대 CHUNK_SIZE개 원소를 배열로 보관하는 연결 리스트.
- * 단순 연결 리스트에 비해 캐시 지역성이 높고 포인터 오버헤드가 적다.
- * 대용량 텍스트 문서를 줄 단위로 청크에 저장할 때 유리하다.
+ * **목적.** 원소를 순서대로 늘어놓고, **임의 위치의 읽기·삽입·제거**를 원소 수에 비례하지
+ * 않는 비용으로 제공하는 것. 뒤 끝에서 넣고 빼는 것은 그보다 싸다. 위치는 언제나 지금
+ * 수열 기준의 0-based 순번이고, 원소에 붙어 다니는 식별자가 아니다 — 앞쪽이 바뀌면
+ * 같은 원소의 위치가 바뀐다.
  *
- * 요구사항:
- * - push(item): 맨 끝에 원소 추가
- * - pop(): 맨 끝 원소 제거 후 반환
- * - get(index): index 번째 원소 반환 (0-based)
- * - size(): 전체 원소 개수 반환
- * - toArray(): 전체 원소를 배열로 반환
+ * 값으로 찾기·정렬·중복 세기는 이 계약에 없다. 이 계약은 원소를 비교하지 않는다.
  *
- * 시간복잡도:
- * - push: O(1) amortized
- * - pop: O(1) amortized
- * - get: O(√n) (청크 수 순회 후 청크 내 인덱스 접근)
- * - size: O(1)
- * - toArray: O(n)
+ * **캐시 지역성·포인터 수·블록 크기도 이 계약에 없다.** 셋 다 특정 내부 표현을 지목해야만
+ * 참이 되는 진술이라 계약의 문장이 될 수 없다(§규약1 「계약의 문장은 구현 전체에 대해 참이어야
+ * 한다」가 캐시 지역성을 이름으로 배제한다). 그 자리는 가이드다. 이 구조는 이름이 곧 내부
+ * 표현이라 그 셋이 계약으로 새어 들어오기 가장 쉬운 자리이므로 여기 적어 둔다.
+ *
+ * **불변식.**
+ * 1. `size()` 가 말하는 원소 수와 `toArray()` 가 내놓는 배열의 길이가 같다.
+ * 2. 모든 `0 <= i < size()` 에 대해 `get(i)` 와 `toArray()[i]` 가 같다.
+ *
+ * 둘 다 관측 경로가 둘이고(세어 둔 수 대 늘어놓은 수, 위치로 짚은 원소 대 늘어놓은 원소)
+ * 어느 연산의 계약 줄도 그 정합을 적지 않는다. 원소를 여러 묶음에 나눠 담는 구현은 묶음별
+ * 개수를 따로 들고 다니게 되고, 그 수가 묶음의 실제 길이와 어긋나는 순간 각 연산이 저마다
+ * 옳은 채로 둘이 갈린다.
+ *
+ * **연산 계약.** 상한은 원소 수 n 에 대한 것이다.
+ *
+ * | 연산 | 의미 | 상한 | 한정자 |
+ * |---|---|---|---|
+ * | `push(item)` | 뒤 끝에 놓는다. 직후 `get(size() - 1)` 은 `item` 이다 | O(1) | amortized |
+ * | `pop()` | 뒤 끝 원소를 제거하고 돌려준다. 비어 있으면 `null`, 상태는 불변 | O(1) | amortized |
+ * | `get(index)` | `index` 번째 원소를 제거하지 않고 돌려준다. `index` 가 `0 <= index < size()` 밖이면 `null` | O(sqrt n) | amortized |
+ * | `insert(index, item)` | `item` 을 `index` 자리에 끼워 넣고 그 뒤를 한 칸씩 민다. `index === size()` 는 `push` 와 같다. `0 <= index <= size()` 밖이면 아무것도 하지 않는다 | O(sqrt n) | amortized |
+ * | `remove(index)` | `index` 번째를 제거해 돌려주고 그 뒤를 한 칸씩 당긴다. `0 <= index < size()` 밖이면 `null`, 상태는 불변 | O(sqrt n) | amortized |
+ * | `size()` | 현재 원소 수 | O(1) | worst |
+ * | `toArray()` | 앞에서부터 순서대로 담은 배열의 사본. 고쳐도 이 구조는 바뀌지 않는다 | O(n) | worst |
+ *
+ * 위치 연산 셋의 상한이 `O(sqrt n)` 인 것은 **약한 쪽을 적는 규칙**(§규약1 「복잡도 한정자」)을
+ * 상한에 적용한 결과다. 배열 하나와 원소마다 잇는 연결 리스트를 배제하려면 선형보다 빨라야
+ * 하고, 그 일을 하는 가장 약한 상한이 $O(\sqrt n)$ 이다. `O(log n)` 을 적으면 더 많이
+ * 약속하게 되어 묶음 기반 구현 전부가 계약 위반이 된다 — 배제한 적 없는 것을 배제하므로
+ * 그것은 "트리를 쓰라"는 처방이다. 더 빠른 구현이 이 계약을 어기는 것은 아니다.
+ *
+ * 위치 연산 셋이 `amortized` 인 것은 묶음의 크기를 n 에 맞춰 다시 잡는 구현과 읽을 때
+ * 스스로 모양을 바꾸는 구현을 배제하지 않기 위해서다. 넣고 빼기가 `amortized` 인 것은
+ * 자리를 미리 늘려 두는 구현을 배제하지 않기 위해서다. `size`·`toArray` 가 `worst` 인 것은
+ * 두 한정자가 아무 구현도 다르게 배제하지 않기 때문이다 — 원소를 전부 돌려주는 연산은
+ * 어느 구현에서도 호출 하나가 n 에 비례하고, 원소 수는 세어 두거나 세거나 둘뿐이다.
+ *
+ * **주입 정책.** 없다. `T` 는 임의 타입이고 비교·해시·동등성을 쓰지 않으므로 주입할 것이
+ * 없다. 범위 밖 접근과 빈 수열에서의 `pop` 은 예외를 던지지 않고 `null` 을 돌려준다 — 이
+ * 선택은 계약의 일부이며, 그 대가로 `T` 에 `null` 이 섞이면 "없음"과 "값이 `null` 인 원소"가
+ * 구분되지 않는다. `insert` 는 돌려줄 값이 없으므로 범위 밖에서 조용히 아무것도 하지 않는다.
+ *
+ * **검증 등급.** `complexity`.
+ * 상한이 자명한 구현으로 달성되지 않는다. 반례가 둘이고 서로 반대쪽에서 걸린다 — 배열
+ * 하나에 `splice` 를 쓰면 `insert`·`remove` 가 뒤 원소 전부를 옮기므로 O(n) 이고, 원소마다
+ * 하나씩 잇는 연결 리스트는 `get` 이 앞에서부터 밟아 가므로 O(n) 이다. 위치 접근과 위치
+ * 수정을 **함께** 선형 아래로 두려면 비자명한 설계가 필요하다.
+ *
+ * **필요충분조건.**
+ * - 의미: 위치가 **지금 수열 기준의 순번**이 아니면 이 구조가 아니다. 위치가 원소에 붙어
+ *   다니면(앞에 끼워 넣어도 뒤 원소의 위치가 그대로면) 그건 수열이 아니라 키로 찾는 사전이다.
+ * - 비용: 위치 접근이 원소 수에 비례하면 연결 리스트고, 위치 삽입·제거가 원소 수에 비례하면
+ *   배열이다. 둘 다 선형 아래인 것이 이 구조이고, 어느 한쪽을 포기하면 이 구조를 쓸 이유가
+ *   그 자리에서 사라진다.
  */
-
-interface Chunk<T> {
-  items: T[];
-  next: Chunk<T> | null;
-}
-
 export class UnrolledLinkedList<T> {
-  private head: Chunk<T> | null = null;
-  private tail: Chunk<T> | null = null;
-  private _size: number = 0;
-  private readonly chunkSize: number;
-
-  constructor(chunkSize: number = 16) {
-    throw new Error("Not implemented");
-  }
-
-  /**
-   * 맨 끝에 원소를 추가한다.
-   * tail 청크에 여유가 있으면 바로 삽입, 없으면 새 청크를 생성한다.
-   * amortized O(1)
-   */
   push(item: T): void {
     throw new Error("Not implemented");
   }
 
-  /**
-   * 맨 끝 원소를 제거하고 반환한다.
-   * tail 청크가 비면 이전 청크를 찾아 tail을 업데이트한다.
-   * amortized O(1)
-   */
   pop(): T | null {
     throw new Error("Not implemented");
   }
 
-  /**
-   * 0-based index에 해당하는 원소를 반환한다.
-   * 청크를 순회하며 누적 인덱스를 계산해 위치를 찾는다.
-   * O(√n) — 청크 수 ≈ n/chunkSize
-   */
   get(index: number): T | null {
     throw new Error("Not implemented");
   }
 
-  /**
-   * 전체 원소 개수를 반환한다. O(1)
-   */
+  insert(index: number, item: T): void {
+    throw new Error("Not implemented");
+  }
+
+  remove(index: number): T | null {
+    throw new Error("Not implemented");
+  }
+
   size(): number {
     throw new Error("Not implemented");
   }
 
-  /**
-   * 전체 원소를 순서대로 담은 배열을 반환한다. O(n)
-   */
   toArray(): T[] {
     throw new Error("Not implemented");
   }

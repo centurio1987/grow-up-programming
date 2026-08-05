@@ -9,7 +9,20 @@
  */
 
 export type Qualifier = "worst" | "amortized" | "expected";
-export type Bound = "O(1)" | "O(log n)" | "O(n)";
+
+/**
+ * 계약 표에 적히는 상한.
+ *
+ * **`O(sqrt n)` 은 B12 에서 늘었다.** 그전 셋(`O(1)`·`O(log n)`·`O(n)`)으로는
+ * `linear/unrolledLinkedList` 의 위치 연산을 적을 수 없었다. 그 계약이 요구하는 것은
+ * "원소 수보다 느리게 자란다"이고, `O(log n)` 을 적으면 블록 기반 구현 전부가 계약 위반이
+ * 되므로 그것은 트리를 쓰라는 처방이다.
+ *
+ * 값을 ASCII 로 두는 이유는 이 문자열이 계약 헤더 표와 `<name>.contract.ts` 양쪽에
+ * **같은 형태로** 적히기 때문이다. 둘이 갈리면 대조할 방법이 없다. 사람이 읽는 산문
+ * (가이드)에서는 $\sqrt{n}$ 을 그대로 쓴다.
+ */
+export type Bound = "O(1)" | "O(log n)" | "O(sqrt n)" | "O(n)";
 export type Grade = "basic" | "invariant" | "complexity" | "concurrency";
 
 /**
@@ -69,6 +82,8 @@ export function expectedRatio(bound: Bound, n: number): number {
       return 1;
     case "O(log n)":
       return Math.log2(4 * n) / Math.log2(n);
+    case "O(sqrt n)":
+      return 2;
     case "O(n)":
       return 4;
   }

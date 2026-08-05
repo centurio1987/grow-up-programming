@@ -30,7 +30,7 @@ src/data-structures/linear/pieceTable	linear	pieceTable	-	-	-	82	338	false
 src/data-structures/linear/queue	linear	queue	C	-	-	67	307	false
 src/data-structures/linear/singlyLinkedList	linear	singlyLinkedList	-	-	-	76	328	false
 src/data-structures/linear/stack	linear	stack	-	basic	-	0	272	true
-src/data-structures/linear/unrolledLinkedList	linear	unrolledLinkedList	A	-	-	79	303	false
+src/data-structures/linear/unrolledLinkedList	linear	unrolledLinkedList	A	complexity	-	0	303	true
 src/data-structures/linear/xorLinkedList	linear	xorLinkedList	B	invariant	opt	0	385	true
 src/data-structures/probabilistic/bloomFilter	probabilistic	bloomFilter	-	-	-	72	337	false
 src/data-structures/probabilistic/concurrentSkipList	probabilistic	concurrentSkipList	B	-	req	92	391	false

@@ -1,0 +1,1338 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "UnrolledLinkedList",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 수열에서 pop·get·remove 는 null 이고 상태를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        }
+      ]
+    },
+    {
+      "name": "빈 수열에 insert(0) 은 push 와 같고, insert(1) 은 범위 밖이라 아무것도 안 한다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            9
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            7
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": 7
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "index === size() 는 push 와 같다 — 경계 하나 차이로 무시되면 안 된다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "push",
+          "arg": 2
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            3
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            4,
+            4
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "name": "앞에 끼워 넣으면 뒤 원소의 위치가 한 칸씩 밀린다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 10
+        },
+        {
+          "op": "push",
+          "arg": 20
+        },
+        {
+          "op": "push",
+          "arg": 30
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            5
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 10
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": 30
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            5,
+            10,
+            20,
+            30
+          ]
+        }
+      ]
+    },
+    {
+      "name": "가운데를 빼면 뒤가 한 칸씩 당겨진다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "push",
+          "arg": 2
+        },
+        {
+          "op": "push",
+          "arg": 3
+        },
+        {
+          "op": "remove",
+          "arg": 1,
+          "expect": 2
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "name": "음수 위치는 앞에서부터 세지 않는다 — 전부 범위 밖이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "push",
+          "arg": 2
+        },
+        {
+          "op": "get",
+          "arg": -1,
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": -1,
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -1,
+            9
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "name": "비웠다가 다시 채워도 위치가 어긋나지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "push",
+          "arg": 2
+        },
+        {
+          "op": "pop",
+          "expect": 2
+        },
+        {
+          "op": "pop",
+          "expect": 1
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            8
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": 8
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "remove",
+          "arg": -4,
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            19,
+            96
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": 13,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 19,
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            7,
+            13
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": null
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -3,
+            39
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 42
+        },
+        {
+          "op": "remove",
+          "arg": 15,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": 42
+        },
+        {
+          "op": "remove",
+          "arg": 9,
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "pop",
+          "expect": 42
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": [
+            14,
+            99
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": null
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "remove",
+          "arg": -1,
+          "expect": null
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 62
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            62
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": 62
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": 18,
+          "expect": null
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "remove",
+          "arg": 18,
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "push",
+          "arg": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            3
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 17,
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            18,
+            70
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": 3
+        },
+        {
+          "op": "remove",
+          "arg": 18,
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 97
+        },
+        {
+          "op": "pop",
+          "expect": 97
+        },
+        {
+          "op": "get",
+          "arg": -2,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": 8,
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -3,
+            80
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 17,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": -1,
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": 9,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": -2,
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 6
+        },
+        {
+          "op": "get",
+          "arg": 12,
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": -2,
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            8,
+            21
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "pop",
+          "expect": 6
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "push",
+          "arg": 18
+        },
+        {
+          "op": "push",
+          "arg": 98
+        },
+        {
+          "op": "get",
+          "arg": 13,
+          "expect": null
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            18,
+            98
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 25
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            18,
+            98,
+            25
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "pop",
+          "expect": 25
+        },
+        {
+          "op": "push",
+          "arg": 14
+        },
+        {
+          "op": "get",
+          "arg": 9,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 17,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 17,
+          "expect": null
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            18,
+            98,
+            14
+          ]
+        },
+        {
+          "op": "remove",
+          "arg": 12,
+          "expect": null
+        },
+        {
+          "op": "pop",
+          "expect": 14
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": null
+        },
+        {
+          "op": "pop",
+          "expect": 98
+        },
+        {
+          "op": "pop",
+          "expect": 18
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": -3,
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 78
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": null
+        },
+        {
+          "op": "pop",
+          "expect": 78
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "get",
+          "arg": 17,
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            6,
+            68
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            14,
+            79
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 20
+        },
+        {
+          "op": "remove",
+          "arg": 11,
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 32
+        },
+        {
+          "op": "insert",
+          "arg": [
+            16,
+            64
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": -4,
+          "expect": null
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            32
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            9,
+            64
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 7
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "push",
+          "arg": 71
+        },
+        {
+          "op": "pop",
+          "expect": 71
+        },
+        {
+          "op": "remove",
+          "arg": 3,
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            18,
+            7
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 17
+        },
+        {
+          "op": "remove",
+          "arg": -3,
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            5,
+            77
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": 17
+        },
+        {
+          "op": "push",
+          "arg": 99
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            32,
+            7,
+            99
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 86
+        },
+        {
+          "op": "push",
+          "arg": 39
+        },
+        {
+          "op": "remove",
+          "arg": 8,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 13,
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 28
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            32,
+            7,
+            99,
+            86,
+            39,
+            28
+          ]
+        },
+        {
+          "op": "remove",
+          "arg": 8,
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 16
+        },
+        {
+          "op": "remove",
+          "arg": 1,
+          "expect": 32
+        },
+        {
+          "op": "pop",
+          "expect": 16
+        },
+        {
+          "op": "remove",
+          "arg": 10,
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 6
+        },
+        {
+          "op": "push",
+          "arg": 40
+        },
+        {
+          "op": "remove",
+          "arg": 11,
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "remove",
+          "arg": 12,
+          "expect": null
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            7,
+            99,
+            86,
+            39,
+            28,
+            6,
+            40
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 86
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            7,
+            99,
+            86,
+            39,
+            28,
+            6,
+            40,
+            86
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 82
+        },
+        {
+          "op": "insert",
+          "arg": [
+            9,
+            37
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 8
+        },
+        {
+          "op": "remove",
+          "arg": 5,
+          "expect": 28
+        },
+        {
+          "op": "push",
+          "arg": 50
+        },
+        {
+          "op": "insert",
+          "arg": [
+            12,
+            86
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            14,
+            6
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 13,
+          "expect": null
+        },
+        {
+          "op": "pop",
+          "expect": 86
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            7,
+            99,
+            86,
+            39,
+            6,
+            40,
+            86,
+            37,
+            82,
+            8,
+            50
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "push",
+          "arg": 18
+        },
+        {
+          "op": "remove",
+          "arg": -4,
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            7,
+            99,
+            86,
+            39,
+            6,
+            40,
+            86,
+            37,
+            82,
+            8,
+            50,
+            18
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 17,
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "remove",
+          "arg": 7,
+          "expect": 86
+        },
+        {
+          "op": "remove",
+          "arg": 6,
+          "expect": 40
+        },
+        {
+          "op": "pop",
+          "expect": 18
+        },
+        {
+          "op": "pop",
+          "expect": 50
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            7,
+            99,
+            86,
+            39,
+            6,
+            37,
+            82,
+            8
+          ]
+        },
+        {
+          "op": "remove",
+          "arg": -3,
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": 10,
+          "expect": null
+        },
+        {
+          "op": "pop",
+          "expect": 8
+        },
+        {
+          "op": "pop",
+          "expect": 82
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            7,
+            99,
+            86,
+            39,
+            6,
+            37
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": 37
+        },
+        {
+          "op": "push",
+          "arg": 49
+        },
+        {
+          "op": "get",
+          "arg": 19,
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": 7,
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 63
+        },
+        {
+          "op": "push",
+          "arg": 78
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            7,
+            99,
+            86,
+            39,
+            6,
+            49,
+            63,
+            78
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": 78
+        },
+        {
+          "op": "remove",
+          "arg": 17,
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": 10,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 10,
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            14,
+            87
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 14,
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "pop",
+          "expect": 63
+        },
+        {
+          "op": "pop",
+          "expect": 49
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            7,
+            99,
+            86,
+            39,
+            6
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 18,
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            11,
+            42
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 76
+        },
+        {
+          "op": "remove",
+          "arg": 14,
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 0
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "pop",
+          "expect": 0
+        },
+        {
+          "op": "get",
+          "arg": 13,
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 23
+        },
+        {
+          "op": "push",
+          "arg": 30
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            7,
+            99,
+            86,
+            39,
+            6,
+            76,
+            23,
+            30
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": 6
+        },
+        {
+          "op": "remove",
+          "arg": -1,
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": 15,
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": 7,
+          "expect": 23
+        },
+        {
+          "op": "push",
+          "arg": 40
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            7,
+            99,
+            86,
+            39,
+            6,
+            76,
+            30,
+            40
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            17,
+            99
+          ]
+        }
+      ]
+    }
+  ]
+}

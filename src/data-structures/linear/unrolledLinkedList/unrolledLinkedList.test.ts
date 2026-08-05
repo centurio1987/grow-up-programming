@@ -1,117 +1,31 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `linear/unrolledLinkedList` 계약 스위트 실행부(규약2).
+ *
+ * 여기에는 `runContract` 호출만 둔다. 무엇을 검사하는지는 `./unrolledLinkedList.contract.ts`
+ * 에 있고, 계약 자체는 `./unrolledLinkedList.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다.
+ * 축3은 계측기가 붙은 정본에만 돈다 — 학습자 스텁에 `__cost` 를 요구하지 않는다.
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 옛 스위트에는 `10,000개 push·get 이 100ms 이내`
+ * 라는 단정이 있었는데, 그 임계값이 재는 것은 복잡도 등급이 아니라 그 기계의 상수다.
+ * 진단된 결함(`pop` 의 상한)은 그 단정을 통과한 채로 살아 있었다. 자리는 축3이다.
+ */
+
+import { runContract } from "../../_contract/runContract";
+import { UnrolledLinkedList as Reference } from "./_reference/unrolledLinkedList";
 import { UnrolledLinkedList } from "./unrolledLinkedList";
+import { unrolledLinkedListContract } from "./unrolledLinkedList.contract";
 
-describe("UnrolledLinkedList", () => {
-  describe("기본 동작", () => {
-    test("push 후 size가 증가한다", () => {
-      const list = new UnrolledLinkedList<number>();
-      list.push(1);
-      list.push(2);
-      list.push(3);
-      expect(list.size()).toBe(3);
-    });
+runContract(
+  () => new UnrolledLinkedList<number>(),
+  unrolledLinkedListContract,
+  {
+    label: "스텁",
+  },
+);
 
-    test("push한 순서대로 get으로 조회된다", () => {
-      const list = new UnrolledLinkedList<number>();
-      list.push(10);
-      list.push(20);
-      list.push(30);
-      expect(list.get(0)).toBe(10);
-      expect(list.get(1)).toBe(20);
-      expect(list.get(2)).toBe(30);
-    });
-
-    test("pop은 마지막 원소를 반환하고 size를 줄인다", () => {
-      const list = new UnrolledLinkedList<number>();
-      list.push(1);
-      list.push(2);
-      list.push(3);
-      expect(list.pop()).toBe(3);
-      expect(list.size()).toBe(2);
-      expect(list.pop()).toBe(2);
-      expect(list.size()).toBe(1);
-    });
-
-    test("toArray는 삽입 순서와 동일한 배열을 반환한다", () => {
-      const list = new UnrolledLinkedList<string>();
-      list.push("a");
-      list.push("b");
-      list.push("c");
-      expect(list.toArray()).toEqual(["a", "b", "c"]);
-    });
-  });
-
-  describe("엣지 케이스", () => {
-    test("빈 리스트에서 pop은 null을 반환한다", () => {
-      const list = new UnrolledLinkedList<number>();
-      expect(list.pop()).toBeNull();
-    });
-
-    test("빈 리스트에서 get은 null을 반환한다", () => {
-      const list = new UnrolledLinkedList<number>();
-      expect(list.get(0)).toBeNull();
-    });
-
-    test("범위를 벗어난 인덱스로 get하면 null을 반환한다", () => {
-      const list = new UnrolledLinkedList<number>();
-      list.push(1);
-      list.push(2);
-      expect(list.get(5)).toBeNull();
-    });
-
-    test("빈 리스트의 toArray는 빈 배열을 반환한다", () => {
-      const list = new UnrolledLinkedList<number>();
-      expect(list.toArray()).toEqual([]);
-    });
-  });
-
-  describe("바운더리", () => {
-    test("단일 원소 push 후 pop", () => {
-      const list = new UnrolledLinkedList<number>();
-      list.push(42);
-      expect(list.pop()).toBe(42);
-      expect(list.size()).toBe(0);
-    });
-
-    test("chunkSize를 초과해도 원소를 올바르게 저장한다", () => {
-      const chunkSize = 4;
-      const list = new UnrolledLinkedList<number>(chunkSize);
-      const count = 13;
-      for (let i = 0; i < count; i++) {
-        list.push(i);
-      }
-      expect(list.size()).toBe(count);
-      expect(list.toArray()).toEqual(Array.from({ length: count }, (_, i) => i));
-    });
-
-    test("청크 경계에 걸친 원소를 get으로 올바르게 조회한다", () => {
-      const list = new UnrolledLinkedList<number>(4);
-      for (let i = 0; i < 9; i++) list.push(i * 10);
-      expect(list.get(4)).toBe(40);
-      expect(list.get(8)).toBe(80);
-    });
-
-    test("청크 경계에서 pop 후 이전 청크가 tail이 된다", () => {
-      const list = new UnrolledLinkedList<number>(3);
-      list.push(1);
-      list.push(2);
-      list.push(3);
-      list.push(4);
-      list.pop();
-      expect(list.size()).toBe(3);
-      expect(list.pop()).toBe(3);
-    });
-  });
-
-  describe("성능", () => {
-    test("10,000개 push·get 연산이 100ms 이내에 완료된다", () => {
-      const list = new UnrolledLinkedList<number>(32);
-      const N = 10_000;
-      const start = performance.now();
-      for (let i = 0; i < N; i++) list.push(i);
-      for (let i = 0; i < N; i++) list.get(i);
-      const elapsed = performance.now() - start;
-      expect(elapsed).toBeLessThan(100);
-    });
-  });
+runContract(() => new Reference<number>(), unrolledLinkedListContract, {
+  label: "정본",
+  cost: { kind: "self-reported", make: () => new Reference<number>() },
 });
