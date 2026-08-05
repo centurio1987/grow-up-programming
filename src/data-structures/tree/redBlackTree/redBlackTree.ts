@@ -1,70 +1,114 @@
 /**
- * RedBlackTree (레드-블랙 트리)
+ * RedBlackTree — 전순서를 유지하는 집합. 모든 연산이 **호출 하나하나** 로그 안에 든다.
  *
- * 각 노드를 Red 또는 Black으로 채색하고, 5가지 속성을 유지하여
- * 트리 높이를 O(log n)으로 보장하는 자기 균형 이진 탐색 트리.
- * AVL 트리보다 삽입·삭제 회전 횟수가 적어 실무에서 널리 사용된다.
- * C++ STL의 map/set, Java의 TreeMap이 이 구조를 기반으로 한다.
+ * **목적.** 같은 원소를 두 벌 담지 않으면서 전순서를 유지하고, 담기·지우기·찾기·양 끝
+ * 읽기·구간 읽기를 원소 수의 **최악** 로그 비용으로 제공하는 것. 「최악」이 이 계약의
+ * 내용이다 — 호출을 모아 평균 내면 로그인 구현도, 기댓값이 로그인 구현도 이 계약을
+ * 만족하지 못한다.
  *
- * 레드-블랙 속성:
- * 1. 모든 노드는 Red 또는 Black이다.
- * 2. 루트는 Black이다.
- * 3. 모든 리프(NIL)는 Black이다.
- * 4. Red 노드의 자식은 모두 Black이다 (Red가 연속될 수 없다).
- * 5. 임의 노드에서 리프까지의 모든 경로의 Black 노드 수는 동일하다.
+ * 같은 값을 여러 벌 담는 일은 이 계약에 없다(`tree/multiset`). 위치로 읽는 일
+ * (k 번째 원소·순위)도 없다(`tree/orderStatisticTree`).
  *
- * 요구사항:
- * - insert(value): 삽입 후 채색 규칙 복구
- * - delete(value): 삭제 후 채색 규칙 복구
- * - has(value): 값 포함 여부 반환
- * - min(): 최솟값 반환
- * - max(): 최댓값 반환
- * - inOrder(): 중위 순회 결과 배열 반환
- * - size(): 현재 노드 수 반환
+ * **이 이름은 계약을 정당화하지 않는다.** 계약의 어느 문장도 색칠이나 회전을 말하지
+ * 않고, 말할 수 없다 — 명세는 내부 표현을 처방하지 않는다. 같은 계약에 이름이 다섯
+ * 붙어 있고(`avlTree`·`twoThreeTree`·`bTree`·`bPlusTree`) 다섯을 가르는 것이 전부
+ * 재균형 기법이라 계약의 문장이 되지 못한다. 이 파일이 계약을 든 것은 물려받은 표면이
+ * 병합 계약과 어긋나는 행이 없었기 때문이고, **이름은 임시다**(§규약1 「한정자가 계약을
+ * 가른다」, 불변 사실 64).
  *
- * 시간복잡도:
- * - insert: O(log n)
- * - delete: O(log n)
- * - has: O(log n)
- * - min/max: O(log n)
- * - inOrder: O(n)
- * - size: O(1)
+ * **이 계약은 시간만 말한다.** 저장 공간에 대한 조건이 없으므로, 원소 수보다 훨씬 많은
+ * 자리를 쓰는 구현도 이 계약을 지킨다. 공간을 계약에 넣을지는 이 구조 하나가 정할 일이
+ * 아니다(§규약1 「공간은 어느 계약에도 없다」 — 미결).
+ *
+ * **불변식.** 넷이다. 넷 다 **관측 경로가 둘**이라 성립한다 — 구현이 두 경로를 따로
+ * 유지할 수 있고, 따로 유지하는 순간 갈린다. 어떤 연산 뒤에도 성립해야 한다.
+ * 1. `toArray().length === size()`. 원소 수를 읽는 길이 둘이다.
+ * 2. 임의의 `x` 에 대해 `has(x)` 는 `toArray()` 안에 `x` 와 동등한(비교자가 0) 원소가
+ *    있는가와 같다. 담김 여부를 읽는 길이 둘이다.
+ * 3. 비어 있지 않으면 `min()` 은 `toArray()` 의 첫 원소와, `max()` 는 마지막 원소와
+ *    같다. 양 끝을 읽는 길이 둘이다.
+ * 4. 임의의 `low ≤ high` 에 대해 `range(low, high)` 는 `toArray()` 에서 그 구간에 드는
+ *    원소만 남긴 것과 같다. 구간을 읽는 길이 둘이다.
+ *
+ * 정렬됨과 유일함은 불변식이 **아니다.** 둘 다 `toArray()` 하나로만 읽히므로 대조할
+ * 상대가 없고, 그 조건은 축1이 참조 모델과 하는 일이다(§규약1 「불변식 판별 절차」 ①).
+ * 트리 높이와 색 배분도 불변식이 아니다 — 계약에 적혀 있어야 검사할 수 있는데 적는
+ * 순간 그것이 처방이다(불변 사실 36). 균형이 깨진 구현은 축3의 성장률이 잡는다.
+ *
+ * **연산 계약.** n 은 담긴 원소 수, k 는 `range` 가 돌려주는 원소 수다.
+ *
+ * | 연산 | 의미 | 상한 | 한정자 |
+ * |---|---|---|---|
+ * | `constructor(comparator?)` | 비교자를 고정한다. 이후 교체할 수 없다 | O(1) | worst |
+ * | `insert(item)` | `item` 을 담는다. 동등한 원소가 이미 있으면 **상태가 바뀌지 않는다** | O(log n) | worst |
+ * | `delete(item)` | 동등한 원소를 지우고 `true`. 없으면 `false`, 상태는 불변 | O(log n) | worst |
+ * | `has(item)` | 동등한 원소가 담겨 있으면 `true` | O(log n) | worst |
+ * | `min()` / `max()` | 비교자 기준 최소·최대. 비어 있으면 `null` | O(log n) | worst |
+ * | `range(low, high)` | `low ≤ v ≤ high` 인 원소를 비내림차순 배열로. 사본이다 | O(log n + k) | worst |
+ * | `size()` | 담긴 원소 수 | O(1) | worst |
+ * | `toArray()` | 비내림차순 배열의 사본. 반환값을 고쳐도 원본은 바뀌지 않는다 | O(n) | worst |
+ *
+ * **여덟 행이 전부 `worst` 인 것이 이 계약이 하는 일의 거의 전부다.** 「가장 약한
+ * 한정자를 적는다」는 규칙에는 뒷문장이 붙는다 — 강한 것을 적으려면 그것이 배제하는
+ * 구현 계열이 있고, **그 계열을 배제해도 계약이 잃는 것이 없어야 한다**(§규약1 「가장
+ * 약한 한정자는 셋을 줄 세우지 않는다」). 여기서는 배제하는 계열이 있고, **배제하는
+ * 것이 목적**이다. `amortized` 로 적으면 조회가 트리를 고쳐 쓰는 계열이 들어오고
+ * (`tree/splayTree`), `expected` 로 적으면 무작위 우선순위로 균형을 얻는 계열이
+ * 들어온다(`tree/treap`). 두 계열은 **호출 하나가 튀지 않는다는 것을 약속하지 못하고**,
+ * 이 계약이 약속하려는 것이 정확히 그것이다. 그래서 셋은 다른 계약이고 다른 구조다.
+ *
+ * `range` 의 상한에 `k` 가 있는 것은 돌려주는 원소를 적는 비용이 어느 구현에서도 그
+ * 수에 비례하기 때문이다. `k` 를 상한에서 빼면 아무 구현도 만족하지 못한다.
+ *
+ * **`min`·`max`·`range` 를 넣은 근거는 「배제하는 것이 없다」다.** 나머지 계약을
+ * 만족하는 구현은 전부 이 셋을 위 상한 안에 한다 — 양 끝은 한쪽으로 끝까지 내려가면
+ * 되고, 구간은 두 번 내려간 뒤 사이를 훑으면 된다. **넣어도 만족하는 구현 집합이
+ * 그대로이므로** 넣고 빼는 것이 계약을 바꾸지 않는다. 넣은 쪽을 고른 이유는 전순서를
+ * 유지한다는 목적이 이 셋으로만 관측되기 때문이다 — `toArray()` 하나로는 「전부
+ * 늘어놓기」밖에 못 하고, 그것은 순서를 쓰는 것이 아니라 순서를 확인하는 것이다.
+ * 이것은 증명이 아니라 근거다(§규약1 「같은 구조인가」 B15 항목과 같은 성격).
+ *
+ * **주입 정책.**
+ * - `comparator(a, b)` 는 음수·0·양수를 돌려주는 전순서여야 한다. 0 은 「동등」을 뜻하고,
+ *   **동등한 두 원소는 이 집합에 함께 담기지 않는다.** 나중에 넣은 쪽이 버려지는지 앞의
+ *   것을 덮는지는 계약이 약속하지 않는다 — 동등하므로 구분할 방법이 계약 안에 없다.
+ * - 미제공 시 기본 비교자는 `<`·`>` 를 쓴다. 따라서 `number`·`string` 밖의 `T` 에는
+ *   비교자 주입이 **필수다.** 주입 없이 객체를 넣으면 `toArray()` 가 비내림차순을 잃는다.
+ * - 빈 집합의 `min`·`max` 는 예외가 아니라 `null` 이다. 그 대가로 `T` 에 `null` 이 섞이면
+ *   「비어 있음」과 「값이 `null` 인 원소」가 구분되지 않는다.
+ * - `range(low, high)` 에서 `low > high` 면 빈 배열이다. 예외가 아니다.
+ *
+ * **검증 등급.** `complexity`.
+ * 상한이 **어떤 자명한 구현으로도** 달성되지 않는다. 언어가 내주는 것이 둘인데 둘 다
+ * 한쪽을 놓는다 — 배열은 순서를 주지만 가운데에 넣으면 뒤가 전부 밀리므로 `insert`·
+ * `delete` 가 O(n) 이고, 객체(해시)는 갱신을 상수에 주지만 순서를 잃으므로 `min`·
+ * `max`·`range`·`toArray` 를 상한 안에 못 한다. 둘을 함께 하려면 **담는 모양을 갱신
+ * 도중에 고쳐 주는 설계**가 들어오고, 그 설계가 자명하지 않다는 것이 이 등급의 내용이다.
+ * 실패하는 자명한 구현 하나를 드는 것으로는 부족하다는 규칙(§규약1 「자명한 구현은
+ * 존재 조건이다」)에 대한 답이 이 문단이다 — 자명한 구현이 왜 **전부** 막히는지를 적었다.
+ *
+ * **필요충분조건.**
+ * - 의미: 순서와 유일성 중 하나라도 버리면 이 구조가 아니다. 순서를 버리면 해시 집합이고
+ *   (`hash/hashSet`), 유일성을 버리면 다중집합이다(`tree/multiset`).
+ * - 비용: 둘 다 지키더라도 `insert`·`delete` 가 n 에 비례하면 정렬 배열이다. 그리고
+ *   **로그를 지키더라도 최악이 아니면 이 구조가 아니다** — 상각만 지키면 `splayTree`,
+ *   기댓값만 지키면 `treap` 이고, 셋은 서로를 함의하지 않으므로 만족하는 구현 집합이
+ *   갈린다(불변 사실 59).
  */
-
-type RBColor = "RED" | "BLACK";
-
-class RBNode<T> {
-  value: T;
-  left: RBNode<T> | null = null;
-  right: RBNode<T> | null = null;
-  parent: RBNode<T> | null = null;
-  color: RBColor = "RED";
-
-  constructor(value: T) {
-    this.value = value;
-    throw new Error("Not implemented");
-  }
-}
-
 export class RedBlackTree<T> {
-  private root: RBNode<T> | null = null;
-  private _size = 0;
-  private comparator: (a: T, b: T) => number;
-
   constructor(comparator?: (a: T, b: T) => number) {
-    this.comparator = comparator ?? ((a, b) => (a < b ? -1 : a > b ? 1 : 0));
     throw new Error("Not implemented");
   }
 
-  insert(value: T): void {
+  insert(item: T): void {
     throw new Error("Not implemented");
   }
 
-  delete(value: T): boolean {
+  delete(item: T): boolean {
     throw new Error("Not implemented");
   }
 
-  has(value: T): boolean {
+  has(item: T): boolean {
     throw new Error("Not implemented");
   }
 
@@ -76,11 +120,15 @@ export class RedBlackTree<T> {
     throw new Error("Not implemented");
   }
 
-  inOrder(): T[] {
+  range(low: T, high: T): T[] {
     throw new Error("Not implemented");
   }
 
   size(): number {
+    throw new Error("Not implemented");
+  }
+
+  toArray(): T[] {
     throw new Error("Not implemented");
   }
 }

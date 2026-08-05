@@ -1,586 +1,584 @@
 ---
-version: 2.0.0
+version: 4.0.0
 ---
 
 import { AlgorithmSimulation } from "#guide-sim";
 
-# RedBlackTree — 노드 색 하나로 균형을 사는 자기 균형 이진 탐색 트리
+# RedBlackTree — 호출 하나하나를 로그 안에 묶어 두는 정렬 집합
 
-## 한눈에 보는 컨셉
+## 개요
 
-레드-블랙 트리는 모든 노드를 RED 또는 BLACK 두 색으로 채색해서, 뿌리에서 리프까지 가는 모든 경로의 **Black 노드 개수(Black 높이)** 만 똑같이 맞추는 자기 균형 이진 탐색 트리예요. 비결은 "완벽한 균형"을 노리지 않는 것입니다 — Red 노드는 Black 노드 사이에만 낄 수 있다는 규칙 하나만 지키면, 아무리 삐뚤어져도 높이가 폭주하지 않아요. 그 결과 삽입·삭제·탐색이 모두 $O(\log n)$이면서 회전은 삽입 최대 2회, 삭제 최대 3회로 끝나서, C++ `std::map`/`std::set`이나 Java `TreeMap` 같은 실무 정렬 컨테이너의 표준 선택이 됐습니다.
+정렬 집합(ordered set)은 같은 원소를 두 벌 담지 않으면서 전순서를 유지하는 컨테이너입니다. 계약에 있는 연산은 생성자를 빼고 여덟입니다 — `insert` · `delete` · `has` · `min` · `max` · `range` · `size` · `toArray` 이고, 이 중 담기·지우기·찾기·양 끝 읽기·구간 읽기 다섯이 원소 수의 로그 비용을 약속합니다. `size` 는 상수, `toArray` 는 원소 수에 비례하고요. **`toArray` 도 계약 연산입니다** — 뒤에서 불변식의 기준으로도 쓰이지만 검사 전용 보조가 아니라 호출자가 부르는 연산입니다.
 
-## 언제, 왜 쓰는가
+여덟 행이 전부 `worst` 인 것이 이 계약의 특징입니다 — **호출을 모아 평균 낸 값이 아니라 호출 하나하나**가 상한 안에 든다는 뜻이고, 이 한정자가 이 계약이 하는 일의 거의 전부입니다.
 
-### 이런 단서가 보이면
+이름은 임시입니다. 계약의 어느 문장도 색칠이나 회전을 말하지 않고, 말할 수 없습니다 — 명세는 내부 표현을 처방하지 않으니까요. 같은 계약에 이름이 다섯(`avlTree` · `redBlackTree` · `twoThreeTree` · `bTree` · `bPlusTree`) 붙어 있고, 다섯을 가르는 것이 전부 재균형 기법이라 계약의 문장이 되지 못합니다. 그 판정이 이 문서의 배경이고, 왜 그렇게 되는지는 3단계와 4단계에서 수치로 따라갑니다.
 
-다음 신호가 겹치면 레드-블랙 트리를 떠올리세요.
+## 이 구조가 필요한 이유
 
-- 삽입·삭제가 **끊임없이 섞여** 들어오는데도 탐색은 계속 $O(\log n)$을 유지해야 한다
-- 정렬 순서를 유지한 채로 값을 **중위 순회**해서 뽑아낼 일이 있다
-- "초당 수만 건" 같은 표현으로 **쓰기 성능**이 강조된다 — 문제 스토리의 인메모리 데이터베이스 인덱스가 정확히 이 상황이에요
+이 계약이 약속하는 것은 세 가지를 **동시에** 주는 일입니다 — 전순서를 유지할 것, 같은 원소를 두 벌 담지 않을 것, 그리고 어느 연산도 그 시점에 담긴 원소 수에 비례하지 않을 것.
 
-naive 대안들과 비교하면 왜 이 구조가 필요한지 체감됩니다.
+하나씩 떼면 전부 쉽습니다. 순서만 필요하면 정렬 배열이면 되고, 비용만 필요하면 해시 표면 됩니다. 문제는 둘을 함께 걸 때예요. 언어가 그냥 내주는 것이 배열과 객체 둘인데, **배열은 순서를 주지만 가운데에 넣으면 뒤가 전부 밀리고, 객체는 갱신을 상수에 주지만 순서를 잃습니다.** 두 요구가 함께 걸릴 때 비로소 이 계약을 따로 둘 이유가 생깁니다.
+
+여기에 조건이 하나 더 붙는 것이 이 구조의 특징입니다. 로그를 지키는 방법은 여럿인데, 그중에는 **호출 하나가 튀는 것을 허용하고 총합만 맞추는** 방법이 있습니다. 그 방법도 정당한 설계이고 이 저장소에 따로 이름이 있습니다(`tree/splayTree` · `tree/treap`). 이 계약은 그것을 배제합니다 — 배제하는 것이 목적이고요.
+
+이 계약에 **없는 것**도 분명합니다. 같은 값을 여러 벌 담는 일이 없고(`tree/multiset`), 위치로 읽는 일도 없습니다(`tree/orderStatisticTree`). 둘 중 하나라도 들어오면 다른 계약이 됩니다.
+
+### 쓰이는 자리
+
+사례를 **연산 집합과 호출 빈도**로 옮겨 적습니다. 옮겨 적어 보면 그 자리가 정말 이 계약을 요구하는지가 드러납니다.
+
+- **정렬된 색인을 걸어 둔 저장소의 보조 색인** — 행이 들어오면 `insert` 한 번, 지워지면 `delete` 한 번, 조건 질의마다 `range` 한 번입니다. 행이 $n$ 개이고 질의가 $q$ 회면 갱신이 $O(n \log n)$, 질의가 $O(q(\log n + k))$ 이고요. 여기서 `worst` 가 필요한 이유는 **갱신과 질의가 같은 색인에 동시에 걸리기 때문**입니다. 총합만 맞는 설계는 하나의 질의가 오래 걸리는 것을 막지 못하는데, 응답 시간에 상한을 걸어 둔 자리에서는 그 하나가 곧 계약 위반입니다.
+- **길이가 없는 시각 표시를 시간 순으로 관리하기** — 알림을 걸 때 `insert` 한 번, 취소할 때 `delete` 한 번, "다음 한 시간 안에 걸린 것"을 볼 때 `range(지금, 지금+1시간)` 한 번입니다. 세 연산이 전부 계약에 있고요. **구간 예약(시작·끝이 있는 것)을 이 목록에 넣지 않은 이유**를 함께 적어 둡니다 — 겹침을 판정하려면 시작만이 아니라 **직전 구간의 끝**도 봐야 하는데, 그것을 이 계약으로 하려면 `low` 미만의 가장 큰 원소를 읽는 연산(선행자)이 필요하고 그 연산이 여기 없습니다. `range` 한 번으로 되는 것처럼 적으면 번역이 틀린 것이 됩니다.
+- **순위표에서 점수대를 잘라 보기** — 점수가 바뀔 때마다 `delete` 하고 `insert` 하며, 구간을 볼 때 `range` 를 부릅니다. 양 끝은 `min` · `max` 로 읽고요. 갱신이 잦고 질의가 그보다 잦은 자리라 다섯 연산의 상한이 전부 걸립니다.
+
+목록에 **넣지 않은 것**도 적어 둡니다. "상위 $k$ 등을 뽑는다"는 이 계약의 사례가 아닙니다. 다만 이유를 정확히 적어야 해요 — "상위 $k$ 등 = $k$ 번째 원소 읽기"라고만 옮기면 좁은 번역입니다. 큰 쪽부터 하나씩 훑어 $k$ 개를 세는 방법도 있으니까요. 이 계약이 그 방법을 못 쓰는 것은 **훑을 수단이 없기 때문**입니다 — 어떤 원소의 다음·이전을 읽는 연산이 없고, `toArray()` 는 $k$ 개가 아니라 전부를 돌려주므로 $O(n)$ 입니다. 두 길이 다 막히므로 그 사례는 `tree/orderStatisticTree` 의 것입니다. 번역했을 때 계약에 없는 연산이 나오면 그 사례는 이 구조의 사례가 아니라는 것이 판정 방법이고, **번역을 한 가지로만 하지 않는 것**이 그 판정을 쓰는 방법입니다.
+
+## 단순한 구현의 한계
+
+### 순진한 설계는 어디서 상한을 넘는가
+
+이 구조를 모른 채 같은 요구를 받으면 답이 셋 나옵니다. 셋 다 저장소에 결함 fixture 로 들어 있고, **셋 다 동작은 옳습니다** — 축1(동작)과 축2(불변식)를 전부 통과하고 잡히는 자리가 있다면 축3(복잡도) 하나뿐입니다.
+
+세기 전에 **비용 모델**을 정해 둘게요. 이 문서가 세는 단위는 **자리 하나를 지나갈 때마다 1** 입니다. 같은 자리를 읽고 또 쓰더라도 1이고, 색을 바꾸는 일과 자리를 도는 일도 지나간 자리로 셉니다. 축3이 절대 카운트가 아니라 성장률을 보기 때문에 상수 배수가 판정에 들어오지 않거든요(§규약2 계측 단위). 벽시계를 쓰지 않는 이유도 같습니다 — 시간으로 재면 판정의 근거를 엔진 사정에 맡긴 것이 됩니다.
+
+**첫째, 정렬 배열**(`_contract/_fixtures/sortedArraySet.ts`). 자리를 이진 탐색으로 찾으니 **비교 횟수는** 로그입니다. 그런데 넣을 자리를 비우려면 뒤에 있는 원소를 전부 한 칸씩 밀어야 하죠.
 
 ```text
-정렬 배열 insert/delete   O(n)      ← 삽입 위치 뒤 원소를 통째로 밀어야 함
-일반 BST(균형 없음)        O(n) 최악  ← 편향(스큐)되면 사실상 연결 리스트로 퇴화
-AVL 트리                  O(log n)  ← 높이 ≈ 1.44 log2 n로 더 낮지만, 삭제 시 회전이
-                                     루트까지 연쇄될 수 있어 최악 O(log n)회
-레드-블랙 트리             O(log n)  ← 높이 ≤ 2 log2(n+1)로 AVL보다 느슨하지만,
-                                     삽입 회전 ≤2회 · 삭제 회전 ≤3회로 상한이 고정
+insert(5) — 정렬 배열에 가운데로 넣기
+
+Before: [1, 3, 4, 7, 9]
+              ↓ 자리는 이진 탐색으로 3번 만에 찾지만, 7 과 9 를 한 칸씩 민다
+After:  [1, 3, 4, 5, 7, 9]
 ```
 
-**선택 기준**: 조회가 압도적으로 많고 삽입·삭제가 드물면 더 낮은 높이를 주는 AVL이 유리하고, 삽입·삭제가 잦으면 회전 횟수가 작은 상수로 묶여 있는 레드-블랙 트리가 유리합니다.
+**둘째, 균형을 스스로 잡지 않는 이진 탐색 트리**(`_contract/_fixtures/unbalancedSearchTree.ts`). 넣을 자리를 찾아 내려가서 잎에 붙이기만 합니다. 오는 값이 뒤섞여 있으면 기대 깊이가 로그라 잘 돌아가요. 값이 오름차순으로 오면 오른쪽으로만 뻗어 사슬이 됩니다.
 
-### 문제 사례와 적용 예시
+**셋째, 조회할 때마다 찾은 자리를 뿌리로 끌어올리는 트리**(`_contract/_fixtures/splayingSearchTree.ts`). 이쪽은 성격이 다릅니다 — **상한을 어기지 않습니다.** 로그를 지키되, 호출 하나하나가 로그 안에 든다는 것만 못 지킵니다.
 
-- **C++ STL / Java 표준 라이브러리** — `std::map`, `std::set`, `TreeMap`, `TreeSet`은 모두 레드-블랙 트리로 구현돼 있어요. 정렬 순서를 유지하는 범용 컨테이너의 기본값입니다.
-- **Linux 커널 스케줄러** — CFS(Completely Fair Scheduler)가 실행 대기 중인 프로세스를 `vruntime` 순으로 레드-블랙 트리에 담아, 다음에 실행할 프로세스를 $O(\log n)$에 골라냅니다.
-- **인메모리 데이터베이스 인덱스** — 문제 스토리처럼 초당 수만 건의 삽입·삭제가 발생해도 정렬 인덱스를 유지해야 하는 상황에 정확히 들어맞습니다.
-- **코딩 테스트 맥락** — "정렬 상태를 유지하며 삽입·삭제·탐색·범위 조회를 반복하라"는 요구에, 정렬 컨테이너가 내장돼 있지 않은 JS/TS에서는 직접 구현 대상이 됩니다.
+실제로 세면 이렇습니다. 표를 읽기 전에 **어떻게 잰 값인지** 적어 둘게요. 계약 스위트의 시나리오(`redBlackTree.contract.ts`)를 그대로 돌린 값이고, 크기 사다리는 $n \in \{2^{10}, 2^{12}, 2^{14}\}$ 로 **4배 간격**입니다. `worst` 한정자이므로 통계는 **단일 호출 최대 비용** — 시나리오 안에서 잰 호출들 중 가장 비쌌던 하나의 값이고, 평균이 아닙니다. 난수는 하네스가 고정 seed 하나로 돌리므로 다시 돌려도 같은 값이 나옵니다(`expected` 한정자였다면 seed 다섯을 돌려 중앙값을 쓰지만 여기는 아닙니다). $r$ 은 **이웃한 두 크기의 비**이고, 표의 $r$ 열은 마지막 구간($2^{12} \to 2^{14}$)의 값입니다.
 
-## 자료구조 자세히 들여다보기
+상한별 기대 비율은 $f(4n)/f(n)$ 에서 나옵니다 — $O(\log n)$ 은 1.2 근처, $O(n)$ 은 4.0, $O(1)$ 은 1.0 이고요. `complexity` 등급의 허용치가 ±30% 라 $O(\log n)$ 은 0.84~1.56 이 통과 구간입니다.
 
-### 전체 스펙: 속성과 액션
+**표의 「판정」 열은 그 시나리오 하나에 대한 판정입니다.** 구현 전체에 대한 판정이 아니에요 — 한 구현이 어떤 시나리오에서 통과하고 다른 시나리오에서 걸리는 것이 정상이고, 아래 두 표를 나란히 두는 이유가 바로 그것입니다. 계약을 지킨다는 판정은 **모든 시나리오를 통과할 때만** 나옵니다.
 
-**속성(내부 상태)** — 노드 하나는 이렇게 생겼습니다.
+```text
+오름차순으로 n 개 넣기 — 단일 호출 최대 비용
 
-```ts
-type RBColor = "RED" | "BLACK";
+  대상                  n=1,024    n=4,096   n=16,384        r     판정
+  정본                    26.00      32.00      38.00     1.19     통과
+  균형 없는 트리           1023.00    4095.00   16383.00     4.00     실패
+  정렬 배열                10.00      12.00      14.00     1.17     통과
+  조회가 고쳐 쓰는 트리       2.00       2.00       2.00     1.00     통과
+```
 
-class RBNode<T> {
+```text
+값 범위를 넓게 잡고 무작위로 n 개 넣기 — 단일 호출 최대 비용
+
+  대상                  n=1,024    n=4,096   n=16,384        r     판정
+  정본                    17.00      20.00      24.00     1.20     통과
+  균형 없는 트리             25.00      29.00      33.00     1.14     통과
+  정렬 배열               829.00    3575.00   14261.00     3.99     실패
+  조회가 고쳐 쓰는 트리      36.00      53.00      54.00     1.02     통과
+```
+
+두 표를 나란히 놓으면 **정렬 배열과 균형 없는 트리가 서로의 통과 자리에서 걸립니다.** 오름차순은 트리에는 최악이고 정렬 배열에는 뒤에 붙이기만 하면 되는 최선이거든요. 시나리오를 하나만 두면 어느 것을 골랐든 둘 중 하나를 놓칩니다. 적대성이 계약이 아니라 **(계약, 구현) 쌍**에 대해 정의된다는 것이 이 자리의 내용입니다.
+
+그리고 조회가 고쳐 쓰는 트리는 **두 표를 다 통과합니다.** 오름차순 넣기에서는 직전 최댓값이 뿌리에 있으니 새 값이 그 오른쪽 한 칸이라 비용이 상수 `2.00` 이고요. 이 구현을 잡으려면 다른 종류의 입력이 필요합니다.
+
+```text
+오름차순으로 채운 뒤 0 부터 순서대로 조회 — 단일 호출 최대 비용
+(has · min · max 를 한 걸음에 묶어 잰다)
+
+  대상                  n=1,024    n=4,096   n=16,384        r     판정
+  정본                    45.00      55.00      65.00     1.18     통과
+  균형 없는 트리           2049.00    8193.00   32769.00     4.00     실패
+  정렬 배열                13.00      15.00      17.00     1.13     통과
+  조회가 고쳐 쓰는 트리    1540.00    6148.00   24580.00     4.00     실패
+```
+
+**여기서 처음으로 세 번째 구현이 걸립니다.** 조회할 때마다 찾은 자리를 뿌리로 끌어올리면 다음 조회 대상이 늘 반대쪽 끝에 놓입니다. 총합을 보면 이 설계는 로그를 지켜요 — 끌어올리는 일이 다음 조회를 그만큼 싸게 만들거든요. 그런데 **호출 하나**를 보면 남은 사슬 길이만큼 듭니다.
+
+그러니 이 구현은 상한을 어긴 것이 아닙니다. **한정자를 어긴 것입니다.** 같은 구현이 무작위 조회에서는 로그 근처에 머물러 통과하고, 이 입력에서만 걸립니다.
+
+### 실패에서 끌어내는 설계 규칙
+
+세 실패에서 규칙이 셋 나옵니다.
+
+1. **원소를 물리적으로 늘어놓지 않는다.** 정렬 배열이 걸린 이유는 순서를 자리로 표현했기 때문입니다. 자리로 표현하면 가운데 갱신이 자리 이동을 부르고, 그 이동이 원소 수에 비례해요. 순서를 **연결 관계로** 표현하면 갱신이 관계 몇 개를 고치는 일이 됩니다.
+2. **연결 관계를 갱신하면서 깊이를 함께 묶는다.** 관계로 표현하는 것만으로는 부족하다는 것이 두 번째 실패입니다. 깊이를 아무도 안 보면 입력 순서가 그것을 정하고, 정해진 결과가 사슬이 될 수 있으니까요. 갱신하는 김에 **모양을 함께 고쳐야** 합니다.
+3. **고치는 일을 한 호출 안에서 끝낸다.** 세 번째 실패가 이 규칙을 만듭니다. 모양을 고치기는 하되 "지금은 미뤄 두고 나중에 몰아서" 하면 총합은 맞고 개별 호출이 튑니다. 그것을 허용할지가 계약의 선택이고, 이 계약은 허용하지 않기로 했습니다.
+
+세 규칙을 동시에 만족하는 설계가 이 문서의 정본입니다. 색을 붙여 깊이를 재는 방법은 그중 **하나**이고, 높이 차를 세는 방법도 노드에 원소를 둘까지 담는 방법도 같은 세 규칙을 만족합니다. 그래서 다섯 이름이 한 계약입니다.
+
+## 불변식과 연산별 복잡도 조건
+
+계약 표는 여기 옮기지 않습니다 — 정본은 `redBlackTree.ts` 헤더 한 곳이고, 여기 적을 것은 **그 조건이 왜 그 값인가**입니다.
+
+**불변식 넷은 전부 「관측 경로가 둘」이라는 한 가지 모양입니다.** `size()` 가 말하는 수를 `toArray().length` 도 말하고, `has(x)` 가 말하는 것을 `toArray()` 도 말하고, `min()` · `max()` 가 말하는 것을 `toArray()` 의 양 끝도 말하고, `range(low, high)` 가 말하는 것을 `toArray()` 를 잘라도 얻습니다. 구현이 두 경로를 따로 유지할 수 있고, 따로 유지하는 순간 갈립니다. 축2가 잡는 것이 그 갈림이에요.
+
+**정렬됨과 유일함은 불변식이 아닙니다.** 둘 다 `toArray()` 하나로만 읽히거든요. 대조할 상대가 없으면 그것은 그 연산의 의미이고, 의미를 검사하는 것은 축1이 참조 모델과 하는 일입니다.
+
+**트리 높이와 색 배분도 불변식이 아닙니다.** "빨강이 연달아 오지 않는다"를 검사하려면 계약에 그 문장이 있어야 하는데, 적는 순간 그것이 처방입니다 — 색을 안 쓰는 정당한 구현이 전부 계약 위반이 되죠. 균형이 깨진 구현은 **축3의 성장률**이 잡습니다. 위 표의 `4.00` 이 그 증거이고, 검사할 자리가 이미 있으니 계약에 색을 적을 이유가 없습니다.
+
+**상한은 규칙에서 따라 나오지 않고 고른 값입니다.** 로그를 고른 이유는 양쪽에서 조여지기 때문이에요. 더 약하게 적으면(예컨대 선형) 정렬 배열이 계약을 만족해서 계약이 뜻을 잃고, 더 강하게 적으면(예컨대 상수) 비교로 순서를 정하는 구현이 전부 배제됩니다. 배제할 이유가 목적에 없는 계열을 배제하는 것이 처방이고요.
+
+**한정자는 상한보다 많은 일을 합니다.** 여덟 행이 전부 `worst` 인 것이 이 계약을 세 형제와 가릅니다. `amortized` 로 적으면 조회가 고쳐 쓰는 계열이 들어오고, `expected` 로 적으면 무작위로 균형을 얻는 계열이 들어와요. 셋은 서로를 함의하지 않으므로 만족하는 구현의 집합이 갈리고, 집합이 갈리면 다른 계약입니다.
+
+일반적으로는 **가장 약한 한정자**를 적습니다. 강한 것을 적으면 배제할 이유가 없는 구현을 배제하니까요. 그 규칙에는 뒷문장이 붙습니다 — 강한 것을 적으려면 그것이 배제하는 계열이 있고, **그 계열을 배제해도 계약이 잃는 것이 없어야** 합니다. 여기서는 배제하는 계열이 실재하고(위 표의 마지막 줄), 배제하는 것이 목적입니다. 뒷문장을 만족하는 자리예요.
+
+**빈 집합에서 `min` · `max` 가 `null` 인 것은 계약의 선택이고 대가가 있습니다.** 예외를 던지지 않는 대신, `T` 에 `null` 이 섞이면 「비어 있음」과 「최솟값이 `null` 인 상태」가 구분되지 않아요. 계약 헤더의 주입 정책에 그 대가가 적혀 있습니다 — 감추지 않고 적어 두는 것까지가 규격입니다.
+
+**`has` · `min` · `max` 가 한 묶음인 이유**는 셋 다 **뿌리에서 잎 쪽으로 한 번 내려가는 일**이기 때문입니다. `has` 는 비교 결과를 따라 한쪽으로, `min` 은 늘 왼쪽으로, `max` 는 늘 오른쪽으로 내려가고요. 셋 다 걸음 수가 **높이**를 넘지 않으므로, 높이가 로그로 묶이기만 하면 세 행이 함께 상한을 지킵니다. 갈라 적을 이유가 없어서 시나리오도 한 걸음에 묶었습니다.
+
+**`range` 의 상한에만 `k` 가 붙는 이유**는 돌려주는 원소를 적는 비용이 어느 구현에서도 그 수에 비례하기 때문입니다. `k` 를 빼면 아무 구현도 만족하지 못하니 계약이 아니라 소원이 되죠.
+
+그러면 `log n + k` 의 앞항은 어디서 나올까요. 훑기를 세 갈래로 갈라 보면 보입니다. ① 구간에 **드는** 원소를 만나면 담고 양쪽으로 계속 갑니다 — 이런 자리는 정확히 $k$ 개고요. ② 지금 값이 `low` 미만이면 왼쪽을 통째로 건너뛰고 오른쪽으로만 갑니다. ③ `high` 초과면 반대로 왼쪽으로만 갑니다.
+
+②와 ③이 왜 높이에 묶이는지가 앞항입니다. 뿌리에서 내려오다 보면 `low` 와 `high` 가 **처음으로 갈라지는 자리**가 하나 있습니다 — 거기까지는 두 값이 같은 쪽을 가리키므로 길이 하나고요. 그 자리 아래로 왼쪽 경계를 따라가는 길과 오른쪽 경계를 따라가는 길, **두 줄기**가 생깁니다. ②에 해당하는 자리는 전부 왼쪽 경계 줄기 위에 있고 ③은 오른쪽 경계 줄기 위에 있어요 — 한 번 "왼쪽은 볼 것 없다"가 되면 그 아래에서도 같은 판정이라 갈라지지 않거든요. 두 줄기는 각각 길이가 높이를 넘지 않으므로 ②와 ③을 합쳐 $O(\log n)$ 이고, ①과 합치면 $O(\log n + k)$ 입니다.
+
+이 행을 검사할 때는 값 범위를 원소 수에 비례해 넓혀 **`k` 를 상수로 눌러야** 합니다 — 안 누르면 $k$ 가 $n$ 과 함께 자라서 전부 훑는 구현도 그 자리에서 정당해 보입니다.
+
+## 구현 (TypeScript)
+
+자리 하나의 모양부터 봅니다.
+
+```ts guide-core=src/data-structures/tree/redBlackTree/_reference/redBlackTree.ts#types
+type Color = "red" | "black";
+
+/**
+ * 트리의 자리 하나.
+ *
+ * 잎 바깥에도 노드가 있다 — 색이 검고 값이 없는 감시 노드 하나가 그 모든 자리를 겸한다.
+ * 그래서 `left`·`right`·`parent` 가 `null` 이 되지 않고, 지우기 뒤처리가 "빈 자리의
+ * 부모"를 물을 수 있다.
+ */
+interface Node<T> {
   value: T;
-  color: RBColor;
-  left: RBNode<T>;
-  right: RBNode<T>;
-  parent: RBNode<T>;
+  color: Color;
+  left: Node<T>;
+  right: Node<T>;
+  parent: Node<T>;
 }
 ```
 
-모든 리프의 바깥쪽 자식 자리는 실제 `undefined` 대신 **NIL 센티넬** 노드 하나를 공유해서 채웁니다. NIL은 항상 BLACK이고, `left`/`right`/`parent`가 전부 자기 자신을 가리켜요. 이렇게 하면 "자식이 있는지" 매번 `undefined` 체크를 하는 대신 `node !== NIL`만 보면 되고, 삭제 픽스업에서 "가상의 이중 흑색 노드"를 NIL 자리에 그대로 세워둘 수 있어 코드가 간결해집니다.
+잎 바깥을 `null` 로 두지 않고 **검은 자리 하나로 겸하게** 한 것이 이 구현의 첫 선택입니다. 지운 뒤처리에서 "빈 자리의 부모"를 물어야 하는데, `null` 에는 부모가 없어서 분기가 배로 늘거든요. 이것은 구현의 편의이고 계약과는 무관합니다.
 
-지켜야 할 불변식은 다섯 가지예요.
+이 감시 자리에 대해 두 가지를 못 박아 둘게요. **인스턴스마다 하나씩 만듭니다** — 생성자 안에서 만드니 트리 둘이 같은 감시 자리를 나눠 쓰지 않습니다. 그리고 **감시 자리인지 아닌지는 값이 아니라 참조로 가릅니다**(`at !== this.#nil`). 그래서 감시 자리의 `value` 가 무엇이든 판정에 들어오지 않고, 호출자가 `undefined` 를 원소로 넣어도 헷갈릴 일이 없습니다. 실제로 그렇게 해 보면 담기고, `has` 도 `delete` 도 정상입니다.
 
-1. **채색**: 모든 노드는 RED 또는 BLACK이다.
-2. **루트**: 루트는 반드시 BLACK이다.
-3. **NIL**: 센티넬 NIL은 항상 BLACK이다.
-4. **Red 규칙**: $\forall v.\ \mathrm{color}(v) = \mathrm{RED} \Rightarrow \mathrm{color}(\mathrm{left}(v)) = \mathrm{color}(\mathrm{right}(v)) = \mathrm{BLACK}$ — RED가 두 번 연속될 수 없다.
-5. **Black 높이**: 임의 노드 $v$에서 그 서브트리의 모든 NIL까지 가는 경로마다 만나는 Black 노드 수 $bh(v)$가 동일하다.
+### 왜 이 두 규칙이 높이를 묶는가
 
-다섯 노드짜리 트리 예로 그려보면(괄호 안이 색):
+이 구현이 지키는 것은 둘입니다 — **빨강이 연달아 오지 않는다**, 그리고 **어느 자리에서 잎까지 가든 만나는 검은 자리 수가 같다**. 이 둘이 왜 높이를 로그로 묶는지가 이 절의 핵심이고, 코드를 읽기 전에 이것부터 잡고 가는 편이 낫습니다.
 
-```text
-            10(B)
-           /     \
-        5(B)      15(B)
-       /    \
-    3(R)   7(R)
-```
+세기 전에 **무엇을 세는지 못 박아 둘게요.** 뿌리에서 감시 자리까지 내려가는 길 하나에서 만나는 **검은 자리의 수**를 셉니다. 뿌리가 검으면 뿌리도 세고, **끝의 감시 자리는 세지 않습니다.** 이 정의로 원소가 하나뿐인 트리는 그 값이 1 입니다(뿌리 하나). 정의를 이렇게 잡아야 아래 수식이 성립하고, 감시 자리를 함께 세면 원소 하나짜리에서 벌써 어긋납니다.
 
-루트(10)에서 리프(NIL)까지 어느 경로를 따라가도 Black 노드 수가 같습니다 — `10→5→NIL`은 10, 5 두 개, `10→5→3→NIL`도 10, 5 두 개(3은 RED라 안 셈), `10→15→NIL`도 10, 15 두 개. 이게 속성 5가 말하는 "Black 높이 동일"입니다.
+두 번째 규칙이 말하는 것이 바로 **이 수가 어느 길에서나 같다**는 것입니다. 그 값을 $b$ 라고 하죠. 이제 **가장 긴 길**을 봅니다. 그 길의 검은 자리도 $b$ 개고 나머지는 빨간 자리인데, 첫 번째 규칙 때문에 빨강이 연달아 올 수 없고 뿌리가 검으므로 **빨간 자리 수가 검은 자리 수를 넘지 못합니다.** 그러니 가장 긴 길에 놓인 자리가 $2b$ 개를 넘지 않아요.
 
-**왜 높이가 $O(\log n)$으로 잡히는가**를 가볍게 따져볼게요.
+여기에 원소 수를 붙입니다. 모든 길이 검은 자리를 $b$ 개씩 갖는 트리는 원소를 최소 $2^{b} - 1$ 개 담고 있습니다 — 자리마다 아래로 두 갈래이니 검은 층 하나가 내려갈 때마다 최소 개수가 배로 늘거든요. 원소 하나짜리에서 $b = 1$, $2^1 - 1 = 1$ 로 맞고요. 뒤집으면 $b \le \log_2(n+1)$ 이고, 가장 긴 길이 $2b$ 이하이므로 **높이가 $2\log_2(n+1)$ 을 넘지 않습니다.** 로그의 두 배도 로그이니, 내려가는 일로 되는 다섯 연산이 전부 상한 안입니다.
 
-- 서브트리 $x$의 black-height가 $bh(x)$라면, 그 서브트리는 내부 노드를 최소 $2^{bh(x)} - 1$개 갖습니다(귀납: 리프는 $2^0-1=0$개, 한 단계 내려갈 때마다 최소 두 자식 서브트리가 각각 $bh-1$ 이상을 만족).
-- 속성 4(연속 RED 금지) 덕분에, 루트에서 리프까지 어떤 경로든 **절반 이상이 BLACK**입니다. 그래서 실제 높이 $h \le 2\, bh(root)$.
-- 두 식을 합치면 $n \ge 2^{bh(root)} - 1 \Rightarrow bh(root) \le \log_2(n+1) \Rightarrow h \le 2\log_2(n+1)$.
+**새 자리를 빨갛게 넣는 이유가 여기서 나옵니다.** 두 규칙의 성격이 다르거든요. 두 번째 규칙은 **트리 전체에 걸린 조건**입니다 — "어느 길에서나 같다"를 확인하려면 모든 길을 봐야 하죠. 첫 번째 규칙은 **부모와 자식 사이에만 걸린 조건**이라 이웃한 두 자리만 보면 판정됩니다. 검게 넣으면 전체에 걸린 쪽이 깨지고, 빨갛게 넣으면 이웃에만 걸린 쪽만 깨질 수 있어요. 고칠 범위를 트리 전체에서 **넣은 자리와 그 위 몇 칸**으로 줄이려고 빨간 색을 쓰는 겁니다.
 
-문제의 제약 $n \le 10^4$을 넣으면 $h \le 2\log_2(10001) \approx 26.6$, 즉 높이가 26을 넘지 않는다는 뜻이에요.
-
-**액션(연산)** — 이 가이드가 정의하는 인터페이스 전부입니다.
-
-| 액션 | 하는 일 | 비용 |
-|------|---------|------|
-| `insert(value)` | BST 삽입 → RED로 채색 → `fixupInsert`(회전 최대 2회) | $O(\log n)$ |
-| `delete(value)` | BST 삭제(필요 시 후속자로 교체) → `fixupDelete`(회전 최대 3회) | $O(\log n)$ |
-| `has(value)` | 일반 BST 탐색 | $O(\log n)$ |
-| `min()` / `max()` | 최좌 / 최우 노드 값 | $O(\log n)$ |
-| `inOrder()` | 중위 순회 배열 | $O(n)$ |
-| `size()` | 저장된 원소 수 | $O(1)$ |
-
-핵심 연산 두 개를 자세히 볼게요. 새 노드는 **항상 RED로** 삽입합니다(BLACK으로 넣으면 그 경로 전체의 black-height가 깨져 버리니까요). RED로 넣으면 최악의 경우도 "부모가 RED라 속성 4가 깨지는" 국소적인 문제 하나만 생깁니다.
-
-**① 삽입 픽스업 — 3가지 케이스**
-
-| 케이스 | 조건 | 해결 |
-|--------|------|------|
-| 1 | 삼촌이 RED | 부모·삼촌 → BLACK, 조부모 → RED, 조부모에서 재귀 |
-| 2 | 삼촌 BLACK, 삼각형(triangle) 형태 | 부모 기준 회전 → 케이스 3 형태로 변환 |
-| 3 | 삼촌 BLACK, 직선(line) 형태 | 조부모 기준 회전 + 부모↔조부모 색 교환 |
-
-`insert(10), insert(5), insert(15), insert(3)`까지 실행하면 부모(5)도 삼촌(15)도 RED라 케이스 1이 발동합니다.
-
-```text
-케이스 1 (삼촌 RED, before → after):
-      10(B)                  10(R)→강제 BLACK
-     /     \                /      \
-   5(R)   15(R)     →    5(B)     15(B)
-   /                      /
-  3(R,새로삽입)           3(R)
-```
-
-이어서 `insert(4)`를 하면 4는 3의 오른쪽 자식으로 들어가서, 부모(3)는 RED인데 삼촌(5의 오른쪽 NIL)은 BLACK인 **삼각형(LR)** 모양이 됩니다.
-
-```text
-삽입 직후 (부모 3, 조부모 5, 삼촌은 NIL=BLACK):
-        5(B)
-       /
-     3(R)
-       \
-        4(R)      ← 삼각형: 조부모 기준 왼쪽 자식(3) 아래의 오른쪽 자식(4)
-
-케이스 2: 3(부모) 기준 왼쪽 회전 →
-        5(B)
-       /
-     4(R)
-     /
-   3(R)
-
-케이스 3: 5(조부모) 기준 오른쪽 회전 + 색 교환 →
-        4(B)
-       /    \
-     3(R)   5(R)
-```
-
-이 로컬 서브트리가 실제로는 10의 왼쪽 자식 자리에 있으므로, 전체 트리는 `10(B) - 좌:4(B) - 4의 자식: 3(R),5(R) - 10의 우:15(B)`가 됩니다.
-
-**② 삭제 픽스업 — Double Black**
-
-BLACK 노드를 지우면 그 경로의 black-height가 하나 모자라집니다. 이 "모자란 검정"을 double black이라 부르고, 4가지 케이스로 해소합니다.
-
-| 케이스 | 조건 | 해결 |
-|--------|------|------|
-| 1 | 형제가 RED | 형제·부모 색 교환 + 부모 기준 회전 → 케이스 2~4로 진입 |
-| 2 | 형제 BLACK, 형제의 두 자식 모두 BLACK | 형제 → RED, 이중 흑색을 부모로 전파(부모에서 다시 판정) |
-| 3 | 형제 BLACK, 가까운 자식만 RED | 형제 자식·형제 색 교환 + 회전 → 케이스 4 형태로 변환 |
-| 4 | 형제 BLACK, 먼 자식이 RED | 형제 ← 부모 색, 부모·먼 자식 → BLACK, 부모 기준 회전으로 즉시 해소 |
-
-`insert(10,5,15,3,7)`로 만든 트리에서 `delete(15)`를 실행하면, 15 자리에 검정 하나가 비고 형제(5)의 먼 자식(3)이 RED라 케이스 4가 곧바로 발동합니다.
-
-```text
-Before delete(15):                 delete(15) → 케이스4 즉시 발동
-            10(B)                        (형제 5의 먼 자식 3이 RED)
-           /     \
-        5(B)     15(B) ← 삭제 대상
-       /    \
-    3(R)   7(R)
-
-After (5가 부모 자리로, 3은 BLACK으로 흡수, 7은 그대로 이동):
-            5(B)
-           /    \
-        3(B)   10(B)
-                 /
-               7(R)
-```
-
-### 왜 모순 없이 작동하는가
-
-**케이스 1이 안전한 이유**: 재채색 전에는 조부모가 BLACK(+1), 부모·삼촌은 RED(+0)였습니다. 재채색 후에는 조부모가 RED(+0), 부모·삼촌은 BLACK(+1)이 됩니다. 조부모를 거쳐 내려가는 어느 경로든 "조부모 기여 + 자식 기여" 합은 $1+0$에서 $0+1$로 바뀔 뿐 **총합은 그대로**예요. 그래서 black-height가 안 깨지고, 문제는 "조부모가 RED인데 조부모의 부모도 RED일 수 있다"는 형태로 한 단계 위로만 옮겨갑니다 — 그래서 `z = z.parent.parent`로 재귀하는 것이고, 트리 높이가 $O(\log n)$이니 이 전파도 $O(\log n)$ 안에 끝납니다.
-
-**케이스 2·3이 안전한 이유**: 회전은 "왼쪽 < 가운데 < 오른쪽"이라는 BST 순서를 절대 깨지 않는 연산입니다(회전 전후로 서브트리들의 상대 순서가 그대로 보존돼요). 케이스 3에서는 회전 직전에 "부모→BLACK, 조부모→RED"로 색을 바꾸는데, 이러면 새로 그 자리에 올라서는 노드(옛 부모)의 색이 옛 조부모가 갖고 있던 색(BLACK)과 똑같아집니다. 그래서 그 지점을 거쳐 가는 black-height가 회전 전후로 동일하고, 동시에 RED-RED 위반도 완전히 사라져 더 이상 위로 전파되지 않고 끝납니다.
-
-**삭제 케이스들이 안전한 이유**: double black은 "이 경로에 검정 하나가 빚졌다"는 장부상의 표시일 뿐이에요. 케이스 2는 형제를 RED로 바꿔 그 빚을 부모에게 넘기고(black-height 총합은 그대로, 대신 부모가 새로 빚을 짐), 케이스 1과 3은 회전으로 상황을 케이스 4로 만들어주고, 케이스 4는 회전 한 번으로 빚을 완전히 갚습니다 — 그래서 케이스 4에서 `x = this.root`로 즉시 루프를 종료시킬 수 있는 거예요.
-
-여기서 헷갈리기 쉬운 포인트를 두 가지 짚어 둘게요.
-
-- **"삼촌이 없다"와 "삼촌이 BLACK이다"는 같은 말입니다.** NIL 센티넬은 항상 BLACK이라서, 삼촌 자리가 비어 있어도 회전(케이스 2·3) 경로로 들어갑니다. 실제로 `insert(10), insert(5), insert(3)`을 해 보면 3의 삼촌은 아예 존재하지 않는데도(NIL), BLACK 취급되어 케이스 3(직선)이 곧바로 발동합니다 — 결과는 `5(BLACK)`이 새 부분 루트, `3(RED)`이 왼쪽, `10(RED)`이 오른쪽(실측 확인됨). "삼촌이 없으니 케이스 판단이 필요 없다"고 넘기면 이 회전을 놓칩니다.
-- **케이스 2를 생략하면 RED-RED가 사라지지 않고 남습니다.** "삼촌이 BLACK이면 무조건 조부모 기준으로 한 번만 회전하면 되지 않을까?"라고 생각하기 쉬운데, 삼각형 모양에서 그렇게 하면 회전축이 틀려서 위반이 남아요. 아래 코드 절의 원형 예시에서 구체적으로 확인합니다.
-
-빈 구조, 크기 1, 중복 등 엣지 케이스도 점검해 둡니다.
-
-```text
-빈 트리에서 has/min/max/delete   → false / undefined / undefined / false
-노드 1개 트리에서 delete          → 빈 트리로, size 0, min/max undefined
-중복 insert                      → has로 먼저 확인 후 무시(size 불변)
-삭제 대상이 자식을 둘 다 가짐      → 오른쪽 서브트리의 최솟값(중위 후속자)으로 값만 교체
-```
-
-잠깐, 확인 하나만 해 볼까요? 케이스 1이 조부모까지 재귀적으로 반복돼서 루트까지 올라가면 루트 색은 어떻게 될까요? 답은 "상관없이 항상 BLACK"입니다 — `fixupInsert` 마지막 줄에서 `root.color = "BLACK"`을 무조건 한 번 더 강제하기 때문에, 케이스 1의 재귀가 루트를 RED로 남겨도 그 줄이 덮어써 줍니다.
-
-## 아이디어를 코드로 옮기기
-
-케이스 2(삼각형 → 직선 변환)를 왜 빼먹으면 안 되는지, 실제로 빼먹은 **원형** 코드로 확인해 봅시다. `insert(10,5,15,3,4)`를 이 원형에 통과시키면 어떻게 되는지가 핵심입니다.
-
-```ts
-// 원형: 케이스 2(삼각형 감지 → 부모 기준 회전)를 빼먹고 항상 케이스 3만 수행
-function fixupInsertBuggy(z: RBNode<number>): void {
-  while (z.parent.color === "RED") {
-    const parent = z.parent;
-    const grandparent = parent.parent;
-    if (parent === grandparent.left) {
-      const uncle = grandparent.right;
-      if (uncle.color === "RED") {
-        parent.color = "BLACK";
-        uncle.color = "BLACK";
-        grandparent.color = "RED";
-        z = grandparent;
-      } else {
-        // ⚠ 케이스 2 분기(z === parent.right일 때 먼저 회전)가 빠져 있다
-        parent.color = "BLACK";
-        grandparent.color = "RED";
-        rotateRight(grandparent);
-      }
-    }
-    // (오른쪽 대칭 분기는 생략)
-  }
-}
-```
-
-`insert(10), insert(5), insert(15), insert(3)`까지는 전부 케이스 1만 타서 정상입니다. 문제는 `insert(4)`예요 — 4는 3의 오른쪽 자식(삼각형)으로 들어가는데, 이 원형은 삼각형 여부를 확인하지 않고 곧장 조부모(5) 기준으로 회전해 버립니다. 실제로 돌려 보면:
-
-```text
-버그 버전 실행 결과 (실측):
-colors: 10=BLACK 5=RED 15=BLACK 3=BLACK 4=RED
-연속 RED 위반: ["5-4"]   ← 5(RED)의 왼쪽 자식이 4(RED). 속성4 위반이 그대로 남았다!
-```
-
-회전축을 잘못 잡으니 3과 5의 위치만 뒤바뀔 뿐, 원래 있던 "부모-자식 RED 연속" 문제가 **다른 두 노드(5-4) 사이로 옮겨갈 뿐 사라지지 않습니다**. 케이스 2가 먼저 "삼각형을 직선으로 펴 주는" 역할을 해야, 케이스 3의 회전축이 정확히 위반을 없애는 자리에 놓입니다.
-
-최종 구현은 이 삼각형 판정(`z === z.parent.right`)을 포함합니다. 아래는 이 가이드가 정의한 인터페이스(`insert`/`delete`/`has`/`min`/`max`/`inOrder`/`size`, 제네릭 `T`, 선택적 `comparator`) 전체 구현입니다.
-
-```ts
-type RBColor = "RED" | "BLACK";
-
-class RBNode<T> {
-  value: T;
-  color: RBColor;
-  left: RBNode<T>;
-  right: RBNode<T>;
-  parent: RBNode<T>;
-
-  constructor(value: T, color: RBColor, self?: RBNode<T>) {
-    this.value = value;
-    this.color = color;
-    this.left = self ?? (this as unknown as RBNode<T>);
-    this.right = self ?? (this as unknown as RBNode<T>);
-    this.parent = self ?? (this as unknown as RBNode<T>);
-  }
-}
-
-class RedBlackTree<T> {
-  private NIL: RBNode<T>;
-  private root: RBNode<T>;
-  private _size = 0;
-  private compare: (a: T, b: T) => number;
+```ts guide-core=src/data-structures/tree/redBlackTree/_reference/redBlackTree.ts#class
+export class RedBlackTree<T> {
+  /** 잎 바깥의 모든 자리를 겸하는 검은 노드. 값은 읽지 않는다. */
+  readonly #nil: Node<T>;
+  #root: Node<T>;
+  #count = 0;
+  readonly #compare: (a: T, b: T) => number;
 
   constructor(comparator?: (a: T, b: T) => number) {
-    this.NIL = new RBNode<T>(undefined as unknown as T, "BLACK");
-    this.NIL.left = this.NIL;
-    this.NIL.right = this.NIL;
-    this.NIL.parent = this.NIL;
-    this.root = this.NIL;
-    this.compare = comparator ?? ((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    this.#compare = comparator ?? ((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+    const nil = {
+      value: undefined as unknown as T,
+      color: "black",
+    } as Node<T>;
+    nil.left = nil;
+    nil.right = nil;
+    nil.parent = nil;
+    this.#nil = nil;
+    this.#root = nil;
   }
 
-  private rotateLeft(x: RBNode<T>): void {
-    const y = x.right;
-    x.right = y.left;
-    if (y.left !== this.NIL) y.left.parent = x;
-    y.parent = x.parent;
-    if (x.parent === this.NIL) this.root = y;
-    else if (x === x.parent.left) x.parent.left = y;
-    else x.parent.right = y;
-    y.left = x;
-    x.parent = y;
-  }
-
-  private rotateRight(x: RBNode<T>): void {
-    const y = x.left;
-    x.left = y.right;
-    if (y.right !== this.NIL) y.right.parent = x;
-    y.parent = x.parent;
-    if (x.parent === this.NIL) this.root = y;
-    else if (x === x.parent.right) x.parent.right = y;
-    else x.parent.left = y;
-    y.right = x;
-    x.parent = y;
-  }
-
-  private findNode(value: T): RBNode<T> {
-    let node = this.root;
-    while (node !== this.NIL) {
-      const cmp = this.compare(value, node.value);
-      if (cmp === 0) return node;
-      node = cmp < 0 ? node.left : node.right;
+  insert(item: T): void {
+    let parent = this.#nil;
+    let at = this.#root;
+    while (at !== this.#nil) {
+      parent = at;
+      const cmp = this.#compare(item, at.value);
+      // 동등한 원소가 이미 있으면 상태를 바꾸지 않는다. 집합이므로 두 벌 담지 않는다.
+      if (cmp === 0) return;
+      at = cmp < 0 ? at.left : at.right;
     }
-    return this.NIL;
+
+    const node: Node<T> = {
+      value: item,
+      color: "red",
+      left: this.#nil,
+      right: this.#nil,
+      parent,
+    };
+    if (parent === this.#nil) this.#root = node;
+    else if (this.#compare(item, parent.value) < 0) parent.left = node;
+    else parent.right = node;
+
+    this.#count += 1;
+    this.#fixInsert(node);
   }
 
-  has(value: T): boolean {
-    return this.findNode(value) !== this.NIL;
-  }
+  delete(item: T): boolean {
+    const target = this.#find(item);
+    if (target === this.#nil) return false;
 
-  insert(value: T): void {
-    if (this.has(value)) return; // set 의미론: 중복 무시
+    let removed = target;
+    let removedColor = removed.color;
+    let orphan: Node<T>;
 
-    const z = new RBNode<T>(value, "RED", this.NIL);
-    let y = this.NIL;
-    let x = this.root;
-    while (x !== this.NIL) {
-      y = x;
-      x = this.compare(z.value, x.value) < 0 ? x.left : x.right;
-    }
-    z.parent = y;
-    if (y === this.NIL) this.root = z;
-    else if (this.compare(z.value, y.value) < 0) y.left = z;
-    else y.right = z;
-
-    this._size++;
-    this.fixupInsert(z);
-  }
-
-  private fixupInsert(z: RBNode<T>): void {
-    while (z.parent.color === "RED") {
-      if (z.parent === z.parent.parent.left) {
-        const uncle = z.parent.parent.right;
-        if (uncle.color === "RED") {
-          // 케이스 1
-          z.parent.color = "BLACK";
-          uncle.color = "BLACK";
-          z.parent.parent.color = "RED";
-          z = z.parent.parent;
-        } else {
-          if (z === z.parent.right) {
-            // 케이스 2: 삼각형 → 직선으로 변환
-            z = z.parent;
-            this.rotateLeft(z);
-          }
-          // 케이스 3: 직선 → 회전 + 색 교환
-          z.parent.color = "BLACK";
-          z.parent.parent.color = "RED";
-          this.rotateRight(z.parent.parent);
-        }
-      } else {
-        const uncle = z.parent.parent.left;
-        if (uncle.color === "RED") {
-          z.parent.color = "BLACK";
-          uncle.color = "BLACK";
-          z.parent.parent.color = "RED";
-          z = z.parent.parent;
-        } else {
-          if (z === z.parent.left) {
-            z = z.parent;
-            this.rotateRight(z);
-          }
-          z.parent.color = "BLACK";
-          z.parent.parent.color = "RED";
-          this.rotateLeft(z.parent.parent);
-        }
-      }
-    }
-    this.root.color = "BLACK";
-  }
-
-  private minimumNode(node: RBNode<T>): RBNode<T> {
-    while (node.left !== this.NIL) node = node.left;
-    return node;
-  }
-
-  min(): T | undefined {
-    if (this.root === this.NIL) return undefined;
-    return this.minimumNode(this.root).value;
-  }
-
-  max(): T | undefined {
-    if (this.root === this.NIL) return undefined;
-    let node = this.root;
-    while (node.right !== this.NIL) node = node.right;
-    return node.value;
-  }
-
-  private transplant(u: RBNode<T>, v: RBNode<T>): void {
-    if (u.parent === this.NIL) this.root = v;
-    else if (u === u.parent.left) u.parent.left = v;
-    else u.parent.right = v;
-    v.parent = u.parent;
-  }
-
-  delete(value: T): boolean {
-    const z = this.findNode(value);
-    if (z === this.NIL) return false;
-
-    let y = z;
-    let yOriginalColor = y.color;
-    let x: RBNode<T>;
-
-    if (z.left === this.NIL) {
-      x = z.right;
-      this.transplant(z, z.right);
-    } else if (z.right === this.NIL) {
-      x = z.left;
-      this.transplant(z, z.left);
+    if (target.left === this.#nil) {
+      orphan = target.right;
+      this.#replace(target, target.right);
+    } else if (target.right === this.#nil) {
+      orphan = target.left;
+      this.#replace(target, target.left);
     } else {
-      y = this.minimumNode(z.right); // 중위 후속자
-      yOriginalColor = y.color;
-      x = y.right;
-      if (y.parent === z) {
-        x.parent = y; // NIL x라도 부모를 세팅해 둬야 fixup이 위치를 안다
+      // 두 자식이 다 있으면 오른쪽 부분트리의 최솟값이 이 자리를 이어받는다.
+      removed = this.#leftmost(target.right);
+      removedColor = removed.color;
+      orphan = removed.right;
+      if (removed.parent === target) {
+        orphan.parent = removed;
       } else {
-        this.transplant(y, y.right);
-        y.right = z.right;
-        y.right.parent = y;
+        this.#replace(removed, removed.right);
+        removed.right = target.right;
+        removed.right.parent = removed;
       }
-      this.transplant(z, y);
-      y.left = z.left;
-      y.left.parent = y;
-      y.color = z.color;
+      this.#replace(target, removed);
+      removed.left = target.left;
+      removed.left.parent = removed;
+      removed.color = target.color;
     }
 
-    this._size--;
-    if (yOriginalColor === "BLACK") this.fixupDelete(x);
+    this.#count -= 1;
+    // 빨간 자리가 빠지면 경로마다의 검은 수가 그대로다. 검은 자리가 빠졌을 때만 고친다.
+    if (removedColor === "black") this.#fixDelete(orphan);
     return true;
   }
 
-  private fixupDelete(x: RBNode<T>): void {
-    while (x !== this.root && x.color === "BLACK") {
-      if (x === x.parent.left) {
-        let sibling = x.parent.right;
-        if (sibling.color === "RED") {
-          // 케이스 1
-          sibling.color = "BLACK";
-          x.parent.color = "RED";
-          this.rotateLeft(x.parent);
-          sibling = x.parent.right;
-        }
-        if (sibling.left.color === "BLACK" && sibling.right.color === "BLACK") {
-          // 케이스 2: 이중 흑색을 부모로 전파
-          sibling.color = "RED";
-          x = x.parent;
-        } else {
-          if (sibling.right.color === "BLACK") {
-            // 케이스 3: 케이스 4 형태로 변환
-            sibling.left.color = "BLACK";
-            sibling.color = "RED";
-            this.rotateRight(sibling);
-            sibling = x.parent.right;
-          }
-          // 케이스 4: 즉시 해소
-          sibling.color = x.parent.color;
-          x.parent.color = "BLACK";
-          sibling.right.color = "BLACK";
-          this.rotateLeft(x.parent);
-          x = this.root;
-        }
-      } else {
-        let sibling = x.parent.left;
-        if (sibling.color === "RED") {
-          sibling.color = "BLACK";
-          x.parent.color = "RED";
-          this.rotateRight(x.parent);
-          sibling = x.parent.left;
-        }
-        if (sibling.right.color === "BLACK" && sibling.left.color === "BLACK") {
-          sibling.color = "RED";
-          x = x.parent;
-        } else {
-          if (sibling.left.color === "BLACK") {
-            sibling.right.color = "BLACK";
-            sibling.color = "RED";
-            this.rotateLeft(sibling);
-            sibling = x.parent.left;
-          }
-          sibling.color = x.parent.color;
-          x.parent.color = "BLACK";
-          sibling.left.color = "BLACK";
-          this.rotateRight(x.parent);
-          x = this.root;
-        }
-      }
-    }
-    x.color = "BLACK";
+  has(item: T): boolean {
+    return this.#find(item) !== this.#nil;
   }
 
-  inOrder(): T[] {
-    const result: T[] = [];
-    const walk = (node: RBNode<T>) => {
-      if (node === this.NIL) return;
-      walk(node.left);
-      result.push(node.value);
-      walk(node.right);
-    };
-    walk(this.root);
-    return result;
+  min(): T | null {
+    if (this.#root === this.#nil) return null;
+    return this.#leftmost(this.#root).value;
+  }
+
+  max(): T | null {
+    if (this.#root === this.#nil) return null;
+    let at = this.#root;
+    while (at.right !== this.#nil) {
+      at = at.right;
+    }
+    return at.value;
+  }
+
+  /**
+   * 구간에 드는 원소만 모은다.
+   *
+   * 양쪽으로 다 내려가지 않는 것이 상한을 지키는 자리다 — 지금 값이 `low` 이하면 왼쪽에
+   * 구간에 드는 것이 없고, `high` 이상이면 오른쪽에 없다. 그래서 걸음 수가 **내려간 길
+   * 둘과 담은 원소 수**의 합에 묶인다.
+   */
+  range(low: T, high: T): T[] {
+    const out: T[] = [];
+    if (this.#compare(low, high) > 0) return out;
+    this.#collect(this.#root, low, high, out);
+    return out;
   }
 
   size(): number {
-    return this._size;
+    return this.#count;
+  }
+
+  toArray(): T[] {
+    const out: T[] = [];
+    this.#inOrder(this.#root, out);
+    return out;
+  }
+
+  #find(item: T): Node<T> {
+    let at = this.#root;
+    while (at !== this.#nil) {
+      const cmp = this.#compare(item, at.value);
+      if (cmp === 0) return at;
+      at = cmp < 0 ? at.left : at.right;
+    }
+    return this.#nil;
+  }
+
+  #leftmost(from: Node<T>): Node<T> {
+    let at = from;
+    while (at.left !== this.#nil) {
+      at = at.left;
+    }
+    return at;
+  }
+
+  #collect(node: Node<T>, low: T, high: T, out: T[]): void {
+    if (node === this.#nil) return;
+    const vsLow = this.#compare(node.value, low);
+    const vsHigh = this.#compare(node.value, high);
+    if (vsLow > 0) this.#collect(node.left, low, high, out);
+    if (vsLow >= 0 && vsHigh <= 0) out.push(node.value);
+    if (vsHigh < 0) this.#collect(node.right, low, high, out);
+  }
+
+  #inOrder(node: Node<T>, out: T[]): void {
+    if (node === this.#nil) return;
+    this.#inOrder(node.left, out);
+    out.push(node.value);
+    this.#inOrder(node.right, out);
+  }
+
+  /** `target` 이 있던 자리에 `replacement` 를 건다. 자식은 옮기지 않는다. */
+  #replace(target: Node<T>, replacement: Node<T>): void {
+    if (target.parent === this.#nil) this.#root = replacement;
+    else if (target === target.parent.left) target.parent.left = replacement;
+    else target.parent.right = replacement;
+    replacement.parent = target.parent;
+  }
+
+  #rotateLeft(pivot: Node<T>): void {
+    const risen = pivot.right;
+    pivot.right = risen.left;
+    if (risen.left !== this.#nil) risen.left.parent = pivot;
+    risen.parent = pivot.parent;
+    if (pivot.parent === this.#nil) this.#root = risen;
+    else if (pivot === pivot.parent.left) pivot.parent.left = risen;
+    else pivot.parent.right = risen;
+    risen.left = pivot;
+    pivot.parent = risen;
+  }
+
+  #rotateRight(pivot: Node<T>): void {
+    const risen = pivot.left;
+    pivot.left = risen.right;
+    if (risen.right !== this.#nil) risen.right.parent = pivot;
+    risen.parent = pivot.parent;
+    if (pivot.parent === this.#nil) this.#root = risen;
+    else if (pivot === pivot.parent.right) pivot.parent.right = risen;
+    else pivot.parent.left = risen;
+    risen.right = pivot;
+    pivot.parent = risen;
+  }
+
+  /**
+   * 넣은 뒤 고치기.
+   *
+   * 새 자리는 빨갛게 넣으므로 경로마다의 검은 수는 그대로이고, 어긋날 수 있는 것은
+   * 「빨강이 연달아 오지 않는다」 하나뿐이다. 삼촌이 빨가면 색만 위로 밀고, 검으면
+   * 한두 번 돌려서 끝낸다 — **미는 쪽만 반복되고 도는 쪽은 반복되지 않는다.**
+   */
+  #fixInsert(start: Node<T>): void {
+    let node = start;
+    while (node.parent.color === "red") {
+      const parent = node.parent;
+      const grand = parent.parent;
+      const parentIsLeft = parent === grand.left;
+      const uncle = parentIsLeft ? grand.right : grand.left;
+
+      if (uncle.color === "red") {
+        parent.color = "black";
+        uncle.color = "black";
+        grand.color = "red";
+        node = grand;
+        continue;
+      }
+
+      let at = node;
+      if (parentIsLeft ? at === parent.right : at === parent.left) {
+        at = parent;
+        if (parentIsLeft) this.#rotateLeft(at);
+        else this.#rotateRight(at);
+      }
+      at.parent.color = "black";
+      at.parent.parent.color = "red";
+      if (parentIsLeft) this.#rotateRight(at.parent.parent);
+      else this.#rotateLeft(at.parent.parent);
+      node = at;
+    }
+    this.#root.color = "black";
+  }
+
+  /**
+   * 지운 뒤 고치기.
+   *
+   * 검은 자리가 빠졌으므로 그 아래 경로 하나가 검은 수를 한 개 덜 갖는다. 형제의 색과
+   * 형제 자식들의 색을 보고 **모자란 검정을 위로 옮기거나** 한 번 돌려서 그 자리에서
+   * 메운다. 메우면 끝이고, 옮기면 한 층 위에서 같은 물음을 다시 묻는다.
+   */
+  #fixDelete(start: Node<T>): void {
+    let node = start;
+    while (node !== this.#root && node.color === "black") {
+      const isLeft = node === node.parent.left;
+      let sibling = isLeft ? node.parent.right : node.parent.left;
+
+      if (sibling.color === "red") {
+        sibling.color = "black";
+        node.parent.color = "red";
+        if (isLeft) this.#rotateLeft(node.parent);
+        else this.#rotateRight(node.parent);
+        sibling = isLeft ? node.parent.right : node.parent.left;
+      }
+
+      const near = isLeft ? sibling.left : sibling.right;
+      const far = isLeft ? sibling.right : sibling.left;
+
+      if (near.color === "black" && far.color === "black") {
+        // 형제 쪽에서도 검정을 하나 떼어 위로 올린다. 물음이 한 층 위로 간다.
+        sibling.color = "red";
+        node = node.parent;
+        continue;
+      }
+
+      if (far.color === "black") {
+        near.color = "black";
+        sibling.color = "red";
+        if (isLeft) this.#rotateRight(sibling);
+        else this.#rotateLeft(sibling);
+        sibling = isLeft ? node.parent.right : node.parent.left;
+      }
+
+      sibling.color = node.parent.color;
+      node.parent.color = "black";
+      if (isLeft) {
+        sibling.right.color = "black";
+        this.#rotateLeft(node.parent);
+      } else {
+        sibling.left.color = "black";
+        this.#rotateRight(node.parent);
+      }
+      node = this.#root;
+    }
+    node.color = "black";
   }
 }
 ```
 
-가장 중요한 부분은 `rotateLeft`/`rotateRight`에서 **부모 포인터를 세 방향 모두** 갱신하는 것입니다 — 자식→부모(`y.parent = x.parent`), 부모→자식(`x.parent.left/right = y` 또는 `this.root = y`), 그리고 회전축 자신(`x.parent = y`). 하나라도 빠지면 위쪽에서 내려오는 탐색이 회전된 서브트리를 못 찾거나, 픽스업이 엉뚱한 조부모를 가리키게 됩니다.
+읽을 때 붙잡을 곳은 셋입니다.
 
-놓치기 쉬운 지점을 더 짚어볼게요.
+- **`insert` 는 잎에 붙이고 `#fixInsert` 로 넘깁니다.** 새 자리를 빨갛게 넣으므로 경로마다의 검은 수는 그대로이고, 어긋날 수 있는 것은 「빨강이 연달아 오지 않는다」 하나뿐이에요. 그래서 고치는 일이 그 하나만 봅니다.
+- **`#fixInsert` 의 두 갈래가 비용을 정합니다.** 삼촌이 빨가면 색만 위로 밀고 같은 물음을 한 층 위에서 다시 묻습니다 — 이 갈래가 반복되죠. 삼촌이 검으면 한두 번 돌리고 **끝냅니다.** 미는 쪽이 최대 높이만큼 반복되고 도는 쪽이 반복되지 않으므로, 한 호출의 비용이 높이에 묶입니다.
+- **`#fixDelete` 도 같은 모양입니다.** 형제 쪽에서도 검정을 떼어 위로 올리면 물음이 한 층 위로 가고, 돌려서 그 자리에서 메우면 끝납니다. `node = this.#root` 로 두는 줄이 "메웠으니 끝"을 뜻해요.
 
-- **`delete`의 `if (y.parent === z)` 분기.** 삭제 대상 `z`가 두 자식을 가질 때, 후속자 `y`가 `z`의 바로 오른쪽 자식이면 `y.right`를 따로 `transplant`할 필요가 없습니다. 이 분기를 놓치면 `x.parent`가 옛 위치를 가리켜 `fixupDelete`가 완전히 엉뚱한 형제를 봅니다.
-- **케이스 판정 순서.** 삽입 픽스업의 케이스 2는 반드시 케이스 3보다 먼저 검사해야 합니다 — 위 원형 예시(`5-4` RED-RED 잔존)가 그 이유를 보여줍니다.
-- **`fixupDelete`의 좌우 대칭.** `x === x.parent.left`로 시작하는 블록과 `else` 블록은 완전한 거울상입니다. 왼쪽 케이스에서 `sibling.right`를 보는 자리는 오른쪽 케이스에서 `sibling.left`가 됩니다 — 복사하면서 한쪽만 못 바꾸면 무작위 삭제에서 드물게만 터지는 버그가 됩니다.
+`#fixDelete` 의 첫 갈래(`sibling.color === "red"`)는 **메우는 갈래가 아니라 전처리**입니다. 이것만 따로 봐야 나머지가 읽힙니다. 아래 세 갈래는 전부 "형제의 자식 색"을 보고 판정하는데, 형제가 빨가면 그 자식들은 첫 번째 규칙 때문에 반드시 검고 **판정할 정보가 없습니다.** 그래서 형제를 검게·부모를 빨갛게 칠하고 부모를 돌려 줍니다. 돌리고 나면 원래 자리의 새 형제는 **예전 형제의 자식**이고, 그것은 방금 말한 대로 검어요. 이 갈래는 **한 번만 일어납니다** — 다음 줄부터는 형제가 검은 경우만 남으니까요. 반복되는 것은 "검정을 위로 올리는" 갈래 하나뿐이고, 그것이 최대 높이만큼 도는 것이라 한 호출의 비용이 높이에 묶입니다.
 
-> 기억법: "삽입은 밑에서 위로 색을 정리하고(fixupInsert), 삭제는 위에서 새는 검정 하나를 형제에게서 꿔 오거나(케이스 1~3) 그 자리에서 갚습니다(케이스 4)."
+지운 뒤 고치기를 아예 안 하는 경우도 있습니다 — 빠진 자리가 빨갰으면 어떤 길의 검은 수도 안 바뀌므로 고칠 것이 없어요. `removedColor === "black"` 조건이 그 갈림입니다.
 
-## 실행 시각화
+`__cost` 줄은 축3 계측이고 계약의 일부가 아닙니다. 그래서 위 코드에서 빠져 있습니다 — 추출기가 계측 줄을 떼고 가져오거든요. 계측은 정본의 의무이지 계약이 요구하는 것이 아닙니다.
 
-`insert(10), insert(5), insert(15), insert(3)`까지는 항상 케이스 1(삼촌 RED)만 발동해서 10·5·15가 모두 BLACK, 3만 RED로 정리됩니다. 이어서 `insert(4)`를 하면 4가 3의 오른쪽 자식으로 들어가 삼각형이 만들어지고, 케이스 2(3 기준 왼쪽 회전) → 케이스 3(5 기준 오른쪽 회전 + 색 교환)이 순서대로 발동해 최종 레벨-오더 배열은 `[10, 4, 15, 3, 5, 0, 0]`(빈 자리는 0)이 됩니다 — 즉 10이 여전히 전체 루트이고, 그 왼쪽 자식이 5에서 4로 바뀝니다. 앞의 다섯 프레임은 "지금까지 삽입한 값" 순서 그대로를 보여주고, 마지막 프레임만 회전 결과를 확인할 수 있도록 레벨-오더 트리 스냅샷으로 전환됩니다. `highlight`는 지금 처리 중인 노드, `marked`는 함께 영향을 받은 노드입니다.
+## 단계별 동작 확인
 
-> 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
+오름차순으로 다섯 개를 넣습니다. 균형 없는 트리라면 사슬이 되는 입력이고, 여기서는 **두 갈래가 번갈아** 나옵니다 — 3 을 넣을 때 도는 쪽이, 4 를 넣을 때 미는 쪽이 나옵니다.
+
+그림은 **논리적인 모양**이라 감시 자리를 그리지 않습니다. 코드에서는 잎 바깥이 전부 감시 자리 하나를 가리키지만, 그것은 분기를 줄이려는 장치이지 트리의 모양이 아니거든요. 그리고 각 걸음의 그림은 **호출이 끝난 뒤의 상태**입니다 — 고치는 도중에만 잠깐 있는 색은 그림에 나타나지 않고, 설명 쪽에 적었습니다.
+
 
 export const steps = [
   {
-    title: "초기 상태 — insert(10)",
-    detail: "10을 RED로 삽입. 루트이므로 BLACK으로 강제 전환.",
-    array: [10],
-    highlight: [0],
-    marked: [],
+    title: "insert(1) — 첫 자리",
+    detail: "뿌리로 놓고 검게 칠한다. 빨갛게 두면 뿌리가 빨간 상태가 되는데, 그 자리는 위에 아무것도 없어 색이 아무 일도 하지 않는다",
+    root: { id: "n1", label: "1 · B", status: "active" },
+    entries: [
+      { label: "toArray()", value: "[1]" },
+      { label: "size()", value: 1 },
+    ],
   },
   {
-    title: "insert(5)",
-    detail: "5를 RED로 삽입. 부모(10)가 BLACK → 속성 위반 없음.",
-    array: [10, 5],
-    highlight: [1],
-    marked: [0],
+    title: "insert(2) — 고칠 것이 없다",
+    detail: "1 의 오른쪽에 빨갛게 붙인다. 부모가 검으므로 빨강이 연달아 오지 않고, 경로마다의 검은 수도 그대로다",
+    root: {
+      id: "n1",
+      label: "1 · B",
+      children: [null, { id: "n2", label: "2 · R", status: "active" }],
+    },
+    entries: [
+      { label: "toArray()", value: "[1, 2]" },
+      { label: "size()", value: 2 },
+    ],
   },
   {
-    title: "insert(15)",
-    detail: "15를 RED로 삽입. 부모(10)가 BLACK → 위반 없음.",
-    array: [10, 5, 15],
-    highlight: [2],
-    marked: [0, 1],
+    title: "insert(3) — 삼촌이 검다 · 돌려서 끝낸다",
+    detail: "2 의 오른쪽에 빨갛게 붙이니 2 와 3 이 연달아 빨갛다. 삼촌 자리(1 의 왼쪽)가 비어 있어 검으므로, 2 를 검게 · 1 을 빨갛게 칠하고 1 을 왼쪽으로 돌린다. 이 갈래는 반복되지 않는다",
+    root: {
+      id: "n2",
+      label: "2 · B",
+      status: "active",
+      children: [
+        { id: "n1", label: "1 · R" },
+        { id: "n3", label: "3 · R" },
+      ],
+    },
+    entries: [
+      { label: "toArray()", value: "[1, 2, 3]" },
+      { label: "size()", value: 3 },
+    ],
   },
   {
-    title: "insert(3) — 케이스 1",
-    detail: "3(RED) 삽입. 부모(5)가 RED, 삼촌(15)이 RED → 케이스 1: 5·15를 BLACK, 10을 RED → 10을 다시 BLACK(루트).",
-    array: [10, 5, 15, 3],
-    highlight: [3],
-    marked: [],
+    title: "insert(4) — 삼촌이 빨갛다 · 색만 위로 민다",
+    detail: "3 의 오른쪽에 빨갛게 붙이니 3 과 4 가 연달아 빨갛다. 이번에는 삼촌(1)이 빨가므로 돌리지 않는다 — 3 과 1 을 검게, 2 를 빨갛게 칠하고 같은 물음을 2 에서 다시 묻는다. 2 는 뿌리라 곧바로 검게 되돌린다. 그림은 호출이 끝난 뒤의 상태이므로 2 가 빨갰던 순간은 여기 보이지 않는다",
+    root: {
+      id: "n2",
+      label: "2 · B",
+      status: "frontier",
+      children: [
+        { id: "n1", label: "1 · B", status: "visited" },
+        {
+          id: "n3",
+          label: "3 · B",
+          status: "visited",
+          children: [null, { id: "n4", label: "4 · R", status: "active" }],
+        },
+      ],
+    },
+    entries: [
+      { label: "toArray()", value: "[1, 2, 3, 4]" },
+      { label: "size()", value: 4 },
+    ],
   },
   {
-    title: "케이스 1 재채색 완료",
-    detail: "10(BLACK), 5(BLACK), 15(BLACK), 3(RED). 모든 속성 만족.",
-    array: [10, 5, 15, 3],
-    highlight: [0],
-    marked: [1, 2, 3],
-  },
-  {
-    title: "insert(4) — 케이스 2→3",
-    detail: "4(RED) 삽입 → 부모(3)가 RED, 조부모(5)는 BLACK, 삼촌(5의 오른쪽 NIL)도 BLACK → 삼각형(LR) 형태 → 케이스 2: 3 기준 왼쪽 회전 → 케이스 3: 5 기준 오른쪽 회전 + 색 교환.",
-    array: [10, 5, 15, 3, 4],
-    highlight: [4],
-    marked: [],
-  },
-  {
-    title: "이중 회전 완료",
-    detail: "4가 10의 왼쪽 자식(BLACK)으로 올라섬. 3(RED·왼쪽), 5(RED·오른쪽). 10과 15는 그대로. 레벨-오더: [10,4,15,3,5,0,0].",
-    array: [10, 4, 15, 3, 5, 0, 0],
-    highlight: [1],
-    marked: [0, 2, 3, 4],
+    title: "insert(5) — 다시 돌리는 갈래",
+    detail: "4 의 오른쪽에 빨갛게 붙이니 4 와 5 가 연달아 빨갛다. 삼촌 자리(3 의 왼쪽)가 비어 검으므로 4 를 검게 · 3 을 빨갛게 칠하고 3 을 왼쪽으로 돌린다. 다섯 개를 오름차순으로 넣었는데 높이가 2 다",
+    root: {
+      id: "n2",
+      label: "2 · B",
+      children: [
+        { id: "n1", label: "1 · B" },
+        {
+          id: "n4",
+          label: "4 · B",
+          status: "active",
+          children: [
+            { id: "n3", label: "3 · R" },
+            { id: "n5", label: "5 · R" },
+          ],
+        },
+      ],
+    },
+    entries: [
+      { label: "toArray()", value: "[1, 2, 3, 4, 5]" },
+      { label: "size()", value: 5 },
+      { label: "min() / max()", value: "1 / 5" },
+    ],
   },
 ];
 
-<AlgorithmSimulation view="array" steps={steps} title="레드-블랙 트리 삽입 픽스업 시뮬레이션" />
+<AlgorithmSimulation view={["tree", "keyValue"]} steps={steps} title="RedBlackTree — 오름차순으로 넣어도 두 갈래가 번갈아 나와 깊이가 묶이는 자리" />
+
+**다섯 걸음은 근거가 아니라 예시입니다.** 임의의 $n$ 에서 높이가 로그로 묶인다는 것은 이 다섯 그림에서 따라 나오지 않아요. 근거는 5단계의 「왜 이 두 규칙이 높이를 묶는가」 쪽이고, 이 그림이 하는 일은 **두 갈래가 실제로 번갈아 나온다는 것**과 **미는 갈래가 왜 위로 올라가고 도는 갈래가 왜 거기서 끝나는지**를 눈으로 확인시켜 주는 것뿐입니다. 셋째 걸음에서 도는 갈래가, 넷째 걸음에서 미는 갈래가 나오는데 — 넷째 걸음의 미는 일이 뿌리까지 갔다는 점을 눈여겨보세요. 그 반복이 높이만큼 도는 것이 `#fixInsert` 비용의 상한입니다.
 
 ## 스스로 점검하기
 
-1. `insert(10,5,15,3,4)`를 손으로 그려서 케이스 1(재채색)과 케이스 2→3(회전)이 각각 언제, 왜 발동하는지 표시해 보세요. 삼촌 색이 어떻게 케이스를 가르는지 짚어 보면 좋습니다.
-2. 본문의 `delete(15)` 예시에서, 만약 형제(5)의 두 자식(3, 7)이 **둘 다 BLACK**이었다면 어떤 케이스가 발동했을까요? 이중 흑색이 어디로 전파되는지 따라가 보세요.
-3. 케이스 2를 생략한 원형이 `insert(10,5,15,3,4)`에서 `5-4` RED-RED 위반을 남기는 걸 봤습니다. 삽입 순서를 다르게(예: `10,5,15,3,1`) 바꿔서 같은 버그가 어떤 값 쌍에 위반을 남기는지 직접 손으로 재현해 보세요.
+1. 위 시뮬레이션을 이어서 `insert(6)` 과 `insert(7)` 을 손으로 그려 보세요. 어느 쪽에서 도는 갈래가 나오고 어느 쪽에서 미는 갈래가 나오는지, 그리고 일곱 개를 전부 오름차순으로 넣었을 때 최종 높이가 얼마인지 적어 보시고요. 같은 입력을 균형 없는 트리에 넣으면 높이가 얼마인지도 함께 적어 두면 3단계의 `4.00` 이 무엇을 세고 있었는지 보입니다.
+2. 3단계에서 조회가 고쳐 쓰는 트리가 **넣기 두 시나리오를 다 통과하고** 순차 조회에서만 걸렸습니다. 여기서 "그러면 그 구현도 계약을 지키는 것 아닌가" 라는 결론이 나올 수 있습니다. 어디가 틀렸는지 두 갈래로 추적해 보세요 — 하나는 그 구현이 순차 조회에서 낸 `4.00` 이 상한 위반인지 한정자 위반인지이고, 다른 하나는 만약 이 계약이 `worst` 대신 `amortized` 를 적었다면 그 `4.00` 이 여전히 실패였을지입니다. 두 번째 물음의 답이 「아니오」인 이유를 축3의 통계 정의에서 찾아보시고요.
+3. `#fixInsert` 에서 `uncle.color === "red"` 갈래의 `node = grand;` 를 `node = parent;` 로 바꾸면 무엇이 조용히 달라질까요? 1 부터 7 까지 오름차순으로 넣으며 손으로 따라가 보세요. ① 돌아오는 값(`toArray()`)이 틀리는지 ② 「빨강이 연달아 오지 않는다」가 깨지는 상태가 남는지 ③ 남는다면 그것을 축1 · 축2 · 축3 중 무엇이 잡는지까지 답해 보세요. 값은 맞는데 모양만 무너지는 결함이 어느 축의 몫인지가 이 문제의 요점입니다.
+4. 계약이 `range(low, high)` 를 `O(log n + k)` 로 적었습니다. 이 행을 검사하는 시나리오에서 값 범위를 원소 수에 비례해 넓히지 않고 좁게 두면 어떤 구현이 통과하게 될까요? `_contract/_fixtures/sortedArraySet.ts` 의 `range` 를 「앞에서부터 전부 훑고 거르기」로 바꿔 놓았다고 가정하고, 좁은 범위와 넓은 범위에서 각각 연산당 비용이 어떻게 자라는지 적어 보세요.

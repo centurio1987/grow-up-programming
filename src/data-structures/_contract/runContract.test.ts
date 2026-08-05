@@ -45,6 +45,11 @@ import {
   type MultisetContract,
   multisetContract,
 } from "../tree/multiset/multiset.contract";
+import { RedBlackTree as ReferenceRedBlackTree } from "../tree/redBlackTree/_reference/redBlackTree";
+import {
+  type RedBlackTreeContract,
+  redBlackTreeContract,
+} from "../tree/redBlackTree/redBlackTree.contract";
 import { SuffixArray as ReferenceSuffixArray } from "../trie/suffixArray/_reference/suffixArray";
 import {
   Rebuildable as SuffixArrayShell,
@@ -68,13 +73,16 @@ import { ScanIntervalList } from "./_fixtures/scanIntervalList";
 import { ScanningSuffixArray } from "./_fixtures/scanningSuffixArray";
 import { ScanningSuffixTree } from "./_fixtures/scanningSuffixTree";
 import { ShiftQueue } from "./_fixtures/shiftQueue";
+import { SortedArraySet } from "./_fixtures/sortedArraySet";
 import { SortedArrayMultiset } from "./_fixtures/sortedArrayMultiset";
 import { SortedSuffixArray } from "./_fixtures/sortedSuffixArray";
 import { SortedWordSet } from "./_fixtures/sortedWordSet";
+import { SplayingSearchTree } from "./_fixtures/splayingSearchTree";
 import { SpliceArrayList } from "./_fixtures/spliceArrayList";
 import { TailScanList } from "./_fixtures/tailScanList";
 import { TwoArrayDeque } from "./_fixtures/twoArrayDeque";
 import { UnbalancedIntervalTree } from "./_fixtures/unbalancedIntervalTree";
+import { UnbalancedSearchTree } from "./_fixtures/unbalancedSearchTree";
 import { UnshiftDeque } from "./_fixtures/unshiftDeque";
 import { UnshiftQueue } from "./_fixtures/unshiftQueue";
 import { expectedRatio, judgeGrowth, statistic } from "./judge";
@@ -362,6 +370,23 @@ const spliceArrayList: CostSource<UnrolledLinkedListContract<number>> = {
   make: () => new SpliceArrayList<number>(),
 };
 
+const referenceRedBlackTree: CostSource<RedBlackTreeContract<number>> = {
+  kind: "self-reported",
+  make: () => new ReferenceRedBlackTree<number>(),
+};
+const unbalancedSearchTree: CostSource<RedBlackTreeContract<number>> = {
+  kind: "self-reported",
+  make: () => new UnbalancedSearchTree<number>(),
+};
+const sortedArraySet: CostSource<RedBlackTreeContract<number>> = {
+  kind: "self-reported",
+  make: () => new SortedArraySet<number>(),
+};
+const splayingSearchTree: CostSource<RedBlackTreeContract<number>> = {
+  kind: "self-reported",
+  make: () => new SplayingSearchTree<number>(),
+};
+
 describe("축3 — 정본은 통과한다", () => {
   test("Stack 정본의 push·pop 이 amortized O(1) 계약 안에 있다", () => {
     const verdict = judgeScenario(
@@ -461,6 +486,19 @@ describe("축3 — 정본은 통과한다", () => {
     for (const scenario of suffixTreeContract.scenarios) {
       const verdict = judgeScenario(
         referenceSuffixTree,
+        scenario,
+        "complexity",
+      );
+      expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
+        `${scenario.covers.join("·")}: `,
+      );
+    }
+  });
+
+  test("정렬 집합 정본이 일곱 시나리오를 전부 통과한다", () => {
+    for (const scenario of redBlackTreeContract.scenarios) {
+      const verdict = judgeScenario(
+        referenceRedBlackTree,
         scenario,
         "complexity",
       );
@@ -825,6 +863,74 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "contains·count (적대적)": false,
       "findAll·length (적대적)": false,
     });
+  });
+
+  /**
+   * 정렬 집합 계약의 결함 셋. **한정자를 어기는 결함이 여기서 처음 나온다.**
+   *
+   * 앞의 둘(균형 없는 트리·정렬 배열)은 계약의 **상한**을 어긴다. 스플레이는 상한을
+   * 어기지 않는다 — 로그를 지키되 **호출 하나하나**가 로그 안에 든다는 것만 못 지킨다.
+   * 그래서 걸리는 자리가 `worst` 통계로 재면서 그 계열을 겨누는 시나리오뿐이다
+   * (불변 사실 63).
+   */
+  test("정렬 집합의 결함 셋이 서로 다른 자리에서 걸린다", () => {
+    // 균형을 스스로 잡지 않는 트리: 오름차순 넣기와 순차 조회에서 사슬이 된다.
+    expect(outcomes(unbalancedSearchTree, redBlackTreeContract)).toEqual({
+      "insert (적대적)": false,
+      insert: true,
+      "has·min·max (적대적)": false,
+      "delete (적대적)": true,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+
+    // 정렬 배열: 갱신 둘만 무너진다. **오름차순 넣기는 통과한다** — 뒤에 붙이기만
+    // 하면 되기 때문이고, 같은 입력이 위 구현에는 최악이었다(불변 사실 24·57).
+    expect(outcomes(sortedArraySet, redBlackTreeContract)).toEqual({
+      "insert (적대적)": true,
+      insert: false,
+      "has·min·max (적대적)": true,
+      "delete (적대적)": false,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+
+    // 스플레이: **넣기 둘을 다 통과한다.** 상한을 어기지 않기 때문이다. 걸리는 것은
+    // 다음 접근이 늘 반대쪽 끝에 있는 두 자리뿐이고, 거기서 단일 호출이 튄다.
+    expect(outcomes(splayingSearchTree, redBlackTreeContract)).toEqual({
+      "insert (적대적)": true,
+      insert: true,
+      "has·min·max (적대적)": false,
+      "delete (적대적)": false,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+  });
+
+  test("한정자를 어기는 구현은 무작위 입력으로는 잡히지 않는다", () => {
+    // 같은 스플레이 구현이 무작위 넣기에서는 통과하고 순차 조회에서 걸린다.
+    // **시나리오를 무작위로만 두면 `worst` 계약과 `amortized` 계약의 스위트가
+    // 서로를 통과시킨다** — B17 이 넷으로 가른 계약이 축에서 구분되지 않는다.
+    const random = judgeScenario(
+      splayingSearchTree,
+      scenarioOf(redBlackTreeContract, "insert", false),
+      "complexity",
+    );
+    expect(random.ok).toBe(true);
+
+    const sequential = judgeScenario(
+      splayingSearchTree,
+      scenarioOf(redBlackTreeContract, "has", true),
+      "complexity",
+    );
+    expect(sequential.ok).toBe(false);
+    expect(sequential.reason).toContain("O(log n)");
+    // 단일 호출 최대 비용이 원소 수에 비례하므로 비율이 1.2 가 아니라 4 쪽으로 간다.
+    const stats = sequential.points.map((point) => point.stat);
+    expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeGreaterThan(3);
   });
 });
 

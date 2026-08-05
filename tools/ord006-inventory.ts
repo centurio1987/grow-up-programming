@@ -30,6 +30,11 @@ const outPath =
  * 열 대응 (런북 → TSV 헤더)
  *   path · category · name · 결함등급 · 검증등급후보 · 에스컬레이션후보 ·
  *   problem_lines · guide_lines · has_reference
+ *
+ * **`has_reference` 는 TS 정본(`_reference/`)의 유무다.** 규약4 (가) 등급 구조는 정본이
+ * `rust/structures/src/` 에 있으므로 이 열이 `false` 인 것이 정상이고, 정본이 없다는 뜻이
+ * 아니다(`probabilistic/concurrentSkipList`). 열을 늘리지 않는 이유는 하위 도구가 이 파일을
+ * 열 번호로 읽기 때문이다.
  */
 const COLUMNS = [
   "path",
@@ -82,6 +87,8 @@ const VERIFICATION_GRADES: Record<
   "trie/suffixTree": "complexity",
   "linear/queue": "basic",
   "trie/ternarySearchTree": "invariant",
+  "tree/redBlackTree": "complexity",
+  "probabilistic/concurrentSkipList": "concurrency",
 };
 
 /** ORDER.md:39-63 진단 표 9종. 키는 `<category>/<name>`. 이 표 밖은 전부 `-`. */
