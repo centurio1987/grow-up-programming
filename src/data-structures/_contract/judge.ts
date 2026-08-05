@@ -18,11 +18,18 @@ export type Qualifier = "worst" | "amortized" | "expected";
  * "원소 수보다 느리게 자란다"이고, `O(log n)` 을 적으면 블록 기반 구현 전부가 계약 위반이
  * 되므로 그것은 트리를 쓰라는 처방이다.
  *
+ * **`O(n log n)` 은 B13 에서 늘었다.** 앞의 넷은 전부 **연산 하나의 비용**에 대한 값이라
+ * 색인을 통째로 짓는 연산의 상한을 적을 수 없었다. 늘리면서 확인한 것이 하나 있다 —
+ * 기대 2.0 과 4.0 사이에 새 값이 들어온 B12 와 달리, 이 값(4.8)은 `O(n)`(4.0)과
+ * **허용 구간이 거의 겹친다.** 로그 인수 하나는 크기가 4배씩 세 점 오르는 사다리에서
+ * 비율을 1.2배밖에 못 바꾸고 허용치가 ±30% 이기 때문이다. 이 상한이 실제로 가르는 것은
+ * 이차 이상이다(§규약2 「로그 인수는 축3의 해상도 아래에 있다」).
+ *
  * 값을 ASCII 로 두는 이유는 이 문자열이 계약 헤더 표와 `<name>.contract.ts` 양쪽에
  * **같은 형태로** 적히기 때문이다. 둘이 갈리면 대조할 방법이 없다. 사람이 읽는 산문
  * (가이드)에서는 $\sqrt{n}$ 을 그대로 쓴다.
  */
-export type Bound = "O(1)" | "O(log n)" | "O(sqrt n)" | "O(n)";
+export type Bound = "O(1)" | "O(log n)" | "O(sqrt n)" | "O(n)" | "O(n log n)";
 export type Grade = "basic" | "invariant" | "complexity" | "concurrency";
 
 /**
@@ -86,6 +93,8 @@ export function expectedRatio(bound: Bound, n: number): number {
       return 2;
     case "O(n)":
       return 4;
+    case "O(n log n)":
+      return 4 * (Math.log2(4 * n) / Math.log2(n));
   }
 }
 

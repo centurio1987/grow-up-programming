@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { Trie } from "./trie";
 
 describe("Trie", () => {
@@ -48,7 +48,7 @@ describe("Trie", () => {
 
     test("wordsWithPrefix로 접두사 단어 목록을 조회한다", () => {
       const trie = new Trie();
-      ["apple", "application", "apt", "banana"].forEach(w => trie.insert(w));
+      ["apple", "application", "apt", "banana"].forEach((w) => trie.insert(w));
       const result = trie.wordsWithPrefix("app");
       expect(result.sort()).toEqual(["apple", "application"].sort());
     });
@@ -56,7 +56,7 @@ describe("Trie", () => {
     test("wordsWithPrefix에 빈 문자열을 넣으면 전체 단어를 반환한다", () => {
       const trie = new Trie();
       const words = ["cat", "car", "card", "care", "bat"];
-      words.forEach(w => trie.insert(w));
+      words.forEach((w) => trie.insert(w));
       const result = trie.wordsWithPrefix("").sort();
       expect(result).toEqual([...words].sort());
     });
@@ -126,7 +126,7 @@ describe("Trie", () => {
 
     test("단일 문자 단어들을 정상 처리한다", () => {
       const trie = new Trie();
-      ["a", "b", "c"].forEach(w => trie.insert(w));
+      ["a", "b", "c"].forEach((w) => trie.insert(w));
       expect(trie.search("a")).toBe(true);
       expect(trie.startsWith("a")).toBe(true);
       expect(trie.size()).toBe(3);
@@ -138,8 +138,8 @@ describe("Trie", () => {
       const trie = new Trie();
       const words = Array.from({ length: 10000 }, (_, i) => `word${i}`);
       const start = Date.now();
-      words.forEach(w => trie.insert(w));
-      words.forEach(w => expect(trie.search(w)).toBe(true));
+      words.forEach((w) => trie.insert(w));
+      words.forEach((w) => expect(trie.search(w)).toBe(true));
       expect(Date.now() - start).toBeLessThan(100);
     });
 

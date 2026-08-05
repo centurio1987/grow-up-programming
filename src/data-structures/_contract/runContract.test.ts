@@ -40,10 +40,24 @@ import {
   type MultisetContract,
   multisetContract,
 } from "../tree/multiset/multiset.contract";
+import { SuffixArray as ReferenceSuffixArray } from "../trie/suffixArray/_reference/suffixArray";
+import {
+  Rebuildable as SuffixArrayShell,
+  suffixArrayContract,
+} from "../trie/suffixArray/suffixArray.contract";
+import { SuffixTree as ReferenceSuffixTree } from "../trie/suffixTree/_reference/suffixTree";
+import {
+  Rebuildable as SuffixTreeShell,
+  suffixTreeContract,
+} from "../trie/suffixTree/suffixTree.contract";
 import { FixedChunkList } from "./_fixtures/fixedChunkList";
 import { FrontPushStack } from "./_fixtures/frontPushStack";
+import { RootedSuffixTree } from "./_fixtures/rootedSuffixTree";
 import { ScanIntervalList } from "./_fixtures/scanIntervalList";
+import { ScanningSuffixArray } from "./_fixtures/scanningSuffixArray";
+import { ScanningSuffixTree } from "./_fixtures/scanningSuffixTree";
 import { SortedArrayMultiset } from "./_fixtures/sortedArrayMultiset";
+import { SortedSuffixArray } from "./_fixtures/sortedSuffixArray";
 import { SpliceArrayList } from "./_fixtures/spliceArrayList";
 import { TailScanList } from "./_fixtures/tailScanList";
 import { TwoArrayDeque } from "./_fixtures/twoArrayDeque";
@@ -92,6 +106,49 @@ describe("판정 — 순수 부분", () => {
     ]);
     expect(faster.ok).toBe(false);
     expect(faster.reason).toContain("O(sqrt n)");
+  });
+
+  test("로그 인수 하나는 이 사다리에서 판별되지 않는다", () => {
+    // n log n 의 기대 비율은 4·log2(4n)/log2(n) 이다. n=1024 에서 4.8.
+    expect(expectedRatio("O(n log n)", 1024)).toBeCloseTo(4.8, 10);
+    expect(expectedRatio("O(n log n)", 4096)).toBeCloseTo(4 * (14 / 12), 10);
+
+    // **그리고 그 값은 O(n) 의 4.0 과 서로의 허용 구간 안에 있다.** 크기가 4배씩 오르는
+    // 사다리에서 로그 인수 하나가 바꾸는 비율은 1.2 배뿐이고 허용치가 ±30% 이기 때문이다.
+    // 선형 구현이 O(n log n) 계약을 통과하고, n log n 구현이 O(n) 계약을 통과한다.
+    const linearPoints = [
+      { n: 1024, stat: 1000 },
+      { n: 4096, stat: 4000 },
+    ];
+    expect(judgeGrowth("O(n log n)", "discriminating", linearPoints).ok).toBe(
+      true,
+    );
+    const linearithmicPoints = [
+      { n: 1024, stat: 1000 },
+      { n: 4096, stat: 4800 },
+    ];
+    expect(judgeGrowth("O(n)", "discriminating", linearithmicPoints).ok).toBe(
+      true,
+    );
+
+    // 같은 이유로 O(1)(1.0)과 O(log n)(1.2)도 갈리지 않는다. 로그 인수의 자리가 위든
+    // 아래든 결과가 같다.
+    const logarithmicPoints = [
+      { n: 1024, stat: 1000 },
+      { n: 4096, stat: 1200 },
+    ];
+    expect(judgeGrowth("O(1)", "discriminating", logarithmicPoints).ok).toBe(
+      true,
+    );
+
+    // 이 상한이 실제로 가르는 것은 이차 이탈이다 — 거기서는 비율이 16 이라 겹치지 않는다.
+    const quadraticPoints = [
+      { n: 1024, stat: 1000 },
+      { n: 4096, stat: 16000 },
+    ];
+    expect(
+      judgeGrowth("O(n log n)", "discriminating", quadraticPoints).ok,
+    ).toBe(false);
   });
 
   test("한정자는 기대 비율이 아니라 통계를 바꾼다", () => {
@@ -229,6 +286,37 @@ const fixedChunkList: CostSource<UnrolledLinkedListContract<number>> = {
   make: () => new FixedChunkList<number>(),
 };
 
+/**
+ * 불변 구조의 계측 대상은 껍데기다.
+ *
+ * `Rebuildable` 은 계약의 일부가 아니라 하네스가 요구하는 「연산을 이어 붙인다」는 모양에
+ * 대한 적응이다(각 `.contract.ts` 참고). 비용은 껍데기가 버린 색인까지 합쳐 센다.
+ */
+const referenceSuffixArray: CostSource<SuffixArrayShell> = {
+  kind: "self-reported",
+  make: () => new SuffixArrayShell((s) => new ReferenceSuffixArray(s)),
+};
+const sortedSuffixArray: CostSource<SuffixArrayShell> = {
+  kind: "self-reported",
+  make: () => new SuffixArrayShell((s) => new SortedSuffixArray(s)),
+};
+const scanningSuffixArray: CostSource<SuffixArrayShell> = {
+  kind: "self-reported",
+  make: () => new SuffixArrayShell((s) => new ScanningSuffixArray(s)),
+};
+const referenceSuffixTree: CostSource<SuffixTreeShell> = {
+  kind: "self-reported",
+  make: () => new SuffixTreeShell((s) => new ReferenceSuffixTree(s)),
+};
+const rootedSuffixTree: CostSource<SuffixTreeShell> = {
+  kind: "self-reported",
+  make: () => new SuffixTreeShell((s) => new RootedSuffixTree(s)),
+};
+const scanningSuffixTree: CostSource<SuffixTreeShell> = {
+  kind: "self-reported",
+  make: () => new SuffixTreeShell((s) => new ScanningSuffixTree(s)),
+};
+
 const spliceArrayList: CostSource<UnrolledLinkedListContract<number>> = {
   kind: "self-reported",
   make: () => new SpliceArrayList<number>(),
@@ -285,6 +373,32 @@ describe("축3 — 정본은 통과한다", () => {
     for (const scenario of unrolledLinkedListContract.scenarios) {
       const verdict = judgeScenario(
         referenceUnrolledLinkedList,
+        scenario,
+        "complexity",
+      );
+      expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
+        `${scenario.covers.join("·")}: `,
+      );
+    }
+  });
+
+  test("SuffixArray 정본이 다섯 시나리오를 전부 지킨다", () => {
+    for (const scenario of suffixArrayContract.scenarios) {
+      const verdict = judgeScenario(
+        referenceSuffixArray,
+        scenario,
+        "complexity",
+      );
+      expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
+        `${scenario.covers.join("·")}: `,
+      );
+    }
+  });
+
+  test("SuffixTree 정본이 다섯 시나리오를 전부 지킨다", () => {
+    for (const scenario of suffixTreeContract.scenarios) {
+      const verdict = judgeScenario(
+        referenceSuffixTree,
         scenario,
         "complexity",
       );
@@ -506,6 +620,68 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     expect(read.ok).toBe(false);
     const stats = read.points.map((point) => point.stat);
     expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeLessThan(1.4);
+  });
+
+  /**
+   * 시나리오 하나에 이름을 붙여 판정을 모은다.
+   *
+   * `scenarioOf` 를 쓰지 못하는 이유는 이 두 구조에 **같은 행을 덮는 적대적 시나리오가
+   * 둘 이상** 있기 때문이다(구성만 재는 것과 구성+LRS 를 함께 재는 것). 무엇이 통과하고
+   * 무엇이 걸리는지가 이 자리의 내용이므로 전부 이름으로 적는다.
+   */
+  function outcomes<Impl>(
+    cost: CostSource<Impl>,
+    spec: { scenarios: readonly CostScenario<Impl>[] },
+  ): Record<string, boolean> {
+    const result: Record<string, boolean> = {};
+    for (const scenario of spec.scenarios) {
+      const label = `${scenario.covers.join("·")}${scenario.adversarial ? " (적대적)" : ""}`;
+      result[label] = judgeScenario(cost, scenario, "complexity").ok;
+    }
+    return result;
+  }
+
+  test("접미사를 통째로 견주어 정렬하면 반복 입력에서만 걸린다", () => {
+    expect(outcomes(sortedSuffixArray, suffixArrayContract)).toEqual({
+      // **무작위 문자열에서는 계약을 지킨다.** 비교가 몇 글자 만에 갈리기 때문이다.
+      constructor: true,
+      "constructor (적대적)": false,
+      "constructor·longestRepeatedSubstring (적대적)": false,
+      "range (적대적)": true,
+      length·at·rankOf: true,
+    });
+  });
+
+  test("색인을 제대로 짓고도 훑으면 구성이 아니라 질의에서 걸린다", () => {
+    expect(outcomes(scanningSuffixArray, suffixArrayContract)).toEqual({
+      constructor: true,
+      "constructor (적대적)": true,
+      "constructor·longestRepeatedSubstring (적대적)": true,
+      "range (적대적)": false,
+      length·at·rankOf: true,
+    });
+  });
+
+  test("접미사를 뿌리부터 하나씩 넣는 트리도 반복 입력에서만 걸린다", () => {
+    expect(outcomes(rootedSuffixTree, suffixTreeContract)).toEqual({
+      constructor: true,
+      "constructor (적대적)": false,
+      "constructor·longestRepeatedSubstring (적대적)": false,
+      "contains·count (적대적)": true,
+      "findAll·length (적대적)": true,
+    });
+  });
+
+  test("트리를 짓고도 원문을 훑으면 이 계약의 중심 문장에서 걸린다", () => {
+    expect(outcomes(scanningSuffixTree, suffixTreeContract)).toEqual({
+      constructor: true,
+      "constructor (적대적)": true,
+      "constructor·longestRepeatedSubstring (적대적)": true,
+      // 질의 비용이 색인 크기에 기대면 안 된다는 것이 이 계약이 접미사 배열과 갈리는
+      // 자리이고, 그것을 실제로 잡는 시나리오가 이 둘이다.
+      "contains·count (적대적)": false,
+      "findAll·length (적대적)": false,
+    });
   });
 });
 

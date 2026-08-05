@@ -23,8 +23,8 @@
  */
 
 interface RadixNode {
-  children: Map<string, RadixNode>;  // 에지 첫 문자 → 자식 노드
-  label: string;                      // 이 에지의 레이블 (문자열)
+  children: Map<string, RadixNode>; // 에지 첫 문자 → 자식 노드
+  label: string; // 이 에지의 레이블 (문자열)
   isEnd: boolean;
 }
 

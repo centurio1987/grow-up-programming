@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { RadixTree } from "./radixTree";
 
 describe("RadixTree", () => {
@@ -18,9 +18,17 @@ describe("RadixTree", () => {
 
     test("공통 접두사를 공유하는 단어들을 올바르게 삽입한다", () => {
       const tree = new RadixTree();
-      const words = ["romane", "romanus", "romulus", "rubens", "ruber", "rubicon", "rubicundus"];
-      words.forEach(w => tree.insert(w));
-      words.forEach(w => expect(tree.search(w)).toBe(true));
+      const words = [
+        "romane",
+        "romanus",
+        "romulus",
+        "rubens",
+        "ruber",
+        "rubicon",
+        "rubicundus",
+      ];
+      words.forEach((w) => tree.insert(w));
+      words.forEach((w) => expect(tree.search(w)).toBe(true));
     });
 
     test("startsWith는 접두사 경로가 있으면 true를 반환한다", () => {
@@ -54,7 +62,7 @@ describe("RadixTree", () => {
 
     test("wordsWithPrefix로 접두사 일치 단어를 조회한다", () => {
       const tree = new RadixTree();
-      ["apple", "application", "apt", "banana"].forEach(w => tree.insert(w));
+      ["apple", "application", "apt", "banana"].forEach((w) => tree.insert(w));
       const result = tree.wordsWithPrefix("app").sort();
       expect(result).toEqual(["apple", "application"].sort());
     });
@@ -62,7 +70,7 @@ describe("RadixTree", () => {
     test("wordsWithPrefix에 빈 문자열은 전체 단어를 반환한다", () => {
       const tree = new RadixTree();
       const words = ["cat", "car", "card", "care", "bat"];
-      words.forEach(w => tree.insert(w));
+      words.forEach((w) => tree.insert(w));
       expect(tree.wordsWithPrefix("").sort()).toEqual([...words].sort());
     });
 
@@ -148,8 +156,8 @@ describe("RadixTree", () => {
       const tree = new RadixTree();
       const words = Array.from({ length: 10000 }, (_, i) => `word${i}`);
       const start = Date.now();
-      words.forEach(w => tree.insert(w));
-      words.forEach(w => expect(tree.search(w)).toBe(true));
+      words.forEach((w) => tree.insert(w));
+      words.forEach((w) => expect(tree.search(w)).toBe(true));
       expect(Date.now() - start).toBeLessThan(100);
     });
 

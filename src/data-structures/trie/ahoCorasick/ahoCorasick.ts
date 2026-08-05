@@ -23,7 +23,7 @@
 interface AhoCorasickNode {
   children: Map<string, AhoCorasickNode>;
   failure: AhoCorasickNode | null;
-  output: string[];  // 이 노드에서 매칭 완료되는 패턴들
+  output: string[]; // 이 노드에서 매칭 완료되는 패턴들
 }
 
 export class AhoCorasick {

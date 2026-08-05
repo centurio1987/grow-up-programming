@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { AhoCorasick } from "./ahoCorasick";
 
 describe("AhoCorasick", () => {
@@ -141,7 +141,7 @@ describe("AhoCorasick", () => {
       for (let i = 0; i < 100; i++) {
         patterns.push("pattern" + i);
       }
-      const text = "x".repeat(9_000) + patterns.map(p => p + " ").join("");
+      const text = "x".repeat(9_000) + patterns.map((p) => p + " ").join("");
       const ac = new AhoCorasick(patterns);
 
       const start = performance.now();

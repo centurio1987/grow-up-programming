@@ -78,6 +78,8 @@ const VERIFICATION_GRADES: Record<
   "range-query/intervalTree": "complexity",
   "linear/xorLinkedList": "invariant",
   "linear/unrolledLinkedList": "complexity",
+  "trie/suffixArray": "complexity",
+  "trie/suffixTree": "complexity",
 };
 
 /** ORDER.md:39-63 진단 표 9종. 키는 `<category>/<name>`. 이 표 밖은 전부 `-`. */
