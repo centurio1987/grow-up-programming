@@ -55,7 +55,7 @@ src/data-structures/tree/cartesianTree	tree	cartesianTree	-	-	-	96	389	false
 src/data-structures/tree/huffmanTree	tree	huffmanTree	-	-	-	73	670	false
 src/data-structures/tree/linkCutTree	tree	linkCutTree	-	-	-	71	452	false
 src/data-structures/tree/merkleTree	tree	merkleTree	-	-	-	65	295	false
-src/data-structures/tree/multiset	tree	multiset	A	complexity	-	0	345	true
+src/data-structures/tree/multiset	tree	multiset	A	complexity	-	0	608	true
 src/data-structures/tree/orderStatisticTree	tree	orderStatisticTree	-	-	-	78	361	false
 src/data-structures/tree/redBlackTree	tree	redBlackTree	-	-	-	79	586	false
 src/data-structures/tree/scapegoatTree	tree	scapegoatTree	-	-	-	92	505	false

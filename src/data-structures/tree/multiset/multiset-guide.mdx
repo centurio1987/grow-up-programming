@@ -4,342 +4,605 @@ version: 2.0.0
 
 import { AlgorithmSimulation } from "#guide-sim";
 
-# Multiset — 정렬을 유지한 채 중복을 허용하는 이진 탐색 컨테이너
+# Multiset — 중복을 세는 일과 순서를 지키는 일을 한 자리에서
 
-## 한눈에 보는 컨셉
+## 개요
 
-정렬된 순서를 유지하면서 같은 값을 몇 번이든 담을 수 있는 컨테이너예요. 비결은 배열을 항상 정렬 상태로 묶어 두고, 삽입·탐색 위치를 이진 탐색(`lowerBound`/`upperBound`)으로 $O(\log n)$에 찾아내는 것입니다. 덕분에 `count`·`has`·`min`·`max` 같은 조회가 빨라지고, `std::multiset`이 없는 JavaScript/TypeScript에서도 같은 효과를 낼 수 있어요.
+Multiset 은 같은 값을 여러 벌 담으면서도 비교자가 정하는 전순서를 잃지 않는 컨테이너예요. 설계가 갈리는 자리는 하나입니다 — **어떤 값이 몇 개 들어 있는지 묻는 일이 그 개수와 무관한 비용**이어야 합니다. `add`·`delete`·`has`·`count`·`min`·`max` 가 `O(log n)` expected, 동등 원소를 통째로 지우는 `deleteAll` 이 `O(log n + k)` expected, `size()` 가 `O(1)` worst 입니다.
 
-## 언제, 왜 쓰는가
+## 이 구조가 필요한 이유
 
-### 이런 단서가 보이면
+이 계약이 동시에 약속하는 것은 둘입니다 — 전순서 유지와 중복 다중도 유지. 둘 중 하나만 필요하면 이 구조를 쓸 이유가 없어요. 순서만 필요하고 중복이 없으면 정렬 집합으로 충분하고, 다중도만 세면 되고 순서를 안 보면 값을 키로 하는 해시 맵이 훨씬 단순합니다. 두 요구가 **동시에** 걸릴 때 비로소 이 계약이 필요해집니다.
 
-다음 신호들이 겹치면 Multiset을 떠올리세요.
+어려운 점은 두 요구가 서로 다른 자료를 원한다는 데 있습니다. 순서는 원소들 **사이**의 관계이고, 다중도는 값 하나에 붙는 수치예요. 값에서 개수로 가는 맵을 따로 들면 다중도는 상수에 나오지만 순서가 사라지고, 정렬해서 늘어놓으면 순서는 살지만 같은 값을 하나씩 훑어야 개수가 나옵니다.
 
-- 데이터가 계속 삽입·삭제되는데도 **정렬된 상태**를 유지한 채 조회해야 한다
-- 같은 값이 몇 번 들어왔는지(`count`)를 자주 세야 한다
-- 최솟값/최댓값을 반복적으로 물어본다
-- 사용 언어에 정렬 컨테이너가 기본 제공되지 않는다(JS/TS에는 `std::multiset`이 없어요)
+계약이 `count` 의 상한을 `O(log n)` 으로 적고 다중도 k 를 넣지 않은 것은 두 번째 길을 배제하려는 것입니다. 값 5 가 백만 개 들어 있어도 `count(5)` 는 로그 비용에 답해야 해요.
 
-naive한 접근들과 비교하면 왜 이 구조가 필요한지 보입니다.
+### 쓰이는 자리
+
+요구를 **연산 집합과 호출 빈도**로 옮겨 적습니다. 옮겨 적어 보면 그 자리가 정말 이 계약을 요구하는지가 드러납니다.
+
+- **슬라이딩 윈도우 중앙값** — 작은 절반과 큰 절반을 Multiset 두 개로 나눠 들면 중앙값은 아래쪽의 `max()` 와 위쪽의 `min()` 으로 읽힙니다. 창이 한 칸 밀릴 때마다 `add` 1회 · `delete` 1회 · `size` 2회 · `min`/`max` 2회가 돌고, 두 컨테이너의 크기 차가 벌어지면 `delete` 와 `add` 로 한 개를 옮깁니다. 스트림 길이만큼 반복하므로 전체가 `O(n log n)` 입니다. 중복 점수가 흔한 데이터에서 다중도 유지가 없으면 값이 통째로 사라져 중앙값이 어긋납니다.
+- **같은 시각의 이벤트가 여럿인 이벤트 큐** — `add` 로 타임스탬프를 넣고 `min()` 으로 가장 이른 것을 읽은 뒤 `delete` 로 뺍니다. 이벤트 수만큼 세 연산이 각 1회씩 반복합니다. 같은 밀리초에 두 이벤트가 잡히는 일이 정상이므로 중복을 접어서 하나로 만들면 이벤트가 유실됩니다.
+- **값별 개수와 값 범위를 함께 읽는 히스토그램** — 갱신은 `add`·`delete` 로, 조회는 `count(x)` 와 `min()`·`max()` 로 합니다. 갱신 m 회와 조회 q 회가 섞여 들어오면 전체가 `O((m + q) log n)` 이에요. 여기서 `count` 의 상한이 다중도와 무관하다는 조건이 직접 값을 합니다 — 한 값에 표본이 몰려도 조회 비용이 그대로입니다.
+
+**이 계약은 위치 기반 접근을 약속하지 않습니다.** k 번째 원소를 꺼내는 `kth` 도, 어떤 값보다 작은 원소가 몇인지 묻는 `rank` 도 없어요. 그런 질의가 필요하면 `tree/orderStatisticTree` 로 갑니다. 두 구조를 합치지 않기로 한 판정과 근거는 `docs/ORD-006-conventions.md` 에 있어요.
+
+요점은 이렇습니다. `orderStatisticTree` 의 계약이 이 계약을 포섭하지만 포섭은 같음이 아니에요 — 계약이 더 많이 약속할수록 그 계약을 만족하는 구현의 집합은 **작아집니다.** 실제로 서로 다른 키만 담는 균형 BST 에 키마다 다중도 정수를 붙인 구현은 Multiset 계약을 전부 만족하면서 `rank` 를 로그 비용에 답하지 못해요. `rank` 를 `O(log n)` 에 답하려면 모든 노드가 부분 트리 크기 같은 위치 증강을 유지해야 하므로, 그것을 Multiset 계약에 넣는 것은 곧 내부 표현을 처방하는 일이 됩니다.
+
+## 단순한 구현의 한계
+
+### 순진한 설계는 어디서 상한을 넘는가
+
+이 요구를 처음 받으면 가장 먼저 나오는 답은 **정렬 상태를 유지하는 배열 하나**입니다. 삽입 위치는 이진 탐색으로 찾고 `splice` 로 끼워 넣습니다. 조회는 `lowerBound` 와 `upperBound` 의 차로 답하면 되고, 최소와 최대는 양 끝을 읽으면 그만이에요.
+
+이 구조의 계약 검증은 세 갈래입니다 — 축1은 동작(참조 모델과 반환값을 맞대 본다), 축2는 불변식, 축3은 복잡도(성장률로 판정한다)예요. 아래는 그 축3 으로 실제로 돌린 값입니다. 세는 것은 시간이 아니라 **노드 방문 1회당 1, 비교자 호출 1회당 1** 이고, 판정은 성장률 $r = C(4n)/C(n)$ 으로 합니다.
 
 ```text
-연산        배열(정렬 안 함)   배열(매번 재정렬)     Multiset(이진 탐색)         균형 BST 기반
-add         O(1)              O(n log n)            O(log n) 탐색 + O(n) 이동   O(log n)
-delete      O(n)              O(n log n)            O(log n) 탐색 + O(n) 이동   O(log n)
-has/count   O(n)              O(log n)              O(log n)                    O(log n)
-min/max     O(n)              O(1)                  O(1)                        O(log n)*
+정렬 배열 + splice — 연산당 비용과 성장률 (허용치 ±30%)
+
+시나리오                     n=1024    n=4096   n=16384        r       판정
+add (무작위 삽입)            268.34   1044.77   4105.94  3.89 · 3.93   실패
+delete · deleteAll           316.22   1230.24   4961.64  3.89 · 4.03   실패
+has · count · min · max       42.00     50.00     58.00  1.19 · 1.16   통과
+add (오름차순 삽입)            9.01     11.00     13.00  1.22 · 1.18   통과
+size                           1.00      1.00      1.00  1.00 · 1.00   통과
+toArray                     1024.00   4096.00  16384.00  4.00 · 4.00   통과
+
+O(log n) 의 기대 비율은 n=1024 에서 1.20, n=4096 에서 1.17 이다.
+O(1) 은 1.00, O(n) 은 4.00 이다.
 ```
 
-*균형 BST는 min/max를 별도로 캐싱해 두지 않으면 왼쪽/오른쪽 끝까지 내려가야 해서 $O(\log n)$이에요.
+걸리는 자리가 조회가 아니라 **변경**이라는 것이 이 표의 첫 번째 읽을거리입니다. `has`·`count`·`min`·`max` 는 이진 탐색으로 $r \approx 1.17$ 이 나와 통과합니다. `add` 와 `delete` 만 $r \approx 4$ 로 걸려요. 배열을 4배로 키우면 삽입 한 번에 건드리는 칸도 4배가 되고, 그래서 이 설계는 n 이 커질수록 계약에서 멀어집니다.
 
-**선택 기준**: $n \le 10^4$ 정도면 배열 + 이진 탐색 방식으로 충분합니다 — 삽입 자체는 $O(n)$이지만 상수가 작아 실전에서는 오히려 빠르게 동작해요. $n$이 $10^5$를 넘거나 삽입/삭제가 지배적인 워크로드라면 균형 이진 트리(AVL, 레드-블랙, B+ Tree) 기반 multiset이 필요합니다.
+이 구조의 옛 가이드가 *"이진 탐색으로 `O(log n)`"* 이라고 적었던 자리가 정확히 여기입니다. **비교 횟수만 세고 배열 이동을 세지 않은 것**이에요. `lowerBound` 는 정말 로그 번만 비교하지만, 찾은 자리에 칸을 만들려면 뒤쪽 원소 전부가 한 칸씩 밀립니다. 위 표의 268.34 는 n=1024 에서 삽입 한 번이 평균 268칸을 건드렸다는 뜻이고, 그중 비교는 열 번 남짓입니다.
 
-### 문제 사례와 적용 예시
+실패가 가끔이 아니라 **구조적**이라는 것도 표에서 읽힙니다. 무작위 삽입은 평균적으로 배열 한가운데를 찌르므로 매번 절반을 밉니다. 입력을 잘 고르면 피할 수 있는 종류가 아니에요.
 
-- **슬라이딩 윈도우 중앙값**: 실시간 센서 스트림에서 최근 K개 값의 중앙값을 계속 보고해야 할 때, 작은 절반을 담는 `lower`와 큰 절반을 담는 `upper` 두 개의 Multiset으로 관리하면 삽입·삭제·중앙값 조회가 모두 $O(\log n)$이 됩니다.
-- **리더보드/랭킹 시스템**: 동점자가 흔한 점수 분포에서 "특정 점수를 가진 인원 수"(`count`)와 정렬된 순위 구간을 함께 다뤄야 하는 상황.
-- **이벤트 스케줄러**: 타임스탬프를 계속 삽입·삭제하면서도 항상 정렬된 순서로 다음 이벤트를 꺼내야 하는 큐.
-- **코딩 테스트**: "정렬 순서를 유지한 채 k번째로 작은/큰 원소를 구하라" 류의 order-statistics 문제.
+### 실패에서 끌어내는 설계 규칙
 
-## 자료구조 자세히 들여다보기
+관찰은 한 문장입니다 — **정렬 배열에서 값이 싼 것은 읽기뿐이고, 자리를 만들거나 없애는 일은 뒤 원소 전부를 옮긴다.**
 
-### 전체 스펙: 속성과 액션
+옮기는 일이 생기는 이유는 순서를 **물리적 인접**으로 표현했기 때문입니다. 배열에서 "다음 원소"는 바로 옆 칸이라서, 사이에 하나를 넣으려면 옆 칸부터 끝까지가 한 칸씩 이동해야 해요. 그러니 첫 번째 설계 규칙은 이렇게 나옵니다. **순서를 인접이 아니라 링크로 들자.** 링크로 이으면 사이에 끼우는 일이 포인터 두 개를 갈아 끼우는 일이 됩니다.
 
-**속성(내부 상태)**은 정렬된 배열 하나와 비교 함수 하나면 충분해요.
+그런데 연결 리스트 하나로는 부족합니다. 끼워 넣는 일 자체는 상수인데 **어디에 끼울지 찾는 일**이 앞에서부터 훑기라 `O(n)` 이에요. 배열이 이진 탐색으로 얻던 것을 링크 구조에서도 얻어야 하고, 그래서 링크가 한 줄이 아니라 **두 갈래**여야 합니다. 여기서 이진 탐색 트리가 나옵니다.
 
-```ts
-class Multiset<T> {
-  private _data: T[];                          // comparator 기준 오름차순 정렬, 중복 허용
-  private _comparator: (a: T, b: T) => number;  // 기본값: a < b ? -1 : a > b ? 1 : 0
+이진 탐색 트리는 그 자체로는 답이 아닙니다. 비교 횟수는 높이에 비례하는데, 높이가 `O(log n)` 이라는 보장이 아무 데도 없어요. 오름차순으로 넣으면 트리는 한 줄짜리 사슬이 되고 높이가 n 이 됩니다. 그래서 두 번째 규칙이 붙습니다. **높이를 스스로 관리하는 장치가 있어야 한다.**
+
+여기서 표를 다시 봐야 합니다. 오름차순 삽입에서 **정렬 배열은 통과하고 값도 더 작습니다**(9.01 대 트립의 21.94). 오름차순은 정렬 배열에게 뒤에 붙이기만 하면 되는 **최선의 입력**이고, 균형을 스스로 잡지 않는 탐색 트리에게는 최악의 입력이에요. 같은 입력이 한 설계에는 선물이고 다른 설계에는 최악입니다.
+
+그래서 **적대성은 계약이 아니라 구현에 대해 정의됩니다.** 계약 스위트가 `add` 에 무작위 시나리오와 오름차순 시나리오를 **둘 다** 둔 이유가 이것입니다. 오름차순 하나만 뒀다면 정렬 배열이 $r = 1.22$ 로 통과했을 것이고, 그러면 이 구조의 A급 결함은 기계에 걸리지 않은 채 남았을 겁니다. 시나리오 하나는 한 종류의 구현만 시험합니다.
+
+설계에 **관례가 섞이는 자리**도 하나 있습니다. 동등한 원소를 새로 넣을 때 기존 동등 원소들의 뒤에 놓을지 앞에 놓을지는 필연이 아니라 관례예요. 계약이 동등 원소끼리의 상대 순서를 약속하지 않으므로 어느 쪽이든 계약을 지킵니다.
+
+## 불변식과 연산별 복잡도 조건
+
+계약 전문은 `multiset.ts` 헤더에 있습니다. 여기서는 그 조건이 **왜 그 모양인지**를 봅니다.
+
+**불변식은 셋이고, 셋 다 관측 경로가 둘이라서 불변식입니다.** 판별 절차는 후보 성질 하나를 받아 둘을 순서대로 묻습니다. 먼저 그 성질이 말하는 상태의 양을 읽는 공개 연산이 몇인지 셉니다. 하나면 불변식이 아니에요 — 그 하나가 내놓는 값이 곧 상태이고, 대조할 상대가 없으니 축1이 참조 모델과 맞대 보면 끝납니다. 둘 이상이면 그 정합을 어느 계약 줄이 이미 적고 있는지 봐요. 적고 있으면 그것은 그 연산의 의미이고, 적고 있지 않으면 불변식입니다.
+
+이 절차가 후보 둘을 실제로 떨어뜨립니다.
+
+- *"`toArray()` 가 비내림차순이다"* 는 불변식이 아닙니다. 정렬 순서를 읽는 경로가 `toArray()` 하나뿐이라 첫 물음에서 걸리고, 계약 표의 의미 열이 이미 `toArray()` 를 *"비내림차순 배열의 사본"* 으로 적고 있습니다.
+- *"`has(x)` 와 `count(x) > 0` 이 같다"* 도 불변식이 아닙니다. `has` 의 의미 열이 문자 그대로 그 문장이라 두 번째 물음에서 걸립니다.
+
+남은 셋은 이렇게 갈립니다. `toArray().length` 와 `size()` 는 원소 수를 읽는 **두 경로**인데 어느 계약 줄도 둘이 같아야 한다고 적지 않아요. `count(x)` 와 `toArray()` 안의 동등 원소 수도 같은 관계이고, `min()`·`max()` 와 `toArray()` 의 양 끝도 그렇습니다. 구현은 두 경로를 따로 유지할 수 있고, 따로 유지하는 순간 갈립니다.
+
+갈리는 장면은 직접 만들어 볼 수 있어요. 정본에서 `#split` 의 `#pull` 호출 하나를 지우고 `[4, 9, 2, 6, 4]` 를 넣으면 `toArray()` 는 `[2, 4, 4, 6, 9]` 로 여전히 옳은데 `size()` 가 7 을, `count(4)` 가 4 를 돌려줍니다. 순회는 링크를 따라가고 크기는 노드에 캐시된 값을 읽으므로, 캐시 갱신을 한 자리에서 빠뜨리면 두 경로가 어긋납니다. 불변식 1번과 2번이 여기서 함께 걸립니다.
+
+3번 불변식이 잡는 것도 같은 종류이고, 그 구현은 가상의 예가 아니라 저장소에 실물로 있습니다. `src/data-structures/_contract/runContract.test.ts:579` 의 `StaleMinMultiset` 이 최소와 최대를 필드에 캐시해 두고 `delete` 에서 갱신을 빠뜨린 구현이에요. `[1, 5, 9]` 를 넣고 `1` 을 지우면 `toArray()` 도 `size()` 도 `count()` 도 전부 맞는데 `min()` 만 사라진 1 을 계속 돌려주고, 시험이 3번 불변식이 그것을 잡는다고 단언합니다. 정본은 최소·최대를 캐시하지 않고 `min()` 이 왼쪽 끝까지 내려가 읽으므로 이 자리에서 갈릴 데가 없습니다.
+
+**못 지키면 무엇이 되는지**도 이름으로 적을 수 있습니다. 순서를 버리면 그것은 값에서 개수로 가는 맵이고, 다중도를 버리면 정렬 집합입니다. 둘 다 지키더라도 `add`·`delete` 가 n 에 비례하면 Multiset 이 아니라 정렬 배열이에요 — 위 표가 보인 그 실패입니다.
+
+**한정자가 연산마다 갈립니다.** `add`·`delete`·`deleteAll`·`has`·`count`·`min`·`max` 는 `expected` 이고, `size`·`toArray`·생성자는 `worst` 입니다. 계약이 **가장 약한 한정자**를 적는 이유는 강한 한정자가 곧 처방이기 때문이에요. `add` 를 `worst O(log n)` 으로 적으면 무작위 우선순위로 균형을 잡는 구현이 전부 계약 위반이 됩니다. 그런 구현은 확률이 아주 낮은 입력에서 사슬을 만들 수 있으니까요. 아무도 트리 종류를 금지한 적이 없는데 한 계열이 통째로 금지됩니다.
+
+**`deleteAll` 만 상한에 항이 둘입니다** — `O(log n + k)`. 여기서 k 는 그 호출이 지우는 동등 원소의 수예요. `+k` 는 지운 원소 하나하나를 실제로 건드려야 하는 구현을 배제하지 않으려고 열어 둔 자리입니다. 배열이라면 지운 만큼 뒤를 당겨야 하고, 노드를 하나씩 회수하는 구현이라면 k 번 방문합니다. 정본은 동등 구간을 부분 트리째 떼어 내고 그 부분 트리의 캐시된 크기를 읽으므로 실제로는 `O(log n)` 에 끝납니다. 다만 그것은 **떼어 낸 k 개 노드의 회수를 GC 가 대신 치르기 때문**이에요. 수동으로 메모리를 관리하는 언어로 옮기면 그 k 개를 순회하며 해제해야 하므로 `O(log n + k)` 를 그대로 냅니다.
+
+**`count` 의 상한에는 그 k 가 없습니다.** 이것이 이 계약에서 가장 강한 조건이에요. 동등 원소를 하나씩 세어 답하는 구현은 다중도에 비례하는 비용을 쓰므로 계약을 만족하지 않습니다. 정본으로 재 보면 n 을 4096 으로 고정한 채 한 값의 다중도만 1 에서 1000 으로 늘렸을 때 `count` 비용이 42 · 44 · 48 · 50 으로 움직입니다. 같은 조건에서 `deleteAll` 도 42 · 44 · 48 · 50 이에요. k 가 천 배가 되는 동안 비용은 20% 남짓 늘었고, 그 증가분은 k 가 아니라 트리 높이에서 옵니다.
+
+**나머지 상한도 이유가 있습니다.** `size()` 가 `O(1)` worst 인 것은 총 원소 수를 세어 두라는 요구이고, 이 조건이 있어야 위 사례들의 크기 비교가 조회 비용을 늘리지 않습니다. `toArray()` 의 `O(n)` worst 는 출력 크기 자체가 n 이라 그 아래가 불가능하기 때문이고, 반환값이 **사본**이라는 조건이 붙어 있어 호출자가 고쳐도 컨테이너가 바뀌지 않습니다. 생성자는 `O(1)` worst 로 비교자만 고정합니다. 비교자를 나중에 교체할 수 없게 한 것은 교체 순간 이미 들어 있는 원소들의 순서가 통째로 달라져 세 불변식이 한꺼번에 성립하지 않게 되기 때문이에요.
+
+**주입 정책도 계약의 일부입니다.** 기본 비교자는 `<` 와 `>` 를 그대로 쓰므로 `number`·`string` 밖의 `T` 에는 비교자 주입이 필수예요. 주지 않고 객체 셋을 넣으면 비교가 전부 0 으로 떨어져 `toArray()` 가 넣은 순서 그대로인 `[{n:3}, {n:1}, {n:2}]` 를 돌려주고, 아무 객체에나 `count` 를 물어도 3 이 나옵니다. 빈 컨테이너의 `min`·`max` 가 `null` 이라는 것도 주입자가 알아야 할 조건입니다 — `T` 에 `null` 이 섞이면 비어 있다는 답과 값이 `null` 이라는 답이 구분되지 않습니다.
+
+**검증 등급은 `complexity` 입니다.** 등급은 고르는 것이 아니라 계약에서 따라 나옵니다. `O(log n)` 삽입·삭제가 자명한 구현으로 달성되지 않는다는 사실이 근거이고, 그 근거가 바로 위 표입니다 — 정렬 배열은 삽입이 `O(n)` 이고, 해시는 `toArray()` 의 비내림차순을 주지 못합니다.
+
+## 구현 (TypeScript)
+
+아래 코드는 `_reference/multiset.ts` 에서 그대로 가져온 것입니다. 손으로 옮겨 적지 않았고, 정본이 바뀌면 이 블록도 함께 바뀝니다.
+
+```ts guide-core=src/data-structures/tree/multiset/_reference/multiset.ts#types
+type Comparator<T> = (a: T, b: T) => number;
+
+interface Node<T> {
+  key: T;
+  prio: number;
+  /** 부분 트리의 원소 수(중복 포함). `count` 를 다중도에 무관한 비용으로 답하는 근거다. */
+  size: number;
+  left: Node<T> | null;
+  right: Node<T> | null;
+}
+
+function sizeOf<T>(node: Node<T> | null): number {
+  return node === null ? 0 : node.size;
+}
+
+function defaultComparator<T>(a: T, b: T): number {
+  const left = a as unknown as number;
+  const right = b as unknown as number;
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
 }
 ```
 
-지켜야 할 불변식은 하나입니다. 정식으로 쓰면:
+노드가 키 · 우선순위 · **부분 트리 크기**를 함께 들고 있는 것이 이 구현의 전부입니다. 세 필드가 각각 하나씩 조건을 맡아요. 키는 정렬 순서를, 우선순위는 높이를, `size` 는 다중도 조회를 맡습니다.
 
-$$
-\forall\, 0 \le i < j < |\_data|:\ \text{comparator}(\_data[i],\, \_data[j]) \le 0
-$$
-
-즉 배열 어느 두 지점을 봐도 앞쪽이 comparator 기준으로 뒤쪽보다 크지 않습니다. 같은 값끼리는 정렬의 자연스러운 결과로 서로 인접하게 모여요.
-
-```text
-인덱스:   0   1   2   3   4   5
-값:       1   2   2   2   5   7
-                └───┬───┘
-              값 2가 세 번, 항상 인접해 있다
-```
-
-**액션(연산)** — 이 자료구조가 제공하는 전부입니다.
-
-| 액션 | 하는 일 | 비용 |
-|------|---------|------|
-| `add(item)` | comparator 기준 정렬 위치를 찾아 삽입 | $O(\log n)$ 탐색 + $O(n)$ 이동 |
-| `delete(item)` | 해당 값을 하나만 제거, 없으면 `false` | $O(\log n)$ 탐색 + $O(n)$ 이동 |
-| `deleteAll(item)` | 해당 값 전부 제거, 제거된 개수 반환 | $O(\log n)$ 탐색 + $O(n)$ 이동 |
-| `has(item)` | 존재 여부 | $O(\log n)$ |
-| `count(item)` | 해당 값의 개수 | $O(\log n)$ |
-| `min()` / `max()` | 최솟값/최댓값, 비어 있으면 `undefined` | $O(1)$ |
-| `size()` | 총 원소 수(중복 포함) | $O(1)$ |
-| `toArray()` | 정렬된 배열의 복사본 | $O(n)$ |
-
-핵심 연산은 `lowerBound`/`upperBound` 두 개예요. 정식 정의는 이렇습니다.
-
-$$
-\text{lowerBound}(x) = \min\{\, i \mid \text{comparator}(\_data[i], x) \ge 0 \,\}
-$$
-$$
-\text{upperBound}(x) = \min\{\, i \mid \text{comparator}(\_data[i], x) > 0 \,\}
-$$
-
-(만족하는 `i`가 없으면 배열 길이를 반환한다고 약속합니다.)
-
-`[1, 2, 2, 2, 5, 7]`에서 `lowerBound(2)`를 이진 탐색으로 좁혀 가는 과정을 그대로 그려 보면:
-
-```text
-[lo, hi) 구간을 반씩 좁힌다 (comparator(data[mid], 2) 부호로 판단)
-
-lo=0, hi=6, mid=3, data[3]=2, cmp=0(>=0)     → hi=3
-lo=0, hi=3, mid=1, data[1]=2, cmp=0(>=0)     → hi=1
-lo=0, hi=1, mid=0, data[0]=1, cmp=-1(<0)     → lo=1
-lo=1, hi=1                                    → 종료, lowerBound(2)=1
-```
-
-같은 방식으로 `upperBound(2)`는 조건이 `<= 0`으로 한 칸 더 밀려 `4`가 됩니다. 그래서 `count(2) = upperBound(2) - lowerBound(2) = 4 - 1 = 3`이에요 — 실제로 배열에 2가 인덱스 1, 2, 3에 세 번 있는 것과 정확히 일치합니다.
-
-`add`가 이 위치를 어떻게 쓰는지도 Before/After로 보겠습니다. `[1, 2, 2, 2, 5, 7]`에 `add(4)`를 실행하면 `lowerBound(4) = 4`이므로 인덱스 4에 `splice`로 끼워 넣습니다.
-
-```text
-Before: [1, 2, 2, 2, 5, 7]
-                       ↑ lowerBound(4) = 4 (5 앞자리)
-After:  [1, 2, 2, 2, 4, 5, 7]
-                       └── 새로 삽입된 4
-```
-
-### 왜 모순 없이 작동하는가
-
-**`add`가 불변식을 보존하는 이유**: `lowerBound(x)`는 "comparator 기준으로 `x` 이상인 첫 위치"이므로, 그 앞쪽 원소는 전부 `x`보다 작고 뒤쪽 원소는 전부 `x` 이상입니다. 그 지점에 `x`를 끼워 넣으면 왼쪽 구간(`< x`) - `x` - 오른쪽 구간(`>= x`) 순서가 그대로 유지돼요. 즉 삽입 전에 정렬 상태였다면 삽입 후에도 정렬 상태입니다. 빈 배열(정렬 상태가 자명하게 성립)에서 출발해 모든 `add`가 이 성질을 보존하므로, 귀납적으로 어느 시점에도 배열은 정렬 상태예요.
-
-**`delete`/`deleteAll`이 불변식을 보존하는 이유**: 정렬된 배열에서 원소를 하나 또는 연속 구간만큼 제거해도 남은 원소들의 상대적 순서는 바뀌지 않습니다. `deleteAll`이 `lowerBound`~`upperBound` 구간을 한 번에 잘라내는 것도 마찬가지예요 — 그 구간이 정확히 "값이 `x`인 원소들의 모임"이라는 사실은 위에서 본 `lowerBound`/`upperBound` 정의 자체가 보장합니다.
-
-여기서 헷갈리기 쉬운 포인트는 **`lowerBound`와 `upperBound`를 가르는 것이 비교 조건의 `<`와 `<=` 딱 한 글자 차이**라는 점입니다. 만약 `delete`에서 `lowerBound` 대신 실수로 `upperBound` 공식(조건을 `<=`로)을 써 버리면 어떻게 될까요? `[1, 2, 2, 3]`에서 `delete(2)`를 예로 들어 보면:
-
-```text
-정상: lowerBound(2) = 1 → data[1] === 2 → splice(1,1) → [1, 2, 3], true 반환
-
-버그: upperBound(2) 공식을 lowerBound 자리에 쓰면 pos = upperBound(2) = 3
-      → data[3] === 3 (2가 아님!) → 아무것도 지우지 못하고 false를 반환
-      → 배열에 2가 분명히 있는데도 delete(2)가 실패한 것처럼 보인다
-```
-
-두 함수 다 "어떤 조건을 만족하는 첫 인덱스"를 찾는 이진 탐색이라 겉보기엔 거의 같아 보이지만, 조건의 등호 하나가 결과를 통째로 어긋나게 만듭니다.
-
-> 확인 질문 하나만 해 볼까요? 배열이 `[5, 5, 5]`일 때 `count(5)`는 얼마일까요? — `lowerBound(5) = 0`, `upperBound(5) = 3`이므로 `count(5) = 3 - 0 = 3`입니다. 원소 3개가 모두 5니까 직관과도 맞아떨어져요.
-
-엣지 케이스도 점검해 둡니다.
-
-```text
-빈 배열              → min()/max() = undefined, has = false, count = 0, delete = false
-원소 1개             → min() === max() === 그 원소
-삽입 위치가 맨 끝     → lowerBound(모든 원소보다 큰 값) = data.length
-삽입 위치가 맨 앞     → lowerBound(모든 원소보다 작은 값) = 0
-모든 원소가 동일      → lowerBound = 0, upperBound = length, count = length
-```
-
-## 아이디어를 코드로 옮기기
-
-가장 단순한 원형부터 시작해서 왜 다음 단계로 넘어가야 하는지 순서대로 짚어 볼게요.
-
-**원형(naive)**: "일단 넣고 매번 다시 정렬한다"는 접근이 가장 쉽게 떠오릅니다.
-
-```ts
-class MultisetNaive {
-  private data: number[] = [];
-  add(item: number): void {
-    this.data.push(item);
-    this.data.sort(); // 함정: comparator 없이 기본 sort() 호출
-  }
-}
-```
-
-이 코드는 매번 $O(n \log n)$이 드는 것도 아쉽지만, 진짜 함정은 따로 있습니다. JS의 기본 `sort()`는 **comparator를 안 주면 원소를 문자열로 바꿔 사전식으로 비교**해요. `add(10)`, `add(1)`, `add(2)`를 순서대로 실행하면:
-
-```text
-add(10) → data=[10] → sort() → [10]
-add(1)  → data=[10,1] → sort() → "1" < "10" → [1, 10]
-add(2)  → data=[1,10,2] → sort() → "1" < "10" < "2" (사전식!) → [1, 10, 2]
-```
-
-숫자로는 `[1, 2, 10]`이 맞는데 실제로는 `[1, 10, 2]`가 나와요 — 실측으로 확인한 값입니다. 정렬 컨테이너를 만든다면서 정렬조차 틀리는 셈이니, comparator를 명시하는 개선이 필요합니다.
-
-**개선**: comparator를 쓰는 선형 탐색으로 삽입 위치를 직접 찾습니다.
-
-```ts
-class MultisetLinear<T> {
-  private data: T[] = [];
-  private cmp: (a: T, b: T) => number = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
-  add(item: T): void {
-    let i = 0;
-    while (i < this.data.length && this.cmp(this.data[i]!, item) < 0) i++;
-    this.data.splice(i, 0, item);
-  }
-}
-```
-
-이제 정렬은 항상 올바릅니다(`add(10)`, `add(1)`, `add(2)` → `[1, 2, 10]`, 실측 확인 완료). 하지만 삽입 위치를 찾는 `while` 루프가 여전히 $O(n)$이에요 — 배열이 이미 정렬돼 있다는 정보를 전혀 활용하지 못하고 있습니다.
-
-**최종**: 이미 정렬된 배열이라는 사실을 이진 탐색으로 활용합니다.
-
-```ts
+```ts guide-core=src/data-structures/tree/multiset/_reference/multiset.ts#class
 export class Multiset<T> {
-  private _data: T[];
-  private _comparator: (a: T, b: T) => number;
+  #root: Node<T> | null = null;
+  #compareWith: Comparator<T>;
+  #seq = 0;
 
-  constructor(comparator?: (a: T, b: T) => number) {
-    this._data = [];
-    this._comparator = comparator ?? ((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-  }
-
-  private lowerBound(item: T): number {
-    let lo = 0, hi = this._data.length;
-    while (lo < hi) {
-      const mid = (lo + hi) >> 1;
-      if (this._comparator(this._data[mid]!, item) < 0) lo = mid + 1;
-      else hi = mid;
-    }
-    return lo;
-  }
-
-  private upperBound(item: T): number {
-    let lo = 0, hi = this._data.length;
-    while (lo < hi) {
-      const mid = (lo + hi) >> 1;
-      if (this._comparator(this._data[mid]!, item) <= 0) lo = mid + 1;
-      else hi = mid;
-    }
-    return lo;
+  constructor(comparator?: Comparator<T>) {
+    this.#compareWith = comparator ?? defaultComparator;
   }
 
   add(item: T): void {
-    const pos = this.lowerBound(item);
-    this._data.splice(pos, 0, item);
+    const [left, right] = this.#split(
+      this.#root,
+      (key) => this.#compare(key, item) <= 0,
+    );
+    const node: Node<T> = {
+      key: item,
+      prio: this.#nextPrio(),
+      size: 1,
+      left: null,
+      right: null,
+    };
+    this.#root = this.#merge(this.#merge(left, node), right);
   }
 
   delete(item: T): boolean {
-    const pos = this.lowerBound(item);
-    if (pos < this._data.length && this._comparator(this._data[pos]!, item) === 0) {
-      this._data.splice(pos, 1);
-      return true;
+    const [left, rest] = this.#split(
+      this.#root,
+      (key) => this.#compare(key, item) < 0,
+    );
+    const [equal, right] = this.#split(
+      rest,
+      (key) => this.#compare(key, item) <= 0,
+    );
+    if (equal === null) {
+      this.#root = this.#merge(left, right);
+      return false;
     }
-    return false;
+    const remainder = this.#merge(equal.left, equal.right);
+    this.#root = this.#merge(this.#merge(left, remainder), right);
+    return true;
   }
 
   deleteAll(item: T): number {
-    const lo = this.lowerBound(item);
-    const hi = this.upperBound(item);
-    this._data.splice(lo, hi - lo);
-    return hi - lo;
+    const [left, rest] = this.#split(
+      this.#root,
+      (key) => this.#compare(key, item) < 0,
+    );
+    const [equal, right] = this.#split(
+      rest,
+      (key) => this.#compare(key, item) <= 0,
+    );
+    const removed = sizeOf(equal);
+    this.#root = this.#merge(left, right);
+    return removed;
   }
 
   has(item: T): boolean {
-    const pos = this.lowerBound(item);
-    return pos < this._data.length && this._comparator(this._data[pos]!, item) === 0;
+    return this.count(item) > 0;
   }
 
   count(item: T): number {
-    return this.upperBound(item) - this.lowerBound(item);
+    const upto = this.#rank((key) => this.#compare(key, item) <= 0);
+    const before = this.#rank((key) => this.#compare(key, item) < 0);
+    return upto - before;
   }
 
-  min(): T | undefined {
-    return this._data[0];
+  min(): T | null {
+    let node = this.#root;
+    if (node === null) return null;
+    while (node.left !== null) {
+      node = node.left;
+    }
+    return node.key;
   }
 
-  max(): T | undefined {
-    return this._data[this._data.length - 1];
+  max(): T | null {
+    let node = this.#root;
+    if (node === null) return null;
+    while (node.right !== null) {
+      node = node.right;
+    }
+    return node.key;
   }
 
   size(): number {
-    return this._data.length;
+    return sizeOf(this.#root);
   }
 
   toArray(): T[] {
-    return [...this._data];
+    const out: T[] = [];
+    const pending: Node<T>[] = [];
+    let node = this.#root;
+    while (node !== null || pending.length > 0) {
+      while (node !== null) {
+        pending.push(node);
+        node = node.left;
+      }
+      const top = pending.pop() as Node<T>;
+      out.push(top.key);
+      node = top.right;
+    }
+    return out;
+  }
+
+  #compare(a: T, b: T): number {
+    return this.#compareWith(a, b);
+  }
+
+  /**
+   * `goLeft` 가 참인 키 전부를 왼쪽으로 가른다. `goLeft` 는 정렬 순서에 대해 단조여야 한다
+   * — 앞쪽 구간에서만 참이어야 갈라진 두 조각이 각각 정렬 상태를 유지한다.
+   */
+  #split(
+    node: Node<T> | null,
+    goLeft: (key: T) => boolean,
+  ): [Node<T> | null, Node<T> | null] {
+    if (node === null) return [null, null];
+    if (goLeft(node.key)) {
+      const [inner, right] = this.#split(node.right, goLeft);
+      node.right = inner;
+      this.#pull(node);
+      return [node, right];
+    }
+    const [left, inner] = this.#split(node.left, goLeft);
+    node.left = inner;
+    this.#pull(node);
+    return [left, node];
+  }
+
+  /** `a` 의 모든 키가 `b` 의 모든 키보다 앞선다는 전제에서 둘을 잇는다. */
+  #merge(a: Node<T> | null, b: Node<T> | null): Node<T> | null {
+    if (a === null) return b;
+    if (b === null) return a;
+    if (a.prio > b.prio) {
+      a.right = this.#merge(a.right, b);
+      this.#pull(a);
+      return a;
+    }
+    b.left = this.#merge(a, b.left);
+    this.#pull(b);
+    return b;
+  }
+
+  /** `goLeft` 를 만족하는 키의 개수. 부분 트리 크기를 더해 가므로 다중도에 비례하지 않는다. */
+  #rank(goLeft: (key: T) => boolean): number {
+    let node = this.#root;
+    let acc = 0;
+    while (node !== null) {
+      if (goLeft(node.key)) {
+        acc += sizeOf(node.left) + 1;
+        node = node.right;
+      } else {
+        node = node.left;
+      }
+    }
+    return acc;
+  }
+
+  #pull(node: Node<T>): void {
+    node.size = 1 + sizeOf(node.left) + sizeOf(node.right);
+  }
+
+  /**
+   * 삽입 순서 카운터를 섞어 우선순위를 만든다.
+   *
+   * 난수원을 쓰지 않는 이유는 재현성이다 — 축3이 seed 를 고정해 실패를 재현하는데,
+   * 구현이 따로 난수를 쓰면 그 재현이 깨진다. 섞기(murmur3 finalizer)는 삽입 순서와
+   * 키 순서 사이의 상관을 없애므로 정렬된 입력에도 기대 높이가 유지된다.
+   */
+  #nextPrio(): number {
+    this.#seq = (this.#seq + 1) >>> 0;
+    let x = this.#seq;
+    x ^= x >>> 16;
+    x = Math.imul(x, 0x85ebca6b) >>> 0;
+    x ^= x >>> 13;
+    x = Math.imul(x, 0xc2b2ae35) >>> 0;
+    x ^= x >>> 16;
+    return x >>> 0;
   }
 }
 ```
 
-가장 중요한 부분은 `lowerBound`의 `if (this._comparator(this._data[mid]!, item) < 0) lo = mid + 1; else hi = mid;` 두 줄입니다. `upperBound`는 이 조건을 `<=`로 딱 한 글자만 바꾼 거울상이에요 — 앞서 본 함정처럼, 이 부호 하나가 "값이 같을 때 왼쪽 경계에서 멈출지, 오른쪽 경계까지 밀고 갈지"를 가릅니다.
+**가장 중요한 부분은 `#split` 과 `#merge` 두 개입니다.** 나머지 아홉 연산이 전부 이 둘 위에 얹혀 있어요. `#split` 은 트리를 키 기준으로 두 조각으로 가르고, `#merge` 는 한쪽의 모든 키가 다른 쪽보다 앞선다는 전제에서 둘을 도로 잇습니다.
 
-놓치기 쉬운 구현부를 짚어 두면:
+이 구조를 트립(treap, tree + heap)이라고 부릅니다. 한 트리가 조건 두 개를 동시에 지켜요. 키를 보면 이진 탐색 트리이고, 우선순위를 보면 최대 힙입니다.
 
-- `delete`는 `lowerBound`로 찾은 위치의 값이 실제로 `item`과 같은지(`comparator(...) === 0`)를 반드시 확인해야 합니다. `item`이 아예 없어도 `lowerBound`는 "삽입될 위치"를 반환하니, 이 확인 없이 바로 `splice`하면 엉뚱한 원소를 지웁니다.
-- `deleteAll`은 `lowerBound`~`upperBound` 구간 전체를 한 번의 `splice(lo, hi - lo)`로 지웁니다. 하나씩 반복해서 지우면 매번 인덱스가 밀려 버그가 나기 쉬워요.
-- `min`/`max`는 정렬이 유지된다는 불변식 덕분에 `_data[0]`/`_data[_data.length - 1]`을 읽기만 하면 됩니다 — 별도 탐색이 필요 없어요.
+```text
+add(4) · add(9) · add(2) · add(6) · add(4) 를 이 순서로 부른 뒤의 실제 트리
 
-> 기억법: "lower는 `<` 로 멈추고, upper는 `<=` 로 한 칸 더 간다."
+                    4
+                 /     \
+                2       9
+                 \     /
+                  4   6
 
-## 실행 시각화
+     노드     prio          size
+     ────     ───────────   ────
+     4 (루트) 3423425485       5
+     2        2247144487       2
+     9         821347078       2
+     4        1364076727       1
+     6         614249093       1
 
-아래 시뮬레이션은 빈 Multiset에서 시작해 `add(3)` → `add(1)` → `add(2)` → `add(2)`(중복) → `count(2)` → `delete(2)` 순서로 실행한 고정 트레이스입니다. 각 단계의 배열 스냅샷은 위 코드를 그대로 실행해 얻은 실측값이에요 — `add(2)`를 두 번째로 실행하면 `[1, 2, 2, 3]`이 되고, `lowerBound(2)=1, upperBound(2)=3`이라 `count(2)=2`이며, 이어지는 `delete(2)`는 인덱스 1의 `2`를 지워 `[1, 2, 3]`으로 돌아갑니다. array 패널의 강조 칸이 그 단계에서 `lowerBound`/`upperBound`가 가리키는 인덱스예요.
+중위 순회로 키를 읽으면 2 · 4 · 4 · 6 · 9 로 비내림차순입니다.
+어느 노드를 보아도 부모의 prio 가 두 자식보다 큽니다.
+```
+
+우선순위가 힙 순서를 지키면 트리 모양이 **키만으로 정해지지 않습니다.** 같은 키 집합이라도 우선순위 배정이 다르면 다른 모양이 나와요. 우선순위가 키 순서와 상관없이 흩어져 있을 때 기대 높이가 $O(\log n)$ 이라는 것은 이렇게 따라옵니다.
+
+> 우선순위가 가장 큰 원소가 루트가 되고, 그 키가 나머지를 두 조각으로 가릅니다. 각 조각 안에서 같은 일이 되풀이되므로 트립의 모양은 **그 원소를 피벗으로 삼은 퀵정렬의 재귀 트리**와 같습니다.
+>
+> 키 순위 $i$ 인 원소가 키 순위 $j$ 인 원소의 조상이 되려면, 두 원소를 포함해 그 사이에 있는 $|i-j|+1$ 개 가운데 $i$ 의 우선순위가 1등이어야 합니다. 그 구간에 더 큰 우선순위가 하나라도 있으면 그 원소가 먼저 루트가 되어 $i$ 와 $j$ 를 갈라놓고, 갈라진 뒤에는 $i$ 가 $j$ 의 조상이 될 길이 없어요. 우선순위 배정이 그 $|i-j|+1$ 개 사이에서 균등하면 1등이 될 확률은 $1/(|i-j|+1)$ 입니다.
+>
+> 원소 $j$ 의 깊이는 곧 조상의 수입니다. 그러므로 기대 깊이는 $\sum_{i \neq j} 1/(|i-j|+1)$ 이고, 왼쪽 이웃들에서 $1/2 + 1/3 + \cdots$ 가, 오른쪽 이웃들에서 다시 $1/2 + 1/3 + \cdots$ 가 나옵니다. 조화급수 두 벌이라 $2H_n - 2 < 2\ln n$ 으로 묶이고, 따라서 기대 깊이가 $O(\log n)$ 입니다.
+
+이 논증이 기대는 전제는 하나입니다 — **우선순위가 키 순서와 상관이 없다.** 오름차순으로 넣어도 사슬이 되지 않는 근거가 이것이고, 이 절 끝의 성장률 표에서 오름차순 삽입 행이 $r = 1.16 \cdot 1.23$ 인 것이 그 실측입니다.
+
+우선순위를 **난수원이 아니라 삽입 순서 카운터를 섞어서** 만드는 것이 정본의 선택입니다. `#nextPrio` 가 카운터를 하나 올린 뒤 murmur3 finalizer 로 비트를 흩어요. 얻는 것은 재현성입니다 — 축3 은 seed 를 고정해 실패를 재현하는데, 구현이 따로 난수를 쓰면 같은 seed 로 같은 실패를 다시 볼 수 없습니다.
+
+잃는 것은 **적대적 내성**입니다. 우선순위 수열이 코드에 그대로 있으므로 그것을 읽은 사람은 위 전제가 성립하지 않는 키 배정을 골라낼 수 있어요. 절차는 한 줄입니다 — `#nextPrio` 가 내는 값을 큰 것부터 정렬하고, 그 삽입 자리에 작은 키부터 배정합니다. 그러면 키 순서와 우선순위 순서가 정확히 반대가 되어 트립이 오른쪽으로만 뻗은 사슬이 됩니다.
+
+```text
+우선순위 수열을 읽고 만든 입력 — add 연산당 비용
+
+        n     적대 입력     오름차순 입력
+      256        247.95            12.33
+     1024       1061.38            21.94
+     4096       4210.71            25.45
+     8192       8275.83            28.38
+    16384     스택 넘침            31.22
+
+적대 입력은 r = 4210.71 / 1061.38 = 3.97 로 O(n) 이다.
+n=16384 에서는 재귀 #split 이 사슬 깊이만큼 내려가 호출 스택이 넘친다.
+```
+
+**계약은 그래도 지켜집니다.** 계약이 적은 한정자가 `expected` 이고, 그 기대는 축3 이 도는 입력 분포에 대한 기대예요. 진짜 난수를 쓰는 트립은 이 약점이 없는 대신 실패를 다시 재현하지 못합니다. 어느 쪽이 옳은지는 계약이 정하지 않습니다.
+
+**계약 스위트에 이 입력을 넣지 않는 이유**도 거기서 나옵니다. 이 시나리오는 계약이 아니라 `#nextPrio` 라는 특정 구현을 겨눕니다. 계약 스위트가 구현을 알면 다른 구현을 같은 자로 채점할 수 없고, 계약이 내부 표현을 처방하지 않는다는 ORD-006 의 전제가 그 자리에서 성립하지 않게 됩니다. 세 갈래 검증이 전부 통과시키는데도 위 표가 참인 것은 그 때문입니다.
+
+3단계에서 정렬 배열에 대해 한 말이 트립 자신에게 그대로 돌아옵니다. **적대성은 계약이 아니라 구현에 대해 정의됩니다.** 정렬 배열의 최악은 무작위 삽입이었고 트립의 최악은 우선순위 수열을 읽은 입력이에요. 두 최악이 다른 것은 두 구현이 다르기 때문이지 계약이 달라서가 아닙니다.
+
+`#split` 이 무엇을 하는지는 실제 값으로 보는 편이 빠릅니다. 아래 Before 는 **위 그림보다 한 걸음 앞선 상태**예요 — 다섯 번째 `add(4)` 를 부르기 직전, 그러니까 `add(4)·add(9)·add(2)·add(6)` 까지만 넣은 트리입니다. 그 다섯 번째 `add` 가 제일 먼저 하는 일이 이 트리를 `key <= 4` 로 가르는 것입니다.
+
+```text
+Before — 다섯 번째 add(4) 직전 (add 를 네 번만 부른 상태)
+
+                2
+                 \
+                  4
+                   \
+                    9
+                   /
+                  6
+
+After — #split(root, key => compare(key, 4) <= 0)
+
+  왼쪽 조각                오른쪽 조각
+       2                        9
+        \                      /
+         4                    6
+
+  중위 순회 [2, 4]          중위 순회 [6, 9]
+```
+
+두 조각 각각이 여전히 트립입니다. `#split` 이 내려가면서 자식만 갈아 끼우고 부모 관계를 뒤집지 않으므로 우선순위의 힙 순서가 그대로 살아 있어요. `add` 는 이렇게 가른 뒤 새 노드 하나를 사이에 넣고 `#merge` 를 두 번 불러 도로 잇습니다.
+
+놓치기 쉬운 자리 넷을 짚어 둘게요.
+
+- **`add` 의 술어가 `<= 0` 이고 `delete` 의 첫 술어가 `< 0` 인 것.** 등호 하나가 동등 원소를 어느 조각으로 보낼지 가릅니다. `add` 는 동등 원소를 전부 왼쪽으로 보내고 새 노드를 그 뒤에 놓아요. `delete` 는 반대로 동등 원소를 오른쪽 조각에 남겨야 두 번째 `#split` 이 그 구간만 정확히 떼어 냅니다. 첫 술어를 `<= 0` 으로 바꿔 놓고 `[4, 9, 2, 6, 4]` 에 `delete(4)` 를 부르면 `false` 가 돌아옵니다 — 동등 원소가 이미 왼쪽으로 다 빠져서 `equal` 이 항상 `null` 이기 때문이에요. 값이 분명히 들어 있는데 지워지지 않고, 예외도 나지 않습니다.
+- **`#split` 과 `#merge` 가 `#pull` 을 반환 직전에 부르는 것.** 자식을 갈아 끼운 **뒤에** 크기를 다시 세야 합니다. 순서를 바꾸거나 한 자리를 빼면 낡은 크기가 노드에 남고, 앞 절에서 본 대로 `size()` 와 `count()` 가 함께 틀립니다. `toArray()` 는 링크를 따라가므로 여전히 맞고, 그래서 이 결함은 두 값을 맞대 보기 전에는 드러나지 않습니다.
+- **`delete` 가 `equal.left` 와 `equal.right` 를 먼저 잇는 줄.** 떼어 낸 동등 구간에서 루트 노드 하나만 빼고 나머지는 되돌려야 해요. 그 노드의 두 자식을 `#merge` 로 이어 `remainder` 를 만든 뒤에 좌우 조각과 합칩니다. `remainder` 를 `equal.left` 하나로 줄여 놓고 `[5, 5, 1, 9]` 에 `delete(5)` 를 부르면 `[1, 5, 9]` 대신 `[1, 9]` 가 남습니다 — 지우라고 하지 않은 5 하나가 함께 사라져요.
+- **`#rank` 가 `sizeOf(node.left) + 1` 을 더하고 오른쪽으로 내려가는 두 줄.** `count` 가 다중도에 비례하지 않는 근거가 여기입니다. 왼쪽 부분 트리를 통째로 세어 더하므로 동등 원소를 하나씩 방문하지 않아요. `+ 1` 은 지금 서 있는 노드 자신의 몫이고, 빼면 두 `#rank` 호출이 서로 다른 만큼 어긋납니다. 위 트리에서 `count(2)` 가 1 대신 0 을 돌려주고 `has(2)` 도 함께 거짓이 되는데, `count(4)` 와 `count(9)` 는 그대로 맞아서 표본 몇 개로는 드러나지 않습니다.
+
+**성장률로 계약 충족을 확인합니다.** 계약 스위트 축3 이 여섯 시나리오를 판별 수준(±30%)으로 재고, 여섯 모두 통과합니다.
+
+```text
+트립 — 연산당 비용과 성장률
+
+시나리오                     n=1024   n=4096   n=16384        r
+add (무작위 삽입)             36.90    45.83     56.83   1.24 · 1.24
+add (오름차순 삽입)           21.94    25.45     31.22   1.16 · 1.23
+delete · deleteAll            50.08    61.08     73.76   1.22 · 1.21
+has · count · min · max      122.14   141.59    172.42   1.16 · 1.22
+size                           1.00     1.00      1.00   1.00 · 1.00
+toArray                     1024.00  4096.00  16384.00   4.00 · 4.00
+
+O(log n) 의 기대 비율은 1.20 과 1.17, 허용 구간은 0.84~1.56 과 0.82~1.52 다.
+```
+
+오름차순 삽입에서 $r = 1.16 \cdot 1.23$ 이 나온 것이 앞 절의 실패와 갈리는 자리입니다. 균형을 스스로 잡지 않는 탐색 트리라면 여기서 사슬이 되어 $r \approx 4$ 가 나왔을 텐데, 우선순위가 키 순서와 무관하게 흩어져 있어 높이가 유지됩니다.
+
+조회 시나리오에서 트립의 절대값이 정렬 배열보다 큽니다(122.14 대 42.00). **절대값이 작은 것과 성장률이 계약을 지키는 것은 다른 문제예요.** 판정을 성장률로 하는 이유가 이것입니다 — 절대값에는 그 기계와 그 구현의 상수가 섞여 들어가고, 계약이 말하는 것은 상수가 아니라 n 이 커질 때의 증가 방식입니다.
+
+**사용 조건이 달라지면 다른 구현이 적합합니다.** 계약은 트립을 요구하지 않아요. 서로 다른 키만 담는 균형 BST 에 키마다 다중도 정수를 붙이고 총합 카운터를 하나 두면 이 계약을 전부 만족합니다. 그 구현에서는 `deleteAll` 이 노드 하나를 지우는 일이라 `O(log n)` 으로 오히려 더 강해지고, 같은 값이 몰려 들어오는 데이터에서는 노드 수 자체가 줄어 메모리도 적게 씁니다. 대신 `rank` 를 로그 비용에 답하지 못하므로 위치 질의로 확장할 길이 막혀요. 정본은 계약이 **허용하는 구현 하나**일 뿐입니다.
+
+정리하면 이렇습니다. 이 계약이 요구하는 아홉 연산이 `#split` 과 `#merge` 두 개 위에 얹히고, 부분 트리 크기 하나가 `size`·`count`·`deleteAll` 세 자리를 함께 답합니다. 상한은 생성자와 `size` 가 `O(1)` worst, `toArray` 가 `O(n)` worst, `deleteAll` 이 `O(log n + k)` expected, 나머지가 `O(log n)` expected 입니다.
+
+## 단계별 동작 확인
+
+빈 Multiset 에 `add(4)` · `add(9)` · `add(2)` · `add(6)` · `add(4)` 를 차례로 넣고 `count(4)` 를 읽은 뒤 `deleteAll(4)` 로 동등 원소를 한 번에 지우는 장면입니다. 위 패널은 **트리 모양**을, 아래 항목은 같은 시점의 `toArray()` 와 `size()` 를 보여 줍니다. 노드 라벨의 `size` 는 그 노드가 뿌리인 부분 트리의 원소 수예요.
+
+각 프레임의 트리와 값은 정본을 그대로 실행해 얻은 것입니다. 우선순위가 삽입 순서에서 결정론적으로 나오므로 같은 입력을 넣으면 같은 모양이 다시 나옵니다. 마지막 `deleteAll(4)` 의 반환값은 `2` 이고, 그 뒤 `toArray()` 는 `[2, 6, 9]` 입니다.
 
 > 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
     title: "초기 상태",
-    detail: "빈 배열에서 시작합니다.",
-    array: [],
-    highlight: [],
-    marked: [],
+    detail: "빈 컨테이너. min() 과 max() 는 null 이다",
+    root: null,
+    entries: [
+      { label: "toArray()", value: "[]" },
+      { label: "size()", value: 0 },
+    ],
   },
   {
-    title: "add(3) 삽입",
-    detail: "lowerBound(3) = 0. 인덱스 0에 3 삽입.",
-    array: [3],
-    highlight: [0],
-    marked: [],
+    title: "add(4)",
+    detail: "빈 트리를 가르면 두 조각이 다 비어 있다. 새 노드가 그대로 루트가 된다",
+    root: { id: "a4", label: "4 · size 1", status: "active" },
+    entries: [
+      { label: "toArray()", value: "[4]" },
+      { label: "size()", value: 1 },
+    ],
   },
   {
-    title: "add(1) 삽입",
-    detail: "lowerBound(1) = 0. 인덱스 0에 1 삽입. 3이 오른쪽으로 이동.",
-    array: [1, 3],
-    highlight: [0],
-    marked: [],
+    title: "add(9)",
+    detail: "9 의 prio 가 4 보다 작아 아래로 간다. 키가 크므로 오른쪽 자식이다",
+    root: {
+      id: "a4",
+      label: "4 · size 2",
+      children: [null, { id: "n9", label: "9 · size 1", status: "active" }],
+    },
+    entries: [
+      { label: "toArray()", value: "[4, 9]" },
+      { label: "size()", value: 2 },
+    ],
   },
   {
-    title: "add(2) 삽입",
-    detail: "lowerBound(2) = 1. 인덱스 1에 2 삽입.",
-    array: [1, 2, 3],
-    highlight: [1],
-    marked: [],
+    title: "add(2)",
+    detail: "2 의 prio 가 가장 커서 루트로 올라간다. 기존 트리 전체가 오른쪽에 붙는다",
+    root: {
+      id: "n2",
+      label: "2 · size 3",
+      status: "active",
+      children: [
+        null,
+        {
+          id: "a4",
+          label: "4 · size 2",
+          children: [null, { id: "n9", label: "9 · size 1" }],
+        },
+      ],
+    },
+    entries: [
+      { label: "toArray()", value: "[2, 4, 9]" },
+      { label: "size()", value: 3 },
+    ],
   },
   {
-    title: "add(2) 삽입 (중복)",
-    detail: "lowerBound(2) = 1. 인덱스 1에 2 삽입. 정렬 유지.",
-    array: [1, 2, 2, 3],
-    highlight: [1],
-    marked: [],
+    title: "add(6)",
+    detail: "6 의 prio 가 가장 작아 잎으로 내려간다. 9 보다 작으므로 9 의 왼쪽이다",
+    root: {
+      id: "n2",
+      label: "2 · size 4",
+      children: [
+        null,
+        {
+          id: "a4",
+          label: "4 · size 3",
+          children: [
+            null,
+            {
+              id: "n9",
+              label: "9 · size 2",
+              children: [{ id: "n6", label: "6 · size 1", status: "active" }, null],
+            },
+          ],
+        },
+      ],
+    },
+    entries: [
+      { label: "toArray()", value: "[2, 4, 6, 9]" },
+      { label: "size()", value: 4 },
+    ],
   },
   {
-    title: "count(2) = upperBound - lowerBound",
-    detail: "lowerBound(2)=1, upperBound(2)=3. count = 3-1 = 2.",
-    array: [1, 2, 2, 3],
-    highlight: [1, 2],
-    marked: [],
+    title: "add(4) — 중복",
+    detail: "새 4 의 prio 가 가장 크다. key <= 4 로 가른 뒤 사이에 놓으니 루트가 된다",
+    root: {
+      id: "b4",
+      label: "4 · size 5",
+      status: "active",
+      children: [
+        {
+          id: "n2",
+          label: "2 · size 2",
+          children: [null, { id: "a4", label: "4 · size 1" }],
+        },
+        {
+          id: "n9",
+          label: "9 · size 2",
+          children: [{ id: "n6", label: "6 · size 1" }, null],
+        },
+      ],
+    },
+    entries: [
+      { label: "toArray()", value: "[2, 4, 4, 6, 9]" },
+      { label: "size()", value: 5 },
+    ],
   },
   {
-    title: "delete(2) — 하나만 제거",
-    detail: "lowerBound(2)=1. 인덱스 1의 원소가 2이므로 splice(1,1).",
-    array: [1, 2, 3],
-    highlight: [1],
-    marked: [],
+    title: "count(4) = 2",
+    detail: "key <= 4 인 원소 수 3 에서 key < 4 인 원소 수 1 을 뺀다. 4 를 하나씩 세지 않는다",
+    root: {
+      id: "b4",
+      label: "4 · size 5",
+      status: "frontier",
+      children: [
+        {
+          id: "n2",
+          label: "2 · size 2",
+          status: "visited",
+          children: [null, { id: "a4", label: "4 · size 1", status: "frontier" }],
+        },
+        {
+          id: "n9",
+          label: "9 · size 2",
+          children: [{ id: "n6", label: "6 · size 1" }, null],
+        },
+      ],
+    },
+    entries: [
+      { label: "toArray()", value: "[2, 4, 4, 6, 9]" },
+      { label: "count(4)", value: 2 },
+      { label: "min() / max()", value: "2 / 9" },
+    ],
+  },
+  {
+    title: "deleteAll(4) → 2",
+    detail: "split 두 번으로 동등 구간을 부분 트리째 떼어 내고 남은 둘을 잇는다",
+    root: {
+      id: "n2",
+      label: "2 · size 3",
+      status: "active",
+      children: [
+        null,
+        {
+          id: "n9",
+          label: "9 · size 2",
+          children: [{ id: "n6", label: "6 · size 1" }, null],
+        },
+      ],
+    },
+    entries: [
+      { label: "toArray()", value: "[2, 6, 9]" },
+      { label: "size()", value: 3 },
+      { label: "count(4)", value: 0 },
+    ],
   },
 ];
 
-<AlgorithmSimulation view="array" steps={steps} title="Multiset — add / count / delete 시뮬레이션" />
+<AlgorithmSimulation view={["tree", "keyValue"]} steps={steps} title="Multiset — 트립에 중복을 넣고 한 번에 지우기" />
 
 ## 스스로 점검하기
 
-1. 배열이 `[2, 2, 2, 2]`일 때 `lowerBound(2)`와 `upperBound(2)`를 손으로 이진 탐색을 밟아 구해 보세요. `count(2)`는 몇이 되어야 할까요?
-2. `has(item)`을 "`lowerBound(item)`으로 찾은 위치의 값이 `item`과 같은지" 확인하지 않고 그냥 "`lowerBound(item) < size()`"로만 판정하면, 어떤 입력에서 거짓 양성(실제로는 없는데 있다고 판정)이 나올 수 있을까요? 구체적인 배열과 값으로 반례를 만들어 보세요.
-3. `deleteAll(item)`을 `while (delete(item)) {}`처럼 반복 호출로 구현하면 정답은 나오지만 비효율적입니다. 원소가 $k$개 있을 때 이 방식과 `splice(lo, hi - lo)` 한 번으로 처리하는 방식의 시간복잡도를 각각 구해 비교해 보세요.
+1. 위 시뮬레이션의 여섯째 프레임 트리에서 `deleteAll(4)` 가 부르는 `#split` 두 번을 손으로 따라가 보세요. 첫 번째는 `key < 4`, 두 번째는 `key <= 4` 입니다. 각 단계의 세 조각(왼쪽 · 동등 · 오른쪽)에 어떤 키가 들어가고 각 조각의 루트 `size` 가 얼마인지 적어 보세요.
+2. *"`toArray()` 가 비내림차순이다"* 는 이 계약에서 불변식이 아닙니다. 그런데 이 성질이 성립하지 않으면 컨테이너는 분명히 틀린 값을 돌려줍니다. 그 모순이 왜 모순이 아닌지, 판별 절차의 첫 물음과 축1이 하는 일로 설명해 보세요.
+3. `#split` 안의 `#pull(node)` 호출 두 개 중 하나를 지우면 `toArray()` 는 계속 옳고 `size()` 만 틀립니다. 왜 한쪽만 틀리는지 두 연산이 값을 얻는 경로로 설명하고, 이 결함을 잡는 것이 축1이 아니라 축2인 이유를 적어 보세요.
