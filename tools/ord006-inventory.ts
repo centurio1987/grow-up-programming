@@ -73,7 +73,7 @@ const VERIFICATION_GRADES: Record<
   "basic" | "invariant" | "complexity" | "concurrency"
 > = {
   "linear/stack": "basic",
-  "hash/multiset": "complexity",
+  "tree/multiset": "complexity",
   "linear/deque": "complexity",
   "range-query/intervalTree": "complexity",
   "linear/xorLinkedList": "invariant",
@@ -81,7 +81,7 @@ const VERIFICATION_GRADES: Record<
 
 /** ORDER.md:39-63 진단 표 9종. 키는 `<category>/<name>`. 이 표 밖은 전부 `-`. */
 const DEFECT_GRADES: Record<string, "A" | "B" | "C"> = {
-  "hash/multiset": "A",
+  "tree/multiset": "A",
   "range-query/intervalTree": "A",
   "linear/unrolledLinkedList": "A",
   "linear/deque": "A",

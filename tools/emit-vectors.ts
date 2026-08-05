@@ -20,7 +20,7 @@
 import { join, resolve } from "node:path";
 import { rngFrom } from "../src/data-structures/_contract/judge.ts";
 import type { ContractSpec } from "../src/data-structures/_contract/runContract.ts";
-import { multisetContract } from "../src/data-structures/hash/multiset/multiset.contract.ts";
+import { multisetContract } from "../src/data-structures/tree/multiset/multiset.contract.ts";
 import { dequeContract } from "../src/data-structures/linear/deque/deque.contract.ts";
 import { stackContract } from "../src/data-structures/linear/stack/stack.contract.ts";
 import { xorLinkedListContract } from "../src/data-structures/linear/xorLinkedList/xorLinkedList.contract.ts";

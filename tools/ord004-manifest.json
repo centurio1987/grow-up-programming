@@ -1634,8 +1634,8 @@
     },
     {
       "name": "multiset",
-      "path": "src/data-structures/hash/multiset/multiset-guide.mdx",
-      "dir": "src/data-structures/hash/multiset",
+      "path": "src/data-structures/tree/multiset/multiset-guide.mdx",
+      "dir": "src/data-structures/tree/multiset",
       "kind": "ds",
       "studyFold": false,
       "status": "done",

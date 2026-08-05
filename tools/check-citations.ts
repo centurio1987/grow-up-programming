@@ -25,7 +25,7 @@ const SCAN_GLOBS = [
   "tools",
   "src/data-structures/_contract",
   "src/data-structures/linear/stack",
-  "src/data-structures/hash/multiset",
+  "src/data-structures/tree/multiset",
 ];
 
 const SCAN_EXTENSIONS = [".md", ".ts"];

@@ -49,7 +49,7 @@
 38. **계약의 모든 문장은 그 계약을 만족하는 모든 구현에 대해 참이어야 한다.** 구현 하나를 지목해야만 참인 진술(메모리 이득·캐시 지역성·할당 횟수·상수 배수)은 계약이 아니다. 지우지 말고 가이드로 옮긴다.
 39. **불변식 판별은 두 물음이다(B10 통합).** ① 그 성질이 말하는 양을 읽는 공개 연산이 하나면 불변식이 아니다 — 대조할 상대가 없고, 그 조건은 축1이 본다. ② 둘 이상이면 그 정합을 어느 계약 줄이 이미 적고 있는지 본다. 적고 있으면 그 연산의 의미다(`isEmpty()` 의 의미가 `size() === 0`). 안 적고 있으면 불변식이다. 흩어져 있던 B2·B8·B9 기준 셋이 이 둘의 특수 사례였다.
 40. **축이 못 보는 결함이 있고, 축을 늘려 받지 않는다.** 네 축이 전부 통과시키는데 진단이 참일 수 있다. 그 자리는 규약4 (나)가 받고 가이드 6단계가 서술한다. **(나)는 Rust 산출물을 강제하지 않는다** — "옮겨도 안 된다"도 완결된 답이다.
-41. **규격을 고치면 그 규격의 실물 예도 같은 배치에서 고친다.** 규칙만 고치고 예시를 두면 다음 집필이 예시를 따른다 — 두 번 물렸다(B7 모범 예시가 5단계 문형이었던 것, B10 이 `hash/multiset` 의 불변식을 소급 교정한 것). 규약1 「계약 명세 실물 예」·`paths.json` 의 `exemplars` 가 그 목록이다.
+41. **규격을 고치면 그 규격의 실물 예도 같은 배치에서 고친다.** 규칙만 고치고 예시를 두면 다음 집필이 예시를 따른다 — 두 번 물렸다(B7 모범 예시가 5단계 문형이었던 것, B10 이 `tree/multiset` 의 불변식을 소급 교정한 것). 규약1 「계약 명세 실물 예」·`paths.json` 의 `exemplars` 가 그 목록이다.
 42. **산문으로 적은 기준은 강제 지점이 없으면 샌다.** B2 의 불변식 기준이 같은 파일의 계약 표와 어긋나 있었는데 세 배치가 지나도록 아무도 못 봤다. 기계가 셀 수 있는 부분만이라도 게이트로 내린다 — 셀 수 없는 부분은 한계를 규격에 적는다.
 
 ## 배치 규약
@@ -151,7 +151,7 @@
 - **할 것**
   1. `<name>.ts` 헤더 JSDoc 규격 확정 — 목적 · 불변식 · 연산 계약(worst/amortized/expected 명시) · 주입 정책 · 검증 등급 · 필요충분조건
   2. **검증 등급 4종을 확정**한다(`basic`/`invariant`/`complexity`/`concurrency`). 전략의 판정 규칙 한 문장(`docs/ORD-006-strategy.md:92`)을 그대로 쓸지 고칠지 여기서 정한다
-  3. 시범 2종을 실제로 써 본다. **`linear/stack`(모범)과 `hash/multiset`(A급 최악)을 권한다** — 규격이 양극단에서 버티는지가 이 배치의 시험이다
+  3. 시범 2종을 실제로 써 본다. **`linear/stack`(모범)과 `tree/multiset`(A급 최악)을 권한다** — 규격이 양극단에서 버티는지가 이 배치의 시험이다
   4. `docs/ORD-006-conventions.md`에 §규약1을 추가하고 상단 상태표를 갱신한다
 - **경계**: 내부 표현·알고리즘을 처방하지 않는다(불변 사실 4). 규격이 처방을 유도하면 규격이 틀린 것이다
 - **끝낼 때**: 검증 등급이 확정되면 `docs/ORD-006-inventory.tsv`의 `verification_grade` 열을 채우기 시작할 수 있다 — 다만 **69종 일괄 판정은 KAN-025의 일이고**, B2는 시범 2종만 채운다. 도구의 결정 맵에 박아 재생성해도 값이 유지되게 한다
@@ -163,7 +163,7 @@
 - **전략의 판정 규칙 한 문장(`:92`)을 고쳤다.** 원문이 `basic`/`invariant`를 묶어 둬서 네 등급 중 둘의 판정이 주관으로 남았다. 4단계 절차로 대체했고, 3번 조건이 *"불변식 절이 비어 있는가"* 라서 **명세만 읽고 기계적으로 판정된다.** 그래서 "빈 항목을 지우지 않는다"가 규격이 됐다
 - **복잡도 한정자 규칙 신설** — 연산마다 필수, 그중 **가장 약한 것**. 강한 한정자는 우회 처방이다(`push`를 `worst O(1)`로 적으면 용량 확장 배열 구현이 배제된다). `stack`이 사례다 — `push`·`pop`은 `amortized`, `peek`·`isEmpty`·`size`는 `worst`로 갈렸다
 - **금지 5종 표.** 3번(**스텁 클래스 본문의 private 필드·메서드**)이 새로 추가한 항목이다. 전략의 "금지: 내부 표현·알고리즘 처방"은 산문만 겨눴는데, `private lowerBound(item: T): number` 는 구현자가 채울 빈칸으로 읽혀 산문보다 강하게 처방한다
-- **시범 2종**: `linear/stack` = `basic`, `hash/multiset` = `complexity`. `multiset` 한 파일에 금지 5종이 전부 있었고, 걷어내니 `add`가 `O(n)`에서 `O(log n)`으로 바뀌면서 등급이 `complexity`로 결정됐다. 등급이 계약에서 따라 나온다는 것이 시범에서 실제로 확인됐다
+- **시범 2종**: `linear/stack` = `basic`, `tree/multiset` = `complexity`. `multiset` 한 파일에 금지 5종이 전부 있었고, 걷어내니 `add`가 `O(n)`에서 `O(log n)`으로 바뀌면서 등급이 `complexity`로 결정됐다. 등급이 계약에서 따라 나온다는 것이 시범에서 실제로 확인됐다
 - **`-problem.md` 2종 삭제.** 참조를 전수 검색해 `문제_가이드_목록.md`·`tools/ord004-manifest.json` 어느 쪽도 가리키지 않음을 확인한 뒤 지웠다. 나머지 67종은 각 재집필 카드가 지운다. 두 구조의 `-guide.mdx`·`.test.ts`는 손대지 않았다(규약3·규약2 소관)
 - **인벤토리** `verification_grade`: `basic` 1 · `complexity` 1 · `-` 67. 도구에 `VERIFICATION_GRADES` 맵과 키 가드를 넣었고, 오타 키를 주입해 exit 1 과 산출물 미생성을 확인했다. 멱등 재확인 OK
 - **인용 줄 번호 오류 2건 교정.** `ORD-006-strategy.md:NN` 인용을 전수 검색해 대조했더니 점 인용 두 건이 틀렸다 — conventions 의 `:91`(→`:92`)과 `:82`(→`:85`). 같은 오류가 KAN-003 메모에도 복사돼 있어 함께 고쳤다. 런북의 범위 인용(`:57-75` 등)은 전부 절 경계와 일치했다
@@ -191,7 +191,7 @@
 - **전략 초안 표(`docs/ORD-006-strategy.md:135-142`)를 고쳤다.** 등급이 축을 켜고 끄는 것이 아니라 **엄격도**(회귀 ±60%·2점 / 판별 ±30%·3점·적대적 필수)를 가른다. `basic` 도 축3을 돈다. 축2가 `basic` 에서 비는 것은 공집합이라서이고, 그 결과 규약1이 건 단조성 제약이 정책이 아니라 구조에서 따라 나온다
 - **`__cost` 는 계약이 아니다 — 규약1에 일곱 번째 항목이 생기지 않았다.** 구조별 헤더에 적으면 처방("비교 횟수를 센다")이거나 69번 복사("내부 작업량에 비례")다. 계측 의무는 `_reference/` 의 것이고 §규약2에 한 번만 적는다
 - **계측 경로 둘.** 자기 보고 `__cost` 가 판정 지표이고, 주입점이 있는 구조는 하네스가 **밖에서** 주입 콜백 호출을 세어 `__cost >= 외부 계수` 하한 검증을 건다. 이 검사는 구멍을 좁히지 닫지 못한다 — 주입점이 없는 구조는 밖에서 잴 양 자체가 없다. 한계를 규격에 적었다
-- **`_reference/` 도입.** 시범 2종에 정본 구현을 넣었다. `linear/stack` 은 배열, `hash/multiset` 은 split/merge 트립(우선순위를 삽입 카운터 해시로 만들어 재현 가능하게 했다). 인벤토리 `has_reference` 가 2행 `true` 로 바뀌었다
+- **`_reference/` 도입.** 시범 2종에 정본 구현을 넣었다. `linear/stack` 은 배열, `tree/multiset` 은 split/merge 트립(우선순위를 삽입 카운터 해시로 만들어 재현 가능하게 했다). 인벤토리 `has_reference` 가 2행 `true` 로 바뀌었다
 - **시범 2종의 벽시계 테스트를 없앴다.** `stack.test.ts`·`multiset.test.ts` 는 이제 `runContract` 호출부다. `multiset` 에는 주입 정책 테스트 둘만 손으로 남겼다 — 스위트가 원소 타입 하나(`number`)로 돌기 때문이다. 슬라이딩 윈도우 중앙값 시뮬레이션은 지웠다(활용 사례의 자리는 가이드, 규약1 금지 5번)
 - **결함 fixture 로 실증했다.** 둘 다 **동작상 옳아서** 축1·축2를 전부 통과하고 축3만이 잡는다
   - 앞쪽 삽입 스택: $r = 4.00$ (기대 1.0) → 회귀 수준에서 실패. `basic` 도 축3을 돌아야 한다는 근거
@@ -329,7 +329,7 @@
   인라인 코드(ascii 도식과 LaTeX 아래첨자가 `[a](b)` 꼴을 만든다) · HTML 주석(캔버스 집필
   지시의 예시 경로는 산출물 위치 기준이라 여기서 안 풀린다) · 경로처럼 생기지 않은 것.
   걸러 내기 전 37건이던 오탐이 0이 됐고, 링크 256건이 통과한다. **KAN-019 가 쓸 답이 이미
-  나왔다** — `hash/multiset` 을 가리키는 곳 6자리
+  나왔다** — `tree/multiset` 을 가리키는 곳 6자리
 - **KAN-014 정합 게이트.** 규약1(명세↔스텁·정본)과 규약2(계약 표↔축3 시나리오 커버리지)가
   넘긴 숙제 둘을 갚았다. 하네스는 헤더 JSDoc 을 파싱하지 않으므로 이 대조를 할 수 없다.
   음성 시험 3건 — covers 에서 `size` 제거 / 등급 갈림 / 정본에 `clear` 추가
@@ -356,7 +356,7 @@
 ### B7 — deque 재집필 (완료)
 
 - **읽을 것**: 이 문서, `docs/ORD-006-conventions.md` §규약1·§규약2·§규약3, `KANBAN.md` 의 KAN-008 메모,
-  시범 2종(`linear/stack`·`hash/multiset`)의 `.ts`·`.contract.ts`·`.test.ts`·`_reference/`
+  시범 2종(`linear/stack`·`tree/multiset`)의 `.ts`·`.contract.ts`·`.test.ts`·`_reference/`
 - **카드**: KAN-008
 - **할 것** — **규약 1~3을 처음으로 함께 도는 파일럿이다**
   1. 규약1 — `deque-problem.md` 제거, 헤더 JSDoc 여섯 항목. **한정자를 연산마다 적고 가장 약한
@@ -575,7 +575,7 @@
   특수 사례였다. **절차가 하네스 구조에서 따라 나온다** — 축1이 매 연산의 반환값을 참조
   모델과 대조하므로(`src/data-structures/_contract/runContract.ts:246`) 경로가 하나인 성질은
   축1이 이미 판정을 마친 것이다. 축2가 혼자 말할 수 있는 것은 정합뿐이다
-- **소급 적용에서 `hash/multiset` 의 불변식 둘이 자리를 옮겼다.** 이 회고가 실제로 무언가를
+- **소급 적용에서 `tree/multiset` 의 불변식 둘이 자리를 옮겼다.** 이 회고가 실제로 무언가를
   고쳤다는 증거이자, 규격을 고치면 실물 예도 같이 고쳐야 한다는 근거다(불변 사실 41)
 
   | | 전 (B2·B3) | 후 (B10) | 왜 |
@@ -620,9 +620,9 @@
   **파일럿 회고**, `KANBAN.md` 의 KAN-019 메모, 재집필 3종 산출물
 - **카드**: KAN-019. **A급 최악**으로 진단된 건이다
 - **할 것**
-  1. **디렉터리를 옮긴다** — `hash/multiset` → `tree/multiset`. 처분 결정(B1)이 확정했고
+  1. **디렉터리를 옮긴다** — `tree/multiset` → `tree/multiset`. 처분 결정(B1)이 확정했고
      **이 카드가 실행한다.** 옮기기 **전에** `bun run tools/check-links.ts refs
-     src/data-structures/hash/multiset` 를 돌린다(불변 사실 33). 옮긴 뒤
+     src/data-structures/tree/multiset` 를 돌린다(불변 사실 33). 옮긴 뒤
      `bun run tools/ord006-inventory.ts` 로 `path`·`category` 를 재생성하고,
      `tools/ord006-inventory.ts` 의 `DEFECT_GRADES`·`VERIFICATION_GRADES` 키도 함께 고친다
      — 키가 실제 디렉터리와 어긋나면 도구가 exit 1 로 멈춘다
@@ -648,10 +648,10 @@
 | 지시 원문 · 진단 9건 표 | `ORDER.md:13-63` |
 | 산출물 배치 | `docs/ORD-006-strategy.md:57-75` |
 | 규약1 명세 규격 | **`docs/ORD-006-conventions.md` §규약1**(정본). 초안은 `docs/ORD-006-strategy.md:77-94` |
-| 계약 명세 실물 예 | `src/data-structures/linear/stack/stack.ts`(`basic`), `src/data-structures/hash/multiset/multiset.ts`(`complexity`) |
+| 계약 명세 실물 예 | `src/data-structures/linear/stack/stack.ts`(`basic`), `src/data-structures/tree/multiset/multiset.ts`(`complexity`) |
 | 규약2 계약 스위트 · 축3 판정 수치 | **`docs/ORD-006-conventions.md` §규약2**(정본). 초안은 `docs/ORD-006-strategy.md:96-142` |
 | 계약 스위트 하네스 | `src/data-structures/_contract/` — `runContract.ts`(축1~3) · `judge.ts`(판정 순수부) · `_fixtures/`(결함 fixture) |
-| 계약 스위트 실물 예 | `linear/stack`(`basic`), `hash/multiset`(`complexity`) — `.contract.ts` · `.test.ts` · `_reference/` |
+| 계약 스위트 실물 예 | `linear/stack`(`basic`), `tree/multiset`(`complexity`) — `.contract.ts` · `.test.ts` · `_reference/` |
 | 검증 명령 | **`bun run tools/ci.ts all`**(3모드+게이트). 낱개는 `CLAUDE.md` 검증 명령 절 |
 | 참조 스윕(지우기·옮기기 전) | `bun run tools/check-links.ts refs <경로>` |
 | 명세↔스위트 정합 게이트 | `tools/check-contract.ts` |

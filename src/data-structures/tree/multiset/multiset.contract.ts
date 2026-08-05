@@ -1,5 +1,5 @@
 /**
- * `hash/multiset` 계약 스위트(규약2).
+ * `tree/multiset` 계약 스위트(규약2).
  *
  * 계약은 `./multiset.ts` 헤더 한 곳이다(규약1). 여기 있는 것은 그것을 기계가 검사하는
  * 형태로 옮긴 것뿐이다.
@@ -190,7 +190,7 @@ export const multisetContract: ContractSpec<MultisetContract<number>, Model> = {
    *
    * **B10 에서 한 자리가 갈렸다.** 옛 1번(`toArray()` 가 비내림차순)은 정렬을 읽는 경로가
    * `toArray()` 하나뿐이라 불변식이 아니고, 계약 표의 의미 열이 이미 그것을 적고 있다
-   * (`src/data-structures/hash/multiset/multiset.ts:29`) — 축1이 참조 모델과 대조한다.
+   * (`src/data-structures/tree/multiset/multiset.ts:29`) — 축1이 참조 모델과 대조한다.
    * `has(x) === (count(x) > 0)` 도 같은 이유로 빠졌다. `has` 의 의미 열이 그 문장이다.
    * 그 자리에 경로가 둘인데 아무도 대조하지 않던 것(`min`·`max` 대 양 끝)이 들어왔다.
    */

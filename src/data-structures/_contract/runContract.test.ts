@@ -11,11 +11,11 @@
  */
 
 import { describe, expect, test } from "bun:test";
-import { Multiset as ReferenceMultiset } from "../hash/multiset/_reference/multiset";
+import { Multiset as ReferenceMultiset } from "../tree/multiset/_reference/multiset";
 import {
   type MultisetContract,
   multisetContract,
-} from "../hash/multiset/multiset.contract";
+} from "../tree/multiset/multiset.contract";
 import {
   type DequeContract,
   dequeContract,
@@ -573,7 +573,7 @@ describe("축2 — 관측 경로가 둘이라야 정합을 물을 수 있다", (
  * 최소·최대를 필드에 들어 두고 `add` 에서만 갱신한다. 지울 때 갱신을 빠뜨렸다.
  *
  * 이 구현은 **동작상 옳아 보인다** — `toArray()` 는 정렬돼 있고 개수도 다중도도 맞는다.
- * 갈리는 것은 최소를 읽는 두 길뿐이다. B10 이 `hash/multiset` 에 이 불변식을 새로 넣은
+ * 갈리는 것은 최소를 읽는 두 길뿐이다. B10 이 `tree/multiset` 에 이 불변식을 새로 넣은
  * 근거가 이 구현이다.
  */
 class StaleMinMultiset implements MultisetContract<number> {
