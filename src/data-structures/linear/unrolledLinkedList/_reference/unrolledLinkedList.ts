@@ -68,8 +68,9 @@ export class UnrolledLinkedList<T> {
     const at = this.#locate(index);
     if (at === null) return;
     const block = this.#blocks[at.block] as T[];
-    // 끼워 넣은 자리 뒤가 한 칸씩 밀린다. 밀리는 것은 그 묶음 안뿐이다.
     this.__cost += block.length - at.offset;
+    // 끼워 넣은 자리 뒤가 한 칸씩 밀린다. 밀리는 것은 **그 묶음 안뿐이다** — 뒤 묶음들은
+    // 손대지 않는다. 배열 하나였다면 여기서 뒤 원소 전부가 밀린다.
     block.splice(at.offset, 0, item);
     this.#count += 1;
     if (block.length > this.#target * 2) this.#split(at.block);

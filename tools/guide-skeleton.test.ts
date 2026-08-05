@@ -25,6 +25,7 @@ const FIXTURE = "tools/_fixtures/ds-guide-skeleton.mdx";
  */
 const REWRITTEN = [
   "src/data-structures/linear/deque/deque-guide.mdx",
+  "src/data-structures/linear/unrolledLinkedList/unrolledLinkedList-guide.mdx",
   "src/data-structures/linear/xorLinkedList/xorLinkedList-guide.mdx",
   "src/data-structures/range-query/intervalTree/intervalTree-guide.mdx",
   "src/data-structures/tree/multiset/multiset-guide.mdx",
