@@ -24,6 +24,7 @@ const FIXTURE = "tools/_fixtures/ds-guide-skeleton.mdx";
  * "아직 안 옮긴 것"과 "옮겼는데 골격이 틀린 것"을 구분해야 하기 때문이다.
  */
 const REWRITTEN = [
+  "src/data-structures/probabilistic/concurrentSkipList/concurrentSkipList-guide.mdx",
   "src/data-structures/linear/deque/deque-guide.mdx",
   "src/data-structures/linear/queue/queue-guide.mdx",
   "src/data-structures/linear/unrolledLinkedList/unrolledLinkedList-guide.mdx",

@@ -280,10 +280,18 @@ for (const dir of await structureDirs()) {
     );
   }
 
+  // `concurrency` 등급은 축3 시나리오 대조에서 뺀다. **등급이 축을 끈 것이 아니다**
+  // (불변 사실 22) — 성장률을 재는 하네스가 TS 에 있는데 이 등급의 정본은 Rust 에 있어서
+  // (규약4 (가)), 잴 대상과 재는 자가 다른 언어에 있다. 시나리오를 적어 두면 아무도 돌리지
+  // 않는 코드가 계약을 검사하는 것처럼 보인다. 그 계약의 상한을 지금 어느 축도 판정하지
+  // 않는다는 사실은 §규약2 「축4 — 동시성」에 적혀 있다.
   const covered = new Set(spec.scenarios.flatMap((s) => s.covers));
-  const uncovered = contract.ops.filter(
-    (op) => !covered.has(op) && !SCENARIO_EXEMPT.has(op),
-  );
+  const uncovered =
+    contract.grade === "concurrency"
+      ? []
+      : contract.ops.filter(
+          (op) => !covered.has(op) && !SCENARIO_EXEMPT.has(op),
+        );
   if (uncovered.length > 0) {
     problems.push(
       `${dir} — 계약 표의 행이 축3 시나리오에 덮이지 않는다: ${uncovered.join("·")}. ` +

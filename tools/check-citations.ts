@@ -27,13 +27,19 @@ const root = resolve(import.meta.dir, "..");
  * 검사 밖이었고, B7~B9 산출물 셋이 실제로 그 밖에 있었다. 목록을 `src/data-structures`
  * 하나로 바꾸면 재집필이 늘 때 아무도 손댈 것이 없다.
  */
-const SCAN_GLOBS = ["docs", "tools", "src/data-structures"];
+const SCAN_GLOBS = ["docs", "tools", "src/data-structures", "rust"];
 
-const SCAN_EXTENSIONS = [".md", ".mdx", ".ts"];
+const SCAN_EXTENSIONS = [".md", ".mdx", ".ts", ".rs"];
 
-/** 경로에 `/` 가 있는 인용만 잡는다. 앞의 문자 클래스가 백틱·괄호·공백을 끊어 준다. */
+/**
+ * 경로에 `/` 가 있는 인용만 잡는다. 앞의 문자 클래스가 백틱·괄호·공백을 끊어 준다.
+ *
+ * **`.rs` 가 KAN-024 에서 들어왔다.** 규약4 (가) 등급 구조의 정본이 Rust 에 있으므로
+ * 문서와 계약이 그 파일을 줄 번호로 가리키기 시작했고, 확장자가 빠져 있으면 그 인용만
+ * 검사 밖에 남는다 — B11 이 `.mdx` 에서 겪은 것과 같은 구멍이다.
+ */
 const CITATION =
-  /([A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)+\.(?:md|mdx|ts|tsx|json|tsv)):(\d+)(?:-(\d+))?/g;
+  /([A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)+\.(?:md|mdx|ts|tsx|rs|json|tsv)):(\d+)(?:-(\d+))?/g;
 
 interface Problem {
   where: string;
@@ -50,7 +56,8 @@ async function collectFiles(relativeDir: string): Promise<string[]> {
   for (const entry of entries) {
     const child = join(relativeDir, entry.name);
     if (entry.isDirectory()) {
-      if (entry.name === "node_modules") continue;
+      // `target` 은 cargo 의 빌드 산출물이다(gitignore). 훑으면 검사 시간이 통째로 거기 간다.
+      if (entry.name === "node_modules" || entry.name === "target") continue;
       found.push(...(await collectFiles(child)));
     } else if (SCAN_EXTENSIONS.some((ext) => entry.name.endsWith(ext))) {
       found.push(child);

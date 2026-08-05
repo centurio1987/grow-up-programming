@@ -21,15 +21,17 @@ import { join, resolve } from "node:path";
 import { rngFrom } from "../src/data-structures/_contract/judge.ts";
 import type { ContractSpec } from "../src/data-structures/_contract/runContract.ts";
 import { dequeContract } from "../src/data-structures/linear/deque/deque.contract.ts";
+import { queueContract } from "../src/data-structures/linear/queue/queue.contract.ts";
 import { stackContract } from "../src/data-structures/linear/stack/stack.contract.ts";
 import { unrolledLinkedListContract } from "../src/data-structures/linear/unrolledLinkedList/unrolledLinkedList.contract.ts";
 import { xorLinkedListContract } from "../src/data-structures/linear/xorLinkedList/xorLinkedList.contract.ts";
+import { concurrentSkipListContract } from "../src/data-structures/probabilistic/concurrentSkipList/concurrentSkipList.contract.ts";
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
 import { multisetContract } from "../src/data-structures/tree/multiset/multiset.contract.ts";
-import { queueContract } from "../src/data-structures/linear/queue/queue.contract.ts";
+import { redBlackTreeContract } from "../src/data-structures/tree/redBlackTree/redBlackTree.contract.ts";
 import { suffixArrayContract } from "../src/data-structures/trie/suffixArray/suffixArray.contract.ts";
-import { ternarySearchTreeContract } from "../src/data-structures/trie/ternarySearchTree/ternarySearchTree.contract.ts";
 import { suffixTreeContract } from "../src/data-structures/trie/suffixTree/suffixTree.contract.ts";
+import { ternarySearchTreeContract } from "../src/data-structures/trie/ternarySearchTree/ternarySearchTree.contract.ts";
 
 const root = resolve(import.meta.dir, "..");
 const OUT_DIR = "rust/vectors";
@@ -134,6 +136,11 @@ const SPECS: ContractSpec<any, any>[] = [
   suffixArrayContract,
   suffixTreeContract,
   ternarySearchTreeContract,
+  redBlackTreeContract,
+  // 이 구조만 vector 의 쓰임이 다르다. 나머지는 TS 하네스가 이미 축1을 돌고 vector 는 Rust
+  // 포트를 위한 파생물인데, `concurrency` 등급은 TS 스위트가 돌지 않으므로 **vector 가 축1의
+  // 유일한 경로**다(§규약2 「축4 — 동시성」).
+  concurrentSkipListContract,
 ];
 
 const check = Bun.argv.includes("--check");

@@ -1,0 +1,1151 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "ConcurrentSkipList",
+  "grade": "concurrency",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 구조에서 has 는 거짓이고 min·max 는 null 이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "has",
+          "arg": 1,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "max",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "같은 값을 두 번 넣으면 두 번째가 false 다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 5,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 5,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 5,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 5
+        },
+        {
+          "op": "max",
+          "expect": 5
+        }
+      ]
+    },
+    {
+      "name": "넣은 순서와 무관하게 양 끝이 정해진다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 9,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 7,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 2
+        },
+        {
+          "op": "max",
+          "expect": 9
+        }
+      ]
+    },
+    {
+      "name": "양 끝을 지우면 다음 값이 양 끝이 된다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 4,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 8,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 4
+        },
+        {
+          "op": "delete",
+          "arg": 8,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 4
+        }
+      ]
+    },
+    {
+      "name": "없는 값 삭제는 false 이고 상태를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 3,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 6,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 3,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 3
+        },
+        {
+          "op": "max",
+          "expect": 3
+        }
+      ]
+    },
+    {
+      "name": "지웠다 다시 넣으면 새로 담긴다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 2,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 2
+        }
+      ]
+    },
+    {
+      "name": "전부 지우면 다시 빈 구조가 된다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "has",
+          "arg": 1,
+          "expect": false
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": 10,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 10
+        },
+        {
+          "op": "max",
+          "expect": 10
+        },
+        {
+          "op": "delete",
+          "arg": 12,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 10
+        },
+        {
+          "op": "has",
+          "arg": 19,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 9,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 8,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 1,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 8,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 4,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 8
+        },
+        {
+          "op": "has",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 14,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "delete",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 6,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 4,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 14,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 2,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 6
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "delete",
+          "arg": 19,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 6
+        },
+        {
+          "op": "has",
+          "arg": 6,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 6
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "min",
+          "expect": 6
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "insert",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "delete",
+          "arg": 17,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 18,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": 13,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "insert",
+          "arg": 19,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 7,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 8,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 13,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 10,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 16,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "delete",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 17,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 2,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "has",
+          "arg": 6,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 6,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": 10,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 4,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 19,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 16
+        },
+        {
+          "op": "max",
+          "expect": 16
+        },
+        {
+          "op": "insert",
+          "arg": 3,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 19,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 14,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "insert",
+          "arg": 5,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 1,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 8,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 5,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "delete",
+          "arg": 18,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 7,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 4,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 18,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "insert",
+          "arg": 6,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 4,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 16,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 17,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 8,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 4,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": 4,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": 6,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 17,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": 18,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 11,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "insert",
+          "arg": 14,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 12,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 10,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "insert",
+          "arg": 2,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 13,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 10,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "insert",
+          "arg": 17,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 7,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "has",
+          "arg": 7,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": 5,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "has",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 12,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 3,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 8,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "insert",
+          "arg": 17,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "insert",
+          "arg": 16,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 11,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 13,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 11,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "has",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "delete",
+          "arg": 17,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "insert",
+          "arg": 3,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "insert",
+          "arg": 16,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "delete",
+          "arg": 18,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "has",
+          "arg": 11,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 4,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 18,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "insert",
+          "arg": 11,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 3,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 19,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 6,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "has",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "insert",
+          "arg": 15,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "insert",
+          "arg": 12,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "has",
+          "arg": 11,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 12,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 15,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "delete",
+          "arg": 15,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "delete",
+          "arg": 3,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "delete",
+          "arg": 19,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 12,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 2,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "insert",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1360,30 +1360,6 @@
     도 함께 빠졌다. **B22 가 첫 일로 이것을 넣는다**
   - **수치**: `bun run tools/ci.ts all` 통과. 하네스 자기시험 47개 통과
 
-### B22 — 성격 전환 넷 (다음)
-
-- **읽을 것**: 이 문서, `docs/ORD-006-conventions.md` §규약1 「한정자가 계약을 가른다」,
-  `src/data-structures/tree/redBlackTree/` 전부(이 넷이 그 계약을 그대로 쓴다)
-- **카드**: KAN-027 의 일부
-- **첫 일**: **B20 이 남긴 vector 등록을 넣는다** — `tools/emit-vectors.ts` 의 `SPECS` 에
-  `redBlackTreeContract` 를 넣고 `rust/vectors/RedBlackTree.json` 을 커밋한다. B21 의
-  편집과 겹치던 자리이므로 그 세션이 끝난 뒤에 한다
-- **대상 넷**: `tree/avlTree` · `tree/twoThreeTree` · `tree/bTree` · `tree/bPlusTree`
-- **할 것** — 성격 전환은 재집필과 다르다. **계약을 새로 적지 않는다**
-  1. 각 `<name>.ts` 헤더에 **`redBlackTree` 와 같은 계약**을 적고, 같다는 사실과 왜
-    같은지를 함께 적는다. 계약 표를 복사하는 것이 아니라 **정본을 가리키고 갈리지 않는
-    이유**를 적는 것이다(B15 의 `ternarySearchTree` 가 선례다)
-  2. 스위트는 `redBlackTree.contract.ts` 를 재사용할 수 있는지부터 본다. 표면 이름이
-    같으면 그대로 쓰고, 다르면 껍데기를 둔다
-  3. **정본은 각자 다르다** — 계약이 같아도 이 넷은 서로 다른 재균형 기법이고, 그것을
-    보이는 것이 이 넷을 남겨 둔 이유다. `_reference/` 를 각각 쓴다
-  4. 가이드 주제가 **「왜 이 기법이 계약으로 갈리지 않는가」**다. 8단계 골격은 그대로 쓰되
-    3단계의 실패가 「다른 기법과 갈리지 않는다」로 바뀐다
-  5. `-problem.md` 제거 전에 `bun run tools/check-links.ts refs` (33)
-- **경계**: 넷을 한 배치에 다 넣으려 하지 않는다. 계약이 같아도 정본 넷은 각각 실물이다 —
-  둘씩 두 배치가 현실적이다(B19 가 추정한 폭이 그 가정 위에 있다)
-- **끝낼 때**: `bun run tools/ci.ts all` + KAN-027 메모 + 이 문서의 다음 배치 진입 카드
-
 ### B21 — concurrentSkipList 재집필 (완료 · 순서 밖)
 
 - **카드**: KAN-024. **B20 을 기다리지 않고 돌았다** — 선행이 KAN-006(Rust crate)·KAN-003
@@ -1421,6 +1397,30 @@
   - **수치**: `bun run tools/ci.ts all` 통과. `cd rust && cargo test` 22건 통과,
     `RUSTFLAGS="--cfg loom" cargo test --test loom --release` 5건 통과. 문체 등급 B,
     수정률 6%
+
+### B22 — 성격 전환 넷 (다음)
+
+- **읽을 것**: 이 문서, `docs/ORD-006-conventions.md` §규약1 「한정자가 계약을 가른다」,
+  `src/data-structures/tree/redBlackTree/` 전부(이 넷이 그 계약을 그대로 쓴다)
+- **카드**: KAN-027 의 일부
+- **첫 일**: **B20 이 남긴 vector 등록을 넣는다** — `tools/emit-vectors.ts` 의 `SPECS` 에
+  `redBlackTreeContract` 를 넣고 `rust/vectors/RedBlackTree.json` 을 커밋한다. B21 의
+  편집과 겹치던 자리이므로 그 세션이 끝난 뒤에 한다
+- **대상 넷**: `tree/avlTree` · `tree/twoThreeTree` · `tree/bTree` · `tree/bPlusTree`
+- **할 것** — 성격 전환은 재집필과 다르다. **계약을 새로 적지 않는다**
+  1. 각 `<name>.ts` 헤더에 **`redBlackTree` 와 같은 계약**을 적고, 같다는 사실과 왜
+    같은지를 함께 적는다. 계약 표를 복사하는 것이 아니라 **정본을 가리키고 갈리지 않는
+    이유**를 적는 것이다(B15 의 `ternarySearchTree` 가 선례다)
+  2. 스위트는 `redBlackTree.contract.ts` 를 재사용할 수 있는지부터 본다. 표면 이름이
+    같으면 그대로 쓰고, 다르면 껍데기를 둔다
+  3. **정본은 각자 다르다** — 계약이 같아도 이 넷은 서로 다른 재균형 기법이고, 그것을
+    보이는 것이 이 넷을 남겨 둔 이유다. `_reference/` 를 각각 쓴다
+  4. 가이드 주제가 **「왜 이 기법이 계약으로 갈리지 않는가」**다. 8단계 골격은 그대로 쓰되
+    3단계의 실패가 「다른 기법과 갈리지 않는다」로 바뀐다
+  5. `-problem.md` 제거 전에 `bun run tools/check-links.ts refs` (33)
+- **경계**: 넷을 한 배치에 다 넣으려 하지 않는다. 계약이 같아도 정본 넷은 각각 실물이다 —
+  둘씩 두 배치가 현실적이다(B19 가 추정한 폭이 그 가정 위에 있다)
+- **끝낼 때**: `bun run tools/ci.ts all` + KAN-027 메모 + 이 문서의 다음 배치 진입 카드
 
 ## 참조 (필요할 때만)
 

@@ -174,6 +174,37 @@ test("guide-core 표시가 없는 코드 펜스는 대조 대상이 아니다", 
   expect(parseFences("```ts\nconst a = 1;\n```\n", "g.mdx")).toHaveLength(0);
 });
 
+test("여러 줄로 접힌 계측도 통째로 걷힌다", () => {
+  // 서식기가 긴 계측 호출을 두 줄로 접으면 앞줄만 지워져 조각이 남았다(KAN-024).
+  const kept = stripInstrumentation([
+    "let x = 1;",
+    "self.__cost",
+    "    .fetch_add(1, Ordering::Relaxed);",
+    "let y = 2;",
+  ]);
+  expect(kept).toEqual(["let x = 1;", "let y = 2;"]);
+});
+
+test("rust 펜스도 같은 자리에서 대조된다", () => {
+  // 규약4 (가) 등급은 정본이 Rust 에 있다. 언어가 달라도 규칙은 같다 — 가이드는 코드를
+  // 적지 않고 가리킨다(불변 사실 11).
+  const guide = [
+    "```rust guide-core=rust/structures/src/x.rs#insert",
+    "let next = current + 1;",
+    "```",
+  ].join("\n");
+  const fence = parseFences(guide, "g.mdx")[0];
+  expect(fence?.language).toBe("rust");
+  expect(fence?.target).toBe("rust/structures/src/x.rs");
+  expect(fence?.name).toBe("insert");
+});
+
+test("모르는 언어의 펜스는 대조 대상이 아니다", () => {
+  expect(
+    parseFences("```python guide-core=ref.py\nx = 1\n```\n", "g.mdx"),
+  ).toHaveLength(0);
+});
+
 test("view 없는 시뮬레이션 호출을 줄 번호와 함께 짚는다", () => {
   const guide = [
     "본문",

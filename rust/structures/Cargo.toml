@@ -9,10 +9,12 @@ workspace = true
 
 [dependencies]
 serde_json = { workspace = true }
+# 하네스가 dev 의존이 아니라 본 의존인 이유는 진행 보장 계측(`RetryGuard`)이 정본의 공개
+# 표면에 들어오기 때문이다. TS 정본이 `__cost` 를 들고 있는 것과 같은 자리다(불변 사실 23).
+ds-contract = { path = "../contract" }
 
 [target.'cfg(loom)'.dependencies]
 loom = { workspace = true }
 
 [dev-dependencies]
-ds-contract = { path = "../contract" }
 loom = { workspace = true }

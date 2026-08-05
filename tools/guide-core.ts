@@ -29,8 +29,19 @@ const REGION_START =
   /^\s*\/\/\s*#region\s+guide:core(?:\/([A-Za-z0-9_-]+))?\s*$/;
 const REGION_END = /^\s*\/\/\s*#endregion\b/;
 
-/** 가이드가 추출본을 싣는 자리. ` ```ts guide-core=<경로>[#<구간이름>] ` */
-const FENCE_OPEN = /^```ts\s+guide-core=(\S+?)(?:#([A-Za-z0-9_-]+))?\s*$/;
+/**
+ * 가이드가 추출본을 싣는 자리. ` ```ts guide-core=<경로>[#<구간이름>] `
+ *
+ * **언어가 둘이 됐다(KAN-024).** 규약4 (가) 등급 구조는 정본이 Rust 에 있고
+ * (`rust/structures/src/`), 그 정본에서 뽑은 코드도 복제가 아니라 추출이어야 한다 —
+ * 규칙이 언어에 걸린 것이 아니라 「가이드는 코드를 적지 않고 가리킨다」에 걸려 있다
+ * (불변 사실 11). 펜스의 언어와 가리키는 파일의 확장자가 어긋나면 그 자리에서 걸린다.
+ */
+const FENCE_OPEN =
+  /^```(ts|rust)\s+guide-core=(\S+?)(?:#([A-Za-z0-9_-]+))?\s*$/;
+
+/** 펜스 언어 ↔ 정본 확장자. */
+const FENCE_EXTENSION: Record<string, string> = { ts: ".ts", rust: ".rs" };
 
 export interface Region {
   /** 이름 없는 구간은 `""`. 한 파일에 여럿 있으면 등장 순서로 이어 붙인다. */
@@ -103,8 +114,14 @@ function isCommentLine(line: string): boolean {
 /**
  * 계측을 걷어낸다. `__cost` 는 계약이 아니라 정본의 의무이므로(§규약2) 독자가 볼 자리가 없다.
  *
- * 지우는 것은 `__cost` 가 나오는 줄과 **그 줄에 바로 붙은 위쪽 주석**이다. 주석까지 지우는
- * 이유는 계측 필드의 설명이 필드보다 먼저 오기 때문이다 — 줄만 지우면 설명만 남는다.
+ * 지우는 것 셋이다.
+ *
+ * 1. `__cost` 가 나오는 줄.
+ * 2. **그 줄에 바로 붙은 위쪽 주석** — 계측 필드의 설명이 필드보다 먼저 오므로, 줄만 지우면
+ *    설명만 남는다.
+ * 3. **문장이 다음 줄로 이어지면 그 줄들** — 여는 줄이 `;` 없이 끝나면 문장이 안 끝난
+ *    것이므로 `;` 를 만날 때까지 지운다. 서식기가 긴 계측 호출을 두 줄로 접으면서 실제로
+ *    걸린 자리다(KAN-024). 앞줄만 지우면 `.fetch_add(...)` 같은 조각이 본문에 남는다.
  */
 export function stripInstrumentation(lines: string[]): string[] {
   const drop = new Set<number>();
@@ -115,6 +132,14 @@ export function stripInstrumentation(lines: string[]): string[] {
       const previous = lines[back];
       if (previous === undefined || !isCommentLine(previous)) break;
       drop.add(back);
+    }
+    // 이어지는 줄. 여는 줄이 이미 문장을 끝냈으면(`;` 또는 블록 경계) 아무것도 더 지우지 않는다.
+    if (/[;{}]\s*$/.test(line)) continue;
+    for (let ahead = index + 1; ahead < lines.length; ahead++) {
+      const next = lines[ahead];
+      if (next === undefined || next.trim() === "") break;
+      drop.add(ahead);
+      if (/[;{}]\s*$/.test(next)) break;
     }
   }
   return lines.filter((_, index) => !drop.has(index));
@@ -203,6 +228,8 @@ async function collect(
 interface Fence {
   guide: string;
   at: number;
+  /** 펜스에 적힌 언어. `ts` 또는 `rust`. */
+  language: string;
   target: string;
   name?: string;
   body: string;
@@ -215,8 +242,9 @@ export function parseFences(source: string, guide: string): Fence[] {
   for (const [index, line] of lines.entries()) {
     const open = FENCE_OPEN.exec(line ?? "");
     if (open === null) continue;
-    const target = open[1];
-    if (target === undefined) continue;
+    const language = open[1];
+    const target = open[2];
+    if (language === undefined || target === undefined) continue;
 
     const body: string[] = [];
     let closed = false;
@@ -235,8 +263,9 @@ export function parseFences(source: string, guide: string): Fence[] {
     fences.push({
       guide,
       at: index + 1,
+      language,
       target,
-      name: open[2],
+      name: open[3],
       body: body.join("\n"),
     });
   }
@@ -351,6 +380,16 @@ async function main(): Promise<void> {
     }
     for (const fence of fences) {
       fenceCount++;
+      const expectedExtension = FENCE_EXTENSION[fence.language];
+      if (
+        expectedExtension !== undefined &&
+        !fence.target.endsWith(expectedExtension)
+      ) {
+        problems.push(
+          `${guide}:${fence.at} — 펜스 언어(\`${fence.language}\`)와 정본 확장자가 어긋난다: ${fence.target}`,
+        );
+        continue;
+      }
       const file = Bun.file(join(root, fence.target));
       if (!(await file.exists())) {
         problems.push(
