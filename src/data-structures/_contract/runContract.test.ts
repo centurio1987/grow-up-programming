@@ -898,7 +898,9 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     });
 
     // 스플레이: **넣기 둘을 다 통과한다.** 상한을 어기지 않기 때문이다. 걸리는 것은
-    // 다음 접근이 늘 반대쪽 끝에 있는 두 자리뿐이고, 거기서 단일 호출이 튄다.
+    // **사슬인 채로 맞는 첫 호출**이 있는 두 자리뿐이고, 거기서 그 한 번이 n 에 비례한다.
+    // 끌어올리기가 곧바로 트리를 납작하게 만들어 뒤 걸음은 싸지므로, `worst` 가 보고하는
+    // 최댓값은 첫 걸음의 것이다.
     expect(outcomes(splayingSearchTree, redBlackTreeContract)).toEqual({
       "insert (적대적)": true,
       insert: true,

@@ -89,6 +89,10 @@ const VERIFICATION_GRADES: Record<
   "trie/ternarySearchTree": "invariant",
   "tree/redBlackTree": "complexity",
   "probabilistic/concurrentSkipList": "concurrency",
+  // 성격 전환(B22). 계약이 `tree/redBlackTree` 의 것과 같으므로 등급도 같다 —
+  // 등급은 계약에서 기계적으로 따라 나온다(불변 사실 56).
+  "tree/avlTree": "complexity",
+  "tree/twoThreeTree": "complexity",
 };
 
 /** ORDER.md:39-63 진단 표 9종. 키는 `<category>/<name>`. 이 표 밖은 전부 `-`. */
