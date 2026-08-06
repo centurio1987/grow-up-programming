@@ -88,6 +88,8 @@ const VERIFICATION_GRADES: Record<
   "linear/queue": "basic",
   "trie/ternarySearchTree": "invariant",
   "tree/redBlackTree": "complexity",
+  // 조회 `worst` + 갱신 `amortized` — 한정자가 연산마다 갈리는 첫 계약(T1-03).
+  "tree/scapegoatTree": "complexity",
   // 한정자만 갈린 이웃 계약(T1-01). 등급은 같다 — 자명한 구현이 상한을 못 지키는 것이
   // 상각으로 봐도 그대로이기 때문이고, 등급이 같아도 계약은 다르다(불변 사실 56 의 역).
   "tree/splayTree": "complexity",

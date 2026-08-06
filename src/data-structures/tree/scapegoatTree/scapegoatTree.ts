@@ -1,67 +1,144 @@
 /**
- * ScapegoatTree (스케이프고트 트리)
+ * ScapegoatTree — 전순서를 유지하는 집합. **조회는 호출 하나하나가, 갱신은 시퀀스 평균이**
+ * 로그 안에 든다.
  *
- * 회전 없이 alpha 균형 인수 위반 시 해당 서브트리를 통째로 재구성(rebuild)하여
- * 균형을 유지하는 자기 균형 이진 탐색 트리.
- * 삽입/삭제 시 균형이 깨진 "스케이프고트" 조상을 찾아 그 서브트리를 배열로
- * 정렬 후 완전 이진 트리로 재구성한다.
+ * **목적.** 같은 원소를 두 벌 담지 않으면서 전순서를 유지하고, **찾기·양 끝 읽기·구간
+ * 읽기·크기 읽기는 최악에도** 로그 비용으로, **담기·지우기는 시퀀스 평균이** 로그 비용으로
+ * 제공하는 것. **한정자가 연산마다 갈리는 것이 이 계약의 전부다** — 나란한 셋은 여덟 행에
+ * 같은 한정자를 붙였고 이 계약만 두 종류를 함께 쓴다.
  *
- * alpha 균형 조건:
- * - 모든 노드 v에 대해: size(v.left) <= alpha * size(v)
- *   AND size(v.right) <= alpha * size(v)
- * - alpha = 0.5: 완벽한 균형 (재구성이 잦음)
- * - alpha = 0.75: 느슨한 균형 (재구성이 드뭄)
- * - 기본값: alpha = 0.65
+ * **왜 그렇게 갈라 적는가.** 두 요구가 서로 다른 계열을 배제하고, 둘 다 배제하고 싶기
+ * 때문이다.
+ * - 조회에 `worst` 를 적으면 **접근한 자리를 고쳐 쓰며 균형을 얻는 계열**이 나간다
+ *   (`tree/splayTree`). 그 계열은 조회 하나가 원소 수에 비례할 수 있다.
+ * - 갱신에 `amortized` 를 적으면 **가끔 크게 다시 짓는 계열**이 들어온다. 다시 짓는 한 번이
+ *   원소 수에 비례해도, 그때까지 넣은 원소들이 그 비용을 나눠 갚으면 된다.
  *
- * 요구사항:
- * - insert(value): 삽입 후 균형 위반 시 서브트리 재구성
- * - delete(value): 논리 삭제 후 일정 조건에서 전체 재구성
- * - has(value): 일반 BST 탐색
- * - size(): 현재 논리 노드 수 반환
- * - inOrder(): 중위 순회 결과 배열 반환
+ * **둘을 함께 적을 수 있는 것이 이 계약이 실재하는 근거다.** 조회를 강하게 적어서 잃는 것과
+ * 갱신을 약하게 적어서 얻는 것이 **같은 구현에서 동시에 성립한다** — 트리의 모양을 늘 균형
+ * 가까이 유지해 두면 조회는 언제나 얕고, 그 유지를 가끔 몰아서 하면 갱신은 평균만 로그다.
  *
- * 시간복잡도 (상각):
- * - insert: O(log n)
- * - delete: O(log n)
- * - has: O(log n)
- * - inOrder: O(n)
- * - size: O(1)
+ * **나란한 셋과의 관계.**
+ * - `tree/redBlackTree`(전 연산 `worst`)를 **담는다** — 갱신까지 최악이면 상각도 만족한다.
+ * - `tree/splayTree`(전 연산 `amortized`)에 **담긴다** — 조회가 최악에 로그면 평균도 로그다.
+ *   **사슬이 하나 깨끗하게 보인다**: `redBlackTree` ⊂ 이 계약 ⊂ `splayTree`. 셋은 담는 쪽이
+ *   점점 넓어지므로 서로 다른 구조다(불변 사실 59·63).
+ * - `tree/treap`(전 연산 `expected`)과는 **서로 담지 않는다**(불변 사실 54).
+ *
+ * 같은 값을 여러 벌 담는 일은 이 계약에 없다(`tree/multiset`). 위치로 읽는 일도 없다
+ * (`tree/orderStatisticTree`).
+ *
+ * **이 이름은 계약을 정당화하지 않는다.** 계약의 어느 문장도 균형 인수나 다시 짓기를 말하지
+ * 않는다 — 명세는 내부 표현을 처방하지 않는다. 물려받은 표면이 균형 인수를 **생성자 인자로**
+ * 받고 있었는데 그것은 내부 표현의 누출이라 뺐다(§규약1 「금지 — 내부 처방」, 불변 사실 36).
+ * **이름은 임시다**(불변 사실 64 — 계약 이름 전환은 KAN-031).
+ *
+ * **이 계약은 시간만 말한다.** 저장 공간에 대한 조건이 없다(§규약1 「공간은 어느 계약에도
+ * 없다」 — 미결).
+ *
+ * **불변식.** 넷이다. 넷 다 **관측 경로가 둘**이라 성립한다 — 구현이 두 경로를 따로
+ * 유지할 수 있고, 따로 유지하는 순간 갈린다. 어떤 연산 뒤에도 성립해야 한다.
+ * 1. `toArray().length === size()`. 원소 수를 읽는 길이 둘이다.
+ * 2. 임의의 `x` 에 대해 `has(x)` 는 `toArray()` 안에 `x` 와 동등한(비교자가 0) 원소가
+ *    있는가와 같다. 담김 여부를 읽는 길이 둘이다.
+ * 3. 비어 있지 않으면 `min()` 은 `toArray()` 의 첫 원소와, `max()` 는 마지막 원소와
+ *    같다. 양 끝을 읽는 길이 둘이다.
+ * 4. 임의의 `low ≤ high` 에 대해 `range(low, high)` 는 `toArray()` 에서 그 구간에 드는
+ *    원소만 남긴 것과 같다. 구간을 읽는 길이 둘이다.
+ *
+ * 넷이 나란한 셋의 넷과 같은 것은 베낀 것이 아니라 **판별 절차가 같은 답을 내기 때문이다**
+ * (§규약1 「불변식 판별 절차」). 불변식은 상태의 성질이고 한정자는 비용의 성질이라 서로를
+ * 건드리지 않는다 — **한정자가 연산마다 갈린 이 계약에서도 불변식 절은 그대로다.**
+ *
+ * 부분트리의 치우침도 불변식이 아니다 — 계약에 적혀 있어야 검사할 수 있는데 적는 순간
+ * 그것이 처방이다. 치우친 구현은 축3의 성장률이 잡는다.
+ *
+ * **연산 계약.** n 은 담긴 원소 수, k 는 `range` 가 돌려주는 원소 수다.
+ *
+ * | 연산 | 의미 | 상한 | 한정자 |
+ * |---|---|---|---|
+ * | `constructor(comparator?)` | 비교자를 고정한다. 이후 교체할 수 없다 | O(1) | worst |
+ * | `insert(item)` | `item` 을 담는다. 동등한 원소가 이미 있으면 **상태가 바뀌지 않는다** | O(log n) | amortized |
+ * | `delete(item)` | 동등한 원소를 지우고 `true`. 없으면 `false`, 상태는 불변 | O(log n) | amortized |
+ * | `has(item)` | 동등한 원소가 담겨 있으면 `true` | O(log n) | worst |
+ * | `min()` / `max()` | 비교자 기준 최소·최대. 비어 있으면 `null` | O(log n) | worst |
+ * | `range(low, high)` | `low ≤ v ≤ high` 인 원소를 비내림차순 배열로. 사본이다 | O(log n + k) | worst |
+ * | `size()` | 담긴 원소 수 | O(1) | worst |
+ * | `toArray()` | 비내림차순 배열의 사본. 반환값을 고쳐도 원본은 바뀌지 않는다 | O(n) | worst |
+ *
+ * **갱신 둘만 `amortized` 이고 나머지가 `worst` 인 것이 이 계약의 내용 전부다.** 규칙은
+ * 「배제하려는 것을 배제하는 것 중 가장 약한 것을 적되, 강한 것을 적으려면 그것이 배제하는
+ * 계열을 배제해도 계약이 잃는 것이 없어야 한다」이고(§규약1 「가장 약한 한정자는 셋을 줄
+ * 세우지 않는다」), **그 물음의 답이 두 무리에서 갈린다.**
+ * - 조회 넷에서 `worst` 를 적으면 배제되는 계열이 있고(조회가 트리를 고쳐 쓰는 것),
+ *   **배제하는 것이 목적이다.**
+ * - 갱신 둘에서 `worst` 를 적으면 배제되는 계열이 있는데(가끔 크게 다시 짓는 것),
+ *   **그 계열을 배제할 이유가 목적에 없다.** 그래서 약한 쪽을 적는다.
+ *
+ * `size`·`toArray` 는 갱신도 조회도 아닌 것처럼 보이지만 조회 쪽이다 — 상태를 읽기만 하고,
+ * 약하게 적어서 들어오는 계열이 없다.
+ *
+ * `range` 의 상한에 `k` 가 있는 것은 돌려주는 원소를 적는 비용이 어느 구현에서도 그 수에
+ * 비례하기 때문이다. `k` 를 상한에서 빼면 아무 구현도 만족하지 못한다.
+ *
+ * **`min`·`max`·`range` 를 넣은 근거는 「배제하는 것이 없다」다.** 나머지 계약을 만족하는
+ * 구현은 전부 이 셋을 위 상한 안에 한다. **넣어도 만족하는 구현 집합이 그대로이므로** 넣고
+ * 빼는 것이 계약을 바꾸지 않는다. 넣은 쪽을 고른 이유는 전순서를 유지한다는 목적이 이
+ * 셋으로만 관측되기 때문이다.
+ *
+ * **주입 정책.**
+ * - `comparator(a, b)` 는 음수·0·양수를 돌려주는 전순서여야 한다. 0 은 「동등」을 뜻하고,
+ *   **동등한 두 원소는 이 집합에 함께 담기지 않는다.** 나중에 넣은 쪽이 버려지는지 앞의
+ *   것을 덮는지는 계약이 약속하지 않는다 — 동등하므로 구분할 방법이 계약 안에 없다.
+ * - 미제공 시 기본 비교자는 `<`·`>` 를 쓴다. 따라서 `number`·`string` 밖의 `T` 에는
+ *   비교자 주입이 **필수다.**
+ * - 빈 집합의 `min`·`max` 는 예외가 아니라 `null` 이다. 그 대가로 `T` 에 `null` 이 섞이면
+ *   「비어 있음」과 「값이 `null` 인 원소」가 구분되지 않는다.
+ * - `range(low, high)` 에서 `low > high` 면 빈 배열이다. 예외가 아니다.
+ * - **균형 인수를 주입받지 않는다.** 물려받은 표면이 받고 있었지만 그것은 내부 표현이고,
+ *   받는 순간 계약이 「치우침을 재는 구현」을 처방하게 된다.
+ *
+ * **검증 등급.** `complexity`.
+ * 상한이 **어떤 자명한 구현으로도** 달성되지 않는다. 언어가 내주는 것이 둘인데 둘 다 한쪽을
+ * 놓는다 — 배열은 순서를 주지만 가운데에 넣으면 뒤가 전부 밀리므로 `insert`·`delete` 가
+ * 상각으로도 O(n) 이고, 객체(해시)는 갱신을 상수에 주지만 순서를 잃으므로 `min`·`max`·
+ * `range`·`toArray` 를 상한 안에 못 한다. **갱신을 약하게 적어도 자명한 구현이 들어오지
+ * 않는다** — 상각이 구해 주는 것은 「가끔 비싼 호출」이지 「늘 비싼 호출」이 아니고, 정렬
+ * 배열이 실패하는 방식이 후자다.
+ *
+ * **필요충분조건.**
+ * - 의미: 순서와 유일성 중 하나라도 버리면 이 구조가 아니다. 순서를 버리면 해시 집합이고
+ *   (`hash/hashSet`), 유일성을 버리면 다중집합이다(`tree/multiset`).
+ * - 비용: **두 무리 중 하나라도 어기면 다른 구조다.** 조회까지 상각으로 내려가면
+ *   `splayTree` 이고(그쪽이 넓다), 갱신까지 최악으로 올라가면 `redBlackTree` 다(그쪽이
+ *   좁다). 기댓값만 지키면 `treap` 이고 그쪽과는 서로 담지 않는다.
  */
-
-class ScapegoatNode<T> {
-  value: T;
-  left: ScapegoatNode<T> | null = null;
-  right: ScapegoatNode<T> | null = null;
-  deleted: boolean = false; // 논리 삭제 마킹
-
-  constructor(value: T) {
-    this.value = value;
-    throw new Error("Not implemented");
-  }
-}
-
 export class ScapegoatTree<T> {
-  private root: ScapegoatNode<T> | null = null;
-  private _size = 0;        // 논리 노드 수 (deleted 제외)
-  private _maxSize = 0;     // 재구성 임계값 추적용
-  private alpha: number;
-  private comparator: (a: T, b: T) => number;
-
-  constructor(alpha = 0.65, comparator?: (a: T, b: T) => number) {
-    this.alpha = alpha;
-    this.comparator = comparator ?? ((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  constructor(comparator?: (a: T, b: T) => number) {
     throw new Error("Not implemented");
   }
 
-  insert(value: T): void {
+  insert(item: T): void {
     throw new Error("Not implemented");
   }
 
-  delete(value: T): boolean {
+  delete(item: T): boolean {
     throw new Error("Not implemented");
   }
 
-  has(value: T): boolean {
+  has(item: T): boolean {
+    throw new Error("Not implemented");
+  }
+
+  min(): T | null {
+    throw new Error("Not implemented");
+  }
+
+  max(): T | null {
+    throw new Error("Not implemented");
+  }
+
+  range(low: T, high: T): T[] {
     throw new Error("Not implemented");
   }
 
@@ -69,7 +146,7 @@ export class ScapegoatTree<T> {
     throw new Error("Not implemented");
   }
 
-  inOrder(): T[] {
+  toArray(): T[] {
     throw new Error("Not implemented");
   }
 }

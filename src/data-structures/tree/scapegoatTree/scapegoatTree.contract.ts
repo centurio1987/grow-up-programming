@@ -1,30 +1,26 @@
 /**
- * `tree/treap` 계약 스위트(규약2).
+ * `tree/scapegoatTree` 계약 스위트(규약2).
  *
- * 계약은 `./treap.ts` 헤더 한 곳이다(규약1). 여기 있는 것은 그것을 기계가 검사하는
+ * 계약은 `./scapegoatTree.ts` 헤더 한 곳이다(규약1). 여기 있는 것은 그것을 기계가 검사하는
  * 형태로 옮긴 것뿐이다.
  *
  * 검증 등급 `complexity` → 축3 엄격도는 `discriminating`. 적대적 입력이 필수이고
  * 허용치가 ±30% 다.
  *
- * **`expected` 시나리오는 seed 다섯을 돌고 통계는 seed 별 평균의 중앙값이다**
- * (`_contract/judge.ts` 의 `SEEDS`·`statistic`). 그 seed 가 정하는 것은 **시나리오가 만드는
- * 입력**이지 구현 안의 무작위성이 아니다 — 하네스는 구현 내부를 흔들지 못한다. 그래서
- * 적대적 입력(오름차순)처럼 `ctx.rng` 를 쓰지 않는 시나리오는 다섯 seed 가 같은 값을 낸다.
- * **그 시나리오가 이 계약에서 가장 중요한 자리다**(§규약2 「기댓값이 무엇에 대한 것인가」):
- * 계약이 「구현이 만드는 무작위성에 대한 기댓값」을 말하므로, 입력을 고정해 놓고도 기대가
- * 걸려 있는지를 그 자리가 본다.
+ * **`qualifier` 가 시나리오마다 갈리는 첫 스위트다.** 나란한 셋은 일곱 시나리오에 같은
+ * 한정자를 붙였는데 여기서는 갱신 둘이 `amortized`, 나머지 다섯이 `worst` 다. 그것이
+ * 바꾸는 것은 **무엇을 통계로 삼는가**이고(`_contract/judge.ts` 의 `statistic`), 같은
+ * 정본이 두 무리에서 다른 값으로 판정된다.
  *
- * **정본의 우선순위 배분을 역산해 만든 입력은 시나리오로 두지 않는다**(불변 사실 44).
- * 그런 입력은 계약이 아니라 그 구현 하나를 겨누므로, 같은 계약을 지키는 다른 구현을
- * 통과시키지 못한다. B11 이 `tree/multiset` 에서 실제로 그런 입력을 만들었고 넣지 않았다.
+ * 정본을 재 보면 갈림이 분명하다 — `insert` 오름차순의 시퀀스 평균은 37.2 → 48.9 → 58.6
+ * 으로 로그 구간에 있는데 **같은 실행의 단일 호출 최대는 1,905 → 7,940 → 23,141** 로
+ * 선형이다. 다시 짓기 한 번이 그 최댓값이고, 갱신 행을 `worst` 로 적었다면 정본이 자기
+ * 계약을 어긴다. 조회 쪽은 반대다 — 순차 조회의 **최대**가 33 → 40 → 47 로 로그 안이라
+ * `worst` 를 지킨다.
  *
- * **이 스위트가 통과시키는 것 중에 계약 위반이 있다 — 그 사실을 여기 적는다**(불변 사실 62).
- * `_contract/_fixtures/splayingSearchTree.ts` 는 일곱 시나리오를 **전부 통과하는데 이 계약을
- * 어긴다.** 사슬인 채로 맞는 첫 조회 하나가 원소 수에 비례하고 그 구현은 결정론적이라 그
- * 값이 곧 기댓값인데, 축3의 `expected` 통계가 **시퀀스 평균**이라 그 하나가 묻힌다. 왜 고칠
- * 수 없는지는 `./treap.ts` 헤더에 있다. **다음 배치가 이 통과를 「계약을 지킨다」로 읽지
- * 않도록** 아래 자기시험(`_contract/runContract.test.ts`)에 이름으로 적어 두었다.
+ * **조회 행의 `worst` 가 이 계약을 `tree/splayTree` 와 가르는 자리다**(§규약1 「한정자가
+ * 계약을 가른다」 3단계). 접근한 자리를 끌어올리는 계열은 순차 조회의 단일 호출 최대가
+ * 원소 수에 비례하므로 그 행에서 걸린다.
  *
  * `constructor` 행에는 시나리오가 없다. n 에 대해 반복 호출되는 연산이 아니므로 성장률을
  * 잴 대상이 아니다(§규약2 축3 면제).
@@ -33,7 +29,7 @@
 import type { ContractSpec } from "../../_contract/runContract";
 
 /** 헤더 연산 계약 표를 그대로 옮긴 표면. */
-export interface TreapContract<T> {
+export interface ScapegoatTreeContract<T> {
   insert(item: T): void;
   delete(item: T): boolean;
   has(item: T): boolean;
@@ -48,8 +44,8 @@ export interface TreapContract<T> {
  * 축1 참조 모델. 정렬된 중복 없는 배열이다 — 축1은 의미만 보므로 자명한 구현으로 충분하다.
  *
  * 같은 정렬 배열이 축3에서는 결함 fixture 가 된다
- * (`_contract/_fixtures/sortedArraySet.ts`). 기댓값으로 재도 걸린다 — 무작위 위치에 넣으면
- * 평균 n/2 개가 밀리므로 기대 비용이 그대로 n 에 비례한다.
+ * (`_contract/_fixtures/sortedArraySet.ts`). 갱신 행을 약하게 적었는데도 걸린다 — 상각이
+ * 구해 주는 것은 「가끔 비싼 호출」이지 「늘 비싼 호출」이 아니다.
  */
 type Model = number[];
 
@@ -63,8 +59,11 @@ function insertSorted(model: Model, item: number): void {
   model.splice(at, 0, item);
 }
 
-export const treapContract: ContractSpec<TreapContract<number>, Model> = {
-  name: "Treap",
+export const scapegoatTreeContract: ContractSpec<
+  ScapegoatTreeContract<number>,
+  Model
+> = {
+  name: "ScapegoatTree",
   grade: "complexity",
   model: () => [],
 
@@ -154,10 +153,6 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
     },
     {
       // 유일성은 `toArray()` 하나로만 읽히므로 불변식이 아니라 축1의 몫이다.
-      //
-      // **갈랐다 다시 잇는 구현이 이 자리에서 걸린다.** 이미 있는 값을 다시 넣을 때
-      // 트리를 세 조각으로 가르고 되잇는 설계가 정당한데, 되이을 때 원소를 흘리거나
-      // 한 벌 더 만들면 여기서 드러난다.
       name: "같은 값을 여러 번 넣어도 한 벌만 담긴다",
       steps: [
         { op: "insert", arg: 5 },
@@ -171,6 +166,8 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
       ],
     },
     {
+      // 못 찾은 조회가 담는 모양을 고치는 구현이 있다. 고쳐도 **상태**는 그대로여야
+      // 한다는 것을 이 자리가 짚는다(불변 사실 79 와 같은 물음).
       name: "없는 값을 찾거나 지워도 상태가 그대로다",
       steps: [
         { op: "insert", arg: 2 },
@@ -198,29 +195,6 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
       ],
     },
     {
-      // 같은 집합을 서로 다른 차례로 지어도 관측이 같아야 한다. 넣은 차례가 모양을
-      // 정하는 구현은 여기서 갈리지 않지만, 차례에 따라 **원소가 달라지는** 구현은
-      // 걸린다.
-      name: "넣는 차례가 달라도 같은 집합이 된다",
-      steps: [
-        { op: "insert", arg: 1 },
-        { op: "insert", arg: 2 },
-        { op: "insert", arg: 3 },
-        { op: "insert", arg: 4 },
-        { op: "toArray" },
-        { op: "delete", arg: 1 },
-        { op: "delete", arg: 2 },
-        { op: "delete", arg: 3 },
-        { op: "delete", arg: 4 },
-        { op: "insert", arg: 4 },
-        { op: "insert", arg: 3 },
-        { op: "insert", arg: 2 },
-        { op: "insert", arg: 1 },
-        { op: "toArray" },
-        { op: "size" },
-      ],
-    },
-    {
       name: "구간은 양 끝을 포함하고, low > high 면 빈 배열이다",
       steps: [
         { op: "insert", arg: 1 },
@@ -231,6 +205,21 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
         { op: "range", arg: [2, 6] },
         { op: "range", arg: [5, 3] },
         { op: "range", arg: [8, 9] },
+      ],
+    },
+    {
+      // 구간의 두 끝이 담긴 값과 어긋나는 자리를 짚는다. 끝을 끌어올려 잘라 내는
+      // 구현은 여기서 「올릴 자리가 없는」 경우를 만난다.
+      name: "구간이 담긴 값 바깥으로 벗어나도 답이 맞다",
+      steps: [
+        { op: "insert", arg: 10 },
+        { op: "insert", arg: 20 },
+        { op: "insert", arg: 30 },
+        { op: "range", arg: [0, 5] },
+        { op: "range", arg: [40, 50] },
+        { op: "range", arg: [0, 100] },
+        { op: "range", arg: [15, 25] },
+        { op: "toArray" },
       ],
     },
     {
@@ -270,8 +259,8 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
     },
   ],
 
-  // 헤더 불변식 절의 넷. 나란한 둘의 넷과 같다 — 한정자는 비용의 성질이라 상태의 성질을
-  // 건드리지 않는다.
+  // 헤더 불변식 절의 넷. `tree/redBlackTree` 의 넷과 같다 — 한정자는 비용의 성질이라
+  // 상태의 성질을 건드리지 않는다.
   invariants: [
     {
       name: "toArray().length 와 size() 가 같다",
@@ -332,26 +321,26 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
   scenarios: [
     {
       covers: ["insert"],
-      qualifier: "expected",
+      qualifier: "amortized",
       bound: "O(log n)",
       adversarial: true,
-      // **오름차순 넣기. 이 계약에서 가장 중요한 시나리오다.**
+      // 오름차순 넣기. 균형을 스스로 잡지 않는 탐색 트리가 사슬이 되는 입력이다.
       //
-      // `ctx.rng` 를 쓰지 않으므로 seed 다섯이 같은 값을 낸다 — 입력이 완전히 고정된
-      // 자리에서 기대가 걸려 있는지를 본다. 계약이 「입력 분포에 대한 기댓값」을 말하는
-      // 것이었다면 이 시나리오는 성립하지 않는다(입력이 하나뿐이라 분포가 없다).
-      // 여기서 통과하려면 구현이 **자기 안에서** 치우침을 없애야 한다.
+      // **이 시나리오가 갱신 행의 한정자를 정당화한다.** 가끔 크게 다시 짓는 구현은
+      // 여기서 단일 호출 최대가 1,905 → 7,940 → 23,141 로 선형인데 시퀀스 평균은
+      // 37.2 → 48.9 → 58.6 으로 로그 안이다. 갱신을 `worst` 로 적었다면 그런 구현이
+      // 통째로 나가고, 나갈 이유가 계약의 목적에 없다.
       run: (impl, n, ctx) => {
         for (let i = 0; i < n; i++) ctx.step(() => impl.insert(i));
       },
     },
     {
       covers: ["insert"],
-      qualifier: "expected",
+      qualifier: "amortized",
       bound: "O(log n)",
       adversarial: false,
       // 무작위 넣기. 정렬 배열 구현이 매번 뒤쪽을 미는 입력이다 — 오름차순에서는
-      // 뒤에 붙이기만 하면 되므로 통과한다(불변 사실 57).
+      // 뒤에 붙이기만 하면 되므로 통과한다.
       run: (impl, n, ctx) => {
         for (let i = 0; i < n; i++) {
           const value = Math.floor(ctx.rng() * n * 4);
@@ -361,13 +350,20 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
     },
     {
       covers: ["has", "min", "max"],
-      qualifier: "expected",
+      qualifier: "worst",
       bound: "O(log n)",
       adversarial: true,
-      // 오름차순으로 채우고 오름차순으로 조회한다. 균형을 스스로 잡지 않는 트리는
-      // 준비 단계에서 이미 사슬이고, 그 상태의 조회가 원소 수에 비례한다.
+      // **순차 조회. 이 계약이 `tree/splayTree` 와 갈리는 자리다.**
       //
-      // 걸음 하나는 `has`·`min`·`max` 세 호출을 함께 감싼 것이다. 세 행이 같은
+      // 준비가 오름차순 넣기라 접근한 자리를 끌어올리는 계열은 트리가 사슬이고, 그
+      // 상태로 맞는 **첫 조회 한 번**이 사슬 끝까지 내려가 n 에 비례한다. 이 계약은
+      // 조회 행을 `worst` 로 적었으므로 그 한 번이 그대로 보고되어 걸린다 — 저쪽
+      // 계약은 같은 실행을 시퀀스 평균으로 재서 통과시킨다.
+      //
+      // 트리의 모양을 늘 균형 가까이 유지하는 구현은 조회가 트리를 건드리지 않아도
+      // 얕다. 정본을 재면 이 시나리오의 **최대**가 33 → 40 → 47 로 로그 안이다.
+      //
+      // 걸음 하나는 `has`·`min`·`max` 세 호출을 함께 감싼 것이고, 세 행이 같은
       // 내려가기 한 번이라 갈라 잴 이유가 없다.
       run: (impl, n, ctx) => {
         for (let i = 0; i < n; i++) impl.insert(i);
@@ -382,11 +378,15 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
     },
     {
       covers: ["delete"],
-      qualifier: "expected",
+      qualifier: "amortized",
       bound: "O(log n)",
       adversarial: true,
       // 오름차순으로 채우고 오름차순으로 지운다. 늘 최솟값을 빼므로 한쪽으로 치우친
       // 구현이 그 자리에서 드러나고, 정렬 배열은 앞을 빼면서 뒤를 전부 당긴다.
+      //
+      // 지우기 쪽에도 다시 짓기가 있다 — 원소가 많이 빠지면 트리가 성기게 남으므로
+      // 크기를 기준으로 한 번 몰아서 짓는다. 정본의 단일 호출 최대가 1,338 → 5,332 →
+      // 21,302 로 선형인 것이 그 자리이고, 평균은 10.2 → 11.2 → 12.1 이다.
       run: (impl, n, ctx) => {
         for (let i = 0; i < n; i++) impl.insert(i);
         for (let i = 0; i < n; i++) ctx.step(() => impl.delete(i));
@@ -394,11 +394,14 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
     },
     {
       covers: ["range"],
-      qualifier: "expected",
+      qualifier: "worst",
       bound: "O(log n)",
       adversarial: false,
       // `range` 의 상한은 O(log n + k) 다. 값 범위를 n 에 비례해 넓혀 **k 를 상수로
       // 눌러야** 파라미터가 하나만 남는다(§규약2 다변수 상한 규칙).
+      //
+      // 이 행은 `worst` 다. 트리 높이가 늘 로그에 묶여 있으면 훑는 구현도 상한
+      // 안이므로, 여기서 걸리는 것은 높이를 못 묶는 구현이다.
       run: (impl, n, ctx) => {
         const spread = n * 8;
         for (let i = 0; i < n; i++) impl.insert(Math.floor(ctx.rng() * spread));
@@ -413,12 +416,12 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
       qualifier: "worst",
       bound: "O(n)",
       adversarial: false,
-      // 호출 하나가 원소 수만큼 드는 연산이다. 한정자가 `worst` 라 반복 호출이 성장률을
-      // 바꾸지 않으므로 몇 번만 부른다 — `expected` 였다면 seed 다섯 × n 회 측정이라
-      // 이 한 줄이 사다리 맨 위에서 13억 걸음이 된다(불변 사실 102 와 같은 자리).
+      // 호출 하나가 원소 수만큼 드는 연산이다. `worst` 계약이라면 몇 번만 불러도
+      // 되지만 **상각 판정은 n 회 측정을 요구하므로**(`runContract.ts`) n 회 부른다 —
+      // 시퀀스 평균을 내려면 나눌 시퀀스가 있어야 한다.
       run: (impl, n, ctx) => {
         for (let i = 0; i < n; i++) impl.insert(Math.floor(ctx.rng() * n * 4));
-        for (let i = 0; i < 4; i++) ctx.step(() => impl.toArray());
+        for (let i = 0; i < n; i++) ctx.step(() => impl.toArray());
       },
     },
     {

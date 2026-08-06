@@ -52,6 +52,8 @@ import {
 } from "../tree/redBlackTree/redBlackTree.contract";
 import { SplayTree as ReferenceSplayTree } from "../tree/splayTree/_reference/splayTree";
 import { splayTreeContract } from "../tree/splayTree/splayTree.contract";
+import { ScapegoatTree as ReferenceScapegoatTree } from "../tree/scapegoatTree/_reference/scapegoatTree";
+import { scapegoatTreeContract } from "../tree/scapegoatTree/scapegoatTree.contract";
 import { Treap as ReferenceTreap } from "../tree/treap/_reference/treap";
 import { treapContract } from "../tree/treap/treap.contract";
 import { SuffixArray as ReferenceSuffixArray } from "../trie/suffixArray/_reference/suffixArray";
@@ -395,6 +397,10 @@ const referenceSplayTree: CostSource<RedBlackTreeContract<number>> = {
   kind: "self-reported",
   make: () => new ReferenceSplayTree<number>(),
 };
+const referenceScapegoatTree: CostSource<RedBlackTreeContract<number>> = {
+  kind: "self-reported",
+  make: () => new ReferenceScapegoatTree<number>(),
+};
 const referenceTreap: CostSource<RedBlackTreeContract<number>> = {
   kind: "self-reported",
   make: () => new ReferenceTreap<number>(),
@@ -537,6 +543,23 @@ describe("축3 — 정본은 통과한다", () => {
   test("기대 정렬 집합 정본이 일곱 시나리오를 전부 통과한다", () => {
     for (const scenario of treapContract.scenarios) {
       const verdict = judgeScenario(referenceTreap, scenario, "complexity");
+      expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
+        `${scenario.covers.join("·")}: `,
+      );
+    }
+  }, 30_000);
+
+  /**
+   * 한정자가 **연산마다 갈리는** 첫 계약의 정본. 같은 실행에서 갱신 행은 시퀀스 평균으로,
+   * 조회 행은 단일 호출 최대로 판정된다.
+   */
+  test("혼합 한정자 정렬 집합 정본이 일곱 시나리오를 전부 통과한다", () => {
+    for (const scenario of scapegoatTreeContract.scenarios) {
+      const verdict = judgeScenario(
+        referenceScapegoatTree,
+        scenario,
+        "complexity",
+      );
       expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
         `${scenario.covers.join("·")}: `,
       );
@@ -1146,6 +1169,68 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "insert (적대적)": true,
       insert: true,
       "has·min·max (적대적)": true,
+      "delete (적대적)": true,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+  }, 30_000);
+
+  /**
+   * **포섭 사슬이 축3에서 양방향으로 보이는 첫 자리.**
+   *
+   * B17 이 네 계약을 가르며 `redBlackTree` ⊂ `scapegoatTree` ⊂ `splayTree` 사슬을 논증으로
+   * 냈다. T1-01 은 그 사슬의 한 방향만 실측할 수 있었고(불변 사실 100), T1-02 는 무작위
+   * 정본이라 확률적으로만 보였다(불변 사실 105). **여기서는 양방향이 결정론적으로 갈리고,
+   * 걸리는 자리가 정확히 한정자가 갈린 행이다.**
+   *
+   * 그렇게 되는 이유는 이 계약이 조회에 `worst` 를 쓰기 때문이다 — `worst` 통계는
+   * 최댓값이라 「가끔 튀는」 구현을 그대로 보고한다. `amortized` 와 `expected` 는 둘 다
+   * 평균이라 서로를 못 가르지만(불변 사실 105), **한 행이라도 `worst` 가 있으면 그 행이
+   * 갈림을 잡는다.**
+   */
+  test("포섭 사슬의 양쪽이 정확히 갈린 한정자의 행에서 갈린다", () => {
+    // ① 좁은 쪽(전 연산 worst) → 이 계약: 전부 통과. 담긴다.
+    expect(outcomes(referenceRedBlackTree, scapegoatTreeContract)).toEqual({
+      "insert (적대적)": true,
+      insert: true,
+      "has·min·max (적대적)": true,
+      "delete (적대적)": true,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+
+    // ② 이 정본 → 좁은 쪽 계약: **갱신 행만 걸린다.** 다시 짓기 한 번이 원소 수에
+    //    비례하므로 `worst` 통계가 그것을 그대로 보고한다. 조회는 통과한다.
+    expect(outcomes(referenceScapegoatTree, redBlackTreeContract)).toEqual({
+      "insert (적대적)": false,
+      insert: false,
+      "has·min·max (적대적)": true,
+      "delete (적대적)": false,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+
+    // ③ 이 정본 → 넓은 쪽 계약(전 연산 amortized): 전부 통과. 담긴다.
+    expect(outcomes(referenceScapegoatTree, splayTreeContract)).toEqual({
+      "insert (적대적)": true,
+      insert: true,
+      "has·min·max (적대적)": true,
+      "delete (적대적)": true,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+
+    // ④ 넓은 쪽 정본 → 이 계약: **조회 행만 걸린다.** 접근한 자리를 끌어올리는 계열은
+    //    사슬인 채로 맞는 첫 조회가 원소 수에 비례한다. 갱신은 통과한다.
+    //    **②와 ④가 서로 다른 행에서 걸리는 것이 이 계약이 둘 사이에 실재하는 근거다.**
+    expect(outcomes(referenceSplayTree, scapegoatTreeContract)).toEqual({
+      "insert (적대적)": true,
+      insert: true,
+      "has·min·max (적대적)": false,
       "delete (적대적)": true,
       range: true,
       toArray: true,
