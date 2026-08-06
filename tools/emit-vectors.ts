@@ -30,6 +30,7 @@ import { intervalTreeContract } from "../src/data-structures/range-query/interva
 import { multisetContract } from "../src/data-structures/tree/multiset/multiset.contract.ts";
 import { redBlackTreeContract } from "../src/data-structures/tree/redBlackTree/redBlackTree.contract.ts";
 import { splayTreeContract } from "../src/data-structures/tree/splayTree/splayTree.contract.ts";
+import { treapContract } from "../src/data-structures/tree/treap/treap.contract.ts";
 import { suffixArrayContract } from "../src/data-structures/trie/suffixArray/suffixArray.contract.ts";
 import { suffixTreeContract } from "../src/data-structures/trie/suffixTree/suffixTree.contract.ts";
 import { ternarySearchTreeContract } from "../src/data-structures/trie/ternarySearchTree/ternarySearchTree.contract.ts";
@@ -147,6 +148,7 @@ const SPECS: ContractSpec<any, any>[] = [
   multisetContract,
   redBlackTreeContract,
   splayTreeContract,
+  treapContract,
   suffixArrayContract,
   suffixTreeContract,
   ternarySearchTreeContract,

@@ -91,6 +91,9 @@ const VERIFICATION_GRADES: Record<
   // 한정자만 갈린 이웃 계약(T1-01). 등급은 같다 — 자명한 구현이 상한을 못 지키는 것이
   // 상각으로 봐도 그대로이기 때문이고, 등급이 같아도 계약은 다르다(불변 사실 56 의 역).
   "tree/splayTree": "complexity",
+  // 형제 셋째(T1-02). 등급이 같아도 계약은 다르다 — 자명한 구현이 상한을 못 지키는 것이
+  // 기댓값으로 봐도 그대로다.
+  "tree/treap": "complexity",
   "probabilistic/concurrentSkipList": "concurrency",
   // 성격 전환(B22·B23). 계약이 `tree/redBlackTree` 의 것과 같으므로 등급도 같다 —
   // 등급은 계약에서 기계적으로 따라 나온다(불변 사실 56).

@@ -88,9 +88,11 @@ B22 가 다음 배치에서 따로 닫았다.
 | `tools/emit-vectors.ts` | vector 등록 목록 | 등록 위치를 **구조 경로 알파벳 순**으로 고정한다. 순서가 고정이면 충돌이 나도 양쪽을 살리는 해결이 유일하다 |
 | `tools/ord006-inventory.ts` `VERIFICATION_GRADES` | 등급 확정 기입 | 같은 규칙 — 키가 다르므로 알파벳 순 유지 |
 | `src/data-structures/_contract/_fixtures/` | fixture 가 계약을 넘어 공유됨 | **읽기만 한다.** 고쳐야 하면 새 파일을 만든다 — `splayingSearchTree` 가 두 계약에서 쓰이므로 고치면 다른 계약의 자기시험 기대값이 말없이 바뀐다 |
+| `src/data-structures/_contract/runContract.test.ts` | 배치마다 자기시험을 여기 넣는다 | 줄을 넣으면 **다른 구조의 가이드 인용이 밀린다.** 넣은 배치가 `grep -rn "runContract.test.ts:" src docs` 로 전수 대조한다(불변 사실 106) |
 
-앞의 다섯은 병합 충돌로 드러나므로 조용히 새지 않는다. 여섯째만 다르다 — 그래서 규약이
-「읽기만」이다.
+앞의 다섯은 병합 충돌로 드러나므로 조용히 새지 않는다. 뒤의 둘만 다르다 — 여섯째는 고쳐도
+충돌이 안 나고, 일곱째는 **자기 파일을 안 건드린 배치의 산출물이 깨진다.** 그래서 규약이
+각각 「읽기만」과 「전수 대조」다.
 
 **`KANBAN.md` 갱신은 직렬화한다.** `manage-kanban` 스크립트가 `KANBAN.state.json` 을
 함께 쓰므로 두 세션이 동시에 돌리면 스냅샷이 어긋난다. 배치 종료 시 `git pull --rebase`

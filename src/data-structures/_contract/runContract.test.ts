@@ -52,6 +52,8 @@ import {
 } from "../tree/redBlackTree/redBlackTree.contract";
 import { SplayTree as ReferenceSplayTree } from "../tree/splayTree/_reference/splayTree";
 import { splayTreeContract } from "../tree/splayTree/splayTree.contract";
+import { Treap as ReferenceTreap } from "../tree/treap/_reference/treap";
+import { treapContract } from "../tree/treap/treap.contract";
 import { SuffixArray as ReferenceSuffixArray } from "../trie/suffixArray/_reference/suffixArray";
 import {
   Rebuildable as SuffixArrayShell,
@@ -393,6 +395,10 @@ const referenceSplayTree: CostSource<RedBlackTreeContract<number>> = {
   kind: "self-reported",
   make: () => new ReferenceSplayTree<number>(),
 };
+const referenceTreap: CostSource<RedBlackTreeContract<number>> = {
+  kind: "self-reported",
+  make: () => new ReferenceTreap<number>(),
+};
 
 describe("축3 — 정본은 통과한다", () => {
   test("Stack 정본의 push·pop 이 amortized O(1) 계약 안에 있다", () => {
@@ -522,6 +528,15 @@ describe("축3 — 정본은 통과한다", () => {
   test("상각 정렬 집합 정본이 일곱 시나리오를 전부 통과한다", () => {
     for (const scenario of splayTreeContract.scenarios) {
       const verdict = judgeScenario(referenceSplayTree, scenario, "complexity");
+      expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
+        `${scenario.covers.join("·")}: `,
+      );
+    }
+  }, 30_000);
+
+  test("기대 정렬 집합 정본이 일곱 시나리오를 전부 통과한다", () => {
+    for (const scenario of treapContract.scenarios) {
+      const verdict = judgeScenario(referenceTreap, scenario, "complexity");
       expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
         `${scenario.covers.join("·")}: `,
       );
@@ -1040,6 +1055,103 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     // 1540 → 6148 → 24580. 같은 실행의 최댓값이다.
     expect((peaks[2] ?? 0) / (peaks[0] ?? 1)).toBeGreaterThan(15);
   });
+
+  /**
+   * **`expected` 계약이 축3에서 어디까지 보이는가.**
+   *
+   * `tree/treap` 계약은 형제 둘과 연산 집합도 상한도 같고 한정자만 다르다. 정본
+   * 교차(불변 사실 100)를 네 방향으로 돌리면 **둘은 안정적이고 둘은 흔들린다** — 그
+   * 갈림이 T1-02 의 수확이다.
+   *
+   * | 방향 | 40회 중 걸린 횟수 |
+   * |---|---|
+   * | `redBlackTree` 정본 → `treap` 계약 | 0 |
+   * | `splayTree` 정본 → `treap` 계약 | 0 |
+   * | `treap` 정본 → `redBlackTree` 계약 | **11** (`delete` 적대 6 · `insert` 적대 4 · `insert` 2) |
+   * | `treap` 정본 → `splayTree` 계약 | **2** |
+   *
+   * **아래 둘은 단언하지 않는다.** `treap` 정본이 무작위를 쓰므로 그 결과가 실행마다
+   * 다르고, 못 박으면 CI 가 흔들린다. 흔들린다는 것 자체가 여기 적을 관측이다 —
+   * 「`treap` 계약이 `redBlackTree` 계약보다 넓다」가 **확률적으로 보인다**는 뜻이고,
+   * 한 번만 돌려 통과한 것을 「담긴다」로 읽으면 틀린다.
+   *
+   * 단언하는 둘 중 **둘째가 축이 못 보는 자리다.** `splayTree` 정본은 이 계약을 어기는데
+   * (사슬 끝 첫 조회가 원소 수에 비례하고 결정론적이라 그 값이 곧 기댓값이다) 40회 내내
+   * 통과한다. 통계가 시퀀스 평균이라 그 하나가 묻히기 때문이고, 이쪽은 흔들림이 아니라
+   * **판정 규격의 한계**다.
+   */
+  test("기대 계약은 최악 정본을 담고 상각 정본의 위반을 못 본다", () => {
+    // 담는 쪽 → 담기는 쪽. 결정론적 정본이라 안정적으로 통과한다(최악까지 로그면
+    // 기댓값도 로그다).
+    expect(outcomes(referenceRedBlackTree, treapContract)).toEqual({
+      "insert (적대적)": true,
+      insert: true,
+      "has·min·max (적대적)": true,
+      "delete (적대적)": true,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+
+    // **이 계약을 어기는 정본이 일곱을 전부 통과한다.** B17 이 「서로 담지 않는다」로
+    // 판정한 한 쌍인데 축이 그 한쪽을 못 본다.
+    expect(outcomes(referenceSplayTree, treapContract)).toEqual({
+      "insert (적대적)": true,
+      insert: true,
+      "has·min·max (적대적)": true,
+      "delete (적대적)": true,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+  }, 30_000);
+
+  /**
+   * **기대 계약의 스위트가 통과시키는 것 중에 계약 위반이 있다**(불변 사실 62 가 요구하는
+   * 기록).
+   *
+   * `splayingSearchTree` 는 사슬인 채로 맞는 첫 조회 하나가 원소 수에 비례하고 결정론적이라
+   * 그 값이 곧 기댓값이다 — **`expected O(log n)` 을 어긴다.** 그런데 축3의 `expected`
+   * 통계가 시퀀스 평균이라 그 하나가 묻힌다. 통과를 「계약을 지킨다」로 읽지 않도록 여기
+   * 이름으로 적어 둔다.
+   *
+   * 스위트가 아무것도 못 잡는다는 뜻은 아니다 — **입력에 치우치는 구현은 잡는다.**
+   */
+  test("기대 계약은 입력에 치우치는 구현을 잡고 무작위성에 안 기대는 구현은 놓친다", () => {
+    // 균형을 스스로 잡지 않는 트리: 오름차순 넣기와 순차 조회에서 걸린다.
+    expect(outcomes(unbalancedSearchTree, treapContract)).toEqual({
+      "insert (적대적)": false,
+      insert: true,
+      "has·min·max (적대적)": false,
+      "delete (적대적)": true,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+
+    // 정렬 배열: 갱신 둘이 걸린다. 무작위 위치에 넣으면 평균 n/2 개가 밀리므로 기댓값도
+    // n 에 비례한다.
+    expect(outcomes(sortedArraySet, treapContract)).toEqual({
+      "insert (적대적)": true,
+      insert: false,
+      "has·min·max (적대적)": true,
+      "delete (적대적)": false,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+
+    // **끌어올리는 구현: 전부 통과한다 — 그런데 이 계약을 어긴다.** 못 잡는 자리다.
+    expect(outcomes(splayingSearchTree, treapContract)).toEqual({
+      "insert (적대적)": true,
+      insert: true,
+      "has·min·max (적대적)": true,
+      "delete (적대적)": true,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+  }, 30_000);
 
   test("한정자를 어기는 구현은 무작위 입력으로는 잡히지 않는다", () => {
     // 같은 스플레이 구현이 무작위 넣기에서는 통과하고 순차 조회에서 걸린다.
