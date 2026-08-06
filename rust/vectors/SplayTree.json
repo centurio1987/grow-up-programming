@@ -1,0 +1,1673 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "SplayTree",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 집합의 조회는 전부 비어 있음을 말하고 상태를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "has",
+          "arg": 1,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "range",
+          "arg": [
+            0,
+            100
+          ],
+          "expect": []
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "delete",
+          "arg": 1,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 0
+        }
+      ]
+    },
+    {
+      "name": "같은 값을 여러 번 넣어도 한 벌만 담긴다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 5
+        },
+        {
+          "op": "insert",
+          "arg": 5
+        },
+        {
+          "op": "insert",
+          "arg": 5
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            5
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 5,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 5,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 0
+        }
+      ]
+    },
+    {
+      "name": "없는 값을 찾거나 지워도 상태가 그대로다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 2
+        },
+        {
+          "op": "insert",
+          "arg": 4
+        },
+        {
+          "op": "has",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            2,
+            4
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            2,
+            4
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "delete",
+          "arg": 4,
+          "expect": true
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "name": "넣은 순서와 무관하게 비내림차순으로 늘어놓는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 9
+        },
+        {
+          "op": "insert",
+          "arg": 1
+        },
+        {
+          "op": "insert",
+          "arg": 5
+        },
+        {
+          "op": "insert",
+          "arg": 3
+        },
+        {
+          "op": "insert",
+          "arg": 7
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            3,
+            5,
+            7,
+            9
+          ]
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 9
+        }
+      ]
+    },
+    {
+      "name": "구간은 양 끝을 포함하고, low > high 면 빈 배열이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 1
+        },
+        {
+          "op": "insert",
+          "arg": 3
+        },
+        {
+          "op": "insert",
+          "arg": 5
+        },
+        {
+          "op": "insert",
+          "arg": 7
+        },
+        {
+          "op": "range",
+          "arg": [
+            3,
+            5
+          ],
+          "expect": [
+            3,
+            5
+          ]
+        },
+        {
+          "op": "range",
+          "arg": [
+            2,
+            6
+          ],
+          "expect": [
+            3,
+            5
+          ]
+        },
+        {
+          "op": "range",
+          "arg": [
+            5,
+            3
+          ],
+          "expect": []
+        },
+        {
+          "op": "range",
+          "arg": [
+            8,
+            9
+          ],
+          "expect": []
+        }
+      ]
+    },
+    {
+      "name": "구간이 담긴 값 바깥으로 벗어나도 답이 맞다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 10
+        },
+        {
+          "op": "insert",
+          "arg": 20
+        },
+        {
+          "op": "insert",
+          "arg": 30
+        },
+        {
+          "op": "range",
+          "arg": [
+            0,
+            5
+          ],
+          "expect": []
+        },
+        {
+          "op": "range",
+          "arg": [
+            40,
+            50
+          ],
+          "expect": []
+        },
+        {
+          "op": "range",
+          "arg": [
+            0,
+            100
+          ],
+          "expect": [
+            10,
+            20,
+            30
+          ]
+        },
+        {
+          "op": "range",
+          "arg": [
+            15,
+            25
+          ],
+          "expect": [
+            20
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            10,
+            20,
+            30
+          ]
+        }
+      ]
+    },
+    {
+      "name": "가운데를 지우고 다시 채워도 순서가 어긋나지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 4
+        },
+        {
+          "op": "insert",
+          "arg": 2
+        },
+        {
+          "op": "insert",
+          "arg": 6
+        },
+        {
+          "op": "insert",
+          "arg": 1
+        },
+        {
+          "op": "insert",
+          "arg": 3
+        },
+        {
+          "op": "insert",
+          "arg": 5
+        },
+        {
+          "op": "insert",
+          "arg": 7
+        },
+        {
+          "op": "delete",
+          "arg": 4,
+          "expect": true
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2,
+            3,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 4
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 7
+        }
+      ]
+    },
+    {
+      "name": "전부 지웠다가 다시 채워도 정상이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 1
+        },
+        {
+          "op": "insert",
+          "arg": 2
+        },
+        {
+          "op": "delete",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": 8
+        },
+        {
+          "op": "min",
+          "expect": 8
+        },
+        {
+          "op": "max",
+          "expect": 8
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            8
+          ]
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "range",
+          "arg": [
+            0,
+            3
+          ],
+          "expect": []
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "has",
+          "arg": 14,
+          "expect": false
+        },
+        {
+          "op": "range",
+          "arg": [
+            10,
+            15
+          ],
+          "expect": []
+        },
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "delete",
+          "arg": 9,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": 9
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "has",
+          "arg": 4,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 10
+        },
+        {
+          "op": "max",
+          "expect": 10
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "has",
+          "arg": 4,
+          "expect": false
+        },
+        {
+          "op": "range",
+          "arg": [
+            13,
+            17
+          ],
+          "expect": []
+        },
+        {
+          "op": "delete",
+          "arg": 17,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 9
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            9,
+            10
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 18,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 9
+        },
+        {
+          "op": "delete",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "range",
+          "arg": [
+            13,
+            13
+          ],
+          "expect": []
+        },
+        {
+          "op": "has",
+          "arg": 1,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 10
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "delete",
+          "arg": 23,
+          "expect": false
+        },
+        {
+          "op": "range",
+          "arg": [
+            9,
+            10
+          ],
+          "expect": [
+            9,
+            10
+          ]
+        },
+        {
+          "op": "range",
+          "arg": [
+            22,
+            27
+          ],
+          "expect": []
+        },
+        {
+          "op": "range",
+          "arg": [
+            22,
+            27
+          ],
+          "expect": []
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            9,
+            10
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 0
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "has",
+          "arg": 21,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 10
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            9,
+            10
+          ]
+        },
+        {
+          "op": "range",
+          "arg": [
+            3,
+            7
+          ],
+          "expect": []
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            9,
+            10
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 23,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 9,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 9
+        },
+        {
+          "op": "has",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 10
+        },
+        {
+          "op": "max",
+          "expect": 10
+        },
+        {
+          "op": "insert",
+          "arg": 19
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "has",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 21,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "range",
+          "arg": [
+            13,
+            14
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": 3
+        },
+        {
+          "op": "insert",
+          "arg": 7
+        },
+        {
+          "op": "range",
+          "arg": [
+            15,
+            15
+          ],
+          "expect": []
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "max",
+          "expect": 19
+        },
+        {
+          "op": "delete",
+          "arg": 19,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 23,
+          "expect": false
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            3,
+            7,
+            9,
+            10
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "insert",
+          "arg": 4
+        },
+        {
+          "op": "insert",
+          "arg": 23
+        },
+        {
+          "op": "has",
+          "arg": 17,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "insert",
+          "arg": 6
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "delete",
+          "arg": 2,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 9,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "has",
+          "arg": 21,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 21,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "range",
+          "arg": [
+            16,
+            17
+          ],
+          "expect": []
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "has",
+          "arg": 4,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 22,
+          "expect": false
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            3,
+            4,
+            6,
+            7,
+            10,
+            23
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 7,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 0
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 3,
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "has",
+          "arg": 21,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "range",
+          "arg": [
+            8,
+            9
+          ],
+          "expect": []
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "insert",
+          "arg": 5
+        },
+        {
+          "op": "range",
+          "arg": [
+            15,
+            15
+          ],
+          "expect": []
+        },
+        {
+          "op": "has",
+          "arg": 10,
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "range",
+          "arg": [
+            8,
+            10
+          ],
+          "expect": [
+            10
+          ]
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "insert",
+          "arg": 22
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "range",
+          "arg": [
+            2,
+            2
+          ],
+          "expect": []
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "delete",
+          "arg": 17,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 13,
+          "expect": false
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            4,
+            5,
+            6,
+            10,
+            22,
+            23
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 2
+        },
+        {
+          "op": "delete",
+          "arg": 16,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 12
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "size",
+          "expect": 9
+        },
+        {
+          "op": "has",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            4,
+            5,
+            6,
+            10,
+            12,
+            22,
+            23
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            4,
+            5,
+            6,
+            10,
+            12,
+            22,
+            23
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 20
+        },
+        {
+          "op": "insert",
+          "arg": 9
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "range",
+          "arg": [
+            3,
+            4
+          ],
+          "expect": [
+            4
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            4,
+            5,
+            6,
+            9,
+            10,
+            12,
+            20,
+            22,
+            23
+          ]
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "insert",
+          "arg": 3
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "delete",
+          "arg": 3,
+          "expect": true
+        },
+        {
+          "op": "range",
+          "arg": [
+            14,
+            14
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "range",
+          "arg": [
+            15,
+            19
+          ],
+          "expect": []
+        },
+        {
+          "op": "range",
+          "arg": [
+            16,
+            21
+          ],
+          "expect": [
+            20
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 20
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            4,
+            5,
+            6,
+            9,
+            10,
+            12,
+            20,
+            22,
+            23
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 19
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "has",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 16
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": 12
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "range",
+          "arg": [
+            20,
+            22
+          ],
+          "expect": [
+            20,
+            22
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "insert",
+          "arg": 9
+        },
+        {
+          "op": "range",
+          "arg": [
+            4,
+            9
+          ],
+          "expect": [
+            4,
+            5,
+            6,
+            9
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "insert",
+          "arg": 4
+        },
+        {
+          "op": "range",
+          "arg": [
+            0,
+            4
+          ],
+          "expect": [
+            0,
+            2,
+            4
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            4,
+            5,
+            6,
+            9,
+            10,
+            12,
+            16,
+            19,
+            20,
+            22,
+            23
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 21,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "range",
+          "arg": [
+            11,
+            14
+          ],
+          "expect": [
+            12
+          ]
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            4,
+            5,
+            6,
+            9,
+            10,
+            12,
+            16,
+            19,
+            20,
+            22,
+            23
+          ]
+        },
+        {
+          "op": "range",
+          "arg": [
+            1,
+            4
+          ],
+          "expect": [
+            2,
+            4
+          ]
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "delete",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            4,
+            5,
+            6,
+            9,
+            10,
+            12,
+            16,
+            19,
+            20,
+            22,
+            23
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "has",
+          "arg": 23,
+          "expect": true
+        },
+        {
+          "op": "range",
+          "arg": [
+            11,
+            11
+          ],
+          "expect": []
+        },
+        {
+          "op": "range",
+          "arg": [
+            0,
+            4
+          ],
+          "expect": [
+            0,
+            2,
+            4
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            4,
+            5,
+            6,
+            9,
+            10,
+            12,
+            16,
+            19,
+            20,
+            22,
+            23
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            4,
+            5,
+            6,
+            9,
+            10,
+            12,
+            16,
+            19,
+            20,
+            22,
+            23
+          ]
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "range",
+          "arg": [
+            5,
+            5
+          ],
+          "expect": [
+            5
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            4,
+            5,
+            6,
+            9,
+            10,
+            12,
+            16,
+            19,
+            20,
+            22,
+            23
+          ]
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            4,
+            5,
+            6,
+            9,
+            10,
+            12,
+            16,
+            19,
+            20,
+            22,
+            23
+          ]
+        },
+        {
+          "op": "max",
+          "expect": 23
+        },
+        {
+          "op": "range",
+          "arg": [
+            10,
+            10
+          ],
+          "expect": [
+            10
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "range",
+          "arg": [
+            18,
+            18
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": 18
+        },
+        {
+          "op": "size",
+          "expect": 14
+        },
+        {
+          "op": "delete",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "range",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": [
+            0
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 7
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            12,
+            16,
+            18,
+            19,
+            20,
+            22,
+            23
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 9,
+          "expect": true
+        },
+        {
+          "op": "range",
+          "arg": [
+            3,
+            6
+          ],
+          "expect": [
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 15
+        },
+        {
+          "op": "range",
+          "arg": [
+            11,
+            11
+          ],
+          "expect": []
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            12,
+            16,
+            18,
+            19,
+            20,
+            22,
+            23
+          ]
+        }
+      ]
+    }
+  ]
+}

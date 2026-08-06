@@ -59,7 +59,7 @@ src/data-structures/tree/multiset	tree	multiset	A	complexity	-	0	608	true
 src/data-structures/tree/orderStatisticTree	tree	orderStatisticTree	-	-	-	78	361	false
 src/data-structures/tree/redBlackTree	tree	redBlackTree	-	complexity	-	0	584	true
 src/data-structures/tree/scapegoatTree	tree	scapegoatTree	-	-	-	92	505	false
-src/data-structures/tree/splayTree	tree	splayTree	-	-	-	84	534	false
+src/data-structures/tree/splayTree	tree	splayTree	-	complexity	-	0	534	true
 src/data-structures/tree/treap	tree	treap	-	-	-	76	403	false
 src/data-structures/tree/twoThreeTree	tree	twoThreeTree	-	complexity	-	0	734	true
 src/data-structures/trie/ahoCorasick	trie	ahoCorasick	-	-	-	84	382	false

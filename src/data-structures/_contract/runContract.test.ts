@@ -50,6 +50,8 @@ import {
   type RedBlackTreeContract,
   redBlackTreeContract,
 } from "../tree/redBlackTree/redBlackTree.contract";
+import { SplayTree as ReferenceSplayTree } from "../tree/splayTree/_reference/splayTree";
+import { splayTreeContract } from "../tree/splayTree/splayTree.contract";
 import { SuffixArray as ReferenceSuffixArray } from "../trie/suffixArray/_reference/suffixArray";
 import {
   Rebuildable as SuffixArrayShell,
@@ -73,8 +75,8 @@ import { ScanIntervalList } from "./_fixtures/scanIntervalList";
 import { ScanningSuffixArray } from "./_fixtures/scanningSuffixArray";
 import { ScanningSuffixTree } from "./_fixtures/scanningSuffixTree";
 import { ShiftQueue } from "./_fixtures/shiftQueue";
-import { SortedArraySet } from "./_fixtures/sortedArraySet";
 import { SortedArrayMultiset } from "./_fixtures/sortedArrayMultiset";
+import { SortedArraySet } from "./_fixtures/sortedArraySet";
 import { SortedSuffixArray } from "./_fixtures/sortedSuffixArray";
 import { SortedWordSet } from "./_fixtures/sortedWordSet";
 import { SplayingSearchTree } from "./_fixtures/splayingSearchTree";
@@ -387,6 +389,11 @@ const splayingSearchTree: CostSource<RedBlackTreeContract<number>> = {
   make: () => new SplayingSearchTree<number>(),
 };
 
+const referenceSplayTree: CostSource<RedBlackTreeContract<number>> = {
+  kind: "self-reported",
+  make: () => new ReferenceSplayTree<number>(),
+};
+
 describe("축3 — 정본은 통과한다", () => {
   test("Stack 정본의 push·pop 이 amortized O(1) 계약 안에 있다", () => {
     const verdict = judgeScenario(
@@ -507,6 +514,19 @@ describe("축3 — 정본은 통과한다", () => {
       );
     }
   });
+
+  /**
+   * 상각 계약의 정본. **최악 계약의 정본도 이 계약을 지킨다** — 담는 쪽이 넓기 때문이다.
+   * 그 포섭을 아래 「두 계약이 서로를 어떻게 담는가」가 실측으로 확인한다.
+   */
+  test("상각 정렬 집합 정본이 일곱 시나리오를 전부 통과한다", () => {
+    for (const scenario of splayTreeContract.scenarios) {
+      const verdict = judgeScenario(referenceSplayTree, scenario, "complexity");
+      expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
+        `${scenario.covers.join("·")}: `,
+      );
+    }
+  }, 30_000);
 });
 
 describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
@@ -910,6 +930,115 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       toArray: true,
       size: true,
     });
+  });
+
+  /**
+   * **한정자만 다른 두 계약이 같은 구현들에 어떤 판정을 내는가.**
+   *
+   * `tree/splayTree` 계약은 `tree/redBlackTree` 계약과 연산 집합도 상한도 시나리오
+   * 입력도 같고 `qualifier` 하나만 다르다. 그래서 이 자리는 **판정 규격 한 줄이 계약을
+   * 가른다**는 것을 세 구현으로 각각 확인한다.
+   *
+   * **기본 시간 제한을 넘는 첫 자기시험이다.** `toArray` 행이 `amortized` 라 n 회
+   * 측정을 요구하고(§규약2), 호출 하나가 n 이므로 그 시나리오 하나가 사다리 맨 위에서
+   * 2.7억 걸음이 된다. `worst` 계약이었으면 네 번만 불러도 성장률이 나온다 —
+   * **한정자를 약하게 적는 대가가 판정 시간에 있다**(불변 사실 102).
+   */
+  test("상각 계약은 상한 위반만 잡고 한정자 위반은 통과시킨다", () => {
+    // 끌어올리는 구현: **일곱을 전부 통과한다.** 최악 계약에서 걸리던 두 자리
+    // (순차 조회·오름차순 지우기)가 여기서는 통과다 — 튄 호출을 뒤 호출들이 갚기
+    // 때문이고, 그 갚음을 보는 것이 시퀀스 평균이다.
+    expect(outcomes(splayingSearchTree, splayTreeContract)).toEqual({
+      "insert (적대적)": true,
+      insert: true,
+      "has·min·max (적대적)": true,
+      "delete (적대적)": true,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+
+    // 균형을 안 잡는 트리: **최악 계약에서 걸리던 자리에서 똑같이 걸린다.** 사슬이
+    // 사슬로 남으므로 평균을 내도 원소 수에 비례한다 — 상각이 구해 주는 것은 「가끔
+    // 비싼 호출」이지 「늘 비싼 호출」이 아니다.
+    expect(outcomes(unbalancedSearchTree, splayTreeContract)).toEqual({
+      "insert (적대적)": false,
+      insert: true,
+      "has·min·max (적대적)": false,
+      "delete (적대적)": true,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+
+    // 정렬 배열: 같은 이유로 갱신 둘이 그대로 걸린다.
+    expect(outcomes(sortedArraySet, splayTreeContract)).toEqual({
+      "insert (적대적)": true,
+      insert: false,
+      "has·min·max (적대적)": true,
+      "delete (적대적)": false,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+  }, 30_000);
+
+  /**
+   * **포섭의 방향을 정본 둘로 잰다.**
+   *
+   * 「`worst` 계약을 만족하는 구현은 전부 `amortized` 계약을 만족한다」는 논증이었다.
+   * 정본을 서로의 계약에 넣으면 그 사슬이 수치가 된다 — 한쪽은 전부 통과하고 반대쪽은
+   * 두 자리에서 걸린다. 담는 쪽이 좁다는 것이 이 비대칭이다.
+   */
+  test("최악 정본은 상각 계약을 지키고 상각 정본은 최악 계약을 못 지킨다", () => {
+    expect(outcomes(referenceRedBlackTree, splayTreeContract)).toEqual({
+      "insert (적대적)": true,
+      insert: true,
+      "has·min·max (적대적)": true,
+      "delete (적대적)": true,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+
+    expect(outcomes(referenceSplayTree, redBlackTreeContract)).toEqual({
+      "insert (적대적)": true,
+      insert: true,
+      "has·min·max (적대적)": false,
+      "delete (적대적)": false,
+      range: true,
+      toArray: true,
+      size: true,
+    });
+  }, 30_000);
+
+  /**
+   * **같은 실행이 두 계약에 정반대 판정을 낸다.**
+   *
+   * 시나리오도 구현도 seed 도 같고 읽는 통계만 다르다. 평균은 크기를 네 배씩 올려도
+   * 움직이지 않고, 최대는 정확히 네 배씩 자란다. 불변 사실 63 이 논증으로만 있던 것에
+   * 붙는 수치가 이 한 쌍이다.
+   */
+  test("한 실행에서 시퀀스 평균은 상수인데 단일 호출 최대는 네 배씩 자란다", () => {
+    const amortized = judgeScenario(
+      referenceSplayTree,
+      scenarioOf(splayTreeContract, "has", true),
+      "complexity",
+    );
+    expect(amortized.ok).toBe(true);
+    const means = amortized.points.map((point) => point.stat);
+    // 19.7 → 19.8 → 19.8. 네 배씩 커진 입력에서 평균이 1% 안쪽으로 붙어 있다.
+    expect((means[2] ?? 0) / (means[0] ?? 1)).toBeLessThan(1.1);
+
+    const worst = judgeScenario(
+      referenceSplayTree,
+      scenarioOf(redBlackTreeContract, "has", true),
+      "complexity",
+    );
+    expect(worst.ok).toBe(false);
+    const peaks = worst.points.map((point) => point.stat);
+    // 1540 → 6148 → 24580. 같은 실행의 최댓값이다.
+    expect((peaks[2] ?? 0) / (peaks[0] ?? 1)).toBeGreaterThan(15);
   });
 
   test("한정자를 어기는 구현은 무작위 입력으로는 잡히지 않는다", () => {

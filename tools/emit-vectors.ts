@@ -29,6 +29,7 @@ import { concurrentSkipListContract } from "../src/data-structures/probabilistic
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
 import { multisetContract } from "../src/data-structures/tree/multiset/multiset.contract.ts";
 import { redBlackTreeContract } from "../src/data-structures/tree/redBlackTree/redBlackTree.contract.ts";
+import { splayTreeContract } from "../src/data-structures/tree/splayTree/splayTree.contract.ts";
 import { suffixArrayContract } from "../src/data-structures/trie/suffixArray/suffixArray.contract.ts";
 import { suffixTreeContract } from "../src/data-structures/trie/suffixTree/suffixTree.contract.ts";
 import { ternarySearchTreeContract } from "../src/data-structures/trie/ternarySearchTree/ternarySearchTree.contract.ts";
@@ -124,23 +125,31 @@ function buildVector<Impl, Model>(spec: ContractSpec<Impl, Model>): Vector {
   };
 }
 
+/**
+ * 등록 목록. **구조 경로 알파벳 순으로 고정한다**(`docs/ORD-006-wbs.md` §4).
+ *
+ * 병렬 배치가 저마다 자기 구조를 여기 더하므로 순서가 자유로우면 같은 자리에 두 줄이
+ * 들어와 충돌한다. 순서가 고정이면 충돌이 나도 **양쪽을 살리는 해결이 유일하다.**
+ * B20 에서 실제로 이 파일이 충돌해 등록 하나를 다음 배치로 미뤘다.
+ */
 // biome-ignore lint/suspicious/noExplicitAny: 여러 구조의 spec 을 한 배열에 담는 자리다
 const SPECS: ContractSpec<any, any>[] = [
-  stackContract,
-  multisetContract,
   dequeContract,
-  intervalTreeContract,
-  xorLinkedListContract,
-  unrolledLinkedListContract,
   queueContract,
-  suffixArrayContract,
-  suffixTreeContract,
-  ternarySearchTreeContract,
-  redBlackTreeContract,
+  stackContract,
+  unrolledLinkedListContract,
+  xorLinkedListContract,
   // 이 구조만 vector 의 쓰임이 다르다. 나머지는 TS 하네스가 이미 축1을 돌고 vector 는 Rust
   // 포트를 위한 파생물인데, `concurrency` 등급은 TS 스위트가 돌지 않으므로 **vector 가 축1의
   // 유일한 경로**다(§규약2 「축4 — 동시성」).
   concurrentSkipListContract,
+  intervalTreeContract,
+  multisetContract,
+  redBlackTreeContract,
+  splayTreeContract,
+  suffixArrayContract,
+  suffixTreeContract,
+  ternarySearchTreeContract,
 ];
 
 const check = Bun.argv.includes("--check");
