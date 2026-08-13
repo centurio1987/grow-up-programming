@@ -40,6 +40,8 @@ import {
   type IntervalTreeContract,
   intervalTreeContract,
 } from "../range-query/intervalTree/intervalTree.contract";
+import { BinarySearchTree as ReferenceBinarySearchTree } from "../tree/binarySearchTree/_reference/binarySearchTree";
+import { binarySearchTreeContract } from "../tree/binarySearchTree/binarySearchTree.contract";
 import { Multiset as ReferenceMultiset } from "../tree/multiset/_reference/multiset";
 import {
   type MultisetContract,
@@ -50,10 +52,10 @@ import {
   type RedBlackTreeContract,
   redBlackTreeContract,
 } from "../tree/redBlackTree/redBlackTree.contract";
-import { SplayTree as ReferenceSplayTree } from "../tree/splayTree/_reference/splayTree";
-import { splayTreeContract } from "../tree/splayTree/splayTree.contract";
 import { ScapegoatTree as ReferenceScapegoatTree } from "../tree/scapegoatTree/_reference/scapegoatTree";
 import { scapegoatTreeContract } from "../tree/scapegoatTree/scapegoatTree.contract";
+import { SplayTree as ReferenceSplayTree } from "../tree/splayTree/_reference/splayTree";
+import { splayTreeContract } from "../tree/splayTree/splayTree.contract";
 import { Treap as ReferenceTreap } from "../tree/treap/_reference/treap";
 import { treapContract } from "../tree/treap/treap.contract";
 import { SuffixArray as ReferenceSuffixArray } from "../trie/suffixArray/_reference/suffixArray";
@@ -73,7 +75,9 @@ import {
 } from "../trie/ternarySearchTree/ternarySearchTree.contract";
 import { FixedChunkList } from "./_fixtures/fixedChunkList";
 import { FrontPushStack } from "./_fixtures/frontPushStack";
+import { LazySortingSet } from "./_fixtures/lazySortingSet";
 import { MapWordSet } from "./_fixtures/mapWordSet";
+import { RecountingSizeSet } from "./_fixtures/recountingSizeSet";
 import { RootedSuffixTree } from "./_fixtures/rootedSuffixTree";
 import { ScanIntervalList } from "./_fixtures/scanIntervalList";
 import { ScanningSuffixArray } from "./_fixtures/scanningSuffixArray";
@@ -85,6 +89,7 @@ import { SortedSuffixArray } from "./_fixtures/sortedSuffixArray";
 import { SortedWordSet } from "./_fixtures/sortedWordSet";
 import { SplayingSearchTree } from "./_fixtures/splayingSearchTree";
 import { SpliceArrayList } from "./_fixtures/spliceArrayList";
+import { StaleEndCacheSet } from "./_fixtures/staleEndCacheSet";
 import { TailScanList } from "./_fixtures/tailScanList";
 import { TwoArrayDeque } from "./_fixtures/twoArrayDeque";
 import { UnbalancedIntervalTree } from "./_fixtures/unbalancedIntervalTree";
@@ -406,6 +411,29 @@ const referenceTreap: CostSource<RedBlackTreeContract<number>> = {
   make: () => new ReferenceTreap<number>(),
 };
 
+/**
+ * 상한 없는 정렬 집합(`tree/binarySearchTree`)의 정본과 그 계약의 결함 셋.
+ *
+ * 표면이 나란한 넷과 같으므로 `RedBlackTreeContract` 를 그대로 쓴다 — 갈리는 것은 계약의
+ * 상한이고 타입이 아니다.
+ */
+const referenceBinarySearchTree: CostSource<RedBlackTreeContract<number>> = {
+  kind: "self-reported",
+  make: () => new ReferenceBinarySearchTree<number>(),
+};
+const staleEndCacheSet: CostSource<RedBlackTreeContract<number>> = {
+  kind: "self-reported",
+  make: () => new StaleEndCacheSet<number>(),
+};
+const recountingSizeSet: CostSource<RedBlackTreeContract<number>> = {
+  kind: "self-reported",
+  make: () => new RecountingSizeSet<number>(),
+};
+const lazySortingSet: CostSource<RedBlackTreeContract<number>> = {
+  kind: "self-reported",
+  make: () => new LazySortingSet<number>(),
+};
+
 describe("축3 — 정본은 통과한다", () => {
   test("Stack 정본의 push·pop 이 amortized O(1) 계약 안에 있다", () => {
     const verdict = judgeScenario(
@@ -565,6 +593,23 @@ describe("축3 — 정본은 통과한다", () => {
       );
     }
   }, 30_000);
+
+  /**
+   * 상한이 없는(선형인) 계약의 정본. **등급이 `invariant` 라 회귀 수준으로 돈다** — 나란한
+   * 넷과 갈리는 첫 자리이고, 크기가 두 점이라 판정이 그만큼 싸다.
+   */
+  test("상한 없는 정렬 집합 정본이 여섯 시나리오를 전부 통과한다", () => {
+    for (const scenario of binarySearchTreeContract.scenarios) {
+      const verdict = judgeScenario(
+        referenceBinarySearchTree,
+        scenario,
+        "invariant",
+      );
+      expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
+        `${scenario.covers.join("·")}: `,
+      );
+    }
+  });
 });
 
 describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
@@ -1238,6 +1283,136 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     });
   }, 30_000);
 
+  /**
+   * **상한이 느슨한 계약에서 축3이 무엇을 할 수 있는가.** 위아래로 한 자리씩 눈이 멀어
+   * 있고, 남는 것이 `size` 행 하나다.
+   *
+   * 셋이 서로 다른 축에서 걸리도록 지었다 — 축2만, 축3만, **어느 축도 아닌 것.**
+   * 셋째가 이 자리의 내용이다.
+   */
+  test("상한 없는 계약의 결함 셋이 서로 다른 축에서 걸린다", () => {
+    const grade = "invariant" as const;
+
+    // ① 양 끝을 캐시하고 지울 때 갱신을 빠뜨리는 구현: **축3은 전부 통과시킨다.**
+    //    담는 모양이 정본과 같아서 성장 계급이 갈리지 않는다 — 잡는 것은 축2뿐이고,
+    //    그 확인은 아래 「축2 — 상한이 느슨하면 축2가 주 판별기다」에 있다.
+    expect(
+      outcomesAt(staleEndCacheSet, binarySearchTreeContract, grade),
+    ).toEqual({
+      "insert (적대적)": true,
+      "has·min·max (적대적)": true,
+      "delete (적대적)": true,
+      "range (적대적)": true,
+      size: true,
+      toArray: true,
+    });
+
+    // ② 크기를 매번 훑어 세는 구현: **`size` 행 하나만 걸린다.** 여덟 행 중 유일하게
+    //    상한이 상수인 행이고, 그래서 이 계약에서 축3이 위쪽으로 판별력을 갖는 유일한
+    //    자리다. 나란한 넷의 계약에서라면 갱신·조회가 먼저 걸려 이 자리가 묻힌다.
+    expect(
+      outcomesAt(recountingSizeSet, binarySearchTreeContract, grade),
+    ).toEqual({
+      "insert (적대적)": true,
+      "has·min·max (적대적)": true,
+      "delete (적대적)": true,
+      "range (적대적)": true,
+      size: false,
+      toArray: true,
+    });
+
+    // ③ 순서를 유지하지 않고 관측할 때마다 만드는 구현: **여섯을 전부 통과한다.**
+    //    필요충분조건의 비용 조건을 어기는데(관측 하나가 n log n) 어기는 폭이 로그 인수
+    //    하나뿐이라 축3의 해상도 아래다(불변 사실 53·62). 축1·축2는 답이 맞으므로
+    //    통과시킨다. **네 축이 전부 통과시키는 계약 위반이고, 처분은 가이드다.**
+    expect(outcomesAt(lazySortingSet, binarySearchTreeContract, grade)).toEqual(
+      {
+        "insert (적대적)": true,
+        "has·min·max (적대적)": true,
+        "delete (적대적)": true,
+        "range (적대적)": true,
+        size: true,
+        toArray: true,
+      },
+    );
+  });
+
+  /**
+   * **계약을 만족하는 것과 이 스위트를 통과하는 것이 갈리는 첫 자리.**
+   *
+   * 축3은 상한이 아니라 성장 계급을 판정하므로 아래쪽으로도 허용치가 있다(불변 사실 49).
+   * 나란한 넷에서는 그것이 문제가 되지 않았다 — 로그를 약속하면 만족하는 구현이 전부 로그
+   * 계급이기 때문이다. **이 계약은 선형만 약속하므로 계급이 흩어지고, 흩어진 만큼 걸린다.**
+   *
+   * 지금까지 「계약보다 빠른 구현도 실패한다」는 결함 fixture 에 대한 문장이었다. 여기서는
+   * **계약이 이름을 불러 초대한 구현**이 실패한다 — 헤더가 *"정렬 배열도 이 계약을
+   * 만족한다, 그것은 결함이 아니라 계약의 내용"* 이라고 적은 그 구현이다.
+   */
+  test("느슨한 상한은 계약을 지키는 구현을 축3에서 걸러 낸다", () => {
+    const grade = "invariant" as const;
+    const chain = [
+      ["redBlackTree", referenceRedBlackTree],
+      ["scapegoatTree", referenceScapegoatTree],
+      ["splayTree", referenceSplayTree],
+      ["treap", referenceTreap],
+      ["정렬 배열", sortedArraySet],
+    ] as const;
+
+    // 다섯 다 이 계약을 **만족한다** — 로그 안에 드는 구현은 선형 안에도 든다. 그런데
+    // 여섯 시나리오를 전부 통과하는 것은 **하나도 없다.**
+    for (const [name, cost] of chain) {
+      const passed = Object.values(
+        outcomesAt(cost, binarySearchTreeContract, grade),
+      ).filter(Boolean).length;
+      expect(`${name}: ${passed}/6`).not.toBe(`${name}: 6/6`);
+    }
+
+    // 걸리는 자리는 그 구현이 무엇을 **덜 쓰는가**에 따라 갈린다. 균형을 잡는 정본은 넷
+    // 전부에서 로그 계급이라 넷 다 걸리고, 접근한 자리를 끌어올리는 정본은 순차 조회에서만
+    // 선형이라 그 행만 통과한다.
+    expect(
+      outcomesAt(referenceRedBlackTree, binarySearchTreeContract, grade),
+    ).toEqual({
+      "insert (적대적)": false,
+      "has·min·max (적대적)": false,
+      "delete (적대적)": false,
+      "range (적대적)": false,
+      size: true,
+      toArray: true,
+    });
+    expect(
+      outcomesAt(referenceSplayTree, binarySearchTreeContract, grade),
+    ).toEqual({
+      "insert (적대적)": false,
+      "has·min·max (적대적)": true,
+      "delete (적대적)": false,
+      "range (적대적)": false,
+      size: true,
+      toArray: true,
+    });
+
+    // **`toArray` 행만 여섯 중 계급이 안 갈린다.** 어떤 구현으로 지어도 호출 하나가 원소
+    // 수만큼 들기 때문이고, 그래서 이 행에는 적대적 입력이 없다. 다섯이 같은 값을 낸다.
+    for (const [, cost] of chain) {
+      const verdict = judgeScenario(
+        cost,
+        scenarioOf(binarySearchTreeContract, "toArray", false),
+        grade,
+      );
+      expect(verdict.ok).toBe(true);
+    }
+
+    // 반대 방향 — 이 정본은 나란한 넷의 계약에서 걸린다. **포섭의 방향이 그 비대칭이고,**
+    // 이 계약이 사슬의 가장 넓은 쪽이라는 근거다(불변 사실 100 의 절차).
+    expect(
+      judgeScenario(
+        referenceBinarySearchTree,
+        scenarioOf(redBlackTreeContract, "insert", true),
+        "complexity",
+      ).ok,
+    ).toBe(false);
+  }, 30_000);
+
   test("한정자를 어기는 구현은 무작위 입력으로는 잡히지 않는다", () => {
     // 같은 스플레이 구현이 무작위 넣기에서는 통과하고 순차 조회에서 걸린다.
     // **시나리오를 무작위로만 두면 `worst` 계약과 `amortized` 계약의 스위트가
@@ -1537,6 +1712,58 @@ describe("축2 — B10 이 multiset 의 불변식 한 자리를 갈았다", () =
       (invariant) => invariant.name,
     );
     expect(names.some((name) => name.includes("비내림차순"))).toBe(false);
+  });
+});
+
+/**
+ * **등급이 `invariant` 라는 것이 「축2가 주 판별기다」의 다른 이름이다.**
+ *
+ * `tree/binarySearchTree` 계약은 상한이 선형이라 축3이 위아래로 한 자리씩 눈이 멀어 있다
+ * (위는 로그 인수, 아래는 계약이 허용하는 더 빠른 계급). 남는 판별기가 축2이고, 그 넷이
+ * 나란한 넷의 넷과 **같다** — 판별 절차가 상한을 읽지 않기 때문이다.
+ */
+describe("축2 — 상한이 느슨하면 축2가 주 판별기다", () => {
+  const [counted, membership, ends, ranged] =
+    binarySearchTreeContract.invariants;
+
+  test("불변식 절이 넷이고 나란한 넷의 넷과 같다 — 상한을 내려도 안 움직인다", () => {
+    expect(binarySearchTreeContract.invariants).toHaveLength(4);
+    expect(
+      binarySearchTreeContract.invariants.map((invariant) => invariant.name),
+    ).toEqual(
+      redBlackTreeContract.invariants.map((invariant) => invariant.name),
+    );
+
+    const impl = new ReferenceBinarySearchTree<number>();
+    for (const value of [5, 1, 9, 3]) impl.insert(value);
+    impl.delete(1);
+    for (const invariant of binarySearchTreeContract.invariants) {
+      expect(invariant.check(impl)).toBeNull();
+    }
+  });
+
+  test("양 끝을 캐시하고 지울 때 갱신을 빠뜨리면 불변식 3이 잡는다", () => {
+    const impl = new StaleEndCacheSet<number>();
+    for (const value of [1, 5, 9]) impl.insert(value);
+    // 아직 갈리지 않는다 — 캐시가 옳다.
+    for (const invariant of binarySearchTreeContract.invariants) {
+      expect(invariant.check(impl)).toBeNull();
+    }
+
+    impl.delete(1);
+    // 개수도 담김 여부도 구간도 맞는다. 갈리는 것은 양 끝을 읽는 두 길뿐이다.
+    expect(counted?.check(impl)).toBeNull();
+    expect(membership?.check(impl)).toBeNull();
+    expect(ranged?.check(impl)).toBeNull();
+    expect(ends?.check(impl)).toContain("min()=1 인데 첫 원소는 5 다");
+  });
+
+  test("그 구현을 축3은 통과시킨다 — 담는 모양이 정본과 같아서다", () => {
+    for (const scenario of binarySearchTreeContract.scenarios) {
+      expect(judgeScenario(staleEndCacheSet, scenario, "invariant").ok).toBe(
+        true,
+      );
+    }
   });
 });
 

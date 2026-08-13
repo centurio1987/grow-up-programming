@@ -27,6 +27,7 @@ import { unrolledLinkedListContract } from "../src/data-structures/linear/unroll
 import { xorLinkedListContract } from "../src/data-structures/linear/xorLinkedList/xorLinkedList.contract.ts";
 import { concurrentSkipListContract } from "../src/data-structures/probabilistic/concurrentSkipList/concurrentSkipList.contract.ts";
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
+import { binarySearchTreeContract } from "../src/data-structures/tree/binarySearchTree/binarySearchTree.contract.ts";
 import { multisetContract } from "../src/data-structures/tree/multiset/multiset.contract.ts";
 import { redBlackTreeContract } from "../src/data-structures/tree/redBlackTree/redBlackTree.contract.ts";
 import { scapegoatTreeContract } from "../src/data-structures/tree/scapegoatTree/scapegoatTree.contract.ts";
@@ -146,6 +147,7 @@ const SPECS: ContractSpec<any, any>[] = [
   // 유일한 경로**다(§규약2 「축4 — 동시성」).
   concurrentSkipListContract,
   intervalTreeContract,
+  binarySearchTreeContract,
   multisetContract,
   redBlackTreeContract,
   scapegoatTreeContract,
