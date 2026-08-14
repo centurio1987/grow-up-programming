@@ -47,6 +47,11 @@ import {
   type MultisetContract,
   multisetContract,
 } from "../tree/multiset/multiset.contract";
+import { OrderStatisticTree as ReferenceOrderStatisticTree } from "../tree/orderStatisticTree/_reference/orderStatisticTree";
+import {
+  type OrderStatisticTreeContract,
+  orderStatisticTreeContract,
+} from "../tree/orderStatisticTree/orderStatisticTree.contract";
 import { RedBlackTree as ReferenceRedBlackTree } from "../tree/redBlackTree/_reference/redBlackTree";
 import {
   type RedBlackTreeContract,
@@ -75,6 +80,7 @@ import {
 } from "../trie/ternarySearchTree/ternarySearchTree.contract";
 import { FixedChunkList } from "./_fixtures/fixedChunkList";
 import { FrontPushStack } from "./_fixtures/frontPushStack";
+import { KeyCountingMultiset } from "./_fixtures/keyCountingMultiset";
 import { LazySortingSet } from "./_fixtures/lazySortingSet";
 import { MapWordSet } from "./_fixtures/mapWordSet";
 import { RecountingSizeSet } from "./_fixtures/recountingSizeSet";
@@ -93,6 +99,7 @@ import { StaleEndCacheSet } from "./_fixtures/staleEndCacheSet";
 import { TailScanList } from "./_fixtures/tailScanList";
 import { TwoArrayDeque } from "./_fixtures/twoArrayDeque";
 import { UnbalancedIntervalTree } from "./_fixtures/unbalancedIntervalTree";
+import { UnbalancedRankedMultiset } from "./_fixtures/unbalancedRankedMultiset";
 import { UnbalancedSearchTree } from "./_fixtures/unbalancedSearchTree";
 import { UnshiftDeque } from "./_fixtures/unshiftDeque";
 import { UnshiftQueue } from "./_fixtures/unshiftQueue";
@@ -434,6 +441,52 @@ const lazySortingSet: CostSource<RedBlackTreeContract<number>> = {
   make: () => new LazySortingSet<number>(),
 };
 
+/**
+ * 위치 좌표계를 가진 정렬 다중집합(`tree/orderStatisticTree`)의 정본과 결함 둘.
+ *
+ * **결함 둘의 표면이 정본과 같으므로 세 CostSource 가 같은 타입을 쓴다.** 셋을 두 계약에
+ * 넣어 보는 것이 아래 「포섭」 자리이고, `keyCountingMultiset` 은 `tree/multiset` 계약의
+ * 표면도 만족하므로 그쪽 스위트에도 그대로 들어간다.
+ */
+const referenceOrderStatisticTree: CostSource<
+  OrderStatisticTreeContract<number>
+> = {
+  kind: "self-reported",
+  make: () => new ReferenceOrderStatisticTree<number>(),
+};
+const keyCountingMultiset: CostSource<OrderStatisticTreeContract<number>> = {
+  kind: "self-reported",
+  make: () => new KeyCountingMultiset<number>(),
+};
+const unbalancedRankedMultiset: CostSource<OrderStatisticTreeContract<number>> =
+  {
+    kind: "self-reported",
+    make: () => new UnbalancedRankedMultiset<number>(),
+  };
+
+/**
+ * 같은 것 셋을 담기는 쪽 계약의 표면으로 다시 적는다.
+ *
+ * **교차가 한 방향으로만 되는 것이 포섭의 다른 모습이다.** 담는 쪽 계약의 표면은 담기는 쪽의
+ * 표면을 포함하므로 이 방향은 그냥 되고, 반대 방향은 안 된다 — `tree/multiset` 정본에는
+ * `rankOf`·`at` 이 아예 없다. 한정자만 갈린 계약끼리는 표면이 같아 양방향이 다 됐다
+ * (불변 사실 100·107). **연산 집합이 갈린 계약에서는 그 대칭이 없다.**
+ */
+const referenceOrderStatisticTreeAsMultiset: CostSource<
+  MultisetContract<number>
+> = {
+  kind: "self-reported",
+  make: () => new ReferenceOrderStatisticTree<number>(),
+};
+const keyCountingAsMultiset: CostSource<MultisetContract<number>> = {
+  kind: "self-reported",
+  make: () => new KeyCountingMultiset<number>(),
+};
+const unbalancedRankedAsMultiset: CostSource<MultisetContract<number>> = {
+  kind: "self-reported",
+  make: () => new UnbalancedRankedMultiset<number>(),
+};
+
 describe("축3 — 정본은 통과한다", () => {
   test("Stack 정본의 push·pop 이 amortized O(1) 계약 안에 있다", () => {
     const verdict = judgeScenario(
@@ -610,6 +663,23 @@ describe("축3 — 정본은 통과한다", () => {
       );
     }
   });
+
+  /**
+   * 위치 좌표계를 가진 정렬 다중집합의 정본. 시나리오가 여덟인 것은 위치 연산을 겨눈 것이
+   * 둘이기 때문이다(무작위로 채우기 · 오름차순으로 채우기).
+   */
+  test("위치 질의 다중집합 정본이 여덟 시나리오를 전부 통과한다", () => {
+    for (const scenario of orderStatisticTreeContract.scenarios) {
+      const verdict = judgeScenario(
+        referenceOrderStatisticTree,
+        scenario,
+        "complexity",
+      );
+      expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
+        `${scenario.covers.join("·")}: `,
+      );
+    }
+  }, 30_000);
 });
 
 describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
@@ -1284,6 +1354,109 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
   }, 30_000);
 
   /**
+   * **연산 집합이 갈린 두 계약의 포섭을 처음으로 실측한다.**
+   *
+   * 앞의 포섭 실측 셋은 전부 **한정자만 갈린** 계약 사이의 것이었다(불변 사실 100·105·107).
+   * 표면이 같으므로 정본을 서로의 계약에 그대로 넣을 수 있었고, 그래서 양방향을 다 잴 수
+   * 있었다. `tree/orderStatisticTree` 와 `tree/multiset` 은 **연산 집합이 갈린다** — 앞의
+   * 것이 뒤의 것에 `rankOf`·`at` 둘을 더한 계약이다. 그 갈림이 실측 방법을 바꾼다.
+   *
+   * | 방향 | 되는가 | 결과 |
+   * |---|---|---|
+   * | 담는 쪽 정본 → 담기는 쪽 계약 | 된다(표면이 포함한다) | 여섯 전부 통과 |
+   * | 담기는 쪽 정본 → 담는 쪽 계약 | **안 된다** — `rankOf`·`at` 이 없다 | — |
+   * | 담기는 쪽만 만족하는 구현 → 두 계약 | 된다 | 아래 |
+   *
+   * 둘째 줄이 막히므로 **포섭이 진짜 포섭이라는 것**(한쪽만 만족하는 구현이 실재한다는 것)은
+   * 정본 교차가 아니라 **결함 fixture 로** 보인다. `keyCountingMultiset` 이 그 자리이고,
+   * 그것이 담기는 쪽 계약을 전부 지키면서 담는 쪽에서 **정확히 새 두 행만** 어긴다.
+   *
+   * 20회 반복해 넷 다 같은 결과였다(fixture 와 정본이 둘 다 우선순위를 난수로 뽑으므로
+   * 한 번 돌린 결과를 판정으로 읽지 않는다 — 불변 사실 105).
+   */
+  test("위치 질의 계약이 다중집합 계약을 담고, 그 포섭이 진짜 포섭이다", () => {
+    // ① 담는 쪽 정본 → 담기는 쪽 계약: 전부 통과. **포섭의 방향이다.**
+    expect(
+      outcomes(referenceOrderStatisticTreeAsMultiset, multisetContract),
+    ).toEqual({
+      "add (적대적)": true,
+      add: true,
+      delete·deleteAll: true,
+      has·count·min·max: true,
+      toArray: true,
+      size: true,
+    });
+
+    // ② 담기는 쪽만 만족하는 구현 → 담기는 쪽 계약: 전부 통과.
+    expect(outcomes(keyCountingAsMultiset, multisetContract)).toEqual({
+      "add (적대적)": true,
+      add: true,
+      delete·deleteAll: true,
+      has·count·min·max: true,
+      toArray: true,
+      size: true,
+    });
+
+    // ③ 같은 구현 → 담는 쪽 계약: **새로 들어온 두 행에서만 걸린다.** ②와 ③이 함께
+    //    「포섭은 같음의 증거가 아니라 반대 방향의 증거다」를 수치로 만든다.
+    expect(outcomes(keyCountingMultiset, orderStatisticTreeContract)).toEqual({
+      "add (적대적)": true,
+      add: true,
+      delete·deleteAll: true,
+      has·count·min·max: true,
+      rankOf·at: false,
+      "rankOf·at (적대적)": false,
+      toArray: true,
+      size: true,
+    });
+  }, 60_000);
+
+  /**
+   * **위치 연산을 겨눈 시나리오가 둘인 이유.**
+   *
+   * 하나는 「위치를 세는 값을 안 드는」 계열을, 다른 하나는 「값은 드는데 담는 모양을 안
+   * 고치는」 계열을 잡는다. 둘째 계열은 무작위로 채우면 기대 높이가 로그라 **첫째 시나리오를
+   * 통과한다** — 적대성이 (계약, 구현) 쌍에 대해 정의된다는 것이 이 한 쌍이다(불변 사실 57).
+   */
+  test("위치 연산의 두 시나리오가 서로 다른 계열을 잡는다", () => {
+    // 값을 안 드는 계열: 무작위로 채워도 걸린다. 서로 다른 키의 수가 원소 수에 비례한다.
+    const naiveRandom = judgeScenario(
+      keyCountingMultiset,
+      scenarioOf(orderStatisticTreeContract, "rankOf", false),
+      "complexity",
+    );
+    expect(naiveRandom.ok).toBe(false);
+    const naiveStats = naiveRandom.points.map((point) => point.stat);
+    expect((naiveStats[2] ?? 0) / (naiveStats[0] ?? 1)).toBeGreaterThan(10);
+
+    // 값은 드는데 모양을 안 고치는 계열: **무작위로 채우면 통과하고** 오름차순으로 채우면
+    // 걸린다. 시나리오가 하나뿐이었다면 이 계열이 통째로 새어 나간다.
+    expect(
+      outcomes(unbalancedRankedMultiset, orderStatisticTreeContract),
+    ).toEqual({
+      "add (적대적)": false,
+      add: true,
+      delete·deleteAll: true,
+      has·count·min·max: true,
+      rankOf·at: true,
+      "rankOf·at (적대적)": false,
+      toArray: true,
+      size: true,
+    });
+
+    // 같은 구현을 담기는 쪽 계약에 넣으면 갱신 행 하나만 걸린다 — 저 계약에는 위치 연산이
+    // 없으므로 이 계열이 어디서 갈리는지를 **물을 자리 자체가 없다.**
+    expect(outcomes(unbalancedRankedAsMultiset, multisetContract)).toEqual({
+      "add (적대적)": false,
+      add: true,
+      delete·deleteAll: true,
+      has·count·min·max: true,
+      toArray: true,
+      size: true,
+    });
+  }, 60_000);
+
+  /**
    * **상한이 느슨한 계약에서 축3이 무엇을 할 수 있는가.** 위아래로 한 자리씩 눈이 멀어
    * 있고, 남는 것이 `size` 행 하나다.
    *
@@ -1763,6 +1936,135 @@ describe("축2 — 상한이 느슨하면 축2가 주 판별기다", () => {
       expect(judgeScenario(staleEndCacheSet, scenario, "invariant").ok).toBe(
         true,
       );
+    }
+  });
+});
+
+/**
+ * 위치를 세는 값을 따로 들고 지울 때 갱신을 빠뜨렸다.
+ *
+ * **이 구현은 담기는 쪽 계약(`tree/multiset`)의 불변식 셋을 전부 만족한다** — `toArray()` 도
+ * 개수도 다중도도 양 끝도 맞는다. 갈리는 것은 위치를 읽는 두 길뿐이고, 그 길이 담는 쪽
+ * 계약에서만 열린다.
+ */
+class StaleRankIndexMultiset implements OrderStatisticTreeContract<number> {
+  #items: number[] = [];
+  /** 위치 질의만 읽는 사본. `add` 에서만 다시 뜬다. */
+  #index: number[] = [];
+
+  add(item: number): void {
+    const at = this.#items.findIndex((value) => value > item);
+    this.#items.splice(at < 0 ? this.#items.length : at, 0, item);
+    this.#index = [...this.#items];
+  }
+
+  delete(item: number): boolean {
+    const at = this.#items.indexOf(item);
+    if (at < 0) return false;
+    this.#items.splice(at, 1);
+    // 여기서 #index 를 다시 떠야 하는데 뜨지 않는다.
+    return true;
+  }
+
+  deleteAll(item: number): number {
+    let removed = 0;
+    while (this.delete(item)) removed += 1;
+    return removed;
+  }
+
+  has(item: number): boolean {
+    return this.#items.includes(item);
+  }
+
+  count(item: number): number {
+    return this.#items.filter((value) => value === item).length;
+  }
+
+  rankOf(item: number): number {
+    return this.#index.filter((value) => value < item).length;
+  }
+
+  at(index: number): number | null {
+    if (!Number.isInteger(index)) return null;
+    if (index < 0 || index >= this.#index.length) return null;
+    return this.#index[index] as number;
+  }
+
+  min(): number | null {
+    return this.#items.length === 0 ? null : (this.#items[0] as number);
+  }
+
+  max(): number | null {
+    return this.#items.length === 0
+      ? null
+      : (this.#items[this.#items.length - 1] as number);
+  }
+
+  size(): number {
+    return this.#items.length;
+  }
+
+  toArray(): number[] {
+    return [...this.#items];
+  }
+}
+
+/**
+ * **불변식 판별 절차가 계약마다 다른 답을 내는 자리.**
+ *
+ * T1-03 이 남긴 것은 「정본이 내부 판정에만 쓰는 값은 네 축이 검사하지 않는다」였다
+ * (불변 사실 109) — 그때 어긋난 것이 부분트리 크기였고, 그 계약에는 그 값을 읽는 공개 연산이
+ * 없어서 축1·축2·축3이 전부 통과시켰다. **이 계약에는 그 연산이 둘 있다.** 같은 종류의
+ * 어긋남이 여기서는 불변식 넷째·다섯째에 이름으로 걸린다 — 아래 fixture 가 위치 경로만
+ * 낡게 만든 것이라 정확히 그 둘이다. **어느 불변식이 걸리는지는 구현이 정한다**: 이 계약의
+ * 정본은 `size`·`count` 도 같은 값을 읽으므로 그쪽이 어긋나면 1·2 도 함께 걸린다.
+ *
+ * 그러므로 불변 사실 109 의 처분(정본 헤더에 적고 감사 스크립트를 따로 돌린다)은 이 계약에
+ * 걸리지 않는다. 관측되면 축이 본다.
+ */
+describe("축2 — 위치를 세는 값이 관측되면 그 갈림을 잡는다", () => {
+  const [, , , ranked, positioned] = orderStatisticTreeContract.invariants;
+
+  test("불변식이 다섯이고 앞의 셋은 담기는 쪽 계약의 셋과 같다", () => {
+    expect(orderStatisticTreeContract.invariants).toHaveLength(5);
+    expect(
+      orderStatisticTreeContract.invariants
+        .slice(0, 3)
+        .map((invariant) => invariant.name),
+    ).toEqual(multisetContract.invariants.map((invariant) => invariant.name));
+
+    const impl = new ReferenceOrderStatisticTree<number>();
+    for (const value of [5, 1, 5, 9]) impl.add(value);
+    impl.delete(1);
+    for (const invariant of orderStatisticTreeContract.invariants) {
+      expect(invariant.check(impl)).toBeNull();
+    }
+  });
+
+  test("위치를 세는 사본이 낡으면 뒤의 둘만 걸린다", () => {
+    const impl = new StaleRankIndexMultiset();
+    for (const value of [1, 5, 9]) impl.add(value);
+    for (const invariant of orderStatisticTreeContract.invariants) {
+      expect(invariant.check(impl)).toBeNull();
+    }
+
+    impl.delete(1);
+    // 앞의 셋은 그대로 성립한다 — 개수도 다중도도 양 끝도 `#items` 에서 나온다.
+    for (const invariant of orderStatisticTreeContract.invariants.slice(0, 3)) {
+      expect(invariant.check(impl)).toBeNull();
+    }
+    expect(ranked?.check(impl)).toContain("rankOf(2)=1 인데 실제 0");
+    expect(positioned?.check(impl)).toContain("at(0)=1");
+  });
+
+  test("담기는 쪽 계약에는 같은 갈림을 물을 자리가 없다", () => {
+    const impl = new StaleRankIndexMultiset();
+    for (const value of [1, 5, 9]) impl.add(value);
+    impl.delete(1);
+    // 같은 상태를 `tree/multiset` 의 불변식 셋에 물으면 **전부 통과한다.** 그 계약에서
+    // 위치는 관측되지 않으므로 갈릴 상대가 없다(불변 사실 109 와 같은 자리).
+    for (const invariant of multisetContract.invariants) {
+      expect(invariant.check(impl)).toBeNull();
     }
   });
 });

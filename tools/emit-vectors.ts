@@ -29,6 +29,7 @@ import { concurrentSkipListContract } from "../src/data-structures/probabilistic
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
 import { binarySearchTreeContract } from "../src/data-structures/tree/binarySearchTree/binarySearchTree.contract.ts";
 import { multisetContract } from "../src/data-structures/tree/multiset/multiset.contract.ts";
+import { orderStatisticTreeContract } from "../src/data-structures/tree/orderStatisticTree/orderStatisticTree.contract.ts";
 import { redBlackTreeContract } from "../src/data-structures/tree/redBlackTree/redBlackTree.contract.ts";
 import { scapegoatTreeContract } from "../src/data-structures/tree/scapegoatTree/scapegoatTree.contract.ts";
 import { splayTreeContract } from "../src/data-structures/tree/splayTree/splayTree.contract.ts";
@@ -149,6 +150,7 @@ const SPECS: ContractSpec<any, any>[] = [
   intervalTreeContract,
   binarySearchTreeContract,
   multisetContract,
+  orderStatisticTreeContract,
   redBlackTreeContract,
   scapegoatTreeContract,
   splayTreeContract,

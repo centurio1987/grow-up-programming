@@ -100,6 +100,10 @@ const VERIFICATION_GRADES: Record<
   // 하나가 여덟 행을 전부 상한 안에 하고, 그래서 `complexity` 가 아니다. 불변식 절이
   // 넷이라 `invariant` 다 — **등급이 다르면 계약이 같을 수 없다**(불변 사실 56).
   "tree/binarySearchTree": "invariant",
+  // 담기는 쪽(`tree/multiset`)과 **등급이 같다.** 등급이 다르면 계약이 같을 수 없다는 것의
+  // 역은 성립하지 않으므로(불변 사실 56) 여기서는 등급이 판정의 입력이 아니고, 두 계약을
+  // 가르는 것은 반례다(T1-05 — `keyCountingMultiset`).
+  "tree/orderStatisticTree": "complexity",
   "probabilistic/concurrentSkipList": "concurrency",
   // 성격 전환(B22·B23). 계약이 `tree/redBlackTree` 의 것과 같으므로 등급도 같다 —
   // 등급은 계약에서 기계적으로 따라 나온다(불변 사실 56).
