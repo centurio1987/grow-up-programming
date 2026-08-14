@@ -1,0 +1,1134 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "CircularBuffer",
+  "grade": "basic",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 버퍼에서 read·peek 은 null 이고 상태를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "read",
+          "expect": null
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "read",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        }
+      ]
+    },
+    {
+      "name": "용량 안에서는 먼저 들어온 것이 먼저 나간다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "write",
+          "arg": 1
+        },
+        {
+          "op": "write",
+          "arg": 2
+        },
+        {
+          "op": "write",
+          "arg": 3
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "read",
+          "expect": 1
+        },
+        {
+          "op": "read",
+          "expect": 2
+        },
+        {
+          "op": "read",
+          "expect": 3
+        },
+        {
+          "op": "read",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "꽉 찬 뒤의 쓰기는 가장 오래된 것을 밀어낸다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "write",
+          "arg": 1
+        },
+        {
+          "op": "write",
+          "arg": 2
+        },
+        {
+          "op": "write",
+          "arg": 3
+        },
+        {
+          "op": "write",
+          "arg": 4
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "write",
+          "arg": 5
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "peek",
+          "expect": 2
+        },
+        {
+          "op": "read",
+          "expect": 2
+        },
+        {
+          "op": "read",
+          "expect": 3
+        },
+        {
+          "op": "read",
+          "expect": 4
+        },
+        {
+          "op": "read",
+          "expect": 5
+        },
+        {
+          "op": "read",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "용량만큼 덮어쓰면 처음 것이 하나도 남지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "write",
+          "arg": 1
+        },
+        {
+          "op": "write",
+          "arg": 2
+        },
+        {
+          "op": "write",
+          "arg": 3
+        },
+        {
+          "op": "write",
+          "arg": 4
+        },
+        {
+          "op": "write",
+          "arg": 5
+        },
+        {
+          "op": "write",
+          "arg": 6
+        },
+        {
+          "op": "write",
+          "arg": 7
+        },
+        {
+          "op": "write",
+          "arg": 8
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "read",
+          "expect": 5
+        },
+        {
+          "op": "read",
+          "expect": 6
+        },
+        {
+          "op": "read",
+          "expect": 7
+        },
+        {
+          "op": "read",
+          "expect": 8
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "읽어서 자리를 비우면 다음 쓰기는 밀어내지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "write",
+          "arg": 1
+        },
+        {
+          "op": "write",
+          "arg": 2
+        },
+        {
+          "op": "write",
+          "arg": 3
+        },
+        {
+          "op": "write",
+          "arg": 4
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "read",
+          "expect": 1
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "write",
+          "arg": 5
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "peek",
+          "expect": 2
+        },
+        {
+          "op": "read",
+          "expect": 2
+        },
+        {
+          "op": "read",
+          "expect": 3
+        },
+        {
+          "op": "read",
+          "expect": 4
+        },
+        {
+          "op": "read",
+          "expect": 5
+        }
+      ]
+    },
+    {
+      "name": "다 비운 뒤에도 자리가 다시 돌아온다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "write",
+          "arg": 1
+        },
+        {
+          "op": "write",
+          "arg": 2
+        },
+        {
+          "op": "read",
+          "expect": 1
+        },
+        {
+          "op": "read",
+          "expect": 2
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "write",
+          "arg": 3
+        },
+        {
+          "op": "write",
+          "arg": 4
+        },
+        {
+          "op": "write",
+          "arg": 5
+        },
+        {
+          "op": "write",
+          "arg": 6
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "write",
+          "arg": 7
+        },
+        {
+          "op": "peek",
+          "expect": 4
+        },
+        {
+          "op": "size",
+          "expect": 4
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "write",
+          "arg": 52
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "read",
+          "expect": 52
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "write",
+          "arg": 40
+        },
+        {
+          "op": "read",
+          "expect": 40
+        },
+        {
+          "op": "write",
+          "arg": 48
+        },
+        {
+          "op": "write",
+          "arg": 39
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "read",
+          "expect": 48
+        },
+        {
+          "op": "read",
+          "expect": 39
+        },
+        {
+          "op": "write",
+          "arg": 42
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "read",
+          "expect": 42
+        },
+        {
+          "op": "read",
+          "expect": null
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "read",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "read",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "write",
+          "arg": 32
+        },
+        {
+          "op": "peek",
+          "expect": 32
+        },
+        {
+          "op": "read",
+          "expect": 32
+        },
+        {
+          "op": "write",
+          "arg": 72
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "write",
+          "arg": 26
+        },
+        {
+          "op": "write",
+          "arg": 62
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "read",
+          "expect": 72
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 26
+        },
+        {
+          "op": "read",
+          "expect": 26
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "write",
+          "arg": 3
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "read",
+          "expect": 62
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "write",
+          "arg": 67
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "write",
+          "arg": 97
+        },
+        {
+          "op": "write",
+          "arg": 38
+        },
+        {
+          "op": "write",
+          "arg": 40
+        },
+        {
+          "op": "read",
+          "expect": 67
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "write",
+          "arg": 80
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "read",
+          "expect": 97
+        },
+        {
+          "op": "write",
+          "arg": 30
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "read",
+          "expect": 38
+        },
+        {
+          "op": "write",
+          "arg": 65
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "read",
+          "expect": 40
+        },
+        {
+          "op": "write",
+          "arg": 14
+        },
+        {
+          "op": "write",
+          "arg": 30
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "write",
+          "arg": 50
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "read",
+          "expect": 65
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "read",
+          "expect": 14
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "write",
+          "arg": 18
+        },
+        {
+          "op": "write",
+          "arg": 98
+        },
+        {
+          "op": "read",
+          "expect": 30
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "write",
+          "arg": 25
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "read",
+          "expect": 50
+        },
+        {
+          "op": "write",
+          "arg": 14
+        },
+        {
+          "op": "peek",
+          "expect": 18
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "read",
+          "expect": 18
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "read",
+          "expect": 98
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "read",
+          "expect": 25
+        },
+        {
+          "op": "peek",
+          "expect": 14
+        },
+        {
+          "op": "read",
+          "expect": 14
+        },
+        {
+          "op": "read",
+          "expect": null
+        },
+        {
+          "op": "read",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "write",
+          "arg": 32
+        },
+        {
+          "op": "write",
+          "arg": 3
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 32
+        },
+        {
+          "op": "read",
+          "expect": 32
+        },
+        {
+          "op": "write",
+          "arg": 82
+        },
+        {
+          "op": "read",
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 82
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 82
+        },
+        {
+          "op": "read",
+          "expect": 82
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "write",
+          "arg": 20
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "write",
+          "arg": 32
+        },
+        {
+          "op": "peek",
+          "expect": 20
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 20
+        },
+        {
+          "op": "peek",
+          "expect": 20
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "write",
+          "arg": 92
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "write",
+          "arg": 7
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "write",
+          "arg": 71
+        },
+        {
+          "op": "read",
+          "expect": 32
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "read",
+          "expect": 92
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "write",
+          "arg": 11
+        },
+        {
+          "op": "read",
+          "expect": 7
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "write",
+          "arg": 52
+        },
+        {
+          "op": "peek",
+          "expect": 71
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "read",
+          "expect": 71
+        },
+        {
+          "op": "write",
+          "arg": 99
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "write",
+          "arg": 86
+        },
+        {
+          "op": "write",
+          "arg": 39
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "peek",
+          "expect": 52
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "write",
+          "arg": 28
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "write",
+          "arg": 16
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "read",
+          "expect": 86
+        },
+        {
+          "op": "write",
+          "arg": 64
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "write",
+          "arg": 6
+        },
+        {
+          "op": "write",
+          "arg": 40
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "write",
+          "arg": 86
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "write",
+          "arg": 82
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "peek",
+          "expect": 6
+        },
+        {
+          "op": "write",
+          "arg": 8
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 40
+        },
+        {
+          "op": "write",
+          "arg": 50
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 4
+        }
+      ]
+    }
+  ]
+}

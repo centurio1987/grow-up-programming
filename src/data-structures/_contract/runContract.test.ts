@@ -5,12 +5,39 @@
  * 스위트가 그 시험을 통과한다. 그래서 여기서 보는 것은 반대쪽이다 — 계약을 어긴 구현을
  * 실제로 **떨어뜨리는가**.
  *
- * `_fixtures/` 의 결함 fixture 는 **전부 동작상 옳다.** 축1·축2로는 잡히지 않고 축3만이
+ * `_fixtures/` 의 결함 fixture 는 **거의 다 동작상 옳다.** 축1·축2로는 잡히지 않고 축3만이
  * 잡는다. 축2가 잡는 종류의 결함은 성격이 반대라 여기 인라인으로 둔다 — 그쪽은 동작이
  * 틀린 구현이고, 그 자리에서 무엇이 깨졌는지를 이름으로 말하는 것이 불변식의 일이다.
+ *
+ * **「거의」로 적은 이유는 예외가 하나 생겼기 때문이다**(T5-01). `unboundedRingBuffer` 는
+ * 축3 네 시나리오에서 정본과 계측값이 한 자리도 다르지 않은데 **축1이 값에서 잡는다** —
+ * 어기는 자리가 비용이 아니라 경계의 의미라서 그렇다. 공간 제약이 관측 연산을 가지면
+ * 계약에 들어온다는 것(불변 사실 67)의 실물이고, fixture 가 어느 행에서 걸리는지를 적을
+ * 때 **축1 열을 함께 적는 근거**다.
  */
 
 import { describe, expect, test } from "bun:test";
+import { HashMapChaining as ReferenceHashMapChaining } from "../hash/hashMapChaining/_reference/hashMapChaining";
+import {
+  type HashMapChainingContract,
+  hashMapChainingContract,
+} from "../hash/hashMapChaining/hashMapChaining.contract";
+import { HashMapOpenAddressing as ReferenceHashMapOpenAddressing } from "../hash/hashMapOpenAddressing/_reference/hashMapOpenAddressing";
+import { hashMapOpenAddressingContract } from "../hash/hashMapOpenAddressing/hashMapOpenAddressing.contract";
+import { DaryHeap as ReferenceDaryHeap } from "../heap/daryHeap/_reference/daryHeap";
+import { MaxHeap as ReferenceMaxHeap } from "../heap/maxHeap/_reference/maxHeap";
+import { MinHeap as ReferenceMinHeap } from "../heap/minHeap/_reference/minHeap";
+import { PriorityQueue as ReferencePriorityQueue } from "../heap/priorityQueue/_reference/priorityQueue";
+import {
+  ascending,
+  type PriorityQueueContract,
+  priorityQueueContract,
+} from "../heap/priorityQueue/priorityQueue.contract";
+import { CircularBuffer as ReferenceCircularBuffer } from "../linear/circularBuffer/_reference/circularBuffer";
+import {
+  Capacitated as CircularBufferShell,
+  circularBufferContract,
+} from "../linear/circularBuffer/circularBuffer.contract";
 import {
   type DequeContract,
   dequeContract,
@@ -35,6 +62,11 @@ import {
   type XorLinkedListContract,
   xorLinkedListContract,
 } from "../linear/xorLinkedList/xorLinkedList.contract";
+import { FenwickTree as ReferenceFenwickTree } from "../range-query/fenwickTree/_reference/fenwickTree";
+import {
+  Sized as FenwickTreeShell,
+  fenwickTreeContract,
+} from "../range-query/fenwickTree/fenwickTree.contract";
 import { IntervalTree as ReferenceIntervalTree } from "../range-query/intervalTree/_reference/intervalTree";
 import {
   type IntervalTreeContract,
@@ -88,24 +120,36 @@ import {
   type TernarySearchTreeContract,
   ternarySearchTreeContract,
 } from "../trie/ternarySearchTree/ternarySearchTree.contract";
+import { BlockedPrefixSums } from "./_fixtures/blockedPrefixSums";
+import { DeferredSortPriorityQueue } from "./_fixtures/deferredSortPriorityQueue";
+import { EagerPrefixSums } from "./_fixtures/eagerPrefixSums";
 import { FixedChunkList } from "./_fixtures/fixedChunkList";
 import { FrontPushStack } from "./_fixtures/frontPushStack";
 import { KeyCountingMultiset } from "./_fixtures/keyCountingMultiset";
 import { LazySortingSet } from "./_fixtures/lazySortingSet";
 import { MapWordSet } from "./_fixtures/mapWordSet";
+import { MirroredPrefixSums } from "./_fixtures/mirroredPrefixSums";
 import { PathCopyingCartesianTree } from "./_fixtures/pathCopyingCartesianTree";
 import { RecountingSizeSet } from "./_fixtures/recountingSizeSet";
 import { RelabelingForest } from "./_fixtures/relabelingForest";
+import { RemainderSlotDictionary } from "./_fixtures/remainderSlotDictionary";
 import { RescanningCartesianView } from "./_fixtures/rescanningCartesianView";
+import { RescanningRingBuffer } from "./_fixtures/rescanningRingBuffer";
 import { RootedSuffixTree } from "./_fixtures/rootedSuffixTree";
 import { ScanIntervalList } from "./_fixtures/scanIntervalList";
 import { ScanningCartesianTree } from "./_fixtures/scanningCartesianTree";
+import { ScanningDictionary } from "./_fixtures/scanningDictionary";
 import { ScanningForest } from "./_fixtures/scanningForest";
+import { ScanningPriorityQueue } from "./_fixtures/scanningPriorityQueue";
+import { ScanningRangeSums } from "./_fixtures/scanningRangeSums";
 import { ScanningSuffixArray } from "./_fixtures/scanningSuffixArray";
 import { ScanningSuffixTree } from "./_fixtures/scanningSuffixTree";
+import { ShiftingRingBuffer } from "./_fixtures/shiftingRingBuffer";
 import { ShiftQueue } from "./_fixtures/shiftQueue";
 import { SortedArrayMultiset } from "./_fixtures/sortedArrayMultiset";
+import { SortedArrayPriorityQueue } from "./_fixtures/sortedArrayPriorityQueue";
 import { SortedArraySet } from "./_fixtures/sortedArraySet";
+import { SortedKeyDictionary } from "./_fixtures/sortedKeyDictionary";
 import { SortedSuffixArray } from "./_fixtures/sortedSuffixArray";
 import { SortedWordSet } from "./_fixtures/sortedWordSet";
 import { SplayingSearchTree } from "./_fixtures/splayingSearchTree";
@@ -116,6 +160,7 @@ import { TwoArrayDeque } from "./_fixtures/twoArrayDeque";
 import { UnbalancedIntervalTree } from "./_fixtures/unbalancedIntervalTree";
 import { UnbalancedRankedMultiset } from "./_fixtures/unbalancedRankedMultiset";
 import { UnbalancedSearchTree } from "./_fixtures/unbalancedSearchTree";
+import { UnboundedRingBuffer } from "./_fixtures/unboundedRingBuffer";
 import { UnshiftDeque } from "./_fixtures/unshiftDeque";
 import { UnshiftQueue } from "./_fixtures/unshiftQueue";
 import { UnsplayedForest } from "./_fixtures/unsplayedForest";
@@ -561,6 +606,165 @@ const unsplayedForest: CostSource<LinkCutTreeShell> = {
   make: () => new LinkCutTreeShell((n) => new UnsplayedForest(n)),
 };
 
+/**
+ * 기본 우선순위 큐(`heap/priorityQueue`)의 정본 넷과 결함 셋.
+ *
+ * **정본이 넷인 것이 이 자리의 요점이다.** 배열 0-기준 · 배열 1-기준에 구멍 내리기 ·
+ * 마디를 잇고 합치기 · 배열 갈래 넷이 **같은 스위트를 전부 통과한다**(불변 사실 76 이
+ * `tree/` 에서 낸 것과 같은 모양). 결함 셋은 계약이 검증 등급 항목에 든 자명한 구현 둘과
+ * **상각 설계가 들어간 계열 하나**를 나눠 짚는다.
+ */
+type PriorityQueueImpl = PriorityQueueContract<number>;
+
+const referencePriorityQueue: CostSource<PriorityQueueImpl> = {
+  kind: "self-reported",
+  make: () => new ReferencePriorityQueue<number>(ascending),
+};
+const minHeapReference: CostSource<PriorityQueueImpl> = {
+  kind: "self-reported",
+  make: () => new ReferenceMinHeap<number>(ascending),
+};
+const maxHeapReference: CostSource<PriorityQueueImpl> = {
+  kind: "self-reported",
+  make: () => new ReferenceMaxHeap<number>(ascending),
+};
+const daryHeapReference: CostSource<PriorityQueueImpl> = {
+  kind: "self-reported",
+  make: () => new ReferenceDaryHeap<number>(ascending),
+};
+const scanningPriorityQueue: CostSource<PriorityQueueImpl> = {
+  kind: "self-reported",
+  make: () => new ScanningPriorityQueue<number>(ascending),
+};
+const sortedArrayPriorityQueue: CostSource<PriorityQueueImpl> = {
+  kind: "self-reported",
+  make: () => new SortedArrayPriorityQueue<number>(ascending),
+};
+const deferredSortPriorityQueue: CostSource<PriorityQueueImpl> = {
+  kind: "self-reported",
+  make: () => new DeferredSortPriorityQueue<number>(ascending),
+};
+
+/**
+ * 사전(`hash/hashMapChaining`)의 정본 둘과 결함 셋.
+ *
+ * **정본 둘은 `injected` 계측을 쓴다.** 주입받은 펴기를 몇 번 부르는지 하네스가 밖에서
+ * 세므로, 자기 보고가 그보다 작으면 계측이 거짓이라 실패한다.
+ */
+type Dictionary = HashMapChainingContract<number, number>;
+
+/** 정보를 하나도 지우지 않는 펴기. 주입 정책이 요구하는 조건을 지킨다. */
+const spreadIdentity = (key: number): number => key;
+
+const referenceHashMapChaining: CostSource<Dictionary> = {
+  kind: "injected",
+  make: (tick) =>
+    new ReferenceHashMapChaining<number, number>((key) => {
+      tick();
+      return key;
+    }),
+};
+const referenceHashMapOpenAddressing: CostSource<Dictionary> = {
+  kind: "injected",
+  make: (tick) =>
+    new ReferenceHashMapOpenAddressing<number, number>((key) => {
+      tick();
+      return key;
+    }),
+};
+const remainderSlotDictionary: CostSource<Dictionary> = {
+  kind: "self-reported",
+  make: () => new RemainderSlotDictionary<number, number>(spreadIdentity),
+};
+const scanningDictionary: CostSource<Dictionary> = {
+  kind: "self-reported",
+  make: () => new ScanningDictionary<number, number>(spreadIdentity),
+};
+const sortedKeyDictionary: CostSource<Dictionary> = {
+  kind: "self-reported",
+  make: () => new SortedKeyDictionary<number, number>(spreadIdentity),
+};
+
+/**
+ * 앞구간 합(`range-query/fenwickTree`)의 정본과 결함 넷.
+ *
+ * **다섯 다 껍데기를 쓴다**(불변 사실 83). 여기서 껍데기가 나르는 것은 **자리 수**다 —
+ * 생성자가 크기를 받고 그 뒤로 크기가 바뀌지 않으므로, 사다리를 오르려면 그 크기의 표를
+ * 다시 세워야 한다.
+ */
+const referenceFenwickTree: CostSource<FenwickTreeShell> = {
+  kind: "self-reported",
+  make: () => new FenwickTreeShell((n) => new ReferenceFenwickTree(n)),
+};
+const scanningRangeSums: CostSource<FenwickTreeShell> = {
+  kind: "self-reported",
+  make: () => new FenwickTreeShell((n) => new ScanningRangeSums(n)),
+};
+const eagerPrefixSums: CostSource<FenwickTreeShell> = {
+  kind: "self-reported",
+  make: () => new FenwickTreeShell((n) => new EagerPrefixSums(n)),
+};
+const mirroredPrefixSums: CostSource<FenwickTreeShell> = {
+  kind: "self-reported",
+  make: () => new FenwickTreeShell((n) => new MirroredPrefixSums(n)),
+};
+const blockedPrefixSums: CostSource<FenwickTreeShell> = {
+  kind: "self-reported",
+  make: () => new FenwickTreeShell((n) => new BlockedPrefixSums(n)),
+};
+
+/**
+ * 고정 용량 수열(`linear/circularBuffer`)의 정본과 결함 셋.
+ *
+ * **넷 다 껍데기를 쓴다**(불변 사실 83). 여기서 껍데기가 나르는 것은 **용량**이다.
+ *
+ * 결함 셋의 성격이 갈린다 — **하나는 축1이 혼자 잡는다.** `UnboundedRingBuffer` 는 네
+ * 시나리오를 전부 통과하면서 계약을 어긴다. 어기는 자리가 비용이 아니라 경계의 의미라서
+ * 그렇고, 그것이 이 계약이 `linear/queue` 와 **시간 상한을 하나도 쓰지 않고** 갈린다는
+ * 판정의 실물이다.
+ */
+const referenceCircularBuffer: CostSource<CircularBufferShell> = {
+  kind: "self-reported",
+  make: () =>
+    new CircularBufferShell((cap) => new ReferenceCircularBuffer<number>(cap)),
+};
+const unboundedRingBuffer: CostSource<CircularBufferShell> = {
+  kind: "self-reported",
+  make: () =>
+    new CircularBufferShell((cap) => new UnboundedRingBuffer<number>(cap)),
+};
+const shiftingRingBuffer: CostSource<CircularBufferShell> = {
+  kind: "self-reported",
+  make: () =>
+    new CircularBufferShell((cap) => new ShiftingRingBuffer<number>(cap)),
+};
+const rescanningRingBuffer: CostSource<CircularBufferShell> = {
+  kind: "self-reported",
+  make: () =>
+    new CircularBufferShell((cap) => new RescanningRingBuffer<number>(cap)),
+};
+
+/** 축1 첫 갈림을 값으로 돌려준다. 갈리지 않으면 `null`. */
+function firstBehaviorSplit(factory: () => CircularBufferShell): string | null {
+  const byName = new Map(
+    circularBufferContract.ops.map((op) => [op.name, op] as const),
+  );
+  for (const edge of circularBufferContract.edges) {
+    const impl = factory();
+    const model = circularBufferContract.model();
+    for (const [index, step] of edge.steps.entries()) {
+      const op = byName.get(step.op);
+      if (!op) throw new Error(`없는 연산: ${step.op}`);
+      const observed = op.onImpl(impl, step.arg);
+      const expected = op.onModel(model, step.arg);
+      if (!Object.is(observed, expected)) {
+        return `${edge.name} / ${index}번째 ${step.op} — 관측 ${observed} / 모델 ${expected}`;
+      }
+    }
+  }
+  return null;
+}
+
 describe("축3 — 정본은 통과한다", () => {
   test("Stack 정본의 push·pop 이 amortized O(1) 계약 안에 있다", () => {
     const verdict = judgeScenario(
@@ -814,6 +1018,117 @@ describe("축3 — 정본은 통과한다", () => {
     const stats = strict.points.map((point) => point.stat);
     expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeGreaterThan(3);
   }, 30_000);
+
+  /**
+   * **성격 전환의 실증이 여기 있다.** 정본 넷이 담는 모양도 자리 번호 기준도 갈래 수도
+   * 다른데 같은 스위트를 전부 통과한다. 절대 걸음은 열에 따라 최대 9 배까지 갈린다
+   * (내림차순 넣기에서 1.00 대 9.01).
+   */
+  test("기본 우선순위 큐의 정본 넷이 같은 스위트를 전부 통과한다", () => {
+    for (const [label, cost] of [
+      ["priorityQueue", referencePriorityQueue],
+      ["minHeap", minHeapReference],
+      ["maxHeap", maxHeapReference],
+      ["daryHeap", daryHeapReference],
+    ] as const) {
+      for (const scenario of priorityQueueContract.scenarios) {
+        const verdict = judgeScenario(cost, scenario, "complexity");
+        const where = `${label} / ${scenario.covers.join("·")}${scenario.adversarial ? " (적대적)" : ""}`;
+        expect(`${where}: ${verdict.reason}`).toBe(`${where}: `);
+      }
+    }
+  }, 60_000);
+
+  /**
+   * **한정자를 `amortized` 로 적은 대가가 여기서는 안 보인다.** 갱신 두 행을 `worst`
+   * 통계로 다시 읽어도 정본 넷이 열여섯 자리를 전부 통과한다 — 합치기로 짓는 정본에는
+   * 단일 호출을 묶는 논증이 없는데도 그렇다. 그 계열의 단일 호출을 n 에 비례하게 만드는
+   * 입력을 일곱 형태 시도해 못 찾았고, **적을 수 있는 것은 「반례가 없다」가 아니라
+   * 「못 찾았다」다**(불변 사실 87 과 같은 자리).
+   *
+   * `amortized` 가 실제로 사는 계열은 따로 있다 — 자식들을 미뤄 두었다 짝지어 접는
+   * 설계의 첫 빼기가 1,023 → 4,095 → 16,383 이다.
+   */
+  test("갱신 두 행을 worst 통계로 다시 읽어도 정본 넷이 통과한다", () => {
+    for (const cost of [
+      referencePriorityQueue,
+      minHeapReference,
+      maxHeapReference,
+      daryHeapReference,
+    ]) {
+      for (const covers of ["enqueue", "dequeue"] as const) {
+        for (const adversarial of [true, false]) {
+          const scenario = scenarioOf(
+            priorityQueueContract,
+            covers,
+            adversarial,
+          );
+          const strict = { ...scenario, qualifier: "worst" as const };
+          expect(judgeScenario(cost, strict, "complexity").ok).toBe(true);
+        }
+      }
+    }
+  }, 60_000);
+
+  /**
+   * 사전 계약의 정본 둘. **매다는 쪽과 밀어내는 쪽이 같은 스위트를 통과한다** — 성격
+   * 전환의 실증이고, 적재율은 계약의 문장이 못 된다는 판정이 여기 실린다.
+   */
+  test("사전 계약의 정본 둘이 같은 스위트를 전부 통과한다", () => {
+    for (const [label, cost, spec] of [
+      ["사슬", referenceHashMapChaining, hashMapChainingContract],
+      ["탐사", referenceHashMapOpenAddressing, hashMapOpenAddressingContract],
+    ] as const) {
+      for (const scenario of spec.scenarios) {
+        const verdict = judgeScenario(cost, scenario, "complexity");
+        const where = `${label} / ${scenario.covers.join("·")}`;
+        expect(`${where}: ${verdict.reason}`).toBe(`${where}: `);
+      }
+    }
+  }, 60_000);
+
+  /**
+   * **무작위를 뽑는 정본이라 실행마다 다른 곱수를 쓴다.** 하네스가 고정하는 seed 는
+   * 시나리오가 만드는 입력의 것이지 구현 내부의 것이 아니므로, 이 되풀이가 실제로 다른
+   * 실행이다. **수치를 `toEqual` 로 못 박지 않는다**(불변 사실 105) — 판정만 본다.
+   */
+  test("사전 정본이 곱수를 새로 뽑아도 판정이 흔들리지 않는다", () => {
+    for (let round = 0; round < 5; round++) {
+      const verdict = judgeScenario(
+        referenceHashMapChaining,
+        scenarioOf(hashMapChainingContract, "set", true),
+        "complexity",
+      );
+      expect(verdict.reason).toBe("");
+    }
+  }, 60_000);
+
+  /**
+   * 앞구간 합의 정본이 네 시나리오를 전부 통과한다.
+   *
+   * 값도 논증과 맞는다 — 크기가 2의 거듭제곱이라 `prefixSum` 의 단일 호출 최대가
+   * $\log_2 n$(10 · 12 · 14)이고 `update` 가 그보다 하나 크다(11 · 13 · 15).
+   */
+  test("앞구간 합의 정본이 네 시나리오를 전부 통과한다", () => {
+    for (const scenario of fenwickTreeContract.scenarios) {
+      const verdict = judgeScenario(
+        referenceFenwickTree,
+        scenario,
+        "complexity",
+      );
+      const where = `${scenario.covers.join("·")}${scenario.adversarial ? " (적대적)" : ""}`;
+      expect(verdict.ok ? "" : `${where} — ${verdict.reason}`).toBe("");
+    }
+
+    const sweep = scenarioOf(fenwickTreeContract, "prefixSum", false);
+    const stats = judgeScenario(
+      referenceFenwickTree,
+      sweep,
+      "complexity",
+    ).points.map((point) => point.stat);
+    // 걸음 수가 길이의 1 비트 수이므로 최대가 정확히 log2(n) 이다.
+    expect(stats).toEqual([10, 12, 14]);
+  }, 60_000);
 });
 
 describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
@@ -1916,6 +2231,304 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     );
     const linkStats = randomLink.points.map((point) => point.stat);
     expect((linkStats[2] ?? 0) / (linkStats[1] ?? 1)).toBeGreaterThan(1.56);
+  }, 60_000);
+
+  /**
+   * **기본 우선순위 큐의 자명한 구현 둘이 정확히 반대쪽에서 걸린다.**
+   *
+   * 순서 없이 쌓아 두면 넣기가 상수인 대신 보기와 빼기가 원소 수에 비례하고, 늘 정렬해
+   * 두면 그 반대다. **정렬 배열이 다섯 중 넷을 통과하는 것이 이 자리의 요점이다** —
+   * 내림차순 넣기는 정본에 최악인 입력인데(9.01·11.00·13.00) 이 구현에는 늘 끝에 붙는
+   * 최선이라 **값까지 같다.** 잡는 것은 무작위 넣기 하나뿐이다(불변 사실 57·85).
+   */
+  test("기본 우선순위 큐의 자명한 구현 둘이 서로 반대쪽 행에서 걸린다", () => {
+    expect(outcomes(scanningPriorityQueue, priorityQueueContract)).toEqual({
+      enqueue: true,
+      "enqueue (적대적)": true,
+      dequeue: false,
+      "dequeue (적대적)": false,
+      peek·size·isEmpty: false,
+    });
+
+    expect(outcomes(sortedArrayPriorityQueue, priorityQueueContract)).toEqual({
+      enqueue: false,
+      "enqueue (적대적)": true,
+      dequeue: true,
+      "dequeue (적대적)": true,
+      peek·size·isEmpty: true,
+    });
+
+    // 무작위 넣기: 269.7 → 1,042.9 → 4,113.1 로 뒤를 미는 일이 원소 수에 비례한다.
+    const shifting = judgeScenario(
+      sortedArrayPriorityQueue,
+      scenarioOf(priorityQueueContract, "enqueue", false),
+      "complexity",
+    );
+    const stats = shifting.points.map((point) => point.stat);
+    expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeGreaterThan(3);
+  }, 60_000);
+
+  /**
+   * **조회 셋을 `worst` 로 적은 것이 사는 자리.**
+   *
+   * 넣기를 미뤄 두었다가 읽는 호출이 올 때 한꺼번에 정리하는 설계는 자명한 구현이
+   * 아니다 — 상각 설계가 들어가 있고 답도 전부 옳다. 밀려 있는 상태의 첫 `peek` 하나가
+   * 원소 수에 비례하고, `worst` 통계가 그 최댓값을 그대로 보고한다.
+   *
+   * **`dequeue` 비적대 시나리오는 통과하는데 그 통과에 계약 위반이 숨어 있다**
+   * (불변 사실 62). 채운 뒤 전부 빼기만 하면 정리가 한 번뿐이라 상각이 실제로 성립한다 —
+   * **같은 행을 겨눈 시나리오 둘 중 하나만 이 계열을 잡는다.**
+   */
+  test("미뤄 두었다 한꺼번에 정리하는 큐는 worst 행과 교대 시나리오에서만 걸린다", () => {
+    expect(outcomes(deferredSortPriorityQueue, priorityQueueContract)).toEqual({
+      enqueue: true,
+      "enqueue (적대적)": true,
+      dequeue: true,
+      "dequeue (적대적)": false,
+      peek·size·isEmpty: false,
+    });
+
+    const reading = scenarioOf(priorityQueueContract, "peek", false);
+    const asAmortized = { ...reading, qualifier: "amortized" as const };
+    expect(
+      judgeScenario(deferredSortPriorityQueue, asAmortized, "complexity").ok,
+    ).toBe(true);
+  }, 60_000);
+
+  /**
+   * **사전 계약의 결함 셋이 서로 다른 자리에서 걸린다.**
+   *
+   * 차례로 담고 훑는 쪽은 무작위 키에서도 갱신·조회 넷이 전부 걸리고, 펴기 값을 그대로
+   * 자리로 쓰는 쪽은 **무작위 키를 전부 통과하고 겨눈 키에서만** 걸린다. 뒤엣것이
+   * 「무작위를 실제로 뽑아야 한다」의 실물이다 — 겨눈 키는 계약의 용어만으로 적힌다.
+   */
+  test("사전 계약의 결함 셋이 서로 다른 자리에서 걸린다", () => {
+    for (const covers of ["set", "get", "has", "delete"]) {
+      expect(
+        `${covers}: ${judgeScenario(scanningDictionary, scenarioOf(hashMapChainingContract, covers, false), "complexity").ok}`,
+      ).toBe(`${covers}: false`);
+      // 펴기 값을 자리로 쓰는 쪽 — 무작위는 통과, 겨눈 키는 실패.
+      expect(
+        `${covers}: ${judgeScenario(remainderSlotDictionary, scenarioOf(hashMapChainingContract, covers, false), "complexity").ok}`,
+      ).toBe(`${covers}: true`);
+      expect(
+        `${covers}: ${judgeScenario(remainderSlotDictionary, scenarioOf(hashMapChainingContract, covers, true), "complexity").ok}`,
+      ).toBe(`${covers}: false`);
+    }
+    for (const covers of ["size", "keys", "values"]) {
+      expect(
+        `${covers}: ${judgeScenario(scanningDictionary, scenarioOf(hashMapChainingContract, covers, false), "complexity").reason}`,
+      ).toBe(`${covers}: `);
+    }
+  }, 120_000);
+
+  /**
+   * **계약 위반인데 축3이 못 보는 자리와, 적대적인 쪽이 덜 잡는 자리가 한 fixture 에 함께 있다.**
+   *
+   * 키를 정렬해 두는 사전의 조회 둘은 $O(\log n)$ 이라 `O(1)` 계약을 어기는데 **네
+   * 시나리오를 전부 통과한다** — 실측 11 · 13 · 15 로 $\log_2 n$ 이 그대로 찍히는데
+   * 사다리가 4배 간격이라 비율이 1.18 이고 허용 구간(0.70~1.30) 안이다(불변 사실 62).
+   *
+   * 그리고 `set` 은 **적대적 시나리오를 통과한다** — 겨눈 키 묶음이 오름차순이라 끼워
+   * 넣을 자리가 늘 맨 뒤여서 밀 것이 없다. 잡는 것은 무작위 순서 하나뿐이다(불변 사실 85).
+   */
+  test("키를 정렬해 두는 사전은 조회를 어기면서 통과하고 겨눈 키를 통과한다", () => {
+    for (const adversarial of [false, true]) {
+      for (const covers of ["get", "has"]) {
+        const verdict = judgeScenario(
+          sortedKeyDictionary,
+          scenarioOf(hashMapChainingContract, covers, adversarial),
+          "complexity",
+        );
+        expect(`${covers}/${adversarial}: ${verdict.reason}`).toBe(
+          `${covers}/${adversarial}: `,
+        );
+        const stats = verdict.points.map((point) => point.stat);
+        expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeLessThan(1.3);
+      }
+    }
+
+    expect(
+      judgeScenario(
+        sortedKeyDictionary,
+        scenarioOf(hashMapChainingContract, "set", true),
+        "complexity",
+      ).reason,
+    ).toBe("");
+    expect(
+      judgeScenario(
+        sortedKeyDictionary,
+        scenarioOf(hashMapChainingContract, "set", false),
+        "complexity",
+      ).ok,
+    ).toBe(false);
+  }, 120_000);
+
+  /**
+   * **앞구간 합의 자명한 구현 둘이 정확히 반대쪽 행에서 걸린다.**
+   *
+   * 값을 그대로 적어 두면 갱신이 상수인 대신 두 질의가 자리 수에 비례하고, 앞구간 합을
+   * 미리 적어 두면 그 반대다. **통과하는 자리 중 계약 위반은 없다**(불변 사실 62).
+   */
+  test("앞구간 합의 자명한 구현 둘이 서로 반대쪽 행에서 걸린다", () => {
+    expect(outcomes(scanningRangeSums, fenwickTreeContract)).toEqual({
+      "update (적대적)": true,
+      update: true,
+      prefixSum: false,
+      rangeSum: false,
+    });
+    expect(outcomes(eagerPrefixSums, fenwickTreeContract)).toEqual({
+      "update (적대적)": false,
+      update: false,
+      prefixSum: true,
+      rangeSum: true,
+    });
+  }, 120_000);
+
+  /**
+   * **`worst` 계약에서는 훑기가 겨눈 적대적 입력을 포섭한다.**
+   *
+   * 축3 통계가 단일 연산 최대라, 인자를 전부 지나는 시나리오가 **어느 구현의 최악 인자도
+   * 그 안에 담는다.** 앞자리 되풀이는 `EagerPrefixSums` 에는 최악이고 거울상에는
+   * **최선**이라(자리 0 앞에 고칠 칸이 하나뿐이다) 뒤엣것이 적대적 시나리오를 통과한다.
+   * 정본의 통계는 두 시나리오에서 **같다.**
+   */
+  test("worst 계약에서는 훑기가 겨눈 적대적 입력을 포섭한다", () => {
+    expect(outcomes(mirroredPrefixSums, fenwickTreeContract)).toEqual({
+      "update (적대적)": true,
+      update: false,
+      prefixSum: true,
+      rangeSum: true,
+    });
+
+    const aimed = scenarioOf(fenwickTreeContract, "update", true);
+    const sweep = scenarioOf(fenwickTreeContract, "update", false);
+    const statsOf = (
+      cost: CostSource<FenwickTreeShell>,
+      scenario: typeof aimed,
+    ) => judgeScenario(cost, scenario, "complexity").points.map((p) => p.stat);
+
+    expect(statsOf(referenceFenwickTree, aimed)).toEqual(
+      statsOf(referenceFenwickTree, sweep),
+    );
+    expect(statsOf(mirroredPrefixSums, aimed)).toEqual([1, 1, 1]);
+    expect(statsOf(mirroredPrefixSums, sweep)).toEqual([1024, 4096, 16384]);
+  }, 120_000);
+
+  /**
+   * **상한 선택이 배제한 계열이 축3에 실제로 보인다.**
+   *
+   * 묶음 나누기는 자명한 구현이 아니라 설계다. 계약이 `O(sqrt n)` 을 적었다면 정본이 될
+   * 수 있었고, `O(log n)` 으로 적었기 때문에 두 질의에서 비율이 2 쪽으로 간다. 갱신은
+   * 자기 자리와 자기 묶음 둘만 고치므로 상수라 두 `update` 시나리오를 통과한다 —
+   * **자명하지 않은 구현도 전 행에서 걸리지는 않는다**(불변 사실 84 와 같은 자리).
+   */
+  test("묶음 나누기는 갱신을 통과하고 두 질의에서 걸린다", () => {
+    expect(outcomes(blockedPrefixSums, fenwickTreeContract)).toEqual({
+      "update (적대적)": true,
+      update: true,
+      prefixSum: false,
+      rangeSum: false,
+    });
+
+    const sweep = scenarioOf(fenwickTreeContract, "prefixSum", false);
+    const stats = judgeScenario(
+      blockedPrefixSums,
+      sweep,
+      "complexity",
+    ).points.map((point) => point.stat);
+    // 2*sqrt(n) - 2 와 정확히 같다. 층 셈이 낸 상한이 실측과 맞는 자리다.
+    expect(stats).toEqual([62, 126, 254]);
+  }, 60_000);
+
+  /**
+   * **축3이 하나도 못 잡는 결함 fixture 가 처음 나왔다.**
+   *
+   * `UnboundedRingBuffer` 는 네 시나리오에서 정본과 계측값이 한 자리도 다르지 않고
+   * (전부 $r = 1.00$) **축1이 값에서 잡는다.** 어기는 자리가 비용이 아니라 경계의
+   * 의미이기 때문이고, 그것이 「공간 제약이 관측 연산을 가지면 계약에 들어온다」
+   * (불변 사실 67)의 실물이다.
+   *
+   * 나머지 둘은 축1을 통과하고 **서로 다른 행에서** 걸린다. **통과하는 자리 중 계약
+   * 위반은 없다**(불변 사실 62).
+   */
+  test("고정 용량 수열의 결함 셋이 축1·축3으로 갈려 걸린다", () => {
+    expect(
+      outcomesAt(referenceCircularBuffer, circularBufferContract, "basic"),
+    ).toEqual({
+      write: true,
+      "write (적대적)": true,
+      read: true,
+      peek·isFull·isEmpty·size: true,
+    });
+
+    // 용량을 무시하는 구현: 축3은 전부 통과하고 축1이 잡는다.
+    expect(
+      outcomesAt(unboundedRingBuffer, circularBufferContract, "basic"),
+    ).toEqual({
+      write: true,
+      "write (적대적)": true,
+      read: true,
+      peek·isFull·isEmpty·size: true,
+    });
+    expect(
+      firstBehaviorSplit(
+        () =>
+          new CircularBufferShell(
+            (cap) => new UnboundedRingBuffer<number>(cap),
+          ),
+      ),
+    ).toBe(
+      "꽉 찬 뒤의 쓰기는 가장 오래된 것을 밀어낸다 / 7번째 size — 관측 5 / 모델 4",
+    );
+
+    // 옮기는 구현: 축1은 통과하고 옮기는 두 행에서만 걸린다.
+    expect(
+      outcomesAt(shiftingRingBuffer, circularBufferContract, "basic"),
+    ).toEqual({
+      write: true,
+      "write (적대적)": false,
+      read: false,
+      peek·isFull·isEmpty·size: true,
+    });
+    expect(
+      firstBehaviorSplit(
+        () =>
+          new CircularBufferShell((cap) => new ShiftingRingBuffer<number>(cap)),
+      ),
+    ).toBeNull();
+
+    // 매번 훑는 구현: 조회 묶음 하나에서만 걸린다.
+    expect(
+      outcomesAt(rescanningRingBuffer, circularBufferContract, "basic"),
+    ).toEqual({
+      write: true,
+      "write (적대적)": true,
+      read: true,
+      peek·isFull·isEmpty·size: false,
+    });
+  }, 60_000);
+
+  /**
+   * **`worst` 가 `amortized` 보다 추가로 배제하는 계열을 수치로 가른다.**
+   *
+   * 계약 헤더가 `worst` 를 적은 근거가 「옮기는 계열은 `amortized` 도 이미 배제하고,
+   * `worst` 가 더 배제하는 것은 **이따금 늘리는 계열** 하나뿐」이다. 앞 절반이 여기서
+   * 확인된다 — 같은 시나리오를 상각 통계로 재도 옮기는 fixture 가 1,025.0 → 4,097.0
+   * 으로 걸린다.
+   */
+  test("옮기는 계열은 상각으로 재도 걸린다 — worst 의 근거는 늘리는 계열이다", () => {
+    const asAmortized = {
+      ...scenarioOf(circularBufferContract, "write", true),
+      qualifier: "amortized" as const,
+    };
+    const shifting = judgeScenario(shiftingRingBuffer, asAmortized, "basic");
+    expect(shifting.ok).toBe(false);
+    const stats = shifting.points.map((point) => point.stat);
+    expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeGreaterThan(3);
+    expect(
+      judgeScenario(referenceCircularBuffer, asAmortized, "basic").ok,
+    ).toBe(true);
   }, 60_000);
 });
 

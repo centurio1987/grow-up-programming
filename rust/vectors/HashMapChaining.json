@@ -1,0 +1,1973 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "HashMapChaining",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 사전에서는 무엇을 물어도 없다고 답한다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": null
+        },
+        {
+          "op": "has",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "keys",
+          "expect": []
+        },
+        {
+          "op": "values",
+          "expect": []
+        }
+      ]
+    },
+    {
+      "name": "같은 키를 다시 넣으면 값만 바뀌고 담긴 수는 그대로다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "set",
+          "arg": [
+            3,
+            100
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "set",
+          "arg": [
+            3,
+            200
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": 200
+        },
+        {
+          "op": "keys",
+          "expect": [
+            3
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            200
+          ]
+        }
+      ]
+    },
+    {
+      "name": "지운 뒤 다시 넣으면 값이 새것이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "set",
+          "arg": [
+            5,
+            10
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 5,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 5,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": null
+        },
+        {
+          "op": "set",
+          "arg": [
+            5,
+            20
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": 20
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "없는 키를 지우면 거짓이고 상태가 바뀌지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "set",
+          "arg": [
+            1,
+            11
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            2,
+            22
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 9,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 11
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": 22
+        },
+        {
+          "op": "keys",
+          "expect": [
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "name": "같은 자리로 몰리는 키들도 서로를 가리지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "set",
+          "arg": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            65536,
+            2
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            131072,
+            3
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            196608,
+            4
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "get",
+          "arg": 131072,
+          "expect": 3
+        },
+        {
+          "op": "delete",
+          "arg": 65536,
+          "expect": true
+        },
+        {
+          "op": "get",
+          "arg": 65536,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 131072,
+          "expect": 3
+        },
+        {
+          "op": "get",
+          "arg": 196608,
+          "expect": 4
+        },
+        {
+          "op": "keys",
+          "expect": [
+            0,
+            131072,
+            196608
+          ]
+        }
+      ]
+    },
+    {
+      "name": "몰린 자리의 가운데를 지워도 뒤엣것이 그대로 찾아진다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "set",
+          "arg": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            65536,
+            2
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            131072,
+            3
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 65536,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 131072,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "set",
+          "arg": [
+            262144,
+            5
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 131072,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 262144,
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 3
+        }
+      ]
+    },
+    {
+      "name": "값이 겹쳐도 값 목록은 담긴 수만큼 나온다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "set",
+          "arg": [
+            1,
+            7
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            2,
+            7
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            3,
+            7
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            7,
+            7,
+            7
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "delete",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "values",
+          "expect": [
+            7,
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "name": "넣고 지우기를 되풀이해도 담긴 것은 하나다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "set",
+          "arg": [
+            8,
+            1
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 8,
+          "expect": true
+        },
+        {
+          "op": "set",
+          "arg": [
+            8,
+            2
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 8,
+          "expect": true
+        },
+        {
+          "op": "set",
+          "arg": [
+            8,
+            3
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "get",
+          "arg": 8,
+          "expect": 3
+        },
+        {
+          "op": "keys",
+          "expect": [
+            8
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "set",
+          "arg": [
+            33,
+            981
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            981
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 39,
+          "expect": null
+        },
+        {
+          "op": "keys",
+          "expect": [
+            33
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 63,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 31,
+          "expect": false
+        },
+        {
+          "op": "set",
+          "arg": [
+            25,
+            247
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 31,
+          "expect": null
+        },
+        {
+          "op": "set",
+          "arg": [
+            25,
+            767
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 12,
+          "expect": false
+        },
+        {
+          "op": "set",
+          "arg": [
+            27,
+            590
+          ]
+        },
+        {
+          "op": "keys",
+          "expect": [
+            25,
+            27,
+            33
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 13,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "delete",
+          "arg": 48,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 46,
+          "expect": null
+        },
+        {
+          "op": "delete",
+          "arg": 49,
+          "expect": false
+        },
+        {
+          "op": "values",
+          "expect": [
+            590,
+            767,
+            981
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 48,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 20,
+          "expect": null
+        },
+        {
+          "op": "has",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 46,
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "set",
+          "arg": [
+            16,
+            48
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "values",
+          "expect": [
+            48,
+            590,
+            767,
+            981
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 63,
+          "expect": null
+        },
+        {
+          "op": "keys",
+          "expect": [
+            16,
+            25,
+            27,
+            33
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 19,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "values",
+          "expect": [
+            48,
+            590,
+            767,
+            981
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            48,
+            590,
+            767,
+            981
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "values",
+          "expect": [
+            48,
+            590,
+            767,
+            981
+          ]
+        },
+        {
+          "op": "keys",
+          "expect": [
+            16,
+            25,
+            27,
+            33
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            48,
+            590,
+            767,
+            981
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            2,
+            868
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 56,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 59,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "get",
+          "arg": 43,
+          "expect": null
+        },
+        {
+          "op": "values",
+          "expect": [
+            48,
+            590,
+            767,
+            868,
+            981
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            62,
+            163
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 20,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "delete",
+          "arg": 34,
+          "expect": false
+        },
+        {
+          "op": "set",
+          "arg": [
+            51,
+            854
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 10,
+          "expect": null
+        },
+        {
+          "op": "has",
+          "arg": 57,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 9,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "delete",
+          "arg": 20,
+          "expect": false
+        },
+        {
+          "op": "set",
+          "arg": [
+            9,
+            67
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 43,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "set",
+          "arg": [
+            32,
+            523
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 50,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 63,
+          "expect": null
+        },
+        {
+          "op": "values",
+          "expect": [
+            48,
+            67,
+            163,
+            523,
+            590,
+            767,
+            854,
+            868,
+            981
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            48,
+            67,
+            163,
+            523,
+            590,
+            767,
+            854,
+            868,
+            981
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            11,
+            28
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            28,
+            48,
+            67,
+            163,
+            523,
+            590,
+            767,
+            854,
+            868,
+            981
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 46,
+          "expect": false
+        },
+        {
+          "op": "values",
+          "expect": [
+            28,
+            48,
+            67,
+            163,
+            523,
+            590,
+            767,
+            854,
+            868,
+            981
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            16,
+            869
+          ]
+        },
+        {
+          "op": "keys",
+          "expect": [
+            2,
+            9,
+            11,
+            16,
+            25,
+            27,
+            32,
+            33,
+            51,
+            62
+          ]
+        },
+        {
+          "op": "keys",
+          "expect": [
+            2,
+            9,
+            11,
+            16,
+            25,
+            27,
+            32,
+            33,
+            51,
+            62
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 6,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 26,
+          "expect": null
+        },
+        {
+          "op": "delete",
+          "arg": 18,
+          "expect": false
+        },
+        {
+          "op": "values",
+          "expect": [
+            28,
+            67,
+            163,
+            523,
+            590,
+            767,
+            854,
+            868,
+            869,
+            981
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 58,
+          "expect": false
+        },
+        {
+          "op": "values",
+          "expect": [
+            28,
+            67,
+            163,
+            523,
+            590,
+            767,
+            854,
+            868,
+            869,
+            981
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 10
+        },
+        {
+          "op": "size",
+          "expect": 10
+        },
+        {
+          "op": "get",
+          "arg": 24,
+          "expect": null
+        },
+        {
+          "op": "has",
+          "arg": 13,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 59,
+          "expect": null
+        },
+        {
+          "op": "values",
+          "expect": [
+            28,
+            67,
+            163,
+            523,
+            590,
+            767,
+            854,
+            868,
+            869,
+            981
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 21,
+          "expect": null
+        },
+        {
+          "op": "set",
+          "arg": [
+            2,
+            783
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 52,
+          "expect": null
+        },
+        {
+          "op": "has",
+          "arg": 57,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 27,
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 9
+        },
+        {
+          "op": "has",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 48,
+          "expect": false
+        },
+        {
+          "op": "keys",
+          "expect": [
+            2,
+            9,
+            11,
+            16,
+            25,
+            32,
+            33,
+            51,
+            62
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            13,
+            631
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 10
+        },
+        {
+          "op": "set",
+          "arg": [
+            20,
+            429
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            28,
+            67,
+            163,
+            429,
+            523,
+            631,
+            767,
+            783,
+            854,
+            869,
+            981
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 11
+        },
+        {
+          "op": "has",
+          "arg": 22,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 11
+        },
+        {
+          "op": "set",
+          "arg": [
+            59,
+            540
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 41,
+          "expect": false
+        },
+        {
+          "op": "set",
+          "arg": [
+            4,
+            814
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            45,
+            276
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 14
+        },
+        {
+          "op": "has",
+          "arg": 34,
+          "expect": false
+        },
+        {
+          "op": "values",
+          "expect": [
+            28,
+            67,
+            163,
+            276,
+            429,
+            523,
+            540,
+            631,
+            767,
+            783,
+            814,
+            854,
+            869,
+            981
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            7,
+            173
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 15
+        },
+        {
+          "op": "set",
+          "arg": [
+            33,
+            379
+          ]
+        },
+        {
+          "op": "keys",
+          "expect": [
+            2,
+            4,
+            7,
+            9,
+            11,
+            13,
+            16,
+            20,
+            25,
+            32,
+            33,
+            45,
+            51,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": null
+        },
+        {
+          "op": "values",
+          "expect": [
+            28,
+            67,
+            163,
+            173,
+            276,
+            379,
+            429,
+            523,
+            540,
+            631,
+            767,
+            783,
+            814,
+            854,
+            869
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            28,
+            67,
+            163,
+            173,
+            276,
+            379,
+            429,
+            523,
+            540,
+            631,
+            767,
+            783,
+            814,
+            854,
+            869
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            55,
+            112
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 38,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 24,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 16
+        },
+        {
+          "op": "set",
+          "arg": [
+            18,
+            965
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 17
+        },
+        {
+          "op": "delete",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "get",
+          "arg": 39,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 9,
+          "expect": 67
+        },
+        {
+          "op": "size",
+          "expect": 16
+        },
+        {
+          "op": "size",
+          "expect": 16
+        },
+        {
+          "op": "set",
+          "arg": [
+            4,
+            31
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 43,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 16
+        },
+        {
+          "op": "keys",
+          "expect": [
+            4,
+            7,
+            9,
+            11,
+            13,
+            16,
+            18,
+            20,
+            25,
+            32,
+            33,
+            45,
+            51,
+            55,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 16
+        },
+        {
+          "op": "size",
+          "expect": 16
+        },
+        {
+          "op": "values",
+          "expect": [
+            28,
+            31,
+            67,
+            112,
+            163,
+            173,
+            276,
+            379,
+            429,
+            523,
+            540,
+            631,
+            767,
+            854,
+            869,
+            965
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            55,
+            919
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            52,
+            541
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 23,
+          "expect": false
+        },
+        {
+          "op": "set",
+          "arg": [
+            5,
+            684
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 35,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 18
+        },
+        {
+          "op": "values",
+          "expect": [
+            28,
+            31,
+            67,
+            163,
+            173,
+            276,
+            379,
+            429,
+            523,
+            540,
+            541,
+            631,
+            684,
+            767,
+            854,
+            869,
+            919,
+            965
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 49,
+          "expect": false
+        },
+        {
+          "op": "set",
+          "arg": [
+            25,
+            735
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 55,
+          "expect": 919
+        },
+        {
+          "op": "keys",
+          "expect": [
+            4,
+            5,
+            7,
+            9,
+            11,
+            13,
+            16,
+            18,
+            20,
+            25,
+            32,
+            33,
+            45,
+            51,
+            52,
+            55,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            11,
+            702
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            51,
+            957
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 58,
+          "expect": false
+        },
+        {
+          "op": "keys",
+          "expect": [
+            4,
+            5,
+            7,
+            9,
+            11,
+            13,
+            16,
+            18,
+            20,
+            25,
+            32,
+            33,
+            45,
+            51,
+            52,
+            55,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 18
+        },
+        {
+          "op": "delete",
+          "arg": 38,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 13,
+          "expect": true
+        },
+        {
+          "op": "get",
+          "arg": 60,
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 17
+        },
+        {
+          "op": "set",
+          "arg": [
+            38,
+            591
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 9,
+          "expect": 67
+        },
+        {
+          "op": "values",
+          "expect": [
+            31,
+            67,
+            163,
+            173,
+            276,
+            379,
+            429,
+            523,
+            540,
+            541,
+            591,
+            684,
+            702,
+            735,
+            869,
+            919,
+            957,
+            965
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "delete",
+          "arg": 20,
+          "expect": true
+        },
+        {
+          "op": "values",
+          "expect": [
+            31,
+            67,
+            163,
+            173,
+            276,
+            379,
+            523,
+            540,
+            541,
+            591,
+            684,
+            702,
+            735,
+            869,
+            919,
+            957,
+            965
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 17
+        },
+        {
+          "op": "delete",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 17
+        },
+        {
+          "op": "set",
+          "arg": [
+            50,
+            972
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 41,
+          "expect": null
+        },
+        {
+          "op": "values",
+          "expect": [
+            31,
+            67,
+            163,
+            173,
+            276,
+            379,
+            523,
+            540,
+            541,
+            591,
+            684,
+            702,
+            735,
+            869,
+            919,
+            957,
+            965,
+            972
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 18
+        },
+        {
+          "op": "size",
+          "expect": 18
+        },
+        {
+          "op": "has",
+          "arg": 39,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 50,
+          "expect": true
+        },
+        {
+          "op": "values",
+          "expect": [
+            31,
+            67,
+            163,
+            173,
+            276,
+            379,
+            523,
+            540,
+            541,
+            591,
+            684,
+            702,
+            735,
+            869,
+            919,
+            957,
+            965
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 48,
+          "expect": false
+        },
+        {
+          "op": "keys",
+          "expect": [
+            4,
+            5,
+            7,
+            9,
+            11,
+            16,
+            18,
+            25,
+            32,
+            33,
+            38,
+            45,
+            51,
+            52,
+            55,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 10,
+          "expect": null
+        },
+        {
+          "op": "values",
+          "expect": [
+            31,
+            67,
+            163,
+            173,
+            276,
+            379,
+            523,
+            540,
+            541,
+            591,
+            684,
+            702,
+            735,
+            869,
+            919,
+            957,
+            965
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 61,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 41,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 7,
+          "expect": true
+        },
+        {
+          "op": "keys",
+          "expect": [
+            4,
+            5,
+            9,
+            11,
+            16,
+            18,
+            25,
+            32,
+            33,
+            38,
+            45,
+            51,
+            52,
+            55,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 16
+        },
+        {
+          "op": "keys",
+          "expect": [
+            4,
+            5,
+            9,
+            11,
+            16,
+            18,
+            25,
+            32,
+            33,
+            38,
+            45,
+            51,
+            52,
+            55,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            0,
+            786
+          ]
+        },
+        {
+          "op": "keys",
+          "expect": [
+            0,
+            4,
+            5,
+            9,
+            11,
+            16,
+            18,
+            25,
+            32,
+            33,
+            38,
+            45,
+            51,
+            52,
+            55,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 20,
+          "expect": null
+        },
+        {
+          "op": "keys",
+          "expect": [
+            0,
+            4,
+            5,
+            9,
+            11,
+            16,
+            18,
+            25,
+            32,
+            33,
+            38,
+            45,
+            51,
+            52,
+            55,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            15,
+            53
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 59,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 26,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 18
+        },
+        {
+          "op": "get",
+          "arg": 41,
+          "expect": null
+        },
+        {
+          "op": "keys",
+          "expect": [
+            0,
+            4,
+            5,
+            9,
+            11,
+            15,
+            16,
+            18,
+            25,
+            32,
+            33,
+            38,
+            45,
+            51,
+            52,
+            55,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 18
+        },
+        {
+          "op": "delete",
+          "arg": 6,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 58,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 58,
+          "expect": false
+        },
+        {
+          "op": "values",
+          "expect": [
+            31,
+            53,
+            67,
+            163,
+            276,
+            379,
+            523,
+            540,
+            541,
+            591,
+            684,
+            702,
+            735,
+            786,
+            869,
+            919,
+            957,
+            965
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 18
+        },
+        {
+          "op": "get",
+          "arg": 40,
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 18
+        },
+        {
+          "op": "size",
+          "expect": 18
+        },
+        {
+          "op": "values",
+          "expect": [
+            31,
+            53,
+            67,
+            163,
+            276,
+            379,
+            523,
+            540,
+            541,
+            591,
+            684,
+            702,
+            735,
+            786,
+            869,
+            919,
+            957,
+            965
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 58,
+          "expect": false
+        },
+        {
+          "op": "set",
+          "arg": [
+            28,
+            243
+          ]
+        }
+      ]
+    }
+  ]
+}

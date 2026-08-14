@@ -1,0 +1,1616 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "FenwickTree",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "아무것도 고치지 않은 표는 어느 앞구간도 0 이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "prefixSum",
+          "arg": 0,
+          "expect": 0
+        },
+        {
+          "op": "prefixSum",
+          "arg": 16,
+          "expect": 0
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            0,
+            16
+          ],
+          "expect": 0
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            3,
+            3
+          ],
+          "expect": 0
+        }
+      ]
+    },
+    {
+      "name": "길이 0 의 앞구간과 빈 구간은 값을 넣은 뒤에도 0 이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            0,
+            5
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            15,
+            7
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 0,
+          "expect": 0
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            0,
+            0
+          ],
+          "expect": 0
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            16,
+            16
+          ],
+          "expect": 0
+        }
+      ]
+    },
+    {
+      "name": "마지막 자리는 앞구간 길이 n 에서만 보인다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            15,
+            4
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 15,
+          "expect": 0
+        },
+        {
+          "op": "prefixSum",
+          "arg": 16,
+          "expect": 4
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            15,
+            16
+          ],
+          "expect": 4
+        }
+      ]
+    },
+    {
+      "name": "같은 자리를 거듭 고치면 쌓이고 음수로 되돌아온다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            2,
+            10
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            10
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 3,
+          "expect": 20
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            -20
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 3,
+          "expect": 0
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            2,
+            3
+          ],
+          "expect": 0
+        }
+      ]
+    },
+    {
+      "name": "앞구간을 둘로 쪼개 더하면 통째 앞구간과 같다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            1,
+            3
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            5,
+            -8
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            9,
+            12
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 4,
+          "expect": 3
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            4,
+            11
+          ],
+          "expect": 4
+        },
+        {
+          "op": "prefixSum",
+          "arg": 11,
+          "expect": 7
+        }
+      ]
+    },
+    {
+      "name": "범위 밖 자리·길이·뒤집힌 구간은 전부 RangeError 다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            16,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            -1,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "prefixSum",
+          "arg": 17,
+          "expect": "RangeError"
+        },
+        {
+          "op": "prefixSum",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            4,
+            2
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            0,
+            17
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "prefixSum",
+          "arg": 16,
+          "expect": 0
+        }
+      ]
+    },
+    {
+      "name": "정수가 아닌 증분은 RangeError 다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            3,
+            0.5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            3,
+            null
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            3,
+            null
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "prefixSum",
+          "arg": 16,
+          "expect": 0
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "prefixSum",
+          "arg": 0,
+          "expect": 0
+        },
+        {
+          "op": "prefixSum",
+          "arg": 16,
+          "expect": 0
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            4,
+            10
+          ],
+          "expect": 0
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            7,
+            16
+          ],
+          "expect": 0
+        },
+        {
+          "op": "prefixSum",
+          "arg": 8,
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            6,
+            -5
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            7,
+            -8
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 13,
+          "expect": -13
+        },
+        {
+          "op": "update",
+          "arg": [
+            3,
+            -9
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 10,
+          "expect": -22
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            3,
+            5
+          ],
+          "expect": -9
+        },
+        {
+          "op": "prefixSum",
+          "arg": 9,
+          "expect": -22
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            3,
+            12
+          ],
+          "expect": -22
+        },
+        {
+          "op": "prefixSum",
+          "arg": 13,
+          "expect": -22
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            4,
+            12
+          ],
+          "expect": -13
+        },
+        {
+          "op": "update",
+          "arg": [
+            5,
+            -2
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            4
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 2,
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            0,
+            2
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            4,
+            16
+          ],
+          "expect": -15
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            5,
+            6
+          ],
+          "expect": -2
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            15,
+            16
+          ],
+          "expect": 0
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            14,
+            15
+          ],
+          "expect": 0
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": 2
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            5,
+            14
+          ],
+          "expect": -15
+        },
+        {
+          "op": "prefixSum",
+          "arg": 15,
+          "expect": -18
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            2,
+            11
+          ],
+          "expect": -20
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            2,
+            16
+          ],
+          "expect": -20
+        },
+        {
+          "op": "update",
+          "arg": [
+            6,
+            -7
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 5,
+          "expect": -3
+        },
+        {
+          "op": "prefixSum",
+          "arg": 8,
+          "expect": -25
+        },
+        {
+          "op": "prefixSum",
+          "arg": 1,
+          "expect": 2
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            4,
+            14
+          ],
+          "expect": -22
+        },
+        {
+          "op": "update",
+          "arg": [
+            4,
+            7
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            3
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 5,
+          "expect": 7
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            -8
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            10,
+            3
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            8,
+            0
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            12,
+            -5
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            14,
+            16
+          ],
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            -9
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            5,
+            12
+          ],
+          "expect": -19
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            1,
+            4
+          ],
+          "expect": -19
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            13,
+            13
+          ],
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            -7
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 9,
+          "expect": -39
+        },
+        {
+          "op": "update",
+          "arg": [
+            14,
+            -4
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            10,
+            14
+          ],
+          "expect": -2
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            3,
+            6
+          ],
+          "expect": -4
+        },
+        {
+          "op": "update",
+          "arg": [
+            3,
+            -4
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            2,
+            16
+          ],
+          "expect": -44
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            -9
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            4,
+            6
+          ],
+          "expect": 5
+        },
+        {
+          "op": "update",
+          "arg": [
+            13,
+            -4
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            7,
+            8
+          ],
+          "expect": -8
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            4,
+            5
+          ],
+          "expect": 7
+        },
+        {
+          "op": "prefixSum",
+          "arg": 12,
+          "expect": -49
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            0,
+            3
+          ],
+          "expect": -24
+        },
+        {
+          "op": "prefixSum",
+          "arg": 10,
+          "expect": -52
+        },
+        {
+          "op": "update",
+          "arg": [
+            5,
+            -1
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            6,
+            11
+          ],
+          "expect": -17
+        },
+        {
+          "op": "prefixSum",
+          "arg": 10,
+          "expect": -53
+        },
+        {
+          "op": "update",
+          "arg": [
+            14,
+            1
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 10,
+          "expect": -53
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            6
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            11,
+            -4
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 4,
+          "expect": -31
+        },
+        {
+          "op": "prefixSum",
+          "arg": 15,
+          "expect": -60
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            -6
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            0,
+            8
+          ],
+          "expect": -53
+        },
+        {
+          "op": "prefixSum",
+          "arg": 13,
+          "expect": -59
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            9
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            0,
+            14
+          ],
+          "expect": -54
+        },
+        {
+          "op": "update",
+          "arg": [
+            6,
+            2
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 6,
+          "expect": -24
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            2,
+            4
+          ],
+          "expect": -23
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            9,
+            10
+          ],
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            2
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            3
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 0,
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            0,
+            -2
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            11,
+            13
+          ],
+          "expect": -9
+        },
+        {
+          "op": "prefixSum",
+          "arg": 11,
+          "expect": -36
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            0,
+            14
+          ],
+          "expect": -49
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            0,
+            14
+          ],
+          "expect": -49
+        },
+        {
+          "op": "prefixSum",
+          "arg": 9,
+          "expect": -39
+        },
+        {
+          "op": "prefixSum",
+          "arg": 1,
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            10,
+            -2
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            8,
+            1
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            8,
+            14
+          ],
+          "expect": -11
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            1,
+            6
+          ],
+          "expect": -21
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            3,
+            14
+          ],
+          "expect": -38
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            1,
+            3
+          ],
+          "expect": -12
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            0,
+            13
+          ],
+          "expect": -46
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            5,
+            15
+          ],
+          "expect": -35
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            7,
+            10
+          ],
+          "expect": -7
+        },
+        {
+          "op": "prefixSum",
+          "arg": 7,
+          "expect": -31
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            8
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 0,
+          "expect": 0
+        },
+        {
+          "op": "prefixSum",
+          "arg": 10,
+          "expect": -30
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            9
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            15,
+            2
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 0,
+          "expect": 0
+        },
+        {
+          "op": "prefixSum",
+          "arg": 0,
+          "expect": 0
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            3,
+            16
+          ],
+          "expect": -39
+        },
+        {
+          "op": "prefixSum",
+          "arg": 15,
+          "expect": -36
+        },
+        {
+          "op": "prefixSum",
+          "arg": 9,
+          "expect": -21
+        },
+        {
+          "op": "prefixSum",
+          "arg": 10,
+          "expect": -21
+        },
+        {
+          "op": "prefixSum",
+          "arg": 13,
+          "expect": -29
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            6,
+            12
+          ],
+          "expect": -20
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            2,
+            4
+          ],
+          "expect": -1
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            6,
+            16
+          ],
+          "expect": -30
+        },
+        {
+          "op": "prefixSum",
+          "arg": 10,
+          "expect": -21
+        },
+        {
+          "op": "prefixSum",
+          "arg": 1,
+          "expect": 0
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            10,
+            13
+          ],
+          "expect": -8
+        },
+        {
+          "op": "update",
+          "arg": [
+            0,
+            5
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            3,
+            5
+          ],
+          "expect": -6
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            0,
+            3
+          ],
+          "expect": 10
+        },
+        {
+          "op": "update",
+          "arg": [
+            4,
+            8
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            6,
+            3
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            10,
+            6
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 7,
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            6,
+            8
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 15,
+          "expect": -6
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            3,
+            10
+          ],
+          "expect": -7
+        },
+        {
+          "op": "prefixSum",
+          "arg": 10,
+          "expect": 3
+        },
+        {
+          "op": "prefixSum",
+          "arg": 15,
+          "expect": -6
+        },
+        {
+          "op": "prefixSum",
+          "arg": 15,
+          "expect": -6
+        },
+        {
+          "op": "update",
+          "arg": [
+            7,
+            -5
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            8,
+            -1
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            5,
+            13
+          ],
+          "expect": -17
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            3,
+            7
+          ],
+          "expect": 0
+        },
+        {
+          "op": "prefixSum",
+          "arg": 9,
+          "expect": -3
+        },
+        {
+          "op": "prefixSum",
+          "arg": 16,
+          "expect": -10
+        },
+        {
+          "op": "prefixSum",
+          "arg": 8,
+          "expect": -3
+        },
+        {
+          "op": "prefixSum",
+          "arg": 0,
+          "expect": 0
+        },
+        {
+          "op": "prefixSum",
+          "arg": 3,
+          "expect": 10
+        },
+        {
+          "op": "prefixSum",
+          "arg": 0,
+          "expect": 0
+        },
+        {
+          "op": "prefixSum",
+          "arg": 5,
+          "expect": 12
+        },
+        {
+          "op": "prefixSum",
+          "arg": 3,
+          "expect": 10
+        },
+        {
+          "op": "update",
+          "arg": [
+            4,
+            -4
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            10,
+            2
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            6,
+            -6
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            3,
+            9
+          ],
+          "expect": -23
+        },
+        {
+          "op": "prefixSum",
+          "arg": 0,
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            5,
+            2
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            6,
+            10
+          ],
+          "expect": -18
+        },
+        {
+          "op": "prefixSum",
+          "arg": 6,
+          "expect": 7
+        },
+        {
+          "op": "prefixSum",
+          "arg": 1,
+          "expect": 5
+        },
+        {
+          "op": "prefixSum",
+          "arg": 11,
+          "expect": -2
+        },
+        {
+          "op": "prefixSum",
+          "arg": 0,
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            3
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            8,
+            15
+          ],
+          "expect": -7
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            0,
+            8
+          ],
+          "expect": -8
+        },
+        {
+          "op": "update",
+          "arg": [
+            14,
+            -9
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 14,
+          "expect": -12
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            6,
+            12
+          ],
+          "expect": -13
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            3,
+            10
+          ],
+          "expect": -21
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            2
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 8,
+          "expect": -6
+        },
+        {
+          "op": "prefixSum",
+          "arg": 5,
+          "expect": 13
+        },
+        {
+          "op": "prefixSum",
+          "arg": 13,
+          "expect": -6
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            1,
+            14
+          ],
+          "expect": -15
+        },
+        {
+          "op": "prefixSum",
+          "arg": 5,
+          "expect": 13
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            5,
+            8
+          ],
+          "expect": -19
+        },
+        {
+          "op": "prefixSum",
+          "arg": 14,
+          "expect": -10
+        },
+        {
+          "op": "prefixSum",
+          "arg": 14,
+          "expect": -10
+        },
+        {
+          "op": "update",
+          "arg": [
+            14,
+            -2
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            2,
+            5
+          ],
+          "expect": 12
+        },
+        {
+          "op": "update",
+          "arg": [
+            11,
+            -3
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 7,
+          "expect": 7
+        },
+        {
+          "op": "prefixSum",
+          "arg": 12,
+          "expect": -4
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            1,
+            16
+          ],
+          "expect": -30
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            1,
+            4
+          ],
+          "expect": -3
+        },
+        {
+          "op": "prefixSum",
+          "arg": 11,
+          "expect": 3
+        },
+        {
+          "op": "prefixSum",
+          "arg": 9,
+          "expect": -6
+        },
+        {
+          "op": "prefixSum",
+          "arg": 12,
+          "expect": -4
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            1,
+            12
+          ],
+          "expect": -9
+        },
+        {
+          "op": "update",
+          "arg": [
+            4,
+            -6
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 0,
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            5,
+            -2
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            10,
+            -5
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            10,
+            1
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            6,
+            13
+          ],
+          "expect": -25
+        },
+        {
+          "op": "prefixSum",
+          "arg": 9,
+          "expect": -14
+        },
+        {
+          "op": "prefixSum",
+          "arg": 1,
+          "expect": 5
+        },
+        {
+          "op": "prefixSum",
+          "arg": 6,
+          "expect": 4
+        },
+        {
+          "op": "update",
+          "arg": [
+            12,
+            7
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 12,
+          "expect": -16
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            14,
+            16
+          ],
+          "expect": -12
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            7,
+            7
+          ],
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            14,
+            4
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            3,
+            6
+          ]
+        },
+        {
+          "op": "prefixSum",
+          "arg": 13,
+          "expect": -8
+        },
+        {
+          "op": "update",
+          "arg": [
+            10,
+            2
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            3,
+            -9
+          ]
+        },
+        {
+          "op": "rangeSum",
+          "arg": [
+            1,
+            15
+          ],
+          "expect": -34
+        },
+        {
+          "op": "update",
+          "arg": [
+            6,
+            -9
+          ]
+        }
+      ]
+    }
+  ]
+}

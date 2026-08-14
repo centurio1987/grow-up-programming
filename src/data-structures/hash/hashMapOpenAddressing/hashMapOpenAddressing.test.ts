@@ -1,204 +1,66 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `hash/hashMapOpenAddressing` 계약 스위트 실행부(규약2).
+ *
+ * 무엇을 검사하는지는 `./hashMapOpenAddressing.contract.ts` 에 있고 — 그 파일은
+ * `hash/hashMapChaining` 의 스위트를 그대로 내보낸다 — 계약 자체는
+ * `./hashMapOpenAddressing.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다.
+ *
+ * **이 파일이 도는 것이 성격 전환의 실증이다.** 같은 스위트가 한 자리에 여럿을 매다는 정본과
+ * 옆자리로 밀어내는 정본을 **둘 다 통과시킨다.** 통과시키지 못하면 계약이 충돌 처리 기법을
+ * 처방하고 있는 것이다.
+ *
+ * 여기 남은 손으로 쓴 테스트는 **이 기법이 특히 잘 놓치는 자리** 하나다. 계약 스위트의 경계
+ * 케이스가 그 자리를 이미 겨누고 있지만(`hashMapChaining.contract.ts` 의 「몰린 자리의 가운데를
+ * 지워도」), 지운 자리를 되쓰는 일까지는 경계 케이스로 못 담는다 — 되쓰지 않는 구현도 그
+ * 케이스를 통과하고 표만 끝없이 자란다.
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7).
+ */
+
+import { expect, test } from "bun:test";
+import { runContract } from "../../_contract/runContract";
+import { HashMapOpenAddressing as Reference } from "./_reference/hashMapOpenAddressing";
 import { HashMapOpenAddressing } from "./hashMapOpenAddressing";
+import { hashMapOpenAddressingContract } from "./hashMapOpenAddressing.contract";
 
-describe("HashMapOpenAddressing", () => {
-  describe("기본", () => {
-    test("set 후 get은 값을 반환한다", () => {
-      const map = new HashMapOpenAddressing<string, number>();
-      map.set("hello", 42);
-      expect(map.get("hello")).toBe(42);
-    });
+const identity = (key: number): number => key;
 
-    test("없는 키는 null을 반환한다", () => {
-      const map = new HashMapOpenAddressing<string, number>();
-      expect(map.get("missing")).toBeNull();
-    });
+runContract(
+  () => new HashMapOpenAddressing<number, number>(identity),
+  hashMapOpenAddressingContract,
+  { label: "스텁" },
+);
 
-    test("has는 키 존재 여부를 반환한다", () => {
-      const map = new HashMapOpenAddressing<string, number>();
-      map.set("x", 10);
-      expect(map.has("x")).toBe(true);
-      expect(map.has("y")).toBe(false);
-    });
+runContract(
+  () => new Reference<number, number>(identity),
+  hashMapOpenAddressingContract,
+  {
+    label: "정본",
+    cost: {
+      kind: "injected",
+      make: (tick) =>
+        new Reference<number, number>((key) => {
+          tick();
+          return key;
+        }),
+    },
+  },
+);
 
-    test("delete 후 get은 null을 반환한다", () => {
-      const map = new HashMapOpenAddressing<string, number>();
-      map.set("foo", 99);
-      expect(map.delete("foo")).toBe(true);
-      expect(map.get("foo")).toBeNull();
-      expect(map.has("foo")).toBe(false);
-    });
+test("한 키를 넣고 지우기를 되풀이해도 탐사가 길어지지 않는다", () => {
+  const map = new Reference<number, number>(identity);
+  const rounds = 20_000;
+  for (let round = 0; round < rounds; round++) {
+    map.set(7, round);
+    map.delete(7);
+  }
+  expect(map.size()).toBe(0);
 
-    test("delete는 없는 키에 false를 반환한다", () => {
-      const map = new HashMapOpenAddressing<string, number>();
-      expect(map.delete("nonexistent")).toBe(false);
-    });
-
-    test("size는 저장된 항목 수를 반환한다", () => {
-      const map = new HashMapOpenAddressing<string, number>();
-      expect(map.size()).toBe(0);
-      map.set("a", 1);
-      map.set("b", 2);
-      expect(map.size()).toBe(2);
-      map.delete("a");
-      expect(map.size()).toBe(1);
-    });
-
-    test("같은 키에 set 두 번 시 값을 덮어쓴다", () => {
-      const map = new HashMapOpenAddressing<string, number>();
-      map.set("key", 1);
-      map.set("key", 99);
-      expect(map.get("key")).toBe(99);
-      expect(map.size()).toBe(1);
-    });
-  });
-
-  describe("충돌 처리 (선형 탐사)", () => {
-    test("충돌 발생 시 다음 빈 슬롯에 저장되고 올바르게 조회된다", () => {
-      // capacity=4로 강제 충돌 유발
-      const map = new HashMapOpenAddressing<string, number>(4);
-      map.set("ab", 1);
-      map.set("ba", 2);
-      expect(map.get("ab")).toBe(1);
-      expect(map.get("ba")).toBe(2);
-    });
-
-    test("tombstone이 있어도 이후 키를 올바르게 탐색한다", () => {
-      const map = new HashMapOpenAddressing<string, number>(8);
-      // 세 키가 같은 해시 → 선형 탐사로 연속 배치
-      map.set("key0", 0);
-      map.set("key1", 1);
-      map.set("key2", 2);
-      // 중간 삭제 → tombstone
-      map.delete("key1");
-      // key2는 tombstone을 건너뛰어 탐색
-      expect(map.get("key2")).toBe(2);
-      expect(map.get("key0")).toBe(0);
-    });
-
-    test("삭제 후 재삽입된 키를 tombstone 슬롯에 올바르게 배치한다", () => {
-      const map = new HashMapOpenAddressing<string, number>();
-      map.set("temp", 1);
-      map.delete("temp");
-      map.set("temp", 2);
-      expect(map.get("temp")).toBe(2);
-      expect(map.size()).toBe(1);
-    });
-
-    test("여러 충돌 후 삭제해도 나머지 키가 정상 동작한다", () => {
-      const map = new HashMapOpenAddressing<string, number>(4);
-      map.set("a", 10);
-      map.set("b", 20);
-      map.set("c", 30);
-      map.delete("a");
-      map.delete("b");
-      expect(map.get("c")).toBe(30);
-      expect(map.size()).toBe(1);
-    });
-  });
-
-  describe("리사이징", () => {
-    test("load factor 0.5 초과 시 자동 확장되어 모든 데이터가 유지된다", () => {
-      const map = new HashMapOpenAddressing<string, number>(4);
-      // 4 * 0.5 = 2 항목 삽입 시 리사이징 발생
-      for (let i = 0; i < 20; i++) {
-        map.set(`k${i}`, i);
-      }
-      expect(map.size()).toBe(20);
-      for (let i = 0; i < 20; i++) {
-        expect(map.get(`k${i}`)).toBe(i);
-      }
-    });
-
-    test("리사이징 후 새로 삽입한 키도 올바르게 동작한다", () => {
-      const map = new HashMapOpenAddressing<number, string>(2);
-      for (let i = 0; i < 10; i++) {
-        map.set(i, `val${i}`);
-      }
-      map.set(999, "new");
-      expect(map.get(999)).toBe("new");
-      expect(map.size()).toBe(11);
-    });
-
-    test("리사이징 시 tombstone은 재해시에서 제외된다", () => {
-      const map = new HashMapOpenAddressing<string, number>(4);
-      map.set("a", 1);
-      map.set("b", 2);
-      map.delete("a");
-      // 이 시점에서 리사이징 발생 가능
-      map.set("c", 3);
-      map.set("d", 4);
-      expect(map.get("b")).toBe(2);
-      expect(map.get("c")).toBe(3);
-      expect(map.get("d")).toBe(4);
-      expect(map.has("a")).toBe(false);
-    });
-  });
-
-  describe("엣지", () => {
-    test("빈 맵에서 get은 null을 반환한다", () => {
-      const map = new HashMapOpenAddressing<string, number>();
-      expect(map.get("anything")).toBeNull();
-    });
-
-    test("숫자 키도 올바르게 동작한다", () => {
-      const map = new HashMapOpenAddressing<number, string>();
-      map.set(0, "zero");
-      map.set(1, "one");
-      map.set(-1, "neg");
-      expect(map.get(0)).toBe("zero");
-      expect(map.get(1)).toBe("one");
-      expect(map.get(-1)).toBe("neg");
-    });
-
-    test("모든 항목 삭제 후 size는 0이다", () => {
-      const map = new HashMapOpenAddressing<string, number>();
-      map.set("a", 1);
-      map.set("b", 2);
-      map.delete("a");
-      map.delete("b");
-      expect(map.size()).toBe(0);
-    });
-
-    test("연속 삽입-삭제-삽입 반복이 올바르게 동작한다", () => {
-      const map = new HashMapOpenAddressing<string, number>();
-      for (let round = 0; round < 5; round++) {
-        map.set("key", round);
-        expect(map.get("key")).toBe(round);
-        map.delete("key");
-        expect(map.has("key")).toBe(false);
-      }
-      expect(map.size()).toBe(0);
-    });
-  });
-
-  describe("성능", () => {
-    test("10^5 set/get 100ms 이내", () => {
-      const map = new HashMapOpenAddressing<string, number>();
-      const N = 100_000;
-      const start = performance.now();
-      for (let i = 0; i < N; i++) {
-        map.set(`key${i}`, i);
-      }
-      for (let i = 0; i < N; i++) {
-        expect(map.get(`key${i}`)).toBe(i);
-      }
-      const elapsed = performance.now() - start;
-      expect(elapsed).toBeLessThan(100);
-    });
-
-    test("10^5 has 호출이 100ms 이내", () => {
-      const map = new HashMapOpenAddressing<string, number>();
-      const N = 100_000;
-      for (let i = 0; i < N; i++) {
-        map.set(`k${i}`, i);
-      }
-      const start = performance.now();
-      for (let i = 0; i < N; i++) {
-        expect(map.has(`k${i}`)).toBe(true);
-      }
-      const elapsed = performance.now() - start;
-      expect(elapsed).toBeLessThan(100);
-    });
-  });
+  // 지운 자리를 되쓰지 않는 구현은 여기서 표가 `rounds` 만큼 자라 있고, 그러면 한 번의
+  // 열거가 담긴 수가 아니라 지나간 호출 수에 비례한다. 계약의 `keys` 행이 그것을 막는다.
+  const before = map.__cost;
+  map.keys();
+  expect(map.__cost - before).toBeLessThan(rounds / 100);
 });

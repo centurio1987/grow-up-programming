@@ -1,102 +1,39 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `linear/circularBuffer` 계약 스위트 실행부(규약2).
+ *
+ * 여기에는 `runContract` 호출만 둔다. 무엇을 검사하는지는 `./circularBuffer.contract.ts`
+ * 에 있고, 계약 자체는 `./circularBuffer.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다.
+ * 축3은 계측기가 붙은 정본에만 돈다 — 학습자 스텁에 `__cost` 를 요구하지 않는다.
+ *
+ * 팩토리가 껍데기를 씌우는 것은 이 구조가 용량을 생성자로 받기 때문이다
+ * (`./circularBuffer.contract.ts` 헤더의 껍데기 설명 — 불변 사실 83).
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 고정 n 의 임계값이 재는 것은 복잡도 등급이
+ * 아니라 그 기계의 상수다. 자리는 축3이다.
+ */
+
+import { runContract } from "../../_contract/runContract";
+import { CircularBuffer as Reference } from "./_reference/circularBuffer";
 import { CircularBuffer } from "./circularBuffer";
+import { Capacitated, circularBufferContract } from "./circularBuffer.contract";
 
-describe("CircularBuffer", () => {
-  describe("기본", () => {
-    test("write 후 read는 FIFO 순서로 반환한다", () => {
-      const buf = new CircularBuffer<number>(3);
-      buf.write(1);
-      buf.write(2);
-      buf.write(3);
-      expect(buf.read()).toBe(1);
-      expect(buf.read()).toBe(2);
-      expect(buf.read()).toBe(3);
-    });
+runContract(
+  () => new Capacitated((capacity) => new CircularBuffer<number>(capacity)),
+  circularBufferContract,
+  { label: "스텁" },
+);
 
-    test("isFull은 용량이 꽉 찼을 때 true를 반환한다", () => {
-      const buf = new CircularBuffer<number>(2);
-      buf.write(1);
-      expect(buf.isFull()).toBe(false);
-      buf.write(2);
-      expect(buf.isFull()).toBe(true);
-    });
-
-    test("isEmpty — 초기에 true, write 후 false", () => {
-      const buf = new CircularBuffer<number>(3);
-      expect(buf.isEmpty()).toBe(true);
-      buf.write(1);
-      expect(buf.isEmpty()).toBe(false);
-    });
-
-    test("size는 현재 아이템 개수를 반환한다", () => {
-      const buf = new CircularBuffer<number>(5);
-      expect(buf.size()).toBe(0);
-      buf.write(1);
-      buf.write(2);
-      expect(buf.size()).toBe(2);
-      buf.read();
-      expect(buf.size()).toBe(1);
-    });
-  });
-
-  describe("덮어쓰기 (overflow)", () => {
-    test("꽉 찬 상태에서 write하면 가장 오래된 항목을 덮어쓴다", () => {
-      const buf = new CircularBuffer<number>(3);
-      buf.write(1);
-      buf.write(2);
-      buf.write(3);
-      buf.write(4); // 1 덮어씀
-      expect(buf.read()).toBe(2);
-      expect(buf.read()).toBe(3);
-      expect(buf.read()).toBe(4);
-    });
-
-    test("capacity=1에서 연속 write는 항상 마지막 값만 남긴다", () => {
-      const buf = new CircularBuffer<number>(1);
-      buf.write(10);
-      buf.write(20);
-      buf.write(30);
-      expect(buf.read()).toBe(30);
-    });
-  });
-
-  describe("엣지", () => {
-    test("빈 버퍼에서 read는 null을 반환한다", () => {
-      const buf = new CircularBuffer<number>(3);
-      expect(buf.read()).toBeNull();
-    });
-
-    test("빈 버퍼에서 peek은 null을 반환한다", () => {
-      const buf = new CircularBuffer<number>(3);
-      expect(buf.peek()).toBeNull();
-    });
-
-    test("peek은 원소를 제거하지 않는다", () => {
-      const buf = new CircularBuffer<number>(3);
-      buf.write(42);
-      expect(buf.peek()).toBe(42);
-      expect(buf.size()).toBe(1);
-    });
-
-    test("read 후 다시 write하면 슬롯이 재사용된다", () => {
-      const buf = new CircularBuffer<number>(2);
-      buf.write(1);
-      buf.write(2);
-      buf.read();        // 슬롯 해제
-      buf.write(3);      // 재사용
-      expect(buf.read()).toBe(2);
-      expect(buf.read()).toBe(3);
-    });
-  });
-
-  describe("성능", () => {
-    test("10^6 write/read를 200ms 이내에 처리한다", () => {
-      const buf = new CircularBuffer<number>(1000);
-      const N = 1_000_000;
-      const start = performance.now();
-      for (let i = 0; i < N; i++) buf.write(i);
-      for (let i = 0; i < 1000; i++) buf.read();
-      expect(performance.now() - start).toBeLessThan(200);
-    });
-  });
-});
+runContract(
+  () => new Capacitated((capacity) => new Reference<number>(capacity)),
+  circularBufferContract,
+  {
+    label: "정본",
+    cost: {
+      kind: "self-reported",
+      make: () =>
+        new Capacitated((capacity) => new Reference<number>(capacity)),
+    },
+  },
+);

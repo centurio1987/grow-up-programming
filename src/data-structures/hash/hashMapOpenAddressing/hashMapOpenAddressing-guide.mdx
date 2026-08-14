@@ -1,411 +1,642 @@
 ---
-version: 2.0.0
+version: 4.0.0
 ---
 
 import { AlgorithmSimulation } from "#guide-sim";
 
-# HashMapOpenAddressing — 충돌은 옆 슬롯으로, 삭제는 팻말로
+# HashMapOpenAddressing — 부딪히면 옆으로 밀어내고, 지운 자리는 지워도 비우지 않는 사전
 
-## 한눈에 보는 컨셉
+## 개요
 
-개방 주소법(open addressing) 해시맵은 충돌이 나도 링크드 리스트를 새로 만들지 않고, 같은 배열 안의 다음 빈 슬롯을 순서대로 찾아가 저장해요(선형 탐사, linear probing). 삭제는 슬롯을 진짜로 비우는 대신 tombstone이라는 팻말을 남겨서, 그 뒤에 있는 다른 키를 찾는 탐사가 중간에 끊기지 않게 합니다. 포인터 없는 연속 배열이라 캐시 지역성이 좋고, 평균 O(1)에 삽입·조회·삭제를 처리해요 — CPython의 dict, Rust의 `HashMap`이 이 계열입니다.
+사전(dictionary)은 **키 하나에 값 하나를 붙여 두고 그 값을 키로 찾는 구조**입니다. 여기 실린 기법의 설계 핵심은 부딪힌 키를 한 자리에 매달지 않고 **옆자리로 밀어내는** 것, 그리고 그 때문에 생기는 문제 하나를 상태 하나로 푸는 것이에요. 그 문제란 지운 자리를 비우면 그 자리를 지나야 닿는 키를 잃어버린다는 것입니다. 계약은 `hash/hashMapChaining` 의 것과 같고 넷이 `O(1)` `expected` 인데, 호출 하나가 아니라 호출 묶음에 걸리는 약속이에요. 그 뜻과 근거는 저쪽 가이드에 있습니다.
 
-## 언제, 왜 쓰는가
+**이 가이드가 다루는 것은 그 「같다」입니다.** 두 이름이 왜 계약으로 갈리지 않는지, 그런데도 왜 둘 다 남겨 두는지를 수치로 보입니다. 계약 자체의 이유(왜 `O(1)` 인가, 왜 `expected` 인가, 왜 불변식이 셋인가)는 `hash/hashMapChaining` 가이드에 있고 여기서 되풀이하지 않아요.
 
-### 이런 단서가 보이면
+## 이 구조가 필요한 이유
 
-다음 신호가 겹치면 개방 주소법을 떠올리세요.
+이 계약이 약속하는 것은 넷을 **동시에** 주는 일입니다 — 키에 값을 붙이는 일, 키로 값을 읽는 일, 키가 담겼는지 묻는 일, 키를 지우는 일. 넷 다 담긴 수와 무관한 비용이에요.
 
-- 메모리가 빠듯해서 체이닝의 링크드 리스트(노드마다 포인터 오버헤드)를 피하고 싶다
-- 조회가 압도적으로 많아서 캐시 미스 한 번의 비용이 무시 못 할 정도로 크다(임베디드, 저지연 서비스)
-- 슬롯을 절반 이상 비워 둘 메모리 여유가 있다 — load factor를 낮게 유지해야 하기 때문
+**그런데 「이 구조가 필요한 이유」와 「이 기법이 필요한 이유」는 다른 물음입니다.** 앞엣것의 답은 계약에 있고 `hash/hashMapChaining` 과 글자까지 같아요. 뒤엣것의 답은 계약에 **없습니다** — 그것이 이 문서의 주제입니다.
 
-체이닝과 비교하면 트레이드오프가 뚜렷합니다.
+### 쓰이는 자리
+
+사례를 **연산 집합과 호출 빈도**로 옮겨 적습니다.
+
+- **언어 실행기의 이름표** — 선언마다 `set` 1회, 참조마다 `get` 1회입니다. 프로그램 길이만큼 반복되므로 전체가 `O(호출 수)` 예요. 이름 사이의 순서를 묻는 일이 없다는 것이 요점입니다.
+- **넣고 지우기가 오래 섞이는 자리** — 연결 추적처럼 항목이 계속 들어오고 나가는 곳입니다. `set` 과 `delete` 가 비슷한 횟수로 번갈아 들어오고 그 사이사이 `has` 가 섞여요. **이 사례가 이 기법에서 특별합니다** — 지운 자리를 어떻게 처리하느냐가 여기서 드러나고, 그 이야기가 아래 4단계의 절반입니다.
+- **두 목록의 공통 원소 찾기** — 짧은 쪽 m 개를 `set` 으로 담고 긴 쪽 n 개를 훑으며 `has` 를 부릅니다. 전체가 `O(m + n)` 이에요.
+
+## 단순한 구현의 한계
+
+### 순진한 설계는 어디서 상한을 넘는가
+
+이 계약을 모른 채 사전을 지으면 답이 순서대로 셋 나오고 셋 다 상한을 넘습니다. 실측은 `hash/hashMapChaining` 가이드에 있고, 결론만 옮기면 이렇습니다.
+
+`r` 은 크기를 네 배 키웠을 때 비용이 몇 배가 되는지입니다. 기대값이 상한마다 다르다는 것을 먼저 정해 두고 읽어 주세요 — `O(1)` 이면 1.0, `O(n)` 이면 4.0 이 정상입니다. 그래서 아래 표의 4.00 은 실패이고, 뒤에 나오는 `keys` 의 4.00 은 통과예요.
 
 ```text
-                체이닝(링크드 리스트)          개방 주소법(선형 탐사)
-메모리 배치      버킷 배열 + 노드 포인터 산재     배열 하나, 연속 메모리
-캐시 미스        충돌마다 포인터 추적 → 미스↑    슬롯만 이동 → 프리페치 효과
-load factor 한계 1을 넘어도 동작(체인이 길어질 뿐) 1을 넘으면 삽입 불가 → 0.5에서 미리 확장
-삭제             노드 제거만 하면 끝             tombstone 관리 필요(구현 복잡도↑)
+설계                        걸리는 자리                        r
+차례로 담고 훑기            넷 전부                          4.00
+키를 정렬해 두고 이분 탐색   넣기·지우기                      3.91 · 3.98
+펴기 값의 나머지로 자리      몰리는 키에서 넷 전부             3.96 · 3.99
 ```
 
-선택 기준은 이렇습니다: **삭제가 잦고 load factor가 들쭉날쭉해도 괜찮은 범용 상황**이면 체이닝이 편하고, **조회가 압도적으로 많고 메모리 지역성이 성능을 좌우하는 상황**이면 개방 주소법이 유리합니다.
+마지막 설계가 남긴 규칙이 이 문서의 출발점입니다.
 
-연산별 비용을 요약하면($n$은 저장된 원소 수):
+> 키에서 자리를 곧장 계산하되, 그 계산에 **구현만 아는 무작위**를 섞고, 자리 수를 담긴 수와 함께 키운다.
+
+**세 규칙 어디에도 「부딪히면 어떻게 하는가」가 없습니다.** 자리를 아무리 잘 흩어도 서로 다른 두 키가 같은 자리를 받는 일은 생겨요 — 자리가 유한하니까요. 그 자리에서 갈리는 것이 두 이름입니다.
+
+### 부딪힌 자리에서 갈리는 둘, 그런데 계약은 안 갈린다
+
+답이 둘입니다.
 
 ```text
-set / get / has / delete   O(1) 평균, O(n) 최악(탐사 체인이 전체 길이인 경우)
-resize                      O(n), 상환(amortized) O(1)
+자리 3에 40 과 60 이 함께 왔을 때
+
+  매달기                          밀어내기
+  [3] → 40 → 60                   [3] 40   [4] 60
+  자리 하나가 여럿을 든다          60 이 다음 빈 자리로 간다
 ```
 
-### 문제 사례와 적용 예시
+이 차이가 계약의 문장이 되려면 계약이 「자리」를 말해야 합니다. 그런데 **계약에 자리라는 말이 없어요.** 계약이 보는 것은 호출 하나의 비용이고, 두 기법 모두 그 비용이 담긴 수와 무관합니다. 자리를 어떻게 쓰는지를 상한으로 적으려면 먼저 자리를 계약이 말해야 하고, 자리는 담는 모양이라 적는 순간 그것이 처방이에요.
 
-- **CPython의 `dict`/`set`**: 실제로 개방 주소법(의사난수 탐사)을 사용합니다.
-- **Rust의 `std::collections::HashMap`**: SwissTable 계열의 개방 주소법으로 구현돼 있습니다.
-- **임베디드/게임 엔진의 캐시 테이블**: 동적 할당을 피해야 하는 환경에서 고정 크기 배열 하나로 캐시를 구현할 때.
-- **코딩 테스트 맥락**: "언어 내장 `Map`/`Object` 없이 배열 하나로 해시맵을 직접 구현하라" 류의 문제 — 충돌 처리와 삭제 설계 능력을 함께 확인합니다.
+갈라 보려 시도한 것이 다섯이고 다섯 다 같은 자리에서 막힙니다. 계약 헤더(`hashMapOpenAddressing.ts`)가 다섯을 하나씩 적고 있고, 여기서는 **수치로 확인한 것**만 옮깁니다.
 
-## 자료구조 자세히 들여다보기
+**두 정본을 같은 스위트에 넣은 결과.** 열한 시나리오를 **둘 다 전부 통과**합니다.
 
-### 전체 스펙: 속성과 액션
+```text
+연산 (n = 1,024 · 4,096 · 16,384)          매달기                밀어내기          r (양쪽)
+set  무작위 키                      7.49·7.53·7.53        6.98·6.99·7.02      1.00 안팎
+set  몰리는 키(적대)                7.52·7.52·7.52        6.96·6.98·7.01      1.00 안팎
+get  무작위 키                      3.26·3.25·3.25        2.49·2.50·2.50      1.00 안팎
+has  몰리는 키(적대)                2.88·2.88·2.88        2.95·2.99·2.99      1.00 안팎
+delete 무작위 키                    9.10·9.14·9.16        5.83·5.88·5.83      1.00 안팎
+keys                                3,072·12,288·49,152   2,048·8,192·32,768  4.00
+```
 
-**속성(내부 상태)** — 슬롯은 세 가지 상태 중 하나입니다.
+**절대 비용은 갈립니다.** 지우기가 9.10 대 5.83 으로 1.56 배, 열거가 3,072 대 2,048 으로 1.5 배예요. 그런데 성장률 `r` 은 열한 시나리오 전부에서 허용 구간 안입니다. 축3이 보는 것이 절대 카운트가 아니라 **비율**이라 상수 배수가 판정에 안 들어오기 때문이에요.
 
-```ts
-type Slot<K, V> =
-  | { state: "empty" }
-  | { state: "occupied"; key: K; value: V }
-  | { state: "tombstone" };
+**여기서 헷갈리기 쉬운 부분**을 짚습니다. 「1.5 배면 큰 차이인데 계약이 그걸 못 담는 게 문제 아닌가요?」 — 못 담는 것이 아니라 **담지 않기로 한 것**입니다. 담으려면 계약이 상수 배수를 말해야 하고, 상수 배수는 담는 모양을 지목해야만 참인 진술이라 계약의 문장이 될 수 없어요. 두 정본 중 하나를 「계약 위반」으로 만들지 않고 둘 다 두는 것이 그 결정의 결과입니다.
 
-class HashMapOpenAddressing<K, V> {
-  private slots: Slot<K, V>[]; // 길이 capacity의 고정 배열
-  private capacity: number; // 슬롯 총 개수
-  private count: number; // 살아있는(occupied) 슬롯 수 — tombstone은 미포함
-  private readonly LOAD_FACTOR = 0.5;
+**같은 파일에서 상수 하나만 바꿔도 그만큼 갈립니다.** 두 정본을 견주면 「구현이 둘 다르다」로 읽히니, 오해할 자리가 없는 시험을 하나 더 돌렸어요. 적재율 문턱 **하나만** 바꾼 사본 여덟을 같은 스위트에 넣었습니다.
+
+```text
+                        set 무작위      get 무작위    delete 무작위   keys(n=1,024)   판정
+매달기 문턱 0.5           6.36            3.26           9.07           3,072        통과
+매달기 문턱 0.75          7.50            3.27           9.09           3,072        통과
+매달기 문턱 0.9           8.22            3.24           9.13           3,072        통과
+매달기 문턱 2             5.89            4.01           4.77           1,536        통과
+밀어내기 문턱 0.25        8.32            2.16          12.23           4,096        통과
+밀어내기 문턱 0.5         6.98            2.49           5.83           2,048        통과
+밀어내기 문턱 0.75        9.71            2.48           5.80           2,048        통과
+밀어내기 문턱 0.9        15.24            2.52           5.88           2,048        통과
+```
+
+넣기가 5.89 에서 15.24 로 2.6 배, 열거가 1,536 에서 4,096 으로 2.7 배 갈리는데 여덟이 전부 통과합니다. 문턱 값은 코드에 적힌 상수 하나이고 계약 표면 어디에도 없어요 — **적재율이 계약의 문장이 못 된다**는 주장의 근거가 이 표입니다.
+
+`매달기 문턱 2` 줄을 눈여겨보세요. 담긴 수가 자리 수의 두 배까지 가도록 둔 설정인데, 밀어내는 기법에서는 **아예 지을 수 없는 설정**입니다(자리보다 많이 담을 수 없으니까요). 그런데도 계약은 갈리지 않아요.
+
+**이 표가 혼자서 적재율을 배제하는 것은 아닙니다.** 두 기법에서 「적재율」이 가리키는 양부터 다르거든요 — 매달기에서는 자리 하나에 매달린 평균 개수라 1 을 넘을 수 있고, 밀어내기에서는 자리 점유율이라 1 을 넘을 수 없습니다. 배제의 근거는 따로 둘이에요. 저장량은 이 저장소의 어느 계약에도 없고, 공간에서 온 제약이 계약에 들어오려면 그 제약을 관측하는 연산이 계약에 있어야 하는데 여기에는 없어요(`linear/circularBuffer` 의 `isFull()` 이 있는 자리가 비어 있습니다). 위 표가 하는 일은 그 판정이 실제로 어떤 폭의 차이를 계약 밖에 두는지 보이는 것입니다.
+
+### 실패에서 끌어내는 설계 규칙
+
+밀어내는 쪽을 고르면 규칙이 하나 더 필요합니다. **지우기 때문이에요.**
+
+부딪힌 키가 옆으로 밀렸다면, 그 키를 찾는 길은 **제 자리에서 시작해 옆으로 걸어가는 것**입니다. 걷다가 빈 자리를 만나면 「없다」로 끝나요. 그런데 중간에 있던 키를 지우고 그 자리를 비우면 어떻게 될까요?
+
+```text
+자리       [15] 10    [0] 20    [1] 40    [2] 60
+60 의 제 자리는 15 이고, 15 · 0 · 1 이 차 있어서 2 까지 밀렸다
+
+delete(20) 후 자리 0 을 비우면
+
+자리       [15] 10    [0] ____   [1] 40    [2] 60
+
+has(60) → 제 자리 15 에서 출발 → 0 이 비었다 → "없다"        ← 틀렸다
+```
+
+60 은 멀쩡히 자리 2 에 있는데 못 찾습니다. 걷는 길이 끊겼거든요. 여기서 규칙이 나옵니다.
+
+> **지운 자리는 「비었다」와 다른 상태로 표시한다.** 걸을 때는 지나가고, 앉을 때는 앉을 수 있는 자리로.
+
+그 표시를 흔히 묘비(tombstone)라고 부릅니다. 이름이 무엇이든 하는 일은 하나예요 — **탐사열을 끊지 않으면서 자리를 되쓸 수 있게 하는 것.**
+
+그런데 묘비가 두 번째 문제를 만듭니다. 묘비는 걸을 때 지나가야 하는 자리예요. 그래서 넣고 지우기를 되풀이하면 **담긴 수는 그대로인데 걷는 거리가 계속 늘어나고**, 표가 묘비로 가득 차면 탐사가 끝나지 않습니다. 담긴 것이 하나여도 그렇습니다.
+
+> **다시 짓는 문턱을 「살아 있는 수」가 아니라 「쓰인 수」로 본다.**
+
+쓰인 수는 살아 있는 것과 묘비를 합친 값입니다. 이 규칙이 있으면 넣고 지우기만 되풀이해도 표가 주기적으로 다시 지어지고, 다시 지을 때 묘비가 사라져요. **매달기 쪽에는 이 규칙이 아예 필요 없습니다** — 매달린 항목을 빼면 그 자리에서 그냥 없어지니까요.
+
+두 규칙이 곧 이 기법의 전부이고, **계약에는 둘 다 안 들어갑니다.** 계약이 요구하는 것은 「지운 뒤에도 나머지가 찾아진다」(불변식 2번)와 「호출 시퀀스의 기대 총비용이 호출 수에 비례한다」(연산 계약)뿐이고, 두 규칙은 그것을 **이 기법에서** 지키는 방법이에요.
+
+## 불변식과 연산별 복잡도 조건
+
+계약이 같으므로 불변식도 상한도 한정자도 같습니다. 이유는 `hash/hashMapChaining` 가이드의 같은 절에 있고, 여기서는 **이 기법에서 특히 잘 깨지는 자리**만 짚습니다.
+
+**불변식 2번이 그 자리입니다** — 「임의의 키 `k` 에 대해 `has(k)` 는 `keys()` 안에 `k` 가 있는가와 같다」. 위에서 본 대로, 지운 자리를 비우면 `keys()` 는 60 을 그대로 늘어놓는데 `has(60)` 이 거짓이 됩니다. 관측 경로 둘이 정확히 여기서 갈려요.
+
+**그렇다고 이것이 「이 기법의 불변식」인 것은 아닙니다.** 불변식은 판별 절차가 정하지 기법이 정하지 않아요 — 절차는 「그 성질을 읽는 공개 연산이 몇인가, 둘 이상이면 어느 계약 줄이 그 정합을 이미 적고 있는가」를 묻고, 그 답은 매달든 밀어내든 같습니다. 이 기법에서 잘 깨진다는 것은 **왜 그 불변식이 값을 하는지**의 좋은 예시이지 불변식의 근거가 아닙니다.
+
+### 왜 문턱이 절반인가 — 밀어내기 고유의 논증
+
+**여기서 저쪽 가이드로 넘길 수 없는 것이 하나 있습니다.** 계약이 같아도 상한을 **지키는 메커니즘**은 두 기법이 전혀 다르거든요. 매달기에서 한 번의 찾기 비용은 그 자리에 매달린 개수이고, 그 개수의 기댓값은 적재율에 곧장 비례합니다. 밀어내기에서는 그렇지 않아요 — 이미 찬 자리를 만나면 옆으로 가고, 그렇게 옆으로 간 키가 **다른 키의 길까지 막습니다.**
+
+이것을 1차 군집화(primary clustering)라고 부릅니다. 찬 자리가 이어 붙을수록 그 덩어리에 새로 떨어지는 키는 덩어리 끝까지 걸어야 하고, 그러면 덩어리가 더 길어져요. 길어질수록 새 키가 떨어질 확률도 커집니다.
+
+자리 수를 16,384 로 고정하고 적재율만 올리며 「담긴 키 하나를 찾을 때 지나가는 자리 수」를 재 봤습니다(곱수 20 벌 평균).
+
+```text
+적재율      밀어내기    매달기
+0.25          1.17      2.12
+0.50          1.51      2.25
+0.75          2.51      2.38
+0.90          5.34      2.45
+0.95         10.11      2.48
+```
+
+**두 열이 전혀 다른 모양입니다.** 매달기는 2.12 에서 2.48 로 거의 평평한데, 밀어내기는 1.17 에서 10.11 로 여덟 배 넘게 뜁니다. 0.75 근처에서 두 열이 교차하는 것도 보이고요 — 자리가 여유로울 때는 밀어내기가 싸고, 꽉 찰수록 반대가 됩니다.
+
+**그래서 문턱이 0.5 입니다.** 그 지점에서 평균 1.51 이고, 적재율이 늘 0.5 아래에 있으면 이 값이 담긴 수와 무관한 상수로 묶여요. 문턱을 0.9 로 둬도 5.34 는 여전히 상수입니다. 다만 **그 상수가 서 있는 자리가 위태롭습니다** — 표의 마지막 줄이 보이듯 조금만 더 올라가도 값이 두 배가 되거든요.
+
+**그런데 이 표의 어느 줄도 계약을 어기지 않습니다.** 위 3단계에서 문턱 0.9 로 지은 사본이 열한 시나리오를 전부 통과한 것이 그 실물이에요. 여기서 갈리는 것은 상수이고, 상수는 계약의 문장이 아닙니다. 문턱 0.5 는 **이 정본이 고른 값**이지 계약이 요구한 값이 아니에요.
+
+**`size` 행에서 한 걸음이 더 필요합니다.** 계약은 `O(1)` `worst` 를 적었고, 이 기법에서는 「살아 있는 수」와 「쓰인 수」가 다릅니다. 둘 중 어느 것을 세고 있는지가 답을 가르므로 구현이 둘을 따로 들어야 해요. 이것도 계약의 문장이 아니라 이 기법의 일입니다 — 계약은 답이 맞기만 하면 어떻게 세는지 묻지 않습니다.
+
+**`get` 이 `null` 을 돌려주는 자리도 짚어 둡니다.** 담긴 값이 `null` 이면 「없다」와 구별되지 않아요. 계약은 그것을 금지하지 않고 대신 담김 여부의 정본을 `has` 로 정합니다. 키의 동등성은 `Object.is` 이고요 — `NaN` 을 같은 키로 보고 `0` 과 `-0` 을 다른 키로 봅니다. 주입하는 펴기도 그 동등성과 맞아야 하는데, 그것이 주입 정책의 두 번째 조항입니다.
+
+**검증 등급은 `complexity` 입니다.** 계약이 같으므로 등급도 같아요 — 등급은 계약에서 기계적으로 따라 나오고, 계약이 같은데 등급이 갈릴 수는 없습니다.
+
+## 구현 (TypeScript)
+
+자리 하나의 상태와 상수들부터 봅시다.
+
+```ts guide-core=src/data-structures/hash/hashMapOpenAddressing/_reference/hashMapOpenAddressing.ts#types
+/** 자리 하나의 상태. */
+const EMPTY = 0;
+const LIVE = 1;
+/** 지워진 자리. 앉을 수는 있고, 탐사는 여기서 멈추지 않는다. */
+const GONE = 2;
+
+/** 쓰인 자리(살아 있는 것 + 묘비)가 이 비율을 넘으면 표를 다시 짓는다. */
+const REBUILD_ABOVE = 0.5;
+
+/** 살아 있는 수가 자리 수의 이 비율 아래로 내려가면 줄인다. */
+const SHRINK_BELOW = 0.125;
+
+/** 자리 수의 최솟값. 자리 수는 언제나 2의 거듭제곱이다. */
+const MIN_SLOTS = 16;
+
+/**
+ * 자리를 정하는 데 쓰는 무작위 홀수. 홀수여야 `Math.imul` 곱셈이 $2^{32}$ 를 법으로
+ * 일대일이다. JS 수 전체에 대한 말이 아니라 32비트 안에서의 말이다.
+ */
+function randomOddMultiplier(): number {
+  return ((Math.random() * 0x1_0000_0000) | 1) >>> 0;
+}
+
+/**
+ * 펴진 값을 32비트 안에서 흩는다. 사슬로 잇는 정본과 **같은 함수**다 — 기법이 갈리는 것은
+ * 자리를 정한 뒤의 일이고, 자리를 정하는 방식까지 갈리면 두 정본의 실측을 나란히 읽을 때
+ * 무엇이 기법의 몫인지 알 수 없다. 곱셈이 두 번인 근거는 그 파일 헤더에 실측으로 적혀 있다.
+ */
+function scatter(spread: number, first: number, second: number): number {
+  let mixed = Math.imul(spread ^ (spread >>> 16), first) >>> 0;
+  mixed = Math.imul(mixed ^ (mixed >>> 15), second) >>> 0;
+  return mixed;
+}
+
+/**
+ * 자리 수가 `2 ** m` 일 때 위쪽 `m` 비트를 남기는 시프트 값. 사슬로 잇는 정본과 같은 이유로
+ * `Math.log2` 대신 정수 연산을 쓰고, 같은 이유로 **자리 수가 2 이상**이라고 전제한다
+ * (`slots === 1` 이면 32 를 돌려주는데 JS 의 `>>>` 가 32 를 0 으로 접는다).
+ */
+function shiftFor(slots: number): number {
+  return Math.clz32(slots) + 1;
 }
 ```
 
-지켜야 할 불변식은 네 가지예요.
+**가장 중요한 부분은 상태가 셋이라는 것입니다.** `EMPTY` 와 `GONE` 을 하나로 합치는 순간 위 그림의 `has(60)` 이 거짓이 됩니다. 그리고 `scatter` 가 매달기 정본과 **같은 함수**라는 것도 의도된 것이에요 — 자리를 정하는 방식까지 갈라 두면 위 실측 표에서 무엇이 기법의 몫이고 무엇이 흩기의 몫인지 알 수 없게 됩니다.
 
-1. 매 시점 각 슬롯은 `empty` / `occupied` / `tombstone` 중 정확히 하나의 상태를 가집니다.
-2. $\text{count} = |\{\, i : \text{slots}[i].\text{state} = \text{occupied} \,\}|$ — tombstone은 count에서 제외됩니다.
-3. `set()` 호출이 끝난 시점에는 항상 $\lambda = \text{count}/\text{capacity} \le 0.5$ 를 만족합니다(초과하는 순간 resize가 동기적으로 일어나기 때문).
-4. 키 $k$가 슬롯 $i$에 저장돼 있다면, $\text{probe}(k, 0), \text{probe}(k, 1), \dots$ 로 슬롯 $i$에 도달하기까지 지나친 모든 슬롯은 `empty`가 아닙니다(`occupied` 또는 `tombstone`). 이게 탐사가 중간에 끊기지 않는 이유입니다.
+이제 본문입니다.
 
-capacity=8인 배열에 `dog`, `owl`, `elk`를 순서대로 넣은 실제 상태를 그려 보면(세 키는 이 가이드의 해시 함수로 **실제로** 슬롯 4에 충돌합니다):
+```ts guide-core=src/data-structures/hash/hashMapOpenAddressing/_reference/hashMapOpenAddressing.ts#class
+export class HashMapOpenAddressing<K, V> {
+  readonly #spread: (key: K) => number;
+  #state: Uint8Array;
+  #keys: (K | undefined)[];
+  #values: (V | undefined)[];
+  /** 살아 있는 항목 수. */
+  #count = 0;
+  /** 살아 있는 것 + 묘비. 다시 짓는 문턱은 이쪽으로 본다. */
+  #used = 0;
+  #firstMultiplier = randomOddMultiplier();
+  #secondMultiplier = randomOddMultiplier();
+  #shift = shiftFor(MIN_SLOTS);
 
-```text
-index:     0      1      2      3      4      5      6      7
-state:  [empty][empty][empty][empty][ occ ][ occ ][ occ ][empty]
-                                       dog    owl    elk
-                                        ↑
-                          hash("dog") = hash("owl") = hash("elk") = 4  (capacity=8, 실측)
-```
-
-**액션(연산)** — 이 자료구조가 제공하는 다섯 가지 연산입니다.
-
-| 액션 | 하는 일 | 비용 |
-|------|---------|------|
-| `set(key, value)` | 탐사로 자리를 찾아 삽입/갱신, 필요하면 resize | 평균 $O(1)$, 최악 $O(n)$ |
-| `get(key)` | 탐사로 값을 조회 | 평균 $O(1)$, 최악 $O(n)$ |
-| `has(key)` | 탐사로 존재 여부 확인 | 평균 $O(1)$, 최악 $O(n)$ |
-| `delete(key)` | 탐사로 찾아 tombstone 마킹 | 평균 $O(1)$, 최악 $O(n)$ |
-| `size()` | 살아있는 원소 수 반환 | $O(1)$ |
-
-핵심 연산 두 개를 실제 값으로 자세히 볼게요. 탐사 규칙은 $\text{probe}(k, i) = (h(k) + i) \bmod m$ 입니다($m$은 capacity).
-
-**① `set` — 선형 탐사로 자리 찾기.**
-
-```text
-capacity=8, hash("dog") = hash("owl") = hash("elk") = 4  (실측)
-
-set("dog", 10):  probe(4,0)=4 → empty → 삽입
-  Before: [ _, _, _, _, _, _, _, _ ]
-  After : [ _, _, _, _,dog, _, _, _ ]
-
-set("owl", 20):  probe(4,0)=4 → occupied(dog, 키 불일치) → probe(4,1)=5 → empty → 삽입
-  Before: [ _, _, _, _,dog, _, _, _ ]
-  After : [ _, _, _, _,dog,owl, _, _ ]
-
-set("elk", 30):  4(occupied,dog)→5(occupied,owl)→6(empty)→삽입
-  After : [ _, _, _, _,dog,owl,elk, _ ]
-```
-
-**② `delete` + tombstone skip — 왜 탐사가 끊기지 않는가.**
-
-```text
-delete("owl"): 슬롯5를 tombstone으로 마킹합니다(empty가 아닙니다!)
-  Before: [ _, _, _, _,dog,owl,elk, _ ]
-  After : [ _, _, _, _,dog, † ,elk, _ ]     († = tombstone)
-
-get("elk"): probe(4,0)=4(occupied,dog,불일치)
-          → probe(4,1)=5(tombstone → 건너뛰고 계속)
-          → probe(4,2)=6(occupied,elk,일치) → 30 반환
-```
-
-### 왜 모순 없이 작동하는가
-
-빈 배열에서 시작하면 불변식은 자명하게 성립합니다(모든 슬롯이 `empty`, count=0). 이제 각 연산이 불변식을 보존하는지 봅시다.
-
-**`set`이 불변식을 보존하는 이유.** 삽입 위치는 항상 `empty` 슬롯이거나(count가 없던 자리를 채움) 이미 `tombstone`이던 슬롯(죽은 자리를 되살림)입니다. 두 경우 모두 정확히 하나의 `occupied` 슬롯이 늘어나므로 count가 정확히 반영되고, 그 직후 $\lambda > 0.5$면 즉시 resize로 다시 $\lambda \le 0.5$를 복구합니다(불변식 3).
-
-**`delete`가 불변식을 보존하는 이유.** 슬롯을 `empty`가 아니라 `tombstone`으로 바꿉니다. 불변식 4가 "지나친 슬롯은 empty가 아니다"였죠 — tombstone은 empty가 아니므로, 그 슬롯 뒤에 저장된 다른 키로 가는 탐사 경로가 계속 살아 있습니다.
-
-여기서 헷갈리기 쉬운 포인트를 몇 가지 짚어 둘게요.
-
-- **load factor가 정확히 0.5일 때는 resize가 일어나지 않습니다.** 조건이 `count / capacity > LOAD_FACTOR`로 **초과**만 체크하기 때문이에요. 실측으로 확인해 보면, capacity=4에서 2개를 넣으면 $2/4=0.5$인데도 resize가 일어나지 않고, 3개째($3/4=0.75$)에서야 비로소 capacity가 8로 늘어납니다. "0.5 이하로 유지"가 아니라 "0.5 초과 시에만 확장"이라는 정확한 조건을 기억하세요.
-  > 확인 질문 하나만 해 볼까요? capacity=4에서 count=2일 때, 다음 삽입 없이 지금 당장 resize가 일어날까요? — 아니요. resize는 `set()`이 count를 늘린 **직후**에만 검사하므로, 삽입이 일어나지 않으면 검사 자체가 없습니다.
-- **tombstone과 empty를 혼동하면 존재하는 키를 못 찾습니다.** `delete("owl")`을 `empty`로 처리해 버리면 어떻게 될까요? `get("elk")`가 슬롯4(dog, 불일치)를 지나 슬롯5에서 `empty`를 만나 탐사를 즉시 멈춰 버립니다. 슬롯6에 진짜로 있는 `elk`(값 30)를 못 보고 `undefined`를 반환하는 거예요 — 아래 코드 절의 Stage 1에서 이 오류를 직접 재현합니다.
-- **tombstone을 마킹만 하고 재사용하지 않아도 문제가 생깁니다.** 정답을 찾긴 하지만 탐사 거리가 계속 낭비돼요 — 아래 코드 절의 Stage 2에서 실측치로 보여드립니다.
-- **`has`를 `get(key) !== undefined`로 구현하면 안전하지 않습니다.** 만약 `V`에 `undefined`를 실제 값으로 저장한 경우, 존재하는 키인데도 `has`가 `false`를 반환할 수 있어요. `has`는 `get`과 별개로 자기 탐사 로직을 가져야 합니다.
-
-엣지 케이스를 점검해 봅시다(모두 실측 확인됨).
-
-```text
-빈 맵에 get/has/delete       → undefined / false / false
-capacity=1로 시작            → 첫 삽입 직후 1/1=1 > 0.5 → 즉시 resize(capacity=2)
-동일 키 재삽입                → 값만 갱신, count 불변(size 그대로)
-없는 키 delete                → 첫 empty를 만나 즉시 false
-resize 도중 재귀 삽입          → count를 0으로 리셋한 뒤 재계산하므로,
-                               재해시 중 load factor가 다시 0.5를 넘어
-                               연쇄적으로 resize가 겹치지 않습니다
-                               (원래 count ≤ 0.5·capacity_old 이므로
-                               재해시 중 최대 λ = count/(2·capacity_old) ≤ 0.25)
-```
-
-## 아이디어를 코드로 옮기기
-
-`set`/`get`/`has`/`delete`는 모두 같은 탐사 루프의 변주입니다. 다만 삭제를 어떻게 다루느냐에 따라 정확성과 성능이 완전히 달라져요. 세 단계로 나눠서 볼게요 — 세 단계 모두 capacity=8에서 `dog`, `owl`, `elk`가 실제로 슬롯 4에 충돌하는 상황으로 검증했습니다.
-
-**Stage 1 — 원형: tombstone 없이 그냥 비운다.**
-
-```ts
-delete(key: K): void {
-  const start = this.hash(key);
-  for (let step = 0; step < this.capacity; step++) {
-    const idx = (start + step) % this.capacity;
-    const slot = this.slots[idx];
-    if (slot.state === "empty") return;
-    if (slot.state === "occupied" && slot.key === key) {
-      this.slots[idx] = { state: "empty" }; // ← 진짜로 비워버린다
-      return;
-    }
-  }
-}
-```
-
-`dog`, `owl`, `elk`를 슬롯 4, 5, 6에 넣은 뒤 `delete("owl")`을 이렇게 처리하면:
-
-```text
-Stage 1(tombstone 없음) — delete("owl") 후:
- idx:     0     1     2     3     4      5      6      7
- state: [ _ ][ _ ][ _ ][ _ ][dog ][ _  ][elk ][ _ ]
-
-get("elk"): probe 4(dog,불일치) → probe 5(EMPTY!) → 탐사가 여기서 멈춰 버림
-반환값: undefined   ← 실제로는 슬롯6에 30이 멀쩡히 있는데도 못 찾습니다(실측 재현)
-```
-
-여기가 tombstone이 필요한 이유예요. 슬롯을 비우는 순간 그 뒤로 가는 다리가 끊깁니다.
-
-**Stage 2 — 개선: tombstone은 마킹하지만 재사용은 안 한다.**
-
-```ts
-set(key: K, value: V): void {
-  const start = this.hash(key);
-  for (let step = 0; step < this.capacity; step++) {
-    const idx = (start + step) % this.capacity;
-    const slot = this.slots[idx];
-    if (slot.state === "occupied" && slot.key === key) { slot.value = value; return; }
-    if (slot.state === "empty") { this.slots[idx] = { state: "occupied", key, value }; return; }
-    // tombstone이어도 그냥 지나친다(재사용 안 함)
-  }
-}
-```
-
-`delete("dog")`로 슬롯4를 tombstone으로 만든 뒤 `set("dog", 999)`로 재삽입하면:
-
-```text
-Stage 2(재사용 안 함) — delete("dog") 후 set("dog", 999):
- idx:     0     1     2     3     4     5      6      7
- state: [ _ ][ _ ][ _ ][ _ ][ † ][owl ][elk ][dog ]
-                              ↑                 ↑
-                        원래 자리인데 방치됨   3칸 밀려서 재삽입(낭비된 탐사 3스텝, 실측)
-```
-
-정답은 맞지만 탐사 거리가 공짜로 늘어났죠. 죽은 슬롯을 방치하면 배열이 실제보다 더 꽉 찬 것처럼 동작합니다.
-
-**Stage 3 — 최종: tombstone을 마킹하고 첫 번째로 만난 자리를 재사용한다.**
-
-```ts
-class HashMapOpenAddressing<K, V> {
-  private slots: Slot<K, V>[];
-  private capacity: number;
-  private count: number;
-  private readonly LOAD_FACTOR = 0.5;
-
-  constructor(initialCapacity: number = 16) {
-    this.capacity = initialCapacity;
-    this.slots = Array.from({ length: this.capacity }, () => ({ state: "empty" as const }));
-    this.count = 0;
-  }
-
-  private hash(key: K): number {
-    const s = String(key);
-    let h = 0;
-    for (let i = 0; i < s.length; i++) {
-      h = (Math.imul(h, 31) + s.charCodeAt(i)) | 0;
-    }
-    return ((h % this.capacity) + this.capacity) % this.capacity;
-  }
-
-  private resize(): void {
-    const oldSlots = this.slots;
-    this.capacity *= 2;
-    this.slots = Array.from({ length: this.capacity }, () => ({ state: "empty" as const }));
-    this.count = 0;
-    for (const slot of oldSlots) {
-      if (slot.state === "occupied") this.set(slot.key, slot.value); // tombstone은 자연히 버려진다
-    }
+  constructor(spread: (key: K) => number) {
+    this.#spread = spread;
+    this.#state = new Uint8Array(MIN_SLOTS);
+    this.#keys = new Array<K | undefined>(MIN_SLOTS);
+    this.#values = new Array<V | undefined>(MIN_SLOTS);
   }
 
   set(key: K, value: V): void {
-    let firstTombstone = -1;
-    const start = this.hash(key);
-    for (let step = 0; step < this.capacity; step++) {
-      const idx = (start + step) % this.capacity;
-      const slot = this.slots[idx];
-      if (slot.state === "occupied" && slot.key === key) {
-        slot.value = value;
+    const mask = this.#state.length - 1;
+    let at = this.#slotOf(key);
+    let vacated = -1;
+
+    for (;;) {
+      const state = this.#state[at];
+      if (state === EMPTY) break;
+      if (state === GONE) {
+        if (vacated < 0) vacated = at;
+      } else if (Object.is(this.#keys[at], key)) {
+        this.#values[at] = value;
         return;
       }
-      if (slot.state === "tombstone") {
-        if (firstTombstone === -1) firstTombstone = idx;
-        continue;
-      }
-      if (slot.state === "empty") {
-        const insertAt = firstTombstone !== -1 ? firstTombstone : idx;
-        this.slots[insertAt] = { state: "occupied", key, value };
-        this.count++;
-        if (this.count / this.capacity > this.LOAD_FACTOR) this.resize();
-        return;
-      }
+      at = (at + 1) & mask;
     }
+
+    // 빈 자리까지 왔다. 오는 길에 묘비를 지났으면 거기 앉는다 — 탐사열이 짧아지고,
+    // 그 자리는 이미 쓰인 것으로 세어져 있으므로 쓰인 수가 늘지 않는다.
+    const put = vacated < 0 ? at : vacated;
+    if (vacated < 0) this.#used += 1;
+    this.#state[put] = LIVE;
+    this.#keys[put] = key;
+    this.#values[put] = value;
+    this.#count += 1;
+
+    if (this.#used > this.#state.length * REBUILD_ABOVE) this.#rebuild();
   }
 
-  get(key: K): V | undefined {
-    const start = this.hash(key);
-    for (let step = 0; step < this.capacity; step++) {
-      const idx = (start + step) % this.capacity;
-      const slot = this.slots[idx];
-      if (slot.state === "empty") return undefined;
-      if (slot.state === "occupied" && slot.key === key) return slot.value;
-    }
-    return undefined;
+  get(key: K): V | null {
+    const at = this.#seek(key);
+    return at < 0 ? null : (this.#values[at] as V);
   }
 
   has(key: K): boolean {
-    const start = this.hash(key);
-    for (let step = 0; step < this.capacity; step++) {
-      const idx = (start + step) % this.capacity;
-      const slot = this.slots[idx];
-      if (slot.state === "empty") return false;
-      if (slot.state === "occupied" && slot.key === key) return true;
-    }
-    return false;
+    return this.#seek(key) >= 0;
   }
 
   delete(key: K): boolean {
-    const start = this.hash(key);
-    for (let step = 0; step < this.capacity; step++) {
-      const idx = (start + step) % this.capacity;
-      const slot = this.slots[idx];
-      if (slot.state === "empty") return false;
-      if (slot.state === "occupied" && slot.key === key) {
-        this.slots[idx] = { state: "tombstone" };
-        this.count--;
-        return true;
-      }
+    const at = this.#seek(key);
+    if (at < 0) return false;
+
+    this.#state[at] = GONE;
+    this.#keys[at] = undefined;
+    this.#values[at] = undefined;
+    this.#count -= 1;
+
+    if (
+      this.#state.length > MIN_SLOTS &&
+      this.#count < this.#state.length * SHRINK_BELOW
+    ) {
+      this.#rebuild();
     }
-    return false;
+    return true;
   }
 
   size(): number {
-    return this.count;
+    return this.#count;
+  }
+
+  keys(): K[] {
+    const found: K[] = [];
+    for (let at = 0; at < this.#state.length; at++) {
+      if (this.#state[at] === LIVE) found.push(this.#keys[at] as K);
+    }
+    return found;
+  }
+
+  values(): V[] {
+    const found: V[] = [];
+    for (let at = 0; at < this.#state.length; at++) {
+      if (this.#state[at] === LIVE) found.push(this.#values[at] as V);
+    }
+    return found;
+  }
+
+  /**
+   * 키가 처음 닿는 자리.
+   *
+   * 주입된 펴기가 키를 정수로 펴고, **자리를 정하는 일은 여기서 한다.** 계약의 주입 정책
+   * 그대로다 — 호출자는 정보를 지우지 않을 의무만 지고, 흩는 일은 구현의 몫이다.
+   */
+  #slotOf(key: K): number {
+    const spread = this.#spread(key) >>> 0;
+    return (
+      scatter(spread, this.#firstMultiplier, this.#secondMultiplier) >>>
+      this.#shift
+    );
+  }
+
+  /** 담겨 있으면 그 자리, 아니면 `-1`. */
+  #seek(key: K): number {
+    const mask = this.#state.length - 1;
+    let at = this.#slotOf(key);
+    for (;;) {
+      const state = this.#state[at];
+      if (state === EMPTY) return -1;
+      if (state === LIVE && Object.is(this.#keys[at], key)) return at;
+      at = (at + 1) & mask;
+    }
+  }
+
+  /**
+   * 표를 다시 짓는다. 묘비가 여기서 사라진다.
+   *
+   * 새 자리 수는 **살아 있는 수**로 정한다 — 쓰인 수로 정하면 묘비만 많은 표가 이유 없이
+   * 두 배로 커진다. 같은 크기로 다시 짓는 일이 정당한 결과이고, 그것이 묘비 청소다.
+   */
+  #rebuild(): void {
+    let slots = MIN_SLOTS;
+    while (this.#count >= slots * REBUILD_ABOVE) slots *= 2;
+
+    const previousState = this.#state;
+    const previousKeys = this.#keys;
+    const previousValues = this.#values;
+
+    this.#state = new Uint8Array(slots);
+    this.#keys = new Array<K | undefined>(slots);
+    this.#values = new Array<V | undefined>(slots);
+    this.#shift = shiftFor(slots);
+    this.#firstMultiplier = randomOddMultiplier();
+    this.#secondMultiplier = randomOddMultiplier();
+    this.#used = this.#count;
+
+    const mask = slots - 1;
+    for (let from = 0; from < previousState.length; from++) {
+      if (previousState[from] !== LIVE) continue;
+      const key = previousKeys[from] as K;
+      let at = this.#slotOf(key);
+      while (this.#state[at] === LIVE) {
+        at = (at + 1) & mask;
+      }
+      this.#state[at] = LIVE;
+      this.#keys[at] = key;
+      this.#values[at] = previousValues[from] as V;
+    }
   }
 }
 ```
 
-같은 시나리오(`delete("dog")` 후 `set("dog", 999)`)를 이 최종 버전으로 돌리면:
+**여기서 가장 중요한 줄은 `set` 의 `const put = vacated < 0 ? at : vacated;` 입니다.** 걷다가 처음 만난 묘비를 기억해 두었다가, 빈 자리까지 확인한 뒤 그 묘비 자리에 앉아요. 왜 묘비를 보자마자 앉지 않고 끝까지 걸을까요? **같은 키가 뒤쪽에 이미 있을 수 있기 때문입니다.**
+
+말로만 들으면 「묘비가 앞에 있었으면 그 키가 진작 거기 앉지 않았나」 싶습니다. 순서를 놓고 보면 그렇지 않아요.
 
 ```text
-Stage 3(재사용) — delete("dog") 후 set("dog", 999):
- idx:     0     1     2     3     4     5      6      7
- state: [ _ ][ _ ][ _ ][ _ ][dog ][owl ][elk ][ _ ]
-                              ↑
-                        원래 자리로 정확히 복귀(낭비 0스텝, 실측)
+1. set(A) — A 의 제 자리 5 가 B 로 차 있어서 6 에 앉는다
+2. delete(B) — 자리 5 가 묘비가 된다
+3. set(A, 새 값) — A 의 제 자리 5 는 이제 묘비다
 ```
 
-가장 중요한 부분은 이 두 줄입니다.
+3번에서 묘비를 보자마자 앉으면 자리 5 와 자리 6 에 **A 가 두 벌** 들어갑니다. 계약의 `set` 행(「이미 대응이 있으면 값만 바뀌고 담긴 수는 그대로다」)이 그 자리에서 깨져요. A 가 자리 6 에 앉은 것은 묘비가 생기기 **전**의 일이라, 「진작 거기 앉았을 것」이 성립하지 않습니다.
 
-```ts
-if (slot.state === "tombstone") {
-  if (firstTombstone === -1) firstTombstone = idx;
-  continue;
-}
+### 놓치기 쉬운 구현부
+
+- **`#seek` 은 `EMPTY` 에서만 멈춥니다.** `GONE` 에서 멈추면 위 그림의 `has(60)` 이 거짓이 돼요. 두 상수를 나눈 이유가 이 한 줄입니다.
+- **`set` 은 묘비에 앉으면서 `#used` 를 늘리지 않습니다.** 그 자리는 이미 쓰인 것으로 세어져 있으니까요. 여기서 늘리면 넣고 지우기를 되풀이할 때 다시 짓는 일이 실제보다 자주 일어나고, 매번 표가 두 배로 커집니다.
+- **`#rebuild` 의 새 자리 수를 `#count` 로 정합니다.** `#used` 로 정하면 묘비만 많은 표가 이유 없이 두 배가 돼요. **같은 크기로 다시 짓는 것이 정당한 결과**이고, 그것이 곧 묘비 청소입니다. 그리고 이 한 함수가 늘리기·줄이기·청소 셋을 다 합니다 — 살아 있는 수에서 자리 수를 다시 계산하므로, 부르는 쪽이 「지금은 늘리는 것」인지 「줄이는 것」인지 알 필요가 없어요.
+- **`#rebuild` 안의 자리 찾기는 `LIVE` 만 건너뜁니다.** 새 표에는 묘비가 없으니 `EMPTY` 만 만나면 앉으면 되고, `#seek` 을 그대로 쓰면 없는 상태를 검사하느라 한 번 더 견줍니다.
+- **자리 수가 2의 거듭제곱이라 `& mask` 로 돌아옵니다.** `% slots` 로 써도 답은 같지만, 그러면 자리 수가 2의 거듭제곱이라는 사실이 코드 어디에도 안 남아요 — `#shift` 가 이미 그것을 전제하고 있습니다.
+- **`delete` 가 키와 값 자리를 `undefined` 로 지웁니다.** 상태만 `GONE` 으로 바꾸고 두면 답은 그대로 맞지만, 지운 항목이 계속 붙들려 있게 됩니다.
+
+### 성장률로 조건을 확인하기
+
+계약 스위트의 축3이 크기를 네 배씩 올리며 $r = C(4n)/C(n)$ 을 잽니다. `O(1)` 이 기대하는 값은 1.0 이고 허용치는 ±30% 예요.
+
+```text
+연산                n=1,024   n=4,096   n=16,384        r
+set (무작위 키)        6.98      6.99      7.02     1.00, 1.00
+set (몰리는 키)        6.96      6.98      7.01     1.00, 1.00
+get (무작위 키)        2.49      2.50      2.50     1.00, 1.00
+has (몰리는 키)        2.95      2.99      2.99     1.01, 1.00
+delete (무작위 키)     5.83      5.88      5.83     1.01, 0.99
+keys                  2,048     8,192    32,768     4.00, 4.00
 ```
 
-**처음 만난** tombstone만 기억해 두고, 그 뒤로도 계속 탐사를 이어 간다는 게 핵심이에요. 여기서 `continue`를 빼먹고 바로 삽입해 버리면 동일 키가 이미 더 뒤쪽에 있는지 확인하지 못한 채 중복 슬롯을 만들 수 있고, `firstTombstone`을 매번 갱신하면 가장 먼 tombstone을 쓰게 되어 오히려 손해입니다.
+세는 단위는 「자리 하나를 지나갈 때마다 1」이고 매달기 정본과 같습니다. 같은 단위를 쓰지 않으면 위 3단계의 나란한 표를 읽을 수 없어요. **배열을 새로 잡는 비용도, 결과 배열에 밀어 넣는 비용도 세지 않습니다** — 자리를 지나가는 수에 비례하는 양이라 성장률에 상수 배수로만 들어오고, 축3이 보는 것은 절대 카운트가 아니라 비율이거든요.
 
-```ts
-if (this.count / this.capacity > this.LOAD_FACTOR) this.resize();
-```
+`keys` 가 2,048 인 것은 **담긴 수가 아니라 자리 수**를 훑기 때문입니다. 살아 있는 자리를 고르려면 빈 자리도 한 번씩 들여다봐야 하니까요. 문턱 0.5 와 「두 배씩 늘리기」가 함께 자리 수를 담긴 수의 정확히 두 배로 놓습니다(1,024 · 4,096 · 16,384 에서 각각 2,048 · 8,192 · 32,768).
 
-이 한 줄의 비교 연산자도 놓치기 쉬운 지점입니다. `>`를 `>=`로 바꾸면 load factor가 정확히 0.5에 도달하는 순간(예: capacity=4, count=2)에도 resize가 발생해 버려, 위 엣지 케이스 표에서 확인한 "정확히 0.5에서는 유지" 동작이 깨집니다.
+**이 자리가 `O(n)` 이 성립하는 이유이기도 합니다.** 비용이 자리 수에 비례하므로 자리 수가 담긴 수에 비례해야 이 행이 성립하고, 그것을 지키는 것이 줄이는 문턱(`SHRINK_BELOW`)이에요. 크게 채웠다 크게 지운 뒤 자리를 그대로 두면 담긴 것이 하나여도 열거가 옛 자리 수만큼 걸립니다. 매달기 정본의 3,072 와 갈리는 것은 자리 수 배수와 항목 방문의 차이이고, 배수가 상수라 `r` 은 양쪽 다 4.00 이에요.
 
-`resize()`가 새 배열에 재삽입할 때 `this.set()`을 재귀적으로 호출하는 게 안전한 이유도 짚어 둘게요. `count`를 0으로 리셋한 뒤 하나씩 채우므로, 재해시 도중의 load factor는 최대 $count_{old}/(2 \cdot capacity_{old}) \le 0.25$를 넘지 않습니다 — 재해시 중에 또 resize가 겹쳐 걸릴 일이 없다는 뜻이에요.
+### 사용 조건이 달라지면 다른 구현이 맞습니다
 
-capacity를 매번 2배로 늘리는 이유도 상환분석(amortized analysis)으로 설명됩니다. $n$번 삽입하는 동안 resize가 일어난 시점들의 capacity를 모두 더하면 $c_0 + 2c_0 + 4c_0 + \dots \le 2n$이라는 등비수열이 되므로, 재해시에 든 총 비용은 $O(n)$이고 삽입 1회당 상환 비용은 $O(1)$입니다.
+계약은 구현을 처방하지 않으므로 위 코드는 계약을 만족하는 여럿 중 하나입니다. 같은 계약을 매달기로 지킨 구현이 이 저장소에 하나 더 있고(`hash/hashMapChaining`), 둘은 같은 스위트를 둘 다 전부 통과합니다.
 
-> 기억법: "빈 자리를 만나면 멈추고 채운다. 무덤을 만나면 기억만 하고 지나간다."
+**계약이 정하지 않는 교환은 있습니다.** 담긴 수가 자리 수를 넘어갈 수 있어야 한다면 밀어내는 쪽은 아예 못 씁니다 — 위 3단계 표의 `매달기 문턱 2` 줄이 그 자리예요. 반대로 지우는 일이 거의 없고 자리를 촘촘히 쓰고 싶다면 밀어내는 쪽이 자리를 덜 씁니다(항목마다 매달 자리를 따로 잡지 않으니까요). 어느 쪽이 맞는지는 **계약이 아니라 쓰는 자리**가 정합니다.
 
-## 실행 시각화
+정리하면 이렇습니다. `constructor` 가 `O(1)` `worst`, `set`·`get`·`has`·`delete` 가 각각 `O(1)` `expected`, `size` 가 `O(1)` `worst`, `keys`·`values` 가 `O(n)` `worst` 이고, **이 여덟 행은 `hash/hashMapChaining` 의 여덟 행과 글자까지 같습니다.** 네 행의 `expected` 가 호출 묶음에 걸린 약속이라는 것도 그대로예요 — 표를 다시 짓는 한 호출은 담긴 수에 비례하고, 이 기법에서는 그 일이 넣기뿐 아니라 넣고 지우기의 되풀이에서도 일어납니다. 이 문서가 더한 것은 그 여덟 행을 옆으로 밀어내는 방식으로 지키는 법과, 그 방식이 왜 계약의 문장이 되지 못하는지의 실측입니다.
 
-아래 시뮬레이션은 capacity=8인 배열에서 `set("a",1)` → `set("b",2)` → `set("c",3)` → `delete("b")` → `get("c")` 순서로 진행됩니다. 설명 편의를 위해 이 데모에서는 `hash("a") = hash("b") = hash("c") = 3`이라고 **가정**합니다. 실제로 이 가이드의 해시 함수로 계산하면 `hash("a")=1`, `hash("b")=2`, `hash("c")=3`이라 세 키는 원래 서로 충돌하지 않습니다(위 `dog`/`owl`/`elk` 예시가 실제 충돌 사례였죠) — 여기서는 세 키가 모두 슬롯 3에 몰리는 상황을 일부러 만들어, 선형 탐사와 tombstone 스킵이 한 번에 이어지는 장면을 보여 드립니다. 배열 패널의 값은 `0`=empty, `1`=occupied, `-1`=tombstone을 뜻하고, `get("c")`의 실제 반환값은 `3`입니다.
+## 단계별 동작 확인
+
+키 여섯(`10`부터 `60`까지)을 넣고 넷을 더 부릅니다. 위 패널이 표의 모양이고 — 가로가 자리 번호 0~15, `x` 가 묘비입니다 — 아래 패널이 그 호출의 반환값이에요. 실제 반환값은 `get(30)` 이 `300`, `delete(20)` 이 `true`, `has(60)` 이 `true`, `size()` 가 `6` 이고, 정본을 돌려 확인한 값입니다.
+
+**자리 배치는 실행마다 다릅니다.** 곱수를 무작위로 뽑는 구현이고 그 난수에는 고정할 seed 가 없어요. 같은 코드를 돌려도 아래와 다른 표가 나옵니다. 반환값은 실행과 무관하게 같고, 아래는 한 키가 세 자리 밀려난 **한 번의 실행**이에요. 위 4단계 그림도 같은 실행에서 가져왔습니다.
 
 > 대화형 시뮬레이션은 MDX 런타임에서 표시됩니다.
 
 export const steps = [
   {
-    title: "초기 상태 (capacity=8)",
-    detail: "8개 슬롯 모두 'empty'. 0=비어있음, 1=점유, -1=tombstone으로 표시합니다.",
-    array: [0, 0, 0, 0, 0, 0, 0, 0],
-    highlight: [],
-    marked: [],
+    title: "시작 — 자리 16개, 담긴 것 0개",
+    detail: "생성자는 펴기 함수를 붙들고 곱수 둘을 뽑습니다. 표는 비어 있어요.",
+    matrix: [
+      ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""],
+    ],
+    rowLabels: ["자리"],
+    colLabels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    entries: [
+      { label: "호출", value: "new HashMapOpenAddressing(spread)" },
+      { label: "반환", value: "—" },
+      { label: "담긴 수", value: 0 },
+      { label: "쓰인 수", value: 0 },
+    ],
   },
   {
-    title: 'set("a", 1) → 슬롯 3',
-    detail: '"a"의 해시값 3. 슬롯3이 empty → 삽입.',
-    array: [0, 0, 0, 1, 0, 0, 0, 0],
-    highlight: [3],
-    marked: [3],
+    title: "set(10, 100) — 제 자리 15",
+    detail: "키 10 의 자리는 15 입니다. 비어 있으니 그대로 앉아요.",
+    matrix: [
+      ["", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "10:100"],
+    ],
+    rowLabels: ["자리"],
+    colLabels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    cells: [[0, 15]],
+    entries: [
+      { label: "호출", value: "set(10, 100)" },
+      { label: "반환", value: "—" },
+      { label: "담긴 수", value: 1 },
+      { label: "쓰인 수", value: 1 },
+    ],
   },
   {
-    title: 'set("b", 2) → 슬롯 3 충돌 → 슬롯 4',
-    detail: '"b"의 해시값도 3. 슬롯3은 occupied → 선형 탐사: 슬롯4(empty) → 삽입.',
-    array: [0, 0, 0, 1, 1, 0, 0, 0],
-    highlight: [3, 4],
-    marked: [3, 4],
+    title: "set(20, 200) — 제 자리 0",
+    detail: "자리 0 이 비어 있으니 그대로 앉습니다. 15 바로 옆이라는 것을 기억해 두세요.",
+    matrix: [
+      ["20:200", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "10:100"],
+    ],
+    rowLabels: ["자리"],
+    colLabels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    cells: [[0, 0]],
+    entries: [
+      { label: "호출", value: "set(20, 200)" },
+      { label: "반환", value: "—" },
+      { label: "담긴 수", value: 2 },
+      { label: "쓰인 수", value: 2 },
+    ],
   },
   {
-    title: 'set("c", 3) → 슬롯 3 충돌 → 슬롯 4 충돌 → 슬롯 5',
-    detail: '"c"의 해시값도 3. 슬롯3, 4 occupied → 슬롯5(empty) → 삽입.',
-    array: [0, 0, 0, 1, 1, 1, 0, 0],
-    highlight: [3, 4, 5],
-    marked: [3, 4, 5],
+    title: "set(30, 300) — 제 자리 7",
+    detail: "셋째도 빈 자리입니다.",
+    matrix: [
+      ["20:200", "", "", "", "", "", "", "30:300", "", "", "", "", "", "", "", "10:100"],
+    ],
+    rowLabels: ["자리"],
+    colLabels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    cells: [[0, 7]],
+    entries: [
+      { label: "호출", value: "set(30, 300)" },
+      { label: "반환", value: "—" },
+      { label: "담긴 수", value: 3 },
+      { label: "쓰인 수", value: 3 },
+    ],
   },
   {
-    title: 'delete("b") → 슬롯 4에 tombstone (-1)',
-    detail: '"b"는 슬롯4. tombstone으로 마킹. 슬롯4 값: -1(tombstone).',
-    array: [0, 0, 0, 1, -1, 1, 0, 0],
-    highlight: [4],
-    marked: [3, 5],
+    title: "set(40, 400) — 제 자리 1",
+    detail: "자리 1 도 비어 있습니다. 이제 0 · 1 이 이어서 차 있어요.",
+    matrix: [
+      ["20:200", "40:400", "", "", "", "", "", "30:300", "", "", "", "", "", "", "", "10:100"],
+    ],
+    rowLabels: ["자리"],
+    colLabels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    cells: [[0, 1]],
+    entries: [
+      { label: "호출", value: "set(40, 400)" },
+      { label: "반환", value: "—" },
+      { label: "담긴 수", value: 4 },
+      { label: "쓰인 수", value: 4 },
+    ],
   },
   {
-    title: 'get("c") → 슬롯3(a,스킵) → 슬롯4(tombstone,계속) → 슬롯5(c,반환)',
-    detail: 'tombstone을 만나도 탐사를 멈추지 않아 슬롯5의 "c"를 올바르게 찾습니다.',
-    array: [0, 0, 0, 1, -1, 1, 0, 0],
-    highlight: [3, 4, 5],
-    marked: [3, 5],
+    title: "set(50, 500) — 제 자리 6",
+    detail: "다섯째도 부딪히지 않았습니다.",
+    matrix: [
+      ["20:200", "40:400", "", "", "", "", "50:500", "30:300", "", "", "", "", "", "", "", "10:100"],
+    ],
+    rowLabels: ["자리"],
+    colLabels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    cells: [[0, 6]],
+    entries: [
+      { label: "호출", value: "set(50, 500)" },
+      { label: "반환", value: "—" },
+      { label: "담긴 수", value: 5 },
+      { label: "쓰인 수", value: 5 },
+    ],
+  },
+  {
+    title: "set(60, 600) — 제 자리 15, 세 칸 밀려 2 로",
+    detail: "60 의 자리도 15 입니다. 15 는 10 이, 0 은 20 이, 1 은 40 이 차 있어서 2 까지 걸어갔어요. 15 다음이 0 인 것은 자리 번호가 끝에서 처음으로 돌아오기 때문입니다.",
+    matrix: [
+      ["20:200", "40:400", "60:600", "", "", "", "50:500", "30:300", "", "", "", "", "", "", "", "10:100"],
+    ],
+    rowLabels: ["자리"],
+    colLabels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    cells: [[0, 15], [0, 0], [0, 1], [0, 2]],
+    entries: [
+      { label: "호출", value: "set(60, 600)" },
+      { label: "반환", value: "—" },
+      { label: "담긴 수", value: 6 },
+      { label: "쓰인 수", value: 6 },
+    ],
+  },
+  {
+    title: "get(30) → 300",
+    detail: "자리 7 은 이웃이 비어 있어서 한 번에 찾습니다. 다만 「밀린 키가 있어도 다른 키는 무관하다」로 읽으면 안 돼요 — 찬 자리가 이어 붙으면 그 덩어리에 떨어지는 키의 길이 함께 길어집니다. 위 4단계의 군집화 표가 그 값이에요.",
+    matrix: [
+      ["20:200", "40:400", "60:600", "", "", "", "50:500", "30:300", "", "", "", "", "", "", "", "10:100"],
+    ],
+    rowLabels: ["자리"],
+    colLabels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    cells: [[0, 7]],
+    entries: [
+      { label: "호출", value: "get(30)" },
+      { label: "반환", value: 300 },
+      { label: "담긴 수", value: 6 },
+      { label: "쓰인 수", value: 6 },
+    ],
+  },
+  {
+    title: "delete(20) → true — 자리 0 이 묘비가 된다",
+    detail: "자리 0 을 비우지 않고 `x` 로 표시합니다. 담긴 수는 줄지만 쓰인 수는 그대로예요.",
+    matrix: [
+      ["x", "40:400", "60:600", "", "", "", "50:500", "30:300", "", "", "", "", "", "", "", "10:100"],
+    ],
+    rowLabels: ["자리"],
+    colLabels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    cells: [[0, 0]],
+    entries: [
+      { label: "호출", value: "delete(20)" },
+      { label: "반환", value: "true" },
+      { label: "담긴 수", value: 5 },
+      { label: "쓰인 수", value: 6 },
+    ],
+  },
+  {
+    title: "has(60) → true — 묘비를 지나가야 닿는다",
+    detail: "60 을 찾는 길은 15 → 0 → 1 → 2 입니다. 자리 0 을 「비었다」로 표시했다면 여기서 걸음이 끊겨 거짓이 나왔을 거예요. 묘비가 있는 이유가 이 한 걸음입니다.",
+    matrix: [
+      ["x", "40:400", "60:600", "", "", "", "50:500", "30:300", "", "", "", "", "", "", "", "10:100"],
+    ],
+    rowLabels: ["자리"],
+    colLabels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    cells: [[0, 15], [0, 0], [0, 1], [0, 2]],
+    entries: [
+      { label: "호출", value: "has(60)" },
+      { label: "반환", value: "true" },
+      { label: "담긴 수", value: 5 },
+      { label: "쓰인 수", value: 6 },
+    ],
+  },
+  {
+    title: "set(70, 700) — 제 자리 13",
+    detail: "13 이 비어 있어서 그대로 앉았습니다. 묘비를 지나지 않는 길이라 자리 0 은 그대로 남아요.",
+    matrix: [
+      ["x", "40:400", "60:600", "", "", "", "50:500", "30:300", "", "", "", "", "", "70:700", "", "10:100"],
+    ],
+    rowLabels: ["자리"],
+    colLabels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    cells: [[0, 13]],
+    entries: [
+      { label: "호출", value: "set(70, 700)" },
+      { label: "반환", value: "—" },
+      { label: "담긴 수", value: 6 },
+      { label: "쓰인 수", value: 7 },
+    ],
+  },
+  {
+    title: "size() → 6",
+    detail: "묘비를 빼고 살아 있는 것만 셉니다. 쓰인 수 7 과 갈리는 자리가 여기예요.",
+    matrix: [
+      ["x", "40:400", "60:600", "", "", "", "50:500", "30:300", "", "", "", "", "", "70:700", "", "10:100"],
+    ],
+    rowLabels: ["자리"],
+    colLabels: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15],
+    entries: [
+      { label: "호출", value: "size()" },
+      { label: "반환", value: 6 },
+      { label: "담긴 수", value: 6 },
+      { label: "쓰인 수", value: 7 },
+    ],
   },
 ];
 
-<AlgorithmSimulation view="array" steps={steps} title="HashMapOpenAddressing 시뮬레이션 (capacity=8)" />
-
-정리하면, 개방 주소법의 두 가지 설계 결정이 서로 맞물려 목표를 달성합니다. **충돌은 배열 안에서 다음 슬롯을 탐사**해 해결하고(포인터 없음, 캐시 지역성↑), **삭제는 tombstone 팻말**로 표시해 그 뒤의 탐사 경로를 지켜 냅니다. 삽입 직후 load factor가 0.5를 초과하는 순간 즉시 resize하기 때문에 탐사 체인이 무한정 길어지지 않고, tombstone을 첫 번째로 만난 자리에 재사용하기 때문에 삭제·재삽입이 반복돼도 탐사 거리가 불필요하게 늘어나지 않습니다. 그 결과 `set`/`get`/`has`/`delete` 모두 평균 $O(1)$을 유지합니다.
+<AlgorithmSimulation view={["matrix", "keyValue"]} steps={steps} title="HashMapOpenAddressing — 한 키가 세 자리 밀리고, 지운 자리를 지나가야 그 키에 닿는 한 번의 실행" />
 
 ## 스스로 점검하기
 
-1. capacity=4인 빈 맵에 서로 다른 두 키를 순서대로 넣었더니 우연히 같은 슬롯에 해시됐습니다. 두 번째 키는 몇 번째 탐사 만에 자리를 잡을까요? 그리고 이 상태에서 세 번째 키를 넣으면 resize가 일어날까요, 안 일어날까요? (힌트: `>` 조건)
-2. 위 "실행 시각화"에서 `delete("b")` 대신 `slots[4] = { state: "empty" }`로 직접 비워 버렸다면, 바로 다음 `get("c")` 호출은 어떤 값을 반환하게 될까요? 왜 그런지 탐사 경로를 손으로 따라가 보세요.
-3. `set`의 tombstone 재사용 로직에서 `if (firstTombstone === -1) firstTombstone = idx;` 대신 `firstTombstone = idx;`로 매번 덮어쓰게 바꾸면, 여러 개의 tombstone을 지나야 하는 키를 재삽입할 때 어떤 자리에 삽입되고 왜 손해인지 설명해 보세요.
+1. **손으로 그려 보기.** 자리 8개짜리 표에서 키 `A`·`B`·`C` 의 제 자리가 모두 5 라고 합시다. 셋을 차례로 넣으면 어디에 앉을까요? 그다음 `delete(B)` 를 부르고 `has(C)` 를 물으면 걷는 길이 어떻게 되는지 자리 번호로 적어 보세요. 이어서 `set(D)` 의 제 자리가 5 라면 `D` 는 어디에 앉을까요?
+
+2. **왜 틀리는지 추적하기.** 어떤 사람이 「묘비를 두는 대신, 지울 때 그 뒤에 이어진 항목들을 앞으로 당기면 되지 않나」고 합니다. 이 방법은 실제로 있고(되밀어 지우기, backward-shift deletion) 조건을 제대로 걸면 옳게 돕니다 — 물을 것은 **그 조건이 무엇인가**예요. 위 시뮬레이션의 `delete(20)` 자리에서 적용해 보세요. 자리 0 을 지운 뒤 자리 1 의 `40` 은 당겨도 될까요, 당기면 안 될까요? `40` 의 제 자리가 1 이라는 사실이 답을 정합니다. 이어서 자리 2 의 `60`(제 자리 15)은 어떨지도 적어 보세요. 그리고 이 판정이 묘비 한 칸과 견주어 무엇을 더 요구하는지 한 줄로 정리해 보세요.
+
+3. **순서를 바꾸면 무엇이 조용히 깨지나.** `set` 에서 묘비를 만나자마자 거기 앉도록 바꿨다고 합시다(`vacated` 를 기억만 하지 말고 즉시 `break`). 계약 스위트의 어느 검사가 이것을 잡을까요? 그리고 그 검사가 잡는 계약 줄이 무엇인지, 성장률 검사(축3)가 이것을 잡지 **못하는** 이유가 무엇인지 함께 적어 보세요.

@@ -107,6 +107,23 @@ const VERIFICATION_GRADES: Record<
   // 형제 다섯과 연산 집합부터 갈리는 계약(T1-07). 담는 것이 정렬 집합이 아니라 숲이고,
   // 갈리는 자리가 `cut` 하나다. 등급이 같은 것은 여기서도 판정의 입력이 아니다.
   "tree/linkCutTree": "complexity",
+  // 힙 덩어리의 계약 A(T2-01). 갱신 둘이 `amortized`, 조회 셋이 `worst` 로 갈린 계약이고
+  // 등급은 자명한 구현 둘이 반대쪽에서 막히는 데서 나온다.
+  "heap/priorityQueue": "complexity",
+  // 성격 전환 셋(T2-01). 계약이 같으므로 등급도 같다(불변 사실 56).
+  "heap/minHeap": "complexity",
+  "heap/maxHeap": "complexity",
+  "heap/daryHeap": "complexity",
+  // 사전 계약(T3-01). `expected` 한정자가 확률 논증을 요구하므로 등급 판정 2번에서 걸린다.
+  "hash/hashMapChaining": "complexity",
+  // 성격 전환(T3-01). 적재율과 표현이 계약의 문장이 못 되는 것이 전환의 근거다.
+  "hash/hashMapOpenAddressing": "complexity",
+  // 같은 카테고리의 이웃과 **결합 연산 하나로** 갈리는 계약(T4-01). 가르는 것은 반례다 —
+  // 구간을 두 앞구간의 차로 내는 구현이 이 계약을 지키고 임의 결합 계약을 못 지킨다.
+  "range-query/fenwickTree": "complexity",
+  // 「공간이 존재 이유」 13건의 판정 선례(T5-01). 등급이 `linear/queue` 와 같은데 계약은
+  // 갈린다 — 등급이 같아도 계약은 다를 수 있다(불변 사실 56 의 역은 성립하지 않는다).
+  "linear/circularBuffer": "basic",
   // T1 트랙의 첫 **불변 구조**(T1-06). 불변식 절이 비었는데도 `invariant` 가 아닌 것은
   // 판정 절차가 상한(2번)을 불변식(3번)보다 먼저 보기 때문이다 — `linear/deque` 와 같은 자리.
   "tree/cartesianTree": "complexity",
