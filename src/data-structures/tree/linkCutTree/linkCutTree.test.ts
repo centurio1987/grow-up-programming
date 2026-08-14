@@ -1,95 +1,32 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `tree/linkCutTree` 계약 스위트 실행부(규약2).
+ *
+ * 여기에는 `runContract` 호출만 둔다. 무엇을 검사하는지는 `./linkCutTree.contract.ts`
+ * 에 있고, 계약 자체는 `./linkCutTree.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다.
+ * 축3은 계측기가 붙은 정본에만 돈다 — 학습자 스텁에 `__cost` 를 요구하지 않는다.
+ *
+ * 팩토리가 껍데기를 씌우는 것은 이 구조가 마디 수를 생성자로 받기 때문이다
+ * (`./linkCutTree.contract.ts` 헤더의 껍데기 설명 — 불변 사실 52 ④).
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 고정 n 의 임계값이 재는 것은 복잡도 등급이
+ * 아니라 그 기계의 상수다. 자리는 축3이다.
+ */
+
+import { runContract } from "../../_contract/runContract";
+import { LinkCutTree as Reference } from "./_reference/linkCutTree";
 import { LinkCutTree } from "./linkCutTree";
+import { linkCutTreeContract, Sized } from "./linkCutTree.contract";
 
-describe("LinkCutTree", () => {
-  describe("기본", () => {
-    test("link 후 connected", () => {
-      const lct = new LinkCutTree(4);
-      lct.link(0, 1);
-      lct.link(1, 2);
-      expect(lct.connected(0, 2)).toBe(true);
-      expect(lct.connected(0, 3)).toBe(false);
-    });
+runContract(() => new Sized((n) => new LinkCutTree(n)), linkCutTreeContract, {
+  label: "스텁",
+});
 
-    test("cut 후 분리", () => {
-      const lct = new LinkCutTree(4);
-      lct.link(0, 1);
-      lct.link(1, 2);
-      lct.link(2, 3);
-      lct.cut(1, 2);
-      expect(lct.connected(0, 1)).toBe(true);
-      expect(lct.connected(2, 3)).toBe(true);
-      expect(lct.connected(0, 3)).toBe(false);
-    });
-
-    test("link → cut → link 다시 연결", () => {
-      const lct = new LinkCutTree(3);
-      lct.link(0, 1);
-      lct.cut(0, 1);
-      expect(lct.connected(0, 1)).toBe(false);
-      lct.link(0, 1);
-      expect(lct.connected(0, 1)).toBe(true);
-    });
-  });
-
-  describe("엣지", () => {
-    test("자기 자신과 connected", () => {
-      const lct = new LinkCutTree(3);
-      expect(lct.connected(0, 0)).toBe(true);
-    });
-
-    test("초기엔 모든 노드가 분리", () => {
-      const lct = new LinkCutTree(5);
-      for (let i = 0; i < 5; i++) {
-        for (let j = i + 1; j < 5; j++) {
-          expect(lct.connected(i, j)).toBe(false);
-        }
-      }
-    });
-
-    test("체인을 만들고 중간을 잘라 두 컴포넌트로", () => {
-      const lct = new LinkCutTree(5);
-      lct.link(0, 1);
-      lct.link(1, 2);
-      lct.link(2, 3);
-      lct.link(3, 4);
-      lct.cut(2, 3);
-      expect(lct.connected(0, 2)).toBe(true);
-      expect(lct.connected(3, 4)).toBe(true);
-      expect(lct.connected(1, 4)).toBe(false);
-    });
-  });
-
-  describe("바운더리", () => {
-    test("n=1, 단일 노드", () => {
-      const lct = new LinkCutTree(1);
-      expect(lct.connected(0, 0)).toBe(true);
-    });
-
-    test("n=10^4, 체인 형태로 모두 link", () => {
-      const n = 10_000;
-      const lct = new LinkCutTree(n);
-      for (let i = 0; i < n - 1; i++) lct.link(i, i + 1);
-      expect(lct.connected(0, n - 1)).toBe(true);
-      expect(lct.connected(123, n - 234)).toBe(true);
-    });
-  });
-
-  describe("성능", () => {
-    test("n=10^4, q=10^4 link/cut/connected를 100ms 이내에 처리한다", () => {
-      const n = 10_000;
-      const lct = new LinkCutTree(n);
-
-      const start = performance.now();
-      for (let i = 0; i < n - 1; i++) lct.link(i, i + 1);
-      let cnt = 0;
-      for (let i = 0; i < 10_000; i++) {
-        if (lct.connected(i % n, (i * 7 + 3) % n)) cnt++;
-      }
-      const elapsed = performance.now() - start;
-
-      expect(cnt).toBeGreaterThan(0);
-      expect(elapsed).toBeLessThan(100);
-    });
-  });
+runContract(() => new Sized((n) => new Reference(n)), linkCutTreeContract, {
+  label: "정본",
+  cost: {
+    kind: "self-reported",
+    make: () => new Sized((n) => new Reference(n)),
+  },
 });

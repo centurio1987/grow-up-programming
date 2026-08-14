@@ -47,6 +47,11 @@ import {
   Walkable as CartesianTreeShell,
   cartesianTreeContract,
 } from "../tree/cartesianTree/cartesianTree.contract";
+import { LinkCutTree as ReferenceLinkCutTree } from "../tree/linkCutTree/_reference/linkCutTree";
+import {
+  Sized as LinkCutTreeShell,
+  linkCutTreeContract,
+} from "../tree/linkCutTree/linkCutTree.contract";
 import { Multiset as ReferenceMultiset } from "../tree/multiset/_reference/multiset";
 import {
   type MultisetContract,
@@ -90,10 +95,12 @@ import { LazySortingSet } from "./_fixtures/lazySortingSet";
 import { MapWordSet } from "./_fixtures/mapWordSet";
 import { PathCopyingCartesianTree } from "./_fixtures/pathCopyingCartesianTree";
 import { RecountingSizeSet } from "./_fixtures/recountingSizeSet";
+import { RelabelingForest } from "./_fixtures/relabelingForest";
 import { RescanningCartesianView } from "./_fixtures/rescanningCartesianView";
 import { RootedSuffixTree } from "./_fixtures/rootedSuffixTree";
 import { ScanIntervalList } from "./_fixtures/scanIntervalList";
 import { ScanningCartesianTree } from "./_fixtures/scanningCartesianTree";
+import { ScanningForest } from "./_fixtures/scanningForest";
 import { ScanningSuffixArray } from "./_fixtures/scanningSuffixArray";
 import { ScanningSuffixTree } from "./_fixtures/scanningSuffixTree";
 import { ShiftQueue } from "./_fixtures/shiftQueue";
@@ -111,6 +118,7 @@ import { UnbalancedRankedMultiset } from "./_fixtures/unbalancedRankedMultiset";
 import { UnbalancedSearchTree } from "./_fixtures/unbalancedSearchTree";
 import { UnshiftDeque } from "./_fixtures/unshiftDeque";
 import { UnshiftQueue } from "./_fixtures/unshiftQueue";
+import { UnsplayedForest } from "./_fixtures/unsplayedForest";
 import { expectedRatio, judgeGrowth, statistic } from "./judge";
 import {
   type CostScenario,
@@ -526,6 +534,33 @@ const pathCopyingCartesianTree: CostSource<CartesianTreeShell<number>> = {
     new CartesianTreeShell<number>((seq) => new PathCopyingCartesianTree(seq)),
 };
 
+/**
+ * 동적 숲(`tree/linkCutTree`)의 정본과 결함 셋.
+ *
+ * **넷 다 껍데기를 쓴다**(불변 사실 52 ④). 여기서 껍데기가 나르는 것은 **마디 수**다 —
+ * 이 구조는 생성자가 크기를 받고 그 뒤로 크기가 바뀌지 않으므로, 사다리를 오르려면
+ * 시나리오가 그 크기의 숲을 다시 세워야 한다.
+ *
+ * 결함 셋이 계약이 든 반례 둘과 그 밖의 계열 하나를 나눠 짚는다 — 간선만 적어 두는 쪽 ·
+ * 덩어리 번호를 적어 두는 쪽 · **모양은 나무인데 지나간 길을 고쳐 쓰지 않는 쪽.**
+ */
+const referenceLinkCutTree: CostSource<LinkCutTreeShell> = {
+  kind: "self-reported",
+  make: () => new LinkCutTreeShell((n) => new ReferenceLinkCutTree(n)),
+};
+const scanningForest: CostSource<LinkCutTreeShell> = {
+  kind: "self-reported",
+  make: () => new LinkCutTreeShell((n) => new ScanningForest(n)),
+};
+const relabelingForest: CostSource<LinkCutTreeShell> = {
+  kind: "self-reported",
+  make: () => new LinkCutTreeShell((n) => new RelabelingForest(n)),
+};
+const unsplayedForest: CostSource<LinkCutTreeShell> = {
+  kind: "self-reported",
+  make: () => new LinkCutTreeShell((n) => new UnsplayedForest(n)),
+};
+
 describe("축3 — 정본은 통과한다", () => {
   test("Stack 정본의 push·pop 이 amortized O(1) 계약 안에 있다", () => {
     const verdict = judgeScenario(
@@ -736,6 +771,48 @@ describe("축3 — 정본은 통과한다", () => {
         `${scenario.covers.join("·")}: `,
       );
     }
+  }, 30_000);
+
+  /**
+   * 동적 숲의 정본. **적대적 입력에서 시퀀스 평균이 상수로 고정되는 것**이 이 계약을
+   * `amortized` 로 적은 대가이자 이유다 — 한 줄로 이어 둔 숲을 끝까지 차례로 물으면
+   * 평균은 20.3 → 20.4 → 20.4 로 움직이지 않는데 **단일 호출 최대는 4,100 → 16,388 →
+   * 65,540 으로 정확히 네 배씩 자란다.** 같은 실행이 `worst` 통계에서는 떨어진다.
+   *
+   * 계급이 실제로 보이는 자리는 무작위 시나리오 셋이다(`link` 23.7 → 26.2 → 28.8 ·
+   * `connected` 45.1 → 52.8 → 59.9 · `cut` 35.8 → 42.3 → 49.9).
+   */
+  test("동적 숲의 정본이 여섯 시나리오를 전부 통과한다", () => {
+    for (const scenario of linkCutTreeContract.scenarios) {
+      const verdict = judgeScenario(
+        referenceLinkCutTree,
+        scenario,
+        "complexity",
+      );
+      const label = `${scenario.covers.join("·")}${scenario.adversarial ? " (적대적)" : ""}`;
+      expect(`${label}: ${verdict.reason}`).toBe(`${label}: `);
+    }
+  }, 30_000);
+
+  /**
+   * **같은 실행이 두 한정자에 정반대 판정을 낸다** — `tree/splayTree` 가 낸 것과 같은
+   * 자리이고(불변 사실 63), 이 계약에서도 실물로 확인한다. 한정자만 `worst` 로 바꿔
+   * 재면 사슬 시나리오가 떨어진다.
+   *
+   * 이것이 계약 헤더가 「`worst` 로 적으면 접는 계열이 통째로 나간다」고 적은 것의 수치다.
+   */
+  test("사슬 시나리오는 amortized 로 통과하고 worst 로는 떨어진다", () => {
+    const chained = scenarioOf(linkCutTreeContract, "connected", true);
+    expect(judgeScenario(referenceLinkCutTree, chained, "complexity").ok).toBe(
+      true,
+    );
+
+    const asWorst = { ...chained, qualifier: "worst" as const };
+    const strict = judgeScenario(referenceLinkCutTree, asWorst, "complexity");
+    expect(strict.ok).toBe(false);
+    // 단일 호출 최대가 마디 수에 비례한다 — 비율이 로그가 아니라 4 쪽으로 간다.
+    const stats = strict.points.map((point) => point.stat);
+    expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeGreaterThan(3);
   }, 30_000);
 });
 
@@ -1752,6 +1829,93 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     expect(chained.ok).toBe(false);
     const chainedStats = chained.points.map((point) => point.stat);
     expect((chainedStats[1] ?? 0) / (chainedStats[0] ?? 1)).toBeGreaterThan(3);
+  }, 60_000);
+
+  /**
+   * **동적 숲의 자명한 구현 둘이 정확히 반대쪽에서 걸린다.**
+   *
+   * `tree/linkCutTree` 계약이 검증 등급 항목에 든 반례가 이 둘이고, 여기서 그 둘이
+   * 서로를 보완하지 못한다는 것이 수치로 나온다 — 간선만 적어 두면 갱신이 상수인 대신
+   * 판정이 마디 수에 비례하고, 덩어리 번호를 적어 두면 그 반대다.
+   *
+   * **`RelabelingForest` 의 `link` 가 통과하는 것이 이 자리의 요점이다.** 작은 쪽만 다시
+   * 적으면 넣기는 상각 로그 안에 들어온다(2.8 → 2.7 → 2.8). 자명한 구현이라고 해서 모든
+   * 행에서 걸리지 않는다 — **걸리는 행은 `cut` 하나뿐이고**, 「크기가 두 배가 될 때까지
+   * 기다린다」는 논증이 빼기로 넘어가지 못하는 것이 그 이유다.
+   *
+   * **통과하는 자리 중 계약 위반은 없다**(불변 사실 62). `ScanningForest` 의 `cut` 은
+   * 실제로 상수이고 `RelabelingForest` 의 `connected` 도 실제로 상수다.
+   */
+  test("동적 숲의 자명한 구현 둘이 서로 반대쪽 행에서 걸린다", () => {
+    expect(outcomes(scanningForest, linkCutTreeContract)).toEqual({
+      link: false,
+      "link (적대적)": false,
+      connected: false,
+      "connected (적대적)": false,
+      cut: true,
+      "cut (적대적)": true,
+    });
+
+    expect(outcomes(relabelingForest, linkCutTreeContract)).toEqual({
+      link: true,
+      "link (적대적)": true,
+      connected: true,
+      "connected (적대적)": true,
+      cut: false,
+      "cut (적대적)": false,
+    });
+
+    // 빼기가 덩어리를 반으로 가르는 자리를 되풀이하면 514 → 2,050 → 8,194 다.
+    const halving = judgeScenario(
+      relabelingForest,
+      scenarioOf(linkCutTreeContract, "cut", true),
+      "complexity",
+    );
+    const stats = halving.points.map((point) => point.stat);
+    expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeGreaterThan(3);
+  }, 60_000);
+
+  /**
+   * **모양이 이미 나무인 결함은 사슬에서만 걸린다.**
+   *
+   * 앞의 둘과 다른 계열이다. 지나간 길을 고쳐 쓰지 않는 부모 포인터 숲은 무작위로 이어
+   * 붙인 숲에서 깊이가 얕아 계약을 지키는 것처럼 보이고, 마디 수만큼 깊은 나무가 들어오면
+   * 그때 걸린다. 같은 행을 겨눈 시나리오를 적대·비적대로 둘 두는 것이 무엇을 사는지가 이
+   * fixture 하나로 보인다(불변 사실 118 이 그대로 한 번 더).
+   *
+   * **통과하는 자리 중 하나가 계약 위반을 숨긴다**(불변 사실 62). `link (적대적)` 이
+   * 통과하는데(4.0 고정 — 한 줄로 이어 나가면 뿌리를 세울 일이 없다) 이 구현의 `link` 는
+   * 계약을 어긴다. 잡는 것은 같은 행의 **비적대** 시나리오다. 적대적 입력이 늘 더 많이
+   * 잡는 것이 아니라는 자리이고, 시나리오를 행마다 둘 둔 근거가 여기 있다.
+   */
+  test("길을 고쳐 쓰지 않는 숲은 무작위 잇기와 사슬 묻기에서 갈린다", () => {
+    expect(outcomes(unsplayedForest, linkCutTreeContract)).toEqual({
+      link: false,
+      "link (적대적)": true,
+      connected: false,
+      "connected (적대적)": false,
+      cut: true,
+      "cut (적대적)": true,
+    });
+
+    // 사슬 묻기: 513.5 → 2,049.5 → 8,193.5 으로 걸음이 마디 수에 비례한다.
+    const chainQuery = judgeScenario(
+      unsplayedForest,
+      scenarioOf(linkCutTreeContract, "connected", true),
+      "complexity",
+    );
+    const queryStats = chainQuery.points.map((point) => point.stat);
+    expect((queryStats[1] ?? 0) / (queryStats[0] ?? 1)).toBeGreaterThan(3);
+
+    // 무작위 잇기: 22.3 → 30.1 → 51.1. 이차가 아니라 **로그보다 빠르게 자라는** 것으로
+    // 걸린다 — 허용 상단 1.56 을 넘는 것이 판정의 전부다.
+    const randomLink = judgeScenario(
+      unsplayedForest,
+      scenarioOf(linkCutTreeContract, "link", false),
+      "complexity",
+    );
+    const linkStats = randomLink.points.map((point) => point.stat);
+    expect((linkStats[2] ?? 0) / (linkStats[1] ?? 1)).toBeGreaterThan(1.56);
   }, 60_000);
 });
 

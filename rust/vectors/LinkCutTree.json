@@ -1,0 +1,2102 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "LinkCutTree",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "처음에는 서로 다른 마디가 아무도 연결돼 있지 않다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": false
+        }
+      ]
+    },
+    {
+      "name": "같은 쌍을 두 번 이어도 간선은 하나다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "link",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            1,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": false
+        }
+      ]
+    },
+    {
+      "name": "사이클을 닫는 간선은 들어가지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "link",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            1,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            2,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            1,
+            2
+          ],
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "가운데 간선을 빼면 나무가 둘로 갈린다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "link",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            1,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            2,
+            3
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            3
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            1,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            2,
+            3
+          ],
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "같은 나무 안이라도 간선이 없으면 빼지 못한다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "link",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            1,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            1,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "같은 마디를 두 인자로 주면 잇지도 빼지도 못하고, 연결은 참이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "connected",
+          "arg": [
+            3,
+            3
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            3,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            3,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            3,
+            3
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            3,
+            4
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            4,
+            4
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            3,
+            4
+          ],
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "갈랐다 다시 붙여도 정상이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "link",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            1,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            1,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            1,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            1,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            1,
+            2
+          ],
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "범위 밖 마디 번호는 세 연산 모두 RangeError 다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            16
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "connected",
+          "arg": [
+            -1,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "link",
+          "arg": [
+            0,
+            16
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "cut",
+          "arg": [
+            16,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": false
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            8
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            15,
+            4
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            11,
+            6
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            7,
+            7
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            6,
+            3
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            7,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            12,
+            4
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            0,
+            6
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            12,
+            4
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            10,
+            8
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            3,
+            11
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            12,
+            15
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            12,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            6,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            11,
+            9
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            4,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            13,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            11,
+            6
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            10,
+            15
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            11,
+            14
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            14,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            13,
+            4
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            8,
+            14
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            2,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            2,
+            15
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            6,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            5,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            8,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            13,
+            4
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            4,
+            14
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            2,
+            10
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            5,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            1,
+            4
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            10,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            8,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            4,
+            15
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            13,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            0,
+            15
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            11,
+            13
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            4,
+            13
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            12,
+            3
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            2,
+            6
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            4,
+            14
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            14,
+            13
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            10,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            4,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            14,
+            15
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            5,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            12,
+            6
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            2,
+            13
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            14,
+            8
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            10,
+            5
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            8,
+            12
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            3
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            10,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            6,
+            13
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            5,
+            5
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            14
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            9,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            1,
+            13
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            11,
+            4
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            4,
+            8
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            1,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            10,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            6,
+            12
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            1,
+            15
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            13
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            6,
+            9
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            6,
+            11
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            4,
+            15
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            8,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            9,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            10,
+            9
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            1,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            10,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            10,
+            10
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            13
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            13
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            9,
+            5
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            1,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            8
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            10,
+            13
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            12,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            11,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            12,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            11,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            15,
+            5
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            13,
+            10
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            9,
+            6
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            2,
+            15
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            9
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            2,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            4,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            5,
+            15
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            7,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            12
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            2,
+            10
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            9,
+            9
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            9,
+            9
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            13,
+            6
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            11,
+            3
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            14,
+            6
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            8,
+            10
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            1,
+            12
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            12,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            12,
+            12
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            5,
+            11
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            3,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            14,
+            5
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            10,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            12,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            1,
+            6
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            7,
+            14
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            9,
+            3
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            9,
+            9
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            5,
+            14
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            7,
+            3
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            8,
+            7
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            4,
+            12
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            6,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            8,
+            5
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            10,
+            8
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            6
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            8,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            5,
+            8
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            2,
+            4
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            4,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            1,
+            6
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            12,
+            8
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            7,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            5,
+            9
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            6,
+            9
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            6,
+            6
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            9,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            5
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            10,
+            15
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            7,
+            12
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            4
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            5
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            13,
+            6
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            13,
+            9
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            7,
+            8
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            5,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            13,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            8,
+            5
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            8,
+            5
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            13,
+            9
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            3,
+            14
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            11,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            5,
+            11
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            8,
+            7
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            11,
+            11
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            1,
+            15
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            1,
+            6
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            6,
+            8
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            11,
+            14
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            1,
+            5
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            2,
+            8
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            1,
+            5
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            4,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            0,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            15,
+            12
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            7,
+            9
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            1,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            4,
+            12
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            5,
+            12
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            15,
+            13
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            7,
+            6
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            14,
+            11
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            3,
+            13
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            12,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            9,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            0,
+            11
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            14,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            13,
+            14
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            14,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            5,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            3,
+            10
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            4,
+            6
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            13,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            1,
+            8
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            2,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            6,
+            8
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            15,
+            5
+          ],
+          "expect": false
+        },
+        {
+          "op": "link",
+          "arg": [
+            7,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            0,
+            10
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            15,
+            3
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            8,
+            3
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "link",
+          "arg": [
+            6,
+            13
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            4,
+            5
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            6,
+            9
+          ],
+          "expect": false
+        },
+        {
+          "op": "cut",
+          "arg": [
+            11,
+            11
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            7
+          ],
+          "expect": true
+        },
+        {
+          "op": "cut",
+          "arg": [
+            6,
+            13
+          ],
+          "expect": false
+        },
+        {
+          "op": "connected",
+          "arg": [
+            3,
+            15
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            14,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "connected",
+          "arg": [
+            0,
+            7
+          ],
+          "expect": true
+        }
+      ]
+    }
+  ]
+}

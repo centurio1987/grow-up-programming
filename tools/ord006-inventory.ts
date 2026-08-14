@@ -104,6 +104,9 @@ const VERIFICATION_GRADES: Record<
   // 역은 성립하지 않으므로(불변 사실 56) 여기서는 등급이 판정의 입력이 아니고, 두 계약을
   // 가르는 것은 반례다(T1-05 — `keyCountingMultiset`).
   "tree/orderStatisticTree": "complexity",
+  // 형제 다섯과 연산 집합부터 갈리는 계약(T1-07). 담는 것이 정렬 집합이 아니라 숲이고,
+  // 갈리는 자리가 `cut` 하나다. 등급이 같은 것은 여기서도 판정의 입력이 아니다.
+  "tree/linkCutTree": "complexity",
   // T1 트랙의 첫 **불변 구조**(T1-06). 불변식 절이 비었는데도 `invariant` 가 아닌 것은
   // 판정 절차가 상한(2번)을 불변식(3번)보다 먼저 보기 때문이다 — `linear/deque` 와 같은 자리.
   "tree/cartesianTree": "complexity",
