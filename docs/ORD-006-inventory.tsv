@@ -51,7 +51,7 @@ src/data-structures/tree/avlTree	tree	avlTree	-	complexity	-	0	646	true
 src/data-structures/tree/bPlusTree	tree	bPlusTree	-	complexity	-	0	1026	true
 src/data-structures/tree/bTree	tree	bTree	-	complexity	-	0	1098	true
 src/data-structures/tree/binarySearchTree	tree	binarySearchTree	-	invariant	-	0	1148	true
-src/data-structures/tree/cartesianTree	tree	cartesianTree	-	-	-	96	389	false
+src/data-structures/tree/cartesianTree	tree	cartesianTree	-	complexity	-	0	546	true
 src/data-structures/tree/huffmanTree	tree	huffmanTree	-	-	-	73	670	false
 src/data-structures/tree/linkCutTree	tree	linkCutTree	-	-	-	71	452	false
 src/data-structures/tree/merkleTree	tree	merkleTree	-	-	-	65	295	false

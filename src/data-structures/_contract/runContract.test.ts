@@ -42,6 +42,11 @@ import {
 } from "../range-query/intervalTree/intervalTree.contract";
 import { BinarySearchTree as ReferenceBinarySearchTree } from "../tree/binarySearchTree/_reference/binarySearchTree";
 import { binarySearchTreeContract } from "../tree/binarySearchTree/binarySearchTree.contract";
+import { CartesianTree as ReferenceCartesianTree } from "../tree/cartesianTree/_reference/cartesianTree";
+import {
+  Walkable as CartesianTreeShell,
+  cartesianTreeContract,
+} from "../tree/cartesianTree/cartesianTree.contract";
 import { Multiset as ReferenceMultiset } from "../tree/multiset/_reference/multiset";
 import {
   type MultisetContract,
@@ -83,9 +88,12 @@ import { FrontPushStack } from "./_fixtures/frontPushStack";
 import { KeyCountingMultiset } from "./_fixtures/keyCountingMultiset";
 import { LazySortingSet } from "./_fixtures/lazySortingSet";
 import { MapWordSet } from "./_fixtures/mapWordSet";
+import { PathCopyingCartesianTree } from "./_fixtures/pathCopyingCartesianTree";
 import { RecountingSizeSet } from "./_fixtures/recountingSizeSet";
+import { RescanningCartesianView } from "./_fixtures/rescanningCartesianView";
 import { RootedSuffixTree } from "./_fixtures/rootedSuffixTree";
 import { ScanIntervalList } from "./_fixtures/scanIntervalList";
+import { ScanningCartesianTree } from "./_fixtures/scanningCartesianTree";
 import { ScanningSuffixArray } from "./_fixtures/scanningSuffixArray";
 import { ScanningSuffixTree } from "./_fixtures/scanningSuffixTree";
 import { ShiftQueue } from "./_fixtures/shiftQueue";
@@ -487,6 +495,37 @@ const unbalancedRankedAsMultiset: CostSource<MultisetContract<number>> = {
   make: () => new UnbalancedRankedMultiset<number>(),
 };
 
+/**
+ * 수열이 정하는 트리(`tree/cartesianTree`)의 정본과 결함 셋.
+ *
+ * **불변 구조라 넷 다 껍데기를 쓴다**(불변 사실 52 ④). 이 껍데기는 `suffixArray` 의 것보다
+ * 하나 더 하는데, 다시 색인하는 것에 더해 **지금 서 있는 마디를 자리로 든다.** `left()`·
+ * `right()` 가 값이 아니라 객체를 돌려주므로 걸음을 껍데기가 대신 밟아야 「한 걸음의 비용」을
+ * 잴 수 있다.
+ *
+ * 결함 셋이 계약의 서로 다른 자리를 짚는다 — 구성만 · 훑기만 · **깊이에 비례하는 훑기.**
+ */
+const referenceCartesianTree: CostSource<CartesianTreeShell<number>> = {
+  kind: "self-reported",
+  make: () =>
+    new CartesianTreeShell<number>((seq) => new ReferenceCartesianTree(seq)),
+};
+const scanningCartesianTree: CostSource<CartesianTreeShell<number>> = {
+  kind: "self-reported",
+  make: () =>
+    new CartesianTreeShell<number>((seq) => new ScanningCartesianTree(seq)),
+};
+const rescanningCartesianView: CostSource<CartesianTreeShell<number>> = {
+  kind: "self-reported",
+  make: () =>
+    new CartesianTreeShell<number>((seq) => new RescanningCartesianView(seq)),
+};
+const pathCopyingCartesianTree: CostSource<CartesianTreeShell<number>> = {
+  kind: "self-reported",
+  make: () =>
+    new CartesianTreeShell<number>((seq) => new PathCopyingCartesianTree(seq)),
+};
+
 describe("축3 — 정본은 통과한다", () => {
   test("Stack 정본의 push·pop 이 amortized O(1) 계약 안에 있다", () => {
     const verdict = judgeScenario(
@@ -672,6 +711,24 @@ describe("축3 — 정본은 통과한다", () => {
     for (const scenario of orderStatisticTreeContract.scenarios) {
       const verdict = judgeScenario(
         referenceOrderStatisticTree,
+        scenario,
+        "complexity",
+      );
+      expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
+        `${scenario.covers.join("·")}: `,
+      );
+    }
+  }, 30_000);
+
+  /**
+   * 수열이 정하는 트리의 정본. **훑기가 상수라는 것이 재는 값에 그대로 보인다** — 단일
+   * 걸음 최대 비용이 세 크기에서 4·4·4 로 움직이지 않는다. 성장률이 아니라 값 자체가
+   * 고정인 행은 이 계약에서 여기뿐이다.
+   */
+  test("수열이 정하는 트리의 정본이 다섯 시나리오를 전부 통과한다", () => {
+    for (const scenario of cartesianTreeContract.scenarios) {
+      const verdict = judgeScenario(
+        referenceCartesianTree,
         scenario,
         "complexity",
       );
@@ -1608,6 +1665,94 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     const stats = sequential.points.map((point) => point.stat);
     expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeGreaterThan(3);
   });
+
+  /**
+   * **불변 구조의 계약이 두 자리에서 갈린다 — 짓는 값과 훑는 값.**
+   *
+   * `tree/cartesianTree` 는 상태를 바꾸는 연산이 없으므로 축2가 볼 것이 없고(불변 사실 52 ①),
+   * 계약이 실제로 배제하는 일을 하는 자리가 축3의 두 행뿐이다. 그 둘이 **서로를 대신하지
+   * 못한다**는 것을 결함 둘이 반대쪽에서 보인다.
+   *
+   * | fixture | 구성 | 훑기 |
+   * |---|---|---|
+   * | 구간을 훑어 나누는 것 | 오름차순에서 걸린다 | 상수라 통과 |
+   * | 수열만 들고 다시 훑는 것 | 사본 하나라 통과 | 둘 다 걸린다 |
+   *
+   * 시나리오를 한쪽만 뒀다면 나머지 하나가 통째로 새어 나간다.
+   */
+  test("구성만 어기는 결함과 훑기만 어기는 결함이 서로 다른 행에서 걸린다", () => {
+    // ① 구간의 최솟값을 훑어 나누는 구현. 트리는 정본과 같은 것을 짓고 마디도 세워 두므로
+    //    훑기 넷이 상수다. **무작위 수열은 통과한다** — 나눔이 반씩 갈려 로그 인수 하나
+    //    차이이고, 그 차이는 축3의 해상도 아래다(불변 사실 53).
+    expect(outcomes(scanningCartesianTree, cartesianTreeContract)).toEqual({
+      constructor: true,
+      "constructor (적대적)": false,
+      size·value·left·right: true,
+      "size·value·left·right (적대적)": true,
+      "inOrder (적대적)": true,
+    });
+
+    // 오름차순에서 걸리는 폭이 로그 인수가 아니라 계급 하나다 — 총비용 524,800 →
+    // 8,390,656 → 134,225,920 으로 $r$ 이 16 이다.
+    const skewed = judgeScenario(
+      scanningCartesianTree,
+      scenarioOf(cartesianTreeContract, "constructor", true),
+      "complexity",
+    );
+    const skewedStats = skewed.points.map((point) => point.stat);
+    expect((skewedStats[1] ?? 0) / (skewedStats[0] ?? 1)).toBeGreaterThan(12);
+
+    // ② 트리를 세우지 않고 수열 조각만 드는 구현. **구성 둘을 통과한다** — 사본을 뜨는 것이
+    //    전부라 선형이다. 걸리는 것은 훑기 둘이고, 값은 전부 옳으므로 축1도 통과한다.
+    expect(outcomes(rescanningCartesianView, cartesianTreeContract)).toEqual({
+      constructor: true,
+      "constructor (적대적)": true,
+      size·value·left·right: false,
+      "size·value·left·right (적대적)": false,
+      "inOrder (적대적)": true,
+    });
+  }, 60_000);
+
+  /**
+   * **사슬 시나리오가 혼자 잡는 계열이 있다.**
+   *
+   * 훑기를 겨눈 시나리오가 둘인 이유가 이 자리다. 앞 두 fixture 는 두 시나리오에서 똑같이
+   * 굴어 **적대적 입력의 몫을 말하지 못한다** — 같은 행을 겨눈 시나리오를 둘 두면서 결함
+   * 하나로만 재면 그 하나가 둘 다에서 걸려 무엇이 더 잡히는지가 안 보인다(불변 사실 118).
+   *
+   * 부분트리 객체가 뿌리부터의 길을 복사해 드는 구현이 그 계열이다. 걸음 하나가 지금 깊이에
+   * 비례하므로 무작위 수열에서는 로그이고 사슬에서는 선형이다. 이것은 「트리를 잘못 지었다」가
+   * 아니라 **부분트리를 값으로 돌려주는 계약이 실제로 여는 실패 자리**다.
+   */
+  test("깊이에 비례하는 걸음은 무작위 훑기를 통과하고 사슬에서만 걸린다", () => {
+    expect(outcomes(pathCopyingCartesianTree, cartesianTreeContract)).toEqual({
+      constructor: true,
+      "constructor (적대적)": true,
+      size·value·left·right: true,
+      "size·value·left·right (적대적)": false,
+      "inOrder (적대적)": true,
+    });
+
+    // 무작위: 단일 걸음 최대가 18 → 22 → 24 다. $r$ 이 1.22·1.09 로 허용 상단 1.30 **아래**라
+    // 통과하는 것이지, 이 구현이 상수 걸음이어서가 아니다.
+    const balanced = judgeScenario(
+      pathCopyingCartesianTree,
+      scenarioOf(cartesianTreeContract, "size", false),
+      "complexity",
+    );
+    const balancedStats = balanced.points.map((point) => point.stat);
+    expect((balancedStats[2] ?? 0) / (balancedStats[0] ?? 1)).toBeLessThan(2);
+
+    // 사슬: 1,026 → 4,099 → 16,386 으로 걸음이 마디 수에 비례한다.
+    const chained = judgeScenario(
+      pathCopyingCartesianTree,
+      scenarioOf(cartesianTreeContract, "size", true),
+      "complexity",
+    );
+    expect(chained.ok).toBe(false);
+    const chainedStats = chained.points.map((point) => point.stat);
+    expect((chainedStats[1] ?? 0) / (chainedStats[0] ?? 1)).toBeGreaterThan(3);
+  }, 60_000);
 });
 
 /**

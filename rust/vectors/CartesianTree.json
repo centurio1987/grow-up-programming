@@ -1,0 +1,1392 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "CartesianTree",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 수열 — 값도 자식도 없고 훑기가 빈 배열이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "value",
+          "expect": null
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "goRight",
+          "expect": false
+        },
+        {
+          "op": "inOrder",
+          "expect": []
+        }
+      ]
+    },
+    {
+      "name": "한 값 — 뿌리뿐이라 어느 쪽으로도 못 내려간다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "rebuild",
+          "arg": [
+            7
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "value",
+          "expect": 7
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "goRight",
+          "expect": false
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "name": "오름차순 — 왼쪽이 비고 오른쪽으로만 내려가는 사슬이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "rebuild",
+          "arg": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "op": "value",
+          "expect": 1
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "value",
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "value",
+          "expect": 3
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            3,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "name": "내림차순 — 오른쪽이 비고 왼쪽으로만 내려가는 사슬이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "rebuild",
+          "arg": [
+            4,
+            3,
+            2,
+            1
+          ]
+        },
+        {
+          "op": "value",
+          "expect": 1
+        },
+        {
+          "op": "goRight",
+          "expect": false
+        },
+        {
+          "op": "goLeft",
+          "expect": true
+        },
+        {
+          "op": "value",
+          "expect": 2
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            4,
+            3,
+            2
+          ]
+        },
+        {
+          "op": "goLeft",
+          "expect": true
+        },
+        {
+          "op": "value",
+          "expect": 3
+        }
+      ]
+    },
+    {
+      "name": "동등한 값 — 수열에서 앞선 자리가 조상이라 오른쪽이 찬다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "rebuild",
+          "arg": [
+            1,
+            1
+          ]
+        },
+        {
+          "op": "value",
+          "expect": 1
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "value",
+          "expect": 1
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "동등한 최소가 셋 — 앞선 것이 뿌리이고 나머지는 오른쪽으로 이어진다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "rebuild",
+          "arg": [
+            2,
+            5,
+            2,
+            5,
+            2
+          ]
+        },
+        {
+          "op": "value",
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            5,
+            2,
+            5,
+            2
+          ]
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            5,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "name": "골짜기 — 최솟값이 가운데면 양쪽 자식이 다 찬다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "rebuild",
+          "arg": [
+            5,
+            10,
+            1,
+            10,
+            5
+          ]
+        },
+        {
+          "op": "value",
+          "expect": 1
+        },
+        {
+          "op": "goLeft",
+          "expect": true
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            5,
+            10
+          ]
+        },
+        {
+          "op": "value",
+          "expect": 5
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            10,
+            5
+          ]
+        },
+        {
+          "op": "value",
+          "expect": 5
+        }
+      ]
+    },
+    {
+      "name": "다시 색인하면 앞의 수열도 서 있던 자리도 남지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "rebuild",
+          "arg": [
+            3,
+            1,
+            2
+          ]
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "value",
+          "expect": 2
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            9
+          ]
+        },
+        {
+          "op": "value",
+          "expect": 9
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            9
+          ]
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            3,
+            3,
+            1,
+            2
+          ]
+        },
+        {
+          "op": "value",
+          "expect": 1
+        },
+        {
+          "op": "goLeft",
+          "expect": true
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            3,
+            3
+          ]
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "goRight",
+          "expect": false
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            0,
+            0,
+            1
+          ]
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            3,
+            1,
+            0
+          ]
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            2,
+            3,
+            1
+          ]
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "goRight",
+          "expect": false
+        },
+        {
+          "op": "value",
+          "expect": 1
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "value",
+          "expect": 1
+        },
+        {
+          "op": "goRight",
+          "expect": false
+        },
+        {
+          "op": "value",
+          "expect": 1
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            2,
+            3,
+            1
+          ]
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "value",
+          "expect": 1
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "goLeft",
+          "expect": true
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "value",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            0,
+            2
+          ]
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            0,
+            2
+          ]
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            0,
+            2
+          ]
+        },
+        {
+          "op": "value",
+          "expect": 0
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            0,
+            2
+          ]
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            0,
+            2
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            0,
+            2
+          ]
+        },
+        {
+          "op": "value",
+          "expect": 0
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            0,
+            2
+          ]
+        },
+        {
+          "op": "rebuild",
+          "arg": []
+        },
+        {
+          "op": "inOrder",
+          "expect": []
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "inOrder",
+          "expect": []
+        },
+        {
+          "op": "goRight",
+          "expect": false
+        },
+        {
+          "op": "inOrder",
+          "expect": []
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "inOrder",
+          "expect": []
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            0,
+            1,
+            0,
+            1,
+            1,
+            2,
+            2,
+            2
+          ]
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            3,
+            1,
+            0,
+            1,
+            3,
+            1,
+            0
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "goLeft",
+          "expect": true
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            0
+          ]
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            2,
+            0,
+            3,
+            1
+          ]
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            2,
+            0,
+            3,
+            1
+          ]
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            2,
+            0,
+            3,
+            1
+          ]
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            2,
+            0,
+            3,
+            1
+          ]
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            0
+          ]
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            0
+          ]
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "value",
+          "expect": 0
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            0
+          ]
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            3,
+            3
+          ]
+        },
+        {
+          "op": "value",
+          "expect": 3
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            1
+          ]
+        },
+        {
+          "op": "goRight",
+          "expect": false
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            1
+          ]
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            1
+          ]
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            1
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            1
+          ]
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            1
+          ]
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "rebuild",
+          "arg": []
+        },
+        {
+          "op": "value",
+          "expect": null
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "value",
+          "expect": null
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "inOrder",
+          "expect": []
+        },
+        {
+          "op": "goRight",
+          "expect": false
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "goRight",
+          "expect": false
+        },
+        {
+          "op": "value",
+          "expect": null
+        },
+        {
+          "op": "value",
+          "expect": null
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            2
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            1,
+            3
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            2,
+            2,
+            2,
+            0,
+            0,
+            3,
+            0,
+            2
+          ]
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "goLeft",
+          "expect": true
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            2,
+            2
+          ]
+        },
+        {
+          "op": "rebuild",
+          "arg": []
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            1,
+            3,
+            1,
+            0
+          ]
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            1,
+            3,
+            1,
+            0
+          ]
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            1,
+            3,
+            1,
+            0
+          ]
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            2,
+            0
+          ]
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            0,
+            1,
+            2,
+            2,
+            1,
+            2,
+            0
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            2
+          ]
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "rebuild",
+          "arg": []
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            2,
+            2,
+            3
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            2,
+            2,
+            3
+          ]
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            3,
+            0,
+            3,
+            2,
+            2,
+            1,
+            0
+          ]
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            1,
+            0,
+            2,
+            2,
+            2,
+            3
+          ]
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "value",
+          "expect": 2
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            2,
+            0,
+            3
+          ]
+        },
+        {
+          "op": "value",
+          "expect": 0
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            2
+          ]
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            3,
+            1,
+            3,
+            3,
+            2,
+            1,
+            2
+          ]
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            3,
+            1,
+            3,
+            3,
+            2,
+            1,
+            2
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            2,
+            0,
+            0,
+            3,
+            1
+          ]
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            1,
+            3,
+            2,
+            1
+          ]
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            0,
+            3,
+            3,
+            0,
+            2
+          ]
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            0,
+            3,
+            3,
+            0,
+            2
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "value",
+          "expect": 0
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            3,
+            3,
+            0,
+            2
+          ]
+        },
+        {
+          "op": "goLeft",
+          "expect": true
+        },
+        {
+          "op": "value",
+          "expect": 3
+        },
+        {
+          "op": "value",
+          "expect": 3
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            0,
+            3,
+            3,
+            0,
+            2
+          ]
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            0,
+            3,
+            3,
+            0,
+            2
+          ]
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            2,
+            3,
+            0,
+            0,
+            3,
+            3
+          ]
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "goLeft",
+          "expect": true
+        },
+        {
+          "op": "value",
+          "expect": 2
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "goLeft",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "value",
+          "expect": 0
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "goRight",
+          "expect": true
+        },
+        {
+          "op": "rebuild",
+          "arg": [
+            3,
+            1,
+            3
+          ]
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            3,
+            1,
+            3
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "toRoot"
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            3,
+            1,
+            3
+          ]
+        },
+        {
+          "op": "goLeft",
+          "expect": true
+        },
+        {
+          "op": "inOrder",
+          "expect": [
+            3
+          ]
+        }
+      ]
+    }
+  ]
+}

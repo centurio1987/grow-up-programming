@@ -28,6 +28,7 @@ import { xorLinkedListContract } from "../src/data-structures/linear/xorLinkedLi
 import { concurrentSkipListContract } from "../src/data-structures/probabilistic/concurrentSkipList/concurrentSkipList.contract.ts";
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
 import { binarySearchTreeContract } from "../src/data-structures/tree/binarySearchTree/binarySearchTree.contract.ts";
+import { cartesianTreeContract } from "../src/data-structures/tree/cartesianTree/cartesianTree.contract.ts";
 import { multisetContract } from "../src/data-structures/tree/multiset/multiset.contract.ts";
 import { orderStatisticTreeContract } from "../src/data-structures/tree/orderStatisticTree/orderStatisticTree.contract.ts";
 import { redBlackTreeContract } from "../src/data-structures/tree/redBlackTree/redBlackTree.contract.ts";
@@ -149,6 +150,7 @@ const SPECS: ContractSpec<any, any>[] = [
   concurrentSkipListContract,
   intervalTreeContract,
   binarySearchTreeContract,
+  cartesianTreeContract,
   multisetContract,
   orderStatisticTreeContract,
   redBlackTreeContract,

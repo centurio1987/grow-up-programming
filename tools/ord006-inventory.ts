@@ -104,6 +104,9 @@ const VERIFICATION_GRADES: Record<
   // 역은 성립하지 않으므로(불변 사실 56) 여기서는 등급이 판정의 입력이 아니고, 두 계약을
   // 가르는 것은 반례다(T1-05 — `keyCountingMultiset`).
   "tree/orderStatisticTree": "complexity",
+  // T1 트랙의 첫 **불변 구조**(T1-06). 불변식 절이 비었는데도 `invariant` 가 아닌 것은
+  // 판정 절차가 상한(2번)을 불변식(3번)보다 먼저 보기 때문이다 — `linear/deque` 와 같은 자리.
+  "tree/cartesianTree": "complexity",
   "probabilistic/concurrentSkipList": "concurrency",
   // 성격 전환(B22·B23). 계약이 `tree/redBlackTree` 의 것과 같으므로 등급도 같다 —
   // 등급은 계약에서 기계적으로 따라 나온다(불변 사실 56).

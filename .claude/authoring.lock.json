@@ -12,7 +12,7 @@
   "principles": {
     "source": "/Users/centurio/.claude/authoring/principles",
     "remote": "git@github.com:centurio1987/my-claude-env.git",
-    "revision": "cdf8b045fdc953c16a59ee0bcc20ad52ca0c1696",
+    "revision": "1542486ecfbe1b19ff700af8d2c0ee141bd82d13",
     "files": {
       "L0_MACHINE_RHYTHM.md": "sha256:97dd9725166037d8",
       "L0_NATURAL_KOREAN.md": "sha256:c1533db4424221d6",
@@ -29,7 +29,7 @@
   },
   "specs": {
     "algo-guide": "sha256:0c9f9055cb036aeb",
-    "ds-guide": "sha256:7b3e1575b820b3e3",
+    "ds-guide": "sha256:c2e8c3544eb13607",
     "problem": "sha256:1e863f818e0afcb5"
   }
 }

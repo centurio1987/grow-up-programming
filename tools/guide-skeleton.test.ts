@@ -10,31 +10,68 @@
  */
 
 import { expect, test } from "bun:test";
+import { readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { extract } from "./guide-core.ts";
 
 const root = resolve(import.meta.dir, "..");
 const SPEC = ".claude/authoring/specs/ds-guide/spec.json";
 const FIXTURE = "tools/_fixtures/ds-guide-skeleton.mdx";
+const SCAN_ROOT = "src/data-structures";
 
 /**
- * 8단계로 **재집필이 끝난** 가이드. 재집필 카드가 여기 한 줄을 더한다.
+ * 8단계로 재집필이 끝난 가이드를 **파일 시스템에서 뽑는다.**
  *
- * 나머지 68종은 아직 옛 5단계 문형이므로 대상이 아니다. 목록을 자동으로 만들지 않는 이유는
- * "아직 안 옮긴 것"과 "옮겼는데 골격이 틀린 것"을 구분해야 하기 때문이다.
+ * 전에는 손으로 적는 목록이었고 *"재집필 카드가 여기 한 줄을 더한다"* 가 규약이었는데,
+ * 카드 열둘이 그 줄을 안 더했다(T1-06 이 전수로 셌다). **산문으로 적은 규약은 강제 지점이
+ * 없으면 샌다**(불변 사실 42) — 그래서 목록을 세는 일을 사람에게서 거둬들인다.
+ *
+ * 판별은 `<name>.contract.ts` 유무다. 옛 목록의 주석은 자동 생성을 막는 이유로 *"아직 안
+ * 옮긴 것과 옮겼는데 골격이 틀린 것을 구분해야 한다"* 를 들었는데, 계약 스위트 파일이 바로
+ * 그 구분이다 — 그 파일이 서면 규약1·규약2 를 거친 것이고, 규약3(가이드)이 남는다.
+ *
+ * `_reference/` 를 쓰지 않는 이유는 `probabilistic/concurrentSkipList` 다. 규약4 (가) 등급이라
+ * 정본이 Rust 에 있어 그 디렉터리가 없는데, 가이드는 B21 에서 8단계로 재집필됐다.
  */
-const REWRITTEN = [
-  "src/data-structures/probabilistic/concurrentSkipList/concurrentSkipList-guide.mdx",
-  "src/data-structures/linear/deque/deque-guide.mdx",
-  "src/data-structures/linear/queue/queue-guide.mdx",
-  "src/data-structures/linear/unrolledLinkedList/unrolledLinkedList-guide.mdx",
-  "src/data-structures/linear/xorLinkedList/xorLinkedList-guide.mdx",
-  "src/data-structures/range-query/intervalTree/intervalTree-guide.mdx",
-  "src/data-structures/tree/multiset/multiset-guide.mdx",
-  "src/data-structures/trie/suffixArray/suffixArray-guide.mdx",
-  "src/data-structures/trie/suffixTree/suffixTree-guide.mdx",
-  "src/data-structures/trie/ternarySearchTree/ternarySearchTree-guide.mdx",
-];
+const SKELETON_EXEMPT = new Map([
+  [
+    "linear/stack",
+    "규약1 시범 2종(B2). 계약과 정본은 그때 섰지만 가이드는 손대지 않기로 했고" +
+      "(규약3 이 B4 에서야 섰다) 아직 옛 문형이다. 다시 쓰는 카드가 이 줄을 지운다",
+  ],
+]);
+
+async function rewrittenGuides(): Promise<string[]> {
+  const found: string[] = [];
+  const categories = await readdir(join(root, SCAN_ROOT), {
+    withFileTypes: true,
+  });
+  for (const category of categories) {
+    if (!category.isDirectory() || category.name.startsWith("_")) continue;
+    const names = await readdir(join(root, SCAN_ROOT, category.name), {
+      withFileTypes: true,
+    });
+    for (const name of names) {
+      if (!name.isDirectory() || name.name.startsWith("_")) continue;
+      const key = `${category.name}/${name.name}`;
+      if (SKELETON_EXEMPT.has(key)) continue;
+      const dir = join(SCAN_ROOT, category.name, name.name);
+      const contract = join(dir, `${name.name}.contract.ts`);
+      if (!(await Bun.file(join(root, contract)).exists())) continue;
+      const guide = join(dir, `${name.name}-guide.mdx`);
+      if (await Bun.file(join(root, guide)).exists()) found.push(guide);
+    }
+  }
+  return found.sort();
+}
+
+const REWRITTEN = await rewrittenGuides();
+
+test("재집필이 끝난 구조의 가이드를 빠짐없이 센다", () => {
+  // 이 숫자가 아니라 **세는 방법**이 규약이다. 구조가 늘면 여기서 한 번 걸리고, 그때
+  // 확인할 것은 「그 구조의 가이드가 정말 8단계인가」 하나다.
+  expect(REWRITTEN.length).toBeGreaterThanOrEqual(20);
+});
 
 interface Section {
   id: string;
@@ -61,6 +98,27 @@ function headings(source: string): string[] {
     if (!fenced && /^#{1,3}\s/.test(line)) out.push(line.trim());
   }
   return out;
+}
+
+/**
+ * 코드 펜스 **안쪽**만 모은다. 펜스를 여는 줄과 닫는 줄은 뺀다.
+ *
+ * 계측이 새는지를 파일 전체 문자열 검색으로 물으면 **산문이 거짓 양성으로 걸린다** — 가이드
+ * 아홉이 *"`__cost` 줄은 축3 계측이고 추출기가 떼고 가져온다"* 처럼 그 이름을 설명하고 있고,
+ * 그것은 새는 것이 아니라 설명하는 것이다. `tools/check-contract.ts` 가 벽시계 게이트에서
+ * 문자열 검색을 버린 것과 같은 이유이고, 거기 주석이 같은 함정을 이미 적고 있다.
+ */
+function fencedCode(source: string): string {
+  const out: string[] = [];
+  let fenced = false;
+  for (const line of source.split("\n")) {
+    if (line.trimStart().startsWith("```")) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced) out.push(line);
+  }
+  return out.join("\n");
 }
 
 const fixtureHeadings = headings(fixture);
@@ -144,7 +202,7 @@ for (const path of REWRITTEN) {
     expect(strays).toEqual([]);
   });
 
-  test(`${path} — 본문에 계측이 새어 나오지 않는다`, () => {
-    expect(source).not.toContain("__cost");
+  test(`${path} — 본문 코드에 계측이 새어 나오지 않는다`, () => {
+    expect(fencedCode(source)).not.toContain("__cost");
   });
 }
