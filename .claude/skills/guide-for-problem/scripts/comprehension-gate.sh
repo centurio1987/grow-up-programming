@@ -19,7 +19,8 @@
 #
 # Exit codes:
 #   0 = 이해 게이트 통과 (응답한 모델 전부 VERDICT: PASS)
-#   2 = 두 모델 모두 사용 불가 → 게이트 미실행 (통과로 간주 금지)
+#   2 = 세 모델 모두 사용 불가 → 게이트 미실행 (통과로 간주 금지)
+#       codex·agy 가 둘 다 응답 못 하면 haiku(claude CLI)로 fallback 한다.
 #   3 = 이해 게이트 미통과 (한 모델이라도 VERDICT: FAIL)
 #
 # 모델 선택: 각 CLI 기본 모델. CODEX_MODEL / AGY_MODEL로 오버라이드.
@@ -102,6 +103,31 @@ USER_PROMPT_HEAD='아래 === GUIDE === 이후의 학습 가이드 본문을 읽�
   잘못되는가? 본문이 실제로 보여 준 잘못된 값·동작·에러를 인용하라.
 - **Q5 (구현)** 본문 코드에서 순서나 조건 한 곳을 바꾸면 어떤 **구체적으로 잘못된 결과**가
   나오는가? 본문이 그 잘못된 결과를 실제 값으로 보였는지 확인하고 인용하라.
+- **Q6 (전개)** 본문이 **고정 입력 하나**를 잡고 이 방법을 **단계마다 굴리는가?**
+  아래 셋을 **모두** 확인하고, 하나라도 없으면 Q6은 실패다.
+  - **(a)** 단계가 번호로 구분되고, 단계마다 **그 시점의 상태 값**이 적혀 있는가?
+  - **(b)** 각 단계에서 **어느 갈림길로 갔는지**와 **그 조건이 그 시점에 참/거짓인 이유**가
+    **실제 값으로** 적혀 있는가? 상태 변화만 나열되고 갈림의 이유가 없으면 `결론만 있음`이다.
+    예: *"`curR(2) < r(4)` 이 참이라 오른쪽을 확장했다"* 는 (b)를 충족한다.
+    *"curR을 4까지 늘렸다"* 는 충족하지 않는다 — 무슨 일이 있었는지만 적었다.
+  - **(c)** 코드의 **모든 분기가 최소 한 번씩** 이 전개에 등장하는가? 한 번도 안 밟힌 분기가
+    있으면 어느 것인지 대라.
+  **Q5와 구분하라** — Q5는 "코드를 잘못 바꾸면 무엇이 틀리는가", Q6은 "코드를 제대로 두면
+  무엇이 언제 왜 일어나는가"다. 같은 인용으로 둘을 채우면 Q6은 `근거 없음`이다.
+  **범위**: 본문이 다루겠다고 선언한 주 경로와 본문 코드에 실제로 있는 분기까지가 대상이다.
+  본문이 명시적으로 범위 밖이라 밝힌 엣지 케이스는 Q6에서 묻지 않는다.
+
+  > **시뮬레이션 데이터는 전개로 인정하지 않는다.** `export const steps = [...]` 같은 선언형
+  > 배열과 그 안의 `title`·`detail`·`entries`·`trace` 필드는 **값의 나열**이지 해설이 아니다.
+  > 이 질문이 묻는 것은 **산문 본문이 그 값들 사이를 이어 주는가**이다.
+  > 근거를 `steps` 배열 안에서만 찾았다면 그 항목은 `근거 없음`이다 — 인용은 반드시
+  > 배열 밖의 산문에서 가져와라.
+  >
+  > **(b)를 특히 엄격하게 본다.** *"다음: (0111) & 1011 = 3"* 같은 **계산 결과**는 (b)가
+  > 아니다. (b)가 요구하는 것은 **분기 조건 자체의 참/거짓 판정**이다 —
+  > *"`s > 0`이 `11 > 0`이라 참이므로 루프에 들어간다"* 처럼, 어느 조건을 평가했고 그 값이
+  > 무엇이라 어느 쪽으로 갈렸는지가 있어야 한다. 계산만 있고 조건 판정이 없으면
+  > `결론만 있음`이다.
 
 ## 출력 형식
 
@@ -113,8 +139,8 @@ USER_PROMPT_HEAD='아래 === GUIDE === 이후의 학습 가이드 본문을 읽�
 [Q1] 판정: PASS | FAIL(근거 없음) | FAIL(결론만 있음)
 ```
 
-5개를 모두 마친 뒤, **마지막 줄에 반드시** 아래 형식의 한 줄을 단독으로 출력한다.
-FAIL이 하나라도 있으면 전체는 FAIL이다.
+6개를 모두 마친 뒤, **마지막 줄에 반드시** 아래 형식의 한 줄을 단독으로 출력한다.
+Q1~Q6 중 FAIL이 하나라도 있으면 전체는 FAIL이다.
 
 ```
 VERDICT: PASS
@@ -185,11 +211,33 @@ call_agy() {
   fi
 }
 
+HAIKU_OUT="$TMP_DIR/haiku.out"
+HAIKU_ERR="$TMP_DIR/haiku.err"
+
+# fallback — codex·agy 가 **둘 다** 응답을 못 냈을 때만 부른다.
+# 쿼터를 아끼려고 순차로 두었다. 셋 다 못 부르면 그때가 exit 2(미실행)다.
+call_haiku() {
+  if ! command -v claude >/dev/null 2>&1; then
+    printf 'claude CLI 미설치 — haiku fallback 을 건너뜁니다.\n' >"$HAIKU_ERR"
+    return 0
+  fi
+  if ! printf '%s' "$COMBINED_PROMPT" | run_limited claude -p --model haiku \
+        >"$HAIKU_OUT" 2>"$HAIKU_ERR"; then
+    printf '\nhaiku fallback 실행 실패.\n' >>"$HAIKU_ERR"
+    : >"$HAIKU_OUT"
+  fi
+}
+
 call_codex &
 PID_CODEX=$!
 call_agy &
 PID_AGY=$!
 wait "$PID_CODEX" "$PID_AGY"
+
+if [ ! -s "$CODEX_LAST" ] && [ ! -s "$AGY_OUT" ]; then
+  printf '[fallback] codex·agy 모두 응답 없음 — haiku 로 판정합니다.\n' >&2
+  call_haiku
+fi
 
 ANY_OUTPUT=0
 ANY_FAIL=0
@@ -230,9 +278,20 @@ else
   printf '[빈 응답]\n'
 fi
 
+printf '\n=== haiku (claude CLI) — fallback 폐쇄형 독해 시험 ===\n'
+if [ -s "$HAIKU_OUT" ]; then
+  cat "$HAIKU_OUT"; printf '\n'; ANY_OUTPUT=1
+  judge "$HAIKU_OUT" "haiku"
+elif [ -s "$HAIKU_ERR" ]; then
+  printf '[skip] %s\n' "$(cat "$HAIKU_ERR")"
+else
+  printf '[미호출] codex 또는 agy 가 응답했으므로 fallback 을 부르지 않았습니다.\n'
+fi
+
 if [ "$ANY_OUTPUT" -eq 0 ]; then
   err ""
-  err "두 모델 모두 응답을 받지 못했습니다 — 이해 게이트 미실행. 통과로 간주하지 마세요."
+  err "세 모델(codex·agy·haiku) 모두 응답을 받지 못했습니다 — 이해 게이트 미실행."
+  err "통과로 간주하지 마세요."
   exit 2
 fi
 
