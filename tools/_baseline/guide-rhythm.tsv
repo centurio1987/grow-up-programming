@@ -12,7 +12,6 @@ src/algorithms/array/bestTimeToBuyAndSellStock/bestTimeToBuyAndSellStock-guide.m
 src/algorithms/array/bestTimeToBuyAndSellStockK/bestTimeToBuyAndSellStockK-guide.mdx	3	0
 src/algorithms/array/editDistance/editDistance-guide.mdx	3	0
 src/algorithms/array/fenwickRangeSum/fenwickRangeSum-guide.mdx	4	0
-src/algorithms/array/houseRobber/houseRobber-guide.mdx	5	0
 src/algorithms/array/kadane/kadane-guide.mdx	4	0
 src/algorithms/array/largestRectangleInHistogram/largestRectangleInHistogram-guide.mdx	3	0
 src/algorithms/array/longestCommonSubsequence/longestCommonSubsequence-guide.mdx	5	0
