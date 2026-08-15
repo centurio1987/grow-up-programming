@@ -10,13 +10,22 @@
  * 재지 않는다 — 2문단마다 빈 상자를 끼우면 R1 은 통과한다. 충분성은 이해 게이트 Q6 과
  * 절제 시험이 맡는다. R1 단독을 "설명이 좋다"의 근거로 쓰지 않는다.
  *
- * 검사 다섯. R3·R4 는 절 사이의 정합이라 국소 삽입으로는 못 채운다.
+ * 검사 여섯. R3·R4·R6 은 절 사이의 정합이라 국소 삽입으로는 못 채운다.
  *
  *   R1  절 단위 최대 연속 산문 문단 ≤ max-run(기본 2)
  *   R2  trace 절 단계 수 ≥ 시뮬 프레임 수, 그리고 ≥ 6
  *   R3  분기 피복 — impl 코드의 원문자 라벨 ⊆ trace 가 밟은 라벨
  *   R4  인용 결속 — clue · optcode 가 각각 trace 단계 번호(T#)를 1개 이상 인용
  *   R5  voice forbid 문형 부재
+ *   R6  3.1/4.5 경계 — `수식과 그림` 절이 분기 조건을 실제 값으로 판정하지 않는다
+ *
+ * **R6 이 왜 있는가.** 캔버스 4.5단계는 *"3.1은 정의를 굴린다(개념 층위, 코드 없음).
+ * 이 절은 코드를 굴린다(구현 층위, 분기 라벨과 실제 값)"* 로 두 절의 경계를 정해 두었는데,
+ * 그 규칙에 강제 지점이 없었다. 실제로 `slidingWindowMaximum` 이 3.1 에 반복 인덱스별 표를
+ * 두고 그 안에서 `nums[0]=1<=3 제거` 꼴로 분기를 판정하고 있었고, 그 결과 **trace 절을
+ * 통째로 지운 절제 사본이 이해 게이트를 통과했다**(2026-08-16). 트레이스가 장식이어서가
+ * 아니라 3.1 이 트레이스의 직무를 대신하고 있어서다. 세는 것은 **숫자 리터럴끼리의 비교식**
+ * 이고, 그것이 Q6(b)가 "조건 판정"으로 인정하는 바로 그 형태다.
  *
  * 래칫: `tools/_baseline/guide-rhythm.tsv` 에 있는 편은 **baseline 보다 나빠지면** 실패한다.
  * baseline 에 없는 편(새 글)과 trace 절이 생긴 편은 즉시 전 기준을 적용한다.
@@ -57,6 +66,19 @@ const FORBIDDEN = [
 /** 원문자 라벨 — impl 코드의 분기에 달고 trace 가 이 라벨로 어느 자리를 밟았는지 적는다. */
 const CIRCLED = /[①②③④⑤⑥⑦⑧⑨⑩]/g;
 
+/** `### … — 수식과 그림` = 캔버스 3.1(idea.formal). 개념 층위를 맡는 절이다. */
+const FORMAL_HEADING = /^### .*수식과 그림\s*$/;
+
+/**
+ * 분기 조건을 **실제 값으로** 판정한 흔적 — 숫자 리터럴끼리의 비교식.
+ * `1<=3` · `3>-1` · `1 < 2` 를 잡고, `i<n` 처럼 기호가 낀 것은 안 잡는다(정의는 3.1 의 몫).
+ */
+const LITERAL_COMPARE =
+  /-?\d+(?:\.\d+)?\s*(?:<=|>=|<|>|===|==|≤|≥)\s*-?\d+(?:\.\d+)?/g;
+
+/** 3.1 에서 이만큼 나오면 "굴리고 있다"고 본다. 재집필 전 slidingWindowMaximum 이 4 였다. */
+const FORMAL_COMPARE_LIMIT = 3;
+
 type Finding = { code: string; message: string };
 
 type Report = {
@@ -71,6 +93,7 @@ type Report = {
   citeClue: number;
   citeOptcode: number;
   forbidHits: number;
+  formalCompares: number;
   hasTrace: boolean;
   findings: Finding[];
 };
@@ -227,6 +250,12 @@ function analyze(file: string, text: string, maxRun: number): Report {
   let forbidHits = 0;
   for (const re of FORBIDDEN) forbidHits += (text.match(re) ?? []).length;
 
+  // ── R6: 3.1/4.5 경계 ──
+  const formalSection = sections.find((s) => FORMAL_HEADING.test(s.heading));
+  const formalCompares = formalSection
+    ? (formalSection.body.join("\n").match(LITERAL_COMPARE) ?? []).length
+    : 0;
+
   const findings: Finding[] = [];
   if (maxRunSeen > maxRun) {
     findings.push({
@@ -272,6 +301,12 @@ function analyze(file: string, text: string, maxRun: number): Report {
         message: "optcode 절이 trace 단계 번호(T#)를 하나도 인용하지 않는다",
       });
     }
+    if (formalCompares >= FORMAL_COMPARE_LIMIT) {
+      findings.push({
+        code: "R6",
+        message: `\`수식과 그림\` 절이 분기 조건을 실제 값으로 ${formalCompares}번 판정한다 (상한 ${FORMAL_COMPARE_LIMIT - 1}) — 그것은 trace 절의 직무다. 3.1 은 정의를, 4.5 는 코드를 굴린다`,
+      });
+    }
   }
   if (forbidHits > 0) {
     findings.push({
@@ -292,6 +327,7 @@ function analyze(file: string, text: string, maxRun: number): Report {
     citeClue,
     citeOptcode,
     forbidHits,
+    formalCompares,
     hasTrace,
     findings,
   };
@@ -365,7 +401,7 @@ async function main() {
 
   if (tsv) {
     console.log(
-      "file\tmax_prose_run\ttrace_steps\tsim_frames\tbranch_cover\tcite_clue\tcite_optcode\tforbid_hits",
+      "file\tmax_prose_run\ttrace_steps\tsim_frames\tbranch_cover\tcite_clue\tcite_optcode\tforbid_hits\tformal_compares",
     );
     for (const r of reports) {
       console.log(
@@ -378,6 +414,7 @@ async function main() {
           r.citeClue,
           r.citeOptcode,
           r.forbidHits,
+          r.formalCompares,
         ].join("\t"),
       );
     }

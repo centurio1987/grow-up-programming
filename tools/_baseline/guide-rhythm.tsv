@@ -20,7 +20,6 @@ src/algorithms/array/maximumProductSubarray/maximumProductSubarray-guide.mdx	6	0
 src/algorithms/array/nextGreaterElement/nextGreaterElement-guide.mdx	4	0
 src/algorithms/array/prefixSumRangeQuery/prefixSumRangeQuery-guide.mdx	4	0
 src/algorithms/array/segmentTreeRangeMin/segmentTreeRangeMin-guide.mdx	3	0
-src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.mdx	5	0
 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.mdx	3	0
 src/algorithms/array/subarraySumEqualsK/subarraySumEqualsK-guide.mdx	6	0
 src/algorithms/binary-search/binarySearch/binarySearch-guide.mdx	3	0
