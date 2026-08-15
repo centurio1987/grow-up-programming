@@ -1,0 +1,1387 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "LeftistHeap",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 큐의 조회는 전부 비어 있음을 말하고 상태를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "dequeue",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "dequeue",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "빈 큐끼리 합쳐도 비어 있고 빈 큐를 합쳐도 그대로다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "merge",
+          "arg": [],
+          "expect": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "enqueue",
+          "arg": 4
+        },
+        {
+          "op": "merge",
+          "arg": [],
+          "expect": [
+            1,
+            0
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "peek",
+          "expect": 4
+        },
+        {
+          "op": "merge",
+          "arg": [
+            2
+          ],
+          "expect": [
+            2,
+            0
+          ]
+        },
+        {
+          "op": "peek",
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 2
+        }
+      ]
+    },
+    {
+      "name": "합친 뒤에는 두 큐를 통틀어 앞선 것부터 나온다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 9
+        },
+        {
+          "op": "enqueue",
+          "arg": 5
+        },
+        {
+          "op": "merge",
+          "arg": [
+            7,
+            1,
+            3
+          ],
+          "expect": [
+            5,
+            0
+          ]
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": 5
+        },
+        {
+          "op": "dequeue",
+          "expect": 7
+        },
+        {
+          "op": "dequeue",
+          "expect": 9
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "합치면 넘겨받은 큐가 비고 이 큐가 그만큼 는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 2
+        },
+        {
+          "op": "merge",
+          "arg": [
+            8,
+            6,
+            4
+          ],
+          "expect": [
+            4,
+            0
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "merge",
+          "arg": [],
+          "expect": [
+            4,
+            0
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "dequeue",
+          "expect": 2
+        },
+        {
+          "op": "merge",
+          "arg": [
+            1
+          ],
+          "expect": [
+            4,
+            0
+          ]
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 4
+        }
+      ]
+    },
+    {
+      "name": "같은 원소가 양쪽에 있으면 합친 수만큼 담긴다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 5
+        },
+        {
+          "op": "enqueue",
+          "arg": 5
+        },
+        {
+          "op": "merge",
+          "arg": [
+            5,
+            5
+          ],
+          "expect": [
+            4,
+            0
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "dequeue",
+          "expect": 5
+        },
+        {
+          "op": "dequeue",
+          "expect": 5
+        },
+        {
+          "op": "dequeue",
+          "expect": 5
+        },
+        {
+          "op": "dequeue",
+          "expect": 5
+        },
+        {
+          "op": "dequeue",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "합치기로 들어온 원소가 최우선이면 보기가 따라 바뀐다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 5
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "merge",
+          "arg": [
+            1
+          ],
+          "expect": [
+            3,
+            0
+          ]
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "merge",
+          "arg": [
+            4,
+            2
+          ],
+          "expect": [
+            4,
+            0
+          ]
+        },
+        {
+          "op": "peek",
+          "expect": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": 4
+        },
+        {
+          "op": "dequeue",
+          "expect": 5
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "peek 은 몇 번을 불러도 상태를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 2
+        },
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "peek",
+          "expect": 2
+        }
+      ]
+    },
+    {
+      "name": "전부 비웠다가 합치기로 다시 채워도 정상이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": 2
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "merge",
+          "arg": [
+            8,
+            6
+          ],
+          "expect": [
+            2,
+            0
+          ]
+        },
+        {
+          "op": "peek",
+          "expect": 6
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": 6
+        },
+        {
+          "op": "peek",
+          "expect": 8
+        },
+        {
+          "op": "dequeue",
+          "expect": 8
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "enqueue",
+          "arg": 12
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 12
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "merge",
+          "arg": [
+            10,
+            11,
+            3,
+            9,
+            5
+          ],
+          "expect": [
+            5,
+            0
+          ]
+        },
+        {
+          "op": "enqueue",
+          "arg": 11
+        },
+        {
+          "op": "enqueue",
+          "arg": 9
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": 5
+        },
+        {
+          "op": "enqueue",
+          "arg": 10
+        },
+        {
+          "op": "peek",
+          "expect": 9
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "dequeue",
+          "expect": 9
+        },
+        {
+          "op": "dequeue",
+          "expect": 9
+        },
+        {
+          "op": "peek",
+          "expect": 10
+        },
+        {
+          "op": "peek",
+          "expect": 10
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "dequeue",
+          "expect": 10
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "merge",
+          "arg": [
+            23,
+            5,
+            18,
+            3
+          ],
+          "expect": [
+            7,
+            0
+          ]
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "merge",
+          "arg": [
+            3
+          ],
+          "expect": [
+            7,
+            0
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "enqueue",
+          "arg": 6
+        },
+        {
+          "op": "enqueue",
+          "arg": 14
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "merge",
+          "arg": [
+            16
+          ],
+          "expect": [
+            9,
+            0
+          ]
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 9
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 0
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 0
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 5
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 9
+        },
+        {
+          "op": "enqueue",
+          "arg": 16
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 23
+        },
+        {
+          "op": "enqueue",
+          "arg": 9
+        },
+        {
+          "op": "enqueue",
+          "arg": 9
+        },
+        {
+          "op": "dequeue",
+          "expect": 5
+        },
+        {
+          "op": "peek",
+          "expect": 6
+        },
+        {
+          "op": "peek",
+          "expect": 6
+        },
+        {
+          "op": "peek",
+          "expect": 6
+        },
+        {
+          "op": "enqueue",
+          "arg": 19
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 6
+        },
+        {
+          "op": "enqueue",
+          "arg": 7
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 7
+        },
+        {
+          "op": "enqueue",
+          "arg": 15
+        },
+        {
+          "op": "peek",
+          "expect": 9
+        },
+        {
+          "op": "dequeue",
+          "expect": 9
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "enqueue",
+          "arg": 7
+        },
+        {
+          "op": "size",
+          "expect": 14
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "enqueue",
+          "arg": 12
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 14
+        },
+        {
+          "op": "dequeue",
+          "expect": 7
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 4
+        },
+        {
+          "op": "enqueue",
+          "arg": 23
+        },
+        {
+          "op": "dequeue",
+          "expect": 4
+        },
+        {
+          "op": "size",
+          "expect": 14
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 6
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 15
+        },
+        {
+          "op": "size",
+          "expect": 15
+        },
+        {
+          "op": "dequeue",
+          "expect": 6
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "merge",
+          "arg": [
+            6,
+            21,
+            7
+          ],
+          "expect": [
+            18,
+            0
+          ]
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 18
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "merge",
+          "arg": [
+            4
+          ],
+          "expect": [
+            18,
+            0
+          ]
+        },
+        {
+          "op": "dequeue",
+          "expect": 4
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 7
+        },
+        {
+          "op": "enqueue",
+          "arg": 0
+        },
+        {
+          "op": "size",
+          "expect": 19
+        },
+        {
+          "op": "merge",
+          "arg": [
+            3
+          ],
+          "expect": [
+            20,
+            0
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 20
+        },
+        {
+          "op": "dequeue",
+          "expect": 0
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "merge",
+          "arg": [
+            8,
+            5,
+            12,
+            18
+          ],
+          "expect": [
+            23,
+            0
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 23
+        },
+        {
+          "op": "enqueue",
+          "arg": 5
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "enqueue",
+          "arg": 7
+        },
+        {
+          "op": "merge",
+          "arg": [
+            15,
+            8,
+            8,
+            14,
+            0
+          ],
+          "expect": [
+            30,
+            0
+          ]
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 0
+        },
+        {
+          "op": "peek",
+          "expect": 0
+        },
+        {
+          "op": "peek",
+          "expect": 0
+        },
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "size",
+          "expect": 31
+        },
+        {
+          "op": "enqueue",
+          "arg": 17
+        },
+        {
+          "op": "dequeue",
+          "expect": 0
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 30
+        },
+        {
+          "op": "enqueue",
+          "arg": 12
+        },
+        {
+          "op": "merge",
+          "arg": [
+            6,
+            2,
+            23,
+            23
+          ],
+          "expect": [
+            35,
+            0
+          ]
+        },
+        {
+          "op": "enqueue",
+          "arg": 20
+        },
+        {
+          "op": "enqueue",
+          "arg": 9
+        },
+        {
+          "op": "peek",
+          "expect": 2
+        },
+        {
+          "op": "peek",
+          "expect": 2
+        },
+        {
+          "op": "merge",
+          "arg": [
+            3,
+            6,
+            23,
+            14
+          ],
+          "expect": [
+            41,
+            0
+          ]
+        },
+        {
+          "op": "peek",
+          "expect": 2
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "peek",
+          "expect": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": 2
+        },
+        {
+          "op": "enqueue",
+          "arg": 15
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 9
+        },
+        {
+          "op": "size",
+          "expect": 44
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 44
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 44
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 20
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 19
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "merge",
+          "arg": [],
+          "expect": [
+            46,
+            0
+          ]
+        },
+        {
+          "op": "enqueue",
+          "arg": 16
+        },
+        {
+          "op": "merge",
+          "arg": [],
+          "expect": [
+            47,
+            0
+          ]
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 47
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "merge",
+          "arg": [
+            1,
+            9,
+            17,
+            4
+          ],
+          "expect": [
+            51,
+            0
+          ]
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 51
+        },
+        {
+          "op": "enqueue",
+          "arg": 4
+        },
+        {
+          "op": "size",
+          "expect": 52
+        },
+        {
+          "op": "enqueue",
+          "arg": 19
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "merge",
+          "arg": [
+            20,
+            15,
+            11,
+            14,
+            10
+          ],
+          "expect": [
+            58,
+            0
+          ]
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 22
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 14
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 11
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "merge",
+          "arg": [],
+          "expect": [
+            59,
+            0
+          ]
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "enqueue",
+          "arg": 18
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "peek",
+          "expect": 3
+        },
+        {
+          "op": "merge",
+          "arg": [
+            13,
+            18,
+            20
+          ],
+          "expect": [
+            62,
+            0
+          ]
+        },
+        {
+          "op": "merge",
+          "arg": [
+            17,
+            5,
+            3,
+            21
+          ],
+          "expect": [
+            66,
+            0
+          ]
+        },
+        {
+          "op": "merge",
+          "arg": [
+            12,
+            15,
+            10,
+            2,
+            18
+          ],
+          "expect": [
+            71,
+            0
+          ]
+        },
+        {
+          "op": "peek",
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 71
+        },
+        {
+          "op": "enqueue",
+          "arg": 0
+        },
+        {
+          "op": "size",
+          "expect": 72
+        },
+        {
+          "op": "size",
+          "expect": 72
+        },
+        {
+          "op": "dequeue",
+          "expect": 0
+        }
+      ]
+    }
+  ]
+}

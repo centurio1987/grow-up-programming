@@ -1,126 +1,28 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `linear/gapBuffer` 계약 스위트 실행부(규약2).
+ *
+ * 여기에는 `runContract` 호출만 둔다. 무엇을 검사하는지는 `./gapBuffer.contract.ts` 에 있고,
+ * 계약 자체는 `./gapBuffer.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다.
+ * 축3은 계측기가 붙은 정본에만 돈다 — 학습자 스텁에 `__cost` 를 요구하지 않는다.
+ *
+ * 생성자가 인자를 받지 않으므로 껍데기가 없다(`./gapBuffer.contract.ts` 헤더).
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 고정 n 의 임계값이 재는 것은 복잡도 등급이
+ * 아니라 그 기계의 상수다. 자리는 축3이다.
+ */
+
+import { runContract } from "../../_contract/runContract";
+import { GapBuffer as Reference } from "./_reference/gapBuffer";
 import { GapBuffer } from "./gapBuffer";
+import { gapBufferContract } from "./gapBuffer.contract";
 
-describe("GapBuffer", () => {
-  describe("기본 동작", () => {
-    test("문자를 삽입하면 getText에 반영된다", () => {
-      const buf = new GapBuffer();
-      buf.insert("H");
-      buf.insert("i");
-      expect(buf.getText()).toBe("Hi");
-    });
+runContract(() => new GapBuffer<number>(), gapBufferContract, {
+  label: "스텁",
+});
 
-    test("여러 문자 삽입 후 length가 정확하다", () => {
-      const buf = new GapBuffer();
-      "hello".split("").forEach((c) => buf.insert(c));
-      expect(buf.length()).toBe(5);
-    });
-
-    test("delete는 커서 왼쪽 문자를 제거한다", () => {
-      const buf = new GapBuffer();
-      buf.insert("a");
-      buf.insert("b");
-      buf.insert("c");
-      buf.delete();
-      expect(buf.getText()).toBe("ab");
-    });
-
-    test("moveCursor 후 insert는 해당 위치에 문자를 삽입한다", () => {
-      const buf = new GapBuffer();
-      "abc".split("").forEach((c) => buf.insert(c));
-      buf.moveCursor(1);
-      buf.insert("X");
-      expect(buf.getText()).toBe("aXbc");
-    });
-
-    test("getCursorPosition은 현재 커서 위치를 반환한다", () => {
-      const buf = new GapBuffer();
-      buf.insert("a");
-      buf.insert("b");
-      expect(buf.getCursorPosition()).toBe(2);
-      buf.moveCursor(0);
-      expect(buf.getCursorPosition()).toBe(0);
-    });
-  });
-
-  describe("엣지 케이스", () => {
-    test("빈 버퍼에서 delete는 아무것도 하지 않는다", () => {
-      const buf = new GapBuffer();
-      buf.delete();
-      expect(buf.getText()).toBe("");
-      expect(buf.length()).toBe(0);
-    });
-
-    test("커서가 맨 앞일 때 delete는 아무것도 하지 않는다", () => {
-      const buf = new GapBuffer();
-      "abc".split("").forEach((c) => buf.insert(c));
-      buf.moveCursor(0);
-      buf.delete();
-      expect(buf.getText()).toBe("abc");
-    });
-
-    test("빈 버퍼의 getText는 빈 문자열을 반환한다", () => {
-      const buf = new GapBuffer();
-      expect(buf.getText()).toBe("");
-    });
-
-    test("moveCursor를 음수로 호출하면 0으로 클램프된다", () => {
-      const buf = new GapBuffer();
-      buf.insert("a");
-      buf.moveCursor(-5);
-      expect(buf.getCursorPosition()).toBe(0);
-    });
-
-    test("moveCursor를 length()보다 큰 값으로 호출하면 length()로 클램프된다", () => {
-      const buf = new GapBuffer();
-      buf.insert("a");
-      buf.moveCursor(100);
-      expect(buf.getCursorPosition()).toBe(1);
-    });
-  });
-
-  describe("바운더리", () => {
-    test("단일 문자 삽입 후 삭제", () => {
-      const buf = new GapBuffer();
-      buf.insert("z");
-      buf.delete();
-      expect(buf.getText()).toBe("");
-      expect(buf.length()).toBe(0);
-    });
-
-    test("초기 용량을 초과하면 버퍼가 자동으로 확장된다", () => {
-      const buf = new GapBuffer(4);
-      "0123456789".split("").forEach((c) => buf.insert(c));
-      expect(buf.getText()).toBe("0123456789");
-      expect(buf.length()).toBe(10);
-    });
-
-    test("커서를 가운데로 이동 후 삽입 → 삭제 반복", () => {
-      const buf = new GapBuffer();
-      "abcd".split("").forEach((c) => buf.insert(c));
-      buf.moveCursor(2); // ab|cd
-      buf.insert("X");  // abX|cd
-      buf.delete();     // ab|cd
-      expect(buf.getText()).toBe("abcd");
-    });
-
-    test("커서를 맨 끝으로 이동 후 getText가 올바르다", () => {
-      const buf = new GapBuffer();
-      "hello".split("").forEach((c) => buf.insert(c));
-      buf.moveCursor(0);
-      buf.moveCursor(5);
-      expect(buf.getText()).toBe("hello");
-    });
-  });
-
-  describe("성능", () => {
-    test("10,000회 insert 연산이 100ms 이내에 완료된다", () => {
-      const buf = new GapBuffer(16);
-      const start = performance.now();
-      for (let i = 0; i < 10_000; i++) buf.insert("x");
-      const elapsed = performance.now() - start;
-      expect(buf.length()).toBe(10_000);
-      expect(elapsed).toBeLessThan(100);
-    });
-  });
+runContract(() => new Reference<number>(), gapBufferContract, {
+  label: "정본",
+  cost: { kind: "self-reported", make: () => new Reference<number>() },
 });

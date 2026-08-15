@@ -24,7 +24,19 @@ import {
 } from "../hash/hashMapChaining/hashMapChaining.contract";
 import { HashMapOpenAddressing as ReferenceHashMapOpenAddressing } from "../hash/hashMapOpenAddressing/_reference/hashMapOpenAddressing";
 import { hashMapOpenAddressingContract } from "../hash/hashMapOpenAddressing/hashMapOpenAddressing.contract";
+import { HashSet as ReferenceHashSet } from "../hash/hashSet/_reference/hashSet";
+import {
+  SetPair as HashSetPair,
+  hashSetContract,
+} from "../hash/hashSet/hashSet.contract";
+import { BinomialHeap as ReferenceBinomialHeap } from "../heap/binomialHeap/_reference/binomialHeap";
+import { binomialHeapContract } from "../heap/binomialHeap/binomialHeap.contract";
 import { DaryHeap as ReferenceDaryHeap } from "../heap/daryHeap/_reference/daryHeap";
+import { LeftistHeap as ReferenceLeftistHeap } from "../heap/leftistHeap/_reference/leftistHeap";
+import {
+  leftistHeapContract,
+  MergeSite,
+} from "../heap/leftistHeap/leftistHeap.contract";
 import { MaxHeap as ReferenceMaxHeap } from "../heap/maxHeap/_reference/maxHeap";
 import { MinHeap as ReferenceMinHeap } from "../heap/minHeap/_reference/minHeap";
 import { PriorityQueue as ReferencePriorityQueue } from "../heap/priorityQueue/_reference/priorityQueue";
@@ -42,6 +54,11 @@ import {
   type DequeContract,
   dequeContract,
 } from "../linear/deque/deque.contract";
+import { GapBuffer as ReferenceGapBuffer } from "../linear/gapBuffer/_reference/gapBuffer";
+import {
+  type GapBufferContract,
+  gapBufferContract,
+} from "../linear/gapBuffer/gapBuffer.contract";
 import { Queue as ReferenceQueue } from "../linear/queue/_reference/queue";
 import {
   type QueueContract,
@@ -72,6 +89,13 @@ import {
   type IntervalTreeContract,
   intervalTreeContract,
 } from "../range-query/intervalTree/intervalTree.contract";
+import { SegmentTree as ReferenceSegmentTree } from "../range-query/segmentTree/_reference/segmentTree";
+import {
+  firstNonZero,
+  IDENTITY,
+  Sized as SegmentTreeShell,
+  segmentTreeContract,
+} from "../range-query/segmentTree/segmentTree.contract";
 import { BinarySearchTree as ReferenceBinarySearchTree } from "../tree/binarySearchTree/_reference/binarySearchTree";
 import { binarySearchTreeContract } from "../tree/binarySearchTree/binarySearchTree.contract";
 import { CartesianTree as ReferenceCartesianTree } from "../tree/cartesianTree/_reference/cartesianTree";
@@ -121,6 +145,7 @@ import {
   ternarySearchTreeContract,
 } from "../trie/ternarySearchTree/ternarySearchTree.contract";
 import { BlockedPrefixSums } from "./_fixtures/blockedPrefixSums";
+import { BlockedRangeFold } from "./_fixtures/blockedRangeFold";
 import { DeferredSortPriorityQueue } from "./_fixtures/deferredSortPriorityQueue";
 import { EagerPrefixSums } from "./_fixtures/eagerPrefixSums";
 import { FixedChunkList } from "./_fixtures/fixedChunkList";
@@ -128,11 +153,19 @@ import { FrontPushStack } from "./_fixtures/frontPushStack";
 import { KeyCountingMultiset } from "./_fixtures/keyCountingMultiset";
 import { LazySortingSet } from "./_fixtures/lazySortingSet";
 import { MapWordSet } from "./_fixtures/mapWordSet";
+import { MergeableArrayHeap } from "./_fixtures/mergeableArrayHeap";
+import { MergeableLinkingHeap } from "./_fixtures/mergeableLinkingHeap";
+import { MergeableSortedArrayHeap } from "./_fixtures/mergeableSortedArrayHeap";
 import { MirroredPrefixSums } from "./_fixtures/mirroredPrefixSums";
+import { OtherWalkingSetOfKeys } from "./_fixtures/otherWalkingSetOfKeys";
 import { PathCopyingCartesianTree } from "./_fixtures/pathCopyingCartesianTree";
+import { PrefixDifferenceRangeFold } from "./_fixtures/prefixDifferenceRangeFold";
+import { RebuildingEditableSequence } from "./_fixtures/rebuildingEditableSequence";
+import { RecountingEditableSequence } from "./_fixtures/recountingEditableSequence";
 import { RecountingSizeSet } from "./_fixtures/recountingSizeSet";
 import { RelabelingForest } from "./_fixtures/relabelingForest";
 import { RemainderSlotDictionary } from "./_fixtures/remainderSlotDictionary";
+import { RemainderSlotSetOfKeys } from "./_fixtures/remainderSlotSetOfKeys";
 import { RescanningCartesianView } from "./_fixtures/rescanningCartesianView";
 import { RescanningRingBuffer } from "./_fixtures/rescanningRingBuffer";
 import { RootedSuffixTree } from "./_fixtures/rootedSuffixTree";
@@ -141,26 +174,33 @@ import { ScanningCartesianTree } from "./_fixtures/scanningCartesianTree";
 import { ScanningDictionary } from "./_fixtures/scanningDictionary";
 import { ScanningForest } from "./_fixtures/scanningForest";
 import { ScanningPriorityQueue } from "./_fixtures/scanningPriorityQueue";
+import { ScanningRangeFold } from "./_fixtures/scanningRangeFold";
 import { ScanningRangeSums } from "./_fixtures/scanningRangeSums";
+import { ScanningSetOfKeys } from "./_fixtures/scanningSetOfKeys";
 import { ScanningSuffixArray } from "./_fixtures/scanningSuffixArray";
 import { ScanningSuffixTree } from "./_fixtures/scanningSuffixTree";
 import { ShiftingRingBuffer } from "./_fixtures/shiftingRingBuffer";
 import { ShiftQueue } from "./_fixtures/shiftQueue";
+import { SmallerSideSetOfKeys } from "./_fixtures/smallerSideSetOfKeys";
 import { SortedArrayMultiset } from "./_fixtures/sortedArrayMultiset";
 import { SortedArrayPriorityQueue } from "./_fixtures/sortedArrayPriorityQueue";
 import { SortedArraySet } from "./_fixtures/sortedArraySet";
+import { SortedArraySetOfKeys } from "./_fixtures/sortedArraySetOfKeys";
 import { SortedKeyDictionary } from "./_fixtures/sortedKeyDictionary";
 import { SortedSuffixArray } from "./_fixtures/sortedSuffixArray";
 import { SortedWordSet } from "./_fixtures/sortedWordSet";
 import { SplayingSearchTree } from "./_fixtures/splayingSearchTree";
 import { SpliceArrayList } from "./_fixtures/spliceArrayList";
+import { SplicingEditableSequence } from "./_fixtures/splicingEditableSequence";
 import { StaleEndCacheSet } from "./_fixtures/staleEndCacheSet";
+import { SuffixOnlyRangeFold } from "./_fixtures/suffixOnlyRangeFold";
 import { TailScanList } from "./_fixtures/tailScanList";
 import { TwoArrayDeque } from "./_fixtures/twoArrayDeque";
 import { UnbalancedIntervalTree } from "./_fixtures/unbalancedIntervalTree";
 import { UnbalancedRankedMultiset } from "./_fixtures/unbalancedRankedMultiset";
 import { UnbalancedSearchTree } from "./_fixtures/unbalancedSearchTree";
 import { UnboundedRingBuffer } from "./_fixtures/unboundedRingBuffer";
+import { UnorderedRangeFold } from "./_fixtures/unorderedRangeFold";
 import { UnshiftDeque } from "./_fixtures/unshiftDeque";
 import { UnshiftQueue } from "./_fixtures/unshiftQueue";
 import { UnsplayedForest } from "./_fixtures/unsplayedForest";
@@ -744,6 +784,165 @@ const rescanningRingBuffer: CostSource<CircularBufferShell> = {
     new CircularBufferShell((cap) => new RescanningRingBuffer<number>(cap)),
 };
 
+/**
+ * 합칠 수 있는 우선순위 큐(`heap/leftistHeap`)의 정본 둘과 결함 셋.
+ *
+ * **다섯 다 껍데기를 쓴다**(불변 사실 83). 여기서 껍데기가 나르는 것은 크기가 아니라 **합칠
+ * 상대**다 — `merge` 가 큐 하나를 더 요구하므로 인자 없는 팩토리로는 그 자리를 못 만든다.
+ * 합쳐져 비워진 큐가 쓴 걸음을 껍데기가 옮겨 담는 것도 그 때문이다.
+ *
+ * **결함 셋이 서로 다른 것을 겨눈다.** 배열 한 줄은 `merge` 행 하나만, 늘 정렬해 두는 쪽은
+ * `enqueue` 둘과 `merge` 를, 미뤄 두었다 접는 쪽은 `dequeue` 둘을 어긴다. 마지막 하나가
+ * 이 계약이 갱신 셋을 `worst` 로 적은 이유의 실물이다.
+ */
+type MergeableQueueSite = MergeSite<number>;
+
+const referenceLeftistHeap: CostSource<MergeableQueueSite> = {
+  kind: "self-reported",
+  make: () => new MergeSite(() => new ReferenceLeftistHeap<number>(ascending)),
+};
+const binomialHeapReference: CostSource<MergeableQueueSite> = {
+  kind: "self-reported",
+  make: () => new MergeSite(() => new ReferenceBinomialHeap<number>(ascending)),
+};
+const mergeableArrayHeap: CostSource<MergeableQueueSite> = {
+  kind: "self-reported",
+  make: () => new MergeSite(() => new MergeableArrayHeap<number>(ascending)),
+};
+const mergeableSortedArrayHeap: CostSource<MergeableQueueSite> = {
+  kind: "self-reported",
+  make: () =>
+    new MergeSite(() => new MergeableSortedArrayHeap<number>(ascending)),
+};
+const mergeableLinkingHeap: CostSource<MergeableQueueSite> = {
+  kind: "self-reported",
+  make: () => new MergeSite(() => new MergeableLinkingHeap<number>(ascending)),
+};
+
+/**
+ * 집합(`hash/hashSet`)의 정본과 결함 다섯.
+ *
+ * **껍데기가 나르는 것은 집합 셋이다** — 합·교·차집합이 상대를 요구하므로 수신자·인자·결과를
+ * 함께 세운다. 계측은 수신자와 인자의 합이고 결과 집합의 몫은 정본이 수신자로 옮긴다.
+ *
+ * **결함 다섯 중 둘은 계약을 어기지 않는다.** `SmallerSideSetOfKeys` 는 작은 쪽을 골라
+ * 훑으므로 상한 **아래**에 있고, 축3이 그것을 계급 불일치로 떨어뜨린다(불변 사실 49).
+ * 그 설계가 지어낸 것이 아니라 JS 의 `Set` 이 하는 일이라는 것이 그 fixture 의 요점이다.
+ */
+type SetOfKeys = HashSetPair<number>;
+
+const referenceHashSet: CostSource<SetOfKeys> = {
+  kind: "self-reported",
+  make: () =>
+    new HashSetPair(() => new ReferenceHashSet<number>(spreadIdentity)),
+};
+const scanningSetOfKeys: CostSource<SetOfKeys> = {
+  kind: "self-reported",
+  make: () =>
+    new HashSetPair(() => new ScanningSetOfKeys<number>(spreadIdentity)),
+};
+const sortedArraySetOfKeys: CostSource<SetOfKeys> = {
+  kind: "self-reported",
+  make: () =>
+    new HashSetPair(() => new SortedArraySetOfKeys<number>(spreadIdentity)),
+};
+const remainderSlotSetOfKeys: CostSource<SetOfKeys> = {
+  kind: "self-reported",
+  make: () =>
+    new HashSetPair(() => new RemainderSlotSetOfKeys<number>(spreadIdentity)),
+};
+const smallerSideSetOfKeys: CostSource<SetOfKeys> = {
+  kind: "self-reported",
+  make: () =>
+    new HashSetPair(() => new SmallerSideSetOfKeys<number>(spreadIdentity)),
+};
+const otherWalkingSetOfKeys: CostSource<SetOfKeys> = {
+  kind: "self-reported",
+  make: () =>
+    new HashSetPair(() => new OtherWalkingSetOfKeys<number>(spreadIdentity)),
+};
+
+/**
+ * 임의 구간 · 임의 결합(`range-query/segmentTree`)의 정본과 결함 다섯.
+ *
+ * **여섯 다 껍데기를 쓴다**(불변 사실 83) — 앞구간 합과 같은 자리이고, 나르는 것도 자리 수다.
+ *
+ * **결함 다섯 중 둘이 축3을 전부 통과한다.** `UnorderedRangeFold` 는 계측값이 정본과 한
+ * 자리도 다르지 않고, `PrefixDifferenceRangeFold` 는 계급까지 같다. 둘 다 축1이 잡는다 —
+ * `linear/circularBuffer` 의 `unboundedRingBuffer`(불변 사실 182) 다음으로 나온 자리이고,
+ * 여기서는 **한 계약에서 둘이 한꺼번에** 나왔다.
+ */
+const referenceSegmentTree: CostSource<SegmentTreeShell> = {
+  kind: "self-reported",
+  make: () =>
+    new SegmentTreeShell(
+      (values) => new ReferenceSegmentTree(values, firstNonZero, IDENTITY),
+    ),
+};
+const scanningRangeFold: CostSource<SegmentTreeShell> = {
+  kind: "self-reported",
+  make: () =>
+    new SegmentTreeShell(
+      (values) => new ScanningRangeFold(values, firstNonZero, IDENTITY),
+    ),
+};
+const blockedRangeFold: CostSource<SegmentTreeShell> = {
+  kind: "self-reported",
+  make: () =>
+    new SegmentTreeShell(
+      (values) => new BlockedRangeFold(values, firstNonZero, IDENTITY),
+    ),
+};
+const suffixOnlyRangeFold: CostSource<SegmentTreeShell> = {
+  kind: "self-reported",
+  make: () =>
+    new SegmentTreeShell(
+      (values) => new SuffixOnlyRangeFold(values, firstNonZero, IDENTITY),
+    ),
+};
+const unorderedRangeFold: CostSource<SegmentTreeShell> = {
+  kind: "self-reported",
+  make: () =>
+    new SegmentTreeShell(
+      (values) => new UnorderedRangeFold(values, firstNonZero, IDENTITY),
+    ),
+};
+const prefixDifferenceRangeFold: CostSource<SegmentTreeShell> = {
+  kind: "self-reported",
+  make: () =>
+    new SegmentTreeShell(
+      (values) => new PrefixDifferenceRangeFold(values, firstNonZero, IDENTITY),
+    ),
+};
+
+/**
+ * 커서를 가진 편집 가능한 수열(`linear/gapBuffer`)의 정본과 결함 셋.
+ *
+ * **껍데기가 없는 것이 이 자리의 내용이다.** 생성자가 아무것도 받지 않으므로 인자 없는
+ * 팩토리가 그대로 선다 — 불변 사실 83 이 요구하는 껍데기는 생성자가 크기를 받을 때만 필요하다.
+ *
+ * **결함 셋이 걸리는 자리가 하나도 겹치지 않는다.** 그리고 셋 다 축1을 전부 통과한다 —
+ * 이 계약의 존재 이유가 공간이 아니라 **비용**이라 갈라내는 축이 축3이기 때문이다.
+ */
+type EditableSequence = GapBufferContract<number>;
+
+const referenceGapBuffer: CostSource<EditableSequence> = {
+  kind: "self-reported",
+  make: () => new ReferenceGapBuffer<number>(),
+};
+const splicingEditableSequence: CostSource<EditableSequence> = {
+  kind: "self-reported",
+  make: () => new SplicingEditableSequence<number>(),
+};
+const rebuildingEditableSequence: CostSource<EditableSequence> = {
+  kind: "self-reported",
+  make: () => new RebuildingEditableSequence<number>(),
+};
+const recountingEditableSequence: CostSource<EditableSequence> = {
+  kind: "self-reported",
+  make: () => new RecountingEditableSequence<number>(),
+};
+
 /** 축1 첫 갈림을 값으로 돌려준다. 갈리지 않으면 `null`. */
 function firstBehaviorSplit(factory: () => CircularBufferShell): string | null {
   const byName = new Map(
@@ -1129,6 +1328,71 @@ describe("축3 — 정본은 통과한다", () => {
     // 걸음 수가 길이의 1 비트 수이므로 최대가 정확히 log2(n) 이다.
     expect(stats).toEqual([10, 12, 14]);
   }, 60_000);
+
+  /**
+   * **정본 둘이 같은 스위트를 통과한다**(불변 사실 76 이 `tree/` 에서 낸 것과 같은 모양).
+   * 담는 모양이 서로 아무것도 공유하지 않는데 — 한쪽은 오른쪽 길을 짧게 유지하고 다른 쪽은
+   * 나무를 차수별로 세운다 — 계약이 그 차이를 관측하지 못한다.
+   */
+  test("합칠 수 있는 우선순위 큐의 정본 둘이 여섯 시나리오를 전부 통과한다", () => {
+    for (const source of [referenceLeftistHeap, binomialHeapReference]) {
+      for (const scenario of leftistHeapContract.scenarios) {
+        const verdict = judgeScenario(source, scenario, "complexity");
+        const where = `${scenario.covers.join("·")}${scenario.adversarial ? " (적대적)" : ""}`;
+        expect(verdict.ok ? "" : `${where} — ${verdict.reason}`).toBe("");
+      }
+    }
+  }, 120_000);
+
+  /**
+   * **성격 전환은 계약을 다시 적지 않는다**(§규약1 「성격 전환은 이렇게 적는다」).
+   * 두 계약 객체가 `name` 만 다르고 나머지 다섯 항목이 **같은 참조**다 — 스위트를 복사했다면
+   * 여기가 갈리고, 갈리면 한쪽만 고쳐도 아무도 모른다.
+   */
+  test("전환 계약은 정본 계약과 같은 객체를 쓰고 이름만 다르다", () => {
+    expect(binomialHeapContract.name).toBe("BinomialHeap");
+    expect(leftistHeapContract.name).toBe("LeftistHeap");
+    expect(binomialHeapContract.ops).toBe(leftistHeapContract.ops);
+    expect(binomialHeapContract.scenarios).toBe(leftistHeapContract.scenarios);
+    expect(binomialHeapContract.invariants).toBe(
+      leftistHeapContract.invariants,
+    );
+    expect(binomialHeapContract.edges).toBe(leftistHeapContract.edges);
+    expect(binomialHeapContract.model).toBe(leftistHeapContract.model);
+  });
+
+  test("집합 정본이 열네 시나리오를 전부 통과한다", () => {
+    for (const scenario of hashSetContract.scenarios) {
+      const verdict = judgeScenario(referenceHashSet, scenario, "complexity");
+      const where = `${scenario.covers.join("·")}/${scenario.bound}${scenario.adversarial ? " (적대적)" : ""}`;
+      expect(verdict.ok ? "" : `${where} — ${verdict.reason}`).toBe("");
+    }
+  }, 120_000);
+
+  test("임의 구간 · 임의 결합의 정본이 세 시나리오를 전부 통과한다", () => {
+    for (const scenario of segmentTreeContract.scenarios) {
+      const verdict = judgeScenario(
+        referenceSegmentTree,
+        scenario,
+        "complexity",
+      );
+      const where = `${scenario.covers.join("·")}${scenario.adversarial ? " (적대적)" : ""}`;
+      expect(verdict.ok ? "" : `${where} — ${verdict.reason}`).toBe("");
+    }
+  }, 60_000);
+
+  /**
+   * **같은 행이 두 시나리오에서 갈리는 것이 이 계약의 내용이다.** `moveCursor` 의 상한이
+   * `O(d)` 이고 $d$ 가 호출마다 달라지므로, 시나리오가 $d$ 를 1 과 n 으로 고정해 그 행을
+   * 양 끝에서 겨눈다. 갈리지 않으면 상한을 n 으로 접어도 잃는 것이 없다는 뜻이다.
+   */
+  test("커서를 가진 수열의 정본이 여섯 시나리오를 전부 통과한다", () => {
+    for (const scenario of gapBufferContract.scenarios) {
+      const verdict = judgeScenario(referenceGapBuffer, scenario, "invariant");
+      const where = `${scenario.covers.join("·")}/${scenario.bound}`;
+      expect(verdict.ok ? "" : `${where} — ${verdict.reason}`).toBe("");
+    }
+  }, 60_000);
 });
 
 describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
@@ -1453,7 +1717,10 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "range (적대적)": true,
       length·at·rankOf: true,
     });
-  });
+    // 적대적 시나리오가 접미사를 통째로 견주므로 이 하나가 이 파일에서 가장 무겁다. 기계가
+    // 한가하면 2초 안이지만 CPU 가 물리면 기본 5초 제한을 넘어 **판정과 무관하게** 빨간불이
+    // 된다(실제로 그렇게 났다). 이 파일의 다른 무거운 시험과 같은 방식으로 제한을 명시한다.
+  }, 60_000);
 
   test("색인을 제대로 짓고도 훑으면 구성이 아니라 질의에서 걸린다", () => {
     expect(outcomes(scanningSuffixArray, suffixArrayContract)).toEqual({
@@ -2529,6 +2796,341 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     expect(
       judgeScenario(referenceCircularBuffer, asAmortized, "basic").ok,
     ).toBe(true);
+  }, 60_000);
+
+  /**
+   * 이 계약은 같은 `covers` 에 상한이 다른 시나리오를 둔다(집합 연산이 수신자를 키우는 쪽과
+   * 인자를 키우는 쪽으로 갈린다). `outcomesAt` 의 이름표는 `covers` 만 쓰므로 그 자리에서
+   * 키가 겹친다 — 상한을 이름표에 넣는 것이 이 함수의 전부다.
+   */
+  function outcomesByBound<Impl>(
+    cost: CostSource<Impl>,
+    spec: { scenarios: readonly CostScenario<Impl>[] },
+    grade: "basic" | "invariant" | "complexity",
+  ): Record<string, boolean> {
+    const result: Record<string, boolean> = {};
+    for (const scenario of spec.scenarios) {
+      const label = `${scenario.covers.join("·")}/${scenario.bound}${scenario.adversarial ? " (적대적)" : ""}`;
+      result[label] = judgeScenario(cost, scenario, grade).ok;
+    }
+    return result;
+  }
+
+  /**
+   * **더한 행이 하나인데 그 하나가 계약을 가른다.** 이 구현은 담는 쪽 계약
+   * (`heap/priorityQueue`)의 다섯 행을 전부 지키고 여기서 `merge` 하나만 어긴다 — 두 계약이
+   * 다르다는 것의 반례이고, 정본으로는 만들 수 없는 자리다(저장소의 정본 둘은 합치기도
+   * 로그에 한다).
+   */
+  test("배열 한 줄 힙은 `merge` 행 하나에서만 걸린다", () => {
+    expect(
+      outcomesAt(mergeableArrayHeap, leftistHeapContract, "complexity"),
+    ).toEqual({
+      "enqueue (적대적)": true,
+      enqueue: true,
+      "dequeue (적대적)": true,
+      dequeue: true,
+      "merge (적대적)": false,
+      "peek·size·isEmpty (적대적)": true,
+    });
+  }, 120_000);
+
+  /**
+   * **적대성은 (계약, 구현) 쌍에 대해 정의된다**(불변 사실 57)의 실물이 한 자리에 둘 있다.
+   *
+   * 담는 쪽 계약은 적대적 입력을 **내림차순**으로 골랐고 그것이 정렬해 두는 계열에는 최선이라
+   * 무작위 시나리오가 그 계열을 혼자 잡았다. 이 계약은 **오름차순**을 골랐다 — 합치기로 넣는
+   * 계열에서 내림차순이 아무것도 재지 못하기 때문이고(정본이 2.00 고정), 그 방향은 정렬해
+   * 두는 계열에도 최악이다. 그래서 여기서는 **두 시나리오가 같은 계열을 잡는다.**
+   */
+  test("늘 정렬해 두는 힙은 `enqueue` 두 시나리오에서 함께 걸린다", () => {
+    expect(
+      outcomesAt(mergeableSortedArrayHeap, leftistHeapContract, "complexity"),
+    ).toEqual({
+      "enqueue (적대적)": false,
+      enqueue: false,
+      "dequeue (적대적)": true,
+      dequeue: true,
+      "merge (적대적)": false,
+      "peek·size·isEmpty (적대적)": true,
+    });
+
+    // 오름차순은 매번 통째로 밀어 정확히 n 이고, 무작위는 절반씩 민다.
+    const ascendingRun = judgeScenario(
+      mergeableSortedArrayHeap,
+      scenarioOf(leftistHeapContract, "enqueue", true),
+      "complexity",
+    );
+    expect(ascendingRun.points.map((point) => point.stat)).toEqual([
+      1024, 4096, 16384,
+    ]);
+
+    // 담는 쪽 계약에서는 같은 계열이 적대적 시나리오를 **통과한다** — 방향이 반대라서다.
+    expect(
+      judgeScenario(
+        sortedArrayPriorityQueue,
+        scenarioOf(priorityQueueContract, "enqueue", true),
+        "complexity",
+      ).ok,
+    ).toBe(true);
+  }, 120_000);
+
+  /**
+   * **이 계약이 갱신 셋을 `worst` 로 적은 이유가 사는 자리.** 이 구현은 담는 쪽 계약(갱신 둘이
+   * `amortized`)을 전부 지키고 여기서 `dequeue` 둘만 어긴다. 한정자만 바꿔 같은 입력을 다시
+   * 재면 통과하므로, 갈리는 것이 상한이 아니라 한정자라는 것이 수치로 보인다.
+   */
+  test("미뤄 두었다 접는 힙은 `dequeue` 둘에서만 걸리고 한정자를 바꾸면 통과한다", () => {
+    expect(
+      outcomesAt(mergeableLinkingHeap, leftistHeapContract, "complexity"),
+    ).toEqual({
+      "enqueue (적대적)": true,
+      enqueue: true,
+      "dequeue (적대적)": false,
+      dequeue: false,
+      "merge (적대적)": true,
+      "peek·size·isEmpty (적대적)": true,
+    });
+
+    const plain = scenarioOf(leftistHeapContract, "dequeue", false);
+    const asWorst = judgeScenario(mergeableLinkingHeap, plain, "complexity");
+    expect(asWorst.ok).toBe(false);
+    expect(asWorst.points.map((point) => point.stat)).toEqual([
+      903, 1577, 10086,
+    ]);
+
+    const asAmortized = judgeScenario(
+      mergeableLinkingHeap,
+      { ...plain, qualifier: "amortized" as const },
+      "complexity",
+    );
+    expect(asAmortized.ok).toBe(true);
+  }, 120_000);
+
+  /**
+   * 집합 계약의 결함 다섯이 서로 다른 자리를 짚는다.
+   *
+   * **둘은 계약을 어기지 않는다.** `SmallerSideSetOfKeys` 는 작은 쪽을 골라 훑어 상한
+   * **아래**에 있고, `OtherWalkingSetOfKeys` 의 교집합도 수신자를 키우는 쪽에서 그렇다.
+   * 축3이 판정하는 것은 「상한을 지키는가」가 아니라 「계약이 적은 성장 계급인가」이므로
+   * 둘 다 떨어진다(불변 사실 49).
+   */
+  test("집합 결함 다섯이 겨누는 자리가 전부 다르다", () => {
+    const scanning = outcomesByBound(
+      scanningSetOfKeys,
+      hashSetContract,
+      "complexity",
+    );
+    // 담기·찾기·지우기가 선형이라 여섯이 다 걸린다. 합집합 둘은 인자의 크기를 상한에 이미
+    // 담고 있어 통과하고, 인자를 키우는 교집합·차집합만 추가로 걸린다.
+    expect(Object.values(scanning).filter((ok) => !ok)).toHaveLength(8);
+    expect(scanning["union/O(n)"]).toBe(true);
+    expect(scanning["intersection/O(1)"]).toBe(false);
+
+    // 정렬해 두는 계열: 담기가 **적대적 쪽에서만 통과한다**(겨눈 원소가 오름차순이라 늘 맨
+    // 뒤에 붙는다). 불변 사실 147 이 사전에서 낸 모양이 집합에서 한 번 더 나온 자리다.
+    const sorted = outcomesByBound(
+      sortedArraySetOfKeys,
+      hashSetContract,
+      "complexity",
+    );
+    expect(sorted["add/O(1)"]).toBe(false);
+    expect(sorted["add/O(1) (적대적)"]).toBe(true);
+    // 찾기는 로그라 계약의 `O(1)` 을 어기는데 축3이 그 위반을 못 본다(불변 사실 62).
+    expect(sorted["has/O(1)"]).toBe(true);
+    expect(sorted["has/O(1) (적대적)"]).toBe(true);
+
+    // 나머지를 뽑지 않는 계열: 무작위를 전부 통과하고 적대적에서만 걸린다. **적대적
+    // 시나리오를 두는 근거가 이 fixture 하나다.**
+    const remainder = outcomesByBound(
+      remainderSlotSetOfKeys,
+      hashSetContract,
+      "complexity",
+    );
+    for (const [label, ok] of Object.entries(remainder)) {
+      expect(`${label}=${ok}`).toBe(`${label}=${!label.includes("(적대적)")}`);
+    }
+
+    // 작은 쪽을 고르는 계열: 수신자를 키우는 교집합 하나에서만, 그것도 계급 **아래**로.
+    const smaller = outcomesByBound(
+      smallerSideSetOfKeys,
+      hashSetContract,
+      "complexity",
+    );
+    expect(Object.entries(smaller).filter(([, ok]) => !ok)).toEqual([
+      ["intersection/O(n)", false],
+    ]);
+
+    // 인자 쪽에서 짓는 계열: 인자를 키우는 둘과 수신자를 키우는 교집합.
+    const otherWalking = outcomesByBound(
+      otherWalkingSetOfKeys,
+      hashSetContract,
+      "complexity",
+    );
+    expect(
+      Object.entries(otherWalking)
+        .filter(([, ok]) => !ok)
+        .map(([label]) => label),
+    ).toEqual(["intersection/O(n)", "intersection/O(1)", "difference/O(1)"]);
+  }, 300_000);
+
+  /**
+   * **결함 다섯 중 둘이 축3을 전부 통과한다.** 상한을 `O(log n)` 으로 고른 것이 배제하는
+   * 계열($\sqrt n$ 묶음)은 축3이 잡고, 답이 갈리는 둘은 축1이 잡는다. 아래 「축1」 절이
+   * 나머지 반쪽이다.
+   */
+  test("임의 구간 결함 셋이 축3에서 갈리는 자리가 다르다", () => {
+    // 값을 그대로 두는 계열: 갱신은 상수라 통과하고 질의 둘이 걸린다.
+    expect(
+      outcomesAt(scanningRangeFold, segmentTreeContract, "complexity"),
+    ).toEqual({
+      update: true,
+      query: false,
+      "query (적대적)": false,
+    });
+
+    // 묶어 두는 계열: 갱신과 질의가 **함께** 묶음 크기에 비례한다. 상한을 `O(sqrt n)` 으로
+    // 적었다면 이 구현이 계약을 지킨다 — 배제가 실제로 일어나는 자리다.
+    expect(
+      outcomesAt(blockedRangeFold, segmentTreeContract, "complexity"),
+    ).toEqual({
+      update: false,
+      query: false,
+      "query (적대적)": false,
+    });
+
+    // 끝까지 닿는 구간만 마디를 타는 계열: 한 줄로 훑는 시나리오를 통과하고 두 경계가 다
+    // 어긋난 쪽에서 걸린다. **불변 사실 160 의 적용 조건이 여기서 깨진다** — 인자 공간이
+    // 쌍의 공간이라 한 줄 훑기가 그 공간의 선 하나만 지난다.
+    expect(
+      outcomesAt(suffixOnlyRangeFold, segmentTreeContract, "complexity"),
+    ).toEqual({
+      update: true,
+      query: true,
+      "query (적대적)": false,
+    });
+  }, 120_000);
+
+  /**
+   * 결함 셋이 걸리는 자리가 하나도 겹치지 않는다. **`moveCursor` 는 같은 행인데 시나리오
+   * 둘이 반대쪽 결함을 잡는다** — 다시 짓는 계열은 가까운 쪽에서만, 커서를 정수로만 옮기는
+   * 계열은 먼 쪽에서만 걸린다. 뒤엣것은 「너무 빠름」이라 계약 위반이 아니다(불변 사실 49).
+   */
+  test("커서를 가진 수열의 결함 셋이 겹치지 않게 갈린다", () => {
+    const splicing = outcomesByBound(
+      splicingEditableSequence,
+      gapBufferContract,
+      "invariant",
+    );
+    expect(splicing["insert/O(1) (적대적)"]).toBe(false);
+    expect(splicing["deleteBefore/O(1) (적대적)"]).toBe(false);
+    expect(splicing["moveCursor/O(1) (적대적)"]).toBe(true);
+    expect(splicing["moveCursor/O(n)"]).toBe(false);
+
+    const rebuilding = outcomesByBound(
+      rebuildingEditableSequence,
+      gapBufferContract,
+      "invariant",
+    );
+    expect(Object.entries(rebuilding).filter(([, ok]) => !ok)).toEqual([
+      ["moveCursor/O(1) (적대적)", false],
+    ]);
+
+    const recounting = outcomesByBound(
+      recountingEditableSequence,
+      gapBufferContract,
+      "invariant",
+    );
+    expect(Object.entries(recounting).filter(([, ok]) => !ok)).toEqual([
+      ["cursor·length/O(1)", false],
+    ]);
+  }, 120_000);
+});
+
+/**
+ * **한 계약에서 축1이 혼자 잡는 fixture 가 둘 나왔다.**
+ *
+ * `linear/circularBuffer` 의 `unboundedRingBuffer` 가 첫 사례였고(불변 사실 182) 그때는
+ * 어기는 것이 경계의 **의미**였다. 여기서는 어기는 것이 **답**이다 — 하나는 접는 차례를,
+ * 다른 하나는 결합의 성질을 어긴다. 둘 다 축3에서 정본과 계급이 같고 하나는 계측값까지 같다.
+ *
+ * **스위트가 교환적이지 않은 결합으로 도는 이유가 여기 있다.** 최솟값 하나로 돌았다면 접는
+ * 차례를 어기는 쪽이 어느 축에도 보이지 않는다.
+ */
+describe("축1 — 임의 결합 계약에서 축3이 통과시키는 결함을 값이 잡는다", () => {
+  /** 축1 첫 갈림을 값으로 돌려준다. 갈리지 않으면 `null`. */
+  function firstFoldSplit(factory: () => SegmentTreeShell): string | null {
+    const byName = new Map(
+      segmentTreeContract.ops.map((op) => [op.name, op] as const),
+    );
+    for (const edge of segmentTreeContract.edges) {
+      const impl = factory();
+      const model = segmentTreeContract.model();
+      for (const step of edge.steps) {
+        const op = byName.get(step.op);
+        if (!op) throw new Error(`없는 연산: ${step.op}`);
+        const observed = op.onImpl(impl, step.arg);
+        const expected = op.onModel(model, step.arg);
+        if (!Object.is(observed, expected)) {
+          return `${edge.name} / ${step.op} — 관측 ${JSON.stringify(observed)} 기대 ${JSON.stringify(expected)}`;
+        }
+      }
+    }
+    return null;
+  }
+
+  test("정본은 경계 케이스 여섯에서 갈리지 않는다", () => {
+    expect(segmentTreeContract.edges).toHaveLength(6);
+    expect(
+      firstFoldSplit(
+        () =>
+          new SegmentTreeShell(
+            (values) =>
+              new ReferenceSegmentTree(values, firstNonZero, IDENTITY),
+          ),
+      ),
+    ).toBeNull();
+  });
+
+  /** 세 시나리오가 전부 통과하는가. 이 절은 `축3 — 결함` 절 밖이라 도우미를 다시 둔다. */
+  function passesEveryScenario(cost: CostSource<SegmentTreeShell>): boolean {
+    return segmentTreeContract.scenarios.every(
+      (scenario) => judgeScenario(cost, scenario, "complexity").ok,
+    );
+  }
+
+  test("만나는 대로 접는 구현은 축3을 전부 통과하고 축1이 값에서 잡는다", () => {
+    expect(passesEveryScenario(unorderedRangeFold)).toBe(true);
+    expect(
+      firstFoldSplit(
+        () =>
+          new SegmentTreeShell(
+            (values) => new UnorderedRangeFold(values, firstNonZero, IDENTITY),
+          ),
+      ),
+    ).toBe(
+      "왼쪽부터 접는다 — 차례를 바꾸면 답이 갈린다 / query — 관측 9 기대 5",
+    );
+  }, 60_000);
+
+  /**
+   * **`range-query/fenwickTree` 와 이 계약이 다르다는 것의 실행 가능한 증거.** 저쪽 계약은
+   * 이 구현을 허용하고 이쪽은 허용하지 않는다. 되돌리는 값이 없는 결합에서 「전체에서 앞을
+   * 뺀다」가 성립하지 않기 때문이고, 그 비대칭이 곧 두 계약이 다르다는 뜻이다.
+   */
+  test("두 앞구간의 차로 내는 구현도 축3을 전부 통과하고 축1이 잡는다", () => {
+    expect(passesEveryScenario(prefixDifferenceRangeFold)).toBe(true);
+    expect(
+      firstFoldSplit(
+        () =>
+          new SegmentTreeShell(
+            (values) =>
+              new PrefixDifferenceRangeFold(values, firstNonZero, IDENTITY),
+          ),
+      ),
+    ).toBe(
+      "마지막 자리는 오른쪽 끝이 n 인 구간에서만 보인다 / query — 관측 36 기대 2",
+    );
   }, 60_000);
 });
 

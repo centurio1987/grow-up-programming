@@ -1,0 +1,2073 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "HashSet",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 집합에서는 무엇을 물어도 없다고 답한다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "has",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "values",
+          "expect": []
+        },
+        {
+          "op": "union",
+          "expect": []
+        },
+        {
+          "op": "intersection",
+          "expect": []
+        },
+        {
+          "op": "difference",
+          "expect": []
+        },
+        {
+          "op": "resultSize",
+          "expect": 0
+        }
+      ]
+    },
+    {
+      "name": "같은 원소를 다시 넣어도 담긴 수가 그대로다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 3
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "add",
+          "arg": 3
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "has",
+          "arg": 3,
+          "expect": true
+        },
+        {
+          "op": "values",
+          "expect": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "name": "지운 뒤 다시 넣으면 다시 담겨 있다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 5
+        },
+        {
+          "op": "delete",
+          "arg": 5,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 5,
+          "expect": false
+        },
+        {
+          "op": "add",
+          "arg": 5
+        },
+        {
+          "op": "has",
+          "arg": 5,
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "없는 원소를 지우면 거짓이고 상태가 바뀌지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 1
+        },
+        {
+          "op": "add",
+          "arg": 2
+        },
+        {
+          "op": "delete",
+          "arg": 9,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "has",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "values",
+          "expect": [
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "name": "같은 자리로 몰리는 원소들도 서로를 가리지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 0
+        },
+        {
+          "op": "add",
+          "arg": 65536
+        },
+        {
+          "op": "add",
+          "arg": 131072
+        },
+        {
+          "op": "add",
+          "arg": 196608
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "has",
+          "arg": 131072,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 65536,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 65536,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 131072,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 196608,
+          "expect": true
+        },
+        {
+          "op": "values",
+          "expect": [
+            0,
+            131072,
+            196608
+          ]
+        }
+      ]
+    },
+    {
+      "name": "몰린 자리의 가운데를 지워도 뒤엣것이 그대로 찾아진다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 0
+        },
+        {
+          "op": "add",
+          "arg": 65536
+        },
+        {
+          "op": "add",
+          "arg": 131072
+        },
+        {
+          "op": "delete",
+          "arg": 65536,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 131072,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": 262144
+        },
+        {
+          "op": "has",
+          "arg": 131072,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 262144,
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 3
+        }
+      ]
+    },
+    {
+      "name": "합집합·교집합·차집합이 각각 다른 답을 낸다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 1
+        },
+        {
+          "op": "add",
+          "arg": 2
+        },
+        {
+          "op": "add",
+          "arg": 3
+        },
+        {
+          "op": "addOther",
+          "arg": 3
+        },
+        {
+          "op": "addOther",
+          "arg": 4
+        },
+        {
+          "op": "union",
+          "expect": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "op": "resultSize",
+          "expect": 4
+        },
+        {
+          "op": "intersection",
+          "expect": [
+            3
+          ]
+        },
+        {
+          "op": "resultSize",
+          "expect": 1
+        },
+        {
+          "op": "difference",
+          "expect": [
+            1,
+            2
+          ]
+        },
+        {
+          "op": "resultSize",
+          "expect": 2
+        },
+        {
+          "op": "resultHas",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "resultHas",
+          "arg": 3,
+          "expect": false
+        }
+      ]
+    },
+    {
+      "name": "차집합은 인자 쪽에만 있는 원소를 담지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 1
+        },
+        {
+          "op": "addOther",
+          "arg": 2
+        },
+        {
+          "op": "difference",
+          "expect": [
+            1
+          ]
+        },
+        {
+          "op": "resultHas",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "resultHas",
+          "arg": 2,
+          "expect": false
+        },
+        {
+          "op": "resultSize",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "결과를 얻은 뒤 피연산자를 고쳐도 결과가 바뀌지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 1
+        },
+        {
+          "op": "addOther",
+          "arg": 2
+        },
+        {
+          "op": "union",
+          "expect": [
+            1,
+            2
+          ]
+        },
+        {
+          "op": "resultSize",
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "add",
+          "arg": 9
+        },
+        {
+          "op": "resultHas",
+          "arg": 9,
+          "expect": false
+        },
+        {
+          "op": "resultSize",
+          "expect": 2
+        },
+        {
+          "op": "delete",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "resultHas",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "addOther",
+          "arg": 8
+        },
+        {
+          "op": "resultHas",
+          "arg": 8,
+          "expect": false
+        },
+        {
+          "op": "deleteOther",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "resultHas",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "resultSize",
+          "expect": 2
+        }
+      ]
+    },
+    {
+      "name": "인자가 비어 있으면 합집합과 차집합은 그대로이고 교집합은 빈다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 1
+        },
+        {
+          "op": "add",
+          "arg": 2
+        },
+        {
+          "op": "union",
+          "expect": [
+            1,
+            2
+          ]
+        },
+        {
+          "op": "resultSize",
+          "expect": 2
+        },
+        {
+          "op": "intersection",
+          "expect": []
+        },
+        {
+          "op": "resultSize",
+          "expect": 0
+        },
+        {
+          "op": "difference",
+          "expect": [
+            1,
+            2
+          ]
+        },
+        {
+          "op": "resultSize",
+          "expect": 2
+        },
+        {
+          "op": "resultHas",
+          "arg": 2,
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "결과 집합의 크기와 소속이 서로 맞는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": 0
+        },
+        {
+          "op": "add",
+          "arg": 65536
+        },
+        {
+          "op": "addOther",
+          "arg": 65536
+        },
+        {
+          "op": "addOther",
+          "arg": 131072
+        },
+        {
+          "op": "union",
+          "expect": [
+            0,
+            65536,
+            131072
+          ]
+        },
+        {
+          "op": "resultSize",
+          "expect": 3
+        },
+        {
+          "op": "resultHas",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "resultHas",
+          "arg": 65536,
+          "expect": true
+        },
+        {
+          "op": "resultHas",
+          "arg": 131072,
+          "expect": true
+        },
+        {
+          "op": "resultHas",
+          "arg": 196608,
+          "expect": false
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "union",
+          "expect": []
+        },
+        {
+          "op": "add",
+          "arg": 33
+        },
+        {
+          "op": "resultHas",
+          "arg": 61,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "union",
+          "expect": [
+            33
+          ]
+        },
+        {
+          "op": "intersection",
+          "expect": []
+        },
+        {
+          "op": "addOther",
+          "arg": 63
+        },
+        {
+          "op": "addOther",
+          "arg": 31
+        },
+        {
+          "op": "has",
+          "arg": 25,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 9,
+          "expect": false
+        },
+        {
+          "op": "addOther",
+          "arg": 4
+        },
+        {
+          "op": "values",
+          "expect": [
+            33
+          ]
+        },
+        {
+          "op": "difference",
+          "expect": [
+            33
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "delete",
+          "arg": 2,
+          "expect": false
+        },
+        {
+          "op": "addOther",
+          "arg": 37
+        },
+        {
+          "op": "difference",
+          "expect": [
+            33
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "delete",
+          "arg": 42,
+          "expect": false
+        },
+        {
+          "op": "deleteOther",
+          "arg": 48,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 46,
+          "expect": false
+        },
+        {
+          "op": "addOther",
+          "arg": 49
+        },
+        {
+          "op": "resultHas",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "difference",
+          "expect": [
+            33
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 20,
+          "expect": false
+        },
+        {
+          "op": "values",
+          "expect": [
+            33
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 9,
+          "expect": false
+        },
+        {
+          "op": "intersection",
+          "expect": []
+        },
+        {
+          "op": "deleteOther",
+          "arg": 8,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "add",
+          "arg": 39
+        },
+        {
+          "op": "resultSize",
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 63,
+          "expect": false
+        },
+        {
+          "op": "intersection",
+          "expect": []
+        },
+        {
+          "op": "values",
+          "expect": [
+            33,
+            39
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "intersection",
+          "expect": []
+        },
+        {
+          "op": "resultHas",
+          "arg": 59,
+          "expect": false
+        },
+        {
+          "op": "intersection",
+          "expect": []
+        },
+        {
+          "op": "resultHas",
+          "arg": 53,
+          "expect": false
+        },
+        {
+          "op": "resultHas",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "add",
+          "arg": 55
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "resultSize",
+          "expect": 0
+        },
+        {
+          "op": "deleteOther",
+          "arg": 59,
+          "expect": false
+        },
+        {
+          "op": "intersection",
+          "expect": []
+        },
+        {
+          "op": "has",
+          "arg": 43,
+          "expect": false
+        },
+        {
+          "op": "resultHas",
+          "arg": 8,
+          "expect": false
+        },
+        {
+          "op": "resultHas",
+          "arg": 10,
+          "expect": false
+        },
+        {
+          "op": "values",
+          "expect": [
+            33,
+            39,
+            55
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 25,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "union",
+          "expect": [
+            4,
+            31,
+            33,
+            37,
+            39,
+            49,
+            55,
+            63
+          ]
+        },
+        {
+          "op": "deleteOther",
+          "arg": 34,
+          "expect": false
+        },
+        {
+          "op": "add",
+          "arg": 51
+        },
+        {
+          "op": "resultSize",
+          "expect": 8
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "has",
+          "arg": 19,
+          "expect": false
+        },
+        {
+          "op": "resultSize",
+          "expect": 8
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "has",
+          "arg": 41,
+          "expect": false
+        },
+        {
+          "op": "deleteOther",
+          "arg": 20,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 9,
+          "expect": false
+        },
+        {
+          "op": "add",
+          "arg": 19
+        },
+        {
+          "op": "intersection",
+          "expect": []
+        },
+        {
+          "op": "union",
+          "expect": [
+            4,
+            19,
+            31,
+            33,
+            37,
+            39,
+            49,
+            51,
+            55,
+            63
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 32,
+          "expect": false
+        },
+        {
+          "op": "deleteOther",
+          "arg": 13,
+          "expect": false
+        },
+        {
+          "op": "difference",
+          "expect": [
+            19,
+            33,
+            39,
+            51,
+            55
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "resultHas",
+          "arg": 61,
+          "expect": false
+        },
+        {
+          "op": "resultSize",
+          "expect": 5
+        },
+        {
+          "op": "add",
+          "arg": 11
+        },
+        {
+          "op": "add",
+          "arg": 62
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "intersection",
+          "expect": []
+        },
+        {
+          "op": "resultSize",
+          "expect": 0
+        },
+        {
+          "op": "has",
+          "arg": 16,
+          "expect": false
+        },
+        {
+          "op": "resultSize",
+          "expect": 0
+        },
+        {
+          "op": "difference",
+          "expect": [
+            11,
+            19,
+            33,
+            39,
+            51,
+            55,
+            62
+          ]
+        },
+        {
+          "op": "difference",
+          "expect": [
+            11,
+            19,
+            33,
+            39,
+            51,
+            55,
+            62
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 6,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 26,
+          "expect": false
+        },
+        {
+          "op": "deleteOther",
+          "arg": 18,
+          "expect": false
+        },
+        {
+          "op": "resultSize",
+          "expect": 7
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "resultSize",
+          "expect": 7
+        },
+        {
+          "op": "resultSize",
+          "expect": 7
+        },
+        {
+          "op": "union",
+          "expect": [
+            4,
+            11,
+            19,
+            31,
+            33,
+            37,
+            39,
+            49,
+            51,
+            55,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "intersection",
+          "expect": []
+        },
+        {
+          "op": "delete",
+          "arg": 24,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "delete",
+          "arg": 16,
+          "expect": false
+        },
+        {
+          "op": "resultHas",
+          "arg": 61,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 21,
+          "expect": false
+        },
+        {
+          "op": "add",
+          "arg": 2
+        },
+        {
+          "op": "difference",
+          "expect": [
+            2,
+            11,
+            19,
+            33,
+            39,
+            51,
+            55,
+            62
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            2,
+            11,
+            19,
+            33,
+            39,
+            51,
+            55,
+            62
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 9,
+          "expect": false
+        },
+        {
+          "op": "difference",
+          "expect": [
+            2,
+            11,
+            19,
+            33,
+            39,
+            51,
+            55,
+            62
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "resultSize",
+          "expect": 8
+        },
+        {
+          "op": "deleteOther",
+          "arg": 27,
+          "expect": false
+        },
+        {
+          "op": "intersection",
+          "expect": []
+        },
+        {
+          "op": "values",
+          "expect": [
+            2,
+            11,
+            19,
+            33,
+            39,
+            51,
+            55,
+            62
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 34,
+          "expect": false
+        },
+        {
+          "op": "difference",
+          "expect": [
+            2,
+            11,
+            19,
+            33,
+            39,
+            51,
+            55,
+            62
+          ]
+        },
+        {
+          "op": "difference",
+          "expect": [
+            2,
+            11,
+            19,
+            33,
+            39,
+            51,
+            55,
+            62
+          ]
+        },
+        {
+          "op": "add",
+          "arg": 13
+        },
+        {
+          "op": "union",
+          "expect": [
+            2,
+            4,
+            11,
+            13,
+            19,
+            31,
+            33,
+            37,
+            39,
+            49,
+            51,
+            55,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "union",
+          "expect": [
+            2,
+            4,
+            11,
+            13,
+            19,
+            31,
+            33,
+            37,
+            39,
+            49,
+            51,
+            55,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "add",
+          "arg": 20
+        },
+        {
+          "op": "addOther",
+          "arg": 55
+        },
+        {
+          "op": "union",
+          "expect": [
+            2,
+            4,
+            11,
+            13,
+            19,
+            20,
+            31,
+            33,
+            37,
+            39,
+            49,
+            51,
+            55,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            2,
+            11,
+            13,
+            19,
+            20,
+            33,
+            39,
+            51,
+            55,
+            62
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            2,
+            11,
+            13,
+            19,
+            20,
+            33,
+            39,
+            51,
+            55,
+            62
+          ]
+        },
+        {
+          "op": "union",
+          "expect": [
+            2,
+            4,
+            11,
+            13,
+            19,
+            20,
+            31,
+            33,
+            37,
+            39,
+            49,
+            51,
+            55,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "add",
+          "arg": 59
+        },
+        {
+          "op": "deleteOther",
+          "arg": 36,
+          "expect": false
+        },
+        {
+          "op": "union",
+          "expect": [
+            2,
+            4,
+            11,
+            13,
+            19,
+            20,
+            31,
+            33,
+            37,
+            39,
+            49,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 4,
+          "expect": false
+        },
+        {
+          "op": "difference",
+          "expect": [
+            2,
+            11,
+            13,
+            19,
+            20,
+            33,
+            39,
+            51,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 45,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 11
+        },
+        {
+          "op": "union",
+          "expect": [
+            2,
+            4,
+            11,
+            13,
+            19,
+            20,
+            31,
+            33,
+            37,
+            39,
+            49,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 11
+        },
+        {
+          "op": "deleteOther",
+          "arg": 59,
+          "expect": false
+        },
+        {
+          "op": "add",
+          "arg": 7
+        },
+        {
+          "op": "delete",
+          "arg": 43,
+          "expect": false
+        },
+        {
+          "op": "add",
+          "arg": 33
+        },
+        {
+          "op": "values",
+          "expect": [
+            2,
+            7,
+            11,
+            13,
+            19,
+            20,
+            33,
+            39,
+            51,
+            55,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "difference",
+          "expect": [
+            2,
+            7,
+            11,
+            13,
+            19,
+            20,
+            33,
+            39,
+            51,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "has",
+          "arg": 63,
+          "expect": false
+        },
+        {
+          "op": "resultHas",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "resultSize",
+          "expect": 11
+        },
+        {
+          "op": "has",
+          "arg": 25,
+          "expect": false
+        },
+        {
+          "op": "union",
+          "expect": [
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            31,
+            33,
+            37,
+            39,
+            49,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "deleteOther",
+          "arg": 24,
+          "expect": false
+        },
+        {
+          "op": "intersection",
+          "expect": [
+            55
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 18,
+          "expect": false
+        },
+        {
+          "op": "resultHas",
+          "arg": 39,
+          "expect": false
+        },
+        {
+          "op": "deleteOther",
+          "arg": 2,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 39,
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": 9,
+          "expect": false
+        },
+        {
+          "op": "union",
+          "expect": [
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            31,
+            33,
+            37,
+            39,
+            49,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "union",
+          "expect": [
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            31,
+            33,
+            37,
+            39,
+            49,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "add",
+          "arg": 4
+        },
+        {
+          "op": "add",
+          "arg": 25
+        },
+        {
+          "op": "intersection",
+          "expect": [
+            4,
+            55
+          ]
+        },
+        {
+          "op": "union",
+          "expect": [
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            31,
+            33,
+            37,
+            39,
+            49,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "difference",
+          "expect": [
+            2,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            33,
+            39,
+            51,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "union",
+          "expect": [
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            31,
+            33,
+            37,
+            39,
+            49,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "intersection",
+          "expect": [
+            4,
+            55
+          ]
+        },
+        {
+          "op": "resultHas",
+          "arg": 1,
+          "expect": false
+        },
+        {
+          "op": "resultSize",
+          "expect": 2
+        },
+        {
+          "op": "resultHas",
+          "arg": 1,
+          "expect": false
+        },
+        {
+          "op": "difference",
+          "expect": [
+            2,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            33,
+            39,
+            51,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "deleteOther",
+          "arg": 36,
+          "expect": false
+        },
+        {
+          "op": "values",
+          "expect": [
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            33,
+            39,
+            51,
+            55,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 5,
+          "expect": false
+        },
+        {
+          "op": "intersection",
+          "expect": [
+            4,
+            55
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            33,
+            39,
+            51,
+            55,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "add",
+          "arg": 32
+        },
+        {
+          "op": "deleteOther",
+          "arg": 43,
+          "expect": false
+        },
+        {
+          "op": "resultSize",
+          "expect": 2
+        },
+        {
+          "op": "addOther",
+          "arg": 49
+        },
+        {
+          "op": "add",
+          "arg": 25
+        },
+        {
+          "op": "intersection",
+          "expect": [
+            4,
+            55
+          ]
+        },
+        {
+          "op": "delete",
+          "arg": 55,
+          "expect": true
+        },
+        {
+          "op": "difference",
+          "expect": [
+            2,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            32,
+            33,
+            39,
+            51,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 11,
+          "expect": true
+        },
+        {
+          "op": "intersection",
+          "expect": [
+            4
+          ]
+        },
+        {
+          "op": "add",
+          "arg": 51
+        },
+        {
+          "op": "resultHas",
+          "arg": 21,
+          "expect": false
+        },
+        {
+          "op": "resultSize",
+          "expect": 1
+        },
+        {
+          "op": "resultSize",
+          "expect": 1
+        },
+        {
+          "op": "union",
+          "expect": [
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            31,
+            32,
+            33,
+            37,
+            39,
+            49,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "addOther",
+          "arg": 38
+        },
+        {
+          "op": "addOther",
+          "arg": 13
+        },
+        {
+          "op": "has",
+          "arg": 60,
+          "expect": false
+        },
+        {
+          "op": "union",
+          "expect": [
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            31,
+            32,
+            33,
+            37,
+            38,
+            39,
+            49,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "add",
+          "arg": 38
+        },
+        {
+          "op": "union",
+          "expect": [
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            31,
+            32,
+            33,
+            37,
+            38,
+            39,
+            49,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "has",
+          "arg": 9,
+          "expect": false
+        },
+        {
+          "op": "resultHas",
+          "arg": 17,
+          "expect": false
+        },
+        {
+          "op": "add",
+          "arg": 31
+        },
+        {
+          "op": "size",
+          "expect": 16
+        },
+        {
+          "op": "resultHas",
+          "arg": 40,
+          "expect": false
+        },
+        {
+          "op": "addOther",
+          "arg": 0
+        },
+        {
+          "op": "union",
+          "expect": [
+            0,
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            31,
+            32,
+            33,
+            37,
+            38,
+            39,
+            49,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "add",
+          "arg": 50
+        },
+        {
+          "op": "resultHas",
+          "arg": 11,
+          "expect": true
+        },
+        {
+          "op": "union",
+          "expect": [
+            0,
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            31,
+            32,
+            33,
+            37,
+            38,
+            39,
+            49,
+            50,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "resultSize",
+          "expect": 22
+        },
+        {
+          "op": "union",
+          "expect": [
+            0,
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            31,
+            32,
+            33,
+            37,
+            38,
+            39,
+            49,
+            50,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "union",
+          "expect": [
+            0,
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            31,
+            32,
+            33,
+            37,
+            38,
+            39,
+            49,
+            50,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "values",
+          "expect": [
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            31,
+            32,
+            33,
+            38,
+            39,
+            50,
+            51,
+            59,
+            62
+          ]
+        },
+        {
+          "op": "union",
+          "expect": [
+            0,
+            2,
+            4,
+            7,
+            11,
+            13,
+            19,
+            20,
+            25,
+            31,
+            32,
+            33,
+            37,
+            38,
+            39,
+            49,
+            50,
+            51,
+            55,
+            59,
+            62,
+            63
+          ]
+        },
+        {
+          "op": "deleteOther",
+          "arg": 50,
+          "expect": false
+        }
+      ]
+    }
+  ]
+}

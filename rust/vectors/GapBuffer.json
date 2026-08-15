@@ -1,0 +1,1431 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "GapBuffer",
+  "grade": "invariant",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 구조에서 커서는 0 이고 지울 것이 없다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "length",
+          "expect": 0
+        },
+        {
+          "op": "cursor",
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "deleteBefore",
+          "expect": null
+        },
+        {
+          "op": "length",
+          "expect": 0
+        },
+        {
+          "op": "cursor",
+          "expect": 0
+        }
+      ]
+    },
+    {
+      "name": "넣으면 커서가 따라 와서 넣은 순서대로 늘어선다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 1
+        },
+        {
+          "op": "cursor",
+          "expect": 1
+        },
+        {
+          "op": "insert",
+          "arg": 2
+        },
+        {
+          "op": "insert",
+          "arg": 3
+        },
+        {
+          "op": "cursor",
+          "expect": 3
+        },
+        {
+          "op": "length",
+          "expect": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "name": "커서를 가운데로 옮기고 넣으면 그 자리에 끼워진다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 1
+        },
+        {
+          "op": "insert",
+          "arg": 2
+        },
+        {
+          "op": "insert",
+          "arg": 3
+        },
+        {
+          "op": "moveCursor",
+          "arg": 1
+        },
+        {
+          "op": "cursor",
+          "expect": 1
+        },
+        {
+          "op": "insert",
+          "arg": 9
+        },
+        {
+          "op": "cursor",
+          "expect": 2
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            9,
+            2,
+            3
+          ]
+        },
+        {
+          "op": "length",
+          "expect": 4
+        }
+      ]
+    },
+    {
+      "name": "커서 앞을 지우면 커서가 하나 당겨지고 앞이 0 이면 아무 일도 없다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 1
+        },
+        {
+          "op": "insert",
+          "arg": 2
+        },
+        {
+          "op": "insert",
+          "arg": 3
+        },
+        {
+          "op": "moveCursor",
+          "arg": 2
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 2
+        },
+        {
+          "op": "cursor",
+          "expect": 1
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            3
+          ]
+        },
+        {
+          "op": "moveCursor",
+          "arg": 0
+        },
+        {
+          "op": "deleteBefore",
+          "expect": null
+        },
+        {
+          "op": "cursor",
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "name": "커서 자리는 0 과 length() 를 포함하고 그 밖은 RangeError 다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 1
+        },
+        {
+          "op": "insert",
+          "arg": 2
+        },
+        {
+          "op": "moveCursor",
+          "arg": 2
+        },
+        {
+          "op": "cursor",
+          "expect": 2
+        },
+        {
+          "op": "moveCursor",
+          "arg": 0
+        },
+        {
+          "op": "cursor",
+          "expect": 0
+        },
+        {
+          "op": "moveCursor",
+          "arg": 3,
+          "expect": "RangeError"
+        },
+        {
+          "op": "cursor",
+          "expect": 0
+        },
+        {
+          "op": "moveCursor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "cursor",
+          "expect": 0
+        },
+        {
+          "op": "moveCursor",
+          "arg": 1.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "cursor",
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "name": "커서를 오가며 고쳐도 수열이 어긋나지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 1
+        },
+        {
+          "op": "insert",
+          "arg": 2
+        },
+        {
+          "op": "insert",
+          "arg": 3
+        },
+        {
+          "op": "insert",
+          "arg": 4
+        },
+        {
+          "op": "moveCursor",
+          "arg": 0
+        },
+        {
+          "op": "insert",
+          "arg": 5
+        },
+        {
+          "op": "moveCursor",
+          "arg": 5
+        },
+        {
+          "op": "insert",
+          "arg": 6
+        },
+        {
+          "op": "moveCursor",
+          "arg": 3
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 2
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            5,
+            1,
+            3,
+            4,
+            6
+          ]
+        },
+        {
+          "op": "cursor",
+          "expect": 2
+        },
+        {
+          "op": "length",
+          "expect": 5
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "cursor",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": 52
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            52
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            52
+          ]
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 52
+        },
+        {
+          "op": "cursor",
+          "expect": 0
+        },
+        {
+          "op": "length",
+          "expect": 0
+        },
+        {
+          "op": "moveCursor",
+          "arg": 25,
+          "expect": "RangeError"
+        },
+        {
+          "op": "moveCursor",
+          "arg": 11,
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": 40
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 40
+        },
+        {
+          "op": "insert",
+          "arg": 48
+        },
+        {
+          "op": "insert",
+          "arg": 39
+        },
+        {
+          "op": "length",
+          "expect": 2
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 39
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 48
+        },
+        {
+          "op": "insert",
+          "arg": 42
+        },
+        {
+          "op": "cursor",
+          "expect": 1
+        },
+        {
+          "op": "length",
+          "expect": 1
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 42
+        },
+        {
+          "op": "deleteBefore",
+          "expect": null
+        },
+        {
+          "op": "cursor",
+          "expect": 0
+        },
+        {
+          "op": "cursor",
+          "expect": 0
+        },
+        {
+          "op": "length",
+          "expect": 0
+        },
+        {
+          "op": "deleteBefore",
+          "expect": null
+        },
+        {
+          "op": "length",
+          "expect": 0
+        },
+        {
+          "op": "moveCursor",
+          "arg": 19,
+          "expect": "RangeError"
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "deleteBefore",
+          "expect": null
+        },
+        {
+          "op": "length",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": 32
+        },
+        {
+          "op": "moveCursor",
+          "arg": 4,
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": 72
+        },
+        {
+          "op": "cursor",
+          "expect": 2
+        },
+        {
+          "op": "insert",
+          "arg": 26
+        },
+        {
+          "op": "insert",
+          "arg": 62
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            62
+          ]
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 62
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26
+          ]
+        },
+        {
+          "op": "length",
+          "expect": 3
+        },
+        {
+          "op": "moveCursor",
+          "arg": 6,
+          "expect": "RangeError"
+        },
+        {
+          "op": "length",
+          "expect": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26
+          ]
+        },
+        {
+          "op": "length",
+          "expect": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            3
+          ]
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26
+          ]
+        },
+        {
+          "op": "cursor",
+          "expect": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26
+          ]
+        },
+        {
+          "op": "length",
+          "expect": 3
+        },
+        {
+          "op": "insert",
+          "arg": 67
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 97
+        },
+        {
+          "op": "insert",
+          "arg": 38
+        },
+        {
+          "op": "insert",
+          "arg": 40
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 40
+        },
+        {
+          "op": "cursor",
+          "expect": 6
+        },
+        {
+          "op": "cursor",
+          "expect": 6
+        },
+        {
+          "op": "cursor",
+          "expect": 6
+        },
+        {
+          "op": "insert",
+          "arg": 80
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            97,
+            38,
+            80
+          ]
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 80
+        },
+        {
+          "op": "insert",
+          "arg": 30
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            97,
+            38,
+            30
+          ]
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 30
+        },
+        {
+          "op": "insert",
+          "arg": 65
+        },
+        {
+          "op": "cursor",
+          "expect": 7
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 65
+        },
+        {
+          "op": "insert",
+          "arg": 14
+        },
+        {
+          "op": "insert",
+          "arg": 30
+        },
+        {
+          "op": "length",
+          "expect": 8
+        },
+        {
+          "op": "cursor",
+          "expect": 8
+        },
+        {
+          "op": "insert",
+          "arg": 50
+        },
+        {
+          "op": "cursor",
+          "expect": 9
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 50
+        },
+        {
+          "op": "length",
+          "expect": 8
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 30
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            97,
+            38,
+            14
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            97,
+            38,
+            14
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            97,
+            38,
+            14
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 18
+        },
+        {
+          "op": "insert",
+          "arg": 98
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 98
+        },
+        {
+          "op": "length",
+          "expect": 8
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            97,
+            38,
+            14,
+            18
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 25
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            97,
+            38,
+            14,
+            18,
+            25
+          ]
+        },
+        {
+          "op": "length",
+          "expect": 9
+        },
+        {
+          "op": "length",
+          "expect": 9
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 25
+        },
+        {
+          "op": "insert",
+          "arg": 14
+        },
+        {
+          "op": "moveCursor",
+          "arg": 13,
+          "expect": "RangeError"
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 14
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            97,
+            38,
+            14,
+            18
+          ]
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 18
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            97,
+            38,
+            14
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            97,
+            38,
+            14
+          ]
+        },
+        {
+          "op": "cursor",
+          "expect": 7
+        },
+        {
+          "op": "length",
+          "expect": 7
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 14
+        },
+        {
+          "op": "moveCursor",
+          "arg": 6
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 38
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 97
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 32
+        },
+        {
+          "op": "insert",
+          "arg": 3
+        },
+        {
+          "op": "length",
+          "expect": 6
+        },
+        {
+          "op": "moveCursor",
+          "arg": 4
+        },
+        {
+          "op": "insert",
+          "arg": 82
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 82
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            32,
+            3
+          ]
+        },
+        {
+          "op": "cursor",
+          "expect": 4
+        },
+        {
+          "op": "moveCursor",
+          "arg": 17,
+          "expect": "RangeError"
+        },
+        {
+          "op": "moveCursor",
+          "arg": 4
+        },
+        {
+          "op": "cursor",
+          "expect": 4
+        },
+        {
+          "op": "length",
+          "expect": 6
+        },
+        {
+          "op": "length",
+          "expect": 6
+        },
+        {
+          "op": "insert",
+          "arg": 20
+        },
+        {
+          "op": "cursor",
+          "expect": 5
+        },
+        {
+          "op": "cursor",
+          "expect": 5
+        },
+        {
+          "op": "insert",
+          "arg": 32
+        },
+        {
+          "op": "moveCursor",
+          "arg": 22,
+          "expect": "RangeError"
+        },
+        {
+          "op": "cursor",
+          "expect": 6
+        },
+        {
+          "op": "moveCursor",
+          "arg": 7
+        },
+        {
+          "op": "cursor",
+          "expect": 7
+        },
+        {
+          "op": "insert",
+          "arg": 92
+        },
+        {
+          "op": "cursor",
+          "expect": 8
+        },
+        {
+          "op": "cursor",
+          "expect": 8
+        },
+        {
+          "op": "cursor",
+          "expect": 8
+        },
+        {
+          "op": "insert",
+          "arg": 7
+        },
+        {
+          "op": "length",
+          "expect": 10
+        },
+        {
+          "op": "insert",
+          "arg": 71
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 71
+        },
+        {
+          "op": "cursor",
+          "expect": 9
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 7
+        },
+        {
+          "op": "cursor",
+          "expect": 8
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            20,
+            32,
+            32,
+            92,
+            3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 11
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 11
+        },
+        {
+          "op": "length",
+          "expect": 9
+        },
+        {
+          "op": "insert",
+          "arg": 52
+        },
+        {
+          "op": "moveCursor",
+          "arg": 19,
+          "expect": "RangeError"
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 52
+        },
+        {
+          "op": "insert",
+          "arg": 99
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            20,
+            32,
+            32,
+            92,
+            99,
+            3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 86
+        },
+        {
+          "op": "insert",
+          "arg": 39
+        },
+        {
+          "op": "cursor",
+          "expect": 11
+        },
+        {
+          "op": "cursor",
+          "expect": 11
+        },
+        {
+          "op": "moveCursor",
+          "arg": 17,
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": 28
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            20,
+            32,
+            32,
+            92,
+            99,
+            86,
+            39,
+            28,
+            3
+          ]
+        },
+        {
+          "op": "cursor",
+          "expect": 12
+        },
+        {
+          "op": "cursor",
+          "expect": 12
+        },
+        {
+          "op": "insert",
+          "arg": 16
+        },
+        {
+          "op": "cursor",
+          "expect": 13
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 16
+        },
+        {
+          "op": "insert",
+          "arg": 64
+        },
+        {
+          "op": "cursor",
+          "expect": 13
+        },
+        {
+          "op": "insert",
+          "arg": 6
+        },
+        {
+          "op": "insert",
+          "arg": 40
+        },
+        {
+          "op": "length",
+          "expect": 16
+        },
+        {
+          "op": "cursor",
+          "expect": 15
+        },
+        {
+          "op": "length",
+          "expect": 16
+        },
+        {
+          "op": "cursor",
+          "expect": 15
+        },
+        {
+          "op": "length",
+          "expect": 16
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            20,
+            32,
+            32,
+            92,
+            99,
+            86,
+            39,
+            28,
+            64,
+            6,
+            40,
+            3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 86
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            72,
+            26,
+            67,
+            20,
+            32,
+            32,
+            92,
+            99,
+            86,
+            39,
+            28,
+            64,
+            6,
+            40,
+            86,
+            3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": 82
+        },
+        {
+          "op": "cursor",
+          "expect": 17
+        },
+        {
+          "op": "cursor",
+          "expect": 17
+        },
+        {
+          "op": "moveCursor",
+          "arg": 1
+        },
+        {
+          "op": "insert",
+          "arg": 68
+        },
+        {
+          "op": "moveCursor",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "cursor",
+          "expect": 2
+        },
+        {
+          "op": "cursor",
+          "expect": 2
+        },
+        {
+          "op": "length",
+          "expect": 19
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            68,
+            72,
+            26,
+            67,
+            20,
+            32,
+            32,
+            92,
+            99,
+            86,
+            39,
+            28,
+            64,
+            6,
+            40,
+            86,
+            82,
+            3
+          ]
+        },
+        {
+          "op": "moveCursor",
+          "arg": 19
+        },
+        {
+          "op": "insert",
+          "arg": 39
+        },
+        {
+          "op": "length",
+          "expect": 20
+        },
+        {
+          "op": "deleteBefore",
+          "expect": 39
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            68,
+            72,
+            26,
+            67,
+            20,
+            32,
+            32,
+            92,
+            99,
+            86,
+            39,
+            28,
+            64,
+            6,
+            40,
+            86,
+            82,
+            3
+          ]
+        },
+        {
+          "op": "length",
+          "expect": 19
+        },
+        {
+          "op": "insert",
+          "arg": 18
+        },
+        {
+          "op": "length",
+          "expect": 20
+        },
+        {
+          "op": "insert",
+          "arg": 80
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            68,
+            72,
+            26,
+            67,
+            20,
+            32,
+            32,
+            92,
+            99,
+            86,
+            39,
+            28,
+            64,
+            6,
+            40,
+            86,
+            82,
+            3,
+            18,
+            80
+          ]
+        },
+        {
+          "op": "moveCursor",
+          "arg": 23,
+          "expect": "RangeError"
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            32,
+            68,
+            72,
+            26,
+            67,
+            20,
+            32,
+            32,
+            92,
+            99,
+            86,
+            39,
+            28,
+            64,
+            6,
+            40,
+            86,
+            82,
+            3,
+            18,
+            80
+          ]
+        },
+        {
+          "op": "cursor",
+          "expect": 21
+        },
+        {
+          "op": "moveCursor",
+          "arg": 14
+        },
+        {
+          "op": "moveCursor",
+          "arg": 3
+        }
+      ]
+    }
+  ]
+}

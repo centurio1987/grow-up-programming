@@ -1,281 +1,182 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `hash/hashSet` 계약 스위트 실행부(규약2).
+ *
+ * 무엇을 검사하는지는 `./hashSet.contract.ts` 에 있고, 계약 자체는 `./hashSet.ts` 헤더 한
+ * 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다. 축3은
+ * 계측기가 붙은 정본에만 돈다 — 학습자 스텁에 `__cost` 를 요구하지 않는다.
+ *
+ * 여기 남은 손으로 쓴 테스트는 **주입 정책**뿐이다. 계약 스위트는 원소 타입 하나(`number`)로
+ * 돌기 때문에(§규약2) 「펴기를 갈면 무엇이 갈리고 무엇이 안 갈리는가」와 「`number` 밖의
+ * 원소에 펴기 주입이 실제로 필수인가」를 담지 못한다. **두 피연산자가 서로 다른 펴기를 써도
+ * 된다**는 조항도 계약 스위트가 담지 못하는 자리다 — 껍데기가 세 집합을 같은 팩토리로 짓기
+ * 때문이다.
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 고정 n 의 임계값이 재는 것은 복잡도 등급이
+ * 아니라 그 기계의 상수다. 자리는 축3이다.
+ */
+
+import { describe, expect, test } from "bun:test";
+import { runContract } from "../../_contract/runContract";
+import { HashSet as Reference } from "./_reference/hashSet";
 import { HashSet } from "./hashSet";
+import {
+  type HashSetContract,
+  hashSetContract,
+  SetPair,
+} from "./hashSet.contract";
 
-describe("HashSet", () => {
-  describe("기본", () => {
-    test("add 후 has는 true를 반환한다", () => {
-      const set = new HashSet<string>();
-      set.add("alice");
-      expect(set.has("alice")).toBe(true);
-    });
+/** 축1·축2가 도는 펴기. 정수 원소를 그대로 돌려주므로 정보를 하나도 지우지 않는다. */
+const identity = (item: number): number => item;
 
-    test("없는 항목은 has가 false를 반환한다", () => {
-      const set = new HashSet<string>();
-      expect(set.has("unknown")).toBe(false);
-    });
+/** 학습자 구현. 계측기가 없으므로 축1·축2만 돈다. */
+runContract(
+  () => new SetPair<number>(() => new HashSet<number>(identity)),
+  hashSetContract,
+  { label: "스텁" },
+);
 
-    test("delete 후 has는 false를 반환한다", () => {
-      const set = new HashSet<string>();
-      set.add("bob");
-      expect(set.delete("bob")).toBe(true);
-      expect(set.has("bob")).toBe(false);
-    });
+/**
+ * 정본. 펴기를 주입받는 구조라 하네스가 **밖에서** 호출 횟수를 셀 수 있다 —
+ * `__cost` 가 그 수보다 작으면 자기 보고가 거짓이다(§규약2 계측).
+ */
+runContract(
+  () => new SetPair<number>(() => new Reference<number>(identity)),
+  hashSetContract,
+  {
+    label: "정본",
+    cost: {
+      kind: "injected",
+      make: (tick) =>
+        new SetPair<number>(
+          () =>
+            new Reference<number>((item) => {
+              tick();
+              return item;
+            }),
+        ),
+    },
+  },
+);
 
-    test("delete는 없는 항목에 false를 반환한다", () => {
-      const set = new HashSet<string>();
-      expect(set.delete("nothing")).toBe(false);
-    });
-
-    test("size는 저장된 항목 수를 반환한다", () => {
-      const set = new HashSet<string>();
-      expect(set.size()).toBe(0);
-      set.add("a");
-      set.add("b");
-      expect(set.size()).toBe(2);
-      set.delete("a");
-      expect(set.size()).toBe(1);
-    });
-
-    test("중복 add는 한 번만 저장된다", () => {
-      const set = new HashSet<string>();
-      set.add("dup");
-      set.add("dup");
-      set.add("dup");
-      expect(set.size()).toBe(1);
-    });
-
-    test("values는 저장된 항목 배열을 반환한다", () => {
-      const set = new HashSet<string>();
-      set.add("x");
-      set.add("y");
-      set.add("z");
-      const vals = set.values().sort();
-      expect(vals).toEqual(["x", "y", "z"]);
-    });
-  });
-
-  describe("집합 연산 — union (합집합)", () => {
-    test("두 집합의 합집합을 반환한다", () => {
-      const a = new HashSet<string>();
-      a.add("alice");
-      a.add("bob");
-
-      const b = new HashSet<string>();
-      b.add("bob");
-      b.add("charlie");
-
-      const result = a.union(b);
-      const vals = result.values().sort();
-      expect(vals).toEqual(["alice", "bob", "charlie"]);
-    });
-
-    test("한 집합이 빈 경우 합집합은 다른 집합과 같다", () => {
-      const a = new HashSet<number>();
-      a.add(1);
-      a.add(2);
-
-      const b = new HashSet<number>();
-      const result = a.union(b);
-      const vals = result.values().sort((x, y) => x - y);
-      expect(vals).toEqual([1, 2]);
-    });
-
-    test("두 집합 모두 비어있으면 합집합도 비어있다", () => {
-      const a = new HashSet<number>();
-      const b = new HashSet<number>();
-      const result = a.union(b);
-      expect(result.size()).toBe(0);
-    });
-
-    test("합집합은 원본 집합을 변경하지 않는다", () => {
-      const a = new HashSet<string>();
-      a.add("a");
-      const b = new HashSet<string>();
-      b.add("b");
-      a.union(b);
-      expect(a.size()).toBe(1);
-      expect(b.size()).toBe(1);
-    });
-  });
-
-  describe("집합 연산 — intersection (교집합)", () => {
-    test("두 집합의 공통 요소만 반환한다", () => {
-      const alice = new HashSet<string>();
-      alice.add("bob");
-      alice.add("charlie");
-      alice.add("dave");
-
-      const bob = new HashSet<string>();
-      bob.add("alice");
-      bob.add("charlie");
-      bob.add("eve");
-
-      const common = alice.intersection(bob);
-      expect(common.values()).toEqual(["charlie"]);
-    });
-
-    test("공통 요소가 없으면 빈 집합을 반환한다", () => {
-      const a = new HashSet<number>();
-      a.add(1);
-      a.add(2);
-
-      const b = new HashSet<number>();
-      b.add(3);
-      b.add(4);
-
-      const result = a.intersection(b);
-      expect(result.size()).toBe(0);
-    });
-
-    test("모든 요소가 공통이면 크기가 같은 집합을 반환한다", () => {
-      const a = new HashSet<string>();
-      a.add("x");
-      a.add("y");
-
-      const b = new HashSet<string>();
-      b.add("x");
-      b.add("y");
-
-      const result = a.intersection(b);
-      expect(result.size()).toBe(2);
-    });
-
-    test("교집합은 원본 집합을 변경하지 않는다", () => {
-      const a = new HashSet<string>();
-      a.add("a");
-      a.add("b");
-      const b = new HashSet<string>();
-      b.add("b");
-      a.intersection(b);
-      expect(a.size()).toBe(2);
-    });
-  });
-
-  describe("집합 연산 — difference (차집합)", () => {
-    test("this에만 있는 요소를 반환한다", () => {
-      const me = new HashSet<string>();
-      me.add("alice");
-      me.add("bob");
-      me.add("charlie");
-
-      const other = new HashSet<string>();
-      other.add("bob");
-      other.add("dave");
-
-      const result = me.difference(other);
-      const vals = result.values().sort();
-      expect(vals).toEqual(["alice", "charlie"]);
-    });
-
-    test("other가 this의 부분집합이면 차집합에 나머지 요소가 남는다", () => {
-      const a = new HashSet<number>();
-      a.add(1);
-      a.add(2);
-      a.add(3);
-
-      const b = new HashSet<number>();
-      b.add(1);
-
-      const result = a.difference(b);
-      const vals = result.values().sort((x, y) => x - y);
-      expect(vals).toEqual([2, 3]);
-    });
-
-    test("other가 this와 동일하면 차집합은 빈 집합이다", () => {
-      const a = new HashSet<string>();
-      a.add("x");
-      a.add("y");
-
-      const b = new HashSet<string>();
-      b.add("x");
-      b.add("y");
-
-      const result = a.difference(b);
-      expect(result.size()).toBe(0);
-    });
-
-    test("차집합은 원본 집합을 변경하지 않는다", () => {
-      const a = new HashSet<string>();
-      a.add("a");
-      a.add("b");
-      const b = new HashSet<string>();
-      b.add("a");
-      a.difference(b);
-      expect(a.size()).toBe(2);
-    });
-  });
-
-  describe("리사이징", () => {
-    test("많은 항목 삽입 후 모든 항목이 유지된다", () => {
-      const set = new HashSet<number>(4);
-      for (let i = 0; i < 100; i++) {
-        set.add(i);
+/**
+ * 주입 정책은 계약의 일부다(규약1). 계약 스위트가 원소 타입 하나로 도는 동안은 여기서 본다.
+ */
+function checkInjectionPolicy(
+  label: string,
+  make: <T>(spread: (item: T) => number) => HashSetContract<T>,
+): void {
+  describe(`HashSet 주입 정책 [${label}]`, () => {
+    test("펴기를 갈아도 답은 갈리지 않는다 — 펴기가 정하는 것은 자리이지 의미가 아니다", () => {
+      const straight = make<number>((item) => item);
+      const twisted = make<number>((item) => Math.imul(item, 0x9e37_79b1));
+      for (let value = 0; value < 50; value++) {
+        straight.add(value);
+        twisted.add(value);
       }
-      expect(set.size()).toBe(100);
-      for (let i = 0; i < 100; i++) {
-        expect(set.has(i)).toBe(true);
+      expect(straight.size()).toBe(twisted.size());
+      expect([...straight.values()].sort((a, b) => a - b)).toEqual(
+        [...twisted.values()].sort((a, b) => a - b),
+      );
+      for (let value = 0; value < 50; value++) {
+        expect(straight.has(value)).toBe(twisted.has(value));
       }
     });
+
+    test("두 피연산자가 서로 다른 펴기를 써도 세 연산의 답이 같다", () => {
+      const left = make<number>((item) => item);
+      const right = make<number>((item) => Math.imul(item, 0x9e37_79b1));
+      for (let value = 0; value < 30; value++) left.add(value);
+      for (let value = 15; value < 45; value++) right.add(value);
+
+      const union = left.union(right);
+      const intersection = left.intersection(right);
+      const difference = left.difference(right);
+
+      expect(union.size()).toBe(45);
+      expect(intersection.size()).toBe(15);
+      expect(difference.size()).toBe(15);
+      expect(intersection.has(20)).toBe(true);
+      expect(difference.has(20)).toBe(false);
+      expect(difference.has(3)).toBe(true);
+      expect(union.has(44)).toBe(true);
+    });
+
+    test("원소의 차이를 지우는 펴기를 줘도 답은 옳다 — 무너지는 것은 상한뿐이다", () => {
+      const erasing = make<number>(() => 0);
+      for (let value = 0; value < 40; value++) erasing.add(value);
+      expect(erasing.size()).toBe(40);
+      expect(erasing.has(17)).toBe(true);
+      expect(erasing.has(40)).toBe(false);
+      expect(erasing.delete(17)).toBe(true);
+      expect(erasing.has(17)).toBe(false);
+      expect(erasing.size()).toBe(39);
+    });
+
+    test("number 밖의 원소도 펴기를 주면 돈다", () => {
+      const byChars = make<string>((item) => {
+        let spread = 0;
+        for (let at = 0; at < item.length; at++) {
+          spread = (Math.imul(spread, 31) + item.charCodeAt(at)) | 0;
+        }
+        return spread;
+      });
+      const other = make<string>((item) => item.length);
+
+      byChars.add("banana");
+      byChars.add("apple");
+      byChars.add("banana");
+      other.add("apple");
+      other.add("fig");
+
+      expect(byChars.size()).toBe(2);
+      expect(byChars.has("fig")).toBe(false);
+      expect([...byChars.values()].sort()).toEqual(["apple", "banana"]);
+      expect([...byChars.intersection(other).values()]).toEqual(["apple"]);
+      expect([...byChars.difference(other).values()]).toEqual(["banana"]);
+      expect([...byChars.union(other).values()].sort()).toEqual([
+        "apple",
+        "banana",
+        "fig",
+      ]);
+    });
+
+    test("돌려준 집합은 피연산자와 독립이다 — 뒤에 어느 쪽을 고쳐도 안 바뀐다", () => {
+      const left = make<number>(identity);
+      const right = make<number>(identity);
+      left.add(1);
+      left.add(2);
+      right.add(2);
+      right.add(3);
+
+      const union = left.union(right);
+      const intersection = left.intersection(right);
+      const difference = left.difference(right);
+
+      left.add(9);
+      right.add(8);
+      left.delete(1);
+      right.delete(2);
+
+      expect(union.size()).toBe(3);
+      expect(union.has(9)).toBe(false);
+      expect(union.has(8)).toBe(false);
+      expect(union.has(1)).toBe(true);
+      expect(intersection.size()).toBe(1);
+      expect(intersection.has(2)).toBe(true);
+      expect(difference.size()).toBe(1);
+      expect(difference.has(1)).toBe(true);
+
+      // 반대 방향도 본다 — 결과를 고쳐도 피연산자가 안 바뀐다.
+      union.add(100);
+      expect(left.has(100)).toBe(false);
+      expect(right.has(100)).toBe(false);
+    });
   });
+}
 
-  describe("엣지", () => {
-    test("빈 집합에서 values는 빈 배열을 반환한다", () => {
-      const set = new HashSet<string>();
-      expect(set.values()).toEqual([]);
-    });
-
-    test("모든 항목 삭제 후 size는 0이다", () => {
-      const set = new HashSet<string>();
-      set.add("a");
-      set.add("b");
-      set.delete("a");
-      set.delete("b");
-      expect(set.size()).toBe(0);
-      expect(set.values()).toEqual([]);
-    });
-
-    test("숫자 항목도 올바르게 동작한다", () => {
-      const set = new HashSet<number>();
-      set.add(0);
-      set.add(-1);
-      set.add(999);
-      expect(set.has(0)).toBe(true);
-      expect(set.has(-1)).toBe(true);
-      expect(set.has(999)).toBe(true);
-      expect(set.has(1)).toBe(false);
-    });
-  });
-
-  describe("성능", () => {
-    test("10^5 add/has 100ms 이내", () => {
-      const set = new HashSet<string>();
-      const N = 100_000;
-      const start = performance.now();
-      for (let i = 0; i < N; i++) {
-        set.add(`user${i}`);
-      }
-      for (let i = 0; i < N; i++) {
-        expect(set.has(`user${i}`)).toBe(true);
-      }
-      const elapsed = performance.now() - start;
-      expect(elapsed).toBeLessThan(100);
-    });
-
-    test("10^5 교집합 계산이 200ms 이내", () => {
-      const a = new HashSet<number>();
-      const b = new HashSet<number>();
-      const N = 100_000;
-      for (let i = 0; i < N; i++) {
-        a.add(i);
-      }
-      for (let i = N / 2; i < N + N / 2; i++) {
-        b.add(i);
-      }
-      const start = performance.now();
-      const result = a.intersection(b);
-      const elapsed = performance.now() - start;
-      expect(result.size()).toBe(N / 2);
-      expect(elapsed).toBeLessThan(200);
-    });
-  });
-});
+checkInjectionPolicy(
+  "정본",
+  <T>(spread: (item: T) => number) => new Reference<T>(spread),
+);

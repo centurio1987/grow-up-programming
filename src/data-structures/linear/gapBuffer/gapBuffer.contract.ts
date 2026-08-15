@@ -1,0 +1,348 @@
+/**
+ * `linear/gapBuffer` 계약 스위트(규약2).
+ *
+ * 이 파일은 계약을 **다시 적지 않는다.** 계약은 `./gapBuffer.ts` 헤더 한 곳이고(규약1),
+ * 여기 있는 것은 그 계약을 기계가 검사하는 형태로 옮긴 것뿐이다.
+ *
+ * 검증 등급 `invariant` → 축3 엄격도는 `regression`(±60% · 2점 · 적대적 선택).
+ *
+ * **껍데기가 없다.** 생성자가 인자를 받지 않으므로 `runContract` 의 인자 없는 팩토리에 그대로
+ * 들어간다. 크기 사다리는 시나리오가 `insert` 로 직접 올린다 — 준비 비용이 n 에 비례하므로
+ * 사다리 위에서 허용된다(불변 사실 50).
+ *
+ * **범위 밖 인자를 관측값으로 만든다.** 계약이 `moveCursor` 자리에 `RangeError` 를 적었는데
+ * 하네스는 던진 것을 값으로 대조하지 못한다(`runContract.ts` 의 축1은 반환값만 본다). 그래서
+ * 양쪽을 같은 방식으로 감싸 문자열 하나로 바꾼다. `RangeError` 가 아닌 예외는 그대로
+ * 올려보낸다(스텁의 `Not implemented` 가 통과로 읽히면 안 된다).
+ *
+ * **무작위 커서 자리를 좁게 뽑는다.** 넣기와 지우기가 같은 확률로 뽑히는 500 회 시퀀스에서
+ * 담긴 수가 20 언저리를 오르내리므로, 자리를 `-2` 부터 `25` 까지에서 뽑으면 **범위 안과 밖이
+ * 둘 다 자주 나온다.** 넓게 뽑으면 거의 전부 범위 밖이라 커서가 움직이는 자리를 축1이 보지
+ * 못한다.
+ *
+ * **시나리오가 여섯이고 그중 둘이 같은 행(`moveCursor`)을 겨눈다.** 이 계약의 내용이 그
+ * 행에 있기 때문이다 — 커서를 **한 칸** 옮기는 값과 **끝에서 끝으로** 뛰는 값이 갈려야
+ * 지역성이 약속된 것이고, 한쪽만 두면 둘 중 어느 쪽이든 통과하는 결함 구현이 있다.
+ * 실측은 `./gapBuffer.ts` 헤더 「연산 계약」 아래 문단에 적혀 있다.
+ */
+
+import type { ContractSpec } from "../../_contract/runContract";
+
+/** 헤더 연산 계약 표의 **여섯 행**을 그대로 옮긴 표면. */
+export interface GapBufferContract<T> {
+  insert(item: T): void;
+  deleteBefore(): T | null;
+  moveCursor(position: number): void;
+  cursor(): number;
+  length(): number;
+  toArray(): T[];
+}
+
+/** 범위 밖 호출의 관측값. 계약이 `RangeError` 를 적은 자리다. */
+const OUT_OF_RANGE = "RangeError";
+
+function observe(call: () => unknown): unknown {
+  try {
+    return call();
+  } catch (error) {
+    if (error instanceof RangeError) return OUT_OF_RANGE;
+    throw error;
+  }
+}
+
+/**
+ * 축1 참조 모델. 배열 하나에 담고 커서를 정수로 든다 — 축1은 의미만 보고 비용은 보지
+ * 않으므로 자명한 구현으로 충분하다.
+ *
+ * 같은 모양이 축3에서는 결함 fixture 가 된다
+ * (`_contract/_fixtures/splicingEditableSequence.ts`).
+ */
+interface Model {
+  items: number[];
+  at: number;
+}
+
+function modelMoveCursor(model: Model, position: unknown): unknown {
+  if (
+    typeof position !== "number" ||
+    !Number.isInteger(position) ||
+    position < 0 ||
+    position > model.items.length
+  ) {
+    return OUT_OF_RANGE;
+  }
+  model.at = position;
+  return undefined;
+}
+
+/** 커서를 끝에 둔 채 원소 n 개를 채운다. 시나리오의 공통 준비다. */
+function fill(impl: GapBufferContract<number>, n: number): void {
+  for (let i = 0; i < n; i++) impl.insert(i);
+}
+
+export const gapBufferContract: ContractSpec<
+  GapBufferContract<number>,
+  Model
+> = {
+  name: "GapBuffer",
+  grade: "invariant",
+  model: () => ({ items: [], at: 0 }),
+
+  ops: [
+    {
+      name: "insert",
+      arg: (rng) => Math.floor(rng() * 100),
+      onImpl: (impl, arg) => {
+        impl.insert(arg as number);
+      },
+      onModel: (model, arg) => {
+        model.items.splice(model.at, 0, arg as number);
+        model.at += 1;
+      },
+    },
+    {
+      name: "deleteBefore",
+      arg: () => undefined,
+      onImpl: (impl) => impl.deleteBefore(),
+      onModel: (model) => {
+        if (model.at === 0) return null;
+        model.at -= 1;
+        return model.items.splice(model.at, 1)[0] as number;
+      },
+    },
+    {
+      name: "moveCursor",
+      // 범위 안과 밖이 둘 다 자주 나오도록 좁게 뽑는다(헤더 참고).
+      arg: (rng) => Math.floor(rng() * 28) - 2,
+      onImpl: (impl, arg) =>
+        observe(() => {
+          impl.moveCursor(arg as number);
+        }),
+      onModel: (model, arg) => modelMoveCursor(model, arg),
+    },
+    {
+      name: "cursor",
+      arg: () => undefined,
+      onImpl: (impl) => impl.cursor(),
+      onModel: (model) => model.at,
+    },
+    {
+      name: "length",
+      arg: () => undefined,
+      onImpl: (impl) => impl.length(),
+      onModel: (model) => model.items.length,
+    },
+    {
+      name: "toArray",
+      arg: () => undefined,
+      onImpl: (impl) => impl.toArray(),
+      onModel: (model) => [...model.items],
+    },
+  ],
+
+  edges: [
+    {
+      name: "빈 구조에서 커서는 0 이고 지울 것이 없다",
+      steps: [
+        { op: "length" },
+        { op: "cursor" },
+        { op: "toArray" },
+        { op: "deleteBefore" },
+        { op: "length" },
+        { op: "cursor" },
+      ],
+    },
+    {
+      name: "넣으면 커서가 따라 와서 넣은 순서대로 늘어선다",
+      steps: [
+        { op: "insert", arg: 1 },
+        { op: "cursor" },
+        { op: "insert", arg: 2 },
+        { op: "insert", arg: 3 },
+        { op: "cursor" },
+        { op: "length" },
+        { op: "toArray" },
+      ],
+    },
+    {
+      // 이 계약이 덱·큐와 갈리는 자리다. 끝이 아니라 **커서 자리**에 들어간다.
+      name: "커서를 가운데로 옮기고 넣으면 그 자리에 끼워진다",
+      steps: [
+        { op: "insert", arg: 1 },
+        { op: "insert", arg: 2 },
+        { op: "insert", arg: 3 },
+        { op: "moveCursor", arg: 1 },
+        { op: "cursor" },
+        { op: "insert", arg: 9 },
+        { op: "cursor" },
+        { op: "toArray" },
+        { op: "length" },
+      ],
+    },
+    {
+      name: "커서 앞을 지우면 커서가 하나 당겨지고 앞이 0 이면 아무 일도 없다",
+      steps: [
+        { op: "insert", arg: 1 },
+        { op: "insert", arg: 2 },
+        { op: "insert", arg: 3 },
+        { op: "moveCursor", arg: 2 },
+        { op: "deleteBefore" },
+        { op: "cursor" },
+        { op: "toArray" },
+        { op: "moveCursor", arg: 0 },
+        { op: "deleteBefore" },
+        { op: "cursor" },
+        { op: "toArray" },
+      ],
+    },
+    {
+      // 경계가 `[0, length()]` 인 인자라 위쪽 끝이 `length()` 자신이다(불변 사실 166).
+      name: "커서 자리는 0 과 length() 를 포함하고 그 밖은 RangeError 다",
+      steps: [
+        { op: "insert", arg: 1 },
+        { op: "insert", arg: 2 },
+        { op: "moveCursor", arg: 2 },
+        { op: "cursor" },
+        { op: "moveCursor", arg: 0 },
+        { op: "cursor" },
+        { op: "moveCursor", arg: 3 },
+        { op: "cursor" },
+        { op: "moveCursor", arg: -1 },
+        { op: "cursor" },
+        { op: "moveCursor", arg: 1.5 },
+        { op: "cursor" },
+        { op: "toArray" },
+      ],
+    },
+    {
+      // 커서를 앞뒤로 오가며 고쳐도 담긴 수열이 어긋나지 않는다.
+      name: "커서를 오가며 고쳐도 수열이 어긋나지 않는다",
+      steps: [
+        { op: "insert", arg: 1 },
+        { op: "insert", arg: 2 },
+        { op: "insert", arg: 3 },
+        { op: "insert", arg: 4 },
+        { op: "moveCursor", arg: 0 },
+        { op: "insert", arg: 5 },
+        { op: "moveCursor", arg: 5 },
+        { op: "insert", arg: 6 },
+        { op: "moveCursor", arg: 3 },
+        { op: "deleteBefore" },
+        { op: "toArray" },
+        { op: "cursor" },
+        { op: "length" },
+      ],
+    },
+  ],
+
+  invariants: [
+    {
+      // 관측 경로가 둘이고(세어 둔 수 · 늘어놓은 수) 어느 계약 줄도 그 정합을 적지 않는다.
+      // 앞뒤를 나눠 담는 구현은 두 수를 따로 들고 다니게 되고, 그 순간 각 연산이 저마다
+      // 옳은 채로 둘이 갈린다.
+      name: "length() 가 말하는 수와 toArray() 의 길이가 같다",
+      check: (impl) => {
+        const counted = impl.length();
+        const listed = impl.toArray().length;
+        return counted === listed
+          ? null
+          : `length()=${counted} 인데 toArray().length=${listed} 이다`;
+      },
+    },
+  ],
+
+  scenarios: [
+    {
+      // 커서를 가운데 두고 넣는다. **끼운 자리 뒤를 미는 계열이 여기서 걸린다** —
+      // 뒤쪽 절반이 호출마다 밀리므로 상각 평균이 선형이 된다.
+      covers: ["insert"],
+      qualifier: "amortized",
+      bound: "O(1)",
+      adversarial: true,
+      run: (impl, n, ctx) => {
+        fill(impl, n);
+        impl.moveCursor(n >> 1);
+        for (let i = 0; i < n; i++) ctx.step(() => impl.insert(n + i));
+      },
+    },
+    {
+      // 커서를 가운데 두고 앞을 지운다. 같은 계열이 같은 이유로 걸린다.
+      covers: ["deleteBefore"],
+      qualifier: "worst",
+      bound: "O(1)",
+      adversarial: true,
+      run: (impl, n, ctx) => {
+        fill(impl, n);
+        impl.moveCursor(n >> 1);
+        for (let i = 0; i < n >> 1; i++) ctx.step(() => impl.deleteBefore());
+      },
+    },
+    {
+      // **이 계약 고유의 자리다.** 커서를 한 칸씩만 오간다 — 지나갈 거리가 1 로 고정되므로
+      // `O(d)` 행이 여기서 `O(1)` 이 된다. 거리를 보지 않고 통째로 다시 짓는 계열이
+      // 정확히 여기서 걸리고, 아래 먼 뜀 시나리오는 통과한다.
+      covers: ["moveCursor"],
+      qualifier: "worst",
+      bound: "O(1)",
+      adversarial: true,
+      run: (impl, n, ctx) => {
+        fill(impl, n);
+        const home = n;
+        for (let i = 0; i < n; i++) {
+          ctx.step(() => {
+            impl.moveCursor(home - 1);
+            impl.moveCursor(home);
+          });
+        }
+      },
+    },
+    {
+      // 같은 행을 반대쪽에서 잰다. 끝에서 끝으로 뛰므로 지나갈 거리가 n 이고, `O(d)` 행이
+      // 여기서 `O(n)` 이 된다. **커서를 옮기는 일이 상수인 계열이 여기서 걸린다** —
+      // 계약을 어겨서가 아니라 계급이 달라서다(불변 사실 49).
+      covers: ["moveCursor"],
+      qualifier: "worst",
+      bound: "O(n)",
+      adversarial: false,
+      run: (impl, n, ctx) => {
+        fill(impl, n);
+        for (let i = 0; i < n; i++) {
+          ctx.step(() => {
+            impl.moveCursor(0);
+            impl.moveCursor(n);
+          });
+        }
+      },
+    },
+    {
+      // 둘을 한 걸음에 묶는 이유는 각각 혼자로는 잴 것이 적기 때문이다. 커서 자리와 원소
+      // 수를 세어 두지 않고 물을 때마다 훑는 계열이 여기서만 걸린다.
+      covers: ["cursor", "length"],
+      qualifier: "worst",
+      bound: "O(1)",
+      adversarial: false,
+      run: (impl, n, ctx) => {
+        fill(impl, n);
+        impl.moveCursor(n >> 1);
+        for (let i = 0; i < n >> 2; i++) {
+          ctx.step(() => {
+            impl.cursor();
+            impl.length();
+          });
+        }
+      },
+    },
+    {
+      // 되풀이 횟수가 n 이 아닌 이유는 O(n) 연산을 n 회 돌면 시나리오가 O(n^2) 이 되기
+      // 때문이다. `worst` 는 최대값으로 판정하므로 표본이 적어도 된다.
+      covers: ["toArray"],
+      qualifier: "worst",
+      bound: "O(n)",
+      adversarial: false,
+      run: (impl, n, ctx) => {
+        fill(impl, n);
+        for (let i = 0; i < 8; i++) ctx.step(() => impl.toArray());
+      },
+    },
+  ],
+};

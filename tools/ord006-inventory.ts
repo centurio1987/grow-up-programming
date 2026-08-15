@@ -134,6 +134,22 @@ const VERIFICATION_GRADES: Record<
   "tree/twoThreeTree": "complexity",
   "tree/bTree": "complexity",
   "tree/bPlusTree": "complexity",
+  // 힙 덩어리의 계약 B(T2-02). `heap/priorityQueue` 의 다섯에 합치기 한 행을 더하고 갱신
+  // 셋의 한정자를 `worst` 로 올린 계약이라 등급이 같다 — 배열 한 줄이 여섯 행을 지키면서
+  // 합치기에서 나가고, 늘 정렬해 두면 넣기에서 나간다.
+  "heap/leftistHeap": "complexity",
+  // 성격 전환(T2-02). 담는 모양이 정본과 전혀 다른데 계약이 그 차이를 관측하지 못한다.
+  "heap/binomialHeap": "complexity",
+  // 사전과 **서로 담지 않는** 이웃 계약(T3-02 · 불변 사실 54). 등급이 같은 것은 판정의
+  // 입력이 아니다 — 상한이 확률 논증에서만 나오는 것이 사전 쪽과 같기 때문이다.
+  "hash/hashSet": "complexity",
+  // `range-query/fenwickTree` 와 **주입 정책 한 줄로** 갈리는 계약(T4-02). 등급이 같은데
+  // **자명한 구현의 목록이 다르다** — 앞구간을 미리 접어 두는 길이 여기서는 후보조차 아니다.
+  "range-query/segmentTree": "complexity",
+  // 「공간이 존재 이유」 표시가 붙었는데 존재 이유가 공간이 아니었던 계약(T5-02). 배열 둘이
+  // 여섯 행을 전부 상한 안에 하므로 `complexity` 가 아니고, 불변식 하나가 남아 `basic` 도
+  // 아니다 — 판정 절차의 3번에서 멈춘 첫 계약이다.
+  "linear/gapBuffer": "invariant",
 };
 
 /** ORDER.md:39-63 진단 표 9종. 키는 `<category>/<name>`. 이 표 밖은 전부 `-`. */

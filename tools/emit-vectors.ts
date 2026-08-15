@@ -21,9 +21,12 @@ import { join, resolve } from "node:path";
 import { rngFrom } from "../src/data-structures/_contract/judge.ts";
 import type { ContractSpec } from "../src/data-structures/_contract/runContract.ts";
 import { hashMapChainingContract } from "../src/data-structures/hash/hashMapChaining/hashMapChaining.contract.ts";
+import { hashSetContract } from "../src/data-structures/hash/hashSet/hashSet.contract.ts";
+import { leftistHeapContract } from "../src/data-structures/heap/leftistHeap/leftistHeap.contract.ts";
 import { priorityQueueContract } from "../src/data-structures/heap/priorityQueue/priorityQueue.contract.ts";
 import { circularBufferContract } from "../src/data-structures/linear/circularBuffer/circularBuffer.contract.ts";
 import { dequeContract } from "../src/data-structures/linear/deque/deque.contract.ts";
+import { gapBufferContract } from "../src/data-structures/linear/gapBuffer/gapBuffer.contract.ts";
 import { queueContract } from "../src/data-structures/linear/queue/queue.contract.ts";
 import { stackContract } from "../src/data-structures/linear/stack/stack.contract.ts";
 import { unrolledLinkedListContract } from "../src/data-structures/linear/unrolledLinkedList/unrolledLinkedList.contract.ts";
@@ -31,6 +34,7 @@ import { xorLinkedListContract } from "../src/data-structures/linear/xorLinkedLi
 import { concurrentSkipListContract } from "../src/data-structures/probabilistic/concurrentSkipList/concurrentSkipList.contract.ts";
 import { fenwickTreeContract } from "../src/data-structures/range-query/fenwickTree/fenwickTree.contract.ts";
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
+import { segmentTreeContract } from "../src/data-structures/range-query/segmentTree/segmentTree.contract.ts";
 import { binarySearchTreeContract } from "../src/data-structures/tree/binarySearchTree/binarySearchTree.contract.ts";
 import { cartesianTreeContract } from "../src/data-structures/tree/cartesianTree/cartesianTree.contract.ts";
 import { linkCutTreeContract } from "../src/data-structures/tree/linkCutTree/linkCutTree.contract.ts";
@@ -147,9 +151,12 @@ const SPECS: ContractSpec<any, any>[] = [
   // 성격 전환은 등록하지 않는다 — 같은 계약 객체에 `name` 만 다르므로 vector 가 같다
   // (`avlTree`·`bTree` 계열이 같은 선례다).
   hashMapChainingContract,
+  hashSetContract,
+  leftistHeapContract,
   priorityQueueContract,
   circularBufferContract,
   dequeContract,
+  gapBufferContract,
   queueContract,
   stackContract,
   unrolledLinkedListContract,
@@ -160,6 +167,7 @@ const SPECS: ContractSpec<any, any>[] = [
   concurrentSkipListContract,
   fenwickTreeContract,
   intervalTreeContract,
+  segmentTreeContract,
   binarySearchTreeContract,
   cartesianTreeContract,
   linkCutTreeContract,
