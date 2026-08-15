@@ -1,0 +1,11 @@
+=== ChatGPT (codex CLI) — 폐쇄형 독해 시험 ===
+[skip] codex 실행 실패 — 인증 만료(세션 종료)일 수 있습니다. `codex login` 후 다시 시도하세요.
+그런데 이 문제의 제약을 다시 보면 정점 수가 최대 $10^5$입니다. 체인 형태의 DAG라면 재귀 깊이도 $10^5$까지 쌓일 수 있는데, 대부분의 JS 런타임 스택은 이 정도 깊이를 감당하지 못하고 `RangeError: Maximum call stack size exceeded`로 죽습니다. **정답의 원리는 맞지만, 재귀라는 실행 방식이 규모를 못 버티는 것**이 다음 단계로 넘어가는 이유예요. 재귀 호출 순서가 암묵적으로 따르던 그 "의존 관계 순서"를 명시적인 배열로 미리 뽑아내면, 재귀 없이 반복문으로 같은 일을 할 수 있습니다 — 그 명시적 순서가 바로 앞 절에서 다룬 위상 정렬입니다.
+ERROR: You've hit your usage limit. Upgrade to Plus to continue using Codex (https://chatgpt.com/explore/plus), or try again at Sep 14th, 2026 4:36 PM.
+
+=== Gemini (antigravity CLI) — 폐쇄형 독해 시험 ===
+[skip] Error: Individual quota reached. Please upgrade your subscription to increase your limits. Resets in 121h3m48s.
+
+agy 인증 필요 — 터미널에서 `agy`를 한 번 실행해 Google 로그인 후 다시 시도하세요.
+
+두 모델 모두 응답을 받지 못했습니다 — 이해 게이트 미실행. 통과로 간주하지 마세요.

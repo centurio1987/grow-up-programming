@@ -1,0 +1,10 @@
+=== ChatGPT (codex CLI) — 폐쇄형 독해 시험 ===
+[skip] codex 실행 실패 — 인증 만료(세션 종료)일 수 있습니다. `codex login` 후 다시 시도하세요.
+ERROR: You've hit your usage limit. Upgrade to Plus to continue using Codex (https://chatgpt.com/explore/plus), or try again at Sep 14th, 2026 4:36 PM.
+
+=== Gemini (antigravity CLI) — 폐쇄형 독해 시험 ===
+[skip] Error: Individual quota reached. Please upgrade your subscription to increase your limits. Resets in 121h3m26s.
+
+agy 인증 필요 — 터미널에서 `agy`를 한 번 실행해 Google 로그인 후 다시 시도하세요.
+
+두 모델 모두 응답을 받지 못했습니다 — 이해 게이트 미실행. 통과로 간주하지 마세요.

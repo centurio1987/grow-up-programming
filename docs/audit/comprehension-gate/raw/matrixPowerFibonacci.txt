@@ -1,0 +1,39 @@
+=== ChatGPT (codex CLI) — 폐쇄형 독해 시험 ===
+[skip] codex 실행 실패 — 인증 만료(세션 종료)일 수 있습니다. `codex login` 후 다시 시도하세요.
+n % 2 === 1   // TypeError: Invalid mix of BigInt and other type in remainder.
+ERROR: You've hit your usage limit. Upgrade to Plus to continue using Codex (https://chatgpt.com/explore/plus), or try again at Sep 14th, 2026 4:36 PM.
+
+=== Gemini (antigravity CLI) — 폐쇄형 독해 시험 ===
+[Q1] 답변: (a) 개념 층위에서는 대상이 없을 때 사용하는 가장 단순한 반복 전진 방법(`fibNaive`)이 $n = 10^{18}$일 때 덧셈이 $10^{18}$번 필요하여 약 31.7년이 걸리므로 1초 시간 제한 내에 불가능하다는 구체적 수치 대조를 제시합니다. 그러나 (b) 절차 층위에서 동일한 목표를 노리는 다른 대안 절차·설계를 실명으로 제시하고 그것이 왜 지는지를 같은 입력에서 수치로 대조한 설명이 본문에 없습니다(fast doubling을 언급하지만 오히려 상수항이 작다고 소개하며 동일 입력 수치 대조가 없습니다). 규칙에 따라 둘 중 하나라도 근거가 없으므로 Q1은 근거 없음입니다.
+[Q1] 인용: "(a) n = 10^18:  같은 방식이면 덧셈이 10^18번 필요\n            현대 CPU ≈ 10^9회/초  →  10^18 / 10^9 = 10^9초 ≈ 31.7년\n            시간 제한 1초 안에는 어림도 없다   ✗"
+[Q1] 판정: FAIL(근거 없음)
+
+[Q2] 답변: 한 걸음 전진하는 과정을 덧셈 대신 곱셈으로 바꾸어 표현하면 거듭제곱하듯 빠르게 반복하여 여러 칸을 한 번에 건너뛸 수 있기 때문입니다.
+[Q2] 인용: "`[a, b] = [b, a + b]`라는 한 걸음의 전진을 "덧셈"이 아니라 "곱셈 하나"로 표현할 수 있다면, 그 곱셈을 거듭제곱하듯 빠르게 반복해서 여러 칸을 한 번에 건너뛸 수 있을 겁니다."
+[Q2] 판정: PASS
+
+[Q3] 답변: 본문은 두 단계로 항상 옳음을 증명합니다. 첫째, 행렬 거듭제곱 항등식에 대해 $n=1$일 때 성립함을 직접 확인하고(기저), $n$일 때 성립을 가정한 뒤 $M^{n+1} = M^n \cdot M$을 전개하여 피보나치 점화식 정의 $F(n+2)=F(n+1)+F(n)$을 대입해 $n+1$에서도 성립함을 수학적 귀납법으로 증명합니다. 둘째, 반복 제곱법 루프에서는 `result × base^(남은 비트 값) = M^n`이라는 불변식을 두고, 비트가 0이면 $M^0=I$이므로 유지, 1이면 result에 base를 곱해 반영하며 매 단계 base를 제곱하고 $n$을 우측 시프트하여 루프 종료 시 정확히 $M^n$이 계산됨을 보입니다.
+[Q3] 인용: "- **기저 ($n=1$):** $M^1 = \begin{pmatrix}1&1\\1&0\end{pmatrix}$이고, 우변은 $\begin{pmatrix}F(2)&F(1)\\F(1)&F(0)\end{pmatrix} = \begin{pmatrix}1&1\\1&0\end{pmatrix}$. 일치합니다.\n- **귀납 ($n \to n+1$):** $M^n = \begin{pmatrix}F(n+1)&F(n)\\F(n)&F(n-1)\end{pmatrix}$이 성립한다고 가정하면,\n\n$$M^{n+1} = M^n \cdot M = \begin{pmatrix}F(n+1)&F(n)\\F(n)&F(n-1)\end{pmatrix}\begin{pmatrix}1&1\\1&0\end{pmatrix} = \begin{pmatrix}F(n+1)+F(n)&F(n+1)\\F(n)+F(n-1)&F(n)\end{pmatrix}$$\n\n피보나치 정의 $F(n+2) = F(n+1)+F(n)$을 그대로 대입하면 $= \begin{pmatrix}F(n+2)&F(n+1)\\F(n+1)&F(n)\end{pmatrix}$이 되어, $n+1$에 대한 항등식과 정확히 일치합니다."
+[Q3] 판정: PASS
+
+[Q4] 답변: `bigint` 변수에 `number` 리터럴을 섞어 연산하면 안 된다는 타입 제약이 깨질 경우 런타임에 `TypeError`가 발생합니다. 또한 `result` 갱신 전에 `base`를 먼저 제곱하면 안 된다는 순서 제약이 깨지면 $F(n)$ 대신 $F(2n)$의 결과가 계산됩니다.
+[Q4] 인용: "const n: bigint = 5n;\nn % 2 === 1   // TypeError: Invalid mix of BigInt and other type in remainder."
+[Q4] 판정: PASS
+
+[Q5] 답변: `matPow` 루프에서 `result` 갱신과 `base` 제곱의 순서를 바꾸어 `base`를 먼저 제곱하고 곱하면 각 자리 비트가 원래 값의 두 배 자리를 곱하게 되어, `matrixPowerFibonacci(10n)` 실행 시 $F(10)=55$ 대신 $F(20)=6765$가 나오고, `matrixPowerFibonacci(5n)` 실행 시 $F(5)=5$ 대신 $F(10)=55$가 나옵니다.
+[Q5] 인용: "순서를 바꾼 코드로 matrixPowerFibonacci(10n)을 실행하면:\n  결과 = 6765  ←  이건 F(10)=55가 아니라 F(20)=6765!\nmatrixPowerFibonacci(5n)도 같은 실수로 실행하면:\n  결과 = 55  ←  F(5)=5가 아니라 F(10)=55!"
+[Q5] 판정: PASS
+
+---
+
+**보완 지시:**
+- [Q1] 같은 목표를 노리는 다른 대안 절차·설계(예: 단순 분할 정복 거듭제곱 등)를 실명으로 제시하고, 그것이 왜 지는지 동일한 입력 조건에서 수치로 비교 대조하는 설명이 본문에 없습니다.
+
+VERDICT: FAIL
+
+
+[agy] 이해 게이트 판정: FAIL
+
+----------------------------------------
+이해 게이트: FAIL — 위 "근거 없음 / 결론만 있음" 항목이 곧 보완 지시입니다.
+해당 내용을 본문에 채워 넣은 뒤 다시 실행하세요. 기준을 낮춰 통과시키지 마세요.
