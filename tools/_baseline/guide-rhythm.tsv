@@ -20,7 +20,6 @@ src/algorithms/array/longestCommonSubsequence/longestCommonSubsequence-guide.mdx
 src/algorithms/array/longestIncreasingSubsequence/longestIncreasingSubsequence-guide.mdx	5	0
 src/algorithms/array/longestSubarrayAtMostSum/longestSubarrayAtMostSum-guide.mdx	3	0
 src/algorithms/array/maximumProductSubarray/maximumProductSubarray-guide.mdx	6	0
-src/algorithms/array/mosAlgorithm/mosAlgorithm-guide.mdx	6	0
 src/algorithms/array/nextGreaterElement/nextGreaterElement-guide.mdx	4	0
 src/algorithms/array/prefixSumRangeQuery/prefixSumRangeQuery-guide.mdx	4	0
 src/algorithms/array/segmentTreeRangeMin/segmentTreeRangeMin-guide.mdx	3	0

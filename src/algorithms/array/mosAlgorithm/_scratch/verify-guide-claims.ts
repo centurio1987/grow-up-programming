@@ -225,6 +225,50 @@ function mos(
   return pushInsteadOfIndex ? pushed : byIndex;
 }
 
+/** 임의의 처리 순서로 답을 낸다 — 순서를 바꿔도 답이 같은지 대조할 때 쓴다. */
+function mosWith(
+  arr: readonly number[],
+  queries: readonly Query[],
+  order: Order,
+): number[] {
+  const freq = new Map<number, number>();
+  let distinct = 0;
+  let curL = 0;
+  let curR = -1;
+  const add = (x: number) => {
+    const f = (freq.get(x) ?? 0) + 1;
+    freq.set(x, f);
+    if (f === 1) distinct++;
+  };
+  const remove = (x: number) => {
+    const f = (freq.get(x) ?? 0) - 1;
+    freq.set(x, f);
+    if (f === 0) distinct--;
+  };
+  const out = new Array<number>(queries.length);
+  for (const i of order) {
+    const [l, r] = at(queries, i);
+    while (curR < r) {
+      curR++;
+      add(at(arr, curR));
+    }
+    while (curL > l) {
+      curL--;
+      add(at(arr, curL));
+    }
+    while (curR > r) {
+      remove(at(arr, curR));
+      curR--;
+    }
+    while (curL < l) {
+      remove(at(arr, curL));
+      curL++;
+    }
+    out[i] = distinct;
+  }
+  return out;
+}
+
 const bruteForce = (
   arr: readonly number[],
   queries: readonly Query[],
@@ -398,5 +442,182 @@ console.log("\n=== 본문 구현 검증 ===\n");
   );
   console.log(
     `  빈 queries → [${mos([1, 2, 3], []).join(", ")}]   빈 arr → [${mos([], []).join(", ")}]`,
+  );
+}
+
+// ── 5. 트레이스 절·시뮬의 고정 입력 (4.5단계) ─────────────────────────────
+//
+// 가이드 「코드를 한 번 끝까지 굴려 보기」와 「실행 시각화」가 이 입력 하나를 함께 쓴다.
+// 아래 출력이 두 절의 정본이다 — 본문의 T# 단계·프레임 값은 여기서 베낀다.
+//
+// 이 입력을 고른 이유 둘.
+//   (1) 네 while 루프 ①②③④ 를 한 번의 실행으로 전부 밟는다.
+//   (2) 홀짝 정렬 트릭이 처리 순서를 실제로 바꾼다 — 최적화 절이 「어느 단계가
+//       사라지는가」를 단계 번호로 대조할 수 있어야 한다.
+
+const TRACE_ARR = [1, 3, 2, 3, 1, 2, 1, 3, 2] as const;
+const TRACE_QUERIES: Query[] = [
+  [0, 8],
+  [5, 5],
+  [3, 8],
+  [1, 2],
+];
+
+/** 한 처리 순서를 끝까지 굴리며 분기 판정과 상태를 전부 찍는다. */
+function traceRun(
+  arr: readonly number[],
+  queries: readonly Query[],
+  order: Order,
+  label: string,
+): { answers: number[]; moves: number } {
+  console.log(
+    `\n  ── ${label} — 처리 순서 ${order.map((i) => `orig${i}`).join(" → ")} ──`,
+  );
+  const freq = new Map<number, number>();
+  let distinct = 0;
+  let curL = 0;
+  let curR = -1;
+  let moves = 0;
+  const answers = new Array<number>(queries.length);
+
+  const add = (x: number) => {
+    const f = (freq.get(x) ?? 0) + 1;
+    freq.set(x, f);
+    if (f === 1) distinct++;
+    moves++;
+    return f;
+  };
+  const remove = (x: number) => {
+    const f = (freq.get(x) ?? 0) - 1;
+    freq.set(x, f);
+    if (f === 0) distinct--;
+    moves++;
+    return f;
+  };
+  const snap = () =>
+    `curL=${curL} curR=${curR} distinct=${distinct} freq={${[...freq]
+      .filter(([, v]) => v > 0)
+      .map(([k, v]) => `${k}:${v}`)
+      .join(",")}}`;
+
+  console.log(`     [초기화] ${snap()}`);
+  for (const i of order) {
+    const [l, r] = at(queries, i);
+    console.log(`\n     질의 orig${i} = [${l}, ${r}]`);
+    console.log(`       ① curR(${curR}) < r(${r}) ? ${curR < r}`);
+    while (curR < r) {
+      curR++;
+      const f = add(at(arr, curR));
+      console.log(
+        `          curR→${curR}  add(arr[${curR}]=${at(arr, curR)}) freq=${f}  distinct=${distinct}`,
+      );
+    }
+    console.log(`       ② curL(${curL}) > l(${l}) ? ${curL > l}`);
+    while (curL > l) {
+      curL--;
+      const f = add(at(arr, curL));
+      console.log(
+        `          curL→${curL}  add(arr[${curL}]=${at(arr, curL)}) freq=${f}  distinct=${distinct}`,
+      );
+    }
+    console.log(`       ③ curR(${curR}) > r(${r}) ? ${curR > r}`);
+    while (curR > r) {
+      const f = remove(at(arr, curR));
+      console.log(
+        `          remove(arr[${curR}]=${at(arr, curR)}) freq=${f}  curR→${curR - 1}  distinct=${distinct}`,
+      );
+      curR--;
+    }
+    console.log(`       ④ curL(${curL}) < l(${l}) ? ${curL < l}`);
+    while (curL < l) {
+      const f = remove(at(arr, curL));
+      console.log(
+        `          remove(arr[${curL}]=${at(arr, curL)}) freq=${f}  curL→${curL + 1}  distinct=${distinct}`,
+      );
+      curL++;
+    }
+    answers[i] = distinct;
+    console.log(`       answers[${i}] = ${distinct}    ${snap()}`);
+  }
+  console.log(
+    `\n     반환값(원래 순서) = [${answers.join(", ")}]   이동 ${moves}칸`,
+  );
+  return { answers, moves };
+}
+
+console.log("\n=== 트레이스 고정 입력 — 네 분기 전수 + 홀짝 대조 ===\n");
+{
+  const arr = TRACE_ARR as unknown as number[];
+  const B = blockSizeFor(arr.length);
+  console.log(
+    `  arr = [${arr.join(", ")}]   n = ${arr.length}   B = ⌊√${arr.length}⌋ = ${B}`,
+  );
+  console.log(
+    `  정렬 키: ${TRACE_QUERIES.map(
+      (q, i) =>
+        `orig${i} [${q[0]},${q[1]}] → (블록 ${Math.floor(q[0] / B)}, r ${q[1]})`,
+    ).join("  |  ")}`,
+  );
+
+  const plain = traceRun(
+    arr,
+    TRACE_QUERIES,
+    byBlockThenRight(TRACE_QUERIES, B),
+    "기본 정렬 (블록, r 오름차순)",
+  );
+  const oddEven = traceRun(
+    arr,
+    TRACE_QUERIES,
+    byBlockOddEven(TRACE_QUERIES, B),
+    "홀짝 정렬",
+  );
+
+  console.log(
+    `\n  완전탐색 대조 = [${bruteForce(arr, TRACE_QUERIES).join(", ")}]`,
+  );
+  console.log(
+    `  답 일치: 기본 ${plain.answers.join() === bruteForce(arr, TRACE_QUERIES).join()} · 홀짝 ${
+      oddEven.answers.join() === bruteForce(arr, TRACE_QUERIES).join()
+    }`,
+  );
+  console.log(
+    `  이동 칸 수: 기본 ${plain.moves}칸 → 홀짝 ${oddEven.moves}칸 (${plain.moves - oddEven.moves}칸 감소, ${(
+      ((plain.moves - oddEven.moves) / plain.moves) * 100
+    ).toFixed(1)}%)`,
+  );
+}
+
+// ── 6. 홀짝 판단을 블록이 아니라 질의로 하면 (D6 실수 시나리오) ───────────
+//
+// `blockA % 2` 대신 `a.l % 2` 로 홀짝을 가르면 같은 블록 안에서 정렬 방향이
+// 질의마다 뒤바뀐다. 답은 맞지만 curR 의 단조 전진이 깨진다 — 그 대가를 잰다.
+
+const byQueryOddEven: Sorter = (queries, blockSize) =>
+  queries
+    .map((_, i) => i)
+    .sort((x, y) => {
+      const a = at(queries, x);
+      const b = at(queries, y);
+      const ba = blockOf(queries, x, blockSize);
+      const bb = blockOf(queries, y, blockSize);
+      if (ba !== bb) return ba - bb;
+      return a[0] % 2 === 0 ? a[1] - b[1] : b[1] - a[1]; // ← 블록이 아니라 l 의 홀짝
+    });
+
+console.log("\n=== 홀짝을 l 로 판단하면 (실수) ===\n");
+for (const n of [1000, 4000, 16000] as const) {
+  const queries = randomQueries(n, n);
+  const B = blockSizeFor(n);
+  const arr = Array.from({ length: n }, (_, i) => i % 97);
+  const right = pointerMoves(queries, byBlockOddEven(queries, B));
+  const wrong = pointerMoves(queries, byQueryOddEven(queries, B));
+  const ansRight = mosWith(arr, queries, byBlockOddEven(queries, B));
+  const ansWrong = mosWith(arr, queries, byQueryOddEven(queries, B));
+  console.log(
+    `  n=q=${String(n).padStart(6)}   블록 홀짝 ${String(right).padStart(9)}칸   l 홀짝 ${String(
+      wrong,
+    ).padStart(9)}칸   ${(wrong / right).toFixed(2)}배   답 일치 ${
+      ansRight.join() === ansWrong.join()
+    }`,
   );
 }
