@@ -22,8 +22,13 @@
  * 자식으로 내리므로 **뿌리 전체의 최소가 이어 붙이기로 바뀌지 않는다** — 넣기와 합치기는
  * 견주기 한 번으로 갱신되고, 앞선 원소를 실제로 들어내는 빼기만 다시 훑는다.
  *
- * **`children[i]` 의 차수가 `i` 인 것은 이어 붙이기가 유지한다.** 계약이 관측하지 못하는
- * 내부 성질이고(불변 사실 36), 어긋나면 빼기가 자리를 잘못 더해 답이 틀리므로 축1이 잡는다.
+ * **`children[i]` 의 차수가 `i` 인 것은 이어 붙이기가 유지하는데, 어긋나도 네 축 중 어느
+ * 것도 잡지 못한다**(불변 사실 135). 자식을 뒤가 아니라 앞에 붙이는 사본을 지어 재 봤고
+ * 계약 스위트 여섯 시나리오를 전부 통과하며 차등 시험 96,000 회에 반환값 불일치가 0 건이다.
+ * 답이 안 갈리는 이유가 셋이다 — 이어 붙이기가 차수를 안 보고 「앞세우는 쪽을 위에」로만
+ * 잇고, 그래서 어느 나무든 뿌리가 그 나무의 최소이며, 담긴 수를 따로 센다. 갈리는 것은
+ * 걸음뿐이고(`dequeue` 교대 44 → 80) 계급이 같아 축3도 통과시킨다. **이 자리의 초고가
+ * 「축1이 잡는다」로 적혀 있었고 그것은 거짓이었다.**
  */
 
 // #region guide:core/node
@@ -75,6 +80,7 @@ export class BinomialHeap<T> {
 
     const taken = this.#trees[at] as BinomialNode<T>;
     this.#trees[at] = null;
+    this.#trim();
     this.#count -= 1;
     // 들어낸 뿌리의 자식들은 차수 0..at-1 짜리 나무 하나씩이라 그대로 더할 수 있다.
     this.#add(taken.children);
@@ -157,6 +163,30 @@ export class BinomialHeap<T> {
       this.#trees[at] = present[0] ?? null;
       carry = null;
     }
+
+    this.#trim();
+  }
+
+  /**
+   * 뒤쪽의 빈 자리를 잘라 낸다.
+   *
+   * **자르지 않으면 계약을 어긴다.** 자리 목록은 한 번 늘면 줄지 않는데, `merge` 의 상한에
+   * 적힌 n 은 **합친 뒤의 원소 수**다. 그러면 크게 키웠다 비운 큐를 넘겨받을 때 걸음이 지난
+   * 최대 크기를 따라가고 합친 뒤의 n 과 무관해진다 — 실제로 그랬다. 자리 262,144 까지 갔다
+   * 원소 하나로 줄인 큐를 합치면 합친 뒤 n 이 2 인데 걸음이 22 였고(1,024 에서는 14),
+   * 어떤 상수로도 $C\log n$ 안에 들어오지 않는다.
+   *
+   * **축3의 여섯 시나리오가 이 자리를 안 지나간다** — 전부 쌓기만 하고 크게 줄이지 않기
+   * 때문이다. 계약 위반을 축3이 못 보는 자리이고(불변 사실 62 와 같은 종류), 잡은 것은
+   * 가이드 집필 중의 손 계측이었다.
+   */
+  #trim(): void {
+    while (
+      this.#trees.length > 0 &&
+      (this.#trees[this.#trees.length - 1] ?? null) === null
+    ) {
+      this.#trees.pop();
+    }
   }
 
   /** 같은 차수 둘을 하나로 잇는다. 비교자가 앞세우는 쪽이 위에 서고 진 쪽이 자식이 된다. */
@@ -172,9 +202,11 @@ export class BinomialHeap<T> {
     let found = -1;
     let best: BinomialNode<T> | null = null;
     for (let at = 0; at < this.#trees.length; at++) {
+      // **빈 자리도 센다.** §규약2 의 계측 단위가 *"자리 하나를 지나갈 때마다 1"* 이고
+      // `#add` 가 그렇게 세므로, 여기서만 건너뛰면 같은 구조가 두 단위로 보고된다.
+      this.__cost += 1;
       const tree = this.#trees[at] ?? null;
       if (tree === null) continue;
-      this.__cost += 1;
       if (best === null || this.#compare(tree.item, best.item) < 0) {
         found = at;
         best = tree;
