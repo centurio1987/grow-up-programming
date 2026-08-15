@@ -69,6 +69,10 @@ const GATES: Step[] = [
   },
   { label: "인용", argv: ["bun", "run", "tools/check-citations.ts"] },
   { label: "문서 링크", argv: ["bun", "run", "tools/check-links.ts", "check"] },
+  {
+    label: "가이드 전개 밀도·절 결속(래칫)",
+    argv: ["bun", "run", "tools/check-guide-rhythm.ts"],
+  },
 ];
 
 function run(step: Step): boolean {
