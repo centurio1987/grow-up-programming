@@ -32,7 +32,6 @@ src/algorithms/bit-manipulation/singleNumberXor/singleNumberXor-guide.mdx	3	0
 src/algorithms/dp/coinChangeWays/coinChangeWays-guide.mdx	4	0
 src/algorithms/dp/digitDp/digitDp-guide.mdx	4	0
 src/algorithms/dp/expectedValueDp/expectedValueDp-guide.mdx	4	0
-src/algorithms/dp/knapsack01/knapsack01-guide.mdx	5	0
 src/algorithms/dp/matrixChainMultiplication/matrixChainMultiplication-guide.mdx	4	0
 src/algorithms/dp/palindromePartitioningMinCut/palindromePartitioningMinCut-guide.mdx	5	0
 src/algorithms/dp/subsetSum/subsetSum-guide.mdx	5	0
