@@ -2,7 +2,7 @@
 card: KAN-033-E8KHSV
 title: 완전히 새롭게 알고리즘 가이드 구성을 재기획 하려고 한다. 너는 나의 지시와 요구사항을 보고 계획과 실행 전략을 수립해라. 기존의 가이드나 집필 스킬에 의존하지 말고 이 지시와 요구사항에만 집중해라. 가이드 개발과정은 샌드박스 위에서 진행하며, pilot 가이드가 완전히 나에게 승인 됐을 때 비로소 모든 가이드에 적용할 예정이다.
 created: 2026-08-18
-scope: sandbox/algo-guide-v2/**, src/_guide-sim/**, tools/check-links.ts, tools/ci.ts, tsconfig.json, package.json
+scope: sandbox/algo-guide-v2/**, src/_guide-sim/**, tools/check-links.ts, tools/ci.ts, tsconfig.json, package.json, bun.lock, KANBAN.md, KANBAN.cards/**, KANBAN.reviews/**, .kanban/**
 ---
 
 # KAN-033-E8KHSV — 완전히 새롭게 알고리즘 가이드 구성을 재기획 하려고 한다. 너는 나의 지시와 요구사항을 보고 계획과 실행 전략을 수립해라. 기존의 가이드나 집필 스킬에 의존하지 말고 이 지시와 요구사항에만 집중해라. 가이드 개발과정은 샌드박스 위에서 진행하며, pilot 가이드가 완전히 나에게 승인 됐을 때 비로소 모든 가이드에 적용할 예정이다.
@@ -129,7 +129,7 @@ Q1 **(b)** — 경쟁 설계 대조 — 라고 적는다. Q1(a)(가장 단순한
       완료 기준: 계산 블록 대체안이 서는지 실물로 판정 · **L11·P6·L19 의 처분도 함께 정한다**
 - [x] `S9` pilot ② mosAlgorithm → 편 단위 제출 (B4)
       완료 기준: S7 과 같음 + `perf.derive` 가 질의 정렬 전처리를 총식에 넣는다(L15)
-- [ ] `S10` 종합 승인 요청 (B5)
+- [x] `S10` 종합 승인 요청 (B5)
       완료 기준: 결재 항목 셋을 함께 올렸다 — ① `perf` 를 코드 뒤로 옮긴 것(카드 원문 순서와 다름)
       ② `L7` 이 카드 원문의 "최악(O)·통상(theta)" 짝짓기를 위반으로 규정한 것
       ③ Claude 데스크톱 `/learn` 원문 미확인
@@ -210,3 +210,4 @@ haiku 단독 판정이 될 수 있다. 그 경우 **「잠정」으로 표기**�
 - 2026-08-19T03:33 · s:84bb27db · S7 done — pilot ① quicksort 25항목. check-v2 P1~P10 통과, V1~V7 전부 통과(haiku 단독 잠정), 절제 시험 둘 다 겨눈 항목만 떨어짐(trace→V6, purpose.alt→V2). 실측: 최악 28=n(n-1)/2, 정렬 입력 13
 - 2026-08-19T03:38 · s:84bb27db · S8 done — L10 예외 열지 않음 — babyStepGiantStep 세 절 다 그림이 자연스럽게 섰다(가설 거짓). SPEC 조항·스캐너 figureExempt 스위치 제거. mosAlgorithm 신규 viz 도 불필요
 - 2026-08-19T04:17 · s:84bb27db · S9 done — pilot ② mosAlgorithm 25항목. 중단 조건 1 발동 → purpose.alt 의 경쟁 설계 축을 정렬 순서에서 자료구조(펜윅)로 바꿈. 판정기 분산 실측 — trace 절제는 판정력 있고 purpose.alt 절제는 haiku 단독으로 없음
+- 2026-08-19T04:22 · s:84bb27db · S10 done — 검토 요청서 작성(판단 항목 7), 카드 검토로 이동. 결재 항목: perf 순서·O/Θ 규정·/learn 미확인·haiku 단독 판정·purpose.alt 절제 판정력·L10 예외 표본 1편·pilot 두 편 다 array 계열

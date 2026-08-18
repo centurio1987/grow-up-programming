@@ -1,0 +1,260 @@
+<meta charset="utf-8">
+<!-- kanban-fp:11e6d78c343a5270ddd1d76601777db0b933ae40 -->
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KAN-033-E8KHSV 검토 요청</title>
+<style>
+/* manage-kanban 계획 리포트 스타일 — Neobrutalism_Editorial_01 (editorial brutalism)
+ *
+ * 출처: bbangto-ui/packages/style-guide-catalog/src/neobrutalismEditorial.tsx
+ *   라이트 = foundations(semantic) · 다크 = midnightFoundations(makeColorway)
+ *
+ * **왜 사본인가.** @centurio1987/bbangto-ui-visualization 은 React 컴포넌트 + 빌드가
+ * 필요하고 사설 레지스트리(npm.pkg.github.com)에 있다. 리포트는 빌드 없이 열리는 단일
+ * HTML 이고 CSP 로 외부 로드가 막히므로, 패키지를 런타임에 쓸 수 없다. 그래서 토큰 값만
+ * 옮겼다.
+ *
+ * **drift 는 이 주석이 아니라 테스트가 막는다** — scripts/test_report.py 가 위 .tsx 를
+ * 파싱해 아래 값과 대조한다(원본이 없는 머신에서는 skip).
+ */
+
+:root {
+  --ink: #1C1B17;
+  --ink-hover: #2A2823;
+  --cream: #FAF2DD;
+  --paper: #FFFCF2;
+  --cream-sunken: #F3E8C9;
+  --gold: #E9C766;
+  --green: #C2D3B4;
+  --pink: #ECC3C8;
+  --muted: #4A463C;
+  --subtle: #6E6A5E;
+  --faint: #9A9483;
+  --border-width: 2px;
+
+  --bg: var(--cream);
+  --bg-elevated: var(--paper);
+  --bg-sunken: var(--cream-sunken);
+  --fg: var(--ink);
+  --fg-muted: var(--muted);
+  --fg-subtle: var(--subtle);
+  --border: var(--ink);
+  --accent: var(--gold);
+  --accent-2: var(--green);
+  --accent-3: var(--pink);
+  --danger: #C0392B;
+  --ok: #5C7A4A;
+  --warn: #B8860B;
+  --offset: 3px 3px 0 var(--gold);
+  --offset-lg: 5px 5px 0 var(--ink);
+
+  --font-sans: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+/* 다크는 잉크/크림을 뒤집는다(midnight colorway). 시스템 기본은 media query 가,
+ * 명시적 선택은 [data-theme] 가 이긴다 — 둘 다 정의해야 토글이 양방향으로 먹는다. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1C1B17;
+    --bg-elevated: #2A2823;
+    --bg-sunken: #141310;
+    --fg: #FAF2DD;
+    --fg-muted: #C9C2AE;
+    --fg-subtle: #9A9483;
+    --border: #FAF2DD;
+    --offset: 3px 3px 0 #FAF2DD;
+    --offset-lg: 5px 5px 0 #FAF2DD;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1C1B17;
+  --bg-elevated: #2A2823;
+  --bg-sunken: #141310;
+  --fg: #FAF2DD;
+  --fg-muted: #C9C2AE;
+  --fg-subtle: #9A9483;
+  --border: #FAF2DD;
+  --offset: 3px 3px 0 #FAF2DD;
+  --offset-lg: 5px 5px 0 #FAF2DD;
+}
+
+body {
+  margin: 0;
+  padding: 2.5rem 1.25rem 5rem;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.wrap { max-width: 62rem; margin: 0 auto; }
+
+/* 각진 모서리 · 2px 잉크선 · 하드 오프셋. 이 셋이 모티프의 전부다. */
+.card, .kpi, table, pre, .chart {
+  background: var(--bg-elevated);
+  border: var(--border-width) solid var(--border);
+  border-radius: 0;
+}
+.card { padding: 1.25rem 1.5rem; margin: 1.5rem 0; box-shadow: var(--offset); }
+
+h1, h2, h3 { font-weight: 700; margin: 2rem 0 .75rem; }
+h1 { font-size: 38px; line-height: 1.05; letter-spacing: -.01em; margin-top: 0; }
+h2 { font-size: 30px; line-height: 1.1; letter-spacing: -.01em;
+     border-bottom: var(--border-width) solid var(--border); padding-bottom: .35rem; }
+h3 { font-size: 20px; line-height: 1.3; }
+
+.meta { font-family: var(--font-mono); font-size: 12px; letter-spacing: .08em;
+        font-weight: 600; text-transform: uppercase; color: var(--fg-subtle); }
+
+.title-block { border: var(--border-width) solid var(--border); background: var(--accent);
+               color: var(--ink); padding: 1.5rem; box-shadow: var(--offset-lg); }
+.title-block h1, .title-block .meta { color: var(--ink); }
+
+.kpis { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1.5rem 0; }
+.kpi { flex: 1 1 9rem; padding: .9rem 1rem; box-shadow: var(--offset); }
+.kpi b { display: block; font-size: 30px; line-height: 1.1; }
+
+table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+th, td { border: 1px solid var(--border); padding: .5rem .7rem; text-align: left;
+         vertical-align: top; font-size: 15px; }
+th { background: var(--bg-sunken); font-weight: 700; }
+
+/* 넓은 것은 페이지가 아니라 자기 안에서 가로 스크롤한다. */
+.scroll { overflow-x: auto; }
+pre { padding: .8rem 1rem; font-family: var(--font-mono); font-size: 13px; overflow-x: auto; }
+code { font-family: var(--font-mono); font-size: .9em; }
+
+.chart { padding: 1rem; margin: 1rem 0; }
+.chart svg { display: block; width: 100%; height: auto; }
+
+.tag { display: inline-block; border: var(--border-width) solid var(--border);
+       padding: 0 .4rem; font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
+.tag-done { background: var(--ok); color: var(--cream); }
+.tag-doing { background: var(--accent); color: var(--ink); }
+.tag-todo { background: var(--bg-sunken); color: var(--fg-muted); }
+.tag-hold { background: var(--accent-3); color: var(--ink); }
+.tag-warn { background: var(--warn); color: var(--ink); }
+.tag-danger { background: var(--danger); color: var(--cream); }
+
+.note, blockquote { border-left: 5px solid var(--accent); padding-left: 1rem;
+                    color: var(--fg-muted); margin: 1rem 0; }
+ol, ul { padding-left: 1.4rem; }
+li { margin: .25rem 0; }
+
+@media (max-width: 40rem) {
+  h1 { font-size: 30px; } h2 { font-size: 24px; }
+  body { padding: 1.5rem .75rem 3rem; }
+}
+
+</style>
+<div class="wrap">
+<div class="title-block">
+  <p class="meta">KAN-033-E8KHSV · 검토 · 브랜치 KAN-033-E8KHSV</p>
+  <h1>완전히 새롭게 알고리즘 가이드 구성을 재기획 하려고 한다. 너는 나의 지시와 요구사항을 보고 계획과 실행 전략을 수립해라. 기존의 가이드나 집필 스킬에 의존하지 말고 이 지시와 요구사항에만 집중해라. 가이드 개발과정은 샌드박스 위에서 진행하며, pilot 가이드가 완전히 나에게 승인 됐을 때 비로소 모든 가이드에 적용할 예정이다. — 검토 요청</h1>
+</div>
+
+
+
+<div class="kpis">
+  <div class="kpi"><span class="meta">변경 파일</span><b>60</b></div>
+  <div class="kpi"><span class="meta">추가 / 삭제</span><b>+7026 −38</b></div>
+  <div class="kpi"><span class="meta">판단 항목</span><b>0/7</b></div>
+  <div class="kpi"><span class="meta">판정</span>
+    <b><span class="tag tag-doing">검토 대기</span></b></div>
+</div>
+
+
+
+<h2>검토 대상</h2>
+<div class="scroll"><table>
+<tr><th>항목</th><th>값</th></tr>
+<tr><td>브랜치</td><td><code>KAN-033-E8KHSV</code></td></tr>
+<tr><td>워크트리</td><td><code>/Users/centurio/orca/workspaces/code_test/KAN-033-E8KHSV</code></td></tr>
+<tr><td>베이스</td><td><code>bbe4644</code></td></tr>
+<tr><td>변경 훑기</td><td><code>git diff bbe4644...HEAD</code></td></tr>
+</table></div>
+
+<h3>커밋 10건</h3>
+<pre>9cdb02e KAN-033-E8KHSV S9 — pilot ② mosAlgorithm
+fabd61d KAN-033-E8KHSV S8 — L10 예외를 열지 않는다
+2ee0a52 KAN-033-E8KHSV S7 — pilot ① quicksort
+b9e2024 KAN-033-E8KHSV S6 — md→HTML 빌드 파이프라인
+c2d39d0 KAN-033-E8KHSV S5 — 부류 후보 조사
+39e3355 KAN-033-E8KHSV S4 — 스캐너 P1~P10
+8d18092 KAN-033-E8KHSV S3 — 이해 시험 V1~V7
+37dc295 KAN-033-E8KHSV S2 — algo-learn-guide 명세 정본
+b39e515 KAN-033-E8KHSV B0a — 본 저장소 예외 6건 + 카드 착수
+13e31d5 kanban: KAN-033-E8KHSV 실행 문서 작성 — 전략·WBS 9단계·검증 기준</pre>
+
+<h3>변경 규모</h3>
+<div class="chart"><svg viewBox="0 0 860 530" role="img" aria-label="파일별 변경 규모"><text x="16" y="28" font-size="12" fill="var(--fg-subtle)">파일 60개 중 규모 상위 18개 · 초록 추가 · 빨강 삭제</text><text x="16" y="57" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">sandbox/algo-guide-v2/tools/check-v2.ts</text><rect x="316.0" y="46" width="528.0" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="852.0" y="58" font-size="11" fill="var(--fg-subtle)">+575 −0</text><text x="16" y="83" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">…pilot/mosAlgorithm/mosAlgorithm-guide.md</text><rect x="316.0" y="72" width="445.4" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="769.4" y="84" font-size="11" fill="var(--fg-subtle)">+485 −0</text><text x="16" y="109" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">…de-v2/pilot/quicksort/quicksort-guide.md</text><rect x="316.0" y="98" width="425.2" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="749.2" y="110" font-size="11" fill="var(--fg-subtle)">+463 −0</text><text x="16" y="135" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">sandbox/algo-guide-v2/JOURNAL.md</text><rect x="316.0" y="124" width="388.4" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="712.4" y="136" font-size="11" fill="var(--fg-subtle)">+423 −0</text><text x="16" y="161" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">sandbox/algo-guide-v2/SPEC.md</text><rect x="316.0" y="150" width="338.8" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="662.8" y="162" font-size="11" fill="var(--fg-subtle)">+369 −0</text><text x="16" y="187" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">sandbox/algo-guide-v2/tools/build-html.ts</text><rect x="316.0" y="176" width="327.8" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="651.8" y="188" font-size="11" fill="var(--fg-subtle)">+357 −0</text><text x="16" y="213" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">…box/algo-guide-v2/tools/comprehension.sh</text><rect x="316.0" y="202" width="323.2" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="647.2" y="214" font-size="11" fill="var(--fg-subtle)">+352 −0</text><text x="16" y="239" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">…box/algo-guide-v2/tools/check-v2.test.ts</text><rect x="316.0" y="228" width="284.7" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="608.7" y="240" font-size="11" fill="var(--fg-subtle)">+310 −0</text><text x="16" y="265" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">KANBAN.cards/KAN-033-E8KHSV.md</text><rect x="316.0" y="254" width="194.7" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="518.7" y="266" font-size="11" fill="var(--fg-subtle)">+212 −0</text><text x="16" y="291" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">src/_guide-sim/guide-sim.test.tsx</text><rect x="316.0" y="280" width="157.0" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><rect x="473.0" y="280" width="0.9" height="14" fill="var(--danger)" stroke="var(--border)" stroke-width="2"/><text x="481.9" y="292" font-size="11" fill="var(--fg-subtle)">+171 −1</text><text x="16" y="317" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">…guide-v2/tools/comprehension.selftest.sh</text><rect x="316.0" y="306" width="154.3" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="478.3" y="318" font-size="11" fill="var(--fg-subtle)">+168 −0</text><text x="16" y="343" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">sandbox/algo-guide-v2/tools/section.ts</text><rect x="316.0" y="332" width="152.4" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="476.4" y="344" font-size="11" fill="var(--fg-subtle)">+166 −0</text><text x="16" y="369" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">…t/mosAlgorithm/mosAlgorithm-guide.alt.ts</text><rect x="316.0" y="358" width="113.9" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="437.9" y="370" font-size="11" fill="var(--fg-subtle)">+124 −0</text><text x="16" y="395" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">sandbox/algo-guide-v2/tools/bench-alt.ts</text><rect x="316.0" y="384" width="112.9" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="436.9" y="396" font-size="11" fill="var(--fg-subtle)">+123 −0</text><text x="16" y="421" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">sandbox/algo-guide-v2/SURVEY.md</text><rect x="316.0" y="410" width="112.0" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="436.0" y="422" font-size="11" fill="var(--fg-subtle)">+122 −0</text><text x="16" y="447" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">…dbox/algo-guide-v2/tools/survey-views.ts</text><rect x="316.0" y="436" width="111.1" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="435.1" y="448" font-size="11" fill="var(--fg-subtle)">+121 −0</text><text x="16" y="473" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">…/mosAlgorithm/mosAlgorithm-guide.test.ts</text><rect x="316.0" y="462" width="101.0" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="425.0" y="474" font-size="11" fill="var(--fg-subtle)">+110 −0</text><text x="16" y="499" font-size="12" font-family="var(--font-mono)" fill="var(--fg-muted)">…x/algo-guide-v2/tools/build-html.test.ts</text><rect x="316.0" y="488" width="101.0" height="14" fill="var(--ok)" stroke="var(--border)" stroke-width="2"/><text x="425.0" y="500" font-size="11" fill="var(--fg-subtle)">+110 −0</text></svg></div>
+<div class="scroll"><table>
+<tr><th>파일</th><th>상태</th><th>추가</th><th>삭제</th></tr><tr><td><code>.kanban/archive.jsonl</code></td><td>M</td><td>1</td><td>0</td></tr><tr><td><code>.kanban/log.md</code></td><td>M</td><td>1</td><td>1</td></tr><tr><td><code>.kanban/state.json</code></td><td>M</td><td>21</td><td>17</td></tr><tr><td><code>KANBAN.cards/KAN-033-E8KHSV.md</code></td><td>M</td><td>212</td><td>0</td></tr><tr><td><code>KANBAN.md</code></td><td>M</td><td>6</td><td>5</td></tr><tr><td><code>bun.lock</code></td><td>M</td><td>94</td><td>0</td></tr><tr><td><code>package.json</code></td><td>M</td><td>9</td><td>1</td></tr><tr><td><code>sandbox/algo-guide-v2/.gitignore</code></td><td>M</td><td>3</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/JOURNAL.md</code></td><td>M</td><td>423</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/README.md</code></td><td>M</td><td>97</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/SPEC.md</code></td><td>M</td><td>369</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/SURVEY.md</code></td><td>M</td><td>122</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/_smoke/sample-guide.md</code></td><td>M</td><td>68</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/_smoke/sample-guide.sim.ts</code></td><td>M</td><td>21</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/pilot/babyStepGiantStep/babyStepGiantStep-guide.partial.md</code></td><td>M</td><td>82</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.alt.ts</code></td><td>M</td><td>124</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.bench.json</code></td><td>M</td><td>4</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.md</code></td><td>M</td><td>485</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.ref.ts</code></td><td>M</td><td>57</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.sim.ts</code></td><td>M</td><td>89</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.test.ts</code></td><td>M</td><td>110</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.alt.ts</code></td><td>M</td><td>84</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.bench.json</code></td><td>M</td><td>6</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.md</code></td><td>M</td><td>463</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.ref.ts</code></td><td>M</td><td>39</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.sim.ts</code></td><td>M</td><td>66</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.test.ts</code></td><td>M</td><td>49</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/tools/bench-alt.ts</code></td><td>M</td><td>123</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/tools/build-html.test.ts</code></td><td>M</td><td>110</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/tools/build-html.ts</code></td><td>M</td><td>357</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/tools/check-v2.test.ts</code></td><td>M</td><td>310</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/tools/check-v2.ts</code></td><td>M</td><td>575</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/tools/comprehension.selftest.sh</code></td><td>M</td><td>168</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/tools/comprehension.sh</code></td><td>M</td><td>352</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/tools/mount.ts</code></td><td>M</td><td>60</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/tools/section.ts</code></td><td>M</td><td>166</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/tools/survey-views.ts</code></td><td>M</td><td>121</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/tsconfig.json</code></td><td>M</td><td>8</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/.gitkeep</code></td><td>M</td><td>8</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/mosAlgorithm-ablate-purpose-alt-r01.md</code></td><td>M</td><td>83</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/mosAlgorithm-ablate-purpose-alt-r02.md</code></td><td>M</td><td>85</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/mosAlgorithm-ablate-purpose-alt-r03.md</code></td><td>M</td><td>103</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/mosAlgorithm-ablate-purpose-alt-r04.md</code></td><td>M</td><td>83</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/mosAlgorithm-ablate-purpose-alt-r05.md</code></td><td>M</td><td>71</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/mosAlgorithm-ablate-purpose-alt-r06.md</code></td><td>M</td><td>79</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/mosAlgorithm-ablate-trace-r01.md</code></td><td>M</td><td>85</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/mosAlgorithm-ablate-trace-r02.md</code></td><td>M</td><td>81</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/mosAlgorithm-r01.md</code></td><td>M</td><td>65</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/mosAlgorithm-r06.md</code></td><td>M</td><td>84</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/mosAlgorithm-r07.md</code></td><td>M</td><td>77</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/mosAlgorithm-r08.md</code></td><td>M</td><td>79</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/mosAlgorithm-r09.md</code></td><td>M</td><td>67</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/quicksort-ablate-purpose-alt-r01.md</code></td><td>M</td><td>69</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/quicksort-ablate-trace-r01.md</code></td><td>M</td><td>87</td><td>0</td></tr><tr><td><code>sandbox/algo-guide-v2/verdicts/quicksort-r01.md</code></td><td>M</td><td>79</td><td>0</td></tr><tr><td><code>src/_guide-sim/guide-sim.test.tsx</code></td><td>M</td><td>171</td><td>1</td></tr><tr><td><code>src/_guide-sim/index.tsx</code></td><td>M</td><td>97</td><td>12</td></tr><tr><td><code>tools/check-links.ts</code></td><td>B</td><td>0</td><td>0</td></tr><tr><td><code>tools/ci.ts</code></td><td>M</td><td>7</td><td>0</td></tr><tr><td><code>tsconfig.json</code></td><td>M</td><td>11</td><td>1</td></tr>
+</table></div>
+
+<h3>롤백 태그 0개</h3>
+<p class="note">태그가 없습니다 — work 를 닫는 커밋에 아직 태그가 안 붙었습니다.</p>
+
+<h2>검증 — 기준과 실행 결과</h2>
+<section class="card"><p><strong>기준</strong></p>
+<p>배치마다 아래를 돌린다. 샌드박스는 <strong>루트 타입 검사에서 빠져 있으므로</strong>(<code>tsconfig.json</code> exclude) 반드시 <code>-p</code> 로 따로 판정한다.</p>
+<pre>bunx tsc --noEmit -p sandbox/algo-guide-v2                 # 샌드박스 전용
+bunx --bun @biomejs/biome check sandbox/algo-guide-v2      # .ts 가 생긴 뒤부터
+bun test sandbox/algo-guide-v2                             # .test.ts 가 생긴 뒤부터
+bun run sandbox/algo-guide-v2/tools/check-v2.ts &lt;파일&gt;      # P1~P10
+bun run sandbox/algo-guide-v2/tools/build-html.ts &lt;파일&gt;    # 빌드 + 스모크 (L19)
+bash sandbox/algo-guide-v2/tools/comprehension.sh &lt;파일&gt;    # V1~V7
+bun run tools/ci.ts all                                     # 배치 종료마다</pre>
+<p><strong>함정 둘을 미리 적는다(실측).</strong></p>
+<ul>
+<li><code>bun test &lt;경로&gt;</code> 와 <code>bunx --bun @biomejs/biome check &lt;디렉터리&gt;</code> 는 <strong>대상 파일이 0개면 exit 1</strong> 이다. 초반 배치(S1~S3)에서는 돌리지 않는다 — 돌리면 무조건 빨간불이다.</li>
+<li><strong><code>bunx biome</code> 을 쓰지 않는다.</strong> npm 의 <code>biome</code> 은 이 저장소가 설정한 <code>@biomejs/biome</code> 와 다른 패키지이고 아무것도 검사하지 않고 exit 0 을 준다(<code>CLAUDE.md</code>).</li>
+</ul>
+<p><strong><code>tools/check-guide-rhythm.ts</code> 는 호출하지 않는다.</strong> 규칙은 P1·P2 로 옮겼다. 호출해도 R2~R4·R6 은 <code>hasTrace</code>(구 헤딩 문자열 <strong>접두 일치</strong>, <code>:53</code>·<code>:183</code>·<code>:221-222</code>)가 새 헤딩과 어긋나 <strong>조용히 공전한다</strong> — 통과 표시가 거짓이 된다.</p>
+<p><strong>판정 장치와 그것이 재는 것</strong></p>
+<div class="scroll"><table><tr><th>장치</th><th>재는 것</th></tr><tr><td>이해 시험 V1~V7</td><td>외부 모델이 본문만 읽고 이해했는가. <strong>응답한 모델 전부 PASS(AND)</strong></td></tr><tr><td><code>check-v2.ts</code> P1~P10</td><td>기계로 셀 수 있는 것. P5(결속)는 <strong>형식만</strong> 재고 실질은 V7</td></tr><tr><td>절제 시험</td><td><code>trace</code>·<code>purpose.alt</code> 가 장식인가. <strong>그 절과 그것을 가리키는 <code>T#</code> 인용을 함께 지운다</strong></td></tr><tr><td><code>bench-alt.ts</code></td><td>L13 의 <strong>결정론적</strong> 계수(비교 횟수·이동 칸 수). 벽시계는 안 쓴다</td></tr><tr><td><code>bun test</code></td><td>L9 — 완성 코드가 기존 테스트의 <strong>입출력 케이스</strong>를 통과</td></tr><tr><td>유저</td><td>최종 승인. <strong>편 단위</strong>, 항목 id 로 반려</td></tr></table></div>
+<p><strong>이해 시험의 현재 한계</strong>: codex 사용 한도가 2026-09-14 복구, agy 도 한도 초과라 지금은 haiku 단독 판정이 될 수 있다. 그 경우 <strong>「잠정」으로 표기</strong>하고 codex 복구 후 재판정 대상에 등록한다. 미실행(exit 2)은 통과가 아니고, 카운터에도 넣지 않으며 배치를 멈춘다.</p>
+<p><strong>본 저장소 예외 6건의 검증</strong>(S1 에서 이미 통과): <code>bun run tools/ci.ts all</code> 초록 · <code>bunx tsc --noEmit</code> 무출력 · <code>bun test src/_guide-sim</code> 14개 통과 · 새 코드 린트 경고 0(기존 <code>index.tsx</code> 의 미정리 경고 9건은 이 카드 범위 밖).</p>
+<p><strong>실행 결과</strong></p>
+<pre>### 실행 결과 — 2026-08-19 04:19
+
+$ bunx tsc --noEmit -p sandbox/algo-guide-v2
+  → exit 0
+
+$ bun test sandbox/algo-guide-v2
+ 48 pass
+ 0 fail
+ 66 expect() calls
+Ran 48 tests across 4 files. [1.54s]
+
+$ bunx --bun @biomejs/biome check sandbox/algo-guide-v2
+Checked 20 files in 24ms. No fixes applied.
+Found 1 error.
+
+$ bun run sandbox/algo-guide-v2/tools/check-v2.ts &lt;두 편&gt;
+sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.md — P1~P10 통과.
+sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.md — P1~P10 통과.
+
+$ bash sandbox/algo-guide-v2/tools/comprehension.selftest.sh
+ 자기시험 통과 — 7항목
+
+
+$ bun run tools/ci.ts all
+판정 제외(정상): ③ 실습 채점 — 스텁(미구현 실패가 정상, 판정 제외)
+all 모드 통과 — 단계 12개.</pre></section>
+
+<h2>판단 항목</h2>
+<ul><li><span class="tag tag-todo">대기</span> [결재 1] <code>perf</code> 를 <code>code</code>·<code>trace</code> <strong>뒤로</strong> 옮겼다 — 카드 원문의 항목 순서와 다르다. 카드는 성능(KANBAN.md:60)을 코드(:65) 앞에 놓았고, 면제 문구(:45)는 &quot;항목명&quot;만 면제한다. 옮긴 이유는 <code>perf.derive</code> 가 <code>trace</code> 의 T# 를 인용해야 결속(P5)이 서기 때문이다. 순서를 되돌리면 그 결속이 깨진다.</li><li><span class="tag tag-todo">대기</span> [결재 2] <code>L7</code> 이 카드 원문의 &quot;최악의 경우(O(n)), 통상적 경우(theta(n))&quot; 짝짓기를 <strong>위반으로 규정</strong>했다. O·Θ 는 케이스가 아니라 경계의 종류라서다. 이대로 두면 111편이 &quot;최악=O, 평균=Θ&quot; 라는 틀린 짝을 복제하지 않는다. 카드 문면과 다르므로 결재가 필요하다.</li><li><span class="tag tag-todo">대기</span> [결재 3] Claude 데스크톱 <code>/learn</code> 스킬의 <strong>원문을 확인하지 못했다.</strong> 웹 검색으로 안 잡혔고, 로컬 learning-output-style 플러그인 원문과 ChatGPT Study Mode 지침 요지 둘로 대체했다. 벤치마크 대조표(SPEC.md §7)가 그 둘에서만 나왔다.</li><li><span class="tag tag-todo">대기</span> [결재 4] 이해 시험 판정이 <strong>haiku 단독(잠정)</strong> 이다. codex 는 2026-09-14 복구, agy 도 할당량 초과라 다모델 AND 합의가 아니다. 그리고 판정기 분산을 실측했다 — 본편 V2 가 한 회차에서 FAIL 인데 같은 회차 절제 사본은 통과했다(불가능한 조합). 3회 재실행은 전부 통과. <strong>codex 복구 후 재판정을 승인 조건에 넣을지</strong> 정해 달라.</li><li><span class="tag tag-todo">대기</span> [결재 5] <code>purpose.alt</code> 절제 시험이 mosAlgorithm 에서 <strong>판정력을 못 냈다</strong>(지워도 V2 통과). 중단 조건 1 을 형식대로 적용하면 그 항목을 빼야 하지만, 감사가 실패 50편의 원인으로 지목한 항목이고 quicksort 에서는 절제가 정확히 작동했다. <strong>판정기 신뢰도 확보 전까지 명세를 안 고치기로</strong> 했다 — 이 판단을 승인할지 정해 달라.</li><li><span class="tag tag-todo">대기</span> [결재 6] L10(그림 의무)의 <strong>부류 예외를 열지 않기로</strong> 했다. 근거는 babyStepGiantStep 한 편이다(세 절 다 그림이 자연스럽게 섰다). 표본이 하나인데 조항을 지운 것이 맞는지 정해 달라.</li><li><span class="tag tag-todo">대기</span> [결재 7] pilot 이 <strong>두 편 다 <code>array</code> 계열</strong>이다. 111편에는 그래프 21편·트리 10편·matrix 12편이 있고 그 부류로는 명세를 시험하지 않았다. 이 상태로 전개 카드를 뽑아도 되는지 정해 달라.</li></ul>
+
+<h2>판정</h2>
+<section class="card"><p><strong>판정</strong>: (승인 / 반려 중 하나를 적으세요)</p>
+<p><strong>사유</strong>:</p>
+<ul>
+<li>승인이면 → <code>apply --op move --id KAN-033-E8KHSV --to done</code></li>
+<li>반려면 → <code>apply --op move --id KAN-033-E8KHSV --to doing</code> 뒤에 <code>doc-log --entry &quot;&lt;반려 사유&gt;&quot;</code></li>
+</ul></section>
+
+<p class="meta">생성 근거: KANBAN.reviews/KAN-033-E8KHSV.review.md
+· KANBAN.md · 갱신 2026-08-19</p>
+</div>

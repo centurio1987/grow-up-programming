@@ -92,7 +92,9 @@ function fenwickOps(): number {
     return sum;
   };
 
-  const byR = queries.map((q, i) => ({ l: q[0], r: q[1], i })).sort((a, b) => a.r - b.r);
+  const byR = queries
+    .map((q, i) => ({ l: q[0], r: q[1], i }))
+    .sort((a, b) => a.r - b.r);
   const last = new Map<number, number>();
   const out = new Array<number>(queries.length);
   let cursor = 0;
@@ -113,12 +115,14 @@ function fenwickOps(): number {
 }
 
 export const cases = {
-  "Mo (블록,r)": () => ({ 이동칸: moveCount((list, block) => {
-    list.sort((x, y) => {
-      const bx = Math.floor(x.l / block);
-      const by = Math.floor(y.l / block);
-      return bx !== by ? bx - by : x.r - y.r;
-    });
-  }) }),
+  "Mo (블록,r)": () => ({
+    이동칸: moveCount((list, block) => {
+      list.sort((x, y) => {
+        const bx = Math.floor(x.l / block);
+        const by = Math.floor(y.l / block);
+        return bx !== by ? bx - by : x.r - y.r;
+      });
+    }),
+  }),
   "펜윅 트리": () => ({ 노드방문: fenwickOps() }),
 };
