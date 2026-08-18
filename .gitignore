@@ -38,3 +38,6 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 
 # rust (cargo)
 rust/target
+
+# manage-kanban 다중 세션 잠금(로컬 전용)
+.kanban/locks/

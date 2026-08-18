@@ -104,7 +104,7 @@ B22 가 다음 배치에서 따로 닫았다.
 충돌이 안 나고, 일곱째는 **자기 파일을 안 건드린 배치의 산출물이 깨진다.** 그래서 규약이
 각각 「읽기만」과 「전수 대조」다.
 
-**`KANBAN.md` 갱신은 직렬화한다.** `manage-kanban` 스크립트가 `KANBAN.state.json` 을
+**`KANBAN.md` 갱신은 직렬화한다.** `manage-kanban` 스크립트가 `.kanban/state.json` 을
 함께 쓰므로 두 세션이 동시에 돌리면 스냅샷이 어긋난다. 배치 종료 시 `git pull --rebase`
 직후 단독으로 돌린다.
 
