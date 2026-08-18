@@ -119,7 +119,7 @@ Q1 **(b)** — 경쟁 설계 대조 — 라고 적는다. Q1(a)(가장 단순한
 - [x] `S5` 부류 후보 조사 — 읽기 전용 (B0c)
       완료 기준: 111편 `view=` 분포표 + "그림이 성립하지 않는" **후보** 목록.
       정본이 아니라 후보임을 문서에 명시한다
-- [ ] `S6` 빌드 파이프라인 — `tools/build-html.ts` + `_smoke/` (B1)
+- [x] `S6` 빌드 파이프라인 — `tools/build-html.ts` + `_smoke/` (B1)
       완료 기준: 합격 기준 아홉 전부. 특히 **JS-off 에서 ascii 그림이 보인다** ·
       **빈 `steps` 마커에서 ascii 가 살아 있다** · **번들 인라인이 페이지를 안 깨뜨린다**
 - [ ] `S7` pilot ① quicksort → 편 단위 제출 (B2)
@@ -206,3 +206,4 @@ haiku 단독 판정이 될 수 있다. 그 경우 **「잠정」으로 표기**�
 - 2026-08-19T02:52 · s:84bb27db · S3 done — comprehension.sh V1~V7 + 자기시험 7항목. 절대 규칙 넷·AND 결합·codex 격리·종료코드 3분기·verdicts 보관. 자기시험이 진짜 verdicts 를 오염시키던 결함 수정
 - 2026-08-19T03:01 · s:84bb27db · S4 done — section.ts(절 식별기) + check-v2.ts(P1~P10) + 자기시험 18단언 + bench-alt.ts. tsc -p 무출력, 18 pass, biome 0
 - 2026-08-19T03:06 · s:84bb27db · S5 done — survey-views.ts + SURVEY.md. keyValue 단독 22편/4카테고리(임계 5 미만). 플랜의 대표 선정 규칙이 _deprecated 조건 때문에 아무것도 못 골라 수정 → babyStepGiantStep
+- 2026-08-19T03:14 · s:84bb27db · S6 done — build-html.ts + mount.ts + 연기 시험 10단언. 합격 기준 아홉 전부 실측 통과. 마커를 커스텀 노드로 재타이핑(html 타입 유지 시 노드 소멸), 빈 steps 에서 createRoot 미호출로 ascii 폴백 생존

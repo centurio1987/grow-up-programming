@@ -166,3 +166,57 @@ L10 예외의 정본은 **S8 이 실제로 써 보고 낸다.**
 
 **실측.** biome 경고 0 · `tsc -p` 무출력 · 링크 255건 유효 · 루트 `ci.ts all` 12단계 통과.
 포맷 후 재실행해도 조사 수치가 같다.
+
+---
+
+## S6 — B1 빌드 파이프라인 · 2026-08-19
+
+**한 것.** `tools/build-html.ts`(md→HTML) · `tools/mount.ts`(마운트 규칙) ·
+`tools/build-html.test.ts`(연기 시험 10단언) · `_smoke/sample-guide.md`+`.sim.ts`.
+
+**마커는 커스텀 노드 타입으로 재타이핑한다.** `type:"html"` 을 유지한 채 `data.hName` 만
+달면 속성이 아니라 **노드가 통째로 사라진다** — `mdast-util-to-hast` 의 html 핸들러가
+`allowDangerousHtml:false` 에서 `undefined` 를 반환하고, 그러면 `applyData` 가 호출되지 않아
+`hName`·`hProperties`·`hChildren` 이 전부 무시된다. hast element 를 직접 꽂는 것도 안 된다
+(unknown 핸들러가 `properties` 를 빈 객체로 초기화한다). `vizPanel`·`checkBlock` 두 타입을
+새로 만들고 `parent.children.splice()` 로 접었다 — `unist-util-visit` 은 노드 단위라 두 노드를
+하나로 못 접는다.
+
+**`<summary>` 를 명시했다.** `<details>` 만 내면 브라우저 기본 라벨이 뜬다. 중첩
+`hName:"summary"` 노드로 "답 보기" 를 넣었다. **JS 가 필요 없으므로 JS-off 에서도 접힘이 유지된다.**
+
+**마운트 로직을 생성 문자열에서 빼 `mount.ts` 로 옮겼다.** 문자열 안에 있으면 그 규칙을
+시험할 방법이 없다 — 빌더가 "HTML 이 나왔다" 까지만 말하고 마운트가 무엇을 지웠는지는
+아무도 안 본다. 규칙은 하나다: **`steps` 가 비었거나 spec 이 없으면 `createRoot` 를 부르지
+않는다.** `createRoot().render()` 가 컨테이너의 기존 자식을 지우므로, 부르는 순간 폴백으로
+남긴 ascii `<pre>` 가 사라져 **JS 를 켠 화면에서 그림이 0개**가 된다 — JS-off 에 대해
+지적했던 구멍과 정확히 대칭이다.
+
+**고친 버그 하나.** CLI 인자 파싱이 `--out` 없이 부르면 대상을 하나도 못 찾았다.
+`args[outIdx + 1]` 에서 `outIdx` 가 -1 이라 `args[0]`(대상 자신)을 제외 목록에 넣고 있었다.
+
+**합격 기준 아홉 — 전부 실측 통과.**
+
+| # | 기준 | 결과 |
+| --- | --- | --- |
+| ① | KaTeX 글꼴이 실제로 뜬다 | `data:font/woff2;base64` 있음 · `url(fonts/` **0건** |
+| ② | sim 패널이 마운트된다 | `data-viz` 2개 · 번들 포함 |
+| ③ | JS-off 에서 산문·표·수식·**ascii 그림** | `<table>`·`class="katex"`·`gs-ascii` **2개** |
+| ④ | JS-off 에서 `check` 답이 접혀 있다 | `<details class="gs-check">` |
+| ⑤ | `<summary>` 라벨이 뜬다 | `<summary>답 보기</summary>` |
+| ⑥ | 다크 모드에서 색이 뒤집힌다 | `prefers-color-scheme: dark` 토큰 |
+| ⑦ | 코드가 하이라이트된다 | `class="shiki"` (light/dark 이중 테마) |
+| ⑧ | `</script>` 코드블록 무파손 | 산문은 `&#x3C;/script>` 엔티티 |
+| ⑨ | **번들 인라인 무파손** | 문서의 `</script>` 총 **1개**. 번들 쪽은 `<\/script` |
+| ⑩ | 빈 `steps` 마커에서 ascii 생존 | `createRoot` 호출 0 · `pre.gs-ascii` 잔존 |
+
+⑧과 ⑨는 **서로 다른 스트림**이다. 4판까지 이스케이프를 산문에 걸려 했는데, 산문 쪽은
+`rehype-stringify` 가 이미 엔티티로 바꾸므로 손대면 **독자에게 `<\/script>` 가 그대로 보인다.**
+실제 사고가 난 자리는 번들이고(`serve.ts:65-66`), 규칙은 거기에만 건다.
+
+**실측.** HTML **559KB**(KaTeX woff2 base64 346KB + React 번들 + shiki) ·
+`bun test sandbox/algo-guide-v2` **28 pass**(스캐너 18 + 빌드 10) · `tsc -p` 무출력 ·
+biome 경고 0 · 루트 `ci.ts all` 12단계 통과. `.html` 은 `.gitignore` 로 커밋되지 않는 것을 확인했다.
+
+**아직 안 한 것.** 실제 브라우저로 열어 보지 않았다 — 단언은 전부 산출 문자열과 happy-dom
+DOM 위에서 했다. 사람 눈 확인은 S7 제출 때 함께 받는다.
