@@ -35,5 +35,15 @@
   // `_deprecated/`는 이력 보존용 사본이고 `_scratch/`는 습작이다. 둘을 넣으면 오류
   // 1048건이 상시로 떠서 `bunx tsc --noEmit` 이 판정에 못 쓰인다 — 그 상태가 곧
   // "검사하지 않는 검사"다(ORD-006 KAN-012).
-  "exclude": ["**/_deprecated/**", "**/_scratch/**", "node_modules"]
+  //
+  // `sandbox/`는 성격이 다르다 — 검사를 **안 하는** 것이 아니라 **따로** 한다.
+  // 여기 두면 초안 하나의 타입 오류가 `tools/ci.ts`의 GATES 첫 항목을 죽이고, 그러면
+  // 같은 저장소에서 도는 다른 카드가 자기 잘못 없이 막힌다. 샌드박스는
+  // `bunx tsc --noEmit -p sandbox/<프로젝트>` 로 단독 판정한다(KAN-033).
+  "exclude": [
+    "**/_deprecated/**",
+    "**/_scratch/**",
+    "node_modules",
+    "sandbox/**"
+  ]
 }

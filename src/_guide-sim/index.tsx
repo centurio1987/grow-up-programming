@@ -22,6 +22,16 @@ export interface BaseFrame {
   title?: string;
   /** 이 단계에서 무슨 일이 일어나는지에 대한 설명. */
   detail?: string;
+  /**
+   * **새 뷰가 쓰는 필드는 전부 여기 아래에 둔다.**
+   *
+   * `Frame` 은 아래에서 `Partial<...>` 들의 **교집합**으로 만들어진다. 그래서 최상위에
+   * 필드를 더할 때 이름이 기존 것과 겹치고 타입이 다르면 그 필드가 `never` 가 되고,
+   * 그 순간 이미 나가 있는 프레임 리터럴이 **한꺼번에** 안 맞는다. `highlight` 가 지금도
+   * `ArrayFrame` 과 `PriorityQueueFrame` 양쪽에 선언돼 있어 그 사고가 한 걸음 거리다.
+   * `extra` 는 값 타입이 `unknown` 이라 그 위험이 없다 — 소비하는 쪽에서 좁혀 쓴다.
+   */
+  extra?: Record<string, unknown>;
 }
 
 /** `view="array"` — 배열/정렬/투포인터 시각화. */
@@ -115,13 +125,40 @@ export type ViewName =
   | "matrix"
   | "keyValue";
 
-export interface AlgorithmSimulationProps {
+/** 한 패널을 그리는 것. 프리셋도 `extraViews` 도 같은 모양이다. */
+export type ViewComponent = (props: { frame: Frame }) => React.JSX.Element;
+
+/**
+ * `E` 는 `extraViews` 에 실제로 등록한 새 뷰 이름들이고, 넘기지 않으면 `never` 다.
+ *
+ * **왜 제네릭인가.** `view` 를 그냥 `string` 으로 넓히면 새 뷰를 끼울 수는 있어도
+ * **오타가 타입으로 안 잡힌다** — 지금 이 유니온이 오타를 잡는 유일한 장치이고,
+ * 소비자 대부분이 `.mdx` 라 타입 검사 대상이 아니라 대신 잡아 줄 것이 없다.
+ * `E` 를 `extraViews` 의 키에서 추론하면 **등록한 이름만** 허용된다.
+ */
+export interface AlgorithmSimulationProps<E extends string = never> {
   steps: Frame[];
-  /** 프리셋 뷰. 배열로 주면 위에서 아래로 여러 패널을 함께 렌더. */
-  view: ViewName | ViewName[];
+  /**
+   * 뷰 이름. 배열로 주면 위에서 아래로 여러 패널을 함께 렌더.
+   *
+   * `NoInfer` 가 붙은 이유: 이것이 없으면 TS 가 `E` 를 **`view` 에서도** 추론해서
+   * 오타가 그대로 새 뷰 이름이 되어 버린다(`view="typo"` 가 통과한다).
+   * `E` 는 오직 `extraViews` 의 키에서만 나와야 한다.
+   */
+  view: (ViewName | NoInfer<E>) | (ViewName | NoInfer<E>)[];
   title?: string;
   /** 자동재생 간격(ms). 기본 800. */
   intervalMs?: number;
+  /**
+   * **새 이름의 뷰**를 끼우는 자리(샌드박스 선개발용).
+   * 프리셋 이름과 겹치면 **던진다** — 조용한 덮어쓰기는 어느 게이트도 못 잡는다.
+   */
+  extraViews?: Record<E, ViewComponent>;
+  /**
+   * **프리셋을 의도적으로 덮는** 자리. 기존 뷰를 고쳐 보는 실험 경로다.
+   * 덮을 때마다 `console.warn` 을 낸다 — 의도한 덮어쓰기와 사고를 가르는 것은 이 한 줄이다.
+   */
+  overrides?: Partial<Record<ViewName, ViewComponent>>;
 }
 
 /* ────────────────────────── 프리셋 뷰 ────────────────────────── */
@@ -358,10 +395,7 @@ function KeyValueView({ frame }: { frame: Frame }) {
   );
 }
 
-const VIEW_REGISTRY: Record<
-  ViewName,
-  (props: { frame: Frame }) => React.JSX.Element
-> = {
+const VIEW_REGISTRY: Record<ViewName, ViewComponent> = {
   array: ArrayView,
   graph: GraphView,
   priorityQueue: PriorityQueueView,
@@ -370,14 +404,52 @@ const VIEW_REGISTRY: Record<
   keyValue: KeyValueView,
 };
 
+/**
+ * 프리셋 · `overrides` · `extraViews` 를 한 표로 합친다.
+ *
+ * 규칙 둘. **`extraViews` 가 프리셋 이름을 쓰면 던진다** — 새 뷰를 더하는 자리와 기존 뷰를
+ * 고치는 자리를 갈라 두지 않으면 오타 하나가 조용히 프리셋을 갈아치운다.
+ * **`overrides` 는 이기되 흔적을 남긴다** — 의도한 덮어쓰기라도 소리 없이 되면 다음 사람이
+ * 왜 다르게 그려지는지 못 찾는다.
+ */
+export function resolveRegistry<E extends string>(
+  extraViews?: Record<E, ViewComponent>,
+  overrides?: Partial<Record<ViewName, ViewComponent>>,
+): Record<string, ViewComponent> {
+  const merged: Record<string, ViewComponent> = { ...VIEW_REGISTRY };
+
+  for (const [name, component] of Object.entries(overrides ?? {})) {
+    if (!component) continue;
+    console.warn(
+      `[guide-sim] 프리셋 뷰 "${name}" 를 overrides 로 덮습니다. 실험이 끝나면 되돌리거나 승격하세요.`,
+    );
+    merged[name] = component;
+  }
+
+  const extras = (extraViews ?? {}) as Record<string, ViewComponent>;
+  for (const [name, component] of Object.entries(extras)) {
+    if (name in VIEW_REGISTRY) {
+      throw new Error(
+        `[guide-sim] extraViews 의 "${name}" 가 프리셋 이름과 겹칩니다. ` +
+          `프리셋을 고치려면 overrides 를 쓰세요.`,
+      );
+    }
+    merged[name] = component;
+  }
+
+  return merged;
+}
+
 /* ────────────────────────── 스텝퍼 셸 ────────────────────────── */
 
-export function AlgorithmSimulation({
+export function AlgorithmSimulation<E extends string = never>({
   steps,
   view,
   title,
   intervalMs = 800,
-}: AlgorithmSimulationProps) {
+  extraViews,
+  overrides,
+}: AlgorithmSimulationProps<E>) {
   const [index, setIndex] = useState(0);
   const [playing, setPlaying] = useState(false);
   const timer = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -386,6 +458,7 @@ export function AlgorithmSimulation({
   const clamp = (i: number) => Math.max(0, Math.min(total - 1, i));
   const frame: Frame = steps[clamp(index)] ?? {};
   const views = Array.isArray(view) ? view : [view];
+  const registry = resolveRegistry(extraViews, overrides);
 
   useEffect(() => {
     if (!playing) return;
@@ -411,9 +484,21 @@ export function AlgorithmSimulation({
       {title && <div className="gs-title">{title}</div>}
 
       <div className="gs-stage">
-        {views.map((v) => {
-          const View = VIEW_REGISTRY[v];
-          return <View key={v} frame={frame} />;
+        {views.map((v, slot) => {
+          const View = registry[v];
+          if (!View) {
+            // 조용한 null 렌더는 오타 뷰 이름을 **무증상 빈 패널**로 만든다. 던지지는
+            // 않는다 — 한 패널의 오타가 나머지 패널과 산문까지 지우면 손해가 더 크다.
+            console.error(
+              `[guide-sim] 알 수 없는 뷰 이름 "${v}" — 이 패널은 렌더되지 않습니다.`,
+            );
+            return null;
+          }
+          // 키에 슬롯 번호를 붙인다. `view={["array","array"]}` 처럼 같은 뷰를 나란히
+          // 두는 것이 정당한 요구인데, 이름만 키로 쓰면 React 가 중복으로 보고 한 장만 남는다.
+          // `view` 는 프레임마다 바뀌지 않는 고정 배열이라 재정렬 위험이 없다.
+          // biome-ignore lint/suspicious/noArrayIndexKey: 슬롯 번호를 빼면 같은 뷰가 접힌다
+          return <View key={`${v}-${slot}`} frame={frame} />;
         })}
       </div>
 

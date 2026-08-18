@@ -36,6 +36,13 @@ const SELF: Step[] = [
     label: "① 추출기·판정기 자기시험",
     argv: ["bun", "test", "tools"],
   },
+  {
+    // 이 파일은 살아 있는 가이드 182편이 함께 쓴다(`#guide-sim`). 그런데 그 소비자들이
+    // `.mdx` 라 `tsc` 대상이 아니고, 여기가 SELF 에 없으면 파손이 **편별 런타임에서만**
+    // 드러난다 — 되돌리기 전까지 알 수 없는 유일한 자리였다(KAN-033).
+    label: "① 시뮬레이션 모듈 회귀",
+    argv: ["bun", "test", "src/_guide-sim"],
+  },
 ];
 
 const REFERENCE: Step[] = [
