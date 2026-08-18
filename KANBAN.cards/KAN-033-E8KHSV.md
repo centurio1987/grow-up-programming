@@ -116,7 +116,7 @@ Q1 **(b)** — 경쟁 설계 대조 — 라고 적는다. Q1(a)(가장 단순한
 - [x] `S4` 스캐너 — `tools/check-v2.ts` P1~P10 + `tools/bench-alt.ts` (B0b-3)
       완료 기준: 자기 fixture 11벌(통과 1 + 각 P 위반 1)이 기대대로 갈린다.
       `.sim.ts` 계약 제약(인라인 배열 리터럴만, spread 금지)을 P3 이 **에러로** 잡는다
-- [ ] `S5` 부류 후보 조사 — 읽기 전용 (B0c)
+- [x] `S5` 부류 후보 조사 — 읽기 전용 (B0c)
       완료 기준: 111편 `view=` 분포표 + "그림이 성립하지 않는" **후보** 목록.
       정본이 아니라 후보임을 문서에 명시한다
 - [ ] `S6` 빌드 파이프라인 — `tools/build-html.ts` + `_smoke/` (B1)
@@ -205,3 +205,4 @@ haiku 단독 판정이 될 수 있다. 그 경우 **「잠정」으로 표기**�
 - 2026-08-19T02:43 · s:84bb27db · S2 done — SPEC.md 25항목(플랜의 '24'는 오기) + id↔헤딩 매핑 + 항목별 작성법 + L1~L19. README·JOURNAL·tsconfig·.gitignore 동반. ci.ts all 통과, 링크 255건 유효
 - 2026-08-19T02:52 · s:84bb27db · S3 done — comprehension.sh V1~V7 + 자기시험 7항목. 절대 규칙 넷·AND 결합·codex 격리·종료코드 3분기·verdicts 보관. 자기시험이 진짜 verdicts 를 오염시키던 결함 수정
 - 2026-08-19T03:01 · s:84bb27db · S4 done — section.ts(절 식별기) + check-v2.ts(P1~P10) + 자기시험 18단언 + bench-alt.ts. tsc -p 무출력, 18 pass, biome 0
+- 2026-08-19T03:06 · s:84bb27db · S5 done — survey-views.ts + SURVEY.md. keyValue 단독 22편/4카테고리(임계 5 미만). 플랜의 대표 선정 규칙이 _deprecated 조건 때문에 아무것도 못 골라 수정 → babyStepGiantStep
