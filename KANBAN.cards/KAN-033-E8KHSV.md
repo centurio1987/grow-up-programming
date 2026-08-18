@@ -127,7 +127,7 @@ Q1 **(b)** — 경쟁 설계 대조 — 라고 적는다. Q1(a)(가장 단순한
       최악 입력을 실제로 구성했다(`quicksort.ts:30` 이 결정적 중앙 피벗이라 정렬 배열이 최악이 아니다)
 - [x] `S8` L10 예외 판정 + viz — 대표 1편의 `concept`·`trace`·`perf.derive` 세 절 (B3)
       완료 기준: 계산 블록 대체안이 서는지 실물로 판정 · **L11·P6·L19 의 처분도 함께 정한다**
-- [ ] `S9` pilot ② mosAlgorithm → 편 단위 제출 (B4)
+- [x] `S9` pilot ② mosAlgorithm → 편 단위 제출 (B4)
       완료 기준: S7 과 같음 + `perf.derive` 가 질의 정렬 전처리를 총식에 넣는다(L15)
 - [ ] `S10` 종합 승인 요청 (B5)
       완료 기준: 결재 항목 셋을 함께 올렸다 — ① `perf` 를 코드 뒤로 옮긴 것(카드 원문 순서와 다름)
@@ -209,3 +209,4 @@ haiku 단독 판정이 될 수 있다. 그 경우 **「잠정」으로 표기**�
 - 2026-08-19T03:14 · s:84bb27db · S6 done — build-html.ts + mount.ts + 연기 시험 10단언. 합격 기준 아홉 전부 실측 통과. 마커를 커스텀 노드로 재타이핑(html 타입 유지 시 노드 소멸), 빈 steps 에서 createRoot 미호출로 ascii 폴백 생존
 - 2026-08-19T03:33 · s:84bb27db · S7 done — pilot ① quicksort 25항목. check-v2 P1~P10 통과, V1~V7 전부 통과(haiku 단독 잠정), 절제 시험 둘 다 겨눈 항목만 떨어짐(trace→V6, purpose.alt→V2). 실측: 최악 28=n(n-1)/2, 정렬 입력 13
 - 2026-08-19T03:38 · s:84bb27db · S8 done — L10 예외 열지 않음 — babyStepGiantStep 세 절 다 그림이 자연스럽게 섰다(가설 거짓). SPEC 조항·스캐너 figureExempt 스위치 제거. mosAlgorithm 신규 viz 도 불필요
+- 2026-08-19T04:17 · s:84bb27db · S9 done — pilot ② mosAlgorithm 25항목. 중단 조건 1 발동 → purpose.alt 의 경쟁 설계 축을 정렬 순서에서 자료구조(펜윅)로 바꿈. 판정기 분산 실측 — trace 절제는 판정력 있고 purpose.alt 절제는 haiku 단독으로 없음
