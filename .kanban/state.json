@@ -396,7 +396,11 @@
       "갱신": "2026-08-18",
       "title_hash": "6077d69696c5c9f053664875efbde6ee70f1a932",
       "memo_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
-      "verbatim_hash": "7795df74939953116fbd21947a59ef9686b92cb5"
+      "verbatim_hash": "7795df74939953116fbd21947a59ef9686b92cb5",
+      "scope": [
+        "sandbox/guide-rework/**",
+        ".claude/authoring/specs/learn-guide/**"
+      ]
     }
   },
   "order": [
