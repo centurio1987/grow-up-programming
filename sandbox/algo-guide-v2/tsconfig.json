@@ -1,0 +1,8 @@
+{
+  // 루트를 물려받되 `exclude` 는 **반드시 비운다.**
+  // TypeScript 는 상속된 상대 경로를 "선언한 설정 파일 기준"으로 해소하므로,
+  // 루트의 `"sandbox/**"` 가 `<repo>/sandbox/**` 로 굳은 채 내려와 이 프로젝트의
+  // 입력을 전부 지운다(TS18003). `exclude` 는 덮어쓰기라 한 줄이면 풀린다.
+  "extends": "../../tsconfig.json",
+  "exclude": []
+}

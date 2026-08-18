@@ -107,7 +107,7 @@ Q1 **(b)** — 경쟁 설계 대조 — 라고 적는다. Q1(a)(가장 단순한
 - [x] `S1` 본 저장소 예외 6건 — 단독 커밋 (B0a)
       완료 기준: `bun run tools/ci.ts all` 초록 · `bunx tsc --noEmit` 무출력 ·
       `bun test src/_guide-sim` 14개 통과 · 새 코드 린트 경고 0
-- [ ] `S2` 명세 — `SPEC.md` 24항목 + id↔헤딩 매핑 + 작성법 + L1~L19 (B0b-1)
+- [x] `S2` 명세 — `SPEC.md` 24항목 + id↔헤딩 매핑 + 작성법 + L1~L19 (B0b-1)
       완료 기준: 24항목 전부 직무가 적혔고, `repeat`·`fixed:false` 절의 헤딩 패턴이 정규식으로 적혔다
 - [ ] `S3` 이해 시험 — `tools/comprehension.sh` V1~V7 (B0b-2)
       완료 기준: 절대 규칙 넷(본문만 근거·원문 인용·`근거 없음`·`결론만 있음`) 프롬프트 탑재 ·
@@ -202,3 +202,4 @@ haiku 단독 판정이 될 수 있다. 그 경우 **「잠정」으로 표기**�
 - 2026-08-19T02:35 · s:84bb27db — `실행 계획` 섹션 교체
 - 2026-08-19T02:35 · s:84bb27db — `검증` 섹션 교체
 - 2026-08-19T02:35 · s:84bb27db · S1 done — B0a — 예외 6건(의존성 8개·tsconfig·check-links·ci.ts·_guide-sim 4곳+회귀 9종·칸반). ci.ts all 초록, tsc 무출력, guide-sim 14 pass
+- 2026-08-19T02:43 · s:84bb27db · S2 done — SPEC.md 25항목(플랜의 '24'는 오기) + id↔헤딩 매핑 + 항목별 작성법 + L1~L19. README·JOURNAL·tsconfig·.gitignore 동반. ci.ts all 통과, 링크 255건 유효
