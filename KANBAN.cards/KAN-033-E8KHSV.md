@@ -122,7 +122,7 @@ Q1 **(b)** — 경쟁 설계 대조 — 라고 적는다. Q1(a)(가장 단순한
 - [x] `S6` 빌드 파이프라인 — `tools/build-html.ts` + `_smoke/` (B1)
       완료 기준: 합격 기준 아홉 전부. 특히 **JS-off 에서 ascii 그림이 보인다** ·
       **빈 `steps` 마커에서 ascii 가 살아 있다** · **번들 인라인이 페이지를 안 깨뜨린다**
-- [ ] `S7` pilot ① quicksort → 편 단위 제출 (B2)
+- [x] `S7` pilot ① quicksort → 편 단위 제출 (B2)
       완료 기준: V1~V7 통과 · `check-v2` 통과 · 절제 시험 2종(인용 함께 제거) ·
       최악 입력을 실제로 구성했다(`quicksort.ts:30` 이 결정적 중앙 피벗이라 정렬 배열이 최악이 아니다)
 - [ ] `S8` L10 예외 판정 + viz — 대표 1편의 `concept`·`trace`·`perf.derive` 세 절 (B3)
@@ -207,3 +207,4 @@ haiku 단독 판정이 될 수 있다. 그 경우 **「잠정」으로 표기**�
 - 2026-08-19T03:01 · s:84bb27db · S4 done — section.ts(절 식별기) + check-v2.ts(P1~P10) + 자기시험 18단언 + bench-alt.ts. tsc -p 무출력, 18 pass, biome 0
 - 2026-08-19T03:06 · s:84bb27db · S5 done — survey-views.ts + SURVEY.md. keyValue 단독 22편/4카테고리(임계 5 미만). 플랜의 대표 선정 규칙이 _deprecated 조건 때문에 아무것도 못 골라 수정 → babyStepGiantStep
 - 2026-08-19T03:14 · s:84bb27db · S6 done — build-html.ts + mount.ts + 연기 시험 10단언. 합격 기준 아홉 전부 실측 통과. 마커를 커스텀 노드로 재타이핑(html 타입 유지 시 노드 소멸), 빈 steps 에서 createRoot 미호출로 ascii 폴백 생존
+- 2026-08-19T03:33 · s:84bb27db · S7 done — pilot ① quicksort 25항목. check-v2 P1~P10 통과, V1~V7 전부 통과(haiku 단독 잠정), 절제 시험 둘 다 겨눈 항목만 떨어짐(trace→V6, purpose.alt→V2). 실측: 최악 28=n(n-1)/2, 정렬 입력 13
