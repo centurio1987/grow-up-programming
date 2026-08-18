@@ -37,7 +37,7 @@ function isFigureLine(line: string, inFence: boolean): boolean {
 }
 
 /** 산문 문단이 몇 개까지 연달아 오는가. 그림·표·빈 줄이 그 연속을 끊는다. */
-function maxProseRun(body: string[]): number {
+export function maxProseRun(body: string[]): number {
   let run = 0;
   let worst = 0;
   let fenced = false;
@@ -77,7 +77,7 @@ function maxProseRun(body: string[]): number {
  * `code.step` 의 코드 스니펫은 **세지 않는다.** repeat 절이라 스니펫이 절마다 있어서,
  * 코드를 그림으로 세면 그 절들에서 P1·P7 이 통째로 무력해진다.
  */
-function hasFigure(section: Section): boolean {
+export function hasFigure(section: Section): boolean {
   const blocks = fences(section.body);
   const drawable = blocks.filter((b) => {
     if (section.id !== "code.step") return true;
@@ -263,8 +263,6 @@ export interface CheckInput {
   sim?: string;
   /** `bench-alt.ts` 가 낸 결정론적 계수. 없으면 P10 은 "미실행". */
   bench?: Record<string, number>;
-  /** 그림 의무 예외 부류. B3 판정 전에는 비어 있다. */
-  figureExempt?: boolean;
   maxProseRun?: number;
 }
 
@@ -424,21 +422,23 @@ export function check(input: CheckInput): Finding[] {
   }
 
   // ── P7 그림 의무 ──
-  if (input.figureExempt !== true) {
-    for (const id of FIGURE_REQUIRED) {
-      const group = pick(sections, id);
-      if (group.length === 0) {
-        findings.push({ code: "P7", detail: `\`${id}\` 절이 없다` });
-        continue;
-      }
-      // `code.step` 은 **절 전체 기준** 하나면 된다(벌마다가 아니다).
-      if (!group.some(hasFigure)) {
-        findings.push({
-          code: "P7",
-          where: `${id}:${group[0]?.line}`,
-          detail: "그림이 없다",
-        });
-      }
+  //
+  // **예외 스위치를 두지 않는다.** 4판까지 "그림이 성립하지 않는 부류" 를 위한 `figureExempt`
+  // 를 열어 뒀는데, S8 이 그 가설을 실물로 시험해 거짓임을 확인했다(`SURVEY.md`).
+  // 없는 예외를 코드에 남겨 두면 다음 사람이 그 문으로 나간다.
+  for (const id of FIGURE_REQUIRED) {
+    const group = pick(sections, id);
+    if (group.length === 0) {
+      findings.push({ code: "P7", detail: `\`${id}\` 절이 없다` });
+      continue;
+    }
+    // `code.step` 은 **절 전체 기준** 하나면 된다(벌마다가 아니다).
+    if (!group.some(hasFigure)) {
+      findings.push({
+        code: "P7",
+        where: `${id}:${group[0]?.line}`,
+        detail: "그림이 없다",
+      });
     }
   }
 
