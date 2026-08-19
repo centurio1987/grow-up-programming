@@ -110,7 +110,7 @@ printf '\n comprehension.sh 자기시험\n\n'
 
 silent codex; silent agy; silent claude
 run_case "전 모델 무응답 → 미실행" 2
-grep_case "  사유 셋이 남는다" '\[codex\].*\n?|\[agy\]|\[haiku\]'
+grep_case "  사유 셋이 남는다" '\[codex\].*\n?|\[agy\]|\[sonnet\]'
 
 silent codex; stdout_of agy "$WORK/pass.txt"; silent claude
 run_case "단독 응답 전부 PASS → 통과" 0
@@ -120,7 +120,7 @@ run_case "두 모델이 갈리면 AND 로 미통과" 3
 grep_case "  갈린 항목이 표에 남는다" '^\| V4 \| 미통과'
 
 silent codex; silent agy; stdout_of claude "$WORK/pass.txt"
-run_case "haiku 단독 → 통과하되 잠정" 0
+run_case "폴백(sonnet) 단독 → 통과하되 잠정" 0
 grep_case "  잠정 표기가 붙는다" '\*\*잠정\*\*'
 
 silent codex; silent agy; stdout_of claude "$WORK/formless.txt"

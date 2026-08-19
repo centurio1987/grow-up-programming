@@ -421,3 +421,18 @@ quicksort 가이드 P1~P10 여전히 통과(예외 스위치 제거가 회귀를
 
 `check-v2` P1~P10 통과 · `bun test sandbox/algo-guide-v2` **48 pass** ·
 `tsc -p` 무출력 · biome 경고 0 · 루트 `ci.ts all` 12단계 통과 · HTML 620KB.
+
+## S11 — 검토 반려 반영 ① 판정 모델 교체
+
+**유저 지시(검토 결재 4)**: "업무 신뢰도와 일관성이 문제라면, haiku 대신 sonnet을 사용해라."
+
+`comprehension.sh` 의 폴백 판정 모델을 `haiku` → `sonnet` 으로 바꿨다. 호출 함수·출력 경로도
+모델 이름을 안 박게 고쳤다(`call_fallback` · `$FB_OUT` · `FALLBACK_MODEL="${FALLBACK_MODEL:-sonnet}"`).
+다음에 또 모델을 갈 때 이름이 열 자리에 흩어져 있지 않게 하려는 것이다.
+
+**앞선 판정은 무효가 아니라 재판정 대상이다.** `verdicts/` 의 기존 회차는 haiku 가 실제로
+낸 응답이므로 지우지 않는다 — 기록은 그때 무엇이 돌았는지를 남기는 자리다. 다만 `purpose.alt`
+절제의 "판정력 없음" 결론은 haiku 분산 위에서 나온 것이라 **sonnet 재실행 전까지 결론으로
+쓰지 않는다.**
+
+자기시험 7항목 통과(`tools/comprehension.selftest.sh`).

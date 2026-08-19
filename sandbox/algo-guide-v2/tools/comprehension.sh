@@ -28,6 +28,8 @@ set -u
 
 CALL_TIMEOUT="${COMPREHENSION_TIMEOUT:-420}"
 CODEX_MODEL="${CODEX_MODEL:-}"
+# 폴백 판정 모델 — 기본 sonnet(유저 지시). 환경변수로만 바꾼다.
+FALLBACK_MODEL="${FALLBACK_MODEL:-sonnet}"
 AGY_MODEL="${AGY_MODEL:-}"
 
 err() { printf '%s\n' "$*" >&2; }
@@ -196,14 +198,14 @@ ${GUIDE_BODY}"
 
 # ────────────────────────── 모델 호출 ──────────────────────────
 #
-# codex·agy 를 병렬로, 둘 다 무응답일 때만 haiku 를 순차로. 쿼터를 아끼려는 배치이고
+# codex·agy 를 병렬로, 둘 다 무응답일 때만 claude 를 순차로. 쿼터를 아끼려는 배치이고
 # 구 스크립트(:217-218)의 판단을 그대로 물려받았다.
 
 CODEX_OUT="$TMP_DIR/codex.out"; CODEX_LOG="$TMP_DIR/codex.log"; CODEX_ERR="$TMP_DIR/codex.err"
 AGY_OUT="$TMP_DIR/agy.out";     AGY_ERR="$TMP_DIR/agy.err"
-HAIKU_OUT="$TMP_DIR/haiku.out"; HAIKU_ERR="$TMP_DIR/haiku.err"
-: >"$CODEX_OUT"; : >"$AGY_OUT"; : >"$HAIKU_OUT"
-: >"$CODEX_ERR"; : >"$AGY_ERR"; : >"$HAIKU_ERR"
+FB_OUT="$TMP_DIR/fallback.out";  FB_ERR="$TMP_DIR/fallback.err"
+: >"$CODEX_OUT"; : >"$AGY_OUT"; : >"$FB_OUT"
+: >"$CODEX_ERR"; : >"$AGY_ERR"; : >"$FB_ERR"
 
 call_codex() {
   command -v codex >/dev/null 2>&1 || { printf 'codex 미설치 — 건너뜁니다.\n' >"$CODEX_ERR"; return 0; }
@@ -241,12 +243,15 @@ call_agy() {
   fi
 }
 
-call_haiku() {
-  command -v claude >/dev/null 2>&1 || { printf 'claude CLI 미설치 — 건너뜁니다.\n' >"$HAIKU_ERR"; return 0; }
-  if ! printf '%s' "$COMBINED_PROMPT" | run_limited claude -p --model haiku \
-        >"$HAIKU_OUT" 2>"$HAIKU_ERR"; then
-    printf '\nhaiku 실행 실패.\n' >>"$HAIKU_ERR"
-    : >"$HAIKU_OUT"
+# 폴백 판정 모델. **haiku 를 쓰지 않는다** — 판정기 분산이 실측으로 드러났고
+# (본편 V2 가 FAIL 인데 같은 회차 절제 사본이 통과하는 불가능한 조합), 유저가
+# "업무 신뢰도와 일관성이 문제라면 haiku 대신 sonnet 을 사용해라" 로 정했다.
+call_fallback() {
+  command -v claude >/dev/null 2>&1 || { printf 'claude CLI 미설치 — 건너뜁니다.\n' >"$FB_ERR"; return 0; }
+  if ! printf '%s' "$COMBINED_PROMPT" | run_limited claude -p --model "$FALLBACK_MODEL" \
+        >"$FB_OUT" 2>"$FB_ERR"; then
+    printf '\n%s 실행 실패.\n' "$FALLBACK_MODEL" >>"$FB_ERR"
+    : >"$FB_OUT"
   fi
 }
 
@@ -256,20 +261,20 @@ wait "$PID_CODEX" "$PID_AGY"
 
 PROVISIONAL=0
 if [ ! -s "$CODEX_OUT" ] && [ ! -s "$AGY_OUT" ]; then
-  err "[fallback] codex·agy 무응답 — haiku 단독으로 판정합니다(잠정)."
-  call_haiku
-  [ -s "$HAIKU_OUT" ] && PROVISIONAL=1
+  err "[fallback] codex·agy 무응답 — $FALLBACK_MODEL 단독으로 판정합니다(잠정)."
+  call_fallback
+  [ -s "$FB_OUT" ] && PROVISIONAL=1
 fi
 
 # ────────────────────────── 판정 ──────────────────────────
 
 python3 - "$VERDICT_FILE" "$GUIDE_FILE" "$ROUND" "$ABLATE" "$PROVISIONAL" \
-         "$CODEX_OUT" "$AGY_OUT" "$HAIKU_OUT" \
-         "$CODEX_ERR" "$AGY_ERR" "$HAIKU_ERR" <<'PY'
+         "$CODEX_OUT" "$AGY_OUT" "$FB_OUT" \
+         "$CODEX_ERR" "$AGY_ERR" "$FB_ERR" "$FALLBACK_MODEL" <<'PY'
 import re, sys, pathlib
 
 (verdict_file, guide, rnd, ablate, provisional,
- codex_out, agy_out, haiku_out, codex_err, agy_err, haiku_err) = sys.argv[1:12]
+ codex_out, agy_out, fb_out, codex_err, agy_err, fb_err, fb_name) = sys.argv[1:13]
 
 VS = [f"V{i}" for i in range(1, 8)]
 OK = "PASS"
@@ -283,7 +288,7 @@ def read(p):
 
 models = [("codex", codex_out, codex_err),
           ("agy", agy_out, agy_err),
-          ("haiku", haiku_out, haiku_err)]
+          (fb_name, fb_out, fb_err)]
 
 responded, per_model = [], {}
 for name, out, _ in models:
@@ -327,7 +332,7 @@ head = ["# 이해 시험 V1~V7", "",
         f"- 응답 모델: {', '.join(responded)} (결합 = AND)",
         f"- 판정: {'통과' if not failed else '미통과 — ' + ', '.join(failed)}"]
 if provisional == "1":
-    head.append("- **잠정** — haiku 단독 판정이다. codex 복구 후 재판정 대상에 등록한다.")
+    head.append(f"- **잠정** — {fb_name} 단독 판정이다. codex 복구 후 재판정 대상에 등록한다.")
 head += ["", "| # | 판정 | " + " | ".join(responded) + " |",
          "| --- | --- | " + " | ".join("---" for _ in responded) + " |"]
 for v in VS:
