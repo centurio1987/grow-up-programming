@@ -151,7 +151,7 @@ Q1 **(b)** — 경쟁 설계 대조 — 라고 적는다. Q1(a)(가장 단순한
 
 **재작업 — 2026-08-19 검토 반려분**(결재 4·6·7 이 미승인으로 돌아왔다)
 
-- [ ] `S11` 이해 시험 판정 모델 `sonnet` 재판정 (B6)
+- [>] `S11` 이해 시험 판정 모델 `sonnet` 재판정 (B6) <!-- claim:s=52c6dc70 t=2026-08-19T16:35 -->
       완료 기준: 폴백 모델이 `sonnet`(`comprehension.sh:32`) · quicksort·mosAlgorithm 본편과
       절제 사본을 **같은 모델로 재실행**해 `purpose.alt` 절제의 판정력을 다시 잰다 ·
       haiku 회차의 결론(판정력 없음)은 그 전까지 결론으로 쓰지 않는다
@@ -233,3 +233,5 @@ haiku 단독 판정이 될 수 있다. 그 경우 **「잠정」으로 표기**�
 - 2026-08-19T15:58 · s:52c6dc70 — `실행 계획` 섹션 교체
 - 2026-08-19T16:00 · s:52c6dc70 — S11~S13 신설 — 재작업 계획을 실행 계획에 넣었다. pilot ③ 은 knapsack01(dp 10편 중 유일한 view=matrix · 테스트 존재 · 구 v3.0.0 가이드 대조 가능).
 - 2026-08-19T16:00 · s:52c6dc70 — comprehension.sh 폴백 판정 모델 haiku → sonnet 교체(FALLBACK_MODEL 환경변수화). 자기시험 7항목 통과 · ci.ts all 12단계 통과.
+- 2026-08-19T16:35 · s:52c6dc70 · S11 doing — 착수
+- 2026-08-19T16:45 · s:52c6dc70 · S11 — S11 sonnet 재판정 4회 완료 — quicksort 본편 r02 통과 / quicksort purpose.alt 절제 r02 미통과(V2) / mosAlgorithm 본편 r10 미통과(V2·V6) / mosAlgorithm purpose.alt 절제 r07 미통과(V2·V6). 본편이 sonnet 에서 떨어진 것은 처음이다 — 분석 미완, S11 은 열린 채로 둔다.
