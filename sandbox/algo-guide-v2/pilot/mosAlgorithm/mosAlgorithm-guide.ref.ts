@@ -46,10 +46,10 @@ export function mosAlgorithm(
   for (const q of order) {
     // 넓히기를 먼저, 좁히기를 나중에. 반대로 하면 `curL` 이 `curR` 을 앞질러
     // 담지도 않은 값을 빼게 된다.
-    while (curL > q.l) add(arr[--curL] as number);
-    while (curR < q.r) add(arr[++curR] as number);
-    while (curL < q.l) remove(arr[curL++] as number);
-    while (curR > q.r) remove(arr[curR--] as number);
+    while (curL > q.l) add(arr[--curL] as number); // L+ 왼쪽 넓힘
+    while (curR < q.r) add(arr[++curR] as number); // R+ 오른쪽 넓힘
+    while (curL < q.l) remove(arr[curL++] as number); // L− 왼쪽 좁힘
+    while (curR > q.r) remove(arr[curR--] as number); // R− 오른쪽 좁힘
     out[q.i] = distinct;
   }
 
