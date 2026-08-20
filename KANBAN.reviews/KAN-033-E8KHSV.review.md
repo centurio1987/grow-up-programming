@@ -5,7 +5,7 @@ created: 2026-08-20
 branch: KAN-033-E8KHSV
 worktree: /Users/centurio/orca/workspaces/code_test/KAN-033-E8KHSV
 base: bbe4644
-status: 검토 대기
+status: 승인
 ---
 
 # KAN-033-E8KHSV 검토 요청 — 완전히 새롭게 알고리즘 가이드 구성을 재기획 하려고 한다. 너는 나의 지시와 요구사항을 보고 계획과 실행 전략을 수립해라. 기존의 가이드나 집필 스킬에 의존하지 말고 이 지시와 요구사항에만 집중해라. 가이드 개발과정은 샌드박스 위에서 진행하며, pilot 가이드가 완전히 나에게 승인 됐을 때 비로소 모든 가이드에 적용할 예정이다.
@@ -349,11 +349,12 @@ python3 scripts/kanban.py review-item <project-root> --card KAN-033-E8KHSV --add
      frontmatter 의 status 도 함께 고친다. 손으로 적어도 되지만, 그때는 수렴 검사를
      안 거치므로 `validate` 가 항목 판정과 어긋난 승인을 error 로 잡는다. -->
 
-**판정**: 반려
+**판정**: 승인
 
 **사유**:
 
 - 반려 · 유저 · 2026-08-20 — 결재 5 반려 — V2 개정안을 서술하지 않고 가부만 물었습니다. 나머지 넷은 승인.
+- 승인 · 유저 · 2026-08-20 — 결재 5 반영 확인 — 개정 V2 로 세 편 재판정 전부 통과. 항목 5건 전부 승인.
 
 - 승인이면 → `apply --op move --id KAN-033-E8KHSV --to done` 뒤에 `main` 병합과 워크트리 정리(출력의 `cleanup`)
 - 반려면 → `apply --op move --id KAN-033-E8KHSV --to doing` 뒤에 `doc-log --entry "<반려 사유>"`.
