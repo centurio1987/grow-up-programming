@@ -332,7 +332,7 @@ head = ["# 이해 시험 V1~V7", "",
         f"- 응답 모델: {', '.join(responded)} (결합 = AND)",
         f"- 판정: {'통과' if not failed else '미통과 — ' + ', '.join(failed)}"]
 if provisional == "1":
-    head.append(f"- **잠정** — {fb_name} 단독 판정이다. codex 복구 후 재판정 대상에 등록한다.")
+    head.append(f"- **잠정** — {fb_name} 단독 판정이다. 다모델 재판정은 승인 조건이 아니다(결재 1, 2026-08-20).")
 head += ["", "| # | 판정 | " + " | ".join(responded) + " |",
          "| --- | --- | " + " | ".join("---" for _ in responded) + " |"]
 for v in VS:
