@@ -24,9 +24,15 @@ status: 검토 대기
 | 베이스 | `bbe4644` |
 | 변경 훑기 | `git diff bbe4644...HEAD` |
 
-**커밋 17건**
+**커밋 23건**
 
 ```text
+efabba1 KAN-033-E8KHSV S18 — 개정 V2 재판정: 세 편 전부 통과
+4006183 KAN-033-E8KHSV S17 — 자기시험이 V2 문구를 고정한다
+904e18e KAN-033-E8KHSV S16 — L20: bench 입력을 결과에 맞춰 고르지 않는다
+5770e61 KAN-033-E8KHSV S15 — V2 를 승자 프레임에서 trade-off 프레임으로
+0d250f3 kanban: KAN-033-E8KHSV 검토 반려 반영 (검토 → 진행 중)
+17b78f5 KAN-033-E8KHSV S13 — 검토 요청서 재작성 (진행 중 → 검토)
 00d9ba7 KAN-033-E8KHSV S12 — pilot ③ knapsack01 (dp·matrix)
 813db1f KAN-033-E8KHSV S14 — mos 전개가 창 이동 네 갈래를 모두 밟는다
 dcc9d04 KAN-033-E8KHSV S11 — sonnet 재판정 종료, 결함 둘을 갈라 냈다
@@ -46,42 +52,42 @@ b39e515 KAN-033-E8KHSV B0a — 본 저장소 예외 6건 + 카드 착수
 13e31d5 kanban: KAN-033-E8KHSV 실행 문서 작성 — 전략·WBS 9단계·검증 기준
 ```
 
-**변경 파일 80개 (+9728 −59)**
+**변경 파일 83개 (+10700 −81)**
 
 | 파일 | 상태 | 추가 | 삭제 |
 |---|:--:|---:|---:|
-| `.kanban/archive.jsonl` | M | 3 | 0 |
-| `.kanban/log.md` | M | 3 | 3 |
-| `.kanban/state.json` | M | 50 | 36 |
-| `KANBAN.cards/KAN-033-E8KHSV.md` | M | 249 | 0 |
+| `.kanban/archive.jsonl` | M | 5 | 0 |
+| `.kanban/log.md` | M | 5 | 5 |
+| `.kanban/state.json` | M | 70 | 56 |
+| `KANBAN.cards/KAN-033-E8KHSV.md` | M | 290 | 0 |
 | `KANBAN.md` | M | 7 | 5 |
-| `KANBAN.reviews/KAN-033-E8KHSV.review.html` | M | 260 | 0 |
-| `KANBAN.reviews/KAN-033-E8KHSV.review.md` | M | 228 | 0 |
+| `KANBAN.reviews/KAN-033-E8KHSV.review.html` | M | 286 | 0 |
+| `KANBAN.reviews/KAN-033-E8KHSV.review.md` | M | 339 | 0 |
 | `bun.lock` | M | 94 | 0 |
 | `package.json` | M | 9 | 1 |
 | `sandbox/algo-guide-v2/.gitignore` | M | 3 | 0 |
-| `sandbox/algo-guide-v2/JOURNAL.md` | M | 573 | 0 |
+| `sandbox/algo-guide-v2/JOURNAL.md` | M | 658 | 0 |
 | `sandbox/algo-guide-v2/README.md` | M | 97 | 0 |
-| `sandbox/algo-guide-v2/SPEC.md` | M | 369 | 0 |
+| `sandbox/algo-guide-v2/SPEC.md` | M | 388 | 0 |
 | `sandbox/algo-guide-v2/SURVEY.md` | M | 122 | 0 |
 | `sandbox/algo-guide-v2/_smoke/sample-guide.md` | M | 68 | 0 |
 | `sandbox/algo-guide-v2/_smoke/sample-guide.sim.ts` | M | 21 | 0 |
 | `sandbox/algo-guide-v2/pilot/babyStepGiantStep/babyStepGiantStep-guide.partial.md` | M | 82 | 0 |
-| `sandbox/algo-guide-v2/pilot/knapsack01/knapsack01-guide.alt.ts` | M | 76 | 0 |
+| `sandbox/algo-guide-v2/pilot/knapsack01/knapsack01-guide.alt.ts` | M | 80 | 0 |
 | `sandbox/algo-guide-v2/pilot/knapsack01/knapsack01-guide.bench.json` | M | 4 | 0 |
-| `sandbox/algo-guide-v2/pilot/knapsack01/knapsack01-guide.md` | M | 748 | 0 |
+| `sandbox/algo-guide-v2/pilot/knapsack01/knapsack01-guide.md` | M | 750 | 0 |
 | `sandbox/algo-guide-v2/pilot/knapsack01/knapsack01-guide.ref.ts` | M | 45 | 0 |
 | `sandbox/algo-guide-v2/pilot/knapsack01/knapsack01-guide.sim.ts` | M | 115 | 0 |
 | `sandbox/algo-guide-v2/pilot/knapsack01/knapsack01-guide.test.ts` | M | 36 | 0 |
-| `sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.alt.ts` | M | 128 | 0 |
+| `sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.alt.ts` | M | 133 | 0 |
 | `sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.bench.json` | M | 4 | 0 |
-| `sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.md` | M | 493 | 0 |
+| `sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.md` | M | 495 | 0 |
 | `sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.ref.ts` | M | 57 | 0 |
 | `sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.sim.ts` | M | 108 | 0 |
 | `sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.test.ts` | M | 113 | 0 |
-| `sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.alt.ts` | M | 84 | 0 |
+| `sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.alt.ts` | M | 88 | 0 |
 | `sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.bench.json` | M | 6 | 0 |
-| `sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.md` | M | 463 | 0 |
+| `sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.md` | M | 465 | 0 |
 | `sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.ref.ts` | M | 39 | 0 |
 | `sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.sim.ts` | M | 66 | 0 |
 | `sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.test.ts` | M | 49 | 0 |
@@ -90,8 +96,8 @@ b39e515 KAN-033-E8KHSV B0a — 본 저장소 예외 6건 + 카드 착수
 | `sandbox/algo-guide-v2/tools/build-html.ts` | M | 357 | 0 |
 | `sandbox/algo-guide-v2/tools/check-v2.test.ts` | M | 310 | 0 |
 | `sandbox/algo-guide-v2/tools/check-v2.ts` | M | 575 | 0 |
-| `sandbox/algo-guide-v2/tools/comprehension.selftest.sh` | M | 168 | 0 |
-| `sandbox/algo-guide-v2/tools/comprehension.sh` | M | 357 | 0 |
+| `sandbox/algo-guide-v2/tools/comprehension.selftest.sh` | M | 199 | 0 |
+| `sandbox/algo-guide-v2/tools/comprehension.sh` | M | 369 | 0 |
 | `sandbox/algo-guide-v2/tools/mount.ts` | M | 60 | 0 |
 | `sandbox/algo-guide-v2/tools/section.ts` | M | 166 | 0 |
 | `sandbox/algo-guide-v2/tools/survey-views.ts` | M | 121 | 0 |
@@ -103,6 +109,7 @@ b39e515 KAN-033-E8KHSV B0a — 본 저장소 예외 6건 + 카드 착수
 | `sandbox/algo-guide-v2/verdicts/knapsack01-ablate-trace-r02.md` | M | 76 | 0 |
 | `sandbox/algo-guide-v2/verdicts/knapsack01-r01.md` | M | 84 | 0 |
 | `sandbox/algo-guide-v2/verdicts/knapsack01-r02.md` | M | 96 | 0 |
+| `sandbox/algo-guide-v2/verdicts/knapsack01-r03.md` | M | 173 | 0 |
 | `sandbox/algo-guide-v2/verdicts/mosAlgorithm-ablate-purpose-alt-r01.md` | M | 83 | 0 |
 | `sandbox/algo-guide-v2/verdicts/mosAlgorithm-ablate-purpose-alt-r02.md` | M | 85 | 0 |
 | `sandbox/algo-guide-v2/verdicts/mosAlgorithm-ablate-purpose-alt-r03.md` | M | 103 | 0 |
@@ -120,18 +127,27 @@ b39e515 KAN-033-E8KHSV B0a — 본 저장소 예외 6건 + 카드 착수
 | `sandbox/algo-guide-v2/verdicts/mosAlgorithm-r10.md` | M | 88 | 0 |
 | `sandbox/algo-guide-v2/verdicts/mosAlgorithm-r11.md` | M | 71 | 0 |
 | `sandbox/algo-guide-v2/verdicts/mosAlgorithm-r12.md` | M | 66 | 0 |
+| `sandbox/algo-guide-v2/verdicts/mosAlgorithm-r13.md` | M | 253 | 0 |
 | `sandbox/algo-guide-v2/verdicts/quicksort-ablate-purpose-alt-r01.md` | M | 69 | 0 |
 | `sandbox/algo-guide-v2/verdicts/quicksort-ablate-purpose-alt-r02.md` | M | 74 | 0 |
 | `sandbox/algo-guide-v2/verdicts/quicksort-ablate-trace-r01.md` | M | 87 | 0 |
 | `sandbox/algo-guide-v2/verdicts/quicksort-r01.md` | M | 79 | 0 |
 | `sandbox/algo-guide-v2/verdicts/quicksort-r02.md` | M | 65 | 0 |
+| `sandbox/algo-guide-v2/verdicts/quicksort-r03.md` | M | 178 | 0 |
 | `src/_guide-sim/guide-sim.test.tsx` | M | 171 | 1 |
 | `src/_guide-sim/index.tsx` | M | 97 | 12 |
 | `tools/check-links.ts` | B | 0 | 0 |
 | `tools/ci.ts` | M | 7 | 0 |
 | `tsconfig.json` | M | 11 | 1 |
 
-**롤백 태그 0개** — 없음(`--tags` 를 넘기지 않았거나 아직 태그가 없습니다)
+**롤백 태그 4개**
+
+```text
+kan/KAN-033-E8KHSV/S15
+kan/KAN-033-E8KHSV/S16
+kan/KAN-033-E8KHSV/S17
+kan/KAN-033-E8KHSV/S18
+```
 
 ## 2. 검증 — 기준과 실행 결과
 
@@ -178,8 +194,9 @@ R2~R4·R6 은 `hasTrace`(구 헤딩 문자열 **접두 일치**, `:53`·`:183`·
 | 유저 | 최종 승인. **편 단위**, 항목 id 로 반려 |
 
 **이해 시험의 현재 한계**: codex 사용 한도가 2026-09-14 복구, agy 도 한도 초과라 지금은
-haiku 단독 판정이 될 수 있다. 그 경우 **「잠정」으로 표기**하고 codex 복구 후 재판정 대상에
-등록한다. 미실행(exit 2)은 통과가 아니고, 카운터에도 넣지 않으며 배치를 멈춘다.
+sonnet 단독 판정이 될 수 있다. 그 경우 **「잠정」으로 표기**한다. **codex 가 복구돼도
+다모델 재판정을 승인 조건에 넣지 않는다**(결재 1 승인, 2026-08-20). 미실행(exit 2)은
+통과가 아니고, 카운터에도 넣지 않으며 배치를 멈춘다.
 
 **본 저장소 예외 6건의 검증**(S1 에서 이미 통과):
 `bun run tools/ci.ts all` 초록 · `bunx tsc --noEmit` 무출력 · `bun test src/_guide-sim` 14개 통과 ·
@@ -188,33 +205,38 @@ haiku 단독 판정이 될 수 있다. 그 경우 **「잠정」으로 표기**�
 **실행 결과**
 
 ```text
-### 실행 결과 — 2026-08-20
+### 실행 결과 — 2026-08-20 (재작업분, 결재 5 반영 후)
+
+$ bash sandbox/algo-guide-v2/tools/comprehension.selftest.sh
+ 자기시험 통과 — 17항목
+  (새로 든 넷: '한쪽만 있음' 이 미통과로 읽히고 표에 남는가 · V2 가 양방향을 요구하는가 ·
+   "져도 통과" 를 못 박는가 · 우열을 묻지 않는가.
+   V2 를 옛 승자 프레임으로 되돌려 3건이 실제로 FAIL 나는 것을 확인하고 복원했습니다.)
+
+$ bash sandbox/algo-guide-v2/tools/comprehension.sh <세 편> — 개정 V2 로 재판정
+quicksort    r03  통과 (V1~V7 전부 PASS)
+knapsack01   r03  통과 (V1~V7 전부 PASS)
+mosAlgorithm r13  통과 (V1~V7 전부 PASS)  ← r10·r11·r12 에서 3회 연속 떨어지던 V2 가 넘었습니다
+  ↳ 셋 다 agy 가 응답해 「잠정」이 안 붙었습니다(할당량 복구. 결재 1 로 다모델 재판정은
+    승인 조건이 아니므로 요건이 아니라 덤입니다)
+
+$ bun run sandbox/algo-guide-v2/tools/check-v2.ts <세 편>
+quicksort · mosAlgorithm · knapsack01 — 각각 P1~P10 통과.
 
 $ bunx tsc --noEmit -p sandbox/algo-guide-v2
   → exit 0 (무출력)
 
 $ bun test sandbox/algo-guide-v2
- 59 pass
- 0 fail
-Ran 59 tests across 5 files. [1.63s]
+ 59 pass  0 fail   Ran 59 tests across 5 files.
 
 $ bunx --bun @biomejs/biome check sandbox/algo-guide-v2/pilot
-Checked 15 files in 14ms. No fixes applied.
+Checked 15 files. No fixes applied.
 
-$ bun run sandbox/algo-guide-v2/tools/check-v2.ts <세 편>
-sandbox/algo-guide-v2/pilot/quicksort/quicksort-guide.md — P1~P10 통과.
-sandbox/algo-guide-v2/pilot/mosAlgorithm/mosAlgorithm-guide.md — P1~P10 통과.
-sandbox/algo-guide-v2/pilot/knapsack01/knapsack01-guide.md — P1~P10 통과.
+$ bun run sandbox/algo-guide-v2/tools/bench-alt.ts --check <세 편>
+세 편 모두 실측값 그대로 (본문 수치와 일치).
 
-$ bash sandbox/algo-guide-v2/tools/comprehension.selftest.sh
- 자기시험 통과 — 7항목
-
-
-$ bash sandbox/algo-guide-v2/tools/comprehension.sh <세 편> — 이해 시험 V1~V7
-quicksort  r02  통과 (V1~V7 전부 PASS)
-knapsack01 r01·r02 통과 (V1~V7 전부 PASS)
-mosAlgorithm r12  미통과 — V2 하나 (V6 은 S14 수정으로 통과)
-  ↳ 셋 다 codex·agy 한도 초과로 sonnet 단독 「잠정」 판정
+$ bun run sandbox/algo-guide-v2/tools/build-html.ts <세 편>
+mosAlgorithm 622KB · quicksort 603KB · knapsack01 655KB — 각 viz 1개 · 번들 포함
 
 $ bun run tools/ci.ts all
 판정 제외(정상): ③ 실습 채점 — 스텁(미구현 실패가 정상, 판정 제외)
