@@ -20,6 +20,7 @@ trap 'rm -rf "$WORK"' EXIT
 STUB="$WORK/bin"; mkdir -p "$STUB"
 GUIDE="$WORK/selftest-guide.md"
 FAIL=0
+N=0        # 검사 항목 수 — 손으로 세면 어긋난다
 
 pass_body() {
   cat <<'EOF'
@@ -77,11 +78,13 @@ STUBEOF
 
 pass_body >"$WORK/pass.txt"
 sed 's/^\[V4\] PASS/[V4] 결론만 있음/' "$WORK/pass.txt" >"$WORK/partial.txt"
+sed 's/^\[V2\] PASS/[V2] 한쪽만 있음/' "$WORK/pass.txt" >"$WORK/onesided.txt"
 printf '네, 좋은 가이드입니다. 통과입니다.\n' >"$WORK/formless.txt"
 
 round=1
 run_case() { # <이름> <기대 종료코드> [추가 인자…]
   local name="$1" want="$2"; shift 2
+  N=$((N + 1))
   local out="$WORK/out.$round"
   COMPREHENSION_VERDICT_DIR="$WORK/verdicts" PATH="$STUB:$PATH" bash "$HERE/comprehension.sh" "$GUIDE" --round "$((900 + round))" "$@" \
     >"$out" 2>&1
@@ -98,6 +101,7 @@ run_case() { # <이름> <기대 종료코드> [추가 인자…]
 
 grep_case() { # <이름> <파일패턴> — 직전 출력에서 문구를 찾는다
   local name="$1" pattern="$2" out="$WORK/out.$((round - 1))"
+  N=$((N + 1))
   if grep -qE "$pattern" "$out"; then
     printf '  ok   %-42s "%s"\n' "$name" "$pattern"
   else
@@ -127,9 +131,35 @@ silent codex; silent agy; stdout_of claude "$WORK/formless.txt"
 run_case "형식 미준수 → 미통과(통과는 명시적)" 3
 grep_case "  일곱 전부 형식 미준수" '\| V1 \| 미통과 \| 형식 미준수'
 
+silent codex; silent agy; stdout_of claude "$WORK/onesided.txt"
+run_case "대가 없는 우열 단정 → 미통과" 3
+grep_case "  '한쪽만 있음' 이 표에 남는다" '^\| V2 \| 미통과 \| 한쪽만 있음'
+
 silent codex; silent agy; stdout_of claude "$WORK/pass.txt"
 run_case "절제 실행 — trace" 0 --ablate trace
 grep_case "  절제가 보고서에 남는다" '절제: trace'
+
+# ── V2 물음이 승자 프레임으로 되돌아가지 않았는가 (결재 5 · 2026-08-20) ──
+#
+# 자기시험의 나머지는 **응답 파싱**을 보지만 V2 의 실패는 파싱이 아니라 **물음 자체**에서
+# 났다. "왜 이 알고리즘이 이기는지" 를 물으면 어느 축에서도 수치로 못 이기는 편은 정직하게
+# 쓸수록 떨어지고(mosAlgorithm r10~r12), 통과하려면 자기가 이기는 입력을 고르게 된다.
+# 문구가 되돌아가면 그 실패가 그대로 돌아오므로 문구를 여기서 고정한다.
+V2_BLOCK="$(sed -n '/^- \*\*V2\*\*/,/^- \*\*V3\*\*/p' "$HERE/comprehension.sh")"
+v2_case() { # <이름> <yes|no: 있어야 하는가> <패턴>
+  local name="$1" want="$2" pat="$3" got
+  N=$((N + 1))
+  if printf '%s' "$V2_BLOCK" | grep -qE "$pat"; then got=yes; else got=no; fi
+  if [ "$got" = "$want" ]; then
+    printf '  ok   %-42s %s "%s"\n' "$name" "$want" "$pat"
+  else
+    printf '  FAIL %-42s %s 를 기대했는데 %s\n' "$name" "$want" "$got"
+    FAIL=1
+  fi
+}
+v2_case "V2 는 양방향을 요구한다" yes '무엇을 얻고 무엇을 잃는지'
+v2_case "V2 는 져도 통과라고 못 박는다" yes '져도 통과'
+v2_case "V2 는 우열을 묻지 않는다" no '이기는지'
 
 # 절제가 인용까지 지우는지 — 스크립트를 안 거치고 같은 로직을 직접 확인한다.
 ABLATED="$(PATH="$STUB:$PATH" bash -c "
@@ -152,6 +182,7 @@ text = re.sub(r'\(?\bT\d+(?:[·,]\s*T\d+)*\)?', '', text)
 print(text)
 PY
 ")"
+N=$((N + 1))
 if printf '%s' "$ABLATED" | grep -qE '\bT[0-9]'; then
   printf '  FAIL %-42s 절제 사본에 T# 인용이 남았다\n' "절제는 인용도 함께 지운다"
   FAIL=1
@@ -161,7 +192,7 @@ fi
 
 printf '\n'
 if [ "$FAIL" -eq 0 ]; then
-  printf ' 자기시험 통과 — 7항목\n\n'
+  printf ' 자기시험 통과 — %s항목\n\n' "$N"
 else
   printf ' 자기시험 실패\n\n'
 fi
