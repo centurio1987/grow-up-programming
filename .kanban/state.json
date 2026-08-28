@@ -429,7 +429,18 @@
       "goal": "111편이 새 골격으로 재집필돼 이해 시험 V1~V7 · 스캐너 P1~P10 · 조항 L1~L37 을 통과하고, v1 .mdx 와 baseline 부채가 0 이 되며 sandbox/algo-guide-v2 가 본 저장소로 걷힌다",
       "goal_hash": "24ef057208833f22549fe44b2af043b567e6626c",
       "memo": "**차단 해제(2026-08-28) — 유저 지시로 착수 확정.** 규모 111편 · 14 카테고리 · 웨이브 셋(상 26 · 중 41 · 하 44). 전략·WBS 는 ~/.claude/plans/dapper-whistling-taco.md, 하위 8장으로 쪼갰다. 전개 순서의 정본은 문제_가이드_목록.md 이고 실측으로 유니크 111편 · 죽은 링크 0 을 확인했다. 착수 전 선행 셋 — 파일럿 재판정(이해 시험이 최신 골격에서 미실행) · 인프라 승격 · 사람 검토 12줄의 기계화.",
-      "memo_hash": "9f1e43dba327b28c5af0638cdd60bf65bb41ded4"
+      "memo_hash": "9f1e43dba327b28c5af0638cdd60bf65bb41ded4",
+      "scope": [
+        "src/algorithms/**",
+        "sandbox/algo-guide-v2/**",
+        "tools/**",
+        "src/_guide-sim/**",
+        "문제_가이드_목록.md",
+        "알고리즘 중요도 기준 문제 목록.md",
+        "KANBAN.md",
+        "KANBAN.cards/**",
+        ".kanban/**"
+      ]
     },
     "KAN-034.1-V337W5": {
       "col": "todo",
