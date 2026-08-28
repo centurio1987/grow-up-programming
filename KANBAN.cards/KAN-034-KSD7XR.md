@@ -68,13 +68,14 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
    그대로다(실측). 이관 단계가 없으면 잔여 수치가 0 으로 닫히지 않는다.
 
 ## 실행 계획
+## 실행 계획
 `S<n>` 하나가 하위 카드 하나에 대응한다. 하위 카드 id 는 괄호 안에 적는다.
 
 - [x] `S1` 정합 회복 + 파일럿 4편 재판정 (`KAN-034.1-V337W5`)
       완료 기준: `git status --short` 잔여 0(`KAN-033` 명의로 닫은 뒤) ·
       `FEEDBACK.md` §1 반영표의 결번 참조 0(§2 이후 이력 서술은 대상 아님) ·
-      은유 부류 표기 11 로 일치 · **파일럿 4편이 최신 골격으로 `comprehension.sh` exit 0**
-      (`babyStepGiantStep` 은 첫 실행) · HTML 레일 렌더를 브라우저로 확인
+      은유 부류 표기 11 로 일치 · **파일럿 4편이 최신 골격으로 판정 통과**
+      (`babyStepGiantStep` 은 첫 실행) · HTML 레일 렌더를 실제 창 폭에서 확인
 - [ ] `S2` 인프라 승격 + 파일럿 4편 이관 (`KAN-034.2-5V5M2F`)
       완료 기준: `bun run tools/ci.ts all` 초록 · `check-citations` 가 `src/algorithms` 를 봄 ·
       `bun test src/_guide-sim` 통과 · 파일럿 4편이 `.md` 로 서고 그 `.mdx` 4개가 사라짐 ·
@@ -110,13 +111,19 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
 6. `verdicts/<name>-r<NN>.md` 커밋
 7. `KANBAN.md` 카드 메모에 유닛 id 로 시작하는 결과 — `manage-kanban` 경유
 
-### 이해 시험 회차 상한
+### 판정 장치 — 2026-08-29 교체
 
-파일럿 실적이 `mosAlgorithm` 13회차 · `knapsack01` 3회 · `quicksort` 3회다. 1편 1회 가정은 위험하다.
-① 편당 상한 **5회차** ② 초과하면 그 편을 **보류**하고 다음 편으로 넘어간다(웨이브를 막지 않는다)
-③ `exit 2`(미실행 — 외부 모델 소진)는 실패로 세지 않고 **배치를 멈춘다**.
-`CALL_TIMEOUT` 기본 420초 × AND 결합이라 편당 수 분이 든다.
+**유저가 외부 모델 없이 가기로 정했다.** 이해 시험(`comprehension.sh`)을 걷어내고
+`tools/check-proof.ts`(자기증명 대조)가 그 자리에 온다. 대응표는 `SPEC.md` §0 이다.
 
+바뀌는 것 셋. ① **회차 상한이 없다** — 판정이 로컬 실행이라 편당 수 분이 아니라 수 초다.
+② **`exit 2`(외부 모델 소진)로 배치가 멈추는 일이 없다.** ③ 대신 **편마다 증명 블록이
+붙는다** — 본문이 값을 내미는 자리에 `<!--proof:{id}-->` 와 `<name>-guide.proof.ts` 다.
+그것이 편당 새로 드는 비용이고, 이해 시험 회차보다 싸다.
+
+**옮겨지지 않은 몫은 사람이 진다** — `FEEDBACK.md` §3 의 「옛 `V…`」 네 줄이다.
+
+## 검증
 ## 검증
 ## 검증
 이 카드가 끝난 것은 아래 셋이 동시에 참일 때다.
@@ -135,8 +142,10 @@ bun run tools/ci.ts all
 ```bash
 # S1 — 정합 회복 + 재판정
 git status --short                                            # 잔여 0
-for f in sandbox/algo-guide-v2/pilot/*/*-guide.md; do bash sandbox/algo-guide-v2/tools/comprehension.sh "$f"; done
-#   ↑ 파일 하나씩 받는다(다중 인자 안 받음). exit 0 통과 · 2 미실행(멈춘다) · 3 미통과
+for f in sandbox/algo-guide-v2/pilot/*/*-guide.md; do
+  bun run sandbox/algo-guide-v2/tools/check-proof.ts "$f"    # 0 통과 · 1 위반
+done
+#   ↑ 2026-08-29 교체. 그전 판정(이해 시험)의 산출은 verdicts/ 에 남아 있다
 sed -n '/^## 1\./,/^## 2\./p' sandbox/algo-guide-v2/FEEDBACK.md \
   | grep -E '^\| R' | grep -v '^| R19-1 ' | grep -cE 'L23|L2[6-9]|L3[01]'                          # 0
 #   ↑ §1 반영표의 **데이터 행**만 본다. R19-1 은 폐기 사실의 기록이라 대상이 아니고,
@@ -165,7 +174,7 @@ bun run tools/algo-wbs.ts --all                               # 107 유닛
 bun run tools/check-v2.ts <name>-guide.md
 bun run tools/bench-alt.ts --check <name>-guide.alt.ts
 bun run tools/build-html.ts <name>-guide.md
-bash tools/comprehension.sh <name>-guide.md                   # 상한 5회차
+bun run tools/check-proof.ts <name>-guide.md                  # 값 주장 ↔ 실행
 bun test src/algorithms/<cat>/<name>
 bun run tools/check-links.ts check
 bun run tools/ci.ts all
@@ -183,7 +192,10 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
   패키지이고, 아무것도 검사하지 않고 exit 0 을 준다. `bunx --bun @biomejs/biome check` 다.
 - **`tools/check-guide-rhythm.ts` 를 v2 편에 호출하지 않는다.** 구 헤딩 접두와 어긋나 조용히
   공전하고, 통과 표시가 거짓이 된다.
-- `comprehension.sh` 는 파일 **하나**만 받는다. 다중 인자는 안 돈다.
+- **`comprehension.sh` 를 돌리지 않는다.** 2026-08-29 유저 지시로 외부 모델을 쓰지 않는다.
+  파일은 남겨 뒀다 — `verdicts/` 31개가 그 산출이라 규격이 있어야 읽힌다(`SPEC.md` §0).
+- **증명 사이드카는 정본을 import 해야 한다.** 값을 문자열로 적어 넣으면 대조가 자기 자신과의
+  대조가 되고 `check-proof.ts` 가 그것을 잡는다.
 
 ### 판정 장치와 그것이 재는 것
 
@@ -194,7 +206,7 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
 | `check-rework.ts` | 구성 지적을 받은 절의 재작성률(기준 60%) — 재배치와 재작성을 가른다 |
 | `bench-alt.ts --check` | `purpose.alt` 의 결정론적 계수가 본문 수치와 같은가 |
 | `build-html.ts` | 항목 레일 · 앵커가 절 id 에서 오는가 · JS-off 정적 산출 |
-| `comprehension.sh` V1~V7 | 본문만 근거로 이해가 재구성되는가 (외부 모델 · AND 결합) |
+| `check-proof.ts` | 본문이 내미는 값이 **실행 결과와 글자 그대로** 같은가. 변이는 정본 소스에서 기계로 만든다 |
 | `algo-wbs.ts` | 웨이브 배리어 · 선례 대기 · 남은 편 수 |
 | 사람 | `FEEDBACK.md` §3 중 기계로 못 내린 것 — 멈춤 자리 · 부제의 뜻 · 조건부 절 판정 · 레일 렌더 |
 | 유저 | 편 단위 최종 승인. 항목 id 로 반려 |
@@ -208,3 +220,5 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
 - 2026-08-28T22:53 · s:b90b730c — `검증` 섹션 교체
 - 2026-08-28T22:58 · s:b90b730c — S1 기계 판정 전부 초록 — 파일럿 4편 V1~V7 통과(bSGS r01·qs r04·knap r04·mos r14) · 반영표 결번 0 · 잔여 0. 남은 것 둘은 사람 몫이다 — HTML 레일 브라우저 확인(L37)과 편 단위 승인. 브라우저 확장이 연결돼 있지 않아 레일 확인을 대신 못 했다.
 - 2026-08-28T23:09 · s:b90b730c · S1 done — 정합 회복 + 파일럿 4편 재판정 완료. 판정 4편 V1~V7 통과(bSGS r01·qs r04·knap r04·mos r14) · 반영표 결번 참조 0 · 은유 부류 11 일치 · 회차 산정을 최대+1 로 교정(자기시험 18항목) · 유저 지적 R24 로 레일 기준점 78rem→76rem 을 폭에서 유도하게 바꿔 4편 전부 유저 창 1232px 에서 렌더 확인(간격 24px·깨진 앵커 0).
+- 2026-08-29T00:54 · s:b90b730c — `실행 계획` 섹션 교체
+- 2026-08-29T00:54 · s:b90b730c — `검증` 섹션 교체

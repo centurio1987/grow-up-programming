@@ -11,7 +11,7 @@
 SPEC.md          명세 정본 — 23항목(필수 20 · 조건부 3) · id↔헤딩 매핑 · 작성법 · 범위 원칙
 FEEDBACK.md      반영 상태의 정본 — 지적 → 규칙 → 강제 지점, 그리고 사람이 봐야 하는 목록
 JOURNAL.md       배치 결과 · 반려 사유 · 실측값 · 확정 SPEC 해시
-verdicts/        이해 시험 응답 원문 <name>-r<NN>.md (커밋한다)
+verdicts/        옛 이해 시험 응답 원문 <name>-r<NN>.md — 2026-08-29 이후 새로 안 쌓인다
 tsconfig.json    루트를 extends 하되 exclude 를 비운다 (아래 「함정」)
 .gitignore       *.html — 빌드 산출물은 커밋하지 않는다
 
@@ -30,7 +30,8 @@ tools/
   check-v2.ts        P1~P10
   check-metaphor.ts  은유 표현 — 문서 전체(`.md`)
   check-rework.ts    구성 지적을 받은 절의 재작성률 — 재배치와 재작성을 가른다
-  comprehension.sh   이해 시험 V1~V7
+  check-proof.ts     본문이 내미는 값 ↔ 실행 결과. 변이는 정본 소스에서 기계로 만든다
+  comprehension.sh   옛 이해 시험 V1~V7 — **돌리지 않는다**(SPEC §0)
   bench-alt.ts       L13 의 결정론적 계수
 ```
 
@@ -46,7 +47,7 @@ bunx --bun @biomejs/biome check sandbox/algo-guide-v2      # .ts 가 생긴 뒤�
 bun test sandbox/algo-guide-v2                             # .test.ts 가 생긴 뒤부터
 bun run sandbox/algo-guide-v2/tools/check-v2.ts <파일>
 bun run sandbox/algo-guide-v2/tools/build-html.ts <파일>
-bash sandbox/algo-guide-v2/tools/comprehension.sh <파일>
+bun run sandbox/algo-guide-v2/tools/check-proof.ts <파일>
 bun run tools/ci.ts all                                     # 배치 종료마다
 ```
 
@@ -86,7 +87,7 @@ bun run tools/ci.ts all                                     # 배치 종료마�
 ## 승격 조건 (pilot 승인 뒤)
 
 1. `extraViews`/`overrides` 로 검증된 뷰를 `VIEW_REGISTRY` 로 옮긴다.
-2. `tools/ci.ts` 에 `check-v2`·`comprehension.sh` 를 편입한다.
+2. `tools/ci.ts` 에 `check-v2`·`check-proof` 를 편입한다(`comprehension.sh` 는 편입하지 않는다 — 돌리지 않는다).
 3. `tools/check-citations.ts:30` 의 `SCAN_GLOBS` 에 `src/algorithms` 를 추가한다 —
    현재 알고리즘 트랙의 `경로:줄번호` 인용은 **아무도 안 본다**.
 4. `tools/_baseline/guide-rhythm.tsv` 의 `src/algorithms` **103행**을 이관한다.
