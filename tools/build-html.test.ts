@@ -14,7 +14,7 @@ import { join, resolve } from "node:path";
 import { build, railFrom, railHtml } from "./build-html.ts";
 import { mountAll, type SimSpec } from "./mount.ts";
 
-const SMOKE = resolve(import.meta.dir, "../_smoke");
+const SMOKE = resolve(import.meta.dir, "_fixtures/algo-guide-v2");
 const MD = join(SMOKE, "sample-guide.md");
 const SIM = join(SMOKE, "sample-guide.sim.ts");
 

@@ -15,7 +15,10 @@ function bubbleSortNaive(A: number[]): number[] {
   return [B, comparisons] as unknown as number[]; // 편의상 comparisons도 같이 반환(테스트 전용)
 }
 
-function bubbleSortWithCount(A: number[]): { sorted: number[]; comparisons: number } {
+function bubbleSortWithCount(A: number[]): {
+  sorted: number[];
+  comparisons: number;
+} {
   const B = [...A];
   let comparisons = 0;
   for (let i = 0; i < B.length; i++) {
@@ -143,7 +146,9 @@ console.log("=== 섹션 2: naive 버블 정렬 ===");
   console.log(`N=${N}일 때 N(N-1)/2 =`, (N * (N - 1)) / 2);
 }
 
-console.log("\n=== 섹션 3.1 / 4: 단순 버전 트레이스 (A=[3,0,1,3,1,0], k=3) ===");
+console.log(
+  "\n=== 섹션 3.1 / 4: 단순 버전 트레이스 (A=[3,0,1,3,1,0], k=3) ===",
+);
 {
   const A = [3, 0, 1, 3, 1, 0];
   const traced = countingSortSimpleTraced(A, 3);
@@ -159,12 +164,18 @@ console.log("\n=== 엣지 케이스 (단순 버전) ===");
 {
   console.log("countingSortSimple([]) =", countingSortSimple([]));
   console.log("countingSortSimple([5]) =", countingSortSimple([5], 1000));
-  console.log("countingSortSimple([3,3,3]) =", countingSortSimple([3, 3, 3], 1000));
+  console.log(
+    "countingSortSimple([3,3,3]) =",
+    countingSortSimple([3, 3, 3], 1000),
+  );
   console.log(
     "countingSortSimple([0,1000,500]) =",
     countingSortSimple([0, 1000, 500], 1000),
   );
-  console.log("countingSortSimple([1,2,3]) =", countingSortSimple([1, 2, 3], 1000));
+  console.log(
+    "countingSortSimple([1,2,3]) =",
+    countingSortSimple([1, 2, 3], 1000),
+  );
 }
 
 console.log("\n=== 안정 버전 검증 ===");
@@ -213,7 +224,9 @@ console.log("\n=== 함정: 누적합 방향을 반대로 하면? (A=[3,0,1,3,1,0
   console.log("잘못된 결과(누적합 반대 방향):", wrong);
 }
 
-console.log("\n=== 함정: 안정 배치를 앞→뒤로 하면 상대 순서가 어떻게 되는가? ===");
+console.log(
+  "\n=== 함정: 안정 배치를 앞→뒤로 하면 상대 순서가 어떻게 되는가? ===",
+);
 {
   // 값은 같지만 "어느 인스턴스인지" 구분하기 위해 (값, 원본 인덱스) 쌍으로 안정성을 확인.
   // countingSort는 숫자만 정렬하므로, 값이 같은 원소들의 상대 순서 자체는 최종 배열에서

@@ -3,11 +3,11 @@
  * 원본 dijkstra() 의 실제 실행 결과와 일치하는지 검증한다.
  * (steps가 머릿속 추정이 아니라 실제 알고리즘 전개를 반영하는지 보장)
  */
-import { test, expect } from "bun:test";
+import { expect, test } from "bun:test";
 import { evaluate } from "@mdx-js/mdx";
 import * as runtime from "react/jsx-runtime";
-import remarkMath from "remark-math";
 import rehypeKatex from "rehype-katex";
+import remarkMath from "remark-math";
 import { dijkstra } from "./dijkstra";
 
 // MDX 시뮬레이션이 사용하는 고정 입력 (문서 본문에 명시된 것과 동일해야 함)
@@ -31,7 +31,9 @@ test("마지막 프레임의 거리 라벨이 dijkstra() 실제 결과와 일치
     baseUrl: import.meta.url,
     remarkPlugins: [remarkMath],
     rehypePlugins: [rehypeKatex],
-  })) as unknown as { steps: Array<{ nodeValue?: Record<string, number | string> }> };
+  })) as unknown as {
+    steps: Array<{ nodeValue?: Record<string, number | string> }>;
+  };
 
   const steps = mod.steps;
   expect(Array.isArray(steps)).toBe(true);

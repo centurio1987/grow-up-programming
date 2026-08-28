@@ -64,7 +64,6 @@ src/algorithms/graph/stronglyConnectedComponents/stronglyConnectedComponents-gui
 src/algorithms/graph/topologicalSort/topologicalSort-guide.mdx	3	0
 src/algorithms/graph/undirectedCycleDetection/undirectedCycleDetection-guide.mdx	5	0
 src/algorithms/graph/zeroOneBfs/zeroOneBfs-guide.mdx	5	0
-src/algorithms/number-theory/babyStepGiantStep/babyStepGiantStep-guide.mdx	5	0
 src/algorithms/number-theory/binomialModP/binomialModP-guide.mdx	5	0
 src/algorithms/number-theory/crt/crt-guide.mdx	7	0
 src/algorithms/number-theory/extendedEuclidean/extendedEuclidean-guide.mdx	7	0
@@ -86,7 +85,6 @@ src/algorithms/sorting/externalMergeSort/externalMergeSort-guide.mdx	4	0
 src/algorithms/sorting/insertionSort/insertionSort-guide.mdx	5	0
 src/algorithms/sorting/kthSmallest/kthSmallest-guide.mdx	7	0
 src/algorithms/sorting/medianFromDataStream/medianFromDataStream-guide.mdx	4	0
-src/algorithms/sorting/quicksort/quicksort-guide.mdx	4	0
 src/algorithms/sorting/radixSort/radixSort-guide.mdx	3	0
 src/algorithms/sorting/sortArray/sortArray-guide.mdx	4	0
 src/algorithms/sorting/topKFrequent/topKFrequent-guide.mdx	3	0

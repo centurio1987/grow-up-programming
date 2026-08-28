@@ -6,7 +6,7 @@
  *
  *   bun run ../../tools/check-proof.ts quicksort-guide.md
  */
-import { loadMutant } from "../../tools/check-proof.ts";
+import { loadMutant } from "../../../../tools/check-proof.ts";
 import { quickSort } from "./quicksort-guide.ref.ts";
 
 /** 대조에 쓰는 입력. 본문 불변식 절이 드는 것과 같다. */

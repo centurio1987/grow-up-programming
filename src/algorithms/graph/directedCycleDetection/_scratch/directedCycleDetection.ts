@@ -13,7 +13,11 @@ function directedCycleDetectionNaive(
   const adj: number[][] = Array.from({ length: n }, () => []);
   for (const [u, v] of edges) adj[u].push(v);
 
-  function reachesBack(start: number, v: number, visited: Set<number>): boolean {
+  function reachesBack(
+    start: number,
+    v: number,
+    visited: Set<number>,
+  ): boolean {
     for (const w of adj[v]) {
       if (w === start) return true; // start로 돌아오는 경로 발견
       if (!visited.has(w)) {
@@ -105,7 +109,9 @@ function directedCycleDetection(n: number, edges: [number, number][]): boolean {
 // ── 검증 유틸 ──
 function assertEq(label: string, actual: unknown, expected: unknown) {
   const ok = JSON.stringify(actual) === JSON.stringify(expected);
-  console.log(`${ok ? "OK  " : "FAIL"} ${label}: got=${JSON.stringify(actual)} expected=${JSON.stringify(expected)}`);
+  console.log(
+    `${ok ? "OK  " : "FAIL"} ${label}: got=${JSON.stringify(actual)} expected=${JSON.stringify(expected)}`,
+  );
   if (!ok) process.exitCode = 1;
 }
 
@@ -120,14 +126,63 @@ for (const [label, fn] of [
   ["재귀", directedCycleDetectionRecursive],
   ["반복(최종)", directedCycleDetection],
 ] as const) {
-  assertEq(`[${label}] 대표: n=4, [[0,1],[1,2],[2,0],[2,3]]`, fn(4, [[0, 1], [1, 2], [2, 0], [2, 3]]), true);
-  assertEq(`[${label}] 0→1→2→0`, fn(3, [[0, 1], [1, 2], [2, 0]]), true);
+  assertEq(
+    `[${label}] 대표: n=4, [[0,1],[1,2],[2,0],[2,3]]`,
+    fn(4, [
+      [0, 1],
+      [1, 2],
+      [2, 0],
+      [2, 3],
+    ]),
+    true,
+  );
+  assertEq(
+    `[${label}] 0→1→2→0`,
+    fn(3, [
+      [0, 1],
+      [1, 2],
+      [2, 0],
+    ]),
+    true,
+  );
   assertEq(`[${label}] 자기 루프 0→0`, fn(1, [[0, 0]]), true);
-  assertEq(`[${label}] 양방향 0→1,1→0`, fn(2, [[0, 1], [1, 0]]), true);
-  assertEq(`[${label}] 선형 DAG 0→1→2→3`, fn(4, [[0, 1], [1, 2], [2, 3]]), false);
-  assertEq(`[${label}] 다이아몬드 DAG (cross edge)`, fn(4, [[0, 1], [0, 2], [1, 3], [2, 3]]), false);
+  assertEq(
+    `[${label}] 양방향 0→1,1→0`,
+    fn(2, [
+      [0, 1],
+      [1, 0],
+    ]),
+    true,
+  );
+  assertEq(
+    `[${label}] 선형 DAG 0→1→2→3`,
+    fn(4, [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ]),
+    false,
+  );
+  assertEq(
+    `[${label}] 다이아몬드 DAG (cross edge)`,
+    fn(4, [
+      [0, 1],
+      [0, 2],
+      [1, 3],
+      [2, 3],
+    ]),
+    false,
+  );
   assertEq(`[${label}] 간선 없음`, fn(5, []), false);
-  assertEq(`[${label}] 분리된 컴포넌트: {0→1}, {2→3→2}`, fn(4, [[0, 1], [2, 3], [3, 2]]), true);
+  assertEq(
+    `[${label}] 분리된 컴포넌트: {0→1}, {2→3→2}`,
+    fn(4, [
+      [0, 1],
+      [2, 3],
+      [3, 2],
+    ]),
+    true,
+  );
 }
 
 // naive ↔ 재귀 ↔ 반복 3자 교차 검증 (랜덤)
@@ -154,7 +209,9 @@ for (let trial = 0; trial < 500; trial++) {
     console.log("MISMATCH", { n, edges, naive: a, recursive: b, iterative: c });
   }
 }
-console.log(`랜덤 교차검증 500회 완료 (naive/재귀/반복 3자 일치), mismatch=${mismatches}`);
+console.log(
+  `랜덤 교차검증 500회 완료 (naive/재귀/반복 3자 일치), mismatch=${mismatches}`,
+);
 
 // 재귀 깊이 한계 실측: 체인 그래프에서 재귀 버전이 어디서 무너지는지
 {
@@ -173,7 +230,9 @@ console.log(`랜덤 교차검증 500회 완료 (naive/재귀/반복 3자 일치)
   const t0 = performance.now();
   const iterResult = directedCycleDetection(n, edges);
   const t1 = performance.now();
-  console.log(`[반복] n=${n} 체인 그래프(DAG) → result=${iterResult}, ${(t1 - t0).toFixed(2)}ms (오버플로 없음)`);
+  console.log(
+    `[반복] n=${n} 체인 그래프(DAG) → result=${iterResult}, ${(t1 - t0).toFixed(2)}ms (오버플로 없음)`,
+  );
 }
 
 // 재귀가 실제로 무너지기 시작하는 지점을 이진 탐색으로 실측
@@ -186,12 +245,16 @@ console.log(`랜덤 교차검증 500회 완료 (naive/재귀/반복 3자 일치)
       return false;
     }
   }
-  let lo = 1000, hi = 200000;
+  let lo = 1000,
+    hi = 200000;
   while (lo < hi) {
     const mid = Math.floor((lo + hi + 1) / 2);
-    if (tryDepth(mid)) lo = mid; else hi = mid - 1;
+    if (tryDepth(mid)) lo = mid;
+    else hi = mid - 1;
   }
-  console.log(`[재귀] 안전하게 처리하는 최대 체인 길이 실측 ≈ ${lo} (이 환경 기준)`);
+  console.log(
+    `[재귀] 안전하게 처리하는 최대 체인 길이 실측 ≈ ${lo} (이 환경 기준)`,
+  );
 }
 
 // 반복형이 정점 10만 개 체인에서도 사이클을 정확히 잡아내는지(자기 루프 포함) 재확인
@@ -200,5 +263,7 @@ console.log(`랜덤 교차검증 500회 완료 (naive/재귀/반복 3자 일치)
   const edges = chainEdges(n);
   edges.push([n - 1, n - 1]); // 마지막 정점에 자기 루프 추가 → 사이클 있음
   const result = directedCycleDetection(n, edges);
-  console.log(`[반복] n=${n} 체인 + 마지막에 자기 루프 → result=${result} (true여야 함)`);
+  console.log(
+    `[반복] n=${n} 체인 + 마지막에 자기 루프 → result=${result} (true여야 함)`,
+  );
 }

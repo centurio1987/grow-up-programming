@@ -32,7 +32,8 @@ function matrixChainMultiplicationMemo(dims: number[]): number {
     if (memo[i]![j] !== undefined) return memo[i]![j]!;
     let best = Infinity;
     for (let k = i; k < j; k++) {
-      const cost = solve(i, k) + solve(k + 1, j) + dims[i - 1]! * dims[k]! * dims[j]!;
+      const cost =
+        solve(i, k) + solve(k + 1, j) + dims[i - 1]! * dims[k]! * dims[j]!;
       if (cost < best) best = cost;
     }
     memo[i]![j] = best;
@@ -47,14 +48,17 @@ function matrixChainMultiplication(dims: number[]): number {
   const n = dims.length - 1;
   if (n <= 1) return 0;
 
-  const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(n + 1).fill(0));
+  const dp: number[][] = Array.from({ length: n + 1 }, () =>
+    new Array(n + 1).fill(0),
+  );
 
   for (let len = 2; len <= n; len++) {
     for (let i = 1; i <= n - len + 1; i++) {
       const j = i + len - 1;
       dp[i]![j] = Infinity;
       for (let k = i; k < j; k++) {
-        const cost = dp[i]![k]! + dp[k + 1]![j]! + dims[i - 1]! * dims[k]! * dims[j]!;
+        const cost =
+          dp[i]![k]! + dp[k + 1]![j]! + dims[i - 1]! * dims[k]! * dims[j]!;
         if (cost < dp[i]![j]!) dp[i]![j] = cost;
       }
     }
@@ -82,7 +86,8 @@ for (const c of cases) {
   const rNaive = matrixChainMultiplicationNaive(c.dims);
   const rMemo = matrixChainMultiplicationMemo(c.dims);
   const rFinal = matrixChainMultiplication(c.dims);
-  const ok = rNaive === c.expected && rMemo === c.expected && rFinal === c.expected;
+  const ok =
+    rNaive === c.expected && rMemo === c.expected && rFinal === c.expected;
   console.log(
     `${ok ? "OK" : "FAIL"} ${c.label}: dims=${JSON.stringify(c.dims)} -> naive=${rNaive} memo=${rMemo} final=${rFinal} (expected ${c.expected})`,
   );
@@ -94,20 +99,25 @@ console.log("\n=== dims=[10,100,5,50] dp 테이블 상세 트레이스 ===");
 {
   const dims = [10, 100, 5, 50];
   const n = dims.length - 1;
-  const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(n + 1).fill(0));
+  const dp: number[][] = Array.from({ length: n + 1 }, () =>
+    new Array(n + 1).fill(0),
+  );
   for (let len = 2; len <= n; len++) {
     for (let i = 1; i <= n - len + 1; i++) {
       const j = i + len - 1;
       dp[i]![j] = Infinity;
       const trials: string[] = [];
       for (let k = i; k < j; k++) {
-        const cost = dp[i]![k]! + dp[k + 1]![j]! + dims[i - 1]! * dims[k]! * dims[j]!;
+        const cost =
+          dp[i]![k]! + dp[k + 1]![j]! + dims[i - 1]! * dims[k]! * dims[j]!;
         trials.push(
           `k=${k}: dp[${i}][${k}]+dp[${k + 1}][${j}]+${dims[i - 1]}*${dims[k]}*${dims[j]}=${dp[i]![k]}+${dp[k + 1]![j]}+${dims[i - 1]! * dims[k]! * dims[j]!}=${cost}`,
         );
         if (cost < dp[i]![j]!) dp[i]![j] = cost;
       }
-      console.log(`len=${len} [${i},${j}]: ${trials.join(" | ")} => dp[${i}][${j}]=${dp[i]![j]}`);
+      console.log(
+        `len=${len} [${i},${j}]: ${trials.join(" | ")} => dp[${i}][${j}]=${dp[i]![j]}`,
+      );
     }
   }
   console.log("최종 dp 테이블:", JSON.stringify(dp));
@@ -127,7 +137,9 @@ for (let t = 0; t < 20; t++) {
   const ok = rNaive === rMemo && rMemo === rFinal;
   if (!ok) {
     allPass = false;
-    console.log(`FAIL dims=${JSON.stringify(dims)} naive=${rNaive} memo=${rMemo} final=${rFinal}`);
+    console.log(
+      `FAIL dims=${JSON.stringify(dims)} naive=${rNaive} memo=${rMemo} final=${rFinal}`,
+    );
   }
 }
 console.log(allPass ? "모든 랜덤 케이스 일치 (OK)" : "불일치 발생 (FAIL)");
@@ -151,13 +163,16 @@ console.log("\n=== 헷갈리기 쉬운 포인트 1: dp[i][j] 0-초기화 버그 
   function mcmBuggyZeroInit(dims: number[]): number {
     const n = dims.length - 1;
     if (n <= 1) return 0;
-    const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(n + 1).fill(0));
+    const dp: number[][] = Array.from({ length: n + 1 }, () =>
+      new Array(n + 1).fill(0),
+    );
     for (let len = 2; len <= n; len++) {
       for (let i = 1; i <= n - len + 1; i++) {
         const j = i + len - 1;
         dp[i]![j] = 0; // 버그: Infinity 대신 0
         for (let k = i; k < j; k++) {
-          const cost = dp[i]![k]! + dp[k + 1]![j]! + dims[i - 1]! * dims[k]! * dims[j]!;
+          const cost =
+            dp[i]![k]! + dp[k + 1]![j]! + dims[i - 1]! * dims[k]! * dims[j]!;
           if (cost < dp[i]![j]!) dp[i]![j] = cost;
         }
       }
@@ -166,7 +181,9 @@ console.log("\n=== 헷갈리기 쉬운 포인트 1: dp[i][j] 0-초기화 버그 
   }
   const dims = [10, 100, 5, 50];
   const r = mcmBuggyZeroInit(dims);
-  console.log(`dims=${JSON.stringify(dims)} 0-초기화 버그 결과 = ${r} (본문 주장: 0)`);
+  console.log(
+    `dims=${JSON.stringify(dims)} 0-초기화 버그 결과 = ${r} (본문 주장: 0)`,
+  );
   if (r !== 0) process.exitCode = 1;
 }
 
@@ -175,14 +192,19 @@ console.log("\n=== 헷갈리기 쉬운 포인트 2: dims[k] → dims[k+1] 오타
   function mcmBuggyIndex(dims: number[]): number {
     const n = dims.length - 1;
     if (n <= 1) return 0;
-    const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(n + 1).fill(0));
+    const dp: number[][] = Array.from({ length: n + 1 }, () =>
+      new Array(n + 1).fill(0),
+    );
     for (let len = 2; len <= n; len++) {
       for (let i = 1; i <= n - len + 1; i++) {
         const j = i + len - 1;
         dp[i]![j] = Infinity;
         for (let k = i; k < j; k++) {
           // 버그: 가운데 항이 dims[k] 대신 dims[k+1]
-          const cost = dp[i]![k]! + dp[k + 1]![j]! + dims[i - 1]! * dims[k + 1]! * dims[j]!;
+          const cost =
+            dp[i]![k]! +
+            dp[k + 1]![j]! +
+            dims[i - 1]! * dims[k + 1]! * dims[j]!;
           if (cost < dp[i]![j]!) dp[i]![j] = cost;
         }
       }
@@ -191,21 +213,28 @@ console.log("\n=== 헷갈리기 쉬운 포인트 2: dims[k] → dims[k+1] 오타
   }
   const dims = [10, 100, 5, 50];
   const r = mcmBuggyIndex(dims);
-  console.log(`dims=${JSON.stringify(dims)} dims[k+1] 버그 결과 = ${r} (본문 주장: 25250)`);
+  console.log(
+    `dims=${JSON.stringify(dims)} dims[k+1] 버그 결과 = ${r} (본문 주장: 25250)`,
+  );
   if (r !== 25250) process.exitCode = 1;
 }
 
-console.log("\n=== 스스로 점검하기 문제2: len 우선이 아닌 i-바깥/j-안쪽 순회 버그 ===");
+console.log(
+  "\n=== 스스로 점검하기 문제2: len 우선이 아닌 i-바깥/j-안쪽 순회 버그 ===",
+);
 {
   function mcmWrongLoopOrder(dims: number[]): number {
     const n = dims.length - 1;
     if (n <= 1) return 0;
-    const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(n + 1).fill(0));
+    const dp: number[][] = Array.from({ length: n + 1 }, () =>
+      new Array(n + 1).fill(0),
+    );
     for (let i = 1; i <= n; i++) {
       for (let j = i + 1; j <= n; j++) {
         dp[i]![j] = Infinity;
         for (let k = i; k < j; k++) {
-          const cost = dp[i]![k]! + dp[k + 1]![j]! + dims[i - 1]! * dims[k]! * dims[j]!;
+          const cost =
+            dp[i]![k]! + dp[k + 1]![j]! + dims[i - 1]! * dims[k]! * dims[j]!;
           if (cost < dp[i]![j]!) dp[i]![j] = cost;
         }
       }
@@ -214,7 +243,9 @@ console.log("\n=== 스스로 점검하기 문제2: len 우선이 아닌 i-바깥
   }
   const dims = [10, 20, 30, 40, 30];
   const r = mcmWrongLoopOrder(dims);
-  console.log(`dims=${JSON.stringify(dims)} 잘못된 루프 순서 결과 = ${r} (본문 주장: 6000, 정답 30000)`);
+  console.log(
+    `dims=${JSON.stringify(dims)} 잘못된 루프 순서 결과 = ${r} (본문 주장: 6000, 정답 30000)`,
+  );
   if (r !== 6000) process.exitCode = 1;
 }
 
@@ -241,18 +272,23 @@ console.log("\n=== 최종 최적화 코드의 n=100 분할점 비교 총 횟수 
   const n = 100;
   const dims = new Array(n + 1).fill(500);
   let compareCount = 0;
-  const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(n + 1).fill(0));
+  const dp: number[][] = Array.from({ length: n + 1 }, () =>
+    new Array(n + 1).fill(0),
+  );
   for (let len = 2; len <= n; len++) {
     for (let i = 1; i <= n - len + 1; i++) {
       const j = i + len - 1;
       dp[i]![j] = Infinity;
       for (let k = i; k < j; k++) {
         compareCount++;
-        const cost = dp[i]![k]! + dp[k + 1]![j]! + dims[i - 1]! * dims[k]! * dims[j]!;
+        const cost =
+          dp[i]![k]! + dp[k + 1]![j]! + dims[i - 1]! * dims[k]! * dims[j]!;
         if (cost < dp[i]![j]!) dp[i]![j] = cost;
       }
     }
   }
-  console.log(`n=100 총 분할점 비교(min 갱신 시도) 횟수 = ${compareCount} (본문 주장: 166,650)`);
+  console.log(
+    `n=100 총 분할점 비교(min 갱신 시도) 횟수 = ${compareCount} (본문 주장: 166,650)`,
+  );
   if (compareCount !== 166650) process.exitCode = 1;
 }

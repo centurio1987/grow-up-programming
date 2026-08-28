@@ -184,27 +184,58 @@ function assertEqual(actual: unknown, expected: unknown, label: string) {
 }
 
 console.log("=== 대표 예시: sim 입력 [3,1,4,2] ===");
-assertEqual(minMaxPair([3, 1, 4, 2]), { min: 1, max: 4 }, "iterative [3,1,4,2]");
-assertEqual(minMaxPairRecursive([3, 1, 4, 2]), { min: 1, max: 4 }, "recursive [3,1,4,2]");
-assertEqual(minMaxPairNaive([3, 1, 4, 2]), { min: 1, max: 4 }, "naive [3,1,4,2]");
+assertEqual(
+  minMaxPair([3, 1, 4, 2]),
+  { min: 1, max: 4 },
+  "iterative [3,1,4,2]",
+);
+assertEqual(
+  minMaxPairRecursive([3, 1, 4, 2]),
+  { min: 1, max: 4 },
+  "recursive [3,1,4,2]",
+);
+assertEqual(
+  minMaxPairNaive([3, 1, 4, 2]),
+  { min: 1, max: 4 },
+  "naive [3,1,4,2]",
+);
 
 console.log("\n=== 문제 예시 (minMaxPair-problem.md) ===");
-assertEqual(minMaxPair([3, 1, 4, 1, 5, 9, 2, 6]), { min: 1, max: 9 }, "iterative ex1");
+assertEqual(
+  minMaxPair([3, 1, 4, 1, 5, 9, 2, 6]),
+  { min: 1, max: 9 },
+  "iterative ex1",
+);
 assertEqual(minMaxPair([1, 2, 3, 4, 5]), { min: 1, max: 5 }, "iterative ex2");
 assertEqual(minMaxPair([5, 4, 3, 2, 1]), { min: 1, max: 5 }, "iterative ex3");
 assertEqual(minMaxPair([7]), { min: 7, max: 7 }, "iterative n=1");
-assertEqual(minMaxPair([5, 5, 5, 5]), { min: 5, max: 5 }, "iterative all-equal");
-assertEqual(minMaxPair([-3, -1, -4, -1, -5]), { min: -5, max: -1 }, "iterative negatives");
+assertEqual(
+  minMaxPair([5, 5, 5, 5]),
+  { min: 5, max: 5 },
+  "iterative all-equal",
+);
+assertEqual(
+  minMaxPair([-3, -1, -4, -1, -5]),
+  { min: -5, max: -1 },
+  "iterative negatives",
+);
 assertEqual(minMaxPair([-10, 0, 10]), { min: -10, max: 10 }, "iterative mixed");
 
 console.log("\n=== 엣지: n=2 ===");
 assertEqual(minMaxPair([9, 2]), { min: 2, max: 9 }, "iterative n=2 desc");
-assertEqual(minMaxPairRecursive([9, 2]), { min: 2, max: 9 }, "recursive n=2 desc");
+assertEqual(
+  minMaxPairRecursive([9, 2]),
+  { min: 2, max: 9 },
+  "recursive n=2 desc",
+);
 assertEqual(minMaxPair([2, 9]), { min: 2, max: 9 }, "iterative n=2 asc");
 
 console.log("\n=== 비교 횟수 계측 (naive vs 분할정복 vs 반복문) ===");
 for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 10, 16, 17]) {
-  const arr = Array.from({ length: n }, () => Math.floor(Math.random() * 100) - 50);
+  const arr = Array.from(
+    { length: n },
+    () => Math.floor(Math.random() * 100) - 50,
+  );
   const naive = minMaxPairNaiveCounted(arr);
   const rec = minMaxPairRecursiveCounted(arr);
   const iter = minMaxPairCounted(arr);
@@ -220,10 +251,14 @@ for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 10, 16, 17]) {
     process.exitCode = 1;
   }
   if (rec.comparisons > lowerBound) {
-    console.log(`  참고: 균등분할 재귀는 n=${n}에서 하한보다 ${rec.comparisons - lowerBound}회 더 비교함(의도된 관찰, 실패 아님)`);
+    console.log(
+      `  참고: 균등분할 재귀는 n=${n}에서 하한보다 ${rec.comparisons - lowerBound}회 더 비교함(의도된 관찰, 실패 아님)`,
+    );
   }
   if (iter.comparisons !== lowerBound && n > 1) {
-    console.error(`  FAIL iterative comparisons != lowerBound at n=${n} (got ${iter.comparisons})`);
+    console.error(
+      `  FAIL iterative comparisons != lowerBound at n=${n} (got ${iter.comparisons})`,
+    );
     process.exitCode = 1;
   }
   // 정확성도 함께 확인
@@ -236,7 +271,10 @@ for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 10, 16, 17]) {
 console.log("\n=== 무작위 교차검증 (n=1..200, 30회) ===");
 for (let t = 0; t < 30; t++) {
   const n = 1 + Math.floor(Math.random() * 200);
-  const arr = Array.from({ length: n }, () => Math.floor(Math.random() * 2000) - 1000);
+  const arr = Array.from(
+    { length: n },
+    () => Math.floor(Math.random() * 2000) - 1000,
+  );
   const expected = { min: Math.min(...arr), max: Math.max(...arr) };
   assertEqual(minMaxPair(arr), expected, `random iterative n=${n}`);
   assertEqual(minMaxPairRecursive(arr), expected, `random recursive n=${n}`);
@@ -246,39 +284,64 @@ for (let t = 0; t < 30; t++) {
 console.log("\n=== n=4 상세 (시뮬레이션 [3,1,4,2] 프레임 교차검증) ===");
 {
   const arr = [3, 1, 4, 2];
-  const left = arr[0]! <= arr[1]! ? { min: arr[0]!, max: arr[1]! } : { min: arr[1]!, max: arr[0]! };
-  const right = arr[2]! <= arr[3]! ? { min: arr[2]!, max: arr[3]! } : { min: arr[3]!, max: arr[2]! };
+  const left =
+    arr[0]! <= arr[1]!
+      ? { min: arr[0]!, max: arr[1]! }
+      : { min: arr[1]!, max: arr[0]! };
+  const right =
+    arr[2]! <= arr[3]!
+      ? { min: arr[2]!, max: arr[3]! }
+      : { min: arr[3]!, max: arr[2]! };
   console.log(`left(=[3,1])  = ${JSON.stringify(left)}`);
   console.log(`right(=[4,2]) = ${JSON.stringify(right)}`);
-  const merged = { min: Math.min(left.min, right.min), max: Math.max(left.max, right.max) };
-  console.log(`merge min(${left.min},${right.min})=${merged.min}, max(${left.max},${right.max})=${merged.max}`);
+  const merged = {
+    min: Math.min(left.min, right.min),
+    max: Math.max(left.max, right.max),
+  };
+  console.log(
+    `merge min(${left.min},${right.min})=${merged.min}, max(${left.max},${right.max})=${merged.max}`,
+  );
   assertEqual(left, { min: 1, max: 3 }, "sim left frame");
   assertEqual(right, { min: 2, max: 4 }, "sim right frame");
   assertEqual(merged, { min: 1, max: 4 }, "sim final frame");
 }
 
-console.log("\n=== 기저 케이스(size 2) 생략 시 비교 횟수 = naive와 정확히 동일(2n-2) ===");
-function solveNoBase2(arr: number[], lo: number, hi: number, cnt: { c: number }): { min: number; max: number } {
+console.log(
+  "\n=== 기저 케이스(size 2) 생략 시 비교 횟수 = naive와 정확히 동일(2n-2) ===",
+);
+function solveNoBase2(
+  arr: number[],
+  lo: number,
+  hi: number,
+  cnt: { c: number },
+): { min: number; max: number } {
   if (lo === hi) return { min: arr[lo]!, max: arr[lo]! };
   const mid = Math.floor((lo + hi) / 2);
   const left = solveNoBase2(arr, lo, mid, cnt);
   const right = solveNoBase2(arr, mid + 1, hi, cnt);
   cnt.c += 2;
-  return { min: Math.min(left.min, right.min), max: Math.max(left.max, right.max) };
+  return {
+    min: Math.min(left.min, right.min),
+    max: Math.max(left.max, right.max),
+  };
 }
 for (const n of [2, 4, 6, 8, 16, 100]) {
   const arr = Array.from({ length: n }, () => Math.floor(Math.random() * 100));
   const cnt = { c: 0 };
   solveNoBase2(arr, 0, n - 1, cnt);
   const naiveExpected = 2 * n - 2;
-  console.log(`n=${n}: base2 생략 시 비교=${cnt.c}회, naive(2n-2)=${naiveExpected}회`);
+  console.log(
+    `n=${n}: base2 생략 시 비교=${cnt.c}회, naive(2n-2)=${naiveExpected}회`,
+  );
   if (cnt.c !== naiveExpected) {
     console.error(`  FAIL base2 생략 비교 횟수가 naive와 다름 at n=${n}`);
     process.exitCode = 1;
   }
 }
 
-console.log("\n=== 스스로 점검하기 1번: arr=[7,2,9,4,1,6] 반복문 버전 손 검산 ===");
+console.log(
+  "\n=== 스스로 점검하기 1번: arr=[7,2,9,4,1,6] 반복문 버전 손 검산 ===",
+);
 {
   const arr = [7, 2, 9, 4, 1, 6];
   const result = minMaxPair(arr);
@@ -286,7 +349,9 @@ console.log("\n=== 스스로 점검하기 1번: arr=[7,2,9,4,1,6] 반복문 버�
   assertEqual(result, { min: 1, max: 9 }, "점검문제 1번 답");
 }
 
-console.log("\n=== 3.2 절 예시: arr=[3,1,4,2] 재귀 비교 횟수 = 4 (이론적 하한과 일치) ===");
+console.log(
+  "\n=== 3.2 절 예시: arr=[3,1,4,2] 재귀 비교 횟수 = 4 (이론적 하한과 일치) ===",
+);
 {
   const arr = [3, 1, 4, 2];
   const cnt = { c: 0 };
@@ -294,13 +359,18 @@ console.log("\n=== 3.2 절 예시: arr=[3,1,4,2] 재귀 비교 횟수 = 4 (이�
     if (lo === hi) return { min: arr[lo]!, max: arr[lo]! };
     if (lo + 1 === hi) {
       cnt.c++;
-      return arr[lo]! <= arr[hi]! ? { min: arr[lo]!, max: arr[hi]! } : { min: arr[hi]!, max: arr[lo]! };
+      return arr[lo]! <= arr[hi]!
+        ? { min: arr[lo]!, max: arr[hi]! }
+        : { min: arr[hi]!, max: arr[lo]! };
     }
     const mid = Math.floor((lo + hi) / 2);
     const left = solveCounted(lo, mid);
     const right = solveCounted(mid + 1, hi);
     cnt.c += 2;
-    return { min: Math.min(left.min, right.min), max: Math.max(left.max, right.max) };
+    return {
+      min: Math.min(left.min, right.min),
+      max: Math.max(left.max, right.max),
+    };
   }
   const r = solveCounted(0, 3);
   console.log(`solve([3,1,4,2]) 비교 횟수=${cnt.c}, 결과=${JSON.stringify(r)}`);

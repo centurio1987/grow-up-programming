@@ -41,3 +41,8 @@ rust/target
 
 # manage-kanban 다중 세션 잠금(로컬 전용)
 .kanban/locks/
+
+# 가이드 v2 빌드 산출물 (tools/build-html.ts). 편당 KaTeX base64 ≈346KB + React 번들 +
+# shiki 라 111편이면 수십 MB 다. 커밋하지 않고 그때그때 빌드해서 연다.
+# 샌드박스에 있던 같은 규칙을 승격과 함께 올렸다(KAN-034 S2).
+src/algorithms/**/*-guide.html

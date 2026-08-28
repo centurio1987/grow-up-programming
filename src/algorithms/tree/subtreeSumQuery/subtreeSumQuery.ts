@@ -3,7 +3,7 @@ export class SubtreeSumQuery {
     n: number,
     edges: [number, number][],
     root: number,
-    values: number[]
+    values: number[],
   ) {
     throw new Error("Not implemented");
   }

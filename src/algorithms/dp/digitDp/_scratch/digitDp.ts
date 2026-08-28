@@ -26,8 +26,8 @@ function digitDpBasic(N: number, K: number): number {
   );
 
   function f(pos: number, sum: number, tight: boolean): number {
-    if (sum > K) return 0;                       // 가지치기: 합이 이미 K를 넘었다
-    if (pos === L) return sum === K ? 1 : 0;      // 기저: 모든 자리를 다 정했다
+    if (sum > K) return 0; // 가지치기: 합이 이미 K를 넘었다
+    if (pos === L) return sum === K ? 1 : 0; // 기저: 모든 자리를 다 정했다
 
     const key = tight ? 1 : 0;
     const cached = memo[pos]![sum]![key];
@@ -84,7 +84,9 @@ function digitDp(N: number, K: number): number {
 // ---------- 검증 ----------
 function assertEq(label: string, actual: number, expected: number) {
   const ok = actual === expected;
-  console.log(`${ok ? "OK  " : "FAIL"} ${label}: actual=${actual} expected=${expected}`);
+  console.log(
+    `${ok ? "OK  " : "FAIL"} ${label}: actual=${actual} expected=${expected}`,
+  );
   if (!ok) process.exitCode = 1;
 }
 
@@ -129,7 +131,9 @@ for (let i = 0; i < 300; i++) {
     randFails++;
   }
 }
-console.log(randFails === 0 ? "OK   무작위 300건 통과" : `FAIL ${randFails}건 불일치`);
+console.log(
+  randFails === 0 ? "OK   무작위 300건 통과" : `FAIL ${randFails}건 불일치`,
+);
 
 console.log("=== 큰 N (naive 불가 영역) basic vs optimized ===");
 const bigCases: [number, number][] = [

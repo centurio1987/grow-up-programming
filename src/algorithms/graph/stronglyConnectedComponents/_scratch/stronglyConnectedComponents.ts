@@ -3,7 +3,12 @@
 
 // ---------- 출발점: naive (pairwise reachability) ----------
 
-function isReachable(n: number, adj: number[][], src: number, dst: number): boolean {
+function isReachable(
+  n: number,
+  adj: number[][],
+  src: number,
+  dst: number,
+): boolean {
   const visited = new Array(n).fill(false);
   const queue: number[] = [src];
   visited[src] = true;
@@ -20,7 +25,10 @@ function isReachable(n: number, adj: number[][], src: number, dst: number): bool
   return false;
 }
 
-function stronglyConnectedComponentsNaive(n: number, edges: [number, number][]): number[][] {
+function stronglyConnectedComponentsNaive(
+  n: number,
+  edges: [number, number][],
+): number[][] {
   const adj: number[][] = Array.from({ length: n }, () => []);
   for (const [u, v] of edges) adj[u].push(v);
 
@@ -44,7 +52,10 @@ function stronglyConnectedComponentsNaive(n: number, edges: [number, number][]):
 
 // ---------- 아이디어를 코드로 옮기기: Tarjan (최종) ----------
 
-function stronglyConnectedComponents(n: number, edges: [number, number][]): number[][] {
+function stronglyConnectedComponents(
+  n: number,
+  edges: [number, number][],
+): number[][] {
   const adj: number[][] = Array.from({ length: n }, () => []);
   for (const [u, v] of edges) adj[u].push(v); // 유향: 단방향으로만 넣는다
 
@@ -199,5 +210,7 @@ console.log("=== 무작위 교차검증 (n=8, 20회) ===");
       console.log(`    naive =${JSON.stringify(expected)}`);
     }
   }
-  console.log(allOk ? "  모든 무작위 시행 일치" : "  불일치 발견 (위 로그 참고)");
+  console.log(
+    allOk ? "  모든 무작위 시행 일치" : "  불일치 발견 (위 로그 참고)",
+  );
 }

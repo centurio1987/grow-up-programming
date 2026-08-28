@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { treeRerooting } from "./treeRerooting";
 
 describe("treeRerooting", () => {
@@ -20,7 +20,7 @@ describe("treeRerooting", () => {
         treeRerooting(3, [
           [0, 1],
           [1, 2],
-        ])
+        ]),
       ).toEqual([3, 2, 3]);
     });
 
@@ -36,7 +36,7 @@ describe("treeRerooting", () => {
           [0, 1],
           [0, 2],
           [1, 3],
-        ])
+        ]),
       ).toEqual([4, 4, 6, 6]);
     });
   });

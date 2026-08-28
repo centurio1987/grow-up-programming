@@ -1258,3 +1258,38 @@ quicksort 불변식 절의 손으로 적은 값 셋(`[5 2 3 1]`·`[5 1 1 2 0 0]`
 게이트: `check-v2` P1~P10 **4편 통과** · `check-metaphor` 9편 0건 · `tsc` 무출력 ·
 biome 36파일 경고 0 · `bun test` **130 pass**(회귀 10벌 추가) · `check-proof` quicksort 통과 ·
 자기시험 18항목(폐기했지만 그대로 돈다).
+
+### 배치2 `S2` — 인프라 승격 + 파일럿 4편 이관 (2026-08-29)
+
+샌드박스가 본 저장소로 걷혔다. **검증 장치가 샌드박스 안에 있는 채로 111편을 밖에서 내면
+그 111편을 아무도 못 잰다** — 그것이 이 work 의 이유다.
+
+**승격 조건 ①은 할 일이 없었다.** 파일럿 4편이 `extraViews`·`overrides` 를 하나도 안 쓴다
+(실측 0건). `VIEW_REGISTRY` 로 올릴 것이 없다 — README 가 「mosAlgorithm 용 새 컴포넌트는
+기본적으로 만들지 않는다」로 미리 정한 대로 됐다.
+
+**`check-citations` 를 넓히자마자 묵은 부채가 드러났다.** 알고리즘 트랙의 `경로:줄번호`
+인용은 그동안 아무도 안 봤고, 대상에 넣으니 2건이 「가리키는 파일이 없다」로 떴다. 열어 보니
+인용이 아니라 **스택 트레이스**였다 — `at dijkstra (.../dijkstra.ts:43:22)`. 앞을 잘라 적은
+줄임표 경로는 따라가라고 적은 인용이 아니다. 정규식에 부정 전방탐색(`(?!\.{3})`)과 부정
+후방탐색을 함께 걸었다. **둘 다 필요하다** — 앞엣것만 두면 엔진이 한 칸씩 밀며
+`../dijkstra.ts` · `./dijkstra.ts` 로 다시 맞고 그 둘은 실재하는 것처럼 보인다.
+
+**`--all` 의 대상 집합을 한 자리에 뒀다**(`tools/guide-v2-targets.ts`). 세 스캐너가 각자
+글롭을 들면 갈리고, 갈린 쪽이 조용히 덜 검사한다. CI 에 글롭을 인자로 펴서 넘기는 것도
+같은 실패다 — 그러면 그 글롭이 `ci.ts` 안에 굳어 새 편이 늘 때 아무도 안 고친다.
+
+| 무엇 | 어디 |
+| --- | --- |
+| 도구 승격 | `tools/` 로 13개. `comprehension.*` 둘은 `verdicts/` 옆에 남긴다(그 산출의 규격이다) |
+| 파일럿 이관 | 4편 × 사이드카 → `src/algorithms/<cat>/<name>/`. `.mdx` 4개 삭제 |
+| CI | `ci.ts` GATES 에 `check-v2 --all` · `check-proof --all` · `check-metaphor --all` |
+| 인용 | `SCAN_GLOBS` 에 `src/algorithms` · 줄임표 경로 제외 |
+| 래칫 | `guide-rhythm.tsv` **103 → 101** |
+| 인덱스 | 파일럿 4줄 `.mdx` → `.md` · 「자동 추가」 절 중복 3줄 정리 |
+| 낡은 참조 | `ord004-regen` 예시 교체 · `paths.json` 예시 교체 + 경위 · `ord004-manifest` 4건에 `supersededBy` |
+| 정리 | 샌드박스 `tsconfig.json` 삭제(입력 0개라 `TS18003`) · 루트 `.gitignore` 에 빌드 HTML |
+
+게이트: **`bun run tools/ci.ts all` 통과 — 단계 15개** · `bun test tools` **232 pass** ·
+파일럿 `-guide.test.ts` **43 pass** · `bun test src/_guide-sim` 14 pass · `tsc` 무출력 ·
+인용 246건 · 링크 264건 · 새 파일 린트 경고 0.

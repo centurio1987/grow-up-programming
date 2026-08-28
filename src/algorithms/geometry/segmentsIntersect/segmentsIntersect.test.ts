@@ -1,5 +1,5 @@
-import { test, expect, describe } from "bun:test";
-import { segmentsIntersect, type Segment } from "./segmentsIntersect";
+import { describe, expect, test } from "bun:test";
+import { type Segment, segmentsIntersect } from "./segmentsIntersect";
 
 describe("segmentsIntersect", () => {
   // 기본 동작

@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { treeDiameter } from "./treeDiameter";
 
 describe("treeDiameter", () => {
@@ -20,7 +20,7 @@ describe("treeDiameter", () => {
           [0, 1, 1],
           [1, 2, 2],
           [1, 3, 3],
-        ])
+        ]),
       ).toBe(5);
     });
 
@@ -33,7 +33,7 @@ describe("treeDiameter", () => {
           [1, 2, 3],
           [1, 3, 4],
           [3, 4, 1],
-        ])
+        ]),
       ).toBe(8);
     });
   });
@@ -56,7 +56,7 @@ describe("treeDiameter", () => {
           [0, 2, 2],
           [0, 3, 3],
           [0, 4, 4],
-        ])
+        ]),
       ).toBe(7);
     });
 
@@ -65,7 +65,7 @@ describe("treeDiameter", () => {
         treeDiameter(3, [
           [0, 1, 0],
           [1, 2, 0],
-        ])
+        ]),
       ).toBe(0);
     });
 
@@ -82,7 +82,7 @@ describe("treeDiameter", () => {
           [1, 4, 1],
           [2, 5, 1],
           [2, 6, 1],
-        ])
+        ]),
       ).toBe(4);
     });
   });
@@ -102,7 +102,7 @@ describe("treeDiameter", () => {
         treeDiameter(3, [
           [0, 1, 1_000_000],
           [1, 2, 1_000_000],
-        ])
+        ]),
       ).toBe(2_000_000);
     });
   });

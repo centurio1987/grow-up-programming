@@ -25,8 +25,8 @@
   },
 
   "exemplars": {
-    "_note_algo-guide": "이해 게이트(H축) 미통과 상태다 — 2026-08-15 실측에서 codex·agy 둘 다 FAIL(Q1 절차 층위 대안 미제시, Q5 실수 결과값 미제시). 명세가 이 파일에서 역추출됐기 때문에 명세로는 이 결함이 잡히지 않는다. H축을 통과한 판본이 나오면 교체한다.",
-    "algo-guide": "src/algorithms/array/mosAlgorithm/mosAlgorithm-guide.mdx",
+    "_note_algo-guide": "예시가 바뀌었다(2026-08-29, KAN-034 S2). 앞 예시는 mosAlgorithm-guide.mdx 였고 2026-08-15 실측에서 codex·agy 둘 다 FAIL 이었다(Q1 절차 층위 대안 미제시, Q5 실수 결과값 미제시) — 그 파일은 v2 골격으로 재집필되면서 .mdx 가 사라졌다. 지금 값은 살아 있는 구 골격 산출 하나를 가리킬 뿐이고 품질 근거가 없다. 알고리즘 트랙이 v2 골격(sandbox/algo-guide-v2/SPEC.md)으로 다 넘어가면 이 spec 자체가 대상을 잃으므로, 그때 예시가 아니라 spec 을 정리한다.",
+    "algo-guide": "src/algorithms/array/kadane/kadane-guide.mdx",
     "_note_ds-guide": "8단계 골격(ds-guide spec 2.0.0)으로 쓰인 첫 산출물이다. 구 5단계 예시(tree/bPlusTree)를 이것으로 교체했다 — 규칙과 예시가 다른 골격을 들고 있으면 예시가 이긴다.",
     "ds-guide": "src/data-structures/linear/deque/deque-guide.mdx"
   }

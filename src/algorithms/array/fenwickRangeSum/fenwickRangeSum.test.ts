@@ -1,5 +1,5 @@
-import { test, expect, describe } from "bun:test";
-import { fenwickRangeSum, type FenwickOp } from "./fenwickRangeSum";
+import { describe, expect, test } from "bun:test";
+import { type FenwickOp, fenwickRangeSum } from "./fenwickRangeSum";
 
 describe("fenwickRangeSum", () => {
   describe("기본", () => {

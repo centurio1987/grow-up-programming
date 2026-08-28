@@ -1,7 +1,10 @@
 // 가이드 자기검증용 스크래치. 본문에 싣는 모든 코드/수치를 여기서 실제로 실행해 확인한다.
 
 // ---- naive DFS 기반 접근 (출발점 절의 "그나마 실행 가능한 정직한 방법") ----
-function undirectedCycleDetectionDFS(n: number, edges: [number, number][]): boolean {
+function undirectedCycleDetectionDFS(
+  n: number,
+  edges: [number, number][],
+): boolean {
   const adj: number[][] = Array.from({ length: n }, () => []);
   for (const [u, v] of edges) {
     adj[u]!.push(v);
@@ -30,7 +33,10 @@ function undirectedCycleDetectionDFS(n: number, edges: [number, number][]): bool
 }
 
 // ---- 기본 union-find (경로 압축/랭크 없음) — 4단계 코드 ----
-function undirectedCycleDetectionBasic(n: number, edges: [number, number][]): boolean {
+function undirectedCycleDetectionBasic(
+  n: number,
+  edges: [number, number][],
+): boolean {
   const parent = Array.from({ length: n }, (_, i) => i);
 
   function find(v: number): number {
@@ -54,7 +60,13 @@ function undirectedCycleDetectionBasic(n: number, edges: [number, number][]): bo
 // ---- 5단계: 기본 구현의 스큐(선형 체인) 관찰 ----
 {
   const n = 6;
-  const edges: [number, number][] = [[0, 1], [1, 2], [2, 3], [3, 4], [4, 5]];
+  const edges: [number, number][] = [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 4],
+    [4, 5],
+  ];
   const parent = Array.from({ length: n }, (_, i) => i);
   function find(v: number): number {
     while (parent[v] !== v) v = parent[v]!;
@@ -82,7 +94,10 @@ function undirectedCycleDetectionBasic(n: number, edges: [number, number][]): bo
 }
 
 // ---- 7단계: 최종 union-find (경로 압축 + 랭크) ----
-function undirectedCycleDetectionFinal(n: number, edges: [number, number][]): boolean {
+function undirectedCycleDetectionFinal(
+  n: number,
+  edges: [number, number][],
+): boolean {
   const parent = Array.from({ length: n }, (_, i) => i);
   const rank = new Array<number>(n).fill(0);
 
@@ -111,7 +126,12 @@ function undirectedCycleDetectionFinal(n: number, edges: [number, number][]): bo
 // ---- 9단계 시뮬레이션과 1:1 대조할 트레이스 (n=5, edges=[[0,1],[1,2],[2,0],[3,4]]) ----
 {
   const n = 5;
-  const edges: [number, number][] = [[0, 1], [1, 2], [2, 0], [3, 4]];
+  const edges: [number, number][] = [
+    [0, 1],
+    [1, 2],
+    [2, 0],
+    [3, 4],
+  ];
   const parent = Array.from({ length: n }, (_, i) => i);
   const rank = new Array(n).fill(0);
   function find(v: number): number {
@@ -143,10 +163,38 @@ console.log("\n[엣지케이스]");
 console.log("n=1, no edges:", undirectedCycleDetectionFinal(1, []));
 console.log("no edges n=5:", undirectedCycleDetectionFinal(5, []));
 console.log("self-loop:", undirectedCycleDetectionFinal(2, [[0, 0]]));
-console.log("duplicate edge:", undirectedCycleDetectionFinal(2, [[0, 1], [0, 1]]));
-console.log("triangle:", undirectedCycleDetectionFinal(3, [[0, 1], [1, 2], [2, 0]]));
-console.log("linear tree:", undirectedCycleDetectionFinal(4, [[0, 1], [1, 2], [2, 3]]));
-console.log("forest two trees:", undirectedCycleDetectionFinal(6, [[0, 1], [1, 2], [3, 4], [4, 5]]));
+console.log(
+  "duplicate edge:",
+  undirectedCycleDetectionFinal(2, [
+    [0, 1],
+    [0, 1],
+  ]),
+);
+console.log(
+  "triangle:",
+  undirectedCycleDetectionFinal(3, [
+    [0, 1],
+    [1, 2],
+    [2, 0],
+  ]),
+);
+console.log(
+  "linear tree:",
+  undirectedCycleDetectionFinal(4, [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+  ]),
+);
+console.log(
+  "forest two trees:",
+  undirectedCycleDetectionFinal(6, [
+    [0, 1],
+    [1, 2],
+    [3, 4],
+    [4, 5],
+  ]),
+);
 
 // ---- DFS / basic / final 교차검증 (무작위) ----
 function randomTest() {
@@ -175,7 +223,12 @@ randomTest();
 // ---- 유향 그래프 오용 반례: DAG 다이아몬드 (0->1, 0->2, 1->3, 2->3, 유향 사이클 없음) ----
 {
   const n = 4;
-  const directedEdges: [number, number][] = [[0, 1], [0, 2], [1, 3], [2, 3]];
+  const directedEdges: [number, number][] = [
+    [0, 1],
+    [0, 2],
+    [1, 3],
+    [2, 3],
+  ];
   console.log(
     "\n[유향 오용 반례] DAG 다이아몬드에 무향 union-find 적용 결과:",
     undirectedCycleDetectionFinal(n, directedEdges),
@@ -184,7 +237,10 @@ randomTest();
 
 // ---- 최적화 코드 절 함정: 조건을 뒤집으면 어떻게 조용히(즉시) 틀리는가 ----
 {
-  function buggyFlippedCondition(n: number, edges: [number, number][]): boolean {
+  function buggyFlippedCondition(
+    n: number,
+    edges: [number, number][],
+  ): boolean {
     const parent = Array.from({ length: n }, (_, i) => i);
     const rank = new Array<number>(n).fill(0);
     function find(v: number): number {
@@ -204,18 +260,29 @@ randomTest();
     }
     return false;
   }
-  const edges: [number, number][] = [[0, 1], [1, 2], [2, 3]]; // 선형 트리, 정답 false
+  const edges: [number, number][] = [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+  ]; // 선형 트리, 정답 false
   console.log(
     "\n[함정: 조건 뒤집기] 선형 트리(edges=[[0,1],[1,2],[2,3]])에서",
-    "정답 =", undirectedCycleDetectionFinal(4, edges),
-    ", 조건 뒤집은 버그 결과 =", buggyFlippedCondition(4, edges),
+    "정답 =",
+    undirectedCycleDetectionFinal(4, edges),
+    ", 조건 뒤집은 버그 결과 =",
+    buggyFlippedCondition(4, edges),
   );
 }
 
 // ---- 스스로 점검하기 문제 1 손 계산용 트레이스 ----
 {
   const n = 4;
-  const edges: [number, number][] = [[0, 1], [2, 3], [1, 2], [0, 3]];
+  const edges: [number, number][] = [
+    [0, 1],
+    [2, 3],
+    [1, 2],
+    [0, 3],
+  ];
   const parent = Array.from({ length: n }, (_, i) => i);
   const rank = new Array(n).fill(0);
   function find(v: number): number {

@@ -15,7 +15,12 @@ function buildAdj(n: number, edges: Edges): number[][] {
 }
 
 // (A) base — 백트래킹으로 source→target 모든 단순 경로. 진입 시 mark/push, 이탈 시 unmark/pop.
-function allPaths(n: number, edges: Edges, source: number, target: number): number[][] {
+function allPaths(
+  n: number,
+  edges: Edges,
+  source: number,
+  target: number,
+): number[][] {
   const adj = buildAdj(n, edges);
   const onPath = new Uint8Array(n);
   const path: number[] = [];
@@ -42,7 +47,8 @@ function allPaths(n: number, edges: Edges, source: number, target: number): numb
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   const a = JSON.stringify(actual);
   const e = JSON.stringify(expected);
-  if (a !== e) throw new Error(`[FAIL] ${label}\n  expected ${e}\n  actual   ${a}`);
+  if (a !== e)
+    throw new Error(`[FAIL] ${label}\n  expected ${e}\n  actual   ${a}`);
   console.log(`[ok] ${label} => ${a}`);
 }
 
@@ -50,10 +56,14 @@ function isLexSorted(paths: number[][]): boolean {
   for (let i = 1; i < paths.length; i++) {
     if (JSON.stringify(paths[i - 1]) > JSON.stringify(paths[i])) {
       // 문자열 비교로는 부정확할 수 있어 원소 비교로 재확인
-      const a = paths[i - 1]!, b = paths[i]!;
+      const a = paths[i - 1]!,
+        b = paths[i]!;
       let cmp = 0;
       for (let k = 0; k < Math.min(a.length, b.length); k++) {
-        if (a[k]! !== b[k]!) { cmp = a[k]! - b[k]!; break; }
+        if (a[k]! !== b[k]!) {
+          cmp = a[k]! - b[k]!;
+          break;
+        }
       }
       if (cmp === 0) cmp = a.length - b.length;
       if (cmp > 0) return false;
@@ -62,27 +72,125 @@ function isLexSorted(paths: number[][]): boolean {
   return true;
 }
 
-type Case = { n: number; edges: Edges; s: number; t: number; expected: number[][]; label: string };
+type Case = {
+  n: number;
+  edges: Edges;
+  s: number;
+  t: number;
+  expected: number[][];
+  label: string;
+};
 const cases: Case[] = [
-  { label: "예시1 다이아몬드 DAG", n: 4, edges: [[0, 1], [0, 2], [1, 3], [2, 3]], s: 0, t: 3, expected: [[0, 1, 3], [0, 2, 3]] },
-  { label: "예시2 다중 경로 사전식", n: 4, edges: [[0, 1], [0, 2], [1, 2], [1, 3], [2, 3]], s: 0, t: 3, expected: [[0, 1, 2, 3], [0, 1, 3], [0, 2, 3]] },
+  {
+    label: "예시1 다이아몬드 DAG",
+    n: 4,
+    edges: [
+      [0, 1],
+      [0, 2],
+      [1, 3],
+      [2, 3],
+    ],
+    s: 0,
+    t: 3,
+    expected: [
+      [0, 1, 3],
+      [0, 2, 3],
+    ],
+  },
+  {
+    label: "예시2 다중 경로 사전식",
+    n: 4,
+    edges: [
+      [0, 1],
+      [0, 2],
+      [1, 2],
+      [1, 3],
+      [2, 3],
+    ],
+    s: 0,
+    t: 3,
+    expected: [
+      [0, 1, 2, 3],
+      [0, 1, 3],
+      [0, 2, 3],
+    ],
+  },
   { label: "예시3 경로 없음", n: 3, edges: [[0, 1]], s: 0, t: 2, expected: [] },
-  { label: "예시4 source==target", n: 3, edges: [[0, 1], [1, 2]], s: 1, t: 1, expected: [[1]] },
-  { label: "예시5 사이클 존재-단순경로만", n: 3, edges: [[0, 1], [1, 2], [2, 0], [0, 2]], s: 0, t: 2, expected: [[0, 1, 2], [0, 2]] },
-  { label: "예시6 자기루프 무시", n: 2, edges: [[0, 0], [0, 1]], s: 0, t: 1, expected: [[0, 1]] },
-  { label: "경계 중복간선-경로중복없음", n: 3, edges: [[0, 1], [0, 1], [1, 2]], s: 0, t: 2, expected: [[0, 1, 2]] },
-  { label: "경계 target 도달불가(역방향만)", n: 2, edges: [[1, 0]], s: 0, t: 1, expected: [] },
+  {
+    label: "예시4 source==target",
+    n: 3,
+    edges: [
+      [0, 1],
+      [1, 2],
+    ],
+    s: 1,
+    t: 1,
+    expected: [[1]],
+  },
+  {
+    label: "예시5 사이클 존재-단순경로만",
+    n: 3,
+    edges: [
+      [0, 1],
+      [1, 2],
+      [2, 0],
+      [0, 2],
+    ],
+    s: 0,
+    t: 2,
+    expected: [
+      [0, 1, 2],
+      [0, 2],
+    ],
+  },
+  {
+    label: "예시6 자기루프 무시",
+    n: 2,
+    edges: [
+      [0, 0],
+      [0, 1],
+    ],
+    s: 0,
+    t: 1,
+    expected: [[0, 1]],
+  },
+  {
+    label: "경계 중복간선-경로중복없음",
+    n: 3,
+    edges: [
+      [0, 1],
+      [0, 1],
+      [1, 2],
+    ],
+    s: 0,
+    t: 2,
+    expected: [[0, 1, 2]],
+  },
+  {
+    label: "경계 target 도달불가(역방향만)",
+    n: 2,
+    edges: [[1, 0]],
+    s: 0,
+    t: 1,
+    expected: [],
+  },
 ];
 
 for (const c of cases) {
   const got = allPaths(c.n, c.edges, c.s, c.t);
   assertEqual(got, c.expected, c.label);
-  if (!isLexSorted(got)) throw new Error(`[FAIL] ${c.label} — 사전식 정렬 아님`);
+  if (!isLexSorted(got))
+    throw new Error(`[FAIL] ${c.label} — 사전식 정렬 아님`);
 }
 
 // 입력 불변 확인
 {
-  const edges: Edges = [[0, 1], [0, 2], [1, 3], [2, 3]];
+  const edges: Edges = [
+    [0, 1],
+    [0, 2],
+    [1, 3],
+    [2, 3],
+  ];
   const snap = JSON.stringify(edges);
   allPaths(4, edges, 0, 3);
   assertEqual(JSON.stringify(edges), snap, "입력 edges 불변");
@@ -116,8 +224,14 @@ function centralBinomial(m: number): number {
   const elapsed = performance.now() - t0;
   const expectedCount = centralBinomial(m); // C(14,7) = 3432
   assertEqual(paths.length, expectedCount, `격자 ${m}x${m} 경로 수 = C(2m,m)`);
-  assertEqual(paths[0], [0, 1, 2, 3, 4, 5, 6, 7, 15, 23, 31, 39, 47, 55, 63], "격자 첫 경로(전부 오른쪽 뒤 아래)");
-  console.log(`[perf] allPaths grid ${m}x${m}: ${paths.length} paths, ${elapsed.toFixed(1)}ms`);
+  assertEqual(
+    paths[0],
+    [0, 1, 2, 3, 4, 5, 6, 7, 15, 23, 31, 39, 47, 55, 63],
+    "격자 첫 경로(전부 오른쪽 뒤 아래)",
+  );
+  console.log(
+    `[perf] allPaths grid ${m}x${m}: ${paths.length} paths, ${elapsed.toFixed(1)}ms`,
+  );
 }
 
 console.log("\n모든 검증 통과.");

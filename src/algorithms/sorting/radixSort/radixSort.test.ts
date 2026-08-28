@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { radixSort } from "./radixSort";
 
 describe("radixSort", () => {
@@ -19,7 +19,9 @@ describe("radixSort", () => {
 
   // 엣지 케이스
   test("중복이 많은 배열", () => {
-    expect(radixSort([12, 12, 1, 1, 100, 100])).toEqual([1, 1, 12, 12, 100, 100]);
+    expect(radixSort([12, 12, 1, 1, 100, 100])).toEqual([
+      1, 1, 12, 12, 100, 100,
+    ]);
   });
 
   test("0을 포함하는 배열", () => {
@@ -45,14 +47,16 @@ describe("radixSort", () => {
   test("N=100,000 입력을 100ms 이내에 처리한다", () => {
     const N = 100_000;
     const A: number[] = new Array(N);
-    for (let i = 0; i < N; i++) A[i] = Math.floor(Math.random() * 1_000_000_001);
+    for (let i = 0; i < N; i++)
+      A[i] = Math.floor(Math.random() * 1_000_000_001);
 
     const start = performance.now();
     const result = radixSort(A);
     const elapsed = performance.now() - start;
 
     expect(result.length).toBe(N);
-    for (let i = 1; i < N; i++) expect(result[i]!).toBeGreaterThanOrEqual(result[i - 1]!);
+    for (let i = 1; i < N; i++)
+      expect(result[i]!).toBeGreaterThanOrEqual(result[i - 1]!);
     expect(elapsed).toBeLessThan(100);
   });
 });

@@ -72,12 +72,15 @@ export function scan(file: string, source: string): MetaphorHit[] {
 }
 
 if (import.meta.main) {
-  const files = process.argv
-    .slice(2)
-    .filter((f) => isDoc(f) && !QUOTE_DOCS.has(basename(f)));
+  const argv = process.argv.slice(2);
+  // `--all` 은 규격 문서 + v2 가이드 전부다. 집합은 `guide-v2-targets.ts` 가 정한다.
+  const raw = argv.includes("--all")
+    ? await (await import("./guide-v2-targets.ts")).v2Docs()
+    : argv;
+  const files = raw.filter((f) => isDoc(f) && !QUOTE_DOCS.has(basename(f)));
   if (files.length === 0) {
     console.error(
-      "대상 문서가 없다. 사용: bun run tools/check-metaphor.ts <파일...>",
+      "대상 문서가 없다. 사용: bun run tools/check-metaphor.ts [--all] <파일...>",
     );
     process.exit(2);
   }

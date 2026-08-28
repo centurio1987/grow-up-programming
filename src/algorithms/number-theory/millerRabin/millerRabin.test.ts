@@ -1,11 +1,25 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { millerRabin } from "./millerRabin";
 
 describe("millerRabin", () => {
   // 기본 동작
   describe("기본 동작", () => {
     test("작은 소수를 모두 판별한다", () => {
-      const primes = [2n, 3n, 5n, 7n, 11n, 13n, 17n, 19n, 23n, 29n, 31n, 37n, 41n];
+      const primes = [
+        2n,
+        3n,
+        5n,
+        7n,
+        11n,
+        13n,
+        17n,
+        19n,
+        23n,
+        29n,
+        31n,
+        37n,
+        41n,
+      ];
       for (const p of primes) {
         expect(millerRabin(p)).toBe(true);
       }

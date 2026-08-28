@@ -65,7 +65,9 @@ function bestTimeToBuyAndSellStockKadane(prices: number[]): number {
 
 function assertEqual(label: string, actual: unknown, expected: unknown) {
   const ok = JSON.stringify(actual) === JSON.stringify(expected);
-  console.log(`${ok ? "OK  " : "FAIL"} ${label}: actual=${JSON.stringify(actual)} expected=${JSON.stringify(expected)}`);
+  console.log(
+    `${ok ? "OK  " : "FAIL"} ${label}: actual=${JSON.stringify(actual)} expected=${JSON.stringify(expected)}`,
+  );
   if (!ok) throw new Error(`mismatch at ${label}`);
 }
 
@@ -104,18 +106,49 @@ assertEqual("kadane(REP)", bestTimeToBuyAndSellStockKadane(REP), 5);
 console.log("=== 엣지 케이스 ===");
 assertEqual("empty", bestTimeToBuyAndSellStock([]), 0);
 assertEqual("single", bestTimeToBuyAndSellStock([5]), 0);
-assertEqual("monotonic decreasing", bestTimeToBuyAndSellStock([5, 4, 3, 2, 1]), 0);
-assertEqual("monotonic increasing", bestTimeToBuyAndSellStock([1, 2, 3, 4, 5]), 4);
+assertEqual(
+  "monotonic decreasing",
+  bestTimeToBuyAndSellStock([5, 4, 3, 2, 1]),
+  0,
+);
+assertEqual(
+  "monotonic increasing",
+  bestTimeToBuyAndSellStock([1, 2, 3, 4, 5]),
+  4,
+);
 assertEqual("all equal", bestTimeToBuyAndSellStock([5, 5, 5, 5]), 0);
 assertEqual("boundary max", bestTimeToBuyAndSellStock([0, 10000]), 10000);
 assertEqual("boundary given", bestTimeToBuyAndSellStock([1, 10000]), 9999);
 assertEqual("two-element decreasing", bestTimeToBuyAndSellStock([2, 1]), 0);
 assertEqual("valley then peak", bestTimeToBuyAndSellStock([2, 4, 1, 7]), 6);
-assertEqual("decreasing then rising", bestTimeToBuyAndSellStock([7, 6, 4, 3, 1]), 0);
+assertEqual(
+  "decreasing then rising",
+  bestTimeToBuyAndSellStock([7, 6, 4, 3, 1]),
+  0,
+);
 
-for (const arr of [[], [5], [5, 4, 3, 2, 1], [1, 2, 3, 4, 5], [5, 5, 5, 5], [0, 10000], [1, 10000], [2, 1], [2, 4, 1, 7], [7, 6, 4, 3, 1]]) {
-  assertEqual(`basic vs optimized: ${JSON.stringify(arr)}`, bestTimeToBuyAndSellStockBasic(arr), bestTimeToBuyAndSellStock(arr));
-  assertEqual(`kadane vs optimized: ${JSON.stringify(arr)}`, bestTimeToBuyAndSellStockKadane(arr), bestTimeToBuyAndSellStock(arr));
+for (const arr of [
+  [],
+  [5],
+  [5, 4, 3, 2, 1],
+  [1, 2, 3, 4, 5],
+  [5, 5, 5, 5],
+  [0, 10000],
+  [1, 10000],
+  [2, 1],
+  [2, 4, 1, 7],
+  [7, 6, 4, 3, 1],
+]) {
+  assertEqual(
+    `basic vs optimized: ${JSON.stringify(arr)}`,
+    bestTimeToBuyAndSellStockBasic(arr),
+    bestTimeToBuyAndSellStock(arr),
+  );
+  assertEqual(
+    `kadane vs optimized: ${JSON.stringify(arr)}`,
+    bestTimeToBuyAndSellStockKadane(arr),
+    bestTimeToBuyAndSellStock(arr),
+  );
 }
 
 // ---- 무작위 교차검증 ----
@@ -151,7 +184,12 @@ function buggyWrongOrder(prices: number[]): number {
 }
 console.log("=== 함정: minLeft를 먼저 갱신하면? ===");
 console.log("prices=[2,1]  correct=0  buggy=", buggyWrongOrder([2, 1]));
-console.log("prices=[3,2,6,5,0,3]  correct=", bestTimeToBuyAndSellStock([3, 2, 6, 5, 0, 3]), " buggy=", buggyWrongOrder([3, 2, 6, 5, 0, 3]));
+console.log(
+  "prices=[3,2,6,5,0,3]  correct=",
+  bestTimeToBuyAndSellStock([3, 2, 6, 5, 0, 3]),
+  " buggy=",
+  buggyWrongOrder([3, 2, 6, 5, 0, 3]),
+);
 
 // ---- 함정 시나리오 B: "누적 최저가" 대신 "바로 전날 가격"과만 비교 ----
 function buggyAdjacentOnly(prices: number[]): number {
@@ -164,7 +202,12 @@ function buggyAdjacentOnly(prices: number[]): number {
   return best;
 }
 console.log("=== 함정: minLeft 대신 바로 전날 가격만 비교하면? ===");
-console.log(`prices=${JSON.stringify(REP)}  correct=`, bestTimeToBuyAndSellStock(REP), " buggy(adjacent-only)=", buggyAdjacentOnly(REP));
+console.log(
+  `prices=${JSON.stringify(REP)}  correct=`,
+  bestTimeToBuyAndSellStock(REP),
+  " buggy(adjacent-only)=",
+  buggyAdjacentOnly(REP),
+);
 
 // ---- 함정 시나리오 C: minLeft 초기값을 0으로 두면? ----
 function buggyZeroInit(prices: number[]): number {
@@ -179,4 +222,9 @@ function buggyZeroInit(prices: number[]): number {
   return best;
 }
 console.log("=== 함정: minLeft 초기값을 0으로 두면? ===");
-console.log(`prices=${JSON.stringify(REP)}  correct=`, bestTimeToBuyAndSellStock(REP), " buggy(zero-init)=", buggyZeroInit(REP));
+console.log(
+  `prices=${JSON.stringify(REP)}  correct=`,
+  bestTimeToBuyAndSellStock(REP),
+  " buggy(zero-init)=",
+  buggyZeroInit(REP),
+);

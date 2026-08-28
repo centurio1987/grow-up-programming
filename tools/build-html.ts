@@ -28,7 +28,7 @@ import remarkRehype from "remark-rehype";
 import { unified } from "unified";
 import { parseSections } from "./section.ts";
 
-const REPO = resolve(import.meta.dir, "../../..");
+const REPO = resolve(import.meta.dir, "..");
 
 /* ────────────────────────── 항목 레일 ────────────────────────── */
 

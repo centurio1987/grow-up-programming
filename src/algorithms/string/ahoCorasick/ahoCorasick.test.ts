@@ -1,11 +1,13 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { ahoCorasick } from "./ahoCorasick";
 
 type Match = { patternIndex: number; position: number };
 
 function sortMatches(matches: Match[]): Match[] {
   return [...matches].sort((a, b) =>
-    a.position !== b.position ? a.position - b.position : a.patternIndex - b.patternIndex,
+    a.position !== b.position
+      ? a.position - b.position
+      : a.patternIndex - b.patternIndex,
   );
 }
 
@@ -80,7 +82,9 @@ describe("ahoCorasick", () => {
   // 바운더리 테스트
   describe("바운더리 테스트", () => {
     test("길이 1의 패턴, 길이 1의 텍스트", () => {
-      expect(ahoCorasick("a", ["a"])).toEqual([{ patternIndex: 0, position: 0 }]);
+      expect(ahoCorasick("a", ["a"])).toEqual([
+        { patternIndex: 0, position: 0 },
+      ]);
     });
 
     test("k = 1, 단일 패턴", () => {
@@ -94,7 +98,9 @@ describe("ahoCorasick", () => {
     test("n = 100,000, 단일 매칭", () => {
       const text = "a".repeat(99_995) + "bcdef";
       const result = ahoCorasick(text, ["bcdef"]);
-      expect(sortMatches(result)).toEqual([{ patternIndex: 0, position: 99_995 }]);
+      expect(sortMatches(result)).toEqual([
+        { patternIndex: 0, position: 99_995 },
+      ]);
     });
   });
 

@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { topKFrequent } from "./topKFrequent";
 
 describe("topKFrequent", () => {
@@ -47,9 +47,9 @@ describe("topKFrequent", () => {
 
   test("최댓값/최솟값 경계 포함", () => {
     // 1e9: 2번, -1e9: 1번
-    expect(topKFrequent([1_000_000_000, 1_000_000_000, -1_000_000_000], 1)).toEqual([
-      1_000_000_000,
-    ]);
+    expect(
+      topKFrequent([1_000_000_000, 1_000_000_000, -1_000_000_000], 1),
+    ).toEqual([1_000_000_000]);
   });
 
   // 성능 테스트 — O(N log k) 기준 N=100,000을 100ms 이내

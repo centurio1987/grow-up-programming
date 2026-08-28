@@ -286,7 +286,8 @@
       "gate": "PASS",
       "extReview": "done",
       "committedAt": "2026-07-14T04:54:07.445Z",
-      "note": "study 편입 enrich(B6/A3/C5)+외부검토 7건 반영. _scratch 자기검증(500회 교차)."
+      "note": "study 편입 enrich(B6/A3/C5)+외부검토 7건 반영. _scratch 자기검증(500회 교차).",
+      "supersededBy": "KAN-034 S2 (2026-08-29) — v2 골격으로 재집필돼 이 .mdx 는 없다. 새 산출은 같은 디렉터리의 <name>-guide.md 와 사이드카다."
     },
     {
       "name": "nextGreaterElement",
@@ -538,7 +539,8 @@
       "gate": "PASS",
       "extReview": "n/a",
       "committedAt": "2026-07-14T07:29:45.980Z",
-      "note": "study 재집필: 완전탐색→2D→1D 3단 코드 사다리·마르코프 비유 명시·함정 실측. _scratch 자기검증(300회 교차)."
+      "note": "study 재집필: 완전탐색→2D→1D 3단 코드 사다리·마르코프 비유 명시·함정 실측. _scratch 자기검증(300회 교차).",
+      "supersededBy": "KAN-034 S2 (2026-08-29) — v2 골격으로 재집필돼 이 .mdx 는 없다. 새 산출은 같은 디렉터리의 <name>-guide.md 와 사이드카다."
     },
     {
       "name": "matrixChainMultiplication",
@@ -958,7 +960,8 @@
       "gate": "PASS",
       "extReview": "done",
       "committedAt": "2026-07-16T05:18:39.886Z",
-      "note": "number-theory 재집필(v2.0.0), 게이트 PASS + 외부검토(codex/agy) 반영"
+      "note": "number-theory 재집필(v2.0.0), 게이트 PASS + 외부검토(codex/agy) 반영",
+      "supersededBy": "KAN-034 S2 (2026-08-29) — v2 골격으로 재집필돼 이 .mdx 는 없다. 새 산출은 같은 디렉터리의 <name>-guide.md 와 사이드카다."
     },
     {
       "name": "binomialModP",
@@ -1266,7 +1269,8 @@
       "gate": "PASS",
       "extReview": "n/a",
       "committedAt": "2026-07-14T16:43:10.728Z",
-      "note": "신규 재집필(Workflow sorting 배치), 게이트 PASS, _scratch 자기검증"
+      "note": "신규 재집필(Workflow sorting 배치), 게이트 PASS, _scratch 자기검증",
+      "supersededBy": "KAN-034 S2 (2026-08-29) — v2 골격으로 재집필돼 이 .mdx 는 없다. 새 산출은 같은 디렉터리의 <name>-guide.md 와 사이드카다."
     },
     {
       "name": "radixSort",

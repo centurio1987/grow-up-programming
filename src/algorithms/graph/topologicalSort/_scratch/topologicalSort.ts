@@ -184,11 +184,22 @@ function check(name: string, cond: boolean, detail?: unknown) {
   check("diamond naiveScan valid", isValidTopoOrder(n, edges, r0));
   check("diamond basic valid", isValidTopoOrder(n, edges, r1));
   check("diamond optimized valid", isValidTopoOrder(n, edges, r2));
-  check("diamond basic == [0,1,2,3]", JSON.stringify(r1) === JSON.stringify([0, 1, 2, 3]));
-  check("diamond optimized == [0,1,2,3]", JSON.stringify(r2) === JSON.stringify([0, 1, 2, 3]));
+  check(
+    "diamond basic == [0,1,2,3]",
+    JSON.stringify(r1) === JSON.stringify([0, 1, 2, 3]),
+  );
+  check(
+    "diamond optimized == [0,1,2,3]",
+    JSON.stringify(r2) === JSON.stringify([0, 1, 2, 3]),
+  );
 
   const rBuggy = topologicalSortBuggyPush(n, edges);
-  console.log("diamond buggyPush (===0 검사 누락):", rBuggy, "length:", rBuggy.length);
+  console.log(
+    "diamond buggyPush (===0 검사 누락):",
+    rBuggy,
+    "length:",
+    rBuggy.length,
+  );
   check(
     "diamond buggyPush produces wrong length/duplicate",
     rBuggy.length !== n || new Set(rBuggy).size !== rBuggy.length,
@@ -207,8 +218,15 @@ function check(name: string, cond: boolean, detail?: unknown) {
   const counter = { count: 0 };
   const r0 = topologicalSortNaiveScan(n, edges, counter);
   console.log("chain naiveScan:", r0, "scans:", counter.count);
-  check("chain naiveScan == [0,1,2,3]", JSON.stringify(r0) === JSON.stringify([0, 1, 2, 3]));
-  check("chain naiveScan scans == 10 (1+2+3+4)", counter.count === 10, counter.count);
+  check(
+    "chain naiveScan == [0,1,2,3]",
+    JSON.stringify(r0) === JSON.stringify([0, 1, 2, 3]),
+  );
+  check(
+    "chain naiveScan scans == 10 (1+2+3+4)",
+    counter.count === 10,
+    counter.count,
+  );
 }
 
 // --- 메인 시뮬레이션 예시: n=6, edges=[[0,2],[1,2],[2,3],[2,4],[3,5],[4,5]] ---
@@ -228,8 +246,14 @@ function check(name: string, cond: boolean, detail?: unknown) {
   console.log("sim naiveScan:", r0);
   console.log("sim basic:", r1);
   console.log("sim optimized:", r2);
-  check("sim basic == [0,1,2,3,4,5]", JSON.stringify(r1) === JSON.stringify([0, 1, 2, 3, 4, 5]));
-  check("sim optimized == [0,1,2,3,4,5]", JSON.stringify(r2) === JSON.stringify([0, 1, 2, 3, 4, 5]));
+  check(
+    "sim basic == [0,1,2,3,4,5]",
+    JSON.stringify(r1) === JSON.stringify([0, 1, 2, 3, 4, 5]),
+  );
+  check(
+    "sim optimized == [0,1,2,3,4,5]",
+    JSON.stringify(r2) === JSON.stringify([0, 1, 2, 3, 4, 5]),
+  );
   check("sim naiveScan valid", isValidTopoOrder(n, edges, r0));
 }
 
@@ -271,10 +295,16 @@ function check(name: string, cond: boolean, detail?: unknown) {
   // 간선 없음
   const r = topologicalSortOptimized(4, []);
   check("no edges -> valid perm", isValidTopoOrder(4, [], r));
-  check("no edges basic == [0,1,2,3]", JSON.stringify(topologicalSortBasic(4, [])) === "[0,1,2,3]");
+  check(
+    "no edges basic == [0,1,2,3]",
+    JSON.stringify(topologicalSortBasic(4, [])) === "[0,1,2,3]",
+  );
 
   // V=1, 간선 없음
-  check("n=1 no edges", JSON.stringify(topologicalSortOptimized(1, [])) === "[0]");
+  check(
+    "n=1 no edges",
+    JSON.stringify(topologicalSortOptimized(1, [])) === "[0]",
+  );
 }
 
 // --- 무작위 교차 검증 ---
@@ -307,9 +337,18 @@ function check(name: string, cond: boolean, detail?: unknown) {
     const r0 = topologicalSortNaiveScan(n, edges);
     const r1 = topologicalSortBasic(n, edges);
     const r2 = topologicalSortOptimized(n, edges);
-    check(`random DAG #${t} naiveScan valid`, isValidTopoOrder(n, edges, r0), { n, edges });
-    check(`random DAG #${t} basic valid`, isValidTopoOrder(n, edges, r1), { n, edges });
-    check(`random DAG #${t} optimized valid`, isValidTopoOrder(n, edges, r2), { n, edges });
+    check(`random DAG #${t} naiveScan valid`, isValidTopoOrder(n, edges, r0), {
+      n,
+      edges,
+    });
+    check(`random DAG #${t} basic valid`, isValidTopoOrder(n, edges, r1), {
+      n,
+      edges,
+    });
+    check(`random DAG #${t} optimized valid`, isValidTopoOrder(n, edges, r2), {
+      n,
+      edges,
+    });
   }
   console.log(`random DAG trials: ${dagTrials}`);
 
@@ -333,9 +372,21 @@ function check(name: string, cond: boolean, detail?: unknown) {
       { n, edges, r2 },
     );
     if (!expectCycle) {
-      check(`random digraph #${t} naiveScan valid`, isValidTopoOrder(n, edges, r0), { n, edges });
-      check(`random digraph #${t} basic valid`, isValidTopoOrder(n, edges, r1), { n, edges });
-      check(`random digraph #${t} optimized valid`, isValidTopoOrder(n, edges, r2), { n, edges });
+      check(
+        `random digraph #${t} naiveScan valid`,
+        isValidTopoOrder(n, edges, r0),
+        { n, edges },
+      );
+      check(
+        `random digraph #${t} basic valid`,
+        isValidTopoOrder(n, edges, r1),
+        { n, edges },
+      );
+      check(
+        `random digraph #${t} optimized valid`,
+        isValidTopoOrder(n, edges, r2),
+        { n, edges },
+      );
     }
   }
   console.log(`random digraph trials: ${digraphTrials}`);
@@ -345,7 +396,10 @@ function check(name: string, cond: boolean, detail?: unknown) {
 {
   const n = 100000;
   const edges: [number, number][] = [];
-  for (let i = 0; i < 3; i++) { topologicalSortBasic(n, edges); topologicalSortOptimized(n, edges); } // warmup
+  for (let i = 0; i < 3; i++) {
+    topologicalSortBasic(n, edges);
+    topologicalSortOptimized(n, edges);
+  } // warmup
 
   const bt: number[] = [];
   const ot: number[] = [];
@@ -362,7 +416,9 @@ function check(name: string, cond: boolean, detail?: unknown) {
   bt.sort((a, b) => a - b);
   ot.sort((a, b) => a - b);
   const med = (a: number[]) => a[Math.floor(a.length / 2)]!;
-  console.log(`\n벤치마크1: 최악 케이스 (n=${n}, edges=0, 모든 정점이 초기에 큐 진입)`);
+  console.log(
+    `\n벤치마크1: 최악 케이스 (n=${n}, edges=0, 모든 정점이 초기에 큐 진입)`,
+  );
   console.log(`  basic(array shift)  중앙값: ${med(bt).toFixed(3)} ms`);
   console.log(`  optimized(head ptr) 중앙값: ${med(ot).toFixed(3)} ms`);
   console.log(`  배율: ${(med(bt) / med(ot)).toFixed(1)}x`);
@@ -382,7 +438,10 @@ function check(name: string, cond: boolean, detail?: unknown) {
   }
   const n = 100000;
   const edges = randomSparseDag(n, 100000);
-  for (let i = 0; i < 3; i++) { topologicalSortBasic(n, edges); topologicalSortOptimized(n, edges); } // warmup
+  for (let i = 0; i < 3; i++) {
+    topologicalSortBasic(n, edges);
+    topologicalSortOptimized(n, edges);
+  } // warmup
 
   const bt: number[] = [];
   const ot: number[] = [];
@@ -405,14 +464,25 @@ function check(name: string, cond: boolean, detail?: unknown) {
   console.log(`  배율: ${(med(bt) / med(ot)).toFixed(1)}x`);
 }
 
-console.log(failures === 0 ? "\nALL CHECKS PASSED" : `\n${failures} CHECK(S) FAILED`);
+console.log(
+  failures === 0 ? "\nALL CHECKS PASSED" : `\n${failures} CHECK(S) FAILED`,
+);
 if (failures > 0) process.exit(1);
 
 // --- 스스로 점검하기 문제1 검증 ---
 {
   const n = 5;
-  const edges: [number, number][] = [[0,1],[0,2],[1,3],[2,3],[3,4]];
+  const edges: [number, number][] = [
+    [0, 1],
+    [0, 2],
+    [1, 3],
+    [2, 3],
+    [3, 4],
+  ];
   const r = topologicalSortOptimized(n, edges);
   console.log("quiz1:", r);
-  check("quiz1 == [0,1,2,3,4]", JSON.stringify(r) === JSON.stringify([0,1,2,3,4]));
+  check(
+    "quiz1 == [0,1,2,3,4]",
+    JSON.stringify(r) === JSON.stringify([0, 1, 2, 3, 4]),
+  );
 }

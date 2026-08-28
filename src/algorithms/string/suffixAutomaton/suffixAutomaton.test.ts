@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { SuffixAutomaton } from "./suffixAutomaton";
 
 function bruteDistinctSubstrings(s: string): number {
@@ -97,7 +97,9 @@ describe("SuffixAutomaton", () => {
       const chars = "abc";
       let s = "";
       for (let i = 0; i < 30; i++) s += chars[i % chars.length];
-      expect(new SuffixAutomaton(s).countDistinctSubstrings()).toBe(bruteDistinctSubstrings(s));
+      expect(new SuffixAutomaton(s).countDistinctSubstrings()).toBe(
+        bruteDistinctSubstrings(s),
+      );
     });
   });
 

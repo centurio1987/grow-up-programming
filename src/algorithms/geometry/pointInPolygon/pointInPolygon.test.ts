@@ -1,5 +1,5 @@
-import { test, expect, describe } from "bun:test";
-import { pointInPolygon, type Point } from "./pointInPolygon";
+import { describe, expect, test } from "bun:test";
+import { type Point, pointInPolygon } from "./pointInPolygon";
 
 describe("pointInPolygon", () => {
   // 기본 동작

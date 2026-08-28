@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { isPrimeTrial } from "./isPrimeTrial";
 
 describe("isPrimeTrial", () => {
@@ -28,7 +28,9 @@ describe("isPrimeTrial", () => {
     });
 
     test("작은 합성수 목록을 모두 판별한다", () => {
-      const composites = [4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 22, 24, 25];
+      const composites = [
+        4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21, 22, 24, 25,
+      ];
       for (const c of composites) {
         expect(isPrimeTrial(c)).toBe(false);
       }

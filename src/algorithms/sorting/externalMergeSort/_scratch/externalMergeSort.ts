@@ -132,7 +132,10 @@ async function externalMergeSortLinearScan(
     heads[minIdx] = nextLine === null ? null : parseInt(nextLine, 10);
   }
 
-  await Bun.write(outputPath, outLines.length > 0 ? outLines.join("\n") + "\n" : "");
+  await Bun.write(
+    outputPath,
+    outLines.length > 0 ? outLines.join("\n") + "\n" : "",
+  );
   for (const p of runPaths) await unlink(p);
   return outputPath;
 }
@@ -177,8 +180,10 @@ class MinHeap {
         const l = 2 * i + 1;
         const r = 2 * i + 2;
         let smallest = i;
-        if (l < items.length && this.less(items[l]!, items[smallest]!)) smallest = l;
-        if (r < items.length && this.less(items[r]!, items[smallest]!)) smallest = r;
+        if (l < items.length && this.less(items[l]!, items[smallest]!))
+          smallest = l;
+        if (r < items.length && this.less(items[r]!, items[smallest]!))
+          smallest = r;
         if (smallest === i) break;
         [items[i], items[smallest]] = [items[smallest]!, items[i]!];
         i = smallest;
@@ -218,18 +223,27 @@ export async function externalMergeSort(
     }
   }
 
-  await Bun.write(outputPath, outLines.length > 0 ? outLines.join("\n") + "\n" : "");
+  await Bun.write(
+    outputPath,
+    outLines.length > 0 ? outLines.join("\n") + "\n" : "",
+  );
   for (const p of runPaths) await unlink(p);
   return outputPath;
 }
 
 // ────────────────────────── 검증 ──────────────────────────
-const dir = "/private/tmp/claude-501/-Users-centurio-code-test/993a0022-7635-4457-8b8a-3525713a1aa6/scratchpad/ems";
+const dir =
+  "/private/tmp/claude-501/-Users-centurio-code-test/993a0022-7635-4457-8b8a-3525713a1aa6/scratchpad/ems";
 await Bun.write(`${dir}/.keep`, "");
 
 async function readOut(path: string): Promise<number[]> {
   const text = await Bun.file(path).text();
-  return text.length === 0 ? [] : text.trim().split("\n").map((l) => parseInt(l, 10));
+  return text.length === 0
+    ? []
+    : text
+        .trim()
+        .split("\n")
+        .map((l) => parseInt(l, 10));
 }
 
 function assertEq(name: string, actual: unknown, expected: unknown) {
@@ -255,7 +269,11 @@ function assertEq(name: string, actual: unknown, expected: unknown) {
   // linear-scan 버전도 같은 입력에 대해 동일 결과인지 (기본 구현 vs 최적화 교차검증)
   const output2 = `${dir}/sim_output_linscan.txt`;
   await externalMergeSortLinearScan(input, output2, 3);
-  assertEq("sim: linear-scan == heap", await readOut(output2), await readOut(output));
+  assertEq(
+    "sim: linear-scan == heap",
+    await readOut(output2),
+    await readOut(output),
+  );
 
   // naive 원형도 소규모에서 동일 결과인지
   const output3 = `${dir}/sim_output_naive.txt`;
@@ -323,7 +341,10 @@ function assertEq(name: string, actual: unknown, expected: unknown) {
   for (let t = 0; t < 20; t++) {
     const N = 1 + Math.floor(Math.random() * 200);
     const M = 1 + Math.floor(Math.random() * 20);
-    const nums = Array.from({ length: N }, () => Math.floor(Math.random() * 2000) - 1000);
+    const nums = Array.from(
+      { length: N },
+      () => Math.floor(Math.random() * 2000) - 1000,
+    );
     const input = `${dir}/rand_input_${t}.txt`;
     const outputHeap = `${dir}/rand_output_heap_${t}.txt`;
     const outputLin = `${dir}/rand_output_lin_${t}.txt`;

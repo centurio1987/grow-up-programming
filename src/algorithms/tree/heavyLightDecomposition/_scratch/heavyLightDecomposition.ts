@@ -55,7 +55,12 @@ class HeavyLightDecompositionBase {
   private readonly pos: number[];
   private readonly tree: number[];
 
-  constructor(n: number, edges: [number, number][], root: number, values: number[]) {
+  constructor(
+    n: number,
+    edges: [number, number][],
+    root: number,
+    values: number[],
+  ) {
     this.n = n;
     this.parent = new Array(n).fill(-1);
     this.depth = new Array(n).fill(0);
@@ -127,7 +132,13 @@ class HeavyLightDecompositionBase {
     this.tree[node] = this.tree[2 * node] + this.tree[2 * node + 1];
   }
 
-  private updateAt(node: number, lo: number, hi: number, target: number, value: number): void {
+  private updateAt(
+    node: number,
+    lo: number,
+    hi: number,
+    target: number,
+    value: number,
+  ): void {
     if (lo === hi) {
       this.tree[node] = value;
       return;
@@ -138,12 +149,19 @@ class HeavyLightDecompositionBase {
     this.tree[node] = this.tree[2 * node] + this.tree[2 * node + 1];
   }
 
-  private queryRange(node: number, lo: number, hi: number, l: number, r: number): number {
+  private queryRange(
+    node: number,
+    lo: number,
+    hi: number,
+    l: number,
+    r: number,
+  ): number {
     if (r < lo || hi < l) return 0;
     if (l <= lo && hi <= r) return this.tree[node];
     const mid = (lo + hi) >> 1;
     return (
-      this.queryRange(2 * node, lo, mid, l, r) + this.queryRange(2 * node + 1, mid + 1, hi, l, r)
+      this.queryRange(2 * node, lo, mid, l, r) +
+      this.queryRange(2 * node + 1, mid + 1, hi, l, r)
     );
   }
 
@@ -162,7 +180,13 @@ class HeavyLightDecompositionBase {
       if (this.depth[this.head[u]] < this.depth[this.head[v]]) {
         [u, v] = [v, u];
       }
-      result += this.queryRange(1, 1, this.n, this.pos[this.head[u]], this.pos[u]);
+      result += this.queryRange(
+        1,
+        1,
+        this.n,
+        this.pos[this.head[u]],
+        this.pos[u],
+      );
       u = this.parent[this.head[u]];
     }
     if (this.depth[u] > this.depth[v]) [u, v] = [v, u];
@@ -178,7 +202,13 @@ class HeavyLightDecompositionBase {
       if (this.depth[this.head[u]] > this.depth[this.head[v]]) {
         [u, v] = [v, u];
       }
-      result += this.queryRange(1, 1, this.n, this.pos[this.head[u]], this.pos[u]);
+      result += this.queryRange(
+        1,
+        1,
+        this.n,
+        this.pos[this.head[u]],
+        this.pos[u],
+      );
       u = this.parent[this.head[u]];
       steps++;
       if (steps > this.n + 5 || u === -1) {
@@ -191,7 +221,14 @@ class HeavyLightDecompositionBase {
   }
 
   debugPosHead() {
-    return { pos: this.pos.slice(), head: this.head.slice(), size: this.size.slice(), heavy: this.heavy.slice(), depth: this.depth.slice(), parent: this.parent.slice() };
+    return {
+      pos: this.pos.slice(),
+      head: this.head.slice(),
+      size: this.size.slice(),
+      heavy: this.heavy.slice(),
+      depth: this.depth.slice(),
+      parent: this.parent.slice(),
+    };
   }
 }
 
@@ -206,7 +243,12 @@ class HeavyLightDecompositionOptimized {
   private readonly segN: number; // 세그먼트 트리 리프 개수
   private readonly tree: number[]; // 크기 2*segN, 리프는 tree[segN..2*segN-1]
 
-  constructor(n: number, edges: [number, number][], root: number, values: number[]) {
+  constructor(
+    n: number,
+    edges: [number, number][],
+    root: number,
+    values: number[],
+  ) {
     this.n = n;
     this.parent = new Array(n).fill(-1);
     this.depth = new Array(n).fill(0);
@@ -235,7 +277,8 @@ class HeavyLightDecompositionOptimized {
       const p = this.parent[v];
       if (p !== -1) {
         size[p] += size[v];
-        if (this.heavy[p] === -1 || size[v] > size[this.heavy[p]]) this.heavy[p] = v;
+        if (this.heavy[p] === -1 || size[v] > size[this.heavy[p]])
+          this.heavy[p] = v;
       }
     }
 
@@ -312,16 +355,25 @@ class HeavyLightDecompositionOptimized {
 
 function assertEq(label: string, actual: unknown, expected: unknown) {
   const ok = JSON.stringify(actual) === JSON.stringify(expected);
-  console.log(`${ok ? "OK  " : "FAIL"} ${label}: actual=${JSON.stringify(actual)} expected=${JSON.stringify(expected)}`);
+  console.log(
+    `${ok ? "OK  " : "FAIL"} ${label}: actual=${JSON.stringify(actual)} expected=${JSON.stringify(expected)}`,
+  );
   if (!ok) process.exitCode = 1;
 }
 
 console.log("=== 대표 예시: n=7 sim 트리 ===");
 {
   const n = 7;
-  const edges: [number, number][] = [[0,1],[1,2],[2,3],[3,6],[0,4],[1,5]];
+  const edges: [number, number][] = [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 6],
+    [0, 4],
+    [1, 5],
+  ];
   const root = 0;
-  const values = [1,2,3,4,5,6,7];
+  const values = [1, 2, 3, 4, 5, 6, 7];
   const hld = new HeavyLightDecompositionBase(n, edges, root, values);
   const dbg = hld.debugPosHead();
   console.log("size", dbg.size);
@@ -331,10 +383,14 @@ console.log("=== 대표 예시: n=7 sim 트리 ===");
   console.log("depth", dbg.depth);
   console.log("parent", dbg.parent);
 
-  assertEq("size", dbg.size, [7,5,3,2,1,1,1]);
-  assertEq("heavy[0..3]", [dbg.heavy[0],dbg.heavy[1],dbg.heavy[2],dbg.heavy[3]], [1,2,3,6]);
-  assertEq("pos (vertex idx -> pos)", dbg.pos, [1,2,3,4,6,7,5]); // 구 가이드 sim과 일치
-  assertEq("head", dbg.head, [0,0,0,0,4,5,0]);
+  assertEq("size", dbg.size, [7, 5, 3, 2, 1, 1, 1]);
+  assertEq(
+    "heavy[0..3]",
+    [dbg.heavy[0], dbg.heavy[1], dbg.heavy[2], dbg.heavy[3]],
+    [1, 2, 3, 6],
+  );
+  assertEq("pos (vertex idx -> pos)", dbg.pos, [1, 2, 3, 4, 6, 7, 5]); // 구 가이드 sim과 일치
+  assertEq("head", dbg.head, [0, 0, 0, 0, 4, 5, 0]);
 
   assertEq("queryPath(4,5)", hld.queryPath(4, 5), 14);
 
@@ -346,8 +402,15 @@ console.log("=== 대표 예시: n=7 sim 트리 ===");
 console.log("\n=== 스스로 점검 문제1: queryPath(6,5) 실제값 ===");
 {
   const n = 7;
-  const edges: [number, number][] = [[0,1],[1,2],[2,3],[3,6],[0,4],[1,5]];
-  const values = [1,2,3,4,5,6,7];
+  const edges: [number, number][] = [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 6],
+    [0, 4],
+    [1, 5],
+  ];
+  const values = [1, 2, 3, 4, 5, 6, 7];
   const hld = new HeavyLightDecompositionBase(n, edges, 0, values);
   console.log("queryPath(6,5) =", hld.queryPath(6, 5));
   // 경로 6-3-2-1-5: values 7+4+3+2+6 = 22
@@ -356,19 +419,38 @@ console.log("\n=== 스스로 점검 문제1: queryPath(6,5) 실제값 ===");
 console.log("\n=== 함정1: depth 비교 방향 반전 ===");
 {
   const n = 7;
-  const edges: [number, number][] = [[0,1],[1,2],[2,3],[3,6],[0,4],[1,5]];
-  const values = [1,2,3,4,5,6,7];
+  const edges: [number, number][] = [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 6],
+    [0, 4],
+    [1, 5],
+  ];
+  const values = [1, 2, 3, 4, 5, 6, 7];
   const hld = new HeavyLightDecompositionBase(n, edges, 0, values);
   const correct = hld.queryPath(4, 5);
   const buggy = hld.queryPathBuggyDirection(4, 5);
-  console.log("정상 queryPath(4,5) =", correct, " / 방향반전 버그 결과 =", buggy);
+  console.log(
+    "정상 queryPath(4,5) =",
+    correct,
+    " / 방향반전 버그 결과 =",
+    buggy,
+  );
 }
 
 console.log("\n=== 함정2: update에 pos 대신 node 인덱스 그대로 사용 ===");
 {
   const n = 7;
-  const edges: [number, number][] = [[0,1],[1,2],[2,3],[3,6],[0,4],[1,5]];
-  const values = [1,2,3,4,5,6,7];
+  const edges: [number, number][] = [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 6],
+    [0, 4],
+    [1, 5],
+  ];
+  const values = [1, 2, 3, 4, 5, 6, 7];
   const hld = new HeavyLightDecompositionBase(n, edges, 0, values);
   console.log("버그 전 queryPath(0,4) =", hld.queryPath(0, 4)); // 1+5=6
   console.log("버그 전 queryPath(0,6) =", hld.queryPath(0, 6)); // 1+2+3+4+7=17
@@ -380,8 +462,14 @@ console.log("\n=== 함정2: update에 pos 대신 node 인덱스 그대로 사용
 console.log("\n=== problem.md 예시 교차검증 ===");
 {
   const n = 6;
-  const edges: [number, number][] = [[0,1],[0,2],[1,3],[1,4],[2,5]];
-  const values = [1,2,3,4,5,6];
+  const edges: [number, number][] = [
+    [0, 1],
+    [0, 2],
+    [1, 3],
+    [1, 4],
+    [2, 5],
+  ];
+  const values = [1, 2, 3, 4, 5, 6];
   const hld = new HeavyLightDecompositionBase(n, edges, 0, values);
   assertEq("queryPath(3,4)", hld.queryPath(3, 4), 11);
   assertEq("queryPath(3,5)", hld.queryPath(3, 5), 16);
@@ -410,14 +498,18 @@ console.log("\n=== 엣지: 단일 정점 ===");
 console.log("\n=== 엣지: 체인 트리 ===");
 {
   const n = 4;
-  const edges: [number, number][] = [[0,1],[1,2],[2,3]];
-  const values = [1,2,3,4];
+  const edges: [number, number][] = [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+  ];
+  const values = [1, 2, 3, 4];
   const hld = new HeavyLightDecompositionBase(n, edges, 0, values);
   assertEq("chain queryPath(0,3)", hld.queryPath(0, 3), 10);
   assertEq("chain queryPath(1,2)", hld.queryPath(1, 2), 5);
   const dbg = hld.debugPosHead();
-  assertEq("chain pos (전부 한 체인)", dbg.pos, [1,2,3,4]);
-  assertEq("chain head (전부 0)", dbg.head, [0,0,0,0]);
+  assertEq("chain pos (전부 한 체인)", dbg.pos, [1, 2, 3, 4]);
+  assertEq("chain head (전부 0)", dbg.head, [0, 0, 0, 0]);
 }
 
 console.log("\n=== 무작위 교차검증 (naive vs base vs optimized) ===");
@@ -433,7 +525,10 @@ console.log("\n=== 무작위 교차검증 (naive vs base vs optimized) ===");
       const p = Math.floor(rand() * i);
       edges.push([p, i]);
     }
-    const values = Array.from({ length: n }, () => Math.floor(rand() * 201) - 100);
+    const values = Array.from(
+      { length: n },
+      () => Math.floor(rand() * 201) - 100,
+    );
     return { edges, values, rand };
   }
 
@@ -444,7 +539,12 @@ console.log("\n=== 무작위 교차검증 (naive vs base vs optimized) ===");
     const root = 0;
     const { parent, depth } = buildParentDepth(n, edges, root);
     const hld = new HeavyLightDecompositionBase(n, edges, root, values.slice());
-    const hldOpt = new HeavyLightDecompositionOptimized(n, edges, root, values.slice());
+    const hldOpt = new HeavyLightDecompositionOptimized(
+      n,
+      edges,
+      root,
+      values.slice(),
+    );
     const curValues = values.slice();
 
     for (let q = 0; q < 30; q++) {
@@ -463,12 +563,18 @@ console.log("\n=== 무작위 교차검증 (naive vs base vs optimized) ===");
         const actualOpt = hldOpt.queryPath(u, v);
         if (actualBase !== expected || actualOpt !== expected) {
           allOk = false;
-          console.log(`FAIL trial=${trial} n=${n} u=${u} v=${v} expected=${expected} base=${actualBase} opt=${actualOpt}`);
+          console.log(
+            `FAIL trial=${trial} n=${n} u=${u} v=${v} expected=${expected} base=${actualBase} opt=${actualOpt}`,
+          );
         }
       }
     }
   }
-  console.log(allOk ? "OK  무작위 교차검증 20 trial × 30 op 전부 일치" : "FAIL 무작위 교차검증 불일치 있음");
+  console.log(
+    allOk
+      ? "OK  무작위 교차검증 20 trial × 30 op 전부 일치"
+      : "FAIL 무작위 교차검증 불일치 있음",
+  );
   if (!allOk) process.exitCode = 1;
 }
 

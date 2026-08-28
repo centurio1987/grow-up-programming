@@ -68,7 +68,10 @@ class MinHeap {
         if (l < n && this.data[l][0] < this.data[smallest][0]) smallest = l;
         if (r < n && this.data[r][0] < this.data[smallest][0]) smallest = r;
         if (smallest === i) break;
-        [this.data[smallest], this.data[i]] = [this.data[i], this.data[smallest]];
+        [this.data[smallest], this.data[i]] = [
+          this.data[i],
+          this.data[smallest],
+        ];
         i = smallest;
       }
     }
@@ -110,7 +113,9 @@ function primMst(n: number, edges: [number, number, number][]): number {
 // ---- 검증 ----
 function check(label: string, actual: number, expected: number) {
   const ok = actual === expected;
-  console.log(`${ok ? "OK" : "FAIL"}  ${label}: got ${actual}, expected ${expected}`);
+  console.log(
+    `${ok ? "OK" : "FAIL"}  ${label}: got ${actual}, expected ${expected}`,
+  );
 }
 
 // 1. 시뮬레이션 고정 입력
@@ -216,7 +221,10 @@ check(
 check("fully disconnected (n=2, no edges) heap", primMst(2, []), -1);
 
 // 4. 함정 시나리오: 힙 항목을 (vertex, weight) 순서로 잘못 넣으면 어떻게 틀리는가
-function primMstWrongOrder(n: number, edges: [number, number, number][]): number {
+function primMstWrongOrder(
+  n: number,
+  edges: [number, number, number][],
+): number {
   const adj: [number, number][][] = Array.from({ length: n }, () => []);
   for (const [u, v, w] of edges) {
     if (u === v) continue;
@@ -249,7 +257,11 @@ console.log(
 );
 
 // 5. 무작위 교차검증: naive vs heap
-function randomGraph(n: number, edgeChance: number, maxW: number): [number, number, number][] {
+function randomGraph(
+  n: number,
+  edgeChance: number,
+  maxW: number,
+): [number, number, number][] {
   const edges: [number, number, number][] = [];
   for (let u = 0; u < n; u++) {
     for (let v = u + 1; v < n; v++) {
@@ -269,7 +281,9 @@ for (let trial = 0; trial < 200; trial++) {
   const b = primMstNaive(n, edges);
   if (a !== b) {
     mismatches++;
-    console.log(`MISMATCH n=${n} edges=${JSON.stringify(edges)} heap=${a} naive=${b}`);
+    console.log(
+      `MISMATCH n=${n} edges=${JSON.stringify(edges)} heap=${a} naive=${b}`,
+    );
   }
 }
 console.log(`무작위 교차검증 200회 완료, 불일치 ${mismatches}건`);

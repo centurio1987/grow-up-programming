@@ -6,10 +6,10 @@
  *       (인자 없으면 src 하위 모든 *-guide.mdx)
  */
 import { compile } from "@mdx-js/mdx";
+import { Glob } from "bun";
+import rehypeKatex from "rehype-katex";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import { Glob } from "bun";
 
 let targets = process.argv.slice(2);
 if (targets.length === 0) {

@@ -84,33 +84,68 @@ function treeRerooting(n: number, edges: [number, number][]): number[] {
 }
 
 function assertEqual(label: string, actual: number[], expected: number[]) {
-  const ok = actual.length === expected.length && actual.every((x, i) => x === expected[i]);
-  console.log(`${ok ? "OK " : "FAIL"} ${label}: actual=${JSON.stringify(actual)} expected=${JSON.stringify(expected)}`);
+  const ok =
+    actual.length === expected.length &&
+    actual.every((x, i) => x === expected[i]);
+  console.log(
+    `${ok ? "OK " : "FAIL"} ${label}: actual=${JSON.stringify(actual)} expected=${JSON.stringify(expected)}`,
+  );
   if (!ok) process.exitCode = 1;
 }
 
 // ---- 대표 예시 (problem.md) ----
 assertEqual("n=1", treeRerooting(1, []), [0]);
 assertEqual("n=2", treeRerooting(2, [[0, 1]]), [1, 1]);
-assertEqual("n=3 chain", treeRerooting(3, [[0, 1], [1, 2]]), [3, 2, 3]);
+assertEqual(
+  "n=3 chain",
+  treeRerooting(3, [
+    [0, 1],
+    [1, 2],
+  ]),
+  [3, 2, 3],
+);
 assertEqual(
   "n=5 branching (0-1,0-2,1-3,1-4)",
-  treeRerooting(5, [[0, 1], [0, 2], [1, 3], [1, 4]]),
+  treeRerooting(5, [
+    [0, 1],
+    [0, 2],
+    [1, 3],
+    [1, 4],
+  ]),
   [6, 5, 9, 8, 8],
 );
 assertEqual(
   "n=5 chain",
-  treeRerooting(5, [[0, 1], [1, 2], [2, 3], [3, 4]]),
+  treeRerooting(5, [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 4],
+  ]),
   [10, 7, 6, 7, 10],
 );
 assertEqual(
   "n=5 star",
-  treeRerooting(5, [[0, 1], [0, 2], [0, 3], [0, 4]]),
+  treeRerooting(5, [
+    [0, 1],
+    [0, 2],
+    [0, 3],
+    [0, 4],
+  ]),
   [4, 7, 7, 7, 7],
 );
 
 // ---- naive와 교차검증 (대표값) ----
-assertEqual("naive n=5 chain", treeRerootingNaive(5, [[0, 1], [1, 2], [2, 3], [3, 4]]), [10, 7, 6, 7, 10]);
+assertEqual(
+  "naive n=5 chain",
+  treeRerootingNaive(5, [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 4],
+  ]),
+  [10, 7, 6, 7, 10],
+);
 
 // ---- 무작위 랜덤 트리 교차검증 ----
 function randomTree(n: number, seed: number): [number, number][] {
@@ -136,14 +171,19 @@ for (let trial = 0; trial < 40; trial++) {
   const ok = a.length === b.length && a.every((x, i) => x === b[i]);
   if (!ok) {
     randomFails++;
-    console.log(`FAIL random trial=${trial} n=${n} edges=${JSON.stringify(edges)} rerooting=${JSON.stringify(a)} naive=${JSON.stringify(b)}`);
+    console.log(
+      `FAIL random trial=${trial} n=${n} edges=${JSON.stringify(edges)} rerooting=${JSON.stringify(a)} naive=${JSON.stringify(b)}`,
+    );
   }
 }
 console.log(`random cross-check: ${40 - randomFails}/40 passed`);
 if (randomFails > 0) process.exitCode = 1;
 
 // ---- 함정 시나리오 검증: DFS2를 역순으로 돌리면 틀린다는 것을 실측으로 확인 ----
-function treeRerootingWrongOrder(n: number, edges: [number, number][]): number[] {
+function treeRerootingWrongOrder(
+  n: number,
+  edges: [number, number][],
+): number[] {
   if (n === 1) return [0];
   const adj: number[][] = Array.from({ length: n }, () => []);
   for (const [u, v] of edges) {
@@ -187,4 +227,14 @@ function treeRerootingWrongOrder(n: number, edges: [number, number][]): number[]
   }
   return S;
 }
-console.log("함정(역순 DFS2) chain n=5:", JSON.stringify(treeRerootingWrongOrder(5, [[0, 1], [1, 2], [2, 3], [3, 4]])));
+console.log(
+  "함정(역순 DFS2) chain n=5:",
+  JSON.stringify(
+    treeRerootingWrongOrder(5, [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [3, 4],
+    ]),
+  ),
+);

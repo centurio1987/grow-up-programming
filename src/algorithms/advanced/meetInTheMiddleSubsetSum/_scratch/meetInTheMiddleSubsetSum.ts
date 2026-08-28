@@ -88,7 +88,9 @@ console.log("=== 대표 예시 nums=[3,5,1,2], target=8 ===");
   console.log("rightSums(sorted):", rightSums);
   for (const sL of leftSums) {
     const need = target - sL;
-    console.log(`sL=${sL} need=${need} found=${binarySearchExists(rightSums, need)}`);
+    console.log(
+      `sL=${sL} need=${need} found=${binarySearchExists(rightSums, need)}`,
+    );
   }
   console.log("naive:", subsetSumNaive(nums, target));
   console.log("splitNestedLoop:", subsetSumSplitNestedLoop(nums, target));
@@ -153,10 +155,17 @@ console.log("\n=== 함정: 정렬 없이 이진 탐색 ===");
   const R = [5, -3];
   const rightSumsUnsorted = enumerateSums(R); // mask 순서 그대로, 정렬 X
   console.log("rightSums (정렬 전, mask 순서):", rightSumsUnsorted);
-  console.log("binarySearchExists(unsorted, -3):", binarySearchExists(rightSumsUnsorted, -3), "← 실제로는 -3이 배열 안에 있는데도");
+  console.log(
+    "binarySearchExists(unsorted, -3):",
+    binarySearchExists(rightSumsUnsorted, -3),
+    "← 실제로는 -3이 배열 안에 있는데도",
+  );
   const rightSumsSorted = [...rightSumsUnsorted].sort((a, b) => a - b);
   console.log("rightSums (정렬 후):", rightSumsSorted);
-  console.log("binarySearchExists(sorted, -3):", binarySearchExists(rightSumsSorted, -3));
+  console.log(
+    "binarySearchExists(sorted, -3):",
+    binarySearchExists(rightSumsSorted, -3),
+  );
 }
 
 // ── 검증 6: mask=0(공집합)을 빠뜨리면 생기는 오답 ────────────────
@@ -170,7 +179,8 @@ console.log("\n=== 함정: 공집합 열거 누락 ===");
   function buggyEnumerateSums(arr: number[]): number[] {
     const m = arr.length;
     const sums: number[] = [];
-    for (let mask = 1; mask < 1 << m; mask++) { // ← 0 대신 1부터 시작
+    for (let mask = 1; mask < 1 << m; mask++) {
+      // ← 0 대신 1부터 시작
       let s = 0;
       for (let i = 0; i < m; i++) {
         if ((mask >> i) & 1) s += arr[i]!;

@@ -18,7 +18,12 @@ function maxFlowNaive(
   };
   for (const [u, v, c] of edges) addEdge(u, v, c);
 
-  function dfs(u: number, t: number, pushed: number, visited: boolean[]): number {
+  function dfs(
+    u: number,
+    t: number,
+    pushed: number,
+    visited: boolean[],
+  ): number {
     if (u === t) return pushed;
     visited[u] = true;
     for (const edge of graph[u]) {
@@ -171,14 +176,22 @@ function maxFlow(
 // ── 검증 하네스 ──────────────────────────────────────────────────────────
 function assertEq(label: string, actual: number, expected: number) {
   const ok = actual === expected;
-  console.log(`${ok ? "OK " : "FAIL"} ${label}: actual=${actual} expected=${expected}`);
+  console.log(
+    `${ok ? "OK " : "FAIL"} ${label}: actual=${actual} expected=${expected}`,
+  );
   if (!ok) process.exitCode = 1;
 }
 
 console.log("=== 대표 예시 ===");
 {
   const n = 4;
-  const edges: [number, number, number][] = [[0, 1, 3], [0, 2, 2], [1, 2, 1], [1, 3, 2], [2, 3, 3]];
+  const edges: [number, number, number][] = [
+    [0, 1, 3],
+    [0, 2, 2],
+    [1, 2, 1],
+    [1, 3, 2],
+    [2, 3, 3],
+  ];
   assertEq("naive", maxFlowNaive(n, edges, 0, 3).flow, 5);
   assertEq("basic", maxFlowDinicBasic(n, edges, 0, 3).flow, 5);
   assertEq("final", maxFlow(n, edges, 0, 3).flow, 5);
@@ -187,7 +200,13 @@ console.log("=== 대표 예시 ===");
 console.log("=== 역방향 간선 활용 예시 (문제 설명 5번째 예시) ===");
 {
   const n = 4;
-  const edges: [number, number, number][] = [[0, 1, 3], [0, 2, 3], [1, 2, 2], [1, 3, 3], [2, 3, 3]];
+  const edges: [number, number, number][] = [
+    [0, 1, 3],
+    [0, 2, 3],
+    [1, 2, 2],
+    [1, 3, 3],
+    [2, 3, 3],
+  ];
   assertEq("naive", maxFlowNaive(n, edges, 0, 3).flow, 6);
   assertEq("basic", maxFlowDinicBasic(n, edges, 0, 3).flow, 6);
   assertEq("final", maxFlow(n, edges, 0, 3).flow, 6);
@@ -210,19 +229,46 @@ console.log("=== 간선 없음 ===");
 
 console.log("=== 직렬 경로, 큰 용량 ===");
 {
-  assertEq("final", maxFlow(3, [[0, 1, 1_000_000], [1, 2, 1_000_000]], 0, 2).flow, 1_000_000);
+  assertEq(
+    "final",
+    maxFlow(
+      3,
+      [
+        [0, 1, 1_000_000],
+        [1, 2, 1_000_000],
+      ],
+      0,
+      2,
+    ).flow,
+    1_000_000,
+  );
 }
 
 console.log("=== 병렬 간선(같은 u→v 여러 개) ===");
 {
   const n = 2;
-  const edges: [number, number, number][] = [[0, 1, 3], [0, 1, 4]];
+  const edges: [number, number, number][] = [
+    [0, 1, 3],
+    [0, 1, 4],
+  ];
   assertEq("final", maxFlow(n, edges, 0, 1).flow, 7);
 }
 
 console.log("=== source === sink (방어 처리) ===");
 {
-  assertEq("final", maxFlow(3, [[0, 1, 5], [1, 2, 5]], 0, 0).flow, 0);
+  assertEq(
+    "final",
+    maxFlow(
+      3,
+      [
+        [0, 1, 5],
+        [1, 2, 5],
+      ],
+      0,
+      0,
+    ).flow,
+    0,
+  );
 }
 
 console.log("=== 무작위 교차검증 (naive vs basic vs final) ===");
@@ -250,7 +296,9 @@ console.log("=== 무작위 교차검증 (naive vs basic vs final) ===");
     const c = maxFlow(n, edges, s, tt).flow;
     if (a !== b || b !== c) {
       mismatches++;
-      console.log(`MISMATCH n=${n} edges=${JSON.stringify(edges)} naive=${a} basic=${b} final=${c}`);
+      console.log(
+        `MISMATCH n=${n} edges=${JSON.stringify(edges)} naive=${a} basic=${b} final=${c}`,
+      );
     }
   }
   console.log(`무작위 시행 ${trials}회, 불일치 ${mismatches}건`);
@@ -266,10 +314,23 @@ console.log("=== 시뮬레이션 프레임 재현 (n=4, s=0,t=3) ===");
     graph[u].push({ to: v, cap: c, rev: graph[v].length });
     graph[v].push({ to: u, cap: 0, rev: graph[u].length - 1 });
   };
-  for (const [u, v, c] of [[0, 1, 3], [0, 2, 2], [1, 2, 1], [1, 3, 2], [2, 3, 3]] as [number, number, number][]) {
+  for (const [u, v, c] of [
+    [0, 1, 3],
+    [0, 2, 2],
+    [1, 2, 1],
+    [1, 3, 2],
+    [2, 3, 3],
+  ] as [number, number, number][]) {
     addEdge(u, v, c);
   }
-  console.log("잔여(0-1,0-2,1-2,1-3,2-3) 초기:", graph[0][0]!.cap, graph[0][1]!.cap, graph[1][1]!.cap, graph[1][2]!.cap, graph[2][2]!.cap);
+  console.log(
+    "잔여(0-1,0-2,1-2,1-3,2-3) 초기:",
+    graph[0][0]!.cap,
+    graph[0][1]!.cap,
+    graph[1][1]!.cap,
+    graph[1][2]!.cap,
+    graph[2][2]!.cap,
+  );
 }
 
 console.log("=== naive 최악 순서 데모 (고전 적대적 그래프) ===");
@@ -288,7 +349,12 @@ console.log("=== naive 최악 순서 데모 (고전 적대적 그래프) ===");
       graph[v].push({ to: u, cap: 0, rev: graph[u].length - 1 });
     };
     for (const [u, v, c] of edges) addEdge(u, v, c);
-    function dfs(u: number, t: number, pushed: number, visited: boolean[]): number {
+    function dfs(
+      u: number,
+      t: number,
+      pushed: number,
+      visited: boolean[],
+    ): number {
       if (u === t) return pushed;
       visited[u] = true;
       for (const edge of graph[u]) {
@@ -316,13 +382,29 @@ console.log("=== naive 최악 순서 데모 (고전 적대적 그래프) ===");
   }
 
   const C = 4;
-  const badEdges: [number, number, number][] = [[0, 1, C], [0, 2, C], [1, 2, 1], [2, 3, C], [1, 3, C]];
+  const badEdges: [number, number, number][] = [
+    [0, 1, C],
+    [0, 2, C],
+    [1, 2, 1],
+    [2, 3, C],
+    [1, 3, C],
+  ];
   const bad = maxFlowNaiveCounting(4, badEdges, 0, 3);
-  console.log(`C=${C}, 간선 순서 [s-a,s-b,a-b,b-t,a-t] → flow=${bad.flow}, DFS 반복 횟수=${bad.iterations}`);
+  console.log(
+    `C=${C}, 간선 순서 [s-a,s-b,a-b,b-t,a-t] → flow=${bad.flow}, DFS 반복 횟수=${bad.iterations}`,
+  );
 
-  const goodEdges: [number, number, number][] = [[0, 1, C], [1, 3, C], [0, 2, C], [2, 3, C], [1, 2, 1]];
+  const goodEdges: [number, number, number][] = [
+    [0, 1, C],
+    [1, 3, C],
+    [0, 2, C],
+    [2, 3, C],
+    [1, 2, 1],
+  ];
   const good = maxFlowNaiveCounting(4, goodEdges, 0, 3);
-  console.log(`C=${C}, 간선 순서 [s-a,a-t,s-b,b-t,a-b] → flow=${good.flow}, DFS 반복 횟수=${good.iterations}`);
+  console.log(
+    `C=${C}, 간선 순서 [s-a,a-t,s-b,b-t,a-b] → flow=${good.flow}, DFS 반복 횟수=${good.iterations}`,
+  );
 }
 
 console.log("=== naive 최악 순서 데모 v2 (a→b, b→a 양방향 단위용량) ===");
@@ -339,7 +421,12 @@ console.log("=== naive 최악 순서 데모 v2 (a→b, b→a 양방향 단위용
       graph[v].push({ to: u, cap: 0, rev: graph[u].length - 1 });
     };
     for (const [u, v, c] of edges) addEdge(u, v, c);
-    function dfs(u: number, t: number, pushed: number, visited: boolean[]): number {
+    function dfs(
+      u: number,
+      t: number,
+      pushed: number,
+      visited: boolean[],
+    ): number {
       if (u === t) return pushed;
       visited[u] = true;
       for (const edge of graph[u]) {
@@ -369,24 +456,44 @@ console.log("=== naive 최악 순서 데모 v2 (a→b, b→a 양방향 단위용
   const C = 4;
   // s=0,a=1,b=2,t=3. a→b, b→a 모두 실제 간선(용량1)로 존재.
   const badEdges: [number, number, number][] = [
-    [0, 1, C], [0, 2, C], [1, 2, 1], [2, 1, 1], [1, 3, C], [2, 3, C],
+    [0, 1, C],
+    [0, 2, C],
+    [1, 2, 1],
+    [2, 1, 1],
+    [1, 3, C],
+    [2, 3, C],
   ];
   const bad = maxFlowNaiveCounting(4, badEdges, 0, 3);
-  console.log(`C=${C} → flow=${bad.flow}, DFS 반복 횟수=${bad.iterations} (기대 2C=${2*C})`);
+  console.log(
+    `C=${C} → flow=${bad.flow}, DFS 반복 횟수=${bad.iterations} (기대 2C=${2 * C})`,
+  );
 
   const C2 = 500;
   const badEdges2: [number, number, number][] = [
-    [0, 1, C2], [0, 2, C2], [1, 2, 1], [2, 1, 1], [1, 3, C2], [2, 3, C2],
+    [0, 1, C2],
+    [0, 2, C2],
+    [1, 2, 1],
+    [2, 1, 1],
+    [1, 3, C2],
+    [2, 3, C2],
   ];
   const bad2 = maxFlowNaiveCounting(4, badEdges2, 0, 3);
-  console.log(`C=${C2} → flow=${bad2.flow}, DFS 반복 횟수=${bad2.iterations} (기대 2C=${2*C2})`);
+  console.log(
+    `C=${C2} → flow=${bad2.flow}, DFS 반복 횟수=${bad2.iterations} (기대 2C=${2 * C2})`,
+  );
 }
 
 console.log("=== 역방향 간선 필요성 데모 (교과서 최소 반례) ===");
 {
   // s=0,a=1,b=2,t=3. s-a=1,s-b=1,a-b=1,a-t=1,b-t=1. 진짜 최댓값=2 (s-a-t=1, s-b-t=1).
   const n = 4;
-  const edges: [number, number, number][] = [[0, 1, 1], [0, 2, 1], [1, 2, 1], [1, 3, 1], [2, 3, 1]];
+  const edges: [number, number, number][] = [
+    [0, 1, 1],
+    [0, 2, 1],
+    [1, 2, 1],
+    [1, 3, 1],
+    [2, 3, 1],
+  ];
 
   // 정답: 역방향 간선을 쓰는 정식 구현
   const withRev = maxFlow(n, edges, 0, 3);
@@ -405,7 +512,12 @@ console.log("=== 역방향 간선 필요성 데모 (교과서 최소 반례) ===
       graph[v].push({ to: u, cap: 0, rev: graph[u].length - 1 });
     };
     for (const [u, v, c] of ee) addEdge(u, v, c);
-    function dfs(u: number, tt: number, pushed: number, visited: boolean[]): number {
+    function dfs(
+      u: number,
+      tt: number,
+      pushed: number,
+      visited: boolean[],
+    ): number {
       if (u === tt) return pushed;
       visited[u] = true;
       for (const edge of graph[u]) {
@@ -446,7 +558,12 @@ console.log("=== iter 포인터 유무에 따른 간선 스캔 횟수 비교 ===
     return graph;
   }
 
-  function runBasicCountingScans(n: number, edges: [number, number, number][], s: number, t: number) {
+  function runBasicCountingScans(
+    n: number,
+    edges: [number, number, number][],
+    s: number,
+    t: number,
+  ) {
     const graph = buildGraph(n, edges);
     let scans = 0;
     function bfsLevel(src: number): number[] {
@@ -465,7 +582,12 @@ console.log("=== iter 포인터 유무에 따른 간선 스캔 횟수 비교 ===
       }
       return level;
     }
-    function dfs(u: number, tt: number, pushed: number, level: number[]): number {
+    function dfs(
+      u: number,
+      tt: number,
+      pushed: number,
+      level: number[],
+    ): number {
       if (u === tt) return pushed;
       for (const edge of graph[u]) {
         scans++; // 매 시도마다 카운트 (실패한 간선도 다음 호출에서 다시 카운트됨)
@@ -493,7 +615,12 @@ console.log("=== iter 포인터 유무에 따른 간선 스캔 횟수 비교 ===
     return { flow: totalFlow, scans };
   }
 
-  function runFinalCountingScans(n: number, edges: [number, number, number][], s: number, t: number) {
+  function runFinalCountingScans(
+    n: number,
+    edges: [number, number, number][],
+    s: number,
+    t: number,
+  ) {
     const graph = buildGraph(n, edges);
     let scans = 0;
     const level = new Array(n).fill(-1);
@@ -550,11 +677,27 @@ console.log("=== iter 포인터 유무에 따른 간선 스캔 횟수 비교 ===
   }
   const basic = runBasicCountingScans(n, edges, 0, n - 1);
   const final = runFinalCountingScans(n, edges, 0, n - 1);
-  console.log(`n=${n}, E=${edges.length} → basic(재스캔) scans=${basic.scans}, flow=${basic.flow}`);
-  console.log(`n=${n}, E=${edges.length} → final(iter) scans=${final.scans}, flow=${final.flow}`);
+  console.log(
+    `n=${n}, E=${edges.length} → basic(재스캔) scans=${basic.scans}, flow=${basic.flow}`,
+  );
+  console.log(
+    `n=${n}, E=${edges.length} → final(iter) scans=${final.scans}, flow=${final.flow}`,
+  );
 }
 
 console.log("=== 점검문제용 검증 ===");
 {
-  console.log("n=3,[[0,1,5],[1,2,3],[0,2,1]],0,2 →", maxFlow(3, [[0,1,5],[1,2,3],[0,2,1]], 0, 2));
+  console.log(
+    "n=3,[[0,1,5],[1,2,3],[0,2,1]],0,2 →",
+    maxFlow(
+      3,
+      [
+        [0, 1, 5],
+        [1, 2, 3],
+        [0, 2, 1],
+      ],
+      0,
+      2,
+    ),
+  );
 }

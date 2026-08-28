@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { sparseTableRangeMin } from "./sparseTableRangeMin";
 
 describe("sparseTableRangeMin", () => {
@@ -74,10 +74,10 @@ describe("sparseTableRangeMin", () => {
       const N = 100_000;
       const Q = 100_000;
       const A = Array.from({ length: N }, (_, i) => (i * 31) % 997);
-      const queries: Array<[number, number]> = Array.from({ length: Q }, (_, i) => [
-        i % N,
-        Math.min(N - 1, (i % N) + 100),
-      ]);
+      const queries: Array<[number, number]> = Array.from(
+        { length: Q },
+        (_, i) => [i % N, Math.min(N - 1, (i % N) + 100)],
+      );
 
       const start = performance.now();
       const result = sparseTableRangeMin(A, queries);

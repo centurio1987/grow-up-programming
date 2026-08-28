@@ -13,7 +13,7 @@
  * 무게 축 40 · 가치 축 108 이다. 방향은 같지만 2.7배라, 이 문제의 제약(용량 `10^4` ·
  * 가치 합 `10^6`)에서 실제로 벌어지는 차이를 나타내지 못한다.
  */
-import type { BenchCase } from "../../tools/bench-alt.ts";
+import type { BenchCase } from "../../../../tools/bench-alt.ts";
 
 /** 고정 입력 — n=50, W=1000, 무게·가치는 결정론적 생성식. */
 function input() {

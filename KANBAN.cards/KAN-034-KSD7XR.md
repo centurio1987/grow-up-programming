@@ -76,7 +76,7 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
       `FEEDBACK.md` §1 반영표의 결번 참조 0(§2 이후 이력 서술은 대상 아님) ·
       은유 부류 표기 11 로 일치 · **파일럿 4편이 최신 골격으로 판정 통과**
       (`babyStepGiantStep` 은 첫 실행) · HTML 레일 렌더를 실제 창 폭에서 확인
-- [ ] `S2` 인프라 승격 + 파일럿 4편 이관 (`KAN-034.2-5V5M2F`)
+- [>] `S2` 인프라 승격 + 파일럿 4편 이관 (`KAN-034.2-5V5M2F`) <!-- claim:s=b90b730c t=2026-08-29T01:54 -->
       완료 기준: `bun run tools/ci.ts all` 초록 · `check-citations` 가 `src/algorithms` 를 봄 ·
       `bun test src/_guide-sim` 통과 · 파일럿 4편이 `.md` 로 서고 그 `.mdx` 4개가 사라짐 ·
       인덱스 「자동 추가」 절 중복 3줄 정리 · `guide-rhythm.tsv` 103 → 101
@@ -222,3 +222,4 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
 - 2026-08-28T23:09 · s:b90b730c · S1 done — 정합 회복 + 파일럿 4편 재판정 완료. 판정 4편 V1~V7 통과(bSGS r01·qs r04·knap r04·mos r14) · 반영표 결번 참조 0 · 은유 부류 11 일치 · 회차 산정을 최대+1 로 교정(자기시험 18항목) · 유저 지적 R24 로 레일 기준점 78rem→76rem 을 폭에서 유도하게 바꿔 4편 전부 유저 창 1232px 에서 렌더 확인(간격 24px·깨진 앵커 0).
 - 2026-08-29T00:54 · s:b90b730c — `실행 계획` 섹션 교체
 - 2026-08-29T00:54 · s:b90b730c — `검증` 섹션 교체
+- 2026-08-29T01:54 · s:b90b730c · S2 doing — 착수

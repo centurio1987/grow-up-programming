@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { missingInteger } from "./missingInteger";
 
 describe("missingInteger", () => {
@@ -59,7 +59,9 @@ describe("missingInteger", () => {
 
   // 성능 테스트 — O(N) 기준 N=100,000을 100ms 이내
   test("N=100,000 배열을 100ms 이내에 처리한다", () => {
-    const A = Array.from({ length: 100_000 }, (_, i) => (i % 2 === 0 ? i + 1 : -(i + 1)));
+    const A = Array.from({ length: 100_000 }, (_, i) =>
+      i % 2 === 0 ? i + 1 : -(i + 1),
+    );
     const start = performance.now();
     missingInteger(A);
     const elapsed = performance.now() - start;

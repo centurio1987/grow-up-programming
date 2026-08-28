@@ -7,10 +7,10 @@ function treeMaxIndependentSetNaive(
   weights: number[],
 ): number {
   let best = 0;
-  for (let mask = 0; mask < (1 << n); mask++) {
+  for (let mask = 0; mask < 1 << n; mask++) {
     let independent = true;
     for (const [u, v] of edges) {
-      if ((mask & (1 << u)) && (mask & (1 << v))) {
+      if (mask & (1 << u) && mask & (1 << v)) {
         independent = false;
         break;
       }
@@ -111,54 +111,121 @@ log("n=1 [-3] iterative", treeMaxIndependentSetIterative(1, [], [-3]));
 
 log(
   "n=3 star [1,2,3] naive",
-  treeMaxIndependentSetNaive(3, [[0, 1], [0, 2]], [1, 2, 3]),
+  treeMaxIndependentSetNaive(
+    3,
+    [
+      [0, 1],
+      [0, 2],
+    ],
+    [1, 2, 3],
+  ),
 );
 log(
   "n=3 star [1,2,3] recursive",
-  treeMaxIndependentSetRecursive(3, [[0, 1], [0, 2]], [1, 2, 3]),
+  treeMaxIndependentSetRecursive(
+    3,
+    [
+      [0, 1],
+      [0, 2],
+    ],
+    [1, 2, 3],
+  ),
 );
 log(
   "n=3 star [1,2,3] iterative",
-  treeMaxIndependentSetIterative(3, [[0, 1], [0, 2]], [1, 2, 3]),
+  treeMaxIndependentSetIterative(
+    3,
+    [
+      [0, 1],
+      [0, 2],
+    ],
+    [1, 2, 3],
+  ),
 );
 
 log(
   "n=4 path [10,1,1,10] naive",
-  treeMaxIndependentSetNaive(4, [[0, 1], [1, 2], [2, 3]], [10, 1, 1, 10]),
+  treeMaxIndependentSetNaive(
+    4,
+    [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ],
+    [10, 1, 1, 10],
+  ),
 );
 log(
   "n=4 path [10,1,1,10] recursive",
-  treeMaxIndependentSetRecursive(4, [[0, 1], [1, 2], [2, 3]], [10, 1, 1, 10]),
+  treeMaxIndependentSetRecursive(
+    4,
+    [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ],
+    [10, 1, 1, 10],
+  ),
 );
 log(
   "n=4 path [10,1,1,10] iterative",
-  treeMaxIndependentSetIterative(4, [[0, 1], [1, 2], [2, 3]], [10, 1, 1, 10]),
+  treeMaxIndependentSetIterative(
+    4,
+    [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ],
+    [10, 1, 1, 10],
+  ),
 );
 
 log(
   "n=3 all-neg naive",
-  treeMaxIndependentSetNaive(3, [[0, 1], [1, 2]], [-1, -2, -3]),
+  treeMaxIndependentSetNaive(
+    3,
+    [
+      [0, 1],
+      [1, 2],
+    ],
+    [-1, -2, -3],
+  ),
 );
 log(
   "n=3 all-neg recursive",
-  treeMaxIndependentSetRecursive(3, [[0, 1], [1, 2]], [-1, -2, -3]),
+  treeMaxIndependentSetRecursive(
+    3,
+    [
+      [0, 1],
+      [1, 2],
+    ],
+    [-1, -2, -3],
+  ),
 );
 log(
   "n=3 all-neg iterative",
-  treeMaxIndependentSetIterative(3, [[0, 1], [1, 2]], [-1, -2, -3]),
+  treeMaxIndependentSetIterative(
+    3,
+    [
+      [0, 1],
+      [1, 2],
+    ],
+    [-1, -2, -3],
+  ),
 );
 
-log(
-  "n=2 [3,-1] naive",
-  treeMaxIndependentSetNaive(2, [[0, 1]], [3, -1]),
-);
+log("n=2 [3,-1] naive", treeMaxIndependentSetNaive(2, [[0, 1]], [3, -1]));
 log(
   "n=2 [3,-1] iterative",
   treeMaxIndependentSetIterative(2, [[0, 1]], [3, -1]),
 );
 
 console.log("\n=== 시뮬레이션용 별 모양 트리 n=4 ===");
-const starEdges: [number, number][] = [[0, 1], [0, 2], [0, 3]];
+const starEdges: [number, number][] = [
+  [0, 1],
+  [0, 2],
+  [0, 3],
+];
 const starWeights = [1, 10, 10, 10];
 log("naive", treeMaxIndependentSetNaive(4, starEdges, starWeights));
 log("recursive", treeMaxIndependentSetRecursive(4, starEdges, starWeights));
@@ -234,7 +301,10 @@ log(
   "buggy (star n=4) 기대값 30, 실제값",
   buggyIterativeNoParentGuardInExit(4, starEdges, starWeights),
 );
-const pathEdges: [number, number][] = [[0, 1], [1, 2]];
+const pathEdges: [number, number][] = [
+  [0, 1],
+  [1, 2],
+];
 const pathWeights = [5, 1, 5];
 log(
   "buggy (path n=3, w=[5,1,5]) 기대값 10, 실제값",
@@ -245,8 +315,13 @@ log(
   treeMaxIndependentSetIterative(3, pathEdges, pathWeights),
 );
 
-console.log("\n=== 무작위 교차검증 (recursive vs iterative vs naive, 작은 n) ===");
-function randomTree(n: number, weightRange: number): {
+console.log(
+  "\n=== 무작위 교차검증 (recursive vs iterative vs naive, 작은 n) ===",
+);
+function randomTree(
+  n: number,
+  weightRange: number,
+): {
   edges: [number, number][];
   weights: number[];
 } {

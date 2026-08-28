@@ -40,7 +40,11 @@ class ConvexHullTrickScan {
     }
     while (
       this.stack.length >= 2 &&
-      bad(this.stack[this.stack.length - 2]!, this.stack[this.stack.length - 1]!, newLine)
+      bad(
+        this.stack[this.stack.length - 2]!,
+        this.stack[this.stack.length - 1]!,
+        newLine,
+      )
     ) {
       this.stack.pop();
     }
@@ -74,7 +78,11 @@ export class ConvexHullTrick {
     }
     while (
       this.stack.length >= 2 &&
-      bad(this.stack[this.stack.length - 2]!, this.stack[this.stack.length - 1]!, newLine)
+      bad(
+        this.stack[this.stack.length - 2]!,
+        this.stack[this.stack.length - 1]!,
+        newLine,
+      )
     ) {
       this.stack.pop();
     }
@@ -179,7 +187,9 @@ function assertEq(actual: number, expected: number, label: string) {
     const mid = Math.floor((lo + hi) / 2);
     const vMid = evalLine(st[mid]!, 0);
     const vMid1 = evalLine(st[mid + 1]!, 0);
-    console.log(`lo=${lo} hi=${hi} mid=${mid} eval(mid)=${vMid} eval(mid+1)=${vMid1}`);
+    console.log(
+      `lo=${lo} hi=${hi} mid=${mid} eval(mid)=${vMid} eval(mid+1)=${vMid1}`,
+    );
     if (vMid <= vMid1) hi = mid;
     else lo = mid + 1;
   }

@@ -80,6 +80,24 @@ const GATES: Step[] = [
     label: "가이드 전개 밀도·절 결속(래칫)",
     argv: ["bun", "run", "tools/check-guide-rhythm.ts"],
   },
+  // ── v2 골격(알고리즘 트랙) — KAN-034 S2 승격 ──
+  //
+  // `comprehension.sh` 는 **편입하지 않는다.** 2026-08-29 유저 지시로 외부 모델을 쓰지
+  // 않기로 했고, 그것이 재던 값 판정은 `check-proof` 로 내려왔다(`SPEC.md` §0).
+  //
+  // 셋 다 `--all` 이다 — 대상 글롭을 여기 적으면 새 편이 늘 때 아무도 이 자리를 안 고친다.
+  {
+    label: "v2 스캐너 P1~P10",
+    argv: ["bun", "run", "tools/check-v2.ts", "--all"],
+  },
+  {
+    label: "v2 자기증명 대조(본문 값 ↔ 실행)",
+    argv: ["bun", "run", "tools/check-proof.ts", "--all"],
+  },
+  {
+    label: "v2 은유 — 문서 전체",
+    argv: ["bun", "run", "tools/check-metaphor.ts", "--all"],
+  },
 ];
 
 function run(step: Step): boolean {

@@ -1,8 +1,8 @@
-import { test, expect, describe, beforeAll, afterAll } from "bun:test";
-import { externalMergeSort } from "./externalMergeSort";
-import { tmpdir } from "node:os";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { externalMergeSort } from "./externalMergeSort";
 
 let tmpDir: string;
 
@@ -97,7 +97,8 @@ describe("externalMergeSort", () => {
 
     const sorted = await readOutput(output);
     expect(sorted.length).toBe(N);
-    for (let i = 1; i < N; i++) expect(sorted[i]!).toBeGreaterThanOrEqual(sorted[i - 1]!);
+    for (let i = 1; i < N; i++)
+      expect(sorted[i]!).toBeGreaterThanOrEqual(sorted[i - 1]!);
     expect(elapsed).toBeLessThan(1000);
   });
 });

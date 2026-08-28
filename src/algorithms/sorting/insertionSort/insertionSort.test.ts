@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { insertionSort } from "./insertionSort";
 
 describe("insertionSort", () => {
@@ -57,7 +57,8 @@ describe("insertionSort", () => {
     const elapsed = performance.now() - start;
 
     expect(result.length).toBe(N);
-    for (let i = 1; i < N; i++) expect(result[i]!).toBeGreaterThanOrEqual(result[i - 1]!);
+    for (let i = 1; i < N; i++)
+      expect(result[i]!).toBeGreaterThanOrEqual(result[i - 1]!);
     expect(elapsed).toBeLessThan(100);
   });
 });

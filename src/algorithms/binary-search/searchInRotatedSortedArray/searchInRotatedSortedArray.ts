@@ -1,3 +1,6 @@
-export function searchInRotatedSortedArray(A: number[], target: number): number {
+export function searchInRotatedSortedArray(
+  A: number[],
+  target: number,
+): number {
   throw new Error("Not implemented");
 }

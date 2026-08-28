@@ -1,5 +1,8 @@
-import { test, expect, describe } from "bun:test";
-import { rotatingCalipersDiameter, type Point } from "./rotatingCalipersDiameter";
+import { describe, expect, test } from "bun:test";
+import {
+  type Point,
+  rotatingCalipersDiameter,
+} from "./rotatingCalipersDiameter";
 
 describe("rotatingCalipersDiameter", () => {
   // 기본 동작

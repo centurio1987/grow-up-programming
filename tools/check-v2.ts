@@ -1008,12 +1008,58 @@ function norm(s: string): string {
 
 /* ────────────────────────── CLI ────────────────────────── */
 
+/** 파일 하나를 재고 위반 수를 돌려준다. `--all` 이 편마다 이것을 부른다. */
+async function checkOne(target: string, json: boolean): Promise<number> {
+  const file = Bun.file(target);
+  if (!(await file.exists())) {
+    console.error(`대상이 없다: ${target}`);
+    return 1;
+  }
+  const text = await file.text();
+  const stem = basename(target).replace(/\.md$/, "");
+  const input: CheckInput = { text };
+  const simFile = Bun.file(join(dirname(target), `${stem}.sim.ts`));
+  const benchFile = Bun.file(join(dirname(target), `${stem}.bench.json`));
+  if (await simFile.exists()) input.sim = await simFile.text();
+  if (await benchFile.exists()) input.bench = await benchFile.json();
+  const findings = check(input);
+  if (json) {
+    console.log(JSON.stringify({ target, findings }, null, 2));
+  } else if (findings.length === 0) {
+    console.log(`${target} — P1~P10 통과.`);
+  } else {
+    console.error(`${target} — 위반 ${findings.length}건.`);
+    for (const f of findings) {
+      console.error(`  [${f.code}] ${f.where ?? ""}`);
+      console.error(`    ${f.detail}`);
+    }
+  }
+  return findings.length === 0 ? 0 : 1;
+}
+
 if (import.meta.main) {
   const args = Bun.argv.slice(2);
   const json = args.includes("--json");
+
+  // **`--all` 은 대상 집합을 손으로 적지 않는다.** CI 가 글롭을 인자로 펴서 넘기면
+  // 그 글롭이 ci.ts 안에 굳고, 새 편이 늘 때 아무도 그 자리를 안 고친다.
+  if (args.includes("--all")) {
+    const { v2Guides } = await import("./guide-v2-targets.ts");
+    const targets = await v2Guides();
+    if (targets.length === 0) {
+      console.log("v2 가이드가 아직 없다 — 잰 것이 없다.");
+      process.exit(0);
+    }
+    let bad = 0;
+    for (const t of targets) bad += await checkOne(t, json);
+    process.exit(bad === 0 ? 0 : 1);
+  }
+
   const target = args.find((a) => !a.startsWith("--"));
   if (target === undefined) {
-    console.error("용법: bun run tools/check-v2.ts [--json] <guide.md>");
+    console.error(
+      "용법: bun run tools/check-v2.ts [--json] <guide.md> | --all",
+    );
     process.exit(2);
   }
 

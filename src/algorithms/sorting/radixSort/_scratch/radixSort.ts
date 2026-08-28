@@ -7,7 +7,11 @@
 function digitOfDemo(x: number, pass: number, base: number): number {
   return Math.floor(x / base ** pass) % base;
 }
-function countingSortByDigitDemo(input: number[], pass: number, base: number): number[] {
+function countingSortByDigitDemo(
+  input: number[],
+  pass: number,
+  base: number,
+): number[] {
   const n = input.length;
   const count = new Array(base).fill(0);
   for (const x of input) count[digitOfDemo(x, pass, base)]++;
@@ -43,7 +47,11 @@ function digitOf(x: number, pass: number, base: number): number {
   return Math.floor(x / base ** pass) % base;
 }
 
-function countingSortByDigit(input: number[], pass: number, base: number): number[] {
+function countingSortByDigit(
+  input: number[],
+  pass: number,
+  base: number,
+): number[] {
   const n = input.length;
   const count = new Array(base).fill(0);
 
@@ -114,8 +122,12 @@ function radixSort(A: number[]): number[] {
 console.log("\n=== 실제 구현 검증 ===");
 
 function assertEqual(label: string, actual: number[], expected: number[]) {
-  const ok = actual.length === expected.length && actual.every((v, i) => v === expected[i]);
-  console.log(`${ok ? "OK  " : "FAIL"} ${label}: actual=${JSON.stringify(actual)} expected=${JSON.stringify(expected)}`);
+  const ok =
+    actual.length === expected.length &&
+    actual.every((v, i) => v === expected[i]);
+  console.log(
+    `${ok ? "OK  " : "FAIL"} ${label}: actual=${JSON.stringify(actual)} expected=${JSON.stringify(expected)}`,
+  );
   if (!ok) process.exitCode = 1;
 }
 
@@ -151,14 +163,17 @@ const sortedCopy = radixSort(original);
 console.log(
   `원본 불변: original=${JSON.stringify(original)} (기대 [3,1,2] 그대로), sorted=${JSON.stringify(sortedCopy)}`,
 );
-if (JSON.stringify(original) !== JSON.stringify([3, 1, 2])) process.exitCode = 1;
+if (JSON.stringify(original) !== JSON.stringify([3, 1, 2]))
+  process.exitCode = 1;
 
 // 무작위 교차 검증 (기본구현 vs 최적화 vs Array.sort 기준)
 console.log("\n=== 무작위 교차 검증 (50회) ===");
 let randFail = 0;
 for (let t = 0; t < 50; t++) {
   const len = Math.floor(Math.random() * 50);
-  const arr = Array.from({ length: len }, () => Math.floor(Math.random() * 1_000_000_001));
+  const arr = Array.from({ length: len }, () =>
+    Math.floor(Math.random() * 1_000_000_001),
+  );
   const expected = [...arr].sort((a, b) => a - b);
   const r1 = radixSortBasic(arr);
   const r2 = radixSort(arr);
@@ -181,11 +196,15 @@ for (let pass = 0; pass < 4; pass++) {
   const shift = pass * 8;
   const viaShift = (xExample >>> shift) & 0xff;
   const viaDiv = Math.floor(xExample / 256 ** pass) % 256;
-  console.log(`pass=${pass} shift=${shift}: shift방식=${viaShift} div방식=${viaDiv} 일치=${viaShift === viaDiv}`);
+  console.log(
+    `pass=${pass} shift=${shift}: shift방식=${viaShift} div방식=${viaDiv} 일치=${viaShift === viaDiv}`,
+  );
 }
 console.log("2^30 =", 2 ** 30, " / 10^9 < 2^30 ?", xExample < 2 ** 30);
 
 // 5. >> vs >>> 차이를 보여줄 값 (2^31 이상에서 부호 반전) — 헷갈리기 쉬운 포인트 근거
 console.log("\n=== >> vs >>> 차이 시연 (경계값, 이 문제 제약 밖) ===");
 const big = 2 ** 31; // 이 문제의 A[i] <= 10^9 범위 밖 값 — >> 위험성만 시연
-console.log(`big=${big}, big>>0 = ${big >> 0} (부호있는 32비트로 해석되어 음수), big>>>0 = ${big >>> 0} (부호없는 그대로)`);
+console.log(
+  `big=${big}, big>>0 = ${big >> 0} (부호있는 32비트로 해석되어 음수), big>>>0 = ${big >>> 0} (부호없는 그대로)`,
+);

@@ -146,7 +146,7 @@ for (const [arr, k] of cases) {
   const opt = kthSmallest(arr, k);
   const ok = naive === expected && basic === expected && opt === expected;
   console.log(
-    `A=${JSON.stringify(arr)} k=${k} → expected=${expected} naive=${naive} basic=${basic} opt=${opt} ${ok ? "OK" : "MISMATCH!!"}`
+    `A=${JSON.stringify(arr)} k=${k} → expected=${expected} naive=${naive} basic=${basic} opt=${opt} ${ok ? "OK" : "MISMATCH!!"}`,
   );
 }
 
@@ -154,14 +154,19 @@ console.log("\n=== 3) 무작위 대량 교차 검증 (100회) ===");
 let fail = 0;
 for (let t = 0; t < 100; t++) {
   const n = 1 + Math.floor(Math.random() * 30);
-  const arr = Array.from({ length: n }, () => Math.floor(Math.random() * 41) - 20);
+  const arr = Array.from(
+    { length: n },
+    () => Math.floor(Math.random() * 41) - 20,
+  );
   const k = 1 + Math.floor(Math.random() * n);
   const expected = [...arr].sort((a, b) => a - b)[k - 1];
   const basic = kthSmallestBasic(arr, k);
   const opt = kthSmallest(arr, k);
   if (basic !== expected || opt !== expected) {
     fail++;
-    console.log(`MISMATCH: A=${JSON.stringify(arr)} k=${k} expected=${expected} basic=${basic} opt=${opt}`);
+    console.log(
+      `MISMATCH: A=${JSON.stringify(arr)} k=${k} expected=${expected} basic=${basic} opt=${opt}`,
+    );
   }
 }
 console.log(`무작위 검증 실패 건수: ${fail} / 100`);
@@ -193,8 +198,14 @@ function partitionSizesOnSorted(n: number): number[] {
   qs(0, n - 1, 0); // target = 0(최솟값) → pivot(=최댓값)이 매번 p=hi가 되어 왼쪽으로만 1칸씩 축소
   return sizes;
 }
-console.log("n=8 정렬된 배열에서 target=최솟값일 때 구간 크기 추이:", partitionSizesOnSorted(8));
-console.log("n=2000 정렬된 배열에서 총 partition 비교 횟수(대략 N+(N-1)+...): ", partitionSizesOnSorted(2000).reduce((a, b) => a + b, 0));
+console.log(
+  "n=8 정렬된 배열에서 target=최솟값일 때 구간 크기 추이:",
+  partitionSizesOnSorted(8),
+);
+console.log(
+  "n=2000 정렬된 배열에서 총 partition 비교 횟수(대략 N+(N-1)+...): ",
+  partitionSizesOnSorted(2000).reduce((a, b) => a + b, 0),
+);
 
 console.log("\n=== 5) 함정 시나리오 실측 ===");
 
@@ -206,7 +217,10 @@ function buggyForgotMinusOne(input: number[], k: number): number {
     const pivot = A[hi];
     let i = lo - 1;
     for (let j = lo; j < hi; j++) {
-      if (A[j] <= pivot) { i++; [A[i], A[j]] = [A[j], A[i]]; }
+      if (A[j] <= pivot) {
+        i++;
+        [A[i], A[j]] = [A[j], A[i]];
+      }
     }
     [A[i + 1], A[hi]] = [A[hi], A[i + 1]];
     return i + 1;
@@ -225,7 +239,9 @@ function buggyForgotMinusOne(input: number[], k: number): number {
   const k = 3;
   const correct = kthSmallestBasic(arr, k);
   const buggy = buggyForgotMinusOne(arr, k);
-  console.log(`target=k-1 변환 누락: A=${JSON.stringify(arr)} k=${k} → 정상=${correct}, 버그(target=k)=${buggy}`);
+  console.log(
+    `target=k-1 변환 누락: A=${JSON.stringify(arr)} k=${k} → 정상=${correct}, 버그(target=k)=${buggy}`,
+  );
 }
 
 // 함정 B: partition 루프를 j <= hi 로 잘못 써서 pivot이 자기 자신과도 비교되는 경우
@@ -235,7 +251,10 @@ function partitionCorrect(A: number[], lo: number, hi: number): number {
   const pivot = A[hi];
   let i = lo - 1;
   for (let j = lo; j < hi; j++) {
-    if (A[j] <= pivot) { i++; [A[i], A[j]] = [A[j], A[i]]; }
+    if (A[j] <= pivot) {
+      i++;
+      [A[i], A[j]] = [A[j], A[i]];
+    }
   }
   [A[i + 1], A[hi]] = [A[hi], A[i + 1]];
   return i + 1;
@@ -243,8 +262,12 @@ function partitionCorrect(A: number[], lo: number, hi: number): number {
 function partitionBuggy(A: number[], lo: number, hi: number): number {
   const pivot = A[hi];
   let i = lo - 1;
-  for (let j = lo; j <= hi; j++) { // 버그: hi까지 포함(원래는 hi-1까지)
-    if (A[j] <= pivot) { i++; [A[i], A[j]] = [A[j], A[i]]; }
+  for (let j = lo; j <= hi; j++) {
+    // 버그: hi까지 포함(원래는 hi-1까지)
+    if (A[j] <= pivot) {
+      i++;
+      [A[i], A[j]] = [A[j], A[i]];
+    }
   }
   [A[i + 1], A[hi]] = [A[hi], A[i + 1]];
   return i + 1;
@@ -255,10 +278,12 @@ function partitionBuggy(A: number[], lo: number, hi: number): number {
   const pCorrect = partitionCorrect(arrCorrect, 0, 7);
   const pBuggy = partitionBuggy(arrBuggy, 0, 7);
   console.log(
-    `partition 루프 j<=hi 오류: 정상 p=${pCorrect}(배열 범위 내), 버그 p=${pBuggy}(배열 길이=${arrBuggy.length}를 벗어난 인덱스 발생 가능)`
+    `partition 루프 j<=hi 오류: 정상 p=${pCorrect}(배열 범위 내), 버그 p=${pBuggy}(배열 길이=${arrBuggy.length}를 벗어난 인덱스 발생 가능)`,
   );
   console.log(`  정상 결과 배열=${JSON.stringify(arrCorrect)}`);
-  console.log(`  버그 결과 배열=${JSON.stringify(arrBuggy)} (길이 ${arrBuggy.length})`);
+  console.log(
+    `  버그 결과 배열=${JSON.stringify(arrBuggy)} (길이 ${arrBuggy.length})`,
+  );
 }
 
 console.log("DONE_MARKER");

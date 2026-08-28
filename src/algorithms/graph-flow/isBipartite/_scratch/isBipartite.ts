@@ -51,32 +51,110 @@ function isBipartite(n: number, edges: [number, number][]): boolean {
 
 function assertEq(actual: unknown, expected: unknown, label: string) {
   const ok = JSON.stringify(actual) === JSON.stringify(expected);
-  console.log(`${ok ? "OK  " : "FAIL"} ${label}: got=${JSON.stringify(actual)} expected=${JSON.stringify(expected)}`);
+  console.log(
+    `${ok ? "OK  " : "FAIL"} ${label}: got=${JSON.stringify(actual)} expected=${JSON.stringify(expected)}`,
+  );
   if (!ok) process.exitCode = 1;
 }
 
 // --- 문제 예시 (problem.md) ---
-assertEq(isBipartite(4, [[0, 1], [1, 2], [2, 3], [3, 0]]), true, "4-cycle");
-assertEq(isBipartite(3, [[0, 1], [1, 2], [2, 0]]), false, "3-cycle(triangle)");
-assertEq(isBipartite(5, [[0, 1], [2, 3]]), true, "disconnected two edges");
+assertEq(
+  isBipartite(4, [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 0],
+  ]),
+  true,
+  "4-cycle",
+);
+assertEq(
+  isBipartite(3, [
+    [0, 1],
+    [1, 2],
+    [2, 0],
+  ]),
+  false,
+  "3-cycle(triangle)",
+);
+assertEq(
+  isBipartite(5, [
+    [0, 1],
+    [2, 3],
+  ]),
+  true,
+  "disconnected two edges",
+);
 assertEq(isBipartite(1, []), true, "single vertex no edge");
 assertEq(isBipartite(1, [[0, 0]]), false, "self loop");
 assertEq(
-  isBipartite(6, [[0, 1], [0, 2], [1, 3], [1, 4], [2, 5]]),
+  isBipartite(6, [
+    [0, 1],
+    [0, 2],
+    [1, 3],
+    [1, 4],
+    [2, 5],
+  ]),
   true,
   "tree",
 );
 
 // --- naive와 교차검증 (작은 n) ---
 const crossCases: [number, [number, number][]][] = [
-  [4, [[0, 1], [1, 2], [2, 3], [3, 0]]],
-  [3, [[0, 1], [1, 2], [2, 0]]],
-  [5, [[0, 1], [2, 3]]],
+  [
+    4,
+    [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [3, 0],
+    ],
+  ],
+  [
+    3,
+    [
+      [0, 1],
+      [1, 2],
+      [2, 0],
+    ],
+  ],
+  [
+    5,
+    [
+      [0, 1],
+      [2, 3],
+    ],
+  ],
   [1, []],
   [1, [[0, 0]]],
-  [6, [[0, 1], [0, 2], [1, 3], [1, 4], [2, 5]]],
-  [5, [[0, 1], [1, 2], [2, 0], [2, 3], [3, 4]]], // 시뮬레이션 예시
-  [0 + 4, [[0, 1], [1, 2], [2, 3]]], // path, no cycle
+  [
+    6,
+    [
+      [0, 1],
+      [0, 2],
+      [1, 3],
+      [1, 4],
+      [2, 5],
+    ],
+  ],
+  [
+    5,
+    [
+      [0, 1],
+      [1, 2],
+      [2, 0],
+      [2, 3],
+      [3, 4],
+    ],
+  ], // 시뮬레이션 예시
+  [
+    0 + 4,
+    [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ],
+  ], // path, no cycle
   [7, []], // 전부 고립 정점
 ];
 for (const [n, edges] of crossCases) {
@@ -104,14 +182,25 @@ for (let t = 0; t < 500; t++) {
   const b = isBipartite(n, edges);
   if (a !== b) {
     randomFails++;
-    console.log(`FAIL random n=${n} edges=${JSON.stringify(edges)} naive=${a} bfs=${b}`);
+    console.log(
+      `FAIL random n=${n} edges=${JSON.stringify(edges)} naive=${a} bfs=${b}`,
+    );
   }
 }
 console.log(`random cross-check: ${500 - randomFails}/500 matched`);
 if (randomFails > 0) process.exitCode = 1;
 
 // --- 시뮬레이션(steps)과 대조할 실측: n=5, edges=[[0,1],[1,2],[2,0],[2,3],[3,4]] ---
-console.log("sim-case result:", isBipartite(5, [[0, 1], [1, 2], [2, 0], [2, 3], [3, 4]]));
+console.log(
+  "sim-case result:",
+  isBipartite(5, [
+    [0, 1],
+    [1, 2],
+    [2, 0],
+    [2, 3],
+    [3, 4],
+  ]),
+);
 
 // --- 성능 목표 예측 문단 검증용: 큰 입력에서 BFS가 잘 도는지 시간 측정 ---
 {
@@ -121,7 +210,11 @@ console.log("sim-case result:", isBipartite(5, [[0, 1], [1, 2], [2, 0], [2, 3], 
   const t0 = performance.now();
   const res = isBipartite(n, edges);
   const t1 = performance.now();
-  console.log(`large path graph n=${n} edges=${edges.length} result=${res} time=${(t1 - t0).toFixed(2)}ms`);
+  console.log(
+    `large path graph n=${n} edges=${edges.length} result=${res} time=${(t1 - t0).toFixed(2)}ms`,
+  );
 }
 
-console.log(process.exitCode ? "SCRATCH: SOME FAILURES" : "SCRATCH: ALL PASSED");
+console.log(
+  process.exitCode ? "SCRATCH: SOME FAILURES" : "SCRATCH: ALL PASSED",
+);

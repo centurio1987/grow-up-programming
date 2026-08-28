@@ -15,12 +15,6 @@
     ```text
     1.a, 2.c, 3.a
     ```
-- `KAN-034.2-5V5M2F` 인프라 승격 + 파일럿 4편 이관 — 샌드박스를 본 저장소로 걷기 — 생성:ai · 최종:ai · 갱신:2026-08-28
-  - 상위: `KAN-034-KSD7XR` (진행 중)
-  - 짧은 제목: 인프라 승격·이관
-  - 목적: README 승격 조건 5건을 개정해 수행하고, 파일럿 4편을 sandbox 에서 src/algorithms/ 로 옮겨 편별 종료 산출 일곱을 적용한다
-  - 이유: 전개가 시작되면 111편이 샌드박스 밖에서 나오는데 검증 장치가 아직 샌드박스 안에 있다. 그리고 파일럿 4편은 원고만 있고 src/algorithms/ 의 그 자리에는 v1 .mdx 가 그대로 남아 있다(실측)
-  - 목표: tools/ci.ts 가 check-v2·check-metaphor·check-rework·bench-alt 를 돌리고, check-citations 가 src/algorithms 를 보고, 파일럿 4편이 .md 로 서고 그 .mdx 가 사라지며, 인덱스 중복 3줄이 정리된다
 - `KAN-034.3-53E4F9` 사람 검토 12줄의 기계화 — 조항 L38~ 신설 — 생성:ai · 최종:ai · 갱신:2026-08-28
   - 상위: `KAN-034-KSD7XR` (진행 중)
   - 짧은 제목: 검토 기계화
@@ -96,6 +90,12 @@
     
     (v1 .mdx 처분 질문에 대한 답) 편별 즉시 교체
     ```
+- `KAN-034.2-5V5M2F` 인프라 승격 + 파일럿 4편 이관 — 샌드박스를 본 저장소로 걷기 — 생성:ai · 최종:ai · 갱신:2026-08-29
+  - 상위: `KAN-034-KSD7XR` (진행 중)
+  - 짧은 제목: 인프라 승격·이관
+  - 목적: README 승격 조건 5건을 개정해 수행하고, 파일럿 4편을 sandbox 에서 src/algorithms/ 로 옮겨 편별 종료 산출 일곱을 적용한다
+  - 이유: 전개가 시작되면 111편이 샌드박스 밖에서 나오는데 검증 장치가 아직 샌드박스 안에 있다. 그리고 파일럿 4편은 원고만 있고 src/algorithms/ 의 그 자리에는 v1 .mdx 가 그대로 남아 있다(실측)
+  - 목표: tools/ci.ts 가 check-v2·check-metaphor·check-rework·bench-alt 를 돌리고, check-citations 가 src/algorithms 를 보고, 파일럿 4편이 .md 로 서고 그 .mdx 가 사라지며, 인덱스 중복 3줄이 정리된다
 
 ## 검토
 

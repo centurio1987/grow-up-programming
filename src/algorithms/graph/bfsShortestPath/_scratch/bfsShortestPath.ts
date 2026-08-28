@@ -110,22 +110,54 @@ function assertEqual(label: string, actual: unknown, expected: unknown) {
 // ── A. problem.md 예시 ──────────────────────────────────────────────────
 assertEqual(
   "problem-ex1 base",
-  bfsShortestPathBase(4, [[0, 1], [1, 2], [2, 3]], 0),
+  bfsShortestPathBase(
+    4,
+    [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ],
+    0,
+  ),
   [0, 1, 2, 3],
 );
 assertEqual(
   "problem-ex1 optimized",
-  bfsShortestPath(4, [[0, 1], [1, 2], [2, 3]], 0),
+  bfsShortestPath(
+    4,
+    [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ],
+    0,
+  ),
   [0, 1, 2, 3],
 );
 assertEqual(
   "problem-ex2 optimized (source=2)",
-  bfsShortestPath(5, [[0, 1], [1, 2], [2, 3], [3, 4]], 2),
+  bfsShortestPath(
+    5,
+    [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [3, 4],
+    ],
+    2,
+  ),
   [2, 1, 0, 1, 2],
 );
 assertEqual(
   "problem-ex3 optimized (disconnected)",
-  bfsShortestPath(4, [[0, 1], [2, 3]], 0),
+  bfsShortestPath(
+    4,
+    [
+      [0, 1],
+      [2, 3],
+    ],
+    0,
+  ),
   [0, 1, -1, -1],
 );
 assertEqual(
@@ -133,11 +165,7 @@ assertEqual(
   bfsShortestPath(4, [], 1),
   [-1, 0, -1, -1],
 );
-assertEqual(
-  "problem-ex5 optimized (V=1)",
-  bfsShortestPath(1, [], 0),
-  [0],
-);
+assertEqual("problem-ex5 optimized (V=1)", bfsShortestPath(1, [], 0), [0]);
 
 // ── B. 가이드 대표 예시: n=6 그래프 (시뮬레이션과 동일 입력) ─────────────
 const repN = 6;
@@ -168,7 +196,15 @@ assertEqual(
 // ── C. 자기 루프 엣지케이스 ────────────────────────────────────────────
 assertEqual(
   "self-loop 무시",
-  bfsShortestPath(3, [[0, 0], [0, 1], [1, 2]], 0),
+  bfsShortestPath(
+    3,
+    [
+      [0, 0],
+      [0, 1],
+      [1, 2],
+    ],
+    0,
+  ),
   [0, 1, 2],
 );
 
@@ -263,8 +299,16 @@ function bfsShortestPathBuggy(
   return dist;
 }
 
-const triangle: [number, number][] = [[0, 1], [0, 2], [1, 2]];
-assertEqual("triangle 정답(optimized)", bfsShortestPath(3, triangle, 0), [0, 1, 1]);
+const triangle: [number, number][] = [
+  [0, 1],
+  [0, 2],
+  [1, 2],
+];
+assertEqual(
+  "triangle 정답(optimized)",
+  bfsShortestPath(3, triangle, 0),
+  [0, 1, 1],
+);
 console.log(
   `triangle 버그 버전 결과 = ${JSON.stringify(bfsShortestPathBuggy(3, triangle, 0))} (정답 [0,1,1]과 비교)`,
 );
@@ -274,6 +318,15 @@ console.log("모든 검증 종료");
 // ── G. 점검 문제용 소예시 ────────────────────────────────────────────────
 assertEqual(
   "점검문제1: 삼각형+꼬리",
-  bfsShortestPath(4, [[0, 1], [1, 2], [2, 0], [2, 3]], 0),
+  bfsShortestPath(
+    4,
+    [
+      [0, 1],
+      [1, 2],
+      [2, 0],
+      [2, 3],
+    ],
+    0,
+  ),
   [0, 1, 1, 2],
 );

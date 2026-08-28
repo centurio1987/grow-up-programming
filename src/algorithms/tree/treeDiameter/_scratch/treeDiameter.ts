@@ -108,7 +108,9 @@ function treeDiameter(n: number, edges: Edge[]): number {
 // ── 검증 유틸 ────────────────────────────────────────────────────────
 function assertEq(label: string, actual: number, expected: number) {
   const ok = actual === expected;
-  console.log(`${ok ? "OK  " : "FAIL"} ${label}: actual=${actual} expected=${expected}`);
+  console.log(
+    `${ok ? "OK  " : "FAIL"} ${label}: actual=${actual} expected=${expected}`,
+  );
   if (!ok) process.exitCode = 1;
 }
 
@@ -146,7 +148,14 @@ assertEq(
   ]),
   8,
 );
-assertEq("n=3 가중치0", treeDiameter(3, [[0, 1, 0], [1, 2, 0]]), 0);
+assertEq(
+  "n=3 가중치0",
+  treeDiameter(3, [
+    [0, 1, 0],
+    [1, 2, 0],
+  ]),
+  0,
+);
 
 // ── 가이드 본문 시뮬레이션 예시 (별 모양, n=4) ─────────────────────────
 console.log("== 시뮬레이션 예시 (n=4 별모양) ==");

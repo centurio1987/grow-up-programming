@@ -19,7 +19,7 @@
 import { readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
-const ROOT = resolve(import.meta.dir, "../../..");
+const ROOT = resolve(import.meta.dir, "..");
 const TRACK = join(ROOT, "src/algorithms");
 
 export interface Entry {

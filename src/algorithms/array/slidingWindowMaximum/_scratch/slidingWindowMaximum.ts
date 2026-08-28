@@ -60,8 +60,12 @@ function slidingWindowMaximum(nums: number[], k: number): number[] {
 
 // ── 검증 ──
 function assertEqual(actual: number[], expected: number[], label: string) {
-  const ok = actual.length === expected.length && actual.every((v, idx) => v === expected[idx]);
-  console.log(`${ok ? "PASS" : "FAIL"} ${label} → actual=${JSON.stringify(actual)} expected=${JSON.stringify(expected)}`);
+  const ok =
+    actual.length === expected.length &&
+    actual.every((v, idx) => v === expected[idx]);
+  console.log(
+    `${ok ? "PASS" : "FAIL"} ${label} → actual=${JSON.stringify(actual)} expected=${JSON.stringify(expected)}`,
+  );
   if (!ok) process.exitCode = 1;
 }
 
@@ -70,8 +74,16 @@ const k = 3;
 
 console.log("=== 대표 예시 nums=[1,3,-1,-3,5,3,6,7], k=3 ===");
 assertEqual(slidingWindowMaximumNaive(sample, k), [3, 3, 5, 5, 6, 7], "naive");
-assertEqual(slidingWindowMaximumShiftDeque(sample, k), [3, 3, 5, 5, 6, 7], "shiftDeque");
-assertEqual(slidingWindowMaximum(sample, k), [3, 3, 5, 5, 6, 7], "pointerDeque(final)");
+assertEqual(
+  slidingWindowMaximumShiftDeque(sample, k),
+  [3, 3, 5, 5, 6, 7],
+  "shiftDeque",
+);
+assertEqual(
+  slidingWindowMaximum(sample, k),
+  [3, 3, 5, 5, 6, 7],
+  "pointerDeque(final)",
+);
 
 console.log("\n=== 엣지케이스 ===");
 assertEqual(slidingWindowMaximum([3, 1, 5, 2], 1), [3, 1, 5, 2], "k=1");
@@ -101,7 +113,10 @@ console.log("\n=== 무작위 교차검증 (naive vs final, 200회) ===");
   let allOk = true;
   for (let t = 0; t < 200; t++) {
     const n = 1 + Math.floor(Math.random() * 30);
-    const nums = Array.from({ length: n }, () => Math.floor(Math.random() * 21) - 10);
+    const nums = Array.from(
+      { length: n },
+      () => Math.floor(Math.random() * 21) - 10,
+    );
     const kk = 1 + Math.floor(Math.random() * n);
     const a = slidingWindowMaximumNaive(nums, kk);
     const b = slidingWindowMaximum(nums, kk);
@@ -111,13 +126,21 @@ console.log("\n=== 무작위 교차검증 (naive vs final, 200회) ===");
     if (!okAB || !okAC) {
       allOk = false;
       console.log(`FAIL random n=${n} k=${kk} nums=${JSON.stringify(nums)}`);
-      console.log(`  naive=${JSON.stringify(a)} final=${JSON.stringify(b)} shift=${JSON.stringify(c)}`);
+      console.log(
+        `  naive=${JSON.stringify(a)} final=${JSON.stringify(b)} shift=${JSON.stringify(c)}`,
+      );
     }
   }
-  console.log(allOk ? "PASS random cross-check x200" : "FAIL random cross-check (see above)");
+  console.log(
+    allOk
+      ? "PASS random cross-check x200"
+      : "FAIL random cross-check (see above)",
+  );
 }
 
-console.log("\n=== 성능 비교: shift() 기반 vs 포인터 기반 (단조 감소 입력, 후단 청소가 거의 없어 덱이 계속 큼) ===");
+console.log(
+  "\n=== 성능 비교: shift() 기반 vs 포인터 기반 (단조 감소 입력, 후단 청소가 거의 없어 덱이 계속 큼) ===",
+);
 {
   const n = 200_000;
   const kBig = 100_000;

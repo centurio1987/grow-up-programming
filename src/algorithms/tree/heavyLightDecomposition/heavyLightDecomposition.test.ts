@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { HeavyLightDecomposition } from "./heavyLightDecomposition";
 
 describe("HeavyLightDecomposition", () => {
@@ -31,7 +31,7 @@ describe("HeavyLightDecomposition", () => {
           [2, 5],
         ],
         0,
-        [1, 2, 3, 4, 5, 6]
+        [1, 2, 3, 4, 5, 6],
       );
       expect(hld.queryPath(3, 4)).toBe(4 + 2 + 5); // 3-1-4
       expect(hld.queryPath(3, 5)).toBe(4 + 2 + 1 + 3 + 6); // 3-1-0-2-5
@@ -46,7 +46,7 @@ describe("HeavyLightDecomposition", () => {
           [1, 2],
         ],
         0,
-        [1, 2, 3]
+        [1, 2, 3],
       );
       expect(hld.queryPath(0, 2)).toBe(6);
       hld.update(1, 10);
@@ -61,7 +61,7 @@ describe("HeavyLightDecomposition", () => {
           [1, 2],
         ],
         0,
-        [5, 10, 15]
+        [5, 10, 15],
       );
       expect(hld.queryPath(1, 1)).toBe(10);
     });
@@ -89,7 +89,7 @@ describe("HeavyLightDecomposition", () => {
           [0, 4],
         ],
         0,
-        [10, 1, 2, 3, 4]
+        [10, 1, 2, 3, 4],
       );
       expect(hld.queryPath(1, 2)).toBe(1 + 10 + 2);
       expect(hld.queryPath(3, 4)).toBe(3 + 10 + 4);
@@ -103,7 +103,7 @@ describe("HeavyLightDecomposition", () => {
           [1, 2],
         ],
         0,
-        [-1, -2, -3]
+        [-1, -2, -3],
       );
       expect(hld.queryPath(0, 2)).toBe(-6);
     });

@@ -292,10 +292,17 @@ if (import.meta.main) {
   const argv = process.argv.slice(2);
   // `--require` 는 증명 블록이 **하나도 없는 편**을 위반으로 본다. 편별 완료 기준이 쓴다.
   const require1 = argv.includes("--require");
-  const files = argv.filter((f) => f.endsWith(".md"));
+  // `--all` 의 대상 집합은 `guide-v2-targets.ts` 하나가 정한다(글롭을 여기 적지 않는다).
+  const files = argv.includes("--all")
+    ? await (await import("./guide-v2-targets.ts")).v2Guides()
+    : argv.filter((f) => f.endsWith(".md"));
   if (files.length === 0) {
+    if (argv.includes("--all")) {
+      console.log("v2 가이드가 아직 없다 — 잰 것이 없다.");
+      process.exit(0);
+    }
     console.error(
-      "대상이 없다. 사용: bun run tools/check-proof.ts [--require] <guide.md>",
+      "대상이 없다. 사용: bun run tools/check-proof.ts [--require] [--all] <guide.md>",
     );
     process.exit(2);
   }

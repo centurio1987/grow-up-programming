@@ -8,8 +8,8 @@ function subarraySumEqualsK(nums: number[], k: number): number {
 
   for (const x of nums) {
     prefix += x;
-    count += map.get(prefix - k) ?? 0;              // 조회
-    map.set(prefix, (map.get(prefix) ?? 0) + 1);     // 기록
+    count += map.get(prefix - k) ?? 0; // 조회
+    map.set(prefix, (map.get(prefix) ?? 0) + 1); // 기록
   }
 
   return count;
@@ -68,12 +68,24 @@ const cases: [number[], number, number][] = [
 for (const [nums, k, expected] of cases) {
   const got = subarraySumEqualsK(nums, k);
   const gotNaive = subarraySumEqualsKNaive(nums, k);
-  console.log(got === expected && gotNaive === expected ? "OK" : "MISMATCH", JSON.stringify(nums), "k=", k, "expected=", expected, "got=", got, "naive=", gotNaive);
+  console.log(
+    got === expected && gotNaive === expected ? "OK" : "MISMATCH",
+    JSON.stringify(nums),
+    "k=",
+    k,
+    "expected=",
+    expected,
+    "got=",
+    got,
+    "naive=",
+    gotNaive,
+  );
 }
 
 console.log("\n=== 출발점 naive 손 검산: nums=[1,2,3], k=3 ===");
 {
-  const nums = [1, 2, 3], k = 3;
+  const nums = [1, 2, 3],
+    k = 3;
   for (let i = 0; i < nums.length; i++) {
     let s = 0;
     const parts: string[] = [];
@@ -101,21 +113,38 @@ console.log("\n=== 3.1 절 prefix 예시: nums=[1,2,3] ===");
   const P = [0];
   for (const x of nums) P.push(P[P.length - 1]! + x);
   console.log("P =", P);
-  console.log("구간[0,1] 합 =", nums[0]! + nums[1]!, " P[2]-P[0] =", P[2]! - P[0]!);
-  console.log("구간[1,2] 합 =", nums[1]! + nums[2]!, " P[3]-P[1] =", P[3]! - P[1]!);
+  console.log(
+    "구간[0,1] 합 =",
+    nums[0]! + nums[1]!,
+    " P[2]-P[0] =",
+    P[2]! - P[0]!,
+  );
+  console.log(
+    "구간[1,2] 합 =",
+    nums[1]! + nums[2]!,
+    " P[3]-P[1] =",
+    P[3]! - P[1]!,
+  );
 }
 
 console.log("\n=== 확인 질문: P[2]-P[0]는 구간 [0,1] 합인가 ===");
 {
   const nums = [1, 2, 3];
   const P = [0, 1, 3, 6];
-  console.log("P[2]-P[0] =", P[2] - P[0], " nums[0]+nums[1] =", nums[0]! + nums[1]!);
+  console.log(
+    "P[2]-P[0] =",
+    P[2] - P[0],
+    " nums[0]+nums[1] =",
+    nums[0]! + nums[1]!,
+  );
 }
 
 console.log("\n=== 헷갈리기 쉬운 포인트 1: 순서 스왑, nums=[0,0,0], k=0 ===");
 console.log("orderSwapped =", orderSwapped([0, 0, 0], 0), "(정답 6)");
 
-console.log("\n=== 헷갈리기 쉬운 포인트 2: map[0]=1 누락, nums=[1,2,3], k=3 ===");
+console.log(
+  "\n=== 헷갈리기 쉬운 포인트 2: map[0]=1 누락, nums=[1,2,3], k=3 ===",
+);
 console.log("noInit =", noInit([1, 2, 3], 3), "(정답 2)");
 
 console.log("\n=== 자기점검 1: nums=[3,4,7,2,-3,1,4,2], k=7 ===");
@@ -135,16 +164,20 @@ console.log("\n=== 자기점검 1: nums=[3,4,7,2,-3,1,4,2], k=7 ===");
 
 console.log("\n=== 자기점검 2: 순서 스왑, nums=[0,0,0], k=0, 스텝별 count ===");
 {
-  const nums = [0, 0, 0], k = 0;
+  const nums = [0, 0, 0],
+    k = 0;
   const map = new Map<number, number>();
   map.set(0, 1);
-  let prefix = 0, count = 0;
+  let prefix = 0,
+    count = 0;
   for (let idx = 0; idx < nums.length; idx++) {
     const x = nums[idx]!;
     prefix += x;
     map.set(prefix, (map.get(prefix) ?? 0) + 1);
     const inc = map.get(prefix - k) ?? 0;
     count += inc;
-    console.log(`idx=${idx} prefix=${prefix} 기록후map=${JSON.stringify([...map.entries()])} 조회증가=${inc} count=${count}`);
+    console.log(
+      `idx=${idx} prefix=${prefix} 기록후map=${JSON.stringify([...map.entries()])} 조회증가=${inc} count=${count}`,
+    );
   }
 }

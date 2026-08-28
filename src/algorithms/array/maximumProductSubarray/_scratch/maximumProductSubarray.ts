@@ -93,7 +93,9 @@ console.log("\n=== 원형(단일 변수) 실패 시연: A=[3,-2,-5] ===");
   const broken = maximumProductSubarrayBrokenSingleVar(A);
   const naive = maximumProductSubarrayNaive(A);
   const final = maximumProductSubarray(A);
-  console.log(`broken(single-var)=${broken}, naive(정답)=${naive}, final=${final}`);
+  console.log(
+    `broken(single-var)=${broken}, naive(정답)=${naive}, final=${final}`,
+  );
 }
 
 console.log("\n=== 시뮬레이션 트레이스: A=[2,3,-2,4] ===");
@@ -111,7 +113,9 @@ for (let t = 0; t < 100; t++) {
   const final = maximumProductSubarray(A);
   if (naive !== final) {
     allOk = false;
-    console.log(`MISMATCH A=${JSON.stringify(A)} naive=${naive} final=${final}`);
+    console.log(
+      `MISMATCH A=${JSON.stringify(A)} naive=${naive} final=${final}`,
+    );
   }
 }
 console.log(allOk ? "무작위 100회 모두 일치" : "무작위 검증 실패 있음");
@@ -119,13 +123,17 @@ console.log(allOk ? "무작위 100회 모두 일치" : "무작위 검증 실패 
 console.log("\n=== 순서 버그(prevMax 미저장) 시연: A=[-7,2,-1,-8] ===");
 {
   function buggy(A: number[]): number {
-    let curMax = A[0]!, curMin = A[0]!, best = A[0]!;
+    let curMax = A[0]!,
+      curMin = A[0]!,
+      best = A[0]!;
     for (let i = 1; i < A.length; i++) {
       const x = A[i]!;
       curMax = Math.max(x, curMax * x, curMin * x); // prevMax 저장 없이 curMax를 바로 갱신
       curMin = Math.min(x, curMax * x, curMin * x); // 버그: 이미 갱신된 curMax를 사용
       best = Math.max(best, curMax);
-      console.log(`i=${i}: x=${x} -> curMax=${curMax}, curMin=${curMin}, best=${best}`);
+      console.log(
+        `i=${i}: x=${x} -> curMax=${curMax}, curMin=${curMin}, best=${best}`,
+      );
     }
     return best;
   }
@@ -143,9 +151,10 @@ console.log("\n=== best=0 초기화 오류 시연: A=[-3] ===");
   // best를 0으로 잘못 초기화하면 어떻게 되는지 (루프가 안 도는 n=1 케이스로 바로 노출됨)
   const A = [-3];
   const wrongBest = 0; // 잘못된 초기값
-  console.log(`A=[-3], 정답=${maximumProductSubarray(A)}, best=0으로 초기화 시 (루프 미실행) 반환값=${wrongBest}`);
+  console.log(
+    `A=[-3], 정답=${maximumProductSubarray(A)}, best=0으로 초기화 시 (루프 미실행) 반환값=${wrongBest}`,
+  );
 }
-
 
 console.log("\n=== 정답 트레이스: A=[-7,2,-1,-8] (버그 대조용) ===");
 maximumProductSubarrayTraced([-7, 2, -1, -8]);

@@ -15,7 +15,10 @@ function digitDpNaive(N: number, K: number): number {
   return count;
 }
 
-function digitDpBasicInstrumented(N: number, K: number): { result: number; calls: number } {
+function digitDpBasicInstrumented(
+  N: number,
+  K: number,
+): { result: number; calls: number } {
   const digits = String(N).split("").map(Number);
   const L = digits.length;
   let calls = 0;
@@ -38,7 +41,10 @@ function digitDpBasicInstrumented(N: number, K: number): { result: number; calls
   return { result: K === 0 ? total - 1 : total, calls };
 }
 
-function digitDpMemoInstrumented(N: number, K: number): { result: number; calls: number } {
+function digitDpMemoInstrumented(
+  N: number,
+  K: number,
+): { result: number; calls: number } {
   const digits = String(N).split("").map(Number);
   const L = digits.length;
   const memo: number[][][] = Array.from({ length: L }, () =>
@@ -95,7 +101,10 @@ console.log("digitDp(20,2) basic =", digitDpBasicInstrumented(20, 2));
 console.log("digitDp(20,2) memo =", digitDpMemoInstrumented(20, 2));
 
 // --- 큰 N: 10^15 은 naive/basic로 못 돌리므로 memo만 ---
-console.log("digitDp(1e15,1) memo =", digitDpMemoInstrumented(1_000_000_000_000_000, 1));
+console.log(
+  "digitDp(1e15,1) memo =",
+  digitDpMemoInstrumented(1_000_000_000_000_000, 1),
+);
 
 // --- 무작위 교차검증 (naive vs memo), 작은 N만 ---
 function randInt(max: number) {
@@ -138,7 +147,11 @@ function digitDpMemoUniqueStates(N: number, K: number) {
     return result;
   }
   const total = f(0, 0, true);
-  return { result: K === 0 ? total - 1 : total, filled, bound: L * (K + 1) * 2 };
+  return {
+    result: K === 0 ? total - 1 : total,
+    filled,
+    bound: L * (K + 1) * 2,
+  };
 }
 console.log("N=999,K=15 unique states:", digitDpMemoUniqueStates(999, 15));
 console.log("N=9999,K=20 unique states:", digitDpMemoUniqueStates(9999, 20));

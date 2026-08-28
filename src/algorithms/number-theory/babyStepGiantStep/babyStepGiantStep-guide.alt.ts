@@ -13,7 +13,7 @@
  * 두고 `b = a^k mod p` 를 생성식으로 만든다. rho 는 위수가 소수여야 역원 계산이 항상
  * 성립하므로 `a = 3` 을 골랐다 — 그 제약 자체가 본문이 적는 「내주는 것」이다.
  */
-import type { BenchCase } from "../../tools/bench-alt.ts";
+import type { BenchCase } from "../../../../tools/bench-alt.ts";
 
 /** 고정 입력 — 한 번 정하면 수치가 마음에 안 든다는 이유로 바꾸지 않는다. */
 export const INPUT = { p: 10007n, a: 3n, k: 4321n, order: 5003n };

@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { prefixSumRangeQuery } from "./prefixSumRangeQuery";
 
 describe("prefixSumRangeQuery", () => {
@@ -67,7 +67,10 @@ describe("prefixSumRangeQuery", () => {
       const N = 100_000;
       const Q = 100_000;
       const A = new Array<number>(N).fill(1);
-      const queries: Array<[number, number]> = Array.from({ length: Q }, (_, i) => [0, (i % N)]);
+      const queries: Array<[number, number]> = Array.from(
+        { length: Q },
+        (_, i) => [0, i % N],
+      );
 
       const start = performance.now();
       const result = prefixSumRangeQuery(A, queries);

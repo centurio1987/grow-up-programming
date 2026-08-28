@@ -56,7 +56,7 @@ import type { solution as SolutionType } from "./genomicRangeQuery";
 export const solution: typeof SolutionType = (
   S: string,
   P: number[],
-  Q: number[]
+  Q: number[],
 ): number[] => {
   const N = S.length;
   const M = P.length;

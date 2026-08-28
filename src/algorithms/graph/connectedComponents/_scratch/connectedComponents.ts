@@ -5,7 +5,11 @@
 // 1) 출발점: 가장 순진한 방법 — 모든 쌍을 개별 BFS로 판별
 // ---------------------------------------------------------------------------
 
-function pathExistsNaive(adj: number[][], start: number, target: number): boolean {
+function pathExistsNaive(
+  adj: number[][],
+  start: number,
+  target: number,
+): boolean {
   if (start === target) return true;
   const n = adj.length;
   const visited = new Array<boolean>(n).fill(false);
@@ -24,7 +28,10 @@ function pathExistsNaive(adj: number[][], start: number, target: number): boolea
   return false;
 }
 
-function connectedComponentsNaive(n: number, edges: [number, number][]): number[][] {
+function connectedComponentsNaive(
+  n: number,
+  edges: [number, number][],
+): number[][] {
   const adj: number[][] = Array.from({ length: n }, () => []);
   for (const [u, v] of edges) {
     adj[u].push(v);
@@ -53,7 +60,10 @@ function connectedComponentsNaive(n: number, edges: [number, number][]): number[
 // 2) 아이디어를 코드로 옮기기 — 기본 구현 (array-of-arrays 인접 리스트 + head 포인터 큐)
 // ---------------------------------------------------------------------------
 
-function connectedComponentsBasic(n: number, edges: [number, number][]): number[][] {
+function connectedComponentsBasic(
+  n: number,
+  edges: [number, number][],
+): number[][] {
   const adj: number[][] = Array.from({ length: n }, () => []);
   for (const [u, v] of edges) {
     adj[u].push(v);
@@ -169,9 +179,33 @@ console.log("basic:", JSON.stringify(connectedComponentsBasic(repN, repEdges)));
 console.log("optim:", JSON.stringify(connectedComponents(repN, repEdges)));
 
 console.log("\n=== problem.md 예시 교차검증 ===");
-const cases: Array<{ n: number; edges: [number, number][]; expect: number[][] }> = [
-  { n: 5, edges: [[0, 1], [1, 2], [3, 4]], expect: [[0, 1, 2], [3, 4]] },
-  { n: 4, edges: [[0, 1], [1, 2], [2, 3], [3, 0]], expect: [[0, 1, 2, 3]] },
+const cases: Array<{
+  n: number;
+  edges: [number, number][];
+  expect: number[][];
+}> = [
+  {
+    n: 5,
+    edges: [
+      [0, 1],
+      [1, 2],
+      [3, 4],
+    ],
+    expect: [
+      [0, 1, 2],
+      [3, 4],
+    ],
+  },
+  {
+    n: 4,
+    edges: [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [3, 0],
+    ],
+    expect: [[0, 1, 2, 3]],
+  },
   { n: 4, edges: [], expect: [[0], [1], [2], [3]] },
   { n: 3, edges: [[1, 1]], expect: [[0], [1], [2]] },
   { n: 1, edges: [], expect: [[0]] },
@@ -182,7 +216,9 @@ for (const c of cases) {
   const gotNaive = connectedComponentsNaive(c.n, c.edges);
   console.log(
     `n=${c.n} edges=${JSON.stringify(c.edges)} -> ${JSON.stringify(got)}`,
-    eq(got, c.expect) && eq(gotBasic, c.expect) && eq(gotNaive, c.expect) ? "OK" : "MISMATCH",
+    eq(got, c.expect) && eq(gotBasic, c.expect) && eq(gotNaive, c.expect)
+      ? "OK"
+      : "MISMATCH",
   );
 }
 
@@ -211,7 +247,9 @@ for (let trial = 0; trial < 200; trial++) {
 }
 console.log(allMatch ? "무작위 200회 전부 일치 (OK)" : "불일치 발견");
 
-console.log("\n=== 큐 구현 비용: shift() 누적 이동 칸수 (별 그래프, 이론값과 대조) ===");
+console.log(
+  "\n=== 큐 구현 비용: shift() 누적 이동 칸수 (별 그래프, 이론값과 대조) ===",
+);
 function measureShiftCost(n: number, edges: [number, number][]): number {
   const adj: number[][] = Array.from({ length: n }, () => []);
   for (const [u, v] of edges) {
@@ -250,7 +288,9 @@ for (const n of [5, 10, 100, 1000]) {
   );
 }
 
-console.log("\n=== array-of-arrays vs CSR 실측 (n=e=100000, 무작위 그래프, warmup 1회 + 5회 평균) ===");
+console.log(
+  "\n=== array-of-arrays vs CSR 실측 (n=e=100000, 무작위 그래프, warmup 1회 + 5회 평균) ===",
+);
 function bigRandomGraph(n: number, e: number): [number, number][] {
   const edges: [number, number][] = [];
   for (let i = 0; i < e; i++) {
@@ -278,7 +318,9 @@ function bigRandomGraph(n: number, e: number): [number, number][] {
     basicTotal += t1 - t0;
     optimTotal += t2 - t1;
     allEq = allEq && eq(rBasic, rOptim);
-    console.log(`trial ${trial}: basic=${(t1 - t0).toFixed(1)}ms  optim=${(t2 - t1).toFixed(1)}ms`);
+    console.log(
+      `trial ${trial}: basic=${(t1 - t0).toFixed(1)}ms  optim=${(t2 - t1).toFixed(1)}ms`,
+    );
   }
   console.log(
     `5회 평균: basic(array-of-arrays)=${(basicTotal / 5).toFixed(1)}ms  optim(CSR)=${(optimTotal / 5).toFixed(1)}ms  배수=${(basicTotal / optimTotal).toFixed(2)}x  전체일치=${allEq}`,

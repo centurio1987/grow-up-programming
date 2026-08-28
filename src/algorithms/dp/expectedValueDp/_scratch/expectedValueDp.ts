@@ -19,7 +19,9 @@ function expectedValueDpBruteForce(N: number, K: number): number {
 // --- 아이디어를 코드로 옮기기: 기본 2D DP ---
 function expectedValueDpBasic(N: number, K: number): number {
   const maxSum = 6 * N;
-  const p: number[][] = Array.from({ length: N + 1 }, () => new Array(maxSum + 1).fill(0));
+  const p: number[][] = Array.from({ length: N + 1 }, () =>
+    new Array(maxSum + 1).fill(0),
+  );
   p[0][0] = 1;
 
   for (let i = 1; i <= N; i++) {
@@ -86,7 +88,9 @@ function approxEqual(a: number, b: number, eps = 1e-9): boolean {
 let failures = 0;
 function check(label: string, actual: number, expected: number, eps = 1e-6) {
   const ok = approxEqual(actual, expected, eps);
-  console.log(`${ok ? "OK  " : "FAIL"} ${label}: actual=${actual} expected≈${expected}`);
+  console.log(
+    `${ok ? "OK  " : "FAIL"} ${label}: actual=${actual} expected≈${expected}`,
+  );
   if (!ok) failures++;
 }
 
@@ -105,16 +109,24 @@ check("optimized(2,5) 점검문제1", expectedValueDp(2, 5), 30 / 36);
 console.log("\n=== 버그 재현 (본문 서술과 일치해야 함) ===");
 const buggy11 = expectedValueDpBuggyInPlace(1, 1);
 console.log(`buggy(1,1) = ${buggy11} (본문 서술: 1.521626)`);
-if (!approxEqual(buggy11, 1.521626, 1e-5)) { console.error("FAIL: 버그 수치 불일치"); failures++; }
+if (!approxEqual(buggy11, 1.521626, 1e-5)) {
+  console.error("FAIL: 버그 수치 불일치");
+  failures++;
+}
 
 const buggy210 = expectedValueDpBuggyInPlace(2, 10);
 console.log(`buggy(2,10) = ${buggy210} (본문 서술: 0.873512)`);
-if (!approxEqual(buggy210, 0.873512, 1e-5)) { console.error("FAIL: 버그 수치 불일치"); failures++; }
+if (!approxEqual(buggy210, 0.873512, 1e-5)) {
+  console.error("FAIL: 버그 수치 불일치");
+  failures++;
+}
 
 console.log("\n=== 대표 + 엣지 ===");
 check("N=1000,K=0 (≈1.0)", expectedValueDp(1000, 0), 1.0, 1e-6);
 check("N=1000,K=1 (≈1.0)", expectedValueDp(1000, 1), 1.0, 1e-6);
-console.log(`N=1000,K=6000 (부동소수점 하한 아래로 0) = ${expectedValueDp(1000, 6000)}`);
+console.log(
+  `N=1000,K=6000 (부동소수점 하한 아래로 0) = ${expectedValueDp(1000, 6000)}`,
+);
 
 console.log("\n=== 무작위 교차검증 (brute vs optimized, N<=5) ===");
 for (let t = 0; t < 30; t++) {
@@ -136,7 +148,9 @@ for (let N = 1; N <= 8; N++) {
     const a = expectedValueDpBasic(N, K);
     const b = expectedValueDp(N, K);
     if (!approxEqual(a, b, 1e-9)) {
-      console.error(`MISMATCH basic/optimized N=${N} K=${K} basic=${a} optimized=${b}`);
+      console.error(
+        `MISMATCH basic/optimized N=${N} K=${K} basic=${a} optimized=${b}`,
+      );
       failures++;
     }
   }

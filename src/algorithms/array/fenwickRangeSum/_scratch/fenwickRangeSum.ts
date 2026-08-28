@@ -164,7 +164,9 @@ function assertEq(name: string, actual: unknown, expected: unknown) {
   for (let i = 0; i < n; i++) update(i + 1, A[i]!);
   const correct = prefix(3 + 1) - prefix(1); // sum(1,3) = 15
   const wrong = prefix(3) - prefix(1); // 실수: r을 그대로 씀
-  console.log(`오프셋 함정: 올바름 prefix(4)-prefix(1)=${correct}, 틀림 prefix(3)-prefix(1)=${wrong}`);
+  console.log(
+    `오프셋 함정: 올바름 prefix(4)-prefix(1)=${correct}, 틀림 prefix(3)-prefix(1)=${wrong}`,
+  );
 }
 
 // --- 헷갈리는 포인트 검증: delta 계산 생략(누적 오류) ---
@@ -187,7 +189,9 @@ function assertEq(name: string, actual: unknown, expected: unknown) {
   const wrongDelta = 10; // v를 그대로 더하는 실수 (delta 계산 생략)
   update(1 + 1, wrongDelta); // BIT 인덱스 i+1=2에 잘못 반영
   const wrongTotal = prefix(4) - prefix(0);
-  console.log(`delta 생략 함정: before=${before}, v(10)를 그대로 더하면 total=${wrongTotal} (정답은 A[1]:3→10 반영된 23)`);
+  console.log(
+    `delta 생략 함정: before=${before}, v(10)를 그대로 더하면 total=${wrongTotal} (정답은 A[1]:3→10 반영된 23)`,
+  );
 }
 
 // --- 무작위 교차 검증: naive vs optimized ---
@@ -195,7 +199,10 @@ function assertEq(name: string, actual: unknown, expected: unknown) {
   let fails = 0;
   for (let trial = 0; trial < 200; trial++) {
     const n = 1 + Math.floor(Math.random() * 12);
-    const A = Array.from({ length: n }, () => Math.floor(Math.random() * 21) - 10);
+    const A = Array.from(
+      { length: n },
+      () => Math.floor(Math.random() * 21) - 10,
+    );
     const q = Math.floor(Math.random() * 12);
     const ops: FenwickOp[] = [];
     for (let k = 0; k < q; k++) {
@@ -212,7 +219,10 @@ function assertEq(name: string, actual: unknown, expected: unknown) {
     const expected = fenwickRangeSumNaive(A, ops);
     const gotBasic = fenwickRangeSumBasic(A, ops);
     const gotOpt = fenwickRangeSumOptimized(A, ops);
-    if (JSON.stringify(expected) !== JSON.stringify(gotBasic) || JSON.stringify(expected) !== JSON.stringify(gotOpt)) {
+    if (
+      JSON.stringify(expected) !== JSON.stringify(gotBasic) ||
+      JSON.stringify(expected) !== JSON.stringify(gotOpt)
+    ) {
       fails++;
       console.log("MISMATCH", { A, ops, expected, gotBasic, gotOpt });
     }
@@ -240,7 +250,10 @@ function assertEq(name: string, actual: unknown, expected: unknown) {
       totalTouches++;
     }
   }
-  console.log("개별 update N회 방식 — 인덱스별 쓰기 횟수:", writeCount.slice(1));
+  console.log(
+    "개별 update N회 방식 — 인덱스별 쓰기 횟수:",
+    writeCount.slice(1),
+  );
   console.log("총 쓰기 횟수(touches):", totalTouches);
 
   // 방식 2: 2-pass O(n) 빌드의 연산 수
@@ -251,5 +264,7 @@ function assertEq(name: string, actual: unknown, expected: unknown) {
     const j = i + (i & -i);
     if (j <= n) pushWrites++;
   }
-  console.log(`2-pass 빌드 — self=${selfWrites}, push=${pushWrites}, 합계=${selfWrites + pushWrites}`);
+  console.log(
+    `2-pass 빌드 — self=${selfWrites}, push=${pushWrites}, 합계=${selfWrites + pushWrites}`,
+  );
 }

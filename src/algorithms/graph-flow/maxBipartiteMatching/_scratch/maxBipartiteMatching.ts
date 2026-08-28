@@ -240,11 +240,51 @@ function maxBipartiteMatchingTraced(
 
 console.log("=== problem.md 예시 교차검증 ===");
 const cases: Array<[number, number, [number, number][], number]> = [
-  [3, 3, [[0, 0], [0, 1], [1, 0], [1, 2], [2, 2]], 3],
-  [2, 2, [[0, 0], [1, 0]], 1],
+  [
+    3,
+    3,
+    [
+      [0, 0],
+      [0, 1],
+      [1, 0],
+      [1, 2],
+      [2, 2],
+    ],
+    3,
+  ],
+  [
+    2,
+    2,
+    [
+      [0, 0],
+      [1, 0],
+    ],
+    1,
+  ],
   [3, 3, [], 0],
-  [4, 1, [[0, 0], [1, 0], [2, 0], [3, 0]], 1],
-  [3, 3, [[0, 0], [0, 1], [1, 0], [2, 1], [2, 2]], 3],
+  [
+    4,
+    1,
+    [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+      [3, 0],
+    ],
+    1,
+  ],
+  [
+    3,
+    3,
+    [
+      [0, 0],
+      [0, 1],
+      [1, 0],
+      [2, 1],
+      [2, 2],
+    ],
+    3,
+  ],
 ];
 for (const [L, R, E, expected] of cases) {
   const brute = E.length <= 20 ? maxBipartiteMatchingBrute(L, R, E) : null;
@@ -252,7 +292,11 @@ for (const [L, R, E, expected] of cases) {
   const opt = maxBipartiteMatching(L, R, E);
   console.log(
     `L=${L} R=${R} E=${JSON.stringify(E)} → expected=${expected} brute=${brute} basic=${basic} opt=${opt} ${
-      basic === expected && opt === expected && (brute === null || brute === expected) ? "OK" : "MISMATCH!!"
+      basic === expected &&
+      opt === expected &&
+      (brute === null || brute === expected)
+        ? "OK"
+        : "MISMATCH!!"
     }`,
   );
 }
@@ -262,45 +306,78 @@ console.log("L=1,R=1,E=[] →", maxBipartiteMatching(1, 1, []));
 console.log("L=1,R=1,E=[[0,0]] →", maxBipartiteMatching(1, 1, [[0, 0]]));
 console.log(
   "완전 이분(L=3,R=3, 모든 간선) →",
-  maxBipartiteMatching(
-    3,
-    3,
-    [
-      [0, 0], [0, 1], [0, 2],
-      [1, 0], [1, 1], [1, 2],
-      [2, 0], [2, 1], [2, 2],
-    ],
-  ),
+  maxBipartiteMatching(3, 3, [
+    [0, 0],
+    [0, 1],
+    [0, 2],
+    [1, 0],
+    [1, 1],
+    [1, 2],
+    [2, 0],
+    [2, 1],
+    [2, 2],
+  ]),
 );
 console.log(
   "단방향 연결(L=1,R=3) →",
-  maxBipartiteMatching(1, 3, [[0, 0], [0, 1], [0, 2]]),
+  maxBipartiteMatching(1, 3, [
+    [0, 0],
+    [0, 1],
+    [0, 2],
+  ]),
 );
 console.log(
   "중복 간선(L=2,R=2) →",
-  maxBipartiteMatching(2, 2, [[0, 0], [0, 0], [0, 0], [1, 0], [1, 1]]),
+  maxBipartiteMatching(2, 2, [
+    [0, 0],
+    [0, 0],
+    [0, 0],
+    [1, 0],
+    [1, 1],
+  ]),
 );
 
 console.log("\n=== 3x3 대표 예시: 기본 구현(단순 헝가리안 DFS) 트레이스 ===");
-const basicTrace = maxBipartiteMatchingBasicTraced(
-  3,
-  3,
-  [[0, 0], [0, 1], [1, 0], [1, 2], [2, 2]],
-);
+const basicTrace = maxBipartiteMatchingBasicTraced(3, 3, [
+  [0, 0],
+  [0, 1],
+  [1, 0],
+  [1, 2],
+  [2, 2],
+]);
 for (const line of basicTrace.log) console.log(line);
-console.log("최종 matchR:", basicTrace.matchR, "matching:", basicTrace.matching);
+console.log(
+  "최종 matchR:",
+  basicTrace.matchR,
+  "matching:",
+  basicTrace.matching,
+);
 
 console.log("\n=== 3x3 대표 예시: Hopcroft-Karp 라운드 트레이스 ===");
-const hkTrace = maxBipartiteMatchingTraced(
-  3,
-  3,
-  [[0, 0], [0, 1], [1, 0], [1, 2], [2, 2]],
-);
+const hkTrace = maxBipartiteMatchingTraced(3, 3, [
+  [0, 0],
+  [0, 1],
+  [1, 0],
+  [1, 2],
+  [2, 2],
+]);
 for (const line of hkTrace.rounds) console.log(line);
-console.log("최종 matchL:", hkTrace.matchL, "matchR:", hkTrace.matchR, "matching:", hkTrace.matching);
+console.log(
+  "최종 matchL:",
+  hkTrace.matchL,
+  "matchR:",
+  hkTrace.matchR,
+  "matching:",
+  hkTrace.matching,
+);
 
 console.log("\n=== 무작위 교차검증 (basic vs opt vs brute-소규모) ===");
-function randomEdges(L: number, R: number, p: number, seed: number): [number, number][] {
+function randomEdges(
+  L: number,
+  R: number,
+  p: number,
+  seed: number,
+): [number, number][] {
   let s = seed;
   const rand = () => {
     s = (s * 1103515245 + 12345) & 0x7fffffff;
@@ -322,7 +399,8 @@ for (let trial = 0; trial < 200; trial++) {
   const edges = randomEdges(L, R, p, trial * 97 + 13);
   const basic = maxBipartiteMatchingBasic(L, R, edges);
   const opt = maxBipartiteMatching(L, R, edges);
-  const brute = edges.length <= 16 ? maxBipartiteMatchingBrute(L, R, edges) : null;
+  const brute =
+    edges.length <= 16 ? maxBipartiteMatchingBrute(L, R, edges) : null;
   if (basic !== opt || (brute !== null && brute !== opt)) {
     allOk = false;
     console.log(
@@ -353,7 +431,13 @@ function greedyNoReassign(
   }
   return matching;
 }
-const gEdges: [number, number][] = [[0, 0], [0, 1], [1, 0], [1, 2], [2, 2]];
+const gEdges: [number, number][] = [
+  [0, 0],
+  [0, 1],
+  [1, 0],
+  [1, 2],
+  [2, 2],
+];
 console.log("그리디(재배치 없음):", greedyNoReassign(3, 3, gEdges));
 console.log("증가 경로(기본 구현):", maxBipartiteMatchingBasic(3, 3, gEdges));
 
@@ -386,8 +470,14 @@ function maxBipartiteMatchingBuggyNoReset(
   }
   return matching;
 }
-console.log("정상(visited 매번 리셋):", maxBipartiteMatchingBasic(3, 3, gEdges));
-console.log("버그(visited 한 번만 생성):", maxBipartiteMatchingBuggyNoReset(3, 3, gEdges));
+console.log(
+  "정상(visited 매번 리셋):",
+  maxBipartiteMatchingBasic(3, 3, gEdges),
+);
+console.log(
+  "버그(visited 한 번만 생성):",
+  maxBipartiteMatchingBuggyNoReset(3, 3, gEdges),
+);
 
 console.log("\n=== 함정: BFS가 첫 미매칭 오른쪽 정점에서 즉시 멈추면? ===");
 function maxBipartiteMatchingBuggyEarlyExit(
@@ -405,7 +495,10 @@ function maxBipartiteMatchingBuggyEarlyExit(
   function bfs(): boolean {
     const queue: number[] = [];
     for (let u = 0; u < left; u++) {
-      if (matchL[u] === NIL) { dist[u] = 0; queue.push(u); } else dist[u] = Infinity;
+      if (matchL[u] === NIL) {
+        dist[u] = 0;
+        queue.push(u);
+      } else dist[u] = Infinity;
     }
     let qi = 0;
     while (qi < queue.length) {
@@ -426,7 +519,9 @@ function maxBipartiteMatchingBuggyEarlyExit(
     for (const v of adj[u]!) {
       const next = matchR[v]!;
       if (next === NIL || (dist[next] === dist[u]! + 1 && dfs(next))) {
-        matchL[u] = v; matchR[v] = u; return true;
+        matchL[u] = v;
+        matchR[v] = u;
+        return true;
       }
     }
     dist[u] = Infinity;
@@ -438,7 +533,13 @@ function maxBipartiteMatchingBuggyEarlyExit(
   }
   return matching;
 }
-let earlyExitMismatch: { L: number; R: number; edges: [number, number][]; correct: number; buggy: number } | null = null;
+let earlyExitMismatch: {
+  L: number;
+  R: number;
+  edges: [number, number][];
+  correct: number;
+  buggy: number;
+} | null = null;
 for (let trial = 0; trial < 500 && !earlyExitMismatch; trial++) {
   const L = 2 + (trial % 5);
   const R = 2 + ((trial * 7) % 5);
@@ -448,7 +549,10 @@ for (let trial = 0; trial < 500 && !earlyExitMismatch; trial++) {
   const buggy = maxBipartiteMatchingBuggyEarlyExit(L, R, edges);
   if (correct !== buggy) earlyExitMismatch = { L, R, edges, correct, buggy };
 }
-console.log(earlyExitMismatch ?? "500회 무작위 시도 안에서 불일치 사례를 찾지 못함(정확성엔 영향 없고 라운드 수만 늘어남 — 성능 함정)");
+console.log(
+  earlyExitMismatch ??
+    "500회 무작위 시도 안에서 불일치 사례를 찾지 못함(정확성엔 영향 없고 라운드 수만 늘어남 — 성능 함정)",
+);
 
 console.log("\n=== 함정: matching++ 를 dfs 내부에서 재귀마다 세면? ===");
 function maxBipartiteMatchingBuggyDoubleCount(
@@ -467,7 +571,10 @@ function maxBipartiteMatchingBuggyDoubleCount(
   function bfs(): boolean {
     const queue: number[] = [];
     for (let u = 0; u < left; u++) {
-      if (matchL[u] === NIL) { dist[u] = 0; queue.push(u); } else dist[u] = Infinity;
+      if (matchL[u] === NIL) {
+        dist[u] = 0;
+        queue.push(u);
+      } else dist[u] = Infinity;
     }
     let found = false;
     let qi = 0;
@@ -476,7 +583,10 @@ function maxBipartiteMatchingBuggyDoubleCount(
       for (const v of adj[u]!) {
         const next = matchR[v]!;
         if (next === NIL) found = true;
-        else if (dist[next] === Infinity) { dist[next] = dist[u]! + 1; queue.push(next); }
+        else if (dist[next] === Infinity) {
+          dist[next] = dist[u]! + 1;
+          queue.push(next);
+        }
       }
     }
     return found;
@@ -485,7 +595,8 @@ function maxBipartiteMatchingBuggyDoubleCount(
     for (const v of adj[u]!) {
       const next = matchR[v]!;
       if (next === NIL || (dist[next] === dist[u]! + 1 && dfs(next))) {
-        matchL[u] = v; matchR[v] = u;
+        matchL[u] = v;
+        matchR[v] = u;
         matching++; // 버그: 경로 위의 재배치까지 전부 새 매칭으로 센다
         return true;
       }
@@ -499,7 +610,10 @@ function maxBipartiteMatchingBuggyDoubleCount(
   return matching;
 }
 console.log("정상(최적화 코드):", maxBipartiteMatching(3, 3, gEdges));
-console.log("버그(dfs 내부에서 카운트):", maxBipartiteMatchingBuggyDoubleCount(3, 3, gEdges));
+console.log(
+  "버그(dfs 내부에서 카운트):",
+  maxBipartiteMatchingBuggyDoubleCount(3, 3, gEdges),
+);
 
 console.log("\n=== 성능 목표용 자릿수 확인 ===");
 console.log("L=1000,E=1e6 → naive(O(L*E)) 후보 연산수:", 1000 * 1e6);
@@ -507,5 +621,15 @@ console.log("sqrt(2000) ≈", Math.sqrt(2000));
 console.log("E*sqrt(V) for E=1e6,V=2000 ≈", 1e6 * Math.sqrt(2000));
 
 console.log("\n=== 스스로 점검하기용 예시 검증 ===");
-const quizEdges: [number, number][] = [[0, 0], [0, 1], [1, 0], [2, 0]];
-console.log("left=3,right=2,edges=", JSON.stringify(quizEdges), "→", maxBipartiteMatching(3, 2, quizEdges));
+const quizEdges: [number, number][] = [
+  [0, 0],
+  [0, 1],
+  [1, 0],
+  [2, 0],
+];
+console.log(
+  "left=3,right=2,edges=",
+  JSON.stringify(quizEdges),
+  "→",
+  maxBipartiteMatching(3, 2, quizEdges),
+);
