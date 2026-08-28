@@ -33,6 +33,8 @@ tools/
   build-html.ts      md → 자립형 HTML. 우측 항목 레일(L37)을 함께 낸다
   bench-alt.ts       L13 의 결정론적 계수
   section.ts · mount.ts · survey-views.ts
+  algo-wbs.ts        전개 상태 — 웨이브별 남은 편과 카테고리별 claim 후보.
+                     **아무것도 쓰지 않는다** — 순서는 문제_가이드_목록.md, 완료는 파일 시스템
   guide-v2-targets.ts  --all 이 보는 **대상 집합 하나**. 글롭을 여기 말고 다른 데 적지 않는다
   _fixtures/algo-guide-v2/  연기 시험용 최소 표본
 
@@ -58,6 +60,7 @@ bun run tools/check-v2.ts --all      # P1~P13, src/algorithms 전수
 bun run tools/check-proof.ts --all   # 본문 값 ↔ 실행. --require 면 증명 0개도 위반
 bun run tools/check-metaphor.ts --all
 bun run tools/build-html.ts <파일>
+bun run tools/algo-wbs.ts            # 지금 무엇을 잡을 수 있는가 (--all · --json)
 bunx tsc --noEmit                    # 승격 뒤로는 루트 tsc 가 v2 산출을 함께 본다
 ```
 

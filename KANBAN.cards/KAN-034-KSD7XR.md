@@ -83,7 +83,7 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
 - [x] `S3` 사람 검토 12줄의 기계화 — `L38`~ 신설 (`KAN-034.3-53E4F9`)
       완료 기준: `bun test tools` 통과(신설 규칙마다 회귀 시험) ·
       파일럿 4편에서 신설 규칙 위반 **0건** — 기존 산출을 깨지 않는 것이 판정이다
-- [ ] `S4` 전개 WBS + `tools/algo-wbs.ts` (`KAN-034.4-4NS63H`)
+- [x] `S4` 전개 WBS + `tools/algo-wbs.ts` (`KAN-034.4-4NS63H`)
       완료 기준: `bun run tools/algo-wbs.ts` 가 웨이브별 남은 편과 트랙별 claim 후보를 냄 ·
       `--all` 이 107 유닛 전수를 냄 · 앞 웨이브가 안 비면 다음 후보를 내지 않음 ·
       같은 카테고리·같은 뷰 조합 첫 편이 도는 중이면 그 후속만 막음
@@ -226,3 +226,5 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
 - 2026-08-29T02:10 · s:b90b730c · S2 done — 인프라 승격 + 파일럿 4편 이관 완료. 도구 13개 → tools/ · 파일럿 4편 → src/algorithms/ · .mdx 4개 삭제 · ci.ts 에 v2 게이트 셋(--all) 편입 · check-citations 가 src/algorithms 를 봄(줄임표 경로 제외로 스택 트레이스 오탐 2건 해소) · guide-rhythm 103→101 · 인덱스 중복 3줄 정리. ci.ts all 통과(15단계).
 - 2026-08-29T04:07 · s:ed9f919e · S3 doing — 착수
 - 2026-08-29T04:20 · s:ed9f919e · S3 done — L38~L40 신설 — check-v2.ts P11(기호 개수 선언↔표)·P12(코드 이름 대응 실재)·P13(정의식 재기술) + 회귀 시험 9벌. 파일럿 4편 위반 0
+- 2026-08-29T04:21 · s:ed9f919e · S4 doing — 착수
+- 2026-08-29T04:27 · s:ed9f919e · S4 done — tools/algo-wbs.ts 신설 — 웨이브 배리어·카테고리 선례·뷰 조합 선례 셋. 상태를 문서에 안 적는다(순서=목록, 완료=파일시스템). 회귀 시험 14벌
