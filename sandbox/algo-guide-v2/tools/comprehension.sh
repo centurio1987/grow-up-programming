@@ -81,10 +81,19 @@ SLUG="$BASE"
 [ -n "$ABLATE" ] && SLUG="$BASE-ablate-$(printf '%s' "$ABLATE" | tr '.' '-')"
 
 if [ -z "$ROUND" ]; then
-  ROUND=1
-  while [ -e "$(printf '%s/%s-r%02d.md' "$VERDICT_DIR" "$SLUG" "$ROUND")" ]; do
-    ROUND=$((ROUND + 1))
+  # **가장 큰 회차 + 1 이다. 빈 번호를 줍지 않는다.** 회차는 이력의 순서를 지므로 중간이
+  # 비어 있을 때 그 자리를 채우면 **나중 판정이 앞선 판정보다 작은 번호**를 갖는다.
+  # 실측: `mosAlgorithm` 이 `r01`·`r06`~`r13` 을 가진 상태에서 열넷째 판정이 `r02` 로
+  # 떨어졌다(2026-08-28). 빈 번호는 그 회차가 없었다는 사실이라 메우지 않는다.
+  MAX_ROUND=0
+  for _f in "$VERDICT_DIR/$SLUG"-r[0-9][0-9].md; do
+    [ -e "$_f" ] || continue
+    _n="${_f##*-r}"; _n="${_n%.md}"
+    # 앞의 0 이 8진수로 읽히는 것을 막는다 — `08`·`09` 가 그대로 오류가 된다.
+    _n=$((10#$_n))
+    [ "$_n" -gt "$MAX_ROUND" ] && MAX_ROUND="$_n"
   done
+  ROUND=$((MAX_ROUND + 1))
 fi
 VERDICT_FILE="$(printf '%s/%s-r%02d.md' "$VERDICT_DIR" "$SLUG" "$ROUND")"
 
