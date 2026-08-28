@@ -332,9 +332,21 @@ body {
 main { max-width: 46rem; margin: 0 auto; padding: 3rem 1.25rem 6rem; }
 h1, h2, h3 { scroll-margin-top: 1.5rem; }
 
-/* 항목 레일 — L37. 좁은 화면에서는 숨긴다(본문 위로 겹치지 않는다). */
+/* 항목 레일 — L37. 좁은 화면에서는 숨긴다(본문 위로 겹치지 않는다).
+ *
+ * **기준점은 손으로 고른 수가 아니라 겹치지 않는 최소 폭이다.**
+ *   본문 오른쪽 끝 = W/2 + 23rem      (max-width 46rem 가운데 정렬)
+ *   레일 왼쪽 끝   = W − 1rem − 13rem  (오른쪽 가장자리에서 1rem 띄운 자리)
+ *   둘 사이가 가장자리 여백(1rem) 이상이려면  W ≥ 4×1 + 2×13 + 46 = 76rem
+ *
+ * 앞판은 78rem 이었다 — 간격 2rem 을 요구한 값이다. 그래서 1440x900 화면에서 창을
+ * 최대로 켜도 innerWidth 가 1232px 이라 레일이 한 번도 안 떴고, 유저가 그 상태를
+ * 지적했다(2026-08-28 실측: 기준점 1248px, 창 1232px, display:none).
+ * 기준점을 폭에서 유도하는 것은 build-html.test.ts 가 강제한다.
+ *
+ * 이 주석은 CSS 안이라 백틱을 쓰지 않는다 — 템플릿 리터럴이 그 자리에서 끊긴다. */
 .gs-rail { display: none; }
-@media (min-width: 78rem) {
+@media (min-width: 76rem) {
   .gs-rail {
     display: block; position: fixed; top: 3rem;
     right: max(1rem, calc(50vw - 38rem));

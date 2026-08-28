@@ -237,9 +237,31 @@ test("레일 — 링크가 가리키는 id 가 문서에 실재한다", () => {
   }
 });
 
-test("레일 — 좁은 화면에서는 숨긴다", () => {
+test("레일 — 숨김 기준점이 본문·레일 폭에서 유도된다", () => {
   expect(built.html).toContain(".gs-rail { display: none; }");
-  expect(built.html).toContain("@media (min-width: 78rem)");
+
+  // **기준점을 리터럴로 박아 두면 그 수가 틀렸을 때 시험이 오답을 지킨다.** 앞판이
+  // 그랬다 — `78rem` 을 그대로 적어 두어서, 1440×900 화면에서 창을 최대로 켜도
+  // (`innerWidth` 1232px) 레일이 한 번도 안 뜨는 상태가 초록으로 통과했다.
+  // 그래서 세 폭에서 기준점을 **계산**한다.
+  const rem = (re: RegExp): number => {
+    const m = built.html.match(re);
+    if (m?.[1] === undefined) throw new Error(`CSS 값을 못 찾았다: ${re}`);
+    return Number.parseFloat(m[1]);
+  };
+  const mainW = rem(/main \{ max-width: ([\d.]+)rem/);
+  const railW = rem(/width: ([\d.]+)rem; max-height: calc\(100vh/);
+  const edge = rem(/right: max\(([\d.]+)rem, calc\(50vw/);
+  const breakpoint = rem(/@media \(min-width: ([\d.]+)rem\) \{\n {2}\.gs-rail/);
+
+  // 본문 오른쪽 끝 = W/2 + mainW/2 · 레일 왼쪽 끝 = W − edge − railW.
+  // 둘 사이가 가장자리 여백(edge) 이상이려면 W ≥ 4·edge + 2·railW + mainW.
+  expect(breakpoint).toBe(4 * edge + 2 * railW + mainW);
+
+  // 기준점 바로 그 폭에서 실제로 안 겹치는지 값으로 확인한다.
+  const railLeft = breakpoint - edge - railW;
+  const mainRight = breakpoint / 2 + mainW / 2;
+  expect(railLeft - mainRight).toBeGreaterThanOrEqual(edge);
 });
 
 test("레일 — 항목이 0개면 nav 를 아예 안 낸다", () => {
