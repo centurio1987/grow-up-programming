@@ -10,7 +10,7 @@ import { scan } from "./check-metaphor.ts";
 import { check, hasFigure, parseSim } from "./check-v2.ts";
 import { parseSections } from "./section.ts";
 
-/** P1~P10 을 전부 만족하는 표본. 각 결함 표본은 여기서 한 곳만 어긋뜨린다. */
+/** P1~P13 을 전부 만족하는 표본. 각 결함 표본은 여기서 한 곳만 어긋뜨린다. */
 const PASSING = `# 시험용 — 한눈에 보는 부제
 
 ## 파트 1 — 아이디어에서 동작하는 코드까지
@@ -215,7 +215,7 @@ const SIM = `export const demo = {
 
 const codes = (f: ReturnType<typeof check>) => f.map((x) => x.code).sort();
 
-test("통과 표본은 P1~P10 을 전부 통과한다", () => {
+test("통과 표본은 P1~P13 을 전부 통과한다", () => {
   const findings = check({ text: PASSING, sim: SIM, bench: { 비교: 34 } });
   expect(findings).toEqual([]);
 });
@@ -740,4 +740,119 @@ test("P10 — purpose.alt 를 생략했는데 실측값이 남아 있으면 걸�
     bench: { 비교: 34 },
   });
   expect(codes(findings)).toEqual(["P10"]);
+});
+
+/* ────────────────── P11·P12·P13 기호 규약 (`L38`~`L40`) ────────────────── */
+
+/** 기호표를 `deep.build` ① 자리에 끼운다. 행 수와 선언은 인자로 갈아 끼운다. */
+function withSymbols(count: string, rows: string[]): string {
+  const table = [
+    `이 글이 쓰는 기호는 ${count}이에요. 여기서 정하고 끝까지 같은 뜻으로 씁니다.`,
+    "",
+    "| 기호 | 무엇인가 | 이 문제에서 |",
+    "| --- | --- | --- |",
+    ...rows,
+  ].join("\n");
+  return PASSING.replace(
+    "**① 문제를 고정한다.**",
+    `${table}\n\n**① 문제를 고정한다.**`,
+  );
+}
+
+const TWO_ROWS = [
+  "| `n` | 배열의 길이 | `n ≤ 10^5` |",
+  "| `l` | 왼쪽 끝 | `0 ≤ l` |",
+];
+
+test("P11 — 기호 개수 선언과 표 행 수가 어긋나면 걸린다", () => {
+  const findings = check({
+    text: withSymbols("여섯", TWO_ROWS),
+    sim: SIM,
+    bench: { 비교: 34 },
+  });
+  expect(codes(findings)).toEqual(["P11"]);
+  expect(findings[0]?.detail).toContain("여섯");
+  expect(findings[0]?.detail).toContain("2행");
+});
+
+test("P11 — 선언과 표가 맞으면 걸리지 않는다", () => {
+  const findings = check({
+    text: withSymbols("둘", TWO_ROWS),
+    sim: SIM,
+    bench: { 비교: 34 },
+  });
+  expect(findings).toEqual([]);
+});
+
+test("P11 — 선언이 없으면 미실행이다(기호표만으로는 안 잰다)", () => {
+  const text = withSymbols("둘", TWO_ROWS).replace(
+    "이 글이 쓰는 기호는 둘이에요. 여기서 정하고 끝까지 같은 뜻으로 씁니다.\n\n",
+    "",
+  );
+  expect(check({ text, sim: SIM, bench: { 비교: 34 } })).toEqual([]);
+});
+
+test("P11 — 표 밖에서 정의한 기호는 위반이 아니다", () => {
+  // `SPEC` `L21` 은 「그 자리 또는 앞에서」 정의를 요구한다. 파생 기호를 처음 쓰는 자리에서
+  // 정의하는 것이 규격이므로, 표에 없다는 이유로 잡으면 규칙이 원고와 어긋난다.
+  const text = withSymbols("둘", TWO_ROWS).replace(
+    "**① 문제를 고정한다.**",
+    "구역 크기 `B` 를 여기서 정합니다.\n\n```text\nB = 2\n```\n\n**① 문제를 고정한다.**",
+  );
+  expect(check({ text, sim: SIM, bench: { 비교: 34 } })).toEqual([]);
+});
+
+test("P12 — 밝힌 코드 이름이 코드에 없으면 걸린다", () => {
+  const text = PASSING.replace(
+    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓친다.",
+    "식의 `B` 를 코드에서는 `block` 이라 씁니다.",
+  );
+  const findings = check({ text, sim: SIM, bench: { 비교: 34 } });
+  expect(codes(findings)).toEqual(["P12"]);
+  expect(findings[0]?.detail).toContain("block");
+});
+
+test("P12 — 코드 펜스에 실재하면 걸리지 않는다", () => {
+  // `xs` 는 통과 표본의 `ts` 펜스에 실제로 있는 이름이다.
+  const text = PASSING.replace(
+    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓친다.",
+    "식의 `a` 를 코드에서는 `xs` 라 씁니다.\n\n```text\na → xs\n```",
+  );
+  expect(check({ text, sim: SIM, bench: { 비교: 34 } })).toEqual([]);
+});
+
+test("P12 — `text` 펜스는 식별자의 실재를 증언하지 않는다", () => {
+  // 그림 안의 글자는 코드가 아니다. 그림에만 있는 이름을 「코드에서는」 이라 적으면 걸린다.
+  const text = PASSING.replace(
+    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓친다.",
+    "식의 `B` 를 코드에서는 `blk` 라 씁니다.\n\n```text\nblk\n```",
+  );
+  expect(
+    check({ text, sim: SIM, bench: { 비교: 34 } }).some(
+      (f) => f.code === "P12",
+    ),
+  ).toBe(true);
+});
+
+const DEF = String.raw`$$\operatorname{blk}(l) \;=\; \left\lfloor \frac{l}{B} \right\rfloor$$`;
+/** 산문 연속(P1)이 늘지 않게 끼우는 그림 한 장. */
+const FIG = ["```text", "구역", "```"].join("\n");
+
+test("P13 — 정의식을 뒤에서 되풀어 쓰면 걸린다", () => {
+  const text = PASSING.replace(
+    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓친다.",
+    () =>
+      `${DEF}\n\n${FIG}\n\n뒤에서 다시 $\\lfloor \\frac{l}{B} \\rfloor$ 로 적습니다.`,
+  );
+  const findings = check({ text, sim: SIM, bench: { 비교: 34 } });
+  expect(codes(findings)).toEqual(["P13"]);
+  expect(findings[0]?.detail).toContain("blk");
+});
+
+test("P13 — 이름으로만 쓰면 걸리지 않는다", () => {
+  const text = PASSING.replace(
+    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓친다.",
+    () => `${DEF}\n\n${FIG}\n\n뒤에서는 $\\operatorname{blk}(l)$ 로 씁니다.`,
+  );
+  expect(check({ text, sim: SIM, bench: { 비교: 34 } })).toEqual([]);
 });

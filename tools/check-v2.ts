@@ -1,9 +1,10 @@
 /**
- * `algo-learn-guide` 골격 스캐너 — P1~P10.
+ * `algo-learn-guide` 골격 스캐너 — P1~P13.
  *
- * **기계로 셀 수 있는 것만** 잰다. 의미 판정(용어 정의 유무 · 논증의 성립 · 반례의 타당성)은
- * 이해 시험 V1~V7 이 맡는다. 스캐너가 절반만 덮으면서 "잰다" 고 적으면 통과 표시가 실제보다
- * 넓게 읽힌다 — 이 저장소가 `check-guide-rhythm.ts:9-12` 에 이미 적어 둔 한계다.
+ * **기계로 셀 수 있는 것만** 잰다. 값이 실행 결과와 같은가는 `check-proof.ts` 가 보고, 산문이
+ * 실제로 설명하는가(논증의 성립 · 반례의 타당성)는 사람이 본다 — `FEEDBACK.md` §3 이 그
+ * 목록이다. 스캐너가 절반만 덮으면서 "잰다" 고 적으면 통과 표시가 실제보다 넓게 읽힌다 —
+ * 이 저장소가 `check-guide-rhythm.ts:9-12` 에 이미 적어 둔 한계다.
  *
  * ```bash
  * bun run tools/check-v2.ts <guide.md>          # 한 편
@@ -551,6 +552,199 @@ export function labelPairNotation(text: string): Finding[] {
   return findings;
 }
 
+/* ────────────────────── 기호 규약 — P11·P12·P13 ────────────────────── */
+
+/**
+ * `| 기호 | … |` 헤더로 시작하는 표. `deep.build` ① 의 기호표와 `deep.math` 의 기호표가
+ * 같은 꼴이라 둘 다 걸린다.
+ *
+ * **기호 이름은 표기를 벗겨 비교한다** — 같은 `n` 이 파트 1 에서는 `` `n` ``, `deep.math`
+ * 에서는 `$n$` 으로 적힌다. 한 칸에 둘을 적는 관례(`` `l` · `r` ``)도 갈라 담는다.
+ */
+export interface SymbolTable {
+  line: number;
+  symbols: string[];
+  rows: { raw: string; gloss: string }[];
+}
+
+/** `` `n` `` · `$n$` · `$w_i$` 에서 표기를 벗긴다. */
+function bareSymbol(cell: string): string[] {
+  const out: string[] = [];
+  for (const m of cell.matchAll(/`([^`]+)`|\$([^$]+)\$/g)) {
+    const t = (m[1] ?? m[2] ?? "").trim();
+    if (t !== "") out.push(t);
+  }
+  return out.length > 0 ? out : [cell.trim()].filter((t) => t !== "");
+}
+
+export function symbolTables(text: string): SymbolTable[] {
+  const lines = text.split("\n");
+  const tables: SymbolTable[] = [];
+  for (const [index, line] of lines.entries()) {
+    if (!/^\|\s*기호\s*\|/.test(line)) continue;
+    const rows: { raw: string; gloss: string }[] = [];
+    const symbols: string[] = [];
+    for (let j = index + 2; j < lines.length; j++) {
+      const row = lines[j];
+      if (row === undefined || !row.startsWith("|")) break;
+      const cells = row
+        .split("|")
+        .slice(1, -1)
+        .map((c) => c.trim());
+      const raw = cells[0] ?? "";
+      rows.push({ raw, gloss: cells.slice(1).join(" ") });
+      symbols.push(...bareSymbol(raw));
+    }
+    tables.push({ line: index + 1, symbols, rows });
+  }
+  return tables;
+}
+
+/** 「기호는 여섯」 의 수사. 아라비아 숫자도 받는다. */
+const COUNT_WORDS: Record<string, number> = {
+  하나: 1,
+  둘: 2,
+  셋: 3,
+  넷: 4,
+  다섯: 5,
+  여섯: 6,
+  일곱: 7,
+  여덟: 8,
+  아홉: 9,
+  열: 10,
+};
+
+/**
+ * P11 (`L38`) — **기호를 몇 개 쓴다고 적었으면 표가 그만큼이어야 한다.**
+ *
+ * §3 이 사람에게 맡겨 둔 「그 절이 쓰는 기호가 전부 앞에서 정의됐는가」 중 실행으로 내릴 수
+ * 있는 몫이다. 전수인지는 못 잰다 — 파생 기호는 처음 쓰는 그 자리에서 정의하는 것이 규격이라
+ * (`SPEC` `L21`: "그 자리 또는 앞에서"), 표 밖의 기호를 위반으로 세면 규칙이 원고와
+ * 어긋난다(`mosAlgorithm` 의 `B`·`blk`, `quicksort` 의 `p`·`k` 가 그 자리다).
+ *
+ * 잴 수 있는 것은 **선언과 표가 어긋나는 것**이다. 기호를 하나 더 쓰기로 하고 표에만 넣으면
+ * 「여섯」 이 남아 독자가 세다가 멈춘다. 선언이 없으면 미실행이다.
+ */
+export function symbolCountDeclaration(text: string): Finding[] {
+  const tables = symbolTables(text);
+  const head = tables[0];
+  if (head === undefined) return [];
+
+  const findings: Finding[] = [];
+  for (const [index, line] of text.split("\n").entries()) {
+    const hit =
+      /기호는\s*([가-힣]+|\d+)\s*(?:개)?(?:이에요|예요|입니다|이다|다)/.exec(
+        line,
+      );
+    if (hit === null) continue;
+    const word = hit[1] ?? "";
+    const want = /^\d+$/.test(word) ? Number(word) : COUNT_WORDS[word];
+    if (want === undefined) continue;
+    if (want !== head.rows.length) {
+      findings.push({
+        code: "P11",
+        where: `:${index + 1}`,
+        detail: `기호 개수 선언과 표가 어긋난다 — 본문 「${word}」 ≠ 기호표 ${head.rows.length}행(:${head.line})`,
+      });
+    }
+    break; // 선언은 기호표 하나당 한 번이다. 첫 줄만 본다
+  }
+  return findings;
+}
+
+/**
+ * P12 (`L39`) — **식 ↔ 코드 이름의 대응을 밝혔으면 그 이름이 코드에 실재해야 한다.**
+ *
+ * §3 의 「같은 값의 코드 식별자가 한 벌인가 — 식 `B` ↔ 코드 `block` 의 대응을 한 자리에서
+ * 밝혔는가」 중 실행 몫이다. **대응을 밝혔는가는 안 잰다** — 밝힐 자리가 있는 편과 없는 편이
+ * 갈리고(`babyStepGiantStep` 은 식과 코드가 같은 이름이라 밝힐 것이 없다), 있어야 한다고
+ * 세면 없는 편이 문장을 끼워 넣는 쪽으로 간다(R19-1 이 그 실패다).
+ *
+ * 잴 수 있는 것은 **밝힌 이름이 실제로 그 이름인가**다. 코드를 고치면서 산문의 대응을 안
+ * 고치면 그 한 줄이 조용히 거짓이 된다.
+ */
+export function codeNameMapping(text: string): Finding[] {
+  const lines = text.split("\n");
+
+  // 대상은 실제 코드 펜스뿐이다. `text` 펜스는 그림이라 식별자의 실재를 못 증언한다.
+  const code: string[] = [];
+  let fence: string | null = null;
+  for (const line of lines) {
+    const open = /^\s*```(\w*)/.exec(line);
+    if (open !== null) {
+      if (fence === null) fence = open[1] ?? "";
+      else fence = null;
+      continue;
+    }
+    if (fence === "ts" || fence === "js" || fence === "tsx") code.push(line);
+  }
+  const codeText = code.join("\n");
+
+  const findings: Finding[] = [];
+  for (const [index, line] of lines.entries()) {
+    const at = line.indexOf("코드에서");
+    if (at < 0) continue;
+    // 문장이 다음 줄로 이어지는 관례가 있어 한 줄을 더 본다.
+    const span = line.slice(at) + "\n" + (lines[index + 1] ?? "");
+    const named = new Set<string>();
+    for (const m of span.matchAll(/`([A-Za-z_][A-Za-z0-9_]*)`/g)) {
+      if (m[1] !== undefined) named.add(m[1]);
+    }
+    for (const name of named) {
+      if (new RegExp(`\\b${name}\\b`).test(codeText)) continue;
+      findings.push({
+        code: "P12",
+        where: `:${index + 1}`,
+        detail: `코드 이름 대응이 코드에 없다 — 「코드에서는 \`${name}\`」 이라 적었지만 코드 펜스에 \`${name}\` 이 없다`,
+      });
+    }
+  }
+  return findings;
+}
+
+/**
+ * P13 (`L40`) — **이름을 정의한 뒤 그 정의식으로 되풀어 쓰지 않는다.**
+ *
+ * §3 의 「정의한 이름(`blk`)을 뒤 절이 그대로 쓰는가, 정의식(`⌊l/B⌋`)으로 풀어 다시 적지
+ * 않았는가」다. 이름을 세워 놓고 뒤에서 식을 다시 펴면 독자는 그 둘이 같은 것인지 매번
+ * 대조해야 한다.
+ *
+ * **디스플레이 수식에서 `\operatorname{…}(…) = …` 꼴로 정의한 것만 본다.** 정의로 읽히는
+ * 꼴을 좁게 잡아야 산문의 우연한 일치를 안 잡는다. 검산은 값을 넣는 자리라 식이 아니라 수가
+ * 오므로 여기 안 걸린다.
+ */
+function normalizeMath(s: string): string {
+  return s
+    .replaceAll(/\\left|\\right|\\!|\\,|;|\\:|\\quad|\\qquad|\\ /g, "")
+    .replaceAll(/\s+/g, "");
+}
+
+export function definitionRestated(text: string): Finding[] {
+  const findings: Finding[] = [];
+  // 디스플레이 수식 블록을 위치와 함께 걷는다.
+  for (const block of text.matchAll(/\$\$([\s\S]*?)\$\$/g)) {
+    const body = block[1] ?? "";
+    const start = block.index ?? 0;
+    for (const def of body.matchAll(
+      /\\operatorname\{(\w+)\}\s*\([^)]*\)[\s]*(?:\\[;,:!])*[\s]*=[\s]*(?:\\[;,:!])*[\s]*(.+?)(?:\\qquad|\\quad|$)/gm,
+    )) {
+      const name = def[1] ?? "";
+      const rhs = normalizeMath(def[2] ?? "");
+      // 한 토막짜리 우변은 정의라기보다 치환이라 오탐이 된다.
+      if (rhs.length < 8) continue;
+      const after = normalizeMath(text.slice(start + (block[0]?.length ?? 0)));
+      if (!after.includes(rhs)) continue;
+      const line = text.slice(0, start).split("\n").length;
+      findings.push({
+        code: "P13",
+        where: `:${line}`,
+        detail: `정의식을 뒤에서 되풀어 썼다 — \`${name}\` 으로 이름을 세웠으면 그 이름으로 쓴다`,
+      });
+    }
+  }
+  return findings;
+}
+
 /**
  * 【걷어냈다 — 2026-08-28 유저 지시】 L28·L29(`criterionOrder`) · L30·L31(`coreConcept`).
  *
@@ -999,6 +1193,14 @@ export function check(input: CheckInput): Finding[] {
     }
   }
 
+  // ── P11·P12·P13 기호 규약 ──
+  //
+  // 셋 다 `FEEDBACK.md` §3 이 사람에게 맡겨 뒀던 줄에서 **실행으로 내릴 수 있는 몫만**
+  // 떼어 온 것이다. 못 내린 몫은 §3 에 그대로 남는다 — 좁힌 자리를 각 함수의 주석이 적는다.
+  findings.push(...symbolCountDeclaration(input.text));
+  findings.push(...codeNameMapping(input.text));
+  findings.push(...definitionRestated(input.text));
+
   return findings;
 }
 
@@ -1026,7 +1228,7 @@ async function checkOne(target: string, json: boolean): Promise<number> {
   if (json) {
     console.log(JSON.stringify({ target, findings }, null, 2));
   } else if (findings.length === 0) {
-    console.log(`${target} — P1~P10 통과.`);
+    console.log(`${target} — P1~P13 통과.`);
   } else {
     console.error(`${target} — 위반 ${findings.length}건.`);
     for (const f of findings) {
@@ -1085,7 +1287,7 @@ if (import.meta.main) {
   if (json) {
     console.log(JSON.stringify({ target, findings }, null, 2));
   } else if (findings.length === 0) {
-    console.log(`${target} — P1~P10 통과.`);
+    console.log(`${target} — P1~P13 통과.`);
     if (input.sim === undefined) {
       console.log(
         "  (참고: `.sim.ts` 가 없어 P3 프레임 대조·P6·P9 는 실행되지 않았다)",

@@ -87,7 +87,7 @@ const GATES: Step[] = [
   //
   // 셋 다 `--all` 이다 — 대상 글롭을 여기 적으면 새 편이 늘 때 아무도 이 자리를 안 고친다.
   {
-    label: "v2 스캐너 P1~P10",
+    label: "v2 스캐너 P1~P13",
     argv: ["bun", "run", "tools/check-v2.ts", "--all"],
   },
   {

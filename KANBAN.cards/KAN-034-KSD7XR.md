@@ -80,7 +80,7 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
       완료 기준: `bun run tools/ci.ts all` 초록 · `check-citations` 가 `src/algorithms` 를 봄 ·
       `bun test src/_guide-sim` 통과 · 파일럿 4편이 `.md` 로 서고 그 `.mdx` 4개가 사라짐 ·
       인덱스 「자동 추가」 절 중복 3줄 정리 · `guide-rhythm.tsv` 103 → 101
-- [ ] `S3` 사람 검토 12줄의 기계화 — `L38`~ 신설 (`KAN-034.3-53E4F9`)
+- [x] `S3` 사람 검토 12줄의 기계화 — `L38`~ 신설 (`KAN-034.3-53E4F9`)
       완료 기준: `bun test tools` 통과(신설 규칙마다 회귀 시험) ·
       파일럿 4편에서 신설 규칙 위반 **0건** — 기존 산출을 깨지 않는 것이 판정이다
 - [ ] `S4` 전개 WBS + `tools/algo-wbs.ts` (`KAN-034.4-4NS63H`)
@@ -224,3 +224,5 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
 - 2026-08-29T00:54 · s:b90b730c — `검증` 섹션 교체
 - 2026-08-29T01:54 · s:b90b730c · S2 doing — 착수
 - 2026-08-29T02:10 · s:b90b730c · S2 done — 인프라 승격 + 파일럿 4편 이관 완료. 도구 13개 → tools/ · 파일럿 4편 → src/algorithms/ · .mdx 4개 삭제 · ci.ts 에 v2 게이트 셋(--all) 편입 · check-citations 가 src/algorithms 를 봄(줄임표 경로 제외로 스택 트레이스 오탐 2건 해소) · guide-rhythm 103→101 · 인덱스 중복 3줄 정리. ci.ts all 통과(15단계).
+- 2026-08-29T04:07 · s:ed9f919e · S3 doing — 착수
+- 2026-08-29T04:20 · s:ed9f919e · S3 done — L38~L40 신설 — check-v2.ts P11(기호 개수 선언↔표)·P12(코드 이름 대응 실재)·P13(정의식 재기술) + 회귀 시험 9벌. 파일럿 4편 위반 0

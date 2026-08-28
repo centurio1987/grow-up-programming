@@ -26,7 +26,7 @@ tsconfig.json    루트를 extends 하되 exclude 를 비운다 (아래 「함�
 
 ```
 tools/
-  check-v2.ts        P1~P10.            --all 이 src/algorithms 전수를 본다
+  check-v2.ts        P1~P13.            --all 이 src/algorithms 전수를 본다
   check-proof.ts     본문 값 ↔ 실행.      --all · --require
   check-metaphor.ts  은유 — 문서 전체.    --all
   check-rework.ts    구성 지적을 받은 절의 재작성률 — 재배치와 재작성을 가른다
@@ -54,7 +54,7 @@ src/algorithms/<cat>/<name>/
 
 ```bash
 bun run tools/ci.ts all              # 배치 종료마다. v2 게이트 셋이 여기 들어 있다
-bun run tools/check-v2.ts --all      # P1~P10, src/algorithms 전수
+bun run tools/check-v2.ts --all      # P1~P13, src/algorithms 전수
 bun run tools/check-proof.ts --all   # 본문 값 ↔ 실행. --require 면 증명 0개도 위반
 bun run tools/check-metaphor.ts --all
 bun run tools/build-html.ts <파일>
