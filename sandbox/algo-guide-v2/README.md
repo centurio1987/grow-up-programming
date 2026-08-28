@@ -8,7 +8,8 @@
 ## 무엇이 어디에 있는가
 
 ```
-SPEC.md          명세 정본 — 25항목 · id↔헤딩 매핑 · 항목별 작성법 · L1~L19
+SPEC.md          명세 정본 — 23항목(필수 20 · 조건부 3) · id↔헤딩 매핑 · 작성법 · 범위 원칙
+FEEDBACK.md      반영 상태의 정본 — 지적 → 규칙 → 강제 지점, 그리고 사람이 봐야 하는 목록
 JOURNAL.md       배치 결과 · 반려 사유 · 실측값 · 확정 SPEC 해시
 verdicts/        이해 시험 응답 원문 <name>-r<NN>.md (커밋한다)
 tsconfig.json    루트를 extends 하되 exclude 를 비운다 (아래 「함정」)
@@ -17,18 +18,25 @@ tsconfig.json    루트를 extends 하되 exclude 를 비운다 (아래 「함�
 pilot/<name>/
   <name>-guide.md        원천. 마커 둘이 md↔web 갈림점이다
   <name>-guide.sim.ts    { view, steps, title, result, extraViews?, overrides? }
-  <name>-guide.alt.ts    경쟁 설계 구현 (bench-alt.ts 가 돌린다)
-  <name>-guide.ref.ts    code.final 의 정본
+  <name>-guide.alt.ts    경쟁 설계 구현 (bench-alt.ts 가 실행한다). purpose.alt 를
+                         생략한 편에는 없다 — 남겨 두면 P10 이 잡는다 (L34)
+  <name>-guide.ref.ts    deep.walk.final(전체 코드)의 정본
   <name>-guide.test.ts   기존 테스트의 입출력 케이스를 .ref.ts 에 재실행 (L9)
 
 viz/             신규 컴포넌트 초안 + 테스트
 _smoke/          B1 연기 시험용 최소 표본
 tools/
-  build-html.ts      md → 자립형 HTML
+  build-html.ts      md → 자립형 HTML. 우측 항목 레일(L37)을 함께 낸다
   check-v2.ts        P1~P10
+  check-metaphor.ts  은유 표현 — 문서 전체(`.md`)
+  check-rework.ts    구성 지적을 받은 절의 재작성률 — 재배치와 재작성을 가른다
   comprehension.sh   이해 시험 V1~V7
   bench-alt.ts       L13 의 결정론적 계수
 ```
+
+**반영 상태의 정본은 `FEEDBACK.md` 다** — 유저 지적이 어느 규칙이 되었고 무엇이 그것을
+강제하는지, **기계가 못 잡아 사람이 봐야 하는 목록**(§3), 그리고 **조건부 절 셋을 편마다
+어떻게 판정했는지**(§5)가 거기 있다.
 
 ## 검증
 
@@ -61,7 +69,7 @@ bun run tools/ci.ts all                                     # 배치 종료마�
    이 문장이 없으면 새 컴포넌트를 만들지 않는다.
 3. **Frame 필드는 `extra` 아래에 둔다.** `Frame` 이 `BaseFrame & Partial<...>×6` 교집합이라
    최상위에 필드를 더하면 이름이 겹칠 때 `never` 가 되고, 살아 있는 가이드 182편이 함께 깨진다.
-   그 파손은 `.mdx` 가 tsc 대상이 아니라 **런타임에, 편별로** 드러난다.
+   그 파손은 `.mdx` 가 tsc 대상이 아니라 **런타임에, 편별로** 확인된다.
 4. **`viz/` 에 구현 + 테스트.** 색은 `var(--guide-sim-*, 폴백)` 로만 — 하드코딩 금지.
    샌드박스에서는 **`extraViews`(새 이름)** 또는 **`overrides`(프리셋 개선)** 로 끼운다.
    - `extraViews` 키가 프리셋 이름과 겹치면 **던진다**(조용한 덮어쓰기 금지).

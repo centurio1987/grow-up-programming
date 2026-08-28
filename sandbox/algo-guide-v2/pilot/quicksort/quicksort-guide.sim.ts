@@ -1,11 +1,11 @@
 import type { Frame } from "#guide-sim";
 
 /**
- * `trace` 절과 **같은 입력**을 굴린다. 프레임 수는 `trace` 의 T# 단계 수(13)를 넘지 않는다
- * — P3 이 그 관계를 잰다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
+ * T# 단계 수(13)를 넘지 않는다 — P3 이 그 관계를 잰다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 trace 가 P3 을 그냥 지나간다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
  */
 export const partition = {
   view: "array" as const,
@@ -19,9 +19,9 @@ export const partition = {
       pointers: { pivot: 1 },
     },
     {
-      title: "T2 피벗을 끝으로",
+      title: "T2 기준값을 끝으로",
       detail:
-        "피벗 2 를 hi=3 으로 옮긴다. 분할 루프가 끝 한 칸만 비켜 두면 된다.",
+        "기준값 2 를 hi=3 으로 옮긴다. 분할 루프가 끝 한 칸만 비켜 두면 된다.",
       array: [5, 1, 3, 2],
       pointers: { pivot: 3 },
     },
@@ -45,8 +45,8 @@ export const partition = {
       pointers: { i: 1, j: 2 },
     },
     {
-      title: "T6 피벗 제자리",
-      detail: "피벗을 i=1 로 되돌린다. 이 자리가 2 의 최종 위치다.",
+      title: "T6 기준값 제자리",
+      detail: "기준값을 i=1 에 놓는다. 이 자리가 2 의 최종 위치다.",
       array: [1, 2, 3, 5],
       marked: [1],
     },

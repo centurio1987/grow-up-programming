@@ -10,7 +10,7 @@ import { expect, test } from "bun:test";
 import { knapsack01 } from "./knapsack01-guide.ref.ts";
 
 const CASES: [number[], number[], number, number][] = [
-  // 가이드 「한 입력으로 끝까지 굴려 보기」와 같은 입력이다.
+  // 가이드 「수행으로 알아보는 알고리즘」과 같은 입력이다.
   [[1, 3, 4, 5], [1, 4, 5, 7], 7, 9],
   [[3, 4], [4, 5], 4, 5],
   [[1, 2, 3], [10, 20, 30], 10, 60],

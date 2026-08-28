@@ -3,7 +3,7 @@
  *
  * **구 스캐너를 못 쓰는 이유가 여기 있다.** `tools/check-guide-rhythm.ts` 의 `sectionBody` 는
  * **고정 헤딩 접두 일치 + 첫 매치 하나**다. 새 골격에는 `fixed:false` 인 절(`deep.build`)과
- * `repeat` 절(`code.step`, 최소 3벌)이 있어서, 접두로는 못 찾고 찾아도 첫 벌만 본다.
+ * `repeat` 절(`deep.walk.step`, 최소 3벌)이 있어서, 접두로는 못 찾고 찾아도 첫 벌만 본다.
  * P4(분기 피복)·P7(그림 의무)이 그 자리에서 통째로 헛돈다.
  *
  * **어느 규칙으로도 안 잡히는 헤딩은 에러다.** 조용히 넘기면 그 절이 어느 판정에도 안 걸리고,
@@ -20,46 +20,61 @@ export interface Section {
   body: string[];
 }
 
-/** 문구가 고정된 절. 헤딩 한 줄이 그대로 id 를 정한다. */
+/**
+ * 문구가 고정된 절. 헤딩 한 줄이 그대로 id 를 정한다.
+ *
+ * **`deep.*` 접두는 부모 관계를 뜻하지 않는다.** 2026-08-27 유저 지적으로 `## 아이디어 상세`
+ * 컨테이너가 해체됐고, id 는 옛 이름 그대로 두었다 — 부모 관계의 정본은 `SPEC.md` §1 표의
+ * parent 칸이고, id 를 재편하면 이 파일 밖 30여 곳이 함께 흔들린다. `deep.walk` 접두만 실제
+ * 묶음을 뜻한다.
+ *
+ * **2026-08-28 유저 지시로 헤딩이 한 단씩 내려갔다.** 문서가 파트 둘로 갈리면서 `##` 은
+ * 파트가 쓰고, 항목은 `###`, 항목의 하위 절은 `####` 가 됐다.
+ */
 const FIXED: ReadonlyArray<readonly [string, string]> = [
-  ["prereq", "## 시작하기 전에 — 이미 알고 있어야 하는 것"],
-  ["concept", "## 전체 컨셉"],
-  ["deep", "## 아이디어 상세"],
+  ["prereq", "### 시작하기 전에 — 이미 알고 있어야 하는 것"],
+  ["concept", "### 전체 컨셉"],
   ["deep.math", "### 수식 정의와 유도"],
-  ["deep.proof", "### 왜 항상 옳은가"],
-  ["deep.trap", "### 흔한 오해와 그것이 거짓인 이유"],
-  ["deep.check", "### 이해 점검"],
-  ["purpose", "## 이 알고리즘이 최적인 자리"],
-  ["purpose.fit", "### 최적인 문제의 모양"],
-  ["purpose.cue", "### 문제에서 이것을 떠올리게 하는 단서"],
-  ["purpose.real", "### 실제로 쓰이는 곳"],
-  ["purpose.alt", "### 경쟁 설계와의 대조"],
-  ["code", "## 코드로 옮기기"],
-  ["code.pseudo", "### 수도 코드로 본 전체"],
-  ["code.final", "### 완성 코드"],
-  ["trace", "## 한 입력으로 끝까지 굴려 보기"],
-  ["perf", "## 비용 계산"],
-  ["perf.derive", "### 비용을 세는 과정"],
-  ["perf.bounds", "### 케이스별 비용과 그 경계"],
-  ["perf.worst", "### 최악을 만드는 입력"],
-  ["mistake", "## 한 곳을 바꿔 보면"],
-  ["selfcheck", "## 스스로 점검하기"],
-];
-
-/** 문구를 내용에 맞춰 짓는 절. 직무만 고정이라 패턴으로 잡는다. */
-const PATTERNED: ReadonlyArray<readonly [string, RegExp]> = [
-  ["title", /^# .+$/],
-  ["deep.build", /^### .+ — 생각이 닿는 경로$/],
+  ["purpose", "### 이 알고리즘이 최적의 솔루션인 경우"],
+  ["purpose.fit", "#### 최적인 문제의 모양"],
+  ["purpose.cue", "#### 문제에서 이것을 떠올리게 하는 단서"],
+  ["purpose.real", "#### 실제로 쓰이는 곳"],
+  ["purpose.alt", "#### 경쟁 설계와의 대조"],
+  ["perf", "### 비용 계산"],
+  ["perf.derive", "#### 비용을 세는 과정"],
+  ["perf.bounds", "#### 케이스별 비용과 그 경계"],
+  ["perf.worst", "#### 최악을 만드는 입력"],
+  ["selfcheck", "### 스스로 점검하기"],
 ];
 
 /**
- * `code.step` 은 **잔여**로 정한다.
+ * 문구를 내용에 맞춰 짓는 절. 직무만 고정이라 패턴으로 잡는다.
+ *
+ * `deep.walk` 아래 셋의 순서가 중요하다 — `deep.walk.final` 과 `deep.walk.pause` 를 먼저
+ * 시험해야 나머지가 잔여(`deep.walk.step`)로 떨어진다.
+ */
+const PATTERNED: ReadonlyArray<readonly [string, RegExp]> = [
+  ["title", /^# .+$/],
+  ["part1", /^## 파트 1 — .+$/],
+  ["part2", /^## 파트 2 — .+$/],
+  ["deep.build", /^### 아이디어 상세 — .+$/],
+  ["deep.walk", /^### 수행으로 알아보는 알고리즘 — .+$/],
+  // 2026-08-28 유저 지시로 생긴 **조건부** 절. 파트 1 의 마지막에 온다 — 본문이 이미 값으로
+  // 보인 것에 이름을 붙이는 자리다. 없는 편이 정상이므로 여기서만 잡고 필수로 세지 않는다.
+  ["related", /^### 알아 두면 좋은 개념 — .+$/],
+  ["invariant", /^### 불변식 — .+$/],
+  ["deep.walk.final", /^#### .*전체 코드$/],
+  ["deep.walk.pause", /^#### 멈춤 — .+$/],
+];
+
+/**
+ * `deep.walk.step` 은 **잔여**로 정한다.
  *
  * 정규식으로 이름을 강제하면 단계 이름을 알고리즘에 맞춰 짓지 못한다. 그래서
- * `## 코드로 옮기기` 안의 `###` 중 `code.pseudo`·`code.final` 로 해소되지 않은 전부를
- * 순서대로 `code.step` 으로 본다.
+ * `### 수행으로 알아보는 알고리즘 — …` 안의 `####` 중 `deep.walk.final`·`deep.walk.pause` 로
+ * 해소되지 않은 전부를 순서대로 `deep.walk.step` 으로 본다.
  */
-const CODE_CONTAINER = "code";
+const WALK_CONTAINER = "deep.walk";
 
 export interface ParseResult {
   sections: Section[];
@@ -97,28 +112,29 @@ export function parseSections(text: string): ParseResult {
 
   const sections: Section[] = [];
   const unresolved: { heading: string; line: number }[] = [];
-  let insideCode = false;
+  let insideWalk = false;
 
   for (const item of raw) {
-    // 컨테이너를 벗어나면 잔여 규칙도 끝난다.
-    if (item.level <= 2) insideCode = false;
+    // 컨테이너를 벗어나면 잔여 규칙도 끝난다. `deep.walk` 는 `###` 이므로 경계가 level 3 이다.
+    // 리셋이 설정보다 먼저라 `deep.walk` 자신은 아래에서 다시 true 가 된다.
+    if (item.level <= 3) insideWalk = false;
 
     const fixed = FIXED.find(([, heading]) => heading === item.heading);
     if (fixed) {
-      if (fixed[0] === CODE_CONTAINER) insideCode = true;
       sections.push({ id: fixed[0], ...item });
       continue;
     }
 
     const patterned = PATTERNED.find(([, re]) => re.test(item.heading));
     if (patterned) {
+      if (patterned[0] === WALK_CONTAINER) insideWalk = true;
       sections.push({ id: patterned[0], ...item });
       continue;
     }
 
-    // 잔여 — `## 코드로 옮기기` 안의 `###` 는 전부 `code.step` 이다.
-    if (insideCode && item.level === 3) {
-      sections.push({ id: "code.step", ...item });
+    // 잔여 — `### 수행으로 알아보는 알고리즘 — …` 안의 `####` 는 전부 `deep.walk.step` 이다.
+    if (insideWalk && item.level === 4) {
+      sections.push({ id: "deep.walk.step", ...item });
       continue;
     }
 
@@ -128,7 +144,7 @@ export function parseSections(text: string): ParseResult {
   return { sections, unresolved };
 }
 
-/** 그 id 의 절 전부. `code.step` 처럼 반복되는 절은 순서대로 여럿이 나온다. */
+/** 그 id 의 절 전부. `deep.walk.step` 처럼 반복되는 절은 순서대로 여럿이 나온다. */
 export function pick(sections: Section[], id: string): Section[] {
   return sections.filter((s) => s.id === id);
 }

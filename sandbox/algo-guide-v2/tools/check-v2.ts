@@ -74,13 +74,19 @@ export function maxProseRun(body: string[]): number {
 /**
  * 그 절이 그림을 지고 있는가.
  *
- * `code.step` 의 코드 스니펫은 **세지 않는다.** repeat 절이라 스니펫이 절마다 있어서,
+ * **`deep.walk` 아래 절들의 코드 스니펫은 세지 않는다.** 전개는 소절마다 코드를 싣는 절이라,
  * 코드를 그림으로 세면 그 절들에서 P1·P7 이 통째로 무력해진다.
  */
+const CODE_HEAVY = new Set([
+  "deep.walk.step",
+  "deep.walk.pause",
+  "deep.walk.final",
+]);
+
 export function hasFigure(section: Section): boolean {
   const blocks = fences(section.body);
   const drawable = blocks.filter((b) => {
-    if (section.id !== "code.step") return true;
+    if (!CODE_HEAVY.has(section.id)) return true;
     // `text`·`ascii`·태그 없음만 그림으로 본다. 나머지는 코드다.
     return b.lang === "" || b.lang === "text" || b.lang === "ascii";
   });
@@ -119,7 +125,7 @@ export interface SimModule {
  * `.sim.ts` 를 정적으로 판다.
  *
  * **`steps` 는 인라인 배열 리터럴이어야 한다.** 실측: `steps: [...base, {t}]` 는 실제 3인데
- * 정적 계수가 **2로 센다.** 과소 계수는 P3(`trace` 단계 ≥ 프레임 수)을 지나 **얇은 trace 를
+ * 정적 계수가 **2로 센다.** 과소 계수는 P3(전개 T# ≥ 프레임 수)을 지나 **얇은 전개를
  * 통과시킨다** — 판정기가 판정을 못 하는 것보다 나쁘다. 그래서 위반은 경고가 아니라 에러다.
  */
 export function parseSim(source: string): SimModule {
@@ -157,7 +163,7 @@ export function parseSim(source: string): SimModule {
     }
     if (/\.\.\./.test(arr)) {
       violations.push(
-        `${id}: \`steps\` 에 spread 가 있다 — 정적 계수가 실제보다 적게 세어 얇은 trace 를 통과시킨다`,
+        `${id}: \`steps\` 에 spread 가 있다 — 정적 계수가 실제보다 적게 세어 얇은 전개를 통과시킨다`,
       );
       continue;
     }
@@ -231,32 +237,335 @@ function pickResult(block: string): string | null {
 
 /* ────────────────────────── 판정 ────────────────────────── */
 
-/** 그림을 져야 하는 절. `deep.proof` 는 논증 절이라 뺀다(빈 상자가 된다). */
+/**
+ * 그림을 져야 하는 절.
+ *
+ * **2026-08-28 유저 지시로 `deep.proof`(정확성 논증)가 없어지고 `invariant`(불변식)가 그
+ * 자리에 왔다.** 옛 `deep.proof` 는 그림 의무에서 빠져 있었다 — 논증에 억지로 도식을 넣으면
+ * 빈 상자가 된다는 이유였다. `invariant` 는 다르다. 무엇이 매 단계 참으로 남는지를 **상태값
+ * 으로** 보이는 절이고, 흡수한 `mistake` 의 직무(한 곳을 바꿔 잘못된 결과값을 보이기)도
+ * 실행 결과 대조를 요구한다. 둘 다 그림이 있어야 성립한다.
+ */
 const FIGURE_REQUIRED = [
   "concept",
   "deep.build",
-  "deep.trap",
-  "code.step",
-  "trace",
-  "mistake",
+  "deep.walk.step",
+  "deep.walk.pause",
+  "invariant",
   "perf.derive",
   "perf.worst",
 ] as const;
 
 /**
- * voice 금지 문형 — **정규식으로 잡히는 넷만** 센다.
+ * **있으면** 그림과 코드를 둘 다 져야 하는 절 — 2026-08-25 유저 지적으로 생겼다.
  *
- * `voice.json` 의 `forbid` 는 여덟인데 나머지 넷("친절 장치로 깊이 대체" 류)은 의미 판정이라
+ * *"아이디어 상세는 모든 과정과 과정 설명을 위한 ascii art, code를 친절하게 제공해야 한다"*.
+ * `deep.math` 가 정의와 수식만 늘어놓고 **그 정의로 알고리즘이 도는 모습을 안 보인** 것이
+ * 지적의 실체였다.
+ *
+ * `FIGURE_REQUIRED` 에 넣지 않는 이유는 `deep.math` 가 **조건부 절**이기 때문이다(`SPEC.md` §8).
+ * 거기 넣으면 절이 없는 편에서 "절이 없다" 로 오탐한다. 여기서는 **있을 때만** 검사한다.
+ *
+ * 코드의 정의: `text`·`ascii`·태그 없음은 그림이지 코드가 아니다. 언어 태그가 붙은 펜스만 센다.
+ */
+const CONDITIONAL_FIGURE_AND_CODE = ["deep.math"] as const;
+
+/**
+ * **있으면 그림만** 져야 하는 절 — 2026-08-28 유저 지시로 생긴 `related`(알아 두면 좋은 개념).
+ *
+ * > *"추가적으로 알면 좋은 개념이 존재 할때만 선택적으로 part1 마지막에 포함해라."*
+ *
+ * 코드를 요구하지 않는 것은 이 절의 직무 때문이다 — **본문이 이미 값으로 보인 것에 이름을
+ * 붙이는 자리**라 새 코드를 실을 곳이 아니다. 그림은 요구한다. 이름만 붙이고 끝나면 독자가
+ * 그 이름을 다시 만났을 때 무엇이었는지 알아보지 못한다(`SPEC.md` `L35`).
+ */
+const CONDITIONAL_FIGURE_ONLY = ["related"] as const;
+
+/**
+ * **폐기된 항목이 소절 이름으로 되살아나는 것을 막는다.**
+ *
+ * 2026-08-25 3차 개정에서 `deep.trap`·`code`·`trace` 를 없앴는데, 첫 반영은 그 셋을
+ * **`####` 소절로 옮겨 담기만** 했다. 헤딩만 한 단 내려간 것이라 문서에는 옛 항목이 그대로
+ * 살아 있었고, 유저가 그것을 "지시 무시" 로 다시 지적했다. **이름이 남으면 직무도 남는다** —
+ * 그러니 이름을 기계가 센다.
+ *
+ * `전체 코드` 는 예외다. R4 지시가 *"전개 과정의 마지막에는 전체 코드를 보여준다"* 로 그
+ * 자리를 못 박았으므로 `deep.walk.final` 의 정당한 이름이다.
+ */
+const RETIRED_HEADING_WORDS = [
+  "한 입력으로 끝까지",
+  "굴려 보기",
+  "굴려보기",
+  "완성 코드",
+  "수도 코드",
+  "흔한 오해",
+  "코드로 옮기기",
+  // 2026-08-28 개정 — 제거·개명된 항목. 「전개」와 「최적인 자리」는 개명이라 옛 문구가
+  // 통째로 돌아오는 것만 잡는다(부제 안의 낱말 "전개" 는 대상이 아니다).
+  "정확성 논증",
+  "이해 점검",
+  "한 곳을 바꿔 보면",
+  "## 전개 — ",
+  "최적인 자리",
+];
+
+/**
+ * **헤딩에 존댓말 종결을 쓰지 않는다** — 2026-08-28 유저 지적.
+ *
+ * > *"질의를 다시 정렬한다는 생각에 닿고, 코드가 도는 것까지 봅니다는 의미를 알 수 없는
+ * > 표현이다"*
+ *
+ * `voice.md` 규칙 1 의 주석이 이미 막고 있던 것이다 — *"말 붙이는 어조는 본문에서 쓰고,
+ * 소제목은 그 절이 무엇을 보이는지 그대로 적는다"*. 그 주석은 「컨테이너의 해부」에서
+ * F5 위반 3건을 낳고 쓰였는데 **강제 지점이 없어서** 여기서 또 나왔다.
+ *
+ * `SPEC.md` §6 의 `L32` 다.
+ *
+ * **반말 평서 종결은 대상이 아니다.** 이 저장소의 헤딩 관례가 그것이다 —
+ * `#### 2. 구역 크기를 정한다`·`### … 창 하나로 다섯 질의를 답한다`. 금지하는 것은 본문
+ * 어조를 소제목으로 승격시키는 존댓말 종결 하나다.
+ *
+ * **이 검사가 못 잡는 것을 적어 둔다.** 지적의 「의미를 알 수 없다」는 어조만의 문제가
+ * 아니었다 — "생각에 닿고" 라는 표현 자체가 모호했다. 그것은 의미 판정이라 기계로 세지
+ * 않는다. `FEEDBACK.md` §3(사람이 봐야 하는 것)에 둔다.
+ */
+const HONORIFIC_HEADING =
+  // **`니다` 로 잡는다.** 처음에는 `습니다|ㅂ니다` 로 적었다가 "봅니다" 를 놓쳤다 — 한글은
+  // 받침이 음절에 붙으므로 `ㅂ니다` 라는 문자열은 어디에도 나오지 않는다(`봅` 은 한 글자다).
+  // `니다` 로 끝나는 반말 종결은 없어서 오탐도 생기지 않는다.
+  /(니다|해요|예요|에요|어요|아요|여요|까요|거예요|죠)\s*[.?!]?\s*$/;
+
+/**
+ * voice 금지 문형 — **기계로 잡히는 것만** 센다.
+ *
+ * `voice.json` 의 `forbid` 는 여덟인데 그중 넷("친절 장치로 깊이 대체" 류)은 의미 판정이라
  * 기계가 못 센다. **`voice.md` 목록은 셋뿐이라 원본이 서로 안 맞는다** — `voice.json` 을
  * 정본으로 쓴다.
+ *
+ * 마지막 항은 2026-08-25 유저 지적이다 — *"서다란 표현은 원래 사용법 이외의 은유적 표현으로
+ * 사용하지 마라"*. 걸린 자리는 두 편의 「수식 정의와 유도」 도입부였다 — `mosAlgorithm` 의
+ * "이렇게 서고", `quicksort` 의 "아래처럼 서고"(둘 다 고쳤다). **문자열 목록에 두면 "여기서 고르면" 같은
+ * 정상 문장을 때린다** — 지시어나 주격 조사가 앞에 붙은 자리만 잡는 정규식으로 둔다.
  */
-const FORBIDDEN = [
+const FORBIDDEN: (string | RegExp)[] = [
   "성립해서",
   "임을 알 수 있습니다",
   "이를 반복 적용하면",
   "자명합니다",
 ];
 
+/**
+ * **은유 금지** — 2026-08-26 유저 지시.
+ *
+ * > *"은유 쓰지 마라. 싸다 비싸다, 지다 이기다, 서다 이런 은유 금지다. 최대한 단의적 표현만
+ * > 사용해라. 보편적으로 자주 사용하는 표현과 단어를 최우선적으로 고려해라"*
+ *
+ * 다른 영역의 어휘로 추상 개념을 말하면 독자가 그 어휘의 원래 뜻과 옮겨진 뜻 사이에서 한 번 더
+ * 해석해야 한다. 비용은 "비용이 크다", 우열은 "더 적다", 성립은 "성립한다" 로 적는다.
+ *
+ * **2026-08-28 유저가 기준을 다시 못박았다** — *"단의적 표현 우선, 실제로 자주 사용되는 표현
+ * 우선을 기준으로 집필해야 한다"*. 은유가 아니어도 **뜻이 여럿인 말**이면 같은 부담을 준다.
+ * 그 회차에 「돌다」(실행) 하나가 한 편에서 18곳이었다 — "도는 코드" · "돌린 결과" ·
+ * "루프가 돈다". 여기 넣는 것은 **반복해서 나온 다의어**이고, 나머지는 `SPEC.md` §6 `L33`
+ * 의 원칙으로 두고 사람이 본다. 목록을 넓히면 집필이 어휘 회피에 묶인다.
+ *
+ * **정의하고 쓰는 용어는 대상이 아니다.** 「창」·「구역」처럼 본문에서 정의한 이름은 그대로
+ * 쓴다. 여기서 잡는 것은 정의 없이 비유로 쓴 서술어다.
+ */
+export const METAPHORS: { re: RegExp; label: string }[] = [
+  {
+    // **어간으로 잡는다.** 처음에는 `싸다` 만 넣었다가 활용형 `싼지` 를 놓쳤고 유저가 그것을
+    // 다시 지적했다. 앞이 한글이면 제외해 `감싸다`·`휘감싼` 오탐을 막는다.
+    //
+    // 한글은 받침이 붙으면 **음절 자체가 바뀐다.** `무너지` 로 적으면 `무너진다` 를 못 잡는다
+    // (`지` 와 `진` 은 다른 글자다). 그래서 받침이 붙기 전 부분(`무너`·`터진`)까지만 적는다.
+    re: /(?<![가-힣])(?:싸다|싸고|싸서|싸며|싸지만|싼|쌌)|비싸|비싼|값싸/,
+    label: '비용을 값으로 말한 은유 — "비용이 작다/크다" 로',
+  },
+  {
+    re: /이긴|이겼|이기는|이겨|승자|패자|지는\s*쪽|이기는\s*쪽|겨루|겨룬/,
+    label: '우열을 승부로 말한 은유 — "더 적다/우선한다" 로',
+  },
+  {
+    re: /(?:이렇게|이처럼|아래처럼|다음처럼|위처럼|아래와 같이|[이가])\s*(?:서고|서며|선다|섭니다|서 있는|서기 때문)/,
+    label: "성립을 '서다' 로 말한 은유 — \"성립한다/만들어진다\" 로",
+  },
+  {
+    re: /무너|터진|터져|터질|터지|죽는다|죽고\s|죽어|샌다|새어\s*나/,
+    label: '실패를 다른 영역 어휘로 말한 은유 — "성립하지 않는다/실패한다" 로',
+  },
+  {
+    re: /밟/,
+    label: "실행을 '밟다' 로 말한 은유 — \"실행한다/거친다\" 로",
+  },
+  {
+    // **`돌려주다`(반환)와 `되돌아가다`(커서 이동)는 잡지 않는다** — 앞은 표준 번역어이고
+    // 뒤는 이 문서가 정의하고 쓰는 이동 서술이다. 어간이 아니라 활용형을 하나씩 적는다.
+    //
+    // **앞이 한글이면 제외한다.** `도는` 은 명사 + 조사 `는` 과 겹친다 — "유도는"·"제도는"
+    // 이 그대로 걸렸다. 은유 목록의 `싸다`(→ "감싸다" 오탐)에서 이미 한 번 겪은 모양이다.
+    re: /(?<![가-힣])(?:도는|돈다|돕니다)|돌린[다습]|돌립니다|돌리면|돌려서|돌려 보/,
+    label: "실행을 '돌다' 로 말한 다의어 — \"동작한다/실행한다/반복한다\" 로",
+  },
+  {
+    re: /훑[는어을으]|훑기/,
+    label: "순회를 '훑다' 로 말한 은유 — \"순회한다/차례로 읽는다\" 로",
+  },
+  {
+    re: /흐른다|흐르는|논다|물러[나난날]|밀[어며]\s|민다/,
+    label: '이동을 다른 영역 어휘로 말한 은유 — "이동한다/옮긴다" 로',
+  },
+  {
+    re: /눈에\s*보인|드러난다|한눈에\s*들어온/,
+    label: '이해를 시각으로 말한 은유 — "확인할 수 있다/확인된다" 로',
+  },
+  {
+    // **`되짚` 은 어간으로 잡는다.** 처음에는 `되짚[어은]` 이었고 `되짚으면` 이 그대로
+    // 빠져나가 파일럿 4편의 `selfcheck` 첫 문장에 남아 있었다(2026-08-28 발견). `싸다`(R7)
+    // 에서 이미 한 번 겪은 **활용형 누락**이 세 번째다 — 어미를 하나씩 적을 이유가 없는
+    // 어간은 어간으로 적는다.
+    re: /들고\s*다닌|에\s*걸면|걸어\s*본다|얹[는어을]|되짚/,
+    label:
+      '적용·보관을 다른 영역 어휘로 말한 은유 — "적용한다/유지한다/거슬러 확인한다" 로',
+  },
+  {
+    // **`닿다`(도달) 는 `SPEC.md` §6 `L33` 이 이름을 댄 다의어다.** 목록에 넣는 기준은
+    // 「원고에서 반복해서 나왔는가」이고(L33), 파일럿 원고에서 4곳이었다 — `quicksort` 둘 ·
+    // `knapsack01` 둘. 같이 이름이 오른 `짚다`·`잡히다` 는 각각 1곳·0곳이라 넣지 않았다.
+    // 목록을 넓히면 집필이 어휘 회피에 묶인다는 것이 같은 규칙의 다른 절반이다.
+    //
+    // **앞이 한글이면 제외한다.** `맞닿` 이 그대로 걸린다.
+    re: /(?<![가-힣])닿/,
+    label: "도달을 '닿다' 로 말한 다의어 — \"도달한다/이른다\" 로",
+  },
+];
+
+/**
+ * 인용 구간을 지운다 — **큰따옴표 `"…"` 와 낫표 `「…」` 둘 다.**
+ *
+ * 인용 안의 금지 표현은 글쓴이의 문장이 아니라 **자료**다. 낫표를 함께 지우는 것은
+ * 2026-08-28 `닿다` 를 목록에 넣으면서 필요해졌다 — 이 저장소는 규칙 정의와 옛 문구 인용을
+ * 낫표로 적어서(`SPEC.md` §6 의 `L33` 표가 「닿다」를 예시로 든다), 낫표를 안 지우면
+ * **규칙 정의 자체가 자기 규칙 위반으로 보고된다.** 본문에서 정의하고 쓰는 이름(「창」·
+ * 「구역」)이 대상이 아니라는 `METAPHORS` 주석의 방침과도 같은 자리다.
+ *
+ * `openDouble` 이 참이면 줄 첫머리가 이미 큰따옴표 인용 안이다 — 인라인 인용은 줄을
+ * 넘어간다(`SURVEY.md:50-51`). 낫표는 줄 안에서 닫히지 않으면 줄 끝까지 지운다.
+ */
+export function stripQuotes(line: string, openDouble: boolean): string {
+  let out = "";
+  let inDouble = openDouble;
+  let inCorner = false;
+  for (const ch of line) {
+    if (ch === '"') {
+      inDouble = !inDouble;
+      out += " ";
+      continue;
+    }
+    if (ch === "「") {
+      inCorner = true;
+      out += " ";
+      continue;
+    }
+    if (ch === "」") {
+      inCorner = false;
+      out += " ";
+      continue;
+    }
+    out += inDouble || inCorner ? " " : ch;
+  }
+  return out;
+}
+
+/**
+ * **표기 혼용** — 2026-08-26 유저 지적.
+ *
+ * > *"[0,1]에서 시작한다면서 왜 아래 창은 [1,1]에서 시작해서 [1,3]으로 끝나냐"*
+ *
+ * `창 [0,1]` 은 **인덱스 구간**이고 `창 [1 1]` 은 **그 구간의 값**인데, 같은 대괄호로 적어서
+ * 독자가 같은 것을 가리키는 줄로 읽었다. 한 문서에서 같은 대상을 두 표기로 적지 않는다.
+ *
+ * 규칙: 구간은 `[a,b]`(쉼표), 값은 대괄호 없이 나열하거나 「값」 이라고 밝혀 적는다.
+ */
+const NOTATION = [
+  {
+    re: /(창|구간|구역|범위)\s*`?\[\s*\d+(\s+\d+)+\s*\]/,
+    label:
+      "구간을 가리키는 말에 값 나열을 붙였다 — 구간은 `[a,b]`(쉼표), 값은 「값 1 1 2」 로",
+  },
+];
+
+/**
+ * **라벨 좌표 표기 정합** — 2026-08-27 유저 지적.
+ *
+ * > *"L272에서 정의한 쿼리 키가 뒤에 나오는 쿼리 키와 다르게 나타난다. 이를 포함해서 전개
+ * > 과정에서 정합성이 무너지지 않도록 보장해라"*
+ *
+ * 「수식 정의와 유도」가 정렬 결과를 `Q3(0,3)`(키 값)로 적고 전개 절이 같은 자리를
+ * `Q3[1,3]`(구간)로 적었다. 라벨은 같은데 숫자가 달라, 독자는 뒤에서 키가 바뀐 것으로 읽는다.
+ * 라인 단위인 `NOTATION` 으로는 못 잡는다 — **두 표기가 200줄 떨어져 있기 때문**이다.
+ *
+ * 규칙 둘. 한 문서에서 ① 같은 라벨에 대괄호와 소괄호를 섞지 않고 ② 같은 라벨에 서로 다른
+ * 좌표를 붙이지 않는다. 두 벌을 나란히 보여야 하면 라벨에 붙이지 말고 칸을 나눈다.
+ *
+ * **좌표쌍만 본다.** `[5 2 3 1]`(값 나열)이나 `L10(그림 의무)`(규칙 참조)는 대상이 아니다 —
+ * 쉼표로 갈린 두 정수여야 걸린다.
+ */
+const LABEL_PAIR =
+  /\b([A-Z][A-Za-z]?\d+) *(\[ *-?\d+ *, *-?\d+ *\]|\( *-?\d+ *, *-?\d+ *\))/g;
+
+export function labelPairNotation(text: string): Finding[] {
+  /** 라벨 → (정규화한 표기 → 처음 나온 줄). */
+  const seen = new Map<string, Map<string, number>>();
+  for (const [index, line] of text.split("\n").entries()) {
+    for (const hit of line.matchAll(LABEL_PAIR)) {
+      const label = hit[1];
+      const pair = hit[2];
+      if (label === undefined || pair === undefined) continue;
+      const norm = pair.replace(/ /g, "");
+      const bucket = seen.get(label) ?? new Map<string, number>();
+      if (!bucket.has(norm)) bucket.set(norm, index + 1);
+      seen.set(label, bucket);
+    }
+  }
+
+  const findings: Finding[] = [];
+  for (const [label, bucket] of seen) {
+    if (bucket.size < 2) continue;
+    const forms = [...bucket.entries()];
+    const shapes = new Set(
+      forms.map(([f]) => (f.startsWith("[") ? "[]" : "()")),
+    );
+    const mixed = shapes.size > 1;
+    const shown = forms
+      .map(([f, line]) => `${label}${f}(:${line})`)
+      .join(" ≠ ");
+    findings.push({
+      code: "P2",
+      where: `:${forms[1]?.[1] ?? forms[0]?.[1] ?? 0}`,
+      detail: mixed
+        ? `라벨 표기 혼용 — ${shown}. 한 라벨에 대괄호와 소괄호를 섞지 않는다`
+        : `라벨 좌표 불일치 — ${shown}. 같은 라벨에 다른 좌표를 붙이지 않는다`,
+    });
+  }
+  return findings;
+}
+
+/**
+ * 【걷어냈다 — 2026-08-28 유저 지시】 L28·L29(`criterionOrder`) · L30·L31(`coreConcept`).
+ *
+ * > *"내용이나 의미, 설득력에 대한 게이트는 걷어 낸다. 자연스러운 표현처럼 기준이 분명하고
+ * > 독립적 개선이 가능하고 알고리즘에 대한 정합성과 같이 결정론적 체크가 가능한 게이트만
+ * > 남긴다"*
+ *
+ * 네 검사는 **특정 문장이 있는가**를 정규식으로 물었다 — 「묶는 것은 … 정확 …」 꼴,
+ * 「이 값은 … 대신하는 것이 아니다」 꼴. 통과 조건이 문장의 존재라서, 글은 그 문장을 그대로
+ * 끼워 넣는 쪽으로 갔다. 유저가 같은 날 그 결과를 지적했다 — *"내가 피드백 한 내용을 대답
+ * 하듯이 내용을 작성하지 말아라. 사람이 알아보기 힘든 문장으로 점점 바뀌어 가고 있다"*.
+ *
+ * 여기 남은 것은 **표기·구조·수치 정합**뿐이다. 무엇을 썼는지가 아니라 **어떻게 적었는지**를
+ * 본다. 판정 기준이 글쓴이의 의도 해석에 기대면 그 검사는 여기 두지 않는다.
+ */
 export interface CheckInput {
   text: string;
   /** `<name>-guide.sim.ts` 원문. 없으면 P3·P6·P9 는 "미실행" 으로 보고한다. */
@@ -294,33 +603,63 @@ export function check(input: CheckInput): Finding[] {
   }
 
   // ── P2 voice 금지 문형 ──
+  // 은유만 인용 구간을 뺀 문장을 본다. 절 제목을 낫표로 인용하는 자리(「멈춤 — …」)와
+  // 지적 원문을 큰따옴표로 옮긴 자리가 글쓴이의 문장으로 집계되면, 인용을 지우는 쪽으로
+  // 원고가 움직인다. 금지 문형·표기 혼용은 인용 안에서도 그대로 본다 — 그쪽은 인용이든
+  // 아니든 독자가 읽는 표기다.
+  let inQuote = false;
   for (const [index, line] of input.text.split("\n").entries()) {
+    const outside = stripQuotes(line, inQuote);
+    if ((line.match(/"/g)?.length ?? 0) % 2 === 1) inQuote = !inQuote;
     for (const phrase of FORBIDDEN) {
-      if (line.includes(phrase)) {
-        findings.push({
-          code: "P2",
-          where: `:${index + 1}`,
-          detail: `금지 문형 "${phrase}"`,
-        });
-      }
+      if (typeof phrase !== "string" || !line.includes(phrase)) continue;
+      findings.push({
+        code: "P2",
+        where: `:${index + 1}`,
+        detail: `금지 문형 "${phrase}"`,
+      });
+    }
+    for (const { re, label } of METAPHORS) {
+      const hit = re.exec(outside);
+      if (hit === null) continue;
+      findings.push({
+        code: "P2",
+        where: `:${index + 1}`,
+        detail: `은유 ("${hit[0]}") — ${label}`,
+      });
+    }
+    for (const { re, label } of NOTATION) {
+      const hit = re.exec(line);
+      if (hit === null) continue;
+      findings.push({
+        code: "P2",
+        where: `:${index + 1}`,
+        detail: `표기 혼용 ("${hit[0]}") — ${label}`,
+      });
     }
   }
 
-  const traceSection = first(sections, "trace");
-  const traceLabels = traceSection ? traceRefs(traceSection.body) : new Set();
+  // 문서 전체를 봐야 하는 표기 검사. 두 표기가 절을 건너뛰어 떨어져 있어도 잡는다.
+  findings.push(...labelPairNotation(input.text));
 
-  // ── P3 trace 단계 수 ≥ 시뮬 프레임 수, 그리고 ≥ 6 ──
+  // `deep.walk` 는 컨테이너이고 T# 는 그 아래 소절에 흩어져 있다. 합쳐서 본다.
+  const walkSections = sections.filter((s) => s.id.startsWith("deep.walk"));
+  const walkHead = first(sections, "deep.walk");
+  const walkBody = walkSections.flatMap((s) => s.body);
+  const traceLabels = walkHead ? traceRefs(walkBody) : new Set<string>();
+
+  // ── P3 전개의 T# 단계 수 ≥ 시뮬 프레임 수, 그리고 ≥ 6 ──
   const sim = input.sim === undefined ? null : parseSim(input.sim);
   if (sim) {
     for (const v of sim.violations) {
       findings.push({ code: "P3", detail: `.sim.ts 계약 위반 — ${v}` });
     }
   }
-  if (traceSection) {
+  if (walkHead) {
     if (traceLabels.size < 6) {
       findings.push({
         code: "P3",
-        where: `trace:${traceSection.line}`,
+        where: `deep.walk:${walkHead.line}`,
         detail: `T# 단계 ${traceLabels.size} < 6`,
       });
     }
@@ -332,31 +671,93 @@ export function check(input: CheckInput): Finding[] {
       if (traceLabels.size < frames) {
         findings.push({
           code: "P3",
-          where: `trace:${traceSection.line}`,
+          where: `deep.walk:${walkHead.line}`,
           detail: `T# 단계 ${traceLabels.size} < 시뮬 프레임 ${frames}`,
         });
       }
     }
   } else {
-    findings.push({ code: "P3", detail: "`trace` 절이 없다" });
+    findings.push({ code: "P3", detail: "`deep.walk`(전개) 절이 없다" });
   }
 
-  // ── P4 분기 피복 — code.step 의 원문자 라벨 ⊆ trace 가 밟은 라벨 ──
+  // ── P3b 전개의 뼈대 — 단계 ≥ 3 · 멈춤 ≥ 1 · 전체 코드 1 ──
+  //
+  // **멈춤이 이 절의 핵심이다**(2026-08-25 유저 지적). *"알고리즘 전개 과정에서 간과하거나
+  // 오해할 수 있는 지점은 반드시 멈춰서 설명하고 넘어가야 한다"*. 옛 `deep.trap` 이 절 하나로
+  // 몰아 두던 것을 **전개 흐름 안 제자리로** 흩은 것이라, 없으면 그 직무가 통째로 사라진다.
+  if (walkHead) {
+    const steps = pick(sections, "deep.walk.step").length;
+    const pauses = pick(sections, "deep.walk.pause").length;
+    const finals = pick(sections, "deep.walk.final").length;
+    if (steps < 3) {
+      findings.push({
+        code: "P3",
+        where: `deep.walk:${walkHead.line}`,
+        detail: `전개 단계 ${steps} < 3`,
+      });
+    }
+    if (pauses < 1) {
+      findings.push({
+        code: "P3",
+        where: `deep.walk:${walkHead.line}`,
+        detail: "`### 멈춤 — …` 소절이 없다",
+      });
+    }
+    if (finals !== 1) {
+      findings.push({
+        code: "P3",
+        where: `deep.walk:${walkHead.line}`,
+        detail: `전체 코드 소절이 ${finals} 개다 (1 이어야 한다)`,
+      });
+    }
+  }
+
+  // ── P3c 폐기된 항목 이름이 헤딩으로 되살아났는가 ──
+  for (const sec of sections) {
+    for (const word of RETIRED_HEADING_WORDS) {
+      if (!sec.heading.includes(word)) continue;
+      findings.push({
+        code: "P3",
+        where: `${sec.id}:${sec.line}`,
+        detail: `폐기된 항목 이름이 헤딩에 남았다 — "${word}"`,
+      });
+    }
+  }
+
+  // ── P3d 헤딩에 존댓말 종결이 올라왔는가 ──
+  for (const sec of sections) {
+    const hit = HONORIFIC_HEADING.exec(sec.heading);
+    if (hit === null) continue;
+    findings.push({
+      code: "P2",
+      where: `${sec.id}:${sec.line}`,
+      detail: `헤딩에 존댓말 종결이 올라왔다 — "${hit[0].trim()}". 본문 어조를 소제목으로 승격시키지 않는다(voice 규칙 1)`,
+    });
+  }
+
+  // ── P4 분기 피복 — 전체 코드의 원문자 라벨 ⊆ 전개가 실행한 라벨 ──
   const stepLabels = new Set<string>();
-  for (const s of pick(sections, "code.step")) {
+  for (const s of pick(sections, "deep.walk.final")) {
     for (const block of fences(s.body)) {
       for (const label of circled(block.lines.join("\n")))
         stepLabels.add(label);
     }
   }
-  if (traceSection) {
-    const traced = circled(traceSection.body.join("\n"));
+  if (walkHead) {
+    // **전체 코드 절은 빼고 센다.** 라벨은 거기 적혀 있으므로, 포함하면 자기가 자기를 실행한
+    // 것으로 세어 P4 가 통째로 무력해진다.
+    const traced = circled(
+      walkSections
+        .filter((sec) => sec.id !== "deep.walk.final")
+        .flatMap((sec) => sec.body)
+        .join("\n"),
+    );
     const missing = [...stepLabels].filter((l) => !traced.has(l));
     if (missing.length > 0) {
       findings.push({
         code: "P4",
-        where: `trace:${traceSection.line}`,
-        detail: `밟지 않은 분기 ${missing.join("")}`,
+        where: `deep.walk:${walkHead.line}`,
+        detail: `실행하지 않은 분기 ${missing.join("")}`,
       });
     }
   }
@@ -373,7 +774,7 @@ export function check(input: CheckInput): Finding[] {
       findings.push({
         code: "P5",
         where: `${id}:${s.line}`,
-        detail: "`trace` 의 T# 를 하나도 인용하지 않는다",
+        detail: "`deep.walk`(전개) 의 T# 를 하나도 인용하지 않는다",
       });
       continue;
     }
@@ -382,7 +783,7 @@ export function check(input: CheckInput): Finding[] {
       findings.push({
         code: "P5",
         where: `${id}:${s.line}`,
-        detail: `\`trace\` 에 없는 단계를 가리킨다 — ${dangling.join("·")}`,
+        detail: `\`deep.walk\` 에 없는 단계를 가리킨다 — ${dangling.join("·")}`,
       });
     }
   }
@@ -432,7 +833,7 @@ export function check(input: CheckInput): Finding[] {
       findings.push({ code: "P7", detail: `\`${id}\` 절이 없다` });
       continue;
     }
-    // `code.step` 은 **절 전체 기준** 하나면 된다(벌마다가 아니다).
+    // `deep.walk.step` 처럼 반복되는 절은 **절 전체 기준** 하나면 된다(벌마다가 아니다).
     if (!group.some(hasFigure)) {
       findings.push({
         code: "P7",
@@ -442,11 +843,52 @@ export function check(input: CheckInput): Finding[] {
     }
   }
 
+  // ── P7b 조건부 절의 그림·코드 의무 — 정의만 늘어놓는 절을 막는다 ──
+  for (const id of CONDITIONAL_FIGURE_AND_CODE) {
+    const group = pick(sections, id);
+    if (group.length === 0) continue; // 없어도 되는 절이다
+    if (!group.some(hasFigure)) {
+      findings.push({
+        code: "P7",
+        where: `${id}:${group[0]?.line}`,
+        detail: "그림이 없다",
+      });
+    }
+    const hasCode = group.some((sec) =>
+      fences(sec.body).some(
+        (b) => b.lang !== "" && b.lang !== "text" && b.lang !== "ascii",
+      ),
+    );
+    if (!hasCode) {
+      findings.push({
+        code: "P7",
+        where: `${id}:${group[0]?.line}`,
+        detail:
+          "코드 펜스가 없다 — 정의로 알고리즘이 도는 모습을 보이지 않았다",
+      });
+    }
+  }
+
+  // ── P7c 조건부 절의 그림 의무 — 이름만 붙이고 끝나는 절을 막는다 ──
+  for (const id of CONDITIONAL_FIGURE_ONLY) {
+    const group = pick(sections, id);
+    if (group.length === 0) continue; // 없어도 되는 절이다
+    if (!group.some(hasFigure)) {
+      findings.push({
+        code: "P7",
+        where: `${id}:${group[0]?.line}`,
+        detail:
+          "그림이 없다 — 본문의 어느 값이 그 개념이었는지를 도식이나 표로 짚지 않았다",
+      });
+    }
+  }
+
   // ── P8 concept 이 뒤 절 헤딩·앵커를 참조하지 않는가 ──
   const concept = first(sections, "concept");
   if (concept) {
     const laterHeadings = sections
-      .filter((s) => s.line > concept.line && s.level <= 3)
+      // 파트 도입으로 헤딩이 한 단 내려갔다 — 항목은 `###`, 항목의 하위 절은 `####` 다.
+      .filter((s) => s.line > concept.line && s.level <= 4)
       .map((s) => s.heading.replace(/^#+\s*/, ""));
     const text = concept.body.join("\n");
     for (const heading of laterHeadings) {
@@ -463,6 +905,35 @@ export function check(input: CheckInput): Finding[] {
         code: "P8",
         where: `concept:${concept.line}`,
         detail: "문서 내 앵커 링크를 쓴다",
+      });
+    }
+  }
+
+  // ── P8b `related` 가 파트 1 의 마지막에 있는가 ──
+  //
+  // **자리를 유저가 지정했다**(2026-08-28) — *"part1 마지막에 포함해라"*. 이 절의 직무가
+  // 「파트 1 이 세운 것에 이름을 붙이고 파트 2 로 넘긴다」라서 자리가 곧 직무다. 파트 2 로
+  // 넘어가면 적용 조건·비용을 따지는 흐름 한가운데 개념 소개가 끼어든다.
+  //
+  // 스캐너가 순서를 강제하지 않는다는 방침의 예외다(`SPEC.md` §1). P8 과 같은 「위치」
+  // 판정이고, 지시가 자리를 명시한 절이라 여기 둔다.
+  const related = first(sections, "related");
+  const part2 = first(sections, "part2");
+  if (related && part2 && related.line > part2.line) {
+    findings.push({
+      code: "P8",
+      where: `related:${related.line}`,
+      detail: `\`related\` 가 파트 2 뒤에 있다(파트 2 는 :${part2.line}) — 파트 1 의 마지막에 온다`,
+    });
+  }
+  if (related) {
+    const walk = first(sections, "deep.walk");
+    if (walk && related.line < walk.line) {
+      findings.push({
+        code: "P8",
+        where: `related:${related.line}`,
+        detail:
+          "`related` 가 `deep.walk` 앞에 있다 — 파트 1 이 동작까지 보인 **뒤**에 이름을 붙인다",
       });
     }
   }
@@ -496,7 +967,20 @@ export function check(input: CheckInput): Finding[] {
   }
 
   // ── P10 purpose.alt 의 수치가 bench 출력과 맞는가 ──
+  //
+  // **`purpose.alt` 는 2026-08-28 부로 조건부다**(`SPEC.md` `L34`) — 조건에 따라 채택이
+  // 갈리는 경쟁 설계가 있을 때만 싣는다. 그래서 절이 없는 것 자체는 위반이 아니다.
+  //
+  // 다만 **실측값만 남고 싣는 절이 없는 상태**는 잡는다. `.bench.json` 은 `.alt.ts` 를
+  // 실행해야 생기므로, 그 파일이 있는데 절이 없으면 「대조를 뺀 것」인지 「싣는 것을 잊은
+  // 것」인지 다음 사람이 구분할 수 없다. 빼기로 했으면 두 파일도 함께 지운다.
   const alt = first(sections, "purpose.alt");
+  if (input.bench && !alt) {
+    findings.push({
+      code: "P10",
+      detail: `\`purpose.alt\` 절이 없는데 실측값이 ${Object.keys(input.bench).length}개 남아 있다 — 대조를 빼기로 했으면 \`.alt.ts\`·\`.bench.json\` 도 지운다`,
+    });
+  }
   if (input.bench && alt) {
     const numbers = new Set(
       alt.body
