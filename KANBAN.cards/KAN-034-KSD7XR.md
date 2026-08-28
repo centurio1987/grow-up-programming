@@ -70,7 +70,7 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
 ## 실행 계획
 `S<n>` 하나가 하위 카드 하나에 대응한다. 하위 카드 id 는 괄호 안에 적는다.
 
-- [ ] `S1` 정합 회복 + 파일럿 4편 재판정 (`KAN-034.1-V337W5`)
+- [>] `S1` 정합 회복 + 파일럿 4편 재판정 (`KAN-034.1-V337W5`) <!-- claim:s=b90b730c t=2026-08-28T22:46 -->
       완료 기준: `git status --short` 잔여 0(`KAN-033` 명의로 닫은 뒤) ·
       `FEEDBACK.md` §1 반영표의 결번 참조 0(§2 이후 이력 서술은 대상 아님) ·
       은유 부류 표기 11 로 일치 · **파일럿 4편이 최신 골격으로 `comprehension.sh` exit 0**
@@ -118,6 +118,7 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
 `CALL_TIMEOUT` 기본 420초 × AND 결합이라 편당 수 분이 든다.
 
 ## 검증
+## 검증
 이 카드가 끝난 것은 아래 셋이 동시에 참일 때다.
 
 ```bash
@@ -136,8 +137,14 @@ bun run tools/ci.ts all
 git status --short                                            # 잔여 0
 for f in sandbox/algo-guide-v2/pilot/*/*-guide.md; do bash sandbox/algo-guide-v2/tools/comprehension.sh "$f"; done
 #   ↑ 파일 하나씩 받는다(다중 인자 안 받음). exit 0 통과 · 2 미실행(멈춘다) · 3 미통과
-sed -n '/^## 1\./,/^## 2\./p' sandbox/algo-guide-v2/FEEDBACK.md | grep -cE 'L23|L2[6-9]|L3[01]'    # 0
-#   ↑ §1 반영표만 본다. §2 이후의 폐기 이력 서술은 대상이 아니다
+sed -n '/^## 1\./,/^## 2\./p' sandbox/algo-guide-v2/FEEDBACK.md \
+  | grep -E '^\| R' | grep -v '^| R19-1 ' | grep -cE 'L23|L2[6-9]|L3[01]'                          # 0
+#   ↑ §1 반영표의 **데이터 행**만 본다. R19-1 은 폐기 사실의 기록이라 대상이 아니고,
+#     §2 이후의 이력 서술도 대상이 아니다. 앞판 기준(§1 전체에서 0)은 성립하지 않는다 —
+#     R19-1 행과 그 사실을 적은 문단이 결번 번호를 그대로 들고 있어야 결번 선언의 근거가 선다
+bun run sandbox/algo-guide-v2/tools/check-metaphor.ts \
+  sandbox/algo-guide-v2/{SPEC,FEEDBACK,README,SURVEY}.md sandbox/algo-guide-v2/pilot/*/*.md   # 9편 0건
+#   ↑ 부류 수의 정본은 `METAPHORS.length`(실측 11)다. 문서 표기가 그것과 어긋나면 고친다
 
 # S2 — 인프라 승격 + 파일럿 이관
 bun run tools/ci.ts all
@@ -197,3 +204,5 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
 - 2026-08-28T21:47 · s:e76c7ae0 — `전략` 섹션 교체
 - 2026-08-28T21:47 · s:e76c7ae0 — `실행 계획` 섹션 교체
 - 2026-08-28T21:48 · s:e76c7ae0 — `검증` 섹션 교체
+- 2026-08-28T22:46 · s:b90b730c · S1 doing — 착수
+- 2026-08-28T22:53 · s:b90b730c — `검증` 섹션 교체
