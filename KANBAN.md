@@ -84,14 +84,14 @@
     
     (v1 .mdx 처분 질문에 대한 답) 편별 즉시 교체
     ```
-- `KAN-034.5-0RGSQM` W1 — 중요도 상 24편 전개 — 생성:ai · 최종:ai · 갱신:2026-08-29
+- `KAN-034.5-0RGSQM` W1 — 중요도 상 24편 전개 — 생성:ai · 최종:ai · 갱신:2026-08-30
   - 상위: `KAN-034-KSD7XR` (진행 중)
   - 짧은 제목: W1 상 24편
   - 목적: 문제_가이드_목록.md 상 등급 26편 중 파일럿 2편을 뺀 24편을 문서 순으로 재집필한다
   - 이유: 유저가 중요도 높은 순으로 구성하라고 지시했고, 상 등급이 코딩 테스트 합격선과 실무 일상을 가른다. 여기서 binary-search·graph·advanced·etc 네 카테고리가 처음 열린다
   - 목표: 24편이 .md 로 서고 그 .mdx 가 사라지며, 인덱스 링크와 baseline 행이 함께 정리돼 상 등급에 v1 잔여가 0 이 된다
-  - 메모: 배치4 종료(2026-08-29) — S6 subarraySumEqualsK · S10 insertionSort · S16 dfsAllPaths · S24 minMaxPair 넷을 닫았다(16/24). 스캐너가 편마다 0 이고 ci.ts all 통과(단계 15). .mdx 95→91 · guide-rhythm 89→85 · W1 14/26→18/26. advanced 카테고리 마감, keyValue 단독 뷰 선례 여섯을 minMaxPair sim.ts 헤더에 세웠다. purpose.alt 생략이 여섯째·일곱째이고 minMaxPair 가 새 조합 — 부류 ①과 ③이 한 편에서 함께 났다. FEEDBACK §3 대조를 워커 절차로 넣자 스캐너 통과 원고에서 결함 셋이 나왔다(기호 충돌 · 그림 열 어긋남 둘). 별건 적발 — check 마커 id 에 하이픈을 쓰면 build-html 이 실패하고 v2 편 9개가 그 상태인데 ci.ts 가 build-html 을 안 불러 강제 지점이 없다.
-  - 실행 문서: KANBAN.cards/KAN-034.5-0RGSQM.md (16/24 · 최근 08-29)
+  - 메모: 배치5 종료(2026-08-30) — S7 diffArrayRangeUpdate · S11 countingSort · S17 countIslands · S19 kadane 넷을 닫았다(20/24). 스캐너가 편마다 0 이고 build-html 도 편마다 0, ci.ts all 통과(단계 15). .mdx 91→87 · guide-rhythm 85→82 · W1 18/26→22/26. graph 카테고리 마감. 도구가 낸 claim 후보가 3건이라(array 에서 kadane 가 같은 카테고리 후속으로 막힘) 병렬 폭을 3 으로 낮추고 S7 종료 후 S19 를 같은 배치 안에서 이어 돌렸다 — 배치 경계는 넷 그대로. 인바운드 확인을 grep 으로 하다 countingSort←radixSort 링크를 놓쳐 삭제 뒤에 깨졌고, 카드 「검증」 절에 check-links refs 를 강제 지점으로 박았다. kadane 소멸로 예시 포인터 둘(.claude/authoring/paths.json · tools/ord004-regen.workflow.mjs)을 convexHull 로 옮겼다 — KAN-034 S2 가 mosAlgorithm 소멸 때 kadane 로 옮긴 자리와 같다. 배치4 가 적어 둔 build-html 결함 9편은 그대로이고 원인이 하나가 아니다 — 마커 id 하이픈 말고 viz·proof 마커 배치와 짝 없는 닫기도 있다.
+  - 실행 문서: KANBAN.cards/KAN-034.5-0RGSQM.md (20/24 · 최근 08-30)
   - 계획 리포트: KANBAN.reports/KAN-034.5-0RGSQM.report.html (낡음)
 
 ## 검토

@@ -10,7 +10,6 @@ src/algorithms/array/bestTimeToBuyAndSellStock/bestTimeToBuyAndSellStock-guide.m
 src/algorithms/array/bestTimeToBuyAndSellStockK/bestTimeToBuyAndSellStockK-guide.mdx	3	0
 src/algorithms/array/editDistance/editDistance-guide.mdx	3	0
 src/algorithms/array/fenwickRangeSum/fenwickRangeSum-guide.mdx	4	0
-src/algorithms/array/kadane/kadane-guide.mdx	4	0
 src/algorithms/array/largestRectangleInHistogram/largestRectangleInHistogram-guide.mdx	3	0
 src/algorithms/array/longestIncreasingSubsequence/longestIncreasingSubsequence-guide.mdx	5	0
 src/algorithms/array/maximumProductSubarray/maximumProductSubarray-guide.mdx	6	0
@@ -44,7 +43,6 @@ src/algorithms/graph-flow/minCut/minCut-guide.mdx	4	0
 src/algorithms/graph-flow/primMst/primMst-guide.mdx	3	0
 src/algorithms/graph/articulationPoints/articulationPoints-guide.mdx	4	0
 src/algorithms/graph/bridgesInGraph/bridgesInGraph-guide.mdx	4	0
-src/algorithms/graph/countIslands/countIslands-guide.mdx	4	0
 src/algorithms/graph/directedCycleDetection/directedCycleDetection-guide.mdx	2	0
 src/algorithms/graph/stronglyConnectedComponents/stronglyConnectedComponents-guide.mdx	4	1
 src/algorithms/graph/topologicalSort/topologicalSort-guide.mdx	3	0
@@ -66,7 +64,6 @@ src/algorithms/shortest-path/dagShortestPath/dagShortestPath-guide.mdx	4	0
 src/algorithms/shortest-path/dijkstra/dijkstra-guide.mdx	3	1
 src/algorithms/shortest-path/floydWarshall/floydWarshall-guide.mdx	4	0
 src/algorithms/shortest-path/spfa/spfa-guide.mdx	4	0
-src/algorithms/sorting/countingSort/countingSort-guide.mdx	3	0
 src/algorithms/sorting/externalMergeSort/externalMergeSort-guide.mdx	4	0
 src/algorithms/sorting/kthSmallest/kthSmallest-guide.mdx	7	0
 src/algorithms/sorting/medianFromDataStream/medianFromDataStream-guide.mdx	4	0
