@@ -23,7 +23,7 @@ const EXEMPLAR = {
   // ORD-004 의 알고리즘 예시는 v2 승격(KAN-034 S2, 2026-08-29)으로 `.mdx` 가 사라졌다.
   // 새 골격은 `.md` + 사이드카이고 이 워크플로가 다루던 형식이 아니다 — 그래서 예시를
   // 다른 편으로 옮긴다. 살아 있는 `.mdx` 중 하나를 가리켜야 이 워크플로가 돈다.
-  algo: 'src/algorithms/array/kadane/kadane-guide.mdx',
+  algo: 'src/algorithms/geometry/convexHull/convexHull-guide.mdx',
   ds: 'src/data-structures/tree/bPlusTree/bPlusTree-guide.mdx',
 }
 
