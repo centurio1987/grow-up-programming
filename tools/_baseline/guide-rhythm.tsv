@@ -16,16 +16,13 @@ src/algorithms/array/largestRectangleInHistogram/largestRectangleInHistogram-gui
 src/algorithms/array/longestIncreasingSubsequence/longestIncreasingSubsequence-guide.mdx	5	0
 src/algorithms/array/maximumProductSubarray/maximumProductSubarray-guide.mdx	6	0
 src/algorithms/array/nextGreaterElement/nextGreaterElement-guide.mdx	4	0
-src/algorithms/array/prefixSumRangeQuery/prefixSumRangeQuery-guide.mdx	4	0
 src/algorithms/array/segmentTreeRangeMin/segmentTreeRangeMin-guide.mdx	3	0
 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.mdx	3	0
 src/algorithms/array/subarraySumEqualsK/subarraySumEqualsK-guide.mdx	6	0
 src/algorithms/binary-search/searchInRotatedSortedArray/searchInRotatedSortedArray-guide.mdx	3	1
-src/algorithms/binary-search/ternarySearch/ternarySearch-guide.mdx	3	0
 src/algorithms/bit-manipulation/lowestSetBit/lowestSetBit-guide.mdx	4	0
 src/algorithms/bit-manipulation/matrixPowerFibonacci/matrixPowerFibonacci-guide.mdx	5	0
 src/algorithms/bit-manipulation/singleNumberXor/singleNumberXor-guide.mdx	3	0
-src/algorithms/dp/coinChangeWays/coinChangeWays-guide.mdx	4	0
 src/algorithms/dp/digitDp/digitDp-guide.mdx	4	0
 src/algorithms/dp/expectedValueDp/expectedValueDp-guide.mdx	4	0
 src/algorithms/dp/matrixChainMultiplication/matrixChainMultiplication-guide.mdx	4	0
@@ -51,7 +48,6 @@ src/algorithms/graph/articulationPoints/articulationPoints-guide.mdx	4	0
 src/algorithms/graph/bridgesInGraph/bridgesInGraph-guide.mdx	4	0
 src/algorithms/graph/countIslands/countIslands-guide.mdx	4	0
 src/algorithms/graph/dfsAllPaths/dfsAllPaths-guide.mdx	3	0
-src/algorithms/graph/dfsTraversal/dfsTraversal-guide.mdx	3	0
 src/algorithms/graph/directedCycleDetection/directedCycleDetection-guide.mdx	2	0
 src/algorithms/graph/stronglyConnectedComponents/stronglyConnectedComponents-guide.mdx	4	1
 src/algorithms/graph/topologicalSort/topologicalSort-guide.mdx	3	0

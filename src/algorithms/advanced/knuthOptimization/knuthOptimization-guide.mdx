@@ -127,7 +127,7 @@ S(0,3) = 10, S(1,2) = 3   →  우변 합 = 13
 
 ### 셈을 맡는 자료구조 — 누적합
 
-$S(i,j)$를 매번 $O(j-i)$로 순회해서 구하면 그 자체로 병목이 됩니다. 이 문제에서는 표준적인 누적합(prefix sum) 배열이 $S(i,j) = \text{prefix}[j+1] - \text{prefix}[i]$ 형태로 $O(1)$ 조회를 맡아 줘요. 누적합 자체를 더 자세히 알고 싶다면 프로젝트의 [prefixSumRangeQuery 가이드](../../array/prefixSumRangeQuery/prefixSumRangeQuery-guide.mdx)를 참고하세요 — 여기서는 "전처리 $O(n)$ 한 번으로 구간 합을 $O(1)$에 조회한다"는 결과만 가져다 씁니다.
+$S(i,j)$를 매번 $O(j-i)$로 순회해서 구하면 그 자체로 병목이 됩니다. 이 문제에서는 표준적인 누적합(prefix sum) 배열이 $S(i,j) = \text{prefix}[j+1] - \text{prefix}[i]$ 형태로 $O(1)$ 조회를 맡아 줘요. 누적합 자체를 더 자세히 알고 싶다면 프로젝트의 [prefixSumRangeQuery 가이드](../../array/prefixSumRangeQuery/prefixSumRangeQuery-guide.md)를 참고하세요 — 여기서는 "전처리 $O(n)$ 한 번으로 구간 합을 $O(1)$에 조회한다"는 결과만 가져다 씁니다.
 
 ### 왜 모순 없이 작동하는가
 
