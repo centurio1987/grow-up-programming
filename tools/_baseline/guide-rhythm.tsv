@@ -7,7 +7,6 @@ src/algorithms/advanced/divideAndConquerDp/divideAndConquerDp-guide.mdx	4	0
 src/algorithms/advanced/knuthOptimization/knuthOptimization-guide.mdx	4	0
 src/algorithms/advanced/meetInTheMiddleSubsetSum/meetInTheMiddleSubsetSum-guide.mdx	4	0
 src/algorithms/advanced/minMaxPair/minMaxPair-guide.mdx	4	0
-src/algorithms/advanced/nQueens/nQueens-guide.mdx	5	0
 src/algorithms/array/bestTimeToBuyAndSellStock/bestTimeToBuyAndSellStock-guide.mdx	5	0
 src/algorithms/array/bestTimeToBuyAndSellStockK/bestTimeToBuyAndSellStockK-guide.mdx	3	0
 src/algorithms/array/editDistance/editDistance-guide.mdx	3	0
@@ -15,14 +14,12 @@ src/algorithms/array/fenwickRangeSum/fenwickRangeSum-guide.mdx	4	0
 src/algorithms/array/kadane/kadane-guide.mdx	4	0
 src/algorithms/array/largestRectangleInHistogram/largestRectangleInHistogram-guide.mdx	3	0
 src/algorithms/array/longestIncreasingSubsequence/longestIncreasingSubsequence-guide.mdx	5	0
-src/algorithms/array/longestSubarrayAtMostSum/longestSubarrayAtMostSum-guide.mdx	3	0
 src/algorithms/array/maximumProductSubarray/maximumProductSubarray-guide.mdx	6	0
 src/algorithms/array/nextGreaterElement/nextGreaterElement-guide.mdx	4	0
 src/algorithms/array/prefixSumRangeQuery/prefixSumRangeQuery-guide.mdx	4	0
 src/algorithms/array/segmentTreeRangeMin/segmentTreeRangeMin-guide.mdx	3	0
 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.mdx	3	0
 src/algorithms/array/subarraySumEqualsK/subarraySumEqualsK-guide.mdx	6	0
-src/algorithms/binary-search/binarySearch/binarySearch-guide.mdx	3	0
 src/algorithms/binary-search/parametricBinarySearch/parametricBinarySearch-guide.mdx	4	0
 src/algorithms/binary-search/searchInRotatedSortedArray/searchInRotatedSortedArray-guide.mdx	3	1
 src/algorithms/binary-search/ternarySearch/ternarySearch-guide.mdx	3	0
@@ -53,7 +50,6 @@ src/algorithms/graph-flow/minCostMaxFlow/minCostMaxFlow-guide.mdx	7	0
 src/algorithms/graph-flow/minCut/minCut-guide.mdx	4	0
 src/algorithms/graph-flow/primMst/primMst-guide.mdx	3	0
 src/algorithms/graph/articulationPoints/articulationPoints-guide.mdx	4	0
-src/algorithms/graph/bfsShortestPath/bfsShortestPath-guide.mdx	3	0
 src/algorithms/graph/bridgesInGraph/bridgesInGraph-guide.mdx	4	0
 src/algorithms/graph/connectedComponents/connectedComponents-guide.mdx	4	0
 src/algorithms/graph/countIslands/countIslands-guide.mdx	4	0
