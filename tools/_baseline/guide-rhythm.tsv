@@ -20,7 +20,6 @@ src/algorithms/array/prefixSumRangeQuery/prefixSumRangeQuery-guide.mdx	4	0
 src/algorithms/array/segmentTreeRangeMin/segmentTreeRangeMin-guide.mdx	3	0
 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.mdx	3	0
 src/algorithms/array/subarraySumEqualsK/subarraySumEqualsK-guide.mdx	6	0
-src/algorithms/binary-search/parametricBinarySearch/parametricBinarySearch-guide.mdx	4	0
 src/algorithms/binary-search/searchInRotatedSortedArray/searchInRotatedSortedArray-guide.mdx	3	1
 src/algorithms/binary-search/ternarySearch/ternarySearch-guide.mdx	3	0
 src/algorithms/bit-manipulation/lowestSetBit/lowestSetBit-guide.mdx	4	0
@@ -35,7 +34,6 @@ src/algorithms/dp/subsetSum/subsetSum-guide.mdx	5	0
 src/algorithms/dp/treeMaxIndependentSet/treeMaxIndependentSet-guide.mdx	3	0
 src/algorithms/dp/tspBitmask/tspBitmask-guide.mdx	4	1
 src/algorithms/dp/unboundedKnapsack/unboundedKnapsack-guide.mdx	5	0
-src/algorithms/etc/maxCounters/maxCounters-guide.mdx	5	0
 src/algorithms/geometry/bentleyOttmann/bentleyOttmann-guide.mdx	4	0
 src/algorithms/geometry/closestPairOfPoints/closestPairOfPoints-guide.mdx	4	0
 src/algorithms/geometry/convexHull/convexHull-guide.mdx	3	0
@@ -51,7 +49,6 @@ src/algorithms/graph-flow/minCut/minCut-guide.mdx	4	0
 src/algorithms/graph-flow/primMst/primMst-guide.mdx	3	0
 src/algorithms/graph/articulationPoints/articulationPoints-guide.mdx	4	0
 src/algorithms/graph/bridgesInGraph/bridgesInGraph-guide.mdx	4	0
-src/algorithms/graph/connectedComponents/connectedComponents-guide.mdx	4	0
 src/algorithms/graph/countIslands/countIslands-guide.mdx	4	0
 src/algorithms/graph/dfsAllPaths/dfsAllPaths-guide.mdx	3	0
 src/algorithms/graph/dfsTraversal/dfsTraversal-guide.mdx	3	0
@@ -82,7 +79,6 @@ src/algorithms/sorting/insertionSort/insertionSort-guide.mdx	5	0
 src/algorithms/sorting/kthSmallest/kthSmallest-guide.mdx	7	0
 src/algorithms/sorting/medianFromDataStream/medianFromDataStream-guide.mdx	4	0
 src/algorithms/sorting/radixSort/radixSort-guide.mdx	3	0
-src/algorithms/sorting/sortArray/sortArray-guide.mdx	4	0
 src/algorithms/sorting/topKFrequent/topKFrequent-guide.mdx	3	0
 src/algorithms/string/ahoCorasick/ahoCorasick-guide.mdx	6	0
 src/algorithms/string/findAllOccurrences/findAllOccurrences-guide.mdx	4	0

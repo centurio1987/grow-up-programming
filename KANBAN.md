@@ -90,8 +90,8 @@
   - 목적: 문제_가이드_목록.md 상 등급 26편 중 파일럿 2편을 뺀 24편을 문서 순으로 재집필한다
   - 이유: 유저가 중요도 높은 순으로 구성하라고 지시했고, 상 등급이 코딩 테스트 합격선과 실무 일상을 가른다. 여기서 binary-search·graph·advanced·etc 네 카테고리가 처음 열린다
   - 목표: 24편이 .md 로 서고 그 .mdx 가 사라지며, 인덱스 링크와 baseline 행이 함께 정리돼 상 등급에 v1 잔여가 0 이 된다
-  - 메모: 배치1 종료(2026-08-29) — S1 binarySearch · S4 longestSubarrayAtMostSum · S13 bfsShortestPath · S18 nQueens 넷을 닫았다(4/24). 스캐너 넷이 편마다 0 이고 ci.ts all 통과. 링크 279건 실재. guide-rhythm 101→97 · W1 2/26→6/26. 다음은 배치2(maxCounters·parametricBinarySearch·connectedComponents·sortArray)
-  - 실행 문서: KANBAN.cards/KAN-034.5-0RGSQM.md (4/24 · 최근 08-29)
+  - 메모: 배치2 종료(2026-08-29) — S8 maxCounters · S2 parametricBinarySearch · S14 connectedComponents · S9 sortArray 넷을 닫았다(8/24). 스캐너가 편마다 0 이고 ci.ts all 통과(단계 15). 링크 288건 실재. .mdx 103→99 · guide-rhythm 97→93 · W1 6/26→10/26. purpose.alt 생략이 maxCounters 에서 세 번째로 돌았고 사유 부류가 하나 늘었다(대조할 경쟁 설계 자체가 없다). 배치1 이 FEEDBACK.md §4 표에 잘못 넣은 판정 4행을 §5 로 옮겼다. 다음은 배치3(ternarySearch·prefixSumRangeQuery·dfsTraversal·coinChangeWays)
+  - 실행 문서: KANBAN.cards/KAN-034.5-0RGSQM.md (8/24 · 최근 08-29)
   - 계획 리포트: KANBAN.reports/KAN-034.5-0RGSQM.report.html (낡음)
 
 ## 검토
