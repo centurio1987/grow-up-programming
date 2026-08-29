@@ -6,13 +6,11 @@ src/algorithms/advanced/countInversions/countInversions-guide.mdx	3	0
 src/algorithms/advanced/divideAndConquerDp/divideAndConquerDp-guide.mdx	4	0
 src/algorithms/advanced/knuthOptimization/knuthOptimization-guide.mdx	4	0
 src/algorithms/advanced/meetInTheMiddleSubsetSum/meetInTheMiddleSubsetSum-guide.mdx	4	0
-src/algorithms/array/bestTimeToBuyAndSellStock/bestTimeToBuyAndSellStock-guide.mdx	5	0
 src/algorithms/array/bestTimeToBuyAndSellStockK/bestTimeToBuyAndSellStockK-guide.mdx	3	0
 src/algorithms/array/editDistance/editDistance-guide.mdx	3	0
 src/algorithms/array/fenwickRangeSum/fenwickRangeSum-guide.mdx	4	0
 src/algorithms/array/largestRectangleInHistogram/largestRectangleInHistogram-guide.mdx	3	0
 src/algorithms/array/longestIncreasingSubsequence/longestIncreasingSubsequence-guide.mdx	5	0
-src/algorithms/array/maximumProductSubarray/maximumProductSubarray-guide.mdx	6	0
 src/algorithms/array/nextGreaterElement/nextGreaterElement-guide.mdx	4	0
 src/algorithms/array/segmentTreeRangeMin/segmentTreeRangeMin-guide.mdx	3	0
 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.mdx	3	0
@@ -67,7 +65,6 @@ src/algorithms/shortest-path/spfa/spfa-guide.mdx	4	0
 src/algorithms/sorting/externalMergeSort/externalMergeSort-guide.mdx	4	0
 src/algorithms/sorting/kthSmallest/kthSmallest-guide.mdx	7	0
 src/algorithms/sorting/medianFromDataStream/medianFromDataStream-guide.mdx	4	0
-src/algorithms/sorting/radixSort/radixSort-guide.mdx	3	0
 src/algorithms/sorting/topKFrequent/topKFrequent-guide.mdx	3	0
 src/algorithms/string/ahoCorasick/ahoCorasick-guide.mdx	6	0
 src/algorithms/string/findAllOccurrences/findAllOccurrences-guide.mdx	4	0

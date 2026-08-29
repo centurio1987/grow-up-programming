@@ -90,8 +90,8 @@
   - 목적: 문제_가이드_목록.md 상 등급 26편 중 파일럿 2편을 뺀 24편을 문서 순으로 재집필한다
   - 이유: 유저가 중요도 높은 순으로 구성하라고 지시했고, 상 등급이 코딩 테스트 합격선과 실무 일상을 가른다. 여기서 binary-search·graph·advanced·etc 네 카테고리가 처음 열린다
   - 목표: 24편이 .md 로 서고 그 .mdx 가 사라지며, 인덱스 링크와 baseline 행이 함께 정리돼 상 등급에 v1 잔여가 0 이 된다
-  - 메모: 배치5 종료(2026-08-30) — S7 diffArrayRangeUpdate · S11 countingSort · S17 countIslands · S19 kadane 넷을 닫았다(20/24). 스캐너가 편마다 0 이고 build-html 도 편마다 0, ci.ts all 통과(단계 15). .mdx 91→87 · guide-rhythm 85→82 · W1 18/26→22/26. graph 카테고리 마감. 도구가 낸 claim 후보가 3건이라(array 에서 kadane 가 같은 카테고리 후속으로 막힘) 병렬 폭을 3 으로 낮추고 S7 종료 후 S19 를 같은 배치 안에서 이어 돌렸다 — 배치 경계는 넷 그대로. 인바운드 확인을 grep 으로 하다 countingSort←radixSort 링크를 놓쳐 삭제 뒤에 깨졌고, 카드 「검증」 절에 check-links refs 를 강제 지점으로 박았다. kadane 소멸로 예시 포인터 둘(.claude/authoring/paths.json · tools/ord004-regen.workflow.mjs)을 convexHull 로 옮겼다 — KAN-034 S2 가 mosAlgorithm 소멸 때 kadane 로 옮긴 자리와 같다. 배치4 가 적어 둔 build-html 결함 9편은 그대로이고 원인이 하나가 아니다 — 마커 id 하이픈 말고 viz·proof 마커 배치와 짝 없는 닫기도 있다.
-  - 실행 문서: KANBAN.cards/KAN-034.5-0RGSQM.md (20/24 · 최근 08-30)
+  - 메모: 배치6 종료(2026-08-30) — S12 radixSort · S20 maximumProductSubarray · S21 houseRobber · S23 bestTimeToBuyAndSellStock 넷을 닫아 24/24 이고 W1 이 26/26 으로 마감됐다. 웨이브 배리어가 풀려 W2 claim 후보 10건이 열렸다. 편마다 스캐너 넷 0 · guide 테스트 통과 · build-html 0, ci.ts all 통과(단계 15). .mdx 87→83 · guide-rhythm 82→79 · check-links 343건 전부 실재 — 카드 「검증」 절의 웨이브 마감 예측(83 · 79)과 정확히 일치한다. 도구가 낸 claim 후보가 2건이라(array 셋이 같은 카테고리로 막힘) 병렬 폭을 2 로 잡고 S20→S21→S23 을 배치 안에서 이어 돌렸다 — 배치 경계는 넷 그대로. 배치 문서 §2 의 「넷 다 카테고리가 열려 있다」가 틀렸고 도구가 맞았다. 네 편 다 FEEDBACK §3 대조에서 스캐너 통과 뒤에 결함이 나왔다(radixSort 3 · houseRobber 3 · bestTimeToBuyAndSellStock 7) — 가장 큰 것은 bestTime 의 기호 충돌로 「오늘 파는 이익」이 P[j]−m[j−1] 과 P[j]−m[j] 두 값을 겸해 갱신일에 −5·−1 대 0 으로 갈리던 것이다. L37 레일 실렌더는 네 편 다 워커 미확인이라 오케스트레이터가 따로 본다.
+  - 실행 문서: KANBAN.cards/KAN-034.5-0RGSQM.md (24/24 · 최근 08-30)
   - 계획 리포트: KANBAN.reports/KAN-034.5-0RGSQM.report.html (낡음)
 
 ## 검토
