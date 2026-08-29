@@ -105,7 +105,7 @@ Counting Sort는 값이 $[0, k-1]$ 범위의 정수일 때, 비교 없이 빈도
 
 Counting Sort 혼자서는 $k$가 매우 크면(이 문제처럼 $10^9$) 빈도 배열 자체가 감당이 안 됩니다. 하지만 자릿수 하나(0~255)에 대해서만 적용하면 $k=256$으로 고정되니 문제가 없어요. **Radix Sort는 이 Counting Sort를 자릿수마다 반복 적용하는 알고리즘**입니다 — 이 "패스당 $O(N+k)$" 비용이 다음 절 코드에서 그대로 재사용되니 기억해 두세요.
 
-> 참고로 이 프로젝트에는 Counting Sort만 다루는 별도 가이드도 있습니다([countingSort 가이드](../countingSort/countingSort-guide.mdx)) — 값 범위 $k$가 작을 때는 굳이 자릿수로 쪼개지 않고 이 알고리즘 하나로 충분한 경우를 다룹니다.
+> 참고로 이 프로젝트에는 Counting Sort만 다루는 별도 가이드도 있습니다([countingSort 가이드](../countingSort/countingSort-guide.md)) — 값 범위 $k$가 작을 때는 굳이 자릿수로 쪼개지 않고 이 알고리즘 하나로 충분한 경우를 다룹니다.
 
 ### 왜 모순 없이 작동하는가
 
