@@ -90,8 +90,8 @@
   - 목적: 문제_가이드_목록.md 상 등급 26편 중 파일럿 2편을 뺀 24편을 문서 순으로 재집필한다
   - 이유: 유저가 중요도 높은 순으로 구성하라고 지시했고, 상 등급이 코딩 테스트 합격선과 실무 일상을 가른다. 여기서 binary-search·graph·advanced·etc 네 카테고리가 처음 열린다
   - 목표: 24편이 .md 로 서고 그 .mdx 가 사라지며, 인덱스 링크와 baseline 행이 함께 정리돼 상 등급에 v1 잔여가 0 이 된다
-  - 메모: 배치3 종료(2026-08-29) — S3 ternarySearch · S5 prefixSumRangeQuery · S15 dfsTraversal · S22 coinChangeWays 넷을 닫았다(12/24, 절반). 스캐너가 편마다 0 이고 ci.ts all 통과(단계 15). 링크 300건 실재. .mdx 99→95 · guide-rhythm 93→89 · W1 10/26→14/26. binary-search 카테고리 마감. purpose.alt 생략이 넷째·다섯째이고 dfsTraversal 은 새 부류 — 절차가 유일해 경쟁 설계를 세울 수 없다. .mdx 삭제가 아직 v1 인 편의 인바운드 상호 링크를 깨는 것이 처음 드러나 둘(knuthOptimization · dfsAllPaths)을 함께 고쳤다.
-  - 실행 문서: KANBAN.cards/KAN-034.5-0RGSQM.md (12/24 · 최근 08-29)
+  - 메모: 배치4 종료(2026-08-29) — S6 subarraySumEqualsK · S10 insertionSort · S16 dfsAllPaths · S24 minMaxPair 넷을 닫았다(16/24). 스캐너가 편마다 0 이고 ci.ts all 통과(단계 15). .mdx 95→91 · guide-rhythm 89→85 · W1 14/26→18/26. advanced 카테고리 마감, keyValue 단독 뷰 선례 여섯을 minMaxPair sim.ts 헤더에 세웠다. purpose.alt 생략이 여섯째·일곱째이고 minMaxPair 가 새 조합 — 부류 ①과 ③이 한 편에서 함께 났다. FEEDBACK §3 대조를 워커 절차로 넣자 스캐너 통과 원고에서 결함 셋이 나왔다(기호 충돌 · 그림 열 어긋남 둘). 별건 적발 — check 마커 id 에 하이픈을 쓰면 build-html 이 실패하고 v2 편 9개가 그 상태인데 ci.ts 가 build-html 을 안 불러 강제 지점이 없다.
+  - 실행 문서: KANBAN.cards/KAN-034.5-0RGSQM.md (16/24 · 최근 08-29)
   - 계획 리포트: KANBAN.reports/KAN-034.5-0RGSQM.report.html (낡음)
 
 ## 검토
