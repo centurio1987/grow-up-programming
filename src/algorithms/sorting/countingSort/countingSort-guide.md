@@ -617,7 +617,7 @@ countingSort([])                     →  []
 | 같은 이름이 나오는 자리 | 키를 무엇으로 두는가 | 칸 수 |
 | --- | --- | --- |
 | 이 편의 계수 정렬 | 값 그 자체 | 1,001 |
-| [자릿수 정렬](../radixSort/radixSort-guide.mdx) | 한 자리의 숫자 | 진법 크기(10 이나 256) |
+| [자릿수 정렬](../radixSort/radixSort-guide.md) | 한 자리의 숫자 | 진법 크기(10 이나 256) |
 | [상위 K 빈도](../topKFrequent/topKFrequent-guide.mdx) | 빈도수 | 입력 칸 수 + 1 |
 | 비트셋 | 원소 번호 | 원소의 종류 수 |
 
