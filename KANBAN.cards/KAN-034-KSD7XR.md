@@ -68,7 +68,6 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
    그대로다(실측). 이관 단계가 없으면 잔여 수치가 0 으로 닫히지 않는다.
 
 ## 실행 계획
-## 실행 계획
 `S<n>` 하나가 하위 카드 하나에 대응한다. 하위 카드 id 는 괄호 안에 적는다.
 
 - [x] `S1` 정합 회복 + 파일럿 4편 재판정 (`KAN-034.1-V337W5`)
@@ -87,7 +86,7 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
       완료 기준: `bun run tools/algo-wbs.ts` 가 웨이브별 남은 편과 트랙별 claim 후보를 냄 ·
       `--all` 이 107 유닛 전수를 냄 · 앞 웨이브가 안 비면 다음 후보를 내지 않음 ·
       같은 카테고리·같은 뷰 조합 첫 편이 도는 중이면 그 후속만 막음
-- [ ] `S5` W1 — 중요도 상 24편 (`KAN-034.5-0RGSQM`)
+- [>] `S5` W1 — 중요도 상 24편 (`KAN-034.5-0RGSQM`) <!-- claim:s=7970a5f3 t=2026-08-29T04:38 -->
       완료 기준: 상 등급에서 살아 있는 `.mdx` 0 · `guide-rhythm.tsv` 101 → 79
 - [ ] `S6` W2 — 중요도 중 41편 (`KAN-034.6-CF6ZHE`)
       완료 기준: 중 등급에서 살아 있는 `.mdx` 0 · `guide-rhythm.tsv` 79 → 41
@@ -97,7 +96,12 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
       완료 기준: `_deprecated/` 처분 완료 · `check-guide-rhythm.ts` 가 자료구조만 봄 ·
       `bun run tools/check-links.ts check` 통과
 
-### 편별 배치 종료 산출 (일곱) — `S5`~`S7` 의 편마다 적용
+### 편별 배치 종료 산출 (여섯) — `S5`~`S7` 의 편마다 적용
+
+> **일곱이었다가 여섯이 됐다(2026-08-29).** 옛 6번 `verdicts/<name>-r<NN>.md` 커밋은
+> 이해 시험의 응답 원문을 보관하는 자리였다. 그 판정이 걷히면서 그 파일도 새로
+> 쌓이지 않는다 — `sandbox/algo-guide-v2/README.md` 가 그렇게 적었고, 실측으로도
+> 마지막 신규 verdict 는 `S1`(8/28)의 것이다. 지금 판정 근거는 스캐너 실행 출력이다.
 
 1. `<name>-guide.md` + 사이드카 5종 생성
 2. 같은 편의 `<name>-guide.mdx` **삭제**
@@ -108,8 +112,7 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
    없는 대로 넘어간다(`diffArrayRangeUpdate`·`houseRobber`·`longestCommonSubsequence`·
    `slidingWindowMaximum`·`enumerateSubmasks`·`segmentsIntersect`·`mosAlgorithm`·`knapsack01`)
 5. `FEEDBACK.md` §5 에 조건부 절 셋(`L34`·`L35`·`L36`) 판정 행 추가
-6. `verdicts/<name>-r<NN>.md` 커밋
-7. `KANBAN.md` 카드 메모에 유닛 id 로 시작하는 결과 — `manage-kanban` 경유
+6. `KANBAN.md` 카드 메모에 유닛 id 로 시작하는 결과 — `manage-kanban` 경유
 
 ### 판정 장치 — 2026-08-29 교체
 
@@ -123,8 +126,6 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
 
 **옮겨지지 않은 몫은 사람이 진다** — `FEEDBACK.md` §3 의 「옛 `V…`」 네 줄이다.
 
-## 검증
-## 검증
 ## 검증
 이 카드가 끝난 것은 아래 셋이 동시에 참일 때다.
 
@@ -228,3 +229,5 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
 - 2026-08-29T04:20 · s:ed9f919e · S3 done — L38~L40 신설 — check-v2.ts P11(기호 개수 선언↔표)·P12(코드 이름 대응 실재)·P13(정의식 재기술) + 회귀 시험 9벌. 파일럿 4편 위반 0
 - 2026-08-29T04:21 · s:ed9f919e · S4 doing — 착수
 - 2026-08-29T04:27 · s:ed9f919e · S4 done — tools/algo-wbs.ts 신설 — 웨이브 배리어·카테고리 선례·뷰 조합 선례 셋. 상태를 문서에 안 적는다(순서=목록, 완료=파일시스템). 회귀 시험 14벌
+- 2026-08-29T04:38 · s:7970a5f3 · S5 doing — 착수
+- 2026-08-29T12:21 · s:7970a5f3 — `실행 계획` 섹션 교체

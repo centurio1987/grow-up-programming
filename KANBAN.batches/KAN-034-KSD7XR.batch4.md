@@ -28,7 +28,7 @@ steps: S6
 **편마다 종료 산출 일곱**(카드 실행 문서 「편별 배치 종료 산출」 그대로):
 `<name>-guide.md` + 사이드카 5종 생성 · 같은 편 `.mdx` 삭제 · `문제_가이드_목록.md` 링크 교체 ·
 `tools/_baseline/guide-rhythm.tsv` 그 편 행 삭제(없는 편 8개는 없는 대로) ·
-`FEEDBACK.md` §5 조건부 절 셋(`L34`·`L35`·`L36`) 판정 행 추가 · `verdicts/<name>-r<NN>.md` 커밋 ·
+`FEEDBACK.md` §5 조건부 절 셋(`L34`·`L35`·`L36`) 판정 행 추가 ·
 `KANBAN.md` 카드 메모 갱신(`manage-kanban` 경유)
 
 **완료 기준**: 중 등급에서 살아 있는 `.mdx` **0** · `guide-rhythm.tsv` 79 → 41 · 살아 있는 `.mdx` 83 → 42

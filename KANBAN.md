@@ -91,6 +91,7 @@
   - 이유: 유저가 중요도 높은 순으로 구성하라고 지시했고, 상 등급이 코딩 테스트 합격선과 실무 일상을 가른다. 여기서 binary-search·graph·advanced·etc 네 카테고리가 처음 열린다
   - 목표: 24편이 .md 로 서고 그 .mdx 가 사라지며, 인덱스 링크와 baseline 행이 함께 정리돼 상 등급에 v1 잔여가 0 이 된다
   - 실행 문서: KANBAN.cards/KAN-034.5-0RGSQM.md (0/24 · 최근 08-29)
+  - 계획 리포트: KANBAN.reports/KAN-034.5-0RGSQM.report.html (낡음)
 
 ## 검토
 

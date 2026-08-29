@@ -464,7 +464,10 @@
       "parent": "KAN-034-KSD7XR",
       "scope": [
         "sandbox/algo-guide-v2/**",
+        "KANBAN.md",
         "KANBAN.cards/**",
+        "KANBAN.batches/**",
+        "KANBAN.reviews/**",
         ".kanban/**"
       ]
     },
@@ -553,7 +556,6 @@
       "parent": "KAN-034-KSD7XR",
       "scope": [
         "src/algorithms/**",
-        "sandbox/algo-guide-v2/verdicts/**",
         "sandbox/algo-guide-v2/FEEDBACK.md",
         "tools/_baseline/guide-rhythm.tsv",
         "문제_가이드_목록.md",
@@ -639,6 +641,8 @@
     "KAN-001",
     "KAN-032",
     "KAN-027",
+    "KAN-034-KSD7XR",
+    "KAN-034.5-0RGSQM",
     "KAN-029",
     "KAN-030",
     "KAN-007",
@@ -666,10 +670,8 @@
     "KAN-025",
     "KAN-024",
     "KAN-033-E8KHSV",
-    "KAN-034-KSD7XR",
     "KAN-034.1-V337W5",
-    "KAN-034.2-5V5M2F",
-    "KAN-034.5-0RGSQM"
+    "KAN-034.2-5V5M2F"
   ],
   "recent": [
     {
