@@ -93,7 +93,8 @@
   - 목적: 문제_가이드_목록.md 중 등급 41편을 문서 순으로 재집필한다
   - 이유: 상 등급이 닫힌 뒤에 온다 — 웨이브 경계가 배리어이고, 중요도 순이 병렬화에 먹히면 유저 지시를 어기는 것이 된다. 여기서 bit-manipulation·string·graph-flow·shortest-path·tree 다섯 카테고리가 처음 열린다
   - 목표: 41편이 .md 로 서고 중 등급에 v1 잔여가 0 이 된다
-  - 실행 문서: KANBAN.cards/KAN-034.6-CF6ZHE.md (0/41 · 최근 08-30)
+  - 메모: 배치1 종료(2026-08-30) — S1 dijkstra · S12 trie · S4 longestCommonSubsequence · S35 fastPower 넷을 닫아 4/41. 편마다 스캐너 넷 0 · guide 테스트 통과 · build-html 0, ci.ts all 통과(단계 15). .mdx 83→79 · guide-rhythm 79→76 · check-links 378건 전부 실재. **새 뷰 둘의 선례를 세웠다** — dijkstra 가 priorityQueue(heap 은 배열의 실제 순서로 그리고 highlight:[0] 이 다음에 나올 자리, 같은 정점이 키를 달리해 여러 번 들어가는 것을 감추지 않는다), trie 가 tree(root 는 걸음 끝의 구조 전체 · label 은 간선 글자 하나 · status 넷 · children 에 null 금지). 뒤의 primMst·medianFromDataStream·radixTree·treeMaxIndependentSet·treeDiameter 가 이 둘을 베낀다. **네 편 전부 FEEDBACK §3 대조에서 스캐너 통과 뒤 결함이 나왔다**(6 · 6 · 9 · 12건, 도합 33건) — W1 배치6 의 넷을 더하면 여덟 편 연속이다. 부류가 반복된다: 기호 충돌(넷 다 나왔다) · 논증 결함(dijkstra 의 「큐에 없는 정점은 Infinity」와 LCS 의 「첨자 합이 작다」 둘 다 거짓) · 손으로 적은 표·그림의 사실 오류 · 다른 편에서 옮겨 온 문구. 출처에서도 둘 걸렀다 — LCS 의 difflib 은 LCS 가 아니어서 뺐고(contiguous), Go 의 갈아타는 기준은 조건문에 있어 인용 못 한다고 적었다. 통합 검토 몫 하나 적재: fastPower.test.ts:59 기댓값이 법보다 크다(학습자 스텁 트랙이라 안 고쳤다). L37 레일 실렌더는 네 편 다 미확인
+  - 실행 문서: KANBAN.cards/KAN-034.6-CF6ZHE.md (4/41 · 최근 08-30)
   - 계획 리포트: KANBAN.reports/KAN-034.6-CF6ZHE.report.html (낡음)
 
 ## 검토

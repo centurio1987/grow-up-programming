@@ -49,7 +49,6 @@ src/algorithms/graph/zeroOneBfs/zeroOneBfs-guide.mdx	5	0
 src/algorithms/number-theory/binomialModP/binomialModP-guide.mdx	5	0
 src/algorithms/number-theory/crt/crt-guide.mdx	7	0
 src/algorithms/number-theory/extendedEuclidean/extendedEuclidean-guide.mdx	7	0
-src/algorithms/number-theory/fastPower/fastPower-guide.mdx	3	0
 src/algorithms/number-theory/fftMultiply/fftMultiply-guide.mdx	8	0
 src/algorithms/number-theory/gcd/gcd-guide.mdx	4	0
 src/algorithms/number-theory/isPrimeTrial/isPrimeTrial-guide.mdx	4	0
@@ -59,7 +58,6 @@ src/algorithms/number-theory/sieveOfEratosthenes/sieveOfEratosthenes-guide.mdx	6
 src/algorithms/shortest-path/aStarSearch/aStarSearch-guide.mdx	5	0
 src/algorithms/shortest-path/bellmanFord/bellmanFord-guide.mdx	3	0
 src/algorithms/shortest-path/dagShortestPath/dagShortestPath-guide.mdx	4	0
-src/algorithms/shortest-path/dijkstra/dijkstra-guide.mdx	3	1
 src/algorithms/shortest-path/floydWarshall/floydWarshall-guide.mdx	4	0
 src/algorithms/shortest-path/spfa/spfa-guide.mdx	4	0
 src/algorithms/sorting/externalMergeSort/externalMergeSort-guide.mdx	4	0
@@ -73,7 +71,6 @@ src/algorithms/string/longestPalindrome/longestPalindrome-guide.mdx	7	1
 src/algorithms/string/radixTree/radixTree-guide.mdx	3	0
 src/algorithms/string/suffixArray/suffixArray-guide.mdx	7	0
 src/algorithms/string/suffixAutomaton/suffixAutomaton-guide.mdx	4	0
-src/algorithms/string/trie/trie-guide.mdx	5	0
 src/algorithms/tree/heavyLightDecomposition/heavyLightDecomposition-guide.mdx	4	0
 src/algorithms/tree/lowestCommonAncestor/lowestCommonAncestor-guide.mdx	5	0
 src/algorithms/tree/subtreeSumQuery/subtreeSumQuery-guide.mdx	5	0
