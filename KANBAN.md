@@ -27,13 +27,6 @@
   - 목적: ORD-006 병렬 모델을 알고리즘 트랙에 이식하고, 웨이브 배리어와 선례 대기를 claim 판정으로 구현한 claim 도구를 짓는다
   - 이유: 107편을 손으로 배분하면 두 세션이 같은 편을 잡거나 중요도 순서가 병렬화에 먹힌다. 상태를 문서에 적으면 그 문서가 곧 충돌 지점이 된다 — ORD-006 이 그 교훈을 이미 냈다
   - 목표: algo-wbs.ts 가 웨이브별 남은 편과 트랙별 claim 후보를 내고, 앞 웨이브가 안 비면 다음 후보를 내지 않으며, 같은 카테고리·같은 뷰 조합의 첫 편이 도는 중이면 그 후속만 막는다
-- `KAN-034.6-CF6ZHE` W2 — 중요도 중 41편 전개 — 생성:ai · 최종:ai · 갱신:2026-08-28
-  - 상위: `KAN-034-KSD7XR` (진행 중)
-  - 짧은 제목: W2 중 41편
-  - 목적: 문제_가이드_목록.md 중 등급 41편을 문서 순으로 재집필한다
-  - 이유: 상 등급이 닫힌 뒤에 온다 — 웨이브 경계가 배리어이고, 중요도 순이 병렬화에 먹히면 유저 지시를 어기는 것이 된다. 여기서 bit-manipulation·string·graph-flow·shortest-path·tree 다섯 카테고리가 처음 열린다
-  - 목표: 41편이 .md 로 서고 중 등급에 v1 잔여가 0 이 된다
-  - 실행 문서: KANBAN.cards/KAN-034.6-CF6ZHE.md (0/41 · 최근 08-30)
 - `KAN-034.7-QMZ3RE` W3 — 중요도 하 42편 전개 — 생성:ai · 최종:ai · 갱신:2026-08-28
   - 상위: `KAN-034-KSD7XR` (진행 중)
   - 짧은 제목: W3 하 42편
@@ -94,6 +87,14 @@
   - 메모: 배치6 종료(2026-08-30) — S12 radixSort · S20 maximumProductSubarray · S21 houseRobber · S23 bestTimeToBuyAndSellStock 넷을 닫아 24/24 이고 W1 이 26/26 으로 마감됐다. 웨이브 배리어가 풀려 W2 claim 후보 10건이 열렸다. 편마다 스캐너 넷 0 · guide 테스트 통과 · build-html 0, ci.ts all 통과(단계 15). .mdx 87→83 · guide-rhythm 82→79 · check-links 343건 전부 실재 — 카드 「검증」 절의 웨이브 마감 예측(83 · 79)과 정확히 일치한다. 도구가 낸 claim 후보가 2건이라(array 셋이 같은 카테고리로 막힘) 병렬 폭을 2 로 잡고 S20→S21→S23 을 배치 안에서 이어 돌렸다 — 배치 경계는 넷 그대로. 배치 문서 §2 의 「넷 다 카테고리가 열려 있다」가 틀렸고 도구가 맞았다. 네 편 다 FEEDBACK §3 대조에서 스캐너 통과 뒤에 결함이 나왔다(radixSort 3 · houseRobber 3 · bestTimeToBuyAndSellStock 7) — 가장 큰 것은 bestTime 의 기호 충돌로 「오늘 파는 이익」이 P[j]−m[j−1] 과 P[j]−m[j] 두 값을 겸해 갱신일에 −5·−1 대 0 으로 갈리던 것이다. L37 레일 실렌더는 네 편 다 워커 미확인이라 오케스트레이터가 따로 본다.
   - 실행 문서: KANBAN.cards/KAN-034.5-0RGSQM.md (24/24 · 최근 08-30)
   - 계획 리포트: KANBAN.reports/KAN-034.5-0RGSQM.report.html (낡음)
+- `KAN-034.6-CF6ZHE` W2 — 중요도 중 41편 전개 — 생성:ai · 최종:ai · 갱신:2026-08-30
+  - 상위: `KAN-034-KSD7XR` (진행 중)
+  - 짧은 제목: W2 중 41편
+  - 목적: 문제_가이드_목록.md 중 등급 41편을 문서 순으로 재집필한다
+  - 이유: 상 등급이 닫힌 뒤에 온다 — 웨이브 경계가 배리어이고, 중요도 순이 병렬화에 먹히면 유저 지시를 어기는 것이 된다. 여기서 bit-manipulation·string·graph-flow·shortest-path·tree 다섯 카테고리가 처음 열린다
+  - 목표: 41편이 .md 로 서고 중 등급에 v1 잔여가 0 이 된다
+  - 실행 문서: KANBAN.cards/KAN-034.6-CF6ZHE.md (0/41 · 최근 08-30)
+  - 계획 리포트: KANBAN.reports/KAN-034.6-CF6ZHE.report.html (낡음)
 
 ## 검토
 
