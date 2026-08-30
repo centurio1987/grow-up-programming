@@ -86,7 +86,7 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
       완료 기준: `bun run tools/algo-wbs.ts` 가 웨이브별 남은 편과 트랙별 claim 후보를 냄 ·
       `--all` 이 107 유닛 전수를 냄 · 앞 웨이브가 안 비면 다음 후보를 내지 않음 ·
       같은 카테고리·같은 뷰 조합 첫 편이 도는 중이면 그 후속만 막음
-- [>] `S5` W1 — 중요도 상 24편 (`KAN-034.5-0RGSQM`) <!-- claim:s=7970a5f3 t=2026-08-29T04:38 -->
+- [x] `S5` W1 — 중요도 상 24편 (`KAN-034.5-0RGSQM`)
       완료 기준: 상 등급에서 살아 있는 `.mdx` 0 · `guide-rhythm.tsv` 101 → 79
 - [ ] `S6` W2 — 중요도 중 41편 (`KAN-034.6-CF6ZHE`)
       완료 기준: 중 등급에서 살아 있는 `.mdx` 0 · `guide-rhythm.tsv` 79 → 41
@@ -231,3 +231,4 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
 - 2026-08-29T04:27 · s:ed9f919e · S4 done — tools/algo-wbs.ts 신설 — 웨이브 배리어·카테고리 선례·뷰 조합 선례 셋. 상태를 문서에 안 적는다(순서=목록, 완료=파일시스템). 회귀 시험 14벌
 - 2026-08-29T04:38 · s:7970a5f3 · S5 doing — 착수
 - 2026-08-29T12:21 · s:7970a5f3 — `실행 계획` 섹션 교체
+- 2026-08-30T13:01 · s:39d8f0cf · S5 done — W1 — 중요도 상 24편 전개 완료(KAN-034.5-0RGSQM 24/24). 배치 여섯으로 나눠 돌렸고 편마다 스캐너 넷 0 · guide 테스트 통과 · build-html 0. 웨이브 마감 실측: 상 등급에 살아 있는 .mdx 0(algo-wbs [W1] 26/26) · guide-rhythm 101→79 · check-links 343건 전부 실재 · ci.ts all 통과(단계 15). 완료 기준 둘 다 충족. 웨이브 배리어가 풀려 W2 claim 후보 10건이 열렸다
