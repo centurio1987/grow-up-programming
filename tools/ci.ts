@@ -98,6 +98,14 @@ const GATES: Step[] = [
     label: "v2 은유 — 문서 전체",
     argv: ["bun", "run", "tools/check-metaphor.ts", "--all"],
   },
+  {
+    // 마커 규약은 **원고를 빌드해야만** 드러난다. 이 단계가 없던 동안 하이픈 `check` id 를
+    // 쓴 9 편에서 접기가 통째로 안 일어나 `selfcheck` 의 답이 웹에서 그대로 보였고,
+    // 스캐너 셋은 전부 초록이었다(2026-08-31 실측). `FEEDBACK` `L19` 가 적어 둔 구멍이다.
+    // `--all` 은 파일을 쓰지 않는다 — 여기서 필요한 것은 산출이 아니라 종료코드다.
+    label: "v2 마커 규약 — 빌드해야 드러나는 것",
+    argv: ["bun", "run", "tools/build-html.ts", "--all"],
+  },
 ];
 
 function run(step: Step): boolean {

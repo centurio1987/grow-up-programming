@@ -153,8 +153,30 @@ const RAIL_JS = `(function () {
 
 /* ────────────────────────── 마커 플러그인 ────────────────────────── */
 
-const VIZ_OPEN = /^<!--viz:([A-Za-z_$][\w$]*)-->$/;
-const CHECK_OPEN = /^<!--check:([A-Za-z_$][\w$]*)-->$/;
+/**
+ * 마커 id 의 문법. **JS 식별자가 아니라 `check-proof.ts` 와 같은 문법을 쓴다.**
+ *
+ * 앞판은 `[A-Za-z_$][\w$]*` 였다 — 하이픈을 안 받는다. 그런데 id 가 가는 자리는
+ * `data-viz` · `data-check` **속성값**과 `sims[id]` 라는 **문자열 키**뿐이라
+ * (`mount.ts:47-49`) 하이픈이 합법이고, 실제로 `check-proof.ts:84` 는 처음부터
+ * `[A-Za-z0-9_-]+` 를 받아 하이픈 id 가 303 개 중 다수다.
+ *
+ * 문법이 도구마다 갈린 대가가 실측으로 나왔다 — 하이픈 `check` id 를 쓴 **9 편**에서
+ * 여는 마커가 안 잡혀 닫는 마커만 남았고, 접기가 통째로 안 일어나 `selfcheck` 의 답이
+ * 웹에서 그대로 보였다(2026-08-31 브라우저 실측). `ci.ts` 가 이 도구를 안 불러
+ * 아무것도 막지 않았다 — 그래서 `--all` 단계를 함께 넣었다(`FEEDBACK` `L19`).
+ */
+const MARKER_ID = "[A-Za-z][A-Za-z0-9_-]*";
+/**
+ * `viz` 와 `proof` 가 **같은 펜스 하나**를 가리키는 편이 있다
+ * (`subarraySumEqualsK` · `ternarySearch` — 전개 표가 곧 실행 대조 대상이다).
+ * `check-proof` 는 원고에서 그 펜스를 읽어 통과하는데 빌더만 「마커 바로 다음이
+ * 펜스가 아니다」로 거부했다. 사이에 낀 것이 **주석 마커**뿐이면 건너뛰고 펜스를
+ * 찾는다 — 주석은 어차피 산출에 안 남는다.
+ */
+const PROOF_MARKER = new RegExp(`^<!--proof:${MARKER_ID}-->$`);
+const VIZ_OPEN = new RegExp(`^<!--viz:(${MARKER_ID})-->$`);
+const CHECK_OPEN = new RegExp(`^<!--check:(${MARKER_ID})-->$`);
 const CHECK_CLOSE = /^<!--\/check-->$/;
 
 interface MdNode {
@@ -199,9 +221,16 @@ function collapseMarkers(tree: MdNode, problems: string[]): string[] {
       const viz = VIZ_OPEN.exec(raw);
       if (viz) {
         const id = viz[1] as string;
-        const next = children[i + 1];
+        let fence = i + 1;
+        while (
+          children[fence]?.type === "html" &&
+          PROOF_MARKER.test((children[fence]?.value ?? "").trim())
+        ) {
+          fence++;
+        }
+        const next = children[fence];
         if (next?.type !== "code") {
-          problems.push(`\`${id}\`: 마커 바로 다음이 펜스가 아니다`);
+          problems.push(`\`${id}\`: 마커 다음이 펜스가 아니다`);
           continue;
         }
         const ascii = next.value ?? "";
@@ -211,7 +240,7 @@ function collapseMarkers(tree: MdNode, problems: string[]): string[] {
         ids.push(id);
         // `unist-util-visit` 은 노드 단위라 두 노드를 하나로 접을 수 없다.
         // 부모의 children 을 직접 splice 하고 인덱스를 되돌린다.
-        children.splice(i, 2, {
+        children.splice(i, fence - i + 1, {
           type: "vizPanel",
           data: {
             hName: "div",
@@ -521,6 +550,34 @@ ${script === "" ? "" : `<script type="module">${escapeForInline(script)}</script
 
 if (import.meta.main) {
   const args = Bun.argv.slice(2);
+
+  // `--all` 은 v2 가이드 전수를 **메모리에서만** 빌드해 마커 규약을 판정한다.
+  // 파일을 안 쓰는 이유는 산출이 편당 700KB 이고 `.gitignore` 대상이라, CI 가 돌 때마다
+  // 30MB 를 쓰고 버리게 되기 때문이다. 여기서 필요한 것은 산출이 아니라 종료코드다.
+  if (args.includes("--all")) {
+    const { v2Guides, ROOT } = await import("./guide-v2-targets.ts");
+    const targets = await v2Guides();
+    let bad = 0;
+    for (const rel of targets) {
+      const abs = join(ROOT, rel);
+      const stem = basename(abs).replace(/\.md$/, "");
+      const r = await build(abs, {
+        simPath: join(dirname(abs), `${stem}.sim.ts`),
+      });
+      if (r.problems.length > 0) {
+        bad++;
+        console.error(`${rel}`);
+        for (const p of r.problems) console.error(`  ${p}`);
+      }
+    }
+    console.log(
+      bad === 0
+        ? `가이드 ${targets.length}편 전부 마커 규약을 지킨다.`
+        : `가이드 ${targets.length}편 중 ${bad}편이 마커 규약을 어긴다.`,
+    );
+    process.exit(bad === 0 ? 0 : 1);
+  }
+
   const outIdx = args.indexOf("--out");
   // `--out` 이 없으면 `outIdx` 가 -1 이고 `args[outIdx + 1]` 은 **대상 자신**이 된다.
   // 그 자리를 안 가르면 인자를 하나도 못 찾는다.
@@ -528,7 +585,7 @@ if (import.meta.main) {
   const target = args.find((a) => !a.startsWith("--") && a !== outValue);
   if (target === undefined) {
     console.error(
-      "용법: bun run tools/build-html.ts <name>-guide.md [--out <경로>]",
+      "용법: bun run tools/build-html.ts <name>-guide.md [--out <경로>]\n      전수 판정: bun run tools/build-html.ts --all (파일을 쓰지 않는다)",
     );
     process.exit(2);
   }

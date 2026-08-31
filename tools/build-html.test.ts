@@ -43,6 +43,58 @@ test("④⑤ check 가 details+summary 로 접힌다 (JS 불필요)", () => {
   expect(built.html).toContain("<summary>답 보기</summary>");
 });
 
+test("④⑤ 하이픈 id 도 접힌다 — 마커 문법이 check-proof 와 같아야 한다", async () => {
+  // 2026-08-31 실측: 앞판 정규식이 JS 식별자만 받아 하이픈 id 를 쓴 9 편에서 여는 마커가
+  // 안 잡혔고, 닫는 마커만 남아 접기가 통째로 안 일어났다. 답이 웹에서 그대로 보인 것이
+  // 그 결과다. id 가 가는 자리는 `data-check` 속성값뿐이라 하이픈이 합법이다.
+  const md = [
+    "# 표본",
+    "",
+    "<!--check:hi-mid-->",
+    "",
+    "답이다.",
+    "",
+    "<!--/check-->",
+    "",
+  ].join("\n");
+  const tmp = join(SMOKE, "hyphen-id-guide.md");
+  await Bun.write(tmp, md);
+  try {
+    const r = await build(tmp, { simPath: join(SMOKE, "없는-sim.ts") });
+    expect(r.problems).toEqual([]);
+    expect(r.html).toContain('data-check="hi-mid"');
+    expect(r.html).toContain("<summary>답 보기</summary>");
+  } finally {
+    await Bun.file(tmp).unlink();
+  }
+});
+
+test("viz 와 proof 가 같은 펜스를 가리켜도 viz 가 붙는다", async () => {
+  // `check-proof` 는 원고에서 그 펜스를 읽어 통과하는데 빌더만 거부하던 자리다
+  // (subarraySumEqualsK · ternarySearch 실측). 사이에 낀 주석 마커는 건너뛴다.
+  const md = [
+    "# 표본",
+    "",
+    "<!--viz:demo-->",
+    "<!--proof:walk-trace-->",
+    "",
+    "```text",
+    "T1  값 1",
+    "```",
+    "",
+  ].join("\n");
+  const tmp = join(SMOKE, "shared-fence-guide.md");
+  await Bun.write(tmp, md);
+  try {
+    const r = await build(tmp, { simPath: join(SMOKE, "없는-sim.ts") });
+    expect(r.problems).toEqual([]);
+    expect(r.vizIds).toEqual(["demo"]);
+    expect(r.html).toContain('data-viz="demo"');
+  } finally {
+    await Bun.file(tmp).unlink();
+  }
+});
+
 test("⑥ 다크 모드 토큰이 있다", () => {
   expect(built.html).toContain("prefers-color-scheme: dark");
 });
