@@ -94,7 +94,7 @@
   - 이유: 상 등급이 닫힌 뒤에 온다 — 웨이브 경계가 배리어이고, 중요도 순이 병렬화에 먹히면 유저 지시를 어기는 것이 된다. 여기서 bit-manipulation·string·graph-flow·shortest-path·tree 다섯 카테고리가 처음 열린다
   - 목표: 41편이 .md 로 서고 중 등급에 v1 잔여가 0 이 된다
   - 메모: 배치2 종료(2026-08-30) — S15 medianFromDataStream · S2 topologicalSort · S5 editDistance · S28 subsetSum 넷을 닫아 8/41. 편마다 스캐너 넷 0 · guide 테스트 통과 · build-html 0 · tsc 0, ci.ts all 통과(단계 15). .mdx 79→75 · guide-rhythm 76→72 · check-links 391건 전부 실재. **keyValue+priorityQueue 뷰 조합의 선례를 세웠다**(medianFromDataStream — 힙이 둘인데 PriorityQueueFrame.heap 은 배열 하나라 작은 쪽 뒤에 큰 쪽을 잇고 label 로 가르며, highlight 가 [0] 하나가 아니라 두 꼭대기 [0, 작은 쪽 크기]다. dijkstra 다섯 규약 중 셋을 잇고 둘이 어긋난다). **purpose.alt 를 생략한 편이 하나 나왔다**(topologicalSort — 간선 밀도 K=1~60 스윕에서 뒤집히는 K 가 0 이고, 재귀판은 정점 10만 사슬에서 RangeError 라 대조가 아니라 적용 범위. 생략 사유 ①+② 조합). **네 편 전부 FEEDBACK §3 대조에서 스캐너 통과 뒤 결함이 나왔다**(20 · 23 · 37 · 21건, 도합 101건) — 배치1 넷과 W1 배치6 넷을 더하면 열두 편 연속이다. 가장 무거운 부류가 배치1과 갈렸다: 배치1은 논증 결함이었는데 여기서는 **실행 안 해 보고 단정한 사실**이 셋이다(subsetSum 이 shift-or 를 「한 걸음이 R 합집합 (a+R)」이라 한 것 — 실제로는 「또는」이 아니라 「그리고」로 잇는다 · editDistance 가 경쟁 설계의 채운 칸을 「띠가 표 전체를 덮는다」로 적었는데 실측은 표 24칸 대 띠 40칸으로 정반대 · medianFromDataStream 의 반례 그림이 변이 실행과 다른 상태 위에서 논증). 다른 편에서 옮겨 온 문구는 editDistance 에서 약 30문장으로 가장 크게 나왔다(이웃 편 LCS 와 사촌인 탓). 스캐너 결함 하나 기록 — check-v2.ts:409 가 되- lookbehind 없이 돌린다|돌리면|돌립니다 를 나열해 「되돌린다」류를 은유로 잡는다(FEEDBACK.md:311-316 기록분, 이번에 11곳 우회). L37 레일 실렌더는 네 편 다 미확인
-  - 실행 문서: KANBAN.cards/KAN-034.6-CF6ZHE.md (11/41 · 최근 08-31)
+  - 실행 문서: KANBAN.cards/KAN-034.6-CF6ZHE.md (12/41 · 최근 08-31)
   - 계획 리포트: KANBAN.reports/KAN-034.6-CF6ZHE.report.html (낡음)
 
 ## 검토
