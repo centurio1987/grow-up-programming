@@ -8,7 +8,6 @@ src/algorithms/advanced/knuthOptimization/knuthOptimization-guide.mdx	4	0
 src/algorithms/advanced/meetInTheMiddleSubsetSum/meetInTheMiddleSubsetSum-guide.mdx	4	0
 src/algorithms/array/fenwickRangeSum/fenwickRangeSum-guide.mdx	4	0
 src/algorithms/array/largestRectangleInHistogram/largestRectangleInHistogram-guide.mdx	3	0
-src/algorithms/array/longestIncreasingSubsequence/longestIncreasingSubsequence-guide.mdx	5	0
 src/algorithms/array/nextGreaterElement/nextGreaterElement-guide.mdx	4	0
 src/algorithms/array/segmentTreeRangeMin/segmentTreeRangeMin-guide.mdx	3	0
 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.mdx	3	0
@@ -30,7 +29,6 @@ src/algorithms/geometry/pointInPolygon/pointInPolygon-guide.mdx	4	0
 src/algorithms/geometry/polygonArea/polygonArea-guide.mdx	3	0
 src/algorithms/geometry/rotatingCalipersDiameter/rotatingCalipersDiameter-guide.mdx	4	0
 src/algorithms/graph-flow/isBipartite/isBipartite-guide.mdx	3	0
-src/algorithms/graph-flow/kruskalMst/kruskalMst-guide.mdx	6	0
 src/algorithms/graph-flow/maxBipartiteMatching/maxBipartiteMatching-guide.mdx	5	0
 src/algorithms/graph-flow/maxFlow/maxFlow-guide.mdx	3	0
 src/algorithms/graph-flow/minCostMaxFlow/minCostMaxFlow-guide.mdx	7	0
@@ -46,7 +44,6 @@ src/algorithms/number-theory/binomialModP/binomialModP-guide.mdx	5	0
 src/algorithms/number-theory/crt/crt-guide.mdx	7	0
 src/algorithms/number-theory/extendedEuclidean/extendedEuclidean-guide.mdx	7	0
 src/algorithms/number-theory/fftMultiply/fftMultiply-guide.mdx	8	0
-src/algorithms/number-theory/gcd/gcd-guide.mdx	4	0
 src/algorithms/number-theory/isPrimeTrial/isPrimeTrial-guide.mdx	4	0
 src/algorithms/number-theory/millerRabin/millerRabin-guide.mdx	5	0
 src/algorithms/number-theory/pollardRho/pollardRho-guide.mdx	5	0
@@ -67,7 +64,6 @@ src/algorithms/string/suffixAutomaton/suffixAutomaton-guide.mdx	4	0
 src/algorithms/tree/heavyLightDecomposition/heavyLightDecomposition-guide.mdx	4	0
 src/algorithms/tree/lowestCommonAncestor/lowestCommonAncestor-guide.mdx	5	0
 src/algorithms/tree/subtreeSumQuery/subtreeSumQuery-guide.mdx	5	0
-src/algorithms/tree/treeDiameter/treeDiameter-guide.mdx	7	0
 src/algorithms/tree/treeIsomorphism/treeIsomorphism-guide.mdx	2	0
 src/algorithms/tree/treeRerooting/treeRerooting-guide.mdx	5	0
 src/data-structures/disjoint-set/disjointSetRollback/disjointSetRollback-guide.mdx	4	0
