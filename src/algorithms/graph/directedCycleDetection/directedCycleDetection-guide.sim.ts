@@ -1,0 +1,447 @@
+import type { Frame } from "#guide-sim";
+
+/**
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
+ * T# 단계 수(12)와 같다 — P3 이 그 관계를 잰다.
+ *
+ * **뷰가 둘이다** — `graph` 는 정점의 색(흰색·회색·검은색)과 지금 확인하는 간선을 그리고,
+ * `keyValue` 는 그 순간의 스택 · 색 배열 · `cursor` 배열 · 분기를 적는다. 그래프 그림만으로는
+ * **다음에 확인할 간선이 어느 것인지**가 안 보이고, 이 절차가 되돌아가는 자리를 정하는 근거가
+ * 바로 그 값이라 두 패널이 함께 있어야 한 프레임이 완결된다. 앞선 `topologicalSort` 가 쓴 짝을
+ * 그대로 쓴다.
+ *
+ * 색은 `nodeStatus` 로 옮긴다 — 흰색은 `default`(적지 않는다), 회색은 `frontier`, 그중 지금
+ * 스택 꼭대기인 정점만 `active`, 검은색은 `visited` 다. `nodeValue` 는 **회색 정점이 경로에서
+ * 몇 번째인가**(1 부터)이고, 검은색·흰색 정점에는 붙이지 않는다.
+ *
+ * 좌표는 0~100 정규화다. 간선에 방향이 있으므로 `directed: true` 를 붙인다.
+ *
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ */
+export const dfsColorWalk = {
+  view: ["graph", "keyValue"] as const,
+  title:
+    "directedCycleDetection(6, [[0,1],[1,3],[3,4],[0,4],[0,2],[2,3],[2,5],[5,0]])",
+  result: "true",
+  steps: [
+    {
+      title: "T1 정점 0 을 회색으로 칠하고 경로를 시작한다",
+      detail:
+        "색을 전부 흰색으로 두고 시작한다. 정점 0 이 첫 출발점이라 회색이 되고 스택에 하나만 들어 있다.",
+      nodes: [
+        { id: 0, x: 12, y: 14 },
+        { id: 1, x: 48, y: 8 },
+        { id: 3, x: 84, y: 32 },
+        { id: 4, x: 86, y: 72 },
+        { id: 2, x: 18, y: 58 },
+        { id: 5, x: 52, y: 92 },
+      ],
+      edges: [
+        { from: 0, to: 1, directed: true },
+        { from: 1, to: 3, directed: true },
+        { from: 3, to: 4, directed: true },
+        { from: 0, to: 4, directed: true },
+        { from: 0, to: 2, directed: true },
+        { from: 2, to: 3, directed: true },
+        { from: 2, to: 5, directed: true },
+        { from: 5, to: 0, directed: true },
+      ],
+      nodeStatus: { 0: "active" },
+      nodeValue: { 0: 1 },
+      entries: [
+        { label: "스택 (아래→위)", value: "[0]" },
+        { label: "지금 확인하는 간선", value: "—" },
+        { label: "색", value: "0:회 1:흰 2:흰 3:흰 4:흰 5:흰" },
+        { label: "cursor", value: "[0,0,0,0,0,0]" },
+        { label: "분기", value: "—" },
+      ],
+    },
+    {
+      title: "T2 간선 0 → 1 을 따라 내려간다",
+      detail:
+        "정점 1 은 흰색이라 아직 한 번도 확인하지 않은 정점이다. 회색으로 칠하고 스택에 넣는다.",
+      nodes: [
+        { id: 0, x: 12, y: 14 },
+        { id: 1, x: 48, y: 8 },
+        { id: 3, x: 84, y: 32 },
+        { id: 4, x: 86, y: 72 },
+        { id: 2, x: 18, y: 58 },
+        { id: 5, x: 52, y: 92 },
+      ],
+      edges: [
+        { from: 0, to: 1, directed: true },
+        { from: 1, to: 3, directed: true },
+        { from: 3, to: 4, directed: true },
+        { from: 0, to: 4, directed: true },
+        { from: 0, to: 2, directed: true },
+        { from: 2, to: 3, directed: true },
+        { from: 2, to: 5, directed: true },
+        { from: 5, to: 0, directed: true },
+      ],
+      nodeStatus: { 0: "frontier", 1: "active" },
+      nodeValue: { 0: 1, 1: 2 },
+      activeEdge: { from: 0, to: 1 },
+      entries: [
+        { label: "스택 (아래→위)", value: "[0,1]" },
+        { label: "지금 확인하는 간선", value: "0 → 1" },
+        { label: "색", value: "0:회 1:회 2:흰 3:흰 4:흰 5:흰" },
+        { label: "cursor", value: "[1,0,0,0,0,0]" },
+        { label: "분기", value: "② 흰색이라 회색으로 칠하고 내려간다" },
+      ],
+    },
+    {
+      title: "T3 간선 1 → 3 을 따라 내려간다",
+      detail:
+        "정점 3 은 흰색이라 아직 한 번도 확인하지 않은 정점이다. 회색으로 칠하고 스택에 넣는다.",
+      nodes: [
+        { id: 0, x: 12, y: 14 },
+        { id: 1, x: 48, y: 8 },
+        { id: 3, x: 84, y: 32 },
+        { id: 4, x: 86, y: 72 },
+        { id: 2, x: 18, y: 58 },
+        { id: 5, x: 52, y: 92 },
+      ],
+      edges: [
+        { from: 0, to: 1, directed: true },
+        { from: 1, to: 3, directed: true },
+        { from: 3, to: 4, directed: true },
+        { from: 0, to: 4, directed: true },
+        { from: 0, to: 2, directed: true },
+        { from: 2, to: 3, directed: true },
+        { from: 2, to: 5, directed: true },
+        { from: 5, to: 0, directed: true },
+      ],
+      nodeStatus: { 0: "frontier", 1: "frontier", 3: "active" },
+      nodeValue: { 0: 1, 1: 2, 3: 3 },
+      activeEdge: { from: 1, to: 3 },
+      entries: [
+        { label: "스택 (아래→위)", value: "[0,1,3]" },
+        { label: "지금 확인하는 간선", value: "1 → 3" },
+        { label: "색", value: "0:회 1:회 2:흰 3:회 4:흰 5:흰" },
+        { label: "cursor", value: "[1,1,0,0,0,0]" },
+        { label: "분기", value: "② 흰색이라 회색으로 칠하고 내려간다" },
+      ],
+    },
+    {
+      title: "T4 간선 3 → 4 를 따라 내려간다",
+      detail:
+        "정점 4 는 흰색이라 아직 한 번도 확인하지 않은 정점이다. 회색으로 칠하고 스택에 넣는다.",
+      nodes: [
+        { id: 0, x: 12, y: 14 },
+        { id: 1, x: 48, y: 8 },
+        { id: 3, x: 84, y: 32 },
+        { id: 4, x: 86, y: 72 },
+        { id: 2, x: 18, y: 58 },
+        { id: 5, x: 52, y: 92 },
+      ],
+      edges: [
+        { from: 0, to: 1, directed: true },
+        { from: 1, to: 3, directed: true },
+        { from: 3, to: 4, directed: true },
+        { from: 0, to: 4, directed: true },
+        { from: 0, to: 2, directed: true },
+        { from: 2, to: 3, directed: true },
+        { from: 2, to: 5, directed: true },
+        { from: 5, to: 0, directed: true },
+      ],
+      nodeStatus: { 0: "frontier", 1: "frontier", 3: "frontier", 4: "active" },
+      nodeValue: { 0: 1, 1: 2, 3: 3, 4: 4 },
+      activeEdge: { from: 3, to: 4 },
+      entries: [
+        { label: "스택 (아래→위)", value: "[0,1,3,4]" },
+        { label: "지금 확인하는 간선", value: "3 → 4" },
+        { label: "색", value: "0:회 1:회 2:흰 3:회 4:회 5:흰" },
+        { label: "cursor", value: "[1,1,0,1,0,0]" },
+        { label: "분기", value: "② 흰색이라 회색으로 칠하고 내려간다" },
+      ],
+    },
+    {
+      title: "T5 정점 4 의 간선을 전부 확인했다",
+      detail:
+        "next[4] 을 끝까지 확인했다. 정점 4 를 검은색으로 칠하고 스택에서 뺀다. 다시 내려갈 이유가 없는 정점이다.",
+      nodes: [
+        { id: 0, x: 12, y: 14 },
+        { id: 1, x: 48, y: 8 },
+        { id: 3, x: 84, y: 32 },
+        { id: 4, x: 86, y: 72 },
+        { id: 2, x: 18, y: 58 },
+        { id: 5, x: 52, y: 92 },
+      ],
+      edges: [
+        { from: 0, to: 1, directed: true },
+        { from: 1, to: 3, directed: true },
+        { from: 3, to: 4, directed: true },
+        { from: 0, to: 4, directed: true },
+        { from: 0, to: 2, directed: true },
+        { from: 2, to: 3, directed: true },
+        { from: 2, to: 5, directed: true },
+        { from: 5, to: 0, directed: true },
+      ],
+      nodeStatus: { 0: "frontier", 1: "frontier", 3: "active", 4: "visited" },
+      nodeValue: { 0: 1, 1: 2, 3: 3 },
+      entries: [
+        { label: "스택 (아래→위)", value: "[0,1,3]" },
+        { label: "지금 확인하는 간선", value: "—" },
+        { label: "색", value: "0:회 1:회 2:흰 3:회 4:검 5:흰" },
+        { label: "cursor", value: "[1,1,0,1,0,0]" },
+        { label: "분기", value: "④ 목록을 다 봤으니 검은색으로 칠하고 뺀다" },
+      ],
+    },
+    {
+      title: "T6 정점 3 의 간선을 전부 확인했다",
+      detail:
+        "next[3] 을 끝까지 확인했다. 정점 3 을 검은색으로 칠하고 스택에서 뺀다. 다시 내려갈 이유가 없는 정점이다.",
+      nodes: [
+        { id: 0, x: 12, y: 14 },
+        { id: 1, x: 48, y: 8 },
+        { id: 3, x: 84, y: 32 },
+        { id: 4, x: 86, y: 72 },
+        { id: 2, x: 18, y: 58 },
+        { id: 5, x: 52, y: 92 },
+      ],
+      edges: [
+        { from: 0, to: 1, directed: true },
+        { from: 1, to: 3, directed: true },
+        { from: 3, to: 4, directed: true },
+        { from: 0, to: 4, directed: true },
+        { from: 0, to: 2, directed: true },
+        { from: 2, to: 3, directed: true },
+        { from: 2, to: 5, directed: true },
+        { from: 5, to: 0, directed: true },
+      ],
+      nodeStatus: { 0: "frontier", 1: "active", 3: "visited", 4: "visited" },
+      nodeValue: { 0: 1, 1: 2 },
+      entries: [
+        { label: "스택 (아래→위)", value: "[0,1]" },
+        { label: "지금 확인하는 간선", value: "—" },
+        { label: "색", value: "0:회 1:회 2:흰 3:검 4:검 5:흰" },
+        { label: "cursor", value: "[1,1,0,1,0,0]" },
+        { label: "분기", value: "④ 목록을 다 봤으니 검은색으로 칠하고 뺀다" },
+      ],
+    },
+    {
+      title: "T7 정점 1 의 간선을 전부 확인했다",
+      detail:
+        "next[1] 을 끝까지 확인했다. 정점 1 을 검은색으로 칠하고 스택에서 뺀다. 다시 내려갈 이유가 없는 정점이다.",
+      nodes: [
+        { id: 0, x: 12, y: 14 },
+        { id: 1, x: 48, y: 8 },
+        { id: 3, x: 84, y: 32 },
+        { id: 4, x: 86, y: 72 },
+        { id: 2, x: 18, y: 58 },
+        { id: 5, x: 52, y: 92 },
+      ],
+      edges: [
+        { from: 0, to: 1, directed: true },
+        { from: 1, to: 3, directed: true },
+        { from: 3, to: 4, directed: true },
+        { from: 0, to: 4, directed: true },
+        { from: 0, to: 2, directed: true },
+        { from: 2, to: 3, directed: true },
+        { from: 2, to: 5, directed: true },
+        { from: 5, to: 0, directed: true },
+      ],
+      nodeStatus: { 0: "active", 1: "visited", 3: "visited", 4: "visited" },
+      nodeValue: { 0: 1 },
+      entries: [
+        { label: "스택 (아래→위)", value: "[0]" },
+        { label: "지금 확인하는 간선", value: "—" },
+        { label: "색", value: "0:회 1:검 2:흰 3:검 4:검 5:흰" },
+        { label: "cursor", value: "[1,1,0,1,0,0]" },
+        { label: "분기", value: "④ 목록을 다 봤으니 검은색으로 칠하고 뺀다" },
+      ],
+    },
+    {
+      title: "T8 간선 0 → 4 는 검은색 정점을 가리킨다",
+      detail:
+        "정점 4 는 이미 끝난 정점이다. 아무것도 하지 않고 next[0] 의 다음 자리로 넘어간다.",
+      nodes: [
+        { id: 0, x: 12, y: 14 },
+        { id: 1, x: 48, y: 8 },
+        { id: 3, x: 84, y: 32 },
+        { id: 4, x: 86, y: 72 },
+        { id: 2, x: 18, y: 58 },
+        { id: 5, x: 52, y: 92 },
+      ],
+      edges: [
+        { from: 0, to: 1, directed: true },
+        { from: 1, to: 3, directed: true },
+        { from: 3, to: 4, directed: true },
+        { from: 0, to: 4, directed: true },
+        { from: 0, to: 2, directed: true },
+        { from: 2, to: 3, directed: true },
+        { from: 2, to: 5, directed: true },
+        { from: 5, to: 0, directed: true },
+      ],
+      nodeStatus: { 0: "active", 1: "visited", 3: "visited", 4: "visited" },
+      nodeValue: { 0: 1 },
+      activeEdge: { from: 0, to: 4 },
+      entries: [
+        { label: "스택 (아래→위)", value: "[0]" },
+        { label: "지금 확인하는 간선", value: "0 → 4" },
+        { label: "색", value: "0:회 1:검 2:흰 3:검 4:검 5:흰" },
+        { label: "cursor", value: "[2,1,0,1,0,0]" },
+        { label: "분기", value: "③ 검은색이라 아무것도 하지 않는다" },
+      ],
+    },
+    {
+      title: "T9 간선 0 → 2 를 따라 내려간다",
+      detail:
+        "정점 2 는 흰색이라 아직 한 번도 확인하지 않은 정점이다. 회색으로 칠하고 스택에 넣는다.",
+      nodes: [
+        { id: 0, x: 12, y: 14 },
+        { id: 1, x: 48, y: 8 },
+        { id: 3, x: 84, y: 32 },
+        { id: 4, x: 86, y: 72 },
+        { id: 2, x: 18, y: 58 },
+        { id: 5, x: 52, y: 92 },
+      ],
+      edges: [
+        { from: 0, to: 1, directed: true },
+        { from: 1, to: 3, directed: true },
+        { from: 3, to: 4, directed: true },
+        { from: 0, to: 4, directed: true },
+        { from: 0, to: 2, directed: true },
+        { from: 2, to: 3, directed: true },
+        { from: 2, to: 5, directed: true },
+        { from: 5, to: 0, directed: true },
+      ],
+      nodeStatus: {
+        0: "frontier",
+        1: "visited",
+        3: "visited",
+        4: "visited",
+        2: "active",
+      },
+      nodeValue: { 0: 1, 2: 2 },
+      activeEdge: { from: 0, to: 2 },
+      entries: [
+        { label: "스택 (아래→위)", value: "[0,2]" },
+        { label: "지금 확인하는 간선", value: "0 → 2" },
+        { label: "색", value: "0:회 1:검 2:회 3:검 4:검 5:흰" },
+        { label: "cursor", value: "[3,1,0,1,0,0]" },
+        { label: "분기", value: "② 흰색이라 회색으로 칠하고 내려간다" },
+      ],
+    },
+    {
+      title: "T10 간선 2 → 3 은 검은색 정점을 가리킨다",
+      detail:
+        "정점 3 은 이미 끝난 정점이다. 아무것도 하지 않고 next[2] 의 다음 자리로 넘어간다.",
+      nodes: [
+        { id: 0, x: 12, y: 14 },
+        { id: 1, x: 48, y: 8 },
+        { id: 3, x: 84, y: 32 },
+        { id: 4, x: 86, y: 72 },
+        { id: 2, x: 18, y: 58 },
+        { id: 5, x: 52, y: 92 },
+      ],
+      edges: [
+        { from: 0, to: 1, directed: true },
+        { from: 1, to: 3, directed: true },
+        { from: 3, to: 4, directed: true },
+        { from: 0, to: 4, directed: true },
+        { from: 0, to: 2, directed: true },
+        { from: 2, to: 3, directed: true },
+        { from: 2, to: 5, directed: true },
+        { from: 5, to: 0, directed: true },
+      ],
+      nodeStatus: {
+        0: "frontier",
+        1: "visited",
+        3: "visited",
+        4: "visited",
+        2: "active",
+      },
+      nodeValue: { 0: 1, 2: 2 },
+      activeEdge: { from: 2, to: 3 },
+      entries: [
+        { label: "스택 (아래→위)", value: "[0,2]" },
+        { label: "지금 확인하는 간선", value: "2 → 3" },
+        { label: "색", value: "0:회 1:검 2:회 3:검 4:검 5:흰" },
+        { label: "cursor", value: "[3,1,1,1,0,0]" },
+        { label: "분기", value: "③ 검은색이라 아무것도 하지 않는다" },
+      ],
+    },
+    {
+      title: "T11 간선 2 → 5 를 따라 내려간다",
+      detail:
+        "정점 5 는 흰색이라 아직 한 번도 확인하지 않은 정점이다. 회색으로 칠하고 스택에 넣는다.",
+      nodes: [
+        { id: 0, x: 12, y: 14 },
+        { id: 1, x: 48, y: 8 },
+        { id: 3, x: 84, y: 32 },
+        { id: 4, x: 86, y: 72 },
+        { id: 2, x: 18, y: 58 },
+        { id: 5, x: 52, y: 92 },
+      ],
+      edges: [
+        { from: 0, to: 1, directed: true },
+        { from: 1, to: 3, directed: true },
+        { from: 3, to: 4, directed: true },
+        { from: 0, to: 4, directed: true },
+        { from: 0, to: 2, directed: true },
+        { from: 2, to: 3, directed: true },
+        { from: 2, to: 5, directed: true },
+        { from: 5, to: 0, directed: true },
+      ],
+      nodeStatus: {
+        0: "frontier",
+        1: "visited",
+        3: "visited",
+        4: "visited",
+        2: "frontier",
+        5: "active",
+      },
+      nodeValue: { 0: 1, 2: 2, 5: 3 },
+      activeEdge: { from: 2, to: 5 },
+      entries: [
+        { label: "스택 (아래→위)", value: "[0,2,5]" },
+        { label: "지금 확인하는 간선", value: "2 → 5" },
+        { label: "색", value: "0:회 1:검 2:회 3:검 4:검 5:회" },
+        { label: "cursor", value: "[3,1,2,1,0,0]" },
+        { label: "분기", value: "② 흰색이라 회색으로 칠하고 내려간다" },
+      ],
+    },
+    {
+      title: "T12 간선 5 → 0 이 회색 정점을 가리킨다",
+      detail:
+        "정점 0 은 지금 스택에 들어 있다. 경로 0 → 2 → 5 를 따라왔는데 그 위의 정점으로 되돌아온 것이라 사이클이다.",
+      nodes: [
+        { id: 0, x: 12, y: 14 },
+        { id: 1, x: 48, y: 8 },
+        { id: 3, x: 84, y: 32 },
+        { id: 4, x: 86, y: 72 },
+        { id: 2, x: 18, y: 58 },
+        { id: 5, x: 52, y: 92 },
+      ],
+      edges: [
+        { from: 0, to: 1, directed: true },
+        { from: 1, to: 3, directed: true },
+        { from: 3, to: 4, directed: true },
+        { from: 0, to: 4, directed: true },
+        { from: 0, to: 2, directed: true },
+        { from: 2, to: 3, directed: true },
+        { from: 2, to: 5, directed: true },
+        { from: 5, to: 0, directed: true },
+      ],
+      nodeStatus: {
+        0: "frontier",
+        1: "visited",
+        3: "visited",
+        4: "visited",
+        2: "frontier",
+        5: "active",
+      },
+      nodeValue: { 0: 1, 2: 2, 5: 3 },
+      activeEdge: { from: 5, to: 0 },
+      entries: [
+        { label: "스택 (아래→위)", value: "[0,2,5]" },
+        { label: "지금 확인하는 간선", value: "5 → 0" },
+        { label: "색", value: "0:회 1:검 2:회 3:검 4:검 5:회" },
+        { label: "cursor", value: "[3,1,2,1,0,1]" },
+        { label: "분기", value: "① 회색이라 사이클이다 — true 를 반환한다" },
+      ],
+    },
+  ] satisfies Frame[],
+};

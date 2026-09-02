@@ -768,7 +768,7 @@ topologicalSort(1, [])                                      →   [0]
 반대로 **「사전순으로 가장 빠른 순서」·「단계 수를 최소로」** 가 보이면 이 절차를 그대로 쓰지
 않습니다. 앞은 후보 통을 최소 힙으로 바꾸는 문제이고, 뒤는 위상 순서 위에서 값을 물려주는
 계산을 한 겹 더 덧붙이는 문제예요. 사이클이 있는지만 묻는다면
-[`directedCycleDetection` 가이드](../directedCycleDetection/directedCycleDetection-guide.mdx)의 절차도 답이 됩니다.
+[`directedCycleDetection` 가이드](../directedCycleDetection/directedCycleDetection-guide.md)의 절차도 답이 됩니다.
 
 #### 실제로 쓰이는 곳
 
