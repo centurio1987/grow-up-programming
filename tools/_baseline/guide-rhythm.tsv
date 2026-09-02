@@ -6,14 +6,12 @@ src/algorithms/advanced/countInversions/countInversions-guide.mdx	3	0
 src/algorithms/advanced/divideAndConquerDp/divideAndConquerDp-guide.mdx	4	0
 src/algorithms/advanced/knuthOptimization/knuthOptimization-guide.mdx	4	0
 src/algorithms/advanced/meetInTheMiddleSubsetSum/meetInTheMiddleSubsetSum-guide.mdx	4	0
-src/algorithms/array/fenwickRangeSum/fenwickRangeSum-guide.mdx	4	0
 src/algorithms/array/largestRectangleInHistogram/largestRectangleInHistogram-guide.mdx	3	0
 src/algorithms/array/nextGreaterElement/nextGreaterElement-guide.mdx	4	0
 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.mdx	3	0
 src/algorithms/binary-search/searchInRotatedSortedArray/searchInRotatedSortedArray-guide.mdx	3	1
 src/algorithms/bit-manipulation/lowestSetBit/lowestSetBit-guide.mdx	4	0
 src/algorithms/bit-manipulation/matrixPowerFibonacci/matrixPowerFibonacci-guide.mdx	5	0
-src/algorithms/bit-manipulation/singleNumberXor/singleNumberXor-guide.mdx	3	0
 src/algorithms/dp/digitDp/digitDp-guide.mdx	4	0
 src/algorithms/dp/expectedValueDp/expectedValueDp-guide.mdx	4	0
 src/algorithms/dp/matrixChainMultiplication/matrixChainMultiplication-guide.mdx	4	0
@@ -33,7 +31,6 @@ src/algorithms/graph-flow/minCostMaxFlow/minCostMaxFlow-guide.mdx	7	0
 src/algorithms/graph-flow/minCut/minCut-guide.mdx	4	0
 src/algorithms/graph/articulationPoints/articulationPoints-guide.mdx	4	0
 src/algorithms/graph/bridgesInGraph/bridgesInGraph-guide.mdx	4	0
-src/algorithms/graph/directedCycleDetection/directedCycleDetection-guide.mdx	2	0
 src/algorithms/graph/stronglyConnectedComponents/stronglyConnectedComponents-guide.mdx	4	1
 src/algorithms/graph/undirectedCycleDetection/undirectedCycleDetection-guide.mdx	5	0
 src/algorithms/graph/zeroOneBfs/zeroOneBfs-guide.mdx	5	0
@@ -51,7 +48,6 @@ src/algorithms/shortest-path/floydWarshall/floydWarshall-guide.mdx	4	0
 src/algorithms/shortest-path/spfa/spfa-guide.mdx	4	0
 src/algorithms/sorting/externalMergeSort/externalMergeSort-guide.mdx	4	0
 src/algorithms/sorting/kthSmallest/kthSmallest-guide.mdx	7	0
-src/algorithms/sorting/topKFrequent/topKFrequent-guide.mdx	3	0
 src/algorithms/string/ahoCorasick/ahoCorasick-guide.mdx	6	0
 src/algorithms/string/kasaiLcp/kasaiLcp-guide.mdx	7	0
 src/algorithms/string/longestPalindrome/longestPalindrome-guide.mdx	7	1
