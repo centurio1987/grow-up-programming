@@ -781,7 +781,7 @@ directedCycleDetection(5, [])                                                  �
 않습니다. 앞은 사이클이 없을 때 나열까지 만들어야 하는 문제라
 [`topologicalSort` 가이드](../topologicalSort/topologicalSort-guide.md)의 절차가 답이고, 뒤는
 간선에 방향이 없어 판정 자체가 달라져
-[`undirectedCycleDetection` 가이드](../undirectedCycleDetection/undirectedCycleDetection-guide.mdx)가
+[`undirectedCycleDetection` 가이드](../undirectedCycleDetection/undirectedCycleDetection-guide.md)가
 다루는 문제가 됩니다.
 
 #### 실제로 쓰이는 곳
