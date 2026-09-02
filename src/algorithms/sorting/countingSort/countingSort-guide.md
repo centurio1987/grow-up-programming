@@ -618,7 +618,7 @@ countingSort([])                     →  []
 | --- | --- | --- |
 | 이 편의 계수 정렬 | 값 그 자체 | 1,001 |
 | [자릿수 정렬](../radixSort/radixSort-guide.md) | 한 자리의 숫자 | 진법 크기(10 이나 256) |
-| [상위 K 빈도](../topKFrequent/topKFrequent-guide.mdx) | 빈도수 | 입력 칸 수 + 1 |
+| [상위 K 빈도](../topKFrequent/topKFrequent-guide.md) | 빈도수 | 입력 칸 수 + 1 |
 | 비트셋 | 원소 번호 | 원소의 종류 수 |
 
 **칸을 늘 잡아야 한다는 것이 이 방법이 내주는 것입니다.** 앞의 스윕에서 `K` 를 100 만으로
