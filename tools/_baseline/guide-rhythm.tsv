@@ -6,16 +6,13 @@ src/algorithms/advanced/countInversions/countInversions-guide.mdx	3	0
 src/algorithms/advanced/divideAndConquerDp/divideAndConquerDp-guide.mdx	4	0
 src/algorithms/advanced/knuthOptimization/knuthOptimization-guide.mdx	4	0
 src/algorithms/advanced/meetInTheMiddleSubsetSum/meetInTheMiddleSubsetSum-guide.mdx	4	0
-src/algorithms/array/largestRectangleInHistogram/largestRectangleInHistogram-guide.mdx	3	0
 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.mdx	3	0
-src/algorithms/binary-search/searchInRotatedSortedArray/searchInRotatedSortedArray-guide.mdx	3	1
 src/algorithms/bit-manipulation/lowestSetBit/lowestSetBit-guide.mdx	4	0
 src/algorithms/bit-manipulation/matrixPowerFibonacci/matrixPowerFibonacci-guide.mdx	5	0
 src/algorithms/dp/digitDp/digitDp-guide.mdx	4	0
 src/algorithms/dp/expectedValueDp/expectedValueDp-guide.mdx	4	0
 src/algorithms/dp/matrixChainMultiplication/matrixChainMultiplication-guide.mdx	4	0
 src/algorithms/dp/palindromePartitioningMinCut/palindromePartitioningMinCut-guide.mdx	5	0
-src/algorithms/dp/treeMaxIndependentSet/treeMaxIndependentSet-guide.mdx	3	0
 src/algorithms/dp/tspBitmask/tspBitmask-guide.mdx	4	1
 src/algorithms/geometry/bentleyOttmann/bentleyOttmann-guide.mdx	4	0
 src/algorithms/geometry/closestPairOfPoints/closestPairOfPoints-guide.mdx	4	0
@@ -23,7 +20,6 @@ src/algorithms/geometry/convexHull/convexHull-guide.mdx	3	0
 src/algorithms/geometry/pointInPolygon/pointInPolygon-guide.mdx	4	0
 src/algorithms/geometry/polygonArea/polygonArea-guide.mdx	3	0
 src/algorithms/geometry/rotatingCalipersDiameter/rotatingCalipersDiameter-guide.mdx	4	0
-src/algorithms/graph-flow/isBipartite/isBipartite-guide.mdx	3	0
 src/algorithms/graph-flow/maxBipartiteMatching/maxBipartiteMatching-guide.mdx	5	0
 src/algorithms/graph-flow/maxFlow/maxFlow-guide.mdx	3	0
 src/algorithms/graph-flow/minCostMaxFlow/minCostMaxFlow-guide.mdx	7	0
