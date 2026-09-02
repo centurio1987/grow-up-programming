@@ -9,7 +9,6 @@ src/algorithms/advanced/meetInTheMiddleSubsetSum/meetInTheMiddleSubsetSum-guide.
 src/algorithms/array/fenwickRangeSum/fenwickRangeSum-guide.mdx	4	0
 src/algorithms/array/largestRectangleInHistogram/largestRectangleInHistogram-guide.mdx	3	0
 src/algorithms/array/nextGreaterElement/nextGreaterElement-guide.mdx	4	0
-src/algorithms/array/segmentTreeRangeMin/segmentTreeRangeMin-guide.mdx	3	0
 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.mdx	3	0
 src/algorithms/binary-search/searchInRotatedSortedArray/searchInRotatedSortedArray-guide.mdx	3	1
 src/algorithms/bit-manipulation/lowestSetBit/lowestSetBit-guide.mdx	4	0
@@ -21,7 +20,6 @@ src/algorithms/dp/matrixChainMultiplication/matrixChainMultiplication-guide.mdx	
 src/algorithms/dp/palindromePartitioningMinCut/palindromePartitioningMinCut-guide.mdx	5	0
 src/algorithms/dp/treeMaxIndependentSet/treeMaxIndependentSet-guide.mdx	3	0
 src/algorithms/dp/tspBitmask/tspBitmask-guide.mdx	4	1
-src/algorithms/dp/unboundedKnapsack/unboundedKnapsack-guide.mdx	5	0
 src/algorithms/geometry/bentleyOttmann/bentleyOttmann-guide.mdx	4	0
 src/algorithms/geometry/closestPairOfPoints/closestPairOfPoints-guide.mdx	4	0
 src/algorithms/geometry/convexHull/convexHull-guide.mdx	3	0
@@ -33,7 +31,6 @@ src/algorithms/graph-flow/maxBipartiteMatching/maxBipartiteMatching-guide.mdx	5	
 src/algorithms/graph-flow/maxFlow/maxFlow-guide.mdx	3	0
 src/algorithms/graph-flow/minCostMaxFlow/minCostMaxFlow-guide.mdx	7	0
 src/algorithms/graph-flow/minCut/minCut-guide.mdx	4	0
-src/algorithms/graph-flow/primMst/primMst-guide.mdx	3	0
 src/algorithms/graph/articulationPoints/articulationPoints-guide.mdx	4	0
 src/algorithms/graph/bridgesInGraph/bridgesInGraph-guide.mdx	4	0
 src/algorithms/graph/directedCycleDetection/directedCycleDetection-guide.mdx	2	0
@@ -56,7 +53,6 @@ src/algorithms/sorting/externalMergeSort/externalMergeSort-guide.mdx	4	0
 src/algorithms/sorting/kthSmallest/kthSmallest-guide.mdx	7	0
 src/algorithms/sorting/topKFrequent/topKFrequent-guide.mdx	3	0
 src/algorithms/string/ahoCorasick/ahoCorasick-guide.mdx	6	0
-src/algorithms/string/findAllOccurrences/findAllOccurrences-guide.mdx	4	0
 src/algorithms/string/kasaiLcp/kasaiLcp-guide.mdx	7	0
 src/algorithms/string/longestPalindrome/longestPalindrome-guide.mdx	7	1
 src/algorithms/string/suffixArray/suffixArray-guide.mdx	7	0
