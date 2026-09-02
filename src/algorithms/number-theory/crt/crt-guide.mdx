@@ -133,7 +133,7 @@ gcd(3, 5) 계산 과정을 거꾸로:
 
 이제 $ax + by = g$에서 $g=1$이고 $b=5$이면, 양변을 $\bmod\, 5$로 보면 $ax \equiv 1 \pmod 5$가 되어 **$x$가 곧 $a$의 $\bmod\, 5$ 역원**이 됩니다. 위 결과에서 $x=2$이니 $3^{-1} \equiv 2 \pmod 5$ — 바로 앞 절에서 손으로 확인한 값과 정확히 같아요. 이 알고리즘은 재귀 한 단계당 나눗셈 한 번이라 $O(\log \min(m_1, m_2))$에 끝납니다(일반 유클리드 호제법과 같은 재귀 횟수).
 
-`merge` 연산이 확장 유클리드에 의존하는 지점은 "$m_1/g$의 $\bmod\,(m_2/g)$ 역원 $u$를 구하는" 곳입니다. 이론적으로는 확장 유클리드 호제법 한 번으로 $\gcd$와 베주 계수를 동시에 얻을 수 있지만, 뒤에서 볼 코드는 역할을 나눕니다 — "$g \mid (r_2-r_1)$인지" 판정에 필요한 $g$ 자체는 `gcdBig`로 먼저 구하고, `extendedEuclidean(m1/g, m2g)`는 그다음 역원 계산에만 씁니다. (참고로 이 프로젝트에는 확장 유클리드 호제법 자체만 다루는 [extendedEuclidean 가이드](../extendedEuclidean/extendedEuclidean-guide.mdx)도 있습니다.)
+`merge` 연산이 확장 유클리드에 의존하는 지점은 "$m_1/g$의 $\bmod\,(m_2/g)$ 역원 $u$를 구하는" 곳입니다. 이론적으로는 확장 유클리드 호제법 한 번으로 $\gcd$와 베주 계수를 동시에 얻을 수 있지만, 뒤에서 볼 코드는 역할을 나눕니다 — "$g \mid (r_2-r_1)$인지" 판정에 필요한 $g$ 자체는 `gcdBig`로 먼저 구하고, `extendedEuclidean(m1/g, m2g)`는 그다음 역원 계산에만 씁니다. (참고로 이 프로젝트에는 확장 유클리드 호제법 자체만 다루는 [extendedEuclidean 가이드](../extendedEuclidean/extendedEuclidean-guide.md)도 있습니다.)
 
 ### 왜 모순 없이 작동하는가
 
