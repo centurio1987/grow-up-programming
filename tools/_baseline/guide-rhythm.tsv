@@ -7,11 +7,9 @@ src/algorithms/advanced/divideAndConquerDp/divideAndConquerDp-guide.mdx	4	0
 src/algorithms/advanced/knuthOptimization/knuthOptimization-guide.mdx	4	0
 src/algorithms/advanced/meetInTheMiddleSubsetSum/meetInTheMiddleSubsetSum-guide.mdx	4	0
 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.mdx	3	0
-src/algorithms/bit-manipulation/lowestSetBit/lowestSetBit-guide.mdx	4	0
 src/algorithms/bit-manipulation/matrixPowerFibonacci/matrixPowerFibonacci-guide.mdx	5	0
 src/algorithms/dp/digitDp/digitDp-guide.mdx	4	0
 src/algorithms/dp/expectedValueDp/expectedValueDp-guide.mdx	4	0
-src/algorithms/dp/matrixChainMultiplication/matrixChainMultiplication-guide.mdx	4	0
 src/algorithms/dp/palindromePartitioningMinCut/palindromePartitioningMinCut-guide.mdx	5	0
 src/algorithms/dp/tspBitmask/tspBitmask-guide.mdx	4	1
 src/algorithms/geometry/bentleyOttmann/bentleyOttmann-guide.mdx	4	0
@@ -28,7 +26,6 @@ src/algorithms/graph/articulationPoints/articulationPoints-guide.mdx	4	0
 src/algorithms/graph/bridgesInGraph/bridgesInGraph-guide.mdx	4	0
 src/algorithms/graph/stronglyConnectedComponents/stronglyConnectedComponents-guide.mdx	4	1
 src/algorithms/graph/zeroOneBfs/zeroOneBfs-guide.mdx	5	0
-src/algorithms/number-theory/binomialModP/binomialModP-guide.mdx	5	0
 src/algorithms/number-theory/crt/crt-guide.mdx	7	0
 src/algorithms/number-theory/fftMultiply/fftMultiply-guide.mdx	8	0
 src/algorithms/number-theory/isPrimeTrial/isPrimeTrial-guide.mdx	4	0
