@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 199,
+  "next_seq": 200,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -598,12 +598,12 @@
       ]
     },
     "KAN-034.7-QMZ3RE": {
-      "col": "backlog",
+      "col": "doing",
       "title": "W3 — 중요도 하 42편 전개",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-28",
+      "갱신": "2026-09-04",
       "title_hash": "11cad792ba3853c8e1a298e48d074c05b10ecb0c",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "short": "W3 하 42편",
@@ -656,7 +656,6 @@
     "KAN-031",
     "KAN-034.3-53E4F9",
     "KAN-034.4-4NS63H",
-    "KAN-034.7-QMZ3RE",
     "KAN-034.8-BK1Q3A",
     "KAN-001",
     "KAN-032",
@@ -692,9 +691,20 @@
     "KAN-024",
     "KAN-033-E8KHSV",
     "KAN-034.1-V337W5",
-    "KAN-034.2-5V5M2F"
+    "KAN-034.2-5V5M2F",
+    "KAN-034.7-QMZ3RE"
   ],
   "recent": [
+    {
+      "seq": 199,
+      "t": "2026-09-04T00:06",
+      "a": "ai",
+      "id": "KAN-034.7-QMZ3RE",
+      "op": "move",
+      "w": "MDD8JM",
+      "from": "backlog",
+      "to": "doing"
+    },
     {
       "seq": 198,
       "t": "2026-09-03T20:30",
@@ -1293,16 +1303,6 @@
       "w": "V9R0GY",
       "from": "doing",
       "to": "review"
-    },
-    {
-      "seq": 149,
-      "t": "2026-08-20T17:55",
-      "a": "ai",
-      "id": "KAN-033-E8KHSV",
-      "op": "move",
-      "w": "V9R0GY",
-      "from": "review",
-      "to": "doing"
     }
   ],
   "layout": 2
