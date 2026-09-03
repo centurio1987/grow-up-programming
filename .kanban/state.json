@@ -616,7 +616,17 @@
       "goal_hash": "e7862318f20a0d6f6fafe2de66323776787f728d",
       "memo": "",
       "memo_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
-      "parent": "KAN-034-KSD7XR"
+      "parent": "KAN-034-KSD7XR",
+      "scope": [
+        "src/algorithms/**",
+        "sandbox/algo-guide-v2/FEEDBACK.md",
+        "tools/_baseline/guide-rhythm.tsv",
+        "문제_가이드_목록.md",
+        "KANBAN.md",
+        "KANBAN.cards/**",
+        "KANBAN.batches/**",
+        ".kanban/**"
+      ]
     },
     "KAN-034.8-BK1Q3A": {
       "col": "backlog",
