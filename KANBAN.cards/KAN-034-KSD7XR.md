@@ -105,7 +105,7 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
       같은 카테고리·같은 뷰 조합 첫 편이 도는 중이면 그 후속만 막음
 - [x] `S5` W1 — 중요도 상 24편 (`KAN-034.5-0RGSQM`)
       완료 기준: 상 등급에서 살아 있는 `.mdx` 0 · `guide-rhythm.tsv` 101 → 79
-- [ ] `S6` W2 — 중요도 중 41편 (`KAN-034.6-CF6ZHE`)
+- [x] `S6` W2 — 중요도 중 41편 (`KAN-034.6-CF6ZHE`)
       완료 기준: 중 등급에서 살아 있는 `.mdx` 0 · `guide-rhythm.tsv` 79 → 41
 - [ ] `S7` W3 — 중요도 하 42편 (`KAN-034.7-QMZ3RE`)
       완료 기준: `src/algorithms` 의 살아 있는 `.mdx` **0** · `guide-rhythm.tsv` **0**
@@ -250,3 +250,4 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
 - 2026-08-29T12:21 · s:7970a5f3 — `실행 계획` 섹션 교체
 - 2026-08-30T13:01 · s:39d8f0cf · S5 done — W1 — 중요도 상 24편 전개 완료(KAN-034.5-0RGSQM 24/24). 배치 여섯으로 나눠 돌렸고 편마다 스캐너 넷 0 · guide 테스트 통과 · build-html 0. 웨이브 마감 실측: 상 등급에 살아 있는 .mdx 0(algo-wbs [W1] 26/26) · guide-rhythm 101→79 · check-links 343건 전부 실재 · ci.ts all 통과(단계 15). 완료 기준 둘 다 충족. 웨이브 배리어가 풀려 W2 claim 후보 10건이 열렸다
 - 2026-08-30T13:13 · s:39d8f0cf — `전략` 섹션 교체
+- 2026-09-03T23:57 · s:913bcce1 · S6 done — W2 41/41 마감 — 살아 있는 .mdx 42 · guide-rhythm 41 실측, algo-wbs 가 [W2] 완료와 W3 후보 11건을 낸다
