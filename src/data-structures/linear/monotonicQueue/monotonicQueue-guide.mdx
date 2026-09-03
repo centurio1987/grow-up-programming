@@ -754,7 +754,7 @@ flowchart TD
   style Record fill:#2196F3,color:#fff
 ```
 
-이 기법을 "슬라이딩 윈도우 최댓값"이라는 **문제 풀이** 관점에서 다시 훑고 싶다면 [slidingWindowMaximum 가이드](../../../algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.mdx)를 함께 보세요. 이 가이드는 같은 기법을 **도구 자체**로 놓고 지배 관계·상각·구현 특수화까지 파고든 쪽입니다.
+이 기법을 "슬라이딩 윈도우 최댓값"이라는 **문제 풀이** 관점에서 다시 훑고 싶다면 [slidingWindowMaximum 가이드](../../../algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.md)를 함께 보세요. 이 가이드는 같은 기법을 **도구 자체**로 놓고 지배 관계·상각·구현 특수화까지 파고든 쪽입니다.
 
 정리하면 이렇습니다. 브루트포스의 $O(nk)$에서 출발해 "이미 본 값을 다시 본다"는 낭비를 짚었고, 최댓값 하나만 기억하는 방법이 최악에서 무너지는 것을 확인했고, 힙이 $O(n \log n)$으로 해결하지만 입력이 한 방향으로만 들어온다는 규칙성을 못 쓴다는 점을 봤습니다. **지배 관계**로 후보를 걸러 내면 남는 목록이 저절로 단조가 되고, 각 인덱스가 한 번 들어와 한 번 나가므로 총 $O(n)$ — 모든 원소를 최소 한 번은 읽어야 한다는 $\Omega(n)$ 하한에 붙는 최적입니다. 공간은 $O(k)$이고요.
 
