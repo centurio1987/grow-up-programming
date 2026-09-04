@@ -552,7 +552,7 @@ export const PROOFS: Record<string, () => string> = {
       "",
       `└ 입력은 ${values(input)} 이고 두 코드의 답은 둘 다 ${largestRectangleInHistogram([...input])} 이다`,
       "  전체 폭 4 를 바른 코드는 무리의 첫 자리에, 느슨한 코드는 마지막 자리에 준다",
-      `  길이 1~7 · 값 0~3 인 배열 ${num(checked)} 개를 전수로 돌려 답이 갈린 것은 ${differ} 개다`,
+      `  길이 1~7 · 값 0~3 인 배열 ${num(checked)} 개를 전수로 실행해 답이 갈린 것은 ${differ} 개다`,
     ].join("\n");
   },
 

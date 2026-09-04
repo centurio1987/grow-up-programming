@@ -16,7 +16,7 @@ JOURNAL.md       배치 결과 · 반려 사유 · 실측값 · 확정 SPEC 해�
 SURVEY.md        뷰 조합 실측
 verdicts/        옛 이해 시험 응답 원문 <name>-r<NN>.md — 2026-08-29 이후 새로 안 쌓인다
 tools/
-  comprehension.sh         옛 이해 시험 V1~V7 — **돌리지 않는다**(SPEC §0)
+  comprehension.sh         옛 이해 시험 V1~V7 — **실행하지 않는다**(SPEC §0)
   comprehension.selftest.sh  그 판정기의 자기시험 18항목
 tsconfig.json    루트를 extends 하되 exclude 를 비운다 (아래 「함정」)
 .gitignore       *.html — 빌드 산출물은 커밋하지 않는다
@@ -88,7 +88,7 @@ bunx tsc --noEmit                    # 승격 뒤로는 루트 tsc 가 v2 산출
 4. **`viz/` 에 구현 + 테스트.** 색은 `var(--guide-sim-*, 폴백)` 로만 — 하드코딩 금지.
    샌드박스에서는 **`extraViews`(새 이름)** 또는 **`overrides`(프리셋 개선)** 로 끼운다.
    - `extraViews` 키가 프리셋 이름과 겹치면 **던진다**(조용한 덮어쓰기 금지).
-   - `overrides` 는 프리셋을 이기되 `console.warn` 을 낸다.
+   - `overrides` 는 프리셋보다 우선하되 `console.warn` 을 낸다.
 5. **md 쪽 ascii art 대응 표현을 같은 커밋에서 정의한다.** 쌍이 깨지면 L11 위반이다.
 6. **승격은 pilot 승인 뒤.** `ViewName` 유니온 + `VIEW_REGISTRY` + `Frame` 에 추가한다.
 
@@ -101,7 +101,7 @@ bunx tsc --noEmit                    # 승격 뒤로는 루트 tsc 가 v2 산출
 ## 승격 조건 (pilot 승인 뒤)
 
 1. `extraViews`/`overrides` 로 검증된 뷰를 `VIEW_REGISTRY` 로 옮긴다.
-2. `tools/ci.ts` 에 `check-v2`·`check-proof` 를 편입한다(`comprehension.sh` 는 편입하지 않는다 — 돌리지 않는다).
+2. `tools/ci.ts` 에 `check-v2`·`check-proof` 를 편입한다(`comprehension.sh` 는 편입하지 않는다 — 실행하지 않는다).
 3. `tools/check-citations.ts:30` 의 `SCAN_GLOBS` 에 `src/algorithms` 를 추가한다 —
    현재 알고리즘 트랙의 `경로:줄번호` 인용은 **아무도 안 본다**.
 4. `tools/_baseline/guide-rhythm.tsv` 의 `src/algorithms` **103행**을 이관한다.
@@ -115,6 +115,6 @@ bunx tsc --noEmit                    # 승격 뒤로는 루트 tsc 가 v2 산출
 | `package.json`+`bun.lock` | devDependencies 8개 | md→HTML 직렬화기가 없었다 |
 | `tsconfig.json` | exclude 에 `sandbox/**` | 초안 하나가 GATES 첫 항목을 죽여 병행 카드를 막는다 |
 | `tools/check-links.ts` | `check`·`refs` 에서 `verdicts/` 만 제외 | 모델 응답의 인용 링크가 깨진다. 통째로 빼면 `SPEC.md` 검사와 refs 스윕이 함께 눈이 먼다 |
-| `tools/ci.ts` | SELF 에 `bun test src/_guide-sim` | 182편이 쓰는데 소비자가 `.mdx` 라 파손이 런타임에서만 드러났다 |
+| `tools/ci.ts` | SELF 에 `bun test src/_guide-sim` | 182편이 쓰는데 소비자가 `.mdx` 라 파손이 런타임에서만 확인됐다 |
 | `src/_guide-sim/index.tsx` | 4곳 + 회귀 9종 | `VIEW_REGISTRY` 가 닫힌 const 라 선개발이 불가능했다 |
 | 칸반 | 카드 이동 + 실행 문서 | — |

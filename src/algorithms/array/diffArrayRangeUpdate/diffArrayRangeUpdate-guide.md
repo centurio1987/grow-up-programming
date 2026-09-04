@@ -716,7 +716,7 @@ diffArrayRangeUpdate(3, [])                             →  [0, 0, 0]
 - **NumPy 의 `numpy.diff` 와 `numpy.cumsum`** — 이 글이 쓰는 두 연산을 각각 함수 하나로
   제공합니다. 앞은 공식 문서가 *"Calculate the n-th discrete difference along the given axis"*
   로 적고, 뒤는 *"Return the cumulative sum of the elements along a given axis"* 로 적어요.
-  두 페이지가 서로를 「See also」에 걸어 두고 있습니다.
+  두 페이지가 서로를 「See also」로 서로를 가리키고 있습니다.
   ([`numpy.diff`](https://numpy.org/doc/stable/reference/generated/numpy.diff.html) ·
   [`numpy.cumsum`](https://numpy.org/doc/stable/reference/generated/numpy.cumsum.html),
   조회 2026-08-30)

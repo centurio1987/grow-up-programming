@@ -525,7 +525,7 @@ for (const q of order) {
 루프 하나가 끝날 때 보장되는 것
   L+ 뒤   curL ≤ q.l          L− 뒤   curL = q.l
   R+ 뒤   curR ≥ q.r          R− 뒤   curR = q.r
-  ┗ 넷을 다 돌면 창이 정확히 [q.l, q.r] 이고, count 는 그 창의 내용과 같다
+  ┗ 넷을 다 실행하면 창이 정확히 [q.l, q.r] 이고, count 는 그 창의 내용과 같다
 ```
 
 <!--viz:window-->

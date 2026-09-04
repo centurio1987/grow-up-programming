@@ -622,7 +622,7 @@ T10  lca(8, 7) 깊이 맞추기와    gap = 0        네 자리 다 같다    �
 #### 6. 전체 코드
 
 지금까지의 조각을 한 벌로 모읍니다. 앞에서 안 나온 것은 질의 하나를 처리하는 부분을 함수로
-묶어 `queries` 에 걸어 준 모양 하나예요.
+묶어 `queries` 로 넘겨 준 모양 하나예요.
 
 ```ts
 export function lowestCommonAncestor(

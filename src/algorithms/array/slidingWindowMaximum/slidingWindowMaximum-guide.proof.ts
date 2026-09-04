@@ -502,7 +502,7 @@ export const PROOFS: Record<string, () => string> = {
     return [
       table,
       `└ 네 입력에서 답이 한 줄도 안 갈린다`,
-      `  입력 ${shapes.length} 개의 모든 창 크기 ${num(checked)} 벌을 돌려 한 걸음에 두 번 이상 버린 자리를 세었고 결과는 ${twice} 개다`,
+      `  입력 ${shapes.length} 개의 모든 창 크기 ${num(checked)} 벌을 실행해 한 걸음에 두 번 이상 버린 자리를 세었고 결과는 ${twice} 개다`,
     ].join("\n");
   },
 

@@ -651,8 +651,7 @@
       "scope": [
         "tools/**",
         "src/algorithms/**",
-        "sandbox/algo-guide-v2/SPEC.md",
-        "sandbox/algo-guide-v2/FEEDBACK.md",
+        "sandbox/algo-guide-v2/**",
         ".claude/authoring/paths.json",
         "KANBAN.md",
         "KANBAN.cards/**",
@@ -674,6 +673,7 @@
     "KAN-034.5-0RGSQM",
     "KAN-034.6-CF6ZHE",
     "KAN-034.7-QMZ3RE",
+    "KAN-034.8-BK1Q3A",
     "KAN-029",
     "KAN-030",
     "KAN-007",
@@ -702,8 +702,7 @@
     "KAN-024",
     "KAN-033-E8KHSV",
     "KAN-034.1-V337W5",
-    "KAN-034.2-5V5M2F",
-    "KAN-034.8-BK1Q3A"
+    "KAN-034.2-5V5M2F"
   ],
   "recent": [
     {
