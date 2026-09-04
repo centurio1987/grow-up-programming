@@ -33,6 +33,7 @@
   - 목적: _deprecated/ 의 구판 가이드와 대상이 0 이 된 check-guide-rhythm.ts 의 알고리즘 몫을 정리하고, 규격이 금지하는데 어떤 스캐너도 안 보는 자리를 강제 지점에 박는다
   - 이유: 111편이 다 교체돼도 구판과 빈 스캐너가 남는다. 대상이 0 인 스캐너는 통과 표시가 무의미해지고, 규격만 금지하고 아무도 안 보는 규칙은 실제로 새어 21편에 남았다
   - 목표: _deprecated/ 처분이 끝나고 rhythm 스캐너가 자료구조만 보도록 정리되며 SPEC 이 금지한 자리를 check-v2 가 실제로 잡아, 알고리즘 트랙에 v1 흔적도 스캐너 구멍도 남지 않는다
+  - 메모: v2 쪽 두 건도 여기서 함께 본다 — ① invariant 절의 원문자 라벨: SPEC.md:566 이 금지하는데 P4 가 deep.walk 에서만 토큰을 뽑아 스캐너 넷이 전부 초록이다. 전수 스윕으로 invariant 절이 있는 81편 중 21편(최다 segmentsIntersect 37 · undirectedCycleDetection 22 · enumerateSubmasks 19)이고 check-v2 에 한 줄이면 막는다 ② check-metaphor 의 활용형 리터럴 나열이 다섯 번째로 샜다(되돌리- · 얹히- 에 이어 훑- ). 근거·목록·처방은 sandbox/algo-guide-v2/FEEDBACK.md §3·§4 (2026-09-04 W3 배치3 에서 나왔다). 그리고 KAN-034.7 전략 7항이 이월한 셋 — .claude/authoring/paths.json:29 · tools/ord004-regen.workflow.mjs:26 · tools/ord004-manifest.json:659 가 convexHull 의 사라진 .mdx 를 가리킨다
 
 ## 할 일
 - `KAN-001` [P0-a·1] ORD-006 봉인 — 지시 원문·진단 9건 표 이관 — 생성:ai · 최종:ai · 갱신:2026-08-04
