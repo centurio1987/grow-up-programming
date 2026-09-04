@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 202,
+  "next_seq": 203,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -634,17 +634,17 @@
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-28",
+      "갱신": "2026-09-04",
       "title_hash": "c00cf43560b97a9eab60cd2a6c8f712faec8134d",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
-      "short": "v1 잔여 처분",
-      "short_hash": "0e6d935b67d5564a39081217fd8b88d38a52d8c9",
-      "purpose": "_deprecated/ 의 구판 가이드와, 대상이 0 이 된 check-guide-rhythm.ts 의 알고리즘 몫을 정리한다",
-      "purpose_hash": "48e0b6ac0249f36a2f8449c1582adfa2d2ded4df",
-      "reason": "111편이 다 교체돼도 구판과 빈 스캐너가 남는다. 대상이 0 인 스캐너는 통과 표시가 무의미해지고, 다음 사람이 그것을 근거로 읽는다",
-      "reason_hash": "dc7c940229897ab49d0d9265a2b72cf7f52f2819",
-      "goal": "_deprecated/ 처분이 끝나고 rhythm 스캐너가 자료구조만 보도록 정리돼, 알고리즘 트랙에 v1 흔적이 남지 않는다",
-      "goal_hash": "4d244b84acc59ea97ec127b06043209a9220c2ec",
+      "short": "v1 잔여·스캐너 구멍 처분",
+      "short_hash": "ac37313f24801db432a4f763b4af7d907a6c612f",
+      "purpose": "_deprecated/ 의 구판 가이드와 대상이 0 이 된 check-guide-rhythm.ts 의 알고리즘 몫을 정리하고, 규격이 금지하는데 어떤 스캐너도 안 보는 자리를 강제 지점에 박는다",
+      "purpose_hash": "59b3615779558b4a2db9ea0ceb5fec76267c0c54",
+      "reason": "111편이 다 교체돼도 구판과 빈 스캐너가 남는다. 대상이 0 인 스캐너는 통과 표시가 무의미해지고, 규격만 금지하고 아무도 안 보는 규칙은 실제로 새어 21편에 남았다",
+      "reason_hash": "82807c79b0622bbc2436c84779afa34c0ce34a57",
+      "goal": "_deprecated/ 처분이 끝나고 rhythm 스캐너가 자료구조만 보도록 정리되며 SPEC 이 금지한 자리를 check-v2 가 실제로 잡아, 알고리즘 트랙에 v1 흔적도 스캐너 구멍도 남지 않는다",
+      "goal_hash": "063380a01decef60224903480d460997d4ed8fad",
       "memo": "",
       "memo_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "parent": "KAN-034-KSD7XR"
@@ -695,6 +695,26 @@
     "KAN-034.2-5V5M2F"
   ],
   "recent": [
+    {
+      "seq": 202,
+      "t": "2026-09-04T21:07",
+      "a": "ai",
+      "id": "KAN-034.8-BK1Q3A",
+      "op": "brief",
+      "w": "MDD8JM",
+      "fields": {
+        "short": "v1 잔여·스캐너 구멍 처분",
+        "purpose": "_deprecated/ 의 구판 가이드와 대상이 0 이 된 check-guide-rhythm.ts 의 알고리즘 몫을 정리하고, 규격이 금지하는데 어떤 스캐너도 안 보는 자리를 강제 지점에 박는다",
+        "reason": "111편이 다 교체돼도 구판과 빈 스캐너가 남는다. 대상이 0 인 스캐너는 통과 표시가 무의미해지고, 규격만 금지하고 아무도 안 보는 규칙은 실제로 새어 21편에 남았다",
+        "goal": "_deprecated/ 처분이 끝나고 rhythm 스캐너가 자료구조만 보도록 정리되며 SPEC 이 금지한 자리를 check-v2 가 실제로 잡아, 알고리즘 트랙에 v1 흔적도 스캐너 구멍도 남지 않는다"
+      },
+      "before": {
+        "short": "v1 잔여 처분",
+        "purpose": "_deprecated/ 의 구판 가이드와, 대상이 0 이 된 check-guide-rhythm.ts 의 알고리즘 몫을 정리한다",
+        "reason": "111편이 다 교체돼도 구판과 빈 스캐너가 남는다. 대상이 0 인 스캐너는 통과 표시가 무의미해지고, 다음 사람이 그것을 근거로 읽는다",
+        "goal": "_deprecated/ 처분이 끝나고 rhythm 스캐너가 자료구조만 보도록 정리돼, 알고리즘 트랙에 v1 흔적이 남지 않는다"
+      }
+    },
     {
       "seq": 201,
       "t": "2026-09-04T15:25",
@@ -1288,23 +1308,6 @@
       "w": "46PCAX",
       "from": "todo",
       "to": "backlog"
-    },
-    {
-      "seq": 152,
-      "t": "2026-08-20T18:50",
-      "a": "ai",
-      "id": "KAN-034-KSD7XR",
-      "op": "create",
-      "w": "46PCAX",
-      "col": "todo",
-      "title": "algo-guide-v2 전 편 전개 — pilot 3편의 골격을 src/algorithms/ 111편에 적용",
-      "verbatim": "가이드 개발과정은 샌드박스 위에서 진행하며, pilot 가이드가 완전히 나에게 승인 됐을 때 비로소 모든 가이드에 적용할 예정이다.\n\n(KAN-033-E8KHSV 원문 중 전개 조건. 그 카드의 검토에서 「[결재 3] pilot 세 편으로 전개 카드를 뽑을 것인가」가 승인됐고, 이 카드가 그 전개다.)",
-      "parent": null,
-      "short": "algo-guide-v2 전 편 전개",
-      "purpose": "승인된 pilot 세 편(quicksort·mosAlgorithm·knapsack01)의 골격·명세·검증 장치를 src/algorithms/ 의 기존 가이드 111편에 적용한다",
-      "reason": "카드 원문이 pilot 승인을 전개의 전제 조건으로 걸었고, KAN-033-E8KHSV 검토의 결재 3 이 2026-08-20 승인됐다",
-      "goal": "111편이 새 골격으로 재집필돼 이해 시험 V1~V7 · 스캐너 P1~P10 · 조항 L1~L20 을 통과하고, sandbox/algo-guide-v2 가 본 저장소로 걷힌다",
-      "memo": "선행 KAN-033-E8KHSV 완료(2026-08-20). 규모 111편 · 14 카테고리. 착수 전에 전략·WBS·배치 2안(단일 에이전트 / 오케스트레이션)을 먼저 낸다"
     }
   ],
   "layout": 2
