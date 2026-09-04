@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 205,
+  "next_seq": 206,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -629,7 +629,7 @@
       ]
     },
     "KAN-034.8-BK1Q3A": {
-      "col": "backlog",
+      "col": "doing",
       "title": "v1 잔여·스캐너 구멍 처분 — _deprecated 구판 · rhythm 스캐너 · SPEC 금지의 미강제",
       "verbatim": "",
       "생성": "ai",
@@ -667,7 +667,6 @@
     "KAN-031",
     "KAN-034.3-53E4F9",
     "KAN-034.4-4NS63H",
-    "KAN-034.8-BK1Q3A",
     "KAN-001",
     "KAN-032",
     "KAN-027",
@@ -703,9 +702,20 @@
     "KAN-024",
     "KAN-033-E8KHSV",
     "KAN-034.1-V337W5",
-    "KAN-034.2-5V5M2F"
+    "KAN-034.2-5V5M2F",
+    "KAN-034.8-BK1Q3A"
   ],
   "recent": [
+    {
+      "seq": 205,
+      "t": "2026-09-04T21:26",
+      "a": "ai",
+      "id": "KAN-034.8-BK1Q3A",
+      "op": "move",
+      "w": "MDD8JM",
+      "from": "backlog",
+      "to": "doing"
+    },
     {
       "seq": 204,
       "t": "2026-09-04T21:08",
@@ -1309,17 +1319,6 @@
         "reason": "카드 원문이 pilot 승인을 전개의 전제 조건으로 걸었고, KAN-033-E8KHSV 검토의 결재 3 이 2026-08-20 승인됐다",
         "goal": "111편이 새 골격으로 재집필돼 이해 시험 V1~V7 · 스캐너 P1~P10 · 조항 L1~L20 을 통과하고, sandbox/algo-guide-v2 가 본 저장소로 걷힌다"
       }
-    },
-    {
-      "seq": 155,
-      "t": "2026-08-24T18:19",
-      "a": "ai",
-      "id": "KAN-034-KSD7XR",
-      "op": "edit",
-      "w": "46PCAX",
-      "field": "verbatim",
-      "before": "가이드 개발과정은 샌드박스 위에서 진행하며, pilot 가이드가 완전히 나에게 승인 됐을 때 비로소 모든 가이드에 적용할 예정이다.\n\n(KAN-033-E8KHSV 원문 중 전개 조건. 그 카드의 검토에서 「[결재 3] pilot 세 편으로 전개 카드를 뽑을 것인가」가 승인됐고, 이 카드가 그 전개다.)",
-      "after": ""
     }
   ],
   "layout": 2

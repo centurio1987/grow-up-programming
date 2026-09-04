@@ -27,14 +27,6 @@
   - 목적: ORD-006 병렬 모델을 알고리즘 트랙에 이식하고, 웨이브 배리어와 선례 대기를 claim 판정으로 구현한 claim 도구를 짓는다
   - 이유: 107편을 손으로 배분하면 두 세션이 같은 편을 잡거나 중요도 순서가 병렬화에 먹힌다. 상태를 문서에 적으면 그 문서가 곧 충돌 지점이 된다 — ORD-006 이 그 교훈을 이미 냈다
   - 목표: algo-wbs.ts 가 웨이브별 남은 편과 트랙별 claim 후보를 내고, 앞 웨이브가 안 비면 다음 후보를 내지 않으며, 같은 카테고리·같은 뷰 조합의 첫 편이 도는 중이면 그 후속만 막는다
-- `KAN-034.8-BK1Q3A` v1 잔여·스캐너 구멍 처분 — _deprecated 구판 · rhythm 스캐너 · SPEC 금지의 미강제 — 생성:ai · 최종:ai · 갱신:2026-09-04
-  - 상위: `KAN-034-KSD7XR` (진행 중)
-  - 짧은 제목: v1 잔여·스캐너 구멍 처분
-  - 목적: _deprecated/ 의 구판 가이드와 대상이 0 이 된 check-guide-rhythm.ts 의 알고리즘 몫을 정리하고, 규격이 금지하는데 어떤 스캐너도 안 보는 자리를 강제 지점에 박는다
-  - 이유: 111편이 다 교체돼도 구판과 빈 스캐너가 남는다. 대상이 0 인 스캐너는 통과 표시가 무의미해지고, 규격만 금지하고 아무도 안 보는 규칙은 실제로 새어 21편에 남았다
-  - 목표: _deprecated/ 처분이 끝나고 rhythm 스캐너가 자료구조만 보도록 정리되며 SPEC 이 금지한 자리를 check-v2 가 실제로 잡아, 알고리즘 트랙에 v1 흔적도 스캐너 구멍도 남지 않는다
-  - 메모: v2 쪽 두 건도 여기서 함께 본다 — ① invariant 절의 원문자 라벨: SPEC.md:566 이 금지하는데 P4 가 deep.walk 에서만 토큰을 뽑아 스캐너 넷이 전부 초록이다. 전수 스윕으로 invariant 절이 있는 81편 중 21편(최다 segmentsIntersect 37 · undirectedCycleDetection 22 · enumerateSubmasks 19)이고 check-v2 에 한 줄이면 막는다 ② check-metaphor 의 활용형 리터럴 나열이 다섯 번째로 샜다(되돌리- · 얹히- 에 이어 훑- ). 근거·목록·처방은 sandbox/algo-guide-v2/FEEDBACK.md §3·§4 (2026-09-04 W3 배치3 에서 나왔다). 그리고 KAN-034.7 전략 7항이 이월한 셋 — .claude/authoring/paths.json:29 · tools/ord004-regen.workflow.mjs:26 · tools/ord004-manifest.json:659 가 convexHull 의 사라진 .mdx 를 가리킨다
-  - 실행 문서: KANBAN.cards/KAN-034.8-BK1Q3A.md (0/10 · 최근 09-04)
 
 ## 할 일
 - `KAN-001` [P0-a·1] ORD-006 봉인 — 지시 원문·진단 9건 표 이관 — 생성:ai · 최종:ai · 갱신:2026-08-04
@@ -101,6 +93,15 @@
   - 메모: 배치2 종료(2026-09-04) — S29 segmentsIntersect · S1 bellmanFord · S4 zeroOneBfs · S9 maxFlow 넷을 닫아 8/42 다. 편마다 스캐너 넷 0 · guide 테스트 통과 · build-html exit 0 이고 ci.ts all 통과(단계 16). .mdx 38→34 · guide-rhythm 37→34 · check-links 572건 전부 실재 · algo-wbs 가 [W3] 10/44 를 낸다. **두 수가 34 로 만났다** — rhythm 행이 없던 유일한 편 segmentsIntersect 가 이 배치에서 닫혔기 때문이고, 남은 34편은 이제 .mdx 와 rhythm 행이 1:1 이다. 상호 링크 다섯 자리를 편 커밋에서 닫았다(bentleyOttmann 세 곳 · minCut 두 곳) — 42편 세 쌍 중 두 쌍이고 남은 것은 배치10 의 rotatingCalipersDiameter→convexHull 하나뿐인데 그것은 배치1 에서 이미 처리했다. **§3 대조가 129건을 냈다**(S1 45 · S9 33 · S4 27 · S29 24) — 배치1 110 에 이어 여덟 배치 합계 822건이고 넷 다 스캐너가 0 을 낸 뒤다. **bellmanFord 의 45건이 한 편 최다다.** 이 배치가 새로 보여 준 것 넷 — ① **invariant 절의 원문자 라벨 금지를 어떤 스캐너도 안 본다**(SPEC §3 이 명시적으로 금지했는데 P4 는 「전체 코드 라벨 ⊆ 전개 라벨」만 재므로 초록이다. check-v2 에 한 줄이면 끝난다) ② **selfcheck 답 안의 손 트레이스가 사각지대다** — check-proof 는 마커 블록만 보고, zeroOneBfs 에서 덱 상태 둘이 틀린 채 통과했다 ③ **BigInt 를 표에 Number() 로 찍으면 반례가 반올림돼 사라진다**(segmentsIntersect 의 핵심 반례가 표에서 없어진 상태였다) ④ **P12 가 표 안에서 오탐한다** — 기호표 행에 「코드에서는」을 쓰면 다음 줄의 백틱 토큰까지 이름으로 집는다. **최악 입력 통념 하나가 실측으로 거짓이 됐다** — maxFlow 의 「용량이 크면 증가 경로가 많아진다」가 고정 순서 DFS 에서 성립하지 않는다(용량을 25만 배 키워도 경로 수가 그대로이고 갈리는 것은 간선 순서다). **최악 축이 둘이면 둘 다 구성해서 재야 한다는 것도 굳었다** — maxFlow 는 라운드 축(계단 그래프가 상한 V-1 을 정확히 채운다)과 간선 검사 축(1,984만)을 따로 구성했고 두 축을 동시에 채우는 입력은 못 만들어 그 사실을 원고에 적었다. zeroOneBfs 도 최악 축의 대표 모양(별 모양 V-1)이 실제 상한 2V 에 못 이르는 것을 잡았다. **전수 대조가 이 배치에서 가장 크게 값을 했다** — zeroOneBfs 는 이웃 두 편과 완전 일치 문장이 53개였고(본문 문장과 미답 문제까지 통째로) 35군데를 다시 써 0 으로 내렸으며, bellmanFord 는 dijkstra 와 6어절 연속 56→2, maxFlow 는 kruskalMst 와 완전히 같은 문단 하나를 잡았다. **도구 승격 후보가 셋으로 늘었다** — invariant 라벨 검사 · **편 사이 완전 일치 줄 검사기**(골격 문구와 옮겨 온 문구를 공유 편 수로 자동 구분한다) · ASCII 열 정렬 검사기(배치10·11·이번까지 세 번째 손수 작성이고, 승격하려면 폭 규칙을 proof.ts 의 width() 와 맞춰야 한다 — 저장소 table() 은 원문자·화살표를 폭 1 로 센다). **L37 레일은 이 배치도 실렌더 미확인이다.** 워커 넷이 또 사용량 한도로 §3 대조 직전에 끊겼고 디스크 실측으로 이어 붙였다 — 배치1 과 같은 처리다
   - 실행 문서: KANBAN.cards/KAN-034.7-QMZ3RE.md (12/42 · 최근 09-04)
   - 계획 리포트: KANBAN.reports/KAN-034.7-QMZ3RE.report.html (낡음)
+- `KAN-034.8-BK1Q3A` v1 잔여·스캐너 구멍 처분 — _deprecated 구판 · rhythm 스캐너 · SPEC 금지의 미강제 — 생성:ai · 최종:ai · 갱신:2026-09-04
+  - 상위: `KAN-034-KSD7XR` (진행 중)
+  - 짧은 제목: v1 잔여·스캐너 구멍 처분
+  - 목적: _deprecated/ 의 구판 가이드와 대상이 0 이 된 check-guide-rhythm.ts 의 알고리즘 몫을 정리하고, 규격이 금지하는데 어떤 스캐너도 안 보는 자리를 강제 지점에 박는다
+  - 이유: 111편이 다 교체돼도 구판과 빈 스캐너가 남는다. 대상이 0 인 스캐너는 통과 표시가 무의미해지고, 규격만 금지하고 아무도 안 보는 규칙은 실제로 새어 21편에 남았다
+  - 목표: _deprecated/ 처분이 끝나고 rhythm 스캐너가 자료구조만 보도록 정리되며 SPEC 이 금지한 자리를 check-v2 가 실제로 잡아, 알고리즘 트랙에 v1 흔적도 스캐너 구멍도 남지 않는다
+  - 메모: v2 쪽 두 건도 여기서 함께 본다 — ① invariant 절의 원문자 라벨: SPEC.md:566 이 금지하는데 P4 가 deep.walk 에서만 토큰을 뽑아 스캐너 넷이 전부 초록이다. 전수 스윕으로 invariant 절이 있는 81편 중 21편(최다 segmentsIntersect 37 · undirectedCycleDetection 22 · enumerateSubmasks 19)이고 check-v2 에 한 줄이면 막는다 ② check-metaphor 의 활용형 리터럴 나열이 다섯 번째로 샜다(되돌리- · 얹히- 에 이어 훑- ). 근거·목록·처방은 sandbox/algo-guide-v2/FEEDBACK.md §3·§4 (2026-09-04 W3 배치3 에서 나왔다). 그리고 KAN-034.7 전략 7항이 이월한 셋 — .claude/authoring/paths.json:29 · tools/ord004-regen.workflow.mjs:26 · tools/ord004-manifest.json:659 가 convexHull 의 사라진 .mdx 를 가리킨다
+  - 실행 문서: KANBAN.cards/KAN-034.8-BK1Q3A.md (0/10 · 최근 09-04)
+  - 계획 리포트: KANBAN.reports/KAN-034.8-BK1Q3A.report.html (낡음)
 
 ## 검토
 
