@@ -889,8 +889,8 @@ export class HeavyLightDecomposition {
     // 간선 목록을 정점마다의 이웃 목록으로 옮긴다. 무방향이라 양쪽에 넣는다.
     const near: number[][] = Array.from({ length: n }, () => []);
     for (const [a, b] of edges) {
-      near[a].push(b);
-      near[b].push(a);
+      (near[a] as number[]).push(b);
+      (near[b] as number[]).push(a);
     }
 
     const parent: number[] = Array.from({ length: n }, () => root);
@@ -904,14 +904,14 @@ export class HeavyLightDecomposition {
     const stack: number[] = [root];
     seen[root] = true;
     while (stack.length > 0) {
-      const u = stack.pop();
+      const u = stack.pop() as number;
       order.push(u);
-      for (const w of near[u]) {
+      for (const w of near[u] as number[]) {
         // ① 이미 지나온 정점은 자식이 아니다. 이웃 목록이 양방향이라 부모가 거기 들어 있다.
         if (seen[w]) continue;
         seen[w] = true;
         parent[w] = u;
-        depth[w] = depth[u] + 1;
+        depth[w] = (depth[u] as number) + 1;
         stack.push(w);
       }
     }
@@ -919,18 +919,20 @@ export class HeavyLightDecomposition {
     // 방문 순서의 뒤에서 앞으로 오면서 자식의 크기를 부모에 더한다. 자식이 언제나 부모보다
     // 뒤에 있으므로, 부모 차례가 왔을 때 그 부분트리 크기가 이미 완성돼 있다.
     for (let i = order.length - 1; i >= 1; i--) {
-      const w = order[i];
-      size[parent[w]] += size[w];
+      const w = order[i] as number;
+      const p = parent[w] as number;
+      size[p] = (size[p] as number) + (size[w] as number);
     }
 
     // `best[p]` 는 `p` 의 자식 중 지금까지 본 가장 큰 부분트리 크기다.
     const best: number[] = Array.from({ length: n }, () => 0);
     for (const w of order) {
       if (w === root) continue;
-      const p = parent[w];
+      const p = parent[w] as number;
+      const sw = size[w] as number;
       // ② 자식 중 부분트리가 가장 큰 것 하나를 무거운 자식으로 삼는다.
-      if (size[w] > best[p]) {
-        best[p] = size[w];
+      if (sw > (best[p] as number)) {
+        best[p] = sw;
         heavy[p] = w;
       }
     }
@@ -941,16 +943,16 @@ export class HeavyLightDecomposition {
     let timer = 0;
     const tops: number[] = [root];
     while (tops.length > 0) {
-      const top = tops.pop();
+      const top = tops.pop() as number;
       let w = top;
       while (w !== -1) {
         // ③ 무거운 자식은 부모의 사슬 머리를 물려받고, 가벼운 자식이 새 사슬의 머리가 된다.
         head[w] = top;
         pos[w] = timer;
         timer += 1;
-        const pw = parent[w];
-        const hw = heavy[w];
-        for (const c of near[w]) {
+        const pw = parent[w] as number;
+        const hw = heavy[w] as number;
+        for (const c of near[w] as number[]) {
           if (c === pw || c === hw) continue;
           tops.push(c);
         }
@@ -963,12 +965,13 @@ export class HeavyLightDecomposition {
     const val: number[] = Array.from({ length: n }, () => 0);
     const bit: number[] = Array.from({ length: n + 1 }, () => 0);
     for (let w = 0; w < n; w++) {
-      val[w] = values[w];
-      bit[pos[w] + 1] = values[w];
+      const x = values[w] as number;
+      val[w] = x;
+      bit[(pos[w] as number) + 1] = x;
     }
     for (let i = 1; i <= n; i++) {
       const j = i + (i & -i);
-      if (j <= n) bit[j] += bit[i];
+      if (j <= n) bit[j] = (bit[j] as number) + (bit[i] as number);
     }
 
     this.parent = parent;
@@ -981,11 +984,11 @@ export class HeavyLightDecomposition {
 
   /** 정점 `node` 의 값을 `value` 로 교체한다. */
   update(node: number, value: number): void {
-    const delta = value - this.val[node];
+    const delta = value - (this.val[node] as number);
     this.val[node] = value;
     // ⑥ 켜진 가장 낮은 자리를 더해 가며 이 칸을 담고 있는 마디를 전부 고친다.
-    for (let i = this.pos[node] + 1; i <= this.n; i += i & -i) {
-      this.bit[i] += delta;
+    for (let i = (this.pos[node] as number) + 1; i <= this.n; i += i & -i) {
+      this.bit[i] = (this.bit[i] as number) + delta;
     }
   }
 
@@ -994,32 +997,32 @@ export class HeavyLightDecomposition {
     let u = u0;
     let v = v0;
     let total = 0;
-    while (this.head[u] !== this.head[v]) {
+    while ((this.head[u] as number) !== (this.head[v] as number)) {
       // ④ 사슬 머리가 더 깊은 쪽을 고른다. 그쪽 구간이 통째로 경로 위에 있다.
       if (this.headDepth(u) < this.headDepth(v)) {
         const t = u;
         u = v;
         v = t;
       }
-      const h = this.head[u];
-      total += this.range(this.pos[h], this.pos[u]);
-      u = this.parent[h];
+      const h = this.head[u] as number;
+      total += this.range(this.pos[h] as number, this.pos[u] as number);
+      u = this.parent[h] as number;
     }
     // ⑤ 사슬 머리가 같아지면 남은 것은 자리 번호 두 개 사이의 한 구간이다.
-    const lo = Math.min(this.pos[u], this.pos[v]);
-    const hi = Math.max(this.pos[u], this.pos[v]);
+    const lo = Math.min(this.pos[u] as number, this.pos[v] as number);
+    const hi = Math.max(this.pos[u] as number, this.pos[v] as number);
     return total + this.range(lo, hi);
   }
 
   /** 정점 `x` 가 속한 사슬 머리의 깊이. */
   private headDepth(x: number): number {
-    return this.depth[this.head[x]];
+    return this.depth[this.head[x] as number] as number;
   }
 
   /** 기저 배열 `[0, i)` 의 합. */
   private prefix(i: number): number {
     let s = 0;
-    for (let k = i; k > 0; k -= k & -k) s += this.bit[k];
+    for (let k = i; k > 0; k -= k & -k) s += this.bit[k] as number;
     return s;
   }
 

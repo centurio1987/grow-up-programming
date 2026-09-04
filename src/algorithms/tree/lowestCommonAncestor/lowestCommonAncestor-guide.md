@@ -637,8 +637,8 @@ export function lowestCommonAncestor(
   // 간선 목록을 정점마다의 이웃 목록으로 옮긴다. 무방향이라 양쪽에 넣는다.
   const near: number[][] = Array.from({ length: n }, () => []);
   for (const [u, v] of edges) {
-    near[u].push(v);
-    near[v].push(u);
+    (near[u] as number[]).push(v);
+    (near[v] as number[]).push(u);
   }
 
   // 없는 조상은 뿌리 자신으로 둔다. 표를 만들 때도 질의할 때도 범위를 벗어나지 않는다.
@@ -652,13 +652,13 @@ export function lowestCommonAncestor(
   const stack: number[] = [root];
   seen[root] = true;
   while (stack.length > 0) {
-    const u = stack.pop();
-    for (const v of near[u]) {
+    const u = stack.pop() as number;
+    for (const v of near[u] as number[]) {
       // ① 이미 지나온 정점은 자식이 아니다. 이웃 목록이 양방향이라 부모가 거기 들어 있다.
       if (seen[v]) continue;
       seen[v] = true;
-      depth[v] = depth[u] + 1;
-      anc[v][0] = u;
+      depth[v] = (depth[u] as number) + 1;
+      (anc[v] as number[])[0] = u;
       stack.push(v);
     }
   }
@@ -666,8 +666,8 @@ export function lowestCommonAncestor(
   // ② `2^k` 칸 위 조상은 `2^(k-1)` 칸 위 조상의 `2^(k-1)` 칸 위 조상이다.
   for (let k = 1; k < LOG; k++) {
     for (let v = 0; v < n; v++) {
-      const mid = anc[v][k - 1];
-      anc[v][k] = anc[mid][k - 1];
+      const mid = (anc[v] as number[])[k - 1] as number;
+      (anc[v] as number[])[k] = (anc[mid] as number[])[k - 1] as number;
     }
   }
 
@@ -675,30 +675,30 @@ export function lowestCommonAncestor(
   function lca(a: number, b: number): number {
     let u = a;
     let v = b;
-    if (depth[u] < depth[v]) {
+    if ((depth[u] as number) < (depth[v] as number)) {
       const swap = u;
       u = v;
       v = swap;
     }
 
     // ③ 깊이 차이를 이진수로 쪼개 켜진 자리만큼 깊은 쪽을 올린다.
-    const gap = depth[u] - depth[v];
+    const gap = (depth[u] as number) - (depth[v] as number);
     for (let k = 0; k < LOG; k++) {
-      if (((gap >> k) & 1) === 1) u = anc[u][k];
+      if (((gap >> k) & 1) === 1) u = (anc[u] as number[])[k] as number;
     }
     // ④ 깊이를 맞춘 자리에서 둘이 같으면 한쪽이 다른 쪽의 조상이었다.
     if (u === v) return u;
 
     // ⑤ 두 조상이 갈라지는 자리에서만 둘을 함께 올린다. 큰 `k` 에서 작은 `k` 로 내려간다.
     for (let k = LOG - 1; k >= 0; k--) {
-      const up = anc[u][k];
-      const vp = anc[v][k];
+      const up = (anc[u] as number[])[k] as number;
+      const vp = (anc[v] as number[])[k] as number;
       if (up !== vp) {
         u = up;
         v = vp;
       }
     }
-    return anc[u][0];
+    return (anc[u] as number[])[0] as number;
   }
 
   return queries.map(([u, v]) => lca(u, v));

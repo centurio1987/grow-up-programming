@@ -507,7 +507,7 @@ export function longestIncreasingSubsequence(A: number[]): number {
     while (lo < hi) {
       const mid = (lo + hi) >> 1;
       // ① 엄격 증가라 같은 값은 「x 이상」 쪽에 넣는다. 비교를 넓히면 비감소가 된다.
-      if (tails[mid] < x) lo = mid + 1;
+      if ((tails[mid] as number) < x) lo = mid + 1;
       else hi = mid;
     }
 

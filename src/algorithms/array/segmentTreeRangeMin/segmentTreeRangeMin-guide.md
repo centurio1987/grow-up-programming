@@ -637,6 +637,10 @@ query [2,2]          4                  INF  답이 다르다
 결과 목록을 빈 배열로 시작하는 한 줄뿐이에요 — 질의가 하나도 없으면 그 값이 그대로 답이 됩니다.
 
 ```ts
+export type SegOp =
+  | { type: "update"; i: number; v: number }
+  | { type: "query"; l: number; r: number };
+
 export function segmentTreeRangeMin(A: number[], ops: SegOp[]): number[] {
   const N = A.length;
   // 겹치지 않는 가지가 돌려줄 값. 어떤 원소보다도 커야 최솟값 계산을 바꾸지 않는다.

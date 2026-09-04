@@ -642,6 +642,8 @@ T6 에서 정점 3 을 다시 잡은 것이 바로 그 바깥 반복이었어요
 확인하고 끝을 내는 자리를 여기서 코드로 적습니다.
 
 ```ts
+const NO_PARENT = -1;
+
 export function undirectedCycleDetection(
   n: number,
   edges: [number, number][],

@@ -761,7 +761,11 @@ export function maxFlow(
     // ③ 싱크에 도착했다 — 여기까지의 병목값을 그대로 올려보낸다.
     if (u === sink) return pushed;
     const list = graph[u] as Edge[];
-    for (; (iter[u] as number) < list.length; iter[u] = (iter[u] as number) + 1) {
+    for (
+      ;
+      (iter[u] as number) < list.length;
+      iter[u] = (iter[u] as number) + 1
+    ) {
       const e = list[iter[u] as number] as Edge;
       // ② 잔여 용량이 있고 레벨이 정확히 한 칸 큰 간선 — 그 간선으로 내려간다.
       if (e.cap > 0 && (level[e.to] as number) === (level[u] as number) + 1) {

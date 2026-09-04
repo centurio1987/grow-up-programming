@@ -628,6 +628,10 @@ if (!descended) { color[u] = 2; stack.pop(); }
 남았는지 확인하고 끝을 내는 자리가 여기입니다.
 
 ```ts
+const WHITE = 0;
+const GRAY = 1;
+const BLACK = 2;
+
 export function directedCycleDetection(
   n: number,
   edges: [number, number][],

@@ -664,13 +664,13 @@ export function kruskalMst(
     if (ru === rv) continue;
 
     // ① 대표가 다르면 두 덩어리를 하나로 합치고 이 간선을 고른다.
-    if (rank[ru] > rank[rv]) {
+    if ((rank[ru] as number) > (rank[rv] as number)) {
       // ③ 높이가 다르면 낮은 쪽을 높은 쪽에 붙인다. 전체 높이가 그대로다.
       parent[rv] = ru;
     } else {
       parent[ru] = rv;
       // ④ 높이가 같을 때만 한쪽이 하나 자란다.
-      if (rank[ru] === rank[rv]) rank[rv] = rank[rv] + 1;
+      if (rank[ru] === rank[rv]) rank[rv] = (rank[rv] as number) + 1;
     }
     total += w;
     picked++;
@@ -685,11 +685,11 @@ export function kruskalMst(
 
 function find(x: number, parent: number[]): number {
   let root = x;
-  while (parent[root] !== root) root = parent[root];
+  while (parent[root] !== root) root = parent[root] as number;
 
   let cur = x;
   while (parent[cur] !== root) {
-    const next = parent[cur];
+    const next = parent[cur] as number;
     parent[cur] = root;
     cur = next;
   }

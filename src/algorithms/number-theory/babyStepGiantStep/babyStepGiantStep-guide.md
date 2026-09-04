@@ -468,6 +468,29 @@ babyStepGiantStep(15n, 3n, 12n)     a 를 정규화하면 15 mod 12 = 3
 거쳐 `0 … m−1` 안으로 들어옵니다.
 
 ```ts
+export function ceilSqrt(m: bigint): bigint {
+  if (m < 2n) return m;
+  let x = m;
+  let y = (x + 1n) / 2n;
+  while (y < x) {
+    x = y;
+    y = (x + m / x) / 2n;
+  }
+  return x * x === m ? x : x + 1n;
+}
+
+export function power(base: bigint, exp: bigint, m: bigint): bigint {
+  let result = 1n;
+  let b = base % m;
+  let e = exp;
+  while (e > 0n) {
+    if (e % 2n === 1n) result = (result * b) % m;
+    b = (b * b) % m;
+    e /= 2n;
+  }
+  return result;
+}
+
 export function babyStepGiantStep(a: bigint, b: bigint, m: bigint): bigint {
   if (m === 1n) return 0n;
 

@@ -632,6 +632,10 @@ query [0,0] · 같은 자리를 두 번 갱신         10                       
 결과 목록을 빈 배열로 시작하는 한 줄뿐이에요 — 질의가 하나도 없으면 그 값이 그대로 답이 됩니다.
 
 ```ts
+export type FenwickOp =
+  | { type: "update"; i: number; v: number }
+  | { type: "query"; l: number; r: number };
+
 export function fenwickRangeSum(A: number[], ops: FenwickOp[]): number[] {
   const N = A.length;
   // `update` 가 덮어쓰기라 옛 값이 필요하다. 논리 배열을 따로 들고 tree 와 함께 고친다.

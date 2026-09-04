@@ -523,8 +523,8 @@ export function treeDiameter(
   // 간선 목록을 정점마다의 이웃 목록으로 옮긴다. 무방향이라 양쪽에 넣는다.
   const near: [number, number][][] = Array.from({ length: n }, () => []);
   for (const [u, v, w] of edges) {
-    near[u].push([v, w]);
-    near[v].push([u, w]);
+    (near[u] as [number, number][]).push([v, w]);
+    (near[v] as [number, number][]).push([u, w]);
   }
 
   /** `start` 에서 가장 먼 정점과 그 거리. */
@@ -535,17 +535,17 @@ export function treeDiameter(
     let best = start;
 
     while (stack.length > 0) {
-      const u = stack.pop();
-      for (const [v, w] of near[u]) {
+      const u = stack.pop() as number;
+      for (const [v, w] of near[u] as [number, number][]) {
         // ① 거리를 이미 정한 정점은 건너뛴다. 트리라 그것이 온 자리 하나뿐이다.
-        if (dist[v] >= 0) continue;
-        dist[v] = dist[u] + w;
+        if ((dist[v] as number) >= 0) continue;
+        dist[v] = (dist[u] as number) + w;
         stack.push(v);
         // ② 지금까지 가장 먼 것보다 멀면 그 정점으로 기록을 옮긴다.
-        if (dist[v] > dist[best]) best = v;
+        if ((dist[v] as number) > (dist[best] as number)) best = v;
       }
     }
-    return [best, dist[best]];
+    return [best, dist[best] as number];
   }
 
   // ③ 아무 정점에서 가장 먼 곳은 지름의 한쪽 끝이다.

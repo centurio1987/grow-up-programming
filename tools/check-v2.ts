@@ -1,5 +1,5 @@
 /**
- * `algo-learn-guide` 골격 스캐너 — P1~P15.
+ * `algo-learn-guide` 골격 스캐너 — P1~P16.
  *
  * **기계로 셀 수 있는 것만** 잰다. 값이 실행 결과와 같은가는 `check-proof.ts` 가 보고, 산문이
  * 실제로 설명하는가(논증의 성립 · 반례의 타당성)는 사람이 본다 — `FEEDBACK.md` §3 이 그
@@ -745,6 +745,121 @@ export function definitionRestated(text: string): Finding[] {
   return findings;
 }
 
+/* ─────────── 원고 ↔ 정본 대조 — P16 ─────────── */
+
+/**
+ * 주석을 걷는다 — 블록(`/* … *\/`)도 줄(`//`)도.
+ *
+ * **문자열·템플릿 안의 `//` 를 주석으로 보면 코드가 잘린다.** 그래서 정규식이 아니라 문자
+ * 단위로 훑는다. 원고 코드는 정본의 JSDoc 을 짧은 인라인 주석으로 바꾼 사본이라(`convexHull`),
+ * 주석을 남긴 채 대조하면 그 차이가 전부 위반이 된다 — 이 검사가 보려는 것은 **코드**다.
+ */
+export function stripComments(src: string): string {
+  let out = "";
+  let quote: string | null = null;
+  let i = 0;
+  while (i < src.length) {
+    const c = src[i] as string;
+    const d = src[i + 1] ?? "";
+    if (quote !== null) {
+      out += c;
+      if (c === "\\") {
+        out += d;
+        i += 2;
+        continue;
+      }
+      if (c === quote) quote = null;
+      i++;
+      continue;
+    }
+    if (c === "/" && d === "/") {
+      while (i < src.length && src[i] !== "\n") i++;
+      continue;
+    }
+    if (c === "/" && d === "*") {
+      i += 2;
+      while (i < src.length && !(src[i] === "*" && src[i + 1] === "/")) i++;
+      i += 2;
+      continue;
+    }
+    if (c === '"' || c === "'" || c === "`") quote = c;
+    out += c;
+    i++;
+  }
+  return out;
+}
+
+/** 주석을 걷고 빈 줄을 접는다. 남는 것이 코드의 줄 모양이다. */
+export function normalizeCode(src: string): string {
+  return stripComments(src)
+    .split("\n")
+    .map((l) => l.trimEnd())
+    .filter((l) => l.trim() !== "")
+    .join("\n")
+    .trim();
+}
+
+/**
+ * P16 (`L9`) — **원고의 전체 코드가 정본(`.ref.ts`)과 같은가.**
+ *
+ * `SPEC.md` 가 「`<name>-guide.ref.ts` 에서 옮긴다」고 정한 자리인데 **지금까지 어떤 도구도
+ * 그 둘을 대조하지 않았다.** 그래서 정본을 린터가 고치면 원고에 실린 전체 코드가 조용히
+ * 낡는다 — 스캐너 넷이 전부 초록이고 손으로 `diff` 해야만 잡힌다(`pointInPolygon` 에서 다섯
+ * 자리, W3 배치3).
+ *
+ * **주석은 걷고 대조한다.** 원고는 정본의 JSDoc 을 짧은 인라인 주석으로 바꾼 사본이라,
+ * 주석을 남기면 정상인 편이 전부 걸린다. 걷고 나면 남는 것은 코드의 줄 모양이고 그것이
+ * 린터가 바꾸는 자리다.
+ *
+ * 정본이 없으면 **미실행**이다. 값을 지어내 판정을 흉내내지 않는다.
+ */
+export function finalCodeMatchesRef(
+  sections: Section[],
+  ref: string,
+): Finding[] {
+  const finals = pick(sections, "deep.walk.final");
+  if (finals.length === 0) return [];
+  const code: string[] = [];
+  for (const sec of finals) {
+    for (const block of fences(sec.body)) {
+      if (block.lang === "ts" || block.lang === "typescript") {
+        code.push(block.lines.join("\n"));
+      }
+    }
+  }
+  if (code.length === 0) {
+    return [
+      {
+        code: "P16",
+        detail:
+          "`deep.walk.final` 에 `ts` 코드 펜스가 없다 — 정본과 대조할 것이 없다",
+      },
+    ];
+  }
+  const got = normalizeCode(code.join("\n"));
+  const want = normalizeCode(ref);
+  if (got === want) return [];
+
+  const a = got.split("\n");
+  const b = want.split("\n");
+  let at = 0;
+  while (at < a.length && at < b.length && a[at] === b[at]) at++;
+  const mine = a[at];
+  const theirs = b[at];
+  const where =
+    mine === undefined
+      ? `정본에는 ${b.length - a.length} 줄이 더 있다 — 첫 줄은 \`${theirs}\``
+      : theirs === undefined
+        ? `원고에 ${a.length - b.length} 줄이 더 있다 — 첫 줄은 \`${mine}\``
+        : `${at + 1} 번째 줄부터 갈린다 — 원고 \`${mine}\` · 정본 \`${theirs}\``;
+  return [
+    {
+      code: "P16",
+      detail: `전체 코드가 정본(\`.ref.ts\`)과 다르다. ${where}. 정본에 \`biome check --write\` 를 먼저 돌리고 그 결과를 옮긴다`,
+    },
+  ];
+}
+
 /* ──────────────── 생성 블록 열 정렬 — P15 ──────────────── */
 
 /**
@@ -928,6 +1043,8 @@ export interface CheckInput {
   sim?: string;
   /** `bench-alt.ts` 가 낸 결정론적 계수. 없으면 P10 은 "미실행". */
   bench?: Record<string, number>;
+  /** `<name>-guide.ref.ts` 원문. 없으면 P16 은 "미실행" 이다. */
+  ref?: string;
   maxProseRun?: number;
 }
 
@@ -1391,6 +1508,11 @@ export function check(input: CheckInput): Finding[] {
   // ── P15 생성 블록 열 정렬 ──
   findings.push(...generatedBlockAlignment(input.text));
 
+  // ── P16 원고의 전체 코드 ↔ 정본 ──
+  if (input.ref !== undefined) {
+    findings.push(...finalCodeMatchesRef(sections, input.ref));
+  }
+
   return findings;
 }
 
@@ -1412,13 +1534,15 @@ async function checkOne(target: string, json: boolean): Promise<number> {
   const input: CheckInput = { text };
   const simFile = Bun.file(join(dirname(target), `${stem}.sim.ts`));
   const benchFile = Bun.file(join(dirname(target), `${stem}.bench.json`));
+  const refFile = Bun.file(join(dirname(target), `${stem}.ref.ts`));
   if (await simFile.exists()) input.sim = await simFile.text();
   if (await benchFile.exists()) input.bench = await benchFile.json();
+  if (await refFile.exists()) input.ref = await refFile.text();
   const findings = check(input);
   if (json) {
     console.log(JSON.stringify({ target, findings }, null, 2));
   } else if (findings.length === 0) {
-    console.log(`${target} — P1~P15 통과.`);
+    console.log(`${target} — P1~P16 통과.`);
   } else {
     console.error(`${target} — 위반 ${findings.length}건.`);
     for (const f of findings) {
@@ -1477,7 +1601,7 @@ if (import.meta.main) {
   if (json) {
     console.log(JSON.stringify({ target, findings }, null, 2));
   } else if (findings.length === 0) {
-    console.log(`${target} — P1~P15 통과.`);
+    console.log(`${target} — P1~P16 통과.`);
     if (input.sim === undefined) {
       console.log(
         "  (참고: `.sim.ts` 가 없어 P3 프레임 대조·P6·P9 는 실행되지 않았다)",

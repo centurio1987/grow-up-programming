@@ -10,8 +10,10 @@ import { scan } from "./check-metaphor.ts";
 import {
   check,
   displayWidth,
+  finalCodeMatchesRef,
   generatedBlockAlignment,
   hasFigure,
+  normalizeCode,
   parseSim,
 } from "./check-v2.ts";
 import { parseSections } from "./section.ts";
@@ -1034,3 +1036,95 @@ test("P15 — 두 줄짜리는 표로 안 본다 (산문이 우연히 그 모양
   expect(generatedBlockAlignment(block("  가  1\n  나나나  22"))).toEqual([]);
 });
 
+/* ────────────────── P16 원고 ↔ 정본 대조 ────────────────── */
+
+const REF = `/**
+ * 파일 설명. 원고는 이것을 안 싣는다.
+ */
+export function twoSum(A: number[], t: number): number {
+  let lo = 0;
+  let hi = A.length - 1;
+  while (lo < hi) {
+    // ① 합이 작으면 왼쪽을 당긴다.
+    if ((A[lo] as number) + (A[hi] as number) < t) lo++;
+    else hi--;
+  }
+  return lo;
+}
+`;
+
+/** 원고에 그 코드를 실은 최소 골격. `deep.walk.final` 절만 있으면 이 검사가 돈다. */
+const guideWith = (code: string): string =>
+  `#### 4. 전체 코드\n\n\`\`\`ts\n${code}\n\`\`\`\n`;
+
+const refFindings = (code: string) =>
+  finalCodeMatchesRef(parseSections(guideWith(code)).sections, REF);
+
+test("P16 — 정본을 그대로 옮겼으면 안 걸린다", () => {
+  expect(
+    refFindings(`export function twoSum(A: number[], t: number): number {
+  let lo = 0;
+  let hi = A.length - 1;
+  while (lo < hi) {
+    // ① 합이 작으면 왼쪽을 당긴다.
+    if ((A[lo] as number) + (A[hi] as number) < t) lo++;
+    else hi--;
+  }
+  return lo;
+}`),
+  ).toEqual([]);
+});
+
+test("P16 — 주석과 빈 줄이 달라도 안 걸린다 (원고는 JSDoc 을 인라인 주석으로 바꾼 사본이다)", () => {
+  expect(
+    refFindings(`export function twoSum(A: number[], t: number): number {
+  let lo = 0;
+
+  let hi = A.length - 1;
+  while (lo < hi) {
+    // 여기서 왼쪽을 당긴다 — 원고는 다른 말로 적는다.
+    if ((A[lo] as number) + (A[hi] as number) < t) lo++;
+    else hi--;
+  }
+  return lo;
+}`),
+  ).toEqual([]);
+});
+
+test("P16 — 린터가 바꾼 줄 모양을 원고에 안 옮기면 걸린다", () => {
+  // `pointInPolygon`(W3 배치3)에서 다섯 자리가 이 상태였다 — 스캐너 넷이 전부 초록이었다.
+  const findings =
+    refFindings(`export function twoSum(A: number[], t: number): number {
+  let lo = 0;
+  let hi = A.length - 1;
+  while (lo < hi) {
+    if (A[lo] + A[hi] < t) lo++;
+    else hi--;
+  }
+  return lo;
+}`);
+  expect(findings.map((f) => f.code)).toEqual(["P16"]);
+  expect(findings[0]?.detail).toContain("5 번째 줄부터 갈린다");
+});
+
+test("P16 — 정본에 있는 최상위 선언을 원고가 빠뜨리면 걸린다", () => {
+  const findings = finalCodeMatchesRef(
+    parseSections(
+      guideWith("export function twoSum(): number {\n  return 0;\n}"),
+    ).sections,
+    "export type Op = { t: string };\nexport function twoSum(): number {\n  return 0;\n}\n",
+  );
+  expect(findings.map((f) => f.code)).toEqual(["P16"]);
+});
+
+test("P16 — 문자열 안의 `//` 를 주석으로 보지 않는다", () => {
+  expect(normalizeCode('const u = "https://a.b"; // 설명')).toBe(
+    'const u = "https://a.b";',
+  );
+});
+
+test("P16 — 정본이 없으면 미실행이다 (값을 지어내 판정을 흉내내지 않는다)", () => {
+  const text = PASSING;
+  const before = check({ text, sim: SIM, bench: { 비교: 34 } });
+  expect(before.filter((f) => f.code === "P16")).toEqual([]);
+});
