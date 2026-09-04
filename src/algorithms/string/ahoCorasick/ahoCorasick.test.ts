@@ -20,14 +20,13 @@ describe("ahoCorasick", () => {
     });
 
     test("여러 패턴 동시 매칭", () => {
-      // text = "ahishers", patterns = ["he","she","his","hers"]
-      // - "he"   at 1, 4
-      // - "she"  at 3
+      // text = "ahishers" = a h i s h e r s (자리 0..7)
       // - "his"  at 1
+      // - "she"  at 3
+      // - "he"   at 4      (자리 1 의 두 글자는 "hi" 라 여기서는 매칭이 아니다)
       // - "hers" at 4
       const result = ahoCorasick("ahishers", ["he", "she", "his", "hers"]);
       expect(sortMatches(result)).toEqual([
-        { patternIndex: 0, position: 1 },
         { patternIndex: 2, position: 1 },
         { patternIndex: 1, position: 3 },
         { patternIndex: 0, position: 4 },
