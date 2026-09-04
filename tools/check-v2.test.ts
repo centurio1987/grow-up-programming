@@ -10,7 +10,7 @@ import { scan } from "./check-metaphor.ts";
 import { check, hasFigure, parseSim } from "./check-v2.ts";
 import { parseSections } from "./section.ts";
 
-/** P1~P13 을 전부 만족하는 표본. 각 결함 표본은 여기서 한 곳만 어긋뜨린다. */
+/** P1~P14 를 전부 만족하는 표본. 각 결함 표본은 여기서 한 곳만 어긋뜨린다. */
 const PASSING = `# 시험용 — 한눈에 보는 부제
 
 ## 파트 1 — 아이디어에서 동작하는 코드까지
@@ -215,7 +215,7 @@ const SIM = `export const demo = {
 
 const codes = (f: ReturnType<typeof check>) => f.map((x) => x.code).sort();
 
-test("통과 표본은 P1~P13 을 전부 통과한다", () => {
+test("통과 표본은 P1~P14 를 전부 통과한다", () => {
   const findings = check({ text: PASSING, sim: SIM, bench: { 비교: 34 } });
   expect(findings).toEqual([]);
 });
@@ -855,4 +855,30 @@ test("P13 — 이름으로만 쓰면 걸리지 않는다", () => {
     () => `${DEF}\n\n${FIG}\n\n뒤에서는 $\\operatorname{blk}(l)$ 로 씁니다.`,
   );
   expect(check({ text, sim: SIM, bench: { 비교: 34 } })).toEqual([]);
+});
+
+test("P14 — invariant 절에 원문자 라벨이 있으면 걸린다", () => {
+  const text = PASSING.replace(
+    "버리는 쪽에 답이 있을 수 없습니다.",
+    () => "버리는 쪽에 답이 있을 수 없습니다. ③ 이 참이면 그 구간을 버립니다.",
+  );
+  const findings = check({ text, sim: SIM, bench: { 비교: 34 } });
+  expect(codes(findings)).toEqual(["P14"]);
+  expect(findings[0]?.detail).toContain("③");
+});
+
+test("P14 — 갈래를 하는 일의 이름으로 부르면 걸리지 않는다", () => {
+  const text = PASSING.replace(
+    "버리는 쪽에 답이 있을 수 없습니다.",
+    () =>
+      "버리는 쪽에 답이 있을 수 없습니다. 왼쪽 당기기 `l++` 가 실행되면 그 구간을 버립니다.",
+  );
+  expect(check({ text, sim: SIM, bench: { 비교: 34 } })).toEqual([]);
+});
+
+test("P14 — 파트 1 의 원문자는 잡지 않는다 (P4 의 분기 피복이 그것으로 선다)", () => {
+  // 통과 표본의 `아이디어 상세`·`전개` 에는 원문자가 이미 있다. 그것을 안 잡는 것이
+  // 이 규칙의 범위이고, 넓히면 P4 가 재는 것이 통째로 없어진다.
+  expect(PASSING).toContain("**① 문제를 고정한다.**");
+  expect(check({ text: PASSING, sim: SIM, bench: { 비교: 34 } })).toEqual([]);
 });

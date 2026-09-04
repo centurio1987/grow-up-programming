@@ -1,5 +1,5 @@
 /**
- * `algo-learn-guide` 골격 스캐너 — P1~P13.
+ * `algo-learn-guide` 골격 스캐너 — P1~P14.
  *
  * **기계로 셀 수 있는 것만** 잰다. 값이 실행 결과와 같은가는 `check-proof.ts` 가 보고, 산문이
  * 실제로 설명하는가(논증의 성립 · 반례의 타당성)는 사람이 본다 — `FEEDBACK.md` §3 이 그
@@ -956,6 +956,31 @@ export function check(input: CheckInput): Finding[] {
     }
   }
 
+  // ── P14 `invariant` 절의 원문자 라벨 금지 ──
+  //
+  // `SPEC.md:566` 이 그 자리에서 금지한다 — 사유는 `deep.walk` 이 같은 토큰을 쓰므로 절
+  // 경계가 오염된다는 것이다. **P4 는 이것을 못 잡는다**: 라벨을 `deep.walk.final` 의 코드
+  // 펜스에서만 모으므로 다른 절의 원문자는 스캐너 넷을 전부 초록으로 지나갔다. 전수 스윕에서
+  // `invariant` 절이 있는 81편 중 21편이 그 상태였고 총 186개였다(2026-09-04, `S1` 에서 교정).
+  //
+  // **금지 범위는 절 전체다.** `SPEC.md` 의 그 줄은 문면상 걸음 ③ 의 하위 항목이지만, 원문자를
+  // 안 쓰는 60편은 걸음 ③ 만이 아니라 절 전체에서 0 이었다 — 문면이 아니라 그 60편이 판정
+  // 근거다. 대신 부르는 법도 그 60편에서 나온다: 갈래를 **하는 일의 이름이나 조건식**으로
+  // 부른다(`millerRabin` 의 「첫 값 검사 `x === 1n || x === n - 1n`」이 그 형태다).
+  //
+  // **파트 1 의 원문자는 정당하다.** 이 검사는 `invariant` 절만 본다 — 넓히면 P4 가 재는
+  // 분기 피복이 통째로 없어진다.
+  for (const sec of pick(sections, "invariant")) {
+    const labels = [...circled(sec.body.join("\n"))].sort();
+    if (labels.length > 0) {
+      findings.push({
+        code: "P14",
+        where: `invariant:${sec.line}`,
+        detail: `원문자 라벨 ${labels.join("")} — 이 절은 갈래를 하는 일의 이름이나 조건식으로 부른다(\`SPEC.md:566\`)`,
+      });
+    }
+  }
+
   // ── P5 결속 — perf.derive · selfcheck 가 각각 T# 를 1개 이상 인용 ──
   for (const id of ["perf.derive", "selfcheck"]) {
     const s = first(sections, id);
@@ -1228,7 +1253,7 @@ async function checkOne(target: string, json: boolean): Promise<number> {
   if (json) {
     console.log(JSON.stringify({ target, findings }, null, 2));
   } else if (findings.length === 0) {
-    console.log(`${target} — P1~P13 통과.`);
+    console.log(`${target} — P1~P14 통과.`);
   } else {
     console.error(`${target} — 위반 ${findings.length}건.`);
     for (const f of findings) {
@@ -1287,7 +1312,7 @@ if (import.meta.main) {
   if (json) {
     console.log(JSON.stringify({ target, findings }, null, 2));
   } else if (findings.length === 0) {
-    console.log(`${target} — P1~P13 통과.`);
+    console.log(`${target} — P1~P14 통과.`);
     if (input.sim === undefined) {
       console.log(
         "  (참고: `.sim.ts` 가 없어 P3 프레임 대조·P6·P9 는 실행되지 않았다)",
