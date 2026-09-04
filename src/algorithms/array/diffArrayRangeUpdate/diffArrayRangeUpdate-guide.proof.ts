@@ -545,6 +545,16 @@ export const PROOFS: Record<string, () => string> = {
         num(3 * n + 4 * n + 1),
       ];
     });
+    // 앞 칸 폭을 값에서 재서 맞춘다. 구분 공백을 고정으로 박으면 뒤 칸이 계단으로 밀린다.
+    const atLimit: [string, string][] = [
+      ["N + 2NQ", num(LIMIT + 2 * LIMIT * LIMIT)],
+      ["3N + 4Q + 1", num(7 * LIMIT + 1)],
+      [
+        "두 값의 비",
+        `${num(Math.round((LIMIT + 2 * LIMIT * LIMIT) / (7 * LIMIT + 1)))} 배`,
+      ],
+    ];
+    const atLimitWidth = Math.max(...atLimit.map(([label]) => width(label)));
     return [
       table(
         [
@@ -559,9 +569,9 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       `제약 규모(N = Q = ${num(LIMIT)})를 두 식에 넣으면`,
-      `  N + 2NQ      ${num(LIMIT + 2 * LIMIT * LIMIT)}`,
-      `  3N + 4Q + 1  ${num(7 * LIMIT + 1)}`,
-      `  두 값의 비    ${num(Math.round((LIMIT + 2 * LIMIT * LIMIT) / (7 * LIMIT + 1)))} 배`,
+      ...atLimit.map(
+        ([label, value]) => `  ${padRight(label, atLimitWidth)}  ${value}`,
+      ),
     ].join("\n");
   },
 

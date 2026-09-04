@@ -386,14 +386,20 @@ export const PROOFS: Record<string, () => string> = {
       const t = counts[at] as (typeof counts)[number];
       return [num(n), num(t.divisions), num(t.forPrimes), num(t.forComposites)];
     });
-    const steps: string[] = [];
+    const jumps: [string, string][] = [];
     for (let at = 2; at < scales.length; at++) {
       const before = counts[at - 1] as (typeof counts)[number];
       const now = counts[at] as (typeof counts)[number];
-      steps.push(
-        `  ${num(scales[at - 1] as number)} → ${num(scales[at] as number)}   ${(now.divisions / before.divisions).toFixed(1)} 배`,
-      );
+      jumps.push([
+        `${num(scales[at - 1] as number)} → ${num(scales[at] as number)}`,
+        `${(now.divisions / before.divisions).toFixed(1)} 배`,
+      ]);
     }
+    // 앞 칸 폭을 값에서 재서 맞춘다. 구분 공백을 고정으로 박으면 뒤 칸이 계단으로 밀린다.
+    const jumpWidth = Math.max(...jumps.map(([label]) => width(label)));
+    const steps = jumps.map(
+      ([label, ratio]) => `  ${padRight(label, jumpWidth)}   ${ratio}`,
+    );
     const top = counts[counts.length - 1] as (typeof counts)[number];
     return [
       table(
@@ -902,6 +908,16 @@ export const PROOFS: Record<string, () => string> = {
       }
       prev = m;
     }
+    // 앞 칸 폭을 값에서 재서 맞춘다. 구분 공백을 고정으로 박으면 뒤 칸이 계단으로 밀린다.
+    const jump: [string, string][] = [
+      ["자리", num(at)],
+      ["늘어난 값", `${best}`],
+      [
+        "그 수의 소인수",
+        [2, 3, 5, 7, 11, 13].filter((p) => at % p === 0).join(" · "),
+      ],
+    ];
+    const jumpWidth = Math.max(...jump.map(([label]) => width(label)));
     return [
       table(["상한", "그 상한은", "적기", "배열 칸 접근", "답의 개수"], rows, [
         "r",
@@ -912,9 +928,9 @@ export const PROOFS: Record<string, () => string> = {
       ]),
       "",
       `상한을 1 늘렸을 때 적는 횟수가 가장 많이 느는 자리를 ${num(100_000)} 까지 차례로 재면`,
-      `  자리        ${num(at)}`,
-      `  늘어난 값   ${best}`,
-      `  그 수의 소인수   ${[2, 3, 5, 7, 11, 13].filter((p) => at % p === 0).join(" · ")}`,
+      ...jump.map(
+        ([label, value]) => `  ${padRight(label, jumpWidth)}   ${value}`,
+      ),
       "└ 상한이 소수인지 합성수인지는 계수를 거의 바꾸지 않는다",
     ].join("\n");
   },

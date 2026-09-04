@@ -1113,9 +1113,17 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       `제약 규모 S = ${num(LIMIT)} · 단어 ${num(DICT_N)} 개면`,
-      `  접은 트리의 노드 수 상한     2N = ${num(2 * DICT_N)}`,
-      `  글자마다 노드를 둔 트리의 상한  S + 1 = ${num(LIMIT + 1)}`,
-      `  두 상한의 비                 ${((LIMIT + 1) / (2 * DICT_N)).toFixed(1)} 배`,
+      ...(() => {
+        const bounds: [string, string][] = [
+          ["접은 트리의 노드 수 상한", `2N = ${num(2 * DICT_N)}`],
+          ["글자마다 노드를 둔 트리의 상한", `S + 1 = ${num(LIMIT + 1)}`],
+          ["두 상한의 비", `${((LIMIT + 1) / (2 * DICT_N)).toFixed(1)} 배`],
+        ];
+        const w = Math.max(...bounds.map(([label]) => width(label)));
+        return bounds.map(
+          ([label, value]) => `  ${padRight(label, w)}  ${value}`,
+        );
+      })(),
       "└ 넷째 줄이 상한 2N 에 가장 가까운 입력이다. 글자마다 노드를 두는 쪽은 다섯째 줄에서 상한과 정확히 같아진다",
     ].join("\n");
   },

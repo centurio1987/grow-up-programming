@@ -7,10 +7,16 @@
  */
 import { expect, test } from "bun:test";
 import { scan } from "./check-metaphor.ts";
-import { check, hasFigure, parseSim } from "./check-v2.ts";
+import {
+  check,
+  displayWidth,
+  generatedBlockAlignment,
+  hasFigure,
+  parseSim,
+} from "./check-v2.ts";
 import { parseSections } from "./section.ts";
 
-/** P1~P14 를 전부 만족하는 표본. 각 결함 표본은 여기서 한 곳만 어긋뜨린다. */
+/** P1~P15 를 전부 만족하는 표본. 각 결함 표본은 여기서 한 곳만 어긋뜨린다. */
 const PASSING = `# 시험용 — 전체를 보는 부제
 
 ## 파트 1 — 아이디어에서 동작하는 코드까지
@@ -930,3 +936,101 @@ test("P2 — 어간화의 오탐 — 살아남아야 하는 표현", () => {
     expect(codes(check({ text }))).not.toContain("P2");
   }
 });
+
+/* ────────────────── P15 생성 블록 열 정렬 ────────────────── */
+
+/** 마커와 펜스로 감싼다 — 생성 블록이 아니면 P15 는 아무것도 안 본다. */
+const block = (body: string): string =>
+  `<!--proof:sample-->\n\n\`\`\`text\n${body}\n\`\`\`\n`;
+
+test("P15 — 앞 칸이 길어진 만큼 뒤 칸이 밀리면 걸린다", () => {
+  // 구분 공백을 3 칸으로 고정해 그린 자리. 실제로 `sieveOfEratosthenes` 가 이 모양이었다.
+  const findings = generatedBlockAlignment(
+    block(
+      [
+        "  1,000 → 10,000   22.2 배",
+        "  10,000 → 100,000   23.4 배",
+        "  100,000 → 1,000,000   24.7 배",
+      ].join("\n"),
+    ),
+  );
+  expect(findings.map((f) => f.code)).toEqual(["P15"]);
+  expect(findings[0]?.detail).toContain("2 번째 열");
+});
+
+test("P15 — 한글 칸의 폭을 1 로 세고 그리면 걸린다", () => {
+  // `.length` 로 맞추면 눈에는 어긋나는데 검사는 통과한다 — CJK 를 2 로 세는 것이 요건이다.
+  expect(displayWidth("소수")).toBe(4);
+  const findings = generatedBlockAlignment(
+    block(
+      ["  소수     19 번", "  합성수    26 번", "  전체     45 번"].join("\n"),
+    ),
+  );
+  expect(findings.map((f) => f.code)).toEqual(["P15"]);
+});
+
+test("P15 — 왼쪽으로 맞춘 표는 안 걸린다", () => {
+  expect(
+    generatedBlockAlignment(
+      block(
+        ["  소수      19 번", "  합성수    26 번", "  전체      45 번"].join(
+          "\n",
+        ),
+      ),
+    ),
+  ).toEqual([]);
+});
+
+test("P15 — 오른쪽으로 맞춘 표도 안 걸린다 (수를 오른쪽에 맞추는 표가 있다)", () => {
+  expect(
+    generatedBlockAlignment(
+      block(
+        [
+          "       30          45",
+          "    1,000       5,288",
+          "1,000,000  67,740,404",
+        ].join("\n"),
+      ),
+    ),
+  ).toEqual([]);
+});
+
+test("P15 — 열 이름이 데이터보다 길어 머리줄만 삐져나온 것은 안 걸린다", () => {
+  expect(
+    generatedBlockAlignment(
+      block(
+        [
+          "k  sa[k]  접미사가 s 위에 놓인 자리",
+          "0      5       a",
+          "1      3     ana",
+          "2      1   anana",
+          "3      0  banana",
+        ].join("\n"),
+      ),
+    ),
+  ).toEqual([]);
+});
+
+test("P15 — `^` 눈금 줄은 줄마다 다른 자리를 가리키는 것이 그 일이라 안 걸린다", () => {
+  expect(
+    generatedBlockAlignment(
+      block(
+        [
+          "      ^  ^  ^  ^                       자리 0 에서 맞는다",
+          "                     ^  ^  ^  ^        자리 5 에서 맞는다",
+          "                           ^  ^  ^  ^  자리 7 에서 맞는다",
+        ].join("\n"),
+      ),
+    ),
+  ).toEqual([]);
+});
+
+test("P15 — 생성 블록 밖의 어긋난 표는 안 본다 (손그림은 이 규칙의 자리가 아니다)", () => {
+  const text = `\`\`\`text\n  가     1\n  나나    22\n  다다다   333\n\`\`\`\n`;
+  expect(generatedBlockAlignment(text)).toEqual([]);
+});
+
+test("P15 — 두 줄짜리는 표로 안 본다 (산문이 우연히 그 모양일 수 있다)", () => {
+  expect(generatedBlockAlignment(block("  가  1\n  나나나  22"))).toEqual([]);
+});
+

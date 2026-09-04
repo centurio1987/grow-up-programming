@@ -83,6 +83,17 @@ function table(rows: string[][], alignRight: number[] = []): string[] {
   );
 }
 
+/**
+ * 표 아래에 붙는 「이름 — 값」 목록. **값 열의 자리를 가장 긴 이름에서 잰다.**
+ * 구분 공백을 고정으로 박으면 이름이 길어진 줄만 값이 통째로 밀린다.
+ */
+function list(rows: [string, string][], gap = 2): string[] {
+  const w = Math.max(...rows.map(([name]) => width(name)));
+  return rows.map(
+    ([name, value]) => `  ${pad(name, w)}${" ".repeat(gap)}${value}`,
+  );
+}
+
 /* ────────────────────── 참값 — 정렬해서 고른다 ────────────────────── */
 
 /** 정의 그대로의 중앙값. 다른 절차가 낸 답을 견주는 기준이다. */
@@ -619,9 +630,17 @@ export const PROOFS: Record<string, () => string> = {
       ...table(rows),
       "",
       `생성식 입력 ${comma(n)} 개를 넣는 동안의 계수`,
-      `  이 글의 절차        ${comma(total(ours))} 번`,
-      `  바로 넣은 판        ${comma(total(c))} 번`,
-      `  줄어드는 비율        ${(100 - (100 * total(c)) / total(ours)).toFixed(1)} %`,
+      ...list(
+        [
+          ["이 글의 절차", `${comma(total(ours))} 번`],
+          ["바로 넣은 판", `${comma(total(c))} 번`],
+          [
+            "줄어드는 비율",
+            `${(100 - (100 * total(c)) / total(ours)).toFixed(1)} %`,
+          ],
+        ],
+        7,
+      ),
     ].join("\n");
   },
 
@@ -732,11 +751,16 @@ export const PROOFS: Record<string, () => string> = {
       ...table(rows, [2]),
       "",
       `수 ${WALK.length} 개를 넣고 그때마다 물어본 실측`,
-      `  힙 연산   넣기 ${mf.low.pushes + mf.high.pushes} · 꺼내기 ${mf.low.pops + mf.high.pops}`,
-      `  견주기    ${comma(c.compares)} 번`,
-      `  칸 쓰기   ${comma(c.writes)} 번`,
-      `  합        ${comma(total(c))} 번`,
-      `  물어보기가 더한 견주기와 칸 쓰기  0 번`,
+      ...list([
+        [
+          "힙 연산",
+          `넣기 ${mf.low.pushes + mf.high.pushes} · 꺼내기 ${mf.low.pops + mf.high.pops}`,
+        ],
+        ["견주기", `${comma(c.compares)} 번`],
+        ["칸 쓰기", `${comma(c.writes)} 번`],
+        ["합", `${comma(total(c))} 번`],
+        ["물어보기가 더한 견주기와 칸 쓰기", "0 번"],
+      ]),
     ].join("\n");
   },
 

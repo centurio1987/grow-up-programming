@@ -46,6 +46,15 @@ function table(head: string[], rows: string[][]): string {
   return [line(head), ...rows.map(line)].join("\n");
 }
 
+/**
+ * 표 아래에 붙는 「이름 — 값」 목록. **값 열의 자리를 가장 긴 이름에서 잰다.**
+ * 구분 공백을 고정으로 박으면 이름이 길어진 줄만 값이 통째로 밀린다.
+ */
+function list(rows: [string, string][]): string {
+  const w = Math.max(...rows.map(([name]) => width(name)));
+  return rows.map(([name, value]) => `  ${pad(name, w)}  ${value}`).join("\n");
+}
+
 /* ────────────────────────── 입력 ────────────────────────── */
 
 /** 전개가 쓰는 직선 목록. 본문의 다른 자리도 같은 값을 가리킨다. */
@@ -629,9 +638,11 @@ export const PROOFS: Record<string, () => string> = {
     )}
 
 세 점 (-2, 0) · (-1, 5) · (0, -1) 에서
-  방향 판정 (c−a)×(e−a)            ${comma(turn)}
-  isCovered 가 낸 값               ${isCovered(a, c, e) ? "참" : "거짓"}
-  방향 판정의 부호를 뒤집은 값 ≥ 0  ${-turn >= 0 ? "참" : "거짓"}`;
+${list([
+  ["방향 판정 (c−a)×(e−a)", comma(turn)],
+  ["isCovered 가 낸 값", isCovered(a, c, e) ? "참" : "거짓"],
+  ["방향 판정의 부호를 뒤집은 값 ≥ 0", -turn >= 0 ? "참" : "거짓"],
+])}`;
   },
 
   /** 수식 절의 검산 — 정의를 값에 넣어 본다. */

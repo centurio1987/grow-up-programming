@@ -158,8 +158,16 @@ const MUTANT_INPUTS: [number[], number][] = [
   [[-5, 0, 5, -10, 10], 1],
 ];
 
+/**
+ * 칸 목록의 폭을 값에서 잰다. `k=` 앞의 공백을 고정으로 박으면 배열이 짧은 줄에서
+ * `k=` 가 통째로 왼쪽으로 밀려, 한 칸처럼 보이는 이 열이 표 안에서 두 줄기로 갈린다.
+ */
+const MUTANT_ARRAY_WIDTH = Math.max(
+  ...MUTANT_INPUTS.map(([input]) => width(`[${input.join(" ")}]`)),
+);
+
 const mutantRows = MUTANT_INPUTS.map(([input, k]) => ({
-  label: `[${input.join(" ")}]  k=${k}`,
+  label: `${pad(`[${input.join(" ")}]`, MUTANT_ARRAY_WIDTH)}  k=${k}`,
   correct: kthSmallest([...input], k),
   broken: broken.kthSmallest([...input], k),
 }));

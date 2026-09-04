@@ -728,10 +728,10 @@ GAP 의 NrRestrictedPartitions (lib/combinat.gi)
 <!--proof:library-check-->
 
 ```text
-어디서                                             그 자료가 적은 값  이 글의 코드
-GAP  NrRestrictedPartitions(50, [1,2,5,10,20,50])                451           451
-GAP  RestrictedPartitions(8, [1,3,5,7]) 의 개수                    6             6
-SICP  count-change(100), 동전 [1,5,10,25,50]                     292           292
+어디서                                              그 자료가 적은 값  이 글의 코드
+GAP   NrRestrictedPartitions(50, [1,2,5,10,20,50])                451           451
+GAP   RestrictedPartitions(8, [1,3,5,7]) 의 개수                    6             6
+SICP  count-change(100), 동전 [1,5,10,25,50]                      292           292
 ```
 
 SICP 가 적은 문장은 *"The number of ways to change amount a using n kinds of coins equals

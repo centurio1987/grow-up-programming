@@ -1,5 +1,5 @@
 /**
- * `algo-learn-guide` 골격 스캐너 — P1~P14.
+ * `algo-learn-guide` 골격 스캐너 — P1~P15.
  *
  * **기계로 셀 수 있는 것만** 잰다. 값이 실행 결과와 같은가는 `check-proof.ts` 가 보고, 산문이
  * 실제로 설명하는가(논증의 성립 · 반례의 타당성)는 사람이 본다 — `FEEDBACK.md` §3 이 그
@@ -745,6 +745,168 @@ export function definitionRestated(text: string): Finding[] {
   return findings;
 }
 
+/* ──────────────── 생성 블록 열 정렬 — P15 ──────────────── */
+
+/**
+ * 화면에 찍히는 폭. **CJK 를 2 로 센다.**
+ *
+ * `.length` 로 세면 한글이 든 칸에서 열이 어긋나고, 그것이 `isPrimeTrial` 네 블록에서 최대
+ * 3 칸 어긋난 원인이었다(배치11).
+ */
+export function displayWidth(s: string): number {
+  let n = 0;
+  for (const ch of s) {
+    const c = ch.codePointAt(0) ?? 0;
+    n +=
+      (c >= 0x1100 && c <= 0x115f) ||
+      (c >= 0x2e80 && c <= 0xa4cf && c !== 0x303f) ||
+      (c >= 0xac00 && c <= 0xd7a3) ||
+      (c >= 0xf900 && c <= 0xfaff) ||
+      (c >= 0xfe30 && c <= 0xfe6f) ||
+      (c >= 0xff00 && c <= 0xff60) ||
+      (c >= 0xffe0 && c <= 0xffe6) ||
+      (c >= 0x20000 && c <= 0x3fffd)
+        ? 2
+        : 1;
+  }
+  return n;
+}
+
+/** 한 줄의 필드 — **2 칸 이상 공백**이 열을 가른다. 1 칸 공백은 필드 안이다. */
+export interface Cell {
+  start: number;
+  end: number;
+  text: string;
+}
+
+export function cells(line: string): Cell[] {
+  const out: Cell[] = [];
+  for (const m of line.matchAll(/\S(?:(?!\s{2})[\s\S])*/g)) {
+    const i = m.index ?? 0;
+    out.push({
+      start: displayWidth(line.slice(0, i)),
+      end: displayWidth(line.slice(0, i + m[0].length)),
+      text: m[0],
+    });
+  }
+  return out;
+}
+
+/** `^` 와 공백만으로 된 칸. 그 자체가 자리를 나르는 눈금이라 열 정렬 대상이 아니다. */
+function isTick(text: string): boolean {
+  return /^[\^\s]+$/.test(text);
+}
+
+/**
+ * P15 — **생성 블록이 그린 열이 맞는가.**
+ *
+ * `FEEDBACK.md` §3 의 「생성 블록이 그린 눈금·괄호가 표의 열과 맞는가」다. 생성 블록은
+ * 사이드카가 만들어 `check-proof` 가 글자 그대로 대조하므로 **원고와 실행 결과는 이미 같다**
+ * — 어긋나는 것은 생성기가 값에서 폭을 계산하지 않고 구분 공백을 고정으로 박았을 때다.
+ * 그러면 앞 칸이 길어진 만큼 뒤 칸이 통째로 밀린다.
+ *
+ * **판정은 열마다 「전부 왼쪽이 맞거나 전부 오른쪽이 맞거나」다.** 좌측 정렬과 우측 정렬을
+ * 둘 다 인정해야 수를 오른쪽으로 맞춘 표가 안 걸린다.
+ *
+ * 넷을 일부러 안 본다.
+ *
+ * 1. **칸이 하나뿐인 줄** — 열이라는 것이 없다. 그런 줄이 덩어리를 끊는다.
+ * 2. **세 줄 미만의 덩어리** — 둘이 어긋난 것은 표가 아니라 산문일 수 있다.
+ * 3. **`^` 눈금 칸** — 줄마다 다른 자리를 가리키는 것이 그 칸의 일이다.
+ * 4. **머리줄 하나** — 열 이름이 데이터보다 길어 혼자 삐져나오는 것은 정상이다.
+ *    그래서 전체로 한 번, 첫 줄을 뺀 채로 한 번 재고 **한쪽만 맞아도 통과**시킨다.
+ */
+export function generatedBlockAlignment(text: string): Finding[] {
+  const findings: Finding[] = [];
+  const lines = text.split("\n");
+
+  for (const [index, line] of lines.entries()) {
+    if (!/^<!--proof:[A-Za-z0-9_-]+-->$/.test(line.trim())) continue;
+    let i = index + 1;
+    while (i < lines.length && (lines[i] ?? "").trim() === "") i++;
+    if (!(lines[i] ?? "").trimStart().startsWith("```")) continue;
+    i++;
+    const body: string[] = [];
+    while (
+      i < lines.length &&
+      !(lines[i] ?? "").trimStart().startsWith("```")
+    ) {
+      body.push(lines[i] ?? "");
+      i++;
+    }
+    const bad = misalignedColumn(body);
+    if (bad !== null) {
+      findings.push({
+        code: "P15",
+        where: `:${index + 1}`,
+        detail: `생성 블록의 ${bad.column + 1} 번째 열이 어긋난다 — 왼쪽 ${bad.starts.join("·")} · 오른쪽 ${bad.ends.join("·")}. 값에서 폭을 재서 그린다(CJK 는 2 칸)`,
+      });
+    }
+  }
+  return findings;
+}
+
+interface Misaligned {
+  column: number;
+  starts: number[];
+  ends: number[];
+}
+
+/** 블록 하나에서 처음 어긋난 열. 없으면 `null`. */
+export function misalignedColumn(body: string[]): Misaligned | null {
+  let run: Cell[][] = [];
+  const chunks: Cell[][][] = [];
+  for (const line of body) {
+    const c = cells(line);
+    if (c.length >= 2) run.push(c);
+    else {
+      if (run.length >= 3) chunks.push(run);
+      run = [];
+    }
+  }
+  if (run.length >= 3) chunks.push(run);
+
+  for (const chunk of chunks) {
+    // 칸 수가 가장 흔한 줄만 한 표로 본다. 그 밖은 캡션이거나 다른 모양이다.
+    const tally = new Map<number, number>();
+    for (const r of chunk) tally.set(r.length, (tally.get(r.length) ?? 0) + 1);
+    let width = 0;
+    let best = 0;
+    for (const [n, c] of tally) {
+      if (c > best) {
+        best = c;
+        width = n;
+      }
+    }
+    const rowsAll = chunk.filter((r) => r.length === width);
+    if (rowsAll.length < 3) continue;
+
+    for (let c = 0; c < width; c++) {
+      if (rowsAll.some((r) => isTick((r[c] as Cell).text))) continue;
+      if (aligned(rowsAll, c)) continue;
+      if (aligned(rowsAll.slice(1), c)) continue;
+      return {
+        column: c,
+        starts: [...new Set(rowsAll.map((r) => (r[c] as Cell).start))].sort(
+          (a, b) => a - b,
+        ),
+        ends: [...new Set(rowsAll.map((r) => (r[c] as Cell).end))].sort(
+          (a, b) => a - b,
+        ),
+      };
+    }
+  }
+  return null;
+}
+
+/** 그 열이 왼쪽으로 맞거나 오른쪽으로 맞는가. 줄이 둘 미만이면 잴 것이 없다. */
+function aligned(rows: Cell[][], c: number): boolean {
+  if (rows.length < 2) return true;
+  const starts = new Set(rows.map((r) => (r[c] as Cell).start));
+  const ends = new Set(rows.map((r) => (r[c] as Cell).end));
+  return starts.size === 1 || ends.size === 1;
+}
+
 /**
  * 【걷어냈다 — 2026-08-28 유저 지시】 L28·L29(`criterionOrder`) · L30·L31(`coreConcept`).
  *
@@ -1226,6 +1388,9 @@ export function check(input: CheckInput): Finding[] {
   findings.push(...codeNameMapping(input.text));
   findings.push(...definitionRestated(input.text));
 
+  // ── P15 생성 블록 열 정렬 ──
+  findings.push(...generatedBlockAlignment(input.text));
+
   return findings;
 }
 
@@ -1253,7 +1418,7 @@ async function checkOne(target: string, json: boolean): Promise<number> {
   if (json) {
     console.log(JSON.stringify({ target, findings }, null, 2));
   } else if (findings.length === 0) {
-    console.log(`${target} — P1~P14 통과.`);
+    console.log(`${target} — P1~P15 통과.`);
   } else {
     console.error(`${target} — 위반 ${findings.length}건.`);
     for (const f of findings) {
@@ -1312,7 +1477,7 @@ if (import.meta.main) {
   if (json) {
     console.log(JSON.stringify({ target, findings }, null, 2));
   } else if (findings.length === 0) {
-    console.log(`${target} — P1~P14 통과.`);
+    console.log(`${target} — P1~P15 통과.`);
     if (input.sim === undefined) {
       console.log(
         "  (참고: `.sim.ts` 가 없어 P3 프레임 대조·P6·P9 는 실행되지 않았다)",

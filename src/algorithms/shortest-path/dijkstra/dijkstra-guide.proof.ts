@@ -920,6 +920,21 @@ export const PROOFS: Record<string, () => string> = {
       ];
     });
     const eLimit = E_LIMIT;
+    // 앞 칸 폭을 값에서 재서 맞춘다. 구분 공백을 고정으로 박으면 뒤 칸이 계단으로 밀린다.
+    const atLimit: [string, string][] = [
+      ["큐에 들어가는 항목", `E+1 = ${comma(eLimit + 1)} 개 이하`],
+      ["힙 연산 수", `2(E+1) = ${comma(2 * (eLimit + 1))} 번 이하`],
+      [
+        "한 연산의 견주기",
+        `2⌈log2(E+1)⌉ = ${2 * Math.ceil(Math.log2(eLimit + 1))} 번 이하`,
+      ],
+      [
+        "곱하면",
+        `${comma(2 * (eLimit + 1) * 2 * Math.ceil(Math.log2(eLimit + 1)))} 번 이하`,
+      ],
+      ["정점 배열을 매번 읽으면", `V제곱 = ${comma(V_LIMIT * V_LIMIT)} 번`],
+    ];
+    const atLimitWidth = Math.max(...atLimit.map(([label]) => width(label)));
     return [
       ...table(
         [
@@ -936,11 +951,9 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       `제약 규모 V = ${comma(V_LIMIT)} · E = ${comma(eLimit)} 이면`,
-      `  큐에 들어가는 항목    E+1 = ${comma(eLimit + 1)} 개 이하`,
-      `  힙 연산 수            2(E+1) = ${comma(2 * (eLimit + 1))} 번 이하`,
-      `  한 연산의 견주기      2⌈log2(E+1)⌉ = ${2 * Math.ceil(Math.log2(eLimit + 1))} 번 이하`,
-      `  곱하면                ${comma(2 * (eLimit + 1) * 2 * Math.ceil(Math.log2(eLimit + 1)))} 번 이하`,
-      `  정점 배열을 매번 읽으면  V제곱 = ${comma(V_LIMIT * V_LIMIT)} 번`,
+      ...atLimit.map(
+        ([label, value]) => `  ${pad(label, atLimitWidth)}  ${value}`,
+      ),
       "",
       `두 식이 뒤집히는 간선 수 — 4(E+1)⌈log2(E+1)⌉ 가 V제곱 이상이 되는 첫 E`,
       `  E = ${comma(flipEdges(V_LIMIT))}`,

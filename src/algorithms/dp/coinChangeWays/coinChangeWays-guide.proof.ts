@@ -179,21 +179,38 @@ if (
  * 인용한 문서가 적어 둔 값. **이 글의 코드가 낸 값과 다르면 여기서 실패한다** —
  * 인용이 맞는지를 사람이 다시 읽어 확인하는 자리를 없앤다.
  */
-const 바깥값: [string, number[], number, number][] = [
+const 바깥출처: [string, string, number[], number, number][] = [
   [
-    "GAP  NrRestrictedPartitions(50, [1,2,5,10,20,50])",
+    "GAP",
+    "NrRestrictedPartitions(50, [1,2,5,10,20,50])",
     [1, 2, 5, 10, 20, 50],
     50,
     451,
   ],
-  ["GAP  RestrictedPartitions(8, [1,3,5,7]) 의 개수", [1, 3, 5, 7], 8, 6],
+  ["GAP", "RestrictedPartitions(8, [1,3,5,7]) 의 개수", [1, 3, 5, 7], 8, 6],
   [
-    "SICP  count-change(100), 동전 [1,5,10,25,50]",
+    "SICP",
+    "count-change(100), 동전 [1,5,10,25,50]",
     [1, 5, 10, 25, 50],
     100,
     292,
   ],
 ];
+
+/**
+ * 자료 이름과 호출을 한 칸으로 합칠 때 **폭을 값에서 잰다.** 고정 공백을 박으면 `SICP` 처럼
+ * 이름이 한 글자 긴 줄에서 뒤 칸이 통째로 밀린다.
+ */
+const 출처폭 = Math.max(...바깥출처.map(([출처]) => width(출처)));
+
+const 바깥값: [string, number[], number, number][] = 바깥출처.map(
+  ([출처, 항목, coins, amount, 적힌값]) => [
+    `${pad(출처, 출처폭)}  ${항목}`,
+    coins,
+    amount,
+    적힌값,
+  ],
+);
 for (const [이름, coins, amount, 적힌값] of 바깥값) {
   if (coinChangeWays(coins, amount) !== 적힌값) {
     throw new Error(`${이름} 의 인용값과 실행값이 다르다`);
