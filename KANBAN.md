@@ -96,7 +96,7 @@
   - 목적: 문제_가이드_목록.md 하 등급 44편 중 파일럿 2편을 뺀 42편을 문서 순으로 재집필한다
   - 이유: 마지막 웨이브다. geometry 가 여기서 처음 열리고, 이 웨이브가 닫히면 src/algorithms 의 v1 .mdx 가 0 이 된다
   - 목표: 42편이 .md 로 서고, guide-rhythm.tsv 의 src/algorithms 행과 살아 있는 .mdx 가 모두 0 이 된다
-  - 실행 문서: KANBAN.cards/KAN-034.7-QMZ3RE.md (3/42 · 최근 09-04)
+  - 실행 문서: KANBAN.cards/KAN-034.7-QMZ3RE.md (4/42 · 최근 09-04)
   - 계획 리포트: KANBAN.reports/KAN-034.7-QMZ3RE.report.html (낡음)
 
 ## 검토
