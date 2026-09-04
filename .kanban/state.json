@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 203,
+  "next_seq": 204,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -630,12 +630,12 @@
     },
     "KAN-034.8-BK1Q3A": {
       "col": "backlog",
-      "title": "v1 잔여 처분 — _deprecated 구판 · rhythm 스캐너 정리",
+      "title": "v1 잔여·스캐너 구멍 처분 — _deprecated 구판 · rhythm 스캐너 · SPEC 금지의 미강제",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
       "갱신": "2026-09-04",
-      "title_hash": "c00cf43560b97a9eab60cd2a6c8f712faec8134d",
+      "title_hash": "5ee918446c49070d680b111d720ada2cd0ef911c",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "short": "v1 잔여·스캐너 구멍 처분",
       "short_hash": "ac37313f24801db432a4f763b4af7d907a6c612f",
@@ -695,6 +695,17 @@
     "KAN-034.2-5V5M2F"
   ],
   "recent": [
+    {
+      "seq": 203,
+      "t": "2026-09-04T21:08",
+      "a": "ai",
+      "id": "KAN-034.8-BK1Q3A",
+      "op": "edit",
+      "w": "MDD8JM",
+      "field": "title",
+      "before": "v1 잔여 처분 — _deprecated 구판 · rhythm 스캐너 정리",
+      "after": "v1 잔여·스캐너 구멍 처분 — _deprecated 구판 · rhythm 스캐너 · SPEC 금지의 미강제"
+    },
     {
       "seq": 202,
       "t": "2026-09-04T21:07",
@@ -1298,16 +1309,6 @@
       "field": "memo",
       "before": "선행 KAN-033-E8KHSV 완료(2026-08-20). 규모 111편 · 14 카테고리. 착수 전에 전략·WBS·배치 2안(단일 에이전트 / 오케스트레이션)을 먼저 낸다",
       "after": "**차단(2026-08-24) — 유저 미승인.** 이 카드는 유저 승인 없이 뽑혔다. mosAlgorithm 편이 아직 유저 기준을 통과하지 못했고, 그 피드백 반영이 전개의 선행 조건이다. 규모 111편 · 14 카테고리. 착수 전 전략·WBS·배치 2안."
-    },
-    {
-      "seq": 153,
-      "t": "2026-08-24T18:19",
-      "a": "ai",
-      "id": "KAN-034-KSD7XR",
-      "op": "move",
-      "w": "46PCAX",
-      "from": "todo",
-      "to": "backlog"
     }
   ],
   "layout": 2
