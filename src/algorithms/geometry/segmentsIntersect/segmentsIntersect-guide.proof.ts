@@ -227,6 +227,23 @@ function judge(s1: Segment, s2: Segment): Judged {
   return { d, fast, slow, bits, boxes, branch, answer };
 }
 
+/**
+ * 갈래를 부르는 이름. **`invariant` 절의 블록에서만 쓴다.**
+ *
+ * 원문자 라벨은 `deep.walk` 계열 절의 것이고, 불변식 절은 그것을 쓰지 않는다
+ * (`sandbox/algo-guide-v2/SPEC.md` 의 「깨뜨려서 확인한다」 항 — 같은 토큰을 쓰면 절 경계가
+ * 오염되고, `check-v2` 의 P4 가 `deep.walk` 에서 뽑는 라벨 집합과 섞인다). 그 절에서는
+ * 갈래를 **그 갈래가 하는 일의 이름**으로 부른다.
+ *
+ * `Judged["branch"]` 자체는 그대로 원문자다 — 파트 1 의 블록들이 그 라벨을 그대로 내밀고,
+ * P4 가 그것으로 분기 피복을 잰다.
+ */
+const BRANCH_NAME: Record<Judged["branch"], string> = {
+  "③": "갈림 판정",
+  "④": "끝점 검사",
+  "⑤": "안 만남",
+};
+
 /* ────────────────────────── 입력 생성 ────────────────────────── */
 
 /** xorshift32. 선형 합동 난수는 아래 자리가 짧게 되풀이돼 같은 좌표가 쏟아진다. */
@@ -1152,18 +1169,27 @@ export const PROOFS: Record<string, () => string> = {
         String(zeros),
         straddle1 && straddle2 ? "참" : "거짓",
         r.branch === "④" ? "참" : "거짓",
-        r.branch,
+        BRANCH_NAME[r.branch],
         String(r.answer),
       ];
     });
     return [
       table(
-        ["쌍", "판정값 넷", "0 의 개수", "③ 이", "④ 가", "답을 낸 갈래", "답"],
+        [
+          "쌍",
+          "판정값 넷",
+          "0 의 개수",
+          BRANCH_NAME["③"],
+          BRANCH_NAME["④"],
+          "답을 낸 갈래",
+          "답",
+        ],
         rows,
         ["l", "l", "r", "l", "l", "l", "l"],
       ),
       "",
-      "└ ③ 이 참인 줄에는 0 이 하나도 없고, ④ 가 참인 줄에는 0 이 하나 이상이다. 두 열이 함께 참인 줄이 없다",
+      `└ ${BRANCH_NAME["③"]}이 참인 줄에는 0 이 하나도 없고, ${BRANCH_NAME["④"]}가 참인 줄에는 0 이 하나 이상이다.`,
+      "  두 열이 함께 참인 줄이 없다",
     ].join("\n");
   },
 
@@ -1246,7 +1272,7 @@ export const PROOFS: Record<string, () => string> = {
         seg(s1),
         seg(s2),
         r.d.join(" "),
-        r.branch,
+        BRANCH_NAME[r.branch],
         String(r.answer),
       ];
     });
@@ -1260,7 +1286,8 @@ export const PROOFS: Record<string, () => string> = {
         "l",
       ]),
       "",
-      "└ 길이 0 인 선분은 방향 벡터가 영벡터라 그 선분이 내는 판정값 둘이 언제나 0 이고, 그대로 ④ 로 간다",
+      "└ 길이 0 인 선분은 방향 벡터가 영벡터라 그 선분이 내는 판정값 둘이 언제나 0 이고,",
+      `  그대로 ${BRANCH_NAME["④"]}로 간다`,
     ].join("\n");
   },
 
