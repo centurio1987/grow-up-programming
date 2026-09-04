@@ -31,7 +31,7 @@ function bentleyOttmann(segments: Segment[]): number
 
 $$\text{count}(S) = \bigl|\{(i, j) \mid i < j,\; s_i \cap s_j \neq \emptyset\}\bigr|$$
 
-가장 정직한 접근은 두 선분이 교차하는지 판정하는 함수 하나를 만들어 모든 쌍에 적용하는 겁니다. "교차 여부"는 두 선분의 네 끝점이 서로 상대 선분을 기준으로 어느 쪽에 있는지(방향 판정)로 나눗셈 없이 정확하게 판정할 수 있어요 — 이 판정 자체는 이 프로젝트의 [segmentsIntersect 가이드](../segmentsIntersect/segmentsIntersect-guide.mdx)가 상세히 다루므로, 여기서는 그 결론만 가져와 씁니다.
+가장 정직한 접근은 두 선분이 교차하는지 판정하는 함수 하나를 만들어 모든 쌍에 적용하는 겁니다. "교차 여부"는 두 선분의 네 끝점이 서로 상대 선분을 기준으로 어느 쪽에 있는지(방향 판정)로 나눗셈 없이 정확하게 판정할 수 있어요 — 이 판정 자체는 이 프로젝트의 [segmentsIntersect 가이드](../segmentsIntersect/segmentsIntersect-guide.md)가 상세히 다루므로, 여기서는 그 결론만 가져와 씁니다.
 
 ```ts
 function cross(a: Point, b: Point, c: Point): number {
@@ -121,7 +121,7 @@ $$\mathrm{cross}(a,b,c) = (b_x-a_x)(c_y-a_y) - (b_y-a_y)(c_x-a_x)$$
 
 의 부호가 $c$가 직선 $ab$의 왼쪽(+)·오른쪽(-)·위(0) 중 어디에 있는지를 나눗셈 없이 알려줍니다. 두 선분 $s_1=(p_1,p_2)$, $s_2=(p_3,p_4)$이 교차하려면, $p_1,p_2$가 직선 $p_3p_4$의 서로 다른 쪽에 있고 **동시에** $p_3,p_4$가 직선 $p_1p_2$의 서로 다른 쪽에 있어야 해요(위 naive 코드의 `segsIntersect`가 정확히 이 판정입니다). 공선(방향값이 0)인 경우는 bounding box 겹침(`onSegment`)으로 대신 판정하고요.
 
-이 판정 하나가 Bentley-Ottmann 안에서 두 번 쓰입니다. 첫째는 "두 선분이 실제로 교차하는가"(방금 본 것), 둘째는 뒤에서 볼 "언제 순서가 뒤집히는가"를 계산할 때의 보조 도구로요. 좌표가 $10^9$까지 커지면 곱셈이 안전 정수 범위를 넘어설 수 있다는 점까지 포함해, 이 판정의 유도·정밀도 논의는 [segmentsIntersect 가이드](../segmentsIntersect/segmentsIntersect-guide.mdx)를 참고하세요. 이 가이드는 좌표가 작은 예시 위주로 다루므로 `number` 연산을 그대로 씁니다.
+이 판정 하나가 Bentley-Ottmann 안에서 두 번 쓰입니다. 첫째는 "두 선분이 실제로 교차하는가"(방금 본 것), 둘째는 뒤에서 볼 "언제 순서가 뒤집히는가"를 계산할 때의 보조 도구로요. 좌표가 $10^9$까지 커지면 곱셈이 안전 정수 범위를 넘어설 수 있다는 점까지 포함해, 이 판정의 유도·정밀도 논의는 [segmentsIntersect 가이드](../segmentsIntersect/segmentsIntersect-guide.md)를 참고하세요. 이 가이드는 좌표가 작은 예시 위주로 다루므로 `number` 연산을 그대로 씁니다.
 
 ### 셈을 맡는 자료구조 — 이벤트 큐와 상태 구조
 
@@ -234,7 +234,7 @@ function properCrossingX(s1: Seg, s2: Seg): number | null {
 }
 ```
 
-잠깐 — `properCrossingX`의 `rX * sY`, `rY * sX` 같은 곱도 앞서 방향 판정에서 짚은 것과 똑같은 안전 정수 범위 문제를 그대로 물려받습니다. 좌표가 $10^9$ 근방이면 이 곱은 $10^{18}$ 자리까지 커져 `number`의 안전 정수 범위($2^{53} \approx 9 \times 10^{15}$)를 넘어서고, 곧이어 `/ denom` 나눗셈까지 겹쳐 오차가 누적돼요. 이 가이드는 작은 좌표 예시로만 검증하므로 `number`를 그대로 쓰지만, 큰 좌표를 그대로 다루려면 [segmentsIntersect 가이드](../segmentsIntersect/segmentsIntersect-guide.mdx)가 다루는 안전 정수 연산(또는 BigInt) 전략을 여기에도 그대로 가져와야 합니다.
+잠깐 — `properCrossingX`의 `rX * sY`, `rY * sX` 같은 곱도 앞서 방향 판정에서 짚은 것과 똑같은 안전 정수 범위 문제를 그대로 물려받습니다. 좌표가 $10^9$ 근방이면 이 곱은 $10^{18}$ 자리까지 커져 `number`의 안전 정수 범위($2^{53} \approx 9 \times 10^{15}$)를 넘어서고, 곧이어 `/ denom` 나눗셈까지 겹쳐 오차가 누적돼요. 이 가이드는 작은 좌표 예시로만 검증하므로 `number`를 그대로 쓰지만, 큰 좌표를 그대로 다루려면 [segmentsIntersect 가이드](../segmentsIntersect/segmentsIntersect-guide.md)가 다루는 안전 정수 연산(또는 BigInt) 전략을 여기에도 그대로 가져와야 합니다.
 
 이벤트 큐는 우선 "가장 단순하게" 만듭니다 — 배열에 밀어 넣고, 꺼낼 때마다 전체를 훑어 최솟값을 찾는 방식이에요. `type` 우선순위는 같은 $x$에서 START(0) < VERTICAL(1) < WAKEUP(2) < END(3) 순으로 처리되도록 정합니다(START가 END보다 먼저여야 끝점 공유가 잡힌다는 것을 앞의 "왜 모순 없이 작동하는가" 절에서 봤죠).
 
