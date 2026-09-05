@@ -108,7 +108,7 @@ millerRabin(49141n) 이 내는 것
 
 합성수 판정과 인수분해는 다른 일입니다. 이 절차는 「합성수다」까지만 말하고 인수는 내지
 않아요. 인수를 구하는 절차는
-[폴라드 로 가이드](../pollardRho/pollardRho-guide.mdx)가 다룹니다.
+[폴라드 로 가이드](../pollardRho/pollardRho-guide.md)가 다룹니다.
 
 ### 아이디어 상세 — 1 의 제곱근 조건을 떠올리는 과정
 
