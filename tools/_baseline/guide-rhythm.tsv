@@ -2,7 +2,6 @@
 # 재집필이 끝난 편은 이 파일에서 행을 지운다. 줄 수가 곧 남은 부채다.
 # forbid_hits 가 0 이 아닌 행은 voice 규칙 8 위반이 남아 있다는 뜻이다 — 재집필 때 펼쳐 쓴다.
 src/algorithms/advanced/countInversions/countInversions-guide.mdx	3	0
-src/algorithms/advanced/divideAndConquerDp/divideAndConquerDp-guide.mdx	4	0
 src/algorithms/advanced/knuthOptimization/knuthOptimization-guide.mdx	4	0
 src/algorithms/advanced/meetInTheMiddleSubsetSum/meetInTheMiddleSubsetSum-guide.mdx	4	0
 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.mdx	3	0
@@ -10,20 +9,17 @@ src/algorithms/dp/expectedValueDp/expectedValueDp-guide.mdx	4	0
 src/algorithms/dp/tspBitmask/tspBitmask-guide.mdx	4	1
 src/algorithms/geometry/bentleyOttmann/bentleyOttmann-guide.mdx	4	0
 src/algorithms/geometry/closestPairOfPoints/closestPairOfPoints-guide.mdx	4	0
-src/algorithms/geometry/polygonArea/polygonArea-guide.mdx	3	0
 src/algorithms/geometry/rotatingCalipersDiameter/rotatingCalipersDiameter-guide.mdx	4	0
 src/algorithms/graph-flow/maxBipartiteMatching/maxBipartiteMatching-guide.mdx	5	0
 src/algorithms/graph-flow/minCostMaxFlow/minCostMaxFlow-guide.mdx	7	0
 src/algorithms/graph-flow/minCut/minCut-guide.mdx	4	0
 src/algorithms/graph/articulationPoints/articulationPoints-guide.mdx	4	0
 src/algorithms/graph/bridgesInGraph/bridgesInGraph-guide.mdx	4	0
-src/algorithms/graph/stronglyConnectedComponents/stronglyConnectedComponents-guide.mdx	4	1
 src/algorithms/number-theory/crt/crt-guide.mdx	7	0
 src/algorithms/number-theory/fftMultiply/fftMultiply-guide.mdx	8	0
 src/algorithms/number-theory/pollardRho/pollardRho-guide.mdx	5	0
 src/algorithms/shortest-path/aStarSearch/aStarSearch-guide.mdx	5	0
 src/algorithms/shortest-path/floydWarshall/floydWarshall-guide.mdx	4	0
-src/algorithms/shortest-path/spfa/spfa-guide.mdx	4	0
 src/algorithms/sorting/externalMergeSort/externalMergeSort-guide.mdx	4	0
 src/algorithms/string/kasaiLcp/kasaiLcp-guide.mdx	7	0
 src/algorithms/string/longestPalindrome/longestPalindrome-guide.mdx	7	1
