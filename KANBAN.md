@@ -93,14 +93,14 @@
   - 메모: 배치4 종료 (16/42) — polygonArea·spfa·divideAndConquerDp·stronglyConnectedComponents. 새 스캐너 셋(P15·P16·변이 대조)을 처음부터 지킨 첫 배치
   - 실행 문서: KANBAN.cards/KAN-034.7-QMZ3RE.md (16/42 · 최근 09-05)
   - 계획 리포트: KANBAN.reports/KAN-034.7-QMZ3RE.report.html (낡음)
-- `KAN-034.8-BK1Q3A` v1 잔여·스캐너 구멍 처분 — _deprecated 구판 · rhythm 스캐너 · SPEC 금지의 미강제 — 생성:ai · 최종:ai · 갱신:2026-09-04
+- `KAN-034.8-BK1Q3A` v1 잔여·스캐너 구멍 처분 — _deprecated 구판 · rhythm 스캐너 · SPEC 금지의 미강제 — 생성:ai · 최종:ai · 갱신:2026-09-05
   - 상위: `KAN-034-KSD7XR` (진행 중)
   - 짧은 제목: v1 잔여·스캐너 구멍 처분
   - 목적: _deprecated/ 의 구판 가이드와 대상이 0 이 된 check-guide-rhythm.ts 의 알고리즘 몫을 정리하고, 규격이 금지하는데 어떤 스캐너도 안 보는 자리를 강제 지점에 박는다
   - 이유: 111편이 다 교체돼도 구판과 빈 스캐너가 남는다. 대상이 0 인 스캐너는 통과 표시가 무의미해지고, 규격만 금지하고 아무도 안 보는 규칙은 실제로 새어 21편에 남았다
   - 목표: _deprecated/ 처분이 끝나고 rhythm 스캐너가 자료구조만 보도록 정리되며 SPEC 이 금지한 자리를 check-v2 가 실제로 잡아, 알고리즘 트랙에 v1 흔적도 스캐너 구멍도 남지 않는다
-  - 메모: 배치3 종료 (7/10) — 스캐너 구멍 일곱 중 일곱 닫음. 남은 배치4 셋(S8·S9·S10)은 W3(KAN-034.7) 종료 후에만 판정이 선다
-  - 실행 문서: KANBAN.cards/KAN-034.8-BK1Q3A.md (7/10 · 최근 09-04)
+  - 메모: work 12 · 7 완료. 배치5(S11·S12)는 W3 이 규칙을 써 보고 찾아낸 구멍이라 지금 돌고, 배치4(S8~S10)만 W3 종료 후
+  - 실행 문서: KANBAN.cards/KAN-034.8-BK1Q3A.md (7/12 · 최근 09-05)
   - 계획 리포트: KANBAN.reports/KAN-034.8-BK1Q3A.report.html (낡음)
 
 ## 검토
