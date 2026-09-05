@@ -394,6 +394,13 @@ export interface Divergence {
   breaks: boolean;
   /** 변이 때문에 달라지는 줄 번호(1부터). 첫 항목이 **처음 갈리는 자리**다. */
   lines: number[];
+  /**
+   * 어느 쪽 실행이 던졌는가. `neutral` 이면 **이 편의 중화 대조가 안 돈 것**이다 —
+   * 사이드카가 「변이가 아무것도 안 바꿨다」 자기검사를 모듈 최상위나 블록 안에서 하고
+   * 있고, 중화 실행에서는 그 검사가 무조건 터진다. 안 잰 것이 통과로 읽히면 안 되므로
+   * `run()` 이 그것을 모아 경고로 낸다(2026-09-05 `S11`).
+   */
+  brokeOn: "normal" | "neutral" | null;
 }
 
 /**
@@ -423,12 +430,12 @@ export function divergence(
   try {
     a = normalize(normal());
   } catch {
-    return { id, breaks: true, lines: [] };
+    return { id, breaks: true, brokeOn: "normal", lines: [] };
   }
   try {
     b = normalize(neutral());
   } catch {
-    return { id, breaks: true, lines: [] };
+    return { id, breaks: true, brokeOn: "neutral", lines: [] };
   }
   const x = a.split("\n");
   const y = b.split("\n");
@@ -436,7 +443,7 @@ export function divergence(
   for (let i = 0; i < Math.max(x.length, y.length); i++) {
     if (slim(x[i] ?? "") !== slim(y[i] ?? "")) lines.push(i + 1);
   }
-  return { id, breaks: false, lines };
+  return { id, breaks: false, brokeOn: null, lines };
 }
 
 /** 중화 대조 결과를 블록의 판정과 맞춘다. */
@@ -574,10 +581,25 @@ export function mutantSiteFailures(
   return fails;
 }
 
+/**
+ * 중화 대조를 **못 잰** 자리. 위반이 아니라 **경고**다(2026-09-05 `S11`).
+ *
+ * 위반으로 올리지 않는 이유는 이 검사가 선 날 78 개 블록이 이 상태였기 때문이다 — 한꺼번에
+ * 빨개지면 그동안 다른 편을 닫는 세션이 자기 것이 아닌 빨강을 본다. 교정은 별도 work 이고,
+ * **위반으로 올리는 시점은 그 교정이 끝난 뒤**다.
+ */
+export interface NeutralSkip {
+  /** `module` — 편 전체가 안 돌았다. `blocks` — 그 블록들만 안 돌았다. */
+  reason: "module" | "blocks";
+  ids: string[];
+}
+
 export interface RunResult {
   guide: string;
   blocks: number;
   failures: ProofFailure[];
+  /** 중화 대조를 못 잰 자리. 없으면 `null`. */
+  neutralSkipped: NeutralSkip | null;
   /** 사이드카가 없다 — 마커도 없으면 통과, 마커가 있으면 위반이다. */
   sidecarMissing: boolean;
   refNotImported: boolean;
@@ -604,6 +626,7 @@ export async function run(guidePath: string): Promise<RunResult> {
       })),
       sidecarMissing: true,
       refNotImported: false,
+      neutralSkipped: null,
     };
   }
 
@@ -616,7 +639,8 @@ export async function run(guidePath: string): Promise<RunResult> {
   // 블록 하나를 두 번 실행하지 않는다 — 값 대조와 중화 대조가 같은 결과를 나눠 쓴다.
   const memo = memoize(proofs);
   const failures = compare(blocks, memo);
-  failures.push(...(await divergenceFailures(blocks, proofPath, memo)));
+  const div = await divergenceFailures(blocks, proofPath, memo);
+  failures.push(...div.failures);
   const refPath = resolve(join(dir, `${stem}.ref.ts`));
   if (existsSync(refPath)) {
     failures.push(
@@ -629,6 +653,7 @@ export async function run(guidePath: string): Promise<RunResult> {
     failures,
     sidecarMissing: false,
     refNotImported,
+    neutralSkipped: div.skip,
   };
 }
 
@@ -669,9 +694,9 @@ async function divergenceFailures(
   blocks: ProofBlock[],
   proofPath: string,
   normal: Proofs,
-): Promise<ProofFailure[]> {
+): Promise<{ failures: ProofFailure[]; skip: NeutralSkip | null }> {
   const targets = blocks.filter((b) => needsDivergence(b.body));
-  if (targets.length === 0) return [];
+  if (targets.length === 0) return { failures: [], skip: null };
   setNeutralized(true);
   let neutral: Proofs;
   try {
@@ -680,19 +705,30 @@ async function divergenceFailures(
     };
     neutral = mod.PROOFS ?? {};
   } catch {
-    // 사이드카가 모듈 최상위에서 변이에 매여 있다 — 그 자체가 「변이를 쓴다」의 증거다.
-    return [];
+    // **여기서 조용히 넘어가면 안 된다.** 사이드카가 모듈 최상위에서 자기검사로 던지면
+    // 중화 실행이 무조건 터지고, 그러면 이 편의 중화 대조가 **한 곳도 안 돈다.** 화면은
+    // 초록인데 검사는 한 번도 실행되지 않는 상태다 — 「검사하지 않는 검사」다.
+    return {
+      failures: [],
+      skip: { reason: "module", ids: targets.map((b) => b.id) },
+    };
   } finally {
     setNeutralized(false);
   }
   const out: ProofFailure[] = [];
+  const unmeasured: string[] = [];
   for (const b of targets) {
     const a = normal[b.id];
     const c = neutral[b.id];
     if (a === undefined || c === undefined) continue;
-    out.push(...judgeDivergence(b, divergence(b.id, a, c)));
+    const d = divergence(b.id, a, c);
+    if (d.brokeOn === "neutral") unmeasured.push(b.id);
+    out.push(...judgeDivergence(b, d));
   }
-  return out;
+  return {
+    failures: out,
+    skip: unmeasured.length > 0 ? { reason: "blocks", ids: unmeasured } : null,
+  };
 }
 
 if (import.meta.main) {
@@ -714,6 +750,9 @@ if (import.meta.main) {
     process.exit(2);
   }
   let bad = 0;
+  // 경고 집계 — 안 잰 것이 통과로 읽히지 않게 끝에 한 줄로 낸다.
+  let skipped = 0;
+  let skippedGuides = 0;
   for (const f of files) {
     const r = await run(f);
     if (r.refNotImported) {
@@ -727,6 +766,21 @@ if (import.meta.main) {
       console.log(`    ${x.detail}`);
       bad++;
     }
+    // **경고이지 위반이 아니다** — `bad` 를 안 늘린다(`NeutralSkip` 주석의 사유).
+    if (r.neutralSkipped !== null) {
+      const s = r.neutralSkipped;
+      skipped += s.ids.length;
+      skippedGuides++;
+      const why =
+        s.reason === "module"
+          ? "사이드카가 모듈 최상위에서 던진다 — 이 편은 한 곳도 안 쟀다"
+          : "그 블록들이 중화 실행에서 던진다";
+      console.log(
+        `${f} — 경고: 중화 대조를 ${s.ids.length}개 블록에서 못 쟀다(${why}). ` +
+          `비키는 법은 중화 여부를 값에서 알아내(변이 모듈의 함수가 정본과 같은 객체인가) ` +
+          `자기검사만 건너뛰는 것이다. 안 쟀다는 것은 통과가 아니다.`,
+      );
+    }
     if (r.failures.length === 0 && !r.refNotImported) {
       // **0개를 「전부 일치」로 적지 않는다.** 아무것도 안 잰 것이 통과로 읽히면 게이트가
       // 거짓말을 한다 — 증명 블록 없는 편이 107 중 대다수인 동안 특히 그렇다.
@@ -737,6 +791,13 @@ if (import.meta.main) {
         console.log(`${f} — 증명 ${r.blocks}개 전부 실행과 일치.`);
       }
     }
+  }
+  if (skipped > 0) {
+    console.log(
+      `\n경고 — 중화 대조를 못 잰 블록 ${skipped}개 (${skippedGuides}편). ` +
+        `그 자리에서는 「어느 걸음에서 어긋나는가」가 검사되지 않는다. ` +
+        `지금은 경고이고, 그 편들을 고친 뒤 위반으로 올린다.`,
+    );
   }
   process.exit(bad === 0 ? 0 : 1);
 }

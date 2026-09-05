@@ -237,6 +237,7 @@ test("블록이 적은 판정과 실행이 낸 갈림 줄이 어긋나면 잡는
   const fails = judgeDivergence(block, {
     id: "mutant-x",
     breaks: false,
+    brokeOn: null,
     lines: [2],
   });
   expect(fails).toHaveLength(1);
@@ -251,11 +252,21 @@ test("판정과 갈림 줄이 맞으면 오탐하지 않는다", () => {
     body: "머리\n가 1 1 같다\n나 2 9 어긋난다",
   };
   expect(
-    judgeDivergence(block, { id: "mutant-x", breaks: false, lines: [3] }),
+    judgeDivergence(block, {
+      id: "mutant-x",
+      breaks: false,
+      brokeOn: null,
+      lines: [3],
+    }),
   ).toEqual([]);
   // 변이가 블록의 값을 안 바꾸는 것 자체는 위반이 아니다 — 「답이 안 틀리는 멈춤」이 있다.
   expect(
-    judgeDivergence(block, { id: "mutant-x", breaks: false, lines: [] }),
+    judgeDivergence(block, {
+      id: "mutant-x",
+      breaks: false,
+      brokeOn: null,
+      lines: [],
+    }),
   ).toEqual([]);
 });
 
@@ -417,4 +428,43 @@ test("판정을 엉뚱한 것으로 낸 사이드카를 중화 대조가 잡는�
   const bad = r.failures.filter((f) => f.kind === "갈림 자리가 다르다");
   expect(bad).toHaveLength(1);
   expect(bad[0]?.detail).toContain("처음 갈리는 자리는 2 번째 줄");
+});
+
+/* ──────── S11 중화 대조가 안 돈 자리를 경고로 낸다 (2026-09-05) ──────── */
+
+test("divergence — 중화 쪽이 던지면 `brokeOn` 이 그 사실을 남긴다", () => {
+  // **이것이 「검사하지 않는 검사」의 씨앗이다.** 사이드카가 「변이가 아무것도 안 바꿨다」
+  // 자기검사를 하면 중화 실행에서 무조건 터지고, 그 블록의 갈림 대조는 한 번도 안 돈다.
+  // 예전에는 `breaks: true` 하나로 뭉쳐 「변이에 매여 있다」는 정상 사유와 구별되지 않았다.
+  const d = divergence(
+    "m",
+    () => "a\nb",
+    () => {
+      throw new Error("변이가 답을 못 바꿨다");
+    },
+  );
+  expect(d.brokeOn).toBe("neutral");
+  expect(d.breaks).toBe(true);
+  expect(d.lines).toEqual([]);
+});
+
+test("divergence — 정상 쪽이 던진 것은 중화 문제가 아니다", () => {
+  const d = divergence(
+    "m",
+    () => {
+      throw new Error("블록 자체가 깨졌다");
+    },
+    () => "a",
+  );
+  expect(d.brokeOn).toBe("normal");
+});
+
+test("divergence — 둘 다 돌면 `brokeOn` 은 null 이고 갈림 줄만 남는다", () => {
+  const d = divergence(
+    "m",
+    () => "a\nX\nc",
+    () => "a\nb\nc",
+  );
+  expect(d.brokeOn).toBeNull();
+  expect(d.lines).toEqual([2]);
 });
