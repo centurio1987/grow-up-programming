@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 211,
+  "next_seq": 212,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -614,8 +614,8 @@
       "reason_hash": "0a926afa14077d654d8f1fc922160039813f703e",
       "goal": "42편이 .md 로 서고, guide-rhythm.tsv 의 src/algorithms 행과 살아 있는 .mdx 가 모두 0 이 된다",
       "goal_hash": "e7862318f20a0d6f6fafe2de66323776787f728d",
-      "memo": "배치4 종료 (16/42) — polygonArea·spfa·divideAndConquerDp·stronglyConnectedComponents. 새 스캐너 셋(P15·P16·변이 대조)을 처음부터 지킨 첫 배치",
-      "memo_hash": "cc2d3494d0db069f2f069c2d05fc0d15a2fd9a16",
+      "memo": "배치5 종료 (20/42) — minCut·treeRerooting·kasaiLcp·pollardRho. §3 대조 133건, purpose.alt 는 pollardRho 하나만 실음",
+      "memo_hash": "5d9397cc9df919180daf56e43953ea4227d4d943",
       "parent": "KAN-034-KSD7XR",
       "scope": [
         "src/algorithms/**",
@@ -705,6 +705,17 @@
     "KAN-034.2-5V5M2F"
   ],
   "recent": [
+    {
+      "seq": 211,
+      "t": "2026-09-05T19:44",
+      "a": "ai",
+      "id": "KAN-034.7-QMZ3RE",
+      "op": "edit",
+      "w": "MDD8JM",
+      "field": "memo",
+      "before": "배치4 종료 (16/42) — polygonArea·spfa·divideAndConquerDp·stronglyConnectedComponents. 새 스캐너 셋(P15·P16·변이 대조)을 처음부터 지킨 첫 배치",
+      "after": "배치5 종료 (20/42) — minCut·treeRerooting·kasaiLcp·pollardRho. §3 대조 133건, purpose.alt 는 pollardRho 하나만 실음"
+    },
     {
       "seq": 210,
       "t": "2026-09-05T16:06",
@@ -1290,16 +1301,6 @@
       "reason": "verdicts/ 31개가 전부 8/20 이고 원고는 8/28 이다 — 그 사이에 파트 2분할·항목 3종 개편·invariant 신설이 들어가 최신 골격의 이해 시험 근거가 없다. babyStepGiantStep 은 verdict 가 0 개다",
       "goal": "파일럿 4편이 최신 골격으로 V1~V7 을 통과한 verdict 를 갖고, 워킹트리가 깨끗하며, 그 결과가 유저의 편 단위 승인 근거가 된다",
       "memo": ""
-    },
-    {
-      "seq": 161,
-      "t": "2026-08-28T21:44",
-      "a": "ai",
-      "id": "KAN-034-KSD7XR",
-      "op": "move",
-      "w": "46PCAX",
-      "from": "backlog",
-      "to": "todo"
     }
   ],
   "layout": 2
