@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 213,
+  "next_seq": 214,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -614,8 +614,8 @@
       "reason_hash": "0a926afa14077d654d8f1fc922160039813f703e",
       "goal": "42편이 .md 로 서고, guide-rhythm.tsv 의 src/algorithms 행과 살아 있는 .mdx 가 모두 0 이 된다",
       "goal_hash": "e7862318f20a0d6f6fafe2de66323776787f728d",
-      "memo": "배치6 종료 (24/42) — closestPairOfPoints·knuthOptimization·floydWarshall·articulationPoints. §3 대조 262건, purpose.alt 는 둘 실고 둘 생략. 살아 있는 .mdx 18 · rhythm 행 18",
-      "memo_hash": "0a133c84f44688de695a807d5242e80a874359e8",
+      "memo": "배치7 종료 (28/42) — maxBipartiteMatching·subtreeSumQuery·suffixAutomaton·fftMultiply. §3 대조 180건, purpose.alt 는 셋 실고 하나 생략. 살아 있는 .mdx 14 · rhythm 행 14. check-v2 단일 파일 CLI 가 P16 을 안 도는 것을 찾음",
+      "memo_hash": "6399a13d0d9934c0ce6a4350144a88c5af362eb8",
       "parent": "KAN-034-KSD7XR",
       "scope": [
         "src/algorithms/**",
@@ -705,6 +705,17 @@
     "KAN-034.2-5V5M2F"
   ],
   "recent": [
+    {
+      "seq": 213,
+      "t": "2026-09-06T20:39",
+      "a": "ai",
+      "id": "KAN-034.7-QMZ3RE",
+      "op": "edit",
+      "w": "MDD8JM",
+      "field": "memo",
+      "before": "배치6 종료 (24/42) — closestPairOfPoints·knuthOptimization·floydWarshall·articulationPoints. §3 대조 262건, purpose.alt 는 둘 실고 둘 생략. 살아 있는 .mdx 18 · rhythm 행 18",
+      "after": "배치7 종료 (28/42) — maxBipartiteMatching·subtreeSumQuery·suffixAutomaton·fftMultiply. §3 대조 180건, purpose.alt 는 셋 실고 하나 생략. 살아 있는 .mdx 14 · rhythm 행 14. check-v2 단일 파일 CLI 가 P16 을 안 도는 것을 찾음"
+    },
     {
       "seq": 212,
       "t": "2026-09-06T14:33",
@@ -1277,23 +1288,6 @@
       "purpose": "FEEDBACK.md §3 의 사람 대조 12줄 중 결정론적인 셋(L21 기호 전수 정의 · L25 이름 재사용 · 본문 계수와 스크립트 일치)을 스캐너로 내린다",
       "reason": "12줄을 111편에 대조하면 1,332회다. 그 노동이 전개 기간 내내 편마다 붙고, 사람이 놓치면 조용히 통과한다",
       "goal": "신설 규칙이 L38 부터 붙고 회귀 시험을 가지며, 파일럿 4편에서 위반 0 건으로 통과해 기존 산출을 깨지 않는 것이 확인된다",
-      "memo": ""
-    },
-    {
-      "seq": 163,
-      "t": "2026-08-28T21:45",
-      "a": "ai",
-      "id": "KAN-034.2-5V5M2F",
-      "op": "create",
-      "w": "46PCAX",
-      "col": "backlog",
-      "title": "인프라 승격 + 파일럿 4편 이관 — 샌드박스를 본 저장소로 걷기",
-      "verbatim": "",
-      "parent": "KAN-034-KSD7XR",
-      "short": "인프라 승격·이관",
-      "purpose": "README 승격 조건 5건을 개정해 수행하고, 파일럿 4편을 sandbox 에서 src/algorithms/ 로 옮겨 편별 종료 산출 일곱을 적용한다",
-      "reason": "전개가 시작되면 111편이 샌드박스 밖에서 나오는데 검증 장치가 아직 샌드박스 안에 있다. 그리고 파일럿 4편은 원고만 있고 src/algorithms/ 의 그 자리에는 v1 .mdx 가 그대로 남아 있다(실측)",
-      "goal": "tools/ci.ts 가 check-v2·check-metaphor·check-rework·bench-alt 를 돌리고, check-citations 가 src/algorithms 를 보고, 파일럿 4편이 .md 로 서고 그 .mdx 가 사라지며, 인덱스 중복 3줄이 정리된다",
       "memo": ""
     }
   ],
