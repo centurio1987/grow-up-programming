@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 212,
+  "next_seq": 213,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -603,7 +603,7 @@
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-05",
+      "갱신": "2026-09-06",
       "title_hash": "11cad792ba3853c8e1a298e48d074c05b10ecb0c",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "short": "W3 하 42편",
@@ -614,8 +614,8 @@
       "reason_hash": "0a926afa14077d654d8f1fc922160039813f703e",
       "goal": "42편이 .md 로 서고, guide-rhythm.tsv 의 src/algorithms 행과 살아 있는 .mdx 가 모두 0 이 된다",
       "goal_hash": "e7862318f20a0d6f6fafe2de66323776787f728d",
-      "memo": "배치5 종료 (20/42) — minCut·treeRerooting·kasaiLcp·pollardRho. §3 대조 133건, purpose.alt 는 pollardRho 하나만 실음",
-      "memo_hash": "5d9397cc9df919180daf56e43953ea4227d4d943",
+      "memo": "배치6 종료 (24/42) — closestPairOfPoints·knuthOptimization·floydWarshall·articulationPoints. §3 대조 262건, purpose.alt 는 둘 실고 둘 생략. 살아 있는 .mdx 18 · rhythm 행 18",
+      "memo_hash": "0a133c84f44688de695a807d5242e80a874359e8",
       "parent": "KAN-034-KSD7XR",
       "scope": [
         "src/algorithms/**",
@@ -705,6 +705,17 @@
     "KAN-034.2-5V5M2F"
   ],
   "recent": [
+    {
+      "seq": 212,
+      "t": "2026-09-06T14:33",
+      "a": "ai",
+      "id": "KAN-034.7-QMZ3RE",
+      "op": "edit",
+      "w": "MDD8JM",
+      "field": "memo",
+      "before": "배치5 종료 (20/42) — minCut·treeRerooting·kasaiLcp·pollardRho. §3 대조 133건, purpose.alt 는 pollardRho 하나만 실음",
+      "after": "배치6 종료 (24/42) — closestPairOfPoints·knuthOptimization·floydWarshall·articulationPoints. §3 대조 262건, purpose.alt 는 둘 실고 둘 생략. 살아 있는 .mdx 18 · rhythm 행 18"
+    },
     {
       "seq": 211,
       "t": "2026-09-05T19:44",
@@ -1283,23 +1294,6 @@
       "purpose": "README 승격 조건 5건을 개정해 수행하고, 파일럿 4편을 sandbox 에서 src/algorithms/ 로 옮겨 편별 종료 산출 일곱을 적용한다",
       "reason": "전개가 시작되면 111편이 샌드박스 밖에서 나오는데 검증 장치가 아직 샌드박스 안에 있다. 그리고 파일럿 4편은 원고만 있고 src/algorithms/ 의 그 자리에는 v1 .mdx 가 그대로 남아 있다(실측)",
       "goal": "tools/ci.ts 가 check-v2·check-metaphor·check-rework·bench-alt 를 돌리고, check-citations 가 src/algorithms 를 보고, 파일럿 4편이 .md 로 서고 그 .mdx 가 사라지며, 인덱스 중복 3줄이 정리된다",
-      "memo": ""
-    },
-    {
-      "seq": 162,
-      "t": "2026-08-28T21:45",
-      "a": "ai",
-      "id": "KAN-034.1-V337W5",
-      "op": "create",
-      "w": "46PCAX",
-      "col": "todo",
-      "title": "정합 회복 + 파일럿 4편 재판정 — 유저 승인 게이트",
-      "verbatim": "",
-      "parent": "KAN-034-KSD7XR",
-      "short": "정합 회복·재판정",
-      "purpose": "KAN-033 잔여물을 그 카드 명의로 닫고, FEEDBACK.md 의 결번 참조와 은유 부류 수를 고치고, 파일럿 4편에 최신 골격으로 이해 시험 V1~V7 을 재실행한다",
-      "reason": "verdicts/ 31개가 전부 8/20 이고 원고는 8/28 이다 — 그 사이에 파트 2분할·항목 3종 개편·invariant 신설이 들어가 최신 골격의 이해 시험 근거가 없다. babyStepGiantStep 은 verdict 가 0 개다",
-      "goal": "파일럿 4편이 최신 골격으로 V1~V7 을 통과한 verdict 를 갖고, 워킹트리가 깨끗하며, 그 결과가 유저의 편 단위 승인 근거가 된다",
       "memo": ""
     }
   ],
