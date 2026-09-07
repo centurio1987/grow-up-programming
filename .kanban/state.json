@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 215,
+  "next_seq": 216,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -603,7 +603,7 @@
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-07",
+      "갱신": "2026-09-08",
       "title_hash": "11cad792ba3853c8e1a298e48d074c05b10ecb0c",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "short": "W3 하 42편",
@@ -614,8 +614,8 @@
       "reason_hash": "0a926afa14077d654d8f1fc922160039813f703e",
       "goal": "42편이 .md 로 서고, guide-rhythm.tsv 의 src/algorithms 행과 살아 있는 .mdx 가 모두 0 이 된다",
       "goal_hash": "e7862318f20a0d6f6fafe2de66323776787f728d",
-      "memo": "배치8 종료 (32/42) — bentleyOttmann·tspBitmask·meetInTheMiddleSubsetSum·aStarSearch. §3 대조 236건, purpose.alt 넷 다 실음. 살아 있는 .mdx 10 · rhythm 행 10. L37 실렌더는 배치7 종료 뒤 aside 로 확인해 닫았다",
-      "memo_hash": "c5bff40f96040b97406533be6cd69700489f0d61",
+      "memo": "배치9 종료 (36/42) — bridgesInGraph·minCostMaxFlow·treeIsomorphism·longestPalindrome. §3 대조 219건. graph·graph-flow·tree·string 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 6 · rhythm 행 6. 남은 것은 array·number-theory·geometry·dp·sorting·advanced 각 한 편",
+      "memo_hash": "68eb2d3e1e54bce7190e1337efa8df0180f732ba",
       "parent": "KAN-034-KSD7XR",
       "scope": [
         "src/algorithms/**",
@@ -705,6 +705,17 @@
     "KAN-034.2-5V5M2F"
   ],
   "recent": [
+    {
+      "seq": 215,
+      "t": "2026-09-08T02:13",
+      "a": "ai",
+      "id": "KAN-034.7-QMZ3RE",
+      "op": "edit",
+      "w": "MDD8JM",
+      "field": "memo",
+      "before": "배치8 종료 (32/42) — bentleyOttmann·tspBitmask·meetInTheMiddleSubsetSum·aStarSearch. §3 대조 236건, purpose.alt 넷 다 실음. 살아 있는 .mdx 10 · rhythm 행 10. L37 실렌더는 배치7 종료 뒤 aside 로 확인해 닫았다",
+      "after": "배치9 종료 (36/42) — bridgesInGraph·minCostMaxFlow·treeIsomorphism·longestPalindrome. §3 대조 219건. graph·graph-flow·tree·string 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 6 · rhythm 행 6. 남은 것은 array·number-theory·geometry·dp·sorting·advanced 각 한 편"
+    },
     {
       "seq": 214,
       "t": "2026-09-07T20:39",
@@ -1265,23 +1276,6 @@
       "purpose": "문제_가이드_목록.md 상 등급 26편 중 파일럿 2편을 뺀 24편을 문서 순으로 재집필한다",
       "reason": "유저가 중요도 높은 순으로 구성하라고 지시했고, 상 등급이 코딩 테스트 합격선과 실무 일상을 가른다. 여기서 binary-search·graph·advanced·etc 네 카테고리가 처음 열린다",
       "goal": "24편이 .md 로 서고 그 .mdx 가 사라지며, 인덱스 링크와 baseline 행이 함께 정리돼 상 등급에 v1 잔여가 0 이 된다",
-      "memo": ""
-    },
-    {
-      "seq": 165,
-      "t": "2026-08-28T21:45",
-      "a": "ai",
-      "id": "KAN-034.4-4NS63H",
-      "op": "create",
-      "w": "46PCAX",
-      "col": "backlog",
-      "title": "전개 WBS + tools/algo-wbs.ts — 중요도 웨이브 × 카테고리 트랙",
-      "verbatim": "",
-      "parent": "KAN-034-KSD7XR",
-      "short": "전개 WBS·claim 도구",
-      "purpose": "ORD-006 병렬 모델을 알고리즘 트랙에 이식하고, 웨이브 배리어와 선례 대기를 claim 판정으로 구현한 claim 도구를 짓는다",
-      "reason": "107편을 손으로 배분하면 두 세션이 같은 편을 잡거나 중요도 순서가 병렬화에 먹힌다. 상태를 문서에 적으면 그 문서가 곧 충돌 지점이 된다 — ORD-006 이 그 교훈을 이미 냈다",
-      "goal": "algo-wbs.ts 가 웨이브별 남은 편과 트랙별 claim 후보를 내고, 앞 웨이브가 안 비면 다음 후보를 내지 않으며, 같은 카테고리·같은 뷰 조합의 첫 편이 도는 중이면 그 후속만 막는다",
       "memo": ""
     }
   ],
