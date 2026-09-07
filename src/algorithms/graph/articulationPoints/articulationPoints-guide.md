@@ -132,7 +132,7 @@
 무향 그래프에서 이어져 있는 정점의 덩어리를 찾는다      ◄─ 또 다른 글이 다루는 것
 ```
 
-간선 쪽을 묻는 것은 [`bridgesInGraph`](../bridgesInGraph/bridgesInGraph-guide.mdx)이고, 두 수를
+간선 쪽을 묻는 것은 [`bridgesInGraph`](../bridgesInGraph/bridgesInGraph-guide.md)이고, 두 수를
 적어 두는 뼈대는 같지만 판정의 등호가 다릅니다. 방향 그래프 쪽은
 [`stronglyConnectedComponents`](../stronglyConnectedComponents/stronglyConnectedComponents-guide.md)
 이고, 그쪽은 정점마다 칸을 하나 더 들어요.
@@ -1091,7 +1091,7 @@ articulationPoints(1, [])                               -> []
 ```
 
 간선 하나를 지웠을 때 갈라지는지를 묻는 것은
-[`bridgesInGraph`](../bridgesInGraph/bridgesInGraph-guide.mdx)이고, 뿌리 전용 규칙이 필요 없어요.
+[`bridgesInGraph`](../bridgesInGraph/bridgesInGraph-guide.md)이고, 뿌리 전용 규칙이 필요 없어요.
 방향 그래프에서 서로 오갈 수 있는 무리를 찾는 것은
 [`stronglyConnectedComponents`](../stronglyConnectedComponents/stronglyConnectedComponents-guide.md)
 이고, 그쪽은 정점이 어느 무리에 들어갔는지를 표시하는 칸을 하나 더 듭니다.
