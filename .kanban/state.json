@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 214,
+  "next_seq": 215,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -603,7 +603,7 @@
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-06",
+      "갱신": "2026-09-07",
       "title_hash": "11cad792ba3853c8e1a298e48d074c05b10ecb0c",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "short": "W3 하 42편",
@@ -614,8 +614,8 @@
       "reason_hash": "0a926afa14077d654d8f1fc922160039813f703e",
       "goal": "42편이 .md 로 서고, guide-rhythm.tsv 의 src/algorithms 행과 살아 있는 .mdx 가 모두 0 이 된다",
       "goal_hash": "e7862318f20a0d6f6fafe2de66323776787f728d",
-      "memo": "배치7 종료 (28/42) — maxBipartiteMatching·subtreeSumQuery·suffixAutomaton·fftMultiply. §3 대조 180건, purpose.alt 는 셋 실고 하나 생략. 살아 있는 .mdx 14 · rhythm 행 14. check-v2 단일 파일 CLI 가 P16 을 안 도는 것을 찾음",
-      "memo_hash": "6399a13d0d9934c0ce6a4350144a88c5af362eb8",
+      "memo": "배치8 종료 (32/42) — bentleyOttmann·tspBitmask·meetInTheMiddleSubsetSum·aStarSearch. §3 대조 236건, purpose.alt 넷 다 실음. 살아 있는 .mdx 10 · rhythm 행 10. L37 실렌더는 배치7 종료 뒤 aside 로 확인해 닫았다",
+      "memo_hash": "c5bff40f96040b97406533be6cd69700489f0d61",
       "parent": "KAN-034-KSD7XR",
       "scope": [
         "src/algorithms/**",
@@ -705,6 +705,17 @@
     "KAN-034.2-5V5M2F"
   ],
   "recent": [
+    {
+      "seq": 214,
+      "t": "2026-09-07T20:39",
+      "a": "ai",
+      "id": "KAN-034.7-QMZ3RE",
+      "op": "edit",
+      "w": "MDD8JM",
+      "field": "memo",
+      "before": "배치7 종료 (28/42) — maxBipartiteMatching·subtreeSumQuery·suffixAutomaton·fftMultiply. §3 대조 180건, purpose.alt 는 셋 실고 하나 생략. 살아 있는 .mdx 14 · rhythm 행 14. check-v2 단일 파일 CLI 가 P16 을 안 도는 것을 찾음",
+      "after": "배치8 종료 (32/42) — bentleyOttmann·tspBitmask·meetInTheMiddleSubsetSum·aStarSearch. §3 대조 236건, purpose.alt 넷 다 실음. 살아 있는 .mdx 10 · rhythm 행 10. L37 실렌더는 배치7 종료 뒤 aside 로 확인해 닫았다"
+    },
     {
       "seq": 213,
       "t": "2026-09-06T20:39",
@@ -1271,23 +1282,6 @@
       "purpose": "ORD-006 병렬 모델을 알고리즘 트랙에 이식하고, 웨이브 배리어와 선례 대기를 claim 판정으로 구현한 claim 도구를 짓는다",
       "reason": "107편을 손으로 배분하면 두 세션이 같은 편을 잡거나 중요도 순서가 병렬화에 먹힌다. 상태를 문서에 적으면 그 문서가 곧 충돌 지점이 된다 — ORD-006 이 그 교훈을 이미 냈다",
       "goal": "algo-wbs.ts 가 웨이브별 남은 편과 트랙별 claim 후보를 내고, 앞 웨이브가 안 비면 다음 후보를 내지 않으며, 같은 카테고리·같은 뷰 조합의 첫 편이 도는 중이면 그 후속만 막는다",
-      "memo": ""
-    },
-    {
-      "seq": 164,
-      "t": "2026-08-28T21:45",
-      "a": "ai",
-      "id": "KAN-034.3-53E4F9",
-      "op": "create",
-      "w": "46PCAX",
-      "col": "backlog",
-      "title": "사람 검토 12줄의 기계화 — 조항 L38~ 신설",
-      "verbatim": "",
-      "parent": "KAN-034-KSD7XR",
-      "short": "검토 기계화",
-      "purpose": "FEEDBACK.md §3 의 사람 대조 12줄 중 결정론적인 셋(L21 기호 전수 정의 · L25 이름 재사용 · 본문 계수와 스크립트 일치)을 스캐너로 내린다",
-      "reason": "12줄을 111편에 대조하면 1,332회다. 그 노동이 전개 기간 내내 편마다 붙고, 사람이 놓치면 조용히 통과한다",
-      "goal": "신설 규칙이 L38 부터 붙고 회귀 시험을 가지며, 파일럿 4편에서 위반 0 건으로 통과해 기존 산출을 깨지 않는 것이 확인된다",
       "memo": ""
     }
   ],

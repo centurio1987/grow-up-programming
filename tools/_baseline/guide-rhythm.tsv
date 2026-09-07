@@ -2,16 +2,12 @@
 # 재집필이 끝난 편은 이 파일에서 행을 지운다. 줄 수가 곧 남은 부채다.
 # forbid_hits 가 0 이 아닌 행은 voice 규칙 8 위반이 남아 있다는 뜻이다 — 재집필 때 펼쳐 쓴다.
 src/algorithms/advanced/countInversions/countInversions-guide.mdx	3	0
-src/algorithms/advanced/meetInTheMiddleSubsetSum/meetInTheMiddleSubsetSum-guide.mdx	4	0
 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.mdx	3	0
 src/algorithms/dp/expectedValueDp/expectedValueDp-guide.mdx	4	0
-src/algorithms/dp/tspBitmask/tspBitmask-guide.mdx	4	1
-src/algorithms/geometry/bentleyOttmann/bentleyOttmann-guide.mdx	4	0
 src/algorithms/geometry/rotatingCalipersDiameter/rotatingCalipersDiameter-guide.mdx	4	0
 src/algorithms/graph-flow/minCostMaxFlow/minCostMaxFlow-guide.mdx	7	0
 src/algorithms/graph/bridgesInGraph/bridgesInGraph-guide.mdx	4	0
 src/algorithms/number-theory/crt/crt-guide.mdx	7	0
-src/algorithms/shortest-path/aStarSearch/aStarSearch-guide.mdx	5	0
 src/algorithms/sorting/externalMergeSort/externalMergeSort-guide.mdx	4	0
 src/algorithms/string/longestPalindrome/longestPalindrome-guide.mdx	7	1
 src/algorithms/tree/treeIsomorphism/treeIsomorphism-guide.mdx	2	0
