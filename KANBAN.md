@@ -91,7 +91,7 @@
   - 이유: 마지막 웨이브다. geometry 가 여기서 처음 열리고, 이 웨이브가 닫히면 src/algorithms 의 v1 .mdx 가 0 이 된다
   - 목표: 42편이 .md 로 서고, guide-rhythm.tsv 의 src/algorithms 행과 살아 있는 .mdx 가 모두 0 이 된다
   - 메모: 배치9 종료 (36/42) — bridgesInGraph·minCostMaxFlow·treeIsomorphism·longestPalindrome. §3 대조 219건. graph·graph-flow·tree·string 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 6 · rhythm 행 6. 남은 것은 array·number-theory·geometry·dp·sorting·advanced 각 한 편
-  - 실행 문서: KANBAN.cards/KAN-034.7-QMZ3RE.md (37/42 · 최근 09-08)
+  - 실행 문서: KANBAN.cards/KAN-034.7-QMZ3RE.md (38/42 · 최근 09-08)
   - 계획 리포트: KANBAN.reports/KAN-034.7-QMZ3RE.report.html (낡음)
 - `KAN-034.8-BK1Q3A` v1 잔여·스캐너 구멍 처분 — _deprecated 구판 · rhythm 스캐너 · SPEC 금지의 미강제 — 생성:ai · 최종:ai · 갱신:2026-09-05
   - 상위: `KAN-034-KSD7XR` (진행 중)
