@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 216,
+  "next_seq": 217,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -614,8 +614,8 @@
       "reason_hash": "0a926afa14077d654d8f1fc922160039813f703e",
       "goal": "42편이 .md 로 서고, guide-rhythm.tsv 의 src/algorithms 행과 살아 있는 .mdx 가 모두 0 이 된다",
       "goal_hash": "e7862318f20a0d6f6fafe2de66323776787f728d",
-      "memo": "배치9 종료 (36/42) — bridgesInGraph·minCostMaxFlow·treeIsomorphism·longestPalindrome. §3 대조 219건. graph·graph-flow·tree·string 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 6 · rhythm 행 6. 남은 것은 array·number-theory·geometry·dp·sorting·advanced 각 한 편",
-      "memo_hash": "68eb2d3e1e54bce7190e1337efa8df0180f732ba",
+      "memo": "배치10 종료 (40/42) — sparseTableRangeMin·crt·rotatingCalipersDiameter·expectedValueDp. §3 대조 220자리. array·number-theory·geometry·dp 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 2 · rhythm 행 2 — 남은 것은 externalMergeSort·countInversions 뿐이고 배치11 이 웨이브를 닫는다",
+      "memo_hash": "f7e4bf137d20d5500a81556308b5edf5d355fab9",
       "parent": "KAN-034-KSD7XR",
       "scope": [
         "src/algorithms/**",
@@ -705,6 +705,17 @@
     "KAN-034.2-5V5M2F"
   ],
   "recent": [
+    {
+      "seq": 216,
+      "t": "2026-09-08T20:42",
+      "a": "ai",
+      "id": "KAN-034.7-QMZ3RE",
+      "op": "edit",
+      "w": "MDD8JM",
+      "field": "memo",
+      "before": "배치9 종료 (36/42) — bridgesInGraph·minCostMaxFlow·treeIsomorphism·longestPalindrome. §3 대조 219건. graph·graph-flow·tree·string 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 6 · rhythm 행 6. 남은 것은 array·number-theory·geometry·dp·sorting·advanced 각 한 편",
+      "after": "배치10 종료 (40/42) — sparseTableRangeMin·crt·rotatingCalipersDiameter·expectedValueDp. §3 대조 220자리. array·number-theory·geometry·dp 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 2 · rhythm 행 2 — 남은 것은 externalMergeSort·countInversions 뿐이고 배치11 이 웨이브를 닫는다"
+    },
     {
       "seq": 215,
       "t": "2026-09-08T02:13",
@@ -1259,23 +1270,6 @@
       "purpose": "문제_가이드_목록.md 중 등급 41편을 문서 순으로 재집필한다",
       "reason": "상 등급이 닫힌 뒤에 온다 — 웨이브 경계가 배리어이고, 중요도 순이 병렬화에 먹히면 유저 지시를 어기는 것이 된다. 여기서 bit-manipulation·string·graph-flow·shortest-path·tree 다섯 카테고리가 처음 열린다",
       "goal": "41편이 .md 로 서고 중 등급에 v1 잔여가 0 이 된다",
-      "memo": ""
-    },
-    {
-      "seq": 166,
-      "t": "2026-08-28T21:45",
-      "a": "ai",
-      "id": "KAN-034.5-0RGSQM",
-      "op": "create",
-      "w": "46PCAX",
-      "col": "backlog",
-      "title": "W1 — 중요도 상 24편 전개",
-      "verbatim": "",
-      "parent": "KAN-034-KSD7XR",
-      "short": "W1 상 24편",
-      "purpose": "문제_가이드_목록.md 상 등급 26편 중 파일럿 2편을 뺀 24편을 문서 순으로 재집필한다",
-      "reason": "유저가 중요도 높은 순으로 구성하라고 지시했고, 상 등급이 코딩 테스트 합격선과 실무 일상을 가른다. 여기서 binary-search·graph·advanced·etc 네 카테고리가 처음 열린다",
-      "goal": "24편이 .md 로 서고 그 .mdx 가 사라지며, 인덱스 링크와 baseline 행이 함께 정리돼 상 등급에 v1 잔여가 0 이 된다",
       "memo": ""
     }
   ],
