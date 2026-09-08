@@ -1,8 +1,6 @@
 # file	max_prose_run	forbid_hits — 래칫 기준선. 이보다 나빠지면 실패한다.
 # 재집필이 끝난 편은 이 파일에서 행을 지운다. 줄 수가 곧 남은 부채다.
 # forbid_hits 가 0 이 아닌 행은 voice 규칙 8 위반이 남아 있다는 뜻이다 — 재집필 때 펼쳐 쓴다.
-src/algorithms/advanced/countInversions/countInversions-guide.mdx	3	0
-src/algorithms/sorting/externalMergeSort/externalMergeSort-guide.mdx	4	0
 src/data-structures/disjoint-set/disjointSetRollback/disjointSetRollback-guide.mdx	4	0
 src/data-structures/disjoint-set/unionFind/unionFind-guide.mdx	4	0
 src/data-structures/graph-repr/dag/dag-guide.mdx	2	0
