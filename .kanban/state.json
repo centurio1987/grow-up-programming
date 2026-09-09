@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 219,
+  "next_seq": 220,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -658,6 +658,27 @@
         "KANBAN.batches/**",
         ".kanban/**"
       ]
+    },
+    "KAN-034.9-WHH53W": {
+      "col": "todo",
+      "title": "v2 스캐너 구멍 처분 — W3 이 실측으로 낸 14 부류",
+      "verbatim": "후속 카드로, 카드 넷 검토 진행",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-09-09",
+      "title_hash": "2564f3412c6e5cf76079c8b6368506017c412beb",
+      "verbatim_hash": "444dda1405915d866ec3518e0b6ec45e67e7e4f6",
+      "short": "스캐너 구멍 14부류",
+      "short_hash": "9c465b67e270a392127ca85473afd1a47dddcaf1",
+      "purpose": "W3 여섯 배치가 원고를 쓰며 찾아낸 스캐너 사각 31건을 14 부류로 묶어 도구·규약·회귀 시험으로 내린다",
+      "purpose_hash": "92126f8642bd2fbe962b64b85b1af020a7597e18",
+      "reason": "111편이 전부 통과한 뒤에도 사람이 편당 30~82자리를 잡았고, 그중 되풀이되는 것은 스캐너가 못 보는 자리다. P15 하나만 일곱 배치 연속 나왔고 워커 여덟이 각자 같은 검사기를 새로 짰다",
+      "reason_hash": "5c2ee27b68b85723228336f2c7bfd2b84de6f389",
+      "goal": "각 부류가 도구 확장·관행·회귀 시험 중 하나로 처분되고, 처분한 자리마다 tools/<도구>.test.ts 에 회귀 시험이 서며, 오탐 조건이 함께 박힌다",
+      "goal_hash": "b1f631b075ccb0b375910ed9a8994d1aa8f6488d",
+      "memo": "근거는 KANBAN.batches/KAN-034.7-QMZ3RE.batch{6..11}.md 의 「끝난 뒤」 절과 KAN-034.8-BK1Q3A.batch4.md. 승격 1순위는 P15 범위·면제(일곱 배치 연속, 오탐 조건 셋이 이미 실측됨)와 check-v2 단일 CLI 의 P16 미실행(판정 명령이 거짓 초록을 낸다)",
+      "memo_hash": "0e0149d93fe818b2e4785f4a6ed2b9883213e2af",
+      "parent": "KAN-034-KSD7XR"
     }
   },
   "order": [
@@ -702,9 +723,27 @@
     "KAN-024",
     "KAN-033-E8KHSV",
     "KAN-034.1-V337W5",
-    "KAN-034.2-5V5M2F"
+    "KAN-034.2-5V5M2F",
+    "KAN-034.9-WHH53W"
   ],
   "recent": [
+    {
+      "seq": 219,
+      "t": "2026-09-09T16:46",
+      "a": "ai",
+      "id": "KAN-034.9-WHH53W",
+      "op": "create",
+      "w": "MDD8JM",
+      "col": "todo",
+      "title": "v2 스캐너 구멍 처분 — W3 이 실측으로 낸 14 부류",
+      "verbatim": "후속 카드로, 카드 넷 검토 진행",
+      "parent": "KAN-034-KSD7XR",
+      "short": "스캐너 구멍 14부류",
+      "purpose": "W3 여섯 배치가 원고를 쓰며 찾아낸 스캐너 사각 31건을 14 부류로 묶어 도구·규약·회귀 시험으로 내린다",
+      "reason": "111편이 전부 통과한 뒤에도 사람이 편당 30~82자리를 잡았고, 그중 되풀이되는 것은 스캐너가 못 보는 자리다. P15 하나만 일곱 배치 연속 나왔고 워커 여덟이 각자 같은 검사기를 새로 짰다",
+      "goal": "각 부류가 도구 확장·관행·회귀 시험 중 하나로 처분되고, 처분한 자리마다 tools/<도구>.test.ts 에 회귀 시험이 서며, 오탐 조건이 함께 박힌다",
+      "memo": "근거는 KANBAN.batches/KAN-034.7-QMZ3RE.batch{6..11}.md 의 「끝난 뒤」 절과 KAN-034.8-BK1Q3A.batch4.md. 승격 1순위는 P15 범위·면제(일곱 배치 연속, 오탐 조건 셋이 이미 실측됨)와 check-v2 단일 CLI 의 P16 미실행(판정 명령이 거짓 초록을 낸다)"
+    },
     {
       "seq": 218,
       "t": "2026-09-09T16:43",
@@ -1242,23 +1281,6 @@
       "w": "MDD8JM",
       "from": "todo",
       "to": "doing"
-    },
-    {
-      "seq": 169,
-      "t": "2026-08-28T21:45",
-      "a": "ai",
-      "id": "KAN-034.8-BK1Q3A",
-      "op": "create",
-      "w": "46PCAX",
-      "col": "backlog",
-      "title": "v1 잔여 처분 — _deprecated 구판 · rhythm 스캐너 정리",
-      "verbatim": "",
-      "parent": "KAN-034-KSD7XR",
-      "short": "v1 잔여 처분",
-      "purpose": "_deprecated/ 의 구판 가이드와, 대상이 0 이 된 check-guide-rhythm.ts 의 알고리즘 몫을 정리한다",
-      "reason": "111편이 다 교체돼도 구판과 빈 스캐너가 남는다. 대상이 0 인 스캐너는 통과 표시가 무의미해지고, 다음 사람이 그것을 근거로 읽는다",
-      "goal": "_deprecated/ 처분이 끝나고 rhythm 스캐너가 자료구조만 보도록 정리돼, 알고리즘 트랙에 v1 흔적이 남지 않는다",
-      "memo": ""
     }
   ],
   "layout": 2
