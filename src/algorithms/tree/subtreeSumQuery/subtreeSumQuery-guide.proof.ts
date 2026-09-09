@@ -2018,9 +2018,9 @@ export const PROOFS: Record<string, () => string> = {
           [
             "트리 모양",
             "가장 깊은 정점의 깊이",
-            "가장 비싼 질의의 정점",
+            "칸 접근이 가장 많은 질의의 정점",
             "그 칸 접근",
-            "가장 비싼 갱신의 정점",
+            "칸 접근이 가장 많은 갱신의 정점",
             "그 칸 접근",
             "만들기 접근",
           ],
@@ -2032,7 +2032,7 @@ export const PROOFS: Record<string, () => string> = {
       ...captions([
         ["정점 N", comma(n)],
         [
-          "사슬에서 가장 비싼 질의",
+          "사슬에서 칸 접근이 가장 많은 질의",
           `정점 ${worstLine.x} — 칸 접근 ${worstLine.ops} 번`,
         ],
         ["C(N)", String(Math.floor(Math.log2(n)) + 1)],
