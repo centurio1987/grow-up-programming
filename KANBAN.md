@@ -109,7 +109,7 @@
   - 메모: 배치11 종료 — W3 완주 (42/42). externalMergeSort·countInversions. §3 대조 97자리. 웨이브 종료 조건 셋 전부 참 — algo-wbs 111/111 · W3 44/44 · 살아 있는 .mdx 0 · guide-rhythm.tsv 의 src/algorithms 행 0. ci.ts all exit 0. 카드 목표 달성
   - 실행 문서: KANBAN.cards/KAN-034.7-QMZ3RE.md (42/42 · 최근 09-08)
   - 계획 리포트: KANBAN.reports/KAN-034.7-QMZ3RE.report.html (낡음)
-  - 검토 문서: KANBAN.reviews/KAN-034.7-QMZ3RE.review.md (승인 0/6 · 검토 대기)
+  - 검토 문서: KANBAN.reviews/KAN-034.7-QMZ3RE.review.md (승인 3/6 · 반려 3 · 추가 의견 총 3 · 검토 대기)
 - `KAN-034.8-BK1Q3A` v1 잔여·스캐너 구멍 처분 — _deprecated 구판 · rhythm 스캐너 · SPEC 금지의 미강제 — 생성:ai · 최종:ai · 갱신:2026-09-09
   - 상위: `KAN-034-KSD7XR` (진행 중)
   - 짧은 제목: v1 잔여·스캐너 구멍 처분
