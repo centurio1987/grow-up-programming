@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 220,
+  "next_seq": 224,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -535,12 +535,12 @@
       "parent": "KAN-034-KSD7XR"
     },
     "KAN-034.5-0RGSQM": {
-      "col": "doing",
+      "col": "review",
       "title": "W1 — 중요도 상 24편 전개",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-30",
+      "갱신": "2026-09-09",
       "title_hash": "d4622a6119ea956055addaa6be8f637e4f1df853",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "short": "W1 상 24편",
@@ -566,12 +566,12 @@
       ]
     },
     "KAN-034.6-CF6ZHE": {
-      "col": "doing",
+      "col": "review",
       "title": "W2 — 중요도 중 41편 전개",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-03",
+      "갱신": "2026-09-09",
       "title_hash": "bc3b09d3aa09354a0c67ebe61060db8b649eed3c",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "short": "W2 중 41편",
@@ -598,12 +598,12 @@
       ]
     },
     "KAN-034.7-QMZ3RE": {
-      "col": "doing",
+      "col": "review",
       "title": "W3 — 중요도 하 42편 전개",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-08",
+      "갱신": "2026-09-09",
       "title_hash": "11cad792ba3853c8e1a298e48d074c05b10ecb0c",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "short": "W3 하 42편",
@@ -629,7 +629,7 @@
       ]
     },
     "KAN-034.8-BK1Q3A": {
-      "col": "doing",
+      "col": "review",
       "title": "v1 잔여·스캐너 구멍 처분 — _deprecated 구판 · rhythm 스캐너 · SPEC 금지의 미강제",
       "verbatim": "",
       "생성": "ai",
@@ -653,6 +653,8 @@
         "src/algorithms/**",
         "sandbox/algo-guide-v2/**",
         ".claude/authoring/paths.json",
+        ".claude/authoring/specs/algo-guide/**",
+        ".claude/authoring.lock.json",
         "KANBAN.md",
         "KANBAN.cards/**",
         "KANBAN.batches/**",
@@ -689,12 +691,9 @@
     "KAN-034.4-4NS63H",
     "KAN-001",
     "KAN-032",
+    "KAN-034.9-WHH53W",
     "KAN-027",
     "KAN-034-KSD7XR",
-    "KAN-034.5-0RGSQM",
-    "KAN-034.6-CF6ZHE",
-    "KAN-034.7-QMZ3RE",
-    "KAN-034.8-BK1Q3A",
     "KAN-029",
     "KAN-030",
     "KAN-007",
@@ -724,9 +723,52 @@
     "KAN-033-E8KHSV",
     "KAN-034.1-V337W5",
     "KAN-034.2-5V5M2F",
-    "KAN-034.9-WHH53W"
+    "KAN-034.5-0RGSQM",
+    "KAN-034.6-CF6ZHE",
+    "KAN-034.7-QMZ3RE",
+    "KAN-034.8-BK1Q3A"
   ],
   "recent": [
+    {
+      "seq": 223,
+      "t": "2026-09-09T16:59",
+      "a": "ai",
+      "id": "KAN-034.8-BK1Q3A",
+      "op": "move",
+      "w": "MDD8JM",
+      "from": "doing",
+      "to": "review"
+    },
+    {
+      "seq": 222,
+      "t": "2026-09-09T16:59",
+      "a": "ai",
+      "id": "KAN-034.7-QMZ3RE",
+      "op": "move",
+      "w": "MDD8JM",
+      "from": "doing",
+      "to": "review"
+    },
+    {
+      "seq": 221,
+      "t": "2026-09-09T16:59",
+      "a": "ai",
+      "id": "KAN-034.6-CF6ZHE",
+      "op": "move",
+      "w": "MDD8JM",
+      "from": "doing",
+      "to": "review"
+    },
+    {
+      "seq": 220,
+      "t": "2026-09-09T16:59",
+      "a": "ai",
+      "id": "KAN-034.5-0RGSQM",
+      "op": "move",
+      "w": "MDD8JM",
+      "from": "doing",
+      "to": "review"
+    },
     {
       "seq": 219,
       "t": "2026-09-09T16:46",
@@ -1240,47 +1282,6 @@
       "field": "purpose",
       "before": "KAN-033 잔여물을 그 카드 명의로 닫고, FEEDBACK.md 의 결번 참조와 은유 부류 수를 고치고, 파일럿 4편에 최신 골격으로 이해 시험 V1~V7 을 재실행한다",
       "after": "KAN-033 잔여물을 그 카드 명의로 닫고, FEEDBACK.md 의 결번 참조와 은유 부류 수를 고치고, 파일럿 4편을 최신 골격으로 재판정한다"
-    },
-    {
-      "seq": 173,
-      "t": "2026-08-29T00:55",
-      "a": "ai",
-      "id": "KAN-034-KSD7XR",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "goal",
-      "before": "111편이 새 골격으로 재집필돼 이해 시험 V1~V7 · 스캐너 P1~P10 · 조항 L1~L37 을 통과하고, v1 .mdx 와 baseline 부채가 0 이 되며 sandbox/algo-guide-v2 가 본 저장소로 걷힌다",
-      "after": "111편이 새 골격으로 재집필돼 자기증명 대조 · 스캐너 P1~P10 · 조항 L1~L37 을 통과하고, v1 .mdx 와 baseline 부채가 0 이 되며 sandbox/algo-guide-v2 가 본 저장소로 걷힌다"
-    },
-    {
-      "seq": 172,
-      "t": "2026-08-28T23:14",
-      "a": "ai",
-      "id": "KAN-034.1-V337W5",
-      "op": "move",
-      "w": "MDD8JM",
-      "from": "doing",
-      "to": "review"
-    },
-    {
-      "seq": 171,
-      "t": "2026-08-28T22:46",
-      "a": "ai",
-      "id": "KAN-034.1-V337W5",
-      "op": "move",
-      "w": "MDD8JM",
-      "from": "todo",
-      "to": "doing"
-    },
-    {
-      "seq": 170,
-      "t": "2026-08-28T22:46",
-      "a": "ai",
-      "id": "KAN-034-KSD7XR",
-      "op": "move",
-      "w": "MDD8JM",
-      "from": "todo",
-      "to": "doing"
     }
   ],
   "layout": 2
