@@ -20,14 +20,23 @@ const CANVAS = {
   ds: '.claude/skills/guide-for-problem/data-structure-guide-canvas.md',
 }
 const EXEMPLAR = {
-  // ORD-004 의 알고리즘 예시는 v2 승격(KAN-034 S2, 2026-08-29)으로 `.mdx` 가 사라졌다.
-  // 새 골격은 `.md` + 사이드카이고 이 워크플로가 다루던 형식이 아니다 — 그래서 예시를
-  // 다른 편으로 옮긴다. 살아 있는 `.mdx` 중 하나를 가리켜야 이 워크플로가 돈다.
-  algo: 'src/algorithms/geometry/convexHull/convexHull-guide.mdx',
+  // **알고리즘 갈래는 대상을 잃었다(2026-09-09, KAN-034.8 S10).** 그 트랙 111편이 v2 골격
+  // (`sandbox/algo-guide-v2/SPEC.md`)으로 전부 넘어가 산출이 `.md` + 사이드카가 됐고, 이
+  // 워크플로가 다루는 `.mdx` 가 **0** 이다. 앞 주석은 「살아 있는 `.mdx` 중 하나를 가리켜야
+  // 이 워크플로가 돈다」며 예시를 옮겼는데, 이제 옮길 자리가 없다 — 그래서 값을 지우고
+  // `kind: 'algo'` 를 **받는 자리에서 막는다**(아래 `writePrompt`). 조용히 없는 파일을
+  // Read 하게 두면 워커가 그 자리에서 실패하고, 왜 실패했는지가 어디에도 안 남는다.
   ds: 'src/data-structures/tree/bPlusTree/bPlusTree-guide.mdx',
 }
 
 function writePrompt(g) {
+  if (g.kind === 'algo') {
+    throw new Error(
+      `ORD-004 의 알고리즘 갈래는 닫혔다(2026-09-09, KAN-034.8 S10) — '${g.name}' 를 받을 수 없다. ` +
+      '그 트랙은 v2 골격으로 전부 넘어갔고 명세 정본은 sandbox/algo-guide-v2/SPEC.md 다. ' +
+      '재집필은 이 워크플로가 아니라 그 골격의 절차로 한다.',
+    )
+  }
   const canvas = CANVAS[g.kind]
   const exemplar = EXEMPLAR[g.kind]
   const newFile = `${g.dir}/${g.name}-guide.new.mdx`

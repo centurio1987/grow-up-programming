@@ -1,18 +1,15 @@
 {
   "schema_version": 1,
   "_note": "경로·명령 바인딩. spec 은 논리(항목·작성법·원칙·퍼소나)만 담고, 물리적 위치와 실행 명령은 전부 여기 모은다. 같은 spec 을 다른 프로젝트에서 쓰려면 이 파일만 갈아 끼우면 된다.",
-
   "dirs": {
     "content": "src/<유형>/<문제명>",
     "index": "문제_가이드_목록.md"
   },
-
   "templates": {
     "algo-guide-canvas": ".claude/skills/guide-for-problem/algorithm-guide-canvas.md",
     "ds-guide-canvas": ".claude/skills/guide-for-problem/data-structure-guide-canvas.md",
     "sim-scaffold": ".claude/skills/guide-for-problem/simulation-scaffold.md"
   },
-
   "commands": {
     "build": "bun run tools/guide-preview/compile-check.ts {file}",
     "mermaid_check": "bun run tools/guide-preview/check-mermaid.ts {file}",
@@ -23,10 +20,8 @@
     "_note_rhythm_scan": "루브릭 V1(rhythm) · spec D2·D3 의 계수 근거. 인용이 아니라 세어서 판정하는 자리다. 종료코드 0=통과 · 1=위반 · 2=대상 없음. 인자 없이 부르면 전수, --tsv 로 집계용 출력. R1 은 그림의 유무만 재고 그 그림이 무엇을 보이는지는 재지 않는다 — 충분성은 H축 Q6 과 절제 시험이 맡는다.",
     "rhythm_scan": "bun run tools/check-guide-rhythm.ts {file}"
   },
-
   "exemplars": {
-    "_note_algo-guide": "예시가 바뀌었다(2026-08-29, KAN-034 S2). 앞 예시는 mosAlgorithm-guide.mdx 였고 2026-08-15 실측에서 codex·agy 둘 다 FAIL 이었다(Q1 절차 층위 대안 미제시, Q5 실수 결과값 미제시) — 그 파일은 v2 골격으로 재집필되면서 .mdx 가 사라졌다. 지금 값은 살아 있는 구 골격 산출 하나를 가리킬 뿐이고 품질 근거가 없다. 알고리즘 트랙이 v2 골격(sandbox/algo-guide-v2/SPEC.md)으로 다 넘어가면 이 spec 자체가 대상을 잃으므로, 그때 예시가 아니라 spec 을 정리한다.",
-    "algo-guide": "src/algorithms/geometry/convexHull/convexHull-guide.mdx",
+    "_note_algo-guide": "**이 spec 은 대상을 잃었다(2026-09-09, KAN-034.8 S10).** 알고리즘 트랙 111편이 v2 골격으로 전부 넘어가 v1 10단계 산출(.mdx)이 0 이 됐다. 그래서 예시를 다른 편으로 옮기지 않고 항목 자체를 걷었다 — 이 note 가 앞서 적어 둔 처방(「그때 예시가 아니라 spec 을 정리한다」)이 그것이다. 걷은 값: src/algorithms/geometry/convexHull/convexHull-guide.mdx. 알고리즘 가이드의 명세 정본은 이제 sandbox/algo-guide-v2/SPEC.md 이고, 그 파일이 「.claude/authoring/specs/ 에 등록하지 않는다」고 스스로 밝힌다 — 판정 장치를 샌드박스에 두기 때문이다. specs/algo-guide/ 는 지우지 않았다: authoring.lock.json 이 해시로 고정하고 있고, 지우면 「왜 없어졌는가」가 함께 사라진다.",
     "_note_ds-guide": "8단계 골격(ds-guide spec 2.0.0)으로 쓰인 첫 산출물이다. 구 5단계 예시(tree/bPlusTree)를 이것으로 교체했다 — 규칙과 예시가 다른 골격을 들고 있으면 예시가 이긴다.",
     "ds-guide": "src/data-structures/linear/deque/deque-guide.mdx"
   }
