@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 225,
+  "next_seq": 226,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -598,12 +598,12 @@
       ]
     },
     "KAN-034.7-QMZ3RE": {
-      "col": "doing",
+      "col": "review",
       "title": "W3 — 중요도 하 42편 전개",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-09",
+      "갱신": "2026-09-10",
       "title_hash": "11cad792ba3853c8e1a298e48d074c05b10ecb0c",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "short": "W3 하 42편",
@@ -729,6 +729,16 @@
     "KAN-034.7-QMZ3RE"
   ],
   "recent": [
+    {
+      "seq": 225,
+      "t": "2026-09-10T01:59",
+      "a": "ai",
+      "id": "KAN-034.7-QMZ3RE",
+      "op": "move",
+      "w": "MDD8JM",
+      "from": "doing",
+      "to": "review"
+    },
     {
       "seq": 224,
       "t": "2026-09-09T17:19",
@@ -1270,17 +1280,6 @@
       "w": "MDD8JM",
       "from": "review",
       "to": "done"
-    },
-    {
-      "seq": 175,
-      "t": "2026-08-29T00:55",
-      "a": "ai",
-      "id": "KAN-034.1-V337W5",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "reason",
-      "before": "verdicts/ 31개가 전부 8/20 이고 원고는 8/28 이다 — 그 사이에 파트 2분할·항목 3종 개편·invariant 신설이 들어가 최신 골격의 이해 시험 근거가 없다. babyStepGiantStep 은 verdict 가 0 개다",
-      "after": "verdicts/ 31개가 전부 8/20 이고 원고는 8/28 이라 최신 골격의 판정 근거가 없었다. babyStepGiantStep 은 판정이 0 개였다"
     }
   ],
   "layout": 2
