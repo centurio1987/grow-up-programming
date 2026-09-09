@@ -31,6 +31,15 @@
  * baseline 에 없는 편(새 글)과 trace 절이 생긴 편은 즉시 전 기준을 적용한다.
  * 재집필이 끝나면 그 편의 baseline 행을 지운다 — 줄 수가 곧 남은 부채다.
  *
+ * **대상 집합은 `src/**\/*-guide.mdx` 이고, 그것은 이제 자료구조 트랙뿐이다**(2026-09-08).
+ * 알고리즘 트랙 111편이 v2 골격(`sandbox/algo-guide-v2/SPEC.md`)으로 전부 넘어가면서 산출이
+ * `.md` + 사이드카가 됐고, 이 글롭에 걸리지 않는다. **그 트랙에 이 스캐너를 부르지 않는다** —
+ * `hasTrace` 가 구 헤딩 문자열 접두로 판정해서 새 헤딩과 어긋나면 R2~R4·R6 이 조용히 공전하고
+ * 통과 표시가 거짓이 된다(`sandbox/algo-guide-v2/README.md` 의 「함정 넷」).
+ *
+ * **이 파일을 지우지 않는다.** 자료구조 트랙이 아직 쓴다 — 대상이 0 이 되는 것은 ORD-006 이
+ * 그 트랙을 닫을 때다.
+ *
  * Usage:
  *   bun run tools/check-guide-rhythm.ts                 # 전수 검사
  *   bun run tools/check-guide-rhythm.ts <파일...>        # 지정 파일만
@@ -451,7 +460,16 @@ async function main() {
     `\n${total}편 검사 — trace 절 있음 ${withTrace}편 · 위반 ${failed}편 · 통과 ${total - failed}편`,
   );
   if (baseline.size > 0) {
-    console.log(`래칫 baseline ${baseline.size}편 남음 (재집필 부채)`);
+    // **어느 트랙의 부채인지 밝힌다.** 알고리즘 트랙은 2026-09-08 에 v2 골격으로 전부
+    // 넘어가 이 스캐너의 대상이 아니다(아래 「대상 집합」 참고). 트랙을 안 적으면 다음
+    // 사람이 이 수를 저장소 전체의 부채로 읽는다 — 그것이 `KAN-034.8` `S9` 의 이유다.
+    const tracks = new Set<string>();
+    for (const f of baseline.keys()) {
+      const seg = f.split("/")[1];
+      if (seg !== undefined) tracks.add(seg);
+    }
+    const where = tracks.size > 0 ? [...tracks].sort().join(" · ") : "대상 없음";
+    console.log(`래칫 baseline ${baseline.size}편 남음 — ${where} 트랙의 재집필 부채`);
   }
   if (failed > 0) {
     console.log(
