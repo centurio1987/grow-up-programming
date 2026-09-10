@@ -110,16 +110,6 @@
   - 실행 문서: KANBAN.cards/KAN-034.8-BK1Q3A.md (12/12 · 최근 09-09)
   - 계획 리포트: KANBAN.reports/KAN-034.8-BK1Q3A.report.html
   - 검토 문서: KANBAN.reviews/KAN-034.8-BK1Q3A.review.md (승인 0/5 · 검토 대기)
-- `KAN-034.7-QMZ3RE` W3 — 중요도 하 42편 전개 — 생성:ai · 최종:ai · 갱신:2026-09-10
-  - 상위: `KAN-034-KSD7XR` (진행 중)
-  - 짧은 제목: W3 하 42편
-  - 목적: 문제_가이드_목록.md 하 등급 44편 중 파일럿 2편을 뺀 42편을 문서 순으로 재집필한다
-  - 이유: 마지막 웨이브다. geometry 가 여기서 처음 열리고, 이 웨이브가 닫히면 src/algorithms 의 v1 .mdx 가 0 이 된다
-  - 목표: 42편이 .md 로 서고, guide-rhythm.tsv 의 src/algorithms 행과 살아 있는 .mdx 가 모두 0 이 된다
-  - 메모: 배치11 종료 — W3 완주 (42/42). externalMergeSort·countInversions. §3 대조 97자리. 웨이브 종료 조건 셋 전부 참 — algo-wbs 111/111 · W3 44/44 · 살아 있는 .mdx 0 · guide-rhythm.tsv 의 src/algorithms 행 0. ci.ts all exit 0. 카드 목표 달성
-  - 실행 문서: KANBAN.cards/KAN-034.7-QMZ3RE.md (42/42 · 최근 09-10)
-  - 계획 리포트: KANBAN.reports/KAN-034.7-QMZ3RE.report.html
-  - 검토 문서: KANBAN.reviews/KAN-034.7-QMZ3RE.review.md (승인 6/6 · 추가 의견 총 6 · 승인)
 
 ## 완료
 - `KAN-029` [P0-a·29] 집필 엔진 가용성 확보 — 플러그인 설치·활성화 + lock 버전 재고정 — 생성:ai · 최종:ai · 갱신:2026-08-04
@@ -249,3 +239,13 @@
   - 목적: README 승격 조건 5건을 개정해 수행하고, 파일럿 4편을 sandbox 에서 src/algorithms/ 로 옮겨 편별 종료 산출 일곱을 적용한다
   - 이유: 전개가 시작되면 111편이 샌드박스 밖에서 나오는데 검증 장치가 아직 샌드박스 안에 있다. 그리고 파일럿 4편은 원고만 있고 src/algorithms/ 의 그 자리에는 v1 .mdx 가 그대로 남아 있다(실측)
   - 목표: tools/ci.ts 가 check-v2·check-metaphor·check-rework·bench-alt 를 돌리고, check-citations 가 src/algorithms 를 보고, 파일럿 4편이 .md 로 서고 그 .mdx 가 사라지며, 인덱스 중복 3줄이 정리된다
+- `KAN-034.7-QMZ3RE` W3 — 중요도 하 42편 전개 — 생성:ai · 최종:ai · 갱신:2026-09-10
+  - 상위: `KAN-034-KSD7XR` (진행 중)
+  - 짧은 제목: W3 하 42편
+  - 목적: 문제_가이드_목록.md 하 등급 44편 중 파일럿 2편을 뺀 42편을 문서 순으로 재집필한다
+  - 이유: 마지막 웨이브다. geometry 가 여기서 처음 열리고, 이 웨이브가 닫히면 src/algorithms 의 v1 .mdx 가 0 이 된다
+  - 목표: 42편이 .md 로 서고, guide-rhythm.tsv 의 src/algorithms 행과 살아 있는 .mdx 가 모두 0 이 된다
+  - 메모: 배치11 종료 — W3 완주 (42/42). externalMergeSort·countInversions. §3 대조 97자리. 웨이브 종료 조건 셋 전부 참 — algo-wbs 111/111 · W3 44/44 · 살아 있는 .mdx 0 · guide-rhythm.tsv 의 src/algorithms 행 0. ci.ts all exit 0. 카드 목표 달성
+  - 실행 문서: KANBAN.cards/KAN-034.7-QMZ3RE.md (42/42 · 최근 09-10)
+  - 계획 리포트: KANBAN.reports/KAN-034.7-QMZ3RE.report.html (낡음)
+  - 검토 문서: KANBAN.reviews/KAN-034.7-QMZ3RE.review.md (승인 6/6 · 추가 의견 총 6 · 승인)

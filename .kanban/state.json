@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 226,
+  "next_seq": 227,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -598,7 +598,7 @@
       ]
     },
     "KAN-034.7-QMZ3RE": {
-      "col": "review",
+      "col": "done",
       "title": "W3 — 중요도 하 42편 전개",
       "verbatim": "",
       "생성": "ai",
@@ -729,6 +729,16 @@
     "KAN-034.7-QMZ3RE"
   ],
   "recent": [
+    {
+      "seq": 226,
+      "t": "2026-09-10T16:15",
+      "a": "ai",
+      "id": "KAN-034.7-QMZ3RE",
+      "op": "move",
+      "w": "MDD8JM",
+      "from": "review",
+      "to": "done"
+    },
     {
       "seq": 225,
       "t": "2026-09-10T01:59",
@@ -1270,16 +1280,6 @@
       "w": "MDD8JM",
       "from": "backlog",
       "to": "doing"
-    },
-    {
-      "seq": 176,
-      "t": "2026-08-29T01:53",
-      "a": "ai",
-      "id": "KAN-034.1-V337W5",
-      "op": "move",
-      "w": "MDD8JM",
-      "from": "review",
-      "to": "done"
     }
   ],
   "layout": 2
