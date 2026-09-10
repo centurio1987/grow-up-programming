@@ -8,7 +8,10 @@
 import { expect, test } from "bun:test";
 import { scan } from "./check-metaphor.ts";
 import {
+  bodyNumbers,
   check,
+  codeNameMapping,
+  continuesSentence,
   displayWidth,
   finalCodeMatchesRef,
   generatedBlockAlignment,
@@ -1307,4 +1310,117 @@ test("건너뛴 안내는 없는 것만 적는다", () => {
   expect(skipNotes(["ref"])[0]).toContain("P16");
   // 순서는 실행 순서(sim → bench → ref)를 따른다.
   expect(skipNotes(["ref", "sim"])[0]).toContain("P3");
+});
+
+// ── P12 다음 줄 (2026-09-10 `KAN-034.9` `S2` · `B5`) ──────────────────────────
+//
+// 「코드에서」가 있는 줄의 **다음 줄을 더 보는** 관례가 배치9·10·11 세 배치에서 오탐을 냈다.
+// 줄바꿈이 곧 문장의 이어짐은 아니다 — 다음 줄이 새 구조 단위로 시작하면 별개 항목이고,
+// 거기 있는 이름은 「코드에서」가 지목한 이름이 아니다.
+
+const P12_CODE = ["", "```ts", "const blockSize = 1;", "```"];
+const p12 = (lines: string[]) =>
+  codeNameMapping([...lines, ...P12_CODE].join("\n")).map((f) => f.code);
+
+test("P12 — 표의 다음 행 첫 칸을 안 본다 (배치9·10·11 오탐)", () => {
+  expect(
+    p12([
+      "| 기호 | 뜻 |",
+      "| --- | --- |",
+      "| $B$ | 블록 크기. 코드에서는 `blockSize` |",
+      "| $n$ | `len` 으로 쓴 길이 |",
+    ]),
+  ).toEqual([]);
+});
+
+test("P12 — 같은 표 행의 옆 칸도 안 본다", () => {
+  expect(
+    p12([
+      "| 뜻 | 비고 |",
+      "| --- | --- |",
+      "| 코드에서는 `blockSize` | `notes` 참고 |",
+    ]),
+  ).toEqual([]);
+});
+
+test("P12 — 산문 바로 뒤에 표가 와도 그 행을 안 본다", () => {
+  // `isFigureLine` 분기가 아니라 `continuesSentence` 의 표 행 조건이 막는 자리다.
+  expect(
+    p12([
+      "이 값을 코드에서는 `blockSize` 라 부른다.",
+      "| `other` | 뜻 |",
+      "| --- | --- |",
+      "| $B$ | 다른 것 |",
+    ]),
+  ).toEqual([]);
+});
+
+test("P12 — 목록의 다음 항목을 안 본다", () => {
+  expect(p12(["- 코드에서는 `blockSize` 다.", "- `other` 는 별개다."])).toEqual(
+    [],
+  );
+});
+
+test("P12 — 무엇이 문장을 끊는가 (직접 잰다)", () => {
+  // 통합 시험으로는 **빈 줄 갈래를 못 잰다** — 빈 줄에는 집을 이름이 없어서 그 조건을
+  // 지워도 결과가 같다. 조건 자체를 재야 그 갈래가 시험에 선다.
+  expect(continuesSentence("이어지는 문장이다.")).toBe(true);
+  expect(continuesSentence(undefined)).toBe(false);
+  expect(continuesSentence("")).toBe(false);
+  expect(continuesSentence("   ")).toBe(false);
+  expect(continuesSentence("| 표 | 행 |")).toBe(false);
+  expect(continuesSentence("### 헤딩")).toBe(false);
+  expect(continuesSentence("```ts")).toBe(false);
+  expect(continuesSentence("~~~")).toBe(false);
+  expect(continuesSentence("> 인용")).toBe(false);
+  expect(continuesSentence("- 목록")).toBe(false);
+  expect(continuesSentence("* 목록")).toBe(false);
+  expect(continuesSentence("+ 목록")).toBe(false);
+  expect(continuesSentence("1. 번호 목록")).toBe(false);
+  // 목록처럼 보이지만 아닌 것 — 뺄셈으로 시작하는 문장은 이어진다.
+  expect(continuesSentence("-3 을 더한다.")).toBe(true);
+});
+
+test("P12 — 헤딩·빈 줄·펜스가 문장을 끊는다", () => {
+  expect(p12(["코드에서는 `blockSize` 다.", "", "`other` 는 별개다."])).toEqual(
+    [],
+  );
+  expect(p12(["코드에서는 `blockSize` 다.", "### `other` 라는 절"])).toEqual(
+    [],
+  );
+});
+
+test("P12 — 진짜로 이어지는 문장은 계속 잡는다 (좁히면서 잃지 않았는가)", () => {
+  expect(p12(["코드에서는 이것을", "`other` 라 부른다."])).toEqual(["P12"]);
+});
+
+test("P12 — 같은 줄과 표 칸 안의 위반은 계속 잡는다", () => {
+  expect(p12(["코드에서는 `other` 라 부른다."])).toEqual(["P12"]);
+  expect(
+    p12(["| 뜻 | 비고 |", "| --- | --- |", "| 코드에서는 `other` | 설명 |"]),
+  ).toEqual(["P12"]);
+});
+
+// ── P10 음수 (2026-09-10 `KAN-034.9` `S2` · `B6`) ─────────────────────────────
+//
+// 부호를 못 읽어서 계수가 음수인 편은 본문에 그대로 적어도 걸렸다. 우회의 흔적이
+// `expectedValueDp` 에 남아 있었다 — 한 계수를 둘로 갈라 둘 다 0 이상으로 두었다.
+
+test("P10 — 음수를 읽는다", () => {
+  expect(bodyNumbers("계수는 -3 이다").has("-3")).toBe(true);
+  expect(bodyNumbers("-1,000 건").has("-1000")).toBe(true);
+});
+
+test("P10 — 뺄셈은 음수가 아니다 (넓히면서 위반을 놓치지 않는가)", () => {
+  // 앞이 단어 문자·닫는 괄호·닫는 대괄호면 부호가 아니다.
+  expect([...bodyNumbers("길이는 n-1 이다")]).toEqual(["1"]);
+  expect([...bodyNumbers("a[i]-3")]).toEqual(["3"]);
+  expect([...bodyNumbers("2-7")]).toEqual(["2", "7"]);
+  // 여는 괄호 뒤는 부호다.
+  expect(bodyNumbers("(-5)").has("-5")).toBe(true);
+});
+
+test("P10 — 양수는 그대로 읽는다 (기존 동작)", () => {
+  expect(bodyNumbers("1,234 건과 56").has("1234")).toBe(true);
+  expect(bodyNumbers("1,234 건과 56").has("56")).toBe(true);
 });

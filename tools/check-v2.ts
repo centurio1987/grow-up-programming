@@ -684,6 +684,64 @@ export function symbolCountDeclaration(text: string): Finding[] {
  * 잴 수 있는 것은 **밝힌 이름이 실제로 그 이름인가**다. 코드를 고치면서 산문의 대응을 안
  * 고치면 그 한 줄이 조용히 거짓이 된다.
  */
+/**
+ * **다음 줄이 `코드에서` 와 한 문장인가.** 아니면 `false` 다.
+ *
+ * 한 줄을 더 보는 것은 문장이 줄바꿈으로 이어지는 관례 때문인데, **줄바꿈이 곧 문장의
+ * 이어짐은 아니다.** 마크다운에서 다음 줄이 새 구조 단위로 시작하면 그것은 별개 항목이고,
+ * 거기 있는 이름은 `코드에서` 가 지목한 이름이 아니다.
+ *
+ * 실측(2026-09-10 `KAN-034.9` `S2` · `B5`, 배치9·10·11 에서 세 번 났다) — 기호표의 한 행이
+ * 「… 코드에서는 \`blockSize\`」 로 끝나면 **다음 행의 첫 칸**이 그 문장에 딸려 들어갔다.
+ * 표에 코드 대응을 적는 관행 자체가 그래서 막혔다.
+ */
+export function continuesSentence(next: string | undefined): boolean {
+  if (next === undefined) return false;
+  const t = next.trim();
+  if (t === "") return false; // 빈 줄이 문단을 끊는다
+  if (t.startsWith("|")) return false; // 표의 다음 행
+  if (t.startsWith("#")) return false; // 헤딩
+  if (t.startsWith("```") || t.startsWith("~~~")) return false; // 펜스
+  if (t.startsWith(">")) return false; // 인용
+  if (/^([-*+]|\d+\.)\s/.test(t)) return false; // 목록의 다음 항목
+  return true;
+}
+
+/**
+ * `코드에서` 가 지목하는 범위. **표 행 안에서는 그 칸을 넘지 않는다** — 옆 칸은 다른 열이라
+ * 같은 문장이 아니다.
+ */
+function mappingSpan(lines: string[], index: number, at: number): string {
+  const line = lines[index] ?? "";
+  if (isFigureLine(line, false)) {
+    const rest = line.slice(at);
+    const bar = rest.indexOf("|");
+    return bar < 0 ? rest : rest.slice(0, bar);
+  }
+  const next = lines[index + 1];
+  return continuesSentence(next)
+    ? `${line.slice(at)}\n${next}`
+    : line.slice(at);
+}
+
+/**
+ * 본문이 내미는 수의 집합. `P10` 이 `.bench.json` 실측값을 여기서 찾는다.
+ *
+ * **음수를 읽는다**(2026-09-10 `KAN-034.9` `S2` · `B6`). 예전 정규식은 부호 자리를 아예 안 두어
+ * 계수가 음수인 편은 본문에 그대로 적어도 「실측값이 본문에 없다」로 걸렸다 —
+ * `expectedValueDp` 가 계수를 둘로 갈라 적은 것이 그 우회의 흔적이다.
+ *
+ * **뺄셈은 음수가 아니다.** `n-1` 의 `-1` 을 음수로 읽으면 본문에 없는 값이 있는 것이 되어
+ * 위반을 놓친다. 그래서 `-` 앞이 단어 문자·닫는 괄호·닫는 대괄호면 부호로 안 센다.
+ */
+export function bodyNumbers(text: string): Set<string> {
+  const out = new Set<string>();
+  for (const m of text.matchAll(/(?<![\w)\]])-?\d[\d,]*/g)) {
+    out.add(m[0].replaceAll(",", ""));
+  }
+  return out;
+}
+
 export function codeNameMapping(text: string): Finding[] {
   const lines = text.split("\n");
 
@@ -705,8 +763,7 @@ export function codeNameMapping(text: string): Finding[] {
   for (const [index, line] of lines.entries()) {
     const at = line.indexOf("코드에서");
     if (at < 0) continue;
-    // 문장이 다음 줄로 이어지는 관례가 있어 한 줄을 더 본다.
-    const span = line.slice(at) + "\n" + (lines[index + 1] ?? "");
+    const span = mappingSpan(lines, index, at);
     const named = new Set<string>();
     for (const m of span.matchAll(/`([A-Za-z_][A-Za-z0-9_]*)`/g)) {
       if (m[1] !== undefined) named.add(m[1]);
@@ -1501,12 +1558,7 @@ export function check(input: CheckInput): Finding[] {
     });
   }
   if (input.bench && alt) {
-    const numbers = new Set(
-      alt.body
-        .join("\n")
-        .match(/\d[\d,]*/g)
-        ?.map((n) => n.replaceAll(",", "")) ?? [],
-    );
+    const numbers = bodyNumbers(alt.body.join("\n"));
     for (const [key, value] of Object.entries(input.bench)) {
       if (!numbers.has(String(value))) {
         findings.push({
