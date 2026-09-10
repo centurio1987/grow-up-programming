@@ -22,10 +22,12 @@
  * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
  * 모듈의 함수가 정본과 **같은 객체인가**로 알아낸다.
  */
+
 import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { 이가 } from "../../../../tools/josa.ts";
 import {
   대조_k,
   대조_M,
@@ -78,19 +80,6 @@ function table(rows: string[][], alignRight: number[] = []): string[] {
       .join("   ")
       .replace(/\s+$/, ""),
   );
-}
-
-/**
- * 받침이 있으면 앞엣것, 없으면 뒤엣것을 돌려준다. **조사만** 돌려주고 값은 부르는 쪽이 적는다.
- * 숫자는 우리말 읽기로 판정한다 — 0 영 · 1 일 · 3 삼 · 6 육 · 7 칠 · 8 팔이 받침을 갖는다.
- */
-function 조사(value: string, 받침: string, 무받침: string): string {
-  const last = [...value].at(-1) ?? "";
-  const code = last.codePointAt(0) ?? 0;
-  const digit = "0123456789".indexOf(last);
-  if (digit >= 0) return [0, 1, 3, 6, 7, 8].includes(digit) ? 받침 : 무받침;
-  if (code < 0xac00 || code > 0xd7a3) return 무받침;
-  return (code - 0xac00) % 28 === 0 ? 무받침 : 받침;
 }
 
 const 서수말 = [
@@ -802,7 +791,7 @@ export const PROOFS: Record<string, () => string> = {
     }
     const lines = table(rows, [0, 1, 2, 3]);
     lines.push(
-      `조각 크기 1 부터 ${comma(N)} 까지 전부 재면 칸이 가장 적은 조각 크기는 ${comma(가장작은M)}${조사(comma(가장작은M), "이", "가")} 되고 그때 ${comma(가장작은)} 칸이다. 입출력은 어느 조각 크기에서도 ${comma(4 * N)} 으로 나란하다`,
+      `조각 크기 1 부터 ${comma(N)} 까지 전부 재면 칸이 가장 적은 조각 크기는 ${comma(가장작은M)}${이가(comma(가장작은M))} 되고 그때 ${comma(가장작은)} 칸이다. 입출력은 어느 조각 크기에서도 ${comma(4 * N)} 으로 나란하다`,
     );
     return lines.join("\n");
   },
@@ -1276,7 +1265,7 @@ export const PROOFS: Record<string, () => string> = {
     const lines = table(rows, [0, 1, 2, 3, 4]);
     const 뿌리 = Math.ceil(Math.sqrt(WALK.length));
     lines.push(
-      `정수 ${WALK.length} 개짜리 전개 입력에서 잰 값이다. 칸이 가장 적은 조각 크기는 ${뿌리}${조사(String(뿌리), "이", "가")} 되고, 그 값이 ⌈√${WALK.length}⌉ 과 같다`,
+      `정수 ${WALK.length} 개짜리 전개 입력에서 잰 값이다. 칸이 가장 적은 조각 크기는 ${뿌리}${이가(String(뿌리))} 되고, 그 값이 ⌈√${WALK.length}⌉ 과 같다`,
     );
     return lines.join("\n");
   },

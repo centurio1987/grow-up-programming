@@ -944,7 +944,7 @@ $k-1$ 까지 더하면, 가운데 항이 서로 지워지고 양 끝만 남습�
 $$h(u_0) \le \sum_{i=0}^{k-1} w(u_i, u_{i+1}) + h(u_k) = d(v, \text{goal}) + h(\text{goal})$$
 
 ```text
-망원 합이 지워지는 자리
+망원합이 지워지는 자리
 
   h(u0) ≤ w(u0,u1) + h(u1)
   h(u1) ≤ w(u1,u2) + h(u2)
@@ -1012,7 +1012,7 @@ const shifted = w - h(u) + h(v);
 $$c'(P) = \sum_{i=0}^{k-1} \bigl(w(u_i, u_{i+1}) - h(u_i) + h(u_{i+1})\bigr) = c(P) - h(u_0) + h(u_k)$$
 
 ```text
-두 번째 망원 합에서 지워지는 항
+두 번째 망원합에서 지워지는 항
 
   −h(u0) + h(u1)
           −h(u1) + h(u2)

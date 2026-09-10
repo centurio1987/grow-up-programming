@@ -25,7 +25,9 @@
  * 경쟁 설계 대조 표의 값은 `.alt.ts` 를 **불러서** 얻는다 — 같은 값을 두 파일에 적으면
  * 한쪽만 고쳐질 때 표가 조용히 거짓이 된다.
  */
+
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { 과와, 을를 } from "../../../../tools/josa.ts";
 import {
   WALK as ALT_WALK,
   계수,
@@ -98,26 +100,6 @@ function duration(seconds: number): string {
   if (seconds < 86_400 * 365) return `${(seconds / 86_400).toFixed(1)}일`;
   return `${comma(Math.round(seconds / (86_400 * 365)))}년`;
 }
-
-/**
- * 앞말의 받침을 보고 조사를 고른다. **조사만 돌려주고 값은 부르는 쪽이 적는다.**
- * 앞 공백을 포함하고 뒤 어미는 붙이지 않는다.
- */
-function 조사(앞: string, 받침있음: string, 받침없음: string): string {
-  const 끝 = [...앞].at(-1) ?? "";
-  const code = 끝.codePointAt(0) ?? 0;
-  if (code >= 0xac00 && code <= 0xd7a3) {
-    return (code - 0xac00) % 28 === 0 ? ` ${받침없음}` : ` ${받침있음}`;
-  }
-  // 숫자로 끝나면 읽는 소리의 받침을 본다. 0·1·3·6·7·8 이 받침 있는 소리다.
-  if (/[0-9]/.test(끝)) {
-    return "01367 8".includes(끝) ? ` ${받침있음}` : ` ${받침없음}`;
-  }
-  return ` ${받침있음}`;
-}
-
-const 을를 = (s: string): string => 조사(s, "을", "를");
-const 과와 = (s: string): string => 조사(s, "과", "와");
 
 const 서수 = [
   "첫",

@@ -6,7 +6,9 @@
  *
  *   bun run tools/check-proof.ts src/algorithms/sorting/sortArray/sortArray-guide.md
  */
+
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { 을를 } from "../../../../tools/josa.ts";
 import { sortArray } from "./sortArray-guide.ref.ts";
 
 const REF = new URL("./sortArray-guide.ref.ts", import.meta.url).pathname;
@@ -28,10 +30,6 @@ const padLeft = (s: string, to: number): string =>
 
 /** `[5 2 4 1 2 6]` 꼴 — 본문 표기와 같다(쉼표 없이 공백). */
 const show = (xs: number[]): string => `[${xs.join(" ")}]`;
-
-/** 수를 읽었을 때 받침이 있으면 `을`, 없으면 `를`. 붙임말이 숫자로 끝나는 자리에 쓴다. */
-const objectParticle = (n: number): string =>
-  "을를을를를을을을를을"[n % 10] ?? "을";
 
 /** 「세 벌」 처럼 세는 말. 열까지만 쓰고 그 위는 숫자로 둔다. */
 const countWord = (n: number): string =>
@@ -83,7 +81,8 @@ function tableLeft(head: string[], rows: string[][], note: string): string {
 /* ─────────────────── 정본을 계측한 사본 ─────────────────── */
 
 /** 머리 둘을 견주는 그 한 줄. 변이는 전부 이 줄에만 맞아야 한다. */
-const COMPARE_LINE = /^(\s*)if \(\(L\[i\] as number\) <= \(R\[j\] as number\)\) \{$/;
+const COMPARE_LINE =
+  /^(\s*)if \(\(L\[i\] as number\) <= \(R\[j\] as number\)\) \{$/;
 
 type Sorter = { sortArray(A: number[]): number[] };
 
@@ -95,7 +94,7 @@ type Sorter = { sortArray(A: number[]): number[] };
 const counted = await loadMutant<Sorter>(REF, {
   swap: [
     COMPARE_LINE,
-    '$1if ((() => { ((globalThis as never as { __cmp: { n: number } }).__cmp).n++; return (L[i] as number) <= (R[j] as number); })()) {',
+    "$1if ((() => { ((globalThis as never as { __cmp: { n: number } }).__cmp).n++; return (L[i] as number) <= (R[j] as number); })()) {",
   ],
 });
 
@@ -160,7 +159,11 @@ const SPLITS: [string, Split][] = [
  * 비우면 끝나므로, 마지막에 한 칸만 남을 때가 가장 많다. 그러니 전체 최악은 아래 재귀로 닫힌다.
  * 이 값이 실제로 나오는 입력이 있다는 것은 `worstInput` 이 만들고 아래에서 전수로 확인한다.
  */
-function worstCount(split: Split, n: number, memo = new Map<number, number>()): number {
+function worstCount(
+  split: Split,
+  n: number,
+  memo = new Map<number, number>(),
+): number {
   if (n <= 1) return 0;
   const hit = memo.get(n);
   if (hit !== undefined) return hit;
@@ -255,7 +258,9 @@ for (let n = 1; n <= 7; n++) {
       );
     }
     if (countWith(split, worstInput(split, [...Array(n).keys()])) !== bound) {
-      throw new Error(`${name} — 만든 최악 입력이 최악을 내지 못한다 (n = ${n})`);
+      throw new Error(
+        `${name} — 만든 최악 입력이 최악을 내지 못한다 (n = ${n})`,
+      );
     }
   }
 }
@@ -350,11 +355,20 @@ function aliasTable(): string {
     const out = fn(one);
     const shared = out === one;
     out[0] = 7;
-    return [show([42]), shared ? "그렇다" : "아니다", one[0] === 7 ? "그렇다" : "아니다"];
+    return [
+      show([42]),
+      shared ? "그렇다" : "아니다",
+      one[0] === 7 ? "그렇다" : "아니다",
+    ];
   };
 
   return table(
-    ["기저가 돌려주는 것", "결과", "입력과 같은 배열인가", "결과를 고치면 입력도 바뀌는가"],
+    [
+      "기저가 돌려주는 것",
+      "결과",
+      "입력과 같은 배열인가",
+      "결과를 고치면 입력도 바뀌는가",
+    ],
     [
       ["A.slice() — 정본", ...probe((A) => sortArray(A))],
       ["A — 한 줄만 바꾼 것", ...probe((A) => aliased.sortArray(A))],
@@ -420,7 +434,7 @@ function worstTable(): string {
       [`번갈아 짠 ${show(built)}`, String(comparisons(built))],
       ["닫힌 형태가 내는 값", String(closedForm(WORST_N))],
     ],
-    `└ 순열 ${perms.length.toLocaleString("en-US")} 개를 전부 세어도 ${max}${objectParticle(max)} 넘지 않는다`,
+    `└ 순열 ${perms.length.toLocaleString("en-US")} 개를 전부 세어도 ${max}${을를(max)} 넘지 않는다`,
   );
 }
 

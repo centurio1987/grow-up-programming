@@ -19,7 +19,9 @@
  * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
  * 모듈의 함수가 정본과 **같은 객체인가**로 알아낸다.
  */
+
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { 과와, 으로, 은는, 이가 } from "../../../../tools/josa.ts";
 import { INF, tspBitmask } from "./tspBitmask-guide.ref.ts";
 
 /* ────────────────────────── 고정 입력 ────────────────────────── */
@@ -147,72 +149,6 @@ const cell = (v: number): string => (v === INF ? "INF" : comma(v));
 /** 방문 집합을 `n` 자리 이진수로 적는다. 자리 `i` 가 도시 `i` 다. */
 export function bits(mask: number, n: number): string {
   return mask.toString(2).padStart(n, "0");
-}
-
-/**
- * 수를 한국어로 읽었을 때 마지막 음절의 받침 종류.
- *
- * 조사가 받침에 따라 갈리므로 **값에서 골라야 한다** — 「9 으로」·「65 이」처럼 손으로 적으면
- * 값이 바뀌는 순간 틀린 문장이 남는다. `로/으로` 는 ㄹ 받침을 받침 없음과 같이 다루므로
- * 세 갈래로 나눈다.
- */
-type Tail = "none" | "rieul" | "other";
-
-/** 한 자리 수의 읽기 — 영(ㅇ) 일(ㄹ) 이 삼(ㅁ) 사 오 육(ㄱ) 칠(ㄹ) 팔(ㄹ) 구. */
-const DIGIT_TAIL: Tail[] = [
-  "other",
-  "rieul",
-  "none",
-  "other",
-  "none",
-  "none",
-  "other",
-  "rieul",
-  "rieul",
-  "none",
-];
-
-/** 자리 이름의 읽기 — 십(ㅂ) 백(ㄱ) 천(ㄴ) 만(ㄴ) 억(ㄱ) 조. */
-function unitTail(place: number): Tail {
-  if (place >= 12) return "none";
-  if (place >= 8) return "other";
-  if (place >= 4) return "other";
-  return "other";
-}
-
-/** 수를 읽었을 때의 마지막 받침. 0 이 아닌 가장 낮은 자리가 마지막 음절을 정한다. */
-export function tailOf(value: number): Tail {
-  const digits = Math.trunc(Math.abs(value)).toString();
-  if (Math.trunc(Math.abs(value)) === 0) return "other";
-  let place = 0;
-  for (let i = digits.length - 1; i >= 0; i--) {
-    if (digits[i] !== "0") break;
-    place++;
-  }
-  if (place === 0) {
-    return DIGIT_TAIL[Number(digits[digits.length - 1])] as Tail;
-  }
-  return unitTail(place);
-}
-
-/** 값 뒤에 붙일 조사를 값에서 고른다. */
-export function josa(
-  value: number,
-  kind: "은는" | "이가" | "을를" | "으로" | "과와",
-): string {
-  const t = tailOf(value);
-  switch (kind) {
-    case "은는":
-      return t === "none" ? "는" : "은";
-    case "이가":
-      return t === "none" ? "가" : "이";
-    case "을를":
-      return t === "none" ? "를" : "을";
-    case "으로":
-      return t === "other" ? "으로" : "로";
-    default:
-      return t === "none" ? "와" : "과";
-  }
 }
 
 /* ────────────────────── 계수를 세는 사본 ────────────────────── */
@@ -968,7 +904,7 @@ export const PROOFS: Record<string, () => string> = {
         [3, 4, 5],
       ),
       "",
-      `남은 최소 비용이 ${comma(remaining)}${josa(remaining, "으로")} 같으므로 접두 비용이 큰 쪽은 답이 될 수 없다`,
+      `남은 최소 비용이 ${comma(remaining)}${으로(remaining)} 같으므로 접두 비용이 큰 쪽은 답이 될 수 없다`,
       `상태 (${bits(mask, n)}, 위치 ${v}) 에 남기는 값은 ${comma(kept)} 하나다`,
       "",
       `도시 12 개에서 순열 나열이 진입하는 노드 ${comma(enumerateNodes(12))} 개가`,
@@ -1402,7 +1338,7 @@ export const PROOFS: Record<string, () => string> = {
         [0, 2, 3, 4],
       ),
       "",
-      `정의가 낸 가장 작은 합 ${cell(best)}${josa(best, "이가")} 상태 표에 담긴 값 ${cell(got)}${josa(got, "과와")} 맞는다`,
+      `정의가 낸 가장 작은 합 ${cell(best)}${이가(best)} 상태 표에 담긴 값 ${cell(got)}${과와(got)} 맞는다`,
     ].join("\n");
   },
 
@@ -1578,7 +1514,7 @@ export const PROOFS: Record<string, () => string> = {
       ]),
       "",
       `메모리 제한 ${comma(MEM_LIMIT / 1000000)} MB 는 ${comma(budget)} 칸이다`,
-      `도시 ${comma(fits)}${josa(fits, "은는")} 그 안에 들고 ${comma(fits + 1)}${josa(fits + 1, "은는")} 넘는다`,
+      `도시 ${comma(fits)}${은는(fits)} 그 안에 들고 ${comma(fits + 1)}${은는(fits + 1)} 넘는다`,
     ].join("\n");
   },
 };

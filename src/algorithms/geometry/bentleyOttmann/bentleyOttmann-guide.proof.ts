@@ -11,7 +11,9 @@
  * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
  * 모듈의 함수가 정본과 **같은 객체인가**로 값에서 알아낸다.
  */
+
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { 으로 } from "../../../../tools/josa.ts";
 import { segmentsIntersect } from "../segmentsIntersect/segmentsIntersect-guide.ref.ts";
 import {
   bentleyOttmann,
@@ -36,17 +38,6 @@ const padLeft = (s: string, to: number): string =>
 
 /** 천 단위 구분. 본문 표기와 같다. */
 const num = (n: number): string => (n + 0).toLocaleString("en-US");
-
-/**
- * 「…로」와 「…으로」를 값에서 고른다.
- *
- * 마지막 숫자의 우리말 읽기에 받침이 없거나 받침이 `ㄹ` 이면 「로」이고 그 밖은 「으로」다 —
- * 0 영 · 3 삼 · 6 육이 「으로」쪽이다. 손으로 적으면 값이 바뀔 때 조사만 남아 어긋난다.
- */
-const ro = (text: string): string => {
-  const last = text.replace(/[^0-9]/g, "").slice(-1);
-  return "036".includes(last) ? `${text} 으로` : `${text} 로`;
-};
 
 /**
  * 열 폭을 값에서 계산해 표를 그린다. 폭을 리터럴로 박으면 값이 바뀌어도 표가 그대로라
@@ -905,7 +896,7 @@ export const PROOFS: Record<string, () => string> = {
       ]),
       "",
       `제약의 선분 수 ${num(MAX_N)} 에서 쌍의 수 ${num(pairsAt(MAX_N))}`,
-      `└ 쌍의 수 성장률은 16 에 머물고 이 절차는 ${growRows[0]?.[2]} 에서 ${ro(growRows[growRows.length - 1]?.[2] ?? "")} 내려간다`,
+      `└ 쌍의 수 성장률은 16 에 머물고 이 절차는 ${growRows[0]?.[2]} 에서 ${growRows[growRows.length - 1]?.[2] ?? ""}${으로(growRows[growRows.length - 1]?.[2] ?? "")} 내려간다`,
     ].join("\n");
   },
 

@@ -23,7 +23,9 @@
  * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
  * 모듈의 함수가 정본과 **같은 객체인가**로 알아낸다.
  */
+
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { 으로, 은는, 을를, 이가 } from "../../../../tools/josa.ts";
 import {
   meetInTheMiddleSubsetSum,
   subsetSums,
@@ -102,68 +104,6 @@ const size = (bytes: number): string =>
   Math.abs(bytes) < 1048576
     ? `${comma(bytes)} 바이트`
     : `${comma(Math.round(bytes / 1048576))} MiB`;
-
-/** 수를 한국어로 읽었을 때 마지막 음절의 받침 종류. */
-type Tail = "none" | "rieul" | "other";
-
-/** 한 자리 수의 읽기 — 영(ㅇ) 일(ㄹ) 이 삼(ㅁ) 사 오 육(ㄱ) 칠(ㄹ) 팔(ㄹ) 구. */
-const DIGIT_TAIL: Tail[] = [
-  "other",
-  "rieul",
-  "none",
-  "other",
-  "none",
-  "none",
-  "other",
-  "rieul",
-  "rieul",
-  "none",
-];
-
-/** 자리 이름의 읽기 — 십(ㅂ) 백(ㄱ) 천(ㄴ) 만(ㄴ) 억(ㄱ) 조. */
-function unitTail(place: number): Tail {
-  return place >= 12 ? "none" : "other";
-}
-
-/** 수를 읽었을 때의 마지막 받침. 0 이 아닌 가장 낮은 자리가 마지막 음절을 정한다. */
-export function tailOf(value: number): Tail {
-  const digits = Math.trunc(Math.abs(value)).toString();
-  if (Math.trunc(Math.abs(value)) === 0) return "other";
-  let place = 0;
-  for (let i = digits.length - 1; i >= 0; i--) {
-    if (digits[i] !== "0") break;
-    place++;
-  }
-  if (place === 0) {
-    return DIGIT_TAIL[Number(digits[digits.length - 1])] as Tail;
-  }
-  return unitTail(place);
-}
-
-/**
- * 값 뒤에 붙일 조사를 값에서 고른다.
- *
- * 「9 으로」·「65 이」처럼 손으로 적으면 값이 바뀌는 순간 틀린 문장이 남는다. `로/으로` 는
- * ㄹ 받침을 받침 없음과 같이 다루므로 받침을 세 갈래로 나눈다.
- */
-export function josa(
-  value: number,
-  kind: "은는" | "이가" | "을를" | "으로" | "과와",
-): string {
-  const t = tailOf(value);
-  switch (kind) {
-    case "은는":
-      return t === "none" ? "는" : "은";
-    case "이가":
-      return t === "none" ? "가" : "이";
-    case "을를":
-      return t === "none" ? "를" : "을";
-    case "으로":
-      return t === "other" ? "으로" : "로";
-    default:
-      return t === "none" ? "와" : "과";
-  }
-}
 
 /** 1 부터 열까지의 우리말 수관형사. 개수를 산문으로 적을 때 값에서 고른다. */
 const COUNT_WORDS = [
@@ -1016,7 +956,7 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       `가장 적은 자리는 k = ${best.k} 이고 그때 기본 연산이 ${comma(best.ops)} 번이다`,
-      `한 자리 앞인 k = ${best.k - 1} ${josa(best.k - 1, "은는")} ${comma(counted(nums, 1, best.k - 1).ops)} 번 · 한 자리 뒤인 k = ${best.k + 1} ${josa(best.k + 1, "은는")} ${comma(counted(nums, 1, best.k + 1).ops)} 번이다`,
+      `한 자리 앞인 k = ${best.k - 1}${은는(best.k - 1)} ${comma(counted(nums, 1, best.k - 1).ops)} 번 · 한 자리 뒤인 k = ${best.k + 1}${은는(best.k + 1)} ${comma(counted(nums, 1, best.k + 1).ops)} 번이다`,
     ].join("\n");
   },
 
@@ -1027,7 +967,7 @@ export const PROOFS: Record<string, () => string> = {
       const a = WALK[i - 1] as number;
       rows.push([
         stepName(1 + i),
-        `앞 무리에 ${a} ${josa(a, "을를")} 더한 뒤`,
+        `앞 무리에 ${a}${을를(a)} 더한 뒤`,
         listing([...subsetSums(WALK, 0, i)]),
         comma(2 ** i),
       ]);
@@ -1083,7 +1023,7 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       `질의 ${comma(REC.queries.length)} 번에 가운데 칸을 ${comma(WALK_COUNTS.steps)} 번 본다`,
-      `찾은 자리는 앞 무리의 합 ${LAST.sA} ${josa(LAST.sA, "이가")}고 모자란 값이 ${LAST.need} ${josa(LAST.need, "이가")}다`,
+      `찾은 자리는 앞 무리의 합 ${LAST.sA}${이가(LAST.sA)}고 모자란 값이 ${LAST.need}${이가(LAST.need)}다`,
     ].join("\n");
   },
 
@@ -1184,14 +1124,14 @@ export const PROOFS: Record<string, () => string> = {
     const at = unsorted.indexOf(need);
     return [
       `정렬하지 않은 목록  ${listing(unsorted)}`,
-      `앞 무리의 합 ${LAST.sA} 에 모자란 값 ${need} ${josa(need, "은는")} 자리 ${at} 에 실제로 있다`,
+      `앞 무리의 합 ${LAST.sA} 에 모자란 값 ${need}${은는(need)} 자리 ${at} 에 실제로 있다`,
       "",
       ...table(
         [["lo", "hi", "가운데 자리", "그 칸의 값", "무엇을 했나"], ...rows],
         [0, 1, 2, 3],
       ),
       "",
-      `마지막 구간이 자리 ${at} ${josa(at, "을를")} 담지 않은 채로 끝난다`,
+      `마지막 구간이 자리 ${at}${을를(at)} 담지 않은 채로 끝난다`,
     ].join("\n");
   },
 
@@ -1373,7 +1313,7 @@ export const PROOFS: Record<string, () => string> = {
         [1, 2],
       ),
       "",
-      `원소 ${n} 개를 ${k} 대 ${n - k} ${josa(n - k, "으로")} 나눈 자리이고 목표는 30 이라 답이 없다`,
+      `원소 ${n} 개를 ${k} 대 ${n - k}${으로(n - k)} 나눈 자리이고 목표는 30 이라 답이 없다`,
       `덧셈만 등호이고 나머지 둘은 상한이다 — 정렬은 값의 배치에, 탐색은 어느 칸에서 끝나는가에 달려 있다`,
     ].join("\n");
   },
@@ -1621,7 +1561,7 @@ export const PROOFS: Record<string, () => string> = {
     for (const [i, q] of REC.queries.entries()) {
       rows.push([
         stepName(4 + WALK_MID + i),
-        `모자란 값 ${q.need} ${josa(q.need, "을를")} 묻는다`,
+        `모자란 값 ${q.need}${을를(q.need)} 묻는다`,
         "0",
         "0",
         comma(q.probes.length),

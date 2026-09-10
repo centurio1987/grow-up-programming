@@ -30,7 +30,9 @@
  * 경쟁 설계 대조 표의 값은 `.alt.ts` 를 **불러서** 얻는다 — 같은 값을 두 파일에 적으면
  * 한쪽만 고쳐질 때 표가 조용히 거짓이 된다.
  */
+
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { josa } from "../../../../tools/josa.ts";
 import {
   cases,
   상대_오차,
@@ -76,19 +78,6 @@ function table(rows: string[][], alignRight: number[] = []): string[] {
       .join("   ")
       .replace(/\s+$/, ""),
   );
-}
-
-/**
- * 받침이 있으면 앞엣것, 없으면 뒤엣것을 돌려준다. **조사만** 돌려주고 값은 부르는 쪽이 적는다.
- * 숫자는 우리말 읽기로 판정한다 — 0 영 · 1 일 · 3 삼 · 6 육 · 7 칠 · 8 팔이 받침을 갖는다.
- */
-function 조사(value: string, 받침: string, 무받침: string): string {
-  const last = [...value].at(-1) ?? "";
-  const code = last.codePointAt(0) ?? 0;
-  const digit = "0123456789".indexOf(last);
-  if (digit >= 0) return [0, 1, 3, 6, 7, 8].includes(digit) ? 받침 : 무받침;
-  if (code < 0xac00 || code > 0xd7a3) return 무받침;
-  return (code - 0xac00) % 28 === 0 ? 무받침 : 받침;
 }
 
 /** 자릿수를 고정한 실수 표기. 표의 열 폭이 행마다 흔들리지 않게 한다. */
@@ -773,7 +762,7 @@ export const PROOFS: Record<string, () => string> = {
     const lines = table(rows, [1, 2]);
     const K = b["상대 오차가 처음 10^-9 를 넘는 K"] ?? 0;
     lines.push(
-      `채점 구간은 K = ${comma(채점_구간[0] ?? 0)}…${comma(채점_구간.at(-1) ?? 0)} ${조사(String(채점_구간.at(-1) ?? 0), "이고", "고")} 그 안에서 창의 합을 이어 쓰는 판이 처음 10^-9 를 넘는 자리는 K = ${comma(K)} 다`,
+      `채점 구간은 K = ${comma(채점_구간[0] ?? 0)}…${comma(채점_구간.at(-1) ?? 0)}${josa(String(채점_구간.at(-1) ?? 0), "이고", "고")} 그 안에서 창의 합을 이어 쓰는 판이 처음 10^-9 를 넘는 자리는 K = ${comma(K)} 다`,
     );
     return lines.join("\n");
   },

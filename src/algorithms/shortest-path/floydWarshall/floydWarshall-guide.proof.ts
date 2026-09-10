@@ -17,7 +17,9 @@
  * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
  * 모듈의 함수가 정본과 **같은 객체인가**로 알아낸다.
  */
+
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { 을를 } from "../../../../tools/josa.ts";
 import { floydWarshall, INF } from "./floydWarshall-guide.ref.ts";
 
 /* ────────────────────────── 고정 입력 ────────────────────────── */
@@ -138,12 +140,6 @@ const comma = (n: number): string => n.toLocaleString("en-US");
 
 /** 코드의 `Number.POSITIVE_INFINITY` 를 본문 표기 `INF` 로 적는다. */
 const cell = (v: number): string => (v === INF ? "INF" : comma(v));
-
-/** 숫자 뒤에 붙는 목적격 조사. 0·1·3·6·7·8 은 받침이 있고 2·4·5·9 는 없다. */
-const 목적격 = (n: number): string =>
-  [true, true, false, true, false, false, true, true, true, false][n % 10]
-    ? "을"
-    : "를";
 
 /** 행렬 한 줄을 `0 3 1 4 INF` 꼴로 적는다. */
 const rowText = (row: number[]): string =>
@@ -658,7 +654,7 @@ function walkSteps(): { name: string; text: string; dist: number[][] }[] {
   for (const r of c.rounds) {
     out.push({
       name: `T${t++}`,
-      text: `경유 정점 ${r.k} ${목적격(r.k)} 허용한다`,
+      text: `경유 정점 ${r.k}${을를(r.k)} 허용한다`,
       dist: r.snapshot,
     });
   }

@@ -182,7 +182,11 @@ const SPARSE_KINDS = ["sim", "ref", "proof", "test", "alt"] as const;
  * 그 14자리는 「쌓-」 13 + 「에 걸어」 1 이고, **「쌓-」 는 `METAPHORS` 에 없다** — 배치10 이
  * 같은 자리에서 `SPEC.md` §6 `L33`(단의적 표현 우선) 후보로 이름만 올려 두었다. 그래서 이
  * 시험은 **판정이 아니라 표면**을 잰다: 마스킹이 남긴 글에 그 14자리가 다 들어 있는가.
- * 패턴을 넓히는 것은 별건(`KAN-034.9` `S5`)이고, 넓히는 순간 이 14자리가 그대로 적중이 된다.
+ *
+ * **`KAN-034.9` `S5` 가 「쌓-」를 안 넣기로 처분했다**(2026-09-10). 그래서 이 두 시험은
+ * 그대로 선다 — 표면은 14 에 닿고, 적중은 하나다. 근거는 `FEEDBACK.md` §4 의 「쌓-」 절이고,
+ * 한 줄로는 **표본 30자리 중 22가 스택·층·사슬처럼 그 이름의 동작이라 부채가 아니었다**는
+ * 실측이다. 넣기로 뒤집히면 이 14자리가 그대로 적중이 되므로 두 수를 함께 고친다.
  */
 test("실측 — `sparseTableRangeMin` 사이드카의 14자리에 표면이 닿는다", () => {
   const probe = /쌓|에\s*걸어/g;
@@ -196,16 +200,20 @@ test("실측 — `sparseTableRangeMin` 사이드카의 14자리에 표면이 닿
   expect(sites).toBe(14);
 });
 
-test("실측 — 그 14자리 중 지금 `METAPHORS` 가 잡는 것은 `proof.ts:478` 하나다", () => {
+test("실측 — 그 14자리 중 지금 `METAPHORS` 가 잡는 것은 「에 걸어」 하나다", () => {
   const hits = SPARSE_KINDS.flatMap((kind) =>
     scanCode(
       `${SPARSE}.${kind}.ts`,
       readFileSync(`${root}${SPARSE}.${kind}.ts`, "utf8"),
     ),
   );
-  expect(
-    hits.map((h) => `${h.file.replace(SPARSE, "")}:${h.line} ${h.found}`),
-  ).toEqual([".proof.ts:478 에 걸어"]);
+  // **줄 번호로 못박지 않는다.** 같은 배치에서 다른 워커가 이 사이드카를 고치자 자리가
+  // 478 → 450 으로 옮겨져 시험이 깨졌다(2026-09-10 `KAN-034.9` 배치4). 이 시험이 재는 것은
+  // 「어느 줄인가」가 아니라 **표면 14 중 무엇이 적중이 되는가**다 — 갈래와 적중 낱말로
+  // 못박으면 그것을 그대로 재면서 남의 편집에 안 깨진다.
+  expect(hits.map((h) => `${h.file.replace(SPARSE, "")} ${h.found}`)).toEqual([
+    ".proof.ts 에 걸어",
+  ]);
 });
 
 test("실측 — `--all` 의 대상에 사이드카 다섯 갈래가 다 들고 문서도 그대로 든다", async () => {

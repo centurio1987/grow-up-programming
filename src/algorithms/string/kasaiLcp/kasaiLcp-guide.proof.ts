@@ -1109,7 +1109,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** deep.math — 망원 합의 상한을 실측과 나란히 놓는다. */
+  /** deep.math — 망원합의 상한을 실측과 나란히 놓는다. */
   "math-telescope": () => {
     const inputs: [string, string][] = [
       [`전개 입력 "${WALK_S}"`, WALK_S],

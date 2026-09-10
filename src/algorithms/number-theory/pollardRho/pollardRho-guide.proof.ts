@@ -21,7 +21,9 @@
  * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
  * 모듈의 함수가 정본과 **같은 객체인가**로 알아낸다.
  */
+
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { josa, 과와, 으로, 을를, 이가 } from "../../../../tools/josa.ts";
 import {
   BOUND,
   bestBound,
@@ -72,21 +74,6 @@ const padLeft = (s: string, to: number): string =>
 /** `20,000,000,000` 꼴 — 본문 표기와 같다. */
 const comma = (n: bigint | number): string =>
   typeof n === "bigint" ? n.toLocaleString("en-US") : n.toLocaleString("en-US");
-
-/**
- * 수 뒤에 붙는 조사를 고른다.
- *
- * 마지막 자리의 한국어 읽기에 받침이 있으면 앞엣것, 없으면 뒤엣것이다 —
- * 0·1·3·6·7·8 은 받침이 있고 2·4·5·9 는 없다.
- */
-function josa(n: bigint | number, pair: [string, string]): string {
-  const last = comma(n).at(-1) ?? "0";
-  return "013678".includes(last) ? pair[0] : pair[1];
-}
-
-/** `1,009 를` 꼴 — 수와 조사를 함께 낸다. */
-const withJosa = (n: bigint | number, pair: [string, string]): string =>
-  `${comma(n)} ${josa(n, pair)}`;
 
 /** 표 한 벌을 칸에 맞춰 낸다. 첫 행이 머리줄이다. */
 function table(rows: string[][], alignRight: number[] = []): string[] {
@@ -612,7 +599,7 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       `└ 둘째 줄은 값이 놓일 자리가 ${comma(WALK)} 개이고 셋째 줄은 ${comma(WALK_Q)} 개다.`,
-      `  셋째 줄에서 x${first} ${josa(first, ["이", "가"])} 앞에 나온 값과 같아지고, 같은 자리에서 둘째 줄의 값은 아직`,
+      `  셋째 줄에서 x${first}${이가(first)} 앞에 나온 값과 같아지고, 같은 자리에서 둘째 줄의 값은 아직`,
       `  앞의 어느 값과도 같지 않다. 넷째 줄(법 ${comma(WALK_P)})도 아직 겹치지 않았다`,
     ].join("\n");
   },
@@ -680,7 +667,7 @@ export const PROOFS: Record<string, () => string> = {
         (r.frames.at(-1)?.x ?? 0n) % WALK_Q,
       )} 이다.`,
       "  같은 걸음에서 여섯째 칸과 일곱째 칸은 다르고 둘째 칸과 셋째 칸도 다르다 —",
-      `  법 97 에서만 겹쳤다. 마지막 칸이 그 자리에서 ${withJosa(r.d, ["을", "를"])} 낸다`,
+      `  법 97 에서만 겹쳤다. 마지막 칸이 그 자리에서 ${comma(r.d)}${을를(comma(r.d))} 낸다`,
     ].join("\n");
   },
 
@@ -829,8 +816,8 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       "└ f(t) = (t² + 1) mod p 를 p 마다 따로 실행해 잰 값이다. 첫 칸이",
-      `  ${first[0]} 에서 ${comma(lastP)} ${josa(lastP, ["으로", "로"])} 약 10 만 배 커지는 동안 셋째 칸은`,
-      `  ${comma(firstK)} 에서 ${comma(lastK)} ${josa(lastK, ["으로", "로"])} 커지고 마지막 칸은 ${first[3]} 과 ${last[3]} 사이에 머문다.`,
+      `  ${first[0]} 에서 ${comma(lastP)}${으로(comma(lastP))} 약 10 만 배 커지는 동안 셋째 칸은`,
+      `  ${comma(firstK)} 에서 ${comma(lastK)}${으로(comma(lastK))} 커지고 마지막 칸은 ${first[3]} 과 ${last[3]} 사이에 머문다.`,
       "  표본이 여섯이라 이 여섯에서 그렇다는 것이고 모든 p 에 대한 주장이 아니다",
     ].join("\n");
   },
@@ -904,7 +891,7 @@ export const PROOFS: Record<string, () => string> = {
         [2, 3, 4],
       ),
       "",
-      `└ n = 8,051 이고 반환값은 ${comma(c.d)} ${josa(c.d, ["이", "다"])}다. 로 루프가 ${c.iters} 걸음이고 상수는 c = 1 하나로 끝났다.`,
+      `└ n = 8,051 이고 반환값은 ${comma(c.d)}${josa(comma(c.d), "이다", "다")}. 로 루프가 ${c.iters} 걸음이고 상수는 c = 1 하나로 끝났다.`,
       `  기본 연산은 모두 ${comma(c.ops)} 번이고 그중 ${comma(c.primeOps)} 번이 소수 판정의 몫이다`,
     ].join("\n");
   },
@@ -1313,8 +1300,8 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       `└ 매끄러운 p 는 ${comma(SMOOTH_P)} 이고 안전 소수 p 는 ${comma(SAFE_P)} 이다.`,
-      `  두 입력은 각각 ${withJosa(SMOOTH_N, ["과", "와"])} ${comma(SAFE_N)} 이고 큰 쪽 소인수는 둘 다 1,000,003 이다.`,
-      `  마지막 칸이 위 세 줄에서 갈리고 넷째 줄에서는 두 설계가 같다 — 한계 B = ${comma(BOUND)} ${josa(BOUND, ["으로", "로"])} 잰 값이다`,
+      `  두 입력은 각각 ${comma(SMOOTH_N)}${과와(comma(SMOOTH_N))} ${comma(SAFE_N)} 이고 큰 쪽 소인수는 둘 다 1,000,003 이다.`,
+      `  마지막 칸이 위 세 줄에서 갈리고 넷째 줄에서는 두 설계가 같다 — 한계 B = ${comma(BOUND)}${으로(comma(BOUND))} 잰 값이다`,
     ].join("\n");
   },
 
@@ -1376,8 +1363,8 @@ export const PROOFS: Record<string, () => string> = {
         [0, 1, 2, 3, 4, 5],
       ),
       "",
-      `└ c = 1 의 첫 걸음에서 d 가 ${withJosa(r1.d, ["이", "가"])} 되는데 그것이 n 자신이라 ⑧ 이 실행된다.`,
-      `  c = 2 가 ${r2.steps} 걸음에서 ${withJosa(r2.d, ["을", "를"])} 내고 정본의 반환값도 ${comma(pollardRho(RETRY_SMALL))} 이다.`,
+      `└ c = 1 의 첫 걸음에서 d 가 ${comma(r1.d)}${이가(comma(r1.d))} 되는데 그것이 n 자신이라 ⑧ 이 실행된다.`,
+      `  c = 2 가 ${r2.steps} 걸음에서 ${comma(r2.d)}${을를(comma(r2.d))} 내고 정본의 반환값도 ${comma(pollardRho(RETRY_SMALL))} 이다.`,
       `  기본 연산은 모두 ${comma(c.ops)} 번이다`,
     ].join("\n");
   },

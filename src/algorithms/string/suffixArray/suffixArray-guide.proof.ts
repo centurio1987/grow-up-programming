@@ -845,7 +845,7 @@ export const PROOFS: Record<string, () => string> = {
     [
       contrast(outOfRangeLargest, "범위 밖을 가장 큰 값으로 둔 답"),
       "",
-      "└ 짧은 접미사가 같은 앞 조각 무리 안에서 맨 뒤로 밀려난다",
+      "└ 짧은 접미사가 같은 앞 조각 무리 안에서 맨 뒤로 옮겨진다",
     ].join("\n"),
 
   /** 멈춤 — 두 정렬의 순서를 뒤바꾸면. */

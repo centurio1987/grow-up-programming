@@ -11,7 +11,9 @@
  * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
  * 모듈의 함수가 정본과 **같은 객체인가**로 값에서 알아낸다.
  */
+
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { 과와, 을를, 이가 } from "../../../../tools/josa.ts";
 import {
   centers,
   type Edge,
@@ -56,17 +58,6 @@ const padLeft = (s: string, to: number): string =>
 /** 천 단위 구분. 본문 표기와 같다. */
 const num = (n: number): string => n.toLocaleString("en-US");
 
-/**
- * 앞에 적힌 값의 마지막 자릿수로 조사를 고른다. **값은 부르는 쪽이 이미 적었으므로 조사만
- * 돌려준다** — 값을 함께 돌려주면 「7 개 다」처럼 값이 두 번 찍힌다.
- */
-const tail = (text: string, withBatchim: string, without: string): string => {
-  const last = text.replace(/[^0-9]/g, "").slice(-1);
-  return "013678".includes(last) ? withBatchim : without;
-};
-const eul = (text: string): string => tail(text, "을", "를");
-const ga = (text: string): string => tail(text, "이", "가");
-const wa = (text: string): string => tail(text, "과", "와");
 /** 「 N 개」를 값에서 만든다. 앞 공백을 포함하고 뒤 어미는 안 붙인다. */
 const gae = (n: number): string => ` ${num(n)} 개`;
 /** 「 N 줄」을 값에서 만든다. 뒤에는 언제나 「이다」가 붙는다. */
@@ -516,7 +507,7 @@ function walkLog(): {
         "-",
         0,
         "-",
-        `잎 ${gone} ${eul(gone)} 벗긴다 — 정점${gae(alive)}가 남는다`,
+        `잎 ${gone}${을를(gone)} 벗긴다 — 정점${gae(alive)}가 남는다`,
         { tree: name, root: 0, code: blank, done: [...peeledSoFar] },
       );
     }
@@ -532,7 +523,7 @@ function walkLog(): {
     "-",
     0,
     "-",
-    `A 의 중심 ${cells(rootA)} ${wa(cells(rootA))} B 의 중심 ${cells(rootB)} — 개수가 둘씩이라 같다`,
+    `A 의 중심 ${cells(rootA)}${과와(cells(rootA))} B 의 중심 ${cells(rootB)} — 개수가 둘씩이라 같다`,
     { tree: "A", root: rootA[0] as number, code: blank, done: [] },
   );
 
@@ -565,7 +556,7 @@ function walkLog(): {
       "-",
       shared.size,
       code2.length === 0 ? "-" : cells(code2),
-      `뿌리 ${root} 에서 방문 차례 ${cells(order)} ${eul(cells(order))} 적는다`,
+      `뿌리 ${root} 에서 방문 차례 ${cells(order)}${을를(cells(order))} 적는다`,
       { tree: name, root, code: blank, done: [] },
     );
     const id: number[] = Array.from({ length: n }, () => -1);
@@ -633,7 +624,7 @@ function walkLog(): {
   const afterThird = steps[steps.length - 1] as WalkStep;
   afterThird.branch = "견주기";
   afterThird.labels = "⑧⑨";
-  afterThird.did = `${afterThird.did} — 뿌리 번호 ${codeA} ${ga(String(codeA))} B 의 번호 ${cells(code2)} 안에 있어 ${hit} 를 돌려준다`;
+  afterThird.did = `${afterThird.did} — 뿌리 번호 ${codeA}${이가(String(codeA))} B 의 번호 ${cells(code2)} 안에 있어 ${hit} 를 돌려준다`;
 
   const answer = treeIsomorphism(n, TREE_A, TREE_B);
   if (answer !== hit) throw new Error("전개 걸음이 정본과 다른 답을 냈다");
@@ -1548,7 +1539,7 @@ export const PROOFS: Record<string, () => string> = {
       return [
         s.label,
         num(s.n),
-        `${ca.length} ${wa(String(ca.length))} ${cb.length}`,
+        `${ca.length}${과와(ca.length)} ${cb.length}`,
         String(want),
         String(got),
         want === got ? "같다" : "어긋난다",
@@ -1630,7 +1621,7 @@ export const PROOFS: Record<string, () => string> = {
       const cb = centers(s.n, neighbors(s.n, s.b)).length;
       return [
         s.label,
-        `${ca} ${wa(String(ca))} ${cb}`,
+        `${ca}${과와(String(ca))} ${cb}`,
         ca === cb ? "안 탄다" : "탄다",
         String(want),
         String(got),
@@ -1891,7 +1882,7 @@ export const PROOFS: Record<string, () => string> = {
         s.label,
         num(s.n),
         num(s.a.length),
-        `${m.centers1} ${wa(String(m.centers1))} ${m.centers2}`,
+        `${m.centers1}${과와(String(m.centers1))} ${m.centers2}`,
         num(m.rootedRuns),
         num(m.tableSize),
         String(m.answer),

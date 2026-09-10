@@ -17,7 +17,9 @@
  * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
  * 모듈의 생성자가 정본과 **같은 객체인가**로 알아낸다.
  */
+
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { josa } from "../../../../tools/josa.ts";
 import { SuffixAutomaton } from "./suffixAutomaton-guide.ref.ts";
 
 /* ────────────────────────── 고정 입력 ────────────────────────── */
@@ -133,36 +135,6 @@ function captions(rows: [string, string][], indent = ""): string[] {
     `${indent}${padRight(k, w)}  ${v}`.replace(/\s+$/, ""),
   );
 }
-
-/**
- * 한글 조사를 값에서 고른다 — 숫자 뒤의 조사는 읽는 소리의 받침을 따른다.
- *
- * 값이 바뀌면 조사도 바뀌어야 하는데 고정으로 박으면 숫자에 따라 틀린다. 아래 표는 0~9 를
- * 우리말로 읽었을 때 받침이 있는지다(영·일·삼·육·칠·팔 이 있고 이·사·오·구 가 없다).
- */
-const DIGIT_HAS_BATCHIM = [
-  true,
-  true,
-  false,
-  true,
-  false,
-  false,
-  true,
-  true,
-  true,
-  false,
-];
-
-function hasBatchim(word: string): boolean {
-  const last = [...word].reverse().find((c) => /[0-9가-힣]/.test(c));
-  if (last === undefined) return false;
-  if (/[0-9]/.test(last)) return DIGIT_HAS_BATCHIM[Number(last)] as boolean;
-  return (last.charCodeAt(0) - 0xac00) % 28 !== 0;
-}
-
-/** `josa(v, "이면", "면")` 꼴로 쓴다. */
-const josa = (word: string, withB: string, withoutB: string): string =>
-  hasBatchim(word) ? withB : withoutB;
 
 /* ────────────────── 세는 사본 — 이 글이 세우는 절차 ────────────────── */
 
@@ -684,7 +656,7 @@ export const PROOFS: Record<string, () => string> = {
       "문자열은 알파벳 스물여섯 글자를 차례로 되풀이한 것이다. 만든 부분 문자열이 n(n+1)/2",
       "개이고 읽은 글자 수 합이 n(n+1)(n+2)/6 이라 둘의 합이 집합에 담는 방법의 자료 접근이고,",
       "세 규모에서 실행값과 식이 같다",
-      `제약 규모 n = ${comma(N_LIMIT)} ${josa(comma(N_LIMIT), "이면", "면")}`,
+      `제약 규모 n = ${comma(N_LIMIT)}${josa(comma(N_LIMIT), "이면", "면")}`,
       ...captions(
         [
           [
@@ -880,7 +852,7 @@ export const PROOFS: Record<string, () => string> = {
       "",
       "가운데가 같고 앞뒤가 다른 문자열이 전이를 가장 많이 만들고, 첫 글자만 다른 문자열이",
       "상태를 가장 많이 만든다. 같은 글자만 되풀이하면 상태가 n+1 개로 가장 적다",
-      `제약 규모 n = ${comma(N_LIMIT)} ${josa(comma(N_LIMIT), "이면", "면")}`,
+      `제약 규모 n = ${comma(N_LIMIT)}${josa(comma(N_LIMIT), "이면", "면")}`,
       ...captions(
         [
           ["상태 수의 최댓값", `${comma(big.states)} 개 = 2n-1`],
@@ -1274,7 +1246,7 @@ export const PROOFS: Record<string, () => string> = {
       "",
       "가운데 세 열이 상태 수다. 어느 모양에서도 2n-1 을 넘지 않고, 부분 문자열 수는",
       "n 이 커질수록 상태 수와 자릿수가 갈린다",
-      `제약 규모 n = ${comma(N_LIMIT)} ${josa(comma(N_LIMIT), "이면", "면")}`,
+      `제약 규모 n = ${comma(N_LIMIT)}${josa(comma(N_LIMIT), "이면", "면")}`,
       ...captions(
         [
           ["상태 수의 상한", `${comma(2 * N_LIMIT - 1)} 개`],

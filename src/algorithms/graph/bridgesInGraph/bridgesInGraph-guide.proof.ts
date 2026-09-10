@@ -11,7 +11,9 @@
  * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
  * 모듈의 함수가 정본과 **같은 객체인가**로 값에서 알아낸다.
  */
+
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { josa, 과와, 을를, 이가 } from "../../../../tools/josa.ts";
 import { bridgesInGraph } from "./bridgesInGraph-guide.ref.ts";
 
 type Edge = [number, number];
@@ -52,38 +54,8 @@ const padLeft = (s: string, to: number): string =>
 /** 천 단위 구분. 본문 표기와 같다. */
 const num = (n: number): string => (n + 0).toLocaleString("en-US");
 
-/** 「…이」와 「…가」를 값에서 고른다. 앞 공백을 포함한다. */
-const iga = (n: number): string => {
-  const last = num(n)
-    .replace(/[^0-9]/g, "")
-    .slice(-1);
-  return "013678".includes(last) ? ` ${num(n)} 이` : ` ${num(n)} 가`;
-};
-
-/** 「…이라」와 「…라」를 값에서 고른다. 앞 공백을 포함한다. */
-const ira = (n: number): string => {
-  const last = num(n)
-    .replace(/[^0-9]/g, "")
-    .slice(-1);
-  return "013678".includes(last) ? ` ${num(n)} 이라` : ` ${num(n)} 라`;
-};
-
-/** 간선 목록 표기 뒤의 「을」과 「를」을 값에서 고른다. 앞 공백을 포함한다. */
-const eulPair = (text: string): string => {
-  const last = text.replace(/[^0-9]/g, "").slice(-1);
-  return "013678".includes(last) ? ` ${text} 을` : ` ${text} 를`;
-};
-
 /** 「N 개」를 값에서 만든다. 앞 공백을 포함한다. */
 const gae = (n: number): string => ` ${num(n)} 개`;
-
-/** 「…과」와 「…와」를 값에서 고른다. 앞 공백을 포함한다. */
-const gwa = (n: number): string => {
-  const last = num(n)
-    .replace(/[^0-9]/g, "")
-    .slice(-1);
-  return "013678".includes(last) ? ` ${num(n)} 과` : ` ${num(n)} 와`;
-};
 
 /**
  * 열 폭을 값에서 계산해 표를 그린다. 폭을 리터럴로 박으면 값이 바뀌어도 표가 그대로라
@@ -436,7 +408,7 @@ export function run(n: number, edges: Edge[], record = false): Run {
             "넘어감",
             `${v}−${w}`,
             "④",
-            `내려올 때 쓴 간선${ira(e)} 넘어간다`,
+            `내려올 때 쓴 간선 ${num(e)}${josa(num(e), "이라", "라")} 넘어간다`,
           );
           continue;
         }
@@ -490,14 +462,14 @@ export function run(n: number, edges: Edge[], record = false): Run {
           "판정",
           `${p}−${v}`,
           "⑦⑧",
-          `low[${v}] =${iga(childLow)} disc[${p}] = ${parentDisc} 보다 커서 다리`,
+          `low[${v}] = ${num(childLow)}${이가(num(childLow))} disc[${p}] = ${parentDisc} 보다 커서 다리`,
         );
       } else {
         snap(
           "복귀",
           `${p}−${v}`,
           "⑦",
-          `low[${v}] =${iga(childLow)} disc[${p}] = ${parentDisc} 보다 크지 않다`,
+          `low[${v}] = ${num(childLow)}${이가(num(childLow))} disc[${p}] = ${parentDisc} 보다 크지 않다`,
         );
       }
     }
@@ -505,7 +477,12 @@ export function run(n: number, edges: Edge[], record = false): Run {
 
   found.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
   branch["⑨"] = 1;
-  snap("반환", "-", "⑨", `${eulPair(pairs(found)).trim()} 사전순으로 돌려준다`);
+  snap(
+    "반환",
+    "-",
+    "⑨",
+    `${pairs(found)}${을를(pairs(found))} 사전순으로 돌려준다`,
+  );
 
   const want = bridgesInGraph(n, edges);
   if (JSON.stringify(found) !== JSON.stringify(want)) {
@@ -1226,8 +1203,8 @@ export const PROOFS: Record<string, () => string> = {
       ]),
       "",
       `두 열 어디에도 0 이 없다 — 0 인 줄이${gae(zeros)}다`,
-      `└ 전개 입력의 ⑤ 는 나무 간선 수${gwa(a.treeEdges.length)} 같고 ③ 은 정점 수${gwa(WALK_N)} 같다`,
-      `└ ⑧ 이${gwa(a.branch["⑧"] ?? 0)} ${num(b.branch["⑧"] ?? 0)} 로 갈리는 것이 두 그래프의 다리 수 차이다`,
+      `└ 전개 입력의 ⑤ 는 나무 간선 수 ${num(a.treeEdges.length)}${과와(num(a.treeEdges.length))} 같고 ③ 은 정점 수 ${num(WALK_N)}${과와(num(WALK_N))} 같다`,
+      `└ ⑧ 이 ${num(a.branch["⑧"] ?? 0)}${과와(num(a.branch["⑧"] ?? 0))} ${num(b.branch["⑧"] ?? 0)} 로 갈리는 것이 두 그래프의 다리 수 차이다`,
     ].join("\n");
   },
 
@@ -1313,7 +1290,7 @@ export const PROOFS: Record<string, () => string> = {
       "",
       `모양${gae(SHAPES.length)} 가운데 답이 갈린 것${gae(off)}다`,
       `└ 아홉 입력 모두 그 줄을 나무 간선 수만큼 지나간다. 두 값이 같아지는 자리에서만 판정이 갈린다`,
-      `└ 사이클 넷은 다리가 없어야 하는데 등호를 넣은 판은${eulPair(pairs(withEqual.bridgesInGraph(4, cycle(4))))} 낸다`,
+      `└ 사이클 넷은 다리가 없어야 하는데 등호를 넣은 판은 ${pairs(withEqual.bridgesInGraph(4, cycle(4)))}${을를(pairs(withEqual.bridgesInGraph(4, cycle(4))))} 낸다`,
     ].join("\n");
   },
 

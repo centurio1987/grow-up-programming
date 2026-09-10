@@ -11,7 +11,9 @@
  * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
  * 모듈의 함수가 정본과 **같은 객체인가**로 값에서 알아낸다.
  */
+
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { josa, 으로, 을를, 이가 } from "../../../../tools/josa.ts";
 import { aStarSearch, type Edge } from "./aStarSearch-guide.ref.ts";
 
 /* ────────────────────────── 표 그리기 ────────────────────────── */
@@ -50,40 +52,6 @@ const padLeft = (s: string, to: number): string =>
 /** 천 단위 구분. 본문 표기와 같다. */
 const num = (n: number): string =>
   n === Number.POSITIVE_INFINITY ? "∞" : (n + 0).toLocaleString("en-US");
-
-/**
- * 「…로」와 「…으로」를 값에서 고른다.
- *
- * 마지막 숫자의 우리말 읽기에 받침이 없거나 받침이 `ㄹ` 이면 「로」이고 그 밖은 「으로」다 —
- * 0 영 · 3 삼 · 6 육이 「으로」쪽이다. 손으로 적으면 값이 바뀔 때 조사만 남아 어긋난다.
- */
-const ro = (text: string): string => {
-  const last = text.replace(/[^0-9]/g, "").slice(-1);
-  return "036".includes(last) ? `${text} 으로` : `${text} 로`;
-};
-
-/**
- * 「…을」과 「…를」을 값에서 고른다.
- *
- * 마지막 숫자의 우리말 읽기에 받침이 있으면 「을」이고 없으면 「를」이다 — 0 영 · 1 일 ·
- * 3 삼 · 6 육 · 7 칠 · 8 팔이 「을」쪽이다.
- */
-const eul = (text: string): string => {
-  const last = text.replace(/[^0-9]/g, "").slice(-1);
-  return "013678".includes(last) ? `${text} 을` : `${text} 를`;
-};
-
-/** 「…이다」와 「…다」를 값에서 고른다. 받침이 있으면 「이다」다. */
-const ida = (text: string): string => {
-  const last = text.replace(/[^0-9]/g, "").slice(-1);
-  return "013678".includes(last) ? `${text} 이다` : `${text} 다`;
-};
-
-/** 「…이」와 「…가」를 값에서 고른다. 받침이 있으면 「이」다. */
-const iga = (text: string): string => {
-  const last = text.replace(/[^0-9]/g, "").slice(-1);
-  return "013678".includes(last) ? `${text} 이` : `${text} 가`;
-};
 
 /**
  * 열 폭을 값에서 계산해 표를 그린다. 폭을 리터럴로 박으면 값이 바뀌어도 표가 그대로라
@@ -412,7 +380,7 @@ function walkRun(
           t: `T${keep.length + 1}`,
           pop: `${u}`,
           key: `${f}`,
-          what: `목표라 ${eul(String(gu))} 반환`,
+          what: `목표라 ${String(gu)}${을를(String(gu))} 반환`,
           cost: costs(),
           open: queue(),
         });
@@ -749,7 +717,7 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       `배치 ${num(rows.length)} 개 모두 답이 같다. 갈리는 것은 정점을 몇 개나 확장했는가다`,
-      `└ 별 64 에서 차이가 가장 크다 — ${star64[4]} 대 ${ida(star64[5] ?? "")}`,
+      `└ 별 64 에서 차이가 가장 크다 — ${star64[4]} 대 ${star64[5] ?? ""}${josa(star64[5] ?? "", "이다", "다")}`,
       `└ 사슬 64 는 지나갈 길이 하나뿐이라 어느 판이든 ${chain64[4]} 개를 다 확장한다`,
     ].join("\n");
   },
@@ -893,7 +861,7 @@ export const PROOFS: Record<string, () => string> = {
         ["r", "r", "r", "r", "r"],
       ),
       "",
-      `격자 32×32 (정점 ${num(G.n)} · 간선 ${num(G.edges.length)}) 에서 잰 값이다. 답은 어느 비율에서도 ${ida(num(G.man(0)))}`,
+      `격자 32×32 (정점 ${num(G.n)} · 간선 ${num(G.edges.length)}) 에서 잰 값이다. 답은 어느 비율에서도 ${num(G.man(0))}${josa(num(G.man(0)), "이다", "다")}`,
       `└ 확장이 가장 적은 자리 ${num(least)} · 가장 많은 자리 ${num(most)} — 비율을 올리는 것이 늘 이득은 아니다`,
       "└ 중간 구간에서 재확장이 붙는다. 정확한 값과 0 이 섞이면 이웃한 두 정점의 추정이 크게 어긋나기 때문이다",
     ].join("\n");
@@ -948,7 +916,7 @@ export const PROOFS: Record<string, () => string> = {
         ["l", "l"],
       ),
       "",
-      `시작 정점의 키는 비용 0 에 추정 ${eul(num(walkH(WALK_SRC)))} 더한 ${ida(num(walkH(WALK_SRC)))}`,
+      `시작 정점의 키는 비용 0 에 추정 ${num(walkH(WALK_SRC))}${을를(num(walkH(WALK_SRC)))} 더한 ${num(walkH(WALK_SRC))}${josa(num(walkH(WALK_SRC)), "이다", "다")}`,
       "└ 나머지 정점의 비용은 아직 ∞ 이고 큐에는 항목이 하나뿐이다",
     ].join("\n");
   },
@@ -1053,7 +1021,7 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       "목표의 값을 처음 줄인 그 순간의 값은 그 시점까지 찾은 것 중 가장 작은 값일 뿐이다",
-      `└ 돌아가는 경로가 더 작은 배치에서 ${num(want)} 과 ${ro(num(got))} 갈린다`,
+      `└ 돌아가는 경로가 더 작은 배치에서 ${num(want)} 과 ${num(got)}${으로(num(got))} 갈린다`,
       "└ 나머지 배치는 목표를 처음 줄인 값이 마침 최소라 답이 그대로다",
     ].join("\n");
   },
@@ -1158,7 +1126,7 @@ export const PROOFS: Record<string, () => string> = {
     return [
       contrast(cases, noReopen, "다시 안 고치는 판"),
       "",
-      `일관성이 깨진 추정에서만 답이 갈린다 — ${iga(num(want))} 나와야 하는 자리에서 ${iga(num(got))} 나온다`,
+      `일관성이 깨진 추정에서만 답이 갈린다 — ${num(want)}${이가(num(want))} 나와야 하는 자리에서 ${num(got)}${이가(num(got))} 나온다`,
       `└ 나머지 배치 ${num(same)} 개는 추정이 일관적이라 어느 정점도 두 번 확장되지 않는다. 막을 것이 없다`,
     ].join("\n");
   },
@@ -1367,7 +1335,7 @@ export const PROOFS: Record<string, () => string> = {
     return [
       table(["무엇", "닫힌 형태", "상한"], rows, ["l", "l", "r"]),
       "",
-      `제약의 정점 수 ${num(V)} · 간선 수 ${eul(num(E))} 넣은 값이고, 추정이 일관적일 때의 상한이다`,
+      `제약의 정점 수 ${num(V)} · 간선 수 ${num(E)}${을를(num(E))} 넣은 값이고, 추정이 일관적일 때의 상한이다`,
       "└ 추정이 걸러 내는 만큼 실제 값은 이보다 작아지고, 걸러 내지 못하면 상한이 그대로 값이 된다",
       "└ 일관성이 없으면 첫 줄이 V 로 안 막히고, 그러면 아래 다섯 줄의 상한도 함께 풀린다",
     ].join("\n");
@@ -1590,7 +1558,7 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       "두 배로 부풀리면 꺼낸 키가 답을 넘어서고, 그 걸음이 목표를 앞당겨 꺼내게 만든다",
-      `└ 두 경로의 비용 차이가 1 인 배치에서 ${iga(num(want))} 나와야 하는 자리에 ${iga(num(got))} 나온다`,
+      `└ 두 경로의 비용 차이가 1 인 배치에서 ${num(want)}${이가(num(want))} 나와야 하는 자리에 ${num(got)}${이가(num(got))} 나온다`,
     ].join("\n");
   },
 

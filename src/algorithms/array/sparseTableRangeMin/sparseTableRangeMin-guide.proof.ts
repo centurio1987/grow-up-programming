@@ -16,7 +16,9 @@
  * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
  * 모듈의 함수가 정본과 **같은 객체인가**로 알아낸다.
  */
+
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { 과와 } from "../../../../tools/josa.ts";
 import { segmentRun, sparseRun } from "./sparseTableRangeMin-guide.alt.ts";
 import { sparseTableRangeMin } from "./sparseTableRangeMin-guide.ref.ts";
 
@@ -69,35 +71,6 @@ function table(head: string[], rows: string[][], align: ("l" | "r")[]): string {
       .join("  ")
       .replace(/\s+$/, "");
   return [line(head), ...rows.map(line)].join("\n");
-}
-
-/**
- * 앞 공백을 달고 조사만 돌려준다. **뒤 어미는 붙이지 않고 값도 부르는 쪽이 적는다** —
- * 캡션의 조사를 손으로 적다가 받침 판정을 틀린 자리가 배치8·9 에서 세 번 나왔다.
- *
- * 숫자는 읽는 소리로 받침을 정한다 — 3 은 「삼」이라 받침이 있고 4 는 「사」라 없다.
- */
-const 숫자받침: Record<string, boolean> = {
-  "0": true,
-  "1": true,
-  "2": false,
-  "3": true,
-  "4": false,
-  "5": false,
-  "6": true,
-  "7": true,
-  "8": true,
-  "9": false,
-};
-
-function 조사(word: string, 받침있음: string, 받침없음: string): string {
-  const last = word.at(-1) ?? "";
-  if (last in 숫자받침) {
-    return 숫자받침[last] === true ? ` ${받침있음}` : ` ${받침없음}`;
-  }
-  const code = last.codePointAt(0) ?? 0;
-  if (code < 0xac00 || code > 0xd7a3) return ` ${받침없음}`;
-  return (code - 0xac00) % 28 === 0 ? ` ${받침없음}` : ` ${받침있음}`;
 }
 
 /** 「자리 셋」 처럼 앞 공백을 달고 돌아오는 수사. */
@@ -594,7 +567,7 @@ export const PROOFS: Record<string, () => string> = {
         ["l", "l", "r", "r", "r"],
       ),
       "",
-      `└ 두 배열이 접두 최솟값 표에서 ${sameKeys ? "같은 값을 갖는데" : "다른 값을 갖는데"} 답은 ${direct(A, q, min)}${조사(String(direct(A, q, min)), "과", "와")} ${direct(B, q, min)} 로 다르다`,
+      `└ 두 배열이 접두 최솟값 표에서 ${sameKeys ? "같은 값을 갖는데" : "다른 값을 갖는데"} 답은 ${direct(A, q, min)}${과와(String(direct(A, q, min)))} ${direct(B, q, min)} 로 다르다`,
     ].join("\n");
   },
 
@@ -1110,11 +1083,13 @@ export const PROOFS: Record<string, () => string> = {
       ];
     });
     return [
-      table(
-        ["n", "층 수", "표 칸 수", "8 바이트 기준", "256 MB 제한"],
-        rows,
-        ["r", "r", "r", "r", "l"],
-      ),
+      table(["n", "층 수", "표 칸 수", "8 바이트 기준", "256 MB 제한"], rows, [
+        "r",
+        "r",
+        "r",
+        "r",
+        "l",
+      ]),
       "",
       "└ 이 문제의 제약은 첫 줄이라 걱정할 자리가 아니다",
     ].join("\n");

@@ -11,7 +11,9 @@
  * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
  * 모듈의 함수가 정본과 **같은 객체인가**로 값에서 알아낸다.
  */
+
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { josa, 과와, 으로, 을를, 이가 } from "../../../../tools/josa.ts";
 import { type FlowEdge, minCostMaxFlow } from "./minCostMaxFlow-guide.ref.ts";
 
 /* ────────────────────────── 표 그리기 ────────────────────────── */
@@ -50,40 +52,6 @@ const padLeft = (s: string, to: number): string =>
 /** 천 단위 구분. 본문 표기와 같다. */
 const num = (n: number): string =>
   n === Number.POSITIVE_INFINITY ? "∞" : (n + 0).toLocaleString("en-US");
-
-/**
- * 조사를 값에서 고른다. **앞 공백을 포함해 돌려준다** — 이 저장소의 표기는 `9 를` 이지
- * `9를` 이 아니다. 손으로 적으면 값이 바뀔 때 조사만 남아 어긋난다.
- */
-const withBatchim = (text: string): boolean =>
-  "013678".includes(text.replace(/[^0-9]/g, "").slice(-1));
-
-/** 「…을」과 「…를」. 마지막 숫자의 우리말 읽기에 받침이 있으면 「을」이다. */
-const eul = (text: string): string =>
-  `${text} ${withBatchim(text) ? "을" : "를"}`;
-
-/** 「…이」와 「…가」. */
-const iga = (text: string): string =>
-  `${text} ${withBatchim(text) ? "이" : "가"}`;
-
-/** 「…이다」와 「…다」. */
-const ida = (text: string): string =>
-  `${text} ${withBatchim(text) ? "이다" : "다"}`;
-
-/** 「…과」와 「…와」. */
-const wa = (text: string): string =>
-  `${text} ${withBatchim(text) ? "과" : "와"}`;
-
-/**
- * 「…으로」와 「…로」.
- *
- * 받침이 없거나 받침이 `ㄹ` 이면 「로」다 — 1 일 · 7 칠 · 8 팔이 `ㄹ` 로 끝나므로 「으로」 쪽은
- * 0 영 · 3 삼 · 6 육 셋뿐이다.
- */
-const ro = (text: string): string => {
-  const last = text.replace(/[^0-9]/g, "").slice(-1);
-  return `${text} ${"036".includes(last) ? "으로" : "로"}`;
-};
 
 /**
  * 열 폭을 값에서 계산해 표를 그린다. 폭을 리터럴로 박으면 값이 바뀌어도 표가 그대로라
@@ -863,8 +831,8 @@ export const PROOFS: Record<string, () => string> = {
         ["r", "r", "r", "r"],
       ),
       "",
-      `보존 조건을 지키는 유량 함수가 모두 ${num(WALK_ENUM.total)} 개이고 최대 유량은 ${ida(num(WALK_ENUM.maxValue))}`,
-      `└ 최대 유량을 만드는 유량 함수는 ${num((WALK_ENUM.byValue.get(WALK_ENUM.maxValue) ?? []).length)} 개인데 총비용이 ${wa(num(best))} ${ro(num(worst))} 갈린다`,
+      `보존 조건을 지키는 유량 함수가 모두 ${num(WALK_ENUM.total)} 개이고 최대 유량은 ${num(WALK_ENUM.maxValue)}${josa(num(WALK_ENUM.maxValue), "이다", "다")}`,
+      `└ 최대 유량을 만드는 유량 함수는 ${num((WALK_ENUM.byValue.get(WALK_ENUM.maxValue) ?? []).length)} 개인데 총비용이 ${num(best)}${과와(num(best))} ${num(worst)}${으로(num(worst))} 갈린다`,
       `└ 정본이 내는 답은 { flow: ${answer.flow}, cost: ${answer.cost} } 로 그중 작은 쪽이다`,
     ].join("\n");
   },
@@ -942,7 +910,7 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       `조합 수는 간선마다 (그 간선의 용량 + 1) 을 곱한 값이다 — 0 부터 용량까지를 다 넣어 보기 때문이다`,
-      `└ 제약 상한의 용량 ${num(cap)} 에서는 간선 ${num(at)} 개만 있어도 조합의 자릿수가 ${ida(num(huge.toString().length))}`,
+      `└ 제약 상한의 용량 ${num(cap)} 에서는 간선 ${num(at)} 개만 있어도 조합의 자릿수가 ${num(huge.toString().length)}${josa(num(huge.toString().length), "이다", "다")}`,
       `└ 간선 상한은 ${num(2000)} 개이므로 전부 만들어 보는 방법은 이 문제의 규모에서 끝나지 않는다`,
     ].join("\n");
   },
@@ -980,8 +948,8 @@ export const PROOFS: Record<string, () => string> = {
         ["l", "l"],
       ),
       "",
-      `최대 유량은 두 방식이 ${ro(num(mine.flow))} 같은데 총비용이 ${wa(num(mine.cost))} ${ro(num(any.cost))} 갈린다`,
-      `└ 라운드 수도 ${wa(num(mine.rounds))} ${ida(num(any.rounds))}`,
+      `최대 유량은 두 방식이 ${num(mine.flow)}${으로(num(mine.flow))} 같은데 총비용이 ${num(mine.cost)}${과와(num(mine.cost))} ${num(any.cost)}${으로(num(any.cost))} 갈린다`,
+      `└ 라운드 수도 ${num(mine.rounds)}${과와(num(mine.rounds))} ${num(any.rounds)}${josa(num(any.rounds), "이다", "다")}`,
       `└ 앞엣것의 한 단위 비용은 라운드를 지날수록 커지고, 뒤엣것은 그렇지 않다`,
     ].join("\n");
   },
@@ -1036,7 +1004,7 @@ export const PROOFS: Record<string, () => string> = {
       "",
       `라운드 ${num(rows.length)} 번 중 한 단위 값이 벌어지는 라운드가 ${num(off)} 번이다`,
       `└ 두 판이 라운드마다 고른 경로는 처음부터 끝까지 한 벌이다`,
-      `└ 벌어진 값 ${iga(num(gap))} 총비용 ${wa(num(mine.cost))} ${num(bent.cost)} 의 차이가 된다`,
+      `└ 벌어진 값 ${num(gap)}${이가(num(gap))} 총비용 ${num(mine.cost)}${과와(num(mine.cost))} ${num(bent.cost)} 의 차이가 된다`,
     ].join("\n");
   },
 
@@ -1075,7 +1043,7 @@ export const PROOFS: Record<string, () => string> = {
       "",
       `한 단위 더 보내는 값이 ${diffs.join(" ")} 로 한 번도 안 줄어든다`,
       `└ 라운드마다의 한 단위 비용을 병목만큼 펼치면 ${expanded.join(" ")} 로 같은 줄이 된다`,
-      `└ 라운드 ${WALK_COUNT.rounds} 번이 유량 ${eul(num(WALK_COUNT.flow))} 만들고 총비용은 ${ida(num(WALK_COUNT.cost))}`,
+      `└ 라운드 ${WALK_COUNT.rounds} 번이 유량 ${num(WALK_COUNT.flow)}${을를(num(WALK_COUNT.flow))} 만들고 총비용은 ${num(WALK_COUNT.cost)}${josa(num(WALK_COUNT.cost), "이다", "다")}`,
     ].join("\n");
   },
 
@@ -1131,9 +1099,9 @@ export const PROOFS: Record<string, () => string> = {
         ["l", "l"],
       ),
       "",
-      `정점 2 의 값이 ${ida(values[2] as string)} — 0→2 로 바로 가면 4 인데 0→1→2 로 가면 그보다 작다`,
-      `└ 싱크의 값 ${iga(find.unit)} 이 경로로 한 단위를 보낼 때의 비용이다`,
-      `└ 병목은 경로 위 항목의 잔여 용량 중 가장 작은 값이라 ${ida(send.delta)}`,
+      `정점 2 의 값이 ${values[2] as string}${josa(values[2] as string, "이다", "다")} — 0→2 로 바로 가면 4 인데 0→1→2 로 가면 그보다 작다`,
+      `└ 싱크의 값 ${find.unit}${이가(find.unit)} 이 경로로 한 단위를 보낼 때의 비용이다`,
+      `└ 병목은 경로 위 항목의 잔여 용량 중 가장 작은 값이라 ${send.delta}${josa(send.delta, "이다", "다")}`,
     ].join("\n");
   },
 
@@ -1205,7 +1173,7 @@ export const PROOFS: Record<string, () => string> = {
         ["l", "r", "r"],
       ),
       "",
-      `최대 유량은 두 판이 ${ro(num(mine.flow))} 같은데 총비용이 ${wa(num(mine.cost))} ${ro(num(dij.cost))} 갈린다`,
+      `최대 유량은 두 판이 ${num(mine.flow)}${으로(num(mine.flow))} 같은데 총비용이 ${num(mine.cost)}${과와(num(mine.cost))} ${num(dij.cost)}${으로(num(dij.cost))} 갈린다`,
       `└ 정점 ${num(TRAP_CASE.n)} 개 · 간선 ${num(TRAP_CASE.edges.length)} 개이고 용량이 전부 1 이다`,
       `└ 한 번 꺼낸 정점을 다시 안 보는 것이 갈림의 자리다`,
     ].join("\n");
@@ -1600,7 +1568,7 @@ export const PROOFS: Record<string, () => string> = {
       "",
       `총비용은 어느 상한으로 재도 ${num(safe)} 안쪽이다`,
       `└ 헐거운 쪽으로 잡아도 ${(safe / product).toFixed(2)} 배 여유가 있다`,
-      `└ 조인 쪽으로 잡으면 총비용이 ${eul(num(tight))} 못 넘어 ${num(Math.floor(safe / tight))} 배 여유다`,
+      `└ 조인 쪽으로 잡으면 총비용이 ${num(tight)}${을를(num(tight))} 못 넘어 ${num(Math.floor(safe / tight))} 배 여유다`,
     ].join("\n");
   },
 
@@ -1800,7 +1768,7 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       `정점 ${num(WALK_N)} · 간선 ${num(WALK.length)} 에서 잰 값이다`,
-      `└ 라운드 ${num(c.rounds)} 번이 더한 값을 합치면 총비용 ${ida(num(c.cost))}`,
+      `└ 라운드 ${num(c.rounds)} 번이 더한 값을 합치면 총비용 ${num(c.cost)}${josa(num(c.cost), "이다", "다")}`,
       `└ 잔여 항목이 ${num(WALK.length * 2)} 개이고 라운드마다 그 일부를 여러 번 견준다`,
     ].join("\n");
   },

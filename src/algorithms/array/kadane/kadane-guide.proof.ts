@@ -482,7 +482,7 @@ export const PROOFS: Record<string, () => string> = {
     return [
       table(CONTRAST_HEAD("순서를 바꾼 답"), rows, ["l", "r", "r", "l"]),
       "",
-      "└ 첫 줄은 답이 같다 — 최댓값이 칸 6 에서 만들어져 마지막 한 걸음이 밀려도 살아남는다",
+      "└ 첫 줄은 답이 같다 — 최댓값이 칸 6 에서 만들어져 마지막 한 걸음의 차례가 바뀌어도 살아남는다",
     ].join("\n");
   },
 

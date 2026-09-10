@@ -26,6 +26,7 @@
  * 한쪽만 고쳐질 때 표가 조용히 거짓이 된다.
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { josa, 으로, 을를, 이가 } from "../../../../tools/josa.ts";
 import {
   measure,
   N_ALT,
@@ -70,19 +71,6 @@ function table(rows: string[][], alignRight: number[] = []): string[] {
       .join("   ")
       .replace(/\s+$/, ""),
   );
-}
-
-/**
- * 받침이 있으면 앞엣것, 없으면 뒤엣것을 돌려준다. **조사만** 돌려주고 값은 부르는 쪽이 적는다.
- * 숫자는 우리말 읽기로 판정한다 — 0 영 · 1 일 · 3 삼 · 6 육 · 7 칠 · 8 팔이 받침을 갖는다.
- */
-function 조사(value: string, 받침: string, 무받침: string): string {
-  const last = [...value].at(-1) ?? "";
-  const code = last.codePointAt(0) ?? 0;
-  const digit = "0123456789".indexOf(last);
-  if (digit >= 0) return [0, 1, 3, 6, 7, 8].includes(digit) ? 받침 : 무받침;
-  if (code < 0xac00 || code > 0xd7a3) return 무받침;
-  return (code - 0xac00) % 28 === 0 ? 무받침 : 받침;
 }
 
 /** 배열을 값 나열로. 대괄호를 안 쓴다 — 자리 구간과 표기가 갈려야 한다. */
@@ -421,7 +409,7 @@ export const PROOFS: Record<string, () => string> = {
     const 작은것 = 정의대로(WALK);
     const lines = table(rows, [0, 1, 2]);
     lines.push(
-      `전개 입력 ${값나열(WALK)} 에서는 견주기 ${comma(작은것.견주기)} 번으로 답 ${comma(작은것.답)}${조사(comma(작은것.답), "을", "를")} 낸다`,
+      `전개 입력 ${값나열(WALK)} 에서는 견주기 ${comma(작은것.견주기)} 번으로 답 ${comma(작은것.답)}${을를(comma(작은것.답))} 낸다`,
     );
     return lines.join("\n");
   },
@@ -553,7 +541,7 @@ export const PROOFS: Record<string, () => string> = {
     const 답 = countInversions(WALK);
     const lines = table(rows, [3]);
     lines.push(
-      `합치기가 ${comma(전개.자리들.length)} 개이고 센 개수를 다 더하면 ${comma(합)}${조사(comma(합), "이다", "다")}. 정본의 답도 ${comma(답)}${조사(comma(답), "이다", "다")}`,
+      `합치기가 ${comma(전개.자리들.length)} 개이고 센 개수를 다 더하면 ${comma(합)}${josa(comma(합), "이다", "다")}. 정본의 답도 ${comma(답)}${josa(comma(답), "이다", "다")}`,
     );
     return lines.join("\n");
   },
@@ -588,7 +576,7 @@ export const PROOFS: Record<string, () => string> = {
       "└ 「a」 는 그 걸음이 끝난 시점의 배열이다. 합치는 도중인 걸음은 buffer 에만 쓰므로 a 가 그대로다",
     );
     lines.push(
-      `└ 「견주기」·「더한 개수」 는 그 합치기 안에서만 센 값이고 「누적」 은 처음부터의 합이다. 마지막 누적 ${comma(전개.답)}${조사(comma(전개.답), "이", "가")} 반환값이다`,
+      `└ 「견주기」·「더한 개수」 는 그 합치기 안에서만 센 값이고 「누적」 은 처음부터의 합이다. 마지막 누적 ${comma(전개.답)}${이가(comma(전개.답))} 반환값이다`,
     );
     return lines.join("\n");
   },
@@ -904,7 +892,7 @@ export const PROOFS: Record<string, () => string> = {
     const b = 비용_경계(N);
     const lines = table(rows, [2, 3, 4]);
     lines.push(
-      `└ 칸 ${comma(N)} 개에서 견주기의 상한이 ${comma(b.상한)} 이고 구성한 입력이 그 값을 낸다. 완전한 내림차순은 ${comma(b.내림)}${조사(comma(b.내림), "으로", "로")} 오히려 하한이다`,
+      `└ 칸 ${comma(N)} 개에서 견주기의 상한이 ${comma(b.상한)} 이고 구성한 입력이 그 값을 낸다. 완전한 내림차순은 ${comma(b.내림)}${으로(comma(b.내림))} 오히려 하한이다`,
     );
     return lines.join("\n");
   },
@@ -939,7 +927,7 @@ export const PROOFS: Record<string, () => string> = {
     }
     const lines = table(rows, [0, 1, 2, 4, 5]);
     lines.push(
-      `└ 칸 수는 ${comma(N_ALT)}${조사(comma(N_ALT), "으로", "로")} 고정하고 값 범위만 바꾼다. 입력은 A[q] = (q × ${comma(곱수)}) mod V 이고 난수도 시드도 없다`,
+      `└ 칸 수는 ${comma(N_ALT)}${으로(comma(N_ALT))} 고정하고 값 범위만 바꾼다. 입력은 A[q] = (q × ${comma(곱수)}) mod V 이고 난수도 시드도 없다`,
     );
     return lines.join("\n");
   },
