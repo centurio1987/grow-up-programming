@@ -1,7 +1,7 @@
 <meta charset="utf-8">
-<!-- kanban-fp:dc795956a8619c11b31cc057f19b683dafafac8a -->
+<!-- kanban-fp:7e7146d39041f6d4c484df2bc2b11db60e9aa653 -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KAN-034-KSD7XR 실행 계획</title>
+<title>KAN-034.9-WHH53W 실행 계획</title>
 <style>
 /* manage-kanban 계획 리포트 스타일 — Neobrutalism_Editorial_01 (editorial brutalism)
  *
@@ -412,14 +412,14 @@ details[open] > summary::before { content: "\25BE\00a0"; }
 </style>
 <div class="wrap">
 <div class="title-block">
-  <p class="meta">KAN-034-KSD7XR · 진행 중 · 브랜치 KAN-034-KSD7XR</p>
-  <h1>algo-guide-v2 전 편 전개 — pilot 4편의 골격을 src/algorithms/ 111편에 적용</h1>
+  <p class="meta">KAN-034.9-WHH53W · 진행 중 · 브랜치 KAN-034-KSD7XR</p>
+  <h1>v2 스캐너 구멍 처분 — W3 이 실측으로 낸 14 부류</h1>
 </div>
 <p class="note"><strong>voice 미적용</strong> — authoring-kit 이 없어 집필 단계를 건너뛰고 데이터만으로 렌더했습니다. 문체가 다른 리포트와 다를 수 있습니다.</p>
 
 <div class="kpis">
-  <div class="kpi"><span class="meta">work</span><b>8/8</b></div>
-  <div class="kpi"><span class="meta">배치</span><b>6</b></div>
+  <div class="kpi"><span class="meta">work</span><b>0/10</b></div>
+  <div class="kpi"><span class="meta">배치</span><b>4</b></div>
   <div class="kpi"><span class="meta">보류</span><b>0</b></div>
   <div class="kpi"><span class="meta">독립성</span><b>OK</b></div>
 </div>
@@ -427,44 +427,60 @@ details[open] > summary::before { content: "\25BE\00a0"; }
 
 
 <h2>전략</h2>
-<section class="card"><p>지시 원문은 <code>KANBAN.md</code> 카드의 <code>원문:</code> 블록에 있다(중복 보관하지 않음). 전략 전문은 <code>~/.claude/plans/dapper-whistling-taco.md</code>. 여기에는 요지만 적는다.</p>
-<h4>핵심 판단 — 111편을 그냥 반복하면 완주하지 못한다</h4>
-<p>파일럿 4편에 배치 <code>S1</code>~<code>S19</code>, 유저 지적 <code>R2</code>~<code>R23</code> 23라운드, 이해 시험 31회가 들었다. 편당 산출도 커졌다 — v1 평균 405.8줄에서 v2 는 md 958~1,071줄 + 사이드카 5종으로 <strong>2.5배</strong>다. 그래서 전개 전에 <strong>편당 비용을 깎는 카드 넷</strong>을 먼저 두고, 그 다음에 웨이브를 돈다.</p>
-<h4>순서는 중요도다 (유저 지시)</h4>
-<p><code>문제_가이드_목록.md</code> 를 순서의 정본으로 쓴다. 실측 검증 — 그 문서가 가리키는 알고리즘 편이 <strong>유니크 111개</strong>이고 <strong>죽은 링크 0 · 누락 0</strong> 이다. 등급 안에서도 위에 있을수록 자주 등장한다는 것이 그 문서의 규약이므로 <strong>문서 순서가 곧 집필 순서</strong>다.</p>
-<p>| 웨이브 | 등급 | 전체 | 파일럿 제외 | | --- | --- | --- | --- | | W1 | ★★★ 상 | 26 | 24 | | W2 | ★★ 중 | 41 | 41 | | W3 | ★ 하 | 44 | 42 | | | | 111 | <strong>107</strong> |</p>
-<p><strong>웨이브 경계가 배리어다.</strong> 웨이브 안에서만 카테고리로 병렬화한다 — 중요도 순이 병렬화에 먹히면 유저 지시를 어기는 것이 된다.</p>
-<h4>선례는 별도 단계가 아니다</h4>
-<p>중요도 순으로 가면 각 카테고리의 첫 편이 자연스럽게 그 카테고리의 선례가 된다. 카테고리가 처음 열리는 시점 — 파일럿(<code>array</code>·<code>sorting</code>·<code>dp</code>·<code>number-theory</code>) → W1(<code>binary-search</code>·<code>graph</code>·<code>advanced</code>·<code>etc</code>) → W2(<code>bit-manipulation</code>·<code>string</code>·<code>graph-flow</code>·<code>shortest-path</code>·<code>tree</code>) → W3(<code>geometry</code>).</p>
-<p><strong>전역 정지가 아니다.</strong> 첫 편이 도는 동안 <strong>같은 카테고리의 후속만</strong> claim 을 막고 다른 카테고리는 진행한다. 전역 정지면 총 10번 전 트랙이 멈춘다. 그리고 <strong><code>matrix</code> 는 카테고리가 아니라 뷰다</strong> — 실측 14 카테고리에 없고 <code>matrix</code> 를 쓰는 편 16개가 여러 카테고리에 흩어져 있다. 그래서 선례 판정 축을 둘로 둔다: ① 카테고리 첫 편 ② <strong>뷰 조합 첫 등장</strong>. 둘 중 하나라도 처음이면 단독으로 돌린다.</p>
-<h4>버린 대안 셋</h4>
+<section class="card"><p><strong>출처는 W3 이 원고를 쓰면서 낸 실측이다.</strong> <code>KAN-034.7-QMZ3RE</code> 배치6~11 의 「끝난 뒤」 절과 <code>KAN-034.8-BK1Q3A</code> 배치4 종료 문서에 흩어져 있고, 워커 스물넷이 편마다 보고한 것을 배치마다 모아 둔 것이다. <strong>여기에 부류로 묶어 옮긴 이유는 인스턴스로 두면 같은 것을 여러 번 세기 때문이다</strong> — 31건이라고 셌던 것이 실제로는 14 부류이고, <code>P15</code> 하나가 그중 일곱 번이었다.</p>
+<h5>이 카드가 서는 자리 — 「규칙을 세운 배치는 자기 규칙의 구멍을 못 본다」</h5>
+<p><code>KAN-034.8</code> 전략이 적어 둔 문장의 카드 사이 판본이다. 그 카드의 <code>S11</code>·<code>S12</code> 가 W3 배치4 의 발견으로 뒤에 붙었고, 이번엔 <strong>여섯 배치가 낸 것이 한 카드로 선다.</strong> 스캐너를 세운 쪽은 「검사가 도는가」를 보고 쓰는 쪽은 <strong>「검사가 무엇을 못 보는가」</strong>를 본다.</p>
+<p><strong>111편이 전부 통과한 뒤에도 사람이 편당 30~82자리를 잡았다.</strong> 그 수가 배치를 거듭해도 안 줄었다는 것이 이 카드의 근거다 — 줄지 않는 몫 중 되풀이되는 것이 아래 14 부류다.</p>
+<h4>14 부류</h4>
+<p><strong>A 급은 판정 명령 자체가 거짓 초록을 내는 것</strong>이고, B 급은 스캐너가 못 보는 자리, C 급은 관행·규약으로 닫히는 것이다.</p>
+<h5>A — 판정이 거짓 초록을 낸다 (2)</h5>
+<p>| # | 무엇 | 실측 | | --- | --- | --- | | <strong>A1</strong> | <strong><code>check-v2 &lt;파일&gt;</code> 이 <code>P16</code> 을 안 돈다.</strong> 단일 대상 분기가 <code>.ref.ts</code> 를 안 실으면서 「P1~P16 통과」로 출력한다(<code>tools/check-v2.ts:1602-1612</code>). 없는 <code>sim</code>·<code>bench</code> 는 미실행이라고 알리는데 <code>ref</code> 는 그 안내조차 없다 | 배치7 <code>S21</code> 워커의 원고가 실제로 걸렸다(전체 코드 호출이 한 줄인데 정본은 여러 줄). <strong>카드 「검증」 절이 적어 둔 편별 명령이 정확히 그 경로다</strong> | | <strong>A2</strong> | <strong><code>←</code> 로 짚은 줄이 정본에 있으면 <code>mutantSiteFailures</code> 가 검사를 건너뛴다</strong>(<code>s === &quot;&quot; \|\| inRef.has(s)</code> → <code>continue</code>). 지운 줄을 주석형으로 보여도 <code>s === &quot;&quot;</code> 로 역시 건너뛴다 — <strong>drop 변이는 자리 대조가 구조적으로 안 돈다</strong> | 배치11 <code>S41</code> |</p>
+<h5>B — 스캐너가 못 보는 자리 (7)</h5>
+<p>| # | 무엇 | 실측 | | --- | --- | --- | | <strong>B1</strong> | <strong><code>P15</code> 가 손으로 쓴 <code>text</code> 펜스와 2행 덩어리를 안 본다</strong>(<code>run.length &gt;= 3</code> 하한 + `<code> 한정). **머리줄 면제가 첫 줄이 데이터인 표의 어긋남을 가린다** | **일곱 배치 연속.** 워커 여덟이 각자 검사기를 새로 짰다. 배치11 이 정량 근거를 냈다 — 범위를 넓혀 3건, 면제를 끄고 4건 추가 | | **B2** | **표 칸 안의 </code>\|<code> 가 GFM 칸 구분자로 읽혀 HTML 에서 그 칸이 사라진다.** 인라인 코드 안이어도 그렇고 **스캐너 넷이 전부 초록**이다 | 배치6 </code>articulationPoints<code> 기호표. </code>build-html<code> 이 md 표 칸 수와 렌더된 </code>&lt;td&gt;<code> 수를 대조하면 결정론으로 잡힌다 | | **B3** | **</code>viz<code> ascii 걸음과 </code>.sim.ts<code> 프레임이 어긋나도 </code>P3<code> 이 못 본다** — 「T# 수 ≥ 프레임 수」만 보고 어떤 걸음을 골랐는지는 안 본다 | 배치7 </code>maxBipartiteMatching<code> 이 11걸음 대 12프레임. **해법이 이미 실측됐다**(아래 C1) | | **B4** | **</code>check-metaphor<code> 가 </code>.md<code> 만 본다** — 사이드카 </code>.ts<code> 의 주석·문자열에 남은 은유가 생성 블록을 타고 원고에 들어와서야 </code>P2<code> 가 잡는다 | 배치10 </code>sparseTableRangeMin<code> 사이드카에 **14자리**, 그중 9자리는 </code>.md<code> 에 안 실린다 | | **B5** | **</code>P12<code> 가 「코드에서」 줄의 다음 줄까지 봐서 마크다운 표 옆 행의 첫 칸을 오탐한다.** 기호표에 코드 대응을 적는 관행 자체를 막는다 | 배치9·10·11 세 배치에서 났다 | | **B6** | **</code>P10<code> 의 숫자 추출 정규식이 음수를 못 읽는다**(</code>tools/check-v2.ts:1501<code> 의 </code>/\d[\d,]*/g<code>). 계수가 음수면 본문에 그대로 적어도 「실측값이 본문에 없다」로 잡힌다 | 배치10 </code>expectedValueDp<code> 가 계수를 둘로 갈라 우회했다 | | **B7** | **활용형 누락 — 다섯 중 하나가 닫혔고 넷이 남았다.** **닫힘**: 비용을 값으로 말하는 형용사(2026-09-09, </code>KAN-034.7<code> 검토 5항 반려로 처리). **남음**: 우열의 피동 동사 · 「돌아가다」의 활용형 · 「서는데」 · 「쌓이다」(</code>L33<code> 대상인데 </code>METAPHORS` 에 없다) | 닫힌 자리의 방식이 남은 넷의 본이다(아래 절). 남은 넷은 <strong>오탐 위험이 커서 넓히기 어려운 쪽</strong>이고 그것이 이 부류가 아홉 번 샌 이유다 |</p>
+<h5>C — 관행·규약으로 닫히는 것 (5)</h5>
+<p>| # | 무엇 | 이미 있는 해법 | | --- | --- | --- | | <strong>C1</strong> | <code>viz</code> 를 손으로 그리면 B1·B3 이 함께 생긴다 | <strong><code>.sim.ts</code> 에서 생성해 붙인다.</strong> 배치10 이 표 생성을, 배치11 이 두 발 더 갔다 — <code>countInversions</code> 는 사이드카가 프레임↔실행을 대조해 던지고, <code>externalMergeSort</code> 는 원고를 <strong>멱등하게 재주입</strong>하며 양방향 대조를 찍는다 | | <strong>C2</strong> | <strong>변이 표의 「같다」가 세 부류다</strong> — ① 그 줄을 안 지나감 ② 지나갔고 답도 같음 ③ <strong>지나갔고 중간 값도 갈렸는데 뒤 걸음이 상쇄해 답만 같음</strong>. ①②는 「지나간 횟수」 열로 갈리고 ③은 <strong>걸음별 대조 블록</strong>이 있어야 보인다 | 배치9 가 ①을, 배치10 <code>crt</code> 가 ③을 찾았다. <code>check-proof</code> 가 「지나간 횟수 ≥ 1 인데 같다」인 행을 <strong>기계로 짚어 줄 수 있다</strong> | | <strong>C3</strong> | <strong>조사 헬퍼 규격이 세 번에 걸쳐 굳었다</strong> — ① 앞 공백을 포함한다 ② 뒤 어미를 붙이지 않는다 ③ <strong>조사만 돌려주고 값은 부르는 쪽이 적는다</strong>. <code>과/와</code> 도 받침 판정이 필요하다 | 배치8·9·10 에서 각각 걸렸다. 값이 두 번 찍히는 실패(「잎 4 5 6 7 <strong>4</strong> 를」)가 ③의 근거 | | <strong>C4</strong> | <strong>이웃 편 문장 겹침을 재는 스캐너가 없다.</strong> 겹침은 문장만이 아니라 <strong>값으로도 온다</strong>(모범 편의 수치가 그대로 딸려 왔다) | <strong>잣대가 이미 실측됐다</strong> — 완전 일치 줄 + 18자 한글 shingle + 최장 공통 구간 셋, 그리고 배치11 의 <strong>「2편 빈도」</strong>(<code>grep -rlF</code> 로 그 문자열을 쓰는 편 수가 2 면 리프트, 60 이상이면 관례) | | <strong>C5</strong> | <strong><code>related</code> 이름에 근사 중복이 있다</strong> — 「망원합」/「망원 합」, 「출력 민감 알고리즘」/「출력에 붙는 비용」. <code>uniq -d</code> 로는 안 잡히고, <strong><code>LC_ALL=C</code> 로 세지 않으면 macOS <code>uniq</code> 가 서로 다른 줄을 뭉친다</strong> | 배치10·11 |</p>
+<h5>부류에 안 들어가지만 기록이 필요한 것 셋</h5>
+<ul>
+<li><strong><code>check-proof --all</code> 이 10분을 넘는다</strong>(111편 × 사이드카 두 번 호출). 편별 실행은 즉시 끝난다. <code>KAN-034.8</code> 배치4 종료에서 실측했다 — <strong>CI 시간 예산 문제</strong>이지 스캐너 구멍이 아니다.</li>
+<li><strong>기호의 「차원」이 어긋나는 부류</strong>(배치11) — <code>B</code> 를 바이트로 정의하고 개수로 쓴 자리를 스캐너 넷이 통과시켰다. <code>L21</code> 에 <strong>단위 일치</strong>를 명시하는 것이 처방이다.</li>
+<li><strong>정렬하며 세는 편은 「정렬 뒤 자리」와 「원래 자리」가 섞인다</strong>(배치11). <code>sortArray</code>· <code>insertionSort</code>·<code>kthSmallest</code>·<code>externalMergeSort</code> 가 같은 위험을 갖는다.</li>
+</ul>
+<h4>B7 이 닫힌 방식 — 남은 넷의 본이다 (2026-09-09)</h4>
+<p><code>KAN-034.7</code> 검토에서 「규칙을 넓히고 원고를 검토해라」로 반려돼 <strong>이 카드가 서기 전에 한 부류가 먼저 처리됐다.</strong> 그 순서가 나머지에도 그대로 간다.</p>
 <ol>
-<li><strong>카테고리 트랙만으로 병렬화</strong> — 유저가 중요도 순을 지시했다. 카테고리로만 가르면 <code>geometry</code> 7편(전부 하 등급)이 상 등급보다 먼저 나올 수 있다.</li>
-<li><strong>선례 10편을 별도 단계로</strong> — 중요도 순이 이미 카테고리를 순서대로 연다. 단계를 따로 두면 그 10편이 중요도를 무시하고 앞으로 당겨진다.</li>
-<li><strong>v1 <code>.mdx</code> 를 전개 끝까지 병존</strong> — 유저가 편별 즉시 교체로 정했다. 병존하면 전개 기간 내내 한 알고리즘에 가이드가 둘이고 인덱스가 어느 쪽을 가리키는지 편마다 갈린다.</li>
+<li><strong>규칙과 원고를 한 커밋으로 간다.</strong> 규칙만 넓히면 이미 닫힌 편에서 전수 검사가 빨개지고, 원고만 고치면 다음 편이 같은 표현을 다시 쓴다.</li>
+<li><strong>원고를 고치기 전에 그 자리가 생성 블록인지 본다.</strong> 아홉 자리 중 셋이 생성 블록 안이라 사이드카를 고치고 블록을 다시 만들어 넣어야 했다 — 원고만 고쳤으면 <code>check-proof</code> 가 그 자리에서 빨개진다.</li>
+<li><strong>넓힌 규칙에 오탐 시험을 함께 세운다.</strong> 걸려야 하는 여섯과 <strong>안 걸려야 하는 셋</strong>을 같이 넣었다. 걸리는 것만 시험하면 넓힌 규칙이 거짓 위반을 쏟는지 아무도 모른다.</li>
+<li><strong>계보 기록의 그 표도 함께 지운다.</strong> 안 지우면 규칙을 넓힌 순간 <code>FEEDBACK.md</code> 가 자기 기록 때문에 빨개진다 — 그 절이 그 당부를 스스로 적어 두었다.</li>
 </ol>
-<h4>착수 전 막혀 있던 것 넷 (실측)</h4>
+<h5>그 자리에서 실측 하나가 더 나왔다 — 「목록을 센 수」와 「규칙이 잡는 수」가 다르다</h5>
+<p>계보 기록에 <strong>10자리</strong>로 적어 두었는데 규칙을 넓히니 <strong>9자리</strong>가 잡혔다. 둘은 낫표 구간 안이라 <code>check-metaphor</code> 가 처음부터 제외하는 자리다. <strong>손으로 센 목록을 그대로 처방 범위로 쓰면 안 된다</strong> — 넓히고 나서야 실제 대상이 정해진다. 남은 넷도 <strong>넓힌 뒤 전수를 다시 센다.</strong></p>
+<h5>남은 넷의 규모 (2026-09-10 실측 · 넓히기 전 어림)</h5>
+<p>| 부류 | 그 표현이 있는 편 | 왜 어려운가 | | --- | --- | --- | | 우열의 피동 동사 | 15 | 시간 지연 뜻으로도 쓰인다(「충돌이 뒤로 …」) | | 「돌아가다」의 활용형 | 38 | <strong>자리 이동이 규칙의 대상 밖</strong>이라 규칙이 처음부터 뺐다 | | 「서는데」 | 다수 | 한자어 접두와 글자가 같다 — 「서다」의 관형형을 안 넓힌 근거 | | 「쌓이다」 | 28 | 「누적된다」가 있어 대체는 쉽지만 자연 서술과 가른다 |</p>
+<p><strong>이 수는 「고칠 자리」가 아니라 「봐야 할 편」이다.</strong> 위 실측대로 규칙이 잡는 수는 이보다 적을 것이고, 그 차이는 넓혀 봐야 안다.</p>
+<h4>오탐 조건을 함께 박는다 — 이것이 이 카드의 어려운 부분이다</h4>
+<p><strong><code>P15</code> 를 넓히는 것은 규칙 한 줄이 아니다.</strong> 워커들이 각자 검사기를 짜면서 오탐 조건을 <strong>넷</strong> 실측했고, 그것을 안 지키면 넓힌 규칙이 거짓 위반을 쏟는다.</p>
 <ol>
-<li><strong>파일럿 승인 근거 없음</strong> — <code>verdicts/</code> 31개가 전부 8/20, 원고는 8/28. 그 사이 파트 2분할 (<code>SPEC.md:75</code>) · 항목 3종 개편 · <code>invariant</code> 신설이 들어갔다. <code>babyStepGiantStep</code> 은 verdict 0개.</li>
-<li><strong>미커밋 잔여물은 <code>KAN-033</code> 의 것</strong> — 마지막 커밋 <code>efabba1</code>(S18) 이후 19파일 수정 + untracked 다수. 그 카드는 <code>b561f62</code> 로 완료됐으므로 <strong><code>KAN-033</code> 명의로 닫는다.</strong></li>
-<li><strong>문서가 결번을 가리킴</strong> — <code>SPEC.md:677</code> 이 <code>L23</code>·<code>L26</code>~<code>L31</code> 을 결번 선언했는데 <code>FEEDBACK.md</code> 는 16줄에서 쓴다. <strong>그중 <code>:49</code>·<code>:87</code> 은 폐기 사실의 기록이라 고치지 않는다</strong> — 0 을 요구하면 결번 선언의 근거를 지운다. 교정 대상은 §1 반영표 규칙 열뿐이다.</li>
-<li><strong>파일럿 4편이 미이관</strong> — 원고는 샌드박스에 있고 <code>src/algorithms/</code> 그 자리에는 v1 <code>.mdx</code> 가 그대로다(실측). 이관 단계가 없으면 잔여 수치가 0 으로 닫히지 않는다.</li>
+<li><strong>빈 줄로 덩어리를 끊는다</strong>(배치9)</li>
+<li><strong>오른쪽 정렬 열을 인정한다</strong>(배치9 — <code>P15</code> 는 이미 양쪽을 인정한다)</li>
+<li><strong><code>^</code> 눈금 칸은 제외한다</strong>(배치9·10 — 캐럿 도식은 행마다 칸 수가 달라 덩어리가 안 선다)</li>
+<li><strong>중첩 들여쓰기가 뜻인 그림</strong>(의사코드·나무)은 첫 열을 어긋남으로 세지 않는다(배치11)</li>
 </ol>
-<h4>검토는 하위 카드마다 하지 않는다 — <code>KAN-034</code> 통합본 하나다</h4>
-<p><strong>유저 지시(2026-08-30): 「검토는 최종 수행 완료 후 kan-034 통합본으로 발행해라」.</strong> 그래서 하위 카드(<code>KAN-034.1</code>~<code>KAN-034.8</code>)는 배치가 다 닫혀도 <strong>검토로 옮기지 않고 <code>진행 중</code> 에 둔다.</strong> 검토서는 상위 카드 <code>KAN-034-KSD7XR</code> 하나에서, <code>S8</code>(v1 잔여 처분)까지 끝난 뒤에 뜬다.</p>
-<p><strong>그래서 하위 카드가 24/24 인 채 <code>진행 중</code> 에 서 있는 것이 정상이다</strong> — 방치가 아니다. 다음 세션이 그것을 보고 「검토로 옮겨야 하는데 안 옮겼다」로 읽지 않게 여기 적는다.</p>
-<p>통합 검토서가 담을 것은 웨이브마다 흩어진 것을 한 화면에 모은 것이다 — 웨이브별 마감 실측(<code>.mdx</code> · <code>guide-rhythm</code> · <code>algo-wbs</code>) · 편별 판정이 쌓인 <code>FEEDBACK.md</code> §5 · 사람이 정할 것으로 남겨 둔 항목들(웨이브마다 나온 <code>purpose.real</code> 1차 출처가 얇은 편, <code>L37</code> 레일 실렌더, 값을 argmin 으로 못 정한 자리). 그 목록을 웨이브마다 카드 실행 문서의 「수행 내역」에 남겨 두고, 통합 검토서를 뜰 때 거기서 걷는다.</p></section>
+<p><strong>검사기가 틀려서 난 빨강을 원고의 빨강으로 읽지 않는다.</strong> <code>KAN-034.7</code> 검토 4항에서 레일을 42편 전수로 확인할 때 클릭한 앵커와 위치를 잰 헤딩이 달라 <strong>42편 전부가 거짓 실패</strong>로 나왔다 (<code>a:last-of-type</code> 이 부모별 마지막이라 실제 마지막 링크가 아니었다). 고치니 전부 통과했다. 워커들이 <code>P15</code> 검사기를 각자 짜면서 겪은 것과 같은 부류이고, <strong><code>B1</code> 을 도구로 승격할 때 검사기 자체의 자기시험이 함께 서야 한다</strong>는 근거다.</p>
+<p><strong>같은 성격이 B7 에도 있다</strong> — 은유 규칙을 넓히면 「돈」(화폐)·「돌」(석재)·「비싼 물건」 같은 자연 서술이 오탐이 된다. 「서다」의 관형형을 안 넓힌 판단이 그 선례이고, <strong>막을 것을 명사가 아니라 어미로 적는다</strong>가 <code>FEEDBACK.md</code> §4 가 세운 규칙이다.</p>
+<h4>버린 대안 하나</h4>
+<p><strong>「W3 이 도는 동안 고친다」를 안 했다.</strong> 웨이브 도중에 스캐너 규칙을 바꾸면 배치 전후로 판정 기준이 갈리고, 이미 닫힌 편이 새 규칙에서 어떻게 되는지 다시 봐야 한다. 여섯 배치가 그 규율을 지켰고 <strong>하나도 안 고쳤다</strong> — 그래서 이 카드가 있다.</p></section>
 
 <h2>실행 계획 (WBS)</h2>
-<div class="chart"><svg viewBox="0 0 860 298" role="img" aria-label="WBS 간트"><text x="16" y="57" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S1</text><rect x="148.0" y="45" width="116.0" height="20" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="156.0" y="59" font-size="12" fill="#1C1B17">정합 회복 + 파일럿 4편 재판정 (KAN-034.1-V337W5)</text><text x="16" y="87" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S2</text><rect x="264.0" y="75" width="116.0" height="20" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="272.0" y="89" font-size="12" fill="#1C1B17">인프라 승격 + 파일럿 4편 이관 (KAN-034.2-5V5M2F)</text><text x="16" y="117" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S3</text><rect x="264.0" y="105" width="116.0" height="20" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="272.0" y="119" font-size="12" fill="#1C1B17">사람 검토 12줄의 기계화 — L38~ 신설 (KAN-034.3-53E4F9)</text><text x="16" y="147" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S4</text><rect x="264.0" y="135" width="116.0" height="20" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="272.0" y="149" font-size="12" fill="#1C1B17">전개 WBS + tools/algo-wbs.ts (KAN-034.4-4NS63H…</text><text x="16" y="177" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S5</text><rect x="380.0" y="165" width="116.0" height="20" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="388.0" y="179" font-size="12" fill="#1C1B17">W1 — 중요도 상 24편 (KAN-034.5-0RGSQM)</text><text x="16" y="207" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S6</text><rect x="496.0" y="195" width="116.0" height="20" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="504.0" y="209" font-size="12" fill="#1C1B17">W2 — 중요도 중 41편 (KAN-034.6-CF6ZHE)</text><text x="16" y="237" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S7</text><rect x="612.0" y="225" width="116.0" height="20" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="620.0" y="239" font-size="12" fill="#1C1B17">W3 — 중요도 하 42편 (KAN-034.7-QMZ3RE)</text><text x="16" y="267" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S8</text><rect x="728.0" y="255" width="116.0" height="20" fill="#5C7A4A" stroke="#1C1B17" stroke-width="2"/><text x="736.0" y="269" font-size="12" fill="#1C1B17">v1 잔여 처분 (KAN-034.8-BK1Q3A)</text><line x1="148.0" y1="34" x2="148.0" y2="294" stroke="#1C1B17" stroke-width="2" stroke-dasharray="4 3"/><text x="154.0" y="28" font-size="11" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#6E6A5E">배치1</text><line x1="264.0" y1="34" x2="264.0" y2="294" stroke="#1C1B17" stroke-width="2" stroke-dasharray="4 3"/><text x="270.0" y="28" font-size="11" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#6E6A5E">배치2</text><line x1="380.0" y1="34" x2="380.0" y2="294" stroke="#1C1B17" stroke-width="2" stroke-dasharray="4 3"/><text x="386.0" y="28" font-size="11" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#6E6A5E">배치3</text><line x1="496.0" y1="34" x2="496.0" y2="294" stroke="#1C1B17" stroke-width="2" stroke-dasharray="4 3"/><text x="502.0" y="28" font-size="11" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#6E6A5E">배치4</text><line x1="612.0" y1="34" x2="612.0" y2="294" stroke="#1C1B17" stroke-width="2" stroke-dasharray="4 3"/><text x="618.0" y="28" font-size="11" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#6E6A5E">배치5</text><line x1="728.0" y1="34" x2="728.0" y2="294" stroke="#1C1B17" stroke-width="2" stroke-dasharray="4 3"/><text x="734.0" y="28" font-size="11" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#6E6A5E">배치6</text></svg></div>
+<div class="chart"><svg viewBox="0 0 860 358" role="img" aria-label="WBS 간트"><text x="16" y="57" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S1</text><rect x="148.0" y="45" width="174.0" height="20" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="156.0" y="59" font-size="12" fill="#1C1B17">**A1** 단일 대상 경로가 정본 대조를 돌게 한다 — 판정이 거짓 초록을 낸…</text><text x="16" y="87" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S2</text><rect x="148.0" y="75" width="174.0" height="20" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="156.0" y="89" font-size="12" fill="#1C1B17">**B5·B6** P12 의 표 행 오탐 · P10 의 음수 미인식 (정규식 둘…</text><text x="16" y="117" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S3</text><rect x="322.0" y="105" width="174.0" height="20" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="330.0" y="119" font-size="12" fill="#1C1B17">**B1** P15 를 손 펜스로 넓히고 머리줄 면제를 좁힌다 — **오탐 조건…</text><text x="16" y="147" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S4</text><rect x="496.0" y="135" width="174.0" height="20" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="504.0" y="149" font-size="12" fill="#1C1B17">**B3·C1** viz 걸음 ↔ .sim.ts 프레임 대조 + 「생성해 붙인다…</text><text x="16" y="177" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S5</text><rect x="670.0" y="165" width="174.0" height="20" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="678.0" y="179" font-size="12" fill="#1C1B17">**B7** 은유 활용형 넷 — 규칙과 원고를 한 묶음으로 (오탐 위험이 가장 …</text><text x="16" y="207" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S6</text><rect x="322.0" y="195" width="174.0" height="20" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="330.0" y="209" font-size="12" fill="#1C1B17">**A2·C2** 변이 자리 대조가 drop 변이에서 도는가 · 「같다」 세 부…</text><text x="16" y="237" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S7</text><rect x="322.0" y="225" width="174.0" height="20" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="330.0" y="239" font-size="12" fill="#1C1B17">**B2** 표 칸의 세로줄 — 렌더된 칸 수를 대조한다</text><text x="16" y="267" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S8</text><rect x="496.0" y="255" width="174.0" height="20" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="504.0" y="269" font-size="12" fill="#1C1B17">**B4** 은유 검사가 사이드카 .ts 의 주석·문자열을 본다</text><text x="16" y="297" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S9</text><rect x="496.0" y="285" width="174.0" height="20" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="504.0" y="299" font-size="12" fill="#1C1B17">**C4** 이웃 편 겹침 스캐너 — 「2편 빈도」 잣대를 도구로</text><text x="16" y="327" font-size="12" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#4A463C">S10</text><rect x="670.0" y="315" width="174.0" height="20" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="678.0" y="329" font-size="12" fill="#1C1B17">**C3·C5** 조사 헬퍼 규격 · related 이름 근사 중복</text><line x1="148.0" y1="34" x2="148.0" y2="354" stroke="#1C1B17" stroke-width="2" stroke-dasharray="4 3"/><text x="154.0" y="28" font-size="11" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#6E6A5E">배치1</text><line x1="322.0" y1="34" x2="322.0" y2="354" stroke="#1C1B17" stroke-width="2" stroke-dasharray="4 3"/><text x="328.0" y="28" font-size="11" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#6E6A5E">배치2</text><line x1="496.0" y1="34" x2="496.0" y2="354" stroke="#1C1B17" stroke-width="2" stroke-dasharray="4 3"/><text x="502.0" y="28" font-size="11" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#6E6A5E">배치3</text><line x1="670.0" y1="34" x2="670.0" y2="354" stroke="#1C1B17" stroke-width="2" stroke-dasharray="4 3"/><text x="676.0" y="28" font-size="11" font-family="'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace" fill="#6E6A5E">배치4</text></svg></div>
 <div class="scroll"><table>
-<tr><th>work</th><th>내용</th><th>상태</th></tr><tr><td><code>S1</code></td><td>정합 회복 + 파일럿 4편 재판정 (<code>KAN-034.1-V337W5</code>)</td><td><span class="tag tag-done">완료</span></td></tr><tr><td><code>S2</code></td><td>인프라 승격 + 파일럿 4편 이관 (<code>KAN-034.2-5V5M2F</code>)</td><td><span class="tag tag-done">완료</span></td></tr><tr><td><code>S3</code></td><td>사람 검토 12줄의 기계화 — <code>L38</code>~ 신설 (<code>KAN-034.3-53E4F9</code>)</td><td><span class="tag tag-done">완료</span></td></tr><tr><td><code>S4</code></td><td>전개 WBS + <code>tools/algo-wbs.ts</code> (<code>KAN-034.4-4NS63H</code>)</td><td><span class="tag tag-done">완료</span></td></tr><tr><td><code>S5</code></td><td>W1 — 중요도 상 24편 (<code>KAN-034.5-0RGSQM</code>)</td><td><span class="tag tag-done">완료</span></td></tr><tr><td><code>S6</code></td><td>W2 — 중요도 중 41편 (<code>KAN-034.6-CF6ZHE</code>)</td><td><span class="tag tag-done">완료</span></td></tr><tr><td><code>S7</code></td><td>W3 — 중요도 하 42편 (<code>KAN-034.7-QMZ3RE</code>)</td><td><span class="tag tag-done">완료</span></td></tr><tr><td><code>S8</code></td><td>v1 잔여 처분 (<code>KAN-034.8-BK1Q3A</code>)</td><td><span class="tag tag-done">완료</span></td></tr>
+<tr><th>work</th><th>내용</th><th>상태</th></tr><tr><td><code>S1</code></td><td><strong><code>A1</code></strong> 단일 대상 경로가 정본 대조를 돌게 한다 — 판정이 거짓 초록을 낸다</td><td><span class="tag tag-todo">미착수</span></td></tr><tr><td><code>S2</code></td><td><strong><code>B5</code>·<code>B6</code></strong> <code>P12</code> 의 표 행 오탐 · <code>P10</code> 의 음수 미인식 (정규식 둘)</td><td><span class="tag tag-todo">미착수</span></td></tr><tr><td><code>S3</code></td><td><strong><code>B1</code></strong> <code>P15</code> 를 손 펜스로 넓히고 머리줄 면제를 좁힌다 — <strong>오탐 조건 넷을 함께 박는다</strong></td><td><span class="tag tag-todo">미착수</span></td></tr><tr><td><code>S4</code></td><td><strong><code>B3</code>·<code>C1</code></strong> <code>viz</code> 걸음 ↔ <code>.sim.ts</code> 프레임 대조 + 「생성해 붙인다」를 규약으로</td><td><span class="tag tag-todo">미착수</span></td></tr><tr><td><code>S5</code></td><td><strong><code>B7</code></strong> 은유 활용형 넷 — 규칙과 원고를 한 묶음으로 (오탐 위험이 가장 크다)</td><td><span class="tag tag-todo">미착수</span></td></tr><tr><td><code>S6</code></td><td><strong><code>A2</code>·<code>C2</code></strong> 변이 자리 대조가 drop 변이에서 도는가 · 「같다」 세 부류를 기계가 가른다</td><td><span class="tag tag-todo">미착수</span></td></tr><tr><td><code>S7</code></td><td><strong><code>B2</code></strong> 표 칸의 세로줄 — 렌더된 칸 수를 대조한다</td><td><span class="tag tag-todo">미착수</span></td></tr><tr><td><code>S8</code></td><td><strong><code>B4</code></strong> 은유 검사가 사이드카 <code>.ts</code> 의 주석·문자열을 본다</td><td><span class="tag tag-todo">미착수</span></td></tr><tr><td><code>S9</code></td><td><strong><code>C4</code></strong> 이웃 편 겹침 스캐너 — 「2편 빈도」 잣대를 도구로</td><td><span class="tag tag-todo">미착수</span></td></tr><tr><td><code>S10</code></td><td><strong><code>C3</code>·<code>C5</code></strong> 조사 헬퍼 규격 · <code>related</code> 이름 근사 중복</td><td><span class="tag tag-todo">미착수</span></td></tr>
 </table></div>
 
 <h2>배치 구성</h2>
-<div class="chart"><svg viewBox="0 0 860 164" role="img" aria-label="배치 2안 비교"><text x="16" y="52" font-size="14" font-weight="700" fill="#1C1B17">단일 에이전트</text><rect x="190.0" y="30" width="101.3" height="36" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="198.0" y="52" font-size="12" fill="#1C1B17">단계1</text><rect x="297.3" y="30" width="101.3" height="36" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="305.3" y="52" font-size="12" fill="#1C1B17">단계2</text><rect x="404.7" y="30" width="101.3" height="36" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="412.7" y="52" font-size="12" fill="#1C1B17">단계3</text><rect x="512.0" y="30" width="101.3" height="36" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="520.0" y="52" font-size="12" fill="#1C1B17">단계4</text><rect x="619.3" y="30" width="101.3" height="36" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="627.3" y="52" font-size="12" fill="#1C1B17">단계5</text><rect x="726.7" y="30" width="101.3" height="36" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="734.7" y="52" font-size="12" fill="#1C1B17">단계6</text><text x="16" y="108" font-size="14" font-weight="700" fill="#1C1B17">오케스트레이션</text><rect x="190.0" y="86" width="101.3" height="36" fill="#C2D3B4" stroke="#1C1B17" stroke-width="2"/><text x="198.0" y="108" font-size="12" fill="#1C1B17">단계1 ×2</text><rect x="297.3" y="86" width="101.3" height="36" fill="#C2D3B4" stroke="#1C1B17" stroke-width="2"/><text x="305.3" y="108" font-size="12" fill="#1C1B17">단계2 ×2</text><rect x="404.7" y="86" width="101.3" height="36" fill="#C2D3B4" stroke="#1C1B17" stroke-width="2"/><text x="412.7" y="108" font-size="12" fill="#1C1B17">단계3 ×2</text><rect x="512.0" y="86" width="101.3" height="36" fill="#C2D3B4" stroke="#1C1B17" stroke-width="2"/><text x="520.0" y="108" font-size="12" fill="#1C1B17">단계4 ×2</text><rect x="619.3" y="86" width="101.3" height="36" fill="#C2D3B4" stroke="#1C1B17" stroke-width="2"/><text x="627.3" y="108" font-size="12" fill="#1C1B17">단계5 ×2</text><rect x="726.7" y="86" width="101.3" height="36" fill="#C2D3B4" stroke="#1C1B17" stroke-width="2"/><text x="734.7" y="108" font-size="12" fill="#1C1B17">단계6 ×2</text><text x="16" y="160" font-size="11" fill="#6E6A5E">배치 크기 기준: work 3~4개 = 한 세션 예산의 절반</text></svg></div>
+<div class="chart"><svg viewBox="0 0 860 164" role="img" aria-label="배치 2안 비교"><text x="16" y="52" font-size="14" font-weight="700" fill="#1C1B17">단일 에이전트</text><rect x="190.0" y="30" width="155.0" height="36" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="198.0" y="52" font-size="12" fill="#1C1B17">단계1</text><rect x="351.0" y="30" width="155.0" height="36" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="359.0" y="52" font-size="12" fill="#1C1B17">단계2</text><rect x="512.0" y="30" width="155.0" height="36" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="520.0" y="52" font-size="12" fill="#1C1B17">단계3</text><rect x="673.0" y="30" width="155.0" height="36" fill="#F3E8C9" stroke="#1C1B17" stroke-width="2"/><text x="681.0" y="52" font-size="12" fill="#1C1B17">단계4</text><text x="16" y="108" font-size="14" font-weight="700" fill="#1C1B17">오케스트레이션</text><rect x="190.0" y="86" width="155.0" height="36" fill="#C2D3B4" stroke="#1C1B17" stroke-width="2"/><text x="198.0" y="108" font-size="12" fill="#1C1B17">단계1 ×2</text><rect x="351.0" y="86" width="155.0" height="36" fill="#C2D3B4" stroke="#1C1B17" stroke-width="2"/><text x="359.0" y="108" font-size="12" fill="#1C1B17">단계2 ×2</text><rect x="512.0" y="86" width="155.0" height="36" fill="#C2D3B4" stroke="#1C1B17" stroke-width="2"/><text x="520.0" y="108" font-size="12" fill="#1C1B17">단계3 ×2</text><rect x="673.0" y="86" width="155.0" height="36" fill="#C2D3B4" stroke="#1C1B17" stroke-width="2"/><text x="681.0" y="108" font-size="12" fill="#1C1B17">단계4 ×2</text><text x="16" y="160" font-size="11" fill="#6E6A5E">배치 크기 기준: work 3~4개 = 한 세션 예산의 절반</text></svg></div>
 <div class="scroll"><table>
-<tr><th>배치</th><th>work</th><th>진행</th><th>배정 출처</th></tr><tr><td>배치1</td><td><code>S1</code></td><td>1/1</td><td>frontmatter</td></tr><tr><td>배치2</td><td><code>S2, S3, S4</code></td><td>3/3</td><td>frontmatter</td></tr><tr><td>배치3</td><td><code>S5</code></td><td>1/1</td><td>frontmatter</td></tr><tr><td>배치4</td><td><code>S6</code></td><td>1/1</td><td>frontmatter</td></tr><tr><td>배치5</td><td><code>S7</code></td><td>1/1</td><td>frontmatter</td></tr><tr><td>배치6</td><td><code>S8</code></td><td>1/1</td><td>frontmatter</td></tr>
+<tr><th>배치</th><th>work</th><th>진행</th><th>배정 출처</th></tr><tr><td>배치1</td><td><code>S1, S2</code></td><td>0/2</td><td>frontmatter</td></tr><tr><td>배치2</td><td><code>S3, S6, S7</code></td><td>0/3</td><td>frontmatter</td></tr><tr><td>배치3</td><td><code>S4, S8, S9</code></td><td>0/3</td><td>frontmatter</td></tr><tr><td>배치4</td><td><code>S5, S10</code></td><td>0/2</td><td>frontmatter</td></tr>
 </table></div>
 
 
@@ -475,68 +491,26 @@ details[open] > summary::before { content: "\25BE\00a0"; }
 매니페스트·공유 API 계약처럼 경로에 드러나지 않는 의존은 여기 잡히지 않습니다.</p>
 
 <h2>검증 기준</h2>
-<section class="card"><p>이 카드가 끝난 것은 아래 셋이 동시에 참일 때다.</p>
-<pre># ① src/algorithms 에 살아 있는 v1 가이드가 없다
-find src/algorithms -name &#x27;*-guide.mdx&#x27; -not -path &#x27;*_deprecated*&#x27; -not -path &#x27;*_scratch*&#x27; | wc -l   # 0
-# ② rhythm 래칫의 알고리즘 부채가 없다
-grep -c &#x27;src/algorithms&#x27; tools/_baseline/guide-rhythm.tsv                                             # 0
-# ③ 새 산출 111편이 게이트를 통과한다
-bun run tools/ci.ts all</pre>
-<h4>단계별 판정</h4>
-<pre># S1 — 정합 회복 + 재판정
-git status --short                                            # 잔여 0
-for f in sandbox/algo-guide-v2/pilot/*/*-guide.md; do
-  bun run sandbox/algo-guide-v2/tools/check-proof.ts &quot;$f&quot;    # 0 통과 · 1 위반
-done
-#   ↑ 2026-08-29 교체. 그전 판정(이해 시험)의 산출은 verdicts/ 에 남아 있다
-sed -n &#x27;/^## 1\./,/^## 2\./p&#x27; sandbox/algo-guide-v2/FEEDBACK.md \
-  | grep -E &#x27;^\| R&#x27; | grep -v &#x27;^| R19-1 &#x27; | grep -cE &#x27;L23|L2[6-9]|L3[01]&#x27;                          # 0
-#   ↑ §1 반영표의 **데이터 행**만 본다. R19-1 은 폐기 사실의 기록이라 대상이 아니고,
-#     §2 이후의 이력 서술도 대상이 아니다. 앞판 기준(§1 전체에서 0)은 성립하지 않는다 —
-#     R19-1 행과 그 사실을 적은 문단이 결번 번호를 그대로 들고 있어야 결번 선언의 근거가 선다
-bun run sandbox/algo-guide-v2/tools/check-metaphor.ts \
-  sandbox/algo-guide-v2/{SPEC,FEEDBACK,README,SURVEY}.md sandbox/algo-guide-v2/pilot/*/*.md   # 9편 0건
-#   ↑ 부류 수의 정본은 `METAPHORS.length`(실측 11)다. 문서 표기가 그것과 어긋나면 고친다
-
-# S2 — 인프라 승격 + 파일럿 이관
-bun run tools/ci.ts all
-bun run tools/check-citations.ts                              # src/algorithms 가 검사 대상에 든다
-bun test src/_guide-sim                                       # VIEW_REGISTRY 이관 회귀
-bun run tools/check-links.ts check                            # 중복 3줄 정리 후 링크 실재
-grep -c &#x27;src/algorithms&#x27; tools/_baseline/guide-rhythm.tsv      # 103 → 101
-
-# S3 — 기계화
-bun test tools
-bun run tools/check-v2.ts sandbox/algo-guide-v2/pilot/*/*-guide.md   # 신설 규칙 0건
-
-# S4 — WBS
-bun run tools/algo-wbs.ts
-bun run tools/algo-wbs.ts --all                               # 107 유닛
-
-# S5~S7 — 편 하나마다
-bun run tools/check-v2.ts &lt;name&gt;-guide.md
-bun run tools/bench-alt.ts --check &lt;name&gt;-guide.alt.ts
-bun run tools/build-html.ts &lt;name&gt;-guide.md
-bun run tools/check-proof.ts &lt;name&gt;-guide.md                  # 값 주장 ↔ 실행
-bun test src/algorithms/&lt;cat&gt;/&lt;name&gt;
-bun run tools/check-links.ts check
-bun run tools/ci.ts all
-
-# 웨이브 종료
-grep -c &#x27;src/algorithms&#x27; tools/_baseline/guide-rhythm.tsv      # 101 → 79 → 41 → 0
-find src/algorithms -name &#x27;*-guide.mdx&#x27; -not -path &#x27;*_deprecated*&#x27; -not -path &#x27;*_scratch*&#x27; | wc -l
-#                                                              # 107 → 83 → 42 → 0</pre>
-<h4>함정 (전부 실측 — <code>sandbox/algo-guide-v2/README.md:53-63</code>)</h4>
+<section class="card"><h4>work 하나를 닫을 때</h4>
+<pre>bun run tools/ci.ts all                              # 3모드 + 게이트 전부
+bun test tools/&lt;고친 도구&gt;.test.ts                    # 회귀 시험
+bunx --bun @biomejs/biome check &lt;고친 경로&gt;          # 새로 쓴 파일은 경고 0</pre>
+<p><strong>규칙을 넓힌 work 는 회귀 시험이 없으면 안 닫힌다</strong> — <code>KAN-034.8</code> 이 세운 규율 그대로다. 은유 규칙이 여덟 번 샌 것이 그 이력이고 <code>B7</code> 이 아홉째다 — <strong>그 아홉째의 절반은 이미 닫혔고</strong>(2026-09-09) 그때 세운 시험이 이 절이 요구하는 모양 그대로다: 걸려야 하는 여섯과 <strong>안 걸려야 하는 셋</strong>.</p>
+<p><strong>넓힌 규칙에는 오탐 회귀 시험도 함께 붙인다.</strong> 「걸려야 하는 것」만 시험하면 넓힌 규칙이 거짓 위반을 쏟는지 아무도 모른다 — 전략 절의 오탐 조건 넷이 그대로 시험 항목이 된다.</p>
+<h4>규칙을 넓혔을 때 — 살아 있는 원고 전수를 다시 본다</h4>
+<pre>bun run tools/check-v2.ts --all       # ← 단일 파일 경로가 아니다(A1)
+bun run tools/check-metaphor.ts --all
+bun run tools/check-proof.ts --all    # 10분 넘는다. 편별은 즉시
+bun run tools/check-links.ts check</pre>
+<p><strong>규칙을 넓히면 이미 닫힌 111편이 그 규칙을 받는다.</strong> 빨개지는 편이 나오면 그것은 규칙의 오탐이거나 원고의 부채이고, <strong>둘을 가르기 전에 규칙을 확정하지 않는다.</strong> <code>B7</code> 의 남은 넷은 넓혀 봐야 실제 대상이 정해진다 — 닫힌 첫째에서 <strong>목록이 센 10자리와 규칙이 잡은 9자리가 달랐다</strong>(낫표 구간은 규칙이 처음부터 뺀다). 그러니 규칙을 넓히는 커밋과 원고를 고치는 커밋이 <strong>한 묶음이되</strong>, 고칠 목록은 <strong>넓힌 뒤 전수를 다시 세어</strong> 정한다 — 규칙만 넓히면 <code>--all</code> 이 빨개지고, 원고만 고치면 다음 편이 같은 표현을 다시 쓴다.</p>
+<h4>카드를 닫을 때</h4>
 <ul>
-<li>대상 파일이 <strong>0개면</strong> <code>bun test &lt;경로&gt;</code> · <code>biome check &lt;디렉터리&gt;</code> · <code>tsc --noEmit -p</code> 가 exit 1 이다.</li>
-<li><strong><code>bunx biome</code> 을 쓰지 않는다.</strong> npm 의 <code>biome</code> 은 이 저장소가 설정한 <code>@biomejs/biome</code> 와 다른 패키지이고, 아무것도 검사하지 않고 exit 0 을 준다. <code>bunx --bun @biomejs/biome check</code> 다.</li>
-<li><strong><code>tools/check-guide-rhythm.ts</code> 를 v2 편에 호출하지 않는다.</strong> 구 헤딩 접두와 어긋나 조용히 공전하고, 통과 표시가 거짓이 된다.</li>
-<li><strong><code>comprehension.sh</code> 를 돌리지 않는다.</strong> 2026-08-29 유저 지시로 외부 모델을 쓰지 않는다. 파일은 남겨 뒀다 — <code>verdicts/</code> 31개가 그 산출이라 규격이 있어야 읽힌다(<code>SPEC.md</code> §0).</li>
-<li><strong>증명 사이드카는 정본을 import 해야 한다.</strong> 값을 문자열로 적어 넣으면 대조가 자기 자신과의 대조가 되고 <code>check-proof.ts</code> 가 그것을 잡는다.</li>
-</ul>
-<h4>판정 장치와 그것이 재는 것</h4>
-<p>| 장치 | 무엇을 재는가 | | --- | --- | | <code>check-v2.ts</code> P1~P10 | 산문 연속 · 은유 11부류 · 표기 혼용 · 라벨 좌표 · 전개 단계·멈춤·전체 코드 · 분기 라벨 피복 · <code>T#</code> 결속 · 마커↔sim · 그림 의무 · <code>concept</code> 자립 · <code>related</code> 자리 · <code>result</code> 일치 · <code>purpose.alt</code> 실측값 | | <code>check-metaphor.ts</code> | 은유 — 문서 전체(<code>.md</code>). 인용 구간 제외 | | <code>check-rework.ts</code> | 구성 지적을 받은 절의 재작성률(기준 60%) — 재배치와 재작성을 가른다 | | <code>bench-alt.ts --check</code> | <code>purpose.alt</code> 의 결정론적 계수가 본문 수치와 같은가 | | <code>build-html.ts</code> | 항목 레일 · 앵커가 절 id 에서 오는가 · JS-off 정적 산출 | | <code>check-proof.ts</code> | 본문이 내미는 값이 <strong>실행 결과와 글자 그대로</strong> 같은가. 변이는 정본 소스에서 기계로 만든다 | | <code>algo-wbs.ts</code> | 웨이브 배리어 · 선례 대기 · 남은 편 수 | | 사람 | <code>FEEDBACK.md</code> §3 중 기계로 못 내린 것 — 멈춤 자리 · 부제의 뜻 · 조건부 절 판정 · 레일 렌더 | | 유저 | 편 단위 최종 승인. 항목 id 로 반려 |</p></section>
+<li>14 부류가 각각 <strong>도구 확장 · 관행 · 「안 고친다」 중 하나로 처분</strong>되고 그 판단이 문서에 있다. 「안 고친다」도 처분이다 — <code>FEEDBACK.md</code> §4 가 「되돌리다」를 규칙에서 뺀 것이 그 선례다.</li>
+<li>도구를 고친 자리마다 <code>tools/&lt;도구&gt;.test.ts</code> 에 회귀 시험이 있고, <strong>넓힌 규칙에는 오탐 시험이 함께 있다.</strong></li>
+<li><code>bun run tools/ci.ts all</code> exit 0 · <code>check-v2 --all</code> · <code>check-metaphor --all</code> · <code>check-proof --all</code> · <code>check-links check</code> 전부 exit 0.</li>
+<li><strong><code>SPEC.md</code> 와 <code>FEEDBACK.md</code> §2 에 새 강제 지점이 한 줄씩 적혀 있다.</strong> 규칙을 코드에만 두면 다음 사람이 넓히다 조용히 되돌린다.</li>
+</ul></section>
 
 <p class="meta">생성 근거: KANBAN.md
-KANBAN.cards/KAN-034-KSD7XR.md · 갱신 2026-08-29</p>
+KANBAN.cards/KAN-034.9-WHH53W.md · 갱신 2026-09-10</p>
 </div>
