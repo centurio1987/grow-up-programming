@@ -80,16 +80,6 @@
     ```
 
 ## 검토
-- `KAN-034.8-BK1Q3A` v1 잔여·스캐너 구멍 처분 — _deprecated 구판 · rhythm 스캐너 · SPEC 금지의 미강제 — 생성:ai · 최종:ai · 갱신:2026-09-09
-  - 상위: `KAN-034-KSD7XR` (진행 중)
-  - 짧은 제목: v1 잔여·스캐너 구멍 처분
-  - 목적: _deprecated/ 의 구판 가이드와 대상이 0 이 된 check-guide-rhythm.ts 의 알고리즘 몫을 정리하고, 규격이 금지하는데 어떤 스캐너도 안 보는 자리를 강제 지점에 박는다
-  - 이유: 111편이 다 교체돼도 구판과 빈 스캐너가 남는다. 대상이 0 인 스캐너는 통과 표시가 무의미해지고, 규격만 금지하고 아무도 안 보는 규칙은 실제로 새어 21편에 남았다
-  - 목표: _deprecated/ 처분이 끝나고 rhythm 스캐너가 자료구조만 보도록 정리되며 SPEC 이 금지한 자리를 check-v2 가 실제로 잡아, 알고리즘 트랙에 v1 흔적도 스캐너 구멍도 남지 않는다
-  - 메모: 배치4 종료 — 12/12 완주. 카드 검증 절의 넷이 동시에 참(살아 있는 v1 산출 0 · rhythm 알고리즘 부채 0 · _deprecated 알고리즘 몫 0 · ci.ts all exit 0). S10 이 문서보다 컸다 — manifest algo 항목 107개가 전부 죽은 경로였고 넷을 갈라 처분했다. W3 이 넘긴 스캐너 구멍 31건은 이 카드 work 에 없어 후속 판단이 남는다
-  - 실행 문서: KANBAN.cards/KAN-034.8-BK1Q3A.md (12/12 · 최근 09-09)
-  - 계획 리포트: KANBAN.reports/KAN-034.8-BK1Q3A.report.html
-  - 검토 문서: KANBAN.reviews/KAN-034.8-BK1Q3A.review.md (승인 5/5 · 승인)
 
 ## 완료
 - `KAN-029` [P0-a·29] 집필 엔진 가용성 확보 — 플러그인 설치·활성화 + lock 버전 재고정 — 생성:ai · 최종:ai · 갱신:2026-08-04
@@ -249,3 +239,13 @@
   - 실행 문서: KANBAN.cards/KAN-034.6-CF6ZHE.md (41/41 · 최근 09-03)
   - 계획 리포트: KANBAN.reports/KAN-034.6-CF6ZHE.report.html
   - 검토 문서: KANBAN.reviews/KAN-034.6-CF6ZHE.review.md (승인 4/4 · 승인)
+- `KAN-034.8-BK1Q3A` v1 잔여·스캐너 구멍 처분 — _deprecated 구판 · rhythm 스캐너 · SPEC 금지의 미강제 — 생성:ai · 최종:ai · 갱신:2026-09-10
+  - 상위: `KAN-034-KSD7XR` (진행 중)
+  - 짧은 제목: v1 잔여·스캐너 구멍 처분
+  - 목적: _deprecated/ 의 구판 가이드와 대상이 0 이 된 check-guide-rhythm.ts 의 알고리즘 몫을 정리하고, 규격이 금지하는데 어떤 스캐너도 안 보는 자리를 강제 지점에 박는다
+  - 이유: 111편이 다 교체돼도 구판과 빈 스캐너가 남는다. 대상이 0 인 스캐너는 통과 표시가 무의미해지고, 규격만 금지하고 아무도 안 보는 규칙은 실제로 새어 21편에 남았다
+  - 목표: _deprecated/ 처분이 끝나고 rhythm 스캐너가 자료구조만 보도록 정리되며 SPEC 이 금지한 자리를 check-v2 가 실제로 잡아, 알고리즘 트랙에 v1 흔적도 스캐너 구멍도 남지 않는다
+  - 메모: 배치4 종료 — 12/12 완주. 카드 검증 절의 넷이 동시에 참(살아 있는 v1 산출 0 · rhythm 알고리즘 부채 0 · _deprecated 알고리즘 몫 0 · ci.ts all exit 0). S10 이 문서보다 컸다 — manifest algo 항목 107개가 전부 죽은 경로였고 넷을 갈라 처분했다. W3 이 넘긴 스캐너 구멍 31건은 이 카드 work 에 없어 후속 판단이 남는다
+  - 실행 문서: KANBAN.cards/KAN-034.8-BK1Q3A.md (12/12 · 최근 09-09)
+  - 계획 리포트: KANBAN.reports/KAN-034.8-BK1Q3A.report.html (낡음)
+  - 검토 문서: KANBAN.reviews/KAN-034.8-BK1Q3A.review.md (승인 5/5 · 승인)
