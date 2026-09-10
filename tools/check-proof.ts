@@ -87,6 +87,23 @@
  * 변이·멈춤 증명 마커가 없는 절도 안 본다. 견줄 때는 타입 단언과 정본이 이름 붙인 리터럴
  * 상수를 펼친다 — 보는 것은 **이름이 아니라 자리**이고, 이름이 한 벌인지는 `L25`·`P12` 몫이다.
  *
+ * **그 「안 본다」 안에 drop 변이가 통째로 숨어 있었다**(`KAN-034.7` 배치11 `S41` 실측).
+ * 지운 줄은 정본에 그대로 있는 줄이라 「정본에 있으면 안 본다」에 걸리고, 주석 처리해 보이면
+ * 걷어 낸 뒤가 빈 줄이라 역시 걸린다 — **drop 변이는 자리 대조가 한 번도 안 돌았다.** 이제
+ * `←` 주석이 「이 줄을 지웠다」고 말하면 그 건너뛰기를 앞질러 **실제로 지운 줄**과 맞댄다
+ * (`DROP_CLAIM`). 목적어가 「줄」이 아닌 것(「등호를 뺐다」·「정렬만 뺐다」)은 줄 안의 일부를
+ * 바꾼 swap 이고, 그것은 바꾼 판이 정본에 없으므로 기존 대조가 이미 잡는다.
+ *
+ * ## 「같다」 세 부류 — 위반이 아니라 화면이 짚는 것
+ *
+ * 변이 표의 「같다」는 한 낱말인데 뒤에 셋이 숨어 있다 — ① 그 줄을 **안 지나감** ② 지나갔고
+ * 답도 같음 ③ 지나갔고 **중간 값은 갈렸는데 뒤 걸음이 상쇄해 답만 같음**. ①과 ②③ 사이의
+ * 선은 표의 **지나간 횟수 열**이 긋고, 그것을 기계가 읽어 「지나갔는데 같다」인 행을 짚는다
+ * (`visitedSameRows`). ②와 ③ 사이는 답만 실은 표에서 안 갈리고 **걸음별 대조 블록**의 몫이다.
+ *
+ * 이것은 **위반도 경고도 아니고 정보다.** `deep.walk.pause` 가 「답이 안 틀린다」는 변이를
+ * 부르므로 「같다」 자체가 규격이 부른 것이고, 짚는 값은 ③을 찾을 사람의 자리를 좁히는 데 있다.
+ *
  * ```bash
  * bun run tools/check-proof.ts <guide.md>
  * ```
@@ -387,6 +404,86 @@ export function verdictLines(
   return out;
 }
 
+/* ── 「같다」 세 부류 — 안 지나가서 같은가, 지나가고도 같은가 ── */
+
+/**
+ * 변이 표의 **지나간 횟수 열**. 「그 줄을 지나간 횟수」·「바꾼 줄을 지나간 횟수」 꼴이다.
+ */
+const VISIT_HEAD = /지나간\s*횟수/;
+
+/**
+ * 「같다」로 적힌 행 중 **그 줄을 실제로 지나간** 것.
+ *
+ * 변이 표의 「같다」는 한 낱말인데 뒤에 셋이 숨어 있다.
+ *
+ * | 부류 | 무엇 | 어떻게 갈리는가 |
+ * | --- | --- | --- |
+ * | ① | 그 줄을 **안 지나감** — 변이가 실행조차 안 됐다 | 지나간 횟수 열이 `0` 이다 |
+ * | ② | 지나갔고 **중간 값도 안 갈렸다** | 지나간 횟수 ≥ 1 |
+ * | ③ | 지나갔고 중간 값은 갈렸는데 **뒤 걸음이 상쇄해 답만 같다** | 지나간 횟수 ≥ 1 |
+ *
+ * **①과 ②③ 사이의 선은 기계가 긋는다** — 횟수 열이 0 이냐 아니냐다. ②와 ③ 사이의 선은
+ * 이 블록이 답만 싣기 때문에 여기서 안 그어진다. 그것을 가르려면 걸음별 대조 블록이 따로
+ * 있어야 하고, 그 블록이 서면 그때부터는 다른 증명 블록과 똑같이 값 대조·중화 대조를 받는다.
+ *
+ * 그래서 이것은 **위반이 아니라 짚어 주는 것**이다. `SPEC.md` §3 `deep.walk.pause` 가
+ * *"답이 안 틀린다"* 는 변이를 특히 담으라고 요구하므로, 「같다」 자체는 규격이 부른 것이다.
+ * 짚는 값은 **③을 찾을 사람이 볼 자리를 좁히는 것**이다(배치10 `crt` 편이 그렇게 나왔다).
+ */
+export interface VisitedSame {
+  /** 블록 안 줄 번호(1부터). `verdictLines` 와 같은 기준이다. */
+  line: number;
+  /** 그 행이 적은 지나간 횟수. 언제나 1 이상이다. */
+  count: number;
+  /** 그 행의 첫 칸 — 사람이 어느 입력인지 알아보는 자리다. */
+  label: string;
+}
+
+/** 두 칸 이상의 공백으로 칸을 가른다. */
+function cells(line: string): string[] {
+  return line.trim().split(/\s{2,}/);
+}
+
+/**
+ * 표에서 「같다」이면서 횟수가 1 이상인 행을 뽑는다(`VisitedSame`).
+ *
+ * 열을 가르는 법은 **두 칸 이상의 공백**이다 — 이 표들의 칸 구분이 그것이고 칸 안의 낱말
+ * 사이는 한 칸이다(`x=23, M=105`). 머리줄이 둘이거나 횟수 열이 둘이거나, 행의 칸 수가
+ * 머리줄과 안 맞거나 그 자리가 숫자가 아니면 **그 자리는 안 짚는다.** 정보 표시가 오탐하면
+ * 좁혀 주던 값이 그대로 사라지므로, 애매하면 침묵하는 쪽으로 기운다.
+ */
+export function visitedSameRows(body: string): VisitedSame[] {
+  const lines = body.split("\n");
+  let head: string[] | null = null;
+  let col = -1;
+  for (const raw of lines) {
+    const l = raw.trim();
+    if (l === "" || /^[└├│─—·]/.test(l)) continue;
+    const c = cells(l);
+    const hits = c
+      .map((x, i) => (VISIT_HEAD.test(x) ? i : -1))
+      .filter((i) => i >= 0);
+    if (hits.length === 0) continue;
+    // 머리줄이 둘이거나 그 열이 둘이면 어느 것을 읽어야 할지 정할 수 없다 — 안 짚는다.
+    if (hits.length > 1 || head !== null) return [];
+    head = c;
+    col = hits[0] as number;
+  }
+  if (head === null) return [];
+
+  const out: VisitedSame[] = [];
+  for (const v of verdictLines(body)) {
+    if (v.diverges) continue;
+    const c = cells(lines[v.line - 1] ?? "");
+    if (c.length !== head.length) continue;
+    const n = c[col] ?? "";
+    if (!/^\d+$/.test(n)) continue;
+    if (Number(n) < 1) continue;
+    out.push({ line: v.line, count: Number(n), label: c[0] ?? "" });
+  }
+  return out;
+}
+
 /** 블록 하나를 중화 대조한 결과. */
 export interface Divergence {
   id: string;
@@ -498,6 +595,33 @@ export function codeSkeleton(
     .trim();
 }
 
+/**
+ * `←` 주석이 **줄 하나를 통째로 지웠다**고 말하는가.
+ *
+ * drop 변이(줄을 지우는 변이)는 원고에 두 꼴로 실린다 — 지운 줄을 주석 처리해 보이거나
+ * (`// if (…) return;   ← 이 줄을 지운다`), 살아 있는 줄에 주석만 달거나
+ * (`if (…) return false;   // ← 이 줄을 지우면?`). **둘 다 자리 대조를 빠져나갔다** —
+ * 앞엣것은 주석을 걷으면 빈 줄이라 `s === ""` 로, 뒤엣것은 정본에 그대로 있어
+ * `inRef.has(s)` 로 걸러졌다. 그래서 drop 변이는 자리 대조가 **한 번도 안 돌았다**
+ * (`KAN-034.7` 배치11 `S41` 실측).
+ *
+ * 가르는 표지는 **지운다는 동사의 목적어가 「줄」인 것**이다. 「등호를 뺐다」·「정렬만 뺐다」·
+ * 「마지막 정점을 뺐다」는 줄 안의 일부를 바꾼 swap 변이이고, 그것들은 바꾼 판이 정본에
+ * 없으므로 기존 `executed` 대조가 이미 잡는다.
+ */
+const DROP_CLAIM =
+  /줄(?:[^.。\n]{0,12}?)(?:지운|지웠|지우면|지울|지워|뺀다|뺀 |뺀$|뺐|빼면|뺄|삭제|제거)/;
+
+/**
+ * `←` 로 짚은 줄에서 **코드 부분만** 뽑는다.
+ *
+ * 주석형(`// <코드>   ← …`)이면 앞의 `//` 를 걷어 낸다. `codeSkeleton` 은 `//` 뒤를 통째로
+ * 버리므로 이 걷어 내기를 먼저 하지 않으면 주석형 줄이 빈 문자열이 된다.
+ */
+export function shownCode(head: string): string {
+  return head.replace(/^(\s*)\/\/\s?/, "$1");
+}
+
 /** 정본이 최상위에 이름 붙인 리터럴 상수. `const WHITE = 0;` 꼴만 본다. */
 export function literalConsts(refSource: string): Map<string, string> {
   const out = new Map<string, string>();
@@ -518,6 +642,12 @@ export function literalConsts(refSource: string): Map<string, string> {
  * 변이를 보이는 것이고, 그 아래 표는 다른 변이의 값이다 — 값 대조는 그것을 못 본다.
  *
  * 정본에 있는 줄은 건드리지 않는다. `←` 는 멀쩡한 줄에 주석을 다는 데도 쓰인다.
+ *
+ * **그 「안 본다」에 drop 변이가 통째로 숨어 있었다.** 지운 줄은 정본에 그대로 있는 줄이고,
+ * 주석 처리해 보이면 걷어 낸 뒤가 빈 줄이다 — 두 갈래 다 위의 건너뛰기에 걸린다. 그래서
+ * `←` 주석이 **「이 줄을 지웠다」고 말하는 경우에만** 건너뛰기를 앞질러, 실제로 실행한
+ * drop 변이의 줄과 맞댄다(`DROP_CLAIM`). 멀쩡한 줄에 단 주석은 그런 말을 하지 않으므로
+ * 원래의 「안 본다」가 그대로 산다.
  */
 export function mutantSiteFailures(
   text: string,
@@ -535,6 +665,11 @@ export function mutantSiteFailures(
       for (const l of m.after.split("\n")) executed.add(skel(l));
   }
   executed.delete("");
+  // 지운 줄만 따로 센다 — 「이 줄을 지웠다」는 원고의 말과 맞댈 것은 swap 이 아니라 이것이다.
+  const dropped = new Set(
+    mutations.filter((m) => m.after === null).map((m) => skel(m.before)),
+  );
+  dropped.delete("");
 
   const lines = text.split("\n");
   const heads: number[] = [];
@@ -558,9 +693,40 @@ export function mutantSiteFailures(
       continue;
     }
     if (!inTs || !raw.includes("←")) continue;
+    if (!inMutantSection(i)) continue;
+    const at = raw.indexOf("←");
+    const head = raw.slice(0, at);
+    const note = raw.slice(at + 1);
+    const ran = (): string =>
+      mutations.length === 0
+        ? "없다"
+        : mutations
+            .map((m) => `${m.line}행 → ${(m.after ?? "(지움)").trim()}`)
+            .join(" · ");
+
+    // ── 지웠다고 말한 줄 — 주석형이든 살아 있는 줄이든 여기서 갈라 받는다.
+    if (DROP_CLAIM.test(note)) {
+      const shown = skel(shownCode(head));
+      // 코드가 없는 산문 줄(`// ← 이 줄을 지운다` 만 있는 자리)은 맞댈 것이 없다.
+      if (shown === "") continue;
+      if (dropped.has(shown)) continue;
+      fails.push({
+        id: "(변이 조각)",
+        line: i + 1,
+        kind: "변이 자리가 다르다",
+        detail: [
+          `원고가 「지웠다」고 짚은 줄: ${shownCode(head).trim()}`,
+          `이 편이 실제로 지운 줄: ${
+            dropped.size === 0 ? "없다(drop 변이를 실행한 적이 없다)" : ""
+          }${[...dropped].join(" · ")}`,
+          `이 편이 실행한 변이: ${ran()}`,
+        ].join("\n      "),
+      });
+      continue;
+    }
+
     const s = skel(raw);
     if (s === "" || inRef.has(s)) continue;
-    if (!inMutantSection(i)) continue;
     if (executed.has(s)) continue;
     fails.push({
       id: "(변이 조각)",
@@ -568,13 +734,7 @@ export function mutantSiteFailures(
       kind: "변이 자리가 다르다",
       detail: [
         `원고가 짚은 줄: ${raw.trim()}`,
-        `이 편이 실행한 변이: ${
-          mutations.length === 0
-            ? "없다"
-            : mutations
-                .map((m) => `${m.line}행 → ${(m.after ?? "(지움)").trim()}`)
-                .join(" · ")
-        }`,
+        `이 편이 실행한 변이: ${ran()}`,
       ].join("\n      "),
     });
   }
@@ -594,12 +754,24 @@ export interface NeutralSkip {
   ids: string[];
 }
 
+/**
+ * 「지나갔는데 같다」로 짚힌 블록 하나. **위반이 아니라 정보다**(`VisitedSame` 주석의 사유).
+ */
+export interface VisitedSameBlock {
+  id: string;
+  /** 마커 줄 번호(1부터) — 사람이 찾아갈 자리다. */
+  line: number;
+  rows: VisitedSame[];
+}
+
 export interface RunResult {
   guide: string;
   blocks: number;
   failures: ProofFailure[];
   /** 중화 대조를 못 잰 자리. 없으면 `null`. */
   neutralSkipped: NeutralSkip | null;
+  /** 「그 줄을 지나갔는데 답이 같다」로 짚힌 행. 위반이 아니라 사람이 볼 자리다. */
+  visitedSame: VisitedSameBlock[];
   /** 사이드카가 없다 — 마커도 없으면 통과, 마커가 있으면 위반이다. */
   sidecarMissing: boolean;
   refNotImported: boolean;
@@ -627,6 +799,7 @@ export async function run(guidePath: string): Promise<RunResult> {
       sidecarMissing: true,
       refNotImported: false,
       neutralSkipped: null,
+      visitedSame: visitedSameBlocks(blocks),
     };
   }
 
@@ -654,7 +827,19 @@ export async function run(guidePath: string): Promise<RunResult> {
     sidecarMissing: false,
     refNotImported,
     neutralSkipped: div.skip,
+    visitedSame: visitedSameBlocks(blocks),
   };
+}
+
+/** 블록마다 「지나갔는데 같다」 행을 모은다. 원고만 읽으므로 실행이 필요 없다. */
+export function visitedSameBlocks(blocks: ProofBlock[]): VisitedSameBlock[] {
+  const out: VisitedSameBlock[] = [];
+  for (const b of blocks) {
+    if (b.body === null) continue;
+    const rows = visitedSameRows(b.body);
+    if (rows.length > 0) out.push({ id: b.id, line: b.line, rows });
+  }
+  return out;
 }
 
 /** 같은 키를 두 번 부르면 앞의 결과(값이든 던진 것이든)를 그대로 돌려준다. */
@@ -753,6 +938,9 @@ if (import.meta.main) {
   // 경고 집계 — 안 잰 것이 통과로 읽히지 않게 끝에 한 줄로 낸다.
   let skipped = 0;
   let skippedGuides = 0;
+  // 정보 집계 — 「지나갔는데 같다」. 위반도 경고도 아니고 사람이 볼 자리를 좁히는 값이다.
+  let visited = 0;
+  let visitedGuides = 0;
   for (const f of files) {
     const r = await run(f);
     if (r.refNotImported) {
@@ -781,6 +969,22 @@ if (import.meta.main) {
           `자기검사만 건너뛰는 것이다. 안 쟀다는 것은 통과가 아니다.`,
       );
     }
+    // **정보이지 위반도 경고도 아니다.** 「같다」는 `deep.walk.pause` 규격이 부른 것이고,
+    // 여기서 짚는 것은 그중 **그 줄을 실제로 지나가고도 같은** 행이다 — ①(안 지나감)과
+    // ②③(지나갔다)을 가르는 선이 여기이고, ②와 ③ 사이는 걸음별 대조 블록의 몫이다.
+    if (r.visitedSame.length > 0) {
+      const n = r.visitedSame.reduce((s, b) => s + b.rows.length, 0);
+      visited += n;
+      visitedGuides++;
+      for (const b of r.visitedSame) {
+        console.log(
+          `${f}:${b.line}  [${b.id}] 정보 — 지나갔는데 같다 ${b.rows.length}행: ` +
+            b.rows
+              .map((x) => `${x.line}번째 줄 «${x.label}» ${x.count}번`)
+              .join(" · "),
+        );
+      }
+    }
     if (r.failures.length === 0 && !r.refNotImported) {
       // **0개를 「전부 일치」로 적지 않는다.** 아무것도 안 잰 것이 통과로 읽히면 게이트가
       // 거짓말을 한다 — 증명 블록 없는 편이 107 중 대다수인 동안 특히 그렇다.
@@ -797,6 +1001,14 @@ if (import.meta.main) {
       `\n경고 — 중화 대조를 못 잰 블록 ${skipped}개 (${skippedGuides}편). ` +
         `그 자리에서는 「어느 걸음에서 어긋나는가」가 검사되지 않는다. ` +
         `지금은 경고이고, 그 편들을 고친 뒤 위반으로 올린다.`,
+    );
+  }
+  if (visited > 0) {
+    console.log(
+      `\n정보 — 「그 줄을 지나갔는데 답이 같다」 ${visited}행 (${visitedGuides}편). ` +
+        `위반이 아니다 — 「답이 안 틀린다」는 변이는 SPEC §3 deep.walk.pause 가 부른 것이다. ` +
+        `다만 그 행은 「안 지나가서 같다」와 다르다 — 중간 값이 갈리고도 뒤 걸음이 상쇄해 ` +
+        `답만 같은 경우가 여기 섞여 있고, 그것은 걸음별 대조 블록이 있어야 보인다.`,
     );
   }
   process.exit(bad === 0 ? 0 : 1);

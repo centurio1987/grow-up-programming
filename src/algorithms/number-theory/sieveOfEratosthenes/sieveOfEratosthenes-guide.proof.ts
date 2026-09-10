@@ -784,7 +784,7 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       `제약의 최댓값 ${num(LIMIT)} 에서`,
-      `  적은 횟수        ${num(top.marks)}`,
+      `  적은 횟수         ${num(top.marks)}`,
       `  상한식 n·Σ1/p     ${num(Math.round(LIMIT * primesUpTo(1000).reduce((a, p) => a + 1 / p, 0)))}`,
       `  배열 칸 접근      ${num(top.access)}`,
       `  시행 나눗셈       ${num(naive.divisions)}`,

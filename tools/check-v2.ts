@@ -21,6 +21,14 @@ export interface Finding {
   code: string;
   detail: string;
   where?: string;
+  /**
+   * **위반이 아니라 경고다.** 판정(`bad`)에 안 들어가고 화면에만 뜬다.
+   *
+   * 넓힌 규칙이 한꺼번에 수십 편을 빨갛게 만들면 다른 편을 닫는 세션이 자기 것이 아닌
+   * 빨강을 본다 — `check-proof.ts` 가 2026-09-05 에 같은 이유로 경고 자리를 세웠다.
+   * 경고는 **고친 뒤 위반으로 올린다.**
+   */
+  warn?: true;
 }
 
 /* ────────────────────────── 공통 계수 ────────────────────────── */
@@ -938,7 +946,7 @@ export function finalCodeMatchesRef(
   ];
 }
 
-/* ──────────────── 생성 블록 열 정렬 — P15 ──────────────── */
+/* ──────────────── 블록 열 정렬 — P15 ──────────────── */
 
 /**
  * 화면에 찍히는 폭. **CJK 를 2 로 센다.**
@@ -990,36 +998,37 @@ function isTick(text: string): boolean {
   return /^[\^\s]+$/.test(text);
 }
 
-/**
- * P15 — **생성 블록이 그린 열이 맞는가.**
- *
- * `FEEDBACK.md` §3 의 「생성 블록이 그린 눈금·괄호가 표의 열과 맞는가」다. 생성 블록은
- * 사이드카가 만들어 `check-proof` 가 글자 그대로 대조하므로 **원고와 실행 결과는 이미 같다**
- * — 어긋나는 것은 생성기가 값에서 폭을 계산하지 않고 구분 공백을 고정으로 박았을 때다.
- * 그러면 앞 칸이 길어진 만큼 뒤 칸이 통째로 밀린다.
- *
- * **판정은 열마다 「전부 왼쪽이 맞거나 전부 오른쪽이 맞거나」다.** 좌측 정렬과 우측 정렬을
- * 둘 다 인정해야 수를 오른쪽으로 맞춘 표가 안 걸린다.
- *
- * 넷을 일부러 안 본다.
- *
- * 1. **칸이 하나뿐인 줄** — 열이라는 것이 없다. 그런 줄이 덩어리를 끊는다.
- * 2. **세 줄 미만의 덩어리** — 둘이 어긋난 것은 표가 아니라 산문일 수 있다.
- * 3. **`^` 눈금 칸** — 줄마다 다른 자리를 가리키는 것이 그 칸의 일이다.
- * 4. **머리줄 하나** — 열 이름이 데이터보다 길어 혼자 삐져나오는 것은 정상이다.
- *    그래서 전체로 한 번, 첫 줄을 뺀 채로 한 번 재고 **한쪽만 맞아도 통과**시킨다.
- */
-export function generatedBlockAlignment(text: string): Finding[] {
-  const findings: Finding[] = [];
-  const lines = text.split("\n");
+/** 펜스 하나. `generated` 는 **바로 위에 `<!--proof:-->` 가 있는가** 다. */
+export interface AlignFence {
+  /** 여는 백틱 줄의 1 기준 줄 번호. */
+  line: number;
+  generated: boolean;
+  body: string[];
+}
 
-  for (const [index, line] of lines.entries()) {
-    if (!/^<!--proof:[A-Za-z0-9_-]+-->$/.test(line.trim())) continue;
-    let i = index + 1;
-    while (i < lines.length && (lines[i] ?? "").trim() === "") i++;
-    if (!(lines[i] ?? "").trimStart().startsWith("```")) continue;
-    i++;
+/**
+ * 열 정렬을 잴 펜스를 모은다.
+ *
+ * **생성 블록**(`<!--proof:-->` 바로 아래)은 언어를 안 가린다 — 사이드카가 그린 것이라
+ * 무엇을 붙였든 기계가 그린 표다. **손 펜스는 `text` 만 본다** — 코드 펜스의 들여쓰기는
+ * 열이 아니라 문법이라, 거기서 열을 재면 재는 것이 없는 자리를 재게 된다.
+ */
+export function alignFences(text: string): AlignFence[] {
+  const lines = text.split("\n");
+  const out: AlignFence[] = [];
+  let marker = -1;
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i] ?? "";
+    if (/^<!--proof:[A-Za-z0-9_-]+-->$/.test(raw.trim())) {
+      marker = i;
+      continue;
+    }
+    const head = raw.trimStart();
+    if (!head.startsWith("```")) continue;
+    const lang = head.slice(3).trim();
+    const open = i;
     const body: string[] = [];
+    i++;
     while (
       i < lines.length &&
       !(lines[i] ?? "").trimStart().startsWith("```")
@@ -1027,14 +1036,89 @@ export function generatedBlockAlignment(text: string): Finding[] {
       body.push(lines[i] ?? "");
       i++;
     }
-    const bad = misalignedColumn(body);
-    if (bad !== null) {
-      findings.push({
-        code: "P15",
-        where: `:${index + 1}`,
-        detail: `생성 블록의 ${bad.column + 1} 번째 열이 어긋난다 — 왼쪽 ${bad.starts.join("·")} · 오른쪽 ${bad.ends.join("·")}. 값에서 폭을 재서 그린다(CJK 는 2 칸)`,
-      });
-    }
+    // 마커와 여는 펜스 사이에 빈 줄만 있으면 그 펜스가 마커의 것이다.
+    let j = marker + 1;
+    while (j < open && (lines[j] ?? "").trim() === "") j++;
+    const generated = marker >= 0 && j === open;
+    if (!generated && lang !== "text") continue;
+    out.push({ line: open + 1, generated, body });
+  }
+  return out;
+}
+
+/**
+ * P15 — **블록이 그린 열이 맞는가.**
+ *
+ * `FEEDBACK.md` §3 의 「생성 블록이 그린 눈금·괄호가 표의 열과 맞는가」에서 왔고,
+ * **2026-09-10 에 손으로 그린 `text` 펜스까지 넓혔다**(`KAN-034.9` `S3`). 넓힌 근거는
+ * 일곱 배치가 낸 실물이다 — `articulationPoints` 12건 · `floydWarshall` 14자리 ·
+ * `closestPairOfPoints` 5건(배치6) · `fftMultiply` 6곳 · `suffixAutomaton` 3곳 ·
+ * `maxBipartiteMatching` 3곳(배치7) · `externalMergeSort` 7건(배치11). 워커 여덟이
+ * 배치마다 검사기를 새로 짜서 잡던 자리다.
+ *
+ * **자리마다 판정 세기가 다르고, 세기가 곧 심각도다.**
+ *
+ * | 어디 | 무엇을 요구하는가 | 심각도 |
+ * | --- | --- | --- |
+ * | 생성 블록 · 세 줄 이상 덩어리 | 어긋나면 그대로 | **위반** |
+ * | 생성 블록 · 두 줄 덩어리 | 어긋나면 그대로 | 경고 |
+ * | 손 펜스 | **맞추려 한 흔적이 있는 열만** · 첫 열은 안 본다 | 경고 |
+ *
+ * **두 줄을 위반으로 안 세는 이유**는 실측이다. 두 줄로는 격자와 짝을 못 가른다 —
+ * 넓힌 첫날 111편에서 생성 블록의 두 줄 덩어리가 18자리 걸렸는데 **눈으로 보니 13이
+ * 오탐**이었다. `요약 항목  값` 처럼 2 칸으로 가르기만 한 짝, `A 의 값   [1 2 3 4 5]` /
+ * `인덱스     0 1 2 3 4` 처럼 대괄호 한 칸 때문에 시작이 갈린 자리, 그리고 나무 그림이다.
+ * 세 줄부터는 값이 셋이라 격자인지 아닌지가 자기 안에서 드러난다.
+ *
+ * 다섯을 일부러 안 본다.
+ *
+ * 1. **칸이 하나뿐인 줄** — 열이라는 것이 없다. 빈 줄과 함께 그런 줄이 덩어리를 끊는다.
+ * 2. **`^` 눈금 칸** — 줄마다 다른 자리를 가리키는 것이 그 칸의 일이다.
+ * 3. **머리줄이 데이터보다 길어 혼자 삐져나온 것** — `sa[k]` 같은 열 이름이 그렇다.
+ *    **다만 첫 줄이면 무조건 빼 주지는 않는다**(2026-09-10 에 좁혔다) — 첫 줄이 데이터인
+ *    표에서 그 면제가 어긋남을 통째로 가렸다. 지금은 **데이터 칸보다 넓고 그 열 자리에
+ *    겹쳐 있을 때만** 머리줄로 본다.
+ * 4. **손 펜스의 첫 열** — 들여쓰기가 중첩의 뜻인 그림(의사코드·나무)이 거기 산다.
+ * 5. **손 펜스에서 구분 폭이 줄마다 같은 열** — 맞추려고 띄운 것이 아니라 가르려고 띄운 것이다.
+ *
+ * **판정은 열마다 「전부 왼쪽이 맞거나 전부 오른쪽이 맞거나」다.** 좌측 정렬과 우측 정렬을
+ * 둘 다 인정해야 수를 오른쪽으로 맞춘 표가 안 걸린다.
+ */
+export function generatedBlockAlignment(text: string): Finding[] {
+  return alignmentFindings(text).filter((f) => f.warn === undefined);
+}
+
+/**
+ * **위반이 아니라 경고인 자리.** 손 펜스 전부와 생성 블록의 두 줄 덩어리다.
+ *
+ * 넓힌 첫날 111편 전수에서 **62편 · 151자리**가 나왔다(손 펜스 133 · 생성 블록 두 줄 18).
+ * 한꺼번에 빨개지면 다른 편을 닫는
+ * 세션이 자기 것이 아닌 빨강을 본다 — `check-proof.ts` 의 「중화 대조를 못 잰 자리」가
+ * 2026-09-05 에 같은 이유로 경고로 섰다. **그 편들을 고친 뒤 위반으로 올린다.**
+ */
+export function alignmentWarnings(text: string): Finding[] {
+  return alignmentFindings(text).filter((f) => f.warn === true);
+}
+
+const HAND: AlignPolicy = { firstColumn: false, intent: true };
+
+function alignmentFindings(text: string): Finding[] {
+  const findings: Finding[] = [];
+  for (const fence of alignFences(text)) {
+    const bad = misalignedColumns(
+      fence.body,
+      fence.generated ? undefined : HAND,
+    );
+    // 펜스 하나에 한 줄만 낸다 — 화면이 한 블록으로 덮이지 않게. 위반이 있으면 그것을 낸다.
+    const worst = bad.find((b) => fence.generated && b.rows >= 3) ?? bad[0];
+    if (worst === undefined) continue;
+    const violation = fence.generated && worst.rows >= 3;
+    findings.push({
+      code: "P15",
+      ...(violation ? {} : { warn: true as const }),
+      where: `:${fence.line + 1 + worst.row}`,
+      detail: `${fence.generated ? "생성 블록" : "손으로 그린 `text` 펜스"}의 ${worst.column + 1} 번째 열이 어긋난다 — 왼쪽 ${worst.starts.join("·")} · 오른쪽 ${worst.ends.join("·")}. 값에서 폭을 재서 그린다(CJK 는 2 칸)`,
+    });
   }
   return findings;
 }
@@ -1043,26 +1127,56 @@ interface Misaligned {
   column: number;
   starts: number[];
   ends: number[];
+  /** 덩어리에서 처음 빗나간 줄. 펜스 몸통 기준 0 부터 센다. */
+  row: number;
+  /** 그 덩어리가 몇 줄인가. 두 줄과 세 줄의 심각도가 다르다. */
+  rows: number;
 }
 
-/** 블록 하나에서 처음 어긋난 열. 없으면 `null`. */
-export function misalignedColumn(body: string[]): Misaligned | null {
-  let run: Cell[][] = [];
-  const chunks: Cell[][][] = [];
-  for (const line of body) {
+/** 판정을 얼마나 조이는가. 생성 블록과 손 펜스가 다르다. */
+export interface AlignPolicy {
+  /** 첫 열을 판정하는가. 손 펜스에서는 들여쓰기가 중첩의 뜻이라 안 본다. */
+  firstColumn: boolean;
+  /** 「맞추려 한 흔적」이 있는 열만 보는가. */
+  intent: boolean;
+}
+
+/** 몸통의 한 줄 — 칸과 **몸통 안 줄 번호**. 줄 번호가 있어야 어긋난 줄을 짚을 수 있다. */
+interface Ruled {
+  cells: Cell[];
+  at: number;
+}
+
+/**
+ * 블록 하나에서 어긋난 열 — **덩어리마다 처음 하나씩.**
+ *
+ * 덩어리는 **칸이 둘 이상인 줄의 연속**이고 빈 줄·한 칸짜리 줄이 그것을 끊는다.
+ * **하한은 두 줄이다**(2026-09-10 에 셋에서 내렸다) — 두 줄짜리 표가 실제로 있었고,
+ * 셋을 요구하는 동안 그 자리가 전부 샜다. 두 줄과 세 줄은 **심각도가 갈리므로**
+ * 덩어리 크기를 함께 돌려준다.
+ */
+export function misalignedColumns(
+  body: string[],
+  policy: AlignPolicy = { firstColumn: true, intent: false },
+): Misaligned[] {
+  const found: Misaligned[] = [];
+  let run: Ruled[] = [];
+  const chunks: Ruled[][] = [];
+  for (const [at, line] of body.entries()) {
     const c = cells(line);
-    if (c.length >= 2) run.push(c);
+    if (c.length >= 2) run.push({ cells: c, at });
     else {
-      if (run.length >= 3) chunks.push(run);
+      if (run.length >= 2) chunks.push(run);
       run = [];
     }
   }
-  if (run.length >= 3) chunks.push(run);
+  if (run.length >= 2) chunks.push(run);
 
   for (const chunk of chunks) {
     // 칸 수가 가장 흔한 줄만 한 표로 본다. 그 밖은 캡션이거나 다른 모양이다.
     const tally = new Map<number, number>();
-    for (const r of chunk) tally.set(r.length, (tally.get(r.length) ?? 0) + 1);
+    for (const r of chunk)
+      tally.set(r.cells.length, (tally.get(r.cells.length) ?? 0) + 1);
     let width = 0;
     let best = 0;
     for (const [n, c] of tally) {
@@ -1071,25 +1185,30 @@ export function misalignedColumn(body: string[]): Misaligned | null {
         width = n;
       }
     }
-    const rowsAll = chunk.filter((r) => r.length === width);
-    if (rowsAll.length < 3) continue;
+    const ruled = chunk.filter((r) => r.cells.length === width);
+    if (ruled.length < 2) continue;
+    const rows = ruled.map((r) => r.cells);
 
-    for (let c = 0; c < width; c++) {
-      if (rowsAll.some((r) => isTick((r[c] as Cell).text))) continue;
-      if (aligned(rowsAll, c)) continue;
-      if (aligned(rowsAll.slice(1), c)) continue;
-      return {
+    for (let c = policy.firstColumn ? 0 : 1; c < width; c++) {
+      if (rows.some((r) => isTick((r[c] as Cell).text))) continue;
+      if (aligned(rows, c)) continue;
+      if (headerOverhang(rows, c)) continue;
+      if (policy.intent && !alignmentIntended(rows, c, width)) continue;
+      found.push({
         column: c,
-        starts: [...new Set(rowsAll.map((r) => (r[c] as Cell).start))].sort(
+        starts: [...new Set(rows.map((r) => (r[c] as Cell).start))].sort(
           (a, b) => a - b,
         ),
-        ends: [...new Set(rowsAll.map((r) => (r[c] as Cell).end))].sort(
+        ends: [...new Set(rows.map((r) => (r[c] as Cell).end))].sort(
           (a, b) => a - b,
         ),
-      };
+        row: (ruled[strayRow(rows, c)] as Ruled).at,
+        rows: rows.length,
+      });
+      break;
     }
   }
-  return null;
+  return found;
 }
 
 /** 그 열이 왼쪽으로 맞거나 오른쪽으로 맞는가. 줄이 둘 미만이면 잴 것이 없다. */
@@ -1098,6 +1217,94 @@ function aligned(rows: Cell[][], c: number): boolean {
   const starts = new Set(rows.map((r) => (r[c] as Cell).start));
   const ends = new Set(rows.map((r) => (r[c] as Cell).end));
   return starts.size === 1 || ends.size === 1;
+}
+
+/**
+ * 머리줄 하나가 데이터보다 길어 혼자 삐져나온 것인가.
+ *
+ * 예전에는 **첫 줄을 빼고 다시 재서 맞으면 통과**시켰다. 그것이 「첫 줄이 데이터인 표」의
+ * 어긋남을 통째로 가렸다 — 세 줄짜리 표에서 첫 줄만 밀려 있으면 나머지 둘은 당연히 맞는다.
+ * 지금은 셋을 다 요구한다.
+ *
+ * 1. 첫 줄을 빼면 그 열이 맞는다.
+ * 2. 첫 줄의 칸이 **어느 데이터 칸보다도 넓다** — 열 이름이 길어서 삐져나온 것이라야 한다.
+ * 3. 첫 줄의 칸이 **데이터 열 자리에 겹쳐 있다** — 옆으로 비켜 앉은 것은 머리줄이 아니다.
+ */
+function headerOverhang(rows: Cell[][], c: number): boolean {
+  if (rows.length < 3) return false;
+  if (!aligned(rows.slice(1), c)) return false;
+  const head = rows[0]?.[c];
+  if (head === undefined) return false;
+  const rest = rows.slice(1).map((r) => r[c] as Cell);
+  if (head.end - head.start <= Math.max(...rest.map((x) => x.end - x.start)))
+    return false;
+  const lo = Math.min(...rest.map((x) => x.start));
+  const hi = Math.max(...rest.map((x) => x.end));
+  return head.start < hi && head.end > lo;
+}
+
+/**
+ * 손 펜스에서 **그 열을 맞추려 한 흔적**이 있는가. 둘을 함께 요구한다.
+ *
+ * 1. **구분 폭이 줄마다 다르다.** 전부 같으면 띄운 것이 아니라 **가른 것**이다 —
+ *    `"이 조건" "그 조건" ← 설명` 처럼 2 칸으로 항목만 가른 목록이 원고에 흔하고,
+ *    그것을 격자로 읽으면 규칙이 원고에 없는 의도를 요구하게 된다.
+ * 2. **나머지 열은 다 맞는데 이 열만, 그것도 한 줄만 빗나간다.** 독자가 「격자가 깨졌다」로
+ *    읽는 것이 이 모양이다. 아예 한 번도 안 맞는 열은 격자가 아니라 자유 문단이다.
+ *
+ * 이 문을 안 달면 111편 전수에서 294자리가 나오고 그중 대부분이 「맞출 생각이 없던 자리」다.
+ * 달면 133자리가 되고, 앞 배치들이 손으로 짠 검사기가 잡아 고친 편들(`articulationPoints`·
+ * `floydWarshall`·`closestPairOfPoints`·`fftMultiply`·`suffixAutomaton`·`externalMergeSort`·
+ * `countInversions`)이 **전부 0** 이다 — 같은 것을 재고 있다는 대조다.
+ */
+function alignmentIntended(rows: Cell[][], c: number, width: number): boolean {
+  // 첫 열의 「구분 폭」은 들여쓰기 그 자체다.
+  const gaps = rows.map((r) =>
+    c === 0
+      ? (r[0] as Cell).start
+      : (r[c] as Cell).start - (r[c - 1] as Cell).end,
+  );
+  if (new Set(gaps).size === 1) return false;
+  if (rows.length < 3) return false;
+  if (strayCount(rows, c) !== 1) return false;
+  for (let k = 0; k < width; k++) {
+    if (k === c) continue;
+    if (rows.some((r) => isTick((r[k] as Cell).text))) continue;
+    if (!aligned(rows, k)) return false;
+  }
+  return true;
+}
+
+/** 그 열에서 다수와 다른 자리에 있는 줄이 몇이나 되는가. 왼쪽·오른쪽 중 적은 쪽으로 센다. */
+function strayCount(rows: Cell[][], c: number): number {
+  const most = (v: number[]): number => {
+    const m = new Map<number, number>();
+    for (const x of v) m.set(x, (m.get(x) ?? 0) + 1);
+    return Math.max(...m.values());
+  };
+  const starts = rows.map((r) => (r[c] as Cell).start);
+  const ends = rows.map((r) => (r[c] as Cell).end);
+  return Math.min(rows.length - most(starts), rows.length - most(ends));
+}
+
+/** 그 열에서 처음 다수와 어긋난 줄. 다수가 없으면(전부 제각각) 첫 줄을 짚는다. */
+function strayRow(rows: Cell[][], c: number): number {
+  const tally = (v: number[]): Map<number, number> => {
+    const m = new Map<number, number>();
+    for (const x of v) m.set(x, (m.get(x) ?? 0) + 1);
+    return m;
+  };
+  const starts = rows.map((r) => (r[c] as Cell).start);
+  const ends = rows.map((r) => (r[c] as Cell).end);
+  const ts = tally(starts);
+  const te = tally(ends);
+  const bs = Math.max(...ts.values());
+  const be = Math.max(...te.values());
+  if (bs === 1 && be === 1) return 0;
+  const [values, best] = bs >= be ? [starts, bs] : [ends, be];
+  const table = bs >= be ? ts : te;
+  const at = values.findIndex((v) => (table.get(v) ?? 0) !== best);
+  return at === -1 ? 0 : at;
 }
 
 /**
@@ -1610,11 +1817,11 @@ async function checkOne(
   target: string,
   json: boolean,
   notes = false,
-): Promise<{ bad: number; missing: string[] }> {
+): Promise<{ bad: number; missing: string[]; warnings: number }> {
   const file = Bun.file(target);
   if (!(await file.exists())) {
     console.error(`대상이 없다: ${target}`);
-    return { bad: 1, missing: [] };
+    return { bad: 1, missing: [], warnings: 0 };
   }
   const text = await file.text();
   const stem = basename(target).replace(/\.md$/, "");
@@ -1634,8 +1841,13 @@ async function checkOne(
   if (input.ref === undefined) missing.push("ref");
 
   const findings = check(input);
+  // **경고는 판정에 안 들어간다.** 화면에는 뜨고 `--json` 에도 실린다 — 안 뜨면 넓힌
+  // 규칙이 잡은 자리를 아무도 못 보고, 위반으로 세면 53편이 한꺼번에 빨개진다.
+  const warnings = alignmentWarnings(text);
   if (json) {
-    console.log(JSON.stringify({ target, findings, missing }, null, 2));
+    console.log(
+      JSON.stringify({ target, findings, warnings, missing }, null, 2),
+    );
   } else if (findings.length === 0) {
     console.log(`${target} — P1~P16 통과.`);
     if (notes) for (const line of skipNotes(missing)) console.log(`  ${line}`);
@@ -1648,7 +1860,17 @@ async function checkOne(
     if (notes)
       for (const line of skipNotes(missing)) console.error(`  ${line}`);
   }
-  return { bad: findings.length === 0 ? 0 : 1, missing };
+  // 단일 대상이면 그 자리에서 적고, `--all` 은 끝에서 편 수로 요약한다.
+  if (!json && notes && warnings.length > 0) {
+    console.log(`  경고 ${warnings.length}건 — 열 정렬.`);
+    for (const w of warnings)
+      console.log(`  [${w.code}] ${w.where}  ${w.detail}`);
+  }
+  return {
+    bad: findings.length === 0 ? 0 : 1,
+    missing,
+    warnings: warnings.length,
+  };
 }
 
 /** 사이드카가 없어 건너뛴 검사를 사람이 읽는 줄로. 없는 것이 없으면 빈 배열이다. */
@@ -1680,10 +1902,14 @@ if (import.meta.main) {
       process.exit(0);
     }
     let bad = 0;
+    let warned = 0;
+    let warnedGuides = 0;
     const skipped = new Map<string, number>();
     for (const t of targets) {
       const r = await checkOne(t, json);
       bad += r.bad;
+      warned += r.warnings;
+      if (r.warnings > 0) warnedGuides++;
       for (const m of r.missing) skipped.set(m, (skipped.get(m) ?? 0) + 1);
     }
     // 편마다 안내를 찍으면 111편 × 세 줄이라 통과 화면이 안내로 덮인다. 대신
@@ -1694,6 +1920,15 @@ if (import.meta.main) {
         .filter((k) => skipped.has(k))
         .map((k) => `${k} ${skipped.get(k)}편`);
       console.log(`\n사이드카가 없어 건너뛴 검사 — ${parts.join(" · ")}`);
+    }
+    // **경고는 판정에 안 들어간다.** 그래도 편 수를 적는다 — 안 적으면 「잡았는데 아무도
+    // 안 본 자리」가 되고, 그것이 이 규칙이 일곱 배치를 샌 방식이다.
+    if (!json && warned > 0) {
+      console.log(
+        `\n경고 — 열이 어긋난 자리 ${warned}건 (${warnedGuides}편). ` +
+          `\`--json\` 의 \`warnings\` 나 편별 실행으로 자리를 본다. ` +
+          `지금은 경고이고, 그 편들을 고친 뒤 위반으로 올린다.`,
+      );
     }
     process.exit(bad === 0 ? 0 : 1);
   }

@@ -543,7 +543,7 @@ export const PROOFS: Record<string, () => string> = {
       rows,
     )}
 
-배정밀도 정수가 정확한 범위 2^53   ${comma(EXACT_LIMIT)}
+배정밀도 정수가 정확한 범위 2^53    ${comma(EXACT_LIMIT)}
 2^53 + 1 이 2^53 과 같은가          ${EXACT_LIMIT + 1 === EXACT_LIMIT ? "같다" : "다르다"}
 제약이 허용하는 |m·x| 의 최댓값     ${comma(10n ** 18n)}
 제약이 허용하는 두 곱의 최댓값      ${comma(4n * 10n ** 27n)}

@@ -731,8 +731,8 @@ export const PROOFS: Record<string, () => string> = {
       "",
       `겨냥해 만든 배치  다각형 ${QUOTIENT_POLYGON.map(pt).join(" ")}  질의 점 ${pt(QUOTIENT_POINT)}`,
       `  변 (0,0)-${pt(QUOTIENT_POLYGON[1] as Point)} 가 그 높이를 지나는 x 를 배정밀도가 낸 값  ${num(quotientX)}`,
-      `  질의 점의 x                                                            ${num(QUOTIENT_POINT[0])}`,
-      `  같은 자리의 판정값(큰 정수)                                            ${bignum(exact)}`,
+      `  질의 점의 x                                                                ${num(QUOTIENT_POINT[0])}`,
+      `  같은 자리의 판정값(큰 정수)                                                ${bignum(exact)}`,
       `  정본 ${pointInPolygon(QUOTIENT_POINT, QUOTIENT_POLYGON)} · 교점의 x 를 구해 견준 답 ${byQuotient(QUOTIENT_POINT, QUOTIENT_POLYGON)} · 어긋난 질의 ${num(wrongBig)} 개`,
       "└ 별 다섯에서는 두 방식의 답이 같다. 좌표가 상한에 붙으면 나눗셈이 10 억분의 1 을 못 담는다",
     ].join("\n");

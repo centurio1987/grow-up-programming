@@ -742,7 +742,8 @@ const ang = (2 * Math.PI) / len;    // ← 이렇게 바꾸면
 배로 나옵니다.** 변환을 정방향과 역방향으로 한 번씩 하면 원래 값의 `N` 배가 되니까요.
 
 ```ts
-im[i] = (im[i] as number) / size;    // ← 실수부 줄만 지우면
+// re[i] = (re[i] as number) / size;   ← 실수부 줄만 지운 판
+im[i] = (im[i] as number) / size;
 ```
 
 <!--proof:pause-divide-->

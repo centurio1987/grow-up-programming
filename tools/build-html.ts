@@ -14,7 +14,7 @@
  * bun run tools/build-html.ts <name>-guide.md [--out <경로>]
  * ```
  *
- * 종료코드: 0 정상 · 1 마커 규약 위반 · 2 대상 없음
+ * 종료코드: 0 정상 · 1 빌드 규약 위반(마커 · 표 칸) · 2 대상 없음
  */
 
 import { basename, dirname, join, resolve } from "node:path";
@@ -187,7 +187,15 @@ interface MdNode {
   data?: Record<string, unknown>;
 }
 
-/** `remarkRehype` 뒤의 트리. 헤딩에 앵커 id 를 다는 데만 쓴다. */
+/**
+ * 원고 줄 번호. `MdNode` 에 직접 달지 않는다 — 그러면 mdast 의 `Node` 가 `MdNode` 로
+ * 안 좁혀져 `unified().use()` 의 오버로드가 통째로 어긋난다(실측).
+ */
+interface Positioned {
+  position?: { start?: { line?: number } };
+}
+
+/** `remarkRehype` 뒤의 트리. 헤딩 앵커와 표 칸 대조에 쓴다. */
 interface HastNode {
   type: string;
   tagName?: string;
@@ -299,6 +307,125 @@ function collapseMarkers(tree: MdNode, problems: string[]): string[] {
 
   walk(tree);
   return ids;
+}
+
+/* ────────────────────────── 표 칸 대조 ────────────────────────── */
+
+/**
+ * 원고 표의 한 행. `line` 은 그 행이 선 원고 줄 번호다.
+ *
+ * `cells` 는 **원고가 그은 칸 수**다 — GFM 이 `|` 를 세로 그은 자리마다 하나씩이라,
+ * 칸 안에 쓴 `|` 도 여기서는 칸을 하나 더 만든 것으로 셈된다.
+ */
+export interface MdTableRow {
+  line: number;
+  cells: number;
+}
+
+/**
+ * mdast 에서 표별·행별 **원고 칸 수**를 문서 순서대로 모은다.
+ *
+ * 표를 만나면 그 아래로는 안 내려간다 — GFM 표 안에 표가 서지 않는다.
+ */
+export function mdTableRows(tree: MdNode): MdTableRow[][] {
+  const out: MdTableRow[][] = [];
+  const walk = (node: MdNode): void => {
+    if (node.type === "table") {
+      out.push(
+        (node.children ?? []).map((row) => ({
+          line: (row as Positioned).position?.start?.line ?? 0,
+          cells: (row.children ?? []).length,
+        })),
+      );
+      return;
+    }
+    for (const child of node.children ?? []) walk(child);
+  };
+  walk(tree);
+  return out;
+}
+
+/** hast 에서 표별·행별 **렌더된 `<td>`·`<th>` 수**를 문서 순서대로 모은다. */
+export function hastTableRows(tree: HastNode): number[][] {
+  const out: number[][] = [];
+
+  const rowsOf = (node: HastNode, acc: number[]): void => {
+    if (node.type === "element" && node.tagName === "tr") {
+      acc.push(
+        (node.children ?? []).filter(
+          (c) =>
+            c.type === "element" && (c.tagName === "td" || c.tagName === "th"),
+        ).length,
+      );
+      return;
+    }
+    for (const child of node.children ?? []) rowsOf(child, acc);
+  };
+
+  const walk = (node: HastNode): void => {
+    if (node.type === "element" && node.tagName === "table") {
+      const acc: number[] = [];
+      rowsOf(node, acc);
+      out.push(acc);
+      return;
+    }
+    for (const child of node.children ?? []) walk(child);
+  };
+
+  walk(tree);
+  return out;
+}
+
+/**
+ * **원고 칸 수와 렌더된 `<td>` 수를 견준다.** 어긋나면 그 행에서 칸이 사라졌거나 늘어난 것이다.
+ *
+ * 잡는 것은 하나다 — **표 칸 안에 그냥 쓴 `|`**. GFM 은 칸 구분자를 **인라인 코드 안에서도**
+ * 먼저 가른다(`\|` 로 써야 내용이 된다). 그래서 `` `gcd(|x − y|, n)` `` 같은 칸은 원고에서
+ * 칸 하나인데 파싱은 셋으로 갈라 놓고, `remark-rehype` 가 머리줄 폭에 맞춰 **넘치는 칸을
+ * 잘라 버린다**. 잘린 자리는 **원고를 읽는 사람에게만 보이고 HTML 에는 없다.**
+ *
+ * 2026-09-10 실측 — `ternarySearch`(`|x-2|`) · `pollardRho`(`gcd(|x − y|, n)`) 두 편이
+ * 그 상태였고 **스캐너 넷이 전부 초록이었다**. 앞서 `KAN-034.7` 배치6 이
+ * `articulationPoints` 기호표에서 같은 것을 손으로 찾아 원고만 고쳤다(강제 지점은 없었다).
+ *
+ * **렌더러를 고치는 것이 처방이 아니다.** 렌더러가 삼켜 주게 만들면 GFM 명세와 갈라진 방언이
+ * 되고, 그 원고는 다른 마크다운 도구에서 다시 깨진다. 고치는 쪽은 원고다 — `\|`.
+ *
+ * 모자란 칸(`remark-rehype` 가 빈 칸으로 메운다)도 같은 자리에서 잡힌다. 보이는 표와
+ * 원고가 다르다는 사실은 같기 때문이다.
+ */
+export function tableCellProblems(
+  md: MdTableRow[][],
+  html: number[][],
+): string[] {
+  const problems: string[] = [];
+
+  if (md.length !== html.length) {
+    problems.push(
+      `표 개수가 어긋난다 — 원고 ${md.length}개 vs 렌더 ${html.length}개. 표 칸 대조를 못 한다`,
+    );
+    return problems;
+  }
+
+  for (const [t, rows] of md.entries()) {
+    const rendered = html[t] ?? [];
+    if (rows.length !== rendered.length) {
+      problems.push(
+        `${rows[0]?.line ?? "?"}줄 표: 행 수가 어긋난다 — 원고 ${rows.length}행 vs 렌더 ${rendered.length}행`,
+      );
+      continue;
+    }
+    for (const [r, row] of rows.entries()) {
+      const got = rendered[r];
+      if (got === row.cells) continue;
+      const verb = row.cells > (got ?? 0) ? "사라졌다" : "늘어났다";
+      problems.push(
+        `${row.line}줄 표 칸: 원고 ${row.cells}칸 vs 렌더 ${got}칸 — 칸이 ${verb}. 칸 안의 \`|\` 는 \`\\|\` 로 쓴다(인라인 코드 안이어도 그렇다)`,
+      );
+    }
+  }
+
+  return problems;
 }
 
 /* ────────────────────────── KaTeX ────────────────────────── */
@@ -438,8 +565,22 @@ export async function build(
   const problems: string[] = [];
   let vizIds: string[] = [];
 
+  let mdTables: MdTableRow[][] = [];
+  let htmlTables: number[][] = [];
+
   const markerPlugin = () => (tree: MdNode) => {
     vizIds = collapseMarkers(tree, problems);
+    // 마커를 접은 **뒤**에 센다. `check` 블록 안의 표도 그때는 트리에 그대로 있다.
+    mdTables = mdTableRows(tree);
+  };
+
+  /**
+   * 렌더된 쪽의 칸 수. **머리줄 폭을 보고 미루어 짚지 않고 산출을 직접 센다** —
+   * 넘치는 칸을 자르는 것은 `remark-rehype` 이고, 그 동작이 바뀌면 미루어 짚은 쪽이
+   * 조용히 틀린다. 재는 것은 독자가 실제로 보는 표다.
+   */
+  const tableHastPlugin = () => (tree: HastNode) => {
+    htmlTables = hastTableRows(tree);
   };
 
   // 레일은 **md 원문**에서 계산한다. 마커를 접은 뒤의 트리에는 절 id 정보가 없다.
@@ -477,6 +618,7 @@ export async function build(
     .use(markerPlugin)
     .use(remarkRehype)
     .use(headingIdPlugin)
+    .use(tableHastPlugin)
     .use(rehypeKatex)
     .use(rehypeShiki, {
       themes: { light: "github-light", dark: "github-dark" },
@@ -485,6 +627,7 @@ export async function build(
     .process(md);
 
   const prose = String(file);
+  problems.push(...tableCellProblems(mdTables, htmlTables));
   const title = /^#\s+(.+)$/m.exec(md)?.[1]?.trim() ?? basename(mdPath);
 
   let script = "";
@@ -551,7 +694,7 @@ ${script === "" ? "" : `<script type="module">${escapeForInline(script)}</script
 if (import.meta.main) {
   const args = Bun.argv.slice(2);
 
-  // `--all` 은 v2 가이드 전수를 **메모리에서만** 빌드해 마커 규약을 판정한다.
+  // `--all` 은 v2 가이드 전수를 **메모리에서만** 빌드해 빌드 규약(마커 · 표 칸)을 판정한다.
   // 파일을 안 쓰는 이유는 산출이 편당 700KB 이고 `.gitignore` 대상이라, CI 가 돌 때마다
   // 30MB 를 쓰고 버리게 되기 때문이다. 여기서 필요한 것은 산출이 아니라 종료코드다.
   if (args.includes("--all")) {
@@ -572,8 +715,8 @@ if (import.meta.main) {
     }
     console.log(
       bad === 0
-        ? `가이드 ${targets.length}편 전부 마커 규약을 지킨다.`
-        : `가이드 ${targets.length}편 중 ${bad}편이 마커 규약을 어긴다.`,
+        ? `가이드 ${targets.length}편 전부 빌드 규약(마커 · 표 칸)을 지킨다.`
+        : `가이드 ${targets.length}편 중 ${bad}편이 빌드 규약(마커 · 표 칸)을 어긴다.`,
     );
     process.exit(bad === 0 ? 0 : 1);
   }
@@ -606,7 +749,7 @@ if (import.meta.main) {
     `${out} — ${kb}KB · viz ${result.vizIds.length}개 · 레일 ${result.rail.length}항목 · 번들 ${result.mounted ? "포함" : "없음"}`,
   );
   if (result.problems.length > 0) {
-    console.error("\n마커 규약 위반:");
+    console.error("\n빌드 규약 위반(마커 · 표 칸):");
     for (const p of result.problems) console.error(`  ${p}`);
     process.exit(1);
   }

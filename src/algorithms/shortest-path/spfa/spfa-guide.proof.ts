@@ -1139,7 +1139,7 @@ export const PROOFS: Record<string, () => string> = {
       ...table([["정점 V", "간선 E", "(V−1) x E"], ...rows], [0, 1, 2]),
       "",
       "제약 상한에서",
-      `  간선 읽기의 상한    (V−1) x E = ${comma((V_LIMIT - 1) * E_LIMIT)} 번`,
+      `  간선 읽기의 상한     (V−1) x E = ${comma((V_LIMIT - 1) * E_LIMIT)} 번`,
       `  한 정점의 꺼낸 횟수  c(v) ≤ V−1 = ${comma(V_LIMIT - 1)} 번`,
       `  거리 값의 크기       (V−1) x ${comma(W_LIMIT)} = ${comma((V_LIMIT - 1) * W_LIMIT)} 까지`,
     ].join("\n");

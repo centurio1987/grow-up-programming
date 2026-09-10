@@ -319,3 +319,137 @@ test("레일 — 숨김 기준점이 본문·레일 폭에서 유도된다", () 
 test("레일 — 항목이 0개면 nav 를 아예 안 낸다", () => {
   expect(railHtml([])).toBe("");
 });
+
+/* ────────────── 표 칸 대조 — `B2` (`KAN-034.9` 배치2 `S7`) ────────────── */
+
+/**
+ * 임시 원고 한 장을 지어 빌드한다. 사이드카는 없는 경로를 준다 — 번들 단계를 안 탄다.
+ *
+ * `_fixtures/` 안에 짓는 이유는 `build` 가 `.sim.ts` 를 같은 디렉터리에서 찾기 때문이고,
+ * 끝나면 지운다.
+ */
+async function buildMd(name: string, lines: string[]) {
+  const tmp = join(SMOKE, `${name}-guide.md`);
+  await Bun.write(tmp, `${lines.join("\n")}\n`);
+  try {
+    return await build(tmp, { simPath: join(SMOKE, "없는-sim.ts") });
+  } finally {
+    await Bun.file(tmp).unlink();
+  }
+}
+
+test("표 칸 — 인라인 코드 안의 `|` 가 칸을 삼키면 잡는다", async () => {
+  // 2026-09-10 `pollardRho-guide.md:141` 실측. 스캐너 넷이 전부 초록이었다.
+  const r = await buildMd("pipe-in-cell", [
+    "# 표본",
+    "",
+    "| 기호 | 무엇인가 | 이 문제에서 |",
+    "| --- | --- | --- |",
+    "| `d` | 그 걸음의 최대공약수 | `gcd(|x − y|, n)` |",
+  ]);
+
+  expect(r.problems).toEqual([
+    "5줄 표 칸: 원고 5칸 vs 렌더 3칸 — 칸이 사라졌다. 칸 안의 `|` 는 `\\|` 로 쓴다(인라인 코드 안이어도 그렇다)",
+  ]);
+
+  // **결함이 실재한다는 것을 함께 잰다.** 판정만 보면 시험이 스스로를 지킨다 —
+  // 마지막 칸의 내용이 산출에서 통째로 없어졌고 코드 스팬도 깨졌다.
+  expect(r.html).not.toContain("gcd(|x − y|, n)");
+  expect(r.html).toContain("<td>`gcd(</td>");
+});
+
+test("표 칸 — `articulationPoints` 기호표 모양이 걸린다", async () => {
+  // `KAN-034.7` 배치6 이 손으로 찾은 자리다 — 기호표의 한 칸이 HTML 에서 통째로
+  // 사라졌는데 스캐너 넷이 전부 초록이었다. 그때는 강제 지점이 없어 원고만 고쳤고,
+  // 지금 원고에는 남아 있지 않다. 그 모양을 표본으로 세워 검사가 실제로 잡는지 잰다.
+  const r = await buildMd("articulation-symbols", [
+    "# 표본",
+    "",
+    "| 기호 | 무엇인가 | 이 문제에서 |",
+    "| --- | --- | --- |",
+    "| `V` | 정점의 개수 | `1 ≤ V ≤ 10^5` |",
+    "| `low(v)` | `min(disc(v), min(low(w) | w 는 v 의 자식))` | `disc(v)` 이하 |",
+    "| `A` | 단절점의 집합 | 원소 수가 `V − 2` 이하 |",
+  ]);
+
+  expect(r.problems).toEqual([
+    "6줄 표 칸: 원고 4칸 vs 렌더 3칸 — 칸이 사라졌다. 칸 안의 `|` 는 `\\|` 로 쓴다(인라인 코드 안이어도 그렇다)",
+  ]);
+  // 사라진 것은 **마지막 칸**이다. 원고를 읽는 사람에게만 보인다.
+  expect(r.html).not.toContain("<code>disc(v)</code> 이하");
+});
+
+test("표 칸 — `\\|` 로 이스케이프한 칸은 안 걸리고 세로줄이 산출에 남는다", async () => {
+  // 오탐 시험. 처방은 렌더러가 삼켜 주는 것이 아니라 원고가 `\|` 로 쓰는 것이다.
+  const r = await buildMd("escaped-pipe", [
+    "# 표본",
+    "",
+    "| 기호 | 무엇인가 | 이 문제에서 |",
+    "| --- | --- | --- |",
+    "| `d` | 그 걸음의 최대공약수 | `gcd(\\|x − y\\|, n)` |",
+  ]);
+
+  expect(r.problems).toEqual([]);
+  expect(r.html).toContain("<code>gcd(|x − y|, n)</code>");
+});
+
+test("표 칸 — 표 밖의 `|` 는 안 본다 (펜스 · 산문 · 수식)", async () => {
+  // 오탐 시험. ascii 펜스는 세로줄로 그림을 그리고, 절댓값은 산문에도 수식에도 나온다.
+  // 줄 단위로 `|` 를 세는 스캐너였다면 여기서 전부 빨개진다.
+  const r = await buildMd("pipe-outside-table", [
+    "# 표본",
+    "",
+    "| 무엇 | 왜 |",
+    "| --- | --- |",
+    "| 표 | 정상이다 |",
+    "",
+    "산문에서 `|x|` 를 이렇게 쓴다. 수식으로는 $|A| \\leq V - 2$ 다.",
+    "",
+    "<!--viz:demo-->",
+    "```text",
+    "  0 | 1 | 2",
+    "  --+---+--",
+    "  a | b | c",
+    "```",
+  ]);
+
+  expect(r.problems).toEqual([]);
+  expect(r.vizIds).toEqual(["demo"]);
+});
+
+test("표 칸 — 칸이 모자란 행도 잡는다 (렌더가 빈 칸으로 메운다)", async () => {
+  const r = await buildMd("short-row", [
+    "# 표본",
+    "",
+    "| 기호 | 무엇인가 | 이 문제에서 |",
+    "| --- | --- | --- |",
+    "| `V` | 정점의 개수 |",
+  ]);
+
+  expect(r.problems).toEqual([
+    "5줄 표 칸: 원고 2칸 vs 렌더 3칸 — 칸이 늘어났다. 칸 안의 `|` 는 `\\|` 로 쓴다(인라인 코드 안이어도 그렇다)",
+  ]);
+  // 렌더는 빈 칸을 하나 만들어 낸다 — 원고에 없는 칸이 화면에 선다.
+  expect(r.html).toContain("<td></td>");
+});
+
+test("표 칸 — `check` 블록 안에 접힌 표도 본다", async () => {
+  // 마커를 접으면 표가 `<details>` 안으로 들어간다. 양쪽 걷기가 컨테이너 아래로
+  // 안 내려가면 접힌 표는 대조에서 통째로 빠진다.
+  const r = await buildMd("table-in-check", [
+    "# 표본",
+    "",
+    "<!--check:c1-->",
+    "",
+    "| 기호 | 무엇인가 | 이 문제에서 |",
+    "| --- | --- | --- |",
+    "| `d` | 최대공약수 | `gcd(|x, y)` |",
+    "",
+    "<!--/check-->",
+  ]);
+
+  expect(r.html).toContain('<details class="gs-check"');
+  expect(r.problems).toEqual([
+    "7줄 표 칸: 원고 4칸 vs 렌더 3칸 — 칸이 사라졌다. 칸 안의 `|` 는 `\\|` 로 쓴다(인라인 코드 안이어도 그렇다)",
+  ]);
+});

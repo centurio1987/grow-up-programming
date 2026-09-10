@@ -8,6 +8,8 @@
 import { expect, test } from "bun:test";
 import { scan } from "./check-metaphor.ts";
 import {
+  alignFences,
+  alignmentWarnings,
   bodyNumbers,
   check,
   codeNameMapping,
@@ -1011,11 +1013,15 @@ test("P2 — 어간화의 오탐 — 살아남아야 하는 표현", () => {
   }
 });
 
-/* ────────────────── P15 생성 블록 열 정렬 ────────────────── */
+/* ────────────────── P15 블록 열 정렬 ────────────────── */
 
-/** 마커와 펜스로 감싼다 — 생성 블록이 아니면 P15 는 아무것도 안 본다. */
+/** 마커와 펜스로 감싼다 — **생성 블록**이다. 판정이 가장 세다. */
 const block = (body: string): string =>
   `<!--proof:sample-->\n\n\`\`\`text\n${body}\n\`\`\`\n`;
+
+/** 마커 없는 펜스 — **손으로 그린 것**이다. 경고 자리다. */
+const hand = (body: string, lang = "text"): string =>
+  `\`\`\`${lang}\n${body}\n\`\`\`\n`;
 
 test("P15 — 앞 칸이 길어진 만큼 뒤 칸이 밀리면 걸린다", () => {
   // 구분 공백을 3 칸으로 고정해 그린 자리. 실제로 `sieveOfEratosthenes` 가 이 모양이었다.
@@ -1055,6 +1061,8 @@ test("P15 — 왼쪽으로 맞춘 표는 안 걸린다", () => {
   ).toEqual([]);
 });
 
+/* ── 오탐 조건 2 (배치9) — 오른쪽 정렬 열을 인정한다 ── */
+
 test("P15 — 오른쪽으로 맞춘 표도 안 걸린다 (수를 오른쪽에 맞추는 표가 있다)", () => {
   expect(
     generatedBlockAlignment(
@@ -1068,6 +1076,18 @@ test("P15 — 오른쪽으로 맞춘 표도 안 걸린다 (수를 오른쪽에 �
     ),
   ).toEqual([]);
 });
+
+test("P15 — 두 줄짜리도 오른쪽 정렬이면 안 걸린다", () => {
+  // 하한을 2 로 내린 뒤 오른쪽 정렬이 살아 있는지 따로 본다 — 넓히면서 잃기 쉬운 자리다.
+  // 두 줄은 경고 자리이므로 경고 쪽에서 본다. 위반 쪽에서 보면 늘 비어 있어 아무것도 안 잰다.
+  expect(
+    alignmentWarnings(
+      block(["    30          45", " 1,000       5,288"].join("\n")),
+    ),
+  ).toEqual([]);
+});
+
+/* ── 머리줄 면제 — 넓은 열 이름만 빼 주고, 첫 줄이 데이터면 안 빼 준다 ── */
 
 test("P15 — 열 이름이 데이터보다 길어 머리줄만 삐져나온 것은 안 걸린다", () => {
   expect(
@@ -1085,6 +1105,17 @@ test("P15 — 열 이름이 데이터보다 길어 머리줄만 삐져나온 것
   ).toEqual([]);
 });
 
+test("P15 — 첫 줄이 데이터인 표는 머리줄 면제가 못 가린다", () => {
+  // 예전 규칙은 「첫 줄을 빼고 재서 맞으면 통과」였다. 세 줄짜리에서 첫 줄만 밀리면
+  // 나머지 둘은 당연히 맞으므로, 그 면제가 어긋남을 통째로 가렸다.
+  const findings = generatedBlockAlignment(
+    block(["  가    1", "  나  22", "  다  33"].join("\n")),
+  );
+  expect(findings.map((f) => f.code)).toEqual(["P15"]);
+});
+
+/* ── 오탐 조건 3 (배치9·10) — `^` 눈금 칸은 제외한다 ── */
+
 test("P15 — `^` 눈금 줄은 줄마다 다른 자리를 가리키는 것이 그 일이라 안 걸린다", () => {
   expect(
     generatedBlockAlignment(
@@ -1099,13 +1130,154 @@ test("P15 — `^` 눈금 줄은 줄마다 다른 자리를 가리키는 것이 �
   ).toEqual([]);
 });
 
-test("P15 — 생성 블록 밖의 어긋난 표는 안 본다 (손그림은 이 규칙의 자리가 아니다)", () => {
-  const text = `\`\`\`text\n  가     1\n  나나    22\n  다다다   333\n\`\`\`\n`;
-  expect(generatedBlockAlignment(text)).toEqual([]);
+test("P15 — 손으로 그린 캐럿 도식도 안 걸린다", () => {
+  expect(
+    alignmentWarnings(
+      hand(
+        [
+          "  abcabc      ^  ^",
+          "  abc         ^     ^",
+          "  ab          ^  ^",
+        ].join("\n"),
+      ),
+    ),
+  ).toEqual([]);
 });
 
-test("P15 — 두 줄짜리는 표로 안 본다 (산문이 우연히 그 모양일 수 있다)", () => {
-  expect(generatedBlockAlignment(block("  가  1\n  나나나  22"))).toEqual([]);
+/* ── 오탐 조건 1 (배치9) — 빈 줄로 덩어리를 끊는다 ── */
+
+test("P15 — 빈 줄이 덩어리를 끊어 앞뒤 표를 따로 본다", () => {
+  const halves = [
+    "  aa    11",
+    "  bb    22",
+    "",
+    "  cccc      33",
+    "  dddd      44",
+  ];
+  // 빈 줄이 있으면 두 표가 각각 맞아 통과한다.
+  expect(generatedBlockAlignment(block(halves.join("\n")))).toEqual([]);
+  // 빈 줄을 빼면 한 표가 되고 열이 어긋난다 — 위 통과가 「덩어리를 끊었기 때문」임을 짚는다.
+  expect(
+    generatedBlockAlignment(
+      block(halves.filter((l) => l !== "").join("\n")),
+    ).map((f) => f.code),
+  ).toEqual(["P15"]);
+});
+
+/* ── 오탐 조건 4 (배치11) — 중첩 들여쓰기가 뜻인 그림의 첫 열 ── */
+
+test("P15 — 의사코드의 들여쓰기는 중첩의 뜻이라 첫 열을 어긋남으로 안 센다", () => {
+  expect(
+    alignmentWarnings(
+      hand(
+        [
+          "if a < b        비교한다",
+          "    m = mid     가운데를 잡는다",
+          "    go(a, m)    왼쪽으로 간다",
+        ].join("\n"),
+      ),
+    ),
+  ).toEqual([]);
+});
+
+/* ── 넓힘 ① 손으로 쓴 `text` 펜스 ── */
+
+const HAND_SLIP = [
+  "  삭제      i 만 1 준다        위로 한 칸",
+  "  삽입      j 만 1 준다        왼쪽으로 한 칸",
+  "  걸음 수   i + j 가 1 준다     많아야 n + m",
+].join("\n");
+
+test("P15 — 손으로 쓴 `text` 펜스의 어긋난 열을 잡는다", () => {
+  const warnings = alignmentWarnings(hand(HAND_SLIP));
+  expect(warnings.map((f) => f.code)).toEqual(["P15"]);
+  expect(warnings[0]?.detail).toContain("3 번째 열");
+});
+
+test("P15 — 손 펜스의 어긋남은 경고이지 위반이 아니다", () => {
+  const warnings = alignmentWarnings(hand(HAND_SLIP));
+  expect(warnings[0]?.warn).toBe(true);
+  // 위반 경로(`check`)와 생성 블록 경로에는 안 실린다 — 세기가 갈린 자리다.
+  expect(generatedBlockAlignment(hand(HAND_SLIP))).toEqual([]);
+  expect(codes(check({ text: hand(HAND_SLIP) }))).not.toContain("P15");
+  // 같은 표를 사이드카가 그렸으면 위반이고, 경고 표시가 없다.
+  const violations = generatedBlockAlignment(block(HAND_SLIP));
+  expect(violations.map((f) => f.code)).toEqual(["P15"]);
+  expect(violations[0]?.warn).toBeUndefined();
+});
+
+test("P15 — 코드 펜스는 손 펜스로 안 본다 (들여쓰기가 열이 아니라 문법이다)", () => {
+  expect(alignmentWarnings(hand(HAND_SLIP, "ts"))).toEqual([]);
+});
+
+/* ── 넓힘 ② 2행 덩어리 ── */
+
+test("P15 — 두 줄짜리 덩어리는 보되 경고로 낸다", () => {
+  // 두 줄로는 격자와 짝을 못 가른다 — 111편 전수에서 생성 블록의 두 줄 덩어리 15편이
+  // 대부분 `요약 항목  값` 짝이었다. 그래서 **보되 위반으로는 안 센다.**
+  const text = block("  가  1\n  나나나  22");
+  expect(generatedBlockAlignment(text)).toEqual([]);
+  const warnings = alignmentWarnings(text);
+  expect(warnings.map((f) => f.code)).toEqual(["P15"]);
+  expect(warnings[0]?.warn).toBe(true);
+});
+
+test("P15 — 세 줄부터는 생성 블록의 어긋남이 위반이다", () => {
+  const text = block("  가  1\n  나나나  22\n  다  3");
+  expect(generatedBlockAlignment(text).map((f) => f.code)).toEqual(["P15"]);
+  expect(alignmentWarnings(text)).toEqual([]);
+});
+
+/* ── 손 펜스에만 거는 문 — 맞추려 한 흔적이 있는 열만 본다 ── */
+
+test("P15 — 2 칸으로 항목을 가르기만 한 목록은 안 걸린다", () => {
+  // 구분 폭이 줄마다 같으면 맞추려고 띄운 것이 아니라 가르려고 띄운 것이다.
+  // 원고에 흔한 `"이 조건"  "저 조건"  <- 설명` 꼴이 전부 이 모양이다.
+  expect(
+    alignmentWarnings(
+      hand(["  ab  xx  1", "  ab  xx  2", "  ab  xxx  3"].join("\n")),
+    ),
+  ).toEqual([]);
+});
+
+test("P15 — 한 번도 맞은 적 없는 열은 격자가 아니라 안 걸린다", () => {
+  expect(
+    alignmentWarnings(
+      hand(["  가     1", "  나나    22", "  다다다   333"].join("\n")),
+    ),
+  ).toEqual([]);
+});
+
+test("P15 — 옆 열이 이미 제멋대로면 그 블록은 격자가 아니다", () => {
+  // 셋째 열만 보면 「한 줄만 빗나갔다」로 보인다. 그런데 둘째 열이 한 번도 안 맞는다 —
+  // 격자가 아예 없는 블록이라 셋째 열의 어긋남이 깨진 격자로 안 읽힌다.
+  const ragged = ["  aa   bbb   11", "  aa  bb     11", "  aa    b     11"];
+  expect(alignmentWarnings(hand(ragged.join("\n")))).toEqual([]);
+  // 둘째 열을 가지런히 하면 격자가 서고, 그때는 셋째 열의 한 줄이 걸린다.
+  const grid = ["  aa   bbb   11", "  aa   bb    11", "  aa   b      11"];
+  expect(alignmentWarnings(hand(grid.join("\n"))).map((f) => f.code)).toEqual([
+    "P15",
+  ]);
+});
+
+/* ── 검사기 자기시험 — 틀린 검사기가 낸 빨강을 원고의 빨강으로 읽지 않는다 ── */
+
+test("P15 — 마커는 바로 아래 펜스 하나만 생성 블록으로 만든다", () => {
+  // `KAN-034.7` 검토 4항의 부류다 — 클릭한 앵커와 잰 헤딩이 달라 42편이 거짓 실패로 났다.
+  // 여기서 같은 실수는 「마커가 있었다」만 보고 뒤의 펜스까지 생성 블록으로 세는 것이다.
+  const fences = alignFences(
+    `<!--proof:one-->\n\n\`\`\`text\nA  1\n\`\`\`\n\n\`\`\`text\nB  2\n\`\`\`\n`,
+  );
+  expect(fences.map((f) => f.generated)).toEqual([true, false]);
+  expect(fences.map((f) => f.line)).toEqual([3, 7]);
+});
+
+test("P15 — 어긋난 줄을 짚는다 (블록의 첫 줄이 아니라)", () => {
+  const findings = generatedBlockAlignment(
+    block(["  aa    11", "  bb    11", "  cc     11", "  dd    11"].join("\n")),
+  );
+  // 마커 1 · 빈 줄 2 · 여는 펜스 3 · 몸통 4~7 이므로 셋째 줄은 6 이다.
+  expect(findings.map((f) => f.where)).toEqual([":6"]);
 });
 
 /* ────────────────── P16 원고 ↔ 정본 대조 ────────────────── */

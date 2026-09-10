@@ -24,7 +24,9 @@ import {
   mutantSiteFailures,
   normalize,
   run,
+  shownCode,
   verdictLines,
+  visitedSameRows,
 } from "./check-proof.ts";
 
 const WORK = mkdtempSync(join(tmpdir(), "proof-test-"));
@@ -355,6 +357,103 @@ test("원고가 짚은 변이 줄이 실행한 변이면 오탐하지 않는다"
   ).toEqual([]);
 });
 
+/* ── drop 변이 — 지운 줄은 정본에 그대로 있어서 자리 대조를 빠져나갔다 ── */
+
+/** 같은 줄을 **지우는** 변이. `after` 가 `null` 인 것이 drop 이다. */
+const DROP_MUTATIONS: Mutation[] = [
+  {
+    refPath: "/x/x-guide.ref.ts",
+    line: 4,
+    before: "  if (color[v] === 1) return true;",
+    after: null,
+  },
+];
+
+test("drop — 주석으로 보인 지운 줄이 실제로 지운 줄이면 오탐하지 않는다", () => {
+  expect(
+    mutantSiteFailures(
+      siteMd("// if (color[v] === 1) return true;   ← 이 줄을 통째로 지운 판"),
+      SITE_REF,
+      DROP_MUTATIONS,
+    ),
+  ).toEqual([]);
+});
+
+test("drop — 주석으로 보인 줄이 지운 줄이 아니면 잡는다", () => {
+  // 예전에는 이것이 **한 건도 안 잡혔다.** 주석을 걷으면 빈 줄이라 `s === ""` 로 새 나갔다.
+  const fails = mutantSiteFailures(
+    siteMd("// if (color[v] === 2) return true;   ← 이 줄을 통째로 지운 판"),
+    SITE_REF,
+    DROP_MUTATIONS,
+  );
+  expect(fails).toHaveLength(1);
+  expect(fails[0]?.kind).toBe("변이 자리가 다르다");
+  expect(fails[0]?.detail).toContain("이 편이 실제로 지운 줄");
+});
+
+test("drop — 살아 있는 줄에 「지우면」만 단 꼴도 잡는다", () => {
+  // 이쪽은 `inRef.has(s)` 로 새 나가던 갈래다. 지운 줄은 **정본에 그대로 있는 줄**이라
+  // 「정본에 있으면 안 본다」가 drop 을 통째로 덮었다.
+  expect(
+    mutantSiteFailures(
+      siteMd("if (color[v] === 1) return true;   // ← 이 줄을 지우면?"),
+      SITE_REF,
+      DROP_MUTATIONS,
+    ),
+  ).toEqual([]);
+  const fails = mutantSiteFailures(
+    siteMd("return false;   // ← 이 줄을 지우면?"),
+    SITE_REF,
+    DROP_MUTATIONS,
+  );
+  expect(fails).toHaveLength(1);
+  expect(fails[0]?.detail).toContain("return false;");
+});
+
+test("drop 이라고 적었는데 이 편은 swap 만 돌렸으면 잡는다", () => {
+  const fails = mutantSiteFailures(
+    siteMd("// if (color[v] === 1) return true;   ← 이 줄을 통째로 지운 판"),
+    SITE_REF,
+    SITE_MUTATIONS,
+  );
+  expect(fails).toHaveLength(1);
+  expect(fails[0]?.detail).toContain("drop 변이를 실행한 적이 없다");
+});
+
+test("줄 안의 일부를 뺀 swap 주석은 drop 주장으로 읽지 않는다", () => {
+  // 「등호를 뺐다」·「정렬만 뺐다」는 줄을 지운 것이 아니다. 목적어가 「줄」이 아닌 것으로
+  // 가른다 — 이것을 drop 으로 읽으면 실제로 도는 swap 편들이 통째로 빨개진다.
+  expect(
+    mutantSiteFailures(
+      siteMd("if (color[v] !== WHITE) return true;   // ← 등호를 뺐다"),
+      SITE_REF,
+      SITE_MUTATIONS,
+    ),
+  ).toEqual([]);
+  // 멀쩡한 줄에 단 주석도 그대로 안 본다.
+  expect(
+    mutantSiteFailures(
+      siteMd("if (color[v] === 1) return true;   // ← 이 줄이 핵심이다"),
+      SITE_REF,
+      DROP_MUTATIONS,
+    ),
+  ).toEqual([]);
+  // 코드 없이 화살표만 있는 줄은 맞댈 것이 없다 — 빈 문자열을 위반으로 내면 안 된다.
+  expect(
+    mutantSiteFailures(
+      siteMd("// ← 이 줄을 통째로 지운 판"),
+      SITE_REF,
+      SITE_MUTATIONS,
+    ),
+  ).toEqual([]);
+});
+
+test("shownCode — 주석형에서 코드만 뽑고 살아 있는 줄은 그대로 둔다", () => {
+  expect(shownCode("  // out += n;")).toBe("  out += n;");
+  expect(shownCode("  //out += n;")).toBe("  out += n;");
+  expect(shownCode("  out += n; // 주석")).toBe("  out += n; // 주석");
+});
+
 test("리터럴 상수만 펼친다", () => {
   const consts = literalConsts(SITE_REF);
   expect(consts.get("WHITE")).toBe("0");
@@ -428,6 +527,213 @@ test("판정을 엉뚱한 것으로 낸 사이드카를 중화 대조가 잡는�
   const bad = r.failures.filter((f) => f.kind === "갈림 자리가 다르다");
   expect(bad).toHaveLength(1);
   expect(bad[0]?.detail).toContain("처음 갈리는 자리는 2 번째 줄");
+});
+
+/* ═══ 「같다」 세 부류 — ①안 지나감 ②지나갔고 같음 ③상쇄해 답만 같음 ═══ */
+
+/** `crt` 의 `pause-guard` 를 본뜬 표. 마지막 행만 그 줄을 안 지나간다. */
+const VISIT_TABLE = [
+  "입력                     정본   모순 판정을 지운 판   바꾼 줄을 지나간 횟수   판정",
+  "[2,3,2] mod [3,5,7]      x=23   x=23                                    2   같다",
+  "[2,5,2] mod [6,9,4]      x=14   x=14                                    2   같다",
+  "[2,5,3] mod [6,9,4]      null   x=32                                    2   어긋난다",
+  "[5] mod [7]              x=5    x=5                                     0   같다",
+].join("\n");
+
+test("부류① — 그 줄을 안 지나가서 같은 행은 안 짚는다", () => {
+  const rows = visitedSameRows(VISIT_TABLE);
+  // 5번째 줄이 「같다」이지만 횟수가 0 이다 — 변이가 실행조차 안 됐다.
+  expect(rows.map((r) => r.line)).not.toContain(5);
+});
+
+test("부류②③ — 지나갔는데 같은 행만 짚고 횟수를 함께 낸다", () => {
+  const rows = visitedSameRows(VISIT_TABLE);
+  expect(rows).toEqual([
+    { line: 2, count: 2, label: "[2,3,2] mod [3,5,7]" },
+    { line: 3, count: 2, label: "[2,5,2] mod [6,9,4]" },
+  ]);
+  // 「어긋난다」 행은 애초에 이 화면의 대상이 아니다.
+  expect(rows.map((r) => r.line)).not.toContain(4);
+});
+
+test("횟수 열이 없거나 칸이 안 맞으면 아무것도 안 짚는다", () => {
+  // 정보 표시가 오탐하면 좁혀 주는 값이 사라진다. 애매하면 침묵한다.
+  expect(visitedSameRows("입력  정본  변이  판정\na  1  1  같다")).toEqual([]);
+  // 칸 수가 머리줄과 다른 행은 건너뛴다 — **칸이 밀리면 엉뚱한 칸을 횟수로 읽는다.**
+  // 아래 셋째 행은 첫 칸 안에 두 칸 공백이 들어가 칸이 하나 더 생긴 꼴이고, 칸 수를
+  // 안 보면 `2` 가 횟수 자리에 들어와 짚어 버린다.
+  expect(
+    visitedSameRows(
+      ["입력  값  지나간 횟수  판정", "a  9  2  같다", "b  c  1  2  같다"].join(
+        "\n",
+      ),
+    ).map((r) => r.line),
+  ).toEqual([2]);
+  // 캡션 아래는 표가 아니다.
+  expect(
+    visitedSameRows(
+      ["입력  지나간 횟수  판정", "a  2  같다", "└ 두 줄  3  같다"].join("\n"),
+    ).map((r) => r.line),
+  ).toEqual([2]);
+  // 그 자리가 숫자가 아니면 횟수가 아니다.
+  expect(
+    visitedSameRows(["입력  지나간 횟수  판정", "a  여러 번  같다"].join("\n")),
+  ).toEqual([]);
+});
+
+test("머리줄이 둘이거나 횟수 열이 둘이면 침묵한다", () => {
+  // 어느 것을 읽어야 할지 정할 수 없다. 골라서 읽으면 그 순간 오탐이 시작된다.
+  expect(
+    visitedSameRows(
+      ["입력  지나간 횟수  판정", "a  2  같다", "입력  지나간 횟수  판정"].join(
+        "\n",
+      ),
+    ),
+  ).toEqual([]);
+  expect(
+    visitedSameRows(
+      [
+        "입력  넣은 줄 지나간 횟수  뺀 줄 지나간 횟수  판정",
+        "a  2  3  같다",
+      ].join("\n"),
+    ),
+  ).toEqual([]);
+});
+
+test("캡션이 「지나간 횟수」를 말해도 머리줄로 세지 않는다", () => {
+  // `bridgesInGraph` 의 캡션이 실제로 이 낱말을 쓴다. 캡션을 둘째 머리줄로 세면 표 전체가
+  // 「애매하다」로 떨어져 짚어 주던 값이 통째로 사라진다.
+  expect(
+    visitedSameRows(
+      [
+        "입력  지나간 횟수  판정",
+        "a  2  같다",
+        "",
+        "└ 다섯 입력 모두 그 줄을 지나간 횟수가 1 이상이다",
+      ].join("\n"),
+    ).map((r) => r.line),
+  ).toEqual([2]);
+});
+
+/**
+ * 부류③ 을 가르는 것은 **걸음별 대조 블록**이다 — 답 표는 답만 실어서 ②와 ③을 못 가른다.
+ *
+ * 정본은 정렬한 뒤 더하고, 변이는 정렬을 지운다. **중간 목록은 갈리는데 합은 같다.**
+ * 답 표에서는 「지나갔는데 같다」로만 보이고, 갈리는 자리는 걸음 블록에서만 나온다.
+ */
+const CANCEL_REF = `export function tally(xs: number[]): { order: number[]; sum: number } {
+  const order = [...xs];
+  order.sort((a, b) => a - b);
+  let sum = 0;
+  for (const v of order) sum += v;
+  return { order, sum };
+}
+`;
+
+const CANCEL_PROOF = (stem: string, verdict: string) =>
+  `import { loadMutant } from ${JSON.stringify(TOOL)};
+import { tally } from "./${stem}-guide.ref.ts";
+
+const REF = new URL("./${stem}-guide.ref.ts", import.meta.url).pathname;
+const BROKEN = await loadMutant<typeof import("./${stem}-guide.ref.ts")>(REF, {
+  drop: /^\\s*order\\.sort\\(/,
+});
+const CASES = [[3, 1, 2], [5, 4]];
+
+export const PROOFS: Record<string, () => string> = {
+  "mutant-answer": () =>
+    ["입력  그 줄을 지나간 횟수  정본 합  정렬을 뺀 판  판정"]
+      .concat(
+        CASES.map(
+          (xs) =>
+            \`[\${xs}]  1  \${tally(xs).sum}  \${BROKEN.tally(xs).sum}  \` +
+            (tally(xs).sum === BROKEN.tally(xs).sum ? "같다" : "어긋난다"),
+        ),
+      )
+      .join("\\n"),
+  "mutant-step": () =>
+    ["입력  정본 차례  정렬을 뺀 판 차례  판정"]
+      .concat(
+        CASES.map(
+          (xs) =>
+            \`[\${xs}]  [\${tally(xs).order}]  [\${BROKEN.tally(xs).order}]  \${${verdict}}\`,
+        ),
+      )
+      .join("\\n"),
+};
+`;
+
+const CANCEL_MD = (stepVerdicts: string[]) => `# 표본
+
+#### 멈춤 — 정렬을 지워도 합은 안 틀린다
+
+\`\`\`ts
+// order.sort((a, b) => a - b);   ← 이 줄을 통째로 지운 판
+\`\`\`
+
+<!--proof:mutant-answer-->
+
+\`\`\`text
+입력  그 줄을 지나간 횟수  정본 합  정렬을 뺀 판  판정
+[3,1,2]  1  6  6  같다
+[5,4]  1  9  9  같다
+\`\`\`
+
+<!--proof:mutant-step-->
+
+\`\`\`text
+입력  정본 차례  정렬을 뺀 판 차례  판정
+[3,1,2]  [1,2,3]  [3,1,2]  ${stepVerdicts[0]}
+[5,4]  [4,5]  [5,4]  ${stepVerdicts[1]}
+\`\`\`
+`;
+
+test("부류③ — 답 표는 「지나갔는데 같다」로만 보이고 갈림은 걸음 블록이 낸다", async () => {
+  const dir = join(WORK, "cx");
+  require("node:fs").mkdirSync(dir, { recursive: true });
+  writeFileSync(
+    join(dir, "cx-guide.md"),
+    CANCEL_MD(["어긋난다", "어긋난다"]),
+    "utf8",
+  );
+  writeFileSync(join(dir, "cx-guide.ref.ts"), CANCEL_REF, "utf8");
+  writeFileSync(
+    join(dir, "cx-guide.proof.ts"),
+    CANCEL_PROOF(
+      "cx",
+      'tally(xs).order.join() === BROKEN.tally(xs).order.join() ? "같다" : "어긋난다"',
+    ),
+    "utf8",
+  );
+  const r = await run(join(dir, "cx-guide.md"));
+  expect(r.failures).toEqual([]);
+  // 답 표는 두 행 다 「지나갔는데 같다」로 짚힌다 — 여기서는 ②인지 ③인지 안 갈린다.
+  const answer = r.visitedSame.find((b) => b.id === "mutant-answer");
+  expect(answer?.rows.map((x) => x.line)).toEqual([2, 3]);
+  // 걸음 블록은 판정이 「어긋난다」라 이 화면에 안 올라온다 — 그것이 ③의 증거다.
+  expect(r.visitedSame.map((b) => b.id)).not.toContain("mutant-step");
+});
+
+test("부류③ — 걸음 블록이 「같다」로 거짓말하면 중화 대조가 잡는다", async () => {
+  // ②와 ③을 가르는 자리가 여기다. 답만 보면 둘이 똑같이 「같다」인데, 걸음 블록을 두면
+  // 중화 대조가 그 줄들이 **실제로 갈린다**고 실행에서 내고 거짓 판정을 잡는다.
+  const dir = join(WORK, "cy");
+  require("node:fs").mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, "cy-guide.md"), CANCEL_MD(["같다", "같다"]), "utf8");
+  writeFileSync(join(dir, "cy-guide.ref.ts"), CANCEL_REF, "utf8");
+  writeFileSync(
+    join(dir, "cy-guide.proof.ts"),
+    CANCEL_PROOF("cy", '"같다"'),
+    "utf8",
+  );
+  const r = await run(join(dir, "cy-guide.md"));
+  // 값 대조는 초록이다 — 블록과 실행이 글자 그대로 같기 때문이다.
+  expect(r.failures.filter((f) => f.kind === "값이 다르다")).toEqual([]);
+  const bad = r.failures.filter((f) => f.kind === "갈림 자리가 다르다");
+  expect(bad).toHaveLength(1);
+  expect(bad[0]?.id).toBe("mutant-step");
+  // 거짓 판정 때문에 걸음 블록까지 「지나갔는데 같다」로 올라온다 — 화면이 둘을 함께 낸다.
+  expect(r.visitedSame.map((b) => b.id)).toContain("mutant-answer");
 });
 
 /* ──────── S11 중화 대조가 안 돈 자리를 경고로 낸다 (2026-09-05) ──────── */
