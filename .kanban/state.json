@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 228,
+  "next_seq": 229,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -566,12 +566,12 @@
       ]
     },
     "KAN-034.6-CF6ZHE": {
-      "col": "review",
+      "col": "done",
       "title": "W2 — 중요도 중 41편 전개",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-09",
+      "갱신": "2026-09-10",
       "title_hash": "bc3b09d3aa09354a0c67ebe61060db8b649eed3c",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "short": "W2 중 41편",
@@ -723,12 +723,22 @@
     "KAN-033-E8KHSV",
     "KAN-034.1-V337W5",
     "KAN-034.2-5V5M2F",
-    "KAN-034.6-CF6ZHE",
     "KAN-034.8-BK1Q3A",
     "KAN-034.7-QMZ3RE",
-    "KAN-034.5-0RGSQM"
+    "KAN-034.5-0RGSQM",
+    "KAN-034.6-CF6ZHE"
   ],
   "recent": [
+    {
+      "seq": 228,
+      "t": "2026-09-10T16:20",
+      "a": "ai",
+      "id": "KAN-034.6-CF6ZHE",
+      "op": "move",
+      "w": "MDD8JM",
+      "from": "review",
+      "to": "done"
+    },
     {
       "seq": 227,
       "t": "2026-09-10T16:19",
@@ -1270,16 +1280,6 @@
       "w": "MDD8JM",
       "from": "backlog",
       "to": "doing"
-    },
-    {
-      "seq": 178,
-      "t": "2026-08-29T02:10",
-      "a": "ai",
-      "id": "KAN-034.2-5V5M2F",
-      "op": "move",
-      "w": "MDD8JM",
-      "from": "doing",
-      "to": "done"
     }
   ],
   "layout": 2
