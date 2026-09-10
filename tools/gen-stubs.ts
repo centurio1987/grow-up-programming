@@ -2,7 +2,7 @@
  * 신규 자료구조 50개의 디렉토리 + 최소 스텁 파일을 일괄 생성한다.
  * 이미 파일이 존재하면 덮어쓰지 않는다.
  */
-import { mkdirSync, existsSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 
 const BASE = "src/data-structures";

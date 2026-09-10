@@ -109,7 +109,9 @@ for (let i = 0; i < 500; i++) {
     console.log("RANDOM MISMATCH at mask=", m);
   }
 }
-console.log(`랜덤 교차검증(500회, 16비트 범위): mismatches = ${randomMismatches}`);
+console.log(
+  `랜덤 교차검증(500회, 16비트 범위): mismatches = ${randomMismatches}`,
+);
 
 // ── popcount 검증 ───────────────────────────────────────────────────
 console.log("popcount(0b1011) =", popcount(0b1011), "(expected 3)");
@@ -118,4 +120,8 @@ console.log("popcount((1<<20)-1) =", popcount((1 << 20) - 1), "(expected 20)");
 
 // ── 함정 시나리오 검증: s===0 브레이크를 빼먹으면 무한 재순회 ──────
 // (0 - 1) & mask === mask 이므로 s가 다시 mask로 되돌아간다.
-console.log("함정 확인: (0-1) & 11 =", (0 - 1) & 0b1011, "(=11, 원점으로 복귀 → 무한루프 근거)");
+console.log(
+  "함정 확인: (0-1) & 11 =",
+  (0 - 1) & 0b1011,
+  "(=11, 원점으로 복귀 → 무한루프 근거)",
+);

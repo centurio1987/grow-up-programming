@@ -27,7 +27,13 @@ const root = resolve(import.meta.dir, "..");
  * 검사 밖이었고, B7~B9 산출물 셋이 실제로 그 밖에 있었다. 목록을 `src/data-structures`
  * 하나로 바꾸면 재집필이 늘 때 아무도 손댈 것이 없다.
  */
-const SCAN_GLOBS = ["docs", "tools", "src/data-structures", "rust"];
+const SCAN_GLOBS = [
+  "docs",
+  "tools",
+  "src/algorithms",
+  "src/data-structures",
+  "rust",
+];
 
 const SCAN_EXTENSIONS = [".md", ".mdx", ".ts", ".rs"];
 
@@ -38,8 +44,19 @@ const SCAN_EXTENSIONS = [".md", ".mdx", ".ts", ".rs"];
  * 문서와 계약이 그 파일을 줄 번호로 가리키기 시작했고, 확장자가 빠져 있으면 그 인용만
  * 검사 밖에 남는다 — B11 이 `.mdx` 에서 겪은 것과 같은 구멍이다.
  */
+/**
+ * **줄임표 경로는 인용이 아니다.** `at dijkstra (.../dijkstra.ts:43:22)` 처럼 스택 트레이스가
+ * 앞을 잘라 적은 자리가 있고, 그것은 따라가라고 적은 인용이 아니라 **실행 로그의 사본**이다.
+ * `src/algorithms` 를 검사 대상에 넣자마자 그런 자리 2건이 「가리키는 파일이 없다」로 떴다
+ * (`dijkstra-analysis.md:445`·`:681`, 2026-08-29 실측).
+ *
+ * 둘로 막는다. 앞의 부정 전방탐색이 `...` 로 **시작하는** 것을 끊고, 뒤의 부정 후방탐색이
+ * 경로 글자 한복판에서 다시 맞는 것을 막는다 — 앞엣것만 두면 엔진이 한 칸씩 밀며
+ * `../dijkstra.ts` · `./dijkstra.ts` 로 다시 맞고, 그 둘은 실재하는 것처럼 보인다.
+ * `..`(상위 디렉터리)는 그대로 인용으로 센다 — 점 **셋**부터가 줄임표다.
+ */
 const CITATION =
-  /([A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)+\.(?:md|mdx|ts|tsx|rs|json|tsv)):(\d+)(?:-(\d+))?/g;
+  /(?<![A-Za-z0-9_./-])(?!\.{3})([A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)+\.(?:md|mdx|ts|tsx|rs|json|tsv)):(\d+)(?:-(\d+))?/g;
 
 interface Problem {
   where: string;

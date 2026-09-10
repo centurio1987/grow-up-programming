@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { divideAndConquerDp } from "./divideAndConquerDp";
 
 /**
@@ -9,7 +9,9 @@ function buildCost(a: number[]): number[][] {
   const n = a.length;
   const prefix = new Array(n + 1).fill(0);
   for (let i = 0; i < n; i++) prefix[i + 1] = prefix[i] + a[i]!;
-  const cost: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
+  const cost: number[][] = Array.from({ length: n }, () =>
+    new Array(n).fill(0),
+  );
   for (let i = 0; i < n; i++) {
     for (let j = i; j < n; j++) {
       const s = prefix[j + 1] - prefix[i];

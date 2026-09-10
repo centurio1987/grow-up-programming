@@ -10,7 +10,11 @@ function tspNaive(dist: number[][]): number {
     let best = Infinity;
     for (let next = 0; next < n; next++) {
       if (visited & (1 << next)) continue;
-      const cand = search(next, visited | (1 << next), cost + dist[current][next]);
+      const cand = search(
+        next,
+        visited | (1 << next),
+        cost + dist[current][next],
+      );
       if (cand < best) best = cand;
     }
     return best;
@@ -24,7 +28,9 @@ function tspBitmaskBasic(dist: number[][]): number {
   const n = dist.length;
   if (n === 1) return 0;
   const FULL = (1 << n) - 1;
-  const dp: number[][] = Array.from({ length: FULL + 1 }, () => new Array(n).fill(Infinity));
+  const dp: number[][] = Array.from({ length: FULL + 1 }, () =>
+    new Array(n).fill(Infinity),
+  );
   dp[1][0] = 0;
 
   for (let mask = 1; mask <= FULL; mask++) {
@@ -82,7 +88,9 @@ function tspBitmask(dist: number[][]): number {
 
 function assertEq(label: string, actual: number, expected: number) {
   const ok = actual === expected;
-  console.log(`${ok ? "OK " : "FAIL"} ${label}: actual=${actual} expected=${expected}`);
+  console.log(
+    `${ok ? "OK " : "FAIL"} ${label}: actual=${actual} expected=${expected}`,
+  );
   if (!ok) process.exitCode = 1;
 }
 
@@ -156,17 +164,24 @@ for (let trial = 0; trial < 200; trial++) {
   const c = tspBitmask(d);
   if (a !== b || b !== c) {
     randFail = true;
-    console.log(`FAIL trial=${trial} n=${n} naive=${a} basic=${b} optimized=${c}`, d);
+    console.log(
+      `FAIL trial=${trial} n=${n} naive=${a} basic=${b} optimized=${c}`,
+      d,
+    );
   }
 }
-console.log(randFail ? "무작위 교차검증: FAIL 있음" : "무작위 교차검증: 200회 모두 일치");
+console.log(
+  randFail ? "무작위 교차검증: FAIL 있음" : "무작위 교차검증: 200회 모두 일치",
+);
 
 // mask 초기화 단계 실측 (초기화 프레임 확인용)
 console.log("=== 초기화 직후 dp 값 (3 city, mask=001) ===");
 {
   const n = 3;
   const FULL = (1 << n) - 1;
-  const dp: number[][] = Array.from({ length: FULL + 1 }, () => new Array(n).fill(Infinity));
+  const dp: number[][] = Array.from({ length: FULL + 1 }, () =>
+    new Array(n).fill(Infinity),
+  );
   dp[1][0] = 0;
   console.log("dp[001] =", dp[1]);
 }
@@ -176,7 +191,9 @@ console.log("=== mask=001, v=0 전이 후 ===");
 {
   const n = 3;
   const FULL = (1 << n) - 1;
-  const dp: number[][] = Array.from({ length: FULL + 1 }, () => new Array(n).fill(Infinity));
+  const dp: number[][] = Array.from({ length: FULL + 1 }, () =>
+    new Array(n).fill(Infinity),
+  );
   dp[1][0] = 0;
   const mask = 1;
   const v = 0;

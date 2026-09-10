@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { kthSmallest } from "./kthSmallest";
 
 describe("kthSmallest", () => {
@@ -93,7 +93,10 @@ describe("kthSmallest", () => {
   test("무작위 입력에서 정렬 기준값과 일치한다", () => {
     for (let trial = 0; trial < 200; trial++) {
       const N = 1 + Math.floor(Math.random() * 50);
-      const A = Array.from({ length: N }, () => Math.floor(Math.random() * 21) - 10);
+      const A = Array.from(
+        { length: N },
+        () => Math.floor(Math.random() * 21) - 10,
+      );
       const sorted = [...A].sort((a, b) => a - b);
       const k = 1 + Math.floor(Math.random() * N);
       expect(kthSmallest([...A], k)).toBe(sorted[k - 1]!);

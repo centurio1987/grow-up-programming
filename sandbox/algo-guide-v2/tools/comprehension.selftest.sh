@@ -190,6 +190,27 @@ else
   printf '  ok   %-42s 절 + T# 인용이 함께 사라진다\n' "절제는 인용도 함께 지운다"
 fi
 
+# ── 회차 자동 산정이 빈 번호를 줍지 않는가 (2026-08-28) ──
+#
+# 회차는 **이력의 순서**를 진다. 옛 로직은 1 부터 올라가며 첫 빈 자리를 잡아서, 중간이
+# 비어 있으면 나중 판정이 앞선 판정보다 작은 번호를 받았다 — `mosAlgorithm` 이
+# `r01`·`r06`~`r13` 을 가진 상태에서 열넷째 판정이 `r02` 로 떨어졌다(실측). 빈 번호는
+# 「그 회차가 없었다」는 사실이라 메우지 않는다.
+GAP_DIR="$WORK/gap-verdicts"; mkdir -p "$GAP_DIR"
+: >"$GAP_DIR/selftest-r01.md"
+: >"$GAP_DIR/selftest-r06.md"
+silent codex; stdout_of agy "$WORK/pass.txt"; silent claude
+COMPREHENSION_VERDICT_DIR="$GAP_DIR" PATH="$STUB:$PATH" \
+  bash "$HERE/comprehension.sh" "$GUIDE" >"$WORK/out.gap" 2>&1
+N=$((N + 1))
+if [ -e "$GAP_DIR/selftest-r07.md" ] && [ ! -s "$GAP_DIR/selftest-r02.md" ]; then
+  printf '  ok   %-42s r01·r06 뒤는 r07 이다\n' "회차는 빈 번호를 줍지 않는다"
+else
+  printf '  FAIL %-42s 만들어진 것: %s\n' "회차는 빈 번호를 줍지 않는다" \
+    "$(ls "$GAP_DIR" | tr '\n' ' ')"
+  FAIL=1
+fi
+
 printf '\n'
 if [ "$FAIL" -eq 0 ]; then
   printf ' 자기시험 통과 — %s항목\n\n' "$N"

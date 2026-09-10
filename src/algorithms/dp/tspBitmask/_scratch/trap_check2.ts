@@ -9,7 +9,9 @@ function tspBitmaskZeroInit(dist: number[][]): number {
   const n = dist.length;
   if (n === 1) return 0;
   const FULL = (1 << n) - 1;
-  const dp: number[][] = Array.from({ length: FULL + 1 }, () => new Array(n).fill(0)); // BUG
+  const dp: number[][] = Array.from({ length: FULL + 1 }, () =>
+    new Array(n).fill(0),
+  ); // BUG
   dp[1][0] = 0;
   for (let mask = 1; mask <= FULL; mask++) {
     for (let v = 0; v < n; v++) {
@@ -35,7 +37,9 @@ console.log("함정A(0 초기화) 결과:", tspBitmaskZeroInit(dist3));
 function tspBitmaskNoGuard(dist: number[][]): number {
   const n = dist.length;
   const FULL = (1 << n) - 1;
-  const dp: number[][] = Array.from({ length: FULL + 1 }, () => new Array(n).fill(Infinity));
+  const dp: number[][] = Array.from({ length: FULL + 1 }, () =>
+    new Array(n).fill(Infinity),
+  );
   dp[1][0] = 0;
   for (let mask = 1; mask <= FULL; mask++) {
     for (let v = 0; v < n; v++) {
@@ -62,9 +66,12 @@ function tspBitmaskDescMask(dist: number[][]): number {
   const n = dist.length;
   if (n === 1) return 0;
   const FULL = (1 << n) - 1;
-  const dp: number[][] = Array.from({ length: FULL + 1 }, () => new Array(n).fill(Infinity));
+  const dp: number[][] = Array.from({ length: FULL + 1 }, () =>
+    new Array(n).fill(Infinity),
+  );
   dp[1][0] = 0;
-  for (let mask = FULL; mask >= 1; mask--) { // BUG: 내림차순
+  for (let mask = FULL; mask >= 1; mask--) {
+    // BUG: 내림차순
     for (let v = 0; v < n; v++) {
       if (!(mask & (1 << v))) continue;
       for (let u = 0; u < n; u++) {

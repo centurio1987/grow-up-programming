@@ -67,36 +67,58 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
 4. **파일럿 4편이 미이관** — 원고는 샌드박스에 있고 `src/algorithms/` 그 자리에는 v1 `.mdx` 가
    그대로다(실측). 이관 단계가 없으면 잔여 수치가 0 으로 닫히지 않는다.
 
+
+### 검토는 하위 카드마다 하지 않는다 — `KAN-034` 통합본 하나다
+
+**유저 지시(2026-08-30): 「검토는 최종 수행 완료 후 kan-034 통합본으로 발행해라」.**
+그래서 하위 카드(`KAN-034.1`~`KAN-034.8`)는 배치가 다 닫혀도 **검토로 옮기지 않고
+`진행 중` 에 둔다.** 검토서는 상위 카드 `KAN-034-KSD7XR` 하나에서, `S8`(v1 잔여 처분)까지
+끝난 뒤에 뜬다.
+
+**그래서 하위 카드가 24/24 인 채 `진행 중` 에 서 있는 것이 정상이다** — 방치가 아니다.
+다음 세션이 그것을 보고 「검토로 옮겨야 하는데 안 옮겼다」로 읽지 않게 여기 적는다.
+
+통합 검토서가 담을 것은 웨이브마다 흩어진 것을 한 화면에 모은 것이다 — 웨이브별 마감
+실측(`.mdx` · `guide-rhythm` · `algo-wbs`) · 편별 판정이 쌓인 `FEEDBACK.md` §5 · 사람이
+정할 것으로 남겨 둔 항목들(웨이브마다 나온 `purpose.real` 1차 출처가 얇은 편, `L37` 레일
+실렌더, 값을 argmin 으로 못 정한 자리). 그 목록을 웨이브마다 카드 실행 문서의 「수행 내역」에
+남겨 두고, 통합 검토서를 뜰 때 거기서 걷는다.
+
 ## 실행 계획
 `S<n>` 하나가 하위 카드 하나에 대응한다. 하위 카드 id 는 괄호 안에 적는다.
 
-- [ ] `S1` 정합 회복 + 파일럿 4편 재판정 (`KAN-034.1-V337W5`)
+- [x] `S1` 정합 회복 + 파일럿 4편 재판정 (`KAN-034.1-V337W5`)
       완료 기준: `git status --short` 잔여 0(`KAN-033` 명의로 닫은 뒤) ·
       `FEEDBACK.md` §1 반영표의 결번 참조 0(§2 이후 이력 서술은 대상 아님) ·
-      은유 부류 표기 11 로 일치 · **파일럿 4편이 최신 골격으로 `comprehension.sh` exit 0**
-      (`babyStepGiantStep` 은 첫 실행) · HTML 레일 렌더를 브라우저로 확인
-- [ ] `S2` 인프라 승격 + 파일럿 4편 이관 (`KAN-034.2-5V5M2F`)
+      은유 부류 표기 11 로 일치 · **파일럿 4편이 최신 골격으로 판정 통과**
+      (`babyStepGiantStep` 은 첫 실행) · HTML 레일 렌더를 실제 창 폭에서 확인
+- [x] `S2` 인프라 승격 + 파일럿 4편 이관 (`KAN-034.2-5V5M2F`)
       완료 기준: `bun run tools/ci.ts all` 초록 · `check-citations` 가 `src/algorithms` 를 봄 ·
       `bun test src/_guide-sim` 통과 · 파일럿 4편이 `.md` 로 서고 그 `.mdx` 4개가 사라짐 ·
       인덱스 「자동 추가」 절 중복 3줄 정리 · `guide-rhythm.tsv` 103 → 101
-- [ ] `S3` 사람 검토 12줄의 기계화 — `L38`~ 신설 (`KAN-034.3-53E4F9`)
+- [x] `S3` 사람 검토 12줄의 기계화 — `L38`~ 신설 (`KAN-034.3-53E4F9`)
       완료 기준: `bun test tools` 통과(신설 규칙마다 회귀 시험) ·
       파일럿 4편에서 신설 규칙 위반 **0건** — 기존 산출을 깨지 않는 것이 판정이다
-- [ ] `S4` 전개 WBS + `tools/algo-wbs.ts` (`KAN-034.4-4NS63H`)
+- [x] `S4` 전개 WBS + `tools/algo-wbs.ts` (`KAN-034.4-4NS63H`)
       완료 기준: `bun run tools/algo-wbs.ts` 가 웨이브별 남은 편과 트랙별 claim 후보를 냄 ·
       `--all` 이 107 유닛 전수를 냄 · 앞 웨이브가 안 비면 다음 후보를 내지 않음 ·
       같은 카테고리·같은 뷰 조합 첫 편이 도는 중이면 그 후속만 막음
-- [ ] `S5` W1 — 중요도 상 24편 (`KAN-034.5-0RGSQM`)
+- [x] `S5` W1 — 중요도 상 24편 (`KAN-034.5-0RGSQM`)
       완료 기준: 상 등급에서 살아 있는 `.mdx` 0 · `guide-rhythm.tsv` 101 → 79
-- [ ] `S6` W2 — 중요도 중 41편 (`KAN-034.6-CF6ZHE`)
+- [x] `S6` W2 — 중요도 중 41편 (`KAN-034.6-CF6ZHE`)
       완료 기준: 중 등급에서 살아 있는 `.mdx` 0 · `guide-rhythm.tsv` 79 → 41
-- [ ] `S7` W3 — 중요도 하 42편 (`KAN-034.7-QMZ3RE`)
+- [x] `S7` W3 — 중요도 하 42편 (`KAN-034.7-QMZ3RE`)
       완료 기준: `src/algorithms` 의 살아 있는 `.mdx` **0** · `guide-rhythm.tsv` **0**
-- [ ] `S8` v1 잔여 처분 (`KAN-034.8-BK1Q3A`)
+- [x] `S8` v1 잔여 처분 (`KAN-034.8-BK1Q3A`)
       완료 기준: `_deprecated/` 처분 완료 · `check-guide-rhythm.ts` 가 자료구조만 봄 ·
       `bun run tools/check-links.ts check` 통과
 
-### 편별 배치 종료 산출 (일곱) — `S5`~`S7` 의 편마다 적용
+### 편별 배치 종료 산출 (여섯) — `S5`~`S7` 의 편마다 적용
+
+> **일곱이었다가 여섯이 됐다(2026-08-29).** 옛 6번 `verdicts/<name>-r<NN>.md` 커밋은
+> 이해 시험의 응답 원문을 보관하는 자리였다. 그 판정이 걷히면서 그 파일도 새로
+> 쌓이지 않는다 — `sandbox/algo-guide-v2/README.md` 가 그렇게 적었고, 실측으로도
+> 마지막 신규 verdict 는 `S1`(8/28)의 것이다. 지금 판정 근거는 스캐너 실행 출력이다.
 
 1. `<name>-guide.md` + 사이드카 5종 생성
 2. 같은 편의 `<name>-guide.mdx` **삭제**
@@ -107,15 +129,19 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
    없는 대로 넘어간다(`diffArrayRangeUpdate`·`houseRobber`·`longestCommonSubsequence`·
    `slidingWindowMaximum`·`enumerateSubmasks`·`segmentsIntersect`·`mosAlgorithm`·`knapsack01`)
 5. `FEEDBACK.md` §5 에 조건부 절 셋(`L34`·`L35`·`L36`) 판정 행 추가
-6. `verdicts/<name>-r<NN>.md` 커밋
-7. `KANBAN.md` 카드 메모에 유닛 id 로 시작하는 결과 — `manage-kanban` 경유
+6. `KANBAN.md` 카드 메모에 유닛 id 로 시작하는 결과 — `manage-kanban` 경유
 
-### 이해 시험 회차 상한
+### 판정 장치 — 2026-08-29 교체
 
-파일럿 실적이 `mosAlgorithm` 13회차 · `knapsack01` 3회 · `quicksort` 3회다. 1편 1회 가정은 위험하다.
-① 편당 상한 **5회차** ② 초과하면 그 편을 **보류**하고 다음 편으로 넘어간다(웨이브를 막지 않는다)
-③ `exit 2`(미실행 — 외부 모델 소진)는 실패로 세지 않고 **배치를 멈춘다**.
-`CALL_TIMEOUT` 기본 420초 × AND 결합이라 편당 수 분이 든다.
+**유저가 외부 모델 없이 가기로 정했다.** 이해 시험(`comprehension.sh`)을 걷어내고
+`tools/check-proof.ts`(자기증명 대조)가 그 자리에 온다. 대응표는 `SPEC.md` §0 이다.
+
+바뀌는 것 셋. ① **회차 상한이 없다** — 판정이 로컬 실행이라 편당 수 분이 아니라 수 초다.
+② **`exit 2`(외부 모델 소진)로 배치가 멈추는 일이 없다.** ③ 대신 **편마다 증명 블록이
+붙는다** — 본문이 값을 내미는 자리에 `<!--proof:{id}-->` 와 `<name>-guide.proof.ts` 다.
+그것이 편당 새로 드는 비용이고, 이해 시험 회차보다 싸다.
+
+**옮겨지지 않은 몫은 사람이 진다** — `FEEDBACK.md` §3 의 「옛 `V…`」 네 줄이다.
 
 ## 검증
 이 카드가 끝난 것은 아래 셋이 동시에 참일 때다.
@@ -134,10 +160,18 @@ bun run tools/ci.ts all
 ```bash
 # S1 — 정합 회복 + 재판정
 git status --short                                            # 잔여 0
-for f in sandbox/algo-guide-v2/pilot/*/*-guide.md; do bash sandbox/algo-guide-v2/tools/comprehension.sh "$f"; done
-#   ↑ 파일 하나씩 받는다(다중 인자 안 받음). exit 0 통과 · 2 미실행(멈춘다) · 3 미통과
-sed -n '/^## 1\./,/^## 2\./p' sandbox/algo-guide-v2/FEEDBACK.md | grep -cE 'L23|L2[6-9]|L3[01]'    # 0
-#   ↑ §1 반영표만 본다. §2 이후의 폐기 이력 서술은 대상이 아니다
+for f in sandbox/algo-guide-v2/pilot/*/*-guide.md; do
+  bun run sandbox/algo-guide-v2/tools/check-proof.ts "$f"    # 0 통과 · 1 위반
+done
+#   ↑ 2026-08-29 교체. 그전 판정(이해 시험)의 산출은 verdicts/ 에 남아 있다
+sed -n '/^## 1\./,/^## 2\./p' sandbox/algo-guide-v2/FEEDBACK.md \
+  | grep -E '^\| R' | grep -v '^| R19-1 ' | grep -cE 'L23|L2[6-9]|L3[01]'                          # 0
+#   ↑ §1 반영표의 **데이터 행**만 본다. R19-1 은 폐기 사실의 기록이라 대상이 아니고,
+#     §2 이후의 이력 서술도 대상이 아니다. 앞판 기준(§1 전체에서 0)은 성립하지 않는다 —
+#     R19-1 행과 그 사실을 적은 문단이 결번 번호를 그대로 들고 있어야 결번 선언의 근거가 선다
+bun run sandbox/algo-guide-v2/tools/check-metaphor.ts \
+  sandbox/algo-guide-v2/{SPEC,FEEDBACK,README,SURVEY}.md sandbox/algo-guide-v2/pilot/*/*.md   # 9편 0건
+#   ↑ 부류 수의 정본은 `METAPHORS.length`(실측 11)다. 문서 표기가 그것과 어긋나면 고친다
 
 # S2 — 인프라 승격 + 파일럿 이관
 bun run tools/ci.ts all
@@ -158,7 +192,7 @@ bun run tools/algo-wbs.ts --all                               # 107 유닛
 bun run tools/check-v2.ts <name>-guide.md
 bun run tools/bench-alt.ts --check <name>-guide.alt.ts
 bun run tools/build-html.ts <name>-guide.md
-bash tools/comprehension.sh <name>-guide.md                   # 상한 5회차
+bun run tools/check-proof.ts <name>-guide.md                  # 값 주장 ↔ 실행
 bun test src/algorithms/<cat>/<name>
 bun run tools/check-links.ts check
 bun run tools/ci.ts all
@@ -176,7 +210,10 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
   패키지이고, 아무것도 검사하지 않고 exit 0 을 준다. `bunx --bun @biomejs/biome check` 다.
 - **`tools/check-guide-rhythm.ts` 를 v2 편에 호출하지 않는다.** 구 헤딩 접두와 어긋나 조용히
   공전하고, 통과 표시가 거짓이 된다.
-- `comprehension.sh` 는 파일 **하나**만 받는다. 다중 인자는 안 돈다.
+- **`comprehension.sh` 를 돌리지 않는다.** 2026-08-29 유저 지시로 외부 모델을 쓰지 않는다.
+  파일은 남겨 뒀다 — `verdicts/` 31개가 그 산출이라 규격이 있어야 읽힌다(`SPEC.md` §0).
+- **증명 사이드카는 정본을 import 해야 한다.** 값을 문자열로 적어 넣으면 대조가 자기 자신과의
+  대조가 되고 `check-proof.ts` 가 그것을 잡는다.
 
 ### 판정 장치와 그것이 재는 것
 
@@ -187,7 +224,7 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
 | `check-rework.ts` | 구성 지적을 받은 절의 재작성률(기준 60%) — 재배치와 재작성을 가른다 |
 | `bench-alt.ts --check` | `purpose.alt` 의 결정론적 계수가 본문 수치와 같은가 |
 | `build-html.ts` | 항목 레일 · 앵커가 절 id 에서 오는가 · JS-off 정적 산출 |
-| `comprehension.sh` V1~V7 | 본문만 근거로 이해가 재구성되는가 (외부 모델 · AND 결합) |
+| `check-proof.ts` | 본문이 내미는 값이 **실행 결과와 글자 그대로** 같은가. 변이는 정본 소스에서 기계로 만든다 |
 | `algo-wbs.ts` | 웨이브 배리어 · 선례 대기 · 남은 편 수 |
 | 사람 | `FEEDBACK.md` §3 중 기계로 못 내린 것 — 멈춤 자리 · 부제의 뜻 · 조건부 절 판정 · 레일 렌더 |
 | 유저 | 편 단위 최종 승인. 항목 id 로 반려 |
@@ -197,3 +234,22 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
 - 2026-08-28T21:47 · s:e76c7ae0 — `전략` 섹션 교체
 - 2026-08-28T21:47 · s:e76c7ae0 — `실행 계획` 섹션 교체
 - 2026-08-28T21:48 · s:e76c7ae0 — `검증` 섹션 교체
+- 2026-08-28T22:46 · s:b90b730c · S1 doing — 착수
+- 2026-08-28T22:53 · s:b90b730c — `검증` 섹션 교체
+- 2026-08-28T22:58 · s:b90b730c — S1 기계 판정 전부 초록 — 파일럿 4편 V1~V7 통과(bSGS r01·qs r04·knap r04·mos r14) · 반영표 결번 0 · 잔여 0. 남은 것 둘은 사람 몫이다 — HTML 레일 브라우저 확인(L37)과 편 단위 승인. 브라우저 확장이 연결돼 있지 않아 레일 확인을 대신 못 했다.
+- 2026-08-28T23:09 · s:b90b730c · S1 done — 정합 회복 + 파일럿 4편 재판정 완료. 판정 4편 V1~V7 통과(bSGS r01·qs r04·knap r04·mos r14) · 반영표 결번 참조 0 · 은유 부류 11 일치 · 회차 산정을 최대+1 로 교정(자기시험 18항목) · 유저 지적 R24 로 레일 기준점 78rem→76rem 을 폭에서 유도하게 바꿔 4편 전부 유저 창 1232px 에서 렌더 확인(간격 24px·깨진 앵커 0).
+- 2026-08-29T00:54 · s:b90b730c — `실행 계획` 섹션 교체
+- 2026-08-29T00:54 · s:b90b730c — `검증` 섹션 교체
+- 2026-08-29T01:54 · s:b90b730c · S2 doing — 착수
+- 2026-08-29T02:10 · s:b90b730c · S2 done — 인프라 승격 + 파일럿 4편 이관 완료. 도구 13개 → tools/ · 파일럿 4편 → src/algorithms/ · .mdx 4개 삭제 · ci.ts 에 v2 게이트 셋(--all) 편입 · check-citations 가 src/algorithms 를 봄(줄임표 경로 제외로 스택 트레이스 오탐 2건 해소) · guide-rhythm 103→101 · 인덱스 중복 3줄 정리. ci.ts all 통과(15단계).
+- 2026-08-29T04:07 · s:ed9f919e · S3 doing — 착수
+- 2026-08-29T04:20 · s:ed9f919e · S3 done — L38~L40 신설 — check-v2.ts P11(기호 개수 선언↔표)·P12(코드 이름 대응 실재)·P13(정의식 재기술) + 회귀 시험 9벌. 파일럿 4편 위반 0
+- 2026-08-29T04:21 · s:ed9f919e · S4 doing — 착수
+- 2026-08-29T04:27 · s:ed9f919e · S4 done — tools/algo-wbs.ts 신설 — 웨이브 배리어·카테고리 선례·뷰 조합 선례 셋. 상태를 문서에 안 적는다(순서=목록, 완료=파일시스템). 회귀 시험 14벌
+- 2026-08-29T04:38 · s:7970a5f3 · S5 doing — 착수
+- 2026-08-29T12:21 · s:7970a5f3 — `실행 계획` 섹션 교체
+- 2026-08-30T13:01 · s:39d8f0cf · S5 done — W1 — 중요도 상 24편 전개 완료(KAN-034.5-0RGSQM 24/24). 배치 여섯으로 나눠 돌렸고 편마다 스캐너 넷 0 · guide 테스트 통과 · build-html 0. 웨이브 마감 실측: 상 등급에 살아 있는 .mdx 0(algo-wbs [W1] 26/26) · guide-rhythm 101→79 · check-links 343건 전부 실재 · ci.ts all 통과(단계 15). 완료 기준 둘 다 충족. 웨이브 배리어가 풀려 W2 claim 후보 10건이 열렸다
+- 2026-08-30T13:13 · s:39d8f0cf — `전략` 섹션 교체
+- 2026-09-03T23:57 · s:913bcce1 · S6 done — W2 41/41 마감 — 살아 있는 .mdx 42 · guide-rhythm 41 실측, algo-wbs 가 [W2] 완료와 W3 후보 11건을 낸다
+- 2026-09-10T16:36 · s:14e75b9e · S7 done — W3 42편 완주 — 하위 KAN-034.7-QMZ3RE 가 배치11 로 닫았고 검토 6/6 승인(반려 3건이 재작업 뒤 뒤집혔다). 웨이브 종료 조건 셋이 참: algo-wbs 111/111 · 살아 있는 .mdx 0 · rhythm 행 0
+- 2026-09-10T16:36 · s:14e75b9e · S8 done — v1 잔여 처분 완료 — 하위 KAN-034.8-BK1Q3A 가 배치4 로 닫았고 검토 5/5 승인. _deprecated 107장 삭제 · rhythm 스캐너가 트랙을 말하게 함 · 이월 넷 처분(매니페스트 107 항목·paths.json·워크플로·spec 은퇴)

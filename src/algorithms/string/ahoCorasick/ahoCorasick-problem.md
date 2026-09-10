@@ -46,12 +46,12 @@ $$\text{result} = \{\, (i, j) \mid 0 \leq i < k,\; 0 \leq j \leq |T| - |p_i|,\; 
 ## 예시
 
 ```ts
+// text = "ahishers" = a h i s h e r s (자리 0..7)
 ahoCorasick("ahishers", ["he", "she", "his", "hers"]);
 // [
-//   { patternIndex: 0, position: 1 },  // "he"  at 1
-//   { patternIndex: 2, position: 1 },  // "his" at 1
-//   { patternIndex: 1, position: 3 },  // "she" at 3
-//   { patternIndex: 0, position: 4 },  // "he"  at 4
+//   { patternIndex: 2, position: 1 },  // "his"  at 1
+//   { patternIndex: 1, position: 3 },  // "she"  at 3
+//   { patternIndex: 0, position: 4 },  // "he"   at 4
 //   { patternIndex: 3, position: 4 },  // "hers" at 4
 // ]
 

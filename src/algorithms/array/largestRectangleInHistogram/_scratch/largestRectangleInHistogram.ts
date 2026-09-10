@@ -7,7 +7,7 @@ function largestRectangleInHistogramNaive(heights: number[]): number {
     const h = heights[i]!;
     let left = i;
     let right = i;
-    while (left > 0 && heights[left - 1]! >= h) left--;   // h 이상인 동안 왼쪽으로 확장
+    while (left > 0 && heights[left - 1]! >= h) left--; // h 이상인 동안 왼쪽으로 확장
     while (right < n - 1 && heights[right + 1]! >= h) right++; // h 이상인 동안 오른쪽으로 확장
     best = Math.max(best, h * (right - left + 1));
   }
@@ -20,7 +20,10 @@ function largestRectangleInHistogramBase(heights: number[]): number {
   let maxArea = 0;
 
   for (let i = 0; i < n; i++) {
-    while (stack.length > 0 && heights[stack[stack.length - 1]!]! > heights[i]!) {
+    while (
+      stack.length > 0 &&
+      heights[stack[stack.length - 1]!]! > heights[i]!
+    ) {
       const j = stack.pop()!;
       const R = i;
       const L = stack.length > 0 ? stack[stack.length - 1]! : -1;
@@ -46,7 +49,10 @@ function largestRectangleInHistogramNoFlush(heights: number[]): number {
   const stack: number[] = [];
   let maxArea = 0;
   for (let i = 0; i < n; i++) {
-    while (stack.length > 0 && heights[stack[stack.length - 1]!]! > heights[i]!) {
+    while (
+      stack.length > 0 &&
+      heights[stack[stack.length - 1]!]! > heights[i]!
+    ) {
       const j = stack.pop()!;
       const R = i;
       const L = stack.length > 0 ? stack[stack.length - 1]! : -1;
@@ -63,7 +69,10 @@ function largestRectangleInHistogramLZeroBug(heights: number[]): number {
   const stack: number[] = [];
   let maxArea = 0;
   for (let i = 0; i < n; i++) {
-    while (stack.length > 0 && heights[stack[stack.length - 1]!]! > heights[i]!) {
+    while (
+      stack.length > 0 &&
+      heights[stack[stack.length - 1]!]! > heights[i]!
+    ) {
       const j = stack.pop()!;
       const R = i;
       const L = stack.length > 0 ? stack[stack.length - 1]! : 0; // BUG: -1 대신 0
@@ -85,7 +94,8 @@ function largestRectangleInHistogram(heights: number[]): number {
   const stack: number[] = [];
   let maxArea = 0;
 
-  for (let i = 0; i <= n; i++) {                 // n 포함: 가상의 높이 0 막대
+  for (let i = 0; i <= n; i++) {
+    // n 포함: 가상의 높이 0 막대
     const h = i === n ? 0 : heights[i]!;
     while (stack.length > 0 && heights[stack[stack.length - 1]!]! > h) {
       const j = stack.pop()!;
@@ -118,13 +128,21 @@ function computeLR(heights: number[]) {
   const R: number[] = new Array(n).fill(n);
   const stack: number[] = [];
   for (let i = 0; i < n; i++) {
-    while (stack.length > 0 && heights[stack[stack.length - 1]!]! >= heights[i]!) stack.pop();
+    while (
+      stack.length > 0 &&
+      heights[stack[stack.length - 1]!]! >= heights[i]!
+    )
+      stack.pop();
     L[i] = stack.length > 0 ? stack[stack.length - 1]! : -1;
     stack.push(i);
   }
   stack.length = 0;
   for (let i = n - 1; i >= 0; i--) {
-    while (stack.length > 0 && heights[stack[stack.length - 1]!]! >= heights[i]!) stack.pop();
+    while (
+      stack.length > 0 &&
+      heights[stack[stack.length - 1]!]! >= heights[i]!
+    )
+      stack.pop();
     R[i] = stack.length > 0 ? stack[stack.length - 1]! : n;
     stack.push(i);
   }
@@ -167,13 +185,26 @@ for (const [arr, expected] of cases) {
   const brute = bruteForceOracle(arr);
   const ok = o === expected && b === expected && brute === expected;
   allExamplesOk &&= ok;
-  console.log(JSON.stringify(arr), "expected:", expected, "optimized:", o, "base:", b, "brute:", brute, ok ? "OK" : "MISMATCH");
+  console.log(
+    JSON.stringify(arr),
+    "expected:",
+    expected,
+    "optimized:",
+    o,
+    "base:",
+    b,
+    "brute:",
+    brute,
+    ok ? "OK" : "MISMATCH",
+  );
 }
 console.log("전체 예시 일치:", allExamplesOk);
 
 // ---- 랜덤 교차검증 ----
 function randHeights(n: number, maxH: number): number[] {
-  return Array.from({ length: n }, () => Math.floor(Math.random() * (maxH + 1)));
+  return Array.from({ length: n }, () =>
+    Math.floor(Math.random() * (maxH + 1)),
+  );
 }
 let randomOk = true;
 for (let t = 0; t < 3000; t++) {
@@ -192,8 +223,14 @@ console.log("\n[랜덤 3000회 교차검증] 전부 일치:", randomOk);
 // ---- 함정 데모 1: flush 누락 (heights=[1,2,3,4,5]) ----
 console.log("\n[함정 데모: flush 누락] heights=[1,2,3,4,5]");
 console.log("정상(optimized):", largestRectangleInHistogram([1, 2, 3, 4, 5]));
-console.log("정상(base, flush 있음):", largestRectangleInHistogramBase([1, 2, 3, 4, 5]));
-console.log("버그(flush 없음):", largestRectangleInHistogramNoFlush([1, 2, 3, 4, 5]));
+console.log(
+  "정상(base, flush 있음):",
+  largestRectangleInHistogramBase([1, 2, 3, 4, 5]),
+);
+console.log(
+  "버그(flush 없음):",
+  largestRectangleInHistogramNoFlush([1, 2, 3, 4, 5]),
+);
 
 // ---- 함정 데모 2: L=-1 대신 0 (heights=[5]) ----
 console.log("\n[함정 데모: L=0 버그] heights=[5]");
@@ -216,4 +253,7 @@ console.log("bruteForceOracle:", bruteForceOracle([3, 1, 3, 2, 2]));
 // ---- 자가점검 문제2: heights=[4,4,4,4] ----
 console.log("\n[자가점검 문제2] heights=[4,4,4,4]");
 console.log("optimized:", largestRectangleInHistogram([4, 4, 4, 4]));
-console.log("버그(flush 없음):", largestRectangleInHistogramNoFlush([4, 4, 4, 4]));
+console.log(
+  "버그(flush 없음):",
+  largestRectangleInHistogramNoFlush([4, 4, 4, 4]),
+);

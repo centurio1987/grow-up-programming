@@ -1,11 +1,13 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { ahoCorasick } from "./ahoCorasick";
 
 type Match = { patternIndex: number; position: number };
 
 function sortMatches(matches: Match[]): Match[] {
   return [...matches].sort((a, b) =>
-    a.position !== b.position ? a.position - b.position : a.patternIndex - b.patternIndex,
+    a.position !== b.position
+      ? a.position - b.position
+      : a.patternIndex - b.patternIndex,
   );
 }
 
@@ -18,14 +20,13 @@ describe("ahoCorasick", () => {
     });
 
     test("여러 패턴 동시 매칭", () => {
-      // text = "ahishers", patterns = ["he","she","his","hers"]
-      // - "he"   at 1, 4
-      // - "she"  at 3
+      // text = "ahishers" = a h i s h e r s (자리 0..7)
       // - "his"  at 1
+      // - "she"  at 3
+      // - "he"   at 4      (자리 1 의 두 글자는 "hi" 라 여기서는 매칭이 아니다)
       // - "hers" at 4
       const result = ahoCorasick("ahishers", ["he", "she", "his", "hers"]);
       expect(sortMatches(result)).toEqual([
-        { patternIndex: 0, position: 1 },
         { patternIndex: 2, position: 1 },
         { patternIndex: 1, position: 3 },
         { patternIndex: 0, position: 4 },
@@ -80,7 +81,9 @@ describe("ahoCorasick", () => {
   // 바운더리 테스트
   describe("바운더리 테스트", () => {
     test("길이 1의 패턴, 길이 1의 텍스트", () => {
-      expect(ahoCorasick("a", ["a"])).toEqual([{ patternIndex: 0, position: 0 }]);
+      expect(ahoCorasick("a", ["a"])).toEqual([
+        { patternIndex: 0, position: 0 },
+      ]);
     });
 
     test("k = 1, 단일 패턴", () => {
@@ -94,7 +97,9 @@ describe("ahoCorasick", () => {
     test("n = 100,000, 단일 매칭", () => {
       const text = "a".repeat(99_995) + "bcdef";
       const result = ahoCorasick(text, ["bcdef"]);
-      expect(sortMatches(result)).toEqual([{ patternIndex: 0, position: 99_995 }]);
+      expect(sortMatches(result)).toEqual([
+        { patternIndex: 0, position: 99_995 },
+      ]);
     });
   });
 

@@ -3,7 +3,9 @@ function tspBitmaskBuggyRevisit(dist: number[][]): number {
   const n = dist.length;
   if (n === 1) return 0;
   const FULL = (1 << n) - 1;
-  const dp: number[][] = Array.from({ length: FULL + 1 }, () => new Array(n).fill(Infinity));
+  const dp: number[][] = Array.from({ length: FULL + 1 }, () =>
+    new Array(n).fill(Infinity),
+  );
   dp[1][0] = 0;
 
   for (let mask = 1; mask <= FULL; mask++) {
@@ -37,7 +39,9 @@ function tspBitmaskIncludeV0(dist: number[][]): number {
   const n = dist.length;
   if (n === 1) return 0;
   const FULL = (1 << n) - 1;
-  const dp: number[][] = Array.from({ length: FULL + 1 }, () => new Array(n).fill(Infinity));
+  const dp: number[][] = Array.from({ length: FULL + 1 }, () =>
+    new Array(n).fill(Infinity),
+  );
   dp[1][0] = 0;
   for (let mask = 1; mask <= FULL; mask++) {
     for (let v = 0; v < n; v++) {
@@ -50,9 +54,13 @@ function tspBitmaskIncludeV0(dist: number[][]): number {
     }
   }
   let answer = Infinity;
-  for (let v = 0; v < n; v++) { // BUG: v=0부터 포함
+  for (let v = 0; v < n; v++) {
+    // BUG: v=0부터 포함
     answer = Math.min(answer, dp[FULL][v] + dist[v][0]);
   }
   return answer;
 }
-console.log("v=0 포함 버전 결과 (dp[111][0] 확인용):", tspBitmaskIncludeV0(dist3));
+console.log(
+  "v=0 포함 버전 결과 (dp[111][0] 확인용):",
+  tspBitmaskIncludeV0(dist3),
+);

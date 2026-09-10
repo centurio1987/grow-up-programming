@@ -1,10 +1,12 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { slidingWindowMaximum } from "./slidingWindowMaximum";
 
 describe("slidingWindowMaximum", () => {
   describe("기본", () => {
     test("[1,3,-1,-3,5,3,6,7], k=3 → [3,3,5,5,6,7]", () => {
-      expect(slidingWindowMaximum([1, 3, -1, -3, 5, 3, 6, 7], 3)).toEqual([3, 3, 5, 5, 6, 7]);
+      expect(slidingWindowMaximum([1, 3, -1, -3, 5, 3, 6, 7], 3)).toEqual([
+        3, 3, 5, 5, 6, 7,
+      ]);
     });
 
     test("[9,8,7,6,5], k=2 → [9,8,7,6]", () => {

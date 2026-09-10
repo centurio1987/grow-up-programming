@@ -79,7 +79,9 @@ function check(name: string, actual: unknown, expected: unknown) {
   const ok = JSON.stringify(actual) === JSON.stringify(expected);
   if (!ok) {
     fail++;
-    console.log(`FAIL ${name}: got ${JSON.stringify(actual)}, want ${JSON.stringify(expected)}`);
+    console.log(
+      `FAIL ${name}: got ${JSON.stringify(actual)}, want ${JSON.stringify(expected)}`,
+    );
   } else {
     console.log(`ok   ${name}: ${JSON.stringify(actual)}`);
   }
@@ -112,16 +114,25 @@ check("subsetSum([5],5)", subsetSum([5], 5), true);
 console.log("\n--- 함정 시연: 오름차순 갱신의 오류 ---");
 // nums=[3], target=6: 3을 한 번만 쓸 수 있으므로 합 6은 불가능해야 한다.
 check("정답(1D 내림차순) subsetSum([3],6)", subsetSum([3], 6), false);
-check("오답(오름차순) subsetSumWrongAscending([3],6)", subsetSumWrongAscending([3], 6), true);
+check(
+  "오답(오름차순) subsetSumWrongAscending([3],6)",
+  subsetSumWrongAscending([3], 6),
+  true,
+);
 // 트레이스도 출력
 {
   const dp = new Array<boolean>(7).fill(false);
   dp[0] = true;
-  console.log("오름차순 갱신 진행(v=3, x=3..6):", dp.map((b) => (b ? "T" : "F")).join(","));
+  console.log(
+    "오름차순 갱신 진행(v=3, x=3..6):",
+    dp.map((b) => (b ? "T" : "F")).join(","),
+  );
   const v = 3;
   for (let x = v; x <= 6; x++) {
     dp[x] = dp[x] || dp[x - v]!;
-    console.log(`  x=${x}: dp[${x}] = dp[${x}] || dp[${x - v}] -> ${dp.map((b) => (b ? "T" : "F")).join(",")}`);
+    console.log(
+      `  x=${x}: dp[${x}] = dp[${x}] || dp[${x - v}] -> ${dp.map((b) => (b ? "T" : "F")).join(",")}`,
+    );
   }
 }
 
@@ -139,9 +150,15 @@ for (let t = 0; t < 300; t++) {
   const c = subsetSum(nums, target);
   if (a !== b || b !== c) {
     randFail++;
-    console.log(`MISMATCH nums=${JSON.stringify(nums)} target=${target} naive=${a} 2D=${b} 1D=${c}`);
+    console.log(
+      `MISMATCH nums=${JSON.stringify(nums)} target=${target} naive=${a} 2D=${b} 1D=${c}`,
+    );
   }
 }
-console.log(randFail === 0 ? "무작위 300케이스 전부 일치" : `무작위 불일치 ${randFail}건`);
+console.log(
+  randFail === 0 ? "무작위 300케이스 전부 일치" : `무작위 불일치 ${randFail}건`,
+);
 
-console.log(fail === 0 ? "\n=== 전체 검증 통과 ===" : `\n=== FAIL ${fail}건 ===`);
+console.log(
+  fail === 0 ? "\n=== 전체 검증 통과 ===" : `\n=== FAIL ${fail}건 ===`,
+);

@@ -93,7 +93,10 @@ function show(label: string, m: number[][]) {
   console.log(label);
   console.log(
     m
-      .map((row) => "  [" + row.map((x) => (x === Infinity ? "∞" : x)).join(", ") + "]")
+      .map(
+        (row) =>
+          "  [" + row.map((x) => (x === Infinity ? "∞" : x)).join(", ") + "]",
+      )
       .join("\n"),
   );
 }
@@ -111,7 +114,12 @@ const r1opt = floydWarshall(4, edges1);
 const r1naive = naiveAllPairs(4, edges1);
 show("base", r1base);
 show("opt", r1opt);
-console.log("base==opt:", eq(r1base, r1opt), " base==naive:", eq(r1base, r1naive));
+console.log(
+  "base==opt:",
+  eq(r1base, r1opt),
+  " base==naive:",
+  eq(r1base, r1naive),
+);
 
 console.log("\n=== 2) problem.md 예시 1: 음수 간선, 간접 경로가 더 짧음 ===");
 const edges2: [number, number, number][] = [
@@ -135,7 +143,10 @@ show("floydWarshall(2, [])", r4);
 // 기대: [[0,∞],[∞,0]]
 
 console.log("\n=== 5) problem.md 예시 4: 방향성 독립 ===");
-const r5 = floydWarshall(2, [[0, 1, 3], [1, 0, 7]]);
+const r5 = floydWarshall(2, [
+  [0, 1, 3],
+  [1, 0, 7],
+]);
 show("floydWarshall(2, [[0,1,3],[1,0,7]])", r5);
 // 기대: [[0,3],[7,0]]
 
@@ -145,11 +156,17 @@ show("floydWarshall(1, [])", r6);
 // 기대: [[0]]
 
 console.log("\n=== 7) 엣지: 다중 간선 min 처리 ===");
-const r7 = floydWarshall(2, [[0, 1, 5], [0, 1, 2], [0, 1, 9]]);
+const r7 = floydWarshall(2, [
+  [0, 1, 5],
+  [0, 1, 2],
+  [0, 1, 9],
+]);
 show("floydWarshall(2, [[0,1,5],[0,1,2],[0,1,9]])", r7);
 // 기대: [[0,2],[∞,0]]
 
-console.log("\n=== 8) 무작위 교차검증 (naive vs base vs opt), 음수 간선 포함·사이클 없음 ===");
+console.log(
+  "\n=== 8) 무작위 교차검증 (naive vs base vs opt), 음수 간선 포함·사이클 없음 ===",
+);
 function randomDag(n: number, edgeCount: number): [number, number, number][] {
   // 위상 순서 0..n-1을 고정하고 u<v 방향으로만 간선을 둬 음수 사이클을 원천 차단한다.
   const edges: [number, number, number][] = [];

@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { maxCounters } from "./maxCounters";
 
 describe("maxCounters", () => {
@@ -71,7 +71,7 @@ describe("maxCounters", () => {
   test("N=M=100,000 혼합 연산을 100ms 이내에 처리한다", () => {
     const N = 100_000;
     const A = Array.from({ length: 100_000 }, (_, i) =>
-      i % 3 === 0 ? N + 1 : (i % N) + 1
+      i % 3 === 0 ? N + 1 : (i % N) + 1,
     );
     const start = performance.now();
     maxCounters(N, A);

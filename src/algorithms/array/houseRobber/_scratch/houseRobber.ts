@@ -70,7 +70,10 @@ for (const [nums, expected] of cases) {
   const naive = nums.length <= 20 ? houseRobberNaive(nums) : NaN;
   const dp = houseRobberDp(nums);
   const rolling = houseRobber(nums);
-  const ok = dp === expected && rolling === expected && (Number.isNaN(naive) || naive === expected);
+  const ok =
+    dp === expected &&
+    rolling === expected &&
+    (Number.isNaN(naive) || naive === expected);
   allOk = allOk && ok;
   console.log(
     `nums=${JSON.stringify(nums)} expected=${expected} naive=${naive} dp=${dp} rolling=${rolling} -> ${ok ? "OK" : "MISMATCH"}`,
@@ -91,7 +94,9 @@ const simNums = [2, 7, 9, 3, 1];
     prev2 = prev1;
     prev1 = curr;
   }
-  console.log(`sim curr frames (i=2,3,4): ${JSON.stringify(frames)} (기대 [11, 11, 12])`);
+  console.log(
+    `sim curr frames (i=2,3,4): ${JSON.stringify(frames)} (기대 [11, 11, 12])`,
+  );
   console.log(`sim final prev1: ${prev1} (기대 12)`);
 }
 
@@ -105,10 +110,14 @@ for (let t = 0; t < 200; t++) {
   const c = houseRobber(nums);
   if (a !== b || b !== c) {
     randomOk = false;
-    console.log(`MISMATCH random: nums=${JSON.stringify(nums)} naive=${a} dp=${b} rolling=${c}`);
+    console.log(
+      `MISMATCH random: nums=${JSON.stringify(nums)} naive=${a} dp=${b} rolling=${c}`,
+    );
   }
 }
-console.log(`random cross-check (200 trials, N<=11): ${randomOk ? "ALL OK" : "FAILED"}`);
+console.log(
+  `random cross-check (200 trials, N<=11): ${randomOk ? "ALL OK" : "FAILED"}`,
+);
 
 // --- 버그 시나리오(순서 뒤바뀜) 재현: 최적화 코드 절 함정 포인팅용 수치 확인 ---
 {
@@ -123,8 +132,12 @@ console.log(`random cross-check (200 trials, N<=11): ${randomOk ? "ALL OK" : "FA
     prev2 = prev1;
     buggyTrace.push(curr);
   }
-  console.log(`buggy-order trace (curr values): ${JSON.stringify(buggyTrace)} final(=prev1)=${prev1}`);
+  console.log(
+    `buggy-order trace (curr values): ${JSON.stringify(buggyTrace)} final(=prev1)=${prev1}`,
+  );
 }
 
-console.log(allOk ? "\n=== ALL EXAMPLE CASES OK ===" : "\n=== EXAMPLE MISMATCH FOUND ===");
+console.log(
+  allOk ? "\n=== ALL EXAMPLE CASES OK ===" : "\n=== EXAMPLE MISMATCH FOUND ===",
+);
 if (!allOk) process.exit(1);

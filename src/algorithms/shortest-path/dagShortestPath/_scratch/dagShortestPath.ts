@@ -123,7 +123,9 @@ function show(label: string, val: unknown) {
   console.log(label, "=>", JSON.stringify(val));
 }
 
-console.log("=== 1. 가이드 시뮬레이션 예시 (구 가이드에서 그대로 가져온 그래프) ===");
+console.log(
+  "=== 1. 가이드 시뮬레이션 예시 (구 가이드에서 그대로 가져온 그래프) ===",
+);
 {
   const n = 5;
   const edges: [number, number, number][] = [
@@ -160,13 +162,28 @@ console.log("=== 2. problem.md 예시들 ===");
 {
   show(
     "final(3,[[0,2,1],[1,2,1]],2) expect [Infinity,Infinity,0]",
-    dagShortestPath(3, [[0, 2, 1], [1, 2, 1]], 2),
+    dagShortestPath(
+      3,
+      [
+        [0, 2, 1],
+        [1, 2, 1],
+      ],
+      2,
+    ),
   );
 }
 {
   show(
     "final(4,[[2,3,1],[1,2,1],[0,1,1]],0) expect [0,1,2,3]",
-    dagShortestPath(4, [[2, 3, 1], [1, 2, 1], [0, 1, 1]], 0),
+    dagShortestPath(
+      4,
+      [
+        [2, 3, 1],
+        [1, 2, 1],
+        [0, 1, 1],
+      ],
+      0,
+    ),
   );
 }
 
@@ -177,11 +194,17 @@ console.log("=== 4. 원형 DFS 비용 폭발 체감 (분기 있는 체인) ===")
 {
   // 정점 0..2k, 각 짝수 단계에서 두 갈래로 분기했다가 다시 합류하는 구조를 만들어 경로 수 측정
   // 간단한 버전: "다이아몬드" k개를 직렬로 이어붙임 -> 경로 수 2^k
-  function buildDiamondChain(k: number): { n: number; edges: [number, number, number][] } {
+  function buildDiamondChain(k: number): {
+    n: number;
+    edges: [number, number, number][];
+  } {
     const edges: [number, number, number][] = [];
     let cur = 0;
     for (let i = 0; i < k; i++) {
-      const a = cur, mid1 = cur + 1, mid2 = cur + 2, b = cur + 3;
+      const a = cur,
+        mid1 = cur + 1,
+        mid2 = cur + 2,
+        b = cur + 3;
       edges.push([a, mid1, 1], [a, mid2, 1], [mid1, b, 1], [mid2, b, 1]);
       cur = b;
     }
@@ -190,13 +213,20 @@ console.log("=== 4. 원형 DFS 비용 폭발 체감 (분기 있는 체인) ===")
   for (const k of [1, 2, 3, 4, 5, 6]) {
     const { n, edges } = buildDiamondChain(k);
     const calls = naiveCallCount(n, edges, 0, n - 1);
-    console.log(`k=${k} (정점 ${n}개) -> naive DFS 호출 수 = ${calls}, 2^k = ${2 ** k}`);
+    console.log(
+      `k=${k} (정점 ${n}개) -> naive DFS 호출 수 = ${calls}, 2^k = ${2 ** k}`,
+    );
   }
 }
 
-console.log("=== 5. 무작위 교차검증 (memo vs final vs naiveAllPaths, 작은 랜덤 DAG) ===");
+console.log(
+  "=== 5. 무작위 교차검증 (memo vs final vs naiveAllPaths, 작은 랜덤 DAG) ===",
+);
 {
-  function randomDag(n: number, extraEdgeProb: number): [number, number, number][] {
+  function randomDag(
+    n: number,
+    extraEdgeProb: number,
+  ): [number, number, number][] {
     // 인덱스 순서를 위상 순서로 강제 (u < v인 간선만 생성) → 항상 DAG
     const edges: [number, number, number][] = [];
     for (let u = 0; u < n; u++) {
@@ -217,7 +247,8 @@ console.log("=== 5. 무작위 교차검증 (memo vs final vs naiveAllPaths, 작�
     const dFinal = dagShortestPath(n, edges, src);
     const dMemo = dagShortestPathMemo(n, edges, src);
     const dNaive = naiveAllPaths(n, edges, src);
-    const norm = (arr: number[]) => arr.map((x) => (x === Infinity ? "Inf" : x)).join(",");
+    const norm = (arr: number[]) =>
+      arr.map((x) => (x === Infinity ? "Inf" : x)).join(",");
     if (norm(dFinal) !== norm(dMemo) || norm(dFinal) !== norm(dNaive)) {
       allMatch = false;
       console.log("MISMATCH", { n, edges, src, dFinal, dMemo, dNaive });
@@ -226,7 +257,9 @@ console.log("=== 5. 무작위 교차검증 (memo vs final vs naiveAllPaths, 작�
   console.log("무작위 200회 교차검증 전부 일치:", allMatch);
 }
 
-console.log("=== 6-pre. Dijkstra greedy가 음수 간선에서 왜 틀리는지 구체 수치 ===");
+console.log(
+  "=== 6-pre. Dijkstra greedy가 음수 간선에서 왜 틀리는지 구체 수치 ===",
+);
 {
   // 0->1 (5), 0->2 (1), 1->2 (-10)
   // Dijkstra라면: dist[2]=1로 먼저 확정(node1의 dist=5보다 작으므로) → 이후 1→2(-10) 완화를 반영 못 함
@@ -267,7 +300,9 @@ console.log("=== 6-pre. Dijkstra greedy가 음수 간선에서 왜 틀리는지 
   );
 }
 
-console.log("=== 6. Infinity 스킵 없이도 안전한지 확인 (JS 부동소수점 특성) ===");
+console.log(
+  "=== 6. Infinity 스킵 없이도 안전한지 확인 (JS 부동소수점 특성) ===",
+);
 {
   // dist[u] = Infinity 인 상태에서 스킵 없이 dist[u] + w 를 그대로 완화식에 넣으면 어떻게 되는지
   const w = -1e9;
@@ -283,11 +318,18 @@ console.log("=== 7. 스스로 점검하기 문제용 검증 ===");
     [1, 3, 4],
     [2, 3, 6],
   ];
-  show("Q1 dagShortestPath(4, edges, 0) expect [0,3,-2,4]", dagShortestPath(4, edges, 0));
+  show(
+    "Q1 dagShortestPath(4, edges, 0) expect [0,3,-2,4]",
+    dagShortestPath(4, edges, 0),
+  );
 }
 {
   // Q2: 입력 순서(위상순서 아님) 그대로 한 번만 완화하면?
-  function singlePassInputOrder(n: number, edges: [number, number, number][], src: number): number[] {
+  function singlePassInputOrder(
+    n: number,
+    edges: [number, number, number][],
+    src: number,
+  ): number[] {
     const dist = new Array(n).fill(Infinity);
     dist[src] = 0;
     for (const [u, v, w] of edges) {
@@ -295,7 +337,17 @@ console.log("=== 7. 스스로 점검하기 문제용 검증 ===");
     }
     return dist;
   }
-  const edges: [number, number, number][] = [[2, 3, 1], [1, 2, 1], [0, 1, 1]];
-  show("Q2 singlePassInputOrder expect [0,1,Inf,Inf]", singlePassInputOrder(4, edges, 0));
-  show("Q2 correct dagShortestPath expect [0,1,2,3]", dagShortestPath(4, edges, 0));
+  const edges: [number, number, number][] = [
+    [2, 3, 1],
+    [1, 2, 1],
+    [0, 1, 1],
+  ];
+  show(
+    "Q2 singlePassInputOrder expect [0,1,Inf,Inf]",
+    singlePassInputOrder(4, edges, 0),
+  );
+  show(
+    "Q2 correct dagShortestPath expect [0,1,2,3]",
+    dagShortestPath(4, edges, 0),
+  );
 }

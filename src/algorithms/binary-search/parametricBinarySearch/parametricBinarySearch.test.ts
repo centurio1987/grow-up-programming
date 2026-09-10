@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { parametricBinarySearch } from "./parametricBinarySearch";
 
 describe("parametricBinarySearch (Split Array Largest Sum)", () => {

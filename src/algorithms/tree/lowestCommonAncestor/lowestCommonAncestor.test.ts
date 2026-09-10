@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { lowestCommonAncestor } from "./lowestCommonAncestor";
 
 describe("lowestCommonAncestor", () => {
@@ -11,15 +11,10 @@ describe("lowestCommonAncestor", () => {
     test("두 노드 트리에서 LCA는 루트", () => {
       // 0 - 1, root=0 → LCA(0,1)=0, LCA(1,1)=1
       expect(
-        lowestCommonAncestor(
-          2,
-          [[0, 1]],
-          0,
-          [
-            [0, 1],
-            [1, 1],
-          ]
-        )
+        lowestCommonAncestor(2, [[0, 1]], 0, [
+          [0, 1],
+          [1, 1],
+        ]),
       ).toEqual([0, 1]);
     });
 
@@ -43,7 +38,9 @@ describe("lowestCommonAncestor", () => {
         [3, 1], // LCA = 1
         [5, 0], // LCA = 0
       ];
-      expect(lowestCommonAncestor(6, edges, 0, queries)).toEqual([1, 0, 0, 1, 0]);
+      expect(lowestCommonAncestor(6, edges, 0, queries)).toEqual([
+        1, 0, 0, 1, 0,
+      ]);
     });
 
     test("자기 자신의 LCA는 자기 자신", () => {
@@ -62,15 +59,10 @@ describe("lowestCommonAncestor", () => {
         [2, 3],
       ];
       expect(
-        lowestCommonAncestor(
-          4,
-          edges,
-          0,
-          [
-            [0, 3],
-            [1, 3],
-          ]
-        )
+        lowestCommonAncestor(4, edges, 0, [
+          [0, 3],
+          [1, 3],
+        ]),
       ).toEqual([0, 1]);
     });
   });
@@ -83,16 +75,11 @@ describe("lowestCommonAncestor", () => {
       for (let i = 0; i < n - 1; i++) edges.push([i, i + 1]);
       // root=0, chain 0→1→2→3→4→5
       expect(
-        lowestCommonAncestor(
-          n,
-          edges,
-          0,
-          [
-            [2, 5],
-            [1, 4],
-            [3, 3],
-          ]
-        )
+        lowestCommonAncestor(n, edges, 0, [
+          [2, 5],
+          [1, 4],
+          [3, 3],
+        ]),
       ).toEqual([2, 1, 3]);
     });
 
@@ -105,16 +92,11 @@ describe("lowestCommonAncestor", () => {
         [0, 4],
       ];
       expect(
-        lowestCommonAncestor(
-          5,
-          edges,
-          0,
-          [
-            [1, 2],
-            [3, 4],
-            [1, 4],
-          ]
-        )
+        lowestCommonAncestor(5, edges, 0, [
+          [1, 2],
+          [3, 4],
+          [1, 4],
+        ]),
       ).toEqual([0, 0, 0]);
     });
 
@@ -137,15 +119,10 @@ describe("lowestCommonAncestor", () => {
       // LCA(0, 3) with root=2 → 2
       // LCA(0, 1) with root=2 → 1
       expect(
-        lowestCommonAncestor(
-          4,
-          edges,
-          2,
-          [
-            [0, 3],
-            [0, 1],
-          ]
-        )
+        lowestCommonAncestor(4, edges, 2, [
+          [0, 3],
+          [0, 1],
+        ]),
       ).toEqual([2, 1]);
     });
   });

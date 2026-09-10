@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { stronglyConnectedComponents } from "./stronglyConnectedComponents";
 
 /**
@@ -61,7 +61,12 @@ describe("stronglyConnectedComponents", () => {
       [4, 3],
     ]);
     expect(isWellFormedSCC(result, 5)).toBe(true);
-    expect(sccsEqual(result, [[0, 1, 2], [3, 4]])).toBe(true);
+    expect(
+      sccsEqual(result, [
+        [0, 1, 2],
+        [3, 4],
+      ]),
+    ).toBe(true);
   });
 
   test("선형 DAG — 각 정점이 자기 자신 SCC", () => {
@@ -111,7 +116,12 @@ describe("stronglyConnectedComponents", () => {
       [3, 2],
     ]);
     expect(isWellFormedSCC(result, 4)).toBe(true);
-    expect(sccsEqual(result, [[0, 1], [2, 3]])).toBe(true);
+    expect(
+      sccsEqual(result, [
+        [0, 1],
+        [2, 3],
+      ]),
+    ).toBe(true);
   });
 
   // 바운더리

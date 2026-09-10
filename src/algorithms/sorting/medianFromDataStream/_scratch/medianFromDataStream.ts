@@ -5,7 +5,7 @@
 class MedianFinderNaive {
   private arr: number[] = [];
   addNum(num: number): void {
-    this.arr.push(num);          // O(1)
+    this.arr.push(num); // O(1)
   }
   findMedian(): number {
     const sorted = [...this.arr].sort((a, b) => a - b); // O(N log N)
@@ -18,8 +18,12 @@ class MedianFinderNaive {
 // ---- 아이디어를 코드로 옮기기: 기본 구현 ----
 class MinHeap {
   private data: number[] = [];
-  size(): number { return this.data.length; }
-  top(): number { return this.data[0]!; }
+  size(): number {
+    return this.data.length;
+  }
+  top(): number {
+    return this.data[0]!;
+  }
   push(x: number): void {
     this.data.push(x);
     let i = this.data.length - 1;
@@ -38,12 +42,16 @@ class MinHeap {
       let i = 0;
       const n = this.data.length;
       while (true) {
-        const l = 2 * i + 1, r = 2 * i + 2;
+        const l = 2 * i + 1,
+          r = 2 * i + 2;
         let smallest = i;
         if (l < n && this.data[l]! < this.data[smallest]!) smallest = l;
         if (r < n && this.data[r]! < this.data[smallest]!) smallest = r;
         if (smallest === i) break;
-        [this.data[smallest]!, this.data[i]!] = [this.data[i]!, this.data[smallest]!];
+        [this.data[smallest]!, this.data[i]!] = [
+          this.data[i]!,
+          this.data[smallest]!,
+        ];
         i = smallest;
       }
     }
@@ -53,10 +61,18 @@ class MinHeap {
 
 class MaxHeap {
   private inner = new MinHeap();
-  size(): number { return this.inner.size(); }
-  top(): number { return -this.inner.top(); }
-  push(x: number): void { this.inner.push(-x); }
-  pop(): number { return -this.inner.pop(); }
+  size(): number {
+    return this.inner.size();
+  }
+  top(): number {
+    return -this.inner.top();
+  }
+  push(x: number): void {
+    this.inner.push(-x);
+  }
+  pop(): number {
+    return -this.inner.pop();
+  }
 }
 
 class MedianFinderBase {
@@ -89,9 +105,9 @@ class MedianFinder {
 
   addNum(num: number): void {
     this.lo.push(num);
-    this.hi.push(this.lo.pop());       // lo의 현재 최댓값을 hi로 넘김 → 값 불변식 자동 성립
+    this.hi.push(this.lo.pop()); // lo의 현재 최댓값을 hi로 넘김 → 값 불변식 자동 성립
     if (this.hi.size() > this.lo.size()) {
-      this.lo.push(this.hi.pop());     // hi가 넘치면 되돌림 → 크기 불변식 복원
+      this.lo.push(this.hi.pop()); // hi가 넘치면 되돌림 → 크기 불변식 복원
     }
   }
 
@@ -115,10 +131,14 @@ function check(label: string, actual: number, expected: number) {
 console.log("=== 출발점 절 ascii 수치 (naive, 1,2,3,4) ===");
 {
   const mf = new MedianFinderNaive();
-  mf.addNum(1); check("addNum(1)", mf.findMedian(), 1);
-  mf.addNum(2); check("addNum(2)", mf.findMedian(), 1.5);
-  mf.addNum(3); check("addNum(3)", mf.findMedian(), 2);
-  mf.addNum(4); check("addNum(4)", mf.findMedian(), 2.5);
+  mf.addNum(1);
+  check("addNum(1)", mf.findMedian(), 1);
+  mf.addNum(2);
+  check("addNum(2)", mf.findMedian(), 1.5);
+  mf.addNum(3);
+  check("addNum(3)", mf.findMedian(), 2);
+  mf.addNum(4);
+  check("addNum(4)", mf.findMedian(), 2.5);
 }
 
 console.log("\n=== 엣지 케이스 표 ===");
@@ -128,19 +148,23 @@ console.log("\n=== 엣지 케이스 표 ===");
   check("원소 1개", a.findMedian(), 5);
 
   const b = new MedianFinder();
-  b.addNum(1); b.addNum(3);
+  b.addNum(1);
+  b.addNum(3);
   check("원소 2개", b.findMedian(), 2.0);
 
   const c = new MedianFinder();
-  c.addNum(-1); c.addNum(0);
+  c.addNum(-1);
+  c.addNum(0);
   check("음수 포함", c.findMedian(), -0.5);
 
   const d = new MedianFinder();
-  d.addNum(5); d.addNum(5);
+  d.addNum(5);
+  d.addNum(5);
   check("동일 값", d.findMedian(), 5);
 
   const e = new MedianFinder();
-  e.addNum(-1_000_000_000); e.addNum(1_000_000_000);
+  e.addNum(-1_000_000_000);
+  e.addNum(1_000_000_000);
   check("경계값", e.findMedian(), 0);
 }
 
@@ -185,7 +209,9 @@ console.log("\n=== 실행 시각화 steps 프레임 (기본 구현, 1..5) ===");
   });
 }
 
-console.log("\n=== 최적화 버전도 동일 시퀀스에서 같은 median (기본 구현과 교차검증) ===");
+console.log(
+  "\n=== 최적화 버전도 동일 시퀀스에서 같은 median (기본 구현과 교차검증) ===",
+);
 {
   const mf = new MedianFinder();
   const expected = [1, 1.5, 2, 2.5, 3];
@@ -215,8 +241,12 @@ console.log("\n=== base/optimized/naive 랜덤 교차검증 (200 trial) ===");
     const n = 1 + Math.floor(Math.random() * 40);
     for (let i = 0; i < n; i++) {
       const x = Math.floor(Math.random() * 2001) - 1000;
-      base.addNum(x); opt.addNum(x); naive.addNum(x);
-      const mb = base.findMedian(), mo = opt.findMedian(), mn = naive.findMedian();
+      base.addNum(x);
+      opt.addNum(x);
+      naive.addNum(x);
+      const mb = base.findMedian(),
+        mo = opt.findMedian(),
+        mn = naive.findMedian();
       if (mb !== mo || mb !== mn) {
         allMatch = false;
         failures++;
@@ -227,4 +257,8 @@ console.log("\n=== base/optimized/naive 랜덤 교차검증 (200 trial) ===");
   console.log("all trials matched:", allMatch);
 }
 
-console.log(failures === 0 ? "\n전체 통과: 본문 수치 실측 일치" : `\n실패 ${failures}건 발견`);
+console.log(
+  failures === 0
+    ? "\n전체 통과: 본문 수치 실측 일치"
+    : `\n실패 ${failures}건 발견`,
+);

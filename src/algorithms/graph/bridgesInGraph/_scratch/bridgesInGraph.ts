@@ -22,7 +22,10 @@ function countComponents(n: number, edges: [number, number][]): number {
   return roots.size;
 }
 
-function bridgesInGraphNaive(n: number, edges: [number, number][]): [number, number][] {
+function bridgesInGraphNaive(
+  n: number,
+  edges: [number, number][],
+): [number, number][] {
   const bridges: [number, number][] = [];
   const base = countComponents(n, edges);
   for (let i = 0; i < edges.length; i++) {
@@ -37,8 +40,14 @@ function bridgesInGraphNaive(n: number, edges: [number, number][]): [number, num
 }
 
 // ---------- 아이디어를 코드로: 재귀 DFS low-link (기본 구현) ----------
-function bridgesInGraphRecursive(n: number, edges: [number, number][]): [number, number][] {
-  const adj: Array<Array<[number, number]>> = Array.from({ length: n }, () => []);
+function bridgesInGraphRecursive(
+  n: number,
+  edges: [number, number][],
+): [number, number][] {
+  const adj: Array<Array<[number, number]>> = Array.from(
+    { length: n },
+    () => [],
+  );
   for (let i = 0; i < edges.length; i++) {
     const [u, v] = edges[i]!;
     adj[u]!.push([v, i]);
@@ -77,8 +86,14 @@ function bridgesInGraphRecursive(n: number, edges: [number, number][]): [number,
 }
 
 // ---------- 최적화 코드: 명시적 스택으로 재귀 제거 (깊은 재귀에 안전) ----------
-function bridgesInGraph(n: number, edges: [number, number][]): [number, number][] {
-  const adj: Array<Array<[number, number]>> = Array.from({ length: n }, () => []);
+function bridgesInGraph(
+  n: number,
+  edges: [number, number][],
+): [number, number][] {
+  const adj: Array<Array<[number, number]>> = Array.from(
+    { length: n },
+    () => [],
+  );
   for (let i = 0; i < edges.length; i++) {
     const [u, v] = edges[i]!;
     adj[u]!.push([v, i]);
@@ -136,24 +151,77 @@ function bridgesInGraph(n: number, edges: [number, number][]): [number, number][
 }
 
 // ---------- 대표 예시 ----------
-const cases: Array<{ name: string; n: number; edges: [number, number][]; expected: [number, number][] }> = [
-  { name: "체인 0-1-2-3", n: 4, edges: [[0, 1], [1, 2], [2, 3]], expected: [[0, 1], [1, 2], [2, 3]] },
-  { name: "사이클 0-1-2-3-0", n: 4, edges: [[0, 1], [1, 2], [2, 3], [3, 0]], expected: [] },
+const cases: Array<{
+  name: string;
+  n: number;
+  edges: [number, number][];
+  expected: [number, number][];
+}> = [
+  {
+    name: "체인 0-1-2-3",
+    n: 4,
+    edges: [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ],
+    expected: [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ],
+  },
+  {
+    name: "사이클 0-1-2-3-0",
+    n: 4,
+    edges: [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [3, 0],
+    ],
+    expected: [],
+  },
   {
     name: "두 삼각형 + 연결 간선 2-3",
     n: 6,
-    edges: [[0, 1], [1, 2], [2, 0], [2, 3], [3, 4], [4, 5], [5, 3]],
+    edges: [
+      [0, 1],
+      [1, 2],
+      [2, 0],
+      [2, 3],
+      [3, 4],
+      [4, 5],
+      [5, 3],
+    ],
     expected: [[2, 3]],
   },
-  { name: "중복 간선 [0,1]x2", n: 2, edges: [[0, 1], [0, 1]], expected: [] },
+  {
+    name: "중복 간선 [0,1]x2",
+    n: 2,
+    edges: [
+      [0, 1],
+      [0, 1],
+    ],
+    expected: [],
+  },
   { name: "단일 간선 [1,0]", n: 2, edges: [[1, 0]], expected: [[0, 1]] },
   { name: "정점 1개, 간선 없음", n: 1, edges: [], expected: [] },
   { name: "간선 없음 (n=4)", n: 4, edges: [], expected: [] },
   {
     name: "시뮬 예시 n=5",
     n: 5,
-    edges: [[0, 1], [1, 2], [2, 0], [1, 3], [3, 4]],
-    expected: [[1, 3], [3, 4]],
+    edges: [
+      [0, 1],
+      [1, 2],
+      [2, 0],
+      [1, 3],
+      [3, 4],
+    ],
+    expected: [
+      [1, 3],
+      [3, 4],
+    ],
   },
 ];
 
@@ -195,10 +263,16 @@ for (let t = 0; t < 200; t++) {
   const r3 = bridgesInGraph(n, edges);
   if (!eq(r1, r2) || !eq(r1, r3)) {
     randomOk = false;
-    console.log(`FAIL random n=${n} edges=${JSON.stringify(edges)} naive=${JSON.stringify(r1)} recursive=${JSON.stringify(r2)} iterative=${JSON.stringify(r3)}`);
+    console.log(
+      `FAIL random n=${n} edges=${JSON.stringify(edges)} naive=${JSON.stringify(r1)} recursive=${JSON.stringify(r2)} iterative=${JSON.stringify(r3)}`,
+    );
   }
 }
-console.log(randomOk ? "OK   무작위 200회 교차검증 통과" : "FAIL 무작위 교차검증 실패 있음");
+console.log(
+  randomOk
+    ? "OK   무작위 200회 교차검증 통과"
+    : "FAIL 무작위 교차검증 실패 있음",
+);
 
 // ---------- 깊은 재귀 스택 오버플로 재현 (선형 체인, n=1e5) ----------
 {
@@ -211,15 +285,21 @@ console.log(randomOk ? "OK   무작위 200회 교차검증 통과" : "FAIL 무�
     bridgesInGraphRecursive(n, edges);
   } catch (e) {
     recursiveCrashed = true;
-    console.log(`재귀 버전 n=1e5 선형 체인: 예외 발생 → ${(e as Error).message}`);
+    console.log(
+      `재귀 버전 n=1e5 선형 체인: 예외 발생 → ${(e as Error).message}`,
+    );
   }
   if (!recursiveCrashed) {
-    console.log("재귀 버전 n=1e5 선형 체인: 예외 없이 통과(런타임 스택 한도에 따라 다를 수 있음)");
+    console.log(
+      "재귀 버전 n=1e5 선형 체인: 예외 없이 통과(런타임 스택 한도에 따라 다를 수 있음)",
+    );
   }
 
   const r = bridgesInGraph(n, edges);
   const iterativeOk = r.length === n - 1;
-  console.log(`반복 버전 n=1e5 선형 체인: 다리 개수=${r.length} (기대 ${n - 1}) → ${iterativeOk ? "OK" : "FAIL"}`);
+  console.log(
+    `반복 버전 n=1e5 선형 체인: 다리 개수=${r.length} (기대 ${n - 1}) → ${iterativeOk ? "OK" : "FAIL"}`,
+  );
 }
 
 console.log(allOk ? "\n전체 대표 예시 통과" : "\n일부 대표 예시 실패");

@@ -150,20 +150,20 @@ for (const [arr, expected] of cases) {
   const ok = rNaive === expected && rBasic === expected && rOpt === expected;
   if (!ok) allPass = false;
   console.log(
-    `arr=${JSON.stringify(arr)} expected=${expected} naive=${rNaive} basic=${rBasic} opt=${rOpt} ${ok ? "OK" : "FAIL"}`
+    `arr=${JSON.stringify(arr)} expected=${expected} naive=${rNaive} basic=${rBasic} opt=${rOpt} ${ok ? "OK" : "FAIL"}`,
   );
 }
 
 // 내림차순 n=5 → n(n-1)/2 = 10
 const desc5 = [5, 4, 3, 2, 1];
 console.log(
-  `desc5=${JSON.stringify(desc5)} expected=10 naive=${countInversionsNaive(desc5)} basic=${countInversionsBasic(desc5)} opt=${countInversions(desc5)}`
+  `desc5=${JSON.stringify(desc5)} expected=10 naive=${countInversionsNaive(desc5)} basic=${countInversionsBasic(desc5)} opt=${countInversions(desc5)}`,
 );
 
 // 버그 버전 시연: [2,2] → 정답 0, 버그판 1
 const dup = [2, 2];
 console.log(
-  `dup=${JSON.stringify(dup)} correct(opt)=${countInversions(dup)} buggy=${countInversionsBuggy(dup)}`
+  `dup=${JSON.stringify(dup)} correct(opt)=${countInversions(dup)} buggy=${countInversionsBuggy(dup)}`,
 );
 
 // 무작위 교차검증: naive vs basic vs opt
@@ -181,7 +181,9 @@ for (let t = 0; t < 200; t++) {
   const rO = countInversions(arr);
   if (rN !== rB || rN !== rO) {
     allPass = false;
-    console.log(`RANDOM MISMATCH arr=${JSON.stringify(arr)} naive=${rN} basic=${rB} opt=${rO}`);
+    console.log(
+      `RANDOM MISMATCH arr=${JSON.stringify(arr)} naive=${rN} basic=${rB} opt=${rO}`,
+    );
   }
 }
 
@@ -194,15 +196,22 @@ console.log("--- sim trace check for [3,1,2] ---");
   // 왼쪽 부분 [3,1] 병합: L=[3], R=[1]
   const L = [3];
   const R = [1];
-  console.log(`L=${JSON.stringify(L)} R=${JSON.stringify(R)} : L[0]=3 > R[0]=1 → count += |L|-0 = ${L.length - 0}`);
+  console.log(
+    `L=${JSON.stringify(L)} R=${JSON.stringify(R)} : L[0]=3 > R[0]=1 → count += |L|-0 = ${L.length - 0}`,
+  );
   // 최종 병합 L=[1,3], R=[2]
   const L2 = [1, 3];
   const R2 = [2];
-  console.log(`L2=${JSON.stringify(L2)} R2=${JSON.stringify(R2)} : L2[0]=1<=2 push L, i=1; L2[1]=3>2 → count += |L2|-1=${L2.length - 1}`);
+  console.log(
+    `L2=${JSON.stringify(L2)} R2=${JSON.stringify(R2)} : L2[0]=1<=2 push L, i=1; L2[1]=3>2 → count += |L2|-1=${L2.length - 1}`,
+  );
 }
 
 console.log("--- extra check for self-check questions ---");
 console.log("countInversions([4,1,3,2]) =", countInversions([4, 1, 3, 2]));
-console.log("countInversionsNaive([4,1,3,2]) =", countInversionsNaive([4, 1, 3, 2]));
+console.log(
+  "countInversionsNaive([4,1,3,2]) =",
+  countInversionsNaive([4, 1, 3, 2]),
+);
 console.log("correct([2,2,2,2]) =", countInversions([2, 2, 2, 2]));
 console.log("buggy([2,2,2,2]) =", countInversionsBuggy([2, 2, 2, 2]));

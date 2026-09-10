@@ -10,7 +10,9 @@ function countRecursive(grid: Grid): number {
   if (R === 0) return 0;
   const C = grid[0]!.length;
   if (C === 0) return 0;
-  const visited: boolean[][] = Array.from({ length: R }, () => new Array(C).fill(false));
+  const visited: boolean[][] = Array.from({ length: R }, () =>
+    new Array(C).fill(false),
+  );
   let count = 0;
 
   const fill = (r: number, c: number) => {
@@ -74,22 +76,60 @@ function countIterative(grid: Grid): number {
 function assertEqual(actual: unknown, expected: unknown, label: string): void {
   const a = JSON.stringify(actual);
   const e = JSON.stringify(expected);
-  if (a !== e) throw new Error(`[FAIL] ${label}\n  expected ${e}\n  actual   ${a}`);
+  if (a !== e)
+    throw new Error(`[FAIL] ${label}\n  expected ${e}\n  actual   ${a}`);
   console.log(`[ok] ${label} => ${a}`);
 }
 
 type Case = { grid: Grid; expected: number; label: string };
 const cases: Case[] = [
-  { label: "예시1 L자+고립", grid: [[1, 1, 0], [0, 1, 0], [0, 0, 1]], expected: 2 },
-  { label: "예시2 체커보드 5섬", grid: [[1, 0, 1], [0, 1, 0], [1, 0, 1]], expected: 5 },
-  { label: "예시3 전부 물", grid: [[0, 0], [0, 0]], expected: 0 },
-  { label: "예시4 전부 땅", grid: [[1, 1], [1, 1]], expected: 1 },
+  {
+    label: "예시1 L자+고립",
+    grid: [
+      [1, 1, 0],
+      [0, 1, 0],
+      [0, 0, 1],
+    ],
+    expected: 2,
+  },
+  {
+    label: "예시2 체커보드 5섬",
+    grid: [
+      [1, 0, 1],
+      [0, 1, 0],
+      [1, 0, 1],
+    ],
+    expected: 5,
+  },
+  {
+    label: "예시3 전부 물",
+    grid: [
+      [0, 0],
+      [0, 0],
+    ],
+    expected: 0,
+  },
+  {
+    label: "예시4 전부 땅",
+    grid: [
+      [1, 1],
+      [1, 1],
+    ],
+    expected: 1,
+  },
   { label: "예시5 단일 땅", grid: [[1]], expected: 1 },
   { label: "예시6 단일 물", grid: [[0]], expected: 0 },
   { label: "예시7 1행 갈라짐", grid: [[1, 0, 1, 1]], expected: 2 },
   { label: "경계 빈 그리드", grid: [], expected: 0 },
   { label: "경계 빈 행", grid: [[]], expected: 0 },
-  { label: "경계 대각선만 접함", grid: [[1, 0], [0, 1]], expected: 2 },
+  {
+    label: "경계 대각선만 접함",
+    grid: [
+      [1, 0],
+      [0, 1],
+    ],
+    expected: 2,
+  },
   { label: "경계 N행1열", grid: [[1], [1], [0], [1]], expected: 2 },
 ];
 
@@ -102,7 +142,11 @@ for (const c of cases) {
 
 // 입력 불변 확인
 {
-  const grid: Grid = [[1, 1, 0], [0, 1, 0], [0, 0, 1]];
+  const grid: Grid = [
+    [1, 1, 0],
+    [0, 1, 0],
+    [0, 0, 1],
+  ];
   const snap = JSON.stringify(grid);
   countIterative(grid);
   assertEqual(JSON.stringify(grid), snap, "입력 grid 불변");

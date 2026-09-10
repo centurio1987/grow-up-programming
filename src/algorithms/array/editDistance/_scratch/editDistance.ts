@@ -15,7 +15,9 @@ function editDistanceNaive(s: string, t: string): number {
 function editDistanceDP(s: string, t: string): number {
   const n = s.length;
   const m = t.length;
-  const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  const dp: number[][] = Array.from({ length: n + 1 }, () =>
+    new Array(m + 1).fill(0),
+  );
 
   for (let i = 0; i <= n; i++) dp[i][0] = i;
   for (let j = 0; j <= m; j++) dp[0][j] = j;
@@ -87,7 +89,9 @@ console.log("\n=== horse/ros DP 테이블 ===");
   const t = "ros";
   const n = s.length;
   const m = t.length;
-  const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  const dp: number[][] = Array.from({ length: n + 1 }, () =>
+    new Array(m + 1).fill(0),
+  );
   for (let i = 0; i <= n; i++) dp[i][0] = i;
   for (let j = 0; j <= m; j++) dp[0][j] = j;
   for (let i = 1; i <= n; i++) {
@@ -107,7 +111,9 @@ console.log("\n=== 함정: 오프셋 실수 시뮬레이션 ===");
 function editDistanceBuggyOffset(s: string, t: string): number {
   const n = s.length;
   const m = t.length;
-  const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  const dp: number[][] = Array.from({ length: n + 1 }, () =>
+    new Array(m + 1).fill(0),
+  );
   for (let i = 0; i <= n; i++) dp[i][0] = i;
   for (let j = 0; j <= m; j++) dp[0][j] = j;
   for (let i = 1; i <= n; i++) {
@@ -130,7 +136,8 @@ console.log(
 console.log("\n=== 무작위 교차검증 ===");
 function randomString(len: number, alphabet: string): string {
   let out = "";
-  for (let i = 0; i < len; i++) out += alphabet[Math.floor(Math.random() * alphabet.length)];
+  for (let i = 0; i < len; i++)
+    out += alphabet[Math.floor(Math.random() * alphabet.length)];
   return out;
 }
 
@@ -143,10 +150,14 @@ for (let trial = 0; trial < 200; trial++) {
   const rFinal = editDistance(s, t);
   if (rNaive !== rDP || rDP !== rFinal) {
     mismatches++;
-    console.log(`MISMATCH: s=${JSON.stringify(s)} t=${JSON.stringify(t)} naive=${rNaive} dp=${rDP} final=${rFinal}`);
+    console.log(
+      `MISMATCH: s=${JSON.stringify(s)} t=${JSON.stringify(t)} naive=${rNaive} dp=${rDP} final=${rFinal}`,
+    );
   }
 }
-console.log(`200회 무작위 시행(길이 0~5, 알파벳 {a,b}) 중 불일치: ${mismatches}건`);
+console.log(
+  `200회 무작위 시행(길이 0~5, 알파벳 {a,b}) 중 불일치: ${mismatches}건`,
+);
 
 // 더 큰 무작위 문자열로 DP vs 1D만 교차검증 (naive는 지수 시간이라 제외)
 let mismatches2 = 0;
@@ -157,7 +168,11 @@ for (let trial = 0; trial < 50; trial++) {
   const rFinal = editDistance(s, t);
   if (rDP !== rFinal) {
     mismatches2++;
-    console.log(`MISMATCH(large): s=${JSON.stringify(s)} t=${JSON.stringify(t)} dp=${rDP} final=${rFinal}`);
+    console.log(
+      `MISMATCH(large): s=${JSON.stringify(s)} t=${JSON.stringify(t)} dp=${rDP} final=${rFinal}`,
+    );
   }
 }
-console.log(`50회 무작위 시행(길이 0~39, 알파벳 5종) 중 DP-vs-1D 불일치: ${mismatches2}건`);
+console.log(
+  `50회 무작위 시행(길이 0~39, 알파벳 5종) 중 DP-vs-1D 불일치: ${mismatches2}건`,
+);

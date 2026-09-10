@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { diffArrayRangeUpdate } from "./diffArrayRangeUpdate";
 
 describe("diffArrayRangeUpdate", () => {
@@ -70,11 +70,10 @@ describe("diffArrayRangeUpdate", () => {
     test("N=100,000, Q=100,000을 100ms 이내에 처리한다", () => {
       const N = 100_000;
       const Q = 100_000;
-      const updates: Array<[number, number, number]> = Array.from({ length: Q }, (_, i) => [
-        i % N,
-        Math.min(N - 1, (i % N) + (i % 1000)),
-        (i % 20) - 10,
-      ]);
+      const updates: Array<[number, number, number]> = Array.from(
+        { length: Q },
+        (_, i) => [i % N, Math.min(N - 1, (i % N) + (i % 1000)), (i % 20) - 10],
+      );
 
       const start = performance.now();
       const result = diffArrayRangeUpdate(N, updates);

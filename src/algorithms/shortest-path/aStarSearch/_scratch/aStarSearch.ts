@@ -14,7 +14,10 @@ class MinHeap<T> {
     while (i > 0) {
       const parent = (i - 1) >> 1;
       if (this.items[parent]!.key <= this.items[i]!.key) break;
-      [this.items[parent]!, this.items[i]!] = [this.items[i]!, this.items[parent]!];
+      [this.items[parent]!, this.items[i]!] = [
+        this.items[i]!,
+        this.items[parent]!,
+      ];
       i = parent;
     }
   }
@@ -31,10 +34,15 @@ class MinHeap<T> {
         const l = 2 * i + 1;
         const r = 2 * i + 2;
         let smallest = i;
-        if (l < n && this.items[l]!.key < this.items[smallest]!.key) smallest = l;
-        if (r < n && this.items[r]!.key < this.items[smallest]!.key) smallest = r;
+        if (l < n && this.items[l]!.key < this.items[smallest]!.key)
+          smallest = l;
+        if (r < n && this.items[r]!.key < this.items[smallest]!.key)
+          smallest = r;
         if (smallest === i) break;
-        [this.items[smallest]!, this.items[i]!] = [this.items[i]!, this.items[smallest]!];
+        [this.items[smallest]!, this.items[i]!] = [
+          this.items[i]!,
+          this.items[smallest]!,
+        ];
         i = smallest;
       }
     }
@@ -167,9 +175,18 @@ console.log("=== problem.md 예시 ===");
     [2, 3, 1],
     [3, 4, 3],
   ];
-  console.log("ex1 (기대 7):", aStarSearch(5, edges, 0, 4, () => 0));
-  console.log("ex2 (기대 0):", aStarSearch(3, [[0, 1, 10]], 1, 1, () => 0));
-  console.log("ex3 (기대 Infinity):", aStarSearch(3, [[0, 1, 2]], 0, 2, () => 0));
+  console.log(
+    "ex1 (기대 7):",
+    aStarSearch(5, edges, 0, 4, () => 0),
+  );
+  console.log(
+    "ex2 (기대 0):",
+    aStarSearch(3, [[0, 1, 10]], 1, 1, () => 0),
+  );
+  console.log(
+    "ex3 (기대 Infinity):",
+    aStarSearch(3, [[0, 1, 2]], 0, 2, () => 0),
+  );
 
   const edgesLinear: [number, number, number][] = [
     [0, 1, 1],
@@ -200,7 +217,10 @@ console.log("\n=== 구 가이드 시뮬 그래프 ===");
   const hArr = [2, 2, 1, 2, 0];
   const h = (v: number) => hArr[v]!;
   console.log("aStarSearch (기대 3):", aStarSearch(n, edges, 0, 4, h));
-  console.log("aStarSearchBasic (기대 3):", aStarSearchBasic(n, edges, 0, 4, h));
+  console.log(
+    "aStarSearchBasic (기대 3):",
+    aStarSearchBasic(n, edges, 0, 4, h),
+  );
   console.log("aStarNaive dist[goal] (기대 3):", aStarNaive(n, edges, 0, 4, h));
 
   // pop 순서 트레이스 (본문 시뮬 steps 검증용)
@@ -266,7 +286,12 @@ console.log("\n=== decoy chain: naive vs A* 확장 노드 수 ===");
         }
       }
     }
-    console.log("naive(dijkstra) pop 순서:", popOrder, "dist[goal]=", dist[goal]);
+    console.log(
+      "naive(dijkstra) pop 순서:",
+      popOrder,
+      "dist[goal]=",
+      dist[goal],
+    );
   }
 
   // A*: h(1)=0(goal), 나머지 decoy는 실제 거리(Infinity)보다만 작으면 되므로 1000
@@ -392,7 +417,11 @@ console.log("\n=== 무작위 교차검증 ===");
 // ============================================================
 console.log("\n=== 엣지 케이스 ===");
 {
-  console.log("src===goal:", aStarSearch(3, [[0, 1, 10]], 1, 1, () => 0), "(기대 0)");
+  console.log(
+    "src===goal:",
+    aStarSearch(3, [[0, 1, 10]], 1, 1, () => 0),
+    "(기대 0)",
+  );
   console.log(
     "도달 불가:",
     aStarSearch(3, [[0, 1, 2]], 0, 2, () => 0),

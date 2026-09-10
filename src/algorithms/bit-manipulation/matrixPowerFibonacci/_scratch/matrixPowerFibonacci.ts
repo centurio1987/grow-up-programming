@@ -57,7 +57,9 @@ function matrixPowerFibonacci(n: bigint): bigint {
 // ---- 검증 ----
 function assertEq(label: string, actual: bigint, expected: bigint) {
   const ok = actual === expected;
-  console.log(`${ok ? "OK  " : "FAIL"} ${label}: actual=${actual} expected=${expected}`);
+  console.log(
+    `${ok ? "OK  " : "FAIL"} ${label}: actual=${actual} expected=${expected}`,
+  );
   if (!ok) process.exitCode = 1;
 }
 
@@ -68,11 +70,7 @@ assertEq("F(2)", matrixPowerFibonacci(2n), 1n);
 assertEq("F(3)", matrixPowerFibonacci(3n), 2n);
 assertEq("F(10)", matrixPowerFibonacci(10n), 55n);
 assertEq("F(50)", matrixPowerFibonacci(50n), 12586269025n);
-assertEq(
-  "F(100)",
-  matrixPowerFibonacci(100n),
-  354224848179261915075n,
-);
+assertEq("F(100)", matrixPowerFibonacci(100n), 354224848179261915075n);
 
 console.log("=== naive와 교차검증 (n=0..300) ===");
 let crossOk = true;
@@ -84,7 +82,9 @@ for (let n = 0n; n <= 300n; n++) {
     console.log(`FAIL cross n=${n}: matrix=${a} naive=${b}`);
   }
 }
-console.log(crossOk ? "OK   naive 교차검증 n=0..300 전부 일치" : "FAIL 교차검증 실패");
+console.log(
+  crossOk ? "OK   naive 교차검증 n=0..300 전부 일치" : "FAIL 교차검증 실패",
+);
 
 console.log("=== 무작위 교차검증 (n=301..2000 중 30개 샘플) ===");
 let randOk = true;
@@ -116,7 +116,9 @@ console.log("=== n = 10 트레이스 (시뮬레이션 대조) ===");
   let base: Mat = M;
   let e = 10n;
   let step = 0;
-  console.log(`초기: base=${matStr(base)} result=${matStr(result)} e(2진)=${e.toString(2)}`);
+  console.log(
+    `초기: base=${matStr(base)} result=${matStr(result)} e(2진)=${e.toString(2)}`,
+  );
   while (e > 0n) {
     const bit = e & 1n;
     if (bit === 1n) {

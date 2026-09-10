@@ -9,9 +9,10 @@
  *
  * <name> 은 manifest 의 토픽 이름(예: mosAlgorithm). 신규 콘텐츠 파일은 임시본 경로.
  */
-import { $ } from "bun";
-import { dirname, join, resolve } from "node:path";
+
 import { mkdir, rename } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
+import { $ } from "bun";
 
 function flag(name: string, dflt: string | null = null): string | null {
   const i = process.argv.indexOf(name);
@@ -33,7 +34,9 @@ const manifest = JSON.parse(await Bun.file(manifestPath).text());
 // 신규 콘텐츠 파일의 디렉터리로 정확한 항목을 특정한다.
 const newDir = dirname(resolve(newPath));
 const named = manifest.entries.filter((e: any) => e.name === name);
-let entry = named.find((e: any) => resolve(root, e.dir ?? dirname(e.path)) === newDir);
+let entry = named.find(
+  (e: any) => resolve(root, e.dir ?? dirname(e.path)) === newDir,
+);
 if (!entry) {
   if (named.length > 1) {
     console.error(

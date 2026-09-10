@@ -61,7 +61,11 @@ function assertEqual(actual: unknown, expected: unknown, label: string) {
   ];
   const out = prefixSumRangeQuery(A, queries);
   assertEqual(out, [15, 25], "대표 예시 result");
-  assertEqual(prefixSumRangeQueryNaive(A, queries), [15, 25], "naive 대표 예시 result");
+  assertEqual(
+    prefixSumRangeQueryNaive(A, queries),
+    [15, 25],
+    "naive 대표 예시 result",
+  );
 }
 
 // 2) problem.md 예시 교차검증
@@ -130,7 +134,10 @@ function assertEqual(actual: unknown, expected: unknown, label: string) {
   let mismatches = 0;
   for (let t = 0; t < 200; t++) {
     const N = 1 + Math.floor(Math.random() * 20);
-    const A = Array.from({ length: N }, () => Math.floor(Math.random() * 21) - 10);
+    const A = Array.from(
+      { length: N },
+      () => Math.floor(Math.random() * 21) - 10,
+    );
     const Q = Math.floor(Math.random() * 10);
     const queries: Array<[number, number]> = Array.from({ length: Q }, () => {
       const l = Math.floor(Math.random() * N);

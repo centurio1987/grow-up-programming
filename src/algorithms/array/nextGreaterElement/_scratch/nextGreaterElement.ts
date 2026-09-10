@@ -91,7 +91,10 @@ console.log("=== naive vs 최종 구현 랜덤 교차검증 ===");
   let ok = true;
   for (let t = 0; t < 2000; t++) {
     const len = Math.floor(Math.random() * 12);
-    const arr = Array.from({ length: len }, () => Math.floor(Math.random() * 10) - 5);
+    const arr = Array.from(
+      { length: len },
+      () => Math.floor(Math.random() * 10) - 5,
+    );
     const a = nextGreaterElementNaive(arr);
     const b = nextGreaterElement(arr);
     if (JSON.stringify(a) !== JSON.stringify(b)) {

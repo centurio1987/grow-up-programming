@@ -100,7 +100,11 @@ console.log("\n=== naive vs 최적화 동치성 (대표 입력) ===");
 }
 
 console.log("\n=== 엣지 케이스 ===");
-assertEqual("N=5, updates=[] → 전부 0", diffArrayRangeUpdate(5, []), [0, 0, 0, 0, 0]);
+assertEqual(
+  "N=5, updates=[] → 전부 0",
+  diffArrayRangeUpdate(5, []),
+  [0, 0, 0, 0, 0],
+);
 assertEqual(
   "N=3, updates=[[1,1,5]] → 단일 원소",
   diffArrayRangeUpdate(3, [[1, 1, 5]]),
@@ -140,7 +144,11 @@ assertEqual(
   ]),
   [3, 5, -5, 2, 2],
 );
-assertEqual("diffArrayRangeUpdate(3, [])", diffArrayRangeUpdate(3, []), [0, 0, 0]);
+assertEqual(
+  "diffArrayRangeUpdate(3, [])",
+  diffArrayRangeUpdate(3, []),
+  [0, 0, 0],
+);
 assertEqual(
   "diffArrayRangeUpdate(1, [[0,0,5]])",
   diffArrayRangeUpdate(1, [[0, 0, 5]]),
@@ -217,10 +225,16 @@ console.log("\n=== 대안 정의 대비: D[r] -= v (off-by-one) vs D[r+1] -= v =
   console.log("D[r+1] 버전 D:", correctD, "→ A:", correctA);
   console.log("D[r]   버전 D:", wrongD, "→ A:", wrongA);
   assertEqual("올바른 A (구간 끝 r=3 포함)", correctA, [0, 2, 2, 2, 0]);
-  assertEqual("off-by-one A (r=3에서 값이 0으로 잘림)", wrongA, [0, 2, 2, 0, 0]);
+  assertEqual(
+    "off-by-one A (r=3에서 값이 0으로 잘림)",
+    wrongA,
+    [0, 2, 2, 0, 0],
+  );
 }
 
-console.log("\n=== 스스로 점검하기 문제1 검산: N=4, updates=[[0,1,3],[1,3,-2]] ===");
+console.log(
+  "\n=== 스스로 점검하기 문제1 검산: N=4, updates=[[0,1,3],[1,3,-2]] ===",
+);
 assertEqual(
   "손 계산 문제 정답",
   diffArrayRangeUpdate(4, [
@@ -239,5 +253,7 @@ console.log("\n=== naive 비용 ascii art용 실측: 작은 예시 방문 횟수
   ];
   let visits = 0;
   for (const [l, r] of updates) visits += r - l + 1;
-  console.log(`총 naive 방문 칸 수 = ${visits} (업데이트별: ${updates.map(([l, r]) => r - l + 1).join(" + ")})`);
+  console.log(
+    `총 naive 방문 칸 수 = ${visits} (업데이트별: ${updates.map(([l, r]) => r - l + 1).join(" + ")})`,
+  );
 }

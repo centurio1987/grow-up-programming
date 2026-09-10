@@ -60,7 +60,8 @@ assertEqual("main rolling", kadane(A_MAIN), 6);
   const n = A_MAIN.length;
   const dp = new Array<number>(n);
   dp[0] = A_MAIN[0]!;
-  for (let i = 1; i < n; i++) dp[i] = Math.max(A_MAIN[i]!, dp[i - 1]! + A_MAIN[i]!);
+  for (let i = 1; i < n; i++)
+    dp[i] = Math.max(A_MAIN[i]!, dp[i - 1]! + A_MAIN[i]!);
   console.log("dp array trace:", dp);
 }
 
@@ -113,9 +114,12 @@ function kadaneBuggyOrder(A: number[]): number {
   const A_TRAP = [-1, -1, 5];
   const correct = kadane(A_TRAP);
   const buggy = kadaneBuggyOrder(A_TRAP);
-  console.log(`trap array ${JSON.stringify(A_TRAP)} — 정상 순서: ${correct}, best-먼저 순서(버그): ${buggy}`);
+  console.log(
+    `trap array ${JSON.stringify(A_TRAP)} — 정상 순서: ${correct}, best-먼저 순서(버그): ${buggy}`,
+  );
   assertEqual("trap array correct order", correct, 5);
-  if (buggy === correct) throw new Error("버그 시나리오가 우연히 정답과 같습니다 - 다른 예시 필요");
+  if (buggy === correct)
+    throw new Error("버그 시나리오가 우연히 정답과 같습니다 - 다른 예시 필요");
   assertEqual("trap array buggy order", buggy, -1);
 }
 

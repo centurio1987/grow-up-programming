@@ -8,7 +8,7 @@ export function radixSort(A: number[]): number[] {
   const RADIX = 10;
   let round = 0;
   const queue: number[][] = Array.from({ length: RADIX }, (v, k) => []);
-  let mask = Math.pow(RADIX, round);
+  let mask = RADIX ** round;
   const maximumRound = Math.floor(Math.log10(Math.max(...A)));
 
   //핵심 로직
@@ -25,7 +25,7 @@ export function radixSort(A: number[]): number[] {
     }
 
     round++;
-    mask = Math.pow(RADIX, round);
+    mask = RADIX ** round;
   }
   //리턴
 

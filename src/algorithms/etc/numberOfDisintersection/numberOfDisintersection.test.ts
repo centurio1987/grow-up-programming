@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { solution } from "./numberOfDisintersection";
 
 describe("numberOfDisintersection", () => {
@@ -77,7 +77,7 @@ describe("numberOfDisintersection", () => {
   // 성능 테스트 — O(N log N) 기준 1000ms 이내
   test("N=100,000 혼합 연산을 1000ms 이내에 처리한다", () => {
     const N = 100_000;
-    const A = Array.from({ length: N }, (_, i) => i % 2 === 0 ? i : 1);
+    const A = Array.from({ length: N }, (_, i) => (i % 2 === 0 ? i : 1));
     const start = performance.now();
     solution(A);
     const elapsed = performance.now() - start;

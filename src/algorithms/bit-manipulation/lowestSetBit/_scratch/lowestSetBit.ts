@@ -6,7 +6,7 @@ function lowestSetBitNaive(x: number): number {
 }
 
 function lowestSetBit(x: number): number {
-  return (x & (-x)) >>> 0;
+  return (x & -x) >>> 0;
 }
 
 function toBin8(x: number): string {
@@ -18,7 +18,7 @@ console.log("=== trace x=12 ===");
 console.log("x        ", toBin8(12), 12);
 console.log("~x       ", toBin8(~12));
 console.log("-x=~x+1  ", toBin8(-12));
-console.log("x & -x   ", toBin8(12 & -12), (12 & -12));
+console.log("x & -x   ", toBin8(12 & -12), 12 & -12);
 
 const tests: [number, number][] = [
   [12, 4],
@@ -36,12 +36,29 @@ const tests: [number, number][] = [
 console.log("=== representative + edge tests ===");
 for (const [x, expected] of tests) {
   const got = lowestSetBit(x);
-  const gotNaive = x === -2147483648 ? "skip(naive loop uses 1<<i which overflows sign at i=31, check separately)" : lowestSetBitNaive(x);
-  console.log(x, "->", got, "expected", expected, got === expected ? "OK" : "MISMATCH", "naive:", gotNaive);
+  const gotNaive =
+    x === -2147483648
+      ? "skip(naive loop uses 1<<i which overflows sign at i=31, check separately)"
+      : lowestSetBitNaive(x);
+  console.log(
+    x,
+    "->",
+    got,
+    "expected",
+    expected,
+    got === expected ? "OK" : "MISMATCH",
+    "naive:",
+    gotNaive,
+  );
 }
 
 // separately verify min int for naive using >>> semantics
-console.log("naive minInt:", lowestSetBitNaive(-2147483648), "trick minInt:", lowestSetBit(-2147483648));
+console.log(
+  "naive minInt:",
+  lowestSetBitNaive(-2147483648),
+  "trick minInt:",
+  lowestSetBit(-2147483648),
+);
 
 // random cross-check between naive and trick over 32-bit signed ints
 console.log("=== random cross-check ===");

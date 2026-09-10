@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { countingSort } from "./countingSort";
 
 describe("countingSort", () => {
@@ -34,7 +34,9 @@ describe("countingSort", () => {
   });
 
   test("키 최솟값/최댓값 (0과 1000)", () => {
-    expect(countingSort([1000, 0, 500, 1000, 0])).toEqual([0, 0, 500, 1000, 1000]);
+    expect(countingSort([1000, 0, 500, 1000, 0])).toEqual([
+      0, 0, 500, 1000, 1000,
+    ]);
   });
 
   // 성능 테스트 — O(N+K) 기준 N=100,000, K=1000을 100ms 이내
@@ -48,7 +50,8 @@ describe("countingSort", () => {
     const elapsed = performance.now() - start;
 
     expect(result.length).toBe(N);
-    for (let i = 1; i < N; i++) expect(result[i]!).toBeGreaterThanOrEqual(result[i - 1]!);
+    for (let i = 1; i < N; i++)
+      expect(result[i]!).toBeGreaterThanOrEqual(result[i - 1]!);
     expect(elapsed).toBeLessThan(100);
   });
 });

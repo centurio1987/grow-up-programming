@@ -23,7 +23,9 @@ let failures = 0;
 
 for (const file of files) {
   const text = await Bun.file(file).text();
-  const blocks = [...text.matchAll(/```mermaid\n([\s\S]*?)```/g)].map((m) => m[1]!);
+  const blocks = [...text.matchAll(/```mermaid\n([\s\S]*?)```/g)].map(
+    (m) => m[1]!,
+  );
   for (let i = 0; i < blocks.length; i++) {
     totalBlocks++;
     try {
@@ -32,10 +34,14 @@ for (const file of files) {
     } catch (e) {
       failures++;
       const msg = (e as Error).message ?? String(e);
-      console.log(`FAIL  ${file} [블록 ${i + 1}]: ${msg.split("\n").slice(0, 3).join(" | ")}`);
+      console.log(
+        `FAIL  ${file} [블록 ${i + 1}]: ${msg.split("\n").slice(0, 3).join(" | ")}`,
+      );
     }
   }
 }
 
-console.log(`\n${files.length}개 파일, ${totalBlocks}개 블록 중 ${failures}개 실패`);
+console.log(
+  `\n${files.length}개 파일, ${totalBlocks}개 블록 중 ${failures}개 실패`,
+);
 process.exit(failures > 0 ? 1 : 0);

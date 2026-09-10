@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { SubtreeSumQuery } from "./subtreeSumQuery";
 
 describe("SubtreeSumQuery", () => {
@@ -29,7 +29,7 @@ describe("SubtreeSumQuery", () => {
           [1, 3],
         ],
         0,
-        [1, 2, 3, 4]
+        [1, 2, 3, 4],
       );
       expect(sst.querySubtree(0)).toBe(10);
       expect(sst.querySubtree(1)).toBe(6);
@@ -45,7 +45,7 @@ describe("SubtreeSumQuery", () => {
           [0, 2],
         ],
         0,
-        [1, 2, 3]
+        [1, 2, 3],
       );
       expect(sst.querySubtree(0)).toBe(6);
       sst.update(1, 10);
@@ -80,7 +80,7 @@ describe("SubtreeSumQuery", () => {
           [0, 4],
         ],
         0,
-        [10, 1, 2, 3, 4]
+        [10, 1, 2, 3, 4],
       );
       expect(sst.querySubtree(0)).toBe(20);
       expect(sst.querySubtree(1)).toBe(1);
@@ -95,7 +95,7 @@ describe("SubtreeSumQuery", () => {
           [0, 2],
         ],
         0,
-        [-1, -2, -3]
+        [-1, -2, -3],
       );
       expect(sst.querySubtree(0)).toBe(-6);
     });

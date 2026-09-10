@@ -110,7 +110,9 @@ console.log("== naive (순열) : n=1..8 ==");
 for (let n = 1; n <= 8; n++) {
   const got = nQueensNaive(n);
   const ok = got === known[n];
-  console.log(`n=${n}: got=${got} expected=${known[n]} ${ok ? "OK" : "MISMATCH"}`);
+  console.log(
+    `n=${n}: got=${got} expected=${known[n]} ${ok ? "OK" : "MISMATCH"}`,
+  );
   if (!ok) throw new Error(`naive mismatch at n=${n}`);
 }
 
@@ -118,7 +120,9 @@ console.log("== backtrack (배열) : n=1..10 ==");
 for (let n = 1; n <= 10; n++) {
   const got = nQueensBacktrack(n);
   const ok = got === known[n];
-  console.log(`n=${n}: got=${got} expected=${known[n]} ${ok ? "OK" : "MISMATCH"}`);
+  console.log(
+    `n=${n}: got=${got} expected=${known[n]} ${ok ? "OK" : "MISMATCH"}`,
+  );
   if (!ok) throw new Error(`backtrack mismatch at n=${n}`);
 }
 
@@ -126,7 +130,9 @@ console.log("== bitmask (최종) : n=1..12 ==");
 for (let n = 1; n <= 12; n++) {
   const got = nQueens(n);
   const ok = got === known[n];
-  console.log(`n=${n}: got=${got} expected=${known[n]} ${ok ? "OK" : "MISMATCH"}`);
+  console.log(
+    `n=${n}: got=${got} expected=${known[n]} ${ok ? "OK" : "MISMATCH"}`,
+  );
   if (!ok) throw new Error(`bitmask mismatch at n=${n}`);
 }
 
@@ -136,7 +142,9 @@ for (let i = 0; i < 8; i++) {
   const n = 1 + Math.floor(Math.random() * 10); // 1..10
   const a = nQueensBacktrack(n);
   const b = nQueens(n);
-  console.log(`n=${n}: backtrack=${a} bitmask=${b} ${a === b ? "OK" : "MISMATCH"}`);
+  console.log(
+    `n=${n}: backtrack=${a} bitmask=${b} ${a === b ? "OK" : "MISMATCH"}`,
+  );
   if (a !== b) throw new Error(`cross-check mismatch at n=${n}`);
 }
 

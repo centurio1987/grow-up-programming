@@ -4,7 +4,10 @@
 type Edge = [number, number, number];
 
 function adjOf(n: number, edges: Edge[]) {
-  const adj: Array<Array<[number, number]>> = Array.from({ length: n }, () => []);
+  const adj: Array<Array<[number, number]>> = Array.from(
+    { length: n },
+    () => [],
+  );
   for (const [u, v, w] of edges) adj[u].push([v, w]);
   return adj;
 }
@@ -81,7 +84,14 @@ const edges: Edge[] = [
 const basic = spfaBasicCount(n, edges, 0);
 const slf = spfaSLFCount(n, edges, 0);
 
-console.log("basic dist:", basic.dist, "pops:", basic.pops, "order:", basic.order);
+console.log(
+  "basic dist:",
+  basic.dist,
+  "pops:",
+  basic.pops,
+  "order:",
+  basic.order,
+);
 console.log("slf   dist:", slf.dist, "pops:", slf.pops, "order:", slf.order);
 
 if (basic.dist.join(",") !== slf.dist.join(",")) {

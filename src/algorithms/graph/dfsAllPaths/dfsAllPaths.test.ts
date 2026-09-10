@@ -1,15 +1,20 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { dfsAllPaths } from "./dfsAllPaths";
 
 describe("dfsAllPaths", () => {
   // 기본 동작
   test("다이아몬드 DAG — 두 경로", () => {
-    const result = dfsAllPaths(4, [
-      [0, 1],
-      [0, 2],
-      [1, 3],
-      [2, 3],
-    ], 0, 3);
+    const result = dfsAllPaths(
+      4,
+      [
+        [0, 1],
+        [0, 2],
+        [1, 3],
+        [2, 3],
+      ],
+      0,
+      3,
+    );
     expect(result).toEqual([
       [0, 1, 3],
       [0, 2, 3],
@@ -17,13 +22,18 @@ describe("dfsAllPaths", () => {
   });
 
   test("여러 경로 — 사전식 정렬", () => {
-    const result = dfsAllPaths(4, [
-      [0, 1],
-      [0, 2],
-      [1, 2],
-      [1, 3],
-      [2, 3],
-    ], 0, 3);
+    const result = dfsAllPaths(
+      4,
+      [
+        [0, 1],
+        [0, 2],
+        [1, 2],
+        [1, 3],
+        [2, 3],
+      ],
+      0,
+      3,
+    );
     expect(result).toEqual([
       [0, 1, 2, 3],
       [0, 1, 3],
@@ -41,16 +51,31 @@ describe("dfsAllPaths", () => {
   });
 
   test("source === target — 길이 1 경로 하나", () => {
-    expect(dfsAllPaths(3, [[0, 1], [1, 2]], 1, 1)).toEqual([[1]]);
+    expect(
+      dfsAllPaths(
+        3,
+        [
+          [0, 1],
+          [1, 2],
+        ],
+        1,
+        1,
+      ),
+    ).toEqual([[1]]);
   });
 
   test("사이클이 있어도 단순 경로만 반환", () => {
-    const result = dfsAllPaths(3, [
-      [0, 1],
-      [1, 2],
-      [2, 0],
-      [0, 2],
-    ], 0, 2);
+    const result = dfsAllPaths(
+      3,
+      [
+        [0, 1],
+        [1, 2],
+        [2, 0],
+        [0, 2],
+      ],
+      0,
+      2,
+    );
     expect(result).toEqual([
       [0, 1, 2],
       [0, 2],
@@ -58,15 +83,30 @@ describe("dfsAllPaths", () => {
   });
 
   test("자기 루프는 무시된다", () => {
-    expect(dfsAllPaths(2, [[0, 0], [0, 1]], 0, 1)).toEqual([[0, 1]]);
+    expect(
+      dfsAllPaths(
+        2,
+        [
+          [0, 0],
+          [0, 1],
+        ],
+        0,
+        1,
+      ),
+    ).toEqual([[0, 1]]);
   });
 
   test("중복 간선은 경로를 중복 생성하지 않는다", () => {
-    const result = dfsAllPaths(3, [
-      [0, 1],
-      [0, 1],
-      [1, 2],
-    ], 0, 2);
+    const result = dfsAllPaths(
+      3,
+      [
+        [0, 1],
+        [0, 1],
+        [1, 2],
+      ],
+      0,
+      2,
+    );
     expect(result).toEqual([[0, 1, 2]]);
   });
 
@@ -109,7 +149,9 @@ describe("dfsAllPaths", () => {
     const elapsed = performance.now() - start;
 
     expect(result.length).toBe(3432); // C(14, 7)
-    expect(result[0]).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 15, 23, 31, 39, 47, 55, 63]);
+    expect(result[0]).toEqual([
+      0, 1, 2, 3, 4, 5, 6, 7, 15, 23, 31, 39, 47, 55, 63,
+    ]);
     expect(elapsed).toBeLessThan(100);
   });
 });

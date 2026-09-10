@@ -23,7 +23,10 @@ function countComponents(n: number, adj: number[][], removed: number): number {
   return count;
 }
 
-function articulationPointsNaive(n: number, edges: [number, number][]): number[] {
+function articulationPointsNaive(
+  n: number,
+  edges: [number, number][],
+): number[] {
   const adj: number[][] = Array.from({ length: n }, () => []);
   for (const [u, v] of edges) {
     if (u === v) continue; // 자기 루프는 인접 리스트에 넣지 않아도 결과 불변(연결성에 기여 안 함)
@@ -33,7 +36,9 @@ function articulationPointsNaive(n: number, edges: [number, number][]): number[]
   const baseline = countComponents(n, adj, -1);
   const result: number[] = [];
   for (let v = 0; v < n; v++) {
-    const adjWithoutV: number[][] = adj.map((list) => list.filter((w) => w !== v));
+    const adjWithoutV: number[][] = adj.map((list) =>
+      list.filter((w) => w !== v),
+    );
     const after = countComponents(n, adjWithoutV, v);
     // v가 속한 컴포넌트가 k(>=2) 조각으로 쪼개지면 after = baseline - 1 + k > baseline.
     // v가 고립 정점이거나(k=0, after=baseline-1) 리프여서 쪼개지지 않으면(k=1, after=baseline)
@@ -44,7 +49,10 @@ function articulationPointsNaive(n: number, edges: [number, number][]): number[]
 }
 
 // ── 기본 구현: 재귀 DFS + disc/low (아이디어를 코드로 옮기기) ─────────────────
-function articulationPointsBasic(n: number, edges: [number, number][]): number[] {
+function articulationPointsBasic(
+  n: number,
+  edges: [number, number][],
+): number[] {
   const adj: number[][] = Array.from({ length: n }, () => []);
   for (const [u, v] of edges) {
     adj[u].push(v);
@@ -89,7 +97,10 @@ function articulationPointsBasic(n: number, edges: [number, number][]): number[]
 }
 
 // ── 함정 재현용: 루트 특수 처리를 빼먹은 버전 (문서의 구체 오답 시연) ──────────
-function articulationPointsBuggyNoRootRule(n: number, edges: [number, number][]): number[] {
+function articulationPointsBuggyNoRootRule(
+  n: number,
+  edges: [number, number][],
+): number[] {
   const adj: number[][] = Array.from({ length: n }, () => []);
   for (const [u, v] of edges) {
     adj[u].push(v);
@@ -128,7 +139,10 @@ function articulationPointsBuggyNoRootRule(n: number, edges: [number, number][])
 }
 
 // ── 최적화 코드: 재귀를 명시적 스택으로 바꾼 최종 구현 ─────────────────────────
-export function articulationPoints(n: number, edges: [number, number][]): number[] {
+export function articulationPoints(
+  n: number,
+  edges: [number, number][],
+): number[] {
   const adj: number[][] = Array.from({ length: n }, () => []);
   for (const [u, v] of edges) {
     adj[u].push(v);
@@ -192,7 +206,9 @@ function eq(a: number[], b: number[]): boolean {
   return a.length === b.length && a.every((x, i) => x === b[i]);
 }
 
-console.log("=== 대표 예시: 시뮬레이션용 그래프 n=5, edges=[[0,1],[1,2],[2,0],[1,3],[3,4]] ===");
+console.log(
+  "=== 대표 예시: 시뮬레이션용 그래프 n=5, edges=[[0,1],[1,2],[2,0],[1,3],[3,4]] ===",
+);
 {
   const n = 5;
   const edges: [number, number][] = [
@@ -218,12 +234,21 @@ console.log("\n=== 루트 특수 처리 누락 트랩 시연 (같은 그래프) 
     [3, 4],
   ];
   console.log("정답(최적화 코드)         :", articulationPoints(n, edges));
-  console.log("버그(루트 특수 처리 누락) :", articulationPointsBuggyNoRootRule(n, edges));
+  console.log(
+    "버그(루트 특수 처리 누락) :",
+    articulationPointsBuggyNoRootRule(n, edges),
+  );
 }
 
 console.log("\n=== problem.md 예시들 ===");
 {
-  console.log("chain 0-1-2:", articulationPoints(3, [[0, 1], [1, 2]])); // [1]
+  console.log(
+    "chain 0-1-2:",
+    articulationPoints(3, [
+      [0, 1],
+      [1, 2],
+    ]),
+  ); // [1]
   console.log(
     "두 사이클 공유 정점 2:",
     articulationPoints(5, [
@@ -235,7 +260,14 @@ console.log("\n=== problem.md 예시들 ===");
       [4, 2],
     ]),
   ); // [2]
-  console.log("삼각형:", articulationPoints(3, [[0, 1], [1, 2], [2, 0]])); // []
+  console.log(
+    "삼각형:",
+    articulationPoints(3, [
+      [0, 1],
+      [1, 2],
+      [2, 0],
+    ]),
+  ); // []
   console.log("간선 없음:", articulationPoints(5, [])); // []
   console.log("V=1:", articulationPoints(1, [])); // []
 }
@@ -261,7 +293,15 @@ console.log("\n=== 엣지 케이스: 자기 루프 / 분리된 성분 / 두 정�
     ]),
   ); // [1, 4]
   console.log("두 정점 단일 간선:", articulationPoints(2, [[0, 1]])); // []
-  console.log("선형 경로 0-1-2-3-4:", articulationPoints(5, [[0, 1], [1, 2], [2, 3], [3, 4]])); // [1,2,3]
+  console.log(
+    "선형 경로 0-1-2-3-4:",
+    articulationPoints(5, [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [3, 4],
+    ]),
+  ); // [1,2,3]
   console.log(
     "두 사이클이 다리로 연결:",
     articulationPoints(6, [
@@ -312,5 +352,14 @@ console.log("\n=== 성능: V=10^5 체인 ===");
   const start = performance.now();
   const result = articulationPoints(V, edges);
   const elapsed = performance.now() - start;
-  console.log("길이:", result.length, "첫값:", result[0], "끝값:", result[result.length - 1], "ms:", elapsed.toFixed(2));
+  console.log(
+    "길이:",
+    result.length,
+    "첫값:",
+    result[0],
+    "끝값:",
+    result[result.length - 1],
+    "ms:",
+    elapsed.toFixed(2),
+  );
 }

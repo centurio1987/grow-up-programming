@@ -6,17 +6,20 @@
  *
  * 사용: bun run tools/guide-preview/serve.ts <file.mdx> [port]
  */
+
+import { mkdir } from "node:fs/promises";
+import { join } from "node:path";
 import { compile } from "@mdx-js/mdx";
+import rehypeKatex from "rehype-katex";
 import remarkFrontmatter from "remark-frontmatter";
 import remarkMath from "remark-math";
-import rehypeKatex from "rehype-katex";
-import { join } from "node:path";
-import { mkdir } from "node:fs/promises";
 
 const mdxPath = process.argv[2];
 const port = Number(process.argv[3] ?? 5173);
 if (!mdxPath) {
-  console.error("usage: bun run tools/guide-preview/serve.ts <file.mdx> [port]");
+  console.error(
+    "usage: bun run tools/guide-preview/serve.ts <file.mdx> [port]",
+  );
   process.exit(1);
 }
 

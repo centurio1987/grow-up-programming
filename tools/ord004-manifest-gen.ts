@@ -8,8 +8,9 @@
  *
  * 사용: bun run tools/ord004-manifest-gen.ts [--force]
  */
-import { Glob } from "bun";
+
 import { join } from "node:path";
+import { Glob } from "bun";
 
 const root = process.cwd();
 const manifestPath = join(root, "tools/ord004-manifest.json");
@@ -78,7 +79,8 @@ const entries: Entry[] = all.map((path) => {
 
 const manifest = {
   order: "ORD-004",
-  createdNote: "ORD-004 전 가이드 재생성 대상 고정본. 착수 시 1회 생성, 이후 진행 기록.",
+  createdNote:
+    "ORD-004 전 가이드 재생성 대상 고정본. 착수 시 1회 생성, 이후 진행 기록.",
   counts: {
     total: entries.length,
     algo: entries.filter((e) => e.kind === "algo").length,

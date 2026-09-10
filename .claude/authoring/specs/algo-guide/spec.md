@@ -1,5 +1,19 @@
 # 알고리즘 가이드 — 항목별 작성 방법
 
+> **이 명세는 대상을 잃었다(2026-09-09, `KAN-034.8` `S10`).**
+> 알고리즘 트랙 111편이 **v2 골격**으로 전부 넘어가면서 이 명세가 기술하는 v1 10단계 산출
+> (`*-guide.mdx`)이 저장소에 **0** 이 됐다. **새 글을 이 명세로 쓰지 않는다.**
+>
+> **알고리즘 가이드의 명세 정본은 `sandbox/algo-guide-v2/SPEC.md` 다.** 그 파일이 스스로
+> 「`.claude/authoring/specs/` 에 등록하지 않는다」고 밝힌다 — 판정 장치(`check-v2`·
+> `check-proof`·`check-metaphor`·`bench-alt`)를 그 샌드박스에 두기 때문이고, `authoring-kit`
+> 에서 쓰는 것은 voice 하나다.
+>
+> **이 파일을 지우지 않는 이유는 둘이다.** `authoring.lock.json` 이 해시로 고정하고 있어
+> 지우면 lock 이 깨지고, 「왜 없어졌는가」가 함께 사라진다. 여기 적힌 항목별 작성 방법은
+> v1 산출을 읽을 때의 근거로 남는다.
+
+
 > **층: L2 (글 명세)** · 소유 축: `structure` · `scope-principle`
 > 적용 voice: `ppangtolab-teacher` (빵토랩 선생님)
 >

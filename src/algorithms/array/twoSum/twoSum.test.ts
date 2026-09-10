@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { twoSum } from "./twoSum";
 
 describe("twoSum", () => {
@@ -53,7 +53,7 @@ describe("twoSum", () => {
     const N = 10000;
     const nums = Array.from({ length: N }, (_, i) => i);
     // 정답: index 9998(9998) + index 9999(9999) = 19997
-    const target = (N - 2) + (N - 1);
+    const target = N - 2 + (N - 1);
 
     const start = performance.now();
     const result = twoSum(nums, target);

@@ -77,8 +77,7 @@ function spfaBasicTrace(
   const queue: number[] = [src];
   inQueue[src] = true;
 
-  const frames: { popped: number; queueAfter: number[]; dist: number[] }[] =
-    [];
+  const frames: { popped: number; queueAfter: number[]; dist: number[] }[] = [];
 
   while (queue.length > 0) {
     const u = queue.shift()!;
@@ -93,7 +92,11 @@ function spfaBasicTrace(
         }
       }
     }
-    frames.push({ popped: u, queueAfter: [...queue], dist: [...dist] as number[] });
+    frames.push({
+      popped: u,
+      queueAfter: [...queue],
+      dist: [...dist] as number[],
+    });
   }
 
   return { dist: dist as number[], frames };
@@ -166,7 +169,11 @@ function assertEqual(name: string, actual: number[], expected: number[]) {
   const expected = [0, -1, 1, 2];
   assertEqual("basic 대표예시", spfaBasic(n, edges, 0), expected);
   assertEqual("SLF 대표예시", spfaSLF(n, edges, 0), expected);
-  assertEqual("bellmanFordNaive 대표예시", bellmanFordNaive(n, edges, 0), expected);
+  assertEqual(
+    "bellmanFordNaive 대표예시",
+    bellmanFordNaive(n, edges, 0),
+    expected,
+  );
 
   // 시뮬레이션 프레임 재현
   const { dist, frames } = spfaBasicTrace(n, edges, 0);
@@ -183,33 +190,61 @@ function assertEqual(name: string, actual: number[], expected: number[]) {
 assertEqual("n=1, edges=[]", spfaBasic(1, [], 0), [0]);
 assertEqual("n=1, edges=[] (SLF)", spfaSLF(1, [], 0), [0]);
 
-assertEqual(
-  "도달 불가능",
-  spfaBasic(3, [[0, 1, 2]], 0),
-  [0, 2, Infinity],
-);
+assertEqual("도달 불가능", spfaBasic(3, [[0, 1, 2]], 0), [0, 2, Infinity]);
 
 assertEqual(
   "선형 체인 양수",
-  spfaBasic(4, [[0,1,1],[1,2,1],[2,3,1]], 0),
+  spfaBasic(
+    4,
+    [
+      [0, 1, 1],
+      [1, 2, 1],
+      [2, 3, 1],
+    ],
+    0,
+  ),
   [0, 1, 2, 3],
 );
 
 assertEqual(
   "다중 간선 - 더 작은 가중치 채택",
-  spfaBasic(2, [[0,1,5],[0,1,-2],[0,1,3]], 0),
+  spfaBasic(
+    2,
+    [
+      [0, 1, 5],
+      [0, 1, -2],
+      [0, 1, 3],
+    ],
+    0,
+  ),
   [0, -2],
 );
 
 assertEqual(
   "시작점이 중간 정점",
-  spfaBasic(4, [[0,1,1],[1,2,1],[2,3,1]], 1),
+  spfaBasic(
+    4,
+    [
+      [0, 1, 1],
+      [1, 2, 1],
+      [2, 3, 1],
+    ],
+    1,
+  ),
   [Infinity, 0, 1, 2],
 );
 
 assertEqual(
   "늦게 발견된 더 짧은 경로 재완화",
-  spfaBasic(3, [[0,1,10],[0,2,1],[2,1,1]], 0),
+  spfaBasic(
+    3,
+    [
+      [0, 1, 10],
+      [0, 2, 1],
+      [2, 1, 1],
+    ],
+    0,
+  ),
   [0, 2, 1],
 );
 

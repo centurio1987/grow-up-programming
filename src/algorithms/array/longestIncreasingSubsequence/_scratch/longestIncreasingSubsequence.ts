@@ -48,7 +48,8 @@ function longestIncreasingSubsequence(A: number[]): number {
 // ── 트레이스 수집 (실행 시각화 steps와 대조용) ───────────────────────
 function traceBinary(A: number[]) {
   const tails: number[] = [];
-  const frames: { x: number; pos: number; pushed: boolean; tails: number[] }[] = [];
+  const frames: { x: number; pos: number; pushed: boolean; tails: number[] }[] =
+    [];
   for (const x of A) {
     let lo = 0;
     let hi = tails.length;
@@ -109,12 +110,16 @@ console.log("tails linear:", longestIncreasingSubsequenceLinear(rep));
 console.log("tails binary(최종):", longestIncreasingSubsequence(rep));
 console.log("trace:");
 for (const f of traceBinary(rep)) {
-  console.log(`  x=${f.x} pos=${f.pos} ${f.pushed ? "push" : "replace"} tails=[${f.tails.join(",")}]`);
+  console.log(
+    `  x=${f.x} pos=${f.pos} ${f.pushed ? "push" : "replace"} tails=[${f.tails.join(",")}]`,
+  );
 }
 
 console.log("\n=== 확인 질문 검증: tails=[2,5] 상태에서 x=3 ===");
 for (const f of traceBinary([2, 5, 3])) {
-  console.log(`  x=${f.x} pos=${f.pos} ${f.pushed ? "push" : "replace"} tails=[${f.tails.join(",")}]`);
+  console.log(
+    `  x=${f.x} pos=${f.pos} ${f.pushed ? "push" : "replace"} tails=[${f.tails.join(",")}]`,
+  );
 }
 
 console.log("\n=== 문제 예시 전수 검증 ===");
@@ -132,34 +137,63 @@ for (const [A, expected] of cases) {
   const lin = longestIncreasingSubsequenceLinear(A);
   const bin = longestIncreasingSubsequence(A);
   const ok = dp === expected && lin === expected && bin === expected;
-  console.log(`A=${JSON.stringify(A)} expected=${expected} dp=${dp} linear=${lin} binary=${bin} ${ok ? "OK" : "MISMATCH!!"}`);
+  console.log(
+    `A=${JSON.stringify(A)} expected=${expected} dp=${dp} linear=${lin} binary=${bin} ${ok ? "OK" : "MISMATCH!!"}`,
+  );
 }
 
 console.log("\n=== 엣지케이스 ===");
 console.log("[5] ->", longestIncreasingSubsequence([5]), "(기대 1)");
-console.log("[3,3,3] ->", longestIncreasingSubsequence([3, 3, 3]), "(기대 1, 엄격 증가라 중복 불가)");
-console.log("[1,2,3,4,5] ->", longestIncreasingSubsequence([1, 2, 3, 4, 5]), "(기대 5)");
-console.log("[5,4,3,2,1] ->", longestIncreasingSubsequence([5, 4, 3, 2, 1]), "(기대 1)");
+console.log(
+  "[3,3,3] ->",
+  longestIncreasingSubsequence([3, 3, 3]),
+  "(기대 1, 엄격 증가라 중복 불가)",
+);
+console.log(
+  "[1,2,3,4,5] ->",
+  longestIncreasingSubsequence([1, 2, 3, 4, 5]),
+  "(기대 5)",
+);
+console.log(
+  "[5,4,3,2,1] ->",
+  longestIncreasingSubsequence([5, 4, 3, 2, 1]),
+  "(기대 1)",
+);
 
 console.log("\n=== 연습문제 검증: A=[3,10,2,1,20] ===");
 for (const f of traceBinary([3, 10, 2, 1, 20])) {
-  console.log(`  x=${f.x} pos=${f.pos} ${f.pushed ? "push" : "replace"} tails=[${f.tails.join(",")}]`);
+  console.log(
+    `  x=${f.x} pos=${f.pos} ${f.pushed ? "push" : "replace"} tails=[${f.tails.join(",")}]`,
+  );
 }
 console.log("LIS length =", longestIncreasingSubsequence([3, 10, 2, 1, 20]));
 
 console.log("\n=== naive DP 비용 폭발 (목표 복잡도 절 근거) ===");
 const n1 = 100_000;
-console.log(`N=${n1} 일 때 O(N^2) = ${(n1 * n1).toLocaleString()} 연산 (10^10 규모)`);
-console.log(`N=${n1} 일 때 O(N log2 N) ≈ ${Math.round(n1 * Math.log2(n1)).toLocaleString()} 연산`);
+console.log(
+  `N=${n1} 일 때 O(N^2) = ${(n1 * n1).toLocaleString()} 연산 (10^10 규모)`,
+);
+console.log(
+  `N=${n1} 일 때 O(N log2 N) ≈ ${Math.round(n1 * Math.log2(n1)).toLocaleString()} 연산`,
+);
 
-console.log("\n=== '더 빠르게 만들 단서' — 선형 탐색 vs 이분 탐색 비교 횟수 ===");
-console.log("대표 예시 비교 횟수: linear =", countLinear(rep).comparisons, " binary =", countBinary(rep).comparisons);
+console.log(
+  "\n=== '더 빠르게 만들 단서' — 선형 탐색 vs 이분 탐색 비교 횟수 ===",
+);
+console.log(
+  "대표 예시 비교 횟수: linear =",
+  countLinear(rep).comparisons,
+  " binary =",
+  countBinary(rep).comparisons,
+);
 
 const ascending = Array.from({ length: 16 }, (_, i) => i + 1); // [1..16]
 const linAsc = countLinear(ascending);
 const binAsc = countBinary(ascending);
 console.log(`오름차순 A=[1..16] (N=16): tails 항상 끝에 추가되는 최악 패턴`);
-console.log(`  선형 탐색 총 비교 횟수 = ${linAsc.comparisons} (0+1+2+...+15 = ${(15 * 16) / 2})`);
+console.log(
+  `  선형 탐색 총 비교 횟수 = ${linAsc.comparisons} (0+1+2+...+15 = ${(15 * 16) / 2})`,
+);
 console.log(`  이분 탐색 총 비교 횟수 = ${binAsc.comparisons}`);
 console.log(`  tails 최종 길이 = ${linAsc.length} / ${binAsc.length}`);
 
@@ -205,7 +239,9 @@ console.log(
   longestIncreasingSubsequenceBuggyHi(rep),
 );
 
-console.log("\n=== 함정 2: lower bound 대신 upper bound를 쓰면? (구체 오답) ===");
+console.log(
+  "\n=== 함정 2: lower bound 대신 upper bound를 쓰면? (구체 오답) ===",
+);
 function nonDecreasingLIS(A: number[]): number {
   // upper bound(<=)를 쓰면 "같은 값도 이어붙임" → 비감소(non-decreasing) LIS가 된다
   const tails: number[] = [];
@@ -214,7 +250,8 @@ function nonDecreasingLIS(A: number[]): number {
     let hi = tails.length;
     while (lo < hi) {
       const mid = (lo + hi) >> 1;
-      if (tails[mid] <= x) lo = mid + 1; // <= 로 바뀜: upper bound
+      if (tails[mid] <= x)
+        lo = mid + 1; // <= 로 바뀜: upper bound
       else hi = mid;
     }
     if (lo === tails.length) tails.push(x);
@@ -231,7 +268,10 @@ console.log(
 
 console.log("\n=== 무작위 교차검증 (dp vs linear vs binary, 500회) ===");
 function randArr(n: number, lo: number, hi: number): number[] {
-  return Array.from({ length: n }, () => lo + Math.floor(Math.random() * (hi - lo + 1)));
+  return Array.from(
+    { length: n },
+    () => lo + Math.floor(Math.random() * (hi - lo + 1)),
+  );
 }
 let allMatch = true;
 for (let t = 0; t < 500; t++) {

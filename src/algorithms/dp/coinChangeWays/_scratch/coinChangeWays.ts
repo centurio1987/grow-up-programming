@@ -20,7 +20,9 @@ function coinChangeWaysNaive(coins: number[], amount: number): number {
 function coinChangeWays2D(coins: number[], amount: number): number {
   const n = coins.length;
   // dp[i][x] = coins[0..i-1]만 사용해 금액 x를 만드는 조합 수
-  const dp: number[][] = Array.from({ length: n + 1 }, () => new Array(amount + 1).fill(0));
+  const dp: number[][] = Array.from({ length: n + 1 }, () =>
+    new Array(amount + 1).fill(0),
+  );
   for (let i = 0; i <= n; i++) dp[i]![0] = 1; // 금액 0은 항상 빈 조합 1가지
 
   for (let i = 1; i <= n; i++) {
@@ -96,7 +98,9 @@ for (let t = 0; t < 200; t++) {
   const d1 = coinChangeWays1D(coins, amount);
   if (!(naive === d2 && d2 === d1)) {
     allOk = false;
-    console.log(`MISMATCH coins=${JSON.stringify(coins)} amount=${amount} naive=${naive} 2D=${d2} 1D=${d1}`);
+    console.log(
+      `MISMATCH coins=${JSON.stringify(coins)} amount=${amount} naive=${naive} 2D=${d2} 1D=${d1}`,
+    );
   }
 }
 console.log(allOk ? "랜덤 200케이스 전부 일치" : "불일치 발견됨 (위 참조)");
@@ -105,7 +109,9 @@ console.log("\n=== 순서 함정 데모: coins=[1,2], amount=3 ===");
 console.log("올바른(1D, 동전 바깥) 결과:", coinChangeWays1D([1, 2], 3));
 console.log("잘못된(금액 바깥) 결과:", coinChangeWaysWrongOrder([1, 2], 3));
 
-console.log("\n=== 시뮬레이션용 대표 예시: coins=[1,2,5], amount=5 단계별 dp ===");
+console.log(
+  "\n=== 시뮬레이션용 대표 예시: coins=[1,2,5], amount=5 단계별 dp ===",
+);
 {
   const amount = 5;
   const coins = [1, 2, 5];
@@ -142,5 +148,12 @@ console.log("\n=== 오버플로 가능성 점검: coins=1..100, amount=10000 ===
 {
   const coins100 = Array.from({ length: 100 }, (_, i) => i + 1);
   const v = coinChangeWays1D(coins100, 10000);
-  console.log("value =", v, "Number.MAX_SAFE_INTEGER =", Number.MAX_SAFE_INTEGER, "초과여부:", v > Number.MAX_SAFE_INTEGER);
+  console.log(
+    "value =",
+    v,
+    "Number.MAX_SAFE_INTEGER =",
+    Number.MAX_SAFE_INTEGER,
+    "초과여부:",
+    v > Number.MAX_SAFE_INTEGER,
+  );
 }

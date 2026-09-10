@@ -4,7 +4,12 @@ class SubtreeSumQueryNaive {
   private children: number[][];
   private values: number[];
 
-  constructor(n: number, edges: [number, number][], root: number, values: number[]) {
+  constructor(
+    n: number,
+    edges: [number, number][],
+    root: number,
+    values: number[],
+  ) {
     this.n = n;
     this.values = values.slice();
     const adj: number[][] = Array.from({ length: n }, () => []);
@@ -52,7 +57,12 @@ class SubtreeSumQueryFlatScan {
   private out_: number[];
   private flatVal: number[]; // 1-indexed, flatVal[0]은 미사용
 
-  constructor(n: number, edges: [number, number][], root: number, values: number[]) {
+  constructor(
+    n: number,
+    edges: [number, number][],
+    root: number,
+    values: number[],
+  ) {
     this.in_ = new Array(n).fill(0);
     this.out_ = new Array(n).fill(0);
     this.flatVal = new Array(n + 1).fill(0);
@@ -107,7 +117,12 @@ class SubtreeSumQuery {
   private curVal: number[];
   private bit: number[];
 
-  constructor(n: number, edges: [number, number][], root: number, values: number[]) {
+  constructor(
+    n: number,
+    edges: [number, number][],
+    root: number,
+    values: number[],
+  ) {
     this.n = n;
     this.in_ = new Array(n).fill(0);
     this.out_ = new Array(n).fill(0);
@@ -180,9 +195,15 @@ function assertEq(actual: number, expected: number, label: string) {
 {
   const sst = new SubtreeSumQuery(
     6,
-    [[0, 1], [0, 2], [1, 3], [1, 4], [2, 5]],
+    [
+      [0, 1],
+      [0, 2],
+      [1, 3],
+      [1, 4],
+      [2, 5],
+    ],
     0,
-    [1, 2, 3, 4, 5, 6]
+    [1, 2, 3, 4, 5, 6],
   );
   assertEq(sst.querySubtree(0), 21, "problem.md querySubtree(0)");
   assertEq(sst.querySubtree(1), 11, "problem.md querySubtree(1)");
@@ -197,7 +218,15 @@ function assertEq(actual: number, expected: number, label: string) {
   single.update(0, 0);
   assertEq(single.querySubtree(0), 0, "single after update querySubtree(0)");
 
-  const neg = new SubtreeSumQuery(3, [[0, 1], [0, 2]], 0, [-1, -2, -3]);
+  const neg = new SubtreeSumQuery(
+    3,
+    [
+      [0, 1],
+      [0, 2],
+    ],
+    0,
+    [-1, -2, -3],
+  );
   assertEq(neg.querySubtree(0), -6, "neg querySubtree(0)");
   assertEq(neg.querySubtree(1), -2, "neg querySubtree(1)");
 }
@@ -206,9 +235,15 @@ function assertEq(actual: number, expected: number, label: string) {
 {
   const sst = new SubtreeSumQueryFlatScan(
     6,
-    [[0, 1], [0, 2], [1, 3], [1, 4], [2, 5]],
+    [
+      [0, 1],
+      [0, 2],
+      [1, 3],
+      [1, 4],
+      [2, 5],
+    ],
     0,
-    [1, 2, 3, 4, 5, 6]
+    [1, 2, 3, 4, 5, 6],
   );
   assertEq(sst.querySubtree(0), 21, "FlatScan querySubtree(0)");
   assertEq(sst.querySubtree(1), 11, "FlatScan querySubtree(1)");
@@ -219,20 +254,34 @@ function assertEq(actual: number, expected: number, label: string) {
   // sim 고정 입력에서도 확인
   const flat = new SubtreeSumQueryFlatScan(
     5,
-    [[0, 1], [0, 2], [1, 3], [1, 4]],
+    [
+      [0, 1],
+      [0, 2],
+      [1, 3],
+      [1, 4],
+    ],
     0,
-    [10, 20, 30, 40, 50]
+    [10, 20, 30, 40, 50],
   );
   assertEq(flat.querySubtree(1), 110, "FlatScan sim querySubtree(1)");
   flat.update(3, 100);
-  assertEq(flat.querySubtree(0), 210, "FlatScan sim querySubtree(0) after update");
+  assertEq(
+    flat.querySubtree(0),
+    210,
+    "FlatScan sim querySubtree(0) after update",
+  );
 }
 
 // ---- 2. 가이드 시뮬레이션 고정 입력 검증 ----
 // n=5, edges=[[0,1],[0,2],[1,3],[1,4]], root=0, values=[10,20,30,40,50]
 {
   const n = 5;
-  const edges: [number, number][] = [[0, 1], [0, 2], [1, 3], [1, 4]];
+  const edges: [number, number][] = [
+    [0, 1],
+    [0, 2],
+    [1, 3],
+    [1, 4],
+  ];
   const root = 0;
   const values = [10, 20, 30, 40, 50];
 
@@ -256,16 +305,26 @@ function assertEq(actual: number, expected: number, label: string) {
   const naive = new SubtreeSumQueryNaive(n, edges, root, values);
   assertEq(naive.querySubtree(1), 110, "naive sim querySubtree(1)");
   naive.update(3, 100);
-  assertEq(naive.querySubtree(0), 210, "naive sim querySubtree(0) after update");
+  assertEq(
+    naive.querySubtree(0),
+    210,
+    "naive sim querySubtree(0) after update",
+  );
 }
 
 // ---- 3. 엣지케이스: 리프, 연속 update ----
 {
   const sst = new SubtreeSumQuery(
     6,
-    [[0, 1], [0, 2], [1, 3], [1, 4], [2, 5]],
+    [
+      [0, 1],
+      [0, 2],
+      [1, 3],
+      [1, 4],
+      [2, 5],
+    ],
     0,
-    [1, 2, 3, 4, 5, 6]
+    [1, 2, 3, 4, 5, 6],
   );
   assertEq(sst.querySubtree(5), 6, "edge: leaf querySubtree(5)");
   sst.update(5, 100);
@@ -289,7 +348,10 @@ function assertEq(actual: number, expected: number, label: string) {
     const n = 1 + Math.floor(Math.random() * 30);
     const edges = randomTree(n);
     const root = 0;
-    const values = Array.from({ length: n }, () => Math.floor(Math.random() * 201) - 100);
+    const values = Array.from(
+      { length: n },
+      () => Math.floor(Math.random() * 201) - 100,
+    );
 
     const naive = new SubtreeSumQueryNaive(n, edges, root, values);
     const bit = new SubtreeSumQuery(n, edges, root, values);
@@ -305,7 +367,7 @@ function assertEq(actual: number, expected: number, label: string) {
         const b = bit.querySubtree(node);
         if (a !== b) {
           throw new Error(
-            `무작위 교차검증 실패: trial=${trial} n=${n} node=${node} naive=${a} bit=${b}`
+            `무작위 교차검증 실패: trial=${trial} n=${n} node=${node} naive=${a} bit=${b}`,
           );
         }
       }
@@ -322,56 +384,105 @@ function assertEq(actual: number, expected: number, label: string) {
     private in_: number[];
     private out_: number[];
     private bit: number[];
-    constructor(n: number, edges: [number, number][], root: number, values: number[]) {
+    constructor(
+      n: number,
+      edges: [number, number][],
+      root: number,
+      values: number[],
+    ) {
       this.n = n;
       this.in_ = new Array(n).fill(0);
       this.out_ = new Array(n).fill(0);
       this.bit = new Array(n + 1).fill(0);
       const adj: number[][] = Array.from({ length: n }, () => []);
-      for (const [u, v] of edges) { adj[u]!.push(v); adj[v]!.push(u); }
+      for (const [u, v] of edges) {
+        adj[u]!.push(v);
+        adj[v]!.push(u);
+      }
       let timer = 0;
       const stack: [number, number, number][] = [[root, -1, 0]];
       while (stack.length > 0) {
         const [v, par, leaving] = stack.pop()!;
-        if (leaving) { this.out_[v] = timer; }
-        else {
-          timer++; this.in_[v] = timer; stack.push([v, par, 1]);
+        if (leaving) {
+          this.out_[v] = timer;
+        } else {
+          timer++;
+          this.in_[v] = timer;
+          stack.push([v, par, 1]);
           const nb = adj[v]!;
-          for (let k = nb.length - 1; k >= 0; k--) { const u = nb[k]!; if (u !== par) stack.push([u, v, 0]); }
+          for (let k = nb.length - 1; k >= 0; k--) {
+            const u = nb[k]!;
+            if (u !== par) stack.push([u, v, 0]);
+          }
         }
       }
       for (let v = 0; v < n; v++) this.bitUpdate(this.in_[v]!, values[v]!);
     }
-    private bitUpdate(i: number, delta: number) { for (; i <= this.n; i += i & -i) this.bit[i]! += delta; }
-    private bitQuery(i: number) { let s = 0; for (; i > 0; i -= i & -i) s += this.bit[i]!; return s; }
-    updateWrong(node: number, value: number) { this.bitUpdate(this.in_[node]!, value); } // delta 대신 절댓값을 그대로 더함 (버그)
-    querySubtree(node: number) { return this.bitQuery(this.out_[node]!) - this.bitQuery(this.in_[node]! - 1); }
+    private bitUpdate(i: number, delta: number) {
+      for (; i <= this.n; i += i & -i) this.bit[i]! += delta;
+    }
+    private bitQuery(i: number) {
+      let s = 0;
+      for (; i > 0; i -= i & -i) s += this.bit[i]!;
+      return s;
+    }
+    updateWrong(node: number, value: number) {
+      this.bitUpdate(this.in_[node]!, value);
+    } // delta 대신 절댓값을 그대로 더함 (버그)
+    querySubtree(node: number) {
+      return (
+        this.bitQuery(this.out_[node]!) - this.bitQuery(this.in_[node]! - 1)
+      );
+    }
   }
 
   const n = 5;
-  const edges: [number, number][] = [[0, 1], [0, 2], [1, 3], [1, 4]];
+  const edges: [number, number][] = [
+    [0, 1],
+    [0, 2],
+    [1, 3],
+    [1, 4],
+  ];
   const root = 0;
   const values = [10, 20, 30, 40, 50];
 
   const correct = new SubtreeSumQuery(n, edges, root, values);
   correct.update(3, 100);
-  assertEq(correct.querySubtree(1), 170, "정답: update(3,100) 후 querySubtree(1) = 20+100+50");
-  assertEq(correct.querySubtree(0), 210, "정답: update(3,100) 후 querySubtree(0)");
+  assertEq(
+    correct.querySubtree(1),
+    170,
+    "정답: update(3,100) 후 querySubtree(1) = 20+100+50",
+  );
+  assertEq(
+    correct.querySubtree(0),
+    210,
+    "정답: update(3,100) 후 querySubtree(0)",
+  );
 
   const wrong = new WrongNoDelta(n, edges, root, values);
   wrong.updateWrong(3, 100); // delta 없이 100을 그대로 더함 (버그 재현)
   const wrongQ1 = wrong.querySubtree(1);
   const wrongQ0 = wrong.querySubtree(0);
-  console.log(`BUG 재현: delta 없이 update(3,100) → querySubtree(1) = ${wrongQ1} (정답 170), querySubtree(0) = ${wrongQ0} (정답 210)`);
+  console.log(
+    `BUG 재현: delta 없이 update(3,100) → querySubtree(1) = ${wrongQ1} (정답 170), querySubtree(0) = ${wrongQ0} (정답 210)`,
+  );
   if (wrongQ1 === 170 || wrongQ0 === 210) {
-    throw new Error("버그 재현 실패: 오답 구현이 우연히 정답과 같은 값을 냈습니다");
+    throw new Error(
+      "버그 재현 실패: 오답 구현이 우연히 정답과 같은 값을 냈습니다",
+    );
   }
 
   // (b) in[node]-1 대신 in[node]를 그대로 쓰는 오답 (자기 자신 제외 버그)
   const anyCorrect = correct as any;
-  const rangeWrong = anyCorrect.bitQuery(anyCorrect.out_[1]) - anyCorrect.bitQuery(anyCorrect.in_[1]); // -1 누락
-  const rangeRight = anyCorrect.bitQuery(anyCorrect.out_[1]) - anyCorrect.bitQuery(anyCorrect.in_[1] - 1);
-  console.log(`BUG 재현: in[node]-1 대신 in[node] 사용 → ${rangeWrong} (정답 ${rangeRight})`);
+  const rangeWrong =
+    anyCorrect.bitQuery(anyCorrect.out_[1]) -
+    anyCorrect.bitQuery(anyCorrect.in_[1]); // -1 누락
+  const rangeRight =
+    anyCorrect.bitQuery(anyCorrect.out_[1]) -
+    anyCorrect.bitQuery(anyCorrect.in_[1] - 1);
+  console.log(
+    `BUG 재현: in[node]-1 대신 in[node] 사용 → ${rangeWrong} (정답 ${rangeRight})`,
+  );
   if (rangeWrong === rangeRight) {
     throw new Error("버그 재현 실패: -1 누락이 결과에 영향을 주지 않았습니다");
   }

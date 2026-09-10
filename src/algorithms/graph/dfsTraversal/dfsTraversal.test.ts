@@ -1,55 +1,75 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { dfsTraversal } from "./dfsTraversal";
 
 describe("dfsTraversal", () => {
   // 기본 동작
   test("분기 그래프 — 작은 이웃 먼저 깊이 우선", () => {
     // 0 - {1,2}, 1 - 3, 2 - 4
-    const result = dfsTraversal(5, [
-      [0, 1],
-      [0, 2],
-      [1, 3],
-      [2, 4],
-    ], 0);
+    const result = dfsTraversal(
+      5,
+      [
+        [0, 1],
+        [0, 2],
+        [1, 3],
+        [2, 4],
+      ],
+      0,
+    );
     expect(result).toEqual([0, 1, 3, 2, 4]);
   });
 
   test("이웃 방문 순서는 입력 순서가 아니라 오름차순", () => {
     // edges에 [0,2]가 [0,1]보다 먼저 나오지만 1을 먼저 방문
-    const result = dfsTraversal(4, [
-      [0, 2],
-      [0, 1],
-      [1, 3],
-    ], 0);
+    const result = dfsTraversal(
+      4,
+      [
+        [0, 2],
+        [0, 1],
+        [1, 3],
+      ],
+      0,
+    );
     expect(result).toEqual([0, 1, 3, 2]);
   });
 
   test("시작 정점이 0이 아닌 경우", () => {
     // 경로 0-1-2-3, start=2
-    const result = dfsTraversal(4, [
-      [0, 1],
-      [1, 2],
-      [2, 3],
-    ], 2);
+    const result = dfsTraversal(
+      4,
+      [
+        [0, 1],
+        [1, 2],
+        [2, 3],
+      ],
+      2,
+    );
     expect(result).toEqual([2, 1, 0, 3]);
   });
 
   // 엣지 케이스 — 도달 불가능
   test("도달할 수 없는 정점은 제외한다", () => {
     // 0-1 | 2-3, 정점 4는 고립. start=0
-    const result = dfsTraversal(5, [
-      [0, 1],
-      [2, 3],
-    ], 0);
+    const result = dfsTraversal(
+      5,
+      [
+        [0, 1],
+        [2, 3],
+      ],
+      0,
+    );
     expect(result).toEqual([0, 1]);
   });
 
   test("자기 루프와 중복 간선은 결과에 영향 없음", () => {
-    const result = dfsTraversal(3, [
-      [0, 0],
-      [0, 1],
-      [0, 1],
-    ], 0);
+    const result = dfsTraversal(
+      3,
+      [
+        [0, 0],
+        [0, 1],
+        [0, 1],
+      ],
+      0,
+    );
     expect(result).toEqual([0, 1]);
   });
 

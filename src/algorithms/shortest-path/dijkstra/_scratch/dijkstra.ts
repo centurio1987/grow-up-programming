@@ -148,10 +148,15 @@ class MinHeap {
         const l = i * 2 + 1;
         const r = i * 2 + 2;
         let smallest = i;
-        if (l < this.items.length && this.items[l][0] < this.items[smallest][0]) smallest = l;
-        if (r < this.items.length && this.items[r][0] < this.items[smallest][0]) smallest = r;
+        if (l < this.items.length && this.items[l][0] < this.items[smallest][0])
+          smallest = l;
+        if (r < this.items.length && this.items[r][0] < this.items[smallest][0])
+          smallest = r;
         if (smallest === i) break;
-        [this.items[smallest], this.items[i]] = [this.items[i], this.items[smallest]];
+        [this.items[smallest], this.items[i]] = [
+          this.items[i],
+          this.items[smallest],
+        ];
         i = smallest;
         this.siftOps++;
       }
@@ -280,7 +285,9 @@ function dijkstraVisitedLocked(
 // ============================================================
 
 function fmt(arr: number[]) {
-  return "[" + arr.map((x) => (x === Infinity ? "Infinity" : x)).join(", ") + "]";
+  return (
+    "[" + arr.map((x) => (x === Infinity ? "Infinity" : x)).join(", ") + "]"
+  );
 }
 
 console.log("=== 대표 예시: n=4 ===");
@@ -296,16 +303,41 @@ console.log("sortedArrayPQ:", fmt(dijkstraSortedArrayPQ(4, mainEdges, 0).dist));
 console.log("heap         :", fmt(dijkstra(4, mainEdges, 0)));
 
 console.log("\n=== 엣지케이스 (dijkstra-problem.md 예시와 대조) ===");
-console.log("고립 정점 dijkstra(3,[[0,1,2]],0):", fmt(dijkstra(3, [[0, 1, 2]], 0)));
+console.log(
+  "고립 정점 dijkstra(3,[[0,1,2]],0):",
+  fmt(dijkstra(3, [[0, 1, 2]], 0)),
+);
 console.log("간선 없음 dijkstra(3,[],1):", fmt(dijkstra(3, [], 1)));
-console.log("역방향 불가 dijkstra(2,[[0,1,5]],1):", fmt(dijkstra(2, [[0, 1, 5]], 1)));
+console.log(
+  "역방향 불가 dijkstra(2,[[0,1,5]],1):",
+  fmt(dijkstra(2, [[0, 1, 5]], 1)),
+);
 console.log(
   "다중 간선 dijkstra(2,[[0,1,9],[0,1,3],[0,1,7]],0):",
-  fmt(dijkstra(2, [[0, 1, 9], [0, 1, 3], [0, 1, 7]], 0)),
+  fmt(
+    dijkstra(
+      2,
+      [
+        [0, 1, 9],
+        [0, 1, 3],
+        [0, 1, 7],
+      ],
+      0,
+    ),
+  ),
 );
 console.log(
   "셀프 루프 dijkstra(2,[[0,0,5],[0,1,2]],0):",
-  fmt(dijkstra(2, [[0, 0, 5], [0, 1, 2]], 0)),
+  fmt(
+    dijkstra(
+      2,
+      [
+        [0, 0, 5],
+        [0, 1, 2],
+      ],
+      0,
+    ),
+  ),
 );
 console.log("n=1, 간선 없음 dijkstra(1,[],0):", fmt(dijkstra(1, [], 0)));
 
@@ -345,7 +377,9 @@ for (const n of [5, 10, 100, 1000]) {
   console.log(`n=${n}: 스캔 횟수=${scans} (V^2=${n * n})`);
 }
 
-console.log("\n=== 더 빠르게 만들 단서: 재정렬 총량(sortedArrayPQ) vs sift 총량(heap) ===");
+console.log(
+  "\n=== 더 빠르게 만들 단서: 재정렬 총량(sortedArrayPQ) vs sift 총량(heap) ===",
+);
 for (const n of [50, 200, 1000]) {
   const edges: [number, number, number][] = [];
   // 살짝 조밀한 랜덤 그래프 (간선 수 ≈ 3n)
@@ -385,13 +419,41 @@ console.log("\n=== 함정 재현: 음수 가중치 + visited 잠금 ===");
   ];
   const locked = dijkstraVisitedLocked(4, negEdges, 0);
   const lazy = dijkstra(4, negEdges, 0);
-  console.log("정답(수작업): dist[1] = min(직접 1, 0->2->1 = 5-10 = -5) = -5, dist[2] = 5, dist[3] = -5+100 = 95");
-  console.log("visited 잠금 버전:", fmt(locked), "← dist[3]이 틀림 (v1이 d=1일 때 조기 확정되어 1->3을 101로만 완화, d=-5 갱신 후 재확장 못 함)");
-  console.log("이 가이드의 lazy 버전  :", fmt(lazy), "(재푸시로 dist[3]=95까지 정답에 도달)");
+  console.log(
+    "정답(수작업): dist[1] = min(직접 1, 0->2->1 = 5-10 = -5) = -5, dist[2] = 5, dist[3] = -5+100 = 95",
+  );
+  console.log(
+    "visited 잠금 버전:",
+    fmt(locked),
+    "← dist[3]이 틀림 (v1이 d=1일 때 조기 확정되어 1->3을 101로만 완화, d=-5 갱신 후 재확장 못 함)",
+  );
+  console.log(
+    "이 가이드의 lazy 버전  :",
+    fmt(lazy),
+    "(재푸시로 dist[3]=95까지 정답에 도달)",
+  );
 }
 
 console.log("\n=== 실행 시각화 절 프레임 대조용: n=4 src=0 최종 dist ===");
-console.log(fmt(dijkstra(4, mainEdges, 0)), "(steps 마지막 프레임과 일치해야 함: [0, 3, 1, 4])");
+console.log(
+  fmt(dijkstra(4, mainEdges, 0)),
+  "(steps 마지막 프레임과 일치해야 함: [0, 3, 1, 4])",
+);
 
 console.log("\n=== 스스로 점검하기 문제1 검증 ===");
-console.log(fmt(dijkstra(5, [[0,1,2],[0,2,4],[1,2,1],[1,3,7],[2,3,3],[3,4,1]], 0)));
+console.log(
+  fmt(
+    dijkstra(
+      5,
+      [
+        [0, 1, 2],
+        [0, 2, 4],
+        [1, 2, 1],
+        [1, 3, 7],
+        [2, 3, 3],
+        [3, 4, 1],
+      ],
+      0,
+    ),
+  ),
+);

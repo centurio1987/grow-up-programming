@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { dagShortestPath } from "./dagShortestPath";
 
 describe("dagShortestPath", () => {
@@ -100,9 +100,7 @@ describe("dagShortestPath", () => {
         [1, 2, 1_000_000_000],
       ];
       expect(dagShortestPath(3, edges, 0)).toEqual([
-        0,
-        1_000_000_000,
-        2_000_000_000,
+        0, 1_000_000_000, 2_000_000_000,
       ]);
     });
 
@@ -112,9 +110,7 @@ describe("dagShortestPath", () => {
         [1, 2, -1_000_000_000],
       ];
       expect(dagShortestPath(3, edges, 0)).toEqual([
-        0,
-        -1_000_000_000,
-        -2_000_000_000,
+        0, -1_000_000_000, -2_000_000_000,
       ]);
     });
   });

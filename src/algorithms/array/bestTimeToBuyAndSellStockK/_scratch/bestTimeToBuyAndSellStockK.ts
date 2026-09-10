@@ -13,7 +13,11 @@ function naiveCombinations(k: number, prices: number[]): number {
     if (remainingK === 0) return;
     for (let buyDay = startDay; buyDay < n; buyDay++) {
       for (let sellDay = buyDay + 1; sellDay < n; sellDay++) {
-        search(sellDay + 1, remainingK - 1, profit + (prices[sellDay]! - prices[buyDay]!));
+        search(
+          sellDay + 1,
+          remainingK - 1,
+          profit + (prices[sellDay]! - prices[buyDay]!),
+        );
       }
     }
   }
@@ -121,7 +125,9 @@ function unlimitedTransactions(prices: number[]): number {
 
 function assertEq(label: string, actual: number, expected: number) {
   const ok = actual === expected;
-  console.log(`${ok ? "OK  " : "FAIL"} ${label}: actual=${actual} expected=${expected}`);
+  console.log(
+    `${ok ? "OK  " : "FAIL"} ${label}: actual=${actual} expected=${expected}`,
+  );
   if (!ok) process.exitCode = 1;
 }
 
@@ -132,7 +138,9 @@ assertEq("naive", naiveCombinations(2, [3, 2, 6, 5, 0, 3]), 7);
 
 console.log("\n=== 함정 A: 루프 순서 버그 (t 바깥/i 안쪽) ===");
 const buggyResult = buggyLoopOrder(2, [3, 2, 6, 5, 0, 3]);
-console.log(`buggyLoopOrder(2, [3,2,6,5,0,3]) = ${buggyResult} (정답 7과 달라야 함을 확인)`);
+console.log(
+  `buggyLoopOrder(2, [3,2,6,5,0,3]) = ${buggyResult} (정답 7과 달라야 함을 확인)`,
+);
 if (buggyResult === 7) {
   console.log("경고: 버그가 재현되지 않음");
   process.exitCode = 1;
@@ -140,21 +148,37 @@ if (buggyResult === 7) {
 
 console.log("\n=== 함정 B: buy 초기값 0 버그 ===");
 const buggyResult2 = buggyBuyInitZero(1, [5, 1]);
-console.log(`buggyBuyInitZero(1, [5,1]) = ${buggyResult2} (정답 0과 달라야 함을 확인)`);
-console.log(`정상 1D 최종: bestTimeToBuyAndSellStockK(1, [5,1]) = ${bestTimeToBuyAndSellStockK(1, [5, 1])}`);
+console.log(
+  `buggyBuyInitZero(1, [5,1]) = ${buggyResult2} (정답 0과 달라야 함을 확인)`,
+);
+console.log(
+  `정상 1D 최종: bestTimeToBuyAndSellStockK(1, [5,1]) = ${bestTimeToBuyAndSellStockK(1, [5, 1])}`,
+);
 
 console.log("\n=== 문제 문서 예시 ===");
 assertEq("k=2 [2,4,1]", bestTimeToBuyAndSellStockK(2, [2, 4, 1]), 2);
-assertEq("k=1 [7,1,5,3,6,4]", bestTimeToBuyAndSellStockK(1, [7, 1, 5, 3, 6, 4]), 5);
+assertEq(
+  "k=1 [7,1,5,3,6,4]",
+  bestTimeToBuyAndSellStockK(1, [7, 1, 5, 3, 6, 4]),
+  5,
+);
 assertEq("k=0 [1,5,3,8]", bestTimeToBuyAndSellStockK(0, [1, 5, 3, 8]), 0);
-assertEq("k=3 하락장 [5,4,3,2,1]", bestTimeToBuyAndSellStockK(3, [5, 4, 3, 2, 1]), 0);
+assertEq(
+  "k=3 하락장 [5,4,3,2,1]",
+  bestTimeToBuyAndSellStockK(3, [5, 4, 3, 2, 1]),
+  0,
+);
 assertEq("원소 1개 k=2 [5]", bestTimeToBuyAndSellStockK(2, [5]), 0);
 assertEq("k=100 [0,10000]", bestTimeToBuyAndSellStockK(100, [0, 10000]), 10000);
 
 console.log("\n=== 엣지 케이스 ===");
 assertEq("k=1 [5] (매도일 없음)", bestTimeToBuyAndSellStockK(1, [5]), 0);
 assertEq("빈 배열", bestTimeToBuyAndSellStockK(3, []), 0);
-assertEq("k=100 [1,2,3,4,5]", bestTimeToBuyAndSellStockK(100, [1, 2, 3, 4, 5]), 4);
+assertEq(
+  "k=100 [1,2,3,4,5]",
+  bestTimeToBuyAndSellStockK(100, [1, 2, 3, 4, 5]),
+  4,
+);
 
 console.log("\n=== k >= floor(N/2) 특화 vs 일반 DP 교차검증 ===");
 {
@@ -182,14 +206,18 @@ for (let trial = 0; trial < 300; trial++) {
   const r2 = bestTimeToBuyAndSellStockK2D(k, prices);
   if (r1 !== r2) {
     mismatches++;
-    console.log(`MISMATCH 1D vs 2D: k=${k}, prices=${JSON.stringify(prices)} -> 1D=${r1}, 2D=${r2}`);
+    console.log(
+      `MISMATCH 1D vs 2D: k=${k}, prices=${JSON.stringify(prices)} -> 1D=${r1}, 2D=${r2}`,
+    );
   }
 
   if (n <= 6 && k <= 3) {
     const r3 = naiveCombinations(k, prices);
     if (r1 !== r3) {
       mismatches++;
-      console.log(`MISMATCH 1D vs naive: k=${k}, prices=${JSON.stringify(prices)} -> 1D=${r1}, naive=${r3}`);
+      console.log(
+        `MISMATCH 1D vs naive: k=${k}, prices=${JSON.stringify(prices)} -> 1D=${r1}, naive=${r3}`,
+      );
     }
   }
 }

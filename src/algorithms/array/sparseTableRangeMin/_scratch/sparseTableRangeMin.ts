@@ -20,7 +20,9 @@ function sparseTableRangeMinBasic(
 ): number[] {
   const N = A.length;
   const LOG = Math.floor(Math.log2(N)) + 1;
-  const st: number[][] = Array.from({ length: LOG }, () => new Array(N).fill(0));
+  const st: number[][] = Array.from({ length: LOG }, () =>
+    new Array(N).fill(0),
+  );
 
   for (let i = 0; i < N; i++) st[0]![i] = A[i]!;
 
@@ -50,7 +52,9 @@ function sparseTableRangeMin(
   const log2Table = new Array<number>(N + 1).fill(0);
   for (let i = 2; i <= N; i++) log2Table[i] = log2Table[i >> 1]! + 1;
 
-  const st: number[][] = Array.from({ length: LOG }, () => new Array(N).fill(0));
+  const st: number[][] = Array.from({ length: LOG }, () =>
+    new Array(N).fill(0),
+  );
   for (let i = 0; i < N; i++) st[0]![i] = A[i]!;
   for (let k = 1; k < LOG; k++) {
     for (let i = 0; i + (1 << k) <= N; i++) {
@@ -71,11 +75,26 @@ console.log("=== 대표 예시 ===");
 console.log(
   sparseTableRangeMin(
     [3, 1, 4, 1, 5, 9, 2, 6],
-    [[0, 7], [0, 2], [2, 2], [4, 7], [4, 5]],
+    [
+      [0, 7],
+      [0, 2],
+      [2, 2],
+      [4, 7],
+      [4, 5],
+    ],
   ),
 ); // expect [1, 1, 4, 2, 5]
 
-console.log(sparseTableRangeMin([7, -3, 2, -1], [[0, 3], [1, 1], [2, 3]])); // expect [-3, -3, -1]
+console.log(
+  sparseTableRangeMin(
+    [7, -3, 2, -1],
+    [
+      [0, 3],
+      [1, 1],
+      [2, 3],
+    ],
+  ),
+); // expect [-3, -3, -1]
 console.log(sparseTableRangeMin([5, 3, 7, 1, 9], [[0, 4]])); // expect [1]
 console.log(sparseTableRangeMin([1, 2, 3], [])); // expect []
 console.log(sparseTableRangeMin([42], [[0, 0]])); // expect [42]
@@ -83,9 +102,27 @@ console.log(sparseTableRangeMin([42], [[0, 0]])); // expect [42]
 // ---------- 시뮬레이션 고정 입력 ----------
 console.log("=== 시뮬 고정 입력 ===");
 const A_sim = [2, 4, 3, 1, 6, 7];
-console.log("naive:", sparseTableRangeMinNaive(A_sim, [[0, 4], [2, 5]])); // expect [1,1]
-console.log("basic:", sparseTableRangeMinBasic(A_sim, [[0, 4], [2, 5]])); // expect [1,1]
-console.log("optimized:", sparseTableRangeMin(A_sim, [[0, 4], [2, 5]])); // expect [1,1]
+console.log(
+  "naive:",
+  sparseTableRangeMinNaive(A_sim, [
+    [0, 4],
+    [2, 5],
+  ]),
+); // expect [1,1]
+console.log(
+  "basic:",
+  sparseTableRangeMinBasic(A_sim, [
+    [0, 4],
+    [2, 5],
+  ]),
+); // expect [1,1]
+console.log(
+  "optimized:",
+  sparseTableRangeMin(A_sim, [
+    [0, 4],
+    [2, 5],
+  ]),
+); // expect [1,1]
 
 // st 레벨 값 직접 확인 (시뮬 프레임과 대조)
 {
@@ -114,7 +151,8 @@ console.log("=== prefixMin 반례 ===");
 console.log("=== sum 겹침 오답 ===");
 {
   const A = [2, 4, 3, 1, 6];
-  const sum = (l: number, r: number) => A.slice(l, r + 1).reduce((a, b) => a + b, 0);
+  const sum = (l: number, r: number) =>
+    A.slice(l, r + 1).reduce((a, b) => a + b, 0);
   const overlapSum = sum(0, 3) + sum(1, 4); // 겹치는 [1,3] 구간이 두 번 카운트됨
   const realSum = sum(0, 4);
   console.log("overlapSum(겹침 허용 오답) =", overlapSum);
@@ -127,7 +165,9 @@ console.log("=== 경계 가드 누락 시 NaN ===");
   const A = [2, 4, 3, 1, 6, 7];
   const N = A.length;
   const LOG = Math.floor(Math.log2(N)) + 1;
-  const st: number[][] = Array.from({ length: LOG }, () => new Array(N).fill(0));
+  const st: number[][] = Array.from({ length: LOG }, () =>
+    new Array(N).fill(0),
+  );
   for (let i = 0; i < N; i++) st[0]![i] = A[i]!;
   // 버그: 가드 없이 i를 0..N-1까지 전부 순회
   for (let k = 1; k < LOG; k++) {
@@ -171,7 +211,10 @@ console.log("=== 무작위 교차검증 ===");
     const a = sparseTableRangeMinNaive(A, queries);
     const b = sparseTableRangeMinBasic(A, queries);
     const c = sparseTableRangeMin(A, queries);
-    if (JSON.stringify(a) !== JSON.stringify(b) || JSON.stringify(a) !== JSON.stringify(c)) {
+    if (
+      JSON.stringify(a) !== JSON.stringify(b) ||
+      JSON.stringify(a) !== JSON.stringify(c)
+    ) {
       mismatches++;
       console.log("MISMATCH", { A, queries, a, b, c });
     }

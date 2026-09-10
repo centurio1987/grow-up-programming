@@ -336,5 +336,12 @@
       "failure_policy": "hard-fail",
       "redact": "none"
     }
+  },
+  "retired": {
+    "date": "2026-09-09",
+    "by": "KAN-034.8 S10",
+    "reason": "알고리즘 트랙 111편이 v2 골격으로 전부 넘어가 이 명세가 기술하는 v1 10단계 산출(*-guide.mdx)이 0 이 됐다.",
+    "successor": "sandbox/algo-guide-v2/SPEC.md",
+    "note": "새 글을 이 명세로 쓰지 않는다. 파일을 남기는 것은 authoring.lock.json 이 해시로 고정하고 있고 v1 산출을 읽을 때의 근거이기 때문이다."
   }
 }

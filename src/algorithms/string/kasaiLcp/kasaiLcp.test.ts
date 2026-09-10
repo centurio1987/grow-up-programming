@@ -1,4 +1,4 @@
-import { test, expect, describe } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { kasaiLcp } from "./kasaiLcp";
 
 function bruteSuffixArray(s: string): number[] {
@@ -30,7 +30,9 @@ describe("kasaiLcp", () => {
   // 기본 동작
   describe("기본 동작", () => {
     test("문제 예시 — 'banana', sa=[5,3,1,0,4,2] → [1,3,0,0,2,0]", () => {
-      expect(kasaiLcp("banana", [5, 3, 1, 0, 4, 2])).toEqual([1, 3, 0, 0, 2, 0]);
+      expect(kasaiLcp("banana", [5, 3, 1, 0, 4, 2])).toEqual([
+        1, 3, 0, 0, 2, 0,
+      ]);
     });
 
     test("'abc', sa=[0,1,2] → [0,0,0] (공통 접두사 없음)", () => {

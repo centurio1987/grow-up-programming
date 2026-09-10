@@ -1,7 +1,10 @@
 // E3 자기 검증용 스크래치: 가이드 본문 코드(원형/기본/최적화)를 그대로 추출해 실행 확인한다.
 // 가이드: mosAlgorithm-guide.new.mdx 의 B6(원형)/아이디어를 코드로 옮기기(기본)/최적화 코드(최적화) 절과 1:1 대응.
 
-function mosAlgorithmNaive(arr: number[], queries: [number, number][]): number[] {
+function mosAlgorithmNaive(
+  arr: number[],
+  queries: [number, number][],
+): number[] {
   return queries.map(([l, r]) => {
     const seen = new Set<number>();
     for (let i = l; i <= r; i++) seen.add(arr[i]);
@@ -9,7 +12,10 @@ function mosAlgorithmNaive(arr: number[], queries: [number, number][]): number[]
   });
 }
 
-function mosAlgorithmBasic(arr: number[], queries: [number, number][]): number[] {
+function mosAlgorithmBasic(
+  arr: number[],
+  queries: [number, number][],
+): number[] {
   const n = arr.length;
   const q = queries.length;
   const B = Math.max(1, Math.floor(Math.sqrt(n))); // n=0,1 보호
@@ -41,17 +47,32 @@ function mosAlgorithmBasic(arr: number[], queries: [number, number][]): number[]
   let curR = -1; // 빈 구간에서 시작
 
   for (const { l, r, i } of indexed) {
-    while (curR < r) { curR++; add(arr[curR]); } // ① 오른쪽 확장
-    while (curL > l) { curL--; add(arr[curL]); } // ② 왼쪽 확장
-    while (curR > r) { remove(arr[curR]); curR--; } // ③ 오른쪽 축소
-    while (curL < l) { remove(arr[curL]); curL++; } // ④ 왼쪽 축소
+    while (curR < r) {
+      curR++;
+      add(arr[curR]);
+    } // ① 오른쪽 확장
+    while (curL > l) {
+      curL--;
+      add(arr[curL]);
+    } // ② 왼쪽 확장
+    while (curR > r) {
+      remove(arr[curR]);
+      curR--;
+    } // ③ 오른쪽 축소
+    while (curL < l) {
+      remove(arr[curL]);
+      curL++;
+    } // ④ 왼쪽 축소
     answers[i] = distinctCount;
   }
 
   return answers;
 }
 
-function mosAlgorithmOptimized(arr: number[], queries: [number, number][]): number[] {
+function mosAlgorithmOptimized(
+  arr: number[],
+  queries: [number, number][],
+): number[] {
   const n = arr.length;
   const q = queries.length;
   const B = Math.max(1, Math.floor(Math.sqrt(n)));
@@ -85,10 +106,22 @@ function mosAlgorithmOptimized(arr: number[], queries: [number, number][]): numb
   let curR = -1;
 
   for (const { l, r, i } of indexed) {
-    while (curR < r) { curR++; add(arr[curR]); }
-    while (curL > l) { curL--; add(arr[curL]); }
-    while (curR > r) { remove(arr[curR]); curR--; }
-    while (curL < l) { remove(arr[curL]); curL++; }
+    while (curR < r) {
+      curR++;
+      add(arr[curR]);
+    }
+    while (curL > l) {
+      curL--;
+      add(arr[curL]);
+    }
+    while (curR > r) {
+      remove(arr[curR]);
+      curR--;
+    }
+    while (curL < l) {
+      remove(arr[curL]);
+      curL++;
+    }
     answers[i] = distinctCount;
   }
 
@@ -97,7 +130,11 @@ function mosAlgorithmOptimized(arr: number[], queries: [number, number][]): numb
 
 // 1) 본문 고정 입력(실행 시각화 절) 검증
 const arr = [1, 3, 2, 3, 1, 2];
-const queries: [number, number][] = [[1, 4], [0, 2], [2, 5]];
+const queries: [number, number][] = [
+  [1, 4],
+  [0, 2],
+  [2, 5],
+];
 
 console.log("fixed input arr:", arr, "queries:", queries);
 console.log("naive     :", mosAlgorithmNaive(arr, queries));
@@ -106,8 +143,12 @@ console.log("optimized :", mosAlgorithmOptimized(arr, queries));
 
 // 2) 스스로 점검하기 1번: arr=[5,5,5,5], queries=[[0,3],[1,2]]
 const arr2 = [5, 5, 5, 5];
-const queries2: [number, number][] = [[0, 3], [1, 2]];
-console.log("check-arr2 result (naive/basic/optimized):",
+const queries2: [number, number][] = [
+  [0, 3],
+  [1, 2],
+];
+console.log(
+  "check-arr2 result (naive/basic/optimized):",
   mosAlgorithmNaive(arr2, queries2),
   mosAlgorithmBasic(arr2, queries2),
   mosAlgorithmOptimized(arr2, queries2),
@@ -119,19 +160,33 @@ function countMoves(arr: number[], queries: [number, number][]) {
   const B = Math.max(1, Math.floor(Math.sqrt(n)));
   const indexed = queries.map(([l, r], i) => ({ l, r, i }));
   indexed.sort((a, b) => {
-    const bA = Math.floor(a.l / B), bB = Math.floor(b.l / B);
+    const bA = Math.floor(a.l / B),
+      bB = Math.floor(b.l / B);
     if (bA !== bB) return bA - bB;
     return a.r - b.r;
   });
-  let curL = 0, curR = -1;
+  let curL = 0,
+    curR = -1;
   const order: string[] = [];
   const moves: number[] = [];
   for (const { l, r } of indexed) {
     let m = 0;
-    while (curR < r) { curR++; m++; }
-    while (curL > l) { curL--; m++; }
-    while (curR > r) { curR--; m++; }
-    while (curL < l) { curL++; m++; }
+    while (curR < r) {
+      curR++;
+      m++;
+    }
+    while (curL > l) {
+      curL--;
+      m++;
+    }
+    while (curR > r) {
+      curR--;
+      m++;
+    }
+    while (curL < l) {
+      curL++;
+      m++;
+    }
     order.push(`[${l},${r}]`);
     moves.push(m);
   }
@@ -163,7 +218,9 @@ function randomTest(trials: number) {
       process.exit(1);
     }
   }
-  console.log(`randomTest passed: ${trials} trials (naive == basic == optimized)`);
+  console.log(
+    `randomTest passed: ${trials} trials (naive == basic == optimized)`,
+  );
 }
 
 randomTest(500);

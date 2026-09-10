@@ -201,17 +201,60 @@ const simEdges: [number, number, number, number][] = [
   [2, 3, 2, 1],
   [1, 2, 1, 1],
 ];
-assertEqual("sim/base", minCostMaxFlowBase(4, simEdges, 0, 3), { flow: 4, cost: 12 });
-assertEqual("sim/opt", minCostMaxFlow(4, simEdges, 0, 3), { flow: 4, cost: 12 });
+assertEqual("sim/base", minCostMaxFlowBase(4, simEdges, 0, 3), {
+  flow: 4,
+  cost: 12,
+});
+assertEqual("sim/opt", minCostMaxFlow(4, simEdges, 0, 3), {
+  flow: 4,
+  cost: 12,
+});
 
 // 2. 문제 예시들
-const cases: [number, [number, number, number, number][], number, number, { flow: number; cost: number }][] = [
+const cases: [
+  number,
+  [number, number, number, number][],
+  number,
+  number,
+  { flow: number; cost: number },
+][] = [
   [2, [[0, 1, 5, 2]], 0, 1, { flow: 5, cost: 10 }],
-  [3, [[0, 1, 5, 2], [1, 2, 5, 3]], 0, 2, { flow: 5, cost: 25 }],
-  [4, [[0, 1, 1, 1], [1, 3, 1, 1], [0, 2, 2, 5], [2, 3, 2, 5]], 0, 3, { flow: 3, cost: 22 }],
+  [
+    3,
+    [
+      [0, 1, 5, 2],
+      [1, 2, 5, 3],
+    ],
+    0,
+    2,
+    { flow: 5, cost: 25 },
+  ],
+  [
+    4,
+    [
+      [0, 1, 1, 1],
+      [1, 3, 1, 1],
+      [0, 2, 2, 5],
+      [2, 3, 2, 5],
+    ],
+    0,
+    3,
+    { flow: 3, cost: 22 },
+  ],
   [3, [[0, 1, 10, 5]], 0, 2, { flow: 0, cost: 0 }],
   [2, [[0, 1, 1, 0]], 0, 1, { flow: 1, cost: 0 }],
-  [4, [[0, 1, 2, 1], [1, 3, 2, 1], [0, 2, 3, 10], [2, 3, 3, 10]], 0, 3, { flow: 5, cost: 64 }],
+  [
+    4,
+    [
+      [0, 1, 2, 1],
+      [1, 3, 2, 1],
+      [0, 2, 3, 10],
+      [2, 3, 3, 10],
+    ],
+    0,
+    3,
+    { flow: 5, cost: 64 },
+  ],
 ];
 for (const [n, edges, s, t, expected] of cases) {
   assertEqual(`case/base n=${n}`, minCostMaxFlowBase(n, edges, s, t), expected);
@@ -219,7 +262,10 @@ for (const [n, edges, s, t, expected] of cases) {
 }
 
 // 3. 엣지 케이스: source==모든 간선 용량 0
-assertEqual("edge/zero-cap", minCostMaxFlow(2, [[0, 1, 0, 5]], 0, 1), { flow: 0, cost: 0 });
+assertEqual("edge/zero-cap", minCostMaxFlow(2, [[0, 1, 0, 5]], 0, 1), {
+  flow: 0,
+  cost: 0,
+});
 
 // 4. 무작위 교차검증 (base vs opt)
 function randInt(max: number) {
@@ -313,10 +359,17 @@ console.log(`random cross-check mismatches: ${mismatch}/300`);
         }
       }
     }
-    console.log(`round${round} reducedDist=`, dist, "h(before update)=", [...h]);
+    console.log(`round${round} reducedDist=`, dist, "h(before update)=", [
+      ...h,
+    ]);
     if (dist[3] === Infinity) break;
     for (let v = 0; v < 4; v++) if (dist[v] < Infinity) h[v] += dist[v];
-    console.log(`round${round} h(after update)=`, [...h], "실제 dist[t]=h[3]-h[0]=", h[3] - h[0]);
+    console.log(
+      `round${round} h(after update)=`,
+      [...h],
+      "실제 dist[t]=h[3]-h[0]=",
+      h[3] - h[0],
+    );
     let delta = Infinity;
     let v = 3;
     while (v !== 0) {

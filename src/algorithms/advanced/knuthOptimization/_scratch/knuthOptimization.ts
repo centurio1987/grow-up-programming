@@ -69,8 +69,12 @@ function knuthOptimizationTraced(freq: number[]) {
   for (let i = 0; i < n; i++) prefix[i + 1] = prefix[i] + freq[i];
   const S = (i: number, j: number) => prefix[j + 1] - prefix[i];
   const INF = Number.MAX_SAFE_INTEGER / 2;
-  const dp: (number | null)[][] = Array.from({ length: n }, () => new Array(n).fill(null));
-  const opt: (number | null)[][] = Array.from({ length: n }, () => new Array(n).fill(null));
+  const dp: (number | null)[][] = Array.from({ length: n }, () =>
+    new Array(n).fill(null),
+  );
+  const opt: (number | null)[][] = Array.from({ length: n }, () =>
+    new Array(n).fill(null),
+  );
   for (let i = 0; i < n; i++) {
     dp[i][i] = 0;
     opt[i][i] = i;
@@ -150,8 +154,12 @@ console.log("result (dp[0][3]):", traced.result);
 console.log("\n=== QI 부등식 손 검산 (a=0,b=1,c=2,d=3) ===");
 const pfx = traced.prefix;
 const Sfn = (i: number, j: number) => pfx[j + 1] - pfx[i];
-console.log(`S(0,2)=${Sfn(0, 2)}  S(1,3)=${Sfn(1, 3)}  합=${Sfn(0, 2) + Sfn(1, 3)}`);
-console.log(`S(0,3)=${Sfn(0, 3)}  S(1,2)=${Sfn(1, 2)}  합=${Sfn(0, 3) + Sfn(1, 2)}`);
+console.log(
+  `S(0,2)=${Sfn(0, 2)}  S(1,3)=${Sfn(1, 3)}  합=${Sfn(0, 2) + Sfn(1, 3)}`,
+);
+console.log(
+  `S(0,3)=${Sfn(0, 3)}  S(1,2)=${Sfn(1, 2)}  합=${Sfn(0, 3) + Sfn(1, 2)}`,
+);
 
 console.log("\n=== 문제 예시(problem.md) 전수 검증 ===");
 const cases: [number[], number][] = [
@@ -176,7 +184,9 @@ for (const [input, expected] of cases) {
 }
 console.log("전체 예시 일치:", casesOk);
 
-console.log("\n=== 랜덤 교차검증 (n<=45, naive vs base vs flat, 300케이스) ===");
+console.log(
+  "\n=== 랜덤 교차검증 (n<=45, naive vs base vs flat, 300케이스) ===",
+);
 let allOk = true;
 for (let t = 0; t < 300; t++) {
   const n = 1 + Math.floor(Math.random() * 45);
@@ -199,10 +209,14 @@ console.log("\n=== 성능 비교: O(n^3) naive vs O(n^2) base (체감용, n=200)
   const t1 = performance.now();
   knuthOptimizationBase(arr);
   const t2 = performance.now();
-  console.log(`n=200: naive(O(n^3))=${(t1 - t0).toFixed(1)}ms, base(O(n^2))=${(t2 - t1).toFixed(1)}ms`);
+  console.log(
+    `n=200: naive(O(n^3))=${(t1 - t0).toFixed(1)}ms, base(O(n^2))=${(t2 - t1).toFixed(1)}ms`,
+  );
 }
 
-console.log("\n=== 성능 비교: nested array(base) vs flat typed array(flat), O(n^2) 동일 복잡도 ===");
+console.log(
+  "\n=== 성능 비교: nested array(base) vs flat typed array(flat), O(n^2) 동일 복잡도 ===",
+);
 for (const n of [1000, 2000, 3000]) {
   const arr = randArr(n, 1000);
   const s0 = performance.now();
@@ -210,7 +224,9 @@ for (const n of [1000, 2000, 3000]) {
   const s1 = performance.now();
   knuthOptimizationFlat(arr);
   const s2 = performance.now();
-  console.log(`n=${n}: nested=${(s1 - s0).toFixed(1)}ms, flat=${(s2 - s1).toFixed(1)}ms`);
+  console.log(
+    `n=${n}: nested=${(s1 - s0).toFixed(1)}ms, flat=${(s2 - s1).toFixed(1)}ms`,
+  );
 }
 
 console.log("\n=== n=5000 대규모 스모크 (제약 상한) ===");
@@ -219,7 +235,9 @@ console.log("\n=== n=5000 대규모 스모크 (제약 상한) ===");
   const t0 = performance.now();
   const r = knuthOptimizationFlat(arr);
   const t1 = performance.now();
-  console.log(`n=5000 flat: result type=${typeof r}, ms=${(t1 - t0).toFixed(1)}`);
+  console.log(
+    `n=5000 flat: result type=${typeof r}, ms=${(t1 - t0).toFixed(1)}`,
+  );
 }
 
 console.log("\n=== 점검문제 1: freq=[5,2,4] 손 계산 대조 ===");
@@ -237,21 +255,31 @@ function knuthOptimizationSwappedBug(freq: number[]): number {
   const INF = Number.MAX_SAFE_INTEGER / 2;
   const dp: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
   const opt: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
-  for (let i = 0; i < n; i++) { dp[i][i] = 0; opt[i][i] = i; }
+  for (let i = 0; i < n; i++) {
+    dp[i][i] = 0;
+    opt[i][i] = i;
+  }
   for (let len = 2; len <= n; len++) {
     for (let i = 0; i + len - 1 < n; i++) {
       const j = i + len - 1;
       dp[i][j] = INF;
-      const loK = opt[i + 1][j];   // 뒤바뀜 (버그)
-      const hiK = opt[i][j - 1];   // 뒤바뀜 (버그)
+      const loK = opt[i + 1][j]; // 뒤바뀜 (버그)
+      const hiK = opt[i][j - 1]; // 뒤바뀜 (버그)
       for (let k = loK; k <= Math.min(hiK, j - 1); k++) {
         const val = dp[i][k] + dp[k + 1][j] + S(i, j);
-        if (val < dp[i][j]) { dp[i][j] = val; opt[i][j] = k; }
+        if (val < dp[i][j]) {
+          dp[i][j] = val;
+          opt[i][j] = k;
+        }
       }
     }
   }
   return dp[0][n - 1];
 }
 console.log("정상 base(freq=[4,1,2,3]):", knuthOptimizationBase([4, 1, 2, 3]));
-console.log("버그 swapped(freq=[4,1,2,3]):", knuthOptimizationSwappedBug([4, 1, 2, 3]), "(INF 근처 값이면 반복문이 거의 안 돈 것)");
+console.log(
+  "버그 swapped(freq=[4,1,2,3]):",
+  knuthOptimizationSwappedBug([4, 1, 2, 3]),
+  "(INF 근처 값이면 반복문이 거의 안 돈 것)",
+);
 console.log("INF 값 참고 (MAX_SAFE_INTEGER/2):", Number.MAX_SAFE_INTEGER / 2);

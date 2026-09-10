@@ -1,5 +1,5 @@
-import { test, expect, describe } from "bun:test";
-import { segmentTreeRangeMin, type SegOp } from "./segmentTreeRangeMin";
+import { describe, expect, test } from "bun:test";
+import { type SegOp, segmentTreeRangeMin } from "./segmentTreeRangeMin";
 
 describe("segmentTreeRangeMin", () => {
   describe("기본", () => {

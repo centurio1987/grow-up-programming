@@ -104,21 +104,39 @@ console.log("=== naive selection sort ===");
 console.log(selectionSortNaive([5, 2, 3, 1])); // [1,2,3,5]
 console.log(selectionSortNaive([5, 1, 1, 2, 0, 0])); // [0,0,1,1,2,5]
 
-console.log("\n=== 기본 구현 (마지막 원소 피벗) : 정렬된 배열에서 재귀 깊이 ===");
+console.log(
+  "\n=== 기본 구현 (마지막 원소 피벗) : 정렬된 배열에서 재귀 깊이 ===",
+);
 {
   const n = 2000;
   const sortedInput = Array.from({ length: n }, (_, i) => i);
   quickSortBasic(sortedInput);
-  console.log("N =", n, "partition 호출 수 =", partitionCallsBasic, "최대 재귀 깊이 =", maxDepthBasic);
+  console.log(
+    "N =",
+    n,
+    "partition 호출 수 =",
+    partitionCallsBasic,
+    "최대 재귀 깊이 =",
+    maxDepthBasic,
+  );
   console.log("정렬 여부:", isSorted(sortedInput));
 }
 
-console.log("\n=== 최적화 구현 (중간 원소 피벗) : 같은 정렬된 배열에서 재귀 깊이 ===");
+console.log(
+  "\n=== 최적화 구현 (중간 원소 피벗) : 같은 정렬된 배열에서 재귀 깊이 ===",
+);
 {
   const n = 2000;
   const sortedInput = Array.from({ length: n }, (_, i) => i);
   quickSort(sortedInput);
-  console.log("N =", n, "partition 호출 수 =", partitionCallsMid, "최대 재귀 깊이 =", maxDepthMid);
+  console.log(
+    "N =",
+    n,
+    "partition 호출 수 =",
+    partitionCallsMid,
+    "최대 재귀 깊이 =",
+    maxDepthMid,
+  );
   console.log("정렬 여부:", isSorted(sortedInput));
 }
 
@@ -149,10 +167,17 @@ console.log("\n=== 무작위 교차검증 (100회, N<=200, 값 범위 -500..500)
   let ok = true;
   for (let t = 0; t < 100; t++) {
     const n = Math.floor(Math.random() * 200) + 1;
-    const original = Array.from({ length: n }, () => Math.floor(Math.random() * 1001) - 500);
+    const original = Array.from(
+      { length: n },
+      () => Math.floor(Math.random() * 1001) - 500,
+    );
     const expected = [...original].sort((a, b) => a - b);
     const got = quickSort([...original]);
-    if (!isSorted(got) || !multisetEq(got, original) || JSON.stringify(got) !== JSON.stringify(expected)) {
+    if (
+      !isSorted(got) ||
+      !multisetEq(got, original) ||
+      JSON.stringify(got) !== JSON.stringify(expected)
+    ) {
       ok = false;
       console.log("MISMATCH", original, got, expected);
     }
@@ -160,7 +185,9 @@ console.log("\n=== 무작위 교차검증 (100회, N<=200, 값 범위 -500..500)
   console.log("무작위 100회 전부 일치:", ok);
 }
 
-console.log("\n=== 전부 동일 값에서 기본(마지막 피벗) vs 최적화(중간 피벗) 파티션 호출 수 비교 ===");
+console.log(
+  "\n=== 전부 동일 값에서 기본(마지막 피벗) vs 최적화(중간 피벗) 파티션 호출 수 비교 ===",
+);
 {
   const n = 500;
   const allSame = Array.from({ length: n }, () => 7);
@@ -171,8 +198,15 @@ console.log("\n=== 전부 동일 값에서 기본(마지막 피벗) vs 최적화
   const midCalls = partitionCallsMid;
   const midDepth = maxDepthMid;
   console.log(
-    "N =", n,
-    "기본(마지막 피벗) partition 호출 =", basicCalls, "깊이 =", basicDepth,
-    "| 최적화(중간 피벗) partition 호출 =", midCalls, "깊이 =", midDepth,
+    "N =",
+    n,
+    "기본(마지막 피벗) partition 호출 =",
+    basicCalls,
+    "깊이 =",
+    basicDepth,
+    "| 최적화(중간 피벗) partition 호출 =",
+    midCalls,
+    "깊이 =",
+    midDepth,
   );
 }

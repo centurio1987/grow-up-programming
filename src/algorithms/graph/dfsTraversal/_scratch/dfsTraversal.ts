@@ -65,14 +65,70 @@ function assertEqual(actual: unknown, expected: unknown, label: string): void {
 }
 
 // ── problem.md 예시 & 테스트 기대값 검증 ───────────────────────────────
-type Case = { n: number; edges: Edges; start: number; expected: number[]; label: string };
+type Case = {
+  n: number;
+  edges: Edges;
+  start: number;
+  expected: number[];
+  label: string;
+};
 const cases: Case[] = [
-  { label: "예시1 분기(0에서)", n: 5, edges: [[0, 1], [0, 2], [1, 3], [2, 4]], start: 0, expected: [0, 1, 3, 2, 4] },
-  { label: "예시2 오름차순 tie-break", n: 4, edges: [[0, 2], [0, 1], [1, 3]], start: 0, expected: [0, 1, 3, 2] },
-  { label: "예시3 비연결(도달분만)", n: 5, edges: [[0, 1], [2, 3]], start: 0, expected: [0, 1] },
-  { label: "예시4 자기루프+중복간선 흡수", n: 3, edges: [[0, 0], [0, 1], [0, 1]], start: 0, expected: [0, 1] },
+  {
+    label: "예시1 분기(0에서)",
+    n: 5,
+    edges: [
+      [0, 1],
+      [0, 2],
+      [1, 3],
+      [2, 4],
+    ],
+    start: 0,
+    expected: [0, 1, 3, 2, 4],
+  },
+  {
+    label: "예시2 오름차순 tie-break",
+    n: 4,
+    edges: [
+      [0, 2],
+      [0, 1],
+      [1, 3],
+    ],
+    start: 0,
+    expected: [0, 1, 3, 2],
+  },
+  {
+    label: "예시3 비연결(도달분만)",
+    n: 5,
+    edges: [
+      [0, 1],
+      [2, 3],
+    ],
+    start: 0,
+    expected: [0, 1],
+  },
+  {
+    label: "예시4 자기루프+중복간선 흡수",
+    n: 3,
+    edges: [
+      [0, 0],
+      [0, 1],
+      [0, 1],
+    ],
+    start: 0,
+    expected: [0, 1],
+  },
   { label: "예시5 단일 정점", n: 1, edges: [], start: 0, expected: [0] },
-  { label: "예시6 start!=0", n: 4, edges: [[0, 1], [1, 2], [2, 3]], start: 2, expected: [2, 1, 0, 3] },
+  {
+    label: "예시6 start!=0",
+    n: 4,
+    edges: [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+    ],
+    start: 2,
+    expected: [2, 1, 0, 3],
+  },
   { label: "경계 start 고립", n: 3, edges: [[0, 1]], start: 2, expected: [2] },
 ];
 
@@ -86,7 +142,11 @@ for (const c of cases) {
 
 // 입력 불변 확인
 {
-  const edges: Edges = [[0, 2], [0, 1], [1, 3]];
+  const edges: Edges = [
+    [0, 2],
+    [0, 1],
+    [1, 3],
+  ];
   const snapshot = JSON.stringify(edges);
   dfsIterative(4, edges, 0);
   assertEqual(JSON.stringify(edges), snapshot, "입력 edges 불변");

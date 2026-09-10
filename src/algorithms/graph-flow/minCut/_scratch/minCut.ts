@@ -9,7 +9,7 @@ function minCutNaive(
   t: number,
 ): { cut: number } {
   let best = Infinity;
-  for (let mask = 0; mask < (1 << n); mask++) {
+  for (let mask = 0; mask < 1 << n; mask++) {
     const inS = (v: number) => ((mask >> v) & 1) === 1;
     if (!inS(s) || inS(t)) continue; // 불변식: s ∈ S, t ∈ T
     let cutVal = 0;
@@ -125,13 +125,54 @@ function minCut(
 }
 
 // ── 대표 예시 (minCut-problem.md) ───────────────────────────────────
-const cases: [string, number, [number, number, number][], number, number, number][] = [
-  ["예시1", 4, [[0, 1, 3], [0, 2, 2], [1, 2, 1], [1, 3, 2], [2, 3, 3]], 0, 3, 5],
-  ["예시2", 3, [[0, 1, 10], [1, 2, 5]], 0, 2, 5],
+const cases: [
+  string,
+  number,
+  [number, number, number][],
+  number,
+  number,
+  number,
+][] = [
+  [
+    "예시1",
+    4,
+    [
+      [0, 1, 3],
+      [0, 2, 2],
+      [1, 2, 1],
+      [1, 3, 2],
+      [2, 3, 3],
+    ],
+    0,
+    3,
+    5,
+  ],
+  [
+    "예시2",
+    3,
+    [
+      [0, 1, 10],
+      [1, 2, 5],
+    ],
+    0,
+    2,
+    5,
+  ],
   ["예시3", 2, [[0, 1, 10]], 0, 1, 10],
   ["예시4-단절", 3, [[0, 1, 10]], 0, 2, 0],
   ["예시5-간선없음", 2, [], 0, 1, 0],
-  ["예시6-병목", 4, [[0, 1, 100], [1, 2, 100], [2, 3, 1]], 0, 3, 1],
+  [
+    "예시6-병목",
+    4,
+    [
+      [0, 1, 100],
+      [1, 2, 100],
+      [2, 3, 1],
+    ],
+    0,
+    3,
+    1,
+  ],
 ];
 
 console.log("=== 대표 예시 ===");
@@ -149,10 +190,15 @@ for (const [name, n, edges, s, t, expected] of cases) {
 console.log("\n=== 엣지: 병렬 간선 ===");
 {
   const n = 2;
-  const edges: [number, number, number][] = [[0, 1, 3], [0, 1, 4]];
+  const edges: [number, number, number][] = [
+    [0, 1, 3],
+    [0, 1, 4],
+  ];
   const r1 = minCut(n, edges, 0, 1);
   const r2 = minCutNaive(n, edges, 0, 1);
-  console.log(`parallel: minCut=${JSON.stringify(r1)} naive=${JSON.stringify(r2)}`);
+  console.log(
+    `parallel: minCut=${JSON.stringify(r1)} naive=${JSON.stringify(r2)}`,
+  );
   if (r1.cut !== 7 || r2.cut !== 7) throw new Error("병렬 간선 불일치");
 }
 
@@ -179,7 +225,9 @@ for (let trial = 0; trial < 200; trial++) {
   const r2 = minCutNaive(n, edges, s, t);
   randomTrials++;
   if (r1.cut !== r2.cut) {
-    console.log(`FAIL n=${n} edges=${JSON.stringify(edges)} minCut=${r1.cut} naive=${r2.cut}`);
+    console.log(
+      `FAIL n=${n} edges=${JSON.stringify(edges)} minCut=${r1.cut} naive=${r2.cut}`,
+    );
     throw new Error("무작위 교차검증 실패");
   }
 }
@@ -189,7 +237,13 @@ console.log(`무작위 ${randomTrials}건 전부 minCut === naive 일치`);
 console.log("\n=== 시뮬레이션 트레이스 재현 (예시1) ===");
 {
   const n = 4;
-  const edges: [number, number, number][] = [[0, 1, 3], [0, 2, 2], [1, 2, 1], [1, 3, 2], [2, 3, 3]];
+  const edges: [number, number, number][] = [
+    [0, 1, 3],
+    [0, 2, 2],
+    [1, 2, 1],
+    [1, 3, 2],
+    [2, 3, 3],
+  ];
   const graph = buildResidualGraph(n, edges);
   const flow = dinicMaxFlow(graph, n, 0, 3);
   console.log("maxFlowValue =", flow);
