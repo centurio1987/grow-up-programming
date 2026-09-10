@@ -8,7 +8,7 @@
  * `_deprecated/`(이력 사본)와 `_scratch/`(습작)는 살아 있는 코드가 참조하지 않으므로 뺀다.
  */
 
-import { resolve } from "node:path";
+import { basename, dirname, join, resolve } from "node:path";
 import { Glob } from "bun";
 
 export const ROOT = resolve(import.meta.dir, "..");
@@ -45,4 +45,28 @@ export async function v2Docs(): Promise<string[]> {
     partials.push(path);
   }
   return [...specs, ...guides, ...partials.sort()];
+}
+
+/**
+ * 사이드카 갈래. **`check-metaphor` 안에 있던 것을 여기로 올렸다**(2026-09-10 `KAN-034.9`
+ * 배치3) — 이 파일 머리가 「각자 글롭을 들면 갈린다」고 적어 둔 그 모양이 사이드카 쪽에서
+ * 다시 생기고 있었다.
+ */
+export const SIDECAR_KINDS = ["sim", "ref", "proof", "test", "alt"] as const;
+
+/**
+ * v2 가이드 111편의 **옆자리** 사이드카 전부. 글롭을 새로 적지 않고 `v2Guides()` 목록에서
+ * 이름을 만들어 실재하는 것만 낸다 — 그래야 `_deprecated/`·`_scratch/` 제외 규칙이
+ * 갈릴 자리가 없다.
+ */
+export async function v2Sidecars(): Promise<string[]> {
+  const out: string[] = [];
+  for (const guide of await v2Guides()) {
+    const stem = basename(guide).replace(/\.md$/, "");
+    for (const kind of SIDECAR_KINDS) {
+      const path = join(dirname(guide), `${stem}.${kind}.ts`);
+      if (await Bun.file(join(ROOT, path)).exists()) out.push(path);
+    }
+  }
+  return out;
 }

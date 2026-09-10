@@ -15,7 +15,7 @@ export const table = {
   result: "9",
   steps: [
     {
-      title: "T0 표를 깐다",
+      title: "준비 — 표를 깐다",
       detail:
         "dp[i][c] = 앞의 i 개만 놓고 골랐을 때 용량 c 로 얻는 최대 가치. 0 번째 줄은 물건이 없으니 전부 0.",
       matrix: [

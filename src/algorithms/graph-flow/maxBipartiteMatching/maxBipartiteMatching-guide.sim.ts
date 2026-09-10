@@ -1,9 +1,14 @@
 import type { Frame } from "#guide-sim";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수(12)는 그 절의
- * `T#` 단계 수(14)를 넘지 않는다 — P3 이 그 관계를 잰다. 걸음 열넷 중 상태가 실제로 바뀌는
- * 자리 열둘을 골랐고, 건너뛴 걸음은 `detail` 이 이름으로 짚는다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 열넷이 그 절의
+ * `T1`~`T14` 와 **자리까지 일대일**이다 — P3 이 수가 아니라 자리를 잰다.
+ *
+ * **골라 그리지 않는다.** 2026-09-10 이전에는 「상태가 실제로 바뀌는 자리 열둘」만 그리고
+ * `T11`·`T13` 을 건너뛰었다. 그 두 걸음은 각각 「이미 본 자리라 넘어간다」와 「L2 의 탐색이
+ * 실패로 끝난다」인데, 이 편이 갈리는 자리가 바로 **방문 표가 어디까지 찼는가**라 건너뛴 둘이
+ * 실패의 근거였다. 원고는 열넷을 적고 패널은 열둘을 그리면 웹으로 읽는 사람은 실패가 성립하는
+ * 걸음을 못 본다.
  *
  * **뷰가 둘이다.** `graph` 는 정점의 상태(아직 안 봄 · 지금 보는 중 · 짝이 있음)와 지금 읽는
  * 간선을 그리고, `keyValue` 는 그 순간의 `matchR` · `seen` · `size` · 갈래를 적는다. 이
@@ -312,9 +317,37 @@ export const matchWalk = {
       ],
     },
     {
+      title: "T11 L1 이 R0 을 다시 보지만 이미 본 자리다",
+      detail:
+        "L2 에서 내려온 탐색이 L1 에 와 있다. L1 의 이웃은 R0 하나뿐인데 이번 탐색이 방금 봤으므로 넘어간다.",
+      nodes: [
+        { id: 0, label: "L0", x: 22, y: 20 },
+        { id: 1, label: "L1", x: 22, y: 50 },
+        { id: 2, label: "L2", x: 22, y: 80 },
+        { id: 10, label: "R0", x: 78, y: 20 },
+        { id: 11, label: "R1", x: 78, y: 50 },
+        { id: 12, label: "R2", x: 78, y: 80 },
+      ],
+      edges: [
+        { from: 0, to: 10, directed: false },
+        { from: 0, to: 11, directed: false },
+        { from: 1, to: 10, directed: false },
+        { from: 2, to: 10, directed: false },
+      ],
+      nodeStatus: { 1: "active", 10: "visited", 2: "frontier" },
+      nodeValue: { 0: "R1", 1: "R0", 2: "-", 10: "L1", 11: "L0", 12: "-" },
+      activeEdge: { from: 1, to: 10 },
+      entries: [
+        { label: "matchR", value: "[1, 0, -]" },
+        { label: "seen", value: "[T, F, F]" },
+        { label: "size", value: "2" },
+        { label: "갈래", value: "④ 이미 본 자리라 넘어간다" },
+      ],
+    },
+    {
       title: "T12 L1 의 이웃이 다 떨어져 실패를 돌려준다",
       detail:
-        "T11 은 L1 이 R0 을 다시 본 걸음이라 넘어갔다. L1 의 이웃은 R0 뿐이었으므로 여기서 실패가 된다.",
+        "L1 의 이웃은 R0 뿐이었고 그 자리를 앞 걸음에서 넘어갔다. 더 볼 이웃이 없으므로 여기서 실패가 된다.",
       nodes: [
         { id: 0, label: "L0", x: 22, y: 20 },
         { id: 1, label: "L1", x: 22, y: 50 },
@@ -339,9 +372,36 @@ export const matchWalk = {
       ],
     },
     {
+      title: "T13 L2 의 탐색도 실패로 끝난다",
+      detail:
+        "L1 이 실패를 돌려주자 L2 에게 남은 이웃이 없다. 세 번째 탐색은 증대 경로를 못 찾았으므로 size 가 그대로다.",
+      nodes: [
+        { id: 0, label: "L0", x: 22, y: 20 },
+        { id: 1, label: "L1", x: 22, y: 50 },
+        { id: 2, label: "L2", x: 22, y: 80 },
+        { id: 10, label: "R0", x: 78, y: 20 },
+        { id: 11, label: "R1", x: 78, y: 50 },
+        { id: 12, label: "R2", x: 78, y: 80 },
+      ],
+      edges: [
+        { from: 0, to: 10, directed: false },
+        { from: 0, to: 11, directed: false },
+        { from: 1, to: 10, directed: false },
+        { from: 2, to: 10, directed: false },
+      ],
+      nodeStatus: { 2: "active", 10: "visited", 1: "visited" },
+      nodeValue: { 0: "R1", 1: "R0", 2: "-", 10: "L1", 11: "L0", 12: "-" },
+      entries: [
+        { label: "matchR", value: "[1, 0, -]" },
+        { label: "seen", value: "[T, F, F]" },
+        { label: "size", value: "2" },
+        { label: "갈래", value: "⑧ 증대 경로가 없어 실패한다" },
+      ],
+    },
+    {
       title: "T14 매칭 크기 2 를 돌려준다",
       detail:
-        "T13 에서 L2 도 실패로 끝났다. 왼쪽 정점을 다 봤으므로 짝 표에 적힌 두 쌍이 답이다. R2 는 어느 왼쪽 정점과도 이어지지 않아 끝까지 비어 있다.",
+        "왼쪽 정점 셋을 다 봤으므로 짝 표에 적힌 두 쌍이 답이다. R2 는 어느 왼쪽 정점과도 이어지지 않아 끝까지 비어 있다.",
       nodes: [
         { id: 0, label: "L0", x: 22, y: 20 },
         { id: 1, label: "L1", x: 22, y: 50 },

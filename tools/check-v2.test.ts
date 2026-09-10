@@ -12,6 +12,7 @@ import {
   alignmentWarnings,
   bodyNumbers,
   check,
+  checkWarnings,
   codeNameMapping,
   continuesSentence,
   displayWidth,
@@ -20,7 +21,10 @@ import {
   hasFigure,
   normalizeCode,
   parseSim,
+  rowCells,
   skipNotes,
+  stepSpan,
+  tableSeparators,
 } from "./check-v2.ts";
 import { parseSections } from "./section.ts";
 
@@ -218,9 +222,26 @@ T1 부터 T6 까지 각 걸음이 포인터를 하나씩 당긴다.
 const SIM = `export const demo = {
   view: "array",
   steps: [
-    { title: "시작", array: [1, 2, 3, 4] },
-    { title: "좁힘", array: [1, 2, 3, 4] },
-    { title: "끝", array: [1, 2, 3, 4] },
+    { title: "T1 시작", array: [1, 2, 3, 4] },
+    { title: "T2~T5 좁힘", array: [1, 2, 3, 4] },
+    { title: "T6 끝", array: [1, 2, 3, 4] },
+  ],
+  title: "두 포인터",
+  result: "3",
+};
+`;
+
+/**
+ * `SIM` 에서 프레임 제목만 갈아 끼운다.
+ *
+ * 걸음 자리 시험은 **제목 말고는 다 같은 표본**이라야 한다 — 표본이 앞선 가드(`P6` 마커
+ * 대조 · `P9` 결과 대조)에 먼저 걸리면 정작 재려던 조건을 한 번도 안 타고 초록이 난다.
+ */
+const simWith = (...titles: string[]): string =>
+  `export const demo = {
+  view: "array",
+  steps: [
+${titles.map((t) => `    { title: ${JSON.stringify(t)}, array: [1, 2] },`).join("\n")}
   ],
   title: "두 포인터",
   result: "3",
@@ -1595,4 +1616,198 @@ test("P10 — 뺄셈은 음수가 아니다 (넓히면서 위반을 놓치지 �
 test("P10 — 양수는 그대로 읽는다 (기존 동작)", () => {
   expect(bodyNumbers("1,234 건과 56").has("1234")).toBe(true);
   expect(bodyNumbers("1,234 건과 56").has("56")).toBe(true);
+});
+
+// ── P3 걸음 자리 (2026-09-10 `KAN-034.9` `S4` · `B3`) ────────────────────────
+//
+// 옛 P3 은 「`T#` 수 ≥ 프레임 수」 하나였다. 그것은 **수만 센다** — `maxBipartiteMatching`
+// 이 원고의 열넷 중 열둘을 그리면서 그대로 지나갔다. 아래는 수가 맞는데 자리가 다른 표본들
+// 이고, 하나같이 옛 P3 에서는 초록이던 모양이다.
+
+/** 걸음 자리만 남긴 판정 코드. 앞선 가드에 걸리면 여기서 드러난다. */
+const place = (sim: string) =>
+  check({ text: PASSING, sim, bench: { 비교: 34 } });
+
+const placeWarn = (sim: string) =>
+  checkWarnings({ text: PASSING, sim, bench: { 비교: 34 } }).filter(
+    (f) => f.code === "P3",
+  );
+
+test("P3 — 프레임이 원고에 없는 걸음을 가리키면 걸린다", () => {
+  // 수로는 문제가 없다 — 원고가 T1~T6 이고 프레임이 셋이다.
+  const findings = place(simWith("T0 준비", "T1 시작", "T2 좁힘"));
+  expect(codes(findings)).toEqual(["P3"]);
+  expect(findings[0]?.detail).toContain("T0");
+});
+
+test("P3 — 머리의 준비 프레임은 걸음을 안 밝혀도 된다", () => {
+  // `kthSmallest` 의 `"시작"` 이 그 모양이다. 원고가 준비를 걸음으로 안 센 편에서 정당하다.
+  expect(place(simWith("시작", "T1 시작", "T2 좁힘"))).toEqual([]);
+});
+
+test("P3 — 번호가 붙은 뒤의 제목 없는 프레임은 걸린다", () => {
+  const findings = place(simWith("T1 시작", "좁힘", "T2 끝"));
+  expect(codes(findings)).toEqual(["P3"]);
+  expect(findings[0]?.detail).toContain("2 번째 프레임");
+});
+
+test("P3 — 프레임 차례가 걸음 차례와 다르면 걸린다", () => {
+  const findings = place(simWith("T1 시작", "T3 끝", "T2 좁힘"));
+  expect(codes(findings)).toEqual(["P3"]);
+  expect(findings[0]?.detail).toContain("T3 다음이 T2");
+});
+
+test("P3 — 원고 걸음을 다 그리면 경고가 없다", () => {
+  expect(placeWarn(simWith("T1 시작", "T2~T5 좁힘", "T6 끝"))).toEqual([]);
+});
+
+test("P3 — 안 그린 걸음은 경고이지 위반이 아니다", () => {
+  const sim = simWith("T1 시작", "T3 좁힘", "T5 끝");
+  // 세기가 갈린 자리다 — 111편에서 27편이 이 모양이라 한꺼번에 빨개지면 안 된다.
+  expect(place(sim)).toEqual([]);
+  const warnings = placeWarn(sim);
+  expect(warnings.map((f) => f.code)).toEqual(["P3"]);
+  expect(warnings[0]?.warn).toBe(true);
+  expect(warnings[0]?.detail).toContain("T2·T4·T6");
+});
+
+test("P3 — 꼬리와 머리도 피복으로 본다 (사이 구멍만 보면 규칙이 줄어든다)", () => {
+  // 첫 판은 첫·마지막 프레임 **사이**만 봤다. 그러면 `mosAlgorithm` 에서 `"T0"` 을
+  // `"준비 — "` 로 고치자 T1·T2 가 경고에서 조용히 빠졌다 — 상관없는 자리를 고쳤더니
+  // 검사 범위가 줄어든 것이다.
+  expect(placeWarn(simWith("T1 시작", "T2 좁힘"))[0]?.detail).toContain(
+    "T3·T4·T5·T6",
+  );
+  expect(placeWarn(simWith("T3 좁힘", "T4~T6 끝"))[0]?.detail).toContain(
+    "T1·T2",
+  );
+});
+
+test("P3 — 다른 export 가 덮은 걸음은 안 그린 것이 아니다", () => {
+  const two = `export const demo = {
+  view: "array",
+  steps: [
+    { title: "T1 시작", array: [1, 2] },
+    { title: "T3~T6 끝", array: [1, 2] },
+  ],
+  title: "앞",
+  result: "3",
+};
+
+export const demo2 = {
+  view: "array",
+  steps: [{ title: "T2 사이", array: [1, 2] }],
+  title: "뒤",
+  result: "3",
+};
+`;
+  // `demo` 만 보면 T2 가 구멍이다. 편 전체로 보면 `demo2` 가 그 걸음을 그린다.
+  expect(placeWarn(two)).toEqual([]);
+});
+
+test("P3 — 피복 경고는 편에 한 줄이다", () => {
+  const two = `export const demo = {
+  view: "array",
+  steps: [{ title: "T1 시작", array: [1, 2] }],
+  title: "앞",
+  result: "3",
+};
+
+export const demo2 = {
+  view: "array",
+  steps: [{ title: "T2 사이", array: [1, 2] }],
+  title: "뒤",
+  result: "3",
+};
+`;
+  // export 마다 내면 같은 구멍이 두 줄로 뜨고 「어느 export 가 덜 그렸는가」로 읽힌다.
+  expect(placeWarn(two).length).toBe(1);
+});
+
+test("P3 — 줄표는 걸음 구간이 아니다 (regex 가 낸 빨강을 원고의 빨강으로 읽지 않는다)", () => {
+  // `singleNumberXor` 의 `"T2 — 4 를 겹쳐…"` 를 구간으로 읽으면 [2,4] 가 되고, 다음
+  // 프레임 `"T3 — 1 을…"` 이 [3,1] 이라 **거꾸로 겹친 것**으로 잡힌다. 첫 판이 그랬다.
+  expect(stepSpan("T2 — 4 를 겹쳐 자리 2 가 켜진다")).toEqual([2, 2]);
+  expect(
+    place(simWith("T1 초기화 — ① 에서", "T2 — 4 를", "T3 — 1 을")),
+  ).toEqual([]);
+});
+
+test("P3 — `T5~T6` 은 두 걸음을 덮는다", () => {
+  expect(stepSpan("T5~T6 Q3 으로")).toEqual([5, 6]);
+  expect(stepSpan("T5~6 Q3 으로")).toEqual([5, 6]);
+  expect(stepSpan("좁힘")).toBeNull();
+  // 구간으로 안 읽으면 T2·T4 가 구멍으로 잡힌다.
+  expect(placeWarn(simWith("T1 준비", "T2~T4 반복", "T5~T6 끝"))).toEqual([]);
+});
+
+test("P3 — 프레임 제목은 그 객체의 바로 아래 필드만 읽는다", () => {
+  // 중첩 객체가 `title` 을 가지면 첫 매치가 그리로 간다 — 그러면 걸음 자리를 엉뚱한
+  // 문자열에서 읽고, 그 오독은 화면에 「통과」로 뜬다.
+  const nested = `export const demo = {
+  view: "array",
+  steps: [
+    { entries: [{ title: "속임수" }], title: "T0 준비", array: [1] },
+  ],
+  title: "두 포인터",
+  result: "3",
+};
+`;
+  const findings = place(nested);
+  expect(codes(findings)).toEqual(["P3"]);
+  expect(findings[0]?.detail).toContain("T0");
+});
+
+test("P3 — 프레임 계수와 제목 읽기가 같은 가르기를 쓴다", () => {
+  const entry = parseSim(SIM).entries.get("demo");
+  expect(entry?.frames).toBe(3);
+  expect(entry?.titles).toEqual(["T1 시작", "T2~T5 좁힘", "T6 끝"]);
+});
+
+// ── TBL 구분줄 (2026-09-10 `KAN-034.9` `S4` · 배치2 사각지대) ─────────────────
+//
+// 배치2 가 `build-html` 에 「원고 표 칸 수 ↔ 렌더된 `<td>`·`<th>` 수」를 세웠다. 그 대조가
+// **원리적으로 못 보는 손상**이 이것이다 — 칸 수가 갈리면 표가 아예 안 서고, mdast 에도
+// hast 에도 `table` 이 없어 칸 수 대조가 0 대 0 으로 일치한다.
+
+const tbl = (body: string) => tableSeparators(body).map((f) => f.code);
+
+test("TBL — 머리줄 칸 안의 세로줄로 칸 수가 갈리면 걸린다", () => {
+  const text = "| 값 | 없음 | 뜻 |\n| --- | --- |\n| a | b |\n";
+  expect(tbl(text)).toEqual(["TBL"]);
+  expect(tableSeparators(text)[0]?.detail).toContain("머리줄 3 칸");
+});
+
+test("TBL — 가린 세로줄(`\\|`)은 칸을 안 가른다", () => {
+  // GFM 이 표를 세우는 모양이라 위반이 아니다. 이것이 못 통과하면 검사가 고칠 길을 막는다.
+  expect(tbl("| 값 \\| 없음 | 뜻 |\n| --- | --- |\n| a | b |\n")).toEqual([]);
+  expect(rowCells("| 값 \\| 없음 | 뜻 |")).toBe(2);
+  expect(rowCells("| 값 | 없음 | 뜻 |")).toBe(3);
+});
+
+test("TBL — 칸 수가 맞는 표는 안 걸린다", () => {
+  expect(tbl("| 값 | 뜻 |\n| --- | --- |\n| a | b |\n")).toEqual([]);
+  expect(tbl("| 값 | 뜻 |\n| :--- | ---: |\n| a | b |\n")).toEqual([]);
+});
+
+test("TBL — 구분줄 위가 머리줄이 아니면 걸린다", () => {
+  // **한 칸짜리 구분줄이라야 이 갈래를 잰다.** 빈 줄은 `rowCells` 가 1 로 세므로, 두 칸
+  // 짜리를 표본으로 쓰면 칸 수 대조가 먼저 잡아 이 갈래를 한 번도 안 탄다 — 첫 판이 그
+  // 상태로 초록이었다(변이 M16 이 0 fail 을 냈다).
+  const text = "문단.\n\n| --- |\n";
+  expect(tbl(text)).toEqual(["TBL"]);
+  expect(tableSeparators(text)[0]?.detail).toContain(
+    "구분줄 위가 머리줄이 아니다",
+  );
+});
+
+test("TBL — 펜스 안의 구분줄은 그림이라 안 본다", () => {
+  expect(tbl("```text\n| 값 | 없음 | 뜻 |\n| --- | --- |\n```\n")).toEqual([]);
+});
+
+test("TBL — 통과 표본은 111편과 같이 0 건이다", () => {
+  expect(tableSeparators(PASSING)).toEqual([]);
+  expect(
+    codes(check({ text: PASSING, sim: SIM, bench: { 비교: 34 } })),
+  ).not.toContain("TBL");
 });

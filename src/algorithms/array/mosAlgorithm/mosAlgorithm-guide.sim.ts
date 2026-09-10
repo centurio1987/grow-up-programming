@@ -12,7 +12,7 @@ export const window = {
   result: "[3,2,3,2,2]",
   steps: [
     {
-      title: "T0 질의를 재배열한다",
+      title: "준비 — 질의를 재배열한다",
       detail:
         "block=2. (⌊l/block⌋, r) 로 정렬하면 Q1 → Q3 → Q0 → Q4 → Q2 순이 된다.",
       matrix: [

@@ -1,5 +1,13 @@
 /**
- * `algo-learn-guide` 골격 스캐너 — P1~P16.
+ * `algo-learn-guide` 골격 스캐너 — P1~P16, 그리고 번호가 안 붙은 둘.
+ *
+ * | 코드 | 무엇 |
+ * | --- | --- |
+ * | `SEC` | 어느 항목으로도 안 해소되는 헤딩. 여기서 걸리면 나머지 판정이 통째로 헛돈다 |
+ * | `TBL` | 구분줄을 그렸는데 GFM 이 표를 안 세우는 자리 |
+ *
+ * 둘은 P 번호를 안 쓴다 — P 는 `SPEC.md` 의 규격 항목에 매인 번호이고, 이 둘은 규격 이전의
+ * **문서가 문서로 서는가**를 본다.
  *
  * **기계로 셀 수 있는 것만** 잰다. 값이 실행 결과와 같은가는 `check-proof.ts` 가 보고, 산문이
  * 실제로 설명하는가(논증의 성립 · 반례의 타당성)는 사람이 본다 — `FEEDBACK.md` §3 이 그
@@ -123,9 +131,22 @@ function circled(text: string): Set<string> {
 
 /* ────────────────────────── `.sim.ts` ────────────────────────── */
 
+/** `.sim.ts` 의 export 하나. */
+export interface SimEntry {
+  frames: number;
+  result: string | null;
+  /**
+   * 프레임 제목을 **차례 그대로**. 없는 프레임은 `null` 이다.
+   *
+   * 제목 머리의 `T#` 가 그 프레임이 원고의 **어느 걸음**인지를 말한다. 수만 세면 자리는
+   * 안 보인다 — `framePlacement` 가 그 자리를 잰다.
+   */
+  titles: (string | null)[];
+}
+
 export interface SimModule {
   /** export 키 → 그 안의 정보 */
-  entries: Map<string, { frames: number; result: string | null }>;
+  entries: Map<string, SimEntry>;
   /** 계약 위반 — 있으면 P3 은 통과가 아니라 **에러**다. */
   violations: string[];
 }
@@ -138,7 +159,7 @@ export interface SimModule {
  * 통과시킨다** — 판정기가 판정을 못 하는 것보다 나쁘다. 그래서 위반은 경고가 아니라 에러다.
  */
 export function parseSim(source: string): SimModule {
-  const entries = new Map<string, { frames: number; result: string | null }>();
+  const entries = new Map<string, SimEntry>();
   const violations: string[] = [];
 
   // `export const <id> = {` … 를 중괄호 균형으로 잘라 낸다.
@@ -177,7 +198,12 @@ export function parseSim(source: string): SimModule {
       continue;
     }
 
-    entries.set(id, { frames: countTop(arr), result: pickResult(block) });
+    const steps = topElements(arr);
+    entries.set(id, {
+      frames: steps.length,
+      result: pickResult(block),
+      titles: steps.map(frameTitle),
+    });
   }
 
   return { entries, violations };
@@ -213,13 +239,19 @@ function balanced(text: string, start: number): string | null {
   return null;
 }
 
-/** 배열 리터럴에서 **최상위** 원소 수를 센다. 중첩 객체 안의 쉼표는 안 센다. */
-function countTop(arr: string): number {
+/**
+ * 배열 리터럴을 **최상위** 원소 문자열로 가른다. 중첩 객체 안의 쉼표는 안 가른다.
+ *
+ * 계수(`frames`)와 제목 읽기가 **같은 가르기**를 쓴다 — 둘이 따로 세면 「프레임 12개인데
+ * 제목은 11개」 같은 자리에서 어느 쪽이 맞는지 판정기가 스스로 모른다.
+ */
+function topElements(arr: string): string[] {
   const inner = arr.slice(1, -1).trim();
-  if (inner === "") return 0;
+  if (inner === "") return [];
+  const out: string[] = [];
   let depth = 0;
   let quote: string | null = null;
-  let count = 1;
+  let start = 0;
   for (let i = 0; i < inner.length; i++) {
     const ch = inner[i];
     if (ch === undefined) break;
@@ -231,10 +263,73 @@ function countTop(arr: string): number {
     if (ch === '"' || ch === "'" || ch === "`") quote = ch;
     else if (ch === "{" || ch === "[" || ch === "(") depth++;
     else if (ch === "}" || ch === "]" || ch === ")") depth--;
-    else if (ch === "," && depth === 0) count++;
+    else if (ch === "," && depth === 0) {
+      out.push(inner.slice(start, i));
+      start = i + 1;
+    }
   }
-  // 후행 쉼표는 원소가 아니다.
-  return inner.endsWith(",") ? count - 1 : count;
+  // 후행 쉼표 뒤의 빈 조각은 원소가 아니다.
+  const tail = inner.slice(start);
+  if (tail.trim() !== "") out.push(tail);
+  return out;
+}
+
+/**
+ * 프레임 객체의 `title`. 없으면 `null`.
+ *
+ * **그 객체의 바로 아래 필드만 본다.** 정규식 첫 매치로 잡으면 `entries` · `nodes` 안에
+ * 같은 이름의 필드가 생기는 날 걸음 자리를 엉뚱한 문자열에서 읽는다 — 그리고 그런 오독은
+ * 화면에 「통과」로 뜬다.
+ */
+function frameTitle(element: string): string | null {
+  let depth = 0;
+  let quote: string | null = null;
+  for (let i = 0; i < element.length; i++) {
+    const ch = element[i];
+    if (ch === undefined) break;
+    if (quote) {
+      if (ch === "\\") i++;
+      else if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === "`") {
+      quote = ch;
+      continue;
+    }
+    if (ch === "{" || ch === "[" || ch === "(") {
+      depth++;
+      continue;
+    }
+    if (ch === "}" || ch === "]" || ch === ")") {
+      depth--;
+      continue;
+    }
+    if (depth !== 1 || ch !== "t") continue;
+    if (/[\w$]/.test(element[i - 1] ?? "")) continue;
+    const m = /^title\s*:\s*["'`]/.exec(element.slice(i));
+    if (m === null) continue;
+    return readString(element, i + m[0].length - 1);
+  }
+  return null;
+}
+
+/** `at` 의 따옴표로 시작하는 문자열 리터럴의 내용. 안 닫히면 `null`. */
+function readString(text: string, at: number): string | null {
+  const q = text[at];
+  if (q === undefined) return null;
+  let out = "";
+  for (let i = at + 1; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === undefined) return null;
+    if (ch === "\\") {
+      out += text[i + 1] ?? "";
+      i++;
+      continue;
+    }
+    if (ch === q) return out;
+    out += ch;
+  }
+  return null;
 }
 
 /** `result:` 값을 문자열로 뽑는다. 없으면 `null`. */
@@ -242,6 +337,141 @@ function pickResult(block: string): string | null {
   const m = /(^|[\s,{])result\s*:\s*([^\n]+?)\s*,?\s*$/m.exec(block);
   if (!m || m[2] === undefined) return null;
   return m[2].replace(/^["'`]|["'`]$/g, "").trim();
+}
+
+/* ──────────────── 프레임이 앉은 걸음 자리 — P3 ──────────────── */
+
+/**
+ * 프레임 제목이 가리키는 **걸음 구간**. `T7` 은 `[7,7]`, `T5~T6` 과 `T5~6` 은 `[5,6]` 이다.
+ * 머리에 `T#` 가 없으면 `null`.
+ *
+ * **구간을 뜻하는 것은 물결표뿐이다.** 줄표(`—`)는 제목에서 자리와 설명을 가르는 자리에
+ * 쓰인다 — `singleNumberXor` 의 `"T2 — 4 를 겹쳐 자리 2 가 켜진다"` 를 구간으로 읽으면
+ * `[2,4]` 가 되고, 다음 프레임 `"T3 — 1 을…"` 이 `[3,1]` 이라 **거꾸로 겹친 것으로** 잡힌다.
+ * 실제로 첫 판에서 그 편이 「오름차순이 아니다」로 걸렸고, 걸린 것은 원고가 아니라 이 regex
+ * 였다.
+ */
+export function stepSpan(title: string): [number, number] | null {
+  const m = /^T(\d+)(?:\s*[~〜]\s*T?(\d+))?(?![\w.])/.exec(title.trim());
+  if (m?.[1] === undefined) return null;
+  const from = Number(m[1]);
+  const to = m[2] === undefined ? from : Number(m[2]);
+  return [from, to];
+}
+
+/**
+ * P3 — **프레임이 원고의 어느 걸음에 앉았는가.**
+ *
+ * 옛 P3 은 「`T#` 수 ≥ 프레임 수」 하나였다. **그것은 수만 센다** — 프레임 열둘이 원고의
+ * 열넷 중 어느 열둘인지, 그중 원고에 없는 걸음을 가리키는 것이 있는지, 차례가 거꾸로인지를
+ * 전부 못 본다. `maxBipartiteMatching` 이 열넷 중 열둘을 그리면서 옛 P3 을 그냥 지나갔다.
+ *
+ * **판정 세기가 둘이다.**
+ *
+ * | 무엇 | 왜 그 세기인가 | 심각도 |
+ * | --- | --- | --- |
+ * | 원고에 없는 걸음을 가리킨다 · 어느 걸음인지 제목이 안 밝힌다 · 차례가 거꾸로다 | 패널이 가리키는 자리를 독자가 원고에서 **못 찾는다.** 판단이 낄 데가 없다 | **위반** |
+ * | 원고의 걸음을 안 그린다 | 안 그린 것이 곧 `viz` 를 손으로 고른 흔적이다. 111편에서 27편이라 한꺼번에 빨개진다 | 경고 |
+ *
+ * 경고 자리를 둔 근거는 `Finding.warn` 이 적은 그대로다 — **고친 뒤 위반으로 올린다.**
+ * 그 고침의 방법이 `SPEC.md` §9 의 「`viz` 아래 걸음 표는 `.sim.ts` 에서 만든다」다.
+ *
+ * **피복은 「사이 구멍」이 아니라 원고 걸음 전부다.** 첫 판은 첫 프레임과 마지막 프레임
+ * 사이만 봤는데, 그러면 `mosAlgorithm` 에서 `"T0"` 을 `"준비 — "` 로 고치자 **T1·T2 가
+ * 경고에서 조용히 빠졌다** — 상관없는 자리를 고쳤더니 검사 범위가 줄어든 것이고, 그런 규칙은
+ * 규칙이 아니다. export 를 여럿 둔 편(`prefixSumRangeQuery` 의 `build`·`answer`)은 **합집합**
+ * 으로 덮으므로 늦게 시작하는 export 가 그 자체로 걸리지는 않는다.
+ *
+ * **번호가 붙기 전의 머리 프레임은 준비 프레임으로 본다.** `kthSmallest` 의 `"시작"` 이
+ * 그것이고, 원고가 준비를 걸음으로 세지 않은 편에서 정당한 모양이다. 다만 **번호가 한 번
+ * 붙은 뒤로는** 제목 없는 프레임이 위반이다 — 그 자리는 자리를 안 밝힌 것이지 준비가 아니다.
+ *
+ * @param walk `deep.walk` 가 실제로 인용한 걸음 번호
+ */
+export function framePlacement(
+  sim: SimModule,
+  walk: Set<number>,
+  where: string,
+): Finding[] {
+  const findings: Finding[] = [];
+
+  // 편 하나가 export 를 여럿 둘 수 있다(`prefixSumRangeQuery` 의 `build`·`answer`).
+  // 건너뛴 걸음은 **다른 export 가 덮었으면 건너뛴 것이 아니다.**
+  const covered = new Set<number>();
+  for (const entry of sim.entries.values()) {
+    for (const title of entry.titles) {
+      const span = title === null ? null : stepSpan(title);
+      if (span === null) continue;
+      for (let n = span[0]; n <= span[1]; n++) covered.add(n);
+    }
+  }
+
+  for (const [id, entry] of sim.entries) {
+    const spans = entry.titles.map((t) => (t === null ? null : stepSpan(t)));
+    const first = spans.findIndex((s) => s !== null);
+    if (first < 0) {
+      findings.push({
+        code: "P3",
+        where,
+        detail: `\`${id}\` 의 프레임 제목이 걸음(\`T#\`)을 하나도 안 밝힌다 — 어느 프레임이 원고의 어느 걸음인지 대조할 수 없다`,
+      });
+      continue;
+    }
+
+    for (let i = first + 1; i < spans.length; i++) {
+      if (spans[i] !== null) continue;
+      findings.push({
+        code: "P3",
+        where,
+        detail: `\`${id}\` 의 ${i + 1} 번째 프레임 "${entry.titles[i] ?? ""}" 이 어느 걸음인지 안 밝힌다 — 제목을 \`T#\` 로 연다`,
+      });
+    }
+
+    const numbered = spans.filter((s): s is [number, number] => s !== null);
+    const stray = [
+      ...new Set(
+        numbered.flatMap(([from, to]) => {
+          const out: number[] = [];
+          for (let n = from; n <= to; n++) if (!walk.has(n)) out.push(n);
+          return out;
+        }),
+      ),
+    ];
+    if (stray.length > 0) {
+      findings.push({
+        code: "P3",
+        where,
+        detail: `\`${id}\` 의 프레임이 \`deep.walk\` 에 없는 걸음을 가리킨다 — ${stray.map((n) => `T${n}`).join("·")}`,
+      });
+    }
+
+    for (let i = 1; i < numbered.length; i++) {
+      const prev = numbered[i - 1] as [number, number];
+      const cur = numbered[i] as [number, number];
+      if (cur[0] > prev[1]) continue;
+      findings.push({
+        code: "P3",
+        where,
+        detail: `\`${id}\` 의 프레임 차례가 걸음 차례와 다르다 — T${prev[0]} 다음이 T${cur[0]} 다`,
+      });
+    }
+  }
+
+  // **피복은 편 단위로 한 번만 낸다.** export 마다 내면 같은 구멍이 두 줄로 뜨고, 그러면
+  // 「어느 export 가 덜 그렸는가」로 읽힌다 — 구멍은 편에 하나다.
+  const skipped = [...walk]
+    .filter((n) => !covered.has(n))
+    .sort((a, b) => a - b);
+  if (skipped.length > 0) {
+    findings.push({
+      code: "P3",
+      warn: true,
+      where,
+      detail: `\`.sim.ts\` 가 \`deep.walk\` 의 걸음을 안 그린다 — ${skipped.map((n) => `T${n}`).join("·")}. \`viz\` 아래 표를 \`.sim.ts\` 에서 만들면 자리가 갈릴 데가 없다(\`SPEC.md\` §9)`,
+    });
+  }
+
+  return findings;
 }
 
 /* ────────────────────────── 판정 ────────────────────────── */
@@ -1307,6 +1537,82 @@ function strayRow(rows: Cell[][], c: number): number {
   return at === -1 ? 0 : at;
 }
 
+/* ──────────────── GFM 표 구분줄 — TBL ──────────────── */
+
+/**
+ * 한 줄이 GFM 표의 몇 칸인가. **`\|` 는 칸을 안 가른다**(그 자리는 세로줄 글자다).
+ *
+ * 앞뒤의 세로줄은 울타리라 칸이 아니다 — `| a | b |` 는 두 칸이다.
+ */
+export function rowCells(line: string): number {
+  let body = line.trim();
+  if (body.startsWith("|")) body = body.slice(1);
+  if (body.endsWith("|") && !body.endsWith("\\|")) body = body.slice(0, -1);
+  let count = 1;
+  for (let i = 0; i < body.length; i++) {
+    if (body[i] === "\\") {
+      i++;
+      continue;
+    }
+    if (body[i] === "|") count++;
+  }
+  return count;
+}
+
+const SEPARATOR = /^ {0,3}\|(?:\s*:?-{2,}:?\s*\|)+\s*$/;
+
+/**
+ * TBL — **구분줄을 그렸는데 표가 안 서는 자리.**
+ *
+ * `build-html` 이 배치2 에서 「원고 표 칸 수 ↔ 렌더된 `<td>`·`<th>` 수」를 대조하게 됐다.
+ * 그 대조가 **원리적으로 못 보는 손상이 하나 있다.** 머리줄 칸 수와 구분줄 칸 수가 다르면
+ * GFM 이 표를 **아예 안 세운다** — 세 줄이 통째로 한 문단으로 흐르고, mdast 에도 hast 에도
+ * `table` 이 없어서 칸 수 대조가 **0 대 0 으로 일치**한다. 손상은 이쪽이 훨씬 큰데(표가
+ * 통째로 사라진다) 통과로 뜬다.
+ *
+ * 칸 수가 갈리는 가장 흔한 길은 **머리줄 칸 안의 세로줄**이다. `| 값 \| 없음 | 뜻 |` 처럼
+ * 가려 쓰면 두 칸이지만, 가리지 않으면 세 칸이 되어 `| --- | --- |` 와 어긋난다.
+ *
+ * 그래서 구분줄 **모양**을 먼저 찾고, 그 자리가 표로 설 수 있는가를 GFM 의 규칙 그대로
+ * 되묻는다 — 바로 위가 머리줄인가, 그 칸 수가 같은가. 펜스 안은 안 본다(그림이다).
+ *
+ * 111편 전수에서 **0건**이다. 고칠 원고가 없고 세우는 것은 강제 지점뿐이라 경고가 아니라
+ * 처음부터 위반이다.
+ */
+export function tableSeparators(text: string): Finding[] {
+  const findings: Finding[] = [];
+  const lines = text.split("\n");
+  let fenced = false;
+  for (const [index, raw] of lines.entries()) {
+    if (raw.trimStart().startsWith("```")) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced || !SEPARATOR.test(raw)) continue;
+
+    const head = lines[index - 1];
+    const where = `:${index + 1}`;
+    if (head === undefined || head.trim() === "") {
+      findings.push({
+        code: "TBL",
+        where,
+        detail:
+          "구분줄 위가 머리줄이 아니다 — 표가 안 서고 이 줄이 글자 그대로 찍힌다",
+      });
+      continue;
+    }
+    const want = rowCells(raw);
+    const got = rowCells(head);
+    if (got === want) continue;
+    findings.push({
+      code: "TBL",
+      where,
+      detail: `머리줄 ${got} 칸 · 구분줄 ${want} 칸 — 칸 수가 다르면 GFM 이 표를 **아예 안 세운다.** 칸 안의 세로줄은 \`\\|\` 로 가린다`,
+    });
+  }
+  return findings;
+}
+
 /**
  * 【걷어냈다 — 2026-08-28 유저 지시】 L28·L29(`criterionOrder`) · L30·L31(`coreConcept`).
  *
@@ -1433,6 +1739,14 @@ export function check(input: CheckInput): Finding[] {
           detail: `T# 단계 ${traceLabels.size} < 시뮬 프레임 ${frames}`,
         });
       }
+      // 수를 세는 것만으로는 **어떤 걸음을 골랐는지**가 안 보인다. 자리를 맞댄다.
+      findings.push(
+        ...framePlacement(
+          sim,
+          new Set([...traceLabels].map((l) => Number(l.slice(1)))),
+          `deep.walk:${walkHead.line}`,
+        ),
+      );
     }
   } else {
     findings.push({ code: "P3", detail: "`deep.walk`(전개) 절이 없다" });
@@ -1788,12 +2102,46 @@ export function check(input: CheckInput): Finding[] {
   // ── P15 생성 블록 열 정렬 ──
   findings.push(...generatedBlockAlignment(input.text));
 
+  // ── TBL 구분줄을 그렸는데 표가 안 서는 자리 ──
+  findings.push(...tableSeparators(input.text));
+
   // ── P16 원고의 전체 코드 ↔ 정본 ──
   if (input.ref !== undefined) {
     findings.push(...finalCodeMatchesRef(sections, input.ref));
   }
 
-  return findings;
+  // **경고는 판정이 아니다.** `checkWarnings` 가 같은 것을 걸러 화면으로 보낸다.
+  return findings.filter((f) => f.warn === undefined);
+}
+
+/**
+ * 판정(`check`)에 안 들어가고 **화면에만 뜨는** 자리.
+ *
+ * 두 갈래가 여기 모인다 — P15 의 손 펜스·두 줄 덩어리와, P3 의 「걸음을 건너뛴 프레임」이다.
+ * 화면으로 보내는 자리를 하나로 두는 이유는 `checkOne` 이 경고 출처마다 따로 부르면
+ * **새 경고가 늘 때 안 불리는 것이 생기고, 그건 잡았는데 아무도 안 보는 자리**가 되기
+ * 때문이다. 실제로 P15 가 일곱 배치를 그렇게 샜다.
+ */
+export function checkWarnings(input: CheckInput): Finding[] {
+  const out: Finding[] = alignmentWarnings(input.text);
+
+  const { sections, unresolved } = parseSections(input.text);
+  if (unresolved.length > 0 || input.sim === undefined) return out;
+  const walkHead = first(sections, "deep.walk");
+  if (!walkHead) return out;
+  const sim = parseSim(input.sim);
+  if (sim.violations.length > 0) return out;
+  const labels = traceRefs(
+    sections.filter((s) => s.id.startsWith("deep.walk")).flatMap((s) => s.body),
+  );
+  out.push(
+    ...framePlacement(
+      sim,
+      new Set([...labels].map((l) => Number(l.slice(1)))),
+      `deep.walk:${walkHead.line}`,
+    ).filter((f) => f.warn === true),
+  );
+  return out;
 }
 
 function norm(s: string): string {
@@ -1843,7 +2191,7 @@ async function checkOne(
   const findings = check(input);
   // **경고는 판정에 안 들어간다.** 화면에는 뜨고 `--json` 에도 실린다 — 안 뜨면 넓힌
   // 규칙이 잡은 자리를 아무도 못 보고, 위반으로 세면 53편이 한꺼번에 빨개진다.
-  const warnings = alignmentWarnings(text);
+  const warnings = checkWarnings(input);
   if (json) {
     console.log(
       JSON.stringify({ target, findings, warnings, missing }, null, 2),
@@ -1862,7 +2210,7 @@ async function checkOne(
   }
   // 단일 대상이면 그 자리에서 적고, `--all` 은 끝에서 편 수로 요약한다.
   if (!json && notes && warnings.length > 0) {
-    console.log(`  경고 ${warnings.length}건 — 열 정렬.`);
+    console.log(`  경고 ${warnings.length}건 — 열 정렬 · 걸음 자리.`);
     for (const w of warnings)
       console.log(`  [${w.code}] ${w.where}  ${w.detail}`);
   }
@@ -1925,7 +2273,7 @@ if (import.meta.main) {
     // 안 본 자리」가 되고, 그것이 이 규칙이 일곱 배치를 샌 방식이다.
     if (!json && warned > 0) {
       console.log(
-        `\n경고 — 열이 어긋난 자리 ${warned}건 (${warnedGuides}편). ` +
+        `\n경고 — 열이 어긋나거나 걸음을 건너뛴 자리 ${warned}건 (${warnedGuides}편). ` +
           `\`--json\` 의 \`warnings\` 나 편별 실행으로 자리를 본다. ` +
           `지금은 경고이고, 그 편들을 고친 뒤 위반으로 올린다.`,
       );
