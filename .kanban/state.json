@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 230,
+  "next_seq": 231,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -667,7 +667,7 @@
       "verbatim": "후속 카드로, 카드 넷 검토 진행",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-09",
+      "갱신": "2026-09-10",
       "title_hash": "2564f3412c6e5cf76079c8b6368506017c412beb",
       "verbatim_hash": "444dda1405915d866ec3518e0b6ec45e67e7e4f6",
       "short": "스캐너 구멍 14부류",
@@ -678,8 +678,8 @@
       "reason_hash": "5c2ee27b68b85723228336f2c7bfd2b84de6f389",
       "goal": "각 부류가 도구 확장·관행·회귀 시험 중 하나로 처분되고, 처분한 자리마다 tools/<도구>.test.ts 에 회귀 시험이 서며, 오탐 조건이 함께 박힌다",
       "goal_hash": "b1f631b075ccb0b375910ed9a8994d1aa8f6488d",
-      "memo": "근거는 KANBAN.batches/KAN-034.7-QMZ3RE.batch{6..11}.md 의 「끝난 뒤」 절과 KAN-034.8-BK1Q3A.batch4.md. 승격 1순위는 P15 범위·면제(일곱 배치 연속, 오탐 조건 셋이 이미 실측됨)와 check-v2 단일 CLI 의 P16 미실행(판정 명령이 거짓 초록을 낸다)",
-      "memo_hash": "0e0149d93fe818b2e4785f4a6ed2b9883213e2af",
+      "memo": "근거는 KANBAN.batches/KAN-034.7-QMZ3RE.batch{6..11}.md 의 「끝난 뒤」 절과 KAN-034.8-BK1Q3A.batch4.md. B7 의 다섯 중 하나(비용 형용사)는 KAN-034.7 검토 5항 반려로 2026-09-09 에 이미 닫혔고 그 방식이 남은 넷의 본이다. 승격 1순위는 P15 범위·면제(일곱 배치 연속, 오탐 조건 넷이 실측됨)와 check-v2 단일 CLI 의 P16 미실행",
+      "memo_hash": "fb08fb74e019e15e5e44fb229cd3098478d29b41",
       "parent": "KAN-034-KSD7XR"
     }
   },
@@ -729,6 +729,17 @@
     "KAN-034.8-BK1Q3A"
   ],
   "recent": [
+    {
+      "seq": 230,
+      "t": "2026-09-10T16:30",
+      "a": "ai",
+      "id": "KAN-034.9-WHH53W",
+      "op": "edit",
+      "w": "MDD8JM",
+      "field": "memo",
+      "before": "근거는 KANBAN.batches/KAN-034.7-QMZ3RE.batch{6..11}.md 의 「끝난 뒤」 절과 KAN-034.8-BK1Q3A.batch4.md. 승격 1순위는 P15 범위·면제(일곱 배치 연속, 오탐 조건 셋이 이미 실측됨)와 check-v2 단일 CLI 의 P16 미실행(판정 명령이 거짓 초록을 낸다)",
+      "after": "근거는 KANBAN.batches/KAN-034.7-QMZ3RE.batch{6..11}.md 의 「끝난 뒤」 절과 KAN-034.8-BK1Q3A.batch4.md. B7 의 다섯 중 하나(비용 형용사)는 KAN-034.7 검토 5항 반려로 2026-09-09 에 이미 닫혔고 그 방식이 남은 넷의 본이다. 승격 1순위는 P15 범위·면제(일곱 배치 연속, 오탐 조건 넷이 실측됨)와 check-v2 단일 CLI 의 P16 미실행"
+    },
     {
       "seq": 229,
       "t": "2026-09-10T16:23",
@@ -1269,17 +1280,6 @@
       "field": "memo",
       "before": "배치1 종료(2026-08-29) — S1 binarySearch · S4 longestSubarrayAtMostSum · S13 bfsShortestPath · S18 nQueens 넷을 닫았다(4/24). 스캐너 넷이 편마다 0 이고 ci.ts all 통과. 링크 279건 실재. guide-rhythm 101→97 · W1 2/26→6/26. 다음은 배치2(maxCounters·parametricBinarySearch·connectedComponents·sortArray)",
       "after": "배치2 종료(2026-08-29) — S8 maxCounters · S2 parametricBinarySearch · S14 connectedComponents · S9 sortArray 넷을 닫았다(8/24). 스캐너가 편마다 0 이고 ci.ts all 통과(단계 15). 링크 288건 실재. .mdx 103→99 · guide-rhythm 97→93 · W1 6/26→10/26. purpose.alt 생략이 maxCounters 에서 세 번째로 돌았고 사유 부류가 하나 늘었다(대조할 경쟁 설계 자체가 없다). 배치1 이 FEEDBACK.md §4 표에 잘못 넣은 판정 4행을 §5 로 옮겼다. 다음은 배치3(ternarySearch·prefixSumRangeQuery·dfsTraversal·coinChangeWays)"
-    },
-    {
-      "seq": 180,
-      "t": "2026-08-29T13:10",
-      "a": "ai",
-      "id": "KAN-034.5-0RGSQM",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "",
-      "after": "배치1 종료(2026-08-29) — S1 binarySearch · S4 longestSubarrayAtMostSum · S13 bfsShortestPath · S18 nQueens 넷을 닫았다(4/24). 스캐너 넷이 편마다 0 이고 ci.ts all 통과. 링크 279건 실재. guide-rhythm 101→97 · W1 2/26→6/26. 다음은 배치2(maxCounters·parametricBinarySearch·connectedComponents·sortArray)"
     }
   ],
   "layout": 2
