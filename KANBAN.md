@@ -89,7 +89,7 @@
   - 메모: 배치6 종료(2026-08-30) — S12 radixSort · S20 maximumProductSubarray · S21 houseRobber · S23 bestTimeToBuyAndSellStock 넷을 닫아 24/24 이고 W1 이 26/26 으로 마감됐다. 웨이브 배리어가 풀려 W2 claim 후보 10건이 열렸다. 편마다 스캐너 넷 0 · guide 테스트 통과 · build-html 0, ci.ts all 통과(단계 15). .mdx 87→83 · guide-rhythm 82→79 · check-links 343건 전부 실재 — 카드 「검증」 절의 웨이브 마감 예측(83 · 79)과 정확히 일치한다. 도구가 낸 claim 후보가 2건이라(array 셋이 같은 카테고리로 막힘) 병렬 폭을 2 로 잡고 S20→S21→S23 을 배치 안에서 이어 돌렸다 — 배치 경계는 넷 그대로. 배치 문서 §2 의 「넷 다 카테고리가 열려 있다」가 틀렸고 도구가 맞았다. 네 편 다 FEEDBACK §3 대조에서 스캐너 통과 뒤에 결함이 나왔다(radixSort 3 · houseRobber 3 · bestTimeToBuyAndSellStock 7) — 가장 큰 것은 bestTime 의 기호 충돌로 「오늘 파는 이익」이 P[j]−m[j−1] 과 P[j]−m[j] 두 값을 겸해 갱신일에 −5·−1 대 0 으로 갈리던 것이다. L37 레일 실렌더는 네 편 다 워커 미확인이라 오케스트레이터가 따로 본다.
   - 실행 문서: KANBAN.cards/KAN-034.5-0RGSQM.md (24/24 · 최근 08-30)
   - 계획 리포트: KANBAN.reports/KAN-034.5-0RGSQM.report.html
-  - 검토 문서: KANBAN.reviews/KAN-034.5-0RGSQM.review.md (승인 0/4 · 검토 대기)
+  - 검토 문서: KANBAN.reviews/KAN-034.5-0RGSQM.review.md (승인 4/4 · 승인)
 - `KAN-034.6-CF6ZHE` W2 — 중요도 중 41편 전개 — 생성:ai · 최종:ai · 갱신:2026-09-09
   - 상위: `KAN-034-KSD7XR` (진행 중)
   - 짧은 제목: W2 중 41편
@@ -247,5 +247,5 @@
   - 목표: 42편이 .md 로 서고, guide-rhythm.tsv 의 src/algorithms 행과 살아 있는 .mdx 가 모두 0 이 된다
   - 메모: 배치11 종료 — W3 완주 (42/42). externalMergeSort·countInversions. §3 대조 97자리. 웨이브 종료 조건 셋 전부 참 — algo-wbs 111/111 · W3 44/44 · 살아 있는 .mdx 0 · guide-rhythm.tsv 의 src/algorithms 행 0. ci.ts all exit 0. 카드 목표 달성
   - 실행 문서: KANBAN.cards/KAN-034.7-QMZ3RE.md (42/42 · 최근 09-10)
-  - 계획 리포트: KANBAN.reports/KAN-034.7-QMZ3RE.report.html (낡음)
+  - 계획 리포트: KANBAN.reports/KAN-034.7-QMZ3RE.report.html
   - 검토 문서: KANBAN.reviews/KAN-034.7-QMZ3RE.review.md (승인 6/6 · 추가 의견 총 6 · 승인)
