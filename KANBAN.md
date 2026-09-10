@@ -118,8 +118,8 @@
   - 목표: 42편이 .md 로 서고, guide-rhythm.tsv 의 src/algorithms 행과 살아 있는 .mdx 가 모두 0 이 된다
   - 메모: 배치11 종료 — W3 완주 (42/42). externalMergeSort·countInversions. §3 대조 97자리. 웨이브 종료 조건 셋 전부 참 — algo-wbs 111/111 · W3 44/44 · 살아 있는 .mdx 0 · guide-rhythm.tsv 의 src/algorithms 행 0. ci.ts all exit 0. 카드 목표 달성
   - 실행 문서: KANBAN.cards/KAN-034.7-QMZ3RE.md (42/42 · 최근 09-10)
-  - 계획 리포트: KANBAN.reports/KAN-034.7-QMZ3RE.report.html (낡음)
-  - 검토 문서: KANBAN.reviews/KAN-034.7-QMZ3RE.review.md (승인 3/6 · 반려 3 · 추가 의견 총 6 · 검토 대기)
+  - 계획 리포트: KANBAN.reports/KAN-034.7-QMZ3RE.report.html
+  - 검토 문서: KANBAN.reviews/KAN-034.7-QMZ3RE.review.md (승인 6/6 · 추가 의견 총 6 · 승인)
 
 ## 완료
 - `KAN-029` [P0-a·29] 집필 엔진 가용성 확보 — 플러그인 설치·활성화 + lock 버전 재고정 — 생성:ai · 최종:ai · 갱신:2026-08-04
