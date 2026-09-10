@@ -174,3 +174,4 @@
 {"seq": 174, "t": "2026-08-29T00:55", "a": "ai", "id": "KAN-034.1-V337W5", "op": "edit", "w": "MDD8JM", "field": "purpose", "before": "KAN-033 잔여물을 그 카드 명의로 닫고, FEEDBACK.md 의 결번 참조와 은유 부류 수를 고치고, 파일럿 4편에 최신 골격으로 이해 시험 V1~V7 을 재실행한다", "after": "KAN-033 잔여물을 그 카드 명의로 닫고, FEEDBACK.md 의 결번 참조와 은유 부류 수를 고치고, 파일럿 4편을 최신 골격으로 재판정한다"}
 {"seq": 175, "t": "2026-08-29T00:55", "a": "ai", "id": "KAN-034.1-V337W5", "op": "edit", "w": "MDD8JM", "field": "reason", "before": "verdicts/ 31개가 전부 8/20 이고 원고는 8/28 이다 — 그 사이에 파트 2분할·항목 3종 개편·invariant 신설이 들어가 최신 골격의 이해 시험 근거가 없다. babyStepGiantStep 은 verdict 가 0 개다", "after": "verdicts/ 31개가 전부 8/20 이고 원고는 8/28 이라 최신 골격의 판정 근거가 없었다. babyStepGiantStep 은 판정이 0 개였다"}
 {"seq": 176, "t": "2026-08-29T01:53", "a": "ai", "id": "KAN-034.1-V337W5", "op": "move", "w": "MDD8JM", "from": "review", "to": "done"}
+{"seq": 177, "t": "2026-08-29T01:54", "a": "ai", "id": "KAN-034.2-5V5M2F", "op": "move", "w": "MDD8JM", "from": "backlog", "to": "doing"}
