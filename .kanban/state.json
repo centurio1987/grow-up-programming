@@ -1,6 +1,6 @@
 {
   "next_id": 35,
-  "next_seq": 231,
+  "next_seq": 235,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -493,12 +493,12 @@
       "parent": "KAN-034-KSD7XR"
     },
     "KAN-034.3-53E4F9": {
-      "col": "backlog",
+      "col": "done",
       "title": "사람 검토 12줄의 기계화 — 조항 L38~ 신설",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-28",
+      "갱신": "2026-09-10",
       "title_hash": "b44330ab0c2a76ded31692e2643a6874082801c7",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "short": "검토 기계화",
@@ -509,17 +509,17 @@
       "reason_hash": "11f1c59b42a3a2421a10464734a8752281caea7b",
       "goal": "신설 규칙이 L38 부터 붙고 회귀 시험을 가지며, 파일럿 4편에서 위반 0 건으로 통과해 기존 산출을 깨지 않는 것이 확인된다",
       "goal_hash": "b1e4f0fc0d462b40893d5eb3a6fa89cac3c517fd",
-      "memo": "",
-      "memo_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "memo": "상위 카드 KAN-034-KSD7XR 의 S3 가 직접 돌았다(커밋 9795dcb) — 이 카드 명의 커밋은 0건이고 하위 카드가 일감 이름표로만 섰다. 완료 기준 실측(2026-09-10): L38·L39·L40 이 SPEC.md:770-772 에 서고 각각 P11·P12·P13 이 강제하며 회귀 시험 9벌, bun test tools 0 fail, 파일럿 4편 위반 0",
+      "memo_hash": "25ae81682b163d233751d190e95caae15512a1a4",
       "parent": "KAN-034-KSD7XR"
     },
     "KAN-034.4-4NS63H": {
-      "col": "backlog",
+      "col": "done",
       "title": "전개 WBS + tools/algo-wbs.ts — 중요도 웨이브 × 카테고리 트랙",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-08-28",
+      "갱신": "2026-09-10",
       "title_hash": "22882758b5335888f8d8539a4aba4246573965ea",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "short": "전개 WBS·claim 도구",
@@ -530,8 +530,8 @@
       "reason_hash": "ad1bd1eed98df9965d8b31fbf37bd9f2bfe743a7",
       "goal": "algo-wbs.ts 가 웨이브별 남은 편과 트랙별 claim 후보를 내고, 앞 웨이브가 안 비면 다음 후보를 내지 않으며, 같은 카테고리·같은 뷰 조합의 첫 편이 도는 중이면 그 후속만 막는다",
       "goal_hash": "1f5f931389b8222b075ea2d9d52e0b9b70cee0e4",
-      "memo": "",
-      "memo_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "memo": "상위 카드 KAN-034-KSD7XR 의 S4 가 직접 돌았다(커밋 1a16d6b) — 이 카드 명의 커밋은 0건이고 하위 카드가 일감 이름표로만 섰다. 완료 기준 실측(2026-09-10): algo-wbs.ts 가 웨이브별 남은 편과 claim 후보를 내고 배리어·카테고리 선례·뷰 조합 선례가 자기시험 6벌로 서 있다. W1~W3 열여덟 배치가 착수 판단마다 그 출력을 근거로 썼다",
+      "memo_hash": "4d7146df556824e8ea9b9003604956665c2eab24",
       "parent": "KAN-034-KSD7XR"
     },
     "KAN-034.5-0RGSQM": {
@@ -687,8 +687,6 @@
     "KAN-026",
     "KAN-028",
     "KAN-031",
-    "KAN-034.3-53E4F9",
-    "KAN-034.4-4NS63H",
     "KAN-001",
     "KAN-032",
     "KAN-034.9-WHH53W",
@@ -726,9 +724,53 @@
     "KAN-034.7-QMZ3RE",
     "KAN-034.5-0RGSQM",
     "KAN-034.6-CF6ZHE",
-    "KAN-034.8-BK1Q3A"
+    "KAN-034.8-BK1Q3A",
+    "KAN-034.3-53E4F9",
+    "KAN-034.4-4NS63H"
   ],
   "recent": [
+    {
+      "seq": 234,
+      "t": "2026-09-10T16:35",
+      "a": "ai",
+      "id": "KAN-034.4-4NS63H",
+      "op": "move",
+      "w": "MDD8JM",
+      "from": "backlog",
+      "to": "done"
+    },
+    {
+      "seq": 233,
+      "t": "2026-09-10T16:35",
+      "a": "ai",
+      "id": "KAN-034.3-53E4F9",
+      "op": "move",
+      "w": "MDD8JM",
+      "from": "backlog",
+      "to": "done"
+    },
+    {
+      "seq": 232,
+      "t": "2026-09-10T16:35",
+      "a": "ai",
+      "id": "KAN-034.4-4NS63H",
+      "op": "edit",
+      "w": "MDD8JM",
+      "field": "memo",
+      "before": "",
+      "after": "상위 카드 KAN-034-KSD7XR 의 S4 가 직접 돌았다(커밋 1a16d6b) — 이 카드 명의 커밋은 0건이고 하위 카드가 일감 이름표로만 섰다. 완료 기준 실측(2026-09-10): algo-wbs.ts 가 웨이브별 남은 편과 claim 후보를 내고 배리어·카테고리 선례·뷰 조합 선례가 자기시험 6벌로 서 있다. W1~W3 열여덟 배치가 착수 판단마다 그 출력을 근거로 썼다"
+    },
+    {
+      "seq": 231,
+      "t": "2026-09-10T16:35",
+      "a": "ai",
+      "id": "KAN-034.3-53E4F9",
+      "op": "edit",
+      "w": "MDD8JM",
+      "field": "memo",
+      "before": "",
+      "after": "상위 카드 KAN-034-KSD7XR 의 S3 가 직접 돌았다(커밋 9795dcb) — 이 카드 명의 커밋은 0건이고 하위 카드가 일감 이름표로만 섰다. 완료 기준 실측(2026-09-10): L38·L39·L40 이 SPEC.md:770-772 에 서고 각각 P11·P12·P13 이 강제하며 회귀 시험 9벌, bun test tools 0 fail, 파일럿 4편 위반 0"
+    },
     {
       "seq": 230,
       "t": "2026-09-10T16:30",
@@ -1236,50 +1278,6 @@
       "field": "memo",
       "before": "배치5 종료(2026-08-30) — S7 diffArrayRangeUpdate · S11 countingSort · S17 countIslands · S19 kadane 넷을 닫았다(20/24). 스캐너가 편마다 0 이고 build-html 도 편마다 0, ci.ts all 통과(단계 15). .mdx 91→87 · guide-rhythm 85→82 · W1 18/26→22/26. graph 카테고리 마감. 도구가 낸 claim 후보가 3건이라(array 에서 kadane 가 같은 카테고리 후속으로 막힘) 병렬 폭을 3 으로 낮추고 S7 종료 후 S19 를 같은 배치 안에서 이어 돌렸다 — 배치 경계는 넷 그대로. 인바운드 확인을 grep 으로 하다 countingSort←radixSort 링크를 놓쳐 삭제 뒤에 깨졌고, 카드 「검증」 절에 check-links refs 를 강제 지점으로 박았다. kadane 소멸로 예시 포인터 둘(.claude/authoring/paths.json · tools/ord004-regen.workflow.mjs)을 convexHull 로 옮겼다 — KAN-034 S2 가 mosAlgorithm 소멸 때 kadane 로 옮긴 자리와 같다. 배치4 가 적어 둔 build-html 결함 9편은 그대로이고 원인이 하나가 아니다 — 마커 id 하이픈 말고 viz·proof 마커 배치와 짝 없는 닫기도 있다.",
       "after": "배치6 종료(2026-08-30) — S12 radixSort · S20 maximumProductSubarray · S21 houseRobber · S23 bestTimeToBuyAndSellStock 넷을 닫아 24/24 이고 W1 이 26/26 으로 마감됐다. 웨이브 배리어가 풀려 W2 claim 후보 10건이 열렸다. 편마다 스캐너 넷 0 · guide 테스트 통과 · build-html 0, ci.ts all 통과(단계 15). .mdx 87→83 · guide-rhythm 82→79 · check-links 343건 전부 실재 — 카드 「검증」 절의 웨이브 마감 예측(83 · 79)과 정확히 일치한다. 도구가 낸 claim 후보가 2건이라(array 셋이 같은 카테고리로 막힘) 병렬 폭을 2 로 잡고 S20→S21→S23 을 배치 안에서 이어 돌렸다 — 배치 경계는 넷 그대로. 배치 문서 §2 의 「넷 다 카테고리가 열려 있다」가 틀렸고 도구가 맞았다. 네 편 다 FEEDBACK §3 대조에서 스캐너 통과 뒤에 결함이 나왔다(radixSort 3 · houseRobber 3 · bestTimeToBuyAndSellStock 7) — 가장 큰 것은 bestTime 의 기호 충돌로 「오늘 파는 이익」이 P[j]−m[j−1] 과 P[j]−m[j] 두 값을 겸해 갱신일에 −5·−1 대 0 으로 갈리던 것이다. L37 레일 실렌더는 네 편 다 워커 미확인이라 오케스트레이터가 따로 본다."
-    },
-    {
-      "seq": 184,
-      "t": "2026-08-30T02:54",
-      "a": "ai",
-      "id": "KAN-034.5-0RGSQM",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "배치4 종료(2026-08-29) — S6 subarraySumEqualsK · S10 insertionSort · S16 dfsAllPaths · S24 minMaxPair 넷을 닫았다(16/24). 스캐너가 편마다 0 이고 ci.ts all 통과(단계 15). .mdx 95→91 · guide-rhythm 89→85 · W1 14/26→18/26. advanced 카테고리 마감, keyValue 단독 뷰 선례 여섯을 minMaxPair sim.ts 헤더에 세웠다. purpose.alt 생략이 여섯째·일곱째이고 minMaxPair 가 새 조합 — 부류 ①과 ③이 한 편에서 함께 났다. FEEDBACK §3 대조를 워커 절차로 넣자 스캐너 통과 원고에서 결함 셋이 나왔다(기호 충돌 · 그림 열 어긋남 둘). 별건 적발 — check 마커 id 에 하이픈을 쓰면 build-html 이 실패하고 v2 편 9개가 그 상태인데 ci.ts 가 build-html 을 안 불러 강제 지점이 없다.",
-      "after": "배치5 종료(2026-08-30) — S7 diffArrayRangeUpdate · S11 countingSort · S17 countIslands · S19 kadane 넷을 닫았다(20/24). 스캐너가 편마다 0 이고 build-html 도 편마다 0, ci.ts all 통과(단계 15). .mdx 91→87 · guide-rhythm 85→82 · W1 18/26→22/26. graph 카테고리 마감. 도구가 낸 claim 후보가 3건이라(array 에서 kadane 가 같은 카테고리 후속으로 막힘) 병렬 폭을 3 으로 낮추고 S7 종료 후 S19 를 같은 배치 안에서 이어 돌렸다 — 배치 경계는 넷 그대로. 인바운드 확인을 grep 으로 하다 countingSort←radixSort 링크를 놓쳐 삭제 뒤에 깨졌고, 카드 「검증」 절에 check-links refs 를 강제 지점으로 박았다. kadane 소멸로 예시 포인터 둘(.claude/authoring/paths.json · tools/ord004-regen.workflow.mjs)을 convexHull 로 옮겼다 — KAN-034 S2 가 mosAlgorithm 소멸 때 kadane 로 옮긴 자리와 같다. 배치4 가 적어 둔 build-html 결함 9편은 그대로이고 원인이 하나가 아니다 — 마커 id 하이픈 말고 viz·proof 마커 배치와 짝 없는 닫기도 있다."
-    },
-    {
-      "seq": 183,
-      "t": "2026-08-29T22:47",
-      "a": "ai",
-      "id": "KAN-034.5-0RGSQM",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "배치3 종료(2026-08-29) — S3 ternarySearch · S5 prefixSumRangeQuery · S15 dfsTraversal · S22 coinChangeWays 넷을 닫았다(12/24, 절반). 스캐너가 편마다 0 이고 ci.ts all 통과(단계 15). 링크 300건 실재. .mdx 99→95 · guide-rhythm 93→89 · W1 10/26→14/26. binary-search 카테고리 마감. purpose.alt 생략이 넷째·다섯째이고 dfsTraversal 은 새 부류 — 절차가 유일해 경쟁 설계를 세울 수 없다. .mdx 삭제가 아직 v1 인 편의 인바운드 상호 링크를 깨는 것이 처음 드러나 둘(knuthOptimization · dfsAllPaths)을 함께 고쳤다.",
-      "after": "배치4 종료(2026-08-29) — S6 subarraySumEqualsK · S10 insertionSort · S16 dfsAllPaths · S24 minMaxPair 넷을 닫았다(16/24). 스캐너가 편마다 0 이고 ci.ts all 통과(단계 15). .mdx 95→91 · guide-rhythm 89→85 · W1 14/26→18/26. advanced 카테고리 마감, keyValue 단독 뷰 선례 여섯을 minMaxPair sim.ts 헤더에 세웠다. purpose.alt 생략이 여섯째·일곱째이고 minMaxPair 가 새 조합 — 부류 ①과 ③이 한 편에서 함께 났다. FEEDBACK §3 대조를 워커 절차로 넣자 스캐너 통과 원고에서 결함 셋이 나왔다(기호 충돌 · 그림 열 어긋남 둘). 별건 적발 — check 마커 id 에 하이픈을 쓰면 build-html 이 실패하고 v2 편 9개가 그 상태인데 ci.ts 가 build-html 을 안 불러 강제 지점이 없다."
-    },
-    {
-      "seq": 182,
-      "t": "2026-08-29T18:53",
-      "a": "ai",
-      "id": "KAN-034.5-0RGSQM",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "배치2 종료(2026-08-29) — S8 maxCounters · S2 parametricBinarySearch · S14 connectedComponents · S9 sortArray 넷을 닫았다(8/24). 스캐너가 편마다 0 이고 ci.ts all 통과(단계 15). 링크 288건 실재. .mdx 103→99 · guide-rhythm 97→93 · W1 6/26→10/26. purpose.alt 생략이 maxCounters 에서 세 번째로 돌았고 사유 부류가 하나 늘었다(대조할 경쟁 설계 자체가 없다). 배치1 이 FEEDBACK.md §4 표에 잘못 넣은 판정 4행을 §5 로 옮겼다. 다음은 배치3(ternarySearch·prefixSumRangeQuery·dfsTraversal·coinChangeWays)",
-      "after": "배치3 종료(2026-08-29) — S3 ternarySearch · S5 prefixSumRangeQuery · S15 dfsTraversal · S22 coinChangeWays 넷을 닫았다(12/24, 절반). 스캐너가 편마다 0 이고 ci.ts all 통과(단계 15). 링크 300건 실재. .mdx 99→95 · guide-rhythm 93→89 · W1 10/26→14/26. binary-search 카테고리 마감. purpose.alt 생략이 넷째·다섯째이고 dfsTraversal 은 새 부류 — 절차가 유일해 경쟁 설계를 세울 수 없다. .mdx 삭제가 아직 v1 인 편의 인바운드 상호 링크를 깨는 것이 처음 드러나 둘(knuthOptimization · dfsAllPaths)을 함께 고쳤다."
-    },
-    {
-      "seq": 181,
-      "t": "2026-08-29T17:23",
-      "a": "ai",
-      "id": "KAN-034.5-0RGSQM",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "배치1 종료(2026-08-29) — S1 binarySearch · S4 longestSubarrayAtMostSum · S13 bfsShortestPath · S18 nQueens 넷을 닫았다(4/24). 스캐너 넷이 편마다 0 이고 ci.ts all 통과. 링크 279건 실재. guide-rhythm 101→97 · W1 2/26→6/26. 다음은 배치2(maxCounters·parametricBinarySearch·connectedComponents·sortArray)",
-      "after": "배치2 종료(2026-08-29) — S8 maxCounters · S2 parametricBinarySearch · S14 connectedComponents · S9 sortArray 넷을 닫았다(8/24). 스캐너가 편마다 0 이고 ci.ts all 통과(단계 15). 링크 288건 실재. .mdx 103→99 · guide-rhythm 97→93 · W1 6/26→10/26. purpose.alt 생략이 maxCounters 에서 세 번째로 돌았고 사유 부류가 하나 늘었다(대조할 경쟁 설계 자체가 없다). 배치1 이 FEEDBACK.md §4 표에 잘못 넣은 판정 4행을 §5 로 옮겼다. 다음은 배치3(ternarySearch·prefixSumRangeQuery·dfsTraversal·coinChangeWays)"
     }
   ],
   "layout": 2
