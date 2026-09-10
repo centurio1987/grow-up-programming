@@ -15,6 +15,7 @@ import {
   hasFigure,
   normalizeCode,
   parseSim,
+  skipNotes,
 } from "./check-v2.ts";
 import { parseSections } from "./section.ts";
 
@@ -1195,4 +1196,115 @@ test("P16 — 정본이 없으면 미실행이다 (값을 지어내 판정을 �
   const text = PASSING;
   const before = check({ text, sim: SIM, bench: { 비교: 34 } });
   expect(before.filter((f) => f.code === "P16")).toEqual([]);
+});
+
+// ── CLI 경로 (2026-09-10 `KAN-034.9` `S1`) ────────────────────────────────────
+//
+// **이 시험들이 없어서 `A1` 이 안 잡혔다.** 위의 시험 전부가 `check()` 를 직접 부르는데,
+// 결함은 `check()` 가 아니라 **CLI 가 무엇을 실어 주는가**에 있었다 — 단일 대상 분기가
+// `.ref.ts` 를 안 실은 채 「P1~P16 통과」를 찍었고, 함수 시험은 그것을 볼 수 없다.
+// 그래서 여기서는 **프로세스를 실제로 띄우고 `--json` 으로 판정 코드를 받는다.**
+//
+// 사람이 읽는 줄에서 `"P16"` 을 찾는 것으로는 부족하다 — **미실행 안내에도 그 글자가 있어서**
+// `.ref.ts` 를 안 실어도 그 검사가 통과한다(이 시험을 처음 짤 때 실제로 그랬다).
+
+const root = new URL("..", import.meta.url).pathname;
+
+async function runCli(
+  args: string[],
+): Promise<{ code: number; out: string; err: string }> {
+  const proc = Bun.spawn(["bun", "run", "tools/check-v2.ts", ...args], {
+    cwd: root,
+    stdout: "pipe",
+    stderr: "pipe",
+  });
+  const [out, err, code] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+    proc.exited,
+  ]);
+  return { code, out, err };
+}
+
+/**
+ * 통과 표본을 임시 자리에 놓고 사이드카를 원하는 대로 붙인 뒤 CLI 를 돌린다.
+ * **표본이 `PASSING` 인 것이 중요하다** — 골격이 성한 원고여야 걸린 위반이
+ * 심어 둔 그것 하나로 좁혀진다.
+ */
+async function cliOn(
+  sidecars: Record<string, string>,
+  args: string[] = [],
+): Promise<{ code: number; findings: { code: string }[]; missing: string[] }> {
+  const dir = `${root}tools/_scratch/cli-${crypto.randomUUID()}`;
+  await Bun.$`mkdir -p ${dir}`.quiet();
+  try {
+    await Bun.write(`${dir}/x-guide.md`, PASSING);
+    for (const [ext, body] of Object.entries(sidecars)) {
+      await Bun.write(`${dir}/x-guide.${ext}`, body);
+    }
+    const r = await runCli(["--json", ...args, `${dir}/x-guide.md`]);
+    const parsed = JSON.parse(r.out) as {
+      findings: { code: string }[];
+      missing: string[];
+    };
+    return { code: r.code, ...parsed };
+  } finally {
+    await Bun.$`rm -rf ${dir}`.quiet();
+  }
+}
+
+/** 본문 「전체 코드」에 없는 줄이 하나 더 있는 정본 — P16 이 돌면 반드시 잡는다. */
+const REF_MISMATCH =
+  "export type Op = { t: string };\n" +
+  "export function pair(xs: number[], t: number) {\n" +
+  "  if (sum < t) l++;\n" +
+  "  else r--;\n" +
+  "  return xs.length;\n" +
+  "}\n";
+
+test("CLI — 단일 대상이 `.ref.ts` 를 싣는다 (P16 이 실제로 돈다)", async () => {
+  const r = await cliOn({ "ref.ts": REF_MISMATCH });
+  // 안 실으면 findings 가 비고 exit 0 이 된다. 그것이 A1 이었다.
+  expect(r.findings.map((f) => f.code)).toContain("P16");
+  expect(r.missing).not.toContain("ref");
+  expect(r.code).toBe(1);
+});
+
+test("CLI — 정본과 본문이 같으면 P16 이 안 걸린다 (넓힌 쪽의 오탐 시험)", async () => {
+  const same =
+    "export function pair(xs: number[], t: number) {\n" +
+    "  if (sum < t) l++;\n" +
+    "  else r--;\n" +
+    "  return xs.length;\n" +
+    "}\n";
+  const r = await cliOn({ "ref.ts": same });
+  expect(r.findings.map((f) => f.code)).not.toContain("P16");
+});
+
+test("CLI — 사이드카가 없으면 통과가 아니라 미실행이다", async () => {
+  const r = await cliOn({});
+  // 셋 다 없으니 셋 다 미실행으로 서야 한다. 여기가 비면 화면이 「16개를 다 봤다」로 읽힌다.
+  expect(r.missing.sort()).toEqual(["bench", "ref", "sim"]);
+  expect(r.findings.map((f) => f.code)).not.toContain("P16");
+});
+
+test("CLI — 사람이 읽는 화면에도 건너뛴 검사가 적힌다", async () => {
+  const dir = `${root}tools/_scratch/cli-${crypto.randomUUID()}`;
+  await Bun.$`mkdir -p ${dir}`.quiet();
+  try {
+    await Bun.write(`${dir}/x-guide.md`, PASSING);
+    const r = await runCli([`${dir}/x-guide.md`]);
+    expect(r.out).toContain("P16 정본 대조는 실행되지 않았다");
+    expect(r.out).toContain("P10 은 실행되지 않았다");
+  } finally {
+    await Bun.$`rm -rf ${dir}`.quiet();
+  }
+});
+
+test("건너뛴 안내는 없는 것만 적는다", () => {
+  expect(skipNotes([])).toEqual([]);
+  expect(skipNotes(["ref"])).toHaveLength(1);
+  expect(skipNotes(["ref"])[0]).toContain("P16");
+  // 순서는 실행 순서(sim → bench → ref)를 따른다.
+  expect(skipNotes(["ref", "sim"])[0]).toContain("P3");
 });

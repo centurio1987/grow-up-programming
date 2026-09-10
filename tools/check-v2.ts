@@ -1544,11 +1544,25 @@ function norm(s: string): string {
 /* ────────────────────────── CLI ────────────────────────── */
 
 /** 파일 하나를 재고 위반 수를 돌려준다. `--all` 이 편마다 이것을 부른다. */
-async function checkOne(target: string, json: boolean): Promise<number> {
+/**
+ * 편 하나를 잰다. **단일 대상 CLI 도 이 함수를 지난다** — 예전에는 `import.meta.main`
+ * 안에 같은 일이 한 벌 더 적혀 있었고, 그쪽만 `.ref.ts` 를 안 실은 채
+ * 「P1~P16 통과」를 찍었다(`KAN-034.9` `A1`). 같은 일을 두 자리에 적으면 한쪽만
+ * 갱신되므로, 실을 것이 늘어도 고칠 자리는 여기 하나다.
+ *
+ * `notes` 는 **사이드카가 없어 건너뛴 검사**를 화면에 적을지다. 단일 대상이면 켜고
+ * `--all` 이면 끈다 — 111편 × 세 줄이면 통과 화면이 안내로 덮인다(`--all` 은 대신
+ * 끝에서 편 수로 요약한다).
+ */
+async function checkOne(
+  target: string,
+  json: boolean,
+  notes = false,
+): Promise<{ bad: number; missing: string[] }> {
   const file = Bun.file(target);
   if (!(await file.exists())) {
     console.error(`대상이 없다: ${target}`);
-    return 1;
+    return { bad: 1, missing: [] };
   }
   const text = await file.text();
   const stem = basename(target).replace(/\.md$/, "");
@@ -1559,19 +1573,45 @@ async function checkOne(target: string, json: boolean): Promise<number> {
   if (await simFile.exists()) input.sim = await simFile.text();
   if (await benchFile.exists()) input.bench = await benchFile.json();
   if (await refFile.exists()) input.ref = await refFile.text();
+
+  // 없어서 **건너뛴** 것이지 통과한 것이 아니다. 셋을 같은 자리에서 세어 두면
+  // 새 사이드카가 늘 때 안내를 빠뜨릴 자리가 없다.
+  const missing: string[] = [];
+  if (input.sim === undefined) missing.push("sim");
+  if (input.bench === undefined) missing.push("bench");
+  if (input.ref === undefined) missing.push("ref");
+
   const findings = check(input);
   if (json) {
-    console.log(JSON.stringify({ target, findings }, null, 2));
+    console.log(JSON.stringify({ target, findings, missing }, null, 2));
   } else if (findings.length === 0) {
     console.log(`${target} — P1~P16 통과.`);
+    if (notes) for (const line of skipNotes(missing)) console.log(`  ${line}`);
   } else {
     console.error(`${target} — 위반 ${findings.length}건.`);
     for (const f of findings) {
       console.error(`  [${f.code}] ${f.where ?? ""}`);
       console.error(`    ${f.detail}`);
     }
+    if (notes)
+      for (const line of skipNotes(missing)) console.error(`  ${line}`);
   }
-  return findings.length === 0 ? 0 : 1;
+  return { bad: findings.length === 0 ? 0 : 1, missing };
+}
+
+/** 사이드카가 없어 건너뛴 검사를 사람이 읽는 줄로. 없는 것이 없으면 빈 배열이다. */
+export function skipNotes(missing: string[]): string[] {
+  const has = new Set(missing);
+  const out: string[] = [];
+  if (has.has("sim"))
+    out.push(
+      "(참고: `.sim.ts` 가 없어 P3 프레임 대조·P6·P9 는 실행되지 않았다)",
+    );
+  if (has.has("bench"))
+    out.push("(참고: `.bench.json` 이 없어 P10 은 실행되지 않았다)");
+  if (has.has("ref"))
+    out.push("(참고: `.ref.ts` 가 없어 P16 정본 대조는 실행되지 않았다)");
+  return out;
 }
 
 if (import.meta.main) {
@@ -1588,7 +1628,21 @@ if (import.meta.main) {
       process.exit(0);
     }
     let bad = 0;
-    for (const t of targets) bad += await checkOne(t, json);
+    const skipped = new Map<string, number>();
+    for (const t of targets) {
+      const r = await checkOne(t, json);
+      bad += r.bad;
+      for (const m of r.missing) skipped.set(m, (skipped.get(m) ?? 0) + 1);
+    }
+    // 편마다 안내를 찍으면 111편 × 세 줄이라 통과 화면이 안내로 덮인다. 대신
+    // **편 수로 한 번** 적는다 — 0 이면 아무 줄도 안 나오는 것이 정상이다.
+    if (!json && skipped.size > 0) {
+      const order = ["sim", "bench", "ref"];
+      const parts = order
+        .filter((k) => skipped.has(k))
+        .map((k) => `${k} ${skipped.get(k)}편`);
+      console.log(`\n사이드카가 없어 건너뛴 검사 — ${parts.join(" · ")}`);
+    }
     process.exit(bad === 0 ? 0 : 1);
   }
 
@@ -1600,43 +1654,12 @@ if (import.meta.main) {
     process.exit(2);
   }
 
-  const file = Bun.file(target);
-  if (!(await file.exists())) {
+  // 대상이 없는 것은 **용법 오류**라 위반(1)이 아니라 2 다. 그 판정만 여기서 하고
+  // 나머지는 `--all` 과 같은 함수를 지난다.
+  if (!(await Bun.file(target).exists())) {
     console.error(`대상이 없다: ${target}`);
     process.exit(2);
   }
-  const text = await file.text();
-
-  const stem = basename(target).replace(/\.md$/, "");
-  const simPath = join(dirname(target), `${stem}.sim.ts`);
-  const benchPath = join(dirname(target), `${stem}.bench.json`);
-  const simFile = Bun.file(simPath);
-  const benchFile = Bun.file(benchPath);
-
-  const input: CheckInput = { text };
-  if (await simFile.exists()) input.sim = await simFile.text();
-  if (await benchFile.exists()) input.bench = await benchFile.json();
-
-  const findings = check(input);
-
-  if (json) {
-    console.log(JSON.stringify({ target, findings }, null, 2));
-  } else if (findings.length === 0) {
-    console.log(`${target} — P1~P16 통과.`);
-    if (input.sim === undefined) {
-      console.log(
-        "  (참고: `.sim.ts` 가 없어 P3 프레임 대조·P6·P9 는 실행되지 않았다)",
-      );
-    }
-    if (input.bench === undefined) {
-      console.log("  (참고: `.bench.json` 이 없어 P10 은 실행되지 않았다)");
-    }
-  } else {
-    console.error(`${target} — 위반 ${findings.length}건.\n`);
-    for (const f of findings) {
-      console.error(`  [${f.code}] ${f.where ?? ""}`);
-      console.error(`    ${f.detail}`);
-    }
-  }
-  process.exit(findings.length === 0 ? 0 : 1);
+  const { bad } = await checkOne(target, json, true);
+  process.exit(bad === 0 ? 0 : 1);
 }
