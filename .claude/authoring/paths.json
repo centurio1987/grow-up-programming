@@ -3,7 +3,8 @@
   "_note": "경로·명령 바인딩. spec 은 논리(항목·작성법·원칙·퍼소나)만 담고, 물리적 위치와 실행 명령은 전부 여기 모은다. 같은 spec 을 다른 프로젝트에서 쓰려면 이 파일만 갈아 끼우면 된다.",
   "dirs": {
     "content": "src/<유형>/<문제명>",
-    "index": "문제_가이드_목록.md"
+    "index": "문제_가이드_목록.md",
+    "report": "KANBAN.reports"
   },
   "templates": {
     "algo-guide-canvas": ".claude/skills/guide-for-problem/algorithm-guide-canvas.md",

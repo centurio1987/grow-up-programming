@@ -1,0 +1,49 @@
+{
+  "$schema": "authoring-kit/spec@1",
+  "schema_version": 1,
+  "id": "kanban-report",
+  "label": "칸반 계획 리포트",
+  "version": "1.0.0",
+  "source": {
+    "origin": "authored",
+    "refs": [
+      "manage-kanban SKILL.md §4.7 착수 전 계획 — 전략 → WBS → 배치",
+      "manage-kanban scripts/kanban.py report-data — 이 글의 유일한 사실 입력",
+      "manage-kanban scripts/report.py — 렌더러(차트·표는 렌더러가 그린다)"
+    ],
+    "note": "문체 축은 여기 선언하지 않는다 — register·rhythm·device·lexicon 은 L1(voice) 소유이고, evidence·grammar·comprehension 은 L0 불가침이다. 이 명세는 structure 와 scope-principle 만 갖는다."
+  },
+  "voice": {
+    "default": "ppangtolab-teacher",
+    "allowed": ["ppangtolab-teacher", "ppangtolab-researcher", "yundeok"]
+  },
+  "sections": [
+    { "id": "summary",   "label": "이 카드가 무엇을 끝내려는가", "required": true,  "order": 10, "heading_fixed": false },
+    { "id": "strategy",  "label": "왜 이 접근인가",             "required": true,  "order": 20, "heading_fixed": false },
+    { "id": "wbs",       "label": "무엇을 어떤 순서로",          "required": true,  "order": 30, "heading_fixed": false },
+    { "id": "batches",   "label": "두 가지 수행안",             "required": true,  "order": 40, "heading_fixed": false },
+    { "id": "risk",      "label": "막힐 만한 지점",             "required": true,  "order": 50, "heading_fixed": false },
+    { "id": "done",      "label": "무엇이 되면 끝인가",          "required": true,  "order": 60, "heading_fixed": false }
+  ],
+  "principles": [
+    { "code": "KR1", "level": "MUST", "axis": "comprehension",
+      "text": "독자는 이 카드를 처음 보는 사람이다. 카드 id·work id·배치 번호를 처음 쓸 때 그 자리에서 한 번 푼다" },
+    { "code": "KR2", "level": "MUST", "axis": "scope-principle",
+      "text": "report-data JSON 에 없는 사실을 쓰지 않는다. 소요 시간·인원·비용을 추정해 적지 않는다 — 그 값은 어디에도 측정된 적이 없다" },
+    { "code": "KR3", "level": "MUST", "axis": "structure",
+      "text": "두 수행안(단일 에이전트 · 오케스트레이션)을 같은 분량·같은 항목으로 나란히 쓴다. 한쪽을 추천하되 다른 쪽을 축약해 결론을 유도하지 않는다" },
+    { "code": "KR4", "level": "MUST", "axis": "structure",
+      "text": "차트와 표는 렌더러가 그린다. 본문에서 표를 다시 그리지 말고 그 표가 무엇을 말하는지만 쓴다" },
+    { "code": "KR5", "level": "SHOULD", "axis": "scope-principle",
+      "text": "루트 독립성이 깨졌으면 그것을 첫 절에서 말한다. 계획서 뒤쪽에 묻으면 유저가 착수한 뒤에 발견한다" }
+  ],
+  "conditional_rule": "`막힐 만한 지점` 절은 리스크가 없으면 \"확인된 리스크 없음\"과 그 근거 한 줄로 대신할 수 있다. 나머지 다섯 절은 뺄 수 없다.",
+  "template": {
+    "kind": "md",
+    "slot_style": "bracket-inline",
+    "outputs": [{ "format": "md", "dir": "draft" }]
+  },
+  "placeholders": { "profile": "std-v1" },
+  "gate": { "rubric": "default", "max_rounds": 3,
+            "external_review": { "enabled": false, "failure_policy": "soft-fail", "redact": "none" } }
+}
