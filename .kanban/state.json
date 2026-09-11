@@ -717,7 +717,19 @@
       "short": "자료구조 트랙 재설계",
       "short_hash": "a97c7d504bdec171eb40c8dafeb90c3609c6c9ee",
       "purpose": "진행 중인 KAN-027(ORD-006 B군 자료구조 재집필)을 중단하고 자료구조 트랙의 설계를 다시 세운다",
-      "purpose_hash": "0b94039d8a22ff452df83bad63fd5ea0c4ada7c8"
+      "purpose_hash": "0b94039d8a22ff452df83bad63fd5ea0c4ada7c8",
+      "scope": [
+        "docs/**",
+        "sandbox/ds-guide-v2/**",
+        "tools/section.ts",
+        "tools/guide-v2-targets.ts",
+        "tools/check-v2.ts",
+        "tools/check-proof.ts",
+        "tools/guide-core.ts",
+        "src/data-structures/linear/deque/**",
+        "src/data-structures/tree/redBlackTree/**",
+        "src/data-structures/linear/xorLinkedList/**"
+      ]
     }
   },
   "order": [
