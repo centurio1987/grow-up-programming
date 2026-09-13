@@ -26,7 +26,8 @@ import remarkMath from "remark-math";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
 import { unified } from "unified";
-import { parseSections } from "./section.ts";
+import { kindOfOr } from "./guide-v2-targets.ts";
+import { type GuideKind, parseSections } from "./section.ts";
 
 const REPO = resolve(import.meta.dir, "..");
 
@@ -57,8 +58,11 @@ export interface RailEntry {
  * 가리킨다** — 깨진 링크보다 나쁘다(눌러 보기 전까지 모른다). 모르는 헤딩은 `sec-{n}` 을
  * 주고 레일에는 헤딩 문구를 그대로 적는다.
  */
-export function railFrom(md: string): { anchors: string[]; rail: RailEntry[] } {
-  const { sections, unresolved } = parseSections(md);
+export function railFrom(
+  md: string,
+  kind: GuideKind = "algo",
+): { anchors: string[]; rail: RailEntry[] } {
+  const { sections, unresolved } = parseSections(md, kind);
   const all = [
     ...sections.map((sec) => ({
       line: sec.line,
@@ -559,9 +563,12 @@ export interface BuildResult {
 
 export async function build(
   mdPath: string,
-  opts: { simPath?: string } = {},
+  opts: { simPath?: string; kind?: GuideKind } = {},
 ): Promise<BuildResult> {
   const md = await Bun.file(mdPath).text();
+  // 골격은 경로가 정한다. 스모크 표본은 두 트랙 밖이라 `algo` 로 떨어진다 — 그 표본이
+  // algo 골격으로 쓰여 있기 때문이고, ds 표본을 들일 때는 `opts.kind` 로 넘긴다.
+  const kind = opts.kind ?? kindOfOr(mdPath, "algo");
   const problems: string[] = [];
   let vizIds: string[] = [];
 
@@ -584,7 +591,7 @@ export async function build(
   };
 
   // 레일은 **md 원문**에서 계산한다. 마커를 접은 뒤의 트리에는 절 id 정보가 없다.
-  const { anchors, rail } = railFrom(md);
+  const { anchors, rail } = railFrom(md, kind);
 
   /**
    * hast 의 `h1`~`h6` 에 순서대로 앵커 id 를 단다.

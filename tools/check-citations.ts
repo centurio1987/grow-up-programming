@@ -33,6 +33,9 @@ const SCAN_GLOBS = [
   "src/algorithms",
   "src/data-structures",
   "rust",
+  // 두 v2 명세가 여기 산다. 안 넣으면 **명세가 건 `경로:줄번호` 를 아무도 안 본다** —
+  // ds SPEC 이 ORD-006 규약을 줄 번호로 인용하는데 그 줄이 밀려도 조용하다.
+  "sandbox",
 ];
 
 const SCAN_EXTENSIONS = [".md", ".mdx", ".ts", ".rs"];

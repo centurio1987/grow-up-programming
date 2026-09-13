@@ -398,7 +398,7 @@
 `binarySearch-guide.md:523` 은 `┘` 가 32열·첫 「거짓」이 34열이라 **경계선상**이라 한 번 봐야 한다.
 
 **`<!--check:{id}-->` 의 id 에 하이픈을 쓰면 `build-html` 이 실패한다 — v2 편 9개가 그 상태다
-(2026-08-29, 배치4 `minMaxPair` 발견).** `tools/build-html.ts:157` 의
+(2026-08-29, 배치4 `minMaxPair` 발견).** `tools/build-html.ts:161` 의
 `CHECK_OPEN = /^<!--check:([A-Za-z_$][\w$]*)-->$/` 가 하이픈을 안 받아 여는 마커가 안 잡히고
 닫는 `<!--/check-->` 만 남아 `짝 없는 <!--/check-->` 로 exit 1 이 된다. 그러면 `selfcheck` 의
 답이 `<details>` 로 안 접혀 **`L19`(웹 동등성)가 인정하는 md↔web 차이 하나가 조용히 성립하지

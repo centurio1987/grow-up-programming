@@ -263,7 +263,7 @@ test("절 식별 — 모르는 헤딩은 에러이고, 나머지 판정은 멈�
 });
 
 test("절 식별 — deep.walk.step 은 잔여로 여럿 잡힌다", () => {
-  const { sections, unresolved } = parseSections(PASSING);
+  const { sections, unresolved } = parseSections(PASSING, "algo");
   expect(unresolved).toEqual([]);
   expect(
     sections.filter((s) => s.id === "deep.walk.step").map((s) => s.heading),
@@ -1420,7 +1420,7 @@ const guideWith = (code: string): string =>
   `#### 4. 전체 코드\n\n\`\`\`ts\n${code}\n\`\`\`\n`;
 
 const refFindings = (code: string) =>
-  finalCodeMatchesRef(parseSections(guideWith(code)).sections, REF);
+  finalCodeMatchesRef(parseSections(guideWith(code), "algo").sections, REF);
 
 test("P16 — 정본을 그대로 옮겼으면 안 걸린다", () => {
   expect(
@@ -1473,6 +1473,7 @@ test("P16 — 정본에 있는 최상위 선언을 원고가 빠뜨리면 걸린
   const findings = finalCodeMatchesRef(
     parseSections(
       guideWith("export function twoSum(): number {\n  return 0;\n}"),
+      "algo",
     ).sections,
     "export type Op = { t: string };\nexport function twoSum(): number {\n  return 0;\n}\n",
   );
