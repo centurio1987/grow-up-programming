@@ -637,7 +637,7 @@ const overwrite = await loadMutant<XorModule>(REF_PATH, {
 const neutral = (m: XorModule): boolean => m.XorLinkedList === XorLinkedList;
 
 /**
- * 붙이기 열 여러 벌을 정본과 변이에 걸고, 붙인 뒤 부르는 호출마다 한 줄씩 낸다. 변이가 어느
+ * 붙이기 열 여러 벌을 정본과 변이로 실행하고, 붙인 뒤 부르는 호출마다 한 줄씩 낸다. 변이가 어느
  * 줄에서도 값을 안 바꾸면 던진다 — 「깨진다」가 거짓이다.
  */
 function mutantTable(
@@ -1045,7 +1045,7 @@ export const PROOFS: Record<string, () => string> = {
   },
 
   /**
-   * `invariant` ② — 계약 스위트의 경계 입력 전부. 각 입력을 정본에 걸고, 계약의 불변식 검사
+   * `invariant` ② — 계약 스위트의 경계 입력 전부. 각 입력을 정본으로 실행하고, 계약의 불변식 검사
    * 함수 둘을 그대로 부른다. 하나라도 어기면 던진다.
    */
   "invariant-edges": () => {

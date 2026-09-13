@@ -595,7 +595,7 @@ const noReset = await loadMutant<DequeModule>(REF_PATH, {
  */
 const neutral = (m: DequeModule): boolean => m.Deque === Deque;
 
-/** 같은 호출 열을 정본과 변이에 걸고, 값을 내는 호출만 행으로 모은다. */
+/** 같은 호출 열을 정본과 변이로 실행하고, 값을 내는 호출만 행으로 모은다. */
 function versus(
   mutant: DequeModule,
   calls: Call[],
