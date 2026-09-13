@@ -719,6 +719,7 @@
       "purpose": "KAN-027(ORD-006 B군 자료구조 재집필)을 정지하고, 자료구조 가이드 골격을 algo-guide-v2 계승으로 다시 세운다",
       "purpose_hash": "6e0b9a1667288839e88ed57eed1fc3899882dbae",
       "scope": [
+        ".gitignore",
         "docs/**",
         "sandbox/ds-guide-v2/**",
         "sandbox/algo-guide-v2/SPEC.md",
@@ -762,6 +763,7 @@
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
+    "KAN-035-31T4BY",
     "KAN-029",
     "KAN-030",
     "KAN-007",
@@ -798,8 +800,7 @@
     "KAN-034.3-53E4F9",
     "KAN-034.4-4NS63H",
     "KAN-034.9-WHH53W",
-    "KAN-034-KSD7XR",
-    "KAN-035-31T4BY"
+    "KAN-034-KSD7XR"
   ],
   "recent": [
     {
