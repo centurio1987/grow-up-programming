@@ -22,7 +22,6 @@ src/data-structures/heap/priorityQueue/priorityQueue-guide.mdx	5	0
 src/data-structures/heap/vanEmdeBoasTree/vanEmdeBoasTree-guide.mdx	4	0
 src/data-structures/linear/bitArray/bitArray-guide.mdx	5	0
 src/data-structures/linear/circularBuffer/circularBuffer-guide.mdx	5	1
-src/data-structures/linear/deque/deque-guide.mdx	3	0
 src/data-structures/linear/doublyLinkedList/doublyLinkedList-guide.mdx	3	0
 src/data-structures/linear/dynamicArray/dynamicArray-guide.mdx	5	0
 src/data-structures/linear/gapBuffer/gapBuffer-guide.mdx	8	0

@@ -1174,6 +1174,19 @@ export function normalizeCode(src: string): string {
 }
 
 /**
+ * ds 정본에서 **「전체 코드」로 대조할 코드**를 뽑는다 — `guide:core` 구간 **전부**를 등장 순서로.
+ *
+ * 처음에는 `class` 이름 구간 하나만 뽑았다(`KAN-035` `S3`). 파일럿 첫 편 `linear/deque` 에서
+ * 그 가정이 실측과 어긋난 것이 드러났다 — ds 정본 35편 중 **7편은 이름 없는 구간**이라 `class`
+ * 구간이 아예 없고, **20편은 `types` 구간을 따로** 두어 `class` 만 뽑으면 원고의 전체 코드가
+ * 타입 선언만큼 길다고 판정된다. 「전체 코드」는 정본이 가이드에 내놓은 구간 전부이므로, 구간
+ * 이름을 고르지 않는다. 가이드의 펜스도 `#이름` 없이 파일 전체를 가리킨다(`ds SPEC` `L43`).
+ */
+export function dsReferenceCode(source: string, where: string): string {
+  return extract(source, where);
+}
+
+/**
  * P16 (`L9`) — **원고의 전체 코드가 정본(`.ref.ts`)과 같은가.**
  *
  * `SPEC.md` 가 「`<name>-guide.ref.ts` 에서 옮긴다」고 정한 자리인데 **지금까지 어떤 도구도
@@ -1196,7 +1209,10 @@ export function finalCodeMatchesRef(
   const code: string[] = [];
   for (const sec of finals) {
     for (const block of fences(sec.body)) {
-      if (block.lang === "ts" || block.lang === "typescript") {
+      // 정보 문자열의 **첫 낱말**이 언어다. ds 원고는 `ts guide-core=<정본>` 으로 추출 출처를
+      // 함께 적으므로, 문자열 전체를 `ts` 와 견주면 ds 의 전체 코드가 「펜스 없음」으로 걸린다.
+      const lang = block.lang.split(/\s+/)[0];
+      if (lang === "ts" || lang === "typescript") {
         code.push(block.lines.join("\n"));
       }
     }
@@ -2394,7 +2410,7 @@ async function checkOne(
     const refFile = Bun.file(refPath);
     if (await refFile.exists()) {
       try {
-        input.ref = extract(await refFile.text(), refPath, "class");
+        input.ref = dsReferenceCode(await refFile.text(), refPath);
       } catch (error) {
         dsProblems.push(
           error instanceof GuideCoreError

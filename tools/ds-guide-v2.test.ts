@@ -13,7 +13,9 @@
 import { expect, test } from "bun:test";
 import {
   check,
+  dsReferenceCode,
   escalationSection,
+  finalCodeMatchesRef,
   noContractTableCopy,
   operationCoverage,
 } from "./check-v2.ts";
@@ -234,4 +236,70 @@ test("ds 조항은 입력이 없으면 안 돈다 — 미실행과 통과를 가
   const codes = check({ text, kind: "ds" }).map((f) => f.code);
   // contractOps·escalation 을 안 넘겼으므로 P17·P18·P19 는 하나도 안 나온다.
   expect(codes.filter((c) => ["P17", "P18", "P19"].includes(c))).toEqual([]);
+});
+
+/* ─────────────── P16 ds 경로 — 구간 이름을 고르지 않는다 ─────────────── */
+
+/** 전체 코드 절 하나만 가진 최소 원고. 펜스 본문을 넣는다. */
+function finalOnly(code: string): string {
+  return [
+    "# x — y",
+    "## 파트 1 — a",
+    "### 수행으로 알아보는 자료구조 — b",
+    "#### 1. 전체 코드",
+    "```ts guide-core=src/data-structures/linear/x/_reference/x.ts",
+    code,
+    "```",
+  ].join("\n");
+}
+
+const UNNAMED = [
+  "// #region guide:core",
+  "const START = 8;",
+  "export class X {",
+  "  __cost = 0;",
+  "  size(): number {",
+  "    this.__cost += 1;",
+  "    return START;",
+  "  }",
+  "}",
+  "// #endregion",
+].join("\n");
+
+const TYPES_AND_CLASS = [
+  "// #region guide:core/types",
+  "interface Node { v: number }",
+  "// #endregion",
+  "// #region guide:core/class",
+  "export class Y {",
+  "  root: Node | null = null;",
+  "}",
+  "// #endregion",
+].join("\n");
+
+test("P16 ds — 이름 없는 구간만 가진 정본도 추출된다 (linear/deque 가 이 모양이다)", () => {
+  const ref = dsReferenceCode(UNNAMED, "x.ts");
+  expect(ref).toContain("const START = 8;");
+  expect(ref).not.toContain("__cost");
+  const sections = parseSections(finalOnly(ref), "ds").sections;
+  expect(finalCodeMatchesRef(sections, ref)).toEqual([]);
+});
+
+test("P16 ds — types 구간과 class 구간을 둘 다 대조한다", () => {
+  const ref = dsReferenceCode(TYPES_AND_CLASS, "y.ts");
+  expect(ref).toContain("interface Node");
+  expect(ref).toContain("export class Y");
+  // 원고가 class 구간만 실으면 타입 선언이 빠진 것으로 걸린다.
+  const classOnly = [
+    "export class Y {",
+    "  root: Node | null = null;",
+    "}",
+  ].join("\n");
+  const sections = parseSections(finalOnly(classOnly), "ds").sections;
+  const found = finalCodeMatchesRef(sections, ref);
+  expect(found.map((f) => f.code)).toEqual(["P16"]);
+  // 펜스를 못 읽어서가 아니라 **정본과 달라서** 걸려야 한다. `ts guide-core=…` 정보
+  // 문자열을 언어로 못 읽던 때는 여기가 「펜스가 없다」로 걸려 엉뚱한 이유로 통과했다.
+  expect(found[0]?.detail).toContain("정본");
+  expect(found[0]?.detail).not.toContain("펜스가 없다");
 });

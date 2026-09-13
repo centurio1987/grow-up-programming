@@ -4,7 +4,8 @@
 > 골격의 정본은 `spec.json` 의 `sections[]` 이고, 규격의 근거는 code_test 의
 > `docs/ORD-006-conventions.md` §규약3 이다. 캔버스는 이 골격의 렌더 템플릿일 뿐이다.
 > 모범 예시(필독): `paths.json` 의 `exemplars.ds-guide` — 현재
-> `src/data-structures/linear/deque/deque-guide.mdx`(8단계로 쓰인 첫 산출물).
+> `src/data-structures/linear/queue/queue-guide.mdx`. 8단계로 쓰인 첫 산출물 `deque` 는 KAN-035
+> 파일럿에서 v2 골격(`sandbox/ds-guide-v2/SPEC.md`)으로 옮겨져 `.mdx` 가 걷혔다(git 이력에 남는다).
 
 ## 알고리즘 가이드와 무엇이 다른가
 
