@@ -1,6 +1,6 @@
 {
   "next_id": 36,
-  "next_seq": 246,
+  "next_seq": 247,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -703,12 +703,12 @@
       "memo_hash": "a323e2f2982805e64e74ac106bc4025a785123c2"
     },
     "KAN-035-31T4BY": {
-      "col": "backlog",
+      "col": "doing",
       "title": "진행 중인 자료구조 재집필 트랙을 취소하고, 다시 설계",
       "verbatim": "",
       "생성": "유저",
       "최종": "ai",
-      "갱신": "2026-09-11",
+      "갱신": "2026-09-13",
       "title_hash": "5c44cee49f17c49d396f542a948bdff72ee04121",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "memo": "취소 대상은 KAN-027 하나이고 지금 보드에서 유일한 진행 중 카드다. **실측(2026-09-11)**: 69종 중 계약이 선 것 36종(TS 정본 35 + Rust 정본 1 — probabilistic/concurrentSkipList 는 축4라 TS `_reference/` 가 없다), B군은 20종/37종(T1 7/7 트랙 완료 · T2~T5 각 2/N). 트랙과 함께 쌓인 자산이 `docs/ORD-006-conventions.md` 절 110개 · 런북 불변 사실 146건 · 계약 스위트 하네스(`src/data-structures/_contract/`) · CI 3모드 + 게이트 6개 · 언어 중립 vector 27종 · Rust 축4 하네스다. **첫 물음은 취소가 어디까지 무르는가다** — 이미 선 36종까지인지, 규약·하네스까지인지, 남은 22종의 진행 방식만인지. 셋이 서로 다른 카드가 된다. **딸린 카드 넷이 함께 움직인다**: KAN-026(A군 16종)·KAN-028(C군 1종)이 같은 규약을 쓰고, KAN-031(카테고리 재편)은 「69종 계약이 전부 확정된 뒤」가 착수 조건이며, KAN-001(봉인)은 전 30장 완료가 선행조건이라 이 카드가 서면 봉인 조건도 다시 정의된다. **브리프의 이유·목표를 비워 둔 것은 근거가 없어서다** — 왜 지금 접는지와 무엇으로 다시 세울지는 요청서에서 유저가 정한다(`KANBAN.requests/backlog/KAN-035-31T4BY.request.md`).",
@@ -736,7 +736,6 @@
     "KAN-026",
     "KAN-028",
     "KAN-031",
-    "KAN-035-31T4BY",
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
@@ -777,9 +776,20 @@
     "KAN-034.3-53E4F9",
     "KAN-034.4-4NS63H",
     "KAN-034.9-WHH53W",
-    "KAN-034-KSD7XR"
+    "KAN-034-KSD7XR",
+    "KAN-035-31T4BY"
   ],
   "recent": [
+    {
+      "seq": 246,
+      "t": "2026-09-13T16:51",
+      "a": "ai",
+      "id": "KAN-035-31T4BY",
+      "op": "move",
+      "w": "7SA6RM",
+      "from": "backlog",
+      "to": "doing"
+    },
     {
       "seq": 245,
       "t": "2026-09-11T01:58",
@@ -1342,17 +1352,6 @@
       "field": "memo",
       "before": "배치9 종료(2026-09-03) — S20 lowestSetBit · S24 slidingWindowMaximum · S32 matrixChainMultiplication · S39 binomialModP 넷을 닫아 36/41. 편마다 스캐너 넷 0 · guide 테스트 통과 · build-html 0, ci.ts all 통과(단계 16). .mdx 51→47 · guide-rhythm 49→46(slidingWindowMaximum 은 애초에 행이 없다) · check-links 492건 전부 실재 · 인용 249건 전부 실재 · claim 후보 4→3. **array 가 마감됐다** — 남은 카테고리가 dp · bit-manipulation · number-theory 셋이고 그 셋이 배치10 의 work 셋과 정확히 같다(착수 판단에 적은 예측 그대로). **착수 전 실측이 배치와 한 글자도 안 갈렸다** — claim 후보 4건이 배치9 의 넷과 같았고 인바운드도 예측대로 한 자리뿐이었다. **이 카드가 자료구조 트랙을 건드린 첫 배치다** — slidingWindowMaximum 의 인바운드 상호 링크(monotonicQueue-guide.mdx:757)가 scope 밖이라, 고칠 근거(안 고치면 .mdx 삭제 순간 웨이브 종료 기준 「깨진 링크 0」이 무너진다)와 범위(그 한 줄의 확장자뿐)를 배치 문서 §4 에 남기고 카드 scope 에 그 파일을 더했다. **조건부 절은 셋 실은 편 둘 + purpose.alt 생략 둘**이고, 생략 둘 다 경쟁 설계를 실제로 구현해 전수 스윕으로 재고 뺐다(lowestSetBit 은 경쟁 설계 셋을 0<=x<2^16 전수 65,536 개에서 재 뒤집힘 0, matrixChainMultiplication 은 하향식 메모이제이션을 n=2~200 x 차원 모양 4 = 796 칸에서 재 뒤집힘 0). 실은 둘은 경계를 **닫힌 형태로** 냈다 — slidingWindowMaximum 은 9N-4k 대 9N-3k+3-2⌈N/k⌉ 에서 k > √(2N) 을 내고(N=1,024 에서 √2048=45.25, 실측 뒤집힘 k=45), binomialModP 는 정본 4·min(k,n-k)+2(비트 수+1인 비트 수)+2 대 파스칼의 이차 식에서 **상수 항 92 대 24 가 이차 항에 따라잡히는 자리**가 곧 경계임을 냈다. **§3 대조가 166건을 냈다**(binomialModP 58 · matrixChainMultiplication 44 · lowestSetBit 39 · slidingWindowMaximum 25) — 배치6 65 · 배치7 94 · 배치8 116 에 이어 네 배치 합계 441건이고 넷 다 스캐너 넷이 0 을 낸 뒤다. **오케스트레이터 재대조 몫이 6건이고 그중 둘이 스캐너가 구조적으로 못 보는 자리였다** — ① binomialModP 의 자릿수 생성기가 자리를 구분자 없이 이어 붙여 p=11 에서 1,000 의 자리 셋(8·2·10)이 8210 으로 나왔고, 그 표기로 뤼카를 적용하면 답이 0 인데 표는 3 을 적고 있었다. **check-proof 는 같은 생성기의 출력과 대조하므로 생성기가 틀리면 함께 틀린다** — 스캐너 통과가 근거가 안 되는 부류의 첫 실측이다. ② matrixChainMultiplication 의 viz 프레임이 열하나인데 전개는 T1~T12 열둘이고, 한 구간의 두 후보만 묶여 그 프레임만 항목이 다섯 줄이었다(형제는 여덟 줄). 본문이 T8 을 이름으로 짚는데 화면에 T8 이 없었다. 나머지 넷은 유도 단계가 안 이어지는 자리 하나 · 같은 걸음 묶음이 두 뜻을 갖던 것 하나 · **동률을 뒤집힘이라 적어 L34 의 근거가 스스로 약해지던 것** 하나 · 표는 다섯 줄인데 각주가 여섯 모양을 말하던 것 하나다. **1차 출처 대조를 오케스트레이터가 직접 했다** — lowestSetBit 의 셋(OpenJDK Integer.lowestOneBit jdk-21+35:1616 · PostgreSQL bitmapset.c REL_16_1:50·:52·:706 · Linux is_rlwinm_mask_valid v6.6:85)을 원문에서 내려받아 인용문·줄 위치·주변 코드까지 맞음을 확인했다. **학습자 스텁 트랙 불가침 규약을 네 편 전부 지켰고 통합 검토 몫이 넷 늘었다** — 기댓값 오류 하나(matrixChainMultiplication.test.ts:50-51 이 dims=[1,1,1,1,1] 을 0 이라 단언하는데 정답 3, 정본으로 실행해 확인)와 벽시계 성능 케이스 셋(lowestSetBit·binomialModP·slidingWindowMaximum), 문제 문서 내부 모순 둘(binomialModP 의 k 제약 두 줄 · slidingWindowMaximum 의 스토리와 문제 상세가 답을 붙이는 끝이 반대). 누적 일곱이다. **배치8 이 메모에만 남긴 스크래치패드 규칙을 강제 지점으로 옮겼다** — 형제 워커가 최상위에서 같은 파일명을 써 서로를 덮는 사고가 **이번에도 실제로 났고**(matrixChainMultiplication 워커가 남의 편 증명 블록을 출력받았다), 배치 도중 워커 셋에 메시지로 보낸 뒤 배치9·10·11 문서 §2 에 문장을 박았다. 셋 다 옮긴 자리에서 재측정해 값이 그대로임을 보고했다. **L37 레일은 이 배치도 실렌더 미확인이다**(배치4~8 과 같은 상태)",
       "after": "배치10 종료(2026-09-03) — S36 matrixPowerFibonacci · S33 palindromePartitioningMinCut · S40 sieveOfEratosthenes 셋을 닫아 39/41. 편마다 스캐너 넷 0 · guide 테스트 통과 · build-html 0 · tsc 0, ci.ts all 통과(단계 16). .mdx 47→44 · guide-rhythm 46→43 · check-links 510건 전부 실재 · claim 후보 3→2. **bit-manipulation 이 마감됐다** — 남은 카테고리가 dp · number-theory 둘이고 그 둘이 배치11 의 work 둘(S34 digitDp · S41 isPrimeTrial)과 정확히 같다. **착수 전 실측이 배치와 한 글자도 안 갈렸다** — claim 후보 3건이 배치10 의 셋과 같았고 인바운드 상호 링크는 셋 다 0건이었다(배치9 가 예측한 그대로다). **워커 셋이 세션 사용량 한도로 §3 대조 앞뒤에서 한꺼번에 끊겼다** — 원고를 다시 쓰지 않고 오케스트레이터가 파일로 실측한 상태(줄 수·사이드카 목록·.mdx 존재 여부·check-v2 위반 2건)를 각 워커에 넣어 이어 붙였다. 재개가 재집필이 되지 않은 것이 요점이다. **조건부 절은 purpose.alt 생략 둘 + 실은 것 하나**다. 생략 둘 다 경쟁 설계를 실제로 구현해 전수 스윕으로 재고 뺐다 — palindromePartitioningMinCut 은 중심 확장을 다섯 입력 계열 x 다섯 규모 25칸 전수에서 재 뒤집힘 0 이고 산술로도 안 뒤집히며(중심 확장 계수 상한 2.5n^2 대 표 방식 하한 3n^2), matrixPowerFibonacci 는 배가 공식을 n=1~8,192 전수 스윕에서 재 행렬 쪽이 적은 자리가 곱셈 0개·자릿수 곱 0개다. **matrixPowerFibonacci 가 부류 ①+②+③ 을 한 편에서 함께 낸 첫 자리다** — 지금까지 §5 에 선 조합은 ①+② 와 ①+③ 둘뿐이었다. 실은 하나(sieveOfEratosthenes)는 경계를 **닫힌 형태로** 냈다 — 잡는 칸 축에서 조각 쪽이 ⌊√n⌋+1 + π(⌊√n⌋) + 1,024 라 n=1,067 에 1,068 대 1,068 로 정확히 같다가 n=1,068 에서 갈리고, alt.ts 의 flipPoint() 가 2~4,000 을 재서 그 자리를 실행 시점에 검증한다. **§3 대조가 79건을 냈다**(matrixPowerFibonacci 36 · sieveOfEratosthenes 29 · palindromePartitioningMinCut 14) — 배치6 65 · 7 94 · 8 116 · 9 166 에 이어 다섯 배치 합계 520건이고 셋 다 스캐너 넷이 0 을 낸 뒤다. 이 배치가 새로 보여 준 것 셋이다 — ① **어휘가 절차와 반대인 채로 전 문서에 굳는다.** sieveOfEratosthenes 는 산문이 시종 「적는다」인데 표·그림이 전부 「지우기」였고, 이 절차는 아무것도 지우지 않고 false→true 로 적는다. 고치는 자리가 원고 한 곳이 아니라 proof.ts 17자리였고 원고의 증명 펜스 21개를 사이드카 출력으로 재생성해야 닫혔다. ② **손으로 적은 전수 열거가 원소를 빠뜨린다.** palindromePartitioningMinCut 의 D(4) 가 유효 원소 넷 중 셋만 적고 C(4)=min(2,3,5)−1 이라 썼다 — 실행 블록으로 대체해 열거가 기계에서 나오게 하는 것이 유일한 해법이었다. ③ **ASCII 열 정렬은 눈으로 안 잡힌다.** matrixPowerFibonacci 에서 폭을 CJK 2칸으로 세고 열 시작 위치를 견주는 검사기를 만들어 10곳을 잡았고 최대 3칸까지 어긋나 있었으며, sieveOfEratosthenes 도 같은 방식으로 수 격자 넷을 자리↔적힘↔담김으로 대조했다. **이 검사는 편마다 손으로 짜는 것보다 도구로 승격할 값이 있다** — FEEDBACK §5 에 KAN-034.8 이나 후속 카드의 후보로 남겼다. **스캐너 규칙 결함이 하나 나왔다** — tools/check-v2.ts:428 의 얹[는어을] 이 리터럴 나열이라 「얹히는」이 P2 와 check-metaphor 를 둘 다 통과한다. 되돌리- 때와 같은 활용형 누락이고 같은 부류가 이것으로 네 번째다. 원고는 고쳤고 tools/ 는 scope 밖이라 안 건드렸다. **학습자 스텁 트랙 불가침 규약을 셋 다 지켰고 통합 검토 몫이 둘 늘어 누적 아홉이다** — palindromePartitioningMinCut.test.ts:63-68 이 \"ab\".repeat(1000) 의 답을 s.length-1=1999 로 걸었는데 자리 1 부터 끝까지가 통째로 회문이라 정답은 1 이고(실행으로 확인), matrixPowerFibonacci.test.ts:68·74-75 의 n=10^18 케이스 둘은 F(10^18) 이 208,987,640,249,978,734 자리(약 86.8PB)라 어떤 구현으로도 통과할 수 없다 — O(log n) 을 재려던 케이스인데 재는 대상이 걸음 수가 아니라 결과값 생성이라 성립하지 않는다. 부수 실측 — 이 런타임(Bun/JSC)에서 정본이 답을 내는 가장 큰 n 은 1,048,575 이고 1,048,576 부터 bigint 곱셈이 RangeError 로 멈춘다. **L37 레일은 이 배치도 실렌더 미확인이다**(배치4~9 와 같은 상태)"
-    },
-    {
-      "seq": 196,
-      "t": "2026-09-03T12:08",
-      "a": "ai",
-      "id": "KAN-034.6-CF6ZHE",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "배치8 종료(2026-09-03) — S27 isBipartite · S21 searchInRotatedSortedArray · S23 largestRectangleInHistogram · S30 treeMaxIndependentSet 넷을 닫아 32/41. 편마다 스캐너 넷 0 · guide 테스트 통과 · build-html 0, ci.ts all 통과(단계 16). .mdx 55→51 · guide-rhythm 53→49 · check-links 478건 전부 실재 · claim 후보 6→4. **graph-flow 와 binary-search 가 마감됐다** — 남은 넷은 bit-manipulation · array · dp · number-theory 다. **세션 한도로 워커 넷이 한 번 죽었다가 이어받았다** — 넷 다 .ref.ts 까지 쓰고 끊겨서, 그 파일을 지우지 않고 새 워커에게 「남이 쓴 것이니 검토부터 하라」로 넘겼다. 그 검토가 값을 냈다 — largestRectangleInHistogram 은 JSDoc 이 두 경계를 「양쪽에서 엄격하게 낮은」이라 적었는데 왼쪽은 「이하」였고([7 7 7 7] 에서 자리 0 이 폭 4 를 받는 것이 증거) 반환 줄 주석의 「보초가 통을 비웠으므로」도 거짓이었다(보초 걸음이 자기 자리 n 을 넣는다). **계산은 맞고 설명만 틀린 자리라 코드만 보면 안 보인다.** searchInRotatedSortedArray 는 반대로 로직이 정확해 한 줄도 안 고쳤고, 길이 1~9 의 모든 회전 × 모든 target 660짝 전수로 A[lo] <= A[mid] 의 등호가 필요한 이유까지 값으로 냈다(등호를 빼면 660 중 8 이 어긋나고 여덟 다 target 이 최솟값일 때). isBipartite·treeMaxIndependentSet 은 규격에 맞아 주석·포맷만 손봤다. **matrix+tree 뷰 조합의 첫 편(S30)이 규약 넷을 세웠다** — ① 둘 다 view 에 넣고 extraViews 는 비운다(extraViews 는 VIEW_REGISTRY 에 없는 새 이름을 끼우는 자리이고 프리셋과 겹치면 던진다. **조합이 처음이라는 것이 새 컴포넌트가 필요하다는 뜻이 아니다**) ② keyValue 를 쓰지 않는다(표가 그 몫을 진다 — 상태가 「노드마다 네 값」이라 행=노드·열=값 이름인 표 하나에 다 들어가고, 세 뷰면 같은 값이 두 패널에 나온다) ③ 트리 노드와 표 행을 잇는 것은 라벨 문자열 자체다 ④ 트리는 진행을, 표는 값을 진다. 규약은 .sim.ts 헤더에 못박았고 같은 조합의 후속 편이 물려받는다. **조건부 절은 셋 실은 편 둘 + purpose.alt 생략 둘**이고, 생략 둘 다 경쟁 설계를 **실제로 구현해 스윕으로 재고** 뺐다(largestRectangleInHistogram 은 후보 둘을 N=4~16,384·K=2~10,001 로 스윕해 뒤집힘 0, treeMaxIndependentSet 은 분기 한정과 Dinic 을 n=3~257 스윕해 뒤집히는 첫 자리 없음). **§3 대조가 116건을 냈다**(isBipartite 39 · searchInRotatedSortedArray 33 · largestRectangleInHistogram 26 · treeMaxIndependentSet 18) — 배치6 65 · 배치7 94 에 이어 세 배치 합계 275건이고 넷 다 스캐너 넷이 0 을 낸 뒤다. **낫표 밖 다의어 점검이 이번에도 값을 냈다** — 배치7 에서 방향을 바꾼 그대로다. 낫표 안은 네 편 합쳐 122곳 전수 0건이었고, 목록 밖에서 20곳이 잡혔다. 그중 **METAPHORS 정규식 자체의 사각 셋**이 드러났다 — 「얹은」(규칙이 얹[는어을] 이라 놓친다) · 「돌아야」(돌다 규칙 밖) · 「서 있고」(서다 정규식이 앞에 지시어·조사를 요구한다). 가장 무거운 것은 treeMaxIndependentSet 의 멈춤 2 산술이 「9+0=9」로 적혔는데 실제 13 이고 실행값 15 와도 어긋난 것, isBipartite 의 세 값 판 그림이 값도 근거도 거짓이라 mark-three-values 증명 블록을 신설해 실행으로 내린 것, largestRectangleInHistogram 이 높이 0 인 막대는 보초와 견줘도 안 꺼내진다는 사실을 발견해 총식을 P=N−Z 로 다시 세운 것이다. **학습자 스텁 트랙 불가침 규약을 두 번 지켰다** — 워커 둘이 각각 기댓값 오류를 발견하고 고쳐 놨던 것을 되돌리고 수행 내역에 근거와 함께 남겼다. 통합 검토 몫이 이제 셋이다(fastPower.test.ts:59 · largestRectangleInHistogram.test.ts:24 · searchInRotatedSortedArray.test.ts). searchInRotatedSortedArray-problem.md 의 예시 내부 모순도 함께 남겼다. **워커 둘이 스크래치패드 파일명 충돌을 보고했다** — 형제 워커가 서로의 임시 스크립트를 덮어써 한 번은 남의 편 증명 블록이 출력됐다. 다음 배치 워커 지시에 편별 하위 디렉터리를 쓰라고 넣는다. **L37 레일은 이 배치도 실렌더 미확인이다**(배치4~7 과 같은 상태)",
-      "after": "배치9 종료(2026-09-03) — S20 lowestSetBit · S24 slidingWindowMaximum · S32 matrixChainMultiplication · S39 binomialModP 넷을 닫아 36/41. 편마다 스캐너 넷 0 · guide 테스트 통과 · build-html 0, ci.ts all 통과(단계 16). .mdx 51→47 · guide-rhythm 49→46(slidingWindowMaximum 은 애초에 행이 없다) · check-links 492건 전부 실재 · 인용 249건 전부 실재 · claim 후보 4→3. **array 가 마감됐다** — 남은 카테고리가 dp · bit-manipulation · number-theory 셋이고 그 셋이 배치10 의 work 셋과 정확히 같다(착수 판단에 적은 예측 그대로). **착수 전 실측이 배치와 한 글자도 안 갈렸다** — claim 후보 4건이 배치9 의 넷과 같았고 인바운드도 예측대로 한 자리뿐이었다. **이 카드가 자료구조 트랙을 건드린 첫 배치다** — slidingWindowMaximum 의 인바운드 상호 링크(monotonicQueue-guide.mdx:757)가 scope 밖이라, 고칠 근거(안 고치면 .mdx 삭제 순간 웨이브 종료 기준 「깨진 링크 0」이 무너진다)와 범위(그 한 줄의 확장자뿐)를 배치 문서 §4 에 남기고 카드 scope 에 그 파일을 더했다. **조건부 절은 셋 실은 편 둘 + purpose.alt 생략 둘**이고, 생략 둘 다 경쟁 설계를 실제로 구현해 전수 스윕으로 재고 뺐다(lowestSetBit 은 경쟁 설계 셋을 0<=x<2^16 전수 65,536 개에서 재 뒤집힘 0, matrixChainMultiplication 은 하향식 메모이제이션을 n=2~200 x 차원 모양 4 = 796 칸에서 재 뒤집힘 0). 실은 둘은 경계를 **닫힌 형태로** 냈다 — slidingWindowMaximum 은 9N-4k 대 9N-3k+3-2⌈N/k⌉ 에서 k > √(2N) 을 내고(N=1,024 에서 √2048=45.25, 실측 뒤집힘 k=45), binomialModP 는 정본 4·min(k,n-k)+2(비트 수+1인 비트 수)+2 대 파스칼의 이차 식에서 **상수 항 92 대 24 가 이차 항에 따라잡히는 자리**가 곧 경계임을 냈다. **§3 대조가 166건을 냈다**(binomialModP 58 · matrixChainMultiplication 44 · lowestSetBit 39 · slidingWindowMaximum 25) — 배치6 65 · 배치7 94 · 배치8 116 에 이어 네 배치 합계 441건이고 넷 다 스캐너 넷이 0 을 낸 뒤다. **오케스트레이터 재대조 몫이 6건이고 그중 둘이 스캐너가 구조적으로 못 보는 자리였다** — ① binomialModP 의 자릿수 생성기가 자리를 구분자 없이 이어 붙여 p=11 에서 1,000 의 자리 셋(8·2·10)이 8210 으로 나왔고, 그 표기로 뤼카를 적용하면 답이 0 인데 표는 3 을 적고 있었다. **check-proof 는 같은 생성기의 출력과 대조하므로 생성기가 틀리면 함께 틀린다** — 스캐너 통과가 근거가 안 되는 부류의 첫 실측이다. ② matrixChainMultiplication 의 viz 프레임이 열하나인데 전개는 T1~T12 열둘이고, 한 구간의 두 후보만 묶여 그 프레임만 항목이 다섯 줄이었다(형제는 여덟 줄). 본문이 T8 을 이름으로 짚는데 화면에 T8 이 없었다. 나머지 넷은 유도 단계가 안 이어지는 자리 하나 · 같은 걸음 묶음이 두 뜻을 갖던 것 하나 · **동률을 뒤집힘이라 적어 L34 의 근거가 스스로 약해지던 것** 하나 · 표는 다섯 줄인데 각주가 여섯 모양을 말하던 것 하나다. **1차 출처 대조를 오케스트레이터가 직접 했다** — lowestSetBit 의 셋(OpenJDK Integer.lowestOneBit jdk-21+35:1616 · PostgreSQL bitmapset.c REL_16_1:50·:52·:706 · Linux is_rlwinm_mask_valid v6.6:85)을 원문에서 내려받아 인용문·줄 위치·주변 코드까지 맞음을 확인했다. **학습자 스텁 트랙 불가침 규약을 네 편 전부 지켰고 통합 검토 몫이 넷 늘었다** — 기댓값 오류 하나(matrixChainMultiplication.test.ts:50-51 이 dims=[1,1,1,1,1] 을 0 이라 단언하는데 정답 3, 정본으로 실행해 확인)와 벽시계 성능 케이스 셋(lowestSetBit·binomialModP·slidingWindowMaximum), 문제 문서 내부 모순 둘(binomialModP 의 k 제약 두 줄 · slidingWindowMaximum 의 스토리와 문제 상세가 답을 붙이는 끝이 반대). 누적 일곱이다. **배치8 이 메모에만 남긴 스크래치패드 규칙을 강제 지점으로 옮겼다** — 형제 워커가 최상위에서 같은 파일명을 써 서로를 덮는 사고가 **이번에도 실제로 났고**(matrixChainMultiplication 워커가 남의 편 증명 블록을 출력받았다), 배치 도중 워커 셋에 메시지로 보낸 뒤 배치9·10·11 문서 §2 에 문장을 박았다. 셋 다 옮긴 자리에서 재측정해 값이 그대로임을 보고했다. **L37 레일은 이 배치도 실렌더 미확인이다**(배치4~8 과 같은 상태)"
     }
   ],
   "layout": 2
