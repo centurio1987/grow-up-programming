@@ -382,3 +382,56 @@ src/data-structures/<카테고리>/<이름>/
 전개 카드가 걷는다. **`tools/check-guide-rhythm.ts` 와 `tools/_baseline/guide-rhythm.tsv` 도
 함께 걷힌다** — 그 도구의 대상 집합이 `src/**/*-guide.mdx` 뿐이라 `.mdx` 가 0 이 되면
 `exit 2` 로 CI 를 멈춘다. 규칙은 `P1`·`P2` 가 이미 받았다.
+
+## 9. 시뮬 이관 — `.mdx` 의 `export const steps` 에서 `.sim.ts` 로
+
+**69/69 가 시뮬을 쓴다**(실측 2026-09-11). 규격 없이는 전개가 막히는 자리라 절차를 못 박는다.
+
+### 무엇이 어디로 가는가
+
+옛 `.mdx` 는 셋을 한 파일에 담았다 — `#guide-sim` import · `export const steps` 배열 ·
+`<AlgorithmSimulation view={…} steps={steps} title="…" />` 호출부.
+
+| 옛 `.mdx` | 새 자리 |
+| --- | --- |
+| `export const steps = [ … ]` | `<name>-guide.sim.ts` 의 `steps` — **인라인 배열 리터럴 그대로** |
+| `<AlgorithmSimulation view={…}>` 의 `view` | 같은 파일의 `view` |
+| 같은 태그의 `title` | 같은 파일의 `title` |
+| `import { AlgorithmSimulation }` · 호출부 | **없어진다.** md 는 `<!--viz:{id}-->` 마커만 둔다 |
+| (없음) | **`result` 를 새로 정한다** — 마지막 프레임이 뜻하는 실제 반환값(`P9`) |
+| (없음) | **ascii 펜스를 새로 그린다** — 마커 아래에 둔다 |
+
+**뒤의 둘이 이관의 실제 비용이다.** 앞의 셋은 옮기는 일이지만 `result` 와 ascii 는 옛
+문서에 없다 — `.mdx` 는 웹에서만 렌더됐으므로 md 쪽 대응물을 가질 이유가 없었다.
+`L19`(웹 동등성)가 그것을 요구하는 것이 v2 로 오면서 생긴 차이다.
+
+### 자료구조에서 갈리는 것 — 시뮬이 여럿일 수 있다
+
+알고리즘은 절차 하나라 시뮬도 대개 하나인데, 자료구조는 **연산 묶음마다 `deep.walk.step`
+이 서므로** 그 묶음이 각자 보일 것을 가질 수 있다. `.sim.ts` 는 export 를 여럿 둘 수 있고
+(`export const {id}`), 마커 id 가 그것을 가른다.
+
+**하나로 묶을지 나눌지는 상태가 정한다** — 한 연산 열을 이어서 굴리는 것이면 시뮬 하나에
+프레임을 잇고, 서로 다른 초기 상태에서 출발하면 나눈다. 억지로 하나에 담으면 프레임 사이에
+설명 없는 점프가 생긴다.
+
+### 절차 다섯
+
+1. **`.mdx` 에서 `steps` 배열을 통째로 옮긴다.** 이미 인라인 리터럴이라 그대로 간다 —
+   `algo SPEC` §5 가 금지하는 변수 참조·함수 호출·spread 가 옛 문서에도 없다(실측).
+2. **`view` 와 `title` 을 호출부에서 가져온다.** `view` 를 빠뜨리면 렌더가 실패한다
+   (런북 불변 사실 37 — 기본값이 없다).
+3. **`result` 를 정하고 실제로 실행해 확인한다.** 마지막 프레임이 뜻하는 반환값이고,
+   본문에 `<!--result:{id}-->` 로 같은 값을 적어 `P9` 가 대조한다.
+4. **ascii 펜스를 그린다.** 마커 바로 아래에 두고, 비어 있으면 `P6` 이 잡는다.
+   md 독자가 보는 것이 이것이고 web 은 이 자리를 대화형 패널로 덮는다.
+5. **`.mdx` 를 지운다.** 지우기 전에 `bun run tools/check-links.ts refs <경로>` 로 참조를
+   전수 확인하고, `tools/_baseline/guide-rhythm.tsv` 의 그 행도 함께 지운다.
+
+### 판정
+
+- 마커 id ↔ `.sim.ts` export 키 ↔ ascii 펜스가 **3자로 맞는다**(`L11` · `P6`).
+- `result` ↔ `<!--result:{id}-->` 가 같다(`L14` · `P9`).
+- `bun test src/_guide-sim` 이 통과한다 — 그 모듈은 두 트랙이 함께 쓰므로, 이관 중에
+  뷰 프리셋을 건드리면 **살아 있는 편이 런타임에서만 깨진다**(`tools/ci.ts` SELF 가
+  그 자리를 지킨다).
