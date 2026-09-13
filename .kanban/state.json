@@ -1,6 +1,6 @@
 {
   "next_id": 36,
-  "next_seq": 254,
+  "next_seq": 255,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -703,7 +703,7 @@
       "memo_hash": "a323e2f2982805e64e74ac106bc4025a785123c2"
     },
     "KAN-035-31T4BY": {
-      "col": "doing",
+      "col": "review",
       "title": "진행 중인 자료구조 재집필 트랙을 취소하고, 다시 설계",
       "verbatim": "",
       "생성": "유저",
@@ -721,14 +721,32 @@
       "scope": [
         "docs/**",
         "sandbox/ds-guide-v2/**",
+        "sandbox/algo-guide-v2/SPEC.md",
+        "sandbox/algo-guide-v2/FEEDBACK.md",
+        "sandbox/algo-guide-v2/SURVEY.md",
+        ".claude/authoring/paths.json",
+        ".claude/authoring/specs/ds-guide/**",
         "tools/section.ts",
         "tools/guide-v2-targets.ts",
         "tools/check-v2.ts",
+        "tools/check-v2.test.ts",
         "tools/check-proof.ts",
         "tools/guide-core.ts",
+        "tools/build-html.ts",
+        "tools/check-citations.ts",
+        "tools/check-contract.ts",
+        "tools/contract-header.ts",
+        "tools/ds-guide-v2.test.ts",
+        "tools/ds-spec.test.ts",
+        "tools/ord006-escalation.ts",
+        "tools/ord006-inventory.ts",
+        "tools/_baseline/guide-rhythm.tsv",
+        "문제_가이드_목록.md",
         "src/data-structures/linear/deque/**",
+        "src/data-structures/linear/xorLinkedList/**",
         "src/data-structures/tree/redBlackTree/**",
-        "src/data-structures/linear/xorLinkedList/**"
+        "src/data-structures/linear/monotonicQueue/monotonicQueue-guide.mdx",
+        "src/algorithms/graph/zeroOneBfs/zeroOneBfs-guide.md"
       ],
       "reason": "알고리즘 트랙이 v2 골격으로 111편을 끝냈고(KAN-034), 유저가 그 전략을 자료구조에도 계승하기로 정했다 — 요청서가 그것을 지시한다",
       "reason_hash": "ec9130fcbfca83a1089cfa0ed66bc1a0cf50bd22",
@@ -744,7 +762,6 @@
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
-    "KAN-035-31T4BY",
     "KAN-029",
     "KAN-030",
     "KAN-007",
@@ -781,9 +798,20 @@
     "KAN-034.3-53E4F9",
     "KAN-034.4-4NS63H",
     "KAN-034.9-WHH53W",
-    "KAN-034-KSD7XR"
+    "KAN-034-KSD7XR",
+    "KAN-035-31T4BY"
   ],
   "recent": [
+    {
+      "seq": 254,
+      "t": "2026-09-13T21:30",
+      "a": "ai",
+      "id": "KAN-035-31T4BY",
+      "op": "move",
+      "w": "7SA6RM",
+      "from": "doing",
+      "to": "review"
+    },
     {
       "seq": 253,
       "t": "2026-09-13T16:54",
@@ -1345,17 +1373,6 @@
       "w": "MDD8JM",
       "from": "backlog",
       "to": "doing"
-    },
-    {
-      "seq": 204,
-      "t": "2026-09-04T21:08",
-      "a": "ai",
-      "id": "KAN-034.8-BK1Q3A",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "",
-      "after": "v2 쪽 두 건도 여기서 함께 본다 — ① invariant 절의 원문자 라벨: SPEC.md:566 이 금지하는데 P4 가 deep.walk 에서만 토큰을 뽑아 스캐너 넷이 전부 초록이다. 전수 스윕으로 invariant 절이 있는 81편 중 21편(최다 segmentsIntersect 37 · undirectedCycleDetection 22 · enumerateSubmasks 19)이고 check-v2 에 한 줄이면 막는다 ② check-metaphor 의 활용형 리터럴 나열이 다섯 번째로 샜다(되돌리- · 얹히- 에 이어 훑- ). 근거·목록·처방은 sandbox/algo-guide-v2/FEEDBACK.md §3·§4 (2026-09-04 W3 배치3 에서 나왔다). 그리고 KAN-034.7 전략 7항이 이월한 셋 — .claude/authoring/paths.json:29 · tools/ord004-regen.workflow.mjs:26 · tools/ord004-manifest.json:659 가 convexHull 의 사라진 .mdx 를 가리킨다"
     }
   ],
   "layout": 2
