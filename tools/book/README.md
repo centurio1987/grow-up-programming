@@ -104,8 +104,10 @@ bun run tools/book/build-sample.ts                    # 디자인 의뢰용 샘�
   아스키 그림이 찍힌다(JS 를 끄고 인쇄한 결과가 켠 것과 바이트까지 같음을 실측했다).
 - **쪽번호는 CDP 가 넣는다.** 크롬은 CSS `@page` 의 여백 상자를 구현하지 않아 `--print-to-pdf`
   플래그로는 머리말·꼬리말을 못 넣는다. 그래서 `chrome.ts` 가 DevTools 프로토콜로 몬다.
-- **사이드바 북마크는 없다.** 크롬이 `/Outlines` 를 만들지 않는다. 목차의 내부 링크는 살아
-  있으므로 눌러서 이동은 된다.
+- **사이드바 목차(문서 개요)는 크롬이 만든다.** `generateTaggedPDF` 와 `generateDocumentOutline`
+  을 함께 켜야 생긴다(크롬 152 실측 — 태그를 끄면 개요도 없다). 구조는 본문 목차와 같게
+  `outline.ts` 가 제목 수준을 다시 매겨 정한다: 편 → 묶음 → 「N. 장 제목」 → 파트 → 절.
+  단계 제목(`h4`)은 뺀다. 목차의 내부 링크도 살아 있어 눌러서 이동된다.
 - 크롬 경로는 `CHROME_PATH` 로 바꾼다. 기본은 macOS 의 Google Chrome · Chromium · Edge 순.
 
 ## 디자인 샘플

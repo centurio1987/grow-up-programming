@@ -8,9 +8,11 @@
 
 import { describe, expect, test } from "bun:test";
 import type { Chapter } from "./chapters.ts";
-import { plan } from "./chapters.ts";
+import { plan, unescapeMd } from "./chapters.ts";
+import { pdfPageCount } from "./chrome.ts";
 import { checkVolumes, loadConfig } from "./config.ts";
 import { colophon, cover, toc } from "./matter.ts";
+import { outlineChapters, relevel } from "./outline.ts";
 import type { VolumePlan } from "./volume.ts";
 import { NO_SLOT, place, split } from "./volume.ts";
 
@@ -38,6 +40,15 @@ describe("차례", () => {
 
   test("미편입 트랙은 사유를 달고 빠진다 — 조용히 사라지지 않는다", () => {
     for (const s of p.skipped) expect(s.skipReason).toBeDefined();
+  });
+
+  test("묶음 이름의 마크다운 이스케이프를 푼다 — 「A\\* 탐색」이 찍히지 않는다", () => {
+    expect(unescapeMd("A\\* 탐색")).toBe("A* 탐색");
+    const labels = p.parts.flatMap((pt) =>
+      pt.volumes.flatMap((v) => v.bundles.map((b) => b.label)),
+    );
+    expect(labels).toContain("A* 탐색");
+    expect(labels.filter((l) => l.includes("\\"))).toEqual([]);
   });
 
   test("같은 원문이 인덱스에 두 번 나오면 중복으로 잡는다", () => {
@@ -103,6 +114,52 @@ describe("권 나눔", () => {
   test("번호 자리가 없는 낡은 조각은 앉히지 않는다", () => {
     const ch = first.chapters[0] as Chapter;
     expect(() => place("<p>제 3 장</p>", ch, s, first.vol)).toThrow("낡은");
+  });
+});
+
+describe("문서 개요", () => {
+  test("제목 수준을 다시 매기고, null 은 개요에서 뺀다", () => {
+    const html = relevel('<h1>가</h1><h2 id="x">나</h2><h3>다</h3>', {
+      1: null,
+      2: 4,
+    });
+    expect(html).toBe(
+      '<h1 role="presentation">가</h1><h2 aria-level="4" id="x">나</h2><h3>다</h3>',
+    );
+  });
+
+  test("묶음 표기는 묶음의 첫 장에만, 장 표기는 번호를 달고 장마다 선다", () => {
+    const bundle = first.parts
+      .flatMap((pt) => pt.volumes.flatMap((v) => v.bundles))
+      .find((b) => b.chapters.filter((c) => c.ready).length >= 2);
+    const [a, b] = bundle?.chapters.filter((c) => c.ready) ?? [];
+    if (bundle === undefined || a === undefined || b === undefined) {
+      throw new Error("장이 둘 이상인 묶음이 있어야 하는 시험이다");
+    }
+    const body = (c: Chapter) =>
+      `<section class="bk-chapter" id="${c.id}"><h1>제목</h1><h2>파트</h2><h3>절</h3><h4>단계</h4></section>`;
+    const out = outlineChapters(
+      first.parts,
+      new Map([a, b].map((c) => [c.id, body(c)] as const)),
+      (c) => c.name,
+    );
+    const ha = out.get(a.id) ?? "";
+    const hb = out.get(b.id) ?? "";
+    expect(ha).toContain(`aria-level="1">${bundle.label}</div>`);
+    expect(hb).not.toContain(`>${bundle.label}</div>`);
+    expect(ha).toContain(`aria-level="2">${a.number}. ${a.name}</div>`);
+    expect(hb).toContain(`aria-level="2">${b.number}. ${b.name}</div>`);
+    expect(ha).toContain('<h1 role="presentation">');
+    expect(ha).toContain('<h2 aria-level="3">');
+    expect(ha).toContain('<h3 aria-level="4">');
+    expect(ha).toContain('<h4 role="presentation">');
+  });
+
+  test("쪽수는 쪽 트리에서만 센다 — 개요의 /Count 가 더 커도 속지 않는다", () => {
+    const pdf = new TextEncoder().encode(
+      "<</Type /Pages\n/Count 6\n/Kids [2 0 R]>>\n<</Type /Outlines\n/First 9 0 R\n/Count 8>>",
+    );
+    expect(pdfPageCount(pdf)).toBe(6);
   });
 });
 

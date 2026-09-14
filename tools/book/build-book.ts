@@ -28,6 +28,7 @@ import { loadConfig, REPO } from "./config.ts";
 import { FragmentStore, sha } from "./fragment.ts";
 import type { BookStats } from "./matter.ts";
 import { colophon, cover, esc, toc } from "./matter.ts";
+import { OUTLINE_CSS, outlineChapters, relevel } from "./outline.ts";
 import { printCss } from "./print-css.ts";
 import type { CrossRef, Split, VolumePlan } from "./volume.ts";
 import { place, split } from "./volume.ts";
@@ -53,7 +54,7 @@ ${body}
 
 /** 조판 CSS 한 벌 — KaTeX · 화면 CSS · 인쇄 덮어쓰기. */
 export async function bookCss(cfg: BookConfig): Promise<string> {
-  return `${await katexCss()}\n${PAGE_CSS}\n${printCss(cfg)}`;
+  return `${await katexCss()}\n${PAGE_CSS}\n${printCss(cfg)}\n${OUTLINE_CSS}`;
 }
 
 /** 권의 PDF 머리말. 권이 셋이면 어느 권을 펼쳤는지 쪽마다 보여야 한다. */
@@ -298,13 +299,16 @@ async function printVolume(
   const total = body + back;
   const stats = statsOf(cfg, v, chapters, total);
   const head = runningHead(cfg, v);
+  // 개요 표기는 쪽수를 잰 뒤에 붙인다 — 조판을 밀지 않는다는 전제는 아래 예측·실측 대조가 확인한다.
+  const outlined = outlineChapters(v.parts, bodies, titleOf(store));
   const bookHtml = shell(
     head,
     css,
     [
-      `${cover(cfg, v, stats)}\n${toc(v.parts, include, titleOf(store), pageOf)}`,
-      ...chapters.map(bodyOf),
-      backOf(total),
+      relevel(cover(cfg, v, stats), { 1: null }),
+      toc(v.parts, include, titleOf(store), pageOf),
+      ...chapters.map((c) => outlined.get(c.id) ?? bodyOf(c)),
+      relevel(backOf(total), { 3: null, 4: null }),
     ].join("\n"),
   );
   const htmlPath = `${dir}/book.html`;
@@ -312,7 +316,7 @@ async function printVolume(
 
   const pdf = await printer.print(
     htmlPath,
-    { header: esc(head) },
+    { header: esc(head), outline: true },
     Math.min(30_000, 800 + chapters.length * 60),
   );
   const pdfPath = ctx.pdfOut ?? `${dir}/book.pdf`;

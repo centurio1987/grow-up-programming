@@ -75,6 +75,14 @@ export interface ChapterPlan {
 
 const LINK = /\[([^\]]+)\]\(\.\/([^)\s]+)\)(?:\s*\(([^)]*)\))?/g;
 
+/**
+ * 인덱스 마크다운의 역슬래시 이스케이프를 푼다. 풀지 않으면 `**A\* 탐색**` 이 목차와 PDF 개요에
+ * 「A\* 탐색」으로 찍힌다(고급 권에서 실측).
+ */
+export function unescapeMd(s: string): string {
+  return s.replace(/\\([\\`*_{}[\]()#+\-.!|~<>])/g, "$1");
+}
+
 /** `## ★★★ 상 — 필수 (…)` 에서 ★ 개수. 미분류 부는 0. */
 function starsOf(label: string): number {
   return (/^(★+)/.exec(label)?.[1] ?? "").length;
@@ -150,7 +158,9 @@ export async function plan(cfg: BookConfig): Promise<ChapterPlan> {
     if (part === undefined) openPart("미분류");
     if (volume === undefined) openVolume("");
 
-    const label = /^-\s+\*\*(.+?)\*\*/.exec(line)?.[1] ?? links[0]?.[1] ?? "";
+    const label = unescapeMd(
+      /^-\s+\*\*(.+?)\*\*/.exec(line)?.[1] ?? links[0]?.[1] ?? "",
+    );
     const bundle: Bundle = { label, chapters: [] };
     (volume as Volume).bundles.push(bundle);
 

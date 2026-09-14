@@ -42,6 +42,11 @@ export interface CacheEntry {
   title: string;
   srcHash: string;
   builder: number;
+  /**
+   * 장 머리의 분류 줄. 원문이 아니라 **인덱스**(묶음 이름 · 주석)에서 오므로 원문 해시로는
+   * 낡음을 못 잡는다 — 인덱스에서 묶음 이름을 고쳐도 조각이 옛 이름을 싣고 있었다.
+   */
+  kicker?: string;
   /** 낱장 렌더로 잰 쪽수. 아직 안 쟀으면 `undefined`. */
   pages?: number;
   /**
@@ -126,11 +131,13 @@ export class FragmentStore {
     const srcHash = sha(md);
     const path = this.fragmentPath(ch.id);
     const prev = this.entries[ch.id];
+    const kicker = kickerOf(ch);
 
     const fresh =
       prev !== undefined &&
       prev.srcHash === srcHash &&
       prev.builder === BUILDER_VERSION &&
+      prev.kicker === kicker &&
       (await Bun.file(path).exists());
 
     if (fresh && ctx.force !== true) {
@@ -152,6 +159,7 @@ export class FragmentStore {
       title: built.title,
       srcHash,
       builder: BUILDER_VERSION,
+      kicker,
       problems: built.problems,
       deadRefs,
       builtAt: new Date().toISOString(),
@@ -160,6 +168,12 @@ export class FragmentStore {
     this.entries[ch.id] = entry;
     return { entry, rebuilt: true, path };
   }
+}
+
+function kickerOf(ch: Chapter): string {
+  return [ch.trackLabel, ch.bundle, ch.note]
+    .filter((x) => x !== "")
+    .join(" · ");
 }
 
 /** 챕터 껍데기 + 앵커·링크 재작성. */
@@ -210,12 +224,9 @@ function wrap(
       (_m, text: string) => text,
     );
 
-  const kicker = [ch.trackLabel, ch.bundle, ch.note]
-    .filter((s) => s !== "")
-    .join(" · ");
   const head =
     `<header class="bk-chapter-head">` +
-    `<p class="bk-kicker">${esc(kicker)}</p>` +
+    `<p class="bk-kicker">${esc(kickerOf(ch))}</p>` +
     `<p class="bk-chapter-no">제 ${NO_SLOT} 장</p>` +
     `</header>`;
 

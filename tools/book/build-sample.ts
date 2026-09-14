@@ -29,6 +29,7 @@ import { Printer, pdfPageCount } from "./chrome.ts";
 import { loadConfig, REPO } from "./config.ts";
 import { FragmentStore } from "./fragment.ts";
 import { cover, esc, starLabel, toc } from "./matter.ts";
+import { atChapterTop, mark, relevel } from "./outline.ts";
 import type { VolumePlan } from "./volume.ts";
 import { place, placeLabel, split } from "./volume.ts";
 
@@ -438,7 +439,10 @@ ${SPECS.map((spec, i) => {
   const covers = s.volumes
     .map((v) => {
       const l = locks.get(v.vol.id) as Lock;
-      return cover(cfg, v, statsOf(cfg, v, v.chapters, l.pages.actual));
+      return relevel(
+        cover(cfg, v, statsOf(cfg, v, v.chapters, l.pages.actual)),
+        { 1: null },
+      );
     })
     .join("\n");
 
@@ -461,9 +465,10 @@ ${SPECS.map((spec, i) => {
   if (f === undefined) return "";
   const from = `${placeLabel({ vol: f.from.v.vol, number: f.from.ch.number ?? 0 })} ${f.from.ch.name}`;
   return `<div class="bk-spec">
+${mark(2, `${i + 1}. ${spec.name}`)}
 <p class="bk-spec-label bk-note"><strong>${i + 1}. ${esc(spec.name)}</strong> · <code>${esc(spec.selector)}</code> · ${t.count.toLocaleString()}곳(${t.chapters}장) · 출처 ${esc(from)}<br>${esc(spec.role)}</p>
 <div class="bk-spec-body">
-${f.html}
+${relevel(f.html, { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null })}
 </div>
 </div>`;
 }).join("\n")}
@@ -478,7 +483,20 @@ ${f.html}
           ? ""
           : ` 원본 ${entry.startPage}–${entry.startPage + entry.pages - 1}쪽.`;
       const label = placeLabel({ vol: x.v.vol, number: x.ch.number ?? 0 });
-      return x.html.replace(
+      const title = store.get(x.ch.id)?.title ?? x.ch.name;
+      const leveled = relevel(x.html, {
+        1: null,
+        2: 2,
+        3: 3,
+        4: null,
+        5: null,
+        6: null,
+      });
+      return atChapterTop(
+        leveled,
+        [mark(1, `본문 샘플 — ${label} ${title}`)],
+        x.ch.id,
+      ).replace(
         "</header>",
         `</header>\n${note(`본문 샘플 — ${esc(label)} 전체입니다.${where}`, "bk-sample-note bk-note")}`,
       );
@@ -501,6 +519,7 @@ ${f.html}
   try {
     const pdf = await printer.print(htmlPath, {
       header: esc(`${cfg.title} · 디자인 샘플`),
+      outline: true,
     });
     const pdfPath = `${sampleDir}/${title}.pdf`;
     await Bun.write(pdfPath, pdf);

@@ -36,6 +36,11 @@ export interface PrintOptions {
   footer?: boolean;
   /** 머리말 문구. 비우면 머리말 자리를 비운다(여백은 그대로 — 조판이 흔들리지 않는다). */
   header?: string;
+  /**
+   * 뷰어 사이드바의 문서 개요를 만드는가. 크롬은 태그 PDF 일 때만 개요를 만든다(152 실측) —
+   * 둘을 함께 켠다. 개요 구조는 제목 표기가 정한다(`outline.ts`). 쪽수만 잴 때는 끈다.
+   */
+  outline?: boolean;
 }
 
 export class Printer {
@@ -193,6 +198,8 @@ export class Printer {
       marginLeft: m.left,
       marginRight: m.right,
       displayHeaderFooter: true,
+      generateTaggedPDF: opts.outline === true,
+      generateDocumentOutline: opts.outline === true,
       headerTemplate: `<div style="font-size:7.5pt;width:100%;padding:0 12mm;color:#8a8f94;font-family:-apple-system,sans-serif">${header}</div>`,
       footerTemplate:
         opts.footer === false
@@ -216,7 +223,10 @@ export class Printer {
 }
 
 /**
- * PDF 의 쪽수. 쪽 트리 뿌리의 `/Count` 가 가장 큰 값이다.
+ * PDF 의 쪽수. 쪽 트리(`/Type /Pages`) 뿌리의 `/Count` 가 가장 큰 값이다.
+ *
+ * **아무 `/Count` 나 세면 안 된다.** 문서 개요(`/Type /Outlines`)도 `/Count` 를 적고, 그 값은
+ * 펼쳐진 개요 항목 수라 쪽수보다 클 수 있다(6쪽짜리 시험 PDF 에서 개요 `/Count 8` 실측).
  *
  * 외부 도구를 안 쓰는 이유는 없어서다 — 이 기계에 `qpdf` 도 `gs` 도 없다(실측). 쪽수 하나
  * 때문에 의존성을 늘리지 않는다.
@@ -224,8 +234,8 @@ export class Printer {
 export function pdfPageCount(bytes: Uint8Array): number {
   const text = Buffer.from(bytes).toString("latin1");
   let max = 0;
-  for (const m of text.matchAll(/\/Count\s+(\d+)/g)) {
-    const n = Number(m[1]);
+  for (const dict of text.matchAll(/<<\s*\/Type\s*\/Pages\b([^>]*)>>/g)) {
+    const n = Number(/\/Count\s+(\d+)/.exec(dict[1] ?? "")?.[1] ?? 0);
     if (n > max) max = n;
   }
   if (max === 0)
