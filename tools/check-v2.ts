@@ -26,7 +26,7 @@ import { basename, dirname, join } from "node:path";
 import { headerDoc, parseContract } from "./contract-header.ts";
 import { extract, GuideCoreError } from "./guide-core.ts";
 import { kindOfOr } from "./guide-v2-targets.ts";
-import { ESCALATION } from "./ord006-escalation.ts";
+import { DIRECT_MEMORY, ESCALATION } from "./ord006-escalation.ts";
 import {
   fences,
   first,
@@ -1336,7 +1336,7 @@ function judgeTable(
  * **P19 — 에스컬레이션 절은 규약4 등급이 켠다**(`ds SPEC` `L45`).
  *
  * 조건이 판단이 아니라 **이미 확정된 등급**이므로 집필자가 고르지 않는다
- * (`docs/ORD-006-conventions.md:1253-1273`). 그래서 양방향으로 잰다 — (가)·(나)인데 절이
+ * (`docs/ORD-006-conventions.md:1253-1280`). 그래서 양방향으로 잰다 — (가)·(나)인데 절이
  * 없어도 위반이고, (-)인데 절이 있어도 위반이다. 조건부 절 규약이 「있으면 더 좋다」가
  * 아니라 「없으면 빼라」인 것과 같은 자리다.
  */
@@ -1355,6 +1355,48 @@ export function escalationSection(
         : "규약4 등급이 (-) 인데 `perf.escalation` 절이 있다 — (-) 면 절 자체를 생략한다",
     },
   ];
+}
+
+/**
+ * **P20 — 메모리를 직접 다뤄야 이득이 생기는 구조는 전개에 Rust 구현을 싣는다**(`ds SPEC` `L47`).
+ *
+ * P19 와 같은 모양이다. 싣는지는 집필자가 고르지 않고 `tools/ord006-escalation.ts` 의
+ * `DIRECT_MEMORY` 가 정한다. 그래서 양방향으로 잰다 — 집합에 든 구조의 `deep.walk` 에
+ * `rust guide-core=` 추출 펜스가 없어도 위반이고, 집합 밖 구조의 `deep.walk` 에 `rust` 펜스가
+ * 있어도 위반이다. 추출 펜스만 인정하는 것은 그 코드를 `guide-core check` 와 `cargo test` 가
+ * 검증하기 때문이다.
+ *
+ * **(가)는 판정하지 않는다.** 정본이 Rust 에 있어 전개의 코드가 Rust 인 것이 정상이다.
+ */
+export function directMemoryRust(
+  sections: Section[],
+  directMemory: boolean,
+  grade: "req" | "opt" | "-",
+): Finding[] {
+  if (grade === "req") return [];
+  const walk = sections.filter((s) => s.id.startsWith("deep.walk"));
+  const langs = walk.flatMap((s) => fences(s.body).map((b) => b.lang));
+  const anyRust = langs.some((lang) => lang.split(/\s+/)[0] === "rust");
+  const extracted = langs.some((lang) => /^rust\s+guide-core=\S/.test(lang));
+  if (directMemory && !extracted) {
+    return [
+      {
+        code: "P20",
+        detail:
+          "메모리를 직접 다뤄야 이득이 생기는 구조(`DIRECT_MEMORY`)인데 `deep.walk` 에 `rust guide-core=` 펜스가 없다 — Rust 구현을 `rust/structures/src/` 에 두고 추출해 싣는다",
+      },
+    ];
+  }
+  if (!directMemory && anyRust) {
+    return [
+      {
+        code: "P20",
+        detail:
+          "`DIRECT_MEMORY` 에 없는 구조의 `deep.walk` 에 `rust` 펜스가 있다 — Rust 서술은 메모리를 직접 다뤄야 이득이 생기는 구조에 한한다",
+      },
+    ];
+  }
+  return [];
 }
 
 /* ──────────────── 블록 열 정렬 — P15 ──────────────── */
@@ -1839,6 +1881,11 @@ export interface CheckInput {
    * 정본은 `tools/ord006-inventory.ts` 의 `ESCALATION` 이다.
    */
   escalation?: "req" | "opt" | "-";
+  /**
+   * 메모리를 직접 다뤄야 이득이 생기는 구조인가. ds 전용이고 P20 이 쓴다.
+   * 정본은 `tools/ord006-escalation.ts` 의 `DIRECT_MEMORY` 다.
+   */
+  directMemory?: boolean;
   maxProseRun?: number;
 }
 
@@ -2316,6 +2363,11 @@ export function check(input: CheckInput): Finding[] {
   }
   if (input.escalation !== undefined) {
     findings.push(...escalationSection(sections, input.escalation));
+    if (input.directMemory !== undefined) {
+      findings.push(
+        ...directMemoryRust(sections, input.directMemory, input.escalation),
+      );
+    }
   }
   if (input.ref !== undefined) {
     findings.push(...finalCodeMatchesRef(sections, input.ref));
@@ -2432,6 +2484,7 @@ async function checkOne(
 
     const key = dir.replace(/^.*src\/data-structures\//, "");
     input.escalation = ESCALATION[key] ?? "-";
+    input.directMemory = DIRECT_MEMORY.has(key);
   } else {
     const refFile = Bun.file(join(dir, `${stem}.ref.ts`));
     if (await refFile.exists()) input.ref = await refFile.text();

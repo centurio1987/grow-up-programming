@@ -22,7 +22,7 @@ size()             → 3
 | 이중 연결 리스트 | 원소마다 노드를 만들고, 노드가 이전 노드와 다음 노드를 따로 참조합니다. |
 | XOR 연결 리스트 | 노드가 이전 노드와 다음 노드의 위치를 XOR 한 값 하나만 저장합니다. |
 
-자료구조의 이름은 세 번째 구현에서 왔습니다. 이중 연결 리스트는 노드마다 참조 두 개를 두는데, XOR 연결 리스트는 그 둘을 값 하나로 줄여 메모리를 아끼려고 만든 설계입니다. 다만 TypeScript에서는 메모리 주소를 정수로 다룰 수 없어서, 이 저장소의 구현은 주소 대신 노드 번호(id)와 번호로 노드를 찾는 표를 씁니다. 그 결과 오히려 메모리를 더 쓰게 되는데, 몇 칸을 더 쓰는지도 이 글에서 셉니다.
+자료구조의 이름은 세 번째 구현에서 왔습니다. 이중 연결 리스트는 노드마다 참조 두 개를 두는데, XOR 연결 리스트는 그 둘을 값 하나로 줄여 메모리를 아끼려고 만든 설계입니다. 다만 TypeScript에서는 메모리 주소를 정수로 다룰 수 없어서, 이 저장소의 TypeScript 구현은 주소 대신 노드 번호(id)와 번호로 노드를 찾는 표를 씁니다. 그 결과 오히려 메모리를 더 쓰게 됩니다. **이 구조의 이득은 메모리 주소를 직접 다룰 때만 생기므로**, 이 글은 XOR 연결 리스트를 주소를 다룰 수 있는 Rust로 한 번 더 구현하고 노드가 실제로 몇 바이트를 요청하는지 잽니다.
 
 ```text
 연산이 정하는 것: 어떤 순서로 붙이고 읽는가
@@ -57,6 +57,8 @@ a ^ b       = 01 ^ 11 = 10 = 2
 
 이 글에서 n은 현재 원소 수, m은 호출 횟수입니다. 가운데에 넣거나 빼는 연산, 번호로 원소 하나를 읽는 연산은 이 계약에 없습니다. 그런 연산이 필요하면 [`doublyLinkedList` 가이드](../doublyLinkedList/doublyLinkedList-guide.mdx)나 [`dynamicArray` 가이드](../dynamicArray/dynamicArray-guide.mdx)를 보세요.
 
+Rust 구현은 `Box`, 원시 포인터 `*mut T`, `unsafe` 블록을 씁니다. `Box::new`는 값을 힙에 할당하고, `Box::into_raw`는 그 값의 주소를 원시 포인터로 넘겨줍니다. 원시 포인터는 컴파일러가 가리키는 대상이 살아 있는지 확인하지 않는 주소이므로, 그 주소를 읽고 쓰는 코드는 `unsafe` 블록에 두고 안전 조건을 작성자가 보장합니다.
+
 ### 설계 상세 — 이웃 정보를 하나만 저장할 수 있을까
 
 뒤에만 붙이고 전체를 두 방향으로 읽는 일은 배열 하나로 충분합니다. 붙인 순서대로 칸에 적으면 앞에서부터 읽기는 0번 칸부터, 뒤에서부터 읽기는 마지막 칸부터 차례로 읽는 일이 됩니다. 칸이 모자랄 때 두 배 크기로 복사하면 붙이기의 총비용도 원소 수에 비례합니다.
@@ -89,7 +91,7 @@ XOR 연결 리스트:   이전 id와 다음 id를 XOR 한 값 하나를 두고, 
 
 > 공통 관찰: 두 방향으로 읽으려면 원소마다 앞뒤를 알 방법이 있어야 하고, 그 방법이 저장 비용을 정합니다.
 
-### 수행으로 알아보는 자료구조 — 세 구현을 직접 만들기
+### 수행으로 알아보는 자료구조 — 세 구현을 만들고 XOR 연결을 Rust로 옮기기
 
 #### 1. 동적 배열 — 붙인 순서대로 칸에 둔다
 
@@ -199,7 +201,7 @@ export class DoublyLinkedList {
 
 #### 3. XOR 연결 리스트 — 앞 id와 뒤 id를 XOR 한 값 하나만 둔다
 
-C 같은 언어에서는 노드 주소 두 개를 정수로 XOR 해 저장합니다. TypeScript에는 주소를 정수로 꺼내는 방법이 없으므로, 이 구현은 노드마다 1부터 차례로 번호 `id`를 붙이고 `Map`에 `id → 노드`를 기록합니다. 노드는 `{ id, value, xorId }`를 저장하고, `xorId`는 이전 노드 id와 다음 노드 id를 XOR 한 값입니다. 리스트는 첫 노드 id `headId`, 마지막 노드 id `tailId`, 원소 수 `count`, 다음에 줄 번호 `nextId`를 기억합니다. 이웃이 없는 자리는 `NIL = 0`입니다.
+C나 Rust처럼 주소를 정수로 다룰 수 있는 언어에서는 노드 주소 두 개를 XOR 해 저장하며, 이 방식은 4번에서 Rust로 구현합니다. TypeScript에는 주소를 정수로 꺼내는 방법이 없으므로, 이 구현은 노드마다 1부터 차례로 번호 `id`를 붙이고 `Map`에 `id → 노드`를 기록합니다. 노드는 `{ id, value, xorId }`를 저장하고, `xorId`는 이전 노드 id와 다음 노드 id를 XOR 한 값입니다. 리스트는 첫 노드 id `headId`, 마지막 노드 id `tailId`, 원소 수 `count`, 다음에 줄 번호 `nextId`를 기억합니다. 이웃이 없는 자리는 `NIL = 0`입니다.
 
 ```text
 nodes (Map)   1 → { id: 1, value: 10, xorId: 2 }
@@ -421,6 +423,177 @@ append(0)        tailId 0 = NIL이라 빈 리스트로 처리 → headId를 1로
 바꾼 갱신   prev ← 다음   다음 걸음: (두 이웃의 XOR) ^ 자기 id → 이웃이 아님
 ```
 
+#### 4. Rust XOR 연결 리스트 — 노드 주소를 직접 XOR 한다
+
+앞의 TypeScript XOR 구현은 주소 대신 번호를 쓰고, 번호로 노드를 찾으려고 `Map`을 둡니다. 원소 하나마다 노드 필드 셋과 `Map` 항목 둘이 필요하므로 이중 연결 리스트보다 메모리를 더 씁니다. 이 구조가 아끼려던 메모리는 번호가 아니라 **메모리 주소를 XOR** 해야 생깁니다. Rust 표준 라이브러리에는 포인터의 주소를 정수로 꺼내고, 계산한 정수를 다시 포인터로 바꾸는 함수가 있으므로 같은 구조를 주소로 구현할 수 있습니다.
+
+Rust 노드는 값 `value`와, 이전 노드 주소와 다음 노드 주소를 XOR 한 정수 `xor_addr` 두 필드만 가집니다. 리스트는 첫 노드 포인터 `head`, 마지막 노드 포인터 `tail`, 원소 수 `count`를 기억합니다. 번호로 노드를 찾는 표도, 다음 번호를 세는 카운터도 없습니다.
+
+```text
+TypeScript 구현               Rust 구현
+노드 id — 1부터 차례로 준다   노드 주소 — Box가 할당한 값
+xorId                         xor_addr
+NIL = 0                       널 포인터 = 주소 0
+headId · tailId               head · tail 포인터
+nodes.get(id)로 노드 찾기     포인터가 가리키는 노드를 바로 읽기
+```
+
+주소는 실행할 때마다 달라집니다. 아래 예는 노드 A, B, C가 읽기 쉬운 주소 `0x1000`, `0x1010`, `0x1030`에 할당되었다고 가정하고, 이웃이 없는 쪽은 주소 0으로 계산합니다.
+
+<!--proof:rust-nodes-->
+
+```text
+노드   주소     값   이전 주소   다음 주소   xor_addr
+A      0x1000   10   0x0000      0x1010      0x1010
+B      0x1010   20   0x1000      0x1030      0x0030
+C      0x1030   30   0x1010      0x0000      0x1010
+```
+
+B의 `xor_addr`인 `0x0030`은 A의 주소 `0x1000`과 C의 주소 `0x1030`을 XOR 한 값입니다. 읽기 규칙은 TypeScript 구현과 같습니다. 직전 노드의 주소 `prev`를 들고 `다음 주소 = xor_addr ^ prev`를 계산하며, 다음 주소가 0이면 멈춥니다.
+
+<!--proof:rust-walk-->
+
+```text
+출발         prev     curr     xor_addr(curr)   다음 = xor_addr ^ prev        담은 값
+앞에서부터   0x0000   0x1000   0x1010           0x1010 ^ 0x0000 = 0x1010         [10]
+앞에서부터   0x1000   0x1010   0x0030           0x0030 ^ 0x1000 = 0x1030      [10 20]
+앞에서부터   0x1010   0x1030   0x1010           0x1010 ^ 0x1010 = 0x0000   [10 20 30]
+뒤에서부터   0x0000   0x1030   0x1010           0x1010 ^ 0x0000 = 0x1010         [30]
+뒤에서부터   0x1030   0x1010   0x0030           0x0030 ^ 0x1030 = 0x1000      [30 20]
+뒤에서부터   0x1010   0x1000   0x1010           0x1010 ^ 0x1010 = 0x0000   [30 20 10]
+```
+
+**붙이기에서는 주소를 정수로 꺼냅니다.** `Box::new`로 노드를 힙에 할당하고 `Box::into_raw`로 주소를 받습니다. 포인터의 `expose_provenance()`는 그 주소를 `usize` 정수로 돌려줍니다. 새 노드의 `xor_addr`에는 기존 마지막 노드의 주소를 넣고, 기존 마지막 노드의 `xor_addr`에는 새 노드의 주소를 한 번 XOR 합니다. TypeScript 구현의 `tail.xorId ^= id`와 같은 계산입니다.
+
+**읽기에서는 계산한 정수를 포인터로 바꿉니다.** `ptr::with_exposed_provenance_mut(next)`가 정수 `next`를 포인터로 바꾸고, 결과가 널 포인터이면 반대쪽 끝을 지난 것이므로 멈춥니다. 노드를 읽는 `unsafe { &*curr }`는 이 주소가 살아 있는 노드라는 것을 작성자가 보장하는 자리입니다. 리스트가 살아 있는 동안 어떤 노드도 해제하지 않으므로, 계산한 주소는 붙인 노드 중 하나이거나 0입니다.
+
+```text
+TypeScript 구현의 멈춤       Rust 구현에서
+id를 0부터 주는 실수         Box가 준 주소는 널이 아니므로 끝 표시 0과 겹치지 않음
+prev에 다음 id를 넣는 실수   이웃이 아닌 주소가 계산됨 — 오류로 멈추지 않고 해제됐거나 없는 메모리를 읽음
+```
+
+TypeScript 구현은 잘못 계산한 id를 `Map`에서 찾지 못하면 오류를 던졌습니다. Rust 구현은 계산한 정수를 그대로 포인터로 바꿔 읽으므로, 같은 실수가 오류 메시지 대신 정의되지 않은 동작(undefined behavior)이 됩니다. 메모리를 직접 다루는 이득에는 이 검사를 작성자가 대신 맡는 부담이 따릅니다.
+
+**메모리 해제도 구현이 맡습니다.** 가비지 수집기가 없으므로 리스트를 버릴 때 `Drop`이 앞에서부터 노드를 하나씩 `Box::from_raw`로 받아 해제합니다. 해제한 노드의 `xor_addr`는 읽을 수 없으므로, 다음 주소는 그 노드가 해제되기 전에 계산합니다.
+
+```text
+노드를 해제하기 전   node.xor_addr ^ prev로 다음 주소를 계산한다
+노드를 해제한 뒤     그 노드의 xor_addr는 더 읽을 수 없다
+```
+
+정수로 계산한 주소를 포인터로 쓰는 일에 Rust가 두는 조건과 이 구현이 그 조건을 어떻게 만족하는지는 「TypeScript 의 한계와 대체 언어」에서 다룹니다.
+
+#### Rust 구현 코드
+
+다음은 `rust/structures/src/xor_linked_list.rs`의 구현입니다. 계약의 네 연산을 `append`, `to_array`, `to_array_reverse`, `size`로 옮겼고 값은 정수 `i64`입니다. `cargo test`가 저장소의 계약 test vector를 재생해 TypeScript 정본과 같은 결과를 내는지 확인합니다.
+
+```rust guide-core=rust/structures/src/xor_linked_list.rs
+/// 노드 하나. 값과 이웃 주소 두 개를 XOR 한 정수 하나만 둔다.
+struct Node {
+    value: i64,
+    /// 이전 노드 주소 ^ 다음 노드 주소. 이웃이 없는 쪽은 주소 0 으로 센다.
+    xor_addr: usize,
+}
+
+pub struct XorLinkedList {
+    head: *mut Node,
+    tail: *mut Node,
+    count: usize,
+}
+
+impl XorLinkedList {
+    pub fn new() -> Self {
+        Self {
+            head: ptr::null_mut(),
+            tail: ptr::null_mut(),
+            count: 0,
+        }
+    }
+
+    pub fn append(&mut self, value: i64) {
+        // 새 노드의 다음 노드는 아직 없다 — 기존 마지막 노드의 주소가 그대로 XOR 값이다.
+        let xor_addr = self.tail.expose_provenance();
+        let node = Box::into_raw(Box::new(Node { value, xor_addr }));
+        let addr = node.expose_provenance();
+
+        if self.tail.is_null() {
+            self.head = node;
+        } else {
+            // 기존 마지막 노드의 다음 주소는 0 이었다. 새 주소를 한 번 XOR 하면 0 이 새 주소로 바뀐다.
+            // SAFETY: tail 은 이 리스트가 할당하고 아직 해제하지 않은 노드다.
+            unsafe { (*self.tail).xor_addr ^= addr };
+        }
+
+        self.tail = node;
+        self.count += 1;
+    }
+
+    pub fn to_array(&self) -> Vec<i64> {
+        self.walk(self.head)
+    }
+
+    pub fn to_array_reverse(&self) -> Vec<i64> {
+        self.walk(self.tail)
+    }
+
+    pub fn size(&self) -> usize {
+        self.count
+    }
+
+    /// 한쪽 끝에서 반대쪽 끝까지 읽는다. 두 방향이 같은 코드이고 출발 노드만 다르다.
+    fn walk(&self, start: *mut Node) -> Vec<i64> {
+        let mut values = Vec::with_capacity(self.count);
+        let mut prev = 0usize;
+        let mut curr = start;
+
+        while !curr.is_null() {
+            // SAFETY: curr 는 head·tail 이거나 이웃 노드의 xor_addr 에서 계산한 주소이고,
+            // 리스트가 살아 있는 동안 어느 노드도 해제하지 않는다.
+            let node = unsafe { &*curr };
+            values.push(node.value);
+            let next = node.xor_addr ^ prev;
+            prev = curr.addr();
+            curr = ptr::with_exposed_provenance_mut(next);
+        }
+
+        values
+    }
+}
+
+impl Default for XorLinkedList {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Drop for XorLinkedList {
+    /// 앞에서부터 읽는 순서대로 노드를 하나씩 해제한다. 다음 주소는 해제하기 전에 계산한다.
+    fn drop(&mut self) {
+        let mut prev = 0usize;
+        let mut curr = self.head;
+
+        while !curr.is_null() {
+            // SAFETY: curr 는 `Box::into_raw` 로 만든 노드이고, 이 반복에서 한 번만 되돌린다.
+            let node = unsafe { Box::from_raw(curr) };
+            let next = node.xor_addr ^ prev;
+            prev = curr.addr();
+            curr = ptr::with_exposed_provenance_mut(next);
+        }
+    }
+}
+```
+
+노드가 실제로 요청하는 메모리는 테스트에서 할당기를 감싸 세었습니다(`rust/structures/tests/xor_linked_list.rs:126`). 비교를 위해 같은 테스트 파일에 노드마다 `prev`와 `next`를 따로 두는 Rust 이중 연결 리스트를 두었습니다.
+
+| 64비트에서 잰 값 | Rust XOR 연결 리스트 | Rust 이중 연결 리스트 |
+| --- | --- | --- |
+| 노드 하나의 필드 | `value` · `xor_addr` | `value` · `prev` · `next` |
+| 붙이기 한 번이 요청한 바이트 | 16 | 24 |
+| 붙이기 1,024번이 요청한 할당 횟수와 바이트 | 1,024회 · 16,384 | 1,024회 · 24,576 |
+
+요청한 바이트만 세었고, 할당기가 크기를 올림하거나 관리 정보를 덧붙이는 부분은 세지 않았습니다. TypeScript에서는 XOR 구현이 이중 연결 리스트보다 값 자리를 더 잡았지만, 주소를 직접 XOR 한 Rust 구현에서는 노드가 이중 연결 노드의 3분의 2 크기입니다.
+
 ### 불변식 — 저장 모양이 달라도 두 방향이 같은 수열을 읽는다
 
 명세의 불변식은 두 가지입니다. 호출이 끝날 때마다 `size()`는 `toArray()`의 길이와 같고, `toArrayReverse()`는 `toArray()`를 뒤집은 배열과 같아야 합니다. 둘 다 같은 사실을 읽는 방법이 두 가지라서 필요한 규칙입니다. 원소 수를 세어 두는 값과 실제로 따라가며 읽은 원소 수가 갈라지거나, 두 방향 순회가 서로 다른 수열을 읽으면 하나의 수열이라고 할 수 없습니다.
@@ -595,15 +768,25 @@ TypeScript 이중 연결 노드               {value, prev, next}               
 
 이론상으로는 3을 2로 줄이려는 구조인데, TypeScript 구현은 번호로 노드를 찾는 표 때문에 5를 씁니다. 세지 않은 부분까지 더하면 차이는 더 커집니다.
 
-Rust로 옮겨도 곧바로 해결되지는 않습니다. Rust 표준 라이브러리 문서는 포인터가 어느 메모리 할당에서 왔는지(provenance)를 함께 추적하는 규칙을 설명하며, 주소로 비트 연산을 하는 것은 조건부로 허용합니다. *"So you're still able to drop down to the address representation and do whatever clever bit tricks you want as long as you're able to keep around a pointer into the allocation you care about that can "reconstitute" the provenance."* XOR 노드는 두 주소를 섞은 정수만 저장하고, 노드마다 따로 할당했다면 다음 노드의 할당을 가리키는 포인터가 없습니다. 정수에서 포인터를 만드는 다른 방법(exposed provenance)에 대해 문서는 *"the semantics of Exposed Provenance are on much less solid footing than Strict Provenance"*, *"Exposed Provenance will not work (well) with tools like Miri and CHERI."*라고 적습니다. ([`std::ptr` 모듈 문서](https://doc.rust-lang.org/std/ptr/index.html), 조회 2026-09-13)
+**주소를 직접 다루는 Rust로 옮기면 절약이 실제로 생깁니다.** 「4. Rust XOR 연결 리스트」의 구현은 노드 하나에 16바이트를 요청하고, 같은 테스트의 Rust 이중 연결 노드는 24바이트를 요청합니다. 위 표의 2와 3이 8바이트 워드 단위로 그대로 나온 값입니다.
 
 ```text
-Rust에서 XOR 노드를 두는 두 방법
-노드마다 따로 할당        XOR로 주소를 계산해도 원래 할당의 출처를 복원할 포인터가 없음
-노드를 한 덩어리에 할당   덩어리 포인터로 출처를 복원할 수 있지만, 주소 XOR이 덩어리 안 번호 XOR과 같아짐
+Rust에서 노드 하나가 요청한 바이트 (64비트)
+
+XOR 노드         value 8 + xor_addr 8        = 16
+이중 연결 노드   value 8 + prev 8 + next 8   = 24
 ```
 
-두 번째 방법은 결국 이 저장소의 TypeScript 구현이 id와 표로 한 일과 같은 모양입니다. 절약이 실제로 생기는 곳은 세 조건을 동시에 만족하는 환경입니다. 객체를 이동하는 가비지 수집기가 없어야 하고, 주소를 정수로 다루는 것이 언어 규칙에 있어야 하며, 계산으로 만든 주소를 유효한 포인터로 쓸 수 있어야 합니다. C와 어셈블리가 여기에 해당합니다. 이 저장소는 이 구조에 Rust 구현을 따로 두지 않았습니다.
+다만 Rust는 정수로 계산한 주소를 포인터로 쓰는 일에 조건을 둡니다. 표준 라이브러리 문서는 포인터가 어느 메모리 할당에서 왔는지(provenance)를 함께 추적하는 규칙을 설명하며, 주소로 비트 연산을 하는 것은 조건부로 허용합니다. *"So you're still able to drop down to the address representation and do whatever clever bit tricks you want as long as you're able to keep around a pointer into the allocation you care about that can "reconstitute" the provenance."* 노드마다 따로 할당하면 XOR 노드에는 두 주소를 섞은 정수만 남고, 다음 노드의 할당을 가리키는 포인터가 없어 이 조건(Strict Provenance)을 만족하지 못합니다. 그래서 이 글의 Rust 구현은 주소를 꺼낼 때 `expose_provenance`로 공개하고, 계산한 정수를 `with_exposed_provenance_mut`로 포인터로 바꾸는 Exposed Provenance 방식을 씁니다. 문서는 이 방식에 대해 *"the semantics of Exposed Provenance are on much less solid footing than Strict Provenance"*, *"Exposed Provenance will not work (well) with tools like Miri and CHERI."*라고 적습니다. ([`std::ptr` 모듈 문서](https://doc.rust-lang.org/std/ptr/index.html), 조회 2026-09-13)
+
+```text
+노드마다 따로 할당        다음 노드의 할당을 가리키는 포인터가 없어 Exposed Provenance가 필요함 — 이 글의 구현
+노드를 한 덩어리에 할당   덩어리 포인터로 출처를 복원할 수 있지만, 뒤에만 붙이면 이웃이 바로 옆 칸이라 XOR이 필요 없음
+```
+
+노드를 한 덩어리에 할당하면 Strict Provenance를 지킬 수 있지만, 이 계약처럼 뒤에만 붙이는 경우 노드가 붙인 순서대로 칸에 놓이므로 이웃의 위치를 저장할 필요가 없어지고 동적 배열과 같은 구조가 됩니다. 노드마다 따로 할당해야 XOR 연결 리스트로서 의미가 있으므로 이 글은 첫 번째 방법을 택했고, 확인한 범위는 `cargo test`의 test vector 재생과 요청 바이트 계측입니다. Miri로는 검사하지 않았습니다.
+
+절약이 실제로 생기는 조건은 셋입니다. 객체를 이동하는 가비지 수집기가 없어야 하고, 주소를 정수로 꺼낼 수 있어야 하며, 계산으로 만든 주소를 유효한 포인터로 쓸 수 있어야 합니다. TypeScript는 앞의 두 조건을 만족하지 못합니다. Rust는 Exposed Provenance를 쓰면 세 조건을 모두 만족하고, C와 어셈블리도 여기에 해당합니다.
 
 ### 이 구조가 최적의 선택인 경우
 
@@ -611,7 +794,7 @@ Rust에서 XOR 노드를 두는 두 방법
 
 뒤에만 붙이고 전체를 두 방향으로 읽으며 가운데를 건드리지 않는다면 이 계약이 요구에 맞습니다. 어느 구현을 고를지는 다음 조건에 따라 달라집니다.
 
-**동적 배열**은 원소 하나에 값 한 칸만 쓰고 연속된 칸을 차례로 읽으므로, TypeScript에서 이 계약만 필요할 때 가장 단순합니다. 대신 칸이 가득 찬 순간의 붙이기 한 번이 원소 수만큼 복사합니다. **이중 연결 리스트**는 붙이기 한 번의 비용이 늘 일정해야 하거나, 이미 만든 노드를 옮기지 않아야 할 때 적합합니다. **XOR 연결 리스트**는 노드마다 이웃 정보 하나를 줄이는 것이 실제 제약이고, 주소를 정수로 다룰 수 있는 언어로 구현할 때만 의미가 있습니다. TypeScript에서는 이중 연결 리스트보다 메모리를 더 쓰므로, 이 저장소의 구현은 원리와 그 대가를 확인하는 용도입니다.
+**동적 배열**은 원소 하나에 값 한 칸만 쓰고 연속된 칸을 차례로 읽으므로, TypeScript에서 이 계약만 필요할 때 가장 단순합니다. 대신 칸이 가득 찬 순간의 붙이기 한 번이 원소 수만큼 복사합니다. **이중 연결 리스트**는 붙이기 한 번의 비용이 늘 일정해야 하거나, 이미 만든 노드를 옮기지 않아야 할 때 적합합니다. **XOR 연결 리스트**는 노드마다 이웃 정보 하나를 줄이는 것이 실제 제약이고, 주소를 정수로 다룰 수 있는 언어로 구현할 때만 의미가 있습니다. TypeScript에서는 이중 연결 리스트보다 메모리를 더 쓰므로 이 저장소의 TypeScript 구현은 원리와 그 대가를 확인하는 용도이고, 노드가 실제로 작아지는 것은 Rust 구현에서 16바이트 대 24바이트로 확인했습니다.
 
 #### 이 구조를 떠올리게 하는 연산 조합
 
@@ -642,7 +825,7 @@ Linux Journal 제안   노드마다 이웃 포인터 둘 → XOR 값 하나     
 | 붙이기 1,024번이 쓴 값 자리 | 6,143 | 2,040 | 4,095 |
 | 붙인 뒤 잡고 있는 값 자리 | 5,120 | 1,024 | 3,072 |
 
-동적 배열은 513번째 붙이기에서 원소 512개를 새 배열로 옮기고 값 하나를 써서 한 번에 513을 썼습니다. 대신 전체로 쓴 값 자리와 잡고 있는 값 자리는 가장 적습니다. 연결 리스트 두 구현은 붙이기 한 번이 일정하지만 원소마다 여러 칸을 잡습니다. XOR 연결 리스트는 세 항목 모두 이중 연결 리스트보다 많습니다. 원소 하나에 노드 필드 셋과 `Map` 항목 둘을 쓰기 때문입니다.
+동적 배열은 513번째 붙이기에서 원소 512개를 새 배열로 옮기고 값 하나를 써서 한 번에 513을 썼습니다. 대신 전체로 쓴 값 자리와 잡고 있는 값 자리는 가장 적습니다. 연결 리스트 두 구현은 붙이기 한 번이 일정하지만 원소마다 여러 칸을 잡습니다. XOR 연결 리스트는 세 항목 모두 이중 연결 리스트보다 많습니다. 원소 하나에 노드 필드 셋과 `Map` 항목 둘을 쓰기 때문입니다. 이 표는 TypeScript 구현을 센 값이며, 주소를 직접 XOR 하는 Rust 구현에서는 붙이기 1,024번이 16,384바이트를 요청해 Rust 이중 연결 리스트의 24,576바이트보다 적습니다.
 
 | 선택할 때 먼저 물을 질문 | 검토할 구현 | 확인할 부담 |
 | --- | --- | --- |
@@ -655,5 +838,6 @@ Linux Journal 제안   노드마다 이웃 포인터 둘 → XOR 값 하나     
 1. T4에서 10에 이어 0을 붙였습니다. 이때 `xorId`가 바뀐 노드는 몇 개이고, 각각 어떤 값이 되었나요? 붙인 값이 0이 아니라 20이었다면 달라지는 것이 있을까요?
 2. T10~T12는 T7~T9와 같은 노드 표를 읽었지만 결과가 반대입니다. 두 순회에서 달라진 것은 출발 id뿐인데, 왜 같은 `xorId` 값에서 반대 방향의 노드가 계산되나요?
 3. `toArrayReverse()`를 `this.toArray().reverse()`로 바꾸면 결과는 같습니다. 그 대신 기존 마지막 노드의 값을 덮어쓰는 실수가 있을 때, 명세의 두 불변식 검사 중 어느 쪽이 그 실수를 더는 발견하지 못하게 될까요?
+4. T3에서 TypeScript 구현은 첫 노드에 id 1을 주었습니다. Rust 구현에는 id를 1부터 줘야 한다는 주의가 없는데, 무엇이 끝 표시 0과 겹칠 가능성을 없앴나요? 반대로 `prev`에 다음 주소를 넣는 실수는 Rust 구현에서 TypeScript 구현과 어떻게 다르게 나타나나요?
 
-세 질문을 설명할 수 있다면, 이 계약의 사용법을 넘어 세 구현이 두 방향 읽기를 어떻게 준비하고 그 준비가 저장 비용을 어떻게 정하는지 이해한 것입니다.
+네 질문을 설명할 수 있다면, 이 계약의 사용법을 넘어 각 구현이 두 방향 읽기를 어떻게 준비하는지, 그리고 그 준비가 저장 비용을 어떻게 정하고 언어에 따라 어떻게 달라지는지 이해한 것입니다.

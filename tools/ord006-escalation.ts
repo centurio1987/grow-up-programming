@@ -18,3 +18,21 @@ export const ESCALATION: Record<string, "req" | "opt"> = {
   // (나) Rust 선택 — 계약은 TS 로 충족, 포인터 XOR 의 메모리 이득만 측정 불가
   "linear/xorLinkedList": "opt",
 };
+
+/**
+ * **메모리를 직접 다뤄야 이득이 생기는 구조.** 여기 든 구조는 가이드의 전개
+ * (`deep.walk`, 「수행으로 알아보는 자료구조」)에 **Rust 구현을 싣는다** — `rust/structures/src/`
+ * 에 두고 `rust guide-core=` 펜스로 추출하며 `cargo test` 가 검증한다. 집합 밖의 구조는 전개에
+ * Rust 코드를 싣지 않는다. 정본이 Rust 인 (가)는 이 판정 밖이다. `check-v2.ts` P20 이 읽는다.
+ *
+ * **등급과 다른 축이다.** 규약4 는 「TS 안에서 계약과 근거가 닫히는가」를 묻고, 이 집합은
+ * 「그 구조를 쓰는 이유가 주소·배치를 직접 다룰 때만 생기는가」를 묻는다. (나)가 Rust 를 강제하지
+ * 않는다는 규약은 그대로이고, 이 집합이 그 위에 가이드 서술 의무를 더한다.
+ *
+ * 출처는 2026-09-14 유저 지시(KAN-035)이고 정본 서술은 `docs/ORD-006-conventions.md` §규약4 다.
+ * 등급표와 같은 규칙으로 **확정된 것만 적는다.**
+ */
+export const DIRECT_MEMORY: ReadonlySet<string> = new Set([
+  // TS 구현은 id → 노드 표 때문에 원소당 자리가 이중 연결 리스트보다 많다. 주소 XOR 에서만 준다.
+  "linear/xorLinkedList",
+]);

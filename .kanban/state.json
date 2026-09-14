@@ -749,7 +749,12 @@
         "src/data-structures/linear/xorLinkedList/**",
         "src/data-structures/tree/redBlackTree/**",
         "src/data-structures/linear/monotonicQueue/monotonicQueue-guide.mdx",
-        "src/algorithms/graph/zeroOneBfs/zeroOneBfs-guide.md"
+        "src/algorithms/graph/zeroOneBfs/zeroOneBfs-guide.md",
+        "rust/README.md",
+        "rust/Cargo.toml",
+        "rust/structures/src/lib.rs",
+        "rust/structures/src/xor_linked_list.rs",
+        "rust/structures/tests/xor_linked_list.rs"
       ],
       "reason": "알고리즘 트랙이 v2 골격으로 111편을 끝냈고(KAN-034), 유저가 그 전략을 자료구조에도 계승하기로 정했다 — 요청서가 그것을 지시한다",
       "reason_hash": "ec9130fcbfca83a1089cfa0ed66bc1a0cf50bd22",

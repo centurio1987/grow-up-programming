@@ -13,6 +13,7 @@
 import { expect, test } from "bun:test";
 import {
   check,
+  directMemoryRust,
   dsReferenceCode,
   escalationSection,
   finalCodeMatchesRef,
@@ -191,6 +192,36 @@ test("P19 — 등급과 절이 맞으면 안 걸린다 (양방향)", () => {
   );
   expect(escalationSection(withSec, "opt")).toEqual([]);
   expect(escalationSection(dsSections("본문"), "-")).toEqual([]);
+});
+
+const RUST_EXTRACT =
+  "```rust guide-core=rust/structures/src/x.rs\nfn f() {}\n```";
+
+test("P20 — 메모리를 직접 다루는 구조인데 전개에 Rust 추출 펜스가 없으면 걸린다", () => {
+  expect(
+    directMemoryRust(dsSections("본문"), true, "opt").map((f) => f.code),
+  ).toEqual(["P20"]);
+  // 추출이 아닌 Rust 조각만으로는 채워지지 않는다 — 검증되는 코드가 아니다.
+  const snippet = dsSections("```rust\nfn f() {}\n```");
+  expect(directMemoryRust(snippet, true, "opt").map((f) => f.code)).toEqual([
+    "P20",
+  ]);
+});
+
+test("P20 — 집합 밖 구조의 전개에 Rust 펜스가 있으면 걸린다", () => {
+  expect(
+    directMemoryRust(dsSections(RUST_EXTRACT), false, "-").map((f) => f.code),
+  ).toEqual(["P20"]);
+});
+
+test("P20 — 집합과 펜스가 맞으면 안 걸리고, (가)는 판정하지 않는다", () => {
+  expect(directMemoryRust(dsSections(RUST_EXTRACT), true, "opt")).toEqual([]);
+  expect(directMemoryRust(dsSections("본문"), false, "-")).toEqual([]);
+  expect(directMemoryRust(dsSections(RUST_EXTRACT), false, "req")).toEqual([]);
+  // 전개 밖(비용 절)의 Rust 조각은 이 조항의 대상이 아니다.
+  expect(
+    directMemoryRust(dsSections("본문", "```rust\nfn f() {}\n```"), false, "-"),
+  ).toEqual([]);
 });
 
 /* ─────────────── 계약 헤더 파서 재사용 ─────────────── */

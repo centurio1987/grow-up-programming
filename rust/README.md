@@ -8,11 +8,16 @@
 | crate | 무엇 |
 | --- | --- |
 | `contract` | 하네스. 축1(vector 재생)과 축4(선형화·진행 보장) |
-| `structures` | 구조 구현. 지금은 `concurrent_skip_list` 하나다(KAN-024) |
+| `structures` | 구조 구현. `concurrent_skip_list`(KAN-024) · `xor_linked_list`(KAN-035) |
 | `vectors/` | 언어 중립 test vector. **손으로 고치지 않는다** — `tools/emit-vectors.ts` 가 뽑는다 |
 
-축2(불변식)는 여기 없다. TS 하네스가 이미 돌고, Rust 로 오는 구조는 규약4 **(가) 등급** —
-TS 로 계약을 *표현조차 못 하는* 것뿐이다. 느려서 오는 것이 아니다.
+축2(불변식)는 여기 없다. TS 하네스가 이미 돌고, Rust 로 오는 구조는 둘뿐이다. 느려서 오는
+것은 없다.
+
+- 규약4 **(가) 등급** — TS 로 계약을 *표현조차 못 하는* 구조. 정본이 여기 있다.
+- **메모리를 직접 다뤄야 이득이 생기는 구조**(`tools/ord006-escalation.ts` 의 `DIRECT_MEMORY`) —
+  계약은 TS 정본이 지키고, 가이드의 「수행으로 알아보는 자료구조」가 그 이득을 보이려고 여기서
+  추출한 Rust 구현을 싣는다. 축1 vector 를 재생해 계약과 어긋나지 않는지 본다.
 
 **축3(복잡도)은 B21 에서 들어왔다.** `concurrency` 등급은 TS 스위트가 통째로 돌지 않으므로
 성장률도 그쪽에서 잴 수 없다. `structures/tests/growth.rs` 가 §규약2 의 규격(사다리

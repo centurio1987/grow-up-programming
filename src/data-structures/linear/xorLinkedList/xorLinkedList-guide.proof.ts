@@ -10,6 +10,8 @@
  *   꺼내 트랜스파일하고, 정본과 함께 배열 모델과 무작위 연산 · 경계 입력으로 대조한다.
  * - 상태를 보이는 블록은 정본과 같은 절차의 사본 `XorCopy` 를 쓰되, 호출마다 정본과 반환값 ·
  *   `__cost` 증가분이 같은지 확인한다(`agree`).
+ * - `rust-nodes` · `rust-walk` — Rust 구현 소절의 예시 주소로 `xor_addr` 와 두 방향 읽기를
+ *   계산한다. Rust 코드 자체는 `cargo test`(`rust/structures/tests/xor_linked_list.rs`)가 검증한다.
  */
 
 import { loadMutant } from "../../../../tools/check-proof.ts";
@@ -509,7 +511,22 @@ function mutantTable(
   );
 }
 
-/* ────────────────────────── 블록 ────────────────────────── */
+/* ────────────────────────── Rust 예시 주소 ────────────────────────── */
+
+/**
+ * Rust 구현 소절의 예시 주소. 할당기가 실제로 주는 값이 아니라 읽기 쉬운 값이고, 간격을
+ * 고르지 않게 두어 노드마다 `xor_addr` 가 달라지게 했다. 주소 0 은 널 포인터라 쓰지 않는다.
+ */
+const RUST_NODES = [
+  { name: "A", addr: 0x1000, value: 10 },
+  { name: "B", addr: 0x1010, value: 20 },
+  { name: "C", addr: 0x1030, value: 30 },
+] as const;
+
+const hex = (n: number): string => `0x${n.toString(16).padStart(4, "0")}`;
+
+const rustXor = (i: number): number =>
+  (RUST_NODES[i - 1]?.addr ?? 0) ^ (RUST_NODES[i + 1]?.addr ?? 0);
 
 /* ────────────────────────── 블록 ────────────────────────── */
 
@@ -552,6 +569,73 @@ export const PROOFS: Record<string, () => string> = {
       ["출발", "prev", "curr", "xorId(curr)", "다음 = xorId ^ prev", "담은 값"],
       body,
       [4],
+    );
+  },
+
+  /**
+   * Rust 구현 소절 — 예시 주소로 노드마다 `xor_addr` 를 계산한다. 주소는 실행마다 다르므로
+   * 원고가 예시 값이라고 밝히고, 여기서는 그 주소로 XOR 계산이 맞는지만 보인다.
+   */
+  "rust-nodes": () =>
+    table(
+      ["노드", "주소", "값", "이전 주소", "다음 주소", "xor_addr"],
+      RUST_NODES.map((n, i) => [
+        n.name,
+        hex(n.addr),
+        num(n.value),
+        hex(RUST_NODES[i - 1]?.addr ?? 0),
+        hex(RUST_NODES[i + 1]?.addr ?? 0),
+        hex(rustXor(i)),
+      ]),
+      [1, 3, 4, 5],
+    ),
+
+  /** Rust 구현 소절 — 같은 예시 주소로 두 방향을 읽는다. 주소 0 에서 멈춘다. */
+  "rust-walk": () => {
+    const body: string[][] = [];
+    for (const [from, start] of [
+      ["앞에서부터", 0],
+      ["뒤에서부터", RUST_NODES.length - 1],
+    ] as const) {
+      const byAddr = new Map<number, number>(
+        RUST_NODES.map((n, i) => [n.addr, i]),
+      );
+      const values: number[] = [];
+      let prev = 0;
+      let curr = RUST_NODES[start]?.addr ?? 0;
+      while (curr !== 0) {
+        const i = byAddr.get(curr);
+        if (i === undefined) throw new Error(`예시에 없는 주소: ${hex(curr)}`);
+        const x = rustXor(i);
+        const next = x ^ prev;
+        values.push(RUST_NODES[i]?.value ?? Number.NaN);
+        body.push([
+          from,
+          hex(prev),
+          hex(curr),
+          hex(x),
+          `${hex(x)} ^ ${hex(prev)} = ${hex(next)}`,
+          seq(values),
+        ]);
+        prev = curr;
+        curr = next;
+      }
+    }
+    const forward = body.filter((r) => r[0] === "앞에서부터").at(-1)?.[5];
+    if (forward !== seq(RUST_NODES.map((n) => n.value))) {
+      throw new Error(`앞에서부터 읽은 값이 붙인 순서와 다르다: ${forward}`);
+    }
+    return table(
+      [
+        "출발",
+        "prev",
+        "curr",
+        "xor_addr(curr)",
+        "다음 = xor_addr ^ prev",
+        "담은 값",
+      ],
+      body,
+      [1, 2, 3, 4],
     );
   },
 

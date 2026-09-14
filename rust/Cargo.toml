@@ -5,10 +5,11 @@ members = ["contract", "structures"]
 # 계약 스위트의 Rust 쪽이다. 규격의 정본은 `docs/ORD-006-conventions.md` §규약2 다.
 #
 # - `contract` — 하네스. 축1(언어 중립 vector 재생)과 축4(선형화·진행 보장)를 돈다.
-# - `structures` — 구조 구현이 들어올 자리. 지금은 비어 있고 KAN-024 가 채운다.
+# - `structures` — 구조 구현. `concurrent_skip_list`(KAN-024) · `xor_linked_list`(KAN-035).
 #
-# 축2·축3은 여기 없다. 불변식과 성장률은 TS 하네스가 돌고, Rust 로 오는 구조는
-# 규약4 (가) 등급 — 즉 **TS 로 계약을 표현조차 못 하는 것**뿐이기 때문이다.
+# 축2는 여기 없다. 불변식은 TS 하네스가 돈다. Rust 로 오는 구조는 규약4 (가) 등급 — **TS 로
+# 계약을 표현조차 못 하는 것** — 과, 메모리를 직접 다뤄야 이득이 생겨 가이드가 Rust 구현을
+# 싣는 구조(`tools/ord006-escalation.ts` 의 `DIRECT_MEMORY`)뿐이다.
 
 [workspace.package]
 edition = "2024"
