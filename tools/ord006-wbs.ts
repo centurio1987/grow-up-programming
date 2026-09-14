@@ -371,18 +371,18 @@ const UNITS: readonly Unit[] = [
   {
     id: "TA-05",
     track: "TA",
-    contract: "미확정 — 현재 표면은 상태 없는 함수 셋",
+    contract: "한쪽 끝에서 넣고 빼며 최댓값을 상수에 묻는 스택 (비교자 주입)",
     canonical: "linear/monotonicStack",
     transitions: [],
-    note: "결정(2026-09-15 유저) — 상태 있는 계약으로 연산 집합을 바꾼다(T5-02 선례). 알고리즘 가이드 링크 교체는 어느 쪽이든 남는다",
+    note: "완료(KAN-026 S7) — 상태 없는 함수 셋을 빼고 stack 다섯 행 + max 로 새로 지었다. 다른 후보(넣을 때 가장 가까운 큰 원소)는 빼기와 함께면 이름의 기법이 한 쌍 담긴 수에 비례해(탐침) 배제 — 선택은 사람 결정으로 올렸다(불변 사실 276). 짝 배열이 자명해 basic, 빼는 끝 하나로 TA-06 과 등급이 갈린다(불변 사실 277). 최솟값은 뒤집은 비교자로 접힘을 축1로 실행(불변 사실 279). 가이드 링크 2 교체",
   },
   {
     id: "TA-06",
     track: "TA",
-    contract: "미확정 — 추천은 「뒤에 넣고 앞에서 빼며 최댓값을 묻는 큐」",
+    contract: "뒤에 넣고 앞에서 빼며 최댓값을 묻는 큐 (비교자 주입)",
     canonical: "linear/monotonicQueue",
     transitions: [],
-    note: "결정(2026-09-15 유저) — TA-05 와 같다(상태 있는 계약, 큐는 「뒤에 넣고 앞에서 빼며 최댓값을 묻는 큐」). slidingWindowMax 가 algorithms/array/slidingWindowMaximum 과 서명·의미가 같다. 상태 있는 계약이면 최솟값은 비교자 주입으로 접힌다",
+    note: "완료(KAN-026 S8) — slidingWindowMax·Min 을 빼고 queue 다섯 행 + max 로 새로 지었다(창 크기는 구조가 들지 않는다). complexity — 자명한 길 넷이 각자 한 행을 놓고 그중 셋이 fixture 로 서로 다른 행에서 걸린다(불변 사실 280). enqueue·dequeue 를 서로 다른 계열이 상각으로만 지켜 둘 다 amortized(불변 사실 278). 가이드 링크 3 교체 — slidingWindowMaximum:100 문장은 「덱」을 가리켜 뜻이 어긋난다(불변 사실 282)",
   },
   {
     id: "TA-07",

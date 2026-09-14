@@ -31,6 +31,8 @@ import { dequeContract } from "../src/data-structures/linear/deque/deque.contrac
 import { doublyLinkedListContract } from "../src/data-structures/linear/doublyLinkedList/doublyLinkedList.contract.ts";
 import { dynamicArrayContract } from "../src/data-structures/linear/dynamicArray/dynamicArray.contract.ts";
 import { gapBufferContract } from "../src/data-structures/linear/gapBuffer/gapBuffer.contract.ts";
+import { monotonicQueueContract } from "../src/data-structures/linear/monotonicQueue/monotonicQueue.contract.ts";
+import { monotonicStackContract } from "../src/data-structures/linear/monotonicStack/monotonicStack.contract.ts";
 import { queueContract } from "../src/data-structures/linear/queue/queue.contract.ts";
 import { singlyLinkedListContract } from "../src/data-structures/linear/singlyLinkedList/singlyLinkedList.contract.ts";
 import { stackContract } from "../src/data-structures/linear/stack/stack.contract.ts";
@@ -166,6 +168,8 @@ const SPECS: ContractSpec<any, any>[] = [
   doublyLinkedListContract,
   dynamicArrayContract,
   gapBufferContract,
+  monotonicQueueContract,
+  monotonicStackContract,
   queueContract,
   singlyLinkedListContract,
   stackContract,

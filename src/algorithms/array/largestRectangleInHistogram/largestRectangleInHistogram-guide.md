@@ -140,7 +140,7 @@ heights = [2 1 5 6 2 3] 을 막대로 그리면
 - **직사각형의 넓이.** 폭 × 높이입니다. 이 문제의 막대는 너비가 모두 1 이라 폭이 곧 칸 수예요.
 - **스택.** 마지막에 넣은 것이 가장 먼저 나오는 담는 통입니다. 넣기 · 꺼내기 · 꼭대기 보기가
   각각 한 번에 끝나요. 흐릿하면
-  [`monotonicStack`](../../../data-structures/linear/monotonicStack/monotonicStack-problem.md) 을
+  [`monotonicStack`](../../../data-structures/linear/monotonicStack/monotonicStack.ts) 을
   먼저 봅니다.
 - **부등호에 등호가 붙는가.** `a < b` 와 `a ≤ b` 가 갈리는 경우는 두 값이 같을 때 하나뿐인데,
   이 문제는 같은 높이의 막대가 이어지는 자리에서 그 하나 때문에 폭이 달라집니다.
@@ -750,7 +750,7 @@ largestRectangleInHistogram([7])                 →   7
 [`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-problem.md) ·
 [`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-problem.md) 쪽이고,
 창이 움직이면
-[`monotonicQueue`](../../../data-structures/linear/monotonicQueue/monotonicQueue-problem.md)
+[`monotonicQueue`](../../../data-structures/linear/monotonicQueue/monotonicQueue.ts)
 쪽이에요.
 
 #### 실제로 쓰이는 곳

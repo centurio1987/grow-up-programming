@@ -81,6 +81,16 @@ const VERIFICATION_GRADES: Record<
   // `dynamicArray` — 언어 배열 하나에 맡기면 여섯 행이 선다(불변 사실 197). 물려받은 두 배 늘리기는
   // 상각 설계인데 등급은 존재 조건이라 `complexity` 가 아니고(불변 사실 55), 불변식이 둘이다.
   "linear/dynamicArray": "invariant",
+  // A군 단조 둘(KAN-026 S7 · S8). 둘 다 자기보다 뒤로 정렬되는 첫 기존 키(`linear/singlyLinkedList`) 앞에 둔다.
+  //
+  // `monotonicQueue` — 뒤에 넣고 앞에서 빼며 최댓값을 묻는 큐(연산 집합 교체, 2026-09-15 유저 결정). 앞 끝에서
+  // 빼므로 칸마다 적은 최댓값이 어느 방향이든 한 행에서 낡아, 일곱 행을 함께 지키려면 후보를 버리거나 무더기를
+  // 옮기는 상각 설계가 든다. 불변식 절은 비었다 — 판정 절차 2번에서 먼저 걸린다(`linear/deque` 와 같은 자리).
+  "linear/monotonicQueue": "complexity",
+  // `monotonicStack` — 최댓값을 묻는 스택(연산 집합 교체, 2026-09-15 유저 결정). 언어 배열 하나에 (원소,
+  // 그 원소까지의 최댓값) 짝을 쌓으면 일곱 행이 서고 — 넣고 빼는 끝이 같아 곁에 적은 값이 낡지 않는다 —
+  // 불변식 절이 비어 `basic` 이다.
+  "linear/monotonicStack": "basic",
   // `singlyLinkedList` — 연결 마디가 자명한 구현이므로(2026-09-15 유저 결정) 다섯 행이 마디 사슬
   // 하나로 선다. 세어 둔 수 ↔ 늘어놓은 수 하나가 불변식이라 `basic` 이 아니다.
   "linear/singlyLinkedList": "invariant",
