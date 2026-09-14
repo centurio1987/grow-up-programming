@@ -7,6 +7,14 @@ argument-hint: <file-name-without-extension>
 
 # guide-for-problem 스킬 (가이드 집필 진입점)
 
+## 자료구조 v2 집필 경로 (KAN-035 이후)
+
+`src/data-structures/**`의 새 가이드 또는 v2 재집필 요청에는 [현재 자료구조 명세](../../../sandbox/ds-guide-v2/SPEC.md)와 [집필 안내](../../../sandbox/ds-guide-v2/AUTHORING.md)를 먼저 읽는다. 명세가 지정한 base와 voice도 함께 사용한다. 원고는 명세의 `.md`·사이드카 형식을 따르며, 작성 에이전트에게 넘기는 경우에도 두 문서의 경로와 적용 범위를 전달한다. 정성적 요령은 집필 참고용으로 전달하고 게이트나 합격 점수로 변환하지 않는다.
+
+이 분기에서는 현재 명세의 생성·검증 절차를 사용한다. 아래의 8단계·MDX·구 `authoring-write` 절차는 기존 경로에 대한 설명이며 v2 집필에 덧붙여 적용하지 않는다. 기존 문서는 재집필 요청 범위 안에서만 변경한다.
+
+## 기존 집필 경로
+
 `src/$ARGUMENTS.ts`의 **문제 주석**을 입력으로, 문제를 푸는 **깊은 해설서**
 `src/$ARGUMENTS-guide.mdx`를 작성한다. 가이드는 sibling `.ts`(학습자 실습 공간)와 **독립적으로
 집필·검증**된다 — 본문에 싣는 코드는 가이드 자체로 실행·검증한다.
