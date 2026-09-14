@@ -11,10 +11,17 @@ import type { Chapter } from "./chapters.ts";
 import { plan, unescapeMd } from "./chapters.ts";
 import { pdfPageCount } from "./chrome.ts";
 import { checkVolumes, loadConfig } from "./config.ts";
-import { colophon, cover, toc } from "./matter.ts";
+import { backCover, colophon, cover, gradeOf, toc } from "./matter.ts";
 import { outlineChapters, relevel } from "./outline.ts";
 import type { VolumePlan } from "./volume.ts";
-import { NO_SLOT, place, split } from "./volume.ts";
+import {
+  FOLIO_SLOT,
+  fill,
+  NO_SLOT,
+  PAGES_SLOT,
+  place,
+  split,
+} from "./volume.ts";
 
 const cfg = await loadConfig();
 const p = await plan(cfg);
@@ -111,6 +118,25 @@ describe("권 나눔", () => {
     expect(r.crossRefs.map((x) => x.target)).toEqual([there.id]);
   });
 
+  test("장마다 이름 붙은 쪽을 달아 머리말에 EP. N 을 싣는다", () => {
+    const ch = first.chapters[1] as Chapter;
+    const frag = `<section class="bk-chapter" id="${ch.id}"><p>${NO_SLOT}</p><div>${NO_SLOT}</div></section>`;
+    const r = place(frag, ch, s, first.vol);
+    expect(r.html).toContain(`style="page: bk-ep-2"`);
+    expect(r.html).toContain(
+      `@page bk-ep-2 { @top-right { content: "EP. 2"; } }`,
+    );
+    expect(r.html).not.toContain(NO_SLOT); // 번호 자리는 여러 곳이다 — 전부 채운다
+  });
+
+  test("간지의 쪽수 · 쪽번호는 잴 때 자리값, 찍을 때 진짜 값이 들어간다", () => {
+    const html = `<span>${PAGES_SLOT}쪽</span><span>${FOLIO_SLOT}</span>`;
+    expect(fill(html)).toBe("<span>00쪽</span><span>000</span>");
+    expect(fill(html, { pages: 21, folio: 517 })).toBe(
+      "<span>21쪽</span><span>517</span>",
+    );
+  });
+
   test("번호 자리가 없는 낡은 조각은 앉히지 않는다", () => {
     const ch = first.chapters[0] as Chapter;
     expect(() => place("<p>제 3 장</p>", ch, s, first.vol)).toThrow("낡은");
@@ -184,19 +210,56 @@ describe("앞뒤붙이", () => {
     );
   });
 
-  test("표지는 빈 항목의 줄 자체를 뺀다", () => {
+  test("표지는 권 번호 · 권 이름 · 시리즈 표기를 싣는다", () => {
     const stats = {
       perTrack: [{ label: "알고리즘", taken: 1, skipped: 0, note: "" }],
       totalPages: 10,
-      builtAt: new Date(),
+      builtAt: new Date("2026-09-15T00:00:00Z"),
     };
-    const html = cover({ ...cfg, author: "" }, first, stats);
-    expect(html).not.toContain("지은이");
-    expect(cover({ ...cfg, author: "아무개" }, first, stats)).toContain(
-      "지은이",
-    );
+    const html = cover(cfg, first, stats);
+    expect(html).toContain(`<div class="bk-cover-no">1</div>`);
     expect(html).toContain(first.vol.label);
-    expect(html).toContain(`전 ${cfg.volumes.length}권 중 1권`);
+    expect(html).toContain(`VOL. 1 / ${cfg.volumes.length} — 2026`);
+    expect(html).toContain(cfg.design.seriesLabel);
+  });
+
+  test("목차 머리는 인덱스 부 이름에서 등급만 딴다", () => {
+    expect(gradeOf("★★★ 상 — 필수 (코딩 테스트 단골 + 실무 일상)")).toBe(
+      "상 — 필수",
+    );
+    const html = toc(first.parts, include, titleOf, new Map(), {
+      blurb: first.vol.blurb,
+      unit: "ALGORITHMS",
+    });
+    expect(html).toContain(`상 — 필수 — ${first.vol.blurb}`);
+    expect(html).toContain('<span class="bk-toc-no">01</span>');
+  });
+
+  test("뒤표지는 ISBN 이 비면 그 자리를 빼고, 가짜 바코드를 찍지 않는다", () => {
+    const sizes = new Map(
+      s.volumes.map((v) => [v.vol.id, { chapters: v.chapters.length }]),
+    );
+    const facts = { code: "TypeScript", structure: "장마다 파트 2개" };
+    const blank = backCover(cfg, s, first, sizes, facts);
+    expect(blank).not.toContain("ISBN");
+    expect(blank).toContain(`VOL.${s.volumes.length}`);
+    const withIsbn = backCover(
+      { ...cfg, design: { ...cfg.design, isbn: "979-11-0000-000-0" } },
+      s,
+      first,
+      sizes,
+      facts,
+    );
+    expect(withIsbn).toContain("979-11-0000-000-0");
+  });
+
+  test("지은이는 마무리의 서지 표에 싣고, 비면 줄 자체를 뺀다", () => {
+    const one = [p.chapters[0] as Chapter];
+    const stats = { perTrack: [], totalPages: 1, builtAt: new Date() };
+    const at = (author: string) =>
+      colophon({ ...cfg, author }, s, first, one, () => undefined, stats);
+    expect(at("")).not.toContain("지은이");
+    expect(at("아무개")).toContain("<td>아무개</td>");
   });
 
   test("마무리는 실린 편의 원문 판을 싣는다", () => {
@@ -240,6 +303,43 @@ describe("조각", () => {
     expect(html).toContain(`id="${first.id}--`);
     expect(html).not.toMatch(/\bid="concept"/);
     expect(html).toContain(`<section class="bk-chapter" id="${first.id}"`);
+  }, 30_000);
+
+  test("장 제목은 간지로 옮기고, 간지에 파트 요약 둘을 싣는다", async () => {
+    const { FragmentStore } = await import("./fragment.ts");
+    const store = await FragmentStore.open(`${cfg.outDir}-test`);
+    const r = await store.ensure(first, { byDir, force: true });
+    const html = await Bun.file(r.path).text();
+    const opener =
+      /<section class="bk-opener">[\s\S]*?<\/section>/.exec(html)?.[0] ?? "";
+    expect(opener).toContain("<h1");
+    expect([...html.matchAll(/<h1\b/g)].length).toBe(1);
+    expect([...opener.matchAll(/class="bk-opener-part"/g)].length).toBe(2);
+    expect(opener).toContain(PAGES_SLOT);
+    expect(opener).toContain(FOLIO_SLOT);
+    expect(html).toContain('<figure class="bk-code">');
+    // 도식(text)은 머리 줄 없이 그대로 선다 — 그림에 언어 표기를 붙이지 않는다
+    for (const f of html.matchAll(
+      /<figure class="bk-code">[\s\S]*?<\/figure>/g,
+    )) {
+      expect(f[0]).not.toContain('data-language="text"');
+    }
+  }, 30_000);
+
+  test("멈춤은 제목부터 다음 제목 전까지 한 상자로 묶인다", async () => {
+    const { FragmentStore } = await import("./fragment.ts");
+    const store = await FragmentStore.open(`${cfg.outDir}-test`);
+    const ch = p.chapters.find((c) => c.name === "knapsack01") ?? first;
+    const r = await store.ensure(ch, { byDir, force: true });
+    const html = await Bun.file(r.path).text();
+    const boxes = [
+      ...html.matchAll(/<div class="bk-stop">([\s\S]*?)<\/div>\n/g),
+    ];
+    expect(boxes.length).toBeGreaterThan(0);
+    for (const b of boxes) {
+      expect(b[1]).toMatch(/^\s*<h4[^>]*>멈춤/);
+      expect(b[1]).not.toMatch(/<h[1-4]\b[\s\S]*<h[1-4]\b/);
+    }
   }, 30_000);
 
   test("책에 없는 가이드로 가던 링크는 풀려서 본문으로 남는다", async () => {

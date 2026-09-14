@@ -35,10 +35,35 @@ export interface TrackConfig {
   note?: string;
 }
 
+/**
+ * 판형. 여백은 여기 없다 — 머리말 줄과 본문 사이 간격까지 디자인 템플릿이 정한 쪽 틀이라
+ * 조판 규칙(`print-css.ts` 의 `GEOMETRY`)에 산다.
+ */
 export interface PageConfig {
   format: "A4" | "Letter";
-  /** 인치. CDP `Page.printToPDF` 가 인치를 받는다. */
-  marginIn: { top: number; bottom: number; left: number; right: number };
+}
+
+/**
+ * 디자인 템플릿이 **조절값으로 열어 둔 것**과 책마다 다른 문구. 치수 · 서체 · 요소 모양은
+ * 조판 규칙(`print-css.ts`)이 템플릿에서 옮겨 온 고정값이다.
+ */
+export interface DesignConfig {
+  /** 템플릿의 출처. 조판 규칙이 무엇을 옮긴 것인지 추적하는 자리. */
+  source: string;
+  /** 본문 지면색. 템플릿의 「백색」 #ffffff · 「미색」 #f7f7f6. 표지 · 간지 · 뒤표지는 늘 백색이다. */
+  paper: string;
+  /** 표식색 — 표지 막대 · 멈춤 상자. 템플릿 기본 #c0392b. */
+  mark: string;
+  /** 표지 왼쪽 아래 시리즈 표기. */
+  seriesLabel: string;
+  /** 뒤표지 큰 문장. */
+  backHeadline: string;
+  /** 뒤표지 큰 문장 아래 한 줄. */
+  backLede: string;
+  /** 뒤표지 READER 칸. */
+  reader: string;
+  /** 비우면 뒤표지에서 ISBN 자리를 뺀다 — 가짜 바코드를 찍지 않는다. */
+  isbn: string;
 }
 
 export interface BookConfig {
@@ -57,6 +82,7 @@ export interface BookConfig {
    */
   groupBy: "importance" | "track";
   page: PageConfig;
+  design: DesignConfig;
   tracks: TrackConfig[];
   /** 권 나눔. 인덱스의 부 하나는 정확히 한 권에 들어간다. */
   volumes: VolumeConfig[];
@@ -85,12 +111,6 @@ export interface SampleConfig {
   chapters: string[];
 }
 
-/** 실린 차원(A4 = 8.27×11.69in). CDP 는 종이 이름이 아니라 치수를 받는다. */
-export const PAPER: Record<PageConfig["format"], { w: number; h: number }> = {
-  A4: { w: 8.27, h: 11.69 },
-  Letter: { w: 8.5, h: 11 },
-};
-
 /**
  * 설정을 읽는다. **빠진 항목을 기본값으로 메우지 않는다** — 표지에 빈 제목이 찍힌 PDF 가
  * 나오는 것보다 여기서 멈추는 편이 싸다.
@@ -107,6 +127,7 @@ export async function loadConfig(
     "index",
     "outDir",
     "page",
+    "design",
     "tracks",
     "volumes",
   ] as const;
@@ -121,6 +142,21 @@ export async function loadConfig(
     throw new Error(`groupBy 는 importance 또는 track 이다: ${groupBy}`);
   }
   const volumes = checkVolumes(raw.volumes);
+  const design = raw.design as DesignConfig;
+  for (const k of [
+    "source",
+    "paper",
+    "mark",
+    "seriesLabel",
+    "backHeadline",
+    "backLede",
+    "reader",
+    "isbn",
+  ] as const) {
+    if (typeof design[k] !== "string") {
+      throw new Error(`설정의 design.${k} 가 없다: ${path}`);
+    }
+  }
 
   return {
     title: raw.title as string,
@@ -131,6 +167,7 @@ export async function loadConfig(
     outDir: raw.outDir as string,
     groupBy,
     page: raw.page as PageConfig,
+    design,
     tracks: raw.tracks as TrackConfig[],
     volumes,
     ...(raw.sample === undefined ? {} : { sample: raw.sample }),

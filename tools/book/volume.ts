@@ -14,8 +14,25 @@ import type { Chapter, ChapterPlan, Part } from "./chapters.ts";
 import { ordered } from "./chapters.ts";
 import type { BookConfig, VolumeConfig } from "./config.ts";
 
-/** 조각이 장 번호 자리에 남기는 표식. `place` 가 채운다. */
+/** 조각이 장 번호 자리에 남기는 표식. `place` 가 채운다(간지 · 머리말 · 분류 줄 — 여러 곳). */
 export const NO_SLOT = "<!--bk:chapter-no-->";
+
+/**
+ * 챕터 간지의 장 쪽수와 쪽번호 자리. **쪽수를 잰 뒤에야 나오는 값**이라 `place` 가 아니라
+ * `fill` 이 채운다. 간지는 높이가 한 쪽으로 고정돼 숫자가 조판을 밀지 않으므로, 잴 때는
+ * 자리값을 넣고 찍을 때 진짜 값을 넣어도 쪽수가 같다 — 빌더의 예측·실측 대조가 매번 확인한다.
+ */
+export const PAGES_SLOT = "<!--bk:pages-->";
+export const FOLIO_SLOT = "<!--bk:folio-->";
+
+export function fill(
+  html: string,
+  at: { pages?: number; folio?: number } = {},
+): string {
+  return html
+    .replaceAll(PAGES_SLOT, at.pages === undefined ? "00" : String(at.pages))
+    .replaceAll(FOLIO_SLOT, at.folio === undefined ? "000" : String(at.folio));
+}
 
 export interface VolumePlan {
   vol: VolumeConfig;
@@ -97,6 +114,10 @@ export interface CrossRef {
 /**
  * 조각을 권에 앉힌다 — 장 번호를 채우고, 다른 권으로 가는 링크를 풀어 자리를 적는다.
  *
+ * 머리말 오른쪽의 「EP. N」도 여기서 붙인다. 크롬은 머리말에 본문 글자를 끌어오는 `string-set`
+ * 을 구현하지 않으므로, 장마다 이름 붙은 쪽(`bk-ep-N`)을 하나씩 만들어 그 쪽의 여백 상자에 번호를
+ * 적는다. 규칙을 장 껍데기 안에 싣는 이유는 낱장으로 잴 때도 같은 틀이어야 해서다.
+ *
  * 번호 자리가 없으면 멈춘다. 번호가 박힌 낡은 조각이 섞였다는 뜻이고, 그대로 인쇄하면
  * 권마다 다시 센 번호와 한 권짜리 시절 번호가 한 책에 같이 찍힌다.
  */
@@ -112,8 +133,15 @@ export function place(
     );
   }
   const crossRefs: CrossRef[] = [];
+  const n = String(ch.number ?? 0);
   const html = fragment
-    .replace(NO_SLOT, String(ch.number ?? 0))
+    .replaceAll(NO_SLOT, n)
+    .replace(
+      /<section class="bk-chapter"([^>]*)>/,
+      (_m, attrs: string) =>
+        `<section class="bk-chapter"${attrs} style="page: bk-ep-${n}">\n` +
+        `<style>@page bk-ep-${n} { @top-right { content: "EP. ${n}"; } }</style>`,
+    )
     .replace(
       /<a\b[^>]*?\shref="#([^"]+)"[^>]*>([\s\S]*?)<\/a>/g,
       (m, href: string, text: string) => {

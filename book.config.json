@@ -7,8 +7,17 @@
   "outDir": "build/book",
   "groupBy": "importance",
   "page": {
-    "format": "A4",
-    "marginIn": { "top": 0.7, "bottom": 0.7, "left": 0.75, "right": 0.75 }
+    "format": "A4"
+  },
+  "design": {
+    "source": "Claude Design — 쉽게 이해하는 알고리즘 디자인 템플릿.dc.html (project 119d3045-4c6f-4aae-90d8-b45100632e35)",
+    "paper": "#ffffff",
+    "mark": "#c0392b",
+    "seriesLabel": "SERIES ALGORITHM",
+    "backHeadline": "문제에서 동작하는 코드까지.",
+    "backLede": "세 권은 같은 뼈대로 쓰였습니다 — 전체 그림을 보고, 값으로 확인하고, 동작하는 코드까지.",
+    "reader": "입문자 · 코딩 테스트 준비",
+    "isbn": ""
   },
   "volumes": [
     {

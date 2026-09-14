@@ -22,16 +22,18 @@ import { mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import type { Element } from "happy-dom";
 import { Window } from "happy-dom";
-import { bookCss, shell, statsOf } from "./build-book.ts";
+import { bookCss, factsOf, frameOf, shell, statsOf } from "./build-book.ts";
 import type { Chapter } from "./chapters.ts";
 import { plan } from "./chapters.ts";
 import { Printer, pdfPageCount } from "./chrome.ts";
 import { loadConfig, REPO } from "./config.ts";
 import { FragmentStore } from "./fragment.ts";
-import { cover, esc, starLabel, toc } from "./matter.ts";
+import type { VolumeSize } from "./matter.ts";
+import { backCover, cover, esc, starLabel, toc } from "./matter.ts";
 import { atChapterTop, mark, relevel } from "./outline.ts";
+import { GEOMETRY } from "./print-css.ts";
 import type { VolumePlan } from "./volume.ts";
-import { place, placeLabel, split } from "./volume.ts";
+import { fill, place, placeLabel, split } from "./volume.ts";
 
 /** 요소 하나. `selector` 는 스타일을 거는 자리라 디자인을 CSS 로 옮길 때 그대로 쓴다. */
 interface Spec {
@@ -47,8 +49,6 @@ interface Spec {
 }
 
 const lines = (el: Element) => el.querySelectorAll(".line").length;
-const highlighted = (el: Element) =>
-  el.querySelector('span[style*="color:"]') !== null;
 const parent = (el: Element) => [el.parentElement ?? el];
 /** 제목과 그 뒤 두 블록 — 제목만 떼어 놓으면 본문과의 간격이 안 보인다. */
 const withNext =
@@ -66,10 +66,9 @@ const text = (el: Element) => el.textContent ?? "";
 
 const SPECS: Spec[] = [
   {
-    name: "장 여는 자리",
-    selector: ".bk-chapter-head + h1",
-    role: "분류(트랙 · 기법 묶음) · 장 번호 · 장 제목. 장마다 새 쪽에서 시작한다",
-    scope: (el) => [el.previousElementSibling ?? el, el],
+    name: "챕터 간지",
+    selector: ".bk-opener",
+    role: "장마다 한 쪽 — 큰 장 번호 · 분류(트랙 · 기법 묶음) · 장 제목 · 파트 요약(원고의 파트 첫 문단) · 언어 · 쪽수",
   },
   {
     name: "파트 제목",
@@ -93,11 +92,10 @@ const SPECS: Spec[] = [
     scope: withNext(1),
   },
   {
-    name: "멈춤 제목",
-    selector: "h4",
-    role: "「멈춤 — …」 흔한 실수를 짚는 자리. 지금은 단계 제목과 같은 모양이다",
-    is: (el) => text(el).startsWith("멈춤"),
-    scope: withNext(2),
+    name: "멈춤 상자",
+    selector: ".bk-stop",
+    role: "「멈춤 — …」 흔한 실수를 짚는 자리. 제목부터 다음 제목 전까지를 한 상자로 묶는다",
+    fits: (el) => text(el).length < 700,
   },
   {
     name: "본문 문단 · 강조 · 인라인 코드",
@@ -151,16 +149,14 @@ const SPECS: Spec[] = [
   },
   {
     name: "소스 코드 블록",
-    selector: "pre.shiki",
-    role: "TypeScript 구현. 문법 색이 들어간다. 쪽을 넘어가면 갈라진다",
-    is: highlighted,
+    selector: "figure.bk-code",
+    role: "TypeScript 구현. 머리 줄에 언어, 예약어는 굵게 · 주석은 옅게. 쪽을 넘어가면 갈라진다",
     fits: (el) => lines(el) >= 6 && lines(el) <= 16,
   },
   {
     name: "도식 · 계산 블록",
-    selector: "pre.shiki",
-    role: "고정폭 글꼴로 줄을 맞춘 계산 과정 · 상태 그림. 문법 색이 없다. 가장 많이 쓰이는 블록",
-    is: (el) => !highlighted(el),
+    selector: 'pre.shiki[data-language="text"]',
+    role: "고정폭 글꼴로 줄을 맞춘 계산 과정 · 상태 그림. 가장 많이 쓰이는 블록. 넘치면 글자를 줄여 한 줄에 맞춘다",
     fits: (el) => lines(el) >= 3 && lines(el) <= 8,
   },
   {
@@ -245,7 +241,7 @@ const SAMPLE_CSS = `
 .bk-brief table { font-size: .8em; }
 .bk-brief td:first-child { white-space: nowrap; }
 /* 원본에서 표지는 첫 쪽이라 쪽 나눔이 필요 없지만, 샘플에서는 안내 뒤에 세 벌이 이어진다 */
-.bk-cover { break-before: page; min-height: 80vh; }
+.bk-cover { break-before: page; }
 .bk-spec-section { break-before: page; }
 .bk-spec { margin: 0 0 1.6rem; break-inside: avoid-page; }
 .bk-spec-label {
@@ -365,7 +361,7 @@ async function main(): Promise<never> {
   const brief = `<section class="bk-brief">
 <h1>${esc(cfg.title)} — 디자인 샘플</h1>
 <p class="bk-lede">세 권 원본(합계 ${totalPages.toLocaleString()}쪽 · ${mb(totalBytes)})에서 디자인 검토에 필요한 자리만 뽑았습니다.
-원본과 같은 조판 코드로 찍었고, 지금 보이는 모양은 <strong>디자인 전 기본값</strong>입니다.
+원본과 같은 조판 코드로 찍었고, 모양은 <strong>디자인 템플릿을 반영한 것</strong>입니다(${esc(cfg.design.source)}).
 <span class="bk-note">분홍색 글씨와 점선 상자는 이 샘플의 설명이며 책에는 인쇄되지 않습니다.</span></p>
 
 <h2>시리즈 구성</h2>
@@ -385,17 +381,17 @@ ${s.volumes
 <table>
 <tbody>
 <tr><td>판형</td><td>${esc(cfg.page.format)}${cfg.page.format === "A4" ? " (210 × 297mm)" : ""}</td></tr>
-<tr><td>여백</td><td>위 ${mm(cfg.page.marginIn.top)} · 아래 ${mm(cfg.page.marginIn.bottom)} · 왼쪽 ${mm(cfg.page.marginIn.left)} · 오른쪽 ${mm(cfg.page.marginIn.right)} — 홀짝 쪽 구분 없음</td></tr>
-<tr><td>본문</td><td>10.5pt · 행간 1.68 · 시스템 글꼴(-apple-system, Pretendard, Apple SD Gothic Neo)</td></tr>
-<tr><td>코드 · 도식</td><td>SFMono-Regular, Menlo — 고정폭</td></tr>
+<tr><td>여백</td><td>본문 쪽 위 ${GEOMETRY.margin.top}mm · 아래 ${GEOMETRY.margin.bottom}mm · 좌우 ${GEOMETRY.margin.side}mm — 홀짝 쪽 구분 없음. 표지 · 간지 · 뒤표지는 여백 0</td></tr>
+<tr><td>본문</td><td>10.5pt · 행간 1.7 · IBM Plex Sans KR</td></tr>
+<tr><td>코드 · 도식</td><td>IBM Plex Mono 9pt · 행간 1.6</td></tr>
 <tr><td>수식</td><td>KaTeX 글꼴</td></tr>
-<tr><td>머리말 · 꼬리말</td><td>모든 쪽 같은 틀 — 머리말은 책 제목 · 권 이름, 꼬리말은 가운데 쪽번호</td></tr>
-<tr><td>색</td><td>본문은 흑백 회색조. 소스 코드에만 문법 색(GitHub Light 테마)</td></tr>
+<tr><td>머리말 · 꼬리말</td><td>머리말 왼쪽은 책 제목 · 권 이름, 오른쪽은 EP. N(목차 CONTENTS · 마무리 COLOPHON). 꼬리말은 가운데 쪽번호</td></tr>
+<tr><td>색</td><td>흑백. 표식색 ${esc(cfg.design.mark)} 은 표지 막대 · 멈춤 상자에만. 지면 ${esc(cfg.design.paper)}</td></tr>
 </tbody>
 </table>
 
 <h2>한 권의 순서</h2>
-<p>표지 → 목차 → 본문 장(장마다 새 쪽에서 시작) → 마무리(시리즈 구성 · 수록 현황 · 판 대조표).
+<p>표지 → 목차 → 본문 장(장마다 간지 한 쪽으로 시작) → 마무리(시리즈 구성 · 수록 현황 · 판 대조표) → 뒤표지.
 한 장은 평균 ${Math.round(sources.reduce((n, x) => n + (store.get(x.ch.id)?.pages ?? 0), 0) / sources.length)}쪽이고
 뼈대가 모든 장에서 같습니다 — 장 제목 → 파트 1 → 파트 2, 그 아래 절과 단계.</p>
 
@@ -403,7 +399,7 @@ ${s.volumes
 <table>
 <thead><tr><th>순서</th><th>내용</th></tr></thead>
 <tbody>
-<tr><td>1</td><td>표지 ${s.volumes.length}종 — 권마다 하나</td></tr>
+<tr><td>1</td><td>표지 ${s.volumes.length}종 — 권마다 하나 · 뒤표지 — ${esc(first.vol.label)} 권</td></tr>
 <tr><td>2</td><td>목차 — ${esc(first.vol.label)} 권 전체(원본 쪽번호 그대로)</td></tr>
 <tr><td>3</td><td>요소 견본 ${SPECS.length - missing.length}종 — 실제 원고에서 하나씩 떠 옴. 각 견본 위에 선택자와 책 전체 등장 횟수</td></tr>
 ${picked
@@ -432,9 +428,33 @@ ${SPECS.map((spec, i) => {
 <li>원고(마크다운)를 HTML 로 바꾸고 크롬으로 PDF 를 찍습니다. 디자인은 <strong>CSS 로 옮겨져</strong> 모든 장에 똑같이 적용됩니다 — 쪽마다 손으로 배치를 고치는 작업은 다음 빌드에서 사라집니다.</li>
 <li>원고가 고쳐지면 그 장만 다시 찍어 끼웁니다. 장의 쪽수가 바뀌므로 특정 쪽번호에 기대는 배치는 유지되지 않습니다.</li>
 <li>코드 블록과 표는 쪽 끝에서 갈라질 수 있습니다. 시뮬레이션 대체 그림 · 인용 상자 · 점검 답 상자는 갈라지지 않게 다음 쪽으로 넘깁니다.</li>
-<li>표지는 지금 글자만 있습니다. 그림 · 사진 자리는 없습니다.</li>
+<li>표지 · 챕터 간지 · 뒤표지는 한 쪽으로 고정된 틀이라, 글이 길면 넘치지 않고 잘립니다.</li>
 </ul>
 </section>`;
+
+  const locked = (src: Source) =>
+    locks.get(src.v.vol.id)?.chapters.find((c) => c.id === src.ch.id);
+  /** 간지의 쪽수 · 쪽번호 자리를 원본 실측으로 채운다. */
+  const filled = (src: Source, html: string) => {
+    const e = locked(src);
+    return fill(
+      html,
+      e === undefined ? {} : { pages: e.pages, folio: e.startPage },
+    );
+  };
+
+  const sizes = new Map<string, VolumeSize>(
+    s.volumes.map((v) => [
+      v.vol.id,
+      {
+        chapters: v.chapters.length,
+        pages: (locks.get(v.vol.id) as Lock).pages.actual,
+      },
+    ]),
+  );
+  const firstBodies = new Map(
+    sources.filter((x) => x.v === first).map((x) => [x.ch.id, x.html] as const),
+  );
 
   const covers = s.volumes
     .map((v) => {
@@ -444,7 +464,17 @@ ${SPECS.map((spec, i) => {
         { 1: null },
       );
     })
-    .join("\n");
+    .join("\n")
+    .concat(
+      "\n",
+      backCover(
+        cfg,
+        s,
+        first,
+        sizes,
+        factsOf(first.chapters, firstBodies, store),
+      ),
+    );
 
   const firstPages = new Map(
     firstLock.chapters.map((c) => [c.id, c.startPage] as const),
@@ -454,6 +484,14 @@ ${SPECS.map((spec, i) => {
     new Set(first.chapters.map((c) => c.id)),
     (c) => store.get(c.id)?.title ?? c.name,
     firstPages,
+    frameOf(
+      first,
+      first.chapters,
+      firstLock.pages.actual,
+      firstLock.pages.front +
+        firstLock.chapters.reduce((n, c) => n + c.pages, 0) +
+        1,
+    ),
   );
 
   const specimen = `<section class="bk-spec-section">
@@ -468,7 +506,7 @@ ${SPECS.map((spec, i) => {
 ${mark(2, `${i + 1}. ${spec.name}`)}
 <p class="bk-spec-label bk-note"><strong>${i + 1}. ${esc(spec.name)}</strong> · <code>${esc(spec.selector)}</code> · ${t.count.toLocaleString()}곳(${t.chapters}장) · 출처 ${esc(from)}<br>${esc(spec.role)}</p>
 <div class="bk-spec-body">
-${relevel(f.html, { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null })}
+${relevel(filled(f.from, f.html), { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null })}
 </div>
 </div>`;
 }).join("\n")}
@@ -492,19 +530,22 @@ ${relevel(f.html, { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null })}
         5: null,
         6: null,
       });
-      return atChapterTop(
-        leveled,
-        [mark(1, `본문 샘플 — ${label} ${title}`)],
-        x.ch.id,
-      ).replace(
-        "</header>",
-        `</header>\n${note(`본문 샘플 — ${esc(label)} 전체입니다.${where}`, "bk-sample-note bk-note")}`,
+      return filled(
+        x,
+        atChapterTop(
+          leveled,
+          [mark(1, `본문 샘플 — ${label} ${title}`)],
+          x.ch.id,
+        ).replace(
+          /(<section class="bk-opener"[\s\S]*?<\/section>)/,
+          `$1\n${note(`본문 샘플 — ${esc(label)} 전체입니다.${where}`, "bk-sample-note bk-note")}`,
+        ),
       );
     })
     .join("\n");
 
   const title = `${cfg.title} 디자인 샘플`;
-  const css = `${await bookCss(cfg)}\n${SAMPLE_CSS}`;
+  const css = `${await bookCss(cfg, `${cfg.title} · 디자인 샘플`)}\n${SAMPLE_CSS}`;
   const html = shell(
     title,
     css,
@@ -515,12 +556,9 @@ ${relevel(f.html, { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null })}
   const htmlPath = `${sampleDir}/${title}.html`;
   await Bun.write(htmlPath, html);
 
-  const printer = await Printer.launch(cfg);
+  const printer = await Printer.launch();
   try {
-    const pdf = await printer.print(htmlPath, {
-      header: esc(`${cfg.title} · 디자인 샘플`),
-      outline: true,
-    });
+    const pdf = await printer.print(htmlPath, { outline: true });
     const pdfPath = `${sampleDir}/${title}.pdf`;
     await Bun.write(pdfPath, pdf);
     console.log(
@@ -541,13 +579,9 @@ ${relevel(f.html, { 1: null, 2: null, 3: null, 4: null, 5: null, 6: null })}
 }
 
 interface Lock {
-  pages: { actual: number };
+  pages: { actual: number; front: number };
   chapters: { id: string; startPage: number; pages: number }[];
   bytes: number;
-}
-
-function mm(inch: number): string {
-  return `${(inch * 25.4).toFixed(1)}mm`;
 }
 
 if (import.meta.main) await main();

@@ -1,18 +1,19 @@
 /**
  * 인쇄기 — 헤드리스 크롬을 **CDP(Chrome DevTools Protocol)로** 몬다.
  *
- * `--print-to-pdf` 플래그를 안 쓰는 이유가 하나 있다. 그 플래그로는 **머리말·꼬리말을 못
- * 넣는다.** 크롬은 CSS `@page` 의 여백 상자(`@bottom-center`)를 구현하지 않으므로 쪽번호를
- * 넣을 자리가 CDP `Page.printToPDF` 의 `headerTemplate`/`footerTemplate` 밖에 없다.
- * 쪽번호가 없으면 목차의 쪽 표시도 가리킬 곳이 없어진다 — 즉 이건 선택이 아니라 전제다.
+ * `--print-to-pdf` 플래그를 안 쓰는 이유는 둘이다. 문서 개요(태그 PDF)를 켜는 옵션이 CDP 에만
+ * 있고, **서체가 다 불려 오고 도식 맞춤이 끝난 뒤에** 인쇄하도록 기다릴 방법이 CDP 에만 있다.
+ *
+ * 쪽 크기 · 여백 · 머리말 · 쪽번호는 CDP 가 아니라 CSS `@page` 가 정한다(`preferCSSPageSize`).
+ * 크롬 131 부터 여백 상자(`@top-left` · `@bottom-center`)를 구현해서, 표지와 간지만 여백 0 에
+ * 머리말을 끄는 쪽마다 다른 틀이 CSS 로 된다(152 실측). CDP 의 머리말 틀은 모든 쪽에 같은 것
+ * 하나라 그 구분을 못 한다.
  *
  * 크롬을 편마다 새로 띄우지 않고 하나로 111편을 인쇄한다. 냉시동이 편당 5.5초 중 3초쯤을
  * 차지해서, 다시 띄우면 그 3초가 111번 붙는다.
  */
 
 import { mkdir, rm } from "node:fs/promises";
-import type { BookConfig } from "./config.ts";
-import { PAPER } from "./config.ts";
 
 const CANDIDATES = [
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -32,10 +33,6 @@ export async function findChrome(): Promise<string> {
 }
 
 export interface PrintOptions {
-  /** 꼬리말에 쪽번호를 넣는가. 낱장 쪽수만 잴 때는 꺼서 조판을 그대로 둔다. */
-  footer?: boolean;
-  /** 머리말 문구. 비우면 머리말 자리를 비운다(여백은 그대로 — 조판이 흔들리지 않는다). */
-  header?: string;
   /**
    * 뷰어 사이드바의 문서 개요를 만드는가. 크롬은 태그 PDF 일 때만 개요를 만든다(152 실측) —
    * 둘을 함께 켠다. 개요 구조는 제목 표기가 정한다(`outline.ts`). 쪽수만 잴 때는 끈다.
@@ -55,10 +52,9 @@ export class Printer {
     private readonly proc: Bun.Subprocess,
     private readonly ws: WebSocket,
     private readonly profile: string,
-    private readonly cfg: BookConfig,
   ) {}
 
-  static async launch(cfg: BookConfig): Promise<Printer> {
+  static async launch(): Promise<Printer> {
     const bin = await findChrome();
     const profile = `${await tmpRoot()}/chrome-${process.pid}`;
     await mkdir(profile, { recursive: true });
@@ -106,7 +102,7 @@ export class Printer {
       ws.onerror = () => rej(new Error("CDP 소켓 연결 실패"));
     });
 
-    const printer = new Printer(proc, ws, profile, cfg);
+    const printer = new Printer(proc, ws, profile);
     ws.onmessage = (e) => printer.onMessage(String(e.data));
 
     const t = (await printer.send("Target.createTarget", {
@@ -183,32 +179,52 @@ export class Printer {
     const loaded = this.once("Page.loadEventFired", 120_000);
     await this.send("Page.navigate", { url: `file://${file}` });
     await loaded;
+    await this.ready(file);
     await Bun.sleep(settleMs);
 
-    const { w, h } = PAPER[this.cfg.page.format];
-    const m = this.cfg.page.marginIn;
-    const header = opts.header ?? "";
     const res = (await this.send("Page.printToPDF", {
       printBackground: true,
-      preferCSSPageSize: false,
-      paperWidth: w,
-      paperHeight: h,
-      marginTop: m.top,
-      marginBottom: m.bottom,
-      marginLeft: m.left,
-      marginRight: m.right,
-      displayHeaderFooter: true,
+      preferCSSPageSize: true,
+      displayHeaderFooter: false,
       generateTaggedPDF: opts.outline === true,
       generateDocumentOutline: opts.outline === true,
-      headerTemplate: `<div style="font-size:7.5pt;width:100%;padding:0 12mm;color:#8a8f94;font-family:-apple-system,sans-serif">${header}</div>`,
-      footerTemplate:
-        opts.footer === false
-          ? '<div style="display:none"></div>'
-          : `<div style="font-size:8pt;width:100%;text-align:center;color:#5f6368;font-family:-apple-system,sans-serif"><span class="pageNumber"></span></div>`,
     })) as { data?: string };
 
     if (res.data === undefined) throw new Error(`인쇄 실패: ${file}`);
     return Buffer.from(res.data, "base64");
+  }
+
+  /**
+   * 쪽이 가라앉기를 기다린다 — 서체 로드와 도식 맞춤(`build-book.ts` 의 `FIT_JS`).
+   *
+   * 한글 서체는 유니코드 구간별 조각이라 **글자를 조판하면서** 불려 온다. 적재 이벤트만 보고
+   * 찍으면 늦게 온 조각의 글자가 대체 글꼴로 찍히고, 잴 때와 찍을 때 쪽수가 갈릴 수 있다.
+   * 서체 조각을 못 읽었으면 멈춘다 — 조용히 시스템 글꼴로 찍힌 책은 디자인과 다르다.
+   */
+  private async ready(file: string): Promise<void> {
+    const r = (await this.send("Runtime.evaluate", {
+      expression: `(async () => {
+        await document.fonts.ready;
+        if (window.bkReady) await window.bkReady;
+        await document.fonts.ready;
+        const faces = [...document.fonts];
+        return JSON.stringify({
+          loaded: faces.filter((f) => f.status === "loaded").length,
+          failed: faces.filter((f) => f.status === "error").map((f) => f.family + " " + f.weight),
+        });
+      })()`,
+      awaitPromise: true,
+      returnByValue: true,
+    })) as { result?: { value?: string } };
+    const got = JSON.parse(r.result?.value ?? "{}") as {
+      loaded?: number;
+      failed?: string[];
+    };
+    if ((got.failed ?? []).length > 0) {
+      throw new Error(
+        `서체를 못 읽었다(${file}): ${(got.failed ?? []).join(", ")} — bun install 로 @fontsource 패키지를 받는다`,
+      );
+    }
   }
 
   async close(): Promise<void> {

@@ -22,19 +22,22 @@
  * 4. **뷰어 번들을 싣지 않는다.** 종이에서 React 는 아무 일도 못 한다. 마운트 지점 안의
  *    `<pre class="gs-ascii">` 폴백이 그대로 인쇄된다(JS 를 끄고 인쇄한 결과가 켠 것과
  *    바이트까지 같음을 실측했다). 편당 205KB 짜리 번들 111벌이 여기서 사라진다.
+ * 5. **디자인 템플릿의 틀을 씌운다.** CSS 만으로 못 만드는 구조 셋을 여기서 세운다 —
+ *    챕터 간지(장 제목이 본문 흐름에서 빠져 한 쪽을 차지한다), 코드 머리 줄(언어 표기),
+ *    멈춤 상자(「멈춤 —」 제목부터 다음 제목 전까지를 한 상자로 묶는다).
  */
 
 import { dirname, relative, resolve } from "node:path";
 import { build, railFrom } from "../build-html.ts";
 import type { Chapter } from "./chapters.ts";
 import { REPO } from "./config.ts";
-import { NO_SLOT } from "./volume.ts";
+import { FOLIO_SLOT, NO_SLOT, PAGES_SLOT } from "./volume.ts";
 
 /**
  * 조각 모양이 바뀌면 올린다. **올리는 순간 캐시 전체가 무효가 된다** — 낡은 모양의 조각과
  * 새 모양의 조각이 한 권에 섞이는 것이 조용한 실패다.
  */
-export const BUILDER_VERSION = 3;
+export const BUILDER_VERSION = 4;
 
 export interface CacheEntry {
   src: string;
@@ -224,16 +227,120 @@ function wrap(
       (_m, text: string) => text,
     );
 
-  const head =
-    `<header class="bk-chapter-head">` +
-    `<p class="bk-kicker">${esc(kickerOf(ch))}</p>` +
-    `<p class="bk-chapter-no">제 ${NO_SLOT} 장</p>` +
-    `</header>`;
+  // 장 제목은 간지로 옮긴다 — 본문 흐름에 두면 간지 다음 쪽에 한 번 더 선다.
+  const h1 = /<h1\b[^>]*>[\s\S]*?<\/h1>\n?/.exec(out);
+  if (h1 !== null) out = out.replace(h1[0], "");
+  const opener = openerOf(
+    ch,
+    h1?.[0].trim() ?? `<h1>${esc(ch.name)}</h1>`,
+    out,
+  );
 
   return {
-    html: `<section class="bk-chapter" id="${ch.id}" data-track="${ch.trackId}">\n${head}\n${out}\n</section>\n`,
+    html: `<section class="bk-chapter" id="${ch.id}" data-track="${ch.trackId}">\n${opener}\n${stops(codeFigures(out))}\n</section>\n`,
     deadRefs,
   };
+}
+
+/** 코드 펜스 언어 → 지면 표기. 도식(`text`)은 언어가 아니라 그림이라 여기 없다. */
+const LANG: Record<string, string> = {
+  ts: "TypeScript",
+  typescript: "TypeScript",
+  js: "JavaScript",
+  javascript: "JavaScript",
+  rust: "Rust",
+  rs: "Rust",
+  python: "Python",
+  py: "Python",
+  c: "C",
+  cpp: "C++",
+  java: "Java",
+  julia: "Julia",
+  go: "Go",
+};
+
+export function langLabel(lang: string): string {
+  return LANG[lang] ?? lang.toUpperCase();
+}
+
+/** 이 조각의 코드 언어를 많이 쓴 순서로. 도식 블록은 세지 않는다. */
+export function codeLanguages(html: string): string[] {
+  const n = new Map<string, number>();
+  for (const m of html.matchAll(
+    /<pre class="shiki[^>]*data-language="([^"]+)"/g,
+  )) {
+    const lang = m[1] as string;
+    if (lang === "text" || lang === "txt" || lang === "plaintext") continue;
+    const label = langLabel(lang);
+    n.set(label, (n.get(label) ?? 0) + 1);
+  }
+  return [...n.entries()].sort((a, b) => b[1] - a[1]).map(([l]) => l);
+}
+
+/**
+ * 챕터 간지 — 템플릿 「03 챕터 간지」. 파트 요약은 **원고의 파트 제목과 그 첫 문단**이다
+ * (111편 모두 파트 둘에 첫 문단이 있음을 실측). 요약을 새로 쓰지 않는다.
+ */
+function openerOf(ch: Chapter, h1: string, body: string): string {
+  const parts = [
+    ...body.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>\s*<p>([\s\S]*?)<\/p>/g),
+  ].map(
+    (m) =>
+      `<div><p class="bk-opener-part">${text(m[1] ?? "")}</p>` +
+      `<p class="bk-opener-lede">${text(m[2] ?? "")}</p></div>`,
+  );
+  const kicker = [kickerOf(ch), `제 ${NO_SLOT} 장`]
+    .filter((x) => x !== "")
+    .join(" · ");
+  const langs = codeLanguages(body).map((l) => l.toUpperCase());
+  return [
+    `<section class="bk-opener">`,
+    `<div class="bk-opener-run"><span>EP. ${NO_SLOT}</span></div>`,
+    `<div class="bk-opener-no">${NO_SLOT}</div>`,
+    `<div class="bk-opener-col">`,
+    `<p class="bk-kicker">${esc(kicker).replaceAll(esc(NO_SLOT), NO_SLOT)}</p>`,
+    h1,
+    `<div class="bk-opener-rule"></div>`,
+    parts.length === 0
+      ? ""
+      : `<div class="bk-opener-parts">${parts.join("")}</div>`,
+    `</div>`,
+    `<div class="bk-opener-foot"><span>${[...langs, `${PAGES_SLOT}쪽`].join(" · ")}</span>` +
+      `<span class="bk-folio">${FOLIO_SLOT}</span></div>`,
+    `</section>`,
+  ].join("\n");
+}
+
+/** 태그를 벗긴 글자. 엔티티는 그대로 두어 HTML 에 다시 넣어도 안전하다. */
+function text(html: string): string {
+  return html
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** 코드 블록에 머리 줄을 씌운다 — 템플릿 「05 본문 코드」. 도식 블록은 그대로 둔다. */
+function codeFigures(html: string): string {
+  return html.replace(
+    /<pre class="shiki[^>]*data-language="([^"]+)"[^>]*>[\s\S]*?<\/pre>/g,
+    (m, lang: string) =>
+      lang === "text"
+        ? m
+        : `<figure class="bk-code"><figcaption class="bk-code-head">` +
+          `<span class="bk-code-lang">${esc(langLabel(lang))}</span></figcaption>${m}</figure>`,
+  );
+}
+
+/**
+ * 「멈춤 —」 제목부터 다음 제목 전까지를 한 상자로 묶는다 — 템플릿 「07 본문 요약·연습」의
+ * STOP. 원고에서 멈춤은 제목 하나에 문단 · 도식이 따라오는 절이라, 제목만 칠하면 어디서
+ * 끝나는지가 지면에 안 보인다.
+ */
+function stops(html: string): string {
+  return html.replace(
+    /<h4\b[^>]*>멈춤[\s\S]*?(?=<h[1-4][\s>]|$)/g,
+    (m) => `<div class="bk-stop">\n${m.trimEnd()}\n</div>\n`,
+  );
 }
 
 function esc(s: string): string {

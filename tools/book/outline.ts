@@ -48,13 +48,18 @@ export const OUTLINE_CSS = `
 }
 `;
 
-/** 장 껍데기 바로 안쪽(장 첫 쪽 맨 위)에 표기를 넣는다. */
+/**
+ * 장 첫 쪽 맨 위에 표기를 넣는다. 간지가 있으면 **간지 안쪽**이다 — 간지 앞(장 껍데기 바로
+ * 안)에 두면 간지와 이름 붙은 쪽이 다른 상자가 먼저 서서, 표기만 실린 빈 쪽이 생길 수 있다.
+ */
 export function atChapterTop(
   html: string,
   marks: string[],
   id: string,
 ): string {
-  const head = /<section class="bk-chapter"[^>]*>/.exec(html);
+  const head =
+    /<section class="bk-opener"[^>]*>/.exec(html) ??
+    /<section class="bk-chapter"[^>]*>/.exec(html);
   if (head === null) {
     throw new Error(`${id}: 장 껍데기가 없어 개요 표기를 붙일 자리가 없다`);
   }

@@ -636,6 +636,16 @@ export async function build(
     .use(rehypeKatex)
     .use(rehypeShiki, {
       themes: { light: "github-light", dark: "github-dark" },
+      // 책 빌더가 코드와 도식을 가른다(`tools/book/fragment.ts`) — 문법 색 유무로 가르면
+      // 색이 한 번도 안 붙은 짧은 코드가 도식으로 잡힌다.
+      transformers: [
+        {
+          name: "data-language",
+          pre(node) {
+            node.properties["data-language"] = this.options.lang;
+          },
+        },
+      ],
     })
     .use(rehypeStringify)
     .process(md);
