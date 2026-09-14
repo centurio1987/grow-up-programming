@@ -1,6 +1,6 @@
 {
   "next_id": 39,
-  "next_seq": 277,
+  "next_seq": 278,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -951,6 +951,16 @@
   ],
   "recent": [
     {
+      "seq": 277,
+      "t": "2026-09-15T08:40",
+      "a": "유저",
+      "id": "KAN-038-NE17BJ",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-026",
+      "reason": "유저 지시(2026-09-15) 「순서 기록해」. deque 등급 재판정은 KAN-026 의 「연결 마디는 자명한 구현」 결정(conventions 「A군 판정 — 사람 결정 넷」)이 main 에 병합된 뒤에야 근거가 선다"
+    },
+    {
       "seq": 276,
       "t": "2026-09-15T04:14",
       "a": "유저",
@@ -1515,16 +1525,6 @@
       "w": "MDD8JM",
       "from": "review",
       "to": "done"
-    },
-    {
-      "seq": 227,
-      "t": "2026-09-10T16:19",
-      "a": "ai",
-      "id": "KAN-034.5-0RGSQM",
-      "op": "move",
-      "w": "MDD8JM",
-      "from": "review",
-      "to": "done"
     }
   ],
   "layout": 2,
@@ -1550,6 +1550,18 @@
       "scope_hash": "91f57a83161355f3",
       "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 B군 잔여 16종은 계약 전환이 끝나야 쓸 수 있다",
       "created": "2026-09-15T04:14",
+      "by": "유저",
+      "restrategy_required": false
+    },
+    {
+      "pair": "KAN-026|KAN-038-NE17BJ",
+      "order": [
+        "KAN-026",
+        "KAN-038-NE17BJ"
+      ],
+      "scope_hash": "4116472505368b1e",
+      "reason": "유저 지시(2026-09-15) 「순서 기록해」. deque 등급 재판정은 KAN-026 의 「연결 마디는 자명한 구현」 결정(conventions 「A군 판정 — 사람 결정 넷」)이 main 에 병합된 뒤에야 근거가 선다",
+      "created": "2026-09-15T08:40",
       "by": "유저",
       "restrategy_required": false
     }
