@@ -1,6 +1,6 @@
 {
   "next_id": 36,
-  "next_seq": 255,
+  "next_seq": 256,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -703,12 +703,12 @@
       "memo_hash": "a323e2f2982805e64e74ac106bc4025a785123c2"
     },
     "KAN-035-31T4BY": {
-      "col": "review",
+      "col": "done",
       "title": "진행 중인 자료구조 재집필 트랙을 취소하고, 다시 설계",
       "verbatim": "",
       "생성": "유저",
       "최종": "ai",
-      "갱신": "2026-09-13",
+      "갱신": "2026-09-14",
       "title_hash": "5c44cee49f17c49d396f542a948bdff72ee04121",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "memo": "**착수 2026-09-13** — 워크트리 `/Users/centurio/orca/workspaces/code_test/KAN-035-31T4BY` · 브랜치 `KAN-035-31T4BY`. **결재 둘**: ① 취소는 가이드 층까지이고 계약 헤더·`_reference/`·계약 스위트 4축·CI 3모드·vector·Rust 축4 는 존치한다 ② 이 카드는 규격 수립 + 파일럿 승인까지이고 69편 전개는 후속 카드다(KAN-033 → KAN-034 와 같은 분할). 실측(2026-09-11): 69종 중 계약 36 · TS 정본 35 · 8단계 재집필 35편 · 구판 34편 · ds 사이드카 0 · 시뮬 69/69. 파일럿 3편은 `linear/deque` · `tree/redBlackTree` · `linear/xorLinkedList` 다. 전략·WBS·검증·파일럿 선정 근거는 실행 문서에 있고, 외부 검토(plan-reviewer) 지적 10건을 반영했다.",
@@ -770,7 +770,6 @@
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
-    "KAN-035-31T4BY",
     "KAN-029",
     "KAN-030",
     "KAN-007",
@@ -807,9 +806,20 @@
     "KAN-034.3-53E4F9",
     "KAN-034.4-4NS63H",
     "KAN-034.9-WHH53W",
-    "KAN-034-KSD7XR"
+    "KAN-034-KSD7XR",
+    "KAN-035-31T4BY"
   ],
   "recent": [
+    {
+      "seq": 255,
+      "t": "2026-09-14T16:56",
+      "a": "ai",
+      "id": "KAN-035-31T4BY",
+      "op": "move",
+      "w": "7SA6RM",
+      "from": "review",
+      "to": "done"
+    },
     {
       "seq": 254,
       "t": "2026-09-13T21:30",
@@ -1371,16 +1381,6 @@
       "field": "memo",
       "before": "v2 쪽 두 건도 여기서 함께 본다 — ① invariant 절의 원문자 라벨: SPEC.md:566 이 금지하는데 P4 가 deep.walk 에서만 토큰을 뽑아 스캐너 넷이 전부 초록이다. 전수 스윕으로 invariant 절이 있는 81편 중 21편(최다 segmentsIntersect 37 · undirectedCycleDetection 22 · enumerateSubmasks 19)이고 check-v2 에 한 줄이면 막는다 ② check-metaphor 의 활용형 리터럴 나열이 다섯 번째로 샜다(되돌리- · 얹히- 에 이어 훑- ). 근거·목록·처방은 sandbox/algo-guide-v2/FEEDBACK.md §3·§4 (2026-09-04 W3 배치3 에서 나왔다). 그리고 KAN-034.7 전략 7항이 이월한 셋 — .claude/authoring/paths.json:29 · tools/ord004-regen.workflow.mjs:26 · tools/ord004-manifest.json:659 가 convexHull 의 사라진 .mdx 를 가리킨다",
       "after": "v2 쪽 두 건도 여기서 함께 본다 — ① invariant 절의 원문자 라벨: SPEC.md:566 이 금지하는데 P4 가 deep.walk 에서만 토큰을 뽑아 스캐너 넷이 전부 초록이다. 전수 스윕으로 invariant 절이 있는 81편 중 21편(최다 segmentsIntersect 37 · undirectedCycleDetection 22 · enumerateSubmasks 19)이고 check-v2 에 한 줄이면 막는다 ② check-metaphor 의 활용형 리터럴 나열이 다섯 번째로 샜다(되돌리- · 얹히- 에 이어 훑- ). 근거·목록·처방은 sandbox/algo-guide-v2/FEEDBACK.md §3·§4 (2026-09-04 W3 배치3 에서 나왔다). 그리고 KAN-034.7 전략 7항이 이월한 셋 — .claude/authoring/paths.json:29 · tools/ord004-regen.workflow.mjs:26 · tools/ord004-manifest.json:659 가 convexHull 의 사라진 .mdx 를 가리킨다 **배치1 종료(2026-09-04) — S1 닫음(1/10).** invariant 절 원문자 186개를 21편에서 전부 걷어 81편 기준 0 이다. 교정 규약은 원문자를 안 쓰는 60편에서 뽑았고 근거 편은 millerRabin 이다(같은 교정을 W3 배치3 에서 마쳤고 지금 그 절 0 · 파트 1 91줄 유지) — 원문자는 deep.walk 의 것이고 invariant 절은 같은 갈래를 하는 일의 이름이나 조건식으로 부른다. **금지 범위가 절 전체라는 것도 60편 실측이 정했다**(SPEC.md:566 은 문면상 걸음 ③ 의 하위 항목이라 갈리지 않았다). 워커 5 병렬이고 편별 원문자 총수가 기대값과 한 자리도 안 갈려 파트 1 라벨이 무손실임이 기계로 확인됐다. **드러난 구멍 하나 — proof 블록은 원고가 아니라 생성기를 고치는 자리다**: <!--proof:id--> 아래 펜스는 사이드카가 실행으로 만드는 텍스트라 원고만 바꾸면 check-proof 대조가 깨진다. 21편 중 21편이 그 절에 마커를 갖고 있고 실제로 깨진 것은 segmentsIntersect 하나였다(.proof.ts 에 표시 이름 맵을 두어 해소, 분기 필드는 원문자로 남겨 P4 를 지켰다). **S5 근거가 하나 생겼다** — 그 사이드카의 width() 가 U+2460~24FF 를 안 세어 원문자를 폭 1 로 계산하고 있었다. 다음은 배치2(S2~S4)."
-    },
-    {
-      "seq": 205,
-      "t": "2026-09-04T21:26",
-      "a": "ai",
-      "id": "KAN-034.8-BK1Q3A",
-      "op": "move",
-      "w": "MDD8JM",
-      "from": "backlog",
-      "to": "doing"
     }
   ],
   "layout": 2
