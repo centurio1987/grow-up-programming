@@ -1,6 +1,6 @@
 {
-  "next_id": 38,
-  "next_seq": 270,
+  "next_id": 39,
+  "next_seq": 271,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -875,6 +875,26 @@
       "goal_hash": "0a885f929a93f41b1ecb350df809cc345a38ba34",
       "memo": "근거: KANBAN.reviews/KAN-035-31T4BY.review.md 6번(3편의 마지막 변경 df58ce0, KAN-035 이전). CI 는 지금 --require 없이 돈다(tools/ci.ts:95).",
       "memo_hash": "a4a95ee57472116d902cbdd4a553b3f05ba9e570"
+    },
+    "KAN-038-NE17BJ": {
+      "col": "backlog",
+      "title": "deque 검증 등급 재판정 — 연결 마디를 자명한 구현으로 본 결재 반영",
+      "verbatim": "",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-09-15",
+      "title_hash": "6654a9990846eee0c57e90358af6c601b29eba5f",
+      "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "short": "deque 등급 재판정",
+      "short_hash": "161c7ec475a6d195fd36a0058eca2aca77bab6b9",
+      "purpose": "src/data-structures/linear/deque 의 검증 등급 complexity 근거를 연결 마디 자명성 결재에 맞춰 다시 판정한다",
+      "purpose_hash": "b7d0e45d4228403bc1282173f1e7266dcbe1c2e4",
+      "reason": "2026-09-15 유저 결재(KAN-026)로 연결 마디가 자명한 구현이 되어, 양방향 마디가 네 갱신 행을 상각 없이 최악 상수로 하므로 deque.ts:32-35 의 「상각 설계가 필요하다」 근거가 거짓이 됐다",
+      "reason_hash": "5cc8b9bf8f023a282b0247d7ff6bfcd6490eb992",
+      "goal": "deque 헤더·스위트 등급·inventory 가 새 판정과 일치하고, 불변 사실 56 의 첫 사례(queue 와 등급으로 가른 자리) 서술이 근거를 되찾거나 정정된다",
+      "goal_hash": "357e618aabd6ba24efb735631cfc36779a7a3fe2",
+      "memo": "근거: KAN-026 워크트리 docs/ORD-006-conventions.md 끝 「A군 판정 — 사람 결정 넷」 · 「A군 17종 판정 ① 등급」. 착수는 KAN-026 이 main 에 병합된 뒤(그 결정 문장이 main 에 있어야 한다). deque 의 v2 가이드(KAN-035 파일럿)에 등급 서술이 있으면 함께 본다.",
+      "memo_hash": "82e4fd8ec344fecb5eb9e4dc8ffb5024c698f52b"
     }
   },
   "order": [
@@ -924,9 +944,27 @@
     "KAN-034.4-4NS63H",
     "KAN-034.9-WHH53W",
     "KAN-034-KSD7XR",
-    "KAN-035-31T4BY"
+    "KAN-035-31T4BY",
+    "KAN-038-NE17BJ"
   ],
   "recent": [
+    {
+      "seq": 270,
+      "t": "2026-09-15T01:28",
+      "a": "ai",
+      "id": "KAN-038-NE17BJ",
+      "op": "create",
+      "w": "46PCAX",
+      "col": "backlog",
+      "title": "deque 검증 등급 재판정 — 연결 마디를 자명한 구현으로 본 결재 반영",
+      "verbatim": "",
+      "parent": null,
+      "short": "deque 등급 재판정",
+      "purpose": "src/data-structures/linear/deque 의 검증 등급 complexity 근거를 연결 마디 자명성 결재에 맞춰 다시 판정한다",
+      "reason": "2026-09-15 유저 결재(KAN-026)로 연결 마디가 자명한 구현이 되어, 양방향 마디가 네 갱신 행을 상각 없이 최악 상수로 하므로 deque.ts:32-35 의 「상각 설계가 필요하다」 근거가 거짓이 됐다",
+      "goal": "deque 헤더·스위트 등급·inventory 가 새 판정과 일치하고, 불변 사실 56 의 첫 사례(queue 와 등급으로 가른 자리) 서술이 근거를 되찾거나 정정된다",
+      "memo": "근거: KAN-026 워크트리 docs/ORD-006-conventions.md 끝 「A군 판정 — 사람 결정 넷」 · 「A군 17종 판정 ① 등급」. 착수는 KAN-026 이 main 에 병합된 뒤(그 결정 문장이 main 에 있어야 한다). deque 의 v2 가이드(KAN-035 파일럿)에 등급 서술이 있으면 함께 본다."
+    },
     {
       "seq": 269,
       "t": "2026-09-15T01:27",
@@ -1481,16 +1519,6 @@
       "t": "2026-09-09T16:59",
       "a": "ai",
       "id": "KAN-034.6-CF6ZHE",
-      "op": "move",
-      "w": "MDD8JM",
-      "from": "doing",
-      "to": "review"
-    },
-    {
-      "seq": 220,
-      "t": "2026-09-09T16:59",
-      "a": "ai",
-      "id": "KAN-034.5-0RGSQM",
       "op": "move",
       "w": "MDD8JM",
       "from": "doing",

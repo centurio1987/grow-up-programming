@@ -25,6 +25,12 @@
   - 이유: check-proof --all --require 가 이 3편 때문에 종료코드 1 이라 증명 전수 대조를 검증 기준으로 못 쓴다 — KAN-035 검토 6번에서 별도 카드로 다루기로 승인됐다
   - 목표: bun run tools/check-proof.ts --all --require 가 종료코드 0 으로 끝나 CI 가 0 개 편을 실패로 볼 수 있게 된다
   - 메모: 근거: KANBAN.reviews/KAN-035-31T4BY.review.md 6번(3편의 마지막 변경 df58ce0, KAN-035 이전). CI 는 지금 --require 없이 돈다(tools/ci.ts:95).
+- `KAN-038-NE17BJ` deque 검증 등급 재판정 — 연결 마디를 자명한 구현으로 본 결재 반영 — 생성:ai · 최종:ai · 갱신:2026-09-15
+  - 짧은 제목: deque 등급 재판정
+  - 목적: src/data-structures/linear/deque 의 검증 등급 complexity 근거를 연결 마디 자명성 결재에 맞춰 다시 판정한다
+  - 이유: 2026-09-15 유저 결재(KAN-026)로 연결 마디가 자명한 구현이 되어, 양방향 마디가 네 갱신 행을 상각 없이 최악 상수로 하므로 deque.ts:32-35 의 「상각 설계가 필요하다」 근거가 거짓이 됐다
+  - 목표: deque 헤더·스위트 등급·inventory 가 새 판정과 일치하고, 불변 사실 56 의 첫 사례(queue 와 등급으로 가른 자리) 서술이 근거를 되찾거나 정정된다
+  - 메모: 근거: KAN-026 워크트리 docs/ORD-006-conventions.md 끝 「A군 판정 — 사람 결정 넷」 · 「A군 17종 판정 ① 등급」. 착수는 KAN-026 이 main 에 병합된 뒤(그 결정 문장이 main 에 있어야 한다). deque 의 v2 가이드(KAN-035 파일럿)에 등급 서술이 있으면 함께 본다.
 
 ## 할 일
 - `KAN-001` [P0-a·1] ORD-006 봉인 — 지시 원문·진단 9건 표 이관 — 생성:ai · 최종:ai · 갱신:2026-09-13
