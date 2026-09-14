@@ -77,11 +77,15 @@ h4 { font-size: .97rem; margin: 1rem 0 .4rem; }
 /* ── 책 안으로 못 들어온 상호 참조 ───────────────────────── */
 .bk-xref-dead { color: var(--gs-muted); }
 .bk-xref-dead::after { content: " (미수록)"; font-size: .8em; color: var(--gs-muted); }
+/* 다른 권에 실린 장 — 링크 대신 실린 자리를 적는다(volume.ts) */
+.bk-xref-other::after { content: " (" attr(data-where) ")"; font-size: .8em; color: var(--gs-muted); }
 
 /* ── 표지 ───────────────────────────────────────────────── */
 .bk-cover { display: flex; flex-direction: column; justify-content: center; min-height: 88vh; }
 .bk-cover-rule { width: 3.5rem; border-top: 3px solid var(--gs-ink); margin: 0 0 1.6rem; }
 .bk-cover h1 { font-size: 2.6rem; line-height: 1.25; margin: 0 0 .8rem; }
+.bk-cover .bk-volume { font-size: 1.9rem; font-weight: 700; margin: 0 0 .4rem; }
+.bk-cover .bk-blurb { font-size: 1.05rem; margin: 0 0 1.4rem; }
 .bk-cover .bk-sub { font-size: 1.1rem; color: var(--gs-muted); margin: 0 0 3rem; }
 .bk-cover dl { margin: 0; font-size: .92rem; line-height: 1.9; }
 .bk-cover dt { color: var(--gs-muted); display: inline-block; width: 5.5rem; }

@@ -17,7 +17,9 @@
  *    가리킨다 — 처음에 가이드 파일만 보다가 문제 문서 링크 149건을 죽은 채로 인쇄했다.
  *    책에 실린 편이면 `#챕터id`, 안 실린 편이면 링크를 풀어 「(미수록)」을 붙인다.
  *    **자료구조 40건이 지금 후자**이고, 편입되면 같은 코드가 살아 있는 링크로 바꾼다.
- * 3. **뷰어 번들을 싣지 않는다.** 종이에서 React 는 아무 일도 못 한다. 마운트 지점 안의
+ * 3. **장 번호를 박지 않는다.** 번호는 권이 정해져야 나오는 값이라 자리(`NO_SLOT`)만 남기고
+ *    `volume.ts` 의 `place` 가 채운다. 다른 권을 가리키는 링크를 푸는 것도 거기서 한다.
+ * 4. **뷰어 번들을 싣지 않는다.** 종이에서 React 는 아무 일도 못 한다. 마운트 지점 안의
  *    `<pre class="gs-ascii">` 폴백이 그대로 인쇄된다(JS 를 끄고 인쇄한 결과가 켠 것과
  *    바이트까지 같음을 실측했다). 편당 205KB 짜리 번들 111벌이 여기서 사라진다.
  */
@@ -26,12 +28,13 @@ import { dirname, relative, resolve } from "node:path";
 import { build, railFrom } from "../build-html.ts";
 import type { Chapter } from "./chapters.ts";
 import { REPO } from "./config.ts";
+import { NO_SLOT } from "./volume.ts";
 
 /**
  * 조각 모양이 바뀌면 올린다. **올리는 순간 캐시 전체가 무효가 된다** — 낡은 모양의 조각과
  * 새 모양의 조각이 한 권에 섞이는 것이 조용한 실패다.
  */
-export const BUILDER_VERSION = 2;
+export const BUILDER_VERSION = 3;
 
 export interface CacheEntry {
   src: string;
@@ -41,6 +44,11 @@ export interface CacheEntry {
   builder: number;
   /** 낱장 렌더로 잰 쪽수. 아직 안 쟀으면 `undefined`. */
   pages?: number;
+  /**
+   * 쪽수를 잴 때 넣은 HTML(권에 앉힌 뒤)의 해시. 조각이 같아도 장 번호나 다른 권 참조
+   * 표기가 바뀌면 줄이 넘어갈 수 있으므로, **잰 것과 찍을 것이 같을 때만** 쪽수를 믿는다.
+   */
+  measuredHash?: string;
   problems: string[];
   /** 책 안으로 못 이은 상호 참조. 자료구조 편입 전에는 여기에 그 40건이 쌓인다. */
   deadRefs: string[];
@@ -54,7 +62,7 @@ export interface EnsureResult {
   path: string;
 }
 
-function sha(text: string): string {
+export function sha(text: string): string {
   return new Bun.CryptoHasher("sha256").update(text).digest("hex").slice(0, 16);
 }
 
@@ -82,9 +90,19 @@ export class FragmentStore {
   }
 
   /** 쪽수는 조각과 따로 잰다(`chrome.ts`). 잰 값을 같은 항목에 얹는다. */
-  setPages(id: string, pages: number): void {
+  setPages(id: string, pages: number, measuredHash?: string): void {
     const e = this.entries[id];
-    if (e !== undefined) e.pages = pages;
+    if (e === undefined) return;
+    e.pages = pages;
+    if (measuredHash === undefined) delete e.measuredHash;
+    else e.measuredHash = measuredHash;
+  }
+
+  /** 이 HTML 로 잰 쪽수가 있으면 그 값, 없으면 `undefined`. */
+  pagesFor(id: string, html: string): number | undefined {
+    const e = this.entries[id];
+    if (e?.pages === undefined || e.pages <= 0) return undefined;
+    return e.measuredHash === sha(html) ? e.pages : undefined;
   }
 
   async flush(): Promise<void> {
@@ -198,7 +216,7 @@ function wrap(
   const head =
     `<header class="bk-chapter-head">` +
     `<p class="bk-kicker">${esc(kicker)}</p>` +
-    `<p class="bk-chapter-no">제 ${ch.number ?? 0} 장</p>` +
+    `<p class="bk-chapter-no">제 ${NO_SLOT} 장</p>` +
     `</header>`;
 
   return {

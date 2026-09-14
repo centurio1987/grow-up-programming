@@ -11,9 +11,11 @@
  * 원문으로 찍힌 것인지**가 곧 신뢰의 문제가 된다. 챕터별 원문 해시를 싣는 것이 그 답이다.
  */
 
-import type { Chapter, ChapterPlan, Part } from "./chapters.ts";
+import type { Chapter, Part } from "./chapters.ts";
 import type { BookConfig } from "./config.ts";
 import type { CacheEntry } from "./fragment.ts";
+import type { CrossRef, Split, VolumePlan } from "./volume.ts";
+import { placeLabel } from "./volume.ts";
 
 export function esc(s: string): string {
   return s
@@ -32,13 +34,18 @@ export interface BookStats {
 
 /* ────────────────────────── 표지 ────────────────────────── */
 
-export function cover(cfg: BookConfig, stats: BookStats): string {
+export function cover(
+  cfg: BookConfig,
+  v: VolumePlan,
+  stats: BookStats,
+): string {
   const rows: string[] = [];
-  const add = (k: string, v: string) => {
-    if (v !== "") rows.push(`<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`);
+  const add = (k: string, val: string) => {
+    if (val !== "") rows.push(`<dt>${esc(k)}</dt><dd>${esc(val)}</dd>`);
   };
   add("지은이", cfg.author);
   add("판", cfg.edition);
+  add("권", `전 ${cfg.volumes.length}권 중 ${v.ordinal}권`);
   add("찍은 날", stats.builtAt.toISOString().slice(0, 10));
   add(
     "수록",
@@ -49,9 +56,11 @@ export function cover(cfg: BookConfig, stats: BookStats): string {
   );
   if (stats.totalPages > 0) add("분량", `${stats.totalPages}쪽`);
 
-  return `<section class="bk-front bk-cover">
+  return `<section class="bk-front bk-cover" data-volume="${esc(v.vol.id)}">
 <div class="bk-cover-rule"></div>
 <h1>${esc(cfg.title)}</h1>
+<p class="bk-volume">${esc(v.vol.label)}</p>
+${v.vol.blurb === "" ? "" : `<p class="bk-blurb">${esc(v.vol.blurb)}</p>`}
 ${cfg.subtitle === "" ? "" : `<p class="bk-sub">${esc(cfg.subtitle)}</p>`}
 <dl>${rows.join("\n")}</dl>
 </section>
@@ -113,10 +122,12 @@ export function toc(
 
 export function colophon(
   cfg: BookConfig,
-  plan: ChapterPlan,
+  s: Split,
+  v: VolumePlan,
   taken: Chapter[],
   entryOf: (c: Chapter) => CacheEntry | undefined,
   stats: BookStats,
+  crossRefs: CrossRef[] = [],
 ): string {
   const trackRows = stats.perTrack
     .map(
@@ -137,10 +148,10 @@ export function colophon(
     .join("\n");
 
   const missing = new Map<string, string[]>();
-  for (const s of plan.skipped) {
+  for (const c of v.skipped) {
     // 사유 문구가 이미 트랙 이름을 담고 있다 — 앞에 또 붙이면 「자료구조 — 자료구조 …」가 된다.
-    const key = s.skipReason ?? `${s.trackLabel} — 사유 없음`;
-    missing.set(key, [...(missing.get(key) ?? []), s.name]);
+    const key = c.skipReason ?? `${c.trackLabel} — 사유 없음`;
+    missing.set(key, [...(missing.get(key) ?? []), c.name]);
   }
   const missingBlocks = [...missing.entries()]
     .map(
@@ -159,6 +170,31 @@ export function colophon(
     )
     .join("\n");
 
+  const seriesRows = s.volumes
+    .map(
+      (x) =>
+        `<tr><td>${x.ordinal}권 ${esc(x.vol.label)}${x.vol.id === v.vol.id ? " (이 권)" : ""}</td>` +
+        `<td>${esc(x.vol.stars.map(starLabel).join(" · "))}</td>` +
+        `<td>${esc(x.vol.blurb)}</td><td>${x.chapters.length}</td></tr>`,
+    )
+    .join("\n");
+
+  const nameOf = new Map(
+    s.volumes.flatMap((x) => x.chapters.map((c) => [c.id, c.name] as const)),
+  );
+  const crossCount = new Map<string, { ref: CrossRef; n: number }>();
+  for (const r of crossRefs) {
+    const hit = crossCount.get(r.target);
+    crossCount.set(r.target, { ref: r, n: (hit?.n ?? 0) + 1 });
+  }
+  const crossRows = [...crossCount.values()]
+    .sort((a, b) => b.n - a.n)
+    .map(
+      ({ ref, n }) =>
+        `<tr><td>${esc(nameOf.get(ref.target) ?? ref.target)}</td><td>${esc(placeLabel(ref.at))}</td><td>${n}</td></tr>`,
+    )
+    .join("\n");
+
   return `<section class="bk-back bk-colophon">
 <h1>마무리</h1>
 
@@ -167,8 +203,20 @@ export function colophon(
 적은 자리가 없으므로 원문이 고쳐지면 책도 같은 내용이 됩니다. 조판은 다섯 단계입니다 —
 인덱스에서 차례를 읽고, 편마다 조각을 만들고, 낱장으로 쪽수를 재고, 그 쪽수로 목차를 채우고,
 합본을 한 번 인쇄합니다.</p>
+<p>이 시리즈는 ${s.volumes.length}권입니다. 권은 가이드 인덱스의 중요도 등급으로 나뉩니다 —
+${esc(s.volumes.map((x) => `${x.vol.stars.map(starLabel).join("·")} 는 ${x.vol.label}`).join(", "))}.
+장 번호는 권마다 1부터 다시 셉니다. 다른 권에 실린 장을 가리키는 자리에는 링크 대신 그 장이
+실린 권과 번호를 괄호로 적었습니다${crossRefs[0] === undefined ? "" : `(예: 「${esc(placeLabel(crossRefs[0].at))}」)`}.</p>
 <p>화면판에 있는 대화형 시뮬레이션은 종이에서 동작하지 않으므로, 같은 자리에 원문이 함께
 지니고 있던 아스키 그림이 인쇄됩니다. 내용이 빠진 것이 아니라 표현이 바뀐 것입니다.</p>
+
+<h2>시리즈 구성</h2>
+<table>
+<thead><tr><th>권</th><th>인덱스 등급</th><th>범위</th><th>편수</th></tr></thead>
+<tbody>
+${seriesRows}
+</tbody>
+</table>
 
 <h2>수록 현황</h2>
 <table>
@@ -192,6 +240,19 @@ ${deadRows}
 </table>`
 }
 
+${
+  crossRows === ""
+    ? ""
+    : `<h3>다른 권을 가리키는 참조</h3>
+<p>본문이 가리키는 장이 다른 권에 실려 있어, 링크 대신 그 장이 실린 자리를 적은 곳입니다.</p>
+<table>
+<thead><tr><th>가리키는 장</th><th>실린 자리</th><th>횟수</th></tr></thead>
+<tbody>
+${crossRows}
+</tbody>
+</table>`
+}
+
 <h2>판 대조표</h2>
 <p>편마다 어느 판의 원문으로 찍혔는지를 적었습니다. 해시는 원문 내용에서 뽑은 것이라, 같은
 해시면 같은 글입니다. 가이드가 고쳐지면 그 편의 해시만 바뀝니다.</p>
@@ -203,11 +264,16 @@ ${editionRows}
 </table>
 
 <h2>다시 만들려면</h2>
-<pre class="gs-ascii"><code>bun run tools/book/build-book.ts            # 바뀐 편만 다시 조판한다
-bun run tools/book/build-book.ts --refresh  # 전부 다시 조판한다
-bun run tools/book/build-book.ts --only &lt;장 id&gt;</code></pre>
+<pre class="gs-ascii"><code>bun run tools/book/build-book.ts                       # 세 권 모두, 바뀐 편만 다시 조판한다
+bun run tools/book/build-book.ts --volume ${esc(v.vol.id)}  # 이 권만
+bun run tools/book/build-book.ts --refresh             # 전부 다시 조판한다</code></pre>
 <p>설정은 <code>book.config.json</code>, 차례의 정본은 <code>${esc(cfg.index)}</code>입니다.</p>
 <p class="bk-kicker">찍은 시각 ${esc(stats.builtAt.toISOString())}</p>
 </section>
 `;
+}
+
+/** `3` → `★★★`. 미분류 부(0)는 이름으로 적는다. */
+export function starLabel(stars: number): string {
+  return stars === 0 ? "미분류" : "★".repeat(stars);
 }

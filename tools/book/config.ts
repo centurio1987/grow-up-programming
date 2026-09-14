@@ -8,6 +8,9 @@
  * 챕터 순서를 이 파일이 정하지 않는다는 점도 같은 이유다 — 순서의 정본은
  * `문제_가이드_목록.md`(사람이 중요도로 관리하는 인덱스)이고, 그 인덱스에는 자료구조
  * 항목이 **이미 제자리에 적혀 있다**. 책은 그것을 읽을 뿐이다.
+ *
+ * 권 나눔(`volumes`)도 같은 원리다. 권이 챕터를 이름으로 고르지 않고 인덱스의 **부(★ 등급)**
+ * 를 고른다. 인덱스에서 한 편의 등급을 옮기면 그 편은 다음 빌드에서 다른 권으로 간다.
  */
 
 import { resolve } from "node:path";
@@ -55,6 +58,31 @@ export interface BookConfig {
   groupBy: "importance" | "track";
   page: PageConfig;
   tracks: TrackConfig[];
+  /** 권 나눔. 인덱스의 부 하나는 정확히 한 권에 들어간다. */
+  volumes: VolumeConfig[];
+  /** 디자인 의뢰용 샘플. 없으면 `build-sample.ts` 가 멈춘다. */
+  sample?: SampleConfig;
+}
+
+/**
+ * 한 권. **어느 부를 싣는지를 ★ 개수로 정한다** — 인덱스의 부가 곧 중요도 등급이므로
+ * 권 나눔도 인덱스를 따라간다. 챕터 이름을 권마다 늘어놓으면 인덱스와 두 벌이 된다.
+ */
+export interface VolumeConfig {
+  /** 산출 폴더 이름. `build/book/<id>/`. */
+  id: string;
+  /** 표지와 머리말에 찍히는 이름(`초급`). */
+  label: string;
+  /** 인덱스 부의 ★ 개수. 미분류 부는 0 이다. */
+  stars: number[];
+  /** 표지의 한 줄 — 이 권이 다루는 범위. */
+  blurb: string;
+}
+
+export interface SampleConfig {
+  outDir: string;
+  /** 본문으로 실을 챕터 id. 권마다 하나씩 두면 권별 밀도 차이가 샘플에 드러난다. */
+  chapters: string[];
 }
 
 /** 실린 차원(A4 = 8.27×11.69in). CDP 는 종이 이름이 아니라 치수를 받는다. */
@@ -74,7 +102,14 @@ export async function loadConfig(
   if (!(await file.exists())) throw new Error(`설정이 없다: ${path}`);
   const raw = (await file.json()) as Partial<BookConfig>;
 
-  const need = ["title", "index", "outDir", "page", "tracks"] as const;
+  const need = [
+    "title",
+    "index",
+    "outDir",
+    "page",
+    "tracks",
+    "volumes",
+  ] as const;
   for (const k of need) {
     if (raw[k] === undefined) throw new Error(`설정에 ${k} 가 없다: ${path}`);
   }
@@ -85,6 +120,7 @@ export async function loadConfig(
   if (groupBy !== "importance" && groupBy !== "track") {
     throw new Error(`groupBy 는 importance 또는 track 이다: ${groupBy}`);
   }
+  const volumes = checkVolumes(raw.volumes);
 
   return {
     title: raw.title as string,
@@ -96,7 +132,39 @@ export async function loadConfig(
     groupBy,
     page: raw.page as PageConfig,
     tracks: raw.tracks as TrackConfig[],
+    volumes,
+    ...(raw.sample === undefined ? {} : { sample: raw.sample }),
   };
+}
+
+/**
+ * 권 설정을 검사한다. **한 부가 두 권에 걸리면 멈춘다** — 같은 장이 두 권에 실리고,
+ * 권마다 번호가 달라 상호 참조가 어느 쪽을 가리키는지 정할 수 없게 된다.
+ */
+export function checkVolumes(raw: unknown): VolumeConfig[] {
+  if (!Array.isArray(raw) || raw.length === 0) {
+    throw new Error("설정의 volumes 가 비었다 — 찍을 권이 하나도 없다");
+  }
+  const ids = new Set<string>();
+  const owner = new Map<number, string>();
+  for (const v of raw as VolumeConfig[]) {
+    if (!/^[a-z0-9-]+$/.test(v.id ?? "")) {
+      throw new Error(`권 id 는 영소문자·숫자·하이픈이다(폴더 이름): ${v.id}`);
+    }
+    if (ids.has(v.id)) throw new Error(`권 id 가 겹친다: ${v.id}`);
+    ids.add(v.id);
+    if (!Array.isArray(v.stars) || v.stars.length === 0) {
+      throw new Error(`권 ${v.id} 의 stars 가 비었다 — 실을 부가 없다`);
+    }
+    for (const s of v.stars) {
+      const prev = owner.get(s);
+      if (prev !== undefined) {
+        throw new Error(`★${s} 부가 ${prev} 와 ${v.id} 두 권에 걸려 있다`);
+      }
+      owner.set(s, v.id);
+    }
+  }
+  return raw as VolumeConfig[];
 }
 
 /** 경로가 어느 트랙인가. 어느 `root` 에도 안 걸리면 `undefined`. */

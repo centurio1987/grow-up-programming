@@ -1,38 +1,59 @@
 # 책 빌더
 
-가이드 원문(`*-guide.md`)을 한 권의 PDF 로 조판한다. 표지 · 목차 · 본문 · 마무리가 한 파일에
-들어가고, 가이드가 고쳐지면 **그 편만 다시 조판해 갈아 끼운다.**
+가이드 원문(`*-guide.md`)을 **권별 PDF** 로 조판한다. 권마다 표지 · 목차 · 본문 · 마무리가
+한 파일에 들어가고, 가이드가 고쳐지면 **그 편만 다시 조판해 갈아 끼운다.**
+
+지금 설정은 「쉽게 이해하는 알고리즘」 세 권이다 — 인덱스의 ★★★ 부가 초급, ★★ 가 중급,
+★ 이 고급.
 
 ```bash
-bun run tools/book/build-book.ts                      # 바뀐 편만 다시 조판
+bun run tools/book/build-book.ts                      # 모든 권, 바뀐 편만 다시 조판
+bun run tools/book/build-book.ts --volume beginner    # 한 권만
 bun run tools/book/build-book.ts --refresh            # 전부 다시 조판
 bun run tools/book/build-book.ts --only algorithms--quicksort
-bun run tools/book/build-book.ts --limit 3            # 연기 시험
+bun run tools/book/build-book.ts --limit 3            # 연기 시험(권마다 앞 3편)
 bun run tools/book/build-book.ts --html-only          # 인쇄 없이 합본 HTML 까지만
-bun run tools/book/build-book.ts --out ~/책.pdf
+bun run tools/book/build-book.ts --volume advanced --out ~/고급.pdf
+bun run tools/book/build-sample.ts                    # 디자인 의뢰용 샘플(세 권을 먼저 찍는다)
 ```
 
 산출은 `build/book/` 이다(`.gitignore` 대상).
 
 | 파일 | 무엇 |
 | --- | --- |
-| `book.pdf` | 최종 산출 |
-| `book.html` | 인쇄에 넣은 합본 한 장. 조판이 이상할 때 여기를 본다 |
-| `chapters/<id>.html` | 편별 조각. 캐시의 실체 |
+| `<권 id>/book.pdf` | 최종 산출. 권 id 는 `book.config.json` 의 `volumes[].id` |
+| `<권 id>/book.html` | 인쇄에 넣은 합본 한 장. 조판이 이상할 때 여기를 본다 |
+| `<권 id>/book.lock.json` | 이 권이 어느 원문으로 찍혔는지. 편별 시작 쪽까지 |
+| `chapters/<id>.html` | 편별 조각. 권과 무관하다 — 캐시의 실체 |
 | `cache.json` | 편별 원문 해시 · 쪽수 · 위반 · 죽은 참조 |
-| `book.lock.json` | 이번 판이 어느 원문으로 찍혔는지. 편별 시작 쪽까지 |
+| `design-sample/` | 디자인 샘플 PDF · HTML (`build-sample.ts`) |
 
 ## 무엇이 어디를 정하는가
 
 | 정하는 것 | 자리 |
 | --- | --- |
 | 제목 · 지은이 · 판 · 지면 · 트랙 | `book.config.json` |
+| **권 나눔** | `book.config.json` 의 `volumes` — 권마다 실을 인덱스 부를 ★ 개수로 고른다 |
 | **차례와 순서** | `문제_가이드_목록.md` (사람이 중요도로 관리하는 인덱스) |
 | 본문 | `src/**/<name>-guide.md` |
 | 조판 규칙 | `tools/book/print-css.ts` |
 
 차례를 빌더가 새로 정하지 않는다. 인덱스가 정본이고 책은 그것을 읽을 뿐이다 — 두 벌이 되면
 갈리고, 갈린 쪽이 조용히 낡는다.
+
+## 권 나눔
+
+권은 챕터를 이름으로 고르지 않고 **인덱스의 부(★ 등급)** 를 고른다. 한 편을 다른 권으로
+옮기려면 인덱스에서 그 편의 줄을 다른 등급 절로 옮긴다 — 설정은 건드리지 않는다.
+
+- **장 번호는 권마다 1부터** 다시 센다. 조각에는 번호 자리만 있고 `volume.ts` 의 `place` 가
+  채운다. 권 설정을 바꿔도 조각 캐시는 그대로 쓴다.
+- **다른 권을 가리키는 링크는 풀린다.** 권이 따로 인쇄되므로 그 링크는 아무 데도 안 간다.
+  링크 대신 「(중급 제 5 장)」처럼 실린 자리를 붙이고, 마무리에 목록을 싣는다.
+- 쪽수 캐시는 **권에 앉힌 HTML 의 해시**(`measuredHash`)로 맞춘다. 번호나 다른 권 표기가
+  바뀌어 줄이 넘어가면 그 편만 다시 잰다.
+- 한 부를 두 권에 걸면 설정 단계에서 멈추고, 실릴 수 있는 편이 어느 권에도 안 걸리면
+  종료코드 1 로 실패한다.
 
 ## 자료구조를 편입할 때
 
@@ -42,6 +63,10 @@ bun run tools/book/build-book.ts --out ~/책.pdf
 ```json
 { "id": "data-structures", "enabled": true, "formats": [".md"] }
 ```
+
+**그때 권 설정도 봐야 한다.** 인덱스의 「중요도 미분류」 부(★0)에는 자료구조만 있어서 지금은
+어느 권에도 안 걸려도 문제가 없다. 트랙을 켜면 그 편들이 미배정으로 잡혀 빌드가 멈추므로,
+어느 권의 `stars` 에 `0` 을 넣는다.
 
 켜는 순간 셋이 함께 따라온다. ① 인덱스가 정한 중요도 자리에 챕터가 끼어들고, ② 알고리즘
 본문에서 자료구조를 가리키던 상호 참조 40건이 「(미수록)」에서 **책 안쪽 링크로 바뀌며**,
@@ -54,7 +79,7 @@ bun run tools/book/build-book.ts --out ~/책.pdf
 
 ## 어떻게 도는가
 
-1. **차례** — 인덱스를 읽어 부 · 편 · 묶음 · 챕터로 편다.
+1. **차례** — 인덱스를 읽어 부 · 편 · 묶음 · 챕터로 펴고, ★ 등급으로 권을 가른다.
 2. **조각** — 편마다 `tools/build-html.ts` 로 산문을 만들고, 절 앵커에 챕터 접두를 붙이고,
    상대 링크를 책 안쪽 링크로 바꾼다. 원문 해시가 같으면 건너뛴다.
 
@@ -67,7 +92,7 @@ bun run tools/book/build-book.ts --out ~/책.pdf
    쪽수와 합본에서의 쪽수가 같다**(36 + 47 = 83 으로 실측). 안 바뀐 편은 다시 재지 않는다.
 4. **목차** — 잰 쪽수를 누적해 쪽번호를 채운다. 앞붙이 쪽수가 목차 길이에 달려 있어 최대
    세 바퀴 수렴시킨다.
-5. **인쇄** — 합본을 **한 번** 인쇄한다. 낱장 PDF 를 이어 붙이면 폰트가 편마다 실려 150MB
+5. **인쇄** — 권마다 합본을 **한 번** 인쇄한다. 낱장 PDF 를 이어 붙이면 폰트가 편마다 실려 150MB
    를 넘는다. 한 번 인쇄하면 한 벌만 실린다.
 
 끝나면 예측 쪽수와 실측 쪽수를 대조한다. 어긋나면 3번의 전제가 깨진 것이고, 그때 목차는
@@ -82,3 +107,20 @@ bun run tools/book/build-book.ts --out ~/책.pdf
 - **사이드바 북마크는 없다.** 크롬이 `/Outlines` 를 만들지 않는다. 목차의 내부 링크는 살아
   있으므로 눌러서 이동은 된다.
 - 크롬 경로는 `CHROME_PATH` 로 바꾼다. 기본은 macOS 의 Google Chrome · Chromium · Edge 순.
+
+## 디자인 샘플
+
+세 권 원본은 합쳐 2천8백 쪽 · 90MB 가까이 되어 디자이너에게 넘길 수 없다. `build-sample.ts` 가
+디자인 검토에 필요한 자리만 뽑아 80쪽 안팎 · 4MB 안팎의 PDF 한 벌로 찍는다.
+
+| 순서 | 내용 |
+| --- | --- |
+| 안내 | 시리즈 구성 · 지면 설정 · 요소 목록(세 권 합계 등장 횟수) · 만드는 방식에서 오는 조건 |
+| 표지 | 권마다 하나 |
+| 목차 | 첫 권 전체. 원본 쪽번호 그대로 |
+| 요소 견본 | 요소마다 실제 원고에서 하나씩. 견본 위에 선택자 · 등장 횟수 · 출처 |
+| 본문 샘플 | `book.config.json` 의 `sample.chapters` — 권마다 한 장 |
+
+요소 목록은 `build-sample.ts` 의 `SPECS` 다. 견본을 못 뜬 요소가 있으면 종료코드 1 — 책에서
+그 요소가 사라졌거나 선택자가 낡은 것이다. 쪽수 · 목차 번호는 권별 `book.lock.json` 에서 읽으므로
+세 권을 `--limit` 없이 먼저 찍어야 한다.

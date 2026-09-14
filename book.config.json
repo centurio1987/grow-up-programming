@@ -1,5 +1,5 @@
 {
-  "title": "알고리즘 가이드북",
+  "title": "쉽게 이해하는 알고리즘",
   "subtitle": "문제에서 동작하는 코드까지",
   "author": "",
   "edition": "제1판",
@@ -9,6 +9,34 @@
   "page": {
     "format": "A4",
     "marginIn": { "top": 0.7, "bottom": 0.7, "left": 0.75, "right": 0.75 }
+  },
+  "volumes": [
+    {
+      "id": "beginner",
+      "label": "초급",
+      "stars": [3],
+      "blurb": "코딩 테스트 단골 + 실무 일상"
+    },
+    {
+      "id": "intermediate",
+      "label": "중급",
+      "stars": [2],
+      "blurb": "코딩 테스트 중상위 + 실무에서 종종"
+    },
+    {
+      "id": "advanced",
+      "label": "고급",
+      "stars": [1],
+      "blurb": "상위 대회 · 전문 도메인"
+    }
+  ],
+  "sample": {
+    "outDir": "build/book/design-sample",
+    "chapters": [
+      "algorithms--knapsack01",
+      "algorithms--nextGreaterElement",
+      "algorithms--countInversions"
+    ]
   },
   "tracks": [
     {

@@ -32,6 +32,8 @@ export interface Chapter {
   /** 묶음 이름(`이진 탐색`). 목차의 한 단이 된다. */
   bundle: string;
   partId: string;
+  /** 소속 부의 ★ 개수. 권 나눔이 이것으로 권을 정한다(`volume.ts`). */
+  stars: number;
   /** 책에 실리는가. 아니면 `skipReason` 이 이유를 든다. */
   ready: boolean;
   skipReason?: string;
@@ -58,6 +60,11 @@ export interface Part {
 
 export interface ChapterPlan {
   parts: Part[];
+  /**
+   * 인덱스에 적힌 그대로의 부. `groupBy: "track"` 이면 `parts` 는 트랙으로 다시 묶여 ★ 를
+   * 잃으므로, 권 나눔은 이쪽을 읽는다.
+   */
+  indexParts: Part[];
   /** 실리는 챕터를 책 순서대로. */
   chapters: Chapter[];
   /** 안 실리는 챕터. 마무리(콜로폰)가 사유와 함께 싣는다. */
@@ -168,6 +175,7 @@ export async function plan(cfg: BookConfig): Promise<ChapterPlan> {
         note: (m[3] ?? "").trim(),
         bundle: label,
         partId: (part as Part).id,
+        stars: (part as Part).stars,
         ready,
         ...(reason === undefined ? {} : { skipReason: reason }),
       });
@@ -184,6 +192,7 @@ export async function plan(cfg: BookConfig): Promise<ChapterPlan> {
 
   return {
     parts: ordered(cfg, parts),
+    indexParts: parts,
     chapters,
     skipped: all.filter((c) => !c.ready),
     duplicates,
@@ -207,7 +216,7 @@ function pick<T extends { label: string }>(
  * `groupBy: "track"` 이면 부를 트랙으로 다시 묶는다. 중요도 순서는 그 안에서 유지된다 —
  * 인덱스를 훑는 순서가 곧 중요도 순서이므로 **다시 정렬하지 않는다**.
  */
-function ordered(cfg: BookConfig, parts: Part[]): Part[] {
+export function ordered(cfg: BookConfig, parts: Part[]): Part[] {
   if (cfg.groupBy === "importance") return parts;
 
   const byTrack = new Map<string, Part>();
