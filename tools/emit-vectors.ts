@@ -20,8 +20,10 @@
 import { join, resolve } from "node:path";
 import { rngFrom } from "../src/data-structures/_contract/judge.ts";
 import type { ContractSpec } from "../src/data-structures/_contract/runContract.ts";
+import { unionFindContract } from "../src/data-structures/disjoint-set/unionFind/unionFind.contract.ts";
 import { hashMapChainingContract } from "../src/data-structures/hash/hashMapChaining/hashMapChaining.contract.ts";
 import { hashSetContract } from "../src/data-structures/hash/hashSet/hashSet.contract.ts";
+import { lruCacheContract } from "../src/data-structures/hash/lruCache/lruCache.contract.ts";
 import { fibonacciHeapContract } from "../src/data-structures/heap/fibonacciHeap/fibonacciHeap.contract.ts";
 import { leftistHeapContract } from "../src/data-structures/heap/leftistHeap/leftistHeap.contract.ts";
 import { pairingHeapContract } from "../src/data-structures/heap/pairingHeap/pairingHeap.contract.ts";
@@ -153,8 +155,19 @@ function buildVector<Impl, Model>(spec: ContractSpec<Impl, Model>): Vector {
 const SPECS: ContractSpec<any, any>[] = [
   // 성격 전환은 등록하지 않는다 — 같은 계약 객체에 `name` 만 다르므로 vector 가 같다
   // (`avlTree`·`bTree` 계열이 같은 선례다).
+  // 연산 `reset(원소 수)` 은 계약 표의 연산이 아니라 껍데기(`PartitionSite`)가 생성자 행을 나르는 자리다 —
+  // 받아들이면 그 크기의 홀로 선 원소들로 새로 세운다(`unionFind.contract.ts` 머리말). 경계 케이스가 아닌
+  // 케이스는 원소 48 에서 시작하고 무작위 시퀀스는 거절되는 원소 수만 넘긴다. 기대값 `"RangeError"` 는 던진
+  // 예외를 관측값으로 바꾼 것이다. `find` 의 기대값은 그 집합의 가장 작은 원소라 재생하는 쪽이 뿌리를 그대로
+  // 돌려주면 갈린다.
+  unionFindContract,
   hashMapChainingContract,
   hashSetContract,
+  // 연산 `reset(용량)` 은 계약 표의 연산이 아니라 껍데기(`CacheSite`)가 생성자 행을 나르는 자리다 —
+  // 받아들이면 그 용량의 빈 캐시를 새로 세운다(`lruCache.contract.ts` 머리말). 경계 케이스가 아닌 케이스는
+  // 용량 4 에서 시작하고 무작위 시퀀스는 거절되는 용량만 넘긴다. 기대값 `"RangeError"` 는 던진 예외를
+  // 관측값으로 바꾼 것이다. 펴기는 키를 그대로 돌려주는 함수다 — 재생하는 쪽이 칸을 어떻게 정하든 답은 같다.
+  lruCacheContract,
   // 케이스의 앞 여덟이 `LeftistHeap.json` 의 경계 케이스와 같다 — `heap/leftistHeap` 의 경계 케이스
   // 객체를 그대로 펼쳐 넣었기 때문이다(`fibonacciHeap.contract.ts` 머리말). `decreaseKey` 의 인자
   // `[번호, 값]` 의 번호는 **받은 핸들을 받은 순서로 센 것**이고 핸들 수로 나눈 나머지로 읽는다 —

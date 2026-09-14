@@ -1,94 +1,39 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `disjoint-set/unionFind` 계약 스위트 실행부(규약2).
+ *
+ * 여기에는 `runContract` 호출만 둔다. 무엇을 검사하는지는 `./unionFind.contract.ts` 에 있고, 계약
+ * 자체는 `./unionFind.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다. 축3은 계측기가
+ * 붙은 정본에만 돈다 — 학습자 스텁에 `__cost` 를 요구하지 않는다.
+ *
+ * 팩토리가 껍데기(`PartitionSite`)를 씌우는 것은 이 구조가 원소 수를 생성자로 받기 때문이다
+ * (`./unionFind.contract.ts` 머리말 — 불변 사실 83). 주입 정책은 「주입받는 것이 없다」라 손으로 쓴
+ * 테스트가 남지 않는다.
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 고정 n 의 임계값이 재는 것은 복잡도 등급이 아니라 그
+ * 기계의 상수다. 자리는 축3이다.
+ */
+
+import { runContract } from "../../_contract/runContract";
+import { UnionFind as Reference } from "./_reference/unionFind";
 import { UnionFind } from "./unionFind";
+import { PartitionSite, unionFindContract } from "./unionFind.contract";
 
-describe("UnionFind", () => {
-  describe("기본", () => {
-    test("초기엔 모두 분리된 집합", () => {
-      const uf = new UnionFind(5);
-      for (let i = 0; i < 5; i++) {
-        for (let j = i + 1; j < 5; j++) {
-          expect(uf.connected(i, j)).toBe(false);
-        }
-      }
-    });
+runContract(
+  () => new PartitionSite((n) => new UnionFind(n)),
+  unionFindContract,
+  { label: "스텁" },
+);
 
-    test("union 후 connected", () => {
-      const uf = new UnionFind(5);
-      uf.union(0, 1);
-      uf.union(2, 3);
-      expect(uf.connected(0, 1)).toBe(true);
-      expect(uf.connected(2, 3)).toBe(true);
-      expect(uf.connected(0, 2)).toBe(false);
-    });
-
-    test("연쇄적 union", () => {
-      const uf = new UnionFind(5);
-      uf.union(0, 1);
-      uf.union(1, 2);
-      uf.union(2, 3);
-      uf.union(3, 4);
-      for (let i = 0; i < 5; i++) {
-        for (let j = i + 1; j < 5; j++) {
-          expect(uf.connected(i, j)).toBe(true);
-        }
-      }
-    });
-  });
-
-  describe("엣지", () => {
-    test("자기 자신과 connected", () => {
-      const uf = new UnionFind(3);
-      expect(uf.connected(0, 0)).toBe(true);
-    });
-
-    test("같은 집합을 다시 union 해도 문제 없음", () => {
-      const uf = new UnionFind(3);
-      uf.union(0, 1);
-      uf.union(0, 1);
-      uf.union(1, 0);
-      expect(uf.connected(0, 1)).toBe(true);
-    });
-
-    test("find의 결과는 같은 집합 내에서 동일", () => {
-      const uf = new UnionFind(4);
-      uf.union(0, 1);
-      uf.union(1, 2);
-      expect(uf.find(0)).toBe(uf.find(2));
-      expect(uf.find(3)).not.toBe(uf.find(0));
-    });
-  });
-
-  describe("바운더리", () => {
-    test("n=1, 단일 원소", () => {
-      const uf = new UnionFind(1);
-      expect(uf.find(0)).toBe(0);
-      expect(uf.connected(0, 0)).toBe(true);
-    });
-
-    test("n=10^5, 모두 union 후 connected", () => {
-      const n = 100_000;
-      const uf = new UnionFind(n);
-      for (let i = 1; i < n; i++) uf.union(0, i);
-      expect(uf.connected(0, n - 1)).toBe(true);
-      expect(uf.connected(1, n - 2)).toBe(true);
-    });
-  });
-
-  describe("성능", () => {
-    test("n=10^5, q=10^5 union/find를 100ms 이내에 처리한다", () => {
-      const n = 100_000;
-      const uf = new UnionFind(n);
-
-      const start = performance.now();
-      for (let i = 0; i < n - 1; i++) uf.union(i, i + 1);
-      let cnt = 0;
-      for (let i = 0; i < 100_000; i++) {
-        if (uf.connected(i % n, (i * 7 + 3) % n)) cnt++;
-      }
-      const elapsed = performance.now() - start;
-
-      expect(cnt).toBeGreaterThan(0);
-      expect(elapsed).toBeLessThan(100);
-    });
-  });
-});
+runContract(
+  () => new PartitionSite((n) => new Reference(n)),
+  unionFindContract,
+  {
+    label: "정본",
+    cost: {
+      kind: "self-reported",
+      make: () => new PartitionSite((n) => new Reference(n)),
+    },
+  },
+);

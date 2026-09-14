@@ -925,7 +925,7 @@ app 을 두 번 담은 뒤 search("app")   참
 ```
 
 경로 압축을 집합 합치기에 쓴 것이
-[`unionFind`](../../../data-structures/disjoint-set/unionFind/unionFind-problem.md) 이고,
+[`unionFind`](../../../data-structures/disjoint-set/unionFind/unionFind.ts) 이고,
 이 글은 같은 생각을 **문자열 트리**에 쓴 것이에요.
 
 ## 파트 2 — 적용 조건 · 보장 · 비용

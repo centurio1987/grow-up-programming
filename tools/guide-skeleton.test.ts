@@ -35,6 +35,16 @@ const SCAN_ROOT = "src/data-structures";
  */
 const SKELETON_EXEMPT = new Map([
   [
+    "disjoint-set/unionFind",
+    "KAN-027 재개(2026-09-14) 유닛은 계약 층만 낸다. 계약과 정본은 T3-04 에서 섰고 가이드는" +
+      " KAN-036 이 다시 쓰기로 직렬 중재됐다(docs/ORD-006-wbs.md 머리 블록). 다시 쓰는 카드가 이 줄을 지운다",
+  ],
+  [
+    "hash/lruCache",
+    "KAN-027 재개(2026-09-14) 유닛은 계약 층만 낸다. 계약과 정본은 T3-03 에서 섰고 가이드는" +
+      " KAN-036 이 다시 쓰기로 직렬 중재됐다(docs/ORD-006-wbs.md 머리 블록). 다시 쓰는 카드가 이 줄을 지운다",
+  ],
+  [
     "heap/fibonacciHeap",
     "KAN-027 재개(2026-09-14) 유닛은 계약 층만 낸다. 계약과 정본은 T2-04 에서 섰고 가이드는" +
       " KAN-036 이 다시 쓰기로 직렬 중재됐다(docs/ORD-006-wbs.md 머리 블록). 다시 쓰는 카드가 이 줄을 지운다",
