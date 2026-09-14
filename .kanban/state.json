@@ -1,6 +1,6 @@
 {
   "next_id": 38,
-  "next_seq": 265,
+  "next_seq": 269,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -305,13 +305,13 @@
     "KAN-026": {
       "col": "doing",
       "title": "[P4·26] P4-A군 — basic/invariant 등급(축3 불필요)",
-      "memo": "**재개(2026-09-14 · 유저 지시, KAN-027 과 병렬) — 이 카드는 계약 전환까지다.** v2 가이드 집필은 직렬 결재로 KAN-036 이 두 카드 완료 뒤 66편을 한꺼번에 맡는다. 아래 문단의 「A군도 ds-guide-v2 로 쓴다」는 KAN-036 으로 넘어갔고, 계약 층 인계(B13 불변 구조 넷)는 유효하다. **가이드 골격이 바뀐다(2026-09-13 · KAN-035-31T4BY S1).** 이 카드의 A군 16종도 ds-guide 8단계가 아니라 **ds-guide-v2**(algo-guide-v2 계승, `sandbox/ds-guide-v2/SPEC.md`)로 쓴다. 계약 층은 그대로다 — 계약 헤더·`_reference/`·계약 스위트 4축·CI 3모드가 존치하므로 아래 B13 인계 사항 넷(불변 구조 처분)은 전부 유효하다. 바뀌는 것은 가이드뿐이다. **착수는 KAN-035 파일럿 승인 뒤다** — 규격이 확정되기 전에 쓰면 다시 쓴다. 공수 L·리스크 하. 카드 25 분류 결과에 따름. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md **B13 이 인계한 것(2026-08-05).** 이 군에 **불변 구조**가 들어온다 — 생성자로 다 지어지고 상태를 바꾸는 연산이 하나도 없는 구조다(range-query/sparseTable 계열이 후보). 넷을 함께 적용한다(불변 사실 52, docs/ORD-006-conventions.md §규약1 「불변 구조」): ① **불변식 절이 자동으로 비지 않는다** — 비는지는 판별 절차를 돌려야 정해진다. 다만 불변 구조에서는 그 결과와 무관하게 **축2가 축1보다 더 잡는 것이 없다**(상태가 하나뿐이고 그 하나는 축1이 이미 대조한다). 이 둘은 다른 층위이고 앞엣것을 뒤엣것으로 대신할 수 없다 — B13 이 그 자리에서 틀렸고 외부 검토가 잡았다. ② **인자 없는 질의는 구성과 묶어 상한을 적는다**(미리 계산과 호출 때 계산이 다른 계급인데 둘 다 정당하면 따로 적는 순간 하나를 처방한다). ③ **계약이 구성 시점을 정한다**(안 적으면 아무것도 안 하는 생성자가 두 상한을 다 만족한다). ④ **스위트는 껍데기를 쓴다** — runContract 가 인자 없는 팩토리를 요구하므로 .contract.ts 에 reindex 하나를 가진 껍데기를 둔다. 껍데기는 계약의 일부가 아니고 check-contract.ts 의 대조에도 안 걸린다. **하네스를 고치지 않는다**(B13 판단: 적응이 .contract.ts 안에서 닫히는데 하네스를 고치면 그 모양이 68종에 걸린다).",
+      "memo": "**cuckooFilter 이관(2026-09-14 · 유저 결재).** B군 T5-05 cuckooFilter 가 bloomFilter 와 한 판정 자리에서 보도록 이 카드로 왔다 — 대상은 A군 16 + 1 = 17종, 수행은 단일 에이전트 11 배치. **재개(2026-09-14 · 유저 지시, KAN-027 과 병렬) — 이 카드는 계약 전환까지다.** v2 가이드 집필은 직렬 결재로 KAN-036 이 두 카드 완료 뒤 66편을 한꺼번에 맡는다. 아래 문단의 「A군도 ds-guide-v2 로 쓴다」는 KAN-036 으로 넘어갔고, 계약 층 인계(B13 불변 구조 넷)는 유효하다. **가이드 골격이 바뀐다(2026-09-13 · KAN-035-31T4BY S1).** 이 카드의 A군 16종도 ds-guide 8단계가 아니라 **ds-guide-v2**(algo-guide-v2 계승, `sandbox/ds-guide-v2/SPEC.md`)로 쓴다. 계약 층은 그대로다 — 계약 헤더·`_reference/`·계약 스위트 4축·CI 3모드가 존치하므로 아래 B13 인계 사항 넷(불변 구조 처분)은 전부 유효하다. 바뀌는 것은 가이드뿐이다. **착수는 KAN-035 파일럿 승인 뒤다** — 규격이 확정되기 전에 쓰면 다시 쓴다. 공수 L·리스크 하. 카드 25 분류 결과에 따름. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md **B13 이 인계한 것(2026-08-05).** 이 군에 **불변 구조**가 들어온다 — 생성자로 다 지어지고 상태를 바꾸는 연산이 하나도 없는 구조다(range-query/sparseTable 계열이 후보). 넷을 함께 적용한다(불변 사실 52, docs/ORD-006-conventions.md §규약1 「불변 구조」): ① **불변식 절이 자동으로 비지 않는다** — 비는지는 판별 절차를 돌려야 정해진다. 다만 불변 구조에서는 그 결과와 무관하게 **축2가 축1보다 더 잡는 것이 없다**(상태가 하나뿐이고 그 하나는 축1이 이미 대조한다). 이 둘은 다른 층위이고 앞엣것을 뒤엣것으로 대신할 수 없다 — B13 이 그 자리에서 틀렸고 외부 검토가 잡았다. ② **인자 없는 질의는 구성과 묶어 상한을 적는다**(미리 계산과 호출 때 계산이 다른 계급인데 둘 다 정당하면 따로 적는 순간 하나를 처방한다). ③ **계약이 구성 시점을 정한다**(안 적으면 아무것도 안 하는 생성자가 두 상한을 다 만족한다). ④ **스위트는 껍데기를 쓴다** — runContract 가 인자 없는 팩토리를 요구하므로 .contract.ts 에 reindex 하나를 가진 껍데기를 둔다. 껍데기는 계약의 일부가 아니고 check-contract.ts 의 대조에도 안 걸린다. **하네스를 고치지 않는다**(B13 판단: 적응이 .contract.ts 안에서 닫히는데 하네스를 고치면 그 모양이 68종에 걸린다).",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
       "갱신": "2026-09-14",
       "title_hash": "f6334241f6d4e65bdef63aa125fac8f96cd8b1a4",
-      "memo_hash": "26310a27e8c6464e6e7e31bcfc378d2688314d68",
+      "memo_hash": "8a7c764a9270ee4ea2d0159ab5134a6ccb6f9e24",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "scope": [
         "src/data-structures/graph-repr/graphAdjList/**",
@@ -328,6 +328,7 @@
         "src/data-structures/probabilistic/countMinSketch/**",
         "src/data-structures/probabilistic/hyperLogLog/**",
         "src/data-structures/probabilistic/minHash/**",
+        "src/data-structures/probabilistic/cuckooFilter/**",
         "src/data-structures/trie/trie/**",
         "src/data-structures/trie/radixTree/**",
         "docs/ORD-006-conventions.md",
@@ -360,7 +361,6 @@
         "src/data-structures/heap/vanEmdeBoasTree/**",
         "src/data-structures/linear/pieceTable/**",
         "src/data-structures/probabilistic/skipList/**",
-        "src/data-structures/probabilistic/cuckooFilter/**",
         "src/data-structures/range-query/segmentTreeLazy/**",
         "src/data-structures/range-query/persistentSegmentTree/**",
         "src/data-structures/range-query/sparseTable/**",
@@ -876,6 +876,7 @@
     "KAN-032",
     "KAN-034.10-8M6T6P",
     "KAN-036-0G05DE",
+    "KAN-026",
     "KAN-029",
     "KAN-030",
     "KAN-007",
@@ -913,10 +914,50 @@
     "KAN-034.4-4NS63H",
     "KAN-034.9-WHH53W",
     "KAN-034-KSD7XR",
-    "KAN-035-31T4BY",
-    "KAN-026"
+    "KAN-035-31T4BY"
   ],
   "recent": [
+    {
+      "seq": 268,
+      "t": "2026-09-14T21:11",
+      "a": "ai",
+      "id": "KAN-026",
+      "op": "edit",
+      "w": "2PNFSD",
+      "field": "memo",
+      "before": "**재개(2026-09-14 · 유저 지시, KAN-027 과 병렬) — 이 카드는 계약 전환까지다.** v2 가이드 집필은 직렬 결재로 KAN-036 이 두 카드 완료 뒤 66편을 한꺼번에 맡는다. 아래 문단의 「A군도 ds-guide-v2 로 쓴다」는 KAN-036 으로 넘어갔고, 계약 층 인계(B13 불변 구조 넷)는 유효하다. **가이드 골격이 바뀐다(2026-09-13 · KAN-035-31T4BY S1).** 이 카드의 A군 16종도 ds-guide 8단계가 아니라 **ds-guide-v2**(algo-guide-v2 계승, `sandbox/ds-guide-v2/SPEC.md`)로 쓴다. 계약 층은 그대로다 — 계약 헤더·`_reference/`·계약 스위트 4축·CI 3모드가 존치하므로 아래 B13 인계 사항 넷(불변 구조 처분)은 전부 유효하다. 바뀌는 것은 가이드뿐이다. **착수는 KAN-035 파일럿 승인 뒤다** — 규격이 확정되기 전에 쓰면 다시 쓴다. 공수 L·리스크 하. 카드 25 분류 결과에 따름. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md **B13 이 인계한 것(2026-08-05).** 이 군에 **불변 구조**가 들어온다 — 생성자로 다 지어지고 상태를 바꾸는 연산이 하나도 없는 구조다(range-query/sparseTable 계열이 후보). 넷을 함께 적용한다(불변 사실 52, docs/ORD-006-conventions.md §규약1 「불변 구조」): ① **불변식 절이 자동으로 비지 않는다** — 비는지는 판별 절차를 돌려야 정해진다. 다만 불변 구조에서는 그 결과와 무관하게 **축2가 축1보다 더 잡는 것이 없다**(상태가 하나뿐이고 그 하나는 축1이 이미 대조한다). 이 둘은 다른 층위이고 앞엣것을 뒤엣것으로 대신할 수 없다 — B13 이 그 자리에서 틀렸고 외부 검토가 잡았다. ② **인자 없는 질의는 구성과 묶어 상한을 적는다**(미리 계산과 호출 때 계산이 다른 계급인데 둘 다 정당하면 따로 적는 순간 하나를 처방한다). ③ **계약이 구성 시점을 정한다**(안 적으면 아무것도 안 하는 생성자가 두 상한을 다 만족한다). ④ **스위트는 껍데기를 쓴다** — runContract 가 인자 없는 팩토리를 요구하므로 .contract.ts 에 reindex 하나를 가진 껍데기를 둔다. 껍데기는 계약의 일부가 아니고 check-contract.ts 의 대조에도 안 걸린다. **하네스를 고치지 않는다**(B13 판단: 적응이 .contract.ts 안에서 닫히는데 하네스를 고치면 그 모양이 68종에 걸린다).",
+      "after": "**cuckooFilter 이관(2026-09-14 · 유저 결재).** B군 T5-05 cuckooFilter 가 bloomFilter 와 한 판정 자리에서 보도록 이 카드로 왔다 — 대상은 A군 16 + 1 = 17종, 수행은 단일 에이전트 11 배치. **재개(2026-09-14 · 유저 지시, KAN-027 과 병렬) — 이 카드는 계약 전환까지다.** v2 가이드 집필은 직렬 결재로 KAN-036 이 두 카드 완료 뒤 66편을 한꺼번에 맡는다. 아래 문단의 「A군도 ds-guide-v2 로 쓴다」는 KAN-036 으로 넘어갔고, 계약 층 인계(B13 불변 구조 넷)는 유효하다. **가이드 골격이 바뀐다(2026-09-13 · KAN-035-31T4BY S1).** 이 카드의 A군 16종도 ds-guide 8단계가 아니라 **ds-guide-v2**(algo-guide-v2 계승, `sandbox/ds-guide-v2/SPEC.md`)로 쓴다. 계약 층은 그대로다 — 계약 헤더·`_reference/`·계약 스위트 4축·CI 3모드가 존치하므로 아래 B13 인계 사항 넷(불변 구조 처분)은 전부 유효하다. 바뀌는 것은 가이드뿐이다. **착수는 KAN-035 파일럿 승인 뒤다** — 규격이 확정되기 전에 쓰면 다시 쓴다. 공수 L·리스크 하. 카드 25 분류 결과에 따름. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md **B13 이 인계한 것(2026-08-05).** 이 군에 **불변 구조**가 들어온다 — 생성자로 다 지어지고 상태를 바꾸는 연산이 하나도 없는 구조다(range-query/sparseTable 계열이 후보). 넷을 함께 적용한다(불변 사실 52, docs/ORD-006-conventions.md §규약1 「불변 구조」): ① **불변식 절이 자동으로 비지 않는다** — 비는지는 판별 절차를 돌려야 정해진다. 다만 불변 구조에서는 그 결과와 무관하게 **축2가 축1보다 더 잡는 것이 없다**(상태가 하나뿐이고 그 하나는 축1이 이미 대조한다). 이 둘은 다른 층위이고 앞엣것을 뒤엣것으로 대신할 수 없다 — B13 이 그 자리에서 틀렸고 외부 검토가 잡았다. ② **인자 없는 질의는 구성과 묶어 상한을 적는다**(미리 계산과 호출 때 계산이 다른 계급인데 둘 다 정당하면 따로 적는 순간 하나를 처방한다). ③ **계약이 구성 시점을 정한다**(안 적으면 아무것도 안 하는 생성자가 두 상한을 다 만족한다). ④ **스위트는 껍데기를 쓴다** — runContract 가 인자 없는 팩토리를 요구하므로 .contract.ts 에 reindex 하나를 가진 껍데기를 둔다. 껍데기는 계약의 일부가 아니고 check-contract.ts 의 대조에도 안 걸린다. **하네스를 고치지 않는다**(B13 판단: 적응이 .contract.ts 안에서 닫히는데 하네스를 고치면 그 모양이 68종에 걸린다)."
+    },
+    {
+      "seq": 267,
+      "t": "2026-09-14T21:08",
+      "a": "유저",
+      "id": "KAN-026",
+      "op": "waive",
+      "w": "2PNFSD",
+      "with_": "KAN-027",
+      "reason": "유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 _contract/runContract.test.ts·emit-vectors·ord006-inventory 의 등록 줄뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229 · KAN-027 T5 90–99→230–249)으로 가르고 병합 충돌은 줄 단위로 양쪽을 살린다"
+    },
+    {
+      "seq": 266,
+      "t": "2026-09-14T21:08",
+      "a": "유저",
+      "id": "KAN-036-0G05DE",
+      "op": "serialize",
+      "w": "2PNFSD",
+      "with_": "KAN-027",
+      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 B군 잔여 16종은 계약 전환이 끝나야 쓸 수 있다"
+    },
+    {
+      "seq": 265,
+      "t": "2026-09-14T21:08",
+      "a": "유저",
+      "id": "KAN-036-0G05DE",
+      "op": "serialize",
+      "w": "2PNFSD",
+      "with_": "KAN-026",
+      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 A군 16종(+ 이관된 cuckooFilter)은 계약 전환이 끝나야 쓸 수 있다"
+    },
     {
       "seq": 264,
       "t": "2026-09-14T20:34",
@@ -1452,50 +1493,6 @@
       "reason": "111편이 전부 통과한 뒤에도 사람이 편당 30~82자리를 잡았고, 그중 되풀이되는 것은 스캐너가 못 보는 자리다. P15 하나만 일곱 배치 연속 나왔고 워커 여덟이 각자 같은 검사기를 새로 짰다",
       "goal": "각 부류가 도구 확장·관행·회귀 시험 중 하나로 처분되고, 처분한 자리마다 tools/<도구>.test.ts 에 회귀 시험이 서며, 오탐 조건이 함께 박힌다",
       "memo": "근거는 KANBAN.batches/KAN-034.7-QMZ3RE.batch{6..11}.md 의 「끝난 뒤」 절과 KAN-034.8-BK1Q3A.batch4.md. 승격 1순위는 P15 범위·면제(일곱 배치 연속, 오탐 조건 셋이 이미 실측됨)와 check-v2 단일 CLI 의 P16 미실행(판정 명령이 거짓 초록을 낸다)"
-    },
-    {
-      "seq": 218,
-      "t": "2026-09-09T16:43",
-      "a": "ai",
-      "id": "KAN-034.8-BK1Q3A",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "work 12 · 7 완료. 배치5(S11·S12)는 W3 이 규칙을 써 보고 찾아낸 구멍이라 지금 돌고, 배치4(S8~S10)만 W3 종료 후",
-      "after": "배치4 종료 — 12/12 완주. 카드 검증 절의 넷이 동시에 참(살아 있는 v1 산출 0 · rhythm 알고리즘 부채 0 · _deprecated 알고리즘 몫 0 · ci.ts all exit 0). S10 이 문서보다 컸다 — manifest algo 항목 107개가 전부 죽은 경로였고 넷을 갈라 처분했다. W3 이 넘긴 스캐너 구멍 31건은 이 카드 work 에 없어 후속 판단이 남는다"
-    },
-    {
-      "seq": 217,
-      "t": "2026-09-08T22:12",
-      "a": "ai",
-      "id": "KAN-034.7-QMZ3RE",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "배치10 종료 (40/42) — sparseTableRangeMin·crt·rotatingCalipersDiameter·expectedValueDp. §3 대조 220자리. array·number-theory·geometry·dp 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 2 · rhythm 행 2 — 남은 것은 externalMergeSort·countInversions 뿐이고 배치11 이 웨이브를 닫는다",
-      "after": "배치11 종료 — W3 완주 (42/42). externalMergeSort·countInversions. §3 대조 97자리. 웨이브 종료 조건 셋 전부 참 — algo-wbs 111/111 · W3 44/44 · 살아 있는 .mdx 0 · guide-rhythm.tsv 의 src/algorithms 행 0. ci.ts all exit 0. 카드 목표 달성"
-    },
-    {
-      "seq": 216,
-      "t": "2026-09-08T20:42",
-      "a": "ai",
-      "id": "KAN-034.7-QMZ3RE",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "배치9 종료 (36/42) — bridgesInGraph·minCostMaxFlow·treeIsomorphism·longestPalindrome. §3 대조 219건. graph·graph-flow·tree·string 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 6 · rhythm 행 6. 남은 것은 array·number-theory·geometry·dp·sorting·advanced 각 한 편",
-      "after": "배치10 종료 (40/42) — sparseTableRangeMin·crt·rotatingCalipersDiameter·expectedValueDp. §3 대조 220자리. array·number-theory·geometry·dp 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 2 · rhythm 행 2 — 남은 것은 externalMergeSort·countInversions 뿐이고 배치11 이 웨이브를 닫는다"
-    },
-    {
-      "seq": 215,
-      "t": "2026-09-08T02:13",
-      "a": "ai",
-      "id": "KAN-034.7-QMZ3RE",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "배치8 종료 (32/42) — bentleyOttmann·tspBitmask·meetInTheMiddleSubsetSum·aStarSearch. §3 대조 236건, purpose.alt 넷 다 실음. 살아 있는 .mdx 10 · rhythm 행 10. L37 실렌더는 배치7 종료 뒤 aside 로 확인해 닫았다",
-      "after": "배치9 종료 (36/42) — bridgesInGraph·minCostMaxFlow·treeIsomorphism·longestPalindrome. §3 대조 219건. graph·graph-flow·tree·string 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 6 · rhythm 행 6. 남은 것은 array·number-theory·geometry·dp·sorting·advanced 각 한 편"
     }
   ],
   "layout": 2,
@@ -1506,9 +1503,9 @@
         "KAN-026",
         "KAN-036-0G05DE"
       ],
-      "scope_hash": "a6bbf99d99de21cf",
-      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 A군 16종은 계약 전환이 끝나야 쓸 수 있다",
-      "created": "2026-09-14T20:33",
+      "scope_hash": "86a599c985304edd",
+      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 A군 16종(+ 이관된 cuckooFilter)은 계약 전환이 끝나야 쓸 수 있다",
+      "created": "2026-09-14T21:08",
       "by": "유저",
       "restrategy_required": false
     },
@@ -1518,9 +1515,9 @@
         "KAN-027",
         "KAN-036-0G05DE"
       ],
-      "scope_hash": "ab9c58268c2aa1ad",
-      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 B군 잔여 17종은 계약 전환이 끝나야 쓸 수 있다",
-      "created": "2026-09-14T20:33",
+      "scope_hash": "8e3fa4e396d79e62",
+      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 B군 잔여 16종은 계약 전환이 끝나야 쓸 수 있다",
+      "created": "2026-09-14T21:08",
       "by": "유저",
       "restrategy_required": false
     }
@@ -1528,9 +1525,9 @@
   "waivers": [
     {
       "pair": "KAN-026|KAN-027",
-      "scope_hash": "907874c7af57df39",
-      "reason": "유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 _contract/runContract.test.ts·emit-vectors·ord006-inventory 의 등록 줄뿐이다. 병합 충돌은 줄 단위로 사람이 푼다",
-      "created": "2026-09-14T20:33",
+      "scope_hash": "d08999900b3260bb",
+      "reason": "유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 _contract/runContract.test.ts·emit-vectors·ord006-inventory 의 등록 줄뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229 · KAN-027 T5 90–99→230–249)으로 가르고 병합 충돌은 줄 단위로 양쪽을 살린다",
+      "created": "2026-09-14T21:08",
       "by": "유저"
     }
   ]
