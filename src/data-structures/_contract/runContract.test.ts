@@ -1033,7 +1033,7 @@ describe("축3 — 정본은 통과한다", () => {
     }
   });
 
-  test("TernarySearchTree 정본이 다섯 시나리오를 전부 지킨다", () => {
+  test("TernarySearchTree 정본이 일곱 시나리오를 전부 지킨다", () => {
     for (const scenario of ternarySearchTreeContract.scenarios) {
       const verdict = judgeScenario(
         referenceTernarySearchTree,
@@ -1622,7 +1622,10 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
   ): Record<string, boolean> {
     const result: Record<string, boolean> = {};
     for (const scenario of spec.scenarios) {
-      const label = `${scenario.covers.join("·")}${scenario.adversarial ? " (적대적)" : ""}`;
+      const base = `${scenario.covers.join("·")}${scenario.adversarial ? " (적대적)" : ""}`;
+      // 같은 이름이 또 나오면 차례를 붙인다 — 덮어쓰면 앞 시나리오의 판정이 말없이 사라진다.
+      let label = base;
+      for (let nth = 2; label in result; nth++) label = `${base} #${nth}`;
       result[label] = judgeScenario(cost, scenario, grade).ok;
     }
     return result;
@@ -1690,6 +1693,9 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "startsWith·wordsWithPrefix (적대적)": false,
       "delete (적대적)": true,
       size: true,
+      // 곁에 긴 낱말 둘 — 낱말을 통째로 열쇠로 삼으니 곁에 선 낱말과 나눠 쓰는 것이 없다.
+      "insert (적대적)": true,
+      "delete (적대적) #2": true,
     });
   });
 
@@ -1705,6 +1711,9 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "startsWith·wordsWithPrefix (적대적)": true,
       "delete (적대적)": false,
       size: true,
+      // 곁에 긴 낱말 둘 — 담긴 낱말이 여덟뿐이라 미는 칸도 여덟을 넘지 않는다.
+      "insert (적대적)": true,
+      "delete (적대적) #2": true,
     });
   });
 

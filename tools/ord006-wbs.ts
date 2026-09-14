@@ -341,15 +341,15 @@ const UNITS: readonly Unit[] = [
     contract: "문자열 집합 · 접두사 질의 (B15 계약)",
     canonical: "trie/ternarySearchTree",
     transitions: ["trie/trie", "trie/radixTree"],
-    note: "완료(KAN-026 S2 · S3) — 정본은 TST 에 둔다(임시, 불변 사실 64 · 이름은 KAN-031). 전환 둘은 같은 계약 객체 + 기법별 정본. 꼬리를 새 문자열로 만드는 쪼개기가 O(m) 을 어기는 것을 실측(r = 3.99)했는데 정본 스위트는 그 자리를 안 잰다 — 시나리오 추가는 사람 결정(불변 사실 216)",
+    note: "완료(KAN-026 S2 · S3) — 정본은 TST 에 둔다(임시, 불변 사실 64 · 이름은 KAN-031). 전환 둘은 같은 계약 객체 + 기법별 정본. 꼬리를 새 문자열로 만드는 쪼개기가 O(m) 을 어기는 것을 실측(r = 3.99)했고, S20 이 정본 스위트에 「곁에 긴 낱말」 insert · delete 둘을 넣어 그 구현이 걸린다(불변 사실 216 · 222). 앞 다섯 시나리오는 여전히 그 위반을 통과시킨다",
   },
   {
     id: "TA-02",
     track: "TA",
-    contract: "앞에 넣기·뒤에 넣기·앞에서 빼기가 상수인 수열 + 값 찾기",
+    contract: "앞에 넣기·뒤에 넣기·앞에서 빼기가 상수인 수열",
     canonical: "linear/singlyLinkedList",
     transitions: [],
-    note: "결정(2026-09-15 유저) — 연결 마디는 자명한 구현이다 → complexity 아님(deque 근거 재판정은 별도 카드). 받는 연산이 없는 마디 핸들과 공개 next 는 표현 누출",
+    note: "완료(KAN-026 S4) — 마디 핸들 · 공개 next 를 뺐고 물려받은 find 도 뺐다(toArray 와 같은 계급이라 배제 없음, 불변 사실 224). 빼는 끝이 하나라 두 무더기 구현이 살아 removeFirst 가 amortized(불변 사실 225). invariant(불변식 1)",
   },
   {
     id: "TA-03",
@@ -357,7 +357,7 @@ const UNITS: readonly Unit[] = [
     contract: "첨자 접근 + 뒤 끝 넣기·빼기 수열",
     canonical: "linear/dynamicArray",
     transitions: [],
-    note: "capacity() 와 늘리기·줄이기 정책은 어느 행의 의미도 안 바꾸는 표현 관측이라 표면에서 빠진다(avlTree.height 와 같은 자리). 언어 배열 위임은 불변 사실 197 로 자명한 구현이다",
+    note: "완료(KAN-026 S6) — capacity() 와 늘리기·줄이기 정책을 뺐다. 범위 밖 첨자는 get 이 null · set 이 RangeError(연산마다 판별, 불변 사실 226). 정본은 칸을 직접 옮기며 세어 push · pop 의 amortized 근거가 계측에 보인다(불변 사실 227). 경계 교대 시나리오는 칸 수가 사다리와 맞는 구현만 겨눈다(불변 사실 228). invariant(불변식 2)",
   },
   {
     id: "TA-04",

@@ -22,13 +22,13 @@ src/data-structures/linear/bitArray	linear	bitArray	-	-	-	96	320	false
 src/data-structures/linear/circularBuffer	linear	circularBuffer	-	basic	-	0	540	true
 src/data-structures/linear/deque	linear	deque	A	complexity	-	0	318	true
 src/data-structures/linear/doublyLinkedList	linear	doublyLinkedList	-	-	-	78	312	false
-src/data-structures/linear/dynamicArray	linear	dynamicArray	-	-	-	78	325	false
+src/data-structures/linear/dynamicArray	linear	dynamicArray	-	invariant	-	0	325	true
 src/data-structures/linear/gapBuffer	linear	gapBuffer	-	invariant	-	0	687	true
 src/data-structures/linear/monotonicQueue	linear	monotonicQueue	-	-	-	77	765	false
 src/data-structures/linear/monotonicStack	linear	monotonicStack	-	-	-	87	305	false
 src/data-structures/linear/pieceTable	linear	pieceTable	-	-	-	82	338	false
 src/data-structures/linear/queue	linear	queue	C	basic	-	0	445	true
-src/data-structures/linear/singlyLinkedList	linear	singlyLinkedList	-	-	-	76	328	false
+src/data-structures/linear/singlyLinkedList	linear	singlyLinkedList	-	invariant	-	0	328	true
 src/data-structures/linear/stack	linear	stack	-	basic	-	0	272	true
 src/data-structures/linear/unrolledLinkedList	linear	unrolledLinkedList	A	complexity	-	0	650	true
 src/data-structures/linear/xorLinkedList	linear	xorLinkedList	B	invariant	opt	0	385	true

@@ -11,9 +11,9 @@
  * `insert` · `delete` 행(`worst O(m)`)을 **어긴다**(`src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts`
  * 헤더 연산 계약 표).
  *
- * **계약 스위트의 축3이 이것을 잡지 못한다.** 스위트 시나리오의 낱말 길이가 8 로 고정이라 에지도
- * 8 글자를 넘지 않고, 옮기는 글자 수가 상수로 눌린다. 실측과 그 자리를 겨누는 시나리오는
- * `src/data-structures/_contract/runContract.radixTree.test.ts` 에 있다.
+ * **처음 다섯 시나리오는 이것을 잡지 못했다.** 낱말 길이가 8 로 고정이라 에지도 8 글자를 넘지 않는다.
+ * KAN-026 S20 이 정본 스위트에 「곁에 긴 낱말」 insert·delete 둘을 더해 지금은 그 둘에서 걸린다(r=3.99).
+ * 실측은 `src/data-structures/_contract/runContract.radixTree.test.ts` 에 있다.
  *
  * 계측 단위는 정본과 같다 — 마디 하나에 들어설 때 1, 에지 글자 하나를 견줄 때 1. 여기에 **새로
  * 만든 문자열의 글자 수**를 더한다. 그 글자를 하나씩 옮기는 것이 이 구현이 실제로 하는 일이다.
