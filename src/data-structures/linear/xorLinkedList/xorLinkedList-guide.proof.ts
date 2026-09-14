@@ -1,24 +1,18 @@
 /**
- * 본문이 「실행하면 이렇게 나옵니다」로 내미는 블록의 출처.
+ * 원고가 「실행하면 이렇게 나옵니다」로 내미는 블록의 출처.
  *
- * 값을 여기 적지 않는다 — **정본(`_reference/xorLinkedList.ts`)을 부르고, 변이는 그 소스에서
- * 기계로 만든다.** 값을 적어 넣으면 대조가 자기 자신과의 대조가 되고, 그때 이 파일은 아무것도
- * 증명하지 않는다.
+ * 값을 여기 적지 않는다 — 원고의 구현 코드와 정본(`_reference/xorLinkedList.ts`)을 실행하고,
+ * 변이는 정본 소스에서 기계로 만든다.
  *
  *   bun run tools/check-proof.ts src/data-structures/linear/xorLinkedList/xorLinkedList-guide.md
  *
- * 정본은 노드 표(`#nodes`)와 id 넷(`#headId`·`#tailId`·`#count`·`#nextId`)을 private 으로
- * 감춘다. 그래서 상태를 보여 주는 블록은 같은 절차의 사본 `XorCopy` 를 쓰되, **호출마다 정본과
- * 반환값·`__cost` 증가분이 같은지 확인**하고 어긋나면 던진다(`agree`). 사본이 정본에서 갈라지면
- * 그 자리에서 실패한다.
- *
- * 경쟁 설계(배열 하나 · 뒤 끝을 안 드는 사슬 · 이중 연결 리스트)의 비용은 **계약 스위트의 판정
- * 함수 `judgeScenario` 에 그대로 넣어** 얻는다. 본문이 인용하는 성장률이 축3 이 실제로 내는
- * 값과 같은 값이어야 해서다.
+ * - `implementations` — 원고에 실린 세 구현 코드(배열 · 이중 연결 리스트 · XOR 추출본)를 그대로
+ *   꺼내 트랜스파일하고, 정본과 함께 배열 모델과 무작위 연산 · 경계 입력으로 대조한다.
+ * - 상태를 보이는 블록은 정본과 같은 절차의 사본 `XorCopy` 를 쓰되, 호출마다 정본과 반환값 ·
+ *   `__cost` 증가분이 같은지 확인한다(`agree`).
  */
 
 import { loadMutant } from "../../../../tools/check-proof.ts";
-import { judgeScenario } from "../../_contract/runContract.ts";
 import { XorLinkedList } from "./_reference/xorLinkedList.ts";
 import {
   type XorLinkedListContract,
@@ -66,11 +60,6 @@ function table(head: string[], body: string[][], left: number[] = []): string {
 }
 
 const num = (n: number): string => n.toLocaleString("en-US");
-const fixed2 = (n: number): string =>
-  n.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 
 /** 수열을 본문 표기로 — `[10 0 30]`. 쉼표를 안 쓰는 것은 걸음 표의 다른 칸과 맞추려는 것이다. */
 const seq = (values: readonly number[]): string => `[${values.join(" ")}]`;
@@ -382,233 +371,73 @@ function agree(calls: Call[]): Row[] {
 
 export const WALK_ROWS = agree(WALK);
 
-/* ────────────────────────── 경쟁 설계 — 같은 단위로 센다 ────────────────────────── */
+/* ────────────────────────── 원고의 구현 코드 ────────────────────────── */
 
-type Counted = XorLinkedListContract & { __cost: number };
+type Constructor = new () => XorLinkedListContract;
+type GuideClasses = Record<
+  "ArrayList" | "DoublyLinkedList" | "XorLinkedList",
+  Constructor
+>;
 
-/**
- * 배열 하나. 칸 8 개로 시작해 가득 차면 두 배로 늘린다.
- *
- * 비용 단위는 정본과 같은 뜻으로 맞춘다 — **원소 하나를 건드릴 때마다 1**. 붙이기는 칸 하나에
- * 쓰는 1 에, 가득 찬 순간이면 옮긴 원소 수를 더한다. 순회는 원소마다 1 이다.
- */
-class GrowArray implements Counted {
-  slots: number[] = new Array(8);
-  count = 0;
-  __cost = 0;
-  append(value: number): void {
-    if (this.count === this.slots.length) {
-      const grown = new Array(this.slots.length * 2);
-      for (let i = 0; i < this.count; i++) {
-        this.__cost += 1;
-        grown[i] = this.slots[i];
-      }
-      this.slots = grown;
-    }
-    this.__cost += 1;
-    this.slots[this.count] = value;
-    this.count += 1;
+/** 원고의 구현 코드 세 블록을 꺼내 트랜스파일한다. 블록을 실행할 때 부른다. */
+async function guideClasses(): Promise<GuideClasses> {
+  const md = await Bun.file(
+    new URL("./xorLinkedList-guide.md", import.meta.url),
+  ).text();
+  const blocks = [...md.matchAll(/```ts[^\n]*\n([\s\S]*?)```/g)]
+    .map((match) => match[1] ?? "")
+    .filter((code) =>
+      /export class (ArrayList|DoublyLinkedList|XorLinkedList)\b/.test(code),
+    );
+  if (blocks.length !== 3) {
+    throw new Error(`구현 코드 세 개가 필요한데 ${blocks.length} 개다`);
   }
-  toArray(): number[] {
-    const out: number[] = [];
-    for (let i = 0; i < this.count; i++) {
-      this.__cost += 1;
-      out.push(this.slots[i] as number);
-    }
-    return out;
-  }
-  toArrayReverse(): number[] {
-    const out: number[] = [];
-    for (let i = this.count - 1; i >= 0; i--) {
-      this.__cost += 1;
-      out.push(this.slots[i] as number);
-    }
-    return out;
-  }
-  size(): number {
-    this.__cost += 1;
-    return this.count;
-  }
-}
-
-/**
- * 뒤 끝을 안 드는 사슬. 노드가 뒤 이웃 하나만 들고, 붙일 때마다 앞 끝에서부터 뒤 끝을 찾는다.
- * 뒤→앞 순회는 앞→뒤로 모은 뒤 뒤집는다.
- *
- * 비용은 정본과 같은 자리에서 센다 — 노드를 들여다볼 때 1, 새 노드를 만들 때 1.
- */
-class NoTailChain implements Counted {
-  nodes: { value: number; next: number }[] = [];
-  head = -1;
-  __cost = 0;
-  append(value: number): void {
-    const id = this.nodes.length;
-    this.nodes.push({ value, next: -1 });
-    this.__cost += 1;
-    if (this.head === -1) {
-      this.head = id;
-      return;
-    }
-    let at = this.head;
-    for (;;) {
-      this.__cost += 1;
-      const node = this.nodes[at] as { value: number; next: number };
-      if (node.next === -1) {
-        node.next = id;
-        return;
-      }
-      at = node.next;
-    }
-  }
-  toArray(): number[] {
-    const out: number[] = [];
-    for (let at = this.head; at !== -1; ) {
-      this.__cost += 1;
-      const node = this.nodes[at] as { value: number; next: number };
-      out.push(node.value);
-      at = node.next;
-    }
-    return out;
-  }
-  toArrayReverse(): number[] {
-    return this.toArray().reverse();
-  }
-  size(): number {
-    this.__cost += 1;
-    return this.nodes.length;
-  }
-}
-
-interface DNode {
-  value: number;
-  prev: DNode | null;
-  next: DNode | null;
-}
-
-/** 이중 연결 리스트. 노드가 앞 이웃과 뒤 이웃을 따로 든다. 비용 단위는 정본과 같다. */
-class Doubly implements Counted {
-  head: DNode | null = null;
-  tail: DNode | null = null;
-  count = 0;
-  __cost = 0;
-  append(value: number): void {
-    const node: DNode = { value, prev: this.tail, next: null };
-    this.__cost += 1;
-    if (this.tail === null) {
-      this.head = node;
-    } else {
-      this.__cost += 1;
-      this.tail.next = node;
-    }
-    this.tail = node;
-    this.count += 1;
-  }
-  #walk(start: DNode | null, forward: boolean): number[] {
-    const out: number[] = [];
-    for (let at = start; at !== null; at = forward ? at.next : at.prev) {
-      this.__cost += 1;
-      out.push(at.value);
-    }
-    return out;
-  }
-  toArray(): number[] {
-    return this.#walk(this.head, true);
-  }
-  toArrayReverse(): number[] {
-    return this.#walk(this.tail, false);
-  }
-  size(): number {
-    this.__cost += 1;
-    return this.count;
-  }
-}
-
-/**
- * 경쟁 설계가 **답은 정본과 같은지** 먼저 확인한다. 비용만 다르고 답이 다르면 그것은 다른
- * 설계가 아니라 틀린 구현이고, 그 비용을 견주는 것은 의미가 없다.
- */
-function agreeAnswers(make: () => Counted, name: string): void {
-  let seed = 20260913;
-  const next = (): number => {
-    seed = (seed * 1103515245 + 12345) % 2147483648;
-    return seed / 2147483648;
-  };
-  const ops: OpName[] = [
-    "append",
-    "append",
-    "toArray",
-    "toArrayReverse",
-    "size",
-  ];
-  const ref = new XorLinkedList();
-  const other = make();
-  for (let i = 0; i < 600; i++) {
-    const op = ops[Math.floor(next() * ops.length)] as OpName;
-    const c: Call =
-      op === "append" ? { op, arg: Math.floor(next() * 200) - 100 } : { op };
-    const a = apply(ref, c);
-    const b = apply(other, c);
-    if (!same(a, b)) {
-      throw new Error(
-        `${name} 이 정본과 다른 답을 냈다 — ${i + 1} 번째 ${label(c)}: 정본 ${show(a)}, ${name} ${show(b)}`,
-      );
-    }
-  }
-}
-
-agreeAnswers(() => new GrowArray(), "배열 하나");
-agreeAnswers(() => new NoTailChain(), "뒤 끝을 안 드는 사슬");
-agreeAnswers(() => new Doubly(), "이중 연결 리스트");
-
-/* ────────────────────────── 축3 판정 — 계약 스위트의 함수 그대로 ────────────────────────── */
-
-type Scenario = (typeof xorLinkedListContract.scenarios)[number];
-
-interface Judged {
-  stats: number[];
-  ratios: number[];
-  ok: boolean;
-}
-
-/** 계약의 검증 등급(`invariant`)을 그대로 넘긴다 — 축3 이 이 구조를 재는 엄격도와 같게. */
-function judge(make: () => Counted, s: Scenario): Judged {
-  const v = judgeScenario(
-    { kind: "self-reported", make },
-    s,
-    xorLinkedListContract.grade,
+  const js = new Bun.Transpiler({ loader: "ts" }).transformSync(
+    blocks.join("\n"),
   );
-  const stats = v.points.map((p) => p.stat);
-  const ratios = stats.slice(1).map((x, i) => x / (stats[i] as number));
-  return { stats, ratios, ok: v.ok };
+  return new Function(
+    `${js.replaceAll("export class", "class")}\nreturn { ArrayList, DoublyLinkedList, XorLinkedList };`,
+  )() as GuideClasses;
 }
 
-const DESIGNS: [string, () => Counted][] = [
-  ["배열 하나", () => new GrowArray()],
-  ["뒤 끝을 안 드는 사슬", () => new NoTailChain()],
-  ["이중 연결 리스트", () => new Doubly()],
-  ["XOR 연결 리스트(정본)", () => new XorLinkedList()],
-];
+const fromGuide = await guideClasses().catch(() => null);
 
-/** 설계 하나를 네 시나리오에 넣은 표. */
-function ratesOf(make: () => Counted): string {
-  const rows = xorLinkedListContract.scenarios.map((s) => {
-    const j = judge(make, s);
-    return [
-      s.covers.join("·"),
-      s.bound,
-      ...j.stats.map(fixed2),
-      fixed2(j.ratios[0] as number),
-      j.ok ? "통과" : "실패",
+/** 구현 하나를 배열 모델과 나란히 실행한다. 반환값이나 크기가 하나라도 다르면 던진다. */
+function againstModel(name: string, Ctor: Constructor): void {
+  const d = new Ctor();
+  const model: number[] = [];
+  const agreeNow = (where: string): void => {
+    const checks: [string, unknown, unknown][] = [
+      ["size()", d.size(), model.length],
+      ["toArray()", d.toArray(), model],
+      ["toArrayReverse()", d.toArrayReverse(), [...model].reverse()],
     ];
-  });
-  return table(
-    ["시나리오가 부르는 연산", "상한", "n = 1,024", "n = 4,096", "r", "판정"],
-    rows,
-    [1],
-  );
+    for (const [what, got, want] of checks) {
+      if (!same(got, want)) {
+        throw new Error(
+          `${name} — ${where} 뒤 ${what}: ${show(got)} · 모델 ${show(want)}`,
+        );
+      }
+    }
+  };
+  agreeNow("빈 수열");
+  for (const v of [0, 0, -1, 7, 7]) {
+    d.append(v);
+    model.push(v);
+    agreeNow(`append(${v})`);
+  }
+  let seed = 731;
+  for (let i = 0; i < 20000; i++) {
+    seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+    if (seed % 5 < 3) {
+      const v = (seed % 201) - 100;
+      d.append(v);
+      model.push(v);
+    }
+    if (i % 997 === 0) agreeNow(`${i + 1} 번째 연산`);
+  }
+  agreeNow("무작위 연산 20,000회");
 }
-
-/* ────────────────────────── 변이 ────────────────────────── */
 
 const REF_PATH = new URL("./_reference/xorLinkedList.ts", import.meta.url)
   .pathname;
@@ -682,66 +511,21 @@ function mutantTable(
 
 /* ────────────────────────── 블록 ────────────────────────── */
 
+/* ────────────────────────── 블록 ────────────────────────── */
+
 export const PROOFS: Record<string, () => string> = {
-  /**
-   * `deep.build` ② — 가장 단순한 구현. 배열 하나를 계약 스위트의 네 시나리오에 넣는다.
-   */
-  "array-rates": () => ratesOf(() => new GrowArray()),
-
-  /** `deep.build` ② — 뒤 끝을 안 드는 사슬. 붙이기 시나리오 하나에서 실패한다. */
-  "no-tail-rates": () => {
-    const j = judge(
-      () => new NoTailChain(),
-      xorLinkedListContract.scenarios[0] as Scenario,
-    );
+  /** 원고의 세 구현 코드와 정본을 배열 모델과 대조한다. */
+  implementations: () => {
+    if (fromGuide === null)
+      throw new Error("원고에서 구현 코드 세 개를 못 읽었다");
+    againstModel("배열 구현 코드", fromGuide.ArrayList);
+    againstModel("이중 연결 리스트 구현 코드", fromGuide.DoublyLinkedList);
+    againstModel("XOR 연결 리스트 전체 코드", fromGuide.XorLinkedList);
+    againstModel("정본", XorLinkedList);
     return [
-      "뒤로만 n 번 붙이기 — 뒤 끝을 안 드는 사슬",
-      "",
-      table(
-        ["n", "연산당 들여다본 노드", "r = C(4n)/C(n)"],
-        [
-          [num(1024), fixed2(j.stats[0] as number), ""],
-          [
-            num(4096),
-            fixed2(j.stats[1] as number),
-            fixed2(j.ratios[0] as number),
-          ],
-        ],
-      ),
-      "",
-      `계약 스위트 판정: ${j.ok ? "통과" : "실패"} (O(1) 상한의 기대 r = 1.00, 허용 ±60%)`,
+      "원고의 세 구현 코드와 정본: 각각 배열 모델과 대조해 일치",
+      "빈 수열 · 값 0 두 번 · 음수 · 중복 · 무작위 붙이기 20,000회 뒤 size() · toArray() · toArrayReverse()",
     ].join("\n");
-  },
-
-  /**
-   * `deep.build` ③ — 값 10 · 20 · 30 을 붙인 뒤 노드마다 앞 이웃 id · 뒤 이웃 id 와 그 XOR.
-   * x 칸은 사본이 실제로 들고 있는 값이고, 앞 이웃 ^ 뒤 이웃과 다르면 던진다.
-   */
-  "doubly-links": () => {
-    const rows = agree(appends([10, 20, 30]));
-    const last = rows.at(-1) as Row;
-    const mine = new XorCopy();
-    for (const v of [10, 20, 30]) mine.append(v);
-    const order = mine.walk(mine.head).map((it) => it.curr);
-    const body = order.map((id, i) => {
-      const prev = order[i - 1] ?? NIL;
-      const next = order[i + 1] ?? NIL;
-      const node = mine.nodes.get(id) as CopyNode;
-      if (node.x !== (prev ^ next)) {
-        throw new Error(
-          `id ${id} 의 x ${node.x} 가 ${prev} ^ ${next} 가 아니다`,
-        );
-      }
-      return [
-        num(id),
-        num(node.value),
-        num(prev),
-        num(next),
-        `${prev} ^ ${next} = ${node.x}`,
-      ];
-    });
-    if (last.count !== 3) throw new Error("붙인 원소가 셋이 아니다");
-    return table(["id", "값", "앞 이웃 id", "뒤 이웃 id", "x = 앞 ^ 뒤"], body);
   },
 
   /** `deep.build` ④ — 같은 노드 표를 앞 끝과 뒤 끝에서 한 번씩 순회한다. */
@@ -756,7 +540,7 @@ export const PROOFS: Record<string, () => string> = {
       .map((r) => {
         const it = r.iter as Iter;
         return [
-          r.call.op === "toArray" ? "앞 끝에서" : "뒤 끝에서",
+          r.call.op === "toArray" ? "앞에서부터" : "뒤에서부터",
           num(it.prev),
           num(it.curr),
           num(it.x),
@@ -765,7 +549,7 @@ export const PROOFS: Record<string, () => string> = {
         ];
       });
     return table(
-      ["출발", "prev", "curr", "x(curr)", "다음 = x ^ prev", "담은 값"],
+      ["출발", "prev", "curr", "xorId(curr)", "다음 = xorId ^ prev", "담은 값"],
       body,
       [4],
     );
@@ -781,184 +565,23 @@ export const PROOFS: Record<string, () => string> = {
         num(j.id),
         num(j.oldTail?.id ?? NIL),
         j.oldTail === null
-          ? "빈 수열 — 옛 꼬리 없음"
+          ? "빈 리스트 — 마지막 노드 없음"
           : `id ${j.oldTail.id}: ${j.oldTail.before} ^ ${j.id} = ${j.oldTail.after}`,
         num(r.head),
         num(r.tail),
       ];
     });
     return table(
-      ["호출", "새 id", "새 노드의 x", "옛 꼬리의 x", "head", "tail"],
+      [
+        "호출",
+        "새 id",
+        "새 노드의 xorId",
+        "기존 마지막 노드의 xorId",
+        "headId",
+        "tailId",
+      ],
       body,
       [3],
-    );
-  },
-
-  /** `deep.build` ⑥ — 네 설계를 네 시나리오에 모두 넣는다. */
-  "designs-rates": () => {
-    const rows = DESIGNS.map(([name, make]) => [
-      name,
-      ...xorLinkedListContract.scenarios.map((s) => {
-        const j = judge(make, s);
-        return `${fixed2(j.ratios[0] as number)} ${j.ok ? "통과" : "실패"}`;
-      }),
-    ]);
-    return table(
-      [
-        "설계",
-        ...xorLinkedListContract.scenarios.map((s) => s.covers.join("·")),
-      ],
-      rows,
-    );
-  },
-
-  /** `deep.walk.step` 2 — 붙이기 셋. */
-  "append-steps": () =>
-    table(
-      [
-        "단계",
-        "호출",
-        "조건",
-        "새 id · x",
-        "옛 꼬리의 x",
-        "head",
-        "tail",
-        "count",
-      ],
-      WALK_ROWS.filter((r) => r.kind === "append").map((r) => {
-        const j = r.joined as Joined;
-        return [
-          `T${r.t}`,
-          label(r.call),
-          condition(r),
-          `id ${j.id} · x ${j.oldTail?.id ?? NIL}`,
-          j.oldTail === null
-            ? ""
-            : `id ${j.oldTail.id}: ${j.oldTail.before} ^ ${j.id} = ${j.oldTail.after}`,
-          num(r.head),
-          num(r.tail),
-          num(r.count),
-        ];
-      }),
-      [1, 2, 3, 4],
-    ),
-
-  /** `deep.walk.pause` — id 를 0 부터 나눠 줬다. 전개가 붙이는 값 그대로. */
-  "pause-id0": () =>
-    mutantTable(
-      idFromZero,
-      [[10], [10, 0], [10, 0, 30]],
-      ["toArray", "toArrayReverse", "size"],
-      "0 부터 준 코드",
-    ),
-
-  /**
-   * `deep.walk.pause` — 같은 변이를 사본으로 펼쳐 붙일 때마다의 id 넷. 사본의 반환값이 기계로
-   * 만든 변이와 다르면 던진다.
-   */
-  "pause-id0-state": () => {
-    const mine = new XorCopy(0);
-    const mutant = new idFromZero.XorLinkedList();
-    const rows: string[][] = [];
-    for (const v of [10, 0, 30]) {
-      const j = mine.append(v);
-      mutant.append(v);
-      rows.push([
-        `append(${v})`,
-        num(j.id),
-        j.empty ? "참" : "거짓",
-        num(mine.head),
-        num(mine.tail),
-        seq(
-          mine
-            .walk(mine.head)
-            .map((it) => it.values)
-            .at(-1) ?? [],
-        ),
-      ]);
-      const want = mine.walk(mine.head).at(-1)?.values ?? [];
-      if (!neutral(idFromZero) && !same(want, mutant.toArray())) {
-        throw new Error(
-          `사본 ${seq(want)} 과 변이 ${seq(mutant.toArray())} 이 다르다`,
-        );
-      }
-    }
-    return table(
-      ["호출", "새 id", "tailId === NIL", "head", "tail", "toArray()"],
-      rows,
-    );
-  },
-
-  /** `deep.walk.step` 3 — 읽기 셋. 빈 수열과 원소 셋에서. */
-  "read-steps": () =>
-    table(
-      ["단계", "호출", "조건", "다음 = x ^ prev", "돌려준 값", "비용"],
-      WALK_ROWS.filter((r) => r.kind !== "append").map((r) => [
-        `T${r.t}`,
-        label(r.call),
-        condition(r),
-        r.iter === null ? "" : `${r.iter.x} ^ ${r.iter.prev} = ${r.iter.next}`,
-        r.last ? show(r.out) : "",
-        num(r.cost),
-      ]),
-      [1, 2, 3],
-    ),
-
-  /** `deep.walk.pause` — `prevId` 에 다음 노드를 넣었다. */
-  "pause-prev": () =>
-    mutantTable(
-      carryNext,
-      [[10], [10, 0], [10, 0, 30], [10, 20, 30, 40]],
-      ["toArray", "toArrayReverse"],
-      "prev 에 다음을 넣은 코드",
-    ),
-
-  /** `deep.walk.pause` — 같은 변이를 사본으로 펼친 앞→뒤 순회 걸음. */
-  "pause-prev-trace": () => {
-    const rows: string[][] = [];
-    for (const values of [
-      [10, 0, 30],
-      [10, 0],
-    ]) {
-      const { steps, error } = traceCarryNext(values);
-      const mutant = new carryNext.XorLinkedList();
-      for (const v of values) mutant.append(v);
-      const got = attempt(() => mutant.toArray());
-      const want =
-        error === "" ? (steps.at(-1)?.values ?? []) : `오류: ${error}`;
-      if (!neutral(carryNext) && !same(want, got)) {
-        throw new Error(`사본 ${show(want)} 과 변이 ${show(got)} 이 다르다`);
-      }
-      for (const [k, it] of steps.entries()) {
-        rows.push([
-          k === 0 ? `append ${values.join(" · ")}` : "",
-          num(it.prev),
-          num(it.curr),
-          `${it.x} ^ ${it.prev} = ${it.next}`,
-          `prev ← ${it.next} · curr ← ${it.next}`,
-          seq(it.values),
-        ]);
-      }
-      rows.push([
-        "",
-        "",
-        "",
-        "",
-        error === "" ? "curr 0 = NIL → 끝" : `${error} → 던진다`,
-        "",
-      ]);
-    }
-    return table(
-      [
-        "붙인 값",
-        "prev",
-        "curr",
-        "다음 = x ^ prev",
-        "다음 걸음으로",
-        "담은 값",
-      ],
-      rows,
-      [3, 4],
     );
   },
 
@@ -990,8 +613,8 @@ export const PROOFS: Record<string, () => string> = {
       [
         "단계",
         "노드 표 (id 1 · 2 · 3)",
-        "head",
-        "tail",
+        "headId",
+        "tailId",
         "count",
         "prev",
         "curr",
@@ -1026,58 +649,45 @@ export const PROOFS: Record<string, () => string> = {
       [1, 2, 3],
     ),
 
-  /** `deep.walk.step` 4 — 분기 라벨이 어느 걸음에서 실행됐는가. */
-  "walk-branches": () => {
-    const ts = (pred: (r: Row) => boolean): string =>
-      WALK_ROWS.filter(pred)
-        .map((r) => `T${r.t}`)
-        .join(" · ");
-    return table(
-      ["라벨", "무엇", "실행된 걸음"],
-      [
-        ["①", "빈 수열에 붙인다", ts((r) => r.joined?.empty === true)],
-        ["②", "옛 꼬리에 잇는다", ts((r) => r.joined?.empty === false)],
-        ["③", "노드를 읽는다", ts((r) => r.iter !== null)],
-        ["④", "순회를 끝낸다", ts((r) => r.kind === "walk" && r.last)],
-      ],
-      [1, 2],
-    );
-  },
-
   /**
-   * `invariant` ② — 계약 스위트의 경계 입력 전부. 각 입력을 정본으로 실행하고, 계약의 불변식 검사
-   * 함수 둘을 그대로 부른다. 하나라도 어기면 던진다.
+   * `deep.walk.pause` — 헷갈리기 쉬운 두 줄을 바꾼 정본을 전개와 같은 붙이기 열에 건다. 바꾼
+   * 코드는 정본 소스에서 기계로 만든다.
    */
-  "invariant-edges": () => {
-    const rows = xorLinkedListContract.edges.map((edge) => {
-      const d = new XorLinkedList();
-      const added: number[] = [];
-      for (const step of edge.steps) {
-        if (step.op === "append") added.push(step.arg as number);
-        apply(d, {
-          op: step.op as OpName,
-          arg: step.arg as number | undefined,
-        });
-        for (const inv of xorLinkedListContract.invariants) {
-          const broke = inv.check(d);
-          if (broke !== null) {
-            throw new Error(
-              `정본이 경계 입력 「${edge.name}」 에서 ${inv.name} 을 어겼다: ${broke}`,
-            );
-          }
-        }
+  pitfalls: () => {
+    const rows: string[][] = [];
+    let changed = false;
+    const cases: [string, XorModule, number[], OpName][] = [
+      ["#nextId = 0;", idFromZero, [10], "toArray"],
+      ["#nextId = 0;", idFromZero, [10, 0, 30], "toArray"],
+      ["prevId = nextId;", carryNext, [10, 0, 30], "toArray"],
+      ["prevId = nextId;", carryNext, [10, 0], "toArray"],
+      ["prevId = nextId;", carryNext, [10, 20, 30, 40], "toArrayReverse"],
+    ];
+    for (const [line, mutant, values, read] of cases) {
+      const right = new XorLinkedList();
+      const wrong = new mutant.XorLinkedList();
+      for (const v of values) {
+        right.append(v);
+        wrong.append(v);
       }
-      return [
-        added.length === 0 ? "붙인 값 없음" : added.map(String).join(" · "),
-        seq(d.toArray()),
-        seq(d.toArrayReverse()),
-        num(d.size()),
-      ];
-    });
+      const a = attempt(() => apply(right, { op: read }));
+      const b = attempt(() => apply(wrong, { op: read }));
+      if (!same(a, b)) changed = true;
+      rows.push([
+        line,
+        `append ${values.join(" · ")}`,
+        `${read}()`,
+        show(b),
+        show(a),
+      ]);
+    }
+    if (!neutral(idFromZero) && !neutral(carryNext) && !changed) {
+      throw new Error("변이가 어느 입력에서도 결과를 바꾸지 못했다");
+    }
     return table(
-      ["붙인 값", "toArray()", "toArrayReverse()", "size()"],
+      ["바꾼 줄", "붙인 값", "호출", "바꾼 코드의 결과", "정본의 결과"],
       rows,
-      [1, 2],
+      [1, 2, 3, 4],
     );
   },
 
@@ -1121,176 +731,29 @@ export const PROOFS: Record<string, () => string> = {
     }
     return table(["붙인 값", "불변식", "덮어쓴 코드에서"], rows, [1, 2]);
   },
-
-  /** `perf.derive` — 걸음 표의 비용 칸을 연산별로 모은다. */
-  "cost-by-group": () => {
-    const groups: [string, OpName[]][] = [
-      ["append", ["append"]],
-      ["toArray · toArrayReverse", ["toArray", "toArrayReverse"]],
-      ["size", ["size"]],
-    ];
-    const rows = groups.map(([name, ops]) => {
-      const mine = WALK_ROWS.filter((r) => ops.includes(r.call.op));
-      const calls = new Set(mine.map((r) => WALK.indexOf(r.call))).size;
-      const sum = mine.reduce((s, r) => s + r.cost, 0);
-      return [
-        name,
-        num(calls),
-        num(sum),
-        mine.map((r) => `T${r.t}=${r.cost}`).join(" · "),
-      ];
-    });
-    const all = WALK_ROWS.reduce((s, r) => s + r.cost, 0);
-    rows.push(["합", num(WALK.length), num(all), ""]);
-    return table(["연산", "호출 수", "비용 합", "걸음별 비용"], rows, [3]);
-  },
-
-  /** `perf.bounds` — 계약 스위트 축3 이 정본에 대해 내는 값 전부. */
-  "growth-rate": () => {
-    const rows = xorLinkedListContract.scenarios.map((s) => {
-      const j = judge(() => new XorLinkedList(), s);
-      return [
-        s.covers.join("·"),
-        s.qualifier,
-        s.bound,
-        ...j.stats.map(fixed2),
-        fixed2(j.ratios[0] as number),
-        j.ok ? "통과" : "실패",
-      ];
-    });
-    return table(
-      [
-        "시나리오가 부르는 연산",
-        "한정자",
-        "상한",
-        "n = 1,024",
-        "n = 4,096",
-        "r",
-        "판정",
-      ],
-      rows,
-      [1, 2],
-    );
-  },
-
-  /**
-   * `perf.worst` — 설계마다 최악이 되는 입력이 다르다. `n = 4,096` 에서 호출당 평균과 한 호출이
-   * 건드린 원소의 최댓값을 함께 낸다.
-   */
-  "worst-inputs": () => {
-    const n = 4096;
-    const inputs: [string, (d: Counted) => number[]][] = [
-      [
-        "뒤로 n 번 붙이기",
-        (d) => {
-          const out: number[] = [];
-          for (let i = 0; i < n; i++) out.push(costOf(d, () => d.append(i)));
-          return out;
-        },
-      ],
-      [
-        "n 개를 채운 뒤 한 번 더 붙이기",
-        (d) => {
-          for (let i = 0; i < n; i++) d.append(i);
-          return [costOf(d, () => d.append(n))];
-        },
-      ],
-      [
-        "n 개를 채운 뒤 toArrayReverse 한 번",
-        (d) => {
-          for (let i = 0; i < n; i++) d.append(i);
-          return [costOf(d, () => d.toArrayReverse())];
-        },
-      ],
-    ];
-    const designs: [string, () => Counted][] = [
-      ["배열 하나", () => new GrowArray()],
-      ["뒤 끝을 안 드는 사슬", () => new NoTailChain()],
-      ["XOR 연결 리스트(정본)", () => new XorLinkedList()],
-    ];
-    const rows: string[][] = [];
-    for (const [iname, run] of inputs) {
-      for (const [dname, make] of designs) {
-        const costs = run(make());
-        const avg = costs.reduce((s, c) => s + c, 0) / costs.length;
-        rows.push([iname, dname, fixed2(avg), num(Math.max(...costs))]);
-      }
-    }
-    return table(
-      ["입력 (n = 4,096)", "설계", "호출당 평균", "한 호출 최대"],
-      rows,
-      [1],
-    );
-  },
-
-  /** `selfcheck` 답 — T12 뒤에 40 을 한 번 더 붙이면. */
-  "check-append40": () => {
-    const rows = agree([...WALK, { op: "append", arg: 40 }]);
-    const r = rows.at(-1) as Row;
-    const j = r.joined as Joined;
-    const mine = new XorCopy();
-    for (const c of [...WALK, { op: "append", arg: 40 } as Call]) {
-      if (c.op === "append") mine.append(c.arg ?? 0);
-    }
-    const xs = [...mine.nodes.values()]
-      .map((node) => `id ${node.id}: x ${node.x}`)
-      .join(" · ");
-    return [
-      `${label(r.call)}   ${condition(r)}   새 id ${j.id} · x ${j.oldTail?.id ?? NIL}   비용 ${r.cost}`,
-      `옛 꼬리  id ${j.oldTail?.id ?? NIL}: ${j.oldTail?.before ?? NIL} ^ ${j.id} = ${j.oldTail?.after ?? NIL}`,
-      `노드 표  ${xs}`,
-      `head ${r.head}  tail ${r.tail}  count ${r.count}`,
-    ].join("\n");
-  },
 };
 
 /* ────────────────────────── 보조 ────────────────────────── */
-
-/**
- * `prev` 에 다음 노드를 넣는 사본으로 앞→뒤 순회를 펼친다. 표에 없는 id 에 이르면 그 걸음까지의
- * 기록과 정본이 던지는 것과 같은 메시지를 돌려준다.
- */
-function traceCarryNext(values: number[]): { steps: Iter[]; error: string } {
-  const mine = new XorCopy(1, "next");
-  for (const v of values) mine.append(v);
-  const steps: Iter[] = [];
-  const got: number[] = [];
-  let prev = NIL;
-  let curr = mine.head;
-  while (curr !== NIL) {
-    if (steps.length > 64) throw new Error("사본의 순회가 끝나지 않는다");
-    const node = mine.nodes.get(curr);
-    if (node === undefined) {
-      return { steps, error: `표에 없는 id 를 따라갔다: ${curr}` };
-    }
-    got.push(node.value);
-    const next = node.x ^ prev;
-    steps.push({ prev, curr, x: node.x, next, values: [...got] });
-    prev = next;
-    curr = next;
-  }
-  return { steps, error: "" };
-}
 
 /** 걸음 표의 「조건」 칸. */
 function condition(r: Row): string {
   if (r.kind === "append") {
     const j = r.joined as Joined;
     return j.empty
-      ? "tailId 0 = NIL → ①"
-      : `tailId ${j.oldTail?.id ?? NIL} ≠ NIL → ②`;
+      ? "tailId 0 = NIL — 빈 수열에 붙인다"
+      : `tailId ${j.oldTail?.id ?? NIL} ≠ NIL — 마지막 노드 뒤에 잇는다`;
   }
   if (r.kind === "size") return "";
-  if (r.iter === null) return "currId 0 = NIL → ④";
-  const head = `currId ${r.iter.curr} ≠ NIL → ③`;
-  return r.last ? `${head} · 다음 0 = NIL → ④` : head;
+  if (r.iter === null) return "currId 0 = NIL — 읽을 노드가 없다";
+  const head = `currId ${r.iter.curr} ≠ NIL`;
+  return r.last ? `${head} · 다음 0 = NIL — 끝` : head;
 }
 
 /** 걸음 표의 「계산」 칸. */
 function calc(r: Row): string {
   if (r.kind === "append") {
     const j = r.joined as Joined;
-    const made = `id ${j.id} · x ${j.oldTail?.id ?? NIL}`;
+    const made = `id ${j.id} · xorId ${j.oldTail?.id ?? NIL}`;
     return j.oldTail === null
       ? made
       : `${made} · id ${j.oldTail.id}: ${j.oldTail.before} ^ ${j.id} = ${j.oldTail.after}`;
@@ -1324,10 +787,4 @@ export function frameOf(r: Row): {
     entries.push({ label: "담은 값", value: "[]" });
   }
   return { title: `T${r.t} ${label(r.call)}`, array: r.cells, entries };
-}
-
-function costOf(d: Counted, fn: () => unknown): number {
-  const before = d.__cost;
-  fn();
-  return d.__cost - before;
 }

@@ -1,25 +1,15 @@
 import type { Frame } from "#guide-sim";
 
-/**
- * `deep.walk`(수행으로 알아보는 자료구조) 절의 연산 열을 **같은 순서로** 담는다. 프레임 하나가
- * 걸음 하나(T1~T12)이고, 제목이 `T#` 로 열린다. 순회는 노드 하나를 읽을 때마다 한 걸음이다.
- *
- * 칸 하나가 노드 하나이고 id 순서로 놓인다 — `값/x저장값`. 프레임의 값은 사람이 적은 값이라
- * 그것만으로는 실행과 같다는 보장이 없다. `xorLinkedList-guide.proof.ts` 의 `walk-viz` 블록이
- * **프레임마다 정본 실행과 맞대고** 어긋나면 던진다.
- *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- */
+/** 본문의 T1~T12와 대응하며, proof의 walk-viz가 각 프레임을 정본 실행과 대조합니다. */
 export const walk = {
   view: ["array", "keyValue"] as const,
-  title:
-    "XorLinkedList — 10 · 0 · 30 을 붙이고 같은 노드 표를 두 방향으로 읽는 열두 걸음",
+  title: "XOR 연결 리스트: 10, 0, 30을 붙이고 두 방향으로 읽기",
   result: "[30,0,10]",
   steps: [
     {
       title: "T1 toArray()",
       detail:
-        "시작 id 가 NIL 이라 반복을 한 번도 하지 않고 빈 배열을 돌려준다(④)",
+        "시작 id가 NIL(0)이므로 읽을 노드가 없습니다. 빈 배열을 반환합니다.",
       array: ["·", "·", "·"],
       highlight: [],
       pointers: {},
@@ -32,7 +22,7 @@ export const walk = {
     },
     {
       title: "T2 size()",
-      detail: "순회하지 않고 세어 둔 count 0 을 돌려준다",
+      detail: "노드를 따라가지 않고 저장해 둔 count 0을 반환합니다.",
       array: ["·", "·", "·"],
       highlight: [],
       pointers: {},
@@ -45,7 +35,7 @@ export const walk = {
     {
       title: "T3 append(10)",
       detail:
-        "tailId 가 NIL 이라 빈 수열이다(①). 새 노드 id 1 의 x 는 그때의 tailId 0 이고, head 와 tail 이 모두 1 이 된다",
+        "빈 수열이므로 새 노드 id 1이 head이자 tail이 됩니다. 이웃이 없어 xorId는 0입니다.",
       array: ["10/x0", "·", "·"],
       highlight: [0],
       pointers: { head: 0, tail: 0 },
@@ -58,7 +48,7 @@ export const walk = {
     {
       title: "T4 append(0)",
       detail:
-        "옛 꼬리 id 1 에 잇는다(②). 새 노드 id 2 의 x 는 1, 옛 꼬리의 x 는 0 ^ 2 = 2",
+        "새 노드 id 2의 xorId는 앞 이웃 id 1입니다. 기존 마지막 노드 id 1의 xorId는 0 ^ 2 = 2로 바뀝니다.",
       array: ["10/x2", "0/x1", "·"],
       highlight: [0, 1],
       pointers: { head: 0, tail: 1 },
@@ -71,7 +61,7 @@ export const walk = {
     {
       title: "T5 append(30)",
       detail:
-        "옛 꼬리 id 2 에 잇는다(②). 새 노드 id 3 의 x 는 2, 옛 꼬리의 x 는 1 ^ 3 = 2",
+        "새 노드 id 3의 xorId는 앞 이웃 id 2입니다. 기존 마지막 노드 id 2의 xorId는 1 ^ 3 = 2로 바뀝니다.",
       array: ["10/x2", "0/x2", "30/x2"],
       highlight: [1, 2],
       pointers: { head: 0, tail: 2 },
@@ -83,7 +73,7 @@ export const walk = {
     },
     {
       title: "T6 size()",
-      detail: "순회하지 않고 세어 둔 count 3 을 돌려준다",
+      detail: "노드를 따라가지 않고 저장해 둔 count 3을 반환합니다.",
       array: ["10/x2", "0/x2", "30/x2"],
       highlight: [],
       pointers: { head: 0, tail: 2 },
@@ -95,7 +85,7 @@ export const walk = {
     },
     {
       title: "T7 toArray()",
-      detail: "id 1 의 값을 담고(③) 다음 id 를 x ^ prev = 2 ^ 0 = 2 로 얻는다",
+      detail: "id 1의 값을 담고, 다음 id를 2 ^ 0 = 2로 구합니다.",
       array: ["10/x2", "0/x2", "30/x2"],
       highlight: [0],
       pointers: { head: 0, tail: 2 },
@@ -111,8 +101,7 @@ export const walk = {
     },
     {
       title: "T8 toArray()",
-      detail:
-        "id 2 의 값을 담고(③) 다음 id 를 x ^ prev = 2 ^ 1 = 3 으로 얻는다",
+      detail: "id 2의 값을 담고, 다음 id를 2 ^ 1 = 3으로 구합니다.",
       array: ["10/x2", "0/x2", "30/x2"],
       highlight: [1],
       pointers: { head: 0, tail: 2 },
@@ -129,7 +118,7 @@ export const walk = {
     {
       title: "T9 toArray()",
       detail:
-        "id 3 의 값을 담고(③) 다음 id 를 x ^ prev = 2 ^ 2 = 0 으로 얻는다. 다음이 NIL 이라 끝낸다(④)",
+        "id 3의 값을 담고, 다음 id를 2 ^ 2 = 0으로 구합니다. 다음 id가 NIL이므로 [10, 0, 30]을 반환합니다.",
       array: ["10/x2", "0/x2", "30/x2"],
       highlight: [2],
       pointers: { head: 0, tail: 2 },
@@ -145,7 +134,7 @@ export const walk = {
     },
     {
       title: "T10 toArrayReverse()",
-      detail: "id 3 의 값을 담고(③) 다음 id 를 x ^ prev = 2 ^ 0 = 2 로 얻는다",
+      detail: "id 3의 값을 담고, 다음 id를 2 ^ 0 = 2로 구합니다.",
       array: ["10/x2", "0/x2", "30/x2"],
       highlight: [2],
       pointers: { head: 0, tail: 2 },
@@ -161,7 +150,7 @@ export const walk = {
     },
     {
       title: "T11 toArrayReverse()",
-      detail: "id 2 의 값을 담고(③) 다음 id 를 x ^ prev = 2 ^ 3 = 1 로 얻는다",
+      detail: "id 2의 값을 담고, 다음 id를 2 ^ 3 = 1로 구합니다.",
       array: ["10/x2", "0/x2", "30/x2"],
       highlight: [1],
       pointers: { head: 0, tail: 2 },
@@ -178,7 +167,7 @@ export const walk = {
     {
       title: "T12 toArrayReverse()",
       detail:
-        "id 1 의 값을 담고(③) 다음 id 를 x ^ prev = 2 ^ 2 = 0 으로 얻는다. 다음이 NIL 이라 끝낸다(④)",
+        "id 1의 값을 담고, 다음 id를 2 ^ 2 = 0으로 구합니다. 다음 id가 NIL이므로 [30, 0, 10]을 반환합니다.",
       array: ["10/x2", "0/x2", "30/x2"],
       highlight: [0],
       pointers: { head: 0, tail: 2 },
