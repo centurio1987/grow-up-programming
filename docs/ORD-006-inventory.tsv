@@ -63,8 +63,8 @@ src/data-structures/tree/splayTree	tree	splayTree	-	complexity	-	0	1004	true
 src/data-structures/tree/treap	tree	treap	-	complexity	-	0	965	true
 src/data-structures/tree/twoThreeTree	tree	twoThreeTree	-	complexity	-	0	734	true
 src/data-structures/trie/ahoCorasick	trie	ahoCorasick	-	-	-	84	382	false
-src/data-structures/trie/radixTree	trie	radixTree	-	-	-	78	424	false
+src/data-structures/trie/radixTree	trie	radixTree	-	invariant	-	0	424	true
 src/data-structures/trie/suffixArray	trie	suffixArray	C	complexity	-	0	592	true
 src/data-structures/trie/suffixTree	trie	suffixTree	C	complexity	-	0	934	true
 src/data-structures/trie/ternarySearchTree	trie	ternarySearchTree	-	invariant	-	0	907	true
-src/data-structures/trie/trie	trie	trie	-	-	-	76	315	false
+src/data-structures/trie/trie	trie	trie	-	invariant	-	0	315	true

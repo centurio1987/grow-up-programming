@@ -341,7 +341,7 @@ const UNITS: readonly Unit[] = [
     contract: "문자열 집합 · 접두사 질의 (B15 계약)",
     canonical: "trie/ternarySearchTree",
     transitions: ["trie/trie", "trie/radixTree"],
-    note: "결정(2026-09-15 유저) — 정본은 TST 에 둔다(임시, 불변 사실 64 · 이름은 KAN-031). 그래서 전환 둘이 순서 없이 열린다. radixTree 는 가지를 쪼갤 때 꼬리를 문자열로 복사하면 O(m) 을 어긴다 — 논증, 미실측",
+    note: "완료(KAN-026 S2 · S3) — 정본은 TST 에 둔다(임시, 불변 사실 64 · 이름은 KAN-031). 전환 둘은 같은 계약 객체 + 기법별 정본. 꼬리를 새 문자열로 만드는 쪼개기가 O(m) 을 어기는 것을 실측(r = 3.99)했는데 정본 스위트는 그 자리를 안 잰다 — 시나리오 추가는 사람 결정(불변 사실 216)",
   },
   {
     id: "TA-02",

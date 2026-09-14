@@ -76,6 +76,10 @@ const VERIFICATION_GRADES: Record<
   "range-query/intervalTree": "complexity",
   "linear/xorLinkedList": "invariant",
   "linear/unrolledLinkedList": "complexity",
+  // 성격 전환(KAN-026 S3). 계약이 `trie/ternarySearchTree` 의 것과 같으므로 등급도 같다
+  // (불변 사실 56). 에지를 접는 기법이 자명한 구현보다 손이 더 가는 것은 등급을 바꾸지 않는다
+  // (불변 사실 55). 자기보다 뒤로 정렬되는 첫 기존 키(`trie/suffixArray`) 앞에 둔다.
+  "trie/radixTree": "invariant",
   "trie/suffixArray": "complexity",
   "trie/suffixTree": "complexity",
   "linear/queue": "basic",
@@ -143,6 +147,10 @@ const VERIFICATION_GRADES: Record<
   // 여섯 행을 전부 상한 안에 하므로 `complexity` 가 아니고, 불변식 하나가 남아 `basic` 도
   // 아니다 — 판정 절차의 3번에서 멈춘 첫 계약이다.
   "linear/gapBuffer": "invariant",
+  // 성격 전환(KAN-026 S2). 계약이 `trie/ternarySearchTree` 의 것과 같으므로 등급도 같다
+  // (불변 사실 56). 이 이름이 가리키는 기법(자식을 표로 드는 마디)이 그 계약 헤더가 든 자명한
+  // 구현 그 자체다. 자기보다 뒤로 정렬되는 기존 키가 없어 표 끝에 둔다(`docs/ORD-006-wbs.md` §4).
+  "trie/trie": "invariant",
 };
 
 /** ORDER.md:39-63 진단 표 9종. 키는 `<category>/<name>`. 이 표 밖은 전부 `-`. */
