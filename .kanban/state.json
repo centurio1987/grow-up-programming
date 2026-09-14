@@ -1,6 +1,6 @@
 {
-  "next_id": 36,
-  "next_seq": 256,
+  "next_id": 38,
+  "next_seq": 258,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -760,6 +760,46 @@
       "reason_hash": "ec9130fcbfca83a1089cfa0ed66bc1a0cf50bd22",
       "goal": "ds-guide-v2 명세와 판정 장치가 서고 파일럿 3편이 유저 승인을 받아, 69편 전개의 규격이 확정된 상태로 전개 카드에 넘어간다",
       "goal_hash": "853727e11b46edbdeb209f8f56ebbba00e802527"
+    },
+    "KAN-036-0G05DE": {
+      "col": "todo",
+      "title": "ds-guide-v2 전 편 전개 — 파일럿 3편의 골격·집필 안내를 자료구조 가이드 66편에 적용",
+      "verbatim": "",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-09-14",
+      "title_hash": "4bf4a3461b0bb2592b58a780052934dfefdc5ff4",
+      "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "short": "ds-guide-v2 전 편 전개",
+      "short_hash": "19a7ea961ac3e7693d3695b55424733e3681aea8",
+      "purpose": "src/data-structures/ 의 남은 -guide.mdx 66편을 sandbox/ds-guide-v2/SPEC.md 골격과 AUTHORING.md 집필 안내로 -guide.md 로 재집필한다",
+      "purpose_hash": "edd98cc4a77d74ec08adf7de00ad8ea6f1a555cb",
+      "reason": "KAN-035 파일럿 3편(deque·redBlackTree·xorLinkedList)과 검토서 12개 판단 항목이 2026-09-14 전부 승인돼, 카드 계획상 승인 뒤에 두기로 한 전개를 열 수 있다",
+      "reason_hash": "70179ece4e75eaebd6729a4ba7e9b84fe5700927",
+      "goal": "69편이 전부 v2 골격으로 서서 check-v2(P1~P20)·check-proof --require·guide-core·ci.ts all 을 통과하고, .mdx 와 8단계 골격 자산이 0 이 된다",
+      "goal_hash": "1cd51046126a6e58ee9dfc427df08ab0f0d3f41e",
+      "memo": "인계(KAN-035): ① 걷을 것 — .claude/authoring/specs/ds-guide/ · tools/check-guide-rhythm.ts · tools/_baseline/guide-rhythm.tsv(.mdx 가 0 이 되면 exit 2 로 CI 가 멈추므로 마지막 편과 같은 커밋에서 걷는다, SPEC.md §8). ② docs/ORD-006-wbs.md 는 무효 — 계약 단위로 다시 뽑는다. ③ probabilistic/concurrentSkipList 는 TS 정본이 없어 deep.walk.final 이 Rust 추출이다 — 규격 자리만 있고 이 카드가 세운다. ④ 메모리 동기 5종(bitArray·bloomFilter·countMinSketch·cuckooFilter·hyperLogLog)은 계약 전환 때 DIRECT_MEMORY 편입을 판정한다(docs/ORD-006-conventions.md §규약4 「메모리를 직접 다뤄야 이득이 생기는 구조」). ⑤ 검토 4번 — tools/ord004-manifest.json 의 옛 .mdx 경로를 한꺼번에 정리. ⑥ 검토 11번 — avlTree·twoThreeTree 재집필 때 정본 guide:core 주석의 은유를 고치고 redBlackTree 편 본문 코드를 추출본으로 교체. ⑦ 이 카드 신설로 KAN-001 봉인 조건에 한 장이 붙는다. 근거: KANBAN.cards/KAN-035-31T4BY.md · KANBAN.reviews/KAN-035-31T4BY.review.md",
+      "memo_hash": "8907edfb53769d57277be197535f1c4d4f43a041"
+    },
+    "KAN-037-KC651Z": {
+      "col": "backlog",
+      "title": "증명 블록이 0 개인 알고리즘 가이드 3편에 자기증명 블록 붙이기 — mosAlgorithm·knapsack01·babyStepGiantStep",
+      "verbatim": "",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-09-14",
+      "title_hash": "03fee32314288866fec9101f044e81329e48b8f2",
+      "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "short": "알고리즘 3편 증명 블록",
+      "short_hash": "371dbe869dc45fdbfeb7e7ab482c7f6bf564e388",
+      "purpose": "src/algorithms/ 의 mosAlgorithm·knapsack01·babyStepGiantStep 가이드에 원고 수치를 실행으로 만드는 증명 블록을 붙인다",
+      "purpose_hash": "1e9d15004b2d82113cbbb7ee681f583712a2c8d8",
+      "reason": "check-proof --all --require 가 이 3편 때문에 종료코드 1 이라 증명 전수 대조를 검증 기준으로 못 쓴다 — KAN-035 검토 6번에서 별도 카드로 다루기로 승인됐다",
+      "reason_hash": "af9dd5476a0401092bad09ec4f5674211d4dab9a",
+      "goal": "bun run tools/check-proof.ts --all --require 가 종료코드 0 으로 끝나 CI 가 0 개 편을 실패로 볼 수 있게 된다",
+      "goal_hash": "0a885f929a93f41b1ecb350df809cc345a38ba34",
+      "memo": "근거: KANBAN.reviews/KAN-035-31T4BY.review.md 6번(3편의 마지막 변경 df58ce0, KAN-035 이전). CI 는 지금 --require 없이 돈다(tools/ci.ts:95).",
+      "memo_hash": "a4a95ee57472116d902cbdd4a553b3f05ba9e570"
     }
   },
   "order": [
@@ -807,9 +847,45 @@
     "KAN-034.4-4NS63H",
     "KAN-034.9-WHH53W",
     "KAN-034-KSD7XR",
-    "KAN-035-31T4BY"
+    "KAN-035-31T4BY",
+    "KAN-036-0G05DE",
+    "KAN-037-KC651Z"
   ],
   "recent": [
+    {
+      "seq": 257,
+      "t": "2026-09-14T17:04",
+      "a": "ai",
+      "id": "KAN-037-KC651Z",
+      "op": "create",
+      "w": "46PCAX",
+      "col": "backlog",
+      "title": "증명 블록이 0 개인 알고리즘 가이드 3편에 자기증명 블록 붙이기 — mosAlgorithm·knapsack01·babyStepGiantStep",
+      "verbatim": "",
+      "parent": null,
+      "short": "알고리즘 3편 증명 블록",
+      "purpose": "src/algorithms/ 의 mosAlgorithm·knapsack01·babyStepGiantStep 가이드에 원고 수치를 실행으로 만드는 증명 블록을 붙인다",
+      "reason": "check-proof --all --require 가 이 3편 때문에 종료코드 1 이라 증명 전수 대조를 검증 기준으로 못 쓴다 — KAN-035 검토 6번에서 별도 카드로 다루기로 승인됐다",
+      "goal": "bun run tools/check-proof.ts --all --require 가 종료코드 0 으로 끝나 CI 가 0 개 편을 실패로 볼 수 있게 된다",
+      "memo": "근거: KANBAN.reviews/KAN-035-31T4BY.review.md 6번(3편의 마지막 변경 df58ce0, KAN-035 이전). CI 는 지금 --require 없이 돈다(tools/ci.ts:95)."
+    },
+    {
+      "seq": 256,
+      "t": "2026-09-14T17:04",
+      "a": "ai",
+      "id": "KAN-036-0G05DE",
+      "op": "create",
+      "w": "46PCAX",
+      "col": "todo",
+      "title": "ds-guide-v2 전 편 전개 — 파일럿 3편의 골격·집필 안내를 자료구조 가이드 66편에 적용",
+      "verbatim": "",
+      "parent": null,
+      "short": "ds-guide-v2 전 편 전개",
+      "purpose": "src/data-structures/ 의 남은 -guide.mdx 66편을 sandbox/ds-guide-v2/SPEC.md 골격과 AUTHORING.md 집필 안내로 -guide.md 로 재집필한다",
+      "reason": "KAN-035 파일럿 3편(deque·redBlackTree·xorLinkedList)과 검토서 12개 판단 항목이 2026-09-14 전부 승인돼, 카드 계획상 승인 뒤에 두기로 한 전개를 열 수 있다",
+      "goal": "69편이 전부 v2 골격으로 서서 check-v2(P1~P20)·check-proof --require·guide-core·ci.ts all 을 통과하고, .mdx 와 8단계 골격 자산이 0 이 된다",
+      "memo": "인계(KAN-035): ① 걷을 것 — .claude/authoring/specs/ds-guide/ · tools/check-guide-rhythm.ts · tools/_baseline/guide-rhythm.tsv(.mdx 가 0 이 되면 exit 2 로 CI 가 멈추므로 마지막 편과 같은 커밋에서 걷는다, SPEC.md §8). ② docs/ORD-006-wbs.md 는 무효 — 계약 단위로 다시 뽑는다. ③ probabilistic/concurrentSkipList 는 TS 정본이 없어 deep.walk.final 이 Rust 추출이다 — 규격 자리만 있고 이 카드가 세운다. ④ 메모리 동기 5종(bitArray·bloomFilter·countMinSketch·cuckooFilter·hyperLogLog)은 계약 전환 때 DIRECT_MEMORY 편입을 판정한다(docs/ORD-006-conventions.md §규약4 「메모리를 직접 다뤄야 이득이 생기는 구조」). ⑤ 검토 4번 — tools/ord004-manifest.json 의 옛 .mdx 경로를 한꺼번에 정리. ⑥ 검토 11번 — avlTree·twoThreeTree 재집필 때 정본 guide:core 주석의 은유를 고치고 redBlackTree 편 본문 코드를 추출본으로 교체. ⑦ 이 카드 신설로 KAN-001 봉인 조건에 한 장이 붙는다. 근거: KANBAN.cards/KAN-035-31T4BY.md · KANBAN.reviews/KAN-035-31T4BY.review.md"
+    },
     {
       "seq": 255,
       "t": "2026-09-14T16:56",
@@ -1359,28 +1435,6 @@
       "field": "memo",
       "before": "v2 쪽 두 건도 여기서 함께 본다 — ① invariant 절의 원문자 라벨: SPEC.md:566 이 금지하는데 P4 가 deep.walk 에서만 토큰을 뽑아 스캐너 넷이 전부 초록이다. 전수 스윕으로 invariant 절이 있는 81편 중 21편(최다 segmentsIntersect 37 · undirectedCycleDetection 22 · enumerateSubmasks 19)이고 check-v2 에 한 줄이면 막는다 ② check-metaphor 의 활용형 리터럴 나열이 다섯 번째로 샜다(되돌리- · 얹히- 에 이어 훑- ). 근거·목록·처방은 sandbox/algo-guide-v2/FEEDBACK.md §3·§4 (2026-09-04 W3 배치3 에서 나왔다). 그리고 KAN-034.7 전략 7항이 이월한 셋 — .claude/authoring/paths.json:29 · tools/ord004-regen.workflow.mjs:26 · tools/ord004-manifest.json:659 가 convexHull 의 사라진 .mdx 를 가리킨다 **배치1 종료(2026-09-04) — S1 닫음(1/10).** invariant 절 원문자 186개를 21편에서 전부 걷어 81편 기준 0 이다. 교정 규약은 원문자를 안 쓰는 60편에서 뽑았고 근거 편은 millerRabin 이다(같은 교정을 W3 배치3 에서 마쳤고 지금 그 절 0 · 파트 1 91줄 유지) — 원문자는 deep.walk 의 것이고 invariant 절은 같은 갈래를 하는 일의 이름이나 조건식으로 부른다. **금지 범위가 절 전체라는 것도 60편 실측이 정했다**(SPEC.md:566 은 문면상 걸음 ③ 의 하위 항목이라 갈리지 않았다). 워커 5 병렬이고 편별 원문자 총수가 기대값과 한 자리도 안 갈려 파트 1 라벨이 무손실임이 기계로 확인됐다. **드러난 구멍 하나 — proof 블록은 원고가 아니라 생성기를 고치는 자리다**: <!--proof:id--> 아래 펜스는 사이드카가 실행으로 만드는 텍스트라 원고만 바꾸면 check-proof 대조가 깨진다. 21편 중 21편이 그 절에 마커를 갖고 있고 실제로 깨진 것은 segmentsIntersect 하나였다(.proof.ts 에 표시 이름 맵을 두어 해소, 분기 필드는 원문자로 남겨 P4 를 지켰다). **S5 근거가 하나 생겼다** — 그 사이드카의 width() 가 U+2460~24FF 를 안 세어 원문자를 폭 1 로 계산하고 있었다. 다음은 배치2(S2~S4). **배치2 종료(2026-09-04) — S2·S3·S4 닫음(4/10).** invariant 절 원문자 금지를 check-v2 P14 로 세우고(S2), 은유 규칙의 활용형 나열을 전수 감사해 86 자리를 교정한 뒤(S3), 여덟 규칙을 어간으로 바꿨다(S4). 착수 전 표는 어간 넷·15 자리였는데 열한 규칙을 다 훑으니 여덟 부류 86 자리였다 — 최다는 적용·보관 39(에 걸어 18 · 얹 12 · 들고 다니 7). **어간이 안 서는 자리 둘을 갈랐다** — 「서다」는 한 음절이라 명사가 아니라 어미 쪽을 닫힌 집합으로 적고, 「이기다」는 계사와 글자가 같아 목적격 조사 뒤에서만 본다. 어간화 직후 --all 이 오탐 62 를 냈고 셋으로 좁혔으며(머물러 → 앞 한글 제외 · 되돌리다 → 되- 제외 · 서로/서른/서버 → 어미 whitelist), 그중 「되돌리다」 제외는 규칙 범위를 좁힌 결정이라 근거와 되돌리는 법을 FEEDBACK 에 적었다. 재발 지점 둘 — 원고만 고쳐서는 안 닫히는 자리 둘(.proof.ts 가 찍는 문장)과, 규칙을 인용한 문서 다섯 자리(L24 대로 낫표로 표기를 맞췄다). 인용이 걸린 check-v2.ts 의 줄 넷(409·412·428·934)이 안 밀리게 배열 블록의 줄 수를 그대로 뒀다. 다음은 배치3(S5~S7).",
       "after": "배치3 종료 (7/10) — 스캐너 구멍 일곱 중 일곱 닫음. 남은 배치4 셋(S8·S9·S10)은 W3(KAN-034.7) 종료 후에만 판정이 선다"
-    },
-    {
-      "seq": 207,
-      "t": "2026-09-04T22:42",
-      "a": "ai",
-      "id": "KAN-034.8-BK1Q3A",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "v2 쪽 두 건도 여기서 함께 본다 — ① invariant 절의 원문자 라벨: SPEC.md:566 이 금지하는데 P4 가 deep.walk 에서만 토큰을 뽑아 스캐너 넷이 전부 초록이다. 전수 스윕으로 invariant 절이 있는 81편 중 21편(최다 segmentsIntersect 37 · undirectedCycleDetection 22 · enumerateSubmasks 19)이고 check-v2 에 한 줄이면 막는다 ② check-metaphor 의 활용형 리터럴 나열이 다섯 번째로 샜다(되돌리- · 얹히- 에 이어 훑- ). 근거·목록·처방은 sandbox/algo-guide-v2/FEEDBACK.md §3·§4 (2026-09-04 W3 배치3 에서 나왔다). 그리고 KAN-034.7 전략 7항이 이월한 셋 — .claude/authoring/paths.json:29 · tools/ord004-regen.workflow.mjs:26 · tools/ord004-manifest.json:659 가 convexHull 의 사라진 .mdx 를 가리킨다 **배치1 종료(2026-09-04) — S1 닫음(1/10).** invariant 절 원문자 186개를 21편에서 전부 걷어 81편 기준 0 이다. 교정 규약은 원문자를 안 쓰는 60편에서 뽑았고 근거 편은 millerRabin 이다(같은 교정을 W3 배치3 에서 마쳤고 지금 그 절 0 · 파트 1 91줄 유지) — 원문자는 deep.walk 의 것이고 invariant 절은 같은 갈래를 하는 일의 이름이나 조건식으로 부른다. **금지 범위가 절 전체라는 것도 60편 실측이 정했다**(SPEC.md:566 은 문면상 걸음 ③ 의 하위 항목이라 갈리지 않았다). 워커 5 병렬이고 편별 원문자 총수가 기대값과 한 자리도 안 갈려 파트 1 라벨이 무손실임이 기계로 확인됐다. **드러난 구멍 하나 — proof 블록은 원고가 아니라 생성기를 고치는 자리다**: <!--proof:id--> 아래 펜스는 사이드카가 실행으로 만드는 텍스트라 원고만 바꾸면 check-proof 대조가 깨진다. 21편 중 21편이 그 절에 마커를 갖고 있고 실제로 깨진 것은 segmentsIntersect 하나였다(.proof.ts 에 표시 이름 맵을 두어 해소, 분기 필드는 원문자로 남겨 P4 를 지켰다). **S5 근거가 하나 생겼다** — 그 사이드카의 width() 가 U+2460~24FF 를 안 세어 원문자를 폭 1 로 계산하고 있었다. 다음은 배치2(S2~S4).",
-      "after": "v2 쪽 두 건도 여기서 함께 본다 — ① invariant 절의 원문자 라벨: SPEC.md:566 이 금지하는데 P4 가 deep.walk 에서만 토큰을 뽑아 스캐너 넷이 전부 초록이다. 전수 스윕으로 invariant 절이 있는 81편 중 21편(최다 segmentsIntersect 37 · undirectedCycleDetection 22 · enumerateSubmasks 19)이고 check-v2 에 한 줄이면 막는다 ② check-metaphor 의 활용형 리터럴 나열이 다섯 번째로 샜다(되돌리- · 얹히- 에 이어 훑- ). 근거·목록·처방은 sandbox/algo-guide-v2/FEEDBACK.md §3·§4 (2026-09-04 W3 배치3 에서 나왔다). 그리고 KAN-034.7 전략 7항이 이월한 셋 — .claude/authoring/paths.json:29 · tools/ord004-regen.workflow.mjs:26 · tools/ord004-manifest.json:659 가 convexHull 의 사라진 .mdx 를 가리킨다 **배치1 종료(2026-09-04) — S1 닫음(1/10).** invariant 절 원문자 186개를 21편에서 전부 걷어 81편 기준 0 이다. 교정 규약은 원문자를 안 쓰는 60편에서 뽑았고 근거 편은 millerRabin 이다(같은 교정을 W3 배치3 에서 마쳤고 지금 그 절 0 · 파트 1 91줄 유지) — 원문자는 deep.walk 의 것이고 invariant 절은 같은 갈래를 하는 일의 이름이나 조건식으로 부른다. **금지 범위가 절 전체라는 것도 60편 실측이 정했다**(SPEC.md:566 은 문면상 걸음 ③ 의 하위 항목이라 갈리지 않았다). 워커 5 병렬이고 편별 원문자 총수가 기대값과 한 자리도 안 갈려 파트 1 라벨이 무손실임이 기계로 확인됐다. **드러난 구멍 하나 — proof 블록은 원고가 아니라 생성기를 고치는 자리다**: <!--proof:id--> 아래 펜스는 사이드카가 실행으로 만드는 텍스트라 원고만 바꾸면 check-proof 대조가 깨진다. 21편 중 21편이 그 절에 마커를 갖고 있고 실제로 깨진 것은 segmentsIntersect 하나였다(.proof.ts 에 표시 이름 맵을 두어 해소, 분기 필드는 원문자로 남겨 P4 를 지켰다). **S5 근거가 하나 생겼다** — 그 사이드카의 width() 가 U+2460~24FF 를 안 세어 원문자를 폭 1 로 계산하고 있었다. 다음은 배치2(S2~S4). **배치2 종료(2026-09-04) — S2·S3·S4 닫음(4/10).** invariant 절 원문자 금지를 check-v2 P14 로 세우고(S2), 은유 규칙의 활용형 나열을 전수 감사해 86 자리를 교정한 뒤(S3), 여덟 규칙을 어간으로 바꿨다(S4). 착수 전 표는 어간 넷·15 자리였는데 열한 규칙을 다 훑으니 여덟 부류 86 자리였다 — 최다는 적용·보관 39(에 걸어 18 · 얹 12 · 들고 다니 7). **어간이 안 서는 자리 둘을 갈랐다** — 「서다」는 한 음절이라 명사가 아니라 어미 쪽을 닫힌 집합으로 적고, 「이기다」는 계사와 글자가 같아 목적격 조사 뒤에서만 본다. 어간화 직후 --all 이 오탐 62 를 냈고 셋으로 좁혔으며(머물러 → 앞 한글 제외 · 되돌리다 → 되- 제외 · 서로/서른/서버 → 어미 whitelist), 그중 「되돌리다」 제외는 규칙 범위를 좁힌 결정이라 근거와 되돌리는 법을 FEEDBACK 에 적었다. 재발 지점 둘 — 원고만 고쳐서는 안 닫히는 자리 둘(.proof.ts 가 찍는 문장)과, 규칙을 인용한 문서 다섯 자리(L24 대로 낫표로 표기를 맞췄다). 인용이 걸린 check-v2.ts 의 줄 넷(409·412·428·934)이 안 밀리게 배열 블록의 줄 수를 그대로 뒀다. 다음은 배치3(S5~S7)."
-    },
-    {
-      "seq": 206,
-      "t": "2026-09-04T21:47",
-      "a": "ai",
-      "id": "KAN-034.8-BK1Q3A",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "v2 쪽 두 건도 여기서 함께 본다 — ① invariant 절의 원문자 라벨: SPEC.md:566 이 금지하는데 P4 가 deep.walk 에서만 토큰을 뽑아 스캐너 넷이 전부 초록이다. 전수 스윕으로 invariant 절이 있는 81편 중 21편(최다 segmentsIntersect 37 · undirectedCycleDetection 22 · enumerateSubmasks 19)이고 check-v2 에 한 줄이면 막는다 ② check-metaphor 의 활용형 리터럴 나열이 다섯 번째로 샜다(되돌리- · 얹히- 에 이어 훑- ). 근거·목록·처방은 sandbox/algo-guide-v2/FEEDBACK.md §3·§4 (2026-09-04 W3 배치3 에서 나왔다). 그리고 KAN-034.7 전략 7항이 이월한 셋 — .claude/authoring/paths.json:29 · tools/ord004-regen.workflow.mjs:26 · tools/ord004-manifest.json:659 가 convexHull 의 사라진 .mdx 를 가리킨다",
-      "after": "v2 쪽 두 건도 여기서 함께 본다 — ① invariant 절의 원문자 라벨: SPEC.md:566 이 금지하는데 P4 가 deep.walk 에서만 토큰을 뽑아 스캐너 넷이 전부 초록이다. 전수 스윕으로 invariant 절이 있는 81편 중 21편(최다 segmentsIntersect 37 · undirectedCycleDetection 22 · enumerateSubmasks 19)이고 check-v2 에 한 줄이면 막는다 ② check-metaphor 의 활용형 리터럴 나열이 다섯 번째로 샜다(되돌리- · 얹히- 에 이어 훑- ). 근거·목록·처방은 sandbox/algo-guide-v2/FEEDBACK.md §3·§4 (2026-09-04 W3 배치3 에서 나왔다). 그리고 KAN-034.7 전략 7항이 이월한 셋 — .claude/authoring/paths.json:29 · tools/ord004-regen.workflow.mjs:26 · tools/ord004-manifest.json:659 가 convexHull 의 사라진 .mdx 를 가리킨다 **배치1 종료(2026-09-04) — S1 닫음(1/10).** invariant 절 원문자 186개를 21편에서 전부 걷어 81편 기준 0 이다. 교정 규약은 원문자를 안 쓰는 60편에서 뽑았고 근거 편은 millerRabin 이다(같은 교정을 W3 배치3 에서 마쳤고 지금 그 절 0 · 파트 1 91줄 유지) — 원문자는 deep.walk 의 것이고 invariant 절은 같은 갈래를 하는 일의 이름이나 조건식으로 부른다. **금지 범위가 절 전체라는 것도 60편 실측이 정했다**(SPEC.md:566 은 문면상 걸음 ③ 의 하위 항목이라 갈리지 않았다). 워커 5 병렬이고 편별 원문자 총수가 기대값과 한 자리도 안 갈려 파트 1 라벨이 무손실임이 기계로 확인됐다. **드러난 구멍 하나 — proof 블록은 원고가 아니라 생성기를 고치는 자리다**: <!--proof:id--> 아래 펜스는 사이드카가 실행으로 만드는 텍스트라 원고만 바꾸면 check-proof 대조가 깨진다. 21편 중 21편이 그 절에 마커를 갖고 있고 실제로 깨진 것은 segmentsIntersect 하나였다(.proof.ts 에 표시 이름 맵을 두어 해소, 분기 필드는 원문자로 남겨 P4 를 지켰다). **S5 근거가 하나 생겼다** — 그 사이드카의 width() 가 U+2460~24FF 를 안 세어 원문자를 폭 1 로 계산하고 있었다. 다음은 배치2(S2~S4)."
     }
   ],
   "layout": 2
