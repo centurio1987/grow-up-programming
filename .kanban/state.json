@@ -1,6 +1,6 @@
 {
   "next_id": 38,
-  "next_seq": 264,
+  "next_seq": 267,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -328,6 +328,7 @@
         "src/data-structures/probabilistic/countMinSketch/**",
         "src/data-structures/probabilistic/hyperLogLog/**",
         "src/data-structures/probabilistic/minHash/**",
+        "src/data-structures/probabilistic/cuckooFilter/**",
         "src/data-structures/trie/trie/**",
         "src/data-structures/trie/radixTree/**",
         "docs/ORD-006-conventions.md",
@@ -360,7 +361,6 @@
         "src/data-structures/heap/vanEmdeBoasTree/**",
         "src/data-structures/linear/pieceTable/**",
         "src/data-structures/probabilistic/skipList/**",
-        "src/data-structures/probabilistic/cuckooFilter/**",
         "src/data-structures/range-query/segmentTreeLazy/**",
         "src/data-structures/range-query/persistentSegmentTree/**",
         "src/data-structures/range-query/sparseTable/**",
@@ -918,6 +918,36 @@
   ],
   "recent": [
     {
+      "seq": 266,
+      "t": "2026-09-14T21:08",
+      "a": "유저",
+      "id": "KAN-026",
+      "op": "waive",
+      "w": "46PCAX",
+      "with_": "KAN-027",
+      "reason": "유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 _contract/runContract.test.ts·emit-vectors·ord006-inventory 의 등록 줄뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229 · KAN-027 T5 90–99→230–249)으로 가르고 병합 충돌은 줄 단위로 양쪽을 살린다"
+    },
+    {
+      "seq": 265,
+      "t": "2026-09-14T21:08",
+      "a": "유저",
+      "id": "KAN-036-0G05DE",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-027",
+      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 B군 잔여 16종은 계약 전환이 끝나야 쓸 수 있다"
+    },
+    {
+      "seq": 264,
+      "t": "2026-09-14T21:08",
+      "a": "유저",
+      "id": "KAN-036-0G05DE",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-026",
+      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 A군 16종(+ 이관된 cuckooFilter)은 계약 전환이 끝나야 쓸 수 있다"
+    },
+    {
       "seq": 263,
       "t": "2026-09-14T20:34",
       "a": "ai",
@@ -1464,39 +1494,6 @@
       "field": "memo",
       "before": "배치10 종료 (40/42) — sparseTableRangeMin·crt·rotatingCalipersDiameter·expectedValueDp. §3 대조 220자리. array·number-theory·geometry·dp 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 2 · rhythm 행 2 — 남은 것은 externalMergeSort·countInversions 뿐이고 배치11 이 웨이브를 닫는다",
       "after": "배치11 종료 — W3 완주 (42/42). externalMergeSort·countInversions. §3 대조 97자리. 웨이브 종료 조건 셋 전부 참 — algo-wbs 111/111 · W3 44/44 · 살아 있는 .mdx 0 · guide-rhythm.tsv 의 src/algorithms 행 0. ci.ts all exit 0. 카드 목표 달성"
-    },
-    {
-      "seq": 216,
-      "t": "2026-09-08T20:42",
-      "a": "ai",
-      "id": "KAN-034.7-QMZ3RE",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "배치9 종료 (36/42) — bridgesInGraph·minCostMaxFlow·treeIsomorphism·longestPalindrome. §3 대조 219건. graph·graph-flow·tree·string 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 6 · rhythm 행 6. 남은 것은 array·number-theory·geometry·dp·sorting·advanced 각 한 편",
-      "after": "배치10 종료 (40/42) — sparseTableRangeMin·crt·rotatingCalipersDiameter·expectedValueDp. §3 대조 220자리. array·number-theory·geometry·dp 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 2 · rhythm 행 2 — 남은 것은 externalMergeSort·countInversions 뿐이고 배치11 이 웨이브를 닫는다"
-    },
-    {
-      "seq": 215,
-      "t": "2026-09-08T02:13",
-      "a": "ai",
-      "id": "KAN-034.7-QMZ3RE",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "배치8 종료 (32/42) — bentleyOttmann·tspBitmask·meetInTheMiddleSubsetSum·aStarSearch. §3 대조 236건, purpose.alt 넷 다 실음. 살아 있는 .mdx 10 · rhythm 행 10. L37 실렌더는 배치7 종료 뒤 aside 로 확인해 닫았다",
-      "after": "배치9 종료 (36/42) — bridgesInGraph·minCostMaxFlow·treeIsomorphism·longestPalindrome. §3 대조 219건. graph·graph-flow·tree·string 네 카테고리가 함께 닫혔다. 살아 있는 .mdx 6 · rhythm 행 6. 남은 것은 array·number-theory·geometry·dp·sorting·advanced 각 한 편"
-    },
-    {
-      "seq": 214,
-      "t": "2026-09-07T20:39",
-      "a": "ai",
-      "id": "KAN-034.7-QMZ3RE",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "배치7 종료 (28/42) — maxBipartiteMatching·subtreeSumQuery·suffixAutomaton·fftMultiply. §3 대조 180건, purpose.alt 는 셋 실고 하나 생략. 살아 있는 .mdx 14 · rhythm 행 14. check-v2 단일 파일 CLI 가 P16 을 안 도는 것을 찾음",
-      "after": "배치8 종료 (32/42) — bentleyOttmann·tspBitmask·meetInTheMiddleSubsetSum·aStarSearch. §3 대조 236건, purpose.alt 넷 다 실음. 살아 있는 .mdx 10 · rhythm 행 10. L37 실렌더는 배치7 종료 뒤 aside 로 확인해 닫았다"
     }
   ],
   "layout": 2,
@@ -1507,9 +1504,9 @@
         "KAN-026",
         "KAN-036-0G05DE"
       ],
-      "scope_hash": "a6bbf99d99de21cf",
-      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 A군 16종은 계약 전환이 끝나야 쓸 수 있다",
-      "created": "2026-09-14T20:33",
+      "scope_hash": "86a599c985304edd",
+      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 A군 16종(+ 이관된 cuckooFilter)은 계약 전환이 끝나야 쓸 수 있다",
+      "created": "2026-09-14T21:08",
       "by": "유저",
       "restrategy_required": false
     },
@@ -1519,9 +1516,9 @@
         "KAN-027",
         "KAN-036-0G05DE"
       ],
-      "scope_hash": "ab9c58268c2aa1ad",
-      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 B군 잔여 17종은 계약 전환이 끝나야 쓸 수 있다",
-      "created": "2026-09-14T20:33",
+      "scope_hash": "8e3fa4e396d79e62",
+      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 B군 잔여 16종은 계약 전환이 끝나야 쓸 수 있다",
+      "created": "2026-09-14T21:08",
       "by": "유저",
       "restrategy_required": false
     }
@@ -1529,9 +1526,9 @@
   "waivers": [
     {
       "pair": "KAN-026|KAN-027",
-      "scope_hash": "907874c7af57df39",
-      "reason": "유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 _contract/runContract.test.ts·emit-vectors·ord006-inventory 의 등록 줄뿐이다. 병합 충돌은 줄 단위로 사람이 푼다",
-      "created": "2026-09-14T20:33",
+      "scope_hash": "d08999900b3260bb",
+      "reason": "유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 _contract/runContract.test.ts·emit-vectors·ord006-inventory 의 등록 줄뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229 · KAN-027 T5 90–99→230–249)으로 가르고 병합 충돌은 줄 단위로 양쪽을 살린다",
+      "created": "2026-09-14T21:08",
       "by": "유저"
     }
   ]
