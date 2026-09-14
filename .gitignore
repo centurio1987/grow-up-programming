@@ -47,3 +47,6 @@ rust/target
 # 샌드박스에 있던 같은 규칙을 승격과 함께 올렸다(KAN-034 S2).
 src/data-structures/**/*-guide.html
 src/algorithms/**/*-guide.html
+
+# book 산출 (tools/book)
+build
