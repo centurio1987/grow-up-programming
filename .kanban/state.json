@@ -1,6 +1,6 @@
 {
   "next_id": 38,
-  "next_seq": 261,
+  "next_seq": 262,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -831,8 +831,8 @@
       "reason_hash": "70179ece4e75eaebd6729a4ba7e9b84fe5700927",
       "goal": "69편이 전부 v2 골격으로 서서 check-v2(P1~P20)·check-proof --require·guide-core·ci.ts all 을 통과하고, .mdx 와 8단계 골격 자산이 0 이 된다",
       "goal_hash": "1cd51046126a6e58ee9dfc427df08ab0f0d3f41e",
-      "memo": "인계(KAN-035): ① 걷을 것 — .claude/authoring/specs/ds-guide/ · tools/check-guide-rhythm.ts · tools/_baseline/guide-rhythm.tsv(.mdx 가 0 이 되면 exit 2 로 CI 가 멈추므로 마지막 편과 같은 커밋에서 걷는다, SPEC.md §8). ② docs/ORD-006-wbs.md 는 무효 — 계약 단위로 다시 뽑는다. ③ probabilistic/concurrentSkipList 는 TS 정본이 없어 deep.walk.final 이 Rust 추출이다 — 규격 자리만 있고 이 카드가 세운다. ④ 메모리 동기 5종(bitArray·bloomFilter·countMinSketch·cuckooFilter·hyperLogLog)은 계약 전환 때 DIRECT_MEMORY 편입을 판정한다(docs/ORD-006-conventions.md §규약4 「메모리를 직접 다뤄야 이득이 생기는 구조」). ⑤ 검토 4번 — tools/ord004-manifest.json 의 옛 .mdx 경로를 한꺼번에 정리. ⑥ 검토 11번 — avlTree·twoThreeTree 재집필 때 정본 guide:core 주석의 은유를 고치고 redBlackTree 편 본문 코드를 추출본으로 교체. ⑦ 이 카드 신설로 KAN-001 봉인 조건에 한 장이 붙는다. 근거: KANBAN.cards/KAN-035-31T4BY.md · KANBAN.reviews/KAN-035-31T4BY.review.md",
-      "memo_hash": "8907edfb53769d57277be197535f1c4d4f43a041",
+      "memo": "**직렬 대기(2026-09-14 · 유저 결재).** 계약이 없는 33종(A군 16 · B군 17)은 KAN-026 · KAN-027 이 계약 전환을 끝낸 뒤에 쓸 수 있으므로 두 카드가 완료될 때까지 착수하지 않는다(dep-serialize 기록, 착수 시도는 종료코드 11). 선행 둘이 끝나면 전략을 다시 세우고 `dep-serialize --restrategy-done` 으로 푼다. 66편 전개와 .mdx 0 · 옛 8단계 자산 제거는 그대로 이 카드 몫이다. 인계(KAN-035): ① 걷을 것 — .claude/authoring/specs/ds-guide/ · tools/check-guide-rhythm.ts · tools/_baseline/guide-rhythm.tsv(.mdx 가 0 이 되면 exit 2 로 CI 가 멈추므로 마지막 편과 같은 커밋에서 걷는다, SPEC.md §8). ② docs/ORD-006-wbs.md 는 무효 — 계약 단위로 다시 뽑는다. ③ probabilistic/concurrentSkipList 는 TS 정본이 없어 deep.walk.final 이 Rust 추출이다 — 규격 자리만 있고 이 카드가 세운다. ④ 메모리 동기 5종(bitArray·bloomFilter·countMinSketch·cuckooFilter·hyperLogLog)은 계약 전환 때 DIRECT_MEMORY 편입을 판정한다(docs/ORD-006-conventions.md §규약4 「메모리를 직접 다뤄야 이득이 생기는 구조」). ⑤ 검토 4번 — tools/ord004-manifest.json 의 옛 .mdx 경로를 한꺼번에 정리. ⑥ 검토 11번 — avlTree·twoThreeTree 재집필 때 정본 guide:core 주석의 은유를 고치고 redBlackTree 편 본문 코드를 추출본으로 교체. ⑦ 이 카드 신설로 KAN-001 봉인 조건에 한 장이 붙는다. 근거: KANBAN.cards/KAN-035-31T4BY.md · KANBAN.reviews/KAN-035-31T4BY.review.md",
+      "memo_hash": "bcddbe730bca54f4a2f4be375cc41f9c07df09ba",
       "scope": [
         "src/data-structures/*/*/*-guide.*",
         "src/data-structures/**/_reference/**",
@@ -917,6 +917,17 @@
     "KAN-035-31T4BY"
   ],
   "recent": [
+    {
+      "seq": 261,
+      "t": "2026-09-14T20:34",
+      "a": "ai",
+      "id": "KAN-036-0G05DE",
+      "op": "edit",
+      "w": "46PCAX",
+      "field": "memo",
+      "before": "인계(KAN-035): ① 걷을 것 — .claude/authoring/specs/ds-guide/ · tools/check-guide-rhythm.ts · tools/_baseline/guide-rhythm.tsv(.mdx 가 0 이 되면 exit 2 로 CI 가 멈추므로 마지막 편과 같은 커밋에서 걷는다, SPEC.md §8). ② docs/ORD-006-wbs.md 는 무효 — 계약 단위로 다시 뽑는다. ③ probabilistic/concurrentSkipList 는 TS 정본이 없어 deep.walk.final 이 Rust 추출이다 — 규격 자리만 있고 이 카드가 세운다. ④ 메모리 동기 5종(bitArray·bloomFilter·countMinSketch·cuckooFilter·hyperLogLog)은 계약 전환 때 DIRECT_MEMORY 편입을 판정한다(docs/ORD-006-conventions.md §규약4 「메모리를 직접 다뤄야 이득이 생기는 구조」). ⑤ 검토 4번 — tools/ord004-manifest.json 의 옛 .mdx 경로를 한꺼번에 정리. ⑥ 검토 11번 — avlTree·twoThreeTree 재집필 때 정본 guide:core 주석의 은유를 고치고 redBlackTree 편 본문 코드를 추출본으로 교체. ⑦ 이 카드 신설로 KAN-001 봉인 조건에 한 장이 붙는다. 근거: KANBAN.cards/KAN-035-31T4BY.md · KANBAN.reviews/KAN-035-31T4BY.review.md",
+      "after": "**직렬 대기(2026-09-14 · 유저 결재).** 계약이 없는 33종(A군 16 · B군 17)은 KAN-026 · KAN-027 이 계약 전환을 끝낸 뒤에 쓸 수 있으므로 두 카드가 완료될 때까지 착수하지 않는다(dep-serialize 기록, 착수 시도는 종료코드 11). 선행 둘이 끝나면 전략을 다시 세우고 `dep-serialize --restrategy-done` 으로 푼다. 66편 전개와 .mdx 0 · 옛 8단계 자산 제거는 그대로 이 카드 몫이다. 인계(KAN-035): ① 걷을 것 — .claude/authoring/specs/ds-guide/ · tools/check-guide-rhythm.ts · tools/_baseline/guide-rhythm.tsv(.mdx 가 0 이 되면 exit 2 로 CI 가 멈추므로 마지막 편과 같은 커밋에서 걷는다, SPEC.md §8). ② docs/ORD-006-wbs.md 는 무효 — 계약 단위로 다시 뽑는다. ③ probabilistic/concurrentSkipList 는 TS 정본이 없어 deep.walk.final 이 Rust 추출이다 — 규격 자리만 있고 이 카드가 세운다. ④ 메모리 동기 5종(bitArray·bloomFilter·countMinSketch·cuckooFilter·hyperLogLog)은 계약 전환 때 DIRECT_MEMORY 편입을 판정한다(docs/ORD-006-conventions.md §규약4 「메모리를 직접 다뤄야 이득이 생기는 구조」). ⑤ 검토 4번 — tools/ord004-manifest.json 의 옛 .mdx 경로를 한꺼번에 정리. ⑥ 검토 11번 — avlTree·twoThreeTree 재집필 때 정본 guide:core 주석의 은유를 고치고 redBlackTree 편 본문 코드를 추출본으로 교체. ⑦ 이 카드 신설로 KAN-001 봉인 조건에 한 장이 붙는다. 근거: KANBAN.cards/KAN-035-31T4BY.md · KANBAN.reviews/KAN-035-31T4BY.review.md"
+    },
     {
       "seq": 260,
       "t": "2026-09-14T20:33",
@@ -1486,17 +1497,6 @@
       "field": "memo",
       "before": "배치5 종료 (20/42) — minCut·treeRerooting·kasaiLcp·pollardRho. §3 대조 133건, purpose.alt 는 pollardRho 하나만 실음",
       "after": "배치6 종료 (24/42) — closestPairOfPoints·knuthOptimization·floydWarshall·articulationPoints. §3 대조 262건, purpose.alt 는 둘 실고 둘 생략. 살아 있는 .mdx 18 · rhythm 행 18"
-    },
-    {
-      "seq": 211,
-      "t": "2026-09-05T19:44",
-      "a": "ai",
-      "id": "KAN-034.7-QMZ3RE",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "배치4 종료 (16/42) — polygonArea·spfa·divideAndConquerDp·stronglyConnectedComponents. 새 스캐너 셋(P15·P16·변이 대조)을 처음부터 지킨 첫 배치",
-      "after": "배치5 종료 (20/42) — minCut·treeRerooting·kasaiLcp·pollardRho. §3 대조 133건, purpose.alt 는 pollardRho 하나만 실음"
     }
   ],
   "layout": 2,
