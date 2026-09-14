@@ -1,6 +1,9 @@
 # KANBAN 변경 이력
 > 최근 50건. 이보다 오래된 이력은 archive.jsonl 로 압축 보관한다.
 
+- #276 2026-09-15 02:41 · 유저 · KAN-026 독립성 겹침 용인 (상대 KAN-027) — 유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 등록·도구 파일(_contract/runContract.test.ts·emit-vectors·ord006-inventory·ord006-wbs·guide-skeleton.test)뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229·270–299 · KAN-027 T2 250–269·T5 90–99→230–249·추가 300–349)으로 가르고, ord006-wbs.ts 는 KAN-026 이 TA 블록·KAN-027 이 T1~T5 블록만 고친다. 병합 충돌은 줄 단위로 양쪽을 살린다
+- #275 2026-09-15 02:41 · 유저 · KAN-036-0G05DE serialize
+- #274 2026-09-15 02:41 · 유저 · KAN-036-0G05DE serialize
 - #273 2026-09-15 02:41 · ai · KAN-026 수정 메모
 - #272 2026-09-15 02:08 · ai · KAN-026 수정 메모
 - #271 2026-09-15 01:27 · 유저 · KAN-026 독립성 겹침 용인 (상대 KAN-027) — 유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 등록·도구 파일(_contract/runContract.test.ts·emit-vectors·ord006-inventory·ord006-wbs·guide-skeleton.test)뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229·270–299 · KAN-027 T2 250–269·T5 90–99→230–249·추가 300–349)으로 가르고, ord006-wbs.ts 는 KAN-026 이 TA 블록·KAN-027 이 T1~T5 블록만 고친다. 병합 충돌은 줄 단위로 양쪽을 살린다
@@ -48,6 +51,3 @@
 - #229 2026-09-10 16:23 · ai · KAN-034.8-BK1Q3A 이동 검토 → 완료
 - #228 2026-09-10 16:20 · ai · KAN-034.6-CF6ZHE 이동 검토 → 완료
 - #227 2026-09-10 16:19 · ai · KAN-034.5-0RGSQM 이동 검토 → 완료
-- #226 2026-09-10 16:15 · ai · KAN-034.7-QMZ3RE 이동 검토 → 완료
-- #225 2026-09-10 01:59 · ai · KAN-034.7-QMZ3RE 이동 진행 중 → 검토
-- #224 2026-09-09 17:19 · ai · KAN-034.7-QMZ3RE 이동 검토 → 진행 중
