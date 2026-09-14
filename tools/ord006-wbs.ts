@@ -35,6 +35,9 @@ const TRACKS: readonly Track[] = [
   { id: "T3", title: "사전·집합·분리집합", facts: "140-159" },
   { id: "T4", title: "구간 질의·공간", facts: "160-179" },
   { id: "T5", title: "선형·확률·기타", facts: "180-199" },
+  // KAN-026 S1 판정(2026-09-14). 카드가 단일 에이전트 직렬로 결재돼 트랙을 가르지 않았다 —
+  // 트랙을 나누면 claim 이 병렬을 암시한다. 유닛 순서가 곧 카드 배치안 순서다.
+  { id: "TA", title: "A군 계약 전환", facts: "200-229" },
 ];
 
 type Unit = {
@@ -325,6 +328,140 @@ const UNITS: readonly Unit[] = [
     canonical: "trie/ahoCorasick",
     transitions: [],
     note: "",
+  },
+
+  // ── TA A군 (KAN-026) ────────────────────────────────────────────────────────
+  // A군 16종 + B군에서 이관된 cuckooFilter = 17종을 16 유닛으로 접은 것. 판정 전문은
+  // docs/ORD-006-conventions.md 「A군 17종 판정」. 접힌 것은 TA-01 하나이고 그 정본
+  // (ternarySearchTree)은 이미 섰으므로 A군 밖 구조가 하나 더 세어진다.
+  // **사람 결정이 걸린 유닛은 note 가 「사람 결정 대기」로 시작한다** — 추정으로 접지 않는다.
+  {
+    id: "TA-01",
+    track: "TA",
+    contract: "문자열 집합 · 접두사 질의 (B15 계약)",
+    canonical: "trie/ternarySearchTree",
+    transitions: ["trie/trie", "trie/radixTree"],
+    note: "사람 결정 대기 — 정본 위치(TST 에 둔다 · trie 로 옮긴다). S1 판정은 TST(임시, 불변 사실 64)라 전환 둘이 순서 없이 열린다. radixTree 는 가지를 쪼갤 때 꼬리를 문자열로 복사하면 O(m) 을 어긴다 — 논증, 미실측",
+  },
+  {
+    id: "TA-02",
+    track: "TA",
+    contract: "앞에 넣기·뒤에 넣기·앞에서 빼기가 상수인 수열 + 값 찾기",
+    canonical: "linear/singlyLinkedList",
+    transitions: [],
+    note: "사람 결정 대기 — 연결 마디가 자명한 구현인가(complexity 여부 · deque 근거와 함께 걸린다). 받는 연산이 없는 마디 핸들과 공개 next 는 표현 누출",
+  },
+  {
+    id: "TA-03",
+    track: "TA",
+    contract: "첨자 접근 + 뒤 끝 넣기·빼기 수열",
+    canonical: "linear/dynamicArray",
+    transitions: [],
+    note: "capacity() 와 늘리기·줄이기 정책은 어느 행의 의미도 안 바꾸는 표현 관측이라 표면에서 빠진다(avlTree.height 와 같은 자리). 언어 배열 위임은 불변 사실 197 로 자명한 구현이다",
+  },
+  {
+    id: "TA-04",
+    track: "TA",
+    contract: "위치 핸들로 상수 시간 끼우기·빼기를 하는 수열",
+    canonical: "linear/doublyLinkedList",
+    transitions: [],
+    note: "사람 결정 대기 — TA-02 와 같은 자리. TA-02 와 갈리는 행이 remove(node) 이고 「다른 핸들은 그대로 유효하다」를 적어야 반례가 선다. 「앞뒤 링크 정합」은 표현 성질이라 불변식 후보가 아니다(불변 사실 36)",
+  },
+  {
+    id: "TA-05",
+    track: "TA",
+    contract: "미확정 — 현재 표면은 상태 없는 함수 셋",
+    canonical: "linear/monotonicStack",
+    transitions: [],
+    note: "사람 결정 대기 — 처분(상태 있는 계약으로 연산 집합 교체 · 알고리즘 트랙과 겹쳐 처분). 알고리즘 가이드 링크 교체는 어느 쪽이든 남는다",
+  },
+  {
+    id: "TA-06",
+    track: "TA",
+    contract: "미확정 — 추천은 「뒤에 넣고 앞에서 빼며 최댓값을 묻는 큐」",
+    canonical: "linear/monotonicQueue",
+    transitions: [],
+    note: "사람 결정 대기 — TA-05 와 같다. slidingWindowMax 가 algorithms/array/slidingWindowMaximum 과 서명·의미가 같다. 상태 있는 계약이면 최솟값은 비교자 주입으로 접힌다",
+  },
+  {
+    id: "TA-07",
+    track: "TA",
+    contract: "정점을 늘릴 수 있고 이웃 열거가 차수에 비례하는 그래프",
+    canonical: "graph-repr/graphAdjList",
+    transitions: [],
+    note: "bfs·dfs·hasPath 는 이웃 열거에서 유도되고 순서가 이웃 순서에 기댄다 — 남기면 처방. 정점 id 를 임의 정수로 받으면 언어 사전 미결(T3-01)에 걸려 등급이 흔들린다",
+  },
+  {
+    id: "TA-08",
+    track: "TA",
+    contract: "정점 수 고정 · 인접 여부와 가중치가 상수인 그래프",
+    canonical: "graph-repr/graphAdjMatrix",
+    transitions: [],
+    note: "공간 표시지만 계약이 갈린다(불변 사실 204) — 판별 셋째 걸음(축3)을 이 유닛이 돌린다. 안 갈리면 B15 처분으로 되돌린다. hasEdge 를 상수보다 약하게 적으면 TA-07 과의 판정이 다시 열린다",
+  },
+  {
+    id: "TA-09",
+    track: "TA",
+    contract: "사이클을 만드는 간선을 거부하는 방향 그래프",
+    canonical: "graph-repr/dag",
+    transitions: [],
+    note: "자료구조다(S1). 위상 순서는 하나로 정하지 않는 관측 연산으로 들어온다 — Kahn·DP 는 처방. hasCycle() 은 늘 거짓이라 배제하는 것이 없다. TA-07 과는 동시에 만족하는 구현이 없다(불변 사실 181 모양)",
+  },
+  {
+    id: "TA-10",
+    track: "TA",
+    contract: "없음 — 자료구조가 아니다(S1)",
+    canonical: "hash/rollingHash",
+    transitions: [],
+    note: "사람 결정 대기 — 처분(알고리즘 트랙 이관 · 제거 · 창 지문 계약으로 재정의). search 가 algorithms/string/findAllOccurrences 와 서명·의미가 같다. 디렉터리가 사라지면 이 유닛을 지운다 — 경로 가드가 exit 1 로 잡는다",
+  },
+  {
+    id: "TA-11",
+    track: "TA",
+    contract: "고정 크기 불리언 수열 (B15 처분 · 짝 정본 없음)",
+    canonical: "linear/bitArray",
+    transitions: [],
+    note: "공간 제약을 적는 행이 없다 → 존치 + 성격 전환인데 같은 계약의 다른 이름이 없어 자기 계약을 적는다. 메모리 직접 사용 목록에 넣지 않는다(불변 사실 206) — 정본 상태를 typed array 에 둔다는 전제",
+  },
+  {
+    id: "TA-12",
+    track: "TA",
+    contract: "지우지 않는 근사 소속 집합",
+    canonical: "probabilistic/bloomFilter",
+    transitions: [],
+    note: "사람 결정 대기 — 오차 보장을 스위트가 판정하는가(불변 사실 202). 결정적 쪽(거짓 음성 없음)은 has 가 늘 참인 구현도 통과한다. 생성자 (size, hashCount) 는 표현 매개변수다",
+  },
+  {
+    id: "TA-13",
+    track: "TA",
+    contract: "지울 수 있는 근사 소속 다중집합 · 가득 참을 관측",
+    canonical: "probabilistic/cuckooFilter",
+    transitions: [],
+    note: "사람 결정 대기 — TA-12 와 같다. bloomFilter 와 반례(지우기)로 갈렸고 등급은 add 행 한정자가 정한다. delete 전제조건은 불변 사실 82 로 전면화. T5-05 에서 이관 — KAN-027 병합 전까지 이 워크트리에서 두 번 세어진다",
+  },
+  {
+    id: "TA-14",
+    track: "TA",
+    contract: "과소 추정 없는 빈도 추정",
+    canonical: "probabilistic/countMinSketch",
+    transitions: [],
+    note: "사람 결정 대기 — TA-12 와 같다. 문제 문서의 「update 안 한 원소는 0」은 충돌이 있으면 거짓(불변 사실 207). 증분 전체 합을 돌려주는 구현이 결정적 쪽을 통과한다",
+  },
+  {
+    id: "TA-15",
+    track: "TA",
+    contract: "서로 다른 원소 수 추정 · 합치기",
+    canonical: "probabilistic/hyperLogLog",
+    transitions: [],
+    note: "사람 결정 대기 — TA-12 와 같다. error() 의 1.04/√m 은 한 구현의 상수라 표면에서 빠진다. 결정적 쪽은 중복에 무감·합치기가 넣은 순서와 무관",
+  },
+  {
+    id: "TA-16",
+    track: "TA",
+    contract: "두 집합의 자카드 닮음 추정",
+    canonical: "probabilistic/minHash",
+    transitions: [],
+    note: "사람 결정 대기 — TA-12 와 같다. update(set) 가 서명을 덮어써 상태가 안 쌓인다 — 원소 단위 넣기로 표면을 고칠지 이 유닛이 정한다. exact() 는 참조 모델의 몫",
   },
 ];
 
