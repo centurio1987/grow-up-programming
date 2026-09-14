@@ -1,0 +1,30 @@
+{
+  "title": "알고리즘 가이드북",
+  "subtitle": "문제에서 동작하는 코드까지",
+  "author": "",
+  "edition": "제1판",
+  "index": "문제_가이드_목록.md",
+  "outDir": "build/book",
+  "groupBy": "importance",
+  "page": {
+    "format": "A4",
+    "marginIn": { "top": 0.7, "bottom": 0.7, "left": 0.75, "right": 0.75 }
+  },
+  "tracks": [
+    {
+      "id": "algorithms",
+      "label": "알고리즘",
+      "root": "src/algorithms",
+      "enabled": true,
+      "formats": [".md"]
+    },
+    {
+      "id": "data-structures",
+      "label": "자료구조",
+      "root": "src/data-structures",
+      "enabled": false,
+      "formats": [".md"],
+      "note": "ORD-006 재집필이 끝나 -guide.md 가 서면 enabled 를 true 로 둔다. 인덱스(문제_가이드_목록.md)에 자료구조 항목이 이미 제자리에 있어 그 한 줄이면 편입된다. .mdx 를 그대로 실으려면 formats 에 \".mdx\" 를 더한다 — 산문 속 홑화살괄호에서 깨지는 편이 있으므로 챕터별로 걸러진다."
+    }
+  ]
+}

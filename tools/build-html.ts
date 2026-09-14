@@ -437,7 +437,7 @@ export function tableCellProblems(
  * woff2 20개는 259,792 B → base64 346,412 B(≈346KB). 그리고 CSS 만 인라인하고 폰트를
  * 안 넣으면 상대 경로 60개가 404 나고 **수식이 대체 글꼴로 조용히 뜬다.**
  */
-async function katexCss(): Promise<string> {
+export async function katexCss(): Promise<string> {
   const dir = join(REPO, "node_modules/katex/dist");
   const css = await Bun.file(join(dir, "katex.min.css")).text();
   const cache = new Map<string, string>();
@@ -465,7 +465,7 @@ async function katexCss(): Promise<string> {
 
 /* ────────────────────────── 페이지 ────────────────────────── */
 
-const PAGE_CSS = `
+export const PAGE_CSS = `
 :root {
   --gs-page: #ffffff; --gs-ink: #202124; --gs-muted: #5f6368;
   --gs-rule: #dadce0; --gs-soft: #f1f3f4;
@@ -550,6 +550,13 @@ function escapeForInline(js: string): string {
 
 export interface BuildResult {
   html: string;
+  /**
+   * `<main>` 안쪽 산문 HTML. **책 빌더가 쓰는 것이 이것이다** — 한 장짜리 산출에서
+   * `<main>` 을 정규식으로 도로 파내면 골격이 바뀔 때 조용히 어긋난다.
+   */
+  prose: string;
+  /** `# ` 한 줄에서 딴 문서 제목. 없으면 파일 이름. */
+  title: string;
   vizIds: string[];
   mounted: boolean;
   problems: string[];
@@ -686,7 +693,7 @@ ${script === "" ? "" : `<script type="module">${escapeForInline(script)}</script
 </html>
 `;
 
-  return { html, vizIds, mounted: script !== "", problems, rail };
+  return { html, prose, title, vizIds, mounted: script !== "", problems, rail };
 }
 
 /* ────────────────────────── CLI ────────────────────────── */
