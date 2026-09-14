@@ -1,0 +1,1479 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "VanEmdeBoasTree",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 집합은 양 끝도 이웃도 없다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "has",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "successor",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "predecessor",
+          "arg": 99,
+          "expect": null
+        },
+        {
+          "op": "delete",
+          "arg": 5,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "넣은 키 사이에서 이웃을 찾고, 지운 키는 이웃에서 빠진다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 8
+        },
+        {
+          "op": "insert",
+          "arg": 2
+        },
+        {
+          "op": "insert",
+          "arg": 11
+        },
+        {
+          "op": "insert",
+          "arg": 5
+        },
+        {
+          "op": "min",
+          "expect": 2
+        },
+        {
+          "op": "max",
+          "expect": 11
+        },
+        {
+          "op": "successor",
+          "arg": 0,
+          "expect": 2
+        },
+        {
+          "op": "successor",
+          "arg": 5,
+          "expect": 8
+        },
+        {
+          "op": "successor",
+          "arg": 6,
+          "expect": 8
+        },
+        {
+          "op": "successor",
+          "arg": 11,
+          "expect": null
+        },
+        {
+          "op": "predecessor",
+          "arg": 8,
+          "expect": 5
+        },
+        {
+          "op": "predecessor",
+          "arg": 2,
+          "expect": null
+        },
+        {
+          "op": "predecessor",
+          "arg": 99,
+          "expect": 11
+        },
+        {
+          "op": "delete",
+          "arg": 5,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 5,
+          "expect": false
+        },
+        {
+          "op": "successor",
+          "arg": 2,
+          "expect": 8
+        },
+        {
+          "op": "predecessor",
+          "arg": 8,
+          "expect": 2
+        }
+      ]
+    },
+    {
+      "name": "같은 키를 두 번 넣어도 한 벌이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 7
+        },
+        {
+          "op": "insert",
+          "arg": 7
+        },
+        {
+          "op": "delete",
+          "arg": 7,
+          "expect": true
+        },
+        {
+          "op": "has",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "max",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "양 끝을 지우면 다음 원소가 양 끝이 된다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 10
+        },
+        {
+          "op": "insert",
+          "arg": 30
+        },
+        {
+          "op": "insert",
+          "arg": 20
+        },
+        {
+          "op": "delete",
+          "arg": 10,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 20
+        },
+        {
+          "op": "successor",
+          "arg": 10,
+          "expect": 20
+        },
+        {
+          "op": "predecessor",
+          "arg": 20,
+          "expect": null
+        },
+        {
+          "op": "delete",
+          "arg": 30,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 20
+        },
+        {
+          "op": "predecessor",
+          "arg": 99,
+          "expect": 20
+        },
+        {
+          "op": "delete",
+          "arg": 20,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "max",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "우주의 첫 키와 마지막 키",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 0
+        },
+        {
+          "op": "insert",
+          "arg": 99
+        },
+        {
+          "op": "successor",
+          "arg": 0,
+          "expect": 99
+        },
+        {
+          "op": "predecessor",
+          "arg": 99,
+          "expect": 0
+        },
+        {
+          "op": "successor",
+          "arg": 99,
+          "expect": null
+        },
+        {
+          "op": "predecessor",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "delete",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 99
+        },
+        {
+          "op": "predecessor",
+          "arg": 99,
+          "expect": null
+        },
+        {
+          "op": "delete",
+          "arg": 99,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "우주 밖 키는 다섯 연산 모두 RangeError 이고 상태가 바뀌지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 3
+        },
+        {
+          "op": "insert",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": 100,
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "delete",
+          "arg": 100,
+          "expect": "RangeError"
+        },
+        {
+          "op": "has",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "successor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "predecessor",
+          "arg": 100,
+          "expect": "RangeError"
+        },
+        {
+          "op": "successor",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "min",
+          "expect": 3
+        },
+        {
+          "op": "max",
+          "expect": 3
+        },
+        {
+          "op": "delete",
+          "arg": 3,
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "우주 크기가 1 이상의 안전한 정수가 아니면 RangeError 이고 앞의 구조가 남는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": 50
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": -4,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 9007199254740992,
+          "expect": "RangeError"
+        },
+        {
+          "op": "has",
+          "arg": 50,
+          "expect": true
+        },
+        {
+          "op": "insert",
+          "arg": 99
+        },
+        {
+          "op": "max",
+          "expect": 99
+        }
+      ]
+    },
+    {
+      "name": "우주 6 은 키 0 부터 5 까지만 받는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reset",
+          "arg": 6
+        },
+        {
+          "op": "insert",
+          "arg": 5
+        },
+        {
+          "op": "insert",
+          "arg": 6,
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": 7,
+          "expect": "RangeError"
+        },
+        {
+          "op": "successor",
+          "arg": 6,
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": 1
+        },
+        {
+          "op": "successor",
+          "arg": 1,
+          "expect": 5
+        },
+        {
+          "op": "predecessor",
+          "arg": 5,
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 5
+        }
+      ]
+    },
+    {
+      "name": "우주 1 은 키 0 하나를 담는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reset",
+          "arg": 1
+        },
+        {
+          "op": "has",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": 0
+        },
+        {
+          "op": "insert",
+          "arg": 1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "max",
+          "expect": 0
+        },
+        {
+          "op": "successor",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "predecessor",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "delete",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "우주 2 에서 두 키 사이의 이웃",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reset",
+          "arg": 2
+        },
+        {
+          "op": "insert",
+          "arg": 1
+        },
+        {
+          "op": "insert",
+          "arg": 0
+        },
+        {
+          "op": "successor",
+          "arg": 0,
+          "expect": 1
+        },
+        {
+          "op": "predecessor",
+          "arg": 1,
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "min",
+          "expect": 1
+        },
+        {
+          "op": "predecessor",
+          "arg": 1,
+          "expect": null
+        },
+        {
+          "op": "delete",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "successor",
+          "arg": -4,
+          "expect": "RangeError"
+        },
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 9007199254740992,
+          "expect": "RangeError"
+        },
+        {
+          "op": "has",
+          "arg": 62,
+          "expect": false
+        },
+        {
+          "op": "successor",
+          "arg": 41,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": -3,
+          "expect": "RangeError"
+        },
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "delete",
+          "arg": 39,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 12,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": 38
+        },
+        {
+          "op": "predecessor",
+          "arg": 26,
+          "expect": null
+        },
+        {
+          "op": "delete",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 38
+        },
+        {
+          "op": "max",
+          "expect": 38
+        },
+        {
+          "op": "predecessor",
+          "arg": 27,
+          "expect": null
+        },
+        {
+          "op": "delete",
+          "arg": 67,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 38
+        },
+        {
+          "op": "predecessor",
+          "arg": 16,
+          "expect": null
+        },
+        {
+          "op": "successor",
+          "arg": 45,
+          "expect": null
+        },
+        {
+          "op": "predecessor",
+          "arg": 103,
+          "expect": "RangeError"
+        },
+        {
+          "op": "delete",
+          "arg": 77,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 30,
+          "expect": false
+        },
+        {
+          "op": "min",
+          "expect": 38
+        },
+        {
+          "op": "delete",
+          "arg": 12,
+          "expect": false
+        },
+        {
+          "op": "successor",
+          "arg": 58,
+          "expect": null
+        },
+        {
+          "op": "delete",
+          "arg": 24,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 63
+        },
+        {
+          "op": "predecessor",
+          "arg": 21,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "min",
+          "expect": 38
+        },
+        {
+          "op": "has",
+          "arg": 69,
+          "expect": false
+        },
+        {
+          "op": "reset",
+          "arg": 9007199254740992,
+          "expect": "RangeError"
+        },
+        {
+          "op": "successor",
+          "arg": 95,
+          "expect": null
+        },
+        {
+          "op": "predecessor",
+          "arg": 96,
+          "expect": 63
+        },
+        {
+          "op": "insert",
+          "arg": 0
+        },
+        {
+          "op": "predecessor",
+          "arg": 27,
+          "expect": 0
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "delete",
+          "arg": 69,
+          "expect": false
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": 39
+        },
+        {
+          "op": "has",
+          "arg": 67,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 63
+        },
+        {
+          "op": "max",
+          "expect": 63
+        },
+        {
+          "op": "insert",
+          "arg": 83
+        },
+        {
+          "op": "predecessor",
+          "arg": 25,
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 28,
+          "expect": false
+        },
+        {
+          "op": "reset",
+          "arg": -3,
+          "expect": "RangeError"
+        },
+        {
+          "op": "delete",
+          "arg": 66,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 83
+        },
+        {
+          "op": "has",
+          "arg": 8,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 68,
+          "expect": false
+        },
+        {
+          "op": "successor",
+          "arg": 8,
+          "expect": 38
+        },
+        {
+          "op": "max",
+          "expect": 83
+        },
+        {
+          "op": "max",
+          "expect": 83
+        },
+        {
+          "op": "delete",
+          "arg": 81,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 103,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 9007199254740992,
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": 15
+        },
+        {
+          "op": "insert",
+          "arg": 102,
+          "expect": "RangeError"
+        },
+        {
+          "op": "has",
+          "arg": 73,
+          "expect": false
+        },
+        {
+          "op": "predecessor",
+          "arg": 6,
+          "expect": 0
+        },
+        {
+          "op": "has",
+          "arg": 89,
+          "expect": false
+        },
+        {
+          "op": "predecessor",
+          "arg": 81,
+          "expect": 63
+        },
+        {
+          "op": "delete",
+          "arg": 6,
+          "expect": false
+        },
+        {
+          "op": "delete",
+          "arg": 40,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 83
+        },
+        {
+          "op": "has",
+          "arg": 91,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 94,
+          "expect": false
+        },
+        {
+          "op": "predecessor",
+          "arg": 64,
+          "expect": 63
+        },
+        {
+          "op": "successor",
+          "arg": 21,
+          "expect": 38
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "has",
+          "arg": 18,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 96,
+          "expect": false
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "has",
+          "arg": 4,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 80
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 12,
+          "expect": false
+        },
+        {
+          "op": "predecessor",
+          "arg": 29,
+          "expect": 15
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "successor",
+          "arg": 33,
+          "expect": 38
+        },
+        {
+          "op": "delete",
+          "arg": 53,
+          "expect": false
+        },
+        {
+          "op": "predecessor",
+          "arg": 81,
+          "expect": 80
+        },
+        {
+          "op": "insert",
+          "arg": 18
+        },
+        {
+          "op": "successor",
+          "arg": 65,
+          "expect": 80
+        },
+        {
+          "op": "insert",
+          "arg": 31
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "predecessor",
+          "arg": 66,
+          "expect": 63
+        },
+        {
+          "op": "has",
+          "arg": 34,
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 83
+        },
+        {
+          "op": "insert",
+          "arg": 95
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "successor",
+          "arg": 9,
+          "expect": 15
+        },
+        {
+          "op": "insert",
+          "arg": 83
+        },
+        {
+          "op": "delete",
+          "arg": 72,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 65,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 54,
+          "expect": false
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": 14
+        },
+        {
+          "op": "successor",
+          "arg": 0,
+          "expect": 14
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "predecessor",
+          "arg": 24,
+          "expect": 18
+        },
+        {
+          "op": "insert",
+          "arg": 103,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "predecessor",
+          "arg": 8,
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "successor",
+          "arg": 10,
+          "expect": 14
+        },
+        {
+          "op": "has",
+          "arg": 100,
+          "expect": "RangeError"
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "insert",
+          "arg": 13
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "delete",
+          "arg": 12,
+          "expect": false
+        },
+        {
+          "op": "successor",
+          "arg": 62,
+          "expect": 63
+        },
+        {
+          "op": "insert",
+          "arg": 3
+        },
+        {
+          "op": "insert",
+          "arg": 39
+        },
+        {
+          "op": "successor",
+          "arg": 66,
+          "expect": 80
+        },
+        {
+          "op": "predecessor",
+          "arg": 65,
+          "expect": 63
+        },
+        {
+          "op": "successor",
+          "arg": 99,
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": 89
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "predecessor",
+          "arg": 54,
+          "expect": 39
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "has",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "insert",
+          "arg": 69
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "insert",
+          "arg": 50
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "successor",
+          "arg": 88,
+          "expect": 89
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "predecessor",
+          "arg": 3,
+          "expect": 0
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "successor",
+          "arg": 17,
+          "expect": 18
+        },
+        {
+          "op": "predecessor",
+          "arg": 80,
+          "expect": 69
+        },
+        {
+          "op": "insert",
+          "arg": 15
+        },
+        {
+          "op": "successor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "predecessor",
+          "arg": 99,
+          "expect": 95
+        },
+        {
+          "op": "has",
+          "arg": 94,
+          "expect": false
+        },
+        {
+          "op": "predecessor",
+          "arg": 63,
+          "expect": 50
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "delete",
+          "arg": 11,
+          "expect": false
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": 60
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "delete",
+          "arg": 12,
+          "expect": false
+        },
+        {
+          "op": "reset",
+          "arg": -3,
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": 49
+        },
+        {
+          "op": "has",
+          "arg": 101,
+          "expect": "RangeError"
+        },
+        {
+          "op": "successor",
+          "arg": 47,
+          "expect": 49
+        },
+        {
+          "op": "insert",
+          "arg": 64
+        },
+        {
+          "op": "insert",
+          "arg": 80
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "successor",
+          "arg": 91,
+          "expect": 95
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "predecessor",
+          "arg": 90,
+          "expect": 89
+        },
+        {
+          "op": "min",
+          "expect": 0
+        },
+        {
+          "op": "predecessor",
+          "arg": 73,
+          "expect": 69
+        },
+        {
+          "op": "delete",
+          "arg": 13,
+          "expect": true
+        },
+        {
+          "op": "reset",
+          "arg": -3,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "successor",
+          "arg": 42,
+          "expect": 49
+        },
+        {
+          "op": "insert",
+          "arg": 78
+        },
+        {
+          "op": "successor",
+          "arg": 79,
+          "expect": 80
+        },
+        {
+          "op": "insert",
+          "arg": -4,
+          "expect": "RangeError"
+        },
+        {
+          "op": "predecessor",
+          "arg": 80,
+          "expect": 78
+        },
+        {
+          "op": "delete",
+          "arg": 30,
+          "expect": false
+        },
+        {
+          "op": "successor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "delete",
+          "arg": 1,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 97,
+          "expect": false
+        },
+        {
+          "op": "has",
+          "arg": 40,
+          "expect": false
+        },
+        {
+          "op": "successor",
+          "arg": 11,
+          "expect": 14
+        },
+        {
+          "op": "successor",
+          "arg": 81,
+          "expect": 83
+        },
+        {
+          "op": "successor",
+          "arg": 46,
+          "expect": 49
+        },
+        {
+          "op": "insert",
+          "arg": 40
+        },
+        {
+          "op": "reset",
+          "arg": -3,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 9007199254740992,
+          "expect": "RangeError"
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "delete",
+          "arg": 64,
+          "expect": true
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "max",
+          "expect": 95
+        },
+        {
+          "op": "reset",
+          "arg": -3,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "min",
+          "expect": 0
+        }
+      ]
+    }
+  ]
+}

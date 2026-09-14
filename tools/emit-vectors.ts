@@ -26,6 +26,7 @@ import { fibonacciHeapContract } from "../src/data-structures/heap/fibonacciHeap
 import { leftistHeapContract } from "../src/data-structures/heap/leftistHeap/leftistHeap.contract.ts";
 import { pairingHeapContract } from "../src/data-structures/heap/pairingHeap/pairingHeap.contract.ts";
 import { priorityQueueContract } from "../src/data-structures/heap/priorityQueue/priorityQueue.contract.ts";
+import { vanEmdeBoasTreeContract } from "../src/data-structures/heap/vanEmdeBoasTree/vanEmdeBoasTree.contract.ts";
 import { circularBufferContract } from "../src/data-structures/linear/circularBuffer/circularBuffer.contract.ts";
 import { dequeContract } from "../src/data-structures/linear/deque/deque.contract.ts";
 import { gapBufferContract } from "../src/data-structures/linear/gapBuffer/gapBuffer.contract.ts";
@@ -164,6 +165,11 @@ const SPECS: ContractSpec<any, any>[] = [
   // (`pairingHeap.contract.ts` 머리말). 성격 전환과 달리 **다른 계약**이라 등록한다.
   pairingHeapContract,
   priorityQueueContract,
+  // 연산 `reset(우주 크기)` 은 계약 표의 연산이 아니라 껍데기(`UniverseSite`)가 생성자 행을 나르는
+  // 자리다 — 받아들이면 그 크기의 빈 구조를 새로 세우고 담긴 것이 사라진다(`vanEmdeBoasTree.contract.ts`
+  // 머리말). 경계 케이스가 아닌 케이스는 우주 100 에서 시작하고, 무작위 시퀀스는 거절되는 우주만 넘긴다.
+  // 기대값 `"RangeError"` 는 던진 예외를 관측값으로 바꾼 것이다.
+  vanEmdeBoasTreeContract,
   circularBufferContract,
   dequeContract,
   gapBufferContract,
