@@ -58,9 +58,9 @@
   - 목표: ds-guide-v2 명세와 판정 장치가 서고 파일럿 3편이 유저 승인을 받아, 69편 전개의 규격이 확정된 상태로 전개 카드에 넘어간다
   - 메모: **착수 2026-09-13** — 워크트리 `/Users/centurio/orca/workspaces/code_test/KAN-035-31T4BY` · 브랜치 `KAN-035-31T4BY`. **결재 둘**: ① 취소는 가이드 층까지이고 계약 헤더·`_reference/`·계약 스위트 4축·CI 3모드·vector·Rust 축4 는 존치한다 ② 이 카드는 규격 수립 + 파일럿 승인까지이고 69편 전개는 후속 카드다(KAN-033 → KAN-034 와 같은 분할). 실측(2026-09-11): 69종 중 계약 36 · TS 정본 35 · 8단계 재집필 35편 · 구판 34편 · ds 사이드카 0 · 시뮬 69/69. 파일럿 3편은 `linear/deque` · `tree/redBlackTree` · `linear/xorLinkedList` 다. 전략·WBS·검증·파일럿 선정 근거는 실행 문서에 있고, 외부 검토(plan-reviewer) 지적 10건을 반영했다.
   - 요청서: KANBAN.requests/review/KAN-035-31T4BY.request.md (자유 형식 · 유저)
-  - 실행 문서: KANBAN.cards/KAN-035-31T4BY.md (6/7 · 최근 09-13)
+  - 실행 문서: KANBAN.cards/KAN-035-31T4BY.md (6/7 · 최근 09-14)
   - 계획 리포트: KANBAN.reports/KAN-035-31T4BY.report.html (낡음)
-  - 검토 문서: KANBAN.reviews/KAN-035-31T4BY.review.md (승인 3/8 · 추가 의견 1 · 반려 1 · 추가 의견 총 3 · 검토 대기)
+  - 검토 문서: KANBAN.reviews/KAN-035-31T4BY.review.md (승인 3/11 · 추가 의견 1 · 반려 1 · 추가 의견 총 4 · 검토 대기)
 
 ## 완료
 - `KAN-029` [P0-a·29] 집필 엔진 가용성 확보 — 플러그인 설치·활성화 + lock 버전 재고정 — 생성:ai · 최종:ai · 갱신:2026-08-04

@@ -720,6 +720,8 @@
       "purpose_hash": "6e0b9a1667288839e88ed57eed1fc3899882dbae",
       "scope": [
         ".gitignore",
+        ".agents/skills/guide-for-problem/SKILL.md",
+        ".claude/skills/guide-for-problem/SKILL.md",
         "docs/**",
         "sandbox/ds-guide-v2/**",
         "sandbox/algo-guide-v2/SPEC.md",
