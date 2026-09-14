@@ -11,7 +11,7 @@ src/data-structures/hash/lruCache	hash	lruCache	-	-	-	74	375	false
 src/data-structures/hash/rollingHash	hash	rollingHash	-	-	-	79	304	false
 src/data-structures/heap/binomialHeap	heap	binomialHeap	-	complexity	-	0	383	true
 src/data-structures/heap/daryHeap	heap	daryHeap	-	complexity	-	0	415	true
-src/data-structures/heap/fibonacciHeap	heap	fibonacciHeap	-	-	-	80	502	false
+src/data-structures/heap/fibonacciHeap	heap	fibonacciHeap	-	complexity	-	0	502	true
 src/data-structures/heap/leftistHeap	heap	leftistHeap	-	complexity	-	0	656	true
 src/data-structures/heap/maxHeap	heap	maxHeap	-	complexity	-	0	391	true
 src/data-structures/heap/minHeap	heap	minHeap	-	complexity	-	0	381	true

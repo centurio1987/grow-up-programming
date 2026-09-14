@@ -22,6 +22,7 @@ import { rngFrom } from "../src/data-structures/_contract/judge.ts";
 import type { ContractSpec } from "../src/data-structures/_contract/runContract.ts";
 import { hashMapChainingContract } from "../src/data-structures/hash/hashMapChaining/hashMapChaining.contract.ts";
 import { hashSetContract } from "../src/data-structures/hash/hashSet/hashSet.contract.ts";
+import { fibonacciHeapContract } from "../src/data-structures/heap/fibonacciHeap/fibonacciHeap.contract.ts";
 import { leftistHeapContract } from "../src/data-structures/heap/leftistHeap/leftistHeap.contract.ts";
 import { pairingHeapContract } from "../src/data-structures/heap/pairingHeap/pairingHeap.contract.ts";
 import { priorityQueueContract } from "../src/data-structures/heap/priorityQueue/priorityQueue.contract.ts";
@@ -153,6 +154,11 @@ const SPECS: ContractSpec<any, any>[] = [
   // (`avlTree`·`bTree` 계열이 같은 선례다).
   hashMapChainingContract,
   hashSetContract,
+  // 케이스의 앞 여덟이 `LeftistHeap.json` 의 경계 케이스와 같다 — `heap/leftistHeap` 의 경계 케이스
+  // 객체를 그대로 펼쳐 넣었기 때문이다(`fibonacciHeap.contract.ts` 머리말). `decreaseKey` 의 인자
+  // `[번호, 값]` 의 번호는 **받은 핸들을 받은 순서로 센 것**이고 핸들 수로 나눈 나머지로 읽는다 —
+  // 이 vector 를 재생하는 쪽이 껍데기(`DecreaseSite`)의 그 규칙을 함께 옮겨야 한다.
+  fibonacciHeapContract,
   leftistHeapContract,
   // 케이스가 `LeftistHeap.json` 과 같다 — 두 계약이 의미 열을 같은 객체로 쓰기 때문이다
   // (`pairingHeap.contract.ts` 머리말). 성격 전환과 달리 **다른 계약**이라 등록한다.
