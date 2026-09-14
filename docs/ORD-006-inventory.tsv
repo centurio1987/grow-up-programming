@@ -15,7 +15,7 @@ src/data-structures/heap/fibonacciHeap	heap	fibonacciHeap	-	-	-	80	502	false
 src/data-structures/heap/leftistHeap	heap	leftistHeap	-	complexity	-	0	656	true
 src/data-structures/heap/maxHeap	heap	maxHeap	-	complexity	-	0	391	true
 src/data-structures/heap/minHeap	heap	minHeap	-	complexity	-	0	381	true
-src/data-structures/heap/pairingHeap	heap	pairingHeap	-	-	-	93	363	false
+src/data-structures/heap/pairingHeap	heap	pairingHeap	-	complexity	-	0	363	true
 src/data-structures/heap/priorityQueue	heap	priorityQueue	-	complexity	-	0	511	true
 src/data-structures/heap/vanEmdeBoasTree	heap	vanEmdeBoasTree	-	-	-	107	402	false
 src/data-structures/linear/bitArray	linear	bitArray	-	-	-	96	320	false

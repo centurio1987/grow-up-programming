@@ -31,7 +31,7 @@ type Track = {
 
 const TRACKS: readonly Track[] = [
   { id: "T1", title: "탐색 트리", facts: "100-119" },
-  { id: "T2", title: "우선순위 큐", facts: "120-139" },
+  { id: "T2", title: "우선순위 큐", facts: "120-139 · 250-269" },
   { id: "T3", title: "사전·집합·분리집합", facts: "140-159" },
   { id: "T4", title: "구간 질의·공간", facts: "160-179" },
   { id: "T5", title: "선형·확률·기타", facts: "180-199 · 90-99 · 230-249" },

@@ -23,6 +23,7 @@ import type { ContractSpec } from "../src/data-structures/_contract/runContract.
 import { hashMapChainingContract } from "../src/data-structures/hash/hashMapChaining/hashMapChaining.contract.ts";
 import { hashSetContract } from "../src/data-structures/hash/hashSet/hashSet.contract.ts";
 import { leftistHeapContract } from "../src/data-structures/heap/leftistHeap/leftistHeap.contract.ts";
+import { pairingHeapContract } from "../src/data-structures/heap/pairingHeap/pairingHeap.contract.ts";
 import { priorityQueueContract } from "../src/data-structures/heap/priorityQueue/priorityQueue.contract.ts";
 import { circularBufferContract } from "../src/data-structures/linear/circularBuffer/circularBuffer.contract.ts";
 import { dequeContract } from "../src/data-structures/linear/deque/deque.contract.ts";
@@ -153,6 +154,9 @@ const SPECS: ContractSpec<any, any>[] = [
   hashMapChainingContract,
   hashSetContract,
   leftistHeapContract,
+  // 케이스가 `LeftistHeap.json` 과 같다 — 두 계약이 의미 열을 같은 객체로 쓰기 때문이다
+  // (`pairingHeap.contract.ts` 머리말). 성격 전환과 달리 **다른 계약**이라 등록한다.
+  pairingHeapContract,
   priorityQueueContract,
   circularBufferContract,
   dequeContract,

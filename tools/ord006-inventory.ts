@@ -123,6 +123,11 @@ const VERIFICATION_GRADES: Record<
   "heap/leftistHeap": "complexity",
   // 성격 전환(T2-02). 담는 모양이 정본과 전혀 다른데 계약이 그 차이를 관측하지 못한다.
   "heap/binomialHeap": "complexity",
+  // 힙 덩어리의 계약 C(T2-03). 연산 집합과 의미 열이 계약 B 와 같고 비용 열만 갈린다 —
+  // 넣기·합치기 `worst O(1)`, 빼기 `amortized O(log n)`. 등급이 같은 것은 판정의 입력이
+  // 아니다(불변 사실 56 의 역은 성립하지 않는다). 순서 없이 이어 두면 빼기가 호출마다 훑고
+  // 늘 정렬해 두면 넣기가 비례해 자명한 구현이 일곱 행을 함께 못 세운다.
+  "heap/pairingHeap": "complexity",
   // 사전과 **서로 담지 않는** 이웃 계약(T3-02 · 불변 사실 54). 등급이 같은 것은 판정의
   // 입력이 아니다 — 상한이 확률 논증에서만 나오는 것이 사전 쪽과 같기 때문이다.
   "hash/hashSet": "complexity",
