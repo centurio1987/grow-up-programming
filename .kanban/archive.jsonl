@@ -221,3 +221,6 @@
 {"seq": 221, "t": "2026-09-09T16:59", "a": "ai", "id": "KAN-034.6-CF6ZHE", "op": "move", "w": "MDD8JM", "from": "doing", "to": "review"}
 {"seq": 222, "t": "2026-09-09T16:59", "a": "ai", "id": "KAN-034.7-QMZ3RE", "op": "move", "w": "MDD8JM", "from": "doing", "to": "review"}
 {"seq": 223, "t": "2026-09-09T16:59", "a": "ai", "id": "KAN-034.8-BK1Q3A", "op": "move", "w": "MDD8JM", "from": "doing", "to": "review"}
+{"seq": 224, "t": "2026-09-09T17:19", "a": "ai", "id": "KAN-034.7-QMZ3RE", "op": "move", "w": "MDD8JM", "from": "review", "to": "doing"}
+{"seq": 225, "t": "2026-09-10T01:59", "a": "ai", "id": "KAN-034.7-QMZ3RE", "op": "move", "w": "MDD8JM", "from": "doing", "to": "review"}
+{"seq": 226, "t": "2026-09-10T16:15", "a": "ai", "id": "KAN-034.7-QMZ3RE", "op": "move", "w": "MDD8JM", "from": "review", "to": "done"}

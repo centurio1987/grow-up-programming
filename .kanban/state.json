@@ -1,6 +1,6 @@
 {
   "next_id": 39,
-  "next_seq": 274,
+  "next_seq": 277,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -387,7 +387,8 @@
         "tools/ord006-inventory.ts",
         "rust/vectors/**",
         "tools/ord006-wbs.ts",
-        "tools/guide-skeleton.test.ts"
+        "tools/guide-skeleton.test.ts",
+        "src/algorithms/string/radixTree/radixTree-guide.md"
       ]
     },
     "KAN-028": {
@@ -950,6 +951,36 @@
   ],
   "recent": [
     {
+      "seq": 276,
+      "t": "2026-09-15T04:14",
+      "a": "유저",
+      "id": "KAN-026",
+      "op": "waive",
+      "w": "46PCAX",
+      "with_": "KAN-027",
+      "reason": "유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 등록·도구 파일(_contract/runContract.test.ts·emit-vectors·ord006-inventory·ord006-wbs·guide-skeleton.test)뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229·270–299 · KAN-027 T2 250–269·T5 90–99→230–249·추가 300–349)으로 가르고, ord006-wbs.ts 는 KAN-026 이 TA 블록·KAN-027 이 T1~T5 블록만 고친다. 병합 충돌은 줄 단위로 양쪽을 살린다"
+    },
+    {
+      "seq": 275,
+      "t": "2026-09-15T04:14",
+      "a": "유저",
+      "id": "KAN-036-0G05DE",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-027",
+      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 B군 잔여 16종은 계약 전환이 끝나야 쓸 수 있다"
+    },
+    {
+      "seq": 274,
+      "t": "2026-09-15T04:14",
+      "a": "유저",
+      "id": "KAN-036-0G05DE",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-026",
+      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 A군 16종(+ 이관된 cuckooFilter)은 계약 전환이 끝나야 쓸 수 있다"
+    },
+    {
       "seq": 273,
       "t": "2026-09-15T02:41",
       "a": "유저",
@@ -1494,36 +1525,6 @@
       "w": "MDD8JM",
       "from": "review",
       "to": "done"
-    },
-    {
-      "seq": 226,
-      "t": "2026-09-10T16:15",
-      "a": "ai",
-      "id": "KAN-034.7-QMZ3RE",
-      "op": "move",
-      "w": "MDD8JM",
-      "from": "review",
-      "to": "done"
-    },
-    {
-      "seq": 225,
-      "t": "2026-09-10T01:59",
-      "a": "ai",
-      "id": "KAN-034.7-QMZ3RE",
-      "op": "move",
-      "w": "MDD8JM",
-      "from": "doing",
-      "to": "review"
-    },
-    {
-      "seq": 224,
-      "t": "2026-09-09T17:19",
-      "a": "ai",
-      "id": "KAN-034.7-QMZ3RE",
-      "op": "move",
-      "w": "MDD8JM",
-      "from": "review",
-      "to": "doing"
     }
   ],
   "layout": 2,
@@ -1536,7 +1537,7 @@
       ],
       "scope_hash": "420e501d224d5078",
       "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 A군 16종(+ 이관된 cuckooFilter)은 계약 전환이 끝나야 쓸 수 있다",
-      "created": "2026-09-15T02:41",
+      "created": "2026-09-15T04:14",
       "by": "유저",
       "restrategy_required": false
     },
@@ -1546,9 +1547,9 @@
         "KAN-027",
         "KAN-036-0G05DE"
       ],
-      "scope_hash": "eae099a2fc210ca0",
+      "scope_hash": "91f57a83161355f3",
       "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 B군 잔여 16종은 계약 전환이 끝나야 쓸 수 있다",
-      "created": "2026-09-15T02:41",
+      "created": "2026-09-15T04:14",
       "by": "유저",
       "restrategy_required": false
     }
@@ -1556,9 +1557,9 @@
   "waivers": [
     {
       "pair": "KAN-026|KAN-027",
-      "scope_hash": "e96128c0607bc3f0",
+      "scope_hash": "017586ac254e2cf3",
       "reason": "유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 등록·도구 파일(_contract/runContract.test.ts·emit-vectors·ord006-inventory·ord006-wbs·guide-skeleton.test)뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229·270–299 · KAN-027 T2 250–269·T5 90–99→230–249·추가 300–349)으로 가르고, ord006-wbs.ts 는 KAN-026 이 TA 블록·KAN-027 이 T1~T5 블록만 고친다. 병합 충돌은 줄 단위로 양쪽을 살린다",
-      "created": "2026-09-15T02:41",
+      "created": "2026-09-15T04:14",
       "by": "유저"
     }
   ]
