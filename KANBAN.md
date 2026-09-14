@@ -60,7 +60,7 @@
   - 요청서: KANBAN.requests/review/KAN-035-31T4BY.request.md (자유 형식 · 유저)
   - 실행 문서: KANBAN.cards/KAN-035-31T4BY.md (6/7 · 최근 09-14)
   - 계획 리포트: KANBAN.reports/KAN-035-31T4BY.report.html (낡음)
-  - 검토 문서: KANBAN.reviews/KAN-035-31T4BY.review.md (승인 3/12 · 추가 의견 3 · 반려 1 · 철회 1 · 추가 의견 총 7 · 검토 대기)
+  - 검토 문서: KANBAN.reviews/KAN-035-31T4BY.review.md (승인 12/12 · 철회 1 · 추가 의견 총 9 · 승인)
 
 ## 완료
 - `KAN-029` [P0-a·29] 집필 엔진 가용성 확보 — 플러그인 설치·활성화 + lock 버전 재고정 — 생성:ai · 최종:ai · 갱신:2026-08-04
