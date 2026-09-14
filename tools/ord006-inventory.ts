@@ -16,6 +16,7 @@
  */
 import { readdir, stat } from "node:fs/promises";
 import { join, resolve } from "node:path";
+import { ESCALATION } from "./ord006-escalation.ts";
 
 const root = process.cwd();
 const scanRoot = join(root, "src/data-structures");
@@ -47,24 +48,6 @@ const COLUMNS = [
   "guide_lines",
   "has_reference",
 ] as const;
-
-/**
- * 규약4 언어 에스컬레이션 **확정** 판정. 키는 `<category>/<name>`.
- *
- * 출처는 docs/ORD-006-conventions.md 의 확정 판정 표 하나뿐이다.
- * 전략 표(docs/ORD-006-strategy.md:190-204)의 목록은 착수 시점의 **예상**이므로 넣지 않는다.
- * 결함등급과 같은 규칙 — 확정된 것만 적고 추정하지 않는다.
- *
- * 값이 `(가)`/`(나)` 가 아니라 `req`/`opt` 인 이유: en_US.UTF-8 로케일의 awk·uniq 는
- * `가` 와 `나` 를 같은 문자열로 판정한다(`awk '$6=="가"'` 가 두 등급을 모두 잡는다).
- * 기계가 읽는 열은 ASCII 로 둔다 — 아래 assertAscii 가 이를 강제한다.
- */
-const ESCALATION: Record<string, "req" | "opt"> = {
-  // (가) Rust 필수 — 선형화·진행 보장은 단일 스레드 TS 에서 표현 불가
-  "probabilistic/concurrentSkipList": "req",
-  // (나) Rust 선택 — 계약은 TS 로 충족, 포인터 XOR 의 메모리 이득만 측정 불가
-  "linear/xorLinkedList": "opt",
-};
 
 /**
  * 규약1 검증 등급 **확정** 판정. 키는 `<category>/<name>`.

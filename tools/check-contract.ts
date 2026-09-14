@@ -16,6 +16,7 @@
 import { readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { Project, SyntaxKind } from "ts-morph";
+import { headerDoc, parseContract, SECTION_ORDER } from "./contract-header.ts";
 
 const root = resolve(import.meta.dir, "..");
 const SCAN_ROOT = "src/data-structures";
@@ -35,35 +36,6 @@ const GRADES = new Set(["basic", "invariant", "complexity", "concurrency"]);
  * 처럼 저마다 다르게 적어 두고 실제로는 전부 **지나간 칸 수**를 세고 있었다. 무엇을 세는지가
  * 파일마다 갈리면 §규약2 의 실측 표를 나란히 읽을 수 없다.
  */
-const COST_UNIT_MARK = "§규약2 계측 단위";
-
-interface Contract {
-  /** 연산 계약 표의 행에서 뽑은 연산 이름. */
-  ops: string[];
-  grade: string | null;
-  /** 여섯 항목 중 실제로 있는 것. */
-  sections: string[];
-}
-
-const SECTION_ORDER = [
-  "목적",
-  "불변식",
-  "연산 계약",
-  "주입 정책",
-  "검증 등급",
-  "필요충분조건",
-];
-
-/** 파일 첫 JSDoc 블록의 본문. `*` 여백을 걷어 낸다. */
-function headerDoc(source: string): string | null {
-  const match = /^\s*\/\*\*([\s\S]*?)\*\//.exec(source);
-  if (match?.[1] === undefined) return null;
-  return match[1]
-    .split("\n")
-    .map((line) => line.replace(/^\s*\*\s?/, ""))
-    .join("\n");
-}
-
 /**
  * 불변식 절의 번호 항목 수. 절이 「없다」면 0 이다.
  *
@@ -85,24 +57,7 @@ function invariantCount(doc: string): number {
   return clause.split("\n").filter((line) => /^\d+\.\s/.test(line)).length;
 }
 
-function parseContract(doc: string): Contract {
-  const ops: string[] = [];
-  for (const line of doc.split("\n")) {
-    const trimmed = line.trim();
-    if (!trimmed.startsWith("|")) continue;
-    const [, first] = trimmed.split("|");
-    if (first === undefined) continue;
-    // 한 칸에 연산이 둘 이상 오는 자리가 있다(`min()` / `max()`).
-    for (const found of first.matchAll(/`([A-Za-z_][A-Za-z0-9_]*)\s*\(/g)) {
-      const name = found[1];
-      if (name !== undefined && !ops.includes(name)) ops.push(name);
-    }
-  }
-
-  const grade = /\*\*검증 등급\.\*\*\s*`([a-z]+)`/.exec(doc)?.[1] ?? null;
-  const sections = SECTION_ORDER.filter((name) => doc.includes(`**${name}.**`));
-  return { ops, grade, sections };
-}
+const COST_UNIT_MARK = "§규약2 계측 단위";
 
 /** 클래스의 공개 메서드 이름. private(`#`)·`__cost` 같은 계측은 세지 않는다. */
 function publicMethods(path: string, project: Project): string[] {

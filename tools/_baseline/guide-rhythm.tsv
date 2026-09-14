@@ -22,7 +22,6 @@ src/data-structures/heap/priorityQueue/priorityQueue-guide.mdx	5	0
 src/data-structures/heap/vanEmdeBoasTree/vanEmdeBoasTree-guide.mdx	4	0
 src/data-structures/linear/bitArray/bitArray-guide.mdx	5	0
 src/data-structures/linear/circularBuffer/circularBuffer-guide.mdx	5	1
-src/data-structures/linear/deque/deque-guide.mdx	3	0
 src/data-structures/linear/doublyLinkedList/doublyLinkedList-guide.mdx	3	0
 src/data-structures/linear/dynamicArray/dynamicArray-guide.mdx	5	0
 src/data-structures/linear/gapBuffer/gapBuffer-guide.mdx	8	0
@@ -33,7 +32,6 @@ src/data-structures/linear/queue/queue-guide.mdx	7	1
 src/data-structures/linear/singlyLinkedList/singlyLinkedList-guide.mdx	6	0
 src/data-structures/linear/stack/stack-guide.mdx	4	0
 src/data-structures/linear/unrolledLinkedList/unrolledLinkedList-guide.mdx	11	0
-src/data-structures/linear/xorLinkedList/xorLinkedList-guide.mdx	4	0
 src/data-structures/probabilistic/bloomFilter/bloomFilter-guide.mdx	3	0
 src/data-structures/probabilistic/concurrentSkipList/concurrentSkipList-guide.mdx	6	0
 src/data-structures/probabilistic/countMinSketch/countMinSketch-guide.mdx	3	0
@@ -59,7 +57,6 @@ src/data-structures/tree/linkCutTree/linkCutTree-guide.mdx	5	0
 src/data-structures/tree/merkleTree/merkleTree-guide.mdx	2	0
 src/data-structures/tree/multiset/multiset-guide.mdx	7	0
 src/data-structures/tree/orderStatisticTree/orderStatisticTree-guide.mdx	5	0
-src/data-structures/tree/redBlackTree/redBlackTree-guide.mdx	5	0
 src/data-structures/tree/scapegoatTree/scapegoatTree-guide.mdx	5	0
 src/data-structures/tree/splayTree/splayTree-guide.mdx	6	0
 src/data-structures/tree/treap/treap-guide.mdx	7	0

@@ -23,7 +23,18 @@
  */
 
 import { basename, dirname, join } from "node:path";
-import { fences, first, parseSections, pick, type Section } from "./section.ts";
+import { headerDoc, parseContract } from "./contract-header.ts";
+import { extract, GuideCoreError } from "./guide-core.ts";
+import { kindOfOr } from "./guide-v2-targets.ts";
+import { DIRECT_MEMORY, ESCALATION } from "./ord006-escalation.ts";
+import {
+  fences,
+  first,
+  type GuideKind,
+  parseSections,
+  pick,
+  type Section,
+} from "./section.ts";
 
 export interface Finding {
   code: string;
@@ -1163,6 +1174,19 @@ export function normalizeCode(src: string): string {
 }
 
 /**
+ * ds 정본에서 **「전체 코드」로 대조할 코드**를 뽑는다 — `guide:core` 구간 **전부**를 등장 순서로.
+ *
+ * 처음에는 `class` 이름 구간 하나만 뽑았다(`KAN-035` `S3`). 파일럿 첫 편 `linear/deque` 에서
+ * 그 가정이 실측과 어긋난 것이 드러났다 — ds 정본 35편 중 **7편은 이름 없는 구간**이라 `class`
+ * 구간이 아예 없고, **20편은 `types` 구간을 따로** 두어 `class` 만 뽑으면 원고의 전체 코드가
+ * 타입 선언만큼 길다고 판정된다. 「전체 코드」는 정본이 가이드에 내놓은 구간 전부이므로, 구간
+ * 이름을 고르지 않는다. 가이드의 펜스도 `#이름` 없이 파일 전체를 가리킨다(`ds SPEC` `L43`).
+ */
+export function dsReferenceCode(source: string, where: string): string {
+  return extract(source, where);
+}
+
+/**
  * P16 (`L9`) — **원고의 전체 코드가 정본(`.ref.ts`)과 같은가.**
  *
  * `SPEC.md` 가 「`<name>-guide.ref.ts` 에서 옮긴다」고 정한 자리인데 **지금까지 어떤 도구도
@@ -1185,7 +1209,10 @@ export function finalCodeMatchesRef(
   const code: string[] = [];
   for (const sec of finals) {
     for (const block of fences(sec.body)) {
-      if (block.lang === "ts" || block.lang === "typescript") {
+      // 정보 문자열의 **첫 낱말**이 언어다. ds 원고는 `ts guide-core=<정본>` 으로 추출 출처를
+      // 함께 적으므로, 문자열 전체를 `ts` 와 견주면 ds 의 전체 코드가 「펜스 없음」으로 걸린다.
+      const lang = block.lang.split(/\s+/)[0];
+      if (lang === "ts" || lang === "typescript") {
         code.push(block.lines.join("\n"));
       }
     }
@@ -1221,6 +1248,155 @@ export function finalCodeMatchesRef(
       detail: `전체 코드가 정본(\`.ref.ts\`)과 다르다. ${where}. 정본에 \`biome check --write\` 를 먼저 돌리고 그 결과를 옮긴다`,
     },
   ];
+}
+
+/* ──────────────── 자료구조 전용 — P17 · P18 · P19 ──────────────── */
+
+/**
+ * **P17 — 연산 피복**(`ds SPEC` `L41`).
+ *
+ * 자료구조는 연산이 복수라, 알고리즘처럼 절차 하나를 굴리는 것으로 끝나지 않는다. 계약
+ * 헤더의 연산 표에 있는 연산이 전개에서 한 번도 안 다뤄지면 독자는 그 연산을 모른 채
+ * 나간다. 요청서가 분량을 면제한 자리가 정확히 여기다.
+ *
+ * **이 검사는 이름의 등장만 본다.** 그 연산을 실제로 굴렸는가 · 묶은 근거가 옳은가는
+ * 사람이 본다 — 기계가 하는 척하지 않는다(`algo SPEC` §0 과 같은 태도).
+ */
+export function operationCoverage(
+  sections: Section[],
+  ops: string[],
+): Finding[] {
+  const steps = pick(sections, "deep.walk.step");
+  if (steps.length === 0 || ops.length === 0) return [];
+  const hay = steps.map((s) => `${s.heading}\n${s.body.join("\n")}`).join("\n");
+  const absent = ops.filter((op) => !new RegExp(`\\b${op}\\b`).test(hay));
+  if (absent.length === 0) return [];
+  return [
+    {
+      code: "P17",
+      detail: `계약 표의 연산이 전개에 한 번도 안 나온다: ${absent.join("·")}. 묶어서 다뤘으면 그 벌의 첫 문장에 묶은 근거를 적고 연산 이름을 함께 쓴다`,
+    },
+  ];
+}
+
+/**
+ * **P18 — 계약 표를 복사하지 않는다**(`ds SPEC` `L42`).
+ *
+ * 계약의 정본은 `<name>.ts` 헤더 한 곳이고, 가이드는 조건이 아니라 **조건의 이유**를 쓴다.
+ * 표를 옮겨 적으면 정본이 둘이 되고, 갈라진 자리에서 가이드가 코드보다 낙관적인 복잡도를
+ * 주장한 것이 이 트랙을 한 번 재설계하게 만든 결함이다.
+ *
+ * **판정은 「한 표 안에 계약 연산이 과반 + 상한 표기」다.** 연산 하나의 비용을 표로 따지는
+ * 것은 `perf.bounds` 의 정당한 직무라(`L7` 이 케이스와 경계를 두 축으로 가르라고 한다),
+ * 그것과 가르는 신호가 **목록성**이다. 작은 계약에서 오탐이 나지 않게 최소 3개를 함께 건다.
+ */
+export function noContractTableCopy(
+  sections: Section[],
+  ops: string[],
+): Finding[] {
+  if (ops.length === 0) return [];
+  const need = Math.max(3, Math.ceil(ops.length / 2));
+  const out: Finding[] = [];
+  for (const sec of sections) {
+    let rows: string[] = [];
+    for (const line of sec.body) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("|")) {
+        rows.push(trimmed);
+        continue;
+      }
+      out.push(...judgeTable(sec, rows, ops, need));
+      rows = [];
+    }
+    out.push(...judgeTable(sec, rows, ops, need));
+  }
+  return out;
+}
+
+function judgeTable(
+  sec: Section,
+  rows: string[],
+  ops: string[],
+  need: number,
+): Finding[] {
+  if (rows.length === 0) return [];
+  const table = rows.join("\n");
+  if (!/O\(/.test(table)) return [];
+  const hit = ops.filter((op) => new RegExp(`\\b${op}\\b`).test(table));
+  if (hit.length < need) return [];
+  return [
+    {
+      code: "P18",
+      detail: `${sec.heading}(${sec.line}줄) — 계약 표를 옮겨 적었다(연산 ${hit.length}개 + 상한 표기가 한 표에 있다). 정본은 \`<name>.ts\` 헤더 한 곳이고, 여기서는 조건이 아니라 **조건의 이유**를 쓴다`,
+    },
+  ];
+}
+
+/**
+ * **P19 — 에스컬레이션 절은 규약4 등급이 켠다**(`ds SPEC` `L45`).
+ *
+ * 조건이 판단이 아니라 **이미 확정된 등급**이므로 집필자가 고르지 않는다
+ * (`docs/ORD-006-conventions.md:1253-1280`). 그래서 양방향으로 잰다 — (가)·(나)인데 절이
+ * 없어도 위반이고, (-)인데 절이 있어도 위반이다. 조건부 절 규약이 「있으면 더 좋다」가
+ * 아니라 「없으면 빼라」인 것과 같은 자리다.
+ */
+export function escalationSection(
+  sections: Section[],
+  grade: "req" | "opt" | "-",
+): Finding[] {
+  const has = pick(sections, "perf.escalation").length > 0;
+  const should = grade !== "-";
+  if (has === should) return [];
+  return [
+    {
+      code: "P19",
+      detail: should
+        ? `규약4 등급이 ${grade === "req" ? "(가)" : "(나)"} 인데 \`perf.escalation\` 절이 없다 — 등급이 절을 켠다(집필자가 고르지 않는다)`
+        : "규약4 등급이 (-) 인데 `perf.escalation` 절이 있다 — (-) 면 절 자체를 생략한다",
+    },
+  ];
+}
+
+/**
+ * **P20 — 메모리를 직접 다뤄야 이득이 생기는 구조는 전개에 Rust 구현을 싣는다**(`ds SPEC` `L47`).
+ *
+ * P19 와 같은 모양이다. 싣는지는 집필자가 고르지 않고 `tools/ord006-escalation.ts` 의
+ * `DIRECT_MEMORY` 가 정한다. 그래서 양방향으로 잰다 — 집합에 든 구조의 `deep.walk` 에
+ * `rust guide-core=` 추출 펜스가 없어도 위반이고, 집합 밖 구조의 `deep.walk` 에 `rust` 펜스가
+ * 있어도 위반이다. 추출 펜스만 인정하는 것은 그 코드를 `guide-core check` 와 `cargo test` 가
+ * 검증하기 때문이다.
+ *
+ * **(가)는 판정하지 않는다.** 정본이 Rust 에 있어 전개의 코드가 Rust 인 것이 정상이다.
+ */
+export function directMemoryRust(
+  sections: Section[],
+  directMemory: boolean,
+  grade: "req" | "opt" | "-",
+): Finding[] {
+  if (grade === "req") return [];
+  const walk = sections.filter((s) => s.id.startsWith("deep.walk"));
+  const langs = walk.flatMap((s) => fences(s.body).map((b) => b.lang));
+  const anyRust = langs.some((lang) => lang.split(/\s+/)[0] === "rust");
+  const extracted = langs.some((lang) => /^rust\s+guide-core=\S/.test(lang));
+  if (directMemory && !extracted) {
+    return [
+      {
+        code: "P20",
+        detail:
+          "메모리를 직접 다뤄야 이득이 생기는 구조(`DIRECT_MEMORY`)인데 `deep.walk` 에 `rust guide-core=` 펜스가 없다 — Rust 구현을 `rust/structures/src/` 에 두고 추출해 싣는다",
+      },
+    ];
+  }
+  if (!directMemory && anyRust) {
+    return [
+      {
+        code: "P20",
+        detail:
+          "`DIRECT_MEMORY` 에 없는 구조의 `deep.walk` 에 `rust` 펜스가 있다 — Rust 서술은 메모리를 직접 다뤄야 이득이 생기는 구조에 한한다",
+      },
+    ];
+  }
+  return [];
 }
 
 /* ──────────────── 블록 열 정렬 — P15 ──────────────── */
@@ -1677,19 +1853,47 @@ export function tableSeparators(text: string): Finding[] {
  */
 export interface CheckInput {
   text: string;
+  /**
+   * 어느 골격인가. **기본은 `algo` 다** — 시험 72벌이 전부 알고리즘 골격 텍스트를 직접
+   * 넘기고, 그것들이 매번 갈래를 적게 하면 새 시험이 늘 때 빠뜨릴 자리가 생긴다.
+   * **실제 파일을 읽는 `checkOne` 은 `kindOf(target)` 으로 반드시 채운다** — 거기서 빠지면
+   * 자료구조 편이 알고리즘 매핑으로 파싱된다.
+   */
+  kind?: GuideKind;
   /** `<name>-guide.sim.ts` 원문. 없으면 P3·P6·P9 는 "미실행" 으로 보고한다. */
   sim?: string;
   /** `bench-alt.ts` 가 낸 결정론적 계수. 없으면 P10 은 "미실행". */
   bench?: Record<string, number>;
-  /** `<name>-guide.ref.ts` 원문. 없으면 P16 은 "미실행" 이다. */
+  /**
+   * 정본 코드. algo 는 `<name>-guide.ref.ts` 원문이고, **ds 는
+   * `_reference/<name>.ts` 의 `#region guide:core` 추출본**이다(`ds SPEC` `L43`).
+   * algo 에서 없으면 P16 은 "미실행" 이지만 **ds 에서 없으면 위반**이다 — 정본이 이미 서
+   * 있어야 하는 트랙이라, 없는 것을 미실행으로 넘기면 안 잰 것이 통과로 읽힌다.
+   */
   ref?: string;
+  /**
+   * 계약 헤더(`<name>.ts` JSDoc)의 연산 표에서 뽑은 연산 이름. ds 전용이고 P17·P18 이 쓴다.
+   * 파서는 `check-contract.ts` 의 것을 그대로 쓴다 — 연산 목록의 정본이 한 곳이어야 한다.
+   */
+  contractOps?: string[];
+  /**
+   * 규약4 에스컬레이션 등급. `req`=(가) · `opt`=(나) · `-`=(-). ds 전용이고 P19 가 쓴다.
+   * 정본은 `tools/ord006-inventory.ts` 의 `ESCALATION` 이다.
+   */
+  escalation?: "req" | "opt" | "-";
+  /**
+   * 메모리를 직접 다뤄야 이득이 생기는 구조인가. ds 전용이고 P20 이 쓴다.
+   * 정본은 `tools/ord006-escalation.ts` 의 `DIRECT_MEMORY` 다.
+   */
+  directMemory?: boolean;
   maxProseRun?: number;
 }
 
 export function check(input: CheckInput): Finding[] {
   const findings: Finding[] = [];
   const limit = input.maxProseRun ?? 2;
-  const { sections, unresolved } = parseSections(input.text);
+  const kind = input.kind ?? "algo";
+  const { sections, unresolved } = parseSections(input.text, kind);
 
   // 절 식별에 실패하면 나머지 판정이 전부 헛돈다. 여기서 멈춘다.
   for (const u of unresolved) {
@@ -2153,6 +2357,18 @@ export function check(input: CheckInput): Finding[] {
   findings.push(...tableSeparators(input.text));
 
   // ── P16 원고의 전체 코드 ↔ 정본 ──
+  if (input.contractOps !== undefined) {
+    findings.push(...operationCoverage(sections, input.contractOps));
+    findings.push(...noContractTableCopy(sections, input.contractOps));
+  }
+  if (input.escalation !== undefined) {
+    findings.push(...escalationSection(sections, input.escalation));
+    if (input.directMemory !== undefined) {
+      findings.push(
+        ...directMemoryRust(sections, input.directMemory, input.escalation),
+      );
+    }
+  }
   if (input.ref !== undefined) {
     findings.push(...finalCodeMatchesRef(sections, input.ref));
   }
@@ -2172,7 +2388,10 @@ export function check(input: CheckInput): Finding[] {
 export function checkWarnings(input: CheckInput): Finding[] {
   const out: Finding[] = alignmentWarnings(input.text);
 
-  const { sections, unresolved } = parseSections(input.text);
+  const { sections, unresolved } = parseSections(
+    input.text,
+    input.kind ?? "algo",
+  );
   if (unresolved.length > 0 || input.sim === undefined) return out;
   const walkHead = first(sections, "deep.walk");
   if (!walkHead) return out;
@@ -2220,22 +2439,67 @@ async function checkOne(
   }
   const text = await file.text();
   const stem = basename(target).replace(/\.md$/, "");
-  const input: CheckInput = { text };
-  const simFile = Bun.file(join(dirname(target), `${stem}.sim.ts`));
-  const benchFile = Bun.file(join(dirname(target), `${stem}.bench.json`));
-  const refFile = Bun.file(join(dirname(target), `${stem}.ref.ts`));
+  const dir = dirname(target);
+  // **골격은 경로가 정한다.** 여기서 빠뜨리면 자료구조 편이 알고리즘 매핑으로 파싱되고,
+  // 그 실패는 원인에서 멀리 떨어진 자리에서 드러난다. 두 트랙 **밖**(시험용 임시 파일)만
+  // `algo` 로 떨어지고, 트랙 안 경로는 `kindOf` 가 확실히 잡는다.
+  const kind = kindOfOr(target, "algo");
+  const input: CheckInput = { text, kind };
+  const simFile = Bun.file(join(dir, `${stem}.sim.ts`));
+  const benchFile = Bun.file(join(dir, `${stem}.bench.json`));
   if (await simFile.exists()) input.sim = await simFile.text();
   if (await benchFile.exists()) input.bench = await benchFile.json();
-  if (await refFile.exists()) input.ref = await refFile.text();
 
-  // 없어서 **건너뛴** 것이지 통과한 것이 아니다. 셋을 같은 자리에서 세어 두면
-  // 새 사이드카가 늘 때 안내를 빠뜨릴 자리가 없다.
   const missing: string[] = [];
+  const dsProblems: string[] = [];
+
+  if (kind === "ds") {
+    // ds 의 정본은 `_reference/<name>.ts` 이고 **이미 서 있어야 한다**(`ds SPEC` `L43`).
+    // 사이드카 `.ref.ts` 를 두지 않으므로 algo 의 「없으면 미실행」을 그대로 쓰면
+    // **안 잰 것이 통과로 읽힌다** — 여기서는 부재가 위반이다.
+    const name = stem.replace(/-guide$/, "");
+    const refPath = join(dir, "_reference", `${name}.ts`);
+    const refFile = Bun.file(refPath);
+    if (await refFile.exists()) {
+      try {
+        input.ref = dsReferenceCode(await refFile.text(), refPath);
+      } catch (error) {
+        dsProblems.push(
+          error instanceof GuideCoreError
+            ? `P16 — ${error.message}`
+            : `P16 — 정본 추출이 실패했다: ${String(error)}`,
+        );
+      }
+    } else {
+      dsProblems.push(`P16 — 정본이 없다: ${refPath}`);
+    }
+
+    // 연산 목록과 등급의 정본을 그대로 읽는다. 원고 판정기가 표를 다시 파싱하면 파서가 갈린다.
+    const stubFile = Bun.file(join(dir, `${name}.ts`));
+    if (await stubFile.exists()) {
+      const doc = headerDoc(await stubFile.text());
+      if (doc !== null) input.contractOps = parseContract(doc).ops;
+    }
+    if (input.contractOps === undefined) missing.push("contract");
+
+    const key = dir.replace(/^.*src\/data-structures\//, "");
+    input.escalation = ESCALATION[key] ?? "-";
+    input.directMemory = DIRECT_MEMORY.has(key);
+  } else {
+    const refFile = Bun.file(join(dir, `${stem}.ref.ts`));
+    if (await refFile.exists()) input.ref = await refFile.text();
+    if (input.ref === undefined) missing.push("ref");
+  }
+
+  // 없어서 **건너뛴** 것이지 통과한 것이 아니다. 같은 자리에서 세어 두면
+  // 새 사이드카가 늘 때 안내를 빠뜨릴 자리가 없다.
   if (input.sim === undefined) missing.push("sim");
   if (input.bench === undefined) missing.push("bench");
-  if (input.ref === undefined) missing.push("ref");
 
-  const findings = check(input);
+  const findings: Finding[] = [
+    ...dsProblems.map((detail) => ({ code: "P16", detail })),
+    ...check(input),
+  ];
   // **경고는 판정에 안 들어간다.** 화면에는 뜨고 `--json` 에도 실린다 — 안 뜨면 넓힌
   // 규칙이 잡은 자리를 아무도 못 보고, 위반으로 세면 53편이 한꺼번에 빨개진다.
   const warnings = checkWarnings(input);
@@ -2280,6 +2544,10 @@ export function skipNotes(missing: string[]): string[] {
     out.push("(참고: `.bench.json` 이 없어 P10 은 실행되지 않았다)");
   if (has.has("ref"))
     out.push("(참고: `.ref.ts` 가 없어 P16 정본 대조는 실행되지 않았다)");
+  if (has.has("contract"))
+    out.push(
+      "(참고: 계약 헤더를 못 읽어 P17 연산 피복·P18 계약 표 복사는 실행되지 않았다)",
+    );
   return out;
 }
 

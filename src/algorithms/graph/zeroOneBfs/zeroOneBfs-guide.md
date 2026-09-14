@@ -82,7 +82,7 @@
   [`bfsShortestPath` 가이드](../bfsShortestPath/bfsShortestPath-guide.md)가 그것을 다룹니다.
 - **덱이 앞뒤 양쪽에서 넣고 뺄 수 있는 자료구조**라는 것. 네 연산이 각각 상수 시간이라는 성질만
   쓰고, 그 성질을 어떻게 만드는지는 이 글에서 다시 만듭니다.
-  모르면 [`deque` 가이드](../../../data-structures/linear/deque/deque-guide.mdx)를 보세요.
+  모르면 [`deque` 가이드](../../../data-structures/linear/deque/deque-guide.md)를 보세요.
 - **번호로 배열 칸을 바로 찾아가는 일이 상수 시간**이라는 것. 거리 배열은 정점 번호로 한 칸을
   읽고 쓰는 자리이고, 그 한 번이 정점 수와 무관하다는 전제 위에 계수가 성립합니다.
 

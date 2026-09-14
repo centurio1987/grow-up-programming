@@ -8,6 +8,11 @@
  *
  * **어느 규칙으로도 안 잡히는 헤딩은 에러다.** 조용히 넘기면 그 절이 어느 판정에도 안 걸리고,
  * 화면에는 "통과" 로 뜬다 — 이 저장소가 이미 한 번 겪은 실패 모양이다.
+ *
+ * **골격이 둘이다.** 알고리즘은 `sandbox/algo-guide-v2/SPEC.md` §2, 자료구조는
+ * `sandbox/ds-guide-v2/SPEC.md` §2 가 매핑의 정본이다. 뒤엣것은 앞엣것의 델타라 **표도
+ * 델타로 짓는다** — 공통분을 한 벌만 두고 갈리는 것만 나눈다. 두 벌을 통째로 복제하면
+ * 공통 항목을 한쪽만 고치는 날이 오고, 그날 갈린 쪽은 조용히 판정을 놓친다.
  */
 
 /** 한 절. `body` 는 헤딩 **다음 줄부터** 다음 헤딩 전까지다. */
@@ -31,13 +36,14 @@ export interface Section {
  * **2026-08-28 유저 지시로 헤딩이 한 단씩 내려갔다.** 문서가 파트 둘로 갈리면서 `##` 은
  * 파트가 쓰고, 항목은 `###`, 항목의 하위 절은 `####` 가 됐다.
  */
-const FIXED: ReadonlyArray<readonly [string, string]> = [
+/** 어느 골격의 문서인가. 매핑이 이것으로 갈린다. */
+export type GuideKind = "algo" | "ds";
+
+/** 두 골격이 같은 문구를 쓰는 절. */
+const FIXED_COMMON: ReadonlyArray<readonly [string, string]> = [
   ["prereq", "### 시작하기 전에 — 이미 알고 있어야 하는 것"],
   ["concept", "### 전체 컨셉"],
   ["deep.math", "### 수식 정의와 유도"],
-  ["purpose", "### 이 알고리즘이 최적의 솔루션인 경우"],
-  ["purpose.fit", "#### 최적인 문제의 모양"],
-  ["purpose.cue", "#### 문제에서 이것을 떠올리게 하는 단서"],
   ["purpose.real", "#### 실제로 쓰이는 곳"],
   ["purpose.alt", "#### 경쟁 설계와의 대조"],
   ["perf", "### 비용 계산"],
@@ -47,18 +53,42 @@ const FIXED: ReadonlyArray<readonly [string, string]> = [
   ["selfcheck", "### 스스로 점검하기"],
 ];
 
+/** 알고리즘 고유 — 문장의 주어가 문제다. */
+const FIXED_ALGO: ReadonlyArray<readonly [string, string]> = [
+  ...FIXED_COMMON,
+  ["purpose", "### 이 알고리즘이 최적의 솔루션인 경우"],
+  ["purpose.fit", "#### 최적인 문제의 모양"],
+  ["purpose.cue", "#### 문제에서 이것을 떠올리게 하는 단서"],
+];
+
+/**
+ * 자료구조 고유 — **문장의 주어가 연산이다.**
+ *
+ * `purpose.cue` 가 가장 크게 갈린다. 알고리즘은 문제 지문의 신호를 묻는데, 자료구조 가이드는
+ * 문제를 다루지 않는다(ORD-006 의 핵심 결정). 독자가 다음에 만나는 것은 문제 지문이 아니라
+ * 자기 코드의 요구라, 단서를 **연산 조합**으로 적는다.
+ *
+ * `perf.escalation` 은 이 골격에만 있다. 신설이 아니라 이관이다 —
+ * `docs/ORD-006-conventions.md:1171` 이 8단계 표의 6번 행으로 이미 갖고 있었다.
+ */
+const FIXED_DS: ReadonlyArray<readonly [string, string]> = [
+  ...FIXED_COMMON,
+  ["purpose", "### 이 구조가 최적의 선택인 경우"],
+  ["purpose.fit", "#### 최적인 요구의 모양"],
+  ["purpose.cue", "#### 이 구조를 떠올리게 하는 연산 조합"],
+  ["perf.escalation", "#### TypeScript 의 한계와 대체 언어"],
+];
+
 /**
  * 문구를 내용에 맞춰 짓는 절. 직무만 고정이라 패턴으로 잡는다.
  *
  * `deep.walk` 아래 셋의 순서가 중요하다 — `deep.walk.final` 과 `deep.walk.pause` 를 먼저
  * 시험해야 나머지가 잔여(`deep.walk.step`)로 떨어진다.
  */
-const PATTERNED: ReadonlyArray<readonly [string, RegExp]> = [
+const PATTERNED_COMMON: ReadonlyArray<readonly [string, RegExp]> = [
   ["title", /^# .+$/],
   ["part1", /^## 파트 1 — .+$/],
   ["part2", /^## 파트 2 — .+$/],
-  ["deep.build", /^### 아이디어 상세 — .+$/],
-  ["deep.walk", /^### 수행으로 알아보는 알고리즘 — .+$/],
   // 2026-08-28 유저 지시로 생긴 **조건부** 절. 파트 1 의 마지막에 온다 — 본문이 이미 값으로
   // 보인 것에 이름을 붙이는 자리다. 없는 편이 정상이므로 여기서만 잡고 필수로 세지 않는다.
   ["related", /^### 알아 두면 좋은 개념 — .+$/],
@@ -67,11 +97,30 @@ const PATTERNED: ReadonlyArray<readonly [string, RegExp]> = [
   ["deep.walk.pause", /^#### 멈춤 — .+$/],
 ];
 
+const PATTERNED_ALGO: ReadonlyArray<readonly [string, RegExp]> = [
+  ...PATTERNED_COMMON,
+  ["deep.build", /^### 아이디어 상세 — .+$/],
+  ["deep.walk", /^### 수행으로 알아보는 알고리즘 — .+$/],
+];
+
+/**
+ * 자료구조 고유.
+ *
+ * `deep.build` 가 「아이디어 상세」가 아니라 「설계 상세」인 것은 진입점이 문제 지문이 아니라
+ * 계약이기 때문이다 — 그 절의 직무 ①이 문제를 **고정**하지 않고 이미 선 계약을 **읽는다**.
+ */
+const PATTERNED_DS: ReadonlyArray<readonly [string, RegExp]> = [
+  ...PATTERNED_COMMON,
+  ["deep.build", /^### 설계 상세 — .+$/],
+  ["deep.walk", /^### 수행으로 알아보는 자료구조 — .+$/],
+];
+
 /**
  * `deep.walk.step` 은 **잔여**로 정한다.
  *
- * 정규식으로 이름을 강제하면 단계 이름을 알고리즘에 맞춰 짓지 못한다. 그래서
- * `### 수행으로 알아보는 알고리즘 — …` 안의 `####` 중 `deep.walk.final`·`deep.walk.pause` 로
+ * 정규식으로 이름을 강제하면 단계 이름을 그 편의 내용에 맞춰 짓지 못한다. 그래서
+ * `deep.walk` 컨테이너(알고리즘은 `### 수행으로 알아보는 알고리즘 — …`, 자료구조는
+ * `### 수행으로 알아보는 자료구조 — …`) 안의 `####` 중 `deep.walk.final`·`deep.walk.pause` 로
  * 해소되지 않은 전부를 순서대로 `deep.walk.step` 으로 본다.
  */
 const WALK_CONTAINER = "deep.walk";
@@ -82,7 +131,9 @@ export interface ParseResult {
   unresolved: { heading: string; line: number }[];
 }
 
-export function parseSections(text: string): ParseResult {
+export function parseSections(text: string, kind: GuideKind): ParseResult {
+  const FIXED = kind === "ds" ? FIXED_DS : FIXED_ALGO;
+  const PATTERNED = kind === "ds" ? PATTERNED_DS : PATTERNED_ALGO;
   const lines = text.split("\n");
   const raw: {
     heading: string;
@@ -132,7 +183,7 @@ export function parseSections(text: string): ParseResult {
       continue;
     }
 
-    // 잔여 — `### 수행으로 알아보는 알고리즘 — …` 안의 `####` 는 전부 `deep.walk.step` 이다.
+    // 잔여 — `deep.walk` 컨테이너 안의 `####` 는 전부 `deep.walk.step` 이다.
     if (insideWalk && item.level === 4) {
       sections.push({ id: "deep.walk.step", ...item });
       continue;

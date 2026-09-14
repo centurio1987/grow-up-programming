@@ -352,9 +352,14 @@ async function main(): Promise<void> {
   let fenceCount = 0;
   let simCount = 0;
   const guides: string[] = [];
+  // **`.md` 도 본다.** v2 골격 산출은 `-guide.md` 라, `.mdx` 만 보면 자료구조 트랙이
+  // v2 로 넘어가는 만큼 이 검사가 조용히 대상을 잃는다 — algo 트랙에서 실제로 그렇게 됐다.
   for (const scanRoot of SCAN_ROOTS) {
     guides.push(
-      ...(await collect(scanRoot, (name) => name.endsWith("-guide.mdx"))),
+      ...(await collect(
+        scanRoot,
+        (name) => name.endsWith("-guide.mdx") || name.endsWith("-guide.md"),
+      )),
     );
   }
   for (const guide of guides) {

@@ -113,6 +113,8 @@
 import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, join, resolve } from "node:path";
+import { stripInstrumentation } from "./guide-core.ts";
+import { kindOfOr } from "./guide-v2-targets.ts";
 
 /** 사이드카가 내보내는 것. 키는 본문 마커의 id 다. */
 export type Proofs = Record<string, () => string>;
@@ -656,7 +658,16 @@ export function mutantSiteFailures(
 ): ProofFailure[] {
   const consts = literalConsts(refSource);
   const skel = (l: string): string => codeSkeleton(l, consts);
-  const inRef = new Set(refSource.split("\n").map(skel));
+  /**
+   * **계측을 걷고 기준선을 만든다.**
+   *
+   * ds 정본 35편은 전부 `__cost` 를 갖는데, 그 줄은 추출 과정에서 걷히므로
+   * **원고가 절대 보여 주지 않는다**(`guide-core.ts` 의 `stripInstrumentation`).
+   * 안 걷으면 「원고 ↔ 정본」 대조의 기준선이 원고가 볼 수 없는 줄을 품게 되고,
+   * 그 줄을 근거로 낸 판정은 집필자가 고칠 수 없는 지적이 된다.
+   * algo 정본에는 `__cost` 가 없어 이 걸음이 무해하다.
+   */
+  const inRef = new Set(stripInstrumentation(refSource.split("\n")).map(skel));
   inRef.delete("");
   const executed = new Set<string>();
   for (const m of mutations) {
@@ -784,7 +795,16 @@ export async function run(guidePath: string): Promise<RunResult> {
   const stem = basename(guidePath).replace(/\.md$/, "");
   // 동적 import 는 **절대 경로**여야 한다 — 상대 경로는 이 파일 기준으로 풀린다.
   const proofPath = resolve(join(dir, `${stem}.proof.ts`));
-  const refBase = `${stem}.ref`;
+  /**
+   * 정본의 자리가 골격으로 갈린다.
+   *
+   * algo 는 사이드카 `<name>-guide.ref.ts` 이고, **ds 는 `_reference/<name>.ts`** 다 —
+   * 그 트랙에는 정본이 이미 서 있어서 사이드카로 한 벌 더 두면 정본이 둘이 된다
+   * (`sandbox/ds-guide-v2/SPEC.md` `L43`).
+   */
+  const kind = kindOfOr(guidePath, "algo");
+  const dsName = stem.replace(/-guide$/, "");
+  const refBase = kind === "ds" ? `_reference/${dsName}` : `${stem}.ref`;
 
   if (!existsSync(proofPath)) {
     return {
@@ -814,7 +834,11 @@ export async function run(guidePath: string): Promise<RunResult> {
   const failures = compare(blocks, memo);
   const div = await divergenceFailures(blocks, proofPath, memo);
   failures.push(...div.failures);
-  const refPath = resolve(join(dir, `${stem}.ref.ts`));
+  const refPath = resolve(
+    kind === "ds"
+      ? join(dir, "_reference", `${dsName}.ts`)
+      : join(dir, `${stem}.ref.ts`),
+  );
   if (existsSync(refPath)) {
     failures.push(
       ...mutantSiteFailures(text, readFileSync(refPath, "utf8"), mutations),
