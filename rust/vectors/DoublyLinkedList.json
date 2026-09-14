@@ -1,0 +1,2479 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "DoublyLinkedList",
+  "grade": "invariant",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 수열에 넣은 원소는 앞 끝이자 뒤 끝이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "prepend",
+          "arg": 1,
+          "expect": 0
+        },
+        {
+          "op": "append",
+          "arg": 2,
+          "expect": 1
+        },
+        {
+          "op": "prepend",
+          "arg": 0,
+          "expect": 2
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 3
+        }
+      ]
+    },
+    {
+      "name": "핸들은 첨자가 아니다 — 앞에 끼워도 같은 원소 뒤에 들어간다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "append",
+          "arg": 10,
+          "expect": 0
+        },
+        {
+          "op": "append",
+          "arg": 20,
+          "expect": 1
+        },
+        {
+          "op": "prepend",
+          "arg": 5,
+          "expect": 2
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            0,
+            15
+          ],
+          "expect": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            5,
+            10,
+            15,
+            20
+          ]
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            1,
+            25
+          ],
+          "expect": 4
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            2,
+            7
+          ],
+          "expect": 5
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            5,
+            7,
+            10,
+            15,
+            20,
+            25
+          ]
+        }
+      ]
+    },
+    {
+      "name": "빠진 원소의 핸들은 remove 가 false · insertAfter 가 null 이고 상태는 그대로다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "append",
+          "arg": 1,
+          "expect": 0
+        },
+        {
+          "op": "append",
+          "arg": 2,
+          "expect": 1
+        },
+        {
+          "op": "remove",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "remove",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            0,
+            9
+          ],
+          "expect": null
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            2
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "append",
+          "arg": 1,
+          "expect": 2
+        },
+        {
+          "op": "remove",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            2,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "name": "하나를 빼도 다음 원소의 핸들은 그대로 산다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "append",
+          "arg": 1,
+          "expect": 0
+        },
+        {
+          "op": "append",
+          "arg": 2,
+          "expect": 1
+        },
+        {
+          "op": "append",
+          "arg": 3,
+          "expect": 2
+        },
+        {
+          "op": "remove",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            3
+          ]
+        },
+        {
+          "op": "remove",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "remove",
+          "arg": 1,
+          "expect": false
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1
+          ]
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            0,
+            4
+          ],
+          "expect": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            4
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 2
+        }
+      ]
+    },
+    {
+      "name": "양쪽 이웃을 빼도 가운데 원소의 핸들로 끼울 수 있다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "append",
+          "arg": 1,
+          "expect": 0
+        },
+        {
+          "op": "append",
+          "arg": 2,
+          "expect": 1
+        },
+        {
+          "op": "append",
+          "arg": 3,
+          "expect": 2
+        },
+        {
+          "op": "remove",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "remove",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            1,
+            9
+          ],
+          "expect": 3
+        },
+        {
+          "op": "prepend",
+          "arg": 0,
+          "expect": 4
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            0,
+            2,
+            9
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 3
+        }
+      ]
+    },
+    {
+      "name": "값이 같은 원소가 여럿이어도 핸들이 가리키는 그 원소가 빠진다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "append",
+          "arg": 7,
+          "expect": 0
+        },
+        {
+          "op": "append",
+          "arg": 8,
+          "expect": 1
+        },
+        {
+          "op": "append",
+          "arg": 7,
+          "expect": 2
+        },
+        {
+          "op": "remove",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            7,
+            8
+          ]
+        },
+        {
+          "op": "append",
+          "arg": 7,
+          "expect": 3
+        },
+        {
+          "op": "remove",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            8,
+            7
+          ]
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            3,
+            7
+          ],
+          "expect": 4
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            8,
+            7,
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "name": "끝 원소를 빼면 이웃 원소가 새 끝이 된다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "append",
+          "arg": 1,
+          "expect": 0
+        },
+        {
+          "op": "append",
+          "arg": 2,
+          "expect": 1
+        },
+        {
+          "op": "remove",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "append",
+          "arg": 3,
+          "expect": 2
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            3
+          ]
+        },
+        {
+          "op": "remove",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "prepend",
+          "arg": 4,
+          "expect": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            4,
+            3
+          ]
+        },
+        {
+          "op": "remove",
+          "arg": 2,
+          "expect": true
+        },
+        {
+          "op": "remove",
+          "arg": 3,
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "append",
+          "arg": 5,
+          "expect": 4
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "name": "뒤 끝 원소 뒤에 끼운 원소가 새 뒤 끝이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "append",
+          "arg": 1,
+          "expect": 0
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": 1
+        },
+        {
+          "op": "append",
+          "arg": 3,
+          "expect": 2
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            2,
+            4
+          ],
+          "expect": 3
+        },
+        {
+          "op": "remove",
+          "arg": 3,
+          "expect": true
+        },
+        {
+          "op": "append",
+          "arg": 5,
+          "expect": 4
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2,
+            3,
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "name": "가운데에 끼운 원소는 그 뒤 원소를 빼도 남는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "append",
+          "arg": 1,
+          "expect": 0
+        },
+        {
+          "op": "append",
+          "arg": 3,
+          "expect": 1
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            0,
+            2
+          ],
+          "expect": 2
+        },
+        {
+          "op": "remove",
+          "arg": 1,
+          "expect": true
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "append",
+          "arg": 4,
+          "expect": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "name": "다른 수열이 돌려준 핸들은 빠진 원소의 핸들과 같게 다룬다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "remove",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            0,
+            5
+          ],
+          "expect": null
+        },
+        {
+          "op": "append",
+          "arg": 1,
+          "expect": 0
+        },
+        {
+          "op": "remove",
+          "arg": -1,
+          "expect": false
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            -1,
+            5
+          ],
+          "expect": null
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "돌려받은 배열을 고쳐도 수열은 그대로다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "append",
+          "arg": 1,
+          "expect": 0
+        },
+        {
+          "op": "append",
+          "arg": 2,
+          "expect": 1
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 2
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "remove",
+          "arg": -1,
+          "expect": false
+        },
+        {
+          "op": "remove",
+          "arg": 991,
+          "expect": false
+        },
+        {
+          "op": "append",
+          "arg": 41,
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            41
+          ]
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            466,
+            28
+          ],
+          "expect": 1
+        },
+        {
+          "op": "prepend",
+          "arg": 20,
+          "expect": 2
+        },
+        {
+          "op": "append",
+          "arg": -5,
+          "expect": 3
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            -1,
+            19
+          ],
+          "expect": null
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            41,
+            28,
+            -5
+          ]
+        },
+        {
+          "op": "append",
+          "arg": -1,
+          "expect": 4
+        },
+        {
+          "op": "prepend",
+          "arg": 22,
+          "expect": 5
+        },
+        {
+          "op": "remove",
+          "arg": 301,
+          "expect": true
+        },
+        {
+          "op": "append",
+          "arg": 45,
+          "expect": 6
+        },
+        {
+          "op": "remove",
+          "arg": 197,
+          "expect": false
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            22,
+            20,
+            41,
+            -5,
+            -1,
+            45
+          ]
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            1018,
+            3
+          ],
+          "expect": 7
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            22,
+            20,
+            41,
+            -5,
+            3,
+            -1,
+            45
+          ]
+        },
+        {
+          "op": "prepend",
+          "arg": 12,
+          "expect": 8
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            155,
+            52
+          ],
+          "expect": 9
+        },
+        {
+          "op": "remove",
+          "arg": 271,
+          "expect": false
+        },
+        {
+          "op": "prepend",
+          "arg": 42,
+          "expect": 10
+        },
+        {
+          "op": "size",
+          "expect": 10
+        },
+        {
+          "op": "append",
+          "arg": 78,
+          "expect": 11
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            42,
+            12,
+            22,
+            20,
+            52,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            78
+          ]
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            693,
+            75
+          ],
+          "expect": 12
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            42,
+            12,
+            22,
+            20,
+            52,
+            75,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            78
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "prepend",
+          "arg": -17,
+          "expect": 13
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "append",
+          "arg": 68,
+          "expect": 14
+        },
+        {
+          "op": "remove",
+          "arg": 721,
+          "expect": false
+        },
+        {
+          "op": "prepend",
+          "arg": 47,
+          "expect": 15
+        },
+        {
+          "op": "size",
+          "expect": 15
+        },
+        {
+          "op": "prepend",
+          "arg": 77,
+          "expect": 16
+        },
+        {
+          "op": "prepend",
+          "arg": 18,
+          "expect": 17
+        },
+        {
+          "op": "prepend",
+          "arg": 20,
+          "expect": 18
+        },
+        {
+          "op": "append",
+          "arg": 45,
+          "expect": 19
+        },
+        {
+          "op": "remove",
+          "arg": 77,
+          "expect": true
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            20,
+            77,
+            47,
+            -17,
+            42,
+            12,
+            22,
+            20,
+            52,
+            75,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            78,
+            68,
+            45
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 18
+        },
+        {
+          "op": "append",
+          "arg": -4,
+          "expect": 20
+        },
+        {
+          "op": "append",
+          "arg": 69,
+          "expect": 21
+        },
+        {
+          "op": "append",
+          "arg": -6,
+          "expect": 22
+        },
+        {
+          "op": "remove",
+          "arg": 332,
+          "expect": true
+        },
+        {
+          "op": "prepend",
+          "arg": -6,
+          "expect": 23
+        },
+        {
+          "op": "prepend",
+          "arg": 10,
+          "expect": 24
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            10,
+            -6,
+            20,
+            77,
+            47,
+            -17,
+            12,
+            22,
+            20,
+            52,
+            75,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            78,
+            68,
+            45,
+            -4,
+            69,
+            -6
+          ]
+        },
+        {
+          "op": "remove",
+          "arg": 520,
+          "expect": true
+        },
+        {
+          "op": "remove",
+          "arg": 811,
+          "expect": true
+        },
+        {
+          "op": "append",
+          "arg": 79,
+          "expect": 25
+        },
+        {
+          "op": "size",
+          "expect": 21
+        },
+        {
+          "op": "size",
+          "expect": 21
+        },
+        {
+          "op": "prepend",
+          "arg": -2,
+          "expect": 26
+        },
+        {
+          "op": "prepend",
+          "arg": 78,
+          "expect": 27
+        },
+        {
+          "op": "append",
+          "arg": 52,
+          "expect": 28
+        },
+        {
+          "op": "size",
+          "expect": 24
+        },
+        {
+          "op": "prepend",
+          "arg": 5,
+          "expect": 29
+        },
+        {
+          "op": "size",
+          "expect": 25
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            5,
+            78,
+            -2,
+            10,
+            -6,
+            20,
+            77,
+            47,
+            -17,
+            12,
+            22,
+            20,
+            52,
+            75,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            68,
+            45,
+            69,
+            -6,
+            79,
+            52
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            5,
+            78,
+            -2,
+            10,
+            -6,
+            20,
+            77,
+            47,
+            -17,
+            12,
+            22,
+            20,
+            52,
+            75,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            68,
+            45,
+            69,
+            -6,
+            79,
+            52
+          ]
+        },
+        {
+          "op": "append",
+          "arg": -11,
+          "expect": 30
+        },
+        {
+          "op": "prepend",
+          "arg": 20,
+          "expect": 31
+        },
+        {
+          "op": "remove",
+          "arg": 905,
+          "expect": true
+        },
+        {
+          "op": "append",
+          "arg": 70,
+          "expect": 32
+        },
+        {
+          "op": "size",
+          "expect": 27
+        },
+        {
+          "op": "remove",
+          "arg": 240,
+          "expect": false
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            209,
+            6
+          ],
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 27
+        },
+        {
+          "op": "size",
+          "expect": 27
+        },
+        {
+          "op": "prepend",
+          "arg": 12,
+          "expect": 33
+        },
+        {
+          "op": "prepend",
+          "arg": -17,
+          "expect": 34
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -17,
+            12,
+            20,
+            5,
+            78,
+            -2,
+            10,
+            -6,
+            20,
+            77,
+            47,
+            -17,
+            12,
+            22,
+            20,
+            75,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            68,
+            45,
+            69,
+            -6,
+            79,
+            52,
+            -11,
+            70
+          ]
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            151,
+            62
+          ],
+          "expect": null
+        },
+        {
+          "op": "append",
+          "arg": 69,
+          "expect": 35
+        },
+        {
+          "op": "remove",
+          "arg": 702,
+          "expect": true
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            548,
+            56
+          ],
+          "expect": 36
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -17,
+            12,
+            20,
+            5,
+            78,
+            -2,
+            10,
+            -6,
+            77,
+            47,
+            -17,
+            12,
+            56,
+            22,
+            20,
+            75,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            68,
+            45,
+            69,
+            -6,
+            79,
+            52,
+            -11,
+            70,
+            69
+          ]
+        },
+        {
+          "op": "prepend",
+          "arg": 0,
+          "expect": 37
+        },
+        {
+          "op": "remove",
+          "arg": 30,
+          "expect": true
+        },
+        {
+          "op": "append",
+          "arg": 22,
+          "expect": 38
+        },
+        {
+          "op": "size",
+          "expect": 31
+        },
+        {
+          "op": "remove",
+          "arg": 363,
+          "expect": true
+        },
+        {
+          "op": "remove",
+          "arg": -1,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 30
+        },
+        {
+          "op": "remove",
+          "arg": 657,
+          "expect": true
+        },
+        {
+          "op": "prepend",
+          "arg": -13,
+          "expect": 39
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -13,
+            0,
+            -17,
+            20,
+            5,
+            78,
+            -2,
+            10,
+            -6,
+            77,
+            47,
+            -17,
+            12,
+            56,
+            22,
+            20,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            68,
+            45,
+            69,
+            -6,
+            79,
+            52,
+            70,
+            69,
+            22
+          ]
+        },
+        {
+          "op": "prepend",
+          "arg": 51,
+          "expect": 40
+        },
+        {
+          "op": "append",
+          "arg": 44,
+          "expect": 41
+        },
+        {
+          "op": "append",
+          "arg": 34,
+          "expect": 42
+        },
+        {
+          "op": "size",
+          "expect": 33
+        },
+        {
+          "op": "prepend",
+          "arg": -9,
+          "expect": 43
+        },
+        {
+          "op": "append",
+          "arg": 48,
+          "expect": 44
+        },
+        {
+          "op": "prepend",
+          "arg": 32,
+          "expect": 45
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            269,
+            -12
+          ],
+          "expect": 46
+        },
+        {
+          "op": "size",
+          "expect": 37
+        },
+        {
+          "op": "size",
+          "expect": 37
+        },
+        {
+          "op": "prepend",
+          "arg": 66,
+          "expect": 47
+        },
+        {
+          "op": "prepend",
+          "arg": 19,
+          "expect": 48
+        },
+        {
+          "op": "remove",
+          "arg": 393,
+          "expect": false
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            19,
+            66,
+            32,
+            -9,
+            51,
+            -13,
+            -12,
+            0,
+            -17,
+            20,
+            5,
+            78,
+            -2,
+            10,
+            -6,
+            77,
+            47,
+            -17,
+            12,
+            56,
+            22,
+            20,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            68,
+            45,
+            69,
+            -6,
+            79,
+            52,
+            70,
+            69,
+            22,
+            44,
+            34,
+            48
+          ]
+        },
+        {
+          "op": "prepend",
+          "arg": 8,
+          "expect": 49
+        },
+        {
+          "op": "size",
+          "expect": 40
+        },
+        {
+          "op": "remove",
+          "arg": 43,
+          "expect": true
+        },
+        {
+          "op": "prepend",
+          "arg": 42,
+          "expect": 50
+        },
+        {
+          "op": "append",
+          "arg": -5,
+          "expect": 51
+        },
+        {
+          "op": "remove",
+          "arg": 19,
+          "expect": true
+        },
+        {
+          "op": "prepend",
+          "arg": -17,
+          "expect": 52
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            668,
+            59
+          ],
+          "expect": 53
+        },
+        {
+          "op": "remove",
+          "arg": 981,
+          "expect": false
+        },
+        {
+          "op": "prepend",
+          "arg": 66,
+          "expect": 54
+        },
+        {
+          "op": "size",
+          "expect": 43
+        },
+        {
+          "op": "prepend",
+          "arg": 62,
+          "expect": 55
+        },
+        {
+          "op": "remove",
+          "arg": 383,
+          "expect": true
+        },
+        {
+          "op": "prepend",
+          "arg": -12,
+          "expect": 56
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -12,
+            62,
+            66,
+            -17,
+            42,
+            8,
+            19,
+            32,
+            51,
+            -13,
+            -12,
+            0,
+            -17,
+            20,
+            5,
+            78,
+            -2,
+            10,
+            -6,
+            77,
+            47,
+            -17,
+            12,
+            56,
+            22,
+            20,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            68,
+            69,
+            -6,
+            79,
+            52,
+            70,
+            59,
+            69,
+            22,
+            44,
+            34,
+            48,
+            -5
+          ]
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            -1,
+            30
+          ],
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": 881,
+          "expect": true
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            66,
+            19
+          ],
+          "expect": null
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -12,
+            62,
+            66,
+            -17,
+            42,
+            8,
+            19,
+            32,
+            51,
+            -13,
+            -12,
+            0,
+            -17,
+            20,
+            5,
+            78,
+            10,
+            -6,
+            77,
+            47,
+            -17,
+            12,
+            56,
+            22,
+            20,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            68,
+            69,
+            -6,
+            79,
+            52,
+            70,
+            59,
+            69,
+            22,
+            44,
+            34,
+            48,
+            -5
+          ]
+        },
+        {
+          "op": "append",
+          "arg": 67,
+          "expect": 57
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -12,
+            62,
+            66,
+            -17,
+            42,
+            8,
+            19,
+            32,
+            51,
+            -13,
+            -12,
+            0,
+            -17,
+            20,
+            5,
+            78,
+            10,
+            -6,
+            77,
+            47,
+            -17,
+            12,
+            56,
+            22,
+            20,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            68,
+            69,
+            -6,
+            79,
+            52,
+            70,
+            59,
+            69,
+            22,
+            44,
+            34,
+            48,
+            -5,
+            67
+          ]
+        },
+        {
+          "op": "prepend",
+          "arg": -2,
+          "expect": 58
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -2,
+            -12,
+            62,
+            66,
+            -17,
+            42,
+            8,
+            19,
+            32,
+            51,
+            -13,
+            -12,
+            0,
+            -17,
+            20,
+            5,
+            78,
+            10,
+            -6,
+            77,
+            47,
+            -17,
+            12,
+            56,
+            22,
+            20,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            68,
+            69,
+            -6,
+            79,
+            52,
+            70,
+            59,
+            69,
+            22,
+            44,
+            34,
+            48,
+            -5,
+            67
+          ]
+        },
+        {
+          "op": "prepend",
+          "arg": 60,
+          "expect": 59
+        },
+        {
+          "op": "size",
+          "expect": 46
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            870,
+            42
+          ],
+          "expect": null
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            446,
+            0
+          ],
+          "expect": null
+        },
+        {
+          "op": "prepend",
+          "arg": 73,
+          "expect": 60
+        },
+        {
+          "op": "remove",
+          "arg": -1,
+          "expect": false
+        },
+        {
+          "op": "remove",
+          "arg": 160,
+          "expect": true
+        },
+        {
+          "op": "prepend",
+          "arg": 75,
+          "expect": 61
+        },
+        {
+          "op": "append",
+          "arg": -19,
+          "expect": 62
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            999,
+            43
+          ],
+          "expect": 63
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            -1,
+            43
+          ],
+          "expect": null
+        },
+        {
+          "op": "prepend",
+          "arg": 58,
+          "expect": 64
+        },
+        {
+          "op": "size",
+          "expect": 50
+        },
+        {
+          "op": "append",
+          "arg": 44,
+          "expect": 65
+        },
+        {
+          "op": "size",
+          "expect": 51
+        },
+        {
+          "op": "remove",
+          "arg": 415,
+          "expect": false
+        },
+        {
+          "op": "remove",
+          "arg": 803,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 51
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            732,
+            4
+          ],
+          "expect": 66
+        },
+        {
+          "op": "prepend",
+          "arg": 69,
+          "expect": 67
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            519,
+            44
+          ],
+          "expect": null
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            779,
+            42
+          ],
+          "expect": 68
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            69,
+            58,
+            75,
+            73,
+            60,
+            -2,
+            -12,
+            62,
+            66,
+            43,
+            -17,
+            42,
+            8,
+            19,
+            32,
+            51,
+            -13,
+            -12,
+            0,
+            -17,
+            20,
+            42,
+            5,
+            78,
+            10,
+            -6,
+            77,
+            47,
+            -17,
+            12,
+            56,
+            22,
+            20,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            4,
+            68,
+            69,
+            -6,
+            79,
+            52,
+            70,
+            59,
+            69,
+            44,
+            34,
+            48,
+            -5,
+            67,
+            -19,
+            44
+          ]
+        },
+        {
+          "op": "prepend",
+          "arg": -20,
+          "expect": 69
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -20,
+            69,
+            58,
+            75,
+            73,
+            60,
+            -2,
+            -12,
+            62,
+            66,
+            43,
+            -17,
+            42,
+            8,
+            19,
+            32,
+            51,
+            -13,
+            -12,
+            0,
+            -17,
+            20,
+            42,
+            5,
+            78,
+            10,
+            -6,
+            77,
+            47,
+            -17,
+            12,
+            56,
+            22,
+            20,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            4,
+            68,
+            69,
+            -6,
+            79,
+            52,
+            70,
+            59,
+            69,
+            44,
+            34,
+            48,
+            -5,
+            67,
+            -19,
+            44
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -20,
+            69,
+            58,
+            75,
+            73,
+            60,
+            -2,
+            -12,
+            62,
+            66,
+            43,
+            -17,
+            42,
+            8,
+            19,
+            32,
+            51,
+            -13,
+            -12,
+            0,
+            -17,
+            20,
+            42,
+            5,
+            78,
+            10,
+            -6,
+            77,
+            47,
+            -17,
+            12,
+            56,
+            22,
+            20,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            4,
+            68,
+            69,
+            -6,
+            79,
+            52,
+            70,
+            59,
+            69,
+            44,
+            34,
+            48,
+            -5,
+            67,
+            -19,
+            44
+          ]
+        },
+        {
+          "op": "append",
+          "arg": 11,
+          "expect": 70
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -20,
+            69,
+            58,
+            75,
+            73,
+            60,
+            -2,
+            -12,
+            62,
+            66,
+            43,
+            -17,
+            42,
+            8,
+            19,
+            32,
+            51,
+            -13,
+            -12,
+            0,
+            -17,
+            20,
+            42,
+            5,
+            78,
+            10,
+            -6,
+            77,
+            47,
+            -17,
+            12,
+            56,
+            22,
+            20,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            4,
+            68,
+            69,
+            -6,
+            79,
+            52,
+            70,
+            59,
+            69,
+            44,
+            34,
+            48,
+            -5,
+            67,
+            -19,
+            44,
+            11
+          ]
+        },
+        {
+          "op": "prepend",
+          "arg": 3,
+          "expect": 71
+        },
+        {
+          "op": "prepend",
+          "arg": 10,
+          "expect": 72
+        },
+        {
+          "op": "size",
+          "expect": 58
+        },
+        {
+          "op": "append",
+          "arg": 20,
+          "expect": 73
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            10,
+            3,
+            -20,
+            69,
+            58,
+            75,
+            73,
+            60,
+            -2,
+            -12,
+            62,
+            66,
+            43,
+            -17,
+            42,
+            8,
+            19,
+            32,
+            51,
+            -13,
+            -12,
+            0,
+            -17,
+            20,
+            42,
+            5,
+            78,
+            10,
+            -6,
+            77,
+            47,
+            -17,
+            12,
+            56,
+            22,
+            20,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            4,
+            68,
+            69,
+            -6,
+            79,
+            52,
+            70,
+            59,
+            69,
+            44,
+            34,
+            48,
+            -5,
+            67,
+            -19,
+            44,
+            11,
+            20
+          ]
+        },
+        {
+          "op": "prepend",
+          "arg": 44,
+          "expect": 74
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            44,
+            10,
+            3,
+            -20,
+            69,
+            58,
+            75,
+            73,
+            60,
+            -2,
+            -12,
+            62,
+            66,
+            43,
+            -17,
+            42,
+            8,
+            19,
+            32,
+            51,
+            -13,
+            -12,
+            0,
+            -17,
+            20,
+            42,
+            5,
+            78,
+            10,
+            -6,
+            77,
+            47,
+            -17,
+            12,
+            56,
+            22,
+            20,
+            41,
+            -5,
+            3,
+            -1,
+            45,
+            4,
+            68,
+            69,
+            -6,
+            79,
+            52,
+            70,
+            59,
+            69,
+            44,
+            34,
+            48,
+            -5,
+            67,
+            -19,
+            44,
+            11,
+            20
+          ]
+        },
+        {
+          "op": "remove",
+          "arg": 104,
+          "expect": true
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            475,
+            70
+          ],
+          "expect": 75
+        },
+        {
+          "op": "size",
+          "expect": 60
+        },
+        {
+          "op": "remove",
+          "arg": 654,
+          "expect": true
+        },
+        {
+          "op": "remove",
+          "arg": 929,
+          "expect": false
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            49,
+            24
+          ],
+          "expect": 76
+        },
+        {
+          "op": "append",
+          "arg": -19,
+          "expect": 77
+        },
+        {
+          "op": "remove",
+          "arg": 814,
+          "expect": true
+        },
+        {
+          "op": "append",
+          "arg": 60,
+          "expect": 78
+        },
+        {
+          "op": "size",
+          "expect": 61
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            567,
+            33
+          ],
+          "expect": 79
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            666,
+            31
+          ],
+          "expect": null
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            -1,
+            20
+          ],
+          "expect": null
+        },
+        {
+          "op": "append",
+          "arg": 35,
+          "expect": 80
+        },
+        {
+          "op": "prepend",
+          "arg": 35,
+          "expect": 81
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            232,
+            -7
+          ],
+          "expect": 82
+        },
+        {
+          "op": "append",
+          "arg": 10,
+          "expect": 83
+        },
+        {
+          "op": "append",
+          "arg": 42,
+          "expect": 84
+        },
+        {
+          "op": "remove",
+          "arg": -1,
+          "expect": false
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            800,
+            33
+          ],
+          "expect": 85
+        },
+        {
+          "op": "append",
+          "arg": 28,
+          "expect": 86
+        },
+        {
+          "op": "prepend",
+          "arg": -6,
+          "expect": 87
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            1002,
+            17
+          ],
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": 413,
+          "expect": true
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            -1,
+            40
+          ],
+          "expect": null
+        },
+        {
+          "op": "remove",
+          "arg": 33,
+          "expect": false
+        },
+        {
+          "op": "append",
+          "arg": -12,
+          "expect": 88
+        },
+        {
+          "op": "remove",
+          "arg": 939,
+          "expect": true
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            504,
+            -19
+          ],
+          "expect": 89
+        },
+        {
+          "op": "append",
+          "arg": 72,
+          "expect": 90
+        },
+        {
+          "op": "prepend",
+          "arg": 14,
+          "expect": 91
+        },
+        {
+          "op": "size",
+          "expect": 72
+        },
+        {
+          "op": "size",
+          "expect": 72
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            841,
+            42
+          ],
+          "expect": 92
+        },
+        {
+          "op": "append",
+          "arg": -15,
+          "expect": 93
+        },
+        {
+          "op": "append",
+          "arg": 42,
+          "expect": 94
+        },
+        {
+          "op": "insertAfter",
+          "arg": [
+            464,
+            13
+          ],
+          "expect": 95
+        },
+        {
+          "op": "remove",
+          "arg": 837,
+          "expect": true
+        }
+      ]
+    }
+  ]
+}

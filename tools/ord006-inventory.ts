@@ -70,6 +70,12 @@ const VERIFICATION_GRADES: Record<
   // `graphAdjMatrix` — 「공간」 표시였지만 계약이 갈린다(판별 셋째 걸음을 축3으로 돌려 확인). 칸
   // 배열 하나가 여덟 행을 지키고, 쌍을 읽는 두 경로의 정합 셋이 불변식이다.
   "graph-repr/graphAdjMatrix": "invariant",
+  // A군 핸들 수열(KAN-026 S5). 자기보다 뒤로 정렬되는 첫 기존 키(`linear/dynamicArray`) 앞에 둔다.
+  //
+  // `doublyLinkedList` — 연결 마디가 자명한 구현이므로(2026-09-15 유저 결정) 여섯 행이 앞뒤 이음을 든
+  // 마디 하나로 서고, 산 핸들 판정도 마디가 기억한 수열을 보는 상수다. 세어 둔 수 ↔ 늘어놓은 수 하나가
+  // 불변식이라 `basic` 이 아니다.
+  "linear/doublyLinkedList": "invariant",
   // A군 수열 둘(KAN-026 S4 · S6). 둘 다 자기보다 뒤로 정렬되는 첫 기존 키(`linear/stack`) 앞에 둔다.
   //
   // `dynamicArray` — 언어 배열 하나에 맡기면 여섯 행이 선다(불변 사실 197). 물려받은 두 배 늘리기는

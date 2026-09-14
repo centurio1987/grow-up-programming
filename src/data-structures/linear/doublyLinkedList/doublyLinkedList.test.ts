@@ -1,117 +1,28 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `linear/doublyLinkedList` 계약 스위트 실행부(규약2).
+ *
+ * 여기에는 `runContract` 호출만 둔다. 무엇을 검사하는지는 `./doublyLinkedList.contract.ts` 에 있고,
+ * 계약 자체는 `./doublyLinkedList.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다.
+ * 축3은 계측기가 붙은 정본에만 돈다 — 학습자 스텁에 `__cost` 를 요구하지 않는다.
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 물려받은 스위트의 「10^5 번 넣고 전부 빼기를 100ms 안에」가
+ * 재던 것은 복잡도 등급이 아니라 그 기계의 상수다. 자리는 축3이다. 물려받은 「prev / next 포인터
+ * 일관성」 단정은 뺀 표면(마디의 이음)을 읽으므로 옮기지 않았다 — 계약 헤더 불변식 절의 「후보였다가
+ * 빠진 것」이다.
+ */
+
+import { runContract } from "../../_contract/runContract";
+import { DoublyLinkedList as Reference } from "./_reference/doublyLinkedList";
 import { DoublyLinkedList } from "./doublyLinkedList";
+import { doublyLinkedListContract } from "./doublyLinkedList.contract";
 
-describe("DoublyLinkedList", () => {
-  describe("기본", () => {
-    test("append로 추가된 순서대로 toArray에 나타난다", () => {
-      const list = new DoublyLinkedList<number>();
-      list.append(1);
-      list.append(2);
-      list.append(3);
-      expect(list.toArray()).toEqual([1, 2, 3]);
-    });
+runContract(() => new DoublyLinkedList<number>(), doublyLinkedListContract, {
+  label: "스텁",
+});
 
-    test("prepend는 맨 앞에 추가된다", () => {
-      const list = new DoublyLinkedList<number>();
-      list.append(2);
-      list.prepend(1);
-      list.prepend(0);
-      expect(list.toArray()).toEqual([0, 1, 2]);
-    });
-
-    test("insertAfter는 해당 노드 뒤에 삽입한다", () => {
-      const list = new DoublyLinkedList<number>();
-      const n1 = list.append(1);
-      const n3 = list.append(3);
-      list.insertAfter(n1, 2);
-      expect(list.toArray()).toEqual([1, 2, 3]);
-    });
-
-    test("remove는 노드를 리스트에서 제거한다", () => {
-      const list = new DoublyLinkedList<number>();
-      const n1 = list.append(1);
-      const n2 = list.append(2);
-      list.append(3);
-      list.remove(n2);
-      expect(list.toArray()).toEqual([1, 3]);
-    });
-
-    test("size는 현재 노드 개수를 반환한다", () => {
-      const list = new DoublyLinkedList<number>();
-      expect(list.size()).toBe(0);
-      list.append(1);
-      list.append(2);
-      expect(list.size()).toBe(2);
-      list.remove(list.prepend(0));
-      expect(list.size()).toBe(2);
-    });
-  });
-
-  describe("엣지", () => {
-    test("빈 리스트의 toArray는 빈 배열을 반환한다", () => {
-      const list = new DoublyLinkedList<number>();
-      expect(list.toArray()).toEqual([]);
-    });
-
-    test("헤드 노드를 remove하면 다음 노드가 헤드가 된다", () => {
-      const list = new DoublyLinkedList<number>();
-      const head = list.append(1);
-      list.append(2);
-      list.remove(head);
-      expect(list.toArray()).toEqual([2]);
-    });
-
-    test("테일 노드를 remove하면 이전 노드가 테일이 된다", () => {
-      const list = new DoublyLinkedList<number>();
-      list.append(1);
-      const tail = list.append(2);
-      list.remove(tail);
-      expect(list.toArray()).toEqual([1]);
-    });
-
-    test("단일 노드를 remove하면 빈 리스트가 된다", () => {
-      const list = new DoublyLinkedList<number>();
-      const n = list.append(42);
-      list.remove(n);
-      expect(list.toArray()).toEqual([]);
-      expect(list.size()).toBe(0);
-    });
-
-    test("insertAfter가 반환한 노드는 즉시 remove 가능하다", () => {
-      const list = new DoublyLinkedList<number>();
-      const n1 = list.append(1);
-      list.append(3);
-      const n2 = list.insertAfter(n1, 2);
-      list.remove(n2);
-      expect(list.toArray()).toEqual([1, 3]);
-    });
-  });
-
-  describe("바운더리", () => {
-    test("prev / next 포인터 일관성 — 3개 노드", () => {
-      const list = new DoublyLinkedList<number>();
-      const n1 = list.append(1);
-      const n2 = list.append(2);
-      const n3 = list.append(3);
-      expect(n1.prev).toBeNull();
-      expect(n1.next?.value).toBe(2);
-      expect(n2.prev?.value).toBe(1);
-      expect(n2.next?.value).toBe(3);
-      expect(n3.prev?.value).toBe(2);
-      expect(n3.next).toBeNull();
-    });
-  });
-
-  describe("성능", () => {
-    test("10^5 append + 모두 remove를 100ms 이내에 처리한다", () => {
-      const list = new DoublyLinkedList<number>();
-      const N = 100_000;
-      const nodes = [];
-      const start = performance.now();
-      for (let i = 0; i < N; i++) nodes.push(list.append(i));
-      for (const n of nodes) list.remove(n);
-      expect(performance.now() - start).toBeLessThan(100);
-      expect(list.size()).toBe(0);
-    });
-  });
+runContract(() => new Reference<number>(), doublyLinkedListContract, {
+  label: "정본",
+  cost: { kind: "self-reported", make: () => new Reference<number>() },
 });

@@ -28,6 +28,7 @@ import { leftistHeapContract } from "../src/data-structures/heap/leftistHeap/lef
 import { priorityQueueContract } from "../src/data-structures/heap/priorityQueue/priorityQueue.contract.ts";
 import { circularBufferContract } from "../src/data-structures/linear/circularBuffer/circularBuffer.contract.ts";
 import { dequeContract } from "../src/data-structures/linear/deque/deque.contract.ts";
+import { doublyLinkedListContract } from "../src/data-structures/linear/doublyLinkedList/doublyLinkedList.contract.ts";
 import { dynamicArrayContract } from "../src/data-structures/linear/dynamicArray/dynamicArray.contract.ts";
 import { gapBufferContract } from "../src/data-structures/linear/gapBuffer/gapBuffer.contract.ts";
 import { queueContract } from "../src/data-structures/linear/queue/queue.contract.ts";
@@ -162,6 +163,7 @@ const SPECS: ContractSpec<any, any>[] = [
   priorityQueueContract,
   circularBufferContract,
   dequeContract,
+  doublyLinkedListContract,
   dynamicArrayContract,
   gapBufferContract,
   queueContract,

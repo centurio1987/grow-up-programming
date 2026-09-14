@@ -21,7 +21,7 @@ src/data-structures/heap/vanEmdeBoasTree	heap	vanEmdeBoasTree	-	-	-	107	402	fals
 src/data-structures/linear/bitArray	linear	bitArray	-	-	-	96	320	false
 src/data-structures/linear/circularBuffer	linear	circularBuffer	-	basic	-	0	540	true
 src/data-structures/linear/deque	linear	deque	A	complexity	-	0	318	true
-src/data-structures/linear/doublyLinkedList	linear	doublyLinkedList	-	-	-	78	312	false
+src/data-structures/linear/doublyLinkedList	linear	doublyLinkedList	-	invariant	-	0	312	true
 src/data-structures/linear/dynamicArray	linear	dynamicArray	-	invariant	-	0	325	true
 src/data-structures/linear/gapBuffer	linear	gapBuffer	-	invariant	-	0	687	true
 src/data-structures/linear/monotonicQueue	linear	monotonicQueue	-	-	-	77	765	false
