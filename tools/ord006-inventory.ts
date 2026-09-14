@@ -60,6 +60,16 @@ const VERIFICATION_GRADES: Record<
   string,
   "basic" | "invariant" | "complexity" | "concurrency"
 > = {
+  // A군 그래프 표현 둘(KAN-026 S9 · S10). **새 줄은 알파벳 자리에 넣는다**(`docs/ORD-006-wbs.md`
+  // §4) — 표 전체가 추가 순서로 쌓여 있어 「알파벳 자리」가 정해지지 않으므로, 자기보다 뒤로
+  // 정렬되는 첫 기존 키(`linear/stack`) 앞에 둔다. 기존 줄은 옮기지 않았다.
+  //
+  // `graphAdjList` — 정점 번호를 구조가 `[0, n)` 으로 매기므로 번호에서 이웃 배열을 찾는 데 사전이
+  // 들지 않고, 일곱 행이 정점마다 배열 하나로 선다. 불변식이 둘이라 `basic` 이 아니다.
+  "graph-repr/graphAdjList": "invariant",
+  // `graphAdjMatrix` — 「공간」 표시였지만 계약이 갈린다(판별 셋째 걸음을 축3으로 돌려 확인). 칸
+  // 배열 하나가 여덟 행을 지키고, 쌍을 읽는 두 경로의 정합 셋이 불변식이다.
+  "graph-repr/graphAdjMatrix": "invariant",
   "linear/stack": "basic",
   "tree/multiset": "complexity",
   "linear/deque": "complexity",

@@ -389,7 +389,7 @@ const UNITS: readonly Unit[] = [
     contract: "정점을 늘릴 수 있고 이웃 열거가 차수에 비례하는 그래프",
     canonical: "graph-repr/graphAdjList",
     transitions: [],
-    note: "bfs·dfs·hasPath 는 이웃 열거에서 유도되고 순서가 이웃 순서에 기댄다 — 남기면 처방. 정점 id 를 임의 정수로 받으면 언어 사전 미결(T3-01)에 걸려 등급이 흔들린다",
+    note: "완료(KAN-026 S9) — 정점 번호는 구조가 [0, n) 으로 매긴다(사전 미결 회피, TA-09 가 따른다). bfs·dfs·hasPath 는 뺐다. 차수 d 상한은 고리·별 두 끝으로 잰다(불변 사실 209–211)",
   },
   {
     id: "TA-08",
@@ -397,7 +397,7 @@ const UNITS: readonly Unit[] = [
     contract: "정점 수 고정 · 인접 여부와 가중치가 상수인 그래프",
     canonical: "graph-repr/graphAdjMatrix",
     transitions: [],
-    note: "공간 표시지만 계약이 갈린다(불변 사실 204) — 판별 셋째 걸음(축3)을 이 유닛이 돌린다. 안 갈리면 B15 처분으로 되돌린다. hasEdge 를 상수보다 약하게 적으면 TA-07 과의 판정이 다시 열린다",
+    note: "완료(KAN-026 S10) — 판별 셋째 걸음을 축3으로 돌려 계약이 갈림을 확정(이웃 배열 구현이 쌍 연산 넷에서 걸린다, 불변 사실 212). hasEdge 를 상수보다 약하게 적으면 TA-07 과의 판정이 다시 열린다",
   },
   {
     id: "TA-09",

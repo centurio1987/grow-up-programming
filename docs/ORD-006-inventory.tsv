@@ -2,8 +2,8 @@ path	category	name	defect_grade	verification_grade	escalation	problem_lines	guid
 src/data-structures/disjoint-set/disjointSetRollback	disjoint-set	disjointSetRollback	-	-	-	81	393	false
 src/data-structures/disjoint-set/unionFind	disjoint-set	unionFind	-	-	-	70	320	false
 src/data-structures/graph-repr/dag	graph-repr	dag	-	-	-	80	341	false
-src/data-structures/graph-repr/graphAdjList	graph-repr	graphAdjList	-	-	-	87	319	false
-src/data-structures/graph-repr/graphAdjMatrix	graph-repr	graphAdjMatrix	-	-	-	92	319	false
+src/data-structures/graph-repr/graphAdjList	graph-repr	graphAdjList	-	invariant	-	0	319	true
+src/data-structures/graph-repr/graphAdjMatrix	graph-repr	graphAdjMatrix	-	invariant	-	0	319	true
 src/data-structures/hash/hashMapChaining	hash	hashMapChaining	-	complexity	-	0	675	true
 src/data-structures/hash/hashMapOpenAddressing	hash	hashMapOpenAddressing	-	complexity	-	0	642	true
 src/data-structures/hash/hashSet	hash	hashSet	-	complexity	-	0	800	true
