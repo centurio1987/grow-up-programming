@@ -6,40 +6,40 @@
  *
  * 검증 등급 `basic` → 축3 엄격도는 `regression`(±60% · 2점 · 적대적 선택).
  *
- * **오차 보장을 축1 안에서 판정한다(2026-09-15 유저 결정 — `docs/ORD-006-conventions.md` 「A군 판정 — 사람 결정
- * 넷」).** 축을 늘리지 않고 하네스도 고치지 않았다 — 축1 연산 하나(`falsePositiveCheck`)가 판정을 불리언 관측값으로
- * 돌려주고 참조 모델은 늘 `true` 를 낸다(`graph-repr/dag` 의 `topologicalOrder` 와 같은 모양, 불변 사실 284). 그 연산은
- * 인자 `[용량 n, 목표 ε, seed]` 로 **새 필터를 하나 세워** 이렇게 본다.
+ * **확률 문장은 축1 통계 판정으로 본다 — `../../_contract/runTrials.ts`(2026-09-15 유저 결정 「축을 늘리지 않는다」 · 2026-09-16
+ * 결재 「H1 러너」, `docs/ORD-006-conventions.md` 「원칙 B」 · 그 적용 절).** 무작위 시퀀스 · 경계 케이스는 결정적인 쪽만 대조한다.
+ * 시행 하나(`bloomFilterTrial`)는 이렇다.
  *
- * 1. seed 로 정한 서로 다른 원소 n 개를 넣는다. 원소는 필터가 무작위를 뽑기 전에 정해진다 — 헤더가 확률의 출처를
- *    「구현이 뽑는 무작위」로 정했으므로 **어떤 원소 묶음이든** 이 판정의 입력이 된다. 그래서 원소를 무작위 문자열이
- *    아니라 `+<꼬리표>:<차례>` 의 **줄지은 문자열**로 둔다 — 고정 해시가 약하면 드러나는 모양이다.
- * 2. 넣은 n 개가 전부 `has` 참인지 본다(결정적인 쪽).
- * 3. 넣지 않은 서로 다른 원소 `QUOTA / ε` 개(`?<꼬리표>:<차례>`)를 묻고 참의 수가 `MARGIN × QUOTA` 이하인지 본다 —
- *    헤더의 판정 문장 「참의 수 ≤ 2 · ε · N」 그대로다(`N · ε = QUOTA`).
+ * 1. **새 워커 하나.** 헤더가 구현 무작위의 공유 범위를 「실행」으로 적었으므로 시행마다 새 실행이다(원칙 B 의 B3).
+ * 2. **필터 하나.** 용량 128 로 세워 서로 다른 원소 128 개(`+<꼬리표>:<차례>`)를 넣고 넣은 원소가 전부 참인지 본다(결정적 — 어기면
+ *    한계 없이 떨어진다). 넣지 않은 서로 다른 원소 64 개(`?<꼬리표>:<차례>`)를 묻는다. **원소는 워커를 띄우기 전에 seed · 시행
+ *    번호 · 모양만으로 정한다**(B1). 줄지은 문자열이라 고정 해시가 약하면 드러나는 모양이다 — 출처가 구현 무작위라 어떤 묶음이든 입력이다.
+ * 3. **Z_t** = (넣지 않은 원소 중 참의 수) ÷ 64. 모양마다 합 S = Σ Z_t 가 한계 k 를 넘으면 떨어진다.
  *
- * 관측값은 `true` 또는 처음 어긋난 자리를 적은 문자열이다. **판정은 시퀀스가 도는 필터를 건드리지 않는다** — 새 필터를
- * 세우므로 무작위 시퀀스의 상태와 섞이지 않고, 참조 모델이 필터의 확률적 답을 흉내 낼 필요가 없다.
+ * | 모양 | 시행 T | 한계 k | [보장] 상한 exp(−T · D(k/T ‖ ε)) |
+ * |---|---|---|---|
+ * | 용량 128 · ε 0.1 | 16 | 11 | 1.22 × 10^−7 |
+ * | 용량 128 · ε 0.001 | 312 | 7 | 2.61 × 10^−7 |
  *
- * **`QUOTA = 64` · `MARGIN = 2` 의 근거.** 넣지 않은 원소마다 따로 확률 ε 로 참을 내는 구현 — 헤더의 확률 문장을
- * 경계에서 지키는 구현 — 이 이 판정에서 떨어질 확률은 체르노프 부등식으로 e^{−64/3} ≈ 5.4 × 10^−10 이하다. 그 구현을
- * 판정 도구 fixture 로 두고 실제로 돌렸다(`../../_contract/_fixtures/boundaryRateFilter.ts`). 판정 8,000 회 탐침에서 그
- * 구현은 여유 1 이면 3,787 회 · 1.25 면 165 회 · 1.5 면 1 회 · **2 면 0 회** 떨어졌다 — 여유를 줄이면 **올바른 구현을
- * 떨어뜨리는 스위트**가 된다. 정본은 거짓 양성의 몫이 ε 의 절반 안팎이라 더 멀리 있다(같은 8,000 회에서 참 10 ~ 53 개,
- * 여유 1 에서도 0 회). 수치와 모양은 `../../_contract/runContract.bloomFilter.test.ts` 머리말.
+ * **[보장]** 계약을 지키는 어느 구현이든 한 판정에서 떨어질 확률이 위 상한 이하이고 스위트 한 번에 3.83 × 10^−7 이하다 —
+ * Hoeffding(1963) 정리 1(평균이 ε 이하인 [0, 1] 값 독립 변수의 합). **전제 셋:** ① 입력이 구현 무작위와 독립으로 정해진다(위 2)
+ * ② 시행끼리 독립 — 공유 범위가 실행이고 시행마다 새 워커다(워커 사이 `Math.random` 의 독립은 실행 환경의 전제이고 확인하지 않았다)
+ * ③ 시행당 E[Z_t] ≤ ε — 확률 문장이 원소마다 ε 를 누르므로 기댓값의 선형성으로 선다(원소 사이 독립은 필요 없다). 그래서 **생성 때
+ * 동전 하나로 넣지 않은 원소 전부에 참을 내는 구현도** 부당하게 더 떨어지지 않는다. k 는 「상한 ≤ 10^−6 ÷ 판정 수 2」 인 가장 작은
+ * 정수다(`../../_contract/judgeTrials.ts`).
+ *
+ * **[경험]** T 는 목표를 읽지 않는 fixture(`FixedWidthBloomFilter`, 참의 몫을 0.0283 으로 둔 이항 모형)를 놓칠 모형 확률이 10^−6
+ * 이하인 가장 작은 8 의 배수다(모형 확률 1.29 × 10^−7) — 모형이고 보장이 아니다. fixture 들의 실제 판정 수치 · 반복 수는
+ * `docs/ORD-006-conventions.md` 의 `S24` 절 「fixture 수치」 표.
  *
  * **넣지 않은 원소의 `has` 는 관측값에서 뺀다.** 한 번의 답은 참이든 거짓이든 계약을 지키므로 참조 모델이 대조할 값이
  * 없다. 껍데기가 넣은 원소를 기록하고(`add` 가 반환값이 없어 넣은 것은 전부 담긴다), 기록에 없는 원소의 `has` 는
- * 구현을 부르되 관측값을 `"not-added"` 로 바꾼다. 그 답들의 판정은 위 연산이 모아서 한다.
+ * 구현을 부르되 관측값을 `"not-added"` 로 바꾼다. 그 답들의 판정은 위 통계 판정이 독립 시행으로 한다.
  *
  * **껍데기를 하나 씌운다(불변 사실 83).** 생성자가 용량 · 목표 오차를 받으므로 축3 사다리를 오르려면 그 크기의 필터를
- * 다시 세워야 하고, 판정 연산도 새 필터를 세운다. `linear/bitArray` 처럼 **생성자 행을 축1 연산(`constructor`)으로
+ * 다시 세워야 한다. `linear/bitArray` 처럼 **생성자 행을 축1 연산(`constructor`)으로
  * 부른다** — 받아들이면 새 필터로 바꾸고 기록을 비우며, `RangeError` 면 이전 필터를 그대로 둔다. 무작위 시퀀스는 크기를
  * 드물게, 기본 모양으로만 바꾼다(`docs/ORD-006-conventions.md` 「껍데기가 생성자 행을 축1 연산으로 부른다」의 규칙).
- *
- * **무작위 시퀀스의 판정 연산은 가벼운 모양만 쓴다** — 용량 128 · ε ∈ {0.1, 0.01}(물을 원소 640 · 6,400 개). 무거운
- * 모양(ε = 0.001, 물을 원소 64,000 개)은 경계 케이스가 한 번 짚는다. 목표 오차를 읽지 않고 크기를 정하는 구현은 ε 가
- * 작을수록 드러나므로 세 모양을 모두 둔다(`../../_contract/_fixtures/fixedWidthBloomFilter.ts`).
  *
  * **축3 시나리오의 n 은 용량이자 넣은 원소 수다.** 원소 길이 L 과 목표 오차 ε 는 상수로 눌러(§규약2 시나리오 규칙 3)
  * 헤더의 `O(L · log(1/ε))` 가 n 에 대해 `O(1)` 로 판정된다. 담긴 수가 비용에서 빠지는 것이 이 계약의 비용 조건이다.
@@ -48,6 +48,11 @@
  */
 
 import { rngFrom } from "../../_contract/judge";
+import {
+  type TrialPlan,
+  type TrialResult,
+  trialSeed,
+} from "../../_contract/judgeTrials";
 import type { ContractSpec } from "../../_contract/runContract";
 
 /** 헤더 연산 계약 표의 **두 행**을 그대로 옮긴 표면. 생성자 행은 껍데기가 나른다. */
@@ -68,11 +73,6 @@ export type FilterMaker = (
 const CAPACITY = 64;
 const RATE = 0.01;
 
-/** 판정 한 번에서 넣지 않은 원소에 기대하는 참의 수 — `N · ε`. 파일 머리 설명 참고. */
-export const QUOTA = 64;
-/** 헤더가 정한 여유. 참의 수가 `MARGIN × QUOTA` 를 넘으면 떨어진다. */
-export const MARGIN = 2;
-
 /** 범위 밖 생성 인자의 관측값. 계약이 `RangeError` 를 적은 자리다. */
 const OUT_OF_RANGE = "RangeError";
 /** 넣지 않은 원소에 대한 `has` 의 관측값. 한 번의 답은 판정하지 않는다. */
@@ -85,34 +85,6 @@ function observe<T>(call: () => T): T | string {
     if (error instanceof RangeError) return OUT_OF_RANGE;
     throw error;
   }
-}
-
-/**
- * 오차 판정 하나. 새 필터를 세워 넣고 묻고, 통과하면 `true`, 아니면 처음 어긋난 자리를 적은 문자열을 돌려준다.
- * 자기시험과 탐침이 같은 판정을 쓰도록 내보낸다.
- */
-export function judgeFalsePositives(
-  make: FilterMaker,
-  capacity: number,
-  falsePositiveRate: number,
-  seed: number,
-): true | string {
-  const filter = make(capacity, falsePositiveRate);
-  const tag = Math.floor(rngFrom(seed)() * 36 ** 5).toString(36);
-  for (let i = 0; i < capacity; i++) filter.add(`+${tag}:${i}`);
-  for (let i = 0; i < capacity; i++) {
-    if (!filter.has(`+${tag}:${i}`))
-      return `거짓 음성 — ${i}번째로 넣은 원소가 has 거짓 (용량 ${capacity})`;
-  }
-  const queries = Math.round(QUOTA / falsePositiveRate);
-  let hits = 0;
-  for (let i = 0; i < queries; i++) if (filter.has(`?${tag}:${i}`)) hits++;
-  const limit = MARGIN * QUOTA;
-  if (hits <= limit) return true;
-  return (
-    `거짓 양성 ${hits} / 한계 ${limit} — 용량 ${capacity} 을 채우고 넣지 않은 원소 ${queries} 개를 ` +
-    `물었다(ε = ${falsePositiveRate}, 여유 ${MARGIN})`
-  );
 }
 
 /** 하네스용 껍데기. 필터 하나와 그 필터에 넣은 원소의 기록을 들고, `reset` 으로 새 필터로 바꾼다. */
@@ -153,14 +125,6 @@ export class SizedFilter {
     const answer = this.#filter.has(item);
     return this.#added.has(item) ? answer : NOT_ADDED;
   }
-
-  judge(
-    capacity: number,
-    falsePositiveRate: number,
-    seed: number,
-  ): true | string {
-    return judgeFalsePositives(this.#make, capacity, falsePositiveRate, seed);
-  }
 }
 
 /** 축1 참조 모델. 넣은 원소의 집합 — 넣은 원소의 답만 결정적이므로 이것으로 충분하다. */
@@ -199,12 +163,6 @@ function someShape(rng: () => number): [number, number] {
     [CAPACITY, 1],
   ];
   return bad[Math.floor(rng() * bad.length)] as [number, number];
-}
-
-/** 축1 무작위 판정 인자. 가벼운 모양 둘 중 하나와 seed. 파일 머리 설명 참고. */
-function someCheck(rng: () => number): [number, number, number] {
-  const rate = rng() < 0.5 ? 0.1 : 0.01;
-  return [128, rate, Math.floor(rng() * 0x7fff_ffff)];
 }
 
 /** 모델 쪽 생성 인자 판정 — 헤더 「주입 정책」의 조건. */
@@ -263,15 +221,6 @@ export const bloomFilterContract: ContractSpec<SizedFilter, Model> = {
       onImpl: (impl, arg) => impl.has(arg as string),
       onModel: (model, arg) =>
         model.added.has(arg as string) ? true : NOT_ADDED,
-    },
-    {
-      name: "falsePositiveCheck",
-      arg: (rng) => someCheck(rng),
-      onImpl: (impl, arg) => {
-        const [capacity, rate, seed] = arg as [number, number, number];
-        return impl.judge(capacity, rate, seed);
-      },
-      onModel: () => true,
     },
   ],
 
@@ -338,15 +287,6 @@ export const bloomFilterContract: ContractSpec<SizedFilter, Model> = {
         { op: "has", arg: "k" },
       ],
     },
-    {
-      // 목표 오차 셋. 목표를 읽지 않고 크기를 정하는 구현은 작은 ε 에서 떨어진다.
-      name: "오차 판정 — 용량을 채우고 넣지 않은 원소 64/ε 개를 물으면 참이 128 개 이하다 (ε = 0.1 · 0.01 · 0.001)",
-      steps: [
-        { op: "falsePositiveCheck", arg: [256, 0.1, 1] },
-        { op: "falsePositiveCheck", arg: [1024, 0.01, 2] },
-        { op: "falsePositiveCheck", arg: [1024, 0.001, 3] },
-      ],
-    },
   ],
 
   invariants: [],
@@ -384,4 +324,90 @@ export const bloomFilterContract: ContractSpec<SizedFilter, Model> = {
       },
     },
   ],
+};
+
+// ── 축1 통계 판정 — `../../_contract/runTrials.ts` 가 시행마다 새 워커에서 `bloomFilterTrial` 을 부른다 ──
+
+/** 통계 판정의 이름. 헤더 「오차 보장」의 확률 문장이다. */
+const FALSE_POSITIVE = "넣지 않은 원소에 참";
+
+/** 시행 하나의 필터 용량과 물을 원소 수. 파일 머리 설명 참고. */
+const TRIAL_CAPACITY = 128;
+const TRIAL_QUERIES = 64;
+
+/** 시행 하나의 입력 — 넣을 원소와 물을 원소. 워커를 띄우기 전에 정해진다. */
+export interface MembershipInput {
+  added: readonly string[];
+  absent: readonly string[];
+}
+
+/** 시행 t 의 입력. seed · 시행 번호 · 모양 번호와 용량만 읽는다(원칙 B 의 B1). */
+export function membershipInput(
+  capacity: number,
+  seed: number,
+  trial: number,
+  shape: number,
+): MembershipInput {
+  const tag = Math.floor(
+    rngFrom(trialSeed(seed, trial, shape))() * 36 ** 5,
+  ).toString(36);
+  return {
+    added: Array.from({ length: capacity }, (_, i) => `+${tag}:${i}`),
+    absent: Array.from({ length: TRIAL_QUERIES }, (_, i) => `?${tag}:${i}`),
+  };
+}
+
+/** 시행 함수. 워커 안에서 필터 하나를 세워 넣고 묻는다. 판정은 하지 않는다. */
+export function bloomFilterTrial(
+  make: FilterMaker,
+  params: readonly [number, number],
+  input: MembershipInput,
+): TrialResult {
+  const [capacity, rate] = params;
+  const filter = make(capacity, rate);
+  for (const item of input.added) filter.add(item);
+  let violation: string | null = null;
+  for (const [index, item] of input.added.entries()) {
+    if (!filter.has(item)) {
+      violation = `거짓 음성 — ${index}번째로 넣은 원소가 has 거짓 (용량 ${capacity})`;
+      break;
+    }
+  }
+  let misses = 0;
+  let first: string | null = null;
+  for (const item of input.absent) {
+    if (filter.has(item)) {
+      misses++;
+      first ??= `넣지 않은 원소 ${item} 에 참 (ε = ${rate})`;
+    }
+  }
+  return {
+    violation,
+    tallies: {
+      [FALSE_POSITIVE]: { events: input.absent.length, misses, first },
+    },
+    cost: filter.__cost ?? 0,
+  };
+}
+
+function trialShape(rate: number, trials: number) {
+  return {
+    name: `용량 ${TRIAL_CAPACITY} · ε ${rate}`,
+    params: [TRIAL_CAPACITY, rate] as const,
+    trials,
+    judgments: [{ id: FALSE_POSITIVE, delta: rate }],
+    input: (seed: number, trial: number, shape: number) =>
+      membershipInput(TRIAL_CAPACITY, seed, trial, shape),
+  };
+}
+
+/** 통계 판정 계획. 시행 수는 `docs/ORD-006-conventions.md` 「원칙 B」 적용표 — 파일 머리 설명 참고. */
+export const bloomFilterTrials: TrialPlan<
+  readonly [number, number],
+  MembershipInput
+> = {
+  name: "BloomFilter",
+  trial: { module: import.meta.url, exportName: "bloomFilterTrial" },
+  seed: 1,
+  shapes: [trialShape(0.1, 16), trialShape(0.001, 312)],
 };

@@ -4216,7 +4216,7 @@ WBS 는 `tree/merkleTree` 를 「증명 검증을 가진 불변 구조」로 적
 | `docs/ORD-006-conventions.md:3435` (T2-04 보강 절) | 같은 헤더가 앞의 형태로 적혀 있어 칸반 메모로 넘긴다 | 같다 | 절 끝에 「T2-05 에서 고침」 |
 | `docs/ORD-006-conventions.md:2160` (B18 3단계) | 「A ⊂ B ⊂ D 이고 C 는 B 와 서로 담지 않는다」 | 비용 열까지 대조하면 A ⊂ B · A ⊂ C ⊂ D 이고 B 는 C · D 와 서로 담지 않는다. 「B ⊂ D」는 연산 집합의 포함일 뿐이다(§「포섭 사슬은 비용 열까지 대조해야 선다」 · 불변 사실 257) | 문장 뒤에 그 절을 가리키는 한 줄 |
 | `docs/ORD-006-conventions.md:2239` (B19 표 `unionFind` ↔ `disjointSetRollback` 행) | 「경로를 압축하는 구현은 뒤를 만족하지 못한다 — 압축이 이전 상태를 지운다」 | 계약의 문장이 아니다 — 줄인 칸을 기록하는 구현이 선다. 참인 것은 「되돌리기가 줄이기의 상각 이득을 무를 수 있다」(§「되돌리기는 한정자를 깨지 않고 상각에 기댄 설계를 깨뜨린다」 · 불변 사실 317) | 셀 끝에 그 절 가리킴 |
-| `src/data-structures/tree/linkCutTree/linkCutTree.ts:23` | 「`disjoint-set/unionFind` 와 갈리는 자리는 `cut` 하나다」 | 이름표 연산(그 집합의 가장 작은 원소) 몫만큼 좁다 — 서로 담지 않는다(불변 사실 315 · `src/data-structures/disjoint-set/unionFind/unionFind.ts:38`) | 헤더 문장 교체. `tools/ord006-inventory.ts:155` 주석의 같은 문장도 함께. `tree/linkCutTree` 는 `KAN-027` scope 밖 |
+| `src/data-structures/tree/linkCutTree/linkCutTree.ts:23` | 「`disjoint-set/unionFind` 와 갈리는 자리는 `cut` 하나다」 | 이름표 연산(그 집합의 가장 작은 원소) 몫만큼 좁다 — 서로 담지 않는다(불변 사실 315 · `src/data-structures/disjoint-set/unionFind/unionFind.ts:38`) | 헤더 문장 교체. `tools/ord006-inventory.ts:156` 주석의 같은 문장도 함께. `tree/linkCutTree` 는 `KAN-027` scope 밖 |
 | `src/data-structures/tree/linkCutTree/linkCutTree.ts:25` · `:129` | `disjointSetRollback` 이 되돌리는 것은 「마지막에 넣은 간선」 / 「빼는 것을 마지막에 넣은 것부터로 묶으면 되돌릴 수 있는 분리 집합」 | 되돌리는 단위는 **합치기 호출**이다 — 아무것도 안 바꾼 호출도 하나로 세고 던진 호출은 세지 않는다(§「되돌리는 단위를 호출로 정하면 스냅숏이 연산에서 빠진다」 · 불변 사실 319) | 두 문장 교체(위 행과 같은 커밋) |
 | `docs/ORD-006-conventions.md:2570` · `:2579` (T1-06 「`worst` 만 있는 계약의 한정자 근거」) | 배제되는 계열이 「둘뿐」이고 둘 다 불변 구조에 없다 · 「다음 불변 구조(`sparseTable` · `merkleTree`)가 이 문단을 그대로 쓴다」 | 셋째 계열(구성을 첫 질의로 미루기)이 있다(불변 사실 328 — `S17` 착수 전 절 끝에 한 줄 보강함). `tree/merkleTree` 는 불변 구조가 아니었다(불변 사실 343) | 「둘뿐」 문장과 뒤 문장 정정, 보강 한 줄은 본문에 녹이고 지운다 |
 | `src/data-structures/tree/cartesianTree/cartesianTree.ts:96` | 「배제되는 계열은 둘이고 이 계약에는 둘 다 없다」 | 같다(불변 사실 328). `S19` 가 확인했다 — 같은 두 계열 문장을 든 헤더는 이것 하나이고 `trie/suffixArray` · `trie/suffixTree` 헤더에는 그 근거 문단이 없다 | 셋째 계열을 짓고 재서 헤더 보강 — `tree/cartesianTree` 는 scope 밖 |
@@ -6642,7 +6642,7 @@ KAN-027 이 쓰지 않고 반납한 `380–389`(검토 #11 승인)를 **앞으�
 | `docs/ORD-006-conventions.md:6440` | 산문 「4432–4434」 · 「4756」(두 번) | 「5625–5627」 · 「5949」 | 같다 |
 | `docs/ORD-006-conventions.md:6209` | `tools/ord006-wbs.ts:303` · 처분 「병합 뒤(`KAN-027` 쪽 블록 확인)」 | `tools/ord006-wbs.ts:310` · 「병합으로 해소」 | 병합본의 303 은 `T5-04` 유닛 줄이었다. KAN-027 이 뺀 유닛이라 뺀 자리 주석만 남았다 |
 | `tools/ord006-wbs.ts:49` | 「300-349 · 380-389 는 KAN-027 몫이다」 | 380-389 는 쓰지 않고 반납 | 검토 #11 승인. 줄 수는 그대로 |
-| `tools/ord006-wbs.ts:450` | TA-13 「KAN-027 병합 전까지 이 워크트리에서 두 번 세어진다」 | 병합 뒤로는 한 번만 세어진다 | 병합으로 해소 |
+| `tools/ord006-wbs.ts:451` | TA-13 「KAN-027 병합 전까지 이 워크트리에서 두 번 세어진다」 | 병합 뒤로는 한 번만 세어진다 | 병합으로 해소 |
 | `docs/ORD-006-wbs.md:54` | T5 대역 「모자라면 380–389」 | 반납 | `tools/ord006-wbs.ts:49` 와 같은 사실 — 대역 표가 정본이라 함께 |
 
 ### 정정 담당 확정 — 낡은 문장 목록 전부 (S26)
@@ -6805,7 +6805,7 @@ KAN-027 이 쓰지 않고 반납한 `380–389`(검토 #11 승인)를 **앞으�
 | 135 | 이 배치가 찾은 것 | `docs/ORD-006-conventions.md` 짧은 인용 14 곳(`:4409` · `:4410` · `:4916` · `:5133` · `:5711` · `:5712` · `:5871` · `:6011` · `:6174` · `:6203` · `:6210` · `:6222` · `:6241` · `:6440`) | 고침 S26 | 이 배치(끝남) | 병합 재매핑이 옮기지 못한 `:N` · 산문 줄 번호 — 아래 「이 work 가 고친 줄」 |
 | 136 | 이 배치가 찾은 것 | `tools/ord006-wbs.ts:49` TA 주석 「300-349 · 380-389 는 KAN-027 몫」 | 고침 S26 | 이 배치(끝남) | 380–389 반납(KAN-027 검토 #11) |
 | 137 | 이 배치가 찾은 것 | `docs/ORD-006-wbs.md:54` T5 행 「모자라면 380–389」 | 고침 S26 | 이 배치(끝남) | 같다 — 대역 표가 정본이라 함께 |
-| 138 | 이 배치가 찾은 것 | `tools/ord006-wbs.ts:450` TA-13 note 「KAN-027 병합 전까지 두 번 세어진다」 | 고침 S26 | 이 배치(끝남) | 병합으로 해소 |
+| 138 | 이 배치가 찾은 것 | `tools/ord006-wbs.ts:451` TA-13 note 「KAN-027 병합 전까지 두 번 세어진다」 | 고침 S26 | 이 배치(끝남) | 병합으로 해소 |
 | 139 | 이 배치가 찾은 것 | `docs/ORD-006-runbook.md:938` · `:1314` · `:1367` · `:1720` 의 380–389 | 둔다 | — | 그 시점 기록 — 반납은 `docs/ORD-006-wbs.md` §2 표가 적는다 |
 | 140 | 이 배치가 찾은 것 | `docs/ORD-006-conventions.md:4064` (T5-06 「자료구조인가」 두 물음) · `:4715` (⑥ 물음 하나) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 두 절 끝에 아래 「합친 읽기」를 가리키는 한 줄씩 |
 | 141 | 이 배치가 찾은 것 | `docs/ORD-006-conventions.md:3343` (T2-04 핸들) · `:5155` (S5 핸들) | 둔다 | — | 두 계약의 선택 — 차이와 근거를 아래에 적었다 |
@@ -6986,3 +6986,366 @@ H1 러너를 `expected` 에 쓰기, main 병합 뒤 · `KAN-036` 전), 구현을
 **규칙.** 호출별 기대를 적은 계약에서 하네스를 고치지 않고 그 읽기를 재려면 **입력을 seed 와 무관하게 고정하고, n 과 무관한 상수 개의 탐침 호출만
 감싼다.** 탐침 수는 정본이 흔들리지 않는 가장 작은 수를 [경험] 으로 고르고, 한 호출만 재는 설계는 정본의 분산이 판정 허용 폭보다 커서 쓰지
 않는다. 이 틀은 H2 가 서면 그 규격으로 옮긴다.
+
+## 원칙 A 적용 · dag 닿는 부분 · rollingHash 제외 범위 (KAN-026 S23 · S25 · S26 — 2026-09-16)
+
+> 검토 반려(2026-09-15 유저) 재작업 배치13. 반려 근거는 KAN-026 검토 #2 · #3 · #4(원칙 A 적용) · #8(dag k) · #10(rollingHash)이고,
+> 원 항목은 `KANBAN.reviews/KAN-026.review.md` 3항이다. 앞 절들의 문장은 고치지 않았다(절 추가만) — 이 절 때문에 낡는 문장은 끝
+> 목록에 모았다. 판정표 ③(요약 관찰 · 순서 질의)은 2026-09-16 결재로 `KAN-040` 몫이라 건드리지 않았다. 판정 과정의 수치는
+> `KANBAN.batches/KAN-026.batch13.md` 4절에 있다.
+
+### `dynamicArray.toArray` 제거와 등급 재판정 (S23 — 판정표 ① 10)
+
+**판정 줄.** A2 — `get(i)` 를 `size()` 번 부르면 같은 뜻이다. A4 — 뺀 행의 상한 `O(n)` 이 그 조합의 비용과 같은 계급이라 떨어지는 계열이
+없는 편의 연산이다. A5 — 헤더 반례 표 두 줄(`singlyLinkedList` 와는 앞 끝 넣기 대 첨자 읽기, `doublyLinkedList` 와는 핸들 자리 끼우기 대
+첨자 읽기)이 늘어놓기에 기대지 않는다. 그래서 **제거**다. 근거는 A5 의 결과이고 「규칙의 예외를 피한다」(A6 ③)가 아니다 — 헤더
+`src/data-structures/linear/dynamicArray/dynamicArray.ts:22-24` 가 그 세 줄을 적는다.
+
+**등급 재판정 — §규약1 「불변식 판별 절차」를 후보마다 다시 돌렸다.**
+
+| 후보 | 상태를 바꾸지 않고 읽는 경로 | 걸리는 물음 | 결과 |
+|---|---|---|---|
+| 「`get(i)` 와 늘어놓은 i 번째가 같다」(옛 불변식 2) | `get` 하나 — 늘어놓기가 빠졌다 | 첫째(경로 하나) | 불변식 아님 — `get` 의 의미, 축1 |
+| 「원소 수를 읽는 두 경로가 같다」(옛 불변식 1 이 늘어놓기 대신 `get` 을 만난 모양) | `size()` · 「`get` 이 원소를 돌려주는 첨자의 끝」 둘 | 둘째 — `get` 행이 「`[0, size())` 안의 정수가 아니면 `null`」로 이미 적는다 | 불변식 아님 |
+| 「`pop()` 이 돌려주는 값은 `get(size() - 1)` 」 | 한쪽이 상태를 바꾼다 | 「관측이 상태를 바꾸면 관측 경로로 세지 않는다」 | 후보 아님 |
+| 「담긴 수 ≥ 칸 수의 4분의 1」 | 없다(`capacity()` 를 뺐다) | 담는 모양(불변 사실 36) | 후보 아님 |
+
+불변식 절이 비고, 다섯 행이 언어 배열 하나로 서므로(불변 사실 197) **`invariant` → `basic`** 이다. 등급은 연산 집합에서 따라 나온
+결과이지 뺀 근거가 아니다(A6 ②). `RIGOR_OF_GRADE` 가 두 등급에 같은 `regression` 을 주므로(`src/data-structures/_contract/judge.ts:43-48`)
+축3 판정은 한 행도 바뀌지 않았다 — 자기시험 기대값(정본 전부 통과 · 결함 셋의 걸리는 행)이 그대로 통과한다. 같은 값을 네 곳에
+적었다: 헤더 `src/data-structures/linear/dynamicArray/dynamicArray.ts:86` · `tools/ord006-inventory.ts` 의 `VERIFICATION_GRADES` ·
+`docs/ORD-006-inventory.tsv` 해당 행(손으로만 — 생성기는 돌리지 않았다) · 계약 스위트 `grade`(vector 의 `grade` 로 옮겨진다).
+
+**후속 변경 범위 — 검토 #4 가 요구한 목록을 실제로 바뀐 것으로 적는다.** 검토서의 예상(스위트 언급 19 곳 · 경계 케이스 하나 · vector
+44 단계 · 자기시험 키 · 반례 표 두 자리)과 대조한 결과다.
+
+| 자리 | 바뀐 것 |
+|---|---|
+| 스텁 `dynamicArray.ts` | 메서드 `toArray` 제거 · 헤더: 목적 끝 문장 · 「없는 것」 넷 → 다섯(늘어놓기 한 항목, 판정 줄 셋) · 반례 표 「여섯 행」 → 「다섯 행」 · 불변식 절 → 「없다」 + 후보 넷 · 연산 표 한 행 · 한정자 문단의 `toArray` 구절 · 검증 등급 `basic` + 「처음 섰을 때는 `invariant`」 문단. `toArray` 언급 5 → 2(뺀 이력 둘) |
+| 정본 `_reference/dynamicArray.ts` | 메서드 제거(8 줄) · 그 자리에 뺀 까닭과 조합 비용을 적은 주석 8 줄 · 계측 단위 문장. `toArray` 언급 2 → 0 |
+| 계약 스위트 `dynamicArray.contract.ts` | 표면 인터페이스 · 축1 연산 · `grade` · `invariants` 2 → 0 · 축3 시나리오 7 → 6 · 경계 케이스 여섯 중 「돌려받은 배열을 고쳐도 구조는 그대로다」 삭제, 나머지 넷의 `toArray` 단계 7 개를 `get` · `size` 짚기 23 개로(늘었다 줄어드는 케이스는 담긴 첨자 전부를 짚는다). `toArray` 언급 19 → 1(뺀 이력) |
+| 자기시험 `runContract.dynamicArray.test.ts` | 머리말 표 한 행 · `ALL_PASS` 키 하나 · 「일곱 시나리오」 → 「여섯」 · `judgeScenario` 등급 인자를 계약의 `grade` 로 · 뺀 이력 문단 |
+| vector `rust/vectors/DynamicArray.json` | `grade` `invariant` → `basic` · 케이스 7 → 6 · 단계 261 → 272 · `toArray` 단계 44 → 0 · 무작위 시퀀스(200 단계)는 연산 다섯에서 다시 뽑혔다. 다른 vector 40 종은 그대로(`bun run tools/emit-vectors.ts --check`) |
+| Rust 재생 | 없다 — `rust/` 에서 `DynamicArray.json` 을 읽는 시험이 없다(`rust/structures/tests/vector.rs` 는 `ConcurrentSkipList.json`, `rust/contract/tests/vector.rs` 는 `Stack.json`). `cargo test` 로 확인 |
+| 이웃 헤더 | `src/data-structures/linear/doublyLinkedList/doublyLinkedList.ts:51` 반례 표의 「저쪽의 여섯 행」 → 「다섯 행」 · `graph-repr/dag` 불변식 문단의 「`linear/dynamicArray` 의 1번과 같은 모양」 → `linear/doublyLinkedList` 의 불변식(가리키던 불변식이 사라졌다) |
+| 등록 · 표시 | `VERIFICATION_GRADES` · inventory 행 · `tools/ord006-wbs.ts` TA-03 note · `tools/guide-skeleton.test.ts` 의 `SKELETON_EXEMPT` 사유(가이드 본문은 `KAN-036` 몫) |
+| 고치지 않은 것 | fixture 셋(`stepGrowthArray` · `halfShrinkArray` · `walkingIndexList`)은 `toArray` 를 든 채 둔다 — 읽기만 하는 파일이고 계약 표면에 없는 메서드라 하네스가 부르지 않는다. `dynamicArray.size`(판정표 ③)는 `KAN-040` |
+
+**인용 줄을 지켰다.** 판정표 ① · ③ 이 `dynamicArray.ts:36-37` · `:61`(`size` 행)을, 3900 행 절이 정본 `:96`(`#moveTo`)을 줄로 가리키고 이
+문서는 절 추가만 하므로, 헤더 앞부분의 줄 수와 정본의 줄 수를 그대로 두었다(불변 사실 81).
+
+### 근거 교체 16 행 (S23)
+
+판정표 ① 에서 「근거 교체」로 적은 행의 헤더 문장을 판정 줄로 바꿨다. **결과(제거 · 유지)는 한 행도 바뀌지 않았다.** 파일마다 줄 수를
+그대로 두어 판정표 ① 의 헤더 인용이 같은 문장을 가리킨다.
+
+| # | 구조 · 연산 | 헤더 자리 | 옛 근거 | 새 근거 |
+|---|---|---|---|---|
+| 4 | `singlyLinkedList.find` | `src/data-structures/linear/singlyLinkedList/singlyLinkedList.ts:18-21` | 배제하는 구현이 없다(47 · 70 · 210) | A2(`toArray` 로 훑기) · A4 · A5 |
+| 6 | `doublyLinkedList` 끝에서 핸들 없이 빼기 | `src/data-structures/linear/doublyLinkedList/doublyLinkedList.ts:26-28` | 배제 없는 차이 | A2(끝 원소 핸들로 `remove`) · A4 · A5 |
+| 7 | `doublyLinkedList` 값으로 찾기 | `src/data-structures/linear/doublyLinkedList/doublyLinkedList.ts:29-31` | 배제하는 구현이 없다 | A2(늘어놓기 + 넣기가 돌려준 핸들) · A4 · A5 |
+| 8 | `doublyLinkedList` 뒤에서 앞으로 늘어놓기 | `src/data-structures/linear/doublyLinkedList/doublyLinkedList.ts:33-34` | 같은 계급이라 배제 없음 | A2(`toArray` 뒤집기) · A4 · A5 |
+| 15 · 16 | `graphAdjList` `bfs` · `dfs` · `hasPath` | `src/data-structures/graph-repr/graphAdjList/graphAdjList.ts:13-19` | 방문 순서가 안 정해진다 · 배제 없음 | A2(`neighbors` 로 짓는다) · A4 · A5 — 방문 순서는 보조 근거로 남겼다 |
+| 17 | `graphAdjMatrix` `bfs` · `dfs` | `src/data-structures/graph-repr/graphAdjMatrix/graphAdjMatrix.ts:14-17` | 방문 순서가 안 정해진다 | A2 · A4 · A5 — 방문 순서는 보조 근거 |
+| 18 | `graphAdjMatrix` 간선 수 | `src/data-structures/graph-repr/graphAdjMatrix/graphAdjMatrix.ts:18-20` | 더해도 배제 없음 · 47 | A2(칸마다 `hasEdge`) · A4(상수 보강) · A5 |
+| 19 | `dag` `longestPath` · 무게 | `src/data-structures/graph-repr/dag/dag.ts:16-20` | 배제하는 구현이 없다(210) | A2(`topologicalOrder` + 호출자가 받아들여진 `addEdge` 로 아는 간선) · A4 · A5 / 무게 A3 |
+| 20 | `dag.hasCycle` | `src/data-structures/graph-repr/dag/dag.ts:21` | 늘 거짓이라 배제 없음 | A2(호출 없이 아는 상수) · A4 · A5 |
+| 22 | `bitArray.count` | `src/data-structures/linear/bitArray/bitArray.ts:46-49` | 배제 없음 · 「상수로 올려 적으면 세어 둔 수만 남는데 목적이 없다」 | A2(`get` 을 자리마다) · A4(어느 상한이든 상수 보강) · A5. 뒤 문장은 A 에서 쓰지 않는 근거라 뺐다 |
+| 23 | `bitArray.toggle` | `src/data-structures/linear/bitArray/bitArray.ts:50-52` | 배제 없음 | A2 · A4 · A5 · 남긴 둘은 A7(판정표 ② 의 확인 행 — 근거 문장이 그대로 있다) |
+| 27 | `cuckooFilter.size` | `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.ts:16-17` | 배제하는 구현이 없다(210 · 290) | A2(호출자가 반환값으로 센다) · A4 · A5 / `loadFactor` A1 |
+| 33 | `hyperLogLog.merge`(유지) | `src/data-structures/probabilistic/hyperLogLog/hyperLogLog.ts:16-22` | 정확한 집합을 배제한다 · 「원소 수에 비례해도 되게 적으면 뺄 연산」 | A2(고유) · A3(목적 둘째 문장). 배제는 **상한**의 근거로만 남기고, A 에서 거짓인 「뺄 연산」 구절을 지웠다 |
+| 35 | `minHash` 집합 한꺼번에 넣기 | `src/data-structures/probabilistic/minHash/minHash.ts:13-14` | 같은 계급이라 배제 없음(210) | A2(`add` 거듭) · A4 · A5 |
+| 38 | `minHash.exact` | `src/data-structures/probabilistic/minHash/minHash.ts:19` | 상태가 없고 배제 없음 | A3(인스턴스 상태의 관찰 · 변경이 아니다) |
+
+### dag `addEdge` 의 k(u, v) — 그래프와 넣는 간선만으로 정한다 (S25 — 검토 #8)
+
+**무엇이 걸렸나.** 앞 「A군 비순환 방향 그래프」 절의 k 는 여섯 항목의 합이었다 — u 의 나가는 간선 수 · v 의 들어오는 간선 수 · v 에서
+가는 부분(정점 + 나가는 간선) · u 로 오는 부분(정점 + 들어오는 간선). 그 항목들이 **앞으로 찾는 구현과 거슬러 찾는 구현이 각자
+지나가는 몫**이라, 값은 그래프의 양인데 정의가 특정 구현의 탐색량으로 읽혔다. 유저 판정은 「국소 비용 방향은 수용 · k 를 특정 구현의
+탐색량에 의존하지 않는 그래프 · 입력의 양으로 · 국소 갱신 비용이 목적임을 명시 · 전체 훑기 반례 유지」다.
+
+**새 정의**(`src/data-structures/graph-repr/dag/dag.ts:66-73`).
+
+- 닿는 부분 A(u, v) = 간선을 따라 u 에 올 수 있는 정점(u 포함) ∪ v 에서 간선을 따라 갈 수 있는 정점(v 포함).
+- k(u, v) = |A(u, v)| + 끝점 하나 이상이 A 안에 있는 간선의 수.
+
+성질 넷. ① 호출 전 그래프와 (u, v) 만으로 정해진다 — 구현이 고르는 위상 순서 값 · 찾는 방향 · 드는 표현이 들어가지 않는다.
+② k ≤ n + m. ③ 사이클이 되는지(v 에서 u 로 가는 길)와 새 간선이 더하는 선후 조건(u 에 오는 정점이 v 에서 가는 정점보다 앞)이
+전부 A 안에서 정해진다 — 「닿는 부분」이라는 이름이 구현이 아니라 문제에서 나온다. ④ 옛 k ≤ 4 × 새 k(두 부분 크기가 각각 |A| 이하,
+간선 항목 넷이 각각 닿는 간선 수 이하) — 옛 계약을 지키던 구현은 전부 새 계약을 지킨다.
+
+**목적 문장.** 헤더 목적에 「간선 하나를 넣는 비용이 그래프 전체가 아니라 그 간선이 닿는 부분에 묶이는 것 — 국소 갱신 비용 — 도 이
+계약의 목적이다」를 넣었다(`src/data-structures/graph-repr/dag/dag.ts:6-8`). 앞 절의 「닫히지 않은 자리」(목적에 드는지 규약이 말하지
+않는다)가 이 결정으로 닫힌다.
+
+**알려진 국소 방법이 이 k 를 덮는가 — 탐침(저장소에 두지 않았다, 계측은 `__cost` 단위 · 벽시계 없음).**
+
+| 방법 | 떨어진 쌍(k = 2) | 사슬의 끝(k = 2n − 1) | 두 사슬 잇기 한 호출(n = 256 → 1,024 → 4,096) | 무작위 작업 | 판정 |
+|---|---|---|---|---|---|
+| 정본 — v 에서 앞으로 찾기 + u 의 나가는 간선에서 같은 간선 | 비용 3 · 비용/k 1.50 | 비용 2n · 비용/k 1.00 | 513 → 2,049 → 8,193 · 비용/k 0.50 | 네 작업(n 32 · 64 · 256 · 1,024, 호출 19,000) 최대 1.50 | 덮는다 — 증명 비용 ≤ 2 + \|A\| + 2 × 닿는 간선 ≤ 2k + 2 |
+| u 에서 거슬러 찾기 + v 의 들어오는 간선에서 같은 간선 | 1.50 | 1.50 이하 | 비용/k 0.50 | 두 작업 최대 1.50 | 덮는다 |
+| Pearce-Kelly(순서를 들고 다니며 어긋난 부분만 다시 매김, 정렬 비교를 1 씩 셈) | 1.00 | 1.00 | 4,106 → 17,454 → 73,918 · 비용/k 4.02 → 4.26 → 4.51 · r = 4.25 · 4.24 | 최대 3.77 | 로그 인수만큼 넘는다 — 축3 해상도 아래(불변 사실 53) |
+| MNR(두 위치 사이 구간 전체를 민다) | 1.00 — 단 큰 번호에서 작은 번호로 이으면 비용/k 257.50 → 1,025.50 → 4,097.50 | 1.00 | 비용/k 1.00 | 최대 427.50 | 나간다 — 비용이 구현이 고른 순서의 구간 길이 |
+
+Pearce-Kelly 의 로그 인수를 상한에 넣지 않은 이유: 이 계약에서는 순서를 들고 다녀도 `topologicalOrder` 가 정점 n 개를 새 배열로 내놓아야
+해서 얻는 것이 없고, 자명한 구현이 `O(k)` 에 선다(불변 사실 51 — 상한은 정본이 서는 계급). MNR 이 나가는 것은 옛 k 에서도 같았고, 그
+비용을 계약의 양으로 적으려면 구현의 순서를 적어야 한다(§규약1 금지 2).
+
+**고르지 않은 정의.** 「양 끝이 A 안인 간선만」은 u 에서 A 밖으로 나가는 간선이 빠져 같은 간선을 u 의 나가는 간선에서 찾는 구현이
+나가고, 되살리려 차수 둘을 더하면 옛 정의(구현의 몫을 더한 모양)로 돌아간다. 「v 에서 가는 부분만」 · 「두 부분의 작은 쪽」은 찾는
+방향을 처방한다. 「k log k」는 위 문단. **넓힌 대가**는 A 밖에서 v 쪽 부분으로 들어오는 간선과 u 쪽 부분에서 A 밖으로 나가는 간선이
+k 에 드는 것이다 — 위 네 방법 어느 것도 지나지 않으므로 그만큼 약하고, 그 간선까지 훑는 구현이 들어오지만 비용은 여전히 닿는 부분에
+묶인다.
+
+**정본과 전체 훑기 반례의 수치.** 축3 시나리오 둘의 k 는 떨어진 쌍 2(옛 정의도 2) · 사슬의 끝 2n − 1(옛 4n − 2)이라 두 시나리오의
+bound(`O(1)` · `O(n)`)가 그대로이고 시나리오를 바꾸지 않았다(주석만). `FullScanDag`(`src/data-structures/_contract/_fixtures/fullScanDag.ts`)는
+떨어진 쌍에서 한 호출 평균 5,123 → 20,483(비용/k 평균 2,561.5 → 10,241.5, 최대 3,073 → 12,289)이고 정본은 3 → 3(비용/k 1.50)이다 — 새
+정의에서도 걸린다(자기시험 `addEdge 떨어진 쌍` 기대값 그대로 통과). 사슬의 끝에서는 k 가 그래프 전체라 두 구현이 같은 계급이다(평균 2,050 대 2,048).
+
+### rollingHash — 이 카드가 빼는 것 · KAN-039 가 인수하는 것 (S26 — 검토 #10)
+
+**무엇이 걸렸나.** `bun run tools/ord006-wbs.ts` 가 `[TA] 15/16` 과 `claim -> TA-10 hash/rollingHash` 를 냈다. 카드 종료 조건 3(「트랙을
+완료로 낸다」)이 글자 그대로는 안 서고, 그렇다고 15/16 을 설명 없이 완료로 보면 끝나지 않은 유닛이 완료로 읽힌다. `KAN-039-FG8HWZ` 는
+이 카드 뒤로 직렬 중재돼 있어 「그 카드가 끝날 때까지 종료 보류」는 교착이다. 유저 판정은 「이관 대상을 종료 범위에서 제외하는 방향은
+수용 · KAN-039 의 인수와 이 카드의 제외 범위를 명시 · 카드 · WBS 표시 · 후속 claim 이 서로 모순되지 않게」다.
+
+**이 카드가 빼는 것.** `hash/rollingHash` 의 계약 전환 · `_reference/` · `-problem.md` 제거 · TA 트랙 완료 판정에서의 몫 · 카드 종료
+조건 1 · 3 의 몫. 대상 17 종 중 16 종이 이 카드의 종료 범위다.
+
+**`KAN-039-FG8HWZ` 가 인수하는 것.** 알고리즘 트랙 한 편(문제 서술 · 함수 · 테스트 · v2 가이드)으로 옮기기 · `문제_가이드_목록.md`
+링크 · `tools/algo-wbs.test.ts` 기대값 · `tools/ord004-manifest.json` · inventory 행 · 자료구조 트랙 디렉터리 걷기. **근거 불변 사실**:
+200(상태가 생성자 인자뿐이라 자료구조가 아니다 — 판정 전문 「A군 17종 판정」 ⑥) · 288(가이드 없이는 알고리즘 목록에 셀 자리가 없고 옛
+가이드를 둘 자리가 없어 이 카드에서 옮기지 못했다). 결재는 2026-09-15 유저 「가」(이관을 v2 가이드 집필과 한 work 로).
+
+**표시 규격 — 이관 유닛은 완료도 미완료도 아니다.** `tools/ord006-wbs.ts` 에 일반 필드 `transferredTo` 를 두었다. 적힌 유닛은 상태가
+`transferred` 이고 트랙 분모 · 전체 유닛 수 · claim 후보에서 빠지며, 트랙 분수 뒤에 인수 카드가 붙는다. 경로 가드는 그대로라 인수한
+카드가 디렉터리를 걷으면 `exit 1` 이 그 유닛을 지우라고 알린다. `tools/ord006-inventory.ts` 의 `TRANSFERRED_TO` 가 같은 값을 들고
+inventory 행의 검증 등급 열에 `transferred:KAN-039-FG8HWZ` 로 적는다(ASCII, 열 수 그대로). `Unit` 타입의 필드는 `UNITS` 뒤에서
+붙였다 — `UNITS` 안의 줄을 앞 절이 `tools/ord006-wbs.ts:310` · `:394` 으로 인용하기 때문이다.
+
+| | 전 | 뒤 |
+|---|---|---|
+| 첫 줄 | `ORD-006 B군 WBS — 48 유닛 / 55 종  (완료 38종)` | `ORD-006 B군 WBS — 47 유닛 / 54 종  (완료 38종)  · 이관 1 유닛 / 1 종은 셈에서 뺐다` |
+| TA 줄 | `###############. 15/16` · `claim -> TA-10 hash/rollingHash` | `###############> 15/15 (+1 이관 → KAN-039-FG8HWZ)` · `-- 트랙 완료 (이관 유닛은 인수한 카드가 끝낸다)` |
+| `--all` | `[ ] TA-10  hash/rollingHash` | `[>] TA-10  hash/rollingHash (이관 → KAN-039-FG8HWZ)` |
+| `--json` | TA `units` 16 · `claim` TA-10 | TA `units` 15 · `transferred` `[{ id: TA-10, to: KAN-039-FG8HWZ }]` · `claim` 없음 · 최상위 `transferredUnits` 1 |
+
+**모순 없이 맞춘 자리.** 카드 `KANBAN.cards/KAN-026.md` 「검증」 절의 새 소절(doc-edit) · `tools/ord006-wbs.ts` TA-10 · `docs/ORD-006-wbs.md`
+§2 TA 행과 §8 · inventory 행과 `TRANSFERRED_TO` · 이 절. 셋 다 「`TA-10` 은 `KAN-039-FG8HWZ` 가 인수하고 이 카드는 claim 하지 않는다」로 읽힌다.
+
+**`tree/huffmanTree`(`T5-06`).** 같은 카드가 인수한다(2026-09-15 유저 「가」). 필드는 일반이라 `T5-06` 에 `transferredTo: "KAN-039-FG8HWZ"`
+한 줄과 `TRANSFERRED_TO` 한 줄이면 같은 표시가 나온다. `T5` 블록은 `KAN-027` 몫이라 적용하지 않았다. **병합 주의** — `KAN-027` 이
+`type Unit = {` 을 고쳤다면 이 브랜치의 `type UnitFields = {` 와 줄 충돌이 난다. 양쪽 필드를 `UnitFields` 에 모으면 된다.
+
+### 낡는 앞 절 문장 — 고치지 않았다
+
+| 위치 | 지금 문장 요지 | 이 절에서 |
+|---|---|---|
+| `docs/ORD-006-conventions.md:4456` | S1 처분표 `dynamicArray` 「`invariant` — `size`↔`toArray` 길이 · `get(i)`↔`toArray()[i]`」 | `basic` — 위 등급 재판정 |
+| `docs/ORD-006-conventions.md:5430` · `docs/ORD-006-conventions.md:5433-5435` | 「순서를 들고 다니며 고치는 구현은 남는다(논증)」 · k 는 셋의 합 | k 는 닿는 부분의 크기 · Pearce-Kelly 는 로그 인수만큼 넘는다(탐침) |
+| `docs/ORD-006-conventions.md:5437-5447` | 목적에 드는지 규약이 안 정한다 · 「가를 고르면 바뀌는 것」 | 2026-09-16 검토 결정으로 닫혔다 |
+| `docs/ORD-006-conventions.md:5625-5627` · `docs/ORD-006-conventions.md:5714` · `docs/ORD-006-conventions.md:6188` · `docs/ORD-006-conventions.md:6204` · `docs/ORD-006-conventions.md:6218` | `toArray` 는 빠질 수 있다 — 판정 · 사람 결정 대기 | 뺐다 |
+| `docs/ORD-006-conventions.md:6321` · `docs/ORD-006-conventions.md:6393` | 「`basic` 예상」 · 「`S23` 이 다시 센다」 | 확정 · 위 변경 범위 표 |
+| `docs/ORD-006-conventions.md:6181` · `docs/ORD-006-conventions.md:6205` | `rollingHash` 「이관 대기」 | 이관 — 종료 범위 밖 |
+| `docs/ORD-006-runbook.md:1381-1383`(201) · `docs/ORD-006-runbook.md:1524-1526`(229) · `docs/ORD-006-runbook.md:1667`(290 끝) · `docs/ORD-006-runbook.md:1947`(배치 지도 TA-03) | `dynamicArray` 는 불변식 둘 · `invariant` · `toArray` 는 빠질 수 있다 | `basic` · 뺐다 |
+| `docs/ORD-006-runbook.md:1615-1623`(283) · `docs/ORD-006-runbook.md:1951`(배치 지도 TA-09) | k 셋의 합 · 사람 결정으로 올렸다 | 새 정의 · 결정 |
+| `docs/ORD-006-runbook.md:1952`(배치 지도 TA-10) | 「**멈춤**」 | 이관 — `KAN-039-FG8HWZ` |
+
+런북은 줄 수를 바꾸면 이 문서가 줄로 인용하는 런북 자리가 밀리므로(불변 사실 81) 이 배치에서 불변 사실을 새로 쓰지 않았고 위 문장도
+고치지 않았다. 병합 뒤 정정 목록에 넣는다.
+
+## 원칙 B 적용 — 통계 판정 러너 H1 · 확률 다섯의 독립 시행 판정 (KAN-026 S24 — 2026-09-16)
+
+> 검토 반려(2026-09-15 유저) KAN-026 #5 · #6 의 재작업이고, 2026-09-16 결재 ②(H1 러너를 `S24` 에서 `_contract/` 새 파일로, `runContract.ts` ·
+> `judge.ts` 무수정)를 실행한 절이다. 앞 절들의 문장은 고치지 않았다(절 추가만) — 낡는 문장은 끝 목록에 모았다. 판정 과정의 수치는
+> `KANBAN.batches/KAN-026.batch14.md` 4절, 탐침 스크립트는 저장소 밖(메인 세션 스크래치 `b14-026/`)이다. **벽시계를 쓰지 않았다** — 비용은
+> 워커 수 · 호스트 프로세스 수 · `__cost` 합으로 적는다. H2(축3 `expected` 반복 규격)는 `KAN-041` 몫이라 건드리지 않았다.
+
+### 러너 — 시행 하나 = 새 워커 하나
+
+| 파일 | 무엇 |
+|---|---|
+| `src/data-structures/_contract/judgeTrials.ts` | 순수부. Hoeffding 상대 엔트로피 상한 `hoeffdingBound` · 판정 한계 `trialLimit`(상한 ≤ β ÷ J 인 가장 작은 정수) · 계획의 한계 표 `planLimits` · [경험] 모형 `trialsFor` · `fixtureMiss` · 입력 seed 섞기 `trialSeed` · 계획 타입(`TrialPlan` · `TrialShape` · `TrialResult` · `ModuleExport`) |
+| `src/data-structures/_contract/runTrials.ts` | 러너 `runTrials(plan, target, options)` → 판정 값, `bun:test` 등록 `trialContract`, H3 주소 등록 `fixtureTarget`, 자기시험 도우미 `exceededShapes` |
+| `src/data-structures/_contract/runTrials.host.ts` | 워커 호스트 자식 프로세스 — 요청을 한 줄씩 받아 시행마다 워커를 새로 띄운다 |
+| `src/data-structures/_contract/runTrials.worker.ts` | 시행 하나 — 구현 모듈과 시행 함수 모듈을 `import()` 해 모양마다 시행 함수를 부른다 |
+| `src/data-structures/_contract/runTrials.test.ts` | 러너 자기시험 — 한계가 적용표와 같음 · 조용히 통과하지 않음 · 워커마다 모듈을 새로 읽음 |
+| `src/data-structures/_contract/runTrials.<구조>.test.ts` 다섯 | 통계 판정 자기시험 — fixture 셋(아래) |
+| `src/data-structures/_contract/_fixtures/trialProbeModule.ts` | 러너 탐침 모듈(던짐 · 모양 틀림 · 멈춤 · 판정 누락 · 결정적 위반 · 호스트 죽이기 · 워커마다 뽑은 값) |
+
+**입력.** 계획의 모양마다 `input(seed, t, 모양 번호)` 가 입력(넣을 원소 · 물을 원소 · 지우는 차례)을 낸다. 러너가 **메인 스레드에서
+워커를 띄우기 전에** 부르고 결과를 워커로 보낸다 — 입력 함수는 구현의 관측값을 받을 인자가 없다(B1 을 구조로 막았다). 구현은
+**모듈 주소 + export 이름**으로 받는다(팩토리 함수는 워커 경계를 못 넘는다). 시행 함수는 계약 스위트 모듈의 export `<name>Trial` 이고
+계획은 `<name>Trials` 다.
+
+**출력.** `TrialVerdict` — `ok` · `reason`(떨어진 판정마다 [보장] 표기 · S · T · k · 첫 벗어남) · `workers`(시행을 맡긴 수) · `restarts` ·
+`hosts` · `trials`(받은 시행 수) · `plannedTrials` · `cost`(받은 시행의 `__cost` 합, 판정에 쓰지 않음) · 판정마다 `sum` · `completed` ·
+`exceededAt`. 한계를 넘거나 결정적 위반이 나오면 새 시행을 띄우지 않는다(`stopEarly`, 기본 켬) — 떨어지는 fixture 의 워커 수가 T 보다 작다.
+
+**조용히 통과하지 않는다.** 시행 함수의 예외 · 없는 export · 모양이 틀린 결과(판정 이름 누락 · 사건 수 0 · 벗어난 수가 사건 수를 넘음) ·
+결정적 위반 · 워커의 `error` · `messageerror` · 결과 없는 `close` · 알 수 없는 메시지 · 요청을 받은 뒤 멈춤(생존 감시) · **호스트 프로세스의
+죽음** · 받은 시행 수 < 계획 시행 수가 전부 `ok: false` 다(자기시험 `runTrials.test.ts` 가 여덟 자리를 단정한다). 생존 감시는 멈춘 워커를
+끊는 장치이고 비용 판정이 아니다.
+
+**워커를 자식 프로세스에 맡긴 까닭 — 아래 「Bun 워커 크래시」.** 러너는 `bun` 자식 프로세스(`runTrials.host.ts`) 하나에 시행을
+`HOST_TRIALS` = 128 개까지 맡기고 다음 호스트를 새로 띄운다(`src/data-structures/_contract/runTrials.ts:97`). 워커는 호스트 안에서 시행마다
+새로 뜨므로 「시행 하나 = 새 모듈 그래프」는 그대로다. 호스트는 워커가 요청을 받았다는 표지(`received`)를 내기 전에 멈춘 경우만 두 번까지
+다시 띄운다(`src/data-structures/_contract/runTrials.host.ts:31`) — **표지 전에는 구현의 코드가 한 줄도 돌지 않았으므로** 판정이 치우치지
+않는다. 표지 뒤에 멈추면 다시 띄우지 않는다(멈춤과 오답이 함께 가는 구현을 다시 띄우면 오답만 걸러진다).
+
+### 판정 한계 — 적용표를 코드로 다시 셈했다
+
+`planLimits` 로 다섯 계획을 다시 셈한 값이 「원칙 B」 적용표와 **전부 같다** — 차이 없음. 자기시험 `runTrials.test.ts` 「판정 한계 —
+원칙 B 적용표와 같다」가 고정한다.
+
+| 구조 | 모양 | T | k | [보장] 상한 | 해상도 k/T | 스위트 한 번 합 | 새 실행 |
+|---|---|---|---|---|---|---|---|
+| `bloomFilter` | 용량 128 · ε 0.1 | 16 | 11 | 1.22 × 10^−7 | 0.6875 | 3.83 × 10^−7 | 312 |
+| | 용량 128 · ε 0.001 | 312 | 7 | 2.61 × 10^−7 | 0.0224 | | |
+| `cuckooFilter`(판정 셋씩) | 용량 128 · ε 0.1 | 16 | 11 | 1.22 × 10^−7 | 0.6875 | 4.74 × 10^−7 | 16 |
+| | 용량 128 · ε 0.01 | 16 | 6 | 3.58 × 10^−8 | 0.375 | | |
+| `countMinSketch` | (0.1, 0.1) | 16 | 11 | 1.22 × 10^−7 | 0.6875 | 4.62 × 10^−7 | 320 |
+| | (0.1, 0.01) | 320 | 17 | 3.39 × 10^−7 | 0.0531 | | |
+| `hyperLogLog` | (0.3, 0.3) | 16 | 15 | 4.23 × 10^−7 | 0.9375 | 7.31 × 10^−7 | 56 |
+| | (0.1, 0.1) | 56 | 21 | 3.08 × 10^−7 | 0.375 | | |
+| `minHash` | (0.1, 0.1) | 24 | 13 | 4.84 × 10^−7 | 0.5417 | 9.03 × 10^−7 | 96 |
+| | (0.1, 0.05) | 96 | 20 | 4.19 × 10^−7 | 0.2083 | | |
+
+새 실행 합 800. T 를 고른 모형(`trialsFor`, [경험])도 표와 같다 — 16 · 312 · 16 · 320 · 16 · 56 · 24 · 96, 모형 놓칠 확률 1.29 × 10^−7 ·
+3.89 × 10^−8 · 1.05 × 10^−7 · 2.21 × 10^−19 · 9.38 × 10^−8. **하나만 모형 최소값과 다르다** — 뻐꾸기 ε 0.01 은 모형 최소 T 가 8 인데 표는
+ε 0.1 과 워커를 함께 쓰려고 16 이다(선택이고 오류가 아니다). 해상도 k/T 는 [보장] 에서 따라 나오는 값이다 — 시행 안의 사건이 전부 함께
+틀리는 구현을 최악으로 받는 대가로, 시행 몫의 평균이 δ 보다 크되 k/T 근처 아래인 구현은 판정이 가르지 못한다(아래 「검사 못 하는 의무」).
+
+### 확률 다섯 — 바뀐 판정 · 표지 자리
+
+다섯 모두 같은 틀로 바꿨다. **걷어낸 것** — 축1 연산(`falsePositiveCheck` · 뻐꾸기 · HLL · 민해시의 `errorCheck` · `overestimateCheck`) ·
+그 연산을 부르는 경계 케이스 · 한 실행 안에서 원소 · 인스턴스 · 짝을 모아 세던 판정 함수(`judgeFalsePositives` · `measureCuckoo` ·
+`judgeCuckoo` · `measureOvercount` · `judgeOverestimates` · `measureDeviation` · `judgeRelativeError` · `judgeSimilarityError`) · 껍데기의
+`judge` · `QUOTA` · `MARGIN`(B5 끝 문장 「한 판정 안에서 인스턴스 · 원소의 수를 모아 세는 판정은 이 줄을 어긴다」). **남긴 것** — 결정적 경계
+케이스 · 무작위 시퀀스 · 축3 시나리오(한 행도 바꾸지 않았다). **남긴 경험적 검사는 없다** — 오차는 전부 통계 판정으로 옮겼다. **더한 것** —
+계약 스위트 끝의 입력 함수 · 시행 함수 · 계획, 실행부 `<name>.test.ts` 의 `trialContract` 두 줄(스텁 · 정본).
+
+| 구조 | 헤더 — 공유 범위 · 판정 · [보장] · [경험] | 계약 스위트 머리말 — 표 · [보장] · [경험] | 결정적 판정(시행 안, 한계 없음) | vector |
+|---|---|---|---|---|
+| `bloomFilter` | `src/data-structures/probabilistic/bloomFilter/bloomFilter.ts:61` · `:64` · `:68` · `:73` — **공유 범위 「실행」을 새로 적었다** | `src/data-structures/probabilistic/bloomFilter/bloomFilter.contract.ts:19` · `:24` · `:31` | 넣은 원소는 참 | 케이스 6 → 5 · 단계 242 → 239 |
+| `cuckooFilter` | `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.ts:57` · `:58` · `:63` · `:67` — 공유 범위 새로 | `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.contract.ts:25` · `:30` · `:36` | 용량 미만 · `has` 거짓인 새 원소 거절 없음 · 거짓 음성 없음 · 사본이 남은 원소의 지우기 참(헷갈린 지우기 전까지) | 7 → 6 · 263 → 260 |
+| `countMinSketch` | `src/data-structures/probabilistic/countMinSketch/countMinSketch.ts:59` · `:61` · `:66` · `:71` — 공유 범위 새로 | `src/data-structures/probabilistic/countMinSketch/countMinSketch.contract.ts:19` · `:24` · `:33` | 과소 추정 없음 · 넣지 않은 원소 0 이상 | 7 → 6 · 253 → 250 |
+| `hyperLogLog` | `src/data-structures/probabilistic/hyperLogLog/hyperLogLog.ts:67` · `:72` · `:78`(공유 범위는 앞서 「실행」) | `src/data-structures/probabilistic/hyperLogLog/hyperLogLog.contract.ts:21` · `:26` · `:33` — **체르노프 서술을 이 형식으로 바꿨다** | 없음(결정적 쪽은 축1 경계 · 무작위 시퀀스) | 7 → 6 · 273 → 270 |
+| `minHash` | `src/data-structures/probabilistic/minHash/minHash.ts:71` · `:77` · `:83`(공유 범위는 앞서 「실행」) | `src/data-structures/probabilistic/minHash/minHash.contract.ts:18` · `:26` | 닮음 ∈ [0, 1] | 6 → 5 · 268 → 265 |
+
+vector 에서 빠진 단계는 전부 판정 연산이었다(블룸 46 · 뻐꾸기 30 · 카운트-민 44 · HLL 33 · 민해시 32 개 — 무작위 시퀀스는 연산 목록이 줄어
+다시 뽑혔다). 다른 vector 36 종은 그대로이고 Rust 가 이 다섯을 읽는 시험은 없다. 뻐꾸기 필터의 시행은 **지우는 차례를 입력으로 정한다**
+(적용표의 B1 위반 — 앞 판정은 지우는 횟수가 `add` 의 반환에 기댔다). 「다 지운 필터」 판정의 사건(사본이 없는 원소의 `has`)은 그 조건이
+관측에 기대므로 확률 문장을 **그 조건 아래의 확률**로 읽는다는 전제를 머리말 [보장] 에 더 적었다.
+
+### fixture 수치 — [경험]
+
+**반복: 구조마다 독립 프로세스로 스위트 20 번**(호스트 방식, 최종 러너). 한 프로세스가 한 구조의 fixture 전부를 차례로 돈다. 표의 「S」 는
+판정이 멈춘 때의 합이다(떨어지는 fixture 는 한계를 넘는 즉시 멈춘다). 러너를 바꾸기 전 워커 직접 방식 두 번(각 20 번, 크래시로 일부만 남음 —
+아래)의 판정 값도 같은 범위였고 통과 · 탈락이 한 번도 뒤집히지 않았다.
+
+| 구조 · fixture | 무엇 | 통과 | 워커 | 판정별 S(한계) |
+|---|---|---|---|---|
+| 블룸 정본 | — | 20/20 | 312 | ε 0.1: 0.48 ~ 0.95 (11) · ε 0.001: 0.05 ~ 0.27 (7) |
+| `AlwaysYesFilter` | 퇴화 | 0/20 | 15 | 둘 다 15 — ε 0.1 · 0.001 모두 넘김 |
+| `FixedWidthBloomFilter` | 목표를 읽지 않음 | 0/20 | 212 ~ 251 | ε 0.1: 0.31 ~ 0.61 · **ε 0.001 에서만** 넘김 |
+| `OverRateFilter` **(b)** | 참일 확률 min(0.5, 32ε) | 0/20 | 215 ~ 247 | ε 0.1: 7.41 ~ 8.41 (11 아래) · **ε 0.001 에서만** 넘김 |
+| `WholeRunRateFilter` **(a)** | 실행마다 동전 하나로 확률 ε 로 전부 참 | **20/20** | 312 | ε 0.1: 0 ~ 4 · ε 0.001: 0 ~ 2 |
+| `FixedSeedBloomFilter` **(c)** | 해시 상수 고정 | **20/20** | 312 | ε 0.1: 0.73 · ε 0.001: 0.19(매번 같다 — 뽑을 무작위가 없다) |
+| `CountingBloomFilter`(블룸 계획) | 자명한 구현 | 20/20 | 312 | 0.59 ~ 0.94 · 0.08 ~ 0.23 |
+| 뻐꾸기 정본 | — | 20/20 | 16 | 찬 필터 0.27 ~ 0.64 · 다 지운 필터 0 · 지우기 0.25 ~ 0.58 (11) / ε 0.01: 0.02 ~ 0.09 · 0 · 0.02 ~ 0.16 (6) |
+| `AlwaysYesCuckooFilter` | 퇴화 | 0/20 | 14 | 여섯 판정 전부 14 |
+| `PretendDeletingBloomFilter` | 지우는 척 | 0/20 | 14 | 다 지운 필터 둘만 14 |
+| `ClearingBloomFilter` | 비트를 끔 | 0/20 | 8 | 결정적 위반(시행 0 에서) |
+| `OverRateCuckooFilter` **(b)** | min(0.5, 48ε) | 0/20 | 16 | ε 0.1 셋: 7.38 ~ 8.60 (11 아래) · **ε 0.01 셋에서만** 넘김(7.17 ~ 8.33) |
+| `WholeRunRateCuckooFilter` **(a)** | 실행 동전 | **20/20** | 16 | ε 0.1: 0 ~ 5 · ε 0.01: 0 ~ 1 |
+| `CountingBloomFilter`(뻐꾸기 계획) | 자명한 구현 | 20/20 | 16 | 다 지운 필터 0 |
+| 카운트-민 정본 | — | 20/20 | 320 | 0 ~ 0.05 (11) · 0 ~ 0.02 (17) |
+| `TotalSumSketch` | 퇴화 | 0/20 | 19 | 16 · 19 — 둘 다 넘김 |
+| `SingleRowSketch` | δ 를 읽지 않음 | 0/20 | 164 ~ 186 | (0.1, 0.1): 1.45 ~ 1.92 · **(0.1, 0.01) 에서만** 넘김 |
+| `OverRateOvercountSketch` **(b)** | min(0.5, 8δ) | 0/20 | 206 ~ 230 | (0.1, 0.1): 7.47 ~ 8.28 · **(0.1, 0.01) 에서만** 넘김 |
+| `WholeRunOvercountSketch` **(a)** | 실행 동전 | **20/20** | 320 | 0 ~ 3 · 0 ~ 7 |
+| HLL 정본 | — | 20/20 | 56 | 0 ~ 0.25 (15) · 0 ~ 0.25 (21) |
+| `ZeroSketch` | 퇴화 | 0/20 | 23 | 16 · 23 — 둘 다 넘김 |
+| `CallCountSketch` | 넣은 호출 수 | 0/20 | 30 | (0.3, 0.3): 14.5(15 아래 — 원소 하나인 인스턴스만 맞는다) · (0.1, 0.1) 에서 넘김 |
+| `FixedPrecisionSketch` | 목표를 읽지 않음 | 0/20 | 37 ~ 43 | (0.3, 0.3): 1.75 ~ 4.25 · **(0.1, 0.1) 에서만** 넘김 |
+| `OverRateErrorSketch` **(b)** | min(0.5, 6δ) | 0/20 | 43 ~ 56 | (0.3, 0.3): 5.75 ~ 10.25 · **(0.1, 0.1) 에서만** 넘김 |
+| `WholeRunErrorSketch` **(a)** | 실행 동전 | **20/20** | 56 | 2 ~ 8 · 1 ~ 11 |
+| `FixedHashSketch` **(c)** | 해시 상수 고정 | **20/20** | 56 | 0 · 0 |
+| 민해시 정본 | — | 20/20 | 96 | 0 ~ 0.5 (13) · 0 ~ 0.5 (20) |
+| `AlwaysOneSimilarity` | 퇴화 | 0/20 | 23 | (0.1, 0.1) 에서 넘김 · (0.1, 0.05): 19.25(멈춘 때) |
+| `FixedSizeMinHash` | 목표를 읽지 않음 | 0/20 | 51 ~ 65 | (0.1, 0.1): 7 ~ 13 · **(0.1, 0.05) 에서만** 넘김 |
+| `OverRateErrorSimilarity` **(b)** | min(0.3, 8δ) | 0/20 | 72 ~ 96 | (0.1, 0.1): 5 ~ 7.75 · **(0.1, 0.05) 에서만** 넘김 |
+| `WholeRunErrorSimilarity` **(a)** | 실행 동전 | **20/20** | 96 | 0 ~ 4.5 · 1.75 ~ 6.25 |
+
+같은 반복에 자기시험에 넣지 않은 경계 fixture 넷(원소 · 인스턴스 · 짝마다 따로 확률 δ)도 돌렸다 — `BoundaryRateFilter` · `BoundaryOvercountSketch` ·
+`BoundaryErrorSketch` · `BoundaryErrorSimilarity` 모두 20/20 통과, S 최대 1.84 · 3.70 · 7.25 · 6.25(한계 11 · 17 · 21 · 20). 앞 판정에서 여유를
+고르던 판정 도구 자리는 (a) 가 넘겨받았다 — (a) 가 상한의 최악 경우라서다.
+
+**(a) 부당 탈락.** 앞 판정(한 실행에서 모아 셈)은 이 모양의 구현을 스위트 한 번에 확률 δ(블룸 · 뻐꾸기 · 카운트-민 0.1, HLL · 민해시 0.3)로
+떨어뜨렸다(「원칙 B」 절 계산). 새 판정에서 떨어질 확률은 정확한 이항 꼬리의 합(모양끼리는 합집합 상한)으로 블룸 2.8 × 10^−9 · 뻐꾸기 1.3 × 10^−9 ·
+카운트-민 8.0 × 10^−9 · HLL 1.1 × 10^−8 · 민해시 1.7 × 10^−8 이하이고, 반복 100 번(구조 다섯 × 20)에서 0 번이었다. **(b) 경계 밖.** 다섯 모두 20/20 걸렸고 **걸린 판정은 전부 δ 가 작은 모양**이었다 — 위 끝을 둔 까닭이
+그대로 나왔다. **(c) 고정 해시.** 블룸 · HLL 둘 다 20/20 통과했다 — 판정은 이 위반을 보지 못한다(아래 표 첫 행).
+
+**해상도 탐침([경험], 5 번씩, 위 끝 없는 원소마다 · 인스턴스마다 독립 확률, δ 작은 모양만).** 블룸 ε 0.001(k/T 0.0224): 참일 확률 4 · 8 · 16 배는
+0/5 걸림(S 1.02 ~ 1.66 · 2.55 ~ 2.75 · 4.50 ~ 5.39), 24 배는 5/5(끝에서 겨우 — 시행 279 ~ 310 에서 넘김), 32 배는 5/5. HLL (0.1, 0.1)(k/T 0.375):
+2 · 3 배 0/5, 4 배 4/5, 6 배 5/5. 모형 계산(사건 독립 이항, 놓칠 확률 ≤ 10^−6)으로는 블룸 28 배 · HLL 5.4 배 · 카운트-민 6.1 배 · 민해시 6.4 배 · 뻐꾸기(찬 필터)
+45 배부터 확실히 잡힌다 — 경계 밖 fixture 의 배수(32 · 6 · 8 · 8 · 48)가 그 위에 있는 까닭이다.
+
+### Bun 워커 크래시 — 러너를 호스트 방식으로 바꾼 근거
+
+| 탐침 | 결과 |
+|---|---|
+| 워커 직접 방식(동시 8) · 구조마다 한 프로세스 · 20 번 | 프로세스 100 개 중 **9 개가 죽음**(종료 코드 133 · 139, segfault) — 블룸 7 · 카운트-민 2. 죽은 때 워커 1,130 ~ 1,740 개째 |
+| 워커 직접 방식(동시 4) · 같은 반복 | 100 개 중 **14 개** — 가장 이른 것 652 개째. HLL · 민해시 · 뻐꾸기(프로세스당 워커 약 500 개 이하) 는 두 반복 120 개에서 0 |
+| 한 프로세스 전체 반복(동시 8) | 워커 3,909 개째에 죽음 |
+| 러너 변형(동시 4) — `close` 청취 뺌 / 생존 감시 타이머 뺌 / 둘 다 뺌 / 그대로 | 6 번씩 3 · 3 · 4 · 1 번 죽음(가장 이른 것 634 개째) — 청취 · 타이머와 무관 |
+| 맨 루프(블룸 정본 모듈만, 워커 4,000 개) | 동시 8: 5 번 중 1 번 · `smol` 켬: 2 번 · 워커가 스스로 `process.exit`: 2 번 죽고 3 번은 끝나지 않음. 동시 4 · 2 · 1: 5 번씩 0 |
+| 러너 탐침 모듈(가장 가벼움) 워커 10,000 개 · 동시 8 | 죽지 않음(상주 메모리 약 0.13 MB 씩 늘어 1.9 GB) |
+| **호스트 방식(최종)** · 구조마다 한 프로세스 · 20 번 ×2 | 첫 반복 100 개 0 크래시 · 워커 무응답 1 번(HLL `FixedHashSketch` 시행 4 — 120 초 생존 감시가 끊어 그 판정이 떨어짐). 그 뒤 「요청을 받기 전 멈춤만 다시 띄우기」를 넣고 둘째 반복 100 개 **0 크래시 · 0 무응답 · 다시 띄움 0** |
+
+죽는 까닭은 확인하지 않았다(Bun 내부). 러너가 죽음을 판정 실패로 돌려주므로 조용히 통과하지는 않지만, CI 가 까닭 없이 떨어지면 안 되어
+호스트 하나에 워커를 128 개까지만 맡겼다(죽은 가장 이른 워커 수 634 의 약 5 분의 1). **보장이 아니다** — 호스트 크기와 크래시 확률의 관계는
+[경험] 이다.
+
+### 검사 못 하는 의무 · 보완 작업 (B7)
+
+| 의무 | 왜 안 재지나 · 통과하는 알려진 구현 | 보완 작업(무엇 · 누가 · 언제) |
+|---|---|---|
+| 원소를 자리로 보내는 함수(해시)를 고정하지 않는다 — 다섯 공통 | 몰리는 입력은 구현을 읽어야 지어진다(불변 사실 44) — `FixedSeedBloomFilter` · `FixedHashSketch` 가 통과(20/20) | 스위트로는 하지 않는다 — 까닭은 불변 사실 44, 다시 여는 조건은 「구현을 읽지 않고 적대 입력을 짓는 방법이 나오면」. 가이드 서술은 `KAN-036` |
+| 벗어날 확률이 δ 보다 크되 해상도 k/T 근처 아래인 구현을 떨어뜨린다 | [보장] 이 시행 안의 사건이 전부 함께 틀리는 경우를 받으려면 T 에 비해 k 가 커야 한다 — 위 해상도 탐침의 블룸 16 배 · HLL 3 배가 통과 | T 를 늘리면 k/T 가 δ 로 다가간다(워커 수에 비례해 비용이 는다). **사람 결정** — T 를 늘릴지, 늘린다면 목표 해상도(예: 4δ)와 워커 수. 결정 전까지 이 표 행으로 둔다 |
+| 시행끼리 독립 — 워커 사이의 `Math.random` 이 서로 독립 | 실행 환경에 대한 전제이고 확인하지 않았다. 워커 여덟의 뽑은 값이 전부 다르다는 것(`runTrials.test.ts`)은 독립이 아니라 다름이다 | 하지 않는다 — 까닭은 JS 실행 환경의 난수 생성기를 스위트가 검정할 방법이 목적 밖이라서. 다시 여는 조건은 「Bun 이 워커 난수 씨앗을 부모에서 물려준다는 보고가 나오면」 |
+| 뻐꾸기 「다 지운 필터」 — 사본이 없다는 조건이 관측에 기댄다 | 확률 문장을 조건부로 읽는 전제 위에서만 [보장] 이 선다 | 헤더 확률 문장이 조건부인지 주변 확률인지 적는 일 — `KAN-036` 가이드 전개 전 헤더 검토에서 |
+| Bun 워커 크래시 · 무응답 | 러너 밖의 결함 — 판정을 떨어뜨리므로 조용한 통과는 없지만 까닭 없는 탈락이 날 수 있다 | 호스트 128 · 받기 전 멈춤만 다시 띄우기(지금). 다시 여는 조건 「Bun 판올림 뒤 워커 직접 방식 반복 탐침이 0 크래시면 호스트를 걷는다」 |
+
+### CI 비용 · 모드
+
+| 모드 | 무엇 | 워커 · 호스트 | `__cost` 합 |
+|---|---|---|---|
+| `reference`(정본) | 다섯 `trialContract [정본]` | 워커 800 · 호스트 9(블룸 3 · 뻐꾸기 1 · 카운트-민 3 · HLL 1 · 민해시 1) | 202,028,615 ~ 202,029,822 — 블룸 3.73 M · 뻐꾸기 0.63 M · 카운트-민 1.92 M · HLL 18.18 M · 민해시 177.56 M(반복 20 번 범위) |
+| `trials`(새로 가름) | 러너 자기시험 + fixture 자기시험 다섯 | fixture 워커 2,706 ~ 2,794 + 러너 자기시험 약 170 — **약 3,000** | fixture 61.6 M ~ 66.7 M(계측기가 있는 fixture 만) |
+| `practice`(스텁) | 다섯 `trialContract [스텁]` | 스텁이 첫 시행에서 던져 곧 멈춘다(동시 수만큼) | 0 |
+
+**결정: `trials` 모드를 `self` 에서 갈랐다**(`tools/ci.ts`). `self` 는 `_contract/` 자기시험 중 `runTrials.` 로 시작하지 않는 것만 파일 목록으로 돌고,
+`trials` 는 `runTrials.` 로 시작하는 것만 돈다. `all` 은 self → trials → reference → gates → practice. 까닭: 결정적 자기시험은 워커 0 개인데
+통계 자기시험은 워커가 3,000 개 가까이 드는 다른 비용 축이라, 결정적 쪽만 고칠 때 빨리 도는 자리를 남긴다. 앞 판정의 오차 판정 비용과의
+`__cost` 대조는 하지 않았다(앞 판정은 판정 안의 `__cost` 를 모으지 않았다).
+
+### 불변 사실 · 인용
+
+런북 끝에 불변 사실 390–396 을 붙였다(런북 줄을 밀지 않으려고 끝에만). 이 절이 줄로 가리키는 헤더 · 머리말 자리는 위 표다.
+
+### 낡는 문장 — 고치지 않았다
+
+| 위치 | 지금 문장 요지 | 이 절에서 |
+|---|---|---|
+| `docs/ORD-006-conventions.md:6449-6451` · `docs/ORD-006-conventions.md:6519` · `docs/ORD-006-conventions.md:6525` | 하네스는 고치지 않았다 · 「하네스 변경 명세 — 이 배치는 고치지 않았다」 · H3 은 「다섯 `runContract.<구조>.test.ts`」 | H1 · H3 을 새 파일로 적용 — H3 은 `runTrials.<구조>.test.ts` 의 `fixtureTarget` |
+| `docs/ORD-006-conventions.md:6481-6485` | 워커가 새 실행 영역 — 워커는 `bun test` 안에서 띄운다 | 워커는 호스트 자식 프로세스 안에서 띄운다(Bun 크래시) |
+| `docs/ORD-006-conventions.md:6502` · `docs/ORD-006-conventions.md:6514-6515` | 「`S24` 가 새 설계로 다시 잰다」 · CI 모드는 `S24` 가 정한다 | 위 fixture 수치 · CI 표 |
+| `docs/ORD-006-conventions.md:6532` | 오차 문장 보완 작업 H1 | 적용 — 남은 틈은 위 B7 표 |
+| `docs/ORD-006-conventions.md:5720` 절 · `docs/ORD-006-conventions.md:5884` 절 · `docs/ORD-006-conventions.md:6022` 절의 판정 모양 · 여유 · 체르노프 서술 전부 | 한 실행에서 모아 세는 오차 판정 | 독립 시행 판정 |
+| `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.ts:77` | 「판정도 서지 않는다 — 필터 하나에 한 번 나는 사건이라 원소마다 모아 셀 수 없고」 | 독립 시행이면 필터마다 한 번 나는 사건도 판정된다 — 결정적 거절 문장의 다른 근거(가득 참의 관측)는 그대로 |
+| `src/data-structures/probabilistic/minHash/minHash.ts:70` | 무작위를 실행이 뽑는 것은 「사람 결정 대기(불변 사실 366)」 | 검토 #6 이 수용한 방향 — 「원칙 B」 적용표 HLL 행 |
+| 기존 fixture 머리말(`src/data-structures/_contract/_fixtures/zeroSketch.ts:7` · `src/data-structures/_contract/_fixtures/alwaysYesFilter.ts:6` · `src/data-structures/_contract/_fixtures/totalSumSketch.ts:7` · `src/data-structures/_contract/_fixtures/alwaysOneSimilarity.ts:7` · `src/data-structures/_contract/_fixtures/alwaysYesCuckooFilter.ts:5` · `src/data-structures/_contract/_fixtures/nonDeletingBloomFilter.ts:6` 과 경계 fixture 넷의 「여유」 문장) | 「오차 판정 연산(`errorCheck` 등) 하나뿐」 · 여유를 고른 근거 | 통계 판정 — 기존 fixture 파일은 고치지 않는 규칙이라 둔다 |
+| `tools/ord006-wbs.ts` TA-12 ~ TA-16 note | `falsePositiveCheck` · `errorCheck` · 여유 2 · 3 | 독립 시행 판정 |
+| `docs/ORD-006-runbook.md:1700-1717`(297–299) · `docs/ORD-006-runbook.md:1766-1780`(360–361) · `docs/ORD-006-runbook.md:1836-1846`(374–375) · `docs/ORD-006-runbook.md:1857-1861`(378) | 오차 판정 모양 · 여유 · 체르노프 · 늘 1 이 가벼운 모양을 지나는 틈 | 불변 사실 390–396 |

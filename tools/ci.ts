@@ -8,16 +8,13 @@
  * | 모드 | 대상 | 기대 | CI 판정 |
  * |---|---|---|---|
  * | `self` | 하네스 자기시험 | **결함 fixture 가 축3에서 실패**해야 통과 | 포함 |
+ * | `trials` | 통계 판정 러너 자기시험(`runTrials.*`) | 결함 fixture 가 통계 판정에서 떨어지고 몰리는 올바른 구현은 통과 | 포함 |
  * | `reference` | `_reference/` 정본 | 녹색 | 포함 |
  * | `practice` | 학습자 스텁 | 미구현 실패가 정상 | **제외**(따로 보고) |
  *
- * `self` 가 "무언가 실패"로 만족하지 않는 것이 핵심이다. 결함 fixture 가 컴파일 에러나
- * 예외로 죽어도 "실패"이지만, 그것은 축3이 잡은 것이 아니다. 자기시험은 `judgeScenario`
- * 의 **반환값**을 보므로 어느 축이 어떤 사유로 걸렸는지까지 단언한다.
- *
- * ```bash
- * bun run tools/ci.ts <self|reference|practice|gates|all>
- * ```
+ * **`trials` 를 `self` 에서 가른 까닭(KAN-026 `S24`).** 통계 판정은 시행마다 워커를 새로 띄운다 — 비용이 벽시계가 아니라 **워커 수**로
+ * 잡힌다. 자기시험의 fixture 판정만 스위트 한 번에 워커 약 3,000 개(정본 판정 800 개는 `reference` 몫)라, 결정적 자기시험만 빨리 돌리는
+ * 자리(`self`)와 섞지 않았다. `all` 은 둘 다 돈다. 수치는 `docs/ORD-006-conventions.md` 의 `S24` 절.
  */
 
 interface Step {
@@ -27,10 +24,24 @@ interface Step {
   advisory?: boolean;
 }
 
+/** 통계 판정 러너의 자기시험 파일 이름 머리. `self` 는 이것을 빼고 `trials` 는 이것만 돈다. */
+const TRIALS_PREFIX = "runTrials.";
+const CONTRACT_DIR = "src/data-structures/_contract";
+
+/** `_contract/` 바로 아래의 자기시험 중 통계 판정 러너 것을 뺀 경로들. 새 자기시험이 늘어도 이 목록을 손대지 않는다. */
+function selfTestFiles(): string[] {
+  const found = [...new Bun.Glob("*.test.ts").scanSync({ cwd: CONTRACT_DIR })]
+    .filter((name) => !name.startsWith(TRIALS_PREFIX))
+    .sort();
+  if (found.length === 0)
+    throw new Error(`${CONTRACT_DIR} 에서 자기시험을 찾지 못했다`);
+  return found.map((name) => `./${CONTRACT_DIR}/${name}`);
+}
+
 const SELF: Step[] = [
   {
     label: "① 스위트 자기검증 — 결함 fixture 가 축3에서 걸리는가",
-    argv: ["bun", "test", "src/data-structures/_contract"],
+    argv: ["bun", "test", ...selfTestFiles()],
   },
   {
     label: "① 추출기·판정기 자기시험",
@@ -42,6 +53,14 @@ const SELF: Step[] = [
     // 드러난다 — 되돌리기 전까지 알 수 없는 유일한 자리였다(KAN-033).
     label: "① 시뮬레이션 모듈 회귀",
     argv: ["bun", "test", "src/_guide-sim"],
+  },
+];
+
+const TRIALS: Step[] = [
+  {
+    label:
+      "④ 통계 판정 자기시험 — 결함 fixture 는 떨어지고 몰리는 올바른 구현은 통과하는가(시행마다 새 워커)",
+    argv: ["bun", "test", `${CONTRACT_DIR}/${TRIALS_PREFIX}`],
   },
 ];
 
@@ -132,10 +151,11 @@ function run(step: Step): boolean {
 
 const MODES: Record<string, Step[]> = {
   self: SELF,
+  trials: TRIALS,
   reference: REFERENCE,
   practice: PRACTICE,
   gates: GATES,
-  all: [...SELF, ...REFERENCE, ...GATES, ...PRACTICE],
+  all: [...SELF, ...TRIALS, ...REFERENCE, ...GATES, ...PRACTICE],
 };
 
 const mode = Bun.argv[2] ?? "";

@@ -4,20 +4,13 @@
  * **`runContract.test.ts` 에 넣지 않고 따로 둔다.** 그 파일에 줄을 넣으면 그 파일을 줄 번호로 인용하는 가이드들이
  * 밀린다(불변 사실 106 · 215).
  *
- * **오차 판정은 `probabilistic/bloomFilter` 가 세운 방식을 그대로 쓴다(2026-09-15 유저 결정).** 보는 것은 넷이다.
+ * **오차는 이 파일이 보지 않는다 — 통계 판정 자기시험 `./runTrials.countMinSketch.test.ts` 로 옮겼다(원칙 B, `S24`).** 스케치 하나에서
+ * 넣지 않은 원소를 모아 세던 축1 연산(`overestimateCheck`)과 그 경계 케이스를 계약 스위트에서 걷어냈다 — 한 스케치의 원소 답은 서로
+ * 독립이 아니다(`docs/ORD-006-conventions.md` 「원칙 B」 B3 · B5). 여기 남은 것은 결정적 쪽과 축3 이다. 보는 것은 둘이다.
  *
- * 1. **퇴화 구현을 잡는 것은 오차 판정 하나뿐이다.** `TotalSumSketch`(어느 원소든 증분 전체의 합)는 결정적 경계 다섯과 축3을
- *    통과하고 오차 판정 경계의 첫 단계와 무작위 시퀀스의 첫 판정 연산에서 걸린다 — 넣지 않은 원소의 추정이 전부 N 이다.
- * 2. **판정이 실패 확률 δ 를 읽는다.** `SingleRowSketch`(줄 하나)는 δ = 0.1 판정을 통과하고 δ = 0.01 에서 걸린다. 탐침 50 회에서
- *    한계(128)를 넘는 추정의 수가 (ε, δ) = (0.1, 0.1) 19 ~ 86 · (0.01, 0.1) 45 ~ 69 · (0.02, 0.05) 96 ~ 143 · (0.1, 0.01) 397 ~ 794 ·
- *    (0.01, 0.01) 496 ~ 641 이었고, (0.001, 0.001) 은 5 회에 5,568 ~ 6,028 이었다 — 무작위 시퀀스의 가벼운 판정에 δ 0.01 을 둔 근거다.
- * 3. **여유 2 가 경계 구현을 지킨다.** `BoundaryOvercountSketch`(원소마다 확률 δ 로 한계를 딱 넘는 정확한 사전)가 축1 전부를
- *    통과한다. 탐침 — 네 모양((ε, δ) = (0.1, 0.1) · (0.01, 0.1) · (0.1, 0.02) · (0.02, 0.05)) × seed 2,000 = 판정 8,000 회에서 넘은 수가
- *    39 ~ 103 이었고, 한계를 64(여유 1)로 두면 3,731 회 · 80(1.25)이면 161 회 · 96(1.5)이면 1 회 · **128(2)이면 0 회** 떨어졌다.
- *    같은 8,000 회에서 **정본은 0 ~ 7** 이었다(여유 1 에서도 0 회). 정본의 수는 무작위라 실행마다 다르다 — 범위만 적는다
- *    (`docs/ORD-006-conventions.md` 「무작위를 쓰는 정본과 재현성」 규칙 3). 블룸 필터의 같은 탐침(3,787 · 165 · 1 · 0)과 거의 같다
- *    — 원소마다 확률로 넘는 모양이 같기 때문이다.
- * 4. **정확하게 세는 구현은 오차를 전부 통과하고 비용 행에서만 걸린다.** `ScanningCounterList`(원소 · 빈도 쌍을 늘어놓고 훑기)는
+ * 1. **퇴화 · 실패 확률을 읽지 않는 구현은 결정적 쪽을 공짜로 지킨다.** `TotalSumSketch`(어느 원소든 증분 전체의 합) ·
+ *    `SingleRowSketch`(줄 하나)는 결정적 경계 다섯 · 무작위 시퀀스 · 축3을 전부 통과한다 — 잡는 것은 통계 판정뿐이다.
+ * 2. **정확하게 세는 구현은 오차를 전부 통과하고 비용 행에서만 걸린다.** `ScanningCounterList`(원소 · 빈도 쌍을 늘어놓고 훑기)는
  *    과대 추정이 0 이라 축1 전부를 통과하고 `update` · `estimate` 시나리오에서 걸린다 — 계약이 공간을 말하지 않으므로 정확함은
  *    계약 안이고, 어기는 것은 서로 다른 원소 수에 비례하는 비용이다.
  *
@@ -26,8 +19,8 @@
  * | `update` expected O(1) | 통과 | 통과 | 통과 | **걸림** | — |
  * | `estimate` expected O(1) | 통과 | 통과 | 통과 | **걸림** | — |
  * | 축1 경계 — 결정적인 다섯 | 통과 | 통과 | 통과 | 통과 | 통과 |
- * | 축1 경계 — 오차 판정 셋 | 통과 | **걸림**(첫 단계) | **걸림**(둘째 단계) | 통과 | 통과 |
- * | 축1 무작위 500 회 | 통과 | **걸림** | **걸림** | 통과 | 통과 |
+ * | 축1 무작위 500 회 | 통과 | 통과 | 통과 | 통과 | 통과 |
+ * | 축1 통계 판정(`./runTrials.countMinSketch.test.ts`) | 통과 | **걸림** | **걸림**((0.1, 0.01)) | — | — |
  *
  * 축3 수치는 아래 단정의 주석에 있다. `BoundaryOvercountSketch` 는 언어 `Map` 에 담아 계측기가 없다(축1 전용).
  */
@@ -99,12 +92,7 @@ function randomMismatch(make: SketchMaker): string | null {
   return null;
 }
 
-const DETERMINISTIC_EDGES = countMinSketchContract.edges
-  .map((e) => e.name)
-  .filter((name) => !name.startsWith("오차 판정"));
-const ERROR_EDGE = countMinSketchContract.edges
-  .map((e) => e.name)
-  .find((name) => name.startsWith("오차 판정")) as string;
+const DETERMINISTIC_EDGES = countMinSketchContract.edges.map((e) => e.name);
 
 const ALL_PASS = { update: true, estimate: true };
 
@@ -118,32 +106,22 @@ runContract(() => new SizedSketch(scanning), countMinSketchContract, {
   label: "결함 fixture ScanningCounterList",
 });
 
-describe("CountMinSketch 축1 — 퇴화 구현을 잡는 것은 오차 판정 하나뿐이다", () => {
-  test("증분 전체의 합을 돌려주는 구현은 결정적인 경계 다섯을 전부 통과한다", () => {
+describe("CountMinSketch 축1 — 퇴화 · 실패 확률을 읽지 않는 구현은 결정적 쪽을 공짜로 지킨다", () => {
+  test("증분 전체의 합을 돌려주는 구현은 결정적인 경계 다섯과 무작위 시퀀스를 전부 통과한다 — 잡는 것은 통계 판정뿐이다", () => {
     expect(DETERMINISTIC_EDGES).toHaveLength(5);
     for (const name of DETERMINISTIC_EDGES)
       expect([name, edgeMismatch(totalSum, name)]).toEqual([name, null]);
+    expect(randomMismatch(totalSum)).toBeNull();
   });
 
-  test("그 구현은 오차 판정 경계의 첫 단계에서 걸리고, 무작위 시퀀스에서도 판정 연산이 잡는다", () => {
-    expect(edgeMismatch(totalSum, ERROR_EDGE)).toBe(0);
-    expect(randomMismatch(totalSum)).toBe("overestimateCheck");
-  });
-
-  test("축3은 그 구현을 통과시킨다 — 호출마다 상수다", () => {
-    expect(verdicts(totalSum)).toEqual(ALL_PASS);
-  });
-});
-
-describe("CountMinSketch 축1 — 오차 판정이 실패 확률을 읽는다", () => {
-  test("줄을 하나만 두는 구현은 결정적인 다섯을 통과하고 δ = 0.1 판정을 통과한 뒤 δ = 0.01 에서 걸린다", () => {
+  test("줄을 하나만 두는 구현도 결정적인 다섯과 무작위 시퀀스를 통과한다", () => {
     for (const name of DETERMINISTIC_EDGES)
       expect([name, edgeMismatch(singleRow, name)]).toEqual([name, null]);
-    expect(edgeMismatch(singleRow, ERROR_EDGE)).toBe(1);
-    expect(randomMismatch(singleRow)).toBe("overestimateCheck");
+    expect(randomMismatch(singleRow)).toBeNull();
   });
 
-  test("그 구현도 축3은 통과한다", () => {
+  test("축3은 두 구현을 통과시킨다", () => {
+    expect(verdicts(totalSum)).toEqual(ALL_PASS);
     expect(verdicts(singleRow)).toEqual(ALL_PASS);
   });
 });

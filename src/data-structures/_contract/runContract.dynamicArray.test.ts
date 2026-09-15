@@ -21,7 +21,11 @@
  * | `get` worst O(1) | 1 → 1 | 통과 | 통과 | **걸림** 1,024 → 4,096 |
  * | `set` amortized O(1) | 1.00 → 1.00 | 통과 | 통과 | **걸림** 512.50 → 2,048.50 |
  * | `size` worst O(1) | 1 → 1 | 통과 | 통과 | 통과 |
- * | `toArray` worst O(n) | 1,024 → 4,096 | 통과 | 통과 | 통과 |
+ *
+ * **늘어놓기(`toArray`) 행을 계약에서 뺐다**(원칙 A 의 A5 — `docs/ORD-006-conventions.md` 「원칙 A — 연산 선정」 판정표 ① 의
+ * 10 번째 행). 그 행의 시나리오도 함께 빠졌고 — 셋 다 정본과 같이 통과하던 행이다 — 등급이 `basic` 이 됐어도 축3 엄격도가
+ * `regression` 으로 같아 나머지 여섯 행의 판정은 그대로다. fixture 셋은 옛 표면의 `toArray` 를 들고 있지만(읽기만 하는
+ * 파일이다) 계약 표면에 없는 메서드라 하네스가 부르지 않는다.
  *
  * **`HalfShrinkArray` 를 잡는 것은 적대적 시나리오 하나다.** 넣기만 · 빼기만 하는 두 시나리오에서는 정본과
  * 같은 계급이다(2.00 · 2.00). 그리고 그 시나리오는 칸 수가 사다리 크기와 맞을 때만 경계를 만난다 —
@@ -72,7 +76,6 @@ const ALL_PASS = {
   get: true,
   set: true,
   size: true,
-  toArray: true,
 };
 
 // 1. 결함 셋은 동작상 옳다 — 축1 · 축2 를 전부 통과한다. 계측기를 넘기지 않으므로 축3은 돌지 않는다.
@@ -87,7 +90,7 @@ runContract(() => new WalkingIndexList(), dynamicArrayContract, {
 });
 
 describe("DynamicArray 축3 — 결함 셋이 서로 다른 행에서 걸린다", () => {
-  test("정본은 일곱 시나리오를 전부 통과한다", () => {
+  test("정본은 여섯 시나리오를 전부 통과한다", () => {
     expect(verdicts(reference)).toEqual(ALL_PASS);
   });
 
@@ -125,9 +128,15 @@ describe("DynamicArray 한정자 — push · pop 을 amortized 로 적은 근거
         ...only(row),
         qualifier: "worst",
       };
-      const verdict = judgeScenario(reference, asWorst, "invariant");
+      const verdict = judgeScenario(
+        reference,
+        asWorst,
+        dynamicArrayContract.grade,
+      );
       expect(`${row}: ${verdict.ok}`).toBe(`${row}: false`);
-      expect(judgeScenario(reference, only(row), "invariant").ok).toBe(true);
+      expect(
+        judgeScenario(reference, only(row), dynamicArrayContract.grade).ok,
+      ).toBe(true);
     }
   });
 });

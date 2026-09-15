@@ -6,24 +6,33 @@
  *
  * 검증 등급 `basic` → 축3 엄격도는 `regression`(±60% · 2점 · 적대적 선택).
  *
- * **오차 판정은 `probabilistic/bloomFilter` 가 세운 모양을 따른다**(`docs/ORD-006-conventions.md` 「A군 확률 필터 둘」) — 축1
- * 연산 하나(`errorCheck`)가 인자 `[ε, δ, seed]` 로 새 인스턴스를 세워 판정을 불리언 관측값으로 돌려주고 참조 모델은 늘 `true`
- * 를 낸다. 하네스는 고치지 않았다. **다른 것은 한 번에 무엇을 세느냐다.** 블룸 필터의 확률 문장은 넣지 않은 원소 하나씩에
- * 대한 것이라 필터 하나에 원소를 많이 물어 모았다. 이 계약의 확률 문장은 **들어온 원소 집합 하나에 대한 추정 하나**에 대한
- * 것이라, 한 인스턴스에서 모을 것이 하나뿐이다. 그래서 판정 하나가 인스턴스를 여럿 세운다.
+ * **확률 문장은 축1 통계 판정으로 본다 — `../../_contract/runTrials.ts`(`docs/ORD-006-conventions.md` 「원칙 B」 · 그 적용 절).**
+ * 무작위 시퀀스 · 경계 케이스는 결정적인 쪽만 대조하고, 오차는 **독립 시행**으로 판정한다(`runContract.ts` 는 고치지 않았다).
+ * 시행 하나(`hyperLogLogTrial`)는 이렇다.
  *
- * 1. `⌈QUOTA / δ⌉` 번 되풀이한다. 매번 새 인스턴스를 세우고, seed 로 정한 원소 수 n 을 1 부터
- *    `max(4,096, ⌈16 / (ε² · δ)⌉)` 까지 로그 고르게 뽑는다 — 원소 수가 작은 구간 · 큰 구간을 고르게 짚고, ε · δ 가 작을수록
- *    추정기가 크게 세워지므로 범위를 함께 늘린다. 이 범위는 구현을 읽지 않고 매개변수에서만 정한다(불변 사실 44).
- * 2. 서로 다른 원소 n 개(`+<꼬리표>:<차례>:<번호>`)를 넣되 **둘에 한 번 앞서 넣은 원소를 다시 넣는다** — 넣은 호출 수를
- *    세는 구현이 여기서 드러난다(호출 수는 약 1.5 n).
- * 3. `count()` 가 n 에서 ε · n 넘게 벗어난 횟수를 세고, **그 수가 `MARGIN × QUOTA` 이하인지** 본다 — 헤더의 판정 문장 그대로다.
+ * 1. **새 워커 하나.** 헤더가 구현 무작위의 공유 범위를 「실행」으로 적었으므로 시행마다 새 실행이다(원칙 B 의 B3). 워커는
+ *    모듈 그래프를 새로 읽어 해시를 새로 뽑는다.
+ * 2. **인스턴스 넷.** 저마다 서로 다른 원소 수 n 을 1 ~ `spanOf(ε, δ)` = max(4,096, ⌈16/(ε² · δ)⌉) 의 로그 눈금 네 칸에 하나씩
+ *    뽑고, 원소(`+<꼬리표>:<시행>:<인스턴스>:<번호>`) n 개를 넣되 둘에 한 번 앞서 넣은 원소를 다시 넣는다(넣은 호출 수를 세는
+ *    구현이 드러난다). **원소 목록은 워커를 띄우기 전에 seed · 시행 번호 · 모양만으로 정한다**(B1 — 구현의 관측값을 읽을 길이
+ *    없다). 범위는 구현을 읽지 않고 매개변수에서만 정한다(불변 사실 44).
+ * 3. **Z_t** = (추정이 n 에서 ε · n 넘게 벗어난 인스턴스 수) ÷ 4. 모양마다 합 S = Σ Z_t 가 한계 k 를 넘으면 떨어진다.
  *
- * **`QUOTA = 16` · `MARGIN = 3` 의 근거.** 되풀이마다 확률 δ 로 벗어나는 구현 — 헤더의 확률 문장을 경계에서 지키는 구현 —
- * 이 한 판정에서 떨어질 확률은 체르노프 부등식으로 e^{−16} ≈ 1.1 × 10^−7 이하다. 인스턴스를 세워 넣는 일이 한 번의 되풀이라
- * 블룸 필터의 64 · 2 를 그대로 쓰면 판정 하나가 네 배 무겁고, 16 · 2 면 체르노프 상한이 e^{−16/3} ≈ 5 × 10^−3 이라 올바른
- * 구현이 스위트 한 번에 떨어질 몫이 보인다. 그 구현을 판정 도구 fixture 로 두고 실측했다
- * (`../../_contract/_fixtures/boundaryErrorSketch.ts`, 수치는 `../../_contract/runContract.hyperLogLog.test.ts` 머리말).
+ * | 모양 (ε, δ) | 시행 T | 한계 k | [보장] 상한 exp(−T · D(k/T ‖ δ)) |
+ * |---|---|---|---|
+ * | (0.3, 0.3) | 16 | 15 | 4.23 × 10^−7 |
+ * | (0.1, 0.1) | 56 | 21 | 3.08 × 10^−7 |
+ *
+ * **[보장]** 계약을 지키는 어느 구현이든 한 판정에서 떨어질 확률이 위 상한 이하이고 스위트 한 번에 7.31 × 10^−7 이하다 —
+ * Hoeffding(1963) 정리 1(평균이 δ 이하인 [0, 1] 값 독립 변수의 합). **전제 셋:** ① 입력이 구현 무작위와 독립으로 정해진다(위 2)
+ * ② 시행끼리 독립 — 계약의 공유 범위가 실행이고 시행마다 새 워커다(워커 사이 `Math.random` 의 독립은 실행 환경의 전제이고
+ * 확인하지 않았다) ③ 시행당 E[Z_t] ≤ δ — 확률 문장이 인스턴스마다 δ 를 누르므로 기댓값의 선형성으로 선다(인스턴스 사이의
+ * 독립은 필요 없다). 그래서 **한 시행 안의 네 추정이 함께 틀리는 구현도** 부당하게 더 떨어지지 않는다 — Z_t 가 베르누이(δ)인
+ * 그 구현이 이 상한의 최악 경우다. k 는 「상한 ≤ 10^−6 ÷ 판정 수 2」 인 가장 작은 정수다(`../../_contract/judgeTrials.ts`).
+ *
+ * **[경험]** T 는 목표를 읽지 않는 fixture(`FixedPrecisionSketch`, 벗어난 몫을 0.55 로 둔 이항 모형)를 놓칠 모형 확률이 10^−6
+ * 이하인 가장 작은 8 의 배수다(모형 확률 1.05 × 10^−7) — 모형이고 보장이 아니다. fixture 들의 실제 판정 수치 · 반복 수는
+ * `docs/ORD-006-conventions.md` 의 `S24` 절 「fixture 수치」 표.
  *
  * **결정적인 쪽은 한 문장이다 — 「같은 실행 · 같은 매개변수에서 추정은 들어온 원소 집합의 함수다」.** 한 번의 추정은 확률적이라
  * 참조 모델이 대조할 값이 없다. 그래서 껍데기가 인스턴스마다 **들어온 원소의 집합**을 기록하고 관측값을 판정으로 바꾼다
@@ -45,6 +54,11 @@
  */
 
 import { rngFrom } from "../../_contract/judge";
+import {
+  type TrialPlan,
+  type TrialResult,
+  trialSeed,
+} from "../../_contract/judgeTrials";
 import type { ContractSpec } from "../../_contract/runContract";
 
 /** 헤더 연산 계약 표의 **세 행**을 그대로 옮긴 표면. 생성자 행은 껍데기가 나른다. */
@@ -65,10 +79,6 @@ const DELTA = 0.3;
 /** 인자 쪽에 줄 수 있는 다른 매개변수. 합치기가 거절해야 한다. */
 const OTHER_SHAPE: readonly [number, number] = [0.2, 0.3];
 
-/** 판정 한 번에서 경계 구현이 벗어나기를 기대하는 횟수 — `되풀이 수 · δ`. 파일 머리 설명 참고. */
-export const QUOTA = 16;
-/** 헤더가 정한 여유. 벗어난 횟수가 `MARGIN × QUOTA` 를 넘으면 떨어진다. */
-export const MARGIN = 3;
 /** 원소 수 범위의 아래 상한. 파일 머리 설명 참고. */
 const SPAN_FLOOR = 4096;
 
@@ -88,63 +98,6 @@ function observe<T>(call: () => T): T | string {
 /** 판정의 원소 수 범위 위 끝. */
 export function spanOf(epsilon: number, delta: number): number {
   return Math.max(SPAN_FLOOR, Math.ceil(16 / (epsilon * epsilon * delta)));
-}
-
-/** 판정 한 번의 수치. 자기시험과 탐침이 한계를 바꿔 보려고 판정과 나눠 둔다. */
-export interface Deviation {
-  /** 추정이 n 에서 ε·n 넘게 벗어난 되풀이 수. */
-  misses: number;
-  rounds: number;
-  /** 벗어난 되풀이 중 첫 자리의 설명. 없으면 `null`. */
-  first: string | null;
-}
-
-/** `rounds` 번 새 인스턴스를 세워 넣고 센다. 판정은 하지 않는다. */
-export function measureDeviation(
-  make: SketchMaker,
-  epsilon: number,
-  delta: number,
-  seed: number,
-  rounds = Math.ceil(QUOTA / delta),
-): Deviation {
-  const rng = rngFrom(seed);
-  const tag = Math.floor(rng() * 36 ** 5).toString(36);
-  const logSpan = Math.log(spanOf(epsilon, delta) + 1);
-  let misses = 0;
-  let first: string | null = null;
-  for (let t = 0; t < rounds; t++) {
-    const n = Math.max(1, Math.floor(Math.exp(rng() * logSpan)));
-    const sketch = make(epsilon, delta);
-    for (let i = 0; i < n; i++) {
-      sketch.add(`+${tag}:${t}:${i}`);
-      if (i % 2 === 1) sketch.add(`+${tag}:${t}:${i >> 1}`);
-    }
-    const guess = sketch.count();
-    if (!(Math.abs(guess - n) <= epsilon * n + 1e-9)) {
-      misses++;
-      first ??= `서로 다른 원소 ${n} 개에 추정 ${guess}`;
-    }
-  }
-  return { misses, rounds, first };
-}
-
-/**
- * 오차 판정 하나. 통과하면 `true`, 아니면 벗어난 수와 첫 자리를 적은 문자열을 돌려준다.
- * 자기시험과 탐침이 같은 판정을 쓰도록 내보낸다.
- */
-export function judgeRelativeError(
-  make: SketchMaker,
-  epsilon: number,
-  delta: number,
-  seed: number,
-): true | string {
-  const d = measureDeviation(make, epsilon, delta, seed);
-  const limit = MARGIN * QUOTA;
-  if (d.misses <= limit) return true;
-  return (
-    `상대 오차 초과 ${d.misses} / 한계 ${limit} — 인스턴스 ${d.rounds} 개 중(ε = ${epsilon}, δ = ${delta}, 여유 ${MARGIN}). ` +
-    `첫 자리: ${d.first}`
-  );
 }
 
 /** 집합을 같은 매개변수의 새 인스턴스에 내림차순으로 넣은 추정. 기록한 순서와 다른 순서로 넣으려고 뒤집는다. */
@@ -268,10 +221,6 @@ export class SketchPair {
     this.#mineItems = union;
     return true;
   }
-
-  judge(epsilon: number, delta: number, seed: number): true | string {
-    return judgeRelativeError(this.#make, epsilon, delta, seed);
-  }
 }
 
 /** 축1 참조 모델. 두 쪽의 매개변수와 들어온 원소 집합. 추정 값은 들지 않는다 — 판정은 껍데기가 한다. */
@@ -322,16 +271,6 @@ function someOtherShape(rng: () => number): [number, number] {
   if (roll < 2 / 3) return [...OTHER_SHAPE] as [number, number];
   return [
     ...(BAD_SHAPES[Math.floor(rng() * BAD_SHAPES.length)] as [number, number]),
-  ];
-}
-
-/** 축1 무작위 판정 인자. 가벼운 모양 둘 중 하나와 seed. */
-function someCheck(rng: () => number): [number, number, number] {
-  const shape = rng() < 0.5 ? [0.3, 0.3] : [0.2, 0.2];
-  return [
-    shape[0] as number,
-    shape[1] as number,
-    Math.floor(rng() * 0x7fff_ffff),
   ];
 }
 
@@ -444,15 +383,6 @@ export const hyperLogLogContract: ContractSpec<SketchPair, Model> = {
       onImpl: (impl) => impl.mergeSelf(),
       onModel: () => true,
     },
-    {
-      name: "errorCheck",
-      arg: (rng) => someCheck(rng),
-      onImpl: (impl, arg) => {
-        const [epsilon, delta, seed] = arg as [number, number, number];
-        return impl.judge(epsilon, delta, seed);
-      },
-      onModel: () => true,
-    },
   ],
 
   edges: [
@@ -553,15 +483,6 @@ export const hyperLogLogContract: ContractSpec<SketchPair, Model> = {
         { op: "count" },
       ],
     },
-    {
-      // 목표 셋. 매개변수를 읽지 않고 크기를 정하는 구현은 작은 ε · δ 에서 떨어진다. 무작위 시퀀스는 가벼운 둘만 쓴다.
-      name: "오차 판정 — 16/δ 개 인스턴스에서 추정이 ε·n 넘게 벗어난 수가 48 개 이하다 ((ε, δ) = (0.3, 0.3) · (0.1, 0.1) · (0.05, 0.2))",
-      steps: [
-        { op: "errorCheck", arg: [0.3, 0.3, 1] },
-        { op: "errorCheck", arg: [0.1, 0.1, 2] },
-        { op: "errorCheck", arg: [0.05, 0.2, 3] },
-      ],
-    },
   ],
 
   invariants: [],
@@ -612,4 +533,94 @@ export const hyperLogLogContract: ContractSpec<SketchPair, Model> = {
       },
     },
   ],
+};
+
+// ── 축1 통계 판정 — `../../_contract/runTrials.ts` 가 시행마다 새 워커에서 `hyperLogLogTrial` 을 부른다 ──
+
+/** 통계 판정의 이름. 헤더 「오차 보장」의 확률 문장이다. */
+const RELATIVE_ERROR = "추정이 ε·n 넘게 벗어남";
+
+/** 시행 하나에 세우는 인스턴스 수. 원소 수의 로그 눈금을 이만큼의 칸으로 나눠 칸마다 하나씩 짚는다. */
+const INSTANCES = 4;
+
+/** 시행 하나의 입력 — 인스턴스마다 서로 다른 원소 수와 넣을 차례. 워커를 띄우기 전에 정해진다. */
+export interface CardinalityInput {
+  instances: readonly { distinct: number; items: readonly string[] }[];
+}
+
+/** 시행 t 의 입력. seed · 시행 번호 · 모양 번호와 매개변수만 읽는다(원칙 B 의 B1). */
+export function cardinalityInput(
+  epsilon: number,
+  delta: number,
+  seed: number,
+  trial: number,
+  shape: number,
+): CardinalityInput {
+  const rng = rngFrom(trialSeed(seed, trial, shape));
+  const tag = Math.floor(rng() * 36 ** 5).toString(36);
+  const logSpan = Math.log(spanOf(epsilon, delta) + 1);
+  const instances = Array.from({ length: INSTANCES }, (_, j) => {
+    const distinct = Math.max(
+      1,
+      Math.floor(Math.exp(((j + rng()) / INSTANCES) * logSpan)),
+    );
+    const items: string[] = [];
+    for (let i = 0; i < distinct; i++) {
+      items.push(`+${tag}:${trial}:${j}:${i}`);
+      if (i % 2 === 1) items.push(`+${tag}:${trial}:${j}:${i >> 1}`);
+    }
+    return { distinct, items };
+  });
+  return { instances };
+}
+
+/** 시행 함수. 워커 안에서 인스턴스를 넷 세워 넣고 추정이 벗어난 수를 센다. 판정은 하지 않는다. */
+export function hyperLogLogTrial(
+  make: SketchMaker,
+  params: readonly [number, number],
+  input: CardinalityInput,
+): TrialResult {
+  const [epsilon, delta] = params;
+  let misses = 0;
+  let first: string | null = null;
+  let cost = 0;
+  for (const { distinct, items } of input.instances) {
+    const sketch = make(epsilon, delta);
+    for (const item of items) sketch.add(item);
+    const guess = sketch.count();
+    cost += sketch.__cost ?? 0;
+    if (!(Math.abs(guess - distinct) <= epsilon * distinct + 1e-9)) {
+      misses++;
+      first ??= `서로 다른 원소 ${distinct} 개에 추정 ${guess}`;
+    }
+  }
+  return {
+    violation: null,
+    tallies: {
+      [RELATIVE_ERROR]: { events: input.instances.length, misses, first },
+    },
+    cost,
+  };
+}
+
+function trialShape(epsilon: number, delta: number, trials: number) {
+  return {
+    name: `(ε, δ) = (${epsilon}, ${delta})`,
+    params: [epsilon, delta] as const,
+    trials,
+    judgments: [{ id: RELATIVE_ERROR, delta }],
+    input: (seed: number, trial: number, shape: number) =>
+      cardinalityInput(epsilon, delta, seed, trial, shape),
+  };
+}
+
+/** 통계 판정 계획. 시행 수는 `docs/ORD-006-conventions.md` 「원칙 B」 적용표 — 파일 머리 설명 참고. */
+export const hyperLogLogTrials: TrialPlan<
+  readonly [number, number],
+  CardinalityInput
+> = {
+  name: "HyperLogLog",
+  trial: { module: import.meta.url, exportName: "hyperLogLogTrial" },
+  seed: 1,
+  shapes: [trialShape(0.3, 0.3, 16), trialShape(0.1, 0.1, 56)],
 };

@@ -50,7 +50,7 @@ const TRACKS: readonly Track[] = [
   { id: "TA", title: "A군 계약 전환", facts: "200-229 · 270-299 · 350-379" },
 ];
 
-type Unit = {
+type UnitFields = {
   readonly id: string;
   readonly track: string;
   /** 계약을 한 줄로. 구조 이름이 아니라 계약 이름을 적는다. */
@@ -367,7 +367,7 @@ const UNITS: readonly Unit[] = [
     contract: "첨자 접근 + 뒤 끝 넣기·빼기 수열",
     canonical: "linear/dynamicArray",
     transitions: [],
-    note: "완료(KAN-026 S6) — capacity() 와 늘리기·줄이기 정책을 뺐다. 범위 밖 첨자는 get 이 null · set 이 RangeError(연산마다 판별, 불변 사실 226). 정본은 칸을 직접 옮기며 세어 push · pop 의 amortized 근거가 계측에 보인다(불변 사실 227). 경계 교대 시나리오는 칸 수가 사다리와 맞는 구현만 겨눈다(불변 사실 228). invariant(불변식 2)",
+    note: "완료(KAN-026 S6) — capacity() 와 늘리기·줄이기 정책을 뺐다. 범위 밖 첨자는 get 이 null · set 이 RangeError(연산마다 판별, 불변 사실 226). 정본은 칸을 직접 옮기며 세어 push · pop 의 amortized 근거가 계측에 보인다(불변 사실 227). 경계 교대 시나리오는 칸 수가 사다리와 맞는 구현만 겨눈다(불변 사실 228). S23 — 원칙 A 의 A5 로 toArray 를 빼 불변식 둘의 한쪽 경로가 사라져 basic(처음 invariant)",
   },
   {
     id: "TA-04",
@@ -415,7 +415,7 @@ const UNITS: readonly Unit[] = [
     contract: "사이클을 만드는 간선을 거부하는 방향 그래프",
     canonical: "graph-repr/dag",
     transitions: [],
-    note: "완료(KAN-026 S11) — 사이클을 닫는 간선은 false(전면화) · 순서는 하나로 정하지 않고 껍데기가 판정(true|어긋남)으로 관측한다(불변 사실 284–285). longestPath·무게·hasCycle 을 뺐다. addEdge 상한은 「닿는 부분」 k(u, v) — 그래프 크기로 적을지는 사람 결정으로 올렸다(불변 사실 283). 비순환은 불변식이 아니다(286). invariant(불변식 1)",
+    note: "완료(KAN-026 S11) — 사이클을 닫는 간선은 false(전면화) · 순서는 하나로 정하지 않고 껍데기가 판정(true|어긋남)으로 관측한다(불변 사실 284–285). longestPath·무게·hasCycle 을 뺐다. addEdge 상한은 「닿는 부분」 k(u, v) — S25 가 k 를 그래프와 넣는 간선만으로 정하고(A(u, v) = u 에 오는 정점 ∪ v 에서 가는 정점, k = |A| + A 에 닿는 간선 수) 국소 갱신 비용을 목적으로 적었다(2026-09-16 검토 결정). 비순환은 불변식이 아니다(286). invariant(불변식 1)",
   },
   {
     id: "TA-10",
@@ -423,7 +423,8 @@ const UNITS: readonly Unit[] = [
     contract: "없음 — 자료구조가 아니다(S1)",
     canonical: "hash/rollingHash",
     transitions: [],
-    note: "결정(2026-09-15 유저) — 알고리즘 트랙으로 이관한다. search 가 algorithms/string/findAllOccurrences 와 서명·의미가 같다. 디렉터리가 사라지면 이 유닛을 지운다 — 경로 가드가 exit 1 로 잡는다. S12 조사(2026-09-15) — 멈춤: 목록의 알고리즘 편 수를 algo-wbs.test 가 111 로 고정하고 가이드 없는 편을 셀 자리가 없다(불변 사실 288). **KAN-039 이관 대기(2026-09-15 유저 결재 「가」)** — 이관을 알고리즘 트랙 v2 가이드 집필과 한 work 로 KAN-039 가 한다. 이 카드(KAN-026)에서는 claim 하지 않는다 — TA 트랙이 15/16 에 머무는 것이 정상이고, KAN-039 가 디렉터리를 걷을 때 이 유닛을 지운다",
+    transferredTo: "KAN-039-FG8HWZ",
+    note: "이관 — 이 카드(KAN-026)의 종료 범위에서 뺐다(2026-09-15 유저 결재 「가」 · 2026-09-16 검토 결정). 판정: 상태가 생성자 인자뿐이고 search 가 algorithms/string/findAllOccurrences 와 서명·의미가 같아 자료구조가 아니다(불변 사실 200 · conventions 「A군 17종 판정」 ⑥). 이 카드에서 옮기지 않은 이유: 알고리즘 목록 편 수를 algo-wbs.test 가 111 로 고정하고 가이드 없는 편을 셀 자리가 없으며 옛 mdx 를 둘 자리가 없다(불변 사실 288). KAN-039 가 인수하는 것: 알고리즘 트랙 한 편(문제 서술 · 함수 · 테스트 · v2 가이드)으로 옮기기 · 목록 링크와 algo-wbs 기대값 · ord004-manifest · inventory 행 · 이 디렉터리 걷기. 걷히면 경로 가드가 exit 1 로 이 유닛을 지우라고 알린다 — 그때 이 유닛을 지운다",
   },
   {
     id: "TA-11",
@@ -475,7 +476,22 @@ const UNITS: readonly Unit[] = [
   },
 ];
 
-type UnitState = "open" | "partial" | "done";
+/**
+ * 유닛 하나. 필드 대부분은 위 `UnitFields` 이고, 이관 필드만 여기서 붙인다 — 붙이는 자리를 `UNITS` 뒤로 둔 것은
+ * `UNITS` 안의 줄을 다른 문서가 `tools/ord006-wbs.ts:<줄>` 로 인용하기 때문이다(불변 사실 81).
+ */
+type Unit = UnitFields & {
+  /**
+   * 이 유닛을 **인수한 다른 카드의 id**(예: `"KAN-039-FG8HWZ"`). 적으면 이 유닛은 완료도 미완료도 아닌
+   * `transferred`(이관)로 세고, 트랙의 분모에서 빠지며, claim 후보가 되지 않는다 — 트랙이 이 유닛을
+   * 기다리며 멈춰 있는 것처럼 보이지 않게 하고(교착), 끝나지 않은 유닛을 완료로 세지도 않게 한다.
+   * **경로 가드는 그대로 걸린다** — 인수한 카드가 디렉터리를 옮기거나 걷으면 `exit 1` 로 이 유닛을
+   * 지우라고 알린다. 판정 전문과 인수 범위는 `note` 에 적는다. 이관이 아니면 적지 않는다.
+   */
+  readonly transferredTo?: string;
+};
+
+type UnitState = "open" | "partial" | "done" | "transferred";
 
 type UnitStatus = {
   readonly unit: Unit;
@@ -506,11 +522,14 @@ async function statusOf(unit: Unit): Promise<UnitStatus> {
     if (await hasReference(t)) done.push(t);
     else open.push(t);
   }
-  const state: UnitState = !canonicalDone
-    ? "open"
-    : open.length > 0
-      ? "partial"
-      : "done";
+  const state: UnitState =
+    unit.transferredTo !== undefined
+      ? "transferred"
+      : !canonicalDone
+        ? "open"
+        : open.length > 0
+          ? "partial"
+          : "done";
   return {
     unit,
     state,
@@ -565,27 +584,49 @@ function padDisplay(text: string, width: number): string {
   return text + " ".repeat(Math.max(0, width - cells));
 }
 
-const totalStructures = UNITS.reduce((n, u) => n + 1 + u.transitions.length, 0);
-const doneStructures = statuses.reduce(
+/** 이관 유닛은 분모에서 뺀다 — 이 WBS 가 끝낼 일이 아니다(`Unit.transferredTo`). */
+const inScope = statuses.filter((s) => s.state !== "transferred");
+const transferredAll = statuses.filter((s) => s.state === "transferred");
+const structuresOf = (list: readonly UnitStatus[]) =>
+  list.reduce((n, s) => n + 1 + s.unit.transitions.length, 0);
+const totalStructures = structuresOf(inScope);
+const doneStructures = inScope.reduce(
   (n, s) => n + (s.canonicalDone ? 1 : 0) + s.transitionsDone.length,
   0,
 );
+
+/** 트랙 한 줄의 분수 뒤에 붙는 이관 표시. 이관이 없으면 빈 문자열. */
+function transferNote(list: readonly UnitStatus[]): string {
+  const moved = list.filter((s) => s.state === "transferred");
+  if (moved.length === 0) return "";
+  const targets = [...new Set(moved.map((s) => s.unit.transferredTo))];
+  return ` (+${moved.length} 이관 → ${targets.join(" · ")})`;
+}
 
 if (process.argv.includes("--json")) {
   console.log(
     JSON.stringify(
       {
-        totalUnits: UNITS.length,
-        doneUnits: statuses.filter((s) => s.state === "done").length,
+        // 이관 유닛은 totalUnits · units 에 들지 않고 transferred 에 따로 나온다.
+        totalUnits: inScope.length,
+        doneUnits: inScope.filter((s) => s.state === "done").length,
         totalStructures,
         doneStructures,
+        transferredUnits: transferredAll.length,
         tracks: TRACKS.map((t) => {
           const list = byTrack.get(t.id) ?? [];
           const claim = claimOf(list);
           return {
             ...t,
-            units: list.length,
+            units: list.filter((s) => s.state !== "transferred").length,
             done: list.filter((s) => s.state === "done").length,
+            transferred: list
+              .filter((s) => s.state === "transferred")
+              .map((s) => ({
+                id: s.unit.id,
+                canonical: s.unit.canonical,
+                to: s.unit.transferredTo,
+              })),
             claim: claim
               ? {
                   id: claim.unit.id,
@@ -610,17 +651,25 @@ if (process.argv.includes("--json")) {
 }
 
 console.log(
-  `ORD-006 B군 WBS — ${UNITS.length} 유닛 / ${totalStructures} 종  (완료 ${doneStructures}종)\n`,
+  `ORD-006 B군 WBS — ${inScope.length} 유닛 / ${totalStructures} 종  (완료 ${doneStructures}종)${
+    transferredAll.length > 0
+      ? `  · 이관 ${transferredAll.length} 유닛 / ${structuresOf(transferredAll)} 종은 셈에서 뺐다`
+      : ""
+  }\n`,
 );
 
 for (const t of TRACKS) {
   const list = byTrack.get(t.id) ?? [];
   const done = list.filter((s) => s.state === "done").length;
-  const bar = `${"#".repeat(done)}${".".repeat(list.length - done)}`;
+  const moved = list.filter((s) => s.state === "transferred").length;
+  const scope = list.length - moved;
+  const bar = `${"#".repeat(done)}${".".repeat(scope - done)}${">".repeat(moved)}`;
   const claim = claimOf(list);
-  const head = `[${t.id}] ${padDisplay(t.title, 22)} ${padDisplay(bar, 9)} ${done}/${list.length}  불변사실 ${t.facts}`;
+  const head = `[${t.id}] ${padDisplay(t.title, 22)} ${padDisplay(bar, 9)} ${done}/${scope}${transferNote(list)}  불변사실 ${t.facts}`;
   if (!claim) {
-    console.log(`${head}  -- 트랙 완료`);
+    console.log(
+      `${head}  -- 트랙 완료${moved > 0 ? " (이관 유닛은 인수한 카드가 끝낸다)" : ""}`,
+    );
     continue;
   }
   const target =
@@ -635,11 +684,21 @@ if (process.argv.includes("--all")) {
   for (const t of TRACKS) {
     console.log(`\n[${t.id}] ${t.title}`);
     for (const s of byTrack.get(t.id) ?? []) {
-      const mark = s.state === "done" ? "x" : s.state === "partial" ? "~" : " ";
+      const mark =
+        s.state === "done"
+          ? "x"
+          : s.state === "partial"
+            ? "~"
+            : s.state === "transferred"
+              ? ">"
+              : " ";
       const extra =
-        s.unit.transitions.length > 0
+        (s.unit.transitions.length > 0
           ? ` (+전환 ${s.transitionsDone.length}/${s.unit.transitions.length})`
-          : "";
+          : "") +
+        (s.unit.transferredTo !== undefined
+          ? ` (이관 → ${s.unit.transferredTo})`
+          : "");
       console.log(`  [${mark}] ${s.unit.id}  ${s.unit.canonical}${extra}`);
       console.log(`        ${s.unit.contract}`);
       if (s.unit.note) console.log(`        ! ${s.unit.note}`);
