@@ -1,5 +1,5 @@
 path	category	name	defect_grade	verification_grade	escalation	problem_lines	guide_lines	has_reference
-src/data-structures/disjoint-set/disjointSetRollback	disjoint-set	disjointSetRollback	-	-	-	81	393	false
+src/data-structures/disjoint-set/disjointSetRollback	disjoint-set	disjointSetRollback	-	complexity	-	0	393	true
 src/data-structures/disjoint-set/unionFind	disjoint-set	unionFind	-	complexity	-	0	320	true
 src/data-structures/graph-repr/dag	graph-repr	dag	-	-	-	80	341	false
 src/data-structures/graph-repr/graphAdjList	graph-repr	graphAdjList	-	-	-	87	319	false
@@ -43,7 +43,7 @@ src/data-structures/range-query/fenwickTree	range-query	fenwickTree	-	complexity
 src/data-structures/range-query/intervalTree	range-query	intervalTree	A	complexity	-	0	544	true
 src/data-structures/range-query/persistentSegmentTree	range-query	persistentSegmentTree	-	-	-	128	314	false
 src/data-structures/range-query/segmentTree	range-query	segmentTree	-	complexity	-	0	581	true
-src/data-structures/range-query/segmentTreeLazy	range-query	segmentTreeLazy	-	-	-	72	368	false
+src/data-structures/range-query/segmentTreeLazy	range-query	segmentTreeLazy	-	complexity	-	0	368	true
 src/data-structures/range-query/sparseTable	range-query	sparseTable	-	-	-	90	214	false
 src/data-structures/spatial/kdTree	spatial	kdTree	-	-	-	92	352	false
 src/data-structures/spatial/quadtree	spatial	quadtree	-	-	-	106	425	false

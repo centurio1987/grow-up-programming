@@ -35,6 +35,11 @@ const SCAN_ROOT = "src/data-structures";
  */
 const SKELETON_EXEMPT = new Map([
   [
+    "disjoint-set/disjointSetRollback",
+    "KAN-027 재개(2026-09-14) 유닛은 계약 층만 낸다. 계약과 정본은 T3-05 에서 섰고 가이드는" +
+      " KAN-036 이 다시 쓰기로 직렬 중재됐다(docs/ORD-006-wbs.md 머리 블록). 다시 쓰는 카드가 이 줄을 지운다",
+  ],
+  [
     "disjoint-set/unionFind",
     "KAN-027 재개(2026-09-14) 유닛은 계약 층만 낸다. 계약과 정본은 T3-04 에서 섰고 가이드는" +
       " KAN-036 이 다시 쓰기로 직렬 중재됐다(docs/ORD-006-wbs.md 머리 블록). 다시 쓰는 카드가 이 줄을 지운다",
@@ -63,6 +68,11 @@ const SKELETON_EXEMPT = new Map([
     "linear/stack",
     "규약1 시범 2종(B2). 계약과 정본은 그때 섰지만 가이드는 손대지 않기로 했고" +
       "(규약3 이 B4 에서야 섰다) 아직 옛 문형이다. 다시 쓰는 카드가 이 줄을 지운다",
+  ],
+  [
+    "range-query/segmentTreeLazy",
+    "KAN-027 재개(2026-09-14) 유닛은 계약 층만 낸다. 계약과 정본은 T4-03 에서 섰고 가이드는" +
+      " KAN-036 이 다시 쓰기로 직렬 중재됐다(docs/ORD-006-wbs.md 머리 블록). 다시 쓰는 카드가 이 줄을 지운다",
   ],
 ]);
 

@@ -20,6 +20,7 @@
 import { join, resolve } from "node:path";
 import { rngFrom } from "../src/data-structures/_contract/judge.ts";
 import type { ContractSpec } from "../src/data-structures/_contract/runContract.ts";
+import { disjointSetRollbackContract } from "../src/data-structures/disjoint-set/disjointSetRollback/disjointSetRollback.contract.ts";
 import { unionFindContract } from "../src/data-structures/disjoint-set/unionFind/unionFind.contract.ts";
 import { hashMapChainingContract } from "../src/data-structures/hash/hashMapChaining/hashMapChaining.contract.ts";
 import { hashSetContract } from "../src/data-structures/hash/hashSet/hashSet.contract.ts";
@@ -40,6 +41,7 @@ import { concurrentSkipListContract } from "../src/data-structures/probabilistic
 import { fenwickTreeContract } from "../src/data-structures/range-query/fenwickTree/fenwickTree.contract.ts";
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
 import { segmentTreeContract } from "../src/data-structures/range-query/segmentTree/segmentTree.contract.ts";
+import { segmentTreeLazyContract } from "../src/data-structures/range-query/segmentTreeLazy/segmentTreeLazy.contract.ts";
 import { binarySearchTreeContract } from "../src/data-structures/tree/binarySearchTree/binarySearchTree.contract.ts";
 import { cartesianTreeContract } from "../src/data-structures/tree/cartesianTree/cartesianTree.contract.ts";
 import { linkCutTreeContract } from "../src/data-structures/tree/linkCutTree/linkCutTree.contract.ts";
@@ -155,6 +157,12 @@ function buildVector<Impl, Model>(spec: ContractSpec<Impl, Model>): Vector {
 const SPECS: ContractSpec<any, any>[] = [
   // 성격 전환은 등록하지 않는다 — 같은 계약 객체에 `name` 만 다르므로 vector 가 같다
   // (`avlTree`·`bTree` 계열이 같은 선례다).
+  // 케이스의 앞 아홉이 `UnionFind.json` 의 경계 케이스와 같다 — `disjoint-set/unionFind` 의 경계 케이스 객체를
+  // 그대로 펼쳐 넣었기 때문이다(`disjointSetRollback.contract.ts` 머리말). `reset` 과 `"RangeError"` 는 아래
+  // `unionFindContract` 주석과 같다. `rollback` 은 인자가 없고 기대값이 `true`/`false` 다 — 되돌리는 단위는
+  // **합치기 호출**이라 아무것도 안 바꾼 `union` 도 하나로 세고 던진 `union` 은 세지 않는다. 받아들인 `reset` 은
+  // 되돌릴 호출을 비운다.
+  disjointSetRollbackContract,
   // 연산 `reset(원소 수)` 은 계약 표의 연산이 아니라 껍데기(`PartitionSite`)가 생성자 행을 나르는 자리다 —
   // 받아들이면 그 크기의 홀로 선 원소들로 새로 세운다(`unionFind.contract.ts` 머리말). 경계 케이스가 아닌
   // 케이스는 원소 48 에서 시작하고 무작위 시퀀스는 거절되는 원소 수만 넘긴다. 기대값 `"RangeError"` 는 던진
@@ -197,6 +205,11 @@ const SPECS: ContractSpec<any, any>[] = [
   fenwickTreeContract,
   intervalTreeContract,
   segmentTreeContract,
+  // `apply` 의 인자는 `[from, to, update]` 이고 대수는 스위트의 것이다 — 결합은 `segmentTree` 와 같은 「왼쪽에서 처음
+  // 만나는 0 아닌 값」(항등원 0), 갱신은 「0 이 아닌 `update` 는 덮는 자리를 그 수로 덮고 0 은 그대로 둔다」, 합성은
+  // 「나중 것이 0 이 아니면 나중 것」(`segmentTreeLazy.contract.ts` 의 `coverAct`·`coverCompose`). 재생하는 쪽이 이
+  // 넷을 함께 옮겨야 한다. 초기 수열은 `segmentTree` 와 같은 `initialValues(16)` 이다.
+  segmentTreeLazyContract,
   binarySearchTreeContract,
   cartesianTreeContract,
   linkCutTreeContract,
