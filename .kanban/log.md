@@ -1,6 +1,9 @@
 # KANBAN 변경 이력
 > 최근 50건. 이보다 오래된 이력은 archive.jsonl 로 압축 보관한다.
 
+- #281 2026-09-15 14:16 · 유저 · KAN-027 독립성 겹침 용인 (상대 KAN-039-FG8HWZ) — 겹치는 것은 docs/ORD-006-inventory.tsv 하나이고 행이 다르다(KAN-027 은 B군 구조 행, KAN-039 는 rollingHash 행). 병합 충돌은 줄 단위로 양쪽을 살린다
+- #280 2026-09-15 14:16 · ai · KAN-036-0G05DE serialize
+- #279 2026-09-15 14:16 · ai · KAN-039-FG8HWZ serialize
 - #278 2026-09-15 14:16 · ai · KAN-039-FG8HWZ 생성 "rollingHash 알고리즘 트랙 이관 — algo-guide-v2 가이드 집필과 한 work 로" → 백로그
 - #277 2026-09-15 08:40 · 유저 · KAN-038-NE17BJ serialize
 - #276 2026-09-15 04:14 · 유저 · KAN-026 독립성 겹침 용인 (상대 KAN-027) — 유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 등록·도구 파일(_contract/runContract.test.ts·emit-vectors·ord006-inventory·ord006-wbs·guide-skeleton.test)뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229·270–299 · KAN-027 T2 250–269·T5 90–99→230–249·추가 300–349)으로 가르고, ord006-wbs.ts 는 KAN-026 이 TA 블록·KAN-027 이 T1~T5 블록만 고친다. 병합 충돌은 줄 단위로 양쪽을 살린다
@@ -48,6 +51,3 @@
 - #234 2026-09-10 16:35 · ai · KAN-034.4-4NS63H 이동 백로그 → 완료
 - #233 2026-09-10 16:35 · ai · KAN-034.3-53E4F9 이동 백로그 → 완료
 - #232 2026-09-10 16:35 · ai · KAN-034.4-4NS63H 수정 메모
-- #231 2026-09-10 16:35 · ai · KAN-034.3-53E4F9 수정 메모
-- #230 2026-09-10 16:30 · ai · KAN-034.9-WHH53W 수정 메모
-- #229 2026-09-10 16:23 · ai · KAN-034.8-BK1Q3A 이동 검토 → 완료

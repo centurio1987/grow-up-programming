@@ -37,6 +37,7 @@
   - 이유: KAN-026 S1 이 rollingHash 를 자료구조가 아니라고 판정했고 유저가 이관을 결재했지만, 알고리즘 목록 편 수가 algo-wbs.test 로 111 고정이고 옛 mdx 를 둘 자리가 없어 가이드 없이 옮기면 게이트가 깨진다 — 2026-09-15 유저가 「가」(가이드와 묶어 별도 카드)를 골랐다
   - 목표: rollingHash 가 알고리즘 트랙 한 편(문제 서술·함수·테스트·v2 가이드)으로 서고, 목록 링크·algo-wbs 기대값(111→112)·ord004-manifest·ORD-006 inventory 가 한 커밋에서 맞으며, 자료구조 트랙에 rollingHash 디렉터리가 없다
   - 메모: 근거: KAN-026 워크트리 docs/ORD-006-conventions.md 「A군 17종 판정 ⑥」 · 「A군 알고리즘 트랙 이관 조사 — rollingHash」(불변 사실 288). 착수는 KAN-026 이 main 에 병합된 뒤. 가이드 규격은 sandbox/algo-guide-v2/SPEC.md.
+  - 실행 문서: KANBAN.cards/KAN-039-FG8HWZ.md (0/1)
   - 원문:
     ```text
     가
