@@ -33,6 +33,7 @@ import { vanEmdeBoasTreeContract } from "../src/data-structures/heap/vanEmdeBoas
 import { circularBufferContract } from "../src/data-structures/linear/circularBuffer/circularBuffer.contract.ts";
 import { dequeContract } from "../src/data-structures/linear/deque/deque.contract.ts";
 import { gapBufferContract } from "../src/data-structures/linear/gapBuffer/gapBuffer.contract.ts";
+import { pieceTableContract } from "../src/data-structures/linear/pieceTable/pieceTable.contract.ts";
 import { queueContract } from "../src/data-structures/linear/queue/queue.contract.ts";
 import { stackContract } from "../src/data-structures/linear/stack/stack.contract.ts";
 import { unrolledLinkedListContract } from "../src/data-structures/linear/unrolledLinkedList/unrolledLinkedList.contract.ts";
@@ -201,6 +202,9 @@ const SPECS: ContractSpec<any, any>[] = [
   circularBufferContract,
   dequeContract,
   gapBufferContract,
+  // `insert` 의 인자는 `[자리, 넣을 원소 배열]`, `delete` 의 인자는 `[자리, 지울 수]` 다. 기대값 `"RangeError"` 는 던진 예외를
+  // 관측값으로 바꾼 것이다(`pieceTable.contract.ts` 머리말). 무작위 시퀀스의 자리는 두 난수의 곱으로 작은 자리에 몰려 있다.
+  pieceTableContract,
   queueContract,
   stackContract,
   unrolledLinkedListContract,

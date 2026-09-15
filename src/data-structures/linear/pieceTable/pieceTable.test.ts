@@ -1,135 +1,59 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `linear/pieceTable` 계약 스위트 실행부(규약2).
+ *
+ * `runContract` 호출과, 계약 스위트가 담지 못하는 **주입 정책** 하나만 둔다. 무엇을 검사하는지는 `./pieceTable.contract.ts` 에
+ * 있고, 계약 자체는 `./pieceTable.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다. 축3은 계측기가 붙은 정본에만 돈다 — 학습자
+ * 스텁에 `__cost` 를 요구하지 않는다.
+ *
+ * 생성자가 인자를 받지 않으므로 껍데기가 없다(`./pieceTable.contract.ts` 헤더).
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 물려받은 시험의 「1,000회 insert 연산이 100ms 이내」가 재는 것은 그 기계의 상수다.
+ * 자리는 축3이다.
+ */
+
+import { describe, expect, test } from "bun:test";
+import { runContract } from "../../_contract/runContract";
+import { PieceTable as Reference } from "./_reference/pieceTable";
 import { PieceTable } from "./pieceTable";
+import {
+  type PieceTableContract,
+  pieceTableContract,
+} from "./pieceTable.contract";
 
-describe("PieceTable", () => {
-  describe("기본 동작", () => {
-    test("초기 텍스트가 getText에 반영된다", () => {
-      const pt = new PieceTable("hello");
-      expect(pt.getText()).toBe("hello");
-      expect(pt.length()).toBe(5);
-    });
-
-    test("맨 끝에 텍스트를 삽입한다", () => {
-      const pt = new PieceTable("hello");
-      pt.insert(5, " world");
-      expect(pt.getText()).toBe("hello world");
-    });
-
-    test("맨 앞에 텍스트를 삽입한다", () => {
-      const pt = new PieceTable("world");
-      pt.insert(0, "hello ");
-      expect(pt.getText()).toBe("hello world");
-    });
-
-    test("중간에 텍스트를 삽입한다", () => {
-      const pt = new PieceTable("helloworld");
-      pt.insert(5, " ");
-      expect(pt.getText()).toBe("hello world");
-    });
-
-    test("텍스트를 삭제한다", () => {
-      const pt = new PieceTable("hello world");
-      pt.delete(5, 6);
-      expect(pt.getText()).toBe("hello");
-    });
-
-    test("삽입 후 삭제하면 올바른 텍스트가 남는다", () => {
-      const pt = new PieceTable("abcdef");
-      pt.insert(3, "XYZ");
-      pt.delete(3, 3);
-      expect(pt.getText()).toBe("abcdef");
-    });
-  });
-
-  describe("엣지 케이스", () => {
-    test("빈 문자열로 초기화하면 getText는 빈 문자열을 반환한다", () => {
-      const pt = new PieceTable();
-      expect(pt.getText()).toBe("");
-      expect(pt.length()).toBe(0);
-    });
-
-    test("빈 PieceTable에 텍스트를 삽입한다", () => {
-      const pt = new PieceTable();
-      pt.insert(0, "hello");
-      expect(pt.getText()).toBe("hello");
-    });
-
-    test("전체 텍스트를 삭제하면 빈 문자열이 된다", () => {
-      const pt = new PieceTable("hello");
-      pt.delete(0, 5);
-      expect(pt.getText()).toBe("");
-      expect(pt.length()).toBe(0);
-    });
-
-    test("단일 문자를 삭제한다", () => {
-      const pt = new PieceTable("abc");
-      pt.delete(1, 1);
-      expect(pt.getText()).toBe("ac");
-    });
-
-    test("맨 앞 문자를 삭제한다", () => {
-      const pt = new PieceTable("hello");
-      pt.delete(0, 1);
-      expect(pt.getText()).toBe("ello");
-    });
-
-    test("빈 문자열을 삽입해도 텍스트가 변하지 않는다", () => {
-      const pt = new PieceTable("hello");
-      pt.insert(2, "");
-      expect(pt.getText()).toBe("hello");
-    });
-  });
-
-  describe("바운더리", () => {
-    test("연속 삽입 후 텍스트가 올바르다", () => {
-      const pt = new PieceTable("ac");
-      pt.insert(1, "b");
-      expect(pt.getText()).toBe("abc");
-    });
-
-    test("여러 번 삽입·삭제를 반복해도 일관성이 유지된다", () => {
-      const pt = new PieceTable("The quick brown fox");
-      pt.insert(9, "very ");
-      pt.delete(0, 4);
-      pt.insert(0, "A ");
-      expect(pt.getText()).toBe("A quick very brown fox");
-    });
-
-    test("조각 경계에 걸친 삭제를 처리한다", () => {
-      const pt = new PieceTable("hello");
-      pt.insert(5, " world");  // 두 조각 생성
-      pt.delete(3, 5);         // "lo wo" 삭제 → 조각 경계 걸침
-      expect(pt.getText()).toBe("helrld");
-    });
-
-    test("length()는 삽입·삭제 후 getText().length와 일치한다", () => {
-      const pt = new PieceTable("hello world");
-      pt.insert(5, "!!!");
-      pt.delete(0, 2);
-      expect(pt.length()).toBe(pt.getText().length);
-    });
-  });
-
-  describe("성능", () => {
-    test("1,000회 insert 연산이 100ms 이내에 완료된다", () => {
-      const pt = new PieceTable("x".repeat(1000));
-      const start = performance.now();
-      for (let i = 0; i < 1_000; i++) {
-        pt.insert(i, "a");
-      }
-      const elapsed = performance.now() - start;
-      expect(elapsed).toBeLessThan(100);
-    });
-
-    test("대용량 텍스트의 getText가 100ms 이내에 완료된다", () => {
-      const original = "x".repeat(100_000);
-      const pt = new PieceTable(original);
-      pt.insert(50_000, "MIDDLE");
-      const start = performance.now();
-      const text = pt.getText();
-      const elapsed = performance.now() - start;
-      expect(text.length).toBe(100_006);
-      expect(elapsed).toBeLessThan(100);
-    });
-  });
+runContract(() => new PieceTable<number>(), pieceTableContract, {
+  label: "스텁",
 });
+
+runContract(() => new Reference<number>(), pieceTableContract, {
+  label: "정본",
+  cost: { kind: "self-reported", make: () => new Reference<number>() },
+});
+
+/**
+ * 주입 정책은 계약의 일부다(규약1). 넘긴 배열 · 돌려받은 배열을 붙들지 않는다는 약속은 호출자 쪽 배열을 고쳐 봐야 드러나므로
+ * 참조 모델 대조(축1)가 담지 못한다.
+ */
+function checkInjectionPolicy(
+  label: string,
+  make: () => PieceTableContract<number>,
+): void {
+  describe(`PieceTable 주입 정책 [${label}]`, () => {
+    test("넘긴 배열 · 돌려받은 배열을 고쳐도 담긴 수열은 그대로다", () => {
+      const sequence = make();
+      const given = [1, 2, 3];
+      sequence.insert(0, given);
+      given[1] = 100;
+      given.push(4);
+      const listed = sequence.toArray();
+      expect(listed).toEqual([1, 2, 3]);
+      listed[0] = -1;
+      expect(sequence.toArray()).toEqual([1, 2, 3]);
+      expect(sequence.length()).toBe(3);
+    });
+  });
+}
+
+checkInjectionPolicy("스텁", () => new PieceTable<number>());
+checkInjectionPolicy("정본", () => new Reference<number>());

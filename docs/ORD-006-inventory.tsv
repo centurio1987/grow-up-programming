@@ -26,7 +26,7 @@ src/data-structures/linear/dynamicArray	linear	dynamicArray	-	-	-	78	325	false
 src/data-structures/linear/gapBuffer	linear	gapBuffer	-	invariant	-	0	687	true
 src/data-structures/linear/monotonicQueue	linear	monotonicQueue	-	-	-	77	765	false
 src/data-structures/linear/monotonicStack	linear	monotonicStack	-	-	-	87	305	false
-src/data-structures/linear/pieceTable	linear	pieceTable	-	-	-	82	338	false
+src/data-structures/linear/pieceTable	linear	pieceTable	-	invariant	-	0	338	true
 src/data-structures/linear/queue	linear	queue	C	basic	-	0	445	true
 src/data-structures/linear/singlyLinkedList	linear	singlyLinkedList	-	-	-	76	328	false
 src/data-structures/linear/stack	linear	stack	-	basic	-	0	272	true
@@ -38,7 +38,7 @@ src/data-structures/probabilistic/countMinSketch	probabilistic	countMinSketch	-	
 src/data-structures/probabilistic/cuckooFilter	probabilistic	cuckooFilter	-	-	-	93	372	false
 src/data-structures/probabilistic/hyperLogLog	probabilistic	hyperLogLog	-	-	-	95	374	false
 src/data-structures/probabilistic/minHash	probabilistic	minHash	-	-	-	102	361	false
-src/data-structures/probabilistic/skipList	probabilistic	skipList	-	-	-	86	372	false
+src/data-structures/probabilistic/skipList	probabilistic	skipList	-	complexity	-	0	372	true
 src/data-structures/range-query/fenwickTree	range-query	fenwickTree	-	complexity	-	0	484	true
 src/data-structures/range-query/intervalTree	range-query	intervalTree	A	complexity	-	0	544	true
 src/data-structures/range-query/persistentSegmentTree	range-query	persistentSegmentTree	-	complexity	-	0	314	true

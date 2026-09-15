@@ -180,6 +180,13 @@ const VERIFICATION_GRADES: Record<
   // 여섯 행을 전부 상한 안에 하므로 `complexity` 가 아니고, 불변식 하나가 남아 `basic` 도
   // 아니다 — 판정 절차의 3번에서 멈춘 첫 계약이다.
   "linear/gapBuffer": "invariant",
+  // `linear/gapBuffer` 와 **서로 담지 않는** 편집 수열(T5-03) — 자리를 인자로 받고 편집 한 번이 담긴 수가 아니라 편집 수에 묶인다.
+  // 넣기마다 받은 원소를 배열 하나에 두고 「어느 배열의 몇째부터 몇 개」인 쌍의 배열로 드는 구현이 다섯 행을 전부 상한 안에 해
+  // `complexity` 가 아니고, 불변식 하나(길이 ↔ 열거)가 남아 `basic` 도 아니다. 등급이 같은 것은 판정의 입력이 아니다.
+  "linear/pieceTable": "invariant",
+  // 성격 전환(T5-04). 계약이 `tree/treap` 의 것과 같으므로 등급도 같다 — 등급은 계약에서 기계적으로 따라 나온다(불변 사실 56).
+  // 층의 윗끝 · 승격 확률 · 무작위의 출처(층 대 우선순위)가 계약의 문장이 못 되는 것이 전환의 근거다.
+  "probabilistic/skipList": "complexity",
 };
 
 /** ORDER.md:39-63 진단 표 9종. 키는 `<category>/<name>`. 이 표 밖은 전부 `-`. */
