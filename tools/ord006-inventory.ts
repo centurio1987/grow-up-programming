@@ -118,6 +118,9 @@ const VERIFICATION_GRADES: Record<
   // `hyperLogLog`(KAN-026 S16) — 자리 1/(ε²·δ) 개에 원소마다 해시 한 번, 추정 · 합치기는 자리를 한 번씩 훑으면 세 행의 시간이
   // 확률 논증 없이 선다. 불변식 절이 비었다(합친 결과의 정합은 merge 행의 의미).
   "probabilistic/hyperLogLog": "basic",
+  // `minHash`(KAN-026 S17) — 해시 함수 1/(ε²·δ) 개에 원소마다 함수를 한 번씩 돌려 칸마다 가장 작은 값을 남기고, 닮음은 칸을 한 번씩
+  // 견주면 두 행의 시간이 확률 논증 없이 선다. 불변식 절이 비었다(자기 자신과의 닮음 · 방향 무관은 similarity 행의 의미).
+  "probabilistic/minHash": "basic",
   "tree/multiset": "complexity",
   "linear/deque": "complexity",
   "range-query/intervalTree": "complexity",

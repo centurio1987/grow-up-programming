@@ -37,7 +37,7 @@ src/data-structures/probabilistic/concurrentSkipList	probabilistic	concurrentSki
 src/data-structures/probabilistic/countMinSketch	probabilistic	countMinSketch	-	basic	-	0	353	true
 src/data-structures/probabilistic/cuckooFilter	probabilistic	cuckooFilter	-	basic	-	0	372	true
 src/data-structures/probabilistic/hyperLogLog	probabilistic	hyperLogLog	-	basic	-	0	374	true
-src/data-structures/probabilistic/minHash	probabilistic	minHash	-	-	-	102	361	false
+src/data-structures/probabilistic/minHash	probabilistic	minHash	-	basic	-	0	361	true
 src/data-structures/probabilistic/skipList	probabilistic	skipList	-	-	-	86	372	false
 src/data-structures/range-query/fenwickTree	range-query	fenwickTree	-	complexity	-	0	484	true
 src/data-structures/range-query/intervalTree	range-query	intervalTree	A	complexity	-	0	544	true

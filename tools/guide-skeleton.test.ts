@@ -105,6 +105,11 @@ const SKELETON_EXEMPT = new Map([
       "다시 쓸 때까지 옛 문형이다(생성자 precision · 뺀 error() 와 고정 해시 FNV-1a 를 설명한다). 다시 쓰는 카드가 이 줄을 지운다",
   ],
   [
+    "probabilistic/minHash",
+    "KAN-026 S17 은 계약 전환만 한다(2026-09-14 유저 결재). 옛 가이드는 KAN-036 이 v2 로 " +
+      "다시 쓸 때까지 옛 문형이다(생성자 numHashes · 덮어쓰는 update(set) · 뺀 signature() · exact() 를 설명한다). 다시 쓰는 카드가 이 줄을 지운다",
+  ],
+  [
     "trie/radixTree",
     "KAN-026 S3 은 성격 전환의 계약 산출만 한다(2026-09-14 유저 결재). 옛 가이드는 KAN-036 이 " +
       "v2 로 다시 쓸 때까지 옛 문형이다. 다시 쓰는 카드가 이 줄을 지운다",

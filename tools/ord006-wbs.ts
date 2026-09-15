@@ -415,7 +415,7 @@ const UNITS: readonly Unit[] = [
     contract: "없음 — 자료구조가 아니다(S1)",
     canonical: "hash/rollingHash",
     transitions: [],
-    note: "결정(2026-09-15 유저) — 알고리즘 트랙으로 이관한다. search 가 algorithms/string/findAllOccurrences 와 서명·의미가 같다. 디렉터리가 사라지면 이 유닛을 지운다 — 경로 가드가 exit 1 로 잡는다. S12 조사(2026-09-15) — 멈춤: 목록의 알고리즘 편 수를 algo-wbs.test 가 111 로 고정하고 가이드 없는 편을 셀 자리가 없다(불변 사실 288). 추천은 알고리즘 트랙 v2 가이드와 한 work",
+    note: "결정(2026-09-15 유저) — 알고리즘 트랙으로 이관한다. search 가 algorithms/string/findAllOccurrences 와 서명·의미가 같다. 디렉터리가 사라지면 이 유닛을 지운다 — 경로 가드가 exit 1 로 잡는다. S12 조사(2026-09-15) — 멈춤: 목록의 알고리즘 편 수를 algo-wbs.test 가 111 로 고정하고 가이드 없는 편을 셀 자리가 없다(불변 사실 288). **KAN-039 이관 대기(2026-09-15 유저 결재 「가」)** — 이관을 알고리즘 트랙 v2 가이드 집필과 한 work 로 KAN-039 가 한다. 이 카드(KAN-026)에서는 claim 하지 않는다 — TA 트랙이 15/16 에 머무는 것이 정상이고, KAN-039 가 디렉터리를 걷을 때 이 유닛을 지운다",
   },
   {
     id: "TA-11",
@@ -463,7 +463,7 @@ const UNITS: readonly Unit[] = [
     contract: "두 집합의 자카드 닮음 추정",
     canonical: "probabilistic/minHash",
     transitions: [],
-    note: "결정(2026-09-15 유저) — TA-12 와 같다(고정 seed 판정). update(set) 가 서명을 덮어써 상태가 안 쌓인다 — 원소 단위 넣기로 표면을 고칠지 이 유닛이 정한다. exact() 는 참조 모델의 몫",
+    note: "완료(KAN-026 S17) — 표면을 원소 단위 add + 인스턴스 similarity(other) 로 고쳐 상태를 쌓았다(덮어쓰는 update(set) · signature() · exact() · numHashes 제거, 불변 사실 371). 결정적 쪽은 「같은 실행 · 같은 (ε, δ) 에서 닮음은 두 집합의 짝만으로 정해지고 같은 집합이면 1」(372). similarity 가 정확한 집합을 상한으로 배제(373). 오차 판정은 인스턴스 짝마다 모은다(errorCheck — ⌈16/δ⌉ 짝 중 ε 초과 ≤ 48, 여유 3, 374). 해시 무작위를 실행이 한 번 뽑는다 — 366 과 같은 사람 결정에 매달림(375). add O(L/(ε²·δ)) · similarity O(1/(ε²·δ)) expected · basic(376). 늘 1 은 가벼운 첫 판정 모양을 통과해 판정 모양의 틈을 적었다(378)",
   },
 ];
 

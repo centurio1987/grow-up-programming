@@ -45,6 +45,7 @@ import { concurrentSkipListContract } from "../src/data-structures/probabilistic
 import { countMinSketchContract } from "../src/data-structures/probabilistic/countMinSketch/countMinSketch.contract.ts";
 import { cuckooFilterContract } from "../src/data-structures/probabilistic/cuckooFilter/cuckooFilter.contract.ts";
 import { hyperLogLogContract } from "../src/data-structures/probabilistic/hyperLogLog/hyperLogLog.contract.ts";
+import { minHashContract } from "../src/data-structures/probabilistic/minHash/minHash.contract.ts";
 import { fenwickTreeContract } from "../src/data-structures/range-query/fenwickTree/fenwickTree.contract.ts";
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
 import { segmentTreeContract } from "../src/data-structures/range-query/segmentTree/segmentTree.contract.ts";
@@ -198,6 +199,10 @@ const SPECS: ContractSpec<any, any>[] = [
   // 오차 판정(`errorCheck`) · 추정(`count`) · 합치기(`merge` · `mergeSelf`)의 기대값이 전부 `true` 다 — 추정 값이 아니라 「같은 집합을
   // 새 인스턴스에 넣은 추정과 같은가」의 판정이 실린다. Rust 포트는 들어온 원소 집합을 함께 기록하고 같은 판정을 지어야 재생된다.
   hyperLogLogContract,
+  // 오차 판정(`errorCheck`) · 닮음(`similarity` · `similaritySelf`) · 다시 넣기(`add` 의 `"unchanged"`)의 기대값이 판정이다 — 닮음 값이
+  // 아니라 「같은 두 집합을 새 인스턴스 둘에 넣은 닮음과 같은가 · 같은 집합이면 1 인가」가 실린다. Rust 포트는 두 쪽의 원소 집합을
+  // 함께 기록하고 같은 판정을 지어야 재생된다(`hyperLogLogContract` 줄과 같은 자리).
+  minHashContract,
   fenwickTreeContract,
   intervalTreeContract,
   segmentTreeContract,
