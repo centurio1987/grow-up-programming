@@ -1,0 +1,2493 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "AhoCorasick",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 패턴 목록은 아무것도 찾지 않고 빈 텍스트에서도 그렇다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "search",
+          "arg": "hello",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "abc"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "ab",
+          "expect": []
+        }
+      ]
+    },
+    {
+      "name": "고전 예제 — 나타난 패턴만 키가 된다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reindex",
+          "arg": [
+            "he",
+            "she",
+            "his",
+            "hers",
+            "xyz"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "ahishers",
+          "expect": [
+            [
+              "he",
+              [
+                4
+              ]
+            ],
+            [
+              "hers",
+              [
+                4
+              ]
+            ],
+            [
+              "his",
+              [
+                1
+              ]
+            ],
+            [
+              "she",
+              [
+                3
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "ushers",
+          "expect": [
+            [
+              "he",
+              [
+                2
+              ]
+            ],
+            [
+              "hers",
+              [
+                2
+              ]
+            ],
+            [
+              "she",
+              [
+                1
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "hello world",
+          "expect": [
+            [
+              "he",
+              [
+                0
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "겹쳐서 나타나는 것과 서로의 접두사 · 접미사인 패턴을 전부 센다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "aa",
+            "aaa"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aaaaa",
+          "expect": [
+            [
+              "a",
+              [
+                0,
+                1,
+                2,
+                3,
+                4
+              ]
+            ],
+            [
+              "aa",
+              [
+                0,
+                1,
+                2,
+                3
+              ]
+            ],
+            [
+              "aaa",
+              [
+                0,
+                1,
+                2
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "test",
+            "est",
+            "st",
+            "t"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "testing tests",
+          "expect": [
+            [
+              "est",
+              [
+                1,
+                9
+              ]
+            ],
+            [
+              "st",
+              [
+                2,
+                10
+              ]
+            ],
+            [
+              "t",
+              [
+                0,
+                3,
+                8,
+                11
+              ]
+            ],
+            [
+              "test",
+              [
+                0,
+                8
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "패턴이 아닌 상태의 진접미사에서 끝나는 패턴도 적는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reindex",
+          "arg": [
+            "abcd",
+            "bc",
+            "c"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "abce",
+          "expect": [
+            [
+              "bc",
+              [
+                1
+              ]
+            ],
+            [
+              "c",
+              [
+                2
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "abcd",
+          "expect": [
+            [
+              "abcd",
+              [
+                0
+              ]
+            ],
+            [
+              "bc",
+              [
+                1
+              ]
+            ],
+            [
+              "c",
+              [
+                2
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "abab",
+            "bab",
+            "ba"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "abababa",
+          "expect": [
+            [
+              "abab",
+              [
+                0,
+                2
+              ]
+            ],
+            [
+              "ba",
+              [
+                1,
+                3,
+                5
+              ]
+            ],
+            [
+              "bab",
+              [
+                1,
+                3
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "같은 문자열이 여러 번 주어져도 키는 하나이고 자리도 한 벌이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reindex",
+          "arg": [
+            "abc",
+            "abc",
+            "bc"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "abcabc",
+          "expect": [
+            [
+              "abc",
+              [
+                0,
+                3
+              ]
+            ],
+            [
+              "bc",
+              [
+                1,
+                4
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "빈 패턴은 자리 0 부터 ℓ 까지 전부에서 나타난다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reindex",
+          "arg": [
+            "",
+            "b"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "abb",
+          "expect": [
+            [
+              "",
+              [
+                0,
+                1,
+                2,
+                3
+              ]
+            ],
+            [
+              "b",
+              [
+                1,
+                2
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": [
+            [
+              "",
+              [
+                0
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "텍스트보다 긴 패턴은 나타나지 않고, 다시 색인하면 앞 패턴은 남지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reindex",
+          "arg": [
+            "hello",
+            "hello world"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "hello",
+          "expect": [
+            [
+              "hello",
+              [
+                0
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "world"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "hello world",
+          "expect": [
+            [
+              "world",
+              [
+                6
+              ]
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "search",
+          "arg": "",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "abbacabaaaabaa",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "aab",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "bbb",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "caba",
+            "aa",
+            "aaa",
+            "acba"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bbbb",
+            "b",
+            "bbba",
+            "acaa"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bba",
+            "aaab"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "search",
+          "arg": "aaaab",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "babaccba",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "search",
+          "arg": "baabbbaaaab",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bbba",
+            "aa",
+            "aaaa",
+            "aa",
+            "bb"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "aabb",
+            "",
+            "bb"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "baa"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "ababbaaaba",
+          "expect": [
+            [
+              "b",
+              [
+                1,
+                3,
+                4,
+                8
+              ]
+            ],
+            [
+              "baa",
+              [
+                4
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aaccabaabba",
+          "expect": [
+            [
+              "b",
+              [
+                5,
+                8,
+                9
+              ]
+            ],
+            [
+              "baa",
+              [
+                5
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "cbba",
+          "expect": [
+            [
+              "b",
+              [
+                1,
+                2
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "a",
+            ""
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bbca",
+            "abbb",
+            "a",
+            "ab"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbaababbaabab",
+          "expect": [
+            [
+              "a",
+              [
+                2,
+                3,
+                5,
+                8,
+                9,
+                11
+              ]
+            ],
+            [
+              "ab",
+              [
+                3,
+                5,
+                9,
+                11
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbabaaabbabba",
+          "expect": [
+            [
+              "a",
+              [
+                2,
+                4,
+                5,
+                6,
+                9,
+                12
+              ]
+            ],
+            [
+              "ab",
+              [
+                2,
+                6,
+                9
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "bbab",
+            "",
+            "abbb",
+            "bb"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbaaba",
+          "expect": [
+            [
+              "",
+              [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6
+              ]
+            ],
+            [
+              "b",
+              [
+                0,
+                1,
+                4
+              ]
+            ],
+            [
+              "bb",
+              [
+                0
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aabbbaabb",
+          "expect": [
+            [
+              "",
+              [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9
+              ]
+            ],
+            [
+              "abbb",
+              [
+                1
+              ]
+            ],
+            [
+              "b",
+              [
+                2,
+                3,
+                4,
+                7,
+                8
+              ]
+            ],
+            [
+              "bb",
+              [
+                2,
+                3,
+                7
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ab"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "baa",
+            "bc",
+            "b"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "abaaaabababba",
+          "expect": [
+            [
+              "b",
+              [
+                1,
+                6,
+                8,
+                10,
+                11
+              ]
+            ],
+            [
+              "baa",
+              [
+                1
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "cb",
+            "aa",
+            "aba"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aa",
+          "expect": [
+            [
+              "aa",
+              [
+                0
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "baba",
+            "bc"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "aa",
+            "baa",
+            "cbb"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "a",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bb",
+            "a",
+            "bba",
+            "bba",
+            "abb"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bab",
+            "aaa"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aabbcaca",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ba",
+            "baaa"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "ba",
+            "bcb"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "aba",
+            "babb"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aaabbaabbbab",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "search",
+          "arg": "aaabbbbabbbaa",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "baacbababa",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "c",
+            "a"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "",
+            "cabb"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "baaa",
+            "bbb",
+            "a",
+            "bb"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "acaa",
+            "aba",
+            "aa",
+            "a",
+            "bbb"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "ca",
+          "expect": [
+            [
+              "a",
+              [
+                1
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "aab",
+            "bb",
+            "bbb"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ab",
+            "abba",
+            "aa",
+            "bacb",
+            "b"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbabacbbababa",
+          "expect": [
+            [
+              "ab",
+              [
+                2,
+                8,
+                10
+              ]
+            ],
+            [
+              "b",
+              [
+                0,
+                1,
+                3,
+                6,
+                7,
+                9,
+                11
+              ]
+            ],
+            [
+              "bacb",
+              [
+                3
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "aaa"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aabaababaabaaa",
+          "expect": [
+            [
+              "a",
+              [
+                0,
+                1,
+                3,
+                4,
+                6,
+                8,
+                9,
+                11,
+                12,
+                13
+              ]
+            ],
+            [
+              "aaa",
+              [
+                11
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "b",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "search",
+          "arg": "bb",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "acbaaaabaa",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "bbabc",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "abacbacaab",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "acaababaa",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bbca",
+            "ba"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbbaaabbabb",
+          "expect": [
+            [
+              "ba",
+              [
+                2,
+                7
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "aab",
+            "abab",
+            "",
+            "ab"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "abbb"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bb"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ca",
+            "bbbb",
+            "bbaa"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "",
+            "bbab",
+            "abb",
+            "bba"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bab",
+            "b"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bb",
+            "abca",
+            "aaa"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "caa"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bcab",
+            "",
+            "abb",
+            "aabb",
+            "ab"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aaababb",
+          "expect": [
+            [
+              "",
+              [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7
+              ]
+            ],
+            [
+              "ab",
+              [
+                2,
+                4
+              ]
+            ],
+            [
+              "abb",
+              [
+                4
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "abaabaabbbbb",
+          "expect": [
+            [
+              "",
+              [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12
+              ]
+            ],
+            [
+              "aabb",
+              [
+                5
+              ]
+            ],
+            [
+              "ab",
+              [
+                0,
+                3,
+                6
+              ]
+            ],
+            [
+              "abb",
+              [
+                6
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "aab",
+            "bbbb",
+            "aa",
+            "aaa"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "babbbbaa",
+          "expect": [
+            [
+              "aa",
+              [
+                6
+              ]
+            ],
+            [
+              "bbbb",
+              [
+                2
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "baba",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "aabaaaba",
+          "expect": [
+            [
+              "aa",
+              [
+                0,
+                3,
+                4
+              ]
+            ],
+            [
+              "aaa",
+              [
+                3
+              ]
+            ],
+            [
+              "aab",
+              [
+                0,
+                4
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "ab",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "abaa",
+            "aaa",
+            "cba",
+            "b"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "baab",
+            "bbbb",
+            "c",
+            "aa"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "baabcbaaaaca",
+          "expect": [
+            [
+              "aa",
+              [
+                1,
+                6,
+                7,
+                8
+              ]
+            ],
+            [
+              "baab",
+              [
+                0
+              ]
+            ],
+            [
+              "c",
+              [
+                4,
+                10
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ba",
+            "bab",
+            "aacb",
+            "bbb"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aaacbbbbaabab",
+          "expect": [
+            [
+              "aacb",
+              [
+                1
+              ]
+            ],
+            [
+              "ba",
+              [
+                7,
+                10
+              ]
+            ],
+            [
+              "bab",
+              [
+                10
+              ]
+            ],
+            [
+              "bbb",
+              [
+                4,
+                5
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "cbb"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "ba",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "bba",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "abaab",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "aaa"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "ababbaa",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "a"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "babba",
+          "expect": [
+            [
+              "a",
+              [
+                1,
+                4
+              ]
+            ],
+            [
+              "b",
+              [
+                0,
+                2,
+                3
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "abcabaabaa",
+          "expect": [
+            [
+              "a",
+              [
+                0,
+                3,
+                5,
+                6,
+                8,
+                9
+              ]
+            ],
+            [
+              "b",
+              [
+                1,
+                4,
+                7
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbabb",
+          "expect": [
+            [
+              "a",
+              [
+                2
+              ]
+            ],
+            [
+              "b",
+              [
+                0,
+                1,
+                3,
+                4
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "abab"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ba",
+            "aba",
+            "",
+            "",
+            "abb"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "bbba"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "aabb",
+            "aa",
+            "a",
+            "ab",
+            ""
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "abb",
+            "aab",
+            "bcaa",
+            "bacc",
+            "bab"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbabbaa",
+          "expect": [
+            [
+              "abb",
+              [
+                2
+              ]
+            ],
+            [
+              "bab",
+              [
+                1
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "a",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ab",
+            "bc"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "acbbaabbabb",
+          "expect": [
+            [
+              "ab",
+              [
+                5,
+                8
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "aa",
+            "c",
+            "a"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ab",
+            "bb",
+            "baba"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "cbaab",
+          "expect": [
+            [
+              "ab",
+              [
+                3
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "aaa",
+            "bbb"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ab",
+            "",
+            "a",
+            "baa"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "search",
+          "arg": "c",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ba"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bb",
+            "bb"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbbaabbbaab",
+          "expect": [
+            [
+              "bb",
+              [
+                0,
+                1,
+                5,
+                6
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "cabbababbabb",
+          "expect": [
+            [
+              "bb",
+              [
+                2,
+                7,
+                10
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "abbbbabaa",
+          "expect": [
+            [
+              "bb",
+              [
+                1,
+                2,
+                3
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "abab",
+            "baa",
+            "ab"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bbb",
+            "acb"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aba",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bba",
+            "baa",
+            "baab",
+            "a",
+            "abab"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "aa"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aaabbbbabb",
+          "expect": [
+            [
+              "a",
+              [
+                0,
+                1,
+                2,
+                7
+              ]
+            ],
+            [
+              "aa",
+              [
+                0,
+                1
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "ababaab",
+          "expect": [
+            [
+              "a",
+              [
+                0,
+                2,
+                4,
+                5
+              ]
+            ],
+            [
+              "aa",
+              [
+                4
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "abcbabbbbab",
+          "expect": [
+            [
+              "a",
+              [
+                0,
+                4,
+                9
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aaaab",
+          "expect": [
+            [
+              "a",
+              [
+                0,
+                1,
+                2,
+                3
+              ]
+            ],
+            [
+              "aa",
+              [
+                0,
+                1,
+                2
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "baaababa",
+          "expect": [
+            [
+              "a",
+              [
+                1,
+                2,
+                3,
+                5,
+                7
+              ]
+            ],
+            [
+              "aa",
+              [
+                1,
+                2
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbabbbaba",
+          "expect": [
+            [
+              "a",
+              [
+                2,
+                6,
+                8
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "ca"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "babaaaaaa",
+          "expect": [
+            [
+              "a",
+              [
+                1,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbb",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "abbbcbaba",
+          "expect": [
+            [
+              "a",
+              [
+                0,
+                6,
+                8
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbcaaaaa",
+          "expect": [
+            [
+              "a",
+              [
+                3,
+                4,
+                5,
+                6,
+                7
+              ]
+            ],
+            [
+              "ca",
+              [
+                2
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "",
+            "ba",
+            "bab"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ba",
+            "a",
+            "b",
+            "c"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "baab",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "babaaaaa",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "aaabac",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "b",
+            "bba",
+            "baaa",
+            "aa"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bcb"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "abb",
+            "bba"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aba",
+          "expect": [
+            [
+              "a",
+              [
+                0,
+                2
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aabaa",
+          "expect": [
+            [
+              "a",
+              [
+                0,
+                1,
+                3,
+                4
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "abbbabbbababaa",
+          "expect": [
+            [
+              "a",
+              [
+                0,
+                4,
+                8,
+                10,
+                12,
+                13
+              ]
+            ],
+            [
+              "abb",
+              [
+                0,
+                4
+              ]
+            ],
+            [
+              "bba",
+              [
+                2,
+                6
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbabaaca",
+          "expect": [
+            [
+              "a",
+              [
+                2,
+                4,
+                5,
+                7
+              ]
+            ],
+            [
+              "bba",
+              [
+                0
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "baa"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbbabab",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "b",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "bba",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "aaaaaaab",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "bbb",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "b",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "aabbbbacba",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "search",
+          "arg": "bbabaa",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "baaaacababbaaa",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "bba",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "aa"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "bb"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "abb",
+            "ab"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbbab",
+          "expect": [
+            [
+              "ab",
+              [
+                3
+              ]
+            ],
+            [
+              "b",
+              [
+                0,
+                1,
+                2,
+                4
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "cbbbbbab",
+          "expect": [
+            [
+              "ab",
+              [
+                6
+              ]
+            ],
+            [
+              "b",
+              [
+                1,
+                2,
+                3,
+                4,
+                5,
+                7
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "",
+            "b",
+            "aaab",
+            "bba",
+            ""
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "abba",
+          "expect": [
+            [
+              "",
+              [
+                0,
+                1,
+                2,
+                3,
+                4
+              ]
+            ],
+            [
+              "b",
+              [
+                1,
+                2
+              ]
+            ],
+            [
+              "bba",
+              [
+                1
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ac",
+            "bab",
+            "baaa",
+            "baba"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "baaaaaabbcaa",
+          "expect": [
+            [
+              "baaa",
+              [
+                0
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ba",
+            "bba",
+            "a"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "aab",
+            "c",
+            "ba",
+            "bba"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "bbaa",
+            "",
+            "cbab",
+            "a"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "baacbaaaaa",
+          "expect": [
+            [
+              "",
+              [
+                0,
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10
+              ]
+            ],
+            [
+              "a",
+              [
+                1,
+                2,
+                5,
+                6,
+                7,
+                8,
+                9
+              ]
+            ],
+            [
+              "b",
+              [
+                0,
+                4
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "babb"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "cbcaaabbba",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "abbb",
+            "bab",
+            "aa",
+            "a",
+            "ba"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "aabb",
+            "b"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "abbbaa",
+          "expect": [
+            [
+              "b",
+              [
+                1,
+                2,
+                3
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "ababaaaaa",
+          "expect": [
+            [
+              "b",
+              [
+                1,
+                3
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "ab",
+          "expect": [
+            [
+              "b",
+              [
+                1
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "bbb",
+          "expect": [
+            [
+              "b",
+              [
+                0,
+                1,
+                2
+              ]
+            ]
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "aaa",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "cab",
+            "bcab",
+            "ba",
+            "bb"
+          ]
+        },
+        {
+          "op": "search",
+          "arg": "",
+          "expect": []
+        },
+        {
+          "op": "search",
+          "arg": "baaaabbabaa",
+          "expect": [
+            [
+              "ba",
+              [
+                0,
+                6,
+                8
+              ]
+            ],
+            [
+              "bb",
+              [
+                5
+              ]
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}

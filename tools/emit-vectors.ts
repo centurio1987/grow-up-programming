@@ -53,12 +53,14 @@ import { quadtreeContract } from "../src/data-structures/spatial/quadtree/quadtr
 import { binarySearchTreeContract } from "../src/data-structures/tree/binarySearchTree/binarySearchTree.contract.ts";
 import { cartesianTreeContract } from "../src/data-structures/tree/cartesianTree/cartesianTree.contract.ts";
 import { linkCutTreeContract } from "../src/data-structures/tree/linkCutTree/linkCutTree.contract.ts";
+import { merkleTreeContract } from "../src/data-structures/tree/merkleTree/merkleTree.contract.ts";
 import { multisetContract } from "../src/data-structures/tree/multiset/multiset.contract.ts";
 import { orderStatisticTreeContract } from "../src/data-structures/tree/orderStatisticTree/orderStatisticTree.contract.ts";
 import { redBlackTreeContract } from "../src/data-structures/tree/redBlackTree/redBlackTree.contract.ts";
 import { scapegoatTreeContract } from "../src/data-structures/tree/scapegoatTree/scapegoatTree.contract.ts";
 import { splayTreeContract } from "../src/data-structures/tree/splayTree/splayTree.contract.ts";
 import { treapContract } from "../src/data-structures/tree/treap/treap.contract.ts";
+import { ahoCorasickContract } from "../src/data-structures/trie/ahoCorasick/ahoCorasick.contract.ts";
 import { suffixArrayContract } from "../src/data-structures/trie/suffixArray/suffixArray.contract.ts";
 import { suffixTreeContract } from "../src/data-structures/trie/suffixTree/suffixTree.contract.ts";
 import { ternarySearchTreeContract } from "../src/data-structures/trie/ternarySearchTree/ternarySearchTree.contract.ts";
@@ -247,12 +249,25 @@ const SPECS: ContractSpec<any, any>[] = [
   binarySearchTreeContract,
   cartesianTreeContract,
   linkCutTreeContract,
+  // 뿌리 · 증명은 구현이 고르는 토큰이라 **기대값에 토큰이 없다**(`merkleTree.contract.ts` 머리말). 연산 `reindex(블록 수열)` 은 껍데기
+  // (`Rebuildable`)가 생성자 행을 나르는 자리이고 해시는 단사인 `{` + 문자열 + `}` 다. `rootHash` 의 기대값은 `[이 뿌리를 처음 받았을 때의 수열,
+  // 이 수열이 전에 받은 뿌리와 같은가]` — 재생하는 쪽이 받은 뿌리를 수열에 걸어 기록해야 한다(기록은 다시 짓기를 넘어 남는다). `getProof` 는
+  // `"증명"` 이면 그때의 뿌리 · 수열 · 자리 · 증명을 기록하고, `verify` 의 인자 `[증명 기록 뒤에서 몇째, 뿌리 기록 뒤에서 몇째, 자리 어긋남,
+  // 틀린 블록이면 1, 증명 변형 0~3]` 을 그 기록으로 풀어 부른다(틀린 블록은 뿌리 기록 수열의 그 자리 블록 + `~`, 변형은 끝 빼기 · 뒤집기 ·
+  // 첫 토큰 덧붙이기). 기대값 `"자유"` 는 계약이 답을 정하지 않은 자리라 부르지 않는다. 자리 인자는 음수 · 정수 아닌 값이 아니면 블록 수 + 1 로
+  // 나눈 나머지로 읽는다.
+  merkleTreeContract,
   multisetContract,
   orderStatisticTreeContract,
   redBlackTreeContract,
   scapegoatTreeContract,
   splayTreeContract,
   treapContract,
+  // 연산 `reindex(패턴 목록)` 은 계약 표의 연산이 아니라 불변 구조의 껍데기(`Reindexable`)가 생성자 행을 나르는 자리다 — 받은 목록으로
+  // 새로 짓는다(`ahoCorasick.contract.ts` 머리말 · 불변 사실 52 ④). 처음 색인은 빈 목록이다. **`search` 의 기대값은 `[패턴, 시작 자리
+  // 배열]` 을 패턴 문자열의 코드 단위 순으로 정렬한 목록이다** — 계약이 키의 차례를 정하지 않아 재생하는 쪽도 정렬해 견주고, 자리 배열은
+  // 계약이 오름차순으로 정했으므로 그대로 견준다. 나타나지 않은 패턴은 목록에 없다.
+  ahoCorasickContract,
   suffixArrayContract,
   suffixTreeContract,
   ternarySearchTreeContract,

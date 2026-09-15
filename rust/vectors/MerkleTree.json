@@ -1,0 +1,2179 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "MerkleTree",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 수열도 뿌리가 있고 증명은 없으며, 블록 하나짜리와 뿌리가 다르다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "rootHash",
+          "expect": [
+            [],
+            true
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expect": "증명 없음"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            ""
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              ""
+            ],
+            true
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 0,
+          "expect": "증명"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "같은 수열이면 같은 뿌리 — 고쳤다 되돌리면 뿌리도 돌아온다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "b",
+            "c",
+            "a"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "a",
+              "b",
+              "c",
+              "a"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            "x"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "a",
+              "x",
+              "c",
+              "a"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            "b"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "a",
+              "b",
+              "c",
+              "a"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "b",
+            "c",
+            "a"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "a",
+              "b",
+              "c",
+              "a"
+            ],
+            true
+          ]
+        }
+      ]
+    },
+    {
+      "name": "다른 수열이면 다른 뿌리 — 끝 블록을 한 번 더 붙인 수열 · 블록을 이어 붙인 수열과도 다르다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "b",
+            "c"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "a",
+              "b",
+              "c"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "b",
+            "c",
+            "c"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "a",
+              "b",
+              "c",
+              "c"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "a"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "a"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "a",
+              "a"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ab",
+            "c"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "ab",
+              "c"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "bc"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "a",
+              "bc"
+            ],
+            true
+          ]
+        }
+      ]
+    },
+    {
+      "name": "없는 자리를 가리키는 검증은 거짓이다 — 끝 블록의 증명을 한 칸 뒤 자리로 물어도",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "b",
+            "c"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 2,
+          "expect": "증명"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            -1,
+            0,
+            0
+          ],
+          "expect": false
+        }
+      ]
+    },
+    {
+      "name": "틀린 블록은 어떤 증명 변형으로도 거짓이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "b",
+            "c",
+            "a",
+            "b"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 4,
+          "expect": "증명"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            0,
+            1,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            0,
+            1,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            0,
+            1,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "검증은 담긴 블록을 읽지 않는다 — 고친 뒤와 다시 지은 뒤에도 옛 뿌리의 증명은 참이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "b",
+            "c",
+            "a"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 2,
+          "expect": "증명"
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            "x"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 2,
+          "expect": "증명"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            1,
+            1,
+            0,
+            0,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "verify",
+          "arg": [
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "c"
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            1,
+            1,
+            0,
+            0,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "c"
+            ],
+            true
+          ]
+        }
+      ]
+    },
+    {
+      "name": "범위 밖 · 정수 아닌 자리는 증명 · 고치기에서 RangeError 다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "b"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "getProof",
+          "arg": 2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "getProof",
+          "arg": 1.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            "x"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            -1,
+            "x"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            0.5,
+            "x"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "a",
+              "b"
+            ],
+            true
+          ]
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            1,
+            1,
+            0
+          ],
+          "expect": "증명 없음"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            1,
+            2,
+            0,
+            1,
+            0
+          ],
+          "expect": "증명 없음"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "b",
+            "ab"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "a",
+              "b",
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "getProof",
+          "arg": 4,
+          "expect": "RangeError"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          "expect": "증명 없음"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            1,
+            3,
+            0,
+            0,
+            0
+          ],
+          "expect": "증명 없음"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [],
+            true
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "c",
+            "a",
+            "b",
+            "a",
+            "ab"
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            ""
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            1,
+            0,
+            0,
+            0,
+            3
+          ],
+          "expect": "증명 없음"
+        },
+        {
+          "op": "update",
+          "arg": [
+            6,
+            ""
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            ""
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "getProof",
+          "arg": 7,
+          "expect": "RangeError"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            -1,
+            0,
+            0
+          ],
+          "expect": "증명 없음"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "ab"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 3,
+          "expect": "증명"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "",
+            "b",
+            "a",
+            "b",
+            ""
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "",
+              "b",
+              "a",
+              "b",
+              ""
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "c",
+            "b",
+            "a",
+            "a"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ab",
+            "ab"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "c",
+            "b",
+            "ab"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "c",
+              "b",
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            7,
+            ""
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a"
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            "ab"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            -1,
+            "b"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            6,
+            "ab"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "c"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            ""
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            4,
+            "ab"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            7,
+            "a"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "verify",
+          "arg": [
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            3,
+            "c"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          "expect": "자유"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [],
+            true
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            2,
+            0,
+            0,
+            0,
+            2
+          ],
+          "expect": "자유"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [],
+            true
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [],
+            true
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            2,
+            0,
+            0,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "ab",
+            "b",
+            "ab",
+            "b"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 7,
+          "expect": "증명"
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "c",
+            "b",
+            "ab"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "a",
+              "c",
+              "b",
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "",
+            "a",
+            "",
+            "a",
+            "b",
+            "ab"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 2,
+          "expect": "증명"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "a",
+            "ab",
+            "ab"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ab",
+            "ab"
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            2,
+            0,
+            -1,
+            0,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "update",
+          "arg": [
+            3,
+            "c"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "c",
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "verify",
+          "arg": [
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "update",
+          "arg": [
+            3,
+            "ab"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ab",
+            "b"
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            6,
+            "a"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "",
+            "",
+            "b"
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            6,
+            "ab"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 4,
+          "expect": "RangeError"
+        },
+        {
+          "op": "getProof",
+          "arg": 0,
+          "expect": "증명"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ab",
+            "a",
+            "c",
+            "c",
+            "a",
+            "a"
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            "a"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 1,
+          "expect": "증명"
+        },
+        {
+          "op": "update",
+          "arg": [
+            4,
+            "c"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "ab",
+            "",
+            "a"
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            3,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "getProof",
+          "arg": 6,
+          "expect": "증명"
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            "ab"
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            -1,
+            0,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "verify",
+          "arg": [
+            1,
+            0,
+            0,
+            0,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ab",
+            "b",
+            "b",
+            "ab",
+            "a"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "ab",
+              "b",
+              "b",
+              "ab",
+              "a"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "",
+            "b"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ab",
+            "ab",
+            "c",
+            "a"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 7,
+          "expect": "증명"
+        },
+        {
+          "op": "getProof",
+          "arg": 7,
+          "expect": "증명"
+        },
+        {
+          "op": "update",
+          "arg": [
+            4,
+            "a"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            2,
+            0,
+            -1,
+            0,
+            0
+          ],
+          "expect": "자유"
+        },
+        {
+          "op": "getProof",
+          "arg": 1,
+          "expect": "증명"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "c",
+            "ab",
+            "b"
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            7,
+            "c"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "c",
+            "b",
+            ""
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            2,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "getProof",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "getProof",
+          "arg": 2,
+          "expect": "증명"
+        },
+        {
+          "op": "getProof",
+          "arg": 1,
+          "expect": "증명"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "b"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            2,
+            0,
+            0,
+            1,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "b"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "c",
+            ""
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "c",
+              ""
+            ],
+            true
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            2,
+            0,
+            0,
+            1,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "verify",
+          "arg": [
+            2,
+            0,
+            0,
+            1,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "update",
+          "arg": [
+            7,
+            "c"
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "c",
+              "c"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            6,
+            "b"
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            3,
+            0,
+            0,
+            1,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "verify",
+          "arg": [
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "verify",
+          "arg": [
+            3,
+            0,
+            1,
+            0,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "b",
+              "c"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "b",
+              "c"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            4,
+            ""
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "b",
+              ""
+            ],
+            true
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            "ab"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "ab"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "b",
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 3,
+          "expect": "증명"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "b",
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            2,
+            1,
+            -1,
+            1,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "verify",
+          "arg": [
+            1,
+            0,
+            0,
+            0,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "b",
+            "a"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "c",
+            "b"
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            0,
+            0,
+            3
+          ],
+          "expect": "자유"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "c",
+              "b"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 4,
+          "expect": "증명"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            0,
+            1,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "c",
+              "b"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            3,
+            3,
+            -1,
+            0,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "update",
+          "arg": [
+            5,
+            "a"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "c",
+              "b"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            4,
+            "ab"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "c",
+            "a",
+            "b",
+            "a"
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            1,
+            0,
+            1,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "verify",
+          "arg": [
+            3,
+            1,
+            1,
+            0,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "ab",
+            "",
+            "b",
+            "c"
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            6,
+            "a"
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "c",
+            "a"
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            "a"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 0,
+          "expect": "증명"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "c",
+              "a"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "",
+            "",
+            "b",
+            "ab"
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 1,
+          "expect": "증명"
+        },
+        {
+          "op": "update",
+          "arg": [
+            -1,
+            "a"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "",
+            "ab"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "",
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "",
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "getProof",
+          "arg": 3,
+          "expect": "증명"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            2,
+            1,
+            0,
+            0,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "update",
+          "arg": [
+            5,
+            "b"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            5,
+            ""
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "c",
+            "a",
+            "ab",
+            "a",
+            "ab"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [],
+            true
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            0,
+            0,
+            2
+          ],
+          "expect": "자유"
+        },
+        {
+          "op": "getProof",
+          "arg": 7,
+          "expect": "RangeError"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          "expect": "자유"
+        },
+        {
+          "op": "getProof",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [],
+            true
+          ]
+        },
+        {
+          "op": "verify",
+          "arg": [
+            2,
+            0,
+            0,
+            0,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "update",
+          "arg": [
+            5,
+            "ab"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [],
+            true
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            6,
+            "c"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [],
+            true
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            7,
+            ""
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "c",
+            "b",
+            "a",
+            "c",
+            "c"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "c",
+              "b",
+              "a",
+              "c",
+              "c"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 7,
+          "expect": "증명"
+        },
+        {
+          "op": "getProof",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            3,
+            "ab"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "",
+            "ab",
+            "",
+            "",
+            "ab"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "c",
+            "",
+            "c",
+            "ab"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "c",
+            "b",
+            "b",
+            "b"
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": []
+        },
+        {
+          "op": "getProof",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "verify",
+          "arg": [
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            "b"
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "getProof",
+          "arg": 1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [],
+            true
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": 3,
+          "expect": "RangeError"
+        },
+        {
+          "op": "getProof",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [],
+            true
+          ]
+        },
+        {
+          "op": "getProof",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "ab"
+          ]
+        },
+        {
+          "op": "rootHash",
+          "expect": [
+            [
+              "ab"
+            ],
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": [
+            "a",
+            "a",
+            "",
+            "a",
+            "a",
+            "ab"
+          ]
+        }
+      ]
+    }
+  ]
+}
