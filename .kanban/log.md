@@ -1,6 +1,9 @@
 # KANBAN 변경 이력
 > 최근 50건. 이보다 오래된 이력은 archive.jsonl 로 압축 보관한다.
 
+- #295 2026-09-16 04:10 · 유저 · KAN-026 독립성 겹침 용인 (상대 KAN-027) — 유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」 용인의 재기록(2026-09-16) — scope 에 KAN-026 은 tools/ci.ts · tools/ci-workflow.test.ts · .github/workflows/ci.yml · CLAUDE.md(S24 trials 모드), KAN-027 은 tree/linkCutTree(S29 정정)를 더해 해시가 바뀌었다. 구조 디렉터리는 여전히 겹치지 않고, 공유 문서 · 등록 파일은 KAN-027 이 KAN-026 을 병합해 푼다(병합 커밋 e1d9f18 의 방식)
+- #294 2026-09-16 04:10 · 유저 · KAN-036-0G05DE serialize
+- #293 2026-09-16 04:10 · 유저 · KAN-036-0G05DE serialize
 - #292 2026-09-15 23:50 · ai · KAN-027 이동 검토 → 진행 중
 - #291 2026-09-15 20:53 · ai · KAN-027 이동 진행 중 → 검토
 - #290 2026-09-15 20:52 · ai · KAN-027 수정 메모
@@ -48,6 +51,3 @@
 - #269 2026-09-15 01:27 · 유저 · KAN-036-0G05DE serialize
 - #268 2026-09-14 21:11 · ai · KAN-027 수정 메모
 - #268 2026-09-14 21:11 · ai · KAN-026 수정 메모
-- #267 2026-09-14 21:08 · 유저 · KAN-026 독립성 겹침 용인 (상대 KAN-027) — 유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 _contract/runContract.test.ts·emit-vectors·ord006-inventory 의 등록 줄뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229 · KAN-027 T5 90–99→230–249)으로 가르고 병합 충돌은 줄 단위로 양쪽을 살린다
-- #267 2026-09-14 21:08 · 유저 · KAN-026 독립성 겹침 용인 (상대 KAN-027) — 유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 _contract/runContract.test.ts·emit-vectors·ord006-inventory 의 등록 줄뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229 · KAN-027 T5 90–99→230–249)으로 가르고 병합 충돌은 줄 단위로 양쪽을 살린다
-- #266 2026-09-14 21:08 · 유저 · KAN-036-0G05DE serialize
