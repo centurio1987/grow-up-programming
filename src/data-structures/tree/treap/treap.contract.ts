@@ -20,7 +20,7 @@
  * 통과시키지 못한다. B11 이 `tree/multiset` 에서 실제로 그런 입력을 만들었고 넣지 않았다.
  *
  * **이 스위트가 통과시키는 것 중에 계약 위반이 있다 — 그 사실을 여기 적는다**(불변 사실 62).
- * `_contract/_fixtures/splayingSearchTree.ts` 는 일곱 시나리오를 **전부 통과하는데 이 계약을
+ * `_contract/_fixtures/splayingSearchTree.ts` 는 여덟 시나리오를 **전부 통과하는데 이 계약을
  * 어긴다.** 사슬인 채로 맞는 첫 조회 하나가 원소 수에 비례하고 그 구현은 결정론적이라 그
  * 값이 곧 기댓값인데, 축3의 `expected` 통계가 **시퀀스 평균**이라 그 하나가 묻힌다. 왜 고칠
  * 수 없는지는 `./treap.ts` 헤더에 있다. **다음 배치가 이 통과를 「계약을 지킨다」로 읽지
@@ -430,6 +430,28 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
       run: (impl, n, ctx) => {
         for (let i = 0; i < n; i++) impl.insert(Math.floor(ctx.rng() * n * 4));
         for (let i = 0; i < n; i++) ctx.step(() => impl.size());
+      },
+    },
+    {
+      covers: ["delete"],
+      qualifier: "expected",
+      bound: "O(log n)",
+      adversarial: false,
+      // 오름차순 지우기와 같은 채우기에서 **지우는 차례만 무작위로** 섞는다(`S22`). 그쪽은 늘 최솟값을 지워, 지울
+      // 원소 앞자리를 앞에서부터 다시 찾는 설계가 찾을 거리 0 으로 통과한다 — 층마다 머리부터 훑는
+      // 건너뛰기 줄(`_contract/_fixtures/levelRuleSkipList.ts` 의 `scanDelete`)이 그 실물이다. 섞으면
+      // 지울 원소가 평균 가운데라 그 거리가 담긴 수에 비례한다(불변 사실 233 · 242).
+      //
+      // 적대적이 아니다 — 차례를 `ctx.rng` 로 뽑아 seed 다섯이 다른 입력을 낸다. 판정 이름은 그쪽과
+      // 「(적대적)」 한 마디로 갈린다. 맨 끝에 둔 것은 이 파일을 줄 번호로 가리키는 가이드 인용을 밀지 않으려는 것이다.
+      run: (impl, n, ctx) => {
+        for (let i = 0; i < n; i++) impl.insert(i);
+        const order = Array.from({ length: n }, (_, i) => i);
+        for (let i = n - 1; i > 0; i--) {
+          const j = Math.floor(ctx.rng() * (i + 1));
+          [order[i], order[j]] = [order[j] as number, order[i] as number];
+        }
+        for (const key of order) ctx.step(() => impl.delete(key));
       },
     },
   ],

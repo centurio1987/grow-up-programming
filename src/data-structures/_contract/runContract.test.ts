@@ -1098,7 +1098,7 @@ describe("축3 — 정본은 통과한다", () => {
     }
   }, 30_000);
 
-  test("기대 정렬 집합 정본이 일곱 시나리오를 전부 통과한다", () => {
+  test("기대 정렬 집합 정본이 여덟 시나리오를 전부 통과한다", () => {
     for (const scenario of treapContract.scenarios) {
       const verdict = judgeScenario(referenceTreap, scenario, "complexity");
       expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
@@ -1935,25 +1935,25 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
    * **판정 규격의 한계**다.
    */
   test("기대 계약은 최악 정본을 담고 상각 정본의 위반을 못 본다", () => {
-    // 담는 쪽 → 담기는 쪽. 결정론적 정본이라 안정적으로 통과한다(최악까지 로그면
-    // 기댓값도 로그다).
+    // 담는 쪽 → 담기는 쪽. 결정론적 정본이라 안정적으로 통과한다(최악까지 로그면 기댓값도 로그다).
     expect(outcomes(referenceRedBlackTree, treapContract)).toEqual({
       "insert (적대적)": true,
       insert: true,
       "has·min·max (적대적)": true,
       "delete (적대적)": true,
+      delete: true,
       range: true,
       toArray: true,
       size: true,
     });
 
-    // **이 계약을 어기는 정본이 일곱을 전부 통과한다.** B17 이 「서로 담지 않는다」로
-    // 판정한 한 쌍인데 축이 그 한쪽을 못 본다.
+    // **이 계약을 어기는 정본이 여덟을 전부 통과한다.** B17 이 「서로 담지 않는다」로 판정한 한 쌍인데 축이 그 한쪽을 못 본다.
     expect(outcomes(referenceSplayTree, treapContract)).toEqual({
       "insert (적대적)": true,
       insert: true,
       "has·min·max (적대적)": true,
       "delete (적대적)": true,
+      delete: true,
       range: true,
       toArray: true,
       size: true,
@@ -1961,13 +1961,11 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
   }, 30_000);
 
   /**
-   * **기대 계약의 스위트가 통과시키는 것 중에 계약 위반이 있다**(불변 사실 62 가 요구하는
-   * 기록).
+   * **기대 계약의 스위트가 통과시키는 것 중에 계약 위반이 있다**(불변 사실 62 가 요구하는 기록).
    *
    * `splayingSearchTree` 는 사슬인 채로 맞는 첫 조회 하나가 원소 수에 비례하고 결정론적이라
    * 그 값이 곧 기댓값이다 — **`expected O(log n)` 을 어긴다.** 그런데 축3의 `expected`
-   * 통계가 시퀀스 평균이라 그 하나가 묻힌다. 통과를 「계약을 지킨다」로 읽지 않도록 여기
-   * 이름으로 적어 둔다.
+   * 통계가 시퀀스 평균이라 그 하나가 묻힌다. 통과를 「계약을 지킨다」로 읽지 않도록 여기 이름으로 적어 둔다.
    *
    * 스위트가 아무것도 못 잡는다는 뜻은 아니다 — **입력에 치우치는 구현은 잡는다.**
    */
@@ -1978,18 +1976,19 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       insert: true,
       "has·min·max (적대적)": false,
       "delete (적대적)": true,
+      delete: false,
       range: true,
       toArray: true,
       size: true,
     });
 
-    // 정렬 배열: 갱신 둘이 걸린다. 무작위 위치에 넣으면 평균 n/2 개가 밀리므로 기댓값도
-    // n 에 비례한다.
+    // 정렬 배열: 갱신 둘이 걸린다. 무작위 위치에 넣으면 평균 n/2 개가 밀리므로 기댓값도 n 에 비례한다.
     expect(outcomes(sortedArraySet, treapContract)).toEqual({
       "insert (적대적)": true,
       insert: false,
       "has·min·max (적대적)": true,
       "delete (적대적)": false,
+      delete: false,
       range: true,
       toArray: true,
       size: true,
@@ -2001,6 +2000,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       insert: true,
       "has·min·max (적대적)": true,
       "delete (적대적)": true,
+      delete: true,
       range: true,
       toArray: true,
       size: true,

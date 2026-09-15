@@ -8,8 +8,8 @@
  * 2. **이 이름의 흔한 결함이 스위트에서 걸리는 자리** — 층을 고르게 뽑기 · 윗끝 4 는 걸리고, 윗끝 16(물려받은 설계)은 사다리
  *    아래라 통과한다(불변 사실 231).
  * 3. **씨앗을 고정한 층** — 스위트는 통과시키고, 층의 수열을 되짚은 입력에서 선형이다(불변 사실 232 · 44).
- * 4. **머리부터 다시 훑는 지우기** — 스위트의 구멍. 지우기 시나리오가 늘 최솟값을 지워 통과하고, 무작위 차례의 지우기에서
- *    선형이다(불변 사실 233).
+ * 4. **머리부터 다시 훑는 지우기** — T5-04 가 찾은 스위트의 구멍(불변 사실 233). 오름차순 지우기 시나리오는 늘 최솟값을 지워
+ *    통과시키고, `S22` 가 `tree/treap` 스위트 끝에 더한 무작위 차례 지우기 시나리오가 잡는다(불변 사실 242).
  *
  * **무작위를 쓰는 구현의 수치는 단언하지 않는다**(§「무작위를 쓰는 정본과 재현성」 규칙 3·5). 판정 깃발은 40 회 반복에서 한
  * 번도 갈리지 않은 것만 고정했고(불변 사실 238), 비용은 계급이 갈리는 큰 여백(담긴 수의 8 분의 1 이상 대 64 미만)으로만 적는다.
@@ -34,7 +34,7 @@ import { judgeScenario } from "./runContract";
 
 type Measured = SkipListContract<number> & { __cost: number };
 
-/** 스위트 일곱 시나리오의 판정 깃발. `o` 통과 · `X` 걸림, 순서는 `treap.contract.ts` 의 `scenarios` 순서다. */
+/** 스위트 여덟 시나리오의 판정 깃발. `o` 통과 · `X` 걸림, 순서는 `treap.contract.ts` 의 `scenarios` 순서다(여덟째가 `S22` 의 무작위 차례 지우기). */
 function flags(make: () => Measured): string {
   return skipListContract.scenarios
     .map((scenario) =>
@@ -99,26 +99,26 @@ describe("skipList — 성격 전환은 같은 객체를 쓴다", () => {
 });
 
 describe("skipList — 이 이름의 흔한 결함(층 규칙)", () => {
-  test("층을 고르게 뽑거나 윗끝을 4 로 두면 넣기 둘 · 조회 · 구간에서 걸린다", () => {
+  test("층을 고르게 뽑거나 윗끝을 4 로 두면 넣기 둘 · 조회 · 구간 · 무작위 차례 지우기에서 걸린다", () => {
     expect(flags(() => new LevelRuleSkipList<number>(uniformLevels(16)))).toBe(
-      "XXXoXoo",
+      "XXXoXooX",
     );
     expect(
       flags(() => new LevelRuleSkipList<number>(cappedLevels(4, 0.5))),
-    ).toBe("XXXoXoo");
+    ).toBe("XXXoXooX");
   }, 60_000);
 
   test("물려받은 설계(윗끝 16)는 문턱 2^16 이 사다리 끝 2^14 위라 전부 통과한다 — 계약 위반이 숨은 통과", () => {
     expect(
       flags(() => new LevelRuleSkipList<number>(cappedLevels(16, 0.5))),
-    ).toBe("ooooooo");
+    ).toBe("oooooooo");
   }, 60_000);
 });
 
 describe("skipList — 씨앗을 고정한 층(결정론)", () => {
   test("스위트는 전부 통과시키고, 층의 수열을 되짚은 입력에서 찾기가 담긴 수에 비례한다", () => {
     const seeded = () => new LevelRuleSkipList<number>(seededLevels(SEED));
-    expect(flags(seeded)).toBe("ooooooo");
+    expect(flags(seeded)).toBe("oooooooo");
     expect(SIZES.map((n) => seededAttack(seeded, n))).toEqual([
       157.5, 534.3, 2062.3,
     ]);
@@ -129,13 +129,13 @@ describe("skipList — 씨앗을 고정한 층(결정론)", () => {
   }, 60_000);
 });
 
-describe("skipList — 스위트의 구멍: 머리부터 다시 훑는 지우기", () => {
-  test("지우기 시나리오가 늘 최솟값을 지워 전부 통과하고, 무작위 차례로 지우면 담긴 수에 비례한다", () => {
+describe("skipList — 머리부터 다시 훑는 지우기(T5-04 가 찾은 구멍 · S22 가 막음)", () => {
+  test("오름차순 지우기 시나리오는 통과시키고 무작위 차례 지우기 시나리오(여덟째)가 잡는다 — 무작위 차례로 지우면 담긴 수에 비례한다", () => {
     const scanning = () =>
       new LevelRuleSkipList<number>(cappedLevels(Infinity, 0.5), {
         scanDelete: true,
       });
-    expect(flags(scanning)).toBe("ooooooo");
+    expect(flags(scanning)).toBe("oooooooX");
     for (const n of SIZES) {
       expect(shuffledDeletes(scanning, n)).toBeGreaterThan(n / 8);
       expect(shuffledDeletes(() => new SkipList<number>(), n)).toBeLessThan(64);
