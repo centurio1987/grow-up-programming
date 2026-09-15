@@ -1,6 +1,6 @@
 {
-  "next_id": 39,
-  "next_seq": 278,
+  "next_id": 40,
+  "next_seq": 279,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -897,6 +897,26 @@
       "goal_hash": "357e618aabd6ba24efb735631cfc36779a7a3fe2",
       "memo": "근거: KAN-026 워크트리 docs/ORD-006-conventions.md 끝 「A군 판정 — 사람 결정 넷」 · 「A군 17종 판정 ① 등급」. 착수는 KAN-026 이 main 에 병합된 뒤(그 결정 문장이 main 에 있어야 한다). deque 의 v2 가이드(KAN-035 파일럿)에 등급 서술이 있으면 함께 본다.",
       "memo_hash": "82e4fd8ec344fecb5eb9e4dc8ffb5024c698f52b"
+    },
+    "KAN-039-FG8HWZ": {
+      "col": "backlog",
+      "title": "rollingHash 알고리즘 트랙 이관 — algo-guide-v2 가이드 집필과 한 work 로",
+      "verbatim": "가",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-09-15",
+      "title_hash": "bca78b0823ddea3ff656c765e99785aac429b71d",
+      "verbatim_hash": "efd23dd5edb260c81988052ac59b5bacfac31cb0",
+      "short": "rollingHash 알고리즘 이관",
+      "short_hash": "027a4eb1c752255f63d9d19a61d6e6eb0a760853",
+      "purpose": "src/data-structures/hash/rollingHash 를 알고리즘 트랙(src/algorithms/string/rollingHash)으로 옮기고 그 편의 v2 가이드를 같은 커밋에서 세운다",
+      "purpose_hash": "08e6a89aa1be48bec59fb3b16e8d949b06bee1b0",
+      "reason": "KAN-026 S1 이 rollingHash 를 자료구조가 아니라고 판정했고 유저가 이관을 결재했지만, 알고리즘 목록 편 수가 algo-wbs.test 로 111 고정이고 옛 mdx 를 둘 자리가 없어 가이드 없이 옮기면 게이트가 깨진다 — 2026-09-15 유저가 「가」(가이드와 묶어 별도 카드)를 골랐다",
+      "reason_hash": "2085a982ef01613a7c50f9b31c6e93610c8c6191",
+      "goal": "rollingHash 가 알고리즘 트랙 한 편(문제 서술·함수·테스트·v2 가이드)으로 서고, 목록 링크·algo-wbs 기대값(111→112)·ord004-manifest·ORD-006 inventory 가 한 커밋에서 맞으며, 자료구조 트랙에 rollingHash 디렉터리가 없다",
+      "goal_hash": "d4ea908264259c89225d1aaa7db60212a0244b8e",
+      "memo": "근거: KAN-026 워크트리 docs/ORD-006-conventions.md 「A군 17종 판정 ⑥」 · 「A군 알고리즘 트랙 이관 조사 — rollingHash」(불변 사실 288). 착수는 KAN-026 이 main 에 병합된 뒤. 가이드 규격은 sandbox/algo-guide-v2/SPEC.md.",
+      "memo_hash": "3b4e75aeae2f54830a56d1ae92a10e6a2a63e892"
     }
   },
   "order": [
@@ -947,9 +967,27 @@
     "KAN-034.4-4NS63H",
     "KAN-034.9-WHH53W",
     "KAN-034-KSD7XR",
-    "KAN-035-31T4BY"
+    "KAN-035-31T4BY",
+    "KAN-039-FG8HWZ"
   ],
   "recent": [
+    {
+      "seq": 278,
+      "t": "2026-09-15T14:16",
+      "a": "ai",
+      "id": "KAN-039-FG8HWZ",
+      "op": "create",
+      "w": "46PCAX",
+      "col": "backlog",
+      "title": "rollingHash 알고리즘 트랙 이관 — algo-guide-v2 가이드 집필과 한 work 로",
+      "verbatim": "가",
+      "parent": null,
+      "short": "rollingHash 알고리즘 이관",
+      "purpose": "src/data-structures/hash/rollingHash 를 알고리즘 트랙(src/algorithms/string/rollingHash)으로 옮기고 그 편의 v2 가이드를 같은 커밋에서 세운다",
+      "reason": "KAN-026 S1 이 rollingHash 를 자료구조가 아니라고 판정했고 유저가 이관을 결재했지만, 알고리즘 목록 편 수가 algo-wbs.test 로 111 고정이고 옛 mdx 를 둘 자리가 없어 가이드 없이 옮기면 게이트가 깨진다 — 2026-09-15 유저가 「가」(가이드와 묶어 별도 카드)를 골랐다",
+      "goal": "rollingHash 가 알고리즘 트랙 한 편(문제 서술·함수·테스트·v2 가이드)으로 서고, 목록 링크·algo-wbs 기대값(111→112)·ord004-manifest·ORD-006 inventory 가 한 커밋에서 맞으며, 자료구조 트랙에 rollingHash 디렉터리가 없다",
+      "memo": "근거: KAN-026 워크트리 docs/ORD-006-conventions.md 「A군 17종 판정 ⑥」 · 「A군 알고리즘 트랙 이관 조사 — rollingHash」(불변 사실 288). 착수는 KAN-026 이 main 에 병합된 뒤. 가이드 규격은 sandbox/algo-guide-v2/SPEC.md."
+    },
     {
       "seq": 277,
       "t": "2026-09-15T08:40",
@@ -1511,16 +1549,6 @@
       "t": "2026-09-10T16:23",
       "a": "ai",
       "id": "KAN-034.8-BK1Q3A",
-      "op": "move",
-      "w": "MDD8JM",
-      "from": "review",
-      "to": "done"
-    },
-    {
-      "seq": 228,
-      "t": "2026-09-10T16:20",
-      "a": "ai",
-      "id": "KAN-034.6-CF6ZHE",
       "op": "move",
       "w": "MDD8JM",
       "from": "review",

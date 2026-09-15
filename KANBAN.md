@@ -31,6 +31,16 @@
   - 이유: 2026-09-15 유저 결재(KAN-026)로 연결 마디가 자명한 구현이 되어, 양방향 마디가 네 갱신 행을 상각 없이 최악 상수로 하므로 deque.ts:32-35 의 「상각 설계가 필요하다」 근거가 거짓이 됐다
   - 목표: deque 헤더·스위트 등급·inventory 가 새 판정과 일치하고, 불변 사실 56 의 첫 사례(queue 와 등급으로 가른 자리) 서술이 근거를 되찾거나 정정된다
   - 메모: 근거: KAN-026 워크트리 docs/ORD-006-conventions.md 끝 「A군 판정 — 사람 결정 넷」 · 「A군 17종 판정 ① 등급」. 착수는 KAN-026 이 main 에 병합된 뒤(그 결정 문장이 main 에 있어야 한다). deque 의 v2 가이드(KAN-035 파일럿)에 등급 서술이 있으면 함께 본다.
+- `KAN-039-FG8HWZ` rollingHash 알고리즘 트랙 이관 — algo-guide-v2 가이드 집필과 한 work 로 — 생성:ai · 최종:ai · 갱신:2026-09-15
+  - 짧은 제목: rollingHash 알고리즘 이관
+  - 목적: src/data-structures/hash/rollingHash 를 알고리즘 트랙(src/algorithms/string/rollingHash)으로 옮기고 그 편의 v2 가이드를 같은 커밋에서 세운다
+  - 이유: KAN-026 S1 이 rollingHash 를 자료구조가 아니라고 판정했고 유저가 이관을 결재했지만, 알고리즘 목록 편 수가 algo-wbs.test 로 111 고정이고 옛 mdx 를 둘 자리가 없어 가이드 없이 옮기면 게이트가 깨진다 — 2026-09-15 유저가 「가」(가이드와 묶어 별도 카드)를 골랐다
+  - 목표: rollingHash 가 알고리즘 트랙 한 편(문제 서술·함수·테스트·v2 가이드)으로 서고, 목록 링크·algo-wbs 기대값(111→112)·ord004-manifest·ORD-006 inventory 가 한 커밋에서 맞으며, 자료구조 트랙에 rollingHash 디렉터리가 없다
+  - 메모: 근거: KAN-026 워크트리 docs/ORD-006-conventions.md 「A군 17종 판정 ⑥」 · 「A군 알고리즘 트랙 이관 조사 — rollingHash」(불변 사실 288). 착수는 KAN-026 이 main 에 병합된 뒤. 가이드 규격은 sandbox/algo-guide-v2/SPEC.md.
+  - 원문:
+    ```text
+    가
+    ```
 
 ## 할 일
 - `KAN-001` [P0-a·1] ORD-006 봉인 — 지시 원문·진단 9건 표 이관 — 생성:ai · 최종:ai · 갱신:2026-09-13
