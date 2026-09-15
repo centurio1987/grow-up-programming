@@ -90,9 +90,19 @@ const SKELETON_EXEMPT = new Map([
       "다시 쓸 때까지 옛 문형이다(생성자 size · hashCount 와 비트 배열 표현을 설명한다). 다시 쓰는 카드가 이 줄을 지운다",
   ],
   [
+    "probabilistic/countMinSketch",
+    "KAN-026 S15 는 계약 전환만 한다(2026-09-14 유저 결재). 옛 가이드는 KAN-036 이 v2 로 " +
+      "다시 쓸 때까지 옛 문형이다(생성자 width · depth 와 칸 표 표현 · 칸의 하한 불변식을 설명한다). 다시 쓰는 카드가 이 줄을 지운다",
+  ],
+  [
     "probabilistic/cuckooFilter",
     "KAN-026 S19 는 계약 전환만 한다(2026-09-14 유저 결재). 옛 가이드는 KAN-036 이 v2 로 " +
       "다시 쓸 때까지 옛 문형이다(뺀 size · loadFactor 와 지문 폭 · 밀어내기 상한 실패를 설명한다). 다시 쓰는 카드가 이 줄을 지운다",
+  ],
+  [
+    "probabilistic/hyperLogLog",
+    "KAN-026 S16 은 계약 전환만 한다(2026-09-14 유저 결재). 옛 가이드는 KAN-036 이 v2 로 " +
+      "다시 쓸 때까지 옛 문형이다(생성자 precision · 뺀 error() 와 고정 해시 FNV-1a 를 설명한다). 다시 쓰는 카드가 이 줄을 지운다",
   ],
   [
     "trie/radixTree",

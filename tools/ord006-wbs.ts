@@ -447,7 +447,7 @@ const UNITS: readonly Unit[] = [
     contract: "과소 추정 없는 빈도 추정",
     canonical: "probabilistic/countMinSketch",
     transitions: [],
-    note: "결정(2026-09-15 유저) — TA-12 와 같다(고정 seed 판정). 문제 문서의 「update 안 한 원소는 0」은 충돌이 있으면 거짓(불변 사실 207). 증분 전체 합을 돌려주는 구현이 결정적 쪽을 통과한다",
+    note: "완료(KAN-026 S15) — TA-12 의 판정 모양 그대로(overestimateCheck — 흐름 뒤 넣지 않은 원소 64/δ 개, ε·N 초과 ≤ 128, 여유 2 — 경계 구현 8,000 회 0 실패, 불변 사실 360 · 361). 결정적 쪽은 추정 ≥ 실제 빈도 하나, 안 넣은 원소는 0 이상(207). 생성자 (ε, δ) · 증분 0 이상 안전한 정수 · 총증분 초과 RangeError(362). update · estimate expected O(L · log(1/δ)) · basic — 증분 전체 합은 오차 판정만 잡는다(363). -problem.md 는 도구 차단으로 남았다 — 사람이 지운다",
   },
   {
     id: "TA-15",
@@ -455,7 +455,7 @@ const UNITS: readonly Unit[] = [
     contract: "서로 다른 원소 수 추정 · 합치기",
     canonical: "probabilistic/hyperLogLog",
     transitions: [],
-    note: "결정(2026-09-15 유저) — TA-12 와 같다(고정 seed 판정). error() 의 1.04/√m 은 한 구현의 상수라 표면에서 빠진다. 결정적 쪽은 중복에 무감·합치기가 넣은 순서와 무관",
+    note: "완료(KAN-026 S16) — 판정 모양은 TA-12 를 따르되 인스턴스마다 모은다(errorCheck — ⌈16/δ⌉ 개 중 ε·n 초과 ≤ 48, 여유 3 은 이항 꼬리로 골랐다, 불변 사실 360 · 361). 결정적 쪽은 「같은 실행 · 같은 (ε, δ) 에서 추정은 들어온 원소 집합의 함수」 한 문장(365). 합치기는 정확한 집합을 merge 행에서만 배제해 남았다(364). 그 때문에 해시 무작위를 실행이 한 번 뽑는다 — 사람 결정 대기(366). error() · precision 제거. add O(L · log(1/δ)) · count · merge O(1/(ε²·δ)) · basic(367). 자리 16 고정 구현은 무작위 시퀀스를 통과하고 경계 케이스가 잡는다(368). -problem.md 는 도구 차단으로 남았다 — 사람이 지운다",
   },
   {
     id: "TA-16",

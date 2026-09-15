@@ -42,7 +42,9 @@ import { unrolledLinkedListContract } from "../src/data-structures/linear/unroll
 import { xorLinkedListContract } from "../src/data-structures/linear/xorLinkedList/xorLinkedList.contract.ts";
 import { bloomFilterContract } from "../src/data-structures/probabilistic/bloomFilter/bloomFilter.contract.ts";
 import { concurrentSkipListContract } from "../src/data-structures/probabilistic/concurrentSkipList/concurrentSkipList.contract.ts";
+import { countMinSketchContract } from "../src/data-structures/probabilistic/countMinSketch/countMinSketch.contract.ts";
 import { cuckooFilterContract } from "../src/data-structures/probabilistic/cuckooFilter/cuckooFilter.contract.ts";
+import { hyperLogLogContract } from "../src/data-structures/probabilistic/hyperLogLog/hyperLogLog.contract.ts";
 import { fenwickTreeContract } from "../src/data-structures/range-query/fenwickTree/fenwickTree.contract.ts";
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
 import { segmentTreeContract } from "../src/data-structures/range-query/segmentTree/segmentTree.contract.ts";
@@ -188,8 +190,14 @@ const SPECS: ContractSpec<any, any>[] = [
   // 포트를 위한 파생물인데, `concurrency` 등급은 TS 스위트가 돌지 않으므로 **vector 가 축1의
   // 유일한 경로**다(§규약2 「축4 — 동시성」).
   concurrentSkipListContract,
+  // 오차 판정 연산(`overestimateCheck`)의 기대값도 `true` 다 — `bloomFilterContract` 줄의 설명과 같다. `estimate` 의
+  // 관측값도 추정 자체가 아니라 「기록한 빈도 이상인가」의 판정이라 `true` 다(Rust 포트는 빈도를 함께 기록해야 재생된다).
+  countMinSketchContract,
   // 오차 판정 연산(`errorCheck`)의 기대값도 `true` 다 — `bloomFilterContract` 줄의 설명과 같다.
   cuckooFilterContract,
+  // 오차 판정(`errorCheck`) · 추정(`count`) · 합치기(`merge` · `mergeSelf`)의 기대값이 전부 `true` 다 — 추정 값이 아니라 「같은 집합을
+  // 새 인스턴스에 넣은 추정과 같은가」의 판정이 실린다. Rust 포트는 들어온 원소 집합을 함께 기록하고 같은 판정을 지어야 재생된다.
+  hyperLogLogContract,
   fenwickTreeContract,
   intervalTreeContract,
   segmentTreeContract,

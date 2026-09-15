@@ -1,0 +1,1812 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "CountMinSketch",
+  "grade": "basic",
+  "element": "number",
+  "cases": [
+    {
+      "name": "넣은 원소의 추정은 실제 빈도 이상이다 — 증분 0 · 빈 문자열 · 16비트 글자 · 여러 번 나눠 넣기",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            "a",
+            3
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "a",
+            2
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "b",
+            0
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "b",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "",
+            7
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가나",
+            1
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "가나",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "a",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "넣지 않은 원소의 추정은 0 이상이고, 넣은 뒤에는 넣은 빈도 이상이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "estimate",
+          "arg": "z",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "y",
+            4
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "z",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "z",
+            1
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "z",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "y",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "음수 · 정수가 아닌 증분 · 안전한 정수 밖의 증분은 RangeError 이고 넣은 원소의 추정을 내리지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            "p",
+            5
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "p",
+            -3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "p",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "p",
+            0.5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "p",
+            9007199254740992
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "q",
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "p",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "q",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "p",
+            1
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "p",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "총증분이 Number.MAX_SAFE_INTEGER 를 넘기는 증분은 RangeError 이고, 딱 닿는 증분과 증분 0 은 받아들인다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            "big",
+            9007199254740990
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "small",
+            2
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "small",
+            1
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "small",
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "small",
+            0
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "big",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "small",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "0 이하 · 1 이상인 ε · δ 는 RangeError 이며 이전 스케치를 남기고, 받아들인 생성은 빈 스케치다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            "k",
+            9
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            -0.5,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            1.5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "k",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.999,
+            0.999
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "k",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "k",
+            2
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "k",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "m",
+            9007199254740989
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.5,
+            0.5
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "m",
+            3
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "m",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "오차 판정 — 흐름을 넣고 넣지 않은 원소 64/δ 개를 물으면 ε·N 을 넘는 추정이 128 개 이하다 ((ε, δ) = (0.1, 0.1) · (0.01, 0.01) · (0.001, 0.001))",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.1,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.01,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.001,
+            0.001,
+            3
+          ],
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "estimate",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "가가가",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.01,
+            1547784109
+          ],
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가가가",
+            2
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "b가가",
+            1
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.1,
+            1413322649
+          ],
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "b가가",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.1,
+            1625647899
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "ab",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "a",
+            5
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가가",
+            5
+          ]
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.01,
+            1791907308
+          ],
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.1,
+            1865489291
+          ],
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가bb",
+            5
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "a가",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "가가a",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "aa",
+            1
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "a가b",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "가",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.1,
+            352764927
+          ],
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가bb",
+            0
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "a가가",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "aa",
+            0
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "bb가",
+            0
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "a가b",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.01,
+            7961282
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "b가a",
+            0
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가ba",
+            4
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "a가가",
+            5
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가b가",
+            3
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "b가",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가가",
+            1
+          ]
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.1,
+            707942746
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "b가",
+            4
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가bb",
+            2
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "aaa",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.1,
+            1356612765
+          ],
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "abb",
+            3
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "aab",
+            0
+          ]
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.01,
+            1379851301
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "가b",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "가가a",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "aa가",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.1,
+            2144234208
+          ],
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.01,
+            241193614
+          ],
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "ba가",
+            2
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "ab",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가가b",
+            3
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "bbb",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.01,
+            2057902504
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "aab",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "",
+            3
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "가ba",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "b가가",
+            2
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "bb",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.1,
+            394697174
+          ],
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.1,
+            1955288535
+          ],
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.1,
+            1285351355
+          ],
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "bb",
+            5
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "bab",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "",
+            1
+          ]
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.1,
+            5895934
+          ],
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.1,
+            1390602933
+          ],
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.01,
+            870833525
+          ],
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "baa",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.1,
+            1630567905
+          ],
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "b가",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.01,
+            923055412
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.1,
+            1688874165
+          ],
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.1,
+            1601220374
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가가a",
+            2
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "ab",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "가aa",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "ab가",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가b가",
+            1.5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "가b가",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가b가",
+            2
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0.01
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "ab가",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.01,
+            1946376953
+          ],
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "ba",
+            3
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가가b",
+            3
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "a",
+            1
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "aaa",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "b가",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "bba",
+            0
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "a가",
+            3
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.01,
+            1111693032
+          ],
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "aa가",
+            3
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "a가b",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "가가가",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.01,
+            1058255241
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.01,
+            1765761805
+          ],
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "ba",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "a가b",
+            1
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "가aa",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.01,
+            1177058016
+          ],
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가ba",
+            2
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가ab",
+            5
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "ab",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가가",
+            2
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "ab가",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "b가a",
+            5
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "a가가",
+            4
+          ]
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.1,
+            700308693
+          ],
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "a가",
+            0
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "bbb",
+            0
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "baa",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.1,
+            1045742530
+          ],
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "bba",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "b가가",
+            2
+          ]
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.01,
+            1816672876
+          ],
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.1,
+            467663519
+          ],
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.1,
+            535738826
+          ],
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.01,
+            11949489
+          ],
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "bab",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "b",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.1,
+            94175604
+          ],
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "bb가",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.1,
+            1951935532
+          ],
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "ba가",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "b",
+            1
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "가bb",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "aba",
+            9007199254740992
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "aab",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "baa",
+            5
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "b",
+            1
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "",
+            5
+          ]
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.01,
+            1190972162
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.1,
+            773779099
+          ],
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "aa가",
+            2
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "bb가",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "b",
+          "expect": true
+        },
+        {
+          "op": "update",
+          "arg": [
+            "aba",
+            5
+          ]
+        },
+        {
+          "op": "estimate",
+          "arg": "bb",
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.01,
+            0.01,
+            368161202
+          ],
+          "expect": true
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.1,
+            330481751
+          ],
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "b",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "aa",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.01
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            "ba가",
+            0
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "bb가",
+            2
+          ]
+        },
+        {
+          "op": "update",
+          "arg": [
+            "가가가",
+            0
+          ]
+        },
+        {
+          "op": "overestimateCheck",
+          "arg": [
+            0.1,
+            0.1,
+            1153820603
+          ],
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "bab",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.01,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "estimate",
+          "arg": "aaa",
+          "expect": true
+        },
+        {
+          "op": "estimate",
+          "arg": "b가a",
+          "expect": true
+        }
+      ]
+    }
+  ]
+}

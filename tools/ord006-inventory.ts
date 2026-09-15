@@ -110,9 +110,14 @@ const VERIFICATION_GRADES: Record<
   // `bloomFilter` — 비트 배열에 해시 k 번이면 두 행의 시간이 확률 논증 없이 선다. 오차 보장의 확률 논증은 등급을
   // 올리지 않는다(판정 절차 2번은 시간 상한만 읽는다 — 불변 사실 203). 불변식 절이 비었다.
   "probabilistic/bloomFilter": "basic",
+  // `countMinSketch`(KAN-026 S15) — 줄 ⌈ln(1/δ)⌉ 개에 줄마다 해시 한 번이면 두 행의 시간이 확률 논증 없이 선다. 불변식 절이 비었다.
+  "probabilistic/countMinSketch": "basic",
   // `cuckooFilter`(KAN-026 S19) — 칸마다 수를 세는 블룸 필터가 세 행을 확률 논증 없는 시간에 지키고 용량 미만에서 거절하지
   // 않는다(판정 도구 fixture 로 실행). S1 이 예상한 「add 한정자가 등급을 가른다」는 이름의 기법만 본 판정이었다. 불변식 절이 비었다.
   "probabilistic/cuckooFilter": "basic",
+  // `hyperLogLog`(KAN-026 S16) — 자리 1/(ε²·δ) 개에 원소마다 해시 한 번, 추정 · 합치기는 자리를 한 번씩 훑으면 세 행의 시간이
+  // 확률 논증 없이 선다. 불변식 절이 비었다(합친 결과의 정합은 merge 행의 의미).
+  "probabilistic/hyperLogLog": "basic",
   "tree/multiset": "complexity",
   "linear/deque": "complexity",
   "range-query/intervalTree": "complexity",
