@@ -88,9 +88,10 @@ const VERIFICATION_GRADES: Record<
   "linear/doublyLinkedList": "invariant",
   // A군 수열 둘(KAN-026 S4 · S6). 둘 다 자기보다 뒤로 정렬되는 첫 기존 키(`linear/stack`) 앞에 둔다.
   //
-  // `dynamicArray` — 언어 배열 하나에 맡기면 여섯 행이 선다(불변 사실 197). 물려받은 두 배 늘리기는
-  // 상각 설계인데 등급은 존재 조건이라 `complexity` 가 아니고(불변 사실 55), 불변식이 둘이다.
-  "linear/dynamicArray": "invariant",
+  // `dynamicArray` — 언어 배열 하나에 맡기면 다섯 행이 선다(불변 사실 197). 물려받은 두 배 늘리기는
+  // 상각 설계인데 등급은 존재 조건이라 `complexity` 가 아니다(불변 사실 55). 처음에는 불변식이 둘이라 `invariant`
+  // 였고, 원칙 A 의 A5 로 `toArray` 를 빼자(KAN-026 S23) 두 불변식의 한쪽 경로가 사라져 불변식 절이 비었다.
+  "linear/dynamicArray": "basic",
   // A군 단조 둘(KAN-026 S7 · S8). 둘 다 자기보다 뒤로 정렬되는 첫 기존 키(`linear/singlyLinkedList`) 앞에 둔다.
   //
   // `monotonicQueue` — 뒤에 넣고 앞에서 빼며 최댓값을 묻는 큐(연산 집합 교체, 2026-09-15 유저 결정). 앞 끝에서
@@ -203,6 +204,19 @@ const VERIFICATION_GRADES: Record<
   "trie/trie": "invariant",
 };
 
+/**
+ * 다른 카드로 **이관된** 구조 — 키는 `<category>/<name>`, 값은 인수한 카드 id. 검증 등급 열에
+ * `transferred:<카드 id>` 로 적는다(ASCII). 등급이 없는 까닭이 「아직 안 정했다」(`-`)가 아니라 「이 트랙에서
+ * 계약을 세우지 않고 옮긴다」임을 행에서 읽게 하려는 것이다. 열을 늘리지 않는 이유는 `COLUMNS` 주석과 같다.
+ * `tools/ord006-wbs.ts` 의 `transferredTo` 와 같은 값을 적는다. 인수한 카드가 디렉터리를 걷으면 아래 가드가
+ * 멈추므로 그때 이 줄을 지운다.
+ */
+const TRANSFERRED_TO: Record<string, string> = {
+  // KAN-026 S12 · S26 — 자료구조가 아니다(불변 사실 200), 알고리즘 트랙으로 옮기는 일은 KAN-039 가 v2 가이드와
+  // 한 커밋에서 한다(불변 사실 288 · 2026-09-15 유저 결재 「가」).
+  "hash/rollingHash": "KAN-039-FG8HWZ",
+};
+
 /** ORDER.md:39-63 진단 표 9종. 키는 `<category>/<name>`. 이 표 밖은 전부 `-`. */
 const DEFECT_GRADES: Record<string, "A" | "B" | "C"> = {
   "tree/multiset": "A",
@@ -259,7 +273,8 @@ for (const category of categories) {
       category,
       name,
       DEFECT_GRADES[key] ?? "-",
-      VERIFICATION_GRADES[key] ?? "-",
+      VERIFICATION_GRADES[key] ??
+        (TRANSFERRED_TO[key] ? `transferred:${TRANSFERRED_TO[key]}` : "-"),
       ESCALATION[key] ?? "-",
       String(await countLines(join(dir, `${name}-problem.md`))),
       String(await countLines(join(dir, `${name}-guide.mdx`))),
@@ -278,6 +293,7 @@ for (const [label, table, source] of [
     VERIFICATION_GRADES,
     "docs/ORD-006-conventions.md §규약1 판정 절차",
   ],
+  ["이관", TRANSFERRED_TO, "tools/ord006-wbs.ts 의 transferredTo"],
 ] as const) {
   const missing = Object.keys(table).filter((k) => !seenKeys.has(k));
   if (missing.length > 0) {

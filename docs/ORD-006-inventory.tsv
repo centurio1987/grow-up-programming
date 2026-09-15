@@ -8,7 +8,7 @@ src/data-structures/hash/hashMapChaining	hash	hashMapChaining	-	complexity	-	0	6
 src/data-structures/hash/hashMapOpenAddressing	hash	hashMapOpenAddressing	-	complexity	-	0	642	true
 src/data-structures/hash/hashSet	hash	hashSet	-	complexity	-	0	800	true
 src/data-structures/hash/lruCache	hash	lruCache	-	-	-	74	375	false
-src/data-structures/hash/rollingHash	hash	rollingHash	-	-	-	79	304	false
+src/data-structures/hash/rollingHash	hash	rollingHash	-	transferred:KAN-039-FG8HWZ	-	79	304	false
 src/data-structures/heap/binomialHeap	heap	binomialHeap	-	complexity	-	0	383	true
 src/data-structures/heap/daryHeap	heap	daryHeap	-	complexity	-	0	415	true
 src/data-structures/heap/fibonacciHeap	heap	fibonacciHeap	-	-	-	80	502	false
@@ -22,7 +22,7 @@ src/data-structures/linear/bitArray	linear	bitArray	-	basic	-	0	320	true
 src/data-structures/linear/circularBuffer	linear	circularBuffer	-	basic	-	0	540	true
 src/data-structures/linear/deque	linear	deque	A	complexity	-	0	318	true
 src/data-structures/linear/doublyLinkedList	linear	doublyLinkedList	-	invariant	-	0	312	true
-src/data-structures/linear/dynamicArray	linear	dynamicArray	-	invariant	-	0	325	true
+src/data-structures/linear/dynamicArray	linear	dynamicArray	-	basic	-	0	325	true
 src/data-structures/linear/gapBuffer	linear	gapBuffer	-	invariant	-	0	687	true
 src/data-structures/linear/monotonicQueue	linear	monotonicQueue	-	complexity	-	0	765	true
 src/data-structures/linear/monotonicStack	linear	monotonicStack	-	basic	-	0	305	true

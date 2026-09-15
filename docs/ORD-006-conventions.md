@@ -5354,3 +5354,170 @@ S1 예상과 같다. 이름 `minHash` 는 기법의 이름이라 임시다(불�
 | `src/data-structures/_contract/judge.ts:69-78` | 「기대 시간 계약은 입력 하나로 판정할 수 없기 때문」에 seed 다섯 | 입력 seed 와 구현 무작위를 가르지 않았다 — H2 |
 | 다섯 계약 스위트 머리말(`src/data-structures/probabilistic/bloomFilter/bloomFilter.contract.ts:24-29` · `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.contract.ts:9-11` · `src/data-structures/probabilistic/countMinSketch/countMinSketch.contract.ts:21-25` · `src/data-structures/probabilistic/hyperLogLog/hyperLogLog.contract.ts:22-26` · `src/data-structures/probabilistic/minHash/minHash.contract.ts:22-24`)과 헤더의 「판정 문장과 여유」 · 「틈」 문단(`src/data-structures/probabilistic/bloomFilter/bloomFilter.ts:61-69` · `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.ts:57-59` · `src/data-structures/probabilistic/countMinSketch/countMinSketch.ts:59-67` · `src/data-structures/probabilistic/hyperLogLog/hyperLogLog.ts:67-76` · `src/data-structures/probabilistic/minHash/minHash.ts:71-80`) | 전제 없는 체르노프 · 모은 수 판정 · 틈 | `S24` |
 | KAN-027 `treap.contract.ts` 10–16 · 22–27 · `treap.ts` 37–39 · `skipList.ts` 92–98 · `lruCache.ts` 110–116, KAN-027 conventions 「한정자의 강한 읽기는 축이 그 강함을 잴 때만 적는다 (T3-03 확정)」 · 「`expected` 의 호출별 읽기와 「강한 읽기는 축이 잴 때만 적는다」가 어긋난다 (T5-04 제기 — 미결)」 · KAN-027 불변 사실 158 · 236 | 축이 못 재면 약한 읽기를 적는다 · seed 는 입력을 정한다 · 스플레이 통과를 이름으로 적어 둔다 | 앞은 B7 마지막 문장과 부딪힌다(검사에 맞춘 약화) · 뒤 둘은 B2 · B7 형식으로 — `S28` |
+
+## 원칙 A 적용 · dag 닿는 부분 · rollingHash 제외 범위 (KAN-026 S23 · S25 · S26 — 2026-09-16)
+
+> 검토 반려(2026-09-15 유저) 재작업 배치13. 반려 근거는 KAN-026 검토 #2 · #3 · #4(원칙 A 적용) · #8(dag k) · #10(rollingHash)이고,
+> 원 항목은 `KANBAN.reviews/KAN-026.review.md` 3항이다. 앞 절들의 문장은 고치지 않았다(절 추가만) — 이 절 때문에 낡는 문장은 끝
+> 목록에 모았다. 판정표 ③(요약 관찰 · 순서 질의)은 2026-09-16 결재로 `KAN-040` 몫이라 건드리지 않았다. 판정 과정의 수치는
+> `KANBAN.batches/KAN-026.batch13.md` 4절에 있다.
+
+### `dynamicArray.toArray` 제거와 등급 재판정 (S23 — 판정표 ① 10)
+
+**판정 줄.** A2 — `get(i)` 를 `size()` 번 부르면 같은 뜻이다. A4 — 뺀 행의 상한 `O(n)` 이 그 조합의 비용과 같은 계급이라 떨어지는 계열이
+없는 편의 연산이다. A5 — 헤더 반례 표 두 줄(`singlyLinkedList` 와는 앞 끝 넣기 대 첨자 읽기, `doublyLinkedList` 와는 핸들 자리 끼우기 대
+첨자 읽기)이 늘어놓기에 기대지 않는다. 그래서 **제거**다. 근거는 A5 의 결과이고 「규칙의 예외를 피한다」(A6 ③)가 아니다 — 헤더
+`src/data-structures/linear/dynamicArray/dynamicArray.ts:22-24` 가 그 세 줄을 적는다.
+
+**등급 재판정 — §규약1 「불변식 판별 절차」를 후보마다 다시 돌렸다.**
+
+| 후보 | 상태를 바꾸지 않고 읽는 경로 | 걸리는 물음 | 결과 |
+|---|---|---|---|
+| 「`get(i)` 와 늘어놓은 i 번째가 같다」(옛 불변식 2) | `get` 하나 — 늘어놓기가 빠졌다 | 첫째(경로 하나) | 불변식 아님 — `get` 의 의미, 축1 |
+| 「원소 수를 읽는 두 경로가 같다」(옛 불변식 1 이 늘어놓기 대신 `get` 을 만난 모양) | `size()` · 「`get` 이 원소를 돌려주는 첨자의 끝」 둘 | 둘째 — `get` 행이 「`[0, size())` 안의 정수가 아니면 `null`」로 이미 적는다 | 불변식 아님 |
+| 「`pop()` 이 돌려주는 값은 `get(size() - 1)` 」 | 한쪽이 상태를 바꾼다 | 「관측이 상태를 바꾸면 관측 경로로 세지 않는다」 | 후보 아님 |
+| 「담긴 수 ≥ 칸 수의 4분의 1」 | 없다(`capacity()` 를 뺐다) | 담는 모양(불변 사실 36) | 후보 아님 |
+
+불변식 절이 비고, 다섯 행이 언어 배열 하나로 서므로(불변 사실 197) **`invariant` → `basic`** 이다. 등급은 연산 집합에서 따라 나온
+결과이지 뺀 근거가 아니다(A6 ②). `RIGOR_OF_GRADE` 가 두 등급에 같은 `regression` 을 주므로(`src/data-structures/_contract/judge.ts:43-48`)
+축3 판정은 한 행도 바뀌지 않았다 — 자기시험 기대값(정본 전부 통과 · 결함 셋의 걸리는 행)이 그대로 통과한다. 같은 값을 네 곳에
+적었다: 헤더 `src/data-structures/linear/dynamicArray/dynamicArray.ts:86` · `tools/ord006-inventory.ts` 의 `VERIFICATION_GRADES` ·
+`docs/ORD-006-inventory.tsv` 해당 행(손으로만 — 생성기는 돌리지 않았다) · 계약 스위트 `grade`(vector 의 `grade` 로 옮겨진다).
+
+**후속 변경 범위 — 검토 #4 가 요구한 목록을 실제로 바뀐 것으로 적는다.** 검토서의 예상(스위트 언급 19 곳 · 경계 케이스 하나 · vector
+44 단계 · 자기시험 키 · 반례 표 두 자리)과 대조한 결과다.
+
+| 자리 | 바뀐 것 |
+|---|---|
+| 스텁 `dynamicArray.ts` | 메서드 `toArray` 제거 · 헤더: 목적 끝 문장 · 「없는 것」 넷 → 다섯(늘어놓기 한 항목, 판정 줄 셋) · 반례 표 「여섯 행」 → 「다섯 행」 · 불변식 절 → 「없다」 + 후보 넷 · 연산 표 한 행 · 한정자 문단의 `toArray` 구절 · 검증 등급 `basic` + 「처음 섰을 때는 `invariant`」 문단. `toArray` 언급 5 → 2(뺀 이력 둘) |
+| 정본 `_reference/dynamicArray.ts` | 메서드 제거(8 줄) · 그 자리에 뺀 까닭과 조합 비용을 적은 주석 8 줄 · 계측 단위 문장. `toArray` 언급 2 → 0 |
+| 계약 스위트 `dynamicArray.contract.ts` | 표면 인터페이스 · 축1 연산 · `grade` · `invariants` 2 → 0 · 축3 시나리오 7 → 6 · 경계 케이스 여섯 중 「돌려받은 배열을 고쳐도 구조는 그대로다」 삭제, 나머지 넷의 `toArray` 단계 7 개를 `get` · `size` 짚기 23 개로(늘었다 줄어드는 케이스는 담긴 첨자 전부를 짚는다). `toArray` 언급 19 → 1(뺀 이력) |
+| 자기시험 `runContract.dynamicArray.test.ts` | 머리말 표 한 행 · `ALL_PASS` 키 하나 · 「일곱 시나리오」 → 「여섯」 · `judgeScenario` 등급 인자를 계약의 `grade` 로 · 뺀 이력 문단 |
+| vector `rust/vectors/DynamicArray.json` | `grade` `invariant` → `basic` · 케이스 7 → 6 · 단계 261 → 272 · `toArray` 단계 44 → 0 · 무작위 시퀀스(200 단계)는 연산 다섯에서 다시 뽑혔다. 다른 vector 40 종은 그대로(`bun run tools/emit-vectors.ts --check`) |
+| Rust 재생 | 없다 — `rust/` 에서 `DynamicArray.json` 을 읽는 시험이 없다(`rust/structures/tests/vector.rs` 는 `ConcurrentSkipList.json`, `rust/contract/tests/vector.rs` 는 `Stack.json`). `cargo test` 로 확인 |
+| 이웃 헤더 | `src/data-structures/linear/doublyLinkedList/doublyLinkedList.ts:51` 반례 표의 「저쪽의 여섯 행」 → 「다섯 행」 · `graph-repr/dag` 불변식 문단의 「`linear/dynamicArray` 의 1번과 같은 모양」 → `linear/doublyLinkedList` 의 불변식(가리키던 불변식이 사라졌다) |
+| 등록 · 표시 | `VERIFICATION_GRADES` · inventory 행 · `tools/ord006-wbs.ts` TA-03 note · `tools/guide-skeleton.test.ts` 의 `SKELETON_EXEMPT` 사유(가이드 본문은 `KAN-036` 몫) |
+| 고치지 않은 것 | fixture 셋(`stepGrowthArray` · `halfShrinkArray` · `walkingIndexList`)은 `toArray` 를 든 채 둔다 — 읽기만 하는 파일이고 계약 표면에 없는 메서드라 하네스가 부르지 않는다. `dynamicArray.size`(판정표 ③)는 `KAN-040` |
+
+**인용 줄을 지켰다.** 판정표 ① · ③ 이 `dynamicArray.ts:36-37` · `:61`(`size` 행)을, 3900 행 절이 정본 `:96`(`#moveTo`)을 줄로 가리키고 이
+문서는 절 추가만 하므로, 헤더 앞부분의 줄 수와 정본의 줄 수를 그대로 두었다(불변 사실 81).
+
+### 근거 교체 16 행 (S23)
+
+판정표 ① 에서 「근거 교체」로 적은 행의 헤더 문장을 판정 줄로 바꿨다. **결과(제거 · 유지)는 한 행도 바뀌지 않았다.** 파일마다 줄 수를
+그대로 두어 판정표 ① 의 헤더 인용이 같은 문장을 가리킨다.
+
+| # | 구조 · 연산 | 헤더 자리 | 옛 근거 | 새 근거 |
+|---|---|---|---|---|
+| 4 | `singlyLinkedList.find` | `src/data-structures/linear/singlyLinkedList/singlyLinkedList.ts:18-21` | 배제하는 구현이 없다(47 · 70 · 210) | A2(`toArray` 로 훑기) · A4 · A5 |
+| 6 | `doublyLinkedList` 끝에서 핸들 없이 빼기 | `src/data-structures/linear/doublyLinkedList/doublyLinkedList.ts:26-28` | 배제 없는 차이 | A2(끝 원소 핸들로 `remove`) · A4 · A5 |
+| 7 | `doublyLinkedList` 값으로 찾기 | `src/data-structures/linear/doublyLinkedList/doublyLinkedList.ts:29-31` | 배제하는 구현이 없다 | A2(늘어놓기 + 넣기가 돌려준 핸들) · A4 · A5 |
+| 8 | `doublyLinkedList` 뒤에서 앞으로 늘어놓기 | `src/data-structures/linear/doublyLinkedList/doublyLinkedList.ts:33-34` | 같은 계급이라 배제 없음 | A2(`toArray` 뒤집기) · A4 · A5 |
+| 15 · 16 | `graphAdjList` `bfs` · `dfs` · `hasPath` | `src/data-structures/graph-repr/graphAdjList/graphAdjList.ts:13-19` | 방문 순서가 안 정해진다 · 배제 없음 | A2(`neighbors` 로 짓는다) · A4 · A5 — 방문 순서는 보조 근거로 남겼다 |
+| 17 | `graphAdjMatrix` `bfs` · `dfs` | `src/data-structures/graph-repr/graphAdjMatrix/graphAdjMatrix.ts:14-17` | 방문 순서가 안 정해진다 | A2 · A4 · A5 — 방문 순서는 보조 근거 |
+| 18 | `graphAdjMatrix` 간선 수 | `src/data-structures/graph-repr/graphAdjMatrix/graphAdjMatrix.ts:18-20` | 더해도 배제 없음 · 47 | A2(칸마다 `hasEdge`) · A4(상수 보강) · A5 |
+| 19 | `dag` `longestPath` · 무게 | `src/data-structures/graph-repr/dag/dag.ts:16-20` | 배제하는 구현이 없다(210) | A2(`topologicalOrder` + 호출자가 받아들여진 `addEdge` 로 아는 간선) · A4 · A5 / 무게 A3 |
+| 20 | `dag.hasCycle` | `src/data-structures/graph-repr/dag/dag.ts:21` | 늘 거짓이라 배제 없음 | A2(호출 없이 아는 상수) · A4 · A5 |
+| 22 | `bitArray.count` | `src/data-structures/linear/bitArray/bitArray.ts:46-49` | 배제 없음 · 「상수로 올려 적으면 세어 둔 수만 남는데 목적이 없다」 | A2(`get` 을 자리마다) · A4(어느 상한이든 상수 보강) · A5. 뒤 문장은 A 에서 쓰지 않는 근거라 뺐다 |
+| 23 | `bitArray.toggle` | `src/data-structures/linear/bitArray/bitArray.ts:50-52` | 배제 없음 | A2 · A4 · A5 · 남긴 둘은 A7(판정표 ② 의 확인 행 — 근거 문장이 그대로 있다) |
+| 27 | `cuckooFilter.size` | `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.ts:16-17` | 배제하는 구현이 없다(210 · 290) | A2(호출자가 반환값으로 센다) · A4 · A5 / `loadFactor` A1 |
+| 33 | `hyperLogLog.merge`(유지) | `src/data-structures/probabilistic/hyperLogLog/hyperLogLog.ts:16-22` | 정확한 집합을 배제한다 · 「원소 수에 비례해도 되게 적으면 뺄 연산」 | A2(고유) · A3(목적 둘째 문장). 배제는 **상한**의 근거로만 남기고, A 에서 거짓인 「뺄 연산」 구절을 지웠다 |
+| 35 | `minHash` 집합 한꺼번에 넣기 | `src/data-structures/probabilistic/minHash/minHash.ts:13-14` | 같은 계급이라 배제 없음(210) | A2(`add` 거듭) · A4 · A5 |
+| 38 | `minHash.exact` | `src/data-structures/probabilistic/minHash/minHash.ts:19` | 상태가 없고 배제 없음 | A3(인스턴스 상태의 관찰 · 변경이 아니다) |
+
+### dag `addEdge` 의 k(u, v) — 그래프와 넣는 간선만으로 정한다 (S25 — 검토 #8)
+
+**무엇이 걸렸나.** 앞 「A군 비순환 방향 그래프」 절의 k 는 여섯 항목의 합이었다 — u 의 나가는 간선 수 · v 의 들어오는 간선 수 · v 에서
+가는 부분(정점 + 나가는 간선) · u 로 오는 부분(정점 + 들어오는 간선). 그 항목들이 **앞으로 찾는 구현과 거슬러 찾는 구현이 각자
+지나가는 몫**이라, 값은 그래프의 양인데 정의가 특정 구현의 탐색량으로 읽혔다. 유저 판정은 「국소 비용 방향은 수용 · k 를 특정 구현의
+탐색량에 의존하지 않는 그래프 · 입력의 양으로 · 국소 갱신 비용이 목적임을 명시 · 전체 훑기 반례 유지」다.
+
+**새 정의**(`src/data-structures/graph-repr/dag/dag.ts:66-73`).
+
+- 닿는 부분 A(u, v) = 간선을 따라 u 에 올 수 있는 정점(u 포함) ∪ v 에서 간선을 따라 갈 수 있는 정점(v 포함).
+- k(u, v) = |A(u, v)| + 끝점 하나 이상이 A 안에 있는 간선의 수.
+
+성질 넷. ① 호출 전 그래프와 (u, v) 만으로 정해진다 — 구현이 고르는 위상 순서 값 · 찾는 방향 · 드는 표현이 들어가지 않는다.
+② k ≤ n + m. ③ 사이클이 되는지(v 에서 u 로 가는 길)와 새 간선이 더하는 선후 조건(u 에 오는 정점이 v 에서 가는 정점보다 앞)이
+전부 A 안에서 정해진다 — 「닿는 부분」이라는 이름이 구현이 아니라 문제에서 나온다. ④ 옛 k ≤ 4 × 새 k(두 부분 크기가 각각 |A| 이하,
+간선 항목 넷이 각각 닿는 간선 수 이하) — 옛 계약을 지키던 구현은 전부 새 계약을 지킨다.
+
+**목적 문장.** 헤더 목적에 「간선 하나를 넣는 비용이 그래프 전체가 아니라 그 간선이 닿는 부분에 묶이는 것 — 국소 갱신 비용 — 도 이
+계약의 목적이다」를 넣었다(`src/data-structures/graph-repr/dag/dag.ts:6-8`). 앞 절의 「닫히지 않은 자리」(목적에 드는지 규약이 말하지
+않는다)가 이 결정으로 닫힌다.
+
+**알려진 국소 방법이 이 k 를 덮는가 — 탐침(저장소에 두지 않았다, 계측은 `__cost` 단위 · 벽시계 없음).**
+
+| 방법 | 떨어진 쌍(k = 2) | 사슬의 끝(k = 2n − 1) | 두 사슬 잇기 한 호출(n = 256 → 1,024 → 4,096) | 무작위 작업 | 판정 |
+|---|---|---|---|---|---|
+| 정본 — v 에서 앞으로 찾기 + u 의 나가는 간선에서 같은 간선 | 비용 3 · 비용/k 1.50 | 비용 2n · 비용/k 1.00 | 513 → 2,049 → 8,193 · 비용/k 0.50 | 네 작업(n 32 · 64 · 256 · 1,024, 호출 19,000) 최대 1.50 | 덮는다 — 증명 비용 ≤ 2 + \|A\| + 2 × 닿는 간선 ≤ 2k + 2 |
+| u 에서 거슬러 찾기 + v 의 들어오는 간선에서 같은 간선 | 1.50 | 1.50 이하 | 비용/k 0.50 | 두 작업 최대 1.50 | 덮는다 |
+| Pearce-Kelly(순서를 들고 다니며 어긋난 부분만 다시 매김, 정렬 비교를 1 씩 셈) | 1.00 | 1.00 | 4,106 → 17,454 → 73,918 · 비용/k 4.02 → 4.26 → 4.51 · r = 4.25 · 4.24 | 최대 3.77 | 로그 인수만큼 넘는다 — 축3 해상도 아래(불변 사실 53) |
+| MNR(두 위치 사이 구간 전체를 민다) | 1.00 — 단 큰 번호에서 작은 번호로 이으면 비용/k 257.50 → 1,025.50 → 4,097.50 | 1.00 | 비용/k 1.00 | 최대 427.50 | 나간다 — 비용이 구현이 고른 순서의 구간 길이 |
+
+Pearce-Kelly 의 로그 인수를 상한에 넣지 않은 이유: 이 계약에서는 순서를 들고 다녀도 `topologicalOrder` 가 정점 n 개를 새 배열로 내놓아야
+해서 얻는 것이 없고, 자명한 구현이 `O(k)` 에 선다(불변 사실 51 — 상한은 정본이 서는 계급). MNR 이 나가는 것은 옛 k 에서도 같았고, 그
+비용을 계약의 양으로 적으려면 구현의 순서를 적어야 한다(§규약1 금지 2).
+
+**고르지 않은 정의.** 「양 끝이 A 안인 간선만」은 u 에서 A 밖으로 나가는 간선이 빠져 같은 간선을 u 의 나가는 간선에서 찾는 구현이
+나가고, 되살리려 차수 둘을 더하면 옛 정의(구현의 몫을 더한 모양)로 돌아간다. 「v 에서 가는 부분만」 · 「두 부분의 작은 쪽」은 찾는
+방향을 처방한다. 「k log k」는 위 문단. **넓힌 대가**는 A 밖에서 v 쪽 부분으로 들어오는 간선과 u 쪽 부분에서 A 밖으로 나가는 간선이
+k 에 드는 것이다 — 위 네 방법 어느 것도 지나지 않으므로 그만큼 약하고, 그 간선까지 훑는 구현이 들어오지만 비용은 여전히 닿는 부분에
+묶인다.
+
+**정본과 전체 훑기 반례의 수치.** 축3 시나리오 둘의 k 는 떨어진 쌍 2(옛 정의도 2) · 사슬의 끝 2n − 1(옛 4n − 2)이라 두 시나리오의
+bound(`O(1)` · `O(n)`)가 그대로이고 시나리오를 바꾸지 않았다(주석만). `FullScanDag`(`src/data-structures/_contract/_fixtures/fullScanDag.ts`)는
+떨어진 쌍에서 한 호출 평균 5,123 → 20,483(비용/k 평균 2,561.5 → 10,241.5, 최대 3,073 → 12,289)이고 정본은 3 → 3(비용/k 1.50)이다 — 새
+정의에서도 걸린다(자기시험 `addEdge 떨어진 쌍` 기대값 그대로 통과). 사슬의 끝에서는 k 가 그래프 전체라 두 구현이 같은 계급이다(평균 2,050 대 2,048).
+
+### rollingHash — 이 카드가 빼는 것 · KAN-039 가 인수하는 것 (S26 — 검토 #10)
+
+**무엇이 걸렸나.** `bun run tools/ord006-wbs.ts` 가 `[TA] 15/16` 과 `claim -> TA-10 hash/rollingHash` 를 냈다. 카드 종료 조건 3(「트랙을
+완료로 낸다」)이 글자 그대로는 안 서고, 그렇다고 15/16 을 설명 없이 완료로 보면 끝나지 않은 유닛이 완료로 읽힌다. `KAN-039-FG8HWZ` 는
+이 카드 뒤로 직렬 중재돼 있어 「그 카드가 끝날 때까지 종료 보류」는 교착이다. 유저 판정은 「이관 대상을 종료 범위에서 제외하는 방향은
+수용 · KAN-039 의 인수와 이 카드의 제외 범위를 명시 · 카드 · WBS 표시 · 후속 claim 이 서로 모순되지 않게」다.
+
+**이 카드가 빼는 것.** `hash/rollingHash` 의 계약 전환 · `_reference/` · `-problem.md` 제거 · TA 트랙 완료 판정에서의 몫 · 카드 종료
+조건 1 · 3 의 몫. 대상 17 종 중 16 종이 이 카드의 종료 범위다.
+
+**`KAN-039-FG8HWZ` 가 인수하는 것.** 알고리즘 트랙 한 편(문제 서술 · 함수 · 테스트 · v2 가이드)으로 옮기기 · `문제_가이드_목록.md`
+링크 · `tools/algo-wbs.test.ts` 기대값 · `tools/ord004-manifest.json` · inventory 행 · 자료구조 트랙 디렉터리 걷기. **근거 불변 사실**:
+200(상태가 생성자 인자뿐이라 자료구조가 아니다 — 판정 전문 「A군 17종 판정」 ⑥) · 288(가이드 없이는 알고리즘 목록에 셀 자리가 없고 옛
+가이드를 둘 자리가 없어 이 카드에서 옮기지 못했다). 결재는 2026-09-15 유저 「가」(이관을 v2 가이드 집필과 한 work 로).
+
+**표시 규격 — 이관 유닛은 완료도 미완료도 아니다.** `tools/ord006-wbs.ts` 에 일반 필드 `transferredTo` 를 두었다. 적힌 유닛은 상태가
+`transferred` 이고 트랙 분모 · 전체 유닛 수 · claim 후보에서 빠지며, 트랙 분수 뒤에 인수 카드가 붙는다. 경로 가드는 그대로라 인수한
+카드가 디렉터리를 걷으면 `exit 1` 이 그 유닛을 지우라고 알린다. `tools/ord006-inventory.ts` 의 `TRANSFERRED_TO` 가 같은 값을 들고
+inventory 행의 검증 등급 열에 `transferred:KAN-039-FG8HWZ` 로 적는다(ASCII, 열 수 그대로). `Unit` 타입의 필드는 `UNITS` 뒤에서
+붙였다 — `UNITS` 안의 줄을 앞 절이 `tools/ord006-wbs.ts:303` · `:386` 으로 인용하기 때문이다.
+
+| | 전 | 뒤 |
+|---|---|---|
+| 첫 줄 | `ORD-006 B군 WBS — 48 유닛 / 55 종  (완료 38종)` | `ORD-006 B군 WBS — 47 유닛 / 54 종  (완료 38종)  · 이관 1 유닛 / 1 종은 셈에서 뺐다` |
+| TA 줄 | `###############. 15/16` · `claim -> TA-10 hash/rollingHash` | `###############> 15/15 (+1 이관 → KAN-039-FG8HWZ)` · `-- 트랙 완료 (이관 유닛은 인수한 카드가 끝낸다)` |
+| `--all` | `[ ] TA-10  hash/rollingHash` | `[>] TA-10  hash/rollingHash (이관 → KAN-039-FG8HWZ)` |
+| `--json` | TA `units` 16 · `claim` TA-10 | TA `units` 15 · `transferred` `[{ id: TA-10, to: KAN-039-FG8HWZ }]` · `claim` 없음 · 최상위 `transferredUnits` 1 |
+
+**모순 없이 맞춘 자리.** 카드 `KANBAN.cards/KAN-026.md` 「검증」 절의 새 소절(doc-edit) · `tools/ord006-wbs.ts` TA-10 · `docs/ORD-006-wbs.md`
+§2 TA 행과 §8 · inventory 행과 `TRANSFERRED_TO` · 이 절. 셋 다 「`TA-10` 은 `KAN-039-FG8HWZ` 가 인수하고 이 카드는 claim 하지 않는다」로 읽힌다.
+
+**`tree/huffmanTree`(`T5-06`).** 같은 카드가 인수한다(2026-09-15 유저 「가」). 필드는 일반이라 `T5-06` 에 `transferredTo: "KAN-039-FG8HWZ"`
+한 줄과 `TRANSFERRED_TO` 한 줄이면 같은 표시가 나온다. `T5` 블록은 `KAN-027` 몫이라 적용하지 않았다. **병합 주의** — `KAN-027` 이
+`type Unit = {` 을 고쳤다면 이 브랜치의 `type UnitFields = {` 와 줄 충돌이 난다. 양쪽 필드를 `UnitFields` 에 모으면 된다.
+
+### 낡는 앞 절 문장 — 고치지 않았다
+
+| 위치 | 지금 문장 요지 | 이 절에서 |
+|---|---|---|
+| `docs/ORD-006-conventions.md:3263` | S1 처분표 `dynamicArray` 「`invariant` — `size`↔`toArray` 길이 · `get(i)`↔`toArray()[i]`」 | `basic` — 위 등급 재판정 |
+| `docs/ORD-006-conventions.md:4237` · `docs/ORD-006-conventions.md:4240-4242` | 「순서를 들고 다니며 고치는 구현은 남는다(논증)」 · k 는 셋의 합 | k 는 닿는 부분의 크기 · Pearce-Kelly 는 로그 인수만큼 넘는다(탐침) |
+| `docs/ORD-006-conventions.md:4244-4254` | 목적에 드는지 규약이 안 정한다 · 「가를 고르면 바뀌는 것」 | 2026-09-16 검토 결정으로 닫혔다 |
+| `docs/ORD-006-conventions.md:4432-4434` · `docs/ORD-006-conventions.md:4521` · `docs/ORD-006-conventions.md:4995` · `docs/ORD-006-conventions.md:5011` · `docs/ORD-006-conventions.md:5025` | `toArray` 는 빠질 수 있다 — 판정 · 사람 결정 대기 | 뺐다 |
+| `docs/ORD-006-conventions.md:5128` · `docs/ORD-006-conventions.md:5200` | 「`basic` 예상」 · 「`S23` 이 다시 센다」 | 확정 · 위 변경 범위 표 |
+| `docs/ORD-006-conventions.md:4988` · `docs/ORD-006-conventions.md:5012` | `rollingHash` 「이관 대기」 | 이관 — 종료 범위 밖 |
+| `docs/ORD-006-runbook.md:643-645`(201) · `docs/ORD-006-runbook.md:786-788`(229) · `docs/ORD-006-runbook.md:929`(290 끝) · `docs/ORD-006-runbook.md:1189`(배치 지도 TA-03) | `dynamicArray` 는 불변식 둘 · `invariant` · `toArray` 는 빠질 수 있다 | `basic` · 뺐다 |
+| `docs/ORD-006-runbook.md:877-885`(283) · `docs/ORD-006-runbook.md:1193`(배치 지도 TA-09) | k 셋의 합 · 사람 결정으로 올렸다 | 새 정의 · 결정 |
+| `docs/ORD-006-runbook.md:1194`(배치 지도 TA-10) | 「**멈춤**」 | 이관 — `KAN-039-FG8HWZ` |
+
+런북은 줄 수를 바꾸면 이 문서가 줄로 인용하는 런북 자리가 밀리므로(불변 사실 81) 이 배치에서 불변 사실을 새로 쓰지 않았고 위 문장도
+고치지 않았다. 병합 뒤 정정 목록에 넣는다.
