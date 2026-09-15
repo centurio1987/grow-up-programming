@@ -1,6 +1,6 @@
 {
-  "next_id": 44,
-  "next_seq": 308,
+  "next_id": 45,
+  "next_seq": 311,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -1010,6 +1010,26 @@
       "goal_hash": "b40c85d6998e87b77c741e8d11e142d7556c156a",
       "memo": "근거: KAN-027 검토서 판단 항목 10(.kanban/reviews/KAN-027.events.jsonl, 유저 승인). 조건: 계약별 관찰 지점과 반환값 검사를 함께 설계하고 검증 비용이 측정할 구현 비용에 섞이지 않게 분리.",
       "memo_hash": "b166f020865939f8807d8b61bda6d5b7eaad9e23"
+    },
+    "KAN-044-VZXM29": {
+      "col": "backlog",
+      "title": "cartesianTree 구성 상한의 셋째 계열 실측 — 헤더 「배제되는 계열은 둘」 보강",
+      "verbatim": "",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-09-16",
+      "title_hash": "da0d1a19a32b52ee45d752e9416e93d925f2c847",
+      "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "short": "cartesianTree 셋째 계열",
+      "short_hash": "e54b5c79834bca909d2e5bc1040b9a1d147990d8",
+      "purpose": "cartesianTree 구성 상한 O(n) 이 배제하는 구현 계열이 둘뿐인지, 셋째 계열 fixture 를 지어 축3 으로 재고 헤더 근거 문단을 보강한다",
+      "purpose_hash": "94004c763fe7307784e32a5f15323d1c4e907407",
+      "reason": "KAN-027 S19 가 헤더 문장 「배제되는 계열은 둘이고 이 계약에는 둘 다 없다」(불변 사실 328)를 확인했지만 셋째 계열은 짓고 재지 않았고, cartesianTree 는 두 카드 scope 밖이다",
+      "reason_hash": "7109fb66df6aebdad530acf272bab8ecb9eb037a",
+      "goal": "구성 상한의 배제 근거가 실측 수치로 서고, suffixArray · suffixTree 헤더에 같은 근거 문단이 필요한지도 판정된다",
+      "goal_hash": "9e3d095bd091a518fe083ee6ed8cd907976cff03",
+      "memo": "근거: KAN-027 브랜치 docs/ORD-006-conventions.md 「B군 마감 — 낡은 문장 정정 목록 (KAN-027 S19)」의 cartesianTree.ts:96 행 · 배치13 정정 담당 표 8행(추천: main 백로그 새 카드). 순서: KAN-027 main 병합 뒤 · KAN-036 전.",
+      "memo_hash": "225aa18e08ec269355944d746ecc19a9adedf1d2"
     }
   },
   "order": [
@@ -1020,6 +1040,10 @@
     "KAN-037-KC651Z",
     "KAN-038-NE17BJ",
     "KAN-039-FG8HWZ",
+    "KAN-040-M5V53M",
+    "KAN-041-JJ5DA7",
+    "KAN-042-Z02G0W",
+    "KAN-043-B4Y5WV",
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
@@ -1062,12 +1086,46 @@
     "KAN-034.9-WHH53W",
     "KAN-034-KSD7XR",
     "KAN-035-31T4BY",
-    "KAN-040-M5V53M",
-    "KAN-041-JJ5DA7",
-    "KAN-042-Z02G0W",
-    "KAN-043-B4Y5WV"
+    "KAN-044-VZXM29"
   ],
   "recent": [
+    {
+      "seq": 310,
+      "t": "2026-09-16T03:03",
+      "a": "유저",
+      "id": "KAN-036-0G05DE",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-044-VZXM29",
+      "reason": "cartesianTree 헤더 근거가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다"
+    },
+    {
+      "seq": 309,
+      "t": "2026-09-16T03:03",
+      "a": "유저",
+      "id": "KAN-044-VZXM29",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-027",
+      "reason": "근거(불변 사실 328 · 정정 목록)가 KAN-027 병합 뒤에 main 에 선다"
+    },
+    {
+      "seq": 308,
+      "t": "2026-09-16T03:03",
+      "a": "ai",
+      "id": "KAN-044-VZXM29",
+      "op": "create",
+      "w": "46PCAX",
+      "col": "backlog",
+      "title": "cartesianTree 구성 상한의 셋째 계열 실측 — 헤더 「배제되는 계열은 둘」 보강",
+      "verbatim": "",
+      "parent": null,
+      "short": "cartesianTree 셋째 계열",
+      "purpose": "cartesianTree 구성 상한 O(n) 이 배제하는 구현 계열이 둘뿐인지, 셋째 계열 fixture 를 지어 축3 으로 재고 헤더 근거 문단을 보강한다",
+      "reason": "KAN-027 S19 가 헤더 문장 「배제되는 계열은 둘이고 이 계약에는 둘 다 없다」(불변 사실 328)를 확인했지만 셋째 계열은 짓고 재지 않았고, cartesianTree 는 두 카드 scope 밖이다",
+      "goal": "구성 상한의 배제 근거가 실측 수치로 서고, suffixArray · suffixTree 헤더에 같은 근거 문단이 필요한지도 판정된다",
+      "memo": "근거: KAN-027 브랜치 docs/ORD-006-conventions.md 「B군 마감 — 낡은 문장 정정 목록 (KAN-027 S19)」의 cartesianTree.ts:96 행 · 배치13 정정 담당 표 8행(추천: main 백로그 새 카드). 순서: KAN-027 main 병합 뒤 · KAN-036 전."
+    },
     {
       "seq": 307,
       "t": "2026-09-16T01:42",
@@ -1595,36 +1653,6 @@
       "field": "memo",
       "before": "인계(KAN-035): ① 걷을 것 — .claude/authoring/specs/ds-guide/ · tools/check-guide-rhythm.ts · tools/_baseline/guide-rhythm.tsv(.mdx 가 0 이 되면 exit 2 로 CI 가 멈추므로 마지막 편과 같은 커밋에서 걷는다, SPEC.md §8). ② docs/ORD-006-wbs.md 는 무효 — 계약 단위로 다시 뽑는다. ③ probabilistic/concurrentSkipList 는 TS 정본이 없어 deep.walk.final 이 Rust 추출이다 — 규격 자리만 있고 이 카드가 세운다. ④ 메모리 동기 5종(bitArray·bloomFilter·countMinSketch·cuckooFilter·hyperLogLog)은 계약 전환 때 DIRECT_MEMORY 편입을 판정한다(docs/ORD-006-conventions.md §규약4 「메모리를 직접 다뤄야 이득이 생기는 구조」). ⑤ 검토 4번 — tools/ord004-manifest.json 의 옛 .mdx 경로를 한꺼번에 정리. ⑥ 검토 11번 — avlTree·twoThreeTree 재집필 때 정본 guide:core 주석의 은유를 고치고 redBlackTree 편 본문 코드를 추출본으로 교체. ⑦ 이 카드 신설로 KAN-001 봉인 조건에 한 장이 붙는다. 근거: KANBAN.cards/KAN-035-31T4BY.md · KANBAN.reviews/KAN-035-31T4BY.review.md",
       "after": "**직렬 대기(2026-09-14 · 유저 결재).** 계약이 없는 33종(A군 16 · B군 17)은 KAN-026 · KAN-027 이 계약 전환을 끝낸 뒤에 쓸 수 있으므로 두 카드가 완료될 때까지 착수하지 않는다(dep-serialize 기록, 착수 시도는 종료코드 11). 선행 둘이 끝나면 전략을 다시 세우고 `dep-serialize --restrategy-done` 으로 푼다. 66편 전개와 .mdx 0 · 옛 8단계 자산 제거는 그대로 이 카드 몫이다. 인계(KAN-035): ① 걷을 것 — .claude/authoring/specs/ds-guide/ · tools/check-guide-rhythm.ts · tools/_baseline/guide-rhythm.tsv(.mdx 가 0 이 되면 exit 2 로 CI 가 멈추므로 마지막 편과 같은 커밋에서 걷는다, SPEC.md §8). ② docs/ORD-006-wbs.md 는 무효 — 계약 단위로 다시 뽑는다. ③ probabilistic/concurrentSkipList 는 TS 정본이 없어 deep.walk.final 이 Rust 추출이다 — 규격 자리만 있고 이 카드가 세운다. ④ 메모리 동기 5종(bitArray·bloomFilter·countMinSketch·cuckooFilter·hyperLogLog)은 계약 전환 때 DIRECT_MEMORY 편입을 판정한다(docs/ORD-006-conventions.md §규약4 「메모리를 직접 다뤄야 이득이 생기는 구조」). ⑤ 검토 4번 — tools/ord004-manifest.json 의 옛 .mdx 경로를 한꺼번에 정리. ⑥ 검토 11번 — avlTree·twoThreeTree 재집필 때 정본 guide:core 주석의 은유를 고치고 redBlackTree 편 본문 코드를 추출본으로 교체. ⑦ 이 카드 신설로 KAN-001 봉인 조건에 한 장이 붙는다. 근거: KANBAN.cards/KAN-035-31T4BY.md · KANBAN.reviews/KAN-035-31T4BY.review.md"
-    },
-    {
-      "seq": 260,
-      "t": "2026-09-14T20:33",
-      "a": "유저",
-      "id": "KAN-026",
-      "op": "waive",
-      "w": "46PCAX",
-      "with_": "KAN-027",
-      "reason": "유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 _contract/runContract.test.ts·emit-vectors·ord006-inventory 의 등록 줄뿐이다. 병합 충돌은 줄 단위로 사람이 푼다"
-    },
-    {
-      "seq": 259,
-      "t": "2026-09-14T20:33",
-      "a": "유저",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-027",
-      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 B군 잔여 17종은 계약 전환이 끝나야 쓸 수 있다"
-    },
-    {
-      "seq": 258,
-      "t": "2026-09-14T20:33",
-      "a": "유저",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-026",
-      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 A군 16종은 계약 전환이 끝나야 쓸 수 있다"
     }
   ],
   "layout": 2,
@@ -1830,6 +1858,30 @@
       "scope_hash": "5b05c0233415c6aa",
       "reason": "유저 승인(KAN-027 검토 #10, 2026-09-15) — 가이드 전개 전에 한다",
       "created": "2026-09-16T01:42",
+      "by": "유저",
+      "restrategy_required": false
+    },
+    {
+      "pair": "KAN-027|KAN-044-VZXM29",
+      "order": [
+        "KAN-027",
+        "KAN-044-VZXM29"
+      ],
+      "scope_hash": "143d86f281080b32",
+      "reason": "근거(불변 사실 328 · 정정 목록)가 KAN-027 병합 뒤에 main 에 선다",
+      "created": "2026-09-16T03:03",
+      "by": "유저",
+      "restrategy_required": false
+    },
+    {
+      "pair": "KAN-036-0G05DE|KAN-044-VZXM29",
+      "order": [
+        "KAN-044-VZXM29",
+        "KAN-036-0G05DE"
+      ],
+      "scope_hash": "5b05c0233415c6aa",
+      "reason": "cartesianTree 헤더 근거가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다",
+      "created": "2026-09-16T03:03",
       "by": "유저",
       "restrategy_required": false
     }

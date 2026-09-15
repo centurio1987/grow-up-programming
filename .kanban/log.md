@@ -1,6 +1,9 @@
 # KANBAN 변경 이력
 > 최근 50건. 이보다 오래된 이력은 archive.jsonl 로 압축 보관한다.
 
+- #310 2026-09-16 03:03 · 유저 · KAN-036-0G05DE serialize
+- #309 2026-09-16 03:03 · 유저 · KAN-044-VZXM29 serialize
+- #308 2026-09-16 03:03 · ai · KAN-044-VZXM29 생성 "cartesianTree 구성 상한의 셋째 계열 실측 — 헤더 「배제되는 계열은 둘」 보강" → 백로그
 - #307 2026-09-16 01:42 · 유저 · KAN-036-0G05DE serialize
 - #306 2026-09-16 01:42 · 유저 · KAN-043-B4Y5WV serialize
 - #305 2026-09-16 01:42 · 유저 · KAN-043-B4Y5WV serialize
@@ -48,6 +51,3 @@
 - #263 2026-09-14 20:34 · ai · KAN-027 수정 메모
 - #262 2026-09-14 20:34 · ai · KAN-026 수정 메모
 - #261 2026-09-14 20:34 · ai · KAN-036-0G05DE 수정 메모
-- #260 2026-09-14 20:33 · 유저 · KAN-026 독립성 겹침 용인 (상대 KAN-027) — 유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 _contract/runContract.test.ts·emit-vectors·ord006-inventory 의 등록 줄뿐이다. 병합 충돌은 줄 단위로 사람이 푼다
-- #259 2026-09-14 20:33 · 유저 · KAN-036-0G05DE serialize
-- #258 2026-09-14 20:33 · 유저 · KAN-036-0G05DE serialize
