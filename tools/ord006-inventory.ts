@@ -105,6 +105,14 @@ const VERIFICATION_GRADES: Record<
   // 하나로 선다. 세어 둔 수 ↔ 늘어놓은 수 하나가 불변식이라 `basic` 이 아니다.
   "linear/singlyLinkedList": "invariant",
   "linear/stack": "basic",
+  // A군 확률 필터(KAN-026 S14). 자기보다 뒤로 정렬되는 첫 기존 키(`tree/multiset`) 앞에 둔다.
+  //
+  // `bloomFilter` — 비트 배열에 해시 k 번이면 두 행의 시간이 확률 논증 없이 선다. 오차 보장의 확률 논증은 등급을
+  // 올리지 않는다(판정 절차 2번은 시간 상한만 읽는다 — 불변 사실 203). 불변식 절이 비었다.
+  "probabilistic/bloomFilter": "basic",
+  // `cuckooFilter`(KAN-026 S19) — 칸마다 수를 세는 블룸 필터가 세 행을 확률 논증 없는 시간에 지키고 용량 미만에서 거절하지
+  // 않는다(판정 도구 fixture 로 실행). S1 이 예상한 「add 한정자가 등급을 가른다」는 이름의 기법만 본 판정이었다. 불변식 절이 비었다.
+  "probabilistic/cuckooFilter": "basic",
   "tree/multiset": "complexity",
   "linear/deque": "complexity",
   "range-query/intervalTree": "complexity",

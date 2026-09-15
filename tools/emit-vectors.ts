@@ -40,7 +40,9 @@ import { singlyLinkedListContract } from "../src/data-structures/linear/singlyLi
 import { stackContract } from "../src/data-structures/linear/stack/stack.contract.ts";
 import { unrolledLinkedListContract } from "../src/data-structures/linear/unrolledLinkedList/unrolledLinkedList.contract.ts";
 import { xorLinkedListContract } from "../src/data-structures/linear/xorLinkedList/xorLinkedList.contract.ts";
+import { bloomFilterContract } from "../src/data-structures/probabilistic/bloomFilter/bloomFilter.contract.ts";
 import { concurrentSkipListContract } from "../src/data-structures/probabilistic/concurrentSkipList/concurrentSkipList.contract.ts";
+import { cuckooFilterContract } from "../src/data-structures/probabilistic/cuckooFilter/cuckooFilter.contract.ts";
 import { fenwickTreeContract } from "../src/data-structures/range-query/fenwickTree/fenwickTree.contract.ts";
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
 import { segmentTreeContract } from "../src/data-structures/range-query/segmentTree/segmentTree.contract.ts";
@@ -179,10 +181,15 @@ const SPECS: ContractSpec<any, any>[] = [
   stackContract,
   unrolledLinkedListContract,
   xorLinkedListContract,
+  // 오차 판정 연산(`falsePositiveCheck`)의 기대값은 참조 모델이 내는 `true` 다 — 판정 자체는 vector 에 실리지 않으므로
+  // Rust 포트는 같은 판정(넣고 · 묻고 · 한계와 견주기)을 지어야 재생된다(`graph-repr/dag` 의 순서 판정과 같다).
+  bloomFilterContract,
   // 이 구조만 vector 의 쓰임이 다르다. 나머지는 TS 하네스가 이미 축1을 돌고 vector 는 Rust
   // 포트를 위한 파생물인데, `concurrency` 등급은 TS 스위트가 돌지 않으므로 **vector 가 축1의
   // 유일한 경로**다(§규약2 「축4 — 동시성」).
   concurrentSkipListContract,
+  // 오차 판정 연산(`errorCheck`)의 기대값도 `true` 다 — `bloomFilterContract` 줄의 설명과 같다.
+  cuckooFilterContract,
   fenwickTreeContract,
   intervalTreeContract,
   segmentTreeContract,

@@ -232,3 +232,4 @@
 {"seq": 232, "t": "2026-09-10T16:35", "a": "ai", "id": "KAN-034.4-4NS63H", "op": "edit", "w": "MDD8JM", "field": "memo", "before": "", "after": "상위 카드 KAN-034-KSD7XR 의 S4 가 직접 돌았다(커밋 1a16d6b) — 이 카드 명의 커밋은 0건이고 하위 카드가 일감 이름표로만 섰다. 완료 기준 실측(2026-09-10): algo-wbs.ts 가 웨이브별 남은 편과 claim 후보를 내고 배리어·카테고리 선례·뷰 조합 선례가 자기시험 6벌로 서 있다. W1~W3 열여덟 배치가 착수 판단마다 그 출력을 근거로 썼다"}
 {"seq": 233, "t": "2026-09-10T16:35", "a": "ai", "id": "KAN-034.3-53E4F9", "op": "move", "w": "MDD8JM", "from": "backlog", "to": "done"}
 {"seq": 234, "t": "2026-09-10T16:35", "a": "ai", "id": "KAN-034.4-4NS63H", "op": "move", "w": "MDD8JM", "from": "backlog", "to": "done"}
+{"seq": 235, "t": "2026-09-10T17:49", "a": "ai", "id": "KAN-034.9-WHH53W", "op": "move", "w": "MDD8JM", "from": "todo", "to": "doing"}
