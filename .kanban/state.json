@@ -1,6 +1,6 @@
 {
   "next_id": 38,
-  "next_seq": 289,
+  "next_seq": 290,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -303,7 +303,7 @@
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     },
     "KAN-026": {
-      "col": "review",
+      "col": "doing",
       "title": "[P4·26] P4-A군 — basic/invariant 등급(축3 불필요)",
       "memo": "TA-16 완료(2026-09-15) — minHash 표면 교체(원소 단위 add + similarity(other) · update(set)·signature·numHashes·exact 제거) · 결정적 쪽 둘 · 인스턴스 짝 단위 오차 판정(⌈16/δ⌉ 짝 중 ≤48 · 여유 3) · basic · fixture 6 · 불변 사실 371–378. S18 준비: 낡은 문장 정정 목록 71행(conventions 새 절) · 검토 항목 초안 11 · dynamicArray.toArray 는 규칙상 「뺀다」로 판정만(미적용 — 검토서로) · ord006-wbs TA 15/16(rollingHash KAN-039 이관 대기). TA-14·TA-15 완료(2026-09-15) — countMinSketch·hyperLogLog basic · 오차 판정: CMS 는 원소 단위(64/δ · 여유 2), HLL 은 인스턴스 단위(16/δ · 여유 3 — 여유 2 는 스위트 1회 실패 확률 약 5×10⁻⁴) · HLL 결정적 쪽은 「추정은 들어온 원소 집합만의 함수」, 해시 무작위는 실행이 한 번 뽑는다 · merge 는 정확한 집합을 배제하므로 존치 · error()·precision 제거 · fixture 10 · 불변 사실 360–370. -problem.md 두 편은 에이전트 rm 이 차단돼 메인 세션이 git rm. TA-12·TA-13 완료(2026-09-15) — 오차 보장 판정을 축1 연산 하나로(용량 n·ε·seed 로 새 필터, 넣지 않은 64/ε 개 중 참 ≤128 · 여유 2 — 경계 구현 8,000회 0 실패, 하네스 무수정, 정본 20/20) · 확률 출처는 구현 무작위(해시 상수 고정 구현은 위반이나 통과 — 판정 도구로 고정) · bloomFilter·cuckooFilter 둘 다 basic(칸마다 세는 블룸이 뻐꾸기 스위트도 통과) · 뻐꾸기 add 결정적 거절 문장 확정 · size·loadFactor 제거 · fixture 9 · 불변 사실 297–299·350–359(셋째 대역 350–379 개시). S18 마감 정리: 불변 사실 203 과 S1 처분표 뻐꾸기 행이 낡음. TA-11 완료(2026-09-15) — bitArray basic: 짝 정본 없는 B15 처분(불리언 배열이 네 축을 정본과 같은 값으로 통과 · 힙 126,044B 대 8,004,902B) · count·toggle 제거로 S1 예상 invariant 에서 basic 으로 · 범위 밖 RangeError · n=0 허용 · 정본 Uint32Array(메모리 목록 비편입 판정 조건) · fixture 3 · 불변 사실 289–296. S18 마감에서 판정: dynamicArray.toArray 에 같은 판별(불변식 경로라 등급이 흔들릴 수 있음). TA-09 완료(2026-09-15) — dag invariant: 사이클 간선은 false(상태 그대로) · 순서는 껍데기가 간선 방향 판정으로 관측 · addEdge 상한은 새 간선이 닿는 부분 k(u,v) · longestPath·무게·hasCycle 제거 · fixture 3 · 불변 사실 283–287. TA-10(S12 rollingHash 이관) 조사 후 멈춤 — 알고리즘 목록 편 수 111 이 algo-wbs.test 로 고정돼 가이드 없는 편을 셀 자리가 없고, 알고리즘 트랙엔 옛 mdx 를 보존할 자리가 없다(288) → 유저에게 처분 문의. TA-05·TA-06 완료(2026-09-15) — 단조 둘 상태 있는 계약: monotonicStack = 최댓값을 묻는 스택(basic · 「넣을 때 가장 가까운 큰 원소」 후보는 빼기와 함께면 상수를 못 지켜 버림) · monotonicQueue = 최댓값을 묻는 큐(complexity) · 최솟값은 비교자 주입으로 접힘 · fixture 5 + 판정 도구 1 · 알고리즘 가이드 링크 5 교체(slidingWindowMaximum 의 덱 설명 링크는 deque 가이드로) · 불변 사실 276–282. TA-04 완료(2026-09-15) — doublyLinkedList invariant · 핸들 모형(넣은 원소 하나를 가리키고 그 원소의 remove 로만 죽음, 죽은/다른 수열 핸들은 null·false) · ListNode·prev/next·find 제거 · 하네스 무수정 · fixture 3 · 불변 사실 270–275(둘째 대역 개시). S18 마감 정리 대상: conventions 의 S5 이전 문장(S1 처분표 「미결」 등). S20·TA-02·TA-03 완료(2026-09-15) — TST 스위트에 곁에 긴 낱말 insert·delete 둘(복사 쪼개기 radixTree 1,027→4,099 로 걸림, 판정 이름 충돌로 #2 차례 부여) · singlyLinkedList invariant(find 제거 — 불변 사실 210 적용, removeFirst amortized 실측) · dynamicArray invariant(capacity 제거, set 범위 밖 RangeError) · fixture 6 · 불변 사실 222–229(200–229 대역 소진 → 다음은 270–299). scope 밖 트리 가이드 셋의 인용 번호만 갱신. TA-01 완료(2026-09-15) — trie·radixTree 성격 전환(TST 계약 같은 객체 · invariant) · 복사 쪼개기 radixTree 는 곁에 긴 낱말 시나리오에서 r=3.99 로 걸리나 TST 정본 스위트는 통과(낱말 길이 8 고정) → S20 으로 시나리오 추가 · 불변 사실 216–221. 넘긴 것: ternarySearchTree-guide.mdx:292 · 런북 B15 결과 칸의 trie.ts:26 인용(KAN-036/마감) · 카드 전략 절 줄 인용(S18 마감에서 일괄 대조). TA-07·TA-08 완료(2026-09-15) — graphAdjList·graphAdjMatrix 계약 전환(둘 다 invariant), 정점 번호는 구조가 [0,n) 로 매김(dag 가 따름), 행렬 계약은 축3 실측으로 B15 처분 아님, 불변 사실 209–215. 결정 넷 반영 · 배치6 을 결정 대기 배치 앞으로 당겨 돎. **cuckooFilter 이관(2026-09-14 · 유저 결재).** B군 T5-05 cuckooFilter 가 bloomFilter 와 한 판정 자리에서 보도록 이 카드로 왔다 — 대상은 A군 16 + 1 = 17종, 수행은 단일 에이전트 11 배치. **재개(2026-09-14 · 유저 지시, KAN-027 과 병렬) — 이 카드는 계약 전환까지다.** v2 가이드 집필은 직렬 결재로 KAN-036 이 두 카드 완료 뒤 66편을 한꺼번에 맡는다. 아래 문단의 「A군도 ds-guide-v2 로 쓴다」는 KAN-036 으로 넘어갔고, 계약 층 인계(B13 불변 구조 넷)는 유효하다. **가이드 골격이 바뀐다(2026-09-13 · KAN-035-31T4BY S1).** 이 카드의 A군 16종도 ds-guide 8단계가 아니라 **ds-guide-v2**(algo-guide-v2 계승, `sandbox/ds-guide-v2/SPEC.md`)로 쓴다. 계약 층은 그대로다 — 계약 헤더·`_reference/`·계약 스위트 4축·CI 3모드가 존치하므로 아래 B13 인계 사항 넷(불변 구조 처분)은 전부 유효하다. 바뀌는 것은 가이드뿐이다. **착수는 KAN-035 파일럿 승인 뒤다** — 규격이 확정되기 전에 쓰면 다시 쓴다. 공수 L·리스크 하. 카드 25 분류 결과에 따름. 근거: ORDER.md ORD-006 / docs/ORD-006-strategy.md **B13 이 인계한 것(2026-08-05).** 이 군에 **불변 구조**가 들어온다 — 생성자로 다 지어지고 상태를 바꾸는 연산이 하나도 없는 구조다(range-query/sparseTable 계열이 후보). 넷을 함께 적용한다(불변 사실 52, docs/ORD-006-conventions.md §규약1 「불변 구조」): ① **불변식 절이 자동으로 비지 않는다** — 비는지는 판별 절차를 돌려야 정해진다. 다만 불변 구조에서는 그 결과와 무관하게 **축2가 축1보다 더 잡는 것이 없다**(상태가 하나뿐이고 그 하나는 축1이 이미 대조한다). 이 둘은 다른 층위이고 앞엣것을 뒤엣것으로 대신할 수 없다 — B13 이 그 자리에서 틀렸고 외부 검토가 잡았다. ② **인자 없는 질의는 구성과 묶어 상한을 적는다**(미리 계산과 호출 때 계산이 다른 계급인데 둘 다 정당하면 따로 적는 순간 하나를 처방한다). ③ **계약이 구성 시점을 정한다**(안 적으면 아무것도 안 하는 생성자가 두 상한을 다 만족한다). ④ **스위트는 껍데기를 쓴다** — runContract 가 인자 없는 팩토리를 요구하므로 .contract.ts 에 reindex 하나를 가진 껍데기를 둔다. 껍데기는 계약의 일부가 아니고 check-contract.ts 의 대조에도 안 걸린다. **하네스를 고치지 않는다**(B13 판단: 적응이 .contract.ts 안에서 닫히는데 하네스를 고치면 그 모양이 68종에 걸린다).",
       "verbatim": "",
@@ -930,6 +930,16 @@
   ],
   "recent": [
     {
+      "seq": 289,
+      "t": "2026-09-15T23:50",
+      "a": "ai",
+      "id": "KAN-026",
+      "op": "move",
+      "w": "2PNFSD",
+      "from": "review",
+      "to": "doing"
+    },
+    {
       "seq": 288,
       "t": "2026-09-15T19:22",
       "a": "ai",
@@ -1476,17 +1486,6 @@
       "w": "MDD8JM",
       "from": "doing",
       "to": "done"
-    },
-    {
-      "seq": 239,
-      "t": "2026-09-10T22:19",
-      "a": "ai",
-      "id": "KAN-034.10-8M6T6P",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "KAN-034.9 배치2 S3 이 냄. 표본 판정: 손 펜스 133 중 20/22 부채, 생성 2행 18 중 5 부채(13 오탐)",
-      "after": "KAN-034.9 가 낸 부채 넷(2026-09-10). ① P15 열 정렬 151자리 62편 — 표본 22 중 20 부채 ② P3 걸음 27편 — 고침 방법은 SPEC.md §9 ③ 사이드카 은유 177자리 77편 — 표본 30 중 28 부채, 오탐은 회전 뜻의 「돌려」 ④ check-overlap 리프트 104쌍 — 사람이 분류해야 기준선이 뜬다. 상세와 판정 근거는 KANBAN.batches/KAN-034.9-WHH53W.batch{2,3,4}.md 의 「끝난 뒤」"
     }
   ],
   "layout": 2,
