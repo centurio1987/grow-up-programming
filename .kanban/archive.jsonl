@@ -239,3 +239,4 @@
 {"seq": 239, "t": "2026-09-10T22:19", "a": "ai", "id": "KAN-034.10-8M6T6P", "op": "edit", "w": "MDD8JM", "field": "memo", "before": "KAN-034.9 배치2 S3 이 냄. 표본 판정: 손 펜스 133 중 20/22 부채, 생성 2행 18 중 5 부채(13 오탐)", "after": "KAN-034.9 가 낸 부채 넷(2026-09-10). ① P15 열 정렬 151자리 62편 — 표본 22 중 20 부채 ② P3 걸음 27편 — 고침 방법은 SPEC.md §9 ③ 사이드카 은유 177자리 77편 — 표본 30 중 28 부채, 오탐은 회전 뜻의 「돌려」 ④ check-overlap 리프트 104쌍 — 사람이 분류해야 기준선이 뜬다. 상세와 판정 근거는 KANBAN.batches/KAN-034.9-WHH53W.batch{2,3,4}.md 의 「끝난 뒤」"}
 {"seq": 240, "t": "2026-09-10T22:19", "a": "ai", "id": "KAN-034.9-WHH53W", "op": "move", "w": "MDD8JM", "from": "doing", "to": "done"}
 {"seq": 241, "t": "2026-09-10T22:19", "a": "ai", "id": "KAN-034.10-8M6T6P", "op": "reparent", "w": "MDD8JM", "from": "KAN-034-KSD7XR", "to": null}
+{"seq": 242, "t": "2026-09-10T22:19", "a": "ai", "id": "KAN-034-KSD7XR", "op": "move", "w": "MDD8JM", "from": "doing", "to": "done"}
