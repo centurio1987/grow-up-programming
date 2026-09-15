@@ -1,0 +1,1527 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "DynamicArray",
+  "grade": "invariant",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 수열에서 pop · get 은 null, set 은 RangeError 이고 상태를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "set",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        }
+      ]
+    },
+    {
+      "name": "넣은 차례가 첨자이고 -1 · size() · 정수가 아닌 첨자는 get 이 null 이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 10
+        },
+        {
+          "op": "push",
+          "arg": 20
+        },
+        {
+          "op": "push",
+          "arg": 30
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": 10
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": 30
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": -1,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 1.5,
+          "expect": null
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            10,
+            20,
+            30
+          ]
+        }
+      ]
+    },
+    {
+      "name": "set 은 그 첨자 하나만 바꾸고 범위 밖이면 RangeError 이며 아무것도 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "push",
+          "arg": 2
+        },
+        {
+          "op": "push",
+          "arg": 3
+        },
+        {
+          "op": "set",
+          "arg": [
+            1,
+            9
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            9,
+            3
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            3,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": [
+            -1,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": [
+            0.5,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            9,
+            3
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            2,
+            7
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": 7
+        }
+      ]
+    },
+    {
+      "name": "비울 때까지 빼고 다시 넣으면 첨자가 0 부터 다시 매겨진다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "pop",
+          "expect": 1
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 2
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": 2
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "여러 번 늘었다 줄어도 남은 원소와 첨자가 그대로다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "push",
+          "arg": 2
+        },
+        {
+          "op": "push",
+          "arg": 3
+        },
+        {
+          "op": "push",
+          "arg": 4
+        },
+        {
+          "op": "push",
+          "arg": 5
+        },
+        {
+          "op": "push",
+          "arg": 6
+        },
+        {
+          "op": "push",
+          "arg": 7
+        },
+        {
+          "op": "push",
+          "arg": 8
+        },
+        {
+          "op": "push",
+          "arg": 9
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": 9
+        },
+        {
+          "op": "pop",
+          "expect": 8
+        },
+        {
+          "op": "pop",
+          "expect": 7
+        },
+        {
+          "op": "pop",
+          "expect": 6
+        },
+        {
+          "op": "pop",
+          "expect": 5
+        },
+        {
+          "op": "pop",
+          "expect": 4
+        },
+        {
+          "op": "pop",
+          "expect": 3
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": 1
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 2
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": null
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 10
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2,
+            10
+          ]
+        }
+      ]
+    },
+    {
+      "name": "돌려받은 배열을 고쳐도 구조는 그대로다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "push",
+          "arg": 2
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            1,
+            2
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "set",
+          "arg": [
+            1.5,
+            32
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "set",
+          "arg": [
+            3,
+            79
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 1.5,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": null
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 22
+        },
+        {
+          "op": "set",
+          "arg": [
+            1,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": [
+            6,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "get",
+          "arg": 8,
+          "expect": null
+        },
+        {
+          "op": "pop",
+          "expect": 22
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "push",
+          "arg": 12
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": 12
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "set",
+          "arg": [
+            1,
+            -16
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": [
+            1,
+            78
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": null
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            12
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            12
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            12
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            12
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            12
+          ]
+        },
+        {
+          "op": "push",
+          "arg": -17
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            12,
+            -17
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": -17
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            12
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            6,
+            -4
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            12
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 77
+        },
+        {
+          "op": "push",
+          "arg": 18
+        },
+        {
+          "op": "push",
+          "arg": 20
+        },
+        {
+          "op": "pop",
+          "expect": 20
+        },
+        {
+          "op": "set",
+          "arg": [
+            4,
+            -13
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            12,
+            77,
+            18
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": 18
+        },
+        {
+          "op": "push",
+          "arg": 10
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            12,
+            77,
+            10
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": 10
+        },
+        {
+          "op": "push",
+          "arg": 45
+        },
+        {
+          "op": "set",
+          "arg": [
+            0,
+            -6
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 10
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "set",
+          "arg": [
+            4,
+            32
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "pop",
+          "expect": 10
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "pop",
+          "expect": 45
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -6,
+            77
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -6,
+            77
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -6,
+            77
+          ]
+        },
+        {
+          "op": "push",
+          "arg": -2
+        },
+        {
+          "op": "push",
+          "arg": 78
+        },
+        {
+          "op": "pop",
+          "expect": 78
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -6,
+            77,
+            -2
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 5
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -6,
+            77,
+            -2,
+            5
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "pop",
+          "expect": 5
+        },
+        {
+          "op": "push",
+          "arg": -6
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 77
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -6,
+            77,
+            -2,
+            -6
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": -6
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -6,
+            77,
+            -2
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -6,
+            77,
+            -2
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            1,
+            18
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": -2
+        },
+        {
+          "op": "pop",
+          "expect": 18
+        },
+        {
+          "op": "pop",
+          "expect": -6
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "toArray",
+          "expect": []
+        },
+        {
+          "op": "push",
+          "arg": 12
+        },
+        {
+          "op": "push",
+          "arg": -17
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": 12
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "pop",
+          "expect": -17
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            12
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            5,
+            14
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "pop",
+          "expect": 12
+        },
+        {
+          "op": "set",
+          "arg": [
+            6,
+            -15
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "set",
+          "arg": [
+            -1,
+            12
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 72
+        },
+        {
+          "op": "set",
+          "arg": [
+            5,
+            -8
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "push",
+          "arg": 61
+        },
+        {
+          "op": "push",
+          "arg": 51
+        },
+        {
+          "op": "pop",
+          "expect": 51
+        },
+        {
+          "op": "set",
+          "arg": [
+            4,
+            72
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "push",
+          "arg": -9
+        },
+        {
+          "op": "pop",
+          "expect": -9
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "push",
+          "arg": 32
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 61
+        },
+        {
+          "op": "push",
+          "arg": 79
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            72,
+            61,
+            32,
+            79
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 66
+        },
+        {
+          "op": "push",
+          "arg": 19
+        },
+        {
+          "op": "set",
+          "arg": [
+            2,
+            51
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 8
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            72,
+            61,
+            51,
+            79,
+            66,
+            19,
+            8
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            -1,
+            -4
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": [
+            0,
+            44
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            1.5,
+            -14
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "push",
+          "arg": 20
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "set",
+          "arg": [
+            5,
+            47
+          ]
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            44,
+            61,
+            51,
+            79,
+            66,
+            47,
+            8,
+            20
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 66
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            44,
+            61,
+            51,
+            79,
+            66,
+            47,
+            8,
+            20,
+            66
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 62
+        },
+        {
+          "op": "set",
+          "arg": [
+            2,
+            -10
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 48
+        },
+        {
+          "op": "get",
+          "arg": 1.5,
+          "expect": null
+        },
+        {
+          "op": "set",
+          "arg": [
+            5,
+            66
+          ]
+        },
+        {
+          "op": "get",
+          "arg": -1,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 61
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            44,
+            61,
+            -10,
+            79,
+            66,
+            66,
+            8,
+            20,
+            66,
+            62,
+            48
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 11
+        },
+        {
+          "op": "push",
+          "arg": -2
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "push",
+          "arg": 60
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            44,
+            61,
+            -10,
+            79,
+            66,
+            66,
+            8,
+            20,
+            66,
+            62,
+            48,
+            -2,
+            60
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": 20
+        },
+        {
+          "op": "set",
+          "arg": [
+            4,
+            23
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": 60
+        },
+        {
+          "op": "push",
+          "arg": 73
+        },
+        {
+          "op": "set",
+          "arg": [
+            1.5,
+            39
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": [
+            0,
+            75
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": 73
+        },
+        {
+          "op": "push",
+          "arg": 29
+        },
+        {
+          "op": "pop",
+          "expect": 29
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            75,
+            61,
+            -10,
+            79,
+            23,
+            66,
+            8,
+            20,
+            66,
+            62,
+            48,
+            -2
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            -1,
+            43
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "push",
+          "arg": 58
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            75,
+            61,
+            -10,
+            79,
+            23,
+            66,
+            8,
+            20,
+            66,
+            62,
+            48,
+            -2,
+            58
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": 58
+        },
+        {
+          "op": "set",
+          "arg": [
+            4,
+            38
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": 38
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            75,
+            61,
+            -10,
+            79,
+            38,
+            66,
+            8,
+            20,
+            66,
+            62,
+            48,
+            -2
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 6,
+          "expect": 8
+        },
+        {
+          "op": "pop",
+          "expect": -2
+        },
+        {
+          "op": "push",
+          "arg": 69
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": 38
+        },
+        {
+          "op": "set",
+          "arg": [
+            0,
+            56
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            0,
+            -20
+          ]
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "pop",
+          "expect": 69
+        },
+        {
+          "op": "pop",
+          "expect": 48
+        },
+        {
+          "op": "size",
+          "expect": 10
+        },
+        {
+          "op": "push",
+          "arg": 3
+        },
+        {
+          "op": "push",
+          "arg": 10
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -20,
+            61,
+            -10,
+            79,
+            38,
+            66,
+            8,
+            20,
+            66,
+            62,
+            3,
+            10
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": 10
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": -20
+        },
+        {
+          "op": "set",
+          "arg": [
+            5,
+            27
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 20
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -20,
+            61,
+            -10,
+            79,
+            38,
+            27,
+            8,
+            20,
+            66,
+            62,
+            3,
+            20
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 8,
+          "expect": 66
+        },
+        {
+          "op": "set",
+          "arg": [
+            5,
+            41
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            2,
+            71
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 24
+        },
+        {
+          "op": "pop",
+          "expect": 24
+        },
+        {
+          "op": "push",
+          "arg": 30
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": 71
+        },
+        {
+          "op": "size",
+          "expect": 13
+        },
+        {
+          "op": "toArray",
+          "expect": [
+            -20,
+            61,
+            71,
+            79,
+            38,
+            41,
+            8,
+            20,
+            66,
+            62,
+            3,
+            20,
+            30
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": 38
+        },
+        {
+          "op": "set",
+          "arg": [
+            8,
+            45
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            -1,
+            20
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "pop",
+          "expect": 30
+        },
+        {
+          "op": "set",
+          "arg": [
+            1.5,
+            35
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 61
+        },
+        {
+          "op": "push",
+          "arg": 7
+        },
+        {
+          "op": "pop",
+          "expect": 7
+        },
+        {
+          "op": "pop",
+          "expect": 20
+        },
+        {
+          "op": "set",
+          "arg": [
+            -1,
+            18
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "pop",
+          "expect": 3
+        },
+        {
+          "op": "size",
+          "expect": 10
+        },
+        {
+          "op": "set",
+          "arg": [
+            3,
+            -20
+          ]
+        },
+        {
+          "op": "push",
+          "arg": 15
+        },
+        {
+          "op": "set",
+          "arg": [
+            2,
+            40
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            2,
+            -14
+          ]
+        },
+        {
+          "op": "set",
+          "arg": [
+            4,
+            -17
+          ]
+        },
+        {
+          "op": "pop",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": 43
+        }
+      ]
+    }
+  ]
+}

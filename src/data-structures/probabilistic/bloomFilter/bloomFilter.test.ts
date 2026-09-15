@@ -1,111 +1,43 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `probabilistic/bloomFilter` 계약 스위트 실행부(규약2).
+ *
+ * 여기에는 `runContract` 호출만 둔다. 무엇을 검사하는지는 `./bloomFilter.contract.ts` 에 있고, 계약 자체는
+ * `./bloomFilter.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다.
+ * 축3은 계측기가 붙은 정본에만 돈다 — 학습자 스텁에 `__cost` 를 요구하지 않는다.
+ *
+ * 팩토리가 껍데기를 씌우는 것은 용량 · 목표 오차를 생성자가 정하기 때문이다(`./bloomFilter.contract.ts` 머리말 —
+ * 불변 사실 83).
+ *
+ * **정본은 무작위를 뽑으므로 오차 판정의 거짓 양성 수가 실행마다 다르다.** 판정은 여유 2 로 흔들림을 받는다 —
+ * 반복 실행 결과는 `docs/ORD-006-conventions.md` 「A군 확률 필터 둘」.
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 물려받은 스위트의 「10^5 넣기 · 묻기를 100ms 안에」는 옮기지 않았고,
+ * 「size=1 · hashCount=1 이면 모든 질의가 참」은 헤더가 뺀 표현 매개변수의 성질이라 옮기지 않았다. 「거짓 양성률이
+ * 5% 미만」은 표현 매개변수로 적힌 수치라 헤더의 판정 문장(용량 · 목표 오차 · 여유 2)으로 대체됐다. 결함 fixture 의
+ * 자기시험은 `../../_contract/runContract.bloomFilter.test.ts` 에 있다.
+ */
+
+import { runContract } from "../../_contract/runContract";
+import { BloomFilter as Reference } from "./_reference/bloomFilter";
 import { BloomFilter } from "./bloomFilter";
+import { bloomFilterContract, SizedFilter } from "./bloomFilter.contract";
 
-describe("BloomFilter", () => {
-  describe("기본", () => {
-    test("add 후 has는 true", () => {
-      const bf = new BloomFilter(10_000, 5);
-      bf.add("apple");
-      expect(bf.has("apple")).toBe(true);
-    });
+runContract(
+  () => new SizedFilter((n, rate) => new BloomFilter(n, rate)),
+  bloomFilterContract,
+  { label: "스텁" },
+);
 
-    test("여러 원소 add 후 모두 has true", () => {
-      const bf = new BloomFilter(10_000, 5);
-      const items = ["a", "b", "c", "hello", "world"];
-      items.forEach((x) => bf.add(x));
-      for (const x of items) expect(bf.has(x)).toBe(true);
-    });
-
-    test("add하지 않은 원소는 대부분 false", () => {
-      const bf = new BloomFilter(100_000, 7);
-      bf.add("known");
-      // 충분히 큰 배열이라 false positive는 거의 없음
-      let fp = 0;
-      for (let i = 0; i < 100; i++) {
-        if (bf.has(`unknown-${i}`)) fp++;
-      }
-      expect(fp).toBeLessThan(10);
-    });
-  });
-
-  describe("엣지 (확률적 자료구조 — false negative 없음)", () => {
-    test("추가된 원소는 항상 has true (no false negative)", () => {
-      const bf = new BloomFilter(20_000, 5);
-      const items: string[] = [];
-      for (let i = 0; i < 1000; i++) {
-        const x = `key-${i}`;
-        items.push(x);
-        bf.add(x);
-      }
-      for (const x of items) expect(bf.has(x)).toBe(true);
-    });
-
-    test("false positive rate가 이론적 상한 근처 (실험적으로 < 5%)", () => {
-      // m=100000, k=7, n=1000 → p ≈ (1 - e^(-0.07))^7 ≈ 7.5e-9 → 매우 작음
-      const bf = new BloomFilter(100_000, 7);
-      for (let i = 0; i < 1000; i++) bf.add(`present-${i}`);
-
-      let fp = 0;
-      const trials = 10_000;
-      for (let i = 0; i < trials; i++) {
-        if (bf.has(`missing-${i}`)) fp++;
-      }
-      const rate = fp / trials;
-      expect(rate).toBeLessThan(0.05);
-    });
-
-    test("빈 필터에서 has는 false", () => {
-      const bf = new BloomFilter(1000, 3);
-      expect(bf.has("anything")).toBe(false);
-    });
-
-    test("같은 원소를 여러 번 add 해도 has 결과 동일", () => {
-      const bf = new BloomFilter(10_000, 5);
-      bf.add("dup");
-      bf.add("dup");
-      bf.add("dup");
-      expect(bf.has("dup")).toBe(true);
-    });
-  });
-
-  describe("바운더리", () => {
-    test("size=1, hashCount=1 — 단일 비트", () => {
-      const bf = new BloomFilter(1, 1);
-      bf.add("x");
-      // 비트 하나만 있으므로 모든 질의는 true
-      expect(bf.has("x")).toBe(true);
-      expect(bf.has("y")).toBe(true);
-    });
-
-    test("n=10^5 add 후에도 모든 원소 has true (no false negative)", () => {
-      const n = 100_000;
-      const bf = new BloomFilter(1_000_000, 7);
-      const items: string[] = [];
-      for (let i = 0; i < n; i++) {
-        const x = `i${i}`;
-        items.push(x);
-        bf.add(x);
-      }
-      // 무작위 1000개 샘플 검증
-      for (let i = 0; i < 1000; i++) {
-        const idx = (i * 97) % n;
-        expect(bf.has(items[idx]!)).toBe(true);
-      }
-    });
-  });
-
-  describe("성능", () => {
-    test("n=10^5 add + 10^5 has를 100ms 이내에 처리한다", () => {
-      const bf = new BloomFilter(1_000_000, 7);
-
-      const start = performance.now();
-      for (let i = 0; i < 100_000; i++) bf.add(`k${i}`);
-      let hits = 0;
-      for (let i = 0; i < 100_000; i++) if (bf.has(`k${i}`)) hits++;
-      const elapsed = performance.now() - start;
-
-      expect(hits).toBe(100_000);
-      expect(elapsed).toBeLessThan(100);
-    });
-  });
-});
+runContract(
+  () => new SizedFilter((n, rate) => new Reference(n, rate)),
+  bloomFilterContract,
+  {
+    label: "정본",
+    cost: {
+      kind: "self-reported",
+      make: () => new SizedFilter((n, rate) => new Reference(n, rate)),
+    },
+  },
+);

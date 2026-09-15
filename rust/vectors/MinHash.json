@@ -1,0 +1,1814 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "MinHash",
+  "grade": "basic",
+  "element": "number",
+  "cases": [
+    {
+      "name": "이미 들어온 원소를 다시 넣어도 관측이 바뀌지 않는다 — 빈 문자열 · 16비트 글자 포함",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "a"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "a"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            ""
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            ""
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "가나"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "a"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "가나"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "a"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "가나"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            ""
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            ""
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "닮음은 두 쪽 원소 집합의 짝의 함수다 — 빈 인스턴스 둘 · 한쪽만 빈 짝 · 넣은 순서와 부른 방향이 달라도 같다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "b"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "c"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "a"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "a"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "c"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "ab"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "ab"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "두 쪽에 같은 원소를 다른 순서로 넣으면 닮음이 1 이고, 한쪽에 하나를 더하면 다시 같은 판정을 받는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "x"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "y"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "z"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "z"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "x"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "y"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "w"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "w"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "0 이하 · 1 이상인 ε · δ 는 RangeError 이며 이전 인스턴스를 남기고, 매개변수가 다른 인스턴스와의 닮음은 RangeError 다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "k"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            -0.5,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1.5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "k"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "k"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.2
+          ]
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "k"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.999,
+            0.999
+          ]
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "k"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "j"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "오차 판정 — 16/δ 개 짝에서 닮음이 참 닮음에서 ε 넘게 벗어난 수가 48 개 이하다 ((ε, δ) = (0.3, 0.3) · (0.1, 0.1) · (0.1, 0.05))",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.1,
+            0.1,
+            2
+          ],
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.1,
+            0.05,
+            3
+          ],
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            1316061431
+          ],
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "ab가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "aba"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "aa가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            1625647899
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            2124671976
+          ],
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "bb가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.2,
+            0.2,
+            1487655927
+          ],
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.2,
+            0.2,
+            2005402451
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.2,
+            0.2,
+            357034568
+          ],
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            2099986842
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "bbb"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.2,
+            0.2,
+            1868332051
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            1547637703
+          ],
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            538177709
+          ],
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.2,
+            0.2,
+            1700424228
+          ],
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.2,
+            0.2,
+            1359297352
+          ],
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "aaa"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.2,
+            0.2,
+            770427594
+          ],
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            ""
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.2,
+            0.2,
+            1219846952
+          ],
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            236545607
+          ],
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "가a"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "a가b"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "ab"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "bbb"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            1863032276
+          ],
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            1768656491
+          ],
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "a가b"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            1647277576
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "가ba"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "abb"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.2,
+            0.2,
+            99604452
+          ],
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "가가가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "bba"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.2,
+            0.2,
+            1255883201
+          ],
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "baa"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            1630567905
+          ],
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            2047213907
+          ],
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "b가가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "ab"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "aba"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            1953815076
+          ],
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.2,
+            0.2,
+            424424011
+          ],
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            1962010982
+          ],
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "baa"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "bbb"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "aba"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            1306548178
+          ],
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "b"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.2,
+            0.2,
+            1040713615
+          ],
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "가a"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.3,
+            0.3,
+            744030741
+          ],
+          "expect": true
+        },
+        {
+          "op": "errorCheck",
+          "arg": [
+            0.2,
+            0.2,
+            847180811
+          ],
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "similaritySelf",
+          "expect": true
+        },
+        {
+          "op": "similarity",
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "ab가"
+          ],
+          "expect": "added"
+        }
+      ]
+    }
+  ]
+}

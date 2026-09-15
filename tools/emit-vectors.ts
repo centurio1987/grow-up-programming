@@ -22,6 +22,9 @@ import { rngFrom } from "../src/data-structures/_contract/judge.ts";
 import type { ContractSpec } from "../src/data-structures/_contract/runContract.ts";
 import { disjointSetRollbackContract } from "../src/data-structures/disjoint-set/disjointSetRollback/disjointSetRollback.contract.ts";
 import { unionFindContract } from "../src/data-structures/disjoint-set/unionFind/unionFind.contract.ts";
+import { dagContract } from "../src/data-structures/graph-repr/dag/dag.contract.ts";
+import { graphAdjListContract } from "../src/data-structures/graph-repr/graphAdjList/graphAdjList.contract.ts";
+import { graphAdjMatrixContract } from "../src/data-structures/graph-repr/graphAdjMatrix/graphAdjMatrix.contract.ts";
 import { hashMapChainingContract } from "../src/data-structures/hash/hashMapChaining/hashMapChaining.contract.ts";
 import { hashSetContract } from "../src/data-structures/hash/hashSet/hashSet.contract.ts";
 import { lruCacheContract } from "../src/data-structures/hash/lruCache/lruCache.contract.ts";
@@ -30,15 +33,26 @@ import { leftistHeapContract } from "../src/data-structures/heap/leftistHeap/lef
 import { pairingHeapContract } from "../src/data-structures/heap/pairingHeap/pairingHeap.contract.ts";
 import { priorityQueueContract } from "../src/data-structures/heap/priorityQueue/priorityQueue.contract.ts";
 import { vanEmdeBoasTreeContract } from "../src/data-structures/heap/vanEmdeBoasTree/vanEmdeBoasTree.contract.ts";
+import { bitArrayContract } from "../src/data-structures/linear/bitArray/bitArray.contract.ts";
 import { circularBufferContract } from "../src/data-structures/linear/circularBuffer/circularBuffer.contract.ts";
 import { dequeContract } from "../src/data-structures/linear/deque/deque.contract.ts";
+import { doublyLinkedListContract } from "../src/data-structures/linear/doublyLinkedList/doublyLinkedList.contract.ts";
+import { dynamicArrayContract } from "../src/data-structures/linear/dynamicArray/dynamicArray.contract.ts";
 import { gapBufferContract } from "../src/data-structures/linear/gapBuffer/gapBuffer.contract.ts";
+import { monotonicQueueContract } from "../src/data-structures/linear/monotonicQueue/monotonicQueue.contract.ts";
+import { monotonicStackContract } from "../src/data-structures/linear/monotonicStack/monotonicStack.contract.ts";
 import { pieceTableContract } from "../src/data-structures/linear/pieceTable/pieceTable.contract.ts";
 import { queueContract } from "../src/data-structures/linear/queue/queue.contract.ts";
+import { singlyLinkedListContract } from "../src/data-structures/linear/singlyLinkedList/singlyLinkedList.contract.ts";
 import { stackContract } from "../src/data-structures/linear/stack/stack.contract.ts";
 import { unrolledLinkedListContract } from "../src/data-structures/linear/unrolledLinkedList/unrolledLinkedList.contract.ts";
 import { xorLinkedListContract } from "../src/data-structures/linear/xorLinkedList/xorLinkedList.contract.ts";
+import { bloomFilterContract } from "../src/data-structures/probabilistic/bloomFilter/bloomFilter.contract.ts";
 import { concurrentSkipListContract } from "../src/data-structures/probabilistic/concurrentSkipList/concurrentSkipList.contract.ts";
+import { countMinSketchContract } from "../src/data-structures/probabilistic/countMinSketch/countMinSketch.contract.ts";
+import { cuckooFilterContract } from "../src/data-structures/probabilistic/cuckooFilter/cuckooFilter.contract.ts";
+import { hyperLogLogContract } from "../src/data-structures/probabilistic/hyperLogLog/hyperLogLog.contract.ts";
+import { minHashContract } from "../src/data-structures/probabilistic/minHash/minHash.contract.ts";
 import { fenwickTreeContract } from "../src/data-structures/range-query/fenwickTree/fenwickTree.contract.ts";
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
 import { persistentSegmentTreeContract } from "../src/data-structures/range-query/persistentSegmentTree/persistentSegmentTree.contract.ts";
@@ -179,6 +193,9 @@ const SPECS: ContractSpec<any, any>[] = [
   // 예외를 관측값으로 바꾼 것이다. `find` 의 기대값은 그 집합의 가장 작은 원소라 재생하는 쪽이 뿌리를 그대로
   // 돌려주면 갈린다.
   unionFindContract,
+  dagContract,
+  graphAdjListContract,
+  graphAdjMatrixContract,
   hashMapChainingContract,
   hashSetContract,
   // 연산 `reset(용량)` 은 계약 표의 연산이 아니라 껍데기(`CacheSite`)가 생성자 행을 나르는 자리다 —
@@ -201,20 +218,41 @@ const SPECS: ContractSpec<any, any>[] = [
   // 머리말). 경계 케이스가 아닌 케이스는 우주 100 에서 시작하고, 무작위 시퀀스는 거절되는 우주만 넘긴다.
   // 기대값 `"RangeError"` 는 던진 예외를 관측값으로 바꾼 것이다.
   vanEmdeBoasTreeContract,
+  bitArrayContract,
   circularBufferContract,
   dequeContract,
+  doublyLinkedListContract,
+  dynamicArrayContract,
   gapBufferContract,
+  monotonicQueueContract,
+  monotonicStackContract,
   // `insert` 의 인자는 `[자리, 넣을 원소 배열]`, `delete` 의 인자는 `[자리, 지울 수]` 다. 기대값 `"RangeError"` 는 던진 예외를
   // 관측값으로 바꾼 것이다(`pieceTable.contract.ts` 머리말). 무작위 시퀀스의 자리는 두 난수의 곱으로 작은 자리에 몰려 있다.
   pieceTableContract,
   queueContract,
+  singlyLinkedListContract,
   stackContract,
   unrolledLinkedListContract,
   xorLinkedListContract,
+  // 오차 판정 연산(`falsePositiveCheck`)의 기대값은 참조 모델이 내는 `true` 다 — 판정 자체는 vector 에 실리지 않으므로
+  // Rust 포트는 같은 판정(넣고 · 묻고 · 한계와 견주기)을 지어야 재생된다(`graph-repr/dag` 의 순서 판정과 같다).
+  bloomFilterContract,
   // 이 구조만 vector 의 쓰임이 다르다. 나머지는 TS 하네스가 이미 축1을 돌고 vector 는 Rust
   // 포트를 위한 파생물인데, `concurrency` 등급은 TS 스위트가 돌지 않으므로 **vector 가 축1의
   // 유일한 경로**다(§규약2 「축4 — 동시성」).
   concurrentSkipListContract,
+  // 오차 판정 연산(`overestimateCheck`)의 기대값도 `true` 다 — `bloomFilterContract` 줄의 설명과 같다. `estimate` 의
+  // 관측값도 추정 자체가 아니라 「기록한 빈도 이상인가」의 판정이라 `true` 다(Rust 포트는 빈도를 함께 기록해야 재생된다).
+  countMinSketchContract,
+  // 오차 판정 연산(`errorCheck`)의 기대값도 `true` 다 — `bloomFilterContract` 줄의 설명과 같다.
+  cuckooFilterContract,
+  // 오차 판정(`errorCheck`) · 추정(`count`) · 합치기(`merge` · `mergeSelf`)의 기대값이 전부 `true` 다 — 추정 값이 아니라 「같은 집합을
+  // 새 인스턴스에 넣은 추정과 같은가」의 판정이 실린다. Rust 포트는 들어온 원소 집합을 함께 기록하고 같은 판정을 지어야 재생된다.
+  hyperLogLogContract,
+  // 오차 판정(`errorCheck`) · 닮음(`similarity` · `similaritySelf`) · 다시 넣기(`add` 의 `"unchanged"`)의 기대값이 판정이다 — 닮음 값이
+  // 아니라 「같은 두 집합을 새 인스턴스 둘에 넣은 닮음과 같은가 · 같은 집합이면 1 인가」가 실린다. Rust 포트는 두 쪽의 원소 집합을
+  // 함께 기록하고 같은 판정을 지어야 재생된다(`hyperLogLogContract` 줄과 같은 자리).
+  minHashContract,
   fenwickTreeContract,
   intervalTreeContract,
   // `update` 의 인자 `[버전, 자리, 값]` · `query` 의 인자 `[버전, from, to]` 에서 **버전 자리가 음수가 아니면 지금 있는 버전 수로 나눈

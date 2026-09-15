@@ -71,7 +71,7 @@ nums   2  1  2  4  3
 - **배열의 인덱스.** `nums[i]` 가 `i` 번째 값이고 `i` 는 0 부터 셉니다.
 - **스택.** 마지막에 넣은 것이 가장 먼저 나오는 담는 통이에요. 넣기 · 꺼내기 · 꼭대기 보기가
   각각 한 번에 끝납니다. 흐릿하면
-  [`monotonicStack`](../../../data-structures/linear/monotonicStack/monotonicStack-problem.md) 을
+  [`monotonicStack`](../../../data-structures/linear/monotonicStack/monotonicStack.ts) 을
   먼저 봅니다.
 - **엄격한 부등호와 느슨한 부등호의 차이.** `a < b` 와 `a ≤ b` 는 `a = b` 인 자리에서
   갈립니다. 이 문제의 답은 「엄격하게 큰 값」이라 그 자리가 답을 바꿉니다.
@@ -642,7 +642,7 @@ nextGreaterElement([2, 7, 3, 5, 1, 6])→  [7, -1, 5, 6, 6, -1]
 ```
 
 마지막 무리가 보이면 다른 절차로 갑니다. 창이 움직이면
-[`monotonicQueue`](../../../data-structures/linear/monotonicQueue/monotonicQueue-problem.md) ·
+[`monotonicQueue`](../../../data-structures/linear/monotonicQueue/monotonicQueue.ts) ·
 [`slidingWindowMaximum`](../slidingWindowMaximum/slidingWindowMaximum-problem.md) 쪽이고,
 구간 질의가 붙으면
 [`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-problem.md) 쪽이에요.

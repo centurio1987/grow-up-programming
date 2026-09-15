@@ -1,0 +1,1212 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "BitArray",
+  "grade": "basic",
+  "element": "number",
+  "cases": [
+    {
+      "name": "처음에는 모든 자리가 꺼져 있고 size 는 생성 인자다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 31,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 32,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 69,
+          "expect": false
+        }
+      ]
+    },
+    {
+      "name": "set 은 그 자리 하나만 켜고 켜진 자리를 다시 켜도 그대로다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "set",
+          "arg": 31
+        },
+        {
+          "op": "get",
+          "arg": 30,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 31,
+          "expect": true
+        },
+        {
+          "op": "get",
+          "arg": 32,
+          "expect": false
+        },
+        {
+          "op": "set",
+          "arg": 31
+        },
+        {
+          "op": "get",
+          "arg": 31,
+          "expect": true
+        },
+        {
+          "op": "set",
+          "arg": 64
+        },
+        {
+          "op": "get",
+          "arg": 63,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 64,
+          "expect": true
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": false
+        }
+      ]
+    },
+    {
+      "name": "clear 는 그 자리 하나만 끄고 꺼진 자리를 다시 꺼도 그대로다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "set",
+          "arg": 31
+        },
+        {
+          "op": "set",
+          "arg": 32
+        },
+        {
+          "op": "set",
+          "arg": 33
+        },
+        {
+          "op": "clear",
+          "arg": 32
+        },
+        {
+          "op": "get",
+          "arg": 31,
+          "expect": true
+        },
+        {
+          "op": "get",
+          "arg": 32,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 33,
+          "expect": true
+        },
+        {
+          "op": "clear",
+          "arg": 32
+        },
+        {
+          "op": "get",
+          "arg": 32,
+          "expect": false
+        },
+        {
+          "op": "clear",
+          "arg": 5
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": false
+        }
+      ]
+    },
+    {
+      "name": "마지막 자리 n-1 은 자리이고 n 은 범위 밖이라 세 연산 모두 RangeError 다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "set",
+          "arg": 69
+        },
+        {
+          "op": "get",
+          "arg": 69,
+          "expect": true
+        },
+        {
+          "op": "get",
+          "arg": 70,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 70,
+          "expect": "RangeError"
+        },
+        {
+          "op": "clear",
+          "arg": 70,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 69,
+          "expect": true
+        },
+        {
+          "op": "clear",
+          "arg": 69
+        },
+        {
+          "op": "get",
+          "arg": 69,
+          "expect": false
+        }
+      ]
+    },
+    {
+      "name": "-1 · 정수가 아닌 첨자는 RangeError 이고 상태를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "set",
+          "arg": 0
+        },
+        {
+          "op": "set",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "clear",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 70
+        }
+      ]
+    },
+    {
+      "name": "다시 세우면 전부 꺼지고, 자리 수 0 은 정당하며 음수 · 정수가 아닌 자리 수는 RangeError 다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "set",
+          "arg": 3
+        },
+        {
+          "op": "constructor",
+          "arg": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": 0
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "constructor",
+          "arg": 1
+        },
+        {
+          "op": "set",
+          "arg": 0
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": true
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": "RangeError"
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "get",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "clear",
+          "arg": 68
+        },
+        {
+          "op": "set",
+          "arg": 50
+        },
+        {
+          "op": "clear",
+          "arg": 31
+        },
+        {
+          "op": "clear",
+          "arg": 28
+        },
+        {
+          "op": "set",
+          "arg": 34
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 2
+        },
+        {
+          "op": "clear",
+          "arg": 56
+        },
+        {
+          "op": "set",
+          "arg": 46
+        },
+        {
+          "op": "clear",
+          "arg": 12
+        },
+        {
+          "op": "get",
+          "arg": 54,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "set",
+          "arg": 10
+        },
+        {
+          "op": "set",
+          "arg": 16
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 16,
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "get",
+          "arg": 20,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 65,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 59,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 35
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "get",
+          "arg": 47,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 27
+        },
+        {
+          "op": "set",
+          "arg": 35
+        },
+        {
+          "op": "clear",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "set",
+          "arg": 20
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "set",
+          "arg": 46
+        },
+        {
+          "op": "clear",
+          "arg": 7
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "clear",
+          "arg": 14
+        },
+        {
+          "op": "get",
+          "arg": 70,
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "set",
+          "arg": 61
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 14,
+          "expect": false
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "clear",
+          "arg": 62
+        },
+        {
+          "op": "set",
+          "arg": 61
+        },
+        {
+          "op": "get",
+          "arg": 15,
+          "expect": false
+        },
+        {
+          "op": "set",
+          "arg": 13
+        },
+        {
+          "op": "set",
+          "arg": 68
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 58
+        },
+        {
+          "op": "set",
+          "arg": 36
+        },
+        {
+          "op": "clear",
+          "arg": 23
+        },
+        {
+          "op": "set",
+          "arg": 53
+        },
+        {
+          "op": "get",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 45
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "get",
+          "arg": 24,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "clear",
+          "arg": 45
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 38,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "clear",
+          "arg": 55
+        },
+        {
+          "op": "set",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 36
+        },
+        {
+          "op": "set",
+          "arg": 8
+        },
+        {
+          "op": "set",
+          "arg": 43
+        },
+        {
+          "op": "clear",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "clear",
+          "arg": 46
+        },
+        {
+          "op": "get",
+          "arg": 47,
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "clear",
+          "arg": 6
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 34,
+          "expect": true
+        },
+        {
+          "op": "get",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 13
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "get",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "set",
+          "arg": 60
+        },
+        {
+          "op": "get",
+          "arg": 42,
+          "expect": false
+        },
+        {
+          "op": "clear",
+          "arg": 9
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "get",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "clear",
+          "arg": 10
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "get",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 11,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 41,
+          "expect": false
+        },
+        {
+          "op": "clear",
+          "arg": 43
+        },
+        {
+          "op": "clear",
+          "arg": 61
+        },
+        {
+          "op": "set",
+          "arg": 50
+        },
+        {
+          "op": "set",
+          "arg": 63
+        },
+        {
+          "op": "set",
+          "arg": 35
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 54,
+          "expect": false
+        },
+        {
+          "op": "constructor",
+          "arg": 70
+        },
+        {
+          "op": "get",
+          "arg": 14,
+          "expect": false
+        },
+        {
+          "op": "set",
+          "arg": 1
+        },
+        {
+          "op": "set",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 21
+        },
+        {
+          "op": "clear",
+          "arg": 9
+        },
+        {
+          "op": "get",
+          "arg": 46,
+          "expect": false
+        },
+        {
+          "op": "clear",
+          "arg": 28
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "clear",
+          "arg": 70,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 44,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 64,
+          "expect": false
+        },
+        {
+          "op": "set",
+          "arg": 2
+        },
+        {
+          "op": "clear",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "clear",
+          "arg": 56
+        },
+        {
+          "op": "set",
+          "arg": 64
+        },
+        {
+          "op": "clear",
+          "arg": 38
+        },
+        {
+          "op": "clear",
+          "arg": 68
+        },
+        {
+          "op": "get",
+          "arg": 33,
+          "expect": false
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "clear",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "clear",
+          "arg": 39
+        },
+        {
+          "op": "set",
+          "arg": 18
+        },
+        {
+          "op": "set",
+          "arg": 44
+        },
+        {
+          "op": "clear",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 55
+        },
+        {
+          "op": "clear",
+          "arg": 33
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "clear",
+          "arg": 26
+        },
+        {
+          "op": "get",
+          "arg": 28,
+          "expect": false
+        },
+        {
+          "op": "set",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 35,
+          "expect": false
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 65,
+          "expect": false
+        },
+        {
+          "op": "clear",
+          "arg": 34
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "set",
+          "arg": 58
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": false
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "clear",
+          "arg": 22
+        },
+        {
+          "op": "get",
+          "arg": 57,
+          "expect": false
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 35
+        },
+        {
+          "op": "set",
+          "arg": 58
+        },
+        {
+          "op": "clear",
+          "arg": 14
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "clear",
+          "arg": 8
+        },
+        {
+          "op": "set",
+          "arg": 48
+        },
+        {
+          "op": "set",
+          "arg": 32
+        },
+        {
+          "op": "set",
+          "arg": 49
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 25
+        },
+        {
+          "op": "get",
+          "arg": 52,
+          "expect": false
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": -1,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 15
+        },
+        {
+          "op": "constructor",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "set",
+          "arg": 41
+        },
+        {
+          "op": "get",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 18,
+          "expect": true
+        },
+        {
+          "op": "get",
+          "arg": 23,
+          "expect": false
+        },
+        {
+          "op": "get",
+          "arg": 70,
+          "expect": "RangeError"
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "clear",
+          "arg": 14
+        },
+        {
+          "op": "size",
+          "expect": 70
+        },
+        {
+          "op": "get",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "set",
+          "arg": 44
+        },
+        {
+          "op": "get",
+          "arg": 0.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": true
+        }
+      ]
+    }
+  ]
+}
