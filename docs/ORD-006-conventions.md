@@ -5046,3 +5046,311 @@ S1 예상과 같다. 이름 `minHash` 는 기법의 이름이라 임시다(불�
 
 `KAN-027` 병합이 런북 · 이 문서에 줄을 더 넣으면 위 줄 번호가 다시 밀린다 — **정정은 병합 뒤 `bun run tools/check-citations.ts` 와 이 표를 함께 보고 한다.**
 `check-citations` 는 「비어 있지 않은 줄」만 보므로 `:3382` · 카드 두 줄처럼 **엉뚱한 비어 있지 않은 줄**로 밀린 인용은 통과한다(불변 사실 220 의 모양).
+
+## 원칙 A — 연산 선정: 목적의 관찰 · 변경으로 고르고, 편의 연산과 성능 제약을 가른다 (KAN-026 S21 — 2026-09-16)
+
+> 검토 반려(2026-09-15 유저) 재작업이다. 반려 근거는 KAN-026 검토 #2 · #3 · #4 와 KAN-027 검토 #5 · #6 이고, 원 항목은
+> `KANBAN.reviews/KAN-026.review.md` 3항과 KAN-027 워크트리의 같은 문서 3항이다. **이 절이 두 카드 공통 원칙이고 KAN-027 은 이 브랜치를
+> 병합해 받는다**(유저 결재). 앞 절들의 문장은 고치지 않았다 — 이 원칙 때문에 낡는 문장은 끝 목록에 모았다. 코드 · 스위트 · vector 는
+> 이 배치에서 고치지 않는다(KAN-026 `S23` · KAN-027 `S27`). KAN-027 파일은 이 브랜치에 없거나 옛 모습이라 **줄 번호 없이 파일 이름 ·
+> 절 제목 · 불변 사실 번호로** 가리킨다.
+
+### 무엇이 부딪혔나
+
+한 표면에 기준 둘이 섞여 있었다.
+
+- **비용 배제.** 「그 행이 비용으로 배제하는 구현이 없으면 뺀다」(`docs/ORD-006-runbook.md:689-692` · `docs/ORD-006-runbook.md:760-765` ·
+  `docs/ORD-006-runbook.md:924-929`). 두 카드의 제거 대부분이 이것으로 섰다.
+- **질의의 뜻.** KAN-027 은 `spatial/kdTree` 의 최근접을 「비용으로는 아무 구현도 배제하지 않지만 이 계약 이름이 약속해 온 질의의
+  종류」로 남겼다(KAN-027 conventions 「비용으로 아무 구현도 배제하지 않는 연산 행과 「다르다」 판정 (T4-06 제기 — 미결)」 · KAN-027 불변
+  사실 331). 빼면 `kdTree` 와 `quadtree` 가 정의역 하나로만 갈려 B19 의 「다르다」가 근거를 잃는다.
+
+앞만 쓰면 최근접이 빠지고, 뒤를 아무 제한 없이 쓰면 `singlyLinkedList.find`(값 찾기) · `bitArray.count`(켜진 수)도 「질의의 종류」라서
+남는다. 같은 모양의 `dynamicArray.toArray` 는 앞을 대면 빠지는데 남아 있었다(`docs/ORD-006-conventions.md:4432-4434`). 판정마다 기준을
+골랐다는 것이 반려 요지다.
+
+**방향(유저 권고).** 연산은 **목적이 적은 관찰 · 변경**을 기준으로 고른다. 비용 배제는 그 안에서 **조합 가능한 연산**을 편의 연산과
+성능 제약 연산으로 가르는 물음 하나로 내려가고, 뜻으로 구별되는 질의는 따로 한 줄을 받는다.
+
+### 용어 셋
+
+- **계약의 상태** — 담긴 원소의 모음 · 생성 인자 · 호출자가 반환값으로 본 것(불변 사실 79). 담는 모양(칸 · 층 · 마디 이음 · 서명 ·
+  눈금)은 상태가 아니다.
+- **조합** — 다른 공개 연산을 **상태를 바꾸지 않고** 불러 같은 뜻을 얻는 것. 호출자가 자기 호출의 반환값만으로 이미 아는 값(넣은 수 ·
+  사본 수 · 버전 번호 · 생성 인자)도 조합으로 센다. **비용은 보지 않는다.**
+- **떨어지는 계열** — 나머지 행을 다 지키면서 그 행 하나만 못 지키는 구현 계열. 수 하나를 들고 갱신마다 고치는 상수 보강으로 어느
+  계열이든 지키게 되는 행(크기 · 개수)에는 떨어지는 계열이 없다.
+
+### 판정 줄 — 위에서부터 묻고, 처음 닿은 결과가 판정이다
+
+| 줄 | 묻는 것 | 결과 |
+|---|---|---|
+| **A0 대상** | 연산(따로 받는 생성자 인자 포함)을 **두는가 · 빼는가 · 더하는가** | 반환 모양의 전면화(불변 사실 82) · 이름 바꾸기 · 주입 정책 · 계약이 값을 고정하는 결정(대표 원소 · 동률 · 되돌리는 단위 · 주입자 의무)은 이 원칙이 판정하지 않는다 — 판정표 ② |
+| **A1 표현** | 그 연산의 답이나 효과가 **계약의 상태만으로** 정해지는가 | 아니오 → **제거**(표현 읽기, 불변 사실 20 · 38). 그 값이 다른 연산의 뜻을 바꾸면(가득 차면 넣기가 거절된다) 표현이 아니라 공간 제약의 관측이므로(불변 사실 67) A2 로 간다 |
+| **A2 조합** | 그 관찰 · 변경을 **다른 공개 연산의 조합**으로 얻는가 | 아니오 → A3(고유 연산) · 예 → A4 |
+| **A3 목적(고유 연산)** | 목적 문장이 그 관찰 · 변경을 **사용으로** 적는가 | 예 → **유지** · 아니오 → **제거(더하지 않음)**. 불변 사실 47 이 이 줄이다 |
+| **A4 성능 제약(조합 가능)** | 그 행의 상한 · 한정자 때문에 **떨어지는 계열**이 있는가 | 있다 → 성능 제약 연산: 그 배제를 목적의 비용 조건(필요충분조건 비용 줄)이 요구하면 **유지**, 아니면 **제거**. 없다 → 편의 연산 → A5 |
+| **A5 뜻(편의 연산)** | 그 질의를 빼면 **이 계약과 이웃 계약을 가르는 반례**가 사라지는가 — 헤더 반례 표나 B19 표의 한 줄이 그 질의에 기대는가 | 예 → **유지**(뜻이 다른 질의). 헤더에 「비용으로 배제하는 구현이 없다」를 적는다. 아니오 → **제거** |
+| **A6 쓰지 않는 근거** | — | ① 물려받았다 · 있으면 편하다(불변 사실 47 · 65) ② 불변식 경로 · 축1 관측 · 등급을 만든다 — 연산 집합이 먼저이고 등급은 따라 나온다. 빼서 등급이 바뀌면 받는다 ③ 규칙의 예외를 피한다 — 줄을 대서 나온 결과만 근거다 ④ 뺄 연산을 살리려고 목적 문장에 그 사용을 더하거나, 성능 제약 연산의 상한을 조합 비용으로 낮춰 남기기(낮추면 편의 연산이 되어 A5 를 다시 탄다) |
+| **A7 서로 대신하는 묶음** | 셋 중 어느 둘로도 나머지를 짓는 묶음(켜기 · 끄기 · 뒤집기)에서 무엇을 남기는가 | A1–A5 가 정하지 않는다. 남긴 쪽의 근거를 헤더에 적는다(`src/data-structures/linear/bitArray/bitArray.ts:50-52`) |
+
+**옛 기준과의 관계.** 「배제하는 구현이 없으면 뺀다」는 **A2 에서 조합 가능으로 갈린 연산이 A4(없음) · A5(아니오)를 거친 결과**와 같다.
+달라지는 자리는 둘이다 — 고유 연산에는 비용 물음을 대지 않고 목적 물음(A3)을 대며, 편의 연산이라도 이웃과 뜻으로 갈리는 질의(A5)는
+남는다. 그래서 두 카드의 제거 판정 대부분은 **결과가 그대로이고 헤더의 근거 문장만 바뀐다.**
+
+**연산을 더할 때도 같은 줄이다.** 성능 제약 연산(`linear/monotonicStack` 의 `max`, `probabilistic/hyperLogLog` 의 `merge` 상한)은 A4 로,
+고유 연산(`probabilistic/minHash` 의 `similarity`)은 A3 으로 선다.
+
+**요약 관찰(크기 · 개수)에 대면.** `size` · `length` · `vertexCount` · `edgeCount` 는 늘어놓기나 반환값에서 조합되고(A2 예) 세어 둔 수
+하나로 어느 계열이든 지키므로(A4 없음) 편의 연산이며, 반례가 기대지 않으면(A5 아니오) 빠진다. 두 카드가 **명시적으로 뺀** 요약 관찰
+— `cuckooFilter.size` · `kdTree.size` · `quadtree.size` · `persistentSegmentTree.versionCount` · `disjointSetRollback.groupCount` — 는 이
+결과와 같다. **명시 판정 없이 이웃 계약 표에서 물려받아 남은** 요약 관찰은 같은 줄을 대면 빠지지만, 두 카드 안에서만 빼면 두 카드 밖
+계약(`linear/stack` · `linear/queue` · `tree/treap` 등)과 새로 어긋난다 — 판정표 ③ 에 모으고 `S23` · `S27` 은 고치지 않는다.
+
+### 판정표 ① — 연산을 두고 · 빼고 · 더한 결정 (73 행)
+
+「지금」 · 「결과」: 유지 · 제거 · 없음(물려받지 않았고 더하지 않음) · 추가. 「뒤집힘」: **예**(결과가 바뀐다) · 근거 교체(결과는 같고 헤더가 옛
+기준을 근거로 적었다 — 반영 work 가 그 문장을 판정 줄로 바꾼다) · 아니오. 반영: KAN-026 은 `S23`, KAN-027 은 `S27`.
+
+**KAN-026 (39 행)**
+
+| # | 구조 · 연산 | 지금 | 결과 | 줄 | 근거 | 뒤집힘 | 등급 재판정 |
+|---|---|---|---|---|---|---|---|
+| 1 | `trie/trie` 마디 인터페이스 · private 필드 · 생성자 | 제거 | 제거 | A1 | 자식 표 · 끝 표시 · 뿌리는 담는 모양(`src/data-structures/trie/trie/trie.ts:48-50`) | 아니오 | 아니오 |
+| 2 | `trie/radixTree` 최장 접두사 매칭 | 없음 | 없음 | A2 · A4 · A5 | 접두사 질의를 거듭 불러 조합하고 자식 표 트라이도 같은 비용이라 떨어지는 계열이 없으며 반례가 기대지 않는다(`docs/ORD-006-conventions.md:3338-3340`) | 아니오 | 아니오 |
+| 3 | `linear/singlyLinkedList` 마디 클래스 · 돌려주던 마디 · private 필드 | 제거 | 제거 | A1 | 받는 연산 없는 핸들은 담는 모양의 누출 | 아니오 | 아니오 |
+| 4 | `singlyLinkedList.find(value)` | 제거 | 제거 | A2 · A4 · A5 | `toArray` 로 조합 · 떨어지는 계열 없음 · `doublyLinkedList` · `dynamicArray` 와의 반례가 기대지 않음 | 근거 교체(`src/data-structures/linear/singlyLinkedList/singlyLinkedList.ts:18-21`) | 아니오 |
+| 5 | `linear/doublyLinkedList` 마디 클래스 · 공개 `prev` · `next` | 제거 | 제거 | A1 | 핸들 안의 이음은 누출 | 아니오 | 아니오 |
+| 6 | `doublyLinkedList` 끝에서 핸들 없이 빼기 | 없음 | 없음 | A2 · A4 · A5 | 끝 원소의 핸들로 `remove` | 근거 교체(`src/data-structures/linear/doublyLinkedList/doublyLinkedList.ts:26-28`) | 아니오 |
+| 7 | `doublyLinkedList` 값으로 찾기(핸들 얻기) | 없음 | 없음 | A2 · A4 · A5 | 늘어놓기와 넣기가 돌려준 핸들로 조합 | 근거 교체(`src/data-structures/linear/doublyLinkedList/doublyLinkedList.ts:29-31`) | 아니오 |
+| 8 | `doublyLinkedList` 뒤에서 앞으로 늘어놓기 | 없음 | 없음 | A2 · A4 · A5 | `toArray` 뒤집기 | 근거 교체(`src/data-structures/linear/doublyLinkedList/doublyLinkedList.ts:33`) | 아니오 |
+| 9 | `linear/dynamicArray` `capacity()` · 늘리기 · 줄이기 정책 | 제거 | 제거 | A1 | 어느 행의 뜻도 바꾸지 않고 칸 수만 읽는다(`src/data-structures/linear/dynamicArray/dynamicArray.ts:11-16`) | 아니오 | 아니오 |
+| 10 | **`dynamicArray.toArray()`** | 유지 | **제거** | A2 · A4 · A5 | `get(i)` 를 `size()` 번 불러 같은 뜻 · 떨어지는 계열 없음 · 반례 표 두 줄(`src/data-structures/linear/dynamicArray/dynamicArray.ts:36-37`)이 기대지 않음. 목적의 사용 「첨자로 읽기」가 원소마다의 관찰을 이미 준다. **빼는 근거는 A5 의 결과이지 「예외를 피한다」가 아니다**(A6 ③) | **예** | **필요** — 불변식 둘이 이 행을 경로로 쓴다(`src/data-structures/linear/dynamicArray/dynamicArray.ts:39-44`). 빼면 둘 다 대조 상대가 없어 `basic` 예상. 스위트 · vector 변경 범위는 검토서 #4 상세 목록(`KANBAN.reviews/KAN-026.review.md:413`)을 `S23` 이 다시 센다 |
+| 11 | `linear/monotonicStack` 상태 없는 함수 셋 | 제거 | 제거 | A3 | 인스턴스 상태의 관찰 · 변경이 아니다(불변 사실 200) | 아니오 | 아니오 |
+| 12 | `monotonicStack` 「넣을 때 가장 가까운 큰 원소」 행 | 없음 | 없음 | 결재 | 연산 집합 선택은 검토 #9 에서 승인됐다. A 로 읽으면 A4 — 빼기와 함께면 이름의 기법이 상한을 못 지키는 성능 제약(`src/data-structures/linear/monotonicStack/monotonicStack.ts:18-26`) | 아니오 | 아니오 |
+| 13 | `linear/monotonicQueue` 상태 없는 함수 둘 | 제거 | 제거 | A3 | 11 과 같다 | 아니오 | 아니오 |
+| 14 | `monotonicQueue` 창 크기(생성자 인자) | 없음 | 없음 | A1 단서 · A3 | 가득 참이 넣기의 뜻을 바꿔 다른 계약(`linear/circularBuffer`)이 되고 목적이 요구하지 않는다(`src/data-structures/linear/monotonicQueue/monotonicQueue.ts:13-15`) | 아니오 | 아니오 |
+| 15 | `graph-repr/graphAdjList` `bfs` · `dfs` | 제거 | 제거 | A2 · A4 · A5 | `neighbors` 로 도는 알고리즘 · 떨어지는 계열 없음 · 반례가 기대지 않음. 「방문 순서가 계약으로 안 정해진다」는 보조 근거로 남는다 | 근거 교체(`src/data-structures/graph-repr/graphAdjList/graphAdjList.ts:13-16`) | 아니오 |
+| 16 | `graphAdjList.hasPath` | 제거 | 제거 | A2 · A4 · A5 | 15 와 같다 | 근거 교체(`src/data-structures/graph-repr/graphAdjList/graphAdjList.ts:16-18`) | 아니오 |
+| 17 | `graph-repr/graphAdjMatrix` `bfs` · `dfs` | 제거 | 제거 | A2 · A4 · A5 | 15 와 같다 | 근거 교체(`src/data-structures/graph-repr/graphAdjMatrix/graphAdjMatrix.ts:14-17`) | 아니오 |
+| 18 | `graphAdjMatrix` 간선 수 | 없음 | 없음 | A2 · A4 · A5 | 칸마다 `hasEdge` · 세어 둔 수 | 근거 교체(`src/data-structures/graph-repr/graphAdjMatrix/graphAdjMatrix.ts:18-20`) | 아니오 |
+| 19 | `graph-repr/dag` `longestPath` · 간선 무게 | 제거 | 제거 | A2 · A4 · A5 · 무게는 A3 | 순서 하나와 간선으로 조합 · 무게는 그 연산 말고 읽는 연산이 없다 | 근거 교체(`src/data-structures/graph-repr/dag/dag.ts:16-19`) | 아니오 |
+| 20 | `dag.hasCycle()` | 제거 | 제거 | A2 · A4 · A5 | 늘 거짓인 상수 | 근거 교체(`src/data-structures/graph-repr/dag/dag.ts:21`) | 아니오 |
+| 21 | `dag` 간선 · 정점 지우기 | 없음 | 없음 | A3 | 간선 지우기는 목적 밖, 정점 지우기는 정점 번호 모형(판정표 ②) | 아니오 | 아니오 |
+| 22 | `linear/bitArray.count()` | 제거 | 제거 | A2 · A4 · A5 | `get` 을 자리마다 · 세어 둔 수 보강으로 떨어지는 계열 없음 · 반례 없음 | 근거 교체(`src/data-structures/linear/bitArray/bitArray.ts:46-49`) | 아니오 — 연산 집합이 그대로라 `basic` 그대로(검토 #2 에 답) |
+| 23 | `bitArray.toggle()` | 제거 | 제거 | A2 · A4 · A5 · A7 | `get` + `set` · `clear` 로 조합, 남긴 둘의 근거는 A7 | 근거 교체(`src/data-structures/linear/bitArray/bitArray.ts:50-52`) | 아니오 |
+| 24 | `bitArray` 자리 수 바꾸기 · 배열끼리 합 · 교 | 없음 | 없음 | A3 | 목적 밖(`src/data-structures/linear/bitArray/bitArray.ts:53-54`) | 아니오 | 아니오 |
+| 25 | `probabilistic/bloomFilter` 생성자 `(size, hashCount)` | 제거 | 제거 | A1 | 한 표현의 눈금 | 아니오 | 아니오 |
+| 26 | `bloomFilter` 담긴 수 · 채워진 몫 · 필터끼리 합치기 | 없음 | 없음 | 담긴 수 A2 · A4 · A5 / 채워진 몫 A1 / 합치기 A3 | `src/data-structures/probabilistic/bloomFilter/bloomFilter.ts:24-25` | 아니오 | 아니오 |
+| 27 | `probabilistic/cuckooFilter.size()` | 제거 | 제거 | A2 · A4 · A5 | 호출자가 `add` · `delete` 반환값으로 센다 | 근거 교체(`src/data-structures/probabilistic/cuckooFilter/cuckooFilter.ts:16-17`) | 아니오 |
+| 28 | `cuckooFilter.loadFactor()` · 생성자 `fingerprintSize` | 제거 | 제거 | A1 | 칸 수 · 지문 폭은 표현 | 아니오 | 아니오 |
+| 29 | `cuckooFilter` 사본 수 묻기 · 필터끼리 합치기 | 없음 | 없음 | 사본 수 A2 · A4 · A5 / 합치기 A3 | `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.ts:18` | 아니오 | 아니오 |
+| 30 | `probabilistic/countMinSketch` 생성자 `(width, depth)` | 제거 | 제거 | A1 | 한 표현의 눈금 | 아니오 | 아니오 |
+| 31 | `countMinSketch` 총증분 · 서로 다른 원소 수 · 무거운 원소 목록 · 합치기 | 없음 | 없음 | 총증분 A2 · A4 · A5 / 나머지 A3 | `src/data-structures/probabilistic/countMinSketch/countMinSketch.ts:25-26` | 아니오 | 아니오 |
+| 32 | `probabilistic/hyperLogLog` `precision` · `error()` | 제거 | 제거 | A1 | 자리 수의 로그와 한 기법의 상수(`src/data-structures/probabilistic/hyperLogLog/hyperLogLog.ts:10-13`) | 아니오 | 아니오 |
+| 33 | `hyperLogLog.merge` | 유지 | 유지 | A2(고유) · A3 | 넣기 · 추정으로는 합집합의 추정을 못 짓는다 · 목적 둘째 문장. **상한으로 정확한 집합을 배제한다는 문단은 상한의 근거로 남고 유지의 근거가 아니다** — 헤더의 「비례해도 되게 적으면 뺄 연산이 된다」는 A 에서 거짓이다 | 근거 교체(`src/data-structures/probabilistic/hyperLogLog/hyperLogLog.ts:16-22`) | 아니오 |
+| 34 | `hyperLogLog` 지우기 · 교집합 · 원소 목록 | 없음 | 없음 | A3 | `src/data-structures/probabilistic/hyperLogLog/hyperLogLog.ts:27` | 아니오 | 아니오 |
+| 35 | `probabilistic/minHash` 집합 한꺼번에 넣기(물려받은 `update(set)` 을 `add` 로) | 제거 | 제거 | A2 · A4 · A5 | `add` 를 거듭 부르면 된다 | 근거 교체(`src/data-structures/probabilistic/minHash/minHash.ts:13-14`) | 아니오 |
+| 36 | `minHash.similarity(other)` | 추가 | 유지 | A2(고유) · A3 | 두 집합의 닮음을 관측하는 유일한 길 | 아니오 | 아니오 |
+| 37 | `minHash` `signature()` · 생성자 `numHashes` | 제거 | 제거 | A1 | 한 기법의 요약과 눈금(`src/data-structures/probabilistic/minHash/minHash.ts:17-19`) | 아니오 | 아니오 |
+| 38 | `minHash.exact(a, b)`(정적) | 제거 | 제거 | A3 | 인스턴스 상태의 관찰이 아닌 함수 — 스위트 참조 모델의 몫 | 근거 교체(`src/data-structures/probabilistic/minHash/minHash.ts:19-20`) | 아니오 |
+| 39 | `minHash` 지우기 · 합치기 · 원소 목록 | 없음 | 없음 | A3 | `src/data-structures/probabilistic/minHash/minHash.ts:31-32` | 아니오 | 아니오 |
+
+**KAN-027 (34 행)** — 줄 인용은 KAN-027 브랜치(`7f1e9ce`) 기준 파일 이름만 적는다.
+
+| # | 구조 · 연산 | 지금 | 결과 | 줄 | 근거 | 뒤집힘 | 등급 재판정 |
+|---|---|---|---|---|---|---|---|
+| 40 | `disjoint-set/disjointSetRollback` `snapshot` · `restore` | 제거 | 제거 | A2 · A4 · A5 | 합치기 호출 수를 세고 그만큼 `rollback` — 비용도 같다(`disjointSetRollback.ts` 34–41) | 아니오(A5 문장 하나를 보탠다) | 아니오 |
+| 41 | `disjointSetRollback.groupCount` | 제거 | 제거 | A2 · A4 · A5 | `connected` 로 조합 · 세어 둔 수 보강 | 아니오 | 아니오 |
+| 42 | `disjointSetRollback` 아무 합치기 무르기 · 다시 하기 | 없음 | 없음 | 무르기 A3 / 다시 하기 A2 | 나중 것부터 되돌린다 · 같은 `union` 을 부른다 | 아니오 | 아니오 |
+| 43 | `disjoint-set/unionFind` 집합 크기 · 집합 수 · 원소 열거 | 없음 | 없음 | A2 · A4 · A5 / 열거 A3 | `unionFind.ts` 46–47 | 아니오 | 아니오 |
+| 44 | `hash/lruCache` 담긴 수 · 열거 · 지우기 · 용량 읽기 · 사용 순서 읽기 | 없음 | 없음 | 용량 A2(생성 인자) / 나머지 A3 | `lruCache.ts` 59–62 | 아니오 | 아니오 |
+| 45 | `lruCache` 밀려난 키를 알리는 반환값 | 없음 | 없음 | A2 · A4 · A5 | 뒤이은 `get` 이 `null` 로 관측 | 아니오 | 아니오 |
+| 46 | `heap/pairingHeap` 우선순위 낮추기 | 없음 | 없음 | A3 | 그 사용은 `heap/fibonacciHeap` 계약의 것 | 아니오 | 아니오 |
+| 47 | `pairingHeap` · `fibonacciHeap` 마디 타입 · private 필드 | 제거 | 제거 | A1 | 불변 사실 20 | 아니오 | 아니오 |
+| 48 | `fibonacciHeap` 핸들로 원소 읽기 · 뒤로 미루기 · 임의 원소 지우기 | 없음 | 없음 | A3 | `fibonacciHeap.ts` 39–42 | 아니오 | 아니오 |
+| 49 | `heap/vanEmdeBoasTree` 원소 수 · 전체 열거 · 구간 읽기 | 없음 | 없음 | A2 · A4 · A5 | `min` + `successor` 로 조합 | 아니오 | 아니오 |
+| 50 | `vanEmdeBoasTree` private 필드 · 「2의 거듭제곱 권장」 | 제거 | 제거 | A1 | 표현 처방 | 아니오 | 아니오 |
+| 51 | `linear/pieceTable` 생성자의 원본 인자 | 제거 | 제거 | A2 · A4 · A5 | `insert(0, items)` 한 번과 같은 상태 | 아니오 | 아니오 |
+| 52 | `pieceTable` 여러 원소를 한 번에 넣기 | 유지 | 유지 | A2 · A4 | 원소 하나씩 넣는 계열이 떨어지고 목적의 비용 조건(편집 수에 묶인다)이 그 배제를 요구한다(KAN-027 불변 사실 96) | 아니오 | 아니오 |
+| 53 | `pieceTable` `at(i)` · 값 찾기 · 정렬 | 없음 | 없음 | `at` A2 · A4 · A5 / 나머지 A3 | — | 아니오 | 아니오 |
+| 54 | `probabilistic/skipList` 최대 층 · 승격 확률 | 제거 | 제거 | A1 | 층은 내부 표현(`skipList.ts` 17–22) | 아니오 | 아니오 |
+| 55 | `skipList` 맨 아래 줄 차례 읽기 | 없음 | 없음 | A2 · A4 · A5 | `toArray` · `range` 가 같은 상한 | 아니오 | 아니오 |
+| 56 | `range-query/segmentTreeLazy` 자리 하나 놓기 · 지난 상태 묻기 | 없음 | 없음 | A3 | 지난 상태는 `persistentSegmentTree` 계약 | 아니오 | 아니오 |
+| 57 | `range-query/persistentSegmentTree.versionCount()` | 제거 | 제거 | A2 · A4 · A5 | 호출자가 받은 번호로 안다 | 아니오 | 아니오 |
+| 58 | `persistentSegmentTree` 버전 지우기 · 합치기 · 구간 고치기 · 자리 넣고 빼기 | 없음 | 없음 | A3 | `persistentSegmentTree.ts` 29–31 | 아니오 | 아니오 |
+| 59 | `range-query/sparseTable` 자리 고치기 · 넣기 · 빼기 | 없음 | 없음 | A3 | 고치기가 들어오면 `segmentTree` 계열 | 아니오 | 아니오 |
+| 60 | `spatial/kdTree.size()` | 제거 | 제거 | A2 · A4 · A5 | 넣은 수는 호출자가 안다(`kdTree.ts` 36–37) | 아니오 | 아니오 |
+| 61 | `kdTree` 점 목록을 받는 생성자 | 제거 | 제거 | A2 · A4 · A5 | 넣기 n 번과 같은 상태(`kdTree.ts` 38–40) | 아니오 | 아니오 |
+| 62 | **`kdTree.nearestNeighbor`** | 유지(미결) | **유지** | A2 · A4 · **A5** | 범위 질의 한 번으로 조합되고 떨어지는 계열이 없지만, B19 표의 반례 「범위만 하는 공간 색인은 이쪽을 못 지킨다」가 이 질의에 기댄다(`kdTree.ts` 27–32) | 아니오 — 미결이 A5 로 닫힌다. 헤더 · KAN-027 conventions 미결 절의 「사람 결정으로 넘긴다」를 `S27` 이 이 줄로 바꾼다 | 아니오 — 불변식 1 이 이 연산과 `rangeSearch` 의 정합이라 유지로 그대로 |
+| 63 | `kdTree` 지우기 · k 번째 최근접 | 없음 | 없음 | 지우기 A3 / k 번째 A2 · A4 · A5 | `kdTree.ts` 35 · 44 | 아니오 | 아니오 |
+| 64 | `spatial/quadtree` 생성자의 경계 사각형 | 제거 | 제거 | A2 · A4 · A5 | 호출자가 넣기 전에 견준다(`quadtree.ts` 29–32) | 아니오 | 아니오 |
+| 65 | `quadtree` 칸 용량 | 제거 | 제거 | A1 | 담는 모양의 값 | 아니오 | 아니오 |
+| 66 | `quadtree.size()` | 제거 | 제거 | A2 · A4 · A5 | 60 과 같다 | 아니오 | 아니오 |
+| 67 | `quadtree` 지우기 · 최근접 | 없음 | 없음 | 지우기 A3 / 최근접: 더하면 A5 의 반례(62)를 스스로 지운다 | `quadtree.ts` 34 | 아니오 | 아니오 |
+| 68 | `tree/merkleTree.update` | 유지 | 유지 | A2(고유) · A3 | 블록 하나를 고친 뒤 로그 비용에 다시 묶는 것이 목적(검토 #2 가 수용) | 아니오 | 아니오 |
+| 69 | `merkleTree.verify` 의 뿌리 인자 | 추가 | 유지 | A2(고유) · A3 | 인자가 없으면 「수열을 갖지 않고 확인한다」가 관측되지 않는다(검토 #2 가 수용) | 아니오 | 아니오 |
+| 70 | `merkleTree` 블록 읽기 · 블록 넣기 · 빼기 | 없음 | 없음 | A3 | `merkleTree.ts` 23–24 | 아니오 | 아니오 |
+| 71 | `trie/ahoCorasick` 결과의 「모든 패턴을 키로」 | 제거 | 제거 | A2 · A4 | 없는 패턴은 호출자의 패턴 목록으로 안다(조합). 그 표면은 검색 비용을 패턴 수에 묶어 목적의 비용 조건과 반대로 간다(검토 #3 승인) | 아니오 | 아니오 |
+| 72 | `ahoCorasick` 패턴 넣기 · 빼기 · 겹치지 않게 고르기 | 없음 | 없음 | 넣기 · 빼기 A3 / 고르기 A2 · A4 · A5 | `ahoCorasick.ts` 28–30 | 아니오 | 아니오 |
+| 73 | `ahoCorasick` private 필드 · Goto / Failure / Output 처방 | 제거 | 제거 | A1 | 불변 사실 20 | 아니오 | 아니오 |
+
+**합계.** 73 행 중 **뒤집히는 행은 KAN-026 1 행(10 `dynamicArray.toArray`) · KAN-027 0 행**이다. 결과는 같고 헤더 근거 문장만 바꾸는 행(근거
+교체)은 KAN-026 16 행(4 · 6 · 7 · 8 · 15 · 16 · 17 · 18 · 19 · 20 · 22 · 23 · 27 · 33 · 35 · 38)이고 KAN-027 은 0 행이다 — 다만 62 는 미결을 닫는
+문장 교체가 따른다. **등급 재판정이 필요한 구조는 `linear/dynamicArray` 하나**다(`invariant` → `basic` 예상). `bitArray` · `cuckooFilter` 의 확정
+등급(검토 #2 가 보류한 것)은 연산 집합이 그대로라 바뀌지 않는다. 판정표 ③ 을 일괄 판정에서 받으면 리스트 셋 · 그래프 둘 · `pieceTable` 의
+등급이 다시 열린다.
+
+### 판정표 ② — 원칙 A 대상 아님: 연산 제거가 아닌 결정 (별도 근거 필요)
+
+검토 KAN-027 #5 가 「대표 원소 최솟값 · 멱등 의무 · 연산 제거는 서로 다른 결정」이라 했다. 아래는 **판정하지 않고** 무엇을 근거로 판정해야
+하는지만 적는다.
+
+| 구조 · 결정 | 판정할 물음 | 담당 |
+|---|---|---|
+| `disjoint-set/unionFind` `find` = 그 집합의 **가장 작은 원소**(`disjointSetRollback` 이 이어받음) | ① 대표를 고정하지 않고 「같은 집합이면 같은 값 · 다른 집합이면 다른 값」만 적어 껍데기가 판정으로 바꾸는 약한 길(`graph-repr/dag` 의 `topologicalOrder` 모양, 불변 사실 284)이 축1 에서 서는가 ② 서면 최솟값 고정이 「배제하려는 것을 배제하는 가장 약한 것」(불변 사실 21 · 59)을 넘는 배제인가 ③ 고정이 계급 · 표현을 바꾸지 않는다는 기존 두 물음(`unionFind.ts` 16–32)과 최소 · 최대 중 고른 근거 | KAN-027 `S27` |
+| `range-query/sparseTable` **멱등 결합을 주입자 의무**로 요구 | 「주입 정책도 상한과 같은 두 물음으로 정한다」(`docs/ORD-006-conventions.md:2931`) — ① 그 의무 없이 질의 상한을 지키는 구현이 있는가(KAN-027 은 멱등을 「필요조건이 아니고 충분조건」이라 적었다 — 모노이드와 겹치지 않는 조각으로 짓는 구현의 질의 비용이 상한 계급 안인지를 잰다) ② 의무가 들이는 계열(겹쳐 덮기)과 내보내는 호출자(합 같은 멱등 아닌 결합)를 목적이 어느 쪽으로 요구하는가 | KAN-027 `S27` |
+| `linear/pieceTable` **되돌리기 부재** | ① 되돌리기가 목적의 사용인가(되돌리기는 고유 변경이라 원칙 A 로는 A3 하나만 남는다) ② 넣으면 「옛 수열을 끝까지 묻는다」가 공간 제약으로 들어오는가 — 판별 세 걸음(`docs/ORD-006-conventions.md:2863`) · KAN-027 절 「옛 상태를 끝까지 묻는 약속은 공간 제약으로 계약에 들어온다 — 「잊지 말라」 (T4-04 확정)」 ③ 넣은 계약이 `linear/gapBuffer` 계약과 어느 반례로 갈리는가 | KAN-027 `S27` |
+| `disjointSetRollback` **되돌리는 단위 = `union` 호출**(40 행의 전제) | 합친 일만 세는 단위와의 반례, 호출자가 짝을 맞추는 데 드는 관측 — 40 행의 조합 판정이 이 단위에 기대므로 이 결정이 바뀌면 40 을 다시 대야 한다 | KAN-027 `S27` |
+| `linear/bitArray` 켜기 · 끄기를 남기고 뒤집기를 뺀 기저 선택 | A7 — 남긴 둘의 근거(직전 상태와 무관)가 헤더에 있는지만 본다 | KAN-026 `S23`(확인) |
+| 그래프 셋의 정점 번호 모형 · 정점 지우기 부재 · `monotonicStack` 의 연산 집합 | 검토 #7 · #9 에서 승인됐다 — 다시 열지 않는다 | — |
+
+### 판정표 ③ — 명시 판정 없이 남은 요약 관찰 · 옛 기준으로 넣은 행 (69 종 일괄 판정 대상)
+
+| 행 | 원칙 A 를 대면 | 등급 영향 |
+|---|---|---|
+| `singlyLinkedList.size` · `doublyLinkedList.size`(`src/data-structures/linear/singlyLinkedList/singlyLinkedList.ts:60` · `src/data-structures/linear/doublyLinkedList/doublyLinkedList.ts:76`) | `toArray().length` 로 조합 · 세어 둔 수 → 편의 연산. A5 대조는 하지 않았다 | 불변식 「세어 둔 수 ↔ 늘어놓은 수」가 이 행을 경로로 쓴다 → 빠지면 `basic` 예상 |
+| `dynamicArray.size`(`src/data-structures/linear/dynamicArray/dynamicArray.ts:61`) | `push` · `pop` 반환의 이력으로 조합 → 편의 연산. 첨자 사용의 정의역 관찰로 읽을지는 일괄 판정이 정한다 | 10 행과 함께 본다 |
+| `monotonicStack` · `monotonicQueue` 의 `isEmpty` · `size`(`src/data-structures/linear/monotonicStack/monotonicStack.ts:63-64` · `src/data-structures/linear/monotonicQueue/monotonicQueue.ts:59-60`) | 이웃 `linear/stack` · `linear/queue` 표에서 온 행(판정표 ① 12 의 「이웃 표에 행 하나를 더한다」) — 이웃 계약과 함께 판정 | 없음(불변식 없음) |
+| `graphAdjList` `vertexCount` · `edgeCount` · `graphAdjMatrix.vertexCount` · `dag` `vertexCount` · `edgeCount`(`src/data-structures/graph-repr/graphAdjList/graphAdjList.ts:90-91` · `src/data-structures/graph-repr/graphAdjMatrix/graphAdjMatrix.ts:88` · `src/data-structures/graph-repr/dag/dag.ts:81-82`) | 반환값 이력 · `neighbors` 로 조합 → 편의 연산 | `graphAdjList` 불변식 1 · `dag` 불변식이 경로로 쓴다 |
+| `bitArray.size`(`src/data-structures/linear/bitArray/bitArray.ts:82`) | 생성 인자 → 편의 연산 | 없음 |
+| KAN-027 `pieceTable.length` · `skipList.size`(`tree/treap` 표) | 편의 연산 | `pieceTable` 불변식 1 이 경로로 쓴다 |
+| **넣은 근거가 「배제하는 것이 없다」인 순서 집합의 `min` · `max` · `range`**(`src/data-structures/tree/treap/treap.ts:117` · `src/data-structures/tree/redBlackTree/redBlackTree.ts:63` · `src/data-structures/tree/binarySearchTree/binarySearchTree.ts:87` · `src/data-structures/tree/splayTree/splayTree.ts:85` · `src/data-structures/tree/scapegoatTree/scapegoatTree.ts:84` · `src/data-structures/tree/avlTree/avlTree.ts:77` · `src/data-structures/tree/bPlusTree/bPlusTree.ts:85` · KAN-027 `skipList`) | A6 ① — 배제가 없다는 사실은 **넣는** 근거가 못 된다. `toArray` 로 조합되므로 A5 를 대야 하고, 헤더가 적은 「전순서 목적이 이 셋으로만 관측된다」가 A5 의 반례로 서는지는 대조하지 않았다 | 없음(불변식 경로 여부는 확인 안 함) |
+
+**보완 작업.** 무엇 — 원칙 A 를 69 종 계약 전부의 요약 관찰과 「배제 없음」으로 넣거나 남긴 행에 대는 일괄 판정 · 누가 — 메인 세션이
+새 카드로 · 언제 — KAN-026 · KAN-027 병합 뒤, `KAN-036`(가이드 66 편)이 연산 표면을 서술하기 전. **`S23` · `S27` 은 이 표의 행을 고치지
+않는다** — 두 카드 안에서만 빼면 두 카드 밖 계약과 새로 어긋난다. 이 카드를 열지 않기로 정하면, 요약 관찰을 목적 사용의 기본으로 두는
+줄을 이 원칙에 더하고 판정표 ① 의 크기 제거 다섯(27 · 41 · 57 · 60 · 66)을 다시 대야 한다.
+
+### 낡는 문장 — 고치지 않았다
+
+| 위치 | 지금 문장 요지 | 원칙 A 에서 |
+|---|---|---|
+| `docs/ORD-006-runbook.md:689-692`(불변 사실 210) | 「순서가 없어도 배제하는 구현이 없으면 뺀다」 | A2 · A4 · A5 의 한 경로일 뿐이다 |
+| `docs/ORD-006-runbook.md:760-765`(224) · `docs/ORD-006-runbook.md:824-827`(274) | 같은 계급이면 배제가 없어 뺀다 | 같다 |
+| `docs/ORD-006-runbook.md:894-895`(285) | `longestPath` 에 「210 이 여기서도 선다」 | 근거가 A5 로 바뀐다 |
+| `docs/ORD-006-runbook.md:924-929`(290) | `count` · `toggle` 판별과 「`toArray` 는 빠질 수 있다 — 고치지 않았다」 | 뒤 문장은 판정표 ① 10 이 닫는다 |
+| `docs/ORD-006-runbook.md:1016-1018`(357) · `docs/ORD-006-runbook.md:1085-1087`(371) | `size` · `exact` 를 배제 없음으로 뺐다 | 결과 같음, 근거 교체 |
+| `docs/ORD-006-runbook.md:1053-1056`(364) | 「원소 수에 비례해도 되게 적으면 합치기가 배제하는 구현이 없어 210 이 뺀다」 | 거짓 — `merge` 는 고유 연산이라 A3 로 남는다 |
+| `docs/ORD-006-conventions.md:3386-3389` | S1 표면 분류의 「배제하는 것이 없다」 | 근거 교체 |
+| `docs/ORD-006-conventions.md:3627-3637` · `docs/ORD-006-conventions.md:3859-3869` · `docs/ORD-006-conventions.md:4043-4049` | 탐색 · 조회를 배제 없음으로 뺀 규칙 | A2 · A4 · A5 |
+| `docs/ORD-006-conventions.md:4278-4279` · `docs/ORD-006-conventions.md:4419-4434` · `docs/ORD-006-conventions.md:4641-4642` · `docs/ORD-006-conventions.md:4756` · `docs/ORD-006-conventions.md:4845` | 같은 규칙의 사례 문장 · 4432–4434 의 `toArray` 보류 · 4756 의 「210 이 뺀다」 | 4756 은 거짓, 나머지는 근거 교체 |
+| `docs/ORD-006-conventions.md:5025` | 정정 목록의 `toArray` 행 「처분: 사람」 | 판정표 ① 10 — `S23` |
+| 판정표 ① 「근거 교체」 16 행의 헤더 줄 | 옛 기준으로 적은 근거 | `S23` 이 판정 줄로 바꾼다 |
+| KAN-027 `kdTree.ts` 27–32 · KAN-027 conventions 「비용으로 아무 구현도 배제하지 않는 연산 행과 「다르다」 판정 (T4-06 제기 — 미결)」 · KAN-027 불변 사실 331 | 최근접 유지 규칙을 사람 결정으로 넘겼다 | A5 로 닫는다 — `S27` |
+| 판정표 ③ 의 순서 집합 헤더 일곱 | 「넣은 근거는 배제하는 것이 없다」 | A6 ① — 일괄 판정 |
+
+## 원칙 B — 무작위 계약의 검증: 입력 고정 · 무작위 출처 · 독립 반복 단위 · 보장과 경험 (KAN-026 S22 — 2026-09-16)
+
+> 검토 반려(2026-09-15 유저) 재작업이다. 반려 근거는 KAN-026 검토 #5(반려) · #6 과 KAN-027 검토 #9(반려). 원칙 A 와 같이 두 카드 공통이고
+> KAN-027 이 병합해 받는다. 계산 스크립트는 저장소 밖(메인 세션 스크래치 `b12/`)에 두었고 벽시계를 쓰지 않았다. 수치 기록은
+> `KANBAN.batches/KAN-026.batch12.md` 「4. 착수 시점 판단」. **하네스(`src/data-structures/_contract/runContract.ts` · `src/data-structures/_contract/judge.ts`)는
+> 고치지 않았다** — 필요한 변경은 아래 「하네스 변경 명세」다.
+
+### 무엇이 틀렸나 — 반려 요지를 계산으로 옮기면
+
+- **독립이 계약에서 나오지 않는다.** 다섯 오차 판정은 「원소마다(또는 인스턴스마다) 따로 확률 δ」인 구현을 두고 체르노프 상한을 적었다
+  (`src/data-structures/probabilistic/bloomFilter/bloomFilter.contract.ts:24-29` · `src/data-structures/probabilistic/hyperLogLog/hyperLogLog.contract.ts:22-26`).
+  계약의 확률 문장은 사건 하나의 **주변 확률**만 누르고 사건 사이의 독립을 말하지 않는다. 하이퍼로그로그 · 민해시는 계약 스스로 해시를
+  같은 실행의 인스턴스가 함께 쓴다고 적었으므로(`src/data-structures/probabilistic/hyperLogLog/hyperLogLog.ts:60-66`) 한 판정의 인스턴스는 독립이 아니다 —
+  스위트 한 번의 판정 69 개가 해시 하나 위에서 돈다.
+- **몰려 틀리는 구현이 부당하게 떨어진다.** 인스턴스마다 동전 하나를 던져 확률 ε(또는 δ)로 그 인스턴스의 답을 전부 틀리는 구현은 원소마다의
+  확률 문장을 지킨다. 지금 스위트 한 번에 그 구현이 떨어질 확률은 블룸 0.9994 · 뻐꾸기 0.9944 · 카운트-민 0.9994 다(판정 128 · 99 · 123 회를
+  넣어 셈). 실행마다 동전 하나면 가장 큰 δ 와 같다 — 블룸 · 뻐꾸기 · 카운트-민 0.1, 하이퍼로그로그 · 민해시 0.3.
+- **경험을 보장처럼 적었다.** 「경계 구현 8,000 회에서 0 회 떨어졌다」(`docs/ORD-006-conventions.md:4569-4579`)는 그 fixture 한 벌 · 원소마다 독립
+  동전인 모양에 대한 실측이다. 몰리는 구현은 그 fixture 가 아니다.
+- **입력 seed 와 구현 무작위를 한 번호에 묶었다.** 축3 `expected` 는 seed 다섯마다 새 인스턴스를 세워(`src/data-structures/_contract/runContract.ts:118-143`)
+  입력과 구현 무작위를 함께 바꾸고 시퀀스 평균의 중앙값을 낸다(`src/data-structures/_contract/judge.ts:101-131`). `tree/treap` 은 호출별 기대를
+  적었는데 결정론 스플레이 구현이 스위트를 통과한다(KAN-027 `treap.ts` 37–39).
+
+### 판정 줄
+
+| 줄 | 규칙 |
+|---|---|
+| **B1 입력 고정** | 확률 문장과 `expected` 의 확률 공간은 **구현 무작위**다. 입력(넣을 원소 · 물을 원소 · 호출 차례)은 **구현 무작위와 독립으로** 정해진다 — 시간 순서가 아니라 의존의 부재로 판정한다. 스위트의 입력 생성은 seed · 시행 번호 · 모양 매개변수만 읽고 **구현의 관측값을 읽지 않는다.** 앞 호출의 반환값을 보고 뒤 호출을 고르는 입력은 확률 판정의 입력이 되지 못한다. 헤더의 「무작위를 뽑기 전에 정해진」은 이 뜻으로 읽는다 |
+| **B2 무작위 출처 · 공유 범위** | 스위트에 드는 무작위를 셋으로 갈라 적는다 — (가) **입력 seed**: 스위트가 입력을 줄짓는 결정적 난수(`rngFrom`), 확률 공간이 아니다 (나) **구현 무작위**: 구현이 스스로 뽑는 것 (다) **주입 무작위**: 호출자가 넘기는 씨앗 · 난수 함수 — 이 저장소 계약은 받지 않는다(§「무작위를 쓰는 정본과 재현성」 규칙 2). 결정적 함수의 주입(해시 · 결합)은 무작위 출처가 아니다. 그리고 계약은 구현 무작위의 **공유 범위**를 이름으로 적는다 — 「인스턴스」(인스턴스끼리 독립을 약속한다) 또는 「실행」(한 실행 영역의 인스턴스가 함께 써도 된다). **실행 = 구현의 모듈 그래프를 한 번 읽은 JS 실행 영역(프로세스 또는 워커 하나).** 적지 않은 계약은 「실행」으로 읽는다(약속이 가장 약한 쪽). 범위는 목적이 정하고 검사 비용 때문에 좁히지 않는다 |
+| **B3 독립 반복 단위** | 통계 판정의 **시행 하나 = 새 공유 범위 하나 + 그 안에서 결정적 쪽이 요구하는 인스턴스 묶음**(합치기 · 닮음처럼 같은 무작위를 써야 하는 것). 범위가 실행이면 시행마다 새 실행 영역, 인스턴스면 새 인스턴스다. **시행끼리의 독립은 계약이 적은 공유 범위에서만 끌어온다** — 정본이 실제로 어디서 뽑는지는 근거가 아니다. **한 시행 안의 사건들은 독립으로 세지 않는다.** 서로 다른 판정(모양)이 같은 시행을 함께 써도 된다 — 판정끼리의 독립은 요구하지 않는다(B5 합집합 상한) |
+| **B4 보장과 경험의 표기** | 판정에 붙는 수치 문장에 표지를 단다. **[보장]** — 「부등식 이름 · 전제(B1 · B3 · 시행당 기대 ≤ δ) · 값」 셋을 함께 적은 것만. **[경험]** — 「fixture 또는 정본 이름 · 반복 수 · 결과 범위」. 경험 수치에 「상한」 · 「보장」 · 「떨어지지 않는다」를 쓰지 않는다. 판정 한계는 [보장] 으로 고르고 [경험] 으로 확인한다 — 경험만으로 고르지 않는다. 전제가 서지 않는 [보장] 은 「전제 미성립」을 붙여 [경험] 으로 내린다 |
+| **B5 몰림과 판정 한계** | 시행 t 의 통계는 **Z_t = (그 시행에서 확률 문장이 누르는 사건 중 벗어난 수) ÷ (사건 수) ∈ [0, 1]**. 계약만으로 E[Z_t] ≤ δ 다(기댓값의 선형성 — 사건끼리 독립이 필요 없다). 판정은 **S = Σ_{t=1..T} Z_t 가 한계 k 를 넘으면** 떨어뜨린다. **[보장]** B1 · B3 이 서면 P(S > k) ≤ exp(−T · D(k/T ‖ δ)) — Hoeffding(1963) 정리 1, [0, 1] 값 독립 변수의 합, D 는 베르누이 상대 엔트로피, k/T > δ. **시행 안의 사건이 전부 함께 틀리는 구현**은 Z_t 가 베르누이(δ)가 되어 이 상한의 최악 경우 그 자체이므로 부당하게 더 떨어지지 않는다. 시행당 사건이 하나면 정확한 이항 꼬리 P(Bin(T, δ) > k) 를 쓴다. **한계 k 는 「그 값 ≤ β ÷ J」 인 가장 작은 정수**다 — β 는 스위트 한 번의 오판 목표 10^−6, J 는 스위트 한 번의 통계 판정 수(판정끼리는 합집합 상한). 여유(k ÷ Tδ)는 따라 나오는 값이지 먼저 고르는 값이 아니다. **T 는** 알려진 퇴화 · 목표를 읽지 않는 fixture 를 놓칠 확률이 10^−6 이하가 되는 가장 작은 8 의 배수로 고르고, 그 확률은 모형을 적은 [경험] 으로 둔다. **한 판정 안에서 인스턴스 · 원소의 수를 모아 세는 판정은 이 줄을 어긴다** |
+| **B6 축3 `expected`** | 계약이 호출별 기대를 적으면 통계는 「입력을 고정하고(B1) 독립 시행에서 그 호출의 비용을 평균」한 값을 추정해야 한다 — 입력 seed 를 바꾸는 반복은 구현 무작위의 반복이 아니고, 시퀀스 평균의 중앙값은 호출별 기대도 시퀀스 기대도 아니다. **축3 `expected` 판정은 [보장] 이 되지 못한다** — 계약이 상수와 분산을 적지 않으므로(불변 사실 6) 기댓값 문장만으로 세우는 상한(블록 B 개 평균의 중앙값이 c · μ 를 넘을 확률 ≤ P(Bin(B, 1/c) ≥ ⌈B/2⌉), 마르코프)은 축3 허용 폭에서 비어 있다: B 5 · c 1.3 에서 0.916, B 5 · c 4 에서 0.104, B 31 · c 8 에서 1.6 × 10^−7. 그래서 [경험] 으로 적고 B7 을 붙인다 |
+| **B7 검사 못 하는 의무** | 축이 못 재는 확률 · 기대 의무는 한 자리에 둘을 함께 적는다 — **검사 못 하는 의무**(무엇이 · 왜 안 재지는가 · 그 틈을 통과하는 알려진 구현) + **보완 작업**(무엇을 · 어느 카드나 work 가 · 언제 — 시점 또는 여는 조건). 보완 작업을 「하지 않는다」로 정하려면 까닭과 다시 여는 조건을 적는다. **「이 규칙보다 먼저 선 계약은 예외」 · 「헤더가 스스로 밝히면 둔다」 같은 영구 예외 조항을 두지 않는다.** 검사에 맞추려고 계약 문장(한정자의 읽기 · 확률 문장의 주어 · 공유 범위)을 약하게 · 좁게 고치지 않는다 — 계약은 목적이 정하고 검사가 따라간다 |
+
+**새 실행 영역을 만드는 길 — 실측.** 쿼리를 붙인 동적 import 와 `require.cache` 지우기는 **맨 위 모듈만** 다시 읽고 그 모듈이 import 한 모듈은
+공유한다(도움 모듈에서 뽑은 `Math.random` 값이 같았다). **워커는 모듈 그래프 전체를 새로 읽는다**(워커 셋에서 맨 위 · 도움 모듈 값이 전부
+달랐다). `bun test` 안에서 워커마다 하이퍼로그로그 정본을 세워 같은 입력 500 개를 넣으면 추정 여덟이 전부 갈리고, 같은 실행의 두 인스턴스는
+같은 추정을 낸다. 공유 범위 「실행」의 시행은 워커로 만든다 — 구현이 무작위를 어느 모듈에 두든 새로 뽑힌다. 워커 사이의 `Math.random` 이 서로
+독립이라는 것은 실행 환경에 대한 전제이고 확인하지 않았다(B4 의 전제 칸에 적는다).
+
+### 현재 판정 방식 — 일곱 구조
+
+| 구조 | 무작위 출처(정본) | 헤더의 공유 범위 | 지금 반복 단위 · 한 판정 | 스위트 한 번 판정 수 | 적힌 상한 · 그 전제 |
+|---|---|---|---|---|---|
+| `probabilistic/bloomFilter` | 구현 — 생성자에서 해시 줄마다 시작값 · 곱수(`src/data-structures/probabilistic/bloomFilter/_reference/bloomFilter.ts:85-88`) | 적지 않음(「필터가 무작위를 뽑기 전에」, `src/data-structures/probabilistic/bloomFilter/bloomFilter.ts:47-49`) | 필터 하나에 넣지 않은 원소 64/ε 개 · 참 ≤ 128 | 128 | 체르노프 e^{−64/3} · 원소마다 독립 — 전제 미성립 |
+| `probabilistic/cuckooFilter` | 구현 — 해시와 밀어내기 동전(`src/data-structures/probabilistic/cuckooFilter/_reference/cuckooFilter.ts:107-110` · `src/data-structures/probabilistic/cuckooFilter/_reference/cuckooFilter.ts:126-128`) | 적지 않음(`src/data-structures/probabilistic/cuckooFilter/cuckooFilter.ts:47-49`) | 필터 둘 · 판정 여섯 중 확률 판정 셋(찬 필터 거짓 양성 · 다 지운 필터 참 · 넣지 않은 원소 지우기) | 99 | 블룸과 같음 — 전제 미성립 |
+| `probabilistic/countMinSketch` | 구현 — 생성자에서(`src/data-structures/probabilistic/countMinSketch/_reference/countMinSketch.ts:77-78`) | 적지 않음(`src/data-structures/probabilistic/countMinSketch/countMinSketch.ts:51-53`) | 스케치 하나에 넣지 않은 원소 64/δ 개 · 넘은 수 ≤ 128 | 123 | 블룸과 같음 — 전제 미성립 |
+| `probabilistic/hyperLogLog` | 구현 — 모듈을 읽을 때 한 번(`src/data-structures/probabilistic/hyperLogLog/_reference/hyperLogLog.ts:48-50`) | **실행**(`src/data-structures/probabilistic/hyperLogLog/hyperLogLog.ts:60-66`) | 같은 실행의 새 인스턴스 ⌈16/δ⌉ 개 · 벗어난 수 ≤ 48 | 69 | e^{−16} · 인스턴스마다 독립 — **계약의 공유 범위와 모순** |
+| `probabilistic/minHash` | 구현 — 모듈을 읽을 때(`src/data-structures/probabilistic/minHash/_reference/minHash.ts:53-54`) | **실행**(`src/data-structures/probabilistic/minHash/minHash.ts:61-70`) | 같은 실행의 새 짝 ⌈16/δ⌉ 개 · 벗어난 짝 ≤ 48 | 78 | e^{−16} · 짝마다 독립 — 모순 |
+| `tree/treap`(KAN-027) | 구현 — 넣기마다 우선순위(`src/data-structures/tree/treap/_reference/treap.ts:245`) | 적지 않음 | 축3 seed 다섯(입력 seed) — seed 마다 새 인스턴스라 구현 무작위도 다시 뽑힌다 · 통계는 시퀀스 평균의 중앙값 | 시나리오마다 크기 셋 × 다섯 | 없음 — 허용 폭 ±30%, 20 · 40 회 통과는 [경험] |
+| `probabilistic/skipList`(KAN-027) | 구현 — 층 동전 | 적지 않음(KAN-027 `skipList.ts` 23–26 은 「호출자가 알 수 없다」만 적음) | `tree/treap` 계약 객체 그대로 | 같음 | 같음 |
+
+### 적용표 — 구조별 어기는 줄 · 고칠 방향 · 시행 수와 한계
+
+수치는 B5 의 규칙으로 직접 셈했다. 「새 실행」은 모양을 한 실행에 함께 실어 스위트 한 번(정본 대상)에 띄우는 워커 수다. [경험 모형] 은 fixture
+사건이 시행 안에서 독립이라고 둔 이항 모형이고 fixture 몫은 지금 설계의 탐침 범위 하한이다 — **`S24` 가 새 설계로 다시 잰다.**
+
+| 구조 | 어기는 줄 | 고칠 방향 | 시행 · 한계 · [보장] | 하네스 | 담당 |
+|---|---|---|---|---|---|
+| `bloomFilter` | B2(범위 미기재) · B3 · B4(`src/data-structures/probabilistic/bloomFilter/bloomFilter.contract.ts:24-29`) · B5(몰림 0.9994) · B7(틈 문단 `src/data-structures/probabilistic/bloomFilter/bloomFilter.ts:66-69` · 고정 해시 통과에 보완 작업 없음) | 헤더에 공유 범위 「실행」 — 목적이 필터끼리의 독립을 요구하지 않는다. 오차 판정을 축1 무작위 시퀀스에서 빼 통계 판정으로. 시행 = 새 실행 하나 · 필터 하나(용량 128)에 원소 128 개 · 넣지 않은 원소 64 개 물음. 틈 문단은 B5 의 [보장] 문장으로 바뀐다 | ε 0.1: T 16 · S > 11 · 1.22 × 10^−7 / ε 0.001: T 312 · S > 7 · 2.61 × 10^−7 / 합 3.83 × 10^−7 · 새 실행 312. [경험 모형] `fixedWidthBloomFilter`(몫 0.0283) 놓칠 확률 1.3 × 10^−7, `alwaysYesFilter` 는 S = T 라 반드시 걸림 | H1 | KAN-026 `S24` |
+| `cuckooFilter` | 블룸의 넷 + **B1**(판정 2 · 5 의 지우기 차례가 `add` 반환에 기댄다, `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.contract.ts:144-157`) · 몰림 0.9944 | 결정적 판정 셋은 시행마다 한 번이라도 어기면 떨어뜨림(한계 없음). 확률 판정 셋 × 모양 둘(J 6). 지우기 차례를 입력으로 고정 | ε 0.1: T 16 · S > 11 · 1.22 × 10^−7 / ε 0.01: T 16 · S > 6 · 3.58 × 10^−8 / 판정 여섯 합 4.74 × 10^−7 · 새 실행 16 | H1 | `S24` |
+| `countMinSketch` | B2 · B3 · B4(`src/data-structures/probabilistic/countMinSketch/countMinSketch.contract.ts:21-25`) · B5(몰림 0.9994) · B7(`src/data-structures/probabilistic/countMinSketch/countMinSketch.ts:65-67`) | 블룸과 같은 틀 · 스케치 하나 · 넣지 않은 원소 64 개 | (0.1, 0.1): T 16 · S > 11 · 1.22 × 10^−7 / (0.1, 0.01): T 320 · S > 17 · 3.39 × 10^−7 / 합 4.62 × 10^−7 · 새 실행 320. [경험 모형] `singleRowSketch`(몫 0.062) 놓칠 확률 3.9 × 10^−8 | H1 | `S24` |
+| `hyperLogLog` | **B3**(계약 범위는 실행인데 같은 실행의 인스턴스를 독립으로 셈) · B4(`src/data-structures/probabilistic/hyperLogLog/hyperLogLog.contract.ts:22-26`) · B5(실행 동전 0.3) · B7(`src/data-structures/probabilistic/hyperLogLog/hyperLogLog.ts:73-76`) | 시행 = 새 실행 하나 · 인스턴스 넷(원소 수 로그 고르게) → Z_t. 결정적 쪽(같은 실행 두 인스턴스 · 합치기)은 시행 안에서 그대로 본다. 공유 범위 결정(검토 #6 이 수용한 방향)은 그대로 둔다 | (0.3, 0.3): T 16 · S > 15 · 4.23 × 10^−7 / (0.1, 0.1): T 56 · S > 21 · 3.08 × 10^−7 / 합 7.31 × 10^−7 · 새 실행 56. [경험 모형] `fixedPrecisionSketch`(몫 0.55) 1.05 × 10^−7 | H1 | `S24` |
+| `minHash` | hyperLogLog 와 같은 넷(`src/data-structures/probabilistic/minHash/minHash.contract.ts:22-24` · `src/data-structures/probabilistic/minHash/minHash.ts:77-80`) | 시행 = 새 실행 하나 · 짝 넷. (0.3, 0.3) 모양은 뺀다 — 늘 1 이 통과하는 틈(`docs/ORD-006-conventions.md:4884-4887`)을 δ 작은 모양이 닫는다 | (0.1, 0.1): T 24 · S > 13 · 4.84 × 10^−7 / (0.1, 0.05): T 96 · S > 20 · 4.19 × 10^−7 / 합 9.03 × 10^−7 · 새 실행 96. [경험 모형] `alwaysOneSimilarity`(몫 약 0.9 — 참 닮음 고르게) 2.2 × 10^−19 · `fixedSizeMinHash`(몫 0.33) 9.4 × 10^−8 | H1 | `S24` |
+| `tree/treap`(KAN-027) | B2(두 출처가 seed 번호 하나에 묶임) · B4(「재현성 우려는 실측으로 해소됐다」, `docs/ORD-006-conventions.md:2389-2397`) · **B6**(호출별 기대인데 시퀀스 평균 중앙값) · **B7**(KAN-027 `treap.ts` 37–39 · `skipList.ts` 92–98 의 「축3은 이 강함을 재지 못한다」에 보완 작업 없음, KAN-027 T3-03 절의 약한 읽기 선택지는 검사에 맞춘 약화) | 호출별 기대가 목적에 필요한지를 `S28` 이 판정한다(한정자의 뜻 — 원칙 A 대상 아님). 유지하면 ① **하네스 무수정으로 당장**: `ctx.rng` 를 쓰지 않고 입력을 고정한 뒤 탐침 호출 하나만 `ctx.step` 으로 감싸는 시나리오 — seed 다섯이 구현 무작위만 다른 다섯 시행이 되고 통계는 탐침 비용 다섯의 중앙값이다. 결정론 스플레이 계열은 탐침이 매 시행 같은 크기라 걸릴 것으로 **예측한다(실행하지 않았다 — `S28` 이 `splayingSearchTree` 로 확인하고, 정본이 표본 다섯에서 흔들리는지 40 회로 잰다)** ② 남는 틈(중앙값이 드문 큰 비용을 못 봄 · 공유 범위 미기재)은 B7 로 적고 보완 작업 H2 | [보장] 없음(B6). T 는 H2 가 서면 블록 평균 중앙값으로 정하고 [경험] 으로 적는다 | 부분 무수정 · 틈은 H2 | KAN-027 `S28` |
+| `skipList`(KAN-027) | `tree/treap` 과 같음 | 성격 전환이라 탐침 시나리오를 `tree/treap` 스위트에 넣으면 같이 받는다 | 같음 | 같음 | `S28` |
+
+**새 실행 수 합(정본 대상, 스위트 한 번):** 312 + 16 + 320 + 56 + 96 = **800**. 자기시험(self 모드)의 fixture 마다 같은 수가 붙는다. 워커 하나를 띄우는
+시간은 재지 않았다(벽시계 금지) — CI 모드를 가를지는 `S24` 가 정한다. **참고:** 지금 되풀이 수를 그대로 새 실행으로만 바꾸고 한계 48 을 두면
+[보장] 이 δ 0.3 · T 54 에서 1.3 × 10^−20, δ 0.1 · T 160 에서 4.9 × 10^−13 으로 목표보다 훨씬 작다 — 한계를 B5 규칙으로 다시 고르면 T 가
+위 표만큼 준다.
+
+### 하네스 변경 명세 — 이 배치는 고치지 않았다
+
+| # | 무엇 | 왜 | 영향 · 경로 |
+|---|---|---|---|
+| **H1** | **통계 판정 러너.** 시행마다 새 워커를 띄워 ① 구현 모듈 주소(경로 + export 이름)와 ② 계약 파일이 내보내는 시행 함수(`trial(make, 모양, seed, t) → { events, misses }`)를 import 해 한 시행을 돌리고(모양 여럿은 한 워커에서), S = Σ misses ÷ events 를 모아 S > k 면 실패. 실패 메시지에 [보장] 표기(부등식 · 전제 · 값)와 S · T · k 를 싣는다. `bun:test` 비동기 test 로 등록하고 참조 모델 대조 · vector 에는 넣지 않는다 | B3(실행 범위의 시행은 새 실행 영역) · B5. 팩토리 함수는 워커 경계를 못 넘어서 **구현을 모듈 주소로 받아야 한다** | 두 길 — (가) `runContract.ts` 의 `ContractSpec` 에 통계 판정 목록 · `Target` 에 모듈 주소를 더한다(69 종 공통 타입, 쓰지 않는 계약은 동작 불변) (나) `src/data-structures/_contract/` 에 공통 파일 하나를 새로 두고 다섯 `<name>.test.ts` 가 직접 부른다(`runContract.ts` · `judge.ts` 무수정). **추천 (나)** — 69 종 타입을 흔들지 않고 확률 다섯에서 먼저 선다. 공통 파일 신설이라 이 배치는 명세만 둔다. 축은 늘리지 않는다 — 「사람 결정 넷」 넷째 행(`docs/ORD-006-conventions.md:3593`)의 「축1 안에서」는 지키고, 「축1 연산 하나가 관측값으로 돌려준다」는 모양만 바뀐다 |
+| **H2** | **축3 `expected` 반복 규격.** `SEEDS.expected`(`src/data-structures/_contract/judge.ts:69-78`)를 **입력 seed** 와 **시행 수**로 가른다 — 시나리오가 입력을 seed 로 만드는지 적고, 구현 무작위만 다른 시행 T 를 따로 돈다. 통계는 시행 평균(블록 평균의 중앙값)이고, 시행마다 `ctx.step` 이 감싼 호출 비용의 합을 표본 하나로 치는 탐침 시나리오를 허용한다. 공유 범위가 실행인 계약은 H1 의 워커 시행을 쓴다 | B2 · B6 | `judge.ts` · `runContract.ts` 변경 — `expected` 시나리오를 가진 계약 열둘(`hash/hashMapChaining` · `hash/hashSet` · KAN-027 `hash/lruCache` · `range-query/intervalTree` · `tree/multiset` · `tree/orderStatisticTree` · `tree/treap`(+ `skipList`) · 확률 다섯)의 축3 수치가 전부 움직인다 — **별도 카드**(KAN-026 · KAN-027 병합 뒤) |
+| **H3** | **자기시험 기대값.** H1 을 쓰는 fixture 도 모듈 주소가 필요하다(`_contract/_fixtures/*.ts` 의 export 이름) | H1 | 다섯 `runContract.<구조>.test.ts` — `S24` 몫(구조 파일 범위) |
+
+### 검사 못 하는 의무 · 보완 작업 — B7 형식으로 옮겨 적을 자리
+
+| 의무 | 왜 안 재지나 · 통과하는 알려진 구현 | 보완 작업(무엇 · 누가 · 언제) |
+|---|---|---|
+| 확률 필터 · 스케치의 「원소를 자리로 보내는 함수를 고정하지 않는다」 | 몰리는 원소는 구현을 읽어야 지어진다(불변 사실 44) — `_contract/_fixtures/fixedSeedBloomFilter.ts` 가 통과 | 스위트로는 하지 않는다 — 까닭은 불변 사실 44, 다시 여는 조건은 「구현을 읽지 않고 적대 입력을 짓는 방법이 나오면」. 자기시험의 단정은 유지 · 가이드 서술은 `KAN-036` |
+| 하이퍼로그로그 · 민해시 · 블룸 · 뻐꾸기 · 카운트-민 의 오차 문장 | 지금은 몰림 구현을 부당하게 떨어뜨리고 전제가 서지 않는다 | H1 + 적용표 — `S24`, 이 배치 병합 뒤 곧바로 |
+| `tree/treap` · `skipList` 의 호출별 기대 | 중앙값 통계가 드문 큰 비용을 못 보고, 기댓값 문장만으로는 [보장] 이 서지 않는다(B6) — `splayingSearchTree` 통과 | ① 탐침 시나리오 — `S28` ② H2 — 별도 카드, 병합 뒤 · `KAN-036` 가이드 전개 전 |
+| 두 카드 밖 `expected` 계약 다섯(`hash/hashMapChaining` · `hash/hashSet` · `range-query/intervalTree` · `tree/multiset` · `tree/orderStatisticTree`)의 「기대」 | 같은 통계 규격 | H2 카드가 함께 받는다 |
+
+### 낡는 문장 — 고치지 않았다
+
+| 위치 | 지금 문장 요지 | 원칙 B 에서 |
+|---|---|---|
+| `docs/ORD-006-conventions.md:2389-2397` | 「흔들림을 흡수하는 것은 `expected` 판정이 seed 다섯의 중앙값이라는 규격 자체다」 | seed 는 입력 seed 다(B2) · 20 회 통과는 [경험](B4) |
+| `docs/ORD-006-conventions.md:2843-2845` | 중앙값 틈의 처분이 「가이드」 | 영구 처분 — B7 형식으로(보완 작업 H2) |
+| `docs/ORD-006-conventions.md:4550-4551` · `docs/ORD-006-conventions.md:4714-4715` | 새 인스턴스에 모아 센 값 · 모으는 단위는 확률 문장의 주어 | 반복 단위는 B3 의 시행이고 주어는 사건의 정의로만 남는다 |
+| `docs/ORD-006-conventions.md:4569-4579` · `docs/ORD-006-conventions.md:4729-4732` | 여유를 경계 구현 실측과 이항 꼬리로 · 체르노프 「원소마다 독립」 | 한계는 B5 규칙, 실측은 [경험] |
+| `docs/ORD-006-conventions.md:4582-4588` · `docs/ORD-006-conventions.md:4774-4780` | 판정 문장 ↔ 확률 문장의 틈(몰림)을 사람 결정으로 · 「몰림이 기본 모양 쪽」 | B5 가 판정에서 닫는다 |
+| `docs/ORD-006-conventions.md:4878-4880` · `docs/ORD-006-conventions.md:4884-4887` | 민해시 여유 3 · 틈 ② | B5 · 적용표 |
+| `docs/ORD-006-runbook.md:962-979`(297–299) · `docs/ORD-006-runbook.md:984-988`(350) · `docs/ORD-006-runbook.md:1028-1042`(360–361) · `docs/ORD-006-runbook.md:1062-1066`(366) · `docs/ORD-006-runbook.md:1098-1108`(374–375) · `docs/ORD-006-runbook.md:1119-1123`(378) | 오차 판정 모양 · 여유 · 체르노프 · 실행 단위 무작위의 대가 | 같다 |
+| `src/data-structures/_contract/judge.ts:69-78` | 「기대 시간 계약은 입력 하나로 판정할 수 없기 때문」에 seed 다섯 | 입력 seed 와 구현 무작위를 가르지 않았다 — H2 |
+| 다섯 계약 스위트 머리말(`src/data-structures/probabilistic/bloomFilter/bloomFilter.contract.ts:24-29` · `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.contract.ts:9-11` · `src/data-structures/probabilistic/countMinSketch/countMinSketch.contract.ts:21-25` · `src/data-structures/probabilistic/hyperLogLog/hyperLogLog.contract.ts:22-26` · `src/data-structures/probabilistic/minHash/minHash.contract.ts:22-24`)과 헤더의 「판정 문장과 여유」 · 「틈」 문단(`src/data-structures/probabilistic/bloomFilter/bloomFilter.ts:61-69` · `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.ts:57-59` · `src/data-structures/probabilistic/countMinSketch/countMinSketch.ts:59-67` · `src/data-structures/probabilistic/hyperLogLog/hyperLogLog.ts:67-76` · `src/data-structures/probabilistic/minHash/minHash.ts:71-80`) | 전제 없는 체르노프 · 모은 수 판정 · 틈 | `S24` |
+| KAN-027 `treap.contract.ts` 10–16 · 22–27 · `treap.ts` 37–39 · `skipList.ts` 92–98 · `lruCache.ts` 110–116, KAN-027 conventions 「한정자의 강한 읽기는 축이 그 강함을 잴 때만 적는다 (T3-03 확정)」 · 「`expected` 의 호출별 읽기와 「강한 읽기는 축이 잴 때만 적는다」가 어긋난다 (T5-04 제기 — 미결)」 · KAN-027 불변 사실 158 · 236 | 축이 못 재면 약한 읽기를 적는다 · seed 는 입력을 정한다 · 스플레이 통과를 이름으로 적어 둔다 | 앞은 B7 마지막 문장과 부딪힌다(검사에 맞춘 약화) · 뒤 둘은 B2 · B7 형식으로 — `S28` |
