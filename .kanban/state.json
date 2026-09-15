@@ -1,6 +1,6 @@
 {
   "next_id": 40,
-  "next_seq": 286,
+  "next_seq": 293,
   "cards": {
     "KAN-001": {
       "col": "todo",
@@ -902,23 +902,23 @@
     },
     "KAN-039-FG8HWZ": {
       "col": "backlog",
-      "title": "rollingHash 알고리즘 트랙 이관 — algo-guide-v2 가이드 집필과 한 work 로",
-      "verbatim": "가",
+      "title": "rollingHash·huffmanTree 알고리즘 트랙 이관 — algo-guide-v2 가이드 집필과 한 work 로",
+      "verbatim": "가\n가(huffmanTree, 2026-09-15)",
       "생성": "ai",
       "최종": "ai",
       "갱신": "2026-09-15",
-      "title_hash": "bca78b0823ddea3ff656c765e99785aac429b71d",
-      "verbatim_hash": "efd23dd5edb260c81988052ac59b5bacfac31cb0",
-      "short": "rollingHash 알고리즘 이관",
-      "short_hash": "027a4eb1c752255f63d9d19a61d6e6eb0a760853",
-      "purpose": "src/data-structures/hash/rollingHash 를 알고리즘 트랙(src/algorithms/string/rollingHash)으로 옮기고 그 편의 v2 가이드를 같은 커밋에서 세운다",
-      "purpose_hash": "08e6a89aa1be48bec59fb3b16e8d949b06bee1b0",
-      "reason": "KAN-026 S1 이 rollingHash 를 자료구조가 아니라고 판정했고 유저가 이관을 결재했지만, 알고리즘 목록 편 수가 algo-wbs.test 로 111 고정이고 옛 mdx 를 둘 자리가 없어 가이드 없이 옮기면 게이트가 깨진다 — 2026-09-15 유저가 「가」(가이드와 묶어 별도 카드)를 골랐다",
-      "reason_hash": "2085a982ef01613a7c50f9b31c6e93610c8c6191",
-      "goal": "rollingHash 가 알고리즘 트랙 한 편(문제 서술·함수·테스트·v2 가이드)으로 서고, 목록 링크·algo-wbs 기대값(111→112)·ord004-manifest·ORD-006 inventory 가 한 커밋에서 맞으며, 자료구조 트랙에 rollingHash 디렉터리가 없다",
-      "goal_hash": "d4ea908264259c89225d1aaa7db60212a0244b8e",
-      "memo": "근거: KAN-026 워크트리 docs/ORD-006-conventions.md 「A군 17종 판정 ⑥」 · 「A군 알고리즘 트랙 이관 조사 — rollingHash」(불변 사실 288). 착수는 KAN-026 이 main 에 병합된 뒤. 가이드 규격은 sandbox/algo-guide-v2/SPEC.md.",
-      "memo_hash": "3b4e75aeae2f54830a56d1ae92a10e6a2a63e892",
+      "title_hash": "a0fa00da96c8bd65f23712c58f843f22e1226c24",
+      "verbatim_hash": "4af9c0c727b96dcae3721aac632f178dba7e13ef",
+      "short": "rollingHash·huffmanTree 알고리즘 이관",
+      "short_hash": "ee128c1ec977d27774eea42d4304d8c231a3aaf2",
+      "purpose": "자료구조 트랙에서 「자료구조가 아니다」로 판정된 hash/rollingHash · tree/huffmanTree 를 알고리즘 트랙으로 옮기고 두 편의 v2 가이드를 같은 커밋에서 세운다",
+      "purpose_hash": "a0cde66ba554b48a26c5bc6ccdbcda9e1ddd459c",
+      "reason": "KAN-026 S1(rollingHash)·KAN-027 T5-06(huffmanTree)이 둘 다 자료구조가 아니라고 판정했고 유저가 두 번 「가」(가이드와 묶어 이관)를 골랐다 — 알고리즘 목록 편 수가 algo-wbs.test 로 고정돼 가이드 없이 옮기면 게이트가 깨진다",
+      "reason_hash": "9e9a23f78a2395aac72e97541fad090cc33dda62",
+      "goal": "두 편이 알고리즘 트랙 한 편씩(문제 서술·함수·테스트·v2 가이드)으로 서고, 목록 링크·algo-wbs 기대값(111→113)·ord004-manifest·ORD-006 inventory 가 한 커밋에서 맞으며, 자료구조 트랙에 두 디렉터리가 없다",
+      "goal_hash": "e6d25562275fa27ae9ef2aaceadd7cb228d8af80",
+      "memo": "huffmanTree 합류(2026-09-15 유저 「가」) — 근거: KAN-027 워크트리 docs/ORD-006-conventions.md 「「자료구조인가」는 물음 둘이다」(T5-06 판정) · 불변 사실 244–246. 착수는 KAN-026·KAN-027 이 main 에 병합된 뒤. 근거: KAN-026 워크트리 docs/ORD-006-conventions.md 「A군 17종 판정 ⑥」 · 「A군 알고리즘 트랙 이관 조사 — rollingHash」(불변 사실 288). 착수는 KAN-026 이 main 에 병합된 뒤. 가이드 규격은 sandbox/algo-guide-v2/SPEC.md.",
+      "memo_hash": "31320e79232e3c35941d6e1b4b9b06eaf7f5d262",
       "scope": [
         "src/data-structures/hash/rollingHash/**",
         "src/algorithms/string/rollingHash/**",
@@ -926,7 +926,9 @@
         "tools/ord004-manifest.json",
         "tools/algo-wbs.ts",
         "tools/algo-wbs.test.ts",
-        "docs/ORD-006-inventory.tsv"
+        "docs/ORD-006-inventory.tsv",
+        "src/data-structures/tree/huffmanTree/**",
+        "src/algorithms/*/huffman*/**"
       ]
     }
   },
@@ -982,6 +984,89 @@
     "KAN-035-31T4BY"
   ],
   "recent": [
+    {
+      "seq": 292,
+      "t": "2026-09-15T23:28",
+      "a": "ai",
+      "id": "KAN-036-0G05DE",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-039-FG8HWZ",
+      "reason": "KAN-036 의 목표 「.mdx 0」에 rollingHash·huffmanTree 가이드가 들어 있고 그 두 파일은 KAN-039 가 알고리즘 트랙 가이드로 대체하며 걷는다"
+    },
+    {
+      "seq": 291,
+      "t": "2026-09-15T23:28",
+      "a": "ai",
+      "id": "KAN-039-FG8HWZ",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-027",
+      "reason": "KAN-039 에 합류한 huffmanTree 는 KAN-027 T5-06 판정(불변 사실 244–246)이 main 에 병합된 뒤에야 근거가 선다(유저 「가」 2026-09-15)"
+    },
+    {
+      "seq": 290,
+      "t": "2026-09-15T23:28",
+      "a": "ai",
+      "id": "KAN-039-FG8HWZ",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-026",
+      "reason": "KAN-039 는 KAN-026 의 「rollingHash 는 자료구조가 아니다」 판정과 이관 조사(불변 사실 288)가 main 에 병합된 뒤에야 근거가 선다"
+    },
+    {
+      "seq": 289,
+      "t": "2026-09-15T23:28",
+      "a": "ai",
+      "id": "KAN-039-FG8HWZ",
+      "op": "edit",
+      "w": "46PCAX",
+      "field": "verbatim",
+      "before": "가",
+      "after": "가\n가(huffmanTree, 2026-09-15)"
+    },
+    {
+      "seq": 288,
+      "t": "2026-09-15T23:28",
+      "a": "ai",
+      "id": "KAN-039-FG8HWZ",
+      "op": "edit",
+      "w": "46PCAX",
+      "field": "memo",
+      "before": "근거: KAN-026 워크트리 docs/ORD-006-conventions.md 「A군 17종 판정 ⑥」 · 「A군 알고리즘 트랙 이관 조사 — rollingHash」(불변 사실 288). 착수는 KAN-026 이 main 에 병합된 뒤. 가이드 규격은 sandbox/algo-guide-v2/SPEC.md.",
+      "after": "huffmanTree 합류(2026-09-15 유저 「가」) — 근거: KAN-027 워크트리 docs/ORD-006-conventions.md 「「자료구조인가」는 물음 둘이다」(T5-06 판정) · 불변 사실 244–246. 착수는 KAN-026·KAN-027 이 main 에 병합된 뒤. 근거: KAN-026 워크트리 docs/ORD-006-conventions.md 「A군 17종 판정 ⑥」 · 「A군 알고리즘 트랙 이관 조사 — rollingHash」(불변 사실 288). 착수는 KAN-026 이 main 에 병합된 뒤. 가이드 규격은 sandbox/algo-guide-v2/SPEC.md."
+    },
+    {
+      "seq": 287,
+      "t": "2026-09-15T23:28",
+      "a": "ai",
+      "id": "KAN-039-FG8HWZ",
+      "op": "edit",
+      "w": "46PCAX",
+      "field": "title",
+      "before": "rollingHash 알고리즘 트랙 이관 — algo-guide-v2 가이드 집필과 한 work 로",
+      "after": "rollingHash·huffmanTree 알고리즘 트랙 이관 — algo-guide-v2 가이드 집필과 한 work 로"
+    },
+    {
+      "seq": 286,
+      "t": "2026-09-15T23:28",
+      "a": "ai",
+      "id": "KAN-039-FG8HWZ",
+      "op": "brief",
+      "w": "46PCAX",
+      "fields": {
+        "short": "rollingHash·huffmanTree 알고리즘 이관",
+        "purpose": "자료구조 트랙에서 「자료구조가 아니다」로 판정된 hash/rollingHash · tree/huffmanTree 를 알고리즘 트랙으로 옮기고 두 편의 v2 가이드를 같은 커밋에서 세운다",
+        "reason": "KAN-026 S1(rollingHash)·KAN-027 T5-06(huffmanTree)이 둘 다 자료구조가 아니라고 판정했고 유저가 두 번 「가」(가이드와 묶어 이관)를 골랐다 — 알고리즘 목록 편 수가 algo-wbs.test 로 고정돼 가이드 없이 옮기면 게이트가 깨진다",
+        "goal": "두 편이 알고리즘 트랙 한 편씩(문제 서술·함수·테스트·v2 가이드)으로 서고, 목록 링크·algo-wbs 기대값(111→113)·ord004-manifest·ORD-006 inventory 가 한 커밋에서 맞으며, 자료구조 트랙에 두 디렉터리가 없다"
+      },
+      "before": {
+        "short": "rollingHash 알고리즘 이관",
+        "purpose": "src/data-structures/hash/rollingHash 를 알고리즘 트랙(src/algorithms/string/rollingHash)으로 옮기고 그 편의 v2 가이드를 같은 커밋에서 세운다",
+        "reason": "KAN-026 S1 이 rollingHash 를 자료구조가 아니라고 판정했고 유저가 이관을 결재했지만, 알고리즘 목록 편 수가 algo-wbs.test 로 111 고정이고 옛 mdx 를 둘 자리가 없어 가이드 없이 옮기면 게이트가 깨진다 — 2026-09-15 유저가 「가」(가이드와 묶어 별도 카드)를 골랐다",
+        "goal": "rollingHash 가 알고리즘 트랙 한 편(문제 서술·함수·테스트·v2 가이드)으로 서고, 목록 링크·algo-wbs 기대값(111→112)·ord004-manifest·ORD-006 inventory 가 한 커밋에서 맞으며, 자료구조 트랙에 rollingHash 디렉터리가 없다"
+      }
+    },
     {
       "seq": 285,
       "t": "2026-09-15T15:57",
@@ -1472,95 +1557,6 @@
       "goal": "",
       "memo": "",
       "request_template": "free"
-    },
-    {
-      "seq": 242,
-      "t": "2026-09-10T22:19",
-      "a": "ai",
-      "id": "KAN-034-KSD7XR",
-      "op": "move",
-      "w": "MDD8JM",
-      "from": "doing",
-      "to": "done"
-    },
-    {
-      "seq": 241,
-      "t": "2026-09-10T22:19",
-      "a": "ai",
-      "id": "KAN-034.10-8M6T6P",
-      "op": "reparent",
-      "w": "MDD8JM",
-      "from": "KAN-034-KSD7XR",
-      "to": null
-    },
-    {
-      "seq": 240,
-      "t": "2026-09-10T22:19",
-      "a": "ai",
-      "id": "KAN-034.9-WHH53W",
-      "op": "move",
-      "w": "MDD8JM",
-      "from": "doing",
-      "to": "done"
-    },
-    {
-      "seq": 239,
-      "t": "2026-09-10T22:19",
-      "a": "ai",
-      "id": "KAN-034.10-8M6T6P",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "memo",
-      "before": "KAN-034.9 배치2 S3 이 냄. 표본 판정: 손 펜스 133 중 20/22 부채, 생성 2행 18 중 5 부채(13 오탐)",
-      "after": "KAN-034.9 가 낸 부채 넷(2026-09-10). ① P15 열 정렬 151자리 62편 — 표본 22 중 20 부채 ② P3 걸음 27편 — 고침 방법은 SPEC.md §9 ③ 사이드카 은유 177자리 77편 — 표본 30 중 28 부채, 오탐은 회전 뜻의 「돌려」 ④ check-overlap 리프트 104쌍 — 사람이 분류해야 기준선이 뜬다. 상세와 판정 근거는 KANBAN.batches/KAN-034.9-WHH53W.batch{2,3,4}.md 의 「끝난 뒤」"
-    },
-    {
-      "seq": 238,
-      "t": "2026-09-10T22:19",
-      "a": "ai",
-      "id": "KAN-034.10-8M6T6P",
-      "op": "brief",
-      "w": "MDD8JM",
-      "fields": {
-        "short": "스캐너 경고 넷 상환",
-        "purpose": "KAN-034.9 가 세운 규칙 넷이 경고로 낸 자리를 원고에서 고치고, 그 갈래를 위반으로 올린다",
-        "reason": "네 자리가 같은 모양이다 — 규칙은 섰는데 원고가 안 따라왔고, 한꺼번에 빨갛게 하면 다른 편을 닫는 세션이 자기 것이 아닌 빨강을 보므로 그때 경고로 두었다. 편이 겹치므로 따로 돌면 같은 편을 네 번 연다",
-        "goal": "check-v2 --all 과 check-metaphor --all 의 경고 0 · 네 갈래가 위반으로 판정된다 · 오탐으로 판정한 자리는 근거가 FEEDBACK 에 남는다 · check-overlap 이 기준선을 갖고 advisory 래칫으로 CI 에 든다"
-      },
-      "before": {
-        "short": "정렬 경고 62편 교정",
-        "purpose": "P15 가 경고로 낸 151자리(62편)를 고쳐 손 펜스·2행 덩어리 갈래를 위반으로 승격한다",
-        "reason": "배치2 S3 이 규칙을 넓혔는데 원고가 안 따라왔다. 62편을 한꺼번에 빨갛게 하면 다른 편을 닫는 세션이 자기 것이 아닌 빨강을 보므로 그때 경고로 두었고, 교정이 끝나야 그 승격이 선다",
-        "goal": "check-v2 --all 의 경고 0 · 손 펜스와 생성 블록 2행 덩어리가 위반으로 판정된다 · 오탐으로 판정한 자리는 그 근거가 FEEDBACK 에 남는다"
-      }
-    },
-    {
-      "seq": 237,
-      "t": "2026-09-10T22:19",
-      "a": "ai",
-      "id": "KAN-034.10-8M6T6P",
-      "op": "edit",
-      "w": "MDD8JM",
-      "field": "title",
-      "before": "P15 정렬 경고 62편 원고 교정 — 손 펜스·2행 갈래를 위반으로 올린다",
-      "after": "스캐너 경고 넷을 원고에서 갚고 위반으로 승격한다 — P15 열 정렬 · P3 걸음 · 사이드카 은유 · 편 겹침"
-    },
-    {
-      "seq": 236,
-      "t": "2026-09-10T19:29",
-      "a": "ai",
-      "id": "KAN-034.10-8M6T6P",
-      "op": "create",
-      "w": "MDD8JM",
-      "col": "todo",
-      "title": "P15 정렬 경고 62편 원고 교정 — 손 펜스·2행 갈래를 위반으로 올린다",
-      "verbatim": "1. 별도 카드\n- 배치3 시작",
-      "parent": "KAN-034-KSD7XR",
-      "short": "정렬 경고 62편 교정",
-      "purpose": "P15 가 경고로 낸 151자리(62편)를 고쳐 손 펜스·2행 덩어리 갈래를 위반으로 승격한다",
-      "reason": "배치2 S3 이 규칙을 넓혔는데 원고가 안 따라왔다. 62편을 한꺼번에 빨갛게 하면 다른 편을 닫는 세션이 자기 것이 아닌 빨강을 보므로 그때 경고로 두었고, 교정이 끝나야 그 승격이 선다",
-      "goal": "check-v2 --all 의 경고 0 · 손 펜스와 생성 블록 2행 덩어리가 위반으로 판정된다 · 오탐으로 판정한 자리는 그 근거가 FEEDBACK 에 남는다",
-      "memo": "KAN-034.9 배치2 S3 이 냄. 표본 판정: 손 펜스 133 중 20/22 부채, 생성 2행 18 중 5 부채(13 오탐)"
     }
   ],
   "layout": 2,
@@ -1575,30 +1571,6 @@
       "reason": "유저 지시(2026-09-15) 「순서 기록해」. deque 등급 재판정은 KAN-026 의 「연결 마디는 자명한 구현」 결정(conventions 「A군 판정 — 사람 결정 넷」)이 main 에 병합된 뒤에야 근거가 선다",
       "created": "2026-09-15T08:40",
       "by": "유저",
-      "restrategy_required": false
-    },
-    {
-      "pair": "KAN-026|KAN-039-FG8HWZ",
-      "order": [
-        "KAN-026",
-        "KAN-039-FG8HWZ"
-      ],
-      "scope_hash": "00110214b8d38528",
-      "reason": "KAN-039 는 KAN-026 의 「rollingHash 는 자료구조가 아니다」 판정과 이관 조사(불변 사실 288)가 main 에 병합된 뒤에야 근거가 선다",
-      "created": "2026-09-15T14:16",
-      "by": "ai",
-      "restrategy_required": false
-    },
-    {
-      "pair": "KAN-036-0G05DE|KAN-039-FG8HWZ",
-      "order": [
-        "KAN-039-FG8HWZ",
-        "KAN-036-0G05DE"
-      ],
-      "scope_hash": "e8746276d3e1d384",
-      "reason": "KAN-036 의 목표 「.mdx 0」에 rollingHash-guide.mdx 가 들어 있고 그 파일은 KAN-039 가 알고리즘 트랙 가이드로 대체하며 걷는다. 목록 문서·ord004-manifest 의 rollingHash 행도 KAN-039 가 먼저 옮긴다",
-      "created": "2026-09-15T14:16",
-      "by": "ai",
       "restrategy_required": false
     },
     {
@@ -1623,6 +1595,42 @@
       "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 B군 잔여 16종은 계약 전환이 끝나야 쓸 수 있다",
       "created": "2026-09-15T15:57",
       "by": "유저",
+      "restrategy_required": false
+    },
+    {
+      "pair": "KAN-026|KAN-039-FG8HWZ",
+      "order": [
+        "KAN-026",
+        "KAN-039-FG8HWZ"
+      ],
+      "scope_hash": "74347c5f3296b55d",
+      "reason": "KAN-039 는 KAN-026 의 「rollingHash 는 자료구조가 아니다」 판정과 이관 조사(불변 사실 288)가 main 에 병합된 뒤에야 근거가 선다",
+      "created": "2026-09-15T23:28",
+      "by": "ai",
+      "restrategy_required": false
+    },
+    {
+      "pair": "KAN-027|KAN-039-FG8HWZ",
+      "order": [
+        "KAN-027",
+        "KAN-039-FG8HWZ"
+      ],
+      "scope_hash": "d768f7cdfe7c8898",
+      "reason": "KAN-039 에 합류한 huffmanTree 는 KAN-027 T5-06 판정(불변 사실 244–246)이 main 에 병합된 뒤에야 근거가 선다(유저 「가」 2026-09-15)",
+      "created": "2026-09-15T23:28",
+      "by": "ai",
+      "restrategy_required": false
+    },
+    {
+      "pair": "KAN-036-0G05DE|KAN-039-FG8HWZ",
+      "order": [
+        "KAN-039-FG8HWZ",
+        "KAN-036-0G05DE"
+      ],
+      "scope_hash": "d851e20b7e58428d",
+      "reason": "KAN-036 의 목표 「.mdx 0」에 rollingHash·huffmanTree 가이드가 들어 있고 그 두 파일은 KAN-039 가 알고리즘 트랙 가이드로 대체하며 걷는다",
+      "created": "2026-09-15T23:28",
+      "by": "ai",
       "restrategy_required": false
     }
   ],

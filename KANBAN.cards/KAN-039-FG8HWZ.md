@@ -2,7 +2,7 @@
 card: KAN-039-FG8HWZ
 title: rollingHash 알고리즘 트랙 이관 — algo-guide-v2 가이드 집필과 한 work 로
 created: 2026-09-15
-scope: src/data-structures/hash/rollingHash/**, src/algorithms/string/rollingHash/**, 문제_가이드_목록.md, tools/ord004-manifest.json, tools/algo-wbs.ts, tools/algo-wbs.test.ts, docs/ORD-006-inventory.tsv
+scope: src/data-structures/hash/rollingHash/**, src/algorithms/string/rollingHash/**, 문제_가이드_목록.md, tools/ord004-manifest.json, tools/algo-wbs.ts, tools/algo-wbs.test.ts, docs/ORD-006-inventory.tsv, src/data-structures/tree/huffmanTree/**, src/algorithms/*/huffman*/**
 ---
 
 # KAN-039-FG8HWZ — rollingHash 알고리즘 트랙 이관 — algo-guide-v2 가이드 집필과 한 work 로
