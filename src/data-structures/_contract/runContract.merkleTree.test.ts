@@ -6,12 +6,14 @@
  * 머리말과 같다(불변 사실 106·255).
  *
  * 묶음이 다섯이다 — 축3 결함 계열의 행 귀속, 모든 행 `worst` 의 근거(계열 셋), 축1 이 잡는 설계 둘(물려받은 끝 복제 · 블록과 견주는
- * 검증), 주입자 의무와 구현의 몫(통과하는 결속 위반 포함), 무작위 시퀀스가 지나는 자리.
+ * 검증), 주입자 의무와 구현의 몫(결속 열거가 잡는 결속 위반 포함), 무작위 시퀀스가 지나는 자리.
  */
 
 import { describe, expect, test } from "bun:test";
 import { MerkleTree as Reference } from "../tree/merkleTree/_reference/merkleTree";
 import {
+  appendBang,
+  bindingSweep,
   blocksOf,
   digest,
   merkleTreeContract,
@@ -205,7 +207,7 @@ describe("축3 — 정본과 결함 계열(행 귀속)", () => {
     });
   });
 
-  /** 축1 에서 걸리는 둘과 결속을 어기는데 스위트가 못 보는 하나 — 비용 계급은 셋 다 정본과 같다. */
+  /** 축1 에서 걸리는 둘과 결속을 어기는데 축1 · 축3 이 못 보는 하나(결속 열거가 잡는다) — 비용 계급은 셋 다 정본과 같다. */
   test("끝 복제 설계 · 블록과 견주는 검증 · 경계 없는 짜임은 축3 을 전부 통과한다", () => {
     expect({
       duplicatingLast: verdicts(makers.duplicatingLast),
@@ -366,8 +368,8 @@ describe("주입자 의무와 구현의 몫", () => {
   });
 
   /**
-   * **통과하는 결속 위반**(불변 사실 62). 해시가 단사여도 출력끼리 앞뒤가 겹칠 수 있으면(`s => s + "!"`), 갈래 표시 · 경계 없이 잇는 구현이
-   * 다른 두 수열에 같은 뿌리를 준다. 두 수열은 그 구현이 토큰을 잇는 방식을 읽어 지었다 — 시나리오가 될 수 없다(불변 사실 44).
+   * **결속 위반의 한 쌍**. 해시가 단사여도 출력끼리 앞뒤가 겹칠 수 있으면(`s => s + "!"`), 갈래 표시 · 경계 없이 잇는 구현이 다른 두 수열에 같은
+   * 뿌리를 준다. 이 쌍은 손으로 지었지만 **스위트는 아래 결속 열거로 같은 위반을 잡는다**(S23 — 수열을 구현이 아니라 계약의 말로 고른다).
    */
   test("경계 없이 잇는 구현은 단사 해시에서도 다른 두 수열에 같은 뿌리를 준다", () => {
     const bang = (data: string) => `${data}!`;
@@ -381,6 +383,39 @@ describe("주입자 의무와 구현의 몫", () => {
     }).toEqual({
       unseparated: ["2:x!!y!!!", "2:x!!y!!!"],
       reference: ["R2:N4:Lx!!Ly!!!", "R2:N3:Lx!L!y!!!"],
+    });
+  });
+
+  /**
+   * **결속 열거가 결속 위반을 잡는다**(검토 반려 2026-09-15 · S23). `merkleTree.test.ts` 주입 정책 시험이 부르는 `bindingSweep` 을 그대로 부른다.
+   * 첫 묶음은 검토의 탐침(블록 여섯 · 두 원소 수열 36 개 · 짓기만) 재현이고 — `shared` 가 「수열 수 − 서로 다른 뿌리 수」라 탐침의 10 과 같은 셈이다 —
+   * 둘째 묶음이 스위트가 쓰는 기본값(블록 일곱 · 길이 0 … 4 · 짓기와 고치기)이다. 끝 복제 설계도 함께 걸리고, 같은 짜임의 비용 규칙 다섯 ·
+   * 블록과 견주는 검증은 결속을 지켜 통과한다.
+   */
+  test("결속 열거 — 정본과 결속을 지키는 구현은 0, 경계 없는 짜임과 끝 복제는 뿌리를 겹쳐 받는다", () => {
+    const probe = ["", "x", "!", "x!", "!x", "!!"];
+    expect({
+      reference: bindingSweep(makers.reference, appendBang, probe, [2]),
+      unseparated: bindingSweep(makers.unseparated, appendBang, probe, [2]),
+    }).toEqual({
+      reference: { sequences: 36, shared: 0, split: 0 },
+      unseparated: { sequences: 36, shared: 10, split: 0 },
+    });
+
+    const sweep = Object.fromEntries(
+      Object.entries(makers).map(([name, make]) => [name, bindingSweep(make)]),
+    );
+    const clean = { sequences: 2801, shared: 0, split: 0 };
+    expect(sweep).toEqual({
+      reference: clean,
+      eagerRebuild: clean,
+      leafOnly: clean,
+      dirtyPaths: clean,
+      flushWhenFull: clean,
+      deferredBuild: clean,
+      duplicatingLast: { sequences: 2801, shared: 1577, split: 0 },
+      blockChecking: clean,
+      unseparated: { sequences: 2801, shared: 1355, split: 0 },
     });
   });
 });

@@ -22,6 +22,8 @@
  *
  * **해시는 둘을 쓴다.** 축1 은 단사인 `wrap`(받은 문자열을 괄호로 감싼다 — 주입자 의무 ②를 실제로 지켜 결속 · 건전성이 결정론으로 선다), 축3 은
  * 32비트 섞기 `digest`(짧아서 빠르고 충돌할 수 있다 — 비용만 잰다). 축3 계측 경로는 `injected` 라 해시 호출을 하네스가 밖에서 센다.
+ * 셋째로 파일 끝 **결속 열거** `bindingSweep` 이 출력이 겹칠 수 있는 단사 해시 `appendBang` 을 쓴다 — 해시를 바꿔 끼워야 해서 `runContract` 의
+ * 경계 케이스가 아니라 `.test.ts` 주입 정책 시험이 부르고, 그래서 vector 에 들지 않는다.
  */
 
 import type { ContractSpec } from "../../_contract/runContract";
@@ -512,3 +514,99 @@ export const merkleTreeContract: ContractSpec<Rebuildable, Model> = {
     },
   ],
 };
+
+/** 결속 열거가 부르는 짓기 — 블록 수열과 해시를 받아 계약 표면을 돌려준다. */
+export type MerkleMaker = (
+  blocks: string[],
+  hash: (data: string) => string,
+) => MerkleTreeContract;
+
+/** 결속 열거의 해시 — 끝에 `!` 를 붙인다. 단사다(끝 글자를 떼면 받은 문자열). 출력끼리 앞뒤가 겹칠 수 있다. */
+export const appendBang = (data: string): string => `${data}!`;
+
+/** 결속 열거의 블록 — 해시가 덧붙이는 글자 `!` 와 다른 글자 `x` 로 짠 길이 2 이하 문자열 전부. */
+export const BINDING_BLOCKS: readonly string[] = [
+  "",
+  "x",
+  "!",
+  "xx",
+  "x!",
+  "!x",
+  "!!",
+];
+
+/** 결속 열거의 수열 길이. */
+export const BINDING_LENGTHS: readonly number[] = [0, 1, 2, 3, 4];
+
+/** `blocks` 위 길이 `length` 수열 전부 — 앞 자리부터 사전 순. */
+export function sequencesOf(
+  blocks: readonly string[],
+  length: number,
+): string[][] {
+  let out: string[][] = [[]];
+  for (let i = 0; i < length; i++) {
+    out = out.flatMap((prefix) => blocks.map((block) => [...prefix, block]));
+  }
+  return out;
+}
+
+/**
+ * **결속 열거**(검토 반려 2026-09-15 · `S23`). 헤더 `rootHash` 행 「같은 `hash` 를 받은 이 구현의 어느 인스턴스 · 어느 때든 수열이 같으면 같은
+ * 뿌리이고 다르면 다른 뿌리다」를 짧은 수열 전부에서 본다. 그 문장은 의무 둘(순수 · 단사)을 지키는 **어느** 해시에서도 서야 하므로, 해시 ·
+ * 블록 · 길이를 계약의 말로만 고른다 — 구현이 토큰을 잇는 방식은 읽지 않는다(불변 사실 44).
+ *
+ * - 해시 `appendBang` — 의무 둘을 지키고 **그 이상은 지키지 않는다.** 출력이 다른 출력들을 이은 것과 같아질 수 있다(`hash("x") + hash("")` 와
+ *   `hash("x!")` 가 둘 다 `"x!!"`). 의무가 요구하지 않는 성질(출력끼리 앞뒤가 안 겹침)에 기대는 구현이 여기서 드러난다.
+ * - 블록 `BINDING_BLOCKS` 일곱 — 한 블록이 다른 블록의 해시 출력과 같아지는 자리(`"x!"` · `"!"` · `"!!"`)가 든다.
+ * - 길이 `BINDING_LENGTHS` 0 … 4 — 블록 둘을 잇는 수열이 있고, 길이 k 와 k + 1 이 이웃하므로 헤더가 짚은 「블록 수만 다른 수열」 · 「끝 블록을
+ *   한 번 더 붙인 수열」(`[a, b, c]` 와 `[a, b, c, c]`)이 든다. 수열 2,801 개. 5 까지 가면 16,807 개가 더 붙어 여섯 배다.
+ * - 뿌리를 **두 길**로 받는다 — 수열마다 새로 짓기(생성자), 그리고 길이마다 인스턴스 하나를 `update` 로 고쳐 가며(어느 때든).
+ *
+ * 돌려주는 값 — `shared` 는 뿌리마다 (그 뿌리를 받은 서로 다른 수열 수 − 1) 의 합(결속 위반), `split` 은 수열마다 (그 수열이 받은 서로 다른
+ * 뿌리 수 − 1) 의 합(같은 수열 → 같은 뿌리 위반). 계약을 지키면 둘 다 0 이다. **열거는 유한하다** — 더 긴 수열이나 다른 글자에서만 겹치는
+ * 구현은 통과한다(그런 구현을 짓지는 않았다).
+ */
+export function bindingSweep(
+  make: MerkleMaker,
+  hash: (data: string) => string = appendBang,
+  blocks: readonly string[] = BINDING_BLOCKS,
+  lengths: readonly number[] = BINDING_LENGTHS,
+): { sequences: number; shared: number; split: number } {
+  const sequencesOfRoot = new Map<string, Set<string>>();
+  const rootsOfSequence = new Map<string, Set<string>>();
+  const note = (sequence: readonly string[], root: string) => {
+    const key = JSON.stringify(sequence);
+    const named = sequencesOfRoot.get(root) ?? new Set<string>();
+    named.add(key);
+    sequencesOfRoot.set(root, named);
+    const tokens = rootsOfSequence.get(key) ?? new Set<string>();
+    tokens.add(root);
+    rootsOfSequence.set(key, tokens);
+  };
+
+  let sequences = 0;
+  for (const length of lengths) {
+    const all = sequencesOf(blocks, length);
+    sequences += all.length;
+    for (const sequence of all) note(sequence, make(sequence, hash).rootHash());
+
+    const first = all[0];
+    if (length === 0 || first === undefined) continue;
+    const walker = make([...first], hash);
+    const current = [...first];
+    for (const sequence of all) {
+      for (const [index, block] of sequence.entries()) {
+        if (current[index] === block) continue;
+        walker.update(index, block);
+        current[index] = block;
+      }
+      note(sequence, walker.rootHash());
+    }
+  }
+
+  let shared = 0;
+  for (const named of sequencesOfRoot.values()) shared += named.size - 1;
+  let split = 0;
+  for (const tokens of rootsOfSequence.values()) split += tokens.size - 1;
+  return { sequences, shared, split };
+}

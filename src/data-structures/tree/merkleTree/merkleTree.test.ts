@@ -18,6 +18,7 @@ import { runContract } from "../../_contract/runContract";
 import { MerkleTree as Reference } from "./_reference/merkleTree";
 import { MerkleTree } from "./merkleTree";
 import {
+  bindingSweep,
   digest,
   type MerkleTreeContract,
   merkleTreeContract,
@@ -74,6 +75,16 @@ function checkInjectionPolicy(
         root,
       );
       expect(make(["tx1", "tx2", "tx3"], tagged).rootHash()).toBe(root);
+    });
+
+    // 결속 열거 — 의무 둘만 지키는 해시(`s => s + "!"`)에서 짧은 수열 2,801 개가 짓기 · 고치기 두 길 모두 서로 다른 뿌리를 받는다
+    // (`./merkleTree.contract.ts` 의 `bindingSweep` 머리말). 해시 출력을 경계 없이 잇는 구현이 여기서 걸린다.
+    test("출력이 겹칠 수 있는 단사 해시에서도 짧은 수열 전부가 서로 다른 뿌리를 받는다", () => {
+      expect(bindingSweep(make)).toEqual({
+        sequences: 2801,
+        shared: 0,
+        split: 0,
+      });
     });
 
     test("생성자가 돌아온 뒤 호출자가 블록 배열을 고쳐도 담긴 수열은 그대로다", () => {
