@@ -7,6 +7,10 @@
  * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다. 축3은 계측기가 붙은
  * 정본에만 돈다.
  *
+ * **스위트가 두 벌이다.** 첫째 벌은 덮기 대수(`coverAct`)로 접는 차례와 합성 차례를 보고, 둘째 벌
+ * (`segmentTreeLazyCountedContract` — 합 · 더하기)은 `act` 에 넘기는 자리 수를 본다. 첫째 벌의 대수에서는 그 인자가
+ * 0 과 그 밖만 갈라 자리 수를 잘못 넘기는 구현이 전부 통과하기 때문이다(`./segmentTreeLazy.contract.ts` 파일 끝).
+ *
  * **계측 경로가 `injected` 다**(`range-query/segmentTree` 와 같다). 주입점이 셋(`combine`·`act`·`compose`)이라
  * 하네스가 세 함수의 호출 횟수를 밖에서 함께 세고, 자기 보고 `__cost` 가 그보다 작으면 실패한다.
  *
@@ -20,6 +24,9 @@ import { SegmentTreeLazy as Reference } from "./_reference/segmentTreeLazy";
 import { SegmentTreeLazy } from "./segmentTreeLazy";
 import {
   type Act,
+  addAct,
+  addCompose,
+  COUNTED_SLOTS,
   type Combine,
   type Compose,
   coverAct,
@@ -29,6 +36,8 @@ import {
   LazySized,
   type SegmentTreeLazyContract,
   segmentTreeLazyContract,
+  segmentTreeLazyCountedContract,
+  sum,
 } from "./segmentTreeLazy.contract";
 
 runContract(
@@ -82,10 +91,56 @@ runContract(
   },
 );
 
+runContract(
+  () =>
+    new LazySized(
+      (values) => new SegmentTreeLazy(values, sum, 0, addAct, addCompose),
+      COUNTED_SLOTS,
+    ),
+  segmentTreeLazyCountedContract,
+  { label: "스텁 · 자리 수 대수" },
+);
+
+runContract(
+  () =>
+    new LazySized(
+      (values) => new Reference(values, sum, 0, addAct, addCompose),
+      COUNTED_SLOTS,
+    ),
+  segmentTreeLazyCountedContract,
+  {
+    label: "정본 · 자리 수 대수",
+    cost: {
+      kind: "injected",
+      make: (tick) =>
+        new LazySized(
+          (values) =>
+            new Reference(
+              values,
+              (a, b) => {
+                tick();
+                return sum(a, b);
+              },
+              0,
+              (update, value, count) => {
+                tick();
+                return addAct(update, value, count);
+              },
+              (later, earlier) => {
+                tick();
+                return addCompose(later, earlier);
+              },
+            ),
+          COUNTED_SLOTS,
+        ),
+    },
+  },
+);
+
 /**
  * 주입 정책은 계약의 일부다(규약1). 계약 스위트는 대수 **하나**로 도는데 계약이 요구하는 것은 세 법칙을
- * 지키는 **임의의** 대수이므로, 같은 구현이 다른 대수에서도 서는지는 여기서 본다. 첫째가 **덮는 자리 수를
- * 쓰는 대수**(구간 더하기 · 구간 합)다 — 스위트의 대수에서는 그 인자가 0 과 그 밖만 가른다.
+ * 지키는 **임의의** 대수이므로, 같은 구현이 다른 대수에서도 서는지는 여기서 본다. 첫째(구간 더하기 · 구간 합)는
+ * 스위트 둘째 벌과 같은 대수이고 작은 손 계산 값으로 한 번 더 짚는다.
  */
 function checkInjectionPolicy(
   label: string,

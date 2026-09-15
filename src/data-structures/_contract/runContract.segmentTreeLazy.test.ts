@@ -5,14 +5,17 @@
  * **떨어뜨리지 못하는 자리가 어디인지**를 고정한다. 파일을 따로 둔 이유는 `./runContract.pairingHeap.test.ts`
  * 머리말과 같다(불변 사실 106·255).
  *
- * 묶음이 넷이다 — 축3 결함 계열의 행 귀속, `worst` 의 근거, 축1 차례 변이, 주입 법칙(스위트 대수가 세 법칙을
- * 지키는가 · 법칙이 깨지면 답이 구현마다 갈리는가).
+ * 묶음이 다섯이다 — 축3 결함 계열의 행 귀속, `worst` 의 근거, 축1 차례 변이, 주입 법칙(스위트 대수가 세 법칙을
+ * 지키는가 · 법칙이 깨지면 답이 구현마다 갈리는가), 그리고 **자리 수 오전달이 스위트 둘째 벌에서만 관측된다**(S20).
  */
 
 import { describe, expect, test } from "bun:test";
 import { SegmentTreeLazy as Reference } from "../range-query/segmentTreeLazy/_reference/segmentTreeLazy";
 import {
   type Act,
+  addAct,
+  addCompose,
+  COUNTED_SLOTS,
   type Combine,
   type Compose,
   coverAct,
@@ -21,15 +24,23 @@ import {
   IDENTITY,
   LazySized,
   type SegmentTreeLazyContract,
+  SLOTS,
   segmentTreeLazyContract,
+  segmentTreeLazyCountedContract,
+  sum,
 } from "../range-query/segmentTreeLazy/segmentTreeLazy.contract";
 import { BufferedLazyRangeFold } from "./_fixtures/bufferedLazyRangeFold";
+import {
+  MiscountedLazyRangeFold,
+  type MiscountPolicy,
+} from "./_fixtures/miscountedLazyRangeFold";
 import {
   MisorderedLazyRangeFold,
   type MisorderPolicy,
 } from "./_fixtures/misorderedLazyRangeFold";
 import { PointwiseLazyRangeFold } from "./_fixtures/pointwiseLazyRangeFold";
 import { ScanningLazyRangeFold } from "./_fixtures/scanningLazyRangeFold";
+import { rngFrom } from "./judge";
 import {
   type CostScenario,
   type CostSource,
@@ -322,5 +333,178 @@ describe("주입 법칙 — 스위트 대수가 세 법칙을 지키고, 법칙�
         reference: 16,
       });
     }
+  });
+});
+
+describe("축1 — 자리 수 오전달은 둘째 벌(자리 수 대수)에서만 관측된다", () => {
+  function miscounted(policy: MiscountPolicy): Maker {
+    return (v, c, i, a, o) =>
+      new MiscountedLazyRangeFold(v, c, i, a, o, policy);
+  }
+
+  /** 스위트 한 벌의 경계 케이스와 무작위 시퀀스(seed 1 · 500 회)에서 처음 갈리는 자리. 갈리지 않으면 `null`. */
+  function firstSplitIn(
+    spec: typeof segmentTreeLazyContract,
+    slots: number,
+    build: (make: Maker) => (values: number[]) => Measured,
+    make: Maker,
+  ): string | null {
+    const byName = new Map(spec.ops.map((op) => [op.name, op] as const));
+    for (const edge of spec.edges) {
+      const impl = new LazySized(build(make), slots);
+      const model = spec.model();
+      for (const [index, step] of edge.steps.entries()) {
+        const op = byName.get(step.op);
+        if (!op) throw new Error(`없는 연산: ${step.op}`);
+        const observed = op.onImpl(impl, step.arg);
+        const expected = op.onModel(model, step.arg);
+        if (!Object.is(observed, expected)) {
+          return `${edge.name} / ${index}번째 ${step.op} — 관측 ${observed} / 모델 ${expected}`;
+        }
+      }
+    }
+    const rng = rngFrom(1);
+    const impl = new LazySized(build(make), slots);
+    const model = spec.model();
+    for (let index = 0; index < 500; index++) {
+      const op = spec.ops[Math.floor(rng() * spec.ops.length)];
+      if (!op) throw new Error("연산 목록이 비었다");
+      const arg = op.arg(rng);
+      if (!Object.is(op.onImpl(impl, arg), op.onModel(model, arg))) {
+        return `무작위 ${index}번째 ${op.name}`;
+      }
+    }
+    return null;
+  }
+
+  const cover = (make: Maker) => (values: number[]) =>
+    make(values, firstNonZero, IDENTITY, coverAct, coverCompose);
+  const counted = (make: Maker) => (values: number[]) =>
+    make(values, sum, 0, addAct, addCompose);
+
+  test("두 벌이 시나리오 배열을 같은 객체로 쓰고 나머지는 따로 적는다", () => {
+    expect(segmentTreeLazyCountedContract.scenarios).toBe(
+      segmentTreeLazyContract.scenarios,
+    );
+    expect(segmentTreeLazyCountedContract.ops).not.toBe(
+      segmentTreeLazyContract.ops,
+    );
+    expect(segmentTreeLazyCountedContract.edges).not.toBe(
+      segmentTreeLazyContract.edges,
+    );
+    expect({ first: SLOTS, second: COUNTED_SLOTS }).toEqual({
+      first: 16,
+      second: 13,
+    });
+  });
+
+  test("정본과 결함 계열 셋은 둘째 벌도 전부 통과한다", () => {
+    for (const make of Object.values(makers)) {
+      expect(
+        firstSplitIn(
+          segmentTreeLazyCountedContract,
+          COUNTED_SLOTS,
+          counted,
+          make,
+        ),
+      ).toBeNull();
+    }
+  });
+
+  /**
+   * **불변 사실 175 가 적은 구멍이 첫째 벌에 실제로 있었다** — 자리 수를 늘 1 로 넘기는 변이와 부모 마디의 자리 수를
+   * 내려보내는 변이가 첫째 벌의 경계 케이스 일곱과 무작위 500 회를 전부 통과한다. 둘째 벌은 첫 경계 케이스에서 둘 다 잡는다.
+   */
+  test("자리 수를 잘못 넘기는 변이 둘은 첫째 벌을 통과하고 둘째 벌 경계 케이스에서 갈린다", () => {
+    const verdict = (policy: MiscountPolicy) => ({
+      cover: firstSplitIn(
+        segmentTreeLazyContract,
+        SLOTS,
+        cover,
+        miscounted(policy),
+      ),
+      counted: firstSplitIn(
+        segmentTreeLazyCountedContract,
+        COUNTED_SLOTS,
+        counted,
+        miscounted(policy),
+      ),
+    });
+    expect(verdict("one")).toEqual({
+      cover: null,
+      counted:
+        "넓게 더한 뒤 쪼개 물으면 덮인 자리 수만큼 더해져 있다 / 2번째 query — 관측 2 / 모델 22",
+    });
+    expect(verdict("parent")).toEqual({
+      cover: null,
+      counted:
+        "넓게 더한 뒤 쪼개 물으면 덮인 자리 수만큼 더해져 있다 / 3번째 query — 관측 41 / 모델 25",
+    });
+  });
+
+  test("걸리는 축이 축1 하나다 — 두 대수 모두 축3 계측값이 정본과 같다", () => {
+    const countedCost = (make: Maker): CostSource<LazySized> => ({
+      kind: "injected",
+      make: (tick) =>
+        new LazySized(
+          (values) =>
+            make(
+              values,
+              (a, b) => {
+                tick();
+                return sum(a, b);
+              },
+              0,
+              (update, value, count) => {
+                tick();
+                return addAct(update, value, count);
+              },
+              (later, earlier) => {
+                tick();
+                return addCompose(later, earlier);
+              },
+            ),
+          COUNTED_SLOTS,
+        ),
+    });
+    const reference = {
+      [APPLY]: { ok: true, stats: [146, 178, 210] },
+      [QUERY]: { ok: true, stats: [57, 69, 81] },
+    };
+    expect(verdicts(countedCost(makers.reference))).toEqual(reference);
+    for (const policy of ["one", "parent"] as const) {
+      expect(verdicts(injected(miscounted(policy)))).toEqual(reference);
+      expect(verdicts(countedCost(miscounted(policy)))).toEqual(reference);
+    }
+  });
+
+  test("둘째 벌의 대수가 세 법칙을 지키고 자리 수가 답에 곱해진다", () => {
+    const DOMAIN = [-2, -1, 0, 1, 2];
+    for (const a of DOMAIN)
+      for (const b of DOMAIN)
+        for (const c of DOMAIN) {
+          expect(sum(sum(a, b), c)).toBe(sum(a, sum(b, c)));
+        }
+    for (const u of DOMAIN)
+      for (const a of DOMAIN)
+        for (const b of DOMAIN)
+          for (const m of [0, 1, 2, 3])
+            for (const k of [0, 1, 2, 3]) {
+              expect(addAct(u, sum(a, b), m + k)).toBe(
+                sum(addAct(u, a, m), addAct(u, b, k)),
+              );
+            }
+    for (const later of DOMAIN)
+      for (const earlier of DOMAIN)
+        for (const value of DOMAIN)
+          for (const count of [0, 1, 2, 3]) {
+            expect(addAct(addCompose(later, earlier), value, count)).toBe(
+              addAct(later, addAct(earlier, value, count), count),
+            );
+          }
+    expect(addAct(3, 0, 0)).toBe(0);
+    // 첫째 벌의 대수는 자리 수가 0 인지만 본다 — 1 과 5 가 같은 값을 낸다.
+    expect(coverAct(3, 7, 1)).toBe(coverAct(3, 7, 5));
+    expect(addAct(3, 7, 1)).not.toBe(addAct(3, 7, 5));
   });
 });

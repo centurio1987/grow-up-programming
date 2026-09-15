@@ -1,0 +1,1854 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "SegmentTreeLazyCounted",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "넓게 더한 뒤 쪼개 물으면 덮인 자리 수만큼 더해져 있다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "query",
+          "arg": [
+            0,
+            13
+          ],
+          "expect": -4
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            13,
+            2
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            13
+          ],
+          "expect": 22
+        },
+        {
+          "op": "query",
+          "arg": [
+            3,
+            11
+          ],
+          "expect": 25
+        },
+        {
+          "op": "query",
+          "arg": [
+            5,
+            6
+          ],
+          "expect": -4
+        },
+        {
+          "op": "apply",
+          "arg": [
+            2,
+            9,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            4
+          ],
+          "expect": 5
+        },
+        {
+          "op": "query",
+          "arg": [
+            8,
+            12
+          ],
+          "expect": -3
+        }
+      ]
+    },
+    {
+      "name": "오른쪽 끝이 n 인 갱신은 있는 자리만큼만 더한다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "apply",
+          "arg": [
+            9,
+            13,
+            5
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            8,
+            13
+          ],
+          "expect": 10
+        },
+        {
+          "op": "query",
+          "arg": [
+            12,
+            13
+          ],
+          "expect": 5
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            13,
+            1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            13
+          ],
+          "expect": 29
+        },
+        {
+          "op": "query",
+          "arg": [
+            11,
+            13
+          ],
+          "expect": 0
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            8
+          ],
+          "expect": 14
+        }
+      ]
+    },
+    {
+      "name": "빈 구간 갱신은 아무것도 더하지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "apply",
+          "arg": [
+            5,
+            5,
+            9
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            13,
+            13,
+            4
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            13
+          ],
+          "expect": -4
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            6
+          ],
+          "expect": -1
+        }
+      ]
+    },
+    {
+      "name": "겹친 갱신은 겹친 자리마다 둘 다 더해진다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            8,
+            3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            4,
+            13,
+            2
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            8
+          ],
+          "expect": 27
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            13
+          ],
+          "expect": 38
+        },
+        {
+          "op": "apply",
+          "arg": [
+            2,
+            6,
+            -5
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            4
+          ],
+          "expect": 1
+        },
+        {
+          "op": "query",
+          "arg": [
+            5,
+            7
+          ],
+          "expect": -1
+        },
+        {
+          "op": "query",
+          "arg": [
+            6,
+            10
+          ],
+          "expect": 13
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "query",
+          "arg": [
+            0,
+            7
+          ],
+          "expect": -2
+        },
+        {
+          "op": "query",
+          "arg": [
+            3,
+            13
+          ],
+          "expect": -3
+        },
+        {
+          "op": "query",
+          "arg": [
+            5,
+            10
+          ],
+          "expect": -7
+        },
+        {
+          "op": "query",
+          "arg": [
+            6,
+            6
+          ],
+          "expect": 0
+        },
+        {
+          "op": "apply",
+          "arg": [
+            3,
+            5,
+            -2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            5,
+            2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            2,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            11
+          ],
+          "expect": 9
+        },
+        {
+          "op": "apply",
+          "arg": [
+            7,
+            9,
+            2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            6,
+            10,
+            2
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            3,
+            10
+          ],
+          "expect": 10
+        },
+        {
+          "op": "apply",
+          "arg": [
+            4,
+            5,
+            -2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            8,
+            10,
+            -3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            8,
+            3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            10,
+            13,
+            -1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            9,
+            13,
+            3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            11,
+            12
+          ],
+          "expect": -10
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": 4
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            12
+          ],
+          "expect": 20
+        },
+        {
+          "op": "query",
+          "arg": [
+            9,
+            13
+          ],
+          "expect": 7
+        },
+        {
+          "op": "apply",
+          "arg": [
+            9,
+            13,
+            -3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            5
+          ],
+          "expect": 11
+        },
+        {
+          "op": "apply",
+          "arg": [
+            4,
+            5,
+            1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            7
+          ],
+          "expect": 20
+        },
+        {
+          "op": "query",
+          "arg": [
+            3,
+            11
+          ],
+          "expect": 28
+        },
+        {
+          "op": "apply",
+          "arg": [
+            4,
+            12,
+            -1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            7,
+            9,
+            -1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            1,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            9
+          ],
+          "expect": 20
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            7
+          ],
+          "expect": 11
+        },
+        {
+          "op": "query",
+          "arg": [
+            3,
+            13
+          ],
+          "expect": 4
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            12
+          ],
+          "expect": 16
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            13,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            12
+          ],
+          "expect": 2
+        },
+        {
+          "op": "apply",
+          "arg": [
+            11,
+            12,
+            2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            1,
+            2,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            12
+          ],
+          "expect": -4
+        },
+        {
+          "op": "apply",
+          "arg": [
+            12,
+            12,
+            1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            3,
+            5
+          ],
+          "expect": 7
+        },
+        {
+          "op": "apply",
+          "arg": [
+            2,
+            3,
+            3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            4
+          ],
+          "expect": 6
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            10,
+            -1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            2,
+            11,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            5,
+            7
+          ],
+          "expect": -6
+        },
+        {
+          "op": "query",
+          "arg": [
+            3,
+            4
+          ],
+          "expect": 0
+        },
+        {
+          "op": "query",
+          "arg": [
+            10,
+            11
+          ],
+          "expect": 7
+        },
+        {
+          "op": "apply",
+          "arg": [
+            2,
+            8,
+            1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            4,
+            6,
+            3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            5
+          ],
+          "expect": 7
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            12
+          ],
+          "expect": 1
+        },
+        {
+          "op": "query",
+          "arg": [
+            7,
+            8
+          ],
+          "expect": 11
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            11,
+            -3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            3,
+            8
+          ],
+          "expect": 3
+        },
+        {
+          "op": "apply",
+          "arg": [
+            7,
+            12,
+            -3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            2,
+            9,
+            -3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            5,
+            10
+          ],
+          "expect": -44
+        },
+        {
+          "op": "apply",
+          "arg": [
+            1,
+            13,
+            3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            1,
+            12,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            5,
+            7
+          ],
+          "expect": -9
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            3
+          ],
+          "expect": 1
+        },
+        {
+          "op": "query",
+          "arg": [
+            7,
+            8
+          ],
+          "expect": 4
+        },
+        {
+          "op": "apply",
+          "arg": [
+            2,
+            8,
+            -2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            8,
+            8,
+            -3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            5,
+            1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            9,
+            11
+          ],
+          "expect": -6
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            13
+          ],
+          "expect": -52
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            12
+          ],
+          "expect": -53
+        },
+        {
+          "op": "query",
+          "arg": [
+            7,
+            7
+          ],
+          "expect": 0
+        },
+        {
+          "op": "apply",
+          "arg": [
+            1,
+            1,
+            1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            7,
+            0
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            6,
+            12
+          ],
+          "expect": -42
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            5
+          ],
+          "expect": -2
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            12
+          ],
+          "expect": -55
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            2
+          ],
+          "expect": 3
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            11
+          ],
+          "expect": -39
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            12
+          ],
+          "expect": -49
+        },
+        {
+          "op": "query",
+          "arg": [
+            6,
+            8
+          ],
+          "expect": -2
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            6
+          ],
+          "expect": -13
+        },
+        {
+          "op": "apply",
+          "arg": [
+            9,
+            13,
+            -3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            8
+          ],
+          "expect": -15
+        },
+        {
+          "op": "apply",
+          "arg": [
+            3,
+            13,
+            -3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            4,
+            13,
+            1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            8,
+            -3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            13
+          ],
+          "expect": -105
+        },
+        {
+          "op": "query",
+          "arg": [
+            8,
+            12
+          ],
+          "expect": -57
+        },
+        {
+          "op": "query",
+          "arg": [
+            5,
+            8
+          ],
+          "expect": -26
+        },
+        {
+          "op": "query",
+          "arg": [
+            10,
+            12
+          ],
+          "expect": -21
+        },
+        {
+          "op": "apply",
+          "arg": [
+            10,
+            10,
+            -2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            5,
+            12,
+            3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            6,
+            8
+          ],
+          "expect": -6
+        },
+        {
+          "op": "apply",
+          "arg": [
+            8,
+            10,
+            2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            11,
+            2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            4,
+            10,
+            -3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            4,
+            3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            5,
+            9,
+            -2
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            9,
+            11
+          ],
+          "expect": -7
+        },
+        {
+          "op": "apply",
+          "arg": [
+            1,
+            5,
+            3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            12,
+            13,
+            1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            8,
+            8,
+            1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            5,
+            12
+          ],
+          "expect": -69
+        },
+        {
+          "op": "apply",
+          "arg": [
+            3,
+            6,
+            -3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            6,
+            11
+          ],
+          "expect": -39
+        },
+        {
+          "op": "apply",
+          "arg": [
+            11,
+            12,
+            -1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            7,
+            7,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            7,
+            9
+          ],
+          "expect": -23
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            5,
+            -2
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            7
+          ],
+          "expect": -33
+        },
+        {
+          "op": "apply",
+          "arg": [
+            3,
+            7,
+            -3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            4,
+            4,
+            1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            5
+          ],
+          "expect": -12
+        },
+        {
+          "op": "apply",
+          "arg": [
+            7,
+            10,
+            -2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            2,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            5,
+            13
+          ],
+          "expect": -88
+        },
+        {
+          "op": "query",
+          "arg": [
+            5,
+            7
+          ],
+          "expect": -32
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            8,
+            1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            4
+          ],
+          "expect": -2
+        },
+        {
+          "op": "apply",
+          "arg": [
+            8,
+            13,
+            3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            6,
+            11,
+            -3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            12,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            5,
+            12
+          ],
+          "expect": -92
+        },
+        {
+          "op": "query",
+          "arg": [
+            8,
+            11
+          ],
+          "expect": -34
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            6,
+            7,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            10,
+            11
+          ],
+          "expect": 2
+        },
+        {
+          "op": "apply",
+          "arg": [
+            7,
+            12,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            7
+          ],
+          "expect": -45
+        },
+        {
+          "op": "apply",
+          "arg": [
+            7,
+            11,
+            2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            5,
+            12,
+            2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            4,
+            4,
+            1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            6,
+            7,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            9,
+            13
+          ],
+          "expect": -19
+        },
+        {
+          "op": "apply",
+          "arg": [
+            4,
+            13,
+            -3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            5,
+            9,
+            0
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            9,
+            12,
+            2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            4,
+            4,
+            -2
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            1
+          ],
+          "expect": -1
+        },
+        {
+          "op": "apply",
+          "arg": [
+            3,
+            5,
+            1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            9,
+            0
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            5,
+            11
+          ],
+          "expect": -77
+        },
+        {
+          "op": "apply",
+          "arg": [
+            8,
+            9,
+            -3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            3,
+            5
+          ],
+          "expect": -20
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            12
+          ],
+          "expect": -106
+        },
+        {
+          "op": "query",
+          "arg": [
+            12,
+            13
+          ],
+          "expect": -3
+        },
+        {
+          "op": "query",
+          "arg": [
+            6,
+            11
+          ],
+          "expect": -59
+        },
+        {
+          "op": "apply",
+          "arg": [
+            3,
+            12,
+            2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            3,
+            11,
+            1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            8
+          ],
+          "expect": -46
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            3
+          ],
+          "expect": 6
+        },
+        {
+          "op": "apply",
+          "arg": [
+            1,
+            10,
+            3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            5,
+            1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            12,
+            12
+          ],
+          "expect": 0
+        },
+        {
+          "op": "apply",
+          "arg": [
+            9,
+            12,
+            1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            11,
+            -2
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            12
+          ],
+          "expect": -75
+        },
+        {
+          "op": "apply",
+          "arg": [
+            12,
+            13,
+            -3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            7
+          ],
+          "expect": -30
+        },
+        {
+          "op": "apply",
+          "arg": [
+            1,
+            2,
+            -2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            1,
+            7,
+            3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            6,
+            -2
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            8,
+            3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            3,
+            11
+          ],
+          "expect": -46
+        },
+        {
+          "op": "query",
+          "arg": [
+            3,
+            12
+          ],
+          "expect": -58
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            1,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            9
+          ],
+          "expect": -46
+        },
+        {
+          "op": "apply",
+          "arg": [
+            5,
+            6,
+            1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            9,
+            10,
+            1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            5,
+            6,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            9
+          ],
+          "expect": -39
+        },
+        {
+          "op": "query",
+          "arg": [
+            10,
+            12
+          ],
+          "expect": -6
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            13,
+            0
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            8,
+            1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            1,
+            8,
+            -3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            9,
+            11,
+            0
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            10,
+            13,
+            -3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            2
+          ],
+          "expect": 8
+        },
+        {
+          "op": "query",
+          "arg": [
+            7,
+            8
+          ],
+          "expect": -3
+        },
+        {
+          "op": "apply",
+          "arg": [
+            5,
+            9,
+            1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            7,
+            9,
+            3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            10,
+            12
+          ],
+          "expect": -12
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            12
+          ],
+          "expect": -61
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            6
+          ],
+          "expect": -18
+        },
+        {
+          "op": "query",
+          "arg": [
+            12,
+            13
+          ],
+          "expect": -9
+        },
+        {
+          "op": "apply",
+          "arg": [
+            6,
+            11,
+            -1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            5,
+            6,
+            -2
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            7,
+            13
+          ],
+          "expect": -47
+        },
+        {
+          "op": "apply",
+          "arg": [
+            7,
+            13,
+            1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            10,
+            11,
+            2
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            9,
+            12
+          ],
+          "expect": -14
+        },
+        {
+          "op": "apply",
+          "arg": [
+            6,
+            9,
+            3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            8
+          ],
+          "expect": -20
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            7
+          ],
+          "expect": -24
+        },
+        {
+          "op": "apply",
+          "arg": [
+            2,
+            5,
+            -3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            0,
+            5,
+            1
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            4,
+            6,
+            3
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            5,
+            13
+          ],
+          "expect": -53
+        },
+        {
+          "op": "apply",
+          "arg": [
+            4,
+            7,
+            -1
+          ]
+        },
+        {
+          "op": "query",
+          "arg": [
+            6,
+            6
+          ],
+          "expect": 0
+        },
+        {
+          "op": "apply",
+          "arg": [
+            3,
+            7,
+            -3
+          ]
+        },
+        {
+          "op": "apply",
+          "arg": [
+            3,
+            8,
+            -1
+          ]
+        }
+      ]
+    }
+  ]
+}

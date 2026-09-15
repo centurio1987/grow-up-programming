@@ -1,148 +1,122 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `range-query/sparseTable` 계약 스위트 실행부(규약2).
+ *
+ * `runContract` 호출과, 계약 스위트가 담지 못하는 **주입 정책**만 둔다. 무엇을 검사하는지는 `./sparseTable.contract.ts` 에
+ * 있고, 계약 자체는 `./sparseTable.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다. 축3은 계측기가 붙은 정본에만 돈다.
+ * 팩토리가 `reindex` 껍데기를 씌우는 것은 이 구조가 불변 구조이기 때문이다(불변 사실 52 ④).
+ *
+ * **계측 경로가 `injected` 다**(`range-query/segmentTree` 와 같다). 하네스가 결합 호출 횟수를 밖에서 세고, 자기 보고 `__cost`
+ * 가 그보다 작으면 실패한다.
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 물려받은 시험의 「n=10^6 빌드 + 10^5 질의 200ms 이내」가 재는 것은 그 기계의
+ * 상수다. 자리는 축3이다.
+ */
+
+import { describe, expect, test } from "bun:test";
+import { runContract } from "../../_contract/runContract";
+import { SparseTable as Reference } from "./_reference/sparseTable";
 import { SparseTable } from "./sparseTable";
+import {
+  firstNonZero,
+  IDENTITY,
+  Reindexable,
+  type SparseTableContract,
+  sparseTableContract,
+} from "./sparseTable.contract";
 
-describe("SparseTable", () => {
-  describe("기본 — 구간 최솟값 (DNS TTL)", () => {
-    test("전체 구간 최솟값", () => {
-      const ttls = [300, 60, 3600, 120, 900];
-      const st = new SparseTable(ttls, Math.min);
-      expect(st.query(0, 4)).toBe(60);
+runContract(
+  () =>
+    new Reindexable(
+      (values) => new SparseTable(values, firstNonZero, IDENTITY),
+    ),
+  sparseTableContract,
+  { label: "스텁" },
+);
+
+runContract(
+  () =>
+    new Reindexable((values) => new Reference(values, firstNonZero, IDENTITY)),
+  sparseTableContract,
+  {
+    label: "정본",
+    cost: {
+      kind: "injected",
+      make: (tick) =>
+        new Reindexable(
+          (values) =>
+            new Reference(
+              values,
+              (a, b) => {
+                tick();
+                return firstNonZero(a, b);
+              },
+              IDENTITY,
+            ),
+        ),
+    },
+  },
+);
+
+/**
+ * 주입 정책은 계약의 일부다(규약1). 계약 스위트는 결합 **하나**로 도는데 계약이 요구하는 것은 세 의무(결합법칙 · 항등원 ·
+ * 멱등)를 지키는 **임의의** 결합이므로, 같은 구현이 다른 멱등 결합에서도 서는지와 호출자가 넘긴 배열을 고쳐도 답이 그대로인지는
+ * 여기서 본다.
+ */
+function checkInjectionPolicy(
+  label: string,
+  make: (
+    values: number[],
+    combine: (a: number, b: number) => number,
+    identity: number,
+  ) => SparseTableContract,
+): void {
+  describe(`SparseTable 주입 정책 [${label}]`, () => {
+    const values = [300, 60, 3600, 120, 900, 1800, 30];
+
+    test("최솟값 · 최댓값 — 교환적인 멱등 결합", () => {
+      const low = make(values, (a, b) => Math.min(a, b), Infinity);
+      expect(low.query(0, 7)).toBe(30);
+      expect(low.query(0, 3)).toBe(60);
+      expect(low.query(3, 6)).toBe(120);
+      const high = make(values, (a, b) => Math.max(a, b), -Infinity);
+      expect(high.query(0, 7)).toBe(3600);
+      expect(high.query(3, 6)).toBe(1800);
+      expect(high.query(4, 4)).toBe(-Infinity);
     });
 
-    test("부분 구간 최솟값", () => {
-      const ttls = [300, 60, 3600, 120, 900];
-      const st = new SparseTable(ttls, Math.min);
-      expect(st.query(0, 1)).toBe(60);  // min(300, 60)
-      expect(st.query(2, 4)).toBe(120); // min(3600, 120, 900)
-      expect(st.query(0, 2)).toBe(60);  // min(300, 60, 3600)
+    test("최대공약수 — 항등원이 0 인 멱등 결합", () => {
+      const gcd = (a: number, b: number): number =>
+        b === 0 ? a : gcd(b, a % b);
+      const table = make([12, 8, 6, 4], gcd, 0);
+      expect(table.query(0, 4)).toBe(2);
+      expect(table.query(0, 2)).toBe(4);
+      expect(table.query(2, 2)).toBe(0);
     });
 
-    test("단일 원소 질의", () => {
-      const arr = [5, 3, 8, 1, 7];
-      const st = new SparseTable(arr, Math.min);
-      expect(st.query(0, 0)).toBe(5);
-      expect(st.query(2, 2)).toBe(8);
-      expect(st.query(3, 3)).toBe(1);
-    });
-  });
-
-  describe("기본 — 구간 최댓값", () => {
-    test("전체 구간 최댓값", () => {
-      const arr = [3, 1, 4, 1, 5, 9, 2, 6];
-      const st = new SparseTable(arr, Math.max);
-      expect(st.query(0, 7)).toBe(9);
+    test("자리가 없는 수열은 빈 구간 하나만 묻고 답은 항등원이다", () => {
+      const table = make([], (a, b) => Math.min(a, b), Infinity);
+      expect(table.query(0, 0)).toBe(Infinity);
+      expect(() => table.query(0, 1)).toThrow(RangeError);
     });
 
-    test("부분 구간 최댓값", () => {
-      const arr = [3, 1, 4, 1, 5, 9, 2, 6];
-      const st = new SparseTable(arr, Math.max);
-      expect(st.query(0, 4)).toBe(5);
-      expect(st.query(5, 7)).toBe(9);
-      expect(st.query(1, 3)).toBe(4);
-    });
-  });
-
-  describe("기본 — GCD (최대공약수, 멱등 연산)", () => {
-    const gcd = (a: number, b: number): number => (b === 0 ? a : gcd(b, a % b));
-
-    test("구간 GCD 기본", () => {
-      const arr = [12, 8, 6, 4];
-      const st = new SparseTable(arr, gcd);
-      expect(st.query(0, 3)).toBe(2); // gcd(12,8,6,4)=2
-      expect(st.query(0, 1)).toBe(4); // gcd(12,8)=4
-      expect(st.query(2, 3)).toBe(2); // gcd(6,4)=2
-    });
-  });
-
-  describe("엣지", () => {
-    test("단일 원소 배열", () => {
-      const st = new SparseTable([42], Math.min);
-      expect(st.query(0, 0)).toBe(42);
-    });
-
-    test("크기 2 배열", () => {
-      const st = new SparseTable([7, 3], Math.min);
-      expect(st.query(0, 1)).toBe(3);
-      expect(st.query(0, 0)).toBe(7);
-      expect(st.query(1, 1)).toBe(3);
-    });
-
-    test("음수 포함 배열 최솟값", () => {
-      const arr = [-5, -1, -3, -8, -2];
-      const st = new SparseTable(arr, Math.min);
-      expect(st.query(0, 4)).toBe(-8);
-      expect(st.query(0, 2)).toBe(-5);
-    });
-
-    test("동일 값 배열", () => {
-      const arr = [7, 7, 7, 7, 7];
-      const st = new SparseTable(arr, Math.min);
-      expect(st.query(0, 4)).toBe(7);
-      expect(st.query(2, 3)).toBe(7);
-    });
-
-    test("크기 1짜리 구간 여러 번 질의해도 일관성 유지", () => {
-      const arr = [9, 3, 6, 1, 8];
-      const st = new SparseTable(arr, Math.min);
-      for (let i = 0; i < arr.length; i++) {
-        expect(st.query(i, i)).toBe(arr[i] ?? 0);
-      }
-    });
-
-    test("2의 거듭제곱 크기 배열", () => {
-      const arr = [4, 2, 8, 1, 5, 7, 3, 6]; // length = 8
-      const st = new SparseTable(arr, Math.min);
-      expect(st.query(0, 7)).toBe(1);
-      expect(st.query(0, 3)).toBe(1);
-      expect(st.query(4, 7)).toBe(3);
+    test("생성자가 돌아온 뒤 호출자가 배열을 고쳐도 답은 그대로다", () => {
+      const own = [5, 3, 8, 1, 7];
+      const table = make(own, (a, b) => Math.min(a, b), Infinity);
+      own[3] = 100;
+      own.push(-9);
+      expect(table.query(0, 5)).toBe(1);
+      expect(() => table.query(0, 6)).toThrow(RangeError);
     });
   });
+}
 
-  describe("정확도 — 세그먼트 트리 결과와 대조", () => {
-    test("무작위 배열 50회 쿼리 최솟값 brute-force 대조", () => {
-      const arr = Array.from({ length: 50 }, () => Math.floor(Math.random() * 1000));
-      const st = new SparseTable(arr, Math.min);
-
-      for (let t = 0; t < 50; t++) {
-        const l = Math.floor(Math.random() * arr.length);
-        const r = l + Math.floor(Math.random() * (arr.length - l));
-        let expected = Infinity;
-        for (let i = l; i <= r; i++) {
-          expected = Math.min(expected, arr[i] ?? Infinity);
-        }
-        expect(st.query(l, r)).toBe(expected);
-      }
-    });
-
-    test("무작위 배열 50회 쿼리 최댓값 brute-force 대조", () => {
-      const arr = Array.from({ length: 50 }, () => Math.floor(Math.random() * 1000));
-      const st = new SparseTable(arr, Math.max);
-
-      for (let t = 0; t < 50; t++) {
-        const l = Math.floor(Math.random() * arr.length);
-        const r = l + Math.floor(Math.random() * (arr.length - l));
-        let expected = -Infinity;
-        for (let i = l; i <= r; i++) {
-          expected = Math.max(expected, arr[i] ?? -Infinity);
-        }
-        expect(st.query(l, r)).toBe(expected);
-      }
-    });
-  });
-
-  describe("성능", () => {
-    test("n=10^6 빌드 + 10^5 query 200ms 이내", () => {
-      const n = 1_000_000;
-      const arr = Array.from({ length: n }, () => Math.floor(Math.random() * 1_000_000));
-      const start = performance.now();
-      const st = new SparseTable(arr, Math.min);
-      for (let i = 0; i < 100_000; i++) {
-        const l = Math.floor(Math.random() * n);
-        const r = l + Math.floor(Math.random() * (n - l));
-        st.query(l, r);
-      }
-      const elapsed = performance.now() - start;
-      expect(elapsed).toBeLessThan(200);
-    });
-  });
-});
+checkInjectionPolicy(
+  "스텁",
+  (values, combine, identity) => new SparseTable(values, combine, identity),
+);
+checkInjectionPolicy(
+  "정본",
+  (values, combine, identity) => new Reference(values, combine, identity),
+);

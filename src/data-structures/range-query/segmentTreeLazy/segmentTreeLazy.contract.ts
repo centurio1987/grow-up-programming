@@ -21,7 +21,7 @@
  * 결합은 `segmentTree` 스위트의 `firstNonZero` 를 그대로 가져온다. 갱신은 **「0 이 아닌 수 `u` 는 덮는 자리를 전부
  * `u` 로 덮고, `0` 은 아무것도 안 바꾼다」**다(`coverAct`·`coverCompose`). 헤더 「주입 정책」의 세 법칙을 이 대수가
  * 지킨다는 것은 하네스 자기시험이 작은 정의역을 전부 훑어 확인한다. 이 대수에서 `act` 의 셋째 인자(덮는 자리 수)는
- * 0 과 그 밖만 가른다 — **자리 수를 곱하는 대수(구간 더하기 · 구간 합)는 `./segmentTreeLazy.test.ts` 가 따로 본다.**
+ * 0 과 그 밖만 가른다 — **그래서 자리 수를 곱하는 대수로 같은 연산 집합을 한 벌 더 돈다**(파일 끝 `segmentTreeLazyCountedContract`).
  *
  * **시나리오가 둘이고 둘 다 적대적이다.** 근거는 각 시나리오 주석에 있다. 두 연산 모두 인자가 경계 둘이라 한 줄 훑기가
  * 인자 공간을 포섭하지 않는다(불변 사실 167) — 그래서 양 끝이 다 어긋난 구간을 겨눈다.
@@ -85,15 +85,18 @@ function observe(call: () => unknown): unknown {
   }
 }
 
-/** 하네스용 껍데기. `reset(n)` 으로 그 크기의 구조를 다시 세운다. */
+/**
+ * 하네스용 껍데기. `reset(n)` 으로 그 크기의 구조를 다시 세운다. 처음 세우는 자리 수는 축1 이 도는 벌마다 다르다
+ * (덮기 대수 `SLOTS` · 자리 수 대수 `COUNTED_SLOTS`).
+ */
 export class LazySized implements SegmentTreeLazyContract {
   readonly #make: (values: number[]) => Built;
   #impl: Built;
   #carried = 0;
 
-  constructor(make: (values: number[]) => Built) {
+  constructor(make: (values: number[]) => Built, slots: number = SLOTS) {
     this.#make = make;
-    this.#impl = make(initialValues(SLOTS));
+    this.#impl = make(initialValues(slots));
   }
 
   get __cost(): number {
@@ -337,4 +340,156 @@ export const segmentTreeLazyContract: ContractSpec<LazySized, Model> = {
       },
     },
   ],
+};
+
+// ── 둘째 벌 — 자리 수가 값을 바꾸는 대수 ─────────────────────────────────────────────────────────────
+
+/**
+ * 둘째 벌이 도는 자리 수. **2의 거듭제곱이 아니다** — 자리 수는 계약의 입력이고(`values.length`), 첫째 벌의 `SLOTS` 와
+ * 축3 사다리가 전부 2의 거듭제곱이라 그 밖의 크기에서만 드러나는 자리 수 오전달이 어디에서도 안 보였다.
+ */
+export const COUNTED_SLOTS = 13;
+
+/** 둘째 벌의 결합 — 합. 항등원은 `0` 이다. */
+export function sum(a: number, b: number): number {
+  return a + b;
+}
+
+/** 둘째 벌의 갱신 — 덮는 자리마다 `update` 를 더한다. 여러 자리를 접은 합에는 자리 수만큼 더해진다. */
+export function addAct(update: number, value: number, count: number): number {
+  return value + update * count;
+}
+
+/** 위 갱신의 합성 — 둘을 더한 것 하나를 더하는 것과 같다. */
+export function addCompose(later: number, earlier: number): number {
+  return later + earlier;
+}
+
+function countedSpanInRange(from: number, to: number): boolean {
+  const inRange = (i: number) =>
+    Number.isInteger(i) && i >= 0 && i <= COUNTED_SLOTS;
+  return inRange(from) && inRange(to) && from <= to;
+}
+
+function countedSpan(rng: () => number): [number, number] {
+  const a = Math.floor(rng() * (COUNTED_SLOTS + 1));
+  const b = Math.floor(rng() * (COUNTED_SLOTS + 1));
+  return a <= b ? [a, b] : [b, a];
+}
+
+/**
+ * **둘째 벌 — 합 결합 · 더하기 갱신 · 더하기 합성**(S20). 첫째 벌의 대수에서 `act` 의 자리 수 인자는 0 과 그 밖만
+ * 가르므로, 그 인자를 잘못 넘기는 구현이 첫째 벌을 전부 통과한다(불변 사실 175). 이 대수는 **자리 수가 답에 곱해진다** —
+ * 폭 `k` 인 구간에 `u` 를 더하면 그 구간의 합이 `u × k` 만큼 는다.
+ *
+ * 헤더 「주입 정책」의 세 법칙을 이 대수가 지킨다: 합은 결합적이고 항등원이 `0`, `addAct(u, a + b, m + k) =
+ * addAct(u, a, m) + addAct(u, b, k)`, `addAct(u, 0, 0) = 0`, 합성은 `(v + e·k) + l·k = v + (l + e)·k`. 결합과 합성이
+ * 둘 다 교환적이라 **차례는 첫째 벌이 보고 자리 수는 이 벌이 본다** — 한 대수로 둘을 함께 겨누지 못한 이유는
+ * `docs/ORD-006-conventions.md` T4-03 절 끝에 있다.
+ *
+ * **같은 것과 따로 적는 것.** `scenarios` 는 첫째 벌의 배열을 **같은 객체로** 쓴다 — 시나리오는 대수를 모르고
+ * `reset`·`apply`·`query` 만 부르며, 정본이 두 대수에서 같은 계급인지를 함께 본다. `model`·`ops`·`edges` 는 대수가
+ * 들어가므로 따로 적었다. 자리 수를 잘못 넘기는 결함 fixture 둘(`_contract/_fixtures/miscountedLazyRangeFold.ts`)이
+ * 이 벌의 축1 에서 걸리고 첫째 벌은 전부 통과한다 — 하네스 자기시험(`runContract.segmentTreeLazy.test.ts`)이 고정한다.
+ */
+export const segmentTreeLazyCountedContract: ContractSpec<LazySized, Model> = {
+  name: "SegmentTreeLazyCounted",
+  grade: "complexity",
+  model: () => ({ values: initialValues(COUNTED_SLOTS) }),
+
+  ops: [
+    {
+      name: "apply",
+      arg: (rng) => [...countedSpan(rng), Math.floor(rng() * 7) - 3],
+      onImpl: (impl, arg) => {
+        const [from, to, update] = arg as [number, number, number];
+        return observe(() => impl.apply(from, to, update));
+      },
+      onModel: (model, arg) => {
+        const [from, to, update] = arg as [number, number, number];
+        if (!countedSpanInRange(from, to)) return OUT_OF_RANGE;
+        for (let at = from; at < to; at++) {
+          model.values[at] = addAct(update, model.values[at] as number, 1);
+        }
+        return undefined;
+      },
+    },
+    {
+      name: "query",
+      arg: (rng) => countedSpan(rng),
+      onImpl: (impl, arg) => {
+        const [from, to] = arg as [number, number];
+        return observe(() => impl.query(from, to));
+      },
+      onModel: (model, arg) => {
+        const [from, to] = arg as [number, number];
+        if (!countedSpanInRange(from, to)) return OUT_OF_RANGE;
+        let acc = 0;
+        for (let at = from; at < to; at++) {
+          acc = sum(acc, model.values[at] as number);
+        }
+        return acc;
+      },
+    },
+  ],
+
+  edges: [
+    {
+      // 넓게 더한 뒤 폭이 다른 구간으로 묻는다 — 답에 곱해지는 자리 수가 구간마다 다르다.
+      name: "넓게 더한 뒤 쪼개 물으면 덮인 자리 수만큼 더해져 있다",
+      steps: [
+        { op: "query", arg: [0, COUNTED_SLOTS] },
+        { op: "apply", arg: [0, COUNTED_SLOTS, 2] },
+        { op: "query", arg: [0, COUNTED_SLOTS] },
+        { op: "query", arg: [3, 11] },
+        { op: "query", arg: [5, 6] },
+        { op: "apply", arg: [2, 9, -1] },
+        { op: "query", arg: [0, 4] },
+        { op: "query", arg: [8, 12] },
+      ],
+    },
+    {
+      // 경계가 `[0, n]` 인 인자는 경계 케이스가 `n` 을 반드시 짚는다(불변 사실 166). 오른쪽 끝이 `n` 인 갱신이 **없는 자리를
+      // 세면** 그 몫이 끝을 포함한 구간의 합에 섞인다.
+      name: "오른쪽 끝이 n 인 갱신은 있는 자리만큼만 더한다",
+      steps: [
+        { op: "apply", arg: [9, COUNTED_SLOTS, 5] },
+        { op: "query", arg: [8, COUNTED_SLOTS] },
+        { op: "query", arg: [COUNTED_SLOTS - 1, COUNTED_SLOTS] },
+        { op: "apply", arg: [0, COUNTED_SLOTS, 1] },
+        { op: "query", arg: [0, COUNTED_SLOTS] },
+        { op: "query", arg: [11, COUNTED_SLOTS] },
+        { op: "query", arg: [0, 8] },
+      ],
+    },
+    {
+      // 빈 구간 갱신은 덮는 자리가 0 개라 아무것도 더하지 않는다(`act(u, identity, 0) === identity` 가 관측되는 자리).
+      name: "빈 구간 갱신은 아무것도 더하지 않는다",
+      steps: [
+        { op: "apply", arg: [5, 5, 9] },
+        { op: "apply", arg: [COUNTED_SLOTS, COUNTED_SLOTS, 4] },
+        { op: "query", arg: [0, COUNTED_SLOTS] },
+        { op: "query", arg: [4, 6] },
+      ],
+    },
+    {
+      // 겹친 갱신이 합성돼도 겹친 자리에는 둘 다 더해지고 안 겹친 자리에는 하나만 더해진다.
+      name: "겹친 갱신은 겹친 자리마다 둘 다 더해진다",
+      steps: [
+        { op: "apply", arg: [0, 8, 3] },
+        { op: "apply", arg: [4, COUNTED_SLOTS, 2] },
+        { op: "query", arg: [4, 8] },
+        { op: "query", arg: [0, COUNTED_SLOTS] },
+        { op: "apply", arg: [2, 6, -5] },
+        { op: "query", arg: [0, 4] },
+        { op: "query", arg: [5, 7] },
+        { op: "query", arg: [6, 10] },
+      ],
+    },
+  ],
+
+  /** 헤더 불변식 절이 「없다」이므로 빈 배열이다(첫째 벌과 같다). */
+  invariants: [],
+
+  scenarios: segmentTreeLazyContract.scenarios,
 };

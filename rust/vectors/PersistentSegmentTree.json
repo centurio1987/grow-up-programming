@@ -1,0 +1,2333 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "PersistentSegmentTree",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "갱신은 만든 차례의 번호를 돌려주고 바탕 버전은 그대로다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "query",
+          "arg": [
+            0,
+            3,
+            4
+          ],
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            0,
+            3,
+            7
+          ],
+          "expect": 1
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            3,
+            4
+          ],
+          "expect": 7
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            3,
+            4
+          ],
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            4,
+            9
+          ],
+          "expect": 2
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            3,
+            5
+          ],
+          "expect": 7
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            3,
+            5
+          ],
+          "expect": 7
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            0,
+            16
+          ],
+          "expect": 2
+        }
+      ]
+    },
+    {
+      "name": "한 버전에서 갈라 지은 버전들은 서로의 갱신을 보지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            0,
+            1,
+            5
+          ],
+          "expect": 1
+        },
+        {
+          "op": "update",
+          "arg": [
+            0,
+            1,
+            0
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            2,
+            0
+          ],
+          "expect": 3
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            2,
+            8
+          ],
+          "expect": 4
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            1,
+            3
+          ],
+          "expect": 5
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            1,
+            3
+          ],
+          "expect": -3
+        },
+        {
+          "op": "query",
+          "arg": [
+            3,
+            1,
+            3
+          ],
+          "expect": 5
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            1,
+            3
+          ],
+          "expect": 8
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            1,
+            3
+          ],
+          "expect": 2
+        }
+      ]
+    },
+    {
+      "name": "마지막 자리는 오른쪽 끝이 n 인 구간에서만 보인다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            0,
+            15,
+            41
+          ],
+          "expect": 1
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            15,
+            15
+          ],
+          "expect": 0
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            15,
+            16
+          ],
+          "expect": 41
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            15,
+            16
+          ],
+          "expect": 0
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            0,
+            16
+          ],
+          "expect": 2
+        }
+      ]
+    },
+    {
+      "name": "왼쪽부터 접는다 — 버전마다 차례를 바꾸면 답이 갈린다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            0,
+            1,
+            0
+          ],
+          "expect": 1
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            2,
+            0
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            3,
+            5
+          ],
+          "expect": 3
+        },
+        {
+          "op": "update",
+          "arg": [
+            3,
+            6,
+            9
+          ],
+          "expect": 4
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            1,
+            7
+          ],
+          "expect": 5
+        },
+        {
+          "op": "query",
+          "arg": [
+            4,
+            4,
+            8
+          ],
+          "expect": 5
+        },
+        {
+          "op": "query",
+          "arg": [
+            3,
+            4,
+            8
+          ],
+          "expect": 5
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            1,
+            7
+          ],
+          "expect": 5
+        }
+      ]
+    },
+    {
+      "name": "빈 구간은 어느 버전에서 물어도 항등원이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "query",
+          "arg": [
+            0,
+            0,
+            0
+          ],
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            0,
+            5,
+            3
+          ],
+          "expect": 1
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            7,
+            7
+          ],
+          "expect": 0
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            16,
+            16
+          ],
+          "expect": 0
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            5,
+            5
+          ],
+          "expect": 0
+        }
+      ]
+    },
+    {
+      "name": "같은 값으로 고쳐도 새 버전이 생긴다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            0,
+            1,
+            2
+          ],
+          "expect": 1
+        },
+        {
+          "op": "update",
+          "arg": [
+            1,
+            1,
+            2
+          ],
+          "expect": 2
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            0,
+            16
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            2,
+            0,
+            4
+          ],
+          "expect": 3
+        },
+        {
+          "op": "query",
+          "arg": [
+            3,
+            0,
+            1
+          ],
+          "expect": 4
+        }
+      ]
+    },
+    {
+      "name": "없는 버전·범위 밖 자리·경계·뒤집힌 구간은 RangeError 이고 버전이 생기지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "update",
+          "arg": [
+            1,
+            0,
+            3
+          ],
+          "expect": 1
+        },
+        {
+          "op": "update",
+          "arg": [
+            -1,
+            0,
+            3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            0.5,
+            0,
+            3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            0,
+            16,
+            3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            0,
+            -1,
+            3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            0,
+            1.5,
+            3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            0,
+            4
+          ],
+          "expect": 3
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            0,
+            17
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            -1,
+            3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "query",
+          "arg": [
+            0,
+            5,
+            2
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            0,
+            2,
+            8
+          ],
+          "expect": 2
+        },
+        {
+          "op": "query",
+          "arg": [
+            1,
+            2,
+            3
+          ],
+          "expect": -3
+        },
+        {
+          "op": "query",
+          "arg": [
+            2,
+            2,
+            3
+          ],
+          "expect": 8
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "query",
+          "arg": [
+            1,
+            8,
+            16
+          ],
+          "expect": -9
+        },
+        {
+          "op": "query",
+          "arg": [
+            287,
+            10,
+            12
+          ],
+          "expect": 11
+        },
+        {
+          "op": "update",
+          "arg": [
+            1018,
+            7,
+            0
+          ],
+          "expect": 1
+        },
+        {
+          "op": "update",
+          "arg": [
+            412,
+            3,
+            -2
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            68,
+            6,
+            2
+          ],
+          "expect": 3
+        },
+        {
+          "op": "update",
+          "arg": [
+            194,
+            -1,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "query",
+          "arg": [
+            817,
+            3,
+            5
+          ],
+          "expect": 5
+        },
+        {
+          "op": "query",
+          "arg": [
+            558,
+            3,
+            12
+          ],
+          "expect": -2
+        },
+        {
+          "op": "query",
+          "arg": [
+            464,
+            13,
+            16
+          ],
+          "expect": 14
+        },
+        {
+          "op": "update",
+          "arg": [
+            774,
+            1,
+            -1
+          ],
+          "expect": 4
+        },
+        {
+          "op": "update",
+          "arg": [
+            254,
+            1,
+            2
+          ],
+          "expect": 5
+        },
+        {
+          "op": "query",
+          "arg": [
+            129,
+            0,
+            4
+          ],
+          "expect": 2
+        },
+        {
+          "op": "query",
+          "arg": [
+            886,
+            4,
+            16
+          ],
+          "expect": 5
+        },
+        {
+          "op": "query",
+          "arg": [
+            411,
+            5,
+            11
+          ],
+          "expect": -6
+        },
+        {
+          "op": "query",
+          "arg": [
+            945,
+            11,
+            15
+          ],
+          "expect": -12
+        },
+        {
+          "op": "query",
+          "arg": [
+            956,
+            0,
+            1
+          ],
+          "expect": 0
+        },
+        {
+          "op": "query",
+          "arg": [
+            300,
+            8,
+            14
+          ],
+          "expect": -9
+        },
+        {
+          "op": "query",
+          "arg": [
+            721,
+            2,
+            11
+          ],
+          "expect": -3
+        },
+        {
+          "op": "query",
+          "arg": [
+            134,
+            2,
+            16
+          ],
+          "expect": -3
+        },
+        {
+          "op": "update",
+          "arg": [
+            119,
+            6,
+            -1
+          ],
+          "expect": 6
+        },
+        {
+          "op": "query",
+          "arg": [
+            520,
+            1,
+            9
+          ],
+          "expect": 2
+        },
+        {
+          "op": "query",
+          "arg": [
+            874,
+            2,
+            4
+          ],
+          "expect": -3
+        },
+        {
+          "op": "update",
+          "arg": [
+            915,
+            4,
+            -2
+          ],
+          "expect": 7
+        },
+        {
+          "op": "query",
+          "arg": [
+            561,
+            2,
+            5
+          ],
+          "expect": -3
+        },
+        {
+          "op": "update",
+          "arg": [
+            68,
+            4,
+            1
+          ],
+          "expect": 8
+        },
+        {
+          "op": "query",
+          "arg": [
+            118,
+            8,
+            8
+          ],
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            811,
+            3,
+            3
+          ],
+          "expect": 9
+        },
+        {
+          "op": "query",
+          "arg": [
+            890,
+            0,
+            3
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            1007,
+            4,
+            2
+          ],
+          "expect": 10
+        },
+        {
+          "op": "query",
+          "arg": [
+            95,
+            4,
+            14
+          ],
+          "expect": -2
+        },
+        {
+          "op": "query",
+          "arg": [
+            810,
+            1,
+            3
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            417,
+            8,
+            -1
+          ],
+          "expect": 11
+        },
+        {
+          "op": "query",
+          "arg": [
+            319,
+            14,
+            15
+          ],
+          "expect": -15
+        },
+        {
+          "op": "query",
+          "arg": [
+            684,
+            3,
+            6
+          ],
+          "expect": 5
+        },
+        {
+          "op": "update",
+          "arg": [
+            208,
+            3,
+            3
+          ],
+          "expect": 12
+        },
+        {
+          "op": "query",
+          "arg": [
+            162,
+            1,
+            5
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            802,
+            5,
+            -2
+          ],
+          "expect": 13
+        },
+        {
+          "op": "update",
+          "arg": [
+            840,
+            4,
+            3
+          ],
+          "expect": 14
+        },
+        {
+          "op": "query",
+          "arg": [
+            437,
+            5,
+            11
+          ],
+          "expect": -6
+        },
+        {
+          "op": "update",
+          "arg": [
+            548,
+            12,
+            2
+          ],
+          "expect": 15
+        },
+        {
+          "op": "update",
+          "arg": [
+            212,
+            10,
+            1
+          ],
+          "expect": 16
+        },
+        {
+          "op": "update",
+          "arg": [
+            333,
+            6,
+            3
+          ],
+          "expect": 17
+        },
+        {
+          "op": "query",
+          "arg": [
+            366,
+            6,
+            10
+          ],
+          "expect": -1
+        },
+        {
+          "op": "update",
+          "arg": [
+            945,
+            8,
+            0
+          ],
+          "expect": 18
+        },
+        {
+          "op": "query",
+          "arg": [
+            126,
+            1,
+            13
+          ],
+          "expect": -1
+        },
+        {
+          "op": "update",
+          "arg": [
+            727,
+            3,
+            1
+          ],
+          "expect": 19
+        },
+        {
+          "op": "update",
+          "arg": [
+            558,
+            15,
+            -3
+          ],
+          "expect": 20
+        },
+        {
+          "op": "update",
+          "arg": [
+            176,
+            11,
+            -3
+          ],
+          "expect": 21
+        },
+        {
+          "op": "query",
+          "arg": [
+            388,
+            4,
+            13
+          ],
+          "expect": 3
+        },
+        {
+          "op": "update",
+          "arg": [
+            1022,
+            16,
+            -3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "query",
+          "arg": [
+            114,
+            6,
+            10
+          ],
+          "expect": 8
+        },
+        {
+          "op": "query",
+          "arg": [
+            393,
+            2,
+            12
+          ],
+          "expect": -3
+        },
+        {
+          "op": "update",
+          "arg": [
+            989,
+            10,
+            0
+          ],
+          "expect": 22
+        },
+        {
+          "op": "update",
+          "arg": [
+            166,
+            10,
+            -2
+          ],
+          "expect": 23
+        },
+        {
+          "op": "update",
+          "arg": [
+            655,
+            10,
+            -3
+          ],
+          "expect": 24
+        },
+        {
+          "op": "update",
+          "arg": [
+            31,
+            6,
+            1
+          ],
+          "expect": 25
+        },
+        {
+          "op": "query",
+          "arg": [
+            817,
+            10,
+            11
+          ],
+          "expect": 11
+        },
+        {
+          "op": "query",
+          "arg": [
+            22,
+            14,
+            15
+          ],
+          "expect": -15
+        },
+        {
+          "op": "update",
+          "arg": [
+            843,
+            8,
+            0
+          ],
+          "expect": 26
+        },
+        {
+          "op": "update",
+          "arg": [
+            109,
+            0,
+            1
+          ],
+          "expect": 27
+        },
+        {
+          "op": "update",
+          "arg": [
+            14,
+            8,
+            0
+          ],
+          "expect": 28
+        },
+        {
+          "op": "query",
+          "arg": [
+            881,
+            8,
+            13
+          ],
+          "expect": -1
+        },
+        {
+          "op": "update",
+          "arg": [
+            408,
+            12,
+            -2
+          ],
+          "expect": 29
+        },
+        {
+          "op": "query",
+          "arg": [
+            799,
+            1,
+            3
+          ],
+          "expect": 2
+        },
+        {
+          "op": "query",
+          "arg": [
+            33,
+            13,
+            16
+          ],
+          "expect": 14
+        },
+        {
+          "op": "update",
+          "arg": [
+            932,
+            14,
+            1
+          ],
+          "expect": 30
+        },
+        {
+          "op": "update",
+          "arg": [
+            612,
+            6,
+            -2
+          ],
+          "expect": 31
+        },
+        {
+          "op": "update",
+          "arg": [
+            960,
+            10,
+            -3
+          ],
+          "expect": 32
+        },
+        {
+          "op": "query",
+          "arg": [
+            605,
+            2,
+            2
+          ],
+          "expect": 0
+        },
+        {
+          "op": "query",
+          "arg": [
+            278,
+            0,
+            8
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            999,
+            10,
+            0
+          ],
+          "expect": 33
+        },
+        {
+          "op": "update",
+          "arg": [
+            647,
+            -1,
+            2
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "query",
+          "arg": [
+            182,
+            11,
+            15
+          ],
+          "expect": -12
+        },
+        {
+          "op": "query",
+          "arg": [
+            598,
+            6,
+            10
+          ],
+          "expect": 0
+        },
+        {
+          "op": "query",
+          "arg": [
+            803,
+            6,
+            14
+          ],
+          "expect": 8
+        },
+        {
+          "op": "query",
+          "arg": [
+            732,
+            2,
+            4
+          ],
+          "expect": -3
+        },
+        {
+          "op": "query",
+          "arg": [
+            393,
+            8,
+            16
+          ],
+          "expect": -9
+        },
+        {
+          "op": "query",
+          "arg": [
+            439,
+            1,
+            12
+          ],
+          "expect": 2
+        },
+        {
+          "op": "query",
+          "arg": [
+            791,
+            0,
+            2
+          ],
+          "expect": 2
+        },
+        {
+          "op": "query",
+          "arg": [
+            798,
+            3,
+            5
+          ],
+          "expect": -2
+        },
+        {
+          "op": "query",
+          "arg": [
+            33,
+            0,
+            3
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            959,
+            4,
+            -1
+          ],
+          "expect": 34
+        },
+        {
+          "op": "query",
+          "arg": [
+            146,
+            10,
+            13
+          ],
+          "expect": 11
+        },
+        {
+          "op": "query",
+          "arg": [
+            481,
+            1,
+            6
+          ],
+          "expect": 2
+        },
+        {
+          "op": "query",
+          "arg": [
+            474,
+            15,
+            16
+          ],
+          "expect": 0
+        },
+        {
+          "op": "query",
+          "arg": [
+            201,
+            10,
+            10
+          ],
+          "expect": 0
+        },
+        {
+          "op": "query",
+          "arg": [
+            929,
+            6,
+            15
+          ],
+          "expect": 8
+        },
+        {
+          "op": "update",
+          "arg": [
+            459,
+            3,
+            -3
+          ],
+          "expect": 35
+        },
+        {
+          "op": "query",
+          "arg": [
+            470,
+            5,
+            13
+          ],
+          "expect": -6
+        },
+        {
+          "op": "query",
+          "arg": [
+            928,
+            3,
+            7
+          ],
+          "expect": 3
+        },
+        {
+          "op": "query",
+          "arg": [
+            551,
+            6,
+            16
+          ],
+          "expect": 8
+        },
+        {
+          "op": "query",
+          "arg": [
+            527,
+            0,
+            8
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            198,
+            8,
+            -3
+          ],
+          "expect": 36
+        },
+        {
+          "op": "query",
+          "arg": [
+            348,
+            3,
+            9
+          ],
+          "expect": -2
+        },
+        {
+          "op": "update",
+          "arg": [
+            280,
+            4,
+            -1
+          ],
+          "expect": 37
+        },
+        {
+          "op": "query",
+          "arg": [
+            599,
+            1,
+            6
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            800,
+            8,
+            -2
+          ],
+          "expect": 38
+        },
+        {
+          "op": "update",
+          "arg": [
+            3,
+            1,
+            -1
+          ],
+          "expect": 39
+        },
+        {
+          "op": "query",
+          "arg": [
+            1002,
+            6,
+            10
+          ],
+          "expect": 8
+        },
+        {
+          "op": "query",
+          "arg": [
+            413,
+            1,
+            6
+          ],
+          "expect": 2
+        },
+        {
+          "op": "query",
+          "arg": [
+            665,
+            0,
+            8
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            84,
+            10,
+            3
+          ],
+          "expect": 40
+        },
+        {
+          "op": "query",
+          "arg": [
+            495,
+            8,
+            13
+          ],
+          "expect": -9
+        },
+        {
+          "op": "update",
+          "arg": [
+            263,
+            15,
+            -3
+          ],
+          "expect": 41
+        },
+        {
+          "op": "update",
+          "arg": [
+            858,
+            14,
+            -1
+          ],
+          "expect": 42
+        },
+        {
+          "op": "query",
+          "arg": [
+            841,
+            3,
+            10
+          ],
+          "expect": -2
+        },
+        {
+          "op": "update",
+          "arg": [
+            182,
+            10,
+            0
+          ],
+          "expect": 43
+        },
+        {
+          "op": "query",
+          "arg": [
+            463,
+            5,
+            10
+          ],
+          "expect": -6
+        },
+        {
+          "op": "query",
+          "arg": [
+            837,
+            1,
+            14
+          ],
+          "expect": 2
+        },
+        {
+          "op": "query",
+          "arg": [
+            359,
+            8,
+            14
+          ],
+          "expect": -9
+        },
+        {
+          "op": "update",
+          "arg": [
+            368,
+            13,
+            0
+          ],
+          "expect": 44
+        },
+        {
+          "op": "query",
+          "arg": [
+            224,
+            7,
+            15
+          ],
+          "expect": 8
+        },
+        {
+          "op": "query",
+          "arg": [
+            135,
+            5,
+            5
+          ],
+          "expect": 0
+        },
+        {
+          "op": "query",
+          "arg": [
+            375,
+            7,
+            8
+          ],
+          "expect": 8
+        },
+        {
+          "op": "update",
+          "arg": [
+            725,
+            11,
+            3
+          ],
+          "expect": 45
+        },
+        {
+          "op": "update",
+          "arg": [
+            998,
+            4,
+            -3
+          ],
+          "expect": 46
+        },
+        {
+          "op": "update",
+          "arg": [
+            679,
+            5,
+            0
+          ],
+          "expect": 47
+        },
+        {
+          "op": "update",
+          "arg": [
+            724,
+            15,
+            2
+          ],
+          "expect": 48
+        },
+        {
+          "op": "update",
+          "arg": [
+            333,
+            4,
+            -2
+          ],
+          "expect": 49
+        },
+        {
+          "op": "query",
+          "arg": [
+            53,
+            1,
+            5
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            287,
+            11,
+            -2
+          ],
+          "expect": 50
+        },
+        {
+          "op": "update",
+          "arg": [
+            670,
+            8,
+            3
+          ],
+          "expect": 51
+        },
+        {
+          "op": "query",
+          "arg": [
+            396,
+            8,
+            9
+          ],
+          "expect": -9
+        },
+        {
+          "op": "query",
+          "arg": [
+            71,
+            6,
+            10
+          ],
+          "expect": 8
+        },
+        {
+          "op": "update",
+          "arg": [
+            767,
+            14,
+            -1
+          ],
+          "expect": 52
+        },
+        {
+          "op": "query",
+          "arg": [
+            911,
+            14,
+            16
+          ],
+          "expect": -15
+        },
+        {
+          "op": "query",
+          "arg": [
+            450,
+            3,
+            7
+          ],
+          "expect": -2
+        },
+        {
+          "op": "query",
+          "arg": [
+            753,
+            0,
+            4
+          ],
+          "expect": 2
+        },
+        {
+          "op": "query",
+          "arg": [
+            640,
+            0,
+            13
+          ],
+          "expect": -1
+        },
+        {
+          "op": "query",
+          "arg": [
+            592,
+            0,
+            3
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            741,
+            0,
+            3
+          ],
+          "expect": 53
+        },
+        {
+          "op": "update",
+          "arg": [
+            392,
+            -1,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "query",
+          "arg": [
+            886,
+            1,
+            15
+          ],
+          "expect": -1
+        },
+        {
+          "op": "query",
+          "arg": [
+            664,
+            5,
+            10
+          ],
+          "expect": -6
+        },
+        {
+          "op": "update",
+          "arg": [
+            829,
+            2,
+            1
+          ],
+          "expect": 54
+        },
+        {
+          "op": "query",
+          "arg": [
+            296,
+            6,
+            16
+          ],
+          "expect": 8
+        },
+        {
+          "op": "query",
+          "arg": [
+            127,
+            1,
+            13
+          ],
+          "expect": 2
+        },
+        {
+          "op": "query",
+          "arg": [
+            367,
+            1,
+            2
+          ],
+          "expect": -1
+        },
+        {
+          "op": "update",
+          "arg": [
+            415,
+            9,
+            -3
+          ],
+          "expect": 55
+        },
+        {
+          "op": "query",
+          "arg": [
+            336,
+            0,
+            7
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            351,
+            -1,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "query",
+          "arg": [
+            996,
+            3,
+            13
+          ],
+          "expect": -2
+        },
+        {
+          "op": "query",
+          "arg": [
+            252,
+            0,
+            15
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            62,
+            6,
+            2
+          ],
+          "expect": 56
+        },
+        {
+          "op": "query",
+          "arg": [
+            297,
+            6,
+            7
+          ],
+          "expect": 0
+        },
+        {
+          "op": "update",
+          "arg": [
+            605,
+            7,
+            2
+          ],
+          "expect": 57
+        },
+        {
+          "op": "query",
+          "arg": [
+            728,
+            0,
+            7
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            431,
+            14,
+            1
+          ],
+          "expect": 58
+        },
+        {
+          "op": "update",
+          "arg": [
+            981,
+            11,
+            3
+          ],
+          "expect": 59
+        },
+        {
+          "op": "update",
+          "arg": [
+            998,
+            -1,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            635,
+            0,
+            1
+          ],
+          "expect": 60
+        },
+        {
+          "op": "update",
+          "arg": [
+            125,
+            5,
+            0
+          ],
+          "expect": 61
+        },
+        {
+          "op": "update",
+          "arg": [
+            637,
+            0,
+            -3
+          ],
+          "expect": 62
+        },
+        {
+          "op": "update",
+          "arg": [
+            705,
+            13,
+            0
+          ],
+          "expect": 63
+        },
+        {
+          "op": "update",
+          "arg": [
+            1018,
+            12,
+            -3
+          ],
+          "expect": 64
+        },
+        {
+          "op": "query",
+          "arg": [
+            119,
+            3,
+            9
+          ],
+          "expect": 1
+        },
+        {
+          "op": "query",
+          "arg": [
+            607,
+            1,
+            6
+          ],
+          "expect": -1
+        },
+        {
+          "op": "query",
+          "arg": [
+            705,
+            5,
+            8
+          ],
+          "expect": -6
+        },
+        {
+          "op": "query",
+          "arg": [
+            984,
+            11,
+            15
+          ],
+          "expect": -12
+        },
+        {
+          "op": "query",
+          "arg": [
+            764,
+            5,
+            14
+          ],
+          "expect": -6
+        },
+        {
+          "op": "query",
+          "arg": [
+            508,
+            5,
+            13
+          ],
+          "expect": -6
+        },
+        {
+          "op": "query",
+          "arg": [
+            933,
+            1,
+            14
+          ],
+          "expect": 2
+        },
+        {
+          "op": "update",
+          "arg": [
+            404,
+            1,
+            -1
+          ],
+          "expect": 65
+        },
+        {
+          "op": "update",
+          "arg": [
+            229,
+            8,
+            3
+          ],
+          "expect": 66
+        },
+        {
+          "op": "query",
+          "arg": [
+            40,
+            9,
+            16
+          ],
+          "expect": 3
+        },
+        {
+          "op": "query",
+          "arg": [
+            15,
+            13,
+            13
+          ],
+          "expect": 0
+        },
+        {
+          "op": "query",
+          "arg": [
+            948,
+            11,
+            15
+          ],
+          "expect": -12
+        },
+        {
+          "op": "update",
+          "arg": [
+            701,
+            7,
+            3
+          ],
+          "expect": 67
+        },
+        {
+          "op": "query",
+          "arg": [
+            639,
+            2,
+            12
+          ],
+          "expect": -3
+        },
+        {
+          "op": "update",
+          "arg": [
+            533,
+            3,
+            -2
+          ],
+          "expect": 68
+        },
+        {
+          "op": "update",
+          "arg": [
+            103,
+            -1,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            650,
+            1,
+            -1
+          ],
+          "expect": 69
+        },
+        {
+          "op": "update",
+          "arg": [
+            880,
+            8,
+            3
+          ],
+          "expect": 70
+        },
+        {
+          "op": "update",
+          "arg": [
+            381,
+            8,
+            -1
+          ],
+          "expect": 71
+        },
+        {
+          "op": "update",
+          "arg": [
+            597,
+            7,
+            0
+          ],
+          "expect": 72
+        },
+        {
+          "op": "update",
+          "arg": [
+            281,
+            9,
+            -3
+          ],
+          "expect": 73
+        },
+        {
+          "op": "update",
+          "arg": [
+            239,
+            9,
+            -1
+          ],
+          "expect": 74
+        },
+        {
+          "op": "update",
+          "arg": [
+            957,
+            -1,
+            -3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "query",
+          "arg": [
+            185,
+            2,
+            12
+          ],
+          "expect": -3
+        },
+        {
+          "op": "query",
+          "arg": [
+            760,
+            3,
+            11
+          ],
+          "expect": -2
+        },
+        {
+          "op": "update",
+          "arg": [
+            979,
+            12,
+            -2
+          ],
+          "expect": 75
+        },
+        {
+          "op": "update",
+          "arg": [
+            339,
+            3,
+            1
+          ],
+          "expect": 76
+        },
+        {
+          "op": "update",
+          "arg": [
+            259,
+            16,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "update",
+          "arg": [
+            689,
+            12,
+            -1
+          ],
+          "expect": 77
+        },
+        {
+          "op": "query",
+          "arg": [
+            1013,
+            1,
+            11
+          ],
+          "expect": 2
+        },
+        {
+          "op": "query",
+          "arg": [
+            272,
+            6,
+            8
+          ],
+          "expect": 8
+        },
+        {
+          "op": "query",
+          "arg": [
+            518,
+            6,
+            16
+          ],
+          "expect": 8
+        },
+        {
+          "op": "update",
+          "arg": [
+            413,
+            13,
+            3
+          ],
+          "expect": 78
+        },
+        {
+          "op": "update",
+          "arg": [
+            649,
+            3,
+            3
+          ],
+          "expect": 79
+        },
+        {
+          "op": "update",
+          "arg": [
+            78,
+            9,
+            -3
+          ],
+          "expect": 80
+        },
+        {
+          "op": "query",
+          "arg": [
+            313,
+            0,
+            5
+          ],
+          "expect": -1
+        },
+        {
+          "op": "update",
+          "arg": [
+            767,
+            12,
+            0
+          ],
+          "expect": 81
+        },
+        {
+          "op": "query",
+          "arg": [
+            1016,
+            4,
+            16
+          ],
+          "expect": 5
+        },
+        {
+          "op": "update",
+          "arg": [
+            670,
+            4,
+            2
+          ],
+          "expect": 82
+        },
+        {
+          "op": "update",
+          "arg": [
+            762,
+            9,
+            1
+          ],
+          "expect": 83
+        },
+        {
+          "op": "query",
+          "arg": [
+            272,
+            5,
+            5
+          ],
+          "expect": 0
+        },
+        {
+          "op": "query",
+          "arg": [
+            655,
+            6,
+            13
+          ],
+          "expect": -2
+        },
+        {
+          "op": "query",
+          "arg": [
+            15,
+            11,
+            16
+          ],
+          "expect": -12
+        },
+        {
+          "op": "query",
+          "arg": [
+            403,
+            2,
+            13
+          ],
+          "expect": -3
+        },
+        {
+          "op": "update",
+          "arg": [
+            848,
+            3,
+            2
+          ],
+          "expect": 84
+        }
+      ]
+    }
+  ]
+}

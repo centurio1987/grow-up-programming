@@ -40,8 +40,13 @@ import { xorLinkedListContract } from "../src/data-structures/linear/xorLinkedLi
 import { concurrentSkipListContract } from "../src/data-structures/probabilistic/concurrentSkipList/concurrentSkipList.contract.ts";
 import { fenwickTreeContract } from "../src/data-structures/range-query/fenwickTree/fenwickTree.contract.ts";
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
+import { persistentSegmentTreeContract } from "../src/data-structures/range-query/persistentSegmentTree/persistentSegmentTree.contract.ts";
 import { segmentTreeContract } from "../src/data-structures/range-query/segmentTree/segmentTree.contract.ts";
-import { segmentTreeLazyContract } from "../src/data-structures/range-query/segmentTreeLazy/segmentTreeLazy.contract.ts";
+import {
+  segmentTreeLazyContract,
+  segmentTreeLazyCountedContract,
+} from "../src/data-structures/range-query/segmentTreeLazy/segmentTreeLazy.contract.ts";
+import { sparseTableContract } from "../src/data-structures/range-query/sparseTable/sparseTable.contract.ts";
 import { binarySearchTreeContract } from "../src/data-structures/tree/binarySearchTree/binarySearchTree.contract.ts";
 import { cartesianTreeContract } from "../src/data-structures/tree/cartesianTree/cartesianTree.contract.ts";
 import { linkCutTreeContract } from "../src/data-structures/tree/linkCutTree/linkCutTree.contract.ts";
@@ -204,12 +209,27 @@ const SPECS: ContractSpec<any, any>[] = [
   concurrentSkipListContract,
   fenwickTreeContract,
   intervalTreeContract,
+  // `update` 의 인자 `[버전, 자리, 값]` · `query` 의 인자 `[버전, from, to]` 에서 **버전 자리가 음수가 아니면 지금 있는 버전 수로 나눈
+  // 나머지로 읽는다** — 경계 케이스는 번호가 작아 그대로이고 무작위 시퀀스가 이 규칙을 쓴다(`persistentSegmentTree.contract.ts`
+  // 머리말 · `VersionedSized#pick`). 재생하는 쪽이 받아들인 갱신 수를 세어 같은 규칙을 옮겨야 한다. `update` 의 기대값은 지은
+  // 버전의 번호이고 결합은 `segmentTree` 와 같은 `firstNonZero`(항등원 0), 초기 수열은 `initialValues(16)` 이다.
+  persistentSegmentTreeContract,
   segmentTreeContract,
   // `apply` 의 인자는 `[from, to, update]` 이고 대수는 스위트의 것이다 — 결합은 `segmentTree` 와 같은 「왼쪽에서 처음
   // 만나는 0 아닌 값」(항등원 0), 갱신은 「0 이 아닌 `update` 는 덮는 자리를 그 수로 덮고 0 은 그대로 둔다」, 합성은
   // 「나중 것이 0 이 아니면 나중 것」(`segmentTreeLazy.contract.ts` 의 `coverAct`·`coverCompose`). 재생하는 쪽이 이
   // 넷을 함께 옮겨야 한다. 초기 수열은 `segmentTree` 와 같은 `initialValues(16)` 이다.
   segmentTreeLazyContract,
+  // **같은 구조의 둘째 벌이다**(S20) — 다른 계약이 아니라 같은 계약을 자리 수가 값을 바꾸는 대수로 한 번 더 돈 것이다. 결합은
+  // 합(항등원 0), 갱신은 「덮는 자리마다 `update` 를 더한다」(`act(u, v, k) = v + u·k`), 합성은 더하기이고 초기 수열은
+  // `initialValues(13)` 이다(`segmentTreeLazy.contract.ts` 의 `sum`·`addAct`·`addCompose`·`COUNTED_SLOTS`). 위 파일의 대수는
+  // 자리 수를 0 과 그 밖만 가르므로 **재생하는 쪽이 둘 다 돌아야** 자리 수 오전달이 걸린다.
+  segmentTreeLazyCountedContract,
+  // 연산 `reindex(수열)` 은 계약 표의 연산이 아니라 불변 구조의 껍데기(`Reindexable`)가 생성자 행을 나르는 자리다 — 받은 수열로 새로
+  // 짓는다(`sparseTable.contract.ts` 머리말 · 불변 사실 52 ④). 처음 색인은 빈 수열이다. `query` 의 인자 `[a, b]` 는 **음수가 아니면
+  // 지금 수열 길이 + 1 로 나눈 나머지로 읽고 둘을 작은 것부터 늘어놓는다** — 둘 중 하나라도 음수면 그대로 넘긴다. 결합은 멱등인
+  // `firstNonZero`(항등원 0)이고 기대값 `"RangeError"` 는 던진 예외를 관측값으로 바꾼 것이다.
+  sparseTableContract,
   binarySearchTreeContract,
   cartesianTreeContract,
   linkCutTreeContract,
