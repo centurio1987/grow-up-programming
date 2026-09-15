@@ -47,6 +47,8 @@ import {
   segmentTreeLazyCountedContract,
 } from "../src/data-structures/range-query/segmentTreeLazy/segmentTreeLazy.contract.ts";
 import { sparseTableContract } from "../src/data-structures/range-query/sparseTable/sparseTable.contract.ts";
+import { kdTreeContract } from "../src/data-structures/spatial/kdTree/kdTree.contract.ts";
+import { quadtreeContract } from "../src/data-structures/spatial/quadtree/quadtree.contract.ts";
 import { binarySearchTreeContract } from "../src/data-structures/tree/binarySearchTree/binarySearchTree.contract.ts";
 import { cartesianTreeContract } from "../src/data-structures/tree/cartesianTree/cartesianTree.contract.ts";
 import { linkCutTreeContract } from "../src/data-structures/tree/linkCutTree/linkCutTree.contract.ts";
@@ -230,6 +232,14 @@ const SPECS: ContractSpec<any, any>[] = [
   // 지금 수열 길이 + 1 로 나눈 나머지로 읽고 둘을 작은 것부터 늘어놓는다** — 둘 중 하나라도 음수면 그대로 넘긴다. 결합은 멱등인
   // `firstNonZero`(항등원 0)이고 기대값 `"RangeError"` 는 던진 예외를 관측값으로 바꾼 것이다.
   sparseTableContract,
+  // 점은 `[x, y]` 두 정수이고 `rangeSearch` 의 인자는 `[min, max]` 두 모서리다. **`rangeSearch` 의 기대값은 답을 (x, y) 순으로 정렬한
+  // 것이다** — 계약이 답의 순서를 정하지 않아 재생하는 쪽도 정렬해 견준다(`kdTree.contract.ts` 머리말). `nearestNeighbor` 는 같은 거리면
+  // x · y 가 작은 점이고, 기대값 `"RangeError"` 는 던진 예외를 관측값으로 바꾼 것이다.
+  kdTreeContract,
+  // 경계 케이스의 앞 셋이 `KDTree.json` 과 같다 — `spatial/kdTree` 의 경계 케이스 객체를 그대로 펼쳐 넣었기 때문이다(`quadtree.contract.ts`
+  // 머리말). 점 좌표는 유한한 수 전부이고 `rangeSearch` 의 기대값은 답을 (x, y) 순으로 정렬한 것이다. 정의역 밖(NaN · 무한)은 JSON 에
+  // 못 담겨 이 vector 에 없다.
+  quadtreeContract,
   binarySearchTreeContract,
   cartesianTreeContract,
   linkCutTreeContract,

@@ -45,8 +45,8 @@ src/data-structures/range-query/persistentSegmentTree	range-query	persistentSegm
 src/data-structures/range-query/segmentTree	range-query	segmentTree	-	complexity	-	0	581	true
 src/data-structures/range-query/segmentTreeLazy	range-query	segmentTreeLazy	-	complexity	-	0	368	true
 src/data-structures/range-query/sparseTable	range-query	sparseTable	-	complexity	-	0	214	true
-src/data-structures/spatial/kdTree	spatial	kdTree	-	-	-	92	352	false
-src/data-structures/spatial/quadtree	spatial	quadtree	-	-	-	106	425	false
+src/data-structures/spatial/kdTree	spatial	kdTree	-	complexity	-	0	352	true
+src/data-structures/spatial/quadtree	spatial	quadtree	-	complexity	-	0	425	true
 src/data-structures/tree/avlTree	tree	avlTree	-	complexity	-	0	646	true
 src/data-structures/tree/bPlusTree	tree	bPlusTree	-	complexity	-	0	1026	true
 src/data-structures/tree/bTree	tree	bTree	-	complexity	-	0	1098	true

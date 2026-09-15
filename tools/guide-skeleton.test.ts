@@ -84,6 +84,16 @@ const SKELETON_EXEMPT = new Map([
     "KAN-027 재개(2026-09-14) 유닛은 계약 층만 낸다. 계약과 정본은 T4-05 에서 섰고 가이드는" +
       " KAN-036 이 다시 쓰기로 직렬 중재됐다(docs/ORD-006-wbs.md 머리 블록). 다시 쓰는 카드가 이 줄을 지운다",
   ],
+  [
+    "spatial/kdTree",
+    "KAN-027 재개(2026-09-14) 유닛은 계약 층만 낸다. 계약과 정본은 T4-06 에서 섰고 가이드는" +
+      " KAN-036 이 다시 쓰기로 직렬 중재됐다(docs/ORD-006-wbs.md 머리 블록). 다시 쓰는 카드가 이 줄을 지운다",
+  ],
+  [
+    "spatial/quadtree",
+    "KAN-027 재개(2026-09-14) 유닛은 계약 층만 낸다. 계약과 정본은 T4-07 에서 섰고 가이드는" +
+      " KAN-036 이 다시 쓰기로 직렬 중재됐다(docs/ORD-006-wbs.md 머리 블록). 다시 쓰는 카드가 이 줄을 지운다",
+  ],
 ]);
 
 async function rewrittenGuides(): Promise<string[]> {
