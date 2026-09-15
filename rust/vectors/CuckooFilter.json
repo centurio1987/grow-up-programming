@@ -361,44 +361,11 @@
       ]
     },
     {
-      "name": "오차 판정 — 새 원소 거절 없음 · 거짓 음성 없음 · 찬 필터와 다 지운 필터의 참 · 넣지 않은 원소의 지우기 (ε = 0.1 · 0.01 · 0.001)",
-      "kind": "edge",
-      "steps": [
-        {
-          "op": "errorCheck",
-          "arg": [
-            256,
-            0.1,
-            1
-          ],
-          "expect": true
-        },
-        {
-          "op": "errorCheck",
-          "arg": [
-            1024,
-            0.01,
-            2
-          ],
-          "expect": true
-        },
-        {
-          "op": "errorCheck",
-          "arg": [
-            1024,
-            0.001,
-            3
-          ],
-          "expect": true
-        }
-      ]
-    },
-    {
       "name": "무작위 시퀀스 seed=1 200회",
       "kind": "random",
       "steps": [
         {
-          "op": "delete",
+          "op": "has",
           "arg": "",
           "expect": "not-added"
         },
@@ -408,26 +375,23 @@
           "expect": "not-added"
         },
         {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.1,
-            1316061431
-          ],
-          "expect": true
-        },
-        {
           "op": "delete",
-          "arg": "abb",
+          "arg": "가b",
           "expect": "not-added"
         },
         {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.1,
-            1049664918
-          ],
+          "op": "has",
+          "arg": "b가a",
+          "expect": "not-added"
+        },
+        {
+          "op": "add",
+          "arg": "가가가",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": "a가a",
           "expect": true
         },
         {
@@ -470,50 +434,27 @@
           "expect": "not-added"
         },
         {
-          "op": "add",
-          "arg": "bbb",
+          "op": "constructor",
+          "arg": [
+            64,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "delete",
+          "arg": "ba",
           "expect": true
         },
         {
           "op": "has",
-          "arg": "b가가",
-          "expect": true
-        },
-        {
-          "op": "constructor",
-          "arg": [
-            2.5,
-            0.000001
-          ],
-          "expect": "RangeError"
+          "arg": "ab가",
+          "expect": "not-added"
         },
         {
           "op": "delete",
           "arg": "가가가",
-          "expect": "not-added"
-        },
-        {
-          "op": "add",
-          "arg": "b가가",
-          "expect": "duplicate"
-        },
-        {
-          "op": "constructor",
-          "arg": [
-            2.5,
-            0.000001
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "add",
-          "arg": "a가",
           "expect": true
-        },
-        {
-          "op": "delete",
-          "arg": "bab",
-          "expect": "not-added"
         },
         {
           "op": "constructor",
@@ -524,42 +465,83 @@
           "expect": "RangeError"
         },
         {
-          "op": "delete",
+          "op": "add",
+          "arg": "aba",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            64,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "has",
+          "arg": "ab",
+          "expect": "not-added"
+        },
+        {
+          "op": "add",
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "has",
           "arg": "가ba",
           "expect": "not-added"
         },
         {
+          "op": "constructor",
+          "arg": [
+            64,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
           "op": "add",
-          "arg": "가가가",
+          "arg": "가가",
           "expect": true
         },
         {
-          "op": "delete",
-          "arg": "aba",
+          "op": "has",
+          "arg": "가가b",
           "expect": "not-added"
         },
         {
-          "op": "add",
+          "op": "delete",
           "arg": "bb가",
-          "expect": true
+          "expect": "not-added"
         },
         {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.01,
-            1487655927
-          ],
-          "expect": true
+          "op": "delete",
+          "arg": "가a가",
+          "expect": "not-added"
         },
         {
-          "op": "errorCheck",
+          "op": "delete",
+          "arg": "aa",
+          "expect": "not-added"
+        },
+        {
+          "op": "constructor",
           "arg": [
-            128,
-            0.01,
-            2005402451
+            2.5,
+            0.000001
           ],
-          "expect": true
+          "expect": "RangeError"
+        },
+        {
+          "op": "delete",
+          "arg": "a가b",
+          "expect": "not-added"
+        },
+        {
+          "op": "delete",
+          "arg": "b가a",
+          "expect": "not-added"
         },
         {
           "op": "constructor",
@@ -568,26 +550,6 @@
             1
           ],
           "expect": "RangeError"
-        },
-        {
-          "op": "add",
-          "arg": "가bb",
-          "expect": true
-        },
-        {
-          "op": "has",
-          "arg": "가가a",
-          "expect": "not-added"
-        },
-        {
-          "op": "delete",
-          "arg": "a가",
-          "expect": true
-        },
-        {
-          "op": "delete",
-          "arg": "가가a",
-          "expect": "not-added"
         },
         {
           "op": "constructor",
@@ -603,12 +565,12 @@
           "expect": true
         },
         {
-          "op": "has",
+          "op": "add",
           "arg": "가가",
-          "expect": "not-added"
+          "expect": "duplicate"
         },
         {
-          "op": "delete",
+          "op": "has",
           "arg": "a가b",
           "expect": "not-added"
         },
@@ -618,21 +580,19 @@
           "expect": "not-added"
         },
         {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.01,
-            585804643
-          ],
+          "op": "delete",
+          "arg": "가ba",
+          "expect": "not-added"
+        },
+        {
+          "op": "add",
+          "arg": "a가",
           "expect": true
         },
         {
-          "op": "constructor",
-          "arg": [
-            64,
-            1
-          ],
-          "expect": "RangeError"
+          "op": "add",
+          "arg": "가bb",
+          "expect": true
         },
         {
           "op": "add",
@@ -640,7 +600,7 @@
           "expect": true
         },
         {
-          "op": "delete",
+          "op": "has",
           "arg": "a가가",
           "expect": "not-added"
         },
@@ -658,9 +618,9 @@
           "expect": "RangeError"
         },
         {
-          "op": "delete",
+          "op": "has",
           "arg": "bbb",
-          "expect": true
+          "expect": "not-added"
         },
         {
           "op": "constructor",
@@ -671,23 +631,22 @@
           "expect": "RangeError"
         },
         {
-          "op": "add",
-          "arg": "가aa",
-          "expect": true
-        },
-        {
-          "op": "add",
-          "arg": "가가가",
-          "expect": "duplicate"
-        },
-        {
-          "op": "errorCheck",
+          "op": "constructor",
           "arg": [
-            128,
-            0.01,
-            7961282
+            2.5,
+            0.000001
           ],
-          "expect": true
+          "expect": "RangeError"
+        },
+        {
+          "op": "delete",
+          "arg": "가가b",
+          "expect": "not-added"
+        },
+        {
+          "op": "delete",
+          "arg": "",
+          "expect": "not-added"
         },
         {
           "op": "constructor",
@@ -703,35 +662,32 @@
           "expect": true
         },
         {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.1,
-            538177709
-          ],
-          "expect": true
-        },
-        {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.01,
-            1700424228
-          ],
-          "expect": true
+          "op": "delete",
+          "arg": "가",
+          "expect": "not-added"
         },
         {
           "op": "add",
-          "arg": "가",
+          "arg": "가ba",
           "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "가aa",
+          "expect": "not-added"
         },
         {
           "op": "constructor",
           "arg": [
-            64,
-            0
+            -1,
+            0.000001
           ],
           "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": "a가가",
+          "expect": true
         },
         {
           "op": "add",
@@ -744,37 +700,19 @@
           "expect": true
         },
         {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.01,
-            1436802442
-          ],
-          "expect": true
+          "op": "delete",
+          "arg": "bba",
+          "expect": "not-added"
+        },
+        {
+          "op": "has",
+          "arg": "b가",
+          "expect": "not-added"
         },
         {
           "op": "add",
-          "arg": "aa가",
-          "expect": true
-        },
-        {
-          "op": "add",
-          "arg": "bb",
-          "expect": true
-        },
-        {
-          "op": "add",
-          "arg": "가가a",
-          "expect": true
-        },
-        {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.1,
-            707942746
-          ],
-          "expect": true
+          "arg": "가가",
+          "expect": "duplicate"
         },
         {
           "op": "constructor",
@@ -785,8 +723,13 @@
           "expect": "RangeError"
         },
         {
+          "op": "delete",
+          "arg": "a가",
+          "expect": true
+        },
+        {
           "op": "add",
-          "arg": "b가",
+          "arg": "가",
           "expect": true
         },
         {
@@ -798,28 +741,40 @@
           "expect": "RangeError"
         },
         {
-          "op": "errorCheck",
+          "op": "constructor",
           "arg": [
-            128,
-            0.01,
-            918764596
+            64,
+            1
           ],
-          "expect": true
+          "expect": "RangeError"
         },
         {
-          "op": "delete",
+          "op": "add",
+          "arg": "가bb",
+          "expect": "duplicate"
+        },
+        {
+          "op": "has",
+          "arg": "abb",
+          "expect": "not-added"
+        },
+        {
+          "op": "has",
           "arg": "aaa",
           "expect": "not-added"
         },
         {
-          "op": "add",
-          "arg": "a가가",
-          "expect": true
+          "op": "constructor",
+          "arg": [
+            64,
+            1
+          ],
+          "expect": "RangeError"
         },
         {
           "op": "delete",
-          "arg": "가aa",
-          "expect": true
+          "arg": "b",
+          "expect": "not-added"
         },
         {
           "op": "constructor",
@@ -830,36 +785,32 @@
           "expect": "RangeError"
         },
         {
+          "op": "constructor",
+          "arg": [
+            2.5,
+            0.000001
+          ],
+          "expect": "RangeError"
+        },
+        {
           "op": "delete",
-          "arg": "a",
+          "arg": "bba",
           "expect": "not-added"
         },
         {
           "op": "add",
-          "arg": "abb",
+          "arg": "aab",
           "expect": true
         },
         {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.01,
-            770427594
-          ],
-          "expect": true
+          "op": "has",
+          "arg": "",
+          "expect": "not-added"
         },
         {
-          "op": "add",
-          "arg": "ba가",
+          "op": "delete",
+          "arg": "a가가",
           "expect": true
-        },
-        {
-          "op": "constructor",
-          "arg": [
-            64,
-            0
-          ],
-          "expect": "RangeError"
         },
         {
           "op": "has",
@@ -883,14 +834,14 @@
           "expect": "RangeError"
         },
         {
-          "op": "delete",
+          "op": "has",
           "arg": "가b",
           "expect": "not-added"
         },
         {
           "op": "has",
           "arg": "가가a",
-          "expect": true
+          "expect": "not-added"
         },
         {
           "op": "constructor",
@@ -901,14 +852,14 @@
           "expect": "RangeError"
         },
         {
-          "op": "delete",
+          "op": "has",
           "arg": "a",
-          "expect": "not-added"
+          "expect": true
         },
         {
           "op": "has",
           "arg": "aa가",
-          "expect": true
+          "expect": "not-added"
         },
         {
           "op": "delete",
@@ -934,15 +885,15 @@
         {
           "op": "add",
           "arg": "ba가",
-          "expect": "duplicate"
+          "expect": true
         },
         {
           "op": "has",
           "arg": "aa가",
-          "expect": true
+          "expect": "not-added"
         },
         {
-          "op": "delete",
+          "op": "has",
           "arg": "ab",
           "expect": true
         },
@@ -952,9 +903,9 @@
           "expect": true
         },
         {
-          "op": "delete",
+          "op": "has",
           "arg": "a가가",
-          "expect": true
+          "expect": "not-added"
         },
         {
           "op": "constructor",
@@ -965,65 +916,17 @@
           "expect": "RangeError"
         },
         {
-          "op": "add",
-          "arg": "a가",
-          "expect": true
-        },
-        {
-          "op": "delete",
-          "arg": "ba가",
-          "expect": true
-        },
-        {
           "op": "constructor",
           "arg": [
-            -1,
-            0.000001
+            64,
+            0
           ],
           "expect": "RangeError"
         },
         {
           "op": "has",
-          "arg": "bb가",
-          "expect": true
-        },
-        {
-          "op": "delete",
-          "arg": "가aa",
+          "arg": "",
           "expect": "not-added"
-        },
-        {
-          "op": "delete",
-          "arg": "bbb",
-          "expect": "not-added"
-        },
-        {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.1,
-            1863032276
-          ],
-          "expect": true
-        },
-        {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.1,
-            1768656491
-          ],
-          "expect": true
-        },
-        {
-          "op": "has",
-          "arg": "baa",
-          "expect": "not-added"
-        },
-        {
-          "op": "add",
-          "arg": "aa",
-          "expect": "duplicate"
         },
         {
           "op": "constructor",
@@ -1034,6 +937,29 @@
           "expect": "RangeError"
         },
         {
+          "op": "has",
+          "arg": "bbb",
+          "expect": "not-added"
+        },
+        {
+          "op": "delete",
+          "arg": "bba",
+          "expect": "not-added"
+        },
+        {
+          "op": "has",
+          "arg": "가가b",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            64,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
           "op": "constructor",
           "arg": [
             64,
@@ -1042,13 +968,8 @@
           "expect": "RangeError"
         },
         {
-          "op": "delete",
-          "arg": "가ba",
-          "expect": "not-added"
-        },
-        {
           "op": "has",
-          "arg": "b가가",
+          "arg": "aab",
           "expect": true
         },
         {
@@ -1061,47 +982,73 @@
         },
         {
           "op": "add",
-          "arg": "가ba",
-          "expect": true
-        },
-        {
-          "op": "delete",
-          "arg": "가",
-          "expect": true
-        },
-        {
-          "op": "constructor",
-          "arg": [
-            -1,
-            0.000001
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.01,
-            722674507
-          ],
-          "expect": true
-        },
-        {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.01,
-            1348588920
-          ],
+          "arg": "",
           "expect": true
         },
         {
           "op": "has",
-          "arg": "bab",
+          "arg": "baa",
           "expect": "not-added"
         },
         {
           "op": "has",
+          "arg": "가ba",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": "b가가",
+          "expect": "duplicate"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            64,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            64,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            64,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            64,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": "가b가",
+          "expect": "duplicate"
+        },
+        {
+          "op": "delete",
+          "arg": "bba",
+          "expect": "not-added"
+        },
+        {
+          "op": "add",
+          "arg": "bab",
+          "expect": true
+        },
+        {
+          "op": "add",
           "arg": "bb",
           "expect": true
         },
@@ -1132,29 +1079,27 @@
         {
           "op": "add",
           "arg": "",
+          "expect": "duplicate"
+        },
+        {
+          "op": "add",
+          "arg": "aaa",
           "expect": true
         },
         {
-          "op": "has",
-          "arg": "aaa",
+          "op": "delete",
+          "arg": "bba",
           "expect": "not-added"
         },
         {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.01,
-            1030261451
-          ],
-          "expect": true
+          "op": "add",
+          "arg": "",
+          "expect": "duplicate"
         },
         {
-          "op": "constructor",
-          "arg": [
-            -1,
-            0.000001
-          ],
-          "expect": "RangeError"
+          "op": "has",
+          "arg": "a",
+          "expect": true
         },
         {
           "op": "delete",
@@ -1172,12 +1117,12 @@
         {
           "op": "has",
           "arg": "bab",
-          "expect": "not-added"
+          "expect": true
         },
         {
-          "op": "has",
+          "op": "add",
           "arg": "ba가",
-          "expect": "not-added"
+          "expect": "duplicate"
         },
         {
           "op": "has",
@@ -1185,40 +1130,37 @@
           "expect": "not-added"
         },
         {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.1,
-            1630567905
-          ],
-          "expect": true
+          "op": "delete",
+          "arg": "aa가",
+          "expect": "not-added"
         },
         {
           "op": "delete",
-          "arg": "b가",
+          "arg": "b가a",
           "expect": true
         },
         {
           "op": "constructor",
           "arg": [
-            2.5,
-            0.000001
+            64,
+            1
           ],
           "expect": "RangeError"
         },
         {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.01,
-            1379825875
-          ],
+          "op": "add",
+          "arg": "가가b",
           "expect": true
         },
         {
           "op": "has",
+          "arg": "bba",
+          "expect": "not-added"
+        },
+        {
+          "op": "add",
           "arg": "aa",
-          "expect": true
+          "expect": "duplicate"
         },
         {
           "op": "delete",
@@ -1239,42 +1181,43 @@
           "expect": "RangeError"
         },
         {
-          "op": "add",
-          "arg": "가가",
-          "expect": true
+          "op": "constructor",
+          "arg": [
+            64,
+            0
+          ],
+          "expect": "RangeError"
         },
         {
-          "op": "delete",
-          "arg": "a",
-          "expect": "not-added"
-        },
-        {
-          "op": "add",
-          "arg": "b",
-          "expect": true
+          "op": "constructor",
+          "arg": [
+            -1,
+            0.000001
+          ],
+          "expect": "RangeError"
         },
         {
           "op": "add",
           "arg": "가가a",
-          "expect": "duplicate"
+          "expect": true
         },
         {
           "op": "add",
           "arg": "aba",
+          "expect": "duplicate"
+        },
+        {
+          "op": "has",
+          "arg": "ab",
           "expect": true
         },
         {
-          "op": "delete",
-          "arg": "ab",
-          "expect": "not-added"
-        },
-        {
-          "op": "delete",
+          "op": "has",
           "arg": "가aa",
           "expect": "not-added"
         },
         {
-          "op": "delete",
+          "op": "has",
           "arg": "ab가",
           "expect": "not-added"
         },
@@ -1287,23 +1230,22 @@
           "expect": "RangeError"
         },
         {
-          "op": "has",
+          "op": "add",
           "arg": "가b가",
-          "expect": true
-        },
-        {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.01,
-            424424011
-          ],
-          "expect": true
+          "expect": "duplicate"
         },
         {
           "op": "delete",
           "arg": "ba가",
-          "expect": "not-added"
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            64,
+            0
+          ],
+          "expect": "RangeError"
         },
         {
           "op": "has",
@@ -1337,51 +1279,49 @@
           "expect": true
         },
         {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.01,
-            910819657
-          ],
+          "op": "delete",
+          "arg": "가b가",
           "expect": true
-        },
-        {
-          "op": "constructor",
-          "arg": [
-            64,
-            0
-          ],
-          "expect": "RangeError"
         },
         {
           "op": "add",
-          "arg": "가가b",
-          "expect": true
-        },
-        {
-          "op": "delete",
-          "arg": "a가b",
-          "expect": "not-added"
-        },
-        {
-          "op": "has",
-          "arg": "a",
-          "expect": "not-added"
-        },
-        {
-          "op": "has",
           "arg": "ba",
           "expect": true
         },
         {
           "op": "has",
-          "arg": "a",
+          "arg": "a가가",
           "expect": "not-added"
+        },
+        {
+          "op": "add",
+          "arg": "가가b",
+          "expect": "duplicate"
+        },
+        {
+          "op": "has",
+          "arg": "a가b",
+          "expect": "not-added"
+        },
+        {
+          "op": "add",
+          "arg": "a",
+          "expect": "duplicate"
+        },
+        {
+          "op": "add",
+          "arg": "ba",
+          "expect": "duplicate"
+        },
+        {
+          "op": "has",
+          "arg": "a",
+          "expect": true
         },
         {
           "op": "has",
           "arg": "aaa",
-          "expect": "not-added"
+          "expect": true
         },
         {
           "op": "has",
@@ -1404,12 +1344,12 @@
         {
           "op": "has",
           "arg": "가",
-          "expect": "not-added"
+          "expect": true
         },
         {
           "op": "add",
           "arg": "a가",
-          "expect": "duplicate"
+          "expect": true
         },
         {
           "op": "delete",
@@ -1417,101 +1357,34 @@
           "expect": "not-added"
         },
         {
-          "op": "add",
-          "arg": "a가a",
-          "expect": true
-        },
-        {
           "op": "constructor",
           "arg": [
-            2.5,
+            -1,
             0.000001
           ],
           "expect": "RangeError"
         },
         {
-          "op": "has",
-          "arg": "가가가",
-          "expect": true
-        },
-        {
-          "op": "add",
-          "arg": "ba가",
-          "expect": true
-        },
-        {
-          "op": "has",
-          "arg": "aba",
-          "expect": true
-        },
-        {
-          "op": "add",
-          "arg": "b",
-          "expect": "duplicate"
-        },
-        {
-          "op": "delete",
-          "arg": "bbb",
-          "expect": "not-added"
-        },
-        {
-          "op": "has",
-          "arg": "a",
-          "expect": "not-added"
-        },
-        {
-          "op": "add",
-          "arg": "가",
-          "expect": true
-        },
-        {
-          "op": "delete",
-          "arg": "가가가",
-          "expect": true
-        },
-        {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.1,
-            1716351763
-          ],
-          "expect": true
-        },
-        {
-          "op": "has",
-          "arg": "",
-          "expect": true
-        },
-        {
-          "op": "add",
-          "arg": "가가a",
-          "expect": "duplicate"
-        },
-        {
           "op": "constructor",
           "arg": [
             64,
-            1
+            0
           ],
           "expect": "RangeError"
         },
         {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.1,
-            1621676548
-          ],
-          "expect": true
+          "op": "delete",
+          "arg": "aa가",
+          "expect": "not-added"
         },
         {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.01,
-            386438090
-          ],
+          "op": "has",
+          "arg": "a가b",
+          "expect": "not-added"
+        },
+        {
+          "op": "add",
+          "arg": "aa가",
           "expect": true
         },
         {
@@ -1524,40 +1397,101 @@
         },
         {
           "op": "has",
-          "arg": "a가b",
-          "expect": "not-added"
+          "arg": "a",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": "가",
+          "expect": "duplicate"
         },
         {
           "op": "has",
-          "arg": "aaa",
+          "arg": "가가가",
           "expect": "not-added"
         },
         {
           "op": "delete",
+          "arg": "a가a",
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "a가a",
+          "expect": "not-added"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            64,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            64,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "delete",
+          "arg": "aa가",
+          "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "가ab",
+          "expect": "not-added"
+        },
+        {
+          "op": "has",
+          "arg": "ba",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            64,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": "a가b",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": "aaa",
+          "expect": "duplicate"
+        },
+        {
+          "op": "has",
           "arg": "가aa",
           "expect": "not-added"
         },
         {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.1,
-            1882006146
-          ],
+          "op": "delete",
+          "arg": "가",
           "expect": true
+        },
+        {
+          "op": "delete",
+          "arg": "a가가",
+          "expect": "not-added"
+        },
+        {
+          "op": "add",
+          "arg": "가ba",
+          "expect": "duplicate"
         },
         {
           "op": "has",
           "arg": "aab",
-          "expect": "not-added"
-        },
-        {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.01,
-            751794137
-          ],
           "expect": true
         },
         {
@@ -1571,16 +1505,6 @@
           "expect": "not-added"
         },
         {
-          "op": "add",
-          "arg": "가bb",
-          "expect": "duplicate"
-        },
-        {
-          "op": "has",
-          "arg": "b가b",
-          "expect": "not-added"
-        },
-        {
           "op": "constructor",
           "arg": [
             2.5,
@@ -1589,59 +1513,24 @@
           "expect": "RangeError"
         },
         {
-          "op": "delete",
+          "op": "has",
+          "arg": "ab",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": "가가",
+          "expect": true
+        },
+        {
+          "op": "has",
           "arg": "aab",
-          "expect": "not-added"
+          "expect": true
         },
         {
           "op": "has",
           "arg": "ab가",
           "expect": "not-added"
-        },
-        {
-          "op": "add",
-          "arg": "b가a",
-          "expect": "duplicate"
-        },
-        {
-          "op": "delete",
-          "arg": "가가가",
-          "expect": "not-added"
-        },
-        {
-          "op": "constructor",
-          "arg": [
-            2.5,
-            0.000001
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "constructor",
-          "arg": [
-            64,
-            0
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "add",
-          "arg": "a가가",
-          "expect": true
-        },
-        {
-          "op": "add",
-          "arg": "b가a",
-          "expect": "duplicate"
-        },
-        {
-          "op": "errorCheck",
-          "arg": [
-            128,
-            0.01,
-            210432968
-          ],
-          "expect": true
         }
       ]
     }

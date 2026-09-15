@@ -25,6 +25,11 @@ jobs:
       - name: 모드 ① 스위트 자기검증
         run: bun run tools/ci.ts self
 
+      # ①′ 확률 계약의 독립 시행 판정(시행마다 새 워커). self 에서 갈라 둔 모드라 여기서 따로 부른다 —
+      # 빠뜨리면 확률 다섯의 오차 판정이 CI 에서 조용히 안 돈다(KAN-026 S24).
+      - name: 모드 ①′ 독립 시행 판정
+        run: bun run tools/ci.ts trials
+
       # ② 정본이 계약을 지키는가.
       - name: 모드 ② 정본 검증
         run: bun run tools/ci.ts reference

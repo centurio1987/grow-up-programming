@@ -6,29 +6,39 @@
  *
  * 검증 등급 `basic` → 축3 엄격도는 `regression`(±60% · 2점 · 적대적 선택).
  *
- * **오차 판정은 `probabilistic/bloomFilter` 가 세운 방식을 그대로 쓴다**(`docs/ORD-006-conventions.md` 「A군 확률
- * 필터 둘」) — 축1 연산 하나(`overestimateCheck`)가 인자 `[ε, δ, seed]` 로 **새 스케치를 하나 세워** 판정을 불리언
- * 관측값으로 돌려주고 참조 모델은 늘 `true` 를 낸다. 하네스는 고치지 않았다. 판정은 이렇게 본다.
+ * **확률 문장은 축1 통계 판정으로 본다 — `../../_contract/runTrials.ts`(`docs/ORD-006-conventions.md` 「원칙 B」 · 그 적용 절).**
+ * 무작위 시퀀스 · 경계 케이스는 결정적인 쪽만 대조한다. 시행 하나(`countMinSketchTrial`)는 이렇다.
  *
- * 1. seed 로 정한 흐름을 넣는다 — 무거운 원소 ⌈1/(4ε)⌉ 개에 증분 3 과 5 를 따로 넣고(원소마다 빈도 8), 그 사이에 가벼운
- *    원소 ⌈2/ε⌉ 개를 증분 1 로 넣는다. 총증분 N 은 ε·N 이 4 안팎이 되는 크기라 **무거운 원소 하나와 같은 칸을 쓰면 그
- *    칸이 한계를 넘는다**. 원소는 `+<꼬리표>:h<차례>` · `+<꼬리표>:l<차례>` 의 줄지은 문자열이다 — 헤더가 확률의 출처를
- *    구현 무작위로 정했으므로 어떤 흐름이든 판정의 입력이 된다.
- * 2. 넣은 원소가 전부 추정 ≥ 실제 빈도인지 본다(결정적인 쪽).
- * 3. 넣지 않은 서로 다른 원소 `QUOTA / δ` 개(`?<꼬리표>:<차례>`, 실제 빈도 0)를 묻고, 추정이 0 보다 작으면 떨어뜨리고,
- *    **추정이 ε·N 을 넘은 원소의 수가 `MARGIN × QUOTA` 이하인지** 본다 — 헤더의 판정 문장 그대로다.
+ * 1. **새 워커 하나 · 스케치 하나.** 헤더가 구현 무작위의 공유 범위를 「실행」으로 적었으므로 시행마다 새 실행이다(원칙 B 의 B3).
+ * 2. **흐름.** 무거운 원소 ⌈1/(4ε)⌉ 개에 증분 3 과 5 를 따로 넣고(원소마다 빈도 8), 그 사이에 가벼운 원소 ⌈2/ε⌉ 개를 증분 1 로
+ *    넣는다. 총증분 N 은 ε·N 이 4 안팎이라 **무거운 원소 하나와 같은 칸을 쓰면 그 칸이 한계를 넘는다**. 넣은 원소가 전부 추정 ≥
+ *    실제 빈도인지 본다(결정적 — 어기면 한계 없이 떨어진다). 넣지 않은 서로 다른 원소 64 개(실제 빈도 0)를 묻는다. **흐름과 물을
+ *    원소는 워커를 띄우기 전에 seed · 시행 번호 · 모양만으로 정한다**(B1).
+ * 3. **Z_t** = (추정이 ε·N 을 넘은 물음의 수) ÷ 64. 모양마다 합 S = Σ Z_t 가 한계 k 를 넘으면 떨어진다.
  *
- * **넣지 않은 원소를 물음으로 고른 이유.** 확률 문장은 어느 원소에나 서는데, 넣지 않은 원소는 실제 빈도가 0 이라 과대
- * 추정이 곧 추정이고 흐름의 모양이 판정에 드러나지 않게 원소를 얼마든지 지을 수 있다. 원소마다 확률 δ 로 한계를 넘는
- * 구현 — 확률 문장을 경계에서 지키는 구현 — 이 이 판정에서 떨어질 확률은 블룸 필터 판정과 같은 모양이라 체르노프
- * 부등식으로 e^{−64/3} 이하다. 그 구현을 판정 도구 fixture 로 두고 실측했다
- * (`../../_contract/_fixtures/boundaryOvercountSketch.ts`, 수치는 `../../_contract/runContract.countMinSketch.test.ts` 머리말).
+ * | 모양 (ε, δ) | 시행 T | 한계 k | [보장] 상한 exp(−T · D(k/T ‖ δ)) |
+ * |---|---|---|---|
+ * | (0.1, 0.1) | 16 | 11 | 1.22 × 10^−7 |
+ * | (0.1, 0.01) | 320 | 17 | 3.39 × 10^−7 |
+ *
+ * **[보장]** 계약을 지키는 어느 구현이든 한 판정에서 떨어질 확률이 위 상한 이하이고 스위트 한 번에 4.62 × 10^−7 이하다 —
+ * Hoeffding(1963) 정리 1. **전제 셋:** ① 입력이 구현 무작위와 독립으로 정해진다(위 2) ② 시행끼리 독립 — 공유 범위가 실행이고
+ * 시행마다 새 워커다(워커 사이 `Math.random` 의 독립은 실행 환경의 전제이고 확인하지 않았다) ③ 시행당 E[Z_t] ≤ δ — 확률 문장이
+ * 원소마다 δ 를 누르므로 기댓값의 선형성으로 선다(원소 사이 독립은 필요 없다). **생성 때 동전 하나로 모든 원소에 한계를 넘는
+ * 구현도** 부당하게 더 떨어지지 않는다. k 는 「상한 ≤ 10^−6 ÷ 판정 수 2」 인 가장 작은 정수다(`../../_contract/judgeTrials.ts`).
+ *
+ * **넣지 않은 원소를 물음으로 고른 이유.** 확률 문장은 어느 원소에나 서는데, 넣지 않은 원소는 실제 빈도가 0 이라 과대 추정이 곧
+ * 추정이고 흐름의 모양이 판정에 드러나지 않게 원소를 얼마든지 지을 수 있다.
+ *
+ * **[경험]** T 는 실패 확률을 읽지 않는 fixture(`SingleRowSketch`, 넘는 몫을 0.062 로 둔 이항 모형)를 놓칠 모형 확률이 10^−6 이하인
+ * 가장 작은 8 의 배수다(모형 확률 3.89 × 10^−8) — 모형이고 보장이 아니다. fixture 들의 실제 판정 수치 · 반복 수는
+ * `docs/ORD-006-conventions.md` 의 `S24` 절 「fixture 수치」 표.
  *
  * **한 번의 추정은 관측값에서 뺀다.** 한 번의 과대 추정은 계약을 지키므로 참조 모델이 대조할 값이 없다. 껍데기가 원소마다
  * 넣은 빈도를 기록하고, `estimate` 의 관측값을 「추정 ≥ 기록한 빈도」의 판정(`true` 또는 어긋남을 적은 문자열)으로 바꾼다
  * — `graph-repr/dag` 의 순서 판정과 같은 모양이다(불변 사실 284).
  *
- * **껍데기를 하나 씌운다(불변 사실 83).** 생성자가 목표 오차 · 실패 확률을 받으므로 판정 연산이 새 스케치를 세우고, 생성자
+ * **껍데기를 하나 씌운다(불변 사실 83).** 생성자가 목표 오차 · 실패 확률을 받으므로 생성자
  * 행은 `linear/bitArray` 처럼 축1 연산(`constructor`)으로 부른다 — 받아들이면 새 스케치로 바꾸고 기록을 비우며, `RangeError`
  * 면 이전 스케치를 그대로 둔다(「껍데기가 생성자 행을 축1 연산으로 부른다」의 규칙).
  *
@@ -38,6 +48,11 @@
  */
 
 import { rngFrom } from "../../_contract/judge";
+import {
+  type TrialPlan,
+  type TrialResult,
+  trialSeed,
+} from "../../_contract/judgeTrials";
 import type { ContractSpec } from "../../_contract/runContract";
 
 /** 헤더 연산 계약 표의 **두 행**을 그대로 옮긴 표면. 생성자 행은 껍데기가 나른다. */
@@ -55,10 +70,6 @@ export type SketchMaker = (epsilon: number, delta: number) => Built;
 const EPSILON = 0.01;
 const DELTA = 0.01;
 
-/** 판정 한 번에서 넣지 않은 원소 중 한계를 넘기를 기대하는 수 — `N_q · δ`. 파일 머리 설명 참고. */
-export const QUOTA = 64;
-/** 헤더가 정한 여유. 넘은 원소가 `MARGIN × QUOTA` 를 넘으면 떨어진다. */
-export const MARGIN = 2;
 /** 무거운 원소 하나의 빈도. 두 번에 나눠 넣는다. */
 const HEAVY_PARTS = [3, 5] as const;
 
@@ -87,82 +98,6 @@ export function streamShape(epsilon: number): {
     light,
     total: heavy * (HEAVY_PARTS[0] + HEAVY_PARTS[1]) + light,
   };
-}
-
-/** 판정 한 번의 수치. 자기시험과 탐침이 한계를 바꿔 보려고 판정과 나눠 둔다. */
-export interface Overcount {
-  /** 넣은 원소 중 추정이 실제 빈도보다 작았던 첫 자리. 없으면 `null`. */
-  under: string | null;
-  /** 넣지 않은 원소 중 추정이 ε·N 을 넘은 수. */
-  hits: number;
-  queries: number;
-  total: number;
-}
-
-/** 새 스케치를 세워 흐름을 넣고 묻는다. 판정은 하지 않고 센 값을 돌려준다. */
-export function measureOvercount(
-  make: SketchMaker,
-  epsilon: number,
-  delta: number,
-  seed: number,
-): Overcount {
-  const sketch = make(epsilon, delta);
-  const tag = Math.floor(rngFrom(seed)() * 36 ** 5).toString(36);
-  const { heavy, light, total } = streamShape(epsilon);
-  const truth = new Map<string, number>();
-  const put = (item: string, count: number) => {
-    sketch.update(item, count);
-    truth.set(item, (truth.get(item) ?? 0) + count);
-  };
-  for (let i = 0; i < heavy; i++) put(`+${tag}:h${i}`, HEAVY_PARTS[0]);
-  for (let i = 0; i < light; i++) put(`+${tag}:l${i}`, 1);
-  for (let i = 0; i < heavy; i++) put(`+${tag}:h${i}`, HEAVY_PARTS[1]);
-
-  const queries = Math.round(QUOTA / delta);
-  for (const [item, frequency] of truth) {
-    const guess = sketch.estimate(item);
-    if (!(guess >= frequency))
-      return {
-        under: `과소 추정 — ${item} 의 추정 ${guess} < 실제 ${frequency}`,
-        hits: 0,
-        queries,
-        total,
-      };
-  }
-  const threshold = epsilon * total + 1e-9;
-  let hits = 0;
-  for (let i = 0; i < queries; i++) {
-    const guess = sketch.estimate(`?${tag}:${i}`);
-    if (!(guess >= 0))
-      return {
-        under: `과소 추정 — 넣지 않은 원소의 추정 ${guess} < 0`,
-        hits,
-        queries,
-        total,
-      };
-    if (guess > threshold) hits++;
-  }
-  return { under: null, hits, queries, total };
-}
-
-/**
- * 오차 판정 하나. 통과하면 `true`, 아니면 처음 어긋난 자리를 적은 문자열을 돌려준다.
- * 자기시험과 탐침이 같은 판정을 쓰도록 내보낸다.
- */
-export function judgeOverestimates(
-  make: SketchMaker,
-  epsilon: number,
-  delta: number,
-  seed: number,
-): true | string {
-  const m = measureOvercount(make, epsilon, delta, seed);
-  if (m.under !== null) return m.under;
-  const limit = MARGIN * QUOTA;
-  if (m.hits <= limit) return true;
-  return (
-    `과대 추정 초과 ${m.hits} / 한계 ${limit} — 총증분 ${m.total} 뒤 넣지 않은 원소 ${m.queries} 개를 물었다` +
-    `(ε = ${epsilon}, δ = ${delta}, 여유 ${MARGIN})`
-  );
 }
 
 /** 하네스용 껍데기. 스케치 하나와 원소마다 넣은 빈도의 기록을 들고, `reset` 으로 새 스케치로 바꾼다. */
@@ -204,10 +139,6 @@ export class SizedSketch {
     const guess = this.#sketch.estimate(item);
     const frequency = this.#truth.get(item) ?? 0;
     return guess >= frequency ? true : `추정 ${guess} < 실제 빈도 ${frequency}`;
-  }
-
-  judge(epsilon: number, delta: number, seed: number): true | string {
-    return judgeOverestimates(this.#make, epsilon, delta, seed);
   }
 }
 
@@ -255,13 +186,6 @@ function someShape(rng: () => number): [number, number] {
     [EPSILON, 1],
   ];
   return bad[Math.floor(rng() * bad.length)] as [number, number];
-}
-
-/** 축1 무작위 판정 인자. 가벼운 모양 넷 중 하나와 seed. 파일 머리 설명 참고. */
-function someCheck(rng: () => number): [number, number, number] {
-  const epsilon = rng() < 0.5 ? 0.1 : 0.01;
-  const delta = rng() < 0.5 ? 0.1 : 0.01;
-  return [epsilon, delta, Math.floor(rng() * 0x7fff_ffff)];
 }
 
 /** 모델 쪽 생성 인자 판정 — 헤더 「주입 정책」의 조건. */
@@ -327,15 +251,6 @@ export const countMinSketchContract: ContractSpec<SizedSketch, Model> = {
       name: "estimate",
       arg: (rng) => someItem(rng),
       onImpl: (impl, arg) => impl.estimate(arg as string),
-      onModel: () => true,
-    },
-    {
-      name: "overestimateCheck",
-      arg: (rng) => someCheck(rng),
-      onImpl: (impl, arg) => {
-        const [epsilon, delta, seed] = arg as [number, number, number];
-        return impl.judge(epsilon, delta, seed);
-      },
       onModel: () => true,
     },
   ],
@@ -420,15 +335,6 @@ export const countMinSketchContract: ContractSpec<SizedSketch, Model> = {
         { op: "estimate", arg: "m" },
       ],
     },
-    {
-      // 목표 오차 · 실패 확률 셋. 둘 중 하나를 읽지 않고 크기를 정하는 구현은 작은 값에서 떨어진다.
-      name: "오차 판정 — 흐름을 넣고 넣지 않은 원소 64/δ 개를 물으면 ε·N 을 넘는 추정이 128 개 이하다 ((ε, δ) = (0.1, 0.1) · (0.01, 0.01) · (0.001, 0.001))",
-      steps: [
-        { op: "overestimateCheck", arg: [0.1, 0.1, 1] },
-        { op: "overestimateCheck", arg: [0.01, 0.01, 2] },
-        { op: "overestimateCheck", arg: [0.001, 0.001, 3] },
-      ],
-    },
   ],
 
   invariants: [],
@@ -466,4 +372,107 @@ export const countMinSketchContract: ContractSpec<SizedSketch, Model> = {
       },
     },
   ],
+};
+
+// ── 축1 통계 판정 — `../../_contract/runTrials.ts` 가 시행마다 새 워커에서 `countMinSketchTrial` 을 부른다 ──
+
+/** 통계 판정의 이름. 헤더 「오차 보장」의 확률 문장이다. */
+const OVERESTIMATE = "추정이 ε·N 을 넘음";
+
+/** 시행 하나에서 묻는 넣지 않은 원소 수. */
+const TRIAL_QUERIES = 64;
+
+/** 시행 하나의 입력 — 넣을 증분의 차례와 물을 원소. 워커를 띄우기 전에 정해진다. */
+export interface FrequencyInput {
+  updates: readonly (readonly [string, number])[];
+  absent: readonly string[];
+}
+
+/** 시행 t 의 입력. seed · 시행 번호 · 모양 번호와 ε 만 읽는다(원칙 B 의 B1). */
+export function frequencyInput(
+  epsilon: number,
+  seed: number,
+  trial: number,
+  shape: number,
+): FrequencyInput {
+  const tag = Math.floor(
+    rngFrom(trialSeed(seed, trial, shape))() * 36 ** 5,
+  ).toString(36);
+  const { heavy, light } = streamShape(epsilon);
+  const updates: (readonly [string, number])[] = [];
+  for (let i = 0; i < heavy; i++)
+    updates.push([`+${tag}:h${i}`, HEAVY_PARTS[0]]);
+  for (let i = 0; i < light; i++) updates.push([`+${tag}:l${i}`, 1]);
+  for (let i = 0; i < heavy; i++)
+    updates.push([`+${tag}:h${i}`, HEAVY_PARTS[1]]);
+  return {
+    updates,
+    absent: Array.from({ length: TRIAL_QUERIES }, (_, i) => `?${tag}:${i}`),
+  };
+}
+
+/** 시행 함수. 워커 안에서 스케치 하나에 흐름을 넣고 묻는다. 판정은 하지 않는다. */
+export function countMinSketchTrial(
+  make: SketchMaker,
+  params: readonly [number, number],
+  input: FrequencyInput,
+): TrialResult {
+  const [epsilon, delta] = params;
+  const sketch = make(epsilon, delta);
+  const truth = new Map<string, number>();
+  let total = 0;
+  for (const [item, count] of input.updates) {
+    sketch.update(item, count);
+    truth.set(item, (truth.get(item) ?? 0) + count);
+    total += count;
+  }
+  let violation: string | null = null;
+  for (const [item, frequency] of truth) {
+    const guess = sketch.estimate(item);
+    if (!(guess >= frequency)) {
+      violation = `과소 추정 — ${item} 의 추정 ${guess} < 실제 ${frequency}`;
+      break;
+    }
+  }
+  const threshold = epsilon * total + 1e-9;
+  let misses = 0;
+  let first: string | null = null;
+  for (const item of input.absent) {
+    const guess = sketch.estimate(item);
+    if (!(guess >= 0))
+      violation ??= `과소 추정 — 넣지 않은 원소 ${item} 의 추정 ${guess} < 0`;
+    if (guess > threshold) {
+      misses++;
+      first ??= `넣지 않은 원소 ${item} 의 추정 ${guess} > ε·N = ${epsilon * total}`;
+    }
+  }
+  return {
+    violation,
+    tallies: {
+      [OVERESTIMATE]: { events: input.absent.length, misses, first },
+    },
+    cost: sketch.__cost ?? 0,
+  };
+}
+
+function trialShape(epsilon: number, delta: number, trials: number) {
+  return {
+    name: `(ε, δ) = (${epsilon}, ${delta})`,
+    params: [epsilon, delta] as const,
+    trials,
+    judgments: [{ id: OVERESTIMATE, delta }],
+    input: (seed: number, trial: number, shape: number) =>
+      frequencyInput(epsilon, seed, trial, shape),
+  };
+}
+
+/** 통계 판정 계획. 시행 수는 `docs/ORD-006-conventions.md` 「원칙 B」 적용표 — 파일 머리 설명 참고. */
+export const countMinSketchTrials: TrialPlan<
+  readonly [number, number],
+  FrequencyInput
+> = {
+  name: "CountMinSketch",
+  trial: { module: import.meta.url, exportName: "countMinSketchTrial" },
+  seed: 1,
+  shapes: [trialShape(0.1, 0.1, 16), trialShape(0.1, 0.01, 320)],
 };

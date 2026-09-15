@@ -184,22 +184,22 @@ const SPECS: ContractSpec<any, any>[] = [
   stackContract,
   unrolledLinkedListContract,
   xorLinkedListContract,
-  // 오차 판정 연산(`falsePositiveCheck`)의 기대값은 참조 모델이 내는 `true` 다 — 판정 자체는 vector 에 실리지 않으므로
-  // Rust 포트는 같은 판정(넣고 · 묻고 · 한계와 견주기)을 지어야 재생된다(`graph-repr/dag` 의 순서 판정과 같다).
+  // 확률 문장의 판정(통계 판정 — `src/data-structures/_contract/runTrials.ts`, 시행마다 새 워커)은 vector 에 실리지 않는다.
+  // 실리는 것은 결정적 쪽뿐이다 — Rust 포트는 확률 판정을 따로 지어야 한다(원칙 B, `S24`).
   bloomFilterContract,
   // 이 구조만 vector 의 쓰임이 다르다. 나머지는 TS 하네스가 이미 축1을 돌고 vector 는 Rust
   // 포트를 위한 파생물인데, `concurrency` 등급은 TS 스위트가 돌지 않으므로 **vector 가 축1의
   // 유일한 경로**다(§규약2 「축4 — 동시성」).
   concurrentSkipListContract,
-  // 오차 판정 연산(`overestimateCheck`)의 기대값도 `true` 다 — `bloomFilterContract` 줄의 설명과 같다. `estimate` 의
-  // 관측값도 추정 자체가 아니라 「기록한 빈도 이상인가」의 판정이라 `true` 다(Rust 포트는 빈도를 함께 기록해야 재생된다).
+  // 확률 판정은 vector 에 없다 — `bloomFilterContract` 줄의 설명과 같다. `estimate` 의 관측값은 추정 자체가 아니라
+  // 「기록한 빈도 이상인가」의 판정이라 `true` 다(Rust 포트는 빈도를 함께 기록해야 재생된다).
   countMinSketchContract,
-  // 오차 판정 연산(`errorCheck`)의 기대값도 `true` 다 — `bloomFilterContract` 줄의 설명과 같다.
+  // 확률 판정은 vector 에 없다 — `bloomFilterContract` 줄의 설명과 같다.
   cuckooFilterContract,
-  // 오차 판정(`errorCheck`) · 추정(`count`) · 합치기(`merge` · `mergeSelf`)의 기대값이 전부 `true` 다 — 추정 값이 아니라 「같은 집합을
+  // 추정(`count`) · 합치기(`merge` · `mergeSelf`)의 기대값이 전부 `true` 다(확률 판정은 vector 에 없다) — 추정 값이 아니라 「같은 집합을
   // 새 인스턴스에 넣은 추정과 같은가」의 판정이 실린다. Rust 포트는 들어온 원소 집합을 함께 기록하고 같은 판정을 지어야 재생된다.
   hyperLogLogContract,
-  // 오차 판정(`errorCheck`) · 닮음(`similarity` · `similaritySelf`) · 다시 넣기(`add` 의 `"unchanged"`)의 기대값이 판정이다 — 닮음 값이
+  // 닮음(`similarity` · `similaritySelf`) · 다시 넣기(`add` 의 `"unchanged"`)의 기대값이 판정이다(확률 판정은 vector 에 없다) — 닮음 값이
   // 아니라 「같은 두 집합을 새 인스턴스 둘에 넣은 닮음과 같은가 · 같은 집합이면 1 인가」가 실린다. Rust 포트는 두 쪽의 원소 집합을
   // 함께 기록하고 같은 판정을 지어야 재생된다(`hyperLogLogContract` 줄과 같은 자리).
   minHashContract,

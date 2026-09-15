@@ -6,22 +6,26 @@
  *
  * 검증 등급 `basic` → 축3 엄격도는 `regression`(±60% · 2점 · 적대적 선택).
  *
- * **오차 판정은 `probabilistic/hyperLogLog` 가 세운 모양을 따른다**(`docs/ORD-006-conventions.md` 「A군 스케치 둘」) — 축1
- * 연산 하나(`errorCheck`)가 인자 `[ε, δ, seed]` 로 새 인스턴스를 세워 판정을 불리언 관측값으로 돌려주고 참조 모델은 늘
- * `true` 를 낸다. 하네스는 고치지 않았다. **모으는 단위는 인스턴스 짝이다** — 이 계약의 확률 문장은 두 인스턴스의 닮음
- * 하나에 대한 것이라 짝 하나에서 모을 것이 하나뿐이다(「모으는 단위는 확률 문장의 주어다」).
+ * **확률 문장은 축1 통계 판정으로 본다 — `../../_contract/runTrials.ts`(`docs/ORD-006-conventions.md` 「원칙 B」 · 그 적용 절).**
+ * 무작위 시퀀스 · 경계 케이스는 결정적인 쪽만 대조한다. 시행 하나(`minHashTrial`)는 이렇다.
  *
- * 1. `⌈QUOTA / δ⌉` 번 되풀이한다. 매번 새 인스턴스 둘을 세운다. seed 로 합집합 크기 u 를 1 부터
- *    `max(256, ⌈4 / (ε² · δ)⌉)` 까지 로그 고르게 뽑고, 교집합 크기 c 를 0 ~ u 에서 고르게, 나머지를 두 쪽에 나눈다 —
- *    참 닮음 c/u 가 0 ~ 1 을 고르게 짚고, 합집합이 작은 구간 · 큰 구간을 함께 짚는다. ε · δ 가 작을수록 요약을 크게 세우는
- *    구현이 들어오므로 범위를 매개변수의 함수로 늘렸다. 이 범위는 구현을 읽지 않고 매개변수에서만 정한다(불변 사실 44).
- * 2. 원소(`+<꼬리표>:<차례>:<번호>`)를 두 쪽에 넣되 **쪽마다 둘에 한 번 방금 넣은 원소를 다시 넣는다.**
- * 3. `similarity` 가 c/u 에서 ε 넘게 벗어난 짝의 수를 세고, **그 수가 `MARGIN × QUOTA` 이하인지** 본다 — 헤더의 판정
- *    문장 그대로다.
+ * 1. **새 워커 하나.** 헤더가 구현 무작위의 공유 범위를 「실행」으로 적었으므로 시행마다 새 실행이다(원칙 B 의 B3).
+ * 2. **인스턴스 짝 넷.** 짝마다 합집합 크기 u 를 1 ~ `spanOf(ε, δ)` = max(256, ⌈4/(ε² · δ)⌉) 의 로그 눈금 네 칸에 하나씩, 교집합
+ *    크기 c 를 0 ~ u 에서 고르게 뽑고 나머지를 두 쪽에 나눠 원소(`+<꼬리표>:<시행>:<짝>:<번호>`)를 넣되 쪽마다 둘에 한 번 방금 넣은
+ *    원소를 다시 넣는다. **원소 목록은 워커를 띄우기 전에 seed · 시행 번호 · 모양만으로 정한다**(B1).
+ * 3. **Z_t** = (닮음이 c/u 에서 ε 넘게 벗어난 짝의 수) ÷ 4. 모양마다 합 S = Σ Z_t 가 한계 k 를 넘으면 떨어진다.
  *
- * **`QUOTA = 16` · `MARGIN = 3` 의 근거는 `probabilistic/hyperLogLog` 와 같다.** 짝마다 확률 δ 로 벗어나는 구현이 한
- * 판정에서 떨어질 확률이 체르노프 부등식으로 e^{−16} 이하다. 그 구현을 판정 도구 fixture 로 두고 실측했다
- * (`../../_contract/_fixtures/boundaryErrorSimilarity.ts`, 수치는 `../../_contract/runContract.minHash.test.ts` 머리말).
+ * **[보장]** (ε, δ) = (0.1, 0.1) 은 T 24 · k 13 · 상한 4.84 × 10^−7, (0.1, 0.05) 는 T 96 · k 20 · 상한 4.19 × 10^−7 이고 스위트 한 번에
+ * 9.03 × 10^−7 이하다 — Hoeffding(1963) 정리 1, P(S > k) ≤ exp(−T · D(k/T ‖ δ)). **전제 셋:** ① 입력이 구현 무작위와 독립으로 정해진다
+ * (위 2) ② 시행끼리 독립 — 공유 범위가 실행이고 시행마다 새 워커다(워커 사이 `Math.random` 의 독립은 실행 환경의 전제이고 확인하지
+ * 않았다) ③ 시행당 E[Z_t] ≤ δ — 확률 문장이 짝마다 δ 를 누르므로 기댓값의 선형성으로 선다(짝 사이 독립은 필요 없다). **한 시행의 네
+ * 짝이 함께 틀리는 구현도** 부당하게 더 떨어지지 않는다. k 는 「상한 ≤ 10^−6 ÷ 판정 수 2」 인 가장 작은 정수다
+ * (`../../_contract/judgeTrials.ts`). **(0.3, 0.3) 모양은 두지 않았다** — 늘 1 을 돌려주는 구현이 참 닮음 0.7 이상에서 맞아 δ 가 큰
+ * 모양을 지나는 틈(불변 사실 378)을 δ 작은 두 모양이 닫는다.
+ *
+ * **[경험]** T 는 목표를 읽지 않는 fixture(`FixedSizeMinHash`, 벗어난 몫을 0.33 으로 둔 이항 모형)를 놓칠 모형 확률이 10^−6 이하인
+ * 가장 작은 8 의 배수다(모형 확률 9.38 × 10^−8) — 모형이고 보장이 아니다. fixture 들의 실제 판정 수치 · 반복 수는
+ * `docs/ORD-006-conventions.md` 의 `S24` 절 「fixture 수치」 표.
  *
  * **결정적인 쪽은 두 문장이다 — 「같은 실행 · 같은 매개변수에서 닮음은 두 쪽에 들어온 원소 집합의 짝만으로 정해진다」 ·
  * 「두 집합이 같으면 1 이다」.** 한 번의 닮음은 확률적이라 참조 모델이 대조할 값이 없다. 그래서 껍데기가 인스턴스마다
@@ -45,6 +49,11 @@
  */
 
 import { rngFrom } from "../../_contract/judge";
+import {
+  type TrialPlan,
+  type TrialResult,
+  trialSeed,
+} from "../../_contract/judgeTrials";
 import type { ContractSpec } from "../../_contract/runContract";
 
 /** 헤더 연산 계약 표의 **두 행**을 그대로 옮긴 표면. 생성자 행은 껍데기가 나른다. */
@@ -64,10 +73,6 @@ const DELTA = 0.3;
 /** 인자 쪽에 줄 수 있는 다른 매개변수. 닮음을 거절해야 한다. */
 const OTHER_SHAPE: readonly [number, number] = [0.2, 0.3];
 
-/** 판정 한 번에서 경계 구현이 벗어나기를 기대하는 짝의 수 — `되풀이 수 · δ`. 파일 머리 설명 참고. */
-export const QUOTA = 16;
-/** 헤더가 정한 여유. 벗어난 짝의 수가 `MARGIN × QUOTA` 를 넘으면 떨어진다. */
-export const MARGIN = 3;
 /** 합집합 크기 범위의 아래 상한. 파일 머리 설명 참고. */
 const SPAN_FLOOR = 256;
 
@@ -87,80 +92,6 @@ function observe<T>(call: () => T): T | string {
 /** 판정의 합집합 크기 범위 위 끝. */
 export function spanOf(epsilon: number, delta: number): number {
   return Math.max(SPAN_FLOOR, Math.ceil(4 / (epsilon * epsilon * delta)));
-}
-
-/** 판정 한 번의 수치. 자기시험과 탐침이 한계를 바꿔 보려고 판정과 나눠 둔다. */
-export interface Deviation {
-  /** 닮음이 참 닮음에서 ε 넘게 벗어난 짝의 수. */
-  misses: number;
-  rounds: number;
-  /** 두 쪽에 넣은 호출 수의 합. 판정의 무게를 견주려고 센다. */
-  inserts: number;
-  /** 벗어난 짝 중 첫 자리의 설명. 없으면 `null`. */
-  first: string | null;
-}
-
-/** `rounds` 번 새 인스턴스 둘을 세워 넣고 센다. 판정은 하지 않는다. */
-export function measureDeviation(
-  make: SimilarityMaker,
-  epsilon: number,
-  delta: number,
-  seed: number,
-  rounds = Math.ceil(QUOTA / delta),
-): Deviation {
-  const rng = rngFrom(seed);
-  const tag = Math.floor(rng() * 36 ** 5).toString(36);
-  const logSpan = Math.log(spanOf(epsilon, delta) + 1);
-  let misses = 0;
-  let inserts = 0;
-  let first: string | null = null;
-  for (let t = 0; t < rounds; t++) {
-    const union = Math.max(1, Math.floor(Math.exp(rng() * logSpan)));
-    const common = Math.floor(rng() * (union + 1));
-    const onlyMine = Math.floor(rng() * (union - common + 1));
-    const mine = make(epsilon, delta);
-    const other = make(epsilon, delta);
-    let mineCalls = 0;
-    let otherCalls = 0;
-    const put = (sketch: Built, calls: number, index: number): number => {
-      const item = `+${tag}:${t}:${index}`;
-      sketch.add(item);
-      if (calls % 2 === 1) sketch.add(item);
-      inserts += calls % 2 === 1 ? 2 : 1;
-      return calls + 1;
-    };
-    for (let i = 0; i < common + onlyMine; i++)
-      mineCalls = put(mine, mineCalls, i);
-    for (let i = 0; i < common; i++) otherCalls = put(other, otherCalls, i);
-    for (let i = common + onlyMine; i < union; i++)
-      otherCalls = put(other, otherCalls, i);
-    const truth = common / union;
-    const guess = mine.similarity(other);
-    if (!(Math.abs(guess - truth) <= epsilon + 1e-9)) {
-      misses++;
-      first ??= `합집합 ${union} · 교집합 ${common} (참 닮음 ${truth}) 에 닮음 ${guess}`;
-    }
-  }
-  return { misses, rounds, inserts, first };
-}
-
-/**
- * 오차 판정 하나. 통과하면 `true`, 아니면 벗어난 수와 첫 자리를 적은 문자열을 돌려준다.
- * 자기시험과 탐침이 같은 판정을 쓰도록 내보낸다.
- */
-export function judgeSimilarityError(
-  make: SimilarityMaker,
-  epsilon: number,
-  delta: number,
-  seed: number,
-): true | string {
-  const d = measureDeviation(make, epsilon, delta, seed);
-  const limit = MARGIN * QUOTA;
-  if (d.misses <= limit) return true;
-  return (
-    `닮음 오차 초과 ${d.misses} / 한계 ${limit} — 짝 ${d.rounds} 개 중(ε = ${epsilon}, δ = ${delta}, 여유 ${MARGIN}). ` +
-    `첫 자리: ${d.first}`
-  );
 }
 
 /** 집합을 같은 매개변수의 새 인스턴스에 내림차순으로 넣는다. 기록한 순서와 다른 순서로 넣으려고 뒤집는다. */
@@ -275,10 +206,6 @@ export class MinHashPair {
     const value = this.#mine.similarity(this.#mine);
     return Object.is(value, 1) ? true : `자기 자신과의 닮음이 ${value}`;
   }
-
-  judge(epsilon: number, delta: number, seed: number): true | string {
-    return judgeSimilarityError(this.#make, epsilon, delta, seed);
-  }
 }
 
 /** 축1 참조 모델. 두 쪽의 매개변수와 들어온 원소 집합. 닮음 값은 들지 않는다 — 판정은 껍데기가 한다. */
@@ -329,16 +256,6 @@ function someOtherShape(rng: () => number): [number, number] {
   if (roll < 2 / 3) return [...OTHER_SHAPE] as [number, number];
   return [
     ...(BAD_SHAPES[Math.floor(rng() * BAD_SHAPES.length)] as [number, number]),
-  ];
-}
-
-/** 축1 무작위 판정 인자. 가벼운 모양 둘 중 하나와 seed. */
-function someCheck(rng: () => number): [number, number, number] {
-  const shape = rng() < 0.5 ? [0.3, 0.3] : [0.2, 0.2];
-  return [
-    shape[0] as number,
-    shape[1] as number,
-    Math.floor(rng() * 0x7fff_ffff),
   ];
 }
 
@@ -442,15 +359,6 @@ export const minHashContract: ContractSpec<MinHashPair, Model> = {
       onImpl: (impl) => impl.similaritySelf(),
       onModel: () => true,
     },
-    {
-      name: "errorCheck",
-      arg: (rng) => someCheck(rng),
-      onImpl: (impl, arg) => {
-        const [epsilon, delta, seed] = arg as [number, number, number];
-        return impl.judge(epsilon, delta, seed);
-      },
-      onModel: () => true,
-    },
   ],
 
   edges: [
@@ -541,15 +449,6 @@ export const minHashContract: ContractSpec<MinHashPair, Model> = {
         { op: "similarity" },
       ],
     },
-    {
-      // 목표 셋. 매개변수를 읽지 않고 크기를 정하는 구현은 δ 가 작아 되풀이가 많은 모양에서 떨어진다. 무작위 시퀀스는 가벼운 둘만 쓴다.
-      name: "오차 판정 — 16/δ 개 짝에서 닮음이 참 닮음에서 ε 넘게 벗어난 수가 48 개 이하다 ((ε, δ) = (0.3, 0.3) · (0.1, 0.1) · (0.1, 0.05))",
-      steps: [
-        { op: "errorCheck", arg: [0.3, 0.3, 1] },
-        { op: "errorCheck", arg: [0.1, 0.1, 2] },
-        { op: "errorCheck", arg: [0.1, 0.05, 3] },
-      ],
-    },
   ],
 
   invariants: [],
@@ -590,4 +489,123 @@ export const minHashContract: ContractSpec<MinHashPair, Model> = {
       },
     },
   ],
+};
+
+// ── 축1 통계 판정 — `../../_contract/runTrials.ts` 가 시행마다 새 워커에서 `minHashTrial` 을 부른다 ──
+
+/** 통계 판정의 이름. 헤더 「오차 보장」의 확률 문장이다. */
+const SIMILARITY_ERROR = "닮음이 ε 넘게 벗어남";
+
+/** 시행 하나에 세우는 인스턴스 짝 수. 합집합 크기의 로그 눈금을 이만큼의 칸으로 나눠 칸마다 하나씩 짚는다. */
+const PAIRS = 4;
+
+/** 시행 하나의 입력 — 짝마다 두 쪽에 넣을 차례와 참 닮음. 워커를 띄우기 전에 정해진다. */
+export interface SimilarityInput {
+  pairs: readonly {
+    mine: readonly string[];
+    other: readonly string[];
+    union: number;
+    common: number;
+  }[];
+}
+
+/** 쪽 하나에 넣을 차례 — 원소 번호 목록을 받아 둘에 한 번 방금 넣은 원소를 다시 넣는다. */
+function insertions(prefix: string, indices: readonly number[]): string[] {
+  const out: string[] = [];
+  for (const [call, index] of indices.entries()) {
+    out.push(`${prefix}${index}`);
+    if (call % 2 === 1) out.push(`${prefix}${index}`);
+  }
+  return out;
+}
+
+/** 시행 t 의 입력. seed · 시행 번호 · 모양 번호와 매개변수만 읽는다(원칙 B 의 B1). */
+export function similarityInput(
+  epsilon: number,
+  delta: number,
+  seed: number,
+  trial: number,
+  shape: number,
+): SimilarityInput {
+  const rng = rngFrom(trialSeed(seed, trial, shape));
+  const tag = Math.floor(rng() * 36 ** 5).toString(36);
+  const logSpan = Math.log(spanOf(epsilon, delta) + 1);
+  const pairs = Array.from({ length: PAIRS }, (_, j) => {
+    const union = Math.max(
+      1,
+      Math.floor(Math.exp(((j + rng()) / PAIRS) * logSpan)),
+    );
+    const common = Math.floor(rng() * (union + 1));
+    const onlyMine = Math.floor(rng() * (union - common + 1));
+    const range = (from: number, to: number) =>
+      Array.from({ length: to - from }, (_, i) => from + i);
+    const prefix = `+${tag}:${trial}:${j}:`;
+    return {
+      mine: insertions(prefix, range(0, common + onlyMine)),
+      other: insertions(prefix, [
+        ...range(0, common),
+        ...range(common + onlyMine, union),
+      ]),
+      union,
+      common,
+    };
+  });
+  return { pairs };
+}
+
+/** 시행 함수. 워커 안에서 짝을 넷 세워 넣고 닮음이 벗어난 수를 센다. 판정은 하지 않는다. */
+export function minHashTrial(
+  make: SimilarityMaker,
+  params: readonly [number, number],
+  input: SimilarityInput,
+): TrialResult {
+  const [epsilon, delta] = params;
+  let misses = 0;
+  let first: string | null = null;
+  let violation: string | null = null;
+  let cost = 0;
+  for (const { mine, other, union, common } of input.pairs) {
+    const a = make(epsilon, delta);
+    const b = make(epsilon, delta);
+    for (const item of mine) a.add(item);
+    for (const item of other) b.add(item);
+    const guess = a.similarity(b);
+    cost += (a.__cost ?? 0) + (b.__cost ?? 0);
+    if (!(guess >= 0 && guess <= 1))
+      violation ??= `닮음 ${guess} 가 [0, 1] 밖이다`;
+    const truth = common / union;
+    if (!(Math.abs(guess - truth) <= epsilon + 1e-9)) {
+      misses++;
+      first ??= `합집합 ${union} · 교집합 ${common} (참 닮음 ${truth}) 에 닮음 ${guess}`;
+    }
+  }
+  return {
+    violation,
+    tallies: {
+      [SIMILARITY_ERROR]: { events: input.pairs.length, misses, first },
+    },
+    cost,
+  };
+}
+
+function trialShape(epsilon: number, delta: number, trials: number) {
+  return {
+    name: `(ε, δ) = (${epsilon}, ${delta})`,
+    params: [epsilon, delta] as const,
+    trials,
+    judgments: [{ id: SIMILARITY_ERROR, delta }],
+    input: (seed: number, trial: number, shape: number) =>
+      similarityInput(epsilon, delta, seed, trial, shape),
+  };
+}
+
+/** 통계 판정 계획. 시행 수는 `docs/ORD-006-conventions.md` 「원칙 B」 적용표 — 파일 머리 설명 참고. */
+export const minHashTrials: TrialPlan<
+  readonly [number, number],
+  SimilarityInput
+> = {
+  name: "MinHash",
+  trial: { module: import.meta.url, exportName: "minHashTrial" },
+  seed: 1,
+  shapes: [trialShape(0.1, 0.1, 24), trialShape(0.1, 0.05, 96)],
 };

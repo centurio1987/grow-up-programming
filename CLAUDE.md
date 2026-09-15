@@ -77,16 +77,23 @@ import { test, expect } from "bun:test";
 
 ## 검증 명령 (이 이름 그대로 쓴다)
 
-**한 번에 다 돌리려면 `bun run tools/ci.ts all`.** CI 가 도는 것과 같은 3모드 + 게이트다.
+**한 번에 다 돌리려면 `bun run tools/ci.ts all`.** CI 가 도는 것과 같은 4모드 + 게이트다.
 이 저장소의 테스트는 **일부러 실패한다**(학습자 스텁이 `Not implemented` 를 던진다) —
 그래서 `bun test` 하나로는 판정이 안 되고 모드를 갈라야 한다.
 
 ```bash
 bun run tools/ci.ts self       # ① 결함 fixture 가 축3에서 걸리는가
-bun run tools/ci.ts reference  # ② _reference/ 정본이 계약을 지키는가
+bun run tools/ci.ts reference  # ② _reference/ 정본이 계약을 지키는가(확률 다섯의 통계 판정 포함)
 bun run tools/ci.ts practice   # ③ 스텁 채점 — 미구현 실패가 정상, 판정 제외
+bun run tools/ci.ts trials     # ④ 통계 판정 자기시험 — fixture 를 시행마다 새 워커로(파일마다 프로세스 하나)
 bun run tools/ci.ts gates      # 타입·계약 정합·추출 일치·vector·인용·링크
 ```
+
+**확률 다섯(`probabilistic/` 의 bloomFilter · cuckooFilter · countMinSketch · hyperLogLog · minHash)의 오차는
+워커로 판정한다**(`src/data-structures/_contract/runTrials.ts` — 시행마다 새 워커). 비용은 벽시계가 아니라
+워커 수로 센다 — 정본 판정 800 개(`reference`), fixture 자기시험 약 3,000 개(`trials`). Bun 1.3.12 는 한 프로세스가
+워커를 수백 개 넘게 띄우면 죽으므로(`docs/ORD-006-conventions.md` 의 `S24` 절) 러너가 워커를 자식 프로세스
+(`runTrials.host.ts`) 하나에 128 개까지만 맡긴다. `bun test` 에서 워커를 직접 띄우는 테스트를 새로 쓰지 않는다.
 
 낱개로 쓸 때:
 
