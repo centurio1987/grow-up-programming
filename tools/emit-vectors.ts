@@ -20,6 +20,7 @@
 import { join, resolve } from "node:path";
 import { rngFrom } from "../src/data-structures/_contract/judge.ts";
 import type { ContractSpec } from "../src/data-structures/_contract/runContract.ts";
+import { dagContract } from "../src/data-structures/graph-repr/dag/dag.contract.ts";
 import { graphAdjListContract } from "../src/data-structures/graph-repr/graphAdjList/graphAdjList.contract.ts";
 import { graphAdjMatrixContract } from "../src/data-structures/graph-repr/graphAdjMatrix/graphAdjMatrix.contract.ts";
 import { hashMapChainingContract } from "../src/data-structures/hash/hashMapChaining/hashMapChaining.contract.ts";
@@ -157,6 +158,7 @@ function buildVector<Impl, Model>(spec: ContractSpec<Impl, Model>): Vector {
 const SPECS: ContractSpec<any, any>[] = [
   // 성격 전환은 등록하지 않는다 — 같은 계약 객체에 `name` 만 다르므로 vector 가 같다
   // (`avlTree`·`bTree` 계열이 같은 선례다).
+  dagContract,
   graphAdjListContract,
   graphAdjMatrixContract,
   hashMapChainingContract,

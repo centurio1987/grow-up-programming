@@ -64,6 +64,10 @@ const VERIFICATION_GRADES: Record<
   // §4) — 표 전체가 추가 순서로 쌓여 있어 「알파벳 자리」가 정해지지 않으므로, 자기보다 뒤로
   // 정렬되는 첫 기존 키(`linear/stack`) 앞에 둔다. 기존 줄은 옮기지 않았다.
   //
+  // `dag`(KAN-026 S11) — 정점 번호 모형을 `graphAdjList` 에서 따르므로 사전이 들지 않고, 여섯 행이
+  // 정점마다 나가는 간선 배열 · 지나간 표시 하나로 선다. 불변식이 하나라 `basic` 이 아니다. 알파벳
+  // 자리가 `graphAdjList` 앞이다.
+  "graph-repr/dag": "invariant",
   // `graphAdjList` — 정점 번호를 구조가 `[0, n)` 으로 매기므로 번호에서 이웃 배열을 찾는 데 사전이
   // 들지 않고, 일곱 행이 정점마다 배열 하나로 선다. 불변식이 둘이라 `basic` 이 아니다.
   "graph-repr/graphAdjList": "invariant",

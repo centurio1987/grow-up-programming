@@ -406,7 +406,7 @@ const UNITS: readonly Unit[] = [
     contract: "사이클을 만드는 간선을 거부하는 방향 그래프",
     canonical: "graph-repr/dag",
     transitions: [],
-    note: "자료구조다(S1). 위상 순서는 하나로 정하지 않는 관측 연산으로 들어온다 — Kahn·DP 는 처방. hasCycle() 은 늘 거짓이라 배제하는 것이 없다. TA-07 과는 동시에 만족하는 구현이 없다(불변 사실 181 모양)",
+    note: "완료(KAN-026 S11) — 사이클을 닫는 간선은 false(전면화) · 순서는 하나로 정하지 않고 껍데기가 판정(true|어긋남)으로 관측한다(불변 사실 284–285). longestPath·무게·hasCycle 을 뺐다. addEdge 상한은 「닿는 부분」 k(u, v) — 그래프 크기로 적을지는 사람 결정으로 올렸다(불변 사실 283). 비순환은 불변식이 아니다(286). invariant(불변식 1)",
   },
   {
     id: "TA-10",
@@ -414,7 +414,7 @@ const UNITS: readonly Unit[] = [
     contract: "없음 — 자료구조가 아니다(S1)",
     canonical: "hash/rollingHash",
     transitions: [],
-    note: "결정(2026-09-15 유저) — 알고리즘 트랙으로 이관한다. search 가 algorithms/string/findAllOccurrences 와 서명·의미가 같다. 디렉터리가 사라지면 이 유닛을 지운다 — 경로 가드가 exit 1 로 잡는다",
+    note: "결정(2026-09-15 유저) — 알고리즘 트랙으로 이관한다. search 가 algorithms/string/findAllOccurrences 와 서명·의미가 같다. 디렉터리가 사라지면 이 유닛을 지운다 — 경로 가드가 exit 1 로 잡는다. S12 조사(2026-09-15) — 멈춤: 목록의 알고리즘 편 수를 algo-wbs.test 가 111 로 고정하고 가이드 없는 편을 셀 자리가 없다(불변 사실 288). 추천은 알고리즘 트랙 v2 가이드와 한 work",
   },
   {
     id: "TA-11",

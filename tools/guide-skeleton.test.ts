@@ -35,6 +35,11 @@ const SCAN_ROOT = "src/data-structures";
  */
 const SKELETON_EXEMPT = new Map([
   [
+    "graph-repr/dag",
+    "KAN-026 S11 은 계약 전환만 한다(2026-09-14 유저 결재). 옛 가이드는 KAN-036 이 v2 로 " +
+      "다시 쓸 때까지 옛 문형이다. 다시 쓰는 카드가 이 줄을 지운다",
+  ],
+  [
     "graph-repr/graphAdjList",
     "KAN-026 S9 는 계약 전환만 한다(2026-09-14 유저 결재). 옛 가이드는 KAN-036 이 v2 로 " +
       "다시 쓸 때까지 옛 문형이다. 다시 쓰는 카드가 이 줄을 지운다",
