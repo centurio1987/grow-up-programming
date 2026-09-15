@@ -27,6 +27,7 @@ import { hashMapChainingContract } from "../src/data-structures/hash/hashMapChai
 import { hashSetContract } from "../src/data-structures/hash/hashSet/hashSet.contract.ts";
 import { leftistHeapContract } from "../src/data-structures/heap/leftistHeap/leftistHeap.contract.ts";
 import { priorityQueueContract } from "../src/data-structures/heap/priorityQueue/priorityQueue.contract.ts";
+import { bitArrayContract } from "../src/data-structures/linear/bitArray/bitArray.contract.ts";
 import { circularBufferContract } from "../src/data-structures/linear/circularBuffer/circularBuffer.contract.ts";
 import { dequeContract } from "../src/data-structures/linear/deque/deque.contract.ts";
 import { doublyLinkedListContract } from "../src/data-structures/linear/doublyLinkedList/doublyLinkedList.contract.ts";
@@ -165,6 +166,7 @@ const SPECS: ContractSpec<any, any>[] = [
   hashSetContract,
   leftistHeapContract,
   priorityQueueContract,
+  bitArrayContract,
   circularBufferContract,
   dequeContract,
   doublyLinkedListContract,

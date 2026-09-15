@@ -74,6 +74,12 @@ const VERIFICATION_GRADES: Record<
   // `graphAdjMatrix` — 「공간」 표시였지만 계약이 갈린다(판별 셋째 걸음을 축3으로 돌려 확인). 칸
   // 배열 하나가 여덟 행을 지키고, 쌍을 읽는 두 경로의 정합 셋이 불변식이다.
   "graph-repr/graphAdjMatrix": "invariant",
+  // A군 공간 판정(KAN-026 S13). 자기보다 뒤로 정렬되는 첫 기존 키(`linear/doublyLinkedList`) 앞에 둔다.
+  //
+  // `bitArray` — 짝 정본이 없는 B15 처분(존치 + 성격 전환). 자리마다 불리언 하나를 담는 언어 배열이
+  // 다섯 행을 지키고, 물려받은 `count` · `toggle` 을 빼면서 불변식 후보가 사라져 `basic` 이다(S1 예상은
+  // `invariant`).
+  "linear/bitArray": "basic",
   // A군 핸들 수열(KAN-026 S5). 자기보다 뒤로 정렬되는 첫 기존 키(`linear/dynamicArray`) 앞에 둔다.
   //
   // `doublyLinkedList` — 연결 마디가 자명한 구현이므로(2026-09-15 유저 결정) 여섯 행이 앞뒤 이음을 든
