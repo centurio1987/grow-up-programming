@@ -24,37 +24,49 @@ status: 검토 대기
 | 베이스 | `5f25c38` |
 | 변경 훑기 | `git diff 5f25c38...HEAD` |
 
-**커밋 2건**
+**커밋 5건**
 
 ```text
+0952973 KAN-044 배치2: 검토 반려 셋을 닫는다 (S3 · S4)
+4671882 kanban: KAN-044 배치2 계획 — 검토 반려 셋 처리(S3 약한 한정자 둘 · S4 받는 자리)
+ad2305f kanban: KAN-044 검토 — 승인 4 · 반려 3 (Fable 5.1 · 판정 by=ai)
+c9b805a kanban: KAN-044 → 검토 (판단 항목 7 · 검증 결과 동봉)
 41e3aa3 KAN-044 배치1: cartesianTree 셋째 계열 실측과 성질로 하는 전수 판정 (S1 · S2)
-5f25c38 kanban: KAN-044 착수 — 카드 문서 · scope · KAN-036 직렬 중재 · 배치1
 ```
 
-**변경 파일 13개 (+609 −55)**
+**변경 파일 19개 (+997 −53)**
 
 | 파일 | 상태 | 추가 | 삭제 |
 |---|:--:|---:|---:|
-| `.kanban/archive.jsonl` | M | 2 | 0 |
-| `.kanban/log.md` | M | 2 | 2 |
-| `.kanban/state.json` | M | 37 | 37 |
-| `KANBAN.batches/KAN-044-VZXM29.batch1.md` | M | 99 | 0 |
-| `KANBAN.board.html` | M | 4 | 4 |
-| `KANBAN.cards/KAN-044-VZXM29.md` | M | 47 | 0 |
-| `KANBAN.md` | M | 7 | 6 |
-| `docs/ORD-006-conventions.md` | M | 98 | 0 |
-| `docs/ORD-006-runbook.md` | M | 25 | 0 |
-| `src/data-structures/_contract/_fixtures/deferredCartesianTree.ts` | M | 69 | 0 |
-| `src/data-structures/_contract/runContract.cartesianTree.test.ts` | M | 199 | 0 |
+| `.kanban/archive.jsonl` | M | 3 | 0 |
+| `.kanban/log.md` | M | 3 | 3 |
+| `.kanban/reviews/KAN-044-VZXM29.events.jsonl` | M | 29 | 0 |
+| `.kanban/reviews/KAN-044-VZXM29.review.json` | M | 21 | 0 |
+| `.kanban/state.json` | M | 34 | 33 |
+| `KANBAN.batches/KAN-044-VZXM29.batch1.md` | M | 69 | 5 |
+| `KANBAN.batches/KAN-044-VZXM29.batch2.md` | M | 84 | 0 |
+| `KANBAN.board.html` | M | 2 | 2 |
+| `KANBAN.cards/KAN-044-VZXM29.md` | M | 21 | 2 |
+| `KANBAN.md` | M | 3 | 2 |
+| `KANBAN.reviews/KAN-044-VZXM29.review.md` | M | 231 | 0 |
+| `docs/ORD-006-conventions.md` | M | 129 | 0 |
+| `docs/ORD-006-runbook.md` | M | 37 | 0 |
+| `src/data-structures/_contract/_fixtures/deferredCartesianTree.ts` | M | 70 | 0 |
+| `src/data-structures/_contract/runContract.cartesianTree.test.ts` | M | 223 | 0 |
 | `src/data-structures/tree/cartesianTree/cartesianTree.ts` | M | 19 | 5 |
+| `src/data-structures/trie/suffixArray/suffixArray.ts` | M | 9 | 0 |
+| `src/data-structures/trie/suffixTree/suffixTree.ts` | M | 9 | 0 |
 | `tools/_baseline/citations.tsv` | M | 1 | 1 |
 
-**롤백 태그 3개**
+**롤백 태그 6개**
 
 ```text
 kan/KAN-044-VZXM29/S1
 kan/KAN-044-VZXM29/S2
+kan/KAN-044-VZXM29/S3
+kan/KAN-044-VZXM29/S4
 kan/KAN-044-VZXM29/batch1
+kan/KAN-044-VZXM29/batch2
 ```
 
 ## 2. 검증 — 기준과 실행 결과
@@ -75,57 +87,58 @@ kan/KAN-044-VZXM29/batch1
 **실행 결과**
 
 ```text
-배치1 커밋(41e3aa3) 상태에서 착수한 쪽이 돌린 출력이다. 검토자는 같은 명령을 다시 돌리지 않아도 된다 — 특히 ci.ts all 은 워커를 수백 개 띄우므로 돌리지 않는다.
+배치2 커밋(0952973) 상태에서 착수한 쪽이 돌린 출력이다. 검토자는 같은 명령을 다시 돌리지 않아도 된다 — 특히 ci.ts all 은 워커를 수백 개 띄우므로 돌리지 않는다.
 
 [1] bun run tools/ci.ts all → all 모드 통과 · 단계 17개
-    (판정 제외 정상: 3번 실습 채점 — 스텁의 미구현 실패)
+    자기검증 712 · 도구 501 · 시뮬 14 · 통계 판정 53 · 정본 1,321 전부 0 fail.
+    실습 스텁 627 fail 은 판정 제외(정상).
 
 [2] bun test src/data-structures/_contract/runContract.cartesianTree.test.ts
-    4 pass · 0 fail (새 자기시험 파일)
+    4 pass · 0 fail. 훑기 두 시험이 이제 worst · amortized · expected 셋을
+    지연 구성 계열 · 수열만 드는 계열 · 정본 셋 다에 대해 나란히 고정한다.
 
 [3] bun run tools/check-contract.ts → 67종 일치
-    bun run tools/check-links.ts check → 867건
-    bun run tools/guide-core.ts check → 정본 66 · 펜스 58 · 시뮬 67
     bun run tools/emit-vectors.ts --check → 56종
+    bun run tools/guide-core.ts check → 58건
+    bun run tools/check-links.ts check → 870건
 
 [4] bun run tools/check-citations.ts
     인용 1,211건 · 대장 1,199행 지문 일치.
     래칫 세 칸 그대로: 칸반 밖 461(detached 74 · unresolved 14 · naked-name 14) ·
     카드 23(detached 2 · unresolved 16) · 맨 줄 번호 29.
-    이번에 난 표류는 1건이고 고친 헤더 문단 자리뿐이었다 — 규약이 그 문단을 가리키고
-    있었고 내용이 정당하게 바뀐 자리다. 목록을 눈으로 본 뒤 --update 했고 대장은
-    1,199행 그대로에 지문 하나만 바뀌었다.
+    이번 배치는 표류 0건이다 — --update 가 대장 파일을 한 줄도 바꾸지 않았다.
+    헤더에서 걸린 인용 하나는 마무리 문장보다 위의 계열 셋 문단을 가리키고, 규약·런북에서
+    고친 자리는 이 카드가 쓴 절 안이라 가리키는 인용이 없다.
 
 [5] bunx tsc --noEmit → 통과
-    bunx --bun @biomejs/biome check <새 파일 둘> → 경고 0.
-    cartesianTree.ts 의 경고 2건은 스텁 생성자의 미사용 인자로 이 카드 전부터 있던 것이고,
-    이 카드는 그 파일의 JSDoc 주석만 고쳤다(아래 [7] 참고).
+    bunx --bun @biomejs/biome check <고친 다섯 파일> → 경고 10건은 전부 학습자 스텁의
+    미사용 매개변수로 이 카드 전부터 있던 것이다. 이번에 넣은 것은 주석 줄뿐이다.
 
-[6] cd rust && cargo test --workspace → 전부 통과 · 실패 0
+[6] cd rust && cargo test --workspace → 전부 통과
 
-[7] git diff --numstat 로 확인한 변경 모양
-    docs/ORD-006-conventions.md 98 추가 · 0 삭제(순수 덧붙임 — 기존 절 수정 0)
-    docs/ORD-006-runbook.md 25 추가 · 0 삭제(순수 덧붙임)
-    src/data-structures/tree/cartesianTree/cartesianTree.ts 19 추가 · 5 삭제 —
-      주석이 아닌 변경 줄은 0이다(클래스 본문 무수정).
-    tools/_baseline/citations.tsv 1 추가 · 1 삭제(위 [4] 의 지문 하나)
+[7] git diff --numstat 로 확인한 변경 모양(배치2 몫)
+    src/data-structures/tree/cartesianTree/cartesianTree.ts 7 추가 · 7 삭제(줄 수 유지)
+    src/data-structures/trie/suffixArray/suffixArray.ts 9 추가 · 0 삭제(검사 공백 한 문단)
+    src/data-structures/trie/suffixTree/suffixTree.ts 9 추가 · 0 삭제(같음)
+    docs/ORD-006-conventions.md 61 추가 · 30 삭제(전부 이 카드가 쓴 새 절 안)
+    docs/ORD-006-runbook.md 25 추가 · 13 삭제(불변 사실 404 · 405)
+    src/data-structures/_contract/runContract.cartesianTree.test.ts 34 추가 · 10 삭제
+    src/data-structures/_contract/_fixtures/deferredCartesianTree.ts 4 추가 · 3 삭제(머리말)
+    tools/_baseline/citations.tsv 변경 없음
 
-[8] 런북 불변 사실 번호 중복 검사: 세 자리 번호 전수에 중복 없음(404 · 405 신규).
+[8] 배치2 가 직접 잰 expected (시나리오 본문 · 입력 · 걸음을 그대로 두고 한정자만 바꿔 판정기 호출)
 
-[9] 축3 실측 (n = 1024 · 4096 · 16384, 계약이 세는 __cost)
+    시나리오          한정자      지연 구성                      정본                    수열만 드는 계열
+    훑기(무작위)      worst       실패 5,112·20,469·81,902       통과 4·4·4              실패 2,049·8,193·32,769
+                      amortized   통과 8.19·8.16·8.13            통과 3.20·3.16·3.14     실패 579.67·1,552.29·5,109.18
+                      expected    통과 8.17·8.16·8.15            통과 3.19·3.16·3.15     실패 472.86·1,563.69·5,786.64
+    훑기(사슬)        worst       실패 4,098·16,386·65,538       통과 4·4·4              실패 3,070·12,286·49,150
+                      amortized   통과 7.51·7.50·7.50            통과 3.51·3.50·3.50     실패 1,286.89·5,130.45·20,496.46
+                      expected    통과 7.50·7.50·7.50            통과 3.50·3.50·3.50     실패 1,278.07·5,123.87·20,479.39
 
-    시나리오                       지연 구성                              정본
-    구성(무작위) O(n)              통과 1,024 · 4,096 · 16,384            통과 5,109 · 20,466 · 81,899
-    구성(오름차순 · 적대) O(n)     통과 1,024 · 4,096 · 16,384            통과 4,095 · 16,383 · 65,535
-    훑기(무작위) O(1)              실패 5,112 · 20,469 · 81,902 (r=4.00)  통과 4 · 4 · 4
-    훑기(사슬 · 적대) O(1)         실패 4,098 · 16,386 · 65,538 (r=4.00)  통과 4 · 4 · 4
-    inOrder(적대) O(n)             통과 6,143 · 24,575 · 98,303           통과 2,048 · 8,192 · 32,768
-
-    호출 평균으로 읽으면(한정자만 바꿔) 지연 구성 8.19 · 8.16 · 8.13(무작위)과
-    7.51 · 7.50 · 7.50(사슬)로 둘 다 통과. 정본은 3.20 · 3.16 · 3.14 와 3.51 · 3.50 · 3.50.
-    대조로 잰 수열만 드는 계열은 579.67 · 1,552.29 · 5,109.18 과 1,286.89 · 5,130.45 ·
-    20,496.46 으로 평균으로도 걸린다 — 통과·실패 모양이 같은 그 이웃과 지연 구성 계열을
-    가르는 자리가 호출 평균이라, 자기시험이 두 통계를 나란히 박았다.
+    검토자가 낸 expected 여섯 묶음과 한 자리도 다르지 않았다. 문서에 실은 값은 이 배치가 잰
+    값이고, 일치라는 사실을 함께 적었다. 판정기의 expected 정의도 확인했다 — seed 다섯의
+    시퀀스 평균 중 중앙값이지 최대가 아니다.
 ```
 
 ## 3. 판단 항목 — 스크립트가 판정할 수 없는 것
