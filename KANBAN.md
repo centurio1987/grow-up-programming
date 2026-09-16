@@ -83,16 +83,6 @@
   - 이유: KAN-027 S19 가 헤더 문장 「배제되는 계열은 둘이고 이 계약에는 둘 다 없다」(불변 사실 328)를 확인했지만 셋째 계열은 짓고 재지 않았고, cartesianTree 는 두 카드 scope 밖이다
   - 목표: 구성 상한의 배제 근거가 실측 수치로 서고, suffixArray · suffixTree 헤더에 같은 근거 문단이 필요한지도 판정된다
   - 메모: 근거: KAN-027 브랜치 docs/ORD-006-conventions.md 「B군 마감 — 낡은 문장 정정 목록 (KAN-027 S19)」의 cartesianTree.ts:96 행 · 배치13 정정 담당 표 8행(추천: main 백로그 새 카드). 순서: KAN-027 main 병합 뒤 · KAN-036 전.
-- `KAN-046-ZFDFCQ` 밀린 인용 39건 정정 — KAN-045 대장이 drift 로 표시한 자리 — 생성:ai · 최종:ai · 갱신:2026-09-16
-  - 짧은 제목: 밀린 인용 정정
-  - 목적: KAN-045 게이트가 drift 로 표시한 인용 39건(대장 97행)을 실제 대상 줄로 맞추고 대장에서 표시를 걷는다
-  - 이유: 게이트를 세우는 카드가 고치는 일까지 하면 범위가 섞인다고 KAN-045 가 선을 그었다 — 목록과 표시까지가 그 카드였고 정정은 이 카드다
-  - 목표: drift 표시가 0 이 되고, 그 뒤로는 게이트가 새 밀림만 잡는다
-  - 메모: 대상(KAN-045 배치3 실측): docs/ORD-006-conventions.md 정정 추적표 두 벌의 자기 인용 151행(줄 번호 98종 · 블록 밀림 +67 · +121 · +124) · 규격 절에서 tools/check-citations.ts 를 가리키는 5인용 8행 · 그 밖 3인용 · 가이드 여섯(binomialHeap 3 · bTree · orderStatisticTree · ds-guide-v2 SPEC · algo-guide-v2 FEEDBACK). 가이드 쪽은 guide-core 가 코드 내용만 대조해 줄 번호를 아무도 안 보던 자리라 KAN-036 이 가장 크게 물린다. 모호 1건(FEEDBACK.md:179 → check-v2.ts:381)과 기록이라 안 고치는 11건은 목록에 따로 있다. **열거의 정본은 커밋 421e238 의 대장(tools/_baseline/citations.tsv)에서 flag 가 drift 인 97행**이고, 그 판정 근거는 KAN-045 배치3 문서에 있다(검토자 권고 2026-09-16). 정정 뒤 bun run tools/check-citations.ts --update 로 대장을 갱신한다 — 래칫이 내려가는 것은 가드가 막지 않는다.
-  - 원문:
-    ```text
-    고치는 것은 이 카드가 하지 않는다 — 목록과 flag 까지다(KAN-045 카드 전략, 2026-09-16).
-    ```
 - `KAN-047-394V9A` 칸반 문서의 인용을 게이트 안으로 — 예외 E1 이 남긴 구멍 — 생성:ai · 최종:ai · 갱신:2026-09-16
   - 짧은 제목: 칸반 인용 예외 구멍
   - 목적: KAN-045 게이트의 예외 E1(칸반 산출물이 출처인 인용 전부)에서, 살아 있는 계획 문서(카드의 실행 계획·검증 절)를 검사 안으로 들인다
@@ -142,6 +132,17 @@
   - 실행 문서: KANBAN.cards/KAN-036-0G05DE.md (0/1)
 
 ## 진행 중
+- `KAN-046-ZFDFCQ` 밀린 인용 39건 정정 — KAN-045 대장이 drift 로 표시한 자리 — 생성:ai · 최종:ai · 갱신:2026-09-16
+  - 짧은 제목: 밀린 인용 정정
+  - 목적: KAN-045 게이트가 drift 로 표시한 인용 39건(대장 97행)을 실제 대상 줄로 맞추고 대장에서 표시를 걷는다
+  - 이유: 게이트를 세우는 카드가 고치는 일까지 하면 범위가 섞인다고 KAN-045 가 선을 그었다 — 목록과 표시까지가 그 카드였고 정정은 이 카드다
+  - 목표: drift 표시가 0 이 되고, 그 뒤로는 게이트가 새 밀림만 잡는다
+  - 메모: 대상(KAN-045 배치3 실측): docs/ORD-006-conventions.md 정정 추적표 두 벌의 자기 인용 151행(줄 번호 98종 · 블록 밀림 +67 · +121 · +124) · 규격 절에서 tools/check-citations.ts 를 가리키는 5인용 8행 · 그 밖 3인용 · 가이드 여섯(binomialHeap 3 · bTree · orderStatisticTree · ds-guide-v2 SPEC · algo-guide-v2 FEEDBACK). 가이드 쪽은 guide-core 가 코드 내용만 대조해 줄 번호를 아무도 안 보던 자리라 KAN-036 이 가장 크게 물린다. 모호 1건(FEEDBACK.md:179 → check-v2.ts:381)과 기록이라 안 고치는 11건은 목록에 따로 있다. **열거의 정본은 커밋 421e238 의 대장(tools/_baseline/citations.tsv)에서 flag 가 drift 인 97행**이고, 그 판정 근거는 KAN-045 배치3 문서에 있다(검토자 권고 2026-09-16). 정정 뒤 bun run tools/check-citations.ts --update 로 대장을 갱신한다 — 래칫이 내려가는 것은 가드가 막지 않는다.
+  - 실행 문서: KANBAN.cards/KAN-046-ZFDFCQ.md (0/4 · 최근 09-16)
+  - 원문:
+    ```text
+    고치는 것은 이 카드가 하지 않는다 — 목록과 flag 까지다(KAN-045 카드 전략, 2026-09-16).
+    ```
 
 ## 검토
 
