@@ -1,6 +1,7 @@
 # KANBAN 변경 이력
 > 최근 50건. 이보다 오래된 이력은 archive.jsonl 로 압축 보관한다.
 
+- #349 2026-09-17 04:50 · ai · KAN-042-Z02G0W 이동 진행 중 → 검토
 - #348 2026-09-17 04:48 · ai · KAN-049-DV5BXA 수정 목표
 - #347 2026-09-17 04:48 · ai · KAN-049-DV5BXA 수정 이유
 - #346 2026-09-17 04:48 · ai · KAN-049-DV5BXA 수정 제목
@@ -50,4 +51,3 @@
 - #312 2026-09-16 04:10 · 유저 · KAN-039-FG8HWZ serialize
 - #311 2026-09-16 04:10 · 유저 · KAN-026 독립성 겹침 용인 (상대 KAN-027) — 유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」 용인의 재기록(2026-09-16) — scope 에 KAN-026 은 tools/ci.ts · tools/ci-workflow.test.ts · .github/workflows/ci.yml · CLAUDE.md(S24 trials 모드), KAN-027 은 tree/linkCutTree(S29 정정)를 더해 해시가 바뀌었다. 구조 디렉터리는 여전히 겹치지 않고, 공유 문서 · 등록 파일은 KAN-027 이 KAN-026 을 병합해 푼다(병합 커밋 e1d9f18 의 방식)
 - #310 2026-09-16 03:03 · 유저 · KAN-036-0G05DE serialize
-- #309 2026-09-16 03:03 · 유저 · KAN-044-VZXM29 serialize

@@ -1,6 +1,6 @@
 {
   "next_id": 50,
-  "next_seq": 349,
+  "next_seq": 350,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -138,7 +138,7 @@
       "memo_hash": "9a85fc4527c993567180689518c2f6b0c87587ec"
     },
     "KAN-042-Z02G0W": {
-      "col": "doing",
+      "col": "review",
       "title": "vanEmdeBoasTree 검사 공백 보완 — 우주 비트 · 원소 비트 사다리",
       "verbatim": "추천대로 해. 진행해",
       "생성": "ai",
@@ -1239,6 +1239,16 @@
   ],
   "recent": [
     {
+      "seq": 349,
+      "t": "2026-09-17T04:50",
+      "a": "ai",
+      "id": "KAN-042-Z02G0W",
+      "op": "move",
+      "w": "VB5VKS",
+      "from": "doing",
+      "to": "review"
+    },
+    {
       "seq": 348,
       "t": "2026-09-17T04:48",
       "a": "ai",
@@ -1776,16 +1786,6 @@
       "w": "46PCAX",
       "with_": "KAN-044-VZXM29",
       "reason": "cartesianTree 헤더 근거가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다"
-    },
-    {
-      "seq": 309,
-      "t": "2026-09-16T03:03",
-      "a": "유저",
-      "id": "KAN-044-VZXM29",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-027",
-      "reason": "근거(불변 사실 328 · 정정 목록)가 KAN-027 병합 뒤에 main 에 선다"
     }
   ],
   "waivers": [
