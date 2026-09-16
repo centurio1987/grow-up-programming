@@ -304,6 +304,45 @@ test("존재 검사가 실패하면 `--update` 는 아무것도 쓰지 않고 1 
   expect(await Bun.file(join(root, LEDGER_PATH)).exists()).toBe(false);
 });
 
+test("래칫이 오르면 `--update` 도 아무것도 쓰지 않고 1 로 끝낸다", async () => {
+  const root = await makeTree({
+    [T]: TARGET,
+    "docs/held.md": `런북 \`${at(T, 3)}\` 을 보라. 표 ${bare(5)} 행은 다르다.\n`,
+  });
+  await baseline(root);
+  const before = await Bun.file(join(root, LEDGER_PATH)).text();
+
+  // 보류를 하나 늘린다. `check` 가 1 로 우는 자리이고, 그때 사람이 곧바로 누르는 것이
+  // `--update` 다 — 새 인용마다 갱신이 의무이므로 이것은 예외가 아니라 일상 경로다.
+  await write(
+    root,
+    "docs/held2.md",
+    `${at("multiset.ts", 9)} 처럼 적으면 ${bare(3)} 은 풀 수 없다.\n`,
+  );
+  expect((await call(root)).code).toBe(1);
+
+  const updated = await call(root, "update");
+  expect(updated.code).toBe(1);
+  expect(updated.text).toContain("대장을 쓰지 않았다");
+  expect(updated.text).toContain("naked-name 이 0 → 1 로 늘었다");
+  expect(updated.text).toContain(
+    "bare(경로 없는 인용 전체) 이 1 → 2 로 늘었다",
+  );
+  expect(updated.text).toContain("경로를 적는 것");
+  // 한 바이트도 움직이지 않는다 — 머리 주석의 래칫 수치가 올라가면 다음 검사가 통과한다.
+  expect(await Bun.file(join(root, LEDGER_PATH)).text()).toBe(before);
+  // 그래서 굳히기가 되지 않는다 — 갱신 뒤에도 게이트는 그대로 붉다.
+  expect((await call(root)).code).toBe(1);
+
+  // **내려가는 것은 막지 않는다.** 경로를 적어 고치면 보류가 줄고 갱신이 통과한다.
+  await write(root, "docs/held2.md", `정본은 \`${at(T, 5)}\` 이다.\n`);
+  const fixed = await call(root, "update");
+  expect(fixed.code).toBe(0);
+  const now = parseLedger(await Bun.file(join(root, LEDGER_PATH)).text());
+  expect(now.ratchet?.nakedName).toBe(0);
+  expect((await call(root)).code).toBe(0);
+});
+
 test("`--update` 는 키가 같은 행의 flag 를 보존하고, 키가 바뀐 행은 `-` 로 선다", async () => {
   const root = await makeTree({
     [T]: TARGET,

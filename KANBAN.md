@@ -128,7 +128,7 @@
   - 이유: KAN-026·027 재작업에서 같은 사고가 세 번 났다 — check-citations 는 그 줄이 비었는지만 보므로 내용이 있는 엉뚱한 줄로 밀린 인용을 통과시킨다(검토자가 매번 손으로 찾아냈다)
   - 목표: 병합 뒤 인용 표류가 게이트에서 걸리고, 사람이 눈으로 대조하는 일이 없어진다
   - 메모: 이번 세션에서 쓴 대조 스크립트 둘이 출발점이다(세션 스크래치 remap_citations.py · verify_self_cites.py): ① 인용이 적힌 줄이 기준 판본에도 있으면 그 줄이 가리키던 내용이 지금 같은 번호에 있는지 대조 ② 경로 없는 백틱 인용(`:1234`)도 같은 줄 앞의 경로 또는 그 파일 자신으로 풀어 검사. 지금 check-citations 의 정규식은 확장자 있는 경로만 본다. 후보: tools/check-citations.ts 에 --drift 모드, 또는 새 도구 + ci gates 편입.
-  - 실행 문서: KANBAN.cards/KAN-045-D2PK6T.md (4/5 · 최근 09-16)
+  - 실행 문서: KANBAN.cards/KAN-045-D2PK6T.md (5/5 · 최근 09-16)
   - 검토 문서: KANBAN.reviews/KAN-045-D2PK6T.review.md (승인 6/7 · 반려 1 · 추가 의견 총 12 · 반려)
   - 원문:
     ```text

@@ -656,6 +656,33 @@ export async function run(root: string, mode: Mode): Promise<RunResult> {
   }
 
   if (mode === "update") {
+    // ── 래칫도 **쓰기 전에** 본다. 존재 검사와 같은 규율이다.
+    //
+    //    검토(2026-09-16)가 재현한 구멍이 여기였다 — 경로 없는 인용을 하나 더한 편집에서
+    //    `check` 는 1 로 울지만, 이어서 돌린 `--update` 가 머리 주석의 수를 **올려 쓰고**
+    //    다음 `check` 를 통과시켰다. 경고 한 줄도 없었다. 새 인용마다 `--update` 가
+    //    따라붙으므로(규격 운용 소절 「마찰」) 그 자리는 예외가 아니라 일상 경로다.
+    //    규약상 래칫이 정당하게 오르는 사례는 없다 — 늘리지 않고 인용을 쓰는 길이
+    //    「경로를 적는 것」 하나뿐이기 때문이다. 그래서 오르면 **아무것도 쓰지 않고 1**.
+    //    **내려가는 것은 막지 않는다** — 고쳐서 줄어드는 것이 정상 경로다.
+    const rising =
+      previous === null || previous.ratchet === null
+        ? []
+        : ratchetBreaches(scan.counts, previous.ratchet);
+    if (rising.length > 0) {
+      err.push(
+        "보류 래칫이 올라 대장을 쓰지 않았다 — 경로 없는 인용은 늘리지 않는다.\n",
+      );
+      for (const breach of rising) err.push(`  ${breach}`);
+      err.push(
+        "\n수를 늘리지 않고 인용을 쓰는 길은 하나뿐이다 — **경로를 적는 것.**",
+      );
+      err.push(
+        `인용을 고치고 다시 돌린다. 어느 자리가 보류인지는 \`--tsv\` 가 전수로 낸다(지금 ${scan.held.length}건).`,
+      );
+      return { code: 1, out, err };
+    }
+
     await Bun.write(join(root, LEDGER_PATH), renderLedger(rows, scan.counts));
     out.push(
       `대장 갱신: ${rows.length}행 → ${LEDGER_PATH} (인용 ${scan.checked}건 · 경로 없는 인용 ${scan.counts.bare}건 · 보류 ${scan.held.length})`,

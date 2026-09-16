@@ -35,7 +35,7 @@ scope: tools/check-citations.ts, tools/check-citations.test.ts, tools/_baseline/
 - [x] `S2` 도구 구현 — `check-citations.ts` 에 표류 검사와 `--update` · 자기시험(변형에서 걸리는지)
 - [x] `S3` 대장 초기 생성 · 지금 남은 표류 전수 목록
 - [x] `S4` 게이트 편입 — `ci.ts gates` · 워크플로 · 규약 절 · `CLAUDE.md` 검증 명령
-- [ ] `S5` 검토 반려 재작업 — `--update` 가 래칫 상승을 굳히지 못하게 · 검증 문장 정정 · 기준선 수치 보정
+- [x] `S5` 검토 반려 재작업 — `--update` 가 래칫 상승을 굳히지 못하게 · 검증 문장 정정 · 기준선 수치 보정
 
 ### 단계별 완료 기준
 
@@ -54,9 +54,11 @@ scope: tools/check-citations.ts, tools/check-citations.test.ts, tools/_baseline/
 **카드 종료 조건.**
 
 1. `bun run tools/check-citations.ts` 가 **표류를 잡는다** — 자기시험 변형 셋에서 실패하고 정상 상태에서 통과한다.
-2. `tools/_baseline/citations.tsv` 가 저장소에 있고 `--update` 로만 바뀐다.
+2. `tools/_baseline/citations.tsv` 가 저장소에 있고 `--update` 로만 바뀐다. 그 `--update` 는 **존재 검사 실패와 보류 래칫 상승 둘 다에서** 아무것도 쓰지 않고 1 로 끝낸다.
 3. `bun run tools/ci.ts all` 통과 · `bun test tools/check-citations.test.ts tools/ci-workflow.test.ts` 통과 · `cd rust && cargo test` 통과.
 4. 지금 밀려 있는 인용의 목록이 배치 문서에 남고, 그 정정은 별도 작업으로 넘어간 것이 카드에 적힌다.
+
+**39건을 잡은 것은 새 게이트가 아니라 `S3` 의 blame 대조다.** 대장은 인용이 이미 밀린 **뒤인** `S3` 에서 처음 생겼으므로(`S1` · `S2` 태그에는 대장 파일이 없다), 지금 밀려 있는 39건에 대해 `check` 는 exit 0 이다. 검증 실행 결과에 적었던 「새 게이트가 그것을 잡았습니다」는 사실이 아니다 — 대장이 `S1` 에 있었다면 게이트가 잡았을 자리이고, 게이트가 실제로 지키는 것은 **앞으로 생기는 밀림**이다. 39건의 정정은 KAN-046 이 한다.
 
 ## 수행 내역
 <!-- KANBAN:LOG append-only — 아래로만 덧붙인다. 위를 고치지 않는다. -->
@@ -78,3 +80,7 @@ scope: tools/check-citations.ts, tools/check-citations.test.ts, tools/_baseline/
 - 2026-09-16T18:46 · s:f2fd90c7 — S4 마무리 — 게이트 편입을 실물로 확인했다. bun run tools/ci.ts gates 통과(단계 11개, exit 0) — 「인용」 단계가 존재+표류를 함께 돌고 대장 1,130행 지문 전부 일치. .github/workflows/ci.yml 은 bun run tools/ci.ts gates 를 통째로 부르므로 추가 단계 없음(워크플로는 self · trials · reference · gates · practice 다섯 모드만 낱개로 부른다) — 손대지 않았다. tools/ci-workflow.test.ts 1 pass. bun run tools/ci.ts all 통과 — 단계 17개, exit 0, 판정 제외는 ③ 실습 채점(스텁 미구현 실패, 정상)뿐. 로그는 스크래치 ci-045-b3.log. cd rust && cargo test exit 0 — 스위트 11개 전부 ok, 25 pass 0 fail. 곁들여 bun test tools/check-citations.test.ts 17 pass · tools/ci-workflow.test.ts 1 pass · bunx tsc --noEmit 0 · bunx --bun @biomejs/biome check(check-citations 둘) 경고 0 · check-links 843건 통과. 게이트 화면에서 「인용」 단계가 차지하는 줄이 139 → 5 로 줄었다(보류 전수를 --tsv 로 옮긴 결과).
 - 2026-09-16T18:46 · s:f2fd90c7 · S4 done — ci.ts gates · ci.yml · ci-workflow.test · ci.ts all · cargo test 전부 확인
 - 2026-09-16T19:08 · s:f2fd90c7 — `실행 계획` 섹션 교체
+- 2026-09-16T19:11 · s:f2fd90c7 · S5 doing — 착수
+- 2026-09-16T19:16 · s:f2fd90c7 — `검증` 섹션 교체
+- 2026-09-16T19:30 · s:f2fd90c7 · S5 — 검토 반려(항목 3) 재작업. ① tools/check-citations.ts 의 update 경로에 래칫 가드 — previous.ratchet 보다 오르는 갈래가 하나라도 있으면 존재 검사 실패와 같은 규율로 대장을 쓰지 않고 1 로 끝낸다(갈래별 증감 + 「경로를 적는 것」 + 보류 전수는 --tsv 안내). 내려가는 것은 허용(고쳐서 줄어드는 정상 경로), 대장에 래칫 줄이 없으면 비교 대상이 없어 통과(S3 초기 생성 경로). ② 시험 하나 추가 — baseline → 보류 하나 추가 → check 1 → --update 1 · 대장 바이트 불변 · 다음 check 도 1 · 경로를 적어 고치면 --update 0 이고 naked-name 0 으로 내려간다. 18 → 19 pass. 돌연변이 둘로 실효 확인(ratchetBreaches 호출을 [] 로 → 새 시험만 실패 · 가드 앞에서 Bun.write 를 먼저 하게 → 바이트 불변 단정이 실패). ③ 규격 6 의 2 항을 「쓰기 전 관문이 둘이다 — 존재 검사와 보류 래칫. 하나라도 걸리면 아무것도 쓰지 않고 1」로, 운용 소절 4 를 「둘 중 하나라도 걸리면 아무것도 쓰지 않으므로 굳히기가 되지 않는다 — 새 인용마다 갱신이 따라붙는 이 경로가 래칫을 조용히 올리던 자리였다(S5)」로. 줄 수 보존(8,362 그대로). ④ 카드 「검증」을 doc-edit(CAS)로 정정 — 39건을 잡은 것은 게이트가 아니라 S3 의 blame 대조다(git show 로 확인: S1 · S2 태그에 대장 파일 없음, S3 부터 있음). 종료 조건 2 에 래칫 가드 한 문장도 함께. ⑤ 규격 기준선 문자열을 실측으로 — detached 74 · unresolved 46 · naked-name 14(대장 머리 주석과 동일). 보류 코드 표 앞에 기준선 한 문장을 세우고 표의 71 · 48 · 15 는 S1 탐침값으로 표시(S3 이 갈래 표에 한 것과 같은 방식, 실측 절 8,295~ 은 그대로). 인용은 한 건도 밀리지 않아 --update 를 돌리지 않았다 — 사정권을 대장으로 먼저 재고(도구는 82 줄 이전 · 규약 문서는 8,046 줄 이전만 인용 대상) 그 밖에서만 고쳤다. 검증: bun test 19 pass · check-citations exit 0(대장 1,130행 일치 · 래칫 불변) · ci.ts gates 11단계 · ci.ts all 17단계 통과(로그 ci-045-b4.log) · tsc 0 · biome 경고 0 · check-links 846건.
+- 2026-09-16T19:30 · s:f2fd90c7 · S5 done — 완료
