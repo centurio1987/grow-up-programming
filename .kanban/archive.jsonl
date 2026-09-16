@@ -416,3 +416,4 @@
 {"seq": 312, "t": "2026-09-16T04:10", "a": "유저", "id": "KAN-039-FG8HWZ", "op": "serialize", "w": "46PCAX", "with_": "KAN-026", "reason": "KAN-039 는 KAN-026 의 「rollingHash 는 자료구조가 아니다」 판정과 이관 조사(불변 사실 288)가 main 에 병합된 뒤에야 근거가 선다"}
 {"seq": 313, "t": "2026-09-16T04:10", "a": "유저", "id": "KAN-036-0G05DE", "op": "serialize", "w": "46PCAX", "with_": "KAN-026", "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 A군 16종(+ 이관된 cuckooFilter)은 계약 전환이 끝나야 쓸 수 있다"}
 {"seq": 314, "t": "2026-09-16T04:10", "a": "유저", "id": "KAN-039-FG8HWZ", "op": "serialize", "w": "46PCAX", "with_": "KAN-027", "reason": "KAN-039 에 합류한 huffmanTree 는 KAN-027 T5-06 판정(불변 사실 244–246)이 main 에 병합된 뒤에야 근거가 선다(유저 「가」 2026-09-15)"}
+{"seq": 315, "t": "2026-09-16T04:10", "a": "유저", "id": "KAN-036-0G05DE", "op": "serialize", "w": "46PCAX", "with_": "KAN-027", "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 B군 잔여 16종은 계약 전환이 끝나야 쓸 수 있다"}

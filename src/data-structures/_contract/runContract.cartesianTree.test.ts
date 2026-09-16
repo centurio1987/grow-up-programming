@@ -58,11 +58,17 @@ function verdicts(
   return result;
 }
 
-/** 훑기 시나리오 하나를 **한정자만 바꿔** 읽는다. 재는 입력도 걸음도 그대로다. */
+/**
+ * 훑기 시나리오 하나를 **한정자만 바꿔** 읽는다. 재는 입력도 걸음도 그대로다.
+ *
+ * 세 한정자가 보는 통계가 다르다(`./judge.ts` 의 `statistic`) — `worst` 는 단일 호출 최대, `amortized` 는 seed 1 의 시퀀스
+ * 평균, `expected` 는 seed 다섯의 시퀀스 평균 중 중앙값이다. **약한 둘을 나란히 박는 이유가 그것이다** — 한쪽만 재고
+ * 다른 쪽을 미루어 적으면 통계 정의가 다른 자리에서 틀린다(검토 반려 2026-09-17 · `S3`).
+ */
 function readAs(
   covers: string,
   adversarial: boolean,
-  qualifier: "worst" | "amortized",
+  qualifier: "worst" | "amortized" | "expected",
   make: Maker,
 ): { ok: boolean; stats: number[] } {
   const base = cartesianTreeContract.scenarios.find(
@@ -144,47 +150,65 @@ describe("축3 — 구성 시점(불변 사실 52 ③)과 여섯 행 worst 의 �
   }, 120_000);
 
   /**
-   * **이 계열은 상각 읽기를 실제로 지킨다 — 해상도 아래라 통과하는 것이 아니다.**
+   * **이 계열은 약한 읽기 둘을 실제로 지킨다 — 해상도 아래라 통과하는 것이 아니다.**
    *
    * `range-query/sparseTable` 에서는 같은 계열의 호출 평균이 20.02 · 24.01 · 28 로 **자랐고**(구성이 자리 수 × 층 수라
    * 로그를 따른다) 그것이 축3 해상도 아래라 통과했다(불변 사실 53·328). 이쪽은 구성이 선형인데 그것을 나눠 갚을 걸음이
-   * n 개라 평균이 **상수로 고정된다.** 그러니 이 계약에서 그 계열을 배제하는 것은 `worst` 뿐이다.
+   * n 개라 평균이 **상수로 고정된다.** 그러니 이 계약에서 그 계열을 배제하는 것은 `worst` 하나다.
+   *
+   * **`amortized` 와 `expected` 를 나란히 박는다.** 둘은 보는 통계가 달라(seed 1 의 평균 / seed 다섯의 평균 중앙값) 한쪽
+   * 값에서 다른 쪽을 미루어 적을 수 없다. 여기 둘 다 재 두는 것이 「한쪽만 재고 다른 쪽을 단정하는 것」을 막는 자리다.
    *
    * **통과·실패 모양만으로는 `rescanningCartesianView` 와 구별되지 않는다**(둘 다 구성 둘 통과 · 훑기 둘 실패). 갈리는
-   * 자리가 호출 평균이다 — 수열만 들고 물을 때마다 다시 훑는 쪽은 평균으로도 걸린다. 같은 행을 겨눈 결함이 둘일 때
-   * 무엇이 더 잡히는지는 통계를 갈라야 보인다(불변 사실 118 과 같은 자리).
+   * 자리가 호출 평균이다 — 수열만 들고 물을 때마다 다시 훑는 쪽은 평균으로도, 중앙값으로도 걸린다. 같은 행을 겨눈
+   * 결함이 둘일 때 무엇이 더 잡히는지는 통계를 갈라야 보인다(불변 사실 118 과 같은 자리).
    */
-  test("짓기를 미루는 계열은 worst 로 걸리고 amortized 로 통과한다", () => {
+  test("짓기를 미루는 계열은 worst 로만 걸리고 amortized · expected 로는 통과한다", () => {
     expect({
       deferredWorst: readAs("size", true, "worst", makers.deferred),
       deferredAverage: readAs("size", true, "amortized", makers.deferred),
+      deferredExpected: readAs("size", true, "expected", makers.deferred),
       rescanningAverage: readAs("size", true, "amortized", makers.rescanning),
+      rescanningExpected: readAs("size", true, "expected", makers.rescanning),
       referenceAverage: readAs("size", true, "amortized", makers.reference),
+      referenceExpected: readAs("size", true, "expected", makers.reference),
     }).toEqual({
       deferredWorst: { ok: false, stats: [4098, 16386, 65538] },
       deferredAverage: { ok: true, stats: [7.51, 7.5, 7.5] },
+      deferredExpected: { ok: true, stats: [7.5, 7.5, 7.5] },
       rescanningAverage: {
         ok: false,
         stats: [1286.89, 5130.45, 20496.46],
       },
+      rescanningExpected: {
+        ok: false,
+        stats: [1278.07, 5123.87, 20479.39],
+      },
       referenceAverage: { ok: true, stats: [3.51, 3.5, 3.5] },
+      referenceExpected: { ok: true, stats: [3.5, 3.5, 3.5] },
     });
-  }, 120_000);
+  }, 300_000);
 
   /** 무작위 수열에서도 같은 갈림이다 — 사슬이라서 나오는 결과가 아니라는 것을 이 자리가 고정한다. */
-  test("무작위 수열에서도 평균은 통과하고 최대만 걸린다", () => {
+  test("무작위 수열에서도 약한 읽기 둘은 통과하고 최대만 걸린다", () => {
     expect({
       deferredWorst: readAs("size", false, "worst", makers.deferred),
       deferredAverage: readAs("size", false, "amortized", makers.deferred),
+      deferredExpected: readAs("size", false, "expected", makers.deferred),
       rescanningAverage: readAs("size", false, "amortized", makers.rescanning),
+      rescanningExpected: readAs("size", false, "expected", makers.rescanning),
       referenceAverage: readAs("size", false, "amortized", makers.reference),
+      referenceExpected: readAs("size", false, "expected", makers.reference),
     }).toEqual({
       deferredWorst: { ok: false, stats: [5112, 20469, 81902] },
       deferredAverage: { ok: true, stats: [8.19, 8.16, 8.13] },
+      deferredExpected: { ok: true, stats: [8.17, 8.16, 8.15] },
       rescanningAverage: { ok: false, stats: [579.67, 1552.29, 5109.18] },
+      rescanningExpected: { ok: false, stats: [472.86, 1563.69, 5786.64] },
       referenceAverage: { ok: true, stats: [3.2, 3.16, 3.14] },
+      referenceExpected: { ok: true, stats: [3.19, 3.16, 3.15] },
     });
-  }, 120_000);
+  }, 300_000);
 });
 
 describe("축1 — 값은 전부 옳다(축3만 어기는 계열이어야 근거가 된다)", () => {
