@@ -241,3 +241,4 @@
 {"seq": 241, "t": "2026-09-10T22:19", "a": "ai", "id": "KAN-034.10-8M6T6P", "op": "reparent", "w": "MDD8JM", "from": "KAN-034-KSD7XR", "to": null}
 {"seq": 242, "t": "2026-09-10T22:19", "a": "ai", "id": "KAN-034-KSD7XR", "op": "move", "w": "MDD8JM", "from": "doing", "to": "done"}
 {"seq": 243, "t": "2026-09-11T01:54", "a": "유저", "id": "KAN-035-31T4BY", "op": "create", "w": "46PCAX", "col": "backlog", "title": "진행 중인 자료구조 재집필 트랙을 취소하고, 다시 설계", "verbatim": "", "parent": null, "short": "", "purpose": "", "reason": "", "goal": "", "memo": "", "request_template": "free"}
+{"seq": 244, "t": "2026-09-11T01:58", "a": "ai", "id": "KAN-035-31T4BY", "op": "brief", "w": "46PCAX", "fields": {"short": "자료구조 트랙 재설계", "purpose": "진행 중인 KAN-027(ORD-006 B군 자료구조 재집필)을 중단하고 자료구조 트랙의 설계를 다시 세운다"}, "before": {"short": "", "purpose": ""}}
