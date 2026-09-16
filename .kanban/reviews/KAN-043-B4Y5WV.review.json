@@ -12,8 +12,8 @@
   "worktree": "/Users/centurio/orca/workspaces/code_test/KAN-043-B4Y5WV"
  },
  "inherited_md": "",
- "md_fp": "6dbf9654e1d62426ccff480111b8444402c53d02",
- "md_src_fp": "d44adad873f1d6418243683cc369d318f83120ca",
+ "md_fp": "1ec85133457b4f3eabd3c4210e57538acfc2b63d",
+ "md_src_fp": "49b6b90bfb425d26eaf8ab0d73b3360f5f1a39bd",
  "schema": 1,
  "target_md": "| 항목 | 값 |\n|---|---|\n| 브랜치 | `KAN-043-B4Y5WV` |\n| 워크트리 | `/Users/centurio/orca/workspaces/code_test/KAN-043-B4Y5WV` |\n| 베이스 | `3c352c9` |\n| 변경 훑기 | `git diff 3c352c9...HEAD` |\n\n**커밋 2건**\n\n```text\n6b652e0 KAN-043 배치1: 축3 값 검사 — 선택 자리 둘과 검증 실행 러너 (S1 · S2)\n3c352c9 kanban: KAN-043 착수 — 카드 문서 · scope · KAN-036 직렬 중재 · 배치1\n```\n\n**변경 파일 20개 (+941 −90)**\n\n| 파일 | 상태 | 추가 | 삭제 |\n|---|:--:|---:|---:|\n| `.kanban/archive.jsonl` | M | 2 | 0 |\n| `.kanban/log.md` | M | 2 | 2 |\n| `.kanban/state.json` | M | 37 | 44 |\n| `KANBAN.batches/KAN-043-B4Y5WV.batch1.md` | M | 91 | 0 |\n| `KANBAN.board.html` | M | 4 | 4 |\n| `KANBAN.cards/KAN-043-B4Y5WV.md` | M | 53 | 0 |\n| `KANBAN.md` | M | 11 | 10 |\n| `docs/ORD-006-conventions.md` | M | 117 | 5 |\n| `docs/ORD-006-runbook.md` | M | 24 | 1 |\n| `src/data-structures/_contract/runContract.ts` | M | 22 | 1 |\n| `src/data-structures/_contract/runValues.test.ts` | M | 241 | 0 |\n| `src/data-structures/_contract/runValues.ts` | M | 204 | 0 |\n| `src/data-structures/graph-repr/dag/dag.contract.ts` | M | 1 | 1 |\n| `src/data-structures/graph-repr/graphAdjList/graphAdjList.contract.ts` | M | 1 | 1 |\n| `src/data-structures/linear/gapBuffer/gapBuffer.contract.ts` | M | 60 | 1 |\n| `src/data-structures/linear/gapBuffer/gapBuffer.test.ts` | M | 16 | 2 |\n| `src/data-structures/probabilistic/skipList/skipList.test.ts` | M | 12 | 2 |\n| `src/data-structures/tree/treap/treap.contract.ts` | M | 20 | 2 |\n| `src/data-structures/tree/treap/treap.test.ts` | M | 11 | 2 |\n| `tools/_baseline/citations.tsv` | M | 12 | 12 |\n\n**롤백 태그 3개**\n\n```text\nkan/KAN-043-B4Y5WV/S1\nkan/KAN-043-B4Y5WV/S2\nkan/KAN-043-B4Y5WV/batch1\n```",
  "verdicts": [],
