@@ -420,7 +420,7 @@ export class BinomialHeap<T> {
 }
 ```
 
-**가장 중요한 줄은 자리 하나에 무엇이 모였는지 세는 이 대목입니다**(`src/data-structures/heap/binomialHeap/_reference/binomialHeap.ts:136-138`).
+**가장 중요한 줄은 자리 하나에 무엇이 모였는지 세는 이 대목입니다**(`src/data-structures/heap/binomialHeap/_reference/binomialHeap.ts:142-144`).
 
 ```ts
 const present = [mine, adding, carry].filter(
@@ -442,7 +442,7 @@ const present = [mine, adding, carry].filter(
 
 셋이 모이면 하나를 자리에 남기고 둘을 이어 붙여 올립니다. 둘이 모이면 자리를 비우고 둘을 올리고요. `9 + 9 + 올림 1 = 19` 에서 9 가 남고 1 이 올라가는 것과 같은 계산입니다.
 
-**두 번째로 중요한 줄은 이어 붙이기의 방향을 정하는 이 줄이에요**(`src/data-structures/heap/binomialHeap/_reference/binomialHeap.ts:165`).
+**두 번째로 중요한 줄은 이어 붙이기의 방향을 정하는 이 줄이에요**(`src/data-structures/heap/binomialHeap/_reference/binomialHeap.ts:195`).
 
 ```ts
 const [top, under] = this.#compare(b.item, a.item) < 0 ? [b, a] : [a, b];
@@ -470,7 +470,7 @@ const [top, under] = this.#compare(b.item, a.item) < 0 ? [b, a] : [a, b];
 
 ### 놓치기 쉬운 구현부
 
-- **반복문의 종료 조건이 `at < incoming.length || carry !== null` 입니다**(`src/data-structures/heap/binomialHeap/_reference/binomialHeap.ts:130`). 내 자리 목록의 길이는 조건에 없어요. 더할 나무가 떨어지고 올림도 끝나면 **내 자리가 더 높이 남아 있어도 훑지 않고 멈춥니다.** 이 조건을 자리 목록 전체로 넓히면 답은 그대로인데 넣기 한 번이 늘 자릿수만큼 걸리게 되고, 아래에서 볼 상각 상수가 사라져요.
+- **반복문의 종료 조건이 `at < incoming.length || carry !== null` 입니다**(`src/data-structures/heap/binomialHeap/_reference/binomialHeap.ts:136`). 내 자리 목록의 길이는 조건에 없어요. 더할 나무가 떨어지고 올림도 끝나면 **내 자리가 더 높이 남아 있어도 훑지 않고 멈춥니다.** 이 조건을 자리 목록 전체로 넓히면 답은 그대로인데 넣기 한 번이 늘 자릿수만큼 걸리게 되고, 아래에서 볼 상각 상수가 사라져요.
 - **`dequeue` 는 `this.#trees[at] = null` 을 `#add` 보다 먼저 합니다.** 순서를 뒤집으면 들어낸 나무가 자리에 그대로 있는 채로 자식들을 더하게 돼요. 자식들에서 올라온 올림이 자리 `at` 에 닿으면 그 나무가 `mine` 으로 잡혀 다시 이어 붙습니다. **방금 꺼낸 원소가 큐로 되돌아와요.**
 - **`taken.children` 을 자리 목록으로 그대로 넘깁니다.** 색인 `i` 의 자식이 차수 `i` 이고 자리 목록도 「자리 `i` 에 차수 `i`」이므로 두 색인이 그대로 맞물려요. 자식을 차수 내림차순으로 담는 구현이었다면 여기서 뒤집어야 합니다 — **안 뒤집어도 답은 안 틀리고 걸음만 늘어난다는 것**을 앞에서 실측으로 봤고요(25 → 43). `#add` 가 색인을 자리 번호로 그냥 쓰고 차수를 확인하지 않기 때문입니다.
 - **`#link` 의 경계가 `< 0` 입니다.** 인자 순서가 `(b.item, a.item)` 이라 「비교자가 `b` 를 앞세울 때만 `b` 가 위에 선다」가 되고, 0 을 돌려주면 `a` 가 위예요. `<= 0` 으로 바꾸면 같은 우선순위 둘 중 어느 쪽이 위에 서는지가 달라지는데, 계약이 그 순서를 약속하지 않으므로 답은 안 틀립니다.
