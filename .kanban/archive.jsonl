@@ -396,3 +396,4 @@
 {"seq": 297, "t": "2026-09-16T01:41", "a": "유저", "id": "KAN-040-M5V53M", "op": "serialize", "w": "46PCAX", "with_": "KAN-027", "reason": "유저 결재(2026-09-16) — 선행이 세운 원칙·산출물 위에서 판정하고, 계약·축3 수치가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다"}
 {"seq": 297, "t": "2026-09-16T15:35", "a": "ai", "id": "KAN-026", "op": "move", "w": "2PNFSD", "from": "doing", "to": "review"}
 {"seq": 297, "t": "2026-09-16T13:22", "a": "ai", "id": "KAN-027", "op": "move", "w": "RCPDZM", "from": "review", "to": "doing"}
+{"seq": 298, "t": "2026-09-16T16:47", "a": "ai", "id": "KAN-026", "op": "move", "w": "2PNFSD", "from": "review", "to": "done"}
