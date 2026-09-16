@@ -1,23 +1,30 @@
 /**
- * 문서·코드에 적힌 `경로:줄번호` 인용이 실제로 가리키는 곳이 있는지 검사한다.
+ * 문서·코드에 적힌 `경로:줄번호` 인용이 **실재하는지**(존재 검사)와 **가리키던 내용이 그대로인지**
+ * (표류 검사)를 검사한다.
  *
  * 이 도구가 있는 이유는 같은 결함이 두 배치 연속으로 났기 때문이다. B2 가 인용 오류 2건을
  * 잡고 "전수 검색했다"고 적었는데, 그 검색이 **전체 경로 형태만** 봤다. 파일 이름 없이
  * `` `:82` `` 로 적힌 상대 인용은 패턴에 걸리지 않아 런북에 그대로 남았고 B3 에서 다시 나왔다.
  * 사람이 도는 검색은 패턴을 빠뜨리고, 빠뜨린 것을 본인이 알 수 없다.
  *
- * **검사 대상은 경로에 `/` 가 들어간 인용뿐이다.** 그것이 "따라가라고 적은 인용"의 집합이다.
+ * **존재 검사 대상은 경로에 `/` 가 들어간 인용뿐이다.** 그것이 "따라가라고 적은 인용"의 집합이다.
  * `multiset.ts:25` 처럼 파일 이름만 있는 인용은 대개 지워진 파일의 옛 상태를 가리키는
- * 기록이므로(§규약1 의 표류 사례) 해석하지 않는다. 상대 인용을 쓰지 않는 것이 규칙이고,
- * 이 도구는 그 규칙을 지킨 인용만 검증한다.
+ * 기록이므로(§규약1 의 표류 사례) 존재 검사에 넣지 않는다.
  *
- * 실행: `bun run tools/check-citations.ts`
+ * **표류 검사(KAN-045-D2PK6T `S2`).** 존재 검사는 「그 줄이 있는가」만 본다 — 병합이 파일 앞에
+ * 줄을 끼워 넣으면 인용은 내용이 있는 **남의 줄**을 가리키며 통과한다. 실제로 세 번 샜다.
+ * 그래서 인용마다 **대상 줄 내용의 지문**을 대장(`tools/_baseline/citations.tsv`)에 적어 두고
+ * 매번 대조한다. 규격의 정본은 `docs/ORD-006-conventions.md` 의 절 「인용 표류 게이트 규격」이고
+ * **여기 적히지 않은 것을 이 파일이 새로 정하지 않는다.**
+ *
+ * 실행:
+ *   `bun run tools/check-citations.ts`            존재 + 표류 검사. exit 0 통과 · 1 실패
+ *   `bun run tools/check-citations.ts --update`   대장을 지금 상태로 다시 쓴다
+ *   `bun run tools/check-citations.ts --tsv`      지금 상태의 대장을 stdout 으로 (파일에 쓰지 않는다)
  */
 
 import { readdir } from "node:fs/promises";
 import { join, resolve } from "node:path";
-
-const root = resolve(import.meta.dir, "..");
 
 /**
  * 인용을 찾아 볼 파일들.
@@ -61,13 +68,116 @@ const SCAN_EXTENSIONS = [".md", ".mdx", ".ts", ".rs"];
 const CITATION =
   /(?<![A-Za-z0-9_./-])(?!\.{3})([A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)+\.(?:md|mdx|ts|tsx|rs|json|tsv)):(\d+)(?:-(\d+))?/g;
 
-interface Problem {
+/**
+ * **경로 없는 백틱 인용.** 백틱 한 쌍 안이 오직 `:숫자` 또는 `:숫자-숫자` 인 것만 센다.
+ * 세 번 샌 자리 가운데 하나가 여기다 — 병합이 1,193 줄을 밀었을 때 이 꼴이 검사 밖이었다.
+ */
+const BARE_CITATION = /`:(\d+)(?:-(\d+))?`/g;
+
+/**
+ * **디렉터리 없는 `이름.확장자:줄` 꼴.** 경로로 잡히지 않아 닻이 서지 않는데, 그 줄의 경로
+ * 없는 인용을 「자기」로 풀면 틀린다 — 규약이 이미 지목한 함정이다. 있으면 보류시킨다.
+ */
+const NAKED_NAME =
+  /(?<![A-Za-z0-9_./-])(?!\.{3})[A-Za-z0-9_.-]+\.(?:md|mdx|ts|tsx|rs|json|tsv):\d+/;
+
+/**
+ * **닻과 인용 사이를 잇는 기호.** 공백 · 백틱 · 가운뎃점 · 쉼표 · 괄호 · 줄임표뿐이면 「붙임」이다.
+ * 사이에 **말이 끼면 보류**다 — 같은 줄 앞 경로로 추정해 아홉 건을 잘못 옮겼다 되돌린 일이 있다.
+ */
+const CONNECTORS_ONLY = /^(?:[\s`·,()]|\.{3}|…)*$/u;
+
+/** 대장. **경로를 플래그로 받지 않는다** — 받으면 CI 와 사람이 다른 파일을 본다. */
+export const LEDGER_PATH = "tools/_baseline/citations.tsv";
+
+/**
+ * **예외 E1 — 출처가 `KANBAN.**` 인 인용 전부.** 배치 문서 · 카드 「수행 내역」 · 검토서는
+ * **발행 시점의 사실**을 적은 기록이라, 대상이 뒤에 움직여도 고치면 기록이 거짓이 된다.
+ * 지금도 `SCAN_GLOBS` 밖이고 **넓히지 않는다는 결정**을 여기에 박아 둔다.
+ */
+const EXEMPT_SOURCE = (path: string) => path.startsWith("KANBAN.");
+
+/**
+ * **예외 E2 — 대상이 `KANBAN.reviews/**` 인 줄 인용.** 검토서는 재발행마다 통째로 밀려
+ * 대장에 넣으면 발행마다 붉어지고, 사람은 반사적으로 `--update` 를 누른다 — 게이트를
+ * 무력화하는 학습이다. 존재 검사에는 그대로 남고 **대장에만 넣지 않는다.**
+ */
+const EXEMPT_TARGET = (path: string) => path.startsWith("KANBAN.reviews/");
+
+export type HeldCode = "detached" | "unresolved" | "naked-name";
+
+export interface Problem {
   where: string;
   citation: string;
   detail: string;
 }
 
-async function collectFiles(relativeDir: string): Promise<string[]> {
+/** 경로 없는 인용 가운데 대장에 넣지 않는 것. 실패가 아니라 래칫 대상이다. */
+export interface Held {
+  where: string;
+  citation: string;
+  code: HeldCode;
+  /** 왜 그 코드인지 한 줄. */
+  detail: string;
+}
+
+/** 대장 한 행. 앞 셋이 키, `fingerprint` 가 값, `flag` 는 표시(판정에 쓰이지 않는다). */
+export interface Row {
+  src: string;
+  target: string;
+  targetLine: number;
+  fingerprint: string;
+  flag: string;
+}
+
+/** 표류 메시지가 「무엇을 어떻게 해석해 여기까지 왔는가」를 함께 내기 위한 기록. */
+export interface Origin {
+  where: string;
+  citation: string;
+  how: string;
+}
+
+export interface Ratchet {
+  bare: number;
+  detached: number;
+  unresolved: number;
+  nakedName: number;
+}
+
+export interface Scan {
+  /** 존재 검사를 돈 경로 있는 인용 수. */
+  checked: number;
+  problems: Problem[];
+  rows: Row[];
+  held: Held[];
+  origins: Map<string, Origin[]>;
+  counts: Ratchet & { attached: number; self: number };
+}
+
+const rowKey = (src: string, target: string, targetLine: number) =>
+  `${src}\t${target}\t${targetLine}`;
+
+/**
+ * **지문 정규화.** ① 행 끝 `\r` 를 뗀다 ② 모든 공백 연속을 스페이스 하나로 접는다
+ * ③ 앞뒤 공백을 뗀다. 들여쓰기와 줄 안의 정렬은 내용이 아니다 — biome 의 재포맷과 표
+ * 정렬이 지문을 흔들면 게이트가 서식 변화와 내용 변화를 가르지 못한다. 반대로 **대소문자와
+ * 문장부호는 접지 않는다.** 그것은 내용이다.
+ */
+export function normalizeLine(raw: string): string {
+  return raw.replace(/\r$/, "").replace(/\s+/gu, " ").trim();
+}
+
+/** SHA-256 을 UTF-8 바이트에 걸고 앞 12 자리. 빈 줄은 지문이 없다(행이 서지 않는다). */
+export function fingerprintOf(raw: string): string | null {
+  const text = normalizeLine(raw);
+  if (text === "") return null;
+  return new Bun.CryptoHasher("sha256").update(text).digest("hex").slice(0, 12);
+}
+
+async function collectFiles(
+  root: string,
+  relativeDir: string,
+): Promise<string[]> {
   const absolute = join(root, relativeDir);
   const entries = await readdir(absolute, { withFileTypes: true }).catch(
     () => [],
@@ -78,7 +188,7 @@ async function collectFiles(relativeDir: string): Promise<string[]> {
     if (entry.isDirectory()) {
       // `target` 은 cargo 의 빌드 산출물이다(gitignore). 훑으면 검사 시간이 통째로 거기 간다.
       if (entry.name === "node_modules" || entry.name === "target") continue;
-      found.push(...(await collectFiles(child)));
+      found.push(...(await collectFiles(root, child)));
     } else if (SCAN_EXTENSIONS.some((ext) => entry.name.endsWith(ext))) {
       found.push(child);
     }
@@ -86,76 +196,556 @@ async function collectFiles(relativeDir: string): Promise<string[]> {
   return found;
 }
 
-const lineCache = new Map<string, string[] | null>();
-
-async function linesOf(relativePath: string): Promise<string[] | null> {
-  const cached = lineCache.get(relativePath);
-  if (cached !== undefined) return cached;
-  const file = Bun.file(join(root, relativePath));
-  const value = (await file.exists()) ? (await file.text()).split("\n") : null;
-  lineCache.set(relativePath, value);
-  return value;
+interface PathHit {
+  kind: "path";
+  at: number;
+  end: number;
+  text: string;
+  target: string;
+  start: number;
+  rangeEnd: number | undefined;
 }
 
-const problems: Problem[] = [];
-let checked = 0;
+interface BareHit {
+  kind: "bare";
+  at: number;
+  end: number;
+  text: string;
+  start: number;
+  rangeEnd: number | undefined;
+}
 
-const files: string[] = [];
-for (const glob of SCAN_GLOBS) files.push(...(await collectFiles(glob)));
+/** 한 줄에서 경로 인용을 뽑는다. **예외 E4**(`경로:줄:열`)는 여기서 끊는다. */
+function pathHits(line: string): PathHit[] {
+  const hits: PathHit[] = [];
+  for (const match of line.matchAll(CITATION)) {
+    const [text, target, startText, endText] = match;
+    if (target === undefined || startText === undefined) continue;
+    const at = match.index;
+    const end = at + text.length;
+    // E4 — 열 번호가 붙은 것은 실행 로그·컴파일러 진단의 사본이지 인용이 아니다.
+    if (/^:\d/.test(line.slice(end))) continue;
+    hits.push({
+      kind: "path",
+      at,
+      end,
+      text,
+      target,
+      start: Number(startText),
+      rangeEnd: endText === undefined ? undefined : Number(endText),
+    });
+  }
+  return hits;
+}
 
-for (const file of files) {
-  const text = await Bun.file(join(root, file)).text();
-  const sourceLines = text.split("\n");
+function bareHits(line: string): BareHit[] {
+  const hits: BareHit[] = [];
+  for (const match of line.matchAll(BARE_CITATION)) {
+    const [text, startText, endText] = match;
+    if (startText === undefined) continue;
+    hits.push({
+      kind: "bare",
+      at: match.index,
+      end: match.index + text.length,
+      text,
+      start: Number(startText),
+      rangeEnd: endText === undefined ? undefined : Number(endText),
+    });
+  }
+  return hits;
+}
 
-  for (const [index, line] of sourceLines.entries()) {
-    CITATION.lastIndex = 0;
-    for (const match of line.matchAll(CITATION)) {
-      const [citation, target, startText, endText] = match;
-      if (target === undefined || startText === undefined) continue;
+/**
+ * 저장소 하나를 훑어 **존재 검사 결과 · 지금 시점의 대장 행 · 보류 목록**을 낸다.
+ * `root` 를 받는 까닭은 자기시험이 임시 트리를 만들어 같은 코드를 돌리기 위해서다.
+ */
+export async function scanTree(root: string): Promise<Scan> {
+  const lineCache = new Map<string, string[] | null>();
+  async function linesOf(relativePath: string): Promise<string[] | null> {
+    const cached = lineCache.get(relativePath);
+    if (cached !== undefined) return cached;
+    const file = Bun.file(join(root, relativePath));
+    const value = (await file.exists())
+      ? (await file.text()).split("\n")
+      : null;
+    lineCache.set(relativePath, value);
+    return value;
+  }
+
+  const problems: Problem[] = [];
+  const held: Held[] = [];
+  const origins = new Map<string, Origin[]>();
+  const rowByKey = new Map<string, Row>();
+  const counts = {
+    bare: 0,
+    detached: 0,
+    unresolved: 0,
+    nakedName: 0,
+    attached: 0,
+    self: 0,
+  };
+  let checked = 0;
+
+  /**
+   * 대장 행 하나를 세운다. 지문이 없으면(빈 줄) 세우지 않는다 — 빈 줄의 지문은 모든 빈 줄과
+   * 같아서 아무것도 지키지 않고, 그 자리는 존재 검사가 이미 실패로 낸다.
+   * 대상 줄이 없으면 `false` 를 돌려 준다(경로 없는 인용의 `unresolved` 판정에 쓴다).
+   */
+  async function register(
+    src: string,
+    target: string,
+    targetLine: number,
+    origin: Origin,
+  ): Promise<boolean> {
+    const lines = await linesOf(target);
+    if (lines === null) return false;
+    if (targetLine < 1 || targetLine > lines.length) return false;
+    const fingerprint = fingerprintOf(lines[targetLine - 1] ?? "");
+    if (fingerprint === null) return false;
+    if (EXEMPT_TARGET(target)) return true; // E2 — 존재는 참, 대장에는 넣지 않는다
+    const key = rowKey(src, target, targetLine);
+    // 키 중복은 한 행으로 합친다. 같은 대상 줄이므로 지문이 갈릴 일이 정의상 없다.
+    if (!rowByKey.has(key))
+      rowByKey.set(key, { src, target, targetLine, fingerprint, flag: "-" });
+    const list = origins.get(key);
+    if (list === undefined) origins.set(key, [origin]);
+    else list.push(origin);
+    return true;
+  }
+
+  /**
+   * 반쪽만 풀린 범위 인용이 남긴 행을 거둔다. **그 인용이 남긴 자국만** 떼고, 같은 좌표를
+   * 다른 인용이 이미 세워 두었으면 행은 그대로 둔다 — 남의 행을 지우면 대장이 한 줄 비고,
+   * 비어 있는 자리는 병합이 밀어도 조용하다.
+   */
+  function unregister(src: string, target: string, targetLine: number) {
+    const key = rowKey(src, target, targetLine);
+    const list = origins.get(key);
+    if (list === undefined) return;
+    list.pop();
+    if (list.length > 0) return;
+    origins.delete(key);
+    rowByKey.delete(key);
+  }
+
+  const files: string[] = [];
+  for (const glob of SCAN_GLOBS)
+    files.push(...(await collectFiles(root, glob)));
+  files.sort();
+
+  for (const file of files) {
+    if (EXEMPT_SOURCE(file)) continue; // E1
+    const sourceLines = (await linesOf(file)) ?? [];
+
+    for (const [index, line] of sourceLines.entries()) {
+      const paths = pathHits(line);
+      const bares = bareHits(line);
+      if (paths.length === 0 && bares.length === 0) continue;
 
       const where = `${file}:${index + 1}`;
-      checked++;
+      const lineHasNakedName = NAKED_NAME.test(line);
 
-      const targetLines = await linesOf(target);
-      if (targetLines === null) {
-        problems.push({ where, citation, detail: "가리키는 파일이 없다" });
-        continue;
+      // ── 존재 검사 — 경로 있는 인용. 지금 규칙을 그대로 산다.
+      for (const hit of paths) {
+        checked++;
+        const targetLines = await linesOf(hit.target);
+        if (targetLines === null) {
+          problems.push({
+            where,
+            citation: hit.text,
+            detail: "가리키는 파일이 없다",
+          });
+          continue;
+        }
+        const start = hit.start;
+        const end = hit.rangeEnd ?? start;
+        const total = targetLines.length;
+        if (start < 1 || start > total || end > total) {
+          problems.push({
+            where,
+            citation: hit.text,
+            detail: `${hit.target} 는 ${total} 줄인데 ${start}${hit.rangeEnd === undefined ? "" : `-${end}`} 을 가리킨다`,
+          });
+          continue;
+        }
+        if ((targetLines[start - 1] ?? "").trim() === "") {
+          problems.push({
+            where,
+            citation: hit.text,
+            detail: `${hit.target}:${start} 이 빈 줄이다`,
+          });
+        }
       }
 
-      const start = Number(startText);
-      const end = endText === undefined ? start : Number(endText);
-      const total = targetLines.length;
+      // ── 해석 — 한 줄을 왼쪽에서 오른쪽으로 훑으며 닻을 든다. **같은 줄 증거만 쓴다.**
+      //    앞 줄·앞 문단으로 거슬러 올라가지 않는다. 산문은 줄바꿈되고 줄바꿈 자리는 재포맷하면
+      //    움직인다 — 문단을 거슬러 읽는 규칙은 재포맷 한 번에 해석이 통째로 바뀐다.
+      //
+      //    **「자기」의 조건은 「앞에 닻이 없다」이다**(규격 ③). 규격 표의 자기 행은
+      //    「같은 줄에 경로 인용이 하나도 없고」로 적혀 있지만, 그 문장대로 읽으면 자기가
+      //    80 건이 되어 규격이 같은 표에 실은 실측 259 와 맞지 않는다. 반면 보류 코드 표의
+      //    `detached` 는 「같은 줄 **앞에** 닻이 있으나 붙임이 아니다」라고 적혀 있고, 그
+      //    읽기로 재면 자기 256 · 보류 134(실측 134 와 일치)가 나온다. 둘이 어긋나므로
+      //    **실측과 맞는 쪽**을 산다 — 규격도 「도구가 다시 낸 수가 맞다」고 적었다.
+      const walk = [...paths, ...bares].sort((a, b) => a.at - b.at);
+      let anchor: { target: string; end: number } | null = null;
 
-      if (start < 1 || start > total || end > total) {
-        problems.push({
-          where,
-          citation,
-          detail: `${target} 는 ${total} 줄인데 ${start}${endText ? `-${end}` : ""} 을 가리킨다`,
-        });
-        continue;
-      }
-      if ((targetLines[start - 1] ?? "").trim() === "") {
-        problems.push({
-          where,
-          citation,
-          detail: `${target}:${start} 이 빈 줄이다`,
-        });
+      for (const hit of walk) {
+        if (hit.kind === "path") {
+          anchor = { target: hit.target, end: hit.end };
+          const origin: Origin = {
+            where,
+            citation: hit.text,
+            how: "경로",
+          };
+          // 범위 인용은 시작 줄과 끝 줄 **둘 다** 대장에 둔다 — 범위 안쪽에 줄이 끼면
+          // 시작 지문은 그대로이고 끝 번호만 남의 줄로 간다. 난 사고는 전부 삽입이었다.
+          await register(file, hit.target, hit.start, origin);
+          if (hit.rangeEnd !== undefined && hit.rangeEnd !== hit.start)
+            await register(file, hit.target, hit.rangeEnd, origin);
+          continue;
+        }
+
+        counts.bare++;
+        const gap =
+          anchor !== null && anchor.end <= hit.at
+            ? line.slice(anchor.end, hit.at)
+            : null;
+        const attached =
+          anchor !== null && gap !== null && CONNECTORS_ONLY.test(gap);
+
+        let target: string;
+        let how: string;
+        if (attached && anchor !== null) {
+          target = anchor.target;
+          how = `붙임(닻 = \`${anchor.target}\`)`;
+          // 붙임은 닻의 끝을 이어받아 다음 인용의 기준이 된다.
+          anchor = { target: anchor.target, end: hit.end };
+          counts.attached++;
+        } else if (anchor === null && !lineHasNakedName) {
+          target = file;
+          how = "자기";
+          counts.self++;
+        } else {
+          // 보류 — 나머지 전부. 대장에 넣지 않는다.
+          const code: HeldCode = anchor !== null ? "detached" : "naked-name";
+          counts[code === "detached" ? "detached" : "nakedName"]++;
+          held.push({
+            where,
+            citation: hit.text,
+            code,
+            detail:
+              code === "detached"
+                ? "같은 줄에 경로 인용이 있으나 붙임이 아니다(사이에 말이 끼었다)"
+                : "같은 줄에 디렉터리 없는 `이름.확장자:줄` 꼴이 있어 자기 해석이 틀릴 수 있다",
+          });
+          continue;
+        }
+
+        const origin: Origin = { where, citation: hit.text, how };
+        const okStart = await register(file, target, hit.start, origin);
+        const okEnd =
+          hit.rangeEnd === undefined || hit.rangeEnd === hit.start
+            ? true
+            : await register(file, target, hit.rangeEnd, origin);
+        if (!okStart || !okEnd) {
+          // 고른 해석으로 풀면 파일 밖이거나 빈 줄이다 — 이미 밀려 있거나, 지워진 파일의
+          // 옛 상태를 적은 기록이다. 세운 행은 남겨 두면 반쪽이라 여기서 거둔다.
+          if (okStart) unregister(file, target, hit.start);
+          if (attached) counts.attached--;
+          else counts.self--;
+          counts.unresolved++;
+          held.push({
+            where,
+            citation: hit.text,
+            code: "unresolved",
+            detail: `${how} 으로 풀면 ${target}:${hit.start}${hit.rangeEnd === undefined ? "" : `-${hit.rangeEnd}`} 인데 그 줄이 없거나 비어 있다`,
+          });
+        }
       }
     }
   }
+
+  const rows = [...rowByKey.values()].sort(compareRows);
+  return { checked, problems, rows, held, origins, counts };
 }
 
-if (problems.length > 0) {
-  console.error(`인용 ${checked}건 중 ${problems.length}건이 어긋난다.\n`);
-  for (const problem of problems) {
-    console.error(`  ${problem.where}`);
-    console.error(`    인용: ${problem.citation}`);
-    console.error(`    문제: ${problem.detail}`);
+/**
+ * **줄 순서는 결정론이어야 한다.** `src` · `target` 은 UTF-16 코드 단위 비교이고
+ * (`localeCompare` 는 로캘·ICU 판본에 따라 갈려 같은 입력이 다른 파일을 낸다),
+ * `target_line` 은 **수치** 오름차순이다(문자열로 정렬하면 `10` 이 `9` 앞에 선다).
+ */
+export function compareRows(a: Row, b: Row): number {
+  if (a.src !== b.src) return a.src < b.src ? -1 : 1;
+  if (a.target !== b.target) return a.target < b.target ? -1 : 1;
+  return a.targetLine - b.targetLine;
+}
+
+export interface Ledger {
+  rows: Map<string, Row>;
+  ratchet: Ratchet | null;
+}
+
+const RATCHET_LINE =
+  /^#\s*bare\s+(\d+)\s+held\s+detached=(\d+)\s+unresolved=(\d+)\s+naked-name=(\d+)/;
+
+export function parseLedger(text: string): Ledger {
+  const rows = new Map<string, Row>();
+  let ratchet: Ratchet | null = null;
+  for (const raw of text.split("\n")) {
+    const line = raw.replace(/\r$/, "");
+    if (line.trim() === "") continue;
+    if (line.startsWith("#")) {
+      const match = RATCHET_LINE.exec(line);
+      if (match)
+        ratchet = {
+          bare: Number(match[1]),
+          detached: Number(match[2]),
+          unresolved: Number(match[3]),
+          nakedName: Number(match[4]),
+        };
+      continue;
+    }
+    const [src, target, targetLine, fingerprint, flag] = line.split("\t");
+    if (
+      src === undefined ||
+      target === undefined ||
+      targetLine === undefined ||
+      fingerprint === undefined
+    )
+      continue;
+    rows.set(rowKey(src, target, Number(targetLine)), {
+      src,
+      target,
+      targetLine: Number(targetLine),
+      fingerprint,
+      flag: flag ?? "-",
+    });
   }
-  console.error(
-    "\n줄 번호가 바뀐 것이면 인용을 고치고, 가리킬 곳이 없어진 것이면 인용을 지운다.",
-  );
-  process.exit(1);
+  return { rows, ratchet };
 }
 
-console.log(`인용 ${checked}건 전부 실재하는 비어 있지 않은 줄을 가리킨다.`);
+export function renderLedger(rows: Row[], counts: Ratchet): string {
+  const head = [
+    "# src\ttarget\ttarget_line\tfingerprint\tflag",
+    "# 갱신: bun run tools/check-citations.ts --update  (대장 = 지금 인용 집합. 손으로 고치지 않는다)",
+    `# bare ${counts.bare} held detached=${counts.detached} unresolved=${counts.unresolved} naked-name=${counts.nakedName}`,
+  ];
+  const body = rows.map(
+    (r) =>
+      `${r.src}\t${r.target}\t${r.targetLine}\t${r.fingerprint}\t${r.flag}`,
+  );
+  return `${[...head, ...body].join("\n")}\n`;
+}
+
+/** `flag` 는 키가 같은 행에서 보존한다 — `S3` 이 남긴 `drift` 표시가 갱신마다 날아가면 뜻이 없다. */
+export function carryFlags(rows: Row[], previous: Ledger | null): Row[] {
+  if (previous === null) return rows;
+  return rows.map((row) => {
+    const old = previous.rows.get(rowKey(row.src, row.target, row.targetLine));
+    return old === undefined ? row : { ...row, flag: old.flag };
+  });
+}
+
+export interface Drift {
+  kind: "missing" | "orphan" | "mismatch";
+  row: Row;
+  ledgerFingerprint?: string;
+}
+
+/** **대장은 지금 인용 집합과 정확히 일치해야 한다.** 셋 다 실패다. */
+export function compareToLedger(rows: Row[], ledger: Ledger): Drift[] {
+  const drifts: Drift[] = [];
+  const seen = new Set<string>();
+  for (const row of rows) {
+    const key = rowKey(row.src, row.target, row.targetLine);
+    seen.add(key);
+    const old = ledger.rows.get(key);
+    if (old === undefined) {
+      drifts.push({ kind: "missing", row });
+      continue;
+    }
+    if (old.fingerprint !== row.fingerprint)
+      drifts.push({
+        kind: "mismatch",
+        row,
+        ledgerFingerprint: old.fingerprint,
+      });
+  }
+  for (const [key, row] of ledger.rows)
+    if (!seen.has(key)) drifts.push({ kind: "orphan", row });
+  return drifts;
+}
+
+/** 보류 래칫 — 어느 수든 늘면 실패한다. 없으면 보류는 조용히 자라는 쓰레기통이 된다. */
+export function ratchetBreaches(now: Ratchet, base: Ratchet): string[] {
+  const rows: [string, number, number][] = [
+    ["bare(경로 없는 인용 전체)", now.bare, base.bare],
+    ["detached", now.detached, base.detached],
+    ["unresolved", now.unresolved, base.unresolved],
+    ["naked-name", now.nakedName, base.nakedName],
+  ];
+  return rows
+    .filter(([, current, baseline]) => current > baseline)
+    .map(
+      ([label, current, baseline]) =>
+        `${label} 이 ${baseline} → ${current} 로 늘었다`,
+    );
+}
+
+export type Mode = "check" | "update" | "tsv";
+
+export interface RunResult {
+  code: number;
+  out: string[];
+  err: string[];
+}
+
+function describeOrigins(scan: Scan, row: Row): string[] {
+  const list = scan.origins.get(rowKey(row.src, row.target, row.targetLine));
+  if (list === undefined || list.length === 0) return [];
+  return list.map((o) => `      ${o.where}  \`${o.citation}\`  해석: ${o.how}`);
+}
+
+export async function run(root: string, mode: Mode): Promise<RunResult> {
+  const out: string[] = [];
+  const err: string[] = [];
+  const scan = await scanTree(root);
+
+  // ── 존재 검사가 먼저다. 가리킬 곳이 없는 인용을 대장에 굳히면 게이트가 그것을 정상으로
+  //    학습한다. 실패하면 **아무것도 쓰지 않고** 1 로 끝낸다.
+  if (scan.problems.length > 0) {
+    err.push(
+      `인용 ${scan.checked}건 중 ${scan.problems.length}건이 어긋난다.\n`,
+    );
+    for (const problem of scan.problems) {
+      err.push(`  ${problem.where}`);
+      err.push(`    인용: ${problem.citation}`);
+      err.push(`    문제: ${problem.detail}`);
+    }
+    err.push(
+      "\n줄 번호가 바뀐 것이면 인용을 고치고, 가리킬 곳이 없어진 것이면 인용을 지운다.",
+    );
+    if (mode === "update")
+      err.push("존재 검사가 실패해 대장을 쓰지 않았다. 인용을 먼저 고친다.");
+    return { code: 1, out, err };
+  }
+
+  const ledgerFile = Bun.file(join(root, LEDGER_PATH));
+  const previous = (await ledgerFile.exists())
+    ? parseLedger(await ledgerFile.text())
+    : null;
+  const rows = carryFlags(scan.rows, previous);
+
+  if (mode === "tsv") {
+    out.push(...renderLedger(rows, scan.counts).trimEnd().split("\n"));
+    err.push(
+      `대장 ${rows.length}행 · 인용 ${scan.checked}건 · 경로 없는 인용 ${scan.counts.bare}건(붙임 ${scan.counts.attached} · 자기 ${scan.counts.self} · 보류 ${scan.held.length}).`,
+    );
+    return { code: 0, out, err };
+  }
+
+  if (mode === "update") {
+    await Bun.write(join(root, LEDGER_PATH), renderLedger(rows, scan.counts));
+    out.push(
+      `대장 갱신: ${rows.length}행 → ${LEDGER_PATH} (인용 ${scan.checked}건 · 경로 없는 인용 ${scan.counts.bare}건 · 보류 ${scan.held.length})`,
+    );
+    return { code: 0, out, err };
+  }
+
+  out.push(
+    `인용 ${scan.checked}건 전부 실재하는 비어 있지 않은 줄을 가리킨다.`,
+  );
+
+  // ── 보류는 실패가 아니다. 목록으로 내고 통과시킨다.
+  if (scan.held.length > 0) {
+    out.push(
+      `경로 없는 인용 ${scan.counts.bare}건 — 붙임 ${scan.counts.attached} · 자기 ${scan.counts.self} · 보류 ${scan.held.length}(detached ${scan.counts.detached} · unresolved ${scan.counts.unresolved} · naked-name ${scan.counts.nakedName}). 보류는 대장 밖이다:`,
+    );
+    for (const item of scan.held)
+      out.push(`  ${item.where}  \`${item.citation}\`  ${item.code}`);
+  }
+
+  if (previous === null) {
+    out.push(
+      `대장 ${LEDGER_PATH} 가 없어 표류 검사를 건너뛴다 — \`--update\` 로 만든다(지금 상태라면 ${rows.length}행).`,
+    );
+    return { code: 0, out, err };
+  }
+
+  const drifts = compareToLedger(scan.rows, previous);
+  const breaches =
+    previous.ratchet === null
+      ? []
+      : ratchetBreaches(scan.counts, previous.ratchet);
+
+  if (drifts.length === 0 && breaches.length === 0) {
+    out.push(
+      `대장 ${previous.rows.size}행과 지문이 모두 일치한다 — 인용이 가리키던 내용이 그대로다.`,
+    );
+    return { code: 0, out, err };
+  }
+
+  if (drifts.length > 0) {
+    err.push(
+      `대장과 어긋나는 자리 ${drifts.length}건. 이 줄이 말하는 것은 하나다 — **그 자리에 있던 내용이 지금 거기 없다.**\n`,
+    );
+    for (const drift of drifts) {
+      const { row } = drift;
+      const label =
+        drift.kind === "missing"
+          ? "대장에 없는 인용"
+          : drift.kind === "orphan"
+            ? "인용이 사라진 대장 행"
+            : "지문이 다르다";
+      err.push(`  [${label}] ${row.src} → ${row.target}:${row.targetLine}`);
+      if (drift.kind === "mismatch")
+        err.push(
+          `      대장 ${drift.ledgerFingerprint} ≠ 지금 ${row.fingerprint}`,
+        );
+      err.push(...describeOrigins(scan, row));
+    }
+    err.push(
+      "\n대상이 정당히 움직였거나 내용만 바뀐 것이면 대조하고 `--update`.",
+    );
+    err.push(
+      "인용이 밀린 것이면 **인용을 먼저 고치고** 그다음 `--update` 로 새 좌표를 등록한다.",
+    );
+    err.push(
+      "해석이 「자기」라고 적혀 있는데 산문이 남의 파일을 말하고 있으면, 할 일은 `--update` 가 아니라 **경로를 적어 인용을 고치는 것**이다.",
+    );
+  }
+
+  if (breaches.length > 0) {
+    err.push(`\n보류 래칫이 깨졌다 — 경로 없는 인용은 늘리지 않는다.`);
+    for (const breach of breaches) err.push(`  ${breach}`);
+    err.push(
+      "수를 늘리지 않고 인용을 쓰는 길은 하나뿐이다 — **경로를 적는 것.**",
+    );
+  }
+
+  return { code: 1, out, err };
+}
+
+function parseMode(argv: string[]): Mode | null {
+  const flags = argv.filter((a) => a.startsWith("--"));
+  if (flags.length === 0) return "check";
+  if (flags.length > 1) return null;
+  if (flags[0] === "--update") return "update";
+  if (flags[0] === "--tsv") return "tsv";
+  return null;
+}
+
+if (import.meta.main) {
+  const mode = parseMode(process.argv.slice(2));
+  if (mode === null) {
+    console.error(
+      "사용법: bun run tools/check-citations.ts [--update | --tsv]",
+    );
+    process.exit(2);
+  }
+  const result = await run(resolve(import.meta.dir, ".."), mode);
+  for (const line of result.out) console.log(line);
+  for (const line of result.err) console.error(line);
+  process.exit(result.code);
+}

@@ -32,9 +32,9 @@ scope: tools/check-citations.ts, tools/check-citations.test.ts, tools/_baseline/
 
 ## 실행 계획
 - [x] `S1` 규격 확정 — 대장 형식 · 지문 계산 · 경로 없는 인용 해석 · 예외(기록 문서) · 갱신 흐름
-- [ ] `S2` 도구 구현 — `check-citations.ts` 에 표류 검사와 `--update` · 자기시험(변형에서 걸리는지)
+- [x] `S2` 도구 구현 — `check-citations.ts` 에 표류 검사와 `--update` · 자기시험(변형에서 걸리는지)
 - [ ] `S3` 대장 초기 생성 · 지금 남은 표류 전수 목록
-- [ ] `S4` 게이트 편입 — `ci.ts gates` · 워크플로 · 규약 절 · `CLAUDE.md` 검증 명령
+- [>] `S4` 게이트 편입 — `ci.ts gates` · 워크플로 · 규약 절 · `CLAUDE.md` 검증 명령 <!-- claim:s=f2fd90c7 t=2026-09-16T17:35 -->
 
 ### 단계별 완료 기준
 
@@ -59,3 +59,8 @@ scope: tools/check-citations.ts, tools/check-citations.test.ts, tools/_baseline/
 - 2026-09-16T17:21 · s:f2fd90c7 · S1 doing — 착수
 - 2026-09-16T17:32 · s:f2fd90c7 · S1 — 표류 검사 규격 확정 — docs/ORD-006-conventions.md 새 절(8066-8322). 대장 tools/_baseline/citations.tsv 는 5열(src·target·target_line 키 / fingerprint 값 / flag) · SHA-256 앞 12자리 · 공백 접기 정규화 · 범위는 시작·끝 두 행 · 코드단위 정렬. 경로 없는 백틱 인용은 같은 줄 증거만으로 붙임 70 · 자기 259 · 보류 134 로 가르고 보류는 실패가 아니라 래칫(# bare 463 held detached=71 unresolved=48 naked-name=15). 예외 넷(E1 출처 KANBAN.** · E2 대상 KANBAN.reviews/** 6건 · E3 줄임표 · E4 경로:줄:열). 명령 확정 — bun run tools/check-citations.ts [--update|--tsv], ci.ts gates 의 기존 「인용」 단계를 그대로 쓴다(별도 단계 아님). 실측: 인용 1,150 · 경로 없는 인용 463 · 대장 1,132행 103.0KiB. 배치 문서 「4. 착수 시점 판단」에 갈림 넷과 대가.
 - 2026-09-16T17:32 · s:f2fd90c7 · S1 done — 완료
+- 2026-09-16T17:35 · s:f2fd90c7 · S4 doing — 착수
+- 2026-09-16T17:37 · s:f2fd90c7 · S2 doing — 착수
+- 2026-09-16T17:44 · s:f2fd90c7 · S4 — S4 초안(WP2): CLAUDE.md 검증 명령 절의 check-citations 한 줄을 늘리지 않고 설명만 넓혔다(존재+표류, --update 로 대장 갱신). docs/ORD-006-conventions.md 규격 절 끝에 무번호 소절 「게이트를 켠 뒤 — 언제 돌고, 걸리면 무엇을 하는가」를 붙였다(도는 자리 ci.ts gates 의 「인용」 단계 하나 · 걸렸을 때 네 걸음 · 대장 수기 수정 금지 · 새 인용마다 --update 가 따라붙는 마찰과 그 대가). tools/ci.ts 는 코드 변경 없이 주석만 — 「인용」 단계 줄을 밀지 않으려고 주석을 그 줄 아래에 놓았다. 불변 사실 81 은 규약 문서 서술 절과 런북 번호 항목 양쪽에 기존 문장 끝으로 한 문장씩 이어 적어 줄 수를 보존했고 새 번호는 만들지 않았다. 검증: check-citations 존재 검사 exit 0 · check-links 843건 통과 · ci-workflow.test 통과 · tsc 통과 · biome(ci.ts) 경고 0. 게이트 편입 확인은 배치3 몫이라 S4 는 doing 유지.
+- 2026-09-16T17:55 · s:f2fd90c7 · S2 — 표류 검사 구현 — tools/check-citations.ts(161→751줄) 에 대장 대조·--update·--tsv 를 넣고 tools/check-citations.test.ts(신규 396줄) 로 고정. 검사 순서 존재→표류→보류 래칫, 존재 실패면 표류를 재지 않고 --update 도 아무것도 쓰지 않고 1. 실패 조건 셋(대장에 없는 인용·고아 행·지문 불일치) · flag 는 같은 키에서 보존 · 지문은 SHA-256 앞 12자리(공백 접기 정규화) · 범위는 시작·끝 두 행 · 예외 E1~E4. 실물 실측: 존재 검사 1,150건 통과(규격과 같음) · 경로 없는 인용 463 · 보류 134 · 대장 기댓값 1,130행 102.8KiB(규격 1,132·103.0KiB). 규격 3 의 자기 조건 문면(같은 줄에 경로 인용이 하나도 없고)은 제 실측과 어긋나 — 그대로 구현하면 자기 80·보류 310 — detached 행의 문면(앞에 닻이 있으나)대로 읽어 자기=앞에 닻 없음으로 구현했고 그때 보류가 실측 134 와 정확히 맞는다. 시험은 임시 트리에서만 돌려 대장 파일을 남기지 않았다(S3 몫). 자기시험 16 pass, 돌연변이로 잡는지 확인(표류 대조 무력화 5건·안전장치 4건·행 거둠 1건 즉시 실패). 시험 fixture 가 게이트에 인용으로 세어져 24건이 뜬 사고를 helper 조립과 자기 단정으로 닫았다. tsc 0 · biome 경고 0.
+- 2026-09-16T17:55 · s:f2fd90c7 · S2 done — 완료

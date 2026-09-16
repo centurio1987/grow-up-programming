@@ -101,7 +101,7 @@ bun run tools/ci.ts gates      # 타입·계약 정합·추출 일치·vector·�
 bun test                                        # 테스트
 bunx tsc --noEmit                               # 타입
 bunx --bun @biomejs/biome check <경로>          # 린트·포맷 (--write 로 수정)
-bun run tools/check-citations.ts                # 문서·코드의 `경로:줄번호` 인용 검증
+bun run tools/check-citations.ts                # 인용의 `경로:줄` 이 실재하는지 · 가리키던 내용이 그대로인지(표류) — `--update` 로 대장 갱신
 bun run tools/guide-core.ts check               # 가이드 코드가 `_reference/` 추출본과 같은지 검증
 bun run tools/emit-vectors.ts --check           # 언어 중립 test vector 가 계약과 어긋났는지 검증
 bun run tools/check-links.ts check              # 문서 링크가 실재하는 파일을 가리키는지 검증
