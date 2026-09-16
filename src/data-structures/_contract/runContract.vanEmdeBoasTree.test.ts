@@ -11,8 +11,9 @@
  * 것을 수치로 못 박는다.
  *
  * **셋째 묶음은 그 앞의 둘과 반대쪽을 고정한다** — 4 배 사다리가 못 보는 로그 인수가 **사다리를
- * 비트 수로 읽는 시나리오 둘**에서는 보인다는 것이다. 판정 규격도 하네스도 그대로이고 바뀐 것은
- * 시나리오가 사다리의 n 을 읽는 방식 하나다.
+ * 비트 수로 읽는 시나리오 셋**에서는 보인다는 것이다. 판정 규격도 하네스도 그대로이고 바뀐 것은
+ * 시나리오가 사다리의 n 을 읽는 방식 하나다. 셋 가운데 둘이 우주 쪽(조회 한 벌 · 갱신 한 벌)이고
+ * 하나가 원소 쪽이다 — 갱신을 재는 한 벌은 `S4` 가 붙였다(검토 반려 2026-09-17).
  */
 
 import { describe, expect, test } from "bun:test";
@@ -122,6 +123,11 @@ const UNIVERSE_BITS = "successor·predecessor·min·max·has (적대적) #2";
  * — 그 시나리오의 입력이 `QUERIES` 와 같은 것이라 적대 여부를 뒤집어 이름을 가르지 않았다(`S3`).
  */
 const COUNT_BITS = "has·successor·predecessor #2";
+/**
+ * 우주를 **비트 수**로 키우면서 **갱신**을 재는 사다리(`S4`). 행 · 한정자 · 적대 여부가 `UPDATES`
+ * 와 같아 차례가 붙는다 — 하네스 시험 이름은 상한(`O(log n)` 대 `O(1)`)이 달라 겹치지 않는다.
+ */
+const UPDATE_BITS = "insert·delete (적대적) #2";
 
 const ALL_PASS = {
   [INSERT]: true,
@@ -131,10 +137,11 @@ const ALL_PASS = {
   [UPDATES]: true,
   [UNIVERSE_BITS]: true,
   [COUNT_BITS]: true,
+  [UPDATE_BITS]: true,
 };
 
 describe("축3 — 정수 우주 위의 정렬 집합 계약의 정본", () => {
-  test("정본이 일곱 시나리오를 전부 통과한다", () => {
+  test("정본이 여덟 시나리오를 전부 통과한다", () => {
     for (const scenario of vanEmdeBoasTreeContract.scenarios) {
       const verdict = judgeScenario(reference, scenario, "complexity");
       expect(verdict.ok ? "" : `${labelOf(scenario)} — ${verdict.reason}`).toBe(
@@ -183,20 +190,22 @@ describe("축3 — 정수 우주 위의 정렬 집합 계약의 정본", () => {
 
 describe("축3 — 정수 우주 위의 정렬 집합 계약의 결함 fixture", () => {
   /**
-   * **두 파라미터를 갈라 키우는 이유가 이 둘이다.** 칸을 훑는 계열은 우주를 키우는 셋에서만, 크기
+   * **두 파라미터를 갈라 키우는 이유가 이 둘이다.** 칸을 훑는 계열은 우주를 키우는 넷에서만, 크기
    * 순 배열은 담긴 수를 키우는 넷에서만 걸린다. 한쪽 파라미터만 두면 반대쪽 계열이 전부 통과한다.
    */
-  test("칸을 훑는 집합은 우주를 키우는 세 시나리오에서만 걸린다", () => {
+  test("칸을 훑는 집합은 우주를 키우는 네 시나리오에서만 걸린다", () => {
     expect(outcomes(scanningBitSet)).toEqual({
       ...ALL_PASS,
       [NEIGHBORS]: false,
       [UPDATES]: false,
       [UNIVERSE_BITS]: false,
+      [UPDATE_BITS]: false,
     });
     expect(statsOf(scanningBitSet, NEIGHBORS)).toEqual([2049, 8193, 32769]);
     expect(statsOf(scanningBitSet, UPDATES)).toEqual([1025, 4097, 16385]);
     // 비트 사다리에서는 우주가 $2^5$ · $2^{10}$ · $2^{20}$ 이라 훑는 칸이 32 배씩 는다.
     expect(statsOf(scanningBitSet, UNIVERSE_BITS)).toEqual([65, 2049, 2097153]);
+    expect(statsOf(scanningBitSet, UPDATE_BITS)).toEqual([33, 1025, 1048577]);
   }, 60_000);
 
   test("크기 순 배열을 훑는 집합은 담긴 수를 키우는 네 시나리오에서만 걸린다", () => {
@@ -262,13 +271,20 @@ describe("축3 — 정수 우주 위의 정렬 집합 계약의 결함 fixture",
    * 잡는다.** $O(\log u)$ 는 $O(\log\log u)$ 계약의 위반이다. 다섯의 통과를 고정하는 것은 그것이
    * 옳아서가 아니라 **4 배 사다리가 이 자리를 못 본다는 것을 「계약을 지킨다」로 읽지 않게** 하려는
    * 것이다(불변 사실 62). 못 보는 이유는 세 점이 4 배 간격이라는 것 하나이고, 우주를 비트 수로
-   * 올리면 같은 fixture 가 38 · 73 · 143($r$ = 1.92 · 1.96)으로 걸린다.
+   * 올리면 같은 fixture 가 조회 쪽에서 38 · 73 · 143($r$ = 1.92 · 1.96) · 갱신 쪽에서 14 · 24 ·
+   * 44(1.71 · 1.83)로 걸린다. **우주 비트 사다리 둘 다에서 걸린다**는 것이 이 줄이 고정하는 것이고,
+   * 갱신 쪽 한 벌이 없으면 넣기만 $O(\log u)$ 인 계열이 스위트를 통째로 지나간다(`S4`).
    */
-  test("비트 하나씩 내려가는 트라이는 4 배 사다리 다섯을 통과하고 우주 비트 사다리에서 걸린다", () => {
-    expect(outcomes(bitTrie)).toEqual({ ...ALL_PASS, [UNIVERSE_BITS]: false });
+  test("비트 하나씩 내려가는 트라이는 4 배 사다리 다섯을 통과하고 우주 비트 사다리 둘 다에서 걸린다", () => {
+    expect(outcomes(bitTrie)).toEqual({
+      ...ALL_PASS,
+      [UNIVERSE_BITS]: false,
+      [UPDATE_BITS]: false,
+    });
     expect(statsOf(bitTrie, NEIGHBORS)).toEqual([73, 87, 101]);
     expect(statsOf(bitTrie, UPDATES)).toEqual([24, 28, 32]);
     expect(statsOf(bitTrie, UNIVERSE_BITS)).toEqual([38, 73, 143]);
+    expect(statsOf(bitTrie, UPDATE_BITS)).toEqual([14, 24, 44]);
     // 담긴 수와는 무관한 계열이라 담긴 수 비트 사다리는 통과한다 — 잡는 자리가 서로 다르다.
     expect(statsOf(bitTrie, COUNT_BITS)).toEqual([57, 60, 60]);
   }, 60_000);
@@ -288,8 +304,9 @@ describe("축3 — 정수 우주 위의 정렬 집합 계약의 결함 fixture",
     expect(statsOf(treap, NEIGHBORS)).toEqual([13, 14, 13]);
     expect(statsOf(treap, UPDATES)).toEqual([7, 9, 7]);
     expect(statsOf(treap, COUNT_BITS)).toEqual([15, 39, 66]);
-    // 우주 비트 사다리는 담긴 키가 둘뿐이라 이 계열을 못 잡는다.
+    // 우주 비트 사다리 둘은 담긴 키가 한둘뿐이라 이 계열을 못 잡는다.
     expect(statsOf(treap, UNIVERSE_BITS)).toEqual([13, 13, 14]);
+    expect(statsOf(treap, UPDATE_BITS)).toEqual([7, 7, 9]);
   }, 60_000);
 });
 
@@ -300,8 +317,12 @@ describe("축3 — 정수 우주 위의 정렬 집합 계약의 결함 fixture",
  * 이 묶음이 고정하는 것은 **같은 fixture 둘이 비트 사다리에서 걸린다**는 것이다. 판정 규격
  * (`./judge.ts` 의 구간과 허용치)도 하네스도 그대로다 — 바뀐 것은 시나리오가 사다리의 n 을 읽는
  * 방식 하나다(`../heap/vanEmdeBoasTree/vanEmdeBoasTree.contract.ts` 의 `bitsOf`).
+ *
+ * **비트 사다리가 셋인 것은 `covers` 때문이다.** 우주 쪽 사다리 하나는 조회 다섯 행을 재고 다른
+ * 하나는 넣기 · 지우기를 잰다 — 계약의 필요충분조건이 「이웃 찾기와 갱신이 **함께**」를 요구하므로
+ * 한쪽만 재면 나머지 절반으로 어기는 계열이 통째로 지나간다(`S4`).
  */
-describe("축3 — 비트 사다리 둘이 로그 인수를 가른다", () => {
+describe("축3 — 비트 사다리 셋이 로그 인수를 가른다", () => {
   test("우주 비트 사다리에서 로그는 비율 2.0 이고 로그 로그는 1.1 이다", () => {
     const trie = statsOf(bitTrie, UNIVERSE_BITS);
     const canonical = statsOf(reference, UNIVERSE_BITS);
@@ -316,6 +337,46 @@ describe("축3 — 비트 사다리 둘이 로그 인수를 가른다", () => {
     expect([ratio(trie, 0), ratio(trie, 1)]).toEqual([1.92, 1.96]);
     expect([ratio(canonical, 0), ratio(canonical, 1)]).toEqual([1.12, 1.11]);
   }, 60_000);
+
+  /**
+   * **갱신 쪽 로그 인수를 재는 자리**(`S4` — 검토 반려 2026-09-17). 위 시나리오와 사다리가 같고
+   * `covers` 만 다르다. 걸리는 것은 트라이와 칸 훑기 둘이고, 트라이가 4 배 갱신 사다리에서 24 ·
+   * 28 · 32(1.17 · 1.14)로 통과하던 자리가 여기서 14 · 24 · 44(1.71 · 1.83)가 된다 — **같은
+   * 구현 · 같은 입력 모양 · 다른 간격**이다. 트립이 통과하는 것은 담긴 키가 한둘뿐이라 원소 쪽
+   * 로그가 안 보이기 때문이고, 그 계열은 아래 담긴 수 비트 사다리가 잡는다.
+   */
+  test("갱신 비트 사다리에서 트라이가 걸리고 나머지 다섯은 통과한다", () => {
+    const stats: Record<string, number[]> = {};
+    const ok: Record<string, boolean> = {};
+    const targets: Array<[string, CostSource<UniverseSite>]> = [
+      ["정본", reference],
+      ["트라이", bitTrie],
+      ["트립", treap],
+      ["칸 훑기", scanningBitSet],
+      ["크기 순 배열", sortedArray],
+      ["쌓아 두기", flushing],
+    ];
+    for (const [name, cost] of targets) {
+      stats[name] = statsOf(cost, UPDATE_BITS);
+      ok[name] = outcomes(cost)[UPDATE_BITS] as boolean;
+    }
+    expect(stats).toEqual({
+      정본: [15, 17, 19],
+      트라이: [14, 24, 44],
+      트립: [7, 7, 9],
+      "칸 훑기": [33, 1025, 1048577],
+      "크기 순 배열": [5, 5, 5],
+      "쌓아 두기": [23, 27, 31],
+    });
+    expect(ok).toEqual({
+      정본: true,
+      트라이: false,
+      트립: true,
+      "칸 훑기": false,
+      "크기 순 배열": true,
+      "쌓아 두기": true,
+    });
+  }, 120_000);
 
   test("담긴 수 비트 사다리에서 트립이 걸리고 정본과 트라이는 통과한다", () => {
     expect({
@@ -379,6 +440,33 @@ describe("축3 — 비트 사다리 둘이 로그 인수를 가른다", () => {
     // 준비(우주 세우기)가 세 점에서 세 번이고, 나머지가 걸음으로 잰 몫이다.
     expect(total - 3 * 92_007).toBe(98_308);
   }, 60_000);
+
+  /**
+   * **여덟 시나리오의 계측 합**(`S4`). 갱신 비트 사다리가 4 배 사다리 다섯의 0.59 배를 더해 합이
+   * 2.33 배가 된다. 이 줄이 고정하는 것은 「무거운 시나리오를 모드로 가르지 않는다」는 판단의
+   * 입력이다 — 비용이 이 자리에서 크게 벌어지면 그 판단을 다시 본다. 갱신 비트 사다리의 몫도
+   * 거의 전부 끝점($u = 2^{20}$)을 세우는 준비이고 걸음으로 잰 몫은 수십이다.
+   */
+  test("여덟 시나리오의 계측 합이 4 배 사다리 다섯의 2.33 배다", () => {
+    const totalOf = (scenario: CostScenario<UniverseSite>) =>
+      SIZES.discriminating
+        .map((n) => measureScenario(reference, scenario, n, 1).total)
+        .reduce((sum, each) => sum + each, 0);
+    const per = vanEmdeBoasTreeContract.scenarios.map(totalOf);
+    const fourfold = per.slice(0, 5).reduce((sum, each) => sum + each, 0);
+    const all = per.reduce((sum, each) => sum + each, 0);
+    expect({
+      fourfold,
+      updateBits: per[LABELS.indexOf(UPDATE_BITS)],
+      all,
+      ratio: Math.round((all / fourfold) * 100) / 100,
+    }).toEqual({
+      fourfold: 2_431_099,
+      updateBits: 1_423_783,
+      all: 5_653_045,
+      ratio: 2.33,
+    });
+  }, 120_000);
 });
 
 describe("Bound 판정 — O(log log u) 를 판정 규격에 넣지 않는다", () => {
