@@ -24,9 +24,14 @@ status: 검토 대기
 | 베이스 | `main` |
 | 변경 훑기 | `git diff main...HEAD` |
 
-**커밋 5건**
+**커밋 10건**
 
 ```text
+1d65716 KAN-045 배치4: --update 가 래칫 상승을 굳히지 못하게 (S5)
+afb30ff kanban: KAN-045 반려 재작업 등록(S5) · 배치4
+3b8553d kanban: KAN-045 검토 판정 — 항목 3 반려(--update 가 래칫 상승을 조용히 굳힌다) · 나머지 여섯 승인
+72a7b63 kanban: KAN-045 → 검토
+68859a8 kanban: KAN-045 검토서 발행 — 판단 항목 일곱(대장 방식 · 키 설계 · 경로 없는 인용 · 일치 규칙 · drift 표시 경로 · 빈 줄 한계 · E1 구멍)
 421e238 KAN-045 배치3: 대장 초기 생성 · 표류 전수 목록 · 게이트 편입 (S3 · S4)
 5779526 KAN-045 배치2: 표류 검사 구현과 문서·게이트 초안 (S2 · S4 초안)
 4c82dc8 KAN-045 배치1: 인용 표류 게이트 규격 (S1)
@@ -34,37 +39,43 @@ f294d35 kanban: KAN-045 ↔ KAN-036 직렬 재기록(scope 등록으로 중재 �
 8a2a672 kanban: KAN-045 착수 — 카드 문서(전략·실행 계획·검증) · 배치 셋(오케스트레이션 3배치 결재)
 ```
 
-**변경 파일 16개 (+3032 −110)**
+**변경 파일 20개 (+3416 −132)**
 
 | 파일 | 상태 | 추가 | 삭제 |
 |---|:--:|---:|---:|
-| `.kanban/archive.jsonl` | M | 2 | 0 |
-| `.kanban/log.md` | M | 2 | 2 |
-| `.kanban/state.json` | M | 35 | 28 |
+| `.kanban/archive.jsonl` | M | 4 | 0 |
+| `.kanban/log.md` | M | 4 | 4 |
+| `.kanban/reviews/KAN-045-D2PK6T.events.jsonl` | M | 27 | 0 |
+| `.kanban/reviews/KAN-045-D2PK6T.review.json` | M | 27 | 0 |
+| `.kanban/state.json` | M | 55 | 48 |
 | `CLAUDE.md` | M | 1 | 1 |
 | `KANBAN.batches/KAN-045-D2PK6T.batch1.md` | M | 91 | 0 |
 | `KANBAN.batches/KAN-045-D2PK6T.batch2.md` | M | 71 | 0 |
 | `KANBAN.batches/KAN-045-D2PK6T.batch3.md` | M | 203 | 0 |
+| `KANBAN.batches/KAN-045-D2PK6T.batch4.md` | M | 73 | 0 |
 | `KANBAN.board.html` | M | 4 | 4 |
-| `KANBAN.cards/KAN-045-D2PK6T.md` | M | 72 | 0 |
-| `KANBAN.md` | M | 11 | 10 |
+| `KANBAN.cards/KAN-045-D2PK6T.md` | M | 86 | 0 |
+| `KANBAN.md` | M | 12 | 10 |
+| `KANBAN.reviews/KAN-045-D2PK6T.review.md` | M | 152 | 0 |
 | `docs/ORD-006-conventions.md` | M | 299 | 1 |
 | `docs/ORD-006-runbook.md` | M | 1 | 1 |
 | `tools/_baseline/citations.tsv` | M | 1133 | 0 |
-| `tools/check-citations.test.ts` | M | 432 | 0 |
-| `tools/check-citations.ts` | M | 666 | 63 |
+| `tools/check-citations.test.ts` | M | 471 | 0 |
+| `tools/check-citations.ts` | M | 693 | 63 |
 | `tools/ci.ts` | M | 9 | 0 |
 
-**롤백 태그 7개**
+**롤백 태그 9개**
 
 ```text
 kan/KAN-045-D2PK6T/S1
 kan/KAN-045-D2PK6T/S2
 kan/KAN-045-D2PK6T/S3
 kan/KAN-045-D2PK6T/S4
+kan/KAN-045-D2PK6T/S5
 kan/KAN-045-D2PK6T/batch1
 kan/KAN-045-D2PK6T/batch2
 kan/KAN-045-D2PK6T/batch3
+kan/KAN-045-D2PK6T/batch4
 ```
 
 ## 2. 검증 — 기준과 실행 결과
@@ -79,23 +90,26 @@ kan/KAN-045-D2PK6T/batch3
 **카드 종료 조건.**
 
 1. `bun run tools/check-citations.ts` 가 **표류를 잡는다** — 자기시험 변형 셋에서 실패하고 정상 상태에서 통과한다.
-2. `tools/_baseline/citations.tsv` 가 저장소에 있고 `--update` 로만 바뀐다.
+2. `tools/_baseline/citations.tsv` 가 저장소에 있고 `--update` 로만 바뀐다. 그 `--update` 는 **존재 검사 실패와 보류 래칫 상승 둘 다에서** 아무것도 쓰지 않고 1 로 끝낸다.
 3. `bun run tools/ci.ts all` 통과 · `bun test tools/check-citations.test.ts tools/ci-workflow.test.ts` 통과 · `cd rust && cargo test` 통과.
 4. 지금 밀려 있는 인용의 목록이 배치 문서에 남고, 그 정정은 별도 작업으로 넘어간 것이 카드에 적힌다.
+
+**39건을 잡은 것은 새 게이트가 아니라 `S3` 의 blame 대조다.** 대장은 인용이 이미 밀린 **뒤인** `S3` 에서 처음 생겼으므로(`S1` · `S2` 태그에는 대장 파일이 없다), 지금 밀려 있는 39건에 대해 `check` 는 exit 0 이다. 검증 실행 결과에 적었던 「새 게이트가 그것을 잡았습니다」는 사실이 아니다 — 대장이 `S1` 에 있었다면 게이트가 잡았을 자리이고, 게이트가 실제로 지키는 것은 **앞으로 생기는 밀림**이다. 39건의 정정은 KAN-046 이 한다.
 
 **실행 결과**
 
 ```text
-이 브랜치에서 2026-09-16 실행. 로그: 세션 스크래치 `ci-045-b3.log`.
+이 브랜치에서 2026-09-16 실행(배치4 `S5` 재작업 뒤). 로그: 세션 스크래치 `ci-045-b4.log`.
 
-- `bun run tools/ci.ts all` — **all 모드 통과 — 단계 17개.** · `bun run tools/ci.ts gates` — 단계 11개 통과
-- `cd rust && cargo test` — 11 스위트 · 25 pass / 0 fail
-- `bun run tools/check-citations.ts` — 인용 1,150건 존재 통과 · **대장 1,130행과 지문이 모두 일치** · 경로 없는 인용 463(붙임 73 · 자기 256 · 보류 134)
-- `bun test tools/check-citations.test.ts tools/ci-workflow.test.ts` — 18 pass / 0 fail. 변형 넷을 **앞뒤로** 재고(변형 전 통과 · 후 실패), 시험이 실효인지 돌연변이로 확인(표류 대조 무력화 → 5 실패, 래칫 · `--update` 안전장치 · 공백 정규화 · flag 보존 각각 → 4 실패)
-- `bunx tsc --noEmit` 0 · biome 경고 0 · `check-links check` 843건
-- 대장 결정론: `--tsv` 두 번이 같은 sha256, `--update` 멱등(바이트 동일), 정렬 위반 0 · 키 중복 0 · 지문 충돌 0
+- `bun run tools/ci.ts all` — **all 모드 통과 — 단계 17개.** · `bun run tools/ci.ts gates` — 단계 11개
+- `bun test tools/check-citations.test.ts tools/ci-workflow.test.ts` — **19 pass / 0 fail**(반려 재작업으로 하나 늘었습니다)
+- `bun run tools/check-citations.ts` — 인용 1,150건 존재 통과 · 대장 1,130행 지문 전부 일치 · 경로 없는 인용 463(붙임 73 · 자기 256 · 보류 134: detached 74 · unresolved 46 · naked-name 14)
+- `bunx tsc --noEmit` 0 · biome 경고 0 · `check-links check` 846건 · `cd rust && cargo test` 25 pass / 0 fail
+- 대장 결정론: `--tsv` 두 번이 같은 sha256 · `--update` 멱등 · 정렬 위반 0 · 키 중복 0
 
-**게이트가 실제로 잡은 것**: 이미 밀려 있던 인용 **39건(대장 97행)**. 그중 여덟 행은 **이 카드가 낸 밀림**입니다 — `S2` 가 `tools/check-citations.ts` 를 161 → 751줄로 다시 써서 규격 절의 인용이 밀렸고, 새 게이트가 그것을 잡았습니다.
+**정정(검토 지적).** 앞 회차 2항에 적었던 「이미 밀려 있던 39건을 **새 게이트가 잡았다**」는 사실이 아닙니다. 대장은 인용이 밀린 **뒤인 `S3` 에서 처음 생겼으므로**(`git ls-tree` 로 `S1` · `S2` 태그에 대장 파일이 없음을 확인) 게이트는 그 39건에 대해 exit 0 입니다. 그것을 찾은 것은 `S3` 의 blame 대조입니다. 대장이 `S1` 에 있었다면 게이트가 잡았을 자리이고, **지금부터 밀리는 것은 게이트가 잡습니다** — 그 성질을 시험 변형 넷이 고정합니다.
+
+**반려 항목(3)에 대한 재작업.** `--update` 가 보류 래칫 상승을 조용히 굳히던 구멍을 막았습니다 — update 분기 맨 앞에서 직전 대장의 래칫과 대조해 **오르는 갈래가 하나라도 있으면 쓰기 전에 1**로 끝내고, 갈래별 증감과 할 일(경로를 적는 것)을 냅니다. 내려가는 것은 허용합니다(KAN-046 이 고쳐 줄일 때 필요). 시험이 그 네 가지를 고정하고, 돌연변이 둘(가드 제거 · 쓰기 순서 뒤집기)에서 붉어집니다.
 ```
 
 ## 3. 판단 항목 — 스크립트가 판정할 수 없는 것
