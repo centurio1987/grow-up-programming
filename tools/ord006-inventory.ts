@@ -139,15 +139,11 @@ const VERIFICATION_GRADES: Record<
   "linear/doublyLinkedList": "invariant",
   // A군 수열 둘(KAN-026 S4 · S6).
   //
-  // `dynamicArray` — 언어 배열 하나에 맡기면 다섯 행이 선다(불변 사실 197). 물려받은 두 배 늘리기는
-  // 상각 설계인데 등급은 존재 조건이라 `complexity` 가 아니다(불변 사실 55). 처음에는 불변식이 둘이라 `invariant`
-  // 였고, 목적 기준(원칙 A5′)으로 `toArray` 를 빼자(KAN-026 S23 · S29) 두 불변식의 한쪽 경로가 사라져 불변식 절이 비었다.
-  "linear/dynamicArray": "basic",
-  // 「공간이 존재 이유」 표시가 붙었는데 존재 이유가 공간이 아니었던 계약(T5-02). 배열 둘이
-  // 여섯 행을 전부 상한 안에 하므로 `complexity` 가 아니고, 불변식 하나가 남아 `basic` 도
-  // 아니다 — 판정 절차의 3번에서 멈춘 첫 계약이다.
-  "linear/gapBuffer": "invariant",
-  // A군 단조 둘(KAN-026 S7 · S8).
+  // `dynamicArray` — 언어 배열 하나에 맡기면 여섯 행이 선다(불변 사실 197). 물려받은 두 배 늘리기는
+  // 상각 설계인데 등급은 존재 조건이라 `complexity` 가 아니고(불변 사실 55), 불변식이 둘이다.
+  // (KAN-026 S23 · S29 가 `toArray` 를 빼 `basic` 으로 내렸던 것을 S31 이 되돌렸다 — 원칙 A5′-2 기준 시점 조항.)
+  "linear/dynamicArray": "invariant",
+  // A군 단조 둘(KAN-026 S7 · S8). 둘 다 자기보다 뒤로 정렬되는 첫 기존 키(`linear/singlyLinkedList`) 앞에 둔다.
   //
   // `monotonicQueue` — 뒤에 넣고 앞에서 빼며 최댓값을 묻는 큐(연산 집합 교체, 2026-09-15 유저 결정). 앞 끝에서
   // 빼므로 칸마다 적은 최댓값이 어느 방향이든 한 행에서 낡아, 일곱 행을 함께 지키려면 후보를 버리거나 무더기를
