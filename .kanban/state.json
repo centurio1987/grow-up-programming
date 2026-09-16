@@ -1,6 +1,6 @@
 {
   "next_id": 38,
-  "next_seq": 297,
+  "next_seq": 298,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -175,7 +175,7 @@
       ]
     },
     "KAN-027": {
-      "col": "review",
+      "col": "doing",
       "title": "[P4·27] P4-B군 — complexity 등급(축3 필요, 에스컬레이션 불필요)",
       "verbatim": "",
       "생성": "ai",
@@ -936,6 +936,16 @@
   ],
   "recent": [
     {
+      "seq": 297,
+      "t": "2026-09-16T13:22",
+      "a": "ai",
+      "id": "KAN-027",
+      "op": "move",
+      "w": "RCPDZM",
+      "from": "review",
+      "to": "doing"
+    },
+    {
       "seq": 296,
       "t": "2026-09-16T11:41",
       "a": "ai",
@@ -1443,16 +1453,6 @@
       "w": "RCPDZM",
       "with_": "KAN-026",
       "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 A군 16종(+ 이관된 cuckooFilter)은 계약 전환이 끝나야 쓸 수 있다"
-    },
-    {
-      "seq": 270,
-      "t": "2026-09-15T01:27",
-      "a": "유저",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "2PNFSD",
-      "with_": "KAN-027",
-      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 B군 잔여 16종은 계약 전환이 끝나야 쓸 수 있다"
     }
   ],
   "waivers": [
