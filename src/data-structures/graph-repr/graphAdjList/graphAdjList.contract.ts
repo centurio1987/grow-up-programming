@@ -20,7 +20,7 @@
  *
  * **`neighbors` 는 정렬한 쌍 배열로 관측한다.** 두 가지 이유다. 계약이 순서를 정하지 않으므로
  * 정렬해야 두 구현이 같은 값을 낸다. 그리고 하네스의 비교가 배열만 원소별로 보고 객체는 동일성으로
- * 본다(`src/data-structures/_contract/runContract.ts:328-335`) — `{ vertex, weight }` 객체를 그대로
+ * 본다(`src/data-structures/_contract/runContract.ts:349-356`) — `{ vertex, weight }` 객체를 그대로
  * 넘기면 늘 갈린다. 관측한 뒤 돌려받은 배열과 항목을 **일부러 망가뜨린다.** 「돌려준 것을 고쳐도
  * 그래프는 바뀌지 않는다」가 다음 `neighbors` 에서 관측되게 하려는 것이다.
  *
