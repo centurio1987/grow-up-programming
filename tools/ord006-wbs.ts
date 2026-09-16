@@ -308,7 +308,7 @@ const UNITS: readonly Unit[] = [
     note: "**T1-02(treap)와 계약이 같을 수 있다** — 둘 다 정렬 집합 expected 다. T1-02 가 먼저 서면 이 유닛은 성격 전환이 된다. 두 트랙에 걸친 유일한 자리라 T1-02 완료를 확인하고 착수한다",
   },
   // T5-05 probabilistic/cuckooFilter 「지울 수 있는 근사 소속 집합」 — KAN-026 으로 이관(2026-09-14
-  //   유저 결재). bloomFilter 와 한 판정 자리에서 보라는 서술(docs/ORD-006-conventions.md:2285)이
+  //   유저 결재). bloomFilter 와 한 판정 자리에서 보라는 서술(docs/ORD-006-conventions.md:2300)이
   //   워크트리를 넘는 의존을 만들었다. 뺀 note 의 판정 이력: 「같은계약?」 판정이 유일하게 남은
   //   자리(B19 인계) — bloomFilter 와 갈리는 자리가 지우기인데 bloomFilter 는 A군이라 등급으로
   //   먼저 가른다(불변 사실 56). 전환 전에 판정을 먼저 낸다.
@@ -318,10 +318,11 @@ const UNITS: readonly Unit[] = [
   {
     id: "T5-06",
     track: "T5",
-    contract: "미확정 — 자료구조인지부터",
+    contract: "없음 — 자료구조가 아니다(S16)",
     canonical: "tree/huffmanTree",
     transitions: [],
-    note: "축밖 표시. 알고리즘 산출물이면 계약이 서지 않는다 — 그 판정 자체가 이 유닛의 산출. **S16 판정: 자료구조가 아니다**(불변 사실 244–246 — 답이 구성 입력만으로 정해지지 않는다). 처분(이관·제거·재정의)은 사람 결정 대기라 open 으로 둔다. S19 마감 실측(2026-09-15): B군에서 남은 open 유닛은 이것 하나이고 `-problem.md` 도 이것 하나다 — 카드 종료 조건 1·3 이 이 처분에 걸린다",
+    transferredTo: "KAN-039-FG8HWZ",
+    note: "이관 — 이 카드(KAN-027)의 종료 범위에서 뺐다(2026-09-15 유저 결재 「가」). 판정: **자료구조가 아니다**(불변 사실 244–246 — 답이 구성 입력만으로 하나로 정해지지 않는다, 동률만 다른 두 최적 부호가 다른 답을 낸다). 이 카드에서 옮기지 않은 이유는 TA-10(rollingHash)과 같다 — 알고리즘 목록 편 수를 algo-wbs.test 가 고정하고 가이드 없는 편을 셀 자리가 없다(불변 사실 288). KAN-039 가 인수하는 것: 알고리즘 트랙 한 편으로 옮기기 · 목록 링크와 algo-wbs 기대값 · ord004-manifest · inventory 행 · 이 디렉터리 걷기와 `-problem.md` 제거. 걷히면 경로 가드가 exit 1 로 이 유닛을 지우라고 알린다",
   },
   {
     id: "T5-07",
@@ -391,7 +392,7 @@ const UNITS: readonly Unit[] = [
     contract: "뒤에 넣고 앞에서 빼며 최댓값을 묻는 큐 (비교자 주입)",
     canonical: "linear/monotonicQueue",
     transitions: [],
-    note: "완료(KAN-026 S8) — slidingWindowMax·Min 을 빼고 queue 다섯 행 + max 로 새로 지었다(창 크기는 구조가 들지 않는다). complexity — 자명한 길 넷이 각자 한 행을 놓고 그중 셋이 fixture 로 서로 다른 행에서 걸린다(불변 사실 280). enqueue·dequeue 를 서로 다른 계열이 상각으로만 지켜 둘 다 amortized(불변 사실 278). 가이드 링크 3 교체 — slidingWindowMaximum:100 문장은 「덱」을 가리켜 뜻이 어긋난다(불변 사실 282)",
+    note: "완료(KAN-026 S8) — slidingWindowMax·Min 을 빼고 queue 다섯 행 + max 로 새로 지었다(창 크기는 구조가 들지 않는다). complexity — 자명한 길 넷이 각자 한 행을 놓고 그중 셋이 fixture 로 서로 다른 행에서 걸린다(불변 사실 280). enqueue·dequeue 를 서로 다른 계열이 상각으로만 지켜 둘 다 amortized(불변 사실 278). 가이드 링크 3 교체 — slidingWindowMaximum:100 은 뜻이 어긋나지 않는다(실제 교체는 linear/deque 헤더로 갔다 — 커밋 6cd5b0c, 불변 사실 282)",
   },
   {
     id: "TA-07",
@@ -440,7 +441,7 @@ const UNITS: readonly Unit[] = [
     contract: "지우지 않는 근사 소속 집합",
     canonical: "probabilistic/bloomFilter",
     transitions: [],
-    note: "완료(KAN-026 S14) — 오차 보장을 축1 연산 하나(falsePositiveCheck)로 판정한다 — 새 필터에 고정 seed 원소 n 개를 넣고 64/ε 개를 물어 참 ≤ 128(여유 2), 모델은 늘 true, 하네스 무수정(불변 사실 297). 확률의 출처는 구현이 뽑는 무작위 — 고정 해시는 계약 위반인 채 통과(298). 여유는 경계 구현이 판정 8,000 회에서 0 회 떨어지는 값(299). 생성자는 (용량, 목표 ε), 원소는 문자열 고정 · 주입 없음(351). add · has expected O(L · log(1/ε)) · basic",
+    note: "완료(KAN-026 S14) — 오차 보장을 축1 연산 하나(falsePositiveCheck)로 판정한다 — 새 필터에 고정 seed 원소 n 개를 넣고 64/ε 개를 물어 참 ≤ 128(여유 2), 모델은 늘 true, 하네스 무수정(불변 사실 297). 확률의 출처는 구현이 뽑는 무작위 — 고정 해시는 계약 위반인 채 통과(298). S24 가 판정을 독립 시행(시행 하나 = 새 워커 하나)으로 바꿨고 여유라는 곱은 없어졌다 — 한계는 꼬리 확률로 고른다(390–396). 생성자는 (용량, 목표 ε), 원소는 문자열 고정 · 주입 없음(351). add · has expected O(L · log(1/ε)) · basic",
   },
   {
     id: "TA-13",
@@ -448,7 +449,7 @@ const UNITS: readonly Unit[] = [
     contract: "지울 수 있는 근사 소속 다중집합 · 가득 참을 관측",
     canonical: "probabilistic/cuckooFilter",
     transitions: [],
-    note: "완료(KAN-026 S19) — TA-12 의 판정 방식을 여섯 판정으로 나눠 쓴다(errorCheck). add 의 거절을 결정적 문장으로 적었다 — 용량 미만이고 has 가 거짓인 원소는 거절하지 않는다, 밀어내기 상한에서 거절하는 흔한 뻐꾸기는 계약 위반(불변 사실 353). 등급은 add 한정자가 아니라 칸마다 세는 블룸 필터(자명)가 정해 basic(354). delete 는 사본 없는 원소에도 정의하고 결정적 보장의 범위를 헷갈린 지우기 전으로 둔다(355). size · loadFactor 제거(357). bloomFilter 와 반례 셋 실행(356). T5-05 에서 이관 — KAN-027 이 T5-05 를 뺐으므로 병합(e1d9f18) 뒤로는 한 번만 세어진다",
+    note: "완료(KAN-026 S19) — 판정은 S24 의 독립 시행 러너로 돈다(cuckooFilterTrial — 옛 errorCheck 모양은 390–396 으로 바뀌었다). add 의 거절을 결정적 문장으로 적었다 — 용량 미만이고 has 가 거짓인 원소는 거절하지 않는다, 밀어내기 상한에서 거절하는 흔한 뻐꾸기는 계약 위반(불변 사실 353). 등급은 add 한정자가 아니라 칸마다 세는 블룸 필터(자명)가 정해 basic(354). delete 는 사본 없는 원소에도 정의하고 결정적 보장의 범위를 헷갈린 지우기 전으로 둔다(355). size · loadFactor 제거(357). bloomFilter 와 반례 셋 실행(356). T5-05 에서 이관 — KAN-027 이 T5-05 를 뺐으므로 병합(e1d9f18) 뒤로는 한 번만 세어진다",
   },
   {
     id: "TA-14",
@@ -456,7 +457,7 @@ const UNITS: readonly Unit[] = [
     contract: "과소 추정 없는 빈도 추정",
     canonical: "probabilistic/countMinSketch",
     transitions: [],
-    note: "완료(KAN-026 S15) — TA-12 의 판정 모양 그대로(overestimateCheck — 흐름 뒤 넣지 않은 원소 64/δ 개, ε·N 초과 ≤ 128, 여유 2 — 경계 구현 8,000 회 0 실패, 불변 사실 360 · 361). 결정적 쪽은 추정 ≥ 실제 빈도 하나, 안 넣은 원소는 0 이상(207). 생성자 (ε, δ) · 증분 0 이상 안전한 정수 · 총증분 초과 RangeError(362). update · estimate expected O(L · log(1/δ)) · basic — 증분 전체 합은 오차 판정만 잡는다(363). -problem.md 는 도구 차단으로 남았다 — 사람이 지운다",
+    note: "완료(KAN-026 S15) — 판정은 S24 의 독립 시행 러너로 돈다(countMinSketchTrial — 옛 overestimateCheck · 여유 2 모양은 390–396 으로 바뀌었다). 결정적 쪽은 추정 ≥ 실제 빈도 하나, 안 넣은 원소는 0 이상(207). 생성자 (ε, δ) · 증분 0 이상 안전한 정수 · 총증분 초과 RangeError(362). update · estimate expected O(L · log(1/δ)) · basic — 증분 전체 합은 오차 판정만 잡는다(363). -problem.md 는 도구 차단으로 남았다 — 사람이 지운다",
   },
   {
     id: "TA-15",
@@ -464,7 +465,7 @@ const UNITS: readonly Unit[] = [
     contract: "서로 다른 원소 수 추정 · 합치기",
     canonical: "probabilistic/hyperLogLog",
     transitions: [],
-    note: "완료(KAN-026 S16) — 판정 모양은 TA-12 를 따르되 인스턴스마다 모은다(errorCheck — ⌈16/δ⌉ 개 중 ε·n 초과 ≤ 48, 여유 3 은 이항 꼬리로 골랐다, 불변 사실 360 · 361). 결정적 쪽은 「같은 실행 · 같은 (ε, δ) 에서 추정은 들어온 원소 집합의 함수」 한 문장(365). 합치기는 정확한 집합을 merge 행에서만 배제해 남았다(364). 그 때문에 해시 무작위를 실행이 한 번 뽑는다 — 사람 결정 대기(366). error() · precision 제거. add O(L · log(1/δ)) · count · merge O(1/(ε²·δ)) · basic(367). 자리 16 고정 구현은 무작위 시퀀스를 통과하고 경계 케이스가 잡는다(368). -problem.md 는 도구 차단으로 남았다 — 사람이 지운다",
+    note: "완료(KAN-026 S16) — 판정은 S24 의 독립 시행 러너로 돈다(hyperLogLogTrial — 옛 errorCheck · 여유 3 모양은 390–396 으로 바뀌었다). 결정적 쪽은 「같은 실행 · 같은 (ε, δ) 에서 추정은 들어온 원소 집합의 함수」 한 문장(365). 합치기는 정확한 집합을 merge 행에서만 배제해 남았다(364). 그 때문에 해시 무작위를 실행이 한 번 뽑는다 — 검토 #6 이 수용(366 · 원칙 B 의 B2). error() · precision 제거. add O(L · log(1/δ)) · count · merge O(1/(ε²·δ)) · basic(367). 자리 16 고정 구현은 무작위 시퀀스를 통과하고 경계 케이스가 잡는다(368). -problem.md 는 도구 차단으로 남았다 — 사람이 지운다",
   },
   {
     id: "TA-16",
@@ -472,7 +473,7 @@ const UNITS: readonly Unit[] = [
     contract: "두 집합의 자카드 닮음 추정",
     canonical: "probabilistic/minHash",
     transitions: [],
-    note: "완료(KAN-026 S17) — 표면을 원소 단위 add + 인스턴스 similarity(other) 로 고쳐 상태를 쌓았다(덮어쓰는 update(set) · signature() · exact() · numHashes 제거, 불변 사실 371). 결정적 쪽은 「같은 실행 · 같은 (ε, δ) 에서 닮음은 두 집합의 짝만으로 정해지고 같은 집합이면 1」(372). similarity 가 정확한 집합을 상한으로 배제(373). 오차 판정은 인스턴스 짝마다 모은다(errorCheck — ⌈16/δ⌉ 짝 중 ε 초과 ≤ 48, 여유 3, 374). 해시 무작위를 실행이 한 번 뽑는다 — 366 과 같은 사람 결정에 매달림(375). add O(L/(ε²·δ)) · similarity O(1/(ε²·δ)) expected · basic(376). 늘 1 은 가벼운 첫 판정 모양을 통과해 판정 모양의 틈을 적었다(378)",
+    note: "완료(KAN-026 S17) — 표면을 원소 단위 add + 인스턴스 similarity(other) 로 고쳐 상태를 쌓았다(덮어쓰는 update(set) · signature() · exact() · numHashes 제거, 불변 사실 371). 결정적 쪽은 「같은 실행 · 같은 (ε, δ) 에서 닮음은 두 집합의 짝만으로 정해지고 같은 집합이면 1」(372). similarity 가 정확한 집합을 상한으로 배제(373). 오차 판정은 S24 의 독립 시행 러너로 돈다(minHashTrial — 짝이 시행 안의 사건, 옛 여유 3 모양은 390–396 으로 바뀌었다). 해시 무작위를 실행이 한 번 뽑는다 — 366 과 함께 검토 #6 이 수용(375). add O(L/(ε²·δ)) · similarity O(1/(ε²·δ)) expected · basic(376). 늘 1 은 가벼운 판정 모양을 통과해 (0.3, 0.3) 모양을 아예 두지 않는 것으로 닫았다(378 · S24)",
   },
 ];
 

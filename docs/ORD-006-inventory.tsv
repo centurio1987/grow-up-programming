@@ -52,7 +52,7 @@ src/data-structures/tree/bPlusTree	tree	bPlusTree	-	complexity	-	0	1026	true
 src/data-structures/tree/bTree	tree	bTree	-	complexity	-	0	1098	true
 src/data-structures/tree/binarySearchTree	tree	binarySearchTree	-	invariant	-	0	1148	true
 src/data-structures/tree/cartesianTree	tree	cartesianTree	-	complexity	-	0	546	true
-src/data-structures/tree/huffmanTree	tree	huffmanTree	-	-	-	73	670	false
+src/data-structures/tree/huffmanTree	tree	huffmanTree	-	transferred:KAN-039-FG8HWZ	-	73	670	false
 src/data-structures/tree/linkCutTree	tree	linkCutTree	-	complexity	-	0	704	true
 src/data-structures/tree/merkleTree	tree	merkleTree	-	complexity	-	0	295	true
 src/data-structures/tree/multiset	tree	multiset	A	complexity	-	0	608	true
