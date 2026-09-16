@@ -125,7 +125,7 @@
   - 목표: 구성 상한의 배제 근거가 실측 수치로 서고, suffixArray · suffixTree 헤더에 같은 근거 문단이 필요한지도 판정된다
   - 메모: 근거: KAN-027 브랜치 docs/ORD-006-conventions.md 「B군 마감 — 낡은 문장 정정 목록 (KAN-027 S19)」의 cartesianTree.ts:96 행 · 배치13 정정 담당 표 8행(추천: main 백로그 새 카드). 순서: KAN-027 main 병합 뒤 · KAN-036 전.
   - 실행 문서: KANBAN.cards/KAN-044-VZXM29.md (2/2 · 최근 09-17)
-  - 검토 문서: KANBAN.reviews/KAN-044-VZXM29.review.md (승인 0/7 · 검토 대기)
+  - 검토 문서: KANBAN.reviews/KAN-044-VZXM29.review.md (승인 4/7 · 반려 3 · 추가 의견 총 7 · 검토 대기)
 
 ## 완료
 - `KAN-029` [P0-a·29] 집필 엔진 가용성 확보 — 플러그인 설치·활성화 + lock 버전 재고정 — 생성:ai · 최종:ai · 갱신:2026-08-04
