@@ -6,7 +6,7 @@
  *
  * 검증 등급 `invariant` → 축3 엄격도는 `regression`(±60% · 2점 · 적대적 선택).
  *
- * **시나리오의 n 은 담긴 낱말 수다.** 낱말 길이 m 과 답의 개수 k 는 상수로 눌러 두므로
+ * **시나리오의 n 은 담긴 낱말 수다(끝의 둘만 곁에 선 낱말의 길이).** m 과 k 는 상수로 눌러
  * (§규약2 시나리오 규칙 3) `O(m)` 과 `O(m + k)` 가 n 에 대해 `O(1)` 로 판정된다. 담긴 수가
  * 비용에서 빠지는 것이 이 계약의 요지이므로, 그 요지가 그대로 판정 대상이 된다.
  */
@@ -279,5 +279,48 @@ export const ternarySearchTreeContract: ContractSpec<
         for (let i = 0; i < 8; i++) ctx.step(() => impl.size());
       },
     },
+    {
+      // **곁에 긴 낱말 · 넣기.** 여기부터 둘은 n 이 담긴 낱말 수가 아니라 **곁에 선 낱말의
+      // 길이**다. 긴 낱말 여덟을 세워 두고(준비 — 재지 않는다) 그 첫 글자 하나를 넣는다.
+      // 넣는 낱말은 한 글자라 m = 1 이고, 곁에 선 낱말의 길이는 표의 어느 상한에도 없다 —
+      // 그 길이를 따라 비용이 자라면 어떤 구현이든 `insert` 행 위반이다(불변 사실 44 · 216).
+      // 위 다섯 시나리오는 낱말 길이를 8 로 눌러 두어 이 자리를 재지 못했다.
+      covers: ["insert"],
+      qualifier: "worst",
+      bound: "O(1)",
+      adversarial: true,
+      run: (impl, n, ctx) => {
+        for (const first of LONG_FIRSTS) {
+          impl.insert(longWord(first, n, ctx.rng));
+          ctx.step(() => impl.insert(first));
+        }
+      },
+    },
+    {
+      // **곁에 긴 낱말 · 지우기.** 같은 자리를 지우는 쪽에서 잰다 — 낱말 하나를 지운 뒤
+      // 남은 모양을 다시 정리하는 일이 곁에 선 낱말의 길이를 따라가면 `delete` 행 위반이다.
+      covers: ["delete"],
+      qualifier: "worst",
+      bound: "O(1)",
+      adversarial: true,
+      run: (impl, n, ctx) => {
+        for (const first of LONG_FIRSTS) {
+          impl.insert(longWord(first, n, ctx.rng));
+          impl.insert(first);
+          ctx.step(() => impl.delete(first));
+        }
+      },
+    },
   ],
 };
+
+/** 「곁에 긴 낱말」 시나리오의 첫 글자들. 한 호출 최대 비용을 한 번이 아니라 여덟 번에서 고른다. */
+const LONG_FIRSTS = "abcdefgh";
+
+/** 첫 글자가 `first` 이고 길이가 `length` 인 낱말. 나머지 글자는 무작위다. */
+function longWord(first: string, length: number, rng: () => number): string {
+  let word = first;
+  while (word.length < length)
+    word += String.fromCharCode(97 + Math.floor(rng() * 26));
+  return word;
+}

@@ -20,34 +20,34 @@
 - #300 2026-09-16 01:41 · 유저 · KAN-041-JJ5DA7 serialize
 - #299 2026-09-16 01:41 · 유저 · KAN-041-JJ5DA7 serialize
 - #298 2026-09-16 01:41 · 유저 · KAN-036-0G05DE serialize
+- #298 2026-09-16 16:47 · ai · KAN-026 이동 검토 → 완료
 - #297 2026-09-16 01:41 · 유저 · KAN-040-M5V53M serialize
+- #297 2026-09-16 15:35 · ai · KAN-026 이동 진행 중 → 검토
 - #296 2026-09-16 01:41 · 유저 · KAN-040-M5V53M serialize
+- #296 2026-09-16 14:53 · ai · KAN-026 이동 검토 → 진행 중
 - #295 2026-09-16 01:41 · ai · KAN-042-Z02G0W 생성 "vanEmdeBoasTree 검사 공백 보완 — 우주 비트 · 원소 비트 사다리" → 백로그
+- #295 2026-09-16 14:09 · ai · KAN-026 이동 진행 중 → 검토
 - #294 2026-09-16 01:41 · ai · KAN-041-JJ5DA7 생성 "원칙 B H1·H2 후속 — 축3 expected 반복 규격(입력 seed 와 구현 무작위 분리)" → 백로그
+- #294 2026-09-16 13:22 · ai · KAN-026 이동 검토 → 진행 중
 - #293 2026-09-16 01:41 · ai · KAN-040-M5V53M 생성 "원칙 A 판정표 ③ — 요약 관찰·순서 질의 69종 일괄 판정" → 백로그
+- #293 2026-09-16 11:41 · ai · KAN-026 이동 진행 중 → 검토
 - #292 2026-09-15 23:28 · ai · KAN-036-0G05DE serialize
+- #292 2026-09-16 04:10 · 유저 · KAN-036-0G05DE serialize
 - #291 2026-09-15 23:28 · ai · KAN-039-FG8HWZ serialize
+- #291 2026-09-16 04:10 · 유저 · KAN-026 독립성 겹침 용인 (상대 KAN-027) — 유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」 용인의 재기록(2026-09-16) — scope 에 KAN-026 은 tools/ci.ts · tools/ci-workflow.test.ts · .github/workflows/ci.yml · CLAUDE.md(S24 trials 모드), KAN-027 은 tree/linkCutTree(S29 정정)를 더해 해시가 바뀌었다. 구조 디렉터리는 여전히 겹치지 않고, 공유 문서 · 등록 파일은 KAN-027 이 KAN-026 을 병합해 푼다(병합 커밋 e1d9f18 의 방식)
 - #290 2026-09-15 23:28 · ai · KAN-039-FG8HWZ serialize
+- #290 2026-09-16 04:10 · 유저 · KAN-036-0G05DE serialize
 - #289 2026-09-15 23:28 · ai · KAN-039-FG8HWZ 수정 원문
+- #289 2026-09-15 23:50 · ai · KAN-026 이동 검토 → 진행 중
 - #288 2026-09-15 23:28 · ai · KAN-039-FG8HWZ 수정 메모
+- #288 2026-09-15 19:22 · ai · KAN-026 이동 진행 중 → 검토
 - #287 2026-09-15 23:28 · ai · KAN-039-FG8HWZ 수정 제목
+- #287 2026-09-15 19:21 · ai · KAN-026 수정 메모
 - #286 2026-09-15 23:28 · ai · KAN-039-FG8HWZ 브리프 목표, 목적, 이유, 짧은 제목
+- #286 2026-09-15 15:37 · ai · KAN-026 수정 메모
 - #285 2026-09-15 15:57 · 유저 · KAN-027 독립성 겹침 용인 (상대 KAN-039-FG8HWZ) — 겹치는 것은 docs/ORD-006-inventory.tsv 하나이고 행이 다르다(KAN-027 은 B군 구조 행, KAN-039 는 rollingHash 행). 병합 충돌은 줄 단위로 양쪽을 살린다
+- #285 2026-09-15 14:13 · ai · KAN-026 수정 메모
 - #284 2026-09-15 15:57 · 유저 · KAN-026 독립성 겹침 용인 (상대 KAN-027) — 유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 등록·도구 파일(_contract/runContract.test.ts·emit-vectors·ord006-inventory·ord006-wbs·guide-skeleton.test)뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229·270–299 · KAN-027 T2 250–269·T5 90–99→230–249·추가 300–349)으로 가르고, ord006-wbs.ts 는 KAN-026 이 TA 블록·KAN-027 이 T1~T5 블록만 고친다. 병합 충돌은 줄 단위로 양쪽을 살린다
+- #284 2026-09-15 10:13 · ai · KAN-026 수정 메모
 - #283 2026-09-15 15:57 · 유저 · KAN-036-0G05DE serialize
-- #282 2026-09-15 15:57 · 유저 · KAN-036-0G05DE serialize
-- #281 2026-09-15 14:16 · 유저 · KAN-027 독립성 겹침 용인 (상대 KAN-039-FG8HWZ) — 겹치는 것은 docs/ORD-006-inventory.tsv 하나이고 행이 다르다(KAN-027 은 B군 구조 행, KAN-039 는 rollingHash 행). 병합 충돌은 줄 단위로 양쪽을 살린다
-- #280 2026-09-15 14:16 · ai · KAN-036-0G05DE serialize
-- #279 2026-09-15 14:16 · ai · KAN-039-FG8HWZ serialize
-- #278 2026-09-15 14:16 · ai · KAN-039-FG8HWZ 생성 "rollingHash 알고리즘 트랙 이관 — algo-guide-v2 가이드 집필과 한 work 로" → 백로그
-- #277 2026-09-15 08:40 · 유저 · KAN-038-NE17BJ serialize
-- #276 2026-09-15 04:14 · 유저 · KAN-026 독립성 겹침 용인 (상대 KAN-027) — 유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 등록·도구 파일(_contract/runContract.test.ts·emit-vectors·ord006-inventory·ord006-wbs·guide-skeleton.test)뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229·270–299 · KAN-027 T2 250–269·T5 90–99→230–249·추가 300–349)으로 가르고, ord006-wbs.ts 는 KAN-026 이 TA 블록·KAN-027 이 T1~T5 블록만 고친다. 병합 충돌은 줄 단위로 양쪽을 살린다
-- #275 2026-09-15 04:14 · 유저 · KAN-036-0G05DE serialize
-- #274 2026-09-15 04:14 · 유저 · KAN-036-0G05DE serialize
-- #273 2026-09-15 02:41 · 유저 · KAN-026 독립성 겹침 용인 (상대 KAN-027) — 유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 등록·도구 파일(_contract/runContract.test.ts·emit-vectors·ord006-inventory·ord006-wbs·guide-skeleton.test)뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229·270–299 · KAN-027 T2 250–269·T5 90–99→230–249·추가 300–349)으로 가르고, ord006-wbs.ts 는 KAN-026 이 TA 블록·KAN-027 이 T1~T5 블록만 고친다. 병합 충돌은 줄 단위로 양쪽을 살린다
-- #272 2026-09-15 02:41 · 유저 · KAN-036-0G05DE serialize
-- #271 2026-09-15 02:41 · 유저 · KAN-036-0G05DE serialize
-- #270 2026-09-15 01:28 · ai · KAN-038-NE17BJ 생성 "deque 검증 등급 재판정 — 연결 마디를 자명한 구현으로 본 결재 반영" → 백로그
-- #269 2026-09-15 01:27 · 유저 · KAN-026 독립성 겹침 용인 (상대 KAN-027) — 유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」. 구조 디렉터리는 겹치지 않고(cuckooFilter 는 유저 결재로 KAN-026 이관) 겹치는 것은 ORD-006 공유 문서(conventions·runbook·inventory·wbs)와 등록·도구 파일(_contract/runContract.test.ts·emit-vectors·ord006-inventory·ord006-wbs·guide-skeleton.test)뿐이다. 불변 사실 번호는 카드별 대역(KAN-026 200–229·270–299 · KAN-027 T2 250–269·T5 90–99→230–249·추가 300–349)으로 가르고, ord006-wbs.ts 는 KAN-026 이 TA 블록·KAN-027 이 T1~T5 블록만 고친다. 병합 충돌은 줄 단위로 양쪽을 살린다
-- #268 2026-09-15 01:27 · 유저 · KAN-036-0G05DE serialize
-- #267 2026-09-15 01:27 · 유저 · KAN-036-0G05DE serialize
+- #283 2026-09-15 09:36 · ai · KAN-026 수정 메모

@@ -97,7 +97,7 @@ nums = [5 9 1 3 1 1] · k = 3 에서 최댓값 하나와 그 자리만 기억하
   적습니다. 칸 수가 `k` 이면 `b = a + k − 1` 이에요.
 - **덱.** 양쪽 끝에서 넣고 뺄 수 있는 담는 통입니다. 넣기 · 앞에서 빼기 · 뒤에서 빼기 ·
   앞 보기가 각각 한 번에 끝나요. 흐릿하면
-  [`monotonicQueue`](../../../data-structures/linear/monotonicQueue/monotonicQueue-problem.md) 를
+  [`deque`](../../../data-structures/linear/deque/deque-guide.md) 를
   먼저 봅니다.
 - **`O(N)` 표기.** 비용이 입력 길이에 비례한다는 뜻이고, 여기서는 배열을 한 번 차례로 읽는
   것과 같은 규모입니다.

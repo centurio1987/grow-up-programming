@@ -1,0 +1,1088 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "MonotonicStack",
+  "grade": "basic",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 스택에서 pop·peek·max 는 null 이고 상태를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "가장 큰 원소를 빼면 그 아래에서 가장 큰 원소가 답이 된다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 3
+        },
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "push",
+          "arg": 5
+        },
+        {
+          "op": "push",
+          "arg": 2
+        },
+        {
+          "op": "max",
+          "expect": 5
+        },
+        {
+          "op": "pop",
+          "expect": 2
+        },
+        {
+          "op": "max",
+          "expect": 5
+        },
+        {
+          "op": "pop",
+          "expect": 5
+        },
+        {
+          "op": "max",
+          "expect": 3
+        },
+        {
+          "op": "pop",
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 3
+        },
+        {
+          "op": "pop",
+          "expect": 3
+        },
+        {
+          "op": "max",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "같은 크기의 원소 둘 중 하나를 빼도 그 크기가 답으로 남는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 4
+        },
+        {
+          "op": "push",
+          "arg": 4
+        },
+        {
+          "op": "pop",
+          "expect": 4
+        },
+        {
+          "op": "max",
+          "expect": 4
+        },
+        {
+          "op": "pop",
+          "expect": 4
+        },
+        {
+          "op": "max",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "나중에 넣은 작은 원소는 답을 바꾸지 않고, 빼도 답이 그대로다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 5
+        },
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "push",
+          "arg": 2
+        },
+        {
+          "op": "max",
+          "expect": 5
+        },
+        {
+          "op": "peek",
+          "expect": 2
+        },
+        {
+          "op": "pop",
+          "expect": 2
+        },
+        {
+          "op": "pop",
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "비웠다가 다시 채우면 전에 담았던 원소가 답에 남지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 9
+        },
+        {
+          "op": "pop",
+          "expect": 9
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "push",
+          "arg": 2
+        },
+        {
+          "op": "max",
+          "expect": 2
+        },
+        {
+          "op": "peek",
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "음수만 담아도 그중 가장 큰 원소를 답한다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": -5
+        },
+        {
+          "op": "push",
+          "arg": -3
+        },
+        {
+          "op": "push",
+          "arg": -7
+        },
+        {
+          "op": "max",
+          "expect": -3
+        },
+        {
+          "op": "pop",
+          "expect": -7
+        },
+        {
+          "op": "max",
+          "expect": -3
+        },
+        {
+          "op": "pop",
+          "expect": -3
+        },
+        {
+          "op": "pop",
+          "expect": -5
+        },
+        {
+          "op": "max",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "꺼내는 순서가 넣은 순서의 역순이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "push",
+          "arg": 2
+        },
+        {
+          "op": "push",
+          "arg": 3
+        },
+        {
+          "op": "pop",
+          "expect": 3
+        },
+        {
+          "op": "max",
+          "expect": 2
+        },
+        {
+          "op": "pop",
+          "expect": 2
+        },
+        {
+          "op": "max",
+          "expect": 1
+        },
+        {
+          "op": "pop",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 4
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "pop",
+          "expect": 4
+        },
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "pop",
+          "expect": 1
+        },
+        {
+          "op": "push",
+          "arg": 3
+        },
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": 1
+        },
+        {
+          "op": "pop",
+          "expect": 3
+        },
+        {
+          "op": "push",
+          "arg": 2
+        },
+        {
+          "op": "max",
+          "expect": 2
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": 2
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "push",
+          "arg": -1
+        },
+        {
+          "op": "peek",
+          "expect": -1
+        },
+        {
+          "op": "pop",
+          "expect": -1
+        },
+        {
+          "op": "push",
+          "arg": 9
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "push",
+          "arg": -2
+        },
+        {
+          "op": "push",
+          "arg": 6
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "pop",
+          "expect": 6
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": -2
+        },
+        {
+          "op": "pop",
+          "expect": -2
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "push",
+          "arg": -8
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "pop",
+          "expect": -8
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "push",
+          "arg": 8
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "push",
+          "arg": 15
+        },
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "pop",
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": 11
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "pop",
+          "expect": 11
+        },
+        {
+          "op": "push",
+          "arg": -1
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "pop",
+          "expect": -1
+        },
+        {
+          "op": "push",
+          "arg": 7
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "pop",
+          "expect": 7
+        },
+        {
+          "op": "push",
+          "arg": -5
+        },
+        {
+          "op": "push",
+          "arg": -1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": 4
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "pop",
+          "expect": 4
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": -1
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "push",
+          "arg": -4
+        },
+        {
+          "op": "push",
+          "arg": 15
+        },
+        {
+          "op": "pop",
+          "expect": 15
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "push",
+          "arg": -2
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": -2
+        },
+        {
+          "op": "push",
+          "arg": -5
+        },
+        {
+          "op": "peek",
+          "expect": -5
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "pop",
+          "expect": -5
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "pop",
+          "expect": -4
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": -5
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "pop",
+          "expect": 1
+        },
+        {
+          "op": "pop",
+          "expect": 15
+        },
+        {
+          "op": "pop",
+          "expect": 8
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "push",
+          "arg": -1
+        },
+        {
+          "op": "push",
+          "arg": -8
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": -8
+        },
+        {
+          "op": "pop",
+          "expect": -8
+        },
+        {
+          "op": "push",
+          "arg": 11
+        },
+        {
+          "op": "pop",
+          "expect": 11
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "peek",
+          "expect": -1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": -1
+        },
+        {
+          "op": "pop",
+          "expect": -1
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "push",
+          "arg": -3
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "push",
+          "arg": -1
+        },
+        {
+          "op": "peek",
+          "expect": -1
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "peek",
+          "expect": -1
+        },
+        {
+          "op": "peek",
+          "expect": -1
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "push",
+          "arg": 14
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "push",
+          "arg": -7
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "push",
+          "arg": 9
+        },
+        {
+          "op": "pop",
+          "expect": 9
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "pop",
+          "expect": -7
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "push",
+          "arg": -6
+        },
+        {
+          "op": "pop",
+          "expect": -6
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "push",
+          "arg": 4
+        },
+        {
+          "op": "peek",
+          "expect": 4
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "pop",
+          "expect": 4
+        },
+        {
+          "op": "push",
+          "arg": 15
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "push",
+          "arg": 12
+        },
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "push",
+          "arg": -2
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": -5
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "pop",
+          "expect": -5
+        },
+        {
+          "op": "push",
+          "arg": 7
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": -7
+        },
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 11
+        },
+        {
+          "op": "push",
+          "arg": 12
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "push",
+          "arg": 11
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "peek",
+          "expect": 11
+        },
+        {
+          "op": "push",
+          "arg": -6
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": -6
+        },
+        {
+          "op": "push",
+          "arg": 4
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 15
+        }
+      ]
+    }
+  ]
+}

@@ -20,18 +20,32 @@
 import { join, resolve } from "node:path";
 import { rngFrom } from "../src/data-structures/_contract/judge.ts";
 import type { ContractSpec } from "../src/data-structures/_contract/runContract.ts";
+import { dagContract } from "../src/data-structures/graph-repr/dag/dag.contract.ts";
+import { graphAdjListContract } from "../src/data-structures/graph-repr/graphAdjList/graphAdjList.contract.ts";
+import { graphAdjMatrixContract } from "../src/data-structures/graph-repr/graphAdjMatrix/graphAdjMatrix.contract.ts";
 import { hashMapChainingContract } from "../src/data-structures/hash/hashMapChaining/hashMapChaining.contract.ts";
 import { hashSetContract } from "../src/data-structures/hash/hashSet/hashSet.contract.ts";
 import { leftistHeapContract } from "../src/data-structures/heap/leftistHeap/leftistHeap.contract.ts";
 import { priorityQueueContract } from "../src/data-structures/heap/priorityQueue/priorityQueue.contract.ts";
+import { bitArrayContract } from "../src/data-structures/linear/bitArray/bitArray.contract.ts";
 import { circularBufferContract } from "../src/data-structures/linear/circularBuffer/circularBuffer.contract.ts";
 import { dequeContract } from "../src/data-structures/linear/deque/deque.contract.ts";
+import { doublyLinkedListContract } from "../src/data-structures/linear/doublyLinkedList/doublyLinkedList.contract.ts";
+import { dynamicArrayContract } from "../src/data-structures/linear/dynamicArray/dynamicArray.contract.ts";
 import { gapBufferContract } from "../src/data-structures/linear/gapBuffer/gapBuffer.contract.ts";
+import { monotonicQueueContract } from "../src/data-structures/linear/monotonicQueue/monotonicQueue.contract.ts";
+import { monotonicStackContract } from "../src/data-structures/linear/monotonicStack/monotonicStack.contract.ts";
 import { queueContract } from "../src/data-structures/linear/queue/queue.contract.ts";
+import { singlyLinkedListContract } from "../src/data-structures/linear/singlyLinkedList/singlyLinkedList.contract.ts";
 import { stackContract } from "../src/data-structures/linear/stack/stack.contract.ts";
 import { unrolledLinkedListContract } from "../src/data-structures/linear/unrolledLinkedList/unrolledLinkedList.contract.ts";
 import { xorLinkedListContract } from "../src/data-structures/linear/xorLinkedList/xorLinkedList.contract.ts";
+import { bloomFilterContract } from "../src/data-structures/probabilistic/bloomFilter/bloomFilter.contract.ts";
 import { concurrentSkipListContract } from "../src/data-structures/probabilistic/concurrentSkipList/concurrentSkipList.contract.ts";
+import { countMinSketchContract } from "../src/data-structures/probabilistic/countMinSketch/countMinSketch.contract.ts";
+import { cuckooFilterContract } from "../src/data-structures/probabilistic/cuckooFilter/cuckooFilter.contract.ts";
+import { hyperLogLogContract } from "../src/data-structures/probabilistic/hyperLogLog/hyperLogLog.contract.ts";
+import { minHashContract } from "../src/data-structures/probabilistic/minHash/minHash.contract.ts";
 import { fenwickTreeContract } from "../src/data-structures/range-query/fenwickTree/fenwickTree.contract.ts";
 import { intervalTreeContract } from "../src/data-structures/range-query/intervalTree/intervalTree.contract.ts";
 import { segmentTreeContract } from "../src/data-structures/range-query/segmentTree/segmentTree.contract.ts";
@@ -150,21 +164,45 @@ function buildVector<Impl, Model>(spec: ContractSpec<Impl, Model>): Vector {
 const SPECS: ContractSpec<any, any>[] = [
   // 성격 전환은 등록하지 않는다 — 같은 계약 객체에 `name` 만 다르므로 vector 가 같다
   // (`avlTree`·`bTree` 계열이 같은 선례다).
+  dagContract,
+  graphAdjListContract,
+  graphAdjMatrixContract,
   hashMapChainingContract,
   hashSetContract,
   leftistHeapContract,
   priorityQueueContract,
+  bitArrayContract,
   circularBufferContract,
   dequeContract,
+  doublyLinkedListContract,
+  dynamicArrayContract,
   gapBufferContract,
+  monotonicQueueContract,
+  monotonicStackContract,
   queueContract,
+  singlyLinkedListContract,
   stackContract,
   unrolledLinkedListContract,
   xorLinkedListContract,
+  // 확률 문장의 판정(통계 판정 — `src/data-structures/_contract/runTrials.ts`, 시행마다 새 워커)은 vector 에 실리지 않는다.
+  // 실리는 것은 결정적 쪽뿐이다 — Rust 포트는 확률 판정을 따로 지어야 한다(원칙 B, `S24`).
+  bloomFilterContract,
   // 이 구조만 vector 의 쓰임이 다르다. 나머지는 TS 하네스가 이미 축1을 돌고 vector 는 Rust
   // 포트를 위한 파생물인데, `concurrency` 등급은 TS 스위트가 돌지 않으므로 **vector 가 축1의
   // 유일한 경로**다(§규약2 「축4 — 동시성」).
   concurrentSkipListContract,
+  // 확률 판정은 vector 에 없다 — `bloomFilterContract` 줄의 설명과 같다. `estimate` 의 관측값은 추정 자체가 아니라
+  // 「기록한 빈도 이상인가」의 판정이라 `true` 다(Rust 포트는 빈도를 함께 기록해야 재생된다).
+  countMinSketchContract,
+  // 확률 판정은 vector 에 없다 — `bloomFilterContract` 줄의 설명과 같다.
+  cuckooFilterContract,
+  // 추정(`count`) · 합치기(`merge` · `mergeSelf`)의 기대값이 전부 `true` 다(확률 판정은 vector 에 없다) — 추정 값이 아니라 「같은 집합을
+  // 새 인스턴스에 넣은 추정과 같은가」의 판정이 실린다. Rust 포트는 들어온 원소 집합을 함께 기록하고 같은 판정을 지어야 재생된다.
+  hyperLogLogContract,
+  // 닮음(`similarity` · `similaritySelf`) · 다시 넣기(`add` 의 `"unchanged"`)의 기대값이 판정이다(확률 판정은 vector 에 없다) — 닮음 값이
+  // 아니라 「같은 두 집합을 새 인스턴스 둘에 넣은 닮음과 같은가 · 같은 집합이면 1 인가」가 실린다. Rust 포트는 두 쪽의 원소 집합을
+  // 함께 기록하고 같은 판정을 지어야 재생된다(`hyperLogLogContract` 줄과 같은 자리).
+  minHashContract,
   fenwickTreeContract,
   intervalTreeContract,
   segmentTreeContract,

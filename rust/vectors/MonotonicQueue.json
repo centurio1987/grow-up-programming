@@ -1,0 +1,1212 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "MonotonicQueue",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 큐에서 dequeue·front·max 는 null 이고 상태를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "dequeue",
+          "expect": null
+        },
+        {
+          "op": "front",
+          "expect": null
+        },
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "가장 큰 원소가 앞 끝으로 나가면 그 뒤에서 가장 큰 원소가 답이 된다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 5
+        },
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "enqueue",
+          "arg": 2
+        },
+        {
+          "op": "max",
+          "expect": 5
+        },
+        {
+          "op": "dequeue",
+          "expect": 5
+        },
+        {
+          "op": "max",
+          "expect": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "max",
+          "expect": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": 2
+        },
+        {
+          "op": "max",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "뒤에 들어온 큰 원소에 가려진 작은 원소도 들어온 순서대로 나온다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 2
+        },
+        {
+          "op": "enqueue",
+          "arg": 9
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "front",
+          "expect": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 2
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "front",
+          "expect": 9
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "같은 크기의 원소 둘 중 하나가 나가도 그 크기가 답으로 남는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 4
+        },
+        {
+          "op": "enqueue",
+          "arg": 4
+        },
+        {
+          "op": "dequeue",
+          "expect": 4
+        },
+        {
+          "op": "max",
+          "expect": 4
+        },
+        {
+          "op": "dequeue",
+          "expect": 4
+        },
+        {
+          "op": "max",
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "같은 크기의 원소가 떨어져 있어도 앞의 것이 나간 뒤 뒤의 것이 답으로 남는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 4
+        },
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 4
+        },
+        {
+          "op": "dequeue",
+          "expect": 4
+        },
+        {
+          "op": "max",
+          "expect": 4
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 4
+        },
+        {
+          "op": "front",
+          "expect": 4
+        }
+      ]
+    },
+    {
+      "name": "비웠다가 다시 채우면 전에 담았던 원소가 답에 남지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 7
+        },
+        {
+          "op": "dequeue",
+          "expect": 7
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "enqueue",
+          "arg": 2
+        },
+        {
+          "op": "max",
+          "expect": 2
+        },
+        {
+          "op": "front",
+          "expect": 2
+        },
+        {
+          "op": "size",
+          "expect": 1
+        }
+      ]
+    },
+    {
+      "name": "음수만 담아도 그중 가장 큰 원소를 답한다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": -5
+        },
+        {
+          "op": "enqueue",
+          "arg": -3
+        },
+        {
+          "op": "enqueue",
+          "arg": -7
+        },
+        {
+          "op": "max",
+          "expect": -3
+        },
+        {
+          "op": "dequeue",
+          "expect": -5
+        },
+        {
+          "op": "dequeue",
+          "expect": -3
+        },
+        {
+          "op": "max",
+          "expect": -7
+        }
+      ]
+    },
+    {
+      "name": "한 번 빼고 난 뒤 새로 넣은 원소와 남은 원소를 함께 견준다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 2
+        },
+        {
+          "op": "enqueue",
+          "arg": 6
+        },
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 2
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "max",
+          "expect": 6
+        },
+        {
+          "op": "dequeue",
+          "expect": 6
+        },
+        {
+          "op": "max",
+          "expect": 3
+        },
+        {
+          "op": "front",
+          "expect": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 3
+        }
+      ]
+    },
+    {
+      "name": "넣기와 빼기를 번갈아 창을 밀어도 창 안의 최댓값을 답한다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "enqueue",
+          "arg": -1
+        },
+        {
+          "op": "max",
+          "expect": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": -3
+        },
+        {
+          "op": "max",
+          "expect": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "enqueue",
+          "arg": 5
+        },
+        {
+          "op": "max",
+          "expect": 5
+        },
+        {
+          "op": "dequeue",
+          "expect": -1
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "max",
+          "expect": 5
+        },
+        {
+          "op": "dequeue",
+          "expect": -3
+        },
+        {
+          "op": "enqueue",
+          "arg": 6
+        },
+        {
+          "op": "max",
+          "expect": 6
+        },
+        {
+          "op": "dequeue",
+          "expect": 5
+        },
+        {
+          "op": "enqueue",
+          "arg": 7
+        },
+        {
+          "op": "max",
+          "expect": 7
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "enqueue",
+          "arg": 4
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 4
+        },
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "front",
+          "expect": null
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "front",
+          "expect": null
+        },
+        {
+          "op": "front",
+          "expect": null
+        },
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 2
+        },
+        {
+          "op": "max",
+          "expect": 2
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": null
+        },
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "max",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "dequeue",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "front",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "size",
+          "expect": 0
+        },
+        {
+          "op": "dequeue",
+          "expect": null
+        },
+        {
+          "op": "isEmpty",
+          "expect": true
+        },
+        {
+          "op": "enqueue",
+          "arg": -1
+        },
+        {
+          "op": "front",
+          "expect": -1
+        },
+        {
+          "op": "dequeue",
+          "expect": -1
+        },
+        {
+          "op": "enqueue",
+          "arg": 9
+        },
+        {
+          "op": "max",
+          "expect": 9
+        },
+        {
+          "op": "enqueue",
+          "arg": -2
+        },
+        {
+          "op": "enqueue",
+          "arg": 6
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": 9
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "front",
+          "expect": -2
+        },
+        {
+          "op": "dequeue",
+          "expect": -2
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": -8
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "dequeue",
+          "expect": 6
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": -8
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 8
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "enqueue",
+          "arg": 15
+        },
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "dequeue",
+          "expect": -8
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "enqueue",
+          "arg": 11
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "dequeue",
+          "expect": 8
+        },
+        {
+          "op": "enqueue",
+          "arg": -1
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "dequeue",
+          "expect": 15
+        },
+        {
+          "op": "enqueue",
+          "arg": 7
+        },
+        {
+          "op": "max",
+          "expect": 11
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": -5
+        },
+        {
+          "op": "enqueue",
+          "arg": -1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 11
+        },
+        {
+          "op": "enqueue",
+          "arg": 4
+        },
+        {
+          "op": "max",
+          "expect": 11
+        },
+        {
+          "op": "dequeue",
+          "expect": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 11
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "enqueue",
+          "arg": -4
+        },
+        {
+          "op": "enqueue",
+          "arg": 15
+        },
+        {
+          "op": "dequeue",
+          "expect": -1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "enqueue",
+          "arg": -2
+        },
+        {
+          "op": "size",
+          "expect": 7
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 7
+        },
+        {
+          "op": "enqueue",
+          "arg": -5
+        },
+        {
+          "op": "front",
+          "expect": -5
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "dequeue",
+          "expect": -5
+        },
+        {
+          "op": "size",
+          "expect": 6
+        },
+        {
+          "op": "dequeue",
+          "expect": -1
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 4
+        },
+        {
+          "op": "front",
+          "expect": -4
+        },
+        {
+          "op": "dequeue",
+          "expect": -4
+        },
+        {
+          "op": "dequeue",
+          "expect": 15
+        },
+        {
+          "op": "dequeue",
+          "expect": -2
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "size",
+          "expect": 1
+        },
+        {
+          "op": "enqueue",
+          "arg": -1
+        },
+        {
+          "op": "enqueue",
+          "arg": -8
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "front",
+          "expect": -5
+        },
+        {
+          "op": "dequeue",
+          "expect": -5
+        },
+        {
+          "op": "enqueue",
+          "arg": 11
+        },
+        {
+          "op": "dequeue",
+          "expect": -1
+        },
+        {
+          "op": "size",
+          "expect": 2
+        },
+        {
+          "op": "max",
+          "expect": 11
+        },
+        {
+          "op": "front",
+          "expect": -8
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "front",
+          "expect": -8
+        },
+        {
+          "op": "dequeue",
+          "expect": -8
+        },
+        {
+          "op": "max",
+          "expect": 11
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": -3
+        },
+        {
+          "op": "max",
+          "expect": 11
+        },
+        {
+          "op": "max",
+          "expect": 11
+        },
+        {
+          "op": "enqueue",
+          "arg": -1
+        },
+        {
+          "op": "front",
+          "expect": 11
+        },
+        {
+          "op": "size",
+          "expect": 3
+        },
+        {
+          "op": "max",
+          "expect": 11
+        },
+        {
+          "op": "front",
+          "expect": 11
+        },
+        {
+          "op": "front",
+          "expect": 11
+        },
+        {
+          "op": "max",
+          "expect": 11
+        },
+        {
+          "op": "enqueue",
+          "arg": 14
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "enqueue",
+          "arg": -7
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 9
+        },
+        {
+          "op": "dequeue",
+          "expect": 11
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "dequeue",
+          "expect": -3
+        },
+        {
+          "op": "max",
+          "expect": 14
+        },
+        {
+          "op": "size",
+          "expect": 4
+        },
+        {
+          "op": "enqueue",
+          "arg": -6
+        },
+        {
+          "op": "dequeue",
+          "expect": -1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": 4
+        },
+        {
+          "op": "front",
+          "expect": 14
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "dequeue",
+          "expect": 14
+        },
+        {
+          "op": "enqueue",
+          "arg": 15
+        },
+        {
+          "op": "size",
+          "expect": 5
+        },
+        {
+          "op": "enqueue",
+          "arg": 12
+        },
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "front",
+          "expect": -7
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "enqueue",
+          "arg": -2
+        },
+        {
+          "op": "size",
+          "expect": 8
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "enqueue",
+          "arg": -5
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "dequeue",
+          "expect": -7
+        },
+        {
+          "op": "enqueue",
+          "arg": 7
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "enqueue",
+          "arg": -7
+        },
+        {
+          "op": "enqueue",
+          "arg": 1
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 11
+        },
+        {
+          "op": "enqueue",
+          "arg": 12
+        },
+        {
+          "op": "size",
+          "expect": 12
+        },
+        {
+          "op": "enqueue",
+          "arg": 11
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "front",
+          "expect": 9
+        },
+        {
+          "op": "enqueue",
+          "arg": -6
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "front",
+          "expect": 9
+        },
+        {
+          "op": "enqueue",
+          "arg": 4
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "isEmpty",
+          "expect": false
+        },
+        {
+          "op": "size",
+          "expect": 15
+        }
+      ]
+    }
+  ]
+}

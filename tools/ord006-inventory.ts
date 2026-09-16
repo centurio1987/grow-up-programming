@@ -60,12 +60,77 @@ const VERIFICATION_GRADES: Record<
   string,
   "basic" | "invariant" | "complexity" | "concurrency"
 > = {
+  // A군 그래프 표현 둘(KAN-026 S9 · S10). **새 줄은 알파벳 자리에 넣는다**(`docs/ORD-006-wbs.md`
+  // §4) — 표 전체가 추가 순서로 쌓여 있어 「알파벳 자리」가 정해지지 않으므로, 자기보다 뒤로
+  // 정렬되는 첫 기존 키(`linear/stack`) 앞에 둔다. 기존 줄은 옮기지 않았다.
+  //
+  // `dag`(KAN-026 S11) — 정점 번호 모형을 `graphAdjList` 에서 따르므로 사전이 들지 않고, 여섯 행이
+  // 정점마다 나가는 간선 배열 · 지나간 표시 하나로 선다. 불변식이 하나라 `basic` 이 아니다. 알파벳
+  // 자리가 `graphAdjList` 앞이다.
+  "graph-repr/dag": "invariant",
+  // `graphAdjList` — 정점 번호를 구조가 `[0, n)` 으로 매기므로 번호에서 이웃 배열을 찾는 데 사전이
+  // 들지 않고, 일곱 행이 정점마다 배열 하나로 선다. 불변식이 둘이라 `basic` 이 아니다.
+  "graph-repr/graphAdjList": "invariant",
+  // `graphAdjMatrix` — 「공간」 표시였지만 계약이 갈린다(판별 셋째 걸음을 축3으로 돌려 확인). 칸
+  // 배열 하나가 여덟 행을 지키고, 쌍을 읽는 두 경로의 정합 셋이 불변식이다.
+  "graph-repr/graphAdjMatrix": "invariant",
+  // A군 공간 판정(KAN-026 S13). 자기보다 뒤로 정렬되는 첫 기존 키(`linear/doublyLinkedList`) 앞에 둔다.
+  //
+  // `bitArray` — 짝 정본이 없는 B15 처분(존치 + 성격 전환). 자리마다 불리언 하나를 담는 언어 배열이
+  // 다섯 행을 지키고, 물려받은 `count` · `toggle` 을 빼면서 불변식 후보가 사라져 `basic` 이다(S1 예상은
+  // `invariant`).
+  "linear/bitArray": "basic",
+  // A군 핸들 수열(KAN-026 S5). 자기보다 뒤로 정렬되는 첫 기존 키(`linear/dynamicArray`) 앞에 둔다.
+  //
+  // `doublyLinkedList` — 연결 마디가 자명한 구현이므로(2026-09-15 유저 결정) 여섯 행이 앞뒤 이음을 든
+  // 마디 하나로 서고, 산 핸들 판정도 마디가 기억한 수열을 보는 상수다. 세어 둔 수 ↔ 늘어놓은 수 하나가
+  // 불변식이라 `basic` 이 아니다.
+  "linear/doublyLinkedList": "invariant",
+  // A군 수열 둘(KAN-026 S4 · S6). 둘 다 자기보다 뒤로 정렬되는 첫 기존 키(`linear/stack`) 앞에 둔다.
+  //
+  // `dynamicArray` — 언어 배열 하나에 맡기면 여섯 행이 선다(불변 사실 197). 물려받은 두 배 늘리기는
+  // 상각 설계인데 등급은 존재 조건이라 `complexity` 가 아니고(불변 사실 55), 불변식이 둘이다.
+  // (KAN-026 S23 · S29 가 `toArray` 를 빼 `basic` 으로 내렸던 것을 S31 이 되돌렸다 — 원칙 A5′-2 기준 시점 조항.)
+  "linear/dynamicArray": "invariant",
+  // A군 단조 둘(KAN-026 S7 · S8). 둘 다 자기보다 뒤로 정렬되는 첫 기존 키(`linear/singlyLinkedList`) 앞에 둔다.
+  //
+  // `monotonicQueue` — 뒤에 넣고 앞에서 빼며 최댓값을 묻는 큐(연산 집합 교체, 2026-09-15 유저 결정). 앞 끝에서
+  // 빼므로 칸마다 적은 최댓값이 어느 방향이든 한 행에서 낡아, 일곱 행을 함께 지키려면 후보를 버리거나 무더기를
+  // 옮기는 상각 설계가 든다. 불변식 절은 비었다 — 판정 절차 2번에서 먼저 걸린다(`linear/deque` 와 같은 자리).
+  "linear/monotonicQueue": "complexity",
+  // `monotonicStack` — 최댓값을 묻는 스택(연산 집합 교체, 2026-09-15 유저 결정). 언어 배열 하나에 (원소,
+  // 그 원소까지의 최댓값) 짝을 쌓으면 일곱 행이 서고 — 넣고 빼는 끝이 같아 곁에 적은 값이 낡지 않는다 —
+  // 불변식 절이 비어 `basic` 이다.
+  "linear/monotonicStack": "basic",
+  // `singlyLinkedList` — 연결 마디가 자명한 구현이므로(2026-09-15 유저 결정) 다섯 행이 마디 사슬
+  // 하나로 선다. 세어 둔 수 ↔ 늘어놓은 수 하나가 불변식이라 `basic` 이 아니다.
+  "linear/singlyLinkedList": "invariant",
   "linear/stack": "basic",
+  // A군 확률 필터(KAN-026 S14). 자기보다 뒤로 정렬되는 첫 기존 키(`tree/multiset`) 앞에 둔다.
+  //
+  // `bloomFilter` — 비트 배열에 해시 k 번이면 두 행의 시간이 확률 논증 없이 선다. 오차 보장의 확률 논증은 등급을
+  // 올리지 않는다(판정 절차 2번은 시간 상한만 읽는다 — 불변 사실 203). 불변식 절이 비었다.
+  "probabilistic/bloomFilter": "basic",
+  // `countMinSketch`(KAN-026 S15) — 줄 ⌈ln(1/δ)⌉ 개에 줄마다 해시 한 번이면 두 행의 시간이 확률 논증 없이 선다. 불변식 절이 비었다.
+  "probabilistic/countMinSketch": "basic",
+  // `cuckooFilter`(KAN-026 S19) — 칸마다 수를 세는 블룸 필터가 세 행을 확률 논증 없는 시간에 지키고 용량 미만에서 거절하지
+  // 않는다(판정 도구 fixture 로 실행). S1 이 예상한 「add 한정자가 등급을 가른다」는 이름의 기법만 본 판정이었다. 불변식 절이 비었다.
+  "probabilistic/cuckooFilter": "basic",
+  // `hyperLogLog`(KAN-026 S16) — 자리 1/(ε²·δ) 개에 원소마다 해시 한 번, 추정 · 합치기는 자리를 한 번씩 훑으면 세 행의 시간이
+  // 확률 논증 없이 선다. 불변식 절이 비었다(합친 결과의 정합은 merge 행의 의미).
+  "probabilistic/hyperLogLog": "basic",
+  // `minHash`(KAN-026 S17) — 해시 함수 1/(ε²·δ) 개에 원소마다 함수를 한 번씩 돌려 칸마다 가장 작은 값을 남기고, 닮음은 칸을 한 번씩
+  // 견주면 두 행의 시간이 확률 논증 없이 선다. 불변식 절이 비었다(자기 자신과의 닮음 · 방향 무관은 similarity 행의 의미).
+  "probabilistic/minHash": "basic",
   "tree/multiset": "complexity",
   "linear/deque": "complexity",
   "range-query/intervalTree": "complexity",
   "linear/xorLinkedList": "invariant",
   "linear/unrolledLinkedList": "complexity",
+  // 성격 전환(KAN-026 S3). 계약이 `trie/ternarySearchTree` 의 것과 같으므로 등급도 같다
+  // (불변 사실 56). 에지를 접는 기법이 자명한 구현보다 손이 더 가는 것은 등급을 바꾸지 않는다
+  // (불변 사실 55). 자기보다 뒤로 정렬되는 첫 기존 키(`trie/suffixArray`) 앞에 둔다.
+  "trie/radixTree": "invariant",
   "trie/suffixArray": "complexity",
   "trie/suffixTree": "complexity",
   "linear/queue": "basic",
@@ -133,6 +198,23 @@ const VERIFICATION_GRADES: Record<
   // 여섯 행을 전부 상한 안에 하므로 `complexity` 가 아니고, 불변식 하나가 남아 `basic` 도
   // 아니다 — 판정 절차의 3번에서 멈춘 첫 계약이다.
   "linear/gapBuffer": "invariant",
+  // 성격 전환(KAN-026 S2). 계약이 `trie/ternarySearchTree` 의 것과 같으므로 등급도 같다
+  // (불변 사실 56). 이 이름이 가리키는 기법(자식을 표로 드는 마디)이 그 계약 헤더가 든 자명한
+  // 구현 그 자체다. 자기보다 뒤로 정렬되는 기존 키가 없어 표 끝에 둔다(`docs/ORD-006-wbs.md` §4).
+  "trie/trie": "invariant",
+};
+
+/**
+ * 다른 카드로 **이관된** 구조 — 키는 `<category>/<name>`, 값은 인수한 카드 id. 검증 등급 열에
+ * `transferred:<카드 id>` 로 적는다(ASCII). 등급이 없는 까닭이 「아직 안 정했다」(`-`)가 아니라 「이 트랙에서
+ * 계약을 세우지 않고 옮긴다」임을 행에서 읽게 하려는 것이다. 열을 늘리지 않는 이유는 `COLUMNS` 주석과 같다.
+ * `tools/ord006-wbs.ts` 의 `transferredTo` 와 같은 값을 적는다. 인수한 카드가 디렉터리를 걷으면 아래 가드가
+ * 멈추므로 그때 이 줄을 지운다.
+ */
+const TRANSFERRED_TO: Record<string, string> = {
+  // KAN-026 S12 · S26 — 자료구조가 아니다(불변 사실 200), 알고리즘 트랙으로 옮기는 일은 KAN-039 가 v2 가이드와
+  // 한 커밋에서 한다(불변 사실 288 · 2026-09-15 유저 결재 「가」).
+  "hash/rollingHash": "KAN-039-FG8HWZ",
 };
 
 /** ORDER.md:39-63 진단 표 9종. 키는 `<category>/<name>`. 이 표 밖은 전부 `-`. */
@@ -191,7 +273,8 @@ for (const category of categories) {
       category,
       name,
       DEFECT_GRADES[key] ?? "-",
-      VERIFICATION_GRADES[key] ?? "-",
+      VERIFICATION_GRADES[key] ??
+        (TRANSFERRED_TO[key] ? `transferred:${TRANSFERRED_TO[key]}` : "-"),
       ESCALATION[key] ?? "-",
       String(await countLines(join(dir, `${name}-problem.md`))),
       String(await countLines(join(dir, `${name}-guide.mdx`))),
@@ -210,6 +293,7 @@ for (const [label, table, source] of [
     VERIFICATION_GRADES,
     "docs/ORD-006-conventions.md §규약1 판정 절차",
   ],
+  ["이관", TRANSFERRED_TO, "tools/ord006-wbs.ts 의 transferredTo"],
 ] as const) {
   const missing = Object.keys(table).filter((k) => !seenKeys.has(k));
   if (missing.length > 0) {

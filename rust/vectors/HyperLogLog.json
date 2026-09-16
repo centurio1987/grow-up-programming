@@ -1,0 +1,1680 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "HyperLogLog",
+  "grade": "basic",
+  "element": "number",
+  "cases": [
+    {
+      "name": "이미 들어온 원소를 다시 넣어도 추정이 바뀌지 않는다 — 빈 문자열 · 16비트 글자 포함",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "a"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "a"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            ""
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            ""
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "가나"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "a"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "가나"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "count",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "추정은 들어온 원소 집합의 함수다 — 빈 인스턴스 · 넣은 순서가 달라도 같은 추정",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "b"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "a"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "c"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "ab"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "a"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "count",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "합치기는 새 인스턴스를 돌려주고 두 쪽을 바꾸지 않으며, 두 쪽 원소를 한 인스턴스에 넣은 것과 같다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "a"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "b"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "b"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "c"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "c"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "d"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "d"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "e"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "빈 쪽과 합치기 · 자기 자신과 합치기도 같은 판정을 받는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "x"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "x"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "y"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "y"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "0 이하 · 1 이상인 ε · δ 는 RangeError 이며 이전 인스턴스를 남기고, 매개변수가 다른 인스턴스와의 합치기는 RangeError 다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "k"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            -0.5,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1.5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "k"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "j"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "merge",
+          "expect": "RangeError"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "k"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.2
+          ]
+        },
+        {
+          "op": "merge",
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "j"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.999,
+            0.999
+          ]
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "k"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "k"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "count",
+          "expect": true
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "merge",
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "ab가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "aba"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "aa가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "bb가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "aba"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "aaa"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "merge",
+          "expect": "RangeError"
+        },
+        {
+          "op": "merge",
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "ba가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "merge",
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "merge",
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "a가b"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "ab"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "bbb"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "a가b"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "b"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "bb"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "가ba"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "abb"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "가가가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "bba"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "baa"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "merge",
+          "expect": "RangeError"
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "b가a"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "a가b"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "b가가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            0,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "ab"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "merge",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "aba"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "가가가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "a"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            ""
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "가가"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "merge",
+          "expect": "RangeError"
+        },
+        {
+          "op": "mergeSelf",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "baa"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            1,
+            "bbb"
+          ],
+          "expect": "added"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "add",
+          "arg": [
+            0,
+            "aba"
+          ],
+          "expect": "unchanged"
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "constructor",
+          "arg": [
+            1,
+            0.3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "count",
+          "expect": true
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.3,
+            0.3
+          ]
+        },
+        {
+          "op": "otherConstructor",
+          "arg": [
+            0.2,
+            0.3
+          ]
+        },
+        {
+          "op": "count",
+          "expect": true
+        }
+      ]
+    }
+  ]
+}
