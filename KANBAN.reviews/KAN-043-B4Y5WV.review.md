@@ -24,29 +24,37 @@ status: 검토 대기
 | 베이스 | `3c352c9` |
 | 변경 훑기 | `git diff 3c352c9...HEAD` |
 
-**커밋 2건**
+**커밋 5건**
 
 ```text
+896fece KAN-043 배치2: 검토 반려 둘을 닫는다 (S3 · S4)
+81e7639 kanban: KAN-043 배치2 계획 — 검토 반려 둘 처리(S3 사다리 · S4 목록과 받는 자리)
+3a1de8a kanban: KAN-043 검토 — 승인 5 · 반려 2 (Fable 5.1 · 판정 by=ai)
+27e6d85 kanban: KAN-043 → 검토 (판단 항목 7 · 검증 결과 동봉)
 6b652e0 KAN-043 배치1: 축3 값 검사 — 선택 자리 둘과 검증 실행 러너 (S1 · S2)
-3c352c9 kanban: KAN-043 착수 — 카드 문서 · scope · KAN-036 직렬 중재 · 배치1
 ```
 
-**변경 파일 20개 (+941 −90)**
+**변경 파일 25개 (+1652 −79)**
 
 | 파일 | 상태 | 추가 | 삭제 |
 |---|:--:|---:|---:|
-| `.kanban/archive.jsonl` | M | 2 | 0 |
-| `.kanban/log.md` | M | 2 | 2 |
-| `.kanban/state.json` | M | 37 | 44 |
-| `KANBAN.batches/KAN-043-B4Y5WV.batch1.md` | M | 91 | 0 |
-| `KANBAN.board.html` | M | 4 | 4 |
-| `KANBAN.cards/KAN-043-B4Y5WV.md` | M | 53 | 0 |
-| `KANBAN.md` | M | 11 | 10 |
-| `docs/ORD-006-conventions.md` | M | 117 | 5 |
-| `docs/ORD-006-runbook.md` | M | 24 | 1 |
+| `.kanban/archive.jsonl` | M | 3 | 0 |
+| `.kanban/log.md` | M | 3 | 3 |
+| `.kanban/reviews/KAN-043-B4Y5WV.events.jsonl` | M | 29 | 0 |
+| `.kanban/reviews/KAN-043-B4Y5WV.review.json` | M | 21 | 0 |
+| `.kanban/state.json` | M | 34 | 33 |
+| `KANBAN.batches/KAN-043-B4Y5WV.batch1.md` | M | 62 | 6 |
+| `KANBAN.batches/KAN-043-B4Y5WV.batch2.md` | M | 87 | 0 |
+| `KANBAN.board.html` | M | 2 | 2 |
+| `KANBAN.cards/KAN-043-B4Y5WV.md` | M | 22 | 3 |
+| `KANBAN.md` | M | 3 | 2 |
+| `KANBAN.reviews/KAN-043-B4Y5WV.review.md` | M | 272 | 0 |
+| `docs/ORD-006-conventions.md` | M | 276 | 5 |
+| `docs/ORD-006-runbook.md` | M | 34 | 1 |
+| `src/data-structures/_contract/probeStepValues.preload.ts` | M | 139 | 0 |
 | `src/data-structures/_contract/runContract.ts` | M | 22 | 1 |
-| `src/data-structures/_contract/runValues.test.ts` | M | 241 | 0 |
-| `src/data-structures/_contract/runValues.ts` | M | 204 | 0 |
+| `src/data-structures/_contract/runValues.test.ts` | M | 281 | 0 |
+| `src/data-structures/_contract/runValues.ts` | M | 229 | 0 |
 | `src/data-structures/graph-repr/dag/dag.contract.ts` | M | 1 | 1 |
 | `src/data-structures/graph-repr/graphAdjList/graphAdjList.contract.ts` | M | 1 | 1 |
 | `src/data-structures/linear/gapBuffer/gapBuffer.contract.ts` | M | 60 | 1 |
@@ -56,12 +64,15 @@ status: 검토 대기
 | `src/data-structures/tree/treap/treap.test.ts` | M | 11 | 2 |
 | `tools/_baseline/citations.tsv` | M | 12 | 12 |
 
-**롤백 태그 3개**
+**롤백 태그 6개**
 
 ```text
 kan/KAN-043-B4Y5WV/S1
 kan/KAN-043-B4Y5WV/S2
+kan/KAN-043-B4Y5WV/S3
+kan/KAN-043-B4Y5WV/S4
 kan/KAN-043-B4Y5WV/batch1
+kan/KAN-043-B4Y5WV/batch2
 ```
 
 ## 2. 검증 — 기준과 실행 결과
@@ -84,57 +95,55 @@ kan/KAN-043-B4Y5WV/batch1
 **실행 결과**
 
 ```text
-배치1 커밋(6b652e0) 상태에서 착수한 쪽이 돌린 출력이다. 검토자는 같은 명령을 다시 돌리지 않아도 된다 — 특히 ci.ts all 은 워커를 수백 개 띄우므로 돌리지 않는다.
+배치2 커밋(896fece) 상태에서 착수한 쪽이 돌린 출력이다. 검토자는 같은 명령을 다시 돌리지 않아도 된다 — 특히 ci.ts all 은 워커를 수백 개 띄우므로 돌리지 않는다.
 
 [1] bun run tools/ci.ts all → 17 단계 전부 통과
-    자기시험 720 pass / 0 fail(34 파일, 새 파일 포함) · 도구 501 · 시뮬 14 ·
-    통계 판정 53 · 정본 1,329 pass / 0 fail. 실습 스텁은 판정 제외(정상).
-    게이트: 타입 · 계약 정합 67 종 · 가이드 추출(정본 66 · 펜스 58) · vector 56 종 ·
-    인용 · 문서 링크 871 · 가이드 래칫 66 편 · v2 스캐너 · 자기증명 · 은유 · 원고 빌드.
+    자기시험 721 · 도구 501 · 시뮬 14 · 통계 판정 53 · 정본 1,329(배치1 과 같은 수).
+    게이트 전부 초록: 타입 · 계약 정합 67종 · 가이드 추출 · vector 56종 · 인용 1,211건 ·
+    문서 링크 874건 · 래칫 · v2 스캐너 · 자기증명 · 은유 · 빌드.
 
-[2] bun test src/data-structures/_contract/runValues.test.ts → 8 pass / 0 fail (새 자기시험)
+[2] bun test src/data-structures/_contract/ → 774 pass / 0 fail
 
-[3] cd rust && cargo test --workspace → 25 pass / 0 fail
+[3] cd rust && cargo test --workspace → 25 통과
 
 [4] bun run tools/check-citations.ts
-    인용 1,211건 · 대장 1,199행 지문 일치.
-    래칫 세 칸 그대로: 칸반 밖 461(detached 74 · unresolved 14 · naked-name 14) ·
-    카드 23(detached 2 · unresolved 16) · 맨 줄 번호 29.
-    하네스 파일이 21 줄 늘어 그것을 가리키던 인용 12 자리를 먼저 고치고 --update 했다.
-    12 자리 전부 지문이 그대로다(예: 한 인용이 118 줄에서 139 줄로 옮겨졌는데 지문은
-    같은 값이다) — 같은 내용을 가리킨다는 것이 기계로 대조된다. 대장은 12 행이 바뀌었고
-    전부 줄 번호 이동이다.
+    표류 0 · 대장 1,199행 지문 전부 일치. --update 를 돌려도 대장 diff 가 한 줄도 안 난다
+    (줄 번호를 무는 인용을 새로 안 만들었다). 래칫 네 칸 그대로 — 경로 없는 인용 461 ·
+    보류 120 · 카드 문서 23 · 맨 줄 번호 29.
+    규약·런북의 이 카드 절은 늘었지만 대장이 가리키는 최대 줄(규약 8046 · 런북 4089)보다
+    아래라 밀림이 없다.
 
-[5] bunx tsc --noEmit → 통과
-    bunx --bun @biomejs/biome check <손댄 파일> → 경고 0
+[5] bunx tsc --noEmit 통과 · bunx --bun @biomejs/biome check <고친 파일과 새 파일> 경고 0
 
-[6] 회귀 대조 (손대기 전후 축3 전수 판정)
-    수집기는 저장소 밖 스크래치에 두고 하네스 호출을 가로채 계약 스위트 실행부 68 개에서
-    대상 134 개를 모았다. 계측기가 붙은 대상 67 개 · 시나리오 실행 인스턴스 364 개.
+[6] 검증 실행의 비용과 검사 수 (정본 · 세 번 평균 · 직접 잼)
 
-    판정(구조·대상·차례·덮는 행·한정자·상한·통과 여부)  364 행 전부 동일 · ok=false 0
-    크기별 통계까지 완전히 같은 행                        308 / 364
-    통계가 달라진 행                                      56 — 같은 코드를 두 번 돌려도
-      흔들리는 행과 정확히 같은 집합(집합 동일성 확인). 구현이 실행마다 무작위를 뽑는
-      아홉 구조: 해시맵 둘 · 해시집합 · LRU · 순위 트리 · treap · skipList · bloom · cuckoo
-    관찰을 붙인 gapBuffer 여섯 행                          통계까지 동일
-      (2 · 1 · 4 · 2,050 · 2 · 1,025 / 2 · 1 · 4 · 8,194 · 2 · 4,097)
+    계약        사다리   한 점                사다리 전부
+    gapBuffer   두 점    검사 14 · 2.2 ms     검사 28 · 37 ms
+    treap       세 점    검사 16 · 4.1 ms     검사 48 · 149 ms
+    skipList    세 점    검사 16 · 1.3 ms     검사 48 · 36 ms
+    합계                 검사 46 · 7.5 ms     검사 124 · 222 ms
 
-[7] 값 검사와 성장률의 독립 (자기시험이 고정한 넷)
-    ① 옛 gapBuffer 정본이 값 검사에서 시나리오 다섯의 끝 상태에 걸린다 —
-       보고되는 빈 칸 512 · 512 · 1 · 1,024 · 512. 여섯째(늘어놓기만)는 0 이라 안 걸린다.
-    ② 같은 구현의 축3 판정·통계가 고친 정본과 한 자리도 다르지 않다(두 통계 배열을 직접 견줌).
-    ③ 크기를 2 의 거듭제곱이 아닌 1,000 으로 두면 같은 구현이 값 검사를 통과한다.
-    ④ 답 하나만 뒤집고 비용은 정본 그대로인 treap 구현을 태우니 값 검사가 0번째 걸음에서
-       잡고 성장률 판정은 통과시킨다.
+    점당 검사 수는 크기를 안 타므로 정확히 점 수 배다. 감당 못 할 자리가 없어 크기를
+    다시 고르지 않았다.
 
-[8] 붙일 자리 판정 (계약 67 종 · 364 인스턴스를 2^10 에서 한 번씩 돌려 잰 값)
-    걸음이 값을 안 버린다                     210  안 붙인다 — 돌려줄 값이 없다
-    버리는데 답이 여럿                         48  안 붙인다 — 참조 모델 재건축이 든다
-    버리고 답이 하나인데 구현이 정한다           5  안 붙인다 — 마디 손잡이 넷 · 근사 계수 하나
-    버리고 답이 하나이며 시나리오가 정한다     101  셋만 붙였다(계약 34 종) · 98 행은 확인 안 함
+[7] 회귀 없음 (배치2 몫)
+    배치2 에서 바뀐 소스는 runValues.ts · runValues.test.ts 둘과 새 탐침뿐이고,
+    runContract.ts · judge.ts · gapBuffer/treap/skipList 디렉터리의 diff 가 전부 비어 있다.
+    축3 통계를 수로 고정한 시험 둘(계약 여섯 시나리오의 통계 배열 · 옛 정본과 고친 정본의
+    통계 동일)이 배치1 과 같은 값으로 통과한다.
 
-[9] 런북 불변 사실 번호 중복 검사: 세 자리 번호 전수에 중복 없음(406 · 407 신규).
+[8] 탐침 훑기 (저장소 안 _contract/probeStepValues.preload.ts · 1.2 초)
+
+    기준            G0 안 버린다   G1 답이 여럿   G2 답이 하나
+    JSON 직렬화     210            57             97
+    문자열화        210            54             100
+    배치1 이 적은 수 210            48             106  ← 재현 안 됨 · 확인 안 함
+
+    G2 97 에서 「구현이 정한다」 셋을 빼면 후보 94 행(계약 33 종)이고, 이 카드가 붙인 셋을
+    빼면 넘어가는 것이 91 행이다. 배치1 탐침이 남아 있지 않아 그 수가 어떤 기준이었는지는
+    확인 안 함이다 — 다시 낼 수 있는 쪽(직렬화)을 정본으로 삼고 배치1 의 수는 병기했다.
+
+[9] 런북 불변 사실 번호 중복 검사: 세 자리 번호 전수에 중복 없음.
 ```
 
 ## 3. 판단 항목 — 스크립트가 판정할 수 없는 것
