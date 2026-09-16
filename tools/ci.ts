@@ -94,6 +94,15 @@ const GATES: Step[] = [
     argv: ["bun", "run", "tools/emit-vectors.ts", "--check"],
   },
   { label: "인용", argv: ["bun", "run", "tools/check-citations.ts"] },
+  // 위 「인용」 단계는 KAN-045 에서 **검사가 둘**이 됐다. ① `경로:줄` 이 실재하는 비어 있지
+  // 않은 줄인가 ② 그 줄의 내용이 인용을 적을 때와 같은가 — 대장(`tools/_baseline/citations.tsv`)
+  // 에 적힌 지문과 대조한다. **명령이 그대로라 이 표는 바뀌지 않는다**(도구 하나 · 단계 하나로
+  // 둔 근거: 「무엇이 인용인가」의 정의가 두 파일에 살면 갈린다). 걸렸을 때 밟는 순서와
+  // `--update` 의 자리는 `docs/ORD-006-conventions.md` 의 「인용 표류 게이트 규격」 절에 있다.
+  //
+  // **주석이 단계 줄 위가 아니라 아래에 있는 까닭**: 위에 넣으면 단계 줄이 밀리고, 그 줄을
+  // 줄 번호로 가리키는 규격 절의 인용이 조용히 남의 줄을 가리키게 된다 — 이 단계가 새로
+  // 잡기로 한 바로 그 사고다.
   { label: "문서 링크", argv: ["bun", "run", "tools/check-links.ts", "check"] },
   {
     label: "가이드 전개 밀도·절 결속(래칫)",

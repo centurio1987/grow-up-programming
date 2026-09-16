@@ -197,6 +197,46 @@
       "memo": "근거: KAN-027 브랜치 docs/ORD-006-conventions.md 「B군 마감 — 낡은 문장 정정 목록 (KAN-027 S19)」의 cartesianTree.ts:96 행 · 배치13 정정 담당 표 8행(추천: main 백로그 새 카드). 순서: KAN-027 main 병합 뒤 · KAN-036 전.",
       "memo_hash": "225aa18e08ec269355944d746ecc19a9adedf1d2"
     },
+    "KAN-046-ZFDFCQ": {
+      "col": "backlog",
+      "title": "밀린 인용 39건 정정 — KAN-045 대장이 drift 로 표시한 자리",
+      "verbatim": "고치는 것은 이 카드가 하지 않는다 — 목록과 flag 까지다(KAN-045 카드 전략, 2026-09-16).",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-09-16",
+      "title_hash": "d24af2bc55d908c1960fbbebd02dd182c2da1b39",
+      "verbatim_hash": "ce22b791dacde7bd564dd4476cc0da72be00311b",
+      "short": "밀린 인용 정정",
+      "short_hash": "5b0a55852b33e537098dec3b46e6779a64691de7",
+      "purpose": "KAN-045 게이트가 drift 로 표시한 인용 39건(대장 97행)을 실제 대상 줄로 맞추고 대장에서 표시를 걷는다",
+      "purpose_hash": "96a716a0bf24681b104c63dafb4bc4a61c13db9b",
+      "reason": "게이트를 세우는 카드가 고치는 일까지 하면 범위가 섞인다고 KAN-045 가 선을 그었다 — 목록과 표시까지가 그 카드였고 정정은 이 카드다",
+      "reason_hash": "6a019fde8425b04de23577c0ca3ff57f34c11cdb",
+      "goal": "drift 표시가 0 이 되고, 그 뒤로는 게이트가 새 밀림만 잡는다",
+      "goal_hash": "e8ce1539362cb5f6265cedaa9e879f803c31fb03",
+      "memo": "대상(KAN-045 배치3 실측): docs/ORD-006-conventions.md 정정 추적표 두 벌의 자기 인용 151행(줄 번호 98종 · 블록 밀림 +67 · +121 · +124) · 규격 절에서 tools/check-citations.ts 를 가리키는 5인용 8행 · 그 밖 3인용 · 가이드 여섯(binomialHeap 3 · bTree · orderStatisticTree · ds-guide-v2 SPEC · algo-guide-v2 FEEDBACK). 가이드 쪽은 guide-core 가 코드 내용만 대조해 줄 번호를 아무도 안 보던 자리라 KAN-036 이 가장 크게 물린다. 모호 1건(FEEDBACK.md:179 → check-v2.ts:381)과 기록이라 안 고치는 11건은 목록에 따로 있다. **열거의 정본은 커밋 421e238 의 대장(tools/_baseline/citations.tsv)에서 flag 가 drift 인 97행**이고, 그 판정 근거는 KAN-045 배치3 문서에 있다(검토자 권고 2026-09-16). 정정 뒤 bun run tools/check-citations.ts --update 로 대장을 갱신한다 — 래칫이 내려가는 것은 가드가 막지 않는다.",
+      "memo_hash": "272041b8c84d0c9d7b5459fa3db02aa17f45dc2a"
+    },
+    "KAN-047-394V9A": {
+      "col": "backlog",
+      "title": "칸반 문서의 인용을 게이트 안으로 — 예외 E1 이 남긴 구멍",
+      "verbatim": "예외 E1 이 남기는 구멍 — 카드 문서의 「실행 계획」·「검증」은 살아 있는 계획인데 검사 밖입니다. 별도 카드 몫으로 적어 뒀습니다(KAN-045 S1, 2026-09-16).",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-09-16",
+      "title_hash": "879a7e2f7dccfc48ca7ed5757868fbf8d6dbc24a",
+      "verbatim_hash": "de5433bb55dcbc787723678a9141ac9da2f50cf9",
+      "short": "칸반 인용 예외 구멍",
+      "short_hash": "75dea75f1cfd1d8a02762a6e1b32bde60eeccd94",
+      "purpose": "KAN-045 게이트의 예외 E1(칸반 산출물이 출처인 인용 전부)에서, 살아 있는 계획 문서(카드의 실행 계획·검증 절)를 검사 안으로 들인다",
+      "purpose_hash": "3aaffac39251e350849e18ba701c0e8fe460ea96",
+      "reason": "E1 은 「그때의 기록」을 지키려고 출처 파일 단위로 통째 예외를 뒀는데, 같은 파일의 계획·검증 절은 지금도 유효한 문서라 인용이 밀려도 아무도 모른다(KAN-045 검토 항목 7)",
+      "reason_hash": "c0ec9c28767bba8c918202092620a0d04c6a484f",
+      "goal": "기록 절은 예외로 남기고 계획 절의 인용은 대장에 올라, 카드 문서가 가리키는 자리도 밀리면 걸린다",
+      "goal_hash": "75987a56d25479482a9a8bc0b9a67c4ca4cb721b",
+      "memo": "KAN-045 규격은 절 단위 예외를 배제했다 — 절 경계 파싱이 구조 변화에 「검사 안 함」 쪽으로 새기 때문이다. 그래서 이 카드는 다른 길을 찾아야 한다(후보: 카드 문서의 계획·검증 절만 별도 파일로 두기 · doc-edit 가 절을 구조로 아는 점을 이용해 도구가 절 경계를 스크립트에서 받기 · 기록 절에만 표지를 요구하기). 근거: docs/ORD-006-conventions.md 「인용 표류 게이트 규격 …」 예외 E1 과 KAN-045 검토서 항목 7.",
+      "memo_hash": "61ca7f999439f2be6e2fe72f38a2823b5cecab20"
+    },
     "KAN-001": {
       "col": "todo",
       "title": "[P0-a·1] ORD-006 봉인 — 지시 원문·진단 9건 표 이관",
@@ -1036,7 +1076,7 @@
       ]
     },
     "KAN-045-D2PK6T": {
-      "col": "backlog",
+      "col": "done",
       "title": "인용 표류 게이트 — 병합으로 밀린 `경로:줄` 인용을 기계가 잡는다",
       "verbatim": "다음 전수 검색부터 인용 패턴을 「경로:줄」만이 아니라 「:숫자」 「:숫자-숫자」까지 잡고, 그 줄 내용이 앞뒤 문장의 주장과 같은지 대조하는 것을 권합니다(검토자, 2026-09-16).",
       "생성": "ai",
@@ -1053,47 +1093,16 @@
       "goal": "병합 뒤 인용 표류가 게이트에서 걸리고, 사람이 눈으로 대조하는 일이 없어진다",
       "goal_hash": "82b95d6124fde04a8e8f2a72e83dd68bc4263d28",
       "memo": "이번 세션에서 쓴 대조 스크립트 둘이 출발점이다(세션 스크래치 remap_citations.py · verify_self_cites.py): ① 인용이 적힌 줄이 기준 판본에도 있으면 그 줄이 가리키던 내용이 지금 같은 번호에 있는지 대조 ② 경로 없는 백틱 인용(`:1234`)도 같은 줄 앞의 경로 또는 그 파일 자신으로 풀어 검사. 지금 check-citations 의 정규식은 확장자 있는 경로만 본다. 후보: tools/check-citations.ts 에 --drift 모드, 또는 새 도구 + ci gates 편입.",
-      "memo_hash": "5b3344fcc496fcfb9f514fd480b4c03e70a76ce5"
-    },
-    "KAN-046-ZFDFCQ": {
-      "col": "backlog",
-      "title": "밀린 인용 39건 정정 — KAN-045 대장이 drift 로 표시한 자리",
-      "verbatim": "고치는 것은 이 카드가 하지 않는다 — 목록과 flag 까지다(KAN-045 카드 전략, 2026-09-16).",
-      "생성": "ai",
-      "최종": "ai",
-      "갱신": "2026-09-16",
-      "title_hash": "d24af2bc55d908c1960fbbebd02dd182c2da1b39",
-      "verbatim_hash": "ce22b791dacde7bd564dd4476cc0da72be00311b",
-      "short": "밀린 인용 정정",
-      "short_hash": "5b0a55852b33e537098dec3b46e6779a64691de7",
-      "purpose": "KAN-045 게이트가 drift 로 표시한 인용 39건(대장 97행)을 실제 대상 줄로 맞추고 대장에서 표시를 걷는다",
-      "purpose_hash": "96a716a0bf24681b104c63dafb4bc4a61c13db9b",
-      "reason": "게이트를 세우는 카드가 고치는 일까지 하면 범위가 섞인다고 KAN-045 가 선을 그었다 — 목록과 표시까지가 그 카드였고 정정은 이 카드다",
-      "reason_hash": "6a019fde8425b04de23577c0ca3ff57f34c11cdb",
-      "goal": "drift 표시가 0 이 되고, 그 뒤로는 게이트가 새 밀림만 잡는다",
-      "goal_hash": "e8ce1539362cb5f6265cedaa9e879f803c31fb03",
-      "memo": "대상(KAN-045 배치3 실측): docs/ORD-006-conventions.md 정정 추적표 두 벌의 자기 인용 151행(줄 번호 98종 · 블록 밀림 +67 · +121 · +124) · 규격 절에서 tools/check-citations.ts 를 가리키는 5인용 8행 · 그 밖 3인용 · 가이드 여섯(binomialHeap 3 · bTree · orderStatisticTree · ds-guide-v2 SPEC · algo-guide-v2 FEEDBACK). 가이드 쪽은 guide-core 가 코드 내용만 대조해 줄 번호를 아무도 안 보던 자리라 KAN-036 이 가장 크게 물린다. 모호 1건(FEEDBACK.md:179 → check-v2.ts:381)과 기록이라 안 고치는 11건은 목록에 따로 있다. **열거의 정본은 커밋 421e238 의 대장(tools/_baseline/citations.tsv)에서 flag 가 drift 인 97행**이고, 그 판정 근거는 KAN-045 배치3 문서에 있다(검토자 권고 2026-09-16). 정정 뒤 bun run tools/check-citations.ts --update 로 대장을 갱신한다 — 래칫이 내려가는 것은 가드가 막지 않는다.",
-      "memo_hash": "272041b8c84d0c9d7b5459fa3db02aa17f45dc2a"
-    },
-    "KAN-047-394V9A": {
-      "col": "backlog",
-      "title": "칸반 문서의 인용을 게이트 안으로 — 예외 E1 이 남긴 구멍",
-      "verbatim": "예외 E1 이 남기는 구멍 — 카드 문서의 「실행 계획」·「검증」은 살아 있는 계획인데 검사 밖입니다. 별도 카드 몫으로 적어 뒀습니다(KAN-045 S1, 2026-09-16).",
-      "생성": "ai",
-      "최종": "ai",
-      "갱신": "2026-09-16",
-      "title_hash": "879a7e2f7dccfc48ca7ed5757868fbf8d6dbc24a",
-      "verbatim_hash": "de5433bb55dcbc787723678a9141ac9da2f50cf9",
-      "short": "칸반 인용 예외 구멍",
-      "short_hash": "75dea75f1cfd1d8a02762a6e1b32bde60eeccd94",
-      "purpose": "KAN-045 게이트의 예외 E1(칸반 산출물이 출처인 인용 전부)에서, 살아 있는 계획 문서(카드의 실행 계획·검증 절)를 검사 안으로 들인다",
-      "purpose_hash": "3aaffac39251e350849e18ba701c0e8fe460ea96",
-      "reason": "E1 은 「그때의 기록」을 지키려고 출처 파일 단위로 통째 예외를 뒀는데, 같은 파일의 계획·검증 절은 지금도 유효한 문서라 인용이 밀려도 아무도 모른다(KAN-045 검토 항목 7)",
-      "reason_hash": "c0ec9c28767bba8c918202092620a0d04c6a484f",
-      "goal": "기록 절은 예외로 남기고 계획 절의 인용은 대장에 올라, 카드 문서가 가리키는 자리도 밀리면 걸린다",
-      "goal_hash": "75987a56d25479482a9a8bc0b9a67c4ca4cb721b",
-      "memo": "KAN-045 규격은 절 단위 예외를 배제했다 — 절 경계 파싱이 구조 변화에 「검사 안 함」 쪽으로 새기 때문이다. 그래서 이 카드는 다른 길을 찾아야 한다(후보: 카드 문서의 계획·검증 절만 별도 파일로 두기 · doc-edit 가 절을 구조로 아는 점을 이용해 도구가 절 경계를 스크립트에서 받기 · 기록 절에만 표지를 요구하기). 근거: docs/ORD-006-conventions.md 「인용 표류 게이트 규격 …」 예외 E1 과 KAN-045 검토서 항목 7.",
-      "memo_hash": "61ca7f999439f2be6e2fe72f38a2823b5cecab20"
+      "memo_hash": "5b3344fcc496fcfb9f514fd480b4c03e70a76ce5",
+      "scope": [
+        "tools/check-citations.ts",
+        "tools/check-citations.test.ts",
+        "tools/_baseline/citations.tsv",
+        "tools/ci.ts",
+        ".github/workflows/ci.yml",
+        "docs/ORD-006-conventions.md",
+        "CLAUDE.md"
+      ]
     }
   },
   "order": [
@@ -1107,7 +1116,8 @@
     "KAN-042-Z02G0W",
     "KAN-043-B4Y5WV",
     "KAN-044-VZXM29",
-    "KAN-045-D2PK6T",
+    "KAN-046-ZFDFCQ",
+    "KAN-047-394V9A",
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
@@ -1152,8 +1162,7 @@
     "KAN-035-31T4BY",
     "KAN-026",
     "KAN-027",
-    "KAN-046-ZFDFCQ",
-    "KAN-047-394V9A"
+    "KAN-045-D2PK6T"
   ],
   "recent": [
     {
@@ -1165,6 +1174,16 @@
       "w": "46PCAX",
       "with_": "KAN-045-D2PK6T",
       "reason": "이 카드가 넓히려는 예외를 KAN-045 가 규격으로 세운다"
+    },
+    {
+      "seq": 324,
+      "t": "2026-09-16T19:44",
+      "a": "ai",
+      "id": "KAN-045-D2PK6T",
+      "op": "move",
+      "w": "1361K5",
+      "from": "review",
+      "to": "done"
     },
     {
       "seq": 323,
@@ -1184,6 +1203,16 @@
       "memo": "KAN-045 규격은 절 단위 예외를 배제했다 — 절 경계 파싱이 구조 변화에 「검사 안 함」 쪽으로 새기 때문이다. 그래서 이 카드는 다른 길을 찾아야 한다(후보: 카드 문서의 계획·검증 절만 별도 파일로 두기 · doc-edit 가 절을 구조로 아는 점을 이용해 도구가 절 경계를 스크립트에서 받기 · 기록 절에만 표지를 요구하기). 근거: docs/ORD-006-conventions.md 「인용 표류 게이트 규격 …」 예외 E1 과 KAN-045 검토서 항목 7."
     },
     {
+      "seq": 323,
+      "t": "2026-09-16T19:34",
+      "a": "ai",
+      "id": "KAN-045-D2PK6T",
+      "op": "move",
+      "w": "1361K5",
+      "from": "doing",
+      "to": "review"
+    },
+    {
       "seq": 322,
       "t": "2026-09-16T19:33",
       "a": "ai",
@@ -1193,6 +1222,16 @@
       "field": "memo",
       "before": "대상(KAN-045 배치3 실측): docs/ORD-006-conventions.md 정정 추적표 두 벌의 자기 인용 151행(줄 번호 98종 · 블록 밀림 +67 · +121 · +124) · 규격 절에서 tools/check-citations.ts 를 가리키는 5인용 8행(S2 가 161→751줄로 다시 써서 밀림) · 그 밖 3인용 · 가이드 여섯(binomialHeap 3 · bTree · orderStatisticTree · ds-guide-v2 SPEC · algo-guide-v2 FEEDBACK). 가이드 쪽은 guide-core 가 코드 내용만 대조해 줄 번호를 아무도 안 보던 자리라 KAN-036 이 가장 크게 물린다. 모호 1건(FEEDBACK.md:179 → check-v2.ts:381)과 기록이라 안 고치는 11건은 목록에 따로 있다. 정정 뒤 bun run tools/check-citations.ts --update 로 대장을 갱신한다.",
       "after": "대상(KAN-045 배치3 실측): docs/ORD-006-conventions.md 정정 추적표 두 벌의 자기 인용 151행(줄 번호 98종 · 블록 밀림 +67 · +121 · +124) · 규격 절에서 tools/check-citations.ts 를 가리키는 5인용 8행 · 그 밖 3인용 · 가이드 여섯(binomialHeap 3 · bTree · orderStatisticTree · ds-guide-v2 SPEC · algo-guide-v2 FEEDBACK). 가이드 쪽은 guide-core 가 코드 내용만 대조해 줄 번호를 아무도 안 보던 자리라 KAN-036 이 가장 크게 물린다. 모호 1건(FEEDBACK.md:179 → check-v2.ts:381)과 기록이라 안 고치는 11건은 목록에 따로 있다. **열거의 정본은 커밋 421e238 의 대장(tools/_baseline/citations.tsv)에서 flag 가 drift 인 97행**이고, 그 판정 근거는 KAN-045 배치3 문서에 있다(검토자 권고 2026-09-16). 정정 뒤 bun run tools/check-citations.ts --update 로 대장을 갱신한다 — 래칫이 내려가는 것은 가드가 막지 않는다."
+    },
+    {
+      "seq": 322,
+      "t": "2026-09-16T19:08",
+      "a": "ai",
+      "id": "KAN-045-D2PK6T",
+      "op": "move",
+      "w": "1361K5",
+      "from": "review",
+      "to": "doing"
     },
     {
       "seq": 321,
@@ -1205,6 +1244,16 @@
       "reason": "이 카드가 고칠 목록과 drift 표시를 KAN-045 가 만든다"
     },
     {
+      "seq": 321,
+      "t": "2026-09-16T18:50",
+      "a": "ai",
+      "id": "KAN-045-D2PK6T",
+      "op": "move",
+      "w": "1361K5",
+      "from": "doing",
+      "to": "review"
+    },
+    {
       "seq": 320,
       "t": "2026-09-16T18:48",
       "a": "유저",
@@ -1213,6 +1262,16 @@
       "w": "46PCAX",
       "with_": "KAN-046-ZFDFCQ",
       "reason": "가이드 여섯의 밀린 인용이 KAN-036 이 다시 쓸 자리와 겹친다 — 정정이 먼저 서야 전개가 낡은 번호를 물려받지 않는다"
+    },
+    {
+      "seq": 320,
+      "t": "2026-09-16T17:12",
+      "a": "유저",
+      "id": "KAN-036-0G05DE",
+      "op": "serialize",
+      "w": "1361K5",
+      "with_": "KAN-045-D2PK6T",
+      "reason": "가이드 66편이 경로:줄 인용을 대량으로 쓴다 — 표류를 잡는 게이트가 먼저 서야 전개 중에 조용히 어긋나지 않는다(scope 를 카드 문서에 박아 중재를 재기록, 2026-09-16)"
     },
     {
       "seq": 319,
@@ -1230,6 +1289,16 @@
       "reason": "게이트를 세우는 카드가 고치는 일까지 하면 범위가 섞인다고 KAN-045 가 선을 그었다 — 목록과 표시까지가 그 카드였고 정정은 이 카드다",
       "goal": "drift 표시가 0 이 되고, 그 뒤로는 게이트가 새 밀림만 잡는다",
       "memo": "대상(KAN-045 배치3 실측): docs/ORD-006-conventions.md 정정 추적표 두 벌의 자기 인용 151행(줄 번호 98종 · 블록 밀림 +67 · +121 · +124) · 규격 절에서 tools/check-citations.ts 를 가리키는 5인용 8행(S2 가 161→751줄로 다시 써서 밀림) · 그 밖 3인용 · 가이드 여섯(binomialHeap 3 · bTree · orderStatisticTree · ds-guide-v2 SPEC · algo-guide-v2 FEEDBACK). 가이드 쪽은 guide-core 가 코드 내용만 대조해 줄 번호를 아무도 안 보던 자리라 KAN-036 이 가장 크게 물린다. 모호 1건(FEEDBACK.md:179 → check-v2.ts:381)과 기록이라 안 고치는 11건은 목록에 따로 있다. 정정 뒤 bun run tools/check-citations.ts --update 로 대장을 갱신한다."
+    },
+    {
+      "seq": 319,
+      "t": "2026-09-16T17:11",
+      "a": "ai",
+      "id": "KAN-045-D2PK6T",
+      "op": "move",
+      "w": "1361K5",
+      "from": "backlog",
+      "to": "doing"
     },
     {
       "seq": 318,
@@ -1659,66 +1728,6 @@
       "reason": "KAN-026·027 두 카드 안에서만 빼면 stack·queue·treap 등 카드 밖 계약과 새로 어긋나서 두 카드는 판정표 ③ 으로 보류했다",
       "goal": "69종 계약의 연산 선정 근거가 한 원칙으로 서고 등급 재판정 대상이 확정돼 KAN-036 가이드가 흔들리지 않는 표면 위에서 쓰인다",
       "memo": "근거: docs/ORD-006-conventions.md 「원칙 A — 연산 선정」 절 판정표 ③(KAN-026 S21, 병합 커밋 KAN-027 e1d9f18). 순서: KAN-026·027 main 병합 뒤, KAN-036 전(유저 결재 2026-09-16)."
-    },
-    {
-      "seq": 293,
-      "t": "2026-09-16T11:41",
-      "a": "ai",
-      "id": "KAN-026",
-      "op": "move",
-      "w": "2PNFSD",
-      "from": "doing",
-      "to": "review"
-    },
-    {
-      "seq": 293,
-      "t": "2026-09-16T04:10",
-      "a": "유저",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "RCPDZM",
-      "with_": "KAN-026",
-      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 A군 16종(+ 이관된 cuckooFilter)은 계약 전환이 끝나야 쓸 수 있다"
-    },
-    {
-      "seq": 292,
-      "t": "2026-09-15T23:28",
-      "a": "ai",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-039-FG8HWZ",
-      "reason": "KAN-036 의 목표 「.mdx 0」에 rollingHash·huffmanTree 가이드가 들어 있고 그 두 파일은 KAN-039 가 알고리즘 트랙 가이드로 대체하며 걷는다"
-    },
-    {
-      "seq": 292,
-      "t": "2026-09-16T04:10",
-      "a": "유저",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "2PNFSD",
-      "with_": "KAN-026",
-      "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 A군 16종(+ 이관된 cuckooFilter)은 계약 전환이 끝나야 쓸 수 있다"
-    },
-    {
-      "seq": 292,
-      "t": "2026-09-15T23:50",
-      "a": "ai",
-      "id": "KAN-027",
-      "op": "move",
-      "w": "RCPDZM",
-      "from": "review",
-      "to": "doing"
-    },
-    {
-      "seq": 291,
-      "t": "2026-09-15T23:28",
-      "a": "ai",
-      "id": "KAN-039-FG8HWZ",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-027",
-      "reason": "KAN-039 에 합류한 huffmanTree 는 KAN-027 T5-06 판정(불변 사실 244–246)이 main 에 병합된 뒤에야 근거가 선다(유저 「가」 2026-09-15)"
     }
   ],
   "waivers": [
