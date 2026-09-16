@@ -1,0 +1,21 @@
+{
+ "card": "KAN-045-D2PK6T",
+ "front": {
+  "base": "main",
+  "branch": "KAN-045-D2PK6T",
+  "card": "KAN-045-D2PK6T",
+  "created": "2026-09-16",
+  "inherits": null,
+  "merged": null,
+  "status": "검토 대기",
+  "title": "인용 표류 게이트 — 병합으로 밀린 `경로:줄` 인용을 기계가 잡는다",
+  "worktree": "/Users/centurio/orca/workspaces/code_test/KAN-045-D2PK6T"
+ },
+ "inherited_md": "",
+ "md_fp": "c9bcdcd60b8b0ffdb32b29767df300fd867c2f7b",
+ "md_src_fp": "868948b2def38859b58d7cc610da0201454be2be",
+ "schema": 1,
+ "target_md": "| 항목 | 값 |\n|---|---|\n| 브랜치 | `KAN-045-D2PK6T` |\n| 워크트리 | `/Users/centurio/orca/workspaces/code_test/KAN-045-D2PK6T` |\n| 베이스 | `main` |\n| 변경 훑기 | `git diff main...HEAD` |\n\n**커밋 5건**\n\n```text\n421e238 KAN-045 배치3: 대장 초기 생성 · 표류 전수 목록 · 게이트 편입 (S3 · S4)\n5779526 KAN-045 배치2: 표류 검사 구현과 문서·게이트 초안 (S2 · S4 초안)\n4c82dc8 KAN-045 배치1: 인용 표류 게이트 규격 (S1)\nf294d35 kanban: KAN-045 ↔ KAN-036 직렬 재기록(scope 등록으로 중재 무효화)\n8a2a672 kanban: KAN-045 착수 — 카드 문서(전략·실행 계획·검증) · 배치 셋(오케스트레이션 3배치 결재)\n```\n\n**변경 파일 16개 (+3032 −110)**\n\n| 파일 | 상태 | 추가 | 삭제 |\n|---|:--:|---:|---:|\n| `.kanban/archive.jsonl` | M | 2 | 0 |\n| `.kanban/log.md` | M | 2 | 2 |\n| `.kanban/state.json` | M | 35 | 28 |\n| `CLAUDE.md` | M | 1 | 1 |\n| `KANBAN.batches/KAN-045-D2PK6T.batch1.md` | M | 91 | 0 |\n| `KANBAN.batches/KAN-045-D2PK6T.batch2.md` | M | 71 | 0 |\n| `KANBAN.batches/KAN-045-D2PK6T.batch3.md` | M | 203 | 0 |\n| `KANBAN.board.html` | M | 4 | 4 |\n| `KANBAN.cards/KAN-045-D2PK6T.md` | M | 72 | 0 |\n| `KANBAN.md` | M | 11 | 10 |\n| `docs/ORD-006-conventions.md` | M | 299 | 1 |\n| `docs/ORD-006-runbook.md` | M | 1 | 1 |\n| `tools/_baseline/citations.tsv` | M | 1133 | 0 |\n| `tools/check-citations.test.ts` | M | 432 | 0 |\n| `tools/check-citations.ts` | M | 666 | 63 |\n| `tools/ci.ts` | M | 9 | 0 |\n\n**롤백 태그 7개**\n\n```text\nkan/KAN-045-D2PK6T/S1\nkan/KAN-045-D2PK6T/S2\nkan/KAN-045-D2PK6T/S3\nkan/KAN-045-D2PK6T/S4\nkan/KAN-045-D2PK6T/batch1\nkan/KAN-045-D2PK6T/batch2\nkan/KAN-045-D2PK6T/batch3\n```",
+ "verdicts": [],
+ "verify_md": "<!-- 기준은 카드 실행 문서 「검증」 절의 사본이다. 정본은 KANBAN.cards/KAN-045-D2PK6T.md 이므로\n     기준이 바뀌면 그쪽을 고치고 review-init --refresh 로 이 항만 다시 뜬다.\n     결과는 착수한 쪽이 이미 돌린 것이다 — 검토자에게 다시 돌리라고 시키지 않는다.\n     **다시 돌려 아래와 다르게 나오면 그 자체가 반려 사유다.** -->\n\n**기준**\n\n**카드 종료 조건.**\n\n1. `bun run tools/check-citations.ts` 가 **표류를 잡는다** — 자기시험 변형 셋에서 실패하고 정상 상태에서 통과한다.\n2. `tools/_baseline/citations.tsv` 가 저장소에 있고 `--update` 로만 바뀐다.\n3. `bun run tools/ci.ts all` 통과 · `bun test tools/check-citations.test.ts tools/ci-workflow.test.ts` 통과 · `cd rust && cargo test` 통과.\n4. 지금 밀려 있는 인용의 목록이 배치 문서에 남고, 그 정정은 별도 작업으로 넘어간 것이 카드에 적힌다.\n\n**실행 결과**\n\n```text\n이 브랜치에서 2026-09-16 실행. 로그: 세션 스크래치 `ci-045-b3.log`.\n\n- `bun run tools/ci.ts all` — **all 모드 통과 — 단계 17개.** · `bun run tools/ci.ts gates` — 단계 11개 통과\n- `cd rust && cargo test` — 11 스위트 · 25 pass / 0 fail\n- `bun run tools/check-citations.ts` — 인용 1,150건 존재 통과 · **대장 1,130행과 지문이 모두 일치** · 경로 없는 인용 463(붙임 73 · 자기 256 · 보류 134)\n- `bun test tools/check-citations.test.ts tools/ci-workflow.test.ts` — 18 pass / 0 fail. 변형 넷을 **앞뒤로** 재고(변형 전 통과 · 후 실패), 시험이 실효인지 돌연변이로 확인(표류 대조 무력화 → 5 실패, 래칫 · `--update` 안전장치 · 공백 정규화 · flag 보존 각각 → 4 실패)\n- `bunx tsc --noEmit` 0 · biome 경고 0 · `check-links check` 843건\n- 대장 결정론: `--tsv` 두 번이 같은 sha256, `--update` 멱등(바이트 동일), 정렬 위반 0 · 키 중복 0 · 지문 충돌 0\n\n**게이트가 실제로 잡은 것**: 이미 밀려 있던 인용 **39건(대장 97행)**. 그중 여덟 행은 **이 카드가 낸 밀림**입니다 — `S2` 가 `tools/check-citations.ts` 를 161 → 751줄로 다시 써서 규격 절의 인용이 밀렸고, 새 게이트가 그것을 잡았습니다.\n```"
+}
