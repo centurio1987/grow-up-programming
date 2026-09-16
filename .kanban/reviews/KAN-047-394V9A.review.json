@@ -1,0 +1,21 @@
+{
+ "card": "KAN-047-394V9A",
+ "front": {
+  "base": "main",
+  "branch": "KAN-047-394V9A",
+  "card": "KAN-047-394V9A",
+  "created": "2026-09-17",
+  "inherits": null,
+  "merged": null,
+  "status": "검토 대기",
+  "title": "칸반 문서의 인용을 게이트 안으로 — 예외 E1 이 남긴 구멍",
+  "worktree": "/Users/centurio/orca/workspaces/code_test/KAN-047-394V9A"
+ },
+ "inherited_md": "",
+ "md_fp": "b4806304a90471d9c5f31034a893f1df96a315f5",
+ "md_src_fp": "7b242b34f9d9c3a0d237d21ed2a8997f831b971e",
+ "schema": 1,
+ "target_md": "| 항목 | 값 |\n|---|---|\n| 브랜치 | `KAN-047-394V9A` |\n| 워크트리 | `/Users/centurio/orca/workspaces/code_test/KAN-047-394V9A` |\n| 베이스 | `main` |\n| 변경 훑기 | `git diff main...HEAD` |\n\n**커밋 3건**\n\n```text\nfd0c534 KAN-047 배치2: 대장 확장과 마감 (S3)\nd3e953b KAN-047 배치1: 게이트 구멍 셋 — 규격 소절 넷과 구현 (S1 · S2)\nb3a2af7 kanban: KAN-047 착수 — 카드 문서 · 배치 둘(단일 에이전트 2배치 결재)\n```\n\n**변경 파일 17개 (+1041 −96)**\n\n| 파일 | 상태 | 추가 | 삭제 |\n|---|:--:|---:|---:|\n| `.kanban/archive.jsonl` | M | 1 | 0 |\n| `.kanban/log.md` | M | 1 | 1 |\n| `.kanban/state.json` | M | 22 | 15 |\n| `KANBAN.batches/KAN-047-394V9A.batch1.md` | M | 92 | 0 |\n| `KANBAN.batches/KAN-047-394V9A.batch2.md` | M | 164 | 0 |\n| `KANBAN.board.html` | M | 4 | 4 |\n| `KANBAN.cards/KAN-026.md` | M | 3 | 2 |\n| `KANBAN.cards/KAN-034.7-QMZ3RE.md` | M | 2 | 1 |\n| `KANBAN.cards/KAN-034.8-BK1Q3A.md` | M | 2 | 1 |\n| `KANBAN.cards/KAN-035-31T4BY.md` | M | 2 | 1 |\n| `KANBAN.cards/KAN-047-394V9A.md` | M | 69 | 0 |\n| `KANBAN.md` | M | 14 | 13 |\n| `docs/ORD-006-conventions.md` | M | 119 | 5 |\n| `sandbox/algo-guide-v2/README.md` | M | 1 | 1 |\n| `tools/_baseline/citations.tsv` | M | 102 | 10 |\n| `tools/check-citations.test.ts` | M | 198 | 0 |\n| `tools/check-citations.ts` | M | 245 | 42 |\n\n**롤백 태그 5개**\n\n```text\nkan/KAN-047-394V9A/S1\nkan/KAN-047-394V9A/S2\nkan/KAN-047-394V9A/S3\nkan/KAN-047-394V9A/batch1\nkan/KAN-047-394V9A/batch2\n```",
+ "verdicts": [],
+ "verify_md": "<!-- 기준은 카드 실행 문서 「검증」 절의 사본이다. 정본은 KANBAN.cards/KAN-047-394V9A.md 이므로\n     기준이 바뀌면 그쪽을 고치고 review-init --refresh 로 이 항만 다시 뜬다.\n     결과는 착수한 쪽이 이미 돌린 것이다 — 검토자에게 다시 돌리라고 시키지 않는다.\n     **다시 돌려 아래와 다르게 나오면 그 자체가 반려 사유다.** -->\n\n**기준**\n\n**카드 종료 조건.**\n\n1. 카드 문서의 `전략` · `실행 계획` · `검증` 절 인용이 **대장에 오른다**(지금 0행 → 86건 남짓). `수행 내역` 절은 예외로 남고, 그 경계가 규격에 적혀 있다.\n2. 모르는 절 제목이 생기면 게이트가 **실패**한다 — 시험이 그것을 고정한다.\n3. 범위 인용의 끝 줄이 빈 줄이면 존재 검사가 잡는다.\n4. 맨 줄 번호 기준선(29)이 대장 머리 주석에 있고 늘면 실패한다.\n5. `bun run tools/check-citations.ts` 통과 · `bun run tools/ci.ts all` 통과 · `cd rust && cargo test` 통과 · 시험이 변형 다섯을 잡는다.\n6. 새로 드러난 표류는 `drift` 목록으로만 남고, 정정이 별건이라는 사실이 카드에 적혀 있다.\n\n**실행 결과**\n\n```text\n이 브랜치에서 2026-09-16~17 실행. 로그: 세션 스크래치 `ci-047-b2.log`.\n\n- `bun run tools/check-citations.ts` — **exit 0**. 인용 **1,204건**(1,150 → 확장) 존재 통과 · 대장 **1,203행** 지문 전부 일치 · 카드 문서 출처 행 **0 → 89**\n- 래칫 칸 셋(칸반 밖 · 카드 · 맨 줄 번호) 모두 **한 자리도 오르지 않음**: `bare 463 held detached=74 unresolved=14 naked-name=14` · `cards bare=32 held detached=2 unresolved=17 naked-name=0` · `naked-line 29`\n- `bun run tools/ci.ts all` — **all 모드 통과 — 단계 17개.** · `cd rust && cargo test` — 25 pass / 0 fail\n- `bun test tools/check-citations.test.ts tools/ci-workflow.test.ts` — **25 pass / 0 fail**(18 → 25). 변형 다섯을 앞뒤로 재고 **돌연변이 다섯**으로 실효 확인 — 카드 통째 예외 복원 → 4 실패 · 모르는 제목을 조용히 예외 → 해당 1 · 범위 끝 검사 제거 → 해당 1 · 맨 줄 번호 래칫 제거 → 2 · 없는 칸을 0 으로 → 1\n- `bunx tsc --noEmit` 0 · biome 경고 0 · `guide-core check` 펜스 58 · `check-links check` 853건\n\n**게이트가 곧바로 잡은 것**: 존재 검사 **6건**(가리킬 곳이 없던 인용 — 다섯은 카드 「전략」 절, 하나는 규약 문서의 범위 끝 빈 줄)과 **표류 31 인용 / 대장 34행**. 존재 6건은 고쳤고(권고와 갈린 자리 하나 — `KAN-035:97` 은 파일 균일 밀림이 아니라 그 인용 하나만 낡음), **표류 31건은 표시만 하고 KAN-048 로 넘겼습니다**(이 카드의 선).\n```"
+}
