@@ -1,6 +1,6 @@
 {
   "next_id": 50,
-  "next_seq": 350,
+  "next_seq": 351,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -138,7 +138,7 @@
       "memo_hash": "9a85fc4527c993567180689518c2f6b0c87587ec"
     },
     "KAN-042-Z02G0W": {
-      "col": "review",
+      "col": "done",
       "title": "vanEmdeBoasTree 검사 공백 보완 — 우주 비트 · 원소 비트 사다리",
       "verbatim": "추천대로 해. 진행해",
       "생성": "ai",
@@ -1239,6 +1239,16 @@
   ],
   "recent": [
     {
+      "seq": 350,
+      "t": "2026-09-17T05:01",
+      "a": "ai",
+      "id": "KAN-042-Z02G0W",
+      "op": "move",
+      "w": "VB5VKS",
+      "from": "review",
+      "to": "done"
+    },
+    {
       "seq": 349,
       "t": "2026-09-17T04:50",
       "a": "ai",
@@ -1776,16 +1786,6 @@
       "w": "46PCAX",
       "with_": "KAN-027",
       "reason": "유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」 용인의 재기록(2026-09-16) — scope 에 KAN-026 은 tools/ci.ts · tools/ci-workflow.test.ts · .github/workflows/ci.yml · CLAUDE.md(S24 trials 모드), KAN-027 은 tree/linkCutTree(S29 정정)를 더해 해시가 바뀌었다. 구조 디렉터리는 여전히 겹치지 않고, 공유 문서 · 등록 파일은 KAN-027 이 KAN-026 을 병합해 푼다(병합 커밋 e1d9f18 의 방식)"
-    },
-    {
-      "seq": 310,
-      "t": "2026-09-16T03:03",
-      "a": "유저",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-044-VZXM29",
-      "reason": "cartesianTree 헤더 근거가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다"
     }
   ],
   "waivers": [
@@ -2110,7 +2110,7 @@
       "reason": "vEB 계약의 축3 시나리오와 헤더가 바뀌므로 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)",
       "created": "2026-09-17T02:29",
       "by": "유저",
-      "restrategy_required": false
+      "restrategy_required": true
     }
   ]
 }
