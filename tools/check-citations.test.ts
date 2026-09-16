@@ -200,10 +200,46 @@ test("④ 경로 없는 인용이 규격의 표대로 갈린다", async () => {
   expect(keys.some((k) => k.startsWith("docs/naked.md"))).toBe(false);
   expect(keys.some((k) => k.startsWith("docs/unresolved.md"))).toBe(false);
 
-  // 보류는 실패가 아니다 — 목록으로 내고 통과시킨다.
+  // 보류는 실패가 아니다 — 게이트는 **요약 한 줄**로 내고 통과시킨다.
   const checked = await call(root);
   expect(checked.code).toBe(0);
   expect(checked.text).toContain("보류는 대장 밖이다");
+});
+
+test("게이트는 보류를 요약 한 줄로만 내고, 전체 목록은 `--tsv` 가 낸다", async () => {
+  const root = await makeTree({
+    [T]: TARGET,
+    "docs/detached.md": `런북 \`${at(T, 3)}\`(불변 사실 230)을 보라. 위 표 ${bare(5)} 행은 다르다.\n`,
+    "docs/naked.md": `${at("multiset.ts", 9)} 처럼 적으면 ${bare(3)} 은 풀 수 없다.\n`,
+    "docs/unresolved.md": `지워진 자리 ${bare(9999)} 를 적어 둔다.\n`,
+  });
+  await baseline(root);
+
+  // 게이트: 요약에 세 수가 다 들어가되 **건별 줄은 없다.** 없으면 CI 로그가 한 단계로 덮인다.
+  const checked = await call(root);
+  expect(checked.code).toBe(0);
+  expect(checked.text).toContain(
+    "보류 3(detached 1 · unresolved 1 · naked-name 1)",
+  );
+  expect(checked.text).toContain("전체 목록은");
+  expect(checked.out.some((l) => l.includes("docs/detached.md"))).toBe(false);
+  expect(checked.out.some((l) => l.includes("docs/naked.md"))).toBe(false);
+
+  // `--tsv`: 건별 줄이 **셋 다** 나온다. stdout 은 대장이므로 목록은 stderr 다.
+  const tsv = await call(root, "tsv");
+  expect(tsv.code).toBe(0);
+  for (const [file, code] of [
+    ["docs/detached.md", "detached"],
+    ["docs/naked.md", "naked-name"],
+    ["docs/unresolved.md", "unresolved"],
+  ])
+    expect(
+      tsv.err.some(
+        (l) => l.includes(file as string) && l.endsWith(code as string),
+      ),
+    ).toBe(true);
+  // stdout 은 대장뿐이다 — 보류는 대장 밖이므로 그 파일이 stdout 에 서면 안 된다.
+  expect(tsv.out.some((l) => l.includes("docs/naked.md"))).toBe(false);
 });
 
 // ── 대장은 지금 인용 집합과 정확히 일치해야 한다 ─────────────────────────────

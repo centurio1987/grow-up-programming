@@ -20,7 +20,7 @@
  * 실행:
  *   `bun run tools/check-citations.ts`            존재 + 표류 검사. exit 0 통과 · 1 실패
  *   `bun run tools/check-citations.ts --update`   대장을 지금 상태로 다시 쓴다
- *   `bun run tools/check-citations.ts --tsv`      지금 상태의 대장을 stdout 으로 (파일에 쓰지 않는다)
+ *   `bun run tools/check-citations.ts --tsv`      대장을 stdout 으로 · 보류 전체 목록을 stderr 로 (파일에 쓰지 않는다)
  */
 
 import { readdir } from "node:fs/promises";
@@ -601,6 +601,13 @@ export interface RunResult {
   err: string[];
 }
 
+/** 보류 전체 목록. `--tsv` 만 낸다 — 게이트는 요약 한 줄로 줄인다. */
+function heldLines(scan: Scan): string[] {
+  return scan.held.map(
+    (item) => `  ${item.where}  \`${item.citation}\`  ${item.code}`,
+  );
+}
+
 function describeOrigins(scan: Scan, row: Row): string[] {
   const list = scan.origins.get(rowKey(row.src, row.target, row.targetLine));
   if (list === undefined || list.length === 0) return [];
@@ -642,6 +649,9 @@ export async function run(root: string, mode: Mode): Promise<RunResult> {
     err.push(
       `대장 ${rows.length}행 · 인용 ${scan.checked}건 · 경로 없는 인용 ${scan.counts.bare}건(붙임 ${scan.counts.attached} · 자기 ${scan.counts.self} · 보류 ${scan.held.length}).`,
     );
+    // **보류 전체 목록은 여기로 낸다.** 게이트(`check`)는 요약 한 줄만 내고 통과시키므로,
+    // 목록을 읽을 자리가 하나는 있어야 한다 — 없으면 「목록으로 내고 통과시킨다」가 글자만 남는다.
+    err.push(...heldLines(scan));
     return { code: 0, out, err };
   }
 
@@ -657,13 +667,16 @@ export async function run(root: string, mode: Mode): Promise<RunResult> {
     `인용 ${scan.checked}건 전부 실재하는 비어 있지 않은 줄을 가리킨다.`,
   );
 
-  // ── 보류는 실패가 아니다. 목록으로 내고 통과시킨다.
+  // ── 보류는 실패가 아니다. **요약 한 줄**로 내고 통과시킨다.
+  //
+  //    전에는 여기서 보류를 전부 찍었다. 지금 실물이 134 건이라 `ci.ts gates` 가 도는 화면이
+  //    **한 단계의 목록으로 덮였다** — 열세 단계 가운데 하나가 로그의 대부분을 먹으면 다른
+  //    단계가 무엇을 말했는지 아무도 안 읽고, 안 읽는 로그는 꺼진 게이트와 같다. 목록 자체는
+  //    `--tsv` 가 그대로 낸다(규격 3 「보류는 목록으로 내고 통과시킨다」가 사는 자리).
   if (scan.held.length > 0) {
     out.push(
-      `경로 없는 인용 ${scan.counts.bare}건 — 붙임 ${scan.counts.attached} · 자기 ${scan.counts.self} · 보류 ${scan.held.length}(detached ${scan.counts.detached} · unresolved ${scan.counts.unresolved} · naked-name ${scan.counts.nakedName}). 보류는 대장 밖이다:`,
+      `경로 없는 인용 ${scan.counts.bare}건 — 붙임 ${scan.counts.attached} · 자기 ${scan.counts.self} · 보류 ${scan.held.length}(detached ${scan.counts.detached} · unresolved ${scan.counts.unresolved} · naked-name ${scan.counts.nakedName}). 보류는 대장 밖이다 — 전체 목록은 \`--tsv\`.`,
     );
-    for (const item of scan.held)
-      out.push(`  ${item.where}  \`${item.citation}\`  ${item.code}`);
   }
 
   if (previous === null) {
