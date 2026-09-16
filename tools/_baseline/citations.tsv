@@ -814,7 +814,7 @@ docs/ORD-006-conventions.md	src/data-structures/spatial/quadtree/quadtree.ts	27	
 docs/ORD-006-conventions.md	src/data-structures/tree/avlTree/avlTree.ts	77	d9ca453bf8de	-
 docs/ORD-006-conventions.md	src/data-structures/tree/bPlusTree/bPlusTree.ts	85	d9ca453bf8de	-
 docs/ORD-006-conventions.md	src/data-structures/tree/binarySearchTree/binarySearchTree.ts	87	09ee242ecb0d	-
-docs/ORD-006-conventions.md	src/data-structures/tree/cartesianTree/cartesianTree.ts	96	40190fdaa2b2	-
+docs/ORD-006-conventions.md	src/data-structures/tree/cartesianTree/cartesianTree.ts	96	9390f02c6bcd	-
 docs/ORD-006-conventions.md	src/data-structures/tree/linkCutTree/linkCutTree.ts	23	e801d37921f5	-
 docs/ORD-006-conventions.md	src/data-structures/tree/linkCutTree/linkCutTree.ts	26	b2ce3867ad74	-
 docs/ORD-006-conventions.md	src/data-structures/tree/linkCutTree/linkCutTree.ts	129	b6fb98b08f96	-

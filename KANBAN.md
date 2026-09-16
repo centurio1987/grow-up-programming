@@ -122,7 +122,7 @@
   - 이유: KAN-027 S19 가 헤더 문장 「배제되는 계열은 둘이고 이 계약에는 둘 다 없다」(불변 사실 328)를 확인했지만 셋째 계열은 짓고 재지 않았고, cartesianTree 는 두 카드 scope 밖이다
   - 목표: 구성 상한의 배제 근거가 실측 수치로 서고, suffixArray · suffixTree 헤더에 같은 근거 문단이 필요한지도 판정된다
   - 메모: 근거: KAN-027 브랜치 docs/ORD-006-conventions.md 「B군 마감 — 낡은 문장 정정 목록 (KAN-027 S19)」의 cartesianTree.ts:96 행 · 배치13 정정 담당 표 8행(추천: main 백로그 새 카드). 순서: KAN-027 main 병합 뒤 · KAN-036 전.
-  - 실행 문서: KANBAN.cards/KAN-044-VZXM29.md (0/2 · 최근 09-17)
+  - 실행 문서: KANBAN.cards/KAN-044-VZXM29.md (2/2 · 최근 09-17)
 
 ## 검토
 
