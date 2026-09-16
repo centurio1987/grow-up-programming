@@ -1,0 +1,21 @@
+{
+ "card": "KAN-042-Z02G0W",
+ "front": {
+  "base": "ee4781b",
+  "branch": "KAN-042-Z02G0W",
+  "card": "KAN-042-Z02G0W",
+  "created": "2026-09-17",
+  "inherits": null,
+  "merged": null,
+  "status": "검토 대기",
+  "title": "vanEmdeBoasTree 검사 공백 보완 — 우주 비트 · 원소 비트 사다리",
+  "worktree": "/Users/centurio/orca/workspaces/code_test/KAN-042-Z02G0W"
+ },
+ "inherited_md": "",
+ "md_fp": "40b87ffb12a32dece494f3453211b96d27564464",
+ "md_src_fp": "1d7875797629a4194aacc9b50359ed31e1ce14b6",
+ "schema": 1,
+ "target_md": "| 항목 | 값 |\n|---|---|\n| 브랜치 | `KAN-042-Z02G0W` |\n| 워크트리 | `/Users/centurio/orca/workspaces/code_test/KAN-042-Z02G0W` |\n| 베이스 | `ee4781b` |\n| 변경 훑기 | `git diff ee4781b...HEAD` |\n\n**커밋 4건**\n\n```text\n281c8e1 KAN-042 배치2: 비용 판단과 마감 (S3)\n3a08ab0 KAN-042 배치1: 트립 fixture 와 사다리 둘 (S1 · S2)\n472083a kanban: KAN-042 중재 재기록 — KAN-036 직렬 · KAN-039 용인(인벤토리 행이 다름)\na79de7d kanban: KAN-042 착수 — 카드 문서 · 배치 둘\n```\n\n**변경 파일 14개 (+1118 −126)**\n\n| 파일 | 상태 | 추가 | 삭제 |\n|---|:--:|---:|---:|\n| `.kanban/archive.jsonl` | M | 3 | 0 |\n| `.kanban/log.md` | M | 3 | 3 |\n| `.kanban/state.json` | M | 64 | 48 |\n| `KANBAN.batches/KAN-042-Z02G0W.batch1.md` | M | 125 | 0 |\n| `KANBAN.batches/KAN-042-Z02G0W.batch2.md` | M | 98 | 0 |\n| `KANBAN.board.html` | M | 4 | 4 |\n| `KANBAN.cards/KAN-042-Z02G0W.md` | M | 66 | 0 |\n| `KANBAN.md` | M | 11 | 10 |\n| `docs/ORD-006-conventions.md` | M | 150 | 0 |\n| `docs/ORD-006-runbook.md` | M | 20 | 0 |\n| `src/data-structures/_contract/_fixtures/hashPriorityTreapIntegerSet.ts` | M | 218 | 0 |\n| `src/data-structures/_contract/runContract.vanEmdeBoasTree.test.ts` | M | 185 | 17 |\n| `src/data-structures/heap/vanEmdeBoasTree/vanEmdeBoasTree.contract.ts` | M | 135 | 9 |\n| `src/data-structures/heap/vanEmdeBoasTree/vanEmdeBoasTree.ts` | M | 36 | 35 |\n\n**롤백 태그 5개**\n\n```text\nkan/KAN-042-Z02G0W/S1\nkan/KAN-042-Z02G0W/S2\nkan/KAN-042-Z02G0W/S3\nkan/KAN-042-Z02G0W/batch1\nkan/KAN-042-Z02G0W/batch2\n```",
+ "verdicts": [],
+ "verify_md": "<!-- 기준은 카드 실행 문서 「검증」 절의 사본이다. 정본은 KANBAN.cards/KAN-042-Z02G0W.md 이므로\n     기준이 바뀌면 그쪽을 고치고 review-init --refresh 로 이 항만 다시 뜬다.\n     결과는 착수한 쪽이 이미 돌린 것이다 — 검토자에게 다시 돌리라고 시키지 않는다.\n     **다시 돌려 아래와 다르게 나오면 그 자체가 반려 사유다.** -->\n\n**기준**\n\n**카드 종료 조건.**\n\n1. 결정론 트립 fixture 가 저장소에 있고 **축1·축2 를 통과**한다(계약을 지키면서 축3 만 어기는 계열).\n2. 사다리 둘이 계약 스위트에 있고, **정본은 통과 · 트라이는 (가)에서 · 트립은 (나)에서 걸린다** — 수치가 자기시험으로 고정된다.\n3. (나)의 계측 비용이 실측으로 적히고, 무거운 시나리오를 어디서 돌릴지 정해져 있다.\n4. 헤더의 「검사 공백」 블록이 **닫힌 것과 남은 것**으로 다시 쓰였다($\\sqrt{\\log u}$ 계열이 남는다는 사실 포함).\n5. `bun run tools/ci.ts all` · `cd rust && cargo test` · `bun run tools/check-citations.ts` 통과. 하네스(`runContract.ts` · `judge.ts`)는 고치지 않았다.\n\n**실행 결과**\n\n```text\n착수한 쪽이 배치2 커밋(281c8e1) 상태에서 직접 돌린 출력이다. 검토자는 같은 명령을 다시 돌리지 않아도 된다 — 특히 ci.ts all 은 워커를 수백 개 띄우므로 돌리지 않는다.\n\n[1] bun run tools/ci.ts all → exit 0\n    all 모드 통과 — 단계 17개.\n    (판정 제외 정상: 3번 실습 채점 — 스텁의 미구현 실패)\n\n[2] bun test src/data-structures/_contract/runContract.vanEmdeBoasTree.test.ts\n    27 pass · 0 fail · 54 expect() calls (배치1 시점 26 → 배치2에서 27)\n\n[3] cd rust && cargo test --workspace\n    통과 25 · 실패 0 (워크스페이스 멤버 contract·structures 합)\n    주의: 커밋 헤더에는 \"cargo test 13 통과\"로 적혀 있다. 그것은 단일 패키지 기준의 수치이고,\n    워크스페이스 전체로 다시 세면 25다. 실패는 어느 쪽으로 세도 0이다.\n\n[4] bun run tools/check-citations.ts\n    카드 문서(수행 내역 절 제외) 경로 없는 인용 23건 — 붙임 3 · 자기 2 · 보류 18.\n    대장 1199행과 지문이 모두 일치한다 — 인용이 가리키던 내용이 그대로다.\n    (대장 파일 줄 수 1204 = 머리 주석 다섯 + 본문 1199)\n\n[5] bunx --bun @biomejs/biome check <이 카드가 고친 파일 넷>\n    Checked 4 files · Found 6 warnings.\n    경고 여섯은 전부 vanEmdeBoasTree.ts 의 학습자 스텁 미사용 파라미터이고,\n    main 의 같은 파일에서도 똑같이 여섯이 난다(기준선이며 이 카드가 늘린 것이 아니다).\n    새로 쓴 fixture 와 시험 파일은 경고 0이다.\n\n[6] bunx tsc --noEmit → exit 0\n\n[7] 런북 불변 사실 번호 중복 검사: 세 자리 번호 전수에 중복 없음(400·401·402 신규).\n```"
+}
