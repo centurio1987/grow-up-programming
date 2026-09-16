@@ -31,7 +31,7 @@ scope: tools/check-citations.ts, tools/check-citations.test.ts, tools/_baseline/
 **하지 않는 것.** 이미 밀려 있는 인용을 전수로 고치는 일은 이 카드가 하지 않는다 — 도구가 목록을 내면 그 목록을 별도 작업으로 넘긴다(대장에는 「지금 상태」를 담되 밀린 것으로 판정된 자리는 표시해 둔다).
 
 ## 실행 계획
-- [ ] `S1` 규격 확정 — 대장 형식 · 지문 계산 · 경로 없는 인용 해석 · 예외(기록 문서) · 갱신 흐름
+- [x] `S1` 규격 확정 — 대장 형식 · 지문 계산 · 경로 없는 인용 해석 · 예외(기록 문서) · 갱신 흐름
 - [ ] `S2` 도구 구현 — `check-citations.ts` 에 표류 검사와 `--update` · 자기시험(변형에서 걸리는지)
 - [ ] `S3` 대장 초기 생성 · 지금 남은 표류 전수 목록
 - [ ] `S4` 게이트 편입 — `ci.ts gates` · 워크플로 · 규약 절 · `CLAUDE.md` 검증 명령
@@ -56,3 +56,6 @@ scope: tools/check-citations.ts, tools/check-citations.test.ts, tools/_baseline/
 - 2026-09-16T17:03 · s:f2fd90c7 — `전략` 섹션 교체
 - 2026-09-16T17:04 · s:f2fd90c7 — `실행 계획` 섹션 교체
 - 2026-09-16T17:04 · s:f2fd90c7 — `검증` 섹션 교체
+- 2026-09-16T17:21 · s:f2fd90c7 · S1 doing — 착수
+- 2026-09-16T17:32 · s:f2fd90c7 · S1 — 표류 검사 규격 확정 — docs/ORD-006-conventions.md 새 절(8066-8322). 대장 tools/_baseline/citations.tsv 는 5열(src·target·target_line 키 / fingerprint 값 / flag) · SHA-256 앞 12자리 · 공백 접기 정규화 · 범위는 시작·끝 두 행 · 코드단위 정렬. 경로 없는 백틱 인용은 같은 줄 증거만으로 붙임 70 · 자기 259 · 보류 134 로 가르고 보류는 실패가 아니라 래칫(# bare 463 held detached=71 unresolved=48 naked-name=15). 예외 넷(E1 출처 KANBAN.** · E2 대상 KANBAN.reviews/** 6건 · E3 줄임표 · E4 경로:줄:열). 명령 확정 — bun run tools/check-citations.ts [--update|--tsv], ci.ts gates 의 기존 「인용」 단계를 그대로 쓴다(별도 단계 아님). 실측: 인용 1,150 · 경로 없는 인용 463 · 대장 1,132행 103.0KiB. 배치 문서 「4. 착수 시점 판단」에 갈림 넷과 대가.
+- 2026-09-16T17:32 · s:f2fd90c7 · S1 done — 완료
