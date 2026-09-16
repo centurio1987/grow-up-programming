@@ -90,7 +90,7 @@ const VERIFICATION_GRADES: Record<
   //
   // `dynamicArray` — 언어 배열 하나에 맡기면 다섯 행이 선다(불변 사실 197). 물려받은 두 배 늘리기는
   // 상각 설계인데 등급은 존재 조건이라 `complexity` 가 아니다(불변 사실 55). 처음에는 불변식이 둘이라 `invariant`
-  // 였고, 원칙 A 의 A5 로 `toArray` 를 빼자(KAN-026 S23) 두 불변식의 한쪽 경로가 사라져 불변식 절이 비었다.
+  // 였고, 목적 기준(원칙 A5′)으로 `toArray` 를 빼자(KAN-026 S23 · S29) 두 불변식의 한쪽 경로가 사라져 불변식 절이 비었다.
   "linear/dynamicArray": "basic",
   // A군 단조 둘(KAN-026 S7 · S8). 둘 다 자기보다 뒤로 정렬되는 첫 기존 키(`linear/singlyLinkedList`) 앞에 둔다.
   //
