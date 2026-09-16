@@ -62,7 +62,7 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
 2. **미커밋 잔여물은 `KAN-033` 의 것** — 마지막 커밋 `efabba1`(S18) 이후 19파일 수정 + untracked
    다수. 그 카드는 `b561f62` 로 완료됐으므로 **`KAN-033` 명의로 닫는다.**
 3. **문서가 결번을 가리킴** — `SPEC.md:677` 이 `L23`·`L26`~`L31` 을 결번 선언했는데
-   `FEEDBACK.md` 는 16줄에서 쓴다. **그중 `:49`·`:87` 은 폐기 사실의 기록이라 고치지 않는다** —
+   `FEEDBACK.md` 는 16줄에서 쓴다. **그중 `sandbox/algo-guide-v2/FEEDBACK.md:49`·`:127` 은 폐기 사실의 기록이라 고치지 않는다** —
    0 을 요구하면 결번 선언의 근거를 지운다. 교정 대상은 §1 반영표 규칙 열뿐이다.
 4. **파일럿 4편이 미이관** — 원고는 샌드박스에 있고 `src/algorithms/` 그 자리에는 v1 `.mdx` 가
    그대로다(실측). 이관 단계가 없으면 잔여 수치가 0 으로 닫히지 않는다.
@@ -203,7 +203,7 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
 #                                                              # 107 → 83 → 42 → 0
 ```
 
-### 함정 (전부 실측 — `sandbox/algo-guide-v2/README.md:53-63`)
+### 함정 (전부 실측 — `sandbox/algo-guide-v2/README.md:67-78`)
 
 - 대상 파일이 **0개면** `bun test <경로>` · `biome check <디렉터리>` · `tsc --noEmit -p` 가 exit 1 이다.
 - **`bunx biome` 을 쓰지 않는다.** npm 의 `biome` 은 이 저장소가 설정한 `@biomejs/biome` 와 다른
@@ -253,3 +253,5 @@ find src/algorithms -name '*-guide.mdx' -not -path '*_deprecated*' -not -path '*
 - 2026-09-03T23:57 · s:913bcce1 · S6 done — W2 41/41 마감 — 살아 있는 .mdx 42 · guide-rhythm 41 실측, algo-wbs 가 [W2] 완료와 W3 후보 11건을 낸다
 - 2026-09-10T16:36 · s:14e75b9e · S7 done — W3 42편 완주 — 하위 KAN-034.7-QMZ3RE 가 배치11 로 닫았고 검토 6/6 승인(반려 3건이 재작업 뒤 뒤집혔다). 웨이브 종료 조건 셋이 참: algo-wbs 111/111 · 살아 있는 .mdx 0 · rhythm 행 0
 - 2026-09-10T16:36 · s:14e75b9e · S8 done — v1 잔여 처분 완료 — 하위 KAN-034.8-BK1Q3A 가 배치4 로 닫았고 검토 5/5 승인. _deprecated 107장 삭제 · rhythm 스캐너가 트랙을 말하게 함 · 이월 넷 처분(매니페스트 107 항목·paths.json·워크플로·spec 은퇴)
+- 2026-09-17T01:29 · s:f2fd90c7 — `전략` 섹션 교체
+- 2026-09-17T01:29 · s:f2fd90c7 — `검증` 섹션 교체

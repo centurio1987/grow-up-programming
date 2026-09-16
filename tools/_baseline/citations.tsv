@@ -1,16 +1,15 @@
 # src	target	target_line	fingerprint	flag
 # 갱신: bun run tools/check-citations.ts --update  (대장 = 지금 인용 집합. 손으로 고치지 않는다)
-# bare 462 held detached=74 unresolved=14 naked-name=14
-# cards bare=32 held detached=2 unresolved=17 naked-name=0
+# bare 461 held detached=74 unresolved=14 naked-name=14
+# cards bare=23 held detached=2 unresolved=16 naked-name=0
 # naked-line 29
-KANBAN.cards/KAN-026.md	docs/ORD-006-conventions.md	42	cdcc8b5b08af	drift
+KANBAN.cards/KAN-026.md	docs/ORD-006-conventions.md	46	59e0c6f0c8bf	-
 KANBAN.cards/KAN-026.md	docs/ORD-006-conventions.md	1769	3b3fb8a3e604	-
 KANBAN.cards/KAN-026.md	docs/ORD-006-conventions.md	1772	645727a161ff	-
 KANBAN.cards/KAN-026.md	docs/ORD-006-conventions.md	1774	6852da778c33	-
 KANBAN.cards/KAN-026.md	docs/ORD-006-conventions.md	1794	1167ed1aec70	-
 KANBAN.cards/KAN-026.md	docs/ORD-006-conventions.md	2270	0699621a425a	-
 KANBAN.cards/KAN-026.md	docs/ORD-006-conventions.md	2273	781a2a56c4ae	-
-KANBAN.cards/KAN-026.md	docs/ORD-006-conventions.md	2285	f844ad65f052	drift
 KANBAN.cards/KAN-026.md	docs/ORD-006-conventions.md	2298	e5cae346d508	-
 KANBAN.cards/KAN-026.md	docs/ORD-006-conventions.md	2300	9bf8331e3f4f	-
 KANBAN.cards/KAN-026.md	docs/ORD-006-conventions.md	2894	2141e5126bec	-
@@ -33,46 +32,40 @@ KANBAN.cards/KAN-027.md	docs/ORD-006-conventions.md	46	59e0c6f0c8bf	-
 KANBAN.cards/KAN-027.md	docs/ORD-006-conventions.md	2203	036a83a690e6	-
 KANBAN.cards/KAN-027.md	docs/ORD-006-conventions.md	2204	73f12894b3ae	-
 KANBAN.cards/KAN-027.md	docs/ORD-006-conventions.md	2300	9bf8331e3f4f	-
-KANBAN.cards/KAN-027.md	docs/ORD-006-runbook.md	731	9d0e3b39980c	drift
-KANBAN.cards/KAN-027.md	docs/ORD-006-runbook.md	734	270310e108f7	drift
+KANBAN.cards/KAN-027.md	docs/ORD-006-runbook.md	1915	27a9b777d49b	-
+KANBAN.cards/KAN-027.md	docs/ORD-006-runbook.md	1918	530ac5f98fdc	-
 KANBAN.cards/KAN-027.md	tools/ord006-wbs.ts	69	cfa627b0bffd	-
 KANBAN.cards/KAN-033-E8KHSV.md	.claude/authoring/paths.json	28	d10b36aa74a5	drift
-KANBAN.cards/KAN-033-E8KHSV.md	KANBAN.cards/KAN-033-E8KHSV.md	29	55bb44ad1509	drift
-KANBAN.cards/KAN-033-E8KHSV.md	KANBAN.cards/KAN-033-E8KHSV.md	30	cda8a122e676	drift
-KANBAN.cards/KAN-033-E8KHSV.md	KANBAN.cards/KAN-033-E8KHSV.md	53	00644892f09f	drift
-KANBAN.cards/KAN-033-E8KHSV.md	KANBAN.cards/KAN-033-E8KHSV.md	57	5ebad8491f6c	drift
-KANBAN.cards/KAN-033-E8KHSV.md	KANBAN.cards/KAN-033-E8KHSV.md	58	ce3041d16515	drift
-KANBAN.cards/KAN-033-E8KHSV.md	KANBAN.cards/KAN-033-E8KHSV.md	143	e81af8a45ec5	drift
-KANBAN.cards/KAN-033-E8KHSV.md	KANBAN.cards/KAN-033-E8KHSV.md	183	f17c39d06303	drift
 KANBAN.cards/KAN-033-E8KHSV.md	docs/comprehension-gate-audit.md	23	1c52988be4fd	-
-KANBAN.cards/KAN-034-KSD7XR.md	KANBAN.cards/KAN-034-KSD7XR.md	49	bd240e47a635	drift
-KANBAN.cards/KAN-034-KSD7XR.md	KANBAN.cards/KAN-034-KSD7XR.md	87	fa8f15483e58	drift
-KANBAN.cards/KAN-034-KSD7XR.md	sandbox/algo-guide-v2/README.md	53	bc3bf3f89c1e	drift
-KANBAN.cards/KAN-034-KSD7XR.md	sandbox/algo-guide-v2/README.md	63	1d50c6bbe36b	drift
+KANBAN.cards/KAN-033-E8KHSV.md	docs/comprehension-gate-audit.md	28	163e99af276f	-
+KANBAN.cards/KAN-033-E8KHSV.md	docs/comprehension-gate-audit.md	48	4080ab8dbcbc	-
+KANBAN.cards/KAN-033-E8KHSV.md	tools/check-guide-rhythm.ts	62	4c837dbdca43	-
+KANBAN.cards/KAN-033-E8KHSV.md	tools/check-guide-rhythm.ts	192	b37b62a5fa92	-
+KANBAN.cards/KAN-033-E8KHSV.md	tools/check-guide-rhythm.ts	230	0042ef06d484	-
+KANBAN.cards/KAN-033-E8KHSV.md	tools/check-guide-rhythm.ts	231	f701d22957c3	-
+KANBAN.cards/KAN-034-KSD7XR.md	sandbox/algo-guide-v2/FEEDBACK.md	49	9a0969150e13	-
+KANBAN.cards/KAN-034-KSD7XR.md	sandbox/algo-guide-v2/FEEDBACK.md	127	ecdf76f0a2a6	-
+KANBAN.cards/KAN-034-KSD7XR.md	sandbox/algo-guide-v2/README.md	67	fb250b1bec63	-
+KANBAN.cards/KAN-034-KSD7XR.md	sandbox/algo-guide-v2/README.md	78	7ba7ae6ca55f	-
 KANBAN.cards/KAN-034.6-CF6ZHE.md	tools/algo-wbs.ts	206	6cbd7111d5da	-
 KANBAN.cards/KAN-034.7-QMZ3RE.md	.claude/authoring/paths.json	29	d10b36aa74a5	drift
 KANBAN.cards/KAN-034.7-QMZ3RE.md	KANBAN.batches/KAN-034.6-CF6ZHE.batch10.md	67	3ae47db9b791	-
-KANBAN.cards/KAN-034.7-QMZ3RE.md	KANBAN.cards/KAN-034-KSD7XR.md	131	35e4d6c5c038	drift
-KANBAN.cards/KAN-034.7-QMZ3RE.md	KANBAN.cards/KAN-034.7-QMZ3RE.md	23	ec60d503e3b7	drift
-KANBAN.cards/KAN-034.7-QMZ3RE.md	KANBAN.cards/KAN-034.7-QMZ3RE.md	25	81a5783ee46b	drift
-KANBAN.cards/KAN-034.7-QMZ3RE.md	KANBAN.cards/KAN-034.7-QMZ3RE.md	82	f8491b936a6f	drift
+KANBAN.cards/KAN-034.7-QMZ3RE.md	KANBAN.cards/KAN-034-KSD7XR.md	132	687103b5dde1	-
 KANBAN.cards/KAN-034.7-QMZ3RE.md	tools/algo-wbs.test.ts	33	6bd59aae3dda	-
 KANBAN.cards/KAN-034.7-QMZ3RE.md	tools/algo-wbs.ts	206	6cbd7111d5da	-
 KANBAN.cards/KAN-034.7-QMZ3RE.md	tools/algo-wbs.ts	233	90e2a7a2366d	-
 KANBAN.cards/KAN-034.7-QMZ3RE.md	tools/check-links.ts	24	09bf93b1e473	-
-KANBAN.cards/KAN-034.7-QMZ3RE.md	tools/check-v2.ts	428	29576b54e255	drift
+KANBAN.cards/KAN-034.7-QMZ3RE.md	tools/check-v2.ts	732	c9a5d541e5d1	-
 KANBAN.cards/KAN-034.7-QMZ3RE.md	tools/ord004-manifest.json	659	6885e75903d4	drift
 KANBAN.cards/KAN-034.8-BK1Q3A.md	.claude/authoring/paths.json	29	d10b36aa74a5	drift
 KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-links.ts	24	09bf93b1e473	-
-KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-metaphor.ts	23	0ef543d57815	drift
-KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-v2.ts	381	684888c0ebb1	drift
-KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-v2.ts	412	02bc921e6ae5	drift
-KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-v2.ts	934	8d64a30d9de1	drift
+KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-metaphor.ts	44	b7e822338e62	-
+KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-v2.ts	646	c05c681ee4ee	-
+KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-v2.ts	716	4c10affde7e2	-
+KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-v2.ts	2063	0932dd3b8e96	-
 KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/ord004-manifest.json	659	6885e75903d4	drift
 KANBAN.cards/KAN-035-31T4BY.md	.claude/authoring/specs/algo-guide/spec.md	3	f8c35bec81b4	-
 KANBAN.cards/KAN-035-31T4BY.md	.claude/authoring/specs/algo-guide/spec.md	14	fe7b32a150ef	-
-KANBAN.cards/KAN-035-31T4BY.md	KANBAN.cards/KAN-035-31T4BY.md	34	28555ef23257	drift
-KANBAN.cards/KAN-035-31T4BY.md	KANBAN.cards/KAN-035-31T4BY.md	68	ed9e4ca54a69	drift
 KANBAN.cards/KAN-035-31T4BY.md	docs/ORD-006-conventions.md	1175	a265f3988745	-
 KANBAN.cards/KAN-035-31T4BY.md	docs/ORD-006-conventions.md	1259	3b8a26ceb683	-
 KANBAN.cards/KAN-035-31T4BY.md	docs/ORD-006-conventions.md	1261	c0916836b604	-
@@ -80,11 +73,14 @@ KANBAN.cards/KAN-035-31T4BY.md	docs/ORD-006-conventions.md	1263	a375e24b6a4c	-
 KANBAN.cards/KAN-035-31T4BY.md	sandbox/algo-guide-v2/SPEC.md	76	a2a2da2f5ce7	-
 KANBAN.cards/KAN-035-31T4BY.md	sandbox/algo-guide-v2/SPEC.md	79	0995d93c6d5f	-
 KANBAN.cards/KAN-035-31T4BY.md	src/data-structures/tree/treap/treap.ts	45	3f4ac51e6038	drift
-KANBAN.cards/KAN-035-31T4BY.md	tools/build-html.ts	178	0c85ac6c1e96	drift
+KANBAN.cards/KAN-035-31T4BY.md	tools/build-html.ts	182	612f977aa75d	-
+KANBAN.cards/KAN-035-31T4BY.md	tools/check-guide-rhythm.ts	34	62853505df74	-
 KANBAN.cards/KAN-035-31T4BY.md	tools/check-guide-rhythm.ts	381	982c18ceaf58	-
 KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	534	8d64a30d9de1	-
 KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	548	380a6b8d2957	-
-KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	2211	f85d2f416da4	drift
+KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	1896	4c67b83cbf35	-
+KANBAN.cards/KAN-035-31T4BY.md	tools/section.ts	43	643adc0227e3	-
+KANBAN.cards/KAN-035-31T4BY.md	tools/section.ts	116	358ba3f22237	-
 KANBAN.cards/KAN-046-ZFDFCQ.md	KANBAN.cards/KAN-027.md	159	d39f1eaef096	-
 KANBAN.cards/KAN-046-ZFDFCQ.md	KANBAN.cards/KAN-046-ZFDFCQ.md	41	a6f7b8bebc30	-
 KANBAN.cards/KAN-046-ZFDFCQ.md	KANBAN.cards/KAN-046-ZFDFCQ.md	51	b23fda79556a	-
