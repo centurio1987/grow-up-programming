@@ -24,7 +24,7 @@ scope: sandbox/algo-guide-v2/**, src/_guide-sim/**, tools/check-links.ts, tools/
 결정적 근거는 이해 게이트 질문지다. `comprehension-gate.sh:14` 의 *"질문 유형이 고정"* 을
 이전 판은 골격 독립의 증거로 읽었는데, **반대다** — 그 고정된 질문 유형이 구 골격의 의무를
 질문지에 박아 둔 것이다. Q1(a)·Q3·Q5 의 담당 절이 구 명세의 `naive`·`idea.proof`·`impl` 이고,
-`:143` 이 하나라도 FAIL 이면 전체 FAIL 이다.
+`.claude/skills/guide-for-problem/scripts/comprehension-gate.sh:143` 이 하나라도 FAIL 이면 전체 FAIL 이다.
 
 **그래서 `authoring-kit` 에서 쓰는 것은 voice 하나다.** `voice.md`·`voice.json` 을 **읽어서**
 집필 프롬프트에 싣고, 판정 장치는 전부 샌드박스에 새로 짓는다. 전역 자산을 고치지 않는다.
@@ -37,14 +37,14 @@ scope: sandbox/algo-guide-v2/**, src/_guide-sim/**, tools/check-links.ts, tools/
 pilot ② 가 바로 그 편이다.
 
 다만 **귀속을 바로잡았다.** `docs/comprehension-gate-audit.md:23` 은 실패 52편 중 50편이
-Q1 **(b)** — 경쟁 설계 대조 — 라고 적는다. Q1(a)(가장 단순한 방법)는 `:29-30` 이
+Q1 **(b)** — 경쟁 설계 대조 — 라고 적는다. Q1(a)(가장 단순한 방법)는 `docs/comprehension-gate-audit.md:28` 이
 *"가이드들이 실제로 하는 대조는 naive ↔ 최종 해법 하나뿐"* 이라 적어 **이미 충족되던 항목**이다.
 그래서 신설 항목은 `mistake`(Q5, 6편) 하나뿐이고, Q1(a)·Q3 는 **직무 재정의와 절 복원**으로 푼다.
 
 ### 항목을 늘려서 결손을 메우지 않는다
 
 `audit:53-54` — *"측정 없이 항목만 늘면 문서는 체크박스의 합집합이 되고, 집필은 채우기가 된다."*
-`:57-58` — *"처방도 항목 추가가 아니라 기존 `naive` 절 **직무의 재정의**로 간다."*
+`docs/comprehension-gate-audit.md:48` — *"처방도 항목 추가가 아니라 기존 `naive` 절 **직무의 재정의**로 간다."*
 
 이전 개정에서 `deep.naive` 를 신설했다가 이 문장에 걸려 되돌렸다. 지금은 그 직무가
 `deep.build` 의 직무 1·2로 들어가 있고, `deep.proof` 는 신설이 아니라 구 `idea.proof` 의
@@ -217,7 +217,7 @@ bun run tools/ci.ts all                                     # 배치 종료마�
   다른 패키지이고 아무것도 검사하지 않고 exit 0 을 준다(`CLAUDE.md`).
 
 **`tools/check-guide-rhythm.ts` 는 호출하지 않는다.** 규칙은 P1·P2 로 옮겼다. 호출해도
-R2~R4·R6 은 `hasTrace`(구 헤딩 문자열 **접두 일치**, `:53`·`:183`·`:221-222`)가 새 헤딩과
+R2~R4·R6 은 `hasTrace`(구 헤딩 문자열 **접두 일치**, `tools/check-guide-rhythm.ts:62`·`:192`·`:230-231`)가 새 헤딩과
 어긋나 **조용히 공전한다** — 통과 표시가 거짓이 된다.
 
 **판정 장치와 그것이 재는 것**
@@ -290,3 +290,5 @@ sonnet 단독 판정이 될 수 있다. 그 경우 **「잠정」으로 표기**
 - 2026-08-20T18:21 · s:4573fa3d · S18 done — 원고 셋 우열 단정을 축·입력 한정 사실 진술로 낮추고 개정 V2 로 전부 재판정 — quicksort r03 · knapsack01 r03 · mosAlgorithm r13 모두 V1~V7 통과. 3회 연속 떨어지던 mos V2 가 이기는 축을 만들어서가 아니라 지는 사실과 대가를 함께 적어서 넘었다(판정 인용이 입력 2행 대조표). agy 응답으로 잠정 아님. ci.ts all 12단계 통과.
 - 2026-08-20T18:21 · s:4573fa3d · S19 doing — 착수
 - 2026-08-20T18:22 · s:4573fa3d · S19 done — review-init --refresh 로 1·2항만 갱신(3·4항 무변경, 항목 판정 5/5 승인 보존) · 검토 리포트 재렌더 · 카드 → 검토.
+- 2026-09-17T01:28 · s:f2fd90c7 — `전략` 섹션 교체
+- 2026-09-17T01:28 · s:f2fd90c7 — `검증` 섹션 교체
