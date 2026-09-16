@@ -368,7 +368,7 @@ const UNITS: readonly Unit[] = [
     contract: "첨자 접근 + 뒤 끝 넣기·빼기 수열",
     canonical: "linear/dynamicArray",
     transitions: [],
-    note: "완료(KAN-026 S6) — capacity() 와 늘리기·줄이기 정책을 뺐다. 범위 밖 첨자는 get 이 null · set 이 RangeError(연산마다 판별, 불변 사실 226). 정본은 칸을 직접 옮기며 세어 push · pop 의 amortized 근거가 계측에 보인다(불변 사실 227). 경계 교대 시나리오는 칸 수가 사다리와 맞는 구현만 겨눈다(불변 사실 228). S23 — 원칙 A 의 A5 로 toArray 를 빼 불변식 둘의 한쪽 경로가 사라져 basic(처음 invariant)",
+    note: "완료(KAN-026 S6) — capacity() 와 늘리기·줄이기 정책을 뺐다. 범위 밖 첨자는 get 이 null · set 이 RangeError(연산마다 판별, 불변 사실 226). 정본은 칸을 직접 옮기며 세어 push · pop 의 amortized 근거가 계측에 보인다(불변 사실 227). 경계 교대 시나리오는 칸 수가 사다리와 맞는 구현만 겨눈다(불변 사실 228). S23 · S29 — 목적 기준(원칙 A5′)으로 toArray 를 빼 불변식 둘의 한쪽 경로가 사라져 basic(처음 invariant)",
   },
   {
     id: "TA-04",
