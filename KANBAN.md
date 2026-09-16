@@ -116,16 +116,16 @@
   - 실행 문서: KANBAN.cards/KAN-036-0G05DE.md (0/1)
 
 ## 진행 중
-
-## 검토
 - `KAN-044-VZXM29` cartesianTree 구성 상한의 셋째 계열 실측 — 헤더 「배제되는 계열은 둘」 보강 — 생성:ai · 최종:ai · 갱신:2026-09-17
   - 짧은 제목: cartesianTree 셋째 계열
   - 목적: cartesianTree 구성 상한 O(n) 이 배제하는 구현 계열이 둘뿐인지, 셋째 계열 fixture 를 지어 축3 으로 재고 헤더 근거 문단을 보강한다
   - 이유: KAN-027 S19 가 헤더 문장 「배제되는 계열은 둘이고 이 계약에는 둘 다 없다」(불변 사실 328)를 확인했지만 셋째 계열은 짓고 재지 않았고, cartesianTree 는 두 카드 scope 밖이다
   - 목표: 구성 상한의 배제 근거가 실측 수치로 서고, suffixArray · suffixTree 헤더에 같은 근거 문단이 필요한지도 판정된다
   - 메모: 근거: KAN-027 브랜치 docs/ORD-006-conventions.md 「B군 마감 — 낡은 문장 정정 목록 (KAN-027 S19)」의 cartesianTree.ts:96 행 · 배치13 정정 담당 표 8행(추천: main 백로그 새 카드). 순서: KAN-027 main 병합 뒤 · KAN-036 전.
-  - 실행 문서: KANBAN.cards/KAN-044-VZXM29.md (2/2 · 최근 09-17)
+  - 실행 문서: KANBAN.cards/KAN-044-VZXM29.md (2/4 · 최근 09-17)
   - 검토 문서: KANBAN.reviews/KAN-044-VZXM29.review.md (승인 4/7 · 반려 3 · 추가 의견 총 7 · 검토 대기)
+
+## 검토
 
 ## 완료
 - `KAN-029` [P0-a·29] 집필 엔진 가용성 확보 — 플러그인 설치·활성화 + lock 버전 재고정 — 생성:ai · 최종:ai · 갱신:2026-08-04

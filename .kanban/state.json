@@ -1,6 +1,6 @@
 {
   "next_id": 50,
-  "next_seq": 354,
+  "next_seq": 355,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -187,7 +187,7 @@
       "memo_hash": "b166f020865939f8807d8b61bda6d5b7eaad9e23"
     },
     "KAN-044-VZXM29": {
-      "col": "review",
+      "col": "doing",
       "title": "cartesianTree 구성 상한의 셋째 계열 실측 — 헤더 「배제되는 계열은 둘」 보강",
       "verbatim": "",
       "생성": "ai",
@@ -1239,6 +1239,16 @@
   ],
   "recent": [
     {
+      "seq": 354,
+      "t": "2026-09-17T06:08",
+      "a": "ai",
+      "id": "KAN-044-VZXM29",
+      "op": "move",
+      "w": "VG6P57",
+      "from": "review",
+      "to": "doing"
+    },
+    {
       "seq": 353,
       "t": "2026-09-17T05:49",
       "a": "ai",
@@ -1776,16 +1786,6 @@
       "w": "46PCAX",
       "with_": "KAN-027",
       "reason": "유저 결재(2026-09-14): KAN-036 의 v2 가이드는 _reference/ 정본과 계약 헤더를 근거로 쓰므로 B군 잔여 16종은 계약 전환이 끝나야 쓸 수 있다"
-    },
-    {
-      "seq": 314,
-      "t": "2026-09-16T04:10",
-      "a": "유저",
-      "id": "KAN-039-FG8HWZ",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-027",
-      "reason": "KAN-039 에 합류한 huffmanTree 는 KAN-027 T5-06 판정(불변 사실 244–246)이 main 에 병합된 뒤에야 근거가 선다(유저 「가」 2026-09-15)"
     }
   ],
   "waivers": [
