@@ -106,7 +106,7 @@ ds-guide 8단계 골격의 항목 이름이 헤딩에 나오면 `P3` 이 잡는�
 ## 2. id ↔ 헤딩 매핑 (`tools/section.ts` 가 읽는다)
 
 **이 절만은 델타가 아니라 전체다.** 기계가 읽으므로 빠진 항목이 있으면 그 편이 판정을 못
-받는다 — `tools/section.ts:141` 이 미해소 헤딩을 `unresolved` 로 올려 그 자리에서 중단한다.
+받는다 — `tools/section.ts:192` 가 미해소 헤딩을 `unresolved` 로 올려 그 자리에서 중단한다.
 
 ```
 title            ^# .+$

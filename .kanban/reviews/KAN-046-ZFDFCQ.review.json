@@ -1,0 +1,27 @@
+{
+ "card": "KAN-046-ZFDFCQ",
+ "front": {
+  "base": "main",
+  "branch": "KAN-046-ZFDFCQ",
+  "card": "KAN-046-ZFDFCQ",
+  "created": "2026-09-16",
+  "inherits": null,
+  "merged": null,
+  "status": "검토 대기",
+  "title": "밀린 인용 39건 정정 — KAN-045 대장이 drift 로 표시한 자리",
+  "worktree": "/Users/centurio/orca/workspaces/code_test/KAN-046-ZFDFCQ"
+ },
+ "inherited_md": "",
+ "md_fp": "f5cfc5ef8aa933de9cbc60c14dec87c6ed192ba2",
+ "md_src_fp": "45cf9aa4c5bfbc0894e468192a1faff35fac24a8",
+ "schema": 1,
+ "target_md": "| 항목 | 값 |\n|---|---|\n| 브랜치 | `KAN-046-ZFDFCQ` |\n| 워크트리 | `/Users/centurio/orca/workspaces/code_test/KAN-046-ZFDFCQ` |\n| 베이스 | `main` |\n| 변경 훑기 | `git diff main...HEAD` |\n\n**커밋 3건**\n\n```text\n30039a7 KAN-046 배치2: 대장 갱신과 마감 (S4)\ne45f905 KAN-046 배치1: 밀린 인용 정정 — 규약 문서 172건 · 가이드/sandbox 7건 (S1 · S2 · S3)\ne845fd0 kanban: KAN-046 착수 — 카드 문서 · 배치 둘(오케스트레이션 2배치 결재) · KAN-036 직렬 재기록\n```\n\n**변경 파일 15개 (+766 −342)**\n\n| 파일 | 상태 | 추가 | 삭제 |\n|---|:--:|---:|---:|\n| `.kanban/archive.jsonl` | M | 2 | 0 |\n| `.kanban/log.md` | M | 2 | 2 |\n| `.kanban/state.json` | M | 47 | 44 |\n| `KANBAN.batches/KAN-046-ZFDFCQ.batch1.md` | M | 244 | 0 |\n| `KANBAN.batches/KAN-046-ZFDFCQ.batch2.md` | M | 115 | 0 |\n| `KANBAN.board.html` | M | 4 | 4 |\n| `KANBAN.cards/KAN-046-ZFDFCQ.md` | M | 76 | 0 |\n| `KANBAN.md` | M | 11 | 10 |\n| `docs/ORD-006-conventions.md` | M | 165 | 165 |\n| `sandbox/algo-guide-v2/FEEDBACK.md` | M | 1 | 1 |\n| `sandbox/ds-guide-v2/SPEC.md` | M | 1 | 1 |\n| `src/data-structures/heap/binomialHeap/binomialHeap-guide.mdx` | M | 3 | 3 |\n| `src/data-structures/tree/bTree/bTree-guide.mdx` | M | 1 | 1 |\n| `src/data-structures/tree/orderStatisticTree/orderStatisticTree-guide.mdx` | M | 1 | 1 |\n| `tools/_baseline/citations.tsv` | M | 93 | 110 |\n\n**롤백 태그 6개**\n\n```text\nkan/KAN-046-ZFDFCQ/S1\nkan/KAN-046-ZFDFCQ/S2\nkan/KAN-046-ZFDFCQ/S3\nkan/KAN-046-ZFDFCQ/S4\nkan/KAN-046-ZFDFCQ/batch1\nkan/KAN-046-ZFDFCQ/batch2\n```",
+ "verdicts": [
+  {
+   "at": "2026-09-16",
+   "by": "유저",
+   "verdict": "승인"
+  }
+ ],
+ "verify_md": "<!-- 기준은 카드 실행 문서 「검증」 절의 사본이다. 정본은 KANBAN.cards/KAN-046-ZFDFCQ.md 이므로\n     기준이 바뀌면 그쪽을 고치고 review-init --refresh 로 이 항만 다시 뜬다.\n     결과는 착수한 쪽이 이미 돌린 것이다 — 검토자에게 다시 돌리라고 시키지 않는다.\n     **다시 돌려 아래와 다르게 나오면 그 자체가 반려 사유다.** -->\n\n**기준**\n\n**카드 종료 조건.**\n\n1. 대장(`tools/_baseline/citations.tsv`)의 `drift` 행이 **모호 1건을 뺀 0** 이고, 남긴 1건은 사유가 카드에 적혀 있다.\n2. 고친 인용마다 **대상 줄의 내용이 감싼 산문의 주장과 맞는다** — 표본이 아니라 전수로 확인한 기록이 배치 문서에 있다.\n3. `bun run tools/check-citations.ts` 통과(대장 일치 · 래칫 불변 또는 하락) · `bun run tools/ci.ts all` 통과 · `cd rust && cargo test` 통과.\n4. 고치지 않기로 한 것(모호 1건 · 기록 11건)이 무엇이고 왜인지 카드에 남는다.\n\n**실행 결과**\n\n```text\n이 브랜치에서 2026-09-16 실행. 로그: 세션 스크래치 `ci-046-b2.log`.\n\n- `bun run tools/check-citations.ts` — **exit 0**. 인용 1,150건 존재 통과 · **대장 1,113행 지문 전부 일치** · `drift` **0** · 경로 없는 인용 463(붙임 73 · 자기 288 · 보류 102: detached 74 · unresolved 14 · naked-name 14)\n- `bun run tools/ci.ts all` — **all 모드 통과 — 단계 17개.** · `bun run tools/ci.ts gates` — 11단계\n- `cd rust && cargo test` — 대상 11개 전부 ok · 실패 0\n- `bun test tools/check-citations.test.ts tools/ci-workflow.test.ts` — 19 pass / 0 fail · `bunx tsc --noEmit` 0 · `guide-core check` 펜스 58건 일치 · `check-links check` 849건\n\n**정정 규모**: 규약 문서 172건(갈래 A 154 + 좌표 8 + B 5 + D 3 + 대장 미표시 8 중 규약 몫) · 가이드·sandbox 7건. **172건 전부 같은 자릿수 치환이라 줄 수·글자 수가 그대로**이고, 이 편집이 민 인용은 0입니다.\n\n**전수 확인 방법**: 추적표의 「위치」 칸은 원 목록 행의 첫 칸을 그대로 옮긴 것이므로, 인용이 가리키는 줄의 첫 칸과 추적표가 적은 칸을 문자열로 대조하면 행마다 기계 판정이 됩니다 — 목록 행 222개에 걸어 일치 221 · 문면 차이 1(`S30` 이 앞머리를 다시 쓴 자리, 번호 문제 아님). 갈래 B·D 와 가이드는 대상 파일을 열어 하나씩 대조했습니다.\n\n**대장 갱신**: 1,130 → 1,113행. 래칫은 `unresolved` 46 → 14 로 내려갔고 나머지는 불변이라 `--update` 가드에 걸리지 않았습니다. `--update` 뒤 남은 `drift` 15행은 이미 맞는 자리인데 키가 살아남아 표시를 들고 간 것이라 `flag` 열만 `-` 로 내렸고, 그 뒤 `--update` 재실행이 **바이트 동일**(멱등)임을 확인했습니다.\n```"
+}
