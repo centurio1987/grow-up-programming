@@ -1,6 +1,6 @@
 # src	target	target_line	fingerprint	flag
 # 갱신: bun run tools/check-citations.ts --update  (대장 = 지금 인용 집합. 손으로 고치지 않는다)
-# bare 463 held detached=74 unresolved=14 naked-name=14
+# bare 462 held detached=74 unresolved=14 naked-name=14
 # cards bare=32 held detached=2 unresolved=17 naked-name=0
 # naked-line 29
 KANBAN.cards/KAN-026.md	docs/ORD-006-conventions.md	42	cdcc8b5b08af	drift
@@ -92,6 +92,7 @@ KANBAN.cards/KAN-046-ZFDFCQ.md	KANBAN.cards/KAN-046-ZFDFCQ.md	58	67f75a65c501	-
 KANBAN.cards/KAN-046-ZFDFCQ.md	KANBAN.cards/KAN-046-ZFDFCQ.md	61	afd4bf48e750	-
 KANBAN.cards/KAN-046-ZFDFCQ.md	KANBAN.cards/KAN-046-ZFDFCQ.md	62	3a9c5fb7d50f	-
 KANBAN.cards/KAN-046-ZFDFCQ.md	tools/ord006-inventory.ts	231	d16d2ee1c351	-
+KANBAN.cards/KAN-047-394V9A.md	tools/check-citations.ts	7	a82e46180ef3	-
 docs/ORD-006-conventions.md	KANBAN.batches/KAN-026.batch12.md	57	8e034a3990ba	-
 docs/ORD-006-conventions.md	KANBAN.batches/KAN-026.batch12.md	60	78b61b37ecc4	-
 docs/ORD-006-conventions.md	KANBAN.batches/KAN-026.batch13.md	50	9752f5d9d6b1	-
@@ -1201,7 +1202,6 @@ src/data-structures/tree/treap/treap-guide.mdx	src/data-structures/tree/treap/tr
 src/data-structures/trie/ternarySearchTree/ternarySearchTree-guide.mdx	src/data-structures/trie/trie/trie.ts	26	bbfca545864e	-
 src/data-structures/trie/trie/trie.ts	docs/ORD-006-conventions.md	1776	f2c798623cd2	-
 src/data-structures/trie/trie/trie.ts	docs/ORD-006-conventions.md	1806	62afefd0d27d	-
-tools/check-citations.ts	tools/check-citations.ts	92	ebdfe02915f8	-
 tools/check-v2.ts	docs/ORD-006-conventions.md	1257	716c092af7d6	-
 tools/check-v2.ts	docs/ORD-006-conventions.md	1284	40b0470c10c6	-
 tools/ord006-wbs.ts	docs/ORD-006-conventions.md	2300	9bf8331e3f4f	-

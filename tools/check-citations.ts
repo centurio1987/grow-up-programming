@@ -4,8 +4,8 @@
  *
  * 이 도구가 있는 이유는 같은 결함이 두 배치 연속으로 났기 때문이다. B2 가 인용 오류 2건을
  * 잡고 "전수 검색했다"고 적었는데, 그 검색이 **전체 경로 형태만** 봤다. 파일 이름 없이
- * `` `:92` `` 로 적힌 상대 인용은 패턴에 걸리지 않아 런북에 그대로 남았고 B3 에서 다시 나왔다.
- * 사람이 도는 검색은 패턴을 빠뜨리고, 빠뜨린 것을 본인이 알 수 없다.
+ * `` `:NN` `` 꼴 상대 인용은 패턴에 걸리지 않아 런북에 그대로 남았고 B3 에서 다시 나왔다 — 예시에
+ * 진짜 수를 쓰면 이 문장이 인용이 된다. 사람이 도는 검색은 패턴을 빠뜨리고, 빠뜨린 것을 본인이 알 수 없다.
  *
  * **존재 검사 대상은 경로에 `/` 가 들어간 인용뿐이다.** 그것이 "따라가라고 적은 인용"의 집합이다.
  * `multiset.ts:25` 처럼 파일 이름만 있는 인용은 대개 지워진 파일의 옛 상태를 가리키는
@@ -313,6 +313,12 @@ function bareHits(line: string): BareHit[] {
  * **모르는 `## ` 제목은 실패로 낸다.** 절 경계 파싱의 위험은 「구조가 바뀌면 조용히 검사 밖으로
  * 샌다」였다. 그 방향을 뒤집는다 — 아는 넷 말고 다른 제목을 만나면 그 절은 **검사 대상으로 두고**
  * (`inLog` 가 서지 않는다) 게이트는 붉어진다. 새 절을 진짜로 들이려면 규격과 이 목록을 함께 고친다.
+ *
+ * **코드펜스 안의 `## ` 줄은 제목이 아니다.** 카드가 제 골격을 예시로 인용하면 「전략」 절 안에
+ * 펜스로 `## 수행 내역` 이 서고, 그것을 제목으로 읽으면 **그 뒤가 통째로 예외**가 된다 — 살아
+ * 있는 계획이 조용히 검사 밖으로 빠지고 실패도 안 난다. 스킬의 절 파서(`parse_sections`)는 펜스를
+ * 아는데 이쪽만 모르면 **같은 문서를 둘이 다르게 자르고 갈리는 방향이 「검사 안 함」**이라, 위
+ * 문단이 세운 이 설계의 유일한 근거가 그 한 자리에서 깨진다. 토글은 `countNakedLineNumbers` 와 같다.
  */
 function cardExemptLines(
   file: string,
@@ -321,8 +327,11 @@ function cardExemptLines(
 ): boolean[] {
   const exempt = new Array<boolean>(lines.length).fill(false);
   let inLog = false;
+  let fenced = false;
   for (const [index, line] of lines.entries()) {
-    if (line.startsWith("## ")) {
+    if (/^\s*```/.test(line)) {
+      fenced = !fenced;
+    } else if (!fenced && line.startsWith("## ")) {
       const name = line.slice(3).trim();
       if (!CARD_SECTIONS.includes(name)) {
         problems.push({

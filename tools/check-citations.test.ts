@@ -553,6 +553,42 @@ test("ⓒ 카드 문서에 모르는 `## ` 제목이 생기면 실패한다", as
   expect(keys).toContain(`${CARD} → ${at(T, 5)}`);
 });
 
+test("ⓕ 「전략」 절 펜스 안의 `## ` 줄은 절 제목이 아니다", async () => {
+  // 카드가 제 골격을 예시로 인용한 꼴이다. 펜스를 모르면 이 한 줄이 예외를 켜고 아래 「전략」
+  // 인용이 통째로 검사 밖으로 빠진다 — 문제 0 · 대장 행 0 · 실패도 없음. 스킬의 절 파서는
+  // 펜스를 아는데 도구만 모르면 **같은 문서를 둘이 다르게 자르고 갈리는 방향이 「검사 안 함」**이다.
+  const root = await makeTree({
+    [T]: TARGET,
+    [CARD]: cardDoc(
+      [
+        "카드 골격은 이렇게 생겼다.",
+        "",
+        "```md",
+        "## 수행 내역",
+        "```",
+        "",
+        `정본은 \`${at(T, 3)}\` 이다.`,
+      ].join("\n"),
+      "- 기록 없음",
+    ),
+  });
+
+  const clean = await baseline(root);
+  expect(clean.text).toContain("대장 1행과 지문이 모두 일치한다");
+
+  const scan = await scanTree(root);
+  expect(scan.problems).toEqual([]);
+  expect(
+    scan.rows.map((r) => `${r.src} → ${at(r.target, r.targetLine)}`),
+  ).toEqual([`${CARD} → ${at(T, 3)}`]);
+
+  // 대장에 섰으니 살아 있다 — 대상이 밀리면 붉어진다.
+  await write(root, T, `# 머리말\n\n${TARGET}`);
+  const after = await call(root);
+  expect(after.code).toBe(1);
+  expect(after.text).toContain("지문이 다르다");
+});
+
 test("ⓓ 범위 인용의 끝이 빈 줄이면 존재 검사가 잡는다", async () => {
   const root = await makeTree({
     [T]: TARGET,
