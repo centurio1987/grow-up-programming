@@ -5,10 +5,15 @@
  * 어긴 구현을 실제로 떨어뜨리는지**, 그리고 **떨어뜨리지 못하는 자리가 어디인지**를 고정한다.
  * 파일을 따로 둔 이유는 `./runContract.pairingHeap.test.ts` 머리말과 같다(불변 사실 106·255).
  *
- * **이 파일의 셋째 묶음이 Bound 판정의 근거다**(`docs/ORD-006-conventions.md` 「상한이 우주의 로그
+ * **이 파일의 마지막 묶음이 Bound 판정의 근거다**(`docs/ORD-006-conventions.md` 「상한이 우주의 로그
  * 로그인 계약은 Bound 를 늘리지 않는다」). 판정 규격(`./judge.ts`)의 `O(1)`·`O(log n)` 구간이
  * $\log\log u$ 를 이미 받아들이고, 새 구간을 그어도 $O(\log u)$ 로 어기는 fixture 가 그 안에 든다는
  * 것을 수치로 못 박는다.
+ *
+ * **셋째 묶음은 그 앞의 둘과 반대쪽을 고정한다** — 4 배 사다리가 못 보는 로그 인수가 **사다리를
+ * 비트 수로 읽는 시나리오 셋**에서는 보인다는 것이다. 판정 규격도 하네스도 그대로이고 바뀐 것은
+ * 시나리오가 사다리의 n 을 읽는 방식 하나다. 셋 가운데 둘이 우주 쪽(조회 한 벌 · 갱신 한 벌)이고
+ * 하나가 원소 쪽이다 — 갱신을 재는 한 벌은 `S4` 가 붙였다(검토 반려 2026-09-17).
  */
 
 import { describe, expect, test } from "bun:test";
@@ -21,6 +26,7 @@ import {
 } from "../heap/vanEmdeBoasTree/vanEmdeBoasTree.contract";
 import { BitTrieIntegerSet } from "./_fixtures/bitTrieIntegerSet";
 import { FlushingIntegerSet } from "./_fixtures/flushingIntegerSet";
+import { HashPriorityTreapIntegerSet } from "./_fixtures/hashPriorityTreapIntegerSet";
 import { ScanningBitSet } from "./_fixtures/scanningBitSet";
 import { SortedArrayIntegerSet } from "./_fixtures/sortedArrayIntegerSet";
 import { expectedRatio, judgeGrowth, rngFrom, SIZES, TOLERANCE } from "./judge";
@@ -28,6 +34,8 @@ import {
   type CostScenario,
   type CostSource,
   judgeScenario,
+  measureScenario,
+  runContract,
 } from "./runContract";
 
 type Measured = IntegerUniverseSet & { __cost: number };
@@ -44,16 +52,49 @@ const scanningBitSet = site((universe) => new ScanningBitSet(universe));
 const sortedArray = site((universe) => new SortedArrayIntegerSet(universe));
 const bitTrie = site((universe) => new BitTrieIntegerSet(universe));
 const flushing = site((universe) => new FlushingIntegerSet(universe));
+const treap = site((universe) => new HashPriorityTreapIntegerSet(universe));
+
+/**
+ * **트립 fixture 는 계약을 지키는 쪽을 전부 지킨다 — 어기는 것은 비용뿐이다.** 계측기를 넘기지
+ * 않으므로 여기서는 축1·축2 만 돈다(축3 은 아래 묶음들이 따로 잰다). 이 줄이 통과한다는 것이
+ * 「답이 틀린 구현이 아니라 **계약을 지키면서 축3만 어기는 계열**」이라는 말의 근거다.
+ */
+runContract(
+  () =>
+    new UniverseSite((universe) => new HashPriorityTreapIntegerSet(universe)),
+  vanEmdeBoasTreeContract,
+  { label: "결함 fixture HashPriorityTreapIntegerSet" },
+);
+
+/**
+ * 시나리오 차례마다의 자기시험 이름. **같은 이름이 또 나오면 차례를 붙인다** — 덮어쓰면 앞
+ * 시나리오의 판정이 말없이 사라진다(§규약2 「성격 전환이 찾은 정본 스위트의 구멍은 정본 스위트
+ * 끝에 한 벌을 붙여 막는다 — 적대 여부로 판정 이름을 가른다」 · `./runContract.test.ts` 의 같은 규칙).
+ * 우주를 비트 수로 키우는 시나리오가 넷째와 행 · 적대 여부가 같아 `#2` 가 붙는 자리다.
+ */
+const LABELS: string[] = [];
+for (const scenario of vanEmdeBoasTreeContract.scenarios) {
+  const base = `${scenario.covers.join("·")}${scenario.adversarial ? " (적대적)" : ""}`;
+  let label = base;
+  for (let nth = 2; LABELS.includes(label); nth++) label = `${base} #${nth}`;
+  LABELS.push(label);
+}
 
 function labelOf(scenario: CostScenario<UniverseSite>): string {
-  return `${scenario.covers.join("·")}${scenario.adversarial ? " (적대적)" : ""}`;
+  const label = LABELS[vanEmdeBoasTreeContract.scenarios.indexOf(scenario)];
+  if (label === undefined) throw new Error("스위트에 없는 시나리오다");
+  return label;
 }
 
 function outcomes(cost: CostSource<UniverseSite>): Record<string, boolean> {
   const result: Record<string, boolean> = {};
-  for (const scenario of vanEmdeBoasTreeContract.scenarios) {
-    result[labelOf(scenario)] = judgeScenario(cost, scenario, "complexity").ok;
-  }
+  vanEmdeBoasTreeContract.scenarios.forEach((scenario, index) => {
+    result[LABELS[index] as string] = judgeScenario(
+      cost,
+      scenario,
+      "complexity",
+    ).ok;
+  });
   return result;
 }
 
@@ -63,8 +104,7 @@ function statsOf(
   scenario?: CostScenario<UniverseSite>,
 ): number[] {
   const chosen =
-    scenario ??
-    vanEmdeBoasTreeContract.scenarios.find((each) => labelOf(each) === label);
+    scenario ?? vanEmdeBoasTreeContract.scenarios[LABELS.indexOf(label)];
   if (!chosen) throw new Error(`시나리오를 못 찾았다: ${label}`);
   return judgeScenario(cost, chosen, "complexity").points.map(
     (point) => point.stat,
@@ -76,6 +116,18 @@ const DELETE = "delete (적대적)";
 const QUERIES = "has·successor·predecessor";
 const NEIGHBORS = "successor·predecessor·min·max·has (적대적)";
 const UPDATES = "insert·delete (적대적)";
+/** 우주를 **비트 수**로 키우는 사다리. 행과 적대 여부가 `NEIGHBORS` 와 같아 차례가 붙는다. */
+const UNIVERSE_BITS = "successor·predecessor·min·max·has (적대적) #2";
+/**
+ * 담긴 수를 **비트 수**로 키우는 사다리. 행 · 한정자 · 적대 여부가 `QUERIES` 와 같아 차례가 붙는다
+ * — 그 시나리오의 입력이 `QUERIES` 와 같은 것이라 적대 여부를 뒤집어 이름을 가르지 않았다(`S3`).
+ */
+const COUNT_BITS = "has·successor·predecessor #2";
+/**
+ * 우주를 **비트 수**로 키우면서 **갱신**을 재는 사다리(`S4`). 행 · 한정자 · 적대 여부가 `UPDATES`
+ * 와 같아 차례가 붙는다 — 하네스 시험 이름은 상한(`O(log n)` 대 `O(1)`)이 달라 겹치지 않는다.
+ */
+const UPDATE_BITS = "insert·delete (적대적) #2";
 
 const ALL_PASS = {
   [INSERT]: true,
@@ -83,10 +135,13 @@ const ALL_PASS = {
   [QUERIES]: true,
   [NEIGHBORS]: true,
   [UPDATES]: true,
+  [UNIVERSE_BITS]: true,
+  [COUNT_BITS]: true,
+  [UPDATE_BITS]: true,
 };
 
 describe("축3 — 정수 우주 위의 정렬 집합 계약의 정본", () => {
-  test("정본이 다섯 시나리오를 전부 통과한다", () => {
+  test("정본이 여덟 시나리오를 전부 통과한다", () => {
     for (const scenario of vanEmdeBoasTreeContract.scenarios) {
       const verdict = judgeScenario(reference, scenario, "complexity");
       expect(verdict.ok ? "" : `${labelOf(scenario)} — ${verdict.reason}`).toBe(
@@ -135,27 +190,36 @@ describe("축3 — 정수 우주 위의 정렬 집합 계약의 정본", () => {
 
 describe("축3 — 정수 우주 위의 정렬 집합 계약의 결함 fixture", () => {
   /**
-   * **두 파라미터를 갈라 키우는 이유가 이 둘이다.** 칸을 훑는 계열은 우주를 키우는 둘에서만, 크기
-   * 순 배열은 원소 수를 키우는 셋에서만 걸린다. 한쪽 사다리만 두면 반대쪽 계열이 전부 통과한다.
+   * **두 파라미터를 갈라 키우는 이유가 이 둘이다.** 칸을 훑는 계열은 우주를 키우는 넷에서만, 크기
+   * 순 배열은 담긴 수를 키우는 넷에서만 걸린다. 한쪽 파라미터만 두면 반대쪽 계열이 전부 통과한다.
    */
-  test("칸을 훑는 집합은 우주를 키우는 두 시나리오에서만 걸린다", () => {
+  test("칸을 훑는 집합은 우주를 키우는 네 시나리오에서만 걸린다", () => {
     expect(outcomes(scanningBitSet)).toEqual({
       ...ALL_PASS,
       [NEIGHBORS]: false,
       [UPDATES]: false,
+      [UNIVERSE_BITS]: false,
+      [UPDATE_BITS]: false,
     });
     expect(statsOf(scanningBitSet, NEIGHBORS)).toEqual([2049, 8193, 32769]);
     expect(statsOf(scanningBitSet, UPDATES)).toEqual([1025, 4097, 16385]);
+    // 비트 사다리에서는 우주가 $2^5$ · $2^{10}$ · $2^{20}$ 이라 훑는 칸이 32 배씩 는다.
+    expect(statsOf(scanningBitSet, UNIVERSE_BITS)).toEqual([65, 2049, 2097153]);
+    expect(statsOf(scanningBitSet, UPDATE_BITS)).toEqual([33, 1025, 1048577]);
   }, 60_000);
 
-  test("크기 순 배열을 훑는 집합은 원소 수를 키우는 세 시나리오에서만 걸린다", () => {
+  test("크기 순 배열을 훑는 집합은 담긴 수를 키우는 네 시나리오에서만 걸린다", () => {
     expect(outcomes(sortedArray)).toEqual({
       ...ALL_PASS,
       [INSERT]: false,
       [DELETE]: false,
       [QUERIES]: false,
+      [COUNT_BITS]: false,
     });
     expect(statsOf(sortedArray, INSERT)).toEqual([1024, 4096, 16384]);
+    // 담긴 수가 $2^3$ · $2^6$ · $2^{12}$ 이라 훑는 칸이 그만큼 는다 — 로그가 아니라 원소 수다.
+    // 끝점 12,280 이 `QUERIES` 의 가운데 점과 같은 값인 것이 두 시나리오가 같은 입력을 지난다는 표다.
+    expect(statsOf(sortedArray, COUNT_BITS)).toEqual([27, 195, 12280]);
   }, 120_000);
 
   /**
@@ -168,6 +232,7 @@ describe("축3 — 정수 우주 위의 정렬 집합 계약의 결함 fixture",
       ...ALL_PASS,
       [DELETE]: false,
       [QUERIES]: false,
+      [COUNT_BITS]: false,
     });
 
     const fillThenQuery: CostScenario<UniverseSite> = {
@@ -202,15 +267,206 @@ describe("축3 — 정수 우주 위의 정렬 집합 계약의 결함 fixture",
   }, 60_000);
 
   /**
-   * **계약을 로그 인수만큼 어기는 fixture 가 다섯을 전부 통과한다.** $O(\log u)$ 는 $O(\log\log u)$
-   * 계약의 위반이다. 통과를 고정하는 것은 그것이 옳아서가 아니라 **축3이 이 자리를 못 본다는 것을
-   * 다음 배치가 「계약을 지킨다」로 읽지 않게** 하려는 것이다(불변 사실 62).
+   * **계약을 우주 쪽 로그 인수만큼 어기는 fixture — 4 배 사다리 다섯을 전부 통과하고 비트 사다리가
+   * 잡는다.** $O(\log u)$ 는 $O(\log\log u)$ 계약의 위반이다. 다섯의 통과를 고정하는 것은 그것이
+   * 옳아서가 아니라 **4 배 사다리가 이 자리를 못 본다는 것을 「계약을 지킨다」로 읽지 않게** 하려는
+   * 것이다(불변 사실 62). 못 보는 이유는 세 점이 4 배 간격이라는 것 하나이고, 우주를 비트 수로
+   * 올리면 같은 fixture 가 조회 쪽에서 38 · 73 · 143($r$ = 1.92 · 1.96) · 갱신 쪽에서 14 · 24 ·
+   * 44(1.71 · 1.83)로 걸린다. **우주 비트 사다리 둘 다에서 걸린다**는 것이 이 줄이 고정하는 것이고,
+   * 갱신 쪽 한 벌이 없으면 넣기만 $O(\log u)$ 인 계열이 스위트를 통째로 지나간다(`S4`).
    */
-  test("비트 하나씩 내려가는 트라이는 계약을 어기는데 다섯을 전부 통과한다", () => {
-    expect(outcomes(bitTrie)).toEqual(ALL_PASS);
+  test("비트 하나씩 내려가는 트라이는 4 배 사다리 다섯을 통과하고 우주 비트 사다리 둘 다에서 걸린다", () => {
+    expect(outcomes(bitTrie)).toEqual({
+      ...ALL_PASS,
+      [UNIVERSE_BITS]: false,
+      [UPDATE_BITS]: false,
+    });
     expect(statsOf(bitTrie, NEIGHBORS)).toEqual([73, 87, 101]);
     expect(statsOf(bitTrie, UPDATES)).toEqual([24, 28, 32]);
+    expect(statsOf(bitTrie, UNIVERSE_BITS)).toEqual([38, 73, 143]);
+    expect(statsOf(bitTrie, UPDATE_BITS)).toEqual([14, 24, 44]);
+    // 담긴 수와는 무관한 계열이라 담긴 수 비트 사다리는 통과한다 — 잡는 자리가 서로 다르다.
+    expect(statsOf(bitTrie, COUNT_BITS)).toEqual([57, 60, 60]);
   }, 60_000);
+
+  /**
+   * **원소 쪽 로그로 어기는 fixture — 4 배 사다리 다섯을 전부 통과하고 담긴 수 비트 사다리가
+   * 잡는다.** 모든 연산이 $O(\log n)$ 이고 $n \le u$ 이므로 $O(\log u)$ 인데 계약은
+   * $O(\log\log u)$ 를 적었다 — 헤더 「상한」 근거가 $O(\log u)$ 로 약하게 적지 않은 이유가 바로 이
+   * 계열을 배제하는 것이다. 위 트라이가 우주 쪽 로그를 대표하듯 이 fixture 가 원소 쪽 로그를
+   * 대표하고, **둘이 서로의 사다리에서는 통과한다** — 그래서 사다리가 둘이어야 한다.
+   */
+  test("비교로만 견주는 트립은 4 배 사다리 다섯을 통과하고 담긴 수 비트 사다리에서 걸린다", () => {
+    expect(outcomes(treap)).toEqual({ ...ALL_PASS, [COUNT_BITS]: false });
+    expect(statsOf(treap, INSERT)).toEqual([8, 9, 11]);
+    expect(statsOf(treap, DELETE)).toEqual([14, 16, 20]);
+    expect(statsOf(treap, QUERIES)).toEqual([63, 66, 81]);
+    expect(statsOf(treap, NEIGHBORS)).toEqual([13, 14, 13]);
+    expect(statsOf(treap, UPDATES)).toEqual([7, 9, 7]);
+    expect(statsOf(treap, COUNT_BITS)).toEqual([15, 39, 66]);
+    // 우주 비트 사다리 둘은 담긴 키가 한둘뿐이라 이 계열을 못 잡는다.
+    expect(statsOf(treap, UNIVERSE_BITS)).toEqual([13, 13, 14]);
+    expect(statsOf(treap, UPDATE_BITS)).toEqual([7, 7, 9]);
+  }, 60_000);
+});
+
+/**
+ * **검사 공백을 닫는 자리 — 사다리를 비트 수로 읽으면 로그 인수가 보인다.**
+ *
+ * 위 두 묶음이 고정한 것은 「로그로 어기는 fixture 둘이 4 배 사다리 다섯을 전부 통과한다」이고,
+ * 이 묶음이 고정하는 것은 **같은 fixture 둘이 비트 사다리에서 걸린다**는 것이다. 판정 규격
+ * (`./judge.ts` 의 구간과 허용치)도 하네스도 그대로다 — 바뀐 것은 시나리오가 사다리의 n 을 읽는
+ * 방식 하나다(`../heap/vanEmdeBoasTree/vanEmdeBoasTree.contract.ts` 의 `bitsOf`).
+ *
+ * **비트 사다리가 셋인 것은 `covers` 때문이다.** 우주 쪽 사다리 하나는 조회 다섯 행을 재고 다른
+ * 하나는 넣기 · 지우기를 잰다 — 계약의 필요충분조건이 「이웃 찾기와 갱신이 **함께**」를 요구하므로
+ * 한쪽만 재면 나머지 절반으로 어기는 계열이 통째로 지나간다(`S4`).
+ */
+describe("축3 — 비트 사다리 셋이 로그 인수를 가른다", () => {
+  test("우주 비트 사다리에서 로그는 비율 2.0 이고 로그 로그는 1.1 이다", () => {
+    const trie = statsOf(bitTrie, UNIVERSE_BITS);
+    const canonical = statsOf(reference, UNIVERSE_BITS);
+    expect({ trie, canonical }).toEqual({
+      trie: [38, 73, 143],
+      canonical: [17, 19, 21],
+    });
+    const ratio = (stats: number[], at: number) =>
+      Math.round(((stats[at + 1] as number) / (stats[at] as number)) * 100) /
+      100;
+    // 트라이는 `O(log n)` 구간(0.84~1.56 · 0.82~1.52)의 위를 넘고 정본은 그 안이다.
+    expect([ratio(trie, 0), ratio(trie, 1)]).toEqual([1.92, 1.96]);
+    expect([ratio(canonical, 0), ratio(canonical, 1)]).toEqual([1.12, 1.11]);
+  }, 60_000);
+
+  /**
+   * **갱신 쪽 로그 인수를 재는 자리**(`S4` — 검토 반려 2026-09-17). 위 시나리오와 사다리가 같고
+   * `covers` 만 다르다. 걸리는 것은 트라이와 칸 훑기 둘이고, 트라이가 4 배 갱신 사다리에서 24 ·
+   * 28 · 32(1.17 · 1.14)로 통과하던 자리가 여기서 14 · 24 · 44(1.71 · 1.83)가 된다 — **같은
+   * 구현 · 같은 입력 모양 · 다른 간격**이다. 트립이 통과하는 것은 담긴 키가 한둘뿐이라 원소 쪽
+   * 로그가 안 보이기 때문이고, 그 계열은 아래 담긴 수 비트 사다리가 잡는다.
+   */
+  test("갱신 비트 사다리에서 트라이가 걸리고 나머지 다섯은 통과한다", () => {
+    const stats: Record<string, number[]> = {};
+    const ok: Record<string, boolean> = {};
+    const targets: Array<[string, CostSource<UniverseSite>]> = [
+      ["정본", reference],
+      ["트라이", bitTrie],
+      ["트립", treap],
+      ["칸 훑기", scanningBitSet],
+      ["크기 순 배열", sortedArray],
+      ["쌓아 두기", flushing],
+    ];
+    for (const [name, cost] of targets) {
+      stats[name] = statsOf(cost, UPDATE_BITS);
+      ok[name] = outcomes(cost)[UPDATE_BITS] as boolean;
+    }
+    expect(stats).toEqual({
+      정본: [15, 17, 19],
+      트라이: [14, 24, 44],
+      트립: [7, 7, 9],
+      "칸 훑기": [33, 1025, 1048577],
+      "크기 순 배열": [5, 5, 5],
+      "쌓아 두기": [23, 27, 31],
+    });
+    expect(ok).toEqual({
+      정본: true,
+      트라이: false,
+      트립: true,
+      "칸 훑기": false,
+      "크기 순 배열": true,
+      "쌓아 두기": true,
+    });
+  }, 120_000);
+
+  test("담긴 수 비트 사다리에서 트립이 걸리고 정본과 트라이는 통과한다", () => {
+    expect({
+      treap: statsOf(treap, COUNT_BITS),
+      canonical: statsOf(reference, COUNT_BITS),
+      trie: statsOf(bitTrie, COUNT_BITS),
+    }).toEqual({
+      treap: [15, 39, 66],
+      canonical: [30, 30, 30],
+      trie: [57, 60, 60],
+    });
+  }, 60_000);
+
+  /**
+   * **두 시나리오가 같은 입력을 지난다는 것을 수치로 못 박는다.** 담긴 수 비트 사다리의 끝점은
+   * 담긴 수 4,096 이고 조회 시나리오의 가운데 점도 담긴 수 4,096 이다 — 우주가 같고(`FIXED_UNIVERSE`)
+   * 채우기·조회의 난수 뽑는 차례가 같으므로 **같은 입력**이고, 여섯 대상의 걸음이 전부 맞아떨어진다.
+   * 이 줄이 「바뀐 것은 사다리를 읽는 방식 하나다」의 근거다 — 두 시나리오의 판정이 갈리는 것은
+   * 입력이 달라서가 아니라 **재는 자리의 간격**이 달라서다. 우주를 갈라 두면 이 대조가 무너진다.
+   */
+  test("담긴 수 비트 사다리의 끝점은 조회 시나리오의 가운데 점과 같은 입력이다", () => {
+    const pairs: Array<[string, CostSource<UniverseSite>]> = [
+      ["정본", reference],
+      ["트립", treap],
+      ["트라이", bitTrie],
+      ["칸 훑기", scanningBitSet],
+      ["크기 순 배열", sortedArray],
+      ["쌓아 두기", flushing],
+    ];
+    const seen: Record<string, [number, number]> = {};
+    for (const [name, cost] of pairs) {
+      const bits = statsOf(cost, COUNT_BITS);
+      const fourfold = statsOf(cost, QUERIES);
+      seen[name] = [bits[2] as number, fourfold[1] as number];
+    }
+    expect(seen).toEqual({
+      정본: [30, 30],
+      트립: [66, 66],
+      트라이: [60, 60],
+      "칸 훑기": [14, 14],
+      "크기 순 배열": [12280, 12280],
+      "쌓아 두기": [75392, 75392],
+    });
+  }, 120_000);
+
+  /**
+   * **무거운 시나리오의 자리를 정한 근거를 수치로 남긴다**(`S3`). 이 시나리오는 늘 돈다 — 모드를
+   * 가르지 않았다. 고정하는 것은 그 판단의 입력이다: 우주를 $2^{16}$ 으로 낮추면 계측이 37 만이고,
+   * 그중 28 만이 우주를 세 점에서 세 번 세우는 준비이며 걸음으로 잰 몫은 10 만이다. 낮추기 전
+   * ($2^{22}$)은 1,714 만이었고 준비가 그 99.4% 였다. 판정은 여섯 대상 모두 그대로다.
+   */
+  test("담긴 수 비트 사다리의 계측 비용", () => {
+    const scenario = vanEmdeBoasTreeContract.scenarios[
+      LABELS.indexOf(COUNT_BITS)
+    ] as CostScenario<UniverseSite>;
+    const measured = SIZES.discriminating.map(
+      (n) => measureScenario(reference, scenario, n, 1).total,
+    );
+    const total = measured.reduce((sum, each) => sum + each, 0);
+    expect(total).toBe(374_329);
+    // 준비(우주 세우기)가 세 점에서 세 번이고, 나머지가 걸음으로 잰 몫이다.
+    expect(total - 3 * 92_007).toBe(98_308);
+  }, 60_000);
+
+  /**
+   * **여덟 시나리오의 계측 합**(`S4`). 갱신 비트 사다리가 4 배 사다리 다섯의 0.59 배를 더해 합이
+   * 2.33 배가 된다. 이 줄이 고정하는 것은 「무거운 시나리오를 모드로 가르지 않는다」는 판단의
+   * 입력이다 — 비용이 이 자리에서 크게 벌어지면 그 판단을 다시 본다. 갱신 비트 사다리의 몫도
+   * 거의 전부 끝점($u = 2^{20}$)을 세우는 준비이고 걸음으로 잰 몫은 수십이다.
+   */
+  test("여덟 시나리오의 계측 합이 4 배 사다리 다섯의 2.33 배다", () => {
+    const totalOf = (scenario: CostScenario<UniverseSite>) =>
+      SIZES.discriminating
+        .map((n) => measureScenario(reference, scenario, n, 1).total)
+        .reduce((sum, each) => sum + each, 0);
+    const per = vanEmdeBoasTreeContract.scenarios.map(totalOf);
+    const fourfold = per.slice(0, 5).reduce((sum, each) => sum + each, 0);
+    const all = per.reduce((sum, each) => sum + each, 0);
+    expect({
+      fourfold,
+      updateBits: per[LABELS.indexOf(UPDATE_BITS)],
+      all,
+      ratio: Math.round((all / fourfold) * 100) / 100,
+    }).toEqual({
+      fourfold: 2_431_099,
+      updateBits: 1_423_783,
+      all: 5_653_045,
+      ratio: 2.33,
+    });
+  }, 120_000);
 });
 
 describe("Bound 판정 — O(log log u) 를 판정 규격에 넣지 않는다", () => {
