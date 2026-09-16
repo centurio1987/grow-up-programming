@@ -49,7 +49,7 @@
 
 한 곳으로 모으는 이유는 중복이 곧 표류 지점이기 때문이다. 삭제 전 `tree/multiset`의 헤더는
 `delete`를 `O(log n)`으로 적었는데(`multiset.ts:25`) 같은 파일의 메서드 JSDoc 은 `O(n)`으로
-적었다(`:42`). 한 파일 안에서 계약이 두 값을 가졌다. 정합 검사 스크립트의 파싱 대상도 이렇게
+적었다(`:46`). 한 파일 안에서 계약이 두 값을 가졌다. 정합 검사 스크립트의 파싱 대상도 이렇게
 한 곳으로 고정된다.
 
 ### 항목별 규칙
@@ -4117,7 +4117,7 @@ n = 2^10 에서 512 · 512 · 1 · 1,024 · 512 · 0, 고친 정본 0 × 6, 옛 
    아니고, 그래서 이름이 저절로 갈렸다. 둘 다 적대적이어야 하는 시나리오를 더할 때는 이름을 가를 다른 자리(`covers` 표기)를 먼저 정한다.
    **그 자리는 이미 정해져 있다 — 겹치면 차례를 붙인다**(`#2`, KAN-026 `S20` · §「판정을 이름으로 모으는 자기시험은 이름이 겹치는지 먼저
    본다」 · `src/data-structures/_contract/runContract.test.ts`). 하네스 자기시험에 들어간 규칙이므로 이 줄은 미결이 아니다.
-2. **스위트 끝에 붙인다.** 가운데에 넣으면 그 파일을 `경로:줄` 로 가리키는 가이드 인용이 밀린다(`treap.contract.ts:400` · `:429`) — 게이트는
+2. **스위트 끝에 붙인다.** 가운데에 넣으면 그 파일을 `경로:줄` 로 가리키는 가이드 인용이 밀린다(`treap.contract.ts:400` · `:433`) — 게이트는
    빈 줄만 잡는다(불변 사실 81). 자기시험 쪽 `runContract.test.ts` 는 기대 객체에 키를 더하면서 주석 줄을 합쳐 줄 수를 그대로 두었다(불변 사실 106).
 3. **옮겨 온 결함 목록을 새 시나리오에 다시 태운다.** 그 스위트를 쓰던 자기시험의 기대가 전부 한 칸씩 는다 — 균형 없는 탐색 트리 · 정렬 배열은
    새 시나리오에서도 걸리고(채우기가 오름차순이라 앞은 사슬, 뒤는 섞인 자리를 당긴다), 끌어올리는 트리는 여전히 통과한다(계약 위반이 숨은 통과는
@@ -4480,7 +4480,7 @@ fixture 전부에 같은 함수를 부른다.
 | `KANBAN.reviews/KAN-027.review.md` 항목 7 | 두 판정을 승인 추천 | 조건부 판정 — `S29` 재발행이 받는다 |
 
 이 배치가 고친 것 — `skipList.ts` 헤더(맨 앞 문장 한정 · 「「같다」의 범위」 · 「이 판정이 말하지 않는 것」 · 두 문장 한정), `skipList.contract.ts`
-머리말 한 줄, `src/data-structures/tree/treap/treap.ts` 헤더 끝 한 문단(가이드 두 편이 `treap.ts:8` … `:132` 를 가리켜 그 줄을 밀지 않으려고 헤더
+머리말 한 줄, `src/data-structures/tree/treap/treap.ts` 헤더 끝 한 문단(가이드 두 편이 `treap.ts:8` … `:136` 를 가리켜 그 줄을 밀지 않으려고 헤더
 끝에 붙였다), `pieceTable.ts` 헤더 「「같지 않다」의 범위」. `linear/gapBuffer/gapBuffer.ts` 헤더에는 이 판정을 말하는 문장이 없어 고치지 않았다.
 
 ---
@@ -5000,7 +5000,7 @@ S1 의 예상(`graphAdjList` 는 `basic` 또는 `invariant`, `graphAdjMatrix` �
 1. `docs/ORD-006-conventions.md:4659` — 「행렬과 목록을 함께 든 구현은 둘 다 지킨다」. 위 절이 범위를
    정점 수가 고정된 동안으로 좁혔다.
 2. `docs/ORD-006-conventions.md:2271-2273` — B19 가 `graphAdjMatrix` 를 B15 처분 쪽에 넣은 목록. S1 이
-   이미 적은 어긋남이고(`:4767`), 이 절이 실행으로 확인했다.
+   이미 적은 어긋남이고(`:4850`), 이 절이 실행으로 확인했다.
 3. `tools/ord006-inventory.ts` `VERIFICATION_GRADES` — 표가 추가 순서로 쌓여 있어 `docs/ORD-006-wbs.md:115`
    의 「알파벳 순」과 어긋난다. 새 줄 둘은 자기보다 뒤로 정렬되는 첫 기존 키(`linear/stack`) 앞에 넣었고
    기존 줄은 옮기지 않았다.
@@ -5220,8 +5220,8 @@ S1 의 예상(둘 다 `invariant`)과 같은 쪽으로 닫혔다. `singlyLinkedL
 ### 기존 절 · 문서와 어긋나는 것
 
 **고친 것 둘 — 인용 번호만.** `docs/ORD-006-conventions.md:5043` 과 `:5049` 가 `runContract.radixTree.test.ts` 의
-`:154` · `:77` 을 가리켰는데 S20 이 그 파일을 줄여 `:154` 가 파일 밖이 됐고 `bun run tools/ci.ts gates` 가 실패했다.
-`docs/ORD-006-wbs.md` §4 의 「절 추가만」과 게이트가 부딪혀 번호만 `:35` · `:80` 으로 옮겼다. 두 문장의 뜻(「그때까지
+`:158` · `:81` 을 가리켰는데 S20 이 그 파일을 줄여 `:158` 가 파일 밖이 됐고 `bun run tools/ci.ts gates` 가 실패했다.
+`docs/ORD-006-wbs.md` §4 의 「절 추가만」과 게이트가 부딪혀 번호만 `:39` · `:84` 으로 옮겼다. 두 문장의 뜻(「그때까지
 자기시험이 따로 돌린다」)은 이 절의 첫 소절이 닫는다.
 
 **고치지 않은 것.**
@@ -5812,7 +5812,7 @@ S1 예상(`invariant`)과 갈렸고 까닭은 `count` 를 뺀 것이다. 이름 
 
 1. `docs/ORD-006-conventions.md:4530` — S1 처분표의 `bitArray` 「`invariant` — `count`↔`get` 이 참인 자리 수」. 위 등급 절이 `basic` 으로 닫았다.
 2. `docs/ORD-006-conventions.md:4697` · `:4700` 의 `bitArray.ts:5` · `bitArray.ts:47-76` — 파일 이름만 적은 착수 시점 인용이라 스텁이 새 헤더가 된
-   지금은 헤더 산문을 가리킨다(불변 사실 220 의 모양, 게이트 대상 아님). `:1426` · `:4427` 의 `bitArray.ts:5` 도 같다.
+   지금은 헤더 산문을 가리킨다(불변 사실 220 의 모양, 게이트 대상 아님). `:1430` · `:4494` 의 `bitArray.ts:5` 도 같다.
 3. `docs/ORD-006-conventions.md:1429-1433` — A군 다섯을 「아직 판정하지 않은 것」으로 적은 목록. S1 이 이미 적은 어긋남이고 `bitArray` 가 판정을 마쳤다.
 4. `src/data-structures/linear/dynamicArray/dynamicArray.ts` 의 `toArray` 행 — 위 「여러 번 불러 같은 계급」 절의 판별을 돌리면 빠진다. **`S23` 이 뺐고 등급이 `basic` 이 됐다**(판정표 ① 10).
 5. `docs/ORD-006-strategy.md:140` — `bitArray` 를 `invariant` 예시로 든 전략 초안 표. 초안 문서다.
@@ -6359,7 +6359,7 @@ S1 예상과 같다. 이름 `minHash` 는 기법의 이름이라 임시다(불�
 | `KANBAN.cards/KAN-026.md:114` | `wbs.md:89-91`(B20 등록 섞임) | 문장은 `docs/ORD-006-wbs.md:105` 부터 | 메인 |
 
 `KAN-027` 병합이 런북 · 이 문서에 줄을 더 넣으면 위 줄 번호가 다시 밀린다 — **정정은 병합 뒤 `bun run tools/check-citations.ts` 와 이 표를 함께 보고 한다.**
-`check-citations` 는 「비어 있지 않은 줄」만 보므로 `:4575` · 카드 두 줄처럼 **엉뚱한 비어 있지 않은 줄**로 밀린 인용은 통과한다(불변 사실 220 의 모양).
+`check-citations` 는 「비어 있지 않은 줄」만 보므로 `:4693` · 카드 두 줄처럼 **엉뚱한 비어 있지 않은 줄**로 밀린 인용은 통과한다(불변 사실 220 의 모양).
 
 ## 원칙 A — 연산 선정: 목적의 관찰 · 변경으로 고르고, 편의 연산과 성능 제약을 가른다 (KAN-026 S21 — 2026-09-16)
 
@@ -6792,47 +6792,47 @@ KAN-027 이 쓰지 않고 반납한 `380–389`(검토 #11 승인)를 **앞으�
 
 | # | 목록 · 원행 | 위치(지금 줄) | 담당 | 시점 | 비고 |
 |---|---|---|---|---|---|
-| 1 | B군 마감(KAN-027 S19) · `:4215` | `docs/ORD-006-runbook.md:507` (불변 사실 267) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
+| 1 | B군 마감(KAN-027 S19) · `:4282` | `docs/ORD-006-runbook.md:507` (불변 사실 267) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
 | 2 | B군 마감(KAN-027 S19) · `:4216` | `docs/ORD-006-conventions.md:3464` (T2-04 보강 절) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
 | 3 | B군 마감(KAN-027 S19) · `:4217` | `docs/ORD-006-conventions.md:2167` (B18 3단계) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
 | 4 | B군 마감(KAN-027 S19) · `:4218` | `docs/ORD-006-conventions.md:2250` (B19 표 `unionFind` ↔ `disjointSetRollback` 행) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
-| 5 | B군 마감(KAN-027 S19) · `:4219` | `src/data-structures/tree/linkCutTree/linkCutTree.ts:23` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | `tree/linkCutTree` · `tools/ord006-inventory.ts` 는 이 카드 scope 밖 — 메인 세션이 `S29` scope 에 더한 뒤 |
+| 5 | B군 마감(KAN-027 S19) · `:4286` | `src/data-structures/tree/linkCutTree/linkCutTree.ts:23` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | `tree/linkCutTree` · `tools/ord006-inventory.ts` 는 이 카드 scope 밖 — 메인 세션이 `S29` scope 에 더한 뒤 |
 | 6 | B군 마감(KAN-027 S19) · `:4220` | `src/data-structures/tree/linkCutTree/linkCutTree.ts:26` · `:129` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | `tree/linkCutTree` · `tools/ord006-inventory.ts` 는 이 카드 scope 밖 — 메인 세션이 `S29` scope 에 더한 뒤 |
 | 7 | B군 마감(KAN-027 S19) · `:4221` | `docs/ORD-006-conventions.md:2590` · `:2605` (T1-06 「`worst` 만 있는 계약의 한정자 근거」) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
-| 8 | B군 마감(KAN-027 S19) · `:4222` | `src/data-structures/tree/cartesianTree/cartesianTree.ts:96` | 결정 | 사람 결정 뒤 | 셋째 계열 fixture 를 짓고 재는 실측 일(scope 밖) — 추천: main 백로그 새 카드 |
+| 8 | B군 마감(KAN-027 S19) · `:4289` | `src/data-structures/tree/cartesianTree/cartesianTree.ts:96` | 결정 | 사람 결정 뒤 | 셋째 계열 fixture 를 짓고 재는 실측 일(scope 밖) — 추천: main 백로그 새 카드 |
 | 9 | B군 마감(KAN-027 S19) · `:4223` | `docs/ORD-006-conventions.md:3872` (T4-05 보강 절 끝) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
 | 10 | B군 마감(KAN-027 S19) · `:4224` | `docs/ORD-006-conventions.md:3848` (T4-05 멱등 절 끝) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
-| 11 | B군 마감(KAN-027 S19) · `:4225` | `docs/ORD-006-runbook.md:900` · `:924` (불변 사실 326 · 328) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
-| 12 | B군 마감(KAN-027 S19) · `:4226` | `docs/ORD-006-p4-triage.md:96` · `:114` | 둔다 | — | 잠정 분류 문서 — KAN-026 이 같은 문서 행(`:38` …)을 둔 것과 같게 |
-| 13 | B군 마감(KAN-027 S19) · `:4227` | `tools/ord006-wbs.ts` T5-07 note | 둔다 | — | 기록용 행 |
-| 14 | B군 마감(KAN-027 S19) · `:4228` | `docs/ORD-006-runbook.md:1130` (불변 사실 93) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
-| 15 | B군 마감(KAN-027 S19) · `:4229` | `docs/ORD-006-runbook.md:1183` (불변 사실 233) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
+| 11 | B군 마감(KAN-027 S19) · `:4292` | `docs/ORD-006-runbook.md:900` · `:924` (불변 사실 326 · 328) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
+| 12 | B군 마감(KAN-027 S19) · `:4293` | `docs/ORD-006-p4-triage.md:96` · `:114` | 둔다 | — | 잠정 분류 문서 — KAN-026 이 같은 문서 행(`:38` …)을 둔 것과 같게 |
+| 13 | B군 마감(KAN-027 S19) · `:4294` | `tools/ord006-wbs.ts` T5-07 note | 둔다 | — | 기록용 행 |
+| 14 | B군 마감(KAN-027 S19) · `:4295` | `docs/ORD-006-runbook.md:1130` (불변 사실 93) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
+| 15 | B군 마감(KAN-027 S19) · `:4296` | `docs/ORD-006-runbook.md:1183` (불변 사실 233) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
 | 16 | B군 마감(KAN-027 S19) · `:4230` | `docs/ORD-006-conventions.md:4058` (T5-04 성격 전환 절) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
 | 17 | B군 마감(KAN-027 S19) · `:4231` | `docs/ORD-006-runbook.md:826` (불변 사실 175) · `docs/ORD-006-conventions.md:3722` (T4-03 절) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
 | 18 | B군 마감(KAN-027 S19) · `:4232` | `docs/ORD-006-conventions.md:4007` (T5-03 제기 절 「넘기는 물음 둘」) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | ②(축3 끝 값 대조)는 KAN-043 이 닫는다 — 제목은 「①닫음 · ②KAN-043」 |
-| 19 | B군 마감(KAN-027 S19) · `:4233` | `KANBAN.cards/KAN-027.md:48` · `:99` · `:132` · `:159` | 메인 | 메인 세션 — 카드 갱신 때 |  |
-| 20 | B군 마감(KAN-027 S19) · `:4234` | `KANBAN.cards/KAN-027.md:45` · `:47` · `:49` · `:52` 의 `ord006-wbs.ts:NN` 인용 | 메인 | 메인 세션 — 카드 갱신 때 |  |
-| 21 | B군 마감(KAN-027 S19) · `:4235` | `KANBAN.cards/KAN-027.md:195` · `:212` · `:215` (`S19` 완료 기준 · 카드 종료 조건 1 · 3) | 메인 | 메인 세션 — 카드 갱신 때 | 결재 「가」로 KAN-039 에 넘겨 종료 범위에서 뺀다 — 이관 표시는 KAN-026 `S26` 방식을 `027·S29` 가 T5-06 에 쓴다 |
+| 19 | B군 마감(KAN-027 S19) · `:4300` | `KANBAN.cards/KAN-027.md:48` · `:99` · `:132` · `:159` | 메인 | 메인 세션 — 카드 갱신 때 |  |
+| 20 | B군 마감(KAN-027 S19) · `:4301` | `KANBAN.cards/KAN-027.md:45` · `:47` · `:49` · `:52` 의 `ord006-wbs.ts:NN` 인용 | 메인 | 메인 세션 — 카드 갱신 때 |  |
+| 21 | B군 마감(KAN-027 S19) · `:4302` | `KANBAN.cards/KAN-027.md:195` · `:212` · `:215` (`S19` 완료 기준 · 카드 종료 조건 1 · 3) | 메인 | 메인 세션 — 카드 갱신 때 | 결재 「가」로 KAN-039 에 넘겨 종료 범위에서 뺀다 — 이관 표시는 KAN-026 `S26` 방식을 `027·S29` 가 T5-06 에 쓴다 |
 | 22 | 배치12 S23 낡는 문장 · `:4293` | `docs/ORD-006-conventions.md:4244` (T5-07 절 제목) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
 | 23 | 배치12 S23 낡는 문장 · `:4294` | `docs/ORD-006-conventions.md:4254-4258` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
-| 24 | 배치12 S23 낡는 문장 · `:4295` | `docs/ORD-006-runbook.md:1355` · `:1360` (불변 사실 348) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
-| 25 | 배치12 S23 낡는 문장 · `:4296` | `docs/ORD-006-runbook.md:1937` (배치 지도 T5-07 행) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
-| 26 | 배치12 S23 낡는 문장 · `:4297` | `docs/ORD-006-runbook.md:4088-4089` (T5-07 카드) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
-| 27 | 배치12 S23 낡는 문장 · `:4298` | `src/data-structures/_contract/_fixtures/unseparatedMerkleTree.ts:8-11` | 둔다 | — | `_contract/_fixtures/` 는 읽기만 — 자기시험이 1,355 로 이름을 고정했다 |
-| 28 | 배치12 S23 낡는 문장 · `:4299` | `KANBAN.batches/KAN-027.batch11.md:121-122` · `KANBAN.reviews/KAN-027.review.md:404` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 이력 두 문서는 둔다 · 검토서는 `review-init --refresh` 가 받는다 |
-| 29 | 배치12 S23 낡는 문장 · `:4300` | `KANBAN.batches/KAN-027.batch12.md:22` (검토 판정의 근거 `runContract.merkleTree.test.ts:369`) | 둔다 | — | 기록 — 밀린 줄을 그 행이 적었다 |
-| 30 | 배치12 S24 낡는 문장 · `:4359` | `docs/ORD-006-runbook.md:75` (불변 사실 63) | KAN-042 | KAN-026·027 main 병합 뒤 · KAN-036 전 |  |
+| 24 | 배치12 S23 낡는 문장 · `:4362` | `docs/ORD-006-runbook.md:1355` · `:1360` (불변 사실 348) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
+| 25 | 배치12 S23 낡는 문장 · `:4363` | `docs/ORD-006-runbook.md:1937` (배치 지도 T5-07 행) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
+| 26 | 배치12 S23 낡는 문장 · `:4364` | `docs/ORD-006-runbook.md:4088-4089` (T5-07 카드) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
+| 27 | 배치12 S23 낡는 문장 · `:4365` | `src/data-structures/_contract/_fixtures/unseparatedMerkleTree.ts:8-11` | 둔다 | — | `_contract/_fixtures/` 는 읽기만 — 자기시험이 1,355 로 이름을 고정했다 |
+| 28 | 배치12 S23 낡는 문장 · `:4366` | `KANBAN.batches/KAN-027.batch11.md:121-122` · `KANBAN.reviews/KAN-027.review.md:404` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 이력 두 문서는 둔다 · 검토서는 `review-init --refresh` 가 받는다 |
+| 29 | 배치12 S23 낡는 문장 · `:4367` | `KANBAN.batches/KAN-027.batch12.md:22` (검토 판정의 근거 `runContract.merkleTree.test.ts:369`) | 둔다 | — | 기록 — 밀린 줄을 그 행이 적었다 |
+| 30 | 배치12 S24 낡는 문장 · `:4426` | `docs/ORD-006-runbook.md:75` (불변 사실 63) | KAN-042 | KAN-026·027 main 병합 뒤 · KAN-036 전 |  |
 | 31 | 배치12 S24 낡는 문장 · `:4360` | `docs/ORD-006-conventions.md:1933-1934` · `:2655` | KAN-042 | KAN-026·027 main 병합 뒤 · KAN-036 전 |  |
-| 32 | 배치12 S24 낡는 문장 · `:4361` | `docs/ORD-006-runbook.md:3041` (B17 카드) | KAN-042 | KAN-026·027 main 병합 뒤 · KAN-036 전 |  |
+| 32 | 배치12 S24 낡는 문장 · `:4428` | `docs/ORD-006-runbook.md:3041` (B17 카드) | KAN-042 | KAN-026·027 main 병합 뒤 · KAN-036 전 |  |
 | 33 | 배치12 S24 낡는 문장 · `:4362` | `docs/ORD-006-conventions.md:3506-3509` (T2-05 절 4) | KAN-042 | KAN-026·027 main 병합 뒤 · KAN-036 전 |  |
-| 34 | 배치12 S24 낡는 문장 · `:4363` | `docs/ORD-006-runbook.md:3849` (T2-05 카드) | KAN-042 | KAN-026·027 main 병합 뒤 · KAN-036 전 |  |
-| 35 | 배치12 S24 낡는 문장 · `:4364` | `KANBAN.reviews/KAN-027.review.md:422` (검토 항목 4) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 검토서 재발행 |
-| 36 | 배치12 S25 낡는 문장 · `:4409` | `docs/ORD-006-runbook.md:1164` (불변 사실 230) · `:1933` (배치 지도 T5-04) · `:4067` (T5-04 카드) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 범위를 적은 헤더 절을 가리키는 한 줄 |
-| 37 | 배치12 S25 낡는 문장 · `:4410` | `docs/ORD-006-runbook.md:1106` (불변 사실 90) · `:1932` (배치 지도 T5-03) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 범위를 적은 헤더 절을 가리키는 한 줄 |
+| 34 | 배치12 S24 낡는 문장 · `:4430` | `docs/ORD-006-runbook.md:3849` (T2-05 카드) | KAN-042 | KAN-026·027 main 병합 뒤 · KAN-036 전 |  |
+| 35 | 배치12 S24 낡는 문장 · `:4431` | `KANBAN.reviews/KAN-027.review.md:422` (검토 항목 4) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 검토서 재발행 |
+| 36 | 배치12 S25 낡는 문장 · `:4476` | `docs/ORD-006-runbook.md:1164` (불변 사실 230) · `:1933` (배치 지도 T5-04) · `:4067` (T5-04 카드) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 범위를 적은 헤더 절을 가리키는 한 줄 |
+| 37 | 배치12 S25 낡는 문장 · `:4477` | `docs/ORD-006-runbook.md:1106` (불변 사실 90) · `:1932` (배치 지도 T5-03) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 범위를 적은 헤더 절을 가리키는 한 줄 |
 | 38 | 배치12 S25 낡는 문장 · `:4411` | `docs/ORD-006-conventions.md:3949-3972` (T5-03 절) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 범위를 적은 헤더 절을 가리키는 한 줄 |
 | 39 | 배치12 S25 낡는 문장 · `:4412` | `docs/ORD-006-conventions.md:1614` · `:1764` (B1 · 분류 원칙 표) | 둔다 | — | 기록용 행 |
-| 40 | 배치12 S25 낡는 문장 · `:4413` | `KANBAN.reviews/KAN-027.review.md` 항목 7 | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 검토서 재발행 |
-| 41 | A군 마감(KAN-026 S18) · `:6153` | `docs/ORD-006-conventions.md:9` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 두 카드 앞의 공유 절 — 재병합 뒤에 두 카드 몫을 함께 적는다 |
+| 40 | 배치12 S25 낡는 문장 · `:4480` | `KANBAN.reviews/KAN-027.review.md` 항목 7 | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 검토서 재발행 |
+| 41 | A군 마감(KAN-026 S18) · `:6274` | `docs/ORD-006-conventions.md:9` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 두 카드 앞의 공유 절 — 재병합 뒤에 두 카드 몫을 함께 적는다 |
 | 42 | A군 마감(KAN-026 S18) · `:6154` | `docs/ORD-006-conventions.md:1429` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 두 카드 앞의 공유 절 — 재병합 뒤에 두 카드 몫을 함께 적는다 |
 | 43 | A군 마감(KAN-026 S18) · `:6155` | `docs/ORD-006-conventions.md:2271` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 두 카드 앞의 공유 절 — 재병합 뒤에 두 카드 몫을 함께 적는다 |
 | 44 | A군 마감(KAN-026 S18) · `:6156` | `docs/ORD-006-conventions.md:4502` | 둔다 | — |  |
@@ -6871,62 +6871,62 @@ KAN-027 이 쓰지 않고 반납한 `380–389`(검토 #11 승인)를 **앞으�
 | 77 | A군 마감(KAN-026 S18) · `:6189` | `docs/ORD-006-conventions.md:5972` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
 | 78 | A군 마감(KAN-026 S18) · `:6190` | `docs/ORD-006-conventions.md:5976` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
 | 79 | A군 마감(KAN-026 S18) · `:6191` | `docs/ORD-006-conventions.md:6114` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
-| 80 | A군 마감(KAN-026 S18) · `:6197` | `docs/ORD-006-runbook.md:1373` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
-| 81 | A군 마감(KAN-026 S18) · `:6198` | `docs/ORD-006-runbook.md:1384` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
-| 82 | A군 마감(KAN-026 S18) · `:6199` | `docs/ORD-006-runbook.md:1389` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
-| 83 | A군 마감(KAN-026 S18) · `:6200` | `docs/ORD-006-runbook.md:1400` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
-| 84 | A군 마감(KAN-026 S18) · `:6201` | `docs/ORD-006-runbook.md:1416` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
-| 85 | A군 마감(KAN-026 S18) · `:6202` | `docs/ORD-006-runbook.md:1455` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
-| 86 | A군 마감(KAN-026 S18) · `:6203` | `docs/ORD-006-runbook.md:1607` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
-| 87 | A군 마감(KAN-026 S18) · `:6204` | `docs/ORD-006-runbook.md:1667` | 026·S23 | KAN-026 배치13(진행 중) | 판정표 ① 10 |
-| 88 | A군 마감(KAN-026 S18) · `:6205` | `docs/ORD-006-runbook.md:1952` | 026·S26 | KAN-026 배치13(진행 중) | rollingHash 제외 범위 표시 |
-| 89 | A군 마감(KAN-026 S18) · `:6206` | `docs/ORD-006-runbook.md:2885` | 둔다 | — |  |
+| 80 | A군 마감(KAN-026 S18) · `:6318` | `docs/ORD-006-runbook.md:1373` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
+| 81 | A군 마감(KAN-026 S18) · `:6319` | `docs/ORD-006-runbook.md:1384` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
+| 82 | A군 마감(KAN-026 S18) · `:6320` | `docs/ORD-006-runbook.md:1389` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
+| 83 | A군 마감(KAN-026 S18) · `:6321` | `docs/ORD-006-runbook.md:1400` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
+| 84 | A군 마감(KAN-026 S18) · `:6322` | `docs/ORD-006-runbook.md:1416` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
+| 85 | A군 마감(KAN-026 S18) · `:6323` | `docs/ORD-006-runbook.md:1455` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
+| 86 | A군 마감(KAN-026 S18) · `:6324` | `docs/ORD-006-runbook.md:1607` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
+| 87 | A군 마감(KAN-026 S18) · `:6325` | `docs/ORD-006-runbook.md:1667` | 026·S23 | KAN-026 배치13(진행 중) | 판정표 ① 10 |
+| 88 | A군 마감(KAN-026 S18) · `:6326` | `docs/ORD-006-runbook.md:1952` | 026·S26 | KAN-026 배치13(진행 중) | rollingHash 제외 범위 표시 |
+| 89 | A군 마감(KAN-026 S18) · `:6327` | `docs/ORD-006-runbook.md:2885` | 둔다 | — |  |
 | 90 | A군 마감(KAN-026 S18) · `:6207` | `docs/ORD-006-wbs.md:115` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 두 카드 등급 줄이 다 들어온 뒤 한 번 정렬 — `tools/ord006-inventory.ts:71-73` 주석 함께 |
-| 91 | A군 마감(KAN-026 S18) · `:6208` | `docs/ORD-006-wbs.md:152` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
-| 92 | A군 마감(KAN-026 S18) · `:6209` | `tools/ord006-wbs.ts:310` | 고침 S26 | 이 배치(끝남) | 병합으로 해소 — 인용을 뺀 자리 주석으로 옮기고 처분 칸을 고쳤다 |
+| 91 | A군 마감(KAN-026 S18) · `:6329` | `docs/ORD-006-wbs.md:152` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
+| 92 | A군 마감(KAN-026 S18) · `:6330` | `tools/ord006-wbs.ts:310` | 고침 S26 | 이 배치(끝남) | 병합으로 해소 — 인용을 뺀 자리 주석으로 옮기고 처분 칸을 고쳤다 |
 | 93 | A군 마감(KAN-026 S18) · `:6210` | `tools/ord006-wbs.ts:395` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 | 위 `:5500` 행과 함께 |
-| 94 | A군 마감(KAN-026 S18) · `:6211` | `tools/ord006-wbs.ts` TA-02 `contract` 칸 | 둔다 | — | 정정됨 |
-| 95 | A군 마감(KAN-026 S18) · `:6217` | `src/data-structures/linear/deque/deque.ts:32` | 메인 | 메인 세션 — 카드 갱신 때 | 별도 카드(main 백로그) |
-| 96 | A군 마감(KAN-026 S18) · `:6218` | `src/data-structures/linear/dynamicArray/dynamicArray.ts` `toArray` 행 · 불변식 절 | 026·S23 | KAN-026 배치13(진행 중) | 판정표 ① 10 · 등급 재판정 |
-| 97 | A군 마감(KAN-026 S18) · `:6219` | `src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:27` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
-| 98 | A군 마감(KAN-026 S18) · `:6220` | `src/data-structures/trie/ternarySearchTree/ternarySearchTree-guide.mdx:292` | KAN-036 | 가이드 전개 때(편마다) |  |
-| 99 | A군 마감(KAN-026 S18) · `:6221` | `src/data-structures/_contract/_fixtures/copySplitRadixTree.ts:13` | 둔다 | — | 정정됨 |
-| 100 | A군 마감(KAN-026 S18) · `:6222` | `src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.md:100` | 둔다 | — | 정정됨 |
-| 101 | A군 마감(KAN-026 S18) · `:6223` | `문제_가이드_목록.md:44` | KAN-036 | 가이드 전개 때(편마다) |  |
-| 102 | A군 마감(KAN-026 S18) · `:6224` | `docs/ORD-006-p4-triage.md:38` · `:40` · `:42` · `:44` · `:49` | 둔다 | — |  |
-| 103 | A군 마감(KAN-026 S18) · `:6225` | `docs/ORD-006-strategy.md:140` | 둔다 | — |  |
-| 104 | A군 마감(KAN-026 S18) · `:6226` | A군 옛 가이드 열여섯(`graphAdjList` · `graphAdjMatrix` · `dag` · `doublyLinkedList` · `dynamicArray` · `singlyLinkedList` · `monotonicStack` · `monotonicQueue` · `bitArray` · `bloomFilter` · `cuckooFilter` · `countMinSketch` · `hyperLogLog` · `minHash` · `trie` · `radixTree` 의 `-guide.mdx`) | KAN-036 | 가이드 전개 때(편마다) |  |
-| 105 | A군 마감(KAN-026 S18) · `:6227` | `KANBAN.batches/KAN-026.batch4.md` · `batch8.md` · `batch9.md` · `batch10.md` · `batch11.md` §2 | 둔다 | — |  |
-| 106 | A군 마감(KAN-026 S18) · `:6233` | `KANBAN.cards/KAN-026.md:49` | 메인 | 메인 세션 — 카드 갱신 때 |  |
-| 107 | A군 마감(KAN-026 S18) · `:6234` | `KANBAN.cards/KAN-026.md:58` | 메인 | 메인 세션 — 카드 갱신 때 |  |
-| 108 | A군 마감(KAN-026 S18) · `:6235` | `KANBAN.cards/KAN-026.md:54` | 메인 | 메인 세션 — 카드 갱신 때 |  |
-| 109 | A군 마감(KAN-026 S18) · `:6236` | `KANBAN.cards/KAN-026.md:57` | 메인 | 메인 세션 — 카드 갱신 때 |  |
-| 110 | A군 마감(KAN-026 S18) · `:6237` | `KANBAN.cards/KAN-026.md:42` | 메인 | 메인 세션 — 카드 갱신 때 |  |
-| 111 | A군 마감(KAN-026 S18) · `:6238` | `KANBAN.cards/KAN-026.md:114` | 메인 | 메인 세션 — 카드 갱신 때 |  |
-| 112 | 원칙 A 낡는 문장 · `:6432` | `docs/ORD-006-runbook.md:1427-1430`(불변 사실 210) | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
-| 113 | 원칙 A 낡는 문장 · `:6433` | `docs/ORD-006-runbook.md:1498-1503`(224) · `docs/ORD-006-runbook.md:1562-1565`(274) | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
-| 114 | 원칙 A 낡는 문장 · `:6434` | `docs/ORD-006-runbook.md:1632-1633`(285) | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
-| 115 | 원칙 A 낡는 문장 · `:6435` | `docs/ORD-006-runbook.md:1662-1667`(290) | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 | 뒤 문장의 `toArray` 는 `026·S23` 이 적용한 뒤에 가리킨다 |
-| 116 | 원칙 A 낡는 문장 · `:6436` | `docs/ORD-006-runbook.md:1754-1756`(357) · `docs/ORD-006-runbook.md:1823-1825`(371) | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
-| 117 | 원칙 A 낡는 문장 · `:6437` | `docs/ORD-006-runbook.md:1791-1794`(364) | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
+| 94 | A군 마감(KAN-026 S18) · `:6332` | `tools/ord006-wbs.ts` TA-02 `contract` 칸 | 둔다 | — | 정정됨 |
+| 95 | A군 마감(KAN-026 S18) · `:6338` | `src/data-structures/linear/deque/deque.ts:32` | 메인 | 메인 세션 — 카드 갱신 때 | 별도 카드(main 백로그) |
+| 96 | A군 마감(KAN-026 S18) · `:6339` | `src/data-structures/linear/dynamicArray/dynamicArray.ts` `toArray` 행 · 불변식 절 | 026·S23 | KAN-026 배치13(진행 중) | 판정표 ① 10 · 등급 재판정 |
+| 97 | A군 마감(KAN-026 S18) · `:6340` | `src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:27` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
+| 98 | A군 마감(KAN-026 S18) · `:6341` | `src/data-structures/trie/ternarySearchTree/ternarySearchTree-guide.mdx:292` | KAN-036 | 가이드 전개 때(편마다) |  |
+| 99 | A군 마감(KAN-026 S18) · `:6342` | `src/data-structures/_contract/_fixtures/copySplitRadixTree.ts:13` | 둔다 | — | 정정됨 |
+| 100 | A군 마감(KAN-026 S18) · `:6343` | `src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.md:100` | 둔다 | — | 정정됨 |
+| 101 | A군 마감(KAN-026 S18) · `:6344` | `문제_가이드_목록.md:44` | KAN-036 | 가이드 전개 때(편마다) |  |
+| 102 | A군 마감(KAN-026 S18) · `:6345` | `docs/ORD-006-p4-triage.md:38` · `:40` · `:42` · `:44` · `:49` | 둔다 | — |  |
+| 103 | A군 마감(KAN-026 S18) · `:6346` | `docs/ORD-006-strategy.md:140` | 둔다 | — |  |
+| 104 | A군 마감(KAN-026 S18) · `:6347` | A군 옛 가이드 열여섯(`graphAdjList` · `graphAdjMatrix` · `dag` · `doublyLinkedList` · `dynamicArray` · `singlyLinkedList` · `monotonicStack` · `monotonicQueue` · `bitArray` · `bloomFilter` · `cuckooFilter` · `countMinSketch` · `hyperLogLog` · `minHash` · `trie` · `radixTree` 의 `-guide.mdx`) | KAN-036 | 가이드 전개 때(편마다) |  |
+| 105 | A군 마감(KAN-026 S18) · `:6348` | `KANBAN.batches/KAN-026.batch4.md` · `batch8.md` · `batch9.md` · `batch10.md` · `batch11.md` §2 | 둔다 | — |  |
+| 106 | A군 마감(KAN-026 S18) · `:6354` | `KANBAN.cards/KAN-026.md:49` | 메인 | 메인 세션 — 카드 갱신 때 |  |
+| 107 | A군 마감(KAN-026 S18) · `:6355` | `KANBAN.cards/KAN-026.md:58` | 메인 | 메인 세션 — 카드 갱신 때 |  |
+| 108 | A군 마감(KAN-026 S18) · `:6356` | `KANBAN.cards/KAN-026.md:54` | 메인 | 메인 세션 — 카드 갱신 때 |  |
+| 109 | A군 마감(KAN-026 S18) · `:6357` | `KANBAN.cards/KAN-026.md:57` | 메인 | 메인 세션 — 카드 갱신 때 |  |
+| 110 | A군 마감(KAN-026 S18) · `:6358` | `KANBAN.cards/KAN-026.md:42` | 메인 | 메인 세션 — 카드 갱신 때 |  |
+| 111 | A군 마감(KAN-026 S18) · `:6359` | `KANBAN.cards/KAN-026.md:114` | 메인 | 메인 세션 — 카드 갱신 때 |  |
+| 112 | 원칙 A 낡는 문장 · `:6553` | `docs/ORD-006-runbook.md:1427-1430`(불변 사실 210) | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
+| 113 | 원칙 A 낡는 문장 · `:6554` | `docs/ORD-006-runbook.md:1498-1503`(224) · `docs/ORD-006-runbook.md:1562-1565`(274) | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
+| 114 | 원칙 A 낡는 문장 · `:6555` | `docs/ORD-006-runbook.md:1632-1633`(285) | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
+| 115 | 원칙 A 낡는 문장 · `:6556` | `docs/ORD-006-runbook.md:1662-1667`(290) | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 | 뒤 문장의 `toArray` 는 `026·S23` 이 적용한 뒤에 가리킨다 |
+| 116 | 원칙 A 낡는 문장 · `:6557` | `docs/ORD-006-runbook.md:1754-1756`(357) · `docs/ORD-006-runbook.md:1823-1825`(371) | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
+| 117 | 원칙 A 낡는 문장 · `:6558` | `docs/ORD-006-runbook.md:1791-1794`(364) | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
 | 118 | 원칙 A 낡는 문장 · `:6438` | `docs/ORD-006-conventions.md:4650-4653` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
 | 119 | 원칙 A 낡는 문장 · `:6439` | `docs/ORD-006-conventions.md:4903-4913` · `docs/ORD-006-conventions.md:5140-5151` · `docs/ORD-006-conventions.md:5325-5331` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
 | 120 | 원칙 A 낡는 문장 · `:6440` | `docs/ORD-006-conventions.md:5570-5571` · `docs/ORD-006-conventions.md:5713-5730` · `docs/ORD-006-conventions.md:5943-5944` · `docs/ORD-006-conventions.md:6065` · `docs/ORD-006-conventions.md:6157` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
 | 121 | 원칙 A 낡는 문장 · `:6441` | `docs/ORD-006-conventions.md:6339` | 026·S23 | KAN-026 배치13(진행 중) |  |
-| 122 | 원칙 A 낡는 문장 · `:6442` | 판정표 ① 「근거 교체」 16 행의 헤더 줄 | 026·S23 | KAN-026 배치13(진행 중) |  |
-| 123 | 원칙 A 낡는 문장 · `:6443` | KAN-027 `kdTree.ts` 27–32 · KAN-027 conventions 「비용으로 아무 구현도 배제하지 않는 연산 행과 「다르다」 판정 (T4-06 제기 — 미결)」 · KAN-027 불변 사실 331 | 고침 S27 | 이 배치(끝남) | 헤더(`kdTree.ts`). conventions 미결 절 · 불변 사실 331 은 아래 새 행 |
-| 124 | 원칙 A 낡는 문장 · `:6444` | 판정표 ③ 의 순서 집합 헤더 일곱 | KAN-040 | KAN-026·027 main 병합 뒤 · KAN-036 전 |  |
+| 122 | 원칙 A 낡는 문장 · `:6563` | 판정표 ① 「근거 교체」 16 행의 헤더 줄 | 026·S23 | KAN-026 배치13(진행 중) |  |
+| 123 | 원칙 A 낡는 문장 · `:6564` | KAN-027 `kdTree.ts` 27–32 · KAN-027 conventions 「비용으로 아무 구현도 배제하지 않는 연산 행과 「다르다」 판정 (T4-06 제기 — 미결)」 · KAN-027 불변 사실 331 | 고침 S27 | 이 배치(끝남) | 헤더(`kdTree.ts`). conventions 미결 절 · 불변 사실 331 은 아래 새 행 |
+| 124 | 원칙 A 낡는 문장 · `:6565` | 판정표 ③ 의 순서 집합 헤더 일곱 | KAN-040 | KAN-026·027 main 병합 뒤 · KAN-036 전 |  |
 | 125 | 원칙 B 낡는 문장 · `:6540` | `docs/ORD-006-conventions.md:2404-2412` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 이 절 「원칙 B 적용」을 가리키는 한 줄 |
 | 126 | 원칙 B 낡는 문장 · `:6541` | `docs/ORD-006-conventions.md:2869-2871` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | B7 형식은 `tree/treap` 헤더 끝 표가 받았다 — 다른 `expected` 계약은 KAN-041 |
 | 127 | 원칙 B 낡는 문장 · `:6542` | `docs/ORD-006-conventions.md:5846-5847` · `docs/ORD-006-conventions.md:6020-6021` | 026·S24 | KAN-026 배치14 |  |
 | 128 | 원칙 B 낡는 문장 · `:6543` | `docs/ORD-006-conventions.md:5869-5879` · `docs/ORD-006-conventions.md:6037-6040` | 026·S24 | KAN-026 배치14 |  |
 | 129 | 원칙 B 낡는 문장 · `:6544` | `docs/ORD-006-conventions.md:5882-5888` · `docs/ORD-006-conventions.md:6083-6089` | 026·S24 | KAN-026 배치14 |  |
 | 130 | 원칙 B 낡는 문장 · `:6545` | `docs/ORD-006-conventions.md:6190-6192` · `docs/ORD-006-conventions.md:6196-6199` | 026·S24 | KAN-026 배치14 |  |
-| 131 | 원칙 B 낡는 문장 · `:6546` | `docs/ORD-006-runbook.md:1700-1717`(297–299) · `docs/ORD-006-runbook.md:1722-1726`(350) · `docs/ORD-006-runbook.md:1766-1780`(360–361) · `docs/ORD-006-runbook.md:1800-1804`(366) · `docs/ORD-006-runbook.md:1836-1846`(374–375) · `docs/ORD-006-runbook.md:1857-1861`(378) | 026·S24 | KAN-026 배치14 |  |
-| 132 | 원칙 B 낡는 문장 · `:6547` | `src/data-structures/_contract/judge.ts:69-78` | KAN-041 | KAN-026·027 main 병합 뒤 · KAN-036 전 | 하네스 파일 — H2 가 고친다 |
-| 133 | 원칙 B 낡는 문장 · `:6548` | 다섯 계약 스위트 머리말(`src/data-structures/probabilistic/bloomFilter/bloomFilter.contract.ts:24-29` · `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.contract.ts:9-11` · `src/data-structures/probabilistic/countMinSketch/countMinSketch.contract.ts:21-25` · `src/data-structures/probabilistic/hyperLogLog/hyperLogLog.contract.ts:22-26` · `src/data-structures/probabilistic/minHash/minHash.contract.ts:22-24`)과 헤더의 「판정 문장과 여유」 · 「틈」 문단(`src/data-structures/probabilistic/bloomFilter/bloomFilter.ts:61-69` · `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.ts:57-59` · `src/data-structures/probabilistic/countMinSketch/countMinSketch.ts:59-67` · `src/data-structures/probabilistic/hyperLogLog/hyperLogLog.ts:67-76` · `src/data-structures/probabilistic/minHash/minHash.ts:71-80`) | 026·S24 | KAN-026 배치14 |  |
-| 134 | 원칙 B 낡는 문장 · `:6549` | KAN-027 `treap.contract.ts` 10–16 · 22–27 · `treap.ts` 37–39 · `skipList.ts` 92–98 · `lruCache.ts` 110–116, KAN-027 conventions 「한정자의 강한 읽기는 축이 그 강함을 잴 때만 적는다 (T3-03 확정)」 · 「`expected` 의 호출별 읽기와 「강한 읽기는 축이 잴 때만 적는다」가 어긋난다 (T5-04 제기 — 미결)」 · KAN-027 불변 사실 158 · 236 | 고침 S28 | 이 배치(끝남) | 헤더 셋 · 스위트 머리말. conventions 두 절 · 불변 사실 158 · 236 은 아래 새 행 |
-| 135 | 이 배치가 찾은 것 | `docs/ORD-006-conventions.md` 짧은 인용 14 곳(`:4409` · `:4410` · `:4916` · `:5133` · `:5711` · `:5712` · `:5871` · `:6011` · `:6174` · `:6203` · `:6210` · `:6222` · `:6241` · `:6440`) | 고침 S26 | 이 배치(끝남) | 병합 재매핑이 옮기지 못한 `:N` · 산문 줄 번호 — 아래 「이 work 가 고친 줄」 |
+| 131 | 원칙 B 낡는 문장 · `:6670` | `docs/ORD-006-runbook.md:1700-1717`(297–299) · `docs/ORD-006-runbook.md:1722-1726`(350) · `docs/ORD-006-runbook.md:1766-1780`(360–361) · `docs/ORD-006-runbook.md:1800-1804`(366) · `docs/ORD-006-runbook.md:1836-1846`(374–375) · `docs/ORD-006-runbook.md:1857-1861`(378) | 026·S24 | KAN-026 배치14 |  |
+| 132 | 원칙 B 낡는 문장 · `:6671` | `src/data-structures/_contract/judge.ts:69-78` | KAN-041 | KAN-026·027 main 병합 뒤 · KAN-036 전 | 하네스 파일 — H2 가 고친다 |
+| 133 | 원칙 B 낡는 문장 · `:6672` | 다섯 계약 스위트 머리말(`src/data-structures/probabilistic/bloomFilter/bloomFilter.contract.ts:24-29` · `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.contract.ts:9-11` · `src/data-structures/probabilistic/countMinSketch/countMinSketch.contract.ts:21-25` · `src/data-structures/probabilistic/hyperLogLog/hyperLogLog.contract.ts:22-26` · `src/data-structures/probabilistic/minHash/minHash.contract.ts:22-24`)과 헤더의 「판정 문장과 여유」 · 「틈」 문단(`src/data-structures/probabilistic/bloomFilter/bloomFilter.ts:61-69` · `src/data-structures/probabilistic/cuckooFilter/cuckooFilter.ts:57-59` · `src/data-structures/probabilistic/countMinSketch/countMinSketch.ts:59-67` · `src/data-structures/probabilistic/hyperLogLog/hyperLogLog.ts:67-76` · `src/data-structures/probabilistic/minHash/minHash.ts:71-80`) | 026·S24 | KAN-026 배치14 |  |
+| 134 | 원칙 B 낡는 문장 · `:6673` | KAN-027 `treap.contract.ts` 10–16 · 22–27 · `treap.ts` 37–39 · `skipList.ts` 92–98 · `lruCache.ts` 110–116, KAN-027 conventions 「한정자의 강한 읽기는 축이 그 강함을 잴 때만 적는다 (T3-03 확정)」 · 「`expected` 의 호출별 읽기와 「강한 읽기는 축이 잴 때만 적는다」가 어긋난다 (T5-04 제기 — 미결)」 · KAN-027 불변 사실 158 · 236 | 고침 S28 | 이 배치(끝남) | 헤더 셋 · 스위트 머리말. conventions 두 절 · 불변 사실 158 · 236 은 아래 새 행 |
+| 135 | 이 배치가 찾은 것 | `docs/ORD-006-conventions.md` 짧은 인용 14 곳(`:4476` · `:4477` · `:5003` · `:5133` · `:5711` · `:5815` · `:5871` · `:6011` · `:6174` · `:6324` · `:6210` · `:6222` · `:6362` · `:6440`) | 고침 S26 | 이 배치(끝남) | 병합 재매핑이 옮기지 못한 `:N` · 산문 줄 번호 — 아래 「이 work 가 고친 줄」 |
 | 136 | 이 배치가 찾은 것 | `tools/ord006-wbs.ts:49` TA 주석 「300-349 · 380-389 는 KAN-027 몫」 | 고침 S26 | 이 배치(끝남) | 380–389 반납(KAN-027 검토 #11) |
 | 137 | 이 배치가 찾은 것 | `docs/ORD-006-wbs.md:54` T5 행 「모자라면 380–389」 | 고침 S26 | 이 배치(끝남) | 같다 — 대역 표가 정본이라 함께 |
 | 138 | 이 배치가 찾은 것 | `tools/ord006-wbs.ts:452` TA-13 note 「KAN-027 병합 전까지 두 번 세어진다」 | 고침 S26 | 이 배치(끝남) | 병합으로 해소 |
@@ -7047,7 +7047,7 @@ B군 마감 18 행의 둘째 물음(축3 시나리오 끝 값 대조)이고 그 
 |---|---|---|
 | `tree/treap/treap.contract.ts` 머리말 `expected` 문단(`:10`) | seed 가 정하는 것은 입력이지 구현 무작위가 아니다 — 하네스는 구현 내부를 흔들지 못한다 · 오름차순 시나리오는 다섯 seed 가 같은 값을 낸다 | seed 마다 새 인스턴스라 한 seed 는 입력 seed 와 구현 무작위를 함께 바꾼다(B2) · `ctx.rng` 를 안 읽는 시나리오에서만 입력이 고정되고 다섯은 인스턴스만 새로 세운 다섯 번(B1 · B3) · 호출별 기대는 아홉째만 보고 [경험](B6) |
 | 같은 머리말 「통과시키는 계약 위반」(`:22`) | 끌어올리는 트리가 여덟을 통과 · 「왜 고칠 수 없는지는 헤더에」 | 앞 여덟을 통과하고 아홉째가 잡는다 · 탐침도 못 보는 의무와 보완 작업은 헤더 끝 |
-| `tree/treap/treap.ts` 「축3이 이 갈림을 못 본다」 · 「현재 판정 규격만으로는 … 처분은 가이드다(불변 사실 45)」(`:34` · `:41`) | 영구 처분 「가이드」 | 시퀀스 평균이 못 본다 · 입력 고정 탐침이 하네스를 고치지 않고 일부 본다 · [경험] · 틈은 헤더 끝 B7 표. **가이드가 줄 번호로 인용하므로 줄 수를 지켰다** |
+| `tree/treap/treap.ts` 「축3이 이 갈림을 못 본다」 · 「현재 판정 규격만으로는 … 처분은 가이드다(불변 사실 45)」(`:38` · `:45`) | 영구 처분 「가이드」 | 시퀀스 평균이 못 본다 · 입력 고정 탐침이 하네스를 고치지 않고 일부 본다 · [경험] · 틈은 헤더 끝 B7 표. **가이드가 줄 번호로 인용하므로 줄 수를 지켰다** |
 | `tree/treap/treap.ts` 헤더 끝(새 문단 · 표) | — | 호출별 기대를 두는 근거 · 무작위 출처 셋(B2) · 입력 독립(B1) · **공유 범위를 적지 않아 「실행」으로 읽는다**(목적이 인스턴스끼리의 독립을 요구하지 않아 좁히지 않는다) · 「검사 못 하는 의무」 표 다섯 행 |
 | `probabilistic/skipList/skipList.ts` 「`expected` 의 확률이 어디서 오는가」 | T3-03 은 약한 읽기를 적으라 한다 — **`tree/treap` 계약은 그 규칙보다 먼저 섰고** 성격 전환이라 바꿀 수 없다 · 사람 결정으로 넘긴다 | 호출별 기대로 두고 낮추지 않는다(B7) · 출처 셋(B2) · 앞 여덟은 못 재고 아홉째 탐침이 잡는다 · 의무와 보완 작업은 `tree/treap` 헤더 끝 표가 이 계약의 것으로 적는다 |
 | `skipList.ts` 「「같다」의 범위」 넷째 항목 · 결함 표 세 행 | 「이 절은 그 읽기를 정하지 않는다」 · 여덟 시나리오 기준 | 읽기는 `tree/treap` 헤더 끝이 정했다 · 아홉째 결과 |
@@ -7104,7 +7104,7 @@ H1 러너를 `expected` 에 쓰기, main 병합 뒤 · `KAN-036` 전), 구현을
 여는 조건 「구현을 읽지 않고 적대 입력을 짓는 방법이 나오면」).
 
 **스위트 파일에 따라 움직인 것.** `src/data-structures/_contract/runContract.test.ts` 의 `treap` 기대 객체 다섯에 `has (적대적)` 키, 시험 이름 둘 ·
-주석(줄 수 3,623 유지 — 뒤쪽 가이드 인용 `:3339` … `:3593` 와 `:1936` · `:1946` 을 밀지 않았다), `src/data-structures/_contract/runContract.skipList.test.ts`
+주석(줄 수 3,623 유지 — 뒤쪽 가이드 인용 `:3368` … `:3628` 와 `:1943` · `:1953` 을 밀지 않았다), `src/data-structures/_contract/runContract.skipList.test.ts`
 의 깃발 문자열 다섯(9 자리). vector 는 축3 시나리오를 싣지 않아 바뀌지 않는다.
 
 **규칙.** 호출별 기대를 적은 계약에서 하네스를 고치지 않고 그 읽기를 재려면 **입력을 seed 와 무관하게 고정하고, n 과 무관한 상수 개의 탐침 호출만
@@ -7155,7 +7155,7 @@ H1 러너를 `expected` 에 쓰기, main 병합 뒤 · `KAN-036` 전), 구현을
 | 등록 · 표시 | `VERIFICATION_GRADES` · inventory 행 · `tools/ord006-wbs.ts` TA-03 note · `tools/guide-skeleton.test.ts` 의 `SKELETON_EXEMPT` 사유(가이드 본문은 `KAN-036` 몫) |
 | 고치지 않은 것 | fixture 셋(`stepGrowthArray` · `halfShrinkArray` · `walkingIndexList`)은 `toArray` 를 든 채 둔다 — 읽기만 하는 파일이고 계약 표면에 없는 메서드라 하네스가 부르지 않는다. `dynamicArray.size`(판정표 ③)는 `KAN-040` |
 
-**인용 줄을 지켰다.** 판정표 ① · ③ 이 `dynamicArray.ts:36-37` · `:61`(`size` 행)을, 3900 행 절이 정본 `:96`(`#moveTo`)을 줄로 가리키고 이
+**인용 줄을 지켰다.** 판정표 ① · ③ 이 `dynamicArray.ts:36-37` · `:65`(`size` 행)을, 3900 행 절이 정본 `:100`(`#moveTo`)을 줄로 가리키고 이
 문서는 절 추가만 하므로, 헤더 앞부분의 줄 수와 정본의 줄 수를 그대로 두었다(불변 사실 81).
 
 ### 근거 교체 16 행 (S23)
