@@ -1,6 +1,6 @@
 {
   "next_id": 50,
-  "next_seq": 340,
+  "next_seq": 342,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1239,6 +1239,26 @@
   ],
   "recent": [
     {
+      "seq": 341,
+      "t": "2026-09-17T02:29",
+      "a": "유저",
+      "id": "KAN-039-FG8HWZ",
+      "op": "waive",
+      "w": "VB5VKS",
+      "with_": "KAN-042-Z02G0W",
+      "reason": "겹치는 것은 docs/ORD-006-inventory.tsv 하나이고 행이 다르다 — KAN-039 는 rollingHash·huffmanTree 행, KAN-042 는 vanEmdeBoasTree 행. 병합 충돌은 행 단위로 양쪽을 살린다"
+    },
+    {
+      "seq": 340,
+      "t": "2026-09-17T02:29",
+      "a": "유저",
+      "id": "KAN-036-0G05DE",
+      "op": "serialize",
+      "w": "VB5VKS",
+      "with_": "KAN-042-Z02G0W",
+      "reason": "vEB 계약의 축3 시나리오와 헤더가 바뀌므로 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)"
+    },
+    {
       "seq": 339,
       "t": "2026-09-17T02:28",
       "a": "ai",
@@ -1770,26 +1790,6 @@
       "w": "46PCAX",
       "with_": "KAN-027",
       "reason": "유저 결재(2026-09-16) — 선행이 세운 원칙·산출물 위에서 판정하고, 계약·축3 수치가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다"
-    },
-    {
-      "seq": 301,
-      "t": "2026-09-16T01:42",
-      "a": "유저",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-041-JJ5DA7",
-      "reason": "유저 결재(2026-09-16) — 선행이 세운 원칙·산출물 위에서 판정하고, 계약·축3 수치가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다"
-    },
-    {
-      "seq": 300,
-      "t": "2026-09-16T01:41",
-      "a": "유저",
-      "id": "KAN-041-JJ5DA7",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-027",
-      "reason": "유저 결재(2026-09-16) — 선행이 세운 원칙·산출물 위에서 판정하고, 계약·축3 수치가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다"
     }
   ],
   "waivers": [
@@ -1805,6 +1805,13 @@
       "scope_hash": "cbb876ab7f72a222",
       "reason": "유저 지시(2026-09-14) 「026이랑 027 병렬로 착수」 용인의 재기록(2026-09-16) — scope 에 KAN-026 은 tools/ci.ts · tools/ci-workflow.test.ts · .github/workflows/ci.yml · CLAUDE.md(S24 trials 모드), KAN-027 은 tree/linkCutTree(S29 정정)를 더해 해시가 바뀌었다. 구조 디렉터리는 여전히 겹치지 않고, 공유 문서 · 등록 파일은 KAN-027 이 KAN-026 을 병합해 푼다(병합 커밋 e1d9f18 의 방식)",
       "created": "2026-09-16T04:10",
+      "by": "유저"
+    },
+    {
+      "pair": "KAN-039-FG8HWZ|KAN-042-Z02G0W",
+      "scope_hash": "03ad98255fa1e380",
+      "reason": "겹치는 것은 docs/ORD-006-inventory.tsv 하나이고 행이 다르다 — KAN-039 는 rollingHash·huffmanTree 행, KAN-042 는 vanEmdeBoasTree 행. 병합 충돌은 행 단위로 양쪽을 살린다",
+      "created": "2026-09-17T02:29",
       "by": "유저"
     }
   ],
@@ -1912,18 +1919,6 @@
         "KAN-042-Z02G0W"
       ],
       "scope_hash": "143d86f281080b32",
-      "reason": "유저 결재(2026-09-16) — 선행이 세운 원칙·산출물 위에서 판정하고, 계약·축3 수치가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다",
-      "created": "2026-09-16T01:42",
-      "by": "유저",
-      "restrategy_required": false
-    },
-    {
-      "pair": "KAN-036-0G05DE|KAN-042-Z02G0W",
-      "order": [
-        "KAN-042-Z02G0W",
-        "KAN-036-0G05DE"
-      ],
-      "scope_hash": "5b05c0233415c6aa",
       "reason": "유저 결재(2026-09-16) — 선행이 세운 원칙·산출물 위에서 판정하고, 계약·축3 수치가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다",
       "created": "2026-09-16T01:42",
       "by": "유저",
@@ -2108,6 +2103,18 @@
       "created": "2026-09-17T00:09",
       "by": "유저",
       "restrategy_required": true
+    },
+    {
+      "pair": "KAN-036-0G05DE|KAN-042-Z02G0W",
+      "order": [
+        "KAN-042-Z02G0W",
+        "KAN-036-0G05DE"
+      ],
+      "scope_hash": "b54c94bd19d30ccd",
+      "reason": "vEB 계약의 축3 시나리오와 헤더가 바뀌므로 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)",
+      "created": "2026-09-17T02:29",
+      "by": "유저",
+      "restrategy_required": false
     }
   ]
 }
