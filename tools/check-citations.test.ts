@@ -45,9 +45,41 @@ const bare = (line: number | string) => `\`:${line}\``;
 const key = (src: string, target: string, line: number) =>
   [src, target, line].join("\t");
 
+/**
+ * 산문 속 맨 줄 번호를 조립한다. 지금 래칫이 보는 자리는 `docs/**` 뿐이라 이 파일은 밖이지만,
+ * 자리가 넓어졌을 때 시험 fixture 가 실물 기준선을 오염시키지 않도록 위 둘과 같이 조립한다.
+ */
+const naked = (line: number) => `${line} 줄`;
+
 const T = "docs/target.md";
 const SRC = "docs/source.md";
 const RUNBOOK = "docs/runbook.md";
+const CARD = "KANBAN.cards/KAN-000-TEST.md";
+const PROSE = "docs/prose.md";
+
+/** 카드 문서의 골격. 절 이름 넷은 스킬이 강제하는 것이고 도구가 그 넷만 안다. */
+const cardDoc = (strategy: string, log: string, extraSection = ""): string =>
+  [
+    "---",
+    "card: KAN-000-TEST",
+    "---",
+    "",
+    "# KAN-000-TEST — 시험용 카드",
+    "",
+    "## 전략",
+    strategy,
+    "",
+    "## 실행 계획",
+    "- [ ] `S1` 무엇",
+    "",
+    "## 검증",
+    "1. 통과한다.",
+    "",
+    extraSection,
+    "## 수행 내역",
+    log,
+    "",
+  ].join("\n");
 
 const trees: string[] = [];
 
@@ -446,6 +478,172 @@ test("E1 — 출처가 KANBAN 문서인 파일은 인용을 세지 않는다", a
   const scan = await scanTree(root);
   expect(scan.checked).toBe(0);
   expect(scan.rows).toEqual([]);
+});
+
+// ── KAN-047 — 예외 E1 의 새 경계 · 범위 끝 줄 · 맨 줄 번호 ─────────────────────
+//
+//    셋 다 「게이트가 조용했던 자리」다. 그래서 여기서도 재는 것은 통과가 아니라 **변형을
+//    넣으면 실패한다** 이고, ⓑ 만 반대다 — 예외가 **좁게** 남아 있는지를 잰다.
+
+test("ⓐ 카드 문서의 「전략」 절 인용이 밀리면 실패한다", async () => {
+  const root = await makeTree({
+    [T]: TARGET,
+    [CARD]: cardDoc(
+      `정본은 \`${at(T, 3)}\` 이다.`,
+      `- 2026-09-16 · 그때는 \`${at(T, 5)}\` 였다.`,
+    ),
+  });
+  // 대장에 서는 것은 「전략」 절 하나다 — 「수행 내역」 절은 예외라 세지도 않는다.
+  const clean = await baseline(root);
+  expect(clean.text).toContain("대장 1행과 지문이 모두 일치한다");
+  expect((await scanTree(root)).checked).toBe(1);
+
+  await write(root, T, `# 머리말\n\n${TARGET}`);
+
+  const after = await call(root);
+  expect(after.code).toBe(1);
+  expect(after.text).toContain("지문이 다르다");
+  expect(after.text).toContain(`${CARD} → ${at(T, 3)}`);
+});
+
+test("ⓑ 「수행 내역」 절 인용은 밀려도 통과한다 — 예외는 그 절 하나다", async () => {
+  const root = await makeTree({
+    [T]: TARGET,
+    [CARD]: cardDoc(
+      `정본은 \`${at(T, 3)}\` 이다.`,
+      `- 2026-09-16 · 그때는 \`${at(T, 5)}\` 였다.`,
+    ),
+  });
+  await baseline(root);
+
+  // 기록이 가리키던 줄의 내용이 바뀌었다. 고치면 기록이 거짓이 되므로 게이트는 조용하다.
+  await write(root, T, TARGET.replace("끝.", "고친 끝."));
+  expect((await call(root)).code).toBe(0);
+
+  // 같은 변형을 「전략」 절이 가리키면 잡힌다 — 예외가 절 하나로 좁다는 증거다.
+  const live = await makeTree({
+    [T]: TARGET,
+    [CARD]: cardDoc(`정본은 \`${at(T, 5)}\` 이다.`, "- 기록 없음"),
+  });
+  await baseline(live);
+  await write(live, T, TARGET.replace("끝.", "고친 끝."));
+  const after = await call(live);
+  expect(after.code).toBe(1);
+  expect(after.text).toContain("지문이 다르다");
+});
+
+test("ⓒ 카드 문서에 모르는 `## ` 제목이 생기면 실패한다", async () => {
+  const root = await makeTree({
+    [T]: TARGET,
+    [CARD]: cardDoc(
+      `정본은 \`${at(T, 3)}\` 이다.`,
+      "- 기록 없음",
+      `## 메모\n\n딴 절의 인용 \`${at(T, 5)}\`.\n`,
+    ),
+  });
+
+  const after = await call(root);
+  expect(after.code).toBe(1);
+  expect(after.text).toContain("모르는 절은 검사 밖으로 빠지지 않는다");
+
+  // **새는 방향이 뒤집혔다는 것이 이 설계의 전부다** — 모르는 절은 검사 밖으로 빠지는 것이
+  // 아니라 검사 대상으로 남고, 게이트는 그 위에서 붉어진다.
+  const scan = await scanTree(root);
+  const keys = scan.rows.map((r) => `${r.src} → ${at(r.target, r.targetLine)}`);
+  expect(keys).toContain(`${CARD} → ${at(T, 5)}`);
+});
+
+test("ⓓ 범위 인용의 끝이 빈 줄이면 존재 검사가 잡는다", async () => {
+  const root = await makeTree({
+    [T]: TARGET,
+    [SRC]: `정본: \`${at(T, "3-4")}\`\n`,
+  });
+
+  const after = await call(root);
+  expect(after.code).toBe(1);
+  expect(after.text).toContain("범위의 끝");
+  expect(after.text).toContain(`${at(T, 4)} 이 빈 줄이다`);
+
+  // 대장에 행이 서지 않는 구조는 그대로 둔다(빈 줄은 지문이 없다) — 존재 검사가 먼저 잡는다.
+  const scan = await scanTree(root);
+  expect(scan.rows.map((r) => r.targetLine)).toEqual([3]);
+
+  // 내용이 있는 줄까지로 줄이면 통과한다.
+  await write(root, SRC, `정본: \`${at(T, "3-5")}\`\n`);
+  expect((await call(root)).code).toBe(0);
+});
+
+test("ⓔ 산문 속 맨 줄 번호가 늘면 실패한다(래칫)", async () => {
+  const root = await makeTree({
+    [T]: TARGET,
+    [PROSE]: `정본은 ${naked(120)} 근처다.\n`,
+  });
+  await baseline(root);
+  const ledger = parseLedger(await Bun.file(join(root, LEDGER_PATH)).text());
+  expect(ledger.nakedLine).toBe(1);
+
+  await write(
+    root,
+    PROSE,
+    `정본은 ${naked(120)} 근처다.\n표는 ${naked(340)} 부터다.\n`,
+  );
+  const after = await call(root);
+  expect(after.code).toBe(1);
+  expect(after.text).toContain("맨 줄 번호 래칫이 깨졌다");
+  expect(after.text).toContain("1 → 2");
+  expect(after.text).toContain("`경로:줄` 또는 백틱 인용으로 적는다");
+
+  // 굳히기가 되지 않는다 — 래칫이 오른 채로 갱신하면 아무것도 쓰지 않는다.
+  const before = await Bun.file(join(root, LEDGER_PATH)).text();
+  const updated = await call(root, "update");
+  expect(updated.code).toBe(1);
+  expect(await Bun.file(join(root, LEDGER_PATH)).text()).toBe(before);
+
+  // **코드펜스 안은 세지 않는다** — 예시와 로그 사본이다(세는 규칙 ③).
+  await write(
+    root,
+    PROSE,
+    [
+      `정본은 ${naked(120)} 근처다.`,
+      "```",
+      `예시: ${naked(340)}`,
+      "```",
+      "",
+    ].join("\n"),
+  );
+  expect((await call(root)).code).toBe(0);
+});
+
+test("머리 주석에 없는 래칫 칸은 「올랐다」가 아니다 — 다음 갱신이 기준선으로 앉힌다", async () => {
+  const root = await makeTree({
+    [T]: TARGET,
+    [PROSE]: `정본은 ${naked(120)} 근처다.\n`,
+    [CARD]: cardDoc(`정본 \`${at(T, 3)}\` · ${bare(5)} 다.`, "- 기록 없음"),
+  });
+  await baseline(root);
+
+  // 검사 집합이 넓어지기 전의 대장을 흉내 낸다 — 새 칸 둘이 아직 없는 머리 주석이다.
+  const text = await Bun.file(join(root, LEDGER_PATH)).text();
+  const old = text
+    .split("\n")
+    .filter((l) => !l.startsWith("# cards") && !l.startsWith("# naked-line"))
+    .join("\n");
+  await write(root, LEDGER_PATH, old);
+  const parsed = parseLedger(old);
+  expect(parsed.ratchet).not.toBeNull();
+  expect(parsed.cardRatchet).toBeNull();
+  expect(parsed.nakedLine).toBeNull();
+
+  // 없는 칸은 오른 것이 아니다. 그래서 규격이 검사 집합을 넓힌 카드가 **한 번** 갱신할 수 있다.
+  expect((await call(root)).code).toBe(0);
+  expect((await call(root, "update")).code).toBe(0);
+  const now = parseLedger(await Bun.file(join(root, LEDGER_PATH)).text());
+  expect(now.nakedLine).toBe(1);
+  expect(now.cardRatchet?.bare).toBe(1);
+
+  // 앉은 뒤에는 다른 칸과 같다 — 오르면 실패다.
+  await write(root, PROSE, `정본은 ${naked(120)} · ${naked(340)} 근처다.\n`);
+  expect((await call(root)).code).toBe(1);
 });
 
 test("E4 — `경로:줄:열` 꼴은 인용이 아니다", async () => {

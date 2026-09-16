@@ -102,7 +102,7 @@ bunx tsc --noEmit                    # 승격 뒤로는 루트 tsc 가 v2 산출
 
 1. `extraViews`/`overrides` 로 검증된 뷰를 `VIEW_REGISTRY` 로 옮긴다.
 2. `tools/ci.ts` 에 `check-v2`·`check-proof` 를 편입한다(`comprehension.sh` 는 편입하지 않는다 — 실행하지 않는다).
-3. `tools/check-citations.ts:30` 의 `SCAN_GLOBS` 에 `src/algorithms` 를 추가한다 —
+3. `tools/check-citations.ts:36` 의 `SCAN_GLOBS` 에 `src/algorithms` 를 추가한다 —
    현재 알고리즘 트랙의 `경로:줄번호` 인용은 **아무도 안 본다**.
 4. `tools/_baseline/guide-rhythm.tsv` 의 `src/algorithms` **103행**을 이관한다.
    새 산출물이 `-guide.md` 라 `src/**/*-guide.mdx` 스캐너 밖이다.
