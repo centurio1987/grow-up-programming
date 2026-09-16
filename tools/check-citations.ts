@@ -4,8 +4,8 @@
  *
  * 이 도구가 있는 이유는 같은 결함이 두 배치 연속으로 났기 때문이다. B2 가 인용 오류 2건을
  * 잡고 "전수 검색했다"고 적었는데, 그 검색이 **전체 경로 형태만** 봤다. 파일 이름 없이
- * `` `:82` `` 로 적힌 상대 인용은 패턴에 걸리지 않아 런북에 그대로 남았고 B3 에서 다시 나왔다.
- * 사람이 도는 검색은 패턴을 빠뜨리고, 빠뜨린 것을 본인이 알 수 없다.
+ * `` `:NN` `` 꼴 상대 인용은 패턴에 걸리지 않아 런북에 그대로 남았고 B3 에서 다시 나왔다 — 예시에
+ * 진짜 수를 쓰면 이 문장이 인용이 된다. 사람이 도는 검색은 패턴을 빠뜨리고, 빠뜨린 것을 본인이 알 수 없다.
  *
  * **존재 검사 대상은 경로에 `/` 가 들어간 인용뿐이다.** 그것이 "따라가라고 적은 인용"의 집합이다.
  * `multiset.ts:25` 처럼 파일 이름만 있는 인용은 대개 지워진 파일의 옛 상태를 가리키는
@@ -16,6 +16,12 @@
  * 그래서 인용마다 **대상 줄 내용의 지문**을 대장(`tools/_baseline/citations.tsv`)에 적어 두고
  * 매번 대조한다. 규격의 정본은 `docs/ORD-006-conventions.md` 의 절 「인용 표류 게이트 규격」이고
  * **여기 적히지 않은 것을 이 파일이 새로 정하지 않는다.**
+ *
+ * **구멍 셋을 더 닫았다(KAN-047-394V9A `S2`).** ① 예외 E1 이 칸반 산출물을 통째로 뺀 탓에 카드
+ * 문서의 **살아 있는 계획 절**까지 검사 밖이었다 — 이제 `KANBAN.cards/**` 는 「수행 내역」 절만
+ * 예외이고, 카드가 쓸 수 있는 절 이름은 넷으로 고정이라 **모르는 `## ` 제목을 만나면 실패**한다
+ * ② 범위 인용의 **끝 줄**이 빈 줄이면 대장에 행이 서지 않아 조용했다 — 존재 검사가 먼저 잡는다
+ * ③ 콜론도 백틱도 없는 **산문 속 맨 줄 번호**는 인용으로 보이지 않는다 — 규약과 래칫으로 받는다.
  *
  * 실행:
  *   `bun run tools/check-citations.ts`            존재 + 표류 검사. exit 0 통과 · 1 실패
@@ -43,6 +49,10 @@ const SCAN_GLOBS = [
   // 두 v2 명세가 여기 산다. 안 넣으면 **명세가 건 `경로:줄번호` 를 아무도 안 본다** —
   // ds SPEC 이 ORD-006 규약을 줄 번호로 인용하는데 그 줄이 밀려도 조용하다.
   "sandbox",
+  // **KAN-047 이 넣었다.** 카드 문서의 「전략」·「실행 계획」·「검증」은 기록이 아니라 **살아 있는
+  // 계획**이고, 그 인용이 밀리면 다음 사람이 잘못 읽는다. 기록인 「수행 내역」 절만 예외로 빠진다
+  // (아래 `CARD_SECTIONS`). `KANBAN.batches` · `KANBAN.reviews` 는 통째 예외 그대로다.
+  "KANBAN.cards",
 ];
 
 const SCAN_EXTENSIONS = [".md", ".mdx", ".ts", ".rs"];
@@ -90,12 +100,44 @@ const CONNECTORS_ONLY = /^(?:[\s`·,()]|\.{3}|…)*$/u;
 /** 대장. **경로를 플래그로 받지 않는다** — 받으면 CI 와 사람이 다른 파일을 본다. */
 export const LEDGER_PATH = "tools/_baseline/citations.tsv";
 
+/** 카드 문서가 사는 자리. 이 아래만 절 단위 예외를 받는다. */
+const CARD_PREFIX = "KANBAN.cards/";
+
 /**
- * **예외 E1 — 출처가 `KANBAN.**` 인 인용 전부.** 배치 문서 · 카드 「수행 내역」 · 검토서는
- * **발행 시점의 사실**을 적은 기록이라, 대상이 뒤에 움직여도 고치면 기록이 거짓이 된다.
- * 지금도 `SCAN_GLOBS` 밖이고 **넓히지 않는다는 결정**을 여기에 박아 둔다.
+ * **카드 문서의 절 이름은 넷뿐이다** — 스킬이 강제하는 골격이다. 그 밖의 `## ` 제목을 만나면
+ * **실패**한다(아래 `cardExemptLines`). KAN-045 가 절 단위 예외를 배제한 까닭이 「절 경계 파싱이
+ * 구조 변화에 검사 밖으로 샌다」였으므로, **새는 방향을 뒤집는 이 장치가 이 설계의 유일한 근거**다.
+ * 모르는 절을 만나면 조용히 빠지는 것이 아니라 게이트가 붉어진다.
  */
-const EXEMPT_SOURCE = (path: string) => path.startsWith("KANBAN.");
+const CARD_SECTIONS = ["전략", "실행 계획", "검증", "수행 내역"];
+
+/** 카드 문서에서 예외로 남는 절 하나. 발행 시점의 사실을 적은 기록이다. */
+const CARD_LOG_SECTION = "수행 내역";
+
+/**
+ * **예외 E1(KAN-047 이 좁혔다) — 출처가 `KANBAN.batches/**` · `KANBAN.reviews/**` 인 인용 전부.**
+ * 배치 문서와 검토서는 **발행 시점의 사실**을 적은 기록이라, 대상이 뒤에 움직여도 고치면 기록이
+ * 거짓이 된다. **카드 문서(`KANBAN.cards/**`)는 예외가 아니다** — 거기서는 「수행 내역」 절만
+ * 빠진다(`CARD_SECTIONS`).
+ */
+const EXEMPT_SOURCE = (path: string) =>
+  path.startsWith("KANBAN.") && !path.startsWith(CARD_PREFIX);
+
+/**
+ * **산문 속 맨 줄 번호.** 콜론도 백틱도 없이 「NNN 줄」처럼 적은 수는 인용으로 보이지 않아
+ * 존재 검사도 표류 검사도 닿지 않는다. 일반 탐지는 흐리므로(문서가 적는 **크기**와 구별이
+ * 안 된다) 규약과 **래칫**으로 받는다 — 지금 수를 기준선에 박고 **늘면 실패**한다.
+ *
+ * **세는 규칙.** ① 대상은 `docs/**` 의 `.md` 뿐이다 ② 앞이 글자·숫자·`:`·`.`·`-` 가 아닌 자리에서
+ * 시작하는 **세 자리 이상**의 수가 공백 0 개 이상을 사이에 두고 `줄` 로 이어지는 것을 한 건으로
+ * 센다 ③ **코드펜스 안은 세지 않는다**(예시와 로그 사본이다). 두 자리 이하를 빼는 것은 「축3」·
+ * 「8 단계」 같은 산문의 작은 수를 피하기 위해서다.
+ */
+const NAKED_LINE_NUMBER = /(?<![0-9A-Za-z_:.-])\d{3,}\s*줄/gu;
+
+/** 맨 줄 번호 래칫이 보는 자리. 산문 문서만이다. */
+const NAKED_LINE_SCOPE = (path: string) =>
+  path.startsWith("docs/") && path.endsWith(".md");
 
 /**
  * **예외 E2 — 대상이 `KANBAN.reviews/**` 인 줄 인용.** 검토서는 재발행마다 통째로 밀려
@@ -144,6 +186,8 @@ export interface Ratchet {
   nakedName: number;
 }
 
+export type Counts = Ratchet & { attached: number; self: number };
+
 export interface Scan {
   /** 존재 검사를 돈 경로 있는 인용 수. */
   checked: number;
@@ -151,7 +195,15 @@ export interface Scan {
   rows: Row[];
   held: Held[];
   origins: Map<string, Origin[]>;
-  counts: Ratchet & { attached: number; self: number };
+  /** 칸반 밖 출처의 경로 없는 인용 계수. KAN-045 가 박은 기준선이 사는 칸이다. */
+  counts: Counts;
+  /**
+   * **카드 문서 출처의 계수는 칸을 따로 쓴다.** 검사 집합이 넓어진 것을 옛 칸에 더하면
+   * 기준선이 한 번 올라가고, 그 자리는 「래칫은 오를 수 있다」를 가르치는 자리가 된다.
+   */
+  cardCounts: Counts;
+  /** 산문 속 맨 줄 번호 건수(`NAKED_LINE_SCOPE` 안). */
+  nakedLine: number;
 }
 
 const rowKey = (src: string, target: string, targetLine: number) =>
@@ -256,6 +308,61 @@ function bareHits(line: string): BareHit[] {
 }
 
 /**
+ * 카드 문서에서 **검사 밖으로 두는 줄**을 가른다 — 예외는 「수행 내역」 절 하나뿐이다.
+ *
+ * **모르는 `## ` 제목은 실패로 낸다.** 절 경계 파싱의 위험은 「구조가 바뀌면 조용히 검사 밖으로
+ * 샌다」였다. 그 방향을 뒤집는다 — 아는 넷 말고 다른 제목을 만나면 그 절은 **검사 대상으로 두고**
+ * (`inLog` 가 서지 않는다) 게이트는 붉어진다. 새 절을 진짜로 들이려면 규격과 이 목록을 함께 고친다.
+ *
+ * **코드펜스 안의 `## ` 줄은 제목이 아니다.** 카드가 제 골격을 예시로 인용하면 「전략」 절 안에
+ * 펜스로 `## 수행 내역` 이 서고, 그것을 제목으로 읽으면 **그 뒤가 통째로 예외**가 된다 — 살아
+ * 있는 계획이 조용히 검사 밖으로 빠지고 실패도 안 난다. 스킬의 절 파서(`parse_sections`)는 펜스를
+ * 아는데 이쪽만 모르면 **같은 문서를 둘이 다르게 자르고 갈리는 방향이 「검사 안 함」**이라, 위
+ * 문단이 세운 이 설계의 유일한 근거가 그 한 자리에서 깨진다. 토글은 `countNakedLineNumbers` 와 같다.
+ */
+function cardExemptLines(
+  file: string,
+  lines: string[],
+  problems: Problem[],
+): boolean[] {
+  const exempt = new Array<boolean>(lines.length).fill(false);
+  let inLog = false;
+  let fenced = false;
+  for (const [index, line] of lines.entries()) {
+    if (/^\s*```/.test(line)) {
+      fenced = !fenced;
+    } else if (!fenced && line.startsWith("## ")) {
+      const name = line.slice(3).trim();
+      if (!CARD_SECTIONS.includes(name)) {
+        problems.push({
+          where: `${file}:${index + 1}`,
+          citation: line.trim(),
+          detail: `카드 문서의 절 이름은 ${CARD_SECTIONS.map((s) => `「${s}」`).join(" · ")} 넷뿐이다. 모르는 절은 검사 밖으로 빠지지 않는다 — 규격(인용 표류 게이트 규격)과 이 목록을 함께 고친다`,
+        });
+      }
+      inLog = name === CARD_LOG_SECTION;
+    }
+    exempt[index] = inLog;
+  }
+  return exempt;
+}
+
+/** 산문 속 맨 줄 번호를 센다. 코드펜스 안은 세지 않는다(`NAKED_LINE_NUMBER` 의 세는 규칙). */
+export function countNakedLineNumbers(lines: string[]): number {
+  let fenced = false;
+  let found = 0;
+  for (const line of lines) {
+    if (/^\s*```/.test(line)) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced) continue;
+    found += (line.match(NAKED_LINE_NUMBER) ?? []).length;
+  }
+  return found;
+}
+
+/**
  * 저장소 하나를 훑어 **존재 검사 결과 · 지금 시점의 대장 행 · 보류 목록**을 낸다.
  * `root` 를 받는 까닭은 자기시험이 임시 트리를 만들어 같은 코드를 돌리기 위해서다.
  */
@@ -276,15 +383,18 @@ export async function scanTree(root: string): Promise<Scan> {
   const held: Held[] = [];
   const origins = new Map<string, Origin[]>();
   const rowByKey = new Map<string, Row>();
-  const counts = {
+  const emptyCounts = (): Counts => ({
     bare: 0,
     detached: 0,
     unresolved: 0,
     nakedName: 0,
     attached: 0,
     self: 0,
-  };
+  });
+  const counts = emptyCounts();
+  const cardCounts = emptyCounts();
   let checked = 0;
+  let nakedLine = 0;
 
   /**
    * 대장 행 하나를 세운다. 지문이 없으면(빈 줄) 세우지 않는다 — 빈 줄의 지문은 모든 빈 줄과
@@ -334,10 +444,19 @@ export async function scanTree(root: string): Promise<Scan> {
   files.sort();
 
   for (const file of files) {
-    if (EXEMPT_SOURCE(file)) continue; // E1
+    if (EXEMPT_SOURCE(file)) continue; // E1 — 배치 문서 · 검토서는 통째로
     const sourceLines = (await linesOf(file)) ?? [];
+    const isCard = file.startsWith(CARD_PREFIX);
+    // 카드 문서는 절을 안다 — 「수행 내역」만 예외이고, 모르는 절 제목은 **실패**다.
+    const exemptLine = isCard
+      ? cardExemptLines(file, sourceLines, problems)
+      : null;
+    const bucket = isCard ? cardCounts : counts;
+
+    if (NAKED_LINE_SCOPE(file)) nakedLine += countNakedLineNumbers(sourceLines);
 
     for (const [index, line] of sourceLines.entries()) {
+      if (exemptLine?.[index] === true) continue; // E1 — 카드의 「수행 내역」 절
       const paths = pathHits(line);
       const bares = bareHits(line);
       if (paths.length === 0 && bares.length === 0) continue;
@@ -375,6 +494,18 @@ export async function scanTree(root: string): Promise<Scan> {
             detail: `${hit.target}:${start} 이 빈 줄이다`,
           });
         }
+        // **끝 줄도 본다(KAN-047).** 빈 줄은 지문이 없어 대장에 행이 서지 않으므로
+        // (2 의 규칙), 끝이 빈 줄인 범위는 **존재 검사도 표류 검사도 조용했다** —
+        // 대장에 없는 좌표는 밀려도 울 자리가 없다. 존재 검사가 먼저 잡게 한다.
+        if (hit.rangeEnd !== undefined && end !== start) {
+          if ((targetLines[end - 1] ?? "").trim() === "") {
+            problems.push({
+              where,
+              citation: hit.text,
+              detail: `범위의 끝 ${hit.target}:${end} 이 빈 줄이다 — 빈 줄은 대장에 서지 않아 밀려도 조용하다. 내용이 있는 줄까지로 범위를 줄인다`,
+            });
+          }
+        }
       }
 
       // ── 해석 — 한 줄을 왼쪽에서 오른쪽으로 훑으며 닻을 든다. **같은 줄 증거만 쓴다.**
@@ -406,7 +537,7 @@ export async function scanTree(root: string): Promise<Scan> {
           continue;
         }
 
-        counts.bare++;
+        bucket.bare++;
         const gap =
           anchor !== null && anchor.end <= hit.at
             ? line.slice(anchor.end, hit.at)
@@ -421,15 +552,15 @@ export async function scanTree(root: string): Promise<Scan> {
           how = `붙임(닻 = \`${anchor.target}\`)`;
           // 붙임은 닻의 끝을 이어받아 다음 인용의 기준이 된다.
           anchor = { target: anchor.target, end: hit.end };
-          counts.attached++;
+          bucket.attached++;
         } else if (anchor === null && !lineHasNakedName) {
           target = file;
           how = "자기";
-          counts.self++;
+          bucket.self++;
         } else {
           // 보류 — 나머지 전부. 대장에 넣지 않는다.
           const code: HeldCode = anchor !== null ? "detached" : "naked-name";
-          counts[code === "detached" ? "detached" : "nakedName"]++;
+          bucket[code === "detached" ? "detached" : "nakedName"]++;
           held.push({
             where,
             citation: hit.text,
@@ -452,9 +583,9 @@ export async function scanTree(root: string): Promise<Scan> {
           // 고른 해석으로 풀면 파일 밖이거나 빈 줄이다 — 이미 밀려 있거나, 지워진 파일의
           // 옛 상태를 적은 기록이다. 세운 행은 남겨 두면 반쪽이라 여기서 거둔다.
           if (okStart) unregister(file, target, hit.start);
-          if (attached) counts.attached--;
-          else counts.self--;
-          counts.unresolved++;
+          if (attached) bucket.attached--;
+          else bucket.self--;
+          bucket.unresolved++;
           held.push({
             where,
             citation: hit.text,
@@ -467,7 +598,16 @@ export async function scanTree(root: string): Promise<Scan> {
   }
 
   const rows = [...rowByKey.values()].sort(compareRows);
-  return { checked, problems, rows, held, origins, counts };
+  return {
+    checked,
+    problems,
+    rows,
+    held,
+    origins,
+    counts,
+    cardCounts,
+    nakedLine,
+  };
 }
 
 /**
@@ -483,27 +623,45 @@ export function compareRows(a: Row, b: Row): number {
 
 export interface Ledger {
   rows: Map<string, Row>;
+  /** 칸반 밖 출처의 보류 래칫. KAN-045 가 박은 줄이고 형식이 그대로다. */
   ratchet: Ratchet | null;
+  /** 카드 문서 출처의 보류 래칫(KAN-047). */
+  cardRatchet: Ratchet | null;
+  /** 산문 속 맨 줄 번호 래칫(KAN-047). */
+  nakedLine: number | null;
 }
 
 const RATCHET_LINE =
   /^#\s*bare\s+(\d+)\s+held\s+detached=(\d+)\s+unresolved=(\d+)\s+naked-name=(\d+)/;
 
+/** 카드 출처 칸. 앞의 `cards` 때문에 위 정규식과 섞이지 않는다. */
+const CARD_RATCHET_LINE =
+  /^#\s*cards\s+bare=(\d+)\s+held\s+detached=(\d+)\s+unresolved=(\d+)\s+naked-name=(\d+)/;
+
+const NAKED_LINE_RATCHET = /^#\s*naked-line\s+(\d+)/;
+
+const readRatchet = (match: RegExpExecArray): Ratchet => ({
+  bare: Number(match[1]),
+  detached: Number(match[2]),
+  unresolved: Number(match[3]),
+  nakedName: Number(match[4]),
+});
+
 export function parseLedger(text: string): Ledger {
   const rows = new Map<string, Row>();
   let ratchet: Ratchet | null = null;
+  let cardRatchet: Ratchet | null = null;
+  let nakedLine: number | null = null;
   for (const raw of text.split("\n")) {
     const line = raw.replace(/\r$/, "");
     if (line.trim() === "") continue;
     if (line.startsWith("#")) {
       const match = RATCHET_LINE.exec(line);
-      if (match)
-        ratchet = {
-          bare: Number(match[1]),
-          detached: Number(match[2]),
-          unresolved: Number(match[3]),
-          nakedName: Number(match[4]),
-        };
+      if (match) ratchet = readRatchet(match);
+      const cardMatch = CARD_RATCHET_LINE.exec(line);
+      if (cardMatch) cardRatchet = readRatchet(cardMatch);
+      const nakedMatch = NAKED_LINE_RATCHET.exec(line);
+      if (nakedMatch) nakedLine = Number(nakedMatch[1]);
       continue;
     }
     const [src, target, targetLine, fingerprint, flag] = line.split("\t");
@@ -522,14 +680,23 @@ export function parseLedger(text: string): Ledger {
       flag: flag ?? "-",
     });
   }
-  return { rows, ratchet };
+  return { rows, ratchet, cardRatchet, nakedLine };
 }
 
-export function renderLedger(rows: Row[], counts: Ratchet): string {
+/**
+ * **머리 주석은 다섯 줄이다.** 열 이름 · 갱신 방법 · 래칫 세 칸(칸반 밖 출처 · 카드 출처 ·
+ * 맨 줄 번호). 칸을 가르는 까닭은 검사 집합이 넓어진 것을 옛 칸에 **더하면 기준선이 한 번
+ * 올라가고**, 그러면 「래칫은 오를 수 있다」를 가르치는 자리가 되기 때문이다.
+ */
+export function renderLedger(rows: Row[], scan: Scan): string {
+  const counts = scan.counts;
+  const cards = scan.cardCounts;
   const head = [
     "# src\ttarget\ttarget_line\tfingerprint\tflag",
     "# 갱신: bun run tools/check-citations.ts --update  (대장 = 지금 인용 집합. 손으로 고치지 않는다)",
     `# bare ${counts.bare} held detached=${counts.detached} unresolved=${counts.unresolved} naked-name=${counts.nakedName}`,
+    `# cards bare=${cards.bare} held detached=${cards.detached} unresolved=${cards.unresolved} naked-name=${cards.nakedName}`,
+    `# naked-line ${scan.nakedLine}`,
   ];
   const body = rows.map(
     (r) =>
@@ -578,7 +745,11 @@ export function compareToLedger(rows: Row[], ledger: Ledger): Drift[] {
 }
 
 /** 보류 래칫 — 어느 수든 늘면 실패한다. 없으면 보류는 조용히 자라는 쓰레기통이 된다. */
-export function ratchetBreaches(now: Ratchet, base: Ratchet): string[] {
+export function ratchetBreaches(
+  now: Ratchet,
+  base: Ratchet,
+  prefix = "",
+): string[] {
   const rows: [string, number, number][] = [
     ["bare(경로 없는 인용 전체)", now.bare, base.bare],
     ["detached", now.detached, base.detached],
@@ -589,8 +760,38 @@ export function ratchetBreaches(now: Ratchet, base: Ratchet): string[] {
     .filter(([, current, baseline]) => current > baseline)
     .map(
       ([label, current, baseline]) =>
-        `${label} 이 ${baseline} → ${current} 로 늘었다`,
+        `${prefix}${label} 이 ${baseline} → ${current} 로 늘었다`,
     );
+}
+
+/**
+ * 보류 래칫 두 칸을 함께 본다.
+ *
+ * **머리 주석에 없는 칸은 「올랐다」가 아니다.** 규격이 검사 집합을 넓혀 칸이 새로 생기면 옛
+ * 대장에는 그 줄이 없고, 그때 한 번은 지금 값이 기준선으로 앉는다(다음 `--update`). 앉은 뒤에는
+ * 다른 칸과 똑같이 **오르면 실패**다. 칸을 지워 되돌리는 길은 대장을 손으로 고치는 것뿐이고,
+ * 그것은 이미 금지되어 있다(규격 6 「대장을 손으로 고치지 않는다」).
+ */
+export function heldBreaches(scan: Scan, ledger: Ledger | null): string[] {
+  if (ledger === null) return [];
+  const breaches: string[] = [];
+  if (ledger.ratchet !== null)
+    breaches.push(...ratchetBreaches(scan.counts, ledger.ratchet));
+  if (ledger.cardRatchet !== null)
+    breaches.push(
+      ...ratchetBreaches(scan.cardCounts, ledger.cardRatchet, "카드 "),
+    );
+  return breaches;
+}
+
+/** 맨 줄 번호 래칫 — 늘면 실패한다. 줄이는 일은 이 게이트가 시키지 않는다. */
+export function nakedLineBreach(
+  scan: Scan,
+  ledger: Ledger | null,
+): string | null {
+  if (ledger === null || ledger.nakedLine === null) return null;
+  if (scan.nakedLine <= ledger.nakedLine) return null;
+  return `산문 속 맨 줄 번호가 ${ledger.nakedLine} → ${scan.nakedLine} 로 늘었다`;
 }
 
 export type Mode = "check" | "update" | "tsv";
@@ -645,9 +846,9 @@ export async function run(root: string, mode: Mode): Promise<RunResult> {
   const rows = carryFlags(scan.rows, previous);
 
   if (mode === "tsv") {
-    out.push(...renderLedger(rows, scan.counts).trimEnd().split("\n"));
+    out.push(...renderLedger(rows, scan).trimEnd().split("\n"));
     err.push(
-      `대장 ${rows.length}행 · 인용 ${scan.checked}건 · 경로 없는 인용 ${scan.counts.bare}건(붙임 ${scan.counts.attached} · 자기 ${scan.counts.self} · 보류 ${scan.held.length}).`,
+      `대장 ${rows.length}행 · 인용 ${scan.checked}건 · 경로 없는 인용 ${scan.counts.bare + scan.cardCounts.bare}건(붙임 ${scan.counts.attached + scan.cardCounts.attached} · 자기 ${scan.counts.self + scan.cardCounts.self} · 보류 ${scan.held.length}) · 맨 줄 번호 ${scan.nakedLine}건.`,
     );
     // **보류 전체 목록은 여기로 낸다.** 게이트(`check`)는 요약 한 줄만 내고 통과시키므로,
     // 목록을 읽을 자리가 하나는 있어야 한다 — 없으면 「목록으로 내고 통과시킨다」가 글자만 남는다.
@@ -665,13 +866,12 @@ export async function run(root: string, mode: Mode): Promise<RunResult> {
     //    규약상 래칫이 정당하게 오르는 사례는 없다 — 늘리지 않고 인용을 쓰는 길이
     //    「경로를 적는 것」 하나뿐이기 때문이다. 그래서 오르면 **아무것도 쓰지 않고 1**.
     //    **내려가는 것은 막지 않는다** — 고쳐서 줄어드는 것이 정상 경로다.
-    const rising =
-      previous === null || previous.ratchet === null
-        ? []
-        : ratchetBreaches(scan.counts, previous.ratchet);
+    const rising = heldBreaches(scan, previous);
+    const nakedRise = nakedLineBreach(scan, previous);
+    if (nakedRise !== null) rising.push(nakedRise);
     if (rising.length > 0) {
       err.push(
-        "보류 래칫이 올라 대장을 쓰지 않았다 — 경로 없는 인용은 늘리지 않는다.\n",
+        "보류 래칫이 올라 대장을 쓰지 않았다 — 경로 없는 인용도 맨 줄 번호도 늘리지 않는다.\n",
       );
       for (const breach of rising) err.push(`  ${breach}`);
       err.push(
@@ -683,9 +883,9 @@ export async function run(root: string, mode: Mode): Promise<RunResult> {
       return { code: 1, out, err };
     }
 
-    await Bun.write(join(root, LEDGER_PATH), renderLedger(rows, scan.counts));
+    await Bun.write(join(root, LEDGER_PATH), renderLedger(rows, scan));
     out.push(
-      `대장 갱신: ${rows.length}행 → ${LEDGER_PATH} (인용 ${scan.checked}건 · 경로 없는 인용 ${scan.counts.bare}건 · 보류 ${scan.held.length})`,
+      `대장 갱신: ${rows.length}행 → ${LEDGER_PATH} (인용 ${scan.checked}건 · 경로 없는 인용 ${scan.counts.bare + scan.cardCounts.bare}건 · 보류 ${scan.held.length} · 맨 줄 번호 ${scan.nakedLine})`,
     );
     return { code: 0, out, err };
   }
@@ -705,6 +905,11 @@ export async function run(root: string, mode: Mode): Promise<RunResult> {
       `경로 없는 인용 ${scan.counts.bare}건 — 붙임 ${scan.counts.attached} · 자기 ${scan.counts.self} · 보류 ${scan.held.length}(detached ${scan.counts.detached} · unresolved ${scan.counts.unresolved} · naked-name ${scan.counts.nakedName}). 보류는 대장 밖이다 — 전체 목록은 \`--tsv\`.`,
     );
   }
+  if (scan.cardCounts.bare > 0) {
+    out.push(
+      `카드 문서(「수행 내역」 절 제외) 경로 없는 인용 ${scan.cardCounts.bare}건 — 붙임 ${scan.cardCounts.attached} · 자기 ${scan.cardCounts.self} · 보류 ${scan.cardCounts.detached + scan.cardCounts.unresolved + scan.cardCounts.nakedName}.`,
+    );
+  }
 
   if (previous === null) {
     out.push(
@@ -714,12 +919,10 @@ export async function run(root: string, mode: Mode): Promise<RunResult> {
   }
 
   const drifts = compareToLedger(scan.rows, previous);
-  const breaches =
-    previous.ratchet === null
-      ? []
-      : ratchetBreaches(scan.counts, previous.ratchet);
+  const breaches = heldBreaches(scan, previous);
+  const nakedRise = nakedLineBreach(scan, previous);
 
-  if (drifts.length === 0 && breaches.length === 0) {
+  if (drifts.length === 0 && breaches.length === 0 && nakedRise === null) {
     out.push(
       `대장 ${previous.rows.size}행과 지문이 모두 일치한다 — 인용이 가리키던 내용이 그대로다.`,
     );
@@ -761,6 +964,15 @@ export async function run(root: string, mode: Mode): Promise<RunResult> {
     for (const breach of breaches) err.push(`  ${breach}`);
     err.push(
       "수를 늘리지 않고 인용을 쓰는 길은 하나뿐이다 — **경로를 적는 것.**",
+    );
+  }
+
+  // ── 맨 줄 번호는 따로 운다. 보류와 사유도 고치는 길도 다르다 — 보류는 「경로를 적는 것」이고
+  //    이쪽은 「줄을 가리키는 수를 인용 꼴로 적는 것」이다. 한 덩이로 내면 둘이 섞인다.
+  if (nakedRise !== null) {
+    err.push(`\n맨 줄 번호 래칫이 깨졌다 — ${nakedRise}.`);
+    err.push(
+      "줄을 가리킬 때는 `경로:줄` 또는 백틱 인용으로 적는다. 그래야 존재 검사와 표류 검사가 닿는다.",
     );
   }
 
