@@ -1,6 +1,6 @@
 {
   "next_id": 50,
-  "next_seq": 339,
+  "next_seq": 340,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -138,12 +138,12 @@
       "memo_hash": "9a85fc4527c993567180689518c2f6b0c87587ec"
     },
     "KAN-042-Z02G0W": {
-      "col": "backlog",
+      "col": "doing",
       "title": "vanEmdeBoasTree 검사 공백 보완 — 우주 비트 · 원소 비트 사다리",
       "verbatim": "추천대로 해. 진행해",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-16",
+      "갱신": "2026-09-17",
       "title_hash": "5f46079f87febd59a92614bf6c4d94a915d08c12",
       "verbatim_hash": "c88fb7a00bd25c7265619d753a05983f9eebde56",
       "short": "vEB 공백 보완",
@@ -155,7 +155,16 @@
       "goal": "vEB 헤더의 검사 공백 블록이 닫히고 「로그 인수는 어떤 시나리오로도 안 보인다」 선례 문장 5곳이 정정된다",
       "goal_hash": "ab46db6c4ae1b00084a9378aa1f79e2341bc661e",
       "memo": "근거: KAN-027 S24(커밋 894cceb) vanEmdeBoasTree.ts 헤더 「검사 공백」 · conventions 「KAN-027 검토 반려 재작업 — 배치12」 S24. 대가: 원소 비트 사다리 정본 계측 3,736만(지금 합의 15배). 결속 열거는 vector 에 넣지 않는다(유저 결재 2026-09-16).",
-      "memo_hash": "40849a7b85f78c0899a1f35628e4d87351696e76"
+      "memo_hash": "40849a7b85f78c0899a1f35628e4d87351696e76",
+      "scope": [
+        "src/data-structures/heap/vanEmdeBoasTree/**",
+        "src/data-structures/_contract/_fixtures/**",
+        "src/data-structures/_contract/runContract.vanEmdeBoasTree.test.ts",
+        "docs/ORD-006-conventions.md",
+        "docs/ORD-006-runbook.md",
+        "docs/ORD-006-inventory.tsv",
+        "tools/_baseline/citations.tsv"
+      ]
     },
     "KAN-043-B4Y5WV": {
       "col": "backlog",
@@ -1175,7 +1184,6 @@
     "KAN-039-FG8HWZ",
     "KAN-040-M5V53M",
     "KAN-041-JJ5DA7",
-    "KAN-042-Z02G0W",
     "KAN-043-B4Y5WV",
     "KAN-044-VZXM29",
     "KAN-001",
@@ -1226,9 +1234,20 @@
     "KAN-046-ZFDFCQ",
     "KAN-047-394V9A",
     "KAN-048-QN5194",
-    "KAN-049-DV5BXA"
+    "KAN-049-DV5BXA",
+    "KAN-042-Z02G0W"
   ],
   "recent": [
+    {
+      "seq": 339,
+      "t": "2026-09-17T02:28",
+      "a": "ai",
+      "id": "KAN-042-Z02G0W",
+      "op": "move",
+      "w": "VB5VKS",
+      "from": "backlog",
+      "to": "doing"
+    },
     {
       "seq": 338,
       "t": "2026-09-17T02:26",
@@ -1771,16 +1790,6 @@
       "w": "46PCAX",
       "with_": "KAN-027",
       "reason": "유저 결재(2026-09-16) — 선행이 세운 원칙·산출물 위에서 판정하고, 계약·축3 수치가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다"
-    },
-    {
-      "seq": 300,
-      "t": "2026-09-16T16:49",
-      "a": "ai",
-      "id": "KAN-027",
-      "op": "move",
-      "w": "RCPDZM",
-      "from": "review",
-      "to": "done"
     }
   ],
   "waivers": [
