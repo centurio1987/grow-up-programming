@@ -62,7 +62,7 @@ const SKELETON_EXEMPT = new Map([
   [
     "linear/dynamicArray",
     "KAN-026 S6 은 계약 전환만 한다(2026-09-14 유저 결재). 옛 가이드는 KAN-036 이 v2 로 " +
-      "다시 쓸 때까지 옛 문형이다(뺀 capacity() 와 S23 이 원칙 A 로 뺀 toArray 를 설명한다). 다시 쓰는 카드가 이 줄을 지운다",
+      "다시 쓸 때까지 옛 문형이다(뺀 capacity() 를 설명한다 — S23 이 뺐던 toArray 는 S31 이 되돌렸다). 다시 쓰는 카드가 이 줄을 지운다",
   ],
   [
     "linear/monotonicQueue",
