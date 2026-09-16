@@ -69,7 +69,7 @@ const FIXED_ALGO: ReadonlyArray<readonly [string, string]> = [
  * 자기 코드의 요구라, 단서를 **연산 조합**으로 적는다.
  *
  * `perf.escalation` 은 이 골격에만 있다. 신설이 아니라 이관이다 —
- * `docs/ORD-006-conventions.md:1171` 이 8단계 표의 6번 행으로 이미 갖고 있었다.
+ * `docs/ORD-006-conventions.md:1175` 이 8단계 표의 6번 행으로 이미 갖고 있었다.
  */
 const FIXED_DS: ReadonlyArray<readonly [string, string]> = [
   ...FIXED_COMMON,

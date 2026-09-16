@@ -79,8 +79,8 @@ ORD-006 과 algo-guide-v2 가 함께 쓰는 규약이고, 갈라진 자리에서
 **항목 수는 24개다**(필수 20 · 조건부 4 · 컨테이너 5 포함). algo 23 에서 `perf.escalation`
 하나가 늘었다.
 
-**`perf.escalation` 은 신설이 아니라 이관이다.** `docs/ORD-006-conventions.md:1171` 이
-8단계 표의 6번 행으로 이 절을 이미 갖고 있고, `docs/ORD-006-conventions.md:1253-1280` 가 발동 조건 · 첫 사례
+**`perf.escalation` 은 신설이 아니라 이관이다.** `docs/ORD-006-conventions.md:1175` 이
+8단계 표의 6번 행으로 이 절을 이미 갖고 있고, `docs/ORD-006-conventions.md:1257-1284` 가 발동 조건 · 첫 사례
 (`linear/xorLinkedList`) · 내용 셋까지 확정해 뒀다. 여기서 하는 일은 그것을 v2 절 체계
 안의 자리에 놓는 것뿐이고, **규격의 정본은 여전히 ORD-006 이다.**
 
@@ -308,14 +308,14 @@ $r = C(4n)/C(n)$ 실측값이다. 벽시계는 그 기계의 상수를 잴 뿐�
 
 ### `perf.escalation` — TypeScript 의 한계와 대체 언어 (조건부 · `L45`)
 
-**규격의 정본은 `docs/ORD-006-conventions.md` §규약3 6단계(`docs/ORD-006-conventions.md:1171`)와 §규약4(`docs/ORD-006-conventions.md:1253-1280`)다.**
+**규격의 정본은 `docs/ORD-006-conventions.md` §규약3 6단계(`docs/ORD-006-conventions.md:1175`)와 §규약4(`docs/ORD-006-conventions.md:1257-1284`)다.**
 여기서는 v2 절 체계 안의 자리와 판정만 적는다.
 
 - **조건은 판단이 아니라 등급이다.** 규약4 에스컬레이션 등급이 **(가)·(나)일 때만** 절을 둔다.
   `(-)` 면 절 자체를 생략하고 "해당 없음" 을 적지 않는다. **집필자가 고르지 않는다.**
-- 내용 셋은 `docs/ORD-006-conventions.md:1253-1280` 가 확정했다 — 왜 (가)가 아닌가 / 왜 (-)가 아닌가 / 대체 언어에서
+- 내용 셋은 `docs/ORD-006-conventions.md:1257-1284` 가 확정했다 — 왜 (가)가 아닌가 / 왜 (-)가 아닌가 / 대체 언어에서
   어떻게 되는가.
-- **「Rust 코드를 붙이는 절」로 읽지 않는다**(`docs/ORD-006-conventions.md:1271-1272` 의 교정). (나)에서 Rust 포트는
+- **「Rust 코드를 붙이는 절」로 읽지 않는다**(`docs/ORD-006-conventions.md:1275-1276` 의 교정). (나)에서 Rust 포트는
   선택이고, *"옮겨도 안 된다"* 도 완결된 답이다.
 - **Rust 구현을 싣는 의무는 이 절이 아니라 `L47` 이 진다.** 메모리를 직접 다뤄야 이득이 생기는
   구조는 코드를 `deep.walk` 에 싣고, 이 절은 그 구현이 언어의 어떤 조건 위에서 성립하는지를 적는다.

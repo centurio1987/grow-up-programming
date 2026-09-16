@@ -1,194 +1,73 @@
-import { test, expect, describe } from "bun:test";
-import { KDTree } from "./kdTree";
-import type { Point2D } from "./kdTree";
+/**
+ * `spatial/kdTree` 계약 스위트 실행부(규약2).
+ *
+ * `runContract` 호출과, 계약 스위트가 담지 못하는 **주입 정책**만 둔다. 무엇을 검사하는지는 `./kdTree.contract.ts` 에 있고,
+ * 계약 자체는 `./kdTree.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다. 축3은 계측기가 붙은 정본에만 돈다.
+ * 주입점(비교자 · 거리)이 없는 구조라 계측 경로는 `self-reported` 다 — 무엇을 세는지는 정본 머리말이 밝힌다(§규약2 「계측 —
+ * `__cost` 는 계약이 아니다」).
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 물려받은 시험의 「1000개 점 삽입 후 최근접 탐색이 합리적인 시간 내에 완료」가 재는
+ * 것은 그 기계의 상수다. 자리는 축3이다.
+ */
 
-describe("KDTree", () => {
-  describe("기본", () => {
-    test("빈 생성자로 트리를 만들 수 있다", () => {
-      const tree = new KDTree();
-      expect(tree.size()).toBe(0);
-    });
+import { describe, expect, test } from "bun:test";
+import { runContract } from "../../_contract/runContract";
+import { KDTree as Reference } from "./_reference/kdTree";
+import { KDTree, type Point2D } from "./kdTree";
+import { type KDTreeSurface, kdTreeContract } from "./kdTree.contract";
 
-    test("points 배열로 초기 트리를 구성할 수 있다", () => {
-      const points: Point2D[] = [[1, 2], [3, 4], [5, 6]];
-      const tree = new KDTree(points);
-      expect(tree.size()).toBe(3);
-    });
+runContract(() => new KDTree(), kdTreeContract, { label: "스텁" });
 
-    test("insert로 점을 하나씩 추가할 수 있다", () => {
-      const tree = new KDTree();
-      tree.insert([1, 1]);
-      tree.insert([2, 2]);
-      tree.insert([3, 3]);
-      expect(tree.size()).toBe(3);
-    });
-
-    test("중복 좌표도 삽입할 수 있다", () => {
-      const tree = new KDTree();
-      tree.insert([1, 1]);
-      tree.insert([1, 1]);
-      expect(tree.size()).toBe(2);
-    });
-  });
-
-  describe("nearestNeighbor", () => {
-    test("단일 점에서 최근접 이웃은 그 점 자신이다", () => {
-      const tree = new KDTree([[3, 4]]);
-      expect(tree.nearestNeighbor([3, 4])).toEqual([3, 4]);
-    });
-
-    test("쿼리 점과 정확히 일치하는 점이 있으면 반환한다", () => {
-      const points: Point2D[] = [[1, 2], [3, 4], [5, 6]];
-      const tree = new KDTree(points);
-      expect(tree.nearestNeighbor([3, 4])).toEqual([3, 4]);
-    });
-
-    test("가장 가까운 점을 올바르게 찾는다 (간단한 케이스)", () => {
-      const points: Point2D[] = [[0, 0], [10, 10], [1, 1]];
-      const tree = new KDTree(points);
-      const result = tree.nearestNeighbor([2, 2]);
-      expect(result).toEqual([1, 1]);
-    });
-
-    test("음수 좌표에서도 최근접 이웃을 찾는다", () => {
-      const points: Point2D[] = [[-5, -5], [5, 5], [-1, -1]];
-      const tree = new KDTree(points);
-      const result = tree.nearestNeighbor([-2, -2]);
-      expect(result).toEqual([-1, -1]);
-    });
-
-    test("여러 축에 걸쳐 가장 가까운 점을 선택한다", () => {
-      // (3, 0)에서 가장 가까운 점: (3, 1) — 거리 1, (0, 0) — 거리 3
-      const points: Point2D[] = [[0, 0], [3, 1], [6, 6]];
-      const tree = new KDTree(points);
-      const result = tree.nearestNeighbor([3, 0]);
-      expect(result).toEqual([3, 1]);
-    });
-
-    test("insert 후 nearestNeighbor가 갱신된 결과를 반환한다", () => {
-      const tree = new KDTree([[10, 10]]);
-      tree.insert([1, 1]);
-      const result = tree.nearestNeighbor([0, 0]);
-      expect(result).toEqual([1, 1]);
-    });
-
-    test("빈 트리에서 nearestNeighbor는 null을 반환한다", () => {
-      const tree = new KDTree();
-      expect(tree.nearestNeighbor([0, 0])).toBeNull();
-    });
-  });
-
-  describe("rangeSearch", () => {
-    test("직사각형 범위 내 모든 점을 반환한다", () => {
-      const points: Point2D[] = [[1, 1], [2, 2], [3, 3], [5, 5], [6, 6]];
-      const tree = new KDTree(points);
-      const result = tree.rangeSearch([0, 0], [4, 4]);
-      expect(result.length).toBe(3);
-      expect(result).toContainEqual([1, 1]);
-      expect(result).toContainEqual([2, 2]);
-      expect(result).toContainEqual([3, 3]);
-    });
-
-    test("경계에 있는 점도 포함한다", () => {
-      const points: Point2D[] = [[0, 0], [5, 5], [10, 10]];
-      const tree = new KDTree(points);
-      const result = tree.rangeSearch([0, 0], [5, 5]);
-      expect(result.length).toBe(2);
-      expect(result).toContainEqual([0, 0]);
-      expect(result).toContainEqual([5, 5]);
-    });
-
-    test("범위 밖의 점은 반환하지 않는다", () => {
-      const points: Point2D[] = [[1, 1], [10, 10]];
-      const tree = new KDTree(points);
-      const result = tree.rangeSearch([0, 0], [5, 5]);
-      expect(result).not.toContainEqual([10, 10]);
-    });
-
-    test("범위 내 점이 없으면 빈 배열을 반환한다", () => {
-      const points: Point2D[] = [[10, 10], [20, 20]];
-      const tree = new KDTree(points);
-      const result = tree.rangeSearch([0, 0], [5, 5]);
-      expect(result).toEqual([]);
-    });
-
-    test("빈 트리에서 rangeSearch는 빈 배열을 반환한다", () => {
-      const tree = new KDTree();
-      expect(tree.rangeSearch([0, 0], [10, 10])).toEqual([]);
-    });
-
-    test("음수 범위에서도 정상 동작한다", () => {
-      const points: Point2D[] = [[-3, -3], [-1, -1], [1, 1]];
-      const tree = new KDTree(points);
-      const result = tree.rangeSearch([-4, -4], [-0.5, -0.5]);
-      expect(result.length).toBe(2);
-      expect(result).toContainEqual([-3, -3]);
-      expect(result).toContainEqual([-1, -1]);
-    });
-  });
-
-  describe("엣지", () => {
-    test("단일 점 트리에서 rangeSearch가 올바르게 동작한다", () => {
-      const tree = new KDTree([[5, 5]]);
-      expect(tree.rangeSearch([0, 0], [10, 10])).toEqual([[5, 5]]);
-      expect(tree.rangeSearch([6, 6], [10, 10])).toEqual([]);
-    });
-
-    test("동일 x좌표 점들에서 nearestNeighbor가 정확하다", () => {
-      const points: Point2D[] = [[3, 1], [3, 5], [3, 10]];
-      const tree = new KDTree(points);
-      expect(tree.nearestNeighbor([3, 4])).toEqual([3, 5]);
-    });
-
-    test("동일 y좌표 점들에서 nearestNeighbor가 정확하다", () => {
-      const points: Point2D[] = [[1, 3], [5, 3], [10, 3]];
-      const tree = new KDTree(points);
-      expect(tree.nearestNeighbor([4, 3])).toEqual([5, 3]);
-    });
-
-    test("대량 삽입 후 size가 정확하다", () => {
-      const tree = new KDTree();
-      for (let i = 0; i < 100; i++) {
-        tree.insert([i, i * 2]);
-      }
-      expect(tree.size()).toBe(100);
-    });
-  });
-
-  describe("성능", () => {
-    test("n=10^4 insert + nearestNeighbor 100ms 이내", () => {
-      const N = 10000;
-      const points: Point2D[] = Array.from({ length: N }, (_, i) => [
-        Math.random() * 1000,
-        Math.random() * 1000,
-      ] as Point2D);
-
-      const tree = new KDTree();
-      const start = performance.now();
-      for (const p of points) {
-        tree.insert(p);
-      }
-      for (let i = 0; i < 100; i++) {
-        tree.nearestNeighbor([Math.random() * 1000, Math.random() * 1000]);
-      }
-      const elapsed = performance.now() - start;
-      expect(elapsed).toBeLessThan(100);
-    });
-
-    test("n=10^4 insert + rangeSearch 100ms 이내", () => {
-      const N = 10000;
-      const points: Point2D[] = Array.from({ length: N }, () => [
-        Math.random() * 1000,
-        Math.random() * 1000,
-      ] as Point2D);
-
-      const tree = new KDTree(points);
-      const start = performance.now();
-      for (let i = 0; i < 50; i++) {
-        tree.rangeSearch([100, 100], [400, 400]);
-      }
-      const elapsed = performance.now() - start;
-      expect(elapsed).toBeLessThan(100);
-    });
-  });
+runContract(() => new Reference(), kdTreeContract, {
+  label: "정본",
+  cost: { kind: "self-reported", make: () => new Reference() },
 });
+
+/**
+ * 주입 정책은 계약의 일부다(규약1). 경계 케이스가 vector 로도 나가므로 JSON 에 못 담는 값(무한 · NaN)과 배열을 붙들지 않는다는
+ * 약속은 여기서 본다.
+ */
+function checkInjectionPolicy(label: string, make: () => KDTreeSurface): void {
+  describe(`KDTree 주입 정책 [${label}]`, () => {
+    test("사각형 모서리는 무한이어도 되고 NaN 이면 RangeError 다", () => {
+      const index = make();
+      index.insert([3, -4]);
+      index.insert([-2, 7]);
+      expect(index.rangeSearch([-Infinity, -Infinity], [Infinity, 0])).toEqual([
+        [3, -4],
+      ]);
+      expect(() => index.rangeSearch([Number.NaN, 0], [1, 1])).toThrow(
+        RangeError,
+      );
+    });
+
+    test("점 좌표가 NaN · 무한이면 RangeError 이고 상태가 안 바뀐다", () => {
+      const index = make();
+      expect(() => index.insert([Number.NaN, 0])).toThrow(RangeError);
+      expect(() => index.insert([0, Infinity])).toThrow(RangeError);
+      expect(() => index.nearestNeighbor([Number.NaN, 0])).toThrow(RangeError);
+      expect(index.nearestNeighbor([0, 0])).toBeNull();
+      expect(index.rangeSearch([-10, -10], [10, 10])).toEqual([]);
+    });
+
+    test("넘긴 배열 · 돌려받은 배열을 고쳐도 담긴 점은 그대로다", () => {
+      const index = make();
+      const given: Point2D = [1, 2];
+      index.insert(given);
+      given[0] = 100;
+      const found = index.rangeSearch([0, 0], [5, 5]);
+      expect(found).toEqual([[1, 2]]);
+      (found[0] as Point2D)[1] = 50;
+      const nearest = index.nearestNeighbor([0, 0]);
+      expect(nearest).toEqual([1, 2]);
+      (nearest as Point2D)[0] = -9;
+      expect(index.rangeSearch([0, 0], [5, 5])).toEqual([[1, 2]]);
+      expect(index.nearestNeighbor([100, 2])).toEqual([1, 2]);
+    });
+  });
+}
+
+checkInjectionPolicy("스텁", () => new KDTree());
+checkInjectionPolicy("정본", () => new Reference());

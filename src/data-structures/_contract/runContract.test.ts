@@ -1098,7 +1098,7 @@ describe("축3 — 정본은 통과한다", () => {
     }
   }, 30_000);
 
-  test("기대 정렬 집합 정본이 일곱 시나리오를 전부 통과한다", () => {
+  test("기대 정렬 집합 정본이 아홉 시나리오를 전부 통과한다", () => {
     for (const scenario of treapContract.scenarios) {
       const verdict = judgeScenario(referenceTreap, scenario, "complexity");
       expect(`${scenario.covers.join("·")}: ${verdict.reason}`).toBe(
@@ -1929,7 +1929,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
    * | 방향 | 40회 중 걸린 횟수 |
    * |---|---|
    * | `redBlackTree` 정본 → `treap` 계약 | 0 |
-   * | `splayTree` 정본 → `treap` 계약 | 0 |
+   * | `splayTree` 정본 → `treap` 계약 | 앞 여덟 0 · 아홉째(`S28` 입력 고정 탐침) 매번(결정론) |
    * | `treap` 정본 → `redBlackTree` 계약 | **11** (`delete` 적대 6 · `insert` 적대 4 · `insert` 2) |
    * | `treap` 정본 → `splayTree` 계약 | **2** |
    *
@@ -1938,81 +1938,81 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
    * 「`treap` 계약이 `redBlackTree` 계약보다 넓다」가 **확률적으로 보인다**는 뜻이고,
    * 한 번만 돌려 통과한 것을 「담긴다」로 읽으면 틀린다.
    *
-   * 단언하는 둘 중 **둘째가 축이 못 보는 자리다.** `splayTree` 정본은 이 계약을 어기는데
-   * (사슬 끝 첫 조회가 원소 수에 비례하고 결정론적이라 그 값이 곧 기댓값이다) 40회 내내
-   * 통과한다. 통계가 시퀀스 평균이라 그 하나가 묻히기 때문이고, 이쪽은 흔들림이 아니라
-   * **판정 규격의 한계**다.
+   * 단언하는 둘 중 **둘째는 앞 여덟이 못 보는 자리다.** `splayTree` 정본은 이 계약을 어기는데
+   * (사슬 끝 첫 조회가 원소 수에 비례하고 결정론적이라 그 값이 곧 기댓값이다) 앞 여덟을 40회 내내
+   * 통과한다 — 시퀀스 평균이 그 하나를 묻는 **판정 규격의 한계**다. 입력을 고정하고 조회 열여섯만 재는
+   * 아홉째에서는 원소 수에 비례해 걸린다(191.06 · 732.19 · 2,893.06 — `S28`).
    */
-  test("기대 계약은 최악 정본을 담고 상각 정본의 위반을 못 본다", () => {
-    // 담는 쪽 → 담기는 쪽. 결정론적 정본이라 안정적으로 통과한다(최악까지 로그면
-    // 기댓값도 로그다).
+  test("기대 계약은 최악 정본을 담고 상각 정본의 위반을 입력 고정 탐침에서만 본다", () => {
+    // 담는 쪽 → 담기는 쪽. 결정론적 정본이라 안정적으로 통과한다(최악까지 로그면 기댓값도 로그다).
     expect(outcomes(referenceRedBlackTree, treapContract)).toEqual({
       "insert (적대적)": true,
       insert: true,
       "has·min·max (적대적)": true,
       "delete (적대적)": true,
+      delete: true,
       range: true,
       toArray: true,
       size: true,
+      "has (적대적)": true,
     });
 
-    // **이 계약을 어기는 정본이 일곱을 전부 통과한다.** B17 이 「서로 담지 않는다」로
-    // 판정한 한 쌍인데 축이 그 한쪽을 못 본다.
+    // **이 계약을 어기는 정본이 앞 여덟을 전부 통과하고 아홉째(입력 고정 탐침)에서 걸린다.** B17 이 「서로 담지 않는다」로 판정한 한 쌍의 한쪽이다.
     expect(outcomes(referenceSplayTree, treapContract)).toEqual({
       "insert (적대적)": true,
       insert: true,
       "has·min·max (적대적)": true,
       "delete (적대적)": true,
+      delete: true,
       range: true,
       toArray: true,
       size: true,
+      "has (적대적)": false,
     });
   }, 30_000);
 
   /**
-   * **기대 계약의 스위트가 통과시키는 것 중에 계약 위반이 있다**(불변 사실 62 가 요구하는
-   * 기록).
-   *
-   * `splayingSearchTree` 는 사슬인 채로 맞는 첫 조회 하나가 원소 수에 비례하고 결정론적이라
-   * 그 값이 곧 기댓값이다 — **`expected O(log n)` 을 어긴다.** 그런데 축3의 `expected`
-   * 통계가 시퀀스 평균이라 그 하나가 묻힌다. 통과를 「계약을 지킨다」로 읽지 않도록 여기
-   * 이름으로 적어 둔다.
-   *
-   * 스위트가 아무것도 못 잡는다는 뜻은 아니다 — **입력에 치우치는 구현은 잡는다.**
+   * **기대 계약의 스위트가 통과시키는 것 중에 계약 위반이 있다**(불변 사실 62). `splayingSearchTree` 는 사슬인 채로 맞는 첫 조회 하나가 원소 수에 비례하고 결정론적이라 그 값이 곧 기댓값이다 — **`expected O(log n)` 을 어긴다.**
+   * 앞 여덟은 시퀀스 평균이 그 하나를 묻어 통과시키고(통과를 「계약을 지킨다」로 읽지 않도록 이름으로 적어 둔다) 아홉째(입력 고정 탐침)가 잡는다. 입력에 치우치는 구현은 앞 여덟이 잡는다.
    */
-  test("기대 계약은 입력에 치우치는 구현을 잡고 무작위성에 안 기대는 구현은 놓친다", () => {
+  test("기대 계약은 입력에 치우치는 구현을 잡고 무작위성에 안 기대는 구현은 입력 고정 탐침에서만 잡는다", () => {
     // 균형을 스스로 잡지 않는 트리: 오름차순 넣기와 순차 조회에서 걸린다.
     expect(outcomes(unbalancedSearchTree, treapContract)).toEqual({
       "insert (적대적)": false,
       insert: true,
       "has·min·max (적대적)": false,
       "delete (적대적)": true,
+      delete: false,
       range: true,
       toArray: true,
       size: true,
+      "has (적대적)": false,
     });
 
-    // 정렬 배열: 갱신 둘이 걸린다. 무작위 위치에 넣으면 평균 n/2 개가 밀리므로 기댓값도
-    // n 에 비례한다.
+    // 정렬 배열: 갱신 둘이 걸린다. 무작위 위치에 넣으면 평균 n/2 개가 밀리므로 기댓값도 n 에 비례한다.
     expect(outcomes(sortedArraySet, treapContract)).toEqual({
       "insert (적대적)": true,
       insert: false,
       "has·min·max (적대적)": true,
       "delete (적대적)": false,
+      delete: false,
       range: true,
       toArray: true,
       size: true,
+      "has (적대적)": true,
     });
 
-    // **끌어올리는 구현: 전부 통과한다 — 그런데 이 계약을 어긴다.** 못 잡는 자리다.
+    // **끌어올리는 구현: 앞 여덟을 전부 통과하고 아홉째(입력 고정 탐침)에서 걸린다 — 이 계약을 어긴다.**
     expect(outcomes(splayingSearchTree, treapContract)).toEqual({
       "insert (적대적)": true,
       insert: true,
       "has·min·max (적대적)": true,
       "delete (적대적)": true,
+      delete: true,
       range: true,
       toArray: true,
       size: true,
+      "has (적대적)": false,
     });
   }, 30_000);
 

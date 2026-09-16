@@ -1,166 +1,82 @@
+/**
+ * `trie/ahoCorasick` 계약 스위트 실행부(규약2).
+ *
+ * `runContract` 호출과, 계약 스위트가 담지 못하는 **주입 정책**만 둔다. 무엇을 검사하는지는 `./ahoCorasick.contract.ts` 에
+ * 있고, 계약 자체는 `./ahoCorasick.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다. 축3은 계측기가 붙은 정본에만 돈다 — 학습자
+ * 스텁에 `__cost` 를 요구하지 않는다. 팩토리가 `reindex` 껍데기를 씌우는 것은 이 구조가 불변 구조이기 때문이다(불변 사실 52 ④).
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 물려받은 시험의 「패턴 100개, 텍스트 길이 10,000 검색 100ms 이내」가 재는 것은 그
+ * 기계의 상수다. 자리는 축3이다.
+ */
+
 import { describe, expect, test } from "bun:test";
+import { runContract } from "../../_contract/runContract";
+import { AhoCorasick as Reference } from "./_reference/ahoCorasick";
 import { AhoCorasick } from "./ahoCorasick";
+import {
+  type AhoCorasickContract,
+  ahoCorasickContract,
+  entries,
+  Reindexable,
+} from "./ahoCorasick.contract";
 
-describe("AhoCorasick", () => {
-  describe("기본", () => {
-    test("단일 패턴 검색 — 한 번 등장", () => {
-      const ac = new AhoCorasick(["he"]);
-      const result = ac.search("ahers");
-      expect(result.get("he")).toEqual([1]);
+runContract(
+  () => new Reindexable((patterns) => new AhoCorasick(patterns)),
+  ahoCorasickContract,
+  { label: "스텁" },
+);
+
+runContract(
+  () => new Reindexable((patterns) => new Reference(patterns)),
+  ahoCorasickContract,
+  {
+    label: "정본",
+    cost: {
+      kind: "self-reported",
+      make: () => new Reindexable((patterns) => new Reference(patterns)),
+    },
+  },
+);
+
+/**
+ * 주입 정책은 계약의 일부다(규약1). 넘긴 패턴 배열 · 돌려받은 `Map` 과 배열을 붙들지 않는다는 약속은 호출자 쪽 값을 고쳐 봐야
+ * 드러나므로 참조 모델 대조(축1)가 담지 못한다. 코드 단위로 센다는 조항도 여기서 본다 — 축1 무작위 시퀀스는 `a`·`b`·`c` 만 쓴다.
+ */
+function checkInjectionPolicy(
+  label: string,
+  make: (patterns: string[]) => AhoCorasickContract,
+): void {
+  describe(`AhoCorasick 주입 정책 [${label}]`, () => {
+    test("생성자가 돌아온 뒤 호출자가 패턴 배열을 고쳐도 답은 그대로다", () => {
+      const given = ["he", "she"];
+      const index = make(given);
+      given[0] = "xyz";
+      given.push("ushers");
+      expect(entries(index.search("ushers"))).toEqual([
+        ["he", [2]],
+        ["she", [1]],
+      ]);
     });
 
-    test("단일 패턴 검색 — 여러 번 등장", () => {
-      const ac = new AhoCorasick(["ab"]);
-      const result = ac.search("ababab");
-      expect(result.get("ab")).toEqual([0, 2, 4]);
+    test("돌려받은 Map 과 배열을 고쳐도 다음 검색의 답은 그대로다", () => {
+      const index = make(["ab"]);
+      const first = index.search("abab");
+      first.get("ab")?.push(99);
+      first.set("zz", [0]);
+      expect(entries(index.search("abab"))).toEqual([["ab", [0, 2]]]);
     });
 
-    test("여러 패턴 동시 검색", () => {
-      const ac = new AhoCorasick(["he", "she", "his", "hers"]);
-      const result = ac.search("ahershers");
-      // "he": 인덱스 1, 5
-      // "she": 인덱스 0 (s+he → 인덱스 0에서 she가 아님), 확인 필요
-      // "hers": 인덱스 1, 5
-      const he = result.get("he") ?? [];
-      const hers = result.get("hers") ?? [];
-      expect(he.sort((a, b) => a - b)).toContain(1);
-      expect(hers.sort((a, b) => a - b)).toContain(1);
-    });
-
-    test("Aho-Corasick 고전 예제: ahishers", () => {
-      const ac = new AhoCorasick(["he", "she", "his", "hers"]);
-      const result = ac.search("ahishers");
-      // "his": 인덱스 1
-      // "he": 인덱스 4
-      // "hers": 인덱스 4
-      // "she": 인덱스 3
-      expect(result.get("his")).toContain(1);
-      expect(result.get("he")).toContain(4);
-      expect(result.get("hers")).toContain(4);
-      expect(result.get("she")).toContain(3);
-    });
-
-    test("패턴이 없으면 모든 패턴 결과가 빈 배열", () => {
-      const ac = new AhoCorasick(["xyz", "abc"]);
-      const result = ac.search("hello world");
-      const xyz = result.get("xyz") ?? [];
-      const abc = result.get("abc") ?? [];
-      expect(xyz).toEqual([]);
-      expect(abc).toEqual([]);
-    });
-  });
-
-  describe("중첩 및 접두사 관계", () => {
-    test("패턴이 다른 패턴의 접두사인 경우 모두 찾기", () => {
-      const ac = new AhoCorasick(["a", "ab", "abc"]);
-      const result = ac.search("xabcy");
-      expect(result.get("a")).toContain(1);
-      expect(result.get("ab")).toContain(1);
-      expect(result.get("abc")).toContain(1);
-    });
-
-    test("패턴이 다른 패턴의 접미사인 경우 (failure link 활용)", () => {
-      const ac = new AhoCorasick(["test", "est"]);
-      const result = ac.search("testing");
-      expect(result.get("test")).toContain(0);
-      expect(result.get("est")).toContain(1);
-    });
-
-    test("중첩 패턴: 'aa' 와 'aaa' 동시 검색", () => {
-      const ac = new AhoCorasick(["aa", "aaa"]);
-      const result = ac.search("aaaaa");
-      // "aa": 인덱스 0, 1, 2, 3
-      // "aaa": 인덱스 0, 1, 2
-      const aa = result.get("aa") ?? [];
-      const aaa = result.get("aaa") ?? [];
-      expect(aa.length).toBeGreaterThanOrEqual(4);
-      expect(aaa.length).toBeGreaterThanOrEqual(3);
+    test("길이와 자리는 코드 단위로 센다 — 대리 쌍 문자는 두 칸이다", () => {
+      const index = make(["😀", "a"]);
+      expect(entries(index.search("a😀a😀"))).toEqual([
+        ["a", [0, 3]],
+        ["😀", [1, 4]],
+      ]);
     });
   });
+}
 
-  describe("결과 형식", () => {
-    test("결과 Map은 모든 패턴을 키로 포함", () => {
-      const patterns = ["abc", "def", "ghi"];
-      const ac = new AhoCorasick(patterns);
-      const result = ac.search("abcdef");
-      for (const p of patterns) {
-        expect(result.has(p)).toBe(true);
-      }
-    });
-
-    test("각 패턴의 결과 배열은 오름차순 정렬", () => {
-      const ac = new AhoCorasick(["ab"]);
-      const result = ac.search("ababab");
-      const indices = result.get("ab") ?? [];
-      expect(indices).toEqual([...indices].sort((a, b) => a - b));
-    });
-  });
-
-  describe("엣지", () => {
-    test("빈 텍스트 검색 — 모든 패턴 결과가 빈 배열", () => {
-      const ac = new AhoCorasick(["abc"]);
-      const result = ac.search("");
-      expect(result.get("abc")).toEqual([]);
-    });
-
-    test("빈 패턴 목록 — 빈 Map 또는 정상 동작", () => {
-      const ac = new AhoCorasick([]);
-      const result = ac.search("hello");
-      expect(result.size).toBe(0);
-    });
-
-    test("패턴이 텍스트 전체인 경우", () => {
-      const ac = new AhoCorasick(["hello"]);
-      const result = ac.search("hello");
-      expect(result.get("hello")).toEqual([0]);
-    });
-
-    test("단일 문자 패턴 여러 개", () => {
-      const ac = new AhoCorasick(["a", "b", "c"]);
-      const result = ac.search("abc");
-      expect(result.get("a")).toEqual([0]);
-      expect(result.get("b")).toEqual([1]);
-      expect(result.get("c")).toEqual([2]);
-    });
-
-    test("중복 패턴이 주어진 경우 한 번만 결과 포함", () => {
-      const ac = new AhoCorasick(["abc", "abc"]);
-      const result = ac.search("abcabc");
-      // 중복 패턴은 한 번만 키로 포함되어야 함
-      expect(result.has("abc")).toBe(true);
-      const indices = result.get("abc") ?? [];
-      // 실제 등장 위치만 포함
-      expect(indices).toContain(0);
-      expect(indices).toContain(3);
-    });
-  });
-
-  describe("성능", () => {
-    test("패턴 100개, 텍스트 길이 10,000 검색 100ms 이내", () => {
-      const patterns: string[] = [];
-      for (let i = 0; i < 100; i++) {
-        patterns.push("pattern" + i);
-      }
-      const text = "x".repeat(9_000) + patterns.map((p) => p + " ").join("");
-      const ac = new AhoCorasick(patterns);
-
-      const start = performance.now();
-      const result = ac.search(text);
-      const elapsed = performance.now() - start;
-
-      expect(elapsed).toBeLessThan(100);
-      expect(result.has("pattern0")).toBe(true);
-    });
-
-    test("패턴 1,000개, 각 길이 5 — 오토마톤 구성 100ms 이내", () => {
-      const patterns: string[] = [];
-      for (let i = 0; i < 1_000; i++) {
-        patterns.push(("0000" + i).slice(-5)); // 5자리 패드
-      }
-      const start = performance.now();
-      new AhoCorasick(patterns);
-      const elapsed = performance.now() - start;
-      expect(elapsed).toBeLessThan(100);
-    });
-  });
-});
+checkInjectionPolicy("스텁", (patterns) => new AhoCorasick(patterns));
+checkInjectionPolicy("정본", (patterns) => new Reference(patterns));

@@ -73,16 +73,20 @@ export class GapBuffer<T> {
 
     this.__cost += 1;
     // 빈 구간을 커서가 갈 자리까지 옮긴다. 옮기는 칸 수가 곧 커서가 지나갈 거리다.
+    // 빈 구간이 비어 있으면(칸이 꼭 찼으면) 두 경계가 같은 칸이다. 그때는 옮긴 칸이 곧 원소가
+    // 남을 칸이라 비우지 않는다 — 비우면 방금 옮긴 원소가 사라진다.
     while (position < this.#gapStart) {
       this.#gapStart -= 1;
       this.#gapEnd -= 1;
       this.#slots[this.#gapEnd] = this.#slots[this.#gapStart];
-      this.#slots[this.#gapStart] = undefined;
+      if (this.#gapStart !== this.#gapEnd)
+        this.#slots[this.#gapStart] = undefined;
       this.__cost += 1;
     }
     while (position > this.#gapStart) {
       this.#slots[this.#gapStart] = this.#slots[this.#gapEnd];
-      this.#slots[this.#gapEnd] = undefined;
+      if (this.#gapStart !== this.#gapEnd)
+        this.#slots[this.#gapEnd] = undefined;
       this.#gapStart += 1;
       this.#gapEnd += 1;
       this.__cost += 1;

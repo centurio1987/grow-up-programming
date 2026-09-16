@@ -20,6 +20,11 @@
  * 둘 다 자주 나온다.** 넓게 뽑으면 거의 전부 범위 밖이라 커서가 움직이는 자리를 축1이 보지
  * 못한다.
  *
+ * **경계 케이스 하나가 크기를 훑는다(`S21` 추가).** 무작위 시퀀스는 담긴 수가 20 언저리를 오르내려
+ * 「넣은 직후 칸이 꼭 찬 상태에서 커서를 옮기기」에 닿지 않고, 축3 시나리오는 그 상태를 지나가도 값을
+ * 보지 않는다. 옛 정본이 정확히 그 자리에서 원소를 지웠다(불변 사실 93 · 240) — 마지막 경계 케이스가
+ * 넣은 직후의 크기 1 ~ 17 마다 커서를 옮겼다 되돌리며 읽는다(`sweptMoves` 머리말).
+ *
  * **시나리오가 여섯이고 그중 둘이 같은 행(`moveCursor`)을 겨눈다.** 이 계약의 내용이 그
  * 행에 있기 때문이다 — 커서를 **한 칸** 옮기는 값과 **끝에서 끝으로** 뛰는 값이 갈려야
  * 지역성이 약속된 것이고, 한쪽만 두면 둘 중 어느 쪽이든 통과하는 결함 구현이 있다.
@@ -74,6 +79,33 @@ function modelMoveCursor(model: Model, position: unknown): unknown {
   model.at = position;
   return undefined;
 }
+
+/**
+ * 넣은 직후 크기마다 커서를 가운데로 옮겼다 끝으로 되돌리며 읽는 경계 케이스의 걸음(`S21`).
+ *
+ * **크기 하나를 고르지 않고 1 부터 {@link SWEPT_SIZES} 까지 전부 지난다.** 칸을 이어 붙여 담는 구현은
+ * 어느 크기에서 칸이 꼭 차는지를 스스로 정하고(처음 잡는 칸 수 · 늘리는 배수), 그 크기는 계약의 말이
+ * 아니다(불변 사실 44). 넣은 직후의 모든 크기에서 양쪽으로 한 번씩 옮기면 **처음 꼭 차는 크기가 이 끝
+ * 이하인 계열 전부**가 꼭 찬 상태에서 왼쪽 이동과 오른쪽 이동을 한 번씩 지난다 — 구현의 상수를 읽은
+ * 입력이 아니라 그 계열의 산술을 겨누는 입력이다(§「적대적 입력은 구현이 아니라 계약의 산술을 겨눌 수
+ * 있다」). 옛 정본(`_contract/_fixtures/fullGapErasingBuffer.ts`)은 크기 8 의 첫 읽기에서 걸린다.
+ */
+function sweptMoves(): { op: string; arg?: unknown }[] {
+  const steps: { op: string; arg?: unknown }[] = [];
+  for (let size = 1; size <= SWEPT_SIZES; size++) {
+    steps.push(
+      { op: "insert", arg: size },
+      { op: "moveCursor", arg: size >> 1 },
+      { op: "toArray" },
+      { op: "moveCursor", arg: size },
+      { op: "toArray" },
+    );
+  }
+  return steps;
+}
+
+/** 경계 케이스가 훑는 크기의 끝. 처음 꼭 차는 크기가 16 인 두 배 늘리기 계열까지 한 번 지나고 하나 더 간다. */
+const SWEPT_SIZES = 17;
 
 /** 커서를 끝에 둔 채 원소 n 개를 채운다. 시나리오의 공통 준비다. */
 function fill(impl: GapBufferContract<number>, n: number): void {
@@ -232,6 +264,12 @@ export const gapBufferContract: ContractSpec<
         { op: "cursor" },
         { op: "length" },
       ],
+    },
+    {
+      // 칸이 꼭 찬 상태에서 커서를 옮기는 자리다. 계약의 말로는 「넣은 직후 크기마다」로만 짚을 수 있어
+      // 크기를 훑는다(`sweptMoves` 머리말). 옛 정본이 이 상태에서 원소를 지웠다(불변 사실 93 · 240).
+      name: "넣은 직후 크기마다 커서를 옮겼다 되돌려도 수열이 그대로다",
+      steps: sweptMoves(),
     },
   ],
 

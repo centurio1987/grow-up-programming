@@ -1,0 +1,1753 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "LRUCache",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 캐시의 get 은 null 이고 상태가 바뀌지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": null
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            10
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 10
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "가득 찬 뒤 새 키를 넣으면 가장 오래 안 쓴 키가 밀려난다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "put",
+          "arg": [
+            1,
+            10
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            20
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            30
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            40
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            5,
+            50
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": 20
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": 30
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": 40
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": 50
+        }
+      ]
+    },
+    {
+      "name": "맞은 get 은 그 키를 가장 최근으로 올린다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "put",
+          "arg": [
+            1,
+            10
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            20
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            30
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            40
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 10
+        },
+        {
+          "op": "put",
+          "arg": [
+            5,
+            50
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 10
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": 30
+        }
+      ]
+    },
+    {
+      "name": "덮어쓰기는 값을 바꾸고 그 키를 가장 최근으로 올린다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "put",
+          "arg": [
+            1,
+            10
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            20
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            30
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            40
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            11
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            5,
+            50
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 11
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": 30
+        }
+      ]
+    },
+    {
+      "name": "가득 찬 상태의 덮어쓰기는 아무것도 밀어내지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "put",
+          "arg": [
+            1,
+            10
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            20
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            30
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            40
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            33
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 10
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": 20
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": 33
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": 40
+        }
+      ]
+    },
+    {
+      "name": "빗나간 get 은 사용 순서를 바꾸지 않는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "put",
+          "arg": [
+            1,
+            10
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            20
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            30
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            40
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": null
+        },
+        {
+          "op": "put",
+          "arg": [
+            5,
+            50
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": 20
+        }
+      ]
+    },
+    {
+      "name": "밀려난 키를 다시 넣으면 새 키로 들어오고 또 하나를 밀어낸다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "put",
+          "arg": [
+            1,
+            10
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            20
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            30
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            40
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            5,
+            50
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            100
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 100
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": 30
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": 50
+        }
+      ]
+    },
+    {
+      "name": "용량 1 은 마지막에 쓴 키 하나만 담는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "reset",
+          "arg": 1
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            10
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            20
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": 20
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            22
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": 22
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            30
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": 30
+        }
+      ]
+    },
+    {
+      "name": "용량이 1 이상의 정수가 아니면 RangeError 이고 앞의 캐시가 남는다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "put",
+          "arg": [
+            1,
+            10
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 10
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            20
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            30
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            40
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            5,
+            50
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": null
+        }
+      ]
+    },
+    {
+      "name": "같은 칸으로 몰리는 키들도 서로를 가리지 않고 순서대로 밀려난다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "put",
+          "arg": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            65536,
+            2
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            131072,
+            3
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            196608,
+            4
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": 1
+        },
+        {
+          "op": "put",
+          "arg": [
+            262144,
+            5
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 65536,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": 1
+        },
+        {
+          "op": "get",
+          "arg": 131072,
+          "expect": 3
+        },
+        {
+          "op": "get",
+          "arg": 262144,
+          "expect": 5
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "put",
+          "arg": [
+            0,
+            527
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            403
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 403
+        },
+        {
+          "op": "put",
+          "arg": [
+            0,
+            394
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": 394
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            798
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 403
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            758
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": null
+        },
+        {
+          "op": "put",
+          "arg": [
+            6,
+            994
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 6,
+          "expect": 994
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": null
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            152
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": 758
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            677
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            0,
+            401
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": null
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            76
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 152
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 152
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            324
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 152
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": 677
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": 324
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            792
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 792
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 6,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": 401
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": null
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            884
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            204
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": 401
+        },
+        {
+          "op": "get",
+          "arg": 6,
+          "expect": null
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            148
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            5,
+            344
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 148
+        },
+        {
+          "op": "put",
+          "arg": [
+            5,
+            29
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            601
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": null
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            642
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            545
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 148
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            777
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 6,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": 777
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            384
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": null
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            42
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": 42
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 148
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            19
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 0,
+          "expect": null
+        },
+        {
+          "op": "put",
+          "arg": [
+            5,
+            653
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 6,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            107
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": 653
+        },
+        {
+          "op": "put",
+          "arg": [
+            0,
+            506
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            5,
+            861
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            6,
+            65
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            5,
+            203
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            7,
+            850
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            598
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            144
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": null
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            153
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": 598
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": 850
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            2
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            0,
+            785
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            7,
+            588
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            614
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            6,
+            871
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            6,
+            715
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            111
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 6,
+          "expect": 715
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            5,
+            144
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            6,
+            662
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            0,
+            408
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            638
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            907
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            7,
+            48
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            13
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            795
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 6,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": 907
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            961
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            484
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": 795
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": 484
+        },
+        {
+          "op": "get",
+          "arg": 4,
+          "expect": 484
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            226
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": 961
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": 961
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            78
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            781
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            484
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 1,
+          "expect": 484
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            979
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            517
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            68
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            5,
+            500
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": null
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": 500
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            6,
+            492
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": null
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            6,
+            860
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            6,
+            822
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            1,
+            58
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": 500
+        },
+        {
+          "op": "put",
+          "arg": [
+            4,
+            453
+          ]
+        },
+        {
+          "op": "get",
+          "arg": 5,
+          "expect": 500
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 7,
+          "expect": null
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            874
+          ]
+        },
+        {
+          "op": "put",
+          "arg": [
+            2,
+            360
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 2,
+          "expect": 360
+        },
+        {
+          "op": "reset",
+          "arg": -2,
+          "expect": "RangeError"
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            337
+          ]
+        },
+        {
+          "op": "reset",
+          "arg": 2.5,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "reset",
+          "arg": 0,
+          "expect": "RangeError"
+        },
+        {
+          "op": "get",
+          "arg": 3,
+          "expect": 337
+        },
+        {
+          "op": "put",
+          "arg": [
+            3,
+            530
+          ]
+        }
+      ]
+    }
+  ]
+}

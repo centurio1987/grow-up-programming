@@ -1,221 +1,126 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `range-query/persistentSegmentTree` 계약 스위트 실행부(규약2).
+ *
+ * `runContract` 호출과, 계약 스위트가 담지 못하는 **주입 정책**만 둔다. 무엇을 검사하는지는
+ * `./persistentSegmentTree.contract.ts` 에 있고, 계약 자체는 `./persistentSegmentTree.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다. 축3은 계측기가 붙은
+ * 정본에만 돈다.
+ *
+ * **계측 경로가 `injected` 다**(`range-query/segmentTree` 와 같다). 하네스가 결합 호출 횟수를 밖에서 세고,
+ * 자기 보고 `__cost` 가 그보다 작으면 실패한다.
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 물려받은 시험의 「10^3 갱신 + 10^3 질의 100ms 이내」가 재는 것은 그
+ * 기계의 상수다. 자리는 축3이다.
+ */
+
+import { describe, expect, test } from "bun:test";
+import { runContract } from "../../_contract/runContract";
+import { PersistentSegmentTree as Reference } from "./_reference/persistentSegmentTree";
 import { PersistentSegmentTree } from "./persistentSegmentTree";
+import {
+  firstNonZero,
+  IDENTITY,
+  type PersistentSegmentTreeContract,
+  persistentSegmentTreeContract,
+  VersionedSized,
+} from "./persistentSegmentTree.contract";
 
-describe("PersistentSegmentTree", () => {
-  describe("기본", () => {
-    test("초기 버전(0)이 생성된다", () => {
-      const tree = new PersistentSegmentTree([1, 2, 3, 4, 5]);
-      expect(tree.versionCount()).toBe(1);
+runContract(
+  () =>
+    new VersionedSized(
+      (values) => new PersistentSegmentTree(values, firstNonZero, IDENTITY),
+    ),
+  persistentSegmentTreeContract,
+  { label: "스텁" },
+);
+
+runContract(
+  () =>
+    new VersionedSized(
+      (values) => new Reference(values, firstNonZero, IDENTITY),
+    ),
+  persistentSegmentTreeContract,
+  {
+    label: "정본",
+    cost: {
+      kind: "injected",
+      make: (tick) =>
+        new VersionedSized(
+          (values) =>
+            new Reference(
+              values,
+              (a, b) => {
+                tick();
+                return firstNonZero(a, b);
+              },
+              IDENTITY,
+            ),
+        ),
+    },
+  },
+);
+
+/**
+ * 주입 정책은 계약의 일부다(규약1). 계약 스위트는 결합 **하나**로 도는데 계약이 요구하는 것은 **임의의** 결합이므로,
+ * 같은 구현이 다른 결합에서도 서는지와 호출자가 넘긴 배열을 고쳐도 첫 버전이 그대로인지는 여기서 본다.
+ */
+function checkInjectionPolicy(
+  label: string,
+  make: (
+    values: number[],
+    combine: (a: number, b: number) => number,
+    identity: number,
+  ) => PersistentSegmentTreeContract,
+): void {
+  describe(`PersistentSegmentTree 주입 정책 [${label}]`, () => {
+    test("되돌리는 값이 없는 결합 — 최솟값, 옛 버전의 최솟값이 남는다", () => {
+      const tree = make(
+        [5, 3, 9, 1, 7, 2],
+        (a, b) => Math.min(a, b),
+        Number.POSITIVE_INFINITY,
+      );
+      const raised = tree.update(0, 3, 8);
+      expect(tree.query(0, 0, 6)).toBe(1);
+      expect(tree.query(raised, 0, 6)).toBe(2);
+      const lowered = tree.update(raised, 5, -4);
+      expect(tree.query(lowered, 4, 6)).toBe(-4);
+      expect(tree.query(raised, 4, 6)).toBe(2);
     });
 
-    test("초기 버전의 구간 합이 올바르다 — 전체 구간", () => {
-      const tree = new PersistentSegmentTree([1, 2, 3, 4, 5]);
-      expect(tree.query(0, 0, 4)).toBe(15);
+    test("되돌리는 값이 있는 결합 — 덧셈, 한 버전에서 두 갈래로", () => {
+      const tree = make([1, 2, 3, 4, 5], (a, b) => a + b, 0);
+      const a = tree.update(0, 2, 100);
+      const b = tree.update(0, 4, 99);
+      expect(tree.query(a, 0, 5)).toBe(112);
+      expect(tree.query(b, 3, 5)).toBe(103);
+      expect(tree.query(0, 0, 5)).toBe(15);
     });
 
-    test("초기 버전의 구간 합이 올바르다 — 부분 구간", () => {
-      const tree = new PersistentSegmentTree([1, 2, 3, 4, 5]);
-      expect(tree.query(0, 1, 3)).toBe(9); // 2+3+4
+    test("자리가 없는 수열은 첫 버전의 빈 구간 하나만 묻고 갱신은 전부 거절된다", () => {
+      const tree = make([], (a, b) => a + b, 0);
+      expect(tree.query(0, 0, 0)).toBe(0);
+      expect(() => tree.update(0, 0, 1)).toThrow(RangeError);
+      expect(() => tree.query(1, 0, 0)).toThrow(RangeError);
     });
 
-    test("초기 버전의 단일 원소 질의가 올바르다", () => {
-      const tree = new PersistentSegmentTree([10, 20, 30]);
-      expect(tree.query(0, 0, 0)).toBe(10);
-      expect(tree.query(0, 1, 1)).toBe(20);
-      expect(tree.query(0, 2, 2)).toBe(30);
-    });
-
-    test("update가 새 버전 번호를 반환한다", () => {
-      const tree = new PersistentSegmentTree([1, 2, 3]);
-      const v1 = tree.update(0, 1, 10);
-      expect(v1).toBe(1);
-    });
-
-    test("update 후 버전 수가 증가한다", () => {
-      const tree = new PersistentSegmentTree([1, 2, 3]);
-      tree.update(0, 1, 10);
-      expect(tree.versionCount()).toBe(2);
-    });
-  });
-
-  describe("버전 분리 (영속성)", () => {
-    test("update 후 새 버전에 변경이 반영된다", () => {
-      const tree = new PersistentSegmentTree([1, 2, 3, 4, 5]);
-      const v1 = tree.update(0, 2, 100); // index 2를 100으로 변경
-      expect(tree.query(v1, 0, 4)).toBe(112); // 1+2+100+4+5
-    });
-
-    test("update 후 원래 버전(0)은 변경되지 않는다", () => {
-      const tree = new PersistentSegmentTree([1, 2, 3, 4, 5]);
-      tree.update(0, 2, 100);
-      expect(tree.query(0, 0, 4)).toBe(15); // 여전히 1+2+3+4+5
-    });
-
-    test("여러 버전이 독립적으로 유지된다", () => {
-      const tree = new PersistentSegmentTree([0, 0, 0, 0]);
-      const v1 = tree.update(0, 0, 1);  // [1, 0, 0, 0]
-      const v2 = tree.update(v1, 1, 2); // [1, 2, 0, 0]
-      const v3 = tree.update(v2, 2, 3); // [1, 2, 3, 0]
-
-      expect(tree.query(0, 0, 3)).toBe(0);  // 버전 0: 0+0+0+0
-      expect(tree.query(v1, 0, 3)).toBe(1); // 버전 1: 1+0+0+0
-      expect(tree.query(v2, 0, 3)).toBe(3); // 버전 2: 1+2+0+0
-      expect(tree.query(v3, 0, 3)).toBe(6); // 버전 3: 1+2+3+0
-    });
-
-    test("과거 버전을 기반으로 새 버전을 만들 수 있다 (분기)", () => {
-      const tree = new PersistentSegmentTree([1, 2, 3]);
-      const v1 = tree.update(0, 0, 10); // [10, 2, 3]
-      const v2a = tree.update(v1, 1, 20); // [10, 20, 3]
-      const v2b = tree.update(v1, 2, 30); // [10, 2, 30]
-
-      expect(tree.query(v2a, 0, 2)).toBe(33); // 10+20+3
-      expect(tree.query(v2b, 0, 2)).toBe(42); // 10+2+30
-      // v1은 변경 없음
-      expect(tree.query(v1, 0, 2)).toBe(15); // 10+2+3
-    });
-
-    test("버전 0(원본)을 직접 기반으로 복수 분기 생성", () => {
-      const tree = new PersistentSegmentTree([5, 5, 5]);
-      const vA = tree.update(0, 0, 1); // [1, 5, 5]
-      const vB = tree.update(0, 1, 2); // [5, 2, 5]
-      const vC = tree.update(0, 2, 3); // [5, 5, 3]
-
-      expect(tree.query(vA, 0, 2)).toBe(11); // 1+5+5
-      expect(tree.query(vB, 0, 2)).toBe(12); // 5+2+5
-      expect(tree.query(vC, 0, 2)).toBe(13); // 5+5+3
-    });
-  });
-
-  describe("구간 질의", () => {
-    test("시작 인덱스 == 끝 인덱스 (단일 원소)", () => {
-      const tree = new PersistentSegmentTree([10, 20, 30, 40]);
-      expect(tree.query(0, 2, 2)).toBe(30);
-    });
-
-    test("전체 구간 질의", () => {
-      const arr = [1, 3, 5, 7, 9];
-      const tree = new PersistentSegmentTree(arr);
-      expect(tree.query(0, 0, 4)).toBe(25);
-    });
-
-    test("왼쪽 절반 구간", () => {
-      const tree = new PersistentSegmentTree([2, 4, 6, 8, 10]);
-      expect(tree.query(0, 0, 1)).toBe(6); // 2+4
-    });
-
-    test("오른쪽 절반 구간", () => {
-      const tree = new PersistentSegmentTree([2, 4, 6, 8, 10]);
-      expect(tree.query(0, 3, 4)).toBe(18); // 8+10
-    });
-
-    test("update 후 올바른 구간 합", () => {
-      const tree = new PersistentSegmentTree([1, 2, 3, 4, 5]);
-      const v1 = tree.update(0, 0, 100);
-      expect(tree.query(v1, 0, 2)).toBe(105); // 100+2+3
-      expect(tree.query(v1, 1, 4)).toBe(14);  // 2+3+4+5
-    });
-
-    test("음수 값도 처리한다", () => {
-      const tree = new PersistentSegmentTree([-3, -1, 0, 1, 3]);
-      expect(tree.query(0, 0, 4)).toBe(0);
-      expect(tree.query(0, 0, 1)).toBe(-4);
-    });
-
-    test("음수로 update 후 구간 합", () => {
-      const tree = new PersistentSegmentTree([1, 2, 3]);
-      const v1 = tree.update(0, 1, -5);
-      expect(tree.query(v1, 0, 2)).toBe(-1); // 1+(-5)+3
+    test("생성자가 돌아온 뒤 호출자가 배열을 고쳐도 첫 버전은 그대로다", () => {
+      const values = [4, 0, 6];
+      const tree = make(values, (a, b) => a + b, 0);
+      values[0] = 1000;
+      values.push(7);
+      expect(tree.query(0, 0, 3)).toBe(10);
+      expect(() => tree.query(0, 0, 4)).toThrow(RangeError);
     });
   });
+}
 
-  describe("엣지", () => {
-    test("단일 원소 배열 처리", () => {
-      const tree = new PersistentSegmentTree([42]);
-      expect(tree.query(0, 0, 0)).toBe(42);
-      const v1 = tree.update(0, 0, 100);
-      expect(tree.query(v1, 0, 0)).toBe(100);
-      expect(tree.query(0, 0, 0)).toBe(42); // 원본 불변
-    });
-
-    test("0으로 초기화된 배열", () => {
-      const tree = new PersistentSegmentTree([0, 0, 0, 0, 0]);
-      expect(tree.query(0, 0, 4)).toBe(0);
-      const v1 = tree.update(0, 2, 5);
-      expect(tree.query(v1, 0, 4)).toBe(5);
-    });
-
-    test("같은 인덱스에 여러 번 update — 각 버전이 독립 유지", () => {
-      const tree = new PersistentSegmentTree([1, 1, 1]);
-      const v1 = tree.update(0, 1, 10);
-      const v2 = tree.update(v1, 1, 20);
-      const v3 = tree.update(v2, 1, 30);
-
-      expect(tree.query(0, 0, 2)).toBe(3);
-      expect(tree.query(v1, 1, 1)).toBe(10);
-      expect(tree.query(v2, 1, 1)).toBe(20);
-      expect(tree.query(v3, 1, 1)).toBe(30);
-    });
-
-    test("대용량 배열 초기 구성", () => {
-      const arr = Array.from({ length: 1000 }, (_, i) => i + 1);
-      const tree = new PersistentSegmentTree(arr);
-      // 1 + 2 + ... + 1000 = 500500
-      expect(tree.query(0, 0, 999)).toBe(500500);
-    });
-
-    test("versionCount가 update 횟수만큼 증가한다", () => {
-      const tree = new PersistentSegmentTree([1, 2, 3]);
-      expect(tree.versionCount()).toBe(1);
-      tree.update(0, 0, 10);
-      expect(tree.versionCount()).toBe(2);
-      tree.update(0, 1, 20);
-      expect(tree.versionCount()).toBe(3);
-    });
-  });
-
-  describe("성능", () => {
-    test("n=10^4 초기 구성 + 10^3 update + 10^3 query 100ms 이내", () => {
-      const N = 10000;
-      const arr = Array.from({ length: N }, () => Math.floor(Math.random() * 100));
-
-      const start = performance.now();
-      const tree = new PersistentSegmentTree(arr);
-
-      let lastVersion = 0;
-      for (let i = 0; i < 1000; i++) {
-        const idx = Math.floor(Math.random() * N);
-        lastVersion = tree.update(lastVersion, idx, Math.floor(Math.random() * 1000));
-      }
-
-      for (let i = 0; i < 1000; i++) {
-        const l = Math.floor(Math.random() * N);
-        const r = Math.floor(Math.random() * N);
-        if (l <= r) {
-          tree.query(lastVersion, l, r);
-        }
-      }
-
-      const elapsed = performance.now() - start;
-      expect(elapsed).toBeLessThan(100);
-    });
-
-    test("버전 분기 — 동일 버전에서 1000번 update 후 각 버전 query", () => {
-      const tree = new PersistentSegmentTree([0, 0, 0, 0, 0]);
-      const versions: number[] = [0];
-
-      const start = performance.now();
-      for (let i = 0; i < 1000; i++) {
-        const v = tree.update(0, i % 5, i);
-        versions.push(v);
-      }
-
-      // 각 버전의 단일 원소 질의
-      for (const v of versions) {
-        tree.query(v, 0, 4);
-      }
-      const elapsed = performance.now() - start;
-      expect(elapsed).toBeLessThan(100);
-    });
-  });
-});
+checkInjectionPolicy(
+  "스텁",
+  (values, combine, identity) =>
+    new PersistentSegmentTree(values, combine, identity),
+);
+checkInjectionPolicy(
+  "정본",
+  (values, combine, identity) => new Reference(values, combine, identity),
+);

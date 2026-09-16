@@ -1,0 +1,2902 @@
+{
+  "schema": "ord006/contract-vector@1",
+  "structure": "KDTree",
+  "grade": "complexity",
+  "element": "number",
+  "cases": [
+    {
+      "name": "빈 색인의 범위 질의는 빈 답이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -10,
+              -10
+            ],
+            [
+              10,
+              10
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            3,
+            4
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              0,
+              0
+            ],
+            [
+              2,
+              2
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              3,
+              4
+            ],
+            [
+              3,
+              4
+            ]
+          ],
+          "expect": [
+            [
+              3,
+              4
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "사각형은 변을 포함하고 뒤집힌 사각형은 빈 답이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            3,
+            3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            5
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              1,
+              1
+            ],
+            [
+              3,
+              3
+            ]
+          ],
+          "expect": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              3
+            ],
+            [
+              3,
+              3
+            ]
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              1
+            ]
+          ],
+          "expect": [
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              3,
+              1
+            ],
+            [
+              1,
+              3
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              1.5,
+              0
+            ],
+            [
+              2.5,
+              4.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              1.5,
+              0
+            ],
+            [
+              2.5,
+              5
+            ]
+          ],
+          "expect": [
+            [
+              2,
+              5
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "같은 점을 여러 번 넣으면 범위 질의가 넣은 수만큼 돌려준다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            2
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            2
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            2
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ],
+          "expect": [
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              2
+            ]
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              0,
+              0
+            ],
+            [
+              5,
+              5
+            ]
+          ],
+          "expect": [
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              2
+            ],
+            [
+              2,
+              3
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "빈 색인의 최근접은 null 이다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            0
+          ],
+          "expect": null
+        },
+        {
+          "op": "insert",
+          "arg": [
+            7,
+            -7
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            0
+          ],
+          "expect": [
+            7,
+            -7
+          ]
+        }
+      ]
+    },
+    {
+      "name": "최근접 동률은 x 가 작은 점이 이기고 x 도 같으면 y 가 작은 점이 이긴다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            0
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            -1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -1,
+            0
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            0
+          ],
+          "expect": [
+            -1,
+            0
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            5,
+            5
+          ],
+          "expect": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            3
+          ],
+          "expect": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            1,
+            0
+          ],
+          "expect": [
+            1,
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "name": "좌표 한도 끝에서도 최근접 거리를 정확히 견준다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": [
+            33554432,
+            33554431
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            33554431,
+            33554432
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -33554432,
+            -33554432
+          ],
+          "expect": [
+            33554431,
+            33554432
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            33554432,
+            33554432
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -33554432,
+            -33554432
+          ],
+          "expect": [
+            33554431,
+            33554432
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            33554432,
+            -33554432
+          ],
+          "expect": [
+            33554432,
+            33554431
+          ]
+        }
+      ]
+    },
+    {
+      "name": "정수가 아니거나 한도 밖인 좌표는 RangeError 이고 상태가 안 바뀐다",
+      "kind": "edge",
+      "steps": [
+        {
+          "op": "insert",
+          "arg": [
+            0.5,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": [
+            33554433,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            -33554433
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": [
+            33554432,
+            -33554432
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -1000000000,
+              -1000000000
+            ],
+            [
+              1000000000,
+              1000000000
+            ]
+          ],
+          "expect": [
+            [
+              33554432,
+              -33554432
+            ]
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0.5,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            33554433
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            0
+          ],
+          "expect": [
+            33554432,
+            -33554432
+          ]
+        }
+      ]
+    },
+    {
+      "name": "무작위 시퀀스 seed=1 200회",
+      "kind": "random",
+      "steps": [
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -5,
+              0.5
+            ],
+            [
+              5,
+              5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            -1
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            -5
+          ],
+          "expect": [
+            2,
+            -1
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -2.5,
+              -3.5
+            ],
+            [
+              0,
+              -4.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              3,
+              -2
+            ],
+            [
+              -3,
+              -5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              1,
+              3
+            ],
+            [
+              -2,
+              -3
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              0.5,
+              2.5
+            ],
+            [
+              -3,
+              2.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              3,
+              5
+            ],
+            [
+              -2.5,
+              2.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -1,
+            -2
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            -3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            33554433,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            6,
+            3
+          ],
+          "expect": [
+            2,
+            -1
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -2,
+              2
+            ],
+            [
+              5,
+              4.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            4,
+            6
+          ],
+          "expect": [
+            2,
+            -1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            -33554433
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            4
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            2,
+            6
+          ],
+          "expect": [
+            0,
+            4
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -3,
+            -1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -2,
+            1
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              0.5,
+              -4.5
+            ],
+            [
+              3,
+              3.5
+            ]
+          ],
+          "expect": [
+            [
+              1,
+              -3
+            ],
+            [
+              2,
+              -1
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -2,
+            4
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            0
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -3,
+            -4
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            -3
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              0,
+              -3
+            ],
+            [
+              3,
+              -2.5
+            ]
+          ],
+          "expect": [
+            [
+              1,
+              -3
+            ],
+            [
+              1,
+              -3
+            ]
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            5,
+            -6
+          ],
+          "expect": [
+            1,
+            -3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            -33554433
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": [
+            3,
+            -4
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            3,
+            3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0.5,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              0.5,
+              -2
+            ],
+            [
+              4,
+              -2
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            2,
+            2
+          ],
+          "expect": [
+            3,
+            3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -2,
+            -3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            4,
+            -3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0.5,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -3,
+            -5
+          ],
+          "expect": [
+            -3,
+            -4
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            5,
+            0
+          ],
+          "expect": [
+            2,
+            -1
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              2,
+              -1.5
+            ],
+            [
+              -2.5,
+              0.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -6,
+            -4
+          ],
+          "expect": [
+            -3,
+            -4
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              1.5,
+              -5
+            ],
+            [
+              -2,
+              -0.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -2,
+            -2
+          ],
+          "expect": [
+            -2,
+            -3
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -5,
+              4.5
+            ],
+            [
+              0.5,
+              0.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -4,
+              -4.5
+            ],
+            [
+              3.5,
+              -4
+            ]
+          ],
+          "expect": [
+            [
+              -3,
+              -4
+            ],
+            [
+              3,
+              -4
+            ]
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            2,
+            -3
+          ],
+          "expect": [
+            1,
+            -3
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              4.5,
+              -4.5
+            ],
+            [
+              -4,
+              -3.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            33554433,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              3,
+              -2.5
+            ],
+            [
+              -4.5,
+              5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            -33554433
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            0
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              2,
+              -4
+            ],
+            [
+              -2.5,
+              5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              0.5,
+              -5
+            ],
+            [
+              -3.5,
+              1.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0.5,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              2,
+              1.5
+            ],
+            [
+              3,
+              1.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -6,
+            5
+          ],
+          "expect": [
+            -2,
+            4
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            -33554433
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              0.5,
+              -1.5
+            ],
+            [
+              -4,
+              -4.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -6,
+            0
+          ],
+          "expect": [
+            -3,
+            -1
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              2,
+              4
+            ],
+            [
+              0,
+              3
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            -3
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -5,
+            -4
+          ],
+          "expect": [
+            -3,
+            -4
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            -33554433
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            5,
+            5
+          ],
+          "expect": [
+            3,
+            3
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -0.5,
+              1
+            ],
+            [
+              -0.5,
+              -3
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            -4
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              1,
+              -3.5
+            ],
+            [
+              -3.5,
+              5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            33554433,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            0
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -4,
+            3
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            2,
+            5
+          ],
+          "expect": [
+            0,
+            4
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              1,
+              -1
+            ],
+            [
+              1,
+              0.5
+            ]
+          ],
+          "expect": [
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              0
+            ]
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -1,
+            3
+          ],
+          "expect": [
+            -2,
+            4
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -4,
+            5
+          ],
+          "expect": [
+            -4,
+            3
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              5,
+              0
+            ],
+            [
+              1.5,
+              -0.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            2
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            -33554433
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -2,
+            3
+          ],
+          "expect": [
+            -2,
+            4
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -4,
+            -2
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -1,
+            2
+          ],
+          "expect": [
+            -2,
+            1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            3,
+            1
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -4,
+              -1
+            ],
+            [
+              4.5,
+              -0.5
+            ]
+          ],
+          "expect": [
+            [
+              -3,
+              -1
+            ],
+            [
+              2,
+              -1
+            ]
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            1,
+            -4
+          ],
+          "expect": [
+            1,
+            -4
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              1.5,
+              1
+            ],
+            [
+              4.5,
+              -1.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            33554433,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": [
+            33554433,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              3,
+              -2
+            ],
+            [
+              3,
+              4.5
+            ]
+          ],
+          "expect": [
+            [
+              3,
+              1
+            ],
+            [
+              3,
+              3
+            ]
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -3.5,
+              0.5
+            ],
+            [
+              0.5,
+              -1.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            0
+          ],
+          "expect": [
+            1,
+            0
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -3,
+            0
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -1,
+            1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -2,
+            -2
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            -4
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -3.5,
+              3
+            ],
+            [
+              0.5,
+              -3
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -5,
+              -3.5
+            ],
+            [
+              -1.5,
+              1
+            ]
+          ],
+          "expect": [
+            [
+              -4,
+              -2
+            ],
+            [
+              -3,
+              -1
+            ],
+            [
+              -3,
+              0
+            ],
+            [
+              -2,
+              -3
+            ],
+            [
+              -2,
+              -2
+            ],
+            [
+              -2,
+              1
+            ]
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            1,
+            0
+          ],
+          "expect": [
+            1,
+            0
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -1,
+              -4.5
+            ],
+            [
+              1,
+              1.5
+            ]
+          ],
+          "expect": [
+            [
+              -1,
+              -2
+            ],
+            [
+              -1,
+              1
+            ],
+            [
+              1,
+              -4
+            ],
+            [
+              1,
+              -4
+            ],
+            [
+              1,
+              -3
+            ],
+            [
+              1,
+              -3
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ]
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -5,
+              -2
+            ],
+            [
+              -4.5,
+              1.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            4
+          ],
+          "expect": [
+            0,
+            4
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -5,
+              -2.5
+            ],
+            [
+              4.5,
+              -4.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              3.5,
+              4
+            ],
+            [
+              -1,
+              2.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -4,
+            -6
+          ],
+          "expect": [
+            -3,
+            -4
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            0
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -2,
+              1.5
+            ],
+            [
+              3,
+              3.5
+            ]
+          ],
+          "expect": [
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              3
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            -1
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -2,
+            -2
+          ],
+          "expect": [
+            -2,
+            -2
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            5,
+            -4
+          ],
+          "expect": [
+            4,
+            -3
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            3,
+            -5
+          ],
+          "expect": [
+            3,
+            -4
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            -1
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -0.5,
+              -1.5
+            ],
+            [
+              2,
+              2
+            ]
+          ],
+          "expect": [
+            [
+              0,
+              -1
+            ],
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              1,
+              1
+            ],
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              -1
+            ],
+            [
+              2,
+              -1
+            ]
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            -33554433
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": [
+            33554433,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -1,
+              0.5
+            ],
+            [
+              -1.5,
+              2
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -5,
+            -2
+          ],
+          "expect": [
+            -4,
+            -2
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            -4
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -1,
+            -2
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -6,
+            2
+          ],
+          "expect": [
+            -4,
+            3
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              5,
+              3
+            ],
+            [
+              -1,
+              0
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              1.5,
+              -4.5
+            ],
+            [
+              1.5,
+              -1.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            3,
+            -1
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            6,
+            4
+          ],
+          "expect": [
+            3,
+            3
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -1,
+            -4
+          ],
+          "expect": [
+            0,
+            -4
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -6,
+            -3
+          ],
+          "expect": [
+            -4,
+            -2
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            3,
+            -6
+          ],
+          "expect": [
+            3,
+            -4
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              1,
+              -4.5
+            ],
+            [
+              -3,
+              -5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            -33554433
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -4,
+            1
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            5,
+            -6
+          ],
+          "expect": [
+            3,
+            -4
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            2,
+            -2
+          ],
+          "expect": [
+            2,
+            -3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -3,
+            2
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -1,
+            6
+          ],
+          "expect": [
+            -2,
+            4
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            4,
+            -5
+          ],
+          "expect": [
+            3,
+            -4
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -1.5,
+              -3.5
+            ],
+            [
+              -4,
+              -3
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              0.5,
+              -4
+            ],
+            [
+              4.5,
+              -2
+            ]
+          ],
+          "expect": [
+            [
+              1,
+              -4
+            ],
+            [
+              1,
+              -4
+            ],
+            [
+              1,
+              -3
+            ],
+            [
+              1,
+              -3
+            ],
+            [
+              2,
+              -3
+            ],
+            [
+              3,
+              -4
+            ],
+            [
+              4,
+              -3
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -3,
+            -1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            4,
+            4
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            -2
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0.5,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "insert",
+          "arg": [
+            3,
+            1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            -1
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -0.5,
+              2.5
+            ],
+            [
+              2,
+              2
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -1,
+            -1
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -4,
+            6
+          ],
+          "expect": [
+            -2,
+            4
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -4,
+            6
+          ],
+          "expect": [
+            -2,
+            4
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -3,
+            1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -3,
+            -3
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -0.5,
+              -2.5
+            ],
+            [
+              1.5,
+              -4.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            2,
+            3
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -0.5,
+              5
+            ],
+            [
+              2.5,
+              -4.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -4,
+            0
+          ],
+          "expect": [
+            -4,
+            1
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              1,
+              -4
+            ],
+            [
+              -1.5,
+              1.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            0,
+            3
+          ],
+          "expect": [
+            0,
+            4
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            5,
+            3
+          ],
+          "expect": [
+            4,
+            4
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            5,
+            4
+          ],
+          "expect": [
+            4,
+            4
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -1.5,
+              3
+            ],
+            [
+              4.5,
+              4.5
+            ]
+          ],
+          "expect": [
+            [
+              0,
+              4
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              3,
+              3
+            ],
+            [
+              4,
+              4
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            -1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            -2
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              5,
+              0.5
+            ],
+            [
+              -5,
+              5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              2,
+              -5
+            ],
+            [
+              3,
+              3.5
+            ]
+          ],
+          "expect": [
+            [
+              2,
+              -3
+            ],
+            [
+              2,
+              -1
+            ],
+            [
+              2,
+              -1
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              3,
+              -4
+            ],
+            [
+              3,
+              -1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              3,
+              3
+            ]
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            5,
+            2
+          ],
+          "expect": [
+            3,
+            1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            4
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              1.5,
+              -3.5
+            ],
+            [
+              2.5,
+              -3.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -2.5,
+              -3
+            ],
+            [
+              -1,
+              -4
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -4,
+            1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            0,
+            3
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              5,
+              -1.5
+            ],
+            [
+              -1.5,
+              0
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            0
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -4,
+              -2.5
+            ],
+            [
+              0.5,
+              -5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            -1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -4,
+            -4
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -5,
+            3
+          ],
+          "expect": [
+            -4,
+            3
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              2.5,
+              -3
+            ],
+            [
+              2,
+              -1.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -3,
+            -3
+          ],
+          "expect": [
+            -3,
+            -3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            -4
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -1,
+            -2
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -3,
+            3
+          ],
+          "expect": [
+            -4,
+            3
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -5,
+            2
+          ],
+          "expect": [
+            -4,
+            1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -1,
+            4
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -1,
+              4.5
+            ],
+            [
+              -4.5,
+              -1
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -5,
+            2
+          ],
+          "expect": [
+            -4,
+            1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -3,
+            -4
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -4,
+              1.5
+            ],
+            [
+              -2,
+              -5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -1.5,
+              2.5
+            ],
+            [
+              3,
+              0.5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -3,
+            6
+          ],
+          "expect": [
+            -2,
+            4
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              1.5,
+              -2
+            ],
+            [
+              3,
+              -0.5
+            ]
+          ],
+          "expect": [
+            [
+              2,
+              -1
+            ],
+            [
+              2,
+              -1
+            ],
+            [
+              3,
+              -1
+            ]
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            2,
+            4
+          ],
+          "expect": [
+            2,
+            3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -2,
+            2
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -1.5,
+              3
+            ],
+            [
+              2,
+              -5
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            3,
+            -1
+          ],
+          "expect": [
+            3,
+            -1
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -1,
+            3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -3,
+            2
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -2,
+            -1
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            33554433,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -3,
+              2
+            ],
+            [
+              -3,
+              5
+            ]
+          ],
+          "expect": [
+            [
+              -3,
+              2
+            ],
+            [
+              -3,
+              2
+            ]
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            1,
+            3
+          ]
+        },
+        {
+          "op": "insert",
+          "arg": [
+            -3,
+            -1
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -4,
+            2
+          ],
+          "expect": [
+            -4,
+            1
+          ]
+        },
+        {
+          "op": "rangeSearch",
+          "arg": [
+            [
+              -1.5,
+              5
+            ],
+            [
+              -0.5,
+              3
+            ]
+          ],
+          "expect": []
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            2,
+            2
+          ],
+          "expect": [
+            1,
+            2
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            5,
+            5
+          ],
+          "expect": [
+            4,
+            4
+          ]
+        },
+        {
+          "op": "nearestNeighbor",
+          "arg": [
+            -4,
+            -4
+          ],
+          "expect": [
+            -4,
+            -4
+          ]
+        }
+      ]
+    }
+  ]
+}

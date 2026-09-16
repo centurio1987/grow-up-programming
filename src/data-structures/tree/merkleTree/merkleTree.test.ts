@@ -1,136 +1,115 @@
-import { test, expect, describe } from "bun:test";
+/**
+ * `tree/merkleTree` 계약 스위트 실행부(규약2).
+ *
+ * `runContract` 호출과, 계약 스위트가 담지 못하는 **주입 정책**만 둔다. 무엇을 검사하는지는 `./merkleTree.contract.ts` 에 있고,
+ * 계약 자체는 `./merkleTree.ts` 헤더 한 곳이다.
+ *
+ * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다. 축3은 계측기가 붙은 정본에만 돈다.
+ *
+ * **계측 경로가 `injected` 다**(`range-query/segmentTree` 와 같다). 하네스가 해시 호출 횟수를 밖에서 세고, 자기 보고 `__cost` 가 그보다
+ * 작으면 실패한다. 축1 은 단사 해시 `wrap`, 축3 은 짧은 해시 `digest` 를 주입한다(`./merkleTree.contract.ts` 머리말).
+ *
+ * 벽시계 테스트는 두지 않는다(불변 사실 7). 물려받은 시험의 「1024개 블록 트리 구성 및 모든 증명 검증이 100ms 이내」가 재는 것은 그
+ * 기계의 상수다. 자리는 축3이다.
+ */
+
+import { describe, expect, test } from "bun:test";
+import { runContract } from "../../_contract/runContract";
+import { MerkleTree as Reference } from "./_reference/merkleTree";
 import { MerkleTree } from "./merkleTree";
+import {
+  bindingSweep,
+  digest,
+  type MerkleTreeContract,
+  merkleTreeContract,
+  Rebuildable,
+  wrap,
+} from "./merkleTree.contract";
 
-describe("MerkleTree", () => {
-  describe("기본", () => {
-    test("4개 블록으로 트리를 구성하고 루트 해시를 반환한다", () => {
-      const blocks = ["tx1", "tx2", "tx3", "tx4"];
-      const tree = new MerkleTree(blocks);
+runContract(
+  () => new Rebuildable((blocks) => new MerkleTree(blocks, wrap)),
+  merkleTreeContract,
+  { label: "스텁" },
+);
+
+runContract(
+  () => new Rebuildable((blocks) => new Reference(blocks, wrap)),
+  merkleTreeContract,
+  {
+    label: "정본",
+    cost: {
+      kind: "injected",
+      make: (tick) =>
+        new Rebuildable(
+          (blocks) =>
+            new Reference(blocks, (data) => {
+              tick();
+              return digest(data);
+            }),
+        ),
+    },
+  },
+);
+
+/**
+ * 주입 정책은 계약의 일부다(규약1). 계약 스위트는 해시 **하나**로 도는데 계약이 요구하는 것은 두 의무(순수 · 단사)를 지키는 **임의의**
+ * 해시이므로, 다른 단사 해시에서도 서는지와 호출자가 넘긴 배열 · 돌려받은 증명을 고쳐도 답이 그대로인지는 여기서 본다.
+ */
+function checkInjectionPolicy(
+  label: string,
+  make: (
+    blocks: string[],
+    hash: (data: string) => string,
+  ) => MerkleTreeContract,
+): void {
+  describe(`MerkleTree 주입 정책 [${label}]`, () => {
+    test("길이를 붙이는 다른 단사 해시에서도 결속 · 완전성 · 건전성이 선다", () => {
+      const tagged = (data: string) => `${data.length}#${data}`;
+      const tree = make(["tx1", "tx2", "tx3"], tagged);
       const root = tree.rootHash();
-      expect(typeof root).toBe("string");
-      expect(root.length).toBe(64); // SHA-256 hex
-    });
-
-    test("동일한 블록 배열은 항상 동일한 루트 해시를 생성한다", () => {
-      const blocks = ["a", "b", "c", "d"];
-      const t1 = new MerkleTree(blocks);
-      const t2 = new MerkleTree(blocks);
-      expect(t1.rootHash()).toBe(t2.rootHash());
-    });
-
-    test("블록 내용이 다르면 루트 해시가 달라진다", () => {
-      const t1 = new MerkleTree(["tx1", "tx2", "tx3", "tx4"]);
-      const t2 = new MerkleTree(["tx1", "tx2", "tx3", "TAMPERED"]);
-      expect(t1.rootHash()).not.toBe(t2.rootHash());
-    });
-
-    test("getProof가 log n 길이의 증명 경로를 반환한다", () => {
-      const blocks = ["a", "b", "c", "d"];
-      const tree = new MerkleTree(blocks);
-      // 4개 리프 → 증명 경로 길이는 2
-      expect(tree.getProof(0).length).toBe(2);
-      expect(tree.getProof(2).length).toBe(2);
-    });
-
-    test("올바른 블록과 증명 경로로 verify가 true를 반환한다", () => {
-      const blocks = ["tx1", "tx2", "tx3", "tx4"];
-      const tree = new MerkleTree(blocks);
-      for (let i = 0; i < blocks.length; i++) {
-        const block = blocks[i];
-        if (block === undefined) continue;
-        const proof = tree.getProof(i);
-        expect(tree.verify(i, block, proof)).toBe(true);
-      }
-    });
-
-    test("잘못된 블록으로 verify가 false를 반환한다", () => {
-      const blocks = ["tx1", "tx2", "tx3", "tx4"];
-      const tree = new MerkleTree(blocks);
-      const proof = tree.getProof(0);
-      expect(tree.verify(0, "FAKE_TX", proof)).toBe(false);
-    });
-
-    test("update 후 루트 해시가 변경된다", () => {
-      const blocks = ["tx1", "tx2", "tx3", "tx4"];
-      const tree = new MerkleTree(blocks);
-      const before = tree.rootHash();
-      tree.update(1, "tx2_modified");
-      expect(tree.rootHash()).not.toBe(before);
-    });
-
-    test("update 후 변경된 블록의 증명 검증이 새 값으로 통과된다", () => {
-      const blocks = ["tx1", "tx2", "tx3", "tx4"];
-      const tree = new MerkleTree(blocks);
-      tree.update(2, "tx3_new");
       const proof = tree.getProof(2);
-      expect(tree.verify(2, "tx3_new", proof)).toBe(true);
-      expect(tree.verify(2, "tx3", proof)).toBe(false);
+      expect(tree.verify(root, 2, "tx3", proof)).toBe(true);
+      expect(tree.verify(root, 2, "tx2", proof)).toBe(false);
+      expect(tree.verify(root, 3, "tx3", proof)).toBe(false);
+      expect(make(["tx1", "tx2", "tx3", "tx3"], tagged).rootHash()).not.toBe(
+        root,
+      );
+      expect(make(["tx1", "tx2", "tx3"], tagged).rootHash()).toBe(root);
     });
 
-    test("홀수 개 블록도 처리한다 (마지막 블록 복제)", () => {
-      const blocks = ["a", "b", "c"];
-      const tree = new MerkleTree(blocks);
-      expect(typeof tree.rootHash()).toBe("string");
-      const proof = tree.getProof(0);
-      expect(tree.verify(0, "a", proof)).toBe(true);
+    // 결속 열거 — 의무 둘만 지키는 해시(`s => s + "!"`)에서 짧은 수열 2,801 개가 짓기 · 고치기 두 길 모두 서로 다른 뿌리를 받는다
+    // (`./merkleTree.contract.ts` 의 `bindingSweep` 머리말). 해시 출력을 경계 없이 잇는 구현이 여기서 걸린다.
+    test("출력이 겹칠 수 있는 단사 해시에서도 짧은 수열 전부가 서로 다른 뿌리를 받는다", () => {
+      expect(bindingSweep(make)).toEqual({
+        sequences: 2801,
+        shared: 0,
+        split: 0,
+      });
     });
 
-    test("블록 1개로 트리를 구성한다", () => {
-      const tree = new MerkleTree(["only"]);
-      expect(typeof tree.rootHash()).toBe("string");
-      expect(tree.verify(0, "only", tree.getProof(0))).toBe(true);
+    test("생성자가 돌아온 뒤 호출자가 블록 배열을 고쳐도 담긴 수열은 그대로다", () => {
+      const given = ["a", "b"];
+      const tree = make(given, wrap);
+      const root = tree.rootHash();
+      given[0] = "z";
+      given.push("c");
+      expect(tree.rootHash()).toBe(root);
+      expect(tree.verify(root, 0, "a", tree.getProof(0))).toBe(true);
+      expect(() => tree.getProof(2)).toThrow(RangeError);
+    });
+
+    // 증명 토큰의 값은 계약이 정하지 않으므로 두 증명을 값으로 견주지 않는다 — 다시 받은 증명이 여전히 참인지만 본다.
+    test("돌려받은 증명을 고쳐도 다시 받은 증명으로 한 검증은 참이다", () => {
+      const tree = make(["a", "b", "c", "d"], wrap);
+      const root = tree.rootHash();
+      const first = tree.getProof(1);
+      first.pop();
+      first[0] = "?";
+      expect(tree.verify(root, 1, "b", tree.getProof(1))).toBe(true);
+      expect(tree.rootHash()).toBe(root);
     });
   });
+}
 
-  describe("엣지", () => {
-    test("빈 배열은 에러를 던진다", () => {
-      expect(() => new MerkleTree([])).toThrow();
-    });
-
-    test("범위를 벗어난 인덱스로 getProof 호출 시 에러를 던진다", () => {
-      const tree = new MerkleTree(["a", "b"]);
-      expect(() => tree.getProof(5)).toThrow();
-    });
-
-    test("잘못된 증명(proof 배열 조작)으로 verify가 false를 반환한다", () => {
-      const blocks = ["tx1", "tx2", "tx3", "tx4"];
-      const tree = new MerkleTree(blocks);
-      const proof = tree.getProof(0);
-      if (proof[0] !== undefined) proof[0] = "0".repeat(64);
-      expect(tree.verify(0, "tx1", proof)).toBe(false);
-    });
-
-    test("8개 블록 트리의 증명 경로 길이가 3이다", () => {
-      const blocks = ["a", "b", "c", "d", "e", "f", "g", "h"];
-      const tree = new MerkleTree(blocks);
-      expect(tree.getProof(0).length).toBe(3);
-    });
-  });
-
-  describe("성능", () => {
-    test("1024개 블록 트리 구성 및 모든 증명 검증이 100ms 이내에 완료된다", () => {
-      const n = 1024;
-      const blocks = Array.from({ length: n }, (_, i) => `tx${i}`);
-      const start = Date.now();
-      const tree = new MerkleTree(blocks);
-      for (let i = 0; i < n; i++) {
-        const block = blocks[i];
-        if (block === undefined) continue;
-        const proof = tree.getProof(i);
-        expect(tree.verify(i, block, proof)).toBe(true);
-      }
-      expect(Date.now() - start).toBeLessThan(100);
-    });
-
-    test("1024번 update가 100ms 이내에 완료된다", () => {
-      const n = 1024;
-      const blocks = Array.from({ length: n }, (_, i) => `tx${i}`);
-      const tree = new MerkleTree(blocks);
-      const start = Date.now();
-      for (let i = 0; i < n; i++) {
-        tree.update(i % n, `new_tx${i}`);
-      }
-      expect(Date.now() - start).toBeLessThan(100);
-    });
-  });
-});
+checkInjectionPolicy("스텁", (blocks, hash) => new MerkleTree(blocks, hash));
+checkInjectionPolicy("정본", (blocks, hash) => new Reference(blocks, hash));
