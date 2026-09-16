@@ -35,6 +35,7 @@ scope: tools/check-citations.ts, tools/check-citations.test.ts, tools/_baseline/
 - [x] `S2` 도구 구현 — `check-citations.ts` 에 표류 검사와 `--update` · 자기시험(변형에서 걸리는지)
 - [x] `S3` 대장 초기 생성 · 지금 남은 표류 전수 목록
 - [x] `S4` 게이트 편입 — `ci.ts gates` · 워크플로 · 규약 절 · `CLAUDE.md` 검증 명령
+- [ ] `S5` 검토 반려 재작업 — `--update` 가 래칫 상승을 굳히지 못하게 · 검증 문장 정정 · 기준선 수치 보정
 
 ### 단계별 완료 기준
 
@@ -42,6 +43,12 @@ scope: tools/check-citations.ts, tools/check-citations.test.ts, tools/_baseline/
 - **`S2`**: `bun run tools/check-citations.ts` 가 표류를 걸러내고 `--update` 로 대장을 다시 쓴다. `tools/check-citations.test.ts` 가 **변형 셋**에서 실패하는지 고정한다 — ① 대상 파일 앞에 줄을 끼워 인용이 밀린 경우 ② 대상 줄 내용만 바뀐 경우 ③ 경로 없는 인용이 밀린 경우. 새 파일 biome 경고 0.
 - **`S3`**: `tools/_baseline/citations.tsv` 생성(1,100 건 남짓). 지금 밀려 있는 인용의 전수 목록을 배치 문서에 싣고, 대장에는 현 상태를 담되 밀린 자리에 표시를 남긴다. **고치는 것은 이 카드가 하지 않는다.**
 - **`S4`**: `tools/ci.ts` 의 gates 단계에 들어가고(기존 `check-citations` 호출을 대체), `.github/workflows/ci.yml` 은 gates 를 이미 부르므로 확인만. `tools/ci-workflow.test.ts` 통과. `CLAUDE.md` 검증 명령 절과 규약 절에 한 줄. `bun run tools/ci.ts all` 통과.
+
+### 검토 반려(2026-09-16) 재작업 — `S5`
+
+판정 원문은 `.kanban/reviews/KAN-045-D2PK6T.events.jsonl`(항목 3 반려, 1 · 2 · 4 · 5 · 6 · 7 승인). 검토자가 스크래치에서 재현한 구멍: 경로 인용 하나와 보류 하나를 같은 편집에 더하면 `check` 는 1(대장에 없는 인용 + 래칫 0→1)인데, 곧바로 `--update` 를 돌리면 **exit 0 으로 머리 주석의 보류 수가 올라가고 다음 `check` 가 통과한다**. 경고 한 줄 없다. 새 인용마다 `--update` 가 의무라 이것은 예외가 아니라 일상 경로다.
+
+- `S5` 완료 기준: ① `tools/check-citations.ts` 의 update 경로에서 **직전 대장의 래칫 수치보다 올라가는 것이 있으면 존재 검사 실패와 같이 아무것도 쓰지 않고 1** 로 끝낸다(무엇이 얼마나 올랐는지와 할 일을 함께 낸다) ② 그 규칙을 고정하는 시험을 보태고 돌연변이로 실효를 확인한다 ③ 규격 6 과 운용 소절 4 의 「고치지 않은 채 굳히기가 되지 않는다」 문장을 사실에 맞게 보정한다 ④ 카드 「검증」의 「새 게이트가 잡았다」를 정정한다 — 대장은 `S3` 에서 밀린 **뒤에** 생겼으므로 39건을 찾은 것은 `S3` 의 blame 대조다(게이트가 잡은 것이 아니다) ⑤ 규격의 기준선 문자열(보류 71 · 48 · 15)을 실측(74 · 46 · 14)으로 맞춘다. `ci.ts gates` · 시험 · `check-citations` 통과.
 
 ## 검증
 **카드 종료 조건.**
@@ -70,3 +77,4 @@ scope: tools/check-citations.ts, tools/check-citations.test.ts, tools/_baseline/
 - 2026-09-16T18:46 · s:f2fd90c7 · S3 done — 대장 1,130행 생성(결정론 확인 · check exit 0 · flag 보존 실증) · 표류 전수 목록과 drift 97행 · 규격 자기 문면 정정 · 보류 출력 요약화
 - 2026-09-16T18:46 · s:f2fd90c7 — S4 마무리 — 게이트 편입을 실물로 확인했다. bun run tools/ci.ts gates 통과(단계 11개, exit 0) — 「인용」 단계가 존재+표류를 함께 돌고 대장 1,130행 지문 전부 일치. .github/workflows/ci.yml 은 bun run tools/ci.ts gates 를 통째로 부르므로 추가 단계 없음(워크플로는 self · trials · reference · gates · practice 다섯 모드만 낱개로 부른다) — 손대지 않았다. tools/ci-workflow.test.ts 1 pass. bun run tools/ci.ts all 통과 — 단계 17개, exit 0, 판정 제외는 ③ 실습 채점(스텁 미구현 실패, 정상)뿐. 로그는 스크래치 ci-045-b3.log. cd rust && cargo test exit 0 — 스위트 11개 전부 ok, 25 pass 0 fail. 곁들여 bun test tools/check-citations.test.ts 17 pass · tools/ci-workflow.test.ts 1 pass · bunx tsc --noEmit 0 · bunx --bun @biomejs/biome check(check-citations 둘) 경고 0 · check-links 843건 통과. 게이트 화면에서 「인용」 단계가 차지하는 줄이 139 → 5 로 줄었다(보류 전수를 --tsv 로 옮긴 결과).
 - 2026-09-16T18:46 · s:f2fd90c7 · S4 done — ci.ts gates · ci.yml · ci-workflow.test · ci.ts all · cargo test 전부 확인
+- 2026-09-16T19:08 · s:f2fd90c7 — `실행 계획` 섹션 교체
