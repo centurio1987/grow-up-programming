@@ -117,8 +117,11 @@ const NEIGHBORS = "successor·predecessor·min·max·has (적대적)";
 const UPDATES = "insert·delete (적대적)";
 /** 우주를 **비트 수**로 키우는 사다리. 행과 적대 여부가 `NEIGHBORS` 와 같아 차례가 붙는다. */
 const UNIVERSE_BITS = "successor·predecessor·min·max·has (적대적) #2";
-/** 담긴 수를 **비트 수**로 키우는 사다리. 적대 여부가 `QUERIES` 와 달라 이름이 저절로 갈린다. */
-const COUNT_BITS = "has·successor·predecessor (적대적)";
+/**
+ * 담긴 수를 **비트 수**로 키우는 사다리. 행 · 한정자 · 적대 여부가 `QUERIES` 와 같아 차례가 붙는다
+ * — 그 시나리오의 입력이 `QUERIES` 와 같은 것이라 적대 여부를 뒤집어 이름을 가르지 않았다(`S3`).
+ */
+const COUNT_BITS = "has·successor·predecessor #2";
 
 const ALL_PASS = {
   [INSERT]: true,
@@ -206,6 +209,7 @@ describe("축3 — 정수 우주 위의 정렬 집합 계약의 결함 fixture",
     });
     expect(statsOf(sortedArray, INSERT)).toEqual([1024, 4096, 16384]);
     // 담긴 수가 $2^3$ · $2^6$ · $2^{12}$ 이라 훑는 칸이 그만큼 는다 — 로그가 아니라 원소 수다.
+    // 끝점 12,280 이 `QUERIES` 의 가운데 점과 같은 값인 것이 두 시나리오가 같은 입력을 지난다는 표다.
     expect(statsOf(sortedArray, COUNT_BITS)).toEqual([27, 195, 12280]);
   }, 120_000);
 
@@ -266,7 +270,7 @@ describe("축3 — 정수 우주 위의 정렬 집합 계약의 결함 fixture",
     expect(statsOf(bitTrie, UPDATES)).toEqual([24, 28, 32]);
     expect(statsOf(bitTrie, UNIVERSE_BITS)).toEqual([38, 73, 143]);
     // 담긴 수와는 무관한 계열이라 담긴 수 비트 사다리는 통과한다 — 잡는 자리가 서로 다르다.
-    expect(statsOf(bitTrie, COUNT_BITS)).toEqual([75, 78, 78]);
+    expect(statsOf(bitTrie, COUNT_BITS)).toEqual([57, 60, 60]);
   }, 60_000);
 
   /**
@@ -320,17 +324,48 @@ describe("축3 — 비트 사다리 둘이 로그 인수를 가른다", () => {
       trie: statsOf(bitTrie, COUNT_BITS),
     }).toEqual({
       treap: [15, 39, 66],
-      canonical: [33, 34, 34],
-      trie: [75, 78, 78],
+      canonical: [30, 30, 30],
+      trie: [57, 60, 60],
     });
   }, 60_000);
 
   /**
-   * **사다리 끝을 낮춰 달았다는 사실을 수치로 남긴다.** 담긴 수의 끝점을 $2^{20}$ 으로 두면 판정이
-   * 같고(트립 27 · 63 · 114 실패 · 정본 34 · 34 · 34 통과 · 트라이 77 · 78 · 78 통과) 정본 계측이
-   * 3,735 만인데, 크기 순 배열 fixture 가 원소 $2^{20}$ 개를 채우는 데 원소 수의 제곱이 들어 그
-   * 계열을 이 시나리오에 태우지 못한다. 달아 둔 끝점 $2^{12}$ 의 계측은 1,714 만이고 그중
-   * 1,703 만이 우주 $2^{22}$ 를 세우는 준비다.
+   * **두 시나리오가 같은 입력을 지난다는 것을 수치로 못 박는다.** 담긴 수 비트 사다리의 끝점은
+   * 담긴 수 4,096 이고 조회 시나리오의 가운데 점도 담긴 수 4,096 이다 — 우주가 같고(`FIXED_UNIVERSE`)
+   * 채우기·조회의 난수 뽑는 차례가 같으므로 **같은 입력**이고, 여섯 대상의 걸음이 전부 맞아떨어진다.
+   * 이 줄이 「바뀐 것은 사다리를 읽는 방식 하나다」의 근거다 — 두 시나리오의 판정이 갈리는 것은
+   * 입력이 달라서가 아니라 **재는 자리의 간격**이 달라서다. 우주를 갈라 두면 이 대조가 무너진다.
+   */
+  test("담긴 수 비트 사다리의 끝점은 조회 시나리오의 가운데 점과 같은 입력이다", () => {
+    const pairs: Array<[string, CostSource<UniverseSite>]> = [
+      ["정본", reference],
+      ["트립", treap],
+      ["트라이", bitTrie],
+      ["칸 훑기", scanningBitSet],
+      ["크기 순 배열", sortedArray],
+      ["쌓아 두기", flushing],
+    ];
+    const seen: Record<string, [number, number]> = {};
+    for (const [name, cost] of pairs) {
+      const bits = statsOf(cost, COUNT_BITS);
+      const fourfold = statsOf(cost, QUERIES);
+      seen[name] = [bits[2] as number, fourfold[1] as number];
+    }
+    expect(seen).toEqual({
+      정본: [30, 30],
+      트립: [66, 66],
+      트라이: [60, 60],
+      "칸 훑기": [14, 14],
+      "크기 순 배열": [12280, 12280],
+      "쌓아 두기": [75392, 75392],
+    });
+  }, 120_000);
+
+  /**
+   * **무거운 시나리오의 자리를 정한 근거를 수치로 남긴다**(`S3`). 이 시나리오는 늘 돈다 — 모드를
+   * 가르지 않았다. 고정하는 것은 그 판단의 입력이다: 우주를 $2^{16}$ 으로 낮추면 계측이 37 만이고,
+   * 그중 28 만이 우주를 세 점에서 세 번 세우는 준비이며 걸음으로 잰 몫은 10 만이다. 낮추기 전
+   * ($2^{22}$)은 1,714 만이었고 준비가 그 99.4% 였다. 판정은 여섯 대상 모두 그대로다.
    */
   test("담긴 수 비트 사다리의 계측 비용", () => {
     const scenario = vanEmdeBoasTreeContract.scenarios[
@@ -340,9 +375,9 @@ describe("축3 — 비트 사다리 둘이 로그 인수를 가른다", () => {
       (n) => measureScenario(reference, scenario, n, 1).total,
     );
     const total = measured.reduce((sum, each) => sum + each, 0);
-    expect(total).toBe(17_137_200);
-    // 준비(우주 세우기)가 거의 전부다 — 걸음으로 잰 몫은 세 점 합이 이만큼이다.
-    expect(total - 3 * 5_677_780).toBe(103_860);
+    expect(total).toBe(374_329);
+    // 준비(우주 세우기)가 세 점에서 세 번이고, 나머지가 걸음으로 잰 몫이다.
+    expect(total - 3 * 92_007).toBe(98_308);
   }, 60_000);
 });
 
