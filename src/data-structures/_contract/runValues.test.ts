@@ -9,8 +9,10 @@
  * 2. **값 검사와 성장률 판정은 독립이다.** `linear/gapBuffer` 옛 정본(`./_fixtures/fullGapErasingBuffer.ts`)이
  *    값 검사에서 걸리면서 **축3 판정은 고친 정본과 한 자리도 다르지 않게 통과한다.** 이것이 없으면
  *    「값도 본다」가 빈말이다.
- * 3. **한 점을 2 의 거듭제곱으로 둔 근거.** 같은 옛 정본이 크기 1,000 에서는 값 검사를 통과한다 —
- *    칸이 꼭 차는 크기를 안 지나가기 때문이다(`./runValues.ts` 의 `VALUE_SIZE` 주석).
+ * 3. **값 결함은 내부 문턱을 탄다 — 그래서 사다리 전부를 걷는다.** 같은 옛 정본이 크기 1,000 에서는 값
+ *    검사를 **통과**하고 1,024 에서는 다섯에 걸린다. 크기가 판정을 뒤집으므로 한 점은 문턱 하나만 보는
+ *    것이다. 사다리 두 점(1,024 · 4,096)에서 걸린 자리와 잃은 원소 수를 나란히 고정한다
+ *    (`./runValues.ts` 의 `valueSizes` 주석).
  * 4. **걸음 반환값 기대의 실효.** `tree/treap` 아홉째 시나리오의 탐침 조회는 항상 참이어야 한다. 값만
  *    거짓말하고 비용은 정본과 똑같은 구현을 태우면 **값 검사가 걸고 성장률 판정은 통과시킨다.**
  *
@@ -32,13 +34,19 @@ import {
 import { FullGapErasingBuffer } from "./_fixtures/fullGapErasingBuffer";
 import type { CostScenario } from "./runContract";
 import { judgeScenario, measureScenario } from "./runContract";
-import { judgeValues, VALUE_SIZE } from "./runValues";
+import { judgeValues, valueSizes } from "./runValues";
 
 type MeasuredBuffer = GapBufferContract<number> & { __cost: number };
 type MeasuredTreap = TreapContract<number> & { __cost: number };
 
 const reference = () => new GapBuffer<number>();
 const erasing = () => new FullGapErasingBuffer<number>();
+
+/**
+ * 계측 동일성을 볼 크기 한 점. 여기서는 크기가 물음이 아니므로(묻는 것은 「선택 인자를 줘도 계측값이
+ * 같은가」다) 사다리의 첫 점 하나면 족하다. 크기가 물음인 자리는 아래 셋째 묶음이다.
+ */
+const MEASURE_SIZE = 1 << 10;
 
 /**
  * 기대를 벗긴 사본 — `ctx.step` 의 둘째 인자를 **버리고** 같은 걸음을 부르고, 끝 상태 검사도 떼어 낸다.
@@ -84,14 +92,19 @@ function scenarioStats(
   });
 }
 
-/** 어긴 자리를 「시나리오 차례 → 설명」 으로 모은다. 안 걸린 시나리오는 싣지 않는다. */
+/**
+ * 어긴 자리를 「크기 · 시나리오 차례 → 설명」 으로 모은다. 안 걸린 시나리오는 싣지 않는다.
+ *
+ * `n` 을 주면 그 한 점만, 안 주면 등급의 사다리 전부를 걷는다 — 크기가 키에 들어가는 것은 같은 자리가
+ * 크기마다 따로 서기 때문이다.
+ */
 function breachesBy(
   make: () => MeasuredBuffer,
-  n: number,
+  n?: number,
 ): Record<string, string> {
   const found: Record<string, string> = {};
   for (const breach of judgeValues(make, gapBufferContract, { n }).breaches) {
-    found[`#${breach.scenario} ${breach.where}`] = breach.detail;
+    found[`n=${breach.n} #${breach.scenario} ${breach.where}`] = breach.detail;
   }
   return found;
 }
@@ -99,8 +112,8 @@ function breachesBy(
 describe("값 검증 실행 — 선택 인자는 계측을 안 바꾼다", () => {
   test("기대를 붙인 시나리오와 벗긴 사본의 계측값(연산당 · 총 · tick)이 여섯 다 같다", () => {
     for (const scenario of gapBufferContract.scenarios) {
-      expect(measured(scenario, VALUE_SIZE)).toBe(
-        measured(withoutChecks(scenario), VALUE_SIZE),
+      expect(measured(scenario, MEASURE_SIZE)).toBe(
+        measured(withoutChecks(scenario), MEASURE_SIZE),
       );
     }
   }, 60_000);
@@ -120,23 +133,40 @@ describe("값 검증 실행 — 선택 인자는 계측을 안 바꾼다", () =>
 });
 
 describe("값 검증 실행 — 값을 틀리는 구현이 걸리고 성장률은 통과한다", () => {
-  test("고친 정본은 기대 열넷을 전부 만족한다", () => {
-    const verdict = judgeValues(reference, gapBufferContract, {
-      n: VALUE_SIZE,
-    });
-    // 끝 상태 여섯 + 여섯째 시나리오의 걸음 여덟 = 열넷.
-    expect(verdict.checked).toBe(14);
+  test("검증 실행은 등급의 사다리를 걷는다 — `invariant` 는 두 점이다", () => {
+    expect(valueSizes(gapBufferContract.grade)).toEqual([1 << 10, 1 << 12]);
+  });
+
+  test("고친 정본은 두 점에서 기대 열넷씩 스물여덟을 전부 만족한다", () => {
+    const verdict = judgeValues(reference, gapBufferContract);
+    // 한 점에서 끝 상태 여섯 + 여섯째 시나리오의 걸음 여덟 = 열넷. 사다리가 두 점이라 스물여덟이다.
+    expect(verdict.checked).toBe(28);
     expect(verdict.reason).toBe("");
     expect(verdict.ok).toBe(true);
   }, 60_000);
 
-  test("옛 정본은 시나리오 다섯의 끝 상태에서 걸리고 잃은 원소 수가 그대로 보고된다", () => {
-    expect(breachesBy(erasing, VALUE_SIZE)).toEqual({
-      "#0 끝 상태": "1536 번째가 undefined 인데 512 여야 한다 (빈 칸 512 개)",
-      "#1 끝 상태": "0 번째가 undefined 인데 512 여야 한다 (빈 칸 512 개)",
-      "#2 끝 상태": "1023 번째가 undefined 인데 1023 여야 한다 (빈 칸 1 개)",
-      "#3 끝 상태": "0 번째가 undefined 인데 0 여야 한다 (빈 칸 1024 개)",
-      "#4 끝 상태": "512 번째가 undefined 인데 512 여야 한다 (빈 칸 512 개)",
+  test("옛 정본은 두 점 각각에서 시나리오 다섯의 끝 상태에 걸리고 잃은 원소 수가 크기를 따라 는다", () => {
+    expect(breachesBy(erasing)).toEqual({
+      "n=1024 #0 끝 상태":
+        "1536 번째가 undefined 인데 512 여야 한다 (빈 칸 512 개)",
+      "n=1024 #1 끝 상태":
+        "0 번째가 undefined 인데 512 여야 한다 (빈 칸 512 개)",
+      "n=1024 #2 끝 상태":
+        "1023 번째가 undefined 인데 1023 여야 한다 (빈 칸 1 개)",
+      "n=1024 #3 끝 상태":
+        "0 번째가 undefined 인데 0 여야 한다 (빈 칸 1024 개)",
+      "n=1024 #4 끝 상태":
+        "512 번째가 undefined 인데 512 여야 한다 (빈 칸 512 개)",
+      "n=4096 #0 끝 상태":
+        "6144 번째가 undefined 인데 2048 여야 한다 (빈 칸 2048 개)",
+      "n=4096 #1 끝 상태":
+        "0 번째가 undefined 인데 2048 여야 한다 (빈 칸 2048 개)",
+      "n=4096 #2 끝 상태":
+        "4095 번째가 undefined 인데 4095 여야 한다 (빈 칸 1 개)",
+      "n=4096 #3 끝 상태":
+        "0 번째가 undefined 인데 0 여야 한다 (빈 칸 4096 개)",
+      "n=4096 #4 끝 상태":
+        "2048 번째가 undefined 인데 2048 여야 한다 (빈 칸 2048 개)",
     });
   }, 60_000);
 
@@ -144,9 +174,12 @@ describe("값 검증 실행 — 값을 틀리는 구현이 걸리고 성장률�
     expect(scenarioStats(erasing)).toEqual(scenarioStats(reference));
   }, 60_000);
 
-  test("크기가 2 의 거듭제곱이 아니면 같은 옛 정본이 값 검사를 통과한다 — 한 점을 2^10 으로 둔 근거", () => {
+  test("같은 옛 정본이 1,000 에서는 통과한다 — 값 결함이 내부 문턱을 탄다는 실물", () => {
+    // 크기 하나가 판정을 뒤집는다. 「값의 옳고 그름은 크기를 타지 않는다」가 이 한 줄에 반박되고,
+    // 그래서 검증 실행은 한 점이 아니라 축3 이 지나간 크기 전부를 본다.
     expect(breachesBy(erasing, 1000)).toEqual({});
     expect(judgeValues(erasing, gapBufferContract, { n: 1000 }).ok).toBe(true);
+    expect(Object.keys(breachesBy(erasing, 1 << 10))).toHaveLength(5);
   }, 60_000);
 });
 
@@ -204,26 +237,33 @@ describe("값 검증 실행 — 걸음의 반환값 기대(`tree/treap` 아홉�
   const probe = treapContract.scenarios[8];
   if (probe === undefined) throw new Error("아홉째 시나리오가 없다");
 
-  test("정본은 탐침 열여섯을 전부 참으로 답한다", () => {
+  test("정본은 세 점에서 탐침 열여섯씩 마흔여덟을 전부 참으로 답한다", () => {
+    // `complexity` 등급이라 사다리가 세 점(2^10 · 2^12 · 2^14)이다. 탐침 수는 크기를 안 타므로
+    // 점마다 열여섯이고 합이 마흔여덟이다.
+    expect(valueSizes(treapContract.grade)).toEqual([
+      1 << 10,
+      1 << 12,
+      1 << 14,
+    ]);
     const verdict = judgeValues(
       () => new Treap<number>(ascending) as MeasuredTreap,
       { ...treapContract, scenarios: [probe] },
-      { n: VALUE_SIZE },
     );
-    expect(verdict.checked).toBe(16);
+    expect(verdict.checked).toBe(48);
     expect(verdict.reason).toBe("");
-  }, 60_000);
+  }, 120_000);
 
   test("답 하나만 뒤집은 구현은 값 검사에서 걸리고 성장률 판정은 통과한다", () => {
     const make = () => new ProbeLyingTreap<number>(ascending) as MeasuredTreap;
-    const values = judgeValues(
-      make,
-      { ...treapContract, scenarios: [probe] },
-      { n: VALUE_SIZE },
-    );
-    expect(values.breaches.map((breach) => breach.where)).toEqual([
-      "0번째 걸음",
-    ]);
+    const values = judgeValues(make, {
+      ...treapContract,
+      scenarios: [probe],
+    });
+    // 검증 실행은 크기마다 새 인스턴스를 만들므로(`checkScenarioValues` 가 `make()` 를 부른다)
+    // 한 번만 거짓말하는 구현도 사다리 세 점에서 세 번 걸린다.
+    expect(
+      values.breaches.map((breach) => `${breach.n} ${breach.where}`),
+    ).toEqual(["1024 0번째 걸음", "4096 0번째 걸음", "16384 0번째 걸음"]);
     expect(values.breaches[0]?.detail).toBe(
       "has(0) 가 false 다 — 준비가 0 부터 차례로 넣은 키다",
     );
