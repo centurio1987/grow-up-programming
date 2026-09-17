@@ -1,6 +1,6 @@
 {
   "next_id": 51,
-  "next_seq": 365,
+  "next_seq": 366,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -167,7 +167,7 @@
       ]
     },
     "KAN-043-B4Y5WV": {
-      "col": "review",
+      "col": "done",
       "title": "하네스 값 검사 보강 — 축3 시나리오의 관찰 지점 · 반환값 대조",
       "verbatim": "승인. 병합 뒤·가이드 전개 전에 별도 작업으로 하네스의 값 검사를 보강하는 제안을 수용한다. 종료 상태만 비교하면 중간 오답이나 잘못된 반환값이 최종 상태에서 가려질 수 있으므로 계약별 관찰 지점과 반환값 검사를 함께 설계할 것. 검증 비용이 측정할 구현 비용에 섞이지 않게 분리할 것.",
       "생성": "ai",
@@ -1270,6 +1270,16 @@
   ],
   "recent": [
     {
+      "seq": 365,
+      "t": "2026-09-17T09:08",
+      "a": "ai",
+      "id": "KAN-043-B4Y5WV",
+      "op": "move",
+      "w": "RYEYJX",
+      "from": "review",
+      "to": "done"
+    },
+    {
       "seq": 364,
       "t": "2026-09-17T08:59",
       "a": "ai",
@@ -1800,16 +1810,6 @@
       "field": "memo",
       "before": "대상(KAN-045 배치3 실측): docs/ORD-006-conventions.md 정정 추적표 두 벌의 자기 인용 151행(줄 번호 98종 · 블록 밀림 +67 · +121 · +124) · 규격 절에서 tools/check-citations.ts 를 가리키는 5인용 8행(S2 가 161→751줄로 다시 써서 밀림) · 그 밖 3인용 · 가이드 여섯(binomialHeap 3 · bTree · orderStatisticTree · ds-guide-v2 SPEC · algo-guide-v2 FEEDBACK). 가이드 쪽은 guide-core 가 코드 내용만 대조해 줄 번호를 아무도 안 보던 자리라 KAN-036 이 가장 크게 물린다. 모호 1건(FEEDBACK.md:179 → check-v2.ts:381)과 기록이라 안 고치는 11건은 목록에 따로 있다. 정정 뒤 bun run tools/check-citations.ts --update 로 대장을 갱신한다.",
       "after": "대상(KAN-045 배치3 실측): docs/ORD-006-conventions.md 정정 추적표 두 벌의 자기 인용 151행(줄 번호 98종 · 블록 밀림 +67 · +121 · +124) · 규격 절에서 tools/check-citations.ts 를 가리키는 5인용 8행 · 그 밖 3인용 · 가이드 여섯(binomialHeap 3 · bTree · orderStatisticTree · ds-guide-v2 SPEC · algo-guide-v2 FEEDBACK). 가이드 쪽은 guide-core 가 코드 내용만 대조해 줄 번호를 아무도 안 보던 자리라 KAN-036 이 가장 크게 물린다. 모호 1건(FEEDBACK.md:179 → check-v2.ts:381)과 기록이라 안 고치는 11건은 목록에 따로 있다. **열거의 정본은 커밋 421e238 의 대장(tools/_baseline/citations.tsv)에서 flag 가 drift 인 97행**이고, 그 판정 근거는 KAN-045 배치3 문서에 있다(검토자 권고 2026-09-16). 정정 뒤 bun run tools/check-citations.ts --update 로 대장을 갱신한다 — 래칫이 내려가는 것은 가드가 막지 않는다."
-    },
-    {
-      "seq": 322,
-      "t": "2026-09-16T19:08",
-      "a": "ai",
-      "id": "KAN-045-D2PK6T",
-      "op": "move",
-      "w": "1361K5",
-      "from": "review",
-      "to": "doing"
     }
   ],
   "waivers": [
@@ -2134,7 +2134,7 @@
       "reason": "하네스 규격과 축3 시나리오가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)",
       "created": "2026-09-17T07:12",
       "by": "ai",
-      "restrategy_required": false
+      "restrategy_required": true
     }
   ]
 }
