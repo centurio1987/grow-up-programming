@@ -117,7 +117,7 @@
   - 목표: treap·skipList 등 expected 계약의 호출별 기대 비용 판정이 [보장] 또는 명시한 [경험] 검사로 서고, 검사 못 하는 의무 목록이 줄어든다
   - 메모: 근거: docs/ORD-006-conventions.md 「원칙 B — 무작위 계약의 검증」 절 하네스 변경 명세 H2(KAN-026 S22). KAN-027 S28 은 하네스 무수정 탐침 시나리오로 먼저 가고 남는 틈을 이 카드로 넘긴다(유저 결재 2026-09-16).
   - 실행 문서: KANBAN.cards/KAN-041-JJ5DA7.md (2/2 · 최근 09-17)
-  - 검토 문서: KANBAN.reviews/KAN-041-JJ5DA7.review.md (승인 0/8 · 검토 대기)
+  - 검토 문서: KANBAN.reviews/KAN-041-JJ5DA7.review.md (승인 5/8 · 반려 3 · 추가 의견 총 8 · 검토 대기)
   - 원문:
     ```text
     추천대로 해. 진행해
