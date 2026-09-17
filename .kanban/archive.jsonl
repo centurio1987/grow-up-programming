@@ -433,3 +433,4 @@
 {"seq": 324, "t": "2026-09-16T19:44", "a": "ai", "id": "KAN-045-D2PK6T", "op": "move", "w": "1361K5", "from": "review", "to": "done"}
 {"seq": 324, "t": "2026-09-16T19:33", "a": "유저", "id": "KAN-047-394V9A", "op": "serialize", "w": "46PCAX", "with_": "KAN-045-D2PK6T", "reason": "이 카드가 넓히려는 예외를 KAN-045 가 규격으로 세운다"}
 {"seq": 325, "t": "2026-09-16T20:05", "a": "ai", "id": "KAN-046-ZFDFCQ", "op": "move", "w": "TMPC9E", "from": "backlog", "to": "doing"}
+{"seq": 326, "t": "2026-09-16T20:05", "a": "유저", "id": "KAN-036-0G05DE", "op": "serialize", "w": "TMPC9E", "with_": "KAN-046-ZFDFCQ", "reason": "가이드 여섯의 밀린 인용이 KAN-036 이 다시 쓸 자리와 겹친다 — 정정이 먼저 서야 전개가 낡은 번호를 물려받지 않는다(scope 등록으로 중재 재기록, 2026-09-16)"}
