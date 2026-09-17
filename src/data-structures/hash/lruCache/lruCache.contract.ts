@@ -38,6 +38,7 @@
  * 사실 57). 덮어쓰기의 **의미**는 경계 케이스 둘이 짚는다.
  */
 
+import { fixedInput, seededInput } from "../../_contract/expectedRepeat";
 import type { ContractSpec } from "../../_contract/runContract";
 
 /** 헤더 연산 계약 표의 **두 행**을 그대로 옮긴 표면. 생성자 행은 껍데기가 나른다. */
@@ -347,7 +348,7 @@ export const lruCacheContract: ContractSpec<CacheSite, Model> = {
   invariants: [],
 
   scenarios: [
-    {
+    seededInput({
       covers: ["put"],
       qualifier: "expected",
       bound: "O(1)",
@@ -367,8 +368,8 @@ export const lruCacheContract: ContractSpec<CacheSite, Model> = {
           ctx.step(() => impl.put(key, index));
         }
       },
-    },
-    {
+    }),
+    fixedInput({
       covers: ["put"],
       qualifier: "expected",
       bound: "O(1)",
@@ -384,8 +385,8 @@ export const lruCacheContract: ContractSpec<CacheSite, Model> = {
           ctx.step(() => impl.put(key, index));
         }
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["get"],
       qualifier: "expected",
       bound: "O(1)",
@@ -405,8 +406,8 @@ export const lruCacheContract: ContractSpec<CacheSite, Model> = {
           ctx.step(() => impl.get(key));
         }
       },
-    },
-    {
+    }),
+    fixedInput({
       covers: ["get"],
       qualifier: "expected",
       bound: "O(1)",
@@ -419,6 +420,6 @@ export const lruCacheContract: ContractSpec<CacheSite, Model> = {
           ctx.step(() => impl.get(key));
         }
       },
-    },
+    }),
   ],
 };

@@ -15,6 +15,7 @@
  * 잴 대상이 아니다(§규약2 축3 면제).
  */
 
+import { fixedInput, seededInput } from "../../_contract/expectedRepeat";
 import type { ContractSpec } from "../../_contract/runContract";
 
 /** 헤더 연산 계약 표를 그대로 옮긴 표면. */
@@ -331,7 +332,7 @@ export const orderStatisticTreeContract: ContractSpec<
   ],
 
   scenarios: [
-    {
+    seededInput({
       covers: ["add"],
       qualifier: "expected",
       bound: "O(log n)",
@@ -343,8 +344,8 @@ export const orderStatisticTreeContract: ContractSpec<
           ctx.step(() => impl.add(value));
         }
       },
-    },
-    {
+    }),
+    fixedInput({
       covers: ["add"],
       qualifier: "expected",
       bound: "O(log n)",
@@ -355,8 +356,8 @@ export const orderStatisticTreeContract: ContractSpec<
       run: (impl, n, ctx) => {
         for (let i = 0; i < n; i++) ctx.step(() => impl.add(i));
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["delete", "deleteAll"],
       qualifier: "expected",
       bound: "O(log n)",
@@ -376,8 +377,8 @@ export const orderStatisticTreeContract: ContractSpec<
           ctx.step(() => impl.deleteAll(values[n - 1 - i] as number));
         }
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["has", "count", "min", "max"],
       qualifier: "expected",
       bound: "O(log n)",
@@ -394,8 +395,8 @@ export const orderStatisticTreeContract: ContractSpec<
           });
         }
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["rankOf", "at"],
       qualifier: "expected",
       bound: "O(log n)",
@@ -418,8 +419,8 @@ export const orderStatisticTreeContract: ContractSpec<
           });
         }
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["rankOf", "at"],
       qualifier: "expected",
       bound: "O(log n)",
@@ -443,7 +444,7 @@ export const orderStatisticTreeContract: ContractSpec<
           });
         }
       },
-    },
+    }),
     {
       covers: ["size"],
       qualifier: "worst",

@@ -48,6 +48,7 @@
  * 구현의 해시를 읽어야 지어진다(불변 사실 44).
  */
 
+import { seededInput } from "../../_contract/expectedRepeat";
 import { rngFrom } from "../../_contract/judge";
 import {
   type TrialPlan,
@@ -454,7 +455,7 @@ export const minHashContract: ContractSpec<MinHashPair, Model> = {
   invariants: [],
 
   scenarios: [
-    {
+    seededInput({
       // 서로 다른 원소 n 개를 넣는다. 들어온 원소를 늘어놓고 겹침을 훑는 계열이 여기서 걸린다.
       covers: ["add"],
       qualifier: "expected",
@@ -466,8 +467,8 @@ export const minHashContract: ContractSpec<MinHashPair, Model> = {
         for (const item of corpus(n, ctx.rng, "+"))
           ctx.step(() => sketch.add(item));
       },
-    },
-    {
+    }),
+    seededInput({
       // 두 쪽에 서로 다른 원소 n 개씩(절반은 같은 원소) 넣고 거듭 견준다. 들어온 원소를 훑어 견주는 계열이 여기서 걸린다.
       covers: ["similarity"],
       qualifier: "expected",
@@ -487,7 +488,7 @@ export const minHashContract: ContractSpec<MinHashPair, Model> = {
             mine.similarity(other);
           });
       },
-    },
+    }),
   ],
 };
 

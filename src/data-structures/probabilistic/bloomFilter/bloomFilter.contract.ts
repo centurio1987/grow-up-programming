@@ -47,6 +47,7 @@
  * 사실 44).
  */
 
+import { seededInput } from "../../_contract/expectedRepeat";
 import { rngFrom } from "../../_contract/judge";
 import {
   type TrialPlan,
@@ -292,7 +293,7 @@ export const bloomFilterContract: ContractSpec<SizedFilter, Model> = {
   invariants: [],
 
   scenarios: [
-    {
+    seededInput({
       // 용량 n 으로 세우고 서로 다른 원소 n 개를 넣는다. 넣은 원소를 목록에 늘어놓고 겹침을 훑는 계열이 여기서 걸린다.
       covers: ["add"],
       qualifier: "expected",
@@ -304,8 +305,8 @@ export const bloomFilterContract: ContractSpec<SizedFilter, Model> = {
         for (const item of corpus(n, ctx.rng, "+"))
           ctx.step(() => filter.add(item));
       },
-    },
-    {
+    }),
+    seededInput({
       // 용량을 채운 뒤 넣은 원소와 넣지 않은 원소를 번갈아 묻는다. 담긴 것을 훑어 답하는 계열이 여기서 걸린다.
       covers: ["has"],
       qualifier: "expected",
@@ -322,7 +323,7 @@ export const bloomFilterContract: ContractSpec<SizedFilter, Model> = {
           ctx.step(() => filter.has(item));
         }
       },
-    },
+    }),
   ],
 };
 

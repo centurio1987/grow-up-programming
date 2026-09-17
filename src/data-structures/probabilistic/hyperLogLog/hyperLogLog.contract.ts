@@ -53,6 +53,7 @@
  * 적대적 시나리오는 두지 않았다 — 비용을 가르는 입력은 구현의 해시를 읽어야 지어진다(불변 사실 44).
  */
 
+import { seededInput } from "../../_contract/expectedRepeat";
 import { rngFrom } from "../../_contract/judge";
 import {
   type TrialPlan,
@@ -488,7 +489,7 @@ export const hyperLogLogContract: ContractSpec<SketchPair, Model> = {
   invariants: [],
 
   scenarios: [
-    {
+    seededInput({
       // 서로 다른 원소 n 개를 넣는다. 들어온 원소를 늘어놓고 겹침을 훑는 계열이 여기서 걸린다.
       covers: ["add"],
       qualifier: "expected",
@@ -500,8 +501,8 @@ export const hyperLogLogContract: ContractSpec<SketchPair, Model> = {
         for (const item of corpus(n, ctx.rng, "+"))
           ctx.step(() => sketch.add(item));
       },
-    },
-    {
+    }),
+    seededInput({
       // 서로 다른 원소 n 개를 넣은 뒤 추정을 거듭 묻는다. 물을 때 들어온 원소를 훑는 계열이 여기서 걸린다.
       covers: ["count"],
       qualifier: "expected",
@@ -513,8 +514,8 @@ export const hyperLogLogContract: ContractSpec<SketchPair, Model> = {
         for (const item of corpus(n, ctx.rng, "+")) sketch.add(item);
         for (let i = 0; i < QUERY_STEPS; i++) ctx.step(() => sketch.count());
       },
-    },
-    {
+    }),
+    seededInput({
       // 두 쪽에 서로 다른 원소 n 개씩 넣고 거듭 합친다. 합칠 때 들어온 원소를 옮기는 계열이 여기서 걸린다.
       covers: ["merge"],
       qualifier: "expected",
@@ -531,7 +532,7 @@ export const hyperLogLogContract: ContractSpec<SketchPair, Model> = {
             mine.merge(other);
           });
       },
-    },
+    }),
   ],
 };
 

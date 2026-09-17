@@ -54,6 +54,7 @@
  * 않았다 — 비용을 가르는 입력은 구현의 해시를 읽어야 지어진다(불변 사실 44).
  */
 
+import { seededInput } from "../../_contract/expectedRepeat";
 import { rngFrom } from "../../_contract/judge";
 import {
   type TrialPlan,
@@ -378,7 +379,7 @@ export const cuckooFilterContract: ContractSpec<SizedCuckoo, Model> = {
   invariants: [],
 
   scenarios: [
-    {
+    seededInput({
       // 용량 n 으로 세우고 서로 다른 원소 n 개를 넣는다. 끝으로 갈수록 찬 칸이 많아진다.
       covers: ["add"],
       qualifier: "expected",
@@ -390,8 +391,8 @@ export const cuckooFilterContract: ContractSpec<SizedCuckoo, Model> = {
         for (const item of corpus(n, ctx.rng, "+"))
           ctx.step(() => filter.add(item));
       },
-    },
-    {
+    }),
+    seededInput({
       // 용량을 채운 뒤 넣은 원소와 넣지 않은 원소를 번갈아 묻는다.
       covers: ["has"],
       qualifier: "expected",
@@ -408,8 +409,8 @@ export const cuckooFilterContract: ContractSpec<SizedCuckoo, Model> = {
           ctx.step(() => filter.has(item));
         }
       },
-    },
-    {
+    }),
+    seededInput({
       // 용량을 채운 뒤 섞은 차례로 전부 지운다. 담긴 것을 훑어 찾는 계열이 여기서 걸린다.
       covers: ["delete"],
       qualifier: "expected",
@@ -425,7 +426,7 @@ export const cuckooFilterContract: ContractSpec<SizedCuckoo, Model> = {
           ctx.step(() => filter.delete(item));
         }
       },
-    },
+    }),
   ],
 };
 

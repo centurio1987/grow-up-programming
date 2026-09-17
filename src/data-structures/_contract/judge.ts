@@ -67,9 +67,9 @@ export const TOLERANCE: Record<Rigor, number> = {
 };
 
 /**
- * 한정자별 seed 수.
- *
- * `expected` 만 여러 seed 를 돈다. 기대 시간 계약은 입력 하나로 판정할 수 없기 때문이다.
+ * 한정자별 seed 수. `expected` 만 여럿을 도는데 그 다섯은 입력과 구현 무작위를 **함께** 바꾼다 —
+ * 반복 축을 입력 씨앗과 시행으로 가른 규격은 `./expectedRepeat.ts`(원칙 B 의 H2)이고, 그 규격을
+ * 선언하지 않은 시나리오만 이 목록으로 돈다. `worst` · `amortized` 는 늘 이 목록이다.
  */
 export const SEEDS: Record<Qualifier, readonly number[]> = {
   worst: [1],
@@ -99,11 +99,11 @@ export function expectedRatio(bound: Bound, n: number): number {
 }
 
 /**
- * 한정자별 대표 통계. 입력은 seed 별 "연산당 비용" 배열이다.
+ * 한정자별 대표 통계. 입력은 반복 단위별 "연산당 비용" 배열이다(`./expectedRepeat.ts` 의 `repeatPlan`).
  *
  * - `worst` — 단일 연산 최대 비용
  * - `amortized` — 시퀀스 평균. 개별 연산의 일시적 증가는 실패로 보지 않는다
- * - `expected` — seed 별 평균의 중앙값
+ * - `expected` — 반복 단위별 평균의 중앙값
  */
 export function statistic(
   qualifier: Qualifier,
