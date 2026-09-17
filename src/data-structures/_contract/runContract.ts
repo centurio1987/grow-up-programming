@@ -53,13 +53,26 @@ export interface Invariant<Impl> {
   check(impl: Impl): string | null;
 }
 
+/**
+ * 축3 — 걸음의 반환값에 거는 기대. 위반이면 설명을, 만족이면 `null` 을 돌려준다
+ * (`Invariant.check` 와 같은 모양이다).
+ *
+ * **측정 실행은 이것을 평가하지 않는다.** 평가하는 것은 검증 실행(`./runValues.ts`)뿐이고,
+ * 그쪽은 새 인스턴스에서 계측 없는 문맥으로 시나리오를 다시 돌린다 — 검증 비용이 측정할
+ * 구현의 비용에 섞일 길이 구조로 없다.
+ */
+export type StepCheck = (observed: unknown) => string | null;
+
 export interface ScenarioCtx {
   rng(): number;
   /**
    * 측정할 연산 하나를 감싼다. 감싸지 않은 호출은 준비 작업으로 취급되어 연산당 비용에
    * 들어가지 않는다(총 비용에는 들어간다).
+   *
+   * 둘째 인자는 **선택**이고 검증 실행만 읽는다(`StepCheck`). 주지 않으면 지금까지와 같고,
+   * 주어도 측정 실행의 동작은 달라지지 않는다.
    */
-  step(fn: () => void): void;
+  step(fn: () => unknown, check?: StepCheck): void;
 }
 
 /** 축3 — 시나리오 하나. 계약 표의 한 행 이상을 덮는다. */
@@ -72,6 +85,14 @@ export interface CostScenario<Impl> {
   adversarial: boolean;
   /** 크기 n 에서 시나리오를 수행한다. 측정할 연산은 `ctx.step` 으로 감싼다. */
   run(impl: Impl, n: number, ctx: ScenarioCtx): void;
+  /**
+   * **선택** — 시나리오가 끝난 상태에 거는 기대. 위반이면 설명을, 만족이면 `null`.
+   *
+   * 측정 실행은 부르지 않는다. 검증 실행(`./runValues.ts`)만 부른다 — 준비 작업이 남긴
+   * 상태를 아무도 안 보는 자리가 여기였다(`docs/ORD-006-conventions.md` 「축3 시나리오의
+   * 준비 상태는 아무도 값을 보지 않는다」).
+   */
+  endState?(impl: Impl, n: number): string | null;
 }
 
 export interface ContractSpec<Impl, Model> {

@@ -302,6 +302,13 @@ export const gapBufferContract: ContractSpec<
         impl.moveCursor(n >> 1);
         for (let i = 0; i < n; i++) ctx.step(() => impl.insert(n + i));
       },
+      // 가운데에 n 개를 끼웠으므로 앞 절반 · 끼운 것 · 뒤 절반 순으로 남아야 한다.
+      endState: (impl, n) =>
+        isRuns(impl.toArray(), [
+          { from: 0, count: n >> 1 },
+          { from: n, count: n },
+          { from: n >> 1, count: n - (n >> 1) },
+        ]),
     },
     {
       // 커서를 가운데 두고 앞을 지운다. 같은 계열이 같은 이유로 걸린다.
@@ -314,6 +321,9 @@ export const gapBufferContract: ContractSpec<
         impl.moveCursor(n >> 1);
         for (let i = 0; i < n >> 1; i++) ctx.step(() => impl.deleteBefore());
       },
+      // 앞 절반을 지웠으므로 뒤 절반만 남아야 한다.
+      endState: (impl, n) =>
+        isRuns(impl.toArray(), [{ from: n >> 1, count: n - (n >> 1) }]),
     },
     {
       // **이 계약 고유의 자리다.** 커서를 한 칸씩만 오간다 — 지나갈 거리가 1 로 고정되므로
@@ -333,6 +343,8 @@ export const gapBufferContract: ContractSpec<
           });
         }
       },
+      // **커서를 옮기는 것은 수열을 바꾸지 않는다.** 옛 정본이 여기서 원소를 지웠다(불변 사실 240 · 241).
+      endState: (impl, n) => isRuns(impl.toArray(), [{ from: 0, count: n }]),
     },
     {
       // 같은 행을 반대쪽에서 잰다. 끝에서 끝으로 뛰므로 지나갈 거리가 n 이고, `O(d)` 행이
@@ -351,6 +363,8 @@ export const gapBufferContract: ContractSpec<
           });
         }
       },
+      // 같은 까닭이다 — 끝에서 끝으로 뛰어도 수열은 그대로다.
+      endState: (impl, n) => isRuns(impl.toArray(), [{ from: 0, count: n }]),
     },
     {
       // 둘을 한 걸음에 묶는 이유는 각각 혼자로는 잴 것이 적기 때문이다. 커서 자리와 원소
@@ -369,6 +383,8 @@ export const gapBufferContract: ContractSpec<
           });
         }
       },
+      // 묻기만 했으므로 수열은 준비가 남긴 그대로다.
+      endState: (impl, n) => isRuns(impl.toArray(), [{ from: 0, count: n }]),
     },
     {
       // 되풀이 횟수가 n 이 아닌 이유는 O(n) 연산을 n 회 돌면 시나리오가 O(n^2) 이 되기
@@ -379,8 +395,51 @@ export const gapBufferContract: ContractSpec<
       adversarial: false,
       run: (impl, n, ctx) => {
         fill(impl, n);
-        for (let i = 0; i < 8; i++) ctx.step(() => impl.toArray());
+        for (let i = 0; i < 8; i++)
+          ctx.step(
+            () => impl.toArray(),
+            // **걸음이 돌려주는 값을 받는 자리다.** 여덟 번 다 늘어놓고 여덟 번 다 버리고 있었다.
+            (listed) => isRuns(listed, [{ from: 0, count: n }]),
+          );
       },
+      endState: (impl, n) => isRuns(impl.toArray(), [{ from: 0, count: n }]),
     },
   ],
 };
+
+/** 차례로 세는 토막 하나 — `from` 부터 `count` 개. `fill` 과 시나리오의 넣기가 남기는 모양이다. */
+interface Run {
+  from: number;
+  count: number;
+}
+
+/**
+ * 늘어놓은 것이 토막들을 이어 붙인 수열과 같은가. 어기면 설명을, 같으면 `null` (`KAN-043` ·
+ * `_contract/runValues.ts`).
+ *
+ * **시나리오가 무엇을 넣고 무엇을 지웠는지 아니까 남아 있어야 하는 수열이 정해진다** — 참조
+ * 모델을 시나리오마다 다시 지을 필요가 없다. 그 비용이 T5-03 이 「축3 시나리오 끝에서 값을
+ * 대조할지」를 미결로 넘긴 까닭이었고, 여기서는 토막 서술 한 줄이 그 자리를 대신한다.
+ *
+ * 기대 배열을 짓지 않고 자리마다 견준다 — 검증 실행이 크기에 비례하는 메모리를 더 쓰지 않는다.
+ *
+ * **넣는 값이 전부 수라 빈 칸은 곧 잃은 원소다.** 그래서 빈 칸 수를 함께 보고한다 — 옛 정본이
+ * 남기는 것이 그것이고(런북 불변 사실 240 · 241), 그 수가 자기시험이 고정하는 값이다.
+ */
+function isRuns(listed: unknown, runs: readonly Run[]): string | null {
+  if (!Array.isArray(listed))
+    return `늘어놓은 것이 수열이 아니다 — ${String(listed)}`;
+  const total = runs.reduce((sum, run) => sum + run.count, 0);
+  const holes = listed.filter((item) => item === undefined).length;
+  if (listed.length !== total)
+    return `늘어놓은 것이 ${listed.length} 개인데 ${total} 개여야 한다 (빈 칸 ${holes} 개)`;
+  let at = 0;
+  for (const run of runs) {
+    for (let index = 0; index < run.count; index++, at++) {
+      const expected = run.from + index;
+      if (listed[at] !== expected)
+        return `${at} 번째가 ${String(listed[at])} 인데 ${expected} 여야 한다 (빈 칸 ${holes} 개)`;
+    }
+  }
+  return null;
+}

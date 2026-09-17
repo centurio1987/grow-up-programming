@@ -30,7 +30,7 @@
  * 잴 대상이 아니다(§규약2 축3 면제).
  */
 
-import type { ContractSpec } from "../../_contract/runContract";
+import type { ContractSpec, StepCheck } from "../../_contract/runContract";
 
 /** 헤더 연산 계약 표를 그대로 옮긴 표면. */
 export interface TreapContract<T> {
@@ -474,9 +474,27 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
         for (let i = 0; i < n; i++) impl.insert(i);
         for (let slot = 0; slot < 16; slot++) {
           const key = Math.floor((slot * n) / 16);
-          ctx.step(() => impl.has(key));
+          ctx.step(() => impl.has(key), probeFound(key));
         }
       },
     },
   ],
 };
+
+/**
+ * 탐침 조회의 기대 — **항상 참이다**(`KAN-043` · `_contract/runValues.ts`).
+ *
+ * 준비가 0 … n-1 을 전부 넣었고 탐침 자리 열여섯이 그 안이라, 답이 계약에서 곧바로 따라 나온다. 참조 모델을 다시 지을 필요가
+ * 없는 꼴이고, 그래서 이 자리가 값 검사를 값싸게 적을 수 있는 자리다.
+ *
+ * **아홉째 시나리오는 탐침의 비용만 재고 답을 버리고 있었다.** 못 찾는 조회는 비용이 오히려 싸므로 축3 은 그 결함을 잡을 길이
+ * 없다 — 같은 종류의 구멍을 `linear/gapBuffer` 옛 정본이 실물로 보였다(런북 불변 사실 240 · 241).
+ *
+ * 측정 실행은 이 기대를 읽지 않는다. `ctx.step` 안의 호출이 그대로라 축3 수치도 그대로다.
+ */
+function probeFound(key: number): StepCheck {
+  return (observed) =>
+    observed === true
+      ? null
+      : `has(${key}) 가 ${String(observed)} 다 — 준비가 0 부터 차례로 넣은 키다`;
+}
