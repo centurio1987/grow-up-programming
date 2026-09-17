@@ -17,6 +17,7 @@
  */
 
 import { describe, expect, test } from "bun:test";
+import { repeatPlan } from "./expectedRepeat";
 import {
   type Bound,
   type Grade,
@@ -25,7 +26,6 @@ import {
   type Qualifier,
   RIGOR_OF_GRADE,
   rngFrom,
-  SEEDS,
   SIZES,
   statistic,
 } from "./judge";
@@ -170,10 +170,10 @@ export interface ScenarioVerdict {
 }
 
 /**
- * 시나리오 하나를 전 크기에 대해 재고 판정한다.
+ * 시나리오 하나를 전 크기에 대해 재고 판정한다. 크기마다 도는 반복 단위는 `./expectedRepeat.ts`
+ * 의 `repeatPlan` 이 정한다 — `expected` 만 입력 씨앗과 시행 둘로 갈린다.
  *
- * 순수 함수는 아니지만(구현을 돌린다) 값을 돌려주므로 `bun:test` 없이 시험할 수 있다.
- * 결함 fixture 가 실제로 걸리는지 확인하는 자리가 이 함수다.
+ * 값을 돌려주므로 `bun:test` 없이 시험할 수 있다 — 결함 fixture 가 걸리는지 보는 자리다.
  */
 export function judgeScenario<Impl>(
   cost: CostSource<Impl>,
@@ -185,8 +185,8 @@ export function judgeScenario<Impl>(
 
   for (const n of SIZES[rigor]) {
     const samples: number[][] = [];
-    for (const seed of SEEDS[scenario.qualifier]) {
-      const measured = measureScenario(cost, scenario, n, seed);
+    for (const unit of repeatPlan(scenario)) {
+      const measured = measureScenario(cost, scenario, n, unit.seed);
 
       if (cost.kind === "injected" && measured.total < measured.ticks) {
         return {
