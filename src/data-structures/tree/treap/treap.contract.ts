@@ -7,10 +7,10 @@
  * 검증 등급 `complexity` → 축3 엄격도는 `discriminating`. 적대적 입력이 필수이고
  * 허용치가 ±30% 다.
  *
- * **`expected` 시나리오는 seed 다섯을 돌고 통계는 seed 별 평균의 중앙값이다**
- * (`_contract/judge.ts` 의 `SEEDS`·`statistic`). seed 하나마다 **새 인스턴스**를 세우므로 한 seed 는 **입력 seed**(시나리오가
- * `ctx.rng` 로 짓는 입력)와 **구현 무작위**를 함께 바꾼다 — 둘을 가르지 않은 번호다(`docs/ORD-006-conventions.md` 「원칙 B」 B2).
- * `ctx.rng` 를 읽지 않는 시나리오(오름차순 · 아홉째 탐침)에서만 입력이 고정되고 다섯 seed 는 인스턴스만 새로 세운 다섯 번이다(B1 · B3).
+ * **`expected` 시나리오의 반복 축은 둘이다 — 입력 씨앗**(시나리오가 `ctx.rng` 로 짓는 입력)**과 시행**(같은 입력에서 인스턴스만
+ * 새로 세워 다시 뽑는 구현 무작위). 씨앗이 정하는 것은 입력이지 구현 안의 무작위성이 아니다(`docs/ORD-006-conventions.md`
+ * 「원칙 B」 B2 · H2 · `_contract/expectedRepeat.ts`). 어느 축인지는 시나리오가 `seededInput` · `fixedInput` 으로 선언하고 하네스가
+ * `ctx.rng` 호출 수로 대조한다. 단위는 열(씨앗 둘 × 시행 다섯 · 입력 고정이면 씨앗 하나 × 시행 열)이고 통계는 그 열의 평균의 중앙값이다(B1 · B3).
  * **그 자리가 이 계약에서 가장 중요하다**(§규약2 「기댓값이 무엇에 대한 것인가」): 계약이 「구현이 만드는 무작위성에 대한
  * 기댓값」을 말하므로, 입력을 고정해 놓고도 기대가 걸려 있는지를 그 자리가 본다. 앞 여덟은 시퀀스 평균이라 **호출별** 기대는
  * 아홉째(탐침 열여섯만 잰다)만 본다 — 그래도 판정은 [경험] 이다(B6 — `./treap.ts` 헤더 끝).
@@ -30,6 +30,7 @@
  * 잴 대상이 아니다(§규약2 축3 면제).
  */
 
+import { fixedInput, seededInput } from "../../_contract/expectedRepeat";
 import type { ContractSpec, StepCheck } from "../../_contract/runContract";
 
 /** 헤더 연산 계약 표를 그대로 옮긴 표면. */
@@ -330,22 +331,22 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
   ],
 
   scenarios: [
-    {
+    fixedInput({
       covers: ["insert"],
       qualifier: "expected",
       bound: "O(log n)",
       adversarial: true,
       // **오름차순 넣기. 이 계약에서 가장 중요한 시나리오다.**
       //
-      // `ctx.rng` 를 쓰지 않으므로 seed 다섯이 같은 값을 낸다 — 입력이 완전히 고정된
+      // `ctx.rng` 를 쓰지 않으므로 `fixedInput` 이고 시행 열이 같은 입력을 본다 — 입력이 완전히 고정된
       // 자리에서 기대가 걸려 있는지를 본다. 계약이 「입력 분포에 대한 기댓값」을 말하는
       // 것이었다면 이 시나리오는 성립하지 않는다(입력이 하나뿐이라 분포가 없다).
       // 여기서 통과하려면 구현이 **자기 안에서** 치우침을 없애야 한다.
       run: (impl, n, ctx) => {
         for (let i = 0; i < n; i++) ctx.step(() => impl.insert(i));
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["insert"],
       qualifier: "expected",
       bound: "O(log n)",
@@ -358,8 +359,8 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
           ctx.step(() => impl.insert(value));
         }
       },
-    },
-    {
+    }),
+    fixedInput({
       covers: ["has", "min", "max"],
       qualifier: "expected",
       bound: "O(log n)",
@@ -379,8 +380,8 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
           });
         }
       },
-    },
-    {
+    }),
+    fixedInput({
       covers: ["delete"],
       qualifier: "expected",
       bound: "O(log n)",
@@ -391,8 +392,8 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
         for (let i = 0; i < n; i++) impl.insert(i);
         for (let i = 0; i < n; i++) ctx.step(() => impl.delete(i));
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["range"],
       qualifier: "expected",
       bound: "O(log n)",
@@ -407,14 +408,14 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
           ctx.step(() => impl.range(low, low + 4));
         }
       },
-    },
+    }),
     {
       covers: ["toArray"],
       qualifier: "worst",
       bound: "O(n)",
       adversarial: false,
       // 호출 하나가 원소 수만큼 드는 연산이다. 한정자가 `worst` 라 반복 호출이 성장률을
-      // 바꾸지 않으므로 몇 번만 부른다 — `expected` 였다면 seed 다섯 × n 회 측정이라
+      // 바꾸지 않으므로 몇 번만 부른다 — `expected` 였다면 반복 단위 열 × n 회 측정이라
       // 이 한 줄이 사다리 맨 위에서 13억 걸음이 된다(불변 사실 102 와 같은 자리).
       run: (impl, n, ctx) => {
         for (let i = 0; i < n; i++) impl.insert(Math.floor(ctx.rng() * n * 4));
@@ -432,7 +433,7 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
         for (let i = 0; i < n; i++) ctx.step(() => impl.size());
       },
     },
-    {
+    seededInput({
       covers: ["delete"],
       qualifier: "expected",
       bound: "O(log n)",
@@ -442,7 +443,7 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
       // 건너뛰기 줄(`_contract/_fixtures/levelRuleSkipList.ts` 의 `scanDelete`)이 그 실물이다. 섞으면
       // 지울 원소가 평균 가운데라 그 거리가 담긴 수에 비례한다(불변 사실 233 · 242).
       //
-      // 적대적이 아니다 — 차례를 `ctx.rng` 로 뽑아 seed 다섯이 다른 입력을 낸다. 판정 이름은 그쪽과
+      // 적대적이 아니다 — 차례를 `ctx.rng` 로 뽑아 씨앗 둘이 다른 입력을 낸다(`seededInput`). 판정 이름은 그쪽과
       // 「(적대적)」 한 마디로 갈린다. 맨 끝에 둔 것은 이 파일을 줄 번호로 가리키는 가이드 인용을 밀지 않으려는 것이다.
       run: (impl, n, ctx) => {
         for (let i = 0; i < n; i++) impl.insert(i);
@@ -453,8 +454,8 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
         }
         for (const key of order) ctx.step(() => impl.delete(key));
       },
-    },
-    {
+    }),
+    fixedInput({
       covers: ["has"],
       qualifier: "expected",
       bound: "O(log n)",
@@ -462,10 +463,10 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
       // **입력 고정 탐침 — 호출별 기대를 하네스를 고치지 않고 재는 자리다**(`S28` · `docs/ORD-006-conventions.md` 「원칙 B」 적용표).
       //
       // `ctx.rng` 를 한 번도 읽지 않는다. 채우기(0 … n-1 오름차순)와 탐침 자리(n 을 열여섯으로 나눈 자리 열여섯)가 seed 와 무관하게
-      // 고정이라, seed 다섯은 **입력을 바꾸지 않고 인스턴스만 새로 세운 다섯 번**이다(B1 · B2). 계약이 공유 범위를 적지 않아(「실행」)
-      // 그 다섯을 독립 시행으로 세지는 않는다(B3 — `./treap.ts` 헤더 끝). 채우기는 감싸지 않고 **탐침 조회 열여섯만** `ctx.step` 으로 감싼다. 탐침 수가 n 과 무관한 상수라 호출
+      // 고정이라, 반복 단위 열은 **입력을 바꾸지 않고 인스턴스만 새로 세운 열 번**이다(B1 · B2 — `fixedInput` 선언). 계약이 공유 범위를 적지 않아(「실행」)
+      // 그 열을 독립 시행으로 세지는 않는다(B3 — `./treap.ts` 헤더 끝). 채우기는 감싸지 않고 **탐침 조회 열여섯만** `ctx.step` 으로 감싼다. 탐침 수가 n 과 무관한 상수라 호출
       // 하나가 원소 수에 비례하는 결정론 구현은 열여섯의 평균도 n/16 이상이 되어 걸리고(끌어올리는 트리 191.06 · 732.19 · 2,893.06),
-      // 호출마다 기대가 로그인 구현은 평균의 기대도 로그다. 통계는 시행 평균 다섯의 중앙값이다.
+      // 호출마다 기대가 로그인 구현은 평균의 기대도 로그다. 통계는 시행 평균 열의 중앙값이다.
       //
       // **탐침을 하나로 두지 않은 이유 — 흔들림.** `has(0)` 한 번만 재면 난수 정본이 40 회 중 11 회, `has(n/2)` 한 번은 9 회 떨어졌다
       // (비율 0.78~2.14). 열여섯이면 두 정본이 각각 2,000 회 중 0 회 떨어졌고 비율은 0.95~1.47 이었다(허용 0.82~1.56). [경험] — 계약이
@@ -477,7 +478,7 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
           ctx.step(() => impl.has(key), probeFound(key));
         }
       },
-    },
+    }),
   ],
 };
 

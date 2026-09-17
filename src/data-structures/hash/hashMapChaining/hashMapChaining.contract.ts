@@ -18,12 +18,13 @@
  * 읽지 않는다. 그런데도 **펴기 값을 그대로 자리로 쓰는 계열 전체**를 가른다: 낮은 16 비트가
  * 0 이므로 자리 수가 그 아래인 동안 전부 같은 자리로 간다.
  *
- * **`expected` 시나리오의 seed 다섯이 여기서 실제로 일한다.** 적대적 시나리오의 키 묶음은
- * 결정론적이라 seed 가 입력을 바꾸지 않는다. 대신 매 seed 마다 정본이 새로 지어지고, 정본은
- * 지을 때 무작위 곱수를 뽑는다 — 그래서 다섯은 **구현이 뽑는 무작위성** 다섯 벌이 되고,
- * 중앙값이 그 다섯에 대한 기댓값의 대표가 된다. 계약이 말하는 기댓값이 바로 그것이다.
+ * **`expected` 시나리오의 시행 축이 여기서 실제로 일한다.** 적대적 시나리오의 키 묶음은
+ * 결정론적이라 씨앗이 입력을 바꾸지 않는다(그래서 `fixedInput` 이다). 대신 시행마다 정본이 새로 지어지고, 정본은
+ * 지을 때 무작위 곱수를 뽑는다 — 그래서 시행 열은 **구현이 뽑는 무작위성** 열 벌이 되고,
+ * 중앙값이 그 열에 대한 기댓값의 대표가 된다. 계약이 말하는 기댓값이 바로 그것이다.
  */
 
+import { fixedInput, seededInput } from "../../_contract/expectedRepeat";
 import type { ContractSpec } from "../../_contract/runContract";
 
 /** 헤더 연산 계약 표의 **일곱 행**을 그대로 옮긴 표면. 생성자 행은 팩토리가 나른다. */
@@ -295,7 +296,7 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
   ],
 
   scenarios: [
-    {
+    seededInput({
       covers: ["set"],
       qualifier: "expected",
       bound: "O(1)",
@@ -310,8 +311,8 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.set(keys[index] as number, index));
         }
       },
-    },
-    {
+    }),
+    fixedInput({
       covers: ["set"],
       qualifier: "expected",
       bound: "O(1)",
@@ -324,8 +325,8 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.set(index * CLUMP, index));
         }
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["get"],
       qualifier: "expected",
       bound: "O(1)",
@@ -337,8 +338,8 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.get(keys[index] as number));
         }
       },
-    },
-    {
+    }),
+    fixedInput({
       covers: ["get"],
       qualifier: "expected",
       bound: "O(1)",
@@ -349,8 +350,8 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.get(index * CLUMP));
         }
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["has"],
       qualifier: "expected",
       bound: "O(1)",
@@ -365,8 +366,8 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.has(asked));
         }
       },
-    },
-    {
+    }),
+    fixedInput({
       covers: ["has"],
       qualifier: "expected",
       bound: "O(1)",
@@ -378,8 +379,8 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.has(asked));
         }
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["delete"],
       qualifier: "expected",
       bound: "O(1)",
@@ -391,8 +392,8 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.delete(keys[index] as number));
         }
       },
-    },
-    {
+    }),
+    fixedInput({
       covers: ["delete"],
       qualifier: "expected",
       bound: "O(1)",
@@ -403,7 +404,7 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.delete(index * CLUMP));
         }
       },
-    },
+    }),
     {
       covers: ["size"],
       qualifier: "worst",

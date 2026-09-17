@@ -47,6 +47,7 @@
  * 적대적 시나리오는 두지 않았다 — 비용을 가르는 입력은 구현의 해시를 읽어야 지어진다(불변 사실 44).
  */
 
+import { seededInput } from "../../_contract/expectedRepeat";
 import { rngFrom } from "../../_contract/judge";
 import {
   type TrialPlan,
@@ -340,7 +341,7 @@ export const countMinSketchContract: ContractSpec<SizedSketch, Model> = {
   invariants: [],
 
   scenarios: [
-    {
+    seededInput({
       // 서로 다른 원소 n 개를 증분 1 로 넣는다. 원소마다 칸을 늘어놓고 겹침을 훑는 계열이 여기서 걸린다.
       covers: ["update"],
       qualifier: "expected",
@@ -352,8 +353,8 @@ export const countMinSketchContract: ContractSpec<SizedSketch, Model> = {
         for (const item of corpus(n, ctx.rng, "+"))
           ctx.step(() => sketch.update(item, 1));
       },
-    },
-    {
+    }),
+    seededInput({
       // 서로 다른 원소 n 개를 넣은 뒤 넣은 원소와 넣지 않은 원소를 번갈아 묻는다. 담긴 것을 훑어 답하는 계열이 걸린다.
       covers: ["estimate"],
       qualifier: "expected",
@@ -370,7 +371,7 @@ export const countMinSketchContract: ContractSpec<SizedSketch, Model> = {
           ctx.step(() => sketch.estimate(item));
         }
       },
-    },
+    }),
   ],
 };
 

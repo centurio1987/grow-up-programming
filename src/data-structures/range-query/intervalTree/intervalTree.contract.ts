@@ -11,6 +11,7 @@
  * 정렬한 뒤 비교한다 — 정렬하지 않고 비교하면 순회 순서를 처방하게 된다.
  */
 
+import { fixedInput, seededInput } from "../../_contract/expectedRepeat";
 import type { ContractSpec } from "../../_contract/runContract";
 
 /** 헤더 연산 계약 표의 다섯 행을 그대로 옮긴 표면. */
@@ -244,7 +245,7 @@ export const intervalTreeContract: ContractSpec<IntervalTreeContract, Model> = {
   ],
 
   scenarios: [
-    {
+    seededInput({
       // 무작위 삽입. 균형을 스스로 잡지 않는 탐색 트리도 여기서는 통과한다 —
       // 무작위 순서로 들어온 키는 그 자체로 대체로 균형 잡힌 트리를 만들기 때문이다.
       covers: ["insert"],
@@ -258,8 +259,8 @@ export const intervalTreeContract: ContractSpec<IntervalTreeContract, Model> = {
           ctx.step(() => impl.insert(low, high));
         }
       },
-    },
-    {
+    }),
+    fixedInput({
       // 시작점이 오름차순. 균형을 스스로 잡지 않는 탐색 트리는 여기서 사슬이 된다.
       // 진단이 지목한 입력이다 — 예약을 시작 시각 순으로 넣는 것이 곧 이 패턴이다.
       covers: ["insert"],
@@ -272,8 +273,8 @@ export const intervalTreeContract: ContractSpec<IntervalTreeContract, Model> = {
           ctx.step(() => impl.insert(low, low + WIDTH - 1));
         }
       },
-    },
-    {
+    }),
+    seededInput({
       // 답 수 k 를 상수로 눌러 놓고 n 만 키운다(§규약2 시나리오 규칙 3). 값 범위를 n 에
       // 비례해 넓히므로 한 점을 덮는 구간 수가 n 과 무관하게 1 부근에 머문다.
       // 전부 훑는 구현은 k 와 무관하게 n 에 비례하므로 여기서 걸린다.
@@ -294,8 +295,8 @@ export const intervalTreeContract: ContractSpec<IntervalTreeContract, Model> = {
           });
         }
       },
-    },
-    {
+    }),
+    seededInput({
       // 같은 방식으로 k 를 누른 구간 질의. 점 질의와 따로 두는 이유는 두 질의의 가지치기가
       // 갈릴 수 있기 때문이고, 갈리는지 자체는 축2 불변식 2가 본다.
       covers: ["overlapQuery"],
@@ -315,8 +316,8 @@ export const intervalTreeContract: ContractSpec<IntervalTreeContract, Model> = {
           });
         }
       },
-    },
-    {
+    }),
+    seededInput({
       // 무작위로 채운 뒤 실제로 든 구간을 지운다. 없는 것만 지우면 탐색이 일찍 끝나
       // 삭제 비용을 재지 못한다.
       covers: ["delete"],
@@ -339,7 +340,7 @@ export const intervalTreeContract: ContractSpec<IntervalTreeContract, Model> = {
           });
         }
       },
-    },
+    }),
     {
       covers: ["size"],
       qualifier: "worst",

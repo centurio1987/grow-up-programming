@@ -36,6 +36,7 @@
  * 낸다(계약 위반이 아니라 계급 아래라서. 불변 사실 49).
  */
 
+import { fixedInput, seededInput } from "../../_contract/expectedRepeat";
 import type { ContractSpec } from "../../_contract/runContract";
 
 /** 헤더 연산 계약 표의 **여덟 행**을 그대로 옮긴 표면. 생성자 행은 팩토리가 나른다. */
@@ -508,7 +509,7 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
   ],
 
   scenarios: [
-    {
+    seededInput({
       covers: ["add"],
       qualifier: "expected",
       bound: "O(1)",
@@ -522,8 +523,8 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.add(items[index] as number));
         }
       },
-    },
-    {
+    }),
+    fixedInput({
       covers: ["add"],
       qualifier: "expected",
       bound: "O(1)",
@@ -535,8 +536,8 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.add(index * CLUMP));
         }
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["has"],
       qualifier: "expected",
       bound: "O(1)",
@@ -551,8 +552,8 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.has(asked));
         }
       },
-    },
-    {
+    }),
+    fixedInput({
       covers: ["has"],
       qualifier: "expected",
       bound: "O(1)",
@@ -564,8 +565,8 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.has(asked));
         }
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["delete"],
       qualifier: "expected",
       bound: "O(1)",
@@ -577,8 +578,8 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.delete(items[index] as number));
         }
       },
-    },
-    {
+    }),
+    fixedInput({
       covers: ["delete"],
       qualifier: "expected",
       bound: "O(1)",
@@ -589,7 +590,7 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.delete(index * CLUMP));
         }
       },
-    },
+    }),
     {
       covers: ["size"],
       qualifier: "worst",
@@ -615,7 +616,7 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
           ctx.step(() => impl.values());
       },
     },
-    {
+    seededInput({
       covers: ["union"],
       qualifier: "expected",
       bound: "O(n)",
@@ -628,8 +629,8 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
         for (let round = 0; round < ROUNDS; round++)
           ctx.step(() => impl.union());
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["union"],
       qualifier: "expected",
       bound: "O(n)",
@@ -643,8 +644,8 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
         for (let round = 0; round < ROUNDS; round++)
           ctx.step(() => impl.union());
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["intersection"],
       qualifier: "expected",
       bound: "O(n)",
@@ -659,8 +660,8 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
         for (let round = 0; round < ROUNDS; round++)
           ctx.step(() => impl.intersection());
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["intersection"],
       qualifier: "expected",
       bound: "O(1)",
@@ -674,8 +675,8 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
         for (let round = 0; round < ROUNDS; round++)
           ctx.step(() => impl.intersection());
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["difference"],
       qualifier: "expected",
       bound: "O(n)",
@@ -687,8 +688,8 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
         for (let round = 0; round < ROUNDS; round++)
           ctx.step(() => impl.difference());
       },
-    },
-    {
+    }),
+    seededInput({
       covers: ["difference"],
       qualifier: "expected",
       bound: "O(1)",
@@ -702,6 +703,6 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
         for (let round = 0; round < ROUNDS; round++)
           ctx.step(() => impl.difference());
       },
-    },
+    }),
   ],
 };

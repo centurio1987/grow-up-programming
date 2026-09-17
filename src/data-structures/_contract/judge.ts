@@ -99,11 +99,11 @@ export function expectedRatio(bound: Bound, n: number): number {
 }
 
 /**
- * 한정자별 대표 통계. 입력은 seed 별 "연산당 비용" 배열이다.
+ * 한정자별 대표 통계. 입력은 반복 단위별 "연산당 비용" 배열이다(`./expectedRepeat.ts` 의 `repeatPlan`).
  *
  * - `worst` — 단일 연산 최대 비용
  * - `amortized` — 시퀀스 평균. 개별 연산의 일시적 증가는 실패로 보지 않는다
- * - `expected` — seed 별 평균의 중앙값
+ * - `expected` — 반복 단위별 평균의 중앙값
  */
 export function statistic(
   qualifier: Qualifier,
