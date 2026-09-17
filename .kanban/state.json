@@ -1,6 +1,6 @@
 {
   "next_id": 51,
-  "next_seq": 370,
+  "next_seq": 372,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -118,7 +118,7 @@
       "memo_hash": "5ada95e3327349082b023d221e1f349cee96a597"
     },
     "KAN-041-JJ5DA7": {
-      "col": "review",
+      "col": "doing",
       "title": "원칙 B H1·H2 후속 — 축3 expected 반복 규격(입력 seed 와 구현 무작위 분리)",
       "verbatim": "추천대로 해. 진행해",
       "생성": "ai",
@@ -1300,6 +1300,26 @@
   ],
   "recent": [
     {
+      "seq": 371,
+      "t": "2026-09-17T14:26",
+      "a": "ai",
+      "id": "KAN-036-0G05DE",
+      "op": "serialize",
+      "w": "VR2JKF",
+      "with_": "KAN-041-JJ5DA7",
+      "reason": "expected 계약 열둘의 축3 수치와 하네스 규격이 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 에 작업 분해 문서를 더해 중재 재기록, 2026-09-17)"
+    },
+    {
+      "seq": 370,
+      "t": "2026-09-17T14:25",
+      "a": "ai",
+      "id": "KAN-041-JJ5DA7",
+      "op": "move",
+      "w": "VR2JKF",
+      "from": "review",
+      "to": "doing"
+    },
+    {
       "seq": 369,
       "t": "2026-09-17T12:26",
       "a": "ai",
@@ -1813,26 +1833,6 @@
       "w": "TMPC9E",
       "with_": "KAN-046-ZFDFCQ",
       "reason": "가이드 여섯의 밀린 인용이 KAN-036 이 다시 쓸 자리와 겹친다 — 정정이 먼저 서야 전개가 낡은 번호를 물려받지 않는다(scope 등록으로 중재 재기록, 2026-09-16)"
-    },
-    {
-      "seq": 325,
-      "t": "2026-09-16T20:05",
-      "a": "ai",
-      "id": "KAN-046-ZFDFCQ",
-      "op": "move",
-      "w": "TMPC9E",
-      "from": "backlog",
-      "to": "doing"
-    },
-    {
-      "seq": 324,
-      "t": "2026-09-16T19:33",
-      "a": "유저",
-      "id": "KAN-047-394V9A",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-045-D2PK6T",
-      "reason": "이 카드가 넓히려는 예외를 KAN-045 가 규격으로 세운다"
     }
   ],
   "waivers": [
@@ -2154,8 +2154,8 @@
         "KAN-036-0G05DE"
       ],
       "scope_hash": "5b05c0233415c6aa",
-      "reason": "expected 계약 열둘의 축3 수치와 하네스 규격이 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)",
-      "created": "2026-09-17T09:28",
+      "reason": "expected 계약 열둘의 축3 수치와 하네스 규격이 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 에 작업 분해 문서를 더해 중재 재기록, 2026-09-17)",
+      "created": "2026-09-17T14:26",
       "by": "ai",
       "restrategy_required": false
     }
