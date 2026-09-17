@@ -1,6 +1,6 @@
 {
   "next_id": 51,
-  "next_seq": 367,
+  "next_seq": 369,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -118,12 +118,12 @@
       "memo_hash": "5ada95e3327349082b023d221e1f349cee96a597"
     },
     "KAN-041-JJ5DA7": {
-      "col": "backlog",
+      "col": "doing",
       "title": "원칙 B H1·H2 후속 — 축3 expected 반복 규격(입력 seed 와 구현 무작위 분리)",
       "verbatim": "추천대로 해. 진행해",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-16",
+      "갱신": "2026-09-17",
       "title_hash": "b9fdac106703a05ba06c5634b77cd60da653f628",
       "verbatim_hash": "c88fb7a00bd25c7265619d753a05983f9eebde56",
       "short": "expected 반복 규격",
@@ -1242,7 +1242,6 @@
     "KAN-038-NE17BJ",
     "KAN-039-FG8HWZ",
     "KAN-040-M5V53M",
-    "KAN-041-JJ5DA7",
     "KAN-049-DV5BXA",
     "KAN-050-0B1N1Z",
     "KAN-051-537EN1",
@@ -1296,9 +1295,30 @@
     "KAN-048-QN5194",
     "KAN-042-Z02G0W",
     "KAN-044-VZXM29",
-    "KAN-043-B4Y5WV"
+    "KAN-043-B4Y5WV",
+    "KAN-041-JJ5DA7"
   ],
   "recent": [
+    {
+      "seq": 368,
+      "t": "2026-09-17T09:28",
+      "a": "ai",
+      "id": "KAN-041-JJ5DA7",
+      "op": "move",
+      "w": "VR2JKF",
+      "from": "backlog",
+      "to": "doing"
+    },
+    {
+      "seq": 367,
+      "t": "2026-09-17T09:28",
+      "a": "ai",
+      "id": "KAN-036-0G05DE",
+      "op": "serialize",
+      "w": "VR2JKF",
+      "with_": "KAN-041-JJ5DA7",
+      "reason": "expected 계약 열둘의 축3 수치와 하네스 규격이 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)"
+    },
     {
       "seq": 366,
       "t": "2026-09-17T09:10",
@@ -1813,33 +1833,6 @@
       "w": "1361K5",
       "from": "review",
       "to": "done"
-    },
-    {
-      "seq": 323,
-      "t": "2026-09-16T19:33",
-      "a": "ai",
-      "id": "KAN-047-394V9A",
-      "op": "create",
-      "w": "46PCAX",
-      "col": "backlog",
-      "title": "칸반 문서의 인용을 게이트 안으로 — 예외 E1 이 남긴 구멍",
-      "verbatim": "예외 E1 이 남기는 구멍 — 카드 문서의 「실행 계획」·「검증」은 살아 있는 계획인데 검사 밖입니다. 별도 카드 몫으로 적어 뒀습니다(KAN-045 S1, 2026-09-16).",
-      "parent": null,
-      "short": "칸반 인용 예외 구멍",
-      "purpose": "KAN-045 게이트의 예외 E1(칸반 산출물이 출처인 인용 전부)에서, 살아 있는 계획 문서(카드의 실행 계획·검증 절)를 검사 안으로 들인다",
-      "reason": "E1 은 「그때의 기록」을 지키려고 출처 파일 단위로 통째 예외를 뒀는데, 같은 파일의 계획·검증 절은 지금도 유효한 문서라 인용이 밀려도 아무도 모른다(KAN-045 검토 항목 7)",
-      "goal": "기록 절은 예외로 남기고 계획 절의 인용은 대장에 올라, 카드 문서가 가리키는 자리도 밀리면 걸린다",
-      "memo": "KAN-045 규격은 절 단위 예외를 배제했다 — 절 경계 파싱이 구조 변화에 「검사 안 함」 쪽으로 새기 때문이다. 그래서 이 카드는 다른 길을 찾아야 한다(후보: 카드 문서의 계획·검증 절만 별도 파일로 두기 · doc-edit 가 절을 구조로 아는 점을 이용해 도구가 절 경계를 스크립트에서 받기 · 기록 절에만 표지를 요구하기). 근거: docs/ORD-006-conventions.md 「인용 표류 게이트 규격 …」 예외 E1 과 KAN-045 검토서 항목 7."
-    },
-    {
-      "seq": 323,
-      "t": "2026-09-16T19:34",
-      "a": "ai",
-      "id": "KAN-045-D2PK6T",
-      "op": "move",
-      "w": "1361K5",
-      "from": "doing",
-      "to": "review"
     }
   ],
   "waivers": [
@@ -1947,18 +1940,6 @@
       "scope_hash": "143d86f281080b32",
       "reason": "유저 결재(2026-09-16) — 선행이 세운 원칙·산출물 위에서 판정하고, 계약·축3 수치가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다",
       "created": "2026-09-16T01:41",
-      "by": "유저",
-      "restrategy_required": false
-    },
-    {
-      "pair": "KAN-036-0G05DE|KAN-041-JJ5DA7",
-      "order": [
-        "KAN-041-JJ5DA7",
-        "KAN-036-0G05DE"
-      ],
-      "scope_hash": "5b05c0233415c6aa",
-      "reason": "유저 결재(2026-09-16) — 선행이 세운 원칙·산출물 위에서 판정하고, 계약·축3 수치가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다",
-      "created": "2026-09-16T01:42",
       "by": "유저",
       "restrategy_required": false
     },
@@ -2165,6 +2146,18 @@
       "created": "2026-09-17T07:12",
       "by": "ai",
       "restrategy_required": true
+    },
+    {
+      "pair": "KAN-036-0G05DE|KAN-041-JJ5DA7",
+      "order": [
+        "KAN-041-JJ5DA7",
+        "KAN-036-0G05DE"
+      ],
+      "scope_hash": "5b05c0233415c6aa",
+      "reason": "expected 계약 열둘의 축3 수치와 하네스 규격이 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)",
+      "created": "2026-09-17T09:28",
+      "by": "ai",
+      "restrategy_required": false
     }
   ]
 }
