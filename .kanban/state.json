@@ -1,6 +1,6 @@
 {
   "next_id": 51,
-  "next_seq": 379,
+  "next_seq": 380,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -98,7 +98,7 @@
       ]
     },
     "KAN-040-M5V53M": {
-      "col": "doing",
+      "col": "review",
       "title": "원칙 A 판정표 ③ — 요약 관찰·순서 질의 69종 일괄 판정",
       "verbatim": "추천대로 해. 진행해",
       "생성": "ai",
@@ -1355,6 +1355,16 @@
   ],
   "recent": [
     {
+      "seq": 379,
+      "t": "2026-09-18T20:07",
+      "a": "ai",
+      "id": "KAN-040-M5V53M",
+      "op": "move",
+      "w": "N0VY8A",
+      "from": "doing",
+      "to": "review"
+    },
+    {
       "seq": 378,
       "t": "2026-09-18T17:07",
       "a": "ai",
@@ -1871,16 +1881,6 @@
       "w": "GWC813",
       "from": "review",
       "to": "doing"
-    },
-    {
-      "seq": 331,
-      "t": "2026-09-17T00:09",
-      "a": "유저",
-      "id": "KAN-048-QN5194",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-047-394V9A",
-      "reason": "이 카드가 고칠 목록과 drift 표시를 KAN-047 이 만든다"
     }
   ],
   "waivers": [
