@@ -126,7 +126,8 @@ describe("값 검증 실행 — 선택 인자는 계측을 안 바꾼다", () =>
       { ok: true, stats: [1, 1] },
       { ok: true, stats: [4, 4] },
       { ok: true, stats: [2050, 8194] },
-      { ok: true, stats: [2, 2] },
+      // 커서 시나리오는 `KAN-040` `S3` 이 길이 읽기를 빼면서 걸음이 커서 하나가 돼 2 → 1 이다.
+      { ok: true, stats: [1, 1] },
       { ok: true, stats: [1025, 4097] },
     ]);
   }, 60_000);

@@ -109,24 +109,20 @@ function apply(d: XorLinkedListContract, c: Call): unknown {
       return d.toArray();
     case "toArrayReverse":
       return d.toArrayReverse();
-    case "size":
-      return d.size();
   }
 }
 
 /**
- * 「수행으로 알아보는 자료구조」가 끝까지 쓰는 연산 열. 여덟 번이다.
+ * 「수행으로 알아보는 자료구조」가 끝까지 쓰는 연산 열. 여섯 번이다.
  *
- * 네 연산이 모두 한 번 이상 나오고, 빈 수열의 순회 · 빈 수열에 붙이기 · 옛 꼬리에 잇기 ·
+ * 세 연산이 모두 한 번 이상 나오고, 빈 수열의 순회 · 빈 수열에 붙이기 · 옛 꼬리에 잇기 ·
  * **빈자리 표시 `NIL` 과 같은 수인 값 0** · 두 방향 순회가 전부 들어 있다.
  */
 export const WALK: Call[] = [
   { op: "toArray" },
-  { op: "size" },
   { op: "append", arg: 10 },
   { op: "append", arg: 0 },
   { op: "append", arg: 30 },
-  { op: "size" },
   { op: "toArray" },
   { op: "toArrayReverse" },
 ];
@@ -252,7 +248,7 @@ class XorCopy {
 
 /* ────────────────────────── 정본과 나란히 ────────────────────────── */
 
-type Kind = "append" | "walk" | "size";
+type Kind = "append" | "walk";
 
 /** 걸음 표의 한 줄. 순회는 노드 하나를 읽을 때마다 한 줄이다. */
 export interface Row {
@@ -306,22 +302,6 @@ function agree(calls: Call[]): Row[] {
         last: true,
         out: undefined,
         cost: mine.cost - mineBefore,
-        ...snap(),
-      });
-    } else if (c.op === "size") {
-      const out = mine.size();
-      if (out !== refOut) {
-        throw new Error(`사본 size ${out} · 정본 ${String(refOut)}`);
-      }
-      rows.push({
-        t: ++t,
-        call: c,
-        kind: "size",
-        joined: null,
-        iter: null,
-        last: true,
-        out,
-        cost: 1,
         ...snap(),
       });
     } else {
@@ -410,7 +390,6 @@ function againstModel(name: string, Ctor: Constructor): void {
   const model: number[] = [];
   const agreeNow = (where: string): void => {
     const checks: [string, unknown, unknown][] = [
-      ["size()", d.size(), model.length],
       ["toArray()", d.toArray(), model],
       ["toArrayReverse()", d.toArrayReverse(), [...model].reverse()],
     ];
@@ -783,7 +762,7 @@ export const PROOFS: Record<string, () => string> = {
         [10, 20],
         [10, 20, 30],
       ],
-      ["toArray", "toArrayReverse", "size"],
+      ["toArray", "toArrayReverse"],
       "덮어쓴 코드",
     ),
 
@@ -794,7 +773,7 @@ export const PROOFS: Record<string, () => string> = {
    * 들어 있어, 그대로 실으면 `check-proof` 가 그 칸을 판정 열로 읽는다.
    */
   "mutant-overwrite-invariants": () => {
-    const labels = ["첫째 — size() 와 순회 길이", "둘째 — 두 방향의 수열"];
+    const labels = ["두 방향의 수열"];
     if (xorLinkedListContract.invariants.length !== labels.length) {
       throw new Error("계약의 불변식 수가 본문의 표기와 다르다");
     }
@@ -827,7 +806,6 @@ function condition(r: Row): string {
       ? "tailId 0 = NIL — 빈 수열에 붙인다"
       : `tailId ${j.oldTail?.id ?? NIL} ≠ NIL — 마지막 노드 뒤에 잇는다`;
   }
-  if (r.kind === "size") return "";
   if (r.iter === null) return "currId 0 = NIL — 읽을 노드가 없다";
   const head = `currId ${r.iter.curr} ≠ NIL`;
   return r.last ? `${head} · 다음 0 = NIL — 끝` : head;

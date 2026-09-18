@@ -21,7 +21,6 @@ export interface UnrolledLinkedListContract<T> {
   get(index: number): T | null;
   insert(index: number, item: T): void;
   remove(index: number): T | null;
-  size(): number;
   toArray(): T[];
 }
 
@@ -96,12 +95,6 @@ export const unrolledLinkedListContract: ContractSpec<
       },
     },
     {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.length,
-    },
-    {
       name: "toArray",
       arg: () => undefined,
       onImpl: (impl) => impl.toArray(),
@@ -116,7 +109,7 @@ export const unrolledLinkedListContract: ContractSpec<
         { op: "pop" },
         { op: "get", arg: 0 },
         { op: "remove", arg: 0 },
-        { op: "size" },
+        { op: "toArray" },
         { op: "toArray" },
       ],
     },
@@ -124,14 +117,14 @@ export const unrolledLinkedListContract: ContractSpec<
       name: "빈 수열에 insert(0) 은 push 와 같고, insert(1) 은 범위 밖이라 아무것도 안 한다",
       steps: [
         { op: "insert", arg: [1, 9] },
-        { op: "size" },
+        { op: "toArray" },
         { op: "insert", arg: [0, 7] },
         { op: "get", arg: 0 },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
-      name: "index === size() 는 push 와 같다 — 경계 하나 차이로 무시되면 안 된다",
+      name: "담긴 수와 같은 자리의 insert 는 push 와 같다 — 경계 하나 차이로 무시되면 안 된다",
       steps: [
         { op: "push", arg: 1 },
         { op: "push", arg: 2 },
@@ -161,7 +154,7 @@ export const unrolledLinkedListContract: ContractSpec<
         { op: "push", arg: 3 },
         { op: "remove", arg: 1 },
         { op: "get", arg: 1 },
-        { op: "size" },
+        { op: "toArray" },
         { op: "toArray" },
       ],
     },
@@ -186,21 +179,14 @@ export const unrolledLinkedListContract: ContractSpec<
         { op: "pop" },
         { op: "insert", arg: [0, 8] },
         { op: "get", arg: 0 },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
   ],
 
+  // 옛 1번(「세어 둔 수와 늘어놓은 수가 같다」)은 세어 둔 수를 읽는 행이 표면에서 빠져
+  // 경로가 늘어놓기 하나로 줄었다 — 헤더 불변식 절의 판별 그대로다.
   invariants: [
-    {
-      name: "세어 둔 수와 늘어놓은 수가 같다",
-      check: (impl) => {
-        const counted = impl.size();
-        const listed = impl.toArray().length;
-        if (counted === listed) return null;
-        return `size()=${counted} 인데 toArray().length=${listed} 다`;
-      },
-    },
     {
       name: "위치로 짚은 원소와 늘어놓은 원소가 같다",
       check: (impl) => {
@@ -281,16 +267,6 @@ export const unrolledLinkedListContract: ContractSpec<
           const at = Math.floor(ctx.rng() * (n - i));
           ctx.step(() => impl.remove(at));
         }
-      },
-    },
-    {
-      covers: ["size"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      run: (impl, n, ctx) => {
-        for (let i = 0; i < n; i++) impl.push(i);
-        for (let i = 0; i < n / 4; i++) ctx.step(() => impl.size());
       },
     },
     {

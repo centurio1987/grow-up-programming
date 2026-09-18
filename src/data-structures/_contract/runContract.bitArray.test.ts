@@ -20,7 +20,6 @@
  * | `set` amortized O(1) 섞은 차례 | 1.00 → 1.00 | 통과 1.00 → 1.00 | **걸림** 512.50 → 2,048.50 | **걸림** 268.72 → 1,036.63 |
  * | `clear` amortized O(1) 섞은 차례 | 1.00 → 1.00 | 통과 1.00 → 1.00 | **걸림** 266.18 → 1,020.82 | **걸림** 264.03 → 1,036.11 |
  * | `get` worst O(1) 짝수 자리만 켬 | 1 → 1 | 통과 1 → 1 | **걸림** 512 → 2,048 | 통과 11 → 13 (**위반**) |
- * | `size` worst O(1) | 1 → 1 | 통과 | 통과 | 통과 |
  * | 축1 · 축2 | 통과 | 통과 | 통과 | 통과 |
  *
  * **`SortedPositionBits` 의 `get` 통과는 계약 위반이다.** 이분 탐색이라 켜진 수의 로그에 비례하는데 로그 인수가
@@ -68,7 +67,7 @@ function verdicts(cost: CostSource<SizedBits>): Record<string, boolean> {
   return found;
 }
 
-const ALL_PASS = { set: true, clear: true, get: true, size: true };
+const ALL_PASS = { set: true, clear: true, get: true };
 
 // 1. 넷 다 동작상 옳다 — 축1 · 축2 를 전부 통과한다. 계측기를 넘기지 않으므로 축3은 돌지 않는다.
 runContract(

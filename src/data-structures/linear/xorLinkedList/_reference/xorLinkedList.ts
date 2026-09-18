@@ -34,7 +34,6 @@ export class XorLinkedList {
   #nodes = new Map<number, XorNode>();
   #headId = NIL;
   #tailId = NIL;
-  #count = 0;
   /** 다음에 나눠 줄 id. 한 번 쓴 값을 다시 쓰지 않는다. */
   #nextId = 1;
 
@@ -56,7 +55,6 @@ export class XorLinkedList {
     }
 
     this.#tailId = id;
-    this.#count += 1;
   }
 
   toArray(): number[] {
@@ -65,11 +63,6 @@ export class XorLinkedList {
 
   toArrayReverse(): number[] {
     return this.#walk(this.#tailId);
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
   }
 
   /**

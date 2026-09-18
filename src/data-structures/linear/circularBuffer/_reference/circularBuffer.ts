@@ -88,10 +88,6 @@ export class CircularBuffer<T> {
     return this.#count === this.#slots.length;
   }
 
-  isEmpty(): boolean {
-    return this.size() === 0;
-  }
-
   size(): number {
     this.__cost += 1;
     return this.#count;

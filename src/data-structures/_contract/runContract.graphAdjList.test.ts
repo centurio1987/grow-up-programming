@@ -21,7 +21,6 @@
  * | `removeEdge` O(n) 별 | 270.18 → 1,024.82 | **걸림** 1.00 → 1.00 (계급 아래 — 위반 아님) | 통과 |
  * | `neighbors` O(1) 고리 | 3.00 → 3.00 | **걸림** 1,025 → 4,097 (위반) | **걸림** 1,025 → 4,097 (위반) |
  * | `neighbors` O(n) 별 | 1,025 → 4,097 | 통과 | 통과 |
- * | `vertexCount`·`edgeCount` O(1) | 2.00 → 2.00 | 통과 | 통과 |
  *
  * **`GrowingMatrixGraph` 가 통과하는 자리에 숨은 위반은 없다** — `addEdge`·`removeEdge` 가 계약보다
  * 빠를 뿐이다. **`EdgeListGraph` 는 차수를 키운 세 시나리오를 통과하면서 계약을 어긴다** — 거기서는
@@ -74,7 +73,7 @@ runContract(
 );
 
 describe("GraphAdjList 축3 — 결함 둘이 서로 다른 행에서 걸린다", () => {
-  test("정본은 여덟 시나리오를 전부 통과한다", () => {
+  test("정본은 일곱 시나리오를 전부 통과한다", () => {
     expect(verdicts(reference)).toEqual({
       "addVertex O(1)": true,
       "addEdge O(1)": true,
@@ -83,7 +82,6 @@ describe("GraphAdjList 축3 — 결함 둘이 서로 다른 행에서 걸린다"
       "removeEdge O(n)": true,
       "neighbors O(1)": true,
       "neighbors O(n)": true,
-      "vertexCount·edgeCount O(1)": true,
     });
   });
 
@@ -97,7 +95,6 @@ describe("GraphAdjList 축3 — 결함 둘이 서로 다른 행에서 걸린다"
       "removeEdge O(n)": false,
       "neighbors O(1)": false,
       "neighbors O(n)": true,
-      "vertexCount·edgeCount O(1)": true,
     });
   });
 
@@ -111,7 +108,6 @@ describe("GraphAdjList 축3 — 결함 둘이 서로 다른 행에서 걸린다"
       "removeEdge O(n)": true,
       "neighbors O(1)": false,
       "neighbors O(n)": true,
-      "vertexCount·edgeCount O(1)": true,
     });
   });
 });

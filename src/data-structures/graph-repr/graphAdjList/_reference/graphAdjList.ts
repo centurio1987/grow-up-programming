@@ -10,7 +10,7 @@
  * **축3 계측(`__cost`).** 세는 단위는 *"이웃 항목 하나를 지나갈 때마다 1"* 이다 — **읽기와 쓰기를
  * 따로 세지 않고**, 언어 런타임이 배열을 다시 잡는 비용도 세지 않는다(§규약2 계측 단위). 같은
  * 간선을 찾느라 훑은 항목, `neighbors` 가 옮겨 담은 항목이 그 단위다. 항목을 하나도 지나가지 않는
- * 호출(`addVertex`·`vertexCount`·`edgeCount`, 빈 배열을 훑는 찾기)도 1 을 더한다 — 판정이 계측값
+ * 호출(`addVertex`, 빈 배열을 훑는 찾기)도 1 을 더한다 — 판정이 계측값
  * 0 을 성장률로 나누지 못하기 때문이고(`_contract/judge.ts` 의 `judgeGrowth`), 상수 배수는 판정에
  * 안 들어오므로 이 선택이 어느 행의 판정도 바꾸지 않는다. `__cost` 는 계약이 아니라 정본의
  * 의무다(불변 사실 23).
@@ -26,7 +26,6 @@ export class GraphAdjList {
   /** 정점마다 이웃 번호. 같은 자리의 `#weights` 가 그 간선의 무게다. */
   readonly #targets: number[][] = [];
   readonly #weights: number[][] = [];
-  #edges = 0;
 
   /** 축3 계측(§규약2). 계약이 아니라 정본의 의무다. */
   __cost = 0;
@@ -58,7 +57,6 @@ export class GraphAdjList {
     this.#append(u, v, weight);
     // 제자리 간선은 무방향이어도 한 항목이다 — 두 끝이 같은 배열이라 두 번 담으면 두 번 보인다.
     if (!this.#directed && u !== v) this.#append(v, u, weight);
-    this.#edges += 1;
   }
 
   removeEdge(u: number, v: number): void {
@@ -68,7 +66,6 @@ export class GraphAdjList {
     if (at < 0) return;
     this.#take(u, at);
     if (!this.#directed && u !== v) this.#take(v, this.#find(v, u));
-    this.#edges -= 1;
   }
 
   neighbors(u: number): Array<{ vertex: number; weight: number }> {
@@ -86,16 +83,6 @@ export class GraphAdjList {
       });
     }
     return found;
-  }
-
-  vertexCount(): number {
-    this.__cost += 1;
-    return this.#targets.length;
-  }
-
-  edgeCount(): number {
-    this.__cost += 1;
-    return this.#edges;
   }
 
   #check(vertex: number): void {

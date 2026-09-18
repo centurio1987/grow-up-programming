@@ -15,7 +15,7 @@
  *    축1 열을 함께 적는다(`docs/ORD-006-conventions.md` 「축1이 혼자 잡는 결함 fixture」).
  * 3. **그 우회를 잡는 경계 케이스가 넷이고, 넷 다 핸들 모형의 두 문장 중 하나를 어긴 자리다** — 하나는
  *    「뺀 핸들은 죽는다」(뺀 마디가 다음 원소를 담은 채 산다), 셋은 「다른 핸들은 그대로다」(떼어 낸 마디가
- *    다음 원소의 핸들이다). 무작위 교차검증도 14번째 호출에서 잡는다.
+ *    다음 원소의 핸들이다). 무작위 교차검증도 15번째 호출에서 잡는다.
  *
  * | 시나리오 (n = 1,024 → 4,096) | 정본 | `PredecessorWalkingList` | `SplicingHandleArray` | `SuccessorPullingList` |
  * |---|---|---|---|---|
@@ -24,8 +24,7 @@
  * | `insertAfter` amortized O(1) | 1.00 → 1.00 | 통과 | **걸림** 1,536.50 → 6,144.50 | 통과 |
  * | `remove` amortized O(1) (적대적) | 1.00 → 1.00 | **걸림** 512.50 → 2,048.50 | **걸림** 513.50 → 2,049.50 | 통과 |
  * | `toArray` worst O(n) | 1,024 → 4,096 | 통과 | 통과 | 통과 |
- * | `size` worst O(1) | 1 → 1 | 통과 | 통과 | 통과 |
- * | 축1 | 통과 | 통과 | 통과 | **걸림** — 경계 넷 · 무작위 14번째 호출 |
+ * | 축1 | 통과 | 통과 | 통과 | **걸림** — 경계 넷 · 무작위 15번째 호출 |
  */
 
 import { describe, expect, test } from "bun:test";
@@ -71,7 +70,6 @@ const ALL_PASS = {
   insertAfter: true,
   "remove (적대적)": true,
   toArray: true,
-  size: true,
 };
 
 const byName = new Map(
@@ -185,7 +183,7 @@ describe("DoublyLinkedList 축1 — 다음 원소를 끌어와 덮는 우회는 
     });
   });
 
-  test("무작위 교차검증은 14번째 호출(0부터 13)에서 잡는다", () => {
-    expect(randomSplitAt(() => new SuccessorPullingList())).toBe(13);
+  test("무작위 교차검증은 15번째 호출(0부터 14)에서 잡는다", () => {
+    expect(randomSplitAt(() => new SuccessorPullingList())).toBe(14);
   });
 });

@@ -50,7 +50,6 @@ function checkInjectionPolicy(
       expect(listed).toEqual([1, 2, 3]);
       listed[0] = -1;
       expect(sequence.toArray()).toEqual([1, 2, 3]);
-      expect(sequence.length()).toBe(3);
     });
   });
 }

@@ -78,15 +78,5 @@ export class MonotonicStack<T> {
     const maxima = this.#maxima;
     return maxima.length === 0 ? null : (maxima[maxima.length - 1] as T);
   }
-
-  isEmpty(): boolean {
-    this.__cost += 1;
-    return this.#items.length === 0;
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return this.#items.length;
-  }
 }
 // #endregion

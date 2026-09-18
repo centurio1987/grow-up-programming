@@ -88,11 +88,6 @@ export class GraphAdjMatrix {
     return found;
   }
 
-  vertexCount(): number {
-    this.__cost += 1;
-    return this.#n;
-  }
-
   #put(u: number, v: number, weight: number): void {
     this.__cost += 1;
     const at = this.#cell(u, v);

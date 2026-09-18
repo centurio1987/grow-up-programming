@@ -257,8 +257,8 @@ id 2의 xorId = 1 ^ 3
 <!--result:walk=[30,0,10]-->
 
 ```text
-T1 toArray()   T2 size()   T3~T5 append(10) · append(0) · append(30)   T6 size()
-T7~T9 toArray()의 세 걸음   T10~T12 toArrayReverse()의 세 걸음
+T1 toArray()   T2~T4 append(10) · append(0) · append(30)
+T5~T7 toArray()의 세 걸음   T8~T10 toArrayReverse()의 세 걸음
 ```
 
 <!--viz:walk-->
@@ -268,17 +268,15 @@ T7~T9 toArray()의 세 걸음   T10~T12 toArrayReverse()의 세 걸음
 ```text
 단계   노드 표 (id 1 · 2 · 3)   headId   tailId   count   prev   curr     담은 값
 T1     · · ·                         0        0       0      —      —          []
-T2     · · ·                         0        0       0      —      —           —
-T3     10/x0 · ·                     1        1       1      —      —           —
-T4     10/x2 0/x1 ·                  1        2       2      —      —           —
-T5     10/x2 0/x2 30/x2              1        3       3      —      —           —
-T6     10/x2 0/x2 30/x2              1        3       3      —      —           —
-T7     10/x2 0/x2 30/x2              1        3       3      0      1        [10]
-T8     10/x2 0/x2 30/x2              1        3       3      1      2      [10 0]
-T9     10/x2 0/x2 30/x2              1        3       3      2      3   [10 0 30]
-T10    10/x2 0/x2 30/x2              1        3       3      0      3        [30]
-T11    10/x2 0/x2 30/x2              1        3       3      3      2      [30 0]
-T12    10/x2 0/x2 30/x2              1        3       3      2      1   [30 0 10]
+T2     10/x0 · ·                     1        1       1      —      —           —
+T3     10/x2 0/x1 ·                  1        2       2      —      —           —
+T4     10/x2 0/x2 30/x2              1        3       3      —      —           —
+T5     10/x2 0/x2 30/x2              1        3       3      0      1        [10]
+T6     10/x2 0/x2 30/x2              1        3       3      1      2      [10 0]
+T7     10/x2 0/x2 30/x2              1        3       3      2      3   [10 0 30]
+T8     10/x2 0/x2 30/x2              1        3       3      0      3        [30]
+T9     10/x2 0/x2 30/x2              1        3       3      3      2      [30 0]
+T10    10/x2 0/x2 30/x2              1        3       3      2      1   [30 0 10]
 ```
 
 같은 걸음에서 확인한 조건과 계산, 참조 구현이 센 비용은 다음과 같습니다. 비용은 노드를 `Map`에서 찾을 때 1, 새 노드를 만들 때 1입니다.
@@ -288,17 +286,15 @@ T12    10/x2 0/x2 30/x2              1        3       3      2      1   [30 0 10
 ```text
 단계   호출               조건                                       계산                               돌려준 값   비용
 T1     toArray()          currId 0 = NIL — 읽을 노드가 없다          —                                         []      0
-T2     size()             —                                          —                                          0      1
-T3     append(10)         tailId 0 = NIL — 빈 수열에 붙인다          id 1 · xorId 0                             —      1
-T4     append(0)          tailId 1 ≠ NIL — 마지막 노드 뒤에 잇는다   id 2 · xorId 1 · id 1: 0 ^ 2 = 2           —      2
-T5     append(30)         tailId 2 ≠ NIL — 마지막 노드 뒤에 잇는다   id 3 · xorId 2 · id 2: 1 ^ 3 = 2           —      2
-T6     size()             —                                          —                                          3      1
-T7     toArray()          currId 1 ≠ NIL                             다음 = 2 ^ 0 = 2                           —      1
-T8     toArray()          currId 2 ≠ NIL                             다음 = 2 ^ 1 = 3                           —      1
-T9     toArray()          currId 3 ≠ NIL · 다음 0 = NIL — 끝         다음 = 2 ^ 2 = 0                   [10 0 30]      1
-T10    toArrayReverse()   currId 3 ≠ NIL                             다음 = 2 ^ 0 = 2                           —      1
-T11    toArrayReverse()   currId 2 ≠ NIL                             다음 = 2 ^ 3 = 1                           —      1
-T12    toArrayReverse()   currId 1 ≠ NIL · 다음 0 = NIL — 끝         다음 = 2 ^ 2 = 0                   [30 0 10]      1
+T2     append(10)         tailId 0 = NIL — 빈 수열에 붙인다          id 1 · xorId 0                             —      1
+T3     append(0)          tailId 1 ≠ NIL — 마지막 노드 뒤에 잇는다   id 2 · xorId 1 · id 1: 0 ^ 2 = 2           —      2
+T4     append(30)         tailId 2 ≠ NIL — 마지막 노드 뒤에 잇는다   id 3 · xorId 2 · id 2: 1 ^ 3 = 2           —      2
+T5     toArray()          currId 1 ≠ NIL                             다음 = 2 ^ 0 = 2                           —      1
+T6     toArray()          currId 2 ≠ NIL                             다음 = 2 ^ 1 = 3                           —      1
+T7     toArray()          currId 3 ≠ NIL · 다음 0 = NIL — 끝         다음 = 2 ^ 2 = 0                   [10 0 30]      1
+T8     toArrayReverse()   currId 3 ≠ NIL                             다음 = 2 ^ 0 = 2                           —      1
+T9     toArrayReverse()   currId 2 ≠ NIL                             다음 = 2 ^ 3 = 1                           —      1
+T10    toArrayReverse()   currId 1 ≠ NIL · 다음 0 = NIL — 끝         다음 = 2 ^ 2 = 0                   [30 0 10]      1
 ```
 
 #### XOR 연결 리스트 전체 코드
@@ -320,7 +316,6 @@ export class XorLinkedList {
   #nodes = new Map<number, XorNode>();
   #headId = NIL;
   #tailId = NIL;
-  #count = 0;
   /** 다음에 나눠 줄 id. 한 번 쓴 값을 다시 쓰지 않는다. */
   #nextId = 1;
 
@@ -338,7 +333,6 @@ export class XorLinkedList {
     }
 
     this.#tailId = id;
-    this.#count += 1;
   }
 
   toArray(): number[] {
@@ -347,10 +341,6 @@ export class XorLinkedList {
 
   toArrayReverse(): number[] {
     return this.#walk(this.#tailId);
-  }
-
-  size(): number {
-    return this.#count;
   }
 
   /**
@@ -635,10 +625,8 @@ tail.xorId = id; // ← tail.xorId ^= id 에서 바꿨다
 붙인 값               호출               바른 코드    덮어쓴 코드         판정
 append 10 · 20        toArray()          [10 20]      [10 20]             같다
 append 10 · 20        toArrayReverse()   [20 10]      [20 10]             같다
-append 10 · 20        size()             2            2                   같다
 append 10 · 20 · 30   toArray()          [10 20 30]   [10 20 20 10]   어긋난다
 append 10 · 20 · 30   toArrayReverse()   [30 20 10]   [30 20]         어긋난다
-append 10 · 20 · 30   size()             3            3                   같다
 ```
 
 원소가 둘일 때까지는 결과가 같습니다. 두 번째 붙이기에서 기존 마지막 노드(id 1)의 값이 0이었으므로 `0 ^ 2`와 `2`가 같기 때문입니다. 세 번째 붙이기에서 id 2의 값은 `1 ^ 3 = 2`가 되어야 하는데 3으로 덮어써져 이전 노드 1의 정보가 사라집니다.
@@ -657,11 +645,9 @@ append 10 · 20 · 30   size()             3            3                   같�
 <!--proof:mutant-overwrite-invariants-->
 
 ```text
-붙인 값               불변식                       덮어쓴 코드에서
-append 10 · 20        첫째 — size() 와 순회 길이   지킨다
-append 10 · 20        둘째 — 두 방향의 수열        지킨다
-append 10 · 20 · 30   첫째 — size() 와 순회 길이   순회 4개 / size 3
-append 10 · 20 · 30   둘째 — 두 방향의 수열        앞→뒤 4개 / 뒤→앞 2개
+붙인 값               불변식           덮어쓴 코드에서
+append 10 · 20        두 방향의 수열   지킨다
+append 10 · 20 · 30   두 방향의 수열   앞→뒤 4개 / 뒤→앞 2개
 ```
 
 ### 수식 정의와 유도
@@ -701,15 +687,14 @@ L개까지 채우기 위한 붙이기: 적어도 L회
 
 **이중 연결 리스트**는 붙이기마다 노드 하나를 만들고 기존 마지막 노드의 `next` 하나를 고칩니다. 원소 수와 무관하게 일정한 일만 하므로 최악 O(1)입니다. 두 순회는 노드 n개를 한 번씩 방문합니다.
 
-**XOR 연결 리스트**의 참조 구현은 노드를 `Map`에서 찾을 때와 새 노드를 만들 때 비용 1을 셉니다. 걸음 표에서 T3은 빈 리스트에 붙여 새 노드만 만들었으므로 1, T4와 T5는 새 노드와 기존 마지막 노드 찾기로 2입니다. T7~T9와 T10~T12는 노드 하나를 읽을 때마다 1이고, T2와 T6의 `size()`는 1, 빈 리스트를 읽은 T1은 0입니다.
+**XOR 연결 리스트**의 참조 구현은 노드를 `Map`에서 찾을 때와 새 노드를 만들 때 비용 1을 셉니다. 걸음 표에서 T2는 빈 리스트에 붙여 새 노드만 만들었으므로 1, T3과 T4는 새 노드와 기존 마지막 노드 찾기로 2입니다. T5~T7과 T8~T10은 노드 하나를 읽을 때마다 1이고, 빈 리스트를 읽은 T1은 0입니다.
 
 ```text
 빈 리스트에 붙이기       1    새 노드
 원소가 있을 때 붙이기    2    새 노드 + 기존 마지막 노드 찾기
 순회 한 번               n    노드마다 Map에서 한 번 찾기
-size() 한 번             1
 
-전개의 12걸음   붙이기 1 + 2 + 2, 순회 0 + 3 + 3, size() 1 + 1 → 합 13
+전개의 10걸음   붙이기 1 + 2 + 2, 순회 0 + 3 + 3 → 합 11
 ```
 
 빈 리스트에서 m번 붙이면 첫 번은 1, 나머지는 2라 합이 `2m - 1`입니다. 이 수치는 `Map`에서 한 번 찾거나 넣는 일을 1로 세는 측정 규칙을 따른 값이며, 엔진이 `Map` 내부 공간을 늘리는 작업은 따로 세지 않았습니다.
@@ -835,9 +820,9 @@ Linux Journal 제안   노드마다 이웃 포인터 둘 → XOR 값 하나     
 
 ### 스스로 점검하기
 
-1. T4에서 10에 이어 0을 붙였습니다. 이때 `xorId`가 바뀐 노드는 몇 개이고, 각각 어떤 값이 되었나요? 붙인 값이 0이 아니라 20이었다면 달라지는 것이 있을까요?
-2. T10~T12는 T7~T9와 같은 노드 표를 읽었지만 결과가 반대입니다. 두 순회에서 달라진 것은 출발 id뿐인데, 왜 같은 `xorId` 값에서 반대 방향의 노드가 계산되나요?
-3. `toArrayReverse()`를 `this.toArray().reverse()`로 바꾸면 결과는 같습니다. 그 대신 기존 마지막 노드의 값을 덮어쓰는 실수가 있을 때, 명세의 두 불변식 검사 중 어느 쪽이 그 실수를 더는 발견하지 못하게 될까요?
-4. T3에서 TypeScript 구현은 첫 노드에 id 1을 주었습니다. Rust 구현에는 id를 1부터 줘야 한다는 주의가 없는데, 무엇이 끝 표시 0과 겹칠 가능성을 없앴나요? 반대로 `prev`에 다음 주소를 넣는 실수는 Rust 구현에서 TypeScript 구현과 어떻게 다르게 나타나나요?
+1. T3에서 10에 이어 0을 붙였습니다. 이때 `xorId`가 바뀐 노드는 몇 개이고, 각각 어떤 값이 되었나요? 붙인 값이 0이 아니라 20이었다면 달라지는 것이 있을까요?
+2. T8~T10은 T5~T7과 같은 노드 표를 읽었지만 결과가 반대입니다. 두 순회에서 달라진 것은 출발 id뿐인데, 왜 같은 `xorId` 값에서 반대 방향의 노드가 계산되나요?
+3. `toArrayReverse()`를 `this.toArray().reverse()`로 바꾸면 결과는 같습니다. 그 대신 기존 마지막 노드의 값을 덮어쓰는 실수가 있을 때, 명세에 남은 불변식 하나는 그 실수를 여전히 발견할까요? 발견하지 못한다면 그 자리를 무엇이 대신 잡나요?
+4. T2에서 TypeScript 구현은 첫 노드에 id 1을 주었습니다. Rust 구현에는 id를 1부터 줘야 한다는 주의가 없는데, 무엇이 끝 표시 0과 겹칠 가능성을 없앴나요? 반대로 `prev`에 다음 주소를 넣는 실수는 Rust 구현에서 TypeScript 구현과 어떻게 다르게 나타나나요?
 
 네 질문을 설명할 수 있다면, 이 계약의 사용법을 넘어 각 구현이 두 방향 읽기를 어떻게 준비하는지, 그리고 그 준비가 저장 비용을 어떻게 정하고 언어에 따라 어떻게 달라지는지 이해한 것입니다.

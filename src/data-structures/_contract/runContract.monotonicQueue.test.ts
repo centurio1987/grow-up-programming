@@ -23,7 +23,7 @@
  * | `dequeue` amortized O(1) (적대적) | 4.00 → 4.00 → 4.00 | 통과 | **걸림** 1,025 → 4,097 → 16,385 | 통과 | 통과 3.00 |
  * | ↳ 한 호출 최대로 다시 재면 | 1,026 → 4,098 → 16,386 **걸림**(되돌려 쓰기) | — | — | — | 2,049 → 8,193 → 32,769 **걸림** |
  * | `max` worst O(1) | 1 → 1 → 1 | **걸림** 2,046 → 8,190 → 32,766 | 통과 | 통과 | 통과 |
- * | `front`·`isEmpty`·`size` worst O(1) | 3 → 3 → 3 | 통과 | 통과 | 통과 | 통과 |
+ * | `front` worst O(1) | 1 → 1 → 1 | 통과 | 통과 | 통과 | 통과 |
  * | 축1 · 축2 | 통과 | 통과 | 통과 | 통과 | 통과 |
  *
  * `max` 시나리오가 빼기 뒤에 묻는 이유의 실측 — 최댓값이 나가면 표시만 하고 `max` 에서 몰아 다시 훑는 구현(탐침,
@@ -80,7 +80,7 @@ const ALL_PASS = {
   "enqueue (적대적)": true,
   "dequeue (적대적)": true,
   max: true,
-  front·isEmpty·size: true,
+  front: true,
 };
 
 function scenarioOf(row: string): CostScenario<Surface> {

@@ -15,7 +15,6 @@
  * | `removeEdge` O(1) 별 | 2.00 → 2.00 | **걸림** 272.80 → 1,030.04 (위반) |
  * | `hasEdge`·`weight` O(1) 별 | 3.00 → 3.00 | **걸림** 2,050 → 8,194 (위반) |
  * | `neighbors` O(n) | 1,025 → 4,097 | 통과 — 가운데 정점을 함께 물어 최대가 n 을 따라간다 |
- * | `vertexCount` O(1) | 1.00 → 1.00 | 통과 |
  *
  * 통과하는 두 자리에 숨은 위반은 없다 — `neighbors` 는 계약보다 빠를 뿐이다(불변 사실 49).
  */
@@ -67,7 +66,6 @@ describe("GraphAdjMatrix 축3 — 이웃 배열 구현이 쌍을 다루는 네 �
       "removeEdge O(1)": true,
       "hasEdge·weight O(1)": true,
       "neighbors O(n)": true,
-      "vertexCount O(1)": true,
     });
   });
 
@@ -77,7 +75,6 @@ describe("GraphAdjMatrix 축3 — 이웃 배열 구현이 쌍을 다루는 네 �
       "removeEdge O(1)": false,
       "hasEdge·weight O(1)": false,
       "neighbors O(n)": true,
-      "vertexCount O(1)": true,
     });
   });
 });
@@ -88,6 +85,7 @@ describe("GraphAdjMatrix 생성자 — 축1이 못 보는 조항", () => {
   test("정점 수가 0 이상의 정수가 아니면 RangeError 이고 0 은 정당하다", () => {
     expect(() => new Reference(-1)).toThrow(RangeError);
     expect(() => new Reference(2.5)).toThrow(RangeError);
-    expect(new Reference(0).vertexCount()).toBe(0);
+    // `n === 0` 은 정당하다. 정점 수를 읽는 행이 빠졌으므로 「어느 번호도 범위 밖이다」로 짚는다.
+    expect(() => new Reference(0).hasEdge(0, 0)).toThrow(RangeError);
   });
 });

@@ -3,7 +3,12 @@
  *
  * **목적.** 삽입·제거·조회를 컨테이너의 한쪽 끝(top)으로 제한해, 가장 최근에 넣은 원소를
  * 원소 수와 무관한 비용으로 꺼내는 것.
- * 임의 위치 접근·탐색·순회는 이 계약에 없다.
+ * 임의 위치 접근·탐색·순회는 이 계약에 없다. 담긴 원소 수를 읽는 일과 비었는지 묻는 일도 없다.
+ *
+ * **뺀 두 행의 판정은 목적 항목 밖에 적는다.** `size()` · `isEmpty()` 는 원칙 A 판정표 ③ 의
+ * 판정으로 뺐다 — 판정 줄과 목적 인용은 `docs/ORD-006-conventions.md` 「판정표 ③ 의 103 행을
+ * 묶어 판정했다」 절에, 행 단위 대장은 `tools/_baseline/principle-a-verdicts.tsv` 에 있다.
+ * 판정의 결론을 목적 문단 안에 적으면 다음 판정이 자기 메아리를 근거로 읽는다(§원칙 A A5′-2).
  *
  * **불변식.** 없다. 각 연산의 의미가 각각 옳으면 따로 깨질 수 있는 상태 성질이 남지 않는다.
  * LIFO 순서는 아래 `pop`·`peek`의 의미가 그대로 정의한다.
@@ -15,8 +20,6 @@
  * | `push(item)` | `item`을 top 에 놓는다. 직후 `peek()`은 `item`을 돌려준다 | O(1) | amortized |
  * | `pop()` | top 원소를 제거하고 돌려준다. 비어 있으면 `null`, 상태는 불변 | O(1) | amortized |
  * | `peek()` | top 원소를 제거하지 않고 돌려준다. 비어 있으면 `null` | O(1) | worst |
- * | `isEmpty()` | `size() === 0` 과 같다 | O(1) | worst |
- * | `size()` | 현재 원소 수 | O(1) | worst |
  *
  * `amortized O(1)`은 n 회 연산의 총비용이 O(n)이라는 뜻이다. 개별 `push` 한 번이 상수를
  * 넘겨도(예: 용량 확장) 계약 위반이 아니다.
@@ -45,14 +48,6 @@ export class Stack<T> {
   }
 
   peek(): T | null {
-    throw new Error("Not implemented");
-  }
-
-  isEmpty(): boolean {
-    throw new Error("Not implemented");
-  }
-
-  size(): number {
     throw new Error("Not implemented");
   }
 }

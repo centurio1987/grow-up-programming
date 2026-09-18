@@ -28,8 +28,6 @@ function equal(got: unknown, want: unknown): void {
     throw new Error(`결과 불일치: ${String(got)} / ${String(want)}`);
 }
 function check(d: DequeContract<unknown>, model: unknown[]): void {
-  equal(d.size(), model.length);
-  equal(d.isEmpty(), model.length === 0);
   equal(d.peekFront(), model.length ? model[0] : null);
   equal(d.peekBack(), model.length ? model.at(-1) : null);
 }
@@ -121,7 +119,14 @@ export const PROOFS: Record<string, () => string> = {
       } else if (op === "popBack") {
         last = d.popBack();
         equal(last, model.length ? model.pop() : null);
-      } else last = d[op]();
+      } else if (op === "peekFront" || op === "peekBack") {
+        last = d[op]();
+      } else {
+        // `KAN-040` `S3` 이 계약에서 뺀 행(`isEmpty` · `size`)의 프레임이다. 시뮬은 물려받은
+        // 걸음을 그대로 들고 있고, 이 걸음에서 볼 것은 「상태가 안 바뀐다」뿐이라 아래
+        // `check` 와 프레임 대조가 그 몫을 그대로 한다.
+        last = undefined;
+      }
       check(d, model);
       const entries = frame.entries;
       equal(entries.find((e) => e.label === "count")?.value, model.length);

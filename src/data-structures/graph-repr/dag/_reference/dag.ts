@@ -16,7 +16,7 @@
  * **축3 계측(`__cost`).** 세는 단위는 *"정점 하나 또는 간선 하나를 지나갈 때마다 1"* 이다 — **읽기와
  * 쓰기를 따로 세지 않고**, 언어 런타임이 배열을 다시 잡는 비용도 세지 않는다(§규약2 계측 단위).
  * 같은 간선을 찾느라 훑은 항목, 사이클을 찾느라 꺼낸 정점과 지나간 간선, 순서를 짓느라 지나간 정점과
- * 간선이 그 단위다. 항목을 하나도 지나가지 않는 호출(`addVertex`·`vertexCount`·`edgeCount`, 빈
+ * 간선이 그 단위다. 항목을 하나도 지나가지 않는 호출(`addVertex`, 빈
  * 배열을 훑는 찾기)도 1 을 더한다 — 판정이 계측값 0 을 성장률로 나누지 못하기 때문이고
  * (`_contract/judge.ts` 의 `judgeGrowth`), 상수 배수는 판정에 안 들어오므로 이 선택이 어느 행의
  * 판정도 바꾸지 않는다. `__cost` 는 계약이 아니라 정본의 의무다(불변 사실 23).
@@ -33,7 +33,6 @@ export class DAG {
   readonly #out: number[][] = [];
   /** 한 번의 찾기 동안만 켜지는 「지나갔다」 표시. 찾기가 끝나면 전부 꺼져 있다. */
   readonly #seen: boolean[] = [];
-  #edges = 0;
 
   /** 축3 계측(§규약2). 계약이 아니라 정본의 의무다. */
   __cost = 0;
@@ -58,7 +57,6 @@ export class DAG {
     if (this.#reaches(v, u)) return false;
     this.__cost += 1;
     this.#outOf(u).push(v);
-    this.#edges += 1;
     return true;
   }
 
@@ -92,16 +90,6 @@ export class DAG {
       }
     }
     return order;
-  }
-
-  vertexCount(): number {
-    this.__cost += 1;
-    return this.#out.length;
-  }
-
-  edgeCount(): number {
-    this.__cost += 1;
-    return this.#edges;
   }
 
   #check(vertex: number): void {

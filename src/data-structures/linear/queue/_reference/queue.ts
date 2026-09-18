@@ -48,15 +48,6 @@ export class Queue<T> {
     return this.#items[this.#head] as T;
   }
 
-  isEmpty(): boolean {
-    return this.size() === 0;
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return this.#items.length - this.#head;
-  }
-
   /**
    * 읽고 지나온 자리가 절반을 넘으면 남은 것만 앞으로 옮긴다.
    *

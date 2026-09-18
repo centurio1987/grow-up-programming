@@ -26,13 +26,12 @@
 
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 **여섯 행**을 그대로 옮긴 표면. 생성자 행은 껍데기가 나른다. */
+/** 헤더 연산 계약 표의 **다섯 행**을 그대로 옮긴 표면. 생성자 행은 껍데기가 나른다. */
 export interface CircularBufferContract<T> {
   write(item: T): void;
   read(): T | null;
   peek(): T | null;
   isFull(): boolean;
-  isEmpty(): boolean;
   size(): number;
 }
 
@@ -75,10 +74,6 @@ export class Capacitated implements CircularBufferContract<number> {
 
   isFull(): boolean {
     return this.#impl.isFull();
-  }
-
-  isEmpty(): boolean {
-    return this.#impl.isEmpty();
   }
 
   size(): number {
@@ -134,12 +129,6 @@ export const circularBufferContract: ContractSpec<Capacitated, Model> = {
       onModel: (model) => model.items.length === CAPACITY,
     },
     {
-      name: "isEmpty",
-      arg: () => undefined,
-      onImpl: (impl) => impl.isEmpty(),
-      onModel: (model) => model.items.length === 0,
-    },
-    {
       name: "size",
       arg: () => undefined,
       onImpl: (impl) => impl.size(),
@@ -153,7 +142,7 @@ export const circularBufferContract: ContractSpec<Capacitated, Model> = {
       steps: [
         { op: "read" },
         { op: "peek" },
-        { op: "isEmpty" },
+        { op: "size" },
         { op: "isFull" },
         { op: "size" },
         { op: "read" },
@@ -210,7 +199,7 @@ export const circularBufferContract: ContractSpec<Capacitated, Model> = {
         { op: "read" },
         { op: "read" },
         { op: "read" },
-        { op: "isEmpty" },
+        { op: "size" },
       ],
     },
     {
@@ -240,7 +229,7 @@ export const circularBufferContract: ContractSpec<Capacitated, Model> = {
         { op: "write", arg: 2 },
         { op: "read" },
         { op: "read" },
-        { op: "isEmpty" },
+        { op: "size" },
         { op: "write", arg: 3 },
         { op: "write", arg: 4 },
         { op: "write", arg: 5 },
@@ -297,9 +286,9 @@ export const circularBufferContract: ContractSpec<Capacitated, Model> = {
       },
     },
     {
-      // 넷을 한 걸음에 묶는 이유는 `isFull`·`isEmpty` 혼자로는 잴 것이 적기 때문이다.
+      // 셋을 한 걸음에 묶는 이유는 `isFull` 혼자로는 잴 것이 적기 때문이다.
       // 크기를 세어 두지 않고 매번 칸을 훑는 계열이 여기서만 걸린다.
-      covers: ["peek", "isFull", "isEmpty", "size"],
+      covers: ["peek", "isFull", "size"],
       qualifier: "worst",
       bound: "O(1)",
       adversarial: false,
@@ -310,7 +299,6 @@ export const circularBufferContract: ContractSpec<Capacitated, Model> = {
           ctx.step(() => {
             impl.peek();
             impl.isFull();
-            impl.isEmpty();
             impl.size();
           });
         }

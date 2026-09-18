@@ -43,11 +43,10 @@
 
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 **네 행**(생성자 제외)을 그대로 옮긴 표면. */
+/** 헤더 연산 계약 표의 **세 행**(생성자 제외)을 그대로 옮긴 표면. */
 export interface PieceTableContract<T> {
   insert(offset: number, items: readonly T[]): void;
   delete(offset: number, count: number): void;
-  length(): number;
   toArray(): T[];
 }
 
@@ -143,12 +142,6 @@ export const pieceTableContract: ContractSpec<
       onModel: (model, arg) => modelDelete(model, arg),
     },
     {
-      name: "length",
-      arg: () => undefined,
-      onImpl: (impl) => impl.length(),
-      onModel: (model) => model.items.length,
-    },
-    {
       name: "toArray",
       arg: () => undefined,
       onImpl: (impl) => impl.toArray(),
@@ -160,11 +153,11 @@ export const pieceTableContract: ContractSpec<
     {
       name: "빈 수열은 길이 0 이고 빈 넣기 · 0 개 지우기는 아무것도 바꾸지 않는다",
       steps: [
-        { op: "length" },
+        { op: "toArray" },
         { op: "toArray" },
         { op: "insert", arg: [0, []] },
         { op: "delete", arg: [0, 0] },
-        { op: "length" },
+        { op: "toArray" },
         { op: "toArray" },
       ],
     },
@@ -178,7 +171,7 @@ export const pieceTableContract: ContractSpec<
         { op: "insert", arg: [0, [0]] },
         { op: "insert", arg: [2, [9, 8]] },
         { op: "toArray" },
-        { op: "length" },
+        { op: "toArray" },
       ],
     },
     {
@@ -190,12 +183,12 @@ export const pieceTableContract: ContractSpec<
         { op: "toArray" },
         { op: "delete", arg: [1, 5] },
         { op: "toArray" },
-        { op: "length" },
+        { op: "toArray" },
       ],
     },
     {
-      // 경계가 `[0, length()]` 인 인자라 위쪽 끝이 `length()` 자신이다(불변 사실 166).
-      name: "넣을 자리는 0 과 length() 를 포함하고 그 밖은 RangeError 다",
+      // 경계가 「0 이상 담긴 원소 수 이하」인 인자라 위쪽 끝이 담긴 원소 수 자신이다(불변 사실 166).
+      name: "넣을 자리는 0 과 담긴 원소 수를 포함하고 그 밖은 RangeError 다",
       steps: [
         { op: "insert", arg: [0, [1, 2]] },
         { op: "insert", arg: [2, [3]] },
@@ -203,11 +196,11 @@ export const pieceTableContract: ContractSpec<
         { op: "insert", arg: [-1, [9]] },
         { op: "insert", arg: [1.5, [9]] },
         { op: "toArray" },
-        { op: "length" },
+        { op: "toArray" },
       ],
     },
     {
-      // 지우는 구간의 끝이 `length()` 에 닿는 호출은 받고, 넘는 호출은 상태를 안 바꾸고 던진다.
+      // 지우는 구간의 끝이 담긴 원소 수에 닿는 호출은 받고, 넘는 호출은 상태를 안 바꾸고 던진다.
       name: "지우는 구간이 끝에 닿으면 받고 넘거나 음수 · 정수 아님이면 RangeError 다",
       steps: [
         { op: "insert", arg: [0, [1, 2, 3, 4]] },
@@ -219,7 +212,7 @@ export const pieceTableContract: ContractSpec<
         { op: "toArray" },
         { op: "delete", arg: [2, 2] },
         { op: "toArray" },
-        { op: "length" },
+        { op: "toArray" },
       ],
     },
     {
@@ -233,7 +226,7 @@ export const pieceTableContract: ContractSpec<
         { op: "toArray" },
         { op: "delete", arg: [2, 2] },
         { op: "toArray" },
-        { op: "length" },
+        { op: "toArray" },
       ],
     },
     {
@@ -246,26 +239,12 @@ export const pieceTableContract: ContractSpec<
         { op: "insert", arg: [5, [6]] },
         { op: "delete", arg: [0, 6] },
         { op: "toArray" },
-        { op: "length" },
+        { op: "toArray" },
       ],
     },
   ],
 
-  invariants: [
-    {
-      // 관측 경로가 둘이고(세어 둔 수 · 늘어놓은 수) 어느 계약 줄도 그 정합을 적지 않는다.
-      // 조각마다 원소 수를 따로 드는 구현은 두 수를 따로 들고 다니게 되고, 그 순간 각 연산이
-      // 저마다 옳은 채로 둘이 갈린다.
-      name: "length() 가 말하는 수와 toArray() 의 길이가 같다",
-      check: (impl) => {
-        const counted = impl.length();
-        const listed = impl.toArray().length;
-        return counted === listed
-          ? null
-          : `length()=${counted} 인데 toArray().length=${listed} 이다`;
-      },
-    },
-  ],
+  invariants: [],
 
   scenarios: [
     {
@@ -301,10 +280,14 @@ export const pieceTableContract: ContractSpec<
       adversarial: false,
       run: (impl, n, ctx) => {
         impl.insert(0, block(n));
+        // 담긴 수는 시나리오가 제 호출로 센다 — 계약에 그 수를 읽는 행이 없고, 늘어놓기로
+        // 대신 세면 준비가 계측을 물들인다.
+        let held = n;
         for (let i = 0; i < 4; i++) {
-          const offset = (impl.length() >> 1) + i;
+          const offset = (held >> 1) + i;
           const items = block(n, n * (i + 1));
           ctx.step(() => impl.insert(offset, items));
+          held += items.length;
         }
       },
     },
@@ -319,30 +302,22 @@ export const pieceTableContract: ContractSpec<
       adversarial: true,
       run: (impl, n, ctx) => {
         impl.insert(0, block(2 * n));
+        // 위 시나리오와 같은 이유로 담긴 수를 시나리오가 센다. 지우고 같은 수를 되넣으므로
+        // 이 값은 내내 2n 이다.
+        const held = 2 * n;
         for (let i = 0; i < 16; i++) {
           if (i % 2 === 0) {
             ctx.step(() => impl.delete(0, n));
-            impl.insert(impl.length(), block(n, n * (i + 2)));
+            impl.insert(held - n, block(n, n * (i + 2)));
           } else {
-            const from = impl.length() - n;
+            const from = held - n;
             ctx.step(() => impl.delete(from, n));
             impl.insert(0, block(n, n * (i + 2)));
           }
         }
       },
     },
-    {
-      // 끝에 하나씩 n 번 붙여 편집 수를 n 으로 올린다. **길이를 조각마다 더해 세는 계열이
-      // 여기서만 걸린다** — 편집이 적으면 조각도 적어 그 계열이 상수로 통과한다.
-      covers: ["length"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      run: (impl, n, ctx) => {
-        for (let i = 0; i < n; i++) impl.insert(i, [i]);
-        for (let i = 0; i < 32; i++) ctx.step(() => impl.length());
-      },
-    },
+
     {
       // 편집 한 번으로 n 개를 담은 뒤 열거한다. 되풀이 횟수가 n 이 아닌 이유는 O(n) 연산을
       // n 회 돌면 시나리오가 O(n^2) 이 되기 때문이다. `worst` 는 최대값으로 판정한다.

@@ -101,15 +101,6 @@ export class MonotonicQueue<T> {
       : this.#at(this.#cands[this.#candHead] as number);
   }
 
-  isEmpty(): boolean {
-    return this.size() === 0;
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return this.#items.length - this.#head;
-  }
-
   /** 전역 자리 번호의 원소. */
   #at(position: number): T {
     return this.#items[position - this.#base] as T;

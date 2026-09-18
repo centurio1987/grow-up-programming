@@ -1522,9 +1522,9 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     const stats = append.points.map((point) => point.stat);
     expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeGreaterThan(3);
 
-    // 순회 둘은 상한이 O(n) 이라 전부 훑어도 계약 안이고, size 는 세어 두면 상수다.
+    // 순회 둘은 상한이 O(n) 이라 전부 훑어도 계약 안이다.
     // **축3이 이 계약에서 잡을 수 있는 것은 위의 한 자리뿐**이라는 것이 이 검사의 내용이다.
-    for (const covers of ["toArray", "toArrayReverse", "size"]) {
+    for (const covers of ["toArray", "toArrayReverse"]) {
       const verdict = judgeScenario(
         tailScanList,
         scenarioOf(xorLinkedListContract, covers, false),
@@ -1559,7 +1559,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     }
 
     // 표가 맞게 적었던 셋. 결함이 있는 구현인데 이 셋에서는 정본과 구별되지 않는다.
-    for (const covers of ["push", "size", "toArray"]) {
+    for (const covers of ["push", "toArray"]) {
       const verdict = judgeScenario(
         fixedChunkList,
         scenarioOf(unrolledLinkedListContract, covers, false),
@@ -1580,7 +1580,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       expect(verdict.reason).toContain("O(sqrt n)");
     }
 
-    for (const covers of ["push", "size", "toArray"]) {
+    for (const covers of ["push", "toArray"]) {
       const verdict = judgeScenario(
         spliceArrayList,
         scenarioOf(unrolledLinkedListContract, covers, false),
@@ -2735,7 +2735,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       write: true,
       "write (적대적)": true,
       read: true,
-      peek·isFull·isEmpty·size: true,
+      peek·isFull·size: true,
     });
 
     // 용량을 무시하는 구현: 축3은 전부 통과하고 축1이 잡는다.
@@ -2745,7 +2745,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       write: true,
       "write (적대적)": true,
       read: true,
-      peek·isFull·isEmpty·size: true,
+      peek·isFull·size: true,
     });
     expect(
       firstBehaviorSplit(
@@ -2765,7 +2765,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       write: true,
       "write (적대적)": false,
       read: false,
-      peek·isFull·isEmpty·size: true,
+      peek·isFull·size: true,
     });
     expect(
       firstBehaviorSplit(
@@ -2781,7 +2781,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       write: true,
       "write (적대적)": true,
       read: true,
-      peek·isFull·isEmpty·size: false,
+      peek·isFull·size: false,
     });
   }, 60_000);
 
@@ -3051,7 +3051,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "invariant",
     );
     expect(Object.entries(recounting).filter(([, ok]) => !ok)).toEqual([
-      ["cursor·length/O(1)", false],
+      ["cursor/O(1)", false],
     ]);
   }, 120_000);
 });
@@ -3249,15 +3249,20 @@ describe("축2 — 불변식이 상태의 성질을 실제로 잡는다", () => 
   });
 });
 
-/** 자리를 정해 두고 넘치면 앞에서부터 버리는데, 붙인 횟수는 그대로 센다. */
+/**
+ * 자리를 정해 두고 넘치면 앞에서부터 버린다.
+ *
+ * **`KAN-040` `S3` 전에는 축2가 잡던 구현이다** — 붙인 횟수를 그대로 세어 두어 「세고 있는 수와
+ * 내놓을 수 있는 수가 같다」를 어겼다. 계약에서 세어 둔 수를 읽는 행이 빠지면서 그 불변식이
+ * 사라졌고, 남은 불변식(두 방향이 같은 수열)은 이 구현을 못 잡는다 — 버릴 때 두 방향이 같은
+ * 것을 잃기 때문이다. 대신 축1이 잡는다: 참조 모델은 버리지 않으므로 늘어놓기가 갈린다.
+ */
 class CappedLogList implements XorLinkedListContract {
   #values: number[] = [];
-  #appended = 0;
 
   append(value: number): void {
     this.#values.push(value);
     if (this.#values.length > 8) this.#values.shift();
-    this.#appended += 1;
   }
 
   toArray(): number[] {
@@ -3266,10 +3271,6 @@ class CappedLogList implements XorLinkedListContract {
 
   toArrayReverse(): number[] {
     return [...this.#values].reverse();
-  }
-
-  size(): number {
-    return this.#appended;
   }
 }
 
@@ -3290,17 +3291,13 @@ class TwoChainList implements XorLinkedListContract {
   toArrayReverse(): number[] {
     return [...this.#backward];
   }
-
-  size(): number {
-    return this.#forward.length;
-  }
 }
 
 describe("축2 — 관측 경로가 둘이라야 정합을 물을 수 있다", () => {
-  const [counted, agreed] = xorLinkedListContract.invariants;
+  const [agreed] = xorLinkedListContract.invariants;
 
-  test("불변식 절이 둘이고 정본은 둘 다 만족한다", () => {
-    expect(xorLinkedListContract.invariants).toHaveLength(2);
+  test("불변식 절이 하나이고 정본은 그것을 만족한다", () => {
+    expect(xorLinkedListContract.invariants).toHaveLength(1);
     const impl = new ReferenceXorLinkedList();
     for (const value of [3, 0, -1, 3]) impl.append(value);
     for (const invariant of xorLinkedListContract.invariants) {
@@ -3308,23 +3305,29 @@ describe("축2 — 관측 경로가 둘이라야 정합을 물을 수 있다", (
     }
   });
 
-  test("자리가 넘쳐 앞을 버리면 불변식 1이 잡는다", () => {
+  // `KAN-040` `S3` 이 세어 둔 수를 읽는 행을 빼면서 그것을 한쪽 경로로 쓰던 불변식이
+  // 사라졌다. 축2가 잡던 구현 하나가 축2에서 빠져나간다는 사실을 시험으로 박아 둔다 —
+  // 조용히 줄어든 검사는 줄어든 줄 모른다. 그 구현은 이제 축1이 잡는다.
+  test("자리가 넘쳐 앞을 버리는 구현은 이제 축2가 아니라 축1이 잡는다", () => {
     const impl = new CappedLogList();
-    for (let i = 0; i < 9; i++) impl.append(i);
-    expect(counted?.check(impl)).toContain("순회 8개 / size 9");
+    const model: number[] = [];
+    for (let i = 0; i < 9; i++) {
+      impl.append(i);
+      model.push(i);
+    }
     // 버린 뒤에도 두 방향은 서로의 역순이다 — 같은 것을 잃었기 때문이다.
     expect(agreed?.check(impl)).toBeNull();
+    // 참조 모델은 버리지 않으므로 늘어놓기가 갈린다.
+    expect(impl.toArray()).not.toEqual(model);
   });
 
-  test("방향마다 이음을 따로 들면 불변식 2가 갈림을 잡는다", () => {
+  test("방향마다 이음을 따로 들면 불변식이 갈림을 잡는다", () => {
     const impl = new TwoChainList();
     impl.append(1);
     // 원소가 하나면 뒤집어도 같으므로 아직 갈리지 않는다.
     expect(agreed?.check(impl)).toBeNull();
 
     impl.append(2);
-    // 잃은 것이 없으므로 개수는 맞는다. 갈리는 것은 순서다.
-    expect(counted?.check(impl)).toBeNull();
     expect(agreed?.check(impl)).toContain("0번째에서 갈린다");
   });
 });

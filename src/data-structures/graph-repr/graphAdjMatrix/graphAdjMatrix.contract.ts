@@ -27,14 +27,13 @@
 
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 **일곱 행**을 그대로 옮긴 표면. 생성자 행은 껍데기가 나른다. */
+/** 헤더 연산 계약 표의 **여섯 행**을 그대로 옮긴 표면. 생성자 행은 껍데기가 나른다. */
 export interface GraphAdjMatrixContract {
   addEdge(u: number, v: number, weight?: number): void;
   removeEdge(u: number, v: number): void;
   hasEdge(u: number, v: number): boolean;
   weight(u: number, v: number): number | null;
   neighbors(u: number): number[];
-  vertexCount(): number;
 }
 
 type Built = GraphAdjMatrixContract & { __cost?: number };
@@ -60,6 +59,11 @@ export class SizedGraphs {
   #undirected: Built;
   #directed: Built;
   #carried = 0;
+  /**
+   * 그래프마다 생성 인자로 준 정점 수. 계약에서 그것을 읽는 행이 빠졌으므로 축2가 훑을 상한을
+   * 껍데기가 들고 있는다 — 판정이 구현의 다른 관측에 기대지 않게 하려는 것이다.
+   */
+  #size = { undirected: NODES, directed: NODES };
 
   constructor(make: (n: number, directed: boolean) => Built) {
     this.#make = make;
@@ -79,9 +83,15 @@ export class SizedGraphs {
     return directed ? this.#directed : this.#undirected;
   }
 
+  /** 그 그래프를 지을 때 준 정점 수. 축2가 훑는 번호의 상한이다. */
+  size(directed: boolean): number {
+    return directed ? this.#size.directed : this.#size.undirected;
+  }
+
   reset(n: number): void {
     this.#carried += this.#undirected.__cost ?? 0;
     this.#undirected = this.#make(n, false);
+    this.#size.undirected = n;
   }
 }
 
@@ -227,23 +237,12 @@ export const graphAdjMatrixContract: ContractSpec<SizedGraphs, Model> = {
         return found;
       },
     },
-    {
-      name: "vertexCount",
-      arg: (rng) => [rng() < 0.5],
-      onImpl: (impl, arg) => {
-        const [directed] = arg as [boolean];
-        return impl.graph(directed).vertexCount();
-      },
-      onModel: () => NODES,
-    },
   ],
 
   edges: [
     {
-      name: "처음에는 간선이 없고 정점 수는 생성 인자다",
+      name: "처음에는 간선이 하나도 없다",
       steps: [
-        { op: "vertexCount", arg: [false] },
-        { op: "vertexCount", arg: [true] },
         { op: "hasEdge", arg: [false, 0, 1] },
         { op: "weight", arg: [false, 0, 1] },
         { op: "neighbors", arg: [false, 0] },
@@ -323,7 +322,7 @@ export const graphAdjMatrixContract: ContractSpec<SizedGraphs, Model> = {
         { op: "neighbors", arg: [false, NODES] },
         { op: "neighbors", arg: [false, 0] },
         { op: "neighbors", arg: [true, 0] },
-        { op: "vertexCount", arg: [false] },
+        { op: "hasEdge", arg: [false, 0, 1] },
       ],
     },
   ],
@@ -334,7 +333,7 @@ export const graphAdjMatrixContract: ContractSpec<SizedGraphs, Model> = {
       check: (impl) => {
         for (const directed of [false, true]) {
           const graph = impl.graph(directed);
-          const n = graph.vertexCount();
+          const n = impl.size(directed);
           for (let u = 0; u < n; u++) {
             for (let v = 0; v < n; v++) {
               if (graph.hasEdge(u, v) !== (graph.weight(u, v) !== null)) {
@@ -351,7 +350,7 @@ export const graphAdjMatrixContract: ContractSpec<SizedGraphs, Model> = {
       check: (impl) => {
         for (const directed of [false, true]) {
           const graph = impl.graph(directed);
-          const n = graph.vertexCount();
+          const n = impl.size(directed);
           for (let u = 0; u < n; u++) {
             const listed = [...graph.neighbors(u)].sort((a, b) => a - b);
             const asked: number[] = [];
@@ -368,7 +367,7 @@ export const graphAdjMatrixContract: ContractSpec<SizedGraphs, Model> = {
       name: "무방향 간선은 두 방향에서 같은 무게로 읽힌다",
       check: (impl) => {
         const graph = impl.graph(false);
-        const n = graph.vertexCount();
+        const n = impl.size(false);
         for (let u = 0; u < n; u++) {
           for (let v = u + 1; v < n; v++) {
             if (
@@ -447,17 +446,6 @@ export const graphAdjMatrixContract: ContractSpec<SizedGraphs, Model> = {
         const graph = impl.graph(false);
         for (let i = 1; i < n; i++) graph.addEdge(0, i, 1);
         for (let i = 0; i < 8; i++) ctx.step(() => graph.neighbors(i));
-      },
-    },
-    {
-      covers: ["vertexCount"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      run: (impl, n, ctx) => {
-        impl.reset(n);
-        const graph = impl.graph(false);
-        for (let i = 0; i < n; i++) ctx.step(() => graph.vertexCount());
       },
     },
   ],

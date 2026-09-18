@@ -12,7 +12,7 @@
  *
  * **축3 계측(`__cost`).** 세는 단위는 *"마디 하나를 지나갈 때마다 1"* 이다 — **읽기와 쓰기를 따로 세지
  * 않고**, 언어 런타임이 마디 객체를 잡는 비용도 세지 않는다(§규약2 계측 단위). 넣기 · 빼기는 끝 마디
- * 하나를 건드려 1, `toArray` 는 마디마다 1, `size` 는 세어 둔 수를 읽어 1 이다. 빈 수열의 `removeFirst`
+ * 하나를 건드려 1, `toArray` 는 마디마다 1 이다. 빈 수열의 `removeFirst`
  * 는 지나갈 마디가 없어 0 이다. `__cost` 는 계약이 아니라 정본의 의무다(불변 사실 23).
  */
 
@@ -27,7 +27,6 @@ export class SinglyLinkedList<T> {
   #first: Link<T> | null = null;
   /** 뒤 끝 마디. 비어 있으면 `null` 이고, 원소가 하나면 `#first` 와 같은 마디다. */
   #last: Link<T> | null = null;
-  #count = 0;
 
   /** 축3 계측. 파일 헤더의 단위 설명 참고. */
   __cost = 0;
@@ -38,7 +37,6 @@ export class SinglyLinkedList<T> {
     this.#first = link;
     // 빈 수열에 넣은 원소는 뒤 끝이기도 하다.
     if (this.#last === null) this.#last = link;
-    this.#count += 1;
   }
 
   append(value: T): void {
@@ -47,7 +45,6 @@ export class SinglyLinkedList<T> {
     if (this.#last === null) this.#first = link;
     else this.#last.next = link;
     this.#last = link;
-    this.#count += 1;
   }
 
   removeFirst(): T | null {
@@ -57,7 +54,6 @@ export class SinglyLinkedList<T> {
     this.#first = first.next;
     // 하나 남은 원소를 뺐으면 뒤 끝도 함께 비운다. 안 비우면 다음 append 가 빠진 마디 뒤에 붙는다.
     if (this.#first === null) this.#last = null;
-    this.#count -= 1;
     return first.value;
   }
 
@@ -68,11 +64,6 @@ export class SinglyLinkedList<T> {
       out.push(link.value);
     }
     return out;
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
   }
 }
 // #endregion

@@ -12,7 +12,9 @@
  *    사슬의 끝을 잇는 쪽에서는 닿는 부분이 곧 그래프 전체라 통과한다. 헤더가 국소 갱신 비용을 목적으로 적고
  *    k(u, v) 를 그래프와 넣는 간선만으로 정했으므로(2026-09-16 검토 결정) 떨어진 쌍의 k 는 어느 구현에게나 2 이고,
  *    이 구현의 한 호출 평균 5,123 → 20,483 은 계약 위반이다. 이 표의 한 줄이 그 반례를 유지하는 자리다.
- * 3. **사이클 판정의 방향을 거꾸로 짠 구현은 축1이 경계 다섯에서 잡고 축2도 잡는다.** 축3에서 걸리는 한
+ * 3. **사이클 판정의 방향을 거꾸로 짠 구현은 축1이 경계 다섯에서 잡는다.** 이 계약의 축2는 공집합이므로
+ *    (`KAN-040` `S3` 이 정점 수를 읽는 행을 빼면서 불변식 하나가 사라졌다 — 헤더 불변식 절) 그 몫이 축1
+ *    하나에 실린다. 축3에서 걸리는 한
  *    자리(사슬의 끝)는 비용의 위반이 아니라 사이클을 받아들인 결과다 — 뒤 호출이 같은 간선을 찾기만 해서
  *    계급 아래로 떨어진다(불변 사실 49 · 192).
  *
@@ -22,9 +24,8 @@
  * | `addEdge` amortized O(1) 떨어진 쌍 (적대적) | 3.00 → 3.00 | **걸림** 5,123 → 20,483 (위반) | 통과 | 통과 |
  * | `addEdge` amortized O(n) 사슬의 끝 | 2,048 → 8,192 | 통과 — 닿는 부분이 그래프 전체 | 통과 | **걸림** 2.00 → 2.00 (계급 아래 — 사이클을 받아들인 결과) |
  * | `topologicalOrder` worst O(n) | 4,095 → 16,383 | 통과 | **걸림** 527,871 → 8,402,943 (위반) | 통과 |
- * | `vertexCount`·`edgeCount` worst O(1) | 2.00 → 2.00 | 통과 | 통과 | 통과 |
- * | 축1 | 통과 | 통과 | 통과 | **걸림** — 경계 다섯 · 무작위 39번째 호출 |
- * | 축2 | 통과 | 통과 | 통과 | **걸림** — 무작위 101번째 호출 뒤 |
+ * | 축1 | 통과 | 통과 | 통과 | **걸림** — 경계 다섯 · 무작위 27번째 호출 |
+ * | 축2 | — | — | — | — (이 계약의 불변식 절이 「없다」라 축2가 공집합이다) |
  *
  * **`FullScanDag` · `RescanningOrderDag` 가 통과하는 자리에 숨은 위반은 없다** — 걸리지 않는 행에서는 정본과
  * 같은 계급이다(불변 사실 62).
@@ -61,7 +62,6 @@ const LABELS = [
   "addEdge 떨어진 쌍",
   "addEdge 사슬의 끝",
   "topologicalOrder",
-  "vertexCount·edgeCount",
 ] as const;
 
 function verdicts(cost: CostSource<DagShell>): Record<string, boolean> {
@@ -79,7 +79,6 @@ const ALL_PASS: Record<(typeof LABELS)[number], boolean> = {
   "addEdge 떨어진 쌍": true,
   "addEdge 사슬의 끝": true,
   topologicalOrder: true,
-  vertexCount·edgeCount: true,
 };
 
 const byName = new Map(dagContract.ops.map((op) => [op.name, op] as const));
@@ -206,12 +205,18 @@ describe("DAG 축1 · 축2 — 사이클 판정의 방향을 거꾸로 짠 구�
     });
   });
 
-  test("무작위 교차검증은 39번째 호출(0부터 38)에서 잡는다", () => {
-    expect(randomSplitAt(() => new ReversedSearchDag())).toBe(38);
+  test("무작위 교차검증은 27번째 호출(0부터 26)에서 잡는다", () => {
+    expect(randomSplitAt(() => new ReversedSearchDag())).toBe(26);
   });
 
-  test("받아들인 사이클의 정점이 순서에서 빠져 축2 불변식이 101번째 호출(0부터 100) 뒤에 깨진다", () => {
-    expect(invariantSplitAt(() => new ReversedSearchDag())).toBe(100);
+  // `KAN-040` `S3` 전에는 이 결함을 축2도 잡았다 — 받아들인 사이클의 정점이 순서에서 빠져
+  // 「순서의 길이와 정점 수가 맞는다」가 깨졌다. 정점 수를 읽는 행이 계약에서 빠지면서 그
+  // 불변식이 사라졌고, 이제 축2는 공집합이라 이 결함을 축1 하나가 잡는다. 그 사실을 시험으로
+  // 박아 둔다 — 조용히 줄어든 검사는 줄어든 줄 모른다.
+  test("축2는 공집합이고, 이 결함은 축1이 잡는다", () => {
+    expect(dagContract.invariants).toHaveLength(0);
+    expect(invariantSplitAt(() => new ReversedSearchDag())).toBeNull();
+    expect(randomSplitAt(() => new ReversedSearchDag())).not.toBeNull();
   });
 
   test("축3에서는 사슬의 끝 하나에서 계급 아래로 걸린다 — 사이클을 받아들인 결과다", () => {

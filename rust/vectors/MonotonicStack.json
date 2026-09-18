@@ -21,12 +21,16 @@
           "expect": null
         },
         {
-          "op": "size",
-          "expect": 0
+          "op": "pop",
+          "expect": null
         },
         {
-          "op": "isEmpty",
-          "expect": true
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "max",
+          "expect": null
         }
       ]
     },
@@ -155,8 +159,8 @@
           "expect": 5
         },
         {
-          "op": "size",
-          "expect": 1
+          "op": "peek",
+          "expect": 5
         }
       ]
     },
@@ -173,8 +177,8 @@
           "expect": 9
         },
         {
-          "op": "isEmpty",
-          "expect": true
+          "op": "peek",
+          "expect": null
         },
         {
           "op": "push",
@@ -187,10 +191,6 @@
         {
           "op": "peek",
           "expect": 2
-        },
-        {
-          "op": "size",
-          "expect": 1
         }
       ]
     },
@@ -273,8 +273,8 @@
           "expect": 1
         },
         {
-          "op": "isEmpty",
-          "expect": true
+          "op": "peek",
+          "expect": null
         }
       ]
     },
@@ -283,7 +283,7 @@
       "kind": "random",
       "steps": [
         {
-          "op": "max",
+          "op": "peek",
           "expect": null
         },
         {
@@ -291,39 +291,39 @@
           "arg": 4
         },
         {
-          "op": "size",
-          "expect": 1
+          "op": "max",
+          "expect": 4
         },
         {
-          "op": "size",
-          "expect": 1
+          "op": "max",
+          "expect": 4
         },
         {
           "op": "pop",
           "expect": 4
         },
         {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "peek",
+          "expect": null
+        },
+        {
+          "op": "pop",
+          "expect": null
+        },
+        {
           "op": "max",
           "expect": null
         },
         {
-          "op": "isEmpty",
-          "expect": true
-        },
-        {
-          "op": "peek",
+          "op": "pop",
           "expect": null
         },
         {
-          "op": "size",
-          "expect": 0
-        },
-        {
-          "op": "peek",
-          "expect": null
-        },
-        {
-          "op": "peek",
+          "op": "pop",
           "expect": null
         },
         {
@@ -331,108 +331,96 @@
           "arg": 1
         },
         {
-          "op": "pop",
-          "expect": 1
+          "op": "push",
+          "arg": -5
         },
         {
-          "op": "push",
-          "arg": 3
+          "op": "pop",
+          "expect": -5
         },
         {
           "op": "push",
           "arg": 1
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "max",
+          "expect": 1
         },
         {
           "op": "pop",
           "expect": 1
         },
         {
-          "op": "pop",
-          "expect": 3
-        },
-        {
           "op": "push",
-          "arg": 2
-        },
-        {
-          "op": "max",
-          "expect": 2
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
+          "arg": -7
         },
         {
           "op": "pop",
-          "expect": 2
-        },
-        {
-          "op": "pop",
-          "expect": null
-        },
-        {
-          "op": "max",
-          "expect": null
-        },
-        {
-          "op": "max",
-          "expect": null
-        },
-        {
-          "op": "isEmpty",
-          "expect": true
-        },
-        {
-          "op": "pop",
-          "expect": null
-        },
-        {
-          "op": "isEmpty",
-          "expect": true
+          "expect": -7
         },
         {
           "op": "peek",
-          "expect": null
+          "expect": 1
         },
         {
-          "op": "isEmpty",
-          "expect": true
-        },
-        {
-          "op": "size",
-          "expect": 0
+          "op": "max",
+          "expect": 1
         },
         {
           "op": "pop",
-          "expect": null
-        },
-        {
-          "op": "isEmpty",
-          "expect": true
+          "expect": 1
         },
         {
           "op": "push",
-          "arg": -1
+          "arg": 7
         },
         {
           "op": "peek",
-          "expect": -1
+          "expect": 7
         },
         {
-          "op": "pop",
-          "expect": -1
+          "op": "max",
+          "expect": 7
         },
         {
           "op": "push",
           "arg": 9
         },
         {
-          "op": "max",
+          "op": "pop",
           "expect": 9
+        },
+        {
+          "op": "max",
+          "expect": 7
+        },
+        {
+          "op": "max",
+          "expect": 7
+        },
+        {
+          "op": "push",
+          "arg": 10
+        },
+        {
+          "op": "push",
+          "arg": -1
+        },
+        {
+          "op": "pop",
+          "expect": -1
+        },
+        {
+          "op": "push",
+          "arg": -5
+        },
+        {
+          "op": "peek",
+          "expect": -5
+        },
+        {
+          "op": "peek",
+          "expect": -5
         },
         {
           "op": "push",
@@ -443,92 +431,88 @@
           "arg": 6
         },
         {
-          "op": "size",
-          "expect": 3
+          "op": "max",
+          "expect": 10
+        },
+        {
+          "op": "push",
+          "arg": 15
+        },
+        {
+          "op": "peek",
+          "expect": 15
+        },
+        {
+          "op": "pop",
+          "expect": 15
         },
         {
           "op": "pop",
           "expect": 6
         },
         {
-          "op": "size",
-          "expect": 2
+          "op": "peek",
+          "expect": -2
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "max",
+          "expect": 10
+        },
+        {
+          "op": "max",
+          "expect": 10
         },
         {
           "op": "peek",
           "expect": -2
         },
         {
-          "op": "pop",
-          "expect": -2
+          "op": "max",
+          "expect": 10
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "max",
+          "expect": 10
         },
         {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "size",
-          "expect": 1
+          "op": "max",
+          "expect": 10
         },
         {
           "op": "push",
           "arg": -8
         },
         {
-          "op": "size",
-          "expect": 2
+          "op": "max",
+          "expect": 10
         },
         {
           "op": "pop",
           "expect": -8
         },
         {
-          "op": "size",
-          "expect": 1
+          "op": "max",
+          "expect": 10
+        },
+        {
+          "op": "peek",
+          "expect": -2
         },
         {
           "op": "max",
-          "expect": 9
+          "expect": 10
         },
         {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
+          "op": "peek",
+          "expect": -2
         },
         {
           "op": "push",
           "arg": 8
         },
         {
-          "op": "size",
-          "expect": 2
+          "op": "max",
+          "expect": 10
         },
         {
           "op": "push",
@@ -547,24 +531,24 @@
           "expect": 1
         },
         {
-          "op": "max",
-          "expect": 15
+          "op": "peek",
+          "expect": 1
         },
         {
-          "op": "max",
-          "expect": 15
+          "op": "peek",
+          "expect": 1
         },
         {
-          "op": "max",
-          "expect": 15
+          "op": "peek",
+          "expect": 1
         },
         {
           "op": "push",
           "arg": 11
         },
         {
-          "op": "size",
-          "expect": 5
+          "op": "max",
+          "expect": 15
         },
         {
           "op": "pop",
@@ -575,8 +559,8 @@
           "arg": -1
         },
         {
-          "op": "size",
-          "expect": 5
+          "op": "max",
+          "expect": 15
         },
         {
           "op": "pop",
@@ -587,8 +571,8 @@
           "arg": 7
         },
         {
-          "op": "max",
-          "expect": 15
+          "op": "peek",
+          "expect": 7
         },
         {
           "op": "pop",
@@ -603,44 +587,40 @@
           "arg": -1
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "peek",
+          "expect": -1
         },
         {
-          "op": "max",
-          "expect": 15
+          "op": "peek",
+          "expect": -1
         },
         {
           "op": "push",
           "arg": 4
         },
         {
+          "op": "peek",
+          "expect": 4
+        },
+        {
+          "op": "push",
+          "arg": 11
+        },
+        {
+          "op": "pop",
+          "expect": 11
+        },
+        {
           "op": "max",
           "expect": 15
         },
         {
-          "op": "pop",
-          "expect": 4
+          "op": "max",
+          "expect": 15
         },
         {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "pop",
-          "expect": -1
-        },
-        {
-          "op": "size",
-          "expect": 5
-        },
-        {
-          "op": "size",
-          "expect": 5
-        },
-        {
-          "op": "size",
-          "expect": 5
+          "op": "max",
+          "expect": 15
         },
         {
           "op": "push",
@@ -655,31 +635,307 @@
           "expect": 15
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "peek",
+          "expect": -4
         },
         {
-          "op": "size",
-          "expect": 6
+          "op": "max",
+          "expect": 15
         },
         {
           "op": "push",
           "arg": -2
         },
         {
-          "op": "size",
-          "expect": 7
+          "op": "max",
+          "expect": 15
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "max",
+          "expect": 15
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": -6
+        },
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "peek",
+          "expect": 1
         },
         {
           "op": "pop",
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "pop",
+          "expect": -6
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "peek",
+          "expect": -2
+        },
+        {
+          "op": "peek",
+          "expect": -2
+        },
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "pop",
+          "expect": 1
+        },
+        {
+          "op": "push",
+          "arg": -2
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": -1
+        },
+        {
+          "op": "push",
+          "arg": -8
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "pop",
+          "expect": -8
+        },
+        {
+          "op": "push",
+          "arg": -5
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "pop",
+          "expect": -5
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "peek",
+          "expect": -1
+        },
+        {
+          "op": "pop",
+          "expect": -1
+        },
+        {
+          "op": "peek",
+          "expect": -2
+        },
+        {
+          "op": "pop",
+          "expect": -2
+        },
+        {
+          "op": "push",
+          "arg": 4
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": -3
+        },
+        {
+          "op": "peek",
+          "expect": -3
+        },
+        {
+          "op": "peek",
+          "expect": -3
+        },
+        {
+          "op": "push",
+          "arg": -1
+        },
+        {
+          "op": "pop",
+          "expect": -1
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "peek",
+          "expect": -3
+        },
+        {
+          "op": "pop",
+          "expect": -3
+        },
+        {
+          "op": "pop",
+          "expect": 4
+        },
+        {
+          "op": "peek",
+          "expect": -2
+        },
+        {
+          "op": "push",
+          "arg": 14
+        },
+        {
+          "op": "peek",
+          "expect": 14
+        },
+        {
+          "op": "peek",
+          "expect": 14
+        },
+        {
+          "op": "peek",
+          "expect": 14
+        },
+        {
+          "op": "push",
+          "arg": -7
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": 9
+        },
+        {
+          "op": "pop",
+          "expect": 9
+        },
+        {
+          "op": "peek",
+          "expect": -7
+        },
+        {
+          "op": "pop",
+          "expect": -7
+        },
+        {
+          "op": "peek",
+          "expect": 14
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": -6
+        },
+        {
+          "op": "push",
+          "arg": 8
+        },
+        {
+          "op": "push",
+          "arg": 4
+        },
+        {
+          "op": "pop",
+          "expect": 4
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "pop",
+          "expect": 8
+        },
+        {
+          "op": "push",
+          "arg": 15
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": 12
+        },
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "pop",
+          "expect": 1
+        },
+        {
+          "op": "peek",
+          "expect": 12
+        },
+        {
+          "op": "push",
+          "arg": -2
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "peek",
+          "expect": -2
+        },
+        {
+          "op": "peek",
           "expect": -2
         },
         {
@@ -691,312 +947,16 @@
           "expect": -5
         },
         {
-          "op": "max",
-          "expect": 15
-        },
-        {
-          "op": "pop",
-          "expect": -5
-        },
-        {
-          "op": "size",
-          "expect": 6
-        },
-        {
-          "op": "pop",
-          "expect": -4
-        },
-        {
-          "op": "size",
-          "expect": 5
-        },
-        {
-          "op": "size",
-          "expect": 5
-        },
-        {
-          "op": "max",
-          "expect": 15
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "pop",
-          "expect": -5
-        },
-        {
-          "op": "peek",
-          "expect": 1
-        },
-        {
-          "op": "pop",
-          "expect": 1
-        },
-        {
-          "op": "pop",
-          "expect": 15
-        },
-        {
-          "op": "pop",
-          "expect": 8
-        },
-        {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "push",
-          "arg": -1
-        },
-        {
-          "op": "push",
-          "arg": -8
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "peek",
-          "expect": -8
-        },
-        {
-          "op": "pop",
-          "expect": -8
-        },
-        {
-          "op": "push",
-          "arg": 11
-        },
-        {
-          "op": "pop",
-          "expect": 11
-        },
-        {
-          "op": "size",
-          "expect": 2
-        },
-        {
-          "op": "max",
-          "expect": 9
-        },
-        {
-          "op": "peek",
-          "expect": -1
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "peek",
-          "expect": -1
-        },
-        {
-          "op": "pop",
-          "expect": -1
-        },
-        {
-          "op": "max",
-          "expect": 9
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "push",
-          "arg": -3
-        },
-        {
-          "op": "max",
-          "expect": 9
-        },
-        {
-          "op": "max",
-          "expect": 9
-        },
-        {
-          "op": "push",
-          "arg": -1
-        },
-        {
-          "op": "peek",
-          "expect": -1
-        },
-        {
-          "op": "size",
-          "expect": 3
-        },
-        {
-          "op": "max",
-          "expect": 9
-        },
-        {
-          "op": "peek",
-          "expect": -1
-        },
-        {
-          "op": "peek",
-          "expect": -1
-        },
-        {
-          "op": "max",
-          "expect": 9
-        },
-        {
-          "op": "push",
-          "arg": 14
-        },
-        {
-          "op": "max",
-          "expect": 14
-        },
-        {
-          "op": "max",
-          "expect": 14
-        },
-        {
-          "op": "max",
-          "expect": 14
-        },
-        {
-          "op": "push",
-          "arg": -7
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "push",
-          "arg": 9
-        },
-        {
-          "op": "pop",
-          "expect": 9
-        },
-        {
-          "op": "max",
-          "expect": 14
-        },
-        {
-          "op": "pop",
-          "expect": -7
-        },
-        {
-          "op": "max",
-          "expect": 14
-        },
-        {
-          "op": "size",
-          "expect": 4
-        },
-        {
-          "op": "push",
-          "arg": -6
-        },
-        {
-          "op": "pop",
-          "expect": -6
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "push",
-          "arg": 4
-        },
-        {
-          "op": "peek",
-          "expect": 4
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "pop",
-          "expect": 4
-        },
-        {
-          "op": "push",
-          "arg": 15
-        },
-        {
-          "op": "size",
-          "expect": 5
-        },
-        {
-          "op": "push",
-          "arg": 12
-        },
-        {
-          "op": "push",
-          "arg": 1
-        },
-        {
-          "op": "max",
-          "expect": 15
-        },
-        {
-          "op": "max",
-          "expect": 15
-        },
-        {
-          "op": "peek",
-          "expect": 1
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "push",
-          "arg": -2
-        },
-        {
-          "op": "size",
-          "expect": 8
-        },
-        {
-          "op": "max",
-          "expect": 15
-        },
-        {
-          "op": "max",
-          "expect": 15
-        },
-        {
           "op": "push",
           "arg": -5
         },
         {
-          "op": "max",
-          "expect": 15
-        },
-        {
-          "op": "pop",
+          "op": "peek",
           "expect": -5
         },
         {
-          "op": "push",
-          "arg": 7
-        },
-        {
-          "op": "max",
-          "expect": 15
+          "op": "peek",
+          "expect": -5
         },
         {
           "op": "push",
@@ -1007,44 +967,12 @@
           "arg": 1
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "peek",
+          "expect": 1
         },
         {
-          "op": "max",
-          "expect": 15
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "max",
-          "expect": 15
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "size",
-          "expect": 11
-        },
-        {
-          "op": "push",
-          "arg": 12
-        },
-        {
-          "op": "size",
-          "expect": 12
-        },
-        {
-          "op": "push",
-          "arg": 11
-        },
-        {
-          "op": "max",
-          "expect": 15
+          "op": "peek",
+          "expect": 1
         },
         {
           "op": "max",
@@ -1052,6 +980,38 @@
         },
         {
           "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": 12
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": 11
+        },
+        {
+          "op": "peek",
+          "expect": 11
+        },
+        {
+          "op": "peek",
+          "expect": 11
+        },
+        {
+          "op": "pop",
           "expect": 11
         },
         {
@@ -1059,11 +1019,11 @@
           "arg": -6
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "peek",
+          "expect": -6
         },
         {
-          "op": "peek",
+          "op": "pop",
           "expect": -6
         },
         {
@@ -1071,15 +1031,55 @@
           "arg": 4
         },
         {
+          "op": "peek",
+          "expect": 4
+        },
+        {
+          "op": "peek",
+          "expect": 4
+        },
+        {
           "op": "max",
           "expect": 15
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "pop",
+          "expect": 4
         },
         {
-          "op": "size",
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": 1
+        },
+        {
+          "op": "peek",
+          "expect": 1
+        },
+        {
+          "op": "push",
+          "arg": 12
+        },
+        {
+          "op": "max",
+          "expect": 15
+        },
+        {
+          "op": "push",
+          "arg": -4
+        },
+        {
+          "op": "peek",
+          "expect": -4
+        },
+        {
+          "op": "push",
+          "arg": 11
+        },
+        {
+          "op": "max",
           "expect": 15
         }
       ]

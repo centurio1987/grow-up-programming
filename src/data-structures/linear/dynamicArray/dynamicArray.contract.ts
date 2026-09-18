@@ -32,7 +32,6 @@ export interface DynamicArrayContract<T> {
   pop(): T | null;
   get(index: number): T | null;
   set(index: number, item: T): void;
-  size(): number;
   toArray(): T[];
 }
 
@@ -51,7 +50,7 @@ function observe(call: () => unknown): unknown {
   }
 }
 
-/** 모델 쪽 범위 판정 — 헤더의 「`[0, size())` 안의 정수」. */
+/** 모델 쪽 범위 판정 — 헤더의 「담긴 원소의 자리 범위 안의 정수」. */
 function inRange(model: Model, index: number): boolean {
   return Number.isInteger(index) && index >= 0 && index < model.length;
 }
@@ -109,12 +108,6 @@ export const dynamicArrayContract: ContractSpec<
       },
     },
     {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.length,
-    },
-    {
       name: "toArray",
       arg: () => undefined,
       onImpl: (impl) => {
@@ -136,14 +129,14 @@ export const dynamicArrayContract: ContractSpec<
         { op: "pop" },
         { op: "get", arg: 0 },
         { op: "set", arg: [0, 1] },
-        { op: "size" },
+        { op: "toArray" },
         { op: "toArray" },
       ],
     },
     {
       // 경계가 `[0, n)` 이므로 n 과 n - 1 을 함께 짚는다(`docs/ORD-006-conventions.md` 「경계가
       // `[0, n]` 인 인자는 경계 케이스가 `n` 을 짚는다」의 반열린 판).
-      name: "넣은 차례가 첨자이고 -1 · size() · 정수가 아닌 첨자는 get 이 null 이다",
+      name: "넣은 차례가 첨자이고 -1 · 담긴 수 · 정수가 아닌 첨자는 get 이 null 이다",
       steps: [
         { op: "push", arg: 10 },
         { op: "push", arg: 20 },
@@ -167,7 +160,7 @@ export const dynamicArrayContract: ContractSpec<
         { op: "set", arg: [3, 5] },
         { op: "set", arg: [-1, 5] },
         { op: "set", arg: [0.5, 5] },
-        { op: "size" },
+        { op: "toArray" },
         { op: "toArray" },
         { op: "set", arg: [2, 7] },
         { op: "pop" },
@@ -182,7 +175,7 @@ export const dynamicArrayContract: ContractSpec<
         { op: "push", arg: 2 },
         { op: "get", arg: 0 },
         { op: "get", arg: 1 },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -226,21 +219,14 @@ export const dynamicArrayContract: ContractSpec<
     },
   ],
 
+  // 옛 1번(「세어 둔 원소 수와 늘어놓은 원소 수가 같다」)은 세어 둔 수를 읽는 행이 표면에서
+  // 빠져 경로가 늘어놓기 하나로 줄었다 — 헤더 불변식 절의 판별 그대로다.
   invariants: [
-    {
-      name: "세어 둔 원소 수와 늘어놓은 원소 수가 같다",
-      check: (impl) => {
-        const counted = impl.size();
-        const listed = impl.toArray().length;
-        if (counted === listed) return null;
-        return `size()=${counted} 인데 toArray().length=${listed} 다`;
-      },
-    },
     {
       name: "첨자로 짚은 원소와 늘어놓은 원소가 자리마다 같다",
       check: (impl) => {
         const listed = impl.toArray();
-        const counted = impl.size();
+        const counted = listed.length;
         for (let i = 0; i < counted; i++) {
           const read = impl.get(i);
           if (read !== listed[i])
@@ -309,16 +295,6 @@ export const dynamicArrayContract: ContractSpec<
       run: (impl, n, ctx) => {
         for (let i = 0; i < n; i++) impl.push(i);
         for (let i = 0; i < n; i++) ctx.step(() => impl.set(i, -i));
-      },
-    },
-    {
-      covers: ["size"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      run: (impl, n, ctx) => {
-        for (let i = 0; i < n; i++) impl.push(i);
-        for (let i = 0; i < 8; i++) ctx.step(() => impl.size());
       },
     },
     {

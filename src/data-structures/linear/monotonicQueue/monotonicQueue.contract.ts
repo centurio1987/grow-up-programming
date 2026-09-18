@@ -27,14 +27,12 @@
 
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 여섯 행(생성자 제외)을 그대로 옮긴 표면. */
+/** 헤더 연산 계약 표의 네 행(생성자 제외)을 그대로 옮긴 표면. */
 export interface MonotonicQueueContract<T> {
   enqueue(item: T): void;
   dequeue(): T | null;
   front(): T | null;
   max(): T | null;
-  isEmpty(): boolean;
-  size(): number;
 }
 
 /** 축1 참조 모델. 자명한 배열이면 된다 — 축1은 의미만 보고 비용은 보지 않는다. */
@@ -102,18 +100,6 @@ export function monotonicQueueSpec(
         onImpl: (impl) => impl.max(),
         onModel: (model) => modelMax(model, compare),
       },
-      {
-        name: "isEmpty",
-        arg: () => undefined,
-        onImpl: (impl) => impl.isEmpty(),
-        onModel: (model) => model.length === 0,
-      },
-      {
-        name: "size",
-        arg: () => undefined,
-        onImpl: (impl) => impl.size(),
-        onModel: (model) => model.length,
-      },
     ],
 
     edges: [
@@ -123,8 +109,9 @@ export function monotonicQueueSpec(
           { op: "dequeue" },
           { op: "front" },
           { op: "max" },
-          { op: "size" },
-          { op: "isEmpty" },
+          { op: "dequeue" },
+          { op: "front" },
+          { op: "max" },
         ],
       },
       {
@@ -159,7 +146,7 @@ export function monotonicQueueSpec(
           { op: "dequeue" },
           { op: "max" },
           { op: "front" },
-          { op: "size" },
+          { op: "dequeue" },
         ],
       },
       {
@@ -194,11 +181,11 @@ export function monotonicQueueSpec(
         steps: [
           { op: "enqueue", arg: 7 },
           { op: "dequeue" },
-          { op: "isEmpty" },
+          { op: "front" },
           { op: "enqueue", arg: 2 },
           { op: "max" },
           { op: "front" },
-          { op: "size" },
+          { op: "dequeue" },
         ],
       },
       {
@@ -259,8 +246,8 @@ export function monotonicQueueSpec(
       },
     ],
 
-    // 헤더의 불변식 절이 「없다」다. 최댓값을 읽는 경로가 `max` 하나이고, `front`↔`dequeue` ·
-    // `isEmpty`↔`size` 의 정합은 계약 줄이 이미 적는다 — 각 연산의 의미이고 축1의 몫이다.
+    // 헤더의 불변식 절이 「없다」다. 최댓값을 읽는 경로가 `max` 하나이고, `front`↔`dequeue` 의
+    // 정합은 계약 줄이 이미 적는다 — 각 연산의 의미이고 축1의 몫이다.
     invariants: [],
 
     scenarios: [
@@ -310,8 +297,7 @@ export function monotonicQueueSpec(
         },
       },
       {
-        // 셋을 한 걸음에 묶는다 — `isEmpty` 혼자로는 잴 것이 없다(`linear/queue` 와 같은 처리).
-        covers: ["front", "isEmpty", "size"],
+        covers: ["front"],
         qualifier: "worst",
         bound: "O(1)",
         adversarial: false,
@@ -320,8 +306,6 @@ export function monotonicQueueSpec(
           for (let i = 0; i < n; i++) {
             ctx.step(() => {
               impl.front();
-              impl.isEmpty();
-              impl.size();
             });
           }
         },

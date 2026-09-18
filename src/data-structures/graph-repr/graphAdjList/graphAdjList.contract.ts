@@ -32,14 +32,12 @@
 
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 **여섯 행**을 그대로 옮긴 표면. 생성자 행은 껍데기가 나른다. */
+/** 헤더 연산 계약 표의 **네 행**을 그대로 옮긴 표면. 생성자 행은 껍데기가 나른다. */
 export interface GraphAdjListContract {
   addVertex(): number;
   addEdge(u: number, v: number, weight?: number): void;
   removeEdge(u: number, v: number): void;
   neighbors(u: number): Array<{ vertex: number; weight: number }>;
-  vertexCount(): number;
-  edgeCount(): number;
 }
 
 type Built = GraphAdjListContract & { __cost?: number };
@@ -65,6 +63,11 @@ export class BothGraphs {
   #undirected: Built;
   #directed: Built;
   #carried = 0;
+  /**
+   * `addVertex` 가 불린 수. 계약에서 정점 수를 읽는 행이 빠졌으므로 축2가 훑을 상한을 껍데기가
+   * 센다 — 판정이 구현의 다른 관측에 기대지 않게 하려는 것이다(`graph-repr/dag` 껍데기와 같은 처리).
+   */
+  #added = { undirected: 0, directed: 0 };
 
   constructor(make: (directed: boolean) => Built) {
     this.#make = make;
@@ -84,11 +87,24 @@ export class BothGraphs {
     return directed ? this.#directed : this.#undirected;
   }
 
+  /** 정점 하나를 더하고 껍데기의 셈도 함께 올린다. 축1 연산이 부르는 자리다. */
+  addVertex(directed: boolean): number {
+    if (directed) this.#added.directed += 1;
+    else this.#added.undirected += 1;
+    return this.graph(directed).addVertex();
+  }
+
+  /** 지금까지 더한 정점 수. 축2가 훑는 번호의 상한이다. */
+  addedVertices(directed: boolean): number {
+    return directed ? this.#added.directed : this.#added.undirected;
+  }
+
   reset(): void {
     this.#carried +=
       (this.#undirected.__cost ?? 0) + (this.#directed.__cost ?? 0);
     this.#undirected = this.#make(false);
     this.#directed = this.#make(true);
+    this.#added = { undirected: 0, directed: 0 };
   }
 }
 
@@ -176,7 +192,7 @@ export const graphAdjListContract: ContractSpec<BothGraphs, Model> = {
       arg: (rng) => [rng() < 0.5],
       onImpl: (impl, arg) => {
         const [directed] = arg as [boolean];
-        return impl.graph(directed).addVertex();
+        return impl.addVertex(directed);
       },
       onModel: (model, arg) => {
         const [directed] = arg as [boolean];
@@ -245,59 +261,32 @@ export const graphAdjListContract: ContractSpec<BothGraphs, Model> = {
         return modelNeighbors(graph, u);
       },
     },
-    {
-      name: "vertexCount",
-      arg: (rng) => [rng() < 0.5],
-      onImpl: (impl, arg) => {
-        const [directed] = arg as [boolean];
-        return impl.graph(directed).vertexCount();
-      },
-      onModel: (model, arg) => {
-        const [directed] = arg as [boolean];
-        return modelOf(model, directed).vertices;
-      },
-    },
-    {
-      name: "edgeCount",
-      arg: (rng) => [rng() < 0.5],
-      onImpl: (impl, arg) => {
-        const [directed] = arg as [boolean];
-        return impl.graph(directed).edgeCount();
-      },
-      onModel: (model, arg) => {
-        const [directed] = arg as [boolean];
-        return modelOf(model, directed).edges.size;
-      },
-    },
   ],
 
   edges: [
     {
-      name: "빈 그래프에서는 어느 번호도 범위 밖이고 수는 0 이다",
+      name: "빈 그래프에서는 어느 번호도 범위 밖이다",
       steps: [
-        { op: "vertexCount", arg: [false] },
-        { op: "edgeCount", arg: [false] },
         { op: "neighbors", arg: [false, 0] },
         { op: "addEdge", arg: [false, 0, 0] },
         { op: "removeEdge", arg: [true, 0, 0] },
-        { op: "edgeCount", arg: [false] },
+        { op: "neighbors", arg: [false, 0] },
       ],
     },
     {
       // 정점 번호 모형이 관측되는 자리다. 번호는 호출 직전의 수이고 그 수 이상은 범위 밖이다.
-      name: "addVertex 는 호출 직전의 vertexCount 를 번호로 돌려준다",
+      name: "addVertex 는 그 호출 전까지 더한 정점 수를 번호로 돌려준다",
       steps: [
         { op: "addVertex", arg: [false] },
         { op: "addVertex", arg: [false] },
         { op: "addVertex", arg: [false] },
-        { op: "vertexCount", arg: [false] },
         { op: "neighbors", arg: [false, 2] },
         { op: "neighbors", arg: [false, 3] },
-        { op: "vertexCount", arg: [true] },
+        { op: "neighbors", arg: [true, 0] },
       ],
     },
     {
-      name: "무방향 간선은 두 끝에서 보이고 하나로 센다",
+      name: "무방향 간선은 두 끝에서 보이고 항목이 하나씩이다",
       steps: [
         { op: "addVertex", arg: [false] },
         { op: "addVertex", arg: [false] },
@@ -307,7 +296,6 @@ export const graphAdjListContract: ContractSpec<BothGraphs, Model> = {
         { op: "neighbors", arg: [false, 0] },
         { op: "neighbors", arg: [false, 1] },
         { op: "neighbors", arg: [false, 2] },
-        { op: "edgeCount", arg: [false] },
       ],
     },
     {
@@ -320,39 +308,36 @@ export const graphAdjListContract: ContractSpec<BothGraphs, Model> = {
         { op: "neighbors", arg: [true, 1] },
         { op: "addEdge", arg: [true, 1, 0, 7] },
         { op: "neighbors", arg: [true, 1] },
-        { op: "edgeCount", arg: [true] },
+        { op: "neighbors", arg: [true, 0] },
       ],
     },
     {
-      // 다중 간선을 받지 않는 자리다. 간선 수를 따로 세는 구현이 여기서 불변식 1번을 어긴다.
+      // 다중 간선을 받지 않는 자리다. 같은 쌍에 다시 넣고도 항목을 하나 더 두는 구현이 이웃
+      // 열거에서 갈린다 — 간선을 세는 행이 빠졌으므로 관측되는 자리가 여기뿐이다.
       name: "같은 간선을 다시 넣으면 무게만 바뀐다",
       steps: [
         { op: "addVertex", arg: [false] },
         { op: "addVertex", arg: [false] },
         { op: "addEdge", arg: [false, 0, 1, 3] },
         { op: "addEdge", arg: [false, 1, 0, 9] },
-        { op: "edgeCount", arg: [false] },
         { op: "neighbors", arg: [false, 0] },
         { op: "neighbors", arg: [false, 1] },
         { op: "addEdge", arg: [false, 0, 1] },
         { op: "neighbors", arg: [false, 1] },
-        { op: "edgeCount", arg: [false] },
+        { op: "neighbors", arg: [false, 0] },
       ],
     },
     {
-      name: "제자리 간선은 한 번 보이고 하나로 센다",
+      name: "제자리 간선은 한 번만 보인다",
       steps: [
         { op: "addVertex", arg: [false] },
         { op: "addEdge", arg: [false, 0, 0, 4] },
         { op: "neighbors", arg: [false, 0] },
-        { op: "edgeCount", arg: [false] },
         { op: "removeEdge", arg: [false, 0, 0] },
         { op: "neighbors", arg: [false, 0] },
-        { op: "edgeCount", arg: [false] },
         { op: "addVertex", arg: [true] },
         { op: "addEdge", arg: [true, 0, 0, 2] },
         { op: "neighbors", arg: [true, 0] },
-        { op: "edgeCount", arg: [true] },
       ],
     },
     {
@@ -363,17 +348,16 @@ export const graphAdjListContract: ContractSpec<BothGraphs, Model> = {
         { op: "addVertex", arg: [false] },
         { op: "addEdge", arg: [false, 0, 1, 2] },
         { op: "removeEdge", arg: [false, 0, 2] },
-        { op: "edgeCount", arg: [false] },
+        { op: "neighbors", arg: [false, 2] },
         { op: "removeEdge", arg: [false, 1, 0] },
         { op: "neighbors", arg: [false, 0] },
         { op: "neighbors", arg: [false, 1] },
-        { op: "edgeCount", arg: [false] },
         { op: "addVertex", arg: [true] },
         { op: "addVertex", arg: [true] },
         { op: "addEdge", arg: [true, 0, 1, 2] },
         { op: "removeEdge", arg: [true, 1, 0] },
         { op: "neighbors", arg: [true, 0] },
-        { op: "edgeCount", arg: [true] },
+        { op: "neighbors", arg: [true, 1] },
       ],
     },
     {
@@ -386,7 +370,7 @@ export const graphAdjListContract: ContractSpec<BothGraphs, Model> = {
         { op: "addEdge", arg: [false, -1, 0, 1] },
         { op: "addEdge", arg: [false, 0.5, 1, 1] },
         { op: "neighbors", arg: [false, 0] },
-        { op: "edgeCount", arg: [false] },
+        { op: "neighbors", arg: [false, 1] },
         { op: "addEdge", arg: [false, 0, 1, 1] },
         { op: "removeEdge", arg: [false, 1, 2] },
         { op: "neighbors", arg: [false, 1] },
@@ -395,33 +379,14 @@ export const graphAdjListContract: ContractSpec<BothGraphs, Model> = {
     },
   ],
 
+  // 옛 1번(「간선 수와 이웃 항목 수가 맞는다」)은 세어 둔 수 쪽이 표면에서 빠져 경로가 하나로
+  // 줄었다 — 헤더 불변식 절의 판별 그대로 축1의 몫이다.
   invariants: [
-    {
-      name: "간선 수와 이웃 항목 수가 맞는다",
-      check: (impl) => {
-        for (const directed of [false, true]) {
-          const graph = impl.graph(directed);
-          const vertices = graph.vertexCount();
-          let listed = 0;
-          for (let u = 0; u < vertices; u++) {
-            for (const entry of graph.neighbors(u)) {
-              if (directed || entry.vertex >= u) listed += 1;
-            }
-          }
-          const counted = graph.edgeCount();
-          if (listed !== counted) {
-            const mode = directed ? "방향" : "무방향";
-            return `${mode} 그래프 — 이웃 항목으로 센 간선 ${listed} / edgeCount() ${counted}`;
-          }
-        }
-        return null;
-      },
-    },
     {
       name: "무방향 간선은 두 끝에서 같은 무게로 보인다",
       check: (impl) => {
         const graph = impl.graph(false);
-        const vertices = graph.vertexCount();
+        const vertices = impl.addedVertices(false);
         for (let u = 0; u < vertices; u++) {
           for (const entry of graph.neighbors(u)) {
             const back = graph
@@ -545,25 +510,6 @@ export const graphAdjListContract: ContractSpec<BothGraphs, Model> = {
         for (let i = 0; i <= n; i++) graph.addVertex();
         for (let i = 1; i <= n; i++) graph.addEdge(0, i, 1);
         for (let i = 0; i < 8; i++) ctx.step(() => graph.neighbors(0));
-      },
-    },
-    {
-      // 둘을 한 걸음에 묶는다. 수를 세어 두지 않고 매번 훑는 계열이 여기서만 걸린다.
-      covers: ["vertexCount", "edgeCount"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      run: (impl, n, ctx) => {
-        impl.reset();
-        const graph = impl.graph(false);
-        for (let i = 0; i < n; i++) graph.addVertex();
-        for (let i = 0; i < n; i++) graph.addEdge(i, (i + 1) % n, 1);
-        for (let i = 0; i < n; i++) {
-          ctx.step(() => {
-            graph.vertexCount();
-            graph.edgeCount();
-          });
-        }
       },
     },
   ],

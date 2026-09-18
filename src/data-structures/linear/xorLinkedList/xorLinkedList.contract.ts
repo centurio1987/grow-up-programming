@@ -8,7 +8,7 @@
  * 첫 `invariant` 사례다** — 앞의 넷은 `basic` 하나와 `complexity` 셋이었다.
  *
  * **적대적 시나리오가 하나도 없다.** 빠뜨린 것이 아니라 이 계약에 적대적 입력이라는 것이
- * 정의되지 않아서다. 연산이 넷인데 `append` 의 비용은 값에 기대지 않고 순회 둘과 `size` 는
+ * 정의되지 않아서다. 연산이 셋인데 `append` 의 비용은 값에 기대지 않고 순회 둘은
  * 인자가 없다. 남는 자유도는 호출 순서 하나인데, 붙이기와 읽기만 있는 순서 공간에서는
  * 어떤 순서가 다른 순서보다 나쁜 구현이 없다. 규약2가 `regression` 에서 적대적 입력을
  * 선택으로 둔 것이 여기서 값을 한다.
@@ -16,12 +16,11 @@
 
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 네 행을 그대로 옮긴 표면. */
+/** 헤더 연산 계약 표의 세 행을 그대로 옮긴 표면. */
 export interface XorLinkedListContract {
   append(value: number): void;
   toArray(): number[];
   toArrayReverse(): number[];
-  size(): number;
 }
 
 /** 축1 참조 모델. 자명한 배열이면 된다 — 축1은 의미만 보고 비용은 보지 않는다. */
@@ -57,18 +56,12 @@ export const xorLinkedListContract: ContractSpec<XorLinkedListContract, Model> =
         onImpl: (impl) => impl.toArrayReverse(),
         onModel: (model) => [...model].reverse(),
       },
-      {
-        name: "size",
-        arg: () => undefined,
-        onImpl: (impl) => impl.size(),
-        onModel: (model) => model.length,
-      },
     ],
 
     edges: [
       {
-        name: "빈 수열에서 두 순회는 빈 배열이고 size 는 0 이다",
-        steps: [{ op: "toArray" }, { op: "toArrayReverse" }, { op: "size" }],
+        name: "빈 수열에서 두 순회는 빈 배열이다",
+        steps: [{ op: "toArray" }, { op: "toArrayReverse" }],
       },
       {
         name: "원소가 하나면 두 순회가 같은 배열을 돌려준다",
@@ -76,7 +69,7 @@ export const xorLinkedListContract: ContractSpec<XorLinkedListContract, Model> =
           { op: "append", arg: 42 },
           { op: "toArray" },
           { op: "toArrayReverse" },
-          { op: "size" },
+          { op: "toArray" },
         ],
       },
       {
@@ -96,7 +89,7 @@ export const xorLinkedListContract: ContractSpec<XorLinkedListContract, Model> =
           { op: "append", arg: 0 },
           { op: "toArray" },
           { op: "toArrayReverse" },
-          { op: "size" },
+          { op: "toArray" },
         ],
       },
       {
@@ -105,7 +98,7 @@ export const xorLinkedListContract: ContractSpec<XorLinkedListContract, Model> =
           { op: "append", arg: 7 },
           { op: "append", arg: 7 },
           { op: "append", arg: 7 },
-          { op: "size" },
+          { op: "toArray" },
           { op: "toArray" },
         ],
       },
@@ -119,7 +112,7 @@ export const xorLinkedListContract: ContractSpec<XorLinkedListContract, Model> =
           { op: "toArray" },
           { op: "toArrayReverse" },
           { op: "toArray" },
-          { op: "size" },
+          { op: "toArray" },
         ],
       },
       {
@@ -135,14 +128,8 @@ export const xorLinkedListContract: ContractSpec<XorLinkedListContract, Model> =
     ],
 
     invariants: [
-      {
-        name: "세고 있는 수와 내놓을 수 있는 수가 같다",
-        check: (impl) => {
-          const walked = impl.toArray().length;
-          const size = impl.size();
-          return walked === size ? null : `순회 ${walked}개 / size ${size}`;
-        },
-      },
+      // 옛 1번(「세고 있는 수와 내놓을 수 있는 수가 같다」)은 세어 둔 수를 읽는 행이 표면에서
+      // 빠져 경로가 순회 하나로 줄었다 — 헤더 불변식 절의 판별 그대로다.
       {
         name: "두 방향이 같은 수열을 읽는다",
         check: (impl) => {
@@ -191,16 +178,6 @@ export const xorLinkedListContract: ContractSpec<XorLinkedListContract, Model> =
         run: (impl, n, ctx) => {
           for (let i = 0; i < n; i++) impl.append(i);
           for (let i = 0; i < 3; i++) ctx.step(() => impl.toArrayReverse());
-        },
-      },
-      {
-        covers: ["size"],
-        qualifier: "worst",
-        bound: "O(1)",
-        adversarial: false,
-        run: (impl, n, ctx) => {
-          for (let i = 0; i < n; i++) impl.append(i);
-          for (let i = 0; i < n; i++) ctx.step(() => impl.size());
         },
       },
     ],
