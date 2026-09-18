@@ -1,6 +1,6 @@
 {
   "next_id": 51,
-  "next_seq": 386,
+  "next_seq": 387,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1407,6 +1407,16 @@
   ],
   "recent": [
     {
+      "seq": 386,
+      "t": "2026-09-18T20:32",
+      "a": "ai",
+      "id": "KAN-039-FG8HWZ",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-036-0G05DE",
+      "reason": "순서를 뒤집는다(2026-09-18 재조정) — 036 은 자료구조 64편을 쓰고 이관 대상 둘의 가이드를 건드리지 않으므로 039 를 기다릴 까닭이 없다. 거꾸로 039 가 그 둘의 .mdx 를 걷는 일이라 036 이 자료구조 쪽을 끝낸 뒤가 자연스럽다. 앞선 중재의 사유(036 의 목표 「.mdx 0」에 그 둘이 들어 있다)는 036 의 목표를 자료구조 64편으로 고쳐 사라졌다"
+    },
+    {
       "seq": 385,
       "t": "2026-09-18T20:32",
       "a": "ai",
@@ -1926,16 +1936,6 @@
       "w": "QHMBW3",
       "from": "review",
       "to": "done"
-    },
-    {
-      "seq": 336,
-      "t": "2026-09-17T02:15",
-      "a": "ai",
-      "id": "KAN-048-QN5194",
-      "op": "move",
-      "w": "QHMBW3",
-      "from": "doing",
-      "to": "review"
     }
   ],
   "waivers": [
@@ -1979,18 +1979,6 @@
       "reason": "유저 지시(2026-09-15) 「순서 기록해」. deque 등급 재판정은 KAN-026 의 「연결 마디는 자명한 구현」 결정(conventions 「A군 판정 — 사람 결정 넷」)이 main 에 병합된 뒤에야 근거가 선다",
       "created": "2026-09-15T08:40",
       "by": "유저",
-      "restrategy_required": false
-    },
-    {
-      "pair": "KAN-036-0G05DE|KAN-039-FG8HWZ",
-      "order": [
-        "KAN-039-FG8HWZ",
-        "KAN-036-0G05DE"
-      ],
-      "scope_hash": "d851e20b7e58428d",
-      "reason": "KAN-036 의 목표 「.mdx 0」에 rollingHash·huffmanTree 가이드가 들어 있고 그 두 파일은 KAN-039 가 알고리즘 트랙 가이드로 대체하며 걷는다",
-      "created": "2026-09-15T23:28",
-      "by": "ai",
       "restrategy_required": false
     },
     {
@@ -2268,6 +2256,18 @@
       "created": "2026-09-17T16:18",
       "by": "ai",
       "restrategy_required": true
+    },
+    {
+      "pair": "KAN-036-0G05DE|KAN-039-FG8HWZ",
+      "order": [
+        "KAN-036-0G05DE",
+        "KAN-039-FG8HWZ"
+      ],
+      "scope_hash": "d851e20b7e58428d",
+      "reason": "순서를 뒤집는다(2026-09-18 재조정) — 036 은 자료구조 64편을 쓰고 이관 대상 둘의 가이드를 건드리지 않으므로 039 를 기다릴 까닭이 없다. 거꾸로 039 가 그 둘의 .mdx 를 걷는 일이라 036 이 자료구조 쪽을 끝낸 뒤가 자연스럽다. 앞선 중재의 사유(036 의 목표 「.mdx 0」에 그 둘이 들어 있다)는 036 의 목표를 자료구조 64편으로 고쳐 사라졌다",
+      "created": "2026-09-18T20:32",
+      "by": "ai",
+      "restrategy_required": false
     }
   ]
 }
