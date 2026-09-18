@@ -19,9 +19,8 @@
 
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 여섯 행을 그대로 옮긴 표면. */
+/** 헤더 연산 계약 표의 다섯 행을 그대로 옮긴 표면. */
 export interface SuffixTreeContract {
-  length(): number;
   contains(pattern: string): boolean;
   count(pattern: string): number;
   findAll(pattern: string): number[];
@@ -53,10 +52,6 @@ export class Rebuildable implements SuffixTreeContract {
     this.#carried += this.#index.__cost ?? 0;
     this.#text = s;
     this.#index = this.#make(s);
-  }
-
-  length(): number {
-    return this.#index.length();
   }
 
   contains(pattern: string): boolean {
@@ -133,12 +128,6 @@ export const suffixTreeContract: ContractSpec<Rebuildable, Model> = {
       },
     },
     {
-      name: "length",
-      arg: () => undefined,
-      onImpl: (impl) => impl.length(),
-      onModel: (model) => model.s.length,
-    },
-    {
       name: "contains",
       arg: (rng) => someText(rng).slice(0, 3),
       onImpl: (impl, arg) => impl.contains(arg as string),
@@ -177,7 +166,6 @@ export const suffixTreeContract: ContractSpec<Rebuildable, Model> = {
     {
       name: "빈 문자열 — 빈 패턴만 나타나고 그 자리는 하나다",
       steps: [
-        { op: "length" },
         { op: "contains", arg: "" },
         { op: "count", arg: "" },
         { op: "findAll", arg: "" },
@@ -241,7 +229,6 @@ export const suffixTreeContract: ContractSpec<Rebuildable, Model> = {
         { op: "reindex", arg: "banana" },
         { op: "count", arg: "ana" },
         { op: "reindex", arg: "ab" },
-        { op: "length" },
         { op: "count", arg: "ana" },
         { op: "longestRepeatedSubstring" },
       ],
@@ -313,7 +300,7 @@ export const suffixTreeContract: ContractSpec<Rebuildable, Model> = {
     {
       // 답의 개수 k 도 상수로 눌러야 한다. 알파벳을 26 으로 넓히고 패턴을 8 자로 잡으면
       // 원문에서 떼어 온 패턴이 사실상 한 자리에서만 나타난다.
-      covers: ["findAll", "length"],
+      covers: ["findAll"],
       qualifier: "worst",
       bound: "O(1)",
       adversarial: true,
@@ -324,7 +311,6 @@ export const suffixTreeContract: ContractSpec<Rebuildable, Model> = {
           const at = Math.floor(ctx.rng() * (n - 8));
           const pattern = s.slice(at, at + 8);
           ctx.step(() => {
-            impl.length();
             impl.findAll(pattern);
           });
         }

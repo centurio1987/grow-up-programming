@@ -61,11 +61,6 @@ export class SuffixTree {
     this.#build();
   }
 
-  length(): number {
-    this.__cost += 1;
-    return this.#s.length;
-  }
-
   contains(pattern: string): boolean {
     return this.#locus(pattern) !== null;
   }

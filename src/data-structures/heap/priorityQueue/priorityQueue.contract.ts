@@ -13,9 +13,9 @@
  * - `dequeue` — 크기를 유지하며 번갈아 부르는 쪽만 **미뤄 두었다 한꺼번에 정렬하는 계열**을
  *   잡는다. 채운 뒤 전부 빼는 쪽에서는 그 계열의 상각이 실제로 성립한다.
  *
- * **`peek`·`size`·`isEmpty` 는 한 시나리오가 함께 덮는다.** 세 행이 같은 상한·한정자이고
- * 세 호출을 한 걸음으로 묶어 재므로 갈라 잴 이유가 없다. `worst` 통계가 최댓값이라 **첫
- * 호출에 값을 만드는 계열**이 여기서 걸린다 — 그것이 세 행을 `worst` 로 적은 이유다.
+ * **`peek`·`size` 는 한 시나리오가 함께 덮는다.** 두 행이 같은 상한·한정자이고
+ * 두 호출을 한 걸음으로 묶어 재므로 갈라 잴 이유가 없다. `worst` 통계가 최댓값이라 **첫
+ * 호출에 값을 만드는 계열**이 여기서 걸린다 — 그것이 두 행을 `worst` 로 적은 이유다.
  *
  * `constructor` 행에는 시나리오가 없다. n 에 대해 반복 호출되는 연산이 아니므로 성장률을
  * 잴 대상이 아니다(§규약2 축3 면제).
@@ -23,13 +23,12 @@
 
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 다섯 행을 그대로 옮긴 표면. */
+/** 헤더 연산 계약 표의 네 행을 그대로 옮긴 표면. */
 export interface PriorityQueueContract<T> {
   enqueue(item: T): void;
   dequeue(): T | null;
   peek(): T | null;
   size(): number;
-  isEmpty(): boolean;
 }
 
 /**
@@ -104,12 +103,6 @@ export const priorityQueueContract: ContractSpec<
       onImpl: (impl) => impl.size(),
       onModel: (model) => model.length,
     },
-    {
-      name: "isEmpty",
-      arg: () => undefined,
-      onImpl: (impl) => impl.isEmpty(),
-      onModel: (model) => model.length === 0,
-    },
   ],
 
   edges: [
@@ -118,11 +111,10 @@ export const priorityQueueContract: ContractSpec<
       steps: [
         { op: "peek" },
         { op: "size" },
-        { op: "isEmpty" },
         { op: "dequeue" },
         { op: "size" },
         { op: "dequeue" },
-        { op: "isEmpty" },
+        { op: "size" },
       ],
     },
     {
@@ -137,7 +129,7 @@ export const priorityQueueContract: ContractSpec<
         { op: "dequeue" },
         { op: "dequeue" },
         { op: "dequeue" },
-        { op: "isEmpty" },
+        { op: "size" },
       ],
     },
     {
@@ -171,7 +163,7 @@ export const priorityQueueContract: ContractSpec<
         { op: "dequeue" },
         { op: "dequeue" },
         { op: "dequeue" },
-        { op: "isEmpty" },
+        { op: "size" },
       ],
     },
     {
@@ -193,7 +185,7 @@ export const priorityQueueContract: ContractSpec<
       steps: [
         { op: "enqueue", arg: 2 },
         { op: "dequeue" },
-        { op: "isEmpty" },
+        { op: "size" },
         { op: "peek" },
         { op: "enqueue", arg: 8 },
         { op: "enqueue", arg: 6 },
@@ -277,11 +269,11 @@ export const priorityQueueContract: ContractSpec<
       },
     },
     {
-      covers: ["peek", "size", "isEmpty"],
+      covers: ["peek", "size"],
       qualifier: "worst",
       bound: "O(1)",
       adversarial: false,
-      // 세 조회를 한 걸음으로 묶어 잰다. 통계는 **걸음별 합의 최댓값**이고, 세 행이 같은
+      // 두 조회를 한 걸음으로 묶어 잰다. 통계는 **걸음별 합의 최댓값**이고, 두 행이 같은
       // 상한·한정자라 갈라 잴 이유가 없다(`tree/redBlackTree` 의 조회 시나리오와 같은 자리).
       //
       // **`worst` 라서 잡는 것이 둘이다.** 매번 훑어 최우선을 찾는 계열은 모든 호출에서
@@ -293,7 +285,6 @@ export const priorityQueueContract: ContractSpec<
           ctx.step(() => {
             impl.peek();
             impl.size();
-            impl.isEmpty();
           });
         }
       },

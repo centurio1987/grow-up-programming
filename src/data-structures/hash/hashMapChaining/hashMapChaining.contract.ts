@@ -27,13 +27,12 @@
 import { fixedInput, seededInput } from "../../_contract/expectedRepeat";
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 **일곱 행**을 그대로 옮긴 표면. 생성자 행은 팩토리가 나른다. */
+/** 헤더 연산 계약 표의 **여섯 행**을 그대로 옮긴 표면. 생성자 행은 팩토리가 나른다. */
 export interface HashMapChainingContract<K, V> {
   set(key: K, value: V): void;
   get(key: K): V | null;
   has(key: K): boolean;
   delete(key: K): boolean;
-  size(): number;
   keys(): K[];
   values(): V[];
 }
@@ -109,12 +108,6 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
       onModel: (model, arg) => model.delete(arg as number),
     },
     {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.size,
-    },
-    {
       // 순서는 계약이 정하지 않으므로 양쪽을 정렬해서 견준다(파일 헤더).
       name: "keys",
       arg: () => undefined,
@@ -133,7 +126,6 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
     {
       name: "빈 사전에서는 무엇을 물어도 없다고 답한다",
       steps: [
-        { op: "size" },
         { op: "get", arg: 7 },
         { op: "has", arg: 7 },
         { op: "delete", arg: 7 },
@@ -142,14 +134,14 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
       ],
     },
     {
-      // 같은 키를 다시 넣는 것은 **더하는 일이 아니라 바꾸는 일**이다. 담긴 수가 그대로인지가
-      // 그 문장의 관측 지점이다.
-      name: "같은 키를 다시 넣으면 값만 바뀌고 담긴 수는 그대로다",
+      // 같은 키를 다시 넣는 것은 **더하는 일이 아니라 바꾸는 일**이다. 담긴 것이 그대로인지가
+      // 그 문장의 관측 지점이고, 그것을 `keys()` 가 앞뒤로 보인다.
+      name: "같은 키를 다시 넣으면 값만 바뀌고 담긴 키는 그대로다",
       steps: [
         { op: "set", arg: [3, 100] },
-        { op: "size" },
+        { op: "keys" },
         { op: "set", arg: [3, 200] },
-        { op: "size" },
+        { op: "keys" },
         { op: "get", arg: 3 },
         { op: "keys" },
         { op: "values" },
@@ -164,7 +156,7 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
         { op: "get", arg: 5 },
         { op: "set", arg: [5, 20] },
         { op: "get", arg: 5 },
-        { op: "size" },
+        { op: "keys" },
       ],
     },
     {
@@ -174,7 +166,6 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
         { op: "set", arg: [1, 11] },
         { op: "set", arg: [2, 22] },
         { op: "delete", arg: 9 },
-        { op: "size" },
         { op: "get", arg: 1 },
         { op: "get", arg: 2 },
         { op: "keys" },
@@ -188,7 +179,6 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
         { op: "set", arg: [CLUMP, 2] },
         { op: "set", arg: [2 * CLUMP, 3] },
         { op: "set", arg: [3 * CLUMP, 4] },
-        { op: "size" },
         { op: "get", arg: 2 * CLUMP },
         { op: "delete", arg: CLUMP },
         { op: "get", arg: CLUMP },
@@ -211,7 +201,7 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
         { op: "set", arg: [4 * CLUMP, 5] },
         { op: "has", arg: 2 * CLUMP },
         { op: "has", arg: 4 * CLUMP },
-        { op: "size" },
+        { op: "keys" },
       ],
     },
     {
@@ -222,7 +212,6 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
         { op: "set", arg: [2, 7] },
         { op: "set", arg: [3, 7] },
         { op: "values" },
-        { op: "size" },
         { op: "delete", arg: 2 },
         { op: "values" },
       ],
@@ -237,7 +226,6 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
         { op: "set", arg: [8, 2] },
         { op: "delete", arg: 8 },
         { op: "set", arg: [8, 3] },
-        { op: "size" },
         { op: "get", arg: 8 },
         { op: "keys" },
         { op: "values" },
@@ -246,17 +234,6 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
   ],
 
   invariants: [
-    {
-      // 원소 수를 읽는 길이 둘이다 — `size()` 와 `keys().length`. 어느 계약 줄도 둘이
-      // 같아야 한다고 적지 않으므로 불변식이다(§규약1 「불변식 판별 절차」 2번).
-      name: "keys().length === size()",
-      check: (impl) => {
-        const keys = impl.keys();
-        const size = impl.size();
-        if (keys.length === size) return null;
-        return `keys() 는 ${keys.length} 개인데 size() 는 ${size} 다`;
-      },
-    },
     {
       // 담김 여부를 읽는 길이 둘이다 — `has(k)` 와 `keys()` 안에 k 가 있는가.
       name: "임의의 키에 대해 has(k) 와 keys() 포함이 같다",
@@ -405,18 +382,6 @@ export const hashMapChainingContract: ContractSpec<Impl, Model> = {
         }
       },
     }),
-    {
-      covers: ["size"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      // 담긴 수를 세어 두지 않고 그때그때 훑는 구현이 여기서 걸린다.
-      run: (impl, n, ctx) => {
-        const keys = shuffledRange(n, ctx.rng);
-        fill(impl, n, (index) => keys[index] as number);
-        for (let round = 0; round < 4; round++) ctx.step(() => impl.size());
-      },
-    },
     {
       covers: ["keys"],
       qualifier: "worst",

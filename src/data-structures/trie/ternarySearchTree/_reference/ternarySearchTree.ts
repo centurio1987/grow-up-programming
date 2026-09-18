@@ -109,11 +109,6 @@ export class TernarySearchTree {
     return found;
   }
 
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
-  }
-
   /**
    * 접두사가 끝나는 노드. 없으면 `null`.
    *

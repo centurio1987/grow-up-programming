@@ -71,7 +71,7 @@ function checkInjectionPolicy(
         straight.set(key, `v${key}`);
         twisted.set(key, `v${key}`);
       }
-      expect(straight.size()).toBe(twisted.size());
+      expect(straight.keys().length).toBe(twisted.keys().length);
       expect([...straight.keys()].sort((a, b) => a - b)).toEqual(
         [...twisted.keys()].sort((a, b) => a - b),
       );
@@ -83,12 +83,12 @@ function checkInjectionPolicy(
     test("키의 차이를 지우는 펴기를 줘도 답은 옳다 — 무너지는 것은 상한뿐이다", () => {
       const erasing = make<number, number>(() => 0);
       for (let key = 0; key < 40; key++) erasing.set(key, key * 2);
-      expect(erasing.size()).toBe(40);
+      expect(erasing.keys().length).toBe(40);
       expect(erasing.get(17)).toBe(34);
       expect(erasing.has(40)).toBe(false);
       expect(erasing.delete(17)).toBe(true);
       expect(erasing.get(17)).toBe(null);
-      expect(erasing.size()).toBe(39);
+      expect(erasing.keys().length).toBe(39);
     });
 
     test("number 밖의 키도 펴기를 주면 돈다", () => {
@@ -102,7 +102,7 @@ function checkInjectionPolicy(
       byChars.set("banana", 1);
       byChars.set("apple", 2);
       byChars.set("banana", 3);
-      expect(byChars.size()).toBe(2);
+      expect(byChars.keys().length).toBe(2);
       expect(byChars.get("banana")).toBe(3);
       expect(byChars.get("fig")).toBe(null);
       expect([...byChars.keys()].sort()).toEqual(["apple", "banana"]);
@@ -116,7 +116,7 @@ function checkInjectionPolicy(
       // 갈리는 자리는 `has` 하나다. 계약이 그 사실을 주입 정책에 적고 있다.
       expect(nullable.has(1)).toBe(true);
       expect(nullable.has(2)).toBe(false);
-      expect(nullable.size()).toBe(1);
+      expect(nullable.keys().length).toBe(1);
     });
   });
 }

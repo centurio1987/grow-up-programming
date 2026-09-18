@@ -12,18 +12,18 @@
  * 「원칙 B」 B2 · H2 · `_contract/expectedRepeat.ts`). 어느 축인지는 시나리오가 `seededInput` · `fixedInput` 으로 선언하고 하네스가
  * `ctx.rng` 호출 수로 대조한다. 단위는 열(씨앗 둘 × 시행 다섯 · 입력 고정이면 씨앗 하나 × 시행 열)이고 통계는 그 열의 평균의 중앙값이다(B1 · B3).
  * **그 자리가 이 계약에서 가장 중요하다**(§규약2 「기댓값이 무엇에 대한 것인가」): 계약이 「구현이 만드는 무작위성에 대한
- * 기댓값」을 말하므로, 입력을 고정해 놓고도 기대가 걸려 있는지를 그 자리가 본다. 앞 여덟은 시퀀스 평균이라 **호출별** 기대는
- * 아홉째(탐침 열여섯만 잰다)만 본다 — 그래도 판정은 [경험] 이다(B6 — `./treap.ts` 헤더 끝).
+ * 기댓값」을 말하므로, 입력을 고정해 놓고도 기대가 걸려 있는지를 그 자리가 본다. 앞 일곱은 시퀀스 평균이라 **호출별** 기대는
+ * 여덟째(탐침 열여섯만 잰다)만 본다 — 그래도 판정은 [경험] 이다(B6 — `./treap.ts` 헤더 끝).
  *
  * **정본의 우선순위 배분을 역산해 만든 입력은 시나리오로 두지 않는다**(불변 사실 44).
  * 그런 입력은 계약이 아니라 그 구현 하나를 겨누므로, 같은 계약을 지키는 다른 구현을
  * 통과시키지 못한다. B11 이 `tree/multiset` 에서 실제로 그런 입력을 만들었고 넣지 않았다.
  *
  * **이 스위트가 통과시키는 것 중에 계약 위반이 있다 — 그 사실을 여기 적는다**(불변 사실 62 · 원칙 B7).
- * `_contract/_fixtures/splayingSearchTree.ts` 는 앞 여덟 시나리오를 **전부 통과하는데 이 계약을 어긴다** — 사슬인 채로 맞는 첫 조회
- * 하나가 원소 수에 비례하고 결정론적이라 그 값이 곧 기댓값인데, 시퀀스 평균이 그 하나를 묻는다. **아홉째(입력 고정 탐침)가 그것을
+ * `_contract/_fixtures/splayingSearchTree.ts` 는 앞 일곱 시나리오를 **전부 통과하는데 이 계약을 어긴다** — 사슬인 채로 맞는 첫 조회
+ * 하나가 원소 수에 비례하고 결정론적이라 그 값이 곧 기댓값인데, 시퀀스 평균이 그 하나를 묻는다. **여덟째(입력 고정 탐침)가 그것을
  * 잡는다.** 탐침으로도 못 보는 의무와 보완 작업(`KAN-041`)은 `./treap.ts` 헤더 끝 「검사 못 하는 의무」에 있고, 통과 · 탈락은
- * 자기시험(`_contract/runContract.test.ts`)에 이름으로 적어 두었다. **다음 배치가 앞 여덟의 통과를 「계약을 지킨다」로 읽지
+ * 자기시험(`_contract/runContract.test.ts`)에 이름으로 적어 두었다. **다음 배치가 앞 일곱의 통과를 「계약을 지킨다」로 읽지
  * 않도록** 그 이름을 지우지 않는다.
  *
  * `constructor` 행에는 시나리오가 없다. n 에 대해 반복 호출되는 연산이 아니므로 성장률을
@@ -41,7 +41,6 @@ export interface TreapContract<T> {
   min(): T | null;
   max(): T | null;
   range(low: T, high: T): T[];
-  size(): number;
   toArray(): T[];
 }
 
@@ -126,12 +125,6 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
       },
     },
     {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.length,
-    },
-    {
       name: "toArray",
       arg: () => undefined,
       onImpl: (impl) => impl.toArray(),
@@ -147,10 +140,9 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
         { op: "min" },
         { op: "max" },
         { op: "range", arg: [0, 100] },
-        { op: "size" },
         { op: "toArray" },
         { op: "delete", arg: 1 },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -164,11 +156,10 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
         { op: "insert", arg: 5 },
         { op: "insert", arg: 5 },
         { op: "insert", arg: 5 },
-        { op: "size" },
         { op: "toArray" },
         { op: "delete", arg: 5 },
         { op: "has", arg: 5 },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -180,7 +171,6 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
         { op: "toArray" },
         { op: "delete", arg: 3 },
         { op: "toArray" },
-        { op: "size" },
         { op: "delete", arg: 4 },
         { op: "toArray" },
       ],
@@ -218,7 +208,6 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
         { op: "insert", arg: 2 },
         { op: "insert", arg: 1 },
         { op: "toArray" },
-        { op: "size" },
       ],
     },
     {
@@ -261,7 +250,7 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
         { op: "insert", arg: 2 },
         { op: "delete", arg: 1 },
         { op: "delete", arg: 2 },
-        { op: "size" },
+        { op: "toArray" },
         { op: "min" },
         { op: "insert", arg: 8 },
         { op: "min" },
@@ -271,19 +260,9 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
     },
   ],
 
-  // 헤더 불변식 절의 넷. 나란한 둘의 넷과 같다 — 한정자는 비용의 성질이라 상태의 성질을
+  // 헤더 불변식 절의 셋. 나란한 둘의 셋과 같다 — 한정자는 비용의 성질이라 상태의 성질을
   // 건드리지 않는다.
   invariants: [
-    {
-      name: "toArray().length 와 size() 가 같다",
-      check: (impl) => {
-        const listed = impl.toArray().length;
-        const counted = impl.size();
-        return listed === counted
-          ? null
-          : `toArray().length=${listed} 인데 size()=${counted} 다`;
-      },
-    },
     {
       name: "has 는 toArray 에 그 값이 있는가와 같다",
       check: (impl) => {
@@ -422,17 +401,6 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
         for (let i = 0; i < 4; i++) ctx.step(() => impl.toArray());
       },
     },
-    {
-      covers: ["size"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      // 세어 두지 않고 그때그때 훑는 구현이 걸리는 자리다.
-      run: (impl, n, ctx) => {
-        for (let i = 0; i < n; i++) impl.insert(Math.floor(ctx.rng() * n * 4));
-        for (let i = 0; i < n; i++) ctx.step(() => impl.size());
-      },
-    },
     seededInput({
       covers: ["delete"],
       qualifier: "expected",
@@ -488,7 +456,7 @@ export const treapContract: ContractSpec<TreapContract<number>, Model> = {
  * 준비가 0 … n-1 을 전부 넣었고 탐침 자리 열여섯이 그 안이라, 답이 계약에서 곧바로 따라 나온다. 참조 모델을 다시 지을 필요가
  * 없는 꼴이고, 그래서 이 자리가 값 검사를 값싸게 적을 수 있는 자리다.
  *
- * **아홉째 시나리오는 탐침의 비용만 재고 답을 버리고 있었다.** 못 찾는 조회는 비용이 오히려 싸므로 축3 은 그 결함을 잡을 길이
+ * **여덟째 시나리오는 탐침의 비용만 재고 답을 버리고 있었다.** 못 찾는 조회는 비용이 오히려 싸므로 축3 은 그 결함을 잡을 길이
  * 없다 — 같은 종류의 구멍을 `linear/gapBuffer` 옛 정본이 실물로 보였다(런북 불변 사실 240 · 241).
  *
  * 측정 실행은 이 기대를 읽지 않는다. `ctx.step` 안의 호출이 그대로라 축3 수치도 그대로다.

@@ -167,11 +167,6 @@ export class HashSet<T> {
     return false;
   }
 
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
-  }
-
   values(): T[] {
     const found: T[] = [];
     for (const chain of this.#slots) {

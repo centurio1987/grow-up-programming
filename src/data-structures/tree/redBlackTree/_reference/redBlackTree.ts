@@ -53,7 +53,6 @@ export class RedBlackTree<T> {
   /** 잎 바깥의 모든 자리를 겸하는 검은 노드. 값은 읽지 않는다. */
   readonly #nil: Node<T>;
   #root: Node<T>;
-  #count = 0;
   readonly #compare: (a: T, b: T) => number;
 
   /** 축3 계측. 파일 헤더의 단위 설명 참고. */
@@ -95,7 +94,6 @@ export class RedBlackTree<T> {
     else if (this.#compare(item, parent.value) < 0) parent.left = node;
     else parent.right = node;
 
-    this.#count += 1;
     this.#fixInsert(node);
   }
 
@@ -131,7 +129,6 @@ export class RedBlackTree<T> {
       removed.color = target.color;
     }
 
-    this.#count -= 1;
     // 빨간 자리가 빠지면 경로마다의 검은 수가 그대로다. 검은 자리가 빠졌을 때만 고친다.
     if (removedColor === "black") this.#fixDelete(orphan);
     return true;
@@ -169,11 +166,6 @@ export class RedBlackTree<T> {
     if (this.#compare(low, high) > 0) return out;
     this.#collect(this.#root, low, high, out);
     return out;
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
   }
 
   toArray(): T[] {

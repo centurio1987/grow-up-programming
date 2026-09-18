@@ -297,10 +297,6 @@ export class HashMapOpenAddressing<K, V> {
     return true;
   }
 
-  size(): number {
-    return this.#count;
-  }
-
   keys(): K[] {
     const found: K[] = [];
     for (let at = 0; at < this.#state.length; at++) {

@@ -13,7 +13,7 @@
  *    검사를 **통과**하고 1,024 에서는 다섯에 걸린다. 크기가 판정을 뒤집으므로 한 점은 문턱 하나만 보는
  *    것이다. 사다리 두 점(1,024 · 4,096)에서 걸린 자리와 잃은 원소 수를 나란히 고정한다
  *    (`./runValues.ts` 의 `valueSizes` 주석).
- * 4. **걸음 반환값 기대의 실효.** `tree/treap` 아홉째 시나리오의 탐침 조회는 항상 참이어야 한다. 값만
+ * 4. **걸음 반환값 기대의 실효.** `tree/treap` 여덟째 시나리오의 탐침 조회는 항상 참이어야 한다. 값만
  *    거짓말하고 비용은 정본과 똑같은 구현을 태우면 **값 검사가 걸고 성장률 판정은 통과시킨다.**
  *
  * 파일을 따로 둔 이유는 `./runContract.gapBuffer.test.ts` 머리말과 같다(런북 불변 사실 106 · 255) —
@@ -225,18 +225,15 @@ class ProbeLyingTreap<T> {
   range(low: T, high: T): T[] {
     return this.#inner.range(low, high);
   }
-  size(): number {
-    return this.#inner.size();
-  }
   toArray(): T[] {
     return this.#inner.toArray();
   }
 }
 
-describe("값 검증 실행 — 걸음의 반환값 기대(`tree/treap` 아홉째 탐침)", () => {
+describe("값 검증 실행 — 걸음의 반환값 기대(`tree/treap` 여덟째 탐침)", () => {
   const ascending = (a: number, b: number) => a - b;
-  const probe = treapContract.scenarios[8];
-  if (probe === undefined) throw new Error("아홉째 시나리오가 없다");
+  const probe = treapContract.scenarios[7];
+  if (probe === undefined) throw new Error("여덟째 시나리오가 없다");
 
   test("정본은 세 점에서 탐침 열여섯씩 마흔여덟을 전부 참으로 답한다", () => {
     // `complexity` 등급이라 사다리가 세 점(2^10 · 2^12 · 2^14)이다. 탐침 수는 크기를 안 타므로

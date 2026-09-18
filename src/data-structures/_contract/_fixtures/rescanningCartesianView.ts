@@ -11,8 +11,8 @@
  * 훑기는 상수이며, 이쪽은 구성을 지키고 훑기만 어긴다. 두 fixture 가 계약의 두 자리를 각각
  * 하나씩 짚어야 「어느 시나리오가 무엇을 혼자 잡는가」를 말할 수 있다(불변 사실 118).
  *
- * `size()` 는 구간 길이라 여기서도 상수다. 걸리는 것은 `value()`·`left()`·`right()` 셋이고,
- * 셋이 한 시나리오에 묶여 있으므로 판정은 그 시나리오 하나로 난다.
+ * 걸리는 것은 `value()`·`left()`·`right()` 셋이고, 셋이 한 시나리오에 묶여 있으므로 판정은
+ * 그 시나리오 하나로 난다.
  */
 
 function defaultCompare<T>(a: T, b: T): number {
@@ -41,11 +41,6 @@ export class RescanningCartesianView<T> {
 
   get __cost(): number {
     return this.#meter.cost;
-  }
-
-  size(): number {
-    this.#meter.cost += 1;
-    return this.#hi - this.#lo;
   }
 
   value(): T | null {

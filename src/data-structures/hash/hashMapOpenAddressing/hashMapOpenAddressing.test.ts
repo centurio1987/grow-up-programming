@@ -56,7 +56,7 @@ test("한 키를 넣고 지우기를 되풀이해도 탐사가 길어지지 않�
     map.set(7, round);
     map.delete(7);
   }
-  expect(map.size()).toBe(0);
+  expect(map.keys().length).toBe(0);
 
   // 지운 자리를 되쓰지 않는 구현은 여기서 표가 `rounds` 만큼 자라 있고, 그러면 한 번의
   // 열거가 담긴 수가 아니라 지나간 호출 수에 비례한다. 계약의 `keys` 행이 그것을 막는다.

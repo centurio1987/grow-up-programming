@@ -20,7 +20,7 @@
  * 않는다 — 계약이 적은 $O(n)$ 이 이 총합에서 나온다.
  *
  * **되돌이 호출을 쓰지 않는다.** 오름차순 수열의 트리는 깊이가 마디 수와 같은 사슬이고,
- * 사다리 맨 위($2^{14}$)에서 크기 채우기와 `inOrder()` 가 그 깊이만큼 내려간다. 한계가
+ * 사다리 맨 위($2^{14}$)에서 `inOrder()` 가 그 깊이만큼 내려간다. 한계가
  * 원소 수에 직접 걸리는 것 자체가 반복문으로 지을 이유다(T1-04 가 같은 자리에서 근거를
  * 다시 세웠다 — 「사다리에서 죽는다」가 아니라 「한계가 원소 수에 직접 걸린다」).
  */
@@ -30,8 +30,6 @@ interface Node<T> {
   value: T;
   left: Node<T> | null;
   right: Node<T> | null;
-  /** 이 마디를 뿌리로 하는 부분트리의 마디 수. `size()` 가 상수인 자리가 여기다. */
-  size: number;
 }
 
 function defaultCompare<T>(a: T, b: T): number {
@@ -55,11 +53,6 @@ export class CartesianTree<T> {
   constructor(seq: readonly T[], comparator?: (a: T, b: T) => number) {
     this.#compare = comparator ?? defaultCompare;
     this.#node = this.#build(seq);
-  }
-
-  size(): number {
-    this.#__costOwner.__cost += 1;
-    return this.#node?.size ?? 0;
   }
 
   value(): T | null {
@@ -123,7 +116,7 @@ export class CartesianTree<T> {
     const rightSpine: number[] = [];
 
     for (let i = 0; i < n; i++) {
-      nodes.push({ value: seq[i] as T, left: null, right: null, size: 1 });
+      nodes.push({ value: seq[i] as T, left: null, right: null });
       let detached = -1;
       while (rightSpine.length > 0) {
         const top = rightSpine[rightSpine.length - 1] as number;
@@ -142,32 +135,7 @@ export class CartesianTree<T> {
       this.#__costOwner.__cost += 1;
     }
 
-    const root = nodes[rightSpine[0] as number] as Node<T>;
-    this.#fillSizes(root);
-    return root;
-  }
-
-  /**
-   * 부분트리 크기를 아래에서 위로 채운다.
-   *
-   * 먼저 뿌리부터 내려가며 마디를 늘어놓고, 그 순서를 거꾸로 읽으면 자식이 부모보다 항상
-   * 앞선다. 되돌이 호출 없이 후위 순회와 같은 순서를 얻는 자리다.
-   */
-  #fillSizes(root: Node<T>): void {
-    const order: Node<T>[] = [];
-    const stack: Node<T>[] = [root];
-    while (stack.length > 0) {
-      const node = stack.pop() as Node<T>;
-      this.#__costOwner.__cost += 1;
-      order.push(node);
-      if (node.left !== null) stack.push(node.left);
-      if (node.right !== null) stack.push(node.right);
-    }
-    for (let k = order.length - 1; k >= 0; k--) {
-      const node = order[k] as Node<T>;
-      this.#__costOwner.__cost += 1;
-      node.size = 1 + (node.left?.size ?? 0) + (node.right?.size ?? 0);
-    }
+    return nodes[rightSpine[0] as number] as Node<T>;
   }
 }
 // #endregion

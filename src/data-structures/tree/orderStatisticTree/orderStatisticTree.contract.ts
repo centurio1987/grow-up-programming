@@ -27,9 +27,6 @@ export interface OrderStatisticTreeContract<T> {
   count(item: T): number;
   rankOf(item: T): number;
   at(index: number): T | null;
-  min(): T | null;
-  max(): T | null;
-  size(): number;
   toArray(): T[];
 }
 
@@ -130,25 +127,6 @@ export const orderStatisticTreeContract: ContractSpec<
       },
     },
     {
-      name: "min",
-      arg: () => undefined,
-      onImpl: (impl) => impl.min(),
-      onModel: (model) => (model.length === 0 ? null : (model[0] as number)),
-    },
-    {
-      name: "max",
-      arg: () => undefined,
-      onImpl: (impl) => impl.max(),
-      onModel: (model) =>
-        model.length === 0 ? null : (model[model.length - 1] as number),
-    },
-    {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.length,
-    },
-    {
       name: "toArray",
       arg: () => undefined,
       onImpl: (impl) => impl.toArray(),
@@ -158,13 +136,10 @@ export const orderStatisticTreeContract: ContractSpec<
 
   edges: [
     {
-      name: "빈 컬렉션 — 위치 질의는 null 과 0, min·max 는 null",
+      name: "빈 컬렉션 — 위치 질의는 null 과 0 이고 늘어놓기가 빈 배열이다",
       steps: [
         { op: "at", arg: 0 },
         { op: "rankOf", arg: 5 },
-        { op: "min" },
-        { op: "max" },
-        { op: "size" },
         { op: "toArray" },
       ],
     },
@@ -211,7 +186,7 @@ export const orderStatisticTreeContract: ContractSpec<
         { op: "add", arg: 2 },
         { op: "add", arg: 5 },
         { op: "delete", arg: 2 },
-        { op: "size" },
+        { op: "toArray" },
         { op: "at", arg: 0 },
         { op: "at", arg: 1 },
         { op: "rankOf", arg: 5 },
@@ -228,7 +203,7 @@ export const orderStatisticTreeContract: ContractSpec<
         { op: "count", arg: 7 },
         { op: "rankOf", arg: 8 },
         { op: "at", arg: 0 },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -241,8 +216,6 @@ export const orderStatisticTreeContract: ContractSpec<
         { op: "toArray" },
         { op: "at", arg: 1 },
         { op: "rankOf", arg: 3 },
-        { op: "min" },
-        { op: "max" },
       ],
     },
     {
@@ -261,21 +234,14 @@ export const orderStatisticTreeContract: ContractSpec<
   ],
 
   /**
-   * 헤더 불변식 절의 다섯을 그대로 옮긴 것이다.
+   * 헤더 불변식 절의 셋을 그대로 옮긴 것이다.
    *
-   * **앞의 셋은 `tree/multiset` 의 셋과 같고 뒤의 둘이 이 계약에서 생겼다.** 위치를 세는
+   * **앞의 하나는 `tree/multiset` 의 하나와 같고 뒤의 둘이 이 계약에서 생겼다.** 위치를 세는
    * 값을 읽는 공개 연산이 생겼기 때문이다 — 나란한 계약들에서는 같은 값이 관측되지 않아
-   * 어긋나도 네 축이 통과시킨다(불변 사실 109).
+   * 어긋나도 네 축이 통과시킨다(불변 사실 109). **`KAN-040` `S4` 가 앞의 둘을 걷어냈다** —
+   * 원소 수와 양 끝을 읽는 행이 계약에서 빠져 두 정합의 경로가 `toArray()` 하나로 줄었다.
    */
   invariants: [
-    {
-      name: "toArray().length 와 size() 가 같다",
-      check: (impl) => {
-        const length = impl.toArray().length;
-        const size = impl.size();
-        return length === size ? null : `toArray ${length} / size ${size}`;
-      },
-    },
     {
       name: "count(x) 는 toArray() 안의 동등 원소 수와 같다",
       check: (impl) => {
@@ -287,21 +253,6 @@ export const orderStatisticTreeContract: ContractSpec<
             return `count(${value})=${counted} 인데 실제 ${actual}`;
         }
         return null;
-      },
-    },
-    {
-      name: "min()·max() 가 toArray() 의 양 끝과 동등하다",
-      check: (impl) => {
-        const items = impl.toArray();
-        if (items.length === 0) {
-          // 빈 컨테이너에서 둘 다 null 인 것은 계약 표가 적은 의미이므로 축1의 몫이다.
-          return null;
-        }
-        const min = impl.min();
-        const max = impl.max();
-        if (min !== items[0]) return `min ${min} 인데 첫 원소 ${items[0]}`;
-        const last = items[items.length - 1];
-        return max === last ? null : `max ${max} 인데 마지막 원소 ${last}`;
       },
     },
     {
@@ -379,7 +330,7 @@ export const orderStatisticTreeContract: ContractSpec<
       },
     }),
     seededInput({
-      covers: ["has", "count", "min", "max"],
+      covers: ["has", "count"],
       qualifier: "expected",
       bound: "O(log n)",
       adversarial: false,
@@ -390,8 +341,6 @@ export const orderStatisticTreeContract: ContractSpec<
           ctx.step(() => {
             impl.has(probe);
             impl.count(probe);
-            impl.min();
-            impl.max();
           });
         }
       },
@@ -445,16 +394,6 @@ export const orderStatisticTreeContract: ContractSpec<
         }
       },
     }),
-    {
-      covers: ["size"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      run: (impl, n, ctx) => {
-        for (let i = 0; i < n; i++) impl.add(Math.floor(ctx.rng() * n));
-        for (let i = 0; i < n / 4; i++) ctx.step(() => impl.size());
-      },
-    },
     {
       covers: ["toArray"],
       qualifier: "worst",

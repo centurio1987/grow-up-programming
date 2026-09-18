@@ -28,8 +28,9 @@
  * 바꾸지 않으면서 그 의존을 없애는 자리다(불변 사실 101 과 같은 모양이고, 그쪽은 비용이
  * 이유였고 이쪽은 실행 환경이 이유다).
  *
- * **`size` 만 세어 둔다.** 계약이 그 행만 O(1) 로 적었기 때문이다. 나머지 일곱은 세어 둘
- * 이유가 없다 — 상한이 이미 선형이라 훑어도 계약 안이다.
+ * **세어 두는 값이 없다.** 계약이 O(1) 로 적은 행이 하나도 없기 때문이다 — 일곱 행의 상한이
+ * 전부 선형이라 훑어도 계약 안이다. 담긴 수를 세어 두던 자리는 `size` 행과 함께 없앴다
+ * (`KAN-040` `S4`).
  */
 
 // #region guide:core/types
@@ -60,7 +61,6 @@ function defaultComparator<T>(a: T, b: T): number {
 // #region guide:core/class
 export class BinarySearchTree<T> {
   #root: Node<T> | null = null;
-  #count = 0;
   readonly #compare: Comparator<T>;
 
   /** 축3 계측. 지나간 자리 수를 센다 — 계약이 아니라 정본의 의무다. */
@@ -81,7 +81,6 @@ export class BinarySearchTree<T> {
     if (this.#root === null) {
       this.__cost += 1;
       this.#root = { key: item, left: null, right: null };
-      this.#count += 1;
       return;
     }
 
@@ -94,14 +93,12 @@ export class BinarySearchTree<T> {
       if (cmp < 0) {
         if (at.left === null) {
           at.left = { key: item, left: null, right: null };
-          this.#count += 1;
           return;
         }
         at = at.left;
       } else {
         if (at.right === null) {
           at.right = { key: item, left: null, right: null };
-          this.#count += 1;
           return;
         }
         at = at.right;
@@ -147,7 +144,6 @@ export class BinarySearchTree<T> {
     else if (parent.left === at) parent.left = child;
     else parent.right = child;
 
-    this.#count -= 1;
     return true;
   }
 
@@ -221,11 +217,6 @@ export class BinarySearchTree<T> {
     }
 
     return out;
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
   }
 
   /** 손으로 쌓는 스택으로 중위 순회한다. 사슬이어도 실행이 죽지 않는 이유가 이것이다. */

@@ -9,10 +9,6 @@
       "kind": "edge",
       "steps": [
         {
-          "op": "length",
-          "expect": 0
-        },
-        {
           "op": "contains",
           "arg": "",
           "expect": true
@@ -230,10 +226,6 @@
           "arg": "ab"
         },
         {
-          "op": "length",
-          "expect": 2
-        },
-        {
           "op": "count",
           "arg": "ana",
           "expect": 0
@@ -252,9 +244,11 @@
       "kind": "random",
       "steps": [
         {
-          "op": "count",
+          "op": "findAll",
           "arg": "",
-          "expect": 1
+          "expect": [
+            0
+          ]
         },
         {
           "op": "count",
@@ -262,9 +256,9 @@
           "expect": 0
         },
         {
-          "op": "contains",
+          "op": "count",
           "arg": "",
-          "expect": true
+          "expect": 1
         },
         {
           "op": "contains",
@@ -277,17 +271,18 @@
           "expect": 0
         },
         {
-          "op": "contains",
+          "op": "count",
           "arg": "acb",
-          "expect": false
+          "expect": 0
         },
         {
           "op": "reindex",
           "arg": "abc"
         },
         {
-          "op": "length",
-          "expect": 3
+          "op": "contains",
+          "arg": "cba",
+          "expect": false
         },
         {
           "op": "longestRepeatedSubstring",
@@ -297,86 +292,53 @@
           ]
         },
         {
+          "op": "contains",
+          "arg": "bcc",
+          "expect": false
+        },
+        {
+          "op": "count",
+          "arg": "bbb",
+          "expect": 0
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            0,
+            true
+          ]
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            0,
+            true
+          ]
+        },
+        {
+          "op": "contains",
+          "arg": "ac",
+          "expect": false
+        },
+        {
+          "op": "contains",
+          "arg": "b",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "arg": "aaa",
+          "expect": 0
+        },
+        {
           "op": "findAll",
-          "arg": "acc",
+          "arg": "abb",
           "expect": []
         },
         {
           "op": "longestRepeatedSubstring",
           "expect": [
             0,
-            true
-          ]
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            0,
-            true
-          ]
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            0,
-            true
-          ]
-        },
-        {
-          "op": "reindex",
-          "arg": ""
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            0,
-            true
-          ]
-        },
-        {
-          "op": "length",
-          "expect": 0
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            0,
-            true
-          ]
-        },
-        {
-          "op": "count",
-          "arg": "cac",
-          "expect": 0
-        },
-        {
-          "op": "count",
-          "arg": "acc",
-          "expect": 0
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            0,
-            true
-          ]
-        },
-        {
-          "op": "length",
-          "expect": 0
-        },
-        {
-          "op": "reindex",
-          "arg": "baaaaacb"
-        },
-        {
-          "op": "reindex",
-          "arg": "bacacc"
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            2,
             true
           ]
         },
@@ -385,77 +347,56 @@
           "arg": "ac"
         },
         {
-          "op": "length",
-          "expect": 2
-        },
-        {
-          "op": "findAll",
-          "arg": "aac",
-          "expect": []
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            0,
-            true
-          ]
-        },
-        {
-          "op": "length",
-          "expect": 2
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            0,
-            true
-          ]
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            0,
-            true
-          ]
+          "op": "contains",
+          "arg": "caa",
+          "expect": false
         },
         {
           "op": "count",
-          "arg": "aba",
+          "arg": "aca",
           "expect": 0
         },
         {
-          "op": "length",
-          "expect": 2
+          "op": "contains",
+          "arg": "aaa",
+          "expect": false
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            0,
+            true
+          ]
         },
         {
           "op": "reindex",
-          "arg": ""
+          "arg": "aacb"
         },
         {
-          "op": "findAll",
-          "arg": "aac",
-          "expect": []
+          "op": "contains",
+          "arg": "c",
+          "expect": true
         },
         {
-          "op": "count",
-          "arg": "cba",
-          "expect": 0
+          "op": "contains",
+          "arg": "bbc",
+          "expect": false
         },
         {
           "op": "findAll",
           "arg": "",
           "expect": [
-            0
+            0,
+            1,
+            2,
+            3,
+            4
           ]
         },
         {
-          "op": "length",
-          "expect": 0
-        },
-        {
-          "op": "count",
-          "arg": "aab",
-          "expect": 0
+          "op": "contains",
+          "arg": "cbb",
+          "expect": false
         },
         {
           "op": "reindex",
@@ -505,9 +446,9 @@
           "arg": "baaabcbc"
         },
         {
-          "op": "count",
+          "op": "findAll",
           "arg": "cac",
-          "expect": 0
+          "expect": []
         },
         {
           "op": "contains",
@@ -527,9 +468,9 @@
           ]
         },
         {
-          "op": "contains",
+          "op": "count",
           "arg": "abc",
-          "expect": true
+          "expect": 1
         },
         {
           "op": "reindex",
@@ -543,9 +484,21 @@
           ]
         },
         {
-          "op": "count",
+          "op": "findAll",
           "arg": "",
-          "expect": 11
+          "expect": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
         },
         {
           "op": "count",
@@ -560,14 +513,17 @@
           ]
         },
         {
-          "op": "count",
+          "op": "findAll",
           "arg": "aba",
-          "expect": 0
+          "expect": []
         },
         {
-          "op": "count",
+          "op": "findAll",
           "arg": "bbb",
-          "expect": 2
+          "expect": [
+            4,
+            5
+          ]
         },
         {
           "op": "reindex",
@@ -595,101 +551,83 @@
           "expect": []
         },
         {
-          "op": "length",
-          "expect": 11
-        },
-        {
-          "op": "count",
-          "arg": "bcb",
-          "expect": 1
-        },
-        {
-          "op": "count",
-          "arg": "cac",
-          "expect": 0
-        },
-        {
-          "op": "length",
-          "expect": 11
-        },
-        {
-          "op": "count",
-          "arg": "bcb",
-          "expect": 1
-        },
-        {
-          "op": "length",
-          "expect": 11
-        },
-        {
-          "op": "count",
-          "arg": "",
-          "expect": 12
-        },
-        {
-          "op": "count",
-          "arg": "baa",
-          "expect": 0
-        },
-        {
-          "op": "length",
-          "expect": 11
-        },
-        {
-          "op": "length",
-          "expect": 11
-        },
-        {
-          "op": "count",
-          "arg": "aba",
-          "expect": 0
+          "op": "reindex",
+          "arg": "bbcbcaba"
         },
         {
           "op": "reindex",
-          "arg": "b"
+          "arg": "bcaccb"
+        },
+        {
+          "op": "reindex",
+          "arg": "bbcbbba"
         },
         {
           "op": "count",
-          "arg": "bbb",
-          "expect": 0
-        },
-        {
-          "op": "count",
-          "arg": "cbc",
-          "expect": 0
-        },
-        {
-          "op": "findAll",
-          "arg": "baa",
-          "expect": []
-        },
-        {
-          "op": "findAll",
-          "arg": "acb",
-          "expect": []
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            0,
-            true
-          ]
-        },
-        {
-          "op": "length",
+          "arg": "ba",
           "expect": 1
         },
         {
+          "op": "count",
+          "arg": "baa",
+          "expect": 0
+        },
+        {
+          "op": "contains",
+          "arg": "bba",
+          "expect": true
+        },
+        {
+          "op": "contains",
+          "arg": "cb",
+          "expect": true
+        },
+        {
+          "op": "contains",
+          "arg": "aab",
+          "expect": false
+        },
+        {
+          "op": "findAll",
+          "arg": "bba",
+          "expect": [
+            4
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": "abcc"
+        },
+        {
+          "op": "count",
+          "arg": "baa",
+          "expect": 0
+        },
+        {
           "op": "longestRepeatedSubstring",
           "expect": [
-            0,
+            1,
             true
           ]
         },
         {
-          "op": "contains",
+          "op": "findAll",
+          "arg": "aa",
+          "expect": []
+        },
+        {
+          "op": "findAll",
+          "arg": "bba",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": "bbcbbbcbcac"
+        },
+        {
+          "op": "count",
           "arg": "aaa",
-          "expect": false
+          "expect": 0
         },
         {
           "op": "findAll",
@@ -709,9 +647,9 @@
           "arg": "bccbbbba"
         },
         {
-          "op": "count",
+          "op": "findAll",
           "arg": "acc",
-          "expect": 0
+          "expect": []
         },
         {
           "op": "findAll",
@@ -719,54 +657,24 @@
           "expect": []
         },
         {
-          "op": "count",
-          "arg": "abb",
-          "expect": 0
-        },
-        {
-          "op": "length",
-          "expect": 8
-        },
-        {
-          "op": "contains",
-          "arg": "",
-          "expect": true
-        },
-        {
-          "op": "count",
-          "arg": "cca",
-          "expect": 0
-        },
-        {
           "op": "findAll",
-          "arg": "cc",
-          "expect": [
-            1
-          ]
+          "arg": "abb",
+          "expect": []
         },
         {
-          "op": "length",
-          "expect": 8
-        },
-        {
-          "op": "contains",
-          "arg": "cac",
-          "expect": false
+          "op": "reindex",
+          "arg": "abcc"
         },
         {
           "op": "longestRepeatedSubstring",
           "expect": [
-            3,
+            1,
             true
           ]
         },
         {
-          "op": "length",
-          "expect": 8
-        },
-        {
           "op": "reindex",
-          "arg": "ababc"
+          "arg": "bbaacaccabc"
         },
         {
           "op": "longestRepeatedSubstring",
@@ -776,8 +684,33 @@
           ]
         },
         {
-          "op": "length",
-          "expect": 5
+          "op": "reindex",
+          "arg": "abbaaabbac"
+        },
+        {
+          "op": "contains",
+          "arg": "",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "arg": "ba",
+          "expect": 2
+        },
+        {
+          "op": "findAll",
+          "arg": "cac",
+          "expect": []
+        },
+        {
+          "op": "contains",
+          "arg": "bbb",
+          "expect": false
+        },
+        {
+          "op": "findAll",
+          "arg": "cab",
+          "expect": []
         },
         {
           "op": "findAll",
@@ -786,74 +719,38 @@
         },
         {
           "op": "count",
-          "arg": "bbb",
-          "expect": 0
-        },
-        {
-          "op": "count",
-          "arg": "ccc",
-          "expect": 0
+          "arg": "baa",
+          "expect": 1
         },
         {
           "op": "contains",
-          "arg": "cac",
+          "arg": "cbb",
           "expect": false
-        },
-        {
-          "op": "reindex",
-          "arg": "aabbaba"
-        },
-        {
-          "op": "reindex",
-          "arg": "ccb"
         },
         {
           "op": "contains",
-          "arg": "cac",
-          "expect": false
+          "arg": "bba",
+          "expect": true
         },
         {
           "op": "contains",
           "arg": "ccb",
-          "expect": true
-        },
-        {
-          "op": "length",
-          "expect": 3
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            1,
-            true
-          ]
-        },
-        {
-          "op": "findAll",
-          "arg": "bcc",
-          "expect": []
-        },
-        {
-          "op": "contains",
-          "arg": "abb",
           "expect": false
         },
         {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            1,
-            true
-          ]
+          "op": "contains",
+          "arg": "cbb",
+          "expect": false
         },
         {
           "op": "count",
-          "arg": "",
-          "expect": 4
+          "arg": "abc",
+          "expect": 0
         },
         {
           "op": "longestRepeatedSubstring",
           "expect": [
-            1,
+            4,
             true
           ]
         },
@@ -904,29 +801,40 @@
           "arg": "c"
         },
         {
-          "op": "length",
-          "expect": 1
-        },
-        {
           "op": "reindex",
-          "arg": "bcacbccaa"
-        },
-        {
-          "op": "length",
-          "expect": 9
-        },
-        {
-          "op": "length",
-          "expect": 9
+          "arg": "c"
         },
         {
           "op": "count",
-          "arg": "",
-          "expect": 10
+          "arg": "acb",
+          "expect": 0
         },
         {
-          "op": "length",
-          "expect": 9
+          "op": "findAll",
+          "arg": "",
+          "expect": [
+            0,
+            1
+          ]
+        },
+        {
+          "op": "contains",
+          "arg": "bac",
+          "expect": false
+        },
+        {
+          "op": "contains",
+          "arg": "bbc",
+          "expect": false
+        },
+        {
+          "op": "reindex",
+          "arg": "abaabbc"
+        },
+        {
+          "op": "findAll",
+          "arg": "cca",
+          "expect": []
         },
         {
           "op": "longestRepeatedSubstring",
@@ -936,285 +844,30 @@
           ]
         },
         {
-          "op": "contains",
-          "arg": "cca",
-          "expect": true
-        },
-        {
-          "op": "findAll",
-          "arg": "cab",
-          "expect": []
-        },
-        {
-          "op": "findAll",
-          "arg": "aba",
-          "expect": []
-        },
-        {
-          "op": "contains",
-          "arg": "cbc",
-          "expect": true
-        },
-        {
-          "op": "findAll",
-          "arg": "cbc",
-          "expect": [
-            3
-          ]
-        },
-        {
-          "op": "length",
-          "expect": 9
-        },
-        {
-          "op": "findAll",
+          "op": "count",
           "arg": "bcc",
+          "expect": 0
+        },
+        {
+          "op": "longestRepeatedSubstring",
           "expect": [
-            4
+            2,
+            true
           ]
         },
         {
-          "op": "reindex",
-          "arg": "bcacacabab"
-        },
-        {
           "op": "findAll",
-          "arg": "b",
+          "arg": "",
           "expect": [
             0,
-            7,
-            9
-          ]
-        },
-        {
-          "op": "contains",
-          "arg": "ca",
-          "expect": true
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            4,
-            true
-          ]
-        },
-        {
-          "op": "length",
-          "expect": 10
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            4,
-            true
-          ]
-        },
-        {
-          "op": "count",
-          "arg": "aaa",
-          "expect": 0
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            4,
-            true
-          ]
-        },
-        {
-          "op": "contains",
-          "arg": "cbc",
-          "expect": false
-        },
-        {
-          "op": "length",
-          "expect": 10
-        },
-        {
-          "op": "length",
-          "expect": 10
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            4,
-            true
-          ]
-        },
-        {
-          "op": "reindex",
-          "arg": "ba"
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            0,
-            true
-          ]
-        },
-        {
-          "op": "findAll",
-          "arg": "bac",
-          "expect": []
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            0,
-            true
-          ]
-        },
-        {
-          "op": "length",
-          "expect": 2
-        },
-        {
-          "op": "length",
-          "expect": 2
-        },
-        {
-          "op": "contains",
-          "arg": "bca",
-          "expect": false
-        },
-        {
-          "op": "length",
-          "expect": 2
-        },
-        {
-          "op": "reindex",
-          "arg": "ba"
-        },
-        {
-          "op": "contains",
-          "arg": "cac",
-          "expect": false
-        },
-        {
-          "op": "count",
-          "arg": "abb",
-          "expect": 0
-        },
-        {
-          "op": "count",
-          "arg": "aac",
-          "expect": 0
-        },
-        {
-          "op": "reindex",
-          "arg": "ba"
-        },
-        {
-          "op": "count",
-          "arg": "bca",
-          "expect": 0
-        },
-        {
-          "op": "findAll",
-          "arg": "baa",
-          "expect": []
-        },
-        {
-          "op": "findAll",
-          "arg": "bbb",
-          "expect": []
-        },
-        {
-          "op": "contains",
-          "arg": "bcc",
-          "expect": false
-        },
-        {
-          "op": "length",
-          "expect": 2
-        },
-        {
-          "op": "findAll",
-          "arg": "baa",
-          "expect": []
-        },
-        {
-          "op": "contains",
-          "arg": "bb",
-          "expect": false
-        },
-        {
-          "op": "count",
-          "arg": "bb",
-          "expect": 0
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            0,
-            true
-          ]
-        },
-        {
-          "op": "length",
-          "expect": 2
-        },
-        {
-          "op": "count",
-          "arg": "acc",
-          "expect": 0
-        },
-        {
-          "op": "findAll",
-          "arg": "cbb",
-          "expect": []
-        },
-        {
-          "op": "reindex",
-          "arg": "abaabaaa"
-        },
-        {
-          "op": "findAll",
-          "arg": "c",
-          "expect": []
-        },
-        {
-          "op": "findAll",
-          "arg": "a",
-          "expect": [
-            0,
+            1,
             2,
             3,
+            4,
             5,
             6,
             7
           ]
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            4,
-            true
-          ]
-        },
-        {
-          "op": "reindex",
-          "arg": "acabbabbb"
-        },
-        {
-          "op": "reindex",
-          "arg": "cb"
-        },
-        {
-          "op": "longestRepeatedSubstring",
-          "expect": [
-            0,
-            true
-          ]
-        },
-        {
-          "op": "findAll",
-          "arg": "bac",
-          "expect": []
-        },
-        {
-          "op": "reindex",
-          "arg": ""
         },
         {
           "op": "findAll",
@@ -1223,8 +876,205 @@
         },
         {
           "op": "contains",
-          "arg": "ccc",
+          "arg": "cab",
           "expect": false
+        },
+        {
+          "op": "findAll",
+          "arg": "ca",
+          "expect": []
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            2,
+            true
+          ]
+        },
+        {
+          "op": "findAll",
+          "arg": "aaa",
+          "expect": []
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            2,
+            true
+          ]
+        },
+        {
+          "op": "count",
+          "arg": "cbc",
+          "expect": 0
+        },
+        {
+          "op": "contains",
+          "arg": "ca",
+          "expect": false
+        },
+        {
+          "op": "contains",
+          "arg": "acc",
+          "expect": false
+        },
+        {
+          "op": "reindex",
+          "arg": "accacbca"
+        },
+        {
+          "op": "contains",
+          "arg": "cbc",
+          "expect": true
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            2,
+            true
+          ]
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            2,
+            true
+          ]
+        },
+        {
+          "op": "contains",
+          "arg": "aaa",
+          "expect": false
+        },
+        {
+          "op": "contains",
+          "arg": "cac",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "arg": "abb",
+          "expect": 0
+        },
+        {
+          "op": "findAll",
+          "arg": "aac",
+          "expect": []
+        },
+        {
+          "op": "reindex",
+          "arg": "ba"
+        },
+        {
+          "op": "count",
+          "arg": "bca",
+          "expect": 0
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            0,
+            true
+          ]
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            0,
+            true
+          ]
+        },
+        {
+          "op": "count",
+          "arg": "a",
+          "expect": 1
+        },
+        {
+          "op": "reindex",
+          "arg": "abbcac"
+        },
+        {
+          "op": "contains",
+          "arg": "bbc",
+          "expect": true
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            1,
+            true
+          ]
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            1,
+            true
+          ]
+        },
+        {
+          "op": "findAll",
+          "arg": "acc",
+          "expect": []
+        },
+        {
+          "op": "count",
+          "arg": "cbb",
+          "expect": 0
+        },
+        {
+          "op": "contains",
+          "arg": "bca",
+          "expect": true
+        },
+        {
+          "op": "reindex",
+          "arg": "cbcabccacb"
+        },
+        {
+          "op": "findAll",
+          "arg": "b",
+          "expect": [
+            1,
+            4,
+            9
+          ]
+        },
+        {
+          "op": "contains",
+          "arg": "aab",
+          "expect": false
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            2,
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": "caacacacab"
+        },
+        {
+          "op": "count",
+          "arg": "bbb",
+          "expect": 0
+        },
+        {
+          "op": "contains",
+          "arg": "bcc",
+          "expect": false
+        },
+        {
+          "op": "findAll",
+          "arg": "cba",
+          "expect": []
+        },
+        {
+          "op": "count",
+          "arg": "ccc",
+          "expect": 0
         },
         {
           "op": "reindex",
@@ -1243,34 +1093,26 @@
           ]
         },
         {
-          "op": "length",
-          "expect": 9
-        },
-        {
-          "op": "length",
-          "expect": 9
-        },
-        {
-          "op": "length",
-          "expect": 9
-        },
-        {
-          "op": "length",
-          "expect": 9
-        },
-        {
-          "op": "reindex",
-          "arg": "accbcabbca"
-        },
-        {
-          "op": "count",
-          "arg": "c",
-          "expect": 4
+          "op": "contains",
+          "arg": "aaa",
+          "expect": false
         },
         {
           "op": "contains",
+          "arg": "cbc",
+          "expect": false
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            3,
+            true
+          ]
+        },
+        {
+          "op": "count",
           "arg": "",
-          "expect": true
+          "expect": 10
         },
         {
           "op": "longestRepeatedSubstring",
@@ -1282,6 +1124,219 @@
         {
           "op": "count",
           "arg": "bcc",
+          "expect": 0
+        },
+        {
+          "op": "reindex",
+          "arg": "cbcbbbcbbbab"
+        },
+        {
+          "op": "findAll",
+          "arg": "bcc",
+          "expect": []
+        },
+        {
+          "op": "count",
+          "arg": "acb",
+          "expect": 0
+        },
+        {
+          "op": "contains",
+          "arg": "aac",
+          "expect": false
+        },
+        {
+          "op": "reindex",
+          "arg": "cbacbbcaa"
+        },
+        {
+          "op": "reindex",
+          "arg": "babb"
+        },
+        {
+          "op": "contains",
+          "arg": "c",
+          "expect": false
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            1,
+            true
+          ]
+        },
+        {
+          "op": "contains",
+          "arg": "bbc",
+          "expect": false
+        },
+        {
+          "op": "contains",
+          "arg": "c",
+          "expect": false
+        },
+        {
+          "op": "count",
+          "arg": "c",
+          "expect": 0
+        },
+        {
+          "op": "contains",
+          "arg": "bca",
+          "expect": false
+        },
+        {
+          "op": "findAll",
+          "arg": "abb",
+          "expect": [
+            1
+          ]
+        },
+        {
+          "op": "contains",
+          "arg": "acb",
+          "expect": false
+        },
+        {
+          "op": "findAll",
+          "arg": "",
+          "expect": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "op": "findAll",
+          "arg": "a",
+          "expect": [
+            1
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": "b"
+        },
+        {
+          "op": "reindex",
+          "arg": "cbbcabc"
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            2,
+            true
+          ]
+        },
+        {
+          "op": "count",
+          "arg": "cba",
+          "expect": 0
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            2,
+            true
+          ]
+        },
+        {
+          "op": "count",
+          "arg": "aaa",
+          "expect": 0
+        },
+        {
+          "op": "contains",
+          "arg": "aca",
+          "expect": false
+        },
+        {
+          "op": "findAll",
+          "arg": "aba",
+          "expect": []
+        },
+        {
+          "op": "count",
+          "arg": "bbc",
+          "expect": 1
+        },
+        {
+          "op": "contains",
+          "arg": "c",
+          "expect": true
+        },
+        {
+          "op": "count",
+          "arg": "",
+          "expect": 8
+        },
+        {
+          "op": "count",
+          "arg": "bab",
+          "expect": 0
+        },
+        {
+          "op": "findAll",
+          "arg": "ab",
+          "expect": [
+            4
+          ]
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            2,
+            true
+          ]
+        },
+        {
+          "op": "findAll",
+          "arg": "cbc",
+          "expect": []
+        },
+        {
+          "op": "count",
+          "arg": "bbc",
+          "expect": 1
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            2,
+            true
+          ]
+        },
+        {
+          "op": "reindex",
+          "arg": "cabbbcbabcbc"
+        },
+        {
+          "op": "longestRepeatedSubstring",
+          "expect": [
+            3,
+            true
+          ]
+        },
+        {
+          "op": "contains",
+          "arg": "cac",
+          "expect": false
+        },
+        {
+          "op": "contains",
+          "arg": "aba",
+          "expect": false
+        },
+        {
+          "op": "contains",
+          "arg": "ccc",
+          "expect": false
+        },
+        {
+          "op": "count",
+          "arg": "aca",
           "expect": 0
         }
       ]

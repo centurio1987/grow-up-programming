@@ -47,7 +47,6 @@ function defaultComparator<T>(a: T, b: T): number {
 
 export class SkipList<T> {
   readonly #head: Head<T> = { next: [] };
-  #count = 0;
   readonly #compare: Comparator<T>;
 
   /** 축3 계측. 파일 헤더의 단위 설명 참고. */
@@ -71,7 +70,6 @@ export class SkipList<T> {
       before.next[level] = node;
       this.__cost += 1;
     }
-    this.#count += 1;
   }
 
   delete(item: T): boolean {
@@ -92,7 +90,6 @@ export class SkipList<T> {
       this.#head.next.pop();
       this.__cost += 1;
     }
-    this.#count -= 1;
     return true;
   }
 
@@ -135,11 +132,6 @@ export class SkipList<T> {
       this.__cost += 1;
     }
     return out;
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
   }
 
   toArray(): T[] {

@@ -45,7 +45,6 @@ interface Node<T> {
 // #region guide:core/class
 export class SplayTree<T> {
   #root: Node<T> | null = null;
-  #count = 0;
   readonly #compare: (a: T, b: T) => number;
 
   /** 축3 계측. 파일 헤더의 단위 설명 참고. */
@@ -59,7 +58,6 @@ export class SplayTree<T> {
     if (this.#root === null) {
       this.__cost += 1;
       this.#root = { value: item, left: null, right: null, parent: null };
-      this.#count += 1;
       return;
     }
 
@@ -83,7 +81,6 @@ export class SplayTree<T> {
         };
         if (cmp < 0) at.left = fresh;
         else at.right = fresh;
-        this.#count += 1;
         this.#splayTo(fresh, null);
         return;
       }
@@ -112,7 +109,6 @@ export class SplayTree<T> {
       last.right = right;
       if (right !== null) right.parent = last;
     }
-    this.#count -= 1;
     return true;
   }
 
@@ -181,11 +177,6 @@ export class SplayTree<T> {
     this.#splayTo(above, first);
     this.#collect(above.left, out);
     return out;
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
   }
 
   toArray(): T[] {

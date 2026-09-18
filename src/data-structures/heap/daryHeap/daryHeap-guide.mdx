@@ -212,10 +212,6 @@ export class DaryHeap<T> {
     return this.#items.length;
   }
 
-  isEmpty(): boolean {
-    return this.#items.length === 0;
-  }
-
   /**
    * 위로 올린다. 층 하나를 오를 때 견주는 자리가 **부모 하나**뿐이라, 갈래를 늘릴수록
    * 층이 줄어드는 만큼 그대로 싸진다.

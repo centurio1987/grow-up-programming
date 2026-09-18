@@ -92,11 +92,6 @@ export class MaxHeap<T> {
     return this.#count;
   }
 
-  isEmpty(): boolean {
-    this.__cost += 1;
-    return this.#count === 0;
-  }
-
   /**
    * 두 힙을 하나로 합친다.
    *

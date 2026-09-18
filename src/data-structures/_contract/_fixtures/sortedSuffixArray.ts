@@ -30,11 +30,6 @@ export class SortedSuffixArray {
     });
   }
 
-  length(): number {
-    this.__cost += 1;
-    return this.#s.length;
-  }
-
   at(rank: number): number | null {
     if (!Number.isInteger(rank) || rank < 0 || rank >= this.#sa.length)
       return null;

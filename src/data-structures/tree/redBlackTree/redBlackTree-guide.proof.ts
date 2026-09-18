@@ -85,7 +85,6 @@ interface OrderedSet {
   min(): number | null;
   max(): number | null;
   range(low: number, high: number): number[];
-  size(): number;
   toArray(): number[];
 }
 
@@ -323,11 +322,6 @@ class RbCopy {
     if (this.cmp(low, high) > 0) return out;
     this.collect(this.root, low, high, out);
     return out;
-  }
-
-  size(): number {
-    this.cost += 1;
-    return this.count;
   }
 
   toArray(): number[] {
@@ -615,8 +609,6 @@ function apply(d: OrderedSet, c: Call): unknown {
       return d.max();
     case "range":
       return d.range(a, b);
-    case "size":
-      return d.size();
     case "toArray":
       return d.toArray();
   }
@@ -642,7 +634,6 @@ export const WALK: Call[] = [
   op("delete", 35),
   op("min"),
   op("max"),
-  op("size"),
   op("toArray"),
 ];
 
@@ -716,8 +707,6 @@ export function detailOf(r: Row): string {
       return a > b
         ? `low ${withJosa(a, 이가)} high ${b}보다 크므로 빈 배열을 반환합니다.`
         : `${a} 이상 ${b} 이하인 값 ${show(r.out)}을 오름차순으로 반환합니다.`;
-    case "size":
-      return `세어 둔 원소 수 ${withJosa(String(r.out), 을를)} 반환합니다.`;
     case "toArray":
       return `중위 순회로 ${show(r.out)}을 반환합니다. 이것이 마지막 결과입니다.`;
     default:
@@ -772,8 +761,6 @@ function modelApply(model: number[], c: Call): unknown {
       return model.at(-1) ?? null;
     case "range":
       return model.filter((v) => v >= a && v <= b);
-    case "size":
-      return model.length;
     case "toArray":
       return [...model];
   }
@@ -803,7 +790,6 @@ function randomCalls(count: number, seed: number): Call[] {
     "min",
     "max",
     "range",
-    "size",
     "toArray",
   ];
   return Array.from({ length: count }, () => {
@@ -1291,7 +1277,11 @@ export const PROOFS: Record<string, () => string> = {
       max.avlOut = Math.max(max.avlOut, avlCount.rotations);
       max.rbOut = Math.max(max.rbOut, rotationsSince(e0));
     }
-    if (rb.count !== 0 || two.size() !== 0 || avl.size() !== 0) {
+    if (
+      rb.count !== 0 ||
+      two.toArray().length !== 0 ||
+      avl.toArray().length !== 0
+    ) {
       throw new Error("다 지운 뒤 원소가 남았습니다");
     }
     return [
@@ -1308,7 +1298,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** 비용 — 세 참조 구현을 계약 스위트의 시나리오 일곱에 넣는다. */
+  /** 비용 — 세 참조 구현을 계약 스위트의 시나리오 여섯에 넣는다. */
   scenarios: () => {
     const makes: [
       string,

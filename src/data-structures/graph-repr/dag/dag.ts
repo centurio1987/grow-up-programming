@@ -11,7 +11,7 @@
  *
  * - **순서를 하나로 정하는 일.** 모든 간선 방향을 지키는 순서가 여럿일 때 어느 것을 돌려줄지 적으면
  *   그 순서를 짓는 방법까지 계약이 정하게 된다(§규약1 금지 2 —
- *   `src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:73-75` 와 같은 이유). 계약은
+ *   `src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:79-81` 와 같은 이유). 계약은
  *   「모든 간선 방향을 지킨다」만 적고, 축1은 돌려받은 순서가 그것을 지키는지를 본다.
  * - **최장 경로와 간선 무게.** 물려받은 표면의 `longestPath` 는 순서를 따라 앞 정점의 값을 뒤로 넘기는 계산이라 `topologicalOrder`
  *   한 번과 호출자가 받아들여진 `addEdge` 로 아는 간선으로 짓는 조합이고(A2), 그렇게 지으면 누구든 정점 수 + 간선 수에 답해

@@ -110,11 +110,6 @@ export class Trie {
     return found;
   }
 
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
-  }
-
   /** 접두사가 끝나는 마디. 없으면 `null`. 걸음은 접두사 길이 + 1 이다. */
   #locate(prefix: string): Node | null {
     let current = this.#root;

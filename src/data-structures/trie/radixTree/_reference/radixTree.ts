@@ -157,11 +157,6 @@ export class RadixTree {
     return found;
   }
 
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
-  }
-
   /** 에지 `child` 의 글자와 `word` 의 `at` 번째부터를 견주어 맞은 글자 수를 돌려준다. */
   #match(child: Node, word: string, at: number): number {
     const length = child.to - child.from;

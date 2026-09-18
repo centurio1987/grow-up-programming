@@ -21,9 +21,6 @@ export interface MultisetContract<T> {
   deleteAll(item: T): number;
   has(item: T): boolean;
   count(item: T): number;
-  min(): T | null;
-  max(): T | null;
-  size(): number;
   toArray(): T[];
 }
 
@@ -94,25 +91,6 @@ export const multisetContract: ContractSpec<MultisetContract<number>, Model> = {
       onModel: (model, arg) => model.filter((value) => value === arg).length,
     },
     {
-      name: "min",
-      arg: () => undefined,
-      onImpl: (impl) => impl.min(),
-      onModel: (model) => (model.length === 0 ? null : (model[0] as number)),
-    },
-    {
-      name: "max",
-      arg: () => undefined,
-      onImpl: (impl) => impl.max(),
-      onModel: (model) =>
-        model.length === 0 ? null : (model[model.length - 1] as number),
-    },
-    {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.length,
-    },
-    {
       name: "toArray",
       arg: () => undefined,
       onImpl: (impl) => impl.toArray(),
@@ -122,20 +100,24 @@ export const multisetContract: ContractSpec<MultisetContract<number>, Model> = {
 
   edges: [
     {
-      name: "빈 컬렉션 — min·max 는 null, size 는 0",
-      steps: [{ op: "min" }, { op: "max" }, { op: "size" }, { op: "toArray" }],
+      name: "빈 컬렉션 — 늘어놓기가 빈 배열이고 아무 원소도 안 담겼다",
+      steps: [
+        { op: "has", arg: 0 },
+        { op: "count", arg: 0 },
+        { op: "toArray" },
+      ],
     },
     {
-      name: "중복 다중도가 size 와 count 에 함께 반영된다",
+      name: "중복 다중도가 늘어놓기와 count 에 함께 반영된다",
       steps: [
         { op: "add", arg: 5 },
         { op: "add", arg: 5 },
         { op: "add", arg: 5 },
         { op: "count", arg: 5 },
-        { op: "size" },
+        { op: "toArray" },
         { op: "delete", arg: 5 },
         { op: "count", arg: 5 },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -145,7 +127,6 @@ export const multisetContract: ContractSpec<MultisetContract<number>, Model> = {
         { op: "delete", arg: 9 },
         { op: "deleteAll", arg: 9 },
         { op: "toArray" },
-        { op: "size" },
       ],
     },
     {
@@ -156,8 +137,6 @@ export const multisetContract: ContractSpec<MultisetContract<number>, Model> = {
         { op: "add", arg: 2 },
         { op: "add", arg: 1 },
         { op: "toArray" },
-        { op: "min" },
-        { op: "max" },
       ],
     },
     {
@@ -169,7 +148,6 @@ export const multisetContract: ContractSpec<MultisetContract<number>, Model> = {
         { op: "add", arg: 8 },
         { op: "deleteAll", arg: 7 },
         { op: "has", arg: 7 },
-        { op: "size" },
         { op: "toArray" },
       ],
     },
@@ -178,7 +156,7 @@ export const multisetContract: ContractSpec<MultisetContract<number>, Model> = {
       steps: [
         { op: "add", arg: 4 },
         { op: "delete", arg: 4 },
-        { op: "min" },
+        { op: "toArray" },
         { op: "add", arg: 6 },
         { op: "add", arg: 2 },
         { op: "toArray" },
@@ -187,23 +165,15 @@ export const multisetContract: ContractSpec<MultisetContract<number>, Model> = {
   ],
 
   /**
-   * 헤더 불변식 절의 셋을 그대로 옮긴 것이다.
+   * 헤더 불변식 절의 하나를 그대로 옮긴 것이다.
    *
    * **B10 에서 한 자리가 갈렸다.** 옛 1번(`toArray()` 가 비내림차순)은 정렬을 읽는 경로가
-   * `toArray()` 하나뿐이라 불변식이 아니고, 계약 표의 의미 열이 이미 그것을 적고 있다
-   * (`src/data-structures/tree/multiset/multiset.ts:29`) — 축1이 참조 모델과 대조한다.
-   * `has(x) === (count(x) > 0)` 도 같은 이유로 빠졌다. `has` 의 의미 열이 그 문장이다.
-   * 그 자리에 경로가 둘인데 아무도 대조하지 않던 것(`min`·`max` 대 양 끝)이 들어왔다.
+   * `toArray()` 하나뿐이라 불변식이 아니고, 계약 표의 의미 열이 이미 그것을 적고 있다 —
+   * 축1이 참조 모델과 대조한다. `has(x) === (count(x) > 0)` 도 같은 이유로 빠졌다. `has` 의
+   * 의미 열이 그 문장이다. **`KAN-040` `S4` 가 다시 둘을 걷어냈다** — 원소 수와 양 끝을 읽는
+   * 행이 계약에서 빠져 두 정합의 경로가 `toArray()` 하나로 줄었다.
    */
   invariants: [
-    {
-      name: "toArray().length 와 size() 가 같다",
-      check: (impl) => {
-        const length = impl.toArray().length;
-        const size = impl.size();
-        return length === size ? null : `toArray ${length} / size ${size}`;
-      },
-    },
     {
       name: "count(x) 는 toArray() 안의 동등 원소 수와 같다",
       check: (impl) => {
@@ -215,21 +185,6 @@ export const multisetContract: ContractSpec<MultisetContract<number>, Model> = {
             return `count(${value})=${counted} 인데 실제 ${actual}`;
         }
         return null;
-      },
-    },
-    {
-      name: "min()·max() 가 toArray() 의 양 끝과 동등하다",
-      check: (impl) => {
-        const items = impl.toArray();
-        if (items.length === 0) {
-          // 빈 컨테이너에서 둘 다 null 인 것은 계약 표가 적은 의미이므로 축1의 몫이다.
-          return null;
-        }
-        const min = impl.min();
-        const max = impl.max();
-        if (min !== items[0]) return `min ${min} 인데 첫 원소 ${items[0]}`;
-        const last = items[items.length - 1];
-        return max === last ? null : `max ${max} 인데 마지막 원소 ${last}`;
       },
     },
   ],
@@ -284,7 +239,7 @@ export const multisetContract: ContractSpec<MultisetContract<number>, Model> = {
       },
     }),
     seededInput({
-      covers: ["has", "count", "min", "max"],
+      covers: ["has", "count"],
       qualifier: "expected",
       bound: "O(log n)",
       adversarial: false,
@@ -295,22 +250,10 @@ export const multisetContract: ContractSpec<MultisetContract<number>, Model> = {
           ctx.step(() => {
             impl.has(probe);
             impl.count(probe);
-            impl.min();
-            impl.max();
           });
         }
       },
     }),
-    {
-      covers: ["size"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      run: (impl, n, ctx) => {
-        for (let i = 0; i < n; i++) impl.add(Math.floor(ctx.rng() * n));
-        for (let i = 0; i < n / 4; i++) ctx.step(() => impl.size());
-      },
-    },
     {
       covers: ["toArray"],
       qualifier: "worst",

@@ -165,33 +165,6 @@ export class OrderStatisticTree<T> {
     return null;
   }
 
-  min(): T | null {
-    let node = this.#root;
-    if (node === null) return null;
-    while (node.left !== null) {
-      this.__cost += 1;
-      node = node.left;
-    }
-    this.__cost += 1;
-    return node.key;
-  }
-
-  max(): T | null {
-    let node = this.#root;
-    if (node === null) return null;
-    while (node.right !== null) {
-      this.__cost += 1;
-      node = node.right;
-    }
-    this.__cost += 1;
-    return node.key;
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return sizeOf(this.#root);
-  }
-
   toArray(): T[] {
     const out: T[] = [];
     const pending: Node<T>[] = [];

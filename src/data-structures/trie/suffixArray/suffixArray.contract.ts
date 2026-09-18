@@ -19,9 +19,8 @@
 
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 여섯 행을 그대로 옮긴 표면. */
+/** 헤더 연산 계약 표의 다섯 행을 그대로 옮긴 표면. */
 export interface SuffixArrayContract {
-  length(): number;
   at(rank: number): number | null;
   rankOf(start: number): number | null;
   range(pattern: string): [number, number];
@@ -58,10 +57,6 @@ export class Rebuildable implements SuffixArrayContract {
     this.#carried += this.#index.__cost ?? 0;
     this.#text = s;
     this.#index = this.#make(s);
-  }
-
-  length(): number {
-    return this.#index.length();
   }
 
   at(rank: number): number | null {
@@ -168,12 +163,6 @@ export const suffixArrayContract: ContractSpec<Rebuildable, Model> = {
       },
     },
     {
-      name: "length",
-      arg: () => undefined,
-      onImpl: (impl) => impl.length(),
-      onModel: (model) => model.s.length,
-    },
-    {
       name: "at",
       arg: (rng) => position(rng),
       onImpl: (impl, arg) => impl.at(arg as number),
@@ -219,7 +208,6 @@ export const suffixArrayContract: ContractSpec<Rebuildable, Model> = {
     {
       name: "빈 문자열 — 순위도 위치도 없고 빈 패턴의 구간도 비어 있다",
       steps: [
-        { op: "length" },
         { op: "at", arg: 0 },
         { op: "rankOf", arg: 0 },
         { op: "range", arg: "" },
@@ -231,7 +219,6 @@ export const suffixArrayContract: ContractSpec<Rebuildable, Model> = {
       name: "한 글자 — 접미사가 하나뿐이고 반복이 없다",
       steps: [
         { op: "reindex", arg: "a" },
-        { op: "length" },
         { op: "at", arg: 0 },
         { op: "at", arg: 1 },
         { op: "rankOf", arg: 0 },
@@ -299,9 +286,9 @@ export const suffixArrayContract: ContractSpec<Rebuildable, Model> = {
       name: "다시 색인하면 앞의 문자열은 남지 않는다",
       steps: [
         { op: "reindex", arg: "banana" },
-        { op: "length" },
+        { op: "at", arg: 5 },
         { op: "reindex", arg: "ab" },
-        { op: "length" },
+        { op: "at", arg: 5 },
         { op: "range", arg: "ana" },
         { op: "longestRepeatedSubstring" },
       ],
@@ -372,9 +359,8 @@ export const suffixArrayContract: ContractSpec<Rebuildable, Model> = {
       },
     },
     {
-      // 셋을 한 걸음에 묶는 이유는 `length` 혼자로는 잴 것이 없기 때문이다 — 계측이
-      // 0 이면 성장률이 정의되지 않는다.
-      covers: ["length", "at", "rankOf"],
+      // 둘을 한 걸음에 묶는다. 둘이 같은 상한·한정자라 갈라 잴 이유가 없다.
+      covers: ["at", "rankOf"],
       qualifier: "worst",
       bound: "O(1)",
       adversarial: false,
@@ -383,7 +369,6 @@ export const suffixArrayContract: ContractSpec<Rebuildable, Model> = {
         for (let i = 0; i < n; i++) {
           const k = Math.floor(ctx.rng() * n);
           ctx.step(() => {
-            impl.length();
             impl.at(k);
             impl.rankOf(k);
           });

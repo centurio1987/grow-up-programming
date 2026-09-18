@@ -70,11 +70,6 @@ export class MinHeap<T> {
     return this.#items.length - 1;
   }
 
-  isEmpty(): boolean {
-    this.__cost += 1;
-    return this.#items.length <= 1;
-  }
-
   /** `at` 의 빈자리에 `moving` 을 넣을 수 있을 때까지 부모를 끌어내린다. */
   #raise(at: number, moving: T): void {
     const items = this.#items;

@@ -101,7 +101,7 @@
 **소급 적용에서 판정 하나가 뒤집혔다 — `tree/multiset` 의 첫 불변식.** 옛 1번은 *"`toArray()`
 는 비교자 기준 비내림차순이다"* 였는데, 정렬 순서를 읽는 연산이 `toArray()` 하나여서 1번에서
 걸린다. 그리고 같은 파일의 계약 표가 `toArray()` 의 의미를 이미 *"비내림차순 배열의 사본"* 으로
-적고 있었다(`src/data-structures/tree/multiset/multiset.ts:29`). **같은 요구가 한 파일 안에 두
+적고 있었다(`src/data-structures/tree/multiset/multiset.ts:38`). **같은 요구가 한 파일 안에 두
 번 있었다** — 규약1이 헤더 한 곳 원칙으로 없애려던 형태 그대로다.
 
 **대신 빠져 있던 정합 하나가 드러났다.** 최소를 읽는 경로는 `min()` 과 `toArray()[0]` 둘인데
@@ -1525,7 +1525,7 @@ Atomics.wait: function           CAS 동작: true
 | 3 | (없음) | `min()`·`max()` 가 `toArray()` 양 끝과 동등하다 |
 
 빠진 둘은 **지운 것이 아니라 축1로 간 것**이다. 정렬 순서는 `toArray()` 의 의미 열이
-(`src/data-structures/tree/multiset/multiset.ts:29`), `has(x) === (count(x) > 0)` 은 `has` 의
+(`src/data-structures/tree/multiset/multiset.ts:38`), `has(x) === (count(x) > 0)` 은 `has` 의
 의미 열이(같은 파일 `:25`) 이미 적고 있어서 참조 모델과의 대조가 판정한다. 축2에 두면 같은
 것을 두 곳에서 검사한다.
 
@@ -4286,7 +4286,7 @@ WBS 는 `tree/merkleTree` 를 「증명 검증을 가진 불변 구조」로 적
 | `src/data-structures/tree/linkCutTree/linkCutTree.ts:23` | 「`disjoint-set/unionFind` 와 갈리는 자리는 `cut` 하나다」 | 이름표 연산(그 집합의 가장 작은 원소) 몫만큼 좁다 — 서로 담지 않는다(불변 사실 315 · `src/data-structures/disjoint-set/unionFind/unionFind.ts:38`) | 헤더 문장 교체. `tools/ord006-inventory.ts:227` 주석의 같은 문장도 함께. `tree/linkCutTree` 는 `KAN-027` scope 밖 |
 | `src/data-structures/tree/linkCutTree/linkCutTree.ts:26` · `:129` | `disjointSetRollback` 이 되돌리는 것은 「마지막에 넣은 간선」 / 「빼는 것을 마지막에 넣은 것부터로 묶으면 되돌릴 수 있는 분리 집합」 | 되돌리는 단위는 **합치기 호출**이다 — 아무것도 안 바꾼 호출도 하나로 세고 던진 호출은 세지 않는다(§「되돌리는 단위를 호출로 정하면 스냅숏이 연산에서 빠진다」 · 불변 사실 319) | 두 문장 교체(위 행과 같은 커밋) |
 | `docs/ORD-006-conventions.md:2590` · `:2605` (T1-06 「`worst` 만 있는 계약의 한정자 근거」) | 배제되는 계열이 「둘뿐」이고 둘 다 불변 구조에 없다 · 「다음 불변 구조(`sparseTable` · `merkleTree`)가 이 문단을 그대로 쓴다」 | 셋째 계열(구성을 첫 질의로 미루기)이 있다(불변 사실 328 — `S17` 착수 전 절 끝에 한 줄 보강함). `tree/merkleTree` 는 불변 구조가 아니었다(불변 사실 343) | 「둘뿐」 문장과 뒤 문장 정정, 보강 한 줄은 본문에 녹이고 지운다 |
-| `src/data-structures/tree/cartesianTree/cartesianTree.ts:96` | 「배제되는 계열은 둘이고 이 계약에는 둘 다 없다」 | 같다(불변 사실 328). `S19` 가 확인했다 — 같은 두 계열 문장을 든 헤더는 이것 하나이고 `trie/suffixArray` · `trie/suffixTree` 헤더에는 그 근거 문단이 없다 | 셋째 계열을 짓고 재서 헤더 보강 — `tree/cartesianTree` 는 scope 밖 |
+| `src/data-structures/tree/cartesianTree/cartesianTree.ts:103` | 「배제되는 계열은 둘이고 이 계약에는 둘 다 없다」 | 같다(불변 사실 328). `S19` 가 확인했다 — 같은 두 계열 문장을 든 헤더는 이것 하나이고 `trie/suffixArray` · `trie/suffixTree` 헤더에는 그 근거 문단이 없다 | 셋째 계열을 짓고 재서 헤더 보강 — `tree/cartesianTree` 는 scope 밖 |
 | `docs/ORD-006-conventions.md:3872` (T4-05 보강 절 끝) | 두 계열로 적힌 헤더가 있는지 「확인 안 함」 · 「다음 불변 구조(`tree/merkleTree`)는 이 셋째 계열을 지어 잰다」 | 확인했다(위 행). `merkleTree` 는 불변 구조가 아니었고 셋째와 첫째 계열을 함께 쟀다(불변 사실 347) | 「확인 안 함」을 결과로 교체 |
 | `docs/ORD-006-conventions.md:3848` (T4-05 멱등 절 끝) | 「`tree/merkleTree`(불변 구조 둘째)가 주입 해시에 법칙을 요구하게 되면 이 절차를 쓴다」 | 불변 구조가 아니었다. 해시의 의무(순수 · 단사)는 상한이 아니라 뜻의 조건이라 절차의 1~3 걸음은 해당이 없고, 4 걸음(어기면 답이 갈리는 수치)만 냈다(불변 사실 348) | 문장 교체 |
 | `docs/ORD-006-runbook.md:900` · `:924` (불변 사실 326 · 328) | 「`tree/merkleTree` 가 인용할 선례」 · 「T1-06 절은 기존 절이라 고치지 않았다 · `merkleTree`(S17)도 이 셋째 계열을 지어 본다」 | T1-06 절에 한 줄 보강했고, `merkleTree` 는 불변 구조가 아니라 `worst` 계열 구분만 인용했다(불변 사실 343 · 347) | 항목 끝에 가리킴 |
@@ -4545,7 +4545,7 @@ fixture 전부에 같은 함수를 부른다.
 **잠정 `basic` 넷이 `invariant` 예상으로 옮겨 갔다** — `singlyLinkedList` · `dynamicArray` ·
 `graphAdjMatrix` · `bitArray`. 넷 다 「세어 둔 수 ↔ 늘어놓은 수」나 「한 자리를 읽는 두 길」
 모양의 후보가 있고, 선례가 그 모양을 불변식으로 판정했다
-(`src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:44` ·
+(`src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:53` ·
 `src/data-structures/linear/unrolledLinkedList/unrolledLinkedList.ts:17`). 반대로 잠정 `invariant` 넷
 (`bloomFilter` · `countMinSketch` · `hyperLogLog` · `minHash`)은 관측 경로가 하나뿐이라 `basic`
 예상이다.
@@ -4558,7 +4558,7 @@ fixture 전부에 같은 함수를 부른다.
 **「연결 마디는 자명한 구현인가」를 규격이 말하지 않고, 선례 둘이 반대로 읽힌다.** 정의
 (`docs/ORD-006-conventions.md:239-241`)는 재균형 · 상각 설계 · 확률 논증 셋만 뺀다.
 `ternarySearchTree` 는 「자식을 표로 들고 있는 노드」를 자명한 구현으로 들었다
-(`src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:86-89`). `deque` 는 「양쪽 끝을
+(`src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:92-95`). `deque` 는 「양쪽 끝을
 모두 상수 비용으로 두려면 상각 설계가 필요하다」로 `complexity` 를 매겼는데
 (`src/data-structures/linear/deque/deque.ts:35-38`), 양방향 마디는 네 갱신 행을 상각 없이 최악
 상수에 한다.
@@ -4611,7 +4611,7 @@ id 모형을 정할 때 이 자리를 함께 닫는다.
 - **정본은 `trie/ternarySearchTree` 에 둔다 — 임시다.** 세 이름이 다 구현 이름이라 불변 사실 64
   의 임시 지정이다. 공개 표면이 셋 다 같아서 64 의 기준(표면에 표현 누출이 없는 이름)이 가르지
   못한다. 스위트 객체는 이미 그쪽에 서 있다
-  (`src/data-structures/trie/ternarySearchTree/ternarySearchTree.contract.ts:53-57`). `trie` 로
+  (`src/data-structures/trie/ternarySearchTree/ternarySearchTree.contract.ts:52-56`). `trie` 로
   옮기면 카드 범위 밖 파일(`ternarySearchTree` 의 스위트 · 테스트, `runContract.test.ts` import,
   `tools/emit-vectors.ts` 등록)이 움직이고 그 줄을 가리키는 인용이 밀린다(불변 사실 81).
   **B16 표의 「이 카드가 계약의 정본이 된다」(`docs/ORD-006-p4-triage.md:50`)와 어긋나므로
@@ -4815,7 +4815,7 @@ id 모형을 정할 때 이 자리를 함께 닫는다.
   「사이클을 만드는 간선은 거부한다」가 축1로 관측된다.
 - **위상 순서는 알고리즘이 아니라 관측 연산으로 들어온다.** 의미를 「모든 간선 u→v 에서 u 가
   앞」으로 적고 순서를 하나로 정하지 않는다. 정하면 그 순서를 만드는 방법까지 정한다
-  (`src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:73-75` 와 같은 이유).
+  (`src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:79-81` 와 같은 이유).
 - 알고리즘 트랙의 `topologicalSort` 는 주어진 그래프 하나를 푸는 문제다. 여기는 간선이 늘어나는
   동안 비순환을 지키는 계약이라 겹치지 않는다.
 - `longestPath` 는 위상 순서에서 유도되는 알고리즘이고 배제하는 구현이 없다. **S11 이 뺐다**
@@ -5017,7 +5017,7 @@ S1 의 예상(`graphAdjList` 는 `basic` 또는 `invariant`, `graphAdjMatrix` �
 S1 이 「압축 표현이 `O(m)` 을 지키는지는 구현이 가른다」를 **논증으로만** 적고 S3 에 실측을 넘겼다
 (「A군 17종 판정」 ②). 돌렸다. 정본(`src/data-structures/trie/radixTree/_reference/radixTree.ts`)은 에지를
 이미 담긴 문자열의 구간으로 들어 쪼개기 · 합치기를 수 몇 개로 끝내고
-(`src/data-structures/trie/radixTree/_reference/radixTree.ts:185`, `:201`), 결함 fixture
+(`src/data-structures/trie/radixTree/_reference/radixTree.ts:180`, `:201`), 결함 fixture
 (`src/data-structures/_contract/_fixtures/copySplitRadixTree.ts`)는 두 자리만 달리해 꼬리를 새 문자열로
 만든다(`src/data-structures/_contract/_fixtures/copySplitRadixTree.ts:138`).
 
@@ -5030,7 +5030,7 @@ S1 이 「압축 표현이 `O(m)` 을 지키는지는 구현이 가른다」를 
 | 곁에 긴 낱말 · delete O(1) | 4 → 4 | **걸림** 1,027 → 4,099 (r = 3.99) |
 
 **논증은 섰다. 그리고 정본 스위트가 그것을 못 잡는다.** 스위트의 낱말은 길이 8 로 고정이다
-(`src/data-structures/trie/ternarySearchTree/ternarySearchTree.contract.ts:39`) — 규약2 시나리오 규칙 3 이
+(`src/data-structures/trie/ternarySearchTree/ternarySearchTree.contract.ts:38`) — 규약2 시나리오 규칙 3 이
 m 과 k 를 상수로 누르라고 해서 그렇게 했고, 그 누름이 **꼬리 길이까지 함께 눌렀다.** 결함이 사는
 파라미터(곁에 선 다른 낱말의 길이)가 스위트가 누른 파라미터와 같은 양에 묶여 있었던 것이다.
 
@@ -5061,7 +5061,7 @@ B15 는 **약한** 기법(자리마다 옆걸음이 드는 삼분 표현)이 계
 ### 전환 이름이 가리키는 기법이 자명한 구현 그 자체일 수 있다 (S2 · S3)
 
 `trie/trie` 의 자식 표 마디가 `ternarySearchTree` 헤더가 등급 근거로 든 구현이다
-(`src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:85-89`). `trie/radixTree` 의 접는 기법은
+(`src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:91-95`). `trie/radixTree` 의 접는 기법은
 그보다 손이 가는데 등급이 같다 — 등급은 달성하는 자명한 구현이 **하나라도 있는가**를 묻는다(불변 사실 55).
 
 **정본의 자식 표는 언어의 `Map` 이지만 등급 근거는 거기 기대지 않는다.** 코드 단위가 $\sigma$ 가짓수로
@@ -5119,7 +5119,7 @@ B15 는 **약한** 기법(자리마다 옆걸음이 드는 삼분 표현)이 계
 ### 곁에 긴 낱말 둘을 정본 스위트에 넣었다 (S20 확정)
 
 「A군 트라이 전환 둘」이 사람 결정으로 넘긴 자리다. 넣었다 — 시나리오 추가뿐이고 계약 표 · 헤더 · 정본은
-그대로다(`src/data-structures/trie/ternarySearchTree/ternarySearchTree.contract.ts:283`). 성격 전환 둘은 같은
+그대로다(`src/data-structures/trie/ternarySearchTree/ternarySearchTree.contract.ts:254`). 성격 전환 둘은 같은
 객체를 쓰므로 자동으로 받는다.
 
 | 시나리오 (1,024 → 4,096) | 삼분 정본 | 자리마다 표 정본 | 접힌 에지 정본 | 꼬리를 새로 만드는 구현 |
@@ -5548,7 +5548,7 @@ u 로 올 수 있는 정점과 그 정점들의 들어오는 간선. 차수 둘�
 ### 순서를 정하지 않는 반환값 — 껍데기가 판정으로 바꾼다 (S11 확정)
 
 `topologicalOrder()` 의 행은 모든 간선 방향을 지키는 순서 **하나**를 요구하고 어느 것인지 정하지 않는다
-(`src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:73-75` 와 같은 이유). 참조 모델이 같은 배열을 낼 수 없고 하네스의
+(`src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:79-81` 와 같은 이유). 참조 모델이 같은 배열을 낼 수 없고 하네스의
 비교는 배열을 원소마다 본다(`src/data-structures/_contract/runContract.ts:349-356`). 정렬로 접는 `neighbors` 의 방법
 (`graphAdjList`)은 여기서 안 된다 — 정렬하면 간선 방향이 지워진다.
 
@@ -6430,7 +6430,7 @@ S1 예상과 같다. 이름 `minHash` 는 기법의 이름이라 임시다(불�
 
 | # | 구조 · 연산 | 지금 | 결과 | 줄 | 근거 | 뒤집힘 | 등급 재판정 |
 |---|---|---|---|---|---|---|---|
-| 1 | `trie/trie` 마디 인터페이스 · private 필드 · 생성자 | 제거 | 제거 | A1 | 자식 표 · 끝 표시 · 뿌리는 담는 모양(`src/data-structures/trie/trie/trie.ts:48-50`) | 아니오 | 아니오 |
+| 1 | `trie/trie` 마디 인터페이스 · private 필드 · 생성자 | 제거 | 제거 | A1 | 자식 표 · 끝 표시 · 뿌리는 담는 모양(`src/data-structures/trie/trie/trie.ts:47-48`) | 아니오 | 아니오 |
 | 2 | `trie/radixTree` 최장 접두사 매칭 | 없음 | 없음 | A2 · A4 · A5 | 접두사 질의를 거듭 불러 조합하고 자식 표 트라이도 같은 비용이라 떨어지는 계열이 없으며 반례가 기대지 않는다(`docs/ORD-006-conventions.md:4600-4602`) | 아니오 | 아니오 |
 | 3 | `linear/singlyLinkedList` 마디 클래스 · 돌려주던 마디 · private 필드 | 제거 | 제거 | A1 | 받는 연산 없는 핸들은 담는 모양의 누출 | 아니오 | 아니오 |
 | 4 | `singlyLinkedList.find(value)` | 제거 | 제거 | A2 · A4 · A5 | `toArray` 로 조합 · 떨어지는 계열 없음 · `doublyLinkedList` · `dynamicArray` 와의 반례가 기대지 않음 | 근거 교체(`src/data-structures/linear/singlyLinkedList/singlyLinkedList.ts:19-22`) | 아니오 |
@@ -6539,7 +6539,7 @@ S1 예상과 같다. 이름 `minHash` 는 기법의 이름이라 임시다(불�
 | `graphAdjList` `vertexCount` · `edgeCount` · `graphAdjMatrix.vertexCount` · `dag` `vertexCount` · `edgeCount`(**`KAN-040` `S3` 이 다섯을 뺐다** — `src/data-structures/graph-repr/graphAdjList/graphAdjList.ts:26` · `src/data-structures/graph-repr/graphAdjMatrix/graphAdjMatrix.ts:23` · `src/data-structures/graph-repr/dag/dag.ts:26`) | 반환값 이력 · `neighbors` 로 조합 → 편의 연산 | `graphAdjList` 불변식 1 · `dag` 불변식이 경로로 쓴다 |
 | `bitArray.size`(**`KAN-040` `S3` 이 뺐다** — `src/data-structures/linear/bitArray/bitArray.ts:55`) | 생성 인자 → 편의 연산 | 없음 |
 | KAN-027 `pieceTable.length` · `skipList.size`(`tree/treap` 표) | 편의 연산 | `pieceTable` 불변식 1 이 경로로 쓴다 |
-| **넣은 근거가 「배제하는 것이 없다」인 순서 집합의 `min` · `max` · `range`**(`src/data-structures/tree/treap/treap.ts:117` · `src/data-structures/tree/redBlackTree/redBlackTree.ts:63` · `src/data-structures/tree/binarySearchTree/binarySearchTree.ts:87` · `src/data-structures/tree/splayTree/splayTree.ts:85` · `src/data-structures/tree/scapegoatTree/scapegoatTree.ts:84` · `src/data-structures/tree/avlTree/avlTree.ts:77` · `src/data-structures/tree/bPlusTree/bPlusTree.ts:85` · KAN-027 `skipList`) | A6 ① — 배제가 없다는 사실은 **넣는** 근거가 못 된다. `toArray` 로 조합되므로 A5 를 대야 하고, 헤더가 적은 「전순서 목적이 이 셋으로만 관측된다」가 A5 의 반례로 서는지는 대조하지 않았다 | 없음(불변식 경로 여부는 확인 안 함) |
+| **넣은 근거가 「배제하는 것이 없다」인 순서 집합의 `min` · `max` · `range`**(`src/data-structures/tree/treap/treap.ts:118` · `src/data-structures/tree/redBlackTree/redBlackTree.ts:71` · `src/data-structures/tree/binarySearchTree/binarySearchTree.ts:90` · `src/data-structures/tree/splayTree/splayTree.ts:91` · `src/data-structures/tree/scapegoatTree/scapegoatTree.ts:84` · `src/data-structures/tree/avlTree/avlTree.ts:85` · `src/data-structures/tree/bPlusTree/bPlusTree.ts:93` · KAN-027 `skipList`) | A6 ① — 배제가 없다는 사실은 **넣는** 근거가 못 된다. `toArray` 로 조합되므로 A5 를 대야 하고, 헤더가 적은 「전순서 목적이 이 셋으로만 관측된다」가 A5 의 반례로 서는지는 대조하지 않았다 | 없음(불변식 경로 여부는 확인 안 함) |
 
 **보완 작업.** 무엇 — 원칙 A 를 69 종 계약 전부의 요약 관찰과 「배제 없음」으로 넣거나 남긴 행에 대는 일괄 판정 · 누가 — 메인 세션이
 새 카드로 · 언제 — KAN-026 · KAN-027 병합 뒤, `KAN-036`(가이드 66 편)이 연산 표면을 서술하기 전. **`S23` · `S27` 은 이 표의 행을 고치지
@@ -6616,7 +6616,7 @@ S1 예상과 같다. 이름 `minHash` 는 기법의 이름이라 임시다(불�
 | `probabilistic/countMinSketch` | 구현 — 생성자에서(`src/data-structures/probabilistic/countMinSketch/_reference/countMinSketch.ts:77-78`) | 적지 않음(`src/data-structures/probabilistic/countMinSketch/countMinSketch.ts:51-53`) | 스케치 하나에 넣지 않은 원소 64/δ 개 · 넘은 수 ≤ 128 | 123 | 블룸과 같음 — 전제 미성립 |
 | `probabilistic/hyperLogLog` | 구현 — 모듈을 읽을 때 한 번(`src/data-structures/probabilistic/hyperLogLog/_reference/hyperLogLog.ts:48-50`) | **실행**(`src/data-structures/probabilistic/hyperLogLog/hyperLogLog.ts:60-66`) | 같은 실행의 새 인스턴스 ⌈16/δ⌉ 개 · 벗어난 수 ≤ 48 | 69 | e^{−16} · 인스턴스마다 독립 — **계약의 공유 범위와 모순** |
 | `probabilistic/minHash` | 구현 — 모듈을 읽을 때(`src/data-structures/probabilistic/minHash/_reference/minHash.ts:53-54`) | **실행**(`src/data-structures/probabilistic/minHash/minHash.ts:61-70`) | 같은 실행의 새 짝 ⌈16/δ⌉ 개 · 벗어난 짝 ≤ 48 | 78 | e^{−16} · 짝마다 독립 — 모순 |
-| `tree/treap`(KAN-027) | 구현 — 넣기마다 우선순위(`src/data-structures/tree/treap/_reference/treap.ts:245`) | 적지 않음 | 축3 seed 다섯(입력 seed) — seed 마다 새 인스턴스라 구현 무작위도 다시 뽑힌다 · 통계는 시퀀스 평균의 중앙값 | 시나리오마다 크기 셋 × 다섯 | 없음 — 허용 폭 ±30%, 20 · 40 회 통과는 [경험] |
+| `tree/treap`(KAN-027) | 구현 — 넣기마다 우선순위(`src/data-structures/tree/treap/_reference/treap.ts:236`) | 적지 않음 | 축3 seed 다섯(입력 seed) — seed 마다 새 인스턴스라 구현 무작위도 다시 뽑힌다 · 통계는 시퀀스 평균의 중앙값 | 시나리오마다 크기 셋 × 다섯 | 없음 — 허용 폭 ±30%, 20 · 40 회 통과는 [경험] |
 | `probabilistic/skipList`(KAN-027) | 구현 — 층 동전 | 적지 않음(KAN-027 `skipList.ts` 23–26 은 「호출자가 알 수 없다」만 적음) | `tree/treap` 계약 객체 그대로 | 같음 | 같음 |
 
 ### 적용표 — 구조별 어기는 줄 · 고칠 방향 · 시행 수와 한계
@@ -6799,7 +6799,7 @@ KAN-027 이 쓰지 않고 반납한 `380–389`(검토 #11 승인)를 **앞으�
 | 5 | B군 마감(KAN-027 S19) · `:4286` | `src/data-structures/tree/linkCutTree/linkCutTree.ts:23` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | `tree/linkCutTree` · `tools/ord006-inventory.ts` 는 이 카드 scope 밖 — 메인 세션이 `S29` scope 에 더한 뒤 |
 | 6 | B군 마감(KAN-027 S19) · `:4287` | `src/data-structures/tree/linkCutTree/linkCutTree.ts:26` · `:129` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | `tree/linkCutTree` · `tools/ord006-inventory.ts` 는 이 카드 scope 밖 — 메인 세션이 `S29` scope 에 더한 뒤 |
 | 7 | B군 마감(KAN-027 S19) · `:4288` | `docs/ORD-006-conventions.md:2590` · `:2605` (T1-06 「`worst` 만 있는 계약의 한정자 근거」) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
-| 8 | B군 마감(KAN-027 S19) · `:4289` | `src/data-structures/tree/cartesianTree/cartesianTree.ts:96` | 결정 | 사람 결정 뒤 | 셋째 계열 fixture 를 짓고 재는 실측 일(scope 밖) — 추천: main 백로그 새 카드 |
+| 8 | B군 마감(KAN-027 S19) · `:4289` | `src/data-structures/tree/cartesianTree/cartesianTree.ts:103` | 결정 | 사람 결정 뒤 | 셋째 계열 fixture 를 짓고 재는 실측 일(scope 밖) — 추천: main 백로그 새 카드 |
 | 9 | B군 마감(KAN-027 S19) · `:4290` | `docs/ORD-006-conventions.md:3872` (T4-05 보강 절 끝) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
 | 10 | B군 마감(KAN-027 S19) · `:4291` | `docs/ORD-006-conventions.md:3848` (T4-05 멱등 절 끝) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
 | 11 | B군 마감(KAN-027 S19) · `:4292` | `docs/ORD-006-runbook.md:900` · `:924` (불변 사실 326 · 328) | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 |  |
@@ -6940,7 +6940,7 @@ KAN-027 이 쓰지 않고 반납한 `380–389`(검토 #11 승인)를 **앞으�
 | 146 | 이 배치가 찾은 것 | `docs/ORD-006-conventions.md:6480` · `:6482` (원칙 A 판정표 ① 43 「열거 A3」 · 45 「A2」) | 둔다 | — | 결과 같음 — 줄 읽기를 아래와 헤더에 적었다 |
 | 147 | 이 배치가 찾은 것 | 원칙 A · B 표의 KAN-027 파일 줄 인용(`7f1e9ce` 기준 — `skipList.ts` 92–98 · 23–26 · 17–22 등) | 둔다 | — | 기준 커밋이 표에 적혀 있다 — 지금 자리는 헤더 절 이름으로 찾는다 |
 | 148 | 이 배치가 찾은 것 | `docs/ORD-006-conventions.md:6635` (원칙 B 적용표 treap 행 「예측한다 — 실행하지 않았다」) | 둔다 | — | 아래 「원칙 B 적용」이 실행 결과를 적는다 |
-| 149 | 이 배치가 찾은 것 | `src/data-structures/tree/treap/treap-guide.mdx:385` (`treap.ts:41` 인용의 뜻) · 「여덟 시나리오」 서술 · `src/data-structures/tree/orderStatisticTree/orderStatisticTree-guide.mdx:657` | KAN-036 | 가이드 전개 때(편마다) | 인용 줄은 그대로이고 뜻이 아홉째 탐침으로 바뀌었다 |
+| 149 | 이 배치가 찾은 것 | `src/data-structures/tree/treap/treap-guide.mdx:385` (`treap.ts:41` 인용의 뜻) · 「여덟 시나리오」 서술 · `src/data-structures/tree/orderStatisticTree/orderStatisticTree-guide.mdx:635` | KAN-036 | 가이드 전개 때(편마다) | 인용 줄은 그대로이고 뜻이 아홉째 탐침으로 바뀌었다 |
 | 150 | 이 배치가 찾은 것 | `src/data-structures/disjoint-set/disjointSetRollback/disjointSetRollback.ts` 「결재가 바뀌면」 | 고침 S27 | 이 배치(끝남) | 판정표 ② 판정으로 닫음 |
 
 **담당별 행 수(150 행).** `026·S27` 42 · `027·S29` 39 · 둔다 27 · 메인 10 · `026·S24` 6 · `026·S23` 5 · `KAN-042` 5 · 고침 S26 5 · `KAN-036` 4 ·
@@ -9530,10 +9530,10 @@ H2 는 「공유 범위가 실행인 계약은 H1 의 워커 시행을 쓴다」
 | `src/data-structures/tree/treap/treap-guide.mdx:77` · `src/data-structures/tree/treap/treap-guide.mdx:320` | 「`expected` 통계는 seed 다섯이 낸 시퀀스 평균의 중앙값」 · 「다섯 번 재서 가운데를 취한다」 | 반복 단위 열의 평균의 중앙값이고 축이 둘이다 |
 | `src/data-structures/tree/treap/treap-guide.mdx:143` | 「적대적 시나리오는 seed 다섯이 전부 같은 값을 낸다」 | 값이 같은 것이 아니라 **입력이 같다** — 시행 열이 인스턴스를 새로 세운다 |
 | `src/data-structures/tree/treap/treap-guide.mdx:385` | 「무작위성이 구현 안에 있으므로 하네스가 그것을 흔들지 못한다」 | **흔든다** — 시행 축이 같은 입력에서 인스턴스를 새로 세운다(담당 대장 149 행이 이미 이 줄을 든다) |
-| `src/data-structures/tree/orderStatisticTree/orderStatisticTree-guide.mdx:83` · `src/data-structures/tree/orderStatisticTree/orderStatisticTree-guide.mdx:617` | 「seed 다섯 개를 돌고 통계는 seed 별 시퀀스 평균의 중앙값」 | 같다 |
+| `src/data-structures/tree/orderStatisticTree/orderStatisticTree-guide.mdx:83` · `src/data-structures/tree/orderStatisticTree/orderStatisticTree-guide.mdx:595` | 「seed 다섯 개를 돌고 통계는 seed 별 시퀀스 평균의 중앙값」 | 같다 |
 | `src/data-structures/hash/hashSet/hashSet-guide.mdx:256` · `src/data-structures/hash/hashMapChaining/hashMapChaining-guide.mdx:175` | 「seed 다섯의 시퀀스 평균 다섯 중 가운데 값」 · 「표본이 다섯뿐」 | 열이다. 「중앙값이 꼬리를 못 본다」는 그대로 선다 |
 
-**고칠 것이 아니다.** `src/data-structures/tree/cartesianTree/cartesianTree.ts:109` · `_contract/runContract.cartesianTree.test.ts` 의
+**고칠 것이 아니다.** `src/data-structures/tree/cartesianTree/cartesianTree.ts:116` · `_contract/runContract.cartesianTree.test.ts` 의
 「seed 다섯」과 `src/data-structures/tree/scapegoatTree/scapegoatTree-guide.mdx:239` 는 **선언을 안 단 시나리오**(합성 자기시험 ·
 `expected` 가 없는 계약)를 말하므로 옛 경로 그대로이고 문장이 그대로 맞다.
 
@@ -10434,3 +10434,169 @@ A5′-2 둘째 항이 「**판정의 결론을 목적 문단 안에 적으면** 
 3. **`KAN-036`** — 가이드 130 자리(위 9).
 4. **사람 결정으로 남는 것** — 판정이 서지 않는 넷과 목적 항목 안의 판정 낱말 여섯 자리(앞 절 8 · 5).
    이 배치는 **새로 만들지 않는 형식**을 세웠을 뿐 이미 있는 여섯을 옮기지 않았다.
+
+## 제거 29 를 트리 · 트라이 · 힙 · 해시 · 확률 · 구간 질의에 적용했다 — 계약 25 · 갈라 센 두 물음 (KAN-040-M5V53M S4 — 2026-09-18)
+
+> **이 절도 적용까지다.** 등급 재판정과 그에 딸린 네 자리는 `S5` 다. 다만 앞 절과 달리
+> **이 배치는 등급 재판정 입력을 하나도 내지 않는다** — 불변식 절이 빈 계약이 하나도 없다(아래 3).
+> 판정은 한 행도 다시 하지 않았다. 입력은 `S2` 의 판정 그대로이고 절차는 앞 절 2 그대로다.
+
+### 1. 재수출이 계획보다 많았다 — 실측 열아홉, 대상 밖이 받는 자리는 0
+
+배치 계획이 든 재수출 쌍은 둘(건너뛰기 줄 ↔ 트립 · 열린 주소 해시 ↔ 사슬 해시)이었다. 저장소
+전체를 세면 **`ContractSpec` 을 남에게서 받아 이름만 바꾸는 파일이 열아홉**이고, 이 배치 대상에
+걸리는 것이 넷이다.
+
+| 스위트 정본 | 같은 객체로 받는 쪽 | 대상인가 |
+|---|---|---|
+| `hash/hashMapChaining` | `hash/hashMapOpenAddressing` | 둘 다 |
+| `heap/priorityQueue` | `heap/daryHeap` · `heap/maxHeap` · `heap/minHeap` | 넷 다 |
+| `tree/redBlackTree` | `tree/avlTree` · `tree/bPlusTree` · `tree/bTree` · `tree/twoThreeTree` | 다섯 다 |
+| `trie/ternarySearchTree` | `trie/trie` · `trie/radixTree` | 셋 다 |
+| `tree/treap` | `probabilistic/skipList` | 둘 다 |
+
+**받는 쪽이 대상 밖인 자리는 없다.** 있었다면 한쪽 판정이 다른 쪽 계약을 소리 없이 바꿨을 것이고,
+그것이 판정표 ③ 이 이 일을 한 카드로 미룬 까닭이다. **염소 트리가 그 위험의 실물이다** — 정렬 집합
+아홉 가운데 혼자 크기 읽기를 유지했는데(`S2` 소절 6 ①), 그 계약은 제 스위트를 따로 들고 있어
+적흑 트리 쪽 삭제가 닿지 않았다. 재수출이었다면 유지 판정이 그 자리에서 깨졌다.
+
+**재수출은 파일을 안 고쳐도 판정을 움직인다.** 받는 쪽 여덟(열린 주소 해시 · 힙 셋 · 정렬 집합 넷 ·
+트라이 둘 · 건너뛰기 줄)은 스위트를 한 줄도 안 고쳤는데 계약 표면과 불변식 수가 바뀌었다. 계약 정합
+게이트가 그 어긋남을 먼저 잡아 준다 — 헤더를 안 고치면 「불변식 수가 갈린다 · 축3 시나리오에 안
+덮인다」로 걸린다.
+
+### 2. 배치3 이 넘긴 둘을 닫았다
+
+**(가) 우선순위 큐의 판별 문단이 스택을 가리키던 자리.** 그 헤더의 불변식 판별 둘째 후보가
+「`isEmpty()` 는 `size() === 0` 과 같다」였고 그 줄이 「(`linear/stack` 과 같은 자리)」로 스택을
+가리켰다. **그 행이 이 배치에서 사라지므로 후보 자체가 서지 않는다** — 후보를 둘에서 하나로 줄이고,
+사라진 후보가 무엇이었고 왜 안 서는지를 남겼다. 가리키던 이웃 이름은 그 줄과 함께 없어졌다. 같은
+모양의 둘째 후보가 나머지 셋(d진 · 최대 · 최소 힙) 헤더에도 있어 넷을 같은 문장으로 맞췄다.
+
+**(나) 「경로가 사라지는가」와 「불변식 절이 비는가」를 갈라 셌다.** 앞 절 4 가 낸 물음이고, 답은
+아래다. 세는 모수는 `S2` 소절 10 이 든 등급 재판정 대상이다.
+
+| 물음 | 예 | 아니오 |
+|---|---|---|
+| 뺀 행을 경로로 쓰는 불변식이 있는가(= 경로가 사라지는가) | **12** | — |
+| 그래서 불변식 절이 **비는가** | **5**(`S3` 몫 — 비순환 그래프 · 단방향 리스트 · 양방향 리스트 · 간극 버퍼 · 조각 표) | **7**(`S3` 몫 셋 — 그래프 목록 · 동적 배열 · XOR 리스트 · `S4` 몫 넷 — 트라이 · 기수 트리 · 삼진 탐색 트리 · 이진 탐색 트리) |
+
+**모수가 열하나가 아니라 열둘이다 — `S2` 의 분류에 한 자리 오류가 있었다.** 그 절은
+`tree/binarySearchTree` 를 「연산 집합은 바뀌나 경로는 안 사라지는 것 일곱」에 넣고 사유를 「불변식
+절이 제거되는 연산을 안 부른다」로 적었는데, **그 계약의 불변식 1이 바로 그 행을 경로로 쓴다**
+(「`toArray().length === size()`」). 결론(등급이 안 움직인다)은 같지만 사유가 다르다 — 경로는
+사라지고 절이 안 빈다. 같은 표의 `graph-repr/graphAdjMatrix` 는 사유까지 맞았다(`S3` 실측).
+
+**그러므로 `S5` 가 등급을 다시 판정할 대상은 다섯이고 나머지 일곱은 확인만 하면 된다.** 다섯은 전부
+`S3` 이 냈고 이 배치는 0 이다. 트라이 셋과 이진 탐색 트리는 등급이 `invariant` 인데 **남는 불변식이
+있어** 그 자리에 그대로 선다.
+
+### 3. 불변식 판별을 다시 돌린 결과 — 실측(25 계약)
+
+| 무엇 | 계약 |
+|---|---|
+| 절이 **비었다** | **없다** |
+| **줄었으나 남았다** | 사슬 해시 3→2 · 열린 주소 해시 3→2 · 해시 집합 2→1 · 적흑 · 에이브이엘 · B · B+ · 2-3 트리 4→3 · 이진 탐색 트리 4→3 · 신장 트리 4→3 · 트립 4→3 · 건너뛰기 줄 4→3 · 다중집합 3→1 · 순위 트리 5→3 · 트라이 · 기수 트리 · 삼진 탐색 트리 2→1 · 구간 트리 2→1 — **열여덟** |
+| 절이 **원래 「없다」이고 그대로다** | 힙 넷 · 카르테시안 트리 · 접미사 배열 · 접미사 트리 — **일곱**(판별 설명만 고쳤다) |
+
+사라진 불변식은 세 모양뿐이다 — **「세어 둔 수 ↔ 늘어놓은 수」**(열다섯), **「양 끝 ↔ 늘어놓기의 양
+끝」**(둘 — 다중집합 · 순위 트리), **「저장 수 ↔ 전 범위 질의의 결과 수」**(하나 — 구간 트리). 셋 다
+두 경로 가운데 한쪽이 표면에서 통째로 사라져 첫 물음에서 걸린다.
+
+### 4. 축이 잡던 것이 줄어든 자리 넷 — 전부 시험으로 박았다
+
+**조용히 줄어든 검사는 줄어든 줄 모른다**(앞 절 5 가 세운 규율).
+
+| 자리 | 전 | 뒤 |
+|---|---|---|
+| `tree/binarySearchTree` 의 크기를 매번 훑어 세는 결함 fixture | 축3이 크기 행 하나에서 잡았다 | **어느 축도 안 잡는다** — 그 계약에서 상한이 상수인 유일한 행이었고, 답은 원래 옳아 축1·축2는 통과시킨다 |
+| `range-query/intervalTree` 의 시작점만 키로 잡는 결함 | 축2의 「저장 수 ↔ 전 범위 질의」가 잡았다 | **그 불변식이 사라져 축1이 잡는다** |
+| `tree/multiset` 의 최소를 캐시하고 갱신을 빠뜨리는 결함 | 축2의 「양 끝」이 잡았다(B10 이 그 불변식을 넣은 근거가 이 구현이었다) | **어느 축도 안 잡는다** — 낡은 캐시를 읽는 공개 연산이 계약에 없다 |
+| 정렬 집합 포섭 사슬의 **두 방향** | 좁은 쪽 정본 → 염소 트리 계약, 넓은 쪽 정본 → 염소 트리 계약을 실측했다 | **잴 수 없다** — 염소 트리만 크기 읽기가 남아 연산 집합이 한 행 넓어졌다 |
+
+**넷째가 이 배치에서 가장 큰 파급이다.** 그 자리는 「좁은 쪽 정본은 갱신 행에서, 넓은 쪽 정본은 조회
+행에서 걸린다」는 **비대칭**으로 염소 트리 계약이 둘 사이에 실재함을 보이고 있었다. 이제 그 계약으로
+들어가는 두 방향이 막혔고, 남은 대체 읽기(넓은 쪽 정본 → 좁은 쪽 계약)는 조회와 갱신 둘 다에서
+걸려 **비대칭을 주지 않는다.** 포섭 논증 자체는 그대로다 — 한 행이 더 있는 계약을 만족하면 그 행을
+뺀 계약도 만족한다. 막힌 것을 연산 집합으로 고정하는 시험을 자기시험에 넣었다.
+
+### 5. 순서 질의 제거가 나는 유일한 자리 둘 — 근거와 파급
+
+`S2` 소절 6 ③ 과 소절 7 이 적은 대로다. 다중집합의 목적은 「원소의 중복 다중도와 정렬 순서를 동시에
+유지하면서, **삽입·삭제·다중도 조회**를 원소 수의 로그 비용으로 제공하는 것」이라 적는 일 셋에 끝점이
+없고, 순위 트리는 「담기·지우기·다중도 조회에 더해 **순위와 위치를 서로 바꾸는 두 연산**을 … 제공하는
+것 … **그 한 쌍이 이 계약이 `tree/multiset` 에 더하는 전부다**」라 더하는 것이 그 한 쌍뿐이라고
+스스로 적는다. 파급은 셋이다.
+
+1. **두 계약의 불변식에서 양 끝 정합이 통째로 사라졌다**(다중집합 3→1 · 순위 트리 5→3).
+2. 조회 시나리오가 네 호출(`has` · `count` · `min` · `max`)에서 두 호출로 줄었고, 시나리오 이름 키가
+   따라 바뀌어 하네스 자기시험의 기대 객체가 움직였다.
+3. 순위 트리 헤더가 다중집합을 「아홉 행이 같고 둘이 더 있다」로 인용하던 자리를 **일곱 행**으로
+   고쳤다. 포섭 판정은 그대로다.
+
+### 6. 정본의 내부 필드까지 없앤 자리 — 구성 비용이 실제로 줄었다
+
+`tree/cartesianTree` 의 크기 읽기가 상수이려면 마디마다 부분트리 크기를 들고 있어야 했고, 그 값을
+채우는 **후위 순회 한 바퀴**가 구성 안에 있었다. 행이 빠지면서 필드와 그 바퀴가 함께 사라져 구성
+비용이 줄었다. 헤더 · 결함 fixture 주석 · 자기시험에 박힌 수치를 전부 **다시 실행해** 뽑았다.
+
+| 무엇 | 전 | 뒤 |
+|---|---|---|
+| 정본 구성(무작위 / 사슬) | 5,109 · 20,466 · 81,899 / 4,095 · 16,383 · 65,535 | 3,061 · 12,274 · 49,131 / 2,047 · 8,191 · 32,767 |
+| 지연 구성 결함의 훑기(무작위 / 사슬) | 5,112 · 20,469 · 81,902 / 4,098 · 16,386 · 65,538 | 3,063 · 12,276 · 49,133 / 2,049 · 8,193 · 32,769 |
+| 같은 결함의 호출 평균(무작위 / 사슬) | 8.19 · 8.16 · 8.13 / 7.51 · 7.50 · 7.50 | 5.19 · 5.16 · 5.13 / 4.51 · 4.50 · 4.50 |
+| 길 복사 결함의 훑기(무작위 / 사슬) | 18 · 22 · 24 / 1,026 · 4,099 · 16,386 | 17 · 21 · 23 / 1,025 · 4,098 · 16,385 |
+
+**판정(통과·실패 모양)은 한 자리도 안 바뀌었다.** 세 결함이 겨누던 자리가 그대로다.
+
+### 7. 재수출이 시나리오 번호를 민 자리
+
+트립 스위트에서 크기 시나리오가 일곱째라 그 뒤 둘의 차례가 하나씩 당겨졌다 — `S28` 의 입력 고정
+탐침이 아홉째에서 **여덟째**로, `S22` 가 더한 무작위 차례 지우기가 여덟째에서 **일곱째**로 갔다. 그
+차례를 이름으로 부르던 자리가 두 계약 헤더 · 두 스위트 · 두 실행부 · 하네스 자기시험 둘에 걸쳐
+스물한 군데였고 전수로 고쳤다. **값 검증 실행은 그 시나리오를 첨자로 집고 있어** 첨자도 함께
+내렸다 — 이름이 아니라 자리로 가리키는 코드는 게이트가 안 잡으므로 여기 적어 둔다.
+
+### 8. 가이드 — 실행 값을 담는 형식 하나가 걸렸다
+
+가이드 본문은 이 배치의 다섯 자리가 아니다. 다만 **정본에서 코드를 추출하는 펜스**와 **본문 값을
+실제로 실행해 맞추는 블록**은 게이트라 손댈 수밖에 없었다(앞 절 9 와 같은 처분).
+
+- **펜스 스물셋**을 정본 추출본으로 다시 채웠다. 산문은 한 줄도 안 고쳤다.
+- **적흑 트리 가이드가 저장소에서 유일한 v2 실행 형식**이다(증명 사이드카 · 시뮬 · 대안 · 벤치를 따로
+  든다). 사이드카가 참조 구현을 계약 표면으로 불러 돌리므로 ① 표면 인터페이스 · 전개 호출 열 · 참조
+  모델 · 무작위 연산 뽑기 · 설명 생성이 걸렸고 ② 전개가 스무 번에서 열아홉 번으로 줄어 **시뮬 프레임
+  하나를 지우고 뒤 번호를 다시 매겼으며** ③ 증명 블록 넷이 값으로 다시 나왔다. 값은 전부 다시 실행해
+  뽑았고, 그 블록을 바로 설명하는 산문 셋만 맞췄다.
+- **인용이 가리킬 곳을 잃은 가이드 산문 셋**(이진 탐색 트리 · 순위 트리 · 트립)은 **인용만 지웠다.**
+  산문 자체는 뺀 행을 설명하는 문장이라 통째로 낡았고, 그것은 `KAN-036` 의 몫이다.
+
+### 9. 기존 절 제자리 정정 — 조건 넷과 고친 줄
+
+작업 분해 문서 §9 의 조건 넷을 채운다. **조건 1** — 작업 트리 넷 가운데 ORD-006 카드 가지를 든 것은
+이 나무 하나이고, 칸반 「진행 중」에 선 카드도 이 카드 하나에 「검토」 칸은 비었으며, 메인을 포함한
+나머지 세 나무는 `docs/ORD-006-` 파일을 한 자리도 안 건드린다. **조건 2** — 이 문서 numstat 이
+`19 19` 로 줄 수가 보존된다(이 절은 파일 끝 새 절이라 세지 않는다). **조건 3** — 아래 표. **조건 4** —
+열아홉 줄 전부 **이 배치가 낳은 어긋남**이다(뺀 행 때문에 줄이 밀렸거나 내용이 바뀌었다).
+
+| 무엇 | 줄 | 어떻게 고쳤나 |
+|---|---|---|
+| 삼진 탐색 트리를 가리키던 좌표 여섯(스위트 · 헤더) | 6 | 밀린 줄로 옮겼다. 그 가운데 하나는 **선례 인용**이라 가리킬 곳이 사라졌고, 그 사실을 적은 자리(판별 문단의 「세어 둔 낱말 수 ↔ 늘어놓은 수가 사라졌다」 줄)로 옮겼다 |
+| 트립 · 적흑 · 신장 · 이진 탐색 · 에이브이엘 · B+ 트리 헤더를 가리키던 순서 집합 근거 표 | 1 | 여섯 좌표를 한 줄에서 함께 옮겼다 |
+| 다중집합 목적을 가리키던 좌표 둘 | 2 | 밀린 줄로 옮겼다 |
+| 카르테시안 트리 헤더를 가리키던 좌표 셋 | 3 | 둘은 밀린 줄로, 하나는 수치가 바뀐 줄로 옮겼다 |
+| 기수 트리 정본 · 트라이 스텁 · 트립 정본을 가리키던 좌표 넷 | 4 | 밀린 줄로 옮겼다 |
+| 순위 트리 가이드 · 트립 가이드를 가리키던 좌표 셋 | 3 | 밀린 줄로 옮겼다 |
+
+### 10. `S5` · `KAN-036` 이 받는 것
+
+1. **`S5`** — 등급 재판정 **다섯**(전부 `S3` 몫)과 네 자리 맞춤, 확인만 하면 되는 **일곱**(위 2), 판정표
+   ③ 의 결말, 유지 46 행의 근거 문장, 런북 불변 사실 번호. `S3` 이 다섯 계약 헤더에 달아 둔 대괄호
+   표시도 그때 거둔다. **이 배치는 대괄호 표시를 하나도 달지 않았다** — 등급이 움직일 자리가 없다.
+2. **`KAN-036`** — 가이드 산문. 앞 절이 센 130 자리에 이 배치 몫이 더해진다(뺀 연산의 호출 표기와,
+   인용을 걷어 낸 문장 셋).
+3. **사람 결정으로 남는 것** — 앞 절이 넘긴 넷에 하나가 붙는다. **이웃 계약의 목적 문장이 우선순위
+   큐의 행 수를 인용한다** — 왼쪽 힙이 「기본 우선순위 큐가 약속하는 **다섯**」, 이항 힙이 「기본
+   우선순위 큐의 **다섯**에 두 큐를 하나로 접는 일을 더하고」라 적는데 둘 다 이제 넷이다. 목적 문장이라
+   이 배치가 고치지 않았다. 앞엣것은 사용을 낱말로 펴 두어 제 판정이 흔들리지 않고, 뒤엣것은 이미
+   **판정이 서지 않는 넷** 가운데 둘이라 그 자리에 그대로 있다.
