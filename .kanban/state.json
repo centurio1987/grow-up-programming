@@ -1,6 +1,6 @@
 {
   "next_id": 51,
-  "next_seq": 380,
+  "next_seq": 381,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -98,7 +98,7 @@
       ]
     },
     "KAN-040-M5V53M": {
-      "col": "review",
+      "col": "done",
       "title": "원칙 A 판정표 ③ — 요약 관찰·순서 질의 69종 일괄 판정",
       "verbatim": "추천대로 해. 진행해",
       "생성": "ai",
@@ -1355,6 +1355,16 @@
   ],
   "recent": [
     {
+      "seq": 380,
+      "t": "2026-09-18T20:20",
+      "a": "ai",
+      "id": "KAN-040-M5V53M",
+      "op": "move",
+      "w": "N0VY8A",
+      "from": "review",
+      "to": "done"
+    },
+    {
       "seq": 379,
       "t": "2026-09-18T20:07",
       "a": "ai",
@@ -1871,16 +1881,6 @@
       "w": "46PCAX",
       "with_": "KAN-048-QN5194",
       "reason": "카드 문서의 계획 절이 KAN-036 의 입력이다 — 밀린 인용을 물려주지 않는다"
-    },
-    {
-      "seq": 332,
-      "t": "2026-09-17T00:24",
-      "a": "ai",
-      "id": "KAN-047-394V9A",
-      "op": "move",
-      "w": "GWC813",
-      "from": "review",
-      "to": "doing"
     }
   ],
   "waivers": [
@@ -2205,7 +2205,7 @@
       "reason": "69 종의 연산 선정 근거와 등급이 바뀔 수 있으므로 KAN-036 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)",
       "created": "2026-09-17T16:18",
       "by": "ai",
-      "restrategy_required": false
+      "restrategy_required": true
     }
   ]
 }
