@@ -4283,7 +4283,7 @@ WBS 는 `tree/merkleTree` 를 「증명 검증을 가진 불변 구조」로 적
 | `docs/ORD-006-conventions.md:3464` (T2-04 보강 절) | 같은 헤더가 앞의 형태로 적혀 있어 칸반 메모로 넘긴다 | 같다 | 절 끝에 「T2-05 에서 고침」 |
 | `docs/ORD-006-conventions.md:2167` (B18 3단계) | 「A ⊂ B ⊂ D 이고 C 는 B 와 서로 담지 않는다」 | 비용 열까지 대조하면 A ⊂ B · A ⊂ C ⊂ D 이고 B 는 C · D 와 서로 담지 않는다. 「B ⊂ D」는 연산 집합의 포함일 뿐이다(§「포섭 사슬은 비용 열까지 대조해야 선다」 · 불변 사실 257) | 문장 뒤에 그 절을 가리키는 한 줄 |
 | `docs/ORD-006-conventions.md:2250` (B19 표 `unionFind` ↔ `disjointSetRollback` 행) | 「경로를 압축하는 구현은 뒤를 만족하지 못한다 — 압축이 이전 상태를 지운다」 | 계약의 문장이 아니다 — 줄인 칸을 기록하는 구현이 선다. 참인 것은 「되돌리기가 줄이기의 상각 이득을 무를 수 있다」(§「되돌리기는 한정자를 깨지 않고 상각에 기댄 설계를 깨뜨린다」 · 불변 사실 317) | 셀 끝에 그 절 가리킴 |
-| `src/data-structures/tree/linkCutTree/linkCutTree.ts:23` | 「`disjoint-set/unionFind` 와 갈리는 자리는 `cut` 하나다」 | 이름표 연산(그 집합의 가장 작은 원소) 몫만큼 좁다 — 서로 담지 않는다(불변 사실 315 · `src/data-structures/disjoint-set/unionFind/unionFind.ts:38`) | 헤더 문장 교체. `tools/ord006-inventory.ts:227` 주석의 같은 문장도 함께. `tree/linkCutTree` 는 `KAN-027` scope 밖 |
+| `src/data-structures/tree/linkCutTree/linkCutTree.ts:23` | 「`disjoint-set/unionFind` 와 갈리는 자리는 `cut` 하나다」 | 이름표 연산(그 집합의 가장 작은 원소) 몫만큼 좁다 — 서로 담지 않는다(불변 사실 315 · `src/data-structures/disjoint-set/unionFind/unionFind.ts:38`) | 헤더 문장 교체. `tools/ord006-inventory.ts:240` 주석의 같은 문장도 함께. `tree/linkCutTree` 는 `KAN-027` scope 밖 |
 | `src/data-structures/tree/linkCutTree/linkCutTree.ts:26` · `:129` | `disjointSetRollback` 이 되돌리는 것은 「마지막에 넣은 간선」 / 「빼는 것을 마지막에 넣은 것부터로 묶으면 되돌릴 수 있는 분리 집합」 | 되돌리는 단위는 **합치기 호출**이다 — 아무것도 안 바꾼 호출도 하나로 세고 던진 호출은 세지 않는다(§「되돌리는 단위를 호출로 정하면 스냅숏이 연산에서 빠진다」 · 불변 사실 319) | 두 문장 교체(위 행과 같은 커밋) |
 | `docs/ORD-006-conventions.md:2590` · `:2605` (T1-06 「`worst` 만 있는 계약의 한정자 근거」) | 배제되는 계열이 「둘뿐」이고 둘 다 불변 구조에 없다 · 「다음 불변 구조(`sparseTable` · `merkleTree`)가 이 문단을 그대로 쓴다」 | 셋째 계열(구성을 첫 질의로 미루기)이 있다(불변 사실 328 — `S17` 착수 전 절 끝에 한 줄 보강함). `tree/merkleTree` 는 불변 구조가 아니었다(불변 사실 343) | 「둘뿐」 문장과 뒤 문장 정정, 보강 한 줄은 본문에 녹이고 지운다 |
 | `src/data-structures/tree/cartesianTree/cartesianTree.ts:103` | 「배제되는 계열은 둘이고 이 계약에는 둘 다 없다」 | 같다(불변 사실 328). `S19` 가 확인했다 — 같은 두 계열 문장을 든 헤더는 이것 하나이고 `trie/suffixArray` · `trie/suffixTree` 헤더에는 그 근거 문단이 없다 | 셋째 계열을 짓고 재서 헤더 보강 — `tree/cartesianTree` 는 scope 밖 |
@@ -6531,20 +6531,20 @@ S1 예상과 같다. 이름 `minHash` 는 기법의 이름이라 임시다(불�
 
 ### 판정표 ③ — 명시 판정 없이 남은 요약 관찰 · 옛 기준으로 넣은 행 (69 종 일괄 판정 대상)
 
-| 행 | 원칙 A 를 대면 | 등급 영향 |
-|---|---|---|
-| `singlyLinkedList.size` · `doublyLinkedList.size`(**`KAN-040` `S3` 이 뺐다** — 지금 좌표는 그 사실을 적은 자리다: `src/data-structures/linear/singlyLinkedList/singlyLinkedList.ts:18` · `src/data-structures/linear/doublyLinkedList/doublyLinkedList.ts:32`) | `toArray().length` 로 조합 · 세어 둔 수 → 편의 연산. A5 대조는 하지 않았다 | 불변식 「세어 둔 수 ↔ 늘어놓은 수」가 이 행을 경로로 쓴다 → 빠지면 `basic` 예상 |
-| `dynamicArray.size`(**`KAN-040` `S3` 이 뺐다** — `src/data-structures/linear/dynamicArray/dynamicArray.ts:23`) | `push` · `pop` 반환의 이력으로 조합 → 편의 연산. 첨자 사용의 정의역 관찰로 읽을지는 일괄 판정이 정한다 | 10 행과 함께 본다 |
-| `monotonicStack` · `monotonicQueue` 의 `isEmpty` · `size`(**`KAN-040` `S3` 이 넷을 뺐다** — `src/data-structures/linear/monotonicStack/monotonicStack.ts:18` · `src/data-structures/linear/monotonicQueue/monotonicQueue.ts:17`) | 이웃 `linear/stack` · `linear/queue` 표에서 온 행(판정표 ① 12 의 「이웃 표에 행 하나를 더한다」) — 이웃 계약과 함께 판정 | 없음(불변식 없음) |
-| `graphAdjList` `vertexCount` · `edgeCount` · `graphAdjMatrix.vertexCount` · `dag` `vertexCount` · `edgeCount`(**`KAN-040` `S3` 이 다섯을 뺐다** — `src/data-structures/graph-repr/graphAdjList/graphAdjList.ts:26` · `src/data-structures/graph-repr/graphAdjMatrix/graphAdjMatrix.ts:23` · `src/data-structures/graph-repr/dag/dag.ts:26`) | 반환값 이력 · `neighbors` 로 조합 → 편의 연산 | `graphAdjList` 불변식 1 · `dag` 불변식이 경로로 쓴다 |
-| `bitArray.size`(**`KAN-040` `S3` 이 뺐다** — `src/data-structures/linear/bitArray/bitArray.ts:55`) | 생성 인자 → 편의 연산 | 없음 |
-| KAN-027 `pieceTable.length` · `skipList.size`(`tree/treap` 표) | 편의 연산 | `pieceTable` 불변식 1 이 경로로 쓴다 |
-| **넣은 근거가 「배제하는 것이 없다」인 순서 집합의 `min` · `max` · `range`**(`src/data-structures/tree/treap/treap.ts:118` · `src/data-structures/tree/redBlackTree/redBlackTree.ts:71` · `src/data-structures/tree/binarySearchTree/binarySearchTree.ts:90` · `src/data-structures/tree/splayTree/splayTree.ts:91` · `src/data-structures/tree/scapegoatTree/scapegoatTree.ts:84` · `src/data-structures/tree/avlTree/avlTree.ts:85` · `src/data-structures/tree/bPlusTree/bPlusTree.ts:93` · KAN-027 `skipList`) | A6 ① — 배제가 없다는 사실은 **넣는** 근거가 못 된다. `toArray` 로 조합되므로 A5 를 대야 하고, 헤더가 적은 「전순서 목적이 이 셋으로만 관측된다」가 A5 의 반례로 서는지는 대조하지 않았다 | 없음(불변식 경로 여부는 확인 안 함) |
+| 행 | 원칙 A 를 대면 | 등급 영향 | 결말 — `KAN-040-M5V53M` (행은 안 지운다. 무엇이 왜 보류됐는지가 기록이다) |
+|---|---|---|---|
+| `singlyLinkedList.size` · `doublyLinkedList.size`(**`KAN-040` `S3` 이 뺐다** — 지금 좌표는 그 사실을 적은 자리다: `src/data-structures/linear/singlyLinkedList/singlyLinkedList.ts:18` · `src/data-structures/linear/doublyLinkedList/doublyLinkedList.ts:32`) | `toArray().length` 로 조합 · 세어 둔 수 → 편의 연산. A5 대조는 하지 않았다 | 불변식 「세어 둔 수 ↔ 늘어놓은 수」가 이 행을 경로로 쓴다 → 빠지면 `basic` 예상 | **제거 · `S2` 판정 → `S3` 적용.** 예상대로 등급이 움직였다 — 둘 다 불변식 절이 비어 `invariant` → **`basic`**(`S5`). |
+| `dynamicArray.size`(**`KAN-040` `S3` 이 뺐다** — `src/data-structures/linear/dynamicArray/dynamicArray.ts:23`) | `push` · `pop` 반환의 이력으로 조합 → 편의 연산. 첨자 사용의 정의역 관찰로 읽을지는 일괄 판정이 정한다 | 10 행과 함께 본다 | **제거 · `S2` → `S3`.** 10 행과는 갈렸다 — `toArray` 는 유지(`S31`)이고 크기 읽기만 제거다. 불변식이 둘에서 하나로 줄었을 뿐 절이 안 비어 등급은 `invariant` 그대로(`S5` 확인). |
+| `monotonicStack` · `monotonicQueue` 의 `isEmpty` · `size`(**`KAN-040` `S3` 이 넷을 뺐다** — `src/data-structures/linear/monotonicStack/monotonicStack.ts:18` · `src/data-structures/linear/monotonicQueue/monotonicQueue.ts:17`) | 이웃 `linear/stack` · `linear/queue` 표에서 온 행(판정표 ① 12 의 「이웃 표에 행 하나를 더한다」) — 이웃 계약과 함께 판정 | 없음(불변식 없음) | **제거 넷 · `S2` → `S3`.** 이웃(`linear/stack` · `linear/queue`)과 함께 판정했고 넷 다 목적이 세기 · 빔을 안 적어 답이 같다 — 물려받은 관계가 판정을 흔들지 않았다. 등급 `basic` 그대로. |
+| `graphAdjList` `vertexCount` · `edgeCount` · `graphAdjMatrix.vertexCount` · `dag` `vertexCount` · `edgeCount`(**`KAN-040` `S3` 이 다섯을 뺐다** — `src/data-structures/graph-repr/graphAdjList/graphAdjList.ts:26` · `src/data-structures/graph-repr/graphAdjMatrix/graphAdjMatrix.ts:23` · `src/data-structures/graph-repr/dag/dag.ts:26`) | 반환값 이력 · `neighbors` 로 조합 → 편의 연산 | `graphAdjList` 불변식 1 · `dag` 불변식이 경로로 쓴다 | **제거 다섯 · `S2` → `S3`.** 예상대로 `graph-repr/dag` 는 불변식 절이 비어 `invariant` → **`basic`**(`S5`)이고, `graphAdjList` 는 뺀 행을 경로로 안 쓰는 둘째 불변식이 남아 `invariant` 그대로, `graphAdjMatrix` 도 그대로다. |
+| `bitArray.size`(**`KAN-040` `S3` 이 뺐다** — `src/data-structures/linear/bitArray/bitArray.ts:55`) | 생성 인자 → 편의 연산 | 없음 | **제거 · `S2` → `S3`.** 예상대로 등급 영향 없음 — `basic` 그대로. |
+| KAN-027 `pieceTable.length` · `skipList.size`(`tree/treap` 표) | 편의 연산 | `pieceTable` 불변식 1 이 경로로 쓴다 | **제거 둘 · `S2` 판정.** `linear/pieceTable` 은 `S3` 이 적용했고 불변식 절이 비어 `invariant` → **`basic`**(`S5`), `probabilistic/skipList` 는 `S4` 가 적용했고 `complexity` 그대로다(그 계약은 `tree/treap` 스위트를 재수출한다). |
+| **넣은 근거가 「배제하는 것이 없다」인 순서 집합의 `min` · `max` · `range`**(`src/data-structures/tree/treap/treap.ts:118` · `src/data-structures/tree/redBlackTree/redBlackTree.ts:71` · `src/data-structures/tree/binarySearchTree/binarySearchTree.ts:90` · `src/data-structures/tree/splayTree/splayTree.ts:91` · `src/data-structures/tree/scapegoatTree/scapegoatTree.ts:84` · `src/data-structures/tree/avlTree/avlTree.ts:85` · `src/data-structures/tree/bPlusTree/bPlusTree.ts:93` · KAN-027 `skipList`) | A6 ① — 배제가 없다는 사실은 **넣는** 근거가 못 된다. `toArray` 로 조합되므로 A5 를 대야 하고, 헤더가 적은 「전순서 목적이 이 셋으로만 관측된다」가 A5 의 반례로 서는지는 대조하지 않았다 | 없음(불변식 경로 여부는 확인 안 함) | **유지 · `S2` 판정 → `S5` 가 근거만 바꿨다.** 결과는 안 바뀌고 근거가 A6 ① 이 금지한 「배제하는 것이 없다」에서 **목적 문장의 인용**(A5′-4)으로 갔다. 대상은 이 행이 좌표로 든 일곱과 `probabilistic/skipList`, 그리고 이 행이 빠뜨린 `tree/bTree` · `tree/twoThreeTree` 를 더한 **열 계약**이다. 「확인 안 함」이던 불변식 경로도 쟀다(`S2` 소절 10) — 열 계약 전부 이 셋을 경로로 쓰지만 셋 다 유지라 등급이 안 움직인다. |
 
-**보완 작업.** 무엇 — 원칙 A 를 69 종 계약 전부의 요약 관찰과 「배제 없음」으로 넣거나 남긴 행에 대는 일괄 판정 · 누가 — 메인 세션이
-새 카드로 · 언제 — KAN-026 · KAN-027 병합 뒤, `KAN-036`(가이드 66 편)이 연산 표면을 서술하기 전. **`S23` · `S27` 은 이 표의 행을 고치지
-않는다** — 두 카드 안에서만 빼면 두 카드 밖 계약과 새로 어긋난다. 이 카드를 열지 않기로 정하면, 요약 관찰을 목적 사용의 기본으로 두는
-줄을 이 원칙에 더하고 판정표 ① 의 크기 제거 다섯(27 · 41 · 57 · 60 · 66)을 다시 대야 한다.
+**보완 작업.** 무엇 — 원칙 A 를 69 종 계약 전부의 요약 관찰과 「배제 없음」으로 넣거나 남긴 행에 대는 일괄 판정 · 누가 — 메인 세션이 새 카드로 ·
+언제 — KAN-026 · KAN-027 병합 뒤, `KAN-036`(가이드 66 편)이 연산 표면을 서술하기 전. **`S23` · `S27` 은 이 표의 행을 고치지 않는다** — 두 카드
+안에서만 빼면 두 카드 밖 계약과 새로 어긋난다. 이 카드를 열지 않기로 정하면, 요약 관찰을 목적 사용의 기본으로 두는 줄을 이 원칙에 더하고 판정표 ①
+의 크기 제거 다섯(27 · 41 · 57 · 60 · 66)을 다시 대야 한다. **그 카드가 `KAN-040-M5V53M` 이고 끝났다** — 표를 실물 크기(계약 49 · 연산 103)로 넓혀 유지 46 · 제거 53 · 판정이 서지 않는 4 로 판정했으므로 위 갈림은 열리지 않았고(뺀 다섯도 같은 규칙으로 다시 대 어긋나지 않는다), 판정 · 적용 · 마감은 이 문서 끝의 `S1` ~ `S5` 다섯 절이다.
 
 ### 낡는 문장 — 고치지 않았다
 
@@ -6562,7 +6562,7 @@ S1 예상과 같다. 이름 `minHash` 는 기법의 이름이라 임시다(불�
 | `docs/ORD-006-conventions.md:6339` | 정정 목록의 `toArray` 행 「처분: 사람」 | 판정표 ① 10 — `S23` |
 | 판정표 ① 「근거 교체」 16 행의 헤더 줄 | 옛 기준으로 적은 근거 | `S23` 이 판정 줄로 바꾼다 |
 | KAN-027 `kdTree.ts` 「최근접 행의 판정」 문단 · KAN-027 conventions 「비용으로 아무 구현도 배제하지 않는 연산 행과 「다르다」 판정 (T4-06 제기 — 미결)」 · KAN-027 불변 사실 331 | 최근접 유지 규칙을 사람 결정으로 넘겼다 | **A5′ 로 닫는다 — `S30`**(목적 기준 · 물음 셋). `S27` 이 적은 B19 근거는 순환이라 반려됐다 |
-| 판정표 ③ 의 순서 집합 헤더 일곱 | 「넣은 근거는 배제하는 것이 없다」 | A6 ① — 일괄 판정 |
+| 판정표 ③ 의 순서 집합 헤더 일곱 | 「넣은 근거는 배제하는 것이 없다」 | A6 ① — 일괄 판정. **`KAN-040-M5V53M` `S5` 가 고쳤다** — 실물은 일곱이 아니라 **열 계약**이었고(빠져 있던 `tree/bTree` · `tree/twoThreeTree` 와 `probabilistic/skipList`), 열 다 근거를 목적 문장의 인용(A5′-4)으로 바꿨다. 판정은 유지 그대로다. 남은 자리는 같은 문장을 든 **가이드 산문 넷**(`tree/binarySearchTree` · `tree/scapegoatTree` · `tree/treap` · `tree/orderStatisticTree` — 마지막 것은 `S4` 가 뺀 행을 설명하는 자리라 그쪽 몫과 겹친다)이고 `KAN-036` 몫이다 |
 
 ## 원칙 B — 무작위 계약의 검증: 입력 고정 · 무작위 출처 · 독립 반복 단위 · 보장과 경험 (KAN-026 S22 — 2026-09-16)
 
@@ -6915,7 +6915,7 @@ KAN-027 이 쓰지 않고 반납한 `380–389`(검토 #11 승인)를 **앞으�
 | 121 | 원칙 A 낡는 문장 · `:6562` | `docs/ORD-006-conventions.md:6339` | 026·S23 | KAN-026 배치13(진행 중) |  |
 | 122 | 원칙 A 낡는 문장 · `:6563` | 판정표 ① 「근거 교체」 16 행의 헤더 줄 | 026·S23 | KAN-026 배치13(진행 중) |  |
 | 123 | 원칙 A 낡는 문장 · `:6564` | KAN-027 `kdTree.ts` 27–32 · KAN-027 conventions 「비용으로 아무 구현도 배제하지 않는 연산 행과 「다르다」 판정 (T4-06 제기 — 미결)」 · KAN-027 불변 사실 331 | 고침 S27 | 이 배치(끝남) | 헤더(`kdTree.ts`). conventions 미결 절 · 불변 사실 331 은 아래 새 행 |
-| 124 | 원칙 A 낡는 문장 · `:6565` | 판정표 ③ 의 순서 집합 헤더 일곱 | KAN-040 | KAN-026·027 main 병합 뒤 · KAN-036 전 |  |
+| 124 | 원칙 A 낡는 문장 · `:6565` | 판정표 ③ 의 순서 집합 헤더 일곱 | KAN-040 | KAN-026·027 main 병합 뒤 · KAN-036 전 | **끝났다 — `KAN-040-M5V53M` `S5`.** 세는 단위가 어긋나 있었다: 실물은 일곱이 아니라 **열 계약**이고(`tree/bTree` · `tree/twoThreeTree` 가 같은 문장을 들고도 빠져 있었다 · `probabilistic/skipList` 는 `tree/treap` 문단을 가리킨다) 열 다 근거를 목적 문장의 인용(A5′-4)으로 바꿨다. 판정은 유지 그대로. 같은 문장을 든 가이드 산문 넷은 `KAN-036` 으로 넘겼다 |
 | 125 | 원칙 B 낡는 문장 · `:6664` | `docs/ORD-006-conventions.md:2404-2412` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | 이 절 「원칙 B 적용」을 가리키는 한 줄 |
 | 126 | 원칙 B 낡는 문장 · `:6665` | `docs/ORD-006-conventions.md:2869-2871` | 027·S29 | KAN-027 배치14 — KAN-026 배치13·14 재병합 뒤 정정 커밋 하나 | B7 형식은 `tree/treap` 헤더 끝 표가 받았다 — 다른 `expected` 계약 중 둘(`tree/multiset` · `range-query/intervalTree`)은 KAN-041 `S2` 가 달았고 셋이 남았다 |
 | 127 | 원칙 B 낡는 문장 · `:6666` | `docs/ORD-006-conventions.md:5846-5847` · `docs/ORD-006-conventions.md:6020-6021` | 026·S24 | KAN-026 배치14 |  |
@@ -8031,7 +8031,7 @@ A5 의 답이 「아니오」였고 결과는 목적 물음과 같았지만 **�
 하나로 여섯 행이 전부 상한 안이라 `complexity` 도 아니다(불변 사실 55 · 197) → **`invariant`.** 두 등급의 축3 엄격도는
 `regression` 으로 같아(`src/data-structures/_contract/judge.ts:43-48`) 나머지 행의 축3 판정은 건드리지 않는다.
 
-**네 자리를 같게 맞췄다** — 헤더 「검증 등급」 · `tools/ord006-inventory.ts:145` · `docs/ORD-006-inventory.tsv:25` ·
+**네 자리를 같게 맞췄다** — 헤더 「검증 등급」 · `tools/ord006-inventory.ts:149` · `docs/ORD-006-inventory.tsv:25` ·
 `tools/ord006-wbs.ts:371`(TA-03 note). 등급 표는 처음 낸 것으로 돌아간다(`invariant` 8 · `basic` 7 · `complexity` 1 ·
 이관 1). 표면 복구 범위는 `21d7f7d` 의 stat 이 목록이고, `rust/vectors/DynamicArray.json` 은 케이스 7 로 다시 뽑아
 `21d7f7d^` 판본과 바이트가 같다.
@@ -10600,3 +10600,212 @@ A5′-2 둘째 항이 「**판정의 결론을 목적 문단 안에 적으면** 
    우선순위 큐의 **다섯**에 두 큐를 하나로 접는 일을 더하고」라 적는데 둘 다 이제 넷이다. 목적 문장이라
    이 배치가 고치지 않았다. 앞엣것은 사용을 낱말로 펴 두어 제 판정이 흔들리지 않고, 뒤엣것은 이미
    **판정이 서지 않는 넷** 가운데 둘이라 그 자리에 그대로 있다.
+
+## 유지의 근거를 목적 인용으로 바꾸고 등급을 재판정하고 문서를 닫았다 — 근거 열 자리 · 등급 다섯 · 넘김 셋 (KAN-040-M5V53M S5 — 2026-09-18)
+
+> **이 절이 이 카드의 마지막이다.** 판정은 한 행도 다시 하지 않았다 — 입력은 `S2` 의 판정 그대로이고,
+> 이 배치가 바꾼 것은 **근거 문장 · 등급 · 문서의 결말**이다. 목적 문장은 한 자리도 안 고쳤다(판정이
+> 서지 않는 넷과 목적 항목 안의 판정 낱말 여섯은 사람 결정이라 **받는 자리만** 만들었다).
+> 순서는 `WP2`(등급) → `WP1`(근거) → `WP3`(문서)였다 — 근거와 등급이 **같은 헤더**에 있어 등급이
+> 먼저 서야 헤더를 한 번만 고친다.
+
+### 1. 등급 재판정 — 다섯이 `invariant` 에서 `basic` 으로 내려갔다
+
+입력은 `S3` 이 낸 다섯(불변식 절이 빈 계약)이고 `S4` 는 0 을 냈다. 판정 절차(§규약1 「검증 등급 4종」)를
+**위에서 아래로** 대면 다섯 다 같은 자리에서 걸린다.
+
+| 계약 | 1 동시 접근 | 2 상한이 자명한 구현으로 달성되는가 | 3 불변식 절이 비어 있지 않은가 | 결과 |
+|---|---|---|---|---|
+| `graph-repr/dag` | 없다 | **된다** — 정점마다 나가는 간선 배열 + 지나간 표시 하나로 네 행 | **비었다** | **`basic`** |
+| `linear/singlyLinkedList` | 없다 | **된다** — 마디 사슬 하나로 네 행 | **비었다** | **`basic`** |
+| `linear/doublyLinkedList` | 없다 | **된다** — 앞뒤 이음을 든 마디 하나로 다섯 행 | **비었다** | **`basic`** |
+| `linear/gapBuffer` | 없다 | **된다** — 배열 둘에 나눠 담고 뒤엣것을 뒤집어 다섯 행 | **비었다** | **`basic`** |
+| `linear/pieceTable` | 없다 | **된다** — 「어느 배열의 몇째부터 몇 개」인 쌍의 배열로 네 행 | **비었다** | **`basic`** |
+
+**2번이 다섯 다 「된다」라 `complexity` 로 갈 자리가 없었다.** 헤더가 이미 그 자명한 구현을 이름으로
+적고 있었고, 이 배치가 한 일은 **3번의 답이 뒤집힌 것을 반영한 것**뿐이다. 다섯의 헤더에 남아 있던
+「불변식 절에 내용이 있으므로 `basic` 도 아니다」를 「불변식 절이 비어 있으므로 `invariant` 도 아니다」로
+바꾸고, 왜 비었는지(`S3` 이 어느 행을 뺐고 경로가 어떻게 하나로 줄었는지)를 같은 문장에 적었다.
+
+**축3 판정은 한 자리도 안 움직인다.** `basic` 과 `invariant` 의 엄격도가 둘 다 `regression` 이라
+(`src/data-structures/_contract/judge.ts:43-48`) 사다리도 허용치도 같다. `S31` 이 `linear/dynamicArray` 를
+반대 방향으로 옮길 때 쓴 것과 같은 근거다.
+
+**확인만 하면 되는 일곱 — 등급이 안 움직인다.** 「경로가 사라지는가」는 **예**인데 「절이 비는가」가
+**아니오**인 자리다(`S4` 가 갈라 센 물음).
+
+| 계약 | 불변식 | 확인 |
+|---|---|---|
+| `graph-repr/graphAdjList` | 2 → 1 | 남은 1번이 뺀 행을 경로로 안 쓴다 → `invariant` 그대로 |
+| `linear/dynamicArray` | 2 → 1 | 같다 → `invariant` 그대로 |
+| `linear/xorLinkedList` | 2 → 1 | 같다(두 방향 순회) → `invariant` 그대로 |
+| `trie/trie` · `trie/radixTree` · `trie/ternarySearchTree` | 2 → 1 | 같다 → `invariant` 그대로 |
+| `tree/binarySearchTree` | 4 → 3 | 같다 → `invariant` 그대로 |
+
+**`S2` 가 「확인만 하면 되는 일곱」으로 든 목록과 이 일곱은 다른 집합이다.** 저쪽은
+`graph-repr/graphAdjMatrix` · `tree/binarySearchTree` · `linear/bitArray` · `linear/circularBuffer` ·
+`linear/monotonicStack` · `linear/queue` · `linear/stack` 이었고, `S4` 가 `tree/binarySearchTree` 의 사유가
+틀렸음을 실측해 모수를 열하나에서 **열둘**로 고치면서 목록이 갈렸다. **둘 다 확인했고 둘 다 등급이
+안 움직인다** — 저쪽 다섯(`bitArray` · `circularBuffer` · `monotonicStack` · `queue` · `stack`)은 `basic`
+이고 불변식 절이 「없다」라 내려갈 자리가 없으며, `graphAdjMatrix` 는 불변식 셋이 그대로다.
+
+### 2. 등급의 자리는 넷이 아니라 다섯이다
+
+카드와 앞 절들이 「네 자리」로 세던 것에 **`<name>.contract.ts` 의 `grade` 필드**가 빠져 있었다.
+`S31` 이 적은 네 자리 목록(§「등급 — `basic` 에서 `invariant` 로 되돌렸다」)에도 없다.
+
+| # | 자리 | 게이트가 잡는가 |
+|---|---|---|
+| 1 | 계약 헤더 「검증 등급」 | **잡는다** — `tools/check-contract.ts` 가 2번과 대조한다 |
+| 2 | `<name>.contract.ts` 의 `grade` | **잡는다** — 같은 대조의 반대편. 하네스가 실제로 읽는 값이 이것이다 |
+| 3 | `tools/ord006-inventory.ts` 의 `VERIFICATION_GRADES` | 안 잡는다 |
+| 4 | `docs/ORD-006-inventory.tsv` 의 등급 칸 | 안 잡는다(생성기 출력이라 재생성이 3번을 따른다) |
+| 5 | `tools/ord006-wbs.ts` 유닛 주석 | 안 잡는다 — **산문이라 아무도 안 본다** |
+| (파생) | `rust/vectors/<Name>.json` 의 `grade` | **잡는다** — 2번에서 뽑은 값이라 고쳐 적는 자리가 아니고 `tools/emit-vectors.ts --check` 가 어긋남을 잡는다. 이 배치에서 바뀐 vector 는 **정확히 다섯**이고 대상 밖은 한 자리도 안 바뀌었다 |
+
+**69 종을 다섯 자리에서 나란히 떠서 대조했고 어긋난 계약은 0 이다.** 값이 비교되지 않는 자리 열넷은
+따로 셌다 — **재수출 열둘**(제 `grade` 줄 없이 이웃의 `ContractSpec` 을 받는 계약. 값은 주는 쪽을
+그대로 따르므로 어긋날 자리가 없다)과 **이관 둘**(`hash/rollingHash` · `tree/huffmanTree` — 인벤토리 표에
+`transferred:KAN-039-FG8HWZ` 로 선다). 5번은 유닛을 든 계약에만 있어 주석에 등급이 안 적힌 자리가
+있는데, 이 배치가 고친 다섯은 다섯 다 적었다(`T5-02` · `T5-03` 은 등급 낱말이 아예 없던 자리라 넣었다).
+
+**배치3 이 헤더에 달아 둔 대괄호 표시 다섯을 전부 회수했다** — 계약 파일에 `〔` 가 0 이다(이 문서에 남은 여덟은 `S1` 이 S23 절에 단 표지라 그대로 선다).
+
+### 3. 등급 표의 빈 칸 하나 — 닫았다
+
+`S1` 이 사실만 적고 받는 자리를 만들어 둔 자리다(§「등급 표의 빈 칸 하나 — `linear/gapBuffer`」).
+`VERIFICATION_GRADES` 키가 **66** 이고 계약이 이관 둘을 뺀 **67** 이라 한 종이 없었다.
+
+- **넣은 값.** `"linear/gapBuffer": "basic"` — 이 배치가 그 계약의 등급을 다시 판정한 값이다. `S1` 의
+  받는 자리는 「`invariant` 한 줄」을 적어 두었는데, **그때 맞던 값이 지금은 틀리다.** 빈 칸을 이 카드가
+  닫는 값이 가장 크다고 적었던 까닭이 이것이다 — 다른 카드가 닫았으면 낡은 값이 들어갔다.
+- **자리.** 알파벳 순서대로 `linear/dynamicArray` 뒤 · `linear/monotonicQueue` 앞
+  (`docs/ORD-006-wbs.md` §4 의 「새 줄은 제 알파벳 자리에」).
+- **닫힌 것을 수로 본다.** 키 66 → **67**, 인벤토리 표의 등급 칸 67 과 **분포까지 같다** —
+  `basic` 15 · `invariant` 8 · `complexity` 43 · `concurrency` 1. 다음 재생성에서 조용히 `-` 가 될 자리가
+  없어졌다.
+
+### 4. 유지 46 행의 근거 — 열 계약을 목적 인용으로 바꿨다
+
+**결과가 안 바뀌어도 근거가 원칙이 금지한 것이면 고친다.** 헤더가 「`min`·`max`·`range` 를 넣은 근거는
+「배제하는 것이 없다」다」로 적고 있었고, A6 ① 이 「물려받았다 · 있으면 편하다」와 같은 줄에 놓고 금지한
+근거다. 이유는 대칭이다 — **넣어도 빼도 만족하는 구현 집합이 같다는 말은 어느 쪽도 고르지 못한다.**
+
+| 계약 | 전환 커밋 | 바꾼 자리 |
+|---|---|---|
+| `tree/redBlackTree` | `ec3bb2a` | 근거 문단 통째 |
+| `tree/treap` | `0ea03ad` | 근거 문단 통째 |
+| `tree/binarySearchTree` | `3b7ef4b` | 근거 문단 통째 |
+| `tree/splayTree` | `dc0983d` | 근거 문단 통째 |
+| `tree/scapegoatTree` | `78f6f7d` | 근거 문단 통째 |
+| `tree/avlTree` | `4b4de5a` | 「대신 `range` 를 넣었다」 문장의 근거 절 |
+| `tree/bPlusTree` | `50cd614` | 「`min`·`max` 는 … 넣었다」 문장의 근거 절 |
+| `tree/bTree` | `50cd614` | 같은 모양 |
+| `tree/twoThreeTree` | `4b4de5a` | 같은 모양 |
+| `probabilistic/skipList` | `437206b` | 「근거는 `tree/treap` 헤더가 적은 그대로다」 문장에서 근거를 갈라 적었다 |
+
+**바꾼 형식은 A5′-4 다.** 목적 문장의 인용 구절 — 「담기·지우기·찾기·**양 끝 읽기**·**구간 읽기**를 …」 —
+과 **전환 커밋 해시**, 그리고 판정 전문을 가리키는 한 줄이다. 커밋 해시는 `S2` 가 뜬 여덟과 계약별로
+대조해 같다는 것만 확인했다(전환 커밋을 찾는 규칙을 다시 돌려 맞는지 봤을 뿐 **목적을 새로 뜨지 않았다**).
+`tree/scapegoatTree` 만 목적 문장의 꼴이 달라 그 계약 문구(「**찾기·양 끝 읽기·구간 읽기**·크기 읽기는
+최악에도 …」)를 인용했다.
+
+**「배제하는 것이 없다」 문장을 지우지 않았다.** 그것은 참인 사실이고, 이 배치가 옮긴 것은 **자리**다 —
+근거 자리에서 사실 자리로 내렸다. 근거로 못 쓰는 것과 거짓인 것은 다르다.
+
+**나머지 유지 16 행도 훑었고 금지 목록에 드는 자리가 없다.** 요약 8(힙 여섯 · 순환 버퍼 · 염소 트리) ·
+파생 3 · 의미상 필수 1(간극 버퍼의 커서) · 순서 질의 고유 연산 2(동시 건너뛰기 줄) · `heap/vanEmdeBoasTree`
+의 양 끝 2 다. 경계 하나를 적어 둔다 — `linear/circularBuffer` 의 `isFull()` 헤더는 **자기가 쓰던 근거를
+스스로 물린 자리**이고(「없으면 큐가 된다」가 거짓이라 외부 검토가 잡았다), 지금 근거는 「용량을 묻는
+연산이 없으므로 구조를 건네받은 쪽은 `size()` 가 돌려준 수가 경계인지 판정할 수단이 없다」다. A6 의 어느
+항목에도 안 걸린다.
+
+### 5. 판정표 ③ 과 정정 담당 대장 — 행을 지우지 않고 결말을 병기했다
+
+- **판정표 ③ 의 일곱 행**에 **결말 칸을 더했다.** 행은 한 줄도 안 지웠다 — 「무엇이 왜 보류됐는지」가
+  기록이고, 지우면 이 카드가 왜 섰는지가 사라진다. 칸마다 적은 것은 셋이다: 어느 판정을 받았나 · 어느
+  단계가 적용했나 · 등급이 어떻게 됐나. 일곱 중 여섯이 **제거**(53 행 중 15 행이 이 일곱에 든다)이고
+  일곱째가 **유지**다.
+- **판정표 ③ 의 「등급 영향」 칸 예측은 실측과 맞았다.** 리스트 둘과 `graph-repr/dag` 는 예상대로
+  `basic` 이 됐고, `linear/bitArray` · 단조 둘은 예상대로 영향이 없었다. **「확인 안 함」으로 남았던 한
+  칸**(순서 집합의 불변식 경로 여부)은 `S2` 가 쟀다 — 열 계약 전부 경로로 쓰지만 셋 다 유지라 안 움직인다.
+- **「보완 작업」 문단**에 이 카드가 그 카드이고 끝났다는 것을 한 문장으로 달았다.
+- **「낡는 문장」 표의 마지막 행**(판정표 ③ 의 순서 집합 헤더 일곱)에 결말을 달았다 — 실물이 일곱이 아니라
+  열이었다는 것과, 가이드 산문 넷이 `KAN-036` 으로 간다는 것.
+- **정정 담당 대장 124 번**에 결말을 달았다. 담당 칸은 `KAN-040` 그대로라 **담당별 행 수는 안 바뀐다.**
+
+### 6. 런북 불변 사실 — 대역 422–429 를 열었다
+
+이 카드는 트랙이 아니라 두 카드 병합 뒤의 후속 카드라 `docs/ORD-006-wbs.md` §2 의 대역 표에 열이 없다.
+**앞선 후속 카드가 쓴 방법을 그대로 따랐다 — 쓰인 끝 번호 다음 자리에서 빈 블록을 연다.** 끝 번호가
+421(`KAN-041` `S4`)이고, 422 이상을 예약한 카드가 칸반 · 카드 문서 · 배치 문서 어디에도 없으며, 트랙
+대역은 379 에서 끝나 겹치지 않는다. 쓴 것은 **422 ~ 427 여섯**이고 428 · 429 는 비워 둔다.
+
+422 판정 방법(축 둘) · 423 결과와 「뺀 다섯」 정합과 판정이 서지 않는 넷 · 424 축이 잡던 것이 줄어든 자리
+일곱 · 425 재수출 · 426 등급(두 물음과 다섯 자리) · 427 유지의 근거 형식.
+
+### 7. 넘기는 것 셋 — 받는 자리를 만들었다
+
+**카드도 메모도 없는 넘김은 증발이다.** 셋 다 **사람 결정**이고, 이 절이 무엇을 · 왜 · 추천을 적는다.
+**루트 카드를 세우는 것은 메인 세션 몫이라 이 배치가 하지 않았다** — 카드가 필요하다는 것은 배치 보고에 적었다.
+
+| # | 무엇 | 왜 사람 결정인가 | 추천 |
+|---|---|---|---|
+| ① | **판정이 서지 않는 넷** — `heap/binomialHeap` · `heap/fibonacciHeap` 의 크기 · 빔 | 목적 문장이 이웃 계약 이름으로 사용 집합을 가리켜 A5′-4 의 인용을 못 만든다. **푸는 유일한 길이 목적 문장을 펴 적는 것**인데, 판정에 맞춰 목적을 고치는 것은 양방향 금지(A6 ④)라 판정하는 쪽이 할 수 없다 | 두 목적을 `heap/leftistHeap` 꼴로(사용을 낱말로 펴서) 다시 적는 **결재**를 받고, 그다음 같은 줄을 다시 댄다. 펴 적으면 넷 다 유지가 될 자리로 **보이나 그것은 예상이고 판정이 아니다** |
+| ② | **목적 항목 안의 판정 낱말 여섯 자리** — `graph-repr/dag` · `graphAdjList` · `graphAdjMatrix` · `linear/bitArray` · `pieceTable` 과 그 계열 | 사용 집합이 안 바뀌었으므로 A5′-2-a 의 되돌림 대상은 아니다. 그러나 **다음 판정이 지금 파일을 읽으면 자기 판정의 메아리를 근거로 삼는다**. 목적 문단을 고치는 일이라 판정하는 쪽이 할 수 없다 | 같은 낱말을 목적 항목 **밖**으로 옮긴다. `S3` 이 세운 형식이 그 자리다 — 「없는 것」에는 사실만, 판정 줄과 목적 인용은 목적 항목 밖 한 문단에 |
+| ③ | **왼쪽 힙 · 이항 힙의 목적이 우선순위 큐의 행 수를 옛 값으로 인용한다** — 둘 다 「**다섯**」이라 적는데 `S4` 뒤로 넷이다 | 목적 문장이라 같은 금지에 걸린다 | ①과 **같은 커밋**에서 푼다. 이항 힙은 ①의 넷 가운데 둘이라 어차피 같은 자리이고, 왼쪽 힙은 사용을 낱말로 펴 두어 제 판정이 안 흔들리므로 수만 고치면 된다 |
+
+**받는 카드가 필요한 범위.** ①과 ③은 **한 카드**가 받는 것이 옳다 — 같은 파일 · 같은 결재 · 같은 판정
+줄이다. ②는 갈라도 되고 함께 해도 된다(목적 항목을 건드리는 결재라는 점이 같다). 셋 다
+`KAN-036`(가이드 전개) **전에** 닫혀야 한다 — 가이드가 목적 문장을 인용해 서술하기 때문이다.
+
+### 8. `KAN-036` 이 받는 가이드 몫 — 한자리에 모았다
+
+**흩어져 있으면 그 카드가 못 찾는다.** `S3` · `S4` 가 절마다 적어 둔 것을 여기 한 표로 모은다.
+
+| 갈래 | 수 | 어디 | 낸 단계 |
+|---|---|---|---|
+| 뺀 연산의 **호출 표기** | **130 자리** / 가이드 열여섯 편 | 많은 자리부터 간극 버퍼 23 · 큐 17 · 덱 16 · XOR 리스트 15 · 조각 표 11 · 스택 11 | `S3`(선형 · 그래프 표현) |
+| 같은 갈래 | **176 자리** / 가이드 스물두 편 | 다중집합 28 · 이진 탐색 트리 21 · 순위 트리 21 · 트립 16 · B 트리 14 | `S4`(트리 · 트라이 · 힙 · 해시 · 확률 · 구간 질의) |
+| **합** | **306 자리 / 서른여덟 편** | 갈래가 갈려 두 목록이 겹치지 않는다 | — |
+| **인용을 걷어 낸 문장 셋** | 3 | `tree/binarySearchTree` · `tree/orderStatisticTree` · `tree/treap` 가이드 — 뺀 행을 설명하던 산문이라 통째로 낡았고 인용만 지웠다 | `S4` |
+| **「배제하는 것이 없다」를 근거로 적은 산문 넷** | 4 | `tree/binarySearchTree` · `tree/scapegoatTree` · `tree/treap` · `tree/orderStatisticTree` 가이드. 헤더는 이 배치가 목적 인용으로 바꿨는데 가이드는 옛 근거를 그대로 설명한다(마지막 것은 위 「인용을 걷어 낸 셋」과 겹친다) | `S5` |
+
+**코드는 이미 맞다.** 정본에서 추출하는 펜스(`S3` 여섯 · `S4` 스물셋)와 본문 값을 실행해 맞추는 블록은
+게이트라 앞 배치들이 다시 뽑았다. **남은 것은 전부 산문이다** — 게이트가 안 보는 자리이고, 그래서
+이렇게 세어 두지 않으면 아무도 못 찾는다.
+
+### 9. 기존 절 제자리 정정 — 조건 넷과 고친 줄
+
+작업 분해 문서 §9 의 조건 넷을 채운다. **조건 1** — `git worktree list` 의 나무 넷 가운데 ORD-006 카드
+가지를 든 것은 이 나무 하나이고, 칸반 「진행 중」에 선 카드도 이 카드 하나에 「검토」 칸은 비었으며,
+메인을 포함한 나머지 세 나무는 `docs/ORD-006-` 파일을 한 자리도 안 건드린다. **조건 2** — 이 문서
+numstat 이 `227 18` 이고 이 절(파일 끝 새 절)이 더한 209 를 빼면 `18 18` 이라 줄 수가 보존된다. 런북은 `66 0`
+으로 제자리 정정이 없다(파일 끝 새 절뿐이다). **조건 3** — 아래 표. **조건 4** — 전부
+**이 카드를 지목한 줄**이거나 **이 배치가 낳은 어긋남**이다.
+
+| 자리 | 무엇을 | 왜 | 조건 4 |
+|---|---|---|---|
+| 판정표 ③ 의 표 머리와 일곱 행 | 결말 칸을 더했다 | 이 카드가 그 표를 여는 카드다 | **지목** |
+| 판정표 ③ 「보완 작업」 문단 | 「그 카드가 이 카드이고 끝났다」 한 문장 | 같다 | **지목** |
+| 「낡는 문장」 표의 판정표 ③ 행 | 결말 병기 | 같다 | **지목** |
+| 정정 담당 대장 124 번 비고 | 결말 병기 | 대장이 이 카드를 담당으로 적은 행이다 | **지목** |
+| `S31` 절의 「네 자리를 같게 맞췄다」 줄 | `tools/ord006-inventory.ts` 좌표를 밀린 줄로 | 이 배치가 그 파일에 줄을 넣어 밀렸다 | **자기가 낳음** |
+| `S27` 절 낡는 문장 표의 `linkCutTree` 행 | 같은 파일의 다른 좌표를 밀린 줄로 | 같다 | **자기가 낳음** |
+
+**고치지 않은 자리 하나.** `KANBAN.cards/KAN-046-ZFDFCQ.md` 의 `S2` 완료 기준이 적은
+`tools/ord006-inventory.ts:231`→227 은 **그 카드가 무엇을 고쳤는지의 기록**이라 좌표를 옮기지 않았다
+(기록을 고치면 기록이 거짓이 된다 — `S1` 이 세운 갈림과 같다). 지문만 대장에 다시 앉는다.
+
+### 10. 인용 대조
+
+- **줄이 밀려 깨진 좌표 열둘을 먼저 고쳤다** — 규약 문서 둘(`tools/ord006-inventory.ts` 145 → 149 ·
+  227 → 240)과 가이드 열(이진 탐색 트리 106 → 110 · 112 → 116 · 126 → 130 · 염소 트리 101 → 105 ·
+  신장 트리 107 → 111 · 트립 127 → 131 · 133 → 137). 전부 **대장 지문으로 지금 파일에서 같은 줄을
+  찾아** 옮겼다.
+- **가리키던 내용의 자리가 문단 안에서 바뀐 것 하나** — `tree/treap` 가이드가 「양 끝을 계약에 넣어도
+  배제되는 구현이 없는 근거」로 인용하던 줄이다. 그 사실은 같은 문단에 살아 있으나 **근거 자리에서 사실
+  자리로 내려갔으므로**, 좌표는 그 사실이 선 줄(118 → 124)로 옮기고 **산문은 안 고쳤다** — 그 문장은
+  헤더와 어긋난 채 낡았고 위 8 의 넷 가운데 하나다.
+- 나머지는 **내용만 바뀐 자리**라 대조하고 대장을 갱신했다(근거 문단 열 · 등급 문단 다섯 · 인벤토리
+  도구 주석 · 작업 분해 도구 주석).

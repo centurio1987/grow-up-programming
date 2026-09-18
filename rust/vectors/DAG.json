@@ -1,7 +1,7 @@
 {
   "schema": "ord006/contract-vector@1",
   "structure": "DAG",
-  "grade": "invariant",
+  "grade": "basic",
   "element": "number",
   "cases": [
     {

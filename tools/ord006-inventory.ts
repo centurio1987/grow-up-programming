@@ -72,15 +72,18 @@ const VERIFICATION_GRADES: Record<
   // 넣는다**(`docs/ORD-006-wbs.md` §4). 추가 순서로 쌓여 있던 것을 두 카드 등급 줄이 다 들어온 뒤
   // 한 번 정렬했다(KAN-027 `S29`) — 주석은 제 키에 붙여 함께 옮겼다.
   //
-  // `dag`(KAN-026 S11) — 정점 번호 모형을 `graphAdjList` 에서 따르므로 사전이 들지 않고, 여섯 행이
-  // 정점마다 나가는 간선 배열 · 지나간 표시 하나로 선다. 불변식이 하나라 `basic` 이 아니다. 알파벳
-  // 자리가 `graphAdjList` 앞이다.
-  "graph-repr/dag": "invariant",
+  // `dag`(KAN-026 S11 · 등급은 KAN-040 S5) — 정점 번호 모형을 `graphAdjList` 에서 따르므로 사전이
+  // 들지 않고, 네 행이 정점마다 나가는 간선 배열 · 지나간 표시 하나로 선다. **불변식 절이 비어
+  // `basic` 이다** — KAN-040 S3 이 정점 수 · 간선 수 읽기를 빼면서 하나 있던 불변식의 경로가
+  // 하나로 줄었다(불변 사실 426). 알파벳 자리가 `graphAdjList` 앞이다.
+  "graph-repr/dag": "basic",
   // `graphAdjList` — 정점 번호를 구조가 `[0, n)` 으로 매기므로 번호에서 이웃 배열을 찾는 데 사전이
-  // 들지 않고, 일곱 행이 정점마다 배열 하나로 선다. 불변식이 둘이라 `basic` 이 아니다.
+  // 들지 않고, 다섯 행이 정점마다 배열 하나로 선다. 불변식이 하나 남아 `basic` 이 아니다
+  // (KAN-040 S3 이 둘 중 하나를 없앴고 등급은 안 움직였다).
   "graph-repr/graphAdjList": "invariant",
   // `graphAdjMatrix` — 「공간」 표시였지만 계약이 갈린다(판별 셋째 걸음을 축3으로 돌려 확인). 칸
-  // 배열 하나가 여덟 행을 지키고, 쌍을 읽는 두 경로의 정합 셋이 불변식이다.
+  // 배열 하나가 여섯 행을 지키고, 쌍을 읽는 두 경로의 정합 셋이 불변식이다(KAN-040 S3 이 정점 수
+  // 읽기를 뺐고 불변식은 셋 그대로다).
   "graph-repr/graphAdjMatrix": "invariant",
   // 사전 계약(T3-01). `expected` 한정자가 확률 논증을 요구하므로 등급 판정 2번에서 걸린다.
   "hash/hashMapChaining": "complexity",
@@ -133,16 +136,23 @@ const VERIFICATION_GRADES: Record<
   "linear/deque": "complexity",
   // A군 핸들 수열(KAN-026 S5).
   //
-  // `doublyLinkedList` — 연결 마디가 자명한 구현이므로(2026-09-15 유저 결정) 여섯 행이 앞뒤 이음을 든
-  // 마디 하나로 서고, 산 핸들 판정도 마디가 기억한 수열을 보는 상수다. 세어 둔 수 ↔ 늘어놓은 수 하나가
-  // 불변식이라 `basic` 이 아니다.
-  "linear/doublyLinkedList": "invariant",
+  // `doublyLinkedList`(등급은 KAN-040 S5) — 연결 마디가 자명한 구현이므로(2026-09-15 유저 결정) 다섯 행이
+  // 앞뒤 이음을 든 마디 하나로 서고, 산 핸들 판정도 마디가 기억한 수열을 보는 상수다. **불변식 절이 비어
+  // `basic` 이다** — 세어 둔 수 ↔ 늘어놓은 수의 세어 둔 쪽을 KAN-040 S3 이 뺐다(불변 사실 426).
+  "linear/doublyLinkedList": "basic",
   // A군 수열 둘(KAN-026 S4 · S6).
   //
-  // `dynamicArray` — 언어 배열 하나에 맡기면 여섯 행이 선다(불변 사실 197). 물려받은 두 배 늘리기는
-  // 상각 설계인데 등급은 존재 조건이라 `complexity` 가 아니고(불변 사실 55), 불변식이 둘이다.
-  // (KAN-026 S23 · S29 가 `toArray` 를 빼 `basic` 으로 내렸던 것을 S31 이 되돌렸다 — 원칙 A5′-2 기준 시점 조항.)
+  // `dynamicArray` — 언어 배열 하나에 맡기면 다섯 행이 선다(불변 사실 197). 물려받은 두 배 늘리기는
+  // 상각 설계인데 등급은 존재 조건이라 `complexity` 가 아니고(불변 사실 55), 불변식이 하나 남아 `basic` 도 아니다.
+  // (KAN-026 S23 · S29 가 `toArray` 를 빼 `basic` 으로 내렸던 것을 S31 이 되돌렸다 — 원칙 A5′-2 기준 시점 조항.
+  // KAN-040 S3 이 크기 읽기를 빼 둘이 하나가 됐고 등급은 안 움직였다.)
   "linear/dynamicArray": "invariant",
+  // 편집 지역성을 가진 수열(T5-02) — **이 표에 줄이 아예 없던 자리다.** 키가 66 이라 계약 67 에 하나
+  // 모자랐고, 값은 맞는데 생성기가 낸 것이 아니라 다음 재생성에서 조용히 `-` 가 될 자리였다
+  // (KAN-040 S1 이 사실을 적고 S5 가 닫았다). 커서 앞뒤를 배열 둘에 나눠 담고 뒤엣것을 뒤집어 두면
+  // 다섯 행이 전부 상한 안이라 `complexity` 가 아니고, **불변식 절이 비어 `basic` 이다** — KAN-040 S3 이
+  // 길이 읽기를 빼면서 하나 있던 불변식의 경로가 하나로 줄었다(불변 사실 426).
+  "linear/gapBuffer": "basic",
   // A군 단조 둘(KAN-026 S7 · S8). 둘 다 자기보다 뒤로 정렬되는 첫 기존 키(`linear/singlyLinkedList`) 앞에 둔다.
   //
   // `monotonicQueue` — 뒤에 넣고 앞에서 빼며 최댓값을 묻는 큐(연산 집합 교체, 2026-09-15 유저 결정). 앞 끝에서
@@ -153,14 +163,16 @@ const VERIFICATION_GRADES: Record<
   // 그 원소까지의 최댓값) 짝을 쌓으면 일곱 행이 서고 — 넣고 빼는 끝이 같아 곁에 적은 값이 낡지 않는다 —
   // 불변식 절이 비어 `basic` 이다.
   "linear/monotonicStack": "basic",
-  // `linear/gapBuffer` 와 **서로 담지 않는** 편집 수열(T5-03) — 자리를 인자로 받고 편집 한 번이 담긴 수가 아니라 편집 수에 묶인다.
-  // 넣기마다 받은 원소를 배열 하나에 두고 「어느 배열의 몇째부터 몇 개」인 쌍의 배열로 드는 구현이 다섯 행을 전부 상한 안에 해
-  // `complexity` 가 아니고, 불변식 하나(길이 ↔ 열거)가 남아 `basic` 도 아니다. 등급이 같은 것은 판정의 입력이 아니다.
-  "linear/pieceTable": "invariant",
+  // `linear/gapBuffer` 와 **서로 담지 않는** 편집 수열(T5-03 · 등급은 KAN-040 S5) — 자리를 인자로 받고 편집 한 번이 담긴 수가
+  // 아니라 편집 수에 묶인다. 넣기마다 받은 원소를 배열 하나에 두고 「어느 배열의 몇째부터 몇 개」인 쌍의 배열로 드는 구현이
+  // 네 행을 전부 상한 안에 해 `complexity` 가 아니고, **불변식 절이 비어 `basic` 이다** — 길이 ↔ 열거의 길이 쪽을
+  // KAN-040 S3 이 뺐다(불변 사실 426). 등급이 `linear/gapBuffer` 와 같은 것은 판정의 입력이 아니다.
+  "linear/pieceTable": "basic",
   "linear/queue": "basic",
-  // `singlyLinkedList` — 연결 마디가 자명한 구현이므로(2026-09-15 유저 결정) 다섯 행이 마디 사슬
-  // 하나로 선다. 세어 둔 수 ↔ 늘어놓은 수 하나가 불변식이라 `basic` 이 아니다.
-  "linear/singlyLinkedList": "invariant",
+  // `singlyLinkedList`(등급은 KAN-040 S5) — 연결 마디가 자명한 구현이므로(2026-09-15 유저 결정) 네 행이
+  // 마디 사슬 하나로 선다. **불변식 절이 비어 `basic` 이다** — 세어 둔 수 ↔ 늘어놓은 수의 세어 둔 쪽을
+  // KAN-040 S3 이 뺐다(불변 사실 426).
+  "linear/singlyLinkedList": "basic",
   "linear/stack": "basic",
   "linear/unrolledLinkedList": "complexity",
   "linear/xorLinkedList": "invariant",
@@ -217,8 +229,9 @@ const VERIFICATION_GRADES: Record<
   "tree/bPlusTree": "complexity",
   "tree/bTree": "complexity",
   // 형제 넷과 **등급이 갈리는** 계약(T1-04). 상한을 로그로 적지 않으므로 정렬 배열
-  // 하나가 여덟 행을 전부 상한 안에 하고, 그래서 `complexity` 가 아니다. 불변식 절이
-  // 넷이라 `invariant` 다 — **등급이 다르면 계약이 같을 수 없다**(불변 사실 56).
+  // 하나가 일곱 행을 전부 상한 안에 하고, 그래서 `complexity` 가 아니다. 불변식 절이
+  // 셋이라 `invariant` 다 — **등급이 다르면 계약이 같을 수 없다**(불변 사실 56).
+  // (KAN-040 S4 가 크기 읽기를 빼 넷이 셋이 됐고 등급은 안 움직였다.)
   "tree/binarySearchTree": "invariant",
   // T1 트랙의 첫 **불변 구조**(T1-06). 불변식 절이 비었는데도 `invariant` 가 아닌 것은
   // 판정 절차가 상한(2번)을 불변식(3번)보다 먼저 보기 때문이다 — `linear/deque` 와 같은 자리.

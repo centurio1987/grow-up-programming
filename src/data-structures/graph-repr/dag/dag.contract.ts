@@ -166,7 +166,7 @@ function vertexArg(rng: () => number): number {
 
 export const dagContract: ContractSpec<DagShell, Model> = {
   name: "DAG",
-  grade: "invariant",
+  grade: "basic",
   model: () => ({ out: [], edges: 0 }),
 
   ops: [

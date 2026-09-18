@@ -108,7 +108,7 @@ function liveIndex(model: Model, at: number): number {
 
 export const doublyLinkedListContract: ContractSpec<Surface, Model> = {
   name: "DoublyLinkedList",
-  grade: "invariant",
+  grade: "basic",
   model: () => ({ order: [], values: [] }),
 
   ops: [

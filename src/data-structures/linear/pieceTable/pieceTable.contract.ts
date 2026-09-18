@@ -113,7 +113,7 @@ export const pieceTableContract: ContractSpec<
   Model
 > = {
   name: "PieceTable",
-  grade: "invariant",
+  grade: "basic",
   model: () => ({ items: [] }),
 
   ops: [

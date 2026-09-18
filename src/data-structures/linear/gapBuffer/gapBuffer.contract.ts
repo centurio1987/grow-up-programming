@@ -116,7 +116,7 @@ export const gapBufferContract: ContractSpec<
   Model
 > = {
   name: "GapBuffer",
-  grade: "invariant",
+  grade: "basic",
   model: () => ({ items: [], at: 0 }),
 
   ops: [

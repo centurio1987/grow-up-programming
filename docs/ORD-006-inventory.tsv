@@ -1,7 +1,7 @@
 path	category	name	defect_grade	verification_grade	escalation	problem_lines	guide_lines	has_reference
 src/data-structures/disjoint-set/disjointSetRollback	disjoint-set	disjointSetRollback	-	complexity	-	0	393	true
 src/data-structures/disjoint-set/unionFind	disjoint-set	unionFind	-	complexity	-	0	320	true
-src/data-structures/graph-repr/dag	graph-repr	dag	-	invariant	-	0	341	true
+src/data-structures/graph-repr/dag	graph-repr	dag	-	basic	-	0	341	true
 src/data-structures/graph-repr/graphAdjList	graph-repr	graphAdjList	-	invariant	-	0	319	true
 src/data-structures/graph-repr/graphAdjMatrix	graph-repr	graphAdjMatrix	-	invariant	-	0	319	true
 src/data-structures/hash/hashMapChaining	hash	hashMapChaining	-	complexity	-	0	675	true
@@ -21,14 +21,14 @@ src/data-structures/heap/vanEmdeBoasTree	heap	vanEmdeBoasTree	-	complexity	-	0	4
 src/data-structures/linear/bitArray	linear	bitArray	-	basic	-	0	320	true
 src/data-structures/linear/circularBuffer	linear	circularBuffer	-	basic	-	0	540	true
 src/data-structures/linear/deque	linear	deque	A	complexity	-	0	318	true
-src/data-structures/linear/doublyLinkedList	linear	doublyLinkedList	-	invariant	-	0	312	true
+src/data-structures/linear/doublyLinkedList	linear	doublyLinkedList	-	basic	-	0	312	true
 src/data-structures/linear/dynamicArray	linear	dynamicArray	-	invariant	-	0	325	true
-src/data-structures/linear/gapBuffer	linear	gapBuffer	-	invariant	-	0	687	true
+src/data-structures/linear/gapBuffer	linear	gapBuffer	-	basic	-	0	687	true
 src/data-structures/linear/monotonicQueue	linear	monotonicQueue	-	complexity	-	0	765	true
 src/data-structures/linear/monotonicStack	linear	monotonicStack	-	basic	-	0	305	true
-src/data-structures/linear/pieceTable	linear	pieceTable	-	invariant	-	0	338	true
+src/data-structures/linear/pieceTable	linear	pieceTable	-	basic	-	0	338	true
 src/data-structures/linear/queue	linear	queue	C	basic	-	0	445	true
-src/data-structures/linear/singlyLinkedList	linear	singlyLinkedList	-	invariant	-	0	328	true
+src/data-structures/linear/singlyLinkedList	linear	singlyLinkedList	-	basic	-	0	328	true
 src/data-structures/linear/stack	linear	stack	-	basic	-	0	272	true
 src/data-structures/linear/unrolledLinkedList	linear	unrolledLinkedList	A	complexity	-	0	650	true
 src/data-structures/linear/xorLinkedList	linear	xorLinkedList	B	invariant	opt	0	385	true

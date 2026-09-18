@@ -37,7 +37,7 @@ export const singlyLinkedListContract: ContractSpec<
   Model
 > = {
   name: "SinglyLinkedList",
-  grade: "invariant",
+  grade: "basic",
   model: () => [],
 
   ops: [

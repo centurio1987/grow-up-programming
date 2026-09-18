@@ -289,7 +289,7 @@ const UNITS: readonly Unit[] = [
     contract: "편집 지역성을 가진 수열 (미확정)",
     canonical: "linear/gapBuffer",
     transitions: [],
-    note: "공간 표시. 존재 이유가 계약의 문장이 되는지부터 본다 — 안 되면 B15 처분(존치 + 성격 전환)",
+    note: "공간 표시. 존재 이유가 계약의 문장이 되는지부터 본다 — 안 되면 B15 처분(존치 + 성격 전환). basic(불변식 절이 비었다 — KAN-040 S3 이 길이 읽기를 빼 경로가 하나로 줄었고 S5 가 invariant 에서 내렸다, 불변 사실 426). 이 계약은 VERIFICATION_GRADES 에 줄이 아예 없던 자리이기도 해 같은 배치가 그 빈 칸을 닫았다",
   },
   {
     id: "T5-03",
@@ -297,7 +297,7 @@ const UNITS: readonly Unit[] = [
     contract: "원본 불변 + 조각 목록 (미확정)",
     canonical: "linear/pieceTable",
     transitions: [],
-    note: "같음. T5-02 와 같은 계약인지도 함께 본다",
+    note: "같음. T5-02 와 같은 계약인지도 함께 본다. basic(불변식 절이 비었다 — KAN-040 S3 이 길이 읽기를 빼 경로가 하나로 줄었고 S5 가 invariant 에서 내렸다, 불변 사실 426)",
   },
   {
     id: "T5-04",
@@ -360,7 +360,7 @@ const UNITS: readonly Unit[] = [
     contract: "앞에 넣기·뒤에 넣기·앞에서 빼기가 상수인 수열",
     canonical: "linear/singlyLinkedList",
     transitions: [],
-    note: "완료(KAN-026 S4) — 마디 핸들 · 공개 next 를 뺐고 물려받은 find 도 뺐다(toArray 와 같은 계급이라 배제 없음, 불변 사실 224). 빼는 끝이 하나라 두 무더기 구현이 살아 removeFirst 가 amortized(불변 사실 225). invariant(불변식 1)",
+    note: "완료(KAN-026 S4) — 마디 핸들 · 공개 next 를 뺐고 물려받은 find 도 뺐다(toArray 와 같은 계급이라 배제 없음, 불변 사실 224). 빼는 끝이 하나라 두 무더기 구현이 살아 removeFirst 가 amortized(불변 사실 225). basic(불변식 절이 비었다 — KAN-040 S3 이 크기 읽기를 빼 세어 둔 수 ↔ 늘어놓은 수의 경로가 하나로 줄었고 S5 가 invariant 에서 내렸다, 불변 사실 426)",
   },
   {
     id: "TA-03",
@@ -368,7 +368,7 @@ const UNITS: readonly Unit[] = [
     contract: "첨자 접근 + 뒤 끝 넣기·빼기 수열",
     canonical: "linear/dynamicArray",
     transitions: [],
-    note: "완료(KAN-026 S6) — capacity() 와 늘리기·줄이기 정책을 뺐다. 범위 밖 첨자는 get 이 null · set 이 RangeError(연산마다 판별, 불변 사실 226). 정본은 칸을 직접 옮기며 세어 push · pop 의 amortized 근거가 계측에 보인다(불변 사실 227). 경계 교대 시나리오는 칸 수가 사다리와 맞는 구현만 겨눈다(불변 사실 228). invariant(불변식 2) — S23 · S29 가 toArray 를 빼 basic 으로 내렸던 것을 S31 이 되돌렸다(원칙 A5′-2 기준 시점 조항)",
+    note: "완료(KAN-026 S6) — capacity() 와 늘리기·줄이기 정책을 뺐다. 범위 밖 첨자는 get 이 null · set 이 RangeError(연산마다 판별, 불변 사실 226). 정본은 칸을 직접 옮기며 세어 push · pop 의 amortized 근거가 계측에 보인다(불변 사실 227). 경계 교대 시나리오는 칸 수가 사다리와 맞는 구현만 겨눈다(불변 사실 228). invariant(불변식 1) — S23 · S29 가 toArray 를 빼 basic 으로 내렸던 것을 S31 이 되돌렸다(원칙 A5′-2 기준 시점 조항). KAN-040 S3 이 크기 읽기를 빼 불변식이 둘에서 하나가 됐고 등급은 안 움직였다",
   },
   {
     id: "TA-04",
@@ -376,7 +376,7 @@ const UNITS: readonly Unit[] = [
     contract: "위치 핸들로 상수 시간 끼우기·빼기를 하는 수열",
     canonical: "linear/doublyLinkedList",
     transitions: [],
-    note: "완료(KAN-026 S5) — 핸들 모형을 헤더가 적는다(넣은 원소 하나를 가리킨다 · 그 원소를 빼는 호출로만 죽는다 · 죽은 핸들과 다른 수열 핸들은 insertAfter null · remove false, 불변 사실 270). 공개 prev·next·ListNode 를 뺐다. 하네스는 고치지 않고 핸들을 번호로 부른다(불변 사실 271). 값 끌어오기 우회가 축3 전부를 통과하고 축1에서 걸린다(불변 사실 272). 링크 정합은 불변식이 아니지만 이음을 빠뜨린 정본 변이 넷이 전부 축2·축1에 걸린다(불변 사실 273). invariant(불변식 1)",
+    note: "완료(KAN-026 S5) — 핸들 모형을 헤더가 적는다(넣은 원소 하나를 가리킨다 · 그 원소를 빼는 호출로만 죽는다 · 죽은 핸들과 다른 수열 핸들은 insertAfter null · remove false, 불변 사실 270). 공개 prev·next·ListNode 를 뺐다. 하네스는 고치지 않고 핸들을 번호로 부른다(불변 사실 271). 값 끌어오기 우회가 축3 전부를 통과하고 축1에서 걸린다(불변 사실 272). 링크 정합은 불변식이 아니지만 이음을 빠뜨린 정본 변이 넷이 전부 축2·축1에 걸린다(불변 사실 273). basic(불변식 절이 비었다 — KAN-040 S3 이 크기 읽기를 빼 세어 둔 수 ↔ 늘어놓은 수의 경로가 하나로 줄었고 S5 가 invariant 에서 내렸다, 불변 사실 426)",
   },
   {
     id: "TA-05",
@@ -416,7 +416,7 @@ const UNITS: readonly Unit[] = [
     contract: "사이클을 만드는 간선을 거부하는 방향 그래프",
     canonical: "graph-repr/dag",
     transitions: [],
-    note: "완료(KAN-026 S11) — 사이클을 닫는 간선은 false(전면화) · 순서는 하나로 정하지 않고 껍데기가 판정(true|어긋남)으로 관측한다(불변 사실 284–285). longestPath·무게·hasCycle 을 뺐다. addEdge 상한은 「닿는 부분」 k(u, v) — S25 가 k 를 그래프와 넣는 간선만으로 정하고(A(u, v) = u 에 오는 정점 ∪ v 에서 가는 정점, k = |A| + A 에 닿는 간선 수) 국소 갱신 비용을 목적으로 적었다(2026-09-16 검토 결정). 비순환은 불변식이 아니다(286). invariant(불변식 1)",
+    note: "완료(KAN-026 S11) — 사이클을 닫는 간선은 false(전면화) · 순서는 하나로 정하지 않고 껍데기가 판정(true|어긋남)으로 관측한다(불변 사실 284–285). longestPath·무게·hasCycle 을 뺐다. addEdge 상한은 「닿는 부분」 k(u, v) — S25 가 k 를 그래프와 넣는 간선만으로 정하고(A(u, v) = u 에 오는 정점 ∪ v 에서 가는 정점, k = |A| + A 에 닿는 간선 수) 국소 갱신 비용을 목적으로 적었다(2026-09-16 검토 결정). 비순환은 불변식이 아니다(286). basic(불변식 절이 비었다 — KAN-040 S3 이 정점 수 · 간선 수 읽기를 빼 순서 길이 ↔ 정점 수의 경로가 하나로 줄었고 S5 가 invariant 에서 내렸다, 불변 사실 426)",
   },
   {
     id: "TA-10",
