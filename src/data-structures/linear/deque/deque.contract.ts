@@ -20,8 +20,6 @@ export interface DequeContract<T> {
   popBack(): T | null;
   peekFront(): T | null;
   peekBack(): T | null;
-  isEmpty(): boolean;
-  size(): number;
 }
 
 /** 축1 참조 모델. 자명한 배열이면 된다 — 축1은 의미만 보고 비용은 보지 않는다. */
@@ -79,18 +77,6 @@ export const dequeContract: ContractSpec<DequeContract<number>, Model> = {
       onModel: (model) =>
         model.length === 0 ? null : (model[model.length - 1] as number),
     },
-    {
-      name: "isEmpty",
-      arg: () => undefined,
-      onImpl: (impl) => impl.isEmpty(),
-      onModel: (model) => model.length === 0,
-    },
-    {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.length,
-    },
   ],
 
   edges: [
@@ -101,8 +87,8 @@ export const dequeContract: ContractSpec<DequeContract<number>, Model> = {
         { op: "popBack" },
         { op: "peekFront" },
         { op: "peekBack" },
-        { op: "size" },
-        { op: "isEmpty" },
+        { op: "peekFront" },
+        { op: "peekBack" },
       ],
     },
     {
@@ -112,7 +98,7 @@ export const dequeContract: ContractSpec<DequeContract<number>, Model> = {
         { op: "peekFront" },
         { op: "peekBack" },
         { op: "popBack" },
-        { op: "isEmpty" },
+        { op: "peekFront" },
       ],
     },
     {
@@ -124,7 +110,7 @@ export const dequeContract: ContractSpec<DequeContract<number>, Model> = {
         { op: "popFront" },
         { op: "popFront" },
         { op: "popFront" },
-        { op: "isEmpty" },
+        { op: "peekFront" },
       ],
     },
     {
@@ -136,7 +122,7 @@ export const dequeContract: ContractSpec<DequeContract<number>, Model> = {
         { op: "popFront" },
         { op: "popFront" },
         { op: "popFront" },
-        { op: "isEmpty" },
+        { op: "peekFront" },
       ],
     },
     {
@@ -149,7 +135,7 @@ export const dequeContract: ContractSpec<DequeContract<number>, Model> = {
         { op: "peekBack" },
         { op: "popFront" },
         { op: "popBack" },
-        { op: "size" },
+        { op: "peekFront" },
       ],
     },
     {
@@ -161,7 +147,7 @@ export const dequeContract: ContractSpec<DequeContract<number>, Model> = {
         { op: "pushBack", arg: 6 },
         { op: "peekFront" },
         { op: "peekBack" },
-        { op: "size" },
+        { op: "peekFront" },
       ],
     },
   ],
@@ -226,7 +212,7 @@ export const dequeContract: ContractSpec<DequeContract<number>, Model> = {
       },
     },
     {
-      covers: ["peekFront", "peekBack", "isEmpty", "size"],
+      covers: ["peekFront", "peekBack"],
       qualifier: "worst",
       bound: "O(1)",
       adversarial: false,
@@ -236,8 +222,6 @@ export const dequeContract: ContractSpec<DequeContract<number>, Model> = {
           ctx.step(() => {
             impl.peekFront();
             impl.peekBack();
-            impl.isEmpty();
-            impl.size();
           });
         }
       },

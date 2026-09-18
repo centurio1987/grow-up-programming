@@ -3,7 +3,7 @@
  *
  * `tree/cartesianTree` 계약이 「자명한 구현으로 상한이 달성되지 않는다」의 반례로 든 바로
  * 그 구현이다. 트리는 정본과 **같은 것**을 짓는다 — 값이 옳으므로 축1을 전부 통과하고,
- * 마디를 실제로 세워 두므로 훑기 네 행도 상수다. 갈리는 것은 구성 하나뿐이다.
+ * 마디를 실제로 세워 두므로 훑기 세 행도 상수다. 갈리는 것은 구성 하나뿐이다.
  *
  * **무작위 입력에서는 이 결함이 안 보인다.** 나눔이 대체로 반씩 갈려 $\Theta(n\log n)$ 이
  * 되고, 로그 인수 하나는 축3의 해상도 아래다(불변 사실 53). 오름차순에서는 나눔이 한쪽으로만
@@ -19,7 +19,6 @@ interface Node<T> {
   value: T;
   left: Node<T> | null;
   right: Node<T> | null;
-  size: number;
 }
 
 interface Frame<T> {
@@ -49,11 +48,6 @@ export class ScanningCartesianTree<T> {
 
   get __cost(): number {
     return this.#meter.cost;
-  }
-
-  size(): number {
-    this.#meter.cost += 1;
-    return this.#node?.size ?? 0;
   }
 
   value(): T | null {
@@ -100,8 +94,7 @@ export class ScanningCartesianTree<T> {
   /**
    * 구간마다 최솟값을 훑어 찾고 좌우로 나눈다.
    *
-   * 부분트리 크기는 구간 길이라 그 자리에서 나온다 — 그래서 `size()` 는 상수이고, 이
-   * fixture 가 어기는 것은 구성 한 행뿐이다.
+   * 이 fixture 가 어기는 것은 구성 한 행뿐이다 — 마디를 실제로 세워 두므로 훑기는 상수다.
    */
   #build(seq: readonly T[]): Node<T> | null {
     if (seq.length === 0) return null;
@@ -125,7 +118,6 @@ export class ScanningCartesianTree<T> {
         value: seq[best] as T,
         left: null,
         right: null,
-        size: frame.hi - frame.lo,
       };
       if (frame.parent === null) root = node;
       else if (frame.side === 0) frame.parent.left = node;

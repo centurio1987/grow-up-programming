@@ -16,8 +16,8 @@
  *
  * 껍데기는 간선을 **구현의 답**으로 적는다 — `addEdge` 가 `true` 를 돌려준 간선만 적는다. 구현이 사이클을
  * 닫는 간선에 `true` 를 돌려주면 그 호출에서 축1이 모델의 `false` 와 갈려 시퀀스가 멈추므로, 판정이
- * 불리는 시점의 기록은 언제나 모델의 간선과 같다. 정점 수도 `vertexCount()` 가 아니라 `addVertex` 가
- * 불린 수로 센다 — 판정이 구현의 다른 관측에 기대지 않게 하려는 것이다. 껍데기는 계약의 일부가 아니고
+ * 불리는 시점의 기록은 언제나 모델의 간선과 같다. 정점 수는 `addVertex` 가 불린 수로 센다 —
+ * 판정이 구현의 다른 관측에 기대지 않게 하려는 것이다. 껍데기는 계약의 일부가 아니고
  * `tools/check-contract.ts` 의 명세↔스텁·정본 대조에도 걸리지 않는다.
  *
  * **범위 밖 번호를 관측값으로 만든다.** 계약이 그 자리에 `RangeError` 를 적었는데 하네스는 던진 것을
@@ -39,13 +39,11 @@
 
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 **다섯 행**을 그대로 옮긴 표면. 생성자 행은 팩토리가 나른다. */
+/** 헤더 연산 계약 표의 **세 행**을 그대로 옮긴 표면. 생성자 행은 팩토리가 나른다. */
 export interface DagContract {
   addVertex(): number;
   addEdge(u: number, v: number): boolean;
   topologicalOrder(): number[];
-  vertexCount(): number;
-  edgeCount(): number;
 }
 
 type Built = DagContract & { __cost?: number };
@@ -168,7 +166,7 @@ function vertexArg(rng: () => number): number {
 
 export const dagContract: ContractSpec<DagShell, Model> = {
   name: "DAG",
-  grade: "invariant",
+  grade: "basic",
   model: () => ({ out: [], edges: 0 }),
 
   ops: [
@@ -205,39 +203,24 @@ export const dagContract: ContractSpec<DagShell, Model> = {
       onImpl: (impl) => impl.orderObserved(),
       onModel: () => true,
     },
-    {
-      name: "vertexCount",
-      arg: () => undefined,
-      onImpl: (impl) => impl.dag.vertexCount(),
-      onModel: (model) => model.out.length,
-    },
-    {
-      name: "edgeCount",
-      arg: () => undefined,
-      onImpl: (impl) => impl.dag.edgeCount(),
-      onModel: (model) => model.edges,
-    },
   ],
 
   edges: [
     {
       name: "빈 그래프에서는 어느 번호도 범위 밖이고 순서는 빈 배열이다",
       steps: [
-        { op: "vertexCount" },
-        { op: "edgeCount" },
         { op: "topologicalOrder" },
         { op: "addEdge", arg: [0, 0] },
-        { op: "edgeCount" },
+        { op: "topologicalOrder" },
       ],
     },
     {
       // 정점 번호 모형이 관측되는 자리다. 번호는 호출 직전의 수이고 그 수 이상은 범위 밖이다.
-      name: "addVertex 는 호출 직전의 vertexCount 를 번호로 돌려준다",
+      name: "addVertex 는 그 호출 전까지 더한 정점 수를 번호로 돌려준다",
       steps: [
         { op: "addVertex" },
         { op: "addVertex" },
         { op: "addVertex" },
-        { op: "vertexCount" },
         { op: "addEdge", arg: [2, 3] },
         { op: "addEdge", arg: [3, 0] },
         { op: "topologicalOrder" },
@@ -248,7 +231,6 @@ export const dagContract: ContractSpec<DagShell, Model> = {
       steps: [
         { op: "addVertex" },
         { op: "addEdge", arg: [0, 0] },
-        { op: "edgeCount" },
         { op: "topologicalOrder" },
       ],
     },
@@ -259,7 +241,6 @@ export const dagContract: ContractSpec<DagShell, Model> = {
         { op: "addVertex" },
         { op: "addEdge", arg: [0, 1] },
         { op: "addEdge", arg: [1, 0] },
-        { op: "edgeCount" },
         { op: "topologicalOrder" },
       ],
     },
@@ -278,19 +259,18 @@ export const dagContract: ContractSpec<DagShell, Model> = {
         { op: "addEdge", arg: [3, 0] },
         { op: "addEdge", arg: [2, 1] },
         { op: "addEdge", arg: [3, 1] },
-        { op: "edgeCount" },
         { op: "topologicalOrder" },
       ],
     },
     {
-      // 같은 간선을 두 번 세는 구현이 여기서 불변식이 아니라 축1에서 갈린다(간선을 늘어놓는 연산이 없다).
-      name: "같은 간선을 다시 넣으면 true 이고 간선 수는 그대로다",
+      // 둘째 호출이 `true` 를 돌려주고 순서가 그대로여야 한다. 간선을 세는 연산도 늘어놓는 연산도
+      // 없으므로 「하나로 센다」가 관측되는 자리는 반환값과 순서뿐이다.
+      name: "같은 간선을 다시 넣으면 true 이고 상태가 바뀌지 않는다",
       steps: [
         { op: "addVertex" },
         { op: "addVertex" },
         { op: "addEdge", arg: [0, 1] },
         { op: "addEdge", arg: [0, 1] },
-        { op: "edgeCount" },
         { op: "topologicalOrder" },
       ],
     },
@@ -305,7 +285,6 @@ export const dagContract: ContractSpec<DagShell, Model> = {
         { op: "addEdge", arg: [1, 0] },
         { op: "addEdge", arg: [0, 2] },
         { op: "addEdge", arg: [2, 1] },
-        { op: "edgeCount" },
         { op: "topologicalOrder" },
       ],
     },
@@ -326,7 +305,6 @@ export const dagContract: ContractSpec<DagShell, Model> = {
         { op: "topologicalOrder" },
         { op: "topologicalOrder" },
         { op: "addEdge", arg: [0, 4] },
-        { op: "vertexCount" },
         { op: "topologicalOrder" },
       ],
     },
@@ -339,30 +317,21 @@ export const dagContract: ContractSpec<DagShell, Model> = {
         { op: "addEdge", arg: [0, 2] },
         { op: "addEdge", arg: [-1, 0] },
         { op: "addEdge", arg: [0.5, 1] },
-        { op: "edgeCount" },
+        { op: "topologicalOrder" },
         { op: "addEdge", arg: [0, 1] },
         { op: "addEdge", arg: [1, 2] },
         { op: "addEdge", arg: [2, 1] },
-        { op: "edgeCount" },
+        { op: "topologicalOrder" },
         { op: "addEdge", arg: [1, 0] },
         { op: "topologicalOrder" },
       ],
     },
   ],
 
-  invariants: [
-    {
-      name: "순서의 길이와 정점 수가 맞는다",
-      check: (impl) => {
-        const vertices = impl.dag.vertexCount();
-        const listed = impl.dag.topologicalOrder().length;
-        if (listed !== vertices) {
-          return `topologicalOrder() 길이 ${listed} / vertexCount() ${vertices}`;
-        }
-        return null;
-      },
-    },
-  ],
+  // 헤더의 불변식 절이 「없다」다. 정점 수를 세어 두는 행이 표면에서 빠져 순서의 길이와 견줄
+  // 둘째 경로가 사라졌고, 배열이 모든 정점을 한 번씩 담는다는 것은 `topologicalOrder` 행의
+  // 의미라 축1이 본다(헤더 불변식 절의 판별).
+  invariants: [],
 
   scenarios: [
     {
@@ -418,24 +387,6 @@ export const dagContract: ContractSpec<DagShell, Model> = {
         for (let i = 0; i < n; i++) dag.addVertex();
         for (let i = n - 1; i > 0; i--) dag.addEdge(i, i - 1);
         for (let i = 0; i < 4; i++) ctx.step(() => dag.topologicalOrder());
-      },
-    },
-    {
-      // 둘을 한 걸음에 묶는다. 수를 세어 두지 않고 매번 훑는 계열이 여기서만 걸린다.
-      covers: ["vertexCount", "edgeCount"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      run: (impl, n, ctx) => {
-        const dag = impl.dag;
-        for (let i = 0; i < n; i++) dag.addVertex();
-        for (let i = 0; i + 1 < n; i++) dag.addEdge(i, i + 1);
-        for (let i = 0; i < n; i++) {
-          ctx.step(() => {
-            dag.vertexCount();
-            dag.edgeCount();
-          });
-        }
       },
     },
   ],

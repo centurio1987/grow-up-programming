@@ -17,20 +17,12 @@
           "expect": null
         },
         {
-          "op": "isEmpty",
-          "expect": true
-        },
-        {
-          "op": "size",
-          "expect": 0
-        },
-        {
           "op": "dequeue",
           "expect": null
         },
         {
-          "op": "size",
-          "expect": 0
+          "op": "front",
+          "expect": null
         }
       ]
     },
@@ -89,10 +81,6 @@
           "expect": 7
         },
         {
-          "op": "size",
-          "expect": 2
-        },
-        {
           "op": "dequeue",
           "expect": 7
         },
@@ -123,8 +111,8 @@
           "expect": 2
         },
         {
-          "op": "isEmpty",
-          "expect": true
+          "op": "front",
+          "expect": null
         },
         {
           "op": "enqueue",
@@ -139,8 +127,8 @@
           "expect": 3
         },
         {
-          "op": "isEmpty",
-          "expect": true
+          "op": "front",
+          "expect": null
         }
       ]
     },
@@ -173,8 +161,8 @@
           "expect": 3
         },
         {
-          "op": "size",
-          "expect": 1
+          "op": "dequeue",
+          "expect": 3
         }
       ]
     },
@@ -195,12 +183,12 @@
           "expect": 5
         },
         {
-          "op": "size",
-          "expect": 1
+          "op": "dequeue",
+          "expect": 5
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "front",
+          "expect": null
         }
       ]
     },
@@ -209,47 +197,43 @@
       "kind": "random",
       "steps": [
         {
-          "op": "isEmpty",
-          "expect": true
+          "op": "dequeue",
+          "expect": null
         },
         {
           "op": "enqueue",
           "arg": 52
         },
         {
-          "op": "size",
-          "expect": 1
+          "op": "front",
+          "expect": 52
         },
         {
-          "op": "size",
-          "expect": 1
+          "op": "front",
+          "expect": 52
+        },
+        {
+          "op": "enqueue",
+          "arg": 61
+        },
+        {
+          "op": "front",
+          "expect": 52
         },
         {
           "op": "dequeue",
           "expect": 52
         },
         {
-          "op": "isEmpty",
-          "expect": true
-        },
-        {
-          "op": "isEmpty",
-          "expect": true
-        },
-        {
           "op": "front",
-          "expect": null
+          "expect": 61
         },
         {
-          "op": "size",
-          "expect": 0
+          "op": "dequeue",
+          "expect": 61
         },
         {
-          "op": "front",
-          "expect": null
-        },
-        {
-          "op": "front",
+          "op": "dequeue",
           "expect": null
         },
         {
@@ -257,40 +241,40 @@
           "arg": 40
         },
         {
-          "op": "dequeue",
-          "expect": 40
+          "op": "enqueue",
+          "arg": 15
         },
         {
-          "op": "enqueue",
-          "arg": 48
+          "op": "dequeue",
+          "expect": 40
         },
         {
           "op": "enqueue",
           "arg": 39
         },
         {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "dequeue",
-          "expect": 48
+          "op": "front",
+          "expect": 15
         },
         {
           "op": "enqueue",
-          "arg": 4
+          "arg": 19
+        },
+        {
+          "op": "enqueue",
+          "arg": 42
+        },
+        {
+          "op": "dequeue",
+          "expect": 15
         },
         {
           "op": "front",
           "expect": 39
         },
         {
-          "op": "front",
-          "expect": 39
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
+          "op": "enqueue",
+          "arg": 20
         },
         {
           "op": "dequeue",
@@ -298,62 +282,50 @@
         },
         {
           "op": "dequeue",
-          "expect": 4
-        },
-        {
-          "op": "isEmpty",
-          "expect": true
+          "expect": 19
         },
         {
           "op": "front",
-          "expect": null
-        },
-        {
-          "op": "isEmpty",
-          "expect": true
+          "expect": 42
         },
         {
           "op": "enqueue",
           "arg": 72
         },
         {
-          "op": "front",
-          "expect": 72
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "size",
-          "expect": 1
-        },
-        {
           "op": "dequeue",
-          "expect": 72
+          "expect": 42
         },
         {
-          "op": "isEmpty",
-          "expect": true
+          "op": "front",
+          "expect": 20
+        },
+        {
+          "op": "front",
+          "expect": 20
+        },
+        {
+          "op": "enqueue",
+          "arg": 75
         },
         {
           "op": "enqueue",
           "arg": 32
         },
         {
-          "op": "front",
-          "expect": 32
-        },
-        {
           "op": "dequeue",
-          "expect": 32
+          "expect": 20
         },
         {
           "op": "enqueue",
-          "arg": 72
+          "arg": 15
         },
         {
           "op": "front",
+          "expect": 72
+        },
+        {
+          "op": "dequeue",
           "expect": 72
         },
         {
@@ -365,92 +337,80 @@
           "arg": 62
         },
         {
-          "op": "size",
-          "expect": 3
-        },
-        {
-          "op": "dequeue",
-          "expect": 72
-        },
-        {
-          "op": "size",
-          "expect": 2
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
           "op": "front",
-          "expect": 26
-        },
-        {
-          "op": "dequeue",
-          "expect": 26
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "size",
-          "expect": 1
+          "expect": 75
         },
         {
           "op": "enqueue",
-          "arg": 3
-        },
-        {
-          "op": "size",
-          "expect": 2
-        },
-        {
-          "op": "dequeue",
-          "expect": 62
-        },
-        {
-          "op": "size",
-          "expect": 1
+          "arg": 98
         },
         {
           "op": "front",
-          "expect": 3
+          "expect": 75
         },
         {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
+          "op": "dequeue",
+          "expect": 75
         },
         {
           "op": "enqueue",
           "arg": 67
         },
         {
-          "op": "size",
-          "expect": 2
+          "op": "front",
+          "expect": 32
+        },
+        {
+          "op": "front",
+          "expect": 32
+        },
+        {
+          "op": "front",
+          "expect": 32
+        },
+        {
+          "op": "front",
+          "expect": 32
+        },
+        {
+          "op": "front",
+          "expect": 32
+        },
+        {
+          "op": "front",
+          "expect": 32
+        },
+        {
+          "op": "enqueue",
+          "arg": 3
+        },
+        {
+          "op": "front",
+          "expect": 32
+        },
+        {
+          "op": "enqueue",
+          "arg": 88
+        },
+        {
+          "op": "dequeue",
+          "expect": 32
+        },
+        {
+          "op": "front",
+          "expect": 15
+        },
+        {
+          "op": "front",
+          "expect": 15
+        },
+        {
+          "op": "enqueue",
+          "arg": 67
+        },
+        {
+          "op": "front",
+          "expect": 15
         },
         {
           "op": "enqueue",
@@ -465,28 +425,56 @@
           "arg": 40
         },
         {
+          "op": "enqueue",
+          "arg": 65
+        },
+        {
           "op": "dequeue",
-          "expect": 3
+          "expect": 15
         },
         {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "front",
-          "expect": 67
-        },
-        {
-          "op": "front",
-          "expect": 67
+          "op": "dequeue",
+          "expect": 26
         },
         {
           "op": "enqueue",
           "arg": 80
         },
         {
-          "op": "size",
-          "expect": 5
+          "op": "front",
+          "expect": 62
+        },
+        {
+          "op": "enqueue",
+          "arg": 16
+        },
+        {
+          "op": "enqueue",
+          "arg": 89
+        },
+        {
+          "op": "enqueue",
+          "arg": 14
+        },
+        {
+          "op": "dequeue",
+          "expect": 62
+        },
+        {
+          "op": "dequeue",
+          "expect": 98
+        },
+        {
+          "op": "enqueue",
+          "arg": 12
+        },
+        {
+          "op": "enqueue",
+          "arg": 6
+        },
+        {
+          "op": "enqueue",
+          "arg": 67
         },
         {
           "op": "dequeue",
@@ -494,75 +482,27 @@
         },
         {
           "op": "enqueue",
-          "arg": 30
-        },
-        {
-          "op": "size",
-          "expect": 5
-        },
-        {
-          "op": "dequeue",
-          "expect": 97
-        },
-        {
-          "op": "enqueue",
-          "arg": 65
-        },
-        {
-          "op": "front",
-          "expect": 38
-        },
-        {
-          "op": "dequeue",
-          "expect": 38
-        },
-        {
-          "op": "enqueue",
-          "arg": 14
-        },
-        {
-          "op": "enqueue",
-          "arg": 30
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "enqueue",
           "arg": 50
         },
         {
+          "op": "dequeue",
+          "expect": 3
+        },
+        {
+          "op": "enqueue",
+          "arg": 79
+        },
+        {
+          "op": "enqueue",
+          "arg": 99
+        },
+        {
           "op": "front",
-          "expect": 40
+          "expect": 88
         },
         {
-          "op": "dequeue",
-          "expect": 40
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "dequeue",
-          "expect": 80
-        },
-        {
-          "op": "size",
-          "expect": 5
-        },
-        {
-          "op": "size",
-          "expect": 5
-        },
-        {
-          "op": "size",
-          "expect": 5
+          "op": "front",
+          "expect": 88
         },
         {
           "op": "enqueue",
@@ -573,104 +513,76 @@
           "arg": 98
         },
         {
-          "op": "dequeue",
-          "expect": 30
+          "op": "enqueue",
+          "arg": 72
         },
         {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "size",
-          "expect": 6
+          "op": "front",
+          "expect": 88
         },
         {
           "op": "enqueue",
           "arg": 25
         },
         {
-          "op": "size",
-          "expect": 7
+          "op": "front",
+          "expect": 88
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "front",
+          "expect": 88
         },
         {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "dequeue",
-          "expect": 65
+          "op": "front",
+          "expect": 88
         },
         {
           "op": "enqueue",
-          "arg": 14
+          "arg": 9
+        },
+        {
+          "op": "enqueue",
+          "arg": 40
+        },
+        {
+          "op": "dequeue",
+          "expect": 88
+        },
+        {
+          "op": "enqueue",
+          "arg": 88
+        },
+        {
+          "op": "enqueue",
+          "arg": 90
         },
         {
           "op": "front",
-          "expect": 14
+          "expect": 67
+        },
+        {
+          "op": "dequeue",
+          "expect": 67
         },
         {
           "op": "front",
-          "expect": 14
+          "expect": 97
         },
         {
-          "op": "dequeue",
-          "expect": 14
+          "op": "enqueue",
+          "arg": 38
         },
         {
-          "op": "size",
-          "expect": 6
+          "op": "enqueue",
+          "arg": 20
         },
         {
-          "op": "dequeue",
-          "expect": 30
+          "op": "enqueue",
+          "arg": 93
         },
         {
-          "op": "size",
-          "expect": 5
-        },
-        {
-          "op": "size",
-          "expect": 5
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "dequeue",
-          "expect": 50
-        },
-        {
-          "op": "dequeue",
-          "expect": 18
-        },
-        {
-          "op": "dequeue",
-          "expect": 98
-        },
-        {
-          "op": "dequeue",
-          "expect": 25
-        },
-        {
-          "op": "dequeue",
-          "expect": 14
-        },
-        {
-          "op": "size",
-          "expect": 0
-        },
-        {
-          "op": "size",
-          "expect": 0
+          "op": "front",
+          "expect": 97
         },
         {
           "op": "enqueue",
@@ -681,148 +593,132 @@
           "arg": 3
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "front",
+          "expect": 97
         },
         {
           "op": "dequeue",
-          "expect": 32
-        },
-        {
-          "op": "dequeue",
-          "expect": 3
+          "expect": 97
         },
         {
           "op": "enqueue",
-          "arg": 82
-        },
-        {
-          "op": "dequeue",
-          "expect": 82
-        },
-        {
-          "op": "size",
-          "expect": 0
+          "arg": 14
         },
         {
           "op": "front",
-          "expect": null
+          "expect": 38
         },
         {
-          "op": "front",
-          "expect": null
-        },
-        {
-          "op": "isEmpty",
-          "expect": true
+          "op": "enqueue",
+          "arg": 89
         },
         {
           "op": "dequeue",
-          "expect": null
+          "expect": 38
         },
         {
           "op": "dequeue",
-          "expect": null
+          "expect": 40
         },
         {
           "op": "front",
-          "expect": null
+          "expect": 65
         },
         {
-          "op": "isEmpty",
-          "expect": true
+          "op": "dequeue",
+          "expect": 65
         },
         {
-          "op": "isEmpty",
-          "expect": true
+          "op": "enqueue",
+          "arg": 53
+        },
+        {
+          "op": "front",
+          "expect": 80
+        },
+        {
+          "op": "front",
+          "expect": 80
         },
         {
           "op": "enqueue",
           "arg": 20
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "dequeue",
+          "expect": 80
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "dequeue",
+          "expect": 16
         },
         {
           "op": "enqueue",
           "arg": 32
         },
         {
+          "op": "dequeue",
+          "expect": 89
+        },
+        {
           "op": "front",
-          "expect": 20
-        },
-        {
-          "op": "size",
-          "expect": 2
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
+          "expect": 14
         },
         {
           "op": "dequeue",
-          "expect": 20
+          "expect": 14
         },
         {
           "op": "dequeue",
-          "expect": 32
+          "expect": 12
         },
         {
-          "op": "isEmpty",
-          "expect": true
+          "op": "dequeue",
+          "expect": 6
+        },
+        {
+          "op": "dequeue",
+          "expect": 67
         },
         {
           "op": "enqueue",
           "arg": 92
         },
         {
-          "op": "front",
-          "expect": 92
+          "op": "dequeue",
+          "expect": 50
         },
         {
-          "op": "front",
-          "expect": 92
+          "op": "dequeue",
+          "expect": 79
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "dequeue",
+          "expect": 99
         },
         {
           "op": "enqueue",
           "arg": 7
         },
         {
-          "op": "size",
-          "expect": 2
+          "op": "front",
+          "expect": 18
         },
         {
           "op": "enqueue",
           "arg": 71
         },
         {
-          "op": "dequeue",
-          "expect": 92
+          "op": "enqueue",
+          "arg": 64
         },
         {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "dequeue",
-          "expect": 7
+          "op": "enqueue",
+          "arg": 54
         },
         {
           "op": "front",
-          "expect": 71
-        },
-        {
-          "op": "size",
-          "expect": 1
+          "expect": 18
         },
         {
           "op": "enqueue",
@@ -838,23 +734,23 @@
         },
         {
           "op": "dequeue",
-          "expect": 71
+          "expect": 18
         },
         {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "dequeue",
-          "expect": 11
+          "op": "front",
+          "expect": 98
         },
         {
           "op": "enqueue",
-          "arg": 99
+          "arg": 8
         },
         {
-          "op": "size",
-          "expect": 3
+          "op": "front",
+          "expect": 98
+        },
+        {
+          "op": "front",
+          "expect": 98
         },
         {
           "op": "enqueue",
@@ -865,56 +761,56 @@
           "arg": 39
         },
         {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "front",
-          "expect": 68
+          "op": "dequeue",
+          "expect": 98
         },
         {
           "op": "dequeue",
-          "expect": 68
+          "expect": 72
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "dequeue",
+          "expect": 25
+        },
+        {
+          "op": "front",
+          "expect": 9
         },
         {
           "op": "enqueue",
           "arg": 28
         },
         {
-          "op": "size",
-          "expect": 5
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
           "op": "front",
-          "expect": 52
+          "expect": 9
+        },
+        {
+          "op": "dequeue",
+          "expect": 9
+        },
+        {
+          "op": "dequeue",
+          "expect": 40
         },
         {
           "op": "enqueue",
           "arg": 16
         },
         {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
           "op": "dequeue",
-          "expect": 52
+          "expect": 88
         },
         {
           "op": "enqueue",
-          "arg": 64
+          "arg": 15
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "dequeue",
+          "expect": 90
+        },
+        {
+          "op": "dequeue",
+          "expect": 38
         },
         {
           "op": "enqueue",
@@ -925,88 +821,180 @@
           "arg": 40
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "front",
+          "expect": 20
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "dequeue",
+          "expect": 20
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "front",
+          "expect": 93
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "dequeue",
+          "expect": 93
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "front",
+          "expect": 32
         },
         {
-          "op": "size",
-          "expect": 8
+          "op": "front",
+          "expect": 32
         },
         {
           "op": "enqueue",
           "arg": 86
         },
         {
-          "op": "size",
-          "expect": 9
+          "op": "front",
+          "expect": 32
         },
         {
           "op": "enqueue",
           "arg": 82
         },
         {
-          "op": "front",
-          "expect": 99
-        },
-        {
-          "op": "front",
-          "expect": 99
+          "op": "dequeue",
+          "expect": 32
         },
         {
           "op": "dequeue",
-          "expect": 99
+          "expect": 3
+        },
+        {
+          "op": "dequeue",
+          "expect": 14
         },
         {
           "op": "enqueue",
           "arg": 8
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "front",
+          "expect": 89
         },
         {
           "op": "dequeue",
-          "expect": 86
+          "expect": 89
         },
         {
           "op": "enqueue",
           "arg": 50
         },
         {
-          "op": "front",
-          "expect": 39
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "size",
-          "expect": 10
+          "op": "dequeue",
+          "expect": 53
         },
         {
           "op": "front",
-          "expect": 39
+          "expect": 20
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "front",
+          "expect": 20
+        },
+        {
+          "op": "dequeue",
+          "expect": 20
+        },
+        {
+          "op": "front",
+          "expect": 32
+        },
+        {
+          "op": "enqueue",
+          "arg": 39
+        },
+        {
+          "op": "front",
+          "expect": 32
+        },
+        {
+          "op": "enqueue",
+          "arg": 87
+        },
+        {
+          "op": "front",
+          "expect": 32
+        },
+        {
+          "op": "enqueue",
+          "arg": 18
+        },
+        {
+          "op": "front",
+          "expect": 32
+        },
+        {
+          "op": "enqueue",
+          "arg": 80
+        },
+        {
+          "op": "front",
+          "expect": 32
+        },
+        {
+          "op": "dequeue",
+          "expect": 32
+        },
+        {
+          "op": "front",
+          "expect": 92
+        },
+        {
+          "op": "front",
+          "expect": 92
+        },
+        {
+          "op": "dequeue",
+          "expect": 92
+        },
+        {
+          "op": "dequeue",
+          "expect": 7
+        },
+        {
+          "op": "dequeue",
+          "expect": 71
+        },
+        {
+          "op": "dequeue",
+          "expect": 64
+        },
+        {
+          "op": "enqueue",
+          "arg": 14
+        },
+        {
+          "op": "front",
+          "expect": 54
+        },
+        {
+          "op": "dequeue",
+          "expect": 54
+        },
+        {
+          "op": "enqueue",
+          "arg": 59
+        },
+        {
+          "op": "dequeue",
+          "expect": 11
+        },
+        {
+          "op": "enqueue",
+          "arg": 15
+        },
+        {
+          "op": "front",
+          "expect": 68
+        },
+        {
+          "op": "enqueue",
+          "arg": 1
         }
       ]
     }

@@ -94,11 +94,6 @@ export class PieceTable<T> {
     this.#length -= count;
   }
 
-  length(): number {
-    this.__cost += 1;
-    return this.#length;
-  }
-
   toArray(): T[] {
     const out: T[] = [];
     for (const piece of this.#pieces) {

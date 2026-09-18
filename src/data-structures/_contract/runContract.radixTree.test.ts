@@ -77,13 +77,12 @@ runContract(() => new CopySplitRadixTree(), radixTreeContract, {
 });
 
 describe("RadixTree 축3 — 꼬리를 새로 만드는 쪼개기", () => {
-  test("정본은 일곱 시나리오를 전부 통과하고, 결함은 곁에 긴 낱말 둘에서만 걸린다", () => {
+  test("정본은 여섯 시나리오를 전부 통과하고, 결함은 곁에 긴 낱말 둘에서만 걸린다", () => {
     expect(verdicts(reference)).toEqual({
       insert: true,
       search: true,
       "startsWith·wordsWithPrefix (적대적)": true,
       "delete (적대적)": true,
-      size: true,
       "insert (적대적)": true,
       "delete (적대적) #2": true,
     });
@@ -93,7 +92,6 @@ describe("RadixTree 축3 — 꼬리를 새로 만드는 쪼개기", () => {
       search: true,
       "startsWith·wordsWithPrefix (적대적)": true,
       "delete (적대적)": true,
-      size: true,
       // 곁에 긴 낱말 — 넣기 · 지우기
       "insert (적대적)": false,
       "delete (적대적) #2": false,
@@ -103,7 +101,7 @@ describe("RadixTree 축3 — 꼬리를 새로 만드는 쪼개기", () => {
   test("걸리는 사유는 O(1) 행이고, 옮긴 글자 수가 곁에 선 낱말 길이를 따라간다", () => {
     // 스위트 끝의 둘이 곁에 긴 낱말 시나리오다.
     const longNeighbour: readonly CostScenario<TernarySearchTreeContract>[] =
-      radixTreeContract.scenarios.slice(5);
+      radixTreeContract.scenarios.slice(4);
     expect(longNeighbour.map((scenario) => scenario.covers.join("·"))).toEqual([
       "insert",
       "delete",

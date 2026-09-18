@@ -10,13 +10,11 @@
 
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 다섯 행을 그대로 옮긴 표면. 스텁·정본·결함 fixture 가 모두 만족한다. */
+/** 헤더 연산 계약 표의 세 행을 그대로 옮긴 표면. 스텁·정본·결함 fixture 가 모두 만족한다. */
 export interface StackContract<T> {
   push(item: T): void;
   pop(): T | null;
   peek(): T | null;
-  isEmpty(): boolean;
-  size(): number;
 }
 
 /** 축1 참조 모델. 자명한 배열이면 된다 — 축1은 의미만 보고 비용은 보지 않는다. */
@@ -51,24 +49,12 @@ export const stackContract: ContractSpec<StackContract<number>, Model> = {
       onModel: (model) =>
         model.length === 0 ? null : (model[model.length - 1] as number),
     },
-    {
-      name: "isEmpty",
-      arg: () => undefined,
-      onImpl: (impl) => impl.isEmpty(),
-      onModel: (model) => model.length === 0,
-    },
-    {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.length,
-    },
   ],
 
   edges: [
     {
       name: "빈 스택에서 pop·peek 은 null 이고 상태를 바꾸지 않는다",
-      steps: [{ op: "pop" }, { op: "peek" }, { op: "size" }, { op: "isEmpty" }],
+      steps: [{ op: "pop" }, { op: "peek" }, { op: "pop" }, { op: "peek" }],
     },
     {
       name: "꺼내는 순서가 넣은 순서의 역순이다",
@@ -79,7 +65,7 @@ export const stackContract: ContractSpec<StackContract<number>, Model> = {
         { op: "pop" },
         { op: "pop" },
         { op: "pop" },
-        { op: "isEmpty" },
+        { op: "pop" },
       ],
     },
     {
@@ -89,7 +75,8 @@ export const stackContract: ContractSpec<StackContract<number>, Model> = {
         { op: "push", arg: 20 },
         { op: "pop" },
         { op: "peek" },
-        { op: "size" },
+        { op: "pop" },
+        { op: "pop" },
       ],
     },
     {
@@ -100,7 +87,8 @@ export const stackContract: ContractSpec<StackContract<number>, Model> = {
         { op: "pop" },
         { op: "push", arg: 8 },
         { op: "peek" },
-        { op: "size" },
+        { op: "pop" },
+        { op: "pop" },
       ],
     },
   ],
@@ -120,7 +108,7 @@ export const stackContract: ContractSpec<StackContract<number>, Model> = {
       },
     },
     {
-      covers: ["peek", "isEmpty", "size"],
+      covers: ["peek"],
       qualifier: "worst",
       bound: "O(1)",
       adversarial: false,
@@ -129,8 +117,6 @@ export const stackContract: ContractSpec<StackContract<number>, Model> = {
         for (let i = 0; i < n; i++) {
           ctx.step(() => {
             impl.peek();
-            impl.isEmpty();
-            impl.size();
           });
         }
       },

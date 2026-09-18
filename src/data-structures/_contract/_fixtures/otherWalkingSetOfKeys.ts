@@ -50,10 +50,6 @@ export class OtherWalkingSetOfKeys<T> {
     return this.#inner.delete(item);
   }
 
-  size(): number {
-    return this.#inner.size();
-  }
-
   values(): T[] {
     return this.#inner.values();
   }

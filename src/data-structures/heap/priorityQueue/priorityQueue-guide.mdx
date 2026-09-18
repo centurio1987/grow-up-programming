@@ -285,10 +285,6 @@ export class PriorityQueue<T> {
     return this.#items.length;
   }
 
-  isEmpty(): boolean {
-    return this.#items.length === 0;
-  }
-
   /** 빈자리를 위로 옮기며 `at` 에 있던 원소가 설 자리를 찾는다. */
   #siftUp(at: number): void {
     const items = this.#items;

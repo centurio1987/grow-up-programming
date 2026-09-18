@@ -421,29 +421,7 @@ export const walk = {
       ],
     },
     {
-      title: "T19 size()",
-      detail: "세어 둔 원소 수 4를 반환합니다.",
-      root: {
-        id: "n50",
-        label: "50 · B",
-        children: [
-          {
-            id: "n30",
-            label: "30 · B",
-            children: [null, { id: "n40", label: "40 · R" }],
-          },
-          { id: "n90", label: "90 · B" },
-        ],
-      },
-      entries: [
-        { label: "반환값", value: "4" },
-        { label: "지나간 노드", value: 1 },
-        { label: "원소 수", value: 4 },
-        { label: "높이", value: 3 },
-      ],
-    },
-    {
-      title: "T20 toArray()",
+      title: "T19 toArray()",
       detail:
         "중위 순회로 [30, 40, 50, 90]을 반환합니다. 이것이 마지막 결과입니다.",
       root: {

@@ -1522,9 +1522,9 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     const stats = append.points.map((point) => point.stat);
     expect((stats[1] ?? 0) / (stats[0] ?? 1)).toBeGreaterThan(3);
 
-    // 순회 둘은 상한이 O(n) 이라 전부 훑어도 계약 안이고, size 는 세어 두면 상수다.
+    // 순회 둘은 상한이 O(n) 이라 전부 훑어도 계약 안이다.
     // **축3이 이 계약에서 잡을 수 있는 것은 위의 한 자리뿐**이라는 것이 이 검사의 내용이다.
-    for (const covers of ["toArray", "toArrayReverse", "size"]) {
+    for (const covers of ["toArray", "toArrayReverse"]) {
       const verdict = judgeScenario(
         tailScanList,
         scenarioOf(xorLinkedListContract, covers, false),
@@ -1559,7 +1559,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     }
 
     // 표가 맞게 적었던 셋. 결함이 있는 구현인데 이 셋에서는 정본과 구별되지 않는다.
-    for (const covers of ["push", "size", "toArray"]) {
+    for (const covers of ["push", "toArray"]) {
       const verdict = judgeScenario(
         fixedChunkList,
         scenarioOf(unrolledLinkedListContract, covers, false),
@@ -1580,7 +1580,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       expect(verdict.reason).toContain("O(sqrt n)");
     }
 
-    for (const covers of ["push", "size", "toArray"]) {
+    for (const covers of ["push", "toArray"]) {
       const verdict = judgeScenario(
         spliceArrayList,
         scenarioOf(unrolledLinkedListContract, covers, false),
@@ -1692,7 +1692,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       // 검사되는 자리가 여기다.
       "startsWith·wordsWithPrefix (적대적)": false,
       "delete (적대적)": true,
-      size: true,
       // 곁에 긴 낱말 둘 — 낱말을 통째로 열쇠로 삼으니 곁에 선 낱말과 나눠 쓰는 것이 없다.
       "insert (적대적)": true,
       "delete (적대적) #2": true,
@@ -1710,7 +1709,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       search: true,
       "startsWith·wordsWithPrefix (적대적)": true,
       "delete (적대적)": false,
-      size: true,
       // 곁에 긴 낱말 둘 — 담긴 낱말이 여덟뿐이라 미는 칸도 여덟을 넘지 않는다.
       "insert (적대적)": true,
       "delete (적대적) #2": true,
@@ -1724,7 +1722,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "constructor (적대적)": false,
       "constructor·longestRepeatedSubstring (적대적)": false,
       "range (적대적)": true,
-      length·at·rankOf: true,
+      at·rankOf: true,
     });
     // 적대적 시나리오가 접미사를 통째로 견주므로 이 하나가 이 파일에서 가장 무겁다. 기계가
     // 한가하면 2초 안이지만 CPU 가 물리면 기본 5초 제한을 넘어 **판정과 무관하게** 빨간불이
@@ -1737,7 +1735,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "constructor (적대적)": true,
       "constructor·longestRepeatedSubstring (적대적)": true,
       "range (적대적)": false,
-      length·at·rankOf: true,
+      at·rankOf: true,
     });
   });
 
@@ -1747,7 +1745,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "constructor (적대적)": false,
       "constructor·longestRepeatedSubstring (적대적)": false,
       "contains·count (적대적)": true,
-      "findAll·length (적대적)": true,
+      "findAll (적대적)": true,
     });
   });
 
@@ -1759,7 +1757,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       // 질의 비용이 색인 크기에 기대면 안 된다는 것이 이 계약이 접미사 배열과 갈리는
       // 자리이고, 그것을 실제로 잡는 시나리오가 이 둘이다.
       "contains·count (적대적)": false,
-      "findAll·length (적대적)": false,
+      "findAll (적대적)": false,
     });
   });
 
@@ -1780,7 +1778,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "delete (적대적)": true,
       range: true,
       toArray: true,
-      size: true,
     });
 
     // 정렬 배열: 갱신 둘만 무너진다. **오름차순 넣기는 통과한다** — 뒤에 붙이기만
@@ -1792,7 +1789,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "delete (적대적)": false,
       range: true,
       toArray: true,
-      size: true,
     });
 
     // 스플레이: **넣기 둘을 다 통과한다.** 상한을 어기지 않기 때문이다. 걸리는 것은
@@ -1806,7 +1802,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "delete (적대적)": false,
       range: true,
       toArray: true,
-      size: true,
     });
   });
 
@@ -1833,7 +1828,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "delete (적대적)": true,
       range: true,
       toArray: true,
-      size: true,
     });
 
     // 균형을 안 잡는 트리: **최악 계약에서 걸리던 자리에서 똑같이 걸린다.** 사슬이
@@ -1846,7 +1840,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "delete (적대적)": true,
       range: true,
       toArray: true,
-      size: true,
     });
 
     // 정렬 배열: 같은 이유로 갱신 둘이 그대로 걸린다.
@@ -1857,7 +1850,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "delete (적대적)": false,
       range: true,
       toArray: true,
-      size: true,
     });
   }, 30_000);
 
@@ -1876,7 +1868,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "delete (적대적)": true,
       range: true,
       toArray: true,
-      size: true,
     });
 
     expect(outcomes(referenceSplayTree, redBlackTreeContract)).toEqual({
@@ -1886,7 +1877,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "delete (적대적)": false,
       range: true,
       toArray: true,
-      size: true,
     });
   }, 30_000);
 
@@ -1929,7 +1919,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
    * | 방향 | 40회 중 걸린 횟수 |
    * |---|---|
    * | `redBlackTree` 정본 → `treap` 계약 | 0 |
-   * | `splayTree` 정본 → `treap` 계약 | 앞 여덟 0 · 아홉째(`S28` 입력 고정 탐침) 매번(결정론) |
+   * | `splayTree` 정본 → `treap` 계약 | 앞 일곱 0 · 여덟째(`S28` 입력 고정 탐침) 매번(결정론) |
    * | `treap` 정본 → `redBlackTree` 계약 | **11** (`delete` 적대 6 · `insert` 적대 4 · `insert` 2) |
    * | `treap` 정본 → `splayTree` 계약 | **2** |
    *
@@ -1938,10 +1928,10 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
    * 「`treap` 계약이 `redBlackTree` 계약보다 넓다」가 **확률적으로 보인다**는 뜻이고,
    * 한 번만 돌려 통과한 것을 「담긴다」로 읽으면 틀린다.
    *
-   * 단언하는 둘 중 **둘째는 앞 여덟이 못 보는 자리다.** `splayTree` 정본은 이 계약을 어기는데
-   * (사슬 끝 첫 조회가 원소 수에 비례하고 결정론적이라 그 값이 곧 기댓값이다) 앞 여덟을 40회 내내
+   * 단언하는 둘 중 **둘째는 앞 일곱이 못 보는 자리다.** `splayTree` 정본은 이 계약을 어기는데
+   * (사슬 끝 첫 조회가 원소 수에 비례하고 결정론적이라 그 값이 곧 기댓값이다) 앞 일곱을 40회 내내
    * 통과한다 — 시퀀스 평균이 그 하나를 묻는 **판정 규격의 한계**다. 입력을 고정하고 조회 열여섯만 재는
-   * 아홉째에서는 원소 수에 비례해 걸린다(191.06 · 732.19 · 2,893.06 — `S28`).
+   * 여덟째에서는 원소 수에 비례해 걸린다(191.06 · 732.19 · 2,893.06 — `S28`).
    */
   test("기대 계약은 최악 정본을 담고 상각 정본의 위반을 입력 고정 탐침에서만 본다", () => {
     // 담는 쪽 → 담기는 쪽. 결정론적 정본이라 안정적으로 통과한다(최악까지 로그면 기댓값도 로그다).
@@ -1953,11 +1943,10 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       delete: true,
       range: true,
       toArray: true,
-      size: true,
       "has (적대적)": true,
     });
 
-    // **이 계약을 어기는 정본이 앞 여덟을 전부 통과하고 아홉째(입력 고정 탐침)에서 걸린다.** B17 이 「서로 담지 않는다」로 판정한 한 쌍의 한쪽이다.
+    // **이 계약을 어기는 정본이 앞 일곱을 전부 통과하고 여덟째(입력 고정 탐침)에서 걸린다.** B17 이 「서로 담지 않는다」로 판정한 한 쌍의 한쪽이다.
     expect(outcomes(referenceSplayTree, treapContract)).toEqual({
       "insert (적대적)": true,
       insert: true,
@@ -1966,14 +1955,13 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       delete: true,
       range: true,
       toArray: true,
-      size: true,
       "has (적대적)": false,
     });
   }, 30_000);
 
   /**
    * **기대 계약의 스위트가 통과시키는 것 중에 계약 위반이 있다**(불변 사실 62). `splayingSearchTree` 는 사슬인 채로 맞는 첫 조회 하나가 원소 수에 비례하고 결정론적이라 그 값이 곧 기댓값이다 — **`expected O(log n)` 을 어긴다.**
-   * 앞 여덟은 시퀀스 평균이 그 하나를 묻어 통과시키고(통과를 「계약을 지킨다」로 읽지 않도록 이름으로 적어 둔다) 아홉째(입력 고정 탐침)가 잡는다. 입력에 치우치는 구현은 앞 여덟이 잡는다.
+   * 앞 일곱은 시퀀스 평균이 그 하나를 묻어 통과시키고(통과를 「계약을 지킨다」로 읽지 않도록 이름으로 적어 둔다) 여덟째(입력 고정 탐침)가 잡는다. 입력에 치우치는 구현은 앞 일곱이 잡는다.
    */
   test("기대 계약은 입력에 치우치는 구현을 잡고 무작위성에 안 기대는 구현은 입력 고정 탐침에서만 잡는다", () => {
     // 균형을 스스로 잡지 않는 트리: 오름차순 넣기와 순차 조회에서 걸린다.
@@ -1985,7 +1973,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       delete: false,
       range: true,
       toArray: true,
-      size: true,
       "has (적대적)": false,
     });
 
@@ -1998,11 +1985,10 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       delete: false,
       range: true,
       toArray: true,
-      size: true,
       "has (적대적)": true,
     });
 
-    // **끌어올리는 구현: 앞 여덟을 전부 통과하고 아홉째(입력 고정 탐침)에서 걸린다 — 이 계약을 어긴다.**
+    // **끌어올리는 구현: 앞 일곱을 전부 통과하고 여덟째(입력 고정 탐침)에서 걸린다 — 이 계약을 어긴다.**
     expect(outcomes(splayingSearchTree, treapContract)).toEqual({
       "insert (적대적)": true,
       insert: true,
@@ -2011,35 +1997,36 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       delete: true,
       range: true,
       toArray: true,
-      size: true,
       "has (적대적)": false,
     });
   }, 30_000);
 
   /**
-   * **포섭 사슬이 축3에서 양방향으로 보이는 첫 자리.**
+   * **포섭 사슬이 축3에서 한 방향씩 보인다 — 양방향이던 것이 한쪽으로 줄었다.**
    *
    * B17 이 네 계약을 가르며 `redBlackTree` ⊂ `scapegoatTree` ⊂ `splayTree` 사슬을 논증으로
    * 냈다. T1-01 은 그 사슬의 한 방향만 실측할 수 있었고(불변 사실 100), T1-02 는 무작위
-   * 정본이라 확률적으로만 보였다(불변 사실 105). **여기서는 양방향이 결정론적으로 갈리고,
-   * 걸리는 자리가 정확히 한정자가 갈린 행이다.**
-   *
+   * 정본이라 확률적으로만 보였다(불변 사실 105). 걸리는 자리는 **정확히 한정자가 갈린 행**이고,
    * 그렇게 되는 이유는 이 계약이 조회에 `worst` 를 쓰기 때문이다 — `worst` 통계는
    * 최댓값이라 「가끔 튀는」 구현을 그대로 보고한다. `amortized` 와 `expected` 는 둘 다
    * 평균이라 서로를 못 가르지만(불변 사실 105), **한 행이라도 `worst` 가 있으면 그 행이
    * 갈림을 잡는다.**
+   *
+   * **`tree/scapegoatTree` 계약으로 들어오는 두 방향은 이제 잴 수 없다.** `KAN-040` `S4` 가
+   * 정렬 집합에서 담긴 원소 수를 읽는 행을 뺐는데 이 계약만 목적이 「크기 읽기」를 적어 그 행이
+   * 남았다(판정표 ③). 그래서 이 계약의 연산 집합이 나머지보다 **한 행 넓어졌고**, 좁은 쪽·넓은
+   * 쪽 정본을 이 계약에 그대로 넣을 수 없다 — 아래 「연산 집합이 갈린 두 계약의 포섭」이 이미
+   * 적은 자리와 같은 모양이다. 포섭 논증 자체는 그대로다(한 행이 더 있는 계약을 만족하면 그 행을
+   * 뺀 계약도 만족한다).
    */
-  test("포섭 사슬의 양쪽이 정확히 갈린 한정자의 행에서 갈린다", () => {
-    // ① 좁은 쪽(전 연산 worst) → 이 계약: 전부 통과. 담긴다.
-    expect(outcomes(referenceRedBlackTree, scapegoatTreeContract)).toEqual({
-      "insert (적대적)": true,
-      insert: true,
-      "has·min·max (적대적)": true,
-      "delete (적대적)": true,
-      range: true,
-      toArray: true,
-      size: true,
-    });
+  test("포섭 사슬이 한 방향씩 정확히 갈린 한정자의 행에서 갈린다", () => {
+    // ① 막힌 두 방향을 연산 집합으로 고정한다. 이 계약에만 있는 행이 하나다.
+    const rowsOf = (spec: {
+      ops: readonly { readonly name: string }[];
+    }): string[] => spec.ops.map((op) => op.name);
+    expect(rowsOf(scapegoatTreeContract)).toContain("size");
+    expect(rowsOf(redBlackTreeContract)).not.toContain("size");
+    expect(rowsOf(splayTreeContract)).not.toContain("size");
 
     // ② 이 정본 → 좁은 쪽 계약: **갱신 행만 걸린다.** 다시 짓기 한 번이 원소 수에
     //    비례하므로 `worst` 통계가 그것을 그대로 보고한다. 조회는 통과한다.
@@ -2050,7 +2037,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "delete (적대적)": false,
       range: true,
       toArray: true,
-      size: true,
     });
 
     // ③ 이 정본 → 넓은 쪽 계약(전 연산 amortized): 전부 통과. 담긴다.
@@ -2061,20 +2047,20 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "delete (적대적)": true,
       range: true,
       toArray: true,
-      size: true,
     });
 
-    // ④ 넓은 쪽 정본 → 이 계약: **조회 행만 걸린다.** 접근한 자리를 끌어올리는 계열은
-    //    사슬인 채로 맞는 첫 조회가 원소 수에 비례한다. 갱신은 통과한다.
-    //    **②와 ④가 서로 다른 행에서 걸리는 것이 이 계약이 둘 사이에 실재하는 근거다.**
-    expect(outcomes(referenceSplayTree, scapegoatTreeContract)).toEqual({
+    // ④ **넓은 쪽 정본 → 이 계약은 이제 못 잰다.** 원래 이 자리가 「②는 갱신 행에서, ④는
+    //    조회 행에서 걸린다」는 비대칭으로 이 계약이 둘 사이에 실재함을 보였는데, ①에서 적은
+    //    까닭으로 그 방향이 막혔다. **가장 가까운 대체 읽기는 좁은 쪽 계약 위의 것이고 그것은
+    //    비대칭을 안 준다** — 넓은 쪽 정본은 좁은 쪽 계약에서 조회와 갱신 둘 다 걸린다(위
+    //    「최악 정본은 상각 계약을 지키고…」가 이미 재 둔 자리다). 잃은 것을 여기 적어 둔다.
+    expect(outcomes(referenceSplayTree, redBlackTreeContract)).toEqual({
       "insert (적대적)": true,
       insert: true,
       "has·min·max (적대적)": false,
-      "delete (적대적)": true,
+      "delete (적대적)": false,
       range: true,
       toArray: true,
-      size: true,
     });
   }, 30_000);
 
@@ -2107,9 +2093,8 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "add (적대적)": true,
       add: true,
       delete·deleteAll: true,
-      has·count·min·max: true,
+      has·count: true,
       toArray: true,
-      size: true,
     });
 
     // ② 담기는 쪽만 만족하는 구현 → 담기는 쪽 계약: 전부 통과.
@@ -2117,9 +2102,8 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "add (적대적)": true,
       add: true,
       delete·deleteAll: true,
-      has·count·min·max: true,
+      has·count: true,
       toArray: true,
-      size: true,
     });
 
     // ③ 같은 구현 → 담는 쪽 계약: **새로 들어온 두 행에서만 걸린다.** ②와 ③이 함께
@@ -2128,11 +2112,10 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "add (적대적)": true,
       add: true,
       delete·deleteAll: true,
-      has·count·min·max: true,
+      has·count: true,
       rankOf·at: false,
       "rankOf·at (적대적)": false,
       toArray: true,
-      size: true,
     });
   }, 60_000);
 
@@ -2162,11 +2145,10 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "add (적대적)": false,
       add: true,
       delete·deleteAll: true,
-      has·count·min·max: true,
+      has·count: true,
       rankOf·at: true,
       "rankOf·at (적대적)": false,
       toArray: true,
-      size: true,
     });
 
     // 같은 구현을 담기는 쪽 계약에 넣으면 갱신 행 하나만 걸린다 — 저 계약에는 위치 연산이
@@ -2175,20 +2157,21 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "add (적대적)": false,
       add: true,
       delete·deleteAll: true,
-      has·count·min·max: true,
+      has·count: true,
       toArray: true,
-      size: true,
     });
   }, 60_000);
 
   /**
    * **상한이 느슨한 계약에서 축3이 무엇을 할 수 있는가.** 위아래로 한 자리씩 눈이 멀어
-   * 있고, 남는 것이 `size` 행 하나다.
+   * 있고, **이제 남는 것이 이차 이상 이탈 감지 하나다.**
    *
-   * 셋이 서로 다른 축에서 걸리도록 지었다 — 축2만, 축3만, **어느 축도 아닌 것.**
-   * 셋째가 이 자리의 내용이다.
+   * 셋이 서로 다른 축에서 걸리도록 지었다 — 축2만, 축3만, 어느 축도 아닌 것. **`KAN-040`
+   * `S4` 가 담긴 원소 수를 읽는 행을 빼면서 둘째가 셋째와 같은 자리로 내려왔다** — 그 행이
+   * 이 계약에서 상한이 상수인 유일한 행이었고, 축3이 **위쪽으로** 판별력을 갖는 자리도
+   * 그것 하나였다. 조용히 줄어든 검사는 줄어든 줄 모르므로 그 사실을 아래에 값으로 박는다.
    */
-  test("상한 없는 계약의 결함 셋이 서로 다른 축에서 걸린다", () => {
+  test("상한 없는 계약의 결함 셋 가운데 둘이 이제 어느 축에도 안 걸린다", () => {
     const grade = "invariant" as const;
 
     // ① 양 끝을 캐시하고 지울 때 갱신을 빠뜨리는 구현: **축3은 전부 통과시킨다.**
@@ -2201,13 +2184,12 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "has·min·max (적대적)": true,
       "delete (적대적)": true,
       "range (적대적)": true,
-      size: true,
       toArray: true,
     });
 
-    // ② 크기를 매번 훑어 세는 구현: **`size` 행 하나만 걸린다.** 여덟 행 중 유일하게
-    //    상한이 상수인 행이고, 그래서 이 계약에서 축3이 위쪽으로 판별력을 갖는 유일한
-    //    자리다. 나란한 넷의 계약에서라면 갱신·조회가 먼저 걸려 이 자리가 묻힌다.
+    // ② 크기를 매번 훑어 세는 구현: **이제 다섯을 전부 통과한다.** 이 구현이 걸리던 자리는
+    //    `size` 행 하나였고 그 행이 계약에서 빠졌다. 답은 원래 옳았으므로(축1·축2 통과)
+    //    **어느 축도 이 구현을 잡지 못한다** — 잡던 것이 사라졌다는 사실이 이 줄이다.
     expect(
       outcomesAt(recountingSizeSet, binarySearchTreeContract, grade),
     ).toEqual({
@@ -2215,9 +2197,12 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "has·min·max (적대적)": true,
       "delete (적대적)": true,
       "range (적대적)": true,
-      size: false,
       toArray: true,
     });
+    // 축2도 통과한다 — 담는 모양이 정본과 같아 세 불변식이 다 성립한다.
+    for (const invariant of binarySearchTreeContract.invariants) {
+      expect(invariant.check(new RecountingSizeSet<number>())).toBeNull();
+    }
 
     // ③ 순서를 유지하지 않고 관측할 때마다 만드는 구현: **여섯을 전부 통과한다.**
     //    필요충분조건의 비용 조건을 어기는데(관측 하나가 n log n) 어기는 폭이 로그 인수
@@ -2229,7 +2214,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
         "has·min·max (적대적)": true,
         "delete (적대적)": true,
         "range (적대적)": true,
-        size: true,
         toArray: true,
       },
     );
@@ -2275,7 +2259,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "has·min·max (적대적)": false,
       "delete (적대적)": false,
       "range (적대적)": false,
-      size: true,
       toArray: true,
     });
     expect(
@@ -2285,7 +2268,6 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "has·min·max (적대적)": true,
       "delete (적대적)": false,
       "range (적대적)": false,
-      size: true,
       toArray: true,
     });
 
@@ -2350,13 +2332,13 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
    */
   test("구성만 어기는 결함과 훑기만 어기는 결함이 서로 다른 행에서 걸린다", () => {
     // ① 구간의 최솟값을 훑어 나누는 구현. 트리는 정본과 같은 것을 짓고 마디도 세워 두므로
-    //    훑기 넷이 상수다. **무작위 수열은 통과한다** — 나눔이 반씩 갈려 로그 인수 하나
+    //    훑기 셋이 상수다. **무작위 수열은 통과한다** — 나눔이 반씩 갈려 로그 인수 하나
     //    차이이고, 그 차이는 축3의 해상도 아래다(불변 사실 53).
     expect(outcomes(scanningCartesianTree, cartesianTreeContract)).toEqual({
       constructor: true,
       "constructor (적대적)": false,
-      size·value·left·right: true,
-      "size·value·left·right (적대적)": true,
+      value·left·right: true,
+      "value·left·right (적대적)": true,
       "inOrder (적대적)": true,
     });
 
@@ -2375,8 +2357,8 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     expect(outcomes(rescanningCartesianView, cartesianTreeContract)).toEqual({
       constructor: true,
       "constructor (적대적)": true,
-      size·value·left·right: false,
-      "size·value·left·right (적대적)": false,
+      value·left·right: false,
+      "value·left·right (적대적)": false,
       "inOrder (적대적)": true,
     });
   }, 60_000);
@@ -2396,25 +2378,25 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
     expect(outcomes(pathCopyingCartesianTree, cartesianTreeContract)).toEqual({
       constructor: true,
       "constructor (적대적)": true,
-      size·value·left·right: true,
-      "size·value·left·right (적대적)": false,
+      value·left·right: true,
+      "value·left·right (적대적)": false,
       "inOrder (적대적)": true,
     });
 
-    // 무작위: 단일 걸음 최대가 18 → 22 → 24 다. $r$ 이 1.22·1.09 로 허용 상단 1.30 **아래**라
+    // 무작위: 단일 걸음 최대가 17 → 21 → 23 이다. $r$ 이 1.24·1.10 으로 허용 상단 1.30 **아래**라
     // 통과하는 것이지, 이 구현이 상수 걸음이어서가 아니다.
     const balanced = judgeScenario(
       pathCopyingCartesianTree,
-      scenarioOf(cartesianTreeContract, "size", false),
+      scenarioOf(cartesianTreeContract, "value", false),
       "complexity",
     );
     const balancedStats = balanced.points.map((point) => point.stat);
     expect((balancedStats[2] ?? 0) / (balancedStats[0] ?? 1)).toBeLessThan(2);
 
-    // 사슬: 1,026 → 4,099 → 16,386 으로 걸음이 마디 수에 비례한다.
+    // 사슬: 1,025 → 4,098 → 16,385 로 걸음이 마디 수에 비례한다.
     const chained = judgeScenario(
       pathCopyingCartesianTree,
-      scenarioOf(cartesianTreeContract, "size", true),
+      scenarioOf(cartesianTreeContract, "value", true),
       "complexity",
     );
     expect(chained.ok).toBe(false);
@@ -2523,7 +2505,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "enqueue (적대적)": true,
       dequeue: false,
       "dequeue (적대적)": false,
-      peek·size·isEmpty: false,
+      peek·size: false,
     });
 
     expect(outcomes(sortedArrayPriorityQueue, priorityQueueContract)).toEqual({
@@ -2531,7 +2513,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "enqueue (적대적)": true,
       dequeue: true,
       "dequeue (적대적)": true,
-      peek·size·isEmpty: true,
+      peek·size: true,
     });
 
     // 무작위 넣기: 269.7 → 1,042.9 → 4,113.1 로 뒤를 미는 일이 원소 수에 비례한다.
@@ -2545,7 +2527,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
   }, 60_000);
 
   /**
-   * **조회 셋을 `worst` 로 적은 것이 사는 자리.**
+   * **조회 둘을 `worst` 로 적은 것이 사는 자리.**
    *
    * 넣기를 미뤄 두었다가 읽는 호출이 올 때 한꺼번에 정리하는 설계는 자명한 구현이
    * 아니다 — 상각 설계가 들어가 있고 답도 전부 옳다. 밀려 있는 상태의 첫 `peek` 하나가
@@ -2561,7 +2543,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "enqueue (적대적)": true,
       dequeue: true,
       "dequeue (적대적)": false,
-      peek·size·isEmpty: false,
+      peek·size: false,
     });
 
     const reading = scenarioOf(priorityQueueContract, "peek", false);
@@ -2591,7 +2573,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
         `${covers}: ${judgeScenario(remainderSlotDictionary, scenarioOf(hashMapChainingContract, covers, true), "complexity").ok}`,
       ).toBe(`${covers}: false`);
     }
-    for (const covers of ["size", "keys", "values"]) {
+    for (const covers of ["keys", "values"]) {
       expect(
         `${covers}: ${judgeScenario(scanningDictionary, scenarioOf(hashMapChainingContract, covers, false), "complexity").reason}`,
       ).toBe(`${covers}: `);
@@ -2735,7 +2717,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       write: true,
       "write (적대적)": true,
       read: true,
-      peek·isFull·isEmpty·size: true,
+      peek·isFull: true,
     });
 
     // 용량을 무시하는 구현: 축3은 전부 통과하고 축1이 잡는다.
@@ -2745,7 +2727,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       write: true,
       "write (적대적)": true,
       read: true,
-      peek·isFull·isEmpty·size: true,
+      peek·isFull: true,
     });
     expect(
       firstBehaviorSplit(
@@ -2755,7 +2737,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
           ),
       ),
     ).toBe(
-      "꽉 찬 뒤의 쓰기는 가장 오래된 것을 밀어낸다 / 7번째 size — 관측 5 / 모델 4",
+      "꽉 찬 뒤의 쓰기는 가장 오래된 것을 밀어낸다 / 8번째 peek — 관측 1 / 모델 2",
     );
 
     // 옮기는 구현: 축1은 통과하고 옮기는 두 행에서만 걸린다.
@@ -2765,7 +2747,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       write: true,
       "write (적대적)": false,
       read: false,
-      peek·isFull·isEmpty·size: true,
+      peek·isFull: true,
     });
     expect(
       firstBehaviorSplit(
@@ -2774,15 +2756,26 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       ),
     ).toBeNull();
 
-    // 매번 훑는 구현: 조회 묶음 하나에서만 걸린다.
+    // 매번 훑는 구현: `KAN-040` `S6` 전에는 조회 묶음 하나에서 걸렸다. 크기 읽기가 계약에서
+    // 빠지면서 그 묶음이 `peek`·`isFull` 둘로 줄었고 훑는 자리가 표면에서 사라져, 네 시나리오
+    // 어디에도 안 걸리고 축1도 통과한다 — 계약 표면에 없는 일을 하는 구현이라 이제 이 계약의
+    // 결함이 아니다. 조용히 줄어든 검사는 줄어든 줄 모르므로 그 사실을 여기 값으로 박는다.
     expect(
       outcomesAt(rescanningRingBuffer, circularBufferContract, "basic"),
     ).toEqual({
       write: true,
       "write (적대적)": true,
       read: true,
-      peek·isFull·isEmpty·size: false,
+      peek·isFull: true,
     });
+    expect(
+      firstBehaviorSplit(
+        () =>
+          new CircularBufferShell(
+            (cap) => new RescanningRingBuffer<number>(cap),
+          ),
+      ),
+    ).toBeNull();
   }, 60_000);
 
   /**
@@ -2827,7 +2820,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
 
   /**
    * **더한 행이 하나인데 그 하나가 계약을 가른다.** 이 구현은 담는 쪽 계약
-   * (`heap/priorityQueue`)의 다섯 행을 전부 지키고 여기서 `merge` 하나만 어긴다 — 두 계약이
+   * (`heap/priorityQueue`)의 네 행을 전부 지키고 여기서 `merge` 하나만 어긴다 — 두 계약이
    * 다르다는 것의 반례이고, 정본으로는 만들 수 없는 자리다(저장소의 정본 둘은 합치기도
    * 로그에 한다).
    */
@@ -3051,7 +3044,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       "invariant",
     );
     expect(Object.entries(recounting).filter(([, ok]) => !ok)).toEqual([
-      ["cursor·length/O(1)", false],
+      ["cursor/O(1)", false],
     ]);
   }, 120_000);
 });
@@ -3151,18 +3144,15 @@ describe("축1 — 임의 결합 계약에서 축3이 통과시키는 결함을 
 class LowKeyedIndex implements IntervalTreeContract {
   /** 시작점만 키로 잡았다. 시작점이 같은 구간을 넣으면 앞의 것이 조용히 밀려난다. */
   #byLow = new Map<number, [number, number]>();
-  #inserted = 0;
 
   insert(low: number, high: number): void {
     this.#byLow.set(low, [low, high]);
-    this.#inserted += 1;
   }
 
   delete(low: number, high: number): boolean {
     const stored = this.#byLow.get(low);
     if (stored === undefined || stored[1] !== high) return false;
     this.#byLow.delete(low);
-    this.#inserted -= 1;
     return true;
   }
 
@@ -3176,10 +3166,6 @@ class LowKeyedIndex implements IntervalTreeContract {
       if (stored[0] <= high && low <= stored[1]) found.push([...stored]);
     }
     return found;
-  }
-
-  size(): number {
-    return this.#inserted;
   }
 }
 
@@ -3211,17 +3197,13 @@ class SplitQueryIndex implements IntervalTreeContract {
       .filter((stored) => stored[0] <= high && low <= stored[1])
       .map((stored) => [...stored] as [number, number]);
   }
-
-  size(): number {
-    return this.#items.length;
-  }
 }
 
 describe("축2 — 불변식이 상태의 성질을 실제로 잡는다", () => {
-  const [completeness, agreement] = intervalTreeContract.invariants;
+  const [agreement] = intervalTreeContract.invariants;
 
-  test("불변식 절이 둘이고 정본은 둘 다 만족한다", () => {
-    expect(intervalTreeContract.invariants).toHaveLength(2);
+  test("불변식 절이 하나이고 정본은 그것을 만족한다", () => {
+    expect(intervalTreeContract.invariants).toHaveLength(1);
     const impl = new ReferenceIntervalTree();
     impl.insert(1, 5);
     impl.insert(1, 9);
@@ -3231,33 +3213,40 @@ describe("축2 — 불변식이 상태의 성질을 실제로 잡는다", () => 
     }
   });
 
-  test("세고 있는 수와 내놓을 수 있는 수가 갈리면 불변식 1이 잡는다", () => {
+  // `KAN-040` `S4` 가 저장 수를 읽는 행을 빼면서 「세고 있는 수와 내놓을 수 있는 수가 같다」가
+  // 사라졌다. 축2가 잡던 구현 하나가 축2에서 빠져나간다는 사실을 시험으로 박아 둔다 —
+  // 조용히 줄어든 검사는 줄어든 줄 모른다. 그 구현은 이제 축1이 잡는다.
+  test("시작점만 키로 잡아 구간을 잃는 구현은 이제 축2가 아니라 축1이 잡는다", () => {
     const impl = new LowKeyedIndex();
     impl.insert(1, 5);
     impl.insert(1, 9);
-    expect(completeness?.check(impl)).toContain("전 범위 질의 1개 / size 2");
     // 두 질의는 서로 갈리지 않는다 — 같은 것을 잃었기 때문이다.
     expect(agreement?.check(impl)).toBeNull();
+    // 참조 모델은 두 구간을 다 들고 있는데 이쪽은 하나를 잃었다 — 축1이 그 자리에서 갈린다.
+    expect(impl.overlapQuery(-10, 10)).toHaveLength(1);
   });
 
-  test("두 질의를 따로 쓰면 불변식 2가 갈림을 잡는다", () => {
+  test("두 질의를 따로 쓰면 불변식이 갈림을 잡는다", () => {
     const impl = new SplitQueryIndex();
     impl.insert(1, 5);
-    // 잃은 것이 없으므로 개수는 맞는다. 갈리는 것은 끝점 하나에서다.
-    expect(completeness?.check(impl)).toBeNull();
     expect(agreement?.check(impl)).toContain("p=5");
   });
 });
 
-/** 자리를 정해 두고 넘치면 앞에서부터 버리는데, 붙인 횟수는 그대로 센다. */
+/**
+ * 자리를 정해 두고 넘치면 앞에서부터 버린다.
+ *
+ * **`KAN-040` `S3` 전에는 축2가 잡던 구현이다** — 붙인 횟수를 그대로 세어 두어 「세고 있는 수와
+ * 내놓을 수 있는 수가 같다」를 어겼다. 계약에서 세어 둔 수를 읽는 행이 빠지면서 그 불변식이
+ * 사라졌고, 남은 불변식(두 방향이 같은 수열)은 이 구현을 못 잡는다 — 버릴 때 두 방향이 같은
+ * 것을 잃기 때문이다. 대신 축1이 잡는다: 참조 모델은 버리지 않으므로 늘어놓기가 갈린다.
+ */
 class CappedLogList implements XorLinkedListContract {
   #values: number[] = [];
-  #appended = 0;
 
   append(value: number): void {
     this.#values.push(value);
     if (this.#values.length > 8) this.#values.shift();
-    this.#appended += 1;
   }
 
   toArray(): number[] {
@@ -3266,10 +3255,6 @@ class CappedLogList implements XorLinkedListContract {
 
   toArrayReverse(): number[] {
     return [...this.#values].reverse();
-  }
-
-  size(): number {
-    return this.#appended;
   }
 }
 
@@ -3290,17 +3275,13 @@ class TwoChainList implements XorLinkedListContract {
   toArrayReverse(): number[] {
     return [...this.#backward];
   }
-
-  size(): number {
-    return this.#forward.length;
-  }
 }
 
 describe("축2 — 관측 경로가 둘이라야 정합을 물을 수 있다", () => {
-  const [counted, agreed] = xorLinkedListContract.invariants;
+  const [agreed] = xorLinkedListContract.invariants;
 
-  test("불변식 절이 둘이고 정본은 둘 다 만족한다", () => {
-    expect(xorLinkedListContract.invariants).toHaveLength(2);
+  test("불변식 절이 하나이고 정본은 그것을 만족한다", () => {
+    expect(xorLinkedListContract.invariants).toHaveLength(1);
     const impl = new ReferenceXorLinkedList();
     for (const value of [3, 0, -1, 3]) impl.append(value);
     for (const invariant of xorLinkedListContract.invariants) {
@@ -3308,23 +3289,29 @@ describe("축2 — 관측 경로가 둘이라야 정합을 물을 수 있다", (
     }
   });
 
-  test("자리가 넘쳐 앞을 버리면 불변식 1이 잡는다", () => {
+  // `KAN-040` `S3` 이 세어 둔 수를 읽는 행을 빼면서 그것을 한쪽 경로로 쓰던 불변식이
+  // 사라졌다. 축2가 잡던 구현 하나가 축2에서 빠져나간다는 사실을 시험으로 박아 둔다 —
+  // 조용히 줄어든 검사는 줄어든 줄 모른다. 그 구현은 이제 축1이 잡는다.
+  test("자리가 넘쳐 앞을 버리는 구현은 이제 축2가 아니라 축1이 잡는다", () => {
     const impl = new CappedLogList();
-    for (let i = 0; i < 9; i++) impl.append(i);
-    expect(counted?.check(impl)).toContain("순회 8개 / size 9");
+    const model: number[] = [];
+    for (let i = 0; i < 9; i++) {
+      impl.append(i);
+      model.push(i);
+    }
     // 버린 뒤에도 두 방향은 서로의 역순이다 — 같은 것을 잃었기 때문이다.
     expect(agreed?.check(impl)).toBeNull();
+    // 참조 모델은 버리지 않으므로 늘어놓기가 갈린다.
+    expect(impl.toArray()).not.toEqual(model);
   });
 
-  test("방향마다 이음을 따로 들면 불변식 2가 갈림을 잡는다", () => {
+  test("방향마다 이음을 따로 들면 불변식이 갈림을 잡는다", () => {
     const impl = new TwoChainList();
     impl.append(1);
     // 원소가 하나면 뒤집어도 같으므로 아직 갈리지 않는다.
     expect(agreed?.check(impl)).toBeNull();
 
     impl.append(2);
-    // 잃은 것이 없으므로 개수는 맞는다. 갈리는 것은 순서다.
-    expect(counted?.check(impl)).toBeNull();
     expect(agreed?.check(impl)).toContain("0번째에서 갈린다");
   });
 });
@@ -3370,16 +3357,9 @@ class StaleMinMultiset implements MultisetContract<number> {
     return this.#items.filter((value) => value === item).length;
   }
 
-  min(): number | null {
+  /** 계약 표면에는 없는 자리다. 낡은 캐시를 시험이 읽으려고 남겨 둔다. */
+  cachedMin(): number | null {
     return this.#min;
-  }
-
-  max(): number | null {
-    return this.#max;
-  }
-
-  size(): number {
-    return this.#items.length;
   }
 
   toArray(): number[] {
@@ -3388,10 +3368,10 @@ class StaleMinMultiset implements MultisetContract<number> {
 }
 
 describe("축2 — B10 이 multiset 의 불변식 한 자리를 갈았다", () => {
-  const [counted, multiplicity, ends] = multisetContract.invariants;
+  const [multiplicity] = multisetContract.invariants;
 
-  test("불변식 절이 셋이고 정본은 셋 다 만족한다", () => {
-    expect(multisetContract.invariants).toHaveLength(3);
+  test("불변식 절이 하나이고 정본은 그것을 만족한다", () => {
+    expect(multisetContract.invariants).toHaveLength(1);
     const impl = new ReferenceMultiset<number>();
     for (const value of [5, 1, 5, 9]) impl.add(value);
     impl.delete(1);
@@ -3400,16 +3380,19 @@ describe("축2 — B10 이 multiset 의 불변식 한 자리를 갈았다", () =
     }
   });
 
-  test("최소를 캐시하고 지울 때 갱신을 빠뜨리면 불변식 3이 잡는다", () => {
+  // `KAN-040` `S4` 가 양 끝을 읽는 두 행을 빼면서 B10 이 넣었던 「최소·최대가 양 끝과
+  // 동등하다」가 사라졌다. 축2가 잡던 구현 하나가 축2에서 빠져나간다는 사실을 시험으로
+  // 박아 둔다 — 조용히 줄어든 검사는 줄어든 줄 모른다. **이 구현은 이제 어느 축에도
+  // 안 걸린다** — 낡은 캐시를 읽는 공개 연산이 계약에 없으므로 축1도 그 값을 안 본다.
+  test("최소를 캐시하고 갱신을 빠뜨리는 구현은 이제 어느 축에도 안 걸린다", () => {
     const impl = new StaleMinMultiset();
     for (const value of [1, 5, 9]) impl.add(value);
-    expect(ends?.check(impl)).toBeNull();
-
     impl.delete(1);
-    // 개수도 다중도도 맞는다. 갈리는 것은 최소를 읽는 두 길뿐이다.
-    expect(counted?.check(impl)).toBeNull();
+    // 남은 불변식은 다중도뿐이고 그것은 맞는다.
     expect(multiplicity?.check(impl)).toBeNull();
-    expect(ends?.check(impl)).toContain("min 1 인데 첫 원소 5");
+    // 캐시는 실제로 낡았는데(1 을 지웠는데 최소가 1 이다) 계약 표면이 그것을 안 읽는다.
+    expect(impl.cachedMin()).toBe(1);
+    expect(impl.toArray()[0]).toBe(5);
   });
 
   test("정렬 순서는 축2가 아니라 축1이 본다 — 읽는 길이 하나뿐이다", () => {
@@ -3425,15 +3408,14 @@ describe("축2 — B10 이 multiset 의 불변식 한 자리를 갈았다", () =
  * **등급이 `invariant` 라는 것이 「축2가 주 판별기다」의 다른 이름이다.**
  *
  * `tree/binarySearchTree` 계약은 상한이 선형이라 축3이 위아래로 한 자리씩 눈이 멀어 있다
- * (위는 로그 인수, 아래는 계약이 허용하는 더 빠른 계급). 남는 판별기가 축2이고, 그 넷이
- * 나란한 넷의 넷과 **같다** — 판별 절차가 상한을 읽지 않기 때문이다.
+ * (위는 로그 인수, 아래는 계약이 허용하는 더 빠른 계급). 남는 판별기가 축2이고, 그 셋이
+ * 나란한 넷의 셋과 **같다** — 판별 절차가 상한을 읽지 않기 때문이다.
  */
 describe("축2 — 상한이 느슨하면 축2가 주 판별기다", () => {
-  const [counted, membership, ends, ranged] =
-    binarySearchTreeContract.invariants;
+  const [membership, ends, ranged] = binarySearchTreeContract.invariants;
 
-  test("불변식 절이 넷이고 나란한 넷의 넷과 같다 — 상한을 내려도 안 움직인다", () => {
-    expect(binarySearchTreeContract.invariants).toHaveLength(4);
+  test("불변식 절이 셋이고 나란한 넷의 셋과 같다 — 상한을 내려도 안 움직인다", () => {
+    expect(binarySearchTreeContract.invariants).toHaveLength(3);
     expect(
       binarySearchTreeContract.invariants.map((invariant) => invariant.name),
     ).toEqual(
@@ -3448,7 +3430,7 @@ describe("축2 — 상한이 느슨하면 축2가 주 판별기다", () => {
     }
   });
 
-  test("양 끝을 캐시하고 지울 때 갱신을 빠뜨리면 불변식 3이 잡는다", () => {
+  test("양 끝을 캐시하고 지울 때 갱신을 빠뜨리면 불변식 2가 잡는다", () => {
     const impl = new StaleEndCacheSet<number>();
     for (const value of [1, 5, 9]) impl.insert(value);
     // 아직 갈리지 않는다 — 캐시가 옳다.
@@ -3457,8 +3439,7 @@ describe("축2 — 상한이 느슨하면 축2가 주 판별기다", () => {
     }
 
     impl.delete(1);
-    // 개수도 담김 여부도 구간도 맞는다. 갈리는 것은 양 끝을 읽는 두 길뿐이다.
-    expect(counted?.check(impl)).toBeNull();
+    // 담김 여부도 구간도 맞는다. 갈리는 것은 양 끝을 읽는 두 길뿐이다.
     expect(membership?.check(impl)).toBeNull();
     expect(ranged?.check(impl)).toBeNull();
     expect(ends?.check(impl)).toContain("min()=1 인데 첫 원소는 5 다");
@@ -3476,9 +3457,8 @@ describe("축2 — 상한이 느슨하면 축2가 주 판별기다", () => {
 /**
  * 위치를 세는 값을 따로 들고 지울 때 갱신을 빠뜨렸다.
  *
- * **이 구현은 담기는 쪽 계약(`tree/multiset`)의 불변식 셋을 전부 만족한다** — `toArray()` 도
- * 개수도 다중도도 양 끝도 맞는다. 갈리는 것은 위치를 읽는 두 길뿐이고, 그 길이 담는 쪽
- * 계약에서만 열린다.
+ * **이 구현은 담기는 쪽 계약(`tree/multiset`)의 불변식을 만족한다** — `toArray()` 도 다중도도
+ * 맞는다. 갈리는 것은 위치를 읽는 두 길뿐이고, 그 길이 담는 쪽 계약에서만 열린다.
  */
 class StaleRankIndexMultiset implements OrderStatisticTreeContract<number> {
   #items: number[] = [];
@@ -3548,21 +3528,21 @@ class StaleRankIndexMultiset implements OrderStatisticTreeContract<number> {
  * T1-03 이 남긴 것은 「정본이 내부 판정에만 쓰는 값은 네 축이 검사하지 않는다」였다
  * (불변 사실 109) — 그때 어긋난 것이 부분트리 크기였고, 그 계약에는 그 값을 읽는 공개 연산이
  * 없어서 축1·축2·축3이 전부 통과시켰다. **이 계약에는 그 연산이 둘 있다.** 같은 종류의
- * 어긋남이 여기서는 불변식 넷째·다섯째에 이름으로 걸린다 — 아래 fixture 가 위치 경로만
+ * 어긋남이 여기서는 불변식 둘째·셋째에 이름으로 걸린다 — 아래 fixture 가 위치 경로만
  * 낡게 만든 것이라 정확히 그 둘이다. **어느 불변식이 걸리는지는 구현이 정한다**: 이 계약의
- * 정본은 `size`·`count` 도 같은 값을 읽으므로 그쪽이 어긋나면 1·2 도 함께 걸린다.
+ * 정본은 `count` 도 같은 값을 읽으므로 그쪽이 어긋나면 1 도 함께 걸린다.
  *
  * 그러므로 불변 사실 109 의 처분(정본 헤더에 적고 감사 스크립트를 따로 돌린다)은 이 계약에
  * 걸리지 않는다. 관측되면 축이 본다.
  */
 describe("축2 — 위치를 세는 값이 관측되면 그 갈림을 잡는다", () => {
-  const [, , , ranked, positioned] = orderStatisticTreeContract.invariants;
+  const [, ranked, positioned] = orderStatisticTreeContract.invariants;
 
-  test("불변식이 다섯이고 앞의 셋은 담기는 쪽 계약의 셋과 같다", () => {
-    expect(orderStatisticTreeContract.invariants).toHaveLength(5);
+  test("불변식이 셋이고 앞의 하나는 담기는 쪽 계약의 하나와 같다", () => {
+    expect(orderStatisticTreeContract.invariants).toHaveLength(3);
     expect(
       orderStatisticTreeContract.invariants
-        .slice(0, 3)
+        .slice(0, 1)
         .map((invariant) => invariant.name),
     ).toEqual(multisetContract.invariants.map((invariant) => invariant.name));
 
@@ -3582,8 +3562,8 @@ describe("축2 — 위치를 세는 값이 관측되면 그 갈림을 잡는다"
     }
 
     impl.delete(1);
-    // 앞의 셋은 그대로 성립한다 — 개수도 다중도도 양 끝도 `#items` 에서 나온다.
-    for (const invariant of orderStatisticTreeContract.invariants.slice(0, 3)) {
+    // 앞의 하나는 그대로 성립한다 — 다중도가 `#items` 에서 나온다.
+    for (const invariant of orderStatisticTreeContract.invariants.slice(0, 1)) {
       expect(invariant.check(impl)).toBeNull();
     }
     expect(ranked?.check(impl)).toContain("rankOf(2)=1 인데 실제 0");
@@ -3594,7 +3574,7 @@ describe("축2 — 위치를 세는 값이 관측되면 그 갈림을 잡는다"
     const impl = new StaleRankIndexMultiset();
     for (const value of [1, 5, 9]) impl.add(value);
     impl.delete(1);
-    // 같은 상태를 `tree/multiset` 의 불변식 셋에 물으면 **전부 통과한다.** 그 계약에서
+    // 같은 상태를 `tree/multiset` 의 불변식에 물으면 **통과한다.** 그 계약에서
     // 위치는 관측되지 않으므로 갈릴 상대가 없다(불변 사실 109 와 같은 자리).
     for (const invariant of multisetContract.invariants) {
       expect(invariant.check(impl)).toBeNull();

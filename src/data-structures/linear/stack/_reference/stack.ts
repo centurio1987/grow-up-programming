@@ -33,15 +33,5 @@ export class Stack<T> {
     if (this.#items.length === 0) return null;
     return this.#items[this.#items.length - 1] as T;
   }
-
-  isEmpty(): boolean {
-    this.__cost += 1;
-    return this.#items.length === 0;
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return this.#items.length;
-  }
 }
 // #endregion

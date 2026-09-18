@@ -20,7 +20,6 @@
  * | `push`·`pop` 경계에서 번갈아 (적대적) | 1.50 → 1.50 | 통과 | **걸림** 1,025 → 4,097 | **걸림** 513 → 2,049 |
  * | `get` worst O(1) | 1 → 1 | 통과 | 통과 | **걸림** 1,024 → 4,096 |
  * | `set` amortized O(1) | 1.00 → 1.00 | 통과 | 통과 | **걸림** 512.50 → 2,048.50 |
- * | `size` worst O(1) | 1 → 1 | 통과 | 통과 | 통과 |
  * | `toArray` worst O(n) | 1,024 → 4,096 | 통과 | 통과 | 통과 |
  *
  * **`HalfShrinkArray` 를 잡는 것은 적대적 시나리오 하나다.** 넣기만 · 빼기만 하는 두 시나리오에서는 정본과
@@ -71,7 +70,6 @@ const ALL_PASS = {
   "push·pop (적대적)": true,
   get: true,
   set: true,
-  size: true,
   toArray: true,
 };
 
@@ -87,7 +85,7 @@ runContract(() => new WalkingIndexList(), dynamicArrayContract, {
 });
 
 describe("DynamicArray 축3 — 결함 셋이 서로 다른 행에서 걸린다", () => {
-  test("정본은 일곱 시나리오를 전부 통과한다", () => {
+  test("정본은 여섯 시나리오를 전부 통과한다", () => {
     expect(verdicts(reference)).toEqual(ALL_PASS);
   });
 

@@ -2,7 +2,7 @@
  * `probabilistic/skipList` 계약 스위트 실행부(규약2).
  *
  * 여기에는 `runContract` · `valueContract` 호출만 둔다. 무엇을 검사하는지는 `./skipList.contract.ts` 에 있고 — 그 파일은
- * `tree/treap` 의 스위트를 그대로 내보낸다 — 계약 자체는 `./skipList.ts` 헤더 한 곳이다. 아홉째 시나리오의 탐침 조회에 붙은
+ * `tree/treap` 의 스위트를 그대로 내보낸다 — 계약 자체는 `./skipList.ts` 헤더 한 곳이다. 여덟째 시나리오의 탐침 조회에 붙은
  * 기대도 저쪽 것 그대로다(`KAN-043` · `../../_contract/runValues.ts`).
  *
  * 대상이 둘이다. **스텁은 실패하는 것이 정상이고**(미구현) 정본은 통과해야 한다. 축3은 계측기가 붙은 정본에만 돈다 — 학습자

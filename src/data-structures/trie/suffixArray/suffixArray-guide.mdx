@@ -204,10 +204,6 @@ export class SuffixArray {
     this.#build();
   }
 
-  length(): number {
-    return this.#s.length;
-  }
-
   at(rank: number): number | null {
     if (!Number.isInteger(rank) || rank < 0 || rank >= this.#sa.length)
       return null;

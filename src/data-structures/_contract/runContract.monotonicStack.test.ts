@@ -17,7 +17,7 @@
  * | `push` amortized O(1) | 2.00 → 2.00 | 통과 | 통과 |
  * | `pop` amortized O(1) (적대적) | 3.00 → 3.00 | 통과 | **걸림** 1,025.00 → 4,097.00 |
  * | `max` worst O(1) | 1 → 1 | **걸림** 2,046 → 8,190 | 통과 |
- * | `peek`·`isEmpty`·`size` worst O(1) | 3 → 3 | 통과 | 통과 |
+ * | `peek` worst O(1) | 1 → 1 | 통과 | 통과 |
  * | 축1 · 축2 | 통과 | 통과 | 통과 |
  */
 
@@ -62,7 +62,7 @@ const ALL_PASS = {
   push: true,
   "pop (적대적)": true,
   max: true,
-  peek·isEmpty·size: true,
+  peek: true,
 };
 
 // 1. 셋 다 동작상 옳다 — 축1 · 축2 를 전부 통과한다. 계측기를 넘기지 않으므로 축3은 돌지 않는다.

@@ -27,11 +27,14 @@
  * **반대쪽 한계도 실물로 있다.** `_fixtures/lazySortingSet.ts` 는 필요충분조건의 비용 조건을
  * 어기는데 여섯 시나리오를 **전부 통과한다** — 어기는 폭이 로그 인수 하나뿐이라 축3의
  * 해상도 아래다(불변 사실 53·62). 위아래로 한 자리씩, 이 계약에서 축3이 하는 일은
- * **`size` 행의 O(1) 감시와 이차 이상 이탈 감지** 둘로 좁혀진다. 나머지를 지키게 하는 것은
- * 축2다 — 등급이 `invariant` 인 것이 그 사실의 다른 이름이다.
+ * **이차 이상 이탈 감지 하나로** 좁혀진다. 나머지를 지키게 하는 것은 축2다 — 등급이
+ * `invariant` 인 것이 그 사실의 다른 이름이다. **원래는 둘이었다** — 상한이 상수인 `size`
+ * 행이 위쪽으로 판별력을 갖는 유일한 자리였는데 그 행이 계약에서 빠졌다(`KAN-040` `S4`).
+ * 그 행 하나만 걸던 결함 fixture(`_fixtures/recountingSizeSet.ts`)를 이제 축3이 잡지 못하고,
+ * 그 사실은 `_contract/runContract.test.ts` 가 시험으로 적는다.
  *
  * **적대적 입력이 선택인데도 넷을 뒀다.** 회귀 수준이 요구하지 않지만, 정본이 O(n) 계급을
- * 실제로 내는 입력이 그것뿐이라 두지 않으면 잴 것이 없다. 같은 정본을 아래 `size`·`toArray`
+ * 실제로 내는 입력이 그것뿐이라 두지 않으면 잴 것이 없다. 같은 정본을 아래 `toArray`
  * 시나리오와 같은 방식으로 뽑은 무작위 값에 물리면 — 즉 매 호출의 인자를 `ctx.rng()` 로
  * 새로 뽑으면 — 단일 호출 최대가 25 → 29(`insert`) · 34 → 40(조회) · 24 → 29(`delete`) ·
  * 26 → 31(`range`)로 **로그 계급**이고, 그 값으로는 `O(n)` 행을 통과시키지 못한다.
@@ -55,7 +58,6 @@ export interface BinarySearchTreeContract<T> {
   min(): T | null;
   max(): T | null;
   range(low: T, high: T): T[];
-  size(): number;
   toArray(): T[];
 }
 
@@ -143,12 +145,6 @@ export const binarySearchTreeContract: ContractSpec<
       },
     },
     {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.length,
-    },
-    {
       name: "toArray",
       arg: () => undefined,
       onImpl: (impl) => impl.toArray(),
@@ -164,10 +160,9 @@ export const binarySearchTreeContract: ContractSpec<
         { op: "min" },
         { op: "max" },
         { op: "range", arg: [0, 100] },
-        { op: "size" },
         { op: "toArray" },
         { op: "delete", arg: 1 },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -177,11 +172,10 @@ export const binarySearchTreeContract: ContractSpec<
         { op: "insert", arg: 5 },
         { op: "insert", arg: 5 },
         { op: "insert", arg: 5 },
-        { op: "size" },
         { op: "toArray" },
         { op: "delete", arg: 5 },
         { op: "has", arg: 5 },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -193,7 +187,6 @@ export const binarySearchTreeContract: ContractSpec<
         { op: "toArray" },
         { op: "delete", arg: 3 },
         { op: "toArray" },
-        { op: "size" },
         { op: "delete", arg: 4 },
         { op: "toArray" },
       ],
@@ -284,7 +277,7 @@ export const binarySearchTreeContract: ContractSpec<
         { op: "insert", arg: 2 },
         { op: "delete", arg: 1 },
         { op: "delete", arg: 2 },
-        { op: "size" },
+        { op: "toArray" },
         { op: "min" },
         { op: "insert", arg: 8 },
         { op: "min" },
@@ -294,20 +287,10 @@ export const binarySearchTreeContract: ContractSpec<
     },
   ],
 
-  // 헤더 불변식 절의 넷. 나란한 넷의 넷과 같다 — 판별 절차가 상한을 읽지 않기 때문이다.
+  // 헤더 불변식 절의 셋. 나란한 넷의 셋과 같다 — 판별 절차가 상한을 읽지 않기 때문이다.
   // **이 계약에서는 축2가 주 판별기다.** 축3이 위아래로 한 자리씩 눈이 멀어 있으므로
   // (이 파일 헤더) 계약이 실제로 배제하는 것을 잡는 것은 여기다.
   invariants: [
-    {
-      name: "toArray().length 와 size() 가 같다",
-      check: (impl) => {
-        const listed = impl.toArray().length;
-        const counted = impl.size();
-        return listed === counted
-          ? null
-          : `toArray().length=${listed} 인데 size()=${counted} 다`;
-      },
-    },
     {
       name: "has 는 toArray 에 그 값이 있는가와 같다",
       check: (impl) => {
@@ -415,19 +398,6 @@ export const binarySearchTreeContract: ContractSpec<
         for (let i = 0; i < n; i++) impl.insert(i);
         const low = n - 4;
         for (let i = 0; i < n; i++) ctx.step(() => impl.range(low, low + 2));
-      },
-    },
-    {
-      covers: ["size"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      // **여덟 행 중 유일하게 상한이 상수인 행이고, 그래서 축3이 이 계약에서 위쪽으로
-      // 판별력을 갖는 유일한 자리다.** 세어 두지 않고 훑는 구현이 여기서 걸린다
-      // (`_fixtures/recountingSizeSet.ts` — 912 → 3,636 으로 $r = 3.99$).
-      run: (impl, n, ctx) => {
-        for (let i = 0; i < n; i++) impl.insert(Math.floor(ctx.rng() * n * 4));
-        for (let i = 0; i < n; i++) ctx.step(() => impl.size());
       },
     },
     {

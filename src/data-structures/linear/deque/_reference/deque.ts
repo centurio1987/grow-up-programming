@@ -76,16 +76,6 @@ export class Deque<T> {
     return this.#slots[this.#wrap(this.#head + this.#count - 1)] as T;
   }
 
-  isEmpty(): boolean {
-    this.__cost += 1;
-    return this.#count === 0;
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
-  }
-
   /**
    * 논리 위치를 칸 번호로 감싼다. 음수도 받으므로 `pushFront` 가 따로 분기하지 않는다.
    */

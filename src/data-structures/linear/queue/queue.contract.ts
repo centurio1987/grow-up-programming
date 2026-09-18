@@ -14,13 +14,11 @@
 
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 다섯 행을 그대로 옮긴 표면. */
+/** 헤더 연산 계약 표의 세 행을 그대로 옮긴 표면. */
 export interface QueueContract<T> {
   enqueue(item: T): void;
   dequeue(): T | null;
   front(): T | null;
-  isEmpty(): boolean;
-  size(): number;
 }
 
 /** 축1 참조 모델. 자명한 배열이면 된다 — 축1은 의미만 보고 비용은 보지 않는다. */
@@ -55,18 +53,6 @@ export const queueContract: ContractSpec<QueueContract<number>, Model> = {
       onImpl: (impl) => impl.front(),
       onModel: (model) => (model.length === 0 ? null : (model[0] as number)),
     },
-    {
-      name: "isEmpty",
-      arg: () => undefined,
-      onImpl: (impl) => impl.isEmpty(),
-      onModel: (model) => model.length === 0,
-    },
-    {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.length,
-    },
   ],
 
   edges: [
@@ -75,10 +61,8 @@ export const queueContract: ContractSpec<QueueContract<number>, Model> = {
       steps: [
         { op: "dequeue" },
         { op: "front" },
-        { op: "isEmpty" },
-        { op: "size" },
         { op: "dequeue" },
-        { op: "size" },
+        { op: "front" },
       ],
     },
     {
@@ -100,7 +84,6 @@ export const queueContract: ContractSpec<QueueContract<number>, Model> = {
         { op: "enqueue", arg: 8 },
         { op: "front" },
         { op: "front" },
-        { op: "size" },
         { op: "dequeue" },
         { op: "front" },
       ],
@@ -114,11 +97,11 @@ export const queueContract: ContractSpec<QueueContract<number>, Model> = {
         { op: "enqueue", arg: 2 },
         { op: "dequeue" },
         { op: "dequeue" },
-        { op: "isEmpty" },
+        { op: "front" },
         { op: "enqueue", arg: 3 },
         { op: "front" },
         { op: "dequeue" },
-        { op: "isEmpty" },
+        { op: "front" },
       ],
     },
     {
@@ -130,7 +113,7 @@ export const queueContract: ContractSpec<QueueContract<number>, Model> = {
         { op: "dequeue" },
         { op: "enqueue", arg: 3 },
         { op: "front" },
-        { op: "size" },
+        { op: "dequeue" },
       ],
     },
     {
@@ -139,14 +122,15 @@ export const queueContract: ContractSpec<QueueContract<number>, Model> = {
         { op: "dequeue" },
         { op: "enqueue", arg: 5 },
         { op: "front" },
-        { op: "size" },
-        { op: "isEmpty" },
+        { op: "dequeue" },
+        { op: "front" },
       ],
     },
   ],
 
-  // 헤더의 불변식 절이 「없다」다. 관측 경로가 둘인 성질 둘(`isEmpty`↔`size`,
-  // `front`↔`dequeue`)의 정합을 계약 줄이 이미 적고 있어 각 연산의 의미이고, 축1의 몫이다.
+  // 헤더의 불변식 절이 「없다」다. 두 행을 뺀 뒤 관측 경로가 둘인 성질은
+  // `front`↔`dequeue` 하나뿐이고, 그 정합을 `front` 행이 이미 적고 있어 각 연산의
+  // 의미이며 축1의 몫이다.
   invariants: [],
 
   scenarios: [
@@ -177,9 +161,7 @@ export const queueContract: ContractSpec<QueueContract<number>, Model> = {
     // $r = 4.00$) — 적대성이 구현만이 아니라 **계약에 대해서도** 정의된다는 것의 사례이고,
     // 자리는 가이드다(§규약2).
     {
-      // 셋을 한 걸음에 묶는 이유는 `isEmpty` 혼자로는 잴 것이 없기 때문이다 — 계측이
-      // 0 이면 성장률이 정의되지 않는다.
-      covers: ["front", "isEmpty", "size"],
+      covers: ["front"],
       qualifier: "worst",
       bound: "O(1)",
       adversarial: false,
@@ -188,8 +170,6 @@ export const queueContract: ContractSpec<QueueContract<number>, Model> = {
         for (let i = 0; i < n; i++) {
           ctx.step(() => {
             impl.front();
-            impl.isEmpty();
-            impl.size();
           });
         }
       },

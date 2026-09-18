@@ -620,7 +620,7 @@ insert(7)   2B(1B 4R(3B 6B(5R 7R)))   [2 4]([1] [3] [5 6 7])
 형제의 자식 중 빨간 것이 있다 → 형제 노드에 여유 키가 있다. 회전으로 키 하나를 빌려 오고 끝낸다.
 ```
 
-이제 레드블랙 트리의 참조 구현으로 호출 스무 번을 실행합니다. 넣기 뒤 고치기의 세 경우와 지우기 뒤 고치기의 네 경우가 모두 나오도록 넣기와 지우기의 값을 골랐습니다. 시뮬레이션의 마지막 호출은 `toArray()`이며 **`[30, 40, 50, 90]`을 반환합니다.**
+이제 레드블랙 트리의 참조 구현으로 호출 열아홉 번을 실행합니다. 넣기 뒤 고치기의 세 경우와 지우기 뒤 고치기의 네 경우가 모두 나오도록 넣기와 지우기의 값을 골랐습니다. 시뮬레이션의 마지막 호출은 `toArray()`이며 **`[30, 40, 50, 90]`을 반환합니다.**
 <!--result:walk=[30,40,50,90]-->
 
 <!--viz:walk-->
@@ -634,7 +634,7 @@ has(40) → true, has(35) → false
 range(25, 55) → [30, 40, 50], range(50, 20) → []
 delete(20) → true, 30B(10B 50R(40B 90B))
 delete(10) → true, delete(35) → false, 50B(30B(· 40R) 90B)
-min() → 30, max() → 90, size() → 4
+min() → 30, max() → 90
 toArray() → [30, 40, 50, 90]
 ```
 
@@ -662,8 +662,7 @@ T15    delete(10)                   true               50B(30B(· 40R) 90B)     
 T16    delete(35)                   false              50B(30B(· 40R) 90B)               3
 T17    min()                        30                 50B(30B(· 40R) 90B)               3
 T18    max()                        90                 50B(30B(· 40R) 90B)               3
-T19    size()                       4                  50B(30B(· 40R) 90B)               3
-T20    toArray()                    [30, 40, 50, 90]   50B(30B(· 40R) 90B)               3
+T19    toArray()                    [30, 40, 50, 90]   50B(30B(· 40R) 90B)               3
 ```
 
 모양을 고친 호출에서 실제로 한 일입니다.
@@ -695,7 +694,7 @@ T5의 `insert(20)`은 삼촌이 빈 자리 노드여서 검은색이고 20이 �
 <!--proof:simulation-->
 
 ```text
-시뮬레이션 20단계: 호출·반환값·모양·설명이 참조 구현 실행과 일치
+시뮬레이션 19단계: 호출·반환값·모양·설명이 참조 구현 실행과 일치
 마지막 반환값: [30, 40, 50, 90]
 최종 모양: 50B(30B(· 40R) 90B)
 ```
@@ -726,7 +725,6 @@ export class RedBlackTree<T> {
   /** 잎 바깥의 모든 자리를 겸하는 검은 노드. 값은 읽지 않는다. */
   readonly #nil: Node<T>;
   #root: Node<T>;
-  #count = 0;
   readonly #compare: (a: T, b: T) => number;
 
   constructor(comparator?: (a: T, b: T) => number) {
@@ -764,7 +762,6 @@ export class RedBlackTree<T> {
     else if (this.#compare(item, parent.value) < 0) parent.left = node;
     else parent.right = node;
 
-    this.#count += 1;
     this.#fixInsert(node);
   }
 
@@ -800,7 +797,6 @@ export class RedBlackTree<T> {
       removed.color = target.color;
     }
 
-    this.#count -= 1;
     // 빨간 자리가 빠지면 경로마다의 검은 수가 그대로다. 검은 자리가 빠졌을 때만 고친다.
     if (removedColor === "black") this.#fixDelete(orphan);
     return true;
@@ -836,10 +832,6 @@ export class RedBlackTree<T> {
     if (this.#compare(low, high) > 0) return out;
     this.#collect(this.#root, low, high, out);
     return out;
-  }
-
-  size(): number {
-    return this.#count;
   }
 
   toArray(): T[] {
@@ -1073,7 +1065,7 @@ color: "black", // 참조 구현은 "red"
 
 ```text
 다섯 구현(본문의 2-3 트리·AVL 트리 코드와 세 참조 구현): 무작위 호출 20,000번이 참조 모델과 일치
-계약의 경계 입력 7개: 호출마다 계약의 불변식 4개 성립
+계약의 경계 입력 7개: 호출마다 계약의 불변식 3개 성립
 ```
 
 높이 제한은 계약의 불변식이 아닙니다. 계약은 비용만 요구하며, 높이를 어떻게 제한할지는 구현이 정합니다. 높이 제한이 깨진 구현은 결과는 맞아도 비용 검사에서 실패합니다.
@@ -1204,10 +1196,9 @@ has·min·max (적대적)   O(log n)   1.17 통과   1.16 통과       1.18 통�
 delete (적대적)        O(log n)   1.17 통과   1.17 통과       1.17 통과
 range                  O(log n)   1.25 통과   1.13 통과       1.24 통과
 toArray                O(n)       3.96 통과   3.97 통과       3.97 통과
-size                   O(1)       1.00 통과   1.00 통과       1.00 통과
 ```
 
-세 구현 모두 일곱 시나리오를 통과했습니다. 구간 읽기 시나리오는 구간 폭을 좁게 고정해 k를 상수로 두므로 O(log n)으로 판정합니다. 적대적 시나리오는 오름차순 넣기, 순차 조회, 오름차순 지우기처럼 균형을 잡지 않는 트리나 조회할 때 모양을 바꾸는 트리가 한 번의 호출에서 느려지는 입력입니다.
+세 구현 모두 여섯 시나리오를 통과했습니다. 구간 읽기 시나리오는 구간 폭을 좁게 고정해 k를 상수로 두므로 O(log n)으로 판정합니다. 적대적 시나리오는 오름차순 넣기, 순차 조회, 오름차순 지우기처럼 균형을 잡지 않는 트리나 조회할 때 모양을 바꾸는 트리가 한 번의 호출에서 느려지는 입력입니다.
 
 #### 최악을 만드는 입력
 

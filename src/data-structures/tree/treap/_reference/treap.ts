@@ -60,7 +60,6 @@ function defaultComparator<T>(a: T, b: T): number {
 // #region guide:core/class
 export class Treap<T> {
   #root: Node<T> | null = null;
-  #count = 0;
   readonly #compare: Comparator<T>;
 
   /** 축3 계측. 파일 헤더의 단위 설명 참고. */
@@ -94,7 +93,6 @@ export class Treap<T> {
       right: null,
     };
     this.#root = this.#merge(this.#merge(below, fresh), above);
-    this.#count += 1;
   }
 
   delete(item: T): boolean {
@@ -109,7 +107,6 @@ export class Treap<T> {
 
     this.#root = this.#merge(below, above);
     if (equal === null) return false;
-    this.#count -= 1;
     return true;
   }
 
@@ -158,11 +155,6 @@ export class Treap<T> {
     if (this.#compare(low, high) > 0) return out;
     this.#collect(this.#root, low, high, out);
     return out;
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
   }
 
   toArray(): T[] {

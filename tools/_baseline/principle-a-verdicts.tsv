@@ -1,0 +1,109 @@
+# 원칙 A 판정표 ③ — 행 단위 판정 대장 (KAN-040-M5V53M S2 가 판정 · S3 이 저장소로 옮겼다)
+# 판정의 근거와 목적 인용은 docs/ORD-006-conventions.md 의 KAN-040 S2 절에 있다. 이 파일은 그 절의 행 단위 색인이다.
+# 대상을 다시 내는 절차는 같은 문서의 KAN-040 S1 절(성질로 전수하는 규칙)에 적혀 있다.
+# 칸: 갈래 · 세부 · 계약 · 연산 · 묶음 · 판정 · 근거(S2 절의 어느 표가 이 행의 근거인가) · 담당(적용을 어느 단계가 지는가)
+# 손으로 고치지 않는다 — 판정을 바꾸려면 S2 절을 먼저 고치고 그 결과를 여기 옮긴다.
+갈래	세부	계약	연산	묶음	판정	근거	담당
+요약 관찰	꼭짓점 수	graph-repr/dag	vertexCount()	①	제거	배치2 소절6 ① 제거표	S3
+요약 관찰	변 수	graph-repr/dag	edgeCount()	①	제거	배치2 소절6 ① 제거표	S3
+요약 관찰	꼭짓점 수	graph-repr/graphAdjList	vertexCount()	①	제거	배치2 소절6 ① 제거표	S3
+요약 관찰	변 수	graph-repr/graphAdjList	edgeCount()	①	제거	배치2 소절6 ① 제거표	S3
+요약 관찰	꼭짓점 수	graph-repr/graphAdjMatrix	vertexCount()	①	제거	배치2 소절6 ① 제거표	S3
+요약 관찰	크기	hash/hashMapChaining	size()	①	제거	배치2 소절6 ① 제거표	S4
+요약 관찰	크기	hash/hashMapOpenAddressing	size()	①	제거	배치2 소절6 ① 제거표	S4
+요약 관찰	크기	hash/hashSet	size()	①	제거	배치2 소절6 ① 제거표	S4
+요약 관찰	크기	heap/binomialHeap	size()	①	판정못함	배치2 소절8	사람 결정
+파생 관찰	비었는가	heap/binomialHeap	isEmpty()	②	판정못함	배치2 소절8	사람 결정
+요약 관찰	크기	heap/daryHeap	size()	①	유지	배치2 소절6 ① 유지표	S5
+파생 관찰	비었는가	heap/daryHeap	isEmpty()	②	제거	배치2 소절6 ② 표	S4
+요약 관찰	크기	heap/fibonacciHeap	size()	①	판정못함	배치2 소절8	사람 결정
+파생 관찰	비었는가	heap/fibonacciHeap	isEmpty()	②	판정못함	배치2 소절8	사람 결정
+요약 관찰	크기	heap/leftistHeap	size()	①	유지	배치2 소절6 ① 유지표	S5
+파생 관찰	비었는가	heap/leftistHeap	isEmpty()	②	유지	배치2 소절6 ② 표	S5
+요약 관찰	크기	heap/maxHeap	size()	①	유지	배치2 소절6 ① 유지표	S5
+파생 관찰	비었는가	heap/maxHeap	isEmpty()	②	제거	배치2 소절6 ② 표	S4
+요약 관찰	크기	heap/minHeap	size()	①	유지	배치2 소절6 ① 유지표	S5
+파생 관찰	비었는가	heap/minHeap	isEmpty()	②	제거	배치2 소절6 ② 표	S4
+요약 관찰	크기	heap/pairingHeap	size()	①	유지	배치2 소절6 ① 유지표	S5
+파생 관찰	비었는가	heap/pairingHeap	isEmpty()	②	유지	배치2 소절6 ② 표	S5
+요약 관찰	크기	heap/priorityQueue	size()	①	유지	배치2 소절6 ① 유지표	S5
+파생 관찰	비었는가	heap/priorityQueue	isEmpty()	②	제거	배치2 소절6 ② 표	S4
+순서 질의	최소	heap/vanEmdeBoasTree	min()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	최대	heap/vanEmdeBoasTree	max()	③	유지	배치2 소절6 ③ 표	S5
+요약 관찰	크기	linear/bitArray	size()	①	제거	배치2 소절6 ① 제거표	S3
+파생 관찰	찼는가	linear/circularBuffer	isFull()	②	유지	배치2 소절6 ② 표	S5
+파생 관찰	비었는가	linear/circularBuffer	isEmpty()	②	제거	배치2 소절6 ② 표	S3
+요약 관찰	크기	linear/circularBuffer	size()	①	제거	배치2 소절6 ① 제거표	S6
+파생 관찰	비었는가	linear/deque	isEmpty()	②	제거	배치2 소절6 ② 표	S3
+요약 관찰	크기	linear/deque	size()	①	제거	배치2 소절6 ① 제거표	S3
+요약 관찰	크기	linear/doublyLinkedList	size()	①	제거	배치2 소절6 ① 제거표	S3
+요약 관찰	크기	linear/dynamicArray	size()	①	제거	배치2 소절6 ① 제거표	S3
+파생 관찰	커서	linear/gapBuffer	cursor()	②′	유지	배치2 소절6 ② 표	S5
+요약 관찰	길이	linear/gapBuffer	length()	①	제거	배치2 소절6 ① 제거표	S3
+파생 관찰	비었는가	linear/monotonicQueue	isEmpty()	②	제거	배치2 소절6 ② 표	S3
+요약 관찰	크기	linear/monotonicQueue	size()	①	제거	배치2 소절6 ① 제거표	S3
+파생 관찰	비었는가	linear/monotonicStack	isEmpty()	②	제거	배치2 소절6 ② 표	S3
+요약 관찰	크기	linear/monotonicStack	size()	①	제거	배치2 소절6 ① 제거표	S3
+요약 관찰	길이	linear/pieceTable	length()	①	제거	배치2 소절6 ① 제거표	S3
+파생 관찰	비었는가	linear/queue	isEmpty()	②	제거	배치2 소절6 ② 표	S3
+요약 관찰	크기	linear/queue	size()	①	제거	배치2 소절6 ① 제거표	S3
+요약 관찰	크기	linear/singlyLinkedList	size()	①	제거	배치2 소절6 ① 제거표	S3
+파생 관찰	비었는가	linear/stack	isEmpty()	②	제거	배치2 소절6 ② 표	S3
+요약 관찰	크기	linear/stack	size()	①	제거	배치2 소절6 ① 제거표	S3
+요약 관찰	크기	linear/unrolledLinkedList	size()	①	제거	배치2 소절6 ① 제거표	S3
+요약 관찰	크기	linear/xorLinkedList	size()	①	제거	배치2 소절6 ① 제거표	S3
+순서 질의	최소	probabilistic/concurrentSkipList	min()	③′	유지	배치2 소절6 ③ 표	S5
+순서 질의	최대	probabilistic/concurrentSkipList	max()	③′	유지	배치2 소절6 ③ 표	S5
+순서 질의	최소	probabilistic/skipList	min()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	최대	probabilistic/skipList	max()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	구간	probabilistic/skipList	range(low, high)	③	유지	배치2 소절6 ③ 표	S5
+요약 관찰	크기	probabilistic/skipList	size()	①	제거	배치2 소절6 ① 제거표	S4
+요약 관찰	크기	range-query/intervalTree	size()	①	제거	배치2 소절6 ① 제거표	S4
+순서 질의	최소	tree/avlTree	min()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	최대	tree/avlTree	max()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	구간	tree/avlTree	range(low, high)	③	유지	배치2 소절6 ③ 표	S5
+요약 관찰	크기	tree/avlTree	size()	①	제거	배치2 소절6 ① 제거표	S4
+순서 질의	최소	tree/bPlusTree	min()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	최대	tree/bPlusTree	max()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	구간	tree/bPlusTree	range(low, high)	③	유지	배치2 소절6 ③ 표	S5
+요약 관찰	크기	tree/bPlusTree	size()	①	제거	배치2 소절6 ① 제거표	S4
+순서 질의	최소	tree/bTree	min()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	최대	tree/bTree	max()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	구간	tree/bTree	range(low, high)	③	유지	배치2 소절6 ③ 표	S5
+요약 관찰	크기	tree/bTree	size()	①	제거	배치2 소절6 ① 제거표	S4
+순서 질의	최소	tree/binarySearchTree	min()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	최대	tree/binarySearchTree	max()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	구간	tree/binarySearchTree	range(low, high)	③	유지	배치2 소절6 ③ 표	S5
+요약 관찰	크기	tree/binarySearchTree	size()	①	제거	배치2 소절6 ① 제거표	S4
+요약 관찰	크기	tree/cartesianTree	size()	①	제거	배치2 소절6 ① 제거표	S4
+순서 질의	최소	tree/multiset	min()	③	제거	배치2 소절6 ③ 표	S4
+순서 질의	최대	tree/multiset	max()	③	제거	배치2 소절6 ③ 표	S4
+요약 관찰	크기	tree/multiset	size()	①	제거	배치2 소절6 ① 제거표	S4
+순서 질의	최소	tree/orderStatisticTree	min()	③	제거	배치2 소절6 ③ 표	S4
+순서 질의	최대	tree/orderStatisticTree	max()	③	제거	배치2 소절6 ③ 표	S4
+요약 관찰	크기	tree/orderStatisticTree	size()	①	제거	배치2 소절6 ① 제거표	S4
+순서 질의	최소	tree/redBlackTree	min()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	최대	tree/redBlackTree	max()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	구간	tree/redBlackTree	range(low, high)	③	유지	배치2 소절6 ③ 표	S5
+요약 관찰	크기	tree/redBlackTree	size()	①	제거	배치2 소절6 ① 제거표	S4
+순서 질의	최소	tree/scapegoatTree	min()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	최대	tree/scapegoatTree	max()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	구간	tree/scapegoatTree	range(low, high)	③	유지	배치2 소절6 ③ 표	S5
+요약 관찰	크기	tree/scapegoatTree	size()	①	유지	배치2 소절6 ① 유지표	S5
+순서 질의	최소	tree/splayTree	min()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	최대	tree/splayTree	max()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	구간	tree/splayTree	range(low, high)	③	유지	배치2 소절6 ③ 표	S5
+요약 관찰	크기	tree/splayTree	size()	①	제거	배치2 소절6 ① 제거표	S4
+순서 질의	최소	tree/treap	min()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	최대	tree/treap	max()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	구간	tree/treap	range(low, high)	③	유지	배치2 소절6 ③ 표	S5
+요약 관찰	크기	tree/treap	size()	①	제거	배치2 소절6 ① 제거표	S4
+순서 질의	최소	tree/twoThreeTree	min()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	최대	tree/twoThreeTree	max()	③	유지	배치2 소절6 ③ 표	S5
+순서 질의	구간	tree/twoThreeTree	range(low, high)	③	유지	배치2 소절6 ③ 표	S5
+요약 관찰	크기	tree/twoThreeTree	size()	①	제거	배치2 소절6 ① 제거표	S4
+요약 관찰	크기	trie/radixTree	size()	①	제거	배치2 소절6 ① 제거표	S4
+요약 관찰	길이	trie/suffixArray	length()	①	제거	배치2 소절6 ① 제거표	S4
+요약 관찰	길이	trie/suffixTree	length()	①	제거	배치2 소절6 ① 제거표	S4
+요약 관찰	크기	trie/ternarySearchTree	size()	①	제거	배치2 소절6 ① 제거표	S4
+요약 관찰	크기	trie/trie	size()	①	제거	배치2 소절6 ① 제거표	S4

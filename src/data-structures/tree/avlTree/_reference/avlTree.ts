@@ -107,11 +107,6 @@ export class AVLTree<T> {
     return out;
   }
 
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
-  }
-
   toArray(): T[] {
     const out: T[] = [];
     this.#inOrder(this.#root, out);

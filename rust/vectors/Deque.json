@@ -25,12 +25,12 @@
           "expect": null
         },
         {
-          "op": "size",
-          "expect": 0
+          "op": "peekFront",
+          "expect": null
         },
         {
-          "op": "isEmpty",
-          "expect": true
+          "op": "peekBack",
+          "expect": null
         }
       ]
     },
@@ -55,8 +55,8 @@
           "expect": 7
         },
         {
-          "op": "isEmpty",
-          "expect": true
+          "op": "peekFront",
+          "expect": null
         }
       ]
     },
@@ -89,8 +89,8 @@
           "expect": 3
         },
         {
-          "op": "isEmpty",
-          "expect": true
+          "op": "peekFront",
+          "expect": null
         }
       ]
     },
@@ -123,8 +123,8 @@
           "expect": 1
         },
         {
-          "op": "isEmpty",
-          "expect": true
+          "op": "peekFront",
+          "expect": null
         }
       ]
     },
@@ -161,7 +161,7 @@
           "expect": 2
         },
         {
-          "op": "size",
+          "op": "peekFront",
           "expect": 1
         }
       ]
@@ -195,8 +195,8 @@
           "expect": 6
         },
         {
-          "op": "size",
-          "expect": 1
+          "op": "peekFront",
+          "expect": 6
         }
       ]
     },
@@ -205,7 +205,7 @@
       "kind": "random",
       "steps": [
         {
-          "op": "peekBack",
+          "op": "popBack",
           "expect": null
         },
         {
@@ -213,43 +213,39 @@
           "arg": 52
         },
         {
-          "op": "size",
-          "expect": 1
+          "op": "peekBack",
+          "expect": 52
         },
         {
-          "op": "size",
-          "expect": 1
+          "op": "peekBack",
+          "expect": 52
+        },
+        {
+          "op": "pushBack",
+          "arg": 61
+        },
+        {
+          "op": "peekFront",
+          "expect": 52
         },
         {
           "op": "popFront",
           "expect": 52
         },
         {
-          "op": "peekFront",
-          "expect": null
-        },
-        {
           "op": "peekBack",
+          "expect": 61
+        },
+        {
+          "op": "popFront",
+          "expect": 61
+        },
+        {
+          "op": "popFront",
           "expect": null
         },
         {
-          "op": "popBack",
-          "expect": null
-        },
-        {
-          "op": "size",
-          "expect": 0
-        },
-        {
-          "op": "popBack",
-          "expect": null
-        },
-        {
-          "op": "popBack",
-          "expect": null
-        },
-        {
-          "op": "pushBack",
+          "op": "pushFront",
           "arg": 40
         },
         {
@@ -257,79 +253,75 @@
           "arg": 15
         },
         {
-          "op": "popBack",
-          "expect": 15
+          "op": "popFront",
+          "expect": 40
         },
         {
           "op": "pushFront",
           "arg": 39
         },
         {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "popFront",
+          "op": "peekFront",
           "expect": 39
         },
         {
           "op": "pushBack",
-          "arg": 4
+          "arg": 19
+        },
+        {
+          "op": "pushFront",
+          "arg": 42
         },
         {
           "op": "popBack",
-          "expect": 4
+          "expect": 19
         },
         {
           "op": "peekFront",
-          "expect": 40
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "popFront",
-          "expect": 40
+          "expect": 42
         },
         {
           "op": "pushBack",
-          "arg": 65
+          "arg": 20
+        },
+        {
+          "op": "popBack",
+          "expect": 20
+        },
+        {
+          "op": "popBack",
+          "expect": 15
         },
         {
           "op": "peekFront",
-          "expect": 65
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
+          "expect": 42
         },
         {
           "op": "pushBack",
           "arg": 72
         },
         {
-          "op": "popBack",
+          "op": "popFront",
+          "expect": 42
+        },
+        {
+          "op": "peekFront",
+          "expect": 39
+        },
+        {
+          "op": "peekBack",
           "expect": 72
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "size",
-          "expect": 1
         },
         {
           "op": "pushBack",
           "arg": 75
         },
         {
-          "op": "pushBack",
+          "op": "pushFront",
           "arg": 32
         },
         {
-          "op": "popBack",
+          "op": "popFront",
           "expect": 32
         },
         {
@@ -337,15 +329,15 @@
           "arg": 15
         },
         {
-          "op": "peekBack",
+          "op": "peekFront",
+          "expect": 39
+        },
+        {
+          "op": "popBack",
           "expect": 15
         },
         {
-          "op": "peekFront",
-          "expect": 65
-        },
-        {
-          "op": "pushBack",
+          "op": "pushFront",
           "arg": 26
         },
         {
@@ -353,95 +345,87 @@
           "arg": 62
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "peekBack",
+          "expect": 75
         },
         {
           "op": "pushBack",
           "arg": 98
         },
         {
-          "op": "peekBack",
-          "expect": 98
-        },
-        {
-          "op": "popBack",
-          "expect": 98
+          "op": "peekFront",
+          "expect": 62
         },
         {
           "op": "popFront",
           "expect": 62
         },
         {
-          "op": "peekBack",
-          "expect": 26
-        },
-        {
-          "op": "size",
-          "expect": 4
-        },
-        {
-          "op": "size",
-          "expect": 4
+          "op": "pushBack",
+          "arg": 67
         },
         {
           "op": "peekBack",
+          "expect": 67
+        },
+        {
+          "op": "peekBack",
+          "expect": 67
+        },
+        {
+          "op": "peekFront",
           "expect": 26
         },
         {
-          "op": "size",
-          "expect": 4
+          "op": "peekBack",
+          "expect": 67
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "peekBack",
+          "expect": 67
         },
         {
-          "op": "size",
-          "expect": 4
+          "op": "peekBack",
+          "expect": 67
         },
         {
           "op": "pushFront",
           "arg": 3
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "peekBack",
+          "expect": 67
         },
         {
-          "op": "popFront",
-          "expect": 3
+          "op": "pushBack",
+          "arg": 88
         },
         {
-          "op": "size",
-          "expect": 4
-        },
-        {
-          "op": "peekFront",
-          "expect": 65
-        },
-        {
-          "op": "size",
-          "expect": 4
+          "op": "popBack",
+          "expect": 88
         },
         {
           "op": "peekBack",
-          "expect": 26
+          "expect": 67
         },
         {
-          "op": "pushBack",
+          "op": "peekFront",
+          "expect": 3
+        },
+        {
+          "op": "pushFront",
           "arg": 67
         },
         {
-          "op": "size",
-          "expect": 5
+          "op": "peekBack",
+          "expect": 67
         },
         {
-          "op": "pushBack",
+          "op": "pushFront",
           "arg": 97
         },
         {
-          "op": "pushBack",
+          "op": "pushFront",
           "arg": 38
         },
         {
@@ -449,100 +433,84 @@
           "arg": 40
         },
         {
-          "op": "popFront",
-          "expect": 40
+          "op": "pushBack",
+          "arg": 65
         },
         {
-          "op": "peekBack",
-          "expect": 38
-        },
-        {
-          "op": "peekFront",
+          "op": "popBack",
           "expect": 65
         },
         {
-          "op": "peekFront",
-          "expect": 65
+          "op": "popBack",
+          "expect": 67
         },
         {
           "op": "pushFront",
           "arg": 80
         },
         {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "popFront",
-          "expect": 80
+          "op": "peekBack",
+          "expect": 98
         },
         {
           "op": "pushBack",
-          "arg": 30
-        },
-        {
-          "op": "size",
-          "expect": 8
-        },
-        {
-          "op": "popFront",
-          "expect": 65
+          "arg": 16
         },
         {
           "op": "pushBack",
-          "arg": 65
+          "arg": 89
         },
         {
-          "op": "peekFront",
-          "expect": 75
-        },
-        {
-          "op": "popFront",
-          "expect": 75
-        },
-        {
-          "op": "pushFront",
+          "op": "pushBack",
           "arg": 14
         },
         {
+          "op": "popBack",
+          "expect": 14
+        },
+        {
+          "op": "popBack",
+          "expect": 89
+        },
+        {
+          "op": "pushBack",
+          "arg": 12
+        },
+        {
           "op": "pushFront",
-          "arg": 30
+          "arg": 6
         },
         {
-          "op": "peekBack",
-          "expect": 65
+          "op": "pushBack",
+          "arg": 67
         },
         {
-          "op": "peekBack",
-          "expect": 65
+          "op": "popBack",
+          "expect": 67
         },
         {
           "op": "pushFront",
           "arg": 50
         },
         {
-          "op": "peekFront",
-          "expect": 50
+          "op": "popBack",
+          "expect": 12
         },
         {
           "op": "pushBack",
           "arg": 79
         },
         {
-          "op": "popFront",
-          "expect": 50
+          "op": "pushBack",
+          "arg": 99
         },
         {
-          "op": "size",
-          "expect": 10
+          "op": "peekBack",
+          "expect": 99
         },
         {
-          "op": "size",
-          "expect": 10
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
+          "op": "peekBack",
+          "expect": 99
         },
         {
           "op": "pushFront",
@@ -553,71 +521,59 @@
           "arg": 98
         },
         {
-          "op": "popFront",
-          "expect": 98
+          "op": "pushBack",
+          "arg": 72
         },
         {
           "op": "peekBack",
-          "expect": 79
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
+          "expect": 72
         },
         {
           "op": "pushFront",
           "arg": 25
         },
         {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "pushBack",
-          "arg": 9
-        },
-        {
-          "op": "pushBack",
-          "arg": 40
+          "op": "peekBack",
+          "expect": 72
         },
         {
           "op": "peekFront",
           "expect": 25
         },
         {
-          "op": "popFront",
+          "op": "peekFront",
           "expect": 25
         },
         {
-          "op": "size",
-          "expect": 13
+          "op": "pushBack",
+          "arg": 9
         },
         {
-          "op": "popFront",
-          "expect": 18
+          "op": "pushFront",
+          "arg": 40
         },
         {
-          "op": "size",
-          "expect": 12
+          "op": "popBack",
+          "expect": 9
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "pushBack",
+          "arg": 88
+        },
+        {
+          "op": "pushBack",
+          "arg": 90
         },
         {
           "op": "peekBack",
-          "expect": 40
+          "expect": 90
         },
         {
-          "op": "peekBack",
+          "op": "popBack",
+          "expect": 90
+        },
+        {
+          "op": "peekFront",
           "expect": 40
         },
         {
@@ -625,23 +581,19 @@
           "arg": 38
         },
         {
-          "op": "popFront",
-          "expect": 30
+          "op": "pushBack",
+          "arg": 20
         },
         {
           "op": "pushBack",
-          "arg": 26
+          "arg": 93
         },
         {
-          "op": "size",
-          "expect": 13
+          "op": "peekBack",
+          "expect": 93
         },
         {
-          "op": "size",
-          "expect": 13
-        },
-        {
-          "op": "pushBack",
+          "op": "pushFront",
           "arg": 32
         },
         {
@@ -649,144 +601,132 @@
           "arg": 3
         },
         {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "popBack",
-          "expect": 32
-        },
-        {
-          "op": "pushBack",
-          "arg": 14
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
+          "op": "peekFront",
+          "expect": 3
         },
         {
           "op": "popFront",
           "expect": 3
         },
         {
-          "op": "size",
-          "expect": 14
+          "op": "pushBack",
+          "arg": 14
         },
         {
           "op": "peekFront",
-          "expect": 14
-        },
-        {
-          "op": "popBack",
-          "expect": 14
-        },
-        {
-          "op": "peekBack",
-          "expect": 26
-        },
-        {
-          "op": "popFront",
-          "expect": 14
+          "expect": 32
         },
         {
           "op": "pushBack",
-          "arg": 53
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "pushFront",
-          "arg": 20
-        },
-        {
-          "op": "peekBack",
-          "expect": 53
-        },
-        {
-          "op": "peekBack",
-          "expect": 53
-        },
-        {
-          "op": "pushFront",
-          "arg": 32
+          "arg": 89
         },
         {
           "op": "popBack",
-          "expect": 53
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "peekBack",
-          "expect": 26
+          "expect": 89
         },
         {
           "op": "popFront",
           "expect": 32
         },
         {
+          "op": "peekFront",
+          "expect": 40
+        },
+        {
+          "op": "popFront",
+          "expect": 40
+        },
+        {
+          "op": "pushBack",
+          "arg": 53
+        },
+        {
+          "op": "peekFront",
+          "expect": 25
+        },
+        {
+          "op": "peekFront",
+          "expect": 25
+        },
+        {
+          "op": "pushFront",
+          "arg": 20
+        },
+        {
+          "op": "popBack",
+          "expect": 53
+        },
+        {
+          "op": "popBack",
+          "expect": 14
+        },
+        {
+          "op": "pushFront",
+          "arg": 32
+        },
+        {
+          "op": "popFront",
+          "expect": 32
+        },
+        {
+          "op": "peekBack",
+          "expect": 93
+        },
+        {
+          "op": "popBack",
+          "expect": 93
+        },
+        {
           "op": "popFront",
           "expect": 20
         },
         {
-          "op": "peekFront",
-          "expect": 15
+          "op": "popFront",
+          "expect": 25
+        },
+        {
+          "op": "popBack",
+          "expect": 20
         },
         {
           "op": "pushFront",
           "arg": 92
         },
         {
-          "op": "peekFront",
-          "expect": 92
+          "op": "popBack",
+          "expect": 38
         },
         {
-          "op": "peekFront",
-          "expect": 92
+          "op": "popBack",
+          "expect": 88
         },
         {
-          "op": "peekBack",
-          "expect": 26
+          "op": "popBack",
+          "expect": 72
         },
         {
           "op": "pushFront",
           "arg": 7
         },
         {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "pushBack",
-          "arg": 71
-        },
-        {
-          "op": "popFront",
+          "op": "peekFront",
           "expect": 7
         },
         {
+          "op": "pushFront",
+          "arg": 71
+        },
+        {
+          "op": "pushBack",
+          "arg": 64
+        },
+        {
+          "op": "pushBack",
+          "arg": 54
+        },
+        {
           "op": "peekBack",
-          "expect": 71
-        },
-        {
-          "op": "popFront",
-          "expect": 92
-        },
-        {
-          "op": "peekFront",
-          "expect": 15
-        },
-        {
-          "op": "size",
-          "expect": 13
+          "expect": 54
         },
         {
           "op": "pushFront",
@@ -801,24 +741,24 @@
           "arg": 52
         },
         {
-          "op": "popBack",
-          "expect": 68
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
           "op": "popFront",
           "expect": 52
         },
         {
-          "op": "pushFront",
-          "arg": 99
+          "op": "peekFront",
+          "expect": 11
         },
         {
-          "op": "size",
-          "expect": 15
+          "op": "pushBack",
+          "arg": 8
+        },
+        {
+          "op": "peekBack",
+          "expect": 8
+        },
+        {
+          "op": "peekBack",
+          "expect": 8
         },
         {
           "op": "pushFront",
@@ -829,56 +769,56 @@
           "arg": 39
         },
         {
-          "op": "peekFront",
-          "expect": 39
-        },
-        {
-          "op": "peekFront",
-          "expect": 39
+          "op": "popBack",
+          "expect": 8
         },
         {
           "op": "popBack",
-          "expect": 71
+          "expect": 68
         },
         {
-          "op": "peekBack",
-          "expect": 26
+          "op": "popFront",
+          "expect": 39
         },
         {
-          "op": "pushBack",
+          "op": "peekFront",
+          "expect": 86
+        },
+        {
+          "op": "pushFront",
           "arg": 28
         },
         {
-          "op": "size",
-          "expect": 17
+          "op": "peekBack",
+          "expect": 54
         },
         {
-          "op": "peekFront",
-          "expect": 39
+          "op": "popBack",
+          "expect": 54
         },
         {
-          "op": "peekFront",
-          "expect": 39
+          "op": "popBack",
+          "expect": 64
         },
         {
           "op": "pushFront",
           "arg": 16
         },
         {
-          "op": "peekFront",
-          "expect": 16
+          "op": "popBack",
+          "expect": 99
         },
         {
           "op": "pushBack",
           "arg": 15
         },
         {
-          "op": "peekBack",
+          "op": "popBack",
           "expect": 15
         },
         {
-          "op": "peekFront",
-          "expect": 16
+          "op": "popBack",
+          "expect": 79
         },
         {
           "op": "pushFront",
@@ -889,48 +829,48 @@
           "arg": 40
         },
         {
-          "op": "peekBack",
-          "expect": 15
+          "op": "peekFront",
+          "expect": 40
+        },
+        {
+          "op": "popBack",
+          "expect": 16
+        },
+        {
+          "op": "peekFront",
+          "expect": 40
+        },
+        {
+          "op": "popBack",
+          "expect": 98
+        },
+        {
+          "op": "peekFront",
+          "expect": 40
         },
         {
           "op": "peekBack",
-          "expect": 15
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
-        },
-        {
-          "op": "peekBack",
-          "expect": 15
-        },
-        {
-          "op": "peekBack",
-          "expect": 15
-        },
-        {
-          "op": "size",
-          "expect": 21
+          "expect": 75
         },
         {
           "op": "pushFront",
           "arg": 86
         },
         {
-          "op": "size",
-          "expect": 22
+          "op": "peekBack",
+          "expect": 75
         },
         {
           "op": "pushFront",
           "arg": 82
         },
         {
-          "op": "peekFront",
-          "expect": 82
+          "op": "popBack",
+          "expect": 75
         },
         {
-          "op": "peekFront",
-          "expect": 82
+          "op": "popBack",
+          "expect": 72
         },
         {
           "op": "popFront",
@@ -941,16 +881,20 @@
           "arg": 8
         },
         {
-          "op": "peekBack",
-          "expect": 15
+          "op": "peekFront",
+          "expect": 8
         },
         {
-          "op": "popBack",
-          "expect": 15
+          "op": "popFront",
+          "expect": 8
         },
         {
           "op": "pushFront",
           "arg": 50
+        },
+        {
+          "op": "popBack",
+          "expect": 39
         },
         {
           "op": "peekFront",
@@ -958,51 +902,107 @@
         },
         {
           "op": "peekBack",
-          "expect": 28
+          "expect": 26
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "popFront",
+          "expect": 50
         },
         {
-          "op": "popBack",
-          "expect": 28
-        },
-        {
-          "op": "isEmpty",
-          "expect": false
+          "op": "peekFront",
+          "expect": 86
         },
         {
           "op": "pushFront",
           "arg": 39
         },
         {
-          "op": "peekBack",
-          "expect": 26
+          "op": "peekFront",
+          "expect": 39
         },
         {
           "op": "pushBack",
           "arg": 87
         },
         {
-          "op": "isEmpty",
-          "expect": false
+          "op": "peekFront",
+          "expect": 39
         },
         {
           "op": "pushFront",
           "arg": 18
         },
         {
-          "op": "peekBack",
-          "expect": 87
+          "op": "peekFront",
+          "expect": 18
         },
         {
           "op": "pushFront",
           "arg": 80
         },
         {
-          "op": "size",
+          "op": "peekBack",
+          "expect": 87
+        },
+        {
+          "op": "popFront",
+          "expect": 80
+        },
+        {
+          "op": "peekBack",
+          "expect": 87
+        },
+        {
+          "op": "peekBack",
+          "expect": 87
+        },
+        {
+          "op": "popBack",
+          "expect": 87
+        },
+        {
+          "op": "popFront",
+          "expect": 18
+        },
+        {
+          "op": "popBack",
           "expect": 26
+        },
+        {
+          "op": "popFront",
+          "expect": 39
+        },
+        {
+          "op": "pushBack",
+          "arg": 14
+        },
+        {
+          "op": "peekBack",
+          "expect": 14
+        },
+        {
+          "op": "popBack",
+          "expect": 14
+        },
+        {
+          "op": "pushFront",
+          "arg": 59
+        },
+        {
+          "op": "popBack",
+          "expect": 3
+        },
+        {
+          "op": "pushFront",
+          "arg": 15
+        },
+        {
+          "op": "peekBack",
+          "expect": 67
+        },
+        {
+          "op": "pushBack",
+          "arg": 1
         }
       ]
     }

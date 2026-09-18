@@ -6,7 +6,7 @@
  * `./runContract.sparseTable.test.ts` 머리말과 같다 — 저 공유 파일에 줄을 넣으면 이 카드 범위 밖 가이드의 인용이 통째로
  * 밀린다(불변 사실 106·255).
  *
- * 묶음이 둘이다 — 구성 시점과 여섯 행 `worst` 의 근거(축3), 그리고 값이 전부 옳다는 것(축1). **축2는 돌 것이 없다** —
+ * 묶음이 둘이다 — 구성 시점과 다섯 행 `worst` 의 근거(축3), 그리고 값이 전부 옳다는 것(축1). **축2는 돌 것이 없다** —
  * 이 계약의 불변식 절이 「없다」이고 스위트의 `invariants` 가 빈 배열이다(불변 사실 52 ①).
  */
 
@@ -128,24 +128,24 @@ function firstBehaviorSplit(make: Maker): string | null {
   return null;
 }
 
-describe("축3 — 구성 시점(불변 사실 52 ③)과 여섯 행 worst 의 근거", () => {
+describe("축3 — 구성 시점(불변 사실 52 ③)과 다섯 행 worst 의 근거", () => {
   /**
-   * **구성 둘을 통과하고 훑기 둘에서 걸린다.** 생성자가 베끼기뿐이라 구성 시나리오에서는 정본보다 **싸고**(무작위 5,109 ·
-   * 오름차순 4,095 대 1,024), 처음 불린 질의 하나가 트리를 통째로 지어 훑기 상한 `O(1)` 을 어긴다.
+   * **구성 둘을 통과하고 훑기 둘에서 걸린다.** 생성자가 베끼기뿐이라 구성 시나리오에서는 정본보다 **싸고**(무작위 3,061 ·
+   * 오름차순 2,047 대 1,024), 처음 불린 질의 하나가 트리를 통째로 지어 훑기 상한 `O(1)` 을 어긴다.
    *
-   * **`inOrder` 시나리오는 통과한다** — 그 행의 상한이 `O(n)` 이라 지은 몫이 계급 안에 들어온다(정본 2,048 의 세 배).
+   * **`inOrder` 시나리오는 통과한다** — 그 행의 상한이 `O(n)` 이라 지은 몫이 계급 안에 들어온다(정본 2,048 의 두 배).
    * 걸리는 자리가 훑기 **둘 다**인 것은 `range-query/sparseTable` 선례(질의 시나리오 하나에서만 걸림)와 갈리는 자리다.
    */
   test("짓기를 첫 질의로 미루는 구현은 구성 둘을 통과하고 훑기 둘에서 걸린다", () => {
     expect(verdicts(makers.deferred)).toEqual({
       constructor: { ok: true, stats: [1024, 4096, 16384] },
       "constructor (적대적)": { ok: true, stats: [1024, 4096, 16384] },
-      size·value·left·right: { ok: false, stats: [5112, 20469, 81902] },
-      "size·value·left·right (적대적)": {
+      value·left·right: { ok: false, stats: [3063, 12276, 49133] },
+      "value·left·right (적대적)": {
         ok: false,
-        stats: [4098, 16386, 65538],
+        stats: [2049, 8193, 32769],
       },
-      "inOrder (적대적)": { ok: true, stats: [6143, 24575, 98303] },
+      "inOrder (적대적)": { ok: true, stats: [4095, 16383, 65535] },
     });
   }, 120_000);
 
@@ -165,48 +165,48 @@ describe("축3 — 구성 시점(불변 사실 52 ③)과 여섯 행 worst 의 �
    */
   test("짓기를 미루는 계열은 worst 로만 걸리고 amortized · expected 로는 통과한다", () => {
     expect({
-      deferredWorst: readAs("size", true, "worst", makers.deferred),
-      deferredAverage: readAs("size", true, "amortized", makers.deferred),
-      deferredExpected: readAs("size", true, "expected", makers.deferred),
-      rescanningAverage: readAs("size", true, "amortized", makers.rescanning),
-      rescanningExpected: readAs("size", true, "expected", makers.rescanning),
-      referenceAverage: readAs("size", true, "amortized", makers.reference),
-      referenceExpected: readAs("size", true, "expected", makers.reference),
+      deferredWorst: readAs("value", true, "worst", makers.deferred),
+      deferredAverage: readAs("value", true, "amortized", makers.deferred),
+      deferredExpected: readAs("value", true, "expected", makers.deferred),
+      rescanningAverage: readAs("value", true, "amortized", makers.rescanning),
+      rescanningExpected: readAs("value", true, "expected", makers.rescanning),
+      referenceAverage: readAs("value", true, "amortized", makers.reference),
+      referenceExpected: readAs("value", true, "expected", makers.reference),
     }).toEqual({
-      deferredWorst: { ok: false, stats: [4098, 16386, 65538] },
-      deferredAverage: { ok: true, stats: [7.51, 7.5, 7.5] },
-      deferredExpected: { ok: true, stats: [7.5, 7.5, 7.5] },
+      deferredWorst: { ok: false, stats: [2049, 8193, 32769] },
+      deferredAverage: { ok: true, stats: [4.51, 4.5, 4.5] },
+      deferredExpected: { ok: true, stats: [4.5, 4.5, 4.5] },
       rescanningAverage: {
         ok: false,
-        stats: [1286.89, 5130.45, 20496.46],
+        stats: [1285.89, 5129.45, 20495.46],
       },
       rescanningExpected: {
         ok: false,
-        stats: [1278.07, 5123.87, 20479.39],
+        stats: [1277.07, 5122.87, 20478.39],
       },
-      referenceAverage: { ok: true, stats: [3.51, 3.5, 3.5] },
-      referenceExpected: { ok: true, stats: [3.5, 3.5, 3.5] },
+      referenceAverage: { ok: true, stats: [2.51, 2.5, 2.5] },
+      referenceExpected: { ok: true, stats: [2.5, 2.5, 2.5] },
     });
   }, 300_000);
 
   /** 무작위 수열에서도 같은 갈림이다 — 사슬이라서 나오는 결과가 아니라는 것을 이 자리가 고정한다. */
   test("무작위 수열에서도 약한 읽기 둘은 통과하고 최대만 걸린다", () => {
     expect({
-      deferredWorst: readAs("size", false, "worst", makers.deferred),
-      deferredAverage: readAs("size", false, "amortized", makers.deferred),
-      deferredExpected: readAs("size", false, "expected", makers.deferred),
-      rescanningAverage: readAs("size", false, "amortized", makers.rescanning),
-      rescanningExpected: readAs("size", false, "expected", makers.rescanning),
-      referenceAverage: readAs("size", false, "amortized", makers.reference),
-      referenceExpected: readAs("size", false, "expected", makers.reference),
+      deferredWorst: readAs("value", false, "worst", makers.deferred),
+      deferredAverage: readAs("value", false, "amortized", makers.deferred),
+      deferredExpected: readAs("value", false, "expected", makers.deferred),
+      rescanningAverage: readAs("value", false, "amortized", makers.rescanning),
+      rescanningExpected: readAs("value", false, "expected", makers.rescanning),
+      referenceAverage: readAs("value", false, "amortized", makers.reference),
+      referenceExpected: readAs("value", false, "expected", makers.reference),
     }).toEqual({
-      deferredWorst: { ok: false, stats: [5112, 20469, 81902] },
-      deferredAverage: { ok: true, stats: [8.19, 8.16, 8.13] },
-      deferredExpected: { ok: true, stats: [8.17, 8.16, 8.15] },
-      rescanningAverage: { ok: false, stats: [579.67, 1552.29, 5109.18] },
-      rescanningExpected: { ok: false, stats: [472.86, 1563.69, 5786.64] },
-      referenceAverage: { ok: true, stats: [3.2, 3.16, 3.14] },
-      referenceExpected: { ok: true, stats: [3.19, 3.16, 3.15] },
+      deferredWorst: { ok: false, stats: [3063, 12276, 49133] },
+      deferredAverage: { ok: true, stats: [5.19, 5.16, 5.13] },
+      deferredExpected: { ok: true, stats: [5.17, 5.16, 5.15] },
+      rescanningAverage: { ok: false, stats: [578.67, 1551.29, 5108.18] },
+      rescanningExpected: { ok: false, stats: [471.86, 1562.69, 5785.64] },
+      referenceAverage: { ok: true, stats: [2.2, 2.16, 2.14] },
+      referenceExpected: { ok: true, stats: [2.19, 2.16, 2.15] },
     });
   }, 300_000);
 });

@@ -1,21 +1,13 @@
 {
   "schema": "ord006/contract-vector@1",
   "structure": "DAG",
-  "grade": "invariant",
+  "grade": "basic",
   "element": "number",
   "cases": [
     {
       "name": "빈 그래프에서는 어느 번호도 범위 밖이고 순서는 빈 배열이다",
       "kind": "edge",
       "steps": [
-        {
-          "op": "vertexCount",
-          "expect": 0
-        },
-        {
-          "op": "edgeCount",
-          "expect": 0
-        },
         {
           "op": "topologicalOrder",
           "expect": true
@@ -29,13 +21,13 @@
           "expect": "RangeError"
         },
         {
-          "op": "edgeCount",
-          "expect": 0
+          "op": "topologicalOrder",
+          "expect": true
         }
       ]
     },
     {
-      "name": "addVertex 는 호출 직전의 vertexCount 를 번호로 돌려준다",
+      "name": "addVertex 는 그 호출 전까지 더한 정점 수를 번호로 돌려준다",
       "kind": "edge",
       "steps": [
         {
@@ -49,10 +41,6 @@
         {
           "op": "addVertex",
           "expect": 2
-        },
-        {
-          "op": "vertexCount",
-          "expect": 3
         },
         {
           "op": "addEdge",
@@ -93,10 +81,6 @@
           "expect": false
         },
         {
-          "op": "edgeCount",
-          "expect": 0
-        },
-        {
           "op": "topologicalOrder",
           "expect": true
         }
@@ -129,10 +113,6 @@
             0
           ],
           "expect": false
-        },
-        {
-          "op": "edgeCount",
-          "expect": 1
         },
         {
           "op": "topologicalOrder",
@@ -217,17 +197,13 @@
           "expect": false
         },
         {
-          "op": "edgeCount",
-          "expect": 4
-        },
-        {
           "op": "topologicalOrder",
           "expect": true
         }
       ]
     },
     {
-      "name": "같은 간선을 다시 넣으면 true 이고 간선 수는 그대로다",
+      "name": "같은 간선을 다시 넣으면 true 이고 상태가 바뀌지 않는다",
       "kind": "edge",
       "steps": [
         {
@@ -253,10 +229,6 @@
             1
           ],
           "expect": true
-        },
-        {
-          "op": "edgeCount",
-          "expect": 1
         },
         {
           "op": "topologicalOrder",
@@ -311,10 +283,6 @@
             1
           ],
           "expect": true
-        },
-        {
-          "op": "edgeCount",
-          "expect": 3
         },
         {
           "op": "topologicalOrder",
@@ -403,10 +371,6 @@
           "expect": false
         },
         {
-          "op": "vertexCount",
-          "expect": 5
-        },
-        {
           "op": "topologicalOrder",
           "expect": true
         }
@@ -449,8 +413,8 @@
           "expect": "RangeError"
         },
         {
-          "op": "edgeCount",
-          "expect": 0
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
           "op": "addEdge",
@@ -477,8 +441,8 @@
           "expect": "RangeError"
         },
         {
-          "op": "edgeCount",
-          "expect": 1
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
           "op": "addEdge",
@@ -499,30 +463,10 @@
       "kind": "random",
       "steps": [
         {
-          "op": "vertexCount",
-          "expect": 0
-        },
-        {
-          "op": "addVertex",
-          "expect": 0
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "edgeCount",
-          "expect": 0
-        },
-        {
-          "op": "edgeCount",
-          "expect": 0
-        },
-        {
           "op": "addEdge",
           "arg": [
-            4,
-            5
+            -1,
+            3
           ],
           "expect": "RangeError"
         },
@@ -531,12 +475,48 @@
           "expect": true
         },
         {
-          "op": "edgeCount",
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addVertex",
           "expect": 0
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            5,
+            2
+          ],
+          "expect": "RangeError"
         },
         {
           "op": "topologicalOrder",
           "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            3,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            1,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            -1,
+            2
+          ],
+          "expect": "RangeError"
         },
         {
           "op": "topologicalOrder",
@@ -545,138 +525,42 @@
         {
           "op": "addVertex",
           "expect": 1
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            0,
-            3
-          ],
-          "expect": "RangeError"
         },
         {
           "op": "addVertex",
           "expect": 2
         },
         {
-          "op": "addEdge",
-          "arg": [
-            5,
-            1
-          ],
-          "expect": "RangeError"
-        },
-        {
           "op": "addVertex",
           "expect": 3
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            4,
+            6
+          ],
+          "expect": "RangeError"
         },
         {
           "op": "addVertex",
           "expect": 4
         },
         {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "vertexCount",
-          "expect": 5
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            0,
-            4
-          ],
-          "expect": true
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "vertexCount",
-          "expect": 5
-        },
-        {
           "op": "addVertex",
           "expect": 5
         },
         {
-          "op": "vertexCount",
-          "expect": 6
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "vertexCount",
-          "expect": 6
-        },
-        {
-          "op": "edgeCount",
-          "expect": 1
-        },
-        {
           "op": "addEdge",
           "arg": [
-            5,
-            0
-          ],
-          "expect": true
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            2,
-            1
-          ],
-          "expect": true
-        },
-        {
-          "op": "addVertex",
-          "expect": 6
-        },
-        {
-          "op": "vertexCount",
-          "expect": 7
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "addVertex",
-          "expect": 7
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            -1,
-            4
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "edgeCount",
-          "expect": 3
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            7,
+            3,
             5
           ],
           "expect": true
+        },
+        {
+          "op": "addVertex",
+          "expect": 6
         },
         {
           "op": "topologicalOrder",
@@ -688,27 +572,15 @@
             5,
             7
           ],
-          "expect": false
+          "expect": "RangeError"
         },
         {
-          "op": "edgeCount",
-          "expect": 4
+          "op": "addVertex",
+          "expect": 7
         },
         {
-          "op": "vertexCount",
-          "expect": 8
-        },
-        {
-          "op": "edgeCount",
-          "expect": 4
-        },
-        {
-          "op": "edgeCount",
-          "expect": 4
-        },
-        {
-          "op": "edgeCount",
-          "expect": 4
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
           "op": "addVertex",
@@ -719,64 +591,84 @@
           "expect": 9
         },
         {
-          "op": "edgeCount",
-          "expect": 4
-        },
-        {
           "op": "addEdge",
           "arg": [
-            6,
-            3
+            1,
+            0
           ],
           "expect": true
         },
         {
-          "op": "edgeCount",
-          "expect": 5
-        },
-        {
-          "op": "vertexCount",
-          "expect": 10
-        },
-        {
-          "op": "addVertex",
-          "expect": 10
-        },
-        {
-          "op": "vertexCount",
-          "expect": 11
-        },
-        {
-          "op": "edgeCount",
-          "expect": 5
-        },
-        {
-          "op": "addVertex",
-          "expect": 11
-        },
-        {
-          "op": "edgeCount",
-          "expect": 5
-        },
-        {
-          "op": "addVertex",
-          "expect": 12
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
           "op": "addEdge",
           "arg": [
             0,
-            2
+            1
           ],
+          "expect": false
+        },
+        {
+          "op": "addVertex",
+          "expect": 10
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            6,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
           "expect": true
         },
         {
           "op": "addEdge",
           "arg": [
-            4,
-            3
+            1,
+            5
           ],
           "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addVertex",
+          "expect": 11
+        },
+        {
+          "op": "addVertex",
+          "expect": 12
         },
         {
           "op": "topologicalOrder",
@@ -787,55 +679,27 @@
           "expect": 13
         },
         {
-          "op": "edgeCount",
-          "expect": 7
-        },
-        {
-          "op": "edgeCount",
-          "expect": 7
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            0,
-            1
-          ],
-          "expect": true
-        },
-        {
-          "op": "edgeCount",
-          "expect": 8
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            0,
-            4
-          ],
-          "expect": true
-        },
-        {
           "op": "topologicalOrder",
           "expect": true
         },
         {
           "op": "addEdge",
           "arg": [
-            0,
-            0
+            7,
+            5
           ],
-          "expect": false
+          "expect": true
         },
         {
           "op": "addVertex",
           "expect": 14
         },
         {
-          "op": "addEdge",
-          "arg": [
-            5,
-            4
-          ],
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
           "expect": true
         },
         {
@@ -847,51 +711,39 @@
           "expect": true
         },
         {
-          "op": "topologicalOrder",
-          "expect": true
+          "op": "addVertex",
+          "expect": 16
         },
         {
           "op": "addEdge",
           "arg": [
-            6,
-            1
+            0,
+            2
           ],
           "expect": true
-        },
-        {
-          "op": "edgeCount",
-          "expect": 10
-        },
-        {
-          "op": "edgeCount",
-          "expect": 10
-        },
-        {
-          "op": "edgeCount",
-          "expect": 10
-        },
-        {
-          "op": "addVertex",
-          "expect": 16
         },
         {
           "op": "addVertex",
           "expect": 17
         },
         {
+          "op": "addEdge",
+          "arg": [
+            3,
+            3
+          ],
+          "expect": false
+        },
+        {
           "op": "addVertex",
           "expect": 18
         },
         {
-          "op": "edgeCount",
-          "expect": 10
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
-          "op": "addEdge",
-          "arg": [
-            5,
-            6
-          ],
+          "op": "topologicalOrder",
           "expect": true
         },
         {
@@ -899,192 +751,32 @@
           "expect": 19
         },
         {
-          "op": "addEdge",
-          "arg": [
-            6,
-            6
-          ],
-          "expect": false
-        },
-        {
-          "op": "vertexCount",
-          "expect": 20
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            -1,
-            0
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            6,
-            1
-          ],
-          "expect": true
-        },
-        {
-          "op": "edgeCount",
-          "expect": 11
-        },
-        {
-          "op": "edgeCount",
-          "expect": 11
-        },
-        {
-          "op": "vertexCount",
-          "expect": 20
-        },
-        {
-          "op": "vertexCount",
-          "expect": 20
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            2,
-            1
-          ],
-          "expect": true
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            1,
-            7
-          ],
-          "expect": false
-        },
-        {
-          "op": "edgeCount",
-          "expect": 11
-        },
-        {
           "op": "addVertex",
           "expect": 20
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            -1,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "vertexCount",
-          "expect": 21
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            1,
-            0
-          ],
-          "expect": false
-        },
-        {
-          "op": "edgeCount",
-          "expect": 11
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            7,
-            3
-          ],
-          "expect": true
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "vertexCount",
-          "expect": 21
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            1,
-            3
-          ],
-          "expect": true
-        },
-        {
-          "op": "vertexCount",
-          "expect": 21
-        },
-        {
-          "op": "vertexCount",
-          "expect": 21
         },
         {
           "op": "addVertex",
           "expect": 21
         },
         {
-          "op": "addEdge",
-          "arg": [
-            4,
-            4
-          ],
-          "expect": false
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
           "op": "addVertex",
           "expect": 22
         },
         {
-          "op": "addEdge",
-          "arg": [
-            2,
-            6
-          ],
-          "expect": true
-        },
-        {
-          "op": "vertexCount",
-          "expect": 23
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            2,
-            4
-          ],
-          "expect": true
-        },
-        {
           "op": "addVertex",
           "expect": 23
         },
         {
-          "op": "edgeCount",
-          "expect": 15
-        },
-        {
-          "op": "topologicalOrder",
+          "op": "addEdge",
+          "arg": [
+            3,
+            1
+          ],
           "expect": true
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "vertexCount",
-          "expect": 24
         },
         {
           "op": "addVertex",
@@ -1095,111 +787,71 @@
           "expect": 25
         },
         {
-          "op": "edgeCount",
-          "expect": 15
-        },
-        {
           "op": "addVertex",
           "expect": 26
         },
         {
-          "op": "vertexCount",
+          "op": "addVertex",
           "expect": 27
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            4,
-            1
-          ],
-          "expect": true
         },
         {
           "op": "topologicalOrder",
           "expect": true
         },
         {
-          "op": "edgeCount",
-          "expect": 16
+          "op": "addEdge",
+          "arg": [
+            0,
+            3
+          ],
+          "expect": false
         },
         {
-          "op": "addVertex",
-          "expect": 27
+          "op": "addEdge",
+          "arg": [
+            0,
+            6
+          ],
+          "expect": false
         },
         {
           "op": "addVertex",
           "expect": 28
         },
         {
-          "op": "addVertex",
-          "expect": 29
-        },
-        {
-          "op": "vertexCount",
-          "expect": 30
-        },
-        {
-          "op": "addVertex",
-          "expect": 30
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
           "op": "topologicalOrder",
           "expect": true
         },
         {
-          "op": "addEdge",
-          "arg": [
-            6,
-            1
-          ],
+          "op": "topologicalOrder",
           "expect": true
+        },
+        {
+          "op": "addVertex",
+          "expect": 29
+        },
+        {
+          "op": "addVertex",
+          "expect": 30
         },
         {
           "op": "addVertex",
           "expect": 31
         },
         {
-          "op": "edgeCount",
-          "expect": 16
-        },
-        {
-          "op": "edgeCount",
-          "expect": 16
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
           "op": "addVertex",
           "expect": 32
         },
         {
-          "op": "edgeCount",
-          "expect": 16
-        },
-        {
-          "op": "addVertex",
-          "expect": 33
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            4,
-            3
-          ],
-          "expect": true
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            5,
-            0
-          ],
-          "expect": true
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            7,
-            4
-          ],
+          "op": "topologicalOrder",
           "expect": true
         },
         {
@@ -1208,27 +860,27 @@
         },
         {
           "op": "addVertex",
+          "expect": 33
+        },
+        {
+          "op": "addVertex",
           "expect": 34
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
           "op": "addVertex",
           "expect": 35
-        },
-        {
-          "op": "vertexCount",
-          "expect": 36
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            0,
-            4
-          ],
-          "expect": true
-        },
-        {
-          "op": "vertexCount",
-          "expect": 36
         },
         {
           "op": "addVertex",
@@ -1239,6 +891,18 @@
           "expect": 37
         },
         {
+          "op": "addEdge",
+          "arg": [
+            3,
+            1
+          ],
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
           "op": "addVertex",
           "expect": 38
         },
@@ -1247,116 +911,44 @@
           "expect": true
         },
         {
-          "op": "vertexCount",
-          "expect": 39
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
-          "op": "vertexCount",
-          "expect": 39
+          "op": "addEdge",
+          "arg": [
+            5,
+            1
+          ],
+          "expect": false
         },
         {
-          "op": "vertexCount",
-          "expect": 39
-        },
-        {
-          "op": "vertexCount",
-          "expect": 39
-        },
-        {
-          "op": "vertexCount",
-          "expect": 39
-        },
-        {
-          "op": "edgeCount",
-          "expect": 17
+          "op": "addEdge",
+          "arg": [
+            1,
+            0
+          ],
+          "expect": true
         },
         {
           "op": "addVertex",
           "expect": 39
         },
         {
-          "op": "edgeCount",
-          "expect": 17
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
-          "op": "edgeCount",
-          "expect": 17
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
           "op": "addVertex",
           "expect": 40
         },
         {
-          "op": "edgeCount",
-          "expect": 17
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            -1,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "vertexCount",
-          "expect": 41
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            -1,
-            3
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "vertexCount",
-          "expect": 41
-        },
-        {
-          "op": "edgeCount",
-          "expect": 17
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "vertexCount",
-          "expect": 41
-        },
-        {
           "op": "addVertex",
           "expect": 41
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            5,
-            0
-          ],
-          "expect": true
-        },
-        {
-          "op": "edgeCount",
-          "expect": 17
-        },
-        {
-          "op": "vertexCount",
-          "expect": 42
         },
         {
           "op": "addVertex",
@@ -1367,80 +959,316 @@
           "expect": 43
         },
         {
-          "op": "vertexCount",
-          "expect": 44
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            1,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
           "op": "addVertex",
           "expect": 44
         },
         {
-          "op": "edgeCount",
-          "expect": 17
-        },
-        {
-          "op": "edgeCount",
-          "expect": 17
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
           "op": "addEdge",
           "arg": [
-            7,
-            6
+            2,
+            5
           ],
           "expect": true
         },
         {
-          "op": "vertexCount",
-          "expect": 45
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
           "op": "addEdge",
           "arg": [
-            0,
-            7
+            1,
+            3
           ],
           "expect": false
         },
         {
-          "op": "vertexCount",
-          "expect": 45
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
           "op": "addVertex",
           "expect": 45
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
-        },
-        {
-          "op": "topologicalOrder",
-          "expect": true
         },
         {
           "op": "addVertex",
           "expect": 46
         },
         {
+          "op": "addEdge",
+          "arg": [
+            4,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
           "op": "addVertex",
           "expect": 47
         },
         {
-          "op": "edgeCount",
-          "expect": 18
+          "op": "addEdge",
+          "arg": [
+            6,
+            4
+          ],
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            2,
+            4
+          ],
+          "expect": true
+        },
+        {
+          "op": "addVertex",
+          "expect": 48
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            4,
+            4
+          ],
+          "expect": false
+        },
+        {
+          "op": "addVertex",
+          "expect": 49
+        },
+        {
+          "op": "addVertex",
+          "expect": 50
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addVertex",
+          "expect": 51
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addVertex",
+          "expect": 52
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            1,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addVertex",
+          "expect": 53
+        },
+        {
+          "op": "addVertex",
+          "expect": 54
+        },
+        {
+          "op": "addVertex",
+          "expect": 55
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addVertex",
+          "expect": 56
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            2,
+            6
+          ],
+          "expect": false
+        },
+        {
+          "op": "addVertex",
+          "expect": 57
+        },
+        {
+          "op": "addVertex",
+          "expect": 58
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addVertex",
+          "expect": 59
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addVertex",
+          "expect": 60
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            4,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            5,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "addVertex",
+          "expect": 61
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            3,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addVertex",
+          "expect": 62
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            1,
+            0
+          ],
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            4,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addVertex",
+          "expect": 63
+        },
+        {
+          "op": "addVertex",
+          "expect": 64
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            5,
+            4
+          ],
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            5,
+            7
+          ],
+          "expect": false
+        },
+        {
+          "op": "addVertex",
+          "expect": 65
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addVertex",
+          "expect": 66
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            4,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "addVertex",
+          "expect": 67
+        },
+        {
+          "op": "addVertex",
+          "expect": 68
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
         },
         {
           "op": "addEdge",
@@ -1453,9 +1281,29 @@
         {
           "op": "addEdge",
           "arg": [
-            7,
-            4
+            5,
+            6
           ],
+          "expect": false
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            5,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            5,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "topologicalOrder",
           "expect": true
         },
         {
@@ -1464,11 +1312,179 @@
         },
         {
           "op": "addVertex",
-          "expect": 48
+          "expect": 69
         },
         {
-          "op": "vertexCount",
-          "expect": 49
+          "op": "addVertex",
+          "expect": 70
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addVertex",
+          "expect": 71
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            7,
+            6
+          ],
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            3,
+            4
+          ],
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            0,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            -1,
+            4
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            0,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addVertex",
+          "expect": 72
+        },
+        {
+          "op": "addVertex",
+          "expect": 73
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            1,
+            7
+          ],
+          "expect": false
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            3,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            -1,
+            6
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addVertex",
+          "expect": 74
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            6,
+            4
+          ],
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            2,
+            4
+          ],
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            6,
+            6
+          ],
+          "expect": false
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            5,
+            5
+          ],
+          "expect": false
+        },
+        {
+          "op": "addVertex",
+          "expect": 75
+        },
+        {
+          "op": "addVertex",
+          "expect": 76
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            7,
+            3
+          ],
+          "expect": true
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            2,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "topologicalOrder",
+          "expect": true
         }
       ]
     }

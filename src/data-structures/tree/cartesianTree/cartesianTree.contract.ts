@@ -28,7 +28,6 @@ import type { ContractSpec } from "../../_contract/runContract";
  * `runContract` 의 팩토리와 `Walkable#rebuild` 가 나르기 때문이다.
  */
 export interface CartesianTreeContract<T> {
-  size(): number;
   value(): T | null;
   left(): CartesianTreeContract<T> | null;
   right(): CartesianTreeContract<T> | null;
@@ -82,10 +81,6 @@ export class Walkable<T> {
     if (child === null) return false;
     this.#at = child as Built<T>;
     return true;
-  }
-
-  size(): number {
-    return this.#at.size();
   }
 
   value(): T | null {
@@ -159,7 +154,6 @@ function ascending(n: number): number[] {
  * 0 이기 때문이다 — 측정값에 들어오지 않는다.
  */
 function descend(impl: Walkable<number>, rng: () => number): void {
-  impl.size();
   impl.value();
   const first = rng() < 0.5;
   const moved = first
@@ -225,12 +219,6 @@ export const cartesianTreeContract: ContractSpec<
       },
     },
     {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.hi - model.lo,
-    },
-    {
       name: "value",
       arg: () => undefined,
       onImpl: (impl) => impl.value(),
@@ -253,7 +241,6 @@ export const cartesianTreeContract: ContractSpec<
     {
       name: "빈 수열 — 값도 자식도 없고 훑기가 빈 배열이다",
       steps: [
-        { op: "size" },
         { op: "value" },
         { op: "goLeft" },
         { op: "goRight" },
@@ -264,7 +251,6 @@ export const cartesianTreeContract: ContractSpec<
       name: "한 값 — 뿌리뿐이라 어느 쪽으로도 못 내려간다",
       steps: [
         { op: "rebuild", arg: [7] },
-        { op: "size" },
         { op: "value" },
         { op: "goLeft" },
         { op: "goRight" },
@@ -279,7 +265,6 @@ export const cartesianTreeContract: ContractSpec<
         { op: "goLeft" },
         { op: "goRight" },
         { op: "value" },
-        { op: "size" },
         { op: "goRight" },
         { op: "value" },
         { op: "inOrder" },
@@ -305,7 +290,6 @@ export const cartesianTreeContract: ContractSpec<
         { op: "value" },
         { op: "goLeft" },
         { op: "goRight" },
-        { op: "size" },
         { op: "value" },
         { op: "inOrder" },
       ],
@@ -315,7 +299,6 @@ export const cartesianTreeContract: ContractSpec<
       steps: [
         { op: "rebuild", arg: [2, 5, 2, 5, 2] },
         { op: "value" },
-        { op: "size" },
         { op: "goRight" },
         { op: "inOrder" },
         { op: "goRight" },
@@ -344,7 +327,6 @@ export const cartesianTreeContract: ContractSpec<
         { op: "value" },
         { op: "rebuild", arg: [9] },
         { op: "value" },
-        { op: "size" },
         { op: "inOrder" },
       ],
     },
@@ -385,13 +367,13 @@ export const cartesianTreeContract: ContractSpec<
       },
     },
     {
-      // 훑기 네 행을 한 걸음에 묶는다. `size` 나 `value` 혼자로는 걸음이 안 생겨 같은
-      // 마디를 되읽게 되고, 그러면 재는 것이 트리가 아니라 캐시다.
+      // 훑기 세 행을 한 걸음에 묶는다. `value` 혼자로는 걸음이 안 생겨 같은 마디를
+      // 되읽게 되고, 그러면 재는 것이 트리가 아니라 캐시다.
       //
       // 무작위 수열의 트리는 기대 깊이가 로그다. **깊이에 비례하는 걸음을 여기서 못 잡는다** —
       // `pathCopyingCartesianTree` 의 단일 걸음 최대가 18 → 22 → 24 로 $r$ 이 1.22·1.09 이고
       // 허용 상단 1.30 아래다(불변 사실 53). 아래 사슬 시나리오가 그 계열을 받는다.
-      covers: ["size", "value", "left", "right"],
+      covers: ["value", "left", "right"],
       qualifier: "worst",
       bound: "O(1)",
       adversarial: false,
@@ -408,7 +390,7 @@ export const cartesianTreeContract: ContractSpec<
       // 복사해 드는 구현이 위 무작위 시나리오를 통과하고 여기서 1,026 → 4,099 → 16,386
       // ($r = 4.00$)으로 걸린다. 앞의 두 fixture 는 두 시나리오에서 똑같이 굴어 이 갈림을
       // 말하지 못한다 — 적대적 입력의 몫은 fixture 가 둘 이상이라야 보인다(불변 사실 118).
-      covers: ["size", "value", "left", "right"],
+      covers: ["value", "left", "right"],
       qualifier: "worst",
       bound: "O(1)",
       adversarial: true,

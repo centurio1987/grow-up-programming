@@ -19,7 +19,6 @@
  * | `append` amortized O(1) | 1.00 → 1.00 | **걸림** 511.50 → 2,047.50 | 통과 | 통과 |
  * | `removeFirst` amortized O(1) (적대적) | 1.00 → 1.00 | 통과 | **걸림** 512.50 → 2,048.50 | 통과 2.00 → 2.00 — 한 호출 최대 1,025 → 4,097 |
  * | `toArray` worst O(n) | 1,024 → 4,096 | 통과 | 통과 | 통과 |
- * | `size` worst O(1) | 1 → 1 | 통과 | 통과 | 통과 |
  */
 
 import { describe, expect, test } from "bun:test";
@@ -68,7 +67,6 @@ const ALL_PASS = {
   append: true,
   "removeFirst (적대적)": true,
   toArray: true,
-  size: true,
 };
 
 // 1. 셋 다 동작상 옳다 — 축1 · 축2 를 전부 통과한다. 계측기를 넘기지 않으므로 축3은 돌지 않는다.

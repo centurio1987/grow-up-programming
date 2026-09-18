@@ -21,19 +21,7 @@ export const walk = {
       ],
     },
     {
-      title: "T2 size()",
-      detail: "노드를 따라가지 않고 저장해 둔 count 0을 반환합니다.",
-      array: ["·", "·", "·"],
-      highlight: [],
-      pointers: {},
-      entries: [
-        { label: "head", value: 0 },
-        { label: "tail", value: 0 },
-        { label: "count", value: 0 },
-      ],
-    },
-    {
-      title: "T3 append(10)",
+      title: "T2 append(10)",
       detail:
         "빈 수열이므로 새 노드 id 1이 head이자 tail이 됩니다. 이웃이 없어 xorId는 0입니다.",
       array: ["10/x0", "·", "·"],
@@ -46,7 +34,7 @@ export const walk = {
       ],
     },
     {
-      title: "T4 append(0)",
+      title: "T3 append(0)",
       detail:
         "새 노드 id 2의 xorId는 앞 이웃 id 1입니다. 기존 마지막 노드 id 1의 xorId는 0 ^ 2 = 2로 바뀝니다.",
       array: ["10/x2", "0/x1", "·"],
@@ -59,7 +47,7 @@ export const walk = {
       ],
     },
     {
-      title: "T5 append(30)",
+      title: "T4 append(30)",
       detail:
         "새 노드 id 3의 xorId는 앞 이웃 id 2입니다. 기존 마지막 노드 id 2의 xorId는 1 ^ 3 = 2로 바뀝니다.",
       array: ["10/x2", "0/x2", "30/x2"],
@@ -72,19 +60,7 @@ export const walk = {
       ],
     },
     {
-      title: "T6 size()",
-      detail: "노드를 따라가지 않고 저장해 둔 count 3을 반환합니다.",
-      array: ["10/x2", "0/x2", "30/x2"],
-      highlight: [],
-      pointers: { head: 0, tail: 2 },
-      entries: [
-        { label: "head", value: 1 },
-        { label: "tail", value: 3 },
-        { label: "count", value: 3 },
-      ],
-    },
-    {
-      title: "T7 toArray()",
+      title: "T5 toArray()",
       detail: "id 1의 값을 담고, 다음 id를 2 ^ 0 = 2로 구합니다.",
       array: ["10/x2", "0/x2", "30/x2"],
       highlight: [0],
@@ -100,7 +76,7 @@ export const walk = {
       ],
     },
     {
-      title: "T8 toArray()",
+      title: "T6 toArray()",
       detail: "id 2의 값을 담고, 다음 id를 2 ^ 1 = 3으로 구합니다.",
       array: ["10/x2", "0/x2", "30/x2"],
       highlight: [1],
@@ -116,7 +92,7 @@ export const walk = {
       ],
     },
     {
-      title: "T9 toArray()",
+      title: "T7 toArray()",
       detail:
         "id 3의 값을 담고, 다음 id를 2 ^ 2 = 0으로 구합니다. 다음 id가 NIL이므로 [10, 0, 30]을 반환합니다.",
       array: ["10/x2", "0/x2", "30/x2"],
@@ -133,7 +109,7 @@ export const walk = {
       ],
     },
     {
-      title: "T10 toArrayReverse()",
+      title: "T8 toArrayReverse()",
       detail: "id 3의 값을 담고, 다음 id를 2 ^ 0 = 2로 구합니다.",
       array: ["10/x2", "0/x2", "30/x2"],
       highlight: [2],
@@ -149,7 +125,7 @@ export const walk = {
       ],
     },
     {
-      title: "T11 toArrayReverse()",
+      title: "T9 toArrayReverse()",
       detail: "id 2의 값을 담고, 다음 id를 2 ^ 3 = 1로 구합니다.",
       array: ["10/x2", "0/x2", "30/x2"],
       highlight: [1],
@@ -165,7 +141,7 @@ export const walk = {
       ],
     },
     {
-      title: "T12 toArrayReverse()",
+      title: "T10 toArrayReverse()",
       detail:
         "id 1의 값을 담고, 다음 id를 2 ^ 2 = 0으로 구합니다. 다음 id가 NIL이므로 [30, 0, 10]을 반환합니다.",
       array: ["10/x2", "0/x2", "30/x2"],

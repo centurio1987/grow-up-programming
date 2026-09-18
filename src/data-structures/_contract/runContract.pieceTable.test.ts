@@ -4,8 +4,11 @@
  * `./runContract.test.ts` 와 같은 일을 한다. 파일을 따로 둔 이유는 `./runContract.pairingHeap.test.ts` 머리말과 같다(불변 사실
  * 106·255). 고정하는 것은 넷이다.
  *
- * 1. **정본 계측** — 시나리오 여섯의 수치.
+ * 1. **정본 계측** — 시나리오 다섯의 수치.
  * 2. **결함 fixture 의 행 귀속** — 여섯이 축1 을 전부 통과하고 어느 시나리오에서 걸리는지(불변 사실 84 · 182).
+ *    **여섯 중 하나(`SummingLengthPieceTable`)는 `KAN-040` `S3` 뒤로 어느 행에서도 안 걸린다** — 그 fixture 가 걸리던 자리가
+ *    원소 수를 읽는 행이었고 그 행이 계약에서 빠졌다. 지금은 계약 표면에 없는 일을 하는 구현이라 결함이 아니다. 아래 시험이
+ *    그 사실을 박아 둔다.
  * 3. **`worst` 가 추가로 배제하는 계열** — 추가 버퍼 하나를 두 배로 늘리는 설계가 호출열 전체로는 상한 안이고 한 호출로는
  *    밖이다(불변 사실 183).
  * 4. **`linear/gapBuffer` 계약과 서로 담지 않는다** — 두 설계가 서로의 약속에서 걸리는 입력 둘(불변 사실 54).
@@ -87,13 +90,12 @@ function allScenarios(
 }
 
 describe("pieceTable — 정본 계측", () => {
-  test("시나리오 여섯을 통과하고 편집 행은 편집 수에만 묶인다", () => {
+  test("시나리오 다섯을 통과하고 편집 행은 편집 수에만 묶인다", () => {
     expect(firstMismatch(() => new PieceTable<number>())).toBeNull();
     expect(allScenarios(() => new PieceTable<number>())).toEqual([
       { ok: true, stats: [73, 73] },
       { ok: true, stats: [1037, 4109] },
       { ok: true, stats: [6, 6] },
-      { ok: true, stats: [1, 1] },
       { ok: true, stats: [1026, 4098] },
       { ok: true, stats: [1026, 4098] },
     ]);
@@ -108,7 +110,6 @@ describe("pieceTable — 결함 fixture 의 행 귀속(여섯 다 축1 통과)",
       { ok: false, stats: [1054, 4126] },
       { ok: true, stats: [3070, 12286] },
       { ok: false, stats: [2049, 8193] },
-      { ok: true, stats: [1, 1] },
       { ok: true, stats: [1025, 4097] },
       { ok: true, stats: [1025, 4097] },
     ]);
@@ -121,7 +122,6 @@ describe("pieceTable — 결함 fixture 의 행 귀속(여섯 다 축1 통과)",
       { ok: false, stats: [2050, 8194] },
       { ok: true, stats: [5632, 22528] },
       { ok: false, stats: [2049, 8193] },
-      { ok: true, stats: [1, 1] },
       { ok: true, stats: [1025, 4097] },
       { ok: true, stats: [1025, 4097] },
     ]);
@@ -134,7 +134,6 @@ describe("pieceTable — 결함 fixture 의 행 귀속(여섯 다 축1 통과)",
       { ok: false, stats: [1058, 4130] },
       { ok: false, stats: [4720129, 75503617] },
       { ok: false, stats: [2625024, 41957376] },
-      { ok: true, stats: [1, 1] },
       { ok: true, stats: [2049, 8193] },
       { ok: true, stats: [2049, 8193] },
     ]);
@@ -147,7 +146,6 @@ describe("pieceTable — 결함 fixture 의 행 귀속(여섯 다 축1 통과)",
       { ok: false, stats: [1028, 4100] },
       { ok: true, stats: [5133, 20493] },
       { ok: true, stats: [6, 6] },
-      { ok: true, stats: [1, 1] },
       { ok: true, stats: [1026, 4098] },
       { ok: true, stats: [1026, 4098] },
     ]);
@@ -160,20 +158,21 @@ describe("pieceTable — 결함 fixture 의 행 귀속(여섯 다 축1 통과)",
       { ok: true, stats: [2, 2] },
       { ok: true, stats: [1025, 4097] },
       { ok: true, stats: [1, 1] },
-      { ok: true, stats: [1, 1] },
       { ok: true, stats: [1025, 4097] },
       { ok: false, stats: [1576449, 25180161] },
     ]);
   });
 
-  test("길이를 조각마다 더해 세는 조각 목록 — 편집 많이 길이 하나에서 걸린다", () => {
+  // `KAN-040` `S3` 전에는 이 fixture 가 「편집 많이 길이」 시나리오 하나에서 걸렸다(1,025 → 4,097). 원소 수를 읽는 행이
+  // 계약에서 빠지면서 그 시나리오가 사라졌고, 남은 다섯 어디에도 안 걸린다 — 계약 표면에 없는 일을 하는 구현이라 이제
+  // 이 계약의 결함이 아니다. 조용히 줄어든 검사는 줄어든 줄 모르므로 그 사실을 여기 박아 둔다.
+  test("길이를 조각마다 더해 세는 조각 목록 — 걸리던 행이 계약에서 빠져 이제 어디에서도 안 걸린다", () => {
     const make = () => new SummingLengthPieceTable<number>();
     expect(firstMismatch(make)).toBeNull();
     expect(allScenarios(make)).toEqual([
       { ok: true, stats: [113, 113] },
       { ok: true, stats: [1044, 4116] },
       { ok: true, stats: [8, 8] },
-      { ok: false, stats: [1025, 4097] },
       { ok: true, stats: [1026, 4098] },
       { ok: true, stats: [1026, 4098] },
     ]);

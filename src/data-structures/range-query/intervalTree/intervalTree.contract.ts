@@ -20,7 +20,6 @@ export interface IntervalTreeContract {
   delete(low: number, high: number): boolean;
   stabQuery(point: number): [number, number][];
   overlapQuery(low: number, high: number): [number, number][];
-  size(): number;
 }
 
 /** 축1 참조 모델. 자명한 배열이면 된다 — 축1은 의미만 보고 비용은 보지 않는다. */
@@ -30,10 +29,6 @@ type Model = [number, number][];
 const DOMAIN = 20;
 /** 무작위로 만드는 구간의 최대 폭. */
 const WIDTH = 4;
-
-/** 저장된 어떤 구간보다도 넓은 범위. 불변식 1이 "전부 되찾는가"를 묻는 데 쓴다. */
-const WORLD_LOW = -1_000_000;
-const WORLD_HIGH = 1_000_000;
 
 /** 축3 시나리오가 실제로 재는 연산 수. n 과 무관한 상수다(§규약2는 `amortized` 에서만 n 회를 요구한다). */
 const PROBES = 200;
@@ -114,12 +109,6 @@ export const intervalTreeContract: ContractSpec<IntervalTreeContract, Model> = {
         return canonical(model.filter((stored) => overlaps(stored, low, high)));
       },
     },
-    {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.length,
-    },
   ],
 
   edges: [
@@ -129,7 +118,6 @@ export const intervalTreeContract: ContractSpec<IntervalTreeContract, Model> = {
         { op: "stabQuery", arg: 3 },
         { op: "overlapQuery", arg: [0, 10] },
         { op: "delete", arg: [1, 2] },
-        { op: "size" },
       ],
     },
     {
@@ -168,10 +156,10 @@ export const intervalTreeContract: ContractSpec<IntervalTreeContract, Model> = {
       steps: [
         { op: "insert", arg: [4, 6] },
         { op: "insert", arg: [4, 6] },
-        { op: "size" },
+        { op: "overlapQuery", arg: [0, 10] },
         { op: "stabQuery", arg: 5 },
         { op: "delete", arg: [4, 6] },
-        { op: "size" },
+        { op: "overlapQuery", arg: [0, 10] },
         { op: "stabQuery", arg: 5 },
       ],
     },
@@ -181,7 +169,7 @@ export const intervalTreeContract: ContractSpec<IntervalTreeContract, Model> = {
         { op: "insert", arg: [2, 4] },
         { op: "delete", arg: [2, 5] },
         { op: "delete", arg: [3, 4] },
-        { op: "size" },
+        { op: "overlapQuery", arg: [0, 10] },
         { op: "stabQuery", arg: 3 },
       ],
     },
@@ -193,7 +181,7 @@ export const intervalTreeContract: ContractSpec<IntervalTreeContract, Model> = {
         { op: "stabQuery", arg: 12 },
         { op: "delete", arg: [5, 6] },
         { op: "stabQuery", arg: 5 },
-        { op: "size" },
+        { op: "overlapQuery", arg: [0, 20] },
       ],
     },
     {
@@ -211,22 +199,15 @@ export const intervalTreeContract: ContractSpec<IntervalTreeContract, Model> = {
   ],
 
   /**
-   * 헤더 불변식 절의 둘을 그대로 옮긴 것이다. **이 스위트에서 축2가 처음으로 비어 있지
-   * 않다.** 둘 모두 공개 연산만으로 관측되는 **상태의 성질**이고, 각 연산이 국소적으로
-   * 옳아 보여도 깨질 수 있다.
+   * 헤더 불변식 절의 하나를 그대로 옮긴 것이다. **이 스위트에서 축2가 처음으로 비어 있지
+   * 않다.** 공개 연산만으로 관측되는 **상태의 성질**이고, 각 연산이 국소적으로 옳아 보여도
+   * 깨질 수 있다. `KAN-040` `S4` 가 저장 수를 읽는 행을 빼면서 옛 1번(전 범위 질의 ↔ 세어 둔
+   * 수)이 경로 하나로 줄어 빠졌다.
    *
    * 건전성(*"돌려준 구간이 실제로 겹친다"*)은 여기 없다. 상태의 성질이 아니라 `overlapQuery`
    * 한 연산의 의미이므로, 축1이 참조 모델과 대조해 잡는 몫이다.
    */
   invariants: [
-    {
-      name: "저장한 것을 전 범위 질의가 전부 되찾는다",
-      check: (impl) => {
-        const all = impl.overlapQuery(WORLD_LOW, WORLD_HIGH).length;
-        const size = impl.size();
-        return all === size ? null : `전 범위 질의 ${all}개 / size ${size}`;
-      },
-    },
     {
       name: "stabQuery(p) 와 overlapQuery(p, p) 가 갈리지 않는다",
       check: (impl) => {
@@ -341,23 +322,5 @@ export const intervalTreeContract: ContractSpec<IntervalTreeContract, Model> = {
         }
       },
     }),
-    {
-      covers: ["size"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      run: (impl, n, ctx) => {
-        const span = 4 * n;
-        for (let i = 0; i < n; i++) {
-          const [low, high] = randomInterval(ctx.rng, span);
-          impl.insert(low, high);
-        }
-        for (let i = 0; i < PROBES; i++) {
-          ctx.step(() => {
-            impl.size();
-          });
-        }
-      },
-    },
   ],
 };

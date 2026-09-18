@@ -38,7 +38,6 @@ function maxHighOf(node: Node | null): number {
 // #region guide:core/class
 export class IntervalTree {
   #root: Node | null = null;
-  #count = 0;
   #seq = 0;
 
   /** 축3 계측(§규약2). 계약이 아니라 정본의 의무다. */
@@ -59,7 +58,6 @@ export class IntervalTree {
       right: null,
     };
     this.#root = this.#merge(this.#merge(smaller, node), larger);
-    this.#count += 1;
   }
 
   delete(low: number, high: number): boolean {
@@ -78,7 +76,6 @@ export class IntervalTree {
     // `same` 에는 같은 키만 들어 있다. 그 뿌리 하나를 빼고 좌우를 도로 붙인다.
     const shrunk = this.#merge(same.left, same.right);
     this.#root = this.#merge(this.#merge(smaller, shrunk), larger);
-    this.#count -= 1;
     return true;
   }
 
@@ -91,11 +88,6 @@ export class IntervalTree {
     const found: [number, number][] = [];
     this.#collect(this.#root, low, high, found);
     return found;
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
   }
 
   #collect(

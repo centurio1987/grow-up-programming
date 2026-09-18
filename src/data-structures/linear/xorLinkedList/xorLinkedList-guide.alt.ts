@@ -68,7 +68,7 @@ function xor(): Counts {
   return {
     "append 한 번이 쓴 슬롯의 최댓값": max,
     "append 전체가 쓴 슬롯": total,
-    "잡고 있는 슬롯": 5 * d.size(),
+    "잡고 있는 슬롯": 5 * d.toArray().length,
   };
 }
 

@@ -26,10 +26,6 @@ export class ScanningSuffixTree {
     return this.#carried + this.#inner.__cost;
   }
 
-  length(): number {
-    return this.#inner.length();
-  }
-
   longestRepeatedSubstring(): string {
     return this.#inner.longestRepeatedSubstring();
   }

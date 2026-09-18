@@ -22,7 +22,6 @@ export interface SinglyLinkedListContract<T> {
   append(value: T): void;
   removeFirst(): T | null;
   toArray(): T[];
-  size(): number;
 }
 
 /** 축1 참조 모델. 자명한 배열이면 된다 — 축1은 의미만 보고 비용은 보지 않는다. */
@@ -38,7 +37,7 @@ export const singlyLinkedListContract: ContractSpec<
   Model
 > = {
   name: "SinglyLinkedList",
-  grade: "invariant",
+  grade: "basic",
   model: () => [],
 
   ops: [
@@ -82,12 +81,6 @@ export const singlyLinkedListContract: ContractSpec<
       },
       onModel: (model) => [...model],
     },
-    {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.length,
-    },
   ],
 
   edges: [
@@ -95,10 +88,10 @@ export const singlyLinkedListContract: ContractSpec<
       name: "빈 수열에서 removeFirst 는 null 이고 상태를 바꾸지 않는다",
       steps: [
         { op: "removeFirst" },
-        { op: "size" },
+        { op: "toArray" },
         { op: "toArray" },
         { op: "removeFirst" },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -109,7 +102,7 @@ export const singlyLinkedListContract: ContractSpec<
         { op: "append", arg: 3 },
         { op: "prepend", arg: 0 },
         { op: "toArray" },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -123,7 +116,7 @@ export const singlyLinkedListContract: ContractSpec<
         { op: "toArray" },
         { op: "append", arg: 3 },
         { op: "toArray" },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -156,7 +149,7 @@ export const singlyLinkedListContract: ContractSpec<
         { op: "removeFirst" },
         { op: "removeFirst" },
         { op: "removeFirst" },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -166,7 +159,7 @@ export const singlyLinkedListContract: ContractSpec<
         { op: "append", arg: 2 },
         { op: "toArray" },
         { op: "toArray" },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -175,24 +168,16 @@ export const singlyLinkedListContract: ContractSpec<
         { op: "append", arg: 0 },
         { op: "prepend", arg: 0 },
         { op: "append", arg: 0 },
-        { op: "size" },
+        { op: "toArray" },
         { op: "removeFirst" },
         { op: "toArray" },
       ],
     },
   ],
 
-  invariants: [
-    {
-      name: "세어 둔 원소 수와 늘어놓은 원소 수가 같다",
-      check: (impl) => {
-        const counted = impl.size();
-        const listed = impl.toArray().length;
-        if (counted === listed) return null;
-        return `size()=${counted} 인데 toArray().length=${listed} 다`;
-      },
-    },
-  ],
+  // 헤더의 불변식 절이 「없다」다. 세어 둔 수를 읽는 행이 표면에서 빠져 늘어놓은 수와 견줄
+  // 둘째 경로가 사라졌고, 남은 조건은 `toArray` 행의 의미라 축1의 몫이다.
+  invariants: [],
 
   scenarios: [
     {
@@ -241,16 +226,6 @@ export const singlyLinkedListContract: ContractSpec<
           else impl.prepend(i);
         }
         for (let i = 0; i < 3; i++) ctx.step(() => impl.toArray());
-      },
-    },
-    {
-      covers: ["size"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      run: (impl, n, ctx) => {
-        for (let i = 0; i < n; i++) impl.append(i);
-        for (let i = 0; i < 8; i++) ctx.step(() => impl.size());
       },
     },
   ],

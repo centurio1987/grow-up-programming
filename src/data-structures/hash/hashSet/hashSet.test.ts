@@ -75,7 +75,7 @@ function checkInjectionPolicy(
         straight.add(value);
         twisted.add(value);
       }
-      expect(straight.size()).toBe(twisted.size());
+      expect(straight.values().length).toBe(twisted.values().length);
       expect([...straight.values()].sort((a, b) => a - b)).toEqual(
         [...twisted.values()].sort((a, b) => a - b),
       );
@@ -94,9 +94,9 @@ function checkInjectionPolicy(
       const intersection = left.intersection(right);
       const difference = left.difference(right);
 
-      expect(union.size()).toBe(45);
-      expect(intersection.size()).toBe(15);
-      expect(difference.size()).toBe(15);
+      expect(union.values().length).toBe(45);
+      expect(intersection.values().length).toBe(15);
+      expect(difference.values().length).toBe(15);
       expect(intersection.has(20)).toBe(true);
       expect(difference.has(20)).toBe(false);
       expect(difference.has(3)).toBe(true);
@@ -106,12 +106,12 @@ function checkInjectionPolicy(
     test("원소의 차이를 지우는 펴기를 줘도 답은 옳다 — 무너지는 것은 상한뿐이다", () => {
       const erasing = make<number>(() => 0);
       for (let value = 0; value < 40; value++) erasing.add(value);
-      expect(erasing.size()).toBe(40);
+      expect(erasing.values().length).toBe(40);
       expect(erasing.has(17)).toBe(true);
       expect(erasing.has(40)).toBe(false);
       expect(erasing.delete(17)).toBe(true);
       expect(erasing.has(17)).toBe(false);
-      expect(erasing.size()).toBe(39);
+      expect(erasing.values().length).toBe(39);
     });
 
     test("number 밖의 원소도 펴기를 주면 돈다", () => {
@@ -130,7 +130,7 @@ function checkInjectionPolicy(
       other.add("apple");
       other.add("fig");
 
-      expect(byChars.size()).toBe(2);
+      expect(byChars.values().length).toBe(2);
       expect(byChars.has("fig")).toBe(false);
       expect([...byChars.values()].sort()).toEqual(["apple", "banana"]);
       expect([...byChars.intersection(other).values()]).toEqual(["apple"]);
@@ -159,13 +159,13 @@ function checkInjectionPolicy(
       left.delete(1);
       right.delete(2);
 
-      expect(union.size()).toBe(3);
+      expect(union.values().length).toBe(3);
       expect(union.has(9)).toBe(false);
       expect(union.has(8)).toBe(false);
       expect(union.has(1)).toBe(true);
-      expect(intersection.size()).toBe(1);
+      expect(intersection.values().length).toBe(1);
       expect(intersection.has(2)).toBe(true);
-      expect(difference.size()).toBe(1);
+      expect(difference.values().length).toBe(1);
       expect(difference.has(1)).toBe(true);
 
       // 반대 방향도 본다 — 결과를 고쳐도 피연산자가 안 바뀐다.

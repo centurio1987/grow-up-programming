@@ -6,7 +6,12 @@
  * 결정된다 — 3천 자를 색인하든 30억 자를 색인하든 같은 패턴에 드는 비용이 같다.
  *
  * 문자열은 **생성 시점에 정해지고 그 뒤로 바뀌지 않는다.** 이 계약에는 상태를 바꾸는 연산이
- * 하나도 없다.
+ * 하나도 없다. 색인한 문자열의 길이를 읽는 일도 없다.
+ *
+ * **뺀 행의 판정은 목적 항목 밖에 적는다.** `length()` 는 원칙 A 판정표 ③ 의 판정으로 뺐다 —
+ * 판정 줄과 목적 인용은 `docs/ORD-006-conventions.md` 「판정표 ③ 의 103 행을 묶어 판정했다」
+ * 절에, 행 단위 대장은 `tools/_baseline/principle-a-verdicts.tsv` 에 있다. 판정의 결론을 목적
+ * 문단 안에 적으면 다음 판정이 자기 메아리를 근거로 읽는다(§원칙 A A5′-2).
  *
  * **접미사의 사전순 순서는 이 계약에 없다.** 순서를 관측할 수 있게 하려면 그 순서를 실제로
  * 들고 있어야 하는데, 이 계약이 요구하는 것은 순서가 아니라 **공통 접두사에 따른 묶음**이다.
@@ -38,7 +43,6 @@
  * | 연산 | 의미 | 상한 | 한정자 |
  * |---|---|---|---|
  * | `constructor(s)` | 길이 n 의 문자열 `s` 를 색인한다. 돌아온 뒤의 질의는 아래 상한을 지킨다 | O(n log n) | worst |
- * | `length()` | 색인한 문자열의 길이 n | O(1) | worst |
  * | `contains(pattern)` | `pattern` 이 `s` 의 부분 문자열인가. `count(pattern) > 0` 과 같다 | O(m) | worst |
  * | `count(pattern)` | `pattern` 이 시작하는 자리의 수 — `0 <= i <= n - m` 중 `s` 의 `i` 부터가 `pattern` 과 같은 것. 겹쳐서 나타나는 것도 따로 센다 | O(m) | worst |
  * | `findAll(pattern)` | 위 조건을 만족하는 모든 `i`. **순서를 정하지 않는다** | O(m + k) | worst |
@@ -118,10 +122,6 @@
  */
 export class SuffixTree {
   constructor(s: string) {
-    throw new Error("Not implemented");
-  }
-
-  length(): number {
     throw new Error("Not implemented");
   }
 

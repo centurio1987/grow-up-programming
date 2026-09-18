@@ -94,11 +94,6 @@ export class UnrolledLinkedList<T> {
     return item as T;
   }
 
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
-  }
-
   toArray(): T[] {
     const out: T[] = [];
     for (const block of this.#blocks) {

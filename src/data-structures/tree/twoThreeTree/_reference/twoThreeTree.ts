@@ -51,7 +51,6 @@ function must<V>(value: V | undefined): V {
 // #region guide:core/class
 export class TwoThreeTree<T> {
   #root: Node<T> | null = null;
-  #count = 0;
   readonly #compare: (a: T, b: T) => number;
 
   /** 축3 계측. 파일 헤더의 단위 설명 참고. */
@@ -71,7 +70,6 @@ export class TwoThreeTree<T> {
     const root = this.#root;
     if (root === null) {
       this.#root = { values: [item], children: [] };
-      this.#count = 1;
       return;
     }
 
@@ -95,7 +93,6 @@ export class TwoThreeTree<T> {
 
     const removed = this.#removeFrom(root, item);
     if (!removed) return false;
-    this.#count -= 1;
 
     // 뿌리가 비면 트리가 한 층 낮아진다. 아래에서 줄지 않는 것이 이 설계의 대칭점이다.
     if (root.values.length === 0) {
@@ -152,11 +149,6 @@ export class TwoThreeTree<T> {
     return out;
   }
 
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
-  }
-
   toArray(): T[] {
     const out: T[] = [];
     if (this.#root !== null) this.#walk(this.#root, out);
@@ -186,7 +178,6 @@ export class TwoThreeTree<T> {
 
     if (node.children.length === 0) {
       node.values.splice(seek.at, 0, item);
-      this.#count += 1;
     } else {
       const split = this.#insertInto(must(node.children[seek.at]), item);
       if (split === null) return null;

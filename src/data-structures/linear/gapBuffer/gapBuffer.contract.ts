@@ -33,13 +33,12 @@
 
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 **여섯 행**을 그대로 옮긴 표면. */
+/** 헤더 연산 계약 표의 **다섯 행**을 그대로 옮긴 표면. */
 export interface GapBufferContract<T> {
   insert(item: T): void;
   deleteBefore(): T | null;
   moveCursor(position: number): void;
   cursor(): number;
-  length(): number;
   toArray(): T[];
 }
 
@@ -117,7 +116,7 @@ export const gapBufferContract: ContractSpec<
   Model
 > = {
   name: "GapBuffer",
-  grade: "invariant",
+  grade: "basic",
   model: () => ({ items: [], at: 0 }),
 
   ops: [
@@ -159,12 +158,6 @@ export const gapBufferContract: ContractSpec<
       onModel: (model) => model.at,
     },
     {
-      name: "length",
-      arg: () => undefined,
-      onImpl: (impl) => impl.length(),
-      onModel: (model) => model.items.length,
-    },
-    {
       name: "toArray",
       arg: () => undefined,
       onImpl: (impl) => impl.toArray(),
@@ -176,11 +169,11 @@ export const gapBufferContract: ContractSpec<
     {
       name: "빈 구조에서 커서는 0 이고 지울 것이 없다",
       steps: [
-        { op: "length" },
+        { op: "toArray" },
         { op: "cursor" },
         { op: "toArray" },
         { op: "deleteBefore" },
-        { op: "length" },
+        { op: "toArray" },
         { op: "cursor" },
       ],
     },
@@ -192,7 +185,7 @@ export const gapBufferContract: ContractSpec<
         { op: "insert", arg: 2 },
         { op: "insert", arg: 3 },
         { op: "cursor" },
-        { op: "length" },
+        { op: "toArray" },
         { op: "toArray" },
       ],
     },
@@ -208,7 +201,7 @@ export const gapBufferContract: ContractSpec<
         { op: "insert", arg: 9 },
         { op: "cursor" },
         { op: "toArray" },
-        { op: "length" },
+        { op: "toArray" },
       ],
     },
     {
@@ -228,8 +221,8 @@ export const gapBufferContract: ContractSpec<
       ],
     },
     {
-      // 경계가 `[0, length()]` 인 인자라 위쪽 끝이 `length()` 자신이다(불변 사실 166).
-      name: "커서 자리는 0 과 length() 를 포함하고 그 밖은 RangeError 다",
+      // 경계가 「0 이상 담긴 원소 수 이하」인 인자라 위쪽 끝이 담긴 원소 수 자신이다(불변 사실 166).
+      name: "커서 자리는 0 과 담긴 원소 수를 포함하고 그 밖은 RangeError 다",
       steps: [
         { op: "insert", arg: 1 },
         { op: "insert", arg: 2 },
@@ -262,7 +255,7 @@ export const gapBufferContract: ContractSpec<
         { op: "deleteBefore" },
         { op: "toArray" },
         { op: "cursor" },
-        { op: "length" },
+        { op: "toArray" },
       ],
     },
     {
@@ -273,21 +266,9 @@ export const gapBufferContract: ContractSpec<
     },
   ],
 
-  invariants: [
-    {
-      // 관측 경로가 둘이고(세어 둔 수 · 늘어놓은 수) 어느 계약 줄도 그 정합을 적지 않는다.
-      // 앞뒤를 나눠 담는 구현은 두 수를 따로 들고 다니게 되고, 그 순간 각 연산이 저마다
-      // 옳은 채로 둘이 갈린다.
-      name: "length() 가 말하는 수와 toArray() 의 길이가 같다",
-      check: (impl) => {
-        const counted = impl.length();
-        const listed = impl.toArray().length;
-        return counted === listed
-          ? null
-          : `length()=${counted} 인데 toArray().length=${listed} 이다`;
-      },
-    },
-  ],
+  // 헤더의 불변식 절이 「없다」다. 세어 둔 수를 읽는 행이 표면에서 빠져 늘어놓은 수와 견줄
+  // 둘째 경로가 사라졌고, 커서 자리를 상태를 바꾸지 않고 읽는 경로도 `cursor()` 하나뿐이다.
+  invariants: [],
 
   scenarios: [
     {
@@ -367,9 +348,8 @@ export const gapBufferContract: ContractSpec<
       endState: (impl, n) => isRuns(impl.toArray(), [{ from: 0, count: n }]),
     },
     {
-      // 둘을 한 걸음에 묶는 이유는 각각 혼자로는 잴 것이 적기 때문이다. 커서 자리와 원소
-      // 수를 세어 두지 않고 물을 때마다 훑는 계열이 여기서만 걸린다.
-      covers: ["cursor", "length"],
+      // 커서 자리를 세어 두지 않고 물을 때마다 훑는 계열이 여기서만 걸린다.
+      covers: ["cursor"],
       qualifier: "worst",
       bound: "O(1)",
       adversarial: false,
@@ -379,7 +359,6 @@ export const gapBufferContract: ContractSpec<
         for (let i = 0; i < n >> 2; i++) {
           ctx.step(() => {
             impl.cursor();
-            impl.length();
           });
         }
       },

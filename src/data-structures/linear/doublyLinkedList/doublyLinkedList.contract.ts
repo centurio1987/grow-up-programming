@@ -42,7 +42,6 @@ export interface DoublyLinkedListContract<T> {
   insertAfter(handle: unknown, value: T): unknown;
   remove(handle: unknown): boolean;
   toArray(): T[];
-  size(): number;
 }
 
 type Surface = DoublyLinkedListContract<number>;
@@ -109,7 +108,7 @@ function liveIndex(model: Model, at: number): number {
 
 export const doublyLinkedListContract: ContractSpec<Surface, Model> = {
   name: "DoublyLinkedList",
-  grade: "invariant",
+  grade: "basic",
   model: () => ({ order: [], values: [] }),
 
   ops: [
@@ -173,25 +172,19 @@ export const doublyLinkedListContract: ContractSpec<Surface, Model> = {
       },
       onModel: (model) => model.order.map((slot) => model.values[slot]),
     },
-    {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.order.length,
-    },
   ],
 
   edges: [
     {
       name: "빈 수열에 넣은 원소는 앞 끝이자 뒤 끝이다",
       steps: [
-        { op: "size" },
+        { op: "toArray" },
         { op: "toArray" },
         { op: "prepend", arg: 1 },
         { op: "append", arg: 2 },
         { op: "prepend", arg: 0 },
         { op: "toArray" },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -217,7 +210,7 @@ export const doublyLinkedListContract: ContractSpec<Surface, Model> = {
         { op: "remove", arg: 0 },
         { op: "insertAfter", arg: [0, 9] },
         { op: "toArray" },
-        { op: "size" },
+        { op: "toArray" },
         { op: "append", arg: 1 },
         { op: "remove", arg: 0 },
         { op: "toArray" },
@@ -238,7 +231,7 @@ export const doublyLinkedListContract: ContractSpec<Surface, Model> = {
         { op: "toArray" },
         { op: "insertAfter", arg: [0, 4] },
         { op: "toArray" },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -253,7 +246,7 @@ export const doublyLinkedListContract: ContractSpec<Surface, Model> = {
         { op: "insertAfter", arg: [1, 9] },
         { op: "prepend", arg: 0 },
         { op: "toArray" },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -285,7 +278,7 @@ export const doublyLinkedListContract: ContractSpec<Surface, Model> = {
         { op: "toArray" },
         { op: "remove", arg: 2 },
         { op: "remove", arg: 3 },
-        { op: "size" },
+        { op: "toArray" },
         { op: "toArray" },
         { op: "append", arg: 5 },
         { op: "toArray" },
@@ -316,7 +309,7 @@ export const doublyLinkedListContract: ContractSpec<Surface, Model> = {
         { op: "insertAfter", arg: [0, 2] },
         { op: "remove", arg: 1 },
         { op: "toArray" },
-        { op: "size" },
+        { op: "toArray" },
         { op: "append", arg: 4 },
         { op: "toArray" },
       ],
@@ -331,7 +324,7 @@ export const doublyLinkedListContract: ContractSpec<Surface, Model> = {
         { op: "remove", arg: -1 },
         { op: "insertAfter", arg: [-1, 5] },
         { op: "toArray" },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -341,22 +334,14 @@ export const doublyLinkedListContract: ContractSpec<Surface, Model> = {
         { op: "append", arg: 2 },
         { op: "toArray" },
         { op: "toArray" },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
   ],
 
-  invariants: [
-    {
-      name: "세어 둔 원소 수와 늘어놓은 원소 수가 같다",
-      check: (impl) => {
-        const counted = impl.size();
-        const listed = impl.toArray().length;
-        if (counted === listed) return null;
-        return `size()=${counted} 인데 toArray().length=${listed} 다`;
-      },
-    },
-  ],
+  // 헤더의 불변식 절이 「없다」다. 세어 둔 수를 읽는 행이 표면에서 빠져 늘어놓은 수와 견줄
+  // 둘째 경로가 사라졌고, 남은 조건은 `toArray` 행의 의미라 축1의 몫이다.
+  invariants: [],
 
   scenarios: [
     {
@@ -425,16 +410,6 @@ export const doublyLinkedListContract: ContractSpec<Surface, Model> = {
           else middle = impl.insertAfter(middle, i);
         }
         for (let i = 0; i < 3; i++) ctx.step(() => impl.toArray());
-      },
-    },
-    {
-      covers: ["size"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      run: (impl, n, ctx) => {
-        for (let i = 0; i < n; i++) impl.append(i);
-        for (let i = 0; i < 8; i++) ctx.step(() => impl.size());
       },
     },
   ],

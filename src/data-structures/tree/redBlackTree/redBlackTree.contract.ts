@@ -29,7 +29,6 @@ export interface RedBlackTreeContract<T> {
   min(): T | null;
   max(): T | null;
   range(low: T, high: T): T[];
-  size(): number;
   toArray(): T[];
 }
 
@@ -116,12 +115,6 @@ export const redBlackTreeContract: ContractSpec<
       },
     },
     {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.length,
-    },
-    {
       name: "toArray",
       arg: () => undefined,
       onImpl: (impl) => impl.toArray(),
@@ -137,10 +130,9 @@ export const redBlackTreeContract: ContractSpec<
         { op: "min" },
         { op: "max" },
         { op: "range", arg: [0, 100] },
-        { op: "size" },
         { op: "toArray" },
         { op: "delete", arg: 1 },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -150,11 +142,10 @@ export const redBlackTreeContract: ContractSpec<
         { op: "insert", arg: 5 },
         { op: "insert", arg: 5 },
         { op: "insert", arg: 5 },
-        { op: "size" },
         { op: "toArray" },
         { op: "delete", arg: 5 },
         { op: "has", arg: 5 },
-        { op: "size" },
+        { op: "toArray" },
       ],
     },
     {
@@ -164,7 +155,6 @@ export const redBlackTreeContract: ContractSpec<
         { op: "insert", arg: 4 },
         { op: "delete", arg: 3 },
         { op: "toArray" },
-        { op: "size" },
         { op: "delete", arg: 4 },
         { op: "toArray" },
       ],
@@ -222,7 +212,7 @@ export const redBlackTreeContract: ContractSpec<
         { op: "insert", arg: 2 },
         { op: "delete", arg: 1 },
         { op: "delete", arg: 2 },
-        { op: "size" },
+        { op: "toArray" },
         { op: "min" },
         { op: "insert", arg: 8 },
         { op: "min" },
@@ -232,18 +222,8 @@ export const redBlackTreeContract: ContractSpec<
     },
   ],
 
-  // 헤더 불변식 절의 넷. 넷 다 관측 경로가 둘이라 구현이 따로 유지하면 갈린다.
+  // 헤더 불변식 절의 셋. 셋 다 관측 경로가 둘이라 구현이 따로 유지하면 갈린다.
   invariants: [
-    {
-      name: "toArray().length 와 size() 가 같다",
-      check: (impl) => {
-        const listed = impl.toArray().length;
-        const counted = impl.size();
-        return listed === counted
-          ? null
-          : `toArray().length=${listed} 인데 size()=${counted} 다`;
-      },
-    },
     {
       name: "has 는 toArray 에 그 값이 있는가와 같다",
       check: (impl) => {
@@ -382,17 +362,6 @@ export const redBlackTreeContract: ContractSpec<
       run: (impl, n, ctx) => {
         for (let i = 0; i < n; i++) impl.insert(Math.floor(ctx.rng() * n * 4));
         for (let i = 0; i < 4; i++) ctx.step(() => impl.toArray());
-      },
-    },
-    {
-      covers: ["size"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      // 세어 두지 않고 그때그때 훑는 구현이 걸리는 자리다.
-      run: (impl, n, ctx) => {
-        for (let i = 0; i < n; i++) impl.insert(Math.floor(ctx.rng() * n * 4));
-        for (let i = 0; i < n; i++) ctx.step(() => impl.size());
       },
     },
   ],

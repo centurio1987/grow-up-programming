@@ -29,10 +29,6 @@ export class ScanningSuffixArray {
     return this.#carried + this.#inner.__cost;
   }
 
-  length(): number {
-    return this.#inner.length();
-  }
-
   at(rank: number): number | null {
     return this.#inner.at(rank);
   }
@@ -47,7 +43,7 @@ export class ScanningSuffixArray {
 
   /** 순위를 앞에서부터 하나씩 밟는다. 답은 같고 비용만 다르다. */
   range(pattern: string): [number, number] {
-    const n = this.#inner.length();
+    const n = this.#s.length;
     let lo = 0;
     while (lo < n && this.#compare(this.#inner.at(lo) as number, pattern) < 0)
       lo += 1;

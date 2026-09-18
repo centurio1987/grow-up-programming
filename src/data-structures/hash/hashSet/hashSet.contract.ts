@@ -39,12 +39,11 @@
 import { fixedInput, seededInput } from "../../_contract/expectedRepeat";
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 **여덟 행**을 그대로 옮긴 표면. 생성자 행은 팩토리가 나른다. */
+/** 헤더 연산 계약 표의 **일곱 행**을 그대로 옮긴 표면. 생성자 행은 팩토리가 나른다. */
 export interface HashSetContract<T> {
   add(item: T): void;
   has(item: T): boolean;
   delete(item: T): boolean;
-  size(): number;
   values(): T[];
   union(other: HashSetContract<T>): HashSetContract<T>;
   intersection(other: HashSetContract<T>): HashSetContract<T>;
@@ -54,7 +53,7 @@ export interface HashSetContract<T> {
 type Built<T> = HashSetContract<T> & { __cost?: number };
 
 /**
- * 하네스용 껍데기. 집합 셋을 자리로 들고 계약의 여덟 행을 그 위에 편다.
+ * 하네스용 껍데기. 집합 셋을 자리로 들고 계약의 일곱 행을 그 위에 편다.
  *
  * `union`·`intersection`·`difference` 는 결과를 자리에 담고 그 원소 배열을 돌려준다. 배열을
  * 돌려주는 것은 축1이 견줄 관측값이 필요해서이고, 자리에 담는 것은 **독립**을 관측하기
@@ -88,10 +87,6 @@ export class SetPair<T> {
     return this.#mine.delete(item);
   }
 
-  size(): number {
-    return this.#mine.size();
-  }
-
   values(): T[] {
     return this.#mine.values();
   }
@@ -121,7 +116,7 @@ export class SetPair<T> {
   }
 
   resultSize(): number {
-    return this.#result.size();
+    return this.#result.values().length;
   }
 
   resultHas(item: T): boolean {
@@ -227,12 +222,6 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
       onModel: (model, arg) => model.mine.delete(arg as number),
     },
     {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.mine.size,
-    },
-    {
       // 순서는 계약이 정하지 않으므로 양쪽을 정렬해서 견준다(파일 헤더).
       name: "values",
       arg: () => undefined,
@@ -307,7 +296,6 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
     {
       name: "빈 집합에서는 무엇을 물어도 없다고 답한다",
       steps: [
-        { op: "size" },
         { op: "has", arg: 7 },
         { op: "delete", arg: 7 },
         { op: "values" },
@@ -318,16 +306,15 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
       ],
     },
     {
-      // 같은 원소를 다시 넣는 것은 **아무 일도 하지 않는 일**이다. 담긴 수가 그 문장의
-      // 관측 지점이다.
-      name: "같은 원소를 다시 넣어도 담긴 수가 그대로다",
+      // 같은 원소를 다시 넣는 것은 **아무 일도 하지 않는 일**이다. 담긴 것이 그 문장의
+      // 관측 지점이고, 그것을 `values()` 가 앞뒤로 보인다.
+      name: "같은 원소를 다시 넣어도 담긴 것이 그대로다",
       steps: [
         { op: "add", arg: 3 },
-        { op: "size" },
-        { op: "add", arg: 3 },
-        { op: "size" },
-        { op: "has", arg: 3 },
         { op: "values" },
+        { op: "add", arg: 3 },
+        { op: "values" },
+        { op: "has", arg: 3 },
       ],
     },
     {
@@ -338,7 +325,7 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
         { op: "has", arg: 5 },
         { op: "add", arg: 5 },
         { op: "has", arg: 5 },
-        { op: "size" },
+        { op: "values" },
       ],
     },
     {
@@ -348,7 +335,6 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
         { op: "add", arg: 1 },
         { op: "add", arg: 2 },
         { op: "delete", arg: 9 },
-        { op: "size" },
         { op: "has", arg: 1 },
         { op: "has", arg: 2 },
         { op: "values" },
@@ -362,7 +348,6 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
         { op: "add", arg: CLUMP },
         { op: "add", arg: 2 * CLUMP },
         { op: "add", arg: 3 * CLUMP },
-        { op: "size" },
         { op: "has", arg: 2 * CLUMP },
         { op: "delete", arg: CLUMP },
         { op: "has", arg: CLUMP },
@@ -385,7 +370,7 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
         { op: "add", arg: 4 * CLUMP },
         { op: "has", arg: 2 * CLUMP },
         { op: "has", arg: 4 * CLUMP },
-        { op: "size" },
+        { op: "values" },
       ],
     },
     {
@@ -429,7 +414,7 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
         { op: "addOther", arg: 2 },
         { op: "union" },
         { op: "resultSize" },
-        { op: "size" },
+        { op: "values" },
         { op: "add", arg: 9 },
         { op: "resultHas", arg: 9 },
         { op: "resultSize" },
@@ -478,17 +463,6 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
   ],
 
   invariants: [
-    {
-      // 담긴 수를 읽는 길이 둘이다 — `size()` 와 `values().length`. 어느 계약 줄도 둘이
-      // 같아야 한다고 적지 않으므로 불변식이다(§규약1 「불변식 판별 절차」 2번).
-      name: "values().length === size()",
-      check: (impl) => {
-        const values = impl.values();
-        const size = impl.size();
-        if (values.length === size) return null;
-        return `values() 는 ${values.length} 개인데 size() 는 ${size} 다`;
-      },
-    },
     {
       // 담김 여부를 읽는 길이 둘이다 — `has(x)` 와 `values()` 안에 x 가 있는가.
       name: "임의의 원소에 대해 has(x) 와 values() 포함이 같다",
@@ -591,19 +565,6 @@ export const hashSetContract: ContractSpec<Impl, Model> = {
         }
       },
     }),
-    {
-      covers: ["size"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      // 담긴 수를 세어 두지 않고 그때그때 훑는 구현이 여기서 걸린다.
-      run: (impl, n, ctx) => {
-        const items = shuffledRange(n, ctx.rng);
-        fill(impl, n, (index) => items[index] as number);
-        for (let round = 0; round < ROUNDS; round++)
-          ctx.step(() => impl.size());
-      },
-    },
     {
       covers: ["values"],
       qualifier: "worst",

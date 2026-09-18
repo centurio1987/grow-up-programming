@@ -36,7 +36,6 @@ export interface BitArrayContract {
   set(index: number): void;
   clear(index: number): void;
   get(index: number): boolean;
-  size(): number;
 }
 
 type Built = BitArrayContract & { __cost?: number };
@@ -88,7 +87,7 @@ interface Model {
   bits: boolean[];
 }
 
-/** 모델 쪽 범위 판정 — 헤더의 「`[0, size())` 안의 정수」. */
+/** 모델 쪽 범위 판정 — 헤더의 「`[0, n)` 안의 정수」. */
 function inRange(model: Model, index: number): boolean {
   return Number.isInteger(index) && index >= 0 && index < model.bits.length;
 }
@@ -168,19 +167,12 @@ export const bitArrayContract: ContractSpec<SizedBits, Model> = {
         return model.bits[index] as boolean;
       },
     },
-    {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.bits.size(),
-      onModel: (model) => model.bits.length,
-    },
   ],
 
   edges: [
     {
-      name: "처음에는 모든 자리가 꺼져 있고 size 는 생성 인자다",
+      name: "처음에는 모든 자리가 꺼져 있고 자리 수는 생성 인자다",
       steps: [
-        { op: "size" },
         { op: "get", arg: 0 },
         { op: "get", arg: 31 },
         { op: "get", arg: 32 },
@@ -246,7 +238,6 @@ export const bitArrayContract: ContractSpec<SizedBits, Model> = {
         { op: "get", arg: 0.5 },
         { op: "get", arg: 0 },
         { op: "get", arg: 1 },
-        { op: "size" },
       ],
     },
     {
@@ -255,16 +246,15 @@ export const bitArrayContract: ContractSpec<SizedBits, Model> = {
       steps: [
         { op: "set", arg: 3 },
         { op: "constructor", arg: 5 },
-        { op: "size" },
         { op: "get", arg: 3 },
+        { op: "get", arg: 4 },
         { op: "get", arg: 5 },
         { op: "constructor", arg: 0 },
-        { op: "size" },
         { op: "get", arg: 0 },
         { op: "set", arg: 0 },
         { op: "constructor", arg: -1 },
         { op: "constructor", arg: 2.5 },
-        { op: "size" },
+        { op: "get", arg: 0 },
         { op: "constructor", arg: 1 },
         { op: "set", arg: 0 },
         { op: "get", arg: 0 },
@@ -316,18 +306,6 @@ export const bitArrayContract: ContractSpec<SizedBits, Model> = {
         const bits = impl.bits;
         for (let i = 0; i < n; i += 2) bits.set(i);
         for (let i = 0; i < n; i++) ctx.step(() => bits.get(i));
-      },
-    },
-    {
-      covers: ["size"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      run: (impl, n, ctx) => {
-        impl.reset(n);
-        const bits = impl.bits;
-        for (let i = 0; i < n; i += 2) bits.set(i);
-        for (let i = 0; i < 8; i++) ctx.step(() => bits.size());
       },
     },
   ],

@@ -98,11 +98,6 @@ export class GapBuffer<T> {
     return this.#gapStart;
   }
 
-  length(): number {
-    this.__cost += 1;
-    return this.#size();
-  }
-
   toArray(): T[] {
     const out: T[] = [];
     for (let at = 0; at < this.#gapStart; at++) out.push(this.#slots[at] as T);

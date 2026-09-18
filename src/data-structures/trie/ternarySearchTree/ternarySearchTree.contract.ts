@@ -20,7 +20,6 @@ export interface TernarySearchTreeContract {
   startsWith(prefix: string): boolean;
   delete(word: string): boolean;
   wordsWithPrefix(prefix: string): string[];
-  size(): number;
 }
 
 /** 축1 참조 모델. 자명한 집합이면 된다 — 축1은 의미만 보고 비용은 보지 않는다. */
@@ -96,19 +95,12 @@ export const ternarySearchTreeContract: ContractSpec<
       onModel: (model, arg) =>
         [...model].filter((word) => word.startsWith(arg as string)).sort(),
     },
-    {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.size,
-    },
   ],
 
   edges: [
     {
       name: "빈 집합 — 무엇을 물어도 없다",
       steps: [
-        { op: "size" },
         { op: "search", arg: "a" },
         { op: "startsWith", arg: "" },
         { op: "wordsWithPrefix", arg: "" },
@@ -119,7 +111,6 @@ export const ternarySearchTreeContract: ContractSpec<
       name: "빈 낱말도 낱말이다",
       steps: [
         { op: "insert", arg: "" },
-        { op: "size" },
         { op: "search", arg: "" },
         { op: "startsWith", arg: "" },
         { op: "wordsWithPrefix", arg: "" },
@@ -132,10 +123,10 @@ export const ternarySearchTreeContract: ContractSpec<
       steps: [
         { op: "insert", arg: "ab" },
         { op: "insert", arg: "ab" },
-        { op: "size" },
+        { op: "wordsWithPrefix", arg: "" },
         { op: "delete", arg: "ab" },
         { op: "search", arg: "ab" },
-        { op: "size" },
+        { op: "wordsWithPrefix", arg: "" },
       ],
     },
     {
@@ -157,7 +148,6 @@ export const ternarySearchTreeContract: ContractSpec<
         { op: "search", arg: "abc" },
         { op: "startsWith", arg: "ab" },
         { op: "wordsWithPrefix", arg: "ab" },
-        { op: "size" },
       ],
     },
     {
@@ -166,7 +156,7 @@ export const ternarySearchTreeContract: ContractSpec<
         { op: "insert", arg: "ab" },
         { op: "delete", arg: "ac" },
         { op: "delete", arg: "a" },
-        { op: "size" },
+        { op: "wordsWithPrefix", arg: "" },
         { op: "search", arg: "ab" },
       ],
     },
@@ -187,15 +177,6 @@ export const ternarySearchTreeContract: ContractSpec<
   ],
 
   invariants: [
-    {
-      name: "세어 둔 낱말 수와 늘어놓은 낱말 수가 같다",
-      check: (impl) => {
-        const counted = impl.size();
-        const listed = impl.wordsWithPrefix("").length;
-        if (counted === listed) return null;
-        return `size()=${counted} 인데 wordsWithPrefix("").length=${listed} 다`;
-      },
-    },
     {
       name: "접두사로 받은 낱말은 하나씩 물어도 담겨 있고 그 접두사로 시작한다",
       check: (impl) => {
@@ -267,16 +248,6 @@ export const ternarySearchTreeContract: ContractSpec<
         const words = corpus(n, ctx.rng);
         for (const word of words) impl.insert(word);
         for (const word of words) ctx.step(() => impl.delete(word));
-      },
-    },
-    {
-      covers: ["size"],
-      qualifier: "worst",
-      bound: "O(1)",
-      adversarial: false,
-      run: (impl, n, ctx) => {
-        for (const word of corpus(n, ctx.rng)) impl.insert(word);
-        for (let i = 0; i < 8; i++) ctx.step(() => impl.size());
       },
     },
     {

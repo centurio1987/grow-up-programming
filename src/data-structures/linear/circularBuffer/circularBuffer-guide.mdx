@@ -282,14 +282,6 @@ export class CircularBuffer<T> {
     return this.#count === this.#slots.length;
   }
 
-  isEmpty(): boolean {
-    return this.size() === 0;
-  }
-
-  size(): number {
-    return this.#count;
-  }
-
   /**
    * 칸 번호를 용량 안으로 되돌린다.
    *

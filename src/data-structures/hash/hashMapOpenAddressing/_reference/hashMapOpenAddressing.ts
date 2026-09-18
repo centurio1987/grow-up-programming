@@ -152,11 +152,6 @@ export class HashMapOpenAddressing<K, V> {
     return true;
   }
 
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
-  }
-
   keys(): K[] {
     const found: K[] = [];
     for (let at = 0; at < this.#state.length; at++) {

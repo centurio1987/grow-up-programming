@@ -3,7 +3,7 @@
  *
  * 대상 계약: `hash/hashSet`.
  *
- * **이 fixture 는 계약을 어기지 않는다.** 담는 모양도 나머지 일곱 행도 정본 그대로이고,
+ * **이 fixture 는 계약을 어기지 않는다.** 담는 모양도 나머지 여섯 행도 정본 그대로이고,
  * 갈리는 것은 `intersection` 하나다 — 두 크기를 견주어 **작은 쪽을 훑고 큰 쪽에 묻는다.**
  * 그러면 호출 하나의 비용이 `min(n, m)` 이라 계약이 적은 `O(n)` 아래에 있다. 상한은 상한
  * 이므로 이것은 위반이 아니다.
@@ -21,6 +21,11 @@
  *
  * 축3 계측 단위는 정본과 같다 — *"자리 하나를 지나갈 때마다 1"*(§규약2 계측 단위). 안에 든
  * 정본이 세는 값에 **새 집합을 짓는 몫**을 더해 보고한다.
+ *
+ * **두 크기는 이 fixture 가 스스로 센다.** 계약 표면에 담긴 수를 읽는 행이 없으므로
+ * (`KAN-040` `S4` 가 뺐다) 담긴 수를 여기서 들고 있고, 새 원소인지 보려고 `add` 가 안쪽에
+ * 한 번 더 묻는다. 그 몫도 계측에 그대로 들어간다 — 상수 배수라 성장 계급은 움직이지 않고,
+ * 이 fixture 가 겨누는 자리는 계급이다.
  */
 
 import { HashSet } from "../../hash/hashSet/_reference/hashSet";
@@ -29,6 +34,7 @@ export class SmallerSideSetOfKeys<T> {
   readonly #spread: (item: T) => number;
   readonly #inner: HashSet<T>;
   #extra = 0;
+  #held = 0;
 
   constructor(spread: (item: T) => number) {
     this.#spread = spread;
@@ -40,6 +46,7 @@ export class SmallerSideSetOfKeys<T> {
   }
 
   add(item: T): void {
+    if (!this.#inner.has(item)) this.#held += 1;
     this.#inner.add(item);
   }
 
@@ -48,11 +55,9 @@ export class SmallerSideSetOfKeys<T> {
   }
 
   delete(item: T): boolean {
-    return this.#inner.delete(item);
-  }
-
-  size(): number {
-    return this.#inner.size();
+    const gone = this.#inner.delete(item);
+    if (gone) this.#held -= 1;
+    return gone;
   }
 
   values(): T[] {
@@ -70,7 +75,7 @@ export class SmallerSideSetOfKeys<T> {
   /** 두 크기를 견주고 작은 쪽을 훑는다. 답은 정본과 같고 비용의 `n` 이 `min(n, m)` 이다. */
   intersection(other: SmallerSideSetOfKeys<T>): SmallerSideSetOfKeys<T> {
     const made = new SmallerSideSetOfKeys<T>(this.#spread);
-    if (this.size() <= other.size()) {
+    if (this.#held <= other.#held) {
       for (const item of this.values()) {
         if (other.has(item)) made.add(item);
       }

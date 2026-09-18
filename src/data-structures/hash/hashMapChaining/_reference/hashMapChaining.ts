@@ -182,11 +182,6 @@ export class HashMapChaining<K, V> {
     return false;
   }
 
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
-  }
-
   keys(): K[] {
     const found: K[] = [];
     for (const chain of this.#slots) {

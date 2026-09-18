@@ -5,23 +5,9 @@
   "element": "number",
   "cases": [
     {
-      "name": "처음에는 간선이 없고 정점 수는 생성 인자다",
+      "name": "처음에는 간선이 하나도 없다",
       "kind": "edge",
       "steps": [
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
         {
           "op": "hasEdge",
           "arg": [
@@ -478,11 +464,13 @@
           "expect": []
         },
         {
-          "op": "vertexCount",
+          "op": "hasEdge",
           "arg": [
-            false
+            false,
+            0,
+            1
           ],
-          "expect": 5
+          "expect": false
         }
       ]
     },
@@ -500,17 +488,468 @@
           "expect": "RangeError"
         },
         {
-          "op": "vertexCount",
+          "op": "neighbors",
           "arg": [
-            true
+            true,
+            3
           ],
-          "expect": 5
+          "expect": []
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            5,
+            2
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            true,
+            1,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            -1,
+            1,
+            3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            1,
+            3,
+            3
+          ]
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            2,
+            4
+          ]
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            false,
+            2,
+            4,
+            3
+          ]
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            1,
+            1
+          ],
+          "expect": null
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            4,
+            3
+          ]
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            -1,
+            3,
+            3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            1
+          ],
+          "expect": []
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            5,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            false,
+            4,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            5,
+            1,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            0
+          ],
+          "expect": []
+        },
+        {
+          "op": "weight",
+          "arg": [
+            false,
+            -1,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            -1,
+            1,
+            6
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            false,
+            -1,
+            4
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            true,
+            0
+          ],
+          "expect": []
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            1,
+            0
+          ]
         },
         {
           "op": "weight",
           "arg": [
             false,
             1,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            1,
+            3,
+            2
+          ]
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            false,
+            0,
+            4
+          ],
+          "expect": false
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            5,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            -1,
+            5,
+            7
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            true,
+            0
+          ],
+          "expect": []
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            4
+          ],
+          "expect": [
+            2
+          ]
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            0,
+            1
+          ]
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            true,
+            5,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            3
+          ],
+          "expect": []
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            1,
+            1
+          ],
+          "expect": null
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            5,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            -1,
+            -1,
+            4
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            4,
+            1
+          ]
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            1
+          ],
+          "expect": []
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            0,
+            2
+          ],
+          "expect": null
+        },
+        {
+          "op": "weight",
+          "arg": [
+            false,
+            -1,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            false,
+            -1,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            false,
+            3,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            -1,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            false,
+            3,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            false,
+            -1,
+            3,
+            6
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            5,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            3,
+            -1,
+            4
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            -1,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            true,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            3,
+            2,
+            7
+          ]
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            5,
+            3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            false,
+            0,
+            0,
+            6
+          ]
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            -1,
+            1,
+            6
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            false,
+            3,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            false,
+            5,
+            -1,
             5
           ],
           "expect": "RangeError"
@@ -520,14 +959,211 @@
           "arg": [
             true,
             -1,
-            1
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            -1,
+            2
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            false,
+            5,
+            2
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            1,
+            4
+          ],
+          "expect": null
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            4,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            false,
+            -1,
+            4,
+            4
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            3
+          ],
+          "expect": []
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            false,
+            2,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            false,
+            3,
+            -1,
+            6
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            5,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            true,
+            5,
+            3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            true,
+            3,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            false,
+            0,
+            3
+          ],
+          "expect": null
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            3
+          ],
+          "expect": []
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            false,
+            2,
+            4
+          ],
+          "expect": true
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            true,
+            4
+          ],
+          "expect": []
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            0,
+            5
           ],
           "expect": "RangeError"
         },
         {
           "op": "removeEdge",
           "arg": [
+            false,
+            2,
+            3
+          ]
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
             true,
+            4,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            -1,
+            4
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            1,
+            4
+          ],
+          "expect": null
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            -1,
+            1,
+            3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            false,
+            0,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "weight",
+          "arg": [
+            false,
             2,
             -1
           ],
@@ -537,66 +1173,140 @@
           "op": "hasEdge",
           "arg": [
             false,
-            1,
-            0
+            2,
+            5
           ],
-          "expect": false
+          "expect": "RangeError"
         },
         {
-          "op": "addEdge",
+          "op": "neighbors",
           "arg": [
-            true,
-            3,
-            4,
-            2
+            false,
+            0
+          ],
+          "expect": [
+            0
           ]
         },
         {
           "op": "weight",
           "arg": [
             false,
+            3,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            -1,
+            2
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            2,
+            2
+          ]
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
             4,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            true,
+            2,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            3,
+            2
+          ]
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            true,
+            1,
             0
           ],
-          "expect": null
+          "expect": false
         },
         {
-          "op": "neighbors",
+          "op": "hasEdge",
           "arg": [
             true,
-            4
-          ],
-          "expect": []
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
+            2,
             1
           ],
-          "expect": []
+          "expect": false
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            true,
+            -1,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            3,
+            3
+          ]
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            0,
+            4,
+            2
+          ]
         },
         {
           "op": "hasEdge",
           "arg": [
             true,
             0,
-            4
+            1
           ],
           "expect": false
         },
         {
-          "op": "weight",
+          "op": "hasEdge",
+          "arg": [
+            false,
+            1,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "hasEdge",
           "arg": [
             true,
-            0,
+            1,
             -1
           ],
           "expect": "RangeError"
@@ -605,7 +1315,16 @@
           "op": "weight",
           "arg": [
             false,
-            0,
+            2,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            3,
             5
           ],
           "expect": "RangeError"
@@ -614,7 +1333,195 @@
           "op": "neighbors",
           "arg": [
             true,
+            4
+          ],
+          "expect": []
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            true,
+            0,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            4,
+            5,
+            7
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            0
+          ],
+          "expect": [
+            0
+          ]
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            3,
+            2,
+            5
+          ]
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            4,
+            4
+          ]
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            false,
+            2,
+            1,
+            5
+          ]
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            4,
+            2
+          ]
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            true,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            false,
+            -1,
             1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            1,
+            2
+          ]
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            true,
+            3,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            true,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            1,
+            3
+          ]
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            1,
+            3
+          ]
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            0,
+            2
+          ]
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            1,
+            1,
+            7
+          ]
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            3,
+            2
+          ]
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            1
+          ],
+          "expect": []
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            false,
+            3,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            0,
+            4
+          ],
+          "expect": 2
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            true,
+            4
           ],
           "expect": []
         },
@@ -622,7 +1529,291 @@
           "op": "neighbors",
           "arg": [
             false,
+            4
+          ],
+          "expect": [
+            2
+          ]
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            true,
+            1
+          ],
+          "expect": [
+            1
+          ]
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            4,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            3,
+            4
+          ]
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            false,
+            3,
+            -1,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            5,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            3,
+            3
+          ]
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            3
+          ],
+          "expect": []
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            4,
+            0
+          ]
+        },
+        {
+          "op": "weight",
+          "arg": [
+            false,
+            1,
+            1
+          ],
+          "expect": null
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            2,
+            1
+          ],
+          "expect": null
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            true,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            true,
+            1,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            false,
+            5,
+            0
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            false,
+            0,
             5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            -1,
+            1,
+            6
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            2,
+            1
+          ]
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            true,
+            4,
+            3
+          ],
+          "expect": false
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            2,
+            1
+          ],
+          "expect": null
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            false,
+            3,
+            0
+          ],
+          "expect": false
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            false,
+            -1,
+            2
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            3,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            2,
+            0,
+            1
+          ]
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            true,
+            0
+          ],
+          "expect": [
+            1,
+            4
+          ]
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            false,
+            3,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            3,
+            1
+          ]
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            false,
+            5,
+            3
           ],
           "expect": "RangeError"
         },
@@ -632,382 +1823,77 @@
             false,
             4
           ],
-          "expect": []
+          "expect": [
+            2
+          ]
         },
         {
-          "op": "vertexCount",
+          "op": "removeEdge",
           "arg": [
-            true
+            false,
+            4,
+            2
+          ]
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            5,
+            5
           ],
-          "expect": 5
+          "expect": "RangeError"
         },
         {
           "op": "addEdge",
           "arg": [
             false,
-            1,
-            5,
+            2,
+            1
+          ]
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            true,
+            0,
+            2
+          ],
+          "expect": false
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            false,
+            3
+          ],
+          "expect": []
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            false,
+            4,
+            4,
             9
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            3
-          ],
-          "expect": [
-            4
           ]
         },
         {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            true,
-            1,
-            1
-          ],
-          "expect": false
-        },
-        {
           "op": "weight",
           "arg": [
-            false,
-            2,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            false,
-            0
-          ],
-          "expect": []
-        },
-        {
-          "op": "addEdge",
-          "arg": [
             true,
-            5,
-            1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "weight",
-          "arg": [
-            false,
-            1,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            true,
-            1,
             3,
             2
-          ]
-        },
-        {
-          "op": "weight",
-          "arg": [
-            false,
-            0,
-            4
           ],
           "expect": null
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            false,
-            5,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            true,
-            -1,
-            5,
-            7
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            false,
-            4,
-            4
-          ]
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            true,
-            0,
-            1
-          ]
-        },
-        {
-          "op": "weight",
-          "arg": [
-            true,
-            5,
-            1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "weight",
-          "arg": [
-            false,
-            0,
-            1
-          ],
-          "expect": null
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            true,
-            0,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            true,
-            -1,
-            4
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            true,
-            0,
-            4
-          ],
-          "expect": false
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            false,
-            2,
-            1
-          ]
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            0
-          ],
-          "expect": []
-        },
-        {
-          "op": "weight",
-          "arg": [
-            false,
-            4,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            false,
-            3,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            true,
-            5,
-            3
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            true,
-            3,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "weight",
-          "arg": [
-            false,
-            -1,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            3
-          ],
-          "expect": [
-            4
-          ]
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            false,
-            1,
-            2
-          ]
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            true,
-            3,
-            -1,
-            4
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            false,
-            -1,
-            1,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            false,
-            -1,
-            0
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "weight",
-          "arg": [
-            true,
-            0,
-            3
-          ],
-          "expect": null
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            true,
-            3,
-            3
-          ]
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            true,
-            -1,
-            1,
-            6
-          ],
-          "expect": "RangeError"
         },
         {
           "op": "neighbors",
@@ -1018,396 +1904,91 @@
           "expect": []
         },
         {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
           "op": "addEdge",
-          "arg": [
-            false,
-            2,
-            2,
-            1
-          ]
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            false,
-            1,
-            -1,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            false,
-            2
-          ],
-          "expect": [
-            2
-          ]
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            1
-          ],
-          "expect": [
-            3
-          ]
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            0
-          ],
-          "expect": []
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            4
-          ],
-          "expect": []
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "weight",
-          "arg": [
-            true,
-            3,
-            2
-          ],
-          "expect": null
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            true,
-            5,
-            3
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            false,
-            3,
-            0
-          ]
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            true,
-            1,
-            5,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            false,
-            -1,
-            4,
-            2
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "weight",
-          "arg": [
-            false,
-            3,
-            3
-          ],
-          "expect": null
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            false,
-            2,
-            4
-          ],
-          "expect": false
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            false,
-            0
-          ],
-          "expect": [
-            3
-          ]
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            false,
-            1,
-            5,
-            6
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            true,
-            4,
-            3
-          ],
-          "expect": false
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            false,
-            0
-          ],
-          "expect": [
-            3
-          ]
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            false,
-            -1,
-            0
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            true,
-            5,
-            1,
-            7
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            false,
-            4,
-            3,
-            1
-          ]
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            false,
-            2,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            false,
-            3,
-            3
-          ]
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            true,
-            -1,
-            2
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            false,
-            1,
-            4
-          ],
-          "expect": false
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            false,
-            2,
-            1
-          ]
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "weight",
-          "arg": [
-            true,
-            -1,
-            1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            false,
-            -1,
-            2
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "hasEdge",
           "arg": [
             false,
             0,
-            -1
-          ],
-          "expect": "RangeError"
+            2,
+            2
+          ]
         },
         {
           "op": "removeEdge",
           "arg": [
             true,
+            -1,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            false,
+            0,
             1,
-            3
+            8
           ]
         },
         {
-          "op": "weight",
+          "op": "hasEdge",
+          "arg": [
+            false,
+            1,
+            1
+          ],
+          "expect": false
+        },
+        {
+          "op": "hasEdge",
           "arg": [
             true,
             1,
-            0
+            3
           ],
-          "expect": null
+          "expect": false
         },
         {
-          "op": "neighbors",
+          "op": "hasEdge",
           "arg": [
-            false,
+            true,
+            -1,
             0
           ],
-          "expect": [
-            3
-          ]
+          "expect": "RangeError"
         },
         {
           "op": "hasEdge",
           "arg": [
             true,
             0,
-            1
+            0
           ],
           "expect": false
         },
         {
           "op": "weight",
           "arg": [
+            true,
+            -1,
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            true,
+            4,
+            0
+          ]
+        },
+        {
+          "op": "weight",
+          "arg": [
             false,
-            1,
-            3
+            4,
+            0
           ],
           "expect": null
         },
@@ -1415,17 +1996,8 @@
           "op": "weight",
           "arg": [
             true,
-            1,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "weight",
-          "arg": [
-            false,
-            2,
-            -1
+            5,
+            4
           ],
           "expect": "RangeError"
         },
@@ -1433,661 +2005,210 @@
           "op": "removeEdge",
           "arg": [
             true,
-            3,
+            1,
+            0
+          ]
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            0,
             5
           ],
           "expect": "RangeError"
         },
         {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            false,
-            -1,
-            1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
           "op": "hasEdge",
           "arg": [
-            false,
-            4,
-            3
+            true,
+            3,
+            4
           ],
           "expect": true
         },
         {
           "op": "removeEdge",
           "arg": [
-            true,
-            0,
+            false,
+            5,
             3
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            false,
+            0,
+            2,
+            9
+          ]
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            true,
+            5,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "hasEdge",
+          "arg": [
+            false,
+            5,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            true,
+            5,
+            -1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            false,
+            -1,
+            3,
+            1
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            true,
+            4,
+            4
           ]
         },
         {
           "op": "hasEdge",
           "arg": [
             false,
-            2,
-            1
+            5,
+            0
           ],
-          "expect": false
+          "expect": "RangeError"
+        },
+        {
+          "op": "neighbors",
+          "arg": [
+            true,
+            3
+          ],
+          "expect": [
+            4
+          ]
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
+            2,
+            4
+          ]
         },
         {
           "op": "weight",
           "arg": [
             false,
             4,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            false,
-            2,
-            1
-          ],
-          "expect": false
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            false,
-            2,
-            4
-          ],
-          "expect": false
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            false,
-            1,
-            4
-          ]
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            true,
-            1,
-            3,
-            5
-          ]
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            true,
-            3,
-            3
-          ],
-          "expect": false
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            true,
-            3,
-            1,
-            4
-          ]
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            false,
-            4
-          ],
-          "expect": [
-            3
-          ]
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            true,
-            1,
-            0,
-            1
-          ]
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            true,
-            1,
-            0,
-            3
-          ]
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            false,
-            2,
-            5,
-            4
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            false,
-            3,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "weight",
-          "arg": [
-            true,
-            0,
-            4
+            0
           ],
           "expect": null
         },
         {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            false,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            true,
-            0,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            0
-          ],
-          "expect": []
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            3
-          ],
-          "expect": [
-            1,
-            4
-          ]
-        },
-        {
-          "op": "weight",
-          "arg": [
-            true,
-            0,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
           "op": "removeEdge",
           "arg": [
             true,
-            -1,
-            3
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            false,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            false,
-            3,
-            3,
-            1
-          ]
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            3
-          ],
-          "expect": [
-            1,
-            4
-          ]
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            false,
-            5,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            2
-          ],
-          "expect": []
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            true,
-            -1,
-            0
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            false,
-            -1,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            true,
-            2,
-            0
-          ]
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            true,
-            3,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            false,
-            0
-          ],
-          "expect": [
-            3
-          ]
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            true,
-            1,
             4,
             3
           ]
         },
         {
-          "op": "hasEdge",
-          "arg": [
-            true,
-            1,
-            3
-          ],
-          "expect": true
-        },
-        {
-          "op": "hasEdge",
+          "op": "removeEdge",
           "arg": [
             false,
             3,
-            3
+            -1
           ],
-          "expect": true
+          "expect": "RangeError"
+        },
+        {
+          "op": "weight",
+          "arg": [
+            false,
+            4,
+            1
+          ],
+          "expect": null
         },
         {
           "op": "addEdge",
           "arg": [
-            true,
+            false,
             1,
-            1,
+            4,
             7
           ]
         },
         {
-          "op": "removeEdge",
-          "arg": [
-            false,
-            4,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            false,
-            -1,
-            2
-          ],
-          "expect": "RangeError"
-        },
-        {
           "op": "addEdge",
           "arg": [
             false,
             -1,
-            3
+            1,
+            4
           ],
           "expect": "RangeError"
         },
         {
-          "op": "addEdge",
+          "op": "weight",
           "arg": [
             true,
             2,
+            2
+          ],
+          "expect": null
+        },
+        {
+          "op": "removeEdge",
+          "arg": [
+            false,
             0,
-            1
+            5
+          ],
+          "expect": "RangeError"
+        },
+        {
+          "op": "addEdge",
+          "arg": [
+            false,
+            3,
+            4,
+            3
           ]
         },
         {
           "op": "addEdge",
           "arg": [
             true,
-            3,
             4,
-            5
-          ]
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            false,
-            -1,
-            0,
+            3,
             6
-          ],
-          "expect": "RangeError"
+          ]
         },
         {
           "op": "weight",
-          "arg": [
-            true,
-            1,
-            3
-          ],
-          "expect": 5
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            2
-          ],
-          "expect": [
-            0
-          ]
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            false,
-            3
-          ],
-          "expect": [
-            0,
-            3,
-            4
-          ]
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            1
-          ],
-          "expect": [
-            0,
-            1,
-            3,
-            4
-          ]
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            false,
-            5
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            false,
-            2,
-            1
-          ]
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            true,
-            0,
-            2
-          ],
-          "expect": false
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            false,
-            2,
-            3
-          ]
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            false,
-            4
-          ],
-          "expect": [
-            3
-          ]
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "weight",
-          "arg": [
-            true,
-            3,
-            2
-          ],
-          "expect": null
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            false
-          ],
-          "expect": 5
-        },
-        {
-          "op": "weight",
-          "arg": [
-            true,
-            4,
-            0
-          ],
-          "expect": null
-        },
-        {
-          "op": "weight",
-          "arg": [
-            true,
-            0,
-            1
-          ],
-          "expect": null
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            true,
-            1,
-            -1,
-            2
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "removeEdge",
           "arg": [
             true,
             5,
@@ -2096,120 +2217,42 @@
           "expect": "RangeError"
         },
         {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "hasEdge",
+          "op": "weight",
           "arg": [
             false,
-            1,
-            1
+            3,
+            3
           ],
-          "expect": false
+          "expect": null
         },
         {
           "op": "weight",
           "arg": [
-            true,
-            2,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
             false,
-            -1,
-            0
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            false,
-            1,
-            -1
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "vertexCount",
-          "arg": [
-            true
-          ],
-          "expect": 5
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            false,
-            0,
-            -1,
-            6
-          ],
-          "expect": "RangeError"
-        },
-        {
-          "op": "neighbors",
-          "arg": [
-            true,
-            3
-          ],
-          "expect": [
-            1,
-            4
-          ]
-        },
-        {
-          "op": "hasEdge",
-          "arg": [
-            false,
-            4,
-            0
-          ],
-          "expect": false
-        },
-        {
-          "op": "removeEdge",
-          "arg": [
-            true,
-            0,
-            3
-          ]
-        },
-        {
-          "op": "addEdge",
-          "arg": [
-            true,
             5,
-            2,
-            7
+            5
           ],
           "expect": "RangeError"
         },
         {
           "op": "neighbors",
           "arg": [
-            true,
-            3
+            false,
+            2
           ],
           "expect": [
-            1,
-            4
+            0,
+            1
           ]
         },
         {
-          "op": "vertexCount",
+          "op": "removeEdge",
           "arg": [
-            false
+            true,
+            4,
+            -1
           ],
-          "expect": 5
+          "expect": "RangeError"
         }
       ]
     }

@@ -17,7 +17,7 @@
  *
  * **축3 계측(`__cost`).** 세는 단위는 *"마디 하나를 지나갈 때마다 1"* 이다 — **읽기와 쓰기를 따로 세지
  * 않고**, 언어 런타임이 마디 객체를 잡는 비용도 세지 않는다(§규약2 계측 단위). 넣기 · 빼기는 새 마디나
- * 뺄 마디 하나를 건드려 1, `toArray` 는 마디마다 1, `size` 는 세어 둔 수를 읽어 1 이다. 산 핸들이 아니면
+ * 뺄 마디 하나를 건드려 1, `toArray` 는 마디마다 1 이다. 산 핸들이 아니면
  * 지나갈 마디가 없어 0 이다. `__cost` 는 계약이 아니라 정본의 의무다(불변 사실 23).
  */
 
@@ -40,7 +40,6 @@ export class DoublyLinkedList<T> {
   #first: Link<T> | null = null;
   /** 뒤 끝 마디. 비어 있으면 `null` 이고, 원소가 하나면 `#first` 와 같은 마디다. */
   #last: Link<T> | null = null;
-  #count = 0;
 
   /** 축3 계측. 파일 헤더의 단위 설명 참고. */
   __cost = 0;
@@ -52,7 +51,6 @@ export class DoublyLinkedList<T> {
     if (this.#first === null) this.#last = link;
     else this.#first.prev = link;
     this.#first = link;
-    this.#count += 1;
     return link;
   }
 
@@ -63,7 +61,6 @@ export class DoublyLinkedList<T> {
     if (this.#last === null) this.#first = link;
     else this.#last.next = link;
     this.#last = link;
-    this.#count += 1;
     return link;
   }
 
@@ -78,7 +75,6 @@ export class DoublyLinkedList<T> {
     if (at.next === null) this.#last = link;
     else at.next.prev = link;
     at.next = link;
-    this.#count += 1;
     return link;
   }
 
@@ -95,7 +91,6 @@ export class DoublyLinkedList<T> {
     link.next = null;
     // 이 핸들을 죽인다. 같은 마디가 다시 수열에 들어올 길이 없으므로 다시 살아나지 않는다.
     link.owner = null;
-    this.#count -= 1;
     return true;
   }
 
@@ -106,11 +101,6 @@ export class DoublyLinkedList<T> {
       out.push(link.value);
     }
     return out;
-  }
-
-  size(): number {
-    this.__cost += 1;
-    return this.#count;
   }
 
   /** 산 핸들이면 그 마디, 아니면 `null`. 이미 빠진 마디와 다른 수열의 마디를 함께 거른다. */
