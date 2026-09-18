@@ -1,6 +1,6 @@
 {
   "next_id": 51,
-  "next_seq": 381,
+  "next_seq": 386,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -319,23 +319,23 @@
     },
     "KAN-036-0G05DE": {
       "col": "todo",
-      "title": "ds-guide-v2 전 편 전개 — 파일럿 3편의 골격·집필 안내를 자료구조 가이드 66편에 적용",
+      "title": "ds-guide-v2 전 편 전개 — 파일럿 3편의 골격·집필 안내를 자료구조 가이드 64편에 적용",
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-14",
-      "title_hash": "4bf4a3461b0bb2592b58a780052934dfefdc5ff4",
+      "갱신": "2026-09-18",
+      "title_hash": "2c8b9ca4c795d8513c7ad1f14b12f2944c9a764d",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "short": "ds-guide-v2 전 편 전개",
       "short_hash": "19a7ea961ac3e7693d3695b55424733e3681aea8",
-      "purpose": "src/data-structures/ 의 남은 -guide.mdx 66편을 sandbox/ds-guide-v2/SPEC.md 골격과 AUTHORING.md 집필 안내로 -guide.md 로 재집필한다",
-      "purpose_hash": "edd98cc4a77d74ec08adf7de00ad8ea6f1a555cb",
+      "purpose": "src/data-structures/ 의 남은 -guide.mdx 가운데 자료구조 64편을 sandbox/ds-guide-v2/SPEC.md 골격과 AUTHORING.md 집필 안내로 -guide.md 로 재집필한다(활성 66편에서 알고리즘 트랙 이관 대상 둘을 뺀 수다)",
+      "purpose_hash": "9e5cc01c8c782f4adda0f4abfe267c1c9c530a59",
       "reason": "KAN-035 파일럿 3편(deque·redBlackTree·xorLinkedList)과 검토서 12개 판단 항목이 2026-09-14 전부 승인돼, 카드 계획상 승인 뒤에 두기로 한 전개를 열 수 있다",
       "reason_hash": "70179ece4e75eaebd6729a4ba7e9b84fe5700927",
-      "goal": "69편이 전부 v2 골격으로 서서 check-v2(P1~P20)·check-proof --require·guide-core·ci.ts all 을 통과하고, .mdx 와 8단계 골격 자산이 0 이 된다",
-      "goal_hash": "1cd51046126a6e58ee9dfc427df08ab0f0d3f41e",
-      "memo": "**직렬 대기(2026-09-14 · 유저 결재).** 계약이 없는 33종(A군 16 · B군 17)은 KAN-026 · KAN-027 이 계약 전환을 끝낸 뒤에 쓸 수 있으므로 두 카드가 완료될 때까지 착수하지 않는다(dep-serialize 기록, 착수 시도는 종료코드 11). 선행 둘이 끝나면 전략을 다시 세우고 `dep-serialize --restrategy-done` 으로 푼다. 66편 전개와 .mdx 0 · 옛 8단계 자산 제거는 그대로 이 카드 몫이다. 인계(KAN-035): ① 걷을 것 — .claude/authoring/specs/ds-guide/ · tools/check-guide-rhythm.ts · tools/_baseline/guide-rhythm.tsv(.mdx 가 0 이 되면 exit 2 로 CI 가 멈추므로 마지막 편과 같은 커밋에서 걷는다, SPEC.md §8). ② docs/ORD-006-wbs.md 는 무효 — 계약 단위로 다시 뽑는다. ③ probabilistic/concurrentSkipList 는 TS 정본이 없어 deep.walk.final 이 Rust 추출이다 — 규격 자리만 있고 이 카드가 세운다. ④ 메모리 동기 5종(bitArray·bloomFilter·countMinSketch·cuckooFilter·hyperLogLog)은 계약 전환 때 DIRECT_MEMORY 편입을 판정한다(docs/ORD-006-conventions.md §규약4 「메모리를 직접 다뤄야 이득이 생기는 구조」). ⑤ 검토 4번 — tools/ord004-manifest.json 의 옛 .mdx 경로를 한꺼번에 정리. ⑥ 검토 11번 — avlTree·twoThreeTree 재집필 때 정본 guide:core 주석의 은유를 고치고 redBlackTree 편 본문 코드를 추출본으로 교체. ⑦ 이 카드 신설로 KAN-001 봉인 조건에 한 장이 붙는다. 근거: KANBAN.cards/KAN-035-31T4BY.md · KANBAN.reviews/KAN-035-31T4BY.review.md",
-      "memo_hash": "bcddbe730bca54f4a2f4be375cc41f9c07df09ba",
+      "goal": "자료구조 67편이 v2 골격으로 서서 check-v2(P1~P20)·check-proof --require·guide-core·ci.ts all 을 통과하고, 자료구조의 .mdx 와 8단계 골격 자산이 0 이 된다. 이관 대상 둘(rollingHash·huffmanTree)의 .mdx 는 KAN-039 가 알고리즘 트랙 가이드로 대체하며 걷으므로 이 카드의 완료 조건이 아니다",
+      "goal_hash": "b2d9e98f6827f179b4567d5f8dd222c92f8481f2",
+      "memo": "**직렬 대기 사유는 해소됐다(2026-09-18).** 착수를 막던 것은 「계약이 없는 33종」이었는데 KAN-026·KAN-027 이 2026-09-16 에 완료·병합돼 계약이 67/69 로 섰다(남은 둘은 계약 전환 대상이 아니라 알고리즘 트랙 이관 대상이다). 카드 메모가 그 시점 이후 갱신되지 않아 사유가 낡은 채 서 있었다. 목적·목표의 「66편」도 「64편」으로 고쳤다 — 활성 .mdx 66 에서 이관 대상 둘을 뺀 수이고, 그 둘 때문에 KAN-039 가 선행으로 걸려 있던 것을 dep-waive 로 풀었다(036 은 그 둘의 가이드를 건드리지 않는다). **직렬 대기(2026-09-14 · 유저 결재).** 계약이 없는 33종(A군 16 · B군 17)은 KAN-026 · KAN-027 이 계약 전환을 끝낸 뒤에 쓸 수 있으므로 두 카드가 완료될 때까지 착수하지 않는다(dep-serialize 기록, 착수 시도는 종료코드 11). 선행 둘이 끝나면 전략을 다시 세우고 `dep-serialize --restrategy-done` 으로 푼다. 66편 전개와 .mdx 0 · 옛 8단계 자산 제거는 그대로 이 카드 몫이다. 인계(KAN-035): ① 걷을 것 — .claude/authoring/specs/ds-guide/ · tools/check-guide-rhythm.ts · tools/_baseline/guide-rhythm.tsv(.mdx 가 0 이 되면 exit 2 로 CI 가 멈추므로 마지막 편과 같은 커밋에서 걷는다, SPEC.md §8). ② docs/ORD-006-wbs.md 는 무효 — 계약 단위로 다시 뽑는다. ③ probabilistic/concurrentSkipList 는 TS 정본이 없어 deep.walk.final 이 Rust 추출이다 — 규격 자리만 있고 이 카드가 세운다. ④ 메모리 동기 5종(bitArray·bloomFilter·countMinSketch·cuckooFilter·hyperLogLog)은 계약 전환 때 DIRECT_MEMORY 편입을 판정한다(docs/ORD-006-conventions.md §규약4 「메모리를 직접 다뤄야 이득이 생기는 구조」). ⑤ 검토 4번 — tools/ord004-manifest.json 의 옛 .mdx 경로를 한꺼번에 정리. ⑥ 검토 11번 — avlTree·twoThreeTree 재집필 때 정본 guide:core 주석의 은유를 고치고 redBlackTree 편 본문 코드를 추출본으로 교체. ⑦ 이 카드 신설로 KAN-001 봉인 조건에 한 장이 붙는다. 근거: KANBAN.cards/KAN-035-31T4BY.md · KANBAN.reviews/KAN-035-31T4BY.review.md",
+      "memo_hash": "0e5bea2a581ef71b580dfcab5429583781840a6a",
       "scope": [
         "src/data-structures/*/*/*-guide.*",
         "src/data-structures/**/_reference/**",
@@ -1407,6 +1407,60 @@
   ],
   "recent": [
     {
+      "seq": 385,
+      "t": "2026-09-18T20:32",
+      "a": "ai",
+      "id": "KAN-036-0G05DE",
+      "op": "waive",
+      "w": "46PCAX",
+      "with_": "KAN-039-FG8HWZ",
+      "reason": "036 은 이관 대상 둘(rollingHash·huffmanTree)의 가이드를 건드리지 않는다 — 그 둘은 자료구조가 아니라고 판정돼 알고리즘 트랙으로 갔고, 036 의 완료 조건에서도 뺐다(목표를 자료구조 64편으로 고쳤다). 겹치는 것은 scope 글로브뿐이고 실제로 같은 파일을 쓰지 않는다. 그 둘의 .mdx 를 걷는 것은 KAN-039 몫이다(2026-09-18 재조정)"
+    },
+    {
+      "seq": 384,
+      "t": "2026-09-18T20:32",
+      "a": "ai",
+      "id": "KAN-036-0G05DE",
+      "op": "edit",
+      "w": "46PCAX",
+      "field": "memo",
+      "before": "**직렬 대기(2026-09-14 · 유저 결재).** 계약이 없는 33종(A군 16 · B군 17)은 KAN-026 · KAN-027 이 계약 전환을 끝낸 뒤에 쓸 수 있으므로 두 카드가 완료될 때까지 착수하지 않는다(dep-serialize 기록, 착수 시도는 종료코드 11). 선행 둘이 끝나면 전략을 다시 세우고 `dep-serialize --restrategy-done` 으로 푼다. 66편 전개와 .mdx 0 · 옛 8단계 자산 제거는 그대로 이 카드 몫이다. 인계(KAN-035): ① 걷을 것 — .claude/authoring/specs/ds-guide/ · tools/check-guide-rhythm.ts · tools/_baseline/guide-rhythm.tsv(.mdx 가 0 이 되면 exit 2 로 CI 가 멈추므로 마지막 편과 같은 커밋에서 걷는다, SPEC.md §8). ② docs/ORD-006-wbs.md 는 무효 — 계약 단위로 다시 뽑는다. ③ probabilistic/concurrentSkipList 는 TS 정본이 없어 deep.walk.final 이 Rust 추출이다 — 규격 자리만 있고 이 카드가 세운다. ④ 메모리 동기 5종(bitArray·bloomFilter·countMinSketch·cuckooFilter·hyperLogLog)은 계약 전환 때 DIRECT_MEMORY 편입을 판정한다(docs/ORD-006-conventions.md §규약4 「메모리를 직접 다뤄야 이득이 생기는 구조」). ⑤ 검토 4번 — tools/ord004-manifest.json 의 옛 .mdx 경로를 한꺼번에 정리. ⑥ 검토 11번 — avlTree·twoThreeTree 재집필 때 정본 guide:core 주석의 은유를 고치고 redBlackTree 편 본문 코드를 추출본으로 교체. ⑦ 이 카드 신설로 KAN-001 봉인 조건에 한 장이 붙는다. 근거: KANBAN.cards/KAN-035-31T4BY.md · KANBAN.reviews/KAN-035-31T4BY.review.md",
+      "after": "**직렬 대기 사유는 해소됐다(2026-09-18).** 착수를 막던 것은 「계약이 없는 33종」이었는데 KAN-026·KAN-027 이 2026-09-16 에 완료·병합돼 계약이 67/69 로 섰다(남은 둘은 계약 전환 대상이 아니라 알고리즘 트랙 이관 대상이다). 카드 메모가 그 시점 이후 갱신되지 않아 사유가 낡은 채 서 있었다. 목적·목표의 「66편」도 「64편」으로 고쳤다 — 활성 .mdx 66 에서 이관 대상 둘을 뺀 수이고, 그 둘 때문에 KAN-039 가 선행으로 걸려 있던 것을 dep-waive 로 풀었다(036 은 그 둘의 가이드를 건드리지 않는다). **직렬 대기(2026-09-14 · 유저 결재).** 계약이 없는 33종(A군 16 · B군 17)은 KAN-026 · KAN-027 이 계약 전환을 끝낸 뒤에 쓸 수 있으므로 두 카드가 완료될 때까지 착수하지 않는다(dep-serialize 기록, 착수 시도는 종료코드 11). 선행 둘이 끝나면 전략을 다시 세우고 `dep-serialize --restrategy-done` 으로 푼다. 66편 전개와 .mdx 0 · 옛 8단계 자산 제거는 그대로 이 카드 몫이다. 인계(KAN-035): ① 걷을 것 — .claude/authoring/specs/ds-guide/ · tools/check-guide-rhythm.ts · tools/_baseline/guide-rhythm.tsv(.mdx 가 0 이 되면 exit 2 로 CI 가 멈추므로 마지막 편과 같은 커밋에서 걷는다, SPEC.md §8). ② docs/ORD-006-wbs.md 는 무효 — 계약 단위로 다시 뽑는다. ③ probabilistic/concurrentSkipList 는 TS 정본이 없어 deep.walk.final 이 Rust 추출이다 — 규격 자리만 있고 이 카드가 세운다. ④ 메모리 동기 5종(bitArray·bloomFilter·countMinSketch·cuckooFilter·hyperLogLog)은 계약 전환 때 DIRECT_MEMORY 편입을 판정한다(docs/ORD-006-conventions.md §규약4 「메모리를 직접 다뤄야 이득이 생기는 구조」). ⑤ 검토 4번 — tools/ord004-manifest.json 의 옛 .mdx 경로를 한꺼번에 정리. ⑥ 검토 11번 — avlTree·twoThreeTree 재집필 때 정본 guide:core 주석의 은유를 고치고 redBlackTree 편 본문 코드를 추출본으로 교체. ⑦ 이 카드 신설로 KAN-001 봉인 조건에 한 장이 붙는다. 근거: KANBAN.cards/KAN-035-31T4BY.md · KANBAN.reviews/KAN-035-31T4BY.review.md"
+    },
+    {
+      "seq": 383,
+      "t": "2026-09-18T20:32",
+      "a": "ai",
+      "id": "KAN-036-0G05DE",
+      "op": "edit",
+      "w": "46PCAX",
+      "field": "goal",
+      "before": "69편이 전부 v2 골격으로 서서 check-v2(P1~P20)·check-proof --require·guide-core·ci.ts all 을 통과하고, .mdx 와 8단계 골격 자산이 0 이 된다",
+      "after": "자료구조 67편이 v2 골격으로 서서 check-v2(P1~P20)·check-proof --require·guide-core·ci.ts all 을 통과하고, 자료구조의 .mdx 와 8단계 골격 자산이 0 이 된다. 이관 대상 둘(rollingHash·huffmanTree)의 .mdx 는 KAN-039 가 알고리즘 트랙 가이드로 대체하며 걷으므로 이 카드의 완료 조건이 아니다"
+    },
+    {
+      "seq": 382,
+      "t": "2026-09-18T20:32",
+      "a": "ai",
+      "id": "KAN-036-0G05DE",
+      "op": "edit",
+      "w": "46PCAX",
+      "field": "purpose",
+      "before": "src/data-structures/ 의 남은 -guide.mdx 66편을 sandbox/ds-guide-v2/SPEC.md 골격과 AUTHORING.md 집필 안내로 -guide.md 로 재집필한다",
+      "after": "src/data-structures/ 의 남은 -guide.mdx 가운데 자료구조 64편을 sandbox/ds-guide-v2/SPEC.md 골격과 AUTHORING.md 집필 안내로 -guide.md 로 재집필한다(활성 66편에서 알고리즘 트랙 이관 대상 둘을 뺀 수다)"
+    },
+    {
+      "seq": 381,
+      "t": "2026-09-18T20:32",
+      "a": "ai",
+      "id": "KAN-036-0G05DE",
+      "op": "edit",
+      "w": "46PCAX",
+      "field": "title",
+      "before": "ds-guide-v2 전 편 전개 — 파일럿 3편의 골격·집필 안내를 자료구조 가이드 66편에 적용",
+      "after": "ds-guide-v2 전 편 전개 — 파일럿 3편의 골격·집필 안내를 자료구조 가이드 64편에 적용"
+    },
+    {
       "seq": 380,
       "t": "2026-09-18T20:20",
       "a": "ai",
@@ -1882,57 +1936,6 @@
       "w": "QHMBW3",
       "from": "doing",
       "to": "review"
-    },
-    {
-      "seq": 335,
-      "t": "2026-09-17T01:09",
-      "a": "ai",
-      "id": "KAN-048-QN5194",
-      "op": "move",
-      "w": "QHMBW3",
-      "from": "backlog",
-      "to": "doing"
-    },
-    {
-      "seq": 334,
-      "t": "2026-09-17T00:58",
-      "a": "ai",
-      "id": "KAN-047-394V9A",
-      "op": "move",
-      "w": "GWC813",
-      "from": "review",
-      "to": "done"
-    },
-    {
-      "seq": 333,
-      "t": "2026-09-17T00:49",
-      "a": "ai",
-      "id": "KAN-048-QN5194",
-      "op": "edit",
-      "w": "46PCAX",
-      "field": "memo",
-      "before": "대상(KAN-047 배치2 실측): 표류 31 인용 / 대장 34행. 갈래 셋 — ㉠ 좌표 밀림 20(KAN-026:173 → conventions:42 는 카드 최초 커밋 0e7c94be 시점 기준 +4, KAN-034.8 넷은 check-v2.ts 의 METAPHORS·라벨 수집 자리, paths.json:28·29 와 ord004-manifest.json:659 는 대상 항목 자체가 걷혔다) ㉡ 경로 없는 인용이 자기로 잘못 풀린 11(셋은 경로만 적으면 그대로 맞는다 — KAN-033:27 · KAN-034-KSD7XR:65 · KAN-035:77) ㉢ 경계 둘(KAN-046:42 의 옛 좌표 다섯은 「무엇을 어디로 고쳤다」는 기록이라 고치면 기록이 사라진다 · KAN-026:42 는 좌표가 맞고 대상 문장이 개정된 것이라 갈래가 다르다). **정본은 이 카드 시점 대장의 flag=drift 34행이고 판정 근거는 KAN-047 배치2 문서에 있다.** 별도 판단거리 하나: KAN-035:95 → treap.ts:45 는 인용문이 파일 어디에도 없어 대상을 다시 세워야 하고, 그 인용이 treap 을 파일럿에서 뺀 근거라 근거 자체를 재확인할 자리다. 정정 뒤 bun run tools/check-citations.ts --update 로 대장을 갱신한다(래칫은 내려가는 쪽이라 가드가 막지 않는다).",
-      "after": "대상(KAN-047 배치2 실측): 표류 31 인용 / 대장 34행. 갈래 셋 — ㉠ 좌표 밀림 20(KAN-026:173 → conventions:42 는 카드 최초 커밋 0e7c94be 시점 기준 +4, KAN-034.8 넷은 check-v2.ts 의 METAPHORS·라벨 수집 자리, paths.json:28·29 와 ord004-manifest.json:659 는 대상 항목 자체가 걷혔다) ㉡ 경로 없는 인용이 자기로 잘못 풀린 11(셋은 경로만 적으면 그대로 맞는다 — KAN-033:27 · KAN-034-KSD7XR:65 · KAN-035:77) ㉢ 경계 둘(KAN-046:42 의 옛 좌표 다섯은 「무엇을 어디로 고쳤다」는 기록이라 고치면 기록이 사라진다 · KAN-026:42 는 좌표가 맞고 대상 문장이 개정된 것이라 갈래가 다르다). **정본은 이 카드 시점 대장의 flag=drift 34행이고 판정 근거는 KAN-047 배치2 문서에 있다.** 별도 판단거리 하나: KAN-035:95 → treap.ts:45 는 인용문이 파일 어디에도 없어 대상을 다시 세워야 하고, 그 인용이 treap 을 파일럿에서 뺀 근거라 근거 자체를 재확인할 자리다. 정정 뒤 bun run tools/check-citations.ts --update 로 대장을 갱신한다(래칫은 내려가는 쪽이라 가드가 막지 않는다). **KAN-047 배치3 이 하나 더 찾았다(2026-09-17).** 런북 불변 사실 25 의 예시 인용(`:82`)은 「이런 상대 인용은 썩는다」를 보이는 **예시**인데 도구가 진짜 인용으로 읽어 런북 82줄(불변 사실 68, 전혀 다른 내용)에 대장 행을 세워 두고 있다. 갈래 ㉡ 과 같은 성격이라 함께 처분한다 — 좌표를 올릴 자리가 아니라 **예시를 도구가 안 읽는 꼴(NN 관례)로 되돌릴** 자리다. 같은 판단의 선례는 KAN-047 `S4`(도구 머리 주석)."
-    },
-    {
-      "seq": 333,
-      "t": "2026-09-17T00:48",
-      "a": "ai",
-      "id": "KAN-047-394V9A",
-      "op": "move",
-      "w": "GWC813",
-      "from": "doing",
-      "to": "review"
-    },
-    {
-      "seq": 332,
-      "t": "2026-09-17T00:09",
-      "a": "유저",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-048-QN5194",
-      "reason": "카드 문서의 계획 절이 KAN-036 의 입력이다 — 밀린 인용을 물려주지 않는다"
     }
   ],
   "waivers": [
@@ -1956,6 +1959,13 @@
       "reason": "겹치는 것은 docs/ORD-006-inventory.tsv 하나이고 행이 다르다 — KAN-039 는 rollingHash·huffmanTree 행, KAN-042 는 vanEmdeBoasTree 행. 병합 충돌은 행 단위로 양쪽을 살린다",
       "created": "2026-09-17T02:29",
       "by": "유저"
+    },
+    {
+      "pair": "KAN-036-0G05DE|KAN-039-FG8HWZ",
+      "scope_hash": "d851e20b7e58428d",
+      "reason": "036 은 이관 대상 둘(rollingHash·huffmanTree)의 가이드를 건드리지 않는다 — 그 둘은 자료구조가 아니라고 판정돼 알고리즘 트랙으로 갔고, 036 의 완료 조건에서도 뺐다(목표를 자료구조 64편으로 고쳤다). 겹치는 것은 scope 글로브뿐이고 실제로 같은 파일을 쓰지 않는다. 그 둘의 .mdx 를 걷는 것은 KAN-039 몫이다(2026-09-18 재조정)",
+      "created": "2026-09-18T20:32",
+      "by": "ai"
     }
   ],
   "serials": [
