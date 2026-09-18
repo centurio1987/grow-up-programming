@@ -26,13 +26,12 @@
 
 import type { ContractSpec } from "../../_contract/runContract";
 
-/** 헤더 연산 계약 표의 **다섯 행**을 그대로 옮긴 표면. 생성자 행은 껍데기가 나른다. */
+/** 헤더 연산 계약 표의 **네 행**을 그대로 옮긴 표면. 생성자 행은 껍데기가 나른다. */
 export interface CircularBufferContract<T> {
   write(item: T): void;
   read(): T | null;
   peek(): T | null;
   isFull(): boolean;
-  size(): number;
 }
 
 type Built = CircularBufferContract<number> & { __cost?: number };
@@ -74,10 +73,6 @@ export class Capacitated implements CircularBufferContract<number> {
 
   isFull(): boolean {
     return this.#impl.isFull();
-  }
-
-  size(): number {
-    return this.#impl.size();
   }
 }
 
@@ -128,25 +123,19 @@ export const circularBufferContract: ContractSpec<Capacitated, Model> = {
       onImpl: (impl) => impl.isFull(),
       onModel: (model) => model.items.length === CAPACITY,
     },
-    {
-      name: "size",
-      arg: () => undefined,
-      onImpl: (impl) => impl.size(),
-      onModel: (model) => model.items.length,
-    },
   ],
 
   edges: [
     {
+      // 「상태가 안 바뀐다」를 보던 `size` 자리를 살아남은 관측(`peek`)으로 갈아 끼웠다.
       name: "빈 버퍼에서 read·peek 은 null 이고 상태를 바꾸지 않는다",
       steps: [
         { op: "read" },
         { op: "peek" },
-        { op: "size" },
         { op: "isFull" },
-        { op: "size" },
+        { op: "peek" },
         { op: "read" },
-        { op: "size" },
+        { op: "peek" },
       ],
     },
     {
@@ -171,9 +160,9 @@ export const circularBufferContract: ContractSpec<Capacitated, Model> = {
         { op: "write", arg: 3 },
         { op: "write", arg: 4 },
         { op: "isFull" },
-        { op: "size" },
+        { op: "peek" },
         { op: "write", arg: 5 },
-        { op: "size" },
+        { op: "isFull" },
         { op: "peek" },
         { op: "read" },
         { op: "read" },
@@ -194,12 +183,12 @@ export const circularBufferContract: ContractSpec<Capacitated, Model> = {
         { op: "write", arg: 6 },
         { op: "write", arg: 7 },
         { op: "write", arg: 8 },
-        { op: "size" },
+        { op: "peek" },
         { op: "read" },
         { op: "read" },
         { op: "read" },
         { op: "read" },
-        { op: "size" },
+        { op: "peek" },
       ],
     },
     {
@@ -214,7 +203,7 @@ export const circularBufferContract: ContractSpec<Capacitated, Model> = {
         { op: "read" },
         { op: "isFull" },
         { op: "write", arg: 5 },
-        { op: "size" },
+        { op: "isFull" },
         { op: "peek" },
         { op: "read" },
         { op: "read" },
@@ -229,7 +218,7 @@ export const circularBufferContract: ContractSpec<Capacitated, Model> = {
         { op: "write", arg: 2 },
         { op: "read" },
         { op: "read" },
-        { op: "size" },
+        { op: "peek" },
         { op: "write", arg: 3 },
         { op: "write", arg: 4 },
         { op: "write", arg: 5 },
@@ -238,12 +227,12 @@ export const circularBufferContract: ContractSpec<Capacitated, Model> = {
         { op: "peek" },
         { op: "write", arg: 7 },
         { op: "peek" },
-        { op: "size" },
+        { op: "isFull" },
       ],
     },
   ],
 
-  // 헤더의 불변식 절이 「없다」다. 관측 경로가 둘 이상인 성질 넷의 정합을 계약 표가 이미
+  // 헤더의 불변식 절이 「없다」다. 관측 경로가 둘 이상인 성질 하나의 정합을 계약 표가 이미
   // 적고 있어 각 연산의 의미이고, 대조는 축1이 참조 모델과 하는 일이다.
   invariants: [],
 
@@ -286,9 +275,11 @@ export const circularBufferContract: ContractSpec<Capacitated, Model> = {
       },
     },
     {
-      // 셋을 한 걸음에 묶는 이유는 `isFull` 혼자로는 잴 것이 적기 때문이다.
-      // 크기를 세어 두지 않고 매번 칸을 훑는 계열이 여기서만 걸린다.
-      covers: ["peek", "isFull", "size"],
+      // 둘을 한 걸음에 묶는 이유는 `isFull` 혼자로는 잴 것이 적기 때문이다.
+      // `KAN-040` `S6` 이 크기 읽기를 계약에서 빼기 전에는 셋을 묶었고, 크기를 세어 두지
+      // 않고 매번 칸을 훑는 계열이 여기서만 걸렸다. 그 행이 빠져 이제 그 계열은 어디에도
+      // 안 걸린다(자기시험이 그 사실을 값으로 박고 있다).
+      covers: ["peek", "isFull"],
       qualifier: "worst",
       bound: "O(1)",
       adversarial: false,
@@ -299,7 +290,6 @@ export const circularBufferContract: ContractSpec<Capacitated, Model> = {
           ctx.step(() => {
             impl.peek();
             impl.isFull();
-            impl.size();
           });
         }
       },

@@ -17,24 +17,20 @@
           "expect": null
         },
         {
-          "op": "size",
-          "expect": 0
-        },
-        {
           "op": "isFull",
           "expect": false
         },
         {
-          "op": "size",
-          "expect": 0
+          "op": "peek",
+          "expect": null
         },
         {
           "op": "read",
           "expect": null
         },
         {
-          "op": "size",
-          "expect": 0
+          "op": "peek",
+          "expect": null
         }
       ]
     },
@@ -101,16 +97,16 @@
           "expect": true
         },
         {
-          "op": "size",
-          "expect": 4
+          "op": "peek",
+          "expect": 1
         },
         {
           "op": "write",
           "arg": 5
         },
         {
-          "op": "size",
-          "expect": 4
+          "op": "isFull",
+          "expect": true
         },
         {
           "op": "peek",
@@ -175,8 +171,8 @@
           "arg": 8
         },
         {
-          "op": "size",
-          "expect": 4
+          "op": "peek",
+          "expect": 5
         },
         {
           "op": "read",
@@ -195,8 +191,8 @@
           "expect": 8
         },
         {
-          "op": "size",
-          "expect": 0
+          "op": "peek",
+          "expect": null
         }
       ]
     },
@@ -237,8 +233,8 @@
           "arg": 5
         },
         {
-          "op": "size",
-          "expect": 4
+          "op": "isFull",
+          "expect": true
         },
         {
           "op": "peek",
@@ -283,8 +279,8 @@
           "expect": 2
         },
         {
-          "op": "size",
-          "expect": 0
+          "op": "peek",
+          "expect": null
         },
         {
           "op": "write",
@@ -319,8 +315,8 @@
           "expect": 4
         },
         {
-          "op": "size",
-          "expect": 4
+          "op": "isFull",
+          "expect": true
         }
       ]
     },
@@ -329,47 +325,47 @@
       "kind": "random",
       "steps": [
         {
-          "op": "isFull",
-          "expect": false
+          "op": "peek",
+          "expect": null
         },
         {
           "op": "write",
           "arg": 52
         },
         {
-          "op": "size",
-          "expect": 1
+          "op": "isFull",
+          "expect": false
         },
         {
-          "op": "size",
-          "expect": 1
+          "op": "isFull",
+          "expect": false
         },
         {
           "op": "read",
           "expect": 52
         },
         {
-          "op": "isFull",
-          "expect": false
-        },
-        {
-          "op": "isFull",
-          "expect": false
+          "op": "peek",
+          "expect": null
         },
         {
           "op": "peek",
           "expect": null
         },
         {
-          "op": "size",
-          "expect": 0
-        },
-        {
-          "op": "peek",
+          "op": "read",
           "expect": null
         },
         {
-          "op": "peek",
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "read",
+          "expect": null
+        },
+        {
+          "op": "read",
           "expect": null
         },
         {
@@ -377,12 +373,12 @@
           "arg": 40
         },
         {
-          "op": "read",
-          "expect": 40
+          "op": "write",
+          "arg": 15
         },
         {
-          "op": "write",
-          "arg": 48
+          "op": "read",
+          "expect": 40
         },
         {
           "op": "write",
@@ -394,30 +390,18 @@
         },
         {
           "op": "read",
-          "expect": 48
+          "expect": 15
         },
         {
           "op": "write",
           "arg": 4
         },
         {
-          "op": "peek",
-          "expect": 39
-        },
-        {
-          "op": "peek",
-          "expect": 39
-        },
-        {
-          "op": "isFull",
-          "expect": false
-        },
-        {
           "op": "read",
           "expect": 39
         },
         {
-          "op": "read",
+          "op": "peek",
           "expect": 4
         },
         {
@@ -425,8 +409,16 @@
           "expect": false
         },
         {
+          "op": "read",
+          "expect": 4
+        },
+        {
+          "op": "write",
+          "arg": 65
+        },
+        {
           "op": "peek",
-          "expect": null
+          "expect": 65
         },
         {
           "op": "isFull",
@@ -437,44 +429,40 @@
           "arg": 72
         },
         {
-          "op": "peek",
-          "expect": 72
-        },
-        {
-          "op": "isFull",
-          "expect": false
-        },
-        {
-          "op": "size",
-          "expect": 1
-        },
-        {
           "op": "read",
-          "expect": 72
+          "expect": 65
         },
         {
           "op": "isFull",
           "expect": false
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "write",
+          "arg": 75
         },
         {
           "op": "write",
           "arg": 32
         },
         {
-          "op": "peek",
-          "expect": 32
-        },
-        {
           "op": "read",
-          "expect": 32
+          "expect": 72
         },
         {
           "op": "write",
-          "arg": 72
+          "arg": 15
         },
         {
           "op": "peek",
-          "expect": 72
+          "expect": 75
+        },
+        {
+          "op": "peek",
+          "expect": 75
         },
         {
           "op": "write",
@@ -485,16 +473,32 @@
           "arg": 62
         },
         {
-          "op": "size",
-          "expect": 3
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "write",
+          "arg": 98
+        },
+        {
+          "op": "peek",
+          "expect": 15
         },
         {
           "op": "read",
-          "expect": 72
+          "expect": 15
         },
         {
-          "op": "size",
-          "expect": 2
+          "op": "read",
+          "expect": 26
+        },
+        {
+          "op": "peek",
+          "expect": 62
+        },
+        {
+          "op": "isFull",
+          "expect": false
         },
         {
           "op": "isFull",
@@ -502,75 +506,55 @@
         },
         {
           "op": "peek",
-          "expect": 26
-        },
-        {
-          "op": "read",
-          "expect": 26
+          "expect": 62
         },
         {
           "op": "isFull",
           "expect": false
         },
         {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "size",
-          "expect": 1
-        },
-        {
           "op": "isFull",
           "expect": false
         },
         {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "size",
-          "expect": 1
-        },
-        {
-          "op": "size",
-          "expect": 1
+          "op": "isFull",
+          "expect": false
         },
         {
           "op": "write",
           "arg": 3
         },
         {
-          "op": "size",
-          "expect": 2
+          "op": "isFull",
+          "expect": false
         },
         {
           "op": "read",
           "expect": 62
         },
         {
-          "op": "size",
-          "expect": 1
+          "op": "isFull",
+          "expect": false
         },
         {
           "op": "peek",
-          "expect": 3
-        },
-        {
-          "op": "size",
-          "expect": 1
+          "expect": 98
         },
         {
           "op": "isFull",
           "expect": false
         },
         {
+          "op": "peek",
+          "expect": 98
+        },
+        {
           "op": "write",
           "arg": 67
         },
         {
-          "op": "size",
-          "expect": 2
+          "op": "isFull",
+          "expect": false
         },
         {
           "op": "write",
@@ -589,8 +573,8 @@
           "expect": 67
         },
         {
-          "op": "isFull",
-          "expect": false
+          "op": "peek",
+          "expect": 97
         },
         {
           "op": "peek",
@@ -605,8 +589,8 @@
           "arg": 80
         },
         {
-          "op": "size",
-          "expect": 4
+          "op": "isFull",
+          "expect": true
         },
         {
           "op": "read",
@@ -617,8 +601,8 @@
           "arg": 30
         },
         {
-          "op": "size",
-          "expect": 4
+          "op": "isFull",
+          "expect": true
         },
         {
           "op": "read",
@@ -645,12 +629,12 @@
           "arg": 30
         },
         {
-          "op": "isFull",
-          "expect": true
+          "op": "peek",
+          "expect": 30
         },
         {
-          "op": "isFull",
-          "expect": true
+          "op": "peek",
+          "expect": 30
         },
         {
           "op": "write",
@@ -661,28 +645,24 @@
           "expect": 65
         },
         {
-          "op": "read",
-          "expect": 65
-        },
-        {
-          "op": "isFull",
-          "expect": false
+          "op": "write",
+          "arg": 79
         },
         {
           "op": "read",
           "expect": 14
         },
         {
-          "op": "size",
-          "expect": 2
+          "op": "isFull",
+          "expect": false
         },
         {
-          "op": "size",
-          "expect": 2
+          "op": "isFull",
+          "expect": false
         },
         {
-          "op": "size",
-          "expect": 2
+          "op": "isFull",
+          "expect": false
         },
         {
           "op": "write",
@@ -694,25 +674,21 @@
         },
         {
           "op": "read",
-          "expect": 30
+          "expect": 50
+        },
+        {
+          "op": "peek",
+          "expect": 79
         },
         {
           "op": "isFull",
           "expect": false
-        },
-        {
-          "op": "size",
-          "expect": 3
         },
         {
           "op": "write",
           "arg": 25
         },
         {
-          "op": "size",
-          "expect": 4
-        },
-        {
           "op": "isFull",
           "expect": true
         },
@@ -721,44 +697,24 @@
           "expect": true
         },
         {
-          "op": "read",
-          "expect": 50
+          "op": "isFull",
+          "expect": true
         },
         {
           "op": "write",
-          "arg": 14
+          "arg": 9
+        },
+        {
+          "op": "write",
+          "arg": 40
         },
         {
           "op": "peek",
-          "expect": 18
-        },
-        {
-          "op": "peek",
-          "expect": 18
-        },
-        {
-          "op": "read",
-          "expect": 18
-        },
-        {
-          "op": "size",
-          "expect": 3
+          "expect": 98
         },
         {
           "op": "read",
           "expect": 98
-        },
-        {
-          "op": "size",
-          "expect": 2
-        },
-        {
-          "op": "size",
-          "expect": 2
-        },
-        {
-          "op": "isFull",
-          "expect": false
         },
         {
           "op": "isFull",
@@ -769,28 +725,40 @@
           "expect": 25
         },
         {
-          "op": "read",
-          "expect": 14
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 9
+        },
+        {
+          "op": "peek",
+          "expect": 9
+        },
+        {
+          "op": "write",
+          "arg": 38
         },
         {
           "op": "read",
-          "expect": null
+          "expect": 9
         },
         {
-          "op": "read",
-          "expect": null
+          "op": "write",
+          "arg": 26
         },
         {
-          "op": "read",
-          "expect": null
+          "op": "isFull",
+          "expect": false
         },
         {
-          "op": "size",
-          "expect": 0
-        },
-        {
-          "op": "size",
-          "expect": 0
+          "op": "isFull",
+          "expect": false
         },
         {
           "op": "write",
@@ -802,11 +770,39 @@
         },
         {
           "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "read",
+          "expect": 38
+        },
+        {
+          "op": "write",
+          "arg": 14
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "read",
+          "expect": 26
+        },
+        {
+          "op": "isFull",
           "expect": false
+        },
+        {
+          "op": "peek",
+          "expect": 32
         },
         {
           "op": "read",
           "expect": 32
+        },
+        {
+          "op": "peek",
+          "expect": 3
         },
         {
           "op": "read",
@@ -814,39 +810,7 @@
         },
         {
           "op": "write",
-          "arg": 82
-        },
-        {
-          "op": "read",
-          "expect": 82
-        },
-        {
-          "op": "size",
-          "expect": 0
-        },
-        {
-          "op": "peek",
-          "expect": null
-        },
-        {
-          "op": "peek",
-          "expect": null
-        },
-        {
-          "op": "isFull",
-          "expect": false
-        },
-        {
-          "op": "read",
-          "expect": null
-        },
-        {
-          "op": "read",
-          "expect": null
-        },
-        {
-          "op": "peek",
-          "expect": null
+          "arg": 53
         },
         {
           "op": "isFull",
@@ -861,40 +825,40 @@
           "arg": 20
         },
         {
-          "op": "isFull",
-          "expect": false
+          "op": "peek",
+          "expect": 14
         },
         {
-          "op": "isFull",
-          "expect": false
+          "op": "peek",
+          "expect": 14
         },
         {
           "op": "write",
           "arg": 32
         },
         {
+          "op": "read",
+          "expect": 14
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
           "op": "peek",
-          "expect": 20
+          "expect": 53
         },
         {
-          "op": "size",
-          "expect": 2
-        },
-        {
-          "op": "isFull",
-          "expect": false
+          "op": "read",
+          "expect": 53
         },
         {
           "op": "read",
           "expect": 20
         },
         {
-          "op": "read",
+          "op": "peek",
           "expect": 32
-        },
-        {
-          "op": "isFull",
-          "expect": false
         },
         {
           "op": "write",
@@ -902,23 +866,23 @@
         },
         {
           "op": "peek",
-          "expect": 92
+          "expect": 32
         },
         {
           "op": "peek",
-          "expect": 92
+          "expect": 32
         },
         {
-          "op": "isFull",
-          "expect": false
+          "op": "peek",
+          "expect": 32
         },
         {
           "op": "write",
           "arg": 7
         },
         {
-          "op": "size",
-          "expect": 2
+          "op": "isFull",
+          "expect": false
         },
         {
           "op": "write",
@@ -926,23 +890,23 @@
         },
         {
           "op": "read",
+          "expect": 32
+        },
+        {
+          "op": "peek",
           "expect": 92
+        },
+        {
+          "op": "read",
+          "expect": 92
+        },
+        {
+          "op": "peek",
+          "expect": 7
         },
         {
           "op": "isFull",
           "expect": false
-        },
-        {
-          "op": "read",
-          "expect": 7
-        },
-        {
-          "op": "peek",
-          "expect": 71
-        },
-        {
-          "op": "size",
-          "expect": 1
         },
         {
           "op": "write",
@@ -973,8 +937,8 @@
           "arg": 99
         },
         {
-          "op": "size",
-          "expect": 3
+          "op": "isFull",
+          "expect": false
         },
         {
           "op": "write",
@@ -985,8 +949,8 @@
           "arg": 39
         },
         {
-          "op": "isFull",
-          "expect": true
+          "op": "peek",
+          "expect": 52
         },
         {
           "op": "peek",
@@ -997,16 +961,12 @@
           "expect": 52
         },
         {
-          "op": "isFull",
-          "expect": false
+          "op": "peek",
+          "expect": 99
         },
         {
           "op": "write",
           "arg": 28
-        },
-        {
-          "op": "size",
-          "expect": 4
         },
         {
           "op": "isFull",
@@ -1017,24 +977,28 @@
           "expect": 99
         },
         {
+          "op": "peek",
+          "expect": 99
+        },
+        {
           "op": "write",
           "arg": 16
         },
         {
-          "op": "isFull",
-          "expect": true
-        },
-        {
-          "op": "read",
+          "op": "peek",
           "expect": 86
         },
         {
           "op": "write",
-          "arg": 64
+          "arg": 15
         },
         {
-          "op": "isFull",
-          "expect": true
+          "op": "peek",
+          "expect": 39
+        },
+        {
+          "op": "peek",
+          "expect": 39
         },
         {
           "op": "write",
@@ -1045,36 +1009,36 @@
           "arg": 40
         },
         {
-          "op": "isFull",
-          "expect": true
+          "op": "peek",
+          "expect": 16
+        },
+        {
+          "op": "peek",
+          "expect": 16
         },
         {
           "op": "isFull",
           "expect": true
         },
         {
-          "op": "isFull",
-          "expect": true
+          "op": "peek",
+          "expect": 16
+        },
+        {
+          "op": "peek",
+          "expect": 16
         },
         {
           "op": "isFull",
           "expect": true
-        },
-        {
-          "op": "isFull",
-          "expect": true
-        },
-        {
-          "op": "size",
-          "expect": 4
         },
         {
           "op": "write",
           "arg": 86
         },
         {
-          "op": "size",
-          "expect": 4
+          "op": "isFull",
+          "expect": true
         },
         {
           "op": "write",
@@ -1097,8 +1061,8 @@
           "arg": 8
         },
         {
-          "op": "isFull",
-          "expect": true
+          "op": "peek",
+          "expect": 40
         },
         {
           "op": "read",
@@ -1113,16 +1077,48 @@
           "expect": 86
         },
         {
+          "op": "peek",
+          "expect": 86
+        },
+        {
           "op": "isFull",
           "expect": true
         },
         {
-          "op": "size",
-          "expect": 4
+          "op": "read",
+          "expect": 86
+        },
+        {
+          "op": "isFull",
+          "expect": false
+        },
+        {
+          "op": "write",
+          "arg": 39
         },
         {
           "op": "peek",
-          "expect": 86
+          "expect": 82
+        },
+        {
+          "op": "write",
+          "arg": 87
+        },
+        {
+          "op": "isFull",
+          "expect": true
+        },
+        {
+          "op": "write",
+          "arg": 18
+        },
+        {
+          "op": "peek",
+          "expect": 50
+        },
+        {
+          "op": "write",
+          "arg": 80
         },
         {
           "op": "isFull",

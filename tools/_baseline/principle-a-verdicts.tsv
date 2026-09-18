@@ -33,7 +33,7 @@
 요약 관찰	크기	linear/bitArray	size()	①	제거	배치2 소절6 ① 제거표	S3
 파생 관찰	찼는가	linear/circularBuffer	isFull()	②	유지	배치2 소절6 ② 표	S5
 파생 관찰	비었는가	linear/circularBuffer	isEmpty()	②	제거	배치2 소절6 ② 표	S3
-요약 관찰	크기	linear/circularBuffer	size()	①	유지	배치2 소절6 ① 유지표	S5
+요약 관찰	크기	linear/circularBuffer	size()	①	제거	배치2 소절6 ① 제거표	S6
 파생 관찰	비었는가	linear/deque	isEmpty()	②	제거	배치2 소절6 ② 표	S3
 요약 관찰	크기	linear/deque	size()	①	제거	배치2 소절6 ① 제거표	S3
 요약 관찰	크기	linear/doublyLinkedList	size()	①	제거	배치2 소절6 ① 제거표	S3

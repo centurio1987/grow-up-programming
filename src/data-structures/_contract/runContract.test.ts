@@ -2717,7 +2717,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       write: true,
       "write (적대적)": true,
       read: true,
-      peek·isFull·size: true,
+      peek·isFull: true,
     });
 
     // 용량을 무시하는 구현: 축3은 전부 통과하고 축1이 잡는다.
@@ -2727,7 +2727,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       write: true,
       "write (적대적)": true,
       read: true,
-      peek·isFull·size: true,
+      peek·isFull: true,
     });
     expect(
       firstBehaviorSplit(
@@ -2737,7 +2737,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
           ),
       ),
     ).toBe(
-      "꽉 찬 뒤의 쓰기는 가장 오래된 것을 밀어낸다 / 7번째 size — 관측 5 / 모델 4",
+      "꽉 찬 뒤의 쓰기는 가장 오래된 것을 밀어낸다 / 8번째 peek — 관측 1 / 모델 2",
     );
 
     // 옮기는 구현: 축1은 통과하고 옮기는 두 행에서만 걸린다.
@@ -2747,7 +2747,7 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       write: true,
       "write (적대적)": false,
       read: false,
-      peek·isFull·size: true,
+      peek·isFull: true,
     });
     expect(
       firstBehaviorSplit(
@@ -2756,15 +2756,26 @@ describe("축3 — 결함 fixture 를 실제로 떨어뜨린다", () => {
       ),
     ).toBeNull();
 
-    // 매번 훑는 구현: 조회 묶음 하나에서만 걸린다.
+    // 매번 훑는 구현: `KAN-040` `S6` 전에는 조회 묶음 하나에서 걸렸다. 크기 읽기가 계약에서
+    // 빠지면서 그 묶음이 `peek`·`isFull` 둘로 줄었고 훑는 자리가 표면에서 사라져, 네 시나리오
+    // 어디에도 안 걸리고 축1도 통과한다 — 계약 표면에 없는 일을 하는 구현이라 이제 이 계약의
+    // 결함이 아니다. 조용히 줄어든 검사는 줄어든 줄 모르므로 그 사실을 여기 값으로 박는다.
     expect(
       outcomesAt(rescanningRingBuffer, circularBufferContract, "basic"),
     ).toEqual({
       write: true,
       "write (적대적)": true,
       read: true,
-      peek·isFull·size: false,
+      peek·isFull: true,
     });
+    expect(
+      firstBehaviorSplit(
+        () =>
+          new CircularBufferShell(
+            (cap) => new RescanningRingBuffer<number>(cap),
+          ),
+      ),
+    ).toBeNull();
   }, 60_000);
 
   /**
