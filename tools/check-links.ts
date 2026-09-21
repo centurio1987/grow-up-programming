@@ -153,6 +153,23 @@ async function check(): Promise<number> {
 
         checked++;
         const decoded = decodeURIComponent(pathPart);
+        // v2 자료구조 원고(`-guide.md`)는 걷힐 옛 가이드(`-guide.mdx`)를 가리키지 않는다 —
+        // 2026-09-21 유저 지적(파일럿 3편이 stack·binarySearchTree·doublyLinkedList·
+        // dynamicArray 의 .mdx 를 선수 지식 링크로 들고 있었다). 대상 편이 `-guide.md` 로
+        // 서기 전에는 구조 이름만 적고, 선 뒤에 링크를 건다. 알고리즘 원고가 ds .mdx 를
+        // 가리키는 것은 여기서 잡지 않는다 — 그 .mdx 를 지울 때 위 실재 검사가 잡는다.
+        if (
+          /^src\/data-structures\/.*-guide\.md$/.test(doc) &&
+          decoded.endsWith("-guide.mdx")
+        ) {
+          problems.push({
+            where: `${doc}:${index + 1}`,
+            target: raw,
+            detail:
+              "v2 원고가 걷힐 옛 가이드(.mdx)를 가리킨다 — 링크를 걷고 구조 이름만 적는다. 그 편이 -guide.md 로 서면 그때 건다",
+          });
+          continue;
+        }
         const absolute = normalize(join(root, dirname(doc), decoded));
         if (!(await Bun.file(absolute).exists())) {
           // 디렉터리 링크는 `Bun.file().exists()` 가 false 를 준다. 따로 본다.

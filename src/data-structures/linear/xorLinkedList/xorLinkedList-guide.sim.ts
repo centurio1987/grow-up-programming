@@ -1,6 +1,6 @@
 import type { Frame } from "#guide-sim";
 
-/** 본문의 T1~T12와 대응하며, proof의 walk-viz가 각 프레임을 정본 실행과 대조합니다. */
+/** 본문의 T1~T10과 대응합니다. proof의 walk-viz가 각 프레임을 정본 실행과 대조합니다. */
 export const walk = {
   view: ["array", "keyValue"] as const,
   title: "XOR 연결 리스트: 10, 0, 30을 붙이고 두 방향으로 읽기",
@@ -16,7 +16,6 @@ export const walk = {
       entries: [
         { label: "head", value: 0 },
         { label: "tail", value: 0 },
-        { label: "count", value: 0 },
         { label: "담은 값", value: "[]" },
       ],
     },
@@ -30,7 +29,6 @@ export const walk = {
       entries: [
         { label: "head", value: 1 },
         { label: "tail", value: 1 },
-        { label: "count", value: 1 },
       ],
     },
     {
@@ -43,7 +41,6 @@ export const walk = {
       entries: [
         { label: "head", value: 1 },
         { label: "tail", value: 2 },
-        { label: "count", value: 2 },
       ],
     },
     {
@@ -56,7 +53,6 @@ export const walk = {
       entries: [
         { label: "head", value: 1 },
         { label: "tail", value: 3 },
-        { label: "count", value: 3 },
       ],
     },
     {
@@ -68,7 +64,6 @@ export const walk = {
       entries: [
         { label: "head", value: 1 },
         { label: "tail", value: 3 },
-        { label: "count", value: 3 },
         { label: "prev", value: 0 },
         { label: "curr", value: 1 },
         { label: "다음 = x ^ prev", value: "2 ^ 0 = 2" },
@@ -84,7 +79,6 @@ export const walk = {
       entries: [
         { label: "head", value: 1 },
         { label: "tail", value: 3 },
-        { label: "count", value: 3 },
         { label: "prev", value: 1 },
         { label: "curr", value: 2 },
         { label: "다음 = x ^ prev", value: "2 ^ 1 = 3" },
@@ -101,7 +95,6 @@ export const walk = {
       entries: [
         { label: "head", value: 1 },
         { label: "tail", value: 3 },
-        { label: "count", value: 3 },
         { label: "prev", value: 2 },
         { label: "curr", value: 3 },
         { label: "다음 = x ^ prev", value: "2 ^ 2 = 0" },
@@ -117,7 +110,6 @@ export const walk = {
       entries: [
         { label: "head", value: 1 },
         { label: "tail", value: 3 },
-        { label: "count", value: 3 },
         { label: "prev", value: 0 },
         { label: "curr", value: 3 },
         { label: "다음 = x ^ prev", value: "2 ^ 0 = 2" },
@@ -133,7 +125,6 @@ export const walk = {
       entries: [
         { label: "head", value: 1 },
         { label: "tail", value: 3 },
-        { label: "count", value: 3 },
         { label: "prev", value: 3 },
         { label: "curr", value: 2 },
         { label: "다음 = x ^ prev", value: "2 ^ 3 = 1" },
@@ -150,7 +141,6 @@ export const walk = {
       entries: [
         { label: "head", value: 1 },
         { label: "tail", value: 3 },
-        { label: "count", value: 3 },
         { label: "prev", value: 2 },
         { label: "curr", value: 1 },
         { label: "다음 = x ^ prev", value: "2 ^ 2 = 0" },

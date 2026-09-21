@@ -173,7 +173,6 @@ class XorCopy {
   nodes = new Map<number, CopyNode>();
   head = NIL;
   tail = NIL;
-  count = 0;
   nextId: number;
   cost = 0;
 
@@ -208,7 +207,6 @@ class XorCopy {
       oldTail = { id: tail.id, before, after: tail.x };
     }
     this.tail = id;
-    this.count += 1;
     return { id, empty, oldTail };
   }
 
@@ -228,11 +226,6 @@ class XorCopy {
       curr = next;
     }
     return iters;
-  }
-
-  size(): number {
-    this.cost += 1;
-    return this.count;
   }
 
   /** 노드 표를 id 순서로. 칸은 `값/x저장값`, 빈 칸은 `·`. */
@@ -265,7 +258,6 @@ export interface Row {
   cost: number;
   head: number;
   tail: number;
-  count: number;
   cells: string[];
 }
 
@@ -285,10 +277,9 @@ function agree(calls: Call[]): Row[] {
     const refBefore = ref.__cost;
     const mineBefore = mine.cost;
     const refOut = apply(ref, c);
-    const snap = (): Pick<Row, "head" | "tail" | "count" | "cells"> => ({
+    const snap = (): Pick<Row, "head" | "tail" | "cells"> => ({
       head: mine.head,
       tail: mine.tail,
-      count: mine.count,
       cells: mine.cells(SLOTS),
     });
     if (c.op === "append") {
@@ -384,7 +375,7 @@ async function guideClasses(): Promise<GuideClasses> {
 
 const fromGuide = await guideClasses().catch(() => null);
 
-/** 구현 하나를 배열 모델과 나란히 실행한다. 반환값이나 크기가 하나라도 다르면 던진다. */
+/** 구현 하나를 배열 모델과 나란히 실행한다. 두 순회의 반환값이 하나라도 다르면 던진다. */
 function againstModel(name: string, Ctor: Constructor): void {
   const d = new Ctor();
   const model: number[] = [];
@@ -520,11 +511,32 @@ export const PROOFS: Record<string, () => string> = {
     againstModel("정본", XorLinkedList);
     return [
       "원고의 세 구현 코드와 정본: 각각 배열 모델과 대조해 일치",
-      "빈 수열 · 값 0 두 번 · 음수 · 중복 · 무작위 붙이기 20,000회 뒤 size() · toArray() · toArrayReverse()",
+      "빈 수열 · 값 0 두 번 · 음수 · 중복 · 무작위 붙이기 20,000회 뒤 toArray() · toArrayReverse()",
     ].join("\n");
   },
 
-  /** `deep.build` ④ — 같은 노드 표를 앞 끝과 뒤 끝에서 한 번씩 순회한다. */
+  /**
+   * `perf.worst` — 정본에 뒤로만 붙일 때 붙이기 한 번의 평균 비용이 n 에 따라 자라지 않는가.
+   * 비용은 정본의 `__cost`(노드를 표에서 찾을 때 1, 새 노드를 만들 때 1)다. 벽시계가 아니다.
+   */
+  growth: () => {
+    let previous: number | undefined;
+    const lines = [
+      "정본에 뒤로만 붙이기: n, 붙이기 한 번의 평균 비용, 이전 크기 대비 비율",
+    ];
+    for (const n of [1024, 4096, 16384]) {
+      const d = new XorLinkedList();
+      for (let i = 0; i < n; i++) d.append(i);
+      const average = d.__cost / n;
+      lines.push(
+        `${num(n)}, ${average.toFixed(6)}, ${previous === undefined ? "—" : (average / previous).toFixed(3)}`,
+      );
+      previous = average;
+    }
+    return lines.join("\n");
+  },
+
+  /** `deep.walk.step` 3 — 같은 노드 표를 앞 끝과 뒤 끝에서 한 번씩 순회한다. */
   "two-directions": () => {
     const rows = agree([
       ...appends([10, 20, 30]),
@@ -618,7 +630,7 @@ export const PROOFS: Record<string, () => string> = {
     );
   },
 
-  /** `deep.build` ⑤ — 붙일 때마다 새 노드의 x 와 옛 꼬리의 x 가 어떻게 바뀌는가. */
+  /** `deep.walk.step` 3 — 붙일 때마다 새 노드의 x 와 옛 꼬리의 x 가 어떻게 바뀌는가. */
   "append-states": () => {
     const rows = agree(appends([10, 20, 30, 40]));
     const body = rows.map((r) => {
@@ -678,7 +690,6 @@ export const PROOFS: Record<string, () => string> = {
         "노드 표 (id 1 · 2 · 3)",
         "headId",
         "tailId",
-        "count",
         "prev",
         "curr",
         "담은 값",
@@ -688,7 +699,6 @@ export const PROOFS: Record<string, () => string> = {
         r.cells.join(" "),
         num(r.head),
         num(r.tail),
-        num(r.count),
         r.iter === null ? "" : num(r.iter.prev),
         r.iter === null ? "" : num(r.iter.curr),
         r.iter === null ? (r.kind === "walk" ? "[]" : "") : seq(r.iter.values),
@@ -767,7 +777,7 @@ export const PROOFS: Record<string, () => string> = {
     ),
 
   /**
-   * `invariant` ③ — 같은 변이에 계약의 불변식 검사 함수 둘을 그대로 건다.
+   * `invariant` ③ — 같은 변이에 계약의 불변식 검사 함수를 그대로 건다.
    *
    * 불변식 이름은 본문의 순서 표기(첫째 · 둘째)로 적는다. 계약 파일의 이름에는 「같다」가
    * 들어 있어, 그대로 실으면 `check-proof` 가 그 칸을 판정 열로 읽는다.
@@ -833,7 +843,6 @@ export function frameOf(r: Row): {
   const entries: { label: string; value: string | number }[] = [
     { label: "head", value: r.head },
     { label: "tail", value: r.tail },
-    { label: "count", value: r.count },
   ];
   if (r.iter !== null) {
     entries.push(

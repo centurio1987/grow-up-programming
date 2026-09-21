@@ -52,7 +52,7 @@ export interface DesignConfig {
   source: string;
   /** 본문 지면색. 템플릿의 「백색」 #ffffff · 「미색」 #f7f7f6. 표지 · 간지 · 뒤표지는 늘 백색이다. */
   paper: string;
-  /** 표식색 — 표지 막대 · 멈춤 상자. 템플릿 기본 #c0392b. */
+  /** 표식색 — 표지 막대 · 짚고 가기 상자. 템플릿 기본 #c0392b. */
   mark: string;
   /** 표지 왼쪽 아래 시리즈 표기. */
   seriesLabel: string;

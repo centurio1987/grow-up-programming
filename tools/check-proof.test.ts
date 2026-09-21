@@ -293,7 +293,7 @@ const SITE_MUTATIONS: Mutation[] = [
 
 const siteMd = (fence: string) => `# 표본
 
-#### 멈춤 — 본 적 있는 정점을 사이클로 읽기 쉽다
+#### 짚고 가기 — 본 적 있는 정점을 사이클로 읽기 쉽다
 
 그 오해대로 적으면 이렇게 됩니다.
 
@@ -665,7 +665,7 @@ export const PROOFS: Record<string, () => string> = {
 
 const CANCEL_MD = (stepVerdicts: string[]) => `# 표본
 
-#### 멈춤 — 정렬을 지워도 합은 안 틀린다
+#### 짚고 가기 — 정렬을 지워도 합은 안 틀린다
 
 \`\`\`ts
 // order.sort((a, b) => a - b);   ← 이 줄을 통째로 지운 판

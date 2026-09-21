@@ -17,6 +17,22 @@ const examples = new Function(
     "\nreturn { StackDeque, Deque, LinkedDeque };",
 )() as Record<"StackDeque" | "Deque" | "LinkedDeque", Constructor>;
 type Constructor = new () => DequeContract<unknown>;
+const observedRing = implementations.find((code) =>
+  /export class Deque/.test(code),
+);
+if (!observedRing) throw new Error("원형 버퍼 코드 없음");
+const observedSource = observedRing.replace(
+  /}\s*$/,
+  "__snapshot() { return { slots: this.#slots.slice(), head: this.#head, count: this.#count }; }\n}",
+);
+const observedJs = new Bun.Transpiler({ loader: "ts" }).transformSync(
+  observedSource,
+);
+const ObservedRing = new Function(
+  `${observedJs.replaceAll("export class", "class")}\nreturn Deque;`,
+)() as new () => DequeContract<number> & {
+  __snapshot(): { slots: (number | undefined)[]; head: number; count: number };
+};
 const constructors: Constructor[] = [
   examples.StackDeque,
   examples.Deque,
@@ -33,6 +49,61 @@ function check(d: DequeContract<unknown>, model: unknown[]): void {
 }
 
 export const PROOFS: Record<string, () => string> = {
+  growth: () => {
+    let previous: number | undefined;
+    const lines = [
+      "원형 버퍼에 앞으로만 삽입: n, 연산당 평균 접근 수, 이전 크기 대비 비율",
+    ];
+    for (const n of [1024, 4096, 16384]) {
+      const d = new Deque<number>();
+      for (let i = 0; i < n; i++) d.pushFront(i);
+      const average = d.__cost / n;
+      lines.push(
+        `${n}, ${average.toFixed(6)}, ${previous === undefined ? "—" : (average / previous).toFixed(3)}`,
+      );
+      previous = average;
+    }
+    return lines.join("\n");
+  },
+  "stack-trace": () => {
+    const d = new examples.StackDeque() as DequeContract<number> & {
+      front: number[];
+      back: number[];
+    };
+    for (let i = 1; i <= 6; i++) d.pushBack(i);
+    const state = () =>
+      `front=${JSON.stringify(d.front)}, back=${JSON.stringify(d.back)}`;
+    const lines = [`뒤에 1~6 삽입: ${state()}`];
+    for (const op of [
+      "popFront",
+      "popBack",
+      "popFront",
+      "popBack",
+      "popFront",
+      "popBack",
+    ] as const)
+      lines.push(`${op} → ${d[op]()}: ${state()}`);
+    return lines.join("\n");
+  },
+  "linked-trace": () => {
+    const d = new examples.LinkedDeque() as DequeContract<number> & {
+      head: { value: number } | null;
+      tail: { value: number } | null;
+    };
+    const state = () =>
+      "head=" +
+      (d.head?.value ?? "null") +
+      ", tail=" +
+      (d.tail?.value ?? "null");
+    d.pushBack(7);
+    const lines = [`pushBack(7): ${state()}`];
+    lines.push(`popFront → ${d.popFront()}: ${state()}`);
+    lines.push(`peekBack → ${d.peekBack()}`);
+    d.pushFront(8);
+    lines.push(`pushFront(8): ${state()}`);
+    lines.push(`popBack → ${d.popBack()}: ${state()}`);
+    return lines.join("\n");
+  },
   implementations: () => {
     for (const Ctor of constructors) {
       const d = new Ctor();
@@ -99,7 +170,8 @@ export const PROOFS: Record<string, () => string> = {
     return "세 구현과 참조 구현: 각각 무작위 연산 20,000회 일치\n양쪽 교대 삭제·빈 덱 재사용·특수값·객체 동일성: 모두 일치";
   },
   simulation: () => {
-    const d = new Deque<number>();
+    const d = new ObservedRing();
+    const reference = new Deque<number>();
     const model: number[] = [];
     let last: unknown;
     for (const frame of walk.steps) {
@@ -122,11 +194,10 @@ export const PROOFS: Record<string, () => string> = {
       } else if (op === "peekFront" || op === "peekBack") {
         last = d[op]();
       } else {
-        // `KAN-040` `S3` 이 계약에서 뺀 행(`isEmpty` · `size`)의 프레임이다. 시뮬은 물려받은
-        // 걸음을 그대로 들고 있고, 이 걸음에서 볼 것은 「상태가 안 바뀐다」뿐이라 아래
-        // `check` 와 프레임 대조가 그 몫을 그대로 한다.
-        last = undefined;
+        throw new Error(`현재 계약에 없는 연산: ${String(op)}`);
       }
+      if (op === "pushFront" || op === "pushBack") reference[op](arg);
+      else equal(reference[op](), last);
       check(d, model);
       const entries = frame.entries;
       equal(entries.find((e) => e.label === "count")?.value, model.length);
@@ -134,17 +205,25 @@ export const PROOFS: Record<string, () => string> = {
         entries.find((e) => e.label === "앞 끝부터")?.value,
         `[${model.join(" ")}]`,
       );
+      const snapshot = d.__snapshot();
+      equal(snapshot.count, model.length);
+      equal(snapshot.head, frame.pointers.head);
+      equal(snapshot.slots.length, frame.array.length);
       const head = frame.pointers.head;
       const active = new Set<number>();
       for (let i = 0; i < model.length; i++) {
         const at = (head + i) % frame.array.length;
         equal(frame.array[at], model[i]);
+        equal(snapshot.slots[at], model[i]);
         active.add(at);
       }
       for (let i = 0; i < frame.array.length; i++)
-        if (!active.has(i)) equal(frame.array[i], "·");
+        if (!active.has(i)) {
+          equal(frame.array[i], "·");
+          equal(snapshot.slots[i], undefined);
+        }
     }
     equal(String(last), walk.result);
-    return `시뮬레이션 ${walk.steps.length}단계: 반환값·원소 순서·배열 배치 일치\n마지막 반환값: ${String(last)}\n최종 덱: [${model.join(",")}]`;
+    return `시뮬레이션 ${walk.steps.length}단계: 실제 반환값·원소 순서·배열 배치 일치\n마지막 반환값: ${String(last)}\n최종 덱: [${model.join(",")}]`;
   },
 };

@@ -244,7 +244,7 @@ figure.bk-code > pre.shiki { margin: 0; padding: 4.5mm 5mm; }
 }
 .gs-mount > pre.gs-ascii { margin: 0; background: none !important; overflow: hidden; }
 
-/* ── 멈춤 — 흔한 실수를 짚는 자리. 책에서 색이 들어가는 곳 ──── */
+/* ── 짚고 가기 — 흔한 실수를 짚는 자리. 책에서 색이 들어가는 곳 ──── */
 .bk-stop { margin: 5.5mm 0 7mm; padding: 0 0 0 5mm; border-left: 3px solid var(--bk-mark); }
 .bk-stop::before {
   content: "STOP"; display: block; margin-bottom: 1.5mm; font-size: 8.5pt; font-weight: 500;

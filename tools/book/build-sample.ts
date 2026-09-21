@@ -40,7 +40,7 @@ interface Spec {
   name: string;
   selector: string;
   role: string;
-  /** 이 요소로 치는가. 선택자만으로 갈리지 않는 요소(멈춤 제목 · 두 종류의 코드 블록)에 쓴다. */
+  /** 이 요소로 치는가. 선택자만으로 갈리지 않는 요소(짚고 가기 제목 · 두 종류의 코드 블록)에 쓴다. */
   is?: (el: Element) => boolean;
   /** 견본으로 고르기 좋은가(길이 등). 맞는 게 없으면 첫 번째를 쓴다. */
   fits?: (el: Element) => boolean;
@@ -87,14 +87,14 @@ const SPECS: Spec[] = [
     name: "단계 제목",
     selector: "h4",
     role: "절 안의 번호 단계(1. 2. 3. …)와 소항목",
-    is: (el) => !text(el).startsWith("멈춤"),
+    is: (el) => !text(el).startsWith("짚고 가기"),
     fits: (el) => /^\d+\./.test(text(el)),
     scope: withNext(1),
   },
   {
-    name: "멈춤 상자",
+    name: "짚고 가기 상자",
     selector: ".bk-stop",
-    role: "「멈춤 — …」 흔한 실수를 짚는 자리. 제목부터 다음 제목 전까지를 한 상자로 묶는다",
+    role: "「짚고 가기 — …」 흔한 실수를 짚는 자리. 제목부터 다음 제목 전까지를 한 상자로 묶는다",
     fits: (el) => text(el).length < 700,
   },
   {
@@ -386,7 +386,7 @@ ${s.volumes
 <tr><td>코드 · 도식</td><td>IBM Plex Mono 9pt · 행간 1.6</td></tr>
 <tr><td>수식</td><td>KaTeX 글꼴</td></tr>
 <tr><td>머리말 · 꼬리말</td><td>머리말 왼쪽은 책 제목 · 권 이름, 오른쪽은 EP. N(목차 CONTENTS · 마무리 COLOPHON). 꼬리말은 가운데 쪽번호</td></tr>
-<tr><td>색</td><td>흑백. 표식색 ${esc(cfg.design.mark)} 은 표지 막대 · 멈춤 상자에만. 지면 ${esc(cfg.design.paper)}</td></tr>
+<tr><td>색</td><td>흑백. 표식색 ${esc(cfg.design.mark)} 은 표지 막대 · 짚고 가기 상자에만. 지면 ${esc(cfg.design.paper)}</td></tr>
 </tbody>
 </table>
 

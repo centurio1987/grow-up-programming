@@ -79,7 +79,7 @@ export function maxProseRun(body: string[]): number {
       inParagraph = false;
       continue;
     }
-    if (fenced) continue;
+    if (fenced || line.trim() === "<!--contract-summary-->") continue;
 
     if (line.trim() === "") {
       inParagraph = false;
@@ -1274,62 +1274,102 @@ export function operationCoverage(
   return [
     {
       code: "P17",
-      detail: `계약 표의 연산이 전개에 한 번도 안 나온다: ${absent.join("·")}. 묶어서 다뤘으면 그 벌의 첫 문장에 묶은 근거를 적고 연산 이름을 함께 쓴다`,
+      detail: `계약 표의 연산이 전개에 한 번도 안 나온다: ${absent.join("·")}. 설명 순서는 자유롭게 정하되 빠진 연산의 의미와 실행 예시를 보완한다`,
     },
   ];
 }
 
-/**
- * **P18 — 계약 표를 복사하지 않는다**(`ds SPEC` `L42`).
- *
- * 계약의 정본은 `<name>.ts` 헤더 한 곳이고, 가이드는 조건이 아니라 **조건의 이유**를 쓴다.
- * 표를 옮겨 적으면 정본이 둘이 되고, 갈라진 자리에서 가이드가 코드보다 낙관적인 복잡도를
- * 주장한 것이 이 트랙을 한 번 재설계하게 만든 결함이다.
- *
- * **판정은 「한 표 안에 계약 연산이 과반 + 상한 표기」다.** 연산 하나의 비용을 표로 따지는
- * 것은 `perf.bounds` 의 정당한 직무라(`L7` 이 케이스와 경계를 두 축으로 가르라고 한다),
- * 그것과 가르는 신호가 **목록성**이다. 작은 계약에서 오탐이 나지 않게 최소 3개를 함께 건다.
- */
-export function noContractTableCopy(
-  sections: Section[],
-  ops: string[],
+/** P18: 명시적으로 표시한 계약 요약만 원본과 대조한다. 일반 비교표는 허용한다. */
+export function contractSummaryConsistency(
+  text: string,
+  contractDoc?: string,
 ): Finding[] {
-  if (ops.length === 0) return [];
-  const need = Math.max(3, Math.ceil(ops.length / 2));
+  const marker = /^<!--contract-summary-->$/gm;
+  const marked = [...text.matchAll(marker)];
+  if (marked.length === 0) return [];
+  if (contractDoc === undefined)
+    return [
+      { code: "P18", detail: "계약 요약의 원본 헤더가 없어 대조하지 못했다" },
+    ];
+  const clean = (s: string) => s.replace(/[`\s$]/g, "");
+  const qualifier = (s: string) =>
+    ({ 상각: "amortized", 최악: "worst", 기대: "expected" })[clean(s)] ??
+    clean(s);
+  const cells = (line: string) =>
+    line
+      .trim()
+      .slice(1, -1)
+      .split("|")
+      .map((x) => x.trim());
+  const names = (cell: string) =>
+    [...cell.matchAll(/`([A-Za-z_][A-Za-z0-9_]*)(?:\([^`]*\))?`/g)].map(
+      (m) => m[1] ?? "",
+    );
+  const expected = new Map<string, { bound: string; qualifier: string }>();
+  for (const line of contractDoc.split("\n")) {
+    if (!line.trim().startsWith("|") || !line.trim().endsWith("|")) continue;
+    const row = cells(line);
+    for (const name of names(row[0] ?? "")) {
+      expected.set(name, {
+        bound: clean(row[2] ?? ""),
+        qualifier: qualifier(row[3] ?? ""),
+      });
+    }
+  }
   const out: Finding[] = [];
-  for (const sec of sections) {
-    let rows: string[] = [];
-    for (const line of sec.body) {
-      const trimmed = line.trim();
-      if (trimmed.startsWith("|")) {
-        rows.push(trimmed);
+  for (const match of marked) {
+    const after = text.slice((match.index ?? 0) + match[0].length).trimStart();
+    const lines = after.split("\n");
+    const end = lines.findIndex((line) => !line.trim().startsWith("|"));
+    const table = lines.slice(0, end < 0 ? undefined : end);
+    if (
+      table.length < 3 ||
+      cells(table[0] ?? "").map(clean).join("/") !== "연산/의미/상한/한정자"
+    ) {
+      out.push({
+        code: "P18",
+        detail:
+          "계약 요약은 표시 바로 뒤에 연산·의미·상한·한정자 표가 필요하다",
+      });
+      continue;
+    }
+    const seen = new Set<string>();
+    for (const line of table.slice(2)) {
+      const row = cells(line);
+      const ops = names(row[0] ?? "");
+      if (row.length !== 4 || ops.length === 0 || !row[1]) {
+        out.push({
+          code: "P18",
+          detail: `계약 요약 행을 해석할 수 없다: ${line}`,
+        });
         continue;
       }
-      out.push(...judgeTable(sec, rows, ops, need));
-      rows = [];
+      for (const name of ops) {
+        const source = expected.get(name);
+        if (seen.has(name))
+          out.push({ code: "P18", detail: `계약 요약의 중복 연산: ${name}` });
+        seen.add(name);
+        if (!source)
+          out.push({ code: "P18", detail: `계약에 없는 연산: ${name}` });
+        else if (
+          clean(row[2] ?? "") !== source.bound ||
+          qualifier(row[3] ?? "") !== source.qualifier
+        ) {
+          out.push({
+            code: "P18",
+            detail: `${name}: 계약의 ${source.qualifier} ${source.bound}와 요약의 ${row[3]} ${row[2]}가 다르다`,
+          });
+        }
+      }
     }
-    out.push(...judgeTable(sec, rows, ops, need));
+    const missing = [...expected.keys()].filter((name) => !seen.has(name));
+    if (missing.length)
+      out.push({
+        code: "P18",
+        detail: `계약 요약에서 빠진 연산: ${missing.join(", ")}`,
+      });
   }
   return out;
-}
-
-function judgeTable(
-  sec: Section,
-  rows: string[],
-  ops: string[],
-  need: number,
-): Finding[] {
-  if (rows.length === 0) return [];
-  const table = rows.join("\n");
-  if (!/O\(/.test(table)) return [];
-  const hit = ops.filter((op) => new RegExp(`\\b${op}\\b`).test(table));
-  if (hit.length < need) return [];
-  return [
-    {
-      code: "P18",
-      detail: `${sec.heading}(${sec.line}줄) — 계약 표를 옮겨 적었다(연산 ${hit.length}개 + 상한 표기가 한 표에 있다). 정본은 \`<name>.ts\` 헤더 한 곳이고, 여기서는 조건이 아니라 **조건의 이유**를 쓴다`,
-    },
-  ];
 }
 
 /**
@@ -1876,6 +1916,8 @@ export interface CheckInput {
    * 파서는 `check-contract.ts` 의 것을 그대로 쓴다 — 연산 목록의 정본이 한 곳이어야 한다.
    */
   contractOps?: string[];
+  /** 표시된 계약 요약의 대조에 쓰는 원본 JSDoc. */
+  contractDoc?: string;
   /**
    * 규약4 에스컬레이션 등급. `req`=(가) · `opt`=(나) · `-`=(-). ds 전용이고 P19 가 쓴다.
    * 정본은 `tools/ord006-inventory.ts` 의 `ESCALATION` 이다.
@@ -1918,7 +1960,7 @@ export function check(input: CheckInput): Finding[] {
   }
 
   // ── P2 voice 금지 문형 ──
-  // 은유만 인용 구간을 뺀 문장을 본다. 절 제목을 낫표로 인용하는 자리(「멈춤 — …」)와
+  // 은유만 인용 구간을 뺀 문장을 본다. 절 제목을 낫표로 인용하는 자리(「짚고 가기 — …」)와
   // 지적 원문을 큰따옴표로 옮긴 자리가 글쓴이의 문장으로 집계되면, 인용을 지우는 쪽으로
   // 원고가 움직인다. 금지 문형·표기 혼용은 인용 안에서도 그대로 본다 — 그쪽은 인용이든
   // 아니든 독자가 읽는 표기다.
@@ -2003,9 +2045,9 @@ export function check(input: CheckInput): Finding[] {
     findings.push({ code: "P3", detail: "`deep.walk`(전개) 절이 없다" });
   }
 
-  // ── P3b 전개의 뼈대 — 단계 ≥ 3 · 멈춤 ≥ 1 · 전체 코드 1 ──
+  // ── P3b 전개의 뼈대 — 단계 ≥ 3 · 짚고 가기 ≥ 1 · 전체 코드 1 ──
   //
-  // **멈춤이 이 절의 핵심이다**(2026-08-25 유저 지적). *"알고리즘 전개 과정에서 간과하거나
+  // **짚고 가기(옛 이름 「멈춤」, 2026-09-21 개명)가 이 절의 핵심이다**(2026-08-25 유저 지적). *"알고리즘 전개 과정에서 간과하거나
   // 오해할 수 있는 지점은 반드시 멈춰서 설명하고 넘어가야 한다"*. 옛 `deep.trap` 이 절 하나로
   // 몰아 두던 것을 **전개 흐름 안 제자리로** 흩은 것이라, 없으면 그 직무가 통째로 사라진다.
   if (walkHead) {
@@ -2023,7 +2065,7 @@ export function check(input: CheckInput): Finding[] {
       findings.push({
         code: "P3",
         where: `deep.walk:${walkHead.line}`,
-        detail: "`### 멈춤 — …` 소절이 없다",
+        detail: "`#### 짚고 가기 — …` 소절이 없다",
       });
     }
     if (finals !== 1) {
@@ -2357,9 +2399,9 @@ export function check(input: CheckInput): Finding[] {
   findings.push(...tableSeparators(input.text));
 
   // ── P16 원고의 전체 코드 ↔ 정본 ──
+  findings.push(...contractSummaryConsistency(input.text, input.contractDoc));
   if (input.contractOps !== undefined) {
     findings.push(...operationCoverage(sections, input.contractOps));
-    findings.push(...noContractTableCopy(sections, input.contractOps));
   }
   if (input.escalation !== undefined) {
     findings.push(...escalationSection(sections, input.escalation));
@@ -2478,7 +2520,10 @@ async function checkOne(
     const stubFile = Bun.file(join(dir, `${name}.ts`));
     if (await stubFile.exists()) {
       const doc = headerDoc(await stubFile.text());
-      if (doc !== null) input.contractOps = parseContract(doc).ops;
+      if (doc !== null) {
+        input.contractOps = parseContract(doc).ops;
+        input.contractDoc = doc;
+      }
     }
     if (input.contractOps === undefined) missing.push("contract");
 

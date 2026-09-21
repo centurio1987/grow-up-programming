@@ -398,6 +398,48 @@ export function hastTableRows(tree: HastNode): number[][] {
  * 모자란 칸(`remark-rehype` 가 빈 칸으로 메운다)도 같은 자리에서 잡힌다. 보이는 표와
  * 원고가 다르다는 사실은 같기 때문이다.
  */
+/**
+ * **렌더된 본문에서만 드러나는 둘 — 취소선과 남은 강조 기호.** 2026-09-21 유저 지적
+ * (`xorLinkedList` 파일럿 스크린샷 둘).
+ *
+ * 1. **홑물결(`~`) 둘이 한 문단에 있으면 GFM 은 그 사이를 취소선으로 읽는다.** 원고의
+ *    `T5~T7과 T8~T10은` 이 웹에서 `T5~~T7과 T8~~T10` 으로 보였다. 범위 표기는 원고에서
+ *    `\~` 로 이스케이프한다 — 렌더러의 홑물결 취소선을 끄는 것은 GFM 과 갈라진 방언이라
+ *    처방이 아니다(위 `tableCellProblems` 의 같은 원칙).
+ * 2. **닫는 `*` 앞이 따옴표·괄호이고 뒤에 글자가 바로 오면 CommonMark 는 닫는 구분자로
+ *    보지 않는다.** `*"…CHERI."*라고` 가 그 꼴이라 강조가 안 닫히고 `*` 가 본문에 그대로
+ *    남았다. `*` 뒤에 띄어쓰기를 둔다(`*"…"* 라고`).
+ *
+ * 둘 다 **증상**으로 잡는다 — 렌더 결과에 `<del>` 이 있는가, 코드·수식 밖 텍스트에 `*` 가
+ * 남았는가. 원인이 위 둘이 아니어도 독자에게 보이는 것이 그것이면 위반이다.
+ */
+export function renderedProseProblems(html: string): string[] {
+  const stripped = html
+    .replace(/<pre[\s\S]*?<\/pre>/g, "")
+    .replace(/<code[\s\S]*?<\/code>/g, "")
+    .replace(/<math[\s\S]*?<\/math>/g, "");
+  const problems: string[] = [];
+  const text = (fragment: string): string =>
+    fragment.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+
+  for (const del of stripped.match(/<del>[\s\S]*?<\/del>/g) ?? []) {
+    problems.push(
+      `취소선으로 렌더된 자리 — 「${text(del)}」. 한 문단에 홑물결(~)이 둘이면 GFM 은 그 사이를 취소선으로 읽는다. 범위 표기는 \`\\~\` 로 이스케이프한다`,
+    );
+  }
+
+  // `*` 자체는 본문에 정당하게 남는다 — `A* 탐색`, 인용한 Go 소스의 `x**y`·`q * qInv`.
+  // 잡는 것은 **따옴표·낫표에 붙은 `*`** 다(괄호는 뺀다 — 인용한 식의 `2*(-1)^k` 가 정당하게 남는다). 강조가 안 닫힌 자리는 늘 그 모양이다.
+  const textOnly = text(stripped.replace(/<\/(p|li|td|th|h[1-6])>/g, "\n"));
+  const stuck = /[^\n]{0,24}(?:["“”'‘’「」『』]\*{1,2}|\*{1,2}["“”'‘’「」『』])[^\n]{0,24}/g;
+  for (const hit of textOnly.matchAll(stuck)) {
+    problems.push(
+      `본문에 강조 기호 * 가 그대로 보인다 — 「…${hit[0].trim()}…」. 닫는 * 앞이 따옴표·낫표이고 뒤에 글자가 바로 오면 CommonMark 는 닫는 구분자로 보지 않는다. 따옴표·낫표를 강조 밖으로 내거나(「**…**」가) * 뒤에 띄어쓰기를 두고, 인용문 안의 * 는 \\* 로 이스케이프한다`,
+    );
+  }
+  return problems;
+}
+
 export function tableCellProblems(
   md: MdTableRow[][],
   html: number[][],
@@ -652,6 +694,7 @@ export async function build(
 
   const prose = String(file);
   problems.push(...tableCellProblems(mdTables, htmlTables));
+  problems.push(...renderedProseProblems(prose));
   const title = /^#\s+(.+)$/m.exec(md)?.[1]?.trim() ?? basename(mdPath);
 
   let script = "";

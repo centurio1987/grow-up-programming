@@ -191,7 +191,7 @@ const RAIL_MD = `# 제목 — 부제
 
 본문.
 
-#### 멈춤 — 무엇
+#### 짚고 가기 — 무엇
 
 본문.
 
@@ -229,7 +229,7 @@ test("레일 — 파트와 항목만 담고 하위 절은 뺀다", () => {
     "purpose",
     "invariant",
   ]);
-  // `#### 1. 첫 걸음`·`#### 2. 둘째 걸음`·`#### 멈춤`·`#### 3. 전체 코드`·`#### 최적인 문제의 모양` 은 빠진다.
+  // `#### 1. 첫 걸음`·`#### 2. 둘째 걸음`·`#### 짚고 가기`·`#### 3. 전체 코드`·`#### 최적인 문제의 모양` 은 빠진다.
   expect(rail.some((e) => e.anchor.startsWith("deep-walk-step"))).toBe(false);
   expect(rail.some((e) => e.anchor === "purpose-fit")).toBe(false);
 });

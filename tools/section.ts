@@ -94,7 +94,7 @@ const PATTERNED_COMMON: ReadonlyArray<readonly [string, RegExp]> = [
   ["related", /^### 알아 두면 좋은 개념 — .+$/],
   ["invariant", /^### 불변식 — .+$/],
   ["deep.walk.final", /^#### .*전체 코드$/],
-  ["deep.walk.pause", /^#### 멈춤 — .+$/],
+  ["deep.walk.pause", /^#### 짚고 가기 — .+$/],
 ];
 
 const PATTERNED_ALGO: ReadonlyArray<readonly [string, RegExp]> = [

@@ -13,11 +13,11 @@
 import { expect, test } from "bun:test";
 import {
   check,
+  contractSummaryConsistency,
   directMemoryRust,
   dsReferenceCode,
   escalationSection,
   finalCodeMatchesRef,
-  noContractTableCopy,
   operationCoverage,
 } from "./check-v2.ts";
 import { headerDoc, parseContract } from "./contract-header.ts";
@@ -56,7 +56,7 @@ const DS_HEADINGS = [
   "### 설계 상세 — 덱에 이르는 과정",
   "### 수행으로 알아보는 자료구조 — 양 끝을 번갈아 민다",
   "#### 1. 뒤 끝에 넣는다",
-  "#### 멈춤 — 빈 덱에서 pop 은 던지지 않는다",
+  "#### 짚고 가기 — 빈 덱에서 pop 은 던지지 않는다",
   "#### 2. 전체 코드",
   "## 파트 2 — 적용 조건 · 보장 · 비용",
   "### 이 구조가 최적의 선택인 경우",
@@ -148,27 +148,68 @@ test("P17 — 전수 피복이면 안 걸린다", () => {
   expect(operationCoverage(full, OPS)).toEqual([]);
 });
 
-test("P18 — 계약 표를 옮겨 적으면 걸린다", () => {
-  const copied = dsSections(
-    [
-      "| 연산 | 상한 |",
-      "| --- | --- |",
-      "| `pushFront` | O(1) |",
-      "| `pushBack` | O(1) |",
-      "| `popFront` | O(1) |",
-      "| `popBack` | O(1) |",
-    ].join("\n"),
-  );
-  expect(noContractTableCopy(copied, OPS).map((f) => f.code)).toEqual(["P18"]);
-});
-
-test("P18 — 연산 하나의 비용을 표로 따지는 것은 정당하다 (오탐 시험)", () => {
-  const bounds = dsSections(
-    ["| 케이스 | 경계 |", "| --- | --- |", "| `pushBack` 상각 | O(1) |"].join(
-      "\n",
+const summarySource = [
+  "| 연산 | 의미 | 상한 | 한정자 |",
+  "| --- | --- | --- | --- |",
+  "| `pushFront(item)` | 앞 삽입 | O(1) | amortized |",
+  "| `pushBack(item)` | 뒤 삽입 | O(1) | amortized |",
+  "| `peekFront()` | 앞 조회 | O(1) | worst |",
+].join("\n");
+const summary = `<!--contract-summary-->\n\n${summarySource}`;
+test("P18 — 정확한 전체 요약과 한글 한정자를 허용한다", () => {
+  expect(contractSummaryConsistency(summary, summarySource)).toEqual([]);
+  expect(
+    contractSummaryConsistency(
+      summary.replaceAll("amortized", "상각").replaceAll("worst", "최악"),
+      summarySource,
     ),
-  );
-  expect(noContractTableCopy(bounds, OPS)).toEqual([]);
+  ).toEqual([]);
+});
+test("P18 — 다른 구현의 비용 비교표는 계약 요약으로 취급하지 않는다", () => {
+  expect(
+    contractSummaryConsistency(
+      summarySource.replaceAll("amortized", "worst"),
+      summarySource,
+    ),
+  ).toEqual([]);
+});
+test("P18 — 같은 O(1)이라도 상각을 최악으로 바꾸면 거부한다", () => {
+  expect(
+    contractSummaryConsistency(
+      summary.replace("amortized", "worst"),
+      summarySource,
+    ).length,
+  ).toBeGreaterThan(0);
+});
+test("P18 — 잘못된 상한·없는 연산·누락·중복·깨진 표·원본 부재를 거부한다", () => {
+  for (const wrong of [
+    summary.replace("O(1)", "O(n)"),
+    summary.replace("pushBack", "size"),
+    summary
+      .split("\n")
+      .filter((l) => !l.includes("pushBack"))
+      .join("\n"),
+    `${summary}\n| \`peekFront()\` | 조회 | O(1) | worst |`,
+    "<!--contract-summary-->\n표 없음",
+  ])
+    expect(
+      contractSummaryConsistency(wrong, summarySource).length,
+    ).toBeGreaterThan(0);
+  expect(contractSummaryConsistency(summary).length).toBeGreaterThan(0);
+});
+test("P18 — 실제 검사 경로도 요약과 원본을 대조한다", () => {
+  expect(
+    check({ text: summary, kind: "ds", contractDoc: summarySource }).filter(
+      (f) => f.code === "P18",
+    ),
+  ).toEqual([]);
+  expect(
+    check({
+      text: summary.replace("amortized", "worst"),
+      kind: "ds",
+      contractDoc: summarySource,
+    }).some((f) => f.code === "P18"),
+  ).toBe(true);
 });
 
 test("P19 — 등급이 (나)인데 절이 없으면 걸린다", () => {

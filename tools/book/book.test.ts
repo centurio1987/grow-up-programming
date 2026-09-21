@@ -326,7 +326,7 @@ describe("조각", () => {
     }
   }, 30_000);
 
-  test("멈춤은 제목부터 다음 제목 전까지 한 상자로 묶인다", async () => {
+  test("짚고 가기은 제목부터 다음 제목 전까지 한 상자로 묶인다", async () => {
     const { FragmentStore } = await import("./fragment.ts");
     const store = await FragmentStore.open(`${cfg.outDir}-test`);
     const ch = p.chapters.find((c) => c.name === "knapsack01") ?? first;
@@ -337,7 +337,7 @@ describe("조각", () => {
     ];
     expect(boxes.length).toBeGreaterThan(0);
     for (const b of boxes) {
-      expect(b[1]).toMatch(/^\s*<h4[^>]*>멈춤/);
+      expect(b[1]).toMatch(/^\s*<h4[^>]*>짚고 가기/);
       expect(b[1]).not.toMatch(/<h[1-4]\b[\s\S]*<h[1-4]\b/);
     }
   }, 30_000);
