@@ -130,7 +130,7 @@
   - 이유: 아이디어 상세가 서사로 채워져 아이디어 자체 설명이 몇 단락뿐이다
   - 목표: 명세·스캐너가 새 구성을 받고 sparseTableRangeMin 파일럿이 새 구성으로 재집필돼 유저가 판정할 수 있다
   - 요청서: KANBAN.requests/review/KAN-056-VPCM91.request.md (자유 형식 · 유저 · 미반영)
-  - 실행 문서: KANBAN.cards/KAN-056-VPCM91.md (7/7 · 최근 09-26)
+  - 실행 문서: KANBAN.cards/KAN-056-VPCM91.md (7/7 · 최근 09-27)
   - 검토 문서: KANBAN.reviews/KAN-056-VPCM91.review.md (승인 0/4 · 검토 대기)
   - 원문:
     ```text

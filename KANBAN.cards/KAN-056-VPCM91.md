@@ -28,7 +28,7 @@ scope: sandbox/algo-guide-v2/**, tools/section.ts, tools/check-v2.ts, tools/chec
 
 **버린 대안.** 아이디어 먼저·서사 뒤(유저가 서사 먼저를 골랐다) · `deep.origin` 필수 검사 즉시 적용(옛 110편이 전부 걸린다) · `build-html.ts` 라벨 추가(앵커·라벨이 id·헤딩에서 자동 생성된다).
 
-**범위 밖 기록.** `.claude/skills/guide-for-problem/SKILL.md:32` 가 알고리즘 가이드를 아직 「10단계」로 적는다(v2 명세와 어긋남).
+**범위 밖 기록.** `.claude/skills/guide-for-problem/SKILL.md:32` 가 알고리즘 가이드를 아직 「10단계」로 적는다(v2 명세와 어긋남). 2026-09-27 고쳤다 — 알고리즘 줄이 v2 명세와 `algorithm-guide-writer` voice 를 가리킨다.
 
 ## 실행 계획
 <!-- `S<n>`은 고정 id — 이름을 바꾸지 않는다. 체크 상태는 doc-step 이 갱신한다. -->
@@ -94,3 +94,4 @@ bun run tools/build-html.ts $G
 - 2026-09-26T22:21 · s:23da538d · S7 doing — 착수
 - 2026-09-26T22:21 · s:23da538d · S7 done — 검토서(판단 항목 4) 작성 · 검토로 이동 · 검토 화면 발행
 - 2026-09-27T00:50 · s:b3d87b0a — 검토 중 유저 지시로 파일럿 재집필 — 상위 집필 규칙 개정(authoring-kit 0.4.0 어휘 가중치 V5 · 전역 CLAUDE.md 쉬운 말 규칙) 반영. 계산·코드 블록 29개와 증명 표지 10개는 원문 그대로(글자 단위 대조), 두 절 산문만 새로 씀(산문 144줄 중 새로 쓴 비율 98%). check-v2 P1~P16 통과 · 증명 22개 일치 · 리듬 A 적발 0 · 어휘 허용량 초과 0 · 재작성률(main 대비) 아이디어 상세 75%·떠올리는 과정 100% · ci all 17단계 통과. check-proof --all 종료코드 1 은 HEAD 에서도 같아 이 변경과 무관
+- 2026-09-27T04:53 · s:b3d87b0a — 유저 지시로 알고리즘 집필 규칙을 authoring-kit 와 교통 정리 — 전용 voice algorithm-guide-writer 신설, 은유·다의어 12갈래와 논증 종료 문형 4개를 그 voice 문체 설정(금지 -3)으로 옮기고 check-v2 자체 정의 삭제(검사기는 저장소 사본을 읽고 gates 가 사본=원본 대조). check-v2·check-metaphor 전수 출력 전후 동일, gates 12단계 통과
