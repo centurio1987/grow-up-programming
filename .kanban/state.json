@@ -1,6 +1,6 @@
 {
   "next_id": 57,
-  "next_seq": 398,
+  "next_seq": 399,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1342,13 +1342,21 @@
       "title": "알고리즘 가이드 집필 로직 피드백",
       "verbatim": "지금은 아이디어 상세가, naive에서 시작해서 핵심 알고리즘에 도달하는 서사로 구성되어 있다. 그런데, 이 구성을 별도 항목으로 빼고, 아이디어 상세 자체는 아이디어에 초점을 맞춰서 상세히 집필해라. 집필 시, 최대한 자세히 이해하기 쉽도록 해야한다는 지시가 CLAUDE.md 때문에 무시당하는 문제가 있으니, /output-style을 learning으로  설정하여 작업하기 바란다.\n\n결과물은 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md에 대한 파일럿 가이드 생성을 통해 확인하겠다.",
       "생성": "유저",
-      "최종": "유저",
-      "갱신": "2026-09-24",
+      "최종": "ai",
+      "갱신": "2026-09-26",
       "title_hash": "8cca32cb366d571d1bccad5d2d4c1b6fbda66139",
       "verbatim_hash": "53dcd333a0f941cd5163159dd39a6547c479e807",
       "memo": "",
       "memo_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
-      "request_template": "free"
+      "request_template": "free",
+      "short": "아이디어 상세 분리",
+      "short_hash": "3769fa44c48b8dde7ec71fdb0a936c99ccea9cfc",
+      "purpose": "알고리즘 가이드에서 단순한 방법→아이디어 서사를 별도 절로 떼고 아이디어 상세를 아이디어 자체에 집중시킨다",
+      "purpose_hash": "f0a4f25291859cd791b859a2a0be6d9911758210",
+      "reason": "아이디어 상세가 서사로 채워져 아이디어 자체 설명이 몇 단락뿐이다",
+      "reason_hash": "72e6a539e578613fd03bcfcef58df097b3f61b98",
+      "goal": "명세·스캐너가 새 구성을 받고 sparseTableRangeMin 파일럿이 새 구성으로 재집필돼 유저가 판정할 수 있다",
+      "goal_hash": "abe0160a7d94c9228cc55698f018a5e291d93d9b"
     }
   },
   "order": [
@@ -1364,6 +1372,7 @@
     "KAN-053-2KYAED",
     "KAN-054-1YWN4M",
     "KAN-055-4N4T6A",
+    "KAN-056-VPCM91",
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
@@ -1416,10 +1425,29 @@
     "KAN-044-VZXM29",
     "KAN-043-B4Y5WV",
     "KAN-041-JJ5DA7",
-    "KAN-040-M5V53M",
-    "KAN-056-VPCM91"
+    "KAN-040-M5V53M"
   ],
   "recent": [
+    {
+      "seq": 398,
+      "t": "2026-09-26T21:52",
+      "a": "ai",
+      "id": "KAN-056-VPCM91",
+      "op": "brief",
+      "w": "46PCAX",
+      "fields": {
+        "short": "아이디어 상세 분리",
+        "purpose": "알고리즘 가이드에서 단순한 방법→아이디어 서사를 별도 절로 떼고 아이디어 상세를 아이디어 자체에 집중시킨다",
+        "reason": "아이디어 상세가 서사로 채워져 아이디어 자체 설명이 몇 단락뿐이다",
+        "goal": "명세·스캐너가 새 구성을 받고 sparseTableRangeMin 파일럿이 새 구성으로 재집필돼 유저가 판정할 수 있다"
+      },
+      "before": {
+        "short": "",
+        "purpose": "",
+        "reason": "",
+        "goal": ""
+      }
+    },
     {
       "seq": 397,
       "t": "2026-09-24T15:30",
@@ -1939,17 +1967,6 @@
       "w": "VB5VKS",
       "from": "doing",
       "to": "review"
-    },
-    {
-      "seq": 348,
-      "t": "2026-09-17T04:48",
-      "a": "ai",
-      "id": "KAN-049-DV5BXA",
-      "op": "edit",
-      "w": "VB5VKS",
-      "field": "goal",
-      "before": "drift 가 0 이 되고, 게이트 밖 참조는 고치거나 「게이트가 안 본다」는 사실이 그 자리에 적힌다. 그리고 **KAN-042 가 넘긴 규약 두 자리가 제자리에서 고쳐지고 인용 대장이 갱신된다** — 런북 쪽 셋(불변 사실 63 · B17 카드 줄 · T2-05 카드 줄)은 KAN-042 가 줄 수를 유지한 제자리 정정으로 이미 닫았으므로, 남은 것은 규약 문서 둘이다.",
-      "after": "drift 가 0 이 되고, 게이트 밖 참조는 고치거나 「게이트가 안 본다」는 사실이 그 자리에 적힌다. 그리고 KAN-042 가 넘긴 규약 두 자리가 제자리에서 고쳐지고 인용 대장이 갱신된다 — 런북 쪽 셋(불변 사실 63 · B17 카드 줄 · T2-05 카드 줄)은 KAN-042 가 줄 수를 유지한 제자리 정정으로 이미 닫았으므로 남은 것은 규약 문서 둘이다. 규약 정정 담당 표에서 KAN-042 로 배정돼 있던 행들의 담당 칸도 이때 함께 결말을 갖는다"
     }
   ],
   "waivers": [
