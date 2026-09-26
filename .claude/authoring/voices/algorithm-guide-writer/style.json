@@ -1,0 +1,259 @@
+{
+  "$schema": "authoring-kit/style@1",
+  "schema_version": 1,
+  "lexicon": {
+    "overrides": {},
+    "categories": {},
+    "add": [
+      {
+        "id": "v.metaphor.cost",
+        "category": "phrase.figurative",
+        "regex": "(?<![가-힣])(?:싸|쌌|쌉)|(?<![가-힣])(?:싼|쌀)(?![가-힣])|(?:비|값)(?:싸|싼|쌉|쌌|쌀)",
+        "label": "비용을 값으로 말한 은유",
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "hyperbole"
+        ],
+        "alternatives": [
+          "비용이 작다/크다"
+        ],
+        "note": "알고리즘 가이드 은유·다의어 금지(옛 SPEC L24·L33, check-v2 METAPHORS). 2026-08-26·08-28 유저 지시 — 은유 쓰지 마라, 단의적 표현·자주 쓰는 표현 우선"
+      },
+      {
+        "id": "v.metaphor.contest",
+        "category": "phrase.figurative",
+        "regex": "(?<=[을를]\\s)(?:이기|이길)|이긴|이겼|이겨|승자|패자|(?<![가-힣])지는\\s*쪽|겨루|겨룬|겨뤄",
+        "label": "우열을 승부로 말한 은유",
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "hyperbole"
+        ],
+        "alternatives": [
+          "더 적다/우선한다"
+        ],
+        "note": "알고리즘 가이드 은유·다의어 금지(옛 SPEC L24·L33, check-v2 METAPHORS). 2026-08-26·08-28 유저 지시 — 은유 쓰지 마라, 단의적 표현·자주 쓰는 표현 우선"
+      },
+      {
+        "id": "v.metaphor.mil",
+        "category": "phrase.figurative",
+        "regex": "밀리[고다며면지는기]|밀[려린릴렸립]",
+        "label": "우열·자리 이동을 「밀리다」 로 말한 다의어",
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "hyperbole"
+        ],
+        "alternatives": [
+          "열세다/더 크다",
+          "한 칸 옮겨진다"
+        ],
+        "note": "알고리즘 가이드 은유·다의어 금지(옛 SPEC L24·L33, check-v2 METAPHORS). 2026-08-26·08-28 유저 지시 — 은유 쓰지 마라, 단의적 표현·자주 쓰는 표현 우선"
+      },
+      {
+        "id": "v.metaphor.seo",
+        "category": "phrase.figurative",
+        "regex": "(?:이렇게|이처럼|아래처럼|다음처럼|위처럼|아래와 같이|[이가]\\s)\\s*(?:서[고며는면기서지야게라요]|서\\s있|선다|섭니다|섰)",
+        "label": "성립을 '서다' 로 말한 은유",
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "hyperbole"
+        ],
+        "alternatives": [
+          "성립한다/만들어진다"
+        ],
+        "note": "알고리즘 가이드 은유·다의어 금지(옛 SPEC L24·L33, check-v2 METAPHORS). 2026-08-26·08-28 유저 지시 — 은유 쓰지 마라, 단의적 표현·자주 쓰는 표현 우선"
+      },
+      {
+        "id": "v.metaphor.failure",
+        "category": "phrase.figurative",
+        "regex": "무너|터[지진져질졌]|(?<![가-힣])(?:죽[는고어을면었은]|샌다|샌\\s|샐(?![가-힣])|새[어는고]|샜)",
+        "label": "실패를 다른 영역 어휘로 말한 은유",
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "hyperbole"
+        ],
+        "alternatives": [
+          "성립하지 않는다/실패한다"
+        ],
+        "note": "알고리즘 가이드 은유·다의어 금지(옛 SPEC L24·L33, check-v2 METAPHORS). 2026-08-26·08-28 유저 지시 — 은유 쓰지 마라, 단의적 표현·자주 쓰는 표현 우선"
+      },
+      {
+        "id": "v.metaphor.balp",
+        "category": "phrase.figurative",
+        "regex": "밟",
+        "label": "실행을 '밟다' 로 말한 은유",
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "hyperbole"
+        ],
+        "alternatives": [
+          "실행한다/거친다"
+        ],
+        "note": "알고리즘 가이드 은유·다의어 금지(옛 SPEC L24·L33, check-v2 METAPHORS). 2026-08-26·08-28 유저 지시 — 은유 쓰지 마라, 단의적 표현·자주 쓰는 표현 우선"
+      },
+      {
+        "id": "v.metaphor.dol",
+        "category": "phrase.figurative",
+        "regex": "(?<![가-힣])(?:도는|돈다|돕니다|돌[면고지])|(?<!되)돌[리린릴]|(?<!되)돌려(?![주준줍줘줬줄])",
+        "label": "실행을 '돌다' 로 말한 다의어",
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "hyperbole"
+        ],
+        "alternatives": [
+          "동작한다/실행한다/반복한다"
+        ],
+        "note": "알고리즘 가이드 은유·다의어 금지(옛 SPEC L24·L33, check-v2 METAPHORS). 2026-08-26·08-28 유저 지시 — 은유 쓰지 마라, 단의적 표현·자주 쓰는 표현 우선"
+      },
+      {
+        "id": "v.metaphor.hut",
+        "category": "phrase.figurative",
+        "regex": "훑",
+        "label": "순회를 '훑다' 로 말한 은유",
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "hyperbole"
+        ],
+        "alternatives": [
+          "순회한다/차례로 읽는다"
+        ],
+        "note": "알고리즘 가이드 은유·다의어 금지(옛 SPEC L24·L33, check-v2 METAPHORS). 2026-08-26·08-28 유저 지시 — 은유 쓰지 마라, 단의적 표현·자주 쓰는 표현 우선"
+      },
+      {
+        "id": "v.metaphor.move",
+        "category": "phrase.figurative",
+        "regex": "흐[르른릅]|흐를|흘러|(?<![가-힣])(?:물러|밀[어며고면]|민다|밉니다|놀[고다])|(?<![가-힣])(?:미는|노는)(?![가-힣])|논다",
+        "label": "이동을 다른 영역 어휘로 말한 은유",
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "hyperbole"
+        ],
+        "alternatives": [
+          "이동한다/옮긴다"
+        ],
+        "note": "알고리즘 가이드 은유·다의어 금지(옛 SPEC L24·L33, check-v2 METAPHORS). 2026-08-26·08-28 유저 지시 — 은유 쓰지 마라, 단의적 표현·자주 쓰는 표현 우선"
+      },
+      {
+        "id": "v.metaphor.sight",
+        "category": "phrase.figurative",
+        "regex": "눈에\\s*보[인이였]|드러[나난났날]|한눈에",
+        "label": "이해를 시각으로 말한 은유",
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "hyperbole"
+        ],
+        "alternatives": [
+          "확인할 수 있다/확인된다"
+        ],
+        "note": "알고리즘 가이드 은유·다의어 금지(옛 SPEC L24·L33, check-v2 METAPHORS). 2026-08-26·08-28 유저 지시 — 은유 쓰지 마라, 단의적 표현·자주 쓰는 표현 우선"
+      },
+      {
+        "id": "v.metaphor.carry",
+        "category": "phrase.figurative",
+        "regex": "들고\\s*다[니닌]|에\\s*걸[면어고]|걸어\\s*보|얹|되짚",
+        "label": "적용·보관을 다른 영역 어휘로 말한 은유",
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "hyperbole"
+        ],
+        "alternatives": [
+          "적용한다/유지한다/거슬러 확인한다"
+        ],
+        "note": "알고리즘 가이드 은유·다의어 금지(옛 SPEC L24·L33, check-v2 METAPHORS). 2026-08-26·08-28 유저 지시 — 은유 쓰지 마라, 단의적 표현·자주 쓰는 표현 우선"
+      },
+      {
+        "id": "v.metaphor.dat",
+        "category": "phrase.figurative",
+        "regex": "(?<![가-힣])닿",
+        "label": "도달을 '닿다' 로 말한 다의어",
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "hyperbole"
+        ],
+        "alternatives": [
+          "도달한다/이른다"
+        ],
+        "note": "알고리즘 가이드 은유·다의어 금지(옛 SPEC L24·L33, check-v2 METAPHORS). 2026-08-26·08-28 유저 지시 — 은유 쓰지 마라, 단의적 표현·자주 쓰는 표현 우선"
+      },
+      {
+        "id": "v.argument-end.1",
+        "category": "phrase.modal.booster",
+        "forms": [
+          "성립해서"
+        ],
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "booster"
+        ],
+        "alternatives": [
+          "생략된 단계를 펼쳐 쓴다"
+        ],
+        "note": "논증을 결론으로 끝내는 문형 — voice 금지 목록(forbid)과 규칙 8. 옛 check-v2 FORBIDDEN"
+      },
+      {
+        "id": "v.argument-end.2",
+        "category": "phrase.modal.booster",
+        "forms": [
+          "임을 알 수 있습니다"
+        ],
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "booster"
+        ],
+        "alternatives": [
+          "생략된 단계를 펼쳐 쓴다"
+        ],
+        "note": "논증을 결론으로 끝내는 문형 — voice 금지 목록(forbid)과 규칙 8. 옛 check-v2 FORBIDDEN"
+      },
+      {
+        "id": "v.argument-end.3",
+        "category": "phrase.modal.booster",
+        "forms": [
+          "이를 반복 적용하면"
+        ],
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "booster"
+        ],
+        "alternatives": [
+          "생략된 단계를 펼쳐 쓴다"
+        ],
+        "note": "논증을 결론으로 끝내는 문형 — voice 금지 목록(forbid)과 규칙 8. 옛 check-v2 FORBIDDEN"
+      },
+      {
+        "id": "v.argument-end.4",
+        "category": "phrase.modal.booster",
+        "forms": [
+          "자명합니다"
+        ],
+        "weight": -3,
+        "enabled": true,
+        "functions": [
+          "booster"
+        ],
+        "alternatives": [
+          "생략된 단계를 펼쳐 쓴다"
+        ],
+        "note": "논증을 결론으로 끝내는 문형 — voice 금지 목록(forbid)과 규칙 8. 옛 check-v2 FORBIDDEN"
+      }
+    ]
+  },
+  "directives": {
+    "overrides": {},
+    "add": []
+  }
+}

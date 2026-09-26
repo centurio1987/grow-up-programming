@@ -127,6 +127,12 @@ const GATES: Step[] = [
     argv: ["bun", "run", "tools/check-metaphor.ts", "--all"],
   },
   {
+    // 은유·금지 문형·산문 상한의 정의는 authoring-kit voice 설정이다. 검사기는 저장소 사본을
+    // 읽으므로 사본이 원본과 같은지 잰다(`tools/voice-style.ts` 머리 주석).
+    label: "voice 설정 사본 = 원본",
+    argv: ["bun", "run", "tools/voice-style.ts", "--check"],
+  },
+  {
     // **원고를 빌드해야만 드러나는 것**을 이 단계가 잡는다. 지금 둘이다.
     //
     // ① 마커 규약 — 이 단계가 없던 동안 하이픈 `check` id 를 쓴 9 편에서 접기가 통째로

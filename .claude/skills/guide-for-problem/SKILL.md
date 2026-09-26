@@ -29,10 +29,11 @@ argument-hint: <file-name-without-extension>
 
 | 대상 | spec | 골격 |
 | --- | --- | --- |
-| `src/algorithms/**` | `algo-guide` | 10단계 — 순진한 방법에서 출발해 관찰로 단서를 얻고 최적화로 |
+| `src/algorithms/**` | [`sandbox/algo-guide-v2/SPEC.md`](../../../sandbox/algo-guide-v2/SPEC.md) — 등록 명세 `algo-guide`(옛 10단계)는 대상을 잃었다 | v2 골격 — 파트 1(아이디어에서 동작하는 코드까지) · 파트 2(적용 조건 · 보장 · 비용) |
 | `src/data-structures/**` | `ds-guide` | 8단계 — 계약에서 출발해 그 계약을 지키는 구현으로 (문제 비종속 독립 가이드) |
 
-voice 는 둘 다 `ppangtolab-teacher`(빵토랩 선생님)다.
+voice 는 알고리즘이 `algorithm-guide-writer`(이 저장소 전용 · 2026-09-27), 자료구조가 `ppangtolab-teacher`(빵토랩 선생님)다.
+알고리즘 가이드의 문체 규칙은 그 voice 의 문체 설정에 있다 — 명세에 다시 쓰지 않는다.
 
 ## 동작
 
