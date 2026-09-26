@@ -36,7 +36,7 @@ scope: sandbox/algo-guide-v2/**, tools/section.ts, tools/check-v2.ts, tools/chec
 
 - [x] `S1` SPEC.md 개정 — §1 표(`deep.origin` 13, `deep.build` 13.5) · §2 매핑 · §3 `deep.origin` 신설과 `deep.build` 직무 재정의 · §4 그림 의무 목록 · §6 L1·L3 · §7 대응표 · §8 한시 조항 · 그 밖의 `deep.build` 언급 전수(`grep -n 'deep\.build'`: `:137`·`:415`·`:417`·`:490`·`:497`·`:504` 등). 완료 기준: grep 결과 자리마다 처분이 정해져 있다
 - [x] `S2` 스캐너 — `tools/section.ts` `PATTERNED_ALGO` 에 `deep.origin`, `tools/check-v2.ts` `CONDITIONAL_FIGURE_AND_CODE` 에 `deep.origin`, `tools/check-v2.test.ts` 에 새 절 해소·옛 구성 무회귀 사례. 완료 기준: `bun test tools/check-v2.test.ts` 통과 · `check-v2 --all` 결과가 변경 전과 같다
-- [ ] `S3` `FEEDBACK.md` 에 지적 → 규칙 → 강제 지점 한 줄. 완료 기준: 기록이 섰고 `check-links` 통과
+- [x] `S3` `FEEDBACK.md` 에 지적 → 규칙 → 강제 지점 한 줄. 완료 기준: 기록이 섰고 `check-links` 통과
 
 **배치 2 — 파일럿 재집필(learning 스타일 · 메인 세션)**
 
@@ -80,3 +80,5 @@ bun run tools/build-html.ts $G
 - 2026-09-26T21:55 · s:23da538d · S1 done — SPEC.md 6차 개정 — deep.origin 신설(직무 다섯)·deep.build 직무 일곱으로 교체·§1/§2/§4/§6/§7/§8 반영, deep.build 언급 19자리 처분
 - 2026-09-26T21:55 · s:23da538d · S2 doing — 착수
 - 2026-09-26T21:57 · s:23da538d · S2 done — section.ts PATTERNED_ALGO 에 deep.origin, check-v2 CONDITIONAL_FIGURE_AND_CODE 에 deep.origin, 테스트 5건 추가(142 통과) · check-v2 --all 전후 동일 · tsc 0
+- 2026-09-26T21:57 · s:23da538d · S3 doing — 착수
+- 2026-09-26T21:57 · s:23da538d · S3 done — FEEDBACK.md §1 에 R24 — 지적 → 규칙 → 강제 지점
