@@ -34,7 +34,7 @@ scope: sandbox/algo-guide-v2/**, tools/section.ts, tools/check-v2.ts, tools/chec
 <!-- `S<n>`은 고정 id — 이름을 바꾸지 않는다. 체크 상태는 doc-step 이 갱신한다. -->
 **배치 1 — 명세·스캐너**
 
-- [ ] `S1` SPEC.md 개정 — §1 표(`deep.origin` 13, `deep.build` 13.5) · §2 매핑 · §3 `deep.origin` 신설과 `deep.build` 직무 재정의 · §4 그림 의무 목록 · §6 L1·L3 · §7 대응표 · §8 한시 조항 · 그 밖의 `deep.build` 언급 전수(`grep -n 'deep\.build'`: `:137`·`:415`·`:417`·`:490`·`:497`·`:504` 등). 완료 기준: grep 결과 자리마다 처분이 정해져 있다
+- [x] `S1` SPEC.md 개정 — §1 표(`deep.origin` 13, `deep.build` 13.5) · §2 매핑 · §3 `deep.origin` 신설과 `deep.build` 직무 재정의 · §4 그림 의무 목록 · §6 L1·L3 · §7 대응표 · §8 한시 조항 · 그 밖의 `deep.build` 언급 전수(`grep -n 'deep\.build'`: `:137`·`:415`·`:417`·`:490`·`:497`·`:504` 등). 완료 기준: grep 결과 자리마다 처분이 정해져 있다
 - [ ] `S2` 스캐너 — `tools/section.ts` `PATTERNED_ALGO` 에 `deep.origin`, `tools/check-v2.ts` `CONDITIONAL_FIGURE_AND_CODE` 에 `deep.origin`, `tools/check-v2.test.ts` 에 새 절 해소·옛 구성 무회귀 사례. 완료 기준: `bun test tools/check-v2.test.ts` 통과 · `check-v2 --all` 결과가 변경 전과 같다
 - [ ] `S3` `FEEDBACK.md` 에 지적 → 규칙 → 강제 지점 한 줄. 완료 기준: 기록이 섰고 `check-links` 통과
 
@@ -76,3 +76,5 @@ bun run tools/build-html.ts $G
 - 2026-09-26T21:53 · s:23da538d — `전략` 섹션 교체
 - 2026-09-26T21:53 · s:23da538d — `실행 계획` 섹션 교체
 - 2026-09-26T21:53 · s:23da538d — `검증` 섹션 교체
+- 2026-09-26T21:54 · s:23da538d · S1 doing — 착수
+- 2026-09-26T21:55 · s:23da538d · S1 done — SPEC.md 6차 개정 — deep.origin 신설(직무 다섯)·deep.build 직무 일곱으로 교체·§1/§2/§4/§6/§7/§8 반영, deep.build 언급 19자리 처분
