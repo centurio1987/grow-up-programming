@@ -40,8 +40,8 @@ scope: sandbox/algo-guide-v2/**, tools/section.ts, tools/check-v2.ts, tools/chec
 
 **배치 2 — 파일럿 재집필(learning 스타일 · 메인 세션)**
 
-- [ ] `S4` 서사 절 — 95~367줄 중 서사(`cost-scan`·`prefix-min-fails`·`cost-two-ways`·`cost-precompute-all`)를 `deep.origin` 으로. 아이디어 이름에서 멈춘다. 완료 기준: 구조 정의·밑 2 결론이 이 절에 없다
-- [ ] `S5` 아이디어 상세 재작성 — 직무 ①~⑦. 새 값은 `proof.ts` 증명 블록으로(표 세 층 전체·겹침 사례), 합 반례는 `pause-overlap` 을 가리킨다, `cost-base` 는 ⑦ 로. `concept`·`deep.walk` 의 옛 절 참조 정리. 완료 기준: `check-proof` 통과 · 재작성률 0.6 이상
+- [x] `S4` 서사 절 — 95~367줄 중 서사(`cost-scan`·`prefix-min-fails`·`cost-two-ways`·`cost-precompute-all`)를 `deep.origin` 으로. 아이디어 이름에서 멈춘다. 완료 기준: 구조 정의·밑 2 결론이 이 절에 없다
+- [x] `S5` 아이디어 상세 재작성 — 직무 ①~⑦. 새 값은 `proof.ts` 증명 블록으로(표 세 층 전체·겹침 사례), 합 반례는 `pause-overlap` 을 가리킨다, `cost-base` 는 ⑦ 로. `concept`·`deep.walk` 의 옛 절 참조 정리. 완료 기준: `check-proof` 통과 · 재작성률 0.6 이상
 
 **배치 3 — 검증·검토 인계**
 
@@ -82,3 +82,8 @@ bun run tools/build-html.ts $G
 - 2026-09-26T21:57 · s:23da538d · S2 done — section.ts PATTERNED_ALGO 에 deep.origin, check-v2 CONDITIONAL_FIGURE_AND_CODE 에 deep.origin, 테스트 5건 추가(142 통과) · check-v2 --all 전후 동일 · tsc 0
 - 2026-09-26T21:57 · s:23da538d · S3 doing — 착수
 - 2026-09-26T21:57 · s:23da538d · S3 done — FEEDBACK.md §1 에 R24 — 지적 → 규칙 → 강제 지점
+- 2026-09-26T21:58 · s:23da538d · S4 doing — 착수
+- 2026-09-26T21:58 · s:23da538d — 배치 2 착수 — /output-style learning 적용을 시스템 알림(Learning output style is active)으로 확인, 메인 세션 직접 집필
+- 2026-09-26T22:05 · s:23da538d · S4 done — 서사(95~252줄)를 deep.origin 「아이디어를 떠올리는 과정 — 질의마다 차례로 읽기에서 겹치는 두 조각까지」로 옮기고 아이디어 이름에서 멈추게 끝을 새로 씀(버린 방법 요약 그림 추가)
+- 2026-09-26T22:05 · s:23da538d · S5 doing — 착수
+- 2026-09-26T22:05 · s:23da538d · S5 done — 아이디어 상세 직무 ①~⑦ 재작성 · 증명 블록 넷 신설(idea-cells·idea-cover·idea-fill·idea-size) · cost-base 를 ⑦ 로 · 합 반례는 pause-overlap 참조 · 재작성률 71% · check-v2 P1~P16 통과 · 증명 22개 일치

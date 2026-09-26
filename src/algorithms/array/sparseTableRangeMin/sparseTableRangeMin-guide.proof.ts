@@ -505,7 +505,7 @@ function halfNotOneCells(A: number[]): number {
 const SCALE = [6, 100, 1_000];
 
 export const PROOFS: Record<string, () => string> = {
-  /** `deep.build` ② — 질의마다 구간을 차례로 읽으면 제약 규모에서 몇 번인가. */
+  /** `deep.origin` ② — 질의마다 구간을 차례로 읽으면 제약 규모에서 몇 번인가. */
   "cost-scan": () => {
     const rows = SCALE.map((n) => {
       const A = Array.from({ length: n }, (_, i) => (i * 37) % 101);
@@ -535,7 +535,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `deep.build` ③ — 접두 최솟값 두 칸으로는 구간이 정해지지 않는다. */
+  /** `deep.origin` ③ — 접두 최솟값 두 칸으로는 구간이 정해지지 않는다. */
   "prefix-min-fails": () => {
     const A = WALK;
     const B = [5, 2, 7, 4, 6, 9];
@@ -571,7 +571,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `deep.build` ④ — 같은 입력을 두 방식으로 처리했을 때의 실제 계수. */
+  /** `deep.origin` ④ — 같은 입력을 두 방식으로 처리했을 때의 실제 계수. */
   "cost-two-ways": () => {
     const a = scanEachQuery(WALK, WALK_Q);
     const t = tableCompares(WALK, WALK_Q);
@@ -610,7 +610,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `deep.build` ⑤ — 모든 `(l, r)` 짝의 답을 담으면 칸이 몇 개인가. */
+  /** `deep.origin` ⑤ — 모든 `(l, r)` 짝의 답을 담으면 칸이 몇 개인가. */
   "cost-precompute-all": () => {
     const sizes = [6, 100, 1_000, CONSTRAINT_N];
     const rows = sizes.map((n) => {
@@ -630,7 +630,171 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `deep.build` ⑥ — 저장하는 길이의 밑을 넷으로 두고 잰 값. */
+  /** `deep.build` ① — 전개 입력의 표 세 층을 칸마다 덮는 구간과 함께 전부 펼친다. */
+  "idea-cells": () => {
+    const st = levelsOf(WALK);
+    const rows: string[][] = [];
+    let total = 0;
+    for (const [k, row] of st.entries()) {
+      for (const [i, v] of row.entries()) {
+        const q: [number, number] = [i, i + (1 << k) - 1];
+        rows.push([
+          `${k} 층`,
+          String(i),
+          range(q),
+          show(WALK.slice(q[0], q[1] + 1)),
+          String(v),
+        ]);
+        total++;
+      }
+    }
+    return [
+      table(["층", "칸", "덮는 구간", "구간의 값", "칸에 적힌 값"], rows, [
+        "l",
+        "r",
+        "l",
+        "l",
+        "r",
+      ]),
+      "",
+      `└ 칸 ${num(total)} 개가 전부 자기 구간의 최솟값이다. 층이 오를수록 구간이 두 배로 길어지고 칸은 줄어든다`,
+    ].join("\n");
+  },
+
+  /** `deep.build` ② ④ — 질의의 모든 칸이 두 조각 중 어느 쪽에 들어가는가. 답은 정본이 낸다. */
+  "idea-cover": () => {
+    const cases: [string, [number, number]][] = [
+      ["한 칸", [3, 3]],
+      ["2 의 거듭제곱", [1, 2]],
+      ["2 의 거듭제곱", [2, 5]],
+      ["그 사이", [0, 4]],
+      ["배열 전체", [0, 5]],
+    ];
+    const min = (a: number, b: number): number => Math.min(a, b);
+    const rows = cases.map(([name, q]) => {
+      const c = coverWithTwo(WALK, q, min);
+      const w = 1 << c.k;
+      const marks: string[] = [];
+      let missing = 0;
+      for (let x = q[0]; x <= q[1]; x++) {
+        const inL = x >= c.left && x <= c.left + w - 1;
+        const inR = x >= c.right && x <= c.right + w - 1;
+        if (!inL && !inR) missing++;
+        marks.push(
+          `${x}:${inL && inR ? "둘" : inL ? "왼" : inR ? "오" : "빠짐"}`,
+        );
+      }
+      const answer = sparseTableRangeMin(
+        [...WALK],
+        [[...q] as [number, number]],
+      )[0];
+      return [
+        name,
+        range(q),
+        String(q[1] - q[0] + 1),
+        String(c.k),
+        range([c.left, c.left + w - 1]),
+        range([c.right, c.right + w - 1]),
+        marks.join(" "),
+        String(missing),
+        String(answer),
+      ];
+    });
+    return [
+      table(
+        [
+          "모양",
+          "질의",
+          "칸 수",
+          "층 k",
+          "왼쪽 조각",
+          "오른쪽 조각",
+          "칸마다 들어간 조각",
+          "빠진 칸",
+          "답",
+        ],
+        rows,
+        ["l", "l", "r", "r", "l", "l", "l", "r", "r"],
+      ),
+      "",
+      "└ 다섯 모양 모두 빠진 칸이 0 개다. 「둘」 로 적힌 칸이 겹친 칸이고, 그 칸도 답을 바꾸지 않는다",
+    ].join("\n");
+  },
+
+  /** `deep.build` ③ — 위층 한 칸이 아래층의 어느 두 칸에서 나오는가. 구간으로 적는다. */
+  "idea-fill": () => {
+    const st = levelsOf(WALK);
+    const rows: string[][] = [];
+    for (let k = 1; k < st.length; k++) {
+      const half = 1 << (k - 1);
+      const below = st[k - 1] as number[];
+      for (const [i, v] of (st[k] as number[]).entries()) {
+        rows.push([
+          `${k} 층`,
+          String(i),
+          range([i, i + (1 << k) - 1]),
+          String(i),
+          String(below[i]),
+          String(i + half),
+          String(below[i + half]),
+          String(below.length - 1),
+          String(v),
+        ]);
+      }
+    }
+    return [
+      table(
+        [
+          "층",
+          "칸",
+          "덮는 구간",
+          "왼쪽 절반 칸",
+          "값",
+          "오른쪽 절반 칸",
+          "값",
+          "아래층 마지막 칸",
+          "새 값",
+        ],
+        rows,
+        ["l", "r", "l", "r", "r", "r", "r", "r", "r"],
+      ),
+      "",
+      `└ 오른쪽 절반의 칸 번호가 아래층 마지막 칸을 넘는 줄이 없다 — 층마다 칸이 n − 2^k + 1 개인 이유다`,
+    ].join("\n");
+  },
+
+  /** `deep.build` ⑤ — 층 수 · 층마다 칸 수 · 질의가 읽는 칸 수. 규모를 셋으로 둔다. */
+  "idea-size": () => {
+    const rows = [WALK.length, 1_000, CONSTRAINT_N].map((n) => {
+      const K = logTableOf(n)[n] as number;
+      return [
+        num(n),
+        String(K + 1),
+        num(n),
+        `${K} 층 · ${num(n - (1 << K) + 1)} 칸`,
+        num(1 << K),
+        "2",
+      ];
+    });
+    return [
+      table(
+        [
+          "n",
+          "층 수",
+          "0 층 칸",
+          "맨 위층",
+          "맨 위층 칸이 덮는 칸 수",
+          "질의가 읽는 칸",
+        ],
+        rows,
+        ["r", "r", "r", "l", "r", "r"],
+      ),
+      "",
+      "└ 층 수는 ⌊log₂ n⌋ + 1 이고, 질의가 읽는 칸은 n 이 얼마든 2 개다",
+    ].join("\n");
+  },
+
+  /** `deep.build` ⑦ — 저장하는 길이의 밑을 넷으로 두고 잰 값. */
   "cost-base": () => {
     const parts: string[] = [];
     for (const [n, label] of [
