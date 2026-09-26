@@ -516,9 +516,14 @@ const FIGURE_REQUIRED = [
  * `FIGURE_REQUIRED` 에 넣지 않는 이유는 `deep.math` 가 **조건부 절**이기 때문이다(`SPEC.md` §8).
  * 거기 넣으면 절이 없는 편에서 "절이 없다" 로 오탐한다. 여기서는 **있을 때만** 검사한다.
  *
+ * `deep.origin`(아이디어를 떠올리는 과정)도 여기 둔다 — 조건부가 아니라 **필수**인데, 2026-09-26
+ * `KAN-056` 에서 `deep.build` 의 서사를 떼어 낸 새 절이라 옛 구성 편에는 아직 없다(`SPEC.md` §8
+ * 한시 조항). `FIGURE_REQUIRED` 에 넣으면 전개 전의 편이 전부 "절이 없다" 로 걸린다. 전개 카드가
+ * 닫히면 그쪽으로 옮긴다. 코드를 요구하는 것은 직무 ① 의 함수 시그니처 블록 때문이다.
+ *
  * 코드의 정의: `text`·`ascii`·태그 없음은 그림이지 코드가 아니다. 언어 태그가 붙은 펜스만 센다.
  */
-const CONDITIONAL_FIGURE_AND_CODE = ["deep.math"] as const;
+const CONDITIONAL_FIGURE_AND_CODE = ["deep.math", "deep.origin"] as const;
 
 /**
  * **있으면 그림만** 져야 하는 절 — 2026-08-28 유저 지시로 생긴 `related`(알아 두면 좋은 개념).

@@ -301,7 +301,9 @@ test("P3 — 짚고 가기 소절이 없으면 걸린다", () => {
     "#### 3b. 정렬을 건너뛰고 싶어지는 자리",
   );
   expect(
-    check({ text }).some((f) => f.code === "P3" && f.detail.includes("짚고 가기")),
+    check({ text }).some(
+      (f) => f.code === "P3" && f.detail.includes("짚고 가기"),
+    ),
   ).toBe(true);
 });
 
@@ -345,6 +347,67 @@ test("P7 — deep.math 에 코드 펜스가 없으면 걸린다", () => {
 test("P7 — deep.math 에 그림과 코드가 다 있으면 통과한다", () => {
   const text = WITH_MATH(
     "합은 $n(n-1)/2$ 이다.\n\n```text\n그림\n```\n\n```ts\nconst pairs = (n: number) => (n * (n - 1)) / 2;\n```",
+  );
+  expect(check({ text }).some((f) => f.code === "P7")).toBe(false);
+});
+
+/**
+ * `deep.origin`(2026-09-26 `KAN-056`)은 필수 절이지만 옛 구성 편에는 아직 없어서 **있을 때만**
+ * 검사한다(`SPEC.md` §8 한시 조항). `PASSING` 이 옛 구성이므로 그것이 계속 통과하는 것이
+ * 곧 무회귀다.
+ */
+const WITH_ORIGIN = (body: string) =>
+  PASSING.replace(
+    "### 아이디어 상세 — ",
+    `### 아이디어를 떠올리는 과정 — 모든 쌍에서 두 포인터까지\n\n${body}\n\n### 아이디어 상세 — `,
+  );
+
+test("section — 아이디어를 떠올리는 과정은 deep.origin 으로 해소된다", () => {
+  const text = WITH_ORIGIN(
+    "```ts\nfunction f(): void;\n```\n\n```text\n그림\n```",
+  );
+  const { sections, unresolved } = parseSections(text, "algo");
+  expect(unresolved).toEqual([]);
+  const ids = sections.map((s) => s.id);
+  expect(ids).toContain("deep.origin");
+  expect(ids.indexOf("deep.origin")).toBeLessThan(ids.indexOf("deep.build"));
+});
+
+test("P7 — deep.origin 이 없는 옛 구성은 위반이 아니다", () => {
+  expect(
+    check({ text: PASSING }).some((f) => f.where?.startsWith("deep.origin")),
+  ).toBe(false);
+});
+
+test("P7 — deep.origin 에 코드 펜스가 없으면 걸린다", () => {
+  const text = WITH_ORIGIN("모든 쌍을 센다.\n\n```text\n그림만 있다\n```");
+  expect(
+    check({ text }).some(
+      (f) =>
+        f.code === "P7" &&
+        f.where?.startsWith("deep.origin") &&
+        f.detail.includes("코드 펜스가 없다"),
+    ),
+  ).toBe(true);
+});
+
+// 코드 블록도 그림으로 센다 — `deep.walk` 아래가 아닌 절의 공통 규칙(`CODE_HEAVY`)이라
+// 펜스가 하나도 없어야 「그림이 없다」가 된다.
+test("P7 — deep.origin 에 펜스가 하나도 없으면 그림이 없다고 걸린다", () => {
+  const text = WITH_ORIGIN("모든 쌍을 센다.");
+  expect(
+    check({ text }).some(
+      (f) =>
+        f.code === "P7" &&
+        f.where?.startsWith("deep.origin") &&
+        f.detail === "그림이 없다",
+    ),
+  ).toBe(true);
+});
+
+test("P7 — deep.origin 에 그림과 코드가 다 있으면 통과한다", () => {
+  const text = WITH_ORIGIN(
+    "```ts\nfunction f(): void;\n```\n\n```text\n그림\n```",
   );
   expect(check({ text }).some((f) => f.code === "P7")).toBe(false);
 });

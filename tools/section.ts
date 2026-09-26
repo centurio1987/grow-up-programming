@@ -99,6 +99,8 @@ const PATTERNED_COMMON: ReadonlyArray<readonly [string, RegExp]> = [
 
 const PATTERNED_ALGO: ReadonlyArray<readonly [string, RegExp]> = [
   ...PATTERNED_COMMON,
+  // 2026-09-26 `KAN-056` — `deep.build` 가 들고 있던 「단순한 방법 → 아이디어」 서사를 떼어 낸 절.
+  ["deep.origin", /^### 아이디어를 떠올리는 과정 — .+$/],
   ["deep.build", /^### 아이디어 상세 — .+$/],
   ["deep.walk", /^### 수행으로 알아보는 알고리즘 — .+$/],
 ];
