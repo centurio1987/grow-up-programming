@@ -1,6 +1,6 @@
 {
   "next_id": 57,
-  "next_seq": 399,
+  "next_seq": 400,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1338,7 +1338,7 @@
       "memo_hash": "6aa93b8ff5c660cd56c867eb16e720afbefdb163"
     },
     "KAN-056-VPCM91": {
-      "col": "backlog",
+      "col": "doing",
       "title": "알고리즘 가이드 집필 로직 피드백",
       "verbatim": "지금은 아이디어 상세가, naive에서 시작해서 핵심 알고리즘에 도달하는 서사로 구성되어 있다. 그런데, 이 구성을 별도 항목으로 빼고, 아이디어 상세 자체는 아이디어에 초점을 맞춰서 상세히 집필해라. 집필 시, 최대한 자세히 이해하기 쉽도록 해야한다는 지시가 CLAUDE.md 때문에 무시당하는 문제가 있으니, /output-style을 learning으로  설정하여 작업하기 바란다.\n\n결과물은 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md에 대한 파일럿 가이드 생성을 통해 확인하겠다.",
       "생성": "유저",
@@ -1356,7 +1356,14 @@
       "reason": "아이디어 상세가 서사로 채워져 아이디어 자체 설명이 몇 단락뿐이다",
       "reason_hash": "72e6a539e578613fd03bcfcef58df097b3f61b98",
       "goal": "명세·스캐너가 새 구성을 받고 sparseTableRangeMin 파일럿이 새 구성으로 재집필돼 유저가 판정할 수 있다",
-      "goal_hash": "abe0160a7d94c9228cc55698f018a5e291d93d9b"
+      "goal_hash": "abe0160a7d94c9228cc55698f018a5e291d93d9b",
+      "scope": [
+        "sandbox/algo-guide-v2/**",
+        "tools/section.ts",
+        "tools/check-v2.ts",
+        "tools/check-v2.test.ts",
+        "src/algorithms/array/sparseTableRangeMin/**"
+      ]
     }
   },
   "order": [
@@ -1372,7 +1379,6 @@
     "KAN-053-2KYAED",
     "KAN-054-1YWN4M",
     "KAN-055-4N4T6A",
-    "KAN-056-VPCM91",
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
@@ -1425,9 +1431,20 @@
     "KAN-044-VZXM29",
     "KAN-043-B4Y5WV",
     "KAN-041-JJ5DA7",
-    "KAN-040-M5V53M"
+    "KAN-040-M5V53M",
+    "KAN-056-VPCM91"
   ],
   "recent": [
+    {
+      "seq": 399,
+      "t": "2026-09-26T21:52",
+      "a": "ai",
+      "id": "KAN-056-VPCM91",
+      "op": "move",
+      "w": "BKSVJ0",
+      "from": "backlog",
+      "to": "doing"
+    },
     {
       "seq": 398,
       "t": "2026-09-26T21:52",
@@ -1957,16 +1974,6 @@
       "w": "VB5VKS",
       "from": "review",
       "to": "done"
-    },
-    {
-      "seq": 349,
-      "t": "2026-09-17T04:50",
-      "a": "ai",
-      "id": "KAN-042-Z02G0W",
-      "op": "move",
-      "w": "VB5VKS",
-      "from": "doing",
-      "to": "review"
     }
   ],
   "waivers": [
