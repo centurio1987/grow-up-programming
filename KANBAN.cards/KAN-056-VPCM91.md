@@ -34,7 +34,7 @@ scope: sandbox/algo-guide-v2/**, tools/section.ts, tools/check-v2.ts, tools/chec
 <!-- `S<n>`은 고정 id — 이름을 바꾸지 않는다. 체크 상태는 doc-step 이 갱신한다. -->
 **배치 1 — 명세·스캐너**
 
-- [x] `S1` SPEC.md 개정 — §1 표(`deep.origin` 13, `deep.build` 13.5) · §2 매핑 · §3 `deep.origin` 신설과 `deep.build` 직무 재정의 · §4 그림 의무 목록 · §6 L1·L3 · §7 대응표 · §8 한시 조항 · 그 밖의 `deep.build` 언급 전수(`grep -n 'deep\.build'`: `:137`·`:415`·`:417`·`:490`·`:497`·`:504` 등). 완료 기준: grep 결과 자리마다 처분이 정해져 있다
+- [x] `S1` SPEC.md 개정 — §1 표(`deep.origin` 13, `deep.build` 13.5) · §2 매핑 · §3 `deep.origin` 신설과 `deep.build` 직무 재정의 · §4 그림 의무 목록 · §6 L1·L3 · §7 대응표 · §8 한시 조항 · 그 밖의 `deep.build` 언급 전수(`grep -n 'deep\.build'` 전수 — 파트 1 항목 목록 · `related` 싣는 조건 · bench 입력 · 가장 단순한 방법 재사용 금지 · `deep.math` 조건 등). 완료 기준: grep 결과 자리마다 처분이 정해져 있다
 - [x] `S2` 스캐너 — `tools/section.ts` `PATTERNED_ALGO` 에 `deep.origin`, `tools/check-v2.ts` `CONDITIONAL_FIGURE_AND_CODE` 에 `deep.origin`, `tools/check-v2.test.ts` 에 새 절 해소·옛 구성 무회귀 사례. 완료 기준: `bun test tools/check-v2.test.ts` 통과 · `check-v2 --all` 결과가 변경 전과 같다
 - [x] `S3` `FEEDBACK.md` 에 지적 → 규칙 → 강제 지점 한 줄. 완료 기준: 기록이 섰고 `check-links` 통과
 
@@ -45,7 +45,7 @@ scope: sandbox/algo-guide-v2/**, tools/section.ts, tools/check-v2.ts, tools/chec
 
 **배치 3 — 검증·검토 인계**
 
-- [ ] `S6` 검증 전체(아래 「검증」 절) 실행과 결과 기록. 완료 기준: 전 항목 통과, 실패 시 사유 기록
+- [>] `S6` 검증 전체(아래 「검증」 절) 실행과 결과 기록. 완료 기준: 전 항목 통과, 실패 시 사유 기록 <!-- claim:s=23da538d t=2026-09-26T22:05 -->
 - [ ] `S7` HTML 빌드 · 검토서 작성 · 검토로 이동. 완료 기준: 카드가 검토 컬럼에 있고 검토 화면이 열린다
 
 ## 검증
@@ -87,3 +87,6 @@ bun run tools/build-html.ts $G
 - 2026-09-26T22:05 · s:23da538d · S4 done — 서사(95~252줄)를 deep.origin 「아이디어를 떠올리는 과정 — 질의마다 차례로 읽기에서 겹치는 두 조각까지」로 옮기고 아이디어 이름에서 멈추게 끝을 새로 씀(버린 방법 요약 그림 추가)
 - 2026-09-26T22:05 · s:23da538d · S5 doing — 착수
 - 2026-09-26T22:05 · s:23da538d · S5 done — 아이디어 상세 직무 ①~⑦ 재작성 · 증명 블록 넷 신설(idea-cells·idea-cover·idea-fill·idea-size) · cost-base 를 ⑦ 로 · 합 반례는 pause-overlap 참조 · 재작성률 71% · check-v2 P1~P16 통과 · 증명 22개 일치
+- 2026-09-26T22:05 · s:23da538d — 배치 2 동안 전역 CLAUDE.md 「답변 말투」가 원고 분량·상세도를 누른 자리는 관찰되지 않음(원고는 파일 산출물이라 답변 규칙 대상 밖)
+- 2026-09-26T22:05 · s:23da538d · S6 doing — 착수
+- 2026-09-26T22:12 · s:23da538d — `실행 계획` 섹션 교체
