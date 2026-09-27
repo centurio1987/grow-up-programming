@@ -88,6 +88,7 @@
   - 목적: 알고리즘 가이드에서 단순한 방법→아이디어 서사를 별도 절로 떼고 아이디어 상세를 아이디어 자체에 집중시킨다
   - 이유: 아이디어 상세가 서사로 채워져 아이디어 자체 설명이 몇 단락뿐이다
   - 목표: 명세·스캐너가 새 구성을 받고 sparseTableRangeMin 파일럿이 새 구성으로 재집필돼 유저가 판정할 수 있다
+  - 요청서: KANBAN.requests/backlog/KAN-056-VPCM91.request.md (자유 형식 · 유저 · 미반영)
   - 원문:
     ```text
     지금은 아이디어 상세가, naive에서 시작해서 핵심 알고리즘에 도달하는 서사로 구성되어 있다. 그런데, 이 구성을 별도 항목으로 빼고, 아이디어 상세 자체는 아이디어에 초점을 맞춰서 상세히 집필해라. 집필 시, 최대한 자세히 이해하기 쉽도록 해야한다는 지시가 CLAUDE.md 때문에 무시당하는 문제가 있으니, /output-style을 learning으로  설정하여 작업하기 바란다.
@@ -131,6 +132,18 @@
   - 목표: 자료구조 67편이 v2 골격으로 서서 check-v2(P1~P20)·check-proof --require·guide-core·ci.ts all 을 통과하고, 자료구조의 .mdx 와 8단계 골격 자산이 0 이 된다. 이관 대상 둘(rollingHash·huffmanTree)의 .mdx 는 KAN-039 가 알고리즘 트랙 가이드로 대체하며 걷으므로 이 카드의 완료 조건이 아니다
   - 메모: **직렬 대기 사유는 해소됐다(2026-09-18).** 착수를 막던 것은 「계약이 없는 33종」이었는데 KAN-026·KAN-027 이 2026-09-16 에 완료·병합돼 계약이 67/69 로 섰다(남은 둘은 계약 전환 대상이 아니라 알고리즘 트랙 이관 대상이다). 카드 메모가 그 시점 이후 갱신되지 않아 사유가 낡은 채 서 있었다. 목적·목표의 「66편」도 「64편」으로 고쳤다 — 활성 .mdx 66 에서 이관 대상 둘을 뺀 수이고, 그 둘 때문에 KAN-039 가 선행으로 걸려 있던 것을 dep-waive 로 풀었다(036 은 그 둘의 가이드를 건드리지 않는다). **직렬 대기(2026-09-14 · 유저 결재).** 계약이 없는 33종(A군 16 · B군 17)은 KAN-026 · KAN-027 이 계약 전환을 끝낸 뒤에 쓸 수 있으므로 두 카드가 완료될 때까지 착수하지 않는다(dep-serialize 기록, 착수 시도는 종료코드 11). 선행 둘이 끝나면 전략을 다시 세우고 `dep-serialize --restrategy-done` 으로 푼다. 66편 전개와 .mdx 0 · 옛 8단계 자산 제거는 그대로 이 카드 몫이다. 인계(KAN-035): ① 걷을 것 — .claude/authoring/specs/ds-guide/ · tools/check-guide-rhythm.ts · tools/_baseline/guide-rhythm.tsv(.mdx 가 0 이 되면 exit 2 로 CI 가 멈추므로 마지막 편과 같은 커밋에서 걷는다, SPEC.md §8). ② docs/ORD-006-wbs.md 는 무효 — 계약 단위로 다시 뽑는다. ③ probabilistic/concurrentSkipList 는 TS 정본이 없어 deep.walk.final 이 Rust 추출이다 — 규격 자리만 있고 이 카드가 세운다. ④ 메모리 동기 5종(bitArray·bloomFilter·countMinSketch·cuckooFilter·hyperLogLog)은 계약 전환 때 DIRECT_MEMORY 편입을 판정한다(docs/ORD-006-conventions.md §규약4 「메모리를 직접 다뤄야 이득이 생기는 구조」). ⑤ 검토 4번 — tools/ord004-manifest.json 의 옛 .mdx 경로를 한꺼번에 정리. ⑥ 검토 11번 — avlTree·twoThreeTree 재집필 때 정본 guide:core 주석의 은유를 고치고 redBlackTree 편 본문 코드를 추출본으로 교체. ⑦ 이 카드 신설로 KAN-001 봉인 조건에 한 장이 붙는다. 근거: KANBAN.cards/KAN-035-31T4BY.md · KANBAN.reviews/KAN-035-31T4BY.review.md
   - 실행 문서: KANBAN.cards/KAN-036-0G05DE.md (0/7 · 최근 09-18)
+- `KAN-057-J36E1B` 알고리즘 가이드 시각화 전환 — ASCII 그림을 bbangto-ui-visualization 기반 스타일 가이드와 알고리즘 패턴으로 — 생성:ai · 최종:ai · 갱신:2026-09-27
+  - 짧은 제목: 알고리즘 가이드 시각화 전환
+  - 목적: 알고리즘 가이드의 도식을 ASCII 대신 bbangto-ui-visualization 위의 이 저장소 전용 스타일 가이드와 새 알고리즘 패턴으로 그린다
+  - 이유: 시각화가 필요한 자리까지 ASCII 로 그려 한글 폭에 열이 어긋나고 설명선이 무엇을 가리키는지 안 읽혀 글보다 이해가 안 된다
+  - 목표: 스타일 가이드 다섯 부분과 알고리즘 패턴이 서고 sparseTableRangeMin 파일럿이 새 그림으로 전환돼 유저가 HTML 로 판정할 수 있다
+  - 메모: 결정(유저 2026-09-27): 새 패턴은 이 저장소에서 먼저, 검증 뒤 bbangto-ui 승격은 별도 카드 · claude-design 에 foundation·visual motif·component 생김새를 요구사항서로 의뢰, 패턴 구현과 guideline 은 직접 · 파일럿 sparseTableRangeMin
+  - 원문:
+    ```text
+    ascii art 대신 시각화가 필요한 지점까지 ascii art로 해결하니 오히려 글로 쓴 것보다 이해 안되는 내용이 많아 진다.
+    
+    "~/resume"의 viz 기능을 가져와서, 이 프로젝트에 맞게 style guide를 재정의 해라(foundation, pattern, visual motif, component, guideline). 그리고 표현이 안되는 패턴이 있으면, 새로 생성해라. "~/resume" viz 기능 처럼 bbangto-ui@vizualization 패키지를 이용한다. style guide를 직접 정의하는 것보다, claude-design이 하는 것이 낫다고 판단 되면, 요구사항을 작성해서 요청하는 방식으로 실행 전략을 구성해라
+    ```
 
 ## 진행 중
 
