@@ -1,6 +1,6 @@
 {
   "next_id": 58,
-  "next_seq": 400,
+  "next_seq": 401,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1450,6 +1450,16 @@
   ],
   "recent": [
     {
+      "seq": 400,
+      "t": "2026-09-27T16:52",
+      "a": "유저",
+      "id": "KAN-057-J36E1B",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-056-VPCM91",
+      "reason": "KAN-057 이 고칠 파일럿 가이드·SPEC §4·algorithm-guide-writer voice·check-v2 그림 정의가 KAN-056 워크트리에만 있고 미병합이다. 병렬로 돌면 같은 파일을 양쪽에서 고친다 — 유저 결정 2026-09-27"
+    },
+    {
       "seq": 399,
       "t": "2026-09-27T16:40",
       "a": "ai",
@@ -1985,16 +1995,6 @@
       "w": "VG6P57",
       "with_": "KAN-044-VZXM29",
       "reason": "cartesianTree 헤더의 한정자 근거 문단과 축3 시나리오가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)"
-    },
-    {
-      "seq": 350,
-      "t": "2026-09-17T05:01",
-      "a": "ai",
-      "id": "KAN-042-Z02G0W",
-      "op": "move",
-      "w": "VB5VKS",
-      "from": "review",
-      "to": "done"
     }
   ],
   "waivers": [
@@ -2329,6 +2329,18 @@
       "by": "유저",
       "restrategy_required": false,
       "restrategy_done": "2026-09-18T21:47"
+    },
+    {
+      "pair": "KAN-056-VPCM91|KAN-057-J36E1B",
+      "order": [
+        "KAN-056-VPCM91",
+        "KAN-057-J36E1B"
+      ],
+      "scope_hash": "94f6d9cdd1ea8248",
+      "reason": "KAN-057 이 고칠 파일럿 가이드·SPEC §4·algorithm-guide-writer voice·check-v2 그림 정의가 KAN-056 워크트리에만 있고 미병합이다. 병렬로 돌면 같은 파일을 양쪽에서 고친다 — 유저 결정 2026-09-27",
+      "created": "2026-09-27T16:52",
+      "by": "유저",
+      "restrategy_required": false
     }
   ]
 }
