@@ -22,7 +22,10 @@
  * 4. **뷰어 번들을 싣지 않는다.** 종이에서 React 는 아무 일도 못 한다. 마운트 지점 안의
  *    `<pre class="gs-ascii">` 폴백이 그대로 인쇄된다(JS 를 끄고 인쇄한 결과가 켠 것과
  *    바이트까지 같음을 실측했다). 편당 205KB 짜리 번들 111벌이 여기서 사라진다.
- * 5. **디자인 템플릿의 틀을 씌운다.** CSS 만으로 못 만드는 구조 셋을 여기서 세운다 —
+ * 5. **걸음 필름을 칸마다 한 장으로 가른다**(`splitFilms`). 필름은 걸음을 세로로 쌓은 SVG
+ *    한 장이라 한 쪽보다 길고, 한 장 안에서는 쪽 나눔 자리를 정할 수 없다. 칸 하나가 쪽 안에서
+ *    안 갈라지는 단위가 되게, 렌더러가 박은 칸 경계(`data-viz-y`·`data-viz-h`)로 나눈다.
+ * 6. **디자인 템플릿의 틀을 씌운다.** CSS 만으로 못 만드는 구조 셋을 여기서 세운다 —
  *    챕터 간지(장 제목이 본문 흐름에서 빠져 한 쪽을 차지한다), 코드 머리 줄(언어 표기),
  *    짚고 가기 상자(「짚고 가기 —」 제목부터 다음 제목 전까지를 한 상자로 묶는다).
  */
@@ -38,7 +41,7 @@ import { FOLIO_SLOT, NO_SLOT, PAGES_SLOT } from "./volume.ts";
  * 조각 모양이 바뀌면 올린다. **올리는 순간 캐시 전체가 무효가 된다** — 낡은 모양의 조각과
  * 새 모양의 조각이 한 권에 섞이는 것이 조용한 실패다.
  */
-export const BUILDER_VERSION = 4;
+export const BUILDER_VERSION = 5;
 
 export interface CacheEntry {
   src: string;
@@ -254,8 +257,115 @@ function wrap(
   );
 
   return {
-    html: `<section class="bk-chapter" id="${ch.id}" data-track="${ch.trackId}">\n${opener}\n${stops(codeFigures(out))}\n</section>\n`,
+    html: `<section class="bk-chapter" id="${ch.id}" data-track="${ch.trackId}">\n${opener}\n${stops(codeFigures(splitFilms(out)))}\n</section>\n`,
     deadRefs,
+  };
+}
+
+/**
+ * 걸음 필름(`CellStageFilm`)을 칸마다 한 장의 SVG 로 가른다 — 인쇄 전용이다. 웹 화면과 커밋된
+ * `figs/*.svg` 는 한 장 그대로다(그림 하나 = 파일 하나, KAN-057).
+ *
+ * 칸 SVG 는 원래 SVG 의 여는 태그를 그대로 물려받는다 — 칠 스타일이 `svg[data-viz-fig=…]` 로
+ * 그림을 고르기 때문이다. viewBox 만 칸 자리로 옮기고, 칸 밖이 비치지 않게 `overflow` 를 닫는다.
+ *
+ * 칠 스타일(`<style>`) · 제목 · 공용 `<defs>` 는 **첫 칸에만** 싣는다. 인라인 SVG 의 `<style>` 과
+ * id 는 문서 전체에 걸리므로 뒤 칸도 그것을 쓴다 — 칸마다 실으면 필름 하나가 칸 수만큼 부푼다.
+ * 뒤 칸은 첫 칸의 조각이라 읽기 도구에 한 번만 읽히게 `aria-hidden` 을 단다.
+ *
+ * 칸 경계가 없는 SVG(필름이 아닌 그림, 경계 도입 전 SVG)는 그대로 둔다.
+ */
+export function splitFilms(html: string): string {
+  return html.replace(
+    /(<figure class="gs-fig" data-fig="[^"]*">)(<svg\b[^>]*>)([\s\S]*?)<\/svg><\/figure>/g,
+    (m, fig: string, open: string, inner: string) => {
+      const parts = filmParts(inner);
+      if (parts === null) return m;
+      const cells = parts.steps.map((st, n) => {
+        let tag = open
+          .replace(
+            /\bviewBox="0 0 ([\d.]+) [\d.]+"/,
+            `viewBox="0 ${st.y} $1 ${st.h}"`,
+          )
+          .replace(/\bheight="[\d.]+"/, `height="${st.h}"`)
+          .replace(/overflow:\s*visible/, "overflow: hidden")
+          .replace(/^<svg\b/, `<svg data-bk-step="${st.id}"`);
+        if (n > 0) {
+          tag = tag
+            .replace(/\s(role|aria-labelledby)="[^"]*"/g, "")
+            .replace(/^<svg\b/, '<svg aria-hidden="true"');
+        }
+        return `${tag}${n === 0 ? parts.head : ""}${st.body}${n === parts.steps.length - 1 ? parts.tail : ""}</svg>`;
+      });
+      return `${fig.replace('class="gs-fig"', 'class="gs-fig bk-film"')}${cells.join("")}</figure>`;
+    },
+  );
+}
+
+interface FilmStep {
+  id: string;
+  y: number;
+  h: number;
+  body: string;
+}
+
+/**
+ * SVG 속을 머리(칸 앞) · 칸들 · 꼬리(칸 뒤)로 나눈다. 칸은 **최상위** `<g data-viz-step>` 중
+ * 경계(`data-viz-y`·`data-viz-h`)를 단 것이다. 칸이 없거나 칸 사이에 다른 요소가 끼어 있으면
+ * `null` — 어느 칸에 실을지 정할 수 없는 것을 추측으로 옮기지 않는다.
+ */
+function filmParts(
+  inner: string,
+): { head: string; steps: FilmStep[]; tail: string } | null {
+  const tag = /<(\/?)([a-zA-Z][\w:-]*)\b([^>]*?)(\/?)>/g;
+  const steps: FilmStep[] = [];
+  let depth = 0;
+  let open: { at: number; id: string; y: number; h: number } | null = null;
+  let headEnd = -1;
+  let lastEnd = -1;
+  for (let m = tag.exec(inner); m !== null; m = tag.exec(inner)) {
+    const [whole, close, name, attrs, self] = m;
+    if (close === "" && name === "style") {
+      // 칠 스타일 속에는 태그가 없다 — 닫는 태그까지 건너뛴다(선택자의 `>` 를 태그로 읽지 않게).
+      const end = inner.indexOf("</style>", m.index);
+      if (end < 0) return null;
+      tag.lastIndex = end + "</style>".length;
+      continue;
+    }
+    if (close === "/") {
+      depth--;
+      if (depth === 0 && open !== null && name === "g") {
+        const end = m.index + whole.length;
+        steps.push({
+          id: open.id,
+          y: open.y,
+          h: open.h,
+          body: inner.slice(open.at, end),
+        });
+        lastEnd = end;
+        open = null;
+      }
+      continue;
+    }
+    if (depth === 0 && name === "g") {
+      const id = /\bdata-viz-step="([^"]+)"/.exec(attrs ?? "")?.[1];
+      const y = /\bdata-viz-y="([\d.]+)"/.exec(attrs ?? "")?.[1];
+      const h = /\bdata-viz-h="([\d.]+)"/.exec(attrs ?? "")?.[1];
+      if (id !== undefined && y !== undefined && h !== undefined) {
+        if (steps.length === 0) headEnd = m.index;
+        else if (inner.slice(lastEnd, m.index).trim() !== "") return null;
+        open = { at: m.index, id, y: Number(y), h: Number(h) };
+      } else if (steps.length > 0) {
+        return null;
+      }
+    }
+    if (self !== "/") depth++;
+  }
+  if (steps.length === 0 || depth !== 0) return null;
+  return {
+    head: inner.slice(0, headEnd),
+    steps,
+    tail: inner.slice(lastEnd),
   };
 }
 

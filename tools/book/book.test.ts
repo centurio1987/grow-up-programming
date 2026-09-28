@@ -451,3 +451,62 @@ describe("그림 측정", () => {
     expect(figureShrinks("x", [small], box)).toEqual([]);
   });
 });
+
+describe("필름 가르기", () => {
+  const dir = "src/algorithms/array/sparseTableRangeMin/figs";
+  const figure = async (id: string) =>
+    `<figure class="gs-fig" data-fig="${id}">${(await Bun.file(`${dir}/${id}.svg`).text()).trim()}</figure>`;
+
+  test("걸음 필름은 칸마다 한 장의 SVG 로 갈린다 — 칸 자리가 viewBox 로 간다", async () => {
+    const { splitFilms } = await import("./fragment.ts");
+    const out = splitFilms(await figure("walk-build"));
+    expect(out).toStartWith(
+      '<figure class="gs-fig bk-film" data-fig="walk-build">',
+    );
+    const svgs = [...out.matchAll(/<svg\b[^>]*>/g)].map((m) => m[0]);
+    expect(svgs.length).toBe(8);
+    expect(svgs[0]).toContain('data-bk-step="T3"');
+    expect(svgs[0]).toContain('viewBox="0 0 712 282"');
+    expect(svgs[1]).toContain('viewBox="0 282 712 290"');
+    expect(svgs[7]).toContain('data-bk-step="T10"');
+    // 칸 밖(다른 칸의 자리)이 비치지 않는다
+    for (const s of svgs) expect(s).toContain("overflow: hidden");
+    // 걸음은 빠짐없이 한 번씩 — 원래 필름의 칸 그대로다
+    expect(
+      [...out.matchAll(/<g data-viz-step="(T\d+)"/g)].map((m) => m[1]),
+    ).toEqual(["T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10"]);
+  });
+
+  test("칠 스타일과 제목은 첫 칸에만 싣고, 뒤 칸은 읽기 도구에 숨긴다", async () => {
+    const { splitFilms } = await import("./fragment.ts");
+    const src = await figure("walk-answer");
+    const out = splitFilms(src);
+    expect([...out.matchAll(/<style>/g)].length).toBe(1);
+    expect([...out.matchAll(/<title\b/g)].length).toBe(1);
+    const svgs = [...out.matchAll(/<svg\b[^>]*>/g)].map((m) => m[0]);
+    expect(svgs[0]).toContain('role="img"');
+    for (const s of svgs.slice(1)) {
+      expect(s).toContain('aria-hidden="true"');
+      expect(s).not.toContain("aria-labelledby");
+      // 칠 스타일이 그림을 고르는 속성은 모든 칸이 물려받는다
+      expect(s).toContain('data-viz-fig="fig-walk-answer"');
+    }
+    // 가르기 전후로 그림 요소가 늘거나 줄지 않는다 — 칸마다 싣는 것이 없다
+    const count = (h: string, re: RegExp) => [...h.matchAll(re)].length;
+    for (const re of [/<rect\b/g, /<text\b/g, /<path\b/g, /<defs\b/g]) {
+      expect(count(out, re)).toBe(count(src, re));
+    }
+  });
+
+  test("칸 경계가 없는 그림은 그대로 둔다", async () => {
+    const { splitFilms } = await import("./fragment.ts");
+    const src = await figure("concept-cover");
+    expect(splitFilms(src)).toBe(src);
+    // 경계 도입 전 필름(data-viz-step 만 있고 자리가 없다)도 그대로다
+    const old = (await figure("walk-build")).replace(
+      / data-viz-y="\d+" data-viz-h="\d+"/g,
+      "",
+    );
+    expect(splitFilms(old)).toBe(old);
+  });
+});

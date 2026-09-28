@@ -244,6 +244,18 @@ figure.bk-code > pre.shiki { margin: 0; padding: 4.5mm 5mm; }
 }
 .gs-mount > pre.gs-ascii { margin: 0; background: none !important; overflow: hidden; }
 
+/* ── 그림 (KAN-059) — SVG 한 장이 쪽 안에서 안 갈라지는 단위다 ──────────
+ * 화면 CSS 는 그림을 가로 스크롤(overflow-x:auto)에 둔다. 종이에서 그건 잘림이라 풀고, 넓은 그림은
+ * 본문 폭까지 줄인다. 한 쪽에 드는지는 빌더가 잰다(figures.ts) — 여기서 맞춰 주지 않는다. */
+figure.gs-fig { margin: 0 0 6mm; overflow: visible; }
+.gs-mount > figure.gs-fig { margin: 0; }
+figure.gs-fig > svg { display: block; max-width: 100%; height: auto; margin: 0 auto; break-inside: avoid; }
+/* 걸음 필름은 책이 칸마다 한 장으로 가른다(fragment.ts 의 splitFilms). 쪽은 칸 사이에서 넘어가고,
+ * 틀째 다음 쪽으로 미는 규칙(위의 figure, .gs-mount)을 풀어 머리 줄만 남은 빈 쪽이 안 생기게 한다.
+ * 머리 줄(::before)은 첫 칸과 같은 쪽에 선다 — 첫 칸 앞에서 쪽을 넘기지 않는다. */
+.gs-mount:has(> figure.bk-film), figure.bk-film { break-inside: auto; }
+figure.bk-film > svg:first-child { break-before: avoid; }
+
 /* ── 짚고 가기 — 흔한 실수를 짚는 자리. 책에서 색이 들어가는 곳 ──── */
 .bk-stop { margin: 5.5mm 0 7mm; padding: 0 0 0 5mm; border-left: 3px solid var(--bk-mark); }
 .bk-stop::before {
