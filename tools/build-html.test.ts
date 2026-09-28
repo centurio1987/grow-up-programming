@@ -10,6 +10,7 @@ import { GlobalRegistrator } from "@happy-dom/global-registrator";
 GlobalRegistrator.register();
 
 import { expect, test } from "bun:test";
+import { rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { build, railFrom, railHtml } from "./build-html.ts";
 import { mountAll, type SimSpec } from "./mount.ts";
@@ -93,6 +94,69 @@ test("viz 와 proof 가 같은 펜스를 가리켜도 viz 가 붙는다", async 
   } finally {
     await Bun.file(tmp).unlink();
   }
+});
+
+/** fig 표본 — 임시 디렉터리에 가이드와 `figs/{id}.svg` 를 둔다. */
+async function buildFig(md: string, svg: string | null) {
+  const dir = join(SMOKE, "_fig-tmp");
+  const tmp = join(dir, "fig-guide.md");
+  await Bun.write(tmp, md);
+  if (svg !== null) await Bun.write(join(dir, "figs", "cover.svg"), svg);
+  try {
+    return await build(tmp, { simPath: join(SMOKE, "없는-sim.ts") });
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+}
+
+const SVG =
+  '<svg xmlns="http://www.w3.org/2000/svg" data-viz-fig="fig-cover"><rect/></svg>';
+
+test("fig — 마커와 이미지가 인라인 SVG 로 바뀐다(KAN-057)", async () => {
+  const r = await buildFig(
+    ["# 표본", "", "<!--fig:cover-->", "![두 조각](./figs/cover.svg)", ""].join(
+      "\n",
+    ),
+    SVG,
+  );
+  expect(r.problems).toEqual([]);
+  expect(r.html).toContain(
+    `<figure class="gs-fig" data-fig="cover">${SVG}</figure>`,
+  );
+  // md 이미지 링크가 HTML 에 남으면 파일을 한 번 더 부른다 — 외부 요청 0 이어야 한다.
+  expect(r.html).not.toContain('src="./figs/cover.svg"');
+});
+
+test("fig — viz 폴백이 ASCII 대신 그림이다", async () => {
+  const r = await buildFig(
+    [
+      "# 표본",
+      "",
+      "<!--viz:demo-->",
+      "<!--fig:cover-->",
+      "![걸음](./figs/cover.svg)",
+      "",
+    ].join("\n"),
+    SVG,
+  );
+  expect(r.problems).toEqual([]);
+  expect(r.vizIds).toEqual(["demo"]);
+  expect(r.html).toMatch(
+    /data-viz="demo"><figure class="gs-fig" data-fig="cover"><svg/,
+  );
+});
+
+test("fig — SVG 가 없거나 이미지가 다른 파일을 가리키면 위반이다", async () => {
+  const missing = await buildFig(
+    ["# 표본", "", "<!--fig:cover-->", "![x](./figs/cover.svg)", ""].join("\n"),
+    null,
+  );
+  expect(missing.problems.join("\n")).toContain("figs/cover.svg 가 없다");
+  const wrong = await buildFig(
+    ["# 표본", "", "<!--fig:cover-->", "![x](./figs/other.svg)", ""].join("\n"),
+    SVG,
+  );
+  expect(wrong.problems.join("\n")).toContain("이미지 한 장이어야 한다");
 });
 
 test("⑥ 다크 모드 토큰이 있다", () => {

@@ -194,6 +194,15 @@ const PROOF_MARKER = new RegExp(`^<!--proof:${MARKER_ID}-->$`);
 const VIZ_OPEN = new RegExp(`^<!--viz:(${MARKER_ID})-->$`);
 const CHECK_OPEN = new RegExp(`^<!--check:(${MARKER_ID})-->$`);
 const CHECK_CLOSE = /^<!--\/check-->$/;
+/**
+ * `<!--fig:{id}-->` + **바로 다음 줄의 이미지** `![설명](./figs/{id}.svg)` (KAN-057).
+ *
+ * md 에서는 이미지가 그대로 보이고(GitHub 미리보기), HTML 에서는 같은 SVG 파일을 인라인한다 —
+ * 이 빌더는 원시 HTML 을 끄고 도므로 트리에는 빈 `<figure data-fig>` 자리표만 두고, 문자열이 다
+ * 만들어진 뒤 `injectFigures` 가 그 자리에 SVG 를 넣는다. SVG 는 `tools/render-figs.ts` 가 뽑는다.
+ */
+const FIG_OPEN = new RegExp(`^<!--fig:(${MARKER_ID})-->$`);
+const figSrc = (id: string): RegExp => new RegExp(`^(\\./)?figs/${id}\\.svg$`);
 
 interface MdNode {
   type: string;
@@ -219,13 +228,54 @@ interface HastNode {
   children?: HastNode[];
 }
 
+/** 그림 자리표 — `injectFigures` 가 이 자리에 SVG 를 넣는다. */
+const figurePlaceholder = (id: string) => ({
+  type: "element",
+  tagName: "figure",
+  properties: { className: ["gs-fig"], "data-fig": id },
+  children: [],
+});
+
+/**
+ * `children[at]` 이 `<!--fig:{id}-->` 이고 그 다음이 `figs/{id}.svg` 를 가리키는 이미지 한 장뿐인
+ * 문단이면 id 를 돌려준다. 아니면 `null` — 틀린 모양은 `problems` 에 적는다.
+ */
+function figAt(
+  children: MdNode[],
+  at: number,
+  problems: string[],
+): string | null {
+  const node = children[at];
+  if (node?.type !== "html") return null;
+  const m = FIG_OPEN.exec((node.value ?? "").trim());
+  if (!m) return null;
+  const id = m[1] as string;
+  const para = children[at + 1];
+  const img =
+    para?.type === "paragraph" && para.children?.length === 1
+      ? para.children[0]
+      : undefined;
+  const url = (img as { url?: string } | undefined)?.url ?? "";
+  if (img?.type !== "image" || !figSrc(id).test(url)) {
+    problems.push(
+      `\`fig:${id}\`: 마커 다음 줄은 \`![설명](./figs/${id}.svg)\` 이미지 한 장이어야 한다`,
+    );
+    return null;
+  }
+  return id;
+}
+
 /**
  * `<!--viz:{id}-->` + **바로 다음 펜스 하나**를 한 노드로 접는다.
  *
  * `hChildren` 에 원래 ascii 를 `<pre>` 로 남긴다. 치환만 하면 JS 를 끈 화면에서 **그림이
  * 0개**가 되고, 그건 L10(그림 의무)과 정면으로 어긋난다. JS 가 붙으면 sim 이 이 자리를 덮는다.
  */
-function collapseMarkers(tree: MdNode, problems: string[]): string[] {
+function collapseMarkers(
+  tree: MdNode,
+  problems: string[],
+  figIds: string[] = [],
+): string[] {
   const ids: string[] = [];
 
   const walk = (parent: MdNode): void => {
@@ -252,6 +302,21 @@ function collapseMarkers(tree: MdNode, problems: string[]): string[] {
         ) {
           fence++;
         }
+        // 폴백이 ASCII 펜스 대신 그림일 수 있다(KAN-057) — `<!--fig:…-->` + 이미지.
+        const figId = figAt(children, fence, problems);
+        if (figId !== null) {
+          ids.push(id);
+          figIds.push(figId);
+          children.splice(i, fence + 2 - i, {
+            type: "vizPanel",
+            data: {
+              hName: "div",
+              hProperties: { className: ["gs-mount"], "data-viz": id },
+              hChildren: [figurePlaceholder(figId)],
+            },
+          });
+          continue;
+        }
         const next = children[fence];
         if (next?.type !== "code") {
           problems.push(`\`${id}\`: 마커 다음이 펜스가 아니다`);
@@ -277,6 +342,19 @@ function collapseMarkers(tree: MdNode, problems: string[]): string[] {
                 children: [{ type: "text", value: ascii }],
               },
             ],
+          },
+        });
+        continue;
+      }
+
+      const figId = figAt(children, i, problems);
+      if (figId !== null) {
+        figIds.push(figId);
+        children.splice(i, 2, {
+          type: "vizFigure",
+          data: {
+            hName: "figure",
+            hProperties: { className: ["gs-fig"], "data-fig": figId },
           },
         });
         continue;
@@ -594,6 +672,8 @@ code { font-family: "SFMono-Regular", Menlo, monospace; font-size: .9em; }
 pre { overflow-x: auto; padding: 1rem; border-radius: 6px; background: var(--gs-soft); }
 pre.gs-ascii { border: 1px dashed var(--gs-rule); background: transparent; }
 .gs-mount { margin: 1.5rem 0; }
+.gs-fig { margin: 1.5rem 0; overflow-x: auto; }
+.gs-fig svg { max-width: 100%; height: auto; }
 table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
 th, td { border: 1px solid var(--gs-rule); padding: .5rem .75rem; text-align: left; }
 blockquote { margin: 1.5rem 0; padding-left: 1rem; border-left: 3px solid var(--gs-rule); color: var(--gs-muted); }
@@ -627,6 +707,36 @@ export interface BuildResult {
   rail: RailEntry[];
 }
 
+/**
+ * `<figure class="gs-fig" data-fig="{id}"></figure>` 자리에 `figs/{id}.svg` 를 넣는다.
+ * SVG 가 없거나 외부를 부르면(`href`/`src` 가 `http`) 위반이다 — 산출 HTML 은 외부 요청 0 이어야 한다.
+ */
+export async function injectFigures(
+  html: string,
+  dir: string,
+  figIds: readonly string[],
+  problems: string[],
+): Promise<string> {
+  let out = html;
+  for (const id of new Set(figIds)) {
+    const file = Bun.file(join(dir, "figs", `${id}.svg`));
+    if (!(await file.exists())) {
+      problems.push(
+        `\`fig:${id}\`: figs/${id}.svg 가 없다 — \`bun run tools/render-figs.ts\``,
+      );
+      continue;
+    }
+    const svg = (await file.text()).trim();
+    if (/(href|src)="https?:/.test(svg))
+      problems.push(`\`fig:${id}\`: SVG 가 외부를 부른다`);
+    out = out.replaceAll(
+      `<figure class="gs-fig" data-fig="${id}"></figure>`,
+      `<figure class="gs-fig" data-fig="${id}">${svg}</figure>`,
+    );
+  }
+  return out;
+}
+
 export async function build(
   mdPath: string,
   opts: { simPath?: string; kind?: GuideKind } = {},
@@ -637,12 +747,13 @@ export async function build(
   const kind = opts.kind ?? kindOfOr(mdPath, "algo");
   const problems: string[] = [];
   let vizIds: string[] = [];
+  const figIds: string[] = [];
 
   let mdTables: MdTableRow[][] = [];
   let htmlTables: number[][] = [];
 
   const markerPlugin = () => (tree: MdNode) => {
-    vizIds = collapseMarkers(tree, problems);
+    vizIds = collapseMarkers(tree, problems, figIds);
     // 마커를 접은 **뒤**에 센다. `check` 블록 안의 표도 그때는 트리에 그대로 있다.
     mdTables = mdTableRows(tree);
   };
@@ -709,9 +820,16 @@ export async function build(
     .use(rehypeStringify)
     .process(md);
 
-  const prose = String(file);
+  const rawProse = String(file);
   problems.push(...tableCellProblems(mdTables, htmlTables));
-  problems.push(...renderedProseProblems(prose));
+  // 산문 검사는 SVG 를 넣기 **전에** 한다 — 그림 속 글자는 산문이 아니다.
+  problems.push(...renderedProseProblems(rawProse));
+  const prose = await injectFigures(
+    rawProse,
+    dirname(mdPath),
+    figIds,
+    problems,
+  );
   const title = /^#\s+(.+)$/m.exec(md)?.[1]?.trim() ?? basename(mdPath);
 
   let script = "";
