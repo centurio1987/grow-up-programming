@@ -1,6 +1,6 @@
 {
-  "next_id": 58,
-  "next_seq": 401,
+  "next_id": 59,
+  "next_seq": 403,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1377,6 +1377,26 @@
       "goal_hash": "1a552baed4d911dc2e1f0681bc0ce2b2a70d8894",
       "memo": "결정(유저 2026-09-27): 새 패턴은 이 저장소에서 먼저, 검증 뒤 bbangto-ui 승격은 별도 카드 · claude-design 에 foundation·visual motif·component 생김새를 요구사항서로 의뢰, 패턴 구현과 guideline 은 직접 · 파일럿 sparseTableRangeMin",
       "memo_hash": "2193914d0ae30f88412745d03c9fc5c5b2aa0cf5"
+    },
+    "KAN-058-8XT6PC": {
+      "col": "backlog",
+      "title": "알고리즘 가이드 110편 v2 재구성 전개 — KAN-056 파일럿 구성을 나머지 편에 적용",
+      "verbatim": "110편 전개는 kan-057 완료 이후로 수행 가능하게 만들어라.",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-09-28",
+      "title_hash": "87d8a43354f28c5694770e1715dd521715a72511",
+      "verbatim_hash": "026debc00e6e229230f5dc6bfdf21c7ee8025ee0",
+      "short": "알고리즘 110편 전개",
+      "short_hash": "edb1b6cabedaaacfa74f22e20b378c4d8502b2f2",
+      "purpose": "src/algorithms/ 의 나머지 110편을 KAN-056 파일럿(sparseTableRangeMin) 구성으로 다시 쓰고 SPEC §8 한시 조항을 걷는다",
+      "purpose_hash": "6b851ab7b99e562d8c5378646e494507b48d0aad",
+      "reason": "KAN-056 파일럿이 2026-09-28 승인됐고, 옛 구성 110편 때문에 deep.origin · P17 · P18 을 해당 절이 있을 때만 재는 한시 조항에 묶여 있다",
+      "reason_hash": "610f6687a9ec4e3ca7dcae5b097af9b36f59b69c",
+      "goal": "110편이 「아이디어를 떠올리는 과정」과 실현 단계 구성으로 서고, 한시 조항을 걷고 voice 「견주다」를 켠 뒤에도 ci.ts all 이 통과한다",
+      "goal_hash": "d485495bb53383348a13982ce00bc8c9ff2c117b",
+      "memo": "착수는 KAN-057(알고리즘 가이드 시각화 전환) 완료 뒤다 — 유저 결정(2026-09-28). 이 카드의 몫: ① 110편 재집필(SPEC L41~L45 · 파일럿 원고가 기준) ② SPEC §8 한시 조항 둘 제거 — deep.origin 을 FIGURE_REQUIRED 로, P17·P18 을 모든 편에 ③ 본문 반말 43편 168곳(P18) ④ 「견주다」 91편 1,542곳 교정 뒤 voice algorithm-guide-writer 의 v.common.gyeonju 를 enabled:true 로(L44). 규칙 정본은 KAN-056 병합 뒤의 sandbox/algo-guide-v2/SPEC.md. 근거: KANBAN.reviews/KAN-056-VPCM91.review.md 3번",
+      "memo_hash": "5fed99e814d238239cc3d762d83b904153a82dba"
     }
   },
   "order": [
@@ -1446,9 +1466,37 @@
     "KAN-043-B4Y5WV",
     "KAN-041-JJ5DA7",
     "KAN-040-M5V53M",
-    "KAN-057-J36E1B"
+    "KAN-057-J36E1B",
+    "KAN-058-8XT6PC"
   ],
   "recent": [
+    {
+      "seq": 402,
+      "t": "2026-09-28T17:06",
+      "a": "유저",
+      "id": "KAN-058-8XT6PC",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-057-J36E1B",
+      "reason": "유저 결정(2026-09-28): 110편 전개는 KAN-057 완료 이후로 수행 가능하게 만든다"
+    },
+    {
+      "seq": 401,
+      "t": "2026-09-28T17:06",
+      "a": "ai",
+      "id": "KAN-058-8XT6PC",
+      "op": "create",
+      "w": "46PCAX",
+      "col": "backlog",
+      "title": "알고리즘 가이드 110편 v2 재구성 전개 — KAN-056 파일럿 구성을 나머지 편에 적용",
+      "verbatim": "110편 전개는 kan-057 완료 이후로 수행 가능하게 만들어라.",
+      "parent": null,
+      "short": "알고리즘 110편 전개",
+      "purpose": "src/algorithms/ 의 나머지 110편을 KAN-056 파일럿(sparseTableRangeMin) 구성으로 다시 쓰고 SPEC §8 한시 조항을 걷는다",
+      "reason": "KAN-056 파일럿이 2026-09-28 승인됐고, 옛 구성 110편 때문에 deep.origin · P17 · P18 을 해당 절이 있을 때만 재는 한시 조항에 묶여 있다",
+      "goal": "110편이 「아이디어를 떠올리는 과정」과 실현 단계 구성으로 서고, 한시 조항을 걷고 voice 「견주다」를 켠 뒤에도 ci.ts all 이 통과한다",
+      "memo": "착수는 KAN-057(알고리즘 가이드 시각화 전환) 완료 뒤다 — 유저 결정(2026-09-28). 이 카드의 몫: ① 110편 재집필(SPEC L41~L45 · 파일럿 원고가 기준) ② SPEC §8 한시 조항 둘 제거 — deep.origin 을 FIGURE_REQUIRED 로, P17·P18 을 모든 편에 ③ 본문 반말 43편 168곳(P18) ④ 「견주다」 91편 1,542곳 교정 뒤 voice algorithm-guide-writer 의 v.common.gyeonju 를 enabled:true 로(L44). 규칙 정본은 KAN-056 병합 뒤의 sandbox/algo-guide-v2/SPEC.md. 근거: KANBAN.reviews/KAN-056-VPCM91.review.md 3번"
+    },
     {
       "seq": 400,
       "t": "2026-09-27T16:52",
@@ -1975,26 +2023,6 @@
       "w": "VG6P57",
       "from": "doing",
       "to": "review"
-    },
-    {
-      "seq": 352,
-      "t": "2026-09-17T05:13",
-      "a": "ai",
-      "id": "KAN-044-VZXM29",
-      "op": "move",
-      "w": "VG6P57",
-      "from": "backlog",
-      "to": "doing"
-    },
-    {
-      "seq": 351,
-      "t": "2026-09-17T05:12",
-      "a": "ai",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "VG6P57",
-      "with_": "KAN-044-VZXM29",
-      "reason": "cartesianTree 헤더의 한정자 근거 문단과 축3 시나리오가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)"
     }
   ],
   "waivers": [
@@ -2339,6 +2367,18 @@
       "scope_hash": "94f6d9cdd1ea8248",
       "reason": "KAN-057 이 고칠 파일럿 가이드·SPEC §4·algorithm-guide-writer voice·check-v2 그림 정의가 KAN-056 워크트리에만 있고 미병합이다. 병렬로 돌면 같은 파일을 양쪽에서 고친다 — 유저 결정 2026-09-27",
       "created": "2026-09-27T16:52",
+      "by": "유저",
+      "restrategy_required": false
+    },
+    {
+      "pair": "KAN-057-J36E1B|KAN-058-8XT6PC",
+      "order": [
+        "KAN-057-J36E1B",
+        "KAN-058-8XT6PC"
+      ],
+      "scope_hash": "94f6d9cdd1ea8248",
+      "reason": "유저 결정(2026-09-28): 110편 전개는 KAN-057 완료 이후로 수행 가능하게 만든다",
+      "created": "2026-09-28T17:06",
       "by": "유저",
       "restrategy_required": false
     }
