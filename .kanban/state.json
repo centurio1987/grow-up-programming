@@ -1,6 +1,6 @@
 {
   "next_id": 61,
-  "next_seq": 408,
+  "next_seq": 411,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -263,19 +263,26 @@
       "verbatim": "",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-28",
+      "갱신": "2026-09-29",
       "title_hash": "924a4225b02cebdc3969d06125ba2a0a372414de",
       "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
       "short": "책 빌더 SVG 인쇄",
       "short_hash": "1c81560d2f0f055e7cf624f3ad462bb94fc215bb",
-      "purpose": "KAN-057 이 가이드 도식을 ASCII 에서 SVG(fig)로 바꾸면서 책 빌더가 그 자리를 인쇄할 수 있게 한다",
-      "purpose_hash": "40417da952e12fb2f8fe451025af0087f0d99302",
-      "reason": "책 빌더는 pre.gs-ascii 를 전제로 짜여 있어(build-book.ts:57 · print-css.ts:155-245 · fragment.ts:23 · build-sample.ts:164) fig 로 바뀐 자리가 인쇄에서 빠지거나 깨질 수 있다",
-      "reason_hash": "af17dcd81e4bd9704962a5643437da29df19a498",
-      "goal": "fig 가 있는 가이드가 책 빌드에서 그림으로 인쇄되고, 110편 전개(KAN-058) 전에 인쇄 경로가 선다",
-      "goal_hash": "2c616d810110599c36424c1f647c7150331ac6b6",
-      "memo": "KAN-057 전략 2 에서 범위 밖으로 뺀 곁가지(플랜 검토 지적 4, 2026-09-28). 근거 자료: KAN-057 S14 가 기록할 「책 빌드에서 fig 자리가 어떻게 나오는가」",
-      "memo_hash": "c22eec94a48597b35875ad34e2cc96a2bd1b466d"
+      "purpose": "fig 그림이 책 PDF 에서 한 벌씩 온전히 찍히게 하고, 안 그런 그림을 책 빌드가 잡게 한다",
+      "purpose_hash": "a29ad446a51860ba2512e31919f53c18efa26427",
+      "reason": "파일럿 인쇄에서 세로로 긴 걸음 그림 둘이 빈 틀 쪽을 남기고 쪽 경계에서 잘렸다(고급 권 823·832쪽)",
+      "reason_hash": "637c48bdf0a9468490aefd44d2754e395795e89b",
+      "goal": "측정 검사 위반 0 · 빈 틀 쪽 0 · 잘린 걸음 칸 0 인 채로 KAN-058 이 그림을 늘릴 수 있다",
+      "goal_hash": "fedcf9c0b5173d070b34c189695fde9c29e8a5c7",
+      "memo": "KAN-057 전략 2 에서 범위 밖으로 뺀 곁가지(플랜 검토 지적 4, 2026-09-28). 전략·WBS·배치 2개 수립(2026-09-29) — 실측 근거와 접근은 카드 문서 「전략」. EPUB 은 feat/book-volumes 몫으로 범위 밖",
+      "memo_hash": "599e787b77ad2d90a025294e43a355ffae9f0902",
+      "scope": [
+        "tools/book/**",
+        "src/_viz/patterns/CellStage.tsx",
+        "src/_viz/patterns.test.tsx",
+        "src/algorithms/array/sparseTableRangeMin/figs/walk-build.svg",
+        "src/algorithms/array/sparseTableRangeMin/figs/walk-answer.svg"
+      ]
     },
     "KAN-060-9P4ZAA": {
       "col": "backlog",
@@ -1530,6 +1537,47 @@
   ],
   "recent": [
     {
+      "seq": 410,
+      "t": "2026-09-29T01:34",
+      "a": "ai",
+      "id": "KAN-059-PSFTN4",
+      "op": "edit",
+      "w": "46PCAX",
+      "field": "memo",
+      "before": "KAN-057 전략 2 에서 범위 밖으로 뺀 곁가지(플랜 검토 지적 4, 2026-09-28). 근거 자료: KAN-057 S14 가 기록할 「책 빌드에서 fig 자리가 어떻게 나오는가」",
+      "after": "KAN-057 전략 2 에서 범위 밖으로 뺀 곁가지(플랜 검토 지적 4, 2026-09-28). 전략·WBS·배치 2개 수립(2026-09-29) — 실측 근거와 접근은 카드 문서 「전략」. EPUB 은 feat/book-volumes 몫으로 범위 밖"
+    },
+    {
+      "seq": 409,
+      "t": "2026-09-29T01:34",
+      "a": "ai",
+      "id": "KAN-059-PSFTN4",
+      "op": "brief",
+      "w": "46PCAX",
+      "fields": {
+        "short": "책 빌더 SVG 인쇄",
+        "purpose": "fig 그림이 책 PDF 에서 한 벌씩 온전히 찍히게 하고, 안 그런 그림을 책 빌드가 잡게 한다",
+        "reason": "파일럿 인쇄에서 세로로 긴 걸음 그림 둘이 빈 틀 쪽을 남기고 쪽 경계에서 잘렸다(고급 권 823·832쪽)",
+        "goal": "측정 검사 위반 0 · 빈 틀 쪽 0 · 잘린 걸음 칸 0 인 채로 KAN-058 이 그림을 늘릴 수 있다"
+      },
+      "before": {
+        "short": "책 빌더 SVG 인쇄",
+        "purpose": "KAN-057 이 가이드 도식을 ASCII 에서 SVG(fig)로 바꾸면서 책 빌더가 그 자리를 인쇄할 수 있게 한다",
+        "reason": "책 빌더는 pre.gs-ascii 를 전제로 짜여 있어(build-book.ts:57 · print-css.ts:155-245 · fragment.ts:23 · build-sample.ts:164) fig 로 바뀐 자리가 인쇄에서 빠지거나 깨질 수 있다",
+        "goal": "fig 가 있는 가이드가 책 빌드에서 그림으로 인쇄되고, 110편 전개(KAN-058) 전에 인쇄 경로가 선다"
+      }
+    },
+    {
+      "seq": 408,
+      "t": "2026-09-29T01:34",
+      "a": "유저",
+      "id": "KAN-039-FG8HWZ",
+      "op": "waive",
+      "w": "46PCAX",
+      "with_": "KAN-059-PSFTN4",
+      "reason": "경로 글롭만 겹친다 — KAN-039 는 src/algorithms/*/huffman*/**, KAN-059 는 sparseTableRangeMin/figs 의 필름 SVG 둘이라 실제 파일이 다르다. 같은 모양의 겹침을 KAN-057 에서 유저가 용인했다(2026-09-28)"
+    },
+    {
       "seq": 407,
       "t": "2026-09-28T18:12",
       "a": "유저",
@@ -2058,37 +2106,6 @@
       "w": "VR2JKF",
       "from": "doing",
       "to": "review"
-    },
-    {
-      "seq": 368,
-      "t": "2026-09-17T09:28",
-      "a": "ai",
-      "id": "KAN-041-JJ5DA7",
-      "op": "move",
-      "w": "VR2JKF",
-      "from": "backlog",
-      "to": "doing"
-    },
-    {
-      "seq": 367,
-      "t": "2026-09-17T09:28",
-      "a": "ai",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "VR2JKF",
-      "with_": "KAN-041-JJ5DA7",
-      "reason": "expected 계약 열둘의 축3 수치와 하네스 규격이 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)"
-    },
-    {
-      "seq": 366,
-      "t": "2026-09-17T09:10",
-      "a": "ai",
-      "id": "KAN-051-537EN1",
-      "op": "edit",
-      "w": "46PCAX",
-      "field": "title",
-      "before": "축3 값 검사 전개 — 후보 98 행 실물 확인과 끝 상태 기준 훑기",
-      "after": "축3 값 검사 전개 — 후보 91 행 실물 확인과 끝 상태 기준 훑기"
     }
   ],
   "waivers": [
@@ -2132,6 +2149,13 @@
       "scope_hash": "10991e16d11409e8",
       "reason": "tools/ci.ts 게이트 목록에 각자 다른 줄을 더한다. 병합 때 충돌하면 두 줄을 다 남긴다(유저 용인 2026-09-28)",
       "created": "2026-09-28T17:55",
+      "by": "유저"
+    },
+    {
+      "pair": "KAN-039-FG8HWZ|KAN-059-PSFTN4",
+      "scope_hash": "7740dd42568e4530",
+      "reason": "경로 글롭만 겹친다 — KAN-039 는 src/algorithms/*/huffman*/**, KAN-059 는 sparseTableRangeMin/figs 의 필름 SVG 둘이라 실제 파일이 다르다. 같은 모양의 겹침을 KAN-057 에서 유저가 용인했다(2026-09-28)",
+      "created": "2026-09-29T01:34",
       "by": "유저"
     }
   ],
