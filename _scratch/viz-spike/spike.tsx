@@ -9,7 +9,7 @@ GlobalRegistrator.register();
 const { act } = await import("react");
 const { createRoot } = await import("react-dom/client");
 const viz = await import("@centurio1987/bbangto-ui-visualization");
-const cat = await import("@centurio1987/bbangto-ui-visualization-style-guide-catalog");
+const { algoVizStyleGuide } = await import("../../design/viz/algo.viz");
 const { Canvas, Node, NodeLabel, VisualizationStyleGuideProvider } = viz;
 
 const A = [5, 2, 7, 4, 6, 3];
@@ -42,7 +42,7 @@ export async function renderSvg(): Promise<string> {
   const root = createRoot(host);
   await act(async () => {
     root.render(
-      <VisualizationStyleGuideProvider styleGuide={(cat as any)[process.env.SG ?? "minimalLine01VizStyleGuide"]}>
+      <VisualizationStyleGuideProvider styleGuide={algoVizStyleGuide} foundationKey={process.env.KEY ?? "light"}>
         <Strip />
       </VisualizationStyleGuideProvider>,
     );
