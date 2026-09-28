@@ -1,5 +1,5 @@
 /**
- * `algo-learn-guide` 골격 스캐너 — P1~P16, 그리고 번호가 안 붙은 둘.
+ * `algo-learn-guide` 골격 스캐너 — P1~P18, 그리고 번호가 안 붙은 둘.
  *
  * | 코드 | 무엇 |
  * | --- | --- |
@@ -974,6 +974,140 @@ export function definitionRestated(text: string): Finding[] {
     }
   }
   return findings;
+}
+
+/* ─────────── 아이디어 상세의 단계 골격 — P17 · 본문 반말 — P18 ─────────── */
+
+/**
+ * P17 (`L42`) — **아이디어 상세가 실현 단계로 나뉘었는가.**
+ *
+ * 2026-09-27~28 유저 지적 — *"줄글 안에 번호가 숨겨져 있어서, 잘 파악이 안된다"* · *"단계는
+ * 유지하되, 개념은 … 생소한 개념인 경우, 별도 편성"*. 골격만 잰다. 단계가 **실제로 앞 단계의
+ * 결과를 쓰는 순서인가**와 따로 편성한 개념이 정말 낯선가는 의미 판정이라 사람이 본다.
+ *
+ * **한시 조항** — 옛 구성 110편에는 단계 헤딩이 없다. `deep.build` 안에 하위 절이 하나라도
+ * 있을 때만 잰다(`deep.origin` 과 같은 방식, `SPEC.md` §8).
+ */
+export function buildStageFindings(sections: Section[]): Finding[] {
+  const head = first(sections, "deep.build");
+  const kids = sections.filter((s) => s.id.startsWith("deep.build."));
+  if (!head || kids.length === 0) return [];
+  const out: Finding[] = [];
+  const stages = pick(sections, "deep.build.stage");
+  if (stages.length < 2) {
+    out.push({
+      code: "P17",
+      where: `deep.build:${head.line}`,
+      detail: `실현 단계가 ${stages.length} 개다 — \`#### {N}단계 — …\` 가 둘 이상이어야 한다`,
+    });
+  }
+  for (const [i, st] of stages.entries()) {
+    const n = Number(/^#### (\d+)단계/.exec(st.heading)?.[1]);
+    if (n !== i + 1) {
+      out.push({
+        code: "P17",
+        where: `deep.build.stage:${st.line}`,
+        detail: `단계 번호가 ${n} 이다 — ${i + 1} 이어야 한다(1 부터 빠짐없이)`,
+      });
+    }
+  }
+  if (fences(head.body).length === 0) {
+    out.push({
+      code: "P17",
+      where: `deep.build:${head.line}`,
+      detail: "절 머리에 단계 지도 그림이 없다",
+    });
+  }
+  const firstStage = stages[0]?.line ?? Number.POSITIVE_INFINITY;
+  const lastStage = stages.at(-1)?.line ?? 0;
+  for (const c of pick(sections, "deep.build.concept")) {
+    if (c.line > firstStage) {
+      out.push({
+        code: "P17",
+        where: `deep.build.concept:${c.line}`,
+        detail: "「먼저 알아 둘 개념」 절이 첫 단계 뒤에 있다 — 단계 앞에 둔다",
+      });
+    }
+  }
+  for (const t of pick(sections, "deep.build.tail")) {
+    if (t.line < lastStage) {
+      out.push({
+        code: "P17",
+        where: `deep.build.tail:${t.line}`,
+        detail: `단계 사이에 단계가 아닌 \`####\` 가 있다 — ${t.heading}`,
+      });
+    }
+  }
+  for (const sec of [head, ...kids]) {
+    let fenced = false;
+    for (const [i, line] of sec.body.entries()) {
+      if (line.trimStart().startsWith("```")) fenced = !fenced;
+      if (fenced) continue;
+      if (/^\*\*[①-⑳]/.test(line.trimStart())) {
+        out.push({
+          code: "P17",
+          where: `${sec.id}:${sec.line + 1 + i}`,
+          detail: "문단 머리의 원문자 라벨 — 구조는 헤딩으로 세운다",
+        });
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * P18 (`L45`) — **본문 산문에 반말 평서문이 있는가.**
+ *
+ * 2026-09-28 유저 지적 — 「층은 이렇게 생겼다.」를 붙여 *"갑자기 반말이 나온다"*. 굵은 글씨
+ * 문단 머리와 굵게 쓴 요약 문장은 어휘 스캐너가 안 보는 자리라 여기서 잰다. 펜스(그림) ·
+ * 헤딩 · 표 · 마커 · 인라인 코드 · 인용(「…」 "…")은 뺀다. `~니다.` 와 청유 `~시다.` 는 존댓말이다.
+ *
+ * **한시 조항** — P17 과 같다. 전수로 43편 168곳이 걸려 있어서(2026-09-28) 전개 카드가 닫힐 때까지
+ * 단계 헤딩이 있는 편만 잰다.
+ */
+export function banmalFindings(text: string): Finding[] {
+  const out: Finding[] = [];
+  let fenced = false;
+  let buf: string[] = [];
+  let start = 0;
+  const flush = (): void => {
+    if (buf.length === 0) return;
+    const para = buf
+      .join(" ")
+      .replace(/`[^`]*`/g, "C")
+      .replace(/「[^」]*」/g, "Q")
+      .replace(/"[^"]*"/g, "Q");
+    for (const m of para.matchAll(/([가-힣]+)다\.(\*\*)?(?=\s|$)/g)) {
+      const word = m[1] ?? "";
+      if (word.endsWith("니") || word.endsWith("시")) continue;
+      const at = m.index ?? 0;
+      out.push({
+        code: "P18",
+        where: `:${start}`,
+        detail: `본문 반말 — …${para.slice(Math.max(0, at - 30), at + m[0].length)}`,
+      });
+    }
+    buf = [];
+  };
+  for (const [i, line] of text.split("\n").entries()) {
+    if (line.trimStart().startsWith("```")) {
+      flush();
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced) continue;
+    if (
+      line.trim() === "" ||
+      /^(#|\||<!--|>)/.test(line.trimStart())
+    ) {
+      flush();
+      continue;
+    }
+    if (buf.length === 0) start = i + 1;
+    buf.push(line.trim());
+  }
+  flush();
+  return out;
 }
 
 /* ─────────── 원고 ↔ 정본 대조 — P16 ─────────── */
@@ -2057,6 +2191,15 @@ export function check(input: CheckInput): Finding[] {
       }
     }
   }
+  // ── P17 아이디어 상세의 단계 골격 · P18 본문 반말 (`L42` · `L45`, 한시 조항) ──
+  if (kind === "algo") {
+    const staged = buildStageFindings(sections);
+    findings.push(...staged);
+    if (sections.some((s) => s.id.startsWith("deep.build."))) {
+      findings.push(...banmalFindings(input.text));
+    }
+  }
+
   for (const id of markers) {
     const at = input.text.indexOf(`<!--viz:${id}-->`);
     const rest = input.text.slice(at);
@@ -2410,7 +2553,7 @@ async function checkOne(
       JSON.stringify({ target, findings, warnings, missing }, null, 2),
     );
   } else if (findings.length === 0) {
-    console.log(`${target} — P1~P16 통과.`);
+    console.log(`${target} — P1~P18 통과.`);
     if (notes) for (const line of skipNotes(missing)) console.log(`  ${line}`);
   } else {
     console.error(`${target} — 위반 ${findings.length}건.`);

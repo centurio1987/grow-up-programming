@@ -249,6 +249,22 @@
           "생략된 단계를 펼쳐 쓴다"
         ],
         "note": "논증을 결론으로 끝내는 문형 — voice 금지 목록(forbid)과 규칙 8. 옛 check-v2 FORBIDDEN"
+      },
+      {
+        "id": "v.common.gyeonju",
+        "category": "predicate.verb",
+        "regex": "견[주줘준줄줬]",
+        "label": "비교를 「견주다」로 말한 드문 표현",
+        "weight": -3,
+        "enabled": false,
+        "functions": [
+          "plain-language"
+        ],
+        "alternatives": [
+          "비교한다",
+          "비교 횟수"
+        ],
+        "note": "2026-09-28 유저 지시 — 실제로 자주 사용되는 표현을 쓴다(SPEC L33·L44). enabled:false 는 한시 — 알고리즘 가이드 91편 1,542곳을 고치는 110편 전개 카드에서 켠다(SPEC §8)"
       }
     ]
   },

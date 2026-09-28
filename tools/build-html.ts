@@ -40,7 +40,10 @@ const REPO = resolve(import.meta.dir, "..");
  * 은 부제를 내용에 맞춰 짓게 돼 있어서, 문구로 앵커를 만들면 부제를 고칠 때마다 링크가 죽는다.
  * 절 id 는 `SPEC.md` §2 가 정한 것이라 부제와 무관하게 안정적이다.
  *
- * `####` 하위 절은 담지 않는다 — 전개 단계만 다섯을 넘어 레일이 본문만큼 길어진다.
+ * `####` 하위 절은 담지 않는다 — 전개 단계만 다섯을 넘어 레일이 본문만큼 길어진다. **예외는
+ * 아이디어 상세의 개념 절과 실현 단계다**(2026-09-28 `KAN-056`, `SPEC.md` `L42`). 유저 지적이
+ * *"그 과정이 구조적으로 잘 분류가 되어 있으면 좋을 것 같다"* 였고, 단계는 그 절의 목차라
+ * 레일에 한 단 들여 싣는다. 이름은 헤딩의 `—` 뒷부분이고, 단계는 번호를 앞에 붙인다.
  */
 export interface RailEntry {
   /** 앵커 id. 절 id 의 `.` 을 `-` 로 바꾼 것. 반복 절은 뒤에 `-2`·`-3`. */
@@ -90,9 +93,18 @@ export function railFrom(
     const anchor = n === 1 ? base : `${base}-${n}`;
     anchors.push(anchor);
 
-    // 레일에는 파트(`##`)와 항목(`###`)만 담는다. 제목(`#`)과 하위 절(`####`)은 뺀다.
-    if (sec.level !== 2 && sec.level !== 3) continue;
     const text = sec.heading.replace(/^#+\s*/, "");
+    if (sec.id === "deep.build.concept" || sec.id === "deep.build.stage") {
+      const [lead = text, rest = text] = text.split(" — ");
+      const label =
+        sec.id === "deep.build.stage"
+          ? `${lead.replace("단계", ".")} ${rest}`
+          : `개념 · ${rest}`;
+      rail.push({ anchor, label: label.trim(), level: 4 });
+      continue;
+    }
+    // 레일에는 파트(`##`)와 항목(`###`)만 담는다. 제목(`#`)과 그 밖의 하위 절(`####`)은 뺀다.
+    if (sec.level !== 2 && sec.level !== 3) continue;
     const label = (text.split(" — ")[0] ?? text).trim();
     rail.push({ anchor, label, level: sec.level });
   }
@@ -420,7 +432,10 @@ export function renderedProseProblems(html: string): string[] {
     .replace(/<math[\s\S]*?<\/math>/g, "");
   const problems: string[] = [];
   const text = (fragment: string): string =>
-    fragment.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+    fragment
+      .replace(/<[^>]+>/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
 
   for (const del of stripped.match(/<del>[\s\S]*?<\/del>/g) ?? []) {
     problems.push(
@@ -431,7 +446,8 @@ export function renderedProseProblems(html: string): string[] {
   // `*` 자체는 본문에 정당하게 남는다 — `A* 탐색`, 인용한 Go 소스의 `x**y`·`q * qInv`.
   // 잡는 것은 **따옴표·낫표에 붙은 `*`** 다(괄호는 뺀다 — 인용한 식의 `2*(-1)^k` 가 정당하게 남는다). 강조가 안 닫힌 자리는 늘 그 모양이다.
   const textOnly = text(stripped.replace(/<\/(p|li|td|th|h[1-6])>/g, "\n"));
-  const stuck = /[^\n]{0,24}(?:["“”'‘’「」『』]\*{1,2}|\*{1,2}["“”'‘’「」『』])[^\n]{0,24}/g;
+  const stuck =
+    /[^\n]{0,24}(?:["“”'‘’「」『』]\*{1,2}|\*{1,2}["“”'‘’「」『』])[^\n]{0,24}/g;
   for (const hit of textOnly.matchAll(stuck)) {
     problems.push(
       `본문에 강조 기호 * 가 그대로 보인다 — 「…${hit[0].trim()}…」. 닫는 * 앞이 따옴표·낫표이고 뒤에 글자가 바로 오면 CommonMark 는 닫는 구분자로 보지 않는다. 따옴표·낫표를 강조 밖으로 내거나(「**…**」가) * 뒤에 띄어쓰기를 두고, 인용문 안의 * 는 \\* 로 이스케이프한다`,
@@ -567,6 +583,7 @@ h1, h2, h3 { scroll-margin-top: 1.5rem; }
 .gs-rail-l2 { margin-top: .75rem; }
 .gs-rail-l2 > a { color: var(--gs-ink); font-weight: 600; }
 .gs-rail-l3 > a { padding-left: .8rem; }
+.gs-rail-l4 > a { padding-left: 1.6rem; font-size: .92em; }
 .gs-rail a.is-here { color: var(--gs-ink); background: var(--gs-soft); font-weight: 600; }
 h1 { font-size: 1.9rem; line-height: 1.35; margin: 0 0 2rem; }
 h2 { font-size: 1.35rem; margin: 3rem 0 1rem; padding-top: 1.25rem; border-top: 1px solid var(--gs-rule); }
