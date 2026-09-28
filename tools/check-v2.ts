@@ -2069,15 +2069,19 @@ export function tableHeaderWarnings(text: string): Finding[] {
     if (fenced || !line.startsWith("|")) continue;
     if ((lines[i - 1] ?? "").startsWith("|")) continue;
     if (!/^\|\s*:?-{3,}/.test(lines[i + 1] ?? "")) continue;
-    const firstCell = (line.split("|")[1] ?? "")
-      .replace(/`[^`]*`/g, "C")
-      .trim();
-    if (!SENTENCE_CELL.test(firstCell) || firstCell.length < 6) continue;
+    // 첫 칸만 보다가 「무엇이 걸렸는가」「이 Sparse Table 을」 같은 둘째 칸 뒤의 문장 조각을
+    // 놓쳤다(KAN-057 검토 지적 7 재지적) — 머리줄 칸을 전부 본다.
+    const cells = line
+      .split("|")
+      .slice(1, -1)
+      .map((c) => c.replace(/`[^`]*`/g, "C").trim());
+    const bad = cells.find((c) => c.length >= 6 && SENTENCE_CELL.test(c));
+    if (bad === undefined) continue;
     out.push({
       code: "P21",
       warn: true,
       where: `:${i + 1}`,
-      detail: `표 머리줄 첫 칸이 문장이다(「${firstCell}」) — 제목은 앞 문단이 소개하고, 머리줄에는 열의 이름을 쓴다`,
+      detail: `표 머리줄 칸이 문장이나 조사로 끝난다(「${bad}」) — 제목은 앞 문단이 소개하고, 머리줄에는 열의 이름을 명사로 쓴다`,
     });
   }
   return out;

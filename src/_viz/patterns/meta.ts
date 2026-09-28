@@ -96,4 +96,21 @@ export const ALGO_VIZ_META: readonly AlgoVizMeta[] = [
       "줄이 열다섯을 넘으면 표",
     ],
   },
+  {
+    id: "ALGO-P6",
+    name: "Approach Ladder",
+    exportName: "ApproachLadder",
+    summary:
+      "시도한 방법을 차례로 — 방법마다 기준별 통과·실패와 수치, 다음 시도로 넘어간 까닭, 버림·남음",
+    dataShape: ["sequence", "comparison"],
+    structuralTraits: ["sequential", "categorical"],
+    useWhen: [
+      "아이디어를 떠올리는 과정처럼 시도와 실패가 이어져 하나가 남을 때",
+      "방법마다 같은 기준(답·시간·메모리)으로 통과와 실패를 보일 때",
+    ],
+    avoidWhen: [
+      "앞뒤 인과가 없는 나란한 비교면 표",
+      "시도가 여섯을 넘으면 그림이 길어진다 — 묶어서 줄인다",
+    ],
+  },
 ];

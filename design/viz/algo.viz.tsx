@@ -9,7 +9,7 @@
  * | 부분 | 자리 | 상태 |
  * | --- | --- | --- |
  * | foundation | `foundations` · `foundationPresets`(밝은·어두운·흑백) · `extendedFoundations` | 시안 방향 A(tokens.ts, S12) |
- * | pattern | `patterns` — P1~P5(`src/_viz/patterns/`) | 섰다(S4~S6 · S13) |
+ * | pattern | `patterns` — P1~P6(`src/_viz/patterns/`) | 섰다(S4~S6 · S13 · 검토 지적 7) |
  * | visual motif | `visualMotif` | 시안 컴포넌트 여덟과 사용 규칙(S12) |
  * | component | `wrapperComponents` — LogBarChart(로그 척도 막대) | 섰다(S6) |
  * | guideline | `guidelines` | 그림 형식 선택 규칙(카드 전략 1) |
@@ -24,6 +24,7 @@ import type {
 } from "@centurio1987/bbangto-ui-tokens";
 import type { VisualizationStyleGuide } from "@centurio1987/bbangto-ui-visualization";
 import { LogBarChart } from "../../src/_viz/components/LogBarChart";
+import { ApproachLadder } from "../../src/_viz/patterns/ApproachLadder";
 import { ArrayStrip } from "../../src/_viz/patterns/ArrayStrip";
 import { LayerBars } from "../../src/_viz/patterns/LayerBars";
 import { LevelTable } from "../../src/_viz/patterns/LevelTable";
@@ -282,5 +283,12 @@ export const algoVizStyleGuide: VisualizationStyleGuide = {
     },
   },
   wrapperComponents: { LogBarChart },
-  patterns: { ArrayStrip, RangeCover, LevelTable, StepTrace, LayerBars },
+  patterns: {
+    ArrayStrip,
+    RangeCover,
+    LevelTable,
+    StepTrace,
+    LayerBars,
+    ApproachLadder,
+  },
 };

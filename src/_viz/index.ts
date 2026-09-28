@@ -6,6 +6,13 @@ export {
   type LogBarChartProps,
 } from "./components/LogBarChart";
 export {
+  type Approach,
+  type ApproachCheck,
+  ApproachLadder,
+  type ApproachLadderProps,
+  approachLadderWidth,
+} from "./patterns/ApproachLadder";
+export {
   ArrayStrip,
   type ArrayStripProps,
   type CellState,

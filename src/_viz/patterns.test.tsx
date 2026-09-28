@@ -268,3 +268,38 @@ describe("스타일 가이드 가드", () => {
     expect(low).toEqual([]);
   });
 });
+
+describe("P6 ApproachLadder", () => {
+  test("시도마다 카드 · 판정 · 기준별 통과와 실패가 그림에 실린다", async () => {
+    const { ApproachLadder } = await import("./patterns/ApproachLadder");
+    const svg = await renderToSvg(
+      <ApproachLadder
+        title="시도"
+        steps={[
+          {
+            name: "가",
+            idea: "처음",
+            verdict: "drop",
+            checks: [
+              { label: "답", value: "맞다", ok: true },
+              { label: "시간", value: "넘는다", ok: false },
+            ],
+            lesson: "그래서 나",
+          },
+          {
+            name: "나",
+            idea: "다음",
+            verdict: "keep",
+            checks: [{ label: "답", value: "맞다", ok: true }],
+          },
+        ]}
+      />,
+      "t-ladder",
+    );
+    expect(svg.match(/data-viz-approach="/g)?.length).toBe(2);
+    expect(svg).toContain('data-viz-verdict="drop"');
+    expect(svg).toContain('data-viz-verdict="keep"');
+    expect(svg).toContain('data-viz-check="시간" data-viz-ok="false"');
+    expect(svg).toContain("↓ 그래서 나");
+  });
+});

@@ -8,6 +8,11 @@
  */
 
 import type { ReactElement } from "react";
+import {
+  type Approach,
+  ApproachLadder,
+  approachLadderWidth,
+} from "../../../_viz/patterns/ApproachLadder";
 import { type LayerBar, LayerBars } from "../../../_viz/patterns/LayerBars";
 import { LevelTable } from "../../../_viz/patterns/LevelTable";
 import {
@@ -87,6 +92,100 @@ function pieces(l: number, r: number): Range[] {
   ];
 }
 
+/* ── 「아이디어를 떠올리는 과정」의 시도 넷 — 수치는 식과 정본 실행에서 ── */
+
+const N = 100_000;
+const num = (x: number): string => x.toLocaleString("en-US");
+/** 단순 연산 1 초에 1 억 번 기준(본문과 같다). */
+const secondsOf = (ops: number): string => `${(ops / 1e8).toFixed(2)} 초`;
+const K = Math.floor(Math.log2(N));
+const stCells = (K + 1) * (N + 1) - (2 ** (K + 1) - 1);
+const stBuild = K * (N + 1) - (2 ** (K + 1) - 2);
+const pairCells = (N * (N + 1)) / 2;
+
+/** 접두 최솟값 반례 — 두 칸 m[1] · m[5] 가 같은 두 배열에서 [2,5] 의 답이 갈린다. 답은 정본이 낸다. */
+function prefixCounterexample(): string {
+  const B = [5, 2, 7, 4, 6, 9];
+  const a = sparseTableRangeMin(A, [[2, 5]])[0] as number;
+  const b = sparseTableRangeMin(B, [[2, 5]])[0] as number;
+  return `두 칸이 같은 배열 둘에서 [2,5] 의 답이 ${a} 과 ${b} 로 갈린다`;
+}
+
+function approaches(): Approach[] {
+  return [
+    {
+      name: "질의마다 차례로 읽기",
+      idea: "질의가 올 때마다 구간을 처음부터 끝까지 읽는다",
+      verdict: "drop",
+      checks: [
+        { label: "답", value: "맞다", ok: true },
+        {
+          label: "시간",
+          value: `비교 ${num(N * (N - 1))} 번 · ${secondsOf(N * (N - 1))}`,
+          ok: false,
+        },
+        { label: "메모리", value: "더 적어 두는 칸이 없다", ok: true },
+      ],
+      lesson:
+        "질의 하나가 구간 길이만큼 일한다 — 미리 적어 두고 두 칸만 읽으면 어떨까",
+    },
+    {
+      name: "접두 최솟값 두 칸",
+      idea: "앞에서부터 누적한 최솟값을 적어 두고, 두 칸으로 답한다",
+      verdict: "drop",
+      checks: [
+        { label: "답", value: prefixCounterexample(), ok: false },
+        { label: "시간", value: "질의 하나에 칸 두 개", ok: true },
+        { label: "메모리", value: `${num(N)} 칸`, ok: true },
+      ],
+      lesson:
+        "최솟값은 앞부분을 덜어 낼 수 없다 — 시작이 0 이 아닌 구간도 적어 두면 어떨까",
+    },
+    {
+      name: "모든 구간의 답을 미리 적기",
+      idea: "고를 수 있는 [l, r] 짝마다 답을 적어 둔다",
+      verdict: "drop",
+      checks: [
+        { label: "답", value: "맞다", ok: true },
+        {
+          label: "시간",
+          value: `칸 ${num(pairCells)} 개를 채운다 · ${secondsOf(pairCells)}`,
+          ok: false,
+        },
+        {
+          label: "메모리",
+          value: `8 바이트씩 ${((pairCells * 8) / 1e9).toFixed(0)} GB`,
+          ok: false,
+        },
+      ],
+      lesson:
+        "적을 구간이 너무 많다 — 칸 수가 2 의 거듭제곱인 구간만 적고 둘로 덮으면 어떨까",
+    },
+    {
+      name: "겹치는 두 조각으로 덮기",
+      idea: "칸 수가 2ᵏ 인 구간만 적고, 질의는 그런 구간 둘로 덮는다",
+      verdict: "keep",
+      checks: [
+        {
+          label: "답",
+          value: "맞다 — 겹친 칸을 두 번 세도 최솟값은 그대로다",
+          ok: true,
+        },
+        {
+          label: "시간",
+          value: `비교 ${num(stBuild + N)} 번 · ${secondsOf(stBuild + N)}`,
+          ok: true,
+        },
+        {
+          label: "메모리",
+          value: `${num(stCells)} 칸 · 8 바이트씩 ${((stCells * 8) / 1024 / 1024).toFixed(2)} MiB`,
+          ok: true,
+        },
+      ],
+    },
+  ];
+}
+
 type Frame = {
   title: string;
   entries: readonly { label: string; value: number }[];
@@ -118,6 +217,17 @@ const answerStep = (f: Frame): TraceStep => {
 };
 
 export const FIGS: Record<string, () => ReactElement> = {
+  "origin-approaches": () => {
+    const steps = approaches();
+    return (
+      <ApproachLadder
+        title="시도한 방법 넷 — 셋은 버렸고 하나가 남았다"
+        constraint={`제약 n = q = ${num(N)} · 시간 1 초 · 메모리 256 MB(단순 연산 1 초에 1 억 번 기준)`}
+        steps={steps}
+        width={approachLadderWidth(steps)}
+      />
+    );
+  },
   "concept-layer-one": () => (
     <LayerBars
       title="1 층의 칸 다섯 — 칸마다 두 자리를 맡는다"
