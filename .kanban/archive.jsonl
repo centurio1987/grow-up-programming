@@ -488,3 +488,4 @@
 {"seq": 374, "t": "2026-09-17T15:24", "a": "ai", "id": "KAN-041-JJ5DA7", "op": "move", "w": "VR2JKF", "from": "review", "to": "done"}
 {"seq": 375, "t": "2026-09-17T16:18", "a": "ai", "id": "KAN-036-0G05DE", "op": "serialize", "w": "N0VY8A", "with_": "KAN-040-M5V53M", "reason": "69 종의 연산 선정 근거와 등급이 바뀔 수 있으므로 KAN-036 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)"}
 {"seq": 376, "t": "2026-09-17T16:18", "a": "ai", "id": "KAN-040-M5V53M", "op": "move", "w": "N0VY8A", "from": "backlog", "to": "doing"}
+{"seq": 377, "t": "2026-09-18T16:37", "a": "ai", "id": "KAN-040-M5V53M", "op": "move", "w": "N0VY8A", "from": "doing", "to": "review"}

@@ -1,6 +1,6 @@
 {
   "next_id": 61,
-  "next_seq": 419,
+  "next_seq": 420,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -285,7 +285,7 @@
       ]
     },
     "KAN-060-9P4ZAA": {
-      "col": "backlog",
+      "col": "doing",
       "title": "알고리즘 가이드에 문제를 통합한다.",
       "verbatim": "지금은 문제가 *-guide.md로 분리 되어 있다. 그리고 그 문제를 전제로 가이드가 구성되어 있다. 그래서 문제를 모르면 guide에서 맥락을 읽기 어려운 경우가 생긴다.\n\n- guide는 문제에 대한 guide가 아니라, 알고리즘 자체에 대한 guide여야 한다.\n- guide 마지막에 문제를 만들어서 실습 항목으로 배치한다.\n- 기존 problem.md는 삭제한다.",
       "생성": "유저",
@@ -1501,7 +1501,6 @@
     "KAN-054-1YWN4M",
     "KAN-055-4N4T6A",
     "KAN-058-8XT6PC",
-    "KAN-060-9P4ZAA",
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
@@ -1557,9 +1556,20 @@
     "KAN-040-M5V53M",
     "KAN-056-VPCM91",
     "KAN-057-J36E1B",
-    "KAN-059-PSFTN4"
+    "KAN-059-PSFTN4",
+    "KAN-060-9P4ZAA"
   ],
   "recent": [
+    {
+      "seq": 419,
+      "t": "2026-09-29T04:31",
+      "a": "ai",
+      "id": "KAN-060-9P4ZAA",
+      "op": "move",
+      "w": "92ZX3K",
+      "from": "backlog",
+      "to": "doing"
+    },
     {
       "seq": 418,
       "t": "2026-09-29T04:27",
@@ -2130,16 +2140,6 @@
       "w": "N0VY8A",
       "from": "review",
       "to": "doing"
-    },
-    {
-      "seq": 377,
-      "t": "2026-09-18T16:37",
-      "a": "ai",
-      "id": "KAN-040-M5V53M",
-      "op": "move",
-      "w": "N0VY8A",
-      "from": "doing",
-      "to": "review"
     }
   ],
   "waivers": [
