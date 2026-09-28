@@ -26,7 +26,7 @@ scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/chec
 - 새 규칙 `L49` — 파트 1·2 는 실습 문제를 전제하지 않는다. `deep.origin` ① 은 「다룰 과제를 고정한다」(스토리 없이 입출력 계약·규모·기호표). 「이 문제」·「지문」·「문제가 정해 두었다」류를 실습 밖에서 쓰지 않는다. §8 한시 조항: `deep.origin` 이 있는 편만 잰다, 058 이 닫히면 지운다.
 - `selfcheck` 의 답 없는 문제(`sandbox/algo-guide-v2/SPEC.md:774`)는 이해 점검, 실습은 스텁을 채워 테스트를 통과시키는 과제 — 두 절에 경계를 한 줄씩.
 
-**규칙 자산.** `specs/problem/` 5항을 SPEC `practice` 로 옮기고 퇴역, `.claude/authoring.lock.json:36`(problem)과 `.claude/authoring.lock.json:24`(voice) 갱신. `gen-problem` 은 가이드 실습 절과 테스트를 쓰도록 전환. 낡은 서술 `.claude/skills/guide-for-problem/SKILL.md:3,20,53` · `README.md:17,26-36,75` · `CLAUDE.md:11` 정정.
+**규칙 자산.** `specs/problem/` 5항을 SPEC `practice` 로 옮기고 퇴역, `.claude/authoring.lock.json` 의 problem·voice 해시 갱신(S3 에서 `lock --update`). `gen-problem` 은 가이드 실습 절과 테스트를 쓰도록 전환. 낡은 서술 `.claude/skills/guide-for-problem/SKILL.md` 의 description·입력 서술(S3 에서 고침) · `README.md:17,26-36,75` · `CLAUDE.md:11` 정정.
 
 **가이드 없는 8곳 후보 처분(S5 에서 유저 확인).** `etc/kadane`→`array/kadane` · `etc/maxProfit`→`array/bestTimeToBuyAndSellStock` · `array/tapeEquilibrium`·`array/genomicRangeQuery`→`array/prefixSumRangeQuery` 흡수. `array/missingInteger`(`sorting/countingSort` 흡수 또는 신규)·`etc/numberOfDisintersection`(신규 또는 정렬·이분 탐색 쪽 흡수)은 확인 필요. `array/twoSum`·`bit-manipulation/binaryGap` 은 신규 가이드.
 
@@ -42,7 +42,7 @@ scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/chec
 
 - [x] `S1` SPEC·voice 개정 — §1 표 · §2 매핑 · §3 `practice` 작성법 · `deep.origin` ① 개정 · §6 `L49` · §8 한시 조항 · `selfcheck` 경계 · SPEC 의 voice 인용 행 번호(87 → 95) · voice 「문서 끝」 규칙 · `FEEDBACK.md` 한 줄. `grep -n '문제를 고정\|이 문제'` 로 SPEC·voice 의 자리를 전수로 처분(`deep.origin` ① · 873행 L3 포함). 완료 기준: 자리마다 처분이 정해져 있고 `check-links`·`check-citations` 통과
 - [x] `S2` 스캐너 — `tools/section.ts` 에 `practice`·`practice.problem`, `tools/check-v2.ts` 에 P22(실습 절 · 문제마다 5소절 · 스텁·테스트 경로 실재)·P23(실습 밖 실습 문제 지칭, `deep.origin` 있는 편만), `check-v2.test.ts` 사례. 완료 기준: 시험 통과 · `--all` 에서 P22 위반이 「실습 절 없음」뿐이고 그 수가 이전 대상 수와 같다 · P22 밖 위반 수가 개정 전과 같다 · 옛 구성 두세 편에 실습 절을 임시로 붙여 순서·헤딩 규칙이 새로 안 걸리는지 확인
-- [ ] `S3` 규칙 자산 — `specs/problem` 퇴역 · `gen-problem`·`guide-for-problem` 개정 · `README.md`·`CLAUDE.md:11` 정정 · `.claude/authoring.lock.json` 의 problem·voice 해시 갱신. 완료 기준: `authoring-doctor` 가 깨진 참조 없이 돌고 `check-links` 통과
+- [x] `S3` 규칙 자산 — `specs/problem` 퇴역 · `gen-problem`·`guide-for-problem` 개정 · `README.md`·`CLAUDE.md:11` 정정 · `.claude/authoring.lock.json` 의 problem·voice 해시 갱신. 완료 기준: `authoring-doctor` 가 깨진 참조 없이 돌고 `check-links` 통과
 
 **배치 2 — 파일럿(메인 세션, learning 스타일 확인 뒤 직접 집필)**
 
@@ -87,3 +87,5 @@ bunx --bun @biomejs/biome check tools/migrate-practice.ts tools/check-v2.ts tool
 - 2026-09-29T04:37 · s:15cf9d75 · S2 doing — 착수
 - 2026-09-29T04:50 · s:15cf9d75 — S2 에서 scope 에 tools/check-metaphor.ts·test 를 더했다(은유 검사가 실습 절을 읽어 옮겨 온 문제 스토리에서 위반을 냄). scope 변경으로 직렬 중재 둘(058·039)과 036 용인이 자동 무효가 돼, 겹침 내용이 같음을 확인하고 유저 결정 그대로 다시 기록했다
 - 2026-09-29T04:51 · s:15cf9d75 · S2 done — section.ts: PRACTICE_HEADING·PRACTICE_PARTS, 실습 아래 ###/####/##### 를 practice.problem/part/sub 로(algo 만). check-v2.ts: guideText(실습 앞 본문만 본문 검사에) · P22 practiceFindings(절 하나·마지막 ##·문제 ≥1·소절 여섯 순서·풀 파일 줄·링크 실재) · P23 practiceReferenceFindings(「이 문제」·「문제가 … 정해」·「문제의 제약」, deep.origin 있는 편만). check-metaphor.ts 도 가이드는 실습 앞에서 끊는다(scope 추가). 시험 check-v2 171/171 · check-metaphor 23/23. --all: P22 111(전부 「실습 절 없음」) · P23 8(전부 파일럿, S4 몫) · 그 밖 0(기준선과 같음) · ds 0. kadane·dijkstra·ahoCorasick 에 실습 임시 부착 → check-v2 통과·check-proof·build-html·guide-core·check-metaphor 통과(은유 1건을 찾아 check-metaphor 를 고침) 뒤 되돌림. L49 문구에서 「지문」 제외(purpose.cue·해시 지문 오탐). 인용 remap 8곳
+- 2026-09-29T04:51 · s:15cf9d75 · S3 doing — 착수
+- 2026-09-29T04:54 · s:15cf9d75 · S3 done — specs/problem 퇴역(git rm) — 소절별 작성법·풀이 비암시·예시=테스트 기대값·테스트 세 축을 SPEC §3 practice 로 옮김. gen-problem SKILL 을 실습 절+스텁+테스트 쓰기로 다시 씀(-problem.md 생성 금지). guide-for-problem description·입력 서술 · README 폴더 구조·문제 생성·가이드 절 · CLAUDE.md 트랙 표·spec 경로 정정. authoring lock --update(voice 해시 · problem 제거 — 예상한 두 변경뿐). 완료 기준의 authoring-doctor 대신 authoring.py validate --all 로 확인(통과). check-links·check-citations 통과, 인용 remap 4곳. docs/ORD-006-strategy.md:257 의 problem spec 언급은 ORD-006 당시 기록이라 두었다

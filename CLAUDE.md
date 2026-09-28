@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | 트랙 | 경로 | 무엇을 다루는가 | 규격 |
 | --- | --- | --- | --- |
-| 알고리즘 | `src/algorithms/` (107종) | **문제 풀이.** 주석에 문제가 서술돼 있고, 그것을 푸는 함수와 테스트를 만든다 | 현행 유지 |
+| 알고리즘 | `src/algorithms/` (107종) | **알고리즘과 그 실습.** 가이드는 알고리즘 자체를 설명하고, 문제는 가이드 끝 `## 실습` 절에 있다(`<name>-problem.md` 는 없다 — KAN-060). 스텁과 테스트가 그 문제를 집행한다 | `sandbox/algo-guide-v2/SPEC.md` |
 | 자료구조 | `src/data-structures/` (69종) | **계약.** 문제가 아니라 구조 자체를 다룬다 | ORD-006 |
 
 ### 자료구조 트랙 (ORD-006)
@@ -38,7 +38,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 | 무엇 | 어디 |
 | --- | --- |
-| 항목 구성 · 항목별 작성 방법 · 범위 원칙 | `.claude/authoring/specs/{algo-guide,ds-guide,problem}/` |
+| 항목 구성 · 항목별 작성 방법 · 범위 원칙 | `.claude/authoring/specs/{algo-guide,ds-guide}/` · 알고리즘 v2 와 실습 절은 `sandbox/algo-guide-v2/SPEC.md` |
 | 경로 · 빌드 명령 | `.claude/authoring/paths.json` |
 | 지금 서 있는 규칙 조합 | `.claude/authoring.lock.json` |
 | 공통 원칙 · 퍼소나 문체 | 플러그인 + `~/.claude/authoring/` (전역 — 여러 프로젝트가 함께 쓴다) |

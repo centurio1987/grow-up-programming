@@ -1,6 +1,6 @@
 ---
 name: guide-for-problem
-description: src/$ARGUMENTS.ts 주석을 참고하여, 문제를 풀기위한 해설서(가이드)를 작성한다. 리서치 → 집필 → 품질 게이트 → 발행의 4단계 파이프라인으로 진행한다. 문제 해설을 부탁해. 문제 해설을 작성해줘. 문제 해설이 필요해.
+description: 알고리즘·자료구조 자체를 설명하는 해설서(가이드)를 작성한다. 알고리즘 가이드는 문서 끝 실습 절에 문제를 싣는다. 리서치 → 집필 → 품질 게이트 → 발행의 4단계 파이프라인으로 진행한다. 문제 해설을 부탁해. 문제 해설을 작성해줘. 문제 해설이 필요해.
 disable-model-invocation: true
 argument-hint: <file-name-without-extension>
 ---
@@ -14,6 +14,14 @@ argument-hint: <file-name-without-extension>
 `src/data-structures/**`의 새 가이드 또는 v2 재집필 요청에는 [현재 자료구조 명세](../../../sandbox/ds-guide-v2/SPEC.md)와 [집필 안내](../../../sandbox/ds-guide-v2/AUTHORING.md)를 먼저 읽는다. 명세가 지정한 base와 voice도 함께 사용한다. 원고는 명세의 `.md`·사이드카 형식을 따르며, 작성 에이전트에게 넘기는 경우에도 두 문서의 경로와 적용 범위를 전달한다. 정성적 요령은 집필 참고용으로 전달하고 게이트나 합격 점수로 변환하지 않는다.
 
 이 분기에서는 현재 명세의 생성·검증 절차를 사용한다. 아래의 8단계·MDX·구 `authoring-write` 절차는 기존 경로에 대한 설명이며 v2 집필에 덧붙여 적용하지 않는다. 기존 문서는 재집필 요청 범위 안에서만 변경한다.
+
+## 알고리즘 가이드 — 문제는 실습 절에 (KAN-060 이후)
+
+2026-09-29 부터 알고리즘 가이드는 **문제가 아니라 알고리즘 자체**를 설명한다. 문제는 따로 된
+문서(`<name>-problem.md`)가 아니라 가이드 끝 `## 실습 — 직접 풀어 보기` 에 있고, 파트 1·2 는 그
+문제를 전제하지 않는다(`SPEC.md` `L49` · §3 `practice`). 입력은 기존 원고 · 정본(`<name>-guide.ref.ts`) ·
+스텁 시그니처(`<name>.ts`)다 — 스텁에는 문제 주석이 없다(커밋 `29eab6e` 가 옮겼고, `KAN-060` 이 실습
+절로 다시 옮겼다). 실습 문제를 새로 쓰거나 더하는 일은 `gen-problem` 이다.
 
 ## 기존 집필 경로
 
@@ -50,7 +58,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py lock
 
 ### 1. 리서치
 
-`src/$ARGUMENTS.ts` 전체(특히 문제 주석)와 함수 시그니처를 읽는다. 그리고:
+`src/$ARGUMENTS.ts` 전체와 함수 시그니처를 읽는다(알고리즘은 가이드 끝 실습 절이 문제 서술이다). 그리고:
 
 - **정답 동작 확인** — 구현이 있으면 `bun test src/$ARGUMENTS.test.ts 2>&1; true`,
   없으면 작은 입력을 손으로 돌려 본다. **본문에 실을 수치는 여기서 확정한다.**
