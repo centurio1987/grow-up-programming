@@ -81,6 +81,8 @@ test("사이드카 — 판정은 경고다(문서는 위반)", () => {
 test("대상 문 — 사이드카 이름만 소스로 본다", () => {
   for (const kind of ["sim", "ref", "proof", "test", "alt"])
     expect(isSidecar(`a/b/x-guide.${kind}.ts`)).toBe(true);
+  expect(isSidecar("a/b/x-guide.fig.tsx")).toBe(true);
+  expect(isSidecar("a/b/x-guide.fig.ts")).toBe(false);
   // 스캐너 자신의 소스에는 이 패턴의 정의가 들어 있다. 대상에 들면 자기를 위반으로 낸다.
   expect(isSidecar("tools/check-v2.ts")).toBe(false);
   expect(isSidecar("tools/check-metaphor.ts")).toBe(false);

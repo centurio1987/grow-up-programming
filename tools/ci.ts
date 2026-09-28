@@ -123,6 +123,12 @@ const GATES: Step[] = [
     argv: ["bun", "run", "tools/check-proof.ts", "--all"],
   },
   {
+    // 그림 SVG 가 `.fig.tsx`·정본·토큰과 같은 바이트인가(KAN-057). 렌더가 결정론적이라
+    // 원격 CI 도 다시 그려 커밋본과 맞댄다 — 대상은 도구가 `v2Guides()` 에서 스스로 고른다.
+    label: "v2 그림 신선도(SVG ↔ 사이드카 재렌더)",
+    argv: ["bun", "run", "tools/render-figs.ts", "--check"],
+  },
+  {
     label: "v2 은유 — 문서 전체",
     argv: ["bun", "run", "tools/check-metaphor.ts", "--all"],
   },

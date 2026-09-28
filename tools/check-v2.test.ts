@@ -16,6 +16,7 @@ import {
   codeNameMapping,
   continuesSentence,
   displayWidth,
+  figFindings,
   finalCodeMatchesRef,
   generatedBlockAlignment,
   hasFigure,
@@ -654,6 +655,42 @@ test("P5 — trace 에 없는 단계를 가리키면 걸린다", () => {
 test("P6 — 마커와 sim export 가 어긋나면 걸린다", () => {
   const sim = SIM.replace("export const demo", "export const other");
   expect(codes(check({ text: PASSING, sim }))).toContain("P6");
+});
+
+test("P6 — 그림 마커 ↔ FIGS 키 ↔ SVG 셋이 맞아야 한다(KAN-057)", () => {
+  const md = "<!--fig:cover-->\n![두 조각](./figs/cover.svg)\n";
+  const ok = { keys: ["cover"], svgs: ["cover"] };
+  expect(figFindings(md, ok)).toEqual([]);
+  const details = (f: ReturnType<typeof figFindings>) =>
+    f.map((x) => x.detail).join("\n");
+  expect(details(figFindings(md, undefined))).toContain("`.fig.tsx` 가 없다");
+  expect(details(figFindings(md, { keys: [], svgs: ["cover"] }))).toContain(
+    "FIGS 키가 없다",
+  );
+  expect(details(figFindings(md, { keys: ["cover"], svgs: [] }))).toContain(
+    "SVG(figs/cover.svg)가 없다",
+  );
+  expect(details(figFindings("", ok))).toContain("가리키는 그림 마커가 없다");
+  expect(
+    details(figFindings("<!--fig:cover-->\n![x](./figs/other.svg)\n", ok)),
+  ).toContain("바로 아래 줄은");
+});
+
+test("그림 마커와 이미지 줄은 그림이다 — 산문 연속을 끊고 P7 을 채운다", () => {
+  const body = ["<!--fig:cover-->", "![두 조각](./figs/cover.svg)"];
+  expect(
+    hasFigure({ id: "concept", line: 1, body } as unknown as Parameters<
+      typeof hasFigure
+    >[0]),
+  ).toBe(true);
+});
+
+test("P6 — viz 폴백이 ASCII 펜스 대신 그림이어도 된다", () => {
+  const text = "<!--viz:demo-->\n<!--fig:cover-->\n![걸음](./figs/cover.svg)\n";
+  const found = check({ text, figs: { keys: ["cover"], svgs: ["cover"] } });
+  expect(
+    found.some((f) => f.code === "P6" && f.detail.includes("ascii 펜스")),
+  ).toBe(false);
 });
 
 test("P7 — 그림을 져야 하는 절에 그림이 없으면 걸린다", () => {

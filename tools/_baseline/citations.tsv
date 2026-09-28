@@ -62,7 +62,7 @@ KANBAN.cards/KAN-034.8-BK1Q3A.md	.claude/authoring/voices/algorithm-guide-writer
 KANBAN.cards/KAN-034.8-BK1Q3A.md	.claude/authoring/voices/algorithm-guide-writer/style.json	117	5c54af96fe42	-
 KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-links.ts	24	09bf93b1e473	-
 KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-metaphor.ts	45	b7e822338e62	-
-KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-v2.ts	2096	0932dd3b8e96	-
+KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-v2.ts	2158	0932dd3b8e96	-
 KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/ord004-manifest.json	659	6885e75903d4	drift
 KANBAN.cards/KAN-035-31T4BY.md	.claude/authoring/specs/algo-guide/spec.md	3	f8c35bec81b4	-
 KANBAN.cards/KAN-035-31T4BY.md	.claude/authoring/specs/algo-guide/spec.md	14	fe7b32a150ef	-
@@ -76,9 +76,9 @@ KANBAN.cards/KAN-035-31T4BY.md	src/data-structures/tree/treap/treap.ts	45	3f4ac5
 KANBAN.cards/KAN-035-31T4BY.md	tools/build-html.ts	194	612f977aa75d	-
 KANBAN.cards/KAN-035-31T4BY.md	tools/check-guide-rhythm.ts	34	62853505df74	-
 KANBAN.cards/KAN-035-31T4BY.md	tools/check-guide-rhythm.ts	381	982c18ceaf58	-
-KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	542	8d64a30d9de1	-
-KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	556	380a6b8d2957	-
-KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	1929	4c67b83cbf35	-
+KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	548	8d64a30d9de1	-
+KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	562	380a6b8d2957	-
+KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	1991	4c67b83cbf35	-
 KANBAN.cards/KAN-035-31T4BY.md	tools/section.ts	43	643adc0227e3	-
 KANBAN.cards/KAN-035-31T4BY.md	tools/section.ts	118	358ba3f22237	-
 KANBAN.cards/KAN-046-ZFDFCQ.md	KANBAN.cards/KAN-027.md	159	d39f1eaef096	-
@@ -90,6 +90,14 @@ KANBAN.cards/KAN-046-ZFDFCQ.md	KANBAN.cards/KAN-046-ZFDFCQ.md	62	3a9c5fb7d50f	-
 KANBAN.cards/KAN-046-ZFDFCQ.md	tools/ord006-inventory.ts	231	adc80ebe6e4d	-
 KANBAN.cards/KAN-047-394V9A.md	tools/check-citations.ts	7	a82e46180ef3	-
 KANBAN.cards/KAN-056-VPCM91.md	.claude/skills/guide-for-problem/SKILL.md	32	be975b01d2ee	-
+KANBAN.cards/KAN-057-J36E1B.md	.claude/authoring/voices/algorithm-guide-writer/voice.md	33	7fa881e90d26	-
+KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	491	39aafb0272ef	-
+KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	675	20e45558b425	-
+KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	786	181c552faa11	-
+KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	793	e208d3181370	-
+KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	795	49a7cde2ac6b	-
+KANBAN.cards/KAN-057-J36E1B.md	tools/mount.ts	39	84a28db1abdd	-
+KANBAN.cards/KAN-057-J36E1B.md	tools/mount.ts	59	7216ab9cc2c9	-
 docs/ORD-006-conventions.md	KANBAN.batches/KAN-026.batch12.md	57	8e034a3990ba	-
 docs/ORD-006-conventions.md	KANBAN.batches/KAN-026.batch12.md	60	78b61b37ecc4	-
 docs/ORD-006-conventions.md	KANBAN.batches/KAN-026.batch13.md	50	9752f5d9d6b1	-
@@ -964,7 +972,7 @@ sandbox/algo-guide-v2/FEEDBACK.md	.claude/authoring/voices/algorithm-guide-write
 sandbox/algo-guide-v2/FEEDBACK.md	tools/build-html.ts	173	ee022ac7cf4c	-
 sandbox/algo-guide-v2/FEEDBACK.md	tools/build-html.ts	194	612f977aa75d	-
 sandbox/algo-guide-v2/FEEDBACK.md	tools/check-v2.ts	384	684888c0ebb1	-
-sandbox/algo-guide-v2/FEEDBACK.md	tools/check-v2.ts	431	29576b54e255	-
+sandbox/algo-guide-v2/FEEDBACK.md	tools/check-v2.ts	437	29576b54e255	-
 sandbox/algo-guide-v2/README.md	src/algorithms/array/mosAlgorithm/mosAlgorithm-guide.sim.ts	10	fd06c963de43	-
 sandbox/algo-guide-v2/README.md	tools/check-citations.ts	36	7de6ff637587	-
 sandbox/algo-guide-v2/SPEC.md	docs/comprehension-gate-audit.md	45	c7d2eec191a9	-

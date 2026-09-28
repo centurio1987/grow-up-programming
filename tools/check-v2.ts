@@ -22,7 +22,8 @@
  * 종료코드: 0 통과 · 1 위반 · 2 대상 없음/사용법
  */
 
-import { basename, dirname, join } from "node:path";
+import { readdir } from "node:fs/promises";
+import { basename, dirname, join, resolve } from "node:path";
 import { headerDoc, parseContract } from "./contract-header.ts";
 import { extract, GuideCoreError } from "./guide-core.ts";
 import { kindOfOr } from "./guide-v2-targets.ts";
@@ -56,14 +57,19 @@ export interface Finding {
 /* ────────────────────────── 공통 계수 ────────────────────────── */
 
 /**
- * "그림" 의 정의. **펜스와 `|` 표뿐이다.**
+ * "그림" 의 정의. **펜스 · `|` 표 · 그림 마커(`<!--fig:id-->` 와 그 아래 SVG 이미지 줄)다.**
  *
  * 구 구현은 `<` 로 시작하는 줄도 끊는 것으로 셌다(MDX 컴포넌트 호출부였다). 새 골격에서
- * 그대로 두면 **`<!--check:c1-->` 마커가 그림이 된다.** 마커는 그림이 아니다.
+ * 그대로 두면 **`<!--check:c1-->` 마커가 그림이 된다.** 마커는 그림이 아니다 — 그림 마커만은
+ * 바로 아래 줄에 그림(`figs/<id>.svg`)을 달고 서므로 예외다(KAN-057).
  */
+export const FIG_MARKER = /^<!--fig:([a-z][a-z0-9-]*)-->$/;
+const FIG_IMAGE = /^!\[[^\]]*\]\((?:\.\/)?figs\/([a-z][a-z0-9-]*)\.svg\)$/;
+
 function isFigureLine(line: string, inFence: boolean): boolean {
   if (inFence) return true;
   const t = line.trim();
+  if (FIG_MARKER.test(t) || FIG_IMAGE.test(t)) return true;
   return t.startsWith("|") && t.endsWith("|");
 }
 
@@ -1096,10 +1102,7 @@ export function banmalFindings(text: string): Finding[] {
       continue;
     }
     if (fenced) continue;
-    if (
-      line.trim() === "" ||
-      /^(#|\||<!--|>)/.test(line.trimStart())
-    ) {
+    if (line.trim() === "" || /^(#|\||<!--|>)/.test(line.trimStart())) {
       flush();
       continue;
     }
@@ -1315,7 +1318,9 @@ export function contractSummaryConsistency(
     const table = lines.slice(0, end < 0 ? undefined : end);
     if (
       table.length < 3 ||
-      cells(table[0] ?? "").map(clean).join("/") !== "연산/의미/상한/한정자"
+      cells(table[0] ?? "")
+        .map(clean)
+        .join("/") !== "연산/의미/상한/한정자"
     ) {
       out.push({
         code: "P18",
@@ -1920,6 +1925,63 @@ export interface CheckInput {
    */
   directMemory?: boolean;
   maxProseRun?: number;
+  /**
+   * 그림 사이드카(`<name>-guide.fig.tsx`)가 있으면 그 `FIGS` 키와, 가이드 옆 `figs/` 에 실재하는
+   * SVG id. 없으면 `undefined` — 그때 본문에 그림 마커가 있으면 P6 위반이다(KAN-057).
+   * SVG 가 사이드카·정본과 **같은 바이트인지**는 `render-figs --check` 몫이다.
+   */
+  figs?: { keys: string[]; svgs: string[] };
+}
+
+/**
+ * 그림 마커 ↔ `.fig.tsx` 의 `FIGS` 키 ↔ `figs/<id>.svg` 셋이 맞는가. 그리고 마커 바로 아래 줄이
+ * 그 SVG 를 거는 이미지인가(md 미리보기와 `build-html` 이 둘 다 그 줄을 읽는다).
+ */
+export function figFindings(text: string, figs: CheckInput["figs"]): Finding[] {
+  const findings: Finding[] = [];
+  const lines = text.split("\n");
+  const markers: string[] = [];
+  for (const [i, line] of lines.entries()) {
+    const id = FIG_MARKER.exec(line.trim())?.[1];
+    if (id === undefined) continue;
+    markers.push(id);
+    const img = FIG_IMAGE.exec((lines[i + 1] ?? "").trim());
+    if (img?.[1] !== id) {
+      findings.push({
+        code: "P6",
+        where: `:${i + 1}`,
+        detail: `그림 마커 \`${id}\` 바로 아래 줄은 \`![설명](./figs/${id}.svg)\` 여야 한다`,
+      });
+    }
+  }
+  if (markers.length === 0 && figs === undefined) return findings;
+  if (figs === undefined) {
+    findings.push({
+      code: "P6",
+      detail: `그림 마커(${markers.join("·")})가 있는데 \`.fig.tsx\` 가 없다`,
+    });
+    return findings;
+  }
+  for (const id of markers) {
+    if (!figs.keys.includes(id))
+      findings.push({
+        code: "P6",
+        detail: `그림 마커 \`${id}\` 에 대응하는 FIGS 키가 없다`,
+      });
+    if (!figs.svgs.includes(id))
+      findings.push({
+        code: "P6",
+        detail: `그림 \`${id}\` 의 SVG(figs/${id}.svg)가 없다 — \`bun run tools/render-figs.ts\``,
+      });
+  }
+  for (const key of figs.keys) {
+    if (!markers.includes(key))
+      findings.push({
+        code: "P6",
+        detail: `FIGS 키 \`${key}\` 를 가리키는 그림 마커가 없다`,
+      });
+  }
+  return findings;
 }
 
 export function check(input: CheckInput): Finding[] {
@@ -2200,9 +2262,18 @@ export function check(input: CheckInput): Finding[] {
     }
   }
 
+  findings.push(...figFindings(input.text, input.figs));
+
   for (const id of markers) {
     const at = input.text.indexOf(`<!--viz:${id}-->`);
     const rest = input.text.slice(at);
+    // 폴백이 ASCII 펜스 대신 그림일 수 있다(KAN-057) — 사이의 빈 줄·증명 마커는 건너뛴다.
+    const next = rest
+      .split("\n")
+      .slice(1)
+      .map((l) => l.trim())
+      .find((l) => l !== "" && !/^<!--proof:[A-Za-z0-9_-]+-->$/.test(l));
+    if (next !== undefined && FIG_MARKER.test(next)) continue;
     const fence = /```[a-z]*\n([\s\S]*?)```/.exec(rest);
     if (!fence || (fence[1] ?? "").trim() === "") {
       findings.push({
@@ -2491,6 +2562,15 @@ async function checkOne(
   const benchFile = Bun.file(join(dir, `${stem}.bench.json`));
   if (await simFile.exists()) input.sim = await simFile.text();
   if (await benchFile.exists()) input.bench = await benchFile.json();
+  const figFile = join(dir, `${stem}.fig.tsx`);
+  if (await Bun.file(figFile).exists()) {
+    const mod = (await import(resolve(figFile))) as { FIGS?: object };
+    const svgs = await readdir(join(dir, "figs")).catch(() => [] as string[]);
+    input.figs = {
+      keys: Object.keys(mod.FIGS ?? {}),
+      svgs: svgs.filter((n) => n.endsWith(".svg")).map((n) => n.slice(0, -4)),
+    };
+  }
 
   const missing: string[] = [];
   const dsProblems: string[] = [];
