@@ -1,6 +1,6 @@
 {
   "next_id": 61,
-  "next_seq": 417,
+  "next_seq": 418,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1561,6 +1561,16 @@
   ],
   "recent": [
     {
+      "seq": 417,
+      "t": "2026-09-29T04:27",
+      "a": "유저",
+      "id": "KAN-039-FG8HWZ",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-060-9P4ZAA",
+      "reason": "039 가 새로 쓰는 rollingHash·huffmanTree 가이드는 060 이 세운 practice 절 규칙을 따른다(유저 결정 2026-09-29)"
+    },
+    {
       "seq": 416,
       "t": "2026-09-29T04:10",
       "a": "ai",
@@ -2130,16 +2140,6 @@
       "w": "N0VY8A",
       "from": "backlog",
       "to": "doing"
-    },
-    {
-      "seq": 375,
-      "t": "2026-09-17T16:18",
-      "a": "ai",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "N0VY8A",
-      "with_": "KAN-040-M5V53M",
-      "reason": "69 종의 연산 선정 근거와 등급이 바뀔 수 있으므로 KAN-036 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)"
     }
   ],
   "waivers": [
@@ -2553,6 +2553,18 @@
       "scope_hash": "2ebef04ae474ca68",
       "reason": "058 의 110편 재집필이 060 이 세운 practice 절·L49 위에서 선다(유저 결정 2026-09-29)",
       "created": "2026-09-29T04:10",
+      "by": "유저",
+      "restrategy_required": false
+    },
+    {
+      "pair": "KAN-039-FG8HWZ|KAN-060-9P4ZAA",
+      "order": [
+        "KAN-060-9P4ZAA",
+        "KAN-039-FG8HWZ"
+      ],
+      "scope_hash": "18b863e84292da74",
+      "reason": "039 가 새로 쓰는 rollingHash·huffmanTree 가이드는 060 이 세운 practice 절 규칙을 따른다(유저 결정 2026-09-29)",
+      "created": "2026-09-29T04:27",
       "by": "유저",
       "restrategy_required": false
     }
