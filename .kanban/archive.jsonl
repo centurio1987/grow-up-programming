@@ -480,3 +480,4 @@
 {"seq": 366, "t": "2026-09-17T09:10", "a": "ai", "id": "KAN-051-537EN1", "op": "edit", "w": "46PCAX", "field": "title", "before": "축3 값 검사 전개 — 후보 98 행 실물 확인과 끝 상태 기준 훑기", "after": "축3 값 검사 전개 — 후보 91 행 실물 확인과 끝 상태 기준 훑기"}
 {"seq": 367, "t": "2026-09-17T09:28", "a": "ai", "id": "KAN-036-0G05DE", "op": "serialize", "w": "VR2JKF", "with_": "KAN-041-JJ5DA7", "reason": "expected 계약 열둘의 축3 수치와 하네스 규격이 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)"}
 {"seq": 368, "t": "2026-09-17T09:28", "a": "ai", "id": "KAN-041-JJ5DA7", "op": "move", "w": "VR2JKF", "from": "backlog", "to": "doing"}
+{"seq": 369, "t": "2026-09-17T12:26", "a": "ai", "id": "KAN-041-JJ5DA7", "op": "move", "w": "VR2JKF", "from": "doing", "to": "review"}

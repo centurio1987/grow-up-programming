@@ -1,6 +1,6 @@
 {
   "next_id": 61,
-  "next_seq": 411,
+  "next_seq": 412,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -258,7 +258,7 @@
       "memo_hash": "5fed99e814d238239cc3d762d83b904153a82dba"
     },
     "KAN-059-PSFTN4": {
-      "col": "backlog",
+      "col": "doing",
       "title": "책 빌더의 SVG 그림 인쇄 — 알고리즘 가이드 fig 자리를 책(PDF)에서 어떻게 찍는가",
       "verbatim": "",
       "생성": "ai",
@@ -1477,7 +1477,6 @@
     "KAN-054-1YWN4M",
     "KAN-055-4N4T6A",
     "KAN-058-8XT6PC",
-    "KAN-059-PSFTN4",
     "KAN-060-9P4ZAA",
     "KAN-001",
     "KAN-032",
@@ -1533,9 +1532,20 @@
     "KAN-041-JJ5DA7",
     "KAN-040-M5V53M",
     "KAN-056-VPCM91",
-    "KAN-057-J36E1B"
+    "KAN-057-J36E1B",
+    "KAN-059-PSFTN4"
   ],
   "recent": [
+    {
+      "seq": 411,
+      "t": "2026-09-29T01:38",
+      "a": "ai",
+      "id": "KAN-059-PSFTN4",
+      "op": "move",
+      "w": "MY1HCK",
+      "from": "backlog",
+      "to": "doing"
+    },
     {
       "seq": 410,
       "t": "2026-09-29T01:34",
@@ -2096,16 +2106,6 @@
       "w": "VR2JKF",
       "from": "review",
       "to": "doing"
-    },
-    {
-      "seq": 369,
-      "t": "2026-09-17T12:26",
-      "a": "ai",
-      "id": "KAN-041-JJ5DA7",
-      "op": "move",
-      "w": "VR2JKF",
-      "from": "doing",
-      "to": "review"
     }
   ],
   "waivers": [
