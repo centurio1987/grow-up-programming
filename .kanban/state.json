@@ -1,6 +1,6 @@
 {
   "next_id": 57,
-  "next_seq": 401,
+  "next_seq": 402,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1338,12 +1338,12 @@
       "memo_hash": "6aa93b8ff5c660cd56c867eb16e720afbefdb163"
     },
     "KAN-056-VPCM91": {
-      "col": "review",
+      "col": "done",
       "title": "알고리즘 가이드 집필 로직 피드백",
       "verbatim": "지금은 아이디어 상세가, naive에서 시작해서 핵심 알고리즘에 도달하는 서사로 구성되어 있다. 그런데, 이 구성을 별도 항목으로 빼고, 아이디어 상세 자체는 아이디어에 초점을 맞춰서 상세히 집필해라. 집필 시, 최대한 자세히 이해하기 쉽도록 해야한다는 지시가 CLAUDE.md 때문에 무시당하는 문제가 있으니, /output-style을 learning으로  설정하여 작업하기 바란다.\n\n결과물은 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md에 대한 파일럿 가이드 생성을 통해 확인하겠다.",
       "생성": "유저",
-      "최종": "ai",
-      "갱신": "2026-09-26",
+      "최종": "유저",
+      "갱신": "2026-09-28",
       "title_hash": "8cca32cb366d571d1bccad5d2d4c1b6fbda66139",
       "verbatim_hash": "53dcd333a0f941cd5163159dd39a6547c479e807",
       "memo": "",
@@ -1435,6 +1435,16 @@
     "KAN-056-VPCM91"
   ],
   "recent": [
+    {
+      "seq": 401,
+      "t": "2026-09-28T17:25",
+      "a": "유저",
+      "id": "KAN-056-VPCM91",
+      "op": "move",
+      "w": "BKSVJ0",
+      "from": "review",
+      "to": "done"
+    },
     {
       "seq": 400,
       "t": "2026-09-26T22:21",
@@ -1964,16 +1974,6 @@
       "w": "VG6P57",
       "from": "backlog",
       "to": "doing"
-    },
-    {
-      "seq": 351,
-      "t": "2026-09-17T05:12",
-      "a": "ai",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "VG6P57",
-      "with_": "KAN-044-VZXM29",
-      "reason": "cartesianTree 헤더의 한정자 근거 문단과 축3 시나리오가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)"
     }
   ],
   "waivers": [
