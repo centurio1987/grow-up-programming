@@ -101,3 +101,4 @@ bun run tools/build-html.ts $G
 - 2026-09-28T16:36 · s:d4f903d8 — 검사기 — section.ts deep.build 컨테이너(concept·stage·tail·sub) · check-v2 P17(단계 골격)·P18(본문 반말) 한시 조항 · build-html 레일에 개념·단계 · 시험 11건 추가(153 통과) · check-metaphor 실측 14→11(L43 개명) · 밀린 인용 7곳 재지정 · ci all 18단계 통과 · check-v2 --all 경고 178건 변화 없음
 - 2026-09-28T16:36 · s:d4f903d8 — 남은 것 — L44 voice 어휘(v.common.gyeonju) 미반영(전역 파일 · 91편 1,542곳), P17·P18 전면 적용과 함께 110편 전개 카드에서
 - 2026-09-28T16:45 · s:d4f903d8 — L44 voice 반영 — algorithm-guide-writer style.json 에 v.common.gyeonju(predicate.verb · -3 · enabled:false) 추가, authoring style validate 정상, voice-style --sync 로 저장소 사본 맞춤, check-metaphor --all 655개 0건(꺼 둔 상태 확인)
+- 2026-09-28T17:05 · s:d4f903d8 — 검토 — 유저 지시로 설정 이전 항목을 지웠다(item_add 기록 걷고 다시 그림), 인용 수정 항목 재추가, 판단 항목 5개 유저 승인으로 수렴. 110편 전개는 KAN-057 완료 뒤 착수하는 별도 카드로(유저 결정 2026-09-28)
