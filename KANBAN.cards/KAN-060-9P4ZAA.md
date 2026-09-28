@@ -13,7 +13,7 @@ scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/chec
 
 **원문 읽기.** 원문의 「문제가 `*-guide.md`로 분리」는 `*-problem.md` 로 읽는다 — 분리된 쪽이 그 파일이다.
 
-**지금 상태(2026-09-29 실측).** `src/algorithms/` 에 `*-problem.md` 119 · `*-guide.md` 111. 가이드 없이 문제만 있는 폴더 8, 문제 없는 가이드 0. 문제 서술(스토리·제약·예시)이 남은 곳은 `problem.md` 뿐이다 — 커밋 `29eab6e` 가 `.ts` 주석의 문제 설명을 이리로 옮겼고, 그래서 `CLAUDE.md:11` 의 「주석에 문제가 서술돼 있고」는 사실과 다르다. 가이드 37편에 `-problem.md` 링크 143개(대부분 다른 편을 가리킨다) — 깨지면 `check-links`(`tools/ci.ts:106`)가 실패한다. 코드 주석 넷이 `problem.md` 를 기준으로 삼는다: `src/algorithms/advanced/knuthOptimization/knuthOptimization-guide.proof.ts:65` · `src/algorithms/shortest-path/floydWarshall/floydWarshall-guide.proof.ts:47` · `src/algorithms/string/ahoCorasick/ahoCorasick-guide.test.ts:17` · `src/algorithms/sorting/kthSmallest/kthSmallest.test.ts:5`(맨 `problem.md` 라 `check-links refs` 에 안 걸린다). 명세 정본 `sandbox/algo-guide-v2/SPEC.md` 에 실습 절이 없고, 가이드를 문제 전제로 쓰게 만든 자리는 `deep.origin` ①「문제를 고정한다」(`sandbox/algo-guide-v2/SPEC.md:312`)와 본문의 「이 문제에서는」이다.
+**지금 상태(2026-09-29 실측).** `src/algorithms/` 에 `*-problem.md` 119 · `*-guide.md` 111. 가이드 없이 문제만 있는 폴더 8, 문제 없는 가이드 0. 문제 서술(스토리·제약·예시)이 남은 곳은 `problem.md` 뿐이다 — 커밋 `29eab6e` 가 `.ts` 주석의 문제 설명을 이리로 옮겼고, 그래서 `CLAUDE.md:11` 의 「주석에 문제가 서술돼 있고」는 사실과 다르다. 가이드 37편에 `-problem.md` 링크 143개(대부분 다른 편을 가리킨다) — 깨지면 `check-links`(`tools/ci.ts:106`)가 실패한다. 코드 주석 넷이 `problem.md` 를 기준으로 삼는다: `src/algorithms/advanced/knuthOptimization/knuthOptimization-guide.proof.ts:65` · `src/algorithms/shortest-path/floydWarshall/floydWarshall-guide.proof.ts:47` · `src/algorithms/string/ahoCorasick/ahoCorasick-guide.test.ts:17` · `src/algorithms/sorting/kthSmallest/kthSmallest.test.ts:5`(맨 `problem.md` 라 `check-links refs` 에 안 걸린다). 명세 정본 `sandbox/algo-guide-v2/SPEC.md` 에 실습 절이 없고, 가이드를 문제 전제로 쓰게 만든 자리는 `deep.origin` ①「문제를 고정한다」(S1 에서 「다룰 과제를 고정한다」로 고쳤다 — `sandbox/algo-guide-v2/SPEC.md:334`)와 본문의 「이 문제에서는」이다.
 
 **유저 결정(2026-09-29).** ① KAN-060 먼저, KAN-058 직렬 뒤 — 060 은 명세·파일럿·전 편 기계 이전, 058 은 110편 재집필 때 알고리즘 중심 서술까지. ② 실습 문제는 지금 문제를 옮긴다(시그니처·스텁·테스트 그대로). ③ 가이드 없는 8곳 — 같은 알고리즘 가이드가 있으면 그 가이드의 실습에 문제로 더하고, 없으면 가이드를 새로 쓴다.
 
@@ -24,7 +24,7 @@ scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/chec
 - 새 항목 `practice` — `## 실습 — 직접 풀어 보기`, fixed · 필수 · order 90, 파트 2 뒤 문서 끝. 문제마다 `### {문제 이름}`(`practice.problem`, 반복 ≥ 1), 그 아래 `####` 5절(스토리 · 함수 인터페이스 · 제약 조건 · 문제 상세 · 예시 — 옛 problem spec 5항), 끝에 스텁·테스트 경로와 `bun test <경로>`.
 - voice 규칙 「문서 끝은 스스로 점검하기로 마무리」(`.claude/authoring/voices/algorithm-guide-writer/voice.md:95`, SPEC 이 인용하는 87행은 밀린 옛 번호)를 「파트 2 는 selfcheck 로 맺고, 문서는 실습으로 끝낸다」로 고친다.
 - 새 규칙 `L49` — 파트 1·2 는 실습 문제를 전제하지 않는다. `deep.origin` ① 은 「다룰 과제를 고정한다」(스토리 없이 입출력 계약·규모·기호표). 「이 문제」·「지문」·「문제가 정해 두었다」류를 실습 밖에서 쓰지 않는다. §8 한시 조항: `deep.origin` 이 있는 편만 잰다, 058 이 닫히면 지운다.
-- `selfcheck` 의 답 없는 문제(`sandbox/algo-guide-v2/SPEC.md:742`)는 이해 점검, 실습은 스텁을 채워 테스트를 통과시키는 과제 — 두 절에 경계를 한 줄씩.
+- `selfcheck` 의 답 없는 문제(`sandbox/algo-guide-v2/SPEC.md:774`)는 이해 점검, 실습은 스텁을 채워 테스트를 통과시키는 과제 — 두 절에 경계를 한 줄씩.
 
 **규칙 자산.** `specs/problem/` 5항을 SPEC `practice` 로 옮기고 퇴역, `.claude/authoring.lock.json:36`(problem)과 `.claude/authoring.lock.json:24`(voice) 갱신. `gen-problem` 은 가이드 실습 절과 테스트를 쓰도록 전환. 낡은 서술 `.claude/skills/guide-for-problem/SKILL.md:3,20,53` · `README.md:17,26-36,75` · `CLAUDE.md:11` 정정.
 
@@ -40,7 +40,7 @@ scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/chec
 <!-- `S<n>`은 고정 id — 이름을 바꾸지 않는다. 체크 상태는 doc-step 이 갱신한다. -->
 **배치 1 — 명세·도구**
 
-- [ ] `S1` SPEC·voice 개정 — §1 표 · §2 매핑 · §3 `practice` 작성법 · `deep.origin` ① 개정 · §6 `L49` · §8 한시 조항 · `selfcheck` 경계 · SPEC 의 voice 인용 행 번호(87 → 95) · voice 「문서 끝」 규칙 · `FEEDBACK.md` 한 줄. `grep -n '문제를 고정\|이 문제'` 로 SPEC·voice 의 자리를 전수로 처분(`sandbox/algo-guide-v2/SPEC.md:312` · 873행 L3 포함). 완료 기준: 자리마다 처분이 정해져 있고 `check-links`·`check-citations` 통과
+- [x] `S1` SPEC·voice 개정 — §1 표 · §2 매핑 · §3 `practice` 작성법 · `deep.origin` ① 개정 · §6 `L49` · §8 한시 조항 · `selfcheck` 경계 · SPEC 의 voice 인용 행 번호(87 → 95) · voice 「문서 끝」 규칙 · `FEEDBACK.md` 한 줄. `grep -n '문제를 고정\|이 문제'` 로 SPEC·voice 의 자리를 전수로 처분(`deep.origin` ① · 873행 L3 포함). 완료 기준: 자리마다 처분이 정해져 있고 `check-links`·`check-citations` 통과
 - [ ] `S2` 스캐너 — `tools/section.ts` 에 `practice`·`practice.problem`, `tools/check-v2.ts` 에 P22(실습 절 · 문제마다 5소절 · 스텁·테스트 경로 실재)·P23(실습 밖 실습 문제 지칭, `deep.origin` 있는 편만), `check-v2.test.ts` 사례. 완료 기준: 시험 통과 · `--all` 에서 P22 위반이 「실습 절 없음」뿐이고 그 수가 이전 대상 수와 같다 · P22 밖 위반 수가 개정 전과 같다 · 옛 구성 두세 편에 실습 절을 임시로 붙여 순서·헤딩 규칙이 새로 안 걸리는지 확인
 - [ ] `S3` 규칙 자산 — `specs/problem` 퇴역 · `gen-problem`·`guide-for-problem` 개정 · `README.md`·`CLAUDE.md:11` 정정 · `.claude/authoring.lock.json` 의 problem·voice 해시 갱신. 완료 기준: `authoring-doctor` 가 깨진 참조 없이 돌고 `check-links` 통과
 
@@ -82,3 +82,5 @@ bunx --bun @biomejs/biome check tools/migrate-practice.ts tools/check-v2.ts tool
 - 2026-09-29T04:09 · s:15cf9d75 — `전략` 섹션 교체
 - 2026-09-29T04:09 · s:15cf9d75 — `실행 계획` 섹션 교체
 - 2026-09-29T04:09 · s:15cf9d75 — `검증` 섹션 교체
+- 2026-09-29T04:34 · s:15cf9d75 · S1 doing — 착수
+- 2026-09-29T04:37 · s:15cf9d75 · S1 done — SPEC: §1 practice 3행·실습 도입 문단, §2 매핑·해소 규칙, §3 deep.origin ① 「다룰 과제를 고정한다」, pause 의 「이 문제에서는」→「이 입력 범위에서는」, selfcheck voice 인용 87→95 + 실습과의 경계, practice 절 신설, §6 L3 문구·L49 행·번호 안내(다음 L50), §8 L49 한시 조항, §0 스캐너 P1~P23. voice 규칙 9(~/.claude 원본 → --sync). FEEDBACK R30. grep 처분: SPEC 312(고침)·510(고침)·735(고침)·873 L3(고침)·340(새 문장, 금지 표현을 인용하는 자리라 그대로). remap 으로 KAN-034·057 인용 7곳 이동, 대장 갱신. check-links·check-citations 통과
