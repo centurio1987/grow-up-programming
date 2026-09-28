@@ -30,6 +30,12 @@ import { plan } from "./chapters.ts";
 import { Printer, pdfPageCount } from "./chrome.ts";
 import type { BookConfig } from "./config.ts";
 import { loadConfig, REPO } from "./config.ts";
+import {
+  contentBox,
+  figureShrinks,
+  figureViolations,
+  MEASURE_FIGS_JS,
+} from "./figures.ts";
 import { codeLanguages, FragmentStore, sha } from "./fragment.ts";
 import type { BookStats, TocFrame, VolumeSize } from "./matter.ts";
 import { backCover, colophon, cover, esc, toc } from "./matter.ts";
@@ -47,6 +53,8 @@ import { fill, place, split } from "./volume.ts";
  *    깨지고, 자르면 오른쪽이 사라진다. 한글이 섞이면 고정폭이 아니게 되어 글자 수로는 폭을 못
  *    짚으므로, 서체가 다 온 뒤 실제 폭을 재서 비율대로 줄인다. 6.5pt 아래로 가야 하면 줄이지 않고
  *    접는다 — 읽을 수 없는 그림보다 접힌 그림이 낫다.
+ * 3. **그림(`figure.gs-fig`)의 치수를 잰다.** 판정은 빌더가 한다(`figures.ts`) — 한 쪽에 안
+ *    들어가는 그림은 빈 틀 쪽을 남기고 쪽 경계에서 잘린다.
  *
  * 잴 때(낱장)와 찍을 때(합본)의 본문 폭이 같으므로 보정 결과도 같다. 달라지면 쪽수 예측이
  * 어긋나 빌더가 실패한다.
@@ -69,6 +77,7 @@ const FIT_JS = `window.bkReady = (async () => {
     else pre.classList.add("bk-fit-wrap");
   }
   await document.fonts.ready;
+  ${MEASURE_FIGS_JS}
 })();`;
 
 /** 인쇄용 한 장. */
@@ -261,7 +270,9 @@ async function main(): Promise<never> {
   try {
     const layouts: Layout[] = [];
     for (const v of vols) {
-      layouts.push(await layout(ctx, printer, v, takenOf(v)));
+      const l = await layout(ctx, printer, v, takenOf(v));
+      layouts.push(l);
+      broken.push(...l.figBroken);
       // 권 하나를 잴 때마다 캐시를 적는다 — 세 번째 권에서 멈춰도 앞 두 권의 계측이 남는다.
       await store.flush();
     }
@@ -378,6 +389,8 @@ interface Layout {
   front: number;
   back: number;
   total: number;
+  /** 한 쪽에 안 들어가는 그림(`figures.ts`). 조판 규약 위반으로 센다. */
+  figBroken: string[];
 }
 
 /** 뒤표지는 한 쪽으로 고정된 틀이다(`print-css.ts` 의 `.bk-backcover`). */
@@ -403,16 +416,27 @@ async function layout(
   for (const ch of chapters) {
     if (store.pagesFor(ch.id, css + bodyOf(ch)) !== undefined) continue;
     await Bun.write(measure, shell(cfg.title, css, fill(bodyOf(ch))));
-    store.setPages(
-      ch.id,
-      pdfPageCount(await printer.print(measure)),
-      sha(css + bodyOf(ch)),
-    );
+    const pages = pdfPageCount(await printer.print(measure));
+    store.setPages(ch.id, pages, sha(css + bodyOf(ch)), printer.lastFigs);
     measured++;
   }
   const pagesOf = (ch: Chapter) => store.get(ch.id)?.pages ?? 0;
   console.log(
     `[${v.vol.label}] 쪽수 — 새로 잰 편 ${measured}, 캐시 ${chapters.length - measured}`,
+  );
+
+  // 그림은 쪽을 잰 그 인쇄에서 함께 쟀다. 캐시에서 꺼낸 편도 여기서 다시 판정한다.
+  const box = contentBox(cfg.page.format);
+  const figBroken: string[] = [];
+  let figCount = 0;
+  for (const ch of chapters) {
+    const figs = store.get(ch.id)?.figs ?? [];
+    figCount += figs.length;
+    figBroken.push(...figureViolations(ch.id, figs, box));
+    for (const n of figureShrinks(ch.id, figs, box)) console.log(`  ${n}`);
+  }
+  console.log(
+    `[${v.vol.label}] 그림 ${figCount}장 — 높이 초과 ${figBroken.length}건`,
   );
 
   /* ── ③ 목차 쪽번호 (앞붙이 쪽수에 맞춰 수렴시킨다) ────── */
@@ -469,6 +493,7 @@ async function layout(
     front,
     back,
     total: body + back + BACK_COVER_PAGES,
+    figBroken,
   };
 }
 

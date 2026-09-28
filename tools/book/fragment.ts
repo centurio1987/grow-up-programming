@@ -31,6 +31,7 @@ import { dirname, relative, resolve } from "node:path";
 import { build, railFrom } from "../build-html.ts";
 import type { Chapter } from "./chapters.ts";
 import { REPO } from "./config.ts";
+import type { FigMeasure } from "./figures.ts";
 import { FOLIO_SLOT, NO_SLOT, PAGES_SLOT } from "./volume.ts";
 
 /**
@@ -57,6 +58,11 @@ export interface CacheEntry {
    * 표기가 바뀌면 줄이 넘어갈 수 있으므로, **잰 것과 찍을 것이 같을 때만** 쪽수를 믿는다.
    */
   measuredHash?: string;
+  /**
+   * 쪽수를 잴 때 함께 잰 그림 치수(`figures.ts`). 쪽수와 같은 인쇄에서 나오므로 같은 해시에
+   * 묶인다 — 캐시에서 꺼낸 편도 그림 검사를 다시 받는다.
+   */
+  figs?: FigMeasure[];
   problems: string[];
   /** 책 안으로 못 이은 상호 참조. 자료구조 편입 전에는 여기에 그 40건이 쌓인다. */
   deadRefs: string[];
@@ -98,18 +104,29 @@ export class FragmentStore {
   }
 
   /** 쪽수는 조각과 따로 잰다(`chrome.ts`). 잰 값을 같은 항목에 얹는다. */
-  setPages(id: string, pages: number, measuredHash?: string): void {
+  setPages(
+    id: string,
+    pages: number,
+    measuredHash?: string,
+    figs?: FigMeasure[],
+  ): void {
     const e = this.entries[id];
     if (e === undefined) return;
     e.pages = pages;
     if (measuredHash === undefined) delete e.measuredHash;
     else e.measuredHash = measuredHash;
+    if (figs === undefined) delete e.figs;
+    else e.figs = figs;
   }
 
-  /** 이 HTML 로 잰 쪽수가 있으면 그 값, 없으면 `undefined`. */
+  /**
+   * 이 HTML 로 잰 쪽수가 있으면 그 값, 없으면 `undefined`. 그림 치수가 없는 옛 계측도
+   * 안 믿는다 — 그림 검사를 건너뛴 채 캐시로 지나가면 안 된다.
+   */
   pagesFor(id: string, html: string): number | undefined {
     const e = this.entries[id];
-    if (e?.pages === undefined || e.pages <= 0) return undefined;
+    if (e?.pages === undefined || e.pages <= 0 || e.figs === undefined)
+      return undefined;
     return e.measuredHash === sha(html) ? e.pages : undefined;
   }
 

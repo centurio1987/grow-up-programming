@@ -14,6 +14,7 @@
  */
 
 import { mkdir, rm } from "node:fs/promises";
+import type { FigMeasure } from "./figures.ts";
 
 const CANDIDATES = [
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -47,6 +48,9 @@ export class Printer {
 
   /** 붙은 뒤에 채운다. 소켓 하나에 인쇄기 객체가 둘이 되면 응답 id 가 갈린다. */
   private session = "";
+
+  /** 마지막으로 찍은 쪽의 그림 측정(`figures.ts` 의 `MEASURE_FIGS_JS`). 안 쟀으면 빈 배열. */
+  lastFigs: FigMeasure[] = [];
 
   private constructor(
     private readonly proc: Bun.Subprocess,
@@ -209,6 +213,7 @@ export class Printer {
         await document.fonts.ready;
         const faces = [...document.fonts];
         return JSON.stringify({
+          figs: window.bkFigs ?? [],
           loaded: faces.filter((f) => f.status === "loaded").length,
           failed: faces.filter((f) => f.status === "error").map((f) => f.family + " " + f.weight),
         });
@@ -217,9 +222,11 @@ export class Printer {
       returnByValue: true,
     })) as { result?: { value?: string } };
     const got = JSON.parse(r.result?.value ?? "{}") as {
+      figs?: FigMeasure[];
       loaded?: number;
       failed?: string[];
     };
+    this.lastFigs = got.figs ?? [];
     if ((got.failed ?? []).length > 0) {
       throw new Error(
         `서체를 못 읽었다(${file}): ${(got.failed ?? []).join(", ")} — bun install 로 @fontsource 패키지를 받는다`,

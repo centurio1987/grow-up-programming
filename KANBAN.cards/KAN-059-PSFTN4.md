@@ -49,7 +49,7 @@ KAN-057 이 가이드 도식을 ASCII 에서 SVG 그림(fig)으로 바꿨다. �
 - 전체 빌드는 세 권 111편을 다시 조판한다. 측정 검사를 고칠 때는 `--limit`·`--html-only` 로 줄여 돌리고 마지막에 한 번 전체를 돈다.
 
 ## 실행 계획
-- [ ] `S1` 인쇄 그림 측정 검사 — 책 빌더가 조각을 조판할 때 `figure.gs-fig` 안의 그림 단위(필름은 `data-viz-step` 칸, 아니면 SVG 한 장)마다 상자를 재 본문 상자(폭·높이)를 넘으면 위반으로 낸다. 위반은 편 id·그림 id·치수로 출력하고 종료코드 1. 완료: 지금 main 에서 `walk-build`·`walk-answer` 둘만 「높이 초과」로 잡히고 나머지 일곱은 통과 · 폭 초과 여부가 수로 나온다 · `book.test.ts` 에 위반·통과 시험
+- [x] `S1` 인쇄 그림 측정 검사 — 책 빌더가 조각을 조판할 때 `figure.gs-fig` 안의 그림 단위(필름은 `data-viz-step` 칸, 아니면 SVG 한 장)마다 상자를 재 본문 상자(폭·높이)를 넘으면 위반으로 낸다. 위반은 편 id·그림 id·치수로 출력하고 종료코드 1. 완료: 지금 main 에서 `walk-build`·`walk-answer` 둘만 「높이 초과」로 잡히고 나머지 일곱은 통과 · 폭 초과 여부가 수로 나온다 · `book.test.ts` 에 위반·통과 시험
 - [ ] `S2` 필름 칸 경계 — `CellStageFilm` 이 칸마다 `data-viz-step` 에 세로 자리(y·높이)를 박는다. 완료: `render-figs.ts` 로 파일럿 SVG 다시 뽑기 · `render-figs --check` 통과 · 화면 모양 불변(웹 HTML 에서 걸음 그림이 전과 같게 보임) · `patterns.test.tsx` 에 경계값 시험
 - [ ] `S3` 책에서 필름 가르기 + 인쇄 CSS — `fragment.ts` 에 필름 SVG 를 칸별 `<svg viewBox>` 로 나누는 함수(칠 스타일은 칸마다 싣거나 한 번 공유), `BUILDER_VERSION` 올림. `print-css.ts` 에 그림 묶음 규칙(그림 SVG 는 본문 폭까지 줄임 · 필름 틀은 쪽 넘김 허용 · 머리 줄은 첫 칸과 붙임 · 칸은 안 갈라짐). 완료: S1 검사 위반 0 · 파일럿 PDF 에 빈 틀 쪽 없음 · T3~T15 가 한 번씩, 쪽 경계에서 잘린 칸 없음(쪽 이미지로 확인)
 - [ ] `S4` 디자인 샘플·문서 — `build-sample.ts` 목록에 「그림」·「걸음 필름」 블록 항목, `tools/book/README.md` 조판 규칙에 그림 줄. 완료: `build-sample.ts` 가 돌고 새 항목이 샘플 PDF 에 찍힘
@@ -78,3 +78,5 @@ bunx --bun @biomejs/biome check tools/book src/_viz   # 새로 쓴 곳 경고 0
 - 2026-09-29T01:32 · s:e2ca442a — `전략` 섹션 교체
 - 2026-09-29T01:32 · s:e2ca442a — `실행 계획` 섹션 교체
 - 2026-09-29T01:32 · s:e2ca442a — `검증` 섹션 교체
+- 2026-09-29T01:38 · s:59ac9d04 · S1 doing — 착수
+- 2026-09-29T01:44 · s:59ac9d04 · S1 done — 측정 검사(tools/book/figures.ts) — 고치기 전 main 에서 그림 9장 중 walk-build 2091px·walk-answer 2232px > 본문 856px 둘만 높이 초과, 폭 초과 셋(0.98·0.90·0.94배)은 알림. 세 권 빌드 종료 1

@@ -11,6 +11,13 @@ import type { Chapter } from "./chapters.ts";
 import { plan, unescapeMd } from "./chapters.ts";
 import { pdfPageCount } from "./chrome.ts";
 import { checkVolumes, loadConfig } from "./config.ts";
+import type { FigMeasure } from "./figures.ts";
+import {
+  contentBox,
+  figureShrinks,
+  figureViolations,
+  MOUNT_HEAD_PX,
+} from "./figures.ts";
 import { backCover, colophon, cover, gradeOf, toc } from "./matter.ts";
 import { outlineChapters, relevel } from "./outline.ts";
 import type { VolumePlan } from "./volume.ts";
@@ -354,4 +361,93 @@ describe("조각", () => {
     expect(html).not.toMatch(/href="(?!#|https?:)/);
     if (r.entry.deadRefs.length > 0) expect(html).toContain("bk-xref-dead");
   }, 30_000);
+});
+
+describe("그림 측정", () => {
+  const box = contentBox("A4");
+  // 파일럿(sparseTableRangeMin) 그림 치수 그대로다 — 필름 둘과 작은 그림 하나.
+  const film = (step: string | null, h: number) => ({ step, w: 712, h });
+  const mounted = (fig: string, units: FigMeasure["units"]): FigMeasure => ({
+    fig,
+    mounted: true,
+    units,
+  });
+
+  test("A4 본문 상자는 170 × 236.6mm 다", () => {
+    expect(Math.round(box.w)).toBe(643);
+    expect(Math.round(box.h)).toBe(894);
+  });
+
+  test("한 장짜리 필름은 높이 초과로 잡힌다 — 고치기 전 파일럿이 이 모양이다", () => {
+    const v = figureViolations(
+      "algorithms--sparseTableRangeMin",
+      [
+        mounted("walk-build", [film(null, 2324)]),
+        mounted("walk-answer", [{ step: null, w: 684, h: 2384 }]),
+      ],
+      box,
+    );
+    expect(v.length).toBe(2);
+    expect(v[0]).toContain("그림 walk-build 높이 초과");
+    expect(v[1]).toContain("그림 walk-answer 높이 초과");
+  });
+
+  test("걸음 칸으로 가른 필름은 칸마다 재서 통과한다", () => {
+    const cells = Array.from({ length: 8 }, (_, n) => film(`T${n + 3}`, 280));
+    expect(figureViolations("x", [mounted("walk-build", cells)], box)).toEqual(
+      [],
+    );
+  });
+
+  test("가른 칸 하나라도 쪽보다 길면 그 칸의 표지를 댄다", () => {
+    const v = figureViolations(
+      "x",
+      [mounted("walk-build", [film("T3", 280), film("T4", 1200)])],
+      box,
+    );
+    expect(v).toEqual([expect.stringContaining("칸 T4 높이 초과")]);
+  });
+
+  test("틀의 머리 줄은 첫 덩어리와 한 쪽에 선다 — 첫 칸만 그만큼 짧게 잰다", () => {
+    const h = Math.floor(box.h) - 1; // 제 크기(폭 600 < 본문)로 쪽에 겨우 드는 높이
+    const tall = (step: string) => ({ step, w: 600, h });
+    expect(
+      figureViolations("x", [mounted("f", [tall("T1")])], box),
+    ).toHaveLength(1);
+    expect(
+      figureViolations(
+        "x",
+        [
+          mounted("f", [
+            { step: "T1", w: 600, h: h - MOUNT_HEAD_PX },
+            tall("T2"),
+          ]),
+        ],
+        box,
+      ),
+    ).toEqual([]);
+  });
+
+  test("폭이 본문을 넘으면 줄여 찍고 그 배율로 높이를 잰다 — 위반이 아니라 알림이다", () => {
+    // 폭 1286(본문의 두 배)이면 반으로 줄어 높이 1400 이 700 으로 찍힌다
+    const wide: FigMeasure = {
+      fig: "wide",
+      mounted: false,
+      units: [{ step: null, w: 1286, h: 1400 }],
+    };
+    expect(figureViolations("x", [wide], box)).toEqual([]);
+    expect(figureShrinks("x", [wide], box)).toEqual([
+      expect.stringContaining("0.50배"),
+    ]);
+  });
+
+  test("작은 그림은 통과하고 알림도 없다", () => {
+    const small: FigMeasure = {
+      fig: "concept-cover",
+      mounted: false,
+      units: [{ step: null, w: 563, h: 210 }],
+    };
+    expect(figureViolations("x", [small], box)).toEqual([]);
+    expect(figureShrinks("x", [small], box)).toEqual([]);
+  });
 });
