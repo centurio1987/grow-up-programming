@@ -19,6 +19,9 @@ export const LIGHT = {
   active: "#ea4335",
   frontier: "#fbbc04",
   visited: "#9aa0a6",
+  /** 선 강조 — 조각 괄호·현재 걸음. 칸 채움(node·active)과 따로 둔다: 흑백에서 채움은 흰색이어도 선은 검어야 한다. */
+  line1: "#4285f4",
+  line2: "#ea4335",
 } as const;
 
 /** 어두운 테마 — `PAGE_CSS` 의 `prefers-color-scheme: dark`. 없는 값은 밝은 쪽을 쓴다. */
@@ -32,6 +35,8 @@ export const DARK = {
   active: LIGHT.active,
   frontier: LIGHT.frontier,
   visited: LIGHT.visited,
+  line1: LIGHT.line1,
+  line2: LIGHT.line2,
 } as const;
 
 /** 흑백 인쇄용 — 색 대신 명도와 선 모양으로 구별한다. */
@@ -45,6 +50,8 @@ export const MONO = {
   active: "#ffffff",
   frontier: "#dddddd",
   visited: "#f5f5f5",
+  line1: "#000000",
+  line2: "#000000",
 } as const;
 
 export type Colorway = { readonly [K in keyof typeof LIGHT]: string };
