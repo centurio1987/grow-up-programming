@@ -482,3 +482,4 @@
 {"seq": 368, "t": "2026-09-17T09:28", "a": "ai", "id": "KAN-041-JJ5DA7", "op": "move", "w": "VR2JKF", "from": "backlog", "to": "doing"}
 {"seq": 369, "t": "2026-09-17T12:26", "a": "ai", "id": "KAN-041-JJ5DA7", "op": "move", "w": "VR2JKF", "from": "doing", "to": "review"}
 {"seq": 370, "t": "2026-09-17T14:25", "a": "ai", "id": "KAN-041-JJ5DA7", "op": "move", "w": "VR2JKF", "from": "review", "to": "doing"}
+{"seq": 371, "t": "2026-09-17T14:26", "a": "ai", "id": "KAN-036-0G05DE", "op": "serialize", "w": "VR2JKF", "with_": "KAN-041-JJ5DA7", "reason": "expected 계약 열둘의 축3 수치와 하네스 규격이 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 에 작업 분해 문서를 더해 중재 재기록, 2026-09-17)"}

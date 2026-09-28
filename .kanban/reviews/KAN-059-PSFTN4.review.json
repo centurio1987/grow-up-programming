@@ -12,10 +12,16 @@
   "worktree": "/Users/centurio/orca/workspaces/code_test/KAN-059-PSFTN4"
  },
  "inherited_md": "",
- "md_fp": "ab30d27f3aae2e3e0987965a0baeae8ca675a5ac",
- "md_src_fp": "af03987a680e1b7bcddb7c8564d569d0f267118f",
+ "md_fp": "f21658590c046ecd8a0ed150381e2ea17f794fac",
+ "md_src_fp": "cb819b3c735770943be9bc1999ef4b251251374f",
  "schema": 1,
  "target_md": "| 항목 | 값 |\n|---|---|\n| 브랜치 | `KAN-059-PSFTN4` |\n| 워크트리 | `/Users/centurio/orca/workspaces/code_test/KAN-059-PSFTN4` |\n| 베이스 | `8e7b5b8` |\n| 변경 훑기 | `git diff 8e7b5b8...HEAD` |\n\n**커밋 6건**\n\n```text\nfb842b2 KAN-059: 카드 전략 절 인용 줄번호를 바로잡고 인용 대장에 등록\n1d51b81 KAN-059 S4: 디자인 샘플에 그림·걸음 필름 항목, README 조판 규칙\nf7730b7 KAN-059 S3: 책에서 걸음 필름을 칸별 SVG 로 가르고 그림 인쇄 CSS 를 더한다\n5fba546 KAN-059 S2: 필름 칸 경계 — CellStageFilm 이 걸음 칸마다 세로 자리를 박는다\ne2dd696 KAN-059 S1: 인쇄 그림 측정 검사 — 한 쪽에 안 드는 그림을 책 빌드가 잡는다\n074ba75 kanban: KAN-059 진행 중으로 이동 — orca 워크트리 착수\n```\n\n**변경 파일 21개 (+651 −54)**\n\n| 파일 | 상태 | 추가 | 삭제 |\n|---|:--:|---:|---:|\n| `.kanban/archive.jsonl` | M | 1 | 0 |\n| `.kanban/log.md` | M | 1 | 1 |\n| `.kanban/state.json` | M | 14 | 14 |\n| `KANBAN.batches/KAN-059-PSFTN4.batch1.md` | M | 2 | 1 |\n| `KANBAN.board.html` | M | 4 | 4 |\n| `KANBAN.cards/KAN-059-PSFTN4.md` | M | 18 | 8 |\n| `KANBAN.md` | M | 7 | 7 |\n| `src/_viz/index.ts` | M | 1 | 0 |\n| `src/_viz/patterns.test.tsx` | M | 35 | 0 |\n| `src/_viz/patterns/CellStage.tsx` | M | 27 | 1 |\n| `src/algorithms/array/sparseTableRangeMin/figs/walk-answer.svg` | M | 1 | 1 |\n| `src/algorithms/array/sparseTableRangeMin/figs/walk-build.svg` | M | 1 | 1 |\n| `tools/_baseline/citations.tsv` | M | 4 | 0 |\n| `tools/book/README.md` | M | 8 | 0 |\n| `tools/book/book.test.ts` | M | 155 | 0 |\n| `tools/book/build-book.ts` | M | 31 | 6 |\n| `tools/book/build-sample.ts` | M | 38 | 4 |\n| `tools/book/chrome.ts` | M | 7 | 0 |\n| `tools/book/figures.ts` | M | 151 | 0 |\n| `tools/book/fragment.ts` | M | 133 | 6 |\n| `tools/book/print-css.ts` | M | 12 | 0 |\n\n**롤백 태그 5개**\n\n```text\nkan/KAN-059-PSFTN4/S1\nkan/KAN-059-PSFTN4/S2\nkan/KAN-059-PSFTN4/S3\nkan/KAN-059-PSFTN4/S4\nkan/KAN-059-PSFTN4/batch1\n```",
- "verdicts": [],
+ "verdicts": [
+  {
+   "at": "2026-09-29",
+   "by": "유저",
+   "verdict": "승인"
+  }
+ ],
  "verify_md": "<!-- 기준은 카드 실행 문서 「검증」 절의 사본이다. 정본은 KANBAN.cards/KAN-059-PSFTN4.md 이므로\n     기준이 바뀌면 그쪽을 고치고 review-init --refresh 로 이 항만 다시 뜬다.\n     결과는 착수한 쪽이 이미 돌린 것이다 — 검토자에게 다시 돌리라고 시키지 않는다.\n     **다시 돌려 아래와 다르게 나오면 그 자체가 반려 사유다.** -->\n\n**기준**\n\n```bash\nbun run tools/book/build-book.ts                 # 세 권 전체 — S1 측정 검사 위반 0, 종료코드 0\nbun test tools/book src/_viz                     # 측정·가르기·경계값 시험\nbun run tools/render-figs.ts --check             # 파일럿 SVG 가 렌더러와 같다\nbun run tools/ci.ts all                          # CI 4모드 + 게이트\nbunx tsc --noEmit\nbunx --bun @biomejs/biome check tools/book src/_viz   # 새로 쓴 곳 경고 0\n```\n\n눈으로 확인할 것(쪽 이미지, `pdftoppm -f <쪽> -l <쪽> -r 40 -png`):\n\n- 파일럿 장에서 「시뮬레이션」 머리 줄만 있는 빈 쪽이 없다(고치기 전: 고급 권 823·832쪽).\n- 걸음 칸 T3~T15 가 한 번씩 찍히고 쪽 경계에서 반으로 잘린 칸이 없다.\n- 작은 그림 일곱이 전과 같은 크기로 본문 폭 안에 있다.\n\n실패로 보는 것: S1 검사가 고치기 전 main 에서 필름 둘을 못 잡으면 검사가 틀린 것이다 — 고친 뒤의 통과도 믿지 않는다.\n\n**실행 결과**\n\n```text\nbun run tools/book/build-book.ts — 종료 0. 그림 9장 높이 초과 0건(고치기 전 main: walk-build 2091px·walk-answer 2232px > 본문 856px 로 종료 1). 초급 750 · 중급 1272 · 고급 1518쪽, 쪽수 예측 = 실측\nbun test tools/book src/_viz — 60 통과 0 실패\nbun run tools/render-figs.ts --check — 대조 통과\nbun run tools/ci.ts all — ① 자기검증 · ② 정본 · ④ 통계 자기시험 통과, ③ 실습 채점은 판정 제외(정상). 게이트는 인용 1건 실패 → 이 카드 전략 절 인용 줄번호를 고치고 대장 갱신(fb842b2) 뒤 ci.ts gates 13단계 통과\nbunx tsc --noEmit — 통과\nbunx --bun @biomejs/biome check tools/book src/_viz — 28파일 경고 0\n쪽 이미지(고급 권 pdftoppm -r 40): 822쪽 틀 머리 줄 + T3, 823~825쪽 T4~T10, 830쪽 머리 줄 + T11, 831~833쪽 T12~T15 — 빈 틀 쪽 없음, 쪽 경계에서 잘린 칸 없음, T3~T15 각 한 번\nbun run tools/book/build-sample.ts — 종료 0, 103쪽. 「그림」 17쪽 · 「걸음 필름」 18쪽 견본\n```"
 }

@@ -1,6 +1,6 @@
 {
   "next_id": 61,
-  "next_seq": 413,
+  "next_seq": 414,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -258,7 +258,7 @@
       "memo_hash": "5fed99e814d238239cc3d762d83b904153a82dba"
     },
     "KAN-059-PSFTN4": {
-      "col": "review",
+      "col": "done",
       "title": "책 빌더의 SVG 그림 인쇄 — 알고리즘 가이드 fig 자리를 책(PDF)에서 어떻게 찍는가",
       "verbatim": "",
       "생성": "ai",
@@ -1537,6 +1537,16 @@
   ],
   "recent": [
     {
+      "seq": 413,
+      "t": "2026-09-29T03:13",
+      "a": "ai",
+      "id": "KAN-059-PSFTN4",
+      "op": "move",
+      "w": "MY1HCK",
+      "from": "review",
+      "to": "done"
+    },
+    {
       "seq": 412,
       "t": "2026-09-29T02:02",
       "a": "ai",
@@ -2096,16 +2106,6 @@
       "field": "memo",
       "before": "근거: docs/ORD-006-conventions.md 「원칙 B — 무작위 계약의 검증」 절 하네스 변경 명세 H2(KAN-026 S22). KAN-027 S28 은 하네스 무수정 탐침 시나리오로 먼저 가고 남는 틈을 이 카드로 넘긴다(유저 결재 2026-09-16).",
       "after": "근거: docs/ORD-006-conventions.md 「원칙 B — 무작위 계약의 검증」 절 하네스 변경 명세 H2(KAN-026 S22). KAN-027 S28 은 하네스 무수정 탐침 시나리오로 먼저 가고 남는 틈을 이 카드로 넘긴다(유저 결재 2026-09-16). **넘김 넷의 받는 자리(검토 반려 2026-09-17 항목 7 · 배치3 S4).** ① 결정론 정본 둘(tree/multiset · range-query/intervalTree)의 처분 = KAN-052-RZD45M. ② tree/treap 나머지 다섯 연산의 행마다 탐침 · ③ expected 계약 셋(hash/hashMapChaining · hash/hashSet · tree/orderStatisticTree)의 헤더 B7 표 · ④ 「expected 인데 선언이 없다」 게이트 = KAN-053-2KYAED. 두 카드 이름은 두 계약 헤더 B7 표 · treap 헤더 B7 표 첫 행 · 규약 세 자리에 박았고, 두 카드의 브리프는 안 건드렸다. **넘김 하나 더 — 담당 미정 · 사람 결정.** KAN-042 S5 절의 「그 표 자체는 기존 절이라 고치지 않는다」가 배치3 의 규칙 변경으로 낡았다(작업 분해 문서 4절 → 9절: 작업 트리 하나 확인 · 줄 수 유지 제자리 정정 · 고친 줄 표, 셋을 다 채우면 기존 절 정정 허용). 추천 담당은 규약 정정을 이미 받은 KAN-049-DV5BXA 이고, 후보를 담당으로 바꾸는 것은 그 카드 브리프를 고치는 일이라 이 배치가 안 했다."
-    },
-    {
-      "seq": 371,
-      "t": "2026-09-17T14:26",
-      "a": "ai",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "VR2JKF",
-      "with_": "KAN-041-JJ5DA7",
-      "reason": "expected 계약 열둘의 축3 수치와 하네스 규격이 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 에 작업 분해 문서를 더해 중재 재기록, 2026-09-17)"
     }
   ],
   "waivers": [
@@ -2508,7 +2508,7 @@
       "reason": "110편을 fig 로 바꾸기 전에 책 인쇄 경로가 서야 한다(유저 결정 2026-09-28)",
       "created": "2026-09-28T17:55",
       "by": "유저",
-      "restrategy_required": false
+      "restrategy_required": true
     }
   ]
 }
