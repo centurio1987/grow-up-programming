@@ -1,6 +1,6 @@
 {
   "next_id": 59,
-  "next_seq": 403,
+  "next_seq": 404,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -334,12 +334,12 @@
       ]
     },
     "KAN-057-J36E1B": {
-      "col": "todo",
+      "col": "doing",
       "title": "알고리즘 가이드 시각화 전환 — ASCII 그림을 bbangto-ui-visualization 기반 스타일 가이드와 알고리즘 패턴으로",
       "verbatim": "ascii art 대신 시각화가 필요한 지점까지 ascii art로 해결하니 오히려 글로 쓴 것보다 이해 안되는 내용이 많아 진다.\n\n\"~/resume\"의 viz 기능을 가져와서, 이 프로젝트에 맞게 style guide를 재정의 해라(foundation, pattern, visual motif, component, guideline). 그리고 표현이 안되는 패턴이 있으면, 새로 생성해라. \"~/resume\" viz 기능 처럼 bbangto-ui@vizualization 패키지를 이용한다. style guide를 직접 정의하는 것보다, claude-design이 하는 것이 낫다고 판단 되면, 요구사항을 작성해서 요청하는 방식으로 실행 전략을 구성해라",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-27",
+      "갱신": "2026-09-28",
       "title_hash": "516c28b925d4b93111042312c3085cd3b515b006",
       "verbatim_hash": "2204eba7e1a56b12c7dccc72f42126c551f8e66a",
       "short": "알고리즘 가이드 시각화 전환",
@@ -351,7 +351,26 @@
       "goal": "스타일 가이드 다섯 부분과 알고리즘 패턴이 서고 sparseTableRangeMin 파일럿이 새 그림으로 전환돼 유저가 HTML 로 판정할 수 있다",
       "goal_hash": "1a552baed4d911dc2e1f0681bc0ce2b2a70d8894",
       "memo": "결정(유저 2026-09-27): 새 패턴은 이 저장소에서 먼저, 검증 뒤 bbangto-ui 승격은 별도 카드 · claude-design 에 foundation·visual motif·component 생김새를 요구사항서로 의뢰, 패턴 구현과 guideline 은 직접 · 파일럿 sparseTableRangeMin",
-      "memo_hash": "2193914d0ae30f88412745d03c9fc5c5b2aa0cf5"
+      "memo_hash": "2193914d0ae30f88412745d03c9fc5c5b2aa0cf5",
+      "scope": [
+        "design/viz/**",
+        "src/_viz/**",
+        "tools/build-html.ts",
+        "tools/mount.ts",
+        "tools/check-v2.ts",
+        "tools/check-v2.test.ts",
+        "tools/check-proof.ts",
+        "tools/render-figs.ts",
+        "tools/ci.ts",
+        "sandbox/algo-guide-v2/SPEC.md",
+        ".claude/authoring/voices/algorithm-guide-writer/**",
+        ".claude/skills/guide-for-problem/**",
+        "src/algorithms/array/sparseTableRangeMin/**",
+        "package.json",
+        "bun.lock",
+        ".npmrc",
+        ".github/workflows/ci.yml"
+      ]
     },
     "KAN-029": {
       "col": "done",
@@ -1423,7 +1442,6 @@
     "KAN-032",
     "KAN-034.10-8M6T6P",
     "KAN-036-0G05DE",
-    "KAN-057-J36E1B",
     "KAN-029",
     "KAN-030",
     "KAN-007",
@@ -1473,9 +1491,20 @@
     "KAN-043-B4Y5WV",
     "KAN-041-JJ5DA7",
     "KAN-040-M5V53M",
-    "KAN-056-VPCM91"
+    "KAN-056-VPCM91",
+    "KAN-057-J36E1B"
   ],
   "recent": [
+    {
+      "seq": 403,
+      "t": "2026-09-28T17:50",
+      "a": "ai",
+      "id": "KAN-057-J36E1B",
+      "op": "move",
+      "w": "977NDY",
+      "from": "todo",
+      "to": "doing"
+    },
     {
       "seq": 402,
       "t": "2026-09-28T17:06",
@@ -2018,16 +2047,6 @@
       "w": "VG6P57",
       "from": "review",
       "to": "done"
-    },
-    {
-      "seq": 356,
-      "t": "2026-09-17T06:46",
-      "a": "ai",
-      "id": "KAN-044-VZXM29",
-      "op": "move",
-      "w": "VG6P57",
-      "from": "doing",
-      "to": "review"
     }
   ],
   "waivers": [
