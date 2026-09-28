@@ -8,7 +8,7 @@
  *   bun run tools/bench-alt.ts src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.alt.ts
  *
  * **전개 입력을 그대로 못 쓰는 이유**(L20). 전개는 여섯 칸짜리 `[5 2 7 4 6 3]` 을 쓰는데,
- * 여섯 칸에서는 표의 층이 셋뿐이고 세그먼트 트리의 깊이도 셋이라 두 설계의 접근 수가 상수에
+ * 여섯 칸에서는 Sparse Table 의 층이 셋뿐이고 세그먼트 트리의 깊이도 셋이라 두 설계의 접근 수가 상수에
  * 묻힌다. 그래서 같은 규칙으로 만든 2,048 칸 입력을 쓴다. **난수를 쓰지 않으므로 시드가
  * 없다** — 아래 생성식이 입력의 전부이고, 그 식을 본문에도 적는다.
  *
@@ -51,7 +51,7 @@ type Op = ["q", number] | ["u", number];
 /**
  * 갱신 `u` 회를 질의 `q` 회 사이에 고르게 끼운 작업 목록. **두 설계가 같은 목록을 받는다.**
  *
- * 갱신을 앞에 몰면 표를 한 번만 다시 만들면 되어 대조가 연출이 된다 — 갱신과 질의가 섞여
+ * 갱신을 앞에 몰면 Sparse Table 을 한 번만 다시 만들면 되어 대조가 연출이 된다 — 갱신과 질의가 섞여
  * 들어오는 것이 이 대조가 재려는 상황이다.
  */
 export function workload(q: number, u: number): Op[] {
@@ -80,8 +80,8 @@ interface Run {
 }
 
 /**
- * 이 가이드가 가르치는 절차 — **스파스 테이블**. `sparseTableRangeMin-guide.ref.ts` 와 같은
- * 절차이고 접근 계수만 덧붙였다. 갱신이 들어오면 표를 처음부터 다시 만든다.
+ * 이 가이드가 가르치는 절차 — **Sparse Table**. `sparseTableRangeMin-guide.ref.ts` 와 같은
+ * 절차이고 접근 계수만 덧붙였다. 갱신이 들어오면 Sparse Table 을 처음부터 다시 만든다.
  */
 export function sparseRun(q: number, u: number): Run {
   const a = A.slice();
@@ -207,7 +207,7 @@ export function segmentRun(q: number, u: number): Run {
 /**
  * 두 설계가 같은 작업 목록에서 **같은 답**을 내는지 확인한다. 정본이 낸 답과도 대조한다.
  *
- * 갱신이 섞인 목록은 정본 한 번으로 못 재현하므로, 갱신 0 회에서는 정본과 직접 견주고
+ * 갱신이 섞인 목록은 정본 한 번으로 못 재현하므로, 갱신 0 회에서는 정본과 직접 비교하고
  * 갱신이 있는 목록에서는 두 설계가 서로 같은지를 본다.
  */
 function measure(q: number, u: number): { sparse: Run; segment: Run } {
@@ -225,7 +225,7 @@ function measure(q: number, u: number): { sparse: Run; segment: Run } {
     const want = sparseTableRangeMin(A.slice(), queries(q));
     for (const [i, value] of want.entries()) {
       if (value !== sparse.answers[i]) {
-        throw new Error(`스파스 테이블 사본이 정본과 ${i} 번째에서 다르다`);
+        throw new Error(`Sparse Table 사본이 정본과 ${i} 번째에서 다르다`);
       }
     }
   }
@@ -233,7 +233,7 @@ function measure(q: number, u: number): { sparse: Run; segment: Run } {
 }
 
 /**
- * 갱신 0 회에서 스파스 테이블이 **처음으로 적어지는 질의 수**.
+ * 갱신 0 회에서 Sparse Table 이 **처음으로 적어지는 질의 수**.
  *
  * 두 계수 다 질의 수에 대해 증가하고 차이는 단조라 이분 탐색으로 찾는다 — 한 자리씩 올리며
  * 재면 같은 값을 수천 번 다시 만든다.
@@ -263,7 +263,7 @@ export function firstUpdateWin(q: number, hi = 64): number {
   return -1;
 }
 
-/** 스파스 테이블이 앞서는 자리를 하나 잡아 갱신 축을 재는 질의 수. */
+/** Sparse Table 이 앞서는 자리를 하나 잡아 갱신 축을 재는 질의 수. */
 export const Q_BIG = 8192;
 
 /**
@@ -290,6 +290,6 @@ function counts(pick: (r: { sparse: Run; segment: Run }) => Run) {
 }
 
 export const cases = {
-  "스파스 테이블": counts((r) => r.sparse),
+  "Sparse Table": counts((r) => r.sparse),
   "세그먼트 트리": counts((r) => r.segment),
 };

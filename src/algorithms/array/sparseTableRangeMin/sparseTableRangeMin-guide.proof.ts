@@ -6,9 +6,9 @@
  *
  *   bun run tools/check-proof.ts src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md
  *
- * **계수를 세는 사본이 여럿 있다.** 정본은 견주기 횟수를 내보내지 않으므로, 세는 자리만
+ * **계수를 세는 사본이 여럿 있다.** 정본은 비교 횟수를 내보내지 않으므로, 세는 자리만
  * 덧붙인 사본이 아니면 계수를 낼 방법이 없다. **답이 맞는지는 사본이 아니라 정본이 진다** —
- * 표의 「답」 칸은 전부 정본이나 정본에서 기계로 만든 변이가 낸 값이고, 사본은 계수만 낸다.
+ * Sparse Table 의 「답」 칸은 전부 정본이나 정본에서 기계로 만든 변이가 낸 값이고, 사본은 계수만 낸다.
  * 사본이 정본과 같은 답을 내는지는 `자기대조()` 가 이 파일을 읽을 때 확인한다.
  *
  * **변이가 아무것도 안 바꾸는지를 검사하는 자리는 중화 실행을 피해 간다.** `check-proof` 가
@@ -55,7 +55,7 @@ const range = ([l, r]: [number, number]): string => `[${l},${r}]`;
 const show = (xs: number[]): string => `[${xs.join(" ")}]`;
 
 /**
- * 열 폭을 값에서 계산해 표를 그린다. 폭을 리터럴로 박으면 값이 바뀌어도 표가 그대로라
+ * 열 폭을 값에서 계산해 Sparse Table 을 그린다. 폭을 리터럴로 박으면 값이 바뀌어도 Sparse Table 이 그대로라
  * 어긋난 자리를 아무도 못 본다.
  */
 function table(head: string[], rows: string[][], align: ("l" | "r")[]): string {
@@ -113,7 +113,7 @@ export const WALK_Q: [number, number][] = [
 /** 문제가 정한 상한. */
 const CONSTRAINT_N = 100_000;
 
-/** 변이 표가 쓰는 작은 입력 열. 뒤쪽은 기존 시험이 쓰던 케이스다. */
+/** 변이 Sparse Table 이 쓰는 작은 입력 열. 뒤쪽은 기존 시험이 쓰던 케이스다. */
 const SMALL: [number[], [number, number][]][] = [
   [WALK, WALK_Q],
   [[42], [[0, 0]]],
@@ -146,14 +146,14 @@ const SMALL: [number[], [number, number][]][] = [
 
 /* ────────────────────────── 계수를 세는 사본 ────────────────────────── */
 
-/** 칸 수 `m` 짜리 구간이 쓰는 층 번호를 정수 연산만으로 적은 표. */
+/** 칸 수 `m` 짜리 구간이 쓰는 층 번호를 정수 연산만으로 적은 Sparse Table. */
 function logTableOf(n: number): number[] {
   const t = new Array<number>(n + 1).fill(0);
   for (let m = 2; m <= n; m++) t[m] = (t[m >> 1] as number) + 1;
   return t;
 }
 
-/** 층을 다 쌓은 표. 층 `k` 의 칸 `i` 는 인덱스 구간 `[i, i+2^k−1]` 의 최솟값이다. */
+/** 층을 다 쌓은 Sparse Table. 층 `k` 의 칸 `i` 는 인덱스 구간 `[i, i+2^k−1]` 의 최솟값이다. */
 function levelsOf(A: number[]): number[][] {
   const n = A.length;
   const log = logTableOf(n);
@@ -171,7 +171,7 @@ function levelsOf(A: number[]): number[][] {
   return st;
 }
 
-/** 질의마다 구간을 왼쪽부터 차례로 읽는 방식. 세는 것은 **견주기 수**다. */
+/** 질의마다 구간을 왼쪽부터 차례로 읽는 방식. 세는 것은 **비교 횟수**다. */
 function scanEachQuery(
   A: number[],
   queries: [number, number][],
@@ -193,7 +193,7 @@ function scanEachQuery(
   return { answers, perQuery, compares };
 }
 
-/** 층으로 쌓은 표를 쓰는 방식의 견주기 수. 정본과 같은 절차다. */
+/** Sparse Table 을 쓰는 방식의 비교 횟수. 정본과 같은 절차다. */
 function tableCompares(
   A: number[],
   queries: [number, number][],
@@ -211,7 +211,7 @@ function tableCompares(
 }
 
 /**
- * 저장하는 길이의 **밑**을 `b` 로 둔 표. `b = 2` 가 이 글의 절차다.
+ * 저장하는 길이의 **밑**을 `b` 로 둔 Sparse Table. `b = 2` 가 이 글의 절차다.
  *
  * 층 `k` 의 칸 하나가 칸 수 `b^k` 짜리 구간을 덮고, 위층 한 칸은 아래층 `b` 칸을 합쳐
  * 만든다. 질의는 `b^k ≤ 길이` 인 가장 큰 `k` 를 골라 조각 `⌈길이 / b^k⌉` 개로 덮는다.
@@ -294,7 +294,7 @@ function direct(
   return acc;
 }
 
-/** 같은 표를 `op` 로 만들어 두 조각으로 덮은 값. `op` 가 최솟값이면 정본과 같은 절차다. */
+/** 같은 Sparse Table 을 `op` 로 만들어 두 조각으로 덮은 값. `op` 가 최솟값이면 정본과 같은 절차다. */
 function coverWithTwo(
   A: number[],
   [l, r]: [number, number],
@@ -328,7 +328,7 @@ function coverWithTwo(
 
 /* ────────────────────────── 자기대조 ────────────────────────── */
 
-/** 층마다 반복하는 범위를 안 줄인 표. 아래층에 없는 칸을 읽어 값이 아닌 것이 들어간다. */
+/** 층마다 반복하는 범위를 안 줄인 Sparse Table. 아래층에 없는 칸을 읽어 값이 아닌 것이 들어간다. */
 function unguardedLevels(A: number[]): number[][] {
   const n = A.length;
   const log = logTableOf(n);
@@ -345,7 +345,7 @@ function unguardedLevels(A: number[]): number[][] {
   return st;
 }
 
-/** 표 하나에 질의를 걸어 답을 낸다. 정본의 질의 절차와 같다. */
+/** Sparse Table 하나에 질의를 걸어 답을 낸다. 정본의 질의 절차와 같다. */
 function answerFrom(
   st: number[][],
   n: number,
@@ -436,7 +436,7 @@ if (!중화됨) {
       "한 칸 옆을 읽는 변이가 어느 입력에서도 답을 바꾸지 못했다",
     );
   }
-  // 값을 내는 사본이 변이와 같은 답을 내는지도 확인한다 — 표를 그리는 자리가 그 사본이다.
+  // 값을 내는 사본이 변이와 같은 답을 내는지도 확인한다 — Sparse Table 을 그리는 자리가 그 사본이다.
   for (const [A, queries] of SMALL) {
     const qs = () => queries.map((q) => [...q] as [number, number]);
     const viaCopy = answerFrom(unguardedLevels(A), A.length, queries);
@@ -500,11 +500,224 @@ function halfNotOneCells(A: number[]): number {
   return cells;
 }
 
+/* ────────────────────────── 층 그림 — `concept` · `deep.build.concept` ────────────────────────── */
+
+type Range = [number, number];
+
+/** 정본에 구간 여럿을 질의로 넣어 최솟값을 받는다. */
+const minOf = (A: number[], qs: Range[]): number[] =>
+  sparseTableRangeMin(
+    [...A],
+    qs.map((q) => [...q] as Range),
+  );
+
+/** 층 `k` 의 칸마다 맡는 구간. 시작 자리마다 하나씩이다. */
+const cellsOf = (n: number, k: number): Range[] => {
+  const w = 1 << k;
+  const out: Range[] = [];
+  for (let i = 0; i + w <= n; i++) out.push([i, i + w - 1]);
+  return out;
+};
+
+/** 가장 높은 층 번호. */
+const topOf = (n: number): number => Math.floor(Math.log2(n));
+
+/** 서로 안 겹치게 반씩 나눈 블록 — 층 `k` 는 2^k 의 배수 자리에서만 시작한다. */
+const blocksOf = (n: number, k: number): Range[] =>
+  cellsOf(n, k).filter(([l]) => l % (1 << k) === 0);
+
+/** 나눈 블록으로 [l,r] 을 안 겹치게 덮는 조각들 — 왼쪽부터 들어가는 가장 큰 블록을 고른다. */
+const blockCover = (n: number, [l, r]: Range): Range[] => {
+  const out: Range[] = [];
+  let x = l;
+  while (x <= r) {
+    let k = topOf(n);
+    while (k > 0 && (x % (1 << k) !== 0 || x + (1 << k) - 1 > r)) k--;
+    out.push([x, x + (1 << k) - 1]);
+    x += 1 << k;
+  }
+  return out;
+};
+
+/** 인덱스 머리. 자리 x 의 글자는 LABEL + 3x 열에 온다. */
+const LABEL = 14;
+
+const header = (A: number[]): string[] => [
+  padRight("인덱스", LABEL) + A.map((_, i) => String(i).padStart(1)).join("  "),
+  padRight("A 의 값", LABEL) + A.join("  "),
+];
+
+/** 칸 하나를 한 줄로 그린다 — 그 칸이 맡는 자리에만 배열 값을 남기고 나머지는 점으로 둔다. */
+const strip = (
+  A: number[],
+  label: string,
+  [l, r]: Range,
+  tail: string,
+): string =>
+  padRight(label, LABEL) +
+  A.map((v, x) => (x >= l && x <= r ? String(v) : "·")).join("  ") +
+  "   " +
+  tail;
+
+function layerBars(A: number[], layers: number[]): string {
+  const n = A.length;
+  const lines = header(A);
+  for (const k of layers) {
+    lines.push("");
+    const cells = cellsOf(n, k);
+    const vals = minOf(A, cells);
+    if (k === 0) {
+      lines.push(
+        `${padRight("0 층", LABEL)}${vals.join("  ")}   칸 하나가 한 자리를 맡는다 · 배열 그대로`,
+      );
+      continue;
+    }
+    cells.forEach((q, i) => {
+      lines.push(
+        strip(A, `${k} 층 칸 ${i}`, q, `${range(q)} 의 최솟값 ${vals[i]}`),
+      );
+    });
+  }
+  return lines.join("\n");
+}
+
 /* ────────────────────────── 블록 ────────────────────────── */
 
 const SCALE = [6, 100, 1_000];
 
 export const PROOFS: Record<string, () => string> = {
+  /** `concept` — 1 층 하나만 막대로 그린다. */
+  "layer-one": () =>
+    [
+      layerBars(WALK, [1]),
+      "└ 시작 자리를 한 칸씩 옮기며 두 칸짜리 구간을 빠짐없이 담는다. 이웃한 칸끼리 한 자리씩 겹친다",
+    ].join("\n"),
+
+  /** `deep.build` ① (b) — 세 층의 칸을 전부 막대로 그린다. */
+  "layer-bars": () => {
+    const n = WALK.length;
+    const ks = Array.from({ length: topOf(n) + 1 }, (_, k) => k);
+    const total = ks.reduce((s, k) => s + cellsOf(n, k).length, 0);
+    return [
+      layerBars(WALK, ks),
+      "",
+      `└ 칸 ${total} 개. 한 층 안에서는 맡는 자리 수가 같고, 위층일수록 두 배로 늘어 놓을 수 있는 자리가 준다`,
+    ].join("\n");
+  },
+
+  /** `deep.build` ① (d) — 같은 층의 이웃 칸이 몇 자리 겹치는가, 층마다 칸이 몇 개인가. */
+  "layer-neighbors": () => {
+    const n = WALK.length;
+    const rows: string[] = [
+      "층    칸이 맡는 자리 수  칸 수  칸 0 과 칸 1           겹친 자리 수",
+    ];
+    for (let k = 0; k <= topOf(n); k++) {
+      const cells = cellsOf(n, k);
+      const [a, b] = cells as [Range, Range];
+      const shared = Math.max(0, a[1] - b[0] + 1);
+      rows.push(
+        `${padRight(`${k} 층`, 6)}${String(1 << k).padStart(17)}  ${String(cells.length).padStart(5)}  ${padRight(`${range(a)} 과 ${range(b)}`, 22)} ${String(shared).padStart(11)}`,
+      );
+    }
+    rows.push(
+      "",
+      "└ 이웃 칸은 시작이 한 자리 다르므로, 맡는 자리 수보다 하나 적은 자리를 함께 맡는다",
+    );
+    return rows.join("\n");
+  },
+
+  /** `deep.build` ① (d) — 위층 줄은 아래층 줄과, 그 줄을 절반 길이만큼 옮긴 줄을 비교한 것이다. */
+  "layer-shift": () => {
+    const n = WALK.length;
+    const lines: string[] = [];
+    for (let k = 1; k <= topOf(n); k++) {
+      const half = 1 << (k - 1);
+      const below = minOf(WALK, cellsOf(n, k - 1));
+      const above = minOf(WALK, cellsOf(n, k));
+      const shifted = below.slice(half);
+      const picked = above.map((_, i) =>
+        Math.min(below[i] as number, shifted[i] as number),
+      );
+      const same = picked.every((v, i) => v === above[i]);
+      if (lines.length > 0) lines.push("");
+      lines.push(
+        `${padRight(`${k - 1} 층`, 32)}${below.join("  ")}`,
+        `${padRight(`${k - 1} 층을 왼쪽으로 ${half} 자리 옮긴 줄`, 32)}${shifted.join("  ")}`,
+        `${padRight("두 줄에서 작은 쪽", 32)}${picked.join("  ")}`,
+        `${padRight(`${k} 층`, 32)}${above.join("  ")}`,
+        `${" ".repeat(32)}└ 고른 값이 ${k} 층 줄과 ${same ? "같다" : "어긋난다"}`,
+      );
+    }
+    lines.push(
+      "",
+      "└ 위층 칸 i 는 아래층 칸 i 와 칸 i + 2^(k−1) 을 비교한 값이다. 옮긴 줄이 짧아서 위층 칸 수가 준다",
+    );
+    return lines.join("\n");
+  },
+
+  /** `deep.build` ① (e) — 모든 시작 자리에 칸을 두는 층과, 안 겹치게 나눈 블록의 대조. */
+  "layer-vs-blocks": () => {
+    const n = WALK.length;
+    const lines: string[] = ["같은 배열에 두 방식으로 칸을 둔다", ""];
+    let cellsAll = 0;
+    let cellsBlk = 0;
+    for (let k = 0; k <= topOf(n); k++) {
+      const all = cellsOf(n, k);
+      const blk = blocksOf(n, k);
+      cellsAll += all.length;
+      cellsBlk += blk.length;
+      if (k === 0) continue;
+      lines.push(
+        `${padRight(`${k} 층 · 모든 시작 자리`, 26)}${all.map(range).join(" ")}`,
+        `${padRight(`${k} 층 · 나눈 블록`, 26)}${blk.map(range).join(" ")}`,
+      );
+    }
+    lines.push(
+      "",
+      `칸 수 합   모든 시작 자리 ${cellsAll} 개 · 나눈 블록 ${cellsBlk} 개`,
+      "",
+      `${padRight("질의", 7)}${padRight("모든 시작 자리에서 읽는 칸", 29)}${padRight("나눈 블록에서 읽는 칸", 22)} 답  답(나눈 블록)`,
+    );
+    const qs: Range[] = [
+      [1, 4],
+      [1, 2],
+      [0, 4],
+      [2, 5],
+    ];
+    const answers = minOf(WALK, qs);
+    for (const [j, q] of qs.entries()) {
+      const len = q[1] - q[0] + 1;
+      const k = topOf(len);
+      const left: Range = [q[0], q[0] + (1 << k) - 1];
+      const right: Range = [q[1] - (1 << k) + 1, q[1]];
+      const two =
+        left[0] === right[0]
+          ? `${range(left)} 하나(두 번 읽음)`
+          : `${range(left)} ${range(right)}`;
+      const pieces = blockCover(n, q);
+      const viaBlocks = Math.min(...minOf(WALK, pieces));
+      lines.push(
+        `${padRight(range(q), 7)}${padRight(two, 29)}${padRight(pieces.map(range).join(" "), 22)}${String(answers[j]).padStart(3)}  ${String(viaBlocks).padStart(13)}`,
+      );
+    }
+    const most = (m: number): number => {
+      let best = 0;
+      for (let l = 0; l < m; l++)
+        for (let r = l; r < m; r++)
+          best = Math.max(best, blockCover(m, [l, r]).length);
+      return best;
+    };
+    lines.push(
+      "",
+      "모든 질의 중 가장 많이 읽는 칸 수",
+      `  n = ${String(n).padEnd(5)}  모든 시작 자리 2 · 나눈 블록 ${most(n)}`,
+      `  n = 1,000  모든 시작 자리 2 · 나눈 블록 ${most(1000)}`,
+      "",
+      "└ 나눈 블록은 칸이 적지만 정해진 자리에서만 시작해, 질의의 양 끝에 맞추려면 크기가 다른 조각을 여럿 읽는다",
+    );
+    return lines.join("\n");
+  },
+
   /** `deep.origin` ② — 질의마다 구간을 차례로 읽으면 제약 규모에서 몇 번인가. */
   "cost-scan": () => {
     const rows = SCALE.map((n) => {
@@ -524,7 +737,7 @@ export const PROOFS: Record<string, () => string> = {
       seconds((big * (big - 1)) / 1e8),
     ]);
     return [
-      table(["n = q", "견주기(실측)", "q(n−1)", "초당 1억 번 기준"], rows, [
+      table(["n = q", "비교 횟수(실측)", "q(n−1)", "초당 1억 번 기준"], rows, [
         "r",
         "r",
         "r",
@@ -582,7 +795,7 @@ export const PROOFS: Record<string, () => string> = {
       "1",
     ]);
     return [
-      table(["질의", "구간의 칸 수", "차례로 읽기", "층으로 쌓은 표"], rows, [
+      table(["질의", "구간의 칸 수", "차례로 읽기", "Sparse Table"], rows, [
         "l",
         "r",
         "r",
@@ -590,7 +803,7 @@ export const PROOFS: Record<string, () => string> = {
       ]),
       "",
       table(
-        ["방식", "무엇을 하는가", "견주기"],
+        ["방식", "무엇을 하는가", "비교 횟수"],
         [
           [
             "방식 A",
@@ -620,17 +833,13 @@ export const PROOFS: Record<string, () => string> = {
       return [num(n), num((n * (n + 1)) / 2), num(cells)];
     });
     return [
-      table(["n", "모든 짝을 담는 표", "층으로 쌓은 표"], rows, [
-        "r",
-        "r",
-        "r",
-      ]),
+      table(["n", "모든 짝을 담는 표", "Sparse Table"], rows, ["r", "r", "r"]),
       "",
       "└ 왼쪽은 n 이 열 배가 되면 백 배가 되고, 오른쪽은 열 배를 조금 넘는다",
     ].join("\n");
   },
 
-  /** `deep.build` ① — 전개 입력의 표 세 층을 칸마다 덮는 구간과 함께 전부 펼친다. */
+  /** `deep.build` ① — 전개 입력의 Sparse Table 세 층을 칸마다 덮는 구간과 함께 전부 펼친다. */
   "idea-cells": () => {
     const st = levelsOf(WALK);
     const rows: string[][] = [];
@@ -826,7 +1035,13 @@ export const PROOFS: Record<string, () => string> = {
       parts.push(label);
       parts.push(
         table(
-          ["밑", "층 수", "표 칸 수", "표 만들기 견주기", "질의당 조각 수"],
+          [
+            "밑",
+            "층 수",
+            "Sparse Table 칸 수",
+            "Sparse Table 만들기 비교 횟수",
+            "질의당 조각 수",
+          ],
           rows,
           ["l", "r", "r", "r", "r"],
         ),
@@ -834,7 +1049,7 @@ export const PROOFS: Record<string, () => string> = {
       parts.push("");
     }
     parts.push(
-      "└ 밑을 키우면 표 칸이 줄고 표 만들기 견주기와 조각 수가 는다. 답은 넷 다 같다",
+      "└ 밑을 키우면 Sparse Table 칸이 줄고 Sparse Table 만들기 비교 횟수와 조각 수가 는다. 답은 넷 다 같다",
     );
     return parts.join("\n");
   },
@@ -874,7 +1089,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `deep.walk.pause` — 층마다 반복하는 범위를 안 줄이면 표가 어떻게 되는가. */
+  /** `deep.walk.pause` — 층마다 반복하는 범위를 안 줄이면 Sparse Table 이 어떻게 되는가. */
   "pause-no-guard-levels": () => {
     const good = levelsOf(WALK);
     const bad = unguardedLevels(WALK);
@@ -888,7 +1103,14 @@ export const PROOFS: Record<string, () => string> = {
     ]);
     return [
       table(
-        ["층", "칸 수", "범위를 줄인 표", "칸 수", "안 줄인 표", "판정"],
+        [
+          "층",
+          "칸 수",
+          "범위를 줄인 Sparse Table",
+          "칸 수",
+          "안 줄인 Sparse Table",
+          "판정",
+        ],
         rows,
         ["l", "r", "l", "r", "l", "l"],
       ),
@@ -903,7 +1125,7 @@ export const PROOFS: Record<string, () => string> = {
       guardedCells(A),
     ),
 
-  /** `deep.walk.pause` — 그 대신 표가 얼마나 커지는가. */
+  /** `deep.walk.pause` — 그 대신 Sparse Table 이 얼마나 커지는가. */
   "pause-no-guard-cells": () => {
     const rows = [6, 1_000, CONSTRAINT_N].map((n) => {
       const K = logTableOf(n)[n] as number;
@@ -933,7 +1155,7 @@ export const PROOFS: Record<string, () => string> = {
         ["r", "r", "r", "r", "r", "r"],
       ),
       "",
-      "└ 답은 그대로인데 표에 값이 아닌 칸이 그만큼 쌓인다",
+      "└ 답은 그대로인데 Sparse Table 에 값이 아닌 칸이 그만큼 쌓인다",
     ].join("\n");
   },
 
@@ -967,7 +1189,7 @@ export const PROOFS: Record<string, () => string> = {
     });
     const overlaps = WALK_Q.map((q) => coverWithTwo(WALK, q, min).overlap);
     return [
-      "같은 표를 최솟값으로 만들었을 때",
+      "같은 Sparse Table 을 최솟값으로 만들었을 때",
       table(
         [
           "질의",
@@ -982,7 +1204,7 @@ export const PROOFS: Record<string, () => string> = {
         ["l", "r", "l", "r", "r", "r", "l"],
       ),
       "",
-      "같은 표를 합으로 만들었을 때",
+      "같은 Sparse Table 을 합으로 만들었을 때",
       table(["질의", "겹친 칸", "구간의 합", "두 조각의 합", "판정"], sumRows, [
         "l",
         "r",
@@ -991,7 +1213,7 @@ export const PROOFS: Record<string, () => string> = {
         "l",
       ]),
       "",
-      `└ 겹친 칸이 가장 적은 질의에서도 ${Math.min(...overlaps)} 칸이라, 합으로 만든 표는 다섯 질의가 전부 어긋난다`,
+      `└ 겹친 칸이 가장 적은 질의에서도 ${Math.min(...overlaps)} 칸이라, 합으로 만든 Sparse Table 은 다섯 질의가 전부 어긋난다`,
     ].join("\n");
   },
 
@@ -1034,7 +1256,7 @@ export const PROOFS: Record<string, () => string> = {
         ["l", "r", "l", "r", "r", "r"],
       ),
       "",
-      `└ 정의를 직접 계산한 값과 표의 값을 ${num(checked)} 칸에서 대조했고 어긋난 칸이 ${num(wrong)} 개다`,
+      `└ 정의를 직접 계산한 값과 Sparse Table 의 값을 ${num(checked)} 칸에서 대조했고 어긋난 칸이 ${num(wrong)} 개다`,
     ].join("\n");
   },
 
@@ -1118,7 +1340,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `perf.derive` — 제약 규모에서 견주기가 몇 번인가. 닫힌 형태와 실측을 나란히 둔다. */
+  /** `perf.derive` — 제약 규모에서 비교 횟수가 몇 번인가. 닫힌 형태와 실측을 나란히 둔다. */
   "perf-scale": () => {
     const rows = [6, 1_000, 100_000].map((n) => {
       const K = logTableOf(n)[n] as number;
@@ -1138,10 +1360,10 @@ export const PROOFS: Record<string, () => string> = {
       table(
         [
           "n = q",
-          "표 만들기(실측)",
+          "Sparse Table 만들기(실측)",
           "K(n+1) − (2^(K+1) − 2)",
           "질의",
-          "견주기 합",
+          "비교 횟수 합",
           "차례로 읽기 최악",
         ],
         rows,
@@ -1152,7 +1374,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `perf.worst` — 배열의 모양을 바꿔도 견주기 수가 그대로인가. */
+  /** `perf.worst` — 배열의 모양을 바꿔도 비교 횟수가 그대로인가. */
   "worst-shape": () => {
     const n = 1_000;
     const queries: [number, number][] = Array.from({ length: n }, (_, i) => {
@@ -1215,19 +1437,31 @@ export const PROOFS: Record<string, () => string> = {
     return [
       `배열의 모양을 바꾼다 (n=${num(n)} · q=${num(n)} · 질의는 생성식으로 고정)`,
       table(
-        ["배열의 모양", "차례로 읽기", "표 만들기", "질의", "표 방식 합"],
+        [
+          "배열의 모양",
+          "차례로 읽기",
+          "Sparse Table 만들기",
+          "질의",
+          "Sparse Table 방식 합",
+        ],
         rows,
         ["l", "r", "r", "r", "r"],
       ),
       "",
       `질의의 모양을 바꾼다 (n=${num(n)} · q=${num(n)} · 배열은 생성식으로 고정)`,
       table(
-        ["질의의 모양", "차례로 읽기", "표 만들기", "질의", "표 방식 합"],
+        [
+          "질의의 모양",
+          "차례로 읽기",
+          "Sparse Table 만들기",
+          "질의",
+          "Sparse Table 방식 합",
+        ],
         rowsQ,
         ["l", "r", "r", "r", "r"],
       ),
       "",
-      `└ 표 방식의 세 열은${수사(rows.length + rowsQ.length)} 줄이 전부 같다. 차례로 읽기만 ${num(Math.min(...rowsQ.map((r) => Number((r[1] ?? "0").replaceAll(",", "")))))} 에서 ${num(Math.max(...rowsQ.map((r) => Number((r[1] ?? "0").replaceAll(",", "")))))} 까지 갈린다`,
+      `└ Sparse Table 방식의 세 열은${수사(rows.length + rowsQ.length)} 줄이 전부 같다. 차례로 읽기만 ${num(Math.min(...rowsQ.map((r) => Number((r[1] ?? "0").replaceAll(",", "")))))} 에서 ${num(Math.max(...rowsQ.map((r) => Number((r[1] ?? "0").replaceAll(",", "")))))} 까지 갈린다`,
     ].join("\n");
   },
 
@@ -1247,13 +1481,11 @@ export const PROOFS: Record<string, () => string> = {
       ];
     });
     return [
-      table(["n", "층 수", "표 칸 수", "8 바이트 기준", "256 MB 제한"], rows, [
-        "r",
-        "r",
-        "r",
-        "r",
-        "l",
-      ]),
+      table(
+        ["n", "층 수", "Sparse Table 칸 수", "8 바이트 기준", "256 MB 제한"],
+        rows,
+        ["r", "r", "r", "r", "l"],
+      ),
       "",
       "└ 이 문제의 제약은 첫 줄이라 걱정할 자리가 아니다",
     ].join("\n");
@@ -1271,18 +1503,23 @@ export const PROOFS: Record<string, () => string> = {
     const perS = (s - s0) / q;
     const perG = (g - g0) / q;
     const rows = [
-      ["표 만들기", num(s0), num(g0), num(s0 - g0)],
+      ["Sparse Table 만들기", num(s0), num(g0), num(s0 - g0)],
       ["질의 하나 평균", fixed2(perS), fixed2(perG), fixed2(perS - perG)],
       ["갱신 하나", num(s1 - s), num(g1 - g), num(s1 - s - (g1 - g))],
     ];
     return [
       table(
-        ["무엇", "스파스 테이블", "세그먼트 트리", "스파스 − 세그먼트"],
+        [
+          "무엇",
+          "Sparse Table",
+          "세그먼트 트리",
+          "Sparse Table − 세그먼트 트리",
+        ],
         rows,
         ["l", "r", "r", "r"],
       ),
       "",
-      `└ 표 만들기에서 ${num(s0 - g0)} 번을 더 쓰고 질의 하나에서 ${fixed2(perG - perS)} 번을 덜 쓴다. ${num(s0 - g0)} ÷ ${fixed2(perG - perS)} = ${fixed2((s0 - g0) / (perG - perS))} 이고 실측 경계는 ${num(6995)} 이다`,
+      `└ Sparse Table 만들기에서 ${num(s0 - g0)} 번을 더 쓰고 질의 하나에서 ${fixed2(perG - perS)} 번을 덜 쓴다. ${num(s0 - g0)} ÷ ${fixed2(perG - perS)} = ${fixed2((s0 - g0) / (perG - perS))} 이고 실측 경계는 ${num(6995)} 이다`,
     ].join("\n");
   },
 };
