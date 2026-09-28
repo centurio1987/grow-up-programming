@@ -1,6 +1,6 @@
 {
   "next_id": 59,
-  "next_seq": 407,
+  "next_seq": 408,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -334,12 +334,12 @@
       ]
     },
     "KAN-057-J36E1B": {
-      "col": "review",
+      "col": "done",
       "title": "알고리즘 가이드 시각화 전환 — ASCII 그림을 bbangto-ui-visualization 기반 스타일 가이드와 알고리즘 패턴으로",
       "verbatim": "ascii art 대신 시각화가 필요한 지점까지 ascii art로 해결하니 오히려 글로 쓴 것보다 이해 안되는 내용이 많아 진다.\n\n\"~/resume\"의 viz 기능을 가져와서, 이 프로젝트에 맞게 style guide를 재정의 해라(foundation, pattern, visual motif, component, guideline). 그리고 표현이 안되는 패턴이 있으면, 새로 생성해라. \"~/resume\" viz 기능 처럼 bbangto-ui@vizualization 패키지를 이용한다. style guide를 직접 정의하는 것보다, claude-design이 하는 것이 낫다고 판단 되면, 요구사항을 작성해서 요청하는 방식으로 실행 전략을 구성해라",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-28",
+      "갱신": "2026-09-29",
       "title_hash": "516c28b925d4b93111042312c3085cd3b515b006",
       "verbatim_hash": "2204eba7e1a56b12c7dccc72f42126c551f8e66a",
       "short": "알고리즘 가이드 시각화 전환",
@@ -1496,6 +1496,16 @@
   ],
   "recent": [
     {
+      "seq": 407,
+      "t": "2026-09-29T01:16",
+      "a": "ai",
+      "id": "KAN-057-J36E1B",
+      "op": "move",
+      "w": "977NDY",
+      "from": "review",
+      "to": "done"
+    },
+    {
       "seq": 406,
       "t": "2026-09-28T21:16",
       "a": "ai",
@@ -2031,16 +2041,6 @@
       "w": "RYEYJX",
       "from": "doing",
       "to": "review"
-    },
-    {
-      "seq": 360,
-      "t": "2026-09-17T07:12",
-      "a": "ai",
-      "id": "KAN-043-B4Y5WV",
-      "op": "move",
-      "w": "RYEYJX",
-      "from": "backlog",
-      "to": "doing"
     }
   ],
   "waivers": [
@@ -2412,7 +2412,7 @@
       "reason": "유저 결정(2026-09-28): 110편 전개는 KAN-057 완료 이후로 수행 가능하게 만든다",
       "created": "2026-09-28T17:06",
       "by": "유저",
-      "restrategy_required": false
+      "restrategy_required": true
     }
   ]
 }

@@ -134,21 +134,6 @@
 ## 진행 중
 
 ## 검토
-- `KAN-057-J36E1B` 알고리즘 가이드 시각화 전환 — ASCII 그림을 bbangto-ui-visualization 기반 스타일 가이드와 알고리즘 패턴으로 — 생성:ai · 최종:ai · 갱신:2026-09-28
-  - 짧은 제목: 알고리즘 가이드 시각화 전환
-  - 목적: 알고리즘 가이드의 도식을 ASCII 대신 bbangto-ui-visualization 위의 이 저장소 전용 스타일 가이드와 새 알고리즘 패턴으로 그린다
-  - 이유: 시각화가 필요한 자리까지 ASCII 로 그려 한글 폭에 열이 어긋나고 설명선이 무엇을 가리키는지 안 읽혀 글보다 이해가 안 된다
-  - 목표: 스타일 가이드 다섯 부분과 알고리즘 패턴이 서고 sparseTableRangeMin 파일럿이 새 그림으로 전환돼 유저가 HTML 로 판정할 수 있다
-  - 메모: 결정(유저 2026-09-27): 새 패턴은 이 저장소에서 먼저, 검증 뒤 bbangto-ui 승격은 별도 카드 · claude-design 에 foundation·visual motif·component 생김새를 요구사항서로 의뢰, 패턴 구현과 guideline 은 직접 · 파일럿 sparseTableRangeMin
-  - 실행 문서: KANBAN.cards/KAN-057-J36E1B.md (18/18 · 최근 09-29)
-  - 계획 리포트: KANBAN.reports/KAN-057-J36E1B.report.html (낡음)
-  - 검토 문서: KANBAN.reviews/KAN-057-J36E1B.review.md (승인 8/8 · 추가 의견 총 7 · 승인)
-  - 원문:
-    ```text
-    ascii art 대신 시각화가 필요한 지점까지 ascii art로 해결하니 오히려 글로 쓴 것보다 이해 안되는 내용이 많아 진다.
-    
-    "~/resume"의 viz 기능을 가져와서, 이 프로젝트에 맞게 style guide를 재정의 해라(foundation, pattern, visual motif, component, guideline). 그리고 표현이 안되는 패턴이 있으면, 새로 생성해라. "~/resume" viz 기능 처럼 bbangto-ui@vizualization 패키지를 이용한다. style guide를 직접 정의하는 것보다, claude-design이 하는 것이 낫다고 판단 되면, 요구사항을 작성해서 요청하는 방식으로 실행 전략을 구성해라
-    ```
 
 ## 완료
 - `KAN-029` [P0-a·29] 집필 엔진 가용성 확보 — 플러그인 설치·활성화 + lock 버전 재고정 — 생성:ai · 최종:ai · 갱신:2026-08-04
@@ -498,4 +483,19 @@
     지금은 아이디어 상세가, naive에서 시작해서 핵심 알고리즘에 도달하는 서사로 구성되어 있다. 그런데, 이 구성을 별도 항목으로 빼고, 아이디어 상세 자체는 아이디어에 초점을 맞춰서 상세히 집필해라. 집필 시, 최대한 자세히 이해하기 쉽도록 해야한다는 지시가 CLAUDE.md 때문에 무시당하는 문제가 있으니, /output-style을 learning으로  설정하여 작업하기 바란다.
     
     결과물은 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md에 대한 파일럿 가이드 생성을 통해 확인하겠다.
+    ```
+- `KAN-057-J36E1B` 알고리즘 가이드 시각화 전환 — ASCII 그림을 bbangto-ui-visualization 기반 스타일 가이드와 알고리즘 패턴으로 — 생성:ai · 최종:ai · 갱신:2026-09-29
+  - 짧은 제목: 알고리즘 가이드 시각화 전환
+  - 목적: 알고리즘 가이드의 도식을 ASCII 대신 bbangto-ui-visualization 위의 이 저장소 전용 스타일 가이드와 새 알고리즘 패턴으로 그린다
+  - 이유: 시각화가 필요한 자리까지 ASCII 로 그려 한글 폭에 열이 어긋나고 설명선이 무엇을 가리키는지 안 읽혀 글보다 이해가 안 된다
+  - 목표: 스타일 가이드 다섯 부분과 알고리즘 패턴이 서고 sparseTableRangeMin 파일럿이 새 그림으로 전환돼 유저가 HTML 로 판정할 수 있다
+  - 메모: 결정(유저 2026-09-27): 새 패턴은 이 저장소에서 먼저, 검증 뒤 bbangto-ui 승격은 별도 카드 · claude-design 에 foundation·visual motif·component 생김새를 요구사항서로 의뢰, 패턴 구현과 guideline 은 직접 · 파일럿 sparseTableRangeMin
+  - 실행 문서: KANBAN.cards/KAN-057-J36E1B.md (18/18 · 최근 09-29)
+  - 계획 리포트: KANBAN.reports/KAN-057-J36E1B.report.html (낡음)
+  - 검토 문서: KANBAN.reviews/KAN-057-J36E1B.review.md (승인 8/8 · 추가 의견 총 7 · 승인)
+  - 원문:
+    ```text
+    ascii art 대신 시각화가 필요한 지점까지 ascii art로 해결하니 오히려 글로 쓴 것보다 이해 안되는 내용이 많아 진다.
+    
+    "~/resume"의 viz 기능을 가져와서, 이 프로젝트에 맞게 style guide를 재정의 해라(foundation, pattern, visual motif, component, guideline). 그리고 표현이 안되는 패턴이 있으면, 새로 생성해라. "~/resume" viz 기능 처럼 bbangto-ui@vizualization 패키지를 이용한다. style guide를 직접 정의하는 것보다, claude-design이 하는 것이 낫다고 판단 되면, 요구사항을 작성해서 요청하는 방식으로 실행 전략을 구성해라
     ```
