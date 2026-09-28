@@ -1,6 +1,6 @@
 {
-  "next_id": 60,
-  "next_seq": 406,
+  "next_id": 61,
+  "next_seq": 408,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1423,6 +1423,18 @@
       "goal_hash": "2c616d810110599c36424c1f647c7150331ac6b6",
       "memo": "KAN-057 전략 2 에서 범위 밖으로 뺀 곁가지(플랜 검토 지적 4, 2026-09-28). 근거 자료: KAN-057 S14 가 기록할 「책 빌드에서 fig 자리가 어떻게 나오는가」",
       "memo_hash": "c22eec94a48597b35875ad34e2cc96a2bd1b466d"
+    },
+    "KAN-060-9P4ZAA": {
+      "col": "backlog",
+      "title": "알고리즘 가이드에 문제를 통합한다.",
+      "verbatim": "지금은 문제가 *-guide.md로 분리 되어 있다. 그리고 그 문제를 전제로 가이드가 구성되어 있다. 그래서 문제를 모르면 guide에서 맥락을 읽기 어려운 경우가 생긴다.\n\n- guide는 문제에 대한 guide가 아니라, 알고리즘 자체에 대한 guide여야 한다.\n- guide 마지막에 문제를 만들어서 실습 항목으로 배치한다.\n- 기존 problem.md는 삭제한다.",
+      "생성": "유저",
+      "최종": "유저",
+      "갱신": "2026-09-28",
+      "title_hash": "98f8038a958aa1717a25f8e05bca03b82fa45e1b",
+      "verbatim_hash": "fb271c536bf618aa94c564fd5e1b66912e104eca",
+      "memo": "",
+      "memo_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709"
     }
   },
   "order": [
@@ -1494,9 +1506,38 @@
     "KAN-041-JJ5DA7",
     "KAN-040-M5V53M",
     "KAN-056-VPCM91",
-    "KAN-059-PSFTN4"
+    "KAN-059-PSFTN4",
+    "KAN-060-9P4ZAA"
   ],
   "recent": [
+    {
+      "seq": 407,
+      "t": "2026-09-28T18:12",
+      "a": "유저",
+      "id": "KAN-060-9P4ZAA",
+      "op": "edit",
+      "w": "46PCAX",
+      "field": "verbatim",
+      "before": "",
+      "after": "지금은 문제가 *-guide.md로 분리 되어 있다. 그리고 그 문제를 전제로 가이드가 구성되어 있다. 그래서 문제를 모르면 guide에서 맥락을 읽기 어려운 경우가 생긴다.\n\n- guide는 문제에 대한 guide가 아니라, 알고리즘 자체에 대한 guide여야 한다.\n- guide 마지막에 문제를 만들어서 실습 항목으로 배치한다.\n- 기존 problem.md는 삭제한다."
+    },
+    {
+      "seq": 406,
+      "t": "2026-09-28T18:09",
+      "a": "유저",
+      "id": "KAN-060-9P4ZAA",
+      "op": "create",
+      "w": "46PCAX",
+      "col": "backlog",
+      "title": "알고리즘 가이드에 문제를 통합한다.",
+      "verbatim": "",
+      "parent": null,
+      "short": "",
+      "purpose": "",
+      "reason": "",
+      "goal": "",
+      "memo": ""
+    },
     {
       "seq": 405,
       "t": "2026-09-28T17:55",
@@ -2030,26 +2071,6 @@
       "w": "RYEYJX",
       "from": "doing",
       "to": "review"
-    },
-    {
-      "seq": 360,
-      "t": "2026-09-17T07:12",
-      "a": "ai",
-      "id": "KAN-043-B4Y5WV",
-      "op": "move",
-      "w": "RYEYJX",
-      "from": "backlog",
-      "to": "doing"
-    },
-    {
-      "seq": 359,
-      "t": "2026-09-17T07:12",
-      "a": "ai",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "RYEYJX",
-      "with_": "KAN-043-B4Y5WV",
-      "reason": "하네스 규격과 축3 시나리오가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)"
     }
   ],
   "waivers": [
