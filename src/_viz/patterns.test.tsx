@@ -196,17 +196,75 @@ describe("스타일 가이드 가드", () => {
       );
       const bg = foundations.canvas.bg.toLowerCase();
       for (const t of [
-        "piece-left",
-        "piece-right",
-        "step-current",
+        "bracket",
+        "cell-border",
+        "cell-text",
+        "cell-focus-stroke",
+        "cell-overlap-stroke",
+        "step-current-fill",
+        "step-past",
+        "step-todo",
         "bar-fill",
-        "query",
-        "cell-stroke",
+        "caret",
+        "level-border",
       ]) {
         expect(
           `${key}:${t}=${extendedFoundations[`--bbangto-viz-ext-${t}`]?.toLowerCase()}`,
         ).not.toBe(`${key}:${t}=${bg}`);
       }
     }
+  });
+
+  // 의뢰서 7절(KAN-057 S12) — 글자 4.5:1 · 선과 칸 경계 3:1. 채움 위 글자는 그 채움과 잰다.
+  test("밝은·어두운·흑백 모두 대비 기준을 넘는다", async () => {
+    const { resolveVizFoundationPreset } = await import(
+      "@centurio1987/bbangto-ui-visualization"
+    );
+    const { algoVizStyleGuide } = await import("../../design/viz/algo.viz");
+    const lum = (hex: string): number => {
+      const n = Number.parseInt(hex.slice(1), 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
+        .map((v) => {
+          const c = v / 255;
+          return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+        })
+        .reduce(
+          (s, v, i) => s + v * ([0.2126, 0.7152, 0.0722][i] as number),
+          0,
+        );
+    };
+    const ratio = (a: string, b: string): number => {
+      const [x, y] = [lum(a), lum(b)];
+      return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05);
+    };
+    const pairs: [string, string, number][] = [
+      ["cell-text", "cell-fill", 4.5],
+      ["cell-muted-text", "cell-fill", 4.5],
+      ["note-color", "@bg", 4.5],
+      ["index-color", "@bg", 4.5],
+      ["cell-text", "cell-focus-fill", 4.5],
+      ["cell-text", "cell-overlap-fill", 4.5],
+      ["step-current-text", "step-current-fill", 4.5],
+      ["cell-border", "@bg", 3],
+      ["cell-focus-stroke", "@bg", 3],
+      ["cell-overlap-stroke", "@bg", 3],
+      ["bracket", "@bg", 3],
+    ];
+    const low: string[] = [];
+    for (const key of ["light", "dark", "mono"]) {
+      const { foundations, extendedFoundations } = resolveVizFoundationPreset(
+        algoVizStyleGuide,
+        key,
+      );
+      const v = (t: string): string =>
+        t === "@bg"
+          ? foundations.canvas.bg
+          : (extendedFoundations[`--bbangto-viz-ext-${t}`] as string);
+      for (const [fg, bg, need] of pairs) {
+        const r = ratio(v(fg), v(bg));
+        if (r < need) low.push(`${key} ${fg}/${bg} ${r.toFixed(2)} < ${need}`);
+      }
+    }
+    expect(low).toEqual([]);
   });
 });

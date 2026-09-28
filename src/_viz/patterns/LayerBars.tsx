@@ -11,7 +11,8 @@
 import { Canvas, estimateWidth } from "@centurio1987/bbangto-ui-visualization";
 import { FORM } from "../../../design/viz/tokens";
 import {
-  CELL,
+  CELL_H,
+  CELL_W,
   CellRow,
   cellX,
   gutterFor,
@@ -60,7 +61,7 @@ export function LayerBars({
     0,
     ...bars.map((b) => (b.note ? estimateWidth(b.note, LABEL_SIZE) : 0)),
   );
-  const rowH = CELL + ROW_GAP;
+  const rowH = CELL_H + ROW_GAP;
   const top = FORM.pad + INDEX_ROW;
   const tops: number[] = [];
   let y = top + rowH + FORM.laneGap;
@@ -111,8 +112,8 @@ export function LayerBars({
                 x >= b.from && x <= b.to ? null : (
                   <text
                     key={id}
-                    x={cellX(gutter, x) + CELL / 2}
-                    y={at + CELL / 2}
+                    x={cellX(gutter, x) + CELL_W / 2}
+                    y={at + CELL_H / 2}
                     textAnchor="middle"
                     dominantBaseline="central"
                     style={{
@@ -127,7 +128,7 @@ export function LayerBars({
             {b.note ? (
               <text
                 x={noteX}
-                y={at + CELL / 2}
+                y={at + CELL_H / 2}
                 dominantBaseline="central"
                 style={{
                   fill: "var(--bbangto-viz-ext-note-color)",

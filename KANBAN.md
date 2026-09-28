@@ -138,7 +138,7 @@
   - 이유: 시각화가 필요한 자리까지 ASCII 로 그려 한글 폭에 열이 어긋나고 설명선이 무엇을 가리키는지 안 읽혀 글보다 이해가 안 된다
   - 목표: 스타일 가이드 다섯 부분과 알고리즘 패턴이 서고 sparseTableRangeMin 파일럿이 새 그림으로 전환돼 유저가 HTML 로 판정할 수 있다
   - 메모: 결정(유저 2026-09-27): 새 패턴은 이 저장소에서 먼저, 검증 뒤 bbangto-ui 승격은 별도 카드 · claude-design 에 foundation·visual motif·component 생김새를 요구사항서로 의뢰, 패턴 구현과 guideline 은 직접 · 파일럿 sparseTableRangeMin
-  - 실행 문서: KANBAN.cards/KAN-057-J36E1B.md (12/14 · 최근 09-28)
+  - 실행 문서: KANBAN.cards/KAN-057-J36E1B.md (13/14 · 최근 09-28)
   - 계획 리포트: KANBAN.reports/KAN-057-J36E1B.report.html (낡음)
   - 원문:
     ```text

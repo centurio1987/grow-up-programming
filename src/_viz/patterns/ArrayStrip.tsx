@@ -1,11 +1,12 @@
 /**
  * P1 배열 띠(ArrayStrip) — 인덱스 눈금 + 값 칸 한 줄. 알고리즘 도식의 바탕이다(KAN-057).
  *
- * 칸과 글자는 `rect`·`text` 로 직접 그리고, 색·선·서체는 전부 스타일 가이드의 CSS 변수로만 받는다
+ * 칸과 글자는 `rect`·`text` 로 직접 그리고, 색은 전부 스타일 가이드의 CSS 변수로만 받는다
  * (`--bbangto-viz-ext-*` · `--bbangto-viz-typography-*`). 패키지의 `Node`·`NodeLabel` 을 안 쓰는 까닭은
  * 라벨의 세로 자리를 칸 가운데로 고정할 수 없어서다(S2 스파이크에서 값이 칸 위 경계에 붙었다).
  *
- * 칸 상태 넷은 흑백에서도 갈린다 — 강조는 굵은 선, 겹침은 대시, 범위 밖은 점선, 빈 칸은 채움 없음.
+ * 칸 상태는 시안 방향 A(S12)의 컴포넌트 01 을 따른다. 흑백에서도 갈린다 — 강조는 2.5px 테와 굵은
+ * 값, 겹침은 1.5px 테와 135° 해칭과 굵은 값, 범위 밖은 대시 테와 흐린 값, 빈 칸은 점선 테.
  */
 
 import {
@@ -13,6 +14,7 @@ import {
   estimateWidth,
   vvar,
 } from "@centurio1987/bbangto-ui-visualization";
+import { useId } from "react";
 import { FORM } from "../../../design/viz/tokens";
 
 export type CellState = "focus" | "overlap" | "out" | "empty";
@@ -29,8 +31,9 @@ export interface StripRow {
 
 export const LABEL_SIZE = 13;
 export const INDEX_ROW = 22;
-export const CELL = FORM.cell;
-export const STEP = FORM.cell + FORM.cellGap;
+export const CELL_W = FORM.cellW;
+export const CELL_H = FORM.cellH;
+export const STEP = FORM.cellW + FORM.cellGap;
 
 /** 머리 라벨 칸 폭 — 가장 긴 라벨에 맞춘다. 라벨이 없으면 0. */
 export function gutterFor(labels: readonly (string | undefined)[]): number {
@@ -44,7 +47,7 @@ export function gutterFor(labels: readonly (string | undefined)[]): number {
 export const cellX = (gutter: number, i: number): number =>
   FORM.pad + gutter + i * STEP;
 
-const text = (color: string, size = LABEL_SIZE, mono = false) => ({
+export const text = (color: string, size = LABEL_SIZE, mono = false) => ({
   fill: `var(--bbangto-viz-ext-${color})`,
   fontFamily: mono
     ? vvar("typography", "mono", "font")
@@ -55,37 +58,65 @@ const text = (color: string, size = LABEL_SIZE, mono = false) => ({
 function cellStyle(state: CellState | undefined) {
   const base = {
     fill: "var(--bbangto-viz-ext-cell-fill)",
-    stroke: "var(--bbangto-viz-ext-cell-stroke)",
+    stroke: "var(--bbangto-viz-ext-cell-border)",
     strokeWidth: FORM.borderWidth,
   };
   switch (state) {
     case "focus":
       return {
-        ...base,
         fill: "var(--bbangto-viz-ext-cell-focus-fill)",
-        strokeWidth: "var(--bbangto-viz-ext-cell-focus-width)",
+        stroke: "var(--bbangto-viz-ext-cell-focus-stroke)",
+        strokeWidth: FORM.focusWidth,
       };
     case "overlap":
       return {
-        ...base,
         fill: "var(--bbangto-viz-ext-cell-overlap-fill)",
-        strokeDasharray: "var(--bbangto-viz-ext-cell-overlap-dash)",
+        stroke: "var(--bbangto-viz-ext-cell-overlap-stroke)",
+        strokeWidth: FORM.overlapWidth,
       };
     case "out":
-      return {
-        ...base,
-        fill: "var(--bbangto-viz-ext-cell-out-fill)",
-        strokeDasharray: "var(--bbangto-viz-ext-cell-out-dash)",
-      };
+      return { ...base, fill: "none", strokeDasharray: FORM.dashOut };
     case "empty":
-      return {
-        ...base,
-        fill: "none",
-        strokeDasharray: "var(--bbangto-viz-ext-cell-out-dash)",
-      };
+      return { ...base, fill: "none", strokeDasharray: FORM.dashEmpty };
     default:
       return base;
   }
+}
+
+/** 값 글자 — 강조·겹침은 굵게, 범위 밖·빈 칸은 흐리게. */
+function valueStyle(state: CellState | undefined) {
+  const dim = state === "out" || state === "empty";
+  return {
+    ...text(dim ? "cell-muted-text" : "cell-text", 15, true),
+    fontWeight: state === "focus" || state === "overlap" ? 700 : 400,
+  };
+}
+
+/** 겹침 해칭 — 135°, 간격 6, 선 1.5(시안 규칙 6). 칸 줄마다 id 가 달라야 한 문서에 여럿 들어간다. */
+function Hatch({ id }: { id: string }) {
+  const g = FORM.hatchGap;
+  return (
+    <defs>
+      <pattern
+        id={id}
+        width={g}
+        height={g}
+        patternUnits="userSpaceOnUse"
+        patternTransform="rotate(135)"
+      >
+        <line
+          x1={0}
+          y1={0}
+          x2={0}
+          y2={g}
+          style={{
+            stroke: "var(--bbangto-viz-ext-cell-overlap-stroke)",
+            strokeWidth: FORM.hatchWidth,
+          }}
+        />
+      </pattern>
+    </defs>
+  );
 }
 
 /** 인덱스 눈금 한 줄. `y` 는 글자 가운데. */
@@ -112,11 +143,11 @@ export function IndexRow(props: {
         ({ at: i, id }) => (
           <text
             key={id}
-            x={cellX(gutter, i) + CELL / 2}
+            x={cellX(gutter, i) + CELL_W / 2}
             y={y}
             textAnchor="middle"
             dominantBaseline="central"
-            style={text("index-color", LABEL_SIZE, true)}
+            style={text("index-color", 11, true)}
           >
             {i}
           </text>
@@ -130,14 +161,18 @@ export function IndexRow(props: {
 export function CellRow(props: { gutter: number; row: StripRow; y: number }) {
   const { gutter, row, y } = props;
   const offset = row.offset ?? 0;
+  const hatchId = `hatch-${useId().replace(/[^A-Za-z0-9_-]/g, "")}`;
+  const states = row.states ?? {};
+  const hasOverlap = Object.values(states).includes("overlap");
   return (
     <g data-viz-role="cells" data-viz-label={row.label}>
+      {hasOverlap ? <Hatch id={hatchId} /> : null}
       {row.label ? (
         <text
           x={FORM.pad}
-          y={y + CELL / 2}
+          y={y + CELL_H / 2}
           dominantBaseline="central"
-          style={text("note-color")}
+          style={{ ...text("cell-text"), fontWeight: 500 }}
         >
           {row.label}
         </text>
@@ -146,23 +181,34 @@ export function CellRow(props: { gutter: number; row: StripRow; y: number }) {
         .map((v, n) => ({ v, at: n, id: `cell-${n + offset}` }))
         .map(({ v, at: i, id }) => {
           const x = cellX(gutter, i + offset);
-          const state = row.states?.[i];
+          const state = states[i];
           return (
             <g key={id} data-viz-cell={i} data-viz-state={state ?? "base"}>
               <rect
                 x={x}
                 y={y}
-                width={CELL}
-                height={CELL}
+                width={CELL_W}
+                height={CELL_H}
                 rx={FORM.radius}
                 style={cellStyle(state)}
               />
+              {state === "overlap" ? (
+                <rect
+                  x={x}
+                  y={y}
+                  width={CELL_W}
+                  height={CELL_H}
+                  rx={FORM.radius}
+                  fill={`url(#${hatchId})`}
+                  style={{ stroke: "none" }}
+                />
+              ) : null}
               <text
-                x={x + CELL / 2}
-                y={y + CELL / 2}
+                x={x + CELL_W / 2}
+                y={y + CELL_H / 2}
                 textAnchor="middle"
                 dominantBaseline="central"
-                style={text("cell-stroke", 15, true)}
+                style={valueStyle(state)}
               >
                 {String(v)}
               </text>
@@ -192,7 +238,7 @@ export function ArrayStrip({
   const count = row.values.length + (row.offset ?? 0);
   const top = FORM.pad + (showIndex ? INDEX_ROW : 0);
   const width = cellX(gutter, count) - FORM.cellGap + FORM.pad;
-  const height = top + CELL + FORM.pad;
+  const height = top + CELL_H + FORM.pad;
   return (
     <Canvas
       viewBox={`0 0 ${width} ${height}`}

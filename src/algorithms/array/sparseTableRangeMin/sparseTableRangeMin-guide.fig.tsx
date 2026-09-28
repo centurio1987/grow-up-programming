@@ -10,7 +10,11 @@
 import type { ReactElement } from "react";
 import { type LayerBar, LayerBars } from "../../../_viz/patterns/LayerBars";
 import { LevelTable } from "../../../_viz/patterns/LevelTable";
-import { type Range, RangeCover } from "../../../_viz/patterns/RangeCover";
+import {
+  overlapCells,
+  type Range,
+  RangeCover,
+} from "../../../_viz/patterns/RangeCover";
 import { StepTrace, type TraceStep } from "../../../_viz/patterns/StepTrace";
 import { sparseTableRangeMin } from "./sparseTableRangeMin-guide.ref.ts";
 import { answer, build } from "./sparseTableRangeMin-guide.sim.ts";
@@ -50,6 +54,14 @@ function layerBars(k: number): LayerBar[] {
     to: i + w - 1,
     note: `[${i},${i + w - 1}] 의 최솟값 ${minOf(i, i + w - 1)}`,
   }));
+}
+
+/** 질의 괄호 하나 + 두 조각. 괄호 셋의 자리·굵기·대시는 시안 컴포넌트 03 이 정한다. */
+function cover(l: number, r: number): Range[] {
+  return [
+    { from: l, to: r, tone: "query", note: `[${l},${r}] · ${r - l + 1} 칸` },
+    ...pieces(l, r),
+  ];
 }
 
 /** 질의 [l,r] 의 두 조각 — 2^k ≤ 칸 수 인 가장 큰 k. 조각 값도 정본에 묻는다. */
@@ -126,7 +138,11 @@ export const FIGS: Record<string, () => ReactElement> = {
       title="구간 [0,5] 를 4 칸짜리 조각 둘로 덮기"
       row={{ label: "A 의 값", values: A }}
       indexLabel="인덱스"
-      ranges={pieces(0, 5)}
+      ranges={cover(0, 5)}
+      annotation={{
+        cells: overlapCells(pieces(0, 5)),
+        text: `겹친 칸 ${overlapCells(pieces(0, 5)).length} 개. 답은 ${minOf(0, 5)} 다`,
+      }}
     />
   ),
   "build-layer-bars": () => (
@@ -150,7 +166,11 @@ export const FIGS: Record<string, () => ReactElement> = {
       title="구간 [0,4] 를 4 칸짜리 조각 둘로 덮기"
       row={{ label: "A 의 값", values: A }}
       indexLabel="인덱스"
-      ranges={pieces(0, 4)}
+      ranges={cover(0, 4)}
+      annotation={{
+        cells: overlapCells(pieces(0, 4)),
+        text: `인덱스 ${overlapCells(pieces(0, 4)).join(" · ")} 이 두 조각에 함께 들어 있다`,
+      }}
     />
   ),
   "walk-build": () => (

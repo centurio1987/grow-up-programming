@@ -1,15 +1,18 @@
 /**
- * P2 구간 덮기(RangeCover) — 배열 띠 아래에 구간 괄호를 두세 줄 두고, 여러 괄호가 함께 덮는 칸을
+ * P2 구간 덮기(RangeCover) — 배열 띠 위아래에 구간 괄호를 두고, 여러 조각이 함께 덮는 칸을
  * 「겹침」으로 표시한다(KAN-057). 지금 ASCII 의 `└───4 칸───┘` 줄을 대신한다.
  *
- * 괄호 종류 셋은 흑백에서도 갈린다 — 질의는 잉크 실선, 왼쪽 조각은 굵은 실선, 오른쪽 조각은 대시.
- * 겹침은 괄호 데이터에서 계산한다 — 손으로 적지 않는다.
+ * 괄호는 시안 방향 A(S12)의 컴포넌트 03 을 따른다 — 질의는 칸 **위** ┌┐ 3px 실선, 왼쪽 조각은 칸
+ * **아래** └┘ 2px 실선, 오른쪽 조각은 2px 대시. 셋이 한 그림에 나와도 자리·굵기·대시로 갈린다.
+ * 겹침은 괄호 데이터에서 계산한다 — 손으로 적지 않는다. `annotation` 을 주면 가리키는 칸마다 ▲ 를
+ * 두고 다음 줄에 한 줄 설명을 단다(컴포넌트 06, 옛 `└ …` 설명선을 대신한다).
  */
 
 import { Canvas, estimateWidth } from "@centurio1987/bbangto-ui-visualization";
 import { FORM } from "../../../design/viz/tokens";
 import {
-  CELL,
+  CELL_H,
+  CELL_W,
   CellRow,
   type CellState,
   cellX,
@@ -18,6 +21,7 @@ import {
   IndexRow,
   LABEL_SIZE,
   type StripRow,
+  text,
 } from "./ArrayStrip";
 
 export type RangeTone = "query" | "left" | "right";
@@ -30,29 +34,30 @@ export interface Range {
   readonly note?: string;
 }
 
+export interface Annotation {
+  /** ▲ 로 가리킬 칸 번호. */
+  readonly cells: readonly number[];
+  readonly text: string;
+}
+
 export interface RangeCoverProps {
   readonly title: string;
   readonly row: StripRow;
   readonly ranges: readonly Range[];
   readonly indexLabel?: string;
+  readonly annotation?: Annotation;
 }
 
 const BRACKET_ROW = 26;
-const TICK = 7;
+const TICK = 8;
+const CARET_ROW = 14;
+const NOTE_ROW = 20;
 
-const TONE: Record<RangeTone, { color: string; width: number; dash?: string }> =
-  {
-    query: { color: "var(--bbangto-viz-ext-query)", width: FORM.borderWidth },
-    left: {
-      color: "var(--bbangto-viz-ext-piece-left)",
-      width: FORM.focusWidth,
-    },
-    right: {
-      color: "var(--bbangto-viz-ext-piece-right)",
-      width: FORM.focusWidth,
-      dash: "6 3",
-    },
-  };
+const TONE: Record<RangeTone, { width: number; dash?: string }> = {
+  query: { width: FORM.queryWidth },
+  left: { width: FORM.pieceWidth },
+  right: { width: FORM.pieceWidth, dash: FORM.dashRight },
+};
 
 /** 조각(left·right)이 둘 이상 덮는 칸 = 겹침. 질의 괄호는 세지 않는다. */
 export function overlapCells(ranges: readonly Range[]): number[] {
@@ -72,20 +77,66 @@ export function RangeCover({
   row,
   ranges,
   indexLabel,
+  annotation,
 }: RangeCoverProps) {
   const gutter = gutterFor([row.label, indexLabel]);
   const states: Partial<Record<number, CellState>> = { ...(row.states ?? {}) };
   for (const i of overlapCells(ranges)) states[i] ??= "overlap";
-  const cellsTop = FORM.pad + INDEX_ROW;
-  const bracketsTop = cellsTop + CELL + FORM.pad;
+  const above = ranges.filter((r) => r.tone === "query");
+  const below = ranges.filter((r) => r.tone !== "query");
+  const indexTop = FORM.pad + above.length * BRACKET_ROW;
+  const cellsTop = indexTop + INDEX_ROW;
+  const annTop = cellsTop + CELL_H + FORM.rowGap;
+  const annH = annotation ? CARET_ROW + NOTE_ROW : 0;
+  const bracketsTop = annTop + annH + FORM.rowGap;
   const count = row.values.length;
   const noteX = cellX(gutter, count) + FORM.pad;
   const longestNote = Math.max(
     0,
     ...ranges.map((r) => (r.note ? estimateWidth(r.note, LABEL_SIZE) : 0)),
   );
-  const width = noteX + Math.ceil(longestNote) + FORM.pad;
-  const height = bracketsTop + ranges.length * BRACKET_ROW + FORM.pad;
+  const annRight = annotation
+    ? cellX(gutter, Math.min(...annotation.cells)) +
+      estimateWidth(annotation.text, LABEL_SIZE)
+    : 0;
+  const width = Math.ceil(Math.max(noteX + longestNote, annRight) + FORM.pad);
+  const height = bracketsTop + below.length * BRACKET_ROW + FORM.pad;
+
+  const bracket = (r: Range, y: number, up: boolean) => {
+    const tone = TONE[r.tone];
+    const x1 = cellX(gutter, r.from) + 2;
+    const x2 = cellX(gutter, r.to) + CELL_W - 2;
+    const tip = up ? y + TICK : y - TICK;
+    return (
+      <g
+        key={`${r.tone}-${r.from}-${r.to}`}
+        data-viz-range={r.tone}
+        data-viz-from={r.from}
+        data-viz-to={r.to}
+      >
+        <path
+          d={`M ${x1} ${tip} V ${y} H ${x2} V ${tip}`}
+          fill="none"
+          style={{
+            stroke: "var(--bbangto-viz-ext-bracket)",
+            strokeWidth: tone.width,
+            ...(tone.dash ? { strokeDasharray: tone.dash } : {}),
+          }}
+        />
+        {r.note ? (
+          <text
+            x={noteX}
+            y={y}
+            dominantBaseline="central"
+            style={text("note-color")}
+          >
+            {r.note}
+          </text>
+        ) : null}
+      </g>
+    );
+  };
+
   return (
     <Canvas
       viewBox={`0 0 ${width} ${height}`}
@@ -93,51 +144,43 @@ export function RangeCover({
       height={height}
       title={title}
     >
+      {above.map((r, k) =>
+        bracket(r, FORM.pad + k * BRACKET_ROW + TICK / 2, true),
+      )}
       <IndexRow
         gutter={gutter}
         count={count}
-        y={FORM.pad + INDEX_ROW / 2}
+        y={indexTop + INDEX_ROW / 2}
         label={indexLabel}
       />
       <CellRow gutter={gutter} row={{ ...row, states }} y={cellsTop} />
-      {ranges.map((r, k) => {
-        const tone = TONE[r.tone];
-        const y = bracketsTop + k * BRACKET_ROW + TICK;
-        const x1 = cellX(gutter, r.from) + 2;
-        const x2 = cellX(gutter, r.to) + CELL - 2;
-        return (
-          <g
-            key={`${r.tone}-${r.from}-${r.to}`}
-            data-viz-range={r.tone}
-            data-viz-from={r.from}
-            data-viz-to={r.to}
+      {annotation ? (
+        <g data-viz-role="annotation">
+          {annotation.cells.map((i) => (
+            <text
+              key={`caret-${i}`}
+              x={cellX(gutter, i) + CELL_W / 2}
+              y={annTop + CARET_ROW / 2}
+              textAnchor="middle"
+              dominantBaseline="central"
+              style={text("caret", 10)}
+            >
+              ▲
+            </text>
+          ))}
+          <text
+            x={cellX(gutter, Math.min(...annotation.cells))}
+            y={annTop + CARET_ROW + NOTE_ROW / 2}
+            dominantBaseline="central"
+            style={text("cell-text")}
           >
-            <path
-              d={`M ${x1} ${y - TICK} V ${y} H ${x2} V ${y - TICK}`}
-              fill="none"
-              style={{
-                stroke: tone.color,
-                strokeWidth: tone.width,
-                ...(tone.dash ? { strokeDasharray: tone.dash } : {}),
-              }}
-            />
-            {r.note ? (
-              <text
-                x={noteX}
-                y={y}
-                dominantBaseline="central"
-                style={{
-                  fill: "var(--bbangto-viz-ext-note-color)",
-                  fontFamily: "var(--bbangto-viz-typography-title-font)",
-                  fontSize: `${LABEL_SIZE}px`,
-                }}
-              >
-                {r.note}
-              </text>
-            ) : null}
-          </g>
-        );
-      })}
+            {annotation.text}
+          </text>
+        </g>
+      ) : null}
+      {below.map((r, k) =>
+        bracket(r, bracketsTop + k * BRACKET_ROW + TICK, false),
+      )}
     </Canvas>
   );
 }
