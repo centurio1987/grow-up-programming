@@ -290,3 +290,13 @@ test("CLI — 스캐너 자신의 소스를 넘겨도 대상이 되지 않는다
   const r = await runCli(["tools/check-v2.ts"]);
   expect(r.code).toBe(2);
 });
+
+test("가이드 끝 실습(KAN-060)은 문제 서술이라 안 본다 — 펜스 안의 같은 줄에서는 안 끊는다", () => {
+  const guide =
+    "본문입니다.\n\n## 실습 — 직접 풀어 보기\n\n패턴마다 텍스트 전체를 따로 훑으면 퇴근도 못 한다.\n";
+  expect(scan("x/y-guide.md", guide)).toEqual([]);
+  const fenced =
+    "```\n## 실습 — 직접 풀어 보기\n```\n\n텍스트를 훑으면 된다.\n";
+  expect(scan("x/y-guide.md", fenced)).toHaveLength(1);
+  expect(scan("x/SPEC.md", guide)).toHaveLength(1);
+});

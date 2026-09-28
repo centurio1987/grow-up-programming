@@ -43,6 +43,7 @@
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { METAPHORS, stripQuotes } from "./check-v2.ts";
+import { PRACTICE_HEADING } from "./section.ts";
 
 /** 원문 인용을 담는 문서. 여기서는 금지 표현이 자료다. */
 const QUOTE_DOCS = new Set(["feedback.md", "JOURNAL.md"]);
@@ -97,8 +98,17 @@ export function scan(file: string, source: string): MetaphorHit[] {
   // 있었다(`SURVEY.md:50-51`). 줄마다 따로 지우면 그 뒷줄이 본문으로 보인다. 그래서 `"`
   // 개수로 상태를 이어 간다.
   let inQuote = false;
+  // 알고리즘 가이드 끝의 실습(`KAN-060`)은 옮겨 온 문제 서술이라 본문 문형 검사의 대상이
+  // 아니다 — `check-v2.ts` 의 `guideText` 와 같은 자리에서 끊는다. 펜스 안의 같은 줄(명세의
+  // 틀 예시)은 헤딩이 아니므로 가이드에서만, 펜스 밖에서만 끊는다.
+  const guide = file.endsWith("-guide.md");
+  let fenced = false;
   for (const [index, line] of source.split("\n").entries()) {
-    if (line.trimStart().startsWith("```")) continue;
+    if (line.trimStart().startsWith("```")) {
+      fenced = !fenced;
+      continue;
+    }
+    if (guide && !fenced && line.trim() === PRACTICE_HEADING) break;
     // 인용 블록(`>`)은 원문 보관이다. 지적 원문과 "이렇게 쓰면 안 된다" 는 예시가 여기 든다.
     if (line.trimStart().startsWith(">")) continue;
     const outside = stripQuotes(line, inQuote);

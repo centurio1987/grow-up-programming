@@ -32,6 +32,8 @@ import {
   fences,
   first,
   type GuideKind,
+  PRACTICE_HEADING,
+  PRACTICE_PARTS,
   parseSections,
   pick,
   type Section,
@@ -1165,6 +1167,174 @@ export function banmalFindings(text: string): Finding[] {
  * 단위로 훑는다. 원고 코드는 정본의 JSDoc 을 짧은 인라인 주석으로 바꾼 사본이라(`convexHull`),
  * 주석을 남긴 채 대조하면 그 차이가 전부 위반이 된다 — 이 검사가 보려는 것은 **코드**다.
  */
+/**
+ * 실습 절 앞까지의 본문 — 2026-09-29 `KAN-060`(`SPEC.md` §3 `practice`).
+ *
+ * **본문 검사는 실습 절을 읽지 않는다.** 실습은 옛 `<name>-problem.md` 를 옮긴 문제 서술이라
+ * 평서형(`~한다`)으로 쓰이고, 반말(P18)·은유(P2)·기호(P11~P13)·표(P15·P21) 규칙의 대상인
+ * 가이드 산문과 갈래가 다르다. 줄을 잘라 내기만 하므로 앞쪽 줄 번호는 그대로다 — 진단이
+ * 가리키는 `:줄` 이 원고와 어긋나지 않는다.
+ */
+export function guideText(text: string, practice: Section | undefined): string {
+  if (practice === undefined) return text;
+  return text
+    .split("\n")
+    .slice(0, practice.line - 1)
+    .join("\n");
+}
+
+/** 실습 문제 하나의 풀 파일 줄에서 링크 대상을 뽑는다. `checkOne` 이 실재 여부를 잰다. */
+export function practiceLinkTargets(sections: Section[]): string[] {
+  const out: string[] = [];
+  for (const problem of pick(sections, "practice.problem")) {
+    for (const line of problem.body) {
+      for (const m of line.matchAll(/\]\(([^)#\s]+)\)/g)) {
+        if (m[1] !== undefined) out.push(m[1]);
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * P22 실습 절 구조(`SPEC.md` §1 `practice` · §3 `practice`, 2026-09-29 `KAN-060`).
+ *
+ * 넷을 본다. ① `## 실습 — 직접 풀어 보기` 가 하나 있고 문서의 마지막 `##` 이다. ② 문제(`###`)가
+ * 하나 이상이다. ③ 문제마다 소절 여섯이 이 이름·이 순서로 있다(옛 문제 문서 규격 — 빠지면
+ * 풀 사람이 제약이나 예시를 못 찾는다). ④ 문제마다 첫 소절 앞에 풀 파일 줄이 있고, 그 줄이
+ * 스텁(`.ts`)과 테스트(`.test.ts`)를 링크하며 `bun test` 명령을 적는다. `links` 가 주어지면
+ * 링크 대상이 실재하는지도 본다 — 시험처럼 파일을 안 읽는 호출은 그 몫을 건너뛴다.
+ */
+export function practiceFindings(
+  sections: Section[],
+  links?: Record<string, boolean>,
+): Finding[] {
+  const out: Finding[] = [];
+  const heads = pick(sections, "practice");
+  if (heads.length === 0) {
+    return [
+      {
+        code: "P22",
+        detail: `\`${PRACTICE_HEADING}\` 절이 없다 — 문제는 문서 끝 실습이 싣는다(\`SPEC.md\` §3 \`practice\`)`,
+      },
+    ];
+  }
+  if (heads.length > 1) {
+    out.push({
+      code: "P22",
+      where: `practice:${heads[1]?.line}`,
+      detail: `실습 절이 ${heads.length} 개다 (1 이어야 한다)`,
+    });
+  }
+  const head = heads[0] as Section;
+  const after = sections.find(
+    (s) => s.line > head.line && !s.id.startsWith("practice"),
+  );
+  if (after !== undefined) {
+    out.push({
+      code: "P22",
+      where: `${after.id}:${after.line}`,
+      detail: "실습 뒤에 절이 있다 — 실습은 문서의 마지막 `##` 이다",
+    });
+  }
+  const problems = pick(sections, "practice.problem");
+  if (problems.length === 0) {
+    out.push({
+      code: "P22",
+      where: `practice:${head.line}`,
+      detail: "실습에 문제(`###`)가 없다",
+    });
+  }
+  for (const [i, problem] of problems.entries()) {
+    const next = problems[i + 1]?.line ?? Number.POSITIVE_INFINITY;
+    const parts = pick(sections, "practice.part")
+      .filter((s) => s.line > problem.line && s.line < next)
+      .map((s) => s.heading.replace(/^#+\s*/, ""));
+    if (parts.join("|") !== PRACTICE_PARTS.join("|")) {
+      out.push({
+        code: "P22",
+        where: `practice.problem:${problem.line}`,
+        detail: `문제 서술의 소절이 규격과 다르다 — ${parts.join(" · ") || "(없음)"} (규격: ${PRACTICE_PARTS.join(" · ")})`,
+      });
+    }
+    const intro = problem.body.join("\n");
+    const targets = [...intro.matchAll(/\]\(([^)#\s]+)\)/g)].map(
+      (m) => m[1] ?? "",
+    );
+    const stub = targets.find(
+      (x) => x.endsWith(".ts") && !x.endsWith(".test.ts"),
+    );
+    const suite = targets.find((x) => x.endsWith(".test.ts"));
+    if (
+      stub === undefined ||
+      suite === undefined ||
+      !intro.includes("bun test ")
+    ) {
+      out.push({
+        code: "P22",
+        where: `practice.problem:${problem.line}`,
+        detail:
+          "풀 파일 줄이 없다 — 첫 소절 앞에 스텁(`.ts`)·테스트(`.test.ts`) 링크와 `bun test` 명령을 적는다",
+      });
+    }
+    if (links !== undefined) {
+      for (const x of [stub, suite]) {
+        if (x !== undefined && links[x] === false) {
+          out.push({
+            code: "P22",
+            where: `practice.problem:${problem.line}`,
+            detail: `풀 파일 줄이 없는 파일을 가리킨다 — ${x}`,
+          });
+        }
+      }
+    }
+  }
+  return out;
+}
+
+/**
+ * P23 실습 밖에서 실습 문제를 가리키는 말(`L49`, 2026-09-29 `KAN-060`).
+ *
+ * 유저 지시 원문은 *"guide는 문제에 대한 guide가 아니라, 알고리즘 자체에 대한 guide여야 한다"* 다.
+ * 본문이 「이 문제」라고 부르면 독자는 그 문제를 먼저 알아야 읽을 수 있다 — 그것이 카드가
+ * 고치려는 상태다. 잡는 것은 **실습 문제를 가리키는** 꼴 셋뿐이다. 「문제 지문에서 이 신호가
+ * 보이면」처럼 문제 일반을 말하는 자리는 대상이 아니다. 펜스·헤딩·인용 블록·인라인 코드·낫표
+ * 인용은 안 본다. **한시 조항(§8)** — `deep.origin` 이 있는 편만 부른다.
+ */
+const PRACTICE_REFERENCES: ReadonlyArray<RegExp> = [
+  /이 문제/,
+  /문제가\s?[^.\n]{0,15}정해/,
+  /문제의 제약/,
+];
+
+export function practiceReferenceFindings(text: string): Finding[] {
+  const out: Finding[] = [];
+  let fenced = false;
+  for (const [i, line] of text.split("\n").entries()) {
+    const trimmed = line.trimStart();
+    if (trimmed.startsWith("```")) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced || trimmed.startsWith("#") || trimmed.startsWith(">")) continue;
+    const prose = line
+      .replace(/`[^`]*`/g, "C")
+      .replace(/「[^」]*」/g, "Q")
+      .replace(/"[^"]*"/g, "Q");
+    for (const re of PRACTICE_REFERENCES) {
+      const hit = re.exec(prose);
+      if (hit === null) continue;
+      out.push({
+        code: "P23",
+        where: `:${i + 1}`,
+        detail: `실습 문제를 가리킨다 — "${hit[0]}". 본문은 알고리즘이 푸는 과제를 이름으로 부른다(\`L49\`)`,
+      });
+      break; // 한 줄에 한 건 — 「이 문제의 제약」이 두 꼴에 함께 걸려도 자리는 하나다.
+    }
+  }
+  return out;
+}
+
 export function stripComments(src: string): string {
   let out = "";
   let quote: string | null = null;
@@ -1969,6 +2139,11 @@ export interface CheckInput {
   directMemory?: boolean;
   maxProseRun?: number;
   /**
+   * 실습 문제의 풀 파일 줄이 링크한 대상(가이드 기준 상대 경로)과 그것이 실재하는가. algo 전용이고
+   * P22 가 쓴다(`KAN-060`). 없으면 P22 는 구조만 보고 실재는 건너뛴다 — 시험은 파일을 안 읽는다.
+   */
+  practiceLinks?: Record<string, boolean>;
+  /**
    * 그림 사이드카(`<name>-guide.fig.tsx`)가 있으면 그 `FIGS` 키와, 가이드 옆 `figs/` 에 실재하는
    * SVG id. 없으면 `undefined` — 그때 본문에 그림 마커가 있으면 P6 위반이다(KAN-057).
    * SVG 가 사이드카·정본과 **같은 바이트인지**는 `render-figs --check` 몫이다.
@@ -2091,7 +2266,12 @@ export function check(input: CheckInput): Finding[] {
   const findings: Finding[] = [];
   const limit = input.maxProseRun ?? MAX_PROSE_RUN;
   const kind = input.kind ?? "algo";
-  const { sections, unresolved } = parseSections(input.text, kind);
+  const parsed = parseSections(input.text, kind);
+  const { unresolved } = parsed;
+  // 실습 절(`KAN-060`)은 본문 검사에서 뺀다 — `guideText` 머리 주석. 구조는 P22 가 따로 본다.
+  const practiceHead = first(parsed.sections, "practice");
+  const sections = parsed.sections.filter((s) => !s.id.startsWith("practice"));
+  const text = guideText(input.text, practiceHead);
 
   // 절 식별에 실패하면 나머지 판정이 전부 헛돈다. 여기서 멈춘다.
   for (const u of unresolved) {
@@ -2121,7 +2301,7 @@ export function check(input: CheckInput): Finding[] {
   // 원고가 움직인다. 금지 문형·표기 혼용은 인용 안에서도 그대로 본다 — 그쪽은 인용이든
   // 아니든 독자가 읽는 표기다.
   let inQuote = false;
-  for (const [index, line] of input.text.split("\n").entries()) {
+  for (const [index, line] of text.split("\n").entries()) {
     const outside = stripQuotes(line, inQuote);
     if ((line.match(/"/g)?.length ?? 0) % 2 === 1) inQuote = !inQuote;
     for (const phrase of FORBIDDEN) {
@@ -2153,7 +2333,7 @@ export function check(input: CheckInput): Finding[] {
   }
 
   // 문서 전체를 봐야 하는 표기 검사. 두 표기가 절을 건너뛰어 떨어져 있어도 잡는다.
-  findings.push(...labelPairNotation(input.text));
+  findings.push(...labelPairNotation(text));
 
   // `deep.walk` 는 컨테이너이고 T# 는 그 아래 소절에 흩어져 있다. 합쳐서 본다.
   const walkSections = sections.filter((s) => s.id.startsWith("deep.walk"));
@@ -2335,9 +2515,9 @@ export function check(input: CheckInput): Finding[] {
   }
 
   // ── P6 마커 id ↔ .sim.ts export 키, 그리고 마커 아래 펜스가 비지 않았는가 ──
-  const markers = [
-    ...input.text.matchAll(/<!--viz:([A-Za-z_$][\w$]*)-->/g),
-  ].map((m) => m[1] as string);
+  const markers = [...text.matchAll(/<!--viz:([A-Za-z_$][\w$]*)-->/g)].map(
+    (m) => m[1] as string,
+  );
   if (sim) {
     for (const id of markers) {
       if (!sim.entries.has(id)) {
@@ -2361,16 +2541,21 @@ export function check(input: CheckInput): Finding[] {
     const staged = buildStageFindings(sections);
     findings.push(...staged);
     if (sections.some((s) => s.id.startsWith("deep.build."))) {
-      findings.push(...banmalFindings(input.text));
+      findings.push(...banmalFindings(text));
+    }
+    // ── P22 실습 절 구조 · P23 실습 문제 지칭 (`L49`, 한시 조항 — `deep.origin` 이 있는 편만) ──
+    findings.push(...practiceFindings(parsed.sections, input.practiceLinks));
+    if (first(sections, "deep.origin")) {
+      findings.push(...practiceReferenceFindings(text));
     }
   }
 
-  findings.push(...figFindings(input.text, input.figs));
-  findings.push(...symbolNoteFindings(input.text));
+  findings.push(...figFindings(text, input.figs));
+  findings.push(...symbolNoteFindings(text));
 
   for (const id of markers) {
-    const at = input.text.indexOf(`<!--viz:${id}-->`);
-    const rest = input.text.slice(at);
+    const at = text.indexOf(`<!--viz:${id}-->`);
+    const rest = text.slice(at);
     // 폴백이 ASCII 펜스 대신 그림일 수 있다(KAN-057) — 사이의 빈 줄·증명 마커는 건너뛴다.
     const next = rest
       .split("\n")
@@ -2506,7 +2691,7 @@ export function check(input: CheckInput): Finding[] {
   // ── P9 .sim.ts 의 result ↔ 본문 <!--result:{id}--> ──
   if (sim) {
     for (const [id, entry] of sim.entries) {
-      const m = new RegExp(`<!--result:${id}=([^>]*)-->`).exec(input.text);
+      const m = new RegExp(`<!--result:${id}=([^>]*)-->`).exec(text);
       if (!m) {
         findings.push({
           code: "P9",
@@ -2563,18 +2748,18 @@ export function check(input: CheckInput): Finding[] {
   //
   // 셋 다 `FEEDBACK.md` §3 이 사람에게 맡겨 뒀던 줄에서 **실행으로 내릴 수 있는 몫만**
   // 떼어 온 것이다. 못 내린 몫은 §3 에 그대로 남는다 — 좁힌 자리를 각 함수의 주석이 적는다.
-  findings.push(...symbolCountDeclaration(input.text));
-  findings.push(...codeNameMapping(input.text));
-  findings.push(...definitionRestated(input.text));
+  findings.push(...symbolCountDeclaration(text));
+  findings.push(...codeNameMapping(text));
+  findings.push(...definitionRestated(text));
 
   // ── P15 생성 블록 열 정렬 ──
-  findings.push(...generatedBlockAlignment(input.text));
+  findings.push(...generatedBlockAlignment(text));
 
   // ── TBL 구분줄을 그렸는데 표가 안 서는 자리 ──
-  findings.push(...tableSeparators(input.text));
+  findings.push(...tableSeparators(text));
 
   // ── P16 원고의 전체 코드 ↔ 정본 ──
-  findings.push(...contractSummaryConsistency(input.text, input.contractDoc));
+  findings.push(...contractSummaryConsistency(text, input.contractDoc));
   if (input.contractOps !== undefined) {
     findings.push(...operationCoverage(sections, input.contractOps));
   }
@@ -2603,15 +2788,15 @@ export function check(input: CheckInput): Finding[] {
  * 때문이다. 실제로 P15 가 일곱 배치를 그렇게 샜다.
  */
 export function checkWarnings(input: CheckInput): Finding[] {
+  const parsed = parseSections(input.text, input.kind ?? "algo");
+  const text = guideText(input.text, first(parsed.sections, "practice"));
   const out: Finding[] = [
-    ...alignmentWarnings(input.text),
-    ...tableHeaderWarnings(input.text),
+    ...alignmentWarnings(text),
+    ...tableHeaderWarnings(text),
   ];
 
-  const { sections, unresolved } = parseSections(
-    input.text,
-    input.kind ?? "algo",
-  );
+  const { unresolved } = parsed;
+  const sections = parsed.sections.filter((s) => !s.id.startsWith("practice"));
   if (unresolved.length > 0 || input.sim === undefined) return out;
   const walkHead = first(sections, "deep.walk");
   if (!walkHead) return out;
@@ -2718,6 +2903,11 @@ async function checkOne(
     input.escalation = ESCALATION[key] ?? "-";
     input.directMemory = DIRECT_MEMORY.has(key);
   } else {
+    const links: Record<string, boolean> = {};
+    for (const x of practiceLinkTargets(parseSections(text, kind).sections)) {
+      links[x] = await Bun.file(join(dir, x)).exists();
+    }
+    input.practiceLinks = links;
     const refFile = Bun.file(join(dir, `${stem}.ref.ts`));
     if (await refFile.exists()) input.ref = await refFile.text();
     if (input.ref === undefined) missing.push("ref");
@@ -2740,7 +2930,7 @@ async function checkOne(
       JSON.stringify({ target, findings, warnings, missing }, null, 2),
     );
   } else if (findings.length === 0) {
-    console.log(`${target} — P1~P18 통과.`);
+    console.log(`${target} — P1~P23 통과.`);
     if (notes) for (const line of skipNotes(missing)) console.log(`  ${line}`);
   } else {
     console.error(`${target} — 위반 ${findings.length}건.`);

@@ -144,6 +144,28 @@ const BUILD_CHILDREN: ReadonlyArray<readonly [string, RegExp]> = [
   ["deep.build.stage", /^#### \d+단계 — .+$/],
 ];
 
+/**
+ * 문서 끝의 실습 — 2026-09-29 `KAN-060`(`SPEC.md` §3 `practice` · `L49`).
+ *
+ * 유저 지시 원문은 *"guide 마지막에 문제를 만들어서 실습 항목으로 배치한다. 기존 problem.md는
+ * 삭제한다"* 다. 옛 `<name>-problem.md` 의 여섯 절이 이 아래로 두 단씩 내려와 앉는다.
+ *
+ * **이 헤딩 뒤는 이름으로 해소하지 않는다.** `###` 은 문제 하나(`practice.problem`), `####` 는 그
+ * 문제 서술의 소절(`practice.part`), 그 아래는 `practice.sub` 다. 문제 이름과 소제목은 편마다
+ * 다르고, 고정 헤딩 표로 보내면 「스스로 점검하기」 같은 이름이 실습 안에서 본문 항목으로 잘못
+ * 해소된다. 소절 여섯의 이름과 순서는 `check-v2.ts` 의 P22 가 따로 본다. **알고리즘 골격에만
+ * 있다** — 자료구조 가이드는 문제를 다루지 않는다(ORD-006).
+ */
+export const PRACTICE_HEADING = "## 실습 — 직접 풀어 보기";
+export const PRACTICE_PARTS = [
+  "한 줄 요약",
+  "스토리",
+  "함수 인터페이스",
+  "제약 조건",
+  "문제 상세",
+  "예시",
+] as const;
+
 export interface ParseResult {
   sections: Section[];
   /** 어느 규칙으로도 안 잡힌 헤딩. 비어 있지 않으면 판정을 진행하지 않는다. */
@@ -184,8 +206,29 @@ export function parseSections(text: string, kind: GuideKind): ParseResult {
   const unresolved: { heading: string; line: number }[] = [];
   let insideWalk = false;
   let insideBuild = false;
+  let insidePractice = false;
 
   for (const item of raw) {
+    // 실습은 `##` 이라 그 아래 전부를 품는다. 다른 `##` 가 오면 끝난다.
+    if (item.level <= 2) insidePractice = false;
+    if (kind === "algo" && item.heading === PRACTICE_HEADING) {
+      insidePractice = true;
+      insideWalk = false;
+      insideBuild = false;
+      sections.push({ id: "practice", ...item });
+      continue;
+    }
+    if (insidePractice) {
+      const id =
+        item.level === 3
+          ? "practice.problem"
+          : item.level === 4
+            ? "practice.part"
+            : "practice.sub";
+      sections.push({ id, ...item });
+      continue;
+    }
+
     // 컨테이너를 벗어나면 잔여 규칙도 끝난다. `deep.walk` 는 `###` 이므로 경계가 level 3 이다.
     // 리셋이 설정보다 먼저라 `deep.walk` 자신은 아래에서 다시 true 가 된다.
     if (item.level <= 3) {

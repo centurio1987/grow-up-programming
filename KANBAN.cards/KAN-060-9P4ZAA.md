@@ -2,7 +2,7 @@
 card: KAN-060-9P4ZAA
 title: 알고리즘 가이드에 문제를 통합한다.
 created: 2026-09-29
-scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/check-v2.ts, tools/check-v2.test.ts, tools/migrate-practice.ts, .claude/authoring/specs/problem/**, .claude/authoring.lock.json, .claude/skills/gen-problem/**, .claude/skills/guide-for-problem/**, .claude/authoring/voices/algorithm-guide-writer/**, README.md, CLAUDE.md, 문제_가이드_목록.md
+scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/check-v2.ts, tools/check-v2.test.ts, tools/check-metaphor.ts, tools/check-metaphor.test.ts, tools/migrate-practice.ts, .claude/authoring/specs/problem/**, .claude/authoring.lock.json, .claude/skills/gen-problem/**, .claude/skills/guide-for-problem/**, .claude/authoring/voices/algorithm-guide-writer/**, README.md, CLAUDE.md, 문제_가이드_목록.md
 ---
 
 # KAN-060-9P4ZAA — 알고리즘 가이드에 문제를 통합한다.
@@ -41,7 +41,7 @@ scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/chec
 **배치 1 — 명세·도구**
 
 - [x] `S1` SPEC·voice 개정 — §1 표 · §2 매핑 · §3 `practice` 작성법 · `deep.origin` ① 개정 · §6 `L49` · §8 한시 조항 · `selfcheck` 경계 · SPEC 의 voice 인용 행 번호(87 → 95) · voice 「문서 끝」 규칙 · `FEEDBACK.md` 한 줄. `grep -n '문제를 고정\|이 문제'` 로 SPEC·voice 의 자리를 전수로 처분(`deep.origin` ① · 873행 L3 포함). 완료 기준: 자리마다 처분이 정해져 있고 `check-links`·`check-citations` 통과
-- [ ] `S2` 스캐너 — `tools/section.ts` 에 `practice`·`practice.problem`, `tools/check-v2.ts` 에 P22(실습 절 · 문제마다 5소절 · 스텁·테스트 경로 실재)·P23(실습 밖 실습 문제 지칭, `deep.origin` 있는 편만), `check-v2.test.ts` 사례. 완료 기준: 시험 통과 · `--all` 에서 P22 위반이 「실습 절 없음」뿐이고 그 수가 이전 대상 수와 같다 · P22 밖 위반 수가 개정 전과 같다 · 옛 구성 두세 편에 실습 절을 임시로 붙여 순서·헤딩 규칙이 새로 안 걸리는지 확인
+- [x] `S2` 스캐너 — `tools/section.ts` 에 `practice`·`practice.problem`, `tools/check-v2.ts` 에 P22(실습 절 · 문제마다 5소절 · 스텁·테스트 경로 실재)·P23(실습 밖 실습 문제 지칭, `deep.origin` 있는 편만), `check-v2.test.ts` 사례. 완료 기준: 시험 통과 · `--all` 에서 P22 위반이 「실습 절 없음」뿐이고 그 수가 이전 대상 수와 같다 · P22 밖 위반 수가 개정 전과 같다 · 옛 구성 두세 편에 실습 절을 임시로 붙여 순서·헤딩 규칙이 새로 안 걸리는지 확인
 - [ ] `S3` 규칙 자산 — `specs/problem` 퇴역 · `gen-problem`·`guide-for-problem` 개정 · `README.md`·`CLAUDE.md:11` 정정 · `.claude/authoring.lock.json` 의 problem·voice 해시 갱신. 완료 기준: `authoring-doctor` 가 깨진 참조 없이 돌고 `check-links` 통과
 
 **배치 2 — 파일럿(메인 세션, learning 스타일 확인 뒤 직접 집필)**
@@ -84,3 +84,6 @@ bunx --bun @biomejs/biome check tools/migrate-practice.ts tools/check-v2.ts tool
 - 2026-09-29T04:09 · s:15cf9d75 — `검증` 섹션 교체
 - 2026-09-29T04:34 · s:15cf9d75 · S1 doing — 착수
 - 2026-09-29T04:37 · s:15cf9d75 · S1 done — SPEC: §1 practice 3행·실습 도입 문단, §2 매핑·해소 규칙, §3 deep.origin ① 「다룰 과제를 고정한다」, pause 의 「이 문제에서는」→「이 입력 범위에서는」, selfcheck voice 인용 87→95 + 실습과의 경계, practice 절 신설, §6 L3 문구·L49 행·번호 안내(다음 L50), §8 L49 한시 조항, §0 스캐너 P1~P23. voice 규칙 9(~/.claude 원본 → --sync). FEEDBACK R30. grep 처분: SPEC 312(고침)·510(고침)·735(고침)·873 L3(고침)·340(새 문장, 금지 표현을 인용하는 자리라 그대로). remap 으로 KAN-034·057 인용 7곳 이동, 대장 갱신. check-links·check-citations 통과
+- 2026-09-29T04:37 · s:15cf9d75 · S2 doing — 착수
+- 2026-09-29T04:50 · s:15cf9d75 — S2 에서 scope 에 tools/check-metaphor.ts·test 를 더했다(은유 검사가 실습 절을 읽어 옮겨 온 문제 스토리에서 위반을 냄). scope 변경으로 직렬 중재 둘(058·039)과 036 용인이 자동 무효가 돼, 겹침 내용이 같음을 확인하고 유저 결정 그대로 다시 기록했다
+- 2026-09-29T04:51 · s:15cf9d75 · S2 done — section.ts: PRACTICE_HEADING·PRACTICE_PARTS, 실습 아래 ###/####/##### 를 practice.problem/part/sub 로(algo 만). check-v2.ts: guideText(실습 앞 본문만 본문 검사에) · P22 practiceFindings(절 하나·마지막 ##·문제 ≥1·소절 여섯 순서·풀 파일 줄·링크 실재) · P23 practiceReferenceFindings(「이 문제」·「문제가 … 정해」·「문제의 제약」, deep.origin 있는 편만). check-metaphor.ts 도 가이드는 실습 앞에서 끊는다(scope 추가). 시험 check-v2 171/171 · check-metaphor 23/23. --all: P22 111(전부 「실습 절 없음」) · P23 8(전부 파일럿, S4 몫) · 그 밖 0(기준선과 같음) · ds 0. kadane·dijkstra·ahoCorasick 에 실습 임시 부착 → check-v2 통과·check-proof·build-html·guide-core·check-metaphor 통과(은유 1건을 찾아 check-metaphor 를 고침) 뒤 되돌림. L49 문구에서 「지문」 제외(purpose.cue·해시 지문 오탐). 인용 remap 8곳

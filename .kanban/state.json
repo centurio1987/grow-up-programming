@@ -1,6 +1,6 @@
 {
   "next_id": 61,
-  "next_seq": 420,
+  "next_seq": 423,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -309,6 +309,8 @@
         "tools/section.ts",
         "tools/check-v2.ts",
         "tools/check-v2.test.ts",
+        "tools/check-metaphor.ts",
+        "tools/check-metaphor.test.ts",
         "tools/migrate-practice.ts",
         ".claude/authoring/specs/problem/**",
         ".claude/authoring.lock.json",
@@ -1505,6 +1507,7 @@
     "KAN-032",
     "KAN-034.10-8M6T6P",
     "KAN-036-0G05DE",
+    "KAN-060-9P4ZAA",
     "KAN-029",
     "KAN-030",
     "KAN-007",
@@ -1556,10 +1559,39 @@
     "KAN-040-M5V53M",
     "KAN-056-VPCM91",
     "KAN-057-J36E1B",
-    "KAN-059-PSFTN4",
-    "KAN-060-9P4ZAA"
+    "KAN-059-PSFTN4"
   ],
   "recent": [
+    {
+      "seq": 422,
+      "t": "2026-09-29T04:50",
+      "a": "유저",
+      "id": "KAN-058-8XT6PC",
+      "op": "serialize",
+      "w": "92ZX3K",
+      "with_": "KAN-060-9P4ZAA",
+      "reason": "058 의 110편 재집필이 060 이 세운 practice 절·L49 위에서 선다(유저 결정 2026-09-29 · S2 scope 추가 뒤 다시 기록)"
+    },
+    {
+      "seq": 421,
+      "t": "2026-09-29T04:49",
+      "a": "유저",
+      "id": "KAN-060-9P4ZAA",
+      "op": "waive",
+      "w": "92ZX3K",
+      "with_": "KAN-036-0G05DE",
+      "reason": "문제_가이드_목록.md 하나만 겹친다 — 두 카드가 목록의 다른 절(알고리즘·자료구조)을 고쳐 줄 단위 병합으로 합쳐진다(유저 결정 2026-09-29 · S2 scope 추가 뒤 다시 기록, 겹침 내용 불변)"
+    },
+    {
+      "seq": 420,
+      "t": "2026-09-29T04:49",
+      "a": "유저",
+      "id": "KAN-039-FG8HWZ",
+      "op": "serialize",
+      "w": "92ZX3K",
+      "with_": "KAN-060-9P4ZAA",
+      "reason": "039 가 새로 쓰는 rollingHash·huffmanTree 가이드는 060 이 세운 practice 절 규칙을 따른다(유저 결정 2026-09-29 · S2 에서 scope 에 check-metaphor 를 더해 다시 기록, 겹침 내용 불변)"
+    },
     {
       "seq": 419,
       "t": "2026-09-29T04:31",
@@ -2110,36 +2142,6 @@
       "field": "title",
       "before": "ds-guide-v2 전 편 전개 — 파일럿 3편의 골격·집필 안내를 자료구조 가이드 66편에 적용",
       "after": "ds-guide-v2 전 편 전개 — 파일럿 3편의 골격·집필 안내를 자료구조 가이드 64편에 적용"
-    },
-    {
-      "seq": 380,
-      "t": "2026-09-18T20:20",
-      "a": "ai",
-      "id": "KAN-040-M5V53M",
-      "op": "move",
-      "w": "N0VY8A",
-      "from": "review",
-      "to": "done"
-    },
-    {
-      "seq": 379,
-      "t": "2026-09-18T20:07",
-      "a": "ai",
-      "id": "KAN-040-M5V53M",
-      "op": "move",
-      "w": "N0VY8A",
-      "from": "doing",
-      "to": "review"
-    },
-    {
-      "seq": 378,
-      "t": "2026-09-18T17:07",
-      "a": "ai",
-      "id": "KAN-040-M5V53M",
-      "op": "move",
-      "w": "N0VY8A",
-      "from": "review",
-      "to": "doing"
     }
   ],
   "waivers": [
@@ -2194,9 +2196,9 @@
     },
     {
       "pair": "KAN-036-0G05DE|KAN-060-9P4ZAA",
-      "scope_hash": "1e3fa000f561bbe4",
-      "reason": "문제_가이드_목록.md 하나만 겹친다 — 두 카드가 목록의 다른 절(알고리즘·자료구조)을 고쳐 줄 단위 병합으로 합쳐진다(유저 결정 2026-09-29)",
-      "created": "2026-09-29T04:27",
+      "scope_hash": "1a96b681909ad1a3",
+      "reason": "문제_가이드_목록.md 하나만 겹친다 — 두 카드가 목록의 다른 절(알고리즘·자료구조)을 고쳐 줄 단위 병합으로 합쳐진다(유저 결정 2026-09-29 · S2 scope 추가 뒤 다시 기록, 겹침 내용 불변)",
+      "created": "2026-09-29T04:49",
       "by": "유저"
     }
   ],
@@ -2552,26 +2554,26 @@
       "restrategy_required": true
     },
     {
-      "pair": "KAN-058-8XT6PC|KAN-060-9P4ZAA",
-      "order": [
-        "KAN-060-9P4ZAA",
-        "KAN-058-8XT6PC"
-      ],
-      "scope_hash": "2ebef04ae474ca68",
-      "reason": "058 의 110편 재집필이 060 이 세운 practice 절·L49 위에서 선다(유저 결정 2026-09-29)",
-      "created": "2026-09-29T04:10",
-      "by": "유저",
-      "restrategy_required": false
-    },
-    {
       "pair": "KAN-039-FG8HWZ|KAN-060-9P4ZAA",
       "order": [
         "KAN-060-9P4ZAA",
         "KAN-039-FG8HWZ"
       ],
-      "scope_hash": "18b863e84292da74",
-      "reason": "039 가 새로 쓰는 rollingHash·huffmanTree 가이드는 060 이 세운 practice 절 규칙을 따른다(유저 결정 2026-09-29)",
-      "created": "2026-09-29T04:27",
+      "scope_hash": "b27892b5fb91180d",
+      "reason": "039 가 새로 쓰는 rollingHash·huffmanTree 가이드는 060 이 세운 practice 절 규칙을 따른다(유저 결정 2026-09-29 · S2 에서 scope 에 check-metaphor 를 더해 다시 기록, 겹침 내용 불변)",
+      "created": "2026-09-29T04:49",
+      "by": "유저",
+      "restrategy_required": false
+    },
+    {
+      "pair": "KAN-058-8XT6PC|KAN-060-9P4ZAA",
+      "order": [
+        "KAN-060-9P4ZAA",
+        "KAN-058-8XT6PC"
+      ],
+      "scope_hash": "8e6f25a1e4953661",
+      "reason": "058 의 110편 재집필이 060 이 세운 practice 절·L49 위에서 선다(유저 결정 2026-09-29 · S2 scope 추가 뒤 다시 기록)",
+      "created": "2026-09-29T04:50",
       "by": "유저",
       "restrategy_required": false
     }

@@ -222,6 +222,42 @@ T1 부터 T6 까지 각 걸음이 포인터를 하나씩 당긴다.
 
 - T3 에서 왜 l 을 옮겼는가?
 - 정렬이 없으면 어디가 깨지는가?
+
+## 실습 — 직접 풀어 보기
+
+이 방법으로 풀 문제입니다.
+
+### 두 수의 합
+
+풀 파일: [\`twoPointer.ts\`](./twoPointer.ts) · 테스트: [\`twoPointer.test.ts\`](./twoPointer.test.ts) · 실행: \`bun test src/algorithms/array/twoPointer/twoPointer.test.ts\`
+
+#### 한 줄 요약
+
+> 정렬된 배열과 목표값을 받아 합이 목표값인 두 인덱스를 반환한다.
+
+#### 스토리
+
+민수는 이 문제에서 지문이 정해 둔 대로 두 값을 찾는다.
+
+#### 함수 인터페이스
+
+\`\`\`ts
+export function twoPointer(A: number[], target: number): [number, number];
+\`\`\`
+
+#### 제약 조건
+
+- $2 \\leq N \\leq 100{,}000$
+
+#### 문제 상세
+
+합이 목표값인 쌍이 하나 있다.
+
+#### 예시
+
+\`\`\`ts
+twoPointer([1, 2, 3, 100], 101); // [0, 3]
+\`\`\`
 `;
 
 const SIM = `export const demo = {
@@ -902,7 +938,11 @@ test("P7 — related 에 그림이 없으면 걸린다", () => {
 });
 
 test("P8 — related 가 파트 2 뒤에 있으면 걸린다", () => {
-  const text = `${PASSING}\n${RELATED}`;
+  // 실습(`KAN-060`)이 문서 끝이므로 그 앞, 파트 2 의 끝에 붙인다.
+  const text = PASSING.replace(
+    "## 실습 — 직접 풀어 보기",
+    `${RELATED}\n## 실습 — 직접 풀어 보기`,
+  );
   const findings = check({ text, sim: SIM, bench: { 비교: 34 } });
   expect(codes(findings)).toEqual(["P8"]);
 });
@@ -1684,6 +1724,9 @@ async function cliOn(
   await Bun.$`mkdir -p ${dir}`.quiet();
   try {
     await Bun.write(`${dir}/x-guide.md`, PASSING);
+    // 실습 풀 파일 줄(P22)이 가리키는 스텁·테스트. 없으면 CLI 가 P22 로 빨개진다.
+    await Bun.write(`${dir}/twoPointer.ts`, "");
+    await Bun.write(`${dir}/twoPointer.test.ts`, "");
     for (const [ext, body] of Object.entries(sidecars)) {
       await Bun.write(`${dir}/x-guide.${ext}`, body);
     }
@@ -1738,6 +1781,9 @@ test("CLI — 사람이 읽는 화면에도 건너뛴 검사가 적힌다", asyn
   await Bun.$`mkdir -p ${dir}`.quiet();
   try {
     await Bun.write(`${dir}/x-guide.md`, PASSING);
+    // 실습 풀 파일 줄(P22)이 가리키는 스텁·테스트. 없으면 CLI 가 P22 로 빨개진다.
+    await Bun.write(`${dir}/twoPointer.ts`, "");
+    await Bun.write(`${dir}/twoPointer.test.ts`, "");
     const r = await runCli([`${dir}/x-guide.md`]);
     expect(r.out).toContain("P16 정본 대조는 실행되지 않았다");
     expect(r.out).toContain("P10 은 실행되지 않았다");
@@ -2202,4 +2248,161 @@ test("P18 — 존댓말 · 청유 · 그림 · 인용 · 인라인 코드는 걸
   const text = WITH_STAGES(STAGES_OK.replace("창을 한 칸 옮깁니다.", extra));
   const before = findingsOf(WITH_STAGES(STAGES_OK), "P18").length;
   expect(findingsOf(text, "P18").length).toBe(before);
+});
+
+/* ── P22 · P23 — 실습 절(`KAN-060`, `SPEC.md` §3 `practice` · `L49`) ── */
+
+const ORIGIN = `### 아이디어를 떠올리는 과정 — 둘 다 훑기에서 양 끝 좁히기까지
+
+\`\`\`ts
+function pair(A: number[], t: number): [number, number];
+\`\`\`
+
+\`\`\`text
+[1 2 3 100]  목표 101
+\`\`\`
+
+`;
+
+test("section — 실습 아래 헤딩은 이름과 상관없이 practice 로 해소된다", () => {
+  const { sections, unresolved } = parseSections(PASSING, "algo");
+  expect(unresolved).toEqual([]);
+  const ids = sections
+    .filter((s) => s.id.startsWith("practice"))
+    .map((s) => s.id);
+  expect(ids).toEqual([
+    "practice",
+    "practice.problem",
+    ...Array(6).fill("practice.part"),
+  ]);
+});
+
+test("section — 자료구조 골격에는 실습이 없다", () => {
+  const { unresolved } = parseSections("## 실습 — 직접 풀어 보기\n", "ds");
+  expect(unresolved).toHaveLength(1);
+});
+
+test("P22 — 통과 표본은 걸리지 않는다", () => {
+  expect(
+    codes(check({ text: PASSING, sim: SIM, bench: { 비교: 34 } })),
+  ).not.toContain("P22");
+});
+
+test("P22 — 실습 절이 없으면 걸린다", () => {
+  const text = PASSING.slice(0, PASSING.indexOf("## 실습 — 직접 풀어 보기"));
+  expect(codes(check({ text, sim: SIM, bench: { 비교: 34 } }))).toEqual([
+    "P22",
+  ]);
+});
+
+test("P22 — 소절이 빠지거나 순서가 바뀌면 걸린다", () => {
+  const missing = PASSING.replace(
+    "#### 문제 상세\n\n합이 목표값인 쌍이 하나 있다.\n\n",
+    "",
+  );
+  expect(
+    codes(check({ text: missing, sim: SIM, bench: { 비교: 34 } })),
+  ).toEqual(["P22"]);
+  const swapped = PASSING.replace("#### 스토리", "#### 임시")
+    .replace("#### 한 줄 요약", "#### 스토리")
+    .replace("#### 임시", "#### 한 줄 요약");
+  expect(
+    codes(check({ text: swapped, sim: SIM, bench: { 비교: 34 } })),
+  ).toEqual(["P22"]);
+});
+
+test("P22 — 풀 파일 줄이 없거나 없는 파일을 가리키면 걸린다", () => {
+  const noLine = PASSING.replace(/풀 파일: .*\n/, "");
+  expect(codes(check({ text: noLine, sim: SIM, bench: { 비교: 34 } }))).toEqual(
+    ["P22"],
+  );
+  const gone = check({
+    text: PASSING,
+    sim: SIM,
+    bench: { 비교: 34 },
+    practiceLinks: { "./twoPointer.ts": true, "./twoPointer.test.ts": false },
+  });
+  expect(codes(gone)).toEqual(["P22"]);
+});
+
+test("P22 — 실습 뒤에 절이 오면 걸린다", () => {
+  const text = `${PASSING}\n## 파트 2 — 뒤에 붙은 파트\n\n본문.\n`;
+  expect(codes(check({ text, sim: SIM, bench: { 비교: 34 } }))).toContain(
+    "P22",
+  );
+});
+
+test("P22 — 문제가 둘이면 둘 다 소절을 갖춰야 한다", () => {
+  const second = PASSING.slice(PASSING.indexOf("### 두 수의 합")).replace(
+    "### 두 수의 합",
+    "### 두 번째 문제",
+  );
+  const text = `${PASSING}\n${second}`;
+  expect(codes(check({ text, sim: SIM, bench: { 비교: 34 } }))).not.toContain(
+    "P22",
+  );
+  const broken = `${PASSING}\n### 세 번째 문제\n\n풀 파일 없음\n`;
+  expect(codes(check({ text: broken, sim: SIM, bench: { 비교: 34 } }))).toEqual(
+    ["P22", "P22"],
+  );
+});
+
+test("본문 검사는 실습을 읽지 않는다 — 문제 서술의 평서형·지칭은 P18·P23 이 안 본다", () => {
+  const text = PASSING.replace(
+    "#### 문제 상세\n\n합이 목표값인 쌍이 하나 있다.",
+    "#### 문제 상세\n\n**이 문제는 쌍을 찾는다.** 이 문제의 제약은 위와 같다.",
+  );
+  const findings = check({
+    text: text.replace(
+      "### 수행으로 알아보는",
+      `${ORIGIN}### 수행으로 알아보는`,
+    ),
+    sim: SIM,
+    bench: { 비교: 34 },
+  });
+  expect(codes(findings).filter((c) => c === "P18" || c === "P23")).toEqual([]);
+});
+
+test("P23 — deep.origin 이 있는 편에서 실습 문제를 가리키면 걸린다", () => {
+  const withOrigin = PASSING.replace(
+    "### 수행으로 알아보는",
+    `${ORIGIN}### 수행으로 알아보는`,
+  );
+  expect(
+    codes(check({ text: withOrigin, sim: SIM, bench: { 비교: 34 } })),
+  ).not.toContain("P23");
+  const bad = withOrigin.replace(
+    "양 끝에서 좁히면 한 번의 순회로 끝납니다.",
+    "이 문제의 제약이면 양 끝에서 좁히면 한 번의 순회로 끝납니다.",
+  );
+  // 이 검사가 보는 것은 P23 하나다 — 끼워 넣은 문장이 다른 문형 검사에 걸리는지는 여기서 안 본다.
+  expect(
+    codes(check({ text: bad, sim: SIM, bench: { 비교: 34 } })).filter(
+      (c) => c === "P23",
+    ),
+  ).toEqual(["P23"]);
+});
+
+test("P23 — deep.origin 이 없는 옛 구성은 재지 않는다(한시 조항)", () => {
+  const bad = PASSING.replace(
+    "양 끝에서 좁히면 한 번의 순회로 끝납니다.",
+    "이 문제에서는 양 끝에서 좁히면 한 번의 순회로 끝납니다.",
+  );
+  expect(
+    codes(check({ text: bad, sim: SIM, bench: { 비교: 34 } })),
+  ).not.toContain("P23");
+});
+
+test("P23 — 문제 일반을 말하는 자리 · 인용 · 코드는 안 본다", () => {
+  const withOrigin = PASSING.replace(
+    "### 수행으로 알아보는",
+    `${ORIGIN}### 수행으로 알아보는`,
+  );
+  const ok = withOrigin.replace(
+    "양 끝에서 좁히면 한 번의 순회로 끝납니다.",
+    "문제 지문에서 정렬된 배열이 보이면 이 방법을 떠올립니다. 「이 문제」라고 부르지 않고 `이 문제` 도 코드입니다.",
+  );
+  expect(
+    codes(check({ text: ok, sim: SIM, bench: { 비교: 34 } })),
+  ).not.toContain("P23");
 });
