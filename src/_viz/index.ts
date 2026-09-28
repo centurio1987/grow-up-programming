@@ -24,6 +24,7 @@ export {
   type CellStageFilmProps,
   type CellStageProps,
   cellStageSize,
+  filmCells,
   type StageFrame,
   type StageRow,
   type StageTone,

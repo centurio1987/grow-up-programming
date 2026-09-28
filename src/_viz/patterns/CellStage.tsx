@@ -402,6 +402,26 @@ const BADGE_W = 40;
 const BADGE_H = 22;
 const FRAME_GAP = 20;
 
+/**
+ * 걸음 칸마다 차지하는 세로 자리 — 칸들이 필름 전체를 빈틈없이 나눈다.
+ *
+ * 책(PDF)은 필름 한 장을 이 경계에서 칸별 SVG 로 가른다(`tools/book/fragment.ts`) — 칸 하나가
+ * 쪽 안에서 안 갈라지는 단위가 되고, 쪽은 칸 사이에서 넘어간다. 경계는 앞 칸의 무대가 끝나는
+ * 자리(= 다음 칸 배지 위 `FRAME_GAP`)라, 칸 사이 구분선은 통째로 뒤 칸에 든다. 첫 칸은 0 에서,
+ * 끝 칸은 필름 바닥에서 끝난다 — 바깥 여백까지 어느 칸엔가 속한다.
+ */
+export function filmCells(
+  tops: readonly number[],
+  height: number,
+): Array<{ y: number; h: number }> {
+  return tops.map((top, n) => {
+    const y = n === 0 ? 0 : top - FRAME_GAP;
+    const next = tops[n + 1];
+    const end = next === undefined ? height : next - FRAME_GAP;
+    return { y, h: end - y };
+  });
+}
+
 /** 정적 그림 — 걸음마다 배지 + 한 줄 + 무대 한 장을 위에서 아래로. */
 export function CellStageFilm({
   title,
@@ -428,6 +448,7 @@ export function CellStageFilm({
     y += HEAD + g.height + FRAME_GAP;
   }
   const height = y - FRAME_GAP + FORM.pad;
+  const cells = filmCells(tops, height);
   return (
     <Canvas
       viewBox={`0 0 ${width} ${height}`}
@@ -439,7 +460,12 @@ export function CellStageFilm({
         const top = tops[n] as number;
         const grid = grids[n] as ReturnType<typeof layout>;
         return (
-          <g key={f.id} data-viz-step={f.id}>
+          <g
+            key={f.id}
+            data-viz-step={f.id}
+            data-viz-y={cells[n]?.y}
+            data-viz-h={cells[n]?.h}
+          >
             {n > 0 ? (
               <path
                 d={`M ${FORM.pad} ${top - FRAME_GAP / 2} H ${width - FORM.pad}`}

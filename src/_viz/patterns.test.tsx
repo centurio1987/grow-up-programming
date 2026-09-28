@@ -4,6 +4,7 @@ import {
   CellStage,
   CellStageFilm,
   cellStageSize,
+  filmCells,
   LevelTable,
   LogBarChart,
   overlapCells,
@@ -390,6 +391,40 @@ describe("P7 CellStage · 걸음 재생 패널 무대", () => {
     );
     expect(count(svg, /data-viz-step="T\d+"/g)).toBe(8);
     expect(count(svg, /data-viz-range="make"/g)).toBe(8);
+  });
+
+  test("필름 칸 경계는 필름 전체를 빈틈없이 나눈다 — 책이 이 자리에서 가른다", async () => {
+    const { build } = await load();
+    const svg = await renderToSvg(
+      <CellStageFilm
+        title="쌓기"
+        columns={6}
+        frames={build.map((f) => ({ id: f.id, text: f.title, rows: f.rows }))}
+      />,
+      "t-film",
+    );
+    const height = Number(/viewBox="0 0 \d+ (\d+)"/.exec(svg)?.[1]);
+    const cells = [
+      ...svg.matchAll(
+        /data-viz-step="T\d+" data-viz-y="(\d+)" data-viz-h="(\d+)"/g,
+      ),
+    ].map((m) => ({ y: Number(m[1]), h: Number(m[2]) }));
+    expect(cells.length).toBe(8);
+    expect(cells[0]?.y).toBe(0);
+    for (let n = 1; n < cells.length; n++) {
+      const prev = cells[n - 1] as { y: number; h: number };
+      expect(cells[n]?.y).toBe(prev.y + prev.h);
+    }
+    const last = cells.at(-1) as { y: number; h: number };
+    expect(last.y + last.h).toBe(height);
+  });
+
+  test("칸 경계는 앞 칸 무대 끝에 선다 — 구분선이 뒤 칸에 통째로 든다", () => {
+    // 두 칸: 배지 윗변이 10, 330. 칸 사이 틈이 20 이면 경계는 310 이다.
+    expect(filmCells([10, 330], 640)).toEqual([
+      { y: 0, h: 310 },
+      { y: 310, h: 330 },
+    ]);
   });
 });
 
