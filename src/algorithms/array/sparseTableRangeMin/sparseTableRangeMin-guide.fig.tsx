@@ -8,11 +8,13 @@
  */
 
 import type { ReactElement } from "react";
+import { josa, 과와, 을를, 이가 } from "../../../../tools/josa.ts";
 import {
   type Approach,
   ApproachLadder,
   approachLadderWidth,
 } from "../../../_viz/patterns/ApproachLadder";
+import { CellStageFilm } from "../../../_viz/patterns/CellStage";
 import { type LayerBar, LayerBars } from "../../../_viz/patterns/LayerBars";
 import { LevelTable } from "../../../_viz/patterns/LevelTable";
 import {
@@ -20,7 +22,7 @@ import {
   type Range,
   RangeCover,
 } from "../../../_viz/patterns/RangeCover";
-import { StepTrace, type TraceStep } from "../../../_viz/patterns/StepTrace";
+import { type PlayerSpec, playerFrames } from "../../../_viz/player/StepPlayer";
 import { sparseTableRangeMin } from "./sparseTableRangeMin-guide.ref.ts";
 import { answer, build } from "./sparseTableRangeMin-guide.sim.ts";
 
@@ -186,35 +188,119 @@ function approaches(): Approach[] {
   ];
 }
 
-type Frame = {
-  title: string;
-  entries: readonly { label: string; value: number }[];
-};
-const val = (f: Frame, label: string): number =>
-  f.entries.find((e) => e.label === label)?.value as number;
-const idOf = (f: Frame): string => f.title.split(" ")[0] as string;
+/** 본문 전개의 질의 다섯(「수행으로 알아보는 알고리즘」 T11~T15 와 같다). */
+const QUERIES: [number, number][] = [
+  [0, 4],
+  [1, 2],
+  [3, 3],
+  [0, 5],
+  [2, 5],
+];
 
-/** `T3 k=1 i=0` → 「1 층 칸 0 · min(5, 2) = 2 · 채운 칸 1」. */
-const buildStep = (f: Frame): TraceStep => {
-  const [, k, i] = f.title.match(/k=(\d+) i=(\d+)/) ?? [];
-  const a = val(f, "아래층 왼쪽 값");
-  const b = val(f, "아래층 오른쪽 값");
-  return {
-    id: idOf(f),
-    text: `${k} 층 칸 ${i} · min(${a}, ${b}) = ${val(f, "새 칸의 값")} · 채운 칸 ${val(f, "채운 칸 수")}`,
-  };
-};
+// 조사는 값에서 고른다 — 정본 헬퍼 `tools/josa.ts`(SPEC §10). 앞 공백까지 돌려준다(「칸 0 과」).
+const eul = (n: number) => 을를(String(n));
+const gwa = (n: number) => 과와(String(n));
+const iga = (n: number) => 이가(String(n));
 
-/** `T11 질의 l=0 r=4` → 「[0,4] · 층 2 · min(2, 2) = 2 · 겹친 칸 3」. */
-const answerStep = (f: Frame): TraceStep => {
-  const [, l, r] = (f.title.match(/l=(\d+) r=(\d+)/) ?? []).map(Number);
-  const k = val(f, "층 k");
-  const len = (r as number) - (l as number) + 1;
-  return {
-    id: idOf(f),
-    text: `[${l},${r}] · 층 ${k} · min(${val(f, "왼쪽 조각의 값")}, ${val(f, "오른쪽 조각의 값")}) = ${val(f, "구간의 최솟값")} · 겹친 칸 ${2 * 2 ** k - len}`,
-  };
-};
+/**
+ * 걸음 재생 패널의 걸음 데이터 — 정본 실행에서 만든다. `.sim.ts` 의 `steps` 는 이 결과를 글자 그대로
+ * 옮긴 인라인 리터럴이고(P3 이 정적으로 세려면 리터럴이어야 한다), 둘이 같은지는
+ * `sparseTableRangeMin-guide.test.ts` 가 잰다. 필드는 claude-design 「Step Player」 시안 2절을 따른다.
+ */
+export function stageStepsFromRef() {
+  const full = levels();
+  const build = [];
+  let t = 3;
+  for (let k = 1; k < full.length; k++) {
+    const w = 2 ** k;
+    const half = w / 2;
+    const row = full[k] as number[];
+    for (let i = 0; i < row.length; i++) {
+      const snapshot = full.map((r, kk) =>
+        r.map((v, ii) => (kk < k || (kk === k && ii <= i) ? v : null)),
+      );
+      const text =
+        k === 1
+          ? `0 층 칸 ${i}${gwa(i)} 칸 ${i + 1}${eul(i + 1)} 읽고, 작은 쪽을 1 층 칸 ${i} 에 씁니다. 이 칸은 배열 [${i},${i + 1}]${eul(i + 1)} 덮습니다.`
+          : `${k - 1} 층에서 ${half} 칸 떨어진 칸 ${i}${gwa(i)} 칸 ${i + half}${eul(i + half)} 읽습니다. 두 칸이 덮는 [${i},${i + half - 1}]${gwa(i + half - 1)} [${i + half},${i + w - 1}]${eul(i + w - 1)} 이어 붙이면 새 칸이 덮는 [${i},${i + w - 1}]${iga(i + w - 1)} 됩니다.`;
+      build.push({
+        title: `T${t++} ${k} 층 칸 ${i} 만들기`,
+        text,
+        levels: snapshot,
+        read: [
+          { level: k - 1, index: i },
+          { level: k - 1, index: i + half },
+        ],
+        write: {
+          level: k,
+          index: i,
+          value: row[i] as number,
+          covers: [i, i + w - 1] as [number, number],
+        },
+      });
+    }
+  }
+
+  const answers = sparseTableRangeMin(A, QUERIES);
+  const answer = QUERIES.map(([l, r], j) => {
+    const n = r - l + 1;
+    let k = 0;
+    while (2 ** (k + 1) <= n) k++;
+    const w = 2 ** k;
+    const ri = r - w + 1;
+    const overlap = Array.from({ length: n }, (_, x) => l + x).filter(
+      (x) => x >= ri && x <= l + w - 1,
+    );
+    const text =
+      l === ri
+        ? `칸이 ${n} 개라 ${k} 층을 고릅니다. 두 조각이 같은 칸 ${l}${josa(String(l), "이라", "라")} 질의의 ${n} 칸이 모두 겹칩니다.`
+        : `칸이 ${n} 개라 ${k} 층을 고르고, 칸 ${l}${gwa(l)} 칸 ${ri}${eul(ri)} 읽습니다. 두 조각은 인덱스 ${overlap.join(" · ")} 에서 겹칩니다.`;
+    return {
+      title: `T${t++} 질의 [${l},${r}]`,
+      text,
+      levels: full,
+      query: [l, r] as [number, number],
+      level: k,
+      lookup: `logTable[${n}] = ${k}`,
+      pieces: [
+        {
+          side: "left" as const,
+          level: k,
+          index: l,
+          value: minOf(l, l + w - 1),
+          covers: [l, l + w - 1] as [number, number],
+        },
+        {
+          side: "right" as const,
+          level: k,
+          index: ri,
+          value: minOf(ri, r),
+          covers: [ri, r] as [number, number],
+        },
+      ],
+      overlap,
+      answers: answers.slice(0, j + 1),
+      answerSlots: QUERIES.length,
+    };
+  });
+  return { build, answer };
+}
+
+/** 걸음 재생 패널의 정적 그림 — 패널과 같은 무대를 걸음마다 한 장씩(시안 규칙 8). */
+function Film({ spec }: { spec: PlayerSpec }) {
+  const frames = playerFrames(spec);
+  return (
+    <CellStageFilm
+      title={spec.title}
+      columns={frames[0]?.columns ?? 0}
+      frames={frames.map((f) => ({
+        id: f.id,
+        text: f.calc ? `${f.title} · ${f.calc.expr} ${f.calc.result}` : f.title,
+        rows: f.rows,
+      }))}
+    />
+  );
+}
 
 export const FIGS: Record<string, () => ReactElement> = {
   "origin-approaches": () => {
@@ -283,16 +369,6 @@ export const FIGS: Record<string, () => ReactElement> = {
       }}
     />
   ),
-  "walk-build": () => (
-    <StepTrace
-      title={build.title}
-      steps={(build.steps as unknown as Frame[]).map(buildStep)}
-    />
-  ),
-  "walk-answer": () => (
-    <StepTrace
-      title={answer.title}
-      steps={(answer.steps as unknown as Frame[]).map(answerStep)}
-    />
-  ),
+  "walk-build": () => <Film spec={build as PlayerSpec} />,
+  "walk-answer": () => <Film spec={answer as PlayerSpec} />,
 };

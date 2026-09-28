@@ -9,7 +9,7 @@
  * | 부분 | 자리 | 상태 |
  * | --- | --- | --- |
  * | foundation | `foundations` · `foundationPresets`(밝은·어두운·흑백) · `extendedFoundations` | 시안 방향 A(tokens.ts, S12) |
- * | pattern | `patterns` — P1~P6(`src/_viz/patterns/`) | 섰다(S4~S6 · S13 · 검토 지적 7) |
+ * | pattern | `patterns` — P1~P7(`src/_viz/patterns/`) · 걸음 재생 패널 `src/_viz/player/` | 섰다(S4~S6 · S13 · 검토 지적 6·7) |
  * | visual motif | `visualMotif` | 시안 컴포넌트 여덟과 사용 규칙(S12) |
  * | component | `wrapperComponents` — LogBarChart(로그 척도 막대) | 섰다(S6) |
  * | guideline | `guidelines` | 그림 형식 선택 규칙(카드 전략 1) |
@@ -26,6 +26,7 @@ import type { VisualizationStyleGuide } from "@centurio1987/bbangto-ui-visualiza
 import { LogBarChart } from "../../src/_viz/components/LogBarChart";
 import { ApproachLadder } from "../../src/_viz/patterns/ApproachLadder";
 import { ArrayStrip } from "../../src/_viz/patterns/ArrayStrip";
+import { CellStage } from "../../src/_viz/patterns/CellStage";
 import { LayerBars } from "../../src/_viz/patterns/LayerBars";
 import { LevelTable } from "../../src/_viz/patterns/LevelTable";
 import { RangeCover } from "../../src/_viz/patterns/RangeCover";
@@ -137,6 +138,11 @@ function extFor(c: Colorway): Record<string, string> {
     "--bbangto-viz-ext-cell-focus-stroke": c.focus,
     "--bbangto-viz-ext-cell-overlap-fill": c.overlapTint,
     "--bbangto-viz-ext-cell-overlap-stroke": c.overlap,
+    "--bbangto-viz-ext-cell-read-fill": c.soft,
+    "--bbangto-viz-ext-cell-read-stroke": c.ink,
+    "--bbangto-viz-ext-index-focus-fill": c.ink,
+    "--bbangto-viz-ext-index-focus-text": c.page,
+    "--bbangto-viz-ext-bracket-make": c.focus,
     "--bbangto-viz-ext-index-color": c.muted,
     "--bbangto-viz-ext-bracket": c.ink,
     "--bbangto-viz-ext-cover": c.muted,
@@ -193,7 +199,11 @@ const guidelines: Record<string, Record<string, unknown>> = {
         intent: "배열·구간·층의 공간 관계, 구조의 생김새",
         visual: "ArrayStrip · RangeCover · LevelTable · LayerBars",
       },
-      { intent: "걸음마다 상태 변화", visual: "StepTrace · viz 패널" },
+      {
+        intent: "걸음마다 구조의 상태 변화",
+        visual:
+          "걸음 재생 패널(StepPlayer) · 무대 CellStage · 한 줄 요약은 StepTrace",
+      },
       { intent: "규모의 차이", visual: "LogBarChart + 정확한 수" },
       { intent: "식의 전개", visual: "수식 블록" },
       { intent: "절차", visual: "번호 목록 · ProcessSteps" },
@@ -291,5 +301,6 @@ export const algoVizStyleGuide: VisualizationStyleGuide = {
     StepTrace,
     LayerBars,
     ApproachLadder,
+    CellStage,
   },
 };

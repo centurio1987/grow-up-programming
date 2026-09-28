@@ -113,4 +113,21 @@ export const ALGO_VIZ_META: readonly AlgoVizMeta[] = [
       "시도가 여섯을 넘으면 그림이 길어진다 — 묶어서 줄인다",
     ],
   },
+  {
+    id: "ALGO-P7",
+    name: "Cell Stage",
+    exportName: "CellStage",
+    summary:
+      "걸음 재생 패널의 무대 — 알고리즘이 쌓는 구조 전체를 줄로 쌓고 걸음마다 칸 상태(끝남·읽음·새로 씀·아직)만 바꾼다",
+    dataShape: ["sequence", "hierarchy", "change-over-time"],
+    structuralTraits: ["sequential", "nested"],
+    useWhen: [
+      "걸음마다 구조의 어느 칸을 읽고 어느 칸을 썼는지 보일 때",
+      "지금까지 쌓은 것과 앞으로 채울 자리를 한 화면에 둘 때",
+    ],
+    avoidWhen: [
+      "구조가 트리·그래프면 노드 무대(KAN-058 에서 더한다)",
+      "걸음이 한두 개면 CellStage 한 장이나 RangeCover",
+    ],
+  },
 ];

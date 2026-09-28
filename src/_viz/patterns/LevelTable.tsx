@@ -45,10 +45,10 @@ const SUB_SIZE = 11;
 /** 층 라벨 — 「k 층 · 2^k 칸씩」. 그림 안 `data-viz-label` 과 화면 읽기 도구가 쓴다. */
 export const levelLabel = (k: number): string => `${k} 층 · ${2 ** k} 칸씩`;
 /** 층 라벨 아래 줄 — 시안 컴포넌트 04. */
-const levelSub = (k: number): string => `칸 하나 = ${2 ** k} 칸`;
+export const levelSub = (k: number): string => `칸 하나 = ${2 ** k} 칸`;
 
-/** 층 라벨 — 1px 잉크 테 안의 「k 층」과 그 아래 한 줄. */
-function LevelTag({ k, y }: { k: number; y: number }) {
+/** 층 라벨 — 1px 잉크 테 안의 「k 층」과 그 아래 한 줄. `y` 는 칸 윗변. */
+export function LevelTag({ k, y }: { k: number; y: number }) {
   const tag = `${k} 층`;
   // 패키지 `estimateWidth` 는 한글을 좁게 잡아 테가 글자에 붙었다(S12 실측) — 한글은 글자 크기만큼 센다.
   const w =

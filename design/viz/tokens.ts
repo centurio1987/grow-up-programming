@@ -80,6 +80,8 @@ export const FORM = {
   focusWidth: 2.5,
   /** 겹침 칸 테. */
   overlapWidth: 1.5,
+  /** 읽음 칸 테 — 걸음 재생 패널 시안(의뢰서 2) 상태 표의 「읽음」. */
+  readWidth: 1.5,
   /** 괄호 — 질의 3 · 조각 2. */
   queryWidth: 3,
   pieceWidth: 2,

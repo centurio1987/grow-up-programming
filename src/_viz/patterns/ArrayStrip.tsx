@@ -6,7 +6,8 @@
  * 라벨의 세로 자리를 칸 가운데로 고정할 수 없어서다(S2 스파이크에서 값이 칸 위 경계에 붙었다).
  *
  * 칸 상태는 시안 방향 A(S12)의 컴포넌트 01 을 따른다. 흑백에서도 갈린다 — 강조는 2.5px 테와 굵은
- * 값, 겹침은 1.5px 테와 135° 해칭과 굵은 값, 범위 밖은 대시 테와 흐린 값, 빈 칸은 점선 테.
+ * 값, 읽음은 1.5px 잉크 테와 옅은 채움, 겹침은 1.5px 테와 135° 해칭과 굵은 값, 범위 밖은 대시 테와
+ * 흐린 값, 빈 칸은 점선 테.
  */
 
 import {
@@ -17,7 +18,11 @@ import {
 import { useId } from "react";
 import { FORM } from "../../../design/viz/tokens";
 
-export type CellState = "focus" | "overlap" | "out" | "empty";
+/**
+ * 칸 상태. `read` 는 걸음 재생 패널 시안(의뢰서 2)의 「읽음」 — 이번 걸음에 읽은 칸이다.
+ * 강조(`focus`)가 「새로 씀」을 맡고, 적지 않은 칸이 「끝남」이다.
+ */
+export type CellState = "focus" | "read" | "overlap" | "out" | "empty";
 
 export interface StripRow {
   /** 줄 머리 라벨(예: 「A 의 값」, 「1 층」). 없으면 비운다. */
@@ -68,6 +73,12 @@ function cellStyle(state: CellState | undefined) {
         stroke: "var(--bbangto-viz-ext-cell-focus-stroke)",
         strokeWidth: FORM.focusWidth,
       };
+    case "read":
+      return {
+        fill: "var(--bbangto-viz-ext-cell-read-fill)",
+        stroke: "var(--bbangto-viz-ext-cell-read-stroke)",
+        strokeWidth: FORM.readWidth,
+      };
     case "overlap":
       return {
         fill: "var(--bbangto-viz-ext-cell-overlap-fill)",
@@ -83,12 +94,17 @@ function cellStyle(state: CellState | undefined) {
   }
 }
 
-/** 값 글자 — 강조·겹침은 굵게, 범위 밖·빈 칸은 흐리게. */
+/** 값 글자 — 강조·겹침은 굵게, 읽음은 조금 굵게, 범위 밖·빈 칸은 흐리게. */
 function valueStyle(state: CellState | undefined) {
   const dim = state === "out" || state === "empty";
   return {
     ...text(dim ? "cell-muted-text" : "cell-text", 15, true),
-    fontWeight: state === "focus" || state === "overlap" ? 700 : 400,
+    fontWeight:
+      state === "focus" || state === "overlap"
+        ? 700
+        : state === "read"
+          ? 600
+          : 400,
   };
 }
 

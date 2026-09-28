@@ -19,6 +19,16 @@ export {
   type StripRow,
 } from "./patterns/ArrayStrip";
 export {
+  CellStage,
+  CellStageFilm,
+  type CellStageFilmProps,
+  type CellStageProps,
+  cellStageSize,
+  type StageFrame,
+  type StageRow,
+  type StageTone,
+} from "./patterns/CellStage";
+export {
   type LayerBar,
   LayerBars,
   type LayerBarsProps,
@@ -42,4 +52,10 @@ export {
   type StepTraceProps,
   type TraceStep,
 } from "./patterns/StepTrace";
+export {
+  isPlayerSpec,
+  type PlayerSpec,
+  playerFrames,
+  StepPlayer,
+} from "./player/StepPlayer";
 export { renderToSvg, type VizPreset } from "./render";

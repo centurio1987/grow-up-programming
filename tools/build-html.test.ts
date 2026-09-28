@@ -7,7 +7,8 @@
  */
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
-GlobalRegistrator.register();
+// 같은 프로세스에서 먼저 돈 시험이 이미 켰으면 다시 켜지 않는다(두 번 부르면 이 파일 전체가 실패한다).
+if (!GlobalRegistrator.isRegistered) GlobalRegistrator.register();
 
 import { expect, test } from "bun:test";
 import { rm } from "node:fs/promises";

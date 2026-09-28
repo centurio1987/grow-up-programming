@@ -6,7 +6,9 @@
  */
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
-GlobalRegistrator.register();
+// 같은 프로세스에서 먼저 돈 시험(도식 렌더 `src/_viz/render.tsx`)이 이미 켰으면 다시 켜지 않는다 —
+// 다시 부르면 「already been globally registered」 로 이 파일 전체가 실패한다.
+if (!GlobalRegistrator.isRegistered) GlobalRegistrator.register();
 // React act() 환경 플래그
 (
   globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }

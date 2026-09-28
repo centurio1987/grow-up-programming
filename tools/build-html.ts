@@ -846,12 +846,14 @@ export async function build(
 import { createRoot } from "react-dom/client";
 import { AlgorithmSimulation } from "#guide-sim";
 import { mountAll } from ${JSON.stringify(join(import.meta.dir, "mount.ts"))};
+import { StepPlayer } from ${JSON.stringify(join(import.meta.dir, "../src/_viz/player/StepPlayer.tsx"))};
 import * as sims from ${JSON.stringify(resolve(opts.simPath))};
 
 mountAll(document, sims as never, {
   createRoot,
   createElement,
   Component: AlgorithmSimulation,
+  componentFor: (spec) => (spec.player === "stage" ? StepPlayer : undefined),
 });
 `,
     );

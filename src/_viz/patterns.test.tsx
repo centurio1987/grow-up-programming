@@ -1,9 +1,14 @@
 import { describe, expect, test } from "bun:test";
 import {
   ArrayStrip,
+  CellStage,
+  CellStageFilm,
+  cellStageSize,
   LevelTable,
   LogBarChart,
   overlapCells,
+  type PlayerSpec,
+  playerFrames,
   RangeCover,
   renderToSvg,
   StepTrace,
@@ -111,39 +116,20 @@ describe("P3 LevelTable", () => {
 });
 
 describe("P4 StepTrace · 기존 유형", () => {
-  test("시뮬 프레임 T3~T15 의 값이 정본 실행과 같고, 그대로 걸음이 된다", async () => {
-    const { sparseTableRangeMin } = await import(
-      "../algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.ref.ts"
-    );
+  test("시뮬 걸음 T3~T15 가 차례로 이어지고, 걸음 제목이 그대로 걸음 줄이 된다", async () => {
+    // 걸음 값이 정본 실행과 같은지는 가이드 시험(`sparseTableRangeMin-guide.test.ts`)이 잰다.
     const sim = await import(
       "../algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.sim.ts"
     );
-    type F = { title: string; entries: { label: string; value: number }[] };
-    const val = (f: F, label: string) =>
-      f.entries.find((e) => e.label === label)?.value;
-    const buildSteps = sim.build.steps as unknown as F[];
-    const answerSteps = sim.answer.steps as unknown as F[];
-    const ids = [...buildSteps, ...answerSteps].map(
-      (f) => f.title.split(" ")[0],
+    const all = [...sim.build.steps, ...sim.answer.steps];
+    expect(all.map((f) => f.title.split(" ")[0])).toEqual(
+      Array.from({ length: 13 }, (_, n) => `T${n + 3}`),
     );
-    expect(ids).toEqual(Array.from({ length: 13 }, (_, n) => `T${n + 3}`));
-    for (const f of buildSteps) {
-      const [, k, i] = f.title.match(/k=(\d+) i=(\d+)/)?.map(Number) ?? [];
-      const [ans] = sparseTableRangeMin(A, [
-        [i as number, (i as number) + 2 ** (k as number) - 1],
-      ]);
-      expect(val(f, "새 칸의 값")).toBe(ans as number);
-    }
-    for (const f of answerSteps) {
-      const [, l, r] = f.title.match(/l=(\d+) r=(\d+)/)?.map(Number) ?? [];
-      const [ans] = sparseTableRangeMin(A, [[l as number, r as number]]);
-      expect(val(f, "구간의 최솟값")).toBe(ans as number);
-    }
     const svg = await renderToSvg(
       <StepTrace
         title="질의 다섯"
         current="T13"
-        steps={answerSteps.map((f) => ({
+        steps={sim.answer.steps.map((f) => ({
           id: f.title.split(" ")[0] as string,
           text: f.title.slice(f.title.indexOf(" ") + 1),
         }))}
@@ -326,6 +312,84 @@ describe("P6 ApproachLadder", () => {
     expect(svg).toContain('data-viz-verdict="keep"');
     expect(svg).toContain('data-viz-check="시간" data-viz-ok="false"');
     expect(svg).toContain("↓ 그래서 나");
+  });
+});
+
+describe("P7 CellStage · 걸음 재생 패널 무대", () => {
+  const load = async () => {
+    const sim = await import(
+      "../algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.sim.ts"
+    );
+    return {
+      build: playerFrames(sim.build as unknown as PlayerSpec),
+      answer: playerFrames(sim.answer as unknown as PlayerSpec),
+    };
+  };
+  const count = (svg: string, re: RegExp) => svg.match(re)?.length ?? 0;
+
+  test("쌓는 벌 — 무대 높이가 걸음 사이에 같고, 이번 걸음의 읽음 둘과 새로 씀 하나만 강조한다", async () => {
+    const { build } = await load();
+    const heights = new Set(
+      build.map((f) => cellStageSize([f.rows], f.columns).height),
+    );
+    expect(heights.size).toBe(1);
+    const t8 = build.find((f) => f.id === "T8");
+    if (!t8) throw new Error("T8 이 없다");
+    const svg = await renderToSvg(
+      <CellStage title="T8" rows={t8.rows} columns={t8.columns} />,
+      "t-stage-build",
+    );
+    expect(count(svg, /data-viz-state="read"/g)).toBe(2);
+    expect(count(svg, /data-viz-state="focus"/g)).toBe(1);
+    // 2 층의 남은 두 칸은 아직(점선) — 앞으로 채울 자리가 보인다.
+    expect(count(svg, /data-viz-state="empty"/g)).toBe(2);
+    expect(svg).toContain(
+      'data-viz-range="make" data-viz-from="0" data-viz-to="3"',
+    );
+    expect(count(svg, /data-viz-focus="true"/g)).toBe(4);
+    expect(t8.calc).toEqual({ expr: "min(2, 4) =", result: "2" });
+    expect(t8.vars).toBe("채운 칸 6 / 8");
+  });
+
+  test("답하는 벌 — 질의 괄호 · 두 조각 · 겹친 칸 · 답 목록이 한 무대에 있다", async () => {
+    const { answer } = await load();
+    const heights = new Set(
+      answer.map((f) => cellStageSize([f.rows], f.columns).height),
+    );
+    expect(heights.size).toBe(1);
+    const t11 = answer.find((f) => f.id === "T11");
+    if (!t11) throw new Error("T11 이 없다");
+    const svg = await renderToSvg(
+      <CellStage title="T11" rows={t11.rows} columns={t11.columns} />,
+      "t-stage-answer",
+    );
+    expect(svg).toContain(
+      'data-viz-range="query" data-viz-from="0" data-viz-to="4"',
+    );
+    expect(svg).toContain(
+      'data-viz-range="left" data-viz-from="0" data-viz-to="3"',
+    );
+    expect(svg).toContain(
+      'data-viz-range="right" data-viz-from="1" data-viz-to="4"',
+    );
+    expect(count(svg, /data-viz-state="overlap"/g)).toBe(3);
+    expect(count(svg, /data-viz-state="out"/g)).toBe(1);
+    expect(count(svg, /data-viz-state="read"/g)).toBe(2);
+    expect(t11.vars).toBeNull();
+  });
+
+  test("정적 그림은 같은 무대를 걸음마다 한 장씩 늘어놓는다", async () => {
+    const { build } = await load();
+    const svg = await renderToSvg(
+      <CellStageFilm
+        title="쌓기"
+        columns={6}
+        frames={build.map((f) => ({ id: f.id, text: f.title, rows: f.rows }))}
+      />,
+      "t-film",
+    );
+    expect(count(svg, /data-viz-step="T\d+"/g)).toBe(8);
+    expect(count(svg, /data-viz-range="make"/g)).toBe(8);
   });
 });
 

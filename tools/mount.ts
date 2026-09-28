@@ -6,9 +6,13 @@
  * 마운트가 무엇을 지웠는지는 아무도 안 본다.
  */
 
-/** `.sim.ts` 가 내보내는 것. 빌더는 이 모양만 알면 된다. */
+/**
+ * `.sim.ts` 가 내보내는 것. 빌더는 이 모양만 알면 된다. `view` 는 옛 패널(`AlgorithmSimulation`)이,
+ * `player: "stage"` 는 걸음 재생 패널(`StepPlayer`, KAN-057)이 읽는다.
+ */
 export interface SimSpec {
-  view: unknown;
+  view?: unknown;
+  player?: string;
   steps: unknown[];
   title?: string;
   result?: string;
@@ -19,6 +23,8 @@ export interface MountDeps {
   createRoot: (el: Element) => { render: (node: unknown) => void };
   createElement: (type: unknown, props: unknown) => unknown;
   Component: unknown;
+  /** spec 에 맞는 패널을 고른다. `undefined` 를 돌려주면 `Component` 를 쓴다. */
+  componentFor?: (spec: SimSpec) => unknown;
 }
 
 export interface MountReport {
@@ -52,7 +58,8 @@ export function mountAll(
       continue;
     }
     el.replaceChildren();
-    deps.createRoot(el).render(deps.createElement(deps.Component, spec));
+    const Component = deps.componentFor?.(spec) ?? deps.Component;
+    deps.createRoot(el).render(deps.createElement(Component, spec));
     mounted.push(id);
   }
 
