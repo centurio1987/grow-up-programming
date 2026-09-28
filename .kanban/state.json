@@ -1,6 +1,6 @@
 {
-  "next_id": 59,
-  "next_seq": 403,
+  "next_id": 60,
+  "next_seq": 404,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1403,6 +1403,26 @@
         "tools/check-v2.test.ts",
         "src/algorithms/array/sparseTableRangeMin/**"
       ]
+    },
+    "KAN-059-PSFTN4": {
+      "col": "backlog",
+      "title": "책 빌더의 SVG 그림 인쇄 — 알고리즘 가이드 fig 자리를 책(PDF)에서 어떻게 찍는가",
+      "verbatim": "",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-09-28",
+      "title_hash": "924a4225b02cebdc3969d06125ba2a0a372414de",
+      "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "short": "책 빌더 SVG 인쇄",
+      "short_hash": "1c81560d2f0f055e7cf624f3ad462bb94fc215bb",
+      "purpose": "KAN-057 이 가이드 도식을 ASCII 에서 SVG(fig)로 바꾸면서 책 빌더가 그 자리를 인쇄할 수 있게 한다",
+      "purpose_hash": "40417da952e12fb2f8fe451025af0087f0d99302",
+      "reason": "책 빌더는 pre.gs-ascii 를 전제로 짜여 있어(build-book.ts:57 · print-css.ts:155-245 · fragment.ts:23 · build-sample.ts:164) fig 로 바뀐 자리가 인쇄에서 빠지거나 깨질 수 있다",
+      "reason_hash": "af17dcd81e4bd9704962a5643437da29df19a498",
+      "goal": "fig 가 있는 가이드가 책 빌드에서 그림으로 인쇄되고, 110편 전개(KAN-058) 전에 인쇄 경로가 선다",
+      "goal_hash": "2c616d810110599c36424c1f647c7150331ac6b6",
+      "memo": "KAN-057 전략 2 에서 범위 밖으로 뺀 곁가지(플랜 검토 지적 4, 2026-09-28). 근거 자료: KAN-057 S14 가 기록할 「책 빌드에서 fig 자리가 어떻게 나오는가」",
+      "memo_hash": "c22eec94a48597b35875ad34e2cc96a2bd1b466d"
     }
   },
   "order": [
@@ -1473,9 +1493,27 @@
     "KAN-043-B4Y5WV",
     "KAN-041-JJ5DA7",
     "KAN-040-M5V53M",
-    "KAN-056-VPCM91"
+    "KAN-056-VPCM91",
+    "KAN-059-PSFTN4"
   ],
   "recent": [
+    {
+      "seq": 403,
+      "t": "2026-09-28T17:51",
+      "a": "ai",
+      "id": "KAN-059-PSFTN4",
+      "op": "create",
+      "w": "46PCAX",
+      "col": "backlog",
+      "title": "책 빌더의 SVG 그림 인쇄 — 알고리즘 가이드 fig 자리를 책(PDF)에서 어떻게 찍는가",
+      "verbatim": "",
+      "parent": null,
+      "short": "책 빌더 SVG 인쇄",
+      "purpose": "KAN-057 이 가이드 도식을 ASCII 에서 SVG(fig)로 바꾸면서 책 빌더가 그 자리를 인쇄할 수 있게 한다",
+      "reason": "책 빌더는 pre.gs-ascii 를 전제로 짜여 있어(build-book.ts:57 · print-css.ts:155-245 · fragment.ts:23 · build-sample.ts:164) fig 로 바뀐 자리가 인쇄에서 빠지거나 깨질 수 있다",
+      "goal": "fig 가 있는 가이드가 책 빌드에서 그림으로 인쇄되고, 110편 전개(KAN-058) 전에 인쇄 경로가 선다",
+      "memo": "KAN-057 전략 2 에서 범위 밖으로 뺀 곁가지(플랜 검토 지적 4, 2026-09-28). 근거 자료: KAN-057 S14 가 기록할 「책 빌드에서 fig 자리가 어떻게 나오는가」"
+    },
     {
       "seq": 402,
       "t": "2026-09-28T17:06",
@@ -2018,16 +2056,6 @@
       "w": "VG6P57",
       "from": "review",
       "to": "done"
-    },
-    {
-      "seq": 356,
-      "t": "2026-09-17T06:46",
-      "a": "ai",
-      "id": "KAN-044-VZXM29",
-      "op": "move",
-      "w": "VG6P57",
-      "from": "doing",
-      "to": "review"
     }
   ],
   "waivers": [
