@@ -130,8 +130,8 @@
   - 이유: 아이디어 상세가 서사로 채워져 아이디어 자체 설명이 몇 단락뿐이다
   - 목표: 명세·스캐너가 새 구성을 받고 sparseTableRangeMin 파일럿이 새 구성으로 재집필돼 유저가 판정할 수 있다
   - 요청서: KANBAN.requests/review/KAN-056-VPCM91.request.md (자유 형식 · 유저 · 미반영)
-  - 실행 문서: KANBAN.cards/KAN-056-VPCM91.md (7/7 · 최근 09-27)
-  - 검토 문서: KANBAN.reviews/KAN-056-VPCM91.review.md (승인 0/4 · 검토 대기)
+  - 실행 문서: KANBAN.cards/KAN-056-VPCM91.md (7/7 · 최근 09-28)
+  - 검토 문서: KANBAN.reviews/KAN-056-VPCM91.review.md (승인 1/6 · 추가 의견 3 · 추가 의견 총 4 · 검토 대기)
   - 원문:
     ```text
     지금은 아이디어 상세가, naive에서 시작해서 핵심 알고리즘에 도달하는 서사로 구성되어 있다. 그런데, 이 구성을 별도 항목으로 빼고, 아이디어 상세 자체는 아이디어에 초점을 맞춰서 상세히 집필해라. 집필 시, 최대한 자세히 이해하기 쉽도록 해야한다는 지시가 CLAUDE.md 때문에 무시당하는 문제가 있으니, /output-style을 learning으로  설정하여 작업하기 바란다.
