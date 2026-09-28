@@ -302,7 +302,23 @@
       "reason": "가이드가 별도 문제 문서를 전제로 쓰여 문제를 모르면 가이드에서 맥락을 읽기 어렵다",
       "reason_hash": "38064883a8e6c6bd4e74f2d22f81bba6fcff0f1f",
       "goal": "problem.md 0, 모든 가이드 끝에 실습 절, 파일럿 sparseTableRangeMin 이 L49 로 서고 ci.ts all 통과. 원문 ①(알고리즘 중심 서술)의 110편 적용은 KAN-058 몫이다",
-      "goal_hash": "51323de23602dbbba8eb1bc7a13723e64f028b62"
+      "goal_hash": "51323de23602dbbba8eb1bc7a13723e64f028b62",
+      "scope": [
+        "src/algorithms/**",
+        "sandbox/algo-guide-v2/**",
+        "tools/section.ts",
+        "tools/check-v2.ts",
+        "tools/check-v2.test.ts",
+        "tools/migrate-practice.ts",
+        ".claude/authoring/specs/problem/**",
+        ".claude/authoring.lock.json",
+        ".claude/skills/gen-problem/**",
+        ".claude/skills/guide-for-problem/**",
+        ".claude/authoring/voices/algorithm-guide-writer/**",
+        "README.md",
+        "CLAUDE.md",
+        "문제_가이드_목록.md"
+      ]
     },
     "KAN-001": {
       "col": "todo",
