@@ -166,6 +166,19 @@ const SPECS: Spec[] = [
     scope: parent,
   },
   {
+    name: "그림",
+    selector: "figure.gs-fig",
+    role: "SVG 그림(가이드의 fig 자리). 본문 폭을 넘으면 줄여 찍고, 한 장이 쪽에서 갈라지지 않는다. 한 쪽에 안 들면 책 빌드가 멈춘다",
+    is: (el) => !el.classList.contains("bk-film"),
+    scope: (el) => [el.closest(".gs-mount") ?? el],
+  },
+  {
+    name: "걸음 필름",
+    selector: "figure.bk-film",
+    role: "걸음마다 한 칸씩 세로로 쌓은 그림. 책은 칸마다 한 장으로 갈라 칸 사이에서 쪽을 넘긴다 — 머리 줄은 첫 칸과 붙는다",
+    scope: (el) => [el.closest(".gs-mount") ?? el],
+  },
+  {
     name: "인용 상자",
     selector: "blockquote",
     role: "불변식 · 요점 한 줄. 쪽에서 갈라지지 않는다",
@@ -212,21 +225,42 @@ function matches(doc: ReturnType<typeof parse>, spec: Spec): Element[] {
   );
 }
 
+/**
+ * SVG 그림의 칠 스타일(`<style>`)은 해석하는 동안 빈 자리표(`<bk-svg-style>`)로 바꿔 둔다.
+ * happy-dom 은 SVG 안의 `<style>` 을 만나면 **그 뒤 장 전체를 놓친다** — 비어 있어도 그렇다
+ * (KAN-059 실측: 그림 9장짜리 장에서 그림 1 · 절 제목 1/2 · 표 0/89 만 읽혔다). 그러면 요소 집계가
+ * 조용히 줄고 견본을 못 뜬다. 자리표는 견본을 뜰 때(`cut`) 원래 내용으로 되돌린다.
+ */
+const SVG_STYLE = /(<svg\b[^>]*>)<style>([\s\S]*?)<\/style>/g;
+const svgStyles: string[] = [];
+
 function parse(win: Window, html: string) {
+  const held = html.replace(SVG_STYLE, (_m, open: string, css: string) => {
+    svgStyles.push(css);
+    return `${open}<bk-svg-style data-n="${svgStyles.length - 1}"></bk-svg-style>`;
+  });
   return new win.DOMParser().parseFromString(
-    `<main>${html}</main>`,
+    `<main>${held}</main>`,
     "text/html",
   );
 }
 
-/** 견본으로 뜬 조각. `id` 를 지워 본문 장의 앵커와 겹치지 않게 한다. */
+/**
+ * 견본으로 뜬 조각. `id` 를 지워 본문 장의 앵커와 겹치지 않게 한다. SVG 안의 id 는 남긴다 —
+ * 칠 무늬(`url(#…)`)가 그것을 부르고, 지우면 견본의 빗금이 사라진다.
+ */
 function cut(els: Element[]): string {
   return els
     .map((el) => {
       const c = el.cloneNode(true) as Element;
       c.removeAttribute("id");
-      for (const x of c.querySelectorAll("[id]")) x.removeAttribute("id");
-      return c.outerHTML;
+      for (const x of c.querySelectorAll("[id]")) {
+        if (x.closest("svg") === null) x.removeAttribute("id");
+      }
+      return c.outerHTML.replace(
+        /<bk-svg-style data-n="(\d+)"><\/bk-svg-style>/g,
+        (_m, n: string) => `<style>${svgStyles[Number(n)] ?? ""}</style>`,
+      );
     })
     .join("\n");
 }
