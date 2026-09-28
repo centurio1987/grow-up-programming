@@ -175,31 +175,32 @@ const presets: readonly VizFoundationPreset[] = [
 ];
 
 /**
- * 그림 형식 선택 규칙 — 카드 전략 1. 「표·수식·도식이 될 것을 ASCII 로 그리지 않는다」가 요지다.
- * ASCII 를 금지하지 않는다(코드 옆 짧은 실행 결과처럼 등폭이 맞는 자리는 남는다).
+ * 시각화 고르기 — 정본은 `sandbox/algo-guide-v2/SPEC.md` §12(`L46`). 여기는 그 요지와 출발점 표다.
+ * 형식에서 출발하지 않고 **전하려는 것**에서 출발한다. 맞는 패턴이 없으면 패턴부터 만든다
+ * (유저 지시 2026-09-28 — 「표에 끼워 맞추지 말라」).
  */
 const guidelines: Record<string, Record<string, unknown>> = {
   formSelection: {
-    summary: "내용이 무엇인가로 형식을 고른다. 도식은 공간 관계가 있을 때만.",
+    summary:
+      "그림 자리마다 독자가 알아야 할 것을 한 문장으로 정하고, 그것을 가장 잘 보이는 시각화를 고른다. 표에 끼워 맞추지 않는다. 맞는 패턴이 없으면 패턴부터 만들어 적용한다.",
     rules: [
-      { content: "비교·대응 목록, 값 표", form: "마크다운 표" },
-      { content: "식 전개", form: "수식 블록(KaTeX)" },
-      { content: "절차", form: "번호 목록 또는 ProcessSteps" },
-      { content: "배열·구간·층의 공간 관계, 걸음 추적", form: "도식(P1~P5)" },
-      { content: "규모별 수치", form: "표 + BarChart(로그 척도)" },
-      { content: "변이 대조", form: "표" },
-    ],
-  },
-  motif: {
-    summary: "시안 방향 A 의 사용 규칙(claude-design 「Viz Style Guide」 1절).",
-    rules: [
-      "그림 하나는 개념 하나를 전진시킨다. 한 그림에 칸 상태는 셋까지.",
-      "색은 덧칠이다. 흑백으로 봐도 같은 그림이어야 한다.",
-      "숫자(인덱스·값·식)는 모두 등폭. 한글은 라벨 열과 설명 열에만 두어 칸 열을 흔들지 않는다.",
-      "가리키는 칸마다 ▲ 를 두고 다음 줄에 한 줄 설명. 한 그림에 주석은 둘까지.",
-      "어두운 테마는 반전이 아니다 — 칸은 한 단계 뜬 채움, 경계선 3:1, 의미색은 명도를 올리고 채도를 낮춘다.",
-      "SVG: 해칭 135°·6px·선 1.5 · 범위 밖 대시 4 3 · 오른쪽 조각 5 3 · 빈 칸 점선 1 3.",
-      "트리 도식이 오면 같은 칸·층 라벨·괄호 토큰을 노드와 깊이에 쓴다.",
+      { intent: "여러 대상을 같은 기준으로 나란히 비교", visual: "표" },
+      {
+        intent: "해 본 방법 → 막힌 자리 → 다음 시도 → 남은 방법",
+        visual: "ApproachLadder",
+      },
+      {
+        intent: "배열·구간·층의 공간 관계, 구조의 생김새",
+        visual: "ArrayStrip · RangeCover · LevelTable · LayerBars",
+      },
+      { intent: "걸음마다 상태 변화", visual: "StepTrace · viz 패널" },
+      { intent: "규모의 차이", visual: "LogBarChart + 정확한 수" },
+      { intent: "식의 전개", visual: "수식 블록" },
+      { intent: "절차", visual: "번호 목록 · ProcessSteps" },
+      {
+        intent: "위에 없는 것",
+        visual: "패턴부터 만든다(SPEC §12 「패턴을 더하는 법」)",
+      },
     ],
   },
   data: {

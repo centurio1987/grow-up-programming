@@ -269,6 +269,31 @@ describe("스타일 가이드 가드", () => {
   });
 });
 
+describe("P5 LayerBars", () => {
+  test("층의 칸마다 맡는 자리에만 값을 놓고, 안 맡는 자리는 점으로 둔다", async () => {
+    const { LayerBars } = await import("./patterns/LayerBars");
+    const svg = await renderToSvg(
+      <LayerBars
+        title="1 층"
+        values={A}
+        groups={[
+          [
+            { label: "1 층 칸 0", from: 0, to: 1, note: "[0,1] 의 최솟값 2" },
+            { label: "1 층 칸 1", from: 1, to: 2, note: "[1,2] 의 최솟값 2" },
+          ],
+        ]}
+      />,
+      "t-bars",
+    );
+    expect(svg.match(/data-viz-bar="/g)?.length).toBe(2);
+    expect(svg).toContain(
+      'data-viz-bar="1 층 칸 1" data-viz-from="1" data-viz-to="2"',
+    );
+    // 칸 여섯 중 두 자리를 맡으니 줄마다 점 넷
+    expect(svg.match(/>·</g)?.length).toBe(8);
+  });
+});
+
 describe("P6 ApproachLadder", () => {
   test("시도마다 카드 · 판정 · 기준별 통과와 실패가 그림에 실린다", async () => {
     const { ApproachLadder } = await import("./patterns/ApproachLadder");
@@ -301,5 +326,38 @@ describe("P6 ApproachLadder", () => {
     expect(svg).toContain('data-viz-verdict="keep"');
     expect(svg).toContain('data-viz-check="시간" data-viz-ok="false"');
     expect(svg).toContain("↓ 그래서 나");
+  });
+});
+
+describe("패턴 등록 가드", () => {
+  // SPEC §12 「패턴을 더하는 법」 — 새 패턴은 한 벌로 선다. 유저 지시(2026-09-28): 맞는 시각화가 없으면
+  // 표로 대신하지 말고 패턴부터 만들어 적용한다. 만들다 만 패턴이 조용히 남지 않게 여기서 잡는다.
+  test("패턴 파일마다 메타 · 스타일 가이드 · 공개 표면 · 시험 · SPEC 표가 갖춰져 있다", async () => {
+    const { readdir } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    const { ALGO_VIZ_META } = await import("./patterns/meta");
+    const { algoVizStyleGuide } = await import("../../design/viz/algo.viz");
+    const dir = join(import.meta.dir, "patterns");
+    const names = (await readdir(dir))
+      .filter((f) => f.endsWith(".tsx"))
+      .map((f) => f.slice(0, -4));
+    const index = await Bun.file(join(import.meta.dir, "index.ts")).text();
+    const tests = await Bun.file(import.meta.path).text();
+    const spec = await Bun.file(
+      join(import.meta.dir, "../../sandbox/algo-guide-v2/SPEC.md"),
+    ).text();
+    const section = spec.slice(spec.indexOf("### 시각화 고르기"));
+    const missing: string[] = [];
+    for (const name of names) {
+      if (!ALGO_VIZ_META.some((m) => m.exportName === name))
+        missing.push(`${name}: meta.ts`);
+      if (!(name in (algoVizStyleGuide.patterns ?? {})))
+        missing.push(`${name}: algo.viz.tsx patterns`);
+      if (!index.includes(`  ${name},`)) missing.push(`${name}: index.ts`);
+      if (!new RegExp(`describe\\("P\\d+ [^"]*${name}`).test(tests))
+        missing.push(`${name}: patterns.test.tsx`);
+      if (!section.includes(`\`${name}\``)) missing.push(`${name}: SPEC §12`);
+    }
+    expect(missing).toEqual([]);
   });
 });

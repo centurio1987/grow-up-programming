@@ -21,7 +21,7 @@
     }
   },
   "voices": {
-    "algorithm-guide-writer": "sha256:b796e66ba2c7d999",
+    "algorithm-guide-writer": "sha256:827601fd0fa740fb",
     "ko-book-translator": "sha256:503872b7f44fef70",
     "ppangto": "sha256:b677605294375577",
     "ppangtolab-prof": "sha256:608c357bb354a8d2",
@@ -30,7 +30,7 @@
     "yundeok": "sha256:b35dc23799c2187a"
   },
   "specs": {
-    "algo-guide": "sha256:0b58ab032083bb27",
+    "algo-guide": "sha256:32af4946ee2f73f1",
     "ds-guide": "sha256:24cc9fd4c67c0dca",
     "kanban-report": "sha256:851b2f82a97be7d3",
     "problem": "sha256:1e863f818e0afcb5"
