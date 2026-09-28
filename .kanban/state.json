@@ -1,6 +1,6 @@
 {
   "next_id": 60,
-  "next_seq": 404,
+  "next_seq": 406,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1498,6 +1498,26 @@
   ],
   "recent": [
     {
+      "seq": 405,
+      "t": "2026-09-28T17:55",
+      "a": "유저",
+      "id": "KAN-058-8XT6PC",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-059-PSFTN4",
+      "reason": "110편을 fig 로 바꾸기 전에 책 인쇄 경로가 서야 한다(유저 결정 2026-09-28)"
+    },
+    {
+      "seq": 404,
+      "t": "2026-09-28T17:55",
+      "a": "유저",
+      "id": "KAN-059-PSFTN4",
+      "op": "serialize",
+      "w": "46PCAX",
+      "with_": "KAN-057-J36E1B",
+      "reason": "책 인쇄 경로는 KAN-057 이 만드는 fig(SVG)가 있어야 세울 수 있다(유저 결정 2026-09-28)"
+    },
+    {
       "seq": 403,
       "t": "2026-09-28T17:51",
       "a": "ai",
@@ -2030,32 +2050,6 @@
       "w": "RYEYJX",
       "with_": "KAN-043-B4Y5WV",
       "reason": "하네스 규격과 축3 시나리오가 바뀌므로 KAN-036 가이드 전개 전에 끝낸다(scope 등록으로 중재 재기록, 2026-09-17)"
-    },
-    {
-      "seq": 358,
-      "t": "2026-09-17T06:52",
-      "a": "유저",
-      "id": "KAN-050-0B1N1Z",
-      "op": "create",
-      "w": "46PCAX",
-      "col": "backlog",
-      "title": "suffixArray · suffixTree 한정자 근거 문단 신설 — 지연 구성 계열 실측",
-      "verbatim": "",
-      "short": "suffix 둘 근거 문단",
-      "purpose": "trie/suffixArray 와 trie/suffixTree 에 지연 구성 fixture 를 지어 축3 으로 재고, 두 헤더에 없는 한정자 근거 문단을 실측 수치와 함께 새로 쓴다",
-      "reason": "KAN-044 가 성질로 전수 판정해 둘을 목록에 올렸지만 실물을 지어 재는 것은 그 카드 범위 밖이었다 — 지금은 두 헤더에 근거 문단이 아예 없고 그 계열이 걸리는지도 재지 않은 검사 공백이다(KAN-044 검토 항목 6 반려의 처분)",
-      "goal": "두 계약에서 지연 구성 계열이 어디서 걸리는지가 수치로 서고, 한정자 근거 문단이 셋째 계열까지 담아 새로 선다 — 근거 문단이 없는 불변 구조가 0 이 된다",
-      "memo": "정본 목록은 KAN-044 규약 새 절의 전수 판정 표(다섯 행 중 둘)와 런북 불변 사실 405. 선례는 deferredSparseTable 과 deferredCartesianTree 이고, cartesianTree 에서 걸리는 자리가 훑기 시나리오 둘이었으니 이 둘도 질의 시나리오부터 본다. KAN-044 가 읽은 구조적 사실은 「두 스위트의 질의 시나리오가 색인을 걸음 밖에서 짓고 그 뒤 n 번을 재므로 첫 걸음이 구성을 집는다」이지만 재지는 않았다 — 그 예측이 맞는지부터 확인한다. KAN-036 선행이다(헤더가 바뀌면 가이드가 읽는 정본이 바뀐다)."
-    },
-    {
-      "seq": 357,
-      "t": "2026-09-17T06:51",
-      "a": "ai",
-      "id": "KAN-044-VZXM29",
-      "op": "move",
-      "w": "VG6P57",
-      "from": "review",
-      "to": "done"
     }
   ],
   "waivers": [
@@ -2412,6 +2406,30 @@
       "scope_hash": "94f6d9cdd1ea8248",
       "reason": "유저 결정(2026-09-28): 110편 전개는 KAN-057 완료 이후로 수행 가능하게 만든다",
       "created": "2026-09-28T17:06",
+      "by": "유저",
+      "restrategy_required": false
+    },
+    {
+      "pair": "KAN-057-J36E1B|KAN-059-PSFTN4",
+      "order": [
+        "KAN-057-J36E1B",
+        "KAN-059-PSFTN4"
+      ],
+      "scope_hash": "94f6d9cdd1ea8248",
+      "reason": "책 인쇄 경로는 KAN-057 이 만드는 fig(SVG)가 있어야 세울 수 있다(유저 결정 2026-09-28)",
+      "created": "2026-09-28T17:55",
+      "by": "유저",
+      "restrategy_required": false
+    },
+    {
+      "pair": "KAN-058-8XT6PC|KAN-059-PSFTN4",
+      "order": [
+        "KAN-059-PSFTN4",
+        "KAN-058-8XT6PC"
+      ],
+      "scope_hash": "94f6d9cdd1ea8248",
+      "reason": "110편을 fig 로 바꾸기 전에 책 인쇄 경로가 서야 한다(유저 결정 2026-09-28)",
+      "created": "2026-09-28T17:55",
       "by": "유저",
       "restrategy_required": false
     }
