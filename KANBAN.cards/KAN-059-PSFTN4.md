@@ -53,7 +53,7 @@ KAN-057 이 가이드 도식을 ASCII 에서 SVG 그림(fig)으로 바꿨다. �
 - [x] `S2` 필름 칸 경계 — `CellStageFilm` 이 칸마다 `data-viz-step` 에 세로 자리(y·높이)를 박는다. 완료: `render-figs.ts` 로 파일럿 SVG 다시 뽑기 · `render-figs --check` 통과 · 화면 모양 불변(웹 HTML 에서 걸음 그림이 전과 같게 보임) · `patterns.test.tsx` 에 경계값 시험
 - [x] `S3` 책에서 필름 가르기 + 인쇄 CSS — `fragment.ts` 에 필름 SVG 를 칸별 `<svg viewBox>` 로 나누는 함수(칠 스타일은 칸마다 싣거나 한 번 공유), `BUILDER_VERSION` 올림. `print-css.ts` 에 그림 묶음 규칙(그림 SVG 는 본문 폭까지 줄임 · 필름 틀은 쪽 넘김 허용 · 머리 줄은 첫 칸과 붙임 · 칸은 안 갈라짐). 완료: S1 검사 위반 0 · 파일럿 PDF 에 빈 틀 쪽 없음 · T3~T15 가 한 번씩, 쪽 경계에서 잘린 칸 없음(쪽 이미지로 확인)
 - [x] `S4` 디자인 샘플·문서 — `build-sample.ts` 목록에 「그림」·「걸음 필름」 블록 항목, `tools/book/README.md` 조판 규칙에 그림 줄. 완료: `build-sample.ts` 가 돌고 새 항목이 샘플 PDF 에 찍힘
-- [>] `S5` 전체 검증 + 검토서 + 검토로 이동. 완료: 아래 「검증」 전부 · 수행 내역에 쪽 번호 증거 · 검토서 판단 항목에 `feat/book-volumes` 병합 순서 판단을 올림 <!-- claim:s=59ac9d04 t=2026-09-29T02:01 -->
+- [x] `S5` 전체 검증 + 검토서 + 검토로 이동. 완료: 아래 「검증」 전부 · 수행 내역에 쪽 번호 증거 · 검토서 판단 항목에 `feat/book-volumes` 병합 순서 판단을 올림
 
 ## 검증
 ```bash
@@ -88,3 +88,4 @@ bunx --bun @biomejs/biome check tools/book src/_viz   # 새로 쓴 곳 경고 0
 - 2026-09-29T01:51 · s:59ac9d04 · S4 done — build-sample 에 「그림」·「걸음 필름」 항목, README 조판 규칙 두 줄. 샘플이 SVG 안 <style> 뒤를 통째로 놓치던 happy-dom 문제(파일럿 장 표 0/89)를 자리표로 우회 — 샘플 종료 0, 103쪽, 17·18쪽에 견본
 - 2026-09-29T02:01 · s:59ac9d04 · S5 doing — 착수
 - 2026-09-29T02:01 · s:59ac9d04 — 검증: 세 권 전체 빌드 종료 0(그림 9장 높이 초과 0 · 초급 750·중급 1272·고급 1518쪽) · bun test tools/book src/_viz 60 통과 · render-figs --check 통과 · tsc 통과 · biome tools/book src/_viz 경고 0 · ci.ts all ①②④ 통과 ③ 판정 제외, 게이트는 인용 1건(이 카드 전략 절 인용이 대장 미등록인 채 줄이 밀림) → 줄번호 고치고 --update 뒤 gates 13단계 통과
+- 2026-09-29T02:02 · s:59ac9d04 · S5 done — 검증 전부 통과, 검토서 작성 — 판단 항목 둘(전자책 브랜치 병합 순서 · 넓은 그림 알림)
