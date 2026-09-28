@@ -81,6 +81,8 @@ test("사이드카 — 판정은 경고다(문서는 위반)", () => {
 test("대상 문 — 사이드카 이름만 소스로 본다", () => {
   for (const kind of ["sim", "ref", "proof", "test", "alt"])
     expect(isSidecar(`a/b/x-guide.${kind}.ts`)).toBe(true);
+  expect(isSidecar("a/b/x-guide.fig.tsx")).toBe(true);
+  expect(isSidecar("a/b/x-guide.fig.ts")).toBe(false);
   // 스캐너 자신의 소스에는 이 패턴의 정의가 들어 있다. 대상에 들면 자기를 위반으로 낸다.
   expect(isSidecar("tools/check-v2.ts")).toBe(false);
   expect(isSidecar("tools/check-metaphor.ts")).toBe(false);
@@ -191,8 +193,12 @@ const SPARSE_KINDS = ["sim", "ref", "proof", "test", "alt"] as const;
  * **2026-09-28 `KAN-056` 에서 14 → 11 이 됐다.** `SPEC.md` `L43`(핵심 구조는 통용되는 이름으로)에
  * 따라 `proof.ts` 의 「층으로 쌓은 표」 세 자리(주석 1 · 표 머리 2)가 「Sparse Table」 로 바뀌었다.
  * 나머지 11자리(「쌓-」 10 + 「에 걸어」 1)는 그대로다.
+ *
+ * **2026-09-29 `KAN-057` 에서 11 → 8 이 됐다.** 검토 지적 6 으로 `sim.ts` 를 걸음 재생 패널 규약으로
+ * 다시 뽑으면서 `sim.ts` 의 「쌓-」 가 「쌓은」 6 자리에서 「쌓는」 3 자리로 바뀌었다(옛 머리 주석을
+ * 새 규약 주석으로 갈았다). 다른 사이드카의 자리와 「에 걸어」 1 은 그대로다.
  */
-test("실측 — `sparseTableRangeMin` 사이드카의 11자리에 표면이 닿는다", () => {
+test("실측 — `sparseTableRangeMin` 사이드카의 8자리에 표면이 닿는다", () => {
   const probe = /쌓|에\s*걸어/g;
   let sites = 0;
   for (const kind of SPARSE_KINDS) {
@@ -201,7 +207,7 @@ test("실측 — `sparseTableRangeMin` 사이드카의 11자리에 표면이 닿
     for (const seg of ["comment", "string"] as const)
       for (const line of m[seg]) sites += (line.match(probe) ?? []).length;
   }
-  expect(sites).toBe(11);
+  expect(sites).toBe(8);
 });
 
 test("실측 — 그 14자리 중 지금 `METAPHORS` 가 잡는 것은 「에 걸어」 하나다", () => {

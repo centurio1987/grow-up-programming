@@ -949,6 +949,7 @@ export async function run(root: string, mode: Mode): Promise<RunResult> {
       err.push(...describeOrigins(scan, row));
     }
     err.push(
+      "\n**줄만 밀린 것이면** `bun run tools/remap-citations.ts` 가 같은 내용의 새 줄을 찾아 인용을 고치고 대장까지 갱신한다(못 찾은 것만 남긴다).",
       "\n대상이 정당히 움직였거나 내용만 바뀐 것이면 대조하고 `--update`.",
     );
     err.push(

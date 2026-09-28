@@ -22,7 +22,8 @@
  * 종료코드: 0 통과 · 1 위반 · 2 대상 없음/사용법
  */
 
-import { basename, dirname, join } from "node:path";
+import { readdir } from "node:fs/promises";
+import { basename, dirname, join, resolve } from "node:path";
 import { headerDoc, parseContract } from "./contract-header.ts";
 import { extract, GuideCoreError } from "./guide-core.ts";
 import { kindOfOr } from "./guide-v2-targets.ts";
@@ -56,15 +57,53 @@ export interface Finding {
 /* ────────────────────────── 공통 계수 ────────────────────────── */
 
 /**
- * "그림" 의 정의. **펜스와 `|` 표뿐이다.**
+ * "그림" 의 정의. **펜스 · `|` 표 · 그림 마커(`<!--fig:id-->` 와 그 아래 SVG 이미지 줄)다.**
  *
  * 구 구현은 `<` 로 시작하는 줄도 끊는 것으로 셌다(MDX 컴포넌트 호출부였다). 새 골격에서
- * 그대로 두면 **`<!--check:c1-->` 마커가 그림이 된다.** 마커는 그림이 아니다.
+ * 그대로 두면 **`<!--check:c1-->` 마커가 그림이 된다.** 마커는 그림이 아니다 — 그림 마커만은
+ * 바로 아래 줄에 그림(`figs/<id>.svg`)을 달고 서므로 예외다(KAN-057).
  */
+export const FIG_MARKER = /^<!--fig:([a-z][a-z0-9-]*)-->$/;
+// 설명(alt)에 `[0,5]` 같은 대괄호가 들 수 있어 설명 부분은 탐욕적으로 받는다.
+const FIG_IMAGE = /^!\[.*\]\((?:\.\/)?figs\/([a-z][a-z0-9-]*)\.svg\)$/;
+/**
+ * 펜스 밖의 **기호 줄**(`└ …` 설명 · `▸ …` 제목). 글자 그림을 표로 옮기며 이 저장소가 지어낸 표기라
+ * 읽는 사람이 뜻을 몰랐다(KAN-057 검토 지적 8). 그림으로 세지 않고 P21 이 위반으로 잡는다 —
+ * 표를 소개하는 말은 앞 문단 문장이, 표 아래 설명은 보통 문장이 진다(SPEC §12).
+ */
+export const SYMBOL_NOTE = /^[└▸]\s/;
+
 function isFigureLine(line: string, inFence: boolean): boolean {
   if (inFence) return true;
   const t = line.trim();
+  if (FIG_MARKER.test(t) || FIG_IMAGE.test(t)) return true;
   return t.startsWith("|") && t.endsWith("|");
+}
+
+/**
+ * 닫힌 증명 블록(`<!--proof:id-->` … `<!--/proof-->`) 안의 줄 번호. 그 안의 문장은 실행이 표와 함께
+ * 만든 **그림의 설명**이라 산문 연속을 끊는 쪽으로 센다 — 기호 줄(`└`)을 걷고 보통 문장으로 바꾼
+ * 자리다(KAN-057 검토 지적 8, SPEC §12). 사이드카가 내는 문장이라 손 산문이 숨어들 자리가 아니다.
+ */
+function closedProofLines(body: string[]): Set<number> {
+  const inside = new Set<number>();
+  for (let i = 0; i < body.length; i++) {
+    if (!/^<!--proof:[A-Za-z0-9_-]+-->$/.test((body[i] ?? "").trim())) continue;
+    for (let j = i + 1; j < body.length; j++) {
+      const t = (body[j] ?? "").trim();
+      if (t === "<!--/proof-->") {
+        for (let k = i; k <= j; k++) inside.add(k);
+        break;
+      }
+      if (
+        t.startsWith("#") ||
+        t.startsWith("<!--proof:") ||
+        t.startsWith("```")
+      )
+        break;
+    }
+  }
+  return inside;
 }
 
 /** 산문 문단이 몇 개까지 연달아 오는가. 그림·표·빈 줄이 그 연속을 끊는다. */
@@ -73,8 +112,14 @@ export function maxProseRun(body: string[]): number {
   let worst = 0;
   let fenced = false;
   let inParagraph = false;
+  const proofLines = closedProofLines(body);
 
-  for (const line of body) {
+  for (const [index, line] of body.entries()) {
+    if (proofLines.has(index)) {
+      run = 0;
+      inParagraph = false;
+      continue;
+    }
     if (line.trimStart().startsWith("```")) {
       fenced = !fenced;
       // 펜스는 그림이므로 연속을 끊는다.
@@ -82,7 +127,9 @@ export function maxProseRun(body: string[]): number {
       inParagraph = false;
       continue;
     }
-    if (fenced || line.trim() === "<!--contract-summary-->") continue;
+    // 주석만 있는 줄(마커 · `<!--contract-summary-->`)은 산문이 아니다. 증명 마커 한 줄이 문단으로
+    // 세어져 표 앞 산문이 한 문단 늘던 자리다(KAN-057 S15).
+    if (fenced || /^<!--.*-->$/.test(line.trim())) continue;
 
     if (line.trim() === "") {
       inParagraph = false;
@@ -1011,7 +1058,9 @@ export function buildStageFindings(sections: Section[]): Finding[] {
       });
     }
   }
-  if (fences(head.body).length === 0) {
+  // 「그림」 정의는 P1·P7 과 같다(펜스 · 표 · 그림 마커, SPEC §4) — 펜스만 세면 단계 지도를 표로
+  // 옮긴 편이 「그림 없음」으로 걸린다(KAN-057 S13 실측).
+  if (!hasFigure(head)) {
     out.push({
       code: "P17",
       where: `deep.build:${head.line}`,
@@ -1096,10 +1145,7 @@ export function banmalFindings(text: string): Finding[] {
       continue;
     }
     if (fenced) continue;
-    if (
-      line.trim() === "" ||
-      /^(#|\||<!--|>)/.test(line.trimStart())
-    ) {
+    if (line.trim() === "" || /^(#|\||<!--|>)/.test(line.trimStart())) {
       flush();
       continue;
     }
@@ -1315,7 +1361,9 @@ export function contractSummaryConsistency(
     const table = lines.slice(0, end < 0 ? undefined : end);
     if (
       table.length < 3 ||
-      cells(table[0] ?? "").map(clean).join("/") !== "연산/의미/상한/한정자"
+      cells(table[0] ?? "")
+        .map(clean)
+        .join("/") !== "연산/의미/상한/한정자"
     ) {
       out.push({
         code: "P18",
@@ -1920,6 +1968,123 @@ export interface CheckInput {
    */
   directMemory?: boolean;
   maxProseRun?: number;
+  /**
+   * 그림 사이드카(`<name>-guide.fig.tsx`)가 있으면 그 `FIGS` 키와, 가이드 옆 `figs/` 에 실재하는
+   * SVG id. 없으면 `undefined` — 그때 본문에 그림 마커가 있으면 P6 위반이다(KAN-057).
+   * SVG 가 사이드카·정본과 **같은 바이트인지**는 `render-figs --check` 몫이다.
+   */
+  figs?: { keys: string[]; svgs: string[] };
+}
+
+/**
+ * 그림 마커 ↔ `.fig.tsx` 의 `FIGS` 키 ↔ `figs/<id>.svg` 셋이 맞는가. 그리고 마커 바로 아래 줄이
+ * 그 SVG 를 거는 이미지인가(md 미리보기와 `build-html` 이 둘 다 그 줄을 읽는다).
+ */
+export function figFindings(text: string, figs: CheckInput["figs"]): Finding[] {
+  const findings: Finding[] = [];
+  const lines = text.split("\n");
+  const markers: string[] = [];
+  for (const [i, line] of lines.entries()) {
+    const id = FIG_MARKER.exec(line.trim())?.[1];
+    if (id === undefined) continue;
+    markers.push(id);
+    const img = FIG_IMAGE.exec((lines[i + 1] ?? "").trim());
+    if (img?.[1] !== id) {
+      findings.push({
+        code: "P6",
+        where: `:${i + 1}`,
+        detail: `그림 마커 \`${id}\` 바로 아래 줄은 \`![설명](./figs/${id}.svg)\` 여야 한다`,
+      });
+    }
+  }
+  if (markers.length === 0 && figs === undefined) return findings;
+  if (figs === undefined) {
+    findings.push({
+      code: "P6",
+      detail: `그림 마커(${markers.join("·")})가 있는데 \`.fig.tsx\` 가 없다`,
+    });
+    return findings;
+  }
+  for (const id of markers) {
+    if (!figs.keys.includes(id))
+      findings.push({
+        code: "P6",
+        detail: `그림 마커 \`${id}\` 에 대응하는 FIGS 키가 없다`,
+      });
+    if (!figs.svgs.includes(id))
+      findings.push({
+        code: "P6",
+        detail: `그림 \`${id}\` 의 SVG(figs/${id}.svg)가 없다 — \`bun run tools/render-figs.ts\``,
+      });
+  }
+  for (const key of figs.keys) {
+    if (!markers.includes(key))
+      findings.push({
+        code: "P6",
+        detail: `FIGS 키 \`${key}\` 를 가리키는 그림 마커가 없다`,
+      });
+  }
+  return findings;
+}
+
+/**
+ * P21 — **지어낸 기호 줄**(`└ …`·`▸ …`)이 펜스 밖에 있는가(SPEC §12 · `L46`).
+ * 펜스 안의 글자 그림에서는 쓸 수 있다 — 거기서는 그림의 일부다.
+ */
+export function symbolNoteFindings(text: string): Finding[] {
+  const out: Finding[] = [];
+  let fenced = false;
+  for (const [i, line] of text.split("\n").entries()) {
+    if (line.trimStart().startsWith("```")) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced || !SYMBOL_NOTE.test(line.trim())) continue;
+    out.push({
+      code: "P21",
+      where: `:${i + 1}`,
+      detail: `기호 줄 \`${line.trim().slice(0, 1)}\` — 표를 소개하는 말은 앞 문단 문장으로, 표 아래 설명은 보통 문장으로 쓴다`,
+    });
+  }
+  return out;
+}
+
+/** 머리줄 첫 칸이 문장으로 끝나는가 — 「…고쳤다면」「…이유가 있는가」「…편다」 꼴. */
+const SENTENCE_CELL = /(다|가|면|까|요|는|은|을|를|로)$/;
+
+/**
+ * P21(경고) — **표 머리줄 첫 칸에 제목 문장**을 넣었는가. 머리줄은 열이 갈리는 축의 이름이다.
+ * 제목을 칸에 넣으면 그 열이 무엇의 열인지 사라진다(KAN-057 검토 지적 7). 문장인지는 끝말로만 짐작하므로
+ * 위반이 아니라 경고다 — 「같은 값을 두 번 넣으면」처럼 진짜 축 이름이 걸릴 수 있다.
+ */
+export function tableHeaderWarnings(text: string): Finding[] {
+  const out: Finding[] = [];
+  const lines = text.split("\n");
+  let fenced = false;
+  for (const [i, line] of lines.entries()) {
+    if (line.trimStart().startsWith("```")) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced || !line.startsWith("|")) continue;
+    if ((lines[i - 1] ?? "").startsWith("|")) continue;
+    if (!/^\|\s*:?-{3,}/.test(lines[i + 1] ?? "")) continue;
+    // 첫 칸만 보다가 「무엇이 걸렸는가」「이 Sparse Table 을」 같은 둘째 칸 뒤의 문장 조각을
+    // 놓쳤다(KAN-057 검토 지적 7 재지적) — 머리줄 칸을 전부 본다.
+    const cells = line
+      .split("|")
+      .slice(1, -1)
+      .map((c) => c.replace(/`[^`]*`/g, "C").trim());
+    const bad = cells.find((c) => c.length >= 6 && SENTENCE_CELL.test(c));
+    if (bad === undefined) continue;
+    out.push({
+      code: "P21",
+      warn: true,
+      where: `:${i + 1}`,
+      detail: `표 머리줄 칸이 문장이나 조사로 끝난다(「${bad}」) — 제목은 앞 문단이 소개하고, 머리줄에는 열의 이름을 명사로 쓴다`,
+    });
+  }
+  return out;
 }
 
 export function check(input: CheckInput): Finding[] {
@@ -2200,9 +2365,19 @@ export function check(input: CheckInput): Finding[] {
     }
   }
 
+  findings.push(...figFindings(input.text, input.figs));
+  findings.push(...symbolNoteFindings(input.text));
+
   for (const id of markers) {
     const at = input.text.indexOf(`<!--viz:${id}-->`);
     const rest = input.text.slice(at);
+    // 폴백이 ASCII 펜스 대신 그림일 수 있다(KAN-057) — 사이의 빈 줄·증명 마커는 건너뛴다.
+    const next = rest
+      .split("\n")
+      .slice(1)
+      .map((l) => l.trim())
+      .find((l) => l !== "" && !/^<!--proof:[A-Za-z0-9_-]+-->$/.test(l));
+    if (next !== undefined && FIG_MARKER.test(next)) continue;
     const fence = /```[a-z]*\n([\s\S]*?)```/.exec(rest);
     if (!fence || (fence[1] ?? "").trim() === "") {
       findings.push({
@@ -2428,7 +2603,10 @@ export function check(input: CheckInput): Finding[] {
  * 때문이다. 실제로 P15 가 일곱 배치를 그렇게 샜다.
  */
 export function checkWarnings(input: CheckInput): Finding[] {
-  const out: Finding[] = alignmentWarnings(input.text);
+  const out: Finding[] = [
+    ...alignmentWarnings(input.text),
+    ...tableHeaderWarnings(input.text),
+  ];
 
   const { sections, unresolved } = parseSections(
     input.text,
@@ -2491,6 +2669,15 @@ async function checkOne(
   const benchFile = Bun.file(join(dir, `${stem}.bench.json`));
   if (await simFile.exists()) input.sim = await simFile.text();
   if (await benchFile.exists()) input.bench = await benchFile.json();
+  const figFile = join(dir, `${stem}.fig.tsx`);
+  if (await Bun.file(figFile).exists()) {
+    const mod = (await import(resolve(figFile))) as { FIGS?: object };
+    const svgs = await readdir(join(dir, "figs")).catch(() => [] as string[]);
+    input.figs = {
+      keys: Object.keys(mod.FIGS ?? {}),
+      svgs: svgs.filter((n) => n.endsWith(".svg")).map((n) => n.slice(0, -4)),
+    };
+  }
 
   const missing: string[] = [];
   const dsProblems: string[] = [];
@@ -2633,7 +2820,7 @@ if (import.meta.main) {
     // 안 본 자리」가 되고, 그것이 이 규칙이 일곱 배치를 샌 방식이다.
     if (!json && warned > 0) {
       console.log(
-        `\n경고 — 열이 어긋나거나 걸음을 건너뛴 자리 ${warned}건 (${warnedGuides}편). ` +
+        `\n경고 — 열이 어긋나거나 걸음을 건너뛰거나 표 머리줄 첫 칸이 문장인 자리 ${warned}건 (${warnedGuides}편). ` +
           `\`--json\` 의 \`warnings\` 나 편별 실행으로 자리를 본다. ` +
           `지금은 경고이고, 그 편들을 고친 뒤 위반으로 올린다.`,
       );

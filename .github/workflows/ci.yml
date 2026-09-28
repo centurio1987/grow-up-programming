@@ -19,6 +19,11 @@ jobs:
         with:
           fetch-depth: 0 # biome --changed 가 기준 커밋을 봐야 한다
       - uses: oven-sh/setup-bun@v2
+      # 시각화 패키지(@centurio1987/bbangto-ui-*)는 GitHub Packages 의 비공개 패키지다(KAN-057).
+      # 스코프 레지스트리는 저장소의 .npmrc 가 정하고, 토큰만 여기서 사용자 ~/.npmrc 에 넣는다 —
+      # 토큰을 추적 파일에 두지 않는다. Secret 은 read:packages 권한의 개인 토큰이다.
+      - name: GitHub Packages 인증
+        run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.BBANGTO_PACKAGES_TOKEN }}" >> ~/.npmrc
       - run: bun install --frozen-lockfile
 
       # ① 결함 fixture 가 **축3에서** 걸리는가. "무언가 실패"로는 불충분하다.

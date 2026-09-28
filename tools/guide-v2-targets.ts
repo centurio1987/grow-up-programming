@@ -108,7 +108,18 @@ export async function v2Docs(): Promise<string[]> {
  * 배치3) — 이 파일 머리가 「각자 글롭을 들면 갈린다」고 적어 둔 그 모양이 사이드카 쪽에서
  * 다시 생기고 있었다.
  */
-export const SIDECAR_KINDS = ["sim", "ref", "proof", "test", "alt"] as const;
+export const SIDECAR_KINDS = [
+  "sim",
+  "ref",
+  "proof",
+  "test",
+  "alt",
+  "fig",
+] as const;
+
+/** 갈래별 확장자. 그림 사이드카만 JSX 를 쓰므로 `.tsx` 다(KAN-057 `render-figs.ts`). */
+export const sidecarExt = (kind: (typeof SIDECAR_KINDS)[number]): string =>
+  kind === "fig" ? "tsx" : "ts";
 
 /**
  * v2 가이드의 **옆자리** 사이드카 전부. 글롭을 새로 적지 않고 `v2Guides()` 목록에서
@@ -124,7 +135,7 @@ export async function v2Sidecars(): Promise<string[]> {
   for (const guide of await v2Guides()) {
     const stem = basename(guide).replace(/\.md$/, "");
     for (const kind of SIDECAR_KINDS) {
-      const path = join(dirname(guide), `${stem}.${kind}.ts`);
+      const path = join(dirname(guide), `${stem}.${kind}.${sidecarExt(kind)}`);
       if (await Bun.file(join(ROOT, path)).exists()) out.push(path);
     }
   }

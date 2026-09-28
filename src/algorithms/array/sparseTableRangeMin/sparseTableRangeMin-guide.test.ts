@@ -139,3 +139,32 @@ test("값이 전부 같아도, 음수만 있어도 정의와 같다", () => {
     ),
   ).toEqual([-20, -40, -40]);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(KAN-057 검토 지적 6). `.sim.ts` 의 `steps` 는
+ * P3 이 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본을
+ * 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./sparseTableRangeMin-guide.sim.ts");
+  const { stageStepsFromRef } = await import(
+    "./sparseTableRangeMin-guide.fig.tsx"
+  );
+  const want = stageStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.build.steps)).toEqual(plain(want.build));
+  expect(plain(sim.answer.steps)).toEqual(plain(want.answer));
+
+  // 사이드카 함수가 정본을 제대로 불렀는지 — 새로 쓴 칸과 답을 정본에 직접 다시 묻는다.
+  const A = [5, 2, 7, 4, 6, 3];
+  for (const s of sim.build.steps) {
+    const [lo, hi] = s.write.covers;
+    expect(s.write.value as number).toBe(
+      sparseTableRangeMin(A, [[lo, hi]])[0] as number,
+    );
+  }
+  const queries = sim.answer.steps.map((s) => [...s.query] as [number, number]);
+  expect([...(sim.answer.steps.at(-1)?.answers ?? [])] as number[]).toEqual(
+    sparseTableRangeMin(A, queries),
+  );
+});

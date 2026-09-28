@@ -22,6 +22,17 @@
  * ```
  * ```
  *
+ * 펜스 대신 **마크다운 표**를 둘 수도 있다(KAN-057) — 대조는 펜스와 같다(글자 그대로). 값 표·비교
+ * 표를 ASCII 로 그리지 않고 표로 옮겨도 실행 대조가 풀리지 않게 하려는 것이다(SPEC §12).
+ *
+ * - 닫는 마커 `<!--/proof-->` 가 있으면 마커 사이 전부가 블록이다. 표 아래 문장(「칸이 14 개입니다」)의
+ *   수도 실행이 낸 값이라, 그 문장까지 대조하려면 닫는 마커를 둔다. 표가 둘이고 사이에 소개 문장이
+ *   있는 블록도 이 모양이다.
+ * - 닫는 마커가 없으면 마커 바로 아래 `|` 줄이 이어지는 동안만 블록이다.
+ *
+ * 한때 제목 줄 `▸ ` 과 설명 줄 `└ ` 을 블록에 넣었다 — 이 저장소가 지어낸 기호라 읽는 사람이 뜻을
+ * 몰랐다(KAN-057 검토 지적 8). 지금은 보통 문장을 쓰고 닫는 마커로 범위를 정한다.
+ *
  * 사이드카 `<name>-guide.proof.ts` 가 그 id 로 블록 내용을 만든다.
  *
  * ```ts
@@ -34,7 +45,7 @@
  * ## 무엇을 잡는가
  *
  * 1. 마커와 `PROOFS` 키가 **양방향으로** 맞는가(본문에만 있는 것 · 사이드카에만 있는 것 둘 다 실패)
- * 2. 마커 바로 아래가 펜스 블록인가
+ * 2. 마커 바로 아래가 펜스 블록 또는 마크다운 표인가
  * 3. 블록 내용이 실행 결과와 **글자 그대로** 같은가(줄 끝 공백과 끝의 빈 줄만 무시한다)
  * 4. 사이드카가 `<name>-guide.ref.ts` 를 **import 하는가** — 안 하면 값을 손으로 적어 넣고
  *    통과시킬 수 있다. 그러면 이 도구는 "본문과 사이드카가 같다" 만 재고 **실행을 안 잰다**.
@@ -123,8 +134,10 @@ export interface ProofBlock {
   id: string;
   /** 마커가 있는 줄 번호(1부터). 어긋났을 때 사람이 찾아갈 자리다. */
   line: number;
-  /** 펜스 안의 내용. 펜스 줄 자체는 뺀다. */
+  /** 펜스 안의 내용(펜스 줄 자체는 뺀다) 또는 표 줄 전부. */
   body: string | null;
+  /** 블록이 펜스인가 마크다운 표인가. 펜스가 없으면 `null`. */
+  form?: "fence" | "table" | null;
 }
 
 /** 줄 끝 공백과 끝의 빈 줄을 지운다. 그 둘은 편집기가 만들고 뜻이 없다. */
@@ -137,23 +150,54 @@ export function normalize(text: string): string {
 }
 
 /**
- * 본문에서 `<!--proof:{id}-->` 와 그 **바로 아래 펜스**를 뽑는다.
+ * 본문에서 `<!--proof:{id}-->` 와 그 **바로 아래 펜스 또는 표**를 뽑는다.
  *
  * 마커와 펜스 사이의 빈 줄은 허용한다 — 마커를 펜스에 붙여 쓰면 P1(산문 연속)이 마커를
  * 문단으로 세기 때문이다. 빈 줄 아닌 것이 끼면 `body` 가 `null` 이고 그것이 위반이다.
  */
+const PROOF_OPEN = /^<!--proof:([A-Za-z0-9_-]+)-->$/;
+const PROOF_CLOSE = /^<!--\/proof-->$/;
+
+/** `from` 부터 닫는 마커를 찾는다. 다른 증명 마커나 헤딩을 먼저 만나면 없는 것이다. */
+function closeOf(lines: string[], from: number): number {
+  for (let i = from; i < lines.length; i++) {
+    const t = (lines[i] ?? "").trim();
+    if (PROOF_CLOSE.test(t)) return i;
+    if (PROOF_OPEN.test(t) || t.startsWith("#") || t.startsWith("```"))
+      return -1;
+  }
+  return -1;
+}
+
 export function extractBlocks(text: string): ProofBlock[] {
   const lines = text.split("\n");
   const out: ProofBlock[] = [];
   for (const [index, line] of lines.entries()) {
-    const m = /^<!--proof:([A-Za-z0-9_-]+)-->$/.exec(line.trim());
+    const m = PROOF_OPEN.exec(line.trim());
     if (m?.[1] === undefined) continue;
     const id = m[1];
     let i = index + 1;
     while (i < lines.length && lines[i]?.trim() === "") i++;
     const opener = lines[i] ?? "";
+    const close = opener.trimStart().startsWith("```") ? -1 : closeOf(lines, i);
+    if (close >= 0) {
+      const rows = lines.slice(i, close);
+      while (rows.length > 0 && (rows[rows.length - 1] ?? "").trim() === "")
+        rows.pop();
+      out.push({ id, line: index + 1, body: rows.join("\n"), form: "table" });
+      continue;
+    }
+    if (opener.trimStart().startsWith("|")) {
+      const rows: string[] = [];
+      while (i < lines.length && (lines[i] ?? "").trimStart().startsWith("|")) {
+        rows.push(lines[i] ?? "");
+        i++;
+      }
+      out.push({ id, line: index + 1, body: rows.join("\n"), form: "table" });
+      continue;
+    }
     if (!opener.trimStart().startsWith("```")) {
-      out.push({ id, line: index + 1, body: null });
+      out.push({ id, line: index + 1, body: null, form: null });
       continue;
     }
     const bodyLines: string[] = [];
@@ -165,7 +209,12 @@ export function extractBlocks(text: string): ProofBlock[] {
       bodyLines.push(lines[i] ?? "");
       i++;
     }
-    out.push({ id, line: index + 1, body: bodyLines.join("\n") });
+    out.push({
+      id,
+      line: index + 1,
+      body: bodyLines.join("\n"),
+      form: "fence",
+    });
   }
   return out;
 }
@@ -206,7 +255,7 @@ export function compare(blocks: ProofBlock[], proofs: Proofs): ProofFailure[] {
         id: b.id,
         line: b.line,
         kind: "펜스 없음",
-        detail: "마커 바로 아래가 펜스 블록이어야 한다",
+        detail: "마커 바로 아래가 펜스 블록이나 마크다운 표여야 한다",
       });
       continue;
     }
@@ -441,9 +490,16 @@ export interface VisitedSame {
   label: string;
 }
 
-/** 두 칸 이상의 공백으로 칸을 가른다. */
+/** 두 칸 이상의 공백으로 칸을 가른다. 마크다운 표 줄(`| a | b |`)은 세로줄로 가른다. */
 function cells(line: string): string[] {
-  return line.trim().split(/\s{2,}/);
+  const l = line.trim();
+  if (l.startsWith("|"))
+    return l
+      .replace(/^\|/, "")
+      .replace(/\|$/, "")
+      .split("|")
+      .map((c) => c.trim());
+  return l.split(/\s{2,}/);
 }
 
 /**

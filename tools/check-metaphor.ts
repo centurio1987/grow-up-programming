@@ -56,7 +56,10 @@ const QUOTE_DOCS = new Set(["feedback.md", "JOURNAL.md"]);
  */
 import { SIDECAR_KINDS } from "./guide-v2-targets.ts";
 
-const SIDECAR_RE = new RegExp(`-guide\\.(?:${SIDECAR_KINDS.join("|")})\\.ts$`);
+// 그림 사이드카(`fig`)는 `.tsx` 다 — 은유는 그림 제목·주석에도 들어간다(KAN-057).
+const SIDECAR_RE = new RegExp(
+  `-guide\\.(?:(?:${SIDECAR_KINDS.filter((k) => k !== "fig").join("|")})\\.ts|fig\\.tsx)$`,
+);
 
 /** 사이드카 파일 이름인가. `<이름>-guide.<갈래>.ts` 만 참이다. */
 export const isSidecar = (file: string): boolean => SIDECAR_RE.test(file);

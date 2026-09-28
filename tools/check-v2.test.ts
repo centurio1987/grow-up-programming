@@ -16,15 +16,19 @@ import {
   codeNameMapping,
   continuesSentence,
   displayWidth,
+  figFindings,
   finalCodeMatchesRef,
   generatedBlockAlignment,
   hasFigure,
+  maxProseRun,
   normalizeCode,
   parseSim,
   rowCells,
   skipNotes,
   stepSpan,
   stripQuotes,
+  symbolNoteFindings,
+  tableHeaderWarnings,
   tableSeparators,
 } from "./check-v2.ts";
 import { parseSections } from "./section.ts";
@@ -654,6 +658,90 @@ test("P5 — trace 에 없는 단계를 가리키면 걸린다", () => {
 test("P6 — 마커와 sim export 가 어긋나면 걸린다", () => {
   const sim = SIM.replace("export const demo", "export const other");
   expect(codes(check({ text: PASSING, sim }))).toContain("P6");
+});
+
+test("P6 — 그림 마커 ↔ FIGS 키 ↔ SVG 셋이 맞아야 한다(KAN-057)", () => {
+  const md = "<!--fig:cover-->\n![두 조각](./figs/cover.svg)\n";
+  const ok = { keys: ["cover"], svgs: ["cover"] };
+  expect(figFindings(md, ok)).toEqual([]);
+  const details = (f: ReturnType<typeof figFindings>) =>
+    f.map((x) => x.detail).join("\n");
+  expect(details(figFindings(md, undefined))).toContain("`.fig.tsx` 가 없다");
+  expect(details(figFindings(md, { keys: [], svgs: ["cover"] }))).toContain(
+    "FIGS 키가 없다",
+  );
+  expect(details(figFindings(md, { keys: ["cover"], svgs: [] }))).toContain(
+    "SVG(figs/cover.svg)가 없다",
+  );
+  expect(details(figFindings("", ok))).toContain("가리키는 그림 마커가 없다");
+  expect(
+    details(figFindings("<!--fig:cover-->\n![x](./figs/other.svg)\n", ok)),
+  ).toContain("바로 아래 줄은");
+});
+
+test("그림 마커와 이미지 줄은 그림이다 — 산문 연속을 끊고 P7 을 채운다", () => {
+  const body = ["<!--fig:cover-->", "![두 조각](./figs/cover.svg)"];
+  expect(
+    hasFigure({ id: "concept", line: 1, body } as unknown as Parameters<
+      typeof hasFigure
+    >[0]),
+  ).toBe(true);
+});
+
+test("P6 — viz 폴백이 ASCII 펜스 대신 그림이어도 된다", () => {
+  const text = "<!--viz:demo-->\n<!--fig:cover-->\n![걸음](./figs/cover.svg)\n";
+  const found = check({ text, figs: { keys: ["cover"], svgs: ["cover"] } });
+  expect(
+    found.some((f) => f.code === "P6" && f.detail.includes("ascii 펜스")),
+  ).toBe(false);
+});
+
+test("P21 — 펜스 밖의 지어낸 기호 줄을 잡고, 펜스 안은 둔다(KAN-057 검토 지적 8)", () => {
+  const text = [
+    "| a | b |",
+    "| --- | --- |",
+    "| 1 | 2 |",
+    "",
+    "└ 설명 줄",
+    "",
+    "▸ 제목 줄",
+    "",
+    "```text",
+    "└ 글자 그림 안은 괜찮다",
+    "```",
+  ].join("\n");
+  const found = symbolNoteFindings(text);
+  expect(found.map((f) => f.where)).toEqual([":5", ":7"]);
+});
+
+test("P21 경고 — 머리줄 첫 칸이 제목 문장인 표(KAN-057 검토 지적 7)", () => {
+  const bad =
+    "| A[2] 를 7 에서 1 로 고쳤다면 | 0 층 |\n| --- | --- |\n| 옛 | 5 |";
+  const good = "| 방법 | 판정 |\n| --- | --- |\n| 차례로 읽기 | 버림 |";
+  expect(tableHeaderWarnings(bad)).toHaveLength(1);
+  expect(tableHeaderWarnings(bad)[0]?.warn).toBe(true);
+  expect(tableHeaderWarnings(good)).toEqual([]);
+});
+
+test("P1 — 닫힌 증명 블록 안 문장과 주석 줄은 산문으로 세지 않는다", () => {
+  const body = [
+    "첫 문단입니다.",
+    "",
+    "<!--proof:x-->",
+    "",
+    "| a |",
+    "| --- |",
+    "| 1 |",
+    "",
+    "표가 낸 수를 적은 문장입니다.",
+    "",
+    "<!--/proof-->",
+    "",
+    "둘째 문단입니다.",
+    "",
+    "셋째 문단입니다.",
+  ];
+  expect(maxProseRun(body)).toBe(2);
 });
 
 test("P7 — 그림을 져야 하는 절에 그림이 없으면 걸린다", () => {

@@ -80,6 +80,40 @@ test("마커 아래가 펜스가 아니면 잡는다", () => {
   expect(blocks[0]?.body).toBeNull();
 });
 
+test("마크다운 표도 증명 블록이다 — 표 줄을 글자 그대로 대조한다(KAN-057)", () => {
+  const table = "| 질의 | 답 |\n| --- | --- |\n| [0,5] | 2 |";
+  const md = `<!--proof:t1-->\n\n${table}\n\n뒤따르는 산문.\n`;
+  const blocks = extractBlocks(md);
+  expect(blocks[0]?.form).toBe("table");
+  expect(blocks[0]?.body).toBe(table);
+  expect(compare(blocks, { t1: () => table })).toEqual([]);
+  const fails = compare(blocks, { t1: () => table.replace("| 2 |", "| 3 |") });
+  expect(fails[0]?.kind).toBe("값이 다르다");
+  expect(fails[0]?.detail).toContain("3번째 줄");
+});
+
+test("닫는 마커가 있으면 표와 문장까지 블록이고, 문장의 수도 대조한다(KAN-057 S15)", () => {
+  const block = "| a |\n| --- |\n| 1 |\n\n칸 14 개를 대조했습니다.";
+  const md = `<!--proof:t1-->\n\n${block}\n\n<!--/proof-->\n\n뒤 산문.\n`;
+  const blocks = extractBlocks(md);
+  expect(blocks[0]?.body).toBe(block);
+  expect(compare(blocks, { t1: () => block })).toEqual([]);
+  const fails = compare(blocks, { t1: () => block.replace("14", "15") });
+  expect(fails[0]?.kind).toBe("값이 다르다");
+});
+
+test("표 증명도 판정 열과 지나간 횟수 열을 읽는다", () => {
+  const body = [
+    "| 입력 | 지나간 횟수 | 답 |",
+    "| --- | --- | --- |",
+    "| a | 2 | 같다 |",
+    "| b | 0 | 같다 |",
+    "| c | 1 | 어긋난다 |",
+  ].join("\n");
+  expect(verdictLines(body).map((v) => v.line)).toEqual([3, 4, 5]);
+  expect(visitedSameRows(body)).toEqual([{ line: 3, count: 2, label: "a" }]);
+});
+
 test("줄 끝 공백과 끝의 빈 줄만 무시한다", () => {
   expect(normalize("a  \nb\n\n\n")).toBe("a\nb");
   expect(normalize("a\n b")).not.toBe(normalize("a\nb"));
