@@ -107,7 +107,7 @@ export function RangeCover({
         const x2 = cellX(gutter, r.to) + CELL - 2;
         return (
           <g
-            key={k}
+            key={`${r.tone}-${r.from}-${r.to}`}
             data-viz-range={r.tone}
             data-viz-from={r.from}
             data-viz-to={r.to}

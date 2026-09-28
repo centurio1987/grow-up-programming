@@ -108,18 +108,20 @@ export function IndexRow(props: {
           {label}
         </text>
       ) : null}
-      {Array.from({ length: count }, (_, i) => (
-        <text
-          key={i}
-          x={cellX(gutter, i) + CELL / 2}
-          y={y}
-          textAnchor="middle"
-          dominantBaseline="central"
-          style={text("index-color", LABEL_SIZE, true)}
-        >
-          {i}
-        </text>
-      ))}
+      {Array.from({ length: count }, (_, n) => ({ at: n, id: `col-${n}` })).map(
+        ({ at: i, id }) => (
+          <text
+            key={id}
+            x={cellX(gutter, i) + CELL / 2}
+            y={y}
+            textAnchor="middle"
+            dominantBaseline="central"
+            style={text("index-color", LABEL_SIZE, true)}
+          >
+            {i}
+          </text>
+        ),
+      )}
     </g>
   );
 }
@@ -140,31 +142,33 @@ export function CellRow(props: { gutter: number; row: StripRow; y: number }) {
           {row.label}
         </text>
       ) : null}
-      {row.values.map((v, i) => {
-        const x = cellX(gutter, i + offset);
-        const state = row.states?.[i];
-        return (
-          <g key={i} data-viz-cell={i} data-viz-state={state ?? "base"}>
-            <rect
-              x={x}
-              y={y}
-              width={CELL}
-              height={CELL}
-              rx={FORM.radius}
-              style={cellStyle(state)}
-            />
-            <text
-              x={x + CELL / 2}
-              y={y + CELL / 2}
-              textAnchor="middle"
-              dominantBaseline="central"
-              style={text("cell-stroke", 15, true)}
-            >
-              {String(v)}
-            </text>
-          </g>
-        );
-      })}
+      {row.values
+        .map((v, n) => ({ v, at: n, id: `cell-${n + offset}` }))
+        .map(({ v, at: i, id }) => {
+          const x = cellX(gutter, i + offset);
+          const state = row.states?.[i];
+          return (
+            <g key={id} data-viz-cell={i} data-viz-state={state ?? "base"}>
+              <rect
+                x={x}
+                y={y}
+                width={CELL}
+                height={CELL}
+                rx={FORM.radius}
+                style={cellStyle(state)}
+              />
+              <text
+                x={x + CELL / 2}
+                y={y + CELL / 2}
+                textAnchor="middle"
+                dominantBaseline="central"
+                style={text("cell-stroke", 15, true)}
+              >
+                {String(v)}
+              </text>
+            </g>
+          );
+        })}
     </g>
   );
 }
