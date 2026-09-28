@@ -9,9 +9,9 @@
  * | 부분 | 자리 | 상태 |
  * | --- | --- | --- |
  * | foundation | `foundations` · `foundationPresets`(밝은·어두운·흑백) · `extendedFoundations` | 임시 값(tokens.ts) — 시안이 오면 S12 에서 교체 |
- * | pattern | `patterns` — P1~P4(`src/_viz/patterns/`) | S4~S6 에서 채운다 |
+ * | pattern | `patterns` — P1~P4(`src/_viz/patterns/`) | 섰다(S4~S6) |
  * | visual motif | `visualMotif` | 뼈대 — 시안이 오면 S12 에서 채운다 |
- * | component | `wrapperComponents` | S4~S6 에서 채운다 |
+ * | component | `wrapperComponents` — LogBarChart(로그 척도 막대) | 섰다(S6) |
  * | guideline | `guidelines` | 그림 형식 선택 규칙(카드 전략 1) |
  *
  * 색 리터럴은 `tokens.ts` 에만 있다 — 여기서 hex 를 쓰지 않는다.
@@ -23,6 +23,11 @@ import type {
   VizNodeSemanticStyle,
 } from "@centurio1987/bbangto-ui-tokens";
 import type { VisualizationStyleGuide } from "@centurio1987/bbangto-ui-visualization";
+import { LogBarChart } from "../../src/_viz/components/LogBarChart";
+import { ArrayStrip } from "../../src/_viz/patterns/ArrayStrip";
+import { LevelTable } from "../../src/_viz/patterns/LevelTable";
+import { RangeCover } from "../../src/_viz/patterns/RangeCover";
+import { StepTrace } from "../../src/_viz/patterns/StepTrace";
 import { type Colorway, DARK, FORM, LIGHT, MONO } from "./tokens";
 
 /** 노드 시맨틱 하나 — 알고리즘 도식은 시맨틱 노드를 거의 안 쓰므로 표면 하나를 공유한다. */
@@ -133,6 +138,7 @@ function extFor(c: Colorway): Record<string, string> {
     "--bbangto-viz-ext-step-done": c.visited,
     "--bbangto-viz-ext-step-todo": c.rule,
     "--bbangto-viz-ext-note-color": c.muted,
+    "--bbangto-viz-ext-bar-fill": c.line1,
   };
 }
 
@@ -195,6 +201,6 @@ export const algoVizStyleGuide: VisualizationStyleGuide = {
       "시안(claude-design) 대기 — S12 에서 채운다. 지금은 선 1.5 · 모서리 4 · 흑백은 대시로 구별.",
     components: {},
   },
-  wrapperComponents: {},
-  patterns: {},
+  wrapperComponents: { LogBarChart },
+  patterns: { ArrayStrip, RangeCover, LevelTable, StepTrace },
 };

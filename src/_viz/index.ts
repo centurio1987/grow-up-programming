@@ -1,6 +1,11 @@
 /** 알고리즘 가이드 도식(KAN-057) — 패턴과 렌더러의 공개 표면. */
 
 export {
+  type LogBar,
+  LogBarChart,
+  type LogBarChartProps,
+} from "./components/LogBarChart";
+export {
   ArrayStrip,
   type ArrayStripProps,
   type CellState,
@@ -20,4 +25,9 @@ export {
   type RangeCoverProps,
   type RangeTone,
 } from "./patterns/RangeCover";
+export {
+  StepTrace,
+  type StepTraceProps,
+  type TraceStep,
+} from "./patterns/StepTrace";
 export { renderToSvg, type VizPreset } from "./render";

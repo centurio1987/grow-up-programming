@@ -64,4 +64,20 @@ export const ALGO_VIZ_META: readonly AlgoVizMeta[] = [
       "트리 모양 부모-자식이면 Hierarchy",
     ],
   },
+  {
+    id: "ALGO-P4",
+    name: "Step Trace",
+    exportName: "StepTrace",
+    summary: "T# 걸음 배지 + 그 걸음이 한 일 한 줄, 지난·현재·남은 걸음 구별",
+    dataShape: ["process", "temporal"],
+    structuralTraits: ["sequential", "quantitative"],
+    useWhen: [
+      "코드를 한 걸음씩 실행한 값을 순서대로 보일 때",
+      "본문의 T# 와 같은 번호로 걸음을 가리킬 때",
+    ],
+    avoidWhen: [
+      "걸음마다 여러 열의 값을 견줘야 하면 표",
+      "분기가 있으면 Flowchart",
+    ],
+  },
 ];

@@ -2,9 +2,11 @@ import { describe, expect, test } from "bun:test";
 import {
   ArrayStrip,
   LevelTable,
+  LogBarChart,
   overlapCells,
   RangeCover,
   renderToSvg,
+  StepTrace,
 } from "./index";
 
 // 파일럿 sparseTableRangeMin 의 전개 입력과 두 질의(「전체 컨셉」·「아이디어 상세」 4단계).
@@ -105,5 +107,77 @@ describe("P3 LevelTable", () => {
     expect(svg.match(/data-viz-source="/g)?.length).toBe(2);
     expect(svg.match(/data-viz-state="focus"/g)?.length).toBe(1);
     expect(svg.match(/data-viz-state="overlap"/g)?.length).toBe(2);
+  });
+});
+
+describe("P4 StepTrace · 기존 유형", () => {
+  test("시뮬 프레임 T3~T15 의 값이 정본 실행과 같고, 그대로 걸음이 된다", async () => {
+    const { sparseTableRangeMin } = await import(
+      "../algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.ref.ts"
+    );
+    const sim = await import(
+      "../algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.sim.ts"
+    );
+    type F = { title: string; entries: { label: string; value: number }[] };
+    const val = (f: F, label: string) =>
+      f.entries.find((e) => e.label === label)?.value;
+    const buildSteps = sim.build.steps as unknown as F[];
+    const answerSteps = sim.answer.steps as unknown as F[];
+    const ids = [...buildSteps, ...answerSteps].map(
+      (f) => f.title.split(" ")[0],
+    );
+    expect(ids).toEqual(Array.from({ length: 13 }, (_, n) => `T${n + 3}`));
+    for (const f of buildSteps) {
+      const [, k, i] = f.title.match(/k=(\d+) i=(\d+)/)?.map(Number) ?? [];
+      const [ans] = sparseTableRangeMin(A, [
+        [i as number, (i as number) + 2 ** (k as number) - 1],
+      ]);
+      expect(val(f, "새 칸의 값")).toBe(ans as number);
+    }
+    for (const f of answerSteps) {
+      const [, l, r] = f.title.match(/l=(\d+) r=(\d+)/)?.map(Number) ?? [];
+      const [ans] = sparseTableRangeMin(A, [[l as number, r as number]]);
+      expect(val(f, "구간의 최솟값")).toBe(ans as number);
+    }
+    const svg = await renderToSvg(
+      <StepTrace
+        title="질의 다섯"
+        current="T13"
+        steps={answerSteps.map((f) => ({
+          id: f.title.split(" ")[0] as string,
+          text: f.title.slice(f.title.indexOf(" ") + 1),
+        }))}
+      />,
+      "t-trace",
+    );
+    expect(svg).toContain('data-viz-step="T13" data-viz-state="current"');
+    expect(svg).toContain('data-viz-step="T11" data-viz-state="done"');
+    expect(svg).toContain('data-viz-step="T15" data-viz-state="todo"');
+  });
+
+  test("로그 막대는 원래 값을 적고, ProcessSteps 도 이 가이드로 칠해진다", async () => {
+    const bars = await renderToSvg(
+      <LogBarChart
+        title="견주기 수"
+        bars={[
+          { id: "a", label: "n = 6", value: 30 },
+          { id: "b", label: "n = 100,000", value: 9_999_900_000 },
+        ]}
+      />,
+      "t-bars",
+    );
+    expect(bars).toContain("9,999,900,000");
+    expect(bars).toContain(">30<");
+    const { ProcessSteps } = await import(
+      "@centurio1987/bbangto-ui-visualization"
+    );
+    const steps = await renderToSvg(
+      <ProcessSteps
+        title="절차"
+        data={{ steps: [{ title: "층 번호 표" }, { title: "0 층 복사" }] }}
+      />,
+      "t-steps",
+    );
+    expect(steps).toContain("--bbangto-viz-ext-cell-fill");
   });
 });
