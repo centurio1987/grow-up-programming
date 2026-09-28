@@ -17,6 +17,30 @@ import { algoVizStyleGuide } from "../../design/viz/algo.viz";
 
 export type VizPreset = "light" | "dark" | "mono";
 
+/**
+ * `adaptive`(기본) — 세 변형의 CSS 변수를 한 SVG 에 담는다. 밝은 쪽이 기본이고, 어두운 쪽은
+ * `prefers-color-scheme: dark` 에서, 흑백은 인쇄에서 덮는다. 그래서 커밋하는 SVG 는 한 장이고
+ * md(이미지)·HTML(인라인)·인쇄가 같은 파일을 쓴다. 변형 하나로 고정하려면 그 이름을 준다.
+ */
+export type VizMode = VizPreset | "adaptive";
+
+/** 스타일 가이드의 변형 하나를 CSS 선언 묶음으로 — Provider 가 wrapper 에 다는 것과 같은 값이다. */
+async function varsOf(preset: VizPreset): Promise<string> {
+  const { resolveVizFoundationPreset, visualizationFoundationToStyleObject } =
+    await import("@centurio1987/bbangto-ui-visualization");
+  const { foundations, extendedFoundations } = resolveVizFoundationPreset(
+    algoVizStyleGuide,
+    preset,
+  );
+  const all = {
+    ...visualizationFoundationToStyleObject(foundations),
+    ...extendedFoundations,
+  };
+  return Object.entries(all)
+    .map(([k, v]) => `${k}: ${v};`)
+    .join(" ");
+}
+
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 function ensureDom(): void {
@@ -33,8 +57,9 @@ function ensureDom(): void {
 export async function renderToSvg(
   element: ReactElement,
   id: string,
-  preset: VizPreset = "light",
+  mode: VizMode = "adaptive",
 ): Promise<string> {
+  const preset: VizPreset = mode === "adaptive" ? "light" : mode;
   ensureDom();
   const { act } = await import("react");
   const { createRoot } = await import("react-dom/client");
@@ -70,14 +95,23 @@ export async function renderToSvg(
       if (a.name.startsWith("data-bbangto-viz"))
         clone.setAttribute(a.name, a.value);
     }
-    const vars = wrapper.getAttribute("style") ?? "";
-    clone.setAttribute(
-      "style",
-      [vars, clone.getAttribute("style") ?? ""].filter(Boolean).join(";"),
-    );
+    clone.setAttribute("data-viz-fig", id);
+    let varCss: string;
+    if (mode === "adaptive") {
+      const sel = `svg[data-viz-fig="${id}"]`;
+      varCss = [
+        `${sel} { ${await varsOf("light")} }`,
+        `@media (prefers-color-scheme: dark) { ${sel} { ${await varsOf("dark")} } }`,
+        `@media print { ${sel} { ${await varsOf("mono")} } }`,
+      ].join("\n");
+    } else {
+      // 변형 하나로 고정 — Provider 가 wrapper 에 단 값을 그대로 루트에 싣는다.
+      varCss = `svg[data-viz-fig="${id}"] { ${wrapper.getAttribute("style") ?? ""} }`;
+    }
 
     const css = [...document.head.querySelectorAll("style")]
       .map((s) => s.textContent ?? "")
+      .concat(varCss)
       .join("\n");
     const styleEl = document.createElementNS(SVG_NS, "style");
     styleEl.textContent = css;

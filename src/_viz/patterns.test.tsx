@@ -181,3 +181,32 @@ describe("P4 StepTrace · 기존 유형", () => {
     expect(steps).toContain("--bbangto-viz-ext-cell-fill");
   });
 });
+
+describe("스타일 가이드 가드", () => {
+  // S4·S6 에서 같은 부류의 결함이 두 번 났다 — 흑백에서 흰 채움 토큰을 선·막대 색으로 써서 사라졌다.
+  test("모든 변형에서 선·막대 토큰은 바탕과 다른 색이다", async () => {
+    const { resolveVizFoundationPreset } = await import(
+      "@centurio1987/bbangto-ui-visualization"
+    );
+    const { algoVizStyleGuide } = await import("../../design/viz/algo.viz");
+    for (const key of ["light", "dark", "mono"]) {
+      const { foundations, extendedFoundations } = resolveVizFoundationPreset(
+        algoVizStyleGuide,
+        key,
+      );
+      const bg = foundations.canvas.bg.toLowerCase();
+      for (const t of [
+        "piece-left",
+        "piece-right",
+        "step-current",
+        "bar-fill",
+        "query",
+        "cell-stroke",
+      ]) {
+        expect(
+          `${key}:${t}=${extendedFoundations[`--bbangto-viz-ext-${t}`]?.toLowerCase()}`,
+        ).not.toBe(`${key}:${t}=${bg}`);
+      }
+    }
+  });
+});
