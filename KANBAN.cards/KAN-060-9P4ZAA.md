@@ -24,7 +24,7 @@ scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/chec
 - 새 항목 `practice` — `## 실습 — 직접 풀어 보기`, fixed · 필수 · order 90, 파트 2 뒤 문서 끝. 문제마다 `### {문제 이름}`(`practice.problem`, 반복 ≥ 1), 그 아래 `####` 5절(스토리 · 함수 인터페이스 · 제약 조건 · 문제 상세 · 예시 — 옛 problem spec 5항), 끝에 스텁·테스트 경로와 `bun test <경로>`.
 - voice 규칙 「문서 끝은 스스로 점검하기로 마무리」(`.claude/authoring/voices/algorithm-guide-writer/voice.md:95`, SPEC 이 인용하는 87행은 밀린 옛 번호)를 「파트 2 는 selfcheck 로 맺고, 문서는 실습으로 끝낸다」로 고친다.
 - 새 규칙 `L49` — 파트 1·2 는 실습 문제를 전제하지 않는다. `deep.origin` ① 은 「다룰 과제를 고정한다」(스토리 없이 입출력 계약·규모·기호표). 「이 문제」·「지문」·「문제가 정해 두었다」류를 실습 밖에서 쓰지 않는다. §8 한시 조항: `deep.origin` 이 있는 편만 잰다, 058 이 닫히면 지운다.
-- `selfcheck` 의 답 없는 문제(`sandbox/algo-guide-v2/SPEC.md:774`)는 이해 점검, 실습은 스텁을 채워 테스트를 통과시키는 과제 — 두 절에 경계를 한 줄씩.
+- `selfcheck` 의 답 없는 문제(`sandbox/algo-guide-v2/SPEC.md:776`)는 이해 점검, 실습은 스텁을 채워 테스트를 통과시키는 과제 — 두 절에 경계를 한 줄씩.
 
 **규칙 자산.** `specs/problem/` 5항을 SPEC `practice` 로 옮기고 퇴역, `.claude/authoring.lock.json` 의 problem·voice 해시 갱신(S3 에서 `lock --update`). `gen-problem` 은 가이드 실습 절과 테스트를 쓰도록 전환. 낡은 서술 `.claude/skills/guide-for-problem/SKILL.md` 의 description·입력 서술(S3 에서 고침) · `README.md:17,26-36,75` · `CLAUDE.md:11` 정정.
 
@@ -46,7 +46,7 @@ scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/chec
 
 **배치 2 — 파일럿(메인 세션, learning 스타일 확인 뒤 직접 집필)**
 
-- [ ] `S4` `sparseTableRangeMin` 재집필 — 파트 1·2 에서 스토리와 「이 문제」류를 걷고 `deep.origin` ① 을 과제 고정으로, 기존 문제를 `## 실습` 으로 옮기고 `problem.md` 삭제, 값이 바뀐 자리는 `proof.ts`·`fig.tsx`·`sim.ts` 를 맞춘다. 완료 기준: `check-v2`(P22·P23) · `check-proof --require` · `render-figs --check` · 가이드 `bun test` · `build-html` 통과
+- [x] `S4` `sparseTableRangeMin` 재집필 — 파트 1·2 에서 스토리와 「이 문제」류를 걷고 `deep.origin` ① 을 과제 고정으로, 기존 문제를 `## 실습` 으로 옮기고 `problem.md` 삭제, 값이 바뀐 자리는 `proof.ts`·`fig.tsx`·`sim.ts` 를 맞춘다. 완료 기준: `check-v2`(P22·P23) · `check-proof --require` · `render-figs --check` · 가이드 `bun test` · `build-html` 통과
 
 **배치 3 — 전 편 기계 이전**
 
@@ -70,7 +70,8 @@ bun run tools/check-v2.ts --all                          # P22·P23 포함
 bun run tools/check-links.ts refs src/algorithms         # -problem.md 참조 0
 find src/algorithms -name '*-problem.md' | wc -l         # 0
 grep -rl 'problem\.md' src/algorithms --include='*.ts' --exclude-dir=_scratch | wc -l   # 0
-bun run tools/check-proof.ts --all --require
+bun run tools/check-proof.ts --all                   # CI 와 같다(--require 는 main 에서도 세 편이 증명 블록 없음으로 실패)
+bun run tools/check-proof.ts --require src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md
 bun run tools/render-figs.ts --check
 bun test tools/check-v2.test.ts
 bunx tsc --noEmit
@@ -89,3 +90,5 @@ bunx --bun @biomejs/biome check tools/migrate-practice.ts tools/check-v2.ts tool
 - 2026-09-29T04:51 · s:15cf9d75 · S2 done — section.ts: PRACTICE_HEADING·PRACTICE_PARTS, 실습 아래 ###/####/##### 를 practice.problem/part/sub 로(algo 만). check-v2.ts: guideText(실습 앞 본문만 본문 검사에) · P22 practiceFindings(절 하나·마지막 ##·문제 ≥1·소절 여섯 순서·풀 파일 줄·링크 실재) · P23 practiceReferenceFindings(「이 문제」·「문제가 … 정해」·「문제의 제약」, deep.origin 있는 편만). check-metaphor.ts 도 가이드는 실습 앞에서 끊는다(scope 추가). 시험 check-v2 171/171 · check-metaphor 23/23. --all: P22 111(전부 「실습 절 없음」) · P23 8(전부 파일럿, S4 몫) · 그 밖 0(기준선과 같음) · ds 0. kadane·dijkstra·ahoCorasick 에 실습 임시 부착 → check-v2 통과·check-proof·build-html·guide-core·check-metaphor 통과(은유 1건을 찾아 check-metaphor 를 고침) 뒤 되돌림. L49 문구에서 「지문」 제외(purpose.cue·해시 지문 오탐). 인용 remap 8곳
 - 2026-09-29T04:51 · s:15cf9d75 · S3 doing — 착수
 - 2026-09-29T04:54 · s:15cf9d75 · S3 done — specs/problem 퇴역(git rm) — 소절별 작성법·풀이 비암시·예시=테스트 기대값·테스트 세 축을 SPEC §3 practice 로 옮김. gen-problem SKILL 을 실습 절+스텁+테스트 쓰기로 다시 씀(-problem.md 생성 금지). guide-for-problem description·입력 서술 · README 폴더 구조·문제 생성·가이드 절 · CLAUDE.md 트랙 표·spec 경로 정정. authoring lock --update(voice 해시 · problem 제거 — 예상한 두 변경뿐). 완료 기준의 authoring-doctor 대신 authoring.py validate --all 로 확인(통과). check-links·check-citations 통과, 인용 remap 4곳. docs/ORD-006-strategy.md:257 의 problem spec 언급은 ORD-006 당시 기록이라 두었다
+- 2026-09-29T04:54 · s:15cf9d75 · S4 doing — 착수
+- 2026-09-29T05:13 · s:15cf9d75 · S4 done — 파일럿: 「이 문제」류 11곳을 과제·제약 범위·정적 배열로 다시 씀(P23 8 + 71·90·114행), 기호표 열 「이 과제에서」, 비용 예산을 「흔한 채점 환경의 예산 1 초·256 MB」로(SPEC deep.origin 에 그 기준 한 줄 추가), 링크 4개를 이웃 가이드로, 끝에 ## 실습 — 문제 문서 여섯 절을 두 단 내려 옮기고 sparseTableRangeMin-problem.md 삭제. 이웃 세 편의 파일럿 문제 링크 5개도 파일럿 가이드로. purpose.cue 의 「지문」 표는 문제 일반이라 둠. 값·증명·그림은 안 바뀜. 검사: check-v2 P1~P23 · check-proof --require(파일럿 25/25) · render-figs --check · build-html · check-metaphor · guide-core · 가이드 시험 16/16 · check-links · check-citations 통과. 남은 경고 P3(T1·T2 미도식)는 main 에도 있던 것. check-proof --all --require 는 main 에서도 세 편(증명 블록 없음)으로 실패 — 카드 검증 명령을 CI 와 같은 --all 로 고친다. 출력 스타일은 Plan KO 였다(learning 전환은 세션이 못 함) — 전면 재집필이 아니라 지칭 교체 범위라 voice·검사기로 진행

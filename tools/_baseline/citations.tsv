@@ -91,11 +91,11 @@ KANBAN.cards/KAN-046-ZFDFCQ.md	tools/ord006-inventory.ts	231	adc80ebe6e4d	-
 KANBAN.cards/KAN-047-394V9A.md	tools/check-citations.ts	7	a82e46180ef3	-
 KANBAN.cards/KAN-056-VPCM91.md	.claude/skills/guide-for-problem/SKILL.md	40	be975b01d2ee	-
 KANBAN.cards/KAN-057-J36E1B.md	.claude/authoring/voices/algorithm-guide-writer/voice.md	33	bc8db68a78af	-
-KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	518	494eba45f6f1	-
-KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	702	34892273d7c1	-
-KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	887	6b75aea1d76c	-
-KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	894	e208d3181370	-
-KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	896	58c68e3ef8f9	-
+KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	520	494eba45f6f1	-
+KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	704	34892273d7c1	-
+KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	889	6b75aea1d76c	-
+KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	896	e208d3181370	-
+KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	898	58c68e3ef8f9	-
 KANBAN.cards/KAN-057-J36E1B.md	tools/mount.ts	45	84a28db1abdd	-
 KANBAN.cards/KAN-057-J36E1B.md	tools/mount.ts	66	7216ab9cc2c9	-
 KANBAN.cards/KAN-059-PSFTN4.md	src/_viz/patterns/CellStage.tsx	426	361ae4dec5df	-
@@ -104,7 +104,7 @@ KANBAN.cards/KAN-059-PSFTN4.md	tools/book/fragment.ts	44	7e5697c2436f	-
 KANBAN.cards/KAN-059-PSFTN4.md	tools/book/print-css.ts	156	9b6976e2efb2	-
 KANBAN.cards/KAN-060-9P4ZAA.md	.claude/authoring/voices/algorithm-guide-writer/voice.md	95	f4ef20830146	-
 KANBAN.cards/KAN-060-9P4ZAA.md	sandbox/algo-guide-v2/SPEC.md	334	41bdbc35f8fb	-
-KANBAN.cards/KAN-060-9P4ZAA.md	sandbox/algo-guide-v2/SPEC.md	774	c466296f2816	-
+KANBAN.cards/KAN-060-9P4ZAA.md	sandbox/algo-guide-v2/SPEC.md	776	c466296f2816	-
 KANBAN.cards/KAN-060-9P4ZAA.md	src/algorithms/advanced/knuthOptimization/knuthOptimization-guide.proof.ts	65	8ab0917baf1e	-
 KANBAN.cards/KAN-060-9P4ZAA.md	src/algorithms/shortest-path/floydWarshall/floydWarshall-guide.proof.ts	47	ba088e158004	-
 KANBAN.cards/KAN-060-9P4ZAA.md	src/algorithms/sorting/kthSmallest/kthSmallest.test.ts	5	51d1f3c53561	-

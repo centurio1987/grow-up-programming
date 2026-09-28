@@ -70,7 +70,7 @@ A[3] 을 1 에서 10 으로 바꾸면
   [`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-problem.md) 를 먼저 봅니다.
 
 「구간의 값을 묻는다」와 「구간이 안 바뀐다」는 다른 조건입니다. 배열이 안 바뀌는 문제는
-[`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-problem.md) 이 다루고, 이
+[`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-guide.md) 이 다루고, 이
 글은 **갱신이 섞여 들어오는 쪽**만 합니다.
 
 ```text
@@ -811,7 +811,7 @@ N = 100,000 일 때 (배열 접근만 센다)
 ```
 
 두 번째 무리가 보이면 다른 절차로 갑니다. 배열이 안 바뀌면
-[`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-problem.md) 쪽이고, 구간
+[`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-guide.md) 쪽이고, 구간
 합에 갱신이 붙으면 [`fenwickRangeSum`](../fenwickRangeSum/fenwickRangeSum-problem.md) 쪽이에요.
 
 #### 실제로 쓰이는 곳

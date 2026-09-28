@@ -568,7 +568,7 @@ P[r+1] = A[0] + … + A[r]        ─┘
 | 최댓값·최솟값 | 없음 | 안 나옵니다. 큰 값을 「빼는」 방법이 없습니다 |
 
 마지막 줄이 다른 자료구조가 필요해지는 자리입니다. 구간 최솟값을 묻는 문제가
-[`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-problem.md) 이나
+[`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-guide.md) 이나
 [`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-problem.md) 으로 가는
 이유가 이것이에요 — 최댓값에는 역원이 없어서 두 칸의 차이로 구간을 만들 수 없습니다.
 
@@ -635,7 +635,7 @@ n = 100,000 일 때 (덧셈·뺄셈만 센다)
 
 두 번째 무리가 보이면 다른 절차로 갑니다. 갱신이 섞이면
 [`fenwickRangeSum`](../fenwickRangeSum/fenwickRangeSum-problem.md) 쪽이고, 최솟값이면
-[`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-problem.md) 쪽이에요.
+[`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-guide.md) 쪽이에요.
 
 #### 실제로 쓰이는 곳
 

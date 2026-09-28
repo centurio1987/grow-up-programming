@@ -748,7 +748,7 @@ largestRectangleInHistogram([7])                 →   7
 
 마지막 무리가 보이면 다른 절차로 갑니다. 구간 질의가 붙으면
 [`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-problem.md) ·
-[`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-problem.md) 쪽이고,
+[`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-guide.md) 쪽이고,
 창이 움직이면
 [`monotonicQueue`](../../../data-structures/linear/monotonicQueue/monotonicQueue.ts)
 쪽이에요.
