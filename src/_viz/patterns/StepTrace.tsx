@@ -6,11 +6,7 @@
  * 걸음은 점선. 걸음의 내용은 부르는 쪽이 `.sim.ts` 프레임·정본 실행에서 받아 넘긴다.
  */
 
-import {
-  Canvas,
-  estimateWidth,
-  vvar,
-} from "@centurio1987/bbangto-ui-visualization";
+import { Canvas, vvar } from "@centurio1987/bbangto-ui-visualization";
 import { FORM } from "../../../design/viz/tokens";
 
 export interface TraceStep {
@@ -33,6 +29,16 @@ const BADGE_H = 22;
 const TEXT_SIZE = 13;
 
 type StepState = "done" | "current" | "todo";
+
+/**
+ * 등폭 글자 폭. 패키지 `estimateWidth` 는 등폭에서 한글도 라틴 한 글자 폭으로 잡아, 한글이 섞인
+ * 걸음 줄(「겹친 칸 3」)의 끝이 잘렸다(S13 실측). 한글·한자는 글자 크기만큼, 나머지는 0.62 배로 센다.
+ */
+const monoWidth = (s: string): number =>
+  [...s].reduce(
+    (w, c) => w + (/[ᄀ-ᇿ㄰-㆏가-힯一-鿿]/.test(c) ? TEXT_SIZE : TEXT_SIZE * 0.62),
+    0,
+  );
 
 function badgeStyle(state: StepState) {
   switch (state) {
@@ -66,10 +72,7 @@ export function StepTrace({ title, steps, current }: StepTraceProps) {
   const stateOf = (k: number): StepState =>
     k < at ? "done" : k === at ? "current" : "todo";
   const textX = FORM.pad + BADGE_W + FORM.pad;
-  const longest = Math.max(
-    0,
-    ...steps.map((s) => estimateWidth(s.text, TEXT_SIZE, true)),
-  );
+  const longest = Math.max(0, ...steps.map((s) => monoWidth(s.text)));
   const width = Math.ceil(textX + longest + FORM.pad);
   const height = FORM.pad * 2 + steps.length * ROW - (ROW - BADGE_H);
   return (

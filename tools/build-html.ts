@@ -676,6 +676,8 @@ pre.gs-ascii { border: 1px dashed var(--gs-rule); background: transparent; }
 .gs-fig svg { max-width: 100%; height: auto; }
 table { border-collapse: collapse; width: 100%; display: block; overflow-x: auto; }
 th, td { border: 1px solid var(--gs-rule); padding: .5rem .75rem; text-align: left; }
+th[align="right"], td[align="right"] { text-align: right; font-variant-numeric: tabular-nums; }
+table + table { margin-top: 1rem; }
 blockquote { margin: 1.5rem 0; padding-left: 1rem; border-left: 3px solid var(--gs-rule); color: var(--gs-muted); }
 details.gs-check { margin: 1rem 0; padding: .75rem 1rem; border: 1px solid var(--gs-rule); border-radius: 6px; }
 details.gs-check > summary { cursor: pointer; color: var(--gs-muted); }

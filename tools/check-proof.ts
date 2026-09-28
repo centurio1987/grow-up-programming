@@ -22,9 +22,11 @@
  * ```
  * ```
  *
- * 펜스 대신 **마크다운 표**를 둘 수도 있다(KAN-057) — 마커 아래 `|` 로 시작하는 줄이 이어지는 동안이
- * 블록이다. 대조는 펜스와 같다(표 줄을 글자 그대로). 값 표·비교 표를 ASCII 로 그리지 않고 표로
- * 옮겨도 실행 대조가 풀리지 않게 하려는 것이다.
+ * 펜스 대신 **마크다운 표**를 둘 수도 있다(KAN-057) — 마커 아래에서 표 줄(`|`) · 제목 줄(`▸ `) ·
+ * 설명 줄(`└ `) · 빈 줄이 이어지는 동안이 블록이다(끝의 빈 줄은 뺀다). 표가 둘인 블록은 표마다
+ * 제목 줄을 달고, 표 아래 설명 줄도 함께 대조한다 — 설명 줄의 수(「칸 14 개」)도 실행이 낸 값이다.
+ * 대조는 펜스와 같다(글자 그대로). 값 표·비교 표를 ASCII 로 그리지 않고 표로 옮겨도 실행 대조가
+ * 풀리지 않게 하려는 것이다(SPEC §12).
  *
  * 사이드카 `<name>-guide.proof.ts` 가 그 id 로 블록 내용을 만든다.
  *
@@ -148,6 +150,10 @@ export function normalize(text: string): string {
  * 마커와 펜스 사이의 빈 줄은 허용한다 — 마커를 펜스에 붙여 쓰면 P1(산문 연속)이 마커를
  * 문단으로 세기 때문이다. 빈 줄 아닌 것이 끼면 `body` 가 `null` 이고 그것이 위반이다.
  */
+/** 표 증명 블록을 여는 줄 · 이루는 줄. 제목 줄(`▸ `)로도 열 수 있다. */
+const TABLE_OPEN = /^(\||▸ )/;
+const TABLE_PART = /^(\||▸ |└ |$)/;
+
 export function extractBlocks(text: string): ProofBlock[] {
   const lines = text.split("\n");
   const out: ProofBlock[] = [];
@@ -158,12 +164,17 @@ export function extractBlocks(text: string): ProofBlock[] {
     let i = index + 1;
     while (i < lines.length && lines[i]?.trim() === "") i++;
     const opener = lines[i] ?? "";
-    if (opener.trimStart().startsWith("|")) {
+    if (TABLE_OPEN.test(opener.trimStart())) {
       const rows: string[] = [];
-      while (i < lines.length && (lines[i] ?? "").trimStart().startsWith("|")) {
+      while (
+        i < lines.length &&
+        TABLE_PART.test((lines[i] ?? "").trimStart())
+      ) {
         rows.push(lines[i] ?? "");
         i++;
       }
+      while (rows.length > 0 && (rows[rows.length - 1] ?? "").trim() === "")
+        rows.pop();
       out.push({ id, line: index + 1, body: rows.join("\n"), form: "table" });
       continue;
     }

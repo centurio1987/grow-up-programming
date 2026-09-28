@@ -80,4 +80,20 @@ export const ALGO_VIZ_META: readonly AlgoVizMeta[] = [
       "분기가 있으면 Flowchart",
     ],
   },
+  {
+    id: "ALGO-P5",
+    name: "Layer Bars",
+    exportName: "LayerBars",
+    summary: "층의 칸 하나를 한 줄로 — 그 칸이 맡는 자리에만 배열 값을 놓는다",
+    dataShape: ["sequence", "part-to-whole"],
+    structuralTraits: ["sequential", "nested"],
+    useWhen: [
+      "한 층의 칸들이 어느 자리를 맡고 어디서 겹치는지 보일 때",
+      "칸에 적힌 값보다 칸이 맡는 범위가 요점일 때",
+    ],
+    avoidWhen: [
+      "칸에 적힌 값만 보이면 되면 LevelTable",
+      "줄이 열다섯을 넘으면 표",
+    ],
+  },
 ];

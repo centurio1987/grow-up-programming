@@ -12,6 +12,11 @@ export {
   type StripRow,
 } from "./patterns/ArrayStrip";
 export {
+  type LayerBar,
+  LayerBars,
+  type LayerBarsProps,
+} from "./patterns/LayerBars";
+export {
   type LevelFocus,
   LevelTable,
   type LevelTableProps,

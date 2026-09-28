@@ -64,12 +64,18 @@ export interface Finding {
  * 바로 아래 줄에 그림(`figs/<id>.svg`)을 달고 서므로 예외다(KAN-057).
  */
 export const FIG_MARKER = /^<!--fig:([a-z][a-z0-9-]*)-->$/;
-const FIG_IMAGE = /^!\[[^\]]*\]\((?:\.\/)?figs\/([a-z][a-z0-9-]*)\.svg\)$/;
+// 설명(alt)에 `[0,5]` 같은 대괄호가 들 수 있어 설명 부분은 탐욕적으로 받는다.
+const FIG_IMAGE = /^!\[.*\]\((?:\.\/)?figs\/([a-z][a-z0-9-]*)\.svg\)$/;
+/**
+ * 펜스 밖으로 나온 그림의 **설명 줄**(`└ …`)과 **제목 줄**(`▸ …`). 표·수식 아래에 한 줄로 붙는다
+ * (SPEC §12). 펜스 안에 있던 때와 같이 그림의 일부로 센다 — 산문 연속(P1)과 반말(P18)의 대상이 아니다.
+ */
+export const FIG_NOTE = /^[└▸]\s/;
 
 function isFigureLine(line: string, inFence: boolean): boolean {
   if (inFence) return true;
   const t = line.trim();
-  if (FIG_MARKER.test(t) || FIG_IMAGE.test(t)) return true;
+  if (FIG_MARKER.test(t) || FIG_IMAGE.test(t) || FIG_NOTE.test(t)) return true;
   return t.startsWith("|") && t.endsWith("|");
 }
 
@@ -1017,7 +1023,9 @@ export function buildStageFindings(sections: Section[]): Finding[] {
       });
     }
   }
-  if (fences(head.body).length === 0) {
+  // 「그림」 정의는 P1·P7 과 같다(펜스 · 표 · 그림 마커, SPEC §4) — 펜스만 세면 단계 지도를 표로
+  // 옮긴 편이 「그림 없음」으로 걸린다(KAN-057 S13 실측).
+  if (!hasFigure(head)) {
     out.push({
       code: "P17",
       where: `deep.build:${head.line}`,
@@ -1102,7 +1110,11 @@ export function banmalFindings(text: string): Finding[] {
       continue;
     }
     if (fenced) continue;
-    if (line.trim() === "" || /^(#|\||<!--|>)/.test(line.trimStart())) {
+    if (
+      line.trim() === "" ||
+      /^(#|\||<!--|>)/.test(line.trimStart()) ||
+      FIG_NOTE.test(line.trim())
+    ) {
       flush();
       continue;
     }
