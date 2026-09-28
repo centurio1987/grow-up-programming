@@ -1,5 +1,11 @@
 import { describe, expect, test } from "bun:test";
-import { ArrayStrip, overlapCells, RangeCover, renderToSvg } from "./index";
+import {
+  ArrayStrip,
+  LevelTable,
+  overlapCells,
+  RangeCover,
+  renderToSvg,
+} from "./index";
 
 // 파일럿 sparseTableRangeMin 의 전개 입력과 두 질의(「전체 컨셉」·「아이디어 상세」 4단계).
 const A = [5, 2, 7, 4, 6, 3];
@@ -68,5 +74,36 @@ describe("P2 RangeCover", () => {
     expect(svg).toContain('data-viz-cell="3" data-viz-state="overlap"');
     expect(svg).toContain('data-viz-cell="1" data-viz-state="base"');
     expect(svg.match(/data-viz-range="/g)?.length).toBe(2);
+  });
+});
+
+describe("P3 LevelTable", () => {
+  test("층 값이 정본 실행과 같다 — 층 k 칸 i = 구간 [i, i+2^k−1] 의 답", async () => {
+    const { sparseTableRangeMin } = await import(
+      "../algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.ref.ts"
+    );
+    // 가이드의 층 세 줄(「전체 컨셉」).
+    const levels = [A, [2, 2, 4, 4, 3], [2, 2, 3]];
+    levels.forEach((row, k) => {
+      row.forEach((v, i) => {
+        const [ans] = sparseTableRangeMin(A, [[i, i + 2 ** k - 1]]);
+        expect(v).toBe(ans as number);
+      });
+    });
+  });
+
+  test("2 층 칸 1 을 고르면 1 층 칸 1·3 이 이어진다", async () => {
+    const svg = await renderToSvg(
+      <LevelTable
+        title="2 층 칸 1"
+        levels={[A, [2, 2, 4, 4, 3], [2, 2, 3]]}
+        focus={{ k: 2, i: 1 }}
+      />,
+      "t-level",
+    );
+    expect(svg.match(/data-viz-label="[0-9] 층/g)?.length).toBe(3);
+    expect(svg.match(/data-viz-source="/g)?.length).toBe(2);
+    expect(svg.match(/data-viz-state="focus"/g)?.length).toBe(1);
+    expect(svg.match(/data-viz-state="overlap"/g)?.length).toBe(2);
   });
 });

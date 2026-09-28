@@ -6,6 +6,12 @@ export {
   type CellState,
   type StripRow,
 } from "./patterns/ArrayStrip";
+export {
+  type LevelFocus,
+  LevelTable,
+  type LevelTableProps,
+  levelLabel,
+} from "./patterns/LevelTable";
 export { ALGO_VIZ_META, type AlgoVizMeta } from "./patterns/meta";
 export {
   overlapCells,

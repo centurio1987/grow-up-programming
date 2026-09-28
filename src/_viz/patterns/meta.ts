@@ -47,4 +47,21 @@ export const ALGO_VIZ_META: readonly AlgoVizMeta[] = [
       "구간 사이 순서가 요점이면 StepTrace",
     ],
   },
+  {
+    id: "ALGO-P3",
+    name: "Level Table",
+    exportName: "LevelTable",
+    summary:
+      "층마다 칸 수가 줄어드는 표, 한 칸이 읽은 아래층 두 칸을 잇는 변형",
+    dataShape: ["sequence", "hierarchy"],
+    structuralTraits: ["nested", "sequential", "quantitative"],
+    useWhen: [
+      "미리 계산한 층 구조(Sparse Table·이진 올리기)를 한 장에 보일 때",
+      "위층 한 칸이 아래층 어느 칸에서 나오는지 보일 때",
+    ],
+    avoidWhen: [
+      "층이 다섯을 넘거나 칸이 32 를 넘으면 표",
+      "트리 모양 부모-자식이면 Hierarchy",
+    ],
+  },
 ];
