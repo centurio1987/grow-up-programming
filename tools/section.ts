@@ -99,6 +99,8 @@ const PATTERNED_COMMON: ReadonlyArray<readonly [string, RegExp]> = [
 
 const PATTERNED_ALGO: ReadonlyArray<readonly [string, RegExp]> = [
   ...PATTERNED_COMMON,
+  // 2026-09-26 `KAN-056` — `deep.build` 가 들고 있던 「단순한 방법 → 아이디어」 서사를 떼어 낸 절.
+  ["deep.origin", /^### 아이디어를 떠올리는 과정 — .+$/],
   ["deep.build", /^### 아이디어 상세 — .+$/],
   ["deep.walk", /^### 수행으로 알아보는 알고리즘 — .+$/],
 ];
@@ -124,6 +126,23 @@ const PATTERNED_DS: ReadonlyArray<readonly [string, RegExp]> = [
  * 해소되지 않은 전부를 순서대로 `deep.walk.step` 으로 본다.
  */
 const WALK_CONTAINER = "deep.walk";
+
+/**
+ * `deep.build`(아이디어 상세) 안의 하위 절 — 2026-09-28 `KAN-056`(`SPEC.md` `L42`).
+ *
+ * 유저 지적이 두 번이었다 — *"줄글 안에 번호가 숨겨져 있어서, 잘 파악이 안된다"* 와 *"단계는
+ * 유지하되, 개념은 … 생소한 개념인 경우, 별도 편성"*. 그래서 이 절은 `####` 로 실현 단계와
+ * (조건부) 낯선 개념 절을 세우고, 개념 절 안을 `#####` 로 나눈다. 단계 이름은 편마다 다르므로
+ * `deep.walk.step` 처럼 **잔여**로 해소하고, 번호가 붙은 것만 단계로 본다.
+ *
+ * `#####` 는 바로 위 `####` 의 하위다. 컨테이너 밖에서는 이 규칙이 적용되지 않는다 — 옛 구성
+ * 110편은 이 헤딩이 없으므로 결과가 그대로다.
+ */
+const BUILD_CONTAINER = "deep.build";
+const BUILD_CHILDREN: ReadonlyArray<readonly [string, RegExp]> = [
+  ["deep.build.concept", /^#### 먼저 알아 둘 개념 — .+$/],
+  ["deep.build.stage", /^#### \d+단계 — .+$/],
+];
 
 export interface ParseResult {
   sections: Section[];
@@ -164,11 +183,27 @@ export function parseSections(text: string, kind: GuideKind): ParseResult {
   const sections: Section[] = [];
   const unresolved: { heading: string; line: number }[] = [];
   let insideWalk = false;
+  let insideBuild = false;
 
   for (const item of raw) {
     // 컨테이너를 벗어나면 잔여 규칙도 끝난다. `deep.walk` 는 `###` 이므로 경계가 level 3 이다.
     // 리셋이 설정보다 먼저라 `deep.walk` 자신은 아래에서 다시 true 가 된다.
-    if (item.level <= 3) insideWalk = false;
+    if (item.level <= 3) {
+      insideWalk = false;
+      insideBuild = false;
+    }
+
+    // `deep.build` 안의 하위 절은 전역 패턴(`짚고 가기`·`전체 코드`)보다 먼저 본다 — 그 이름이
+    // 여기 오면 수행 절의 것으로 잘못 해소된다.
+    if (insideBuild && item.level === 4) {
+      const child = BUILD_CHILDREN.find(([, re]) => re.test(item.heading));
+      sections.push({ id: child?.[0] ?? "deep.build.tail", ...item });
+      continue;
+    }
+    if (insideBuild && item.level === 5) {
+      sections.push({ id: "deep.build.sub", ...item });
+      continue;
+    }
 
     const fixed = FIXED.find(([, heading]) => heading === item.heading);
     if (fixed) {
@@ -179,6 +214,7 @@ export function parseSections(text: string, kind: GuideKind): ParseResult {
     const patterned = PATTERNED.find(([, re]) => re.test(item.heading));
     if (patterned) {
       if (patterned[0] === WALK_CONTAINER) insideWalk = true;
+      if (patterned[0] === BUILD_CONTAINER) insideBuild = true;
       sections.push({ id: patterned[0], ...item });
       continue;
     }

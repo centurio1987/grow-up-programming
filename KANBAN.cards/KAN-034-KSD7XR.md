@@ -62,7 +62,7 @@ W2(`bit-manipulation`·`string`·`graph-flow`·`shortest-path`·`tree`) → W3(`
 2. **미커밋 잔여물은 `KAN-033` 의 것** — 마지막 커밋 `efabba1`(S18) 이후 19파일 수정 + untracked
    다수. 그 카드는 `b561f62` 로 완료됐으므로 **`KAN-033` 명의로 닫는다.**
 3. **문서가 결번을 가리킴** — `SPEC.md:677` 이 `L23`·`L26`~`L31` 을 결번 선언했는데
-   `FEEDBACK.md` 는 16줄에서 쓴다. **그중 `sandbox/algo-guide-v2/FEEDBACK.md:49`·`:127` 은 폐기 사실의 기록이라 고치지 않는다** —
+   `FEEDBACK.md` 는 16줄에서 쓴다. **그중 `sandbox/algo-guide-v2/FEEDBACK.md:49`·`:133` 은 폐기 사실의 기록이라 고치지 않는다** —
    0 을 요구하면 결번 선언의 근거를 지운다. 교정 대상은 §1 반영표 규칙 열뿐이다.
 4. **파일럿 4편이 미이관** — 원고는 샌드박스에 있고 `src/algorithms/` 그 자리에는 v1 `.mdx` 가
    그대로다(실측). 이관 단계가 없으면 잔여 수치가 0 으로 닫히지 않는다.

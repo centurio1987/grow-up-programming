@@ -301,7 +301,9 @@ test("P3 — 짚고 가기 소절이 없으면 걸린다", () => {
     "#### 3b. 정렬을 건너뛰고 싶어지는 자리",
   );
   expect(
-    check({ text }).some((f) => f.code === "P3" && f.detail.includes("짚고 가기")),
+    check({ text }).some(
+      (f) => f.code === "P3" && f.detail.includes("짚고 가기"),
+    ),
   ).toBe(true);
 });
 
@@ -345,6 +347,67 @@ test("P7 — deep.math 에 코드 펜스가 없으면 걸린다", () => {
 test("P7 — deep.math 에 그림과 코드가 다 있으면 통과한다", () => {
   const text = WITH_MATH(
     "합은 $n(n-1)/2$ 이다.\n\n```text\n그림\n```\n\n```ts\nconst pairs = (n: number) => (n * (n - 1)) / 2;\n```",
+  );
+  expect(check({ text }).some((f) => f.code === "P7")).toBe(false);
+});
+
+/**
+ * `deep.origin`(2026-09-26 `KAN-056`)은 필수 절이지만 옛 구성 편에는 아직 없어서 **있을 때만**
+ * 검사한다(`SPEC.md` §8 한시 조항). `PASSING` 이 옛 구성이므로 그것이 계속 통과하는 것이
+ * 곧 무회귀다.
+ */
+const WITH_ORIGIN = (body: string) =>
+  PASSING.replace(
+    "### 아이디어 상세 — ",
+    `### 아이디어를 떠올리는 과정 — 모든 쌍에서 두 포인터까지\n\n${body}\n\n### 아이디어 상세 — `,
+  );
+
+test("section — 아이디어를 떠올리는 과정은 deep.origin 으로 해소된다", () => {
+  const text = WITH_ORIGIN(
+    "```ts\nfunction f(): void;\n```\n\n```text\n그림\n```",
+  );
+  const { sections, unresolved } = parseSections(text, "algo");
+  expect(unresolved).toEqual([]);
+  const ids = sections.map((s) => s.id);
+  expect(ids).toContain("deep.origin");
+  expect(ids.indexOf("deep.origin")).toBeLessThan(ids.indexOf("deep.build"));
+});
+
+test("P7 — deep.origin 이 없는 옛 구성은 위반이 아니다", () => {
+  expect(
+    check({ text: PASSING }).some((f) => f.where?.startsWith("deep.origin")),
+  ).toBe(false);
+});
+
+test("P7 — deep.origin 에 코드 펜스가 없으면 걸린다", () => {
+  const text = WITH_ORIGIN("모든 쌍을 센다.\n\n```text\n그림만 있다\n```");
+  expect(
+    check({ text }).some(
+      (f) =>
+        f.code === "P7" &&
+        f.where?.startsWith("deep.origin") &&
+        f.detail.includes("코드 펜스가 없다"),
+    ),
+  ).toBe(true);
+});
+
+// 코드 블록도 그림으로 센다 — `deep.walk` 아래가 아닌 절의 공통 규칙(`CODE_HEAVY`)이라
+// 펜스가 하나도 없어야 「그림이 없다」가 된다.
+test("P7 — deep.origin 에 펜스가 하나도 없으면 그림이 없다고 걸린다", () => {
+  const text = WITH_ORIGIN("모든 쌍을 센다.");
+  expect(
+    check({ text }).some(
+      (f) =>
+        f.code === "P7" &&
+        f.where?.startsWith("deep.origin") &&
+        f.detail === "그림이 없다",
+    ),
+  ).toBe(true);
+});
+
+test("P7 — deep.origin 에 그림과 코드가 다 있으면 통과한다", () => {
+  const text = WITH_ORIGIN(
+    "```ts\nfunction f(): void;\n```\n\n```text\n그림\n```",
   );
   expect(check({ text }).some((f) => f.code === "P7")).toBe(false);
 });
@@ -1908,4 +1971,147 @@ test("TBL — 통과 표본은 111편과 같이 0 건이다", () => {
   expect(
     codes(check({ text: PASSING, sim: SIM, bench: { 비교: 34 } })),
   ).not.toContain("TBL");
+});
+
+/**
+ * `deep.build` 의 실현 단계(2026-09-28 `KAN-056`, `SPEC.md` `L42`·`L45`).
+ *
+ * 옛 구성 110편에는 단계 헤딩이 없어서 P17·P18 은 **단계 헤딩이 있을 때만** 잰다. `PASSING` 이
+ * 옛 구성이므로 그것이 계속 통과하는 것이 곧 무회귀다.
+ */
+const STAGES_OK = [
+  "#### 먼저 알아 둘 개념 — 창",
+  "",
+  "창은 연속한 칸 몇 개를 가리킵니다.",
+  "",
+  "##### 창의 생김새",
+  "",
+  "```text\n그림\n```",
+  "",
+  "#### 1단계 — 창 만들기",
+  "",
+  "처음 창을 만듭니다.",
+  "",
+  "#### 2단계 — 창 옮기기",
+  "",
+  "창을 한 칸 옮깁니다.",
+  "",
+  "#### 이 방법이 기대는 전제",
+  "",
+  "배열이 바뀌지 않습니다.",
+].join("\n");
+
+// 옛 `deep.build` 본문(원문자 라벨 문단)을 걷고 새 골격으로 바꾼다 — 옮겨 쓴 편의 모양이다.
+const WITH_STAGES = (stages: string) =>
+  PASSING.replace(
+    /(### 아이디어 상세 — [^\n]*\n)[\s\S]*?(?=### 수행으로 알아보는 알고리즘 — )/,
+    (_, heading: string) =>
+      `${heading}\n한 문장으로 줄이면 이렇습니다.\n\n\`\`\`text\n단계 지도\n\`\`\`\n\n${stages}\n\n`,
+  );
+
+const findingsOf = (text: string, code: string) =>
+  check({ text }).filter((f) => f.code === code);
+
+test("section — 아이디어 상세 안의 단계·개념·소절은 deep.build 하위로 해소된다", () => {
+  const { sections, unresolved } = parseSections(
+    WITH_STAGES(STAGES_OK),
+    "algo",
+  );
+  expect(unresolved).toEqual([]);
+  const ids = sections.map((s) => s.id);
+  expect(ids).toContain("deep.build.concept");
+  expect(ids).toContain("deep.build.sub");
+  expect(ids.filter((id) => id === "deep.build.stage").length).toBe(2);
+  expect(ids).toContain("deep.build.tail");
+});
+
+test("section — 아이디어 상세 안의 「짚고 가기」 는 수행 절의 것으로 해소되지 않는다", () => {
+  const { sections } = parseSections(
+    WITH_STAGES(`${STAGES_OK}\n\n#### 짚고 가기 — 경계`),
+    "algo",
+  );
+  const pause = sections.find((s) => s.heading === "#### 짚고 가기 — 경계");
+  expect(pause?.id).toBe("deep.build.tail");
+});
+
+test("P17·P18 — 단계 헤딩이 없는 옛 구성은 재지 않는다", () => {
+  expect(findingsOf(PASSING, "P17")).toEqual([]);
+  expect(findingsOf(PASSING, "P18")).toEqual([]);
+});
+
+test("P17 — 골격이 맞으면 걸리지 않는다", () => {
+  expect(findingsOf(WITH_STAGES(STAGES_OK), "P17")).toEqual([]);
+});
+
+test("P17 — 단계가 하나뿐이면 걸린다", () => {
+  const text = WITH_STAGES(
+    STAGES_OK.replace(
+      /#### 2단계 — 창 옮기기\n\n창을 한 칸 옮깁니다\.\n\n/,
+      "",
+    ),
+  );
+  expect(
+    findingsOf(text, "P17").some((f) => f.detail.includes("실현 단계가 1 개")),
+  ).toBe(true);
+});
+
+test("P17 — 단계 번호가 빠지면 걸린다", () => {
+  const text = WITH_STAGES(STAGES_OK.replace("#### 2단계", "#### 3단계"));
+  expect(
+    findingsOf(text, "P17").some((f) => f.detail.includes("단계 번호가 3")),
+  ).toBe(true);
+});
+
+test("P17 — 개념 절이 단계 뒤에 오면 걸린다", () => {
+  const text = WITH_STAGES(
+    "#### 1단계 — 창 만들기\n\n만듭니다.\n\n#### 2단계 — 창 옮기기\n\n옮깁니다.\n\n#### 먼저 알아 둘 개념 — 창\n\n창입니다.",
+  );
+  expect(
+    findingsOf(text, "P17").some((f) => f.detail.includes("첫 단계 뒤")),
+  ).toBe(true);
+});
+
+test("P17 — 단계 사이에 단계가 아닌 소제목이 끼면 걸린다", () => {
+  const text = WITH_STAGES(
+    STAGES_OK.replace("#### 2단계", "#### 덧붙임\n\n덧붙입니다.\n\n#### 2단계"),
+  );
+  expect(
+    findingsOf(text, "P17").some((f) => f.detail.includes("단계 사이에")),
+  ).toBe(true);
+});
+
+test("P17 — 문단 머리의 원문자 라벨이 걸린다", () => {
+  const text = WITH_STAGES(
+    STAGES_OK.replace(
+      "처음 창을 만듭니다.",
+      "**① 창을 만든다.** 처음 창을 만듭니다.",
+    ),
+  );
+  expect(
+    findingsOf(text, "P17").some((f) => f.detail.includes("원문자 라벨")),
+  ).toBe(true);
+});
+
+test("P18 — 굵은 글씨 문단 머리의 반말이 걸린다", () => {
+  const text = WITH_STAGES(
+    STAGES_OK.replace(
+      "창을 한 칸 옮깁니다.",
+      "**창은 이렇게 생겼다.** 창을 한 칸 옮깁니다.",
+    ),
+  );
+  const hits = findingsOf(text, "P18");
+  expect(hits.some((f) => f.detail.includes("생겼다."))).toBe(true);
+});
+
+test("P18 — 존댓말 · 청유 · 그림 · 인용 · 인라인 코드는 걸리지 않는다", () => {
+  const extra = [
+    "값을 확인해 봅시다. 결과는 같습니다.",
+    "",
+    "```text\n└ 칸이 줄어든다.\n```",
+    "",
+    "유저는 「반말로 끝난다.」 라고 적었습니다. 코드는 `끝났다.` 를 찍습니다.",
+  ].join("\n");
+  const text = WITH_STAGES(STAGES_OK.replace("창을 한 칸 옮깁니다.", extra));
+  const before = findingsOf(WITH_STAGES(STAGES_OK), "P18").length;
+  expect(findingsOf(text, "P18").length).toBe(before);
 });

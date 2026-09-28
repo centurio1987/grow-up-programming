@@ -186,9 +186,13 @@ const SPARSE_KINDS = ["sim", "ref", "proof", "test", "alt"] as const;
  * **`KAN-034.9` `S5` 가 「쌓-」를 안 넣기로 처분했다**(2026-09-10). 그래서 이 두 시험은
  * 그대로 선다 — 표면은 14 에 닿고, 적중은 하나다. 근거는 `FEEDBACK.md` §4 의 「쌓-」 절이고,
  * 한 줄로는 **표본 30자리 중 22가 스택·층·사슬처럼 그 이름의 동작이라 부채가 아니었다**는
- * 실측이다. 넣기로 뒤집히면 이 14자리가 그대로 적중이 되므로 두 수를 함께 고친다.
+ * 실측이다. 넣기로 뒤집히면 이 자리들이 그대로 적중이 되므로 두 수를 함께 고친다.
+ *
+ * **2026-09-28 `KAN-056` 에서 14 → 11 이 됐다.** `SPEC.md` `L43`(핵심 구조는 통용되는 이름으로)에
+ * 따라 `proof.ts` 의 「층으로 쌓은 표」 세 자리(주석 1 · 표 머리 2)가 「Sparse Table」 로 바뀌었다.
+ * 나머지 11자리(「쌓-」 10 + 「에 걸어」 1)는 그대로다.
  */
-test("실측 — `sparseTableRangeMin` 사이드카의 14자리에 표면이 닿는다", () => {
+test("실측 — `sparseTableRangeMin` 사이드카의 11자리에 표면이 닿는다", () => {
   const probe = /쌓|에\s*걸어/g;
   let sites = 0;
   for (const kind of SPARSE_KINDS) {
@@ -197,7 +201,7 @@ test("실측 — `sparseTableRangeMin` 사이드카의 14자리에 표면이 닿
     for (const seg of ["comment", "string"] as const)
       for (const line of m[seg]) sites += (line.match(probe) ?? []).length;
   }
-  expect(sites).toBe(14);
+  expect(sites).toBe(11);
 });
 
 test("실측 — 그 14자리 중 지금 `METAPHORS` 가 잡는 것은 「에 걸어」 하나다", () => {

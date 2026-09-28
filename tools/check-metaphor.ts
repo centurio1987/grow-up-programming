@@ -5,7 +5,8 @@
  * "카드가 이긴다" 를 놓쳤고, 유저가 그것을 지적했다. 규칙이 문서 종류에 따라 갈리면
  * **안 걸리는 자리가 생기고, 그 자리가 다음 원고의 본보기가 된다.**
  *
- * 패턴은 `check-v2.ts` 의 `METAPHORS` 하나를 쓴다 — 정의가 두 곳에 있으면 갈라진다.
+ * 패턴의 정의는 `authoring-kit` voice `algorithm-guide-writer` 의 어휘 목록이다. `check-v2.ts` 가
+ * `tools/voice-style.ts` 로 그 사본을 읽어 `METAPHORS` 로 내보내고, 여기서도 그것 하나를 쓴다.
  *
  * ```bash
  * bun run tools/check-metaphor.ts SPEC.md pilot/**\/*.md

@@ -38,7 +38,7 @@ export function sparseTableRangeMin(
     const half = width >> 1;
     const row = new Array<number>(n - width + 1);
     for (let i = 0; i + width <= n; i++) {
-      // ① 표 쌓기 — 아래층의 두 칸을 견줘 위층 한 칸을 정한다.
+      // ① Sparse Table 쌓기 — 아래층의 두 칸을 비교해 위층 한 칸을 정한다.
       row[i] = Math.min(below[i] as number, below[i + half] as number);
     }
     st.push(row);
