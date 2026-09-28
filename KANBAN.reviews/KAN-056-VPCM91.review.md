@@ -24,9 +24,20 @@ status: 검토 대기
 | 베이스 | `5ad56c0` |
 | 변경 훑기 | `git diff 5ad56c0...HEAD` |
 
-**커밋 9건**
+**커밋 20건**
 
 ```text
+262324a kanban: KAN-056 검토 수렴 — 설정 이전 항목 삭제(유저 지시), 판단 항목 5개 승인
+a2ff1f7 kanban: KAN-056 검토서 갱신 — 항목 1 유저 승인, 2~4 지금 원고 기준 의견, 새 항목 둘(L41~L45 · 다른 카드 인용)
+8179a44 KAN-056 집필 설정 L41~L45 — 명세 · 검사기 P17·P18 · voice 「견주다」(꺼 둠)
+f1df1e0 KAN-056 파일럿 재집필 — Sparse Table 개념 절 · 실현 단계 다섯 · 「견주다」→「비교하다」 · 본문 반말 제거
+21f7bf5 kanban: KAN-056 파일럿 전체 재집필 기록
+5067092 KAN-056 파일럿 전체 재집필 — algorithm-guide-writer voice 기준, 계산·수치는 그대로
+6a4f4d0 kanban: KAN-056 집필 규칙 교통 정리 수행 기록
+262e85b 알고리즘 가이드 문체 규칙을 authoring-kit voice 로 옮긴다 — algorithm-guide-writer
+4e8a5d0 kanban: KAN-056 파일럿 재집필 수행 기록
+91f5132 KAN-056 파일럿 재집필 — 상위 집필 규칙 개정(authoring-kit 0.4.0 어휘 가중치 · 전역 쉬운 말 규칙) 반영
+bafe321 kanban: KAN-056 검토로 이동 — 검토서(판단 항목 4)
 c909300 KAN-056 S6 — 검증 전체 통과 기록
 098410b KAN-056 S6 — check-v2.ts·section.ts·FEEDBACK.md 줄 이동으로 어긋난 인용 11곳 재지정, 대장 갱신
 de8a56c KAN-056 S4·S5 — sparseTableRangeMin 파일럿: 서사를 「아이디어를 떠올리는 과정」으로 분리하고 아이디어 상세를 직무 일곱으로 재작성
@@ -38,35 +49,54 @@ fa2d0df KAN-056 S2 — 스캐너가 deep.origin(아이디어를 떠올리는 과
 ca88485 kanban: KAN-056 진행 중으로 이동
 ```
 
-**변경 파일 23개 (+852 −149)**
+**변경 파일 42개 (+4538 −827)**
 
 | 파일 | 상태 | 추가 | 삭제 |
 |---|:--:|---:|---:|
-| `.kanban/archive.jsonl` | M | 1 | 0 |
-| `.kanban/log.md` | M | 1 | 1 |
-| `.kanban/state.json` | M | 22 | 15 |
+| `.claude/authoring.lock.json` | M | 11 | 4 |
+| `.claude/authoring/voices/algorithm-guide-writer/style.json` | M | 275 | 0 |
+| `.claude/authoring/voices/algorithm-guide-writer/voice.json` | M | 64 | 0 |
+| `.claude/authoring/voices/algorithm-guide-writer/voice.md` | M | 137 | 0 |
+| `.claude/skills/guide-for-problem/SKILL.md` | M | 3 | 2 |
+| `.kanban/archive.jsonl` | M | 2 | 0 |
+| `.kanban/log.md` | M | 2 | 2 |
+| `.kanban/reviews/KAN-056-VPCM91.events.jsonl` | M | 29 | 0 |
+| `.kanban/reviews/KAN-056-VPCM91.review.json` | M | 21 | 0 |
+| `.kanban/state.json` | M | 32 | 25 |
 | `KANBAN.batches/KAN-056-VPCM91.batch1.md` | M | 42 | 0 |
 | `KANBAN.batches/KAN-056-VPCM91.batch2.md` | M | 38 | 0 |
 | `KANBAN.batches/KAN-056-VPCM91.batch3.md` | M | 38 | 0 |
-| `KANBAN.board.html` | M | 4 | 4 |
+| `KANBAN.board.html` | M | 12 | 4 |
 | `KANBAN.cards/KAN-034-KSD7XR.md` | M | 1 | 1 |
 | `KANBAN.cards/KAN-034.7-QMZ3RE.md` | M | 1 | 1 |
-| `KANBAN.cards/KAN-034.8-BK1Q3A.md` | M | 3 | 3 |
-| `KANBAN.cards/KAN-035-31T4BY.md` | M | 3 | 3 |
-| `KANBAN.cards/KAN-056-VPCM91.md` | M | 93 | 0 |
-| `KANBAN.md` | M | 13 | 11 |
-| `KANBAN.requests/doing/KAN-056-VPCM91.request.md` | R | 0 | 0 |
-| `sandbox/algo-guide-v2/FEEDBACK.md` | M | 3 | 2 |
-| `sandbox/algo-guide-v2/SPEC.md` | M | 96 | 44 |
+| `KANBAN.cards/KAN-034.8-BK1Q3A.md` | M | 4 | 4 |
+| `KANBAN.cards/KAN-035-31T4BY.md` | M | 4 | 4 |
+| `KANBAN.cards/KAN-056-VPCM91.md` | M | 104 | 0 |
+| `KANBAN.md` | M | 14 | 11 |
+| `KANBAN.requests/review/KAN-056-VPCM91.request.md` | R | 0 | 0 |
+| `KANBAN.reviews/KAN-056-VPCM91.review.html` | M | 1253 | 0 |
+| `KANBAN.reviews/KAN-056-VPCM91.review.md` | M | 282 | 0 |
+| `sandbox/algo-guide-v2/FEEDBACK.md` | M | 15 | 5 |
+| `sandbox/algo-guide-v2/SPEC.md` | M | 200 | 54 |
 | `sandbox/ds-guide-v2/SPEC.md` | M | 1 | 1 |
-| `src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md` | M | 237 | 43 |
-| `src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.proof.ts` | M | 169 | 5 |
-| `tools/_baseline/citations.tsv` | M | 14 | 13 |
-| `tools/check-v2.test.ts` | M | 64 | 1 |
-| `tools/check-v2.ts` | M | 6 | 1 |
-| `tools/section.ts` | M | 2 | 0 |
+| `src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.alt.ts` | M | 9 | 9 |
+| `src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.bench.json` | M | 7 | 7 |
+| `src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md` | M | 867 | 436 |
+| `src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.proof.ts` | M | 452 | 51 |
+| `src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.ref.ts` | M | 1 | 1 |
+| `src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.sim.ts` | M | 14 | 14 |
+| `tools/_baseline/citations.tsv` | M | 20 | 19 |
+| `tools/build-html.ts` | M | 22 | 5 |
+| `tools/check-metaphor.test.ts` | M | 7 | 3 |
+| `tools/check-metaphor.ts` | M | 2 | 1 |
+| `tools/check-v2.test.ts` | M | 207 | 1 |
+| `tools/check-v2.ts` | M | 161 | 161 |
+| `tools/ci.ts` | M | 6 | 0 |
+| `tools/section.ts` | M | 37 | 1 |
+| `tools/voice-style.test.ts` | M | 31 | 0 |
+| `tools/voice-style.ts` | M | 110 | 0 |
 
-**롤백 태그 8개**
+**롤백 태그 10개**
 
 ```text
 kan/KAN-056-VPCM91/S1
@@ -75,8 +105,10 @@ kan/KAN-056-VPCM91/S3
 kan/KAN-056-VPCM91/S4
 kan/KAN-056-VPCM91/S5
 kan/KAN-056-VPCM91/S6
+kan/KAN-056-VPCM91/S7
 kan/KAN-056-VPCM91/batch1
 kan/KAN-056-VPCM91/batch2
+kan/KAN-056-VPCM91/batch3
 ```
 
 ## 2. 검증 — 기준과 실행 결과
@@ -113,19 +145,12 @@ bun run tools/build-html.ts $G
 **실행 결과**
 
 ```text
-bun run tools/check-v2.ts sparseTableRangeMin-guide.md   P1~P16 통과 (경고 P3 1건 — 변경 전부터 있던 .sim.ts T1·T2)
-bun run tools/check-proof.ts --all --require             통과 (파일럿 증명 22개 전부 실행과 일치)
-bun run tools/check-v2.ts --all                          변경 전 출력과 글자 단위로 같음 (옛 구성 110편 무회귀)
-bun run tools/check-metaphor.ts --all                    655개 은유 위반 0
-bun test tools/check-v2.test.ts                          142 통과 (deep.origin 사례 5건 추가)
-bunx tsc --noEmit                                        오류 0
-biome check section.ts · check-v2.test.ts · proof.ts     통과 (check-v2.ts:1332 포맷 지적은 변경 전부터 있음)
-check-rework '### 아이디어 상세' --base main             재작성률 71% (기준 60%)
-아이디어 상세 안 서사 증명 표지                           0 개
-아이디어 상세 안 서사 표지어                              0 개
-새 증명 블록 넷 ↔ 기존 블록 같은 줄                       0 줄 (check-overlap 은 편 사이 도구라 대신 출력 대조)
-bun run tools/ci.ts all → gates                          ci all 은 인용 1건 실패(수정 전 시작) → 인용 11곳 재지정 후 gates 11단계 통과
-build-html sparseTableRangeMin-guide.md                  724KB · viz 2개 · 레일 13항목
+bun run tools/ci.ts all — all 모드 통과 — 단계 18개 (2026-09-28, 커밋 8179a44 시점)
+check-v2 --all — 114편 P1~P18 통과 · 경고 178건(79편) 변경 전과 같음
+check-proof sparseTableRangeMin — 증명 27개 전부 실행과 일치
+bench-alt --check — 실측값 14개 그대로
+bun test tools/check-v2.test.ts — 153 통과
+authoring.py style validate — 문체 설정 정상 · voice-style --check 사본 = 원본
 ```
 
 ## 3. 판단 항목 — 스크립트가 판정할 수 없는 것
