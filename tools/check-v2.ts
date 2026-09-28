@@ -67,16 +67,43 @@ export const FIG_MARKER = /^<!--fig:([a-z][a-z0-9-]*)-->$/;
 // 설명(alt)에 `[0,5]` 같은 대괄호가 들 수 있어 설명 부분은 탐욕적으로 받는다.
 const FIG_IMAGE = /^!\[.*\]\((?:\.\/)?figs\/([a-z][a-z0-9-]*)\.svg\)$/;
 /**
- * 펜스 밖으로 나온 그림의 **설명 줄**(`└ …`)과 **제목 줄**(`▸ …`). 표·수식 아래에 한 줄로 붙는다
- * (SPEC §12). 펜스 안에 있던 때와 같이 그림의 일부로 센다 — 산문 연속(P1)과 반말(P18)의 대상이 아니다.
+ * 펜스 밖의 **기호 줄**(`└ …` 설명 · `▸ …` 제목). 글자 그림을 표로 옮기며 이 저장소가 지어낸 표기라
+ * 읽는 사람이 뜻을 몰랐다(KAN-057 검토 지적 8). 그림으로 세지 않고 P21 이 위반으로 잡는다 —
+ * 표를 소개하는 말은 앞 문단 문장이, 표 아래 설명은 보통 문장이 진다(SPEC §12).
  */
-export const FIG_NOTE = /^[└▸]\s/;
+export const SYMBOL_NOTE = /^[└▸]\s/;
 
 function isFigureLine(line: string, inFence: boolean): boolean {
   if (inFence) return true;
   const t = line.trim();
-  if (FIG_MARKER.test(t) || FIG_IMAGE.test(t) || FIG_NOTE.test(t)) return true;
+  if (FIG_MARKER.test(t) || FIG_IMAGE.test(t)) return true;
   return t.startsWith("|") && t.endsWith("|");
+}
+
+/**
+ * 닫힌 증명 블록(`<!--proof:id-->` … `<!--/proof-->`) 안의 줄 번호. 그 안의 문장은 실행이 표와 함께
+ * 만든 **그림의 설명**이라 산문 연속을 끊는 쪽으로 센다 — 기호 줄(`└`)을 걷고 보통 문장으로 바꾼
+ * 자리다(KAN-057 검토 지적 8, SPEC §12). 사이드카가 내는 문장이라 손 산문이 숨어들 자리가 아니다.
+ */
+function closedProofLines(body: string[]): Set<number> {
+  const inside = new Set<number>();
+  for (let i = 0; i < body.length; i++) {
+    if (!/^<!--proof:[A-Za-z0-9_-]+-->$/.test((body[i] ?? "").trim())) continue;
+    for (let j = i + 1; j < body.length; j++) {
+      const t = (body[j] ?? "").trim();
+      if (t === "<!--/proof-->") {
+        for (let k = i; k <= j; k++) inside.add(k);
+        break;
+      }
+      if (
+        t.startsWith("#") ||
+        t.startsWith("<!--proof:") ||
+        t.startsWith("```")
+      )
+        break;
+    }
+  }
+  return inside;
 }
 
 /** 산문 문단이 몇 개까지 연달아 오는가. 그림·표·빈 줄이 그 연속을 끊는다. */
@@ -85,8 +112,14 @@ export function maxProseRun(body: string[]): number {
   let worst = 0;
   let fenced = false;
   let inParagraph = false;
+  const proofLines = closedProofLines(body);
 
-  for (const line of body) {
+  for (const [index, line] of body.entries()) {
+    if (proofLines.has(index)) {
+      run = 0;
+      inParagraph = false;
+      continue;
+    }
     if (line.trimStart().startsWith("```")) {
       fenced = !fenced;
       // 펜스는 그림이므로 연속을 끊는다.
@@ -94,7 +127,9 @@ export function maxProseRun(body: string[]): number {
       inParagraph = false;
       continue;
     }
-    if (fenced || line.trim() === "<!--contract-summary-->") continue;
+    // 주석만 있는 줄(마커 · `<!--contract-summary-->`)은 산문이 아니다. 증명 마커 한 줄이 문단으로
+    // 세어져 표 앞 산문이 한 문단 늘던 자리다(KAN-057 S15).
+    if (fenced || /^<!--.*-->$/.test(line.trim())) continue;
 
     if (line.trim() === "") {
       inParagraph = false;
@@ -1110,11 +1145,7 @@ export function banmalFindings(text: string): Finding[] {
       continue;
     }
     if (fenced) continue;
-    if (
-      line.trim() === "" ||
-      /^(#|\||<!--|>)/.test(line.trimStart()) ||
-      FIG_NOTE.test(line.trim())
-    ) {
+    if (line.trim() === "" || /^(#|\||<!--|>)/.test(line.trimStart())) {
       flush();
       continue;
     }
@@ -1996,6 +2027,62 @@ export function figFindings(text: string, figs: CheckInput["figs"]): Finding[] {
   return findings;
 }
 
+/**
+ * P21 — **지어낸 기호 줄**(`└ …`·`▸ …`)이 펜스 밖에 있는가(SPEC §12 · `L46`).
+ * 펜스 안의 글자 그림에서는 쓸 수 있다 — 거기서는 그림의 일부다.
+ */
+export function symbolNoteFindings(text: string): Finding[] {
+  const out: Finding[] = [];
+  let fenced = false;
+  for (const [i, line] of text.split("\n").entries()) {
+    if (line.trimStart().startsWith("```")) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced || !SYMBOL_NOTE.test(line.trim())) continue;
+    out.push({
+      code: "P21",
+      where: `:${i + 1}`,
+      detail: `기호 줄 \`${line.trim().slice(0, 1)}\` — 표를 소개하는 말은 앞 문단 문장으로, 표 아래 설명은 보통 문장으로 쓴다`,
+    });
+  }
+  return out;
+}
+
+/** 머리줄 첫 칸이 문장으로 끝나는가 — 「…고쳤다면」「…이유가 있는가」「…편다」 꼴. */
+const SENTENCE_CELL = /(다|가|면|까|요|는|은|을|를|로)$/;
+
+/**
+ * P21(경고) — **표 머리줄 첫 칸에 제목 문장**을 넣었는가. 머리줄은 열이 갈리는 축의 이름이다.
+ * 제목을 칸에 넣으면 그 열이 무엇의 열인지 사라진다(KAN-057 검토 지적 7). 문장인지는 끝말로만 짐작하므로
+ * 위반이 아니라 경고다 — 「같은 값을 두 번 넣으면」처럼 진짜 축 이름이 걸릴 수 있다.
+ */
+export function tableHeaderWarnings(text: string): Finding[] {
+  const out: Finding[] = [];
+  const lines = text.split("\n");
+  let fenced = false;
+  for (const [i, line] of lines.entries()) {
+    if (line.trimStart().startsWith("```")) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced || !line.startsWith("|")) continue;
+    if ((lines[i - 1] ?? "").startsWith("|")) continue;
+    if (!/^\|\s*:?-{3,}/.test(lines[i + 1] ?? "")) continue;
+    const firstCell = (line.split("|")[1] ?? "")
+      .replace(/`[^`]*`/g, "C")
+      .trim();
+    if (!SENTENCE_CELL.test(firstCell) || firstCell.length < 6) continue;
+    out.push({
+      code: "P21",
+      warn: true,
+      where: `:${i + 1}`,
+      detail: `표 머리줄 첫 칸이 문장이다(「${firstCell}」) — 제목은 앞 문단이 소개하고, 머리줄에는 열의 이름을 쓴다`,
+    });
+  }
+  return out;
+}
+
 export function check(input: CheckInput): Finding[] {
   const findings: Finding[] = [];
   const limit = input.maxProseRun ?? MAX_PROSE_RUN;
@@ -2275,6 +2362,7 @@ export function check(input: CheckInput): Finding[] {
   }
 
   findings.push(...figFindings(input.text, input.figs));
+  findings.push(...symbolNoteFindings(input.text));
 
   for (const id of markers) {
     const at = input.text.indexOf(`<!--viz:${id}-->`);
@@ -2511,7 +2599,10 @@ export function check(input: CheckInput): Finding[] {
  * 때문이다. 실제로 P15 가 일곱 배치를 그렇게 샜다.
  */
 export function checkWarnings(input: CheckInput): Finding[] {
-  const out: Finding[] = alignmentWarnings(input.text);
+  const out: Finding[] = [
+    ...alignmentWarnings(input.text),
+    ...tableHeaderWarnings(input.text),
+  ];
 
   const { sections, unresolved } = parseSections(
     input.text,
@@ -2725,7 +2816,7 @@ if (import.meta.main) {
     // 안 본 자리」가 되고, 그것이 이 규칙이 일곱 배치를 샌 방식이다.
     if (!json && warned > 0) {
       console.log(
-        `\n경고 — 열이 어긋나거나 걸음을 건너뛴 자리 ${warned}건 (${warnedGuides}편). ` +
+        `\n경고 — 열이 어긋나거나 걸음을 건너뛰거나 표 머리줄 첫 칸이 문장인 자리 ${warned}건 (${warnedGuides}편). ` +
           `\`--json\` 의 \`warnings\` 나 편별 실행으로 자리를 본다. ` +
           `지금은 경고이고, 그 편들을 고친 뒤 위반으로 올린다.`,
       );

@@ -92,6 +92,16 @@ test("마크다운 표도 증명 블록이다 — 표 줄을 글자 그대로 �
   expect(fails[0]?.detail).toContain("3번째 줄");
 });
 
+test("닫는 마커가 있으면 표와 문장까지 블록이고, 문장의 수도 대조한다(KAN-057 S15)", () => {
+  const block = "| a |\n| --- |\n| 1 |\n\n칸 14 개를 대조했습니다.";
+  const md = `<!--proof:t1-->\n\n${block}\n\n<!--/proof-->\n\n뒤 산문.\n`;
+  const blocks = extractBlocks(md);
+  expect(blocks[0]?.body).toBe(block);
+  expect(compare(blocks, { t1: () => block })).toEqual([]);
+  const fails = compare(blocks, { t1: () => block.replace("14", "15") });
+  expect(fails[0]?.kind).toBe("값이 다르다");
+});
+
 test("표 증명도 판정 열과 지나간 횟수 열을 읽는다", () => {
   const body = [
     "| 입력 | 지나간 횟수 | 답 |",

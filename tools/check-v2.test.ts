@@ -20,12 +20,15 @@ import {
   finalCodeMatchesRef,
   generatedBlockAlignment,
   hasFigure,
+  maxProseRun,
   normalizeCode,
   parseSim,
   rowCells,
   skipNotes,
   stepSpan,
   stripQuotes,
+  symbolNoteFindings,
+  tableHeaderWarnings,
   tableSeparators,
 } from "./check-v2.ts";
 import { parseSections } from "./section.ts";
@@ -691,6 +694,54 @@ test("P6 — viz 폴백이 ASCII 펜스 대신 그림이어도 된다", () => {
   expect(
     found.some((f) => f.code === "P6" && f.detail.includes("ascii 펜스")),
   ).toBe(false);
+});
+
+test("P21 — 펜스 밖의 지어낸 기호 줄을 잡고, 펜스 안은 둔다(KAN-057 검토 지적 8)", () => {
+  const text = [
+    "| a | b |",
+    "| --- | --- |",
+    "| 1 | 2 |",
+    "",
+    "└ 설명 줄",
+    "",
+    "▸ 제목 줄",
+    "",
+    "```text",
+    "└ 글자 그림 안은 괜찮다",
+    "```",
+  ].join("\n");
+  const found = symbolNoteFindings(text);
+  expect(found.map((f) => f.where)).toEqual([":5", ":7"]);
+});
+
+test("P21 경고 — 머리줄 첫 칸이 제목 문장인 표(KAN-057 검토 지적 7)", () => {
+  const bad =
+    "| A[2] 를 7 에서 1 로 고쳤다면 | 0 층 |\n| --- | --- |\n| 옛 | 5 |";
+  const good = "| 방법 | 판정 |\n| --- | --- |\n| 차례로 읽기 | 버림 |";
+  expect(tableHeaderWarnings(bad)).toHaveLength(1);
+  expect(tableHeaderWarnings(bad)[0]?.warn).toBe(true);
+  expect(tableHeaderWarnings(good)).toEqual([]);
+});
+
+test("P1 — 닫힌 증명 블록 안 문장과 주석 줄은 산문으로 세지 않는다", () => {
+  const body = [
+    "첫 문단입니다.",
+    "",
+    "<!--proof:x-->",
+    "",
+    "| a |",
+    "| --- |",
+    "| 1 |",
+    "",
+    "표가 낸 수를 적은 문장입니다.",
+    "",
+    "<!--/proof-->",
+    "",
+    "둘째 문단입니다.",
+    "",
+    "셋째 문단입니다.",
+  ];
+  expect(maxProseRun(body)).toBe(2);
 });
 
 test("P7 — 그림을 져야 하는 절에 그림이 없으면 걸린다", () => {

@@ -18,7 +18,6 @@
  */
 
 import { loadMutant } from "../../../../tools/check-proof.ts";
-import { 과와 } from "../../../../tools/josa.ts";
 import { segmentRun, sparseRun } from "./sparseTableRangeMin-guide.alt.ts";
 import { sparseTableRangeMin } from "./sparseTableRangeMin-guide.ref.ts";
 
@@ -54,9 +53,6 @@ function table(head: string[], rows: string[][], align: ("l" | "r")[]): string {
   const rule = `| ${head.map((_, c) => (align[c] === "r" ? "---:" : "---")).join(" | ")} |`;
   return [line(head), rule, ...rows.map(line)].join("\n");
 }
-
-/** 표 제목 줄 — 한 블록에 표가 둘 이상이면 표마다 단다(SPEC §12). */
-const label = (s: string): string => `▸ ${s}`;
 
 /** 「자리 셋」 처럼 앞 공백을 달고 돌아오는 수사. */
 const 수사 = (n: number): string => {
@@ -550,17 +546,14 @@ export const PROOFS: Record<string, () => string> = {
         rows,
         ["l", "r", "r", "l", "r"],
       ),
-      "",
-      "└ 이웃 칸은 시작이 한 자리 다르므로, 맡는 자리 수보다 하나 적은 자리를 함께 맡는다",
     ].join("\n");
   },
 
   /** `deep.build` ① (d) — 위층 줄은 아래층 줄과, 그 줄을 절반 길이만큼 옮긴 줄을 비교한 것이다. */
   "layer-shift": () => {
     const n = WALK.length;
-    const cellsIn = (xs: number[]): string[] =>
-      Array.from({ length: n }, (_, i) => (i < xs.length ? String(xs[i]) : ""));
-    const rows: string[][] = [];
+    const parts: string[] = [];
+    let allSame = true;
     for (let k = 1; k <= topOf(n); k++) {
       const half = 1 << (k - 1);
       const below = minOf(WALK, cellsOf(n, k - 1));
@@ -569,31 +562,33 @@ export const PROOFS: Record<string, () => string> = {
       const picked = above.map((_, i) =>
         Math.min(below[i] as number, shifted[i] as number),
       );
-      const same = picked.every((v, i) => v === above[i]);
-      rows.push(
-        [`${k - 1} 층`, ...cellsIn(below), ""],
-        [
-          `${k - 1} 층을 왼쪽으로 ${half} 자리 옮긴 줄`,
-          ...cellsIn(shifted),
-          "",
-        ],
-        ["두 줄에서 작은 쪽", ...cellsIn(picked), ""],
-        [
-          `${k} 층`,
-          ...cellsIn(above),
-          `고른 값이 ${k} 층 줄과 ${same ? "같다" : "어긋난다"}`,
-        ],
+      allSame &&= picked.every((v, i) => v === above[i]);
+      const w = below.length;
+      const cells = (xs: number[]): string[] =>
+        Array.from({ length: w }, (_, i) =>
+          i < xs.length ? String(xs[i]) : "",
+        );
+      if (parts.length > 0) parts.push("");
+      parts.push(
+        `${k - 1} 층에서 ${k} 층을 만들 때는 ${half} 자리를 옮깁니다.`,
+        "",
+        table(
+          ["줄", ...Array.from({ length: w }, (_, i) => `칸 ${i}`)],
+          [
+            [`${k - 1} 층`, ...cells(below)],
+            [`${k - 1} 층을 왼쪽으로 ${half} 자리 옮긴 줄`, ...cells(shifted)],
+            ["두 줄에서 작은 쪽", ...cells(picked)],
+            [`${k} 층`, ...cells(above)],
+          ],
+          ["l", ...Array.from({ length: w }, () => "r" as const)],
+        ),
       );
     }
-    return [
-      table(
-        ["줄", ...Array.from({ length: n }, (_, i) => `칸 ${i}`), "확인"],
-        rows,
-        ["l", ...Array.from({ length: n }, () => "r" as const), "l"],
-      ),
+    parts.push(
       "",
-      "└ 위층 칸 i 는 아래층 칸 i 와 칸 i + 2^(k−1) 을 비교한 값이다. 옮긴 줄이 짧아서 위층 칸 수가 준다",
-    ].join("\n");
+      `두 표 모두 「두 줄에서 작은 쪽」이 위층 줄과 ${allSame ? "같습니다" : "어긋납니다"}.`,
+    );
+    return parts.join("\n");
   },
 
   /** `deep.build` ① (e) — 모든 시작 자리에 칸을 두는 층과, 안 겹치게 나눈 블록의 대조. */
@@ -649,9 +644,13 @@ export const PROOFS: Record<string, () => string> = {
       return best;
     };
     return [
-      label("같은 배열에 두 방식으로 칸을 둔다"),
+      table(["층", "모든 시작 자리에 둔 칸", "안 겹치게 나눈 블록"], layout, [
+        "l",
+        "l",
+        "l",
+      ]),
       "",
-      table(["층", "모든 시작 자리", "나눈 블록"], layout, ["l", "l", "l"]),
+      "질의 넷에서 두 방식이 읽는 칸은 이렇습니다.",
       "",
       table(
         [
@@ -665,18 +664,16 @@ export const PROOFS: Record<string, () => string> = {
         ["l", "l", "l", "r", "r"],
       ),
       "",
-      label("모든 질의 중 가장 많이 읽는 칸 수"),
+      "모든 질의 가운데 가장 많이 읽는 칸 수를 배열 크기별로 세면 이렇습니다.",
       "",
       table(
-        ["n", "모든 시작 자리", "나눈 블록"],
+        ["n", "모든 시작 자리에 둔 칸", "안 겹치게 나눈 블록"],
         [
           [num(n), "2", String(most(n))],
           [num(1000), "2", String(most(1000))],
         ],
         ["r", "r", "r"],
       ),
-      "",
-      "└ 나눈 블록은 칸이 적지만 정해진 자리에서만 시작해, 질의의 양 끝에 맞추려면 크기가 다른 조각을 여럿 읽는다",
     ].join("\n");
   },
 
@@ -705,8 +702,6 @@ export const PROOFS: Record<string, () => string> = {
         "r",
         "r",
       ]),
-      "",
-      "└ 모든 질의가 배열 전체를 묻는 입력이다. 제약 규모에서 1 초 제한을 크게 넘는다",
     ].join("\n");
   },
 
@@ -734,15 +729,12 @@ export const PROOFS: Record<string, () => string> = {
         String(direct(B, q, min)),
       ],
     ];
-    const sameKeys = mA[q[0] - 1] === mB[q[0] - 1] && mA[q[1]] === mB[q[1]];
     return [
       table(
         ["배열", "접두 최솟값 m", "m[1]", "m[5]", `${range(q)} 의 답`],
         rows,
         ["l", "l", "r", "r", "r"],
       ),
-      "",
-      `└ 두 배열이 접두 최솟값 표에서 ${sameKeys ? "같은 값을 갖는데" : "다른 값을 갖는데"} 답은 ${direct(A, q, min)}${과와(String(direct(A, q, min)))} ${direct(B, q, min)} 로 다르다`,
     ].join("\n");
   },
 
@@ -757,31 +749,13 @@ export const PROOFS: Record<string, () => string> = {
       "1",
     ]);
     return [
-      table(["질의", "구간의 칸 수", "차례로 읽기", "Sparse Table"], rows, [
-        "l",
-        "r",
-        "r",
-        "r",
-      ]),
-      "",
       table(
-        ["방식", "무엇을 하는가", "비교 횟수"],
-        [
-          [
-            "방식 A",
-            "질의마다 구간을 차례로 읽는다",
-            `전처리 0 번 · 질의 ${a.compares} 번`,
-          ],
-          [
-            "방식 B",
-            "칸 수 2^k 짜리 조각을 미리 저장한다",
-            `전처리 ${t.build} 번 · 질의 ${t.query} 번`,
-          ],
-        ],
-        ["l", "l", "l"],
+        ["질의", "구간의 칸 수", "방식 A 의 비교", "방식 B 의 비교"],
+        rows,
+        ["l", "r", "r", "r"],
       ),
       "",
-      `└ 답은 ${show(a.answers)} 로 같고, 오른쪽 열이 전부 1 이다`,
+      `질의 비교는 방식 A 가 ${a.compares} 번, 방식 B 가 ${t.query} 번이고, 방식 B 는 미리 쌓는 데 ${t.build} 번을 더 씁니다. 두 방식의 답은 모두 ${show(a.answers)} 입니다.`,
     ].join("\n");
   },
 
@@ -795,9 +769,13 @@ export const PROOFS: Record<string, () => string> = {
       return [num(n), num((n * (n + 1)) / 2), num(cells)];
     });
     return [
-      table(["n", "모든 짝을 담는 표", "Sparse Table"], rows, ["r", "r", "r"]),
+      table(["n", "모든 짝을 적는 표의 칸 수", "Sparse Table 의 칸 수"], rows, [
+        "r",
+        "r",
+        "r",
+      ]),
       "",
-      "└ 왼쪽은 n 이 열 배가 되면 백 배가 되고, 오른쪽은 열 배를 조금 넘는다",
+      "n 이 열 배가 될 때 왼쪽은 백 배가 되고, 오른쪽은 열 배를 조금 넘습니다.",
     ].join("\n");
   },
 
@@ -805,7 +783,6 @@ export const PROOFS: Record<string, () => string> = {
   "idea-cells": () => {
     const st = levelsOf(WALK);
     const rows: string[][] = [];
-    let total = 0;
     for (const [k, row] of st.entries()) {
       for (const [i, v] of row.entries()) {
         const q: [number, number] = [i, i + (1 << k) - 1];
@@ -816,7 +793,6 @@ export const PROOFS: Record<string, () => string> = {
           show(WALK.slice(q[0], q[1] + 1)),
           String(v),
         ]);
-        total++;
       }
     }
     return [
@@ -827,8 +803,6 @@ export const PROOFS: Record<string, () => string> = {
         "l",
         "r",
       ]),
-      "",
-      `└ 칸 ${num(total)} 개가 전부 자기 구간의 최솟값이다. 층이 오를수록 구간이 두 배로 길어지고 칸은 줄어든다`,
     ].join("\n");
   },
 
@@ -887,8 +861,6 @@ export const PROOFS: Record<string, () => string> = {
         rows,
         ["l", "l", "r", "r", "l", "l", "l", "r", "r"],
       ),
-      "",
-      "└ 다섯 모양 모두 빠진 칸이 0 개다. 「둘」 로 적힌 칸이 겹친 칸이고, 그 칸도 답을 바꾸지 않는다",
     ].join("\n");
   },
 
@@ -920,17 +892,15 @@ export const PROOFS: Record<string, () => string> = {
           "칸",
           "덮는 구간",
           "왼쪽 절반 칸",
-          "값",
+          "그 칸의 값",
           "오른쪽 절반 칸",
-          "값",
+          "그 칸의 값",
           "아래층 마지막 칸",
           "새 값",
         ],
         rows,
         ["l", "r", "l", "r", "r", "r", "r", "r", "r"],
       ),
-      "",
-      `└ 오른쪽 절반의 칸 번호가 아래층 마지막 칸을 넘는 줄이 없다 — 층마다 칸이 n − 2^k + 1 개인 이유다`,
     ].join("\n");
   },
 
@@ -942,35 +912,36 @@ export const PROOFS: Record<string, () => string> = {
         num(n),
         String(K + 1),
         num(n),
-        `${K} 층 · ${num(n - (1 << K) + 1)} 칸`,
+        `${K} 층`,
+        num(n - (1 << K) + 1),
         num(1 << K),
         "2",
       ];
     });
-    return [
-      table(
-        [
-          "n",
-          "층 수",
-          "0 층 칸",
-          "맨 위층",
-          "맨 위층 칸이 덮는 칸 수",
-          "질의가 읽는 칸",
-        ],
-        rows,
-        ["r", "r", "r", "l", "r", "r"],
-      ),
-      "",
-      "└ 층 수는 ⌊log₂ n⌋ + 1 이고, 질의가 읽는 칸은 n 이 얼마든 2 개다",
-    ].join("\n");
+    return table(
+      [
+        "n",
+        "층 수",
+        "0 층 칸 수",
+        "맨 위층",
+        "맨 위층 칸 수",
+        "맨 위층 칸이 덮는 칸 수",
+        "질의가 읽는 칸 수",
+      ],
+      rows,
+      ["r", "r", "r", "l", "r", "r", "r"],
+    );
   },
 
   /** `deep.build` ⑦ — 저장하는 길이의 밑을 넷으로 두고 잰 값. */
   "cost-base": () => {
     const parts: string[] = [];
     for (const [n, title] of [
-      [WALK.length, `n = ${WALK.length} · 질의${수사(WALK_Q.length)} 개`],
-      [1_000, "n = 1,000 · 질의 1,000 개"],
+      [
+        WALK.length,
+        `예시 배열(n = ${WALK.length})과 질의${수사(WALK_Q.length)} 개에서 세면 이렇습니다.`,
+      ],
+      [1_000, "n = 1,000 과 질의 1,000 개로 늘리면 이렇습니다."],
     ] as [number, string][]) {
       const A =
         n === WALK.length
@@ -994,7 +965,7 @@ export const PROOFS: Record<string, () => string> = {
           String(r.maxPieces),
         ];
       });
-      parts.push(label(title), "");
+      parts.push(title, "");
       parts.push(
         table(
           [
@@ -1011,7 +982,7 @@ export const PROOFS: Record<string, () => string> = {
       parts.push("");
     }
     parts.push(
-      "└ 밑을 키우면 Sparse Table 칸이 줄고 Sparse Table 만들기 비교 횟수와 조각 수가 는다. 답은 넷 다 같다",
+      "밑을 키우면 Sparse Table 칸이 줄고, 만들기 비교 횟수와 질의당 조각 수가 늡니다. 답은 네 밑 모두 같습니다.",
     );
     return parts.join("\n");
   },
@@ -1047,7 +1018,7 @@ export const PROOFS: Record<string, () => string> = {
         ["r", "r", "r", "r", "r", "l"],
       ),
       "",
-      `└ m 을 1 부터 ${num(CONSTRAINT_N)} 까지 전수로 대조했다 — 두 방식이 어긋난 자리 ${num(floatMismatch)} 개 · 2^k ≤ m < 2^(k+1) 이 깨진 자리 ${num(defBroken)} 개`,
+      `m 을 1 부터 ${num(CONSTRAINT_N)} 까지 전수로 대조했습니다. 두 방식이 어긋난 자리는 ${num(floatMismatch)} 개, 2^k ≤ m < 2^(k+1) 이 깨진 자리도 ${num(defBroken)} 개입니다.`,
     ].join("\n");
   },
 
@@ -1076,8 +1047,6 @@ export const PROOFS: Record<string, () => string> = {
         rows,
         ["l", "r", "l", "r", "l", "l"],
       ),
-      "",
-      "└ 아래층에 없는 칸을 읽은 자리에 값이 아닌 것이 들어가고, 그것이 위층으로 옮겨 간다",
     ].join("\n");
   },
 
@@ -1116,8 +1085,6 @@ export const PROOFS: Record<string, () => string> = {
         rows,
         ["r", "r", "r", "r", "r", "r"],
       ),
-      "",
-      "└ 답은 그대로인데 Sparse Table 에 값이 아닌 칸이 그만큼 쌓인다",
     ].join("\n");
   },
 
@@ -1125,60 +1092,33 @@ export const PROOFS: Record<string, () => string> = {
   "pause-overlap": () => {
     const min = (a: number, b: number): number => Math.min(a, b);
     const add = (a: number, b: number): number => a + b;
-    const minRows = WALK_Q.map((q) => {
-      const c = coverWithTwo(WALK, q, min);
-      const truth = direct(WALK, q, min);
+    const rows = WALK_Q.map((q) => {
+      const m = coverWithTwo(WALK, q, min);
+      const s = coverWithTwo(WALK, q, add);
+      const w = 1 << m.k;
       return [
         range(q),
-        String(c.k),
-        `${range([c.left, c.left + (1 << c.k) - 1])} ${range([c.right, c.right + (1 << c.k) - 1])}`,
-        String(c.overlap),
-        String(truth),
-        String(c.value),
-        truth === c.value ? "같다" : "어긋난다",
+        `${range([m.left, m.left + w - 1])} ${range([m.right, m.right + w - 1])}`,
+        String(m.overlap),
+        String(direct(WALK, q, min)),
+        String(m.value),
+        String(direct(WALK, q, add)),
+        String(s.value),
       ];
     });
-    const sumRows = WALK_Q.map((q) => {
-      const c = coverWithTwo(WALK, q, add);
-      const truth = direct(WALK, q, add);
-      return [
-        range(q),
-        String(c.overlap),
-        String(truth),
-        String(c.value),
-        truth === c.value ? "같다" : "어긋난다",
-      ];
-    });
-    const overlaps = WALK_Q.map((q) => coverWithTwo(WALK, q, min).overlap);
-    return [
-      label("같은 Sparse Table 을 최솟값으로 만들었을 때"),
-      "",
-      table(
-        [
-          "질의",
-          "층 k",
-          "두 조각",
-          "겹친 칸",
-          "구간의 최솟값",
-          "두 조각의 최솟값",
-          "판정",
-        ],
-        minRows,
-        ["l", "r", "l", "r", "r", "r", "l"],
-      ),
-      "",
-      label("같은 Sparse Table 을 합으로 만들었을 때"),
-      "",
-      table(["질의", "겹친 칸", "구간의 합", "두 조각의 합", "판정"], sumRows, [
-        "l",
-        "r",
-        "r",
-        "r",
-        "l",
-      ]),
-      "",
-      `└ 겹친 칸이 가장 적은 질의에서도 ${Math.min(...overlaps)} 칸이라, 합으로 만든 Sparse Table 은 다섯 질의가 전부 어긋난다`,
-    ].join("\n");
+    return table(
+      [
+        "질의",
+        "두 조각",
+        "겹친 칸",
+        "구간의 최솟값",
+        "두 조각의 최솟값",
+        "구간의 합",
+        "두 조각의 합",
+      ],
+      rows,
+      ["l", "l", "r", "r", "r", "r", "r"],
+    );
   },
 
   /** `invariant` ③ — 불변식을 지키던 줄에서 오른쪽 조각의 자리를 한 칸 옆으로 두면. */
@@ -1220,7 +1160,7 @@ export const PROOFS: Record<string, () => string> = {
         ["l", "r", "l", "r", "r", "r"],
       ),
       "",
-      `└ 정의를 직접 계산한 값과 Sparse Table 의 값을 ${num(checked)} 칸에서 대조했고 어긋난 칸이 ${num(wrong)} 개다`,
+      `정의를 직접 계산한 값과 Sparse Table 의 값을 ${num(checked)} 칸에서 대조했고, 어긋난 칸은 ${num(wrong)} 개입니다.`,
     ].join("\n");
   },
 
@@ -1264,8 +1204,6 @@ export const PROOFS: Record<string, () => string> = {
         "l",
         "l",
       ]),
-      "",
-      `└${수사(rows.length)} 줄 다 정의를 직접 계산한 값과 같다`,
     ].join("\n");
   },
 
@@ -1294,13 +1232,11 @@ export const PROOFS: Record<string, () => string> = {
           "닫힌 형태",
           "실측 칸 수",
           "8 바이트 기준",
-          "n(⌊log₂n⌋+1)",
+          "층마다 n 칸을 둘 때 n(⌊log₂n⌋+1)",
         ],
         rows,
         ["r", "r", "r", "r", "r", "r"],
       ),
-      "",
-      "└ 닫힌 형태와 실측이 세 규모에서 같다. 오른쪽 끝은 층마다 칸을 안 줄였을 때의 값이다",
     ].join("\n");
   },
 
@@ -1333,8 +1269,6 @@ export const PROOFS: Record<string, () => string> = {
         rows,
         ["r", "r", "r", "r", "r", "r"],
       ),
-      "",
-      "└ 닫힌 형태와 실측이 세 규모에서 같다. 오른쪽 끝은 같은 규모에서 질의마다 구간을 차례로 읽었을 때의 값이다",
     ].join("\n");
   },
 
@@ -1399,9 +1333,7 @@ export const PROOFS: Record<string, () => string> = {
       ];
     });
     return [
-      label(
-        `배열의 모양을 바꾼다 (n=${num(n)} · q=${num(n)} · 질의는 생성식으로 고정)`,
-      ),
+      `n = q = ${num(n)} 에서 배열의 모양과 질의의 모양을 하나씩 바꿔 가며 세었습니다. 한쪽을 바꿀 때 다른 쪽은 생성식으로 고정했습니다.`,
       "",
       table(
         [
@@ -1415,10 +1347,6 @@ export const PROOFS: Record<string, () => string> = {
         ["l", "r", "r", "r", "r"],
       ),
       "",
-      label(
-        `질의의 모양을 바꾼다 (n=${num(n)} · q=${num(n)} · 배열은 생성식으로 고정)`,
-      ),
-      "",
       table(
         [
           "질의의 모양",
@@ -1430,8 +1358,6 @@ export const PROOFS: Record<string, () => string> = {
         rowsQ,
         ["l", "r", "r", "r", "r"],
       ),
-      "",
-      `└ Sparse Table 방식의 세 열은${수사(rows.length + rowsQ.length)} 줄이 전부 같다. 차례로 읽기만 ${num(Math.min(...rowsQ.map((r) => Number((r[1] ?? "0").replaceAll(",", "")))))} 에서 ${num(Math.max(...rowsQ.map((r) => Number((r[1] ?? "0").replaceAll(",", "")))))} 까지 갈린다`,
     ].join("\n");
   },
 
@@ -1456,8 +1382,6 @@ export const PROOFS: Record<string, () => string> = {
         rows,
         ["r", "r", "r", "r", "l"],
       ),
-      "",
-      "└ 이 문제의 제약은 첫 줄이라 걱정할 자리가 아니다",
     ].join("\n");
   },
 
@@ -1473,14 +1397,14 @@ export const PROOFS: Record<string, () => string> = {
     const perS = (s - s0) / q;
     const perG = (g - g0) / q;
     const rows = [
-      ["Sparse Table 만들기", num(s0), num(g0), num(s0 - g0)],
+      ["만들기", num(s0), num(g0), num(s0 - g0)],
       ["질의 하나 평균", fixed2(perS), fixed2(perG), fixed2(perS - perG)],
       ["갱신 하나", num(s1 - s), num(g1 - g), num(s1 - s - (g1 - g))],
     ];
     return [
       table(
         [
-          "무엇",
+          "비용(배열 접근 수)",
           "Sparse Table",
           "세그먼트 트리",
           "Sparse Table − 세그먼트 트리",
@@ -1489,7 +1413,7 @@ export const PROOFS: Record<string, () => string> = {
         ["l", "r", "r", "r"],
       ),
       "",
-      `└ Sparse Table 만들기에서 ${num(s0 - g0)} 번을 더 쓰고 질의 하나에서 ${fixed2(perG - perS)} 번을 덜 쓴다. ${num(s0 - g0)} ÷ ${fixed2(perG - perS)} = ${fixed2((s0 - g0) / (perG - perS))} 이고 실측 경계는 ${num(6995)} 이다`,
+      `Sparse Table 은 만들기에서 ${num(s0 - g0)} 번을 더 쓰고 질의 하나에서 ${fixed2(perG - perS)} 번을 덜 씁니다. ${num(s0 - g0)} ÷ ${fixed2(perG - perS)} = ${fixed2((s0 - g0) / (perG - perS))} 이고, 실측 경계는 ${num(6995)} 입니다.`,
     ].join("\n");
   },
 };
