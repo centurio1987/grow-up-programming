@@ -142,7 +142,7 @@
   - 메모: 결정(유저 2026-09-27): 새 패턴은 이 저장소에서 먼저, 검증 뒤 bbangto-ui 승격은 별도 카드 · claude-design 에 foundation·visual motif·component 생김새를 요구사항서로 의뢰, 패턴 구현과 guideline 은 직접 · 파일럿 sparseTableRangeMin
   - 실행 문서: KANBAN.cards/KAN-057-J36E1B.md (18/18 · 최근 09-29)
   - 계획 리포트: KANBAN.reports/KAN-057-J36E1B.report.html (낡음)
-  - 검토 문서: KANBAN.reviews/KAN-057-J36E1B.review.md (승인 5/8 · 추가 의견 3 · 추가 의견 총 7 · 검토 대기)
+  - 검토 문서: KANBAN.reviews/KAN-057-J36E1B.review.md (승인 8/8 · 추가 의견 총 7 · 승인)
   - 원문:
     ```text
     ascii art 대신 시각화가 필요한 지점까지 ascii art로 해결하니 오히려 글로 쓴 것보다 이해 안되는 내용이 많아 진다.
