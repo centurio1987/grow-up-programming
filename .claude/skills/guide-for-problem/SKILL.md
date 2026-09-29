@@ -33,7 +33,7 @@ argument-hint: <file-name-without-extension>
 | --- | --- |
 | 골격·항목별 작성법·범위 원칙 | [`sandbox/algo-guide-v2/SPEC.md`](../../../sandbox/algo-guide-v2/SPEC.md) — 특히 §3 `deep.origin`·`deep.build`(`L41`~`L45`), §6 `L49`, §12(`L46`·`L47`), §13(`L48`) |
 | 문체 | voice `algorithm-guide-writer` — 검사기가 읽는 사본은 [`.claude/authoring/voices/algorithm-guide-writer/`](../../authoring/voices/algorithm-guide-writer/voice.md) |
-| 본보기 | 파일럿 [`src/algorithms/array/sparseTableRangeMin/`](../../../src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md) — 원고와 사이드카 전부(`ref`·`proof`·`sim`·`fig`·`test`·`figs/`) |
+| 본보기 | 파일럿 [`src/algorithms/array/sparseTableRangeMin/`](../../../src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md) — 원고와 사이드카 전부(`ref`·`proof`·`sim`·`fig`·`test`·`figs/`). 전개 기준으로 승인된 샘플 둘(`KAN-058.1`, 2026-09-30): 개념이 단순한 편 [`binarySearch`](../../../src/algorithms/binary-search/binarySearch/binarySearch-guide.md)(낯선 개념 절 없이 단계 셋) · 어려운 편 [`stronglyConnectedComponents`](../../../src/algorithms/graph/stronglyConnectedComponents/stronglyConnectedComponents-guide.md)(낯선 개념마다 여섯 요소) |
 
 **대상인지 먼저 본다.** `bun run tools/check-v2.ts --strict <가이드>` 가 걸리는 편이 대상이다.
 전체 목록은 `bun run tools/check-v2.ts --all --strict`. 위반 목록이 첫 작업 목록이다.
@@ -42,8 +42,8 @@ argument-hint: <file-name-without-extension>
 
 - **옛 원고** `<name>-guide.md` — 값·예시 입력·증명·반례는 새 구성으로 옮긴다. 서술 순서만 바꾼다.
 - **정본** `<name>-guide.ref.ts` — 본문 코드의 원천이다. 고치지 않는 것이 기본이고, 고치면 `<name>-guide.test.ts` 가 통과해야 한다.
-- **증명 블록** `<name>-guide.proof.ts` — 옮긴 값은 그대로 쓰고, 새로 싣는 값은 여기에 블록으로 더한다(손으로 적은 수를 본문에 두지 않는다).
-- **걸음 표** `<name>-guide.sim.ts` — 걸음 재생 패널이 남으면 고쳐 쓰고 새로 만들지 않는다. 걸음 값은 정본 실행에서 받는다(`L48`).
+- **증명 블록** `<name>-guide.proof.ts` — 옮긴 값은 그대로 쓰고, 새로 싣는 값은 여기에 블록으로 더한다. **본문에 손으로 적은 수를 남기지 않는다** — 옛 원고의 짧은 실행 결과(걸음 몇 줄 · 검산 · 자기 점검의 자취 · 코드 아래 출력)도 증명 블록이 만들어 대조하게 바꾼다(`KAN-058.1` 검토 4 승인, 2026-09-30).
+- **걸음 표** `<name>-guide.sim.ts` — 걸음 재생 패널이 남으면 고쳐 쓰고 새로 만들지 않는다. 걸음 값은 정본 실행에서 받는다(`L48`). 옛 패널(`view: "array"` 등)은 무대 패널(`player: "stage"`)로 옮긴다 — 무대는 「배열」(`stage: "array"`, 본보기 `binarySearch`) · 「층」(`"levels"`, 본보기 파일럿) · 「그래프」(`"graph"`, 본보기 `stronglyConnectedComponents`) 중에서 고르고, 맞는 무대가 없으면 SPEC §13 「다른 갈래의 무대」대로 무대부터 더한다. 필름(정적 그림)과 패널은 같은 무대 함수로 만든다.
 - **대안 비교** `<name>-guide.alt.ts`·`.bench.json` — 있으면 그대로 두고, `purpose.alt` 가 바뀌면 함께 맞춘다.
 
 **바꾸지 않는 것.** 문서 끝 `## 실습` 절(`KAN-060` 이 옮긴 문제 서술), 스텁 `<name>.ts`·`<name>.test.ts`,
