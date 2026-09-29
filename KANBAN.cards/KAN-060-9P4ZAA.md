@@ -37,7 +37,6 @@ scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/chec
 **버린 대안.** 058 에 흡수(`problem.md` 가 058 완료까지 남는다) · 060 이 110편 본문까지 재집필(058 과 이중 작업) · 새 실습 문제 창작(편마다 스텁·테스트·정답 확인) · `.ts` JSDoc 이관(유저가 「가이드 끝」을 지정).
 
 ## 실행 계획
-## 실행 계획
 <!-- `S<n>`은 고정 id — 이름을 바꾸지 않는다. 체크 상태는 doc-step 이 갱신한다. -->
 **배치 1 — 명세·도구**
 
