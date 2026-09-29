@@ -80,7 +80,7 @@ function carryOps(p: number): { ops: number; answers: number[] } {
       const price = prices[i] as number;
       ops += 1; // 오늘 파는 이익을 만드는 뺄셈
       const gain = price - minP;
-      ops += 1; // 지금까지의 최대 이익과 견주기
+      ops += 1; // 지금까지의 최대 이익과 비교
       best = Math.max(best, gain);
       ops += 1; // 최저가 갱신
       minP = Math.min(minP, price);

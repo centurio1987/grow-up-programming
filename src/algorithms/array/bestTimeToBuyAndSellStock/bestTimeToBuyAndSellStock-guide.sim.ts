@@ -1,115 +1,254 @@
-import type { Frame } from "#guide-sim";
+import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(7)를 넘지 않는다 — P3 이 그 관계를 잰다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `P = [7, 2, 5, 1, 6, 3]`.
+ * `profitScan` 은 두 상태를 첫날 값으로 두는 T1, 날 1 부터 날 5 까지 오늘 파는 이익으로 최대 이익을
+ * 갱신하고 오늘 가격으로 최저가를 갱신하는 T2~T6, 반복 조건이 거짓이 되어 답을 돌려주는 T7 이다.
+ *
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가
+ * 배열 무대(`arrayStage.ts`)를 고른다. 쥔 구간 `range` 는 이번 걸음이 재는 거래 — 어제까지의 최저가인 날에
+ * 사서 오늘 파는 거래 — 이고, 값 줄 곁말(`rangeSide`)이 그 이익이다. 입력 배열 `P` 아래에 배열에서 만드는 줄
+ * 둘 — 날마다의 접두사 최솟값 `m` 과 그때까지의 최대 이익 `best` — 을 `layers` 로 쌓는다. 코드가 드는 것은
+ * 두 줄의 마지막 칸뿐이고, 줄은 지나온 값을 보이려고 그린다. `best` 줄의 곁말(`side`)은 그 값을 만든 거래다.
+ * 계산 한 줄은 알약(`calc`)에 두고, 무대 밖에 남는 값은 없다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
- *
- * ## `array` + `keyValue` 조합의 다섯 규약을 그대로 따른다
- *
- * 규약은 `longestSubarrayAtMostSum-guide.sim.ts` 가 세웠고 `kadane-guide.sim.ts` 가
- * 「배열이 한 번도 바뀌지 않는 절차」에 적용했다. 이 편도 배열을 읽기만 한다.
- *
- * 1. **`array` 는 입력 배열 `prices` 를 그대로 담는다.** 절차가 배열을 고치지 않으므로
- *    프레임마다 같은 배열이 실린다. 바뀌는 것은 두 스칼라와 강조 자리다.
- * 2. **위치는 `array`, 스칼라는 `keyValue`.** 지금 보는 날 번호 `i` 는 자리라서 `pointers`
- *    로 두고, 거기서 나온 수(`minP` · `best`)는 `keyValue` 다.
- * 3. **`pointers` 의 키는 본문 기호표의 이름과 글자 그대로 같다** — `i`.
- * 4. **`highlight` 는 이번 걸음에서 읽은 날, `marked` 는 지금 `best` 를 만든 매수일과
- *    매도일 두 칸.** 아직 이익이 0 이면 `marked` 가 비어 있고, 그 자리가 「거래를 안 하는
- *    선택」이 답으로 남아 있는 상태다.
- * 5. **`entries` 는 프레임마다 같은 항목을 같은 순서로 두고 값만 바꾼다** — 셋이다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본 실행에서 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `bestTimeToBuyAndSellStock-guide.test.ts` 가 잰다.
  */
+
 export const profitScan = {
-  view: ["array", "keyValue"] as const,
-  title: "날마다 이어받기 — prices = [7, 2, 5, 1, 6, 3]",
+  player: "stage",
+  stage: "array",
+  arrayName: "P",
+  rangeLabel: "거래",
+  title: "bestTimeToBuyAndSellStock([7, 2, 5, 1, 6, 3])",
   result: "5",
   steps: [
     {
-      title: "T1 초기화 i=0",
-      detail:
-        "minP 를 prices[0] = 7 로, best 를 0 으로 시작한다. 거래를 안 하는 선택이 언제나 가능해서 이익의 출발값이 0 이다.",
+      title: "T1 i = 0 · ①",
+      text: "minP 를 P[0] = 7 로, best 를 0 으로 둡니다. 날 0 에 사서 날 0 에 팔면 이익이 0 입니다.",
       array: [7, 2, 5, 1, 6, 3],
-      highlight: [0],
-      marked: [],
-      pointers: { i: 0 },
-      entries: [
-        { label: "minP — 지금까지의 최저가", value: 7 },
-        { label: "best — 지금까지의 최대 이익", value: 0 },
-        { label: "best 를 만든 매수일·매도일", value: "거래 없음" },
+      range: [0, 0],
+      rangeSide: "이익 0",
+      read: [0],
+      write: [],
+      pointers: {
+        i: 0,
+      },
+      calc: {
+        expr: "minP = P[0]",
+        result: "7",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "m",
+          values: [7, null, null, null, null, null],
+          read: [],
+          write: [0],
+        },
+        {
+          name: "best",
+          values: [0, null, null, null, null, null],
+          read: [],
+          write: [0],
+          side: "거래 없음",
+        },
       ],
     },
     {
-      title: "T2 i=1",
-      detail:
-        "오늘 팔면 2 - 7 = -5 라 이익이 안 난다. best 는 0 그대로이고, 최저가가 7 에서 2 로 갱신된다.",
+      title: "T2 i = 1 · minP 가 내려감",
+      text: "오늘 팔면 2 − 7 = -5 입니다. best 는 0 그대로입니다(③). 오늘 가격 2 가 최저가보다 낮아 minP 가 7 에서 2 로 내려갑니다(④).",
       array: [7, 2, 5, 1, 6, 3],
-      highlight: [1],
-      marked: [],
-      pointers: { i: 1 },
-      entries: [
-        { label: "minP — 지금까지의 최저가", value: 2 },
-        { label: "best — 지금까지의 최대 이익", value: 0 },
-        { label: "best 를 만든 매수일·매도일", value: "거래 없음" },
+      range: [0, 1],
+      rangeSide: "이익 -5",
+      read: [1],
+      write: [],
+      pointers: {
+        i: 1,
+      },
+      calc: {
+        expr: "max(0, 2 − 7)",
+        result: "0",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "m",
+          values: [7, 2, null, null, null, null],
+          read: [0],
+          write: [1],
+        },
+        {
+          name: "best",
+          values: [0, 0, null, null, null, null],
+          read: [0],
+          write: [],
+          side: "거래 없음",
+        },
       ],
     },
     {
-      title: "T3 i=2",
-      detail:
-        "오늘 팔면 5 - 2 = 3 이다. best 가 0 에서 3 으로 커지고, 오늘 값 5 는 최저가 2 보다 커서 minP 는 그대로다.",
+      title: "T3 i = 2 · best 가 커짐",
+      text: "오늘 팔면 5 − 2 = 3 입니다. best 는 0 에서 3 으로 커집니다(③). minP 는 2 그대로입니다(④).",
       array: [7, 2, 5, 1, 6, 3],
-      highlight: [2],
-      marked: [1, 2],
-      pointers: { i: 2 },
-      entries: [
-        { label: "minP — 지금까지의 최저가", value: 2 },
-        { label: "best — 지금까지의 최대 이익", value: 3 },
-        { label: "best 를 만든 매수일·매도일", value: "1일 매수 · 2일 매도" },
+      range: [1, 2],
+      rangeSide: "이익 3",
+      read: [2],
+      write: [],
+      pointers: {
+        i: 2,
+      },
+      calc: {
+        expr: "max(0, 5 − 2)",
+        result: "3",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "m",
+          values: [7, 2, 2, null, null, null],
+          read: [1],
+          write: [2],
+        },
+        {
+          name: "best",
+          values: [0, 0, 3, null, null, null],
+          read: [1],
+          write: [2],
+          side: "거래 [1,2]",
+        },
       ],
     },
     {
-      title: "T4 i=3",
-      detail:
-        "오늘 팔면 1 - 2 = -1 이라 best 는 3 그대로다. 대신 최저가가 2 에서 1 로 갱신된다 — 이미 얻은 이익 3 은 사라지지 않는다.",
+      title: "T4 i = 3 · minP 가 내려감",
+      text: "오늘 팔면 1 − 2 = -1 입니다. best 는 3 그대로입니다(③). 오늘 가격 1 이 최저가보다 낮아 minP 가 2 에서 1 로 내려갑니다(④).",
       array: [7, 2, 5, 1, 6, 3],
-      highlight: [3],
-      marked: [1, 2],
-      pointers: { i: 3 },
-      entries: [
-        { label: "minP — 지금까지의 최저가", value: 1 },
-        { label: "best — 지금까지의 최대 이익", value: 3 },
-        { label: "best 를 만든 매수일·매도일", value: "1일 매수 · 2일 매도" },
+      range: [1, 3],
+      rangeSide: "이익 -1",
+      read: [3],
+      write: [],
+      pointers: {
+        i: 3,
+      },
+      calc: {
+        expr: "max(3, 1 − 2)",
+        result: "3",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "m",
+          values: [7, 2, 2, 1, null, null],
+          read: [2],
+          write: [3],
+        },
+        {
+          name: "best",
+          values: [0, 0, 3, 3, null, null],
+          read: [2],
+          write: [],
+          side: "거래 [1,2]",
+        },
       ],
     },
     {
-      title: "T5 i=4",
-      detail:
-        "오늘 팔면 6 - 1 = 5 다. 갱신된 최저가 1 이 여기서 값을 낸다 — best 가 3 에서 5 로 커지고 이것이 답이 된다.",
+      title: "T5 i = 4 · best 가 커짐",
+      text: "오늘 팔면 6 − 1 = 5 입니다. best 는 3 에서 5 로 커집니다(③). minP 는 1 그대로입니다(④).",
       array: [7, 2, 5, 1, 6, 3],
-      highlight: [4],
-      marked: [3, 4],
-      pointers: { i: 4 },
-      entries: [
-        { label: "minP — 지금까지의 최저가", value: 1 },
-        { label: "best — 지금까지의 최대 이익", value: 5 },
-        { label: "best 를 만든 매수일·매도일", value: "3일 매수 · 4일 매도" },
+      range: [3, 4],
+      rangeSide: "이익 5",
+      read: [4],
+      write: [],
+      pointers: {
+        i: 4,
+      },
+      calc: {
+        expr: "max(3, 6 − 1)",
+        result: "5",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "m",
+          values: [7, 2, 2, 1, 1, null],
+          read: [3],
+          write: [4],
+        },
+        {
+          name: "best",
+          values: [0, 0, 3, 3, 5, null],
+          read: [3],
+          write: [4],
+          side: "거래 [3,4]",
+        },
       ],
     },
     {
-      title: "T6 i=5",
-      detail:
-        "마지막 날이다. 오늘 팔면 3 - 1 = 2 라 best 는 5 그대로이고, 최저가도 1 그대로다. 답은 5 다.",
+      title: "T6 i = 5 · 둘 다 그대로",
+      text: "오늘 팔면 3 − 1 = 2 입니다. best 는 5 그대로입니다(③). minP 는 1 그대로입니다(④).",
       array: [7, 2, 5, 1, 6, 3],
-      highlight: [5],
-      marked: [3, 4],
-      pointers: { i: 5 },
-      entries: [
-        { label: "minP — 지금까지의 최저가", value: 1 },
-        { label: "best — 지금까지의 최대 이익", value: 5 },
-        { label: "best 를 만든 매수일·매도일", value: "3일 매수 · 4일 매도" },
+      range: [3, 5],
+      rangeSide: "이익 2",
+      read: [5],
+      write: [],
+      pointers: {
+        i: 5,
+      },
+      calc: {
+        expr: "max(5, 3 − 1)",
+        result: "5",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "m",
+          values: [7, 2, 2, 1, 1, 1],
+          read: [4],
+          write: [5],
+        },
+        {
+          name: "best",
+          values: [0, 0, 3, 3, 5, 5],
+          read: [4],
+          write: [],
+          side: "거래 [3,4]",
+        },
       ],
     },
-  ] satisfies Frame[],
-};
+    {
+      title: "T7 i = 6 · 반복 끝",
+      text: "i = 6 이라 ② 의 조건 i < 6 이 거짓입니다. 반복을 마치고 best = 5 를 돌려줍니다. 날 3 에 사서 날 4 에 판 이익입니다.",
+      array: [7, 2, 5, 1, 6, 3],
+      range: [3, 4],
+      rangeSide: "이익 5",
+      read: [],
+      write: [],
+      pointers: {
+        i: 6,
+      },
+      calc: {
+        expr: "6 < 6",
+        result: "거짓",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "m",
+          values: [7, 2, 2, 1, 1, 1],
+          read: [],
+          write: [],
+        },
+        {
+          name: "best",
+          values: [0, 0, 3, 3, 5, 5],
+          read: [5],
+          write: [],
+          side: "거래 [3,4]",
+        },
+      ],
+    },
+  ],
+} satisfies ArrayPlayerSpec;
