@@ -65,9 +65,9 @@ scope: src/algorithms/**, src/_viz/**, design/viz/**, sandbox/algo-guide-v2/**, 
 - [x] `S2` 잴 수 있게 — `algo-wbs` 완료 판정을 `--strict` 통과로(샘플 두 편은 완료로 센다), P1 이 `$$` 수식 블록을 산문 문단으로 세지 않게 고친다(샘플 검토 관찰). 완료: 남은 편 = 108, `tools/algo-wbs.test.ts`·`check-v2.test.ts` 통과
 - [x] `S12` 배열·구간 걸음 무대 — SPEC §13 「다른 갈래의 무대」의 배열 줄을 `STAGES` 에 더하고 `binarySearch` 패널을 옮긴다(KAN-058.1 검토 3 승인 — 전개 첫머리에 만든다). 완료: `bun test src/_viz` · `binarySearch` 편 완료 명령 통과
 - [x] `S13` 지시서 보강 — 짧은 실행 결과도 증명 블록으로(KAN-058.1 검토 4 승인), 배열 무대·그래프 무대를 쓰는 법을 가리킨다, `binarySearch` 의 남은 손 값도 바꾼다. 완료: `check-links` · `binarySearch` 편 완료 명령 통과
-- [ ] `S14` KAN-060 신규 넷에 그림 — `twoSum`·`missingInteger`·`numberOfDisintersection`·`binaryGap` 에 `fig.tsx`·`figs/` 를 더한다(KAN-060 검토 3 「그림은 KAN-058 때」). 웨이브 편과 함께 동시 셋 안에서 돈다. 완료: 네 편 편 완료 명령 통과 · 본문 `<!--fig:` 1 이상
+- [x] `S14` KAN-060 신규 넷에 그림 — `twoSum`·`missingInteger`·`numberOfDisintersection`·`binaryGap` 에 `fig.tsx`·`figs/` 를 더한다(KAN-060 검토 3 「그림은 KAN-058 때」). 웨이브 편과 함께 동시 셋 안에서 돈다. 완료: 네 편 편 완료 명령 통과 · 본문 `<!--fig:` 1 이상
 - [x] `S7` W1 나머지 전개. 시작 때 샘플 실측으로 배치 문서를 나눈다(`batch-init`). 완료: W1 남은 편 0(`algo-wbs`) · `ci.ts gates` 통과
-- [ ] `S8` W2 전개. 완료: S7 과 같은 기준으로 W2 남은 편 0
+- [>] `S8` W2 전개. 완료: S7 과 같은 기준으로 W2 남은 편 0 <!-- claim:s=62654a5c t=2026-09-30T07:02 -->
 - [ ] `S9` W3 전개. 완료: S7 과 같은 기준으로 W3 남은 편 0
 
 **마감**
@@ -161,3 +161,5 @@ bunx tsc --noEmit
 - 2026-09-30T06:56 · s:62654a5c — S7 W1 bestTimeToBuyAndSellStock — 토큰 425,148 · 22분 35초. 낯선 개념 「접두사 최솟값」(a)~(f), 아이디어 「날마다 이어받기」, deep.build 3단계, 증명 40 · 시험 19 · 그림 4, 배열 무대(m·best layers). 메인 재확인: --strict · 증명 40 · bench · 실습 절·스텁 무변경. 옛 원고 값 틀린 곳 없음. 검토 때 볼 것: 제목을 한국어 과제 이름(「한 번 거래의 최대 이익」)으로 · related 를 접두사 최솟값 → 온라인 알고리즘으로 · P21 경고 4건(머리줄 「최저가」의 「가」를 조사로 읽은 오탐으로 봄). 실습 절 모호 문장(고치지 않음): Max Profit 스토리 「그보다 늦은 날 팔」과 「같거나 뒤여야」가 어긋남
 - 2026-09-30T06:57 · s:62654a5c — S7 W1 houseRobber — 토큰·시간은 알림 뒤. 낯선 개념 「칸 i 까지의 최대 합」(a)~(f), 아이디어 「두 값 이어받기」, deep.build 4단계, 증명 41 · 시험 19 · 그림 6. 실습 스토리의 「집」을 본문에서 「칸」으로(L49). 검토 때 볼 것: 옛 원고 틀린 설명(「값이 음수가 아니라서 마지막 값이 답」 — 실제로는 max 때문에 부호와 무관, 음수가 문제되는 곳은 cur = A[0] 하나, premise-negative 블록) · 「일반 그래프 NP-난해」를 「다항 시간 절차가 알려져 있지 않다」로(출처 없음) · 재귀 깊이 값은 Bun 스택 한도에 기댐
 - 2026-09-30T07:02 · s:62654a5c · S7 done — W1 29편 완료(샘플 binarySearch · KAN-060 신규 셋 포함, 전개로 쓴 편 25). 편마다 서브에이전트(동시 셋), 메인이 편 완료 명령·tsc·실습 절 diff·스텁 무변경을 다시 돌리고 편 단위 커밋. 편당 실측: 토큰 약 36만~51만(평균 약 45만), 17~36분(평균 약 26분). 새 무대 셋(배열 · 그래프 · 2 차원 표)과 새 패턴 둘(NodeGraph · KeyValueTable), 배열 무대 선택 기능 여섯(layers · pieces · valueAxis · rangeSide · map · 줄 side). 전개 중 막은 빈틈 넷: 편 검증에 tsc · 편 전용 임시 폴더 · --strict P23 이 코드 주석도 봄 · P22 가 폴더의 실습 테스트를 다 가리키는지 봄(KAN-060 kadane 누락 복구). ci.ts gates 13단계 통과. 유저 판단을 기다리는 실습 절 문장 둘(maximumProductSubarray 틀림 · bestTimeToBuyAndSellStock 모호)
+- 2026-09-30T07:02 · s:62654a5c · S8 doing — 착수
+- 2026-09-30T07:06 · s:62654a5c · S14 done — 서브에이전트 하나가 네 편 차례로 — 토큰 421,876 · 21분 34초. twoSum 그림 7(KeyValueTable 포함) · missingInteger 5 · numberOfDisintersection 5 · binaryGap 5, 네 편 모두 걸음 재생 패널(배열 무대 — map · layers · pieces)을 새로 더하고 가이드 시험에 리터럴 대조. 글자 그림 증명 블록 셋을 그림으로 바꾸며 proof.ts 에서 그 항목을 지움. 새 패턴 없음. 메인 재확인: 네 편 --strict · 증명 · 시험 · 은유 · 실습 절·스텁 무변경 · 본문 <!--fig: 5~7 · tsc 0 · render-figs --check 32편. 검토 때 볼 것: binaryGap 배열 무대의 칸 번호가 이진 표기와 좌우 반대(본문 한 문장) · 배열 무대 인덱스 줄 이름이 「인덱스」로 고정 · 그림 alt 글의 수는 정본에서 만들지 않음(본보기 편과 같은 방식)

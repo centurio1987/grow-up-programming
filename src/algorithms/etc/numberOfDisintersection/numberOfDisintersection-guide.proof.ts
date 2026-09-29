@@ -478,25 +478,6 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `deep.build.concept` (b) — 원판을 수직선에 그리고 멈추는 자리를 표시한다. */
-  "sweep-picture": () => {
-    const lo = Math.min(...WALK.map((_, j) => startOf(WALK, j)));
-    const hi = Math.max(...WALK.map((_, j) => endOf(WALK, j)));
-    const xs = Array.from({ length: hi - lo + 1 }, (_, t) => lo + t);
-    const rows = WALK.map((_, j) => [
-      `원판 ${j}`,
-      ...xs.map((x) =>
-        startOf(WALK, j) <= x && x <= endOf(WALK, j) ? "■" : "",
-      ),
-    ]);
-    const ends = new Set(T.ends);
-    rows.push(["멈춤", ...xs.map((x) => (ends.has(x) ? "▲" : ""))]);
-    return table(["좌표", ...xs.map(String)], rows, [
-      "l",
-      ...xs.map(() => "l" as const),
-    ]);
-  },
-
   /** `deep.build.concept` (c)(d) — 멈출 때마다 원판이 어느 상태인가. */
   "sweep-stops": () => {
     const order = byEnd(WALK);

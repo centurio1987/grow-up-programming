@@ -17,7 +17,7 @@
  */
 
 import { loadMutant } from "../../../../tools/check-proof.ts";
-import { 과와, 은는 } from "../../../../tools/josa.ts";
+import { 은는 } from "../../../../tools/josa.ts";
 import { binaryGap } from "./binaryGap-guide.ref.ts";
 
 /* ────────────────────────── 표기 ────────────────────────── */
@@ -319,41 +319,8 @@ function mutantTable(
 /* ────────────────────────── 블록 ────────────────────────── */
 
 const T = traceScan(WALK);
-const WALK_BITS = WALK.toString(2).length;
-
-/** 자리 p 의 0 이 속한 구간 — 아래·위로 가장 가까운 1 이 둘 다 있으면 그 두 자리. */
-function zeroOwner(n: number, p: number): string {
-  const ones = onePositions(n);
-  const below = ones.filter((q) => q < p).at(-1);
-  const above = ones.find((q) => q > p);
-  if (below === undefined || above === undefined) return "닫히지 않음";
-  return `${below}${과와(below)} ${above} 사이`;
-}
 
 export const PROOFS: Record<string, () => string> = {
-  /** `concept` — 전개 입력의 자리와 0 구간. */
-  "concept-bits": () => {
-    const cols = Array.from({ length: WALK_BITS }, (_, k) => WALK_BITS - 1 - k);
-    const bitRow = cols.map((p) => String((WALK >>> p) & 1));
-    const ownerRow = cols.map((p) =>
-      ((WALK >>> p) & 1) === 1 ? "" : zeroOwner(WALK, p),
-    );
-    const p = onePositions(WALK);
-    const gaps = p.slice(1).map((q, j) => q - (p[j] as number) - 1);
-    return [
-      table(
-        ["자리", ...cols.map(String)],
-        [
-          ["비트", ...bitRow],
-          ["0 이 속한 구간", ...ownerRow],
-        ],
-        ["l", ...cols.map((): "l" => "l")],
-      ),
-      "",
-      `1 이 있는 자리는 ${list(p)} 입니다. 양쪽이 1 로 닫힌 0 구간은 길이 ${gaps.join(" · ")} 이고, 그중 가장 긴 것이 ${binaryGap(WALK)} 입니다.`,
-    ].join("\n");
-  },
-
   /** `deep.origin` ② — 가장 단순한 방법의 비용. */
   "origin-naive-cost": () => {
     const rows = COST_INPUTS.map((c) => {
@@ -468,16 +435,6 @@ export const PROOFS: Record<string, () => string> = {
       rows,
       ["l", "l", "r", "r", "l"],
     );
-  },
-
-  /** `deep.build` 먼저 알아 둘 개념 — 오른쪽 시프트로 한 자리씩 내린다. */
-  "build-shift": () => {
-    const lines = [`${"i".padEnd(4)}${"x".padEnd(14)}x & 1`];
-    for (const st of T.steps) {
-      lines.push(`${String(st.i).padEnd(4)}${bin(st.x).padEnd(14)}${st.bit}`);
-    }
-    lines.push(`${String(T.iterations).padEnd(4)}${bin(0).padEnd(14)}멈춤`);
-    return lines.join("\n");
   },
 
   /** `deep.build` 먼저 알아 둘 개념 — 한 걸음을 읽는 법. */

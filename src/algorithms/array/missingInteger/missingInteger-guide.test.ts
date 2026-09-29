@@ -49,3 +49,22 @@ test("정본 — N=100,000, 짝수 자리 i+1 · 홀수 자리 −(i+1) → 2", 
   // 양수는 1 · 3 · 5 … 뿐이라 2 가 빠진다.
   expect(missingInteger(A)).toBe(2);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./missingInteger-guide.sim.ts");
+  const { simStepsFromRef, WALK, FULL } = await import(
+    "./missingInteger-guide.fig.tsx"
+  );
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  const want = simStepsFromRef();
+  expect(plain(sim.markA.steps)).toEqual(plain(want.markA));
+  expect(plain(sim.fullB.steps)).toEqual(plain(want.fullB));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.markA.result).toBe(String(missingInteger([...WALK])));
+  expect(sim.fullB.result).toBe(String(missingInteger([...FULL])));
+});
