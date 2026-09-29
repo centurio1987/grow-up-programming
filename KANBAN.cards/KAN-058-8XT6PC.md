@@ -68,7 +68,7 @@ scope: src/algorithms/**, src/_viz/**, design/viz/**, sandbox/algo-guide-v2/**, 
 - [ ] `S9` W3 전개. 완료: S7 과 같은 기준으로 W3 남은 편 0
 
 **마감**
-- [ ] `S10` 한시 조항 제거 — SPEC §8 세 조항 삭제, `--strict` 를 기본으로, `deep.origin` 을 `FIGURE_REQUIRED` 로, voice `v.common.gyeonju` enabled. voice 의 원본은 여러 프로젝트가 함께 쓰는 `~/.claude/authoring/voices/algorithm-guide-writer/` 이고 저장소 것은 사본이다(`tools/voice-style.ts:4-18`). 순서는 원본 수정 → `tools/voice-style.ts --sync` → `--check`. **원본 수정은 전역 파일이라 그 자리에서 유저의 실행 요청을 받고 한다.** 완료: `check-v2 --all` 0 · `ci.ts all` 통과
+- [ ] `S10` 이전 카드가 꺼 둔 규칙과 한시 조항을 예정대로 켜고 걷는다 — 규칙 내용은 새로 쓰지 않는다(KAN-056 L44 · KAN-056/060 §8 이 「전개 카드와 함께 켠다」로 남겨 둔 것). SPEC §8 세 조항 삭제, `--strict` 를 기본으로, `deep.origin` 을 `FIGURE_REQUIRED` 로, voice `v.common.gyeonju` 의 `enabled` 를 `false` → `true`. 원본은 여러 프로젝트가 함께 쓰는 `~/.claude/authoring/voices/algorithm-guide-writer/style.json` 이고 저장소 것은 사본이다(`tools/voice-style.ts:4-18`) — 원본 값 변경 → `tools/voice-style.ts --sync` → `--check`. 원본 변경은 그 자리에서 유저 실행 요청을 받고 한다. 완료: `check-v2 --all` 0 · `ci.ts all` 통과
 - [ ] `S11` 검토서 · 검토로 이동
 
 ## 검증
@@ -102,3 +102,4 @@ bunx tsc --noEmit
 - 2026-09-29T18:21 · s:62654a5c — `전략` 섹션 교체
 - 2026-09-29T18:21 · s:62654a5c — `실행 계획` 섹션 교체
 - 2026-09-29T18:21 · s:62654a5c — `검증` 섹션 교체
+- 2026-09-30T01:21 · s:62654a5c — `실행 계획` 섹션 교체
