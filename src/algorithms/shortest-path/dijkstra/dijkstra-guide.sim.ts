@@ -1,327 +1,793 @@
-import type { Frame } from "#guide-sim";
-
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(9)를 넘지 않는다 — P3 이 그 관계를 잰다.
+ * 걸음 재생 패널 — `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 제목은
+ * 원고의 걸음 번호(`T#`)로 연다 — P3 이 그 자리를 잰다. T1 이 시작, 큐에서 항목 하나를 꺼내는 일이
+ * 걸음 하나, 마지막 걸음이 큐가 비어 끝나는 자리다.
  *
- * ## `priorityQueue` 뷰의 첫 사용 — 프레임을 이렇게 설계했다
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가 실제보다
+ * 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
  *
- * 이 저장소에서 선 뷰는 `array`·`keyValue`·`graph`·`matrix` 넷뿐이었다. `priorityQueue` 는
- * 여기가 처음이라 선례가 없어, 이 편이 그 자리를 정한다. 뒤에 오는 `primMst`·
- * `medianFromDataStream` 이 이 파일을 본보기로 삼는다.
+ * ## 패널 규약 — 「그래프」 무대(KAN-058, SPEC §13)
  *
- * **한 프레임이 답해야 하는 것은 둘이다** — ① 큐에 지금 무엇이 들어 있는가 ② 다음에 무엇이
- * 나오는가. 셋을 그렇게 맞췄다.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "graph"` 가
+ * 무대 갈래를 고른다. 정점과 간선의 자리(`layout`)는 패널에 한 번만 적고, 걸음마다 정점의 값(확정한
+ * 정점은 「거리」, 아직 줄어들 수 있는 정점은 「후보」)과 상태, 간선의 종류(지금 거리를 낸 간선은 굵은
+ * 실선)와 상태, 무대 아래 우선순위 큐의 띠 둘(`strips`)만 바꾼다(`src/_viz/player/graphStage.ts`).
  *
- * 1. **`heap` 은 정렬한 목록이 아니라 배열의 실제 순서다.** `PriorityQueueView` 가
- *    *"배열 순서대로의 힙 원소. key 기준 정렬은 시각화하지 않고 그대로 그린다"* 로 정의돼
- *    있고(`src/_guide-sim/index.tsx`), 그 정의를 그대로 따른다. 정렬해 그리면 「키가 가장
- *    작은 것이 앞에 온다」가 그림의 성질이 되어 버려서, 힙이 **왜** 그 순서를 만드는지가
- *    사라진다. 값은 `dijkstra-guide.proof.ts` 의 `trace()` 가 정본과 같은 절차로 낸 것이다.
- * 2. **`highlight: [0]`** — 자리 0 하나만 강조한다. 그것이 다음에 나올 항목이라는 것이
- *    이 뷰가 답해야 하는 두 번째 질문이고, 배열 순서로 그렸기 때문에 「앞에서 꺼낸다」가
- *    자명하지 않다. 큐가 비면 강조도 없다.
- * 3. **`label` 은 정점, `key` 는 그때 적힌 거리다.** 같은 정점이 키를 달리해 여러 번
- *    들어가는 것이 이 알고리즘의 요점(뒤처진 기록)이라, 라벨이 겹쳐 보이는 것을 감추지 않는다.
- *    T3·T4 에서 `정점 1` 이 둘, T4·T5 에서 `정점 3` 이 둘로 보이는 것이 그 자리다. 원고는
- *    같은 항목을 `(1, 3)` 처럼 (정점, 키) 한 쌍으로 적고, 이 패널은 그것을 두 조각으로 그린다.
+ * 우선순위 큐의 띠는 큐에 든 항목을 **꺼낼 차례대로** 늘어놓는다 — 윗줄이 정점, 아랫줄이 키이고 같은
+ * 칸 번호가 한 항목이다. 이번 걸음에 넣은 항목은 새로 씀, 뒤처진 기록은 이번 걸음 밖이다. 그렇게
+ * 정한 까닭은 그림 사이드카 머리 주석에 있다.
  *
- * **`graph` 와 짝지은 이유.** 큐만 보면 그 키가 그래프의 어느 자리에서 나왔는지 안 보이고,
- * 그래프만 보면 다음에 무엇이 확정되는지가 안 보인다. `bfsShortestPath` 가 같은 이유로
- * `graph` + `keyValue` 를 썼는데, 여기서는 그 `keyValue` 자리를 `priorityQueue` 가 대신한다 —
- * 적어야 할 상태가 「큐의 내용」 하나로 모여 있어서 표 대신 큐 자체를 그리는 편이 짧다.
- * 그래서 `dist` 배열과 갈래 번호는 프레임의 `detail` 이 문장으로 진다.
- *
- * 좌표는 0~100 정규화다. 정점 0 을 왼쪽에 두고 0 → 2 → 1 → 3 → 4 가 시계 방향으로 돌아가게
- * 놓아 최단 경로가 한 줄로 이어져 보이게 했고, 간선이 하나도 없는 정점 5 는 오른쪽 아래에
- * 떨어뜨려 둔다.
- *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * **값은 손으로 적지 않았다.** 이 리터럴은 그림 사이드카의 `stageStepsFromRef()` 가 정본과 같은 절차를
+ * 실행해 낸 결과를 옮긴 것이고, 둘이 같은지는 `dijkstra-guide.test.ts` 가 잰다.
  */
 export const dijkstraWalk = {
-  view: ["graph", "priorityQueue"] as const,
+  player: "stage",
+  stage: "graph",
   title:
-    "dijkstra(6, [[0,1,4],[0,2,1],[2,1,2],[1,3,1],[2,3,5],[3,4,3],[4,1,7]], 0)",
-  result: "[0, 3, 1, 4, 7, Infinity]",
+    "dijkstra(6, [[0,1,4],[0,2,1],[2,1,2],[1,3,1],[2,3,5],[3,4,3],[4,1,7]], 0) — 간선 옆 수는 가중치",
+  sub: "T1–T9 · 걸음마다 큐에서 항목 하나",
+  result: "[0,3,1,4,7,Infinity]",
+  layout: {
+    nodes: [
+      {
+        id: 0,
+        x: 0,
+        y: 1,
+      },
+      {
+        id: 1,
+        x: 1.3,
+        y: 0,
+      },
+      {
+        id: 2,
+        x: 1.3,
+        y: 2,
+      },
+      {
+        id: 3,
+        x: 2.6,
+        y: 1,
+      },
+      {
+        id: 4,
+        x: 3.9,
+        y: 0,
+      },
+      {
+        id: 5,
+        x: 3.9,
+        y: 2,
+      },
+    ],
+    edges: [
+      {
+        from: 0,
+        to: 1,
+      },
+      {
+        from: 0,
+        to: 2,
+      },
+      {
+        from: 2,
+        to: 1,
+      },
+      {
+        from: 1,
+        to: 3,
+      },
+      {
+        from: 2,
+        to: 3,
+      },
+      {
+        from: 3,
+        to: 4,
+      },
+      {
+        from: 4,
+        to: 1,
+      },
+    ],
+    directed: true,
+  },
   steps: [
     {
-      title: "T1 시작값",
-      detail:
-        "거리 배열을 전부 Infinity 로 두고 dist[0] = 0 만 적는다. 큐에는 항목 (0, 0) 하나가 들어간다.",
+      title: "T1 시작값 — 큐에 (0, 0)",
+      text: "dist[0] 에 0 을 적고 나머지는 Infinity 로 둡니다. 우선순위 큐에는 항목 (0, 0) 하나가 들어갑니다.",
       nodes: [
-        { id: 0, x: 8, y: 34 },
-        { id: 1, x: 46, y: 8 },
-        { id: 2, x: 30, y: 64 },
-        { id: 3, x: 86, y: 36 },
-        { id: 4, x: 62, y: 86 },
-        { id: 5, x: 94, y: 90 },
+        {
+          value: "후보 0",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 1, directed: true },
-        { from: 2, to: 1, weight: 2, directed: true },
-        { from: 1, to: 3, weight: 1, directed: true },
-        { from: 2, to: 3, weight: 5, directed: true },
-        { from: 3, to: 4, weight: 3, directed: true },
-        { from: 4, to: 1, weight: 7, directed: true },
+        {
+          label: "4",
+        },
+        {
+          label: "1",
+        },
+        {
+          label: "2",
+        },
+        {
+          label: "1",
+        },
+        {
+          label: "5",
+        },
+        {
+          label: "3",
+        },
+        {
+          label: "7",
+        },
       ],
-      nodeStatus: { 0: "frontier" },
-      nodeValue: { 0: 0 },
-      heap: [{ label: "정점 0", key: 0 }],
-      highlight: [0],
-    },
-    {
-      title: "T2 정점 0 을 꺼낸다",
-      detail:
-        "키 0 이 dist[0] 과 같으므로 확정이다. 나가는 간선 둘을 완화해 dist[1] = 4 · dist[2] = 1 을 적고 항목 둘을 넣는다. dist = [0, 4, 1, Infinity, Infinity, Infinity].",
-      nodes: [
-        { id: 0, x: 8, y: 34 },
-        { id: 1, x: 46, y: 8 },
-        { id: 2, x: 30, y: 64 },
-        { id: 3, x: 86, y: 36 },
-        { id: 4, x: 62, y: 86 },
-        { id: 5, x: 94, y: 90 },
+      strips: [
+        {
+          label: "큐 · 정점",
+          values: [0],
+          states: {
+            "0": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "큐 · 키",
+          values: [0],
+          states: {
+            "0": "focus",
+          },
+          slots: 3,
+        },
       ],
-      edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 1, directed: true },
-        { from: 2, to: 1, weight: 2, directed: true },
-        { from: 1, to: 3, weight: 1, directed: true },
-        { from: 2, to: 3, weight: 5, directed: true },
-        { from: 3, to: 4, weight: 3, directed: true },
-        { from: 4, to: 1, weight: 7, directed: true },
-      ],
-      nodeStatus: { 0: "active", 1: "frontier", 2: "frontier" },
-      nodeValue: { 0: 0, 1: 4, 2: 1 },
-      activeEdge: { from: 0, to: 2 },
-      heap: [
-        { label: "정점 2", key: 1 },
-        { label: "정점 1", key: 4 },
-      ],
-      highlight: [0],
-    },
-    {
-      title: "T3 정점 2 를 꺼낸다",
-      detail:
-        "키 1 이 큐에서 가장 작다. 2→1 이 4 를 3 으로 줄이고 2→3 이 6 을 처음 적는다. 정점 1 짜리 항목이 (1, 3) 과 (1, 4) 로 둘이 된다. dist = [0, 3, 1, 6, Infinity, Infinity].",
-      nodes: [
-        { id: 0, x: 8, y: 34 },
-        { id: 1, x: 46, y: 8 },
-        { id: 2, x: 30, y: 64 },
-        { id: 3, x: 86, y: 36 },
-        { id: 4, x: 62, y: 86 },
-        { id: 5, x: 94, y: 90 },
-      ],
-      edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 1, directed: true },
-        { from: 2, to: 1, weight: 2, directed: true },
-        { from: 1, to: 3, weight: 1, directed: true },
-        { from: 2, to: 3, weight: 5, directed: true },
-        { from: 3, to: 4, weight: 3, directed: true },
-        { from: 4, to: 1, weight: 7, directed: true },
-      ],
-      nodeStatus: { 0: "visited", 1: "frontier", 2: "active", 3: "frontier" },
-      nodeValue: { 0: 0, 1: 3, 2: 1, 3: 6 },
-      activeEdge: { from: 2, to: 3 },
-      heap: [
-        { label: "정점 1", key: 3 },
-        { label: "정점 1", key: 4 },
-        { label: "정점 3", key: 6 },
-      ],
-      highlight: [0],
-    },
-    {
-      title: "T4 정점 1 을 꺼낸다",
-      detail:
-        "키 3 이 dist[1] 과 같으므로 확정이다. 1→3 이 6 을 4 로 줄인다. 이제 정점 3 짜리 항목도 (3, 6) 과 (3, 4) 로 둘이다. dist = [0, 3, 1, 4, Infinity, Infinity].",
-      nodes: [
-        { id: 0, x: 8, y: 34 },
-        { id: 1, x: 46, y: 8 },
-        { id: 2, x: 30, y: 64 },
-        { id: 3, x: 86, y: 36 },
-        { id: 4, x: 62, y: 86 },
-        { id: 5, x: 94, y: 90 },
-      ],
-      edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 1, directed: true },
-        { from: 2, to: 1, weight: 2, directed: true },
-        { from: 1, to: 3, weight: 1, directed: true },
-        { from: 2, to: 3, weight: 5, directed: true },
-        { from: 3, to: 4, weight: 3, directed: true },
-        { from: 4, to: 1, weight: 7, directed: true },
-      ],
-      nodeStatus: { 0: "visited", 1: "active", 2: "visited", 3: "frontier" },
-      nodeValue: { 0: 0, 1: 3, 2: 1, 3: 4 },
-      activeEdge: { from: 1, to: 3 },
-      heap: [
-        { label: "정점 1", key: 4 },
-        { label: "정점 3", key: 6 },
-        { label: "정점 3", key: 4 },
-      ],
-      highlight: [0],
-    },
-    {
-      title: "T5 정점 1 을 다시 꺼낸다",
-      detail:
-        "키 4 가 dist[1] = 3 보다 크다. T3 이 넣어 둔 뒤처진 기록이므로 이웃을 하나도 보지 않고 버린다. dist 는 그대로다.",
-      nodes: [
-        { id: 0, x: 8, y: 34 },
-        { id: 1, x: 46, y: 8 },
-        { id: 2, x: 30, y: 64 },
-        { id: 3, x: 86, y: 36 },
-        { id: 4, x: 62, y: 86 },
-        { id: 5, x: 94, y: 90 },
-      ],
-      edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 1, directed: true },
-        { from: 2, to: 1, weight: 2, directed: true },
-        { from: 1, to: 3, weight: 1, directed: true },
-        { from: 2, to: 3, weight: 5, directed: true },
-        { from: 3, to: 4, weight: 3, directed: true },
-        { from: 4, to: 1, weight: 7, directed: true },
-      ],
-      nodeStatus: { 0: "visited", 1: "active", 2: "visited", 3: "frontier" },
-      nodeValue: { 0: 0, 1: 3, 2: 1, 3: 4 },
-      heap: [
-        { label: "정점 3", key: 4 },
-        { label: "정점 3", key: 6 },
-      ],
-      highlight: [0],
-    },
-    {
-      title: "T6 정점 3 을 꺼낸다",
-      detail:
-        "키 4 가 dist[3] 과 같으므로 확정이다. 3→4 가 7 을 처음 적는다. dist = [0, 3, 1, 4, 7, Infinity].",
-      nodes: [
-        { id: 0, x: 8, y: 34 },
-        { id: 1, x: 46, y: 8 },
-        { id: 2, x: 30, y: 64 },
-        { id: 3, x: 86, y: 36 },
-        { id: 4, x: 62, y: 86 },
-        { id: 5, x: 94, y: 90 },
-      ],
-      edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 1, directed: true },
-        { from: 2, to: 1, weight: 2, directed: true },
-        { from: 1, to: 3, weight: 1, directed: true },
-        { from: 2, to: 3, weight: 5, directed: true },
-        { from: 3, to: 4, weight: 3, directed: true },
-        { from: 4, to: 1, weight: 7, directed: true },
-      ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "active",
-        4: "frontier",
+      calc: {
+        expr: "dist[0] =",
+        result: "0",
       },
-      nodeValue: { 0: 0, 1: 3, 2: 1, 3: 4, 4: 7 },
-      activeEdge: { from: 3, to: 4 },
-      heap: [
-        { label: "정점 3", key: 6 },
-        { label: "정점 4", key: 7 },
-      ],
-      highlight: [0],
+      vars: "완화 시도 0 / 7",
     },
     {
-      title: "T7 정점 3 을 다시 꺼낸다",
-      detail:
-        "키 6 이 dist[3] = 4 보다 크다. T3 이 넣어 둔 뒤처진 기록이므로 버린다. dist 는 그대로다.",
+      title: "T2 정점 0 을 꺼낸다 — 키 0",
+      text: "키 0 이 dist[0] 와 같아 정점 0 을 확정합니다. 0→1 는 0 + 4 = 4 가 처음 적히고 큐에 (1, 4) 을 넣습니다. 0→2 는 0 + 1 = 1 이 처음 적히고 큐에 (2, 1) 을 넣습니다.",
       nodes: [
-        { id: 0, x: 8, y: 34 },
-        { id: 1, x: 46, y: 8 },
-        { id: 2, x: 30, y: 64 },
-        { id: 3, x: 86, y: 36 },
-        { id: 4, x: 62, y: 86 },
-        { id: 5, x: 94, y: 90 },
+        {
+          value: "거리 0",
+          state: "read",
+        },
+        {
+          value: "후보 4",
+          state: "focus",
+        },
+        {
+          value: "후보 1",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 1, directed: true },
-        { from: 2, to: 1, weight: 2, directed: true },
-        { from: 1, to: 3, weight: 1, directed: true },
-        { from: 2, to: 3, weight: 5, directed: true },
-        { from: 3, to: 4, weight: 3, directed: true },
-        { from: 4, to: 1, weight: 7, directed: true },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "4",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "1",
+        },
+        {
+          label: "2",
+        },
+        {
+          label: "1",
+        },
+        {
+          label: "5",
+        },
+        {
+          label: "3",
+        },
+        {
+          label: "7",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "active",
-        4: "frontier",
+      strips: [
+        {
+          label: "큐 · 정점",
+          values: [2, 1],
+          states: {
+            "0": "focus",
+            "1": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "큐 · 키",
+          values: [1, 4],
+          states: {
+            "0": "focus",
+            "1": "focus",
+          },
+          slots: 3,
+        },
+      ],
+      calc: {
+        expr: "0 = dist[0] →",
+        result: "확정",
       },
-      nodeValue: { 0: 0, 1: 3, 2: 1, 3: 4, 4: 7 },
-      heap: [{ label: "정점 4", key: 7 }],
-      highlight: [0],
+      vars: "완화 시도 2 / 7",
     },
     {
-      title: "T8 정점 4 를 꺼낸다",
-      detail:
-        "키 7 이 dist[4] 와 같으므로 확정이다. 4→1 은 7 + 7 = 14 라 dist[1] = 3 을 못 줄인다. 고칠 것이 없어 큐에 아무것도 넣지 않는다.",
+      title: "T3 정점 2 를 꺼낸다 — 키 1",
+      text: "키 1 이 dist[2] 와 같아 정점 2 를 확정합니다. 2→1 는 1 + 2 = 3 이 적혀 있던 4 보다 작아 고치고 큐에 (1, 3) 을 넣습니다. 2→3 는 1 + 5 = 6 이 처음 적히고 큐에 (3, 6) 을 넣습니다.",
       nodes: [
-        { id: 0, x: 8, y: 34 },
-        { id: 1, x: 46, y: 8 },
-        { id: 2, x: 30, y: 64 },
-        { id: 3, x: 86, y: 36 },
-        { id: 4, x: 62, y: 86 },
-        { id: 5, x: 94, y: 90 },
+        {
+          value: "거리 0",
+        },
+        {
+          value: "후보 3",
+          state: "focus",
+        },
+        {
+          value: "거리 1",
+          state: "read",
+        },
+        {
+          value: "후보 6",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 1, directed: true },
-        { from: 2, to: 1, weight: 2, directed: true },
-        { from: 1, to: 3, weight: 1, directed: true },
-        { from: 2, to: 3, weight: 5, directed: true },
-        { from: 3, to: 4, weight: 3, directed: true },
-        { from: 4, to: 1, weight: 7, directed: true },
+        {
+          label: "4",
+        },
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "2",
+        },
+        {
+          label: "1",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "5",
+        },
+        {
+          label: "3",
+        },
+        {
+          label: "7",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "active",
+      strips: [
+        {
+          label: "큐 · 정점",
+          values: [1, 1, 3],
+          states: {
+            "0": "focus",
+            "1": "out",
+            "2": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "큐 · 키",
+          values: [3, 4, 6],
+          states: {
+            "0": "focus",
+            "1": "out",
+            "2": "focus",
+          },
+          slots: 3,
+        },
+      ],
+      calc: {
+        expr: "1 = dist[2] →",
+        result: "확정",
       },
-      nodeValue: { 0: 0, 1: 3, 2: 1, 3: 4, 4: 7 },
-      activeEdge: { from: 4, to: 1 },
-      heap: [],
+      vars: "완화 시도 4 / 7",
     },
     {
-      title: "T9 종료",
-      detail:
-        "큐가 비어 반복이 끝난다. 정점 5 는 들어오는 간선이 하나도 없어 Infinity 로 남는다. 반환값은 [0, 3, 1, 4, 7, Infinity] 다.",
+      title: "T4 정점 1 을 꺼낸다 — 키 3",
+      text: "키 3 이 dist[1] 와 같아 정점 1 을 확정합니다. 1→3 는 3 + 1 = 4 가 적혀 있던 6 보다 작아 고치고 큐에 (3, 4) 을 넣습니다.",
       nodes: [
-        { id: 0, x: 8, y: 34 },
-        { id: 1, x: 46, y: 8 },
-        { id: 2, x: 30, y: 64 },
-        { id: 3, x: 86, y: 36 },
-        { id: 4, x: 62, y: 86 },
-        { id: 5, x: 94, y: 90 },
+        {
+          value: "거리 0",
+        },
+        {
+          value: "거리 3",
+          state: "read",
+        },
+        {
+          value: "거리 1",
+        },
+        {
+          value: "후보 4",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 1, directed: true },
-        { from: 2, to: 1, weight: 2, directed: true },
-        { from: 1, to: 3, weight: 1, directed: true },
-        { from: 2, to: 3, weight: 5, directed: true },
-        { from: 3, to: 4, weight: 3, directed: true },
-        { from: 4, to: 1, weight: 7, directed: true },
+        {
+          label: "4",
+        },
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "1",
+        },
+        {
+          label: "5",
+        },
+        {
+          label: "3",
+        },
+        {
+          label: "7",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "visited",
+      strips: [
+        {
+          label: "큐 · 정점",
+          values: [1, 3, 3],
+          states: {
+            "0": "out",
+            "1": "focus",
+            "2": "out",
+          },
+          slots: 3,
+        },
+        {
+          label: "큐 · 키",
+          values: [4, 4, 6],
+          states: {
+            "0": "out",
+            "1": "focus",
+            "2": "out",
+          },
+          slots: 3,
+        },
+      ],
+      calc: {
+        expr: "3 = dist[1] →",
+        result: "확정",
       },
-      nodeValue: { 0: 0, 1: 3, 2: 1, 3: 4, 4: 7 },
-      heap: [],
+      vars: "완화 시도 5 / 7",
     },
-  ] satisfies Frame[],
+    {
+      title: "T5 정점 1 을 다시 꺼낸다 — 키 4",
+      text: "키 4 가 지금 적힌 dist[1] = 3 보다 큽니다. 더 작은 값으로 고치기 전에 넣어 둔 뒤처진 기록이라, 이웃을 하나도 보지 않고 버립니다.",
+      nodes: [
+        {
+          value: "거리 0",
+        },
+        {
+          value: "거리 3",
+          state: "read",
+        },
+        {
+          value: "거리 1",
+        },
+        {
+          value: "후보 4",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          label: "4",
+        },
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          label: "5",
+        },
+        {
+          label: "3",
+        },
+        {
+          label: "7",
+        },
+      ],
+      strips: [
+        {
+          label: "큐 · 정점",
+          values: [3, 3],
+          states: {
+            "1": "out",
+          },
+          slots: 3,
+        },
+        {
+          label: "큐 · 키",
+          values: [4, 6],
+          states: {
+            "1": "out",
+          },
+          slots: 3,
+        },
+      ],
+      calc: {
+        expr: "4 > dist[1] = 3 →",
+        result: "버린다",
+      },
+      vars: "완화 시도 5 / 7",
+    },
+    {
+      title: "T6 정점 3 을 꺼낸다 — 키 4",
+      text: "키 4 가 dist[3] 와 같아 정점 3 을 확정합니다. 3→4 는 4 + 3 = 7 이 처음 적히고 큐에 (4, 7) 을 넣습니다.",
+      nodes: [
+        {
+          value: "거리 0",
+        },
+        {
+          value: "거리 3",
+        },
+        {
+          value: "거리 1",
+        },
+        {
+          value: "거리 4",
+          state: "read",
+        },
+        {
+          value: "후보 7",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          label: "4",
+        },
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          label: "5",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "3",
+        },
+        {
+          label: "7",
+        },
+      ],
+      strips: [
+        {
+          label: "큐 · 정점",
+          values: [3, 4],
+          states: {
+            "0": "out",
+            "1": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "큐 · 키",
+          values: [6, 7],
+          states: {
+            "0": "out",
+            "1": "focus",
+          },
+          slots: 3,
+        },
+      ],
+      calc: {
+        expr: "4 = dist[3] →",
+        result: "확정",
+      },
+      vars: "완화 시도 6 / 7",
+    },
+    {
+      title: "T7 정점 3 을 다시 꺼낸다 — 키 6",
+      text: "키 6 이 지금 적힌 dist[3] = 4 보다 큽니다. 더 작은 값으로 고치기 전에 넣어 둔 뒤처진 기록이라, 이웃을 하나도 보지 않고 버립니다.",
+      nodes: [
+        {
+          value: "거리 0",
+        },
+        {
+          value: "거리 3",
+        },
+        {
+          value: "거리 1",
+        },
+        {
+          value: "거리 4",
+          state: "read",
+        },
+        {
+          value: "후보 7",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          label: "4",
+        },
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          label: "5",
+        },
+        {
+          kind: "tree",
+          label: "3",
+        },
+        {
+          label: "7",
+        },
+      ],
+      strips: [
+        {
+          label: "큐 · 정점",
+          values: [4],
+          states: {},
+          slots: 3,
+        },
+        {
+          label: "큐 · 키",
+          values: [7],
+          states: {},
+          slots: 3,
+        },
+      ],
+      calc: {
+        expr: "6 > dist[3] = 4 →",
+        result: "버린다",
+      },
+      vars: "완화 시도 6 / 7",
+    },
+    {
+      title: "T8 정점 4 를 꺼낸다 — 키 7",
+      text: "키 7 이 dist[4] 와 같아 정점 4 를 확정합니다. 4→1 는 7 + 7 = 14 가 적혀 있던 3 보다 작지 않아 그대로 둡니다.",
+      nodes: [
+        {
+          value: "거리 0",
+        },
+        {
+          value: "거리 3",
+        },
+        {
+          value: "거리 1",
+        },
+        {
+          value: "거리 4",
+        },
+        {
+          value: "거리 7",
+          state: "read",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          label: "4",
+        },
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          label: "5",
+        },
+        {
+          kind: "tree",
+          label: "3",
+        },
+        {
+          state: "read",
+          label: "7",
+        },
+      ],
+      strips: [
+        {
+          label: "큐 · 정점",
+          values: [],
+          states: {},
+          slots: 3,
+        },
+        {
+          label: "큐 · 키",
+          values: [],
+          states: {},
+          slots: 3,
+        },
+      ],
+      calc: {
+        expr: "7 = dist[4] →",
+        result: "확정",
+      },
+      vars: "완화 시도 7 / 7",
+    },
+    {
+      title: "T9 큐가 비어 끝난다",
+      text: "큐가 비어 반복이 끝납니다. 한 번도 큐에 안 들어간 정점 5 의 거리는 Infinity 로 남고, 반환값은 [0, 3, 1, 4, 7, Infinity] 입니다.",
+      nodes: [
+        {
+          value: "거리 0",
+        },
+        {
+          value: "거리 3",
+        },
+        {
+          value: "거리 1",
+        },
+        {
+          value: "거리 4",
+        },
+        {
+          value: "거리 7",
+        },
+        {
+          value: "Infinity",
+          state: "out",
+        },
+      ],
+      edges: [
+        {
+          label: "4",
+        },
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          label: "5",
+        },
+        {
+          kind: "tree",
+          label: "3",
+        },
+        {
+          label: "7",
+        },
+      ],
+      strips: [
+        {
+          label: "큐 · 정점",
+          values: [],
+          states: {},
+          slots: 3,
+        },
+        {
+          label: "큐 · 키",
+          values: [],
+          states: {},
+          slots: 3,
+        },
+      ],
+      calc: {
+        expr: "pq.size() > 0 →",
+        result: "거짓",
+      },
+      vars: "완화 시도 7 / 7",
+    },
+  ],
 };

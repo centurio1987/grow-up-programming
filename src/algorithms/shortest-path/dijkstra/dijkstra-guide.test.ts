@@ -152,3 +152,38 @@ test("최악을 만드는 입력도 거리는 정확하다", () => {
   for (let i = 0; i + 1 < V; i++) chain.push([i, i + 1, 1_000_000_000]);
   expect(dijkstra(V, chain, 0)[V - 1]).toBe(199_000_000_000);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./dijkstra-guide.sim.ts");
+  const fig = await import("./dijkstra-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.dijkstraWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.dijkstraWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 정점 값을 정본의 답에 직접 다시 묻는다.
+  const answer = dijkstra(
+    6,
+    [
+      [0, 1, 4],
+      [0, 2, 1],
+      [2, 1, 2],
+      [1, 3, 1],
+      [2, 3, 5],
+      [3, 4, 3],
+      [4, 1, 7],
+    ],
+    0,
+  );
+  const last = sim.dijkstraWalk.steps.at(-1);
+  expect(last?.nodes.map((n) => n.value)).toEqual(
+    answer.map((d) => (d === INF ? "Infinity" : `거리 ${d}`)),
+  );
+  expect(sim.dijkstraWalk.result).toBe(
+    `[${answer.map((d) => (d === INF ? "Infinity" : String(d))).join(",")}]`,
+  );
+});
