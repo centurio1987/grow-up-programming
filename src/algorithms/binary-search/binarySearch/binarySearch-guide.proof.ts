@@ -9,7 +9,7 @@
  *   bun run tools/check-proof.ts src/algorithms/binary-search/binarySearch/binarySearch-guide.md
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";
-import { josa, 을를, 이가 } from "../../../../tools/josa.ts";
+import { josa, 과와, 을를, 이가 } from "../../../../tools/josa.ts";
 import {
   A6,
   firstCellReads,
@@ -587,6 +587,541 @@ function mutantTable(): string {
   ].join("\n");
 }
 
+/* ───────── 짧은 실행 결과 — 전개·불변식·수식·점검의 등폭 펜스 ───────── */
+
+/** 한글을 두 칸으로 세는 폭. 등폭 펜스의 열을 맞춘다. */
+const width = (s: string): number =>
+  [...s].reduce((n, c) => n + (/[ᄀ-ᇿ　-〿㄰-㆏가-힯一-鿿]/.test(c) ? 2 : 1), 0);
+const pad = (s: string, to: number): string =>
+  s + " ".repeat(Math.max(0, to - width(s)));
+
+/**
+ * 후보 구간을 정한 직후의 `lo` · `hi` 를 기록하는 사본. **정본 소스에서 기계로 만든다** —
+ * `let hi = A.length - 1;` 한 줄 뒤에 기록을 끼운다.
+ */
+const initProbe = await loadMutant<{
+  binarySearch(A: number[], target: number): number;
+}>(REF, {
+  swap: [
+    /^(\s*)let hi = A\.length - 1;$/,
+    "$1let hi = A.length - 1;\n$1(globalThis as any).__init?.(lo, hi);",
+  ],
+});
+
+function initOf(A: number[]): { lo: number; hi: number } {
+  const g = globalThis as unknown as {
+    __init?: (lo: number, hi: number) => void;
+  };
+  let got: { lo: number; hi: number } | undefined;
+  g.__init = (lo, hi) => {
+    got = { lo, hi };
+  };
+  initProbe.binarySearch([...A], 1);
+  g.__init = undefined;
+  if (got === undefined) throw new Error("초기 구간을 기록하지 못했다");
+  return got;
+}
+
+/** walk 1 — 두 줄만 실행했을 때의 후보 구간. */
+function walkInit(): string {
+  const rows = [A6, [] as number[]].map((A) => ({ A, ...initOf(A) }));
+  const left = rows.map((r) => `A = ${show(r.A)}`);
+  const wl = Math.max(...left.map(width));
+  const lines = rows.map((r, i) => {
+    const m = Math.max(0, r.hi - r.lo + 1);
+    return `${pad(left[i] as string, wl)}   →   lo = ${r.lo}, hi = ${r.hi},${r.hi >= 0 ? " " : ""} 후보 ${m} 개`;
+  });
+  const empty = rows[1] as { lo: number; hi: number };
+  if (empty.lo <= empty.hi)
+    throw new Error("빈 배열의 후보 구간이 비지 않았다");
+  if (trace([], 1).rounds.length !== 0) {
+    throw new Error("빈 배열에서 반복에 들어갔다");
+  }
+  lines.push(
+    `${" ".repeat(wl + 7)}└ lo <= hi 가 처음부터 거짓이라 아래 반복에 들어가지 않는다`,
+  );
+  return lines.join("\n");
+}
+
+/** walk 2 — 정본이 실제로 고른 mid 와 `(lo + hi) / 2` 를 나란히. */
+function walkMid(): string {
+  const rounds = trace(A6, HIT).rounds;
+  const lines = rounds.map((r) => {
+    const naive = Math.floor((r.lo + r.hi) / 2);
+    const half = Math.floor((r.hi - r.lo) / 2);
+    const left = `lo = ${r.lo}, hi = ${r.hi}   →  ${r.lo} + ⌊(${r.hi}-${r.lo})/2⌋ = ${r.lo} + ${half} = ${r.mid}`;
+    return `${pad(left, 51)}(lo+hi)/2 = ⌊${r.lo + r.hi}/2⌋ = ${naive}`;
+  });
+  const same = rounds.every((r) => r.mid === Math.floor((r.lo + r.hi) / 2));
+  lines.push(
+    same
+      ? `                    └ ${rounds.length} 자리 모두 같다. 이 규모에서는 어느 쪽으로 적어도 답이 같다`
+      : "                    └ 두 식이 한 자리 이상에서 갈린다",
+  );
+  return lines.join("\n");
+}
+
+/* 갱신 줄을 바꾼 사본 둘 — 반복이 끝나지 않으므로 같은 상태가 두 번 나오면 멈춘다. */
+
+type Update = "ref" | "lo=mid" | "hi=mid";
+
+/** 기록을 끼운 갱신 줄 — 상태가 그대로면 `__step` 이 던져서 끝없는 반복을 끊는다. */
+const STEP = "(globalThis as any).__step?.(lo, hi);";
+const loStuck = await loadMutant<{
+  binarySearch(A: number[], target: number): number;
+}>(REF, { swap: [/^(\s*)lo = mid \+ 1;$/, `$1lo = mid; ${STEP}`] });
+const hiStuck = await loadMutant<{
+  binarySearch(A: number[], target: number): number;
+}>(REF, { swap: [/^(\s*)hi = mid - 1;$/, `$1hi = mid; ${STEP}`] });
+
+/** 바꾼 사본을 돌려 그 갈래가 만든 구간을 모은다. 같은 구간이 연달아 나오면 끊는다. */
+function stuckRecords(
+  mod: { binarySearch(A: number[], target: number): number },
+  A: number[],
+  target: number,
+): { lo: number; hi: number }[] {
+  const g = globalThis as unknown as {
+    __step?: (lo: number, hi: number) => void;
+  };
+  const out: { lo: number; hi: number }[] = [];
+  const STOP = new Error("stop");
+  g.__step = (lo, hi) => {
+    const last = out.at(-1);
+    out.push({ lo, hi });
+    if ((last && last.lo === lo && last.hi === hi) || out.length > 64) {
+      throw STOP;
+    }
+  };
+  try {
+    mod.binarySearch([...A], target);
+  } catch (e) {
+    if (e !== STOP) throw e;
+  } finally {
+    g.__step = undefined;
+  }
+  return out;
+}
+
+interface Replay {
+  readonly rounds: (Round & { next: { lo: number; hi: number } })[];
+  /** 끝나지 않고 같은 상태로 돌아왔으면 `null`. */
+  readonly result: number | null;
+}
+
+/**
+ * 갱신 규칙만 골라 반복을 다시 따라간다. 정본 규칙(`ref`)은 계측 사본의 기록과, 바꾼 규칙은
+ * 바꾼 사본이 그 갈래에서 남긴 기록과 대조한다 — 어긋나면 던진다.
+ */
+function replay(A: number[], target: number, rule: Update): Replay {
+  const rounds: Replay["rounds"][number][] = [];
+  let lo = 0;
+  let hi = A.length - 1;
+  let result: number | null = -1;
+  while (lo <= hi) {
+    const mid = lo + Math.floor((hi - lo) / 2);
+    const value = A[mid] as number;
+    const branch =
+      value === target ? "eq" : target < value ? "lt" : ("gt" as const);
+    if (branch === "eq") {
+      rounds.push({ lo, hi, mid, value, branch, next: { lo, hi } });
+      result = mid;
+      break;
+    }
+    const next =
+      branch === "lt"
+        ? { lo, hi: rule === "hi=mid" ? mid : mid - 1 }
+        : { lo: rule === "lo=mid" ? mid : mid + 1, hi };
+    rounds.push({ lo, hi, mid, value, branch, next });
+    if (next.lo === lo && next.hi === hi) {
+      result = null;
+      break;
+    }
+    lo = next.lo;
+    hi = next.hi;
+  }
+  if (rule === "ref") {
+    const t = trace(A, target);
+    const a = t.rounds.map((r) => `${r.lo},${r.hi},${r.mid}`).join(" ");
+    const b = rounds.map((r) => `${r.lo},${r.hi},${r.mid}`).join(" ");
+    if (a !== b || t.result !== result) {
+      throw new Error("다시 따라간 반복이 정본 기록과 다르다");
+    }
+  } else {
+    const mod = rule === "lo=mid" ? loStuck : hiStuck;
+    const branch = rule === "lo=mid" ? "gt" : "lt";
+    const want = rounds
+      .filter((r) => r.branch === branch)
+      .map((r) => `${r.next.lo},${r.next.hi}`);
+    // 끝나지 않는 쪽은 같은 상태가 한 번 더 기록된 뒤 끊긴다.
+    if (result === null) want.push(want.at(-1) as string);
+    const got = stuckRecords(mod, A, target).map((r) => `${r.lo},${r.hi}`);
+    if (want.join(" ") !== got.join(" ")) {
+      throw new Error(`바꾼 사본의 기록이 다르다 — ${got} ≠ ${want}`);
+    }
+  }
+  return { rounds, result };
+}
+
+/** walk 3 — 후보 [0,1] 에서 `lo = mid + 1` 과 `lo = mid` 의 다음 상태. */
+function walkStepOne(): string {
+  const target = 2;
+  const good = replay(A6, target, "ref");
+  const bad = replay(A6, target, "lo=mid");
+  const at = good.rounds.find((r) => r.lo === 0 && r.hi === 1);
+  const atBad = bad.rounds.find((r) => r.lo === 0 && r.hi === 1);
+  if (!at || !atBad || at.branch !== "gt") {
+    throw new Error("후보 [0,1] 에서 ③ 이 나오지 않았다");
+  }
+  const count = (s: { lo: number; hi: number }) => Math.max(0, s.hi - s.lo + 1);
+  const stuck = bad.result === null;
+  return [
+    `후보 [0,1] 에서 mid = ${at.mid}, A[${at.mid}] = ${at.value} < ${target} 일 때`,
+    "",
+    `  lo = mid + 1 = ${at.next.lo}  →  후보 [${at.next.lo},${at.next.hi}]   ${count(at.next)} 개.  다음 바퀴가 다른 칸을 읽는다`,
+    `  lo = mid     = ${atBad.next.lo}  →  후보 [${atBad.next.lo},${atBad.next.hi}]   ${count(atBad.next)} 개.  다음 바퀴가 같은 칸을 또 읽는다`,
+    stuck
+      ? "                        └ 상태가 그대로라 반복이 끝나지 않는다"
+      : "                        └ 반복은 끝난다",
+  ].join("\n");
+}
+
+/** 전체 코드 아래 — 정본에 네 입력을 넣은 답. */
+function finalCalls(): string {
+  const calls: [number[], number][] = [
+    [A6, HIT],
+    [A6, MISS],
+    [[], 1],
+    [[42], 42],
+  ];
+  const left = calls.map(([A, t]) => `binarySearch([${A.join(", ")}], ${t})`);
+  const w = Math.max(...left.map(width));
+  return calls
+    .map(
+      ([A, t], i) =>
+        `${pad(left[i] as string, w)}   →   ${binarySearch([...A], t)}`,
+    )
+    .join("\n");
+}
+
+/** 후보 6 개에서 k 번째 칸을 읽고 최악에 남는 후보 — 모든 target 을 넣어 실제로 센다. */
+function remainWorst(k: number): number {
+  const m = A6.length;
+  const mid = k - 1;
+  const v = A6[mid] as number;
+  let worst = 0;
+  for (const t of allTargets(A6)) {
+    const [lo, hi] =
+      v === t ? [0, -1] : t < v ? [0, mid - 1] : [mid + 1, m - 1];
+    worst = Math.max(worst, (hi as number) - (lo as number) + 1);
+  }
+  return worst;
+}
+
+const R = (n: number, k: number): number => Math.max(k - 1, n - k);
+
+/** deep.math 검산 — 정의 R(6,k) 를 여섯 자리에 넣고, 실제로 센 값과 대조한다. */
+function mathCheckR(): string {
+  const n = A6.length;
+  for (let k = 1; k <= n; k++) {
+    if (R(n, k) !== remainWorst(k)) {
+      throw new Error(`R(${n},${k}) 가 실제로 센 값과 다르다`);
+    }
+  }
+  const cell = (k: number) =>
+    `R(${n},${k}) = max(${k - 1},${n - k}) = ${R(n, k)}`;
+  const half = n / 2;
+  const lines: string[] = [];
+  for (let k = 1; k <= half; k++) {
+    lines.push(`${pad(cell(k), 27)}${cell(k + half)}`);
+  }
+  const min = Math.min(...Array.from({ length: n }, (_, i) => R(n, i + 1)));
+  lines.push(
+    `${" ".repeat(29)}└ 최솟값 ${min}. 파트 1 에서 후보 여섯 개를 실제로 세었을 때와 같다`,
+  );
+  return lines.join("\n");
+}
+
+/** deep.math 유도 — k 를 옮기며 두 항과 최댓값. */
+function mathSweep(): string {
+  const n = A6.length;
+  const ks = Array.from({ length: n }, (_, i) => i + 1);
+  const row = (label: string, xs: number[], note: string) =>
+    `  ${pad(label, 6)}${xs.map((x) => String(x).padStart(4)).join("")}      ← ${note}`;
+  return [
+    `n = ${n} 에서 k 를 1 부터 ${n} 까지 옮기면`,
+    row(
+      "k-1",
+      ks.map((k) => k - 1),
+      "늘어난다",
+    ),
+    row(
+      `${n}-k`,
+      ks.map((k) => n - k),
+      "줄어든다",
+    ),
+    row(
+      "최댓값",
+      ks.map((k) => R(n, k)),
+      "두 줄이 만나는 자리가 가장 작다",
+    ),
+  ].join("\n");
+}
+
+/** deep.math — ⌈(m−1)/2⌉ 로 접은 자취가 정본이 없는 값 12 를 찾을 때 지난 후보 수와 같은가. */
+function mathFold(): string {
+  const n = A6.length;
+  const folds: number[] = [n];
+  while ((folds.at(-1) as number) > 0) {
+    folds.push(Math.ceil(((folds.at(-1) as number) - 1) / 2));
+  }
+  const t = trace(A6, 12);
+  const seen = [
+    ...t.rounds.map((r) => r.hi - r.lo + 1),
+    Math.max(0, t.end.hi - t.end.lo + 1),
+  ];
+  if (seen.join(",") !== folds.join(",")) {
+    throw new Error(`접은 자취 ${folds} 가 정본의 후보 수 ${seen} 와 다르다`);
+  }
+  const steps = folds
+    .slice(1)
+    .map((m, i) => `⌈${(folds[i] as number) - 1}/2⌉ = ${m}`);
+  return [
+    `n = ${n} 에서 접으면   ${[String(n), ...steps].join(" → ")}`,
+    `                    └ ${folds.length - 1} 번 접어서 후보가 빈다. C(${n}) = ${t.rounds.length} 이다`,
+  ].join("\n");
+}
+
+/** 불변식 — 정본이 없는 값 12 를 찾을 때 바퀴마다 후보 수와 남는 쪽. */
+function invariantShrink(): string {
+  const t = trace(A6, 12);
+  const lines = ["후보 수가 매 바퀴 주는 것을 값으로", ""];
+  for (const [i, r] of t.rounds.entries()) {
+    const m = r.hi - r.lo + 1;
+    const l = r.mid - r.lo;
+    const h = r.hi - r.mid;
+    const most = Math.max(l, h);
+    const head = i === 0 ? "가운데를 읽고 남는 것은 " : "";
+    lines.push(
+      `  m = ${m}  →  ${head}max(${l}, ${h}) = ${most}${most > 0 ? " 이하" : ""}`,
+    );
+  }
+  lines.push(
+    `  m = ${Math.max(0, t.end.hi - t.end.lo + 1)}  →  lo > hi.  반복 조건이 거짓이 된다`,
+  );
+  return lines.join("\n");
+}
+
+/** 점검 — T5 자리에서 `hi = mid - 1` 과 `hi = mid` 가 만드는 후보. */
+function selfcheckT5(): string {
+  const good = replay(A6, HIT, "ref");
+  const bad = replay(A6, HIT, "hi=mid");
+  const at = good.rounds.find(
+    (r) => r.branch === "lt",
+  ) as Replay["rounds"][number];
+  const atBad = bad.rounds.find(
+    (r) => r.branch === "lt",
+  ) as Replay["rounds"][number];
+  const head = `T5  후보 [${at.lo},${at.hi}]  mid = ${at.mid}   A[${at.mid}] = ${at.value} > ${HIT}   →  `;
+  return [
+    `${head}hi = mid - 1 = ${at.next.hi}     후보 [${at.next.lo},${at.next.hi}]`,
+    `${" ".repeat(width(head))}hi = mid     = ${atBad.next.hi}  ← 이렇게 적었다면?`,
+  ].join("\n");
+}
+
+/** 점검 답 — 없는 값 8 에서 두 규칙의 자취를 바퀴마다 나란히. */
+function selfcheckMiss(): string {
+  const target = 8;
+  const cell = (s: Replay["rounds"][number] | undefined, r: Replay): string => {
+    if (s === undefined) return "—";
+    const cmp =
+      s.branch === "lt" ? `${target} < ${s.value}` : `${s.value} < ${target}`;
+    const upd = s.branch === "lt" ? `hi = ${s.next.hi}` : `lo = ${s.next.lo}`;
+    const cand =
+      s.next.lo > s.next.hi
+        ? `후보가 빈다, ${r.result}`
+        : `[${s.next.lo},${s.next.hi}]`;
+    const repeat =
+      s.next.lo === s.lo && s.next.hi === s.hi ? " (같은 상태)" : "";
+    return `[${s.lo},${s.hi}] 에서 mid = ${s.mid}, ${cmp} → ${upd} → ${cand}${repeat}`;
+  };
+  const good = replay(A6, target, "ref");
+  const bad = replay(A6, target, "hi=mid");
+  if (good.result !== binarySearch([...A6], target)) {
+    throw new Error("바른 규칙의 답이 정본과 다르다");
+  }
+  const n = Math.max(good.rounds.length, bad.rounds.length);
+  const rows = Array.from({ length: n }, (_, i) => [
+    String(i + 1),
+    cell(good.rounds[i], good),
+    cell(bad.rounds[i], bad),
+  ]);
+  return [
+    `target = ${target} 을 넣으면 바퀴마다 이렇게 됩니다.`,
+    "",
+    md(["바퀴", "hi = mid - 1", "hi = mid"], rows, [0]),
+    "",
+    bad.result === null
+      ? `\`hi = mid - 1\` 은 ${good.rounds.length} 바퀴 만에 ${good.result}${을를(String(good.result))} 내고, \`hi = mid\` 는 ${bad.rounds.length} 번째 바퀴에서 앞 바퀴와 같은 상태로 돌아와 반복이 끝나지 않습니다.`
+      : "두 규칙 모두 반복이 끝납니다.",
+  ].join("\n");
+}
+
+/* ───────── 남은 짧은 실행 결과 — 전개 입력 · 수식 코드 · 불변식 변이 · 비용 ───────── */
+
+/** 전개 입력 — 끝에 나와야 할 값은 정본의 답이다. */
+function walkInput(): string {
+  return [
+    `const A = [${A6.join(", ")}];`,
+    `const target = ${HIT};`,
+    `// 이 절이 끝나면 ${binarySearch([...A6], HIT)}${이가(binarySearch([...A6], HIT))} 나와야 한다`,
+  ].join("\n");
+}
+
+/** 식을 그대로 옮긴 코드 — 주석의 값은 식을 실행해 받고, 정본이 실제로 센 최악과 대조한다. */
+function mathCode(): string {
+  const C = (n: number): number => (n <= 0 ? 0 : C(Math.ceil((n - 1) / 2)) + 1);
+  const c6 = C(A6.length);
+  const cN = C(N);
+  const worst6 = Math.max(
+    ...allTargets(A6).map((t) => trace(A6, t).rounds.length),
+  );
+  if (c6 !== worst6 || cN !== scale().middle) {
+    throw new Error("C(n) 이 정본이 실제로 센 최악과 다르다");
+  }
+  if (R(A6.length, 3) !== remainWorst(3)) {
+    throw new Error("R(6, 3) 이 실제로 센 값과 다르다");
+  }
+  return [
+    "const R = (n: number, k: number): number => Math.max(k - 1, n - k);",
+    "const C = (n: number): number => (n <= 0 ? 0 : C(Math.ceil((n - 1) / 2)) + 1);",
+    "",
+    `R(${A6.length}, 3); // → ${R(A6.length, 3)}`,
+    `C(${A6.length}); // → ${c6}`,
+    `C(1_000_000); // → ${cN}`,
+  ].join("\n");
+}
+
+/** `hi = mid - 2` 가 첫 바퀴에 만든 구간을 기록하는 사본. */
+const hiTwoProbe = await loadMutant<{
+  binarySearch(A: number[], target: number): number;
+}>(REF, { swap: [/^(\s*)hi = mid - 1;$/, `$1hi = mid - 2; ${STEP}`] });
+
+/** 불변식 ③ — 3 을 찾는 첫 바퀴에서 두 코드가 만드는 후보. */
+function invariantMutantStep(): string {
+  const target = 3;
+  const first = trace(A6, target).rounds[0] as Round;
+  const second = trace(A6, target).rounds[1] as Round;
+  const bad = stuckRecords(hiTwoProbe, A6, target)[0];
+  if (first.branch !== "lt" || bad === undefined) {
+    throw new Error("첫 바퀴에서 ② 가 나오지 않았다");
+  }
+  const at = A6.indexOf(target);
+  const inGood = second.lo <= at && at <= second.hi;
+  const inBad = bad.lo <= at && at <= bad.hi;
+  return [
+    `${show(A6)} 에서 ${target}${을를(target)} 찾는다.  mid = ${first.mid}, A[${first.mid}] = ${first.value} > ${target}`,
+    "",
+    `  hi = mid - 1 = ${second.hi}    후보 [${second.lo},${second.hi}]   ${inGood ? `${target} 이 있는 인덱스 ${at} 이 후보에 남는다` : `인덱스 ${at} 이 빠졌다`}`,
+    `  hi = mid - 2 = ${bad.hi}    후보 [${bad.lo},${bad.hi}]   ${inBad ? `인덱스 ${at} 이 남는다` : `인덱스 ${at} 이 빠졌다`}`,
+    `${" ".repeat(36)}└ 「있다면 후보 안에 있다」가 여기서 ${inBad ? "참으로 남는다" : "거짓이 된다"}`,
+  ].join("\n");
+}
+
+/** perf.derive — T3 · T5 · T7 에서 한 비교와 후보 수. */
+function perfDeriveHit(): string {
+  const t = trace(A6, HIT);
+  const lines = t.rounds.map((r, i) => {
+    const after =
+      r.branch === "eq"
+        ? "답을 찾았다"
+        : `후보 ${r.hi - r.lo + 1} → ${(t.rounds[i + 1] as Round).hi - (t.rounds[i + 1] as Round).lo + 1}`;
+    const left = `T${3 + 2 * i}  A[${r.mid}]${을를(r.mid)} 읽고 ${HIT}${과와(HIT)} 비교`;
+    return `${pad(left, 30)}비교 1 번    ${after}`;
+  });
+  lines.push(`${" ".repeat(30)}└ 합 ${t.rounds.length} 번`);
+  return lines.join("\n");
+}
+
+/** perf.derive — 후보 수가 접히는 자취(없는 값 12)와 바퀴마다의 비교. */
+function perfDeriveFold(): string {
+  const t = trace(A6, 12);
+  const counts = [
+    ...t.rounds.map((r) => r.hi - r.lo + 1),
+    Math.max(0, t.end.hi - t.end.lo + 1),
+  ];
+  for (let i = 1; i < counts.length; i++) {
+    if (counts[i] !== Math.ceil(((counts[i - 1] as number) - 1) / 2)) {
+      throw new Error(`후보 수 ${counts} 가 ⌈(m-1)/2⌉ 로 접히지 않는다`);
+    }
+  }
+  const col = (xs: string[]) =>
+    xs
+      .map((x) => x.padEnd(8))
+      .join("")
+      .trimEnd();
+  return [
+    `후보 수     ${col(counts.map(String))}`,
+    `비교        ${col(["", ...t.rounds.map(() => "1")]).replace(/^ {4}/, "")}`,
+    "                └ 후보 수가 ⌈(m-1)/2⌉ 로 접힐 때마다 비교가 한 번 는다",
+  ].join("\n");
+}
+
+/** 불변식 ② — 경계에 있는 입력 일곱. 처리 자취와 결과를 정본 실행에서 받는다. */
+function invariantEdges(): string {
+  const path = (A: number[], t: number): string => {
+    const tr = trace(A, t);
+    const parts: string[] = [];
+    for (const r of tr.rounds) {
+      parts.push(`\`mid = ${r.mid}\``);
+      if (r.branch === "lt") parts.push(`\`hi = ${r.mid - 1}\``);
+      if (r.branch === "gt") parts.push(`\`lo = ${r.mid + 1}\``);
+    }
+    return parts.join(" → ");
+  };
+  const res = (A: number[], t: number) => `\`${binarySearch([...A], t)}\``;
+  const empty = initOf([]);
+  const big = [-2147483648, -1, 0, 1, 2147483647];
+  const ends =
+    binarySearch([...big], big[0] as number) === 0 &&
+    binarySearch([...big], big[4] as number) === 4;
+  const dup = [1, 3, 3, 3, 3, 5];
+  const dupGot = binarySearch([...dup], 3);
+  const rows = [
+    [
+      "빈 배열 `[]`",
+      `\`hi = ${empty.hi}\`, \`lo = ${empty.lo}\` → \`lo <= hi\` 가 처음부터 거짓`,
+      `반복에 들어가지 않고 ${res([], 1)}`,
+    ],
+    [
+      "원소 하나, 일치 `[42]` 에서 `42`",
+      `${path([42], 42)}, 값이 같은 갈래`,
+      res([42], 42),
+    ],
+    [
+      "원소 하나, 불일치 `[42]` 에서 `7`",
+      `${path([42], 7)} 이 되어 후보가 빈다`,
+      res([42], 7),
+    ],
+    ["원소 둘 `[1 2]` 에서 `2`", path([1, 2], 2), res([1, 2], 2)],
+    [
+      "음수가 섞임 `[-10 -5 0 5 10]` 에서 `-5`",
+      "비교 연산자만 쓰므로 부호와 무관",
+      res([-10, -5, 0, 5, 10], -5),
+    ],
+    [
+      "32비트 경계 `[-2147483648 … 2147483647]`",
+      "`number` 가 배정밀도라 정확히 표현된다",
+      ends ? "양 끝 다 정확" : "양 끝 중 하나가 틀린다",
+    ],
+    [
+      "중복 `[1 3 3 3 3 5]` 에서 `3`",
+      "먼저 읽힌 칸을 그 자리에서 반환한다",
+      `\`${dupGot}\`${dupGot === dup.indexOf(3) ? " (가장 왼쪽이다)" : " (가장 왼쪽이 아니다)"}`,
+    ],
+  ];
+  return md(["입력", "처리되는 자리", "결과"], rows);
+}
+
 export const PROOFS: Record<string, () => string> = {
   /** `deep.origin` ② — 가장 단순한 방법을 과제 규모에서 수치로 반박한다. */
   "origin-cost": originCost,
@@ -624,4 +1159,36 @@ export const PROOFS: Record<string, () => string> = {
    * 달라도 잡는다.
    */
   "mutant-hi-step": mutantTable,
+  /** `deep.walk` 1 — 두 줄만 실행했을 때의 후보 구간. */
+  "walk-init": walkInit,
+  /** `deep.walk` 2 — 정본이 고른 mid 와 `(lo + hi) / 2`. */
+  "walk-mid": walkMid,
+  /** `deep.walk` 3 — `lo = mid + 1` 의 `1` 을 빼면 상태가 그대로다. */
+  "walk-step-one": walkStepOne,
+  /** `deep.walk.final` — 전체 코드에 네 입력을 넣은 답. */
+  "final-calls": finalCalls,
+  /** `deep.math` ② — 정의를 작은 값에 넣은 검산. */
+  "math-check-r": mathCheckR,
+  /** `deep.math` ③ — k 를 옮기며 두 항과 최댓값. */
+  "math-sweep": mathSweep,
+  /** `deep.math` ③ — 접은 자취와 C(6). */
+  "math-fold": mathFold,
+  /** `invariant` ② — 바퀴마다 후보 수. */
+  "invariant-shrink": invariantShrink,
+  /** `selfcheck` — T5 자리의 두 규칙. */
+  "selfcheck-t5": selfcheckT5,
+  /** `selfcheck` 답 — 없는 값 8 에서 두 규칙의 자취. */
+  "selfcheck-miss": selfcheckMiss,
+  /** `deep.walk` 도입 — 전개 입력과 끝에 나와야 할 값. */
+  "walk-input": walkInput,
+  /** `deep.math` — 식을 옮긴 코드와 그 값. */
+  "math-code": mathCode,
+  /** `invariant` ③ — 첫 바퀴에서 두 코드가 만드는 후보. */
+  "invariant-mutant-step": invariantMutantStep,
+  /** `perf.derive` — T3 · T5 · T7 의 비교. */
+  "perf-derive-hit": perfDeriveHit,
+  /** `perf.derive` — 후보 수가 접히는 자취. */
+  "perf-derive-fold": perfDeriveFold,
+  /** `invariant` ② — 경계에 있는 입력 일곱. */
+  "invariant-edges": invariantEdges,
 };
