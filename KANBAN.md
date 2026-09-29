@@ -143,7 +143,7 @@
   - 목표: 두 편이 편 완료 기준을 통과하고, 이 카드의 검토가 승인되면 KAN-058 전개(S2·S7 이후)가 열린다
   - 메모: 상위 KAN-058 의 배치 2(S4·S5·S6)를 이 카드의 검토로 판정한다. SCC 는 웨이브 순서의 예외이고 graph 카테고리 선례를 겸하지 않는다. 근거: KANBAN.cards/KAN-058-8XT6PC.md 「전략」
   - 실행 문서: KANBAN.cards/KAN-058.1-9TBXDA.md (1/2 · 최근 09-30)
-  - 검토 문서: KANBAN.reviews/KAN-058.1-9TBXDA.review.md (승인 0/5 · 검토 대기)
+  - 검토 문서: KANBAN.reviews/KAN-058.1-9TBXDA.review.md (승인 5/6 · 추가 의견 총 5 · 검토 대기)
   - 원문:
     ```text
     kan-058 전략 수립, 실행 계획 수립, 칸반 카드 반영
