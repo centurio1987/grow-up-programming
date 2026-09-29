@@ -1,139 +1,447 @@
-import type { Frame } from "#guide-sim";
+import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `k = 2`,
- * `prices = [2, 6, 3, 9, 5, 7]`. 프레임 수는 그 절의 T# 단계 수(8)를 넘지 않는다 — P3 이
- * 그 관계를 잰다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `k = 2` · `P = [2, 6, 3, 9, 5, 7]`.
+ * `tradeScan` 은 거래 상태를 시작값으로 두는 T1, 날 0 부터 날 5 까지 하루를 읽으며 거래 번호 1 · 2 의 매수와
+ * 매도를 갱신하는 T2~T7, 읽을 날이 남지 않아 `free[2]` 를 돌려주는 T8 이다.
+ *
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가 배열
+ * 무대(`arrayStage.ts`)를 고른다. 입력 배열 `P` 아래에 거래 상태 다섯(`free[0]` · `hold[1]` · `free[1]` ·
+ * `hold[2]` · `free[2]`)을 `layers` 로 쌓는다. 칸 `j` 는 날 `j` 를 읽은 뒤의 값이다 — 코드가 드는 것은 줄마다
+ * 마지막 칸뿐이고, 줄은 지나온 값을 보이려고 그린다. 쥔 구간 `range` 는 지금까지 읽은 날이다. 줄 곁말(`side`)이
+ * 그 걸음에서 값이 어떻게 바뀌었는지를 적고, 계산 한 줄은 답의 자리 `free[2]` 의 갱신을 알약(`calc`)에 싣는다.
+ * 무대 밖에 남는 값은 없다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
- *
- * ## `array` + `keyValue` 조합의 규약
- *
- * 규약은 `longestSubarrayAtMostSum-guide.sim.ts` 가 세웠고, 배열을 읽기만 하는 절차에
- * 적용한 것이 `kadane-guide.sim.ts` 와 `bestTimeToBuyAndSellStock-guide.sim.ts` 다. 이 편도
- * 배열을 고치지 않는다. **앞 편과 갈리는 자리는 상태가 스칼라 둘이 아니라 배열 둘이라는
- * 것**이고, 그래서 `entries` 가 넷이다.
- *
- * 1. **`array` 는 입력 배열 `prices` 를 그대로 담는다.** 절차가 배열을 고치지 않으므로
- *    프레임마다 같은 배열이 실린다. 바뀌는 것은 상태 네 개와 강조 자리다.
- * 2. **위치는 `array`, 상태 값은 `keyValue`.** 지금 읽는 날 번호 `j` 는 자리라서 `pointers`
- *    로 두고, 거기서 나온 수(`hold[t]` · `free[t]`)는 `keyValue` 다.
- * 3. **`pointers` 의 키는 본문 기호표의 이름과 글자 그대로 같다** — `j`.
- * 4. **`highlight` 는 이번 걸음에서 읽은 날 하나, `marked` 는 이미 읽고 지나간 날 전부.**
- *    T1 은 아직 아무 날도 안 읽은 자리라 둘 다 비어 있다.
- * 5. **`entries` 는 프레임마다 같은 항목을 같은 순서로 두고 값만 바꾼다** — 넷이고, 거래
- *    번호가 작은 것부터 보유·비보유 차례다. 아직 도달할 수 없는 상태는 `-∞` 로 적는다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본 실행에서 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `bestTimeToBuyAndSellStockK-guide.test.ts` 가 잰다.
  */
+
 export const tradeScan = {
-  view: ["array", "keyValue"] as const,
-  title: "거래 번호 축을 갖는 표 — k = 2, prices = [2, 6, 3, 9, 5, 7]",
+  player: "stage",
+  stage: "array",
+  arrayName: "P",
+  rangeLabel: "읽은 날",
+  title: "bestTimeToBuyAndSellStockK(2, [2, 6, 3, 9, 5, 7])",
   result: "10",
   steps: [
     {
-      title: "T1 초기화",
-      detail:
-        "hold 를 -∞ 로, free 를 0 으로 둔다. 첫날 전에는 매수를 마친 상태에 도달할 방법이 없고, 거래를 한 번도 안 한 이익은 0 이다.",
+      title: "T1 시작 · ①",
+      text: "거래 상태를 시작값으로 둡니다. hold 는 칸마다 -∞, free 는 칸마다 0 입니다. 아직 읽은 날이 없습니다.",
       array: [2, 6, 3, 9, 5, 7],
-      highlight: [],
-      marked: [],
-      pointers: { j: 0 },
-      entries: [
-        { label: "hold[1] — 1번째 매수를 마친 상태", value: "-∞" },
-        { label: "free[1] — 1번째 매도까지 마친 상태", value: 0 },
-        { label: "hold[2] — 2번째 매수를 마친 상태", value: "-∞" },
-        { label: "free[2] — 2번째 매도까지 마친 상태", value: 0 },
+      range: null,
+      read: [],
+      write: [],
+      calc: {
+        expr: "hold[t] = -∞ · free[t] =",
+        result: "0",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "free[0]",
+          values: [null, null, null, null, null, null],
+          read: [],
+          write: [],
+          side: "늘 0",
+        },
+        {
+          name: "hold[1]",
+          values: [null, null, null, null, null, null],
+          read: [],
+          write: [],
+          side: "시작값 -∞",
+        },
+        {
+          name: "free[1]",
+          values: [null, null, null, null, null, null],
+          read: [],
+          write: [],
+          side: "시작값 0",
+        },
+        {
+          name: "hold[2]",
+          values: [null, null, null, null, null, null],
+          read: [],
+          write: [],
+          side: "시작값 -∞",
+        },
+        {
+          name: "free[2]",
+          values: [null, null, null, null, null, null],
+          read: [],
+          write: [],
+          side: "시작값 0",
+        },
       ],
     },
     {
-      title: "T2 날 0 · 가격 2",
-      detail:
-        "첫날이라 두 매수가 다 오늘 처음 가능해진다. hold[1] 은 0 - 2 = -2, hold[2] 도 free[1] = 0 에서 출발해 -2 다. 오늘 사서 오늘 판 이익은 0 이라 free 는 둘 다 그대로다.",
+      title: "T2 j = 0 · P[j] = 2 · hold[1] · hold[2] 바뀜",
+      text: "hold[1] 은 오늘 사는 쪽 0 − 2 = -2 가 시작값 -∞ 보다 커서 -2 로 올라갑니다(④). hold[2] 는 오늘 사는 쪽 0 − 2 = -2 가 시작값 -∞ 보다 커서 -2 로 올라갑니다(④). 나머지 상태는 어제 값 그대로입니다.",
       array: [2, 6, 3, 9, 5, 7],
-      highlight: [0],
-      marked: [],
-      pointers: { j: 0 },
-      entries: [
-        { label: "hold[1] — 1번째 매수를 마친 상태", value: -2 },
-        { label: "free[1] — 1번째 매도까지 마친 상태", value: 0 },
-        { label: "hold[2] — 2번째 매수를 마친 상태", value: -2 },
-        { label: "free[2] — 2번째 매도까지 마친 상태", value: 0 },
+      range: [0, 0],
+      read: [0],
+      write: [],
+      pointers: {
+        j: 0,
+      },
+      calc: {
+        expr: "free[2] = max(0, -2 + 2) =",
+        result: "0",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "free[0]",
+          values: [0, null, null, null, null, null],
+          read: [0],
+          write: [],
+          side: "늘 0",
+        },
+        {
+          name: "hold[1]",
+          values: [-2, null, null, null, null, null],
+          read: [],
+          write: [0],
+          side: "-∞ → -2",
+        },
+        {
+          name: "free[1]",
+          values: [0, null, null, null, null, null],
+          read: [],
+          write: [0],
+          side: "0 그대로",
+        },
+        {
+          name: "hold[2]",
+          values: [-2, null, null, null, null, null],
+          read: [],
+          write: [0],
+          side: "-∞ → -2",
+        },
+        {
+          name: "free[2]",
+          values: [0, null, null, null, null, null],
+          read: [],
+          write: [0],
+          side: "0 그대로",
+        },
       ],
     },
     {
-      title: "T3 날 1 · 가격 6",
-      detail:
-        "오늘 팔면 -2 + 6 = 4 다. free[1] 이 0 에서 4 로 커지고 free[2] 도 4 가 된다. 매수 쪽 후보는 hold[1] 이 0 - 6 = -6, hold[2] 가 4 - 6 = -2 라 둘 다 -2 그대로다.",
+      title: "T3 j = 1 · P[j] = 6 · free[1] · free[2] 바뀜",
+      text: "free[1] 은 오늘 파는 쪽 -2 + 6 = 4 가 어제 값 0 보다 커서 4 로 올라갑니다(⑤). free[2] 는 오늘 파는 쪽 -2 + 6 = 4 가 어제 값 0 보다 커서 4 로 올라갑니다(⑤). 나머지 상태는 어제 값 그대로입니다.",
       array: [2, 6, 3, 9, 5, 7],
-      highlight: [1],
-      marked: [0],
-      pointers: { j: 1 },
-      entries: [
-        { label: "hold[1] — 1번째 매수를 마친 상태", value: -2 },
-        { label: "free[1] — 1번째 매도까지 마친 상태", value: 4 },
-        { label: "hold[2] — 2번째 매수를 마친 상태", value: -2 },
-        { label: "free[2] — 2번째 매도까지 마친 상태", value: 4 },
+      range: [0, 1],
+      read: [1],
+      write: [],
+      pointers: {
+        j: 1,
+      },
+      calc: {
+        expr: "free[2] = max(0, -2 + 6) =",
+        result: "4",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "free[0]",
+          values: [0, 0, null, null, null, null],
+          read: [1],
+          write: [],
+          side: "늘 0",
+        },
+        {
+          name: "hold[1]",
+          values: [-2, -2, null, null, null, null],
+          read: [0],
+          write: [1],
+          side: "-2 그대로",
+        },
+        {
+          name: "free[1]",
+          values: [0, 4, null, null, null, null],
+          read: [0],
+          write: [1],
+          side: "0 → 4",
+        },
+        {
+          name: "hold[2]",
+          values: [-2, -2, null, null, null, null],
+          read: [0],
+          write: [1],
+          side: "-2 그대로",
+        },
+        {
+          name: "free[2]",
+          values: [0, 4, null, null, null, null],
+          read: [0],
+          write: [1],
+          side: "0 → 4",
+        },
       ],
     },
     {
-      title: "T4 날 2 · 가격 3",
-      detail:
-        "두 번째 매수가 처음으로 이익을 안고 들어간다 — free[1] = 4 에서 3 을 빼 hold[2] 가 -2 에서 1 로 올라간다. 오늘 팔면 1 + 3 = 4 라 free[2] 는 4 그대로다.",
+      title: "T4 j = 2 · P[j] = 3 · hold[2] 바뀜",
+      text: "hold[2] 는 오늘 사는 쪽 4 − 3 = 1 이 어제 값 -2 보다 커서 1 로 올라갑니다(④). 나머지 상태는 어제 값 그대로입니다.",
       array: [2, 6, 3, 9, 5, 7],
-      highlight: [2],
-      marked: [0, 1],
-      pointers: { j: 2 },
-      entries: [
-        { label: "hold[1] — 1번째 매수를 마친 상태", value: -2 },
-        { label: "free[1] — 1번째 매도까지 마친 상태", value: 4 },
-        { label: "hold[2] — 2번째 매수를 마친 상태", value: 1 },
-        { label: "free[2] — 2번째 매도까지 마친 상태", value: 4 },
+      range: [0, 2],
+      read: [2],
+      write: [],
+      pointers: {
+        j: 2,
+      },
+      calc: {
+        expr: "free[2] = max(4, 1 + 3) =",
+        result: "4",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "free[0]",
+          values: [0, 0, 0, null, null, null],
+          read: [2],
+          write: [],
+          side: "늘 0",
+        },
+        {
+          name: "hold[1]",
+          values: [-2, -2, -2, null, null, null],
+          read: [1],
+          write: [2],
+          side: "-2 그대로",
+        },
+        {
+          name: "free[1]",
+          values: [0, 4, 4, null, null, null],
+          read: [1],
+          write: [2],
+          side: "4 그대로",
+        },
+        {
+          name: "hold[2]",
+          values: [-2, -2, 1, null, null, null],
+          read: [1],
+          write: [2],
+          side: "-2 → 1",
+        },
+        {
+          name: "free[2]",
+          values: [0, 4, 4, null, null, null],
+          read: [1],
+          write: [2],
+          side: "4 그대로",
+        },
       ],
     },
     {
-      title: "T5 날 3 · 가격 9",
-      detail:
-        "오늘 하루에 두 상태가 함께 올라간다. free[1] 은 -2 + 9 = 7 이 되고, free[2] 는 T4 가 만든 hold[2] = 1 에 9 를 더해 10 이 된다. 이 10 이 답이 된다.",
+      title: "T5 j = 3 · P[j] = 9 · free[1] · free[2] 바뀜",
+      text: "free[1] 은 오늘 파는 쪽 -2 + 9 = 7 이 어제 값 4 보다 커서 7 로 올라갑니다(⑤). free[2] 는 오늘 파는 쪽 1 + 9 = 10 이 어제 값 4 보다 커서 10 으로 올라갑니다(⑤). 나머지 상태는 어제 값 그대로입니다.",
       array: [2, 6, 3, 9, 5, 7],
-      highlight: [3],
-      marked: [0, 1, 2],
-      pointers: { j: 3 },
-      entries: [
-        { label: "hold[1] — 1번째 매수를 마친 상태", value: -2 },
-        { label: "free[1] — 1번째 매도까지 마친 상태", value: 7 },
-        { label: "hold[2] — 2번째 매수를 마친 상태", value: 1 },
-        { label: "free[2] — 2번째 매도까지 마친 상태", value: 10 },
+      range: [0, 3],
+      read: [3],
+      write: [],
+      pointers: {
+        j: 3,
+      },
+      calc: {
+        expr: "free[2] = max(4, 1 + 9) =",
+        result: "10",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "free[0]",
+          values: [0, 0, 0, 0, null, null],
+          read: [3],
+          write: [],
+          side: "늘 0",
+        },
+        {
+          name: "hold[1]",
+          values: [-2, -2, -2, -2, null, null],
+          read: [2],
+          write: [3],
+          side: "-2 그대로",
+        },
+        {
+          name: "free[1]",
+          values: [0, 4, 4, 7, null, null],
+          read: [2],
+          write: [3],
+          side: "4 → 7",
+        },
+        {
+          name: "hold[2]",
+          values: [-2, -2, 1, 1, null, null],
+          read: [2],
+          write: [3],
+          side: "1 그대로",
+        },
+        {
+          name: "free[2]",
+          values: [0, 4, 4, 10, null, null],
+          read: [2],
+          write: [3],
+          side: "4 → 10",
+        },
       ],
     },
     {
-      title: "T6 날 4 · 가격 5",
-      detail:
-        "커진 free[1] = 7 에서 5 를 빼 hold[2] 가 1 에서 2 로 올라간다. 다만 오늘 팔면 2 + 5 = 7 이라 free[2] 는 10 그대로다.",
+      title: "T6 j = 4 · P[j] = 5 · hold[2] 바뀜",
+      text: "hold[2] 는 오늘 사는 쪽 7 − 5 = 2 가 어제 값 1 보다 커서 2 로 올라갑니다(④). 나머지 상태는 어제 값 그대로입니다.",
       array: [2, 6, 3, 9, 5, 7],
-      highlight: [4],
-      marked: [0, 1, 2, 3],
-      pointers: { j: 4 },
-      entries: [
-        { label: "hold[1] — 1번째 매수를 마친 상태", value: -2 },
-        { label: "free[1] — 1번째 매도까지 마친 상태", value: 7 },
-        { label: "hold[2] — 2번째 매수를 마친 상태", value: 2 },
-        { label: "free[2] — 2번째 매도까지 마친 상태", value: 10 },
+      range: [0, 4],
+      read: [4],
+      write: [],
+      pointers: {
+        j: 4,
+      },
+      calc: {
+        expr: "free[2] = max(10, 2 + 5) =",
+        result: "10",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "free[0]",
+          values: [0, 0, 0, 0, 0, null],
+          read: [4],
+          write: [],
+          side: "늘 0",
+        },
+        {
+          name: "hold[1]",
+          values: [-2, -2, -2, -2, -2, null],
+          read: [3],
+          write: [4],
+          side: "-2 그대로",
+        },
+        {
+          name: "free[1]",
+          values: [0, 4, 4, 7, 7, null],
+          read: [3],
+          write: [4],
+          side: "7 그대로",
+        },
+        {
+          name: "hold[2]",
+          values: [-2, -2, 1, 1, 2, null],
+          read: [3],
+          write: [4],
+          side: "1 → 2",
+        },
+        {
+          name: "free[2]",
+          values: [0, 4, 4, 10, 10, null],
+          read: [3],
+          write: [4],
+          side: "10 그대로",
+        },
       ],
     },
     {
-      title: "T7 날 5 · 가격 7",
-      detail:
-        "마지막 날이다. 오늘 팔면 2 + 7 = 9 라 free[2] 는 10 그대로이고, 네 상태가 하나도 안 바뀐다. 답은 free[2] = 10 이다.",
+      title: "T7 j = 5 · P[j] = 7 · 바뀐 상태 없음",
+      text: "오늘 사는 쪽도 파는 쪽도 어제 값보다 크지 않아 거래 상태가 하나도 안 바뀝니다. free[2] 는 10 그대로입니다.",
       array: [2, 6, 3, 9, 5, 7],
-      highlight: [5],
-      marked: [0, 1, 2, 3, 4],
-      pointers: { j: 5 },
-      entries: [
-        { label: "hold[1] — 1번째 매수를 마친 상태", value: -2 },
-        { label: "free[1] — 1번째 매도까지 마친 상태", value: 7 },
-        { label: "hold[2] — 2번째 매수를 마친 상태", value: 2 },
-        { label: "free[2] — 2번째 매도까지 마친 상태", value: 10 },
+      range: [0, 5],
+      read: [5],
+      write: [],
+      pointers: {
+        j: 5,
+      },
+      calc: {
+        expr: "free[2] = max(10, 2 + 7) =",
+        result: "10",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "free[0]",
+          values: [0, 0, 0, 0, 0, 0],
+          read: [5],
+          write: [],
+          side: "늘 0",
+        },
+        {
+          name: "hold[1]",
+          values: [-2, -2, -2, -2, -2, -2],
+          read: [4],
+          write: [5],
+          side: "-2 그대로",
+        },
+        {
+          name: "free[1]",
+          values: [0, 4, 4, 7, 7, 7],
+          read: [4],
+          write: [5],
+          side: "7 그대로",
+        },
+        {
+          name: "hold[2]",
+          values: [-2, -2, 1, 1, 2, 2],
+          read: [4],
+          write: [5],
+          side: "2 그대로",
+        },
+        {
+          name: "free[2]",
+          values: [0, 4, 4, 10, 10, 10],
+          read: [4],
+          write: [5],
+          side: "10 그대로",
+        },
       ],
     },
-  ] satisfies Frame[],
-};
+    {
+      title: "T8 j = 6 · 반복 끝",
+      text: "j = 6 이라 읽을 날이 남지 않아 ② 가 거짓입니다. 마지막 칸 free[2] = 10 을 돌려줍니다.",
+      array: [2, 6, 3, 9, 5, 7],
+      range: [0, 5],
+      read: [],
+      write: [],
+      pointers: {
+        j: 6,
+      },
+      calc: {
+        expr: "free[2] =",
+        result: "10",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "free[0]",
+          values: [0, 0, 0, 0, 0, 0],
+          read: [],
+          write: [],
+        },
+        {
+          name: "hold[1]",
+          values: [-2, -2, -2, -2, -2, -2],
+          read: [],
+          write: [],
+        },
+        {
+          name: "free[1]",
+          values: [0, 4, 4, 7, 7, 7],
+          read: [],
+          write: [],
+        },
+        {
+          name: "hold[2]",
+          values: [-2, -2, 1, 1, 2, 2],
+          read: [],
+          write: [],
+        },
+        {
+          name: "free[2]",
+          values: [0, 4, 4, 10, 10, 10],
+          read: [5],
+          write: [],
+          side: "답 10",
+        },
+      ],
+    },
+  ],
+} satisfies ArrayPlayerSpec;

@@ -570,6 +570,93 @@ describe("P8 NodeGraph · 그래프 무대", () => {
     expect(new Set(sizes).size).toBe(1);
   });
 
+  test("정점 네모는 이름이 기본 폭에 안 들어갈 때만 넓어진다 — 짧은 이름의 그림은 그대로다", async () => {
+    const svg = await renderToSvg(
+      <NodeGraph
+        title="긴 이름"
+        nodes={[
+          { id: "a", label: "app", x: 0, y: 0 },
+          { id: "b", label: "application", x: 1, y: 0 },
+        ]}
+        edges={[{ from: "a", to: "b" }]}
+      />,
+      "t-graph-wide",
+    );
+    const widthOf = (id: string) =>
+      Number(
+        new RegExp(
+          `data-viz-node="${id}"[^>]*><rect [^>]*width="([\\d.]+)"`,
+        ).exec(svg)?.[1],
+      );
+    expect(widthOf("a")).toBe(66);
+    // 등폭 15px 글자 11 개(0.58 배로 센다)에 양옆 여백 10 씩
+    expect(widthOf("b")).toBe(Math.ceil(11 * 15 * 0.58 + 20));
+    // 간선은 넓어진 네모의 테에서 끊긴다 — 네모 안으로 들어가지 않는다
+    const d =
+      /data-viz-edge="a->b"[^>]*><path d="M ([\d.]+) [\d.]+ L ([\d.]+)/.exec(
+        svg,
+      );
+    const bx = Number(
+      /data-viz-node="b"[^>]*><rect x="([\d.]+)"/.exec(svg)?.[1],
+    );
+    expect(Number(d?.[2])).toBeLessThan(bx);
+  });
+
+  test("그래프 무대 — hidden 간선은 그 걸음의 장면에서 빠지고 정점 자리는 그대로다", () => {
+    const spec: PlayerSpec = {
+      player: "stage",
+      stage: "graph",
+      title: "부모가 바뀐다",
+      layout: {
+        nodes: [
+          { id: "r", x: 1, y: 0 },
+          { id: "m", x: 1, y: 1 },
+          { id: "c", x: 1, y: 2 },
+        ],
+        edges: [
+          { from: "r", to: "c", bend: -0.35 },
+          { from: "r", to: "m" },
+          { from: "m", to: "c" },
+        ],
+      },
+      steps: [
+        {
+          title: "T1 뿌리 아래 잎 하나",
+          text: "가르기 전",
+          nodes: [{}, { state: "empty" }, { state: "focus" }],
+          edges: [{ label: "apple" }, { state: "out" }, { state: "out" }],
+        },
+        {
+          title: "T2 라벨을 가른다",
+          text: "가른 뒤",
+          nodes: [{}, { state: "focus" }, {}],
+          edges: [
+            { hidden: true },
+            { label: "appl", state: "focus" },
+            { label: "e", state: "focus" },
+          ],
+        },
+      ],
+    };
+    const [t1, t2] = playerFrames(spec);
+    expect(t1?.scene?.edges.map((e) => `${e.from}->${e.to}`)).toEqual([
+      "r->c",
+      "r->m",
+      "m->c",
+    ]);
+    expect(t2?.scene?.edges.map((e) => `${e.from}->${e.to}`)).toEqual([
+      "r->m",
+      "m->c",
+    ]);
+    expect(t2?.scene?.edges[0]).toMatchObject({
+      label: "appl",
+      state: "focus",
+    });
+    expect(t1?.scene?.nodes.map((n) => [n.x, n.y])).toEqual(
+      t2?.scene?.nodes.map((n) => [n.x, n.y]),
+    );
+  });
+
   test("정적 그림은 장면을 걸음마다 한 장씩 늘어놓고 칸 경계가 필름을 빈틈없이 나눈다", async () => {
     const scene = { nodes, edges };
     const svg = await renderToSvg(

@@ -279,3 +279,29 @@ test("조회 하나의 기본 연산이 단어 개수가 아니라 문자열 길
     expect(tree.startsWith("w0000")).toBe(true);
   }
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 증명 사이드카의 걸음 기록에서
+ * 무대를 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./radixTree-guide.sim.ts");
+  const fig = await import("./radixTree-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.radixOps.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.radixOps.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 답을 정본에 직접 다시 묻는다.
+  const tree = new RadixTree();
+  for (const w of ["apple", "application", "app", "appl"]) tree.insert(w);
+  expect(String(tree.startsWith("bat"))).toBe(sim.radixOps.result);
+  // 마지막 걸음의 무대에 노드가 다섯 다 있고(점선 없음), 끝 표시가 넷이다.
+  const last = sim.radixOps.steps.at(-1);
+  const nodes = last?.nodes ?? [];
+  expect(nodes.filter((n) => "state" in n && n.state === "empty")).toEqual([]);
+  expect(nodes.filter((n) => n.value === "끝 표시").length).toBe(4);
+  // 가르기 전 간선 둘은 마지막 걸음에 그리지 않는다.
+  const edges = (last?.edges ?? []) as { hidden?: boolean }[];
+  expect(edges.filter((e) => e.hidden === true).length).toBe(2);
+});

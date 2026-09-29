@@ -6,6 +6,8 @@
  * (`layout`), 걸음마다 바뀌는 것 — 정점의 상태와 값, 간선의 종류와 상태, 묶음, 띠 — 만 걸음에 싣는다.
  * 자리가 걸음 사이에 안 바뀌니 무대 높이도 안 바뀐다(시안 규칙 5).
  *
+ * 걸음에 따라 없어지는 간선은 `hidden` 으로 뺀다 — 정점 자리는 그대로이고 그 걸음의 장면에서 선만 빠진다.
+ *
  * 상태 어휘는 칸 무대와 같다. 정점은 새로 씀(`focus`) · 읽음(`read`) · 아직(`empty`) · 이번 걸음 밖
  * (`out`) · 끝남(적지 않음), 간선은 새로 씀 · 읽음 · 이번 걸음 밖 · 끝남이다. 값은 `.sim.ts` 가 싣고,
  * 그 값이 정본 실행과 같은지는 가이드의 시험이 잰다 — 여기서는 계산하지 않고 **배치만** 한다.
@@ -52,6 +54,12 @@ export interface GraphStep {
     readonly kind?: EdgeKind;
     readonly state?: EdgeState;
     readonly label?: string;
+    /**
+     * 이 걸음에 없는 간선 — 그리지 않는다. 아직 안 생긴 간선은 `state: "out"`(흐린 선)으로 두지만,
+     * 걸음 사이에 부모가 바뀌는 구조(라딕스 트리가 라벨을 가르면 옛 간선이 없어진다)에서 **이미
+     * 사라진** 간선을 흐린 선으로 남기면 앞으로 생길 간선으로 읽힌다. 그때 이것을 쓴다(KAN-058).
+     */
+    readonly hidden?: boolean;
   }[];
   readonly groups?: readonly GraphGroup[];
   readonly strips?: readonly GraphStrip[];
@@ -70,12 +78,18 @@ export function graphScene(s: GraphStep, opts: GraphOptions): NodeGraphScene {
       value: s.nodes[i]?.value,
       state: s.nodes[i]?.state,
     })),
-    edges: layout.edges.map((e, i) => ({
-      ...e,
-      kind: s.edges[i]?.kind,
-      state: s.edges[i]?.state,
-      label: s.edges[i]?.label,
-    })),
+    edges: layout.edges.flatMap((e, i) =>
+      s.edges[i]?.hidden
+        ? []
+        : [
+            {
+              ...e,
+              kind: s.edges[i]?.kind,
+              state: s.edges[i]?.state,
+              label: s.edges[i]?.label,
+            },
+          ],
+    ),
     groups: s.groups,
     strips: s.strips,
     directed: layout.directed,

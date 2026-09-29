@@ -175,3 +175,32 @@ test("덩어리가 둘이면 간선이 아무리 많아도 -1 이다", () => {
   for (let i = 500; i + 1 < 1_000; i++) edges.push([i, i + 1, i + 1]);
   expect(kruskalMst(1_000, edges)).toBe(-1);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./kruskalMst-guide.sim.ts");
+  const fig = await import("./kruskalMst-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.kruskalWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.kruskalWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 패널의 반환값과 마지막 걸음의 합계를 정본에 직접 다시 묻는다.
+  const edges: Edge[] = [
+    [3, 4, 6],
+    [0, 1, 1],
+    [0, 3, 4],
+    [4, 5, 5],
+    [2, 3, 2],
+    [0, 5, 7],
+    [1, 2, 3],
+  ];
+  const answer = kruskalMst(6, edges);
+  expect(sim.kruskalWalk.result).toBe(String(answer));
+  expect(sim.kruskalWalk.steps.at(-1)?.vars).toBe(
+    `total = ${answer} · picked = 5 / 5`,
+  );
+});

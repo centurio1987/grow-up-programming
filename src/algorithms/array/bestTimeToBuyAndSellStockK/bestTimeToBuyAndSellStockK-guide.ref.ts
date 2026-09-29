@@ -25,7 +25,7 @@ export function bestTimeToBuyAndSellStockK(
   k: number,
   prices: number[],
 ): number {
-  // ① 두 상태 배열을 시작값으로 둔다. `hold[t]` 는 t 번째 매수를 마치고 아직 안 판 상태의
+  // ① 거래 상태를 시작값으로 둔다. `hold[t]` 는 t 번째 매수를 마치고 아직 안 판 상태의
   //    최대 이익이고, `free[t]` 는 t 번째 매도까지 마친 상태의 최대 이익이다. 첫날 전에는
   //    매수를 마친 상태에 도달할 방법이 없고, 거래를 한 번도 안 한 이익은 0 이다.
   const hold = new Array<number>(k + 1).fill(Number.NEGATIVE_INFINITY);

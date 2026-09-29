@@ -110,6 +110,8 @@ export interface NodeGraphProps extends NodeGraphScene {
 
 const NODE_W = 66;
 const NODE_H = 44;
+/** 넓힌 정점 네모에서 이름 양옆에 두는 여백. */
+const NODE_PAD = 10;
 const ARROW = 9;
 const GROUP_PAD = 12;
 const GROUP_HEAD = 18;
@@ -164,7 +166,20 @@ interface Placed {
   readonly node: GraphNode;
   readonly cx: number;
   readonly cy: number;
+  /** 정점 네모의 폭. 이름이 기본 폭에 안 들어가면 그만큼 넓힌다(`nodeWidth`). */
+  readonly w: number;
 }
+
+/**
+ * 정점 네모의 폭 — 기본은 `NODE_W` 이고, 이름이 그 안에 안 들어가면 이름 폭에 여백을 더한 만큼
+ * 넓힌다. 라딕스 트리처럼 정점 이름이 경로 문자열이라 길어지는 그림이 있어서다(KAN-058). 기본 폭에
+ * 들어가는 이름은 폭이 그대로라, 그런 그림의 모양은 바뀌지 않는다.
+ */
+const nodeWidth = (node: GraphNode): number =>
+  Math.max(
+    NODE_W,
+    Math.ceil(widthOf(node.label ?? String(node.id), 15) + NODE_PAD * 2),
+  );
 
 /** 격자 좌표를 픽셀로 — 가장 작은 좌표가 여백(묶음 머리말 자리 포함) 안쪽에 오게 옮긴다. */
 function place(scene: NodeGraphScene): {
@@ -188,8 +203,9 @@ function place(scene: NodeGraphScene): {
   for (const node of scene.nodes) {
     const cx = left + (node.x - minX) * unit.x;
     const cy = top + (node.y - minY) * unit.y;
-    placed.set(node.id, { node, cx, cy });
-    right = Math.max(right, cx + NODE_W / 2);
+    const w = nodeWidth(node);
+    placed.set(node.id, { node, cx, cy, w });
+    right = Math.max(right, cx + w / 2);
     bottom = Math.max(bottom, cy + NODE_H / 2);
   }
   // 간선 머리말이 정점 밖으로 나가는 폭도 잡는다. 왼쪽 여백을 넘으면 그림 전체를 오른쪽으로 옮긴다.
@@ -252,7 +268,7 @@ function edgeMid(a: Placed, b: Placed, bend: number): { x: number; y: number } {
 
 /** 점이 정점 네모(여백 `gap` 포함) 안에 있는가. */
 const inside = (p: { x: number; y: number }, n: Placed, gap: number) =>
-  Math.abs(p.x - n.cx) <= NODE_W / 2 + gap &&
+  Math.abs(p.x - n.cx) <= n.w / 2 + gap &&
   Math.abs(p.y - n.cy) <= NODE_H / 2 + gap;
 
 const at = (
@@ -460,7 +476,7 @@ function EdgeLabel(props: {
 }
 
 function NodeView({ p }: { p: Placed }) {
-  const { node, cx, cy } = p;
+  const { node, cx, cy, w } = p;
   const state = node.state;
   const dim = state === "out" || state === "empty";
   const name = node.label ?? String(node.id);
@@ -468,9 +484,9 @@ function NodeView({ p }: { p: Placed }) {
   return (
     <g data-viz-node={String(node.id)} data-viz-state={state ?? "base"}>
       <rect
-        x={cx - NODE_W / 2}
+        x={cx - w / 2}
         y={cy - NODE_H / 2}
-        width={NODE_W}
+        width={w}
         height={NODE_H}
         rx={NODE_H / 2}
         style={cellStyle(state)}
@@ -510,8 +526,8 @@ function groupBox(
     .map((m) => placed.get(m))
     .filter((p): p is Placed => p !== undefined);
   if (ps.length === 0) return null;
-  const x0 = Math.min(...ps.map((p) => p.cx)) - NODE_W / 2 - GROUP_PAD;
-  const x1 = Math.max(...ps.map((p) => p.cx)) + NODE_W / 2 + GROUP_PAD;
+  const x0 = Math.min(...ps.map((p) => p.cx - p.w / 2)) - GROUP_PAD;
+  const x1 = Math.max(...ps.map((p) => p.cx + p.w / 2)) + GROUP_PAD;
   const y0 = Math.min(...ps.map((p) => p.cy)) - NODE_H / 2 - GROUP_PAD;
   const y1 = Math.max(...ps.map((p) => p.cy)) + NODE_H / 2 + GROUP_PAD;
   return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };

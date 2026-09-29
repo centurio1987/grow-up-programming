@@ -701,7 +701,7 @@ B24 부터 배치가 전부 트랙에 들어가 그 대역이 영구히 빌 예�
      이 계약이 서기 전에 쓰였고 이 유닛 범위 밖이라 고치지 않았다 — 칸반 메모로 넘긴다.
      `disjoint-set/disjointSetRollback` 과의 포섭은 비용 열까지 대조해야 서므로(불변 사실 257) T3-05 가 판정한다.
 316. **자료구조 `-problem.md` 를 알고리즘 트랙 가이드가 링크하고 있었다.** `bun run tools/check-links.ts refs` 가
-     `src/algorithms/string/radixTree/radixTree-guide.md:928` 을 잡았고, 링크를 `unionFind.ts`(계약 헤더)로 바꾼 뒤
+     `src/algorithms/string/radixTree/radixTree-guide.md:1062` 을 잡았고, 링크를 `unionFind.ts`(계약 헤더)로 바꾼 뒤
      지웠다. 그 파일은 `KANBAN.cards/KAN-027.md` 의 scope 밖이다. **남은 B군 유닛도 트랙을 넘는 참조가 있을 수
      있으므로 refs 스윕을 건너뛰지 않는다**(불변 사실 33).
 
@@ -3905,7 +3905,7 @@ TA facts 에 기입). 300–349 · 380–389 는 `KAN-027` 의 대역이라 건�
   고정했다.
 - **정본 차등 시험** — 원소 수 아홉 가지(1 · 2 · 3 · 5 · 8 · 17 · 64 · 200 · 1,000) × 합치기 비율 셋에서 fixture 다섯과 함께
   81 만 걸음, 참조 모델과 불일치 0 건(스크립트는 저장소에 두지 않았다).
-- **함께 고친 것** — `src/algorithms/string/radixTree/radixTree-guide.md:928` 의 링크(불변 사실 316 · 카드 scope 밖).
+- **함께 고친 것** — `src/algorithms/string/radixTree/radixTree-guide.md:1062` 의 링크(불변 사실 316 · 카드 scope 밖).
 - **넘기는 것 셋** — ① `tree/linkCutTree` 헤더의 「갈리는 자리는 `cut` 하나다」(불변 사실 315 · 기존 산출물) ② 이름표를
   가장 작은 원소로 정한 선택의 결재(불변 사실 310 — 대안은 정하지 않고 스위트가 정규화하는 것) ③ 되돌릴 수 있는 분리
   집합과의 포섭 판정(T3-05).

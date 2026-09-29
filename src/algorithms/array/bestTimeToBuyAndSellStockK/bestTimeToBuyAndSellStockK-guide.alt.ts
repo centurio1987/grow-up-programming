@@ -9,8 +9,8 @@
  * ## 입력을 왜 전개 입력으로 안 쓰는가
  *
  * 전개 입력은 날 여섯에 `k = 2` 라 두 설계가 갈리는 자리(`k` 의 크기)를 못 담는다. 벌금
- * 쪽은 벌금 후보를 이분 탐색하므로 `k` 와 무관하게 같은 일을 하고, 표 쪽은 `k` 에 그대로
- * 비례한다 — 갈리는 것은 `k` 이므로 **제약 상한인 날 1,000 을 고정하고 `k` 만 바꾼다.**
+ * 쪽은 벌금 후보를 이분 탐색하므로 `k` 와 무관하게 같은 일을 하고, 거래 상태 쪽은 `k` 에 그대로
+ * 비례한다 — 갈리는 것은 `k` 이므로 **과제 규모의 상한인 날 1,000 을 고정하고 `k` 만 바꾼다.**
  * 가격은 생성식 `P[j] = (j × 617) mod 1,001` 로 만든다.
  *
  * ## 무엇을 세는가
@@ -21,10 +21,10 @@
 
 import { bestTimeToBuyAndSellStockK } from "./bestTimeToBuyAndSellStockK-guide.ref.ts";
 
-/** 제약 상한인 날짜 수. */
+/** 과제 규모의 상한인 날짜 수. */
 const N = 1_000;
 
-/** 제약이 정한 가격의 최댓값. 벌금 이분 탐색의 위쪽 끝이기도 하다. */
+/** 과제 규모가 정한 가격의 최댓값. 벌금 이분 탐색의 위쪽 끝이기도 하다. */
 const MAX_PRICE = 10_000;
 
 /** 결정론적 생성식. `0 ≤ P[j] ≤ 10,000` 을 지킨다. */
@@ -39,8 +39,8 @@ interface Counted {
   cells: number;
 }
 
-/** 이 가이드가 가르치는 절차 — 거래 번호를 상태의 축으로 두고 날마다 한 줄씩 채운다. */
-function byTable(k: number, prices: number[]): Counted {
+/** 이 가이드가 가르치는 절차 — 거래 상태 `2k + 1` 개를 날마다 한 번씩 갱신한다. */
+function byStates(k: number, prices: number[]): Counted {
   const hold = new Array<number>(k + 1).fill(Number.NEGATIVE_INFINITY);
   const free = new Array<number>(k + 1).fill(0);
   let ops = 0;
@@ -111,24 +111,24 @@ function byPenaltySearch(k: number, prices: number[]): Counted {
 }
 
 /** 두 설계가 같은 답을 내는지 먼저 확인한다. 안 같으면 대조가 아니라 다른 문제를 잰 것이다. */
-function measure(k: number): { table: Counted; penalty: Counted } {
-  const table = byTable(k, PRICES);
+function measure(k: number): { states: Counted; penalty: Counted } {
+  const states = byStates(k, PRICES);
   const penalty = byPenaltySearch(k, PRICES);
   const want = bestTimeToBuyAndSellStockK(k, [...PRICES]);
-  if (table.answer !== want || penalty.answer !== want) {
+  if (states.answer !== want || penalty.answer !== want) {
     throw new Error(
-      `두 설계의 답이 갈린다 — 표 ${table.answer} · 벌금 ${penalty.answer} · 정본 ${want}`,
+      `두 설계의 답이 갈린다 — 거래 상태 ${states.answer} · 벌금 ${penalty.answer} · 정본 ${want}`,
     );
   }
-  return { table, penalty };
+  return { states, penalty };
 }
 
 export const cases = {
-  "거래 번호 축을 갖는 표": () => {
+  "거래 상태 이어받기": () => {
     const out: Record<string, number> = {};
-    for (const k of BUDGETS) out[`k=${k} 기본 연산`] = measure(k).table.ops;
-    out["k=1 저장 칸"] = byTable(1, PRICES).cells;
-    out["k=100 저장 칸"] = byTable(100, PRICES).cells;
+    for (const k of BUDGETS) out[`k=${k} 기본 연산`] = measure(k).states.ops;
+    out["k=1 저장 칸"] = byStates(1, PRICES).cells;
+    out["k=100 저장 칸"] = byStates(100, PRICES).cells;
     return out;
   },
   "거래마다 벌금을 매기고 벌금을 이분 탐색": () => {

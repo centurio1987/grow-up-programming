@@ -52,8 +52,8 @@ function graph(e: number): Edge[] {
 }
 
 /**
- * 본문 표가 싣는 간선 수 다섯. 셋째와 넷째 사이에서 기본 연산의 순서가 뒤집힌다 —
- * 그 자리를 찾으려고 199 부터 하나씩 올려 보며 실측한 값이 9,903 이다.
+ * 본문 표가 싣는 간선 수 다섯. 셋째와 넷째가 기본 연산의 순서가 뒤집히는 자리의 앞뒤다 —
+ * 그 자리는 아래 `flipPoint` 가 199 부터 하나씩 올려 보며 찾고, 여기 적은 값과 다르면 던진다.
  */
 const DENSITIES = [199, 5_000, 9_902, 9_903, 19_900] as const;
 
@@ -100,7 +100,7 @@ function mergeSort(xs: Edge[]): { sorted: Edge[]; ops: number } {
   return { sorted: go(xs), ops };
 }
 
-/** 이 가이드가 가르치는 절차 — 간선을 정렬하고 대표 배열로 사이클을 판정한다. */
+/** 이 가이드가 가르치는 절차 — 간선을 정렬하고 유니온 파인드로 사이클을 판정한다. */
 function byKruskal(edges: Edge[]): Counted {
   const { sorted, ops: sortOps } = mergeSort([...edges]);
   const parent: number[] = Array.from({ length: V }, (_, i) => i);
@@ -150,9 +150,12 @@ function byKruskal(edges: Edge[]): Counted {
   return {
     answer: picked === V - 1 ? total : -1,
     ops,
-    cells: 3 * edges.length + 2 * V,
+    cells: kruskalCells(edges.length),
   };
 }
+
+/** 크러스컬이 들고 있는 수의 개수 — 간선 사본 `3E` 와 `parent`·`rank` 배열 둘 `2V`. */
+const kruskalCells = (e: number): number => 3 * e + 2 * V;
 
 /**
  * 경쟁 설계 — 프림(Prim). 트리를 정점 하나에서 시작해 **트리에 가장 가까운 정점**을 한 번에
@@ -225,8 +228,38 @@ function measure(e: number): { kruskal: Counted; prim: Counted } {
   return { kruskal, prim };
 }
 
+/**
+ * 기본 연산의 순서가 처음 뒤집히는 간선 수. 간선 수를 199 부터 100 개씩 올려 처음 뒤집힌 구간을 찾고,
+ * 그 구간의 앞 끝부터 하나씩 다시 잰다. 100 칸 사이에서 두 번 뒤집혔다 돌아오는 자리는 이 방법이 못
+ * 본다 — 본문도 그렇게 적는다. `graph(e)` 는 `graph(e - 1)` 에 간선 하나를 더한 것이다.
+ */
+const FLIP_STRIDE = 100;
+function flipPoint(): number {
+  const primWins = (e: number): boolean => {
+    const m = measure(e);
+    return m.prim.ops < m.kruskal.ops;
+  };
+  let from = 199;
+  while (from + FLIP_STRIDE <= 19_900 && !primWins(from + FLIP_STRIDE)) {
+    from += FLIP_STRIDE;
+  }
+  for (let e = from; e <= Math.min(from + FLIP_STRIDE, 19_900); e++) {
+    if (primWins(e)) return e;
+  }
+  return -1;
+}
+
+/** 저장 칸의 순서가 처음 뒤집히는 간선 수 — 두 설계의 저장 칸 식에 간선 수를 하나씩 넣어 찾는다. */
+function cellFlipPoint(): number {
+  const prim = byPrim([]).cells;
+  for (let e = 199; e <= 19_900; e++) {
+    if (prim < kruskalCells(e)) return e;
+  }
+  return -1;
+}
+
 export const cases = {
-  "간선을 정렬하고 대표 배열로 판정": () => {
+  "간선을 정렬하고 유니온 파인드로 판정": () => {
     const out: Record<string, number> = {};
     for (const e of DENSITIES) out[`E=${e} 기본 연산`] = measure(e).kruskal.ops;
     out["E=199 저장 칸"] = byKruskal(graph(199)).cells;
@@ -239,5 +272,17 @@ export const cases = {
     out["E=199 저장 칸"] = byPrim(graph(199)).cells;
     out["E=19900 저장 칸"] = byPrim(graph(19_900)).cells;
     return out;
+  },
+  경계: () => {
+    const flip = flipPoint();
+    if (flip !== DENSITIES[3] || DENSITIES[2] !== flip - 1) {
+      throw new Error(
+        `뒤집히는 자리가 ${flip} 인데 표는 ${DENSITIES[3]} 를 싣는다`,
+      );
+    }
+    return {
+      "기본 연산이 뒤집히는 간선 수": flip,
+      "저장 칸이 뒤집히는 간선 수": cellFlipPoint(),
+    };
   },
 };
