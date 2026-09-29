@@ -1,6 +1,6 @@
 {
   "next_id": 61,
-  "next_seq": 438,
+  "next_seq": 439,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1506,12 +1506,12 @@
       ]
     },
     "KAN-058.1-9TBXDA": {
-      "col": "todo",
+      "col": "doing",
       "title": "샘플 두 편 — binarySearch · stronglyConnectedComponents",
       "verbatim": "kan-058 전략 수립, 실행 계획 수립, 칸반 카드 반영\n\n개념이 단순한 가이드, sparseTable보다 개념이 어려운 가이드 결과를 샘플로 제공하는 절차를 포함해라. 샘플을 통해, 검토할 것이고, 검토를 통과 하면 전편 전개하도록 계획해라",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-29",
+      "갱신": "2026-09-30",
       "title_hash": "acfa429b70193a1fc0f90d278f47451164b52a7a",
       "verbatim_hash": "f13d7dd8c6a1118e265fe8a8ecdd1bb4afc5f75c",
       "short": "전개 전 샘플 두 편",
@@ -1597,10 +1597,20 @@
     "KAN-057-J36E1B",
     "KAN-059-PSFTN4",
     "KAN-060-9P4ZAA",
-    "KAN-058.1-9TBXDA",
-    "KAN-058-8XT6PC"
+    "KAN-058-8XT6PC",
+    "KAN-058.1-9TBXDA"
   ],
   "recent": [
+    {
+      "seq": 438,
+      "t": "2026-09-30T01:43",
+      "a": "ai",
+      "id": "KAN-058.1-9TBXDA",
+      "op": "move",
+      "w": "TMW7FW",
+      "from": "todo",
+      "to": "doing"
+    },
     {
       "seq": 437,
       "t": "2026-09-30T01:43",
@@ -2166,24 +2176,6 @@
       "field": "verbatim",
       "before": "",
       "after": "지금은 아이디어 상세가, naive에서 시작해서 핵심 알고리즘에 도달하는 서사로 구성되어 있다. 그런데, 이 구성을 별도 항목으로 빼고, 아이디어 상세 자체는 아이디어에 초점을 맞춰서 상세히 집필해라. 집필 시, 최대한 자세히 이해하기 쉽도록 해야한다는 지시가 CLAUDE.md 때문에 무시당하는 문제가 있으니, /output-style을 learning으로  설정하여 작업하기 바란다.\n\n결과물은 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md에 대한 파일럿 가이드 생성을 통해 확인하겠다."
-    },
-    {
-      "seq": 396,
-      "t": "2026-09-24T15:25",
-      "a": "유저",
-      "id": "KAN-056-VPCM91",
-      "op": "create",
-      "w": "46PCAX",
-      "col": "backlog",
-      "title": "알고리즘 가이드 집필 로직 피드백",
-      "verbatim": "",
-      "parent": null,
-      "short": "",
-      "purpose": "",
-      "reason": "",
-      "goal": "",
-      "memo": "",
-      "request_template": "free"
     }
   ],
   "waivers": [
