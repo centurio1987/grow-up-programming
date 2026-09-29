@@ -57,10 +57,10 @@ scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/chec
 
 **배치 4 — 신규 가이드**
 
-- [ ] `S8` 신규 가이드 `array/missingInteger` — v2 규격(파일럿 구성 · ref·proof·test 사이드카, sim·fig 는 걸음 패널·그림이 있을 때) + 실습 절(`migrate-practice --only`), `problem.md` 삭제. S5 확정(2026-09-29)으로 편마다 나눴다 — 나머지 셋은 S10~S12. 완료 기준: `check-v2` · `check-proof --require` · `build-html` · `check-metaphor` · 가이드 시험 통과
-- [ ] `S10` 신규 가이드 `array/twoSum` — S8 과 같은 규격. 완료 기준: S8 과 같다
-- [ ] `S11` 신규 가이드 `etc/numberOfDisintersection` — S8 과 같은 규격. 완료 기준: S8 과 같다
-- [ ] `S12` 신규 가이드 `bit-manipulation/binaryGap` — S8 과 같은 규격. 넷을 다 쓰면 `문제_가이드_목록.md` 에 올린다(메인이 한 번). 완료 기준: S8 과 같다 · 목록 등재
+- [x] `S8` 신규 가이드 `array/missingInteger` — v2 규격(파일럿 구성 · ref·proof·test 사이드카, sim·fig 는 걸음 패널·그림이 있을 때) + 실습 절(`migrate-practice --only`), `problem.md` 삭제. S5 확정(2026-09-29)으로 편마다 나눴다 — 나머지 셋은 S10~S12. 완료 기준: `check-v2` · `check-proof --require` · `build-html` · `check-metaphor` · 가이드 시험 통과
+- [>] `S10` 신규 가이드 `array/twoSum` — S8 과 같은 규격. 완료 기준: S8 과 같다 <!-- claim:s=15cf9d75 t=2026-09-29T10:43 -->
+- [>] `S11` 신규 가이드 `etc/numberOfDisintersection` — S8 과 같은 규격. 완료 기준: S8 과 같다 <!-- claim:s=15cf9d75 t=2026-09-29T10:43 -->
+- [>] `S12` 신규 가이드 `bit-manipulation/binaryGap` — S8 과 같은 규격. 넷을 다 쓰면 `문제_가이드_목록.md` 에 올린다(메인이 한 번). 완료 기준: S8 과 같다 · 목록 등재 <!-- claim:s=15cf9d75 t=2026-09-29T11:01 -->
 
 **배치 5 — 검증·검토**
 
@@ -104,3 +104,8 @@ bunx --bun @biomejs/biome check tools/migrate-practice.ts tools/check-v2.ts tool
 - 2026-09-29T10:40 · s:15cf9d75 · S7 doing — 착수
 - 2026-09-29T10:42 · s:15cf9d75 · S7 done — 흡수 넷 — etc/kadane 의 kadane.ts·test 를 array/kadane/maxSubarraySum.ts·test 로(이름 충돌, import 고침), etc/maxProfit 의 ts·test·maxProfit.md 를 array/bestTimeToBuyAndSellStock 로, tapeEquilibrium ts·test 와 genomicRangeQuery ts·test·.md·_solved.md·_solved.ts 를 array/prefixSumRangeQuery 로 옮기고(메모 파일 안 지움) migrate-practice --absorb 로 받는 가이드 실습에 문제로 더함, problem.md 4개 삭제, 빈 폴더 넷 제거, minMaxPair 의 tapeEquilibrium 링크를 prefixSumRangeQuery 실습 앵커로. 옮긴 테스트: maxProfit 23/23 · tapeEquilibrium 13/13 · genomicRangeQuery 15/15 통과, maxSubarraySum 은 스텁이라 Not implemented 로만 실패(정상). 완료 기준의 「ci.ts practice 실행 목록」은 틀렸다 — practice 모드는 src/data-structures 만 채점해 알고리즘 테스트는 CI 에 없다, 새 경로에서 bun test 로 직접 확인. check-v2 --all · check-links 1159 · build-html · check-metaphor 통과. 남은 problem.md 4개는 신규 가이드 대기(missingInteger·twoSum·numberOfDisintersection·binaryGap)
 - 2026-09-29T10:42 · s:15cf9d75 — `실행 계획` 섹션 교체
+- 2026-09-29T10:43 · s:15cf9d75 · S8 doing — 착수
+- 2026-09-29T10:43 · s:15cf9d75 · S10 doing — 착수
+- 2026-09-29T10:43 · s:15cf9d75 · S11 doing — 착수
+- 2026-09-29T11:01 · s:15cf9d75 · S12 doing — 착수
+- 2026-09-29T11:21 · s:15cf9d75 · S8 done — 서브에이전트 집필 — 직접 주소 표(값을 칸 번호로)로 가장 작은 빠진 양의 정수. ref·proof(26)·test(13)·alt·bench. 메인 재확인: check-proof --require 26/26 · 가이드 시험 13/13 · 전 편 게이트 통과. 문체 파트 1·2 A(실습 절 포함 C — 옮긴 스토리 문장). 스텁 missingInteger.ts:4 의 noDoubleEquals 는 학습자 파일이라 둠
