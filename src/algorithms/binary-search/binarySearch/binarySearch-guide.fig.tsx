@@ -19,9 +19,13 @@ import type { CellState } from "../../../_viz/patterns/ArrayStrip";
 import {
   CellStageFilm,
   type StageFrame,
-  type StageRow,
 } from "../../../_viz/patterns/CellStage";
 import { RangeCover } from "../../../_viz/patterns/RangeCover";
+import {
+  type ArrayOptions,
+  type ArrayStep,
+  arrayStage,
+} from "../../../_viz/player/arrayStage";
 import { binarySearch } from "./binarySearch-guide.ref.ts";
 
 const REF = new URL("./binarySearch-guide.ref.ts", import.meta.url).pathname;
@@ -214,39 +218,37 @@ function missSteps(from: number): Step[] {
   return steps;
 }
 
-/** 필름 한 장의 무대 — 인덱스 · 배열 칸 · 읽은 칸 ▲ · 후보 구간 괄호. */
-function stageRows(s: Step): StageRow[] {
-  const states: Partial<Record<number, CellState>> = {};
-  for (const i of outside(A6.length, s.lo, s.hi)) states[i] = "out";
-  if (s.mid !== undefined && s.found === undefined) states[s.mid] ??= "read";
-  if (s.found !== undefined) states[s.found] = "focus";
-  const m = Math.max(0, s.hi - s.lo + 1);
-  const rows: StageRow[] = [
-    { kind: "index", label: "인덱스" },
-    {
-      kind: "cells",
-      label: "A",
-      values: A6,
-      states,
-      side: `후보 ${m} 개`,
-    },
-    { kind: "caret", cells: s.mid === undefined ? [] : [s.mid] },
-  ];
-  if (m > 0) {
-    rows.push({
-      kind: "bracket",
-      label: "후보",
-      from: s.lo,
-      to: s.hi,
-      tone: "query",
-      text: `[${s.lo},${s.hi}]`,
-    });
-  }
-  return rows;
+/**
+ * 걸음 하나를 배열 무대(`arrayStage`)의 걸음으로 — 걸음 재생 패널과 정적 필름이 같은 값을 쓴다.
+ * 쥔 구간은 후보 구간이고(비면 `null`), 읽은 칸은 이번에 본 `mid`, 새로 쓴 칸은 찾은 답이다.
+ */
+function arrayStep(s: Step): ArrayStep {
+  return {
+    array: [...A6],
+    range: s.lo <= s.hi ? [s.lo, s.hi] : null,
+    read: s.mid !== undefined && s.found === undefined ? [s.mid] : [],
+    write: s.found !== undefined ? [s.found] : [],
+    pointers:
+      s.found !== undefined
+        ? { mid: s.found }
+        : s.mid === undefined
+          ? { lo: s.lo, hi: s.hi }
+          : { lo: s.lo, mid: s.mid, hi: s.hi },
+  };
 }
 
+/** 배열 무대의 이름표 — 패널(`.sim.ts`)과 필름이 같이 쓴다. */
+export const ARRAY_OPTIONS: ArrayOptions = {
+  arrayName: "A",
+  rangeLabel: "후보",
+};
+
 const film = (steps: Step[]): StageFrame[] =>
-  steps.map((s) => ({ id: s.id, text: s.title, rows: stageRows(s) }));
+  steps.map((s) => ({
+    id: s.id,
+    text: s.title,
+    rows: arrayStage(arrayStep(s), ARRAY_OPTIONS),
+  }));
 
 /**
  * 걸음 재생 패널(`.sim.ts`)의 걸음 — 정본 실행에서 만든다. `.sim.ts` 의 `steps` 는 이 결과를 글자
@@ -254,22 +256,14 @@ const film = (steps: Step[]): StageFrame[] =>
  * `binarySearch-guide.test.ts` 가 잰다.
  */
 export function simStepsFromRef() {
-  const toFrame = (s: Step) => ({
+  const toStep = (s: Step) => ({
     title: `${s.id} ${s.title}`,
-    detail: s.detail,
-    array: [...A6],
-    ...(s.mid === undefined ? {} : { highlight: [s.mid] }),
-    marked: outside(A6.length, s.lo, s.hi),
-    pointers:
-      s.found !== undefined
-        ? { mid: s.found }
-        : s.mid === undefined
-          ? { lo: s.lo, hi: s.hi }
-          : { lo: s.lo, mid: s.mid, hi: s.hi },
+    text: s.detail,
+    ...arrayStep(s),
   });
   const hit = hitSteps(1);
   const miss = missSteps(hit.length + 1);
-  return { probe: hit.map(toFrame), miss: miss.map(toFrame) };
+  return { probe: hit.map(toStep), miss: miss.map(toStep) };
 }
 
 /** 본문이 인용하는 걸음 수 — 필름과 표가 같은 번호를 쓴다. */

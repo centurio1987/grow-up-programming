@@ -1386,12 +1386,15 @@ Table 의 층)는 어느 뷰에도 없었다. 유저 지적(2026-09-28): *"알�
 
 - 패널은 `src/_viz/player/StepPlayer.tsx`, 무대는 갈래에 따라 패턴 `CellStage`(P7) 또는 `NodeGraph`(P8)다. `.sim.ts` 의 export 가
   `player: "stage"` 를 가지면 빌더가 이 패널을 붙이고, 없으면 옛 패널(`AlgorithmSimulation`)을 붙인다.
-- 무대 갈래는 `STAGES` 에 등록한다. 지금은 「층」(`stage: "levels"`, `levelsStage.ts`)과 「그래프」
-  (`stage: "graph"`, `graphStage.ts`, `KAN-058` 샘플 `stronglyConnectedComponents`) 둘이다. 「층」의 걸음 필드는
+- 무대 갈래는 `STAGES` 에 등록한다. 지금은 「층」(`stage: "levels"`, `levelsStage.ts`) · 「그래프」
+  (`stage: "graph"`, `graphStage.ts`, `KAN-058` 샘플 `stronglyConnectedComponents`) · 「배열」(`stage: "array"`,
+  `arrayStage.ts`, `KAN-058` S12 · 첫 편 `binarySearch`) 셋이다. 「층」의 걸음 필드는
   쌓는 걸음이 `levels`(아직 안 쓴 칸은 `null`) · `read` · `write`, 답하는 걸음이 `query` · `level` ·
   `lookup` · `pieces` · `overlap` · `answers` · `answerSlots` 다. 계산 알약과 남는 변수는 이 필드에서
   패널이 만든다. 「그래프」는 정점 자리와 간선을 패널에 한 번 적고(`layout`), 걸음에는 `nodes`(상태·값) ·
-  `edges`(종류·상태) · `groups` · `strips` · `calc` · `vars` 만 싣는다.
+  `edges`(종류·상태) · `groups` · `strips` · `calc` · `vars` 만 싣는다. 「배열」은 패널에 `arrayName` · `rangeLabel`
+  (쥔 구간의 이름, 예: 「후보」 · 「창」)을 한 번 적고, 걸음마다 `array` · `range`(쥔 구간, 비면 `null`) · `read` ·
+  `write` · `pointers` · `calc` · `vars` 를 싣는다. 구간 밖 칸은 「이번 걸음 밖」, 읽은 칸이 그보다 앞선다.
 - **걸음 값은 손으로 적지 않는다.** `steps` 는 P3 이 정적으로 세도록 인라인 리터럴이지만, 그 리터럴은 그림
   사이드카가 정본을 실행해 만든 걸음을 옮긴 것이고 가이드 시험이 둘을 맞댄다(파일럿
   `sparseTableRangeMin-guide.test.ts` 의 「걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다」).

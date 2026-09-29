@@ -7,8 +7,8 @@
  * 상태만 바꾼다. 강조는 이번 걸음의 읽음과 새로 씀 둘뿐이고, 새로 쓴 칸은 다음 걸음에 끝남으로
  * 내려간다. 걸음 사이 전환은 즉시 교체다(애니메이션 없음).
  *
- * 무대 갈래는 `STAGES` 에 등록한다. 「층」(칸 무대 `CellStage`)과 「그래프」(`NodeGraph`, KAN-058)
- * 둘이다 — 트리 · 힙 · 2 차원 표는 시안 4절의 원칙을 따라 KAN-058 에서 더한다.
+ * 무대 갈래는 `STAGES` 에 등록한다. 「층」·「배열」(칸 무대 `CellStage`)과 「그래프」(`NodeGraph`)
+ * 셋이다 — 트리 · 힙 · 2 차원 표는 시안 4절의 원칙을 따라 KAN-058 에서 필요한 편이 나올 때 더한다.
  *
  * 무대 높이는 첫 걸음 전에 모든 걸음의 무대 크기 중 가장 큰 것으로 고정한다(시안 규칙 5).
  */
@@ -22,6 +22,14 @@ import {
   type NodeGraphScene,
   nodeGraphSize,
 } from "../patterns/NodeGraph";
+import {
+  type ArrayOptions,
+  type ArrayStep,
+  arrayCalc,
+  arrayColumns,
+  arrayStage,
+  arrayVars,
+} from "./arrayStage";
 import {
   type GraphOptions,
   type GraphStep,
@@ -46,14 +54,14 @@ export interface PlayerStepBase {
   readonly text: string;
 }
 
-export interface StageKind<S> {
-  rows(step: S, opts: LevelsOptions): StageRow[];
+export interface StageKind<S, O> {
+  rows(step: S, opts: O): StageRow[];
   columns(step: S): number;
-  calc(step: S, opts: LevelsOptions): { expr: string; result: string } | null;
+  calc(step: S, opts: O): { expr: string; result: string } | null;
   vars(step: S): string | null;
 }
 
-const levels: StageKind<LevelsStep> = {
+const levels: StageKind<LevelsStep, LevelsOptions> = {
   rows: levelsStage,
   columns: levelsColumns,
   calc: levelsCalc,
@@ -73,7 +81,15 @@ const graph: GraphStageKind = {
   vars: graphVars,
 };
 
-export const STAGES = { levels, graph } as const;
+/** 배열 무대 — 입력 배열 하나 위의 쥔 구간 · 읽은 칸 · 새로 쓴 칸(KAN-058 S12). */
+const array: StageKind<ArrayStep, ArrayOptions> = {
+  rows: arrayStage,
+  columns: arrayColumns,
+  calc: arrayCalc,
+  vars: arrayVars,
+};
+
+export const STAGES = { levels, graph, array } as const;
 export type StageName = keyof typeof STAGES;
 
 interface PlayerSpecBase {
@@ -95,8 +111,14 @@ export interface GraphPlayerSpec extends PlayerSpecBase, GraphOptions {
   readonly steps: readonly (PlayerStepBase & GraphStep)[];
 }
 
+/** 「배열」 무대 패널 — 입력 배열 하나와 쥔 구간. */
+export interface ArrayPlayerSpec extends PlayerSpecBase, ArrayOptions {
+  readonly stage: "array";
+  readonly steps: readonly (PlayerStepBase & ArrayStep)[];
+}
+
 /** `.sim.ts` 가 내보내는 패널 하나. `player: "stage"` 가 이 패널을 고른다. */
-export type PlayerSpec = LevelsPlayerSpec | GraphPlayerSpec;
+export type PlayerSpec = LevelsPlayerSpec | GraphPlayerSpec | ArrayPlayerSpec;
 
 export const isPlayerSpec = (spec: unknown): spec is PlayerSpec =>
   typeof spec === "object" &&
@@ -136,6 +158,21 @@ export function playerFrames(spec: PlayerSpec): PlayerFrame[] {
         columns: 0,
         scene: kind.scene(s, spec),
         calc: kind.calc(s),
+        vars: kind.vars(s),
+      };
+    });
+  }
+  if (spec.stage === "array") {
+    const kind = STAGES.array;
+    return spec.steps.map((s) => {
+      const { id, rest } = splitTitle(s.title);
+      return {
+        id,
+        title: rest,
+        text: s.text,
+        rows: kind.rows(s, spec),
+        columns: kind.columns(s),
+        calc: kind.calc(s, spec),
         vars: kind.vars(s),
       };
     });

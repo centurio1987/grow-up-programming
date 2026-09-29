@@ -63,7 +63,7 @@ scope: src/algorithms/**, src/_viz/**, design/viz/**, sandbox/algo-guide-v2/**, 
 
 **배치 3~ — 전개 (게이트 통과 2026-09-30 — KAN-058.1 승인 6/6, 동시 셋)**
 - [x] `S2` 잴 수 있게 — `algo-wbs` 완료 판정을 `--strict` 통과로(샘플 두 편은 완료로 센다), P1 이 `$$` 수식 블록을 산문 문단으로 세지 않게 고친다(샘플 검토 관찰). 완료: 남은 편 = 108, `tools/algo-wbs.test.ts`·`check-v2.test.ts` 통과
-- [ ] `S12` 배열·구간 걸음 무대 — SPEC §13 「다른 갈래의 무대」의 배열 줄을 `STAGES` 에 더하고 `binarySearch` 패널을 옮긴다(KAN-058.1 검토 3 승인 — 전개 첫머리에 만든다). 완료: `bun test src/_viz` · `binarySearch` 편 완료 명령 통과
+- [x] `S12` 배열·구간 걸음 무대 — SPEC §13 「다른 갈래의 무대」의 배열 줄을 `STAGES` 에 더하고 `binarySearch` 패널을 옮긴다(KAN-058.1 검토 3 승인 — 전개 첫머리에 만든다). 완료: `bun test src/_viz` · `binarySearch` 편 완료 명령 통과
 - [ ] `S13` 지시서 보강 — 짧은 실행 결과도 증명 블록으로(KAN-058.1 검토 4 승인), 배열 무대·그래프 무대를 쓰는 법을 가리킨다, `binarySearch` 의 남은 손 값도 바꾼다. 완료: `check-links` · `binarySearch` 편 완료 명령 통과
 - [ ] `S14` KAN-060 신규 넷에 그림 — `twoSum`·`missingInteger`·`numberOfDisintersection`·`binaryGap` 에 `fig.tsx`·`figs/` 를 더한다(KAN-060 검토 3 「그림은 KAN-058 때」). 웨이브 편과 함께 동시 셋 안에서 돈다. 완료: 네 편 편 완료 명령 통과 · 본문 `<!--fig:` 1 이상
 - [ ] `S7` W1 나머지 전개. 시작 때 샘플 실측으로 배치 문서를 나눈다(`batch-init`). 완료: W1 남은 편 0(`algo-wbs`) · `ci.ts gates` 통과
@@ -126,3 +126,5 @@ bunx tsc --noEmit
 - 2026-09-30T02:47 · s:62654a5c — 샘플 게이트 통과(2026-09-30) — KAN-058.1 검토 승인 6/6. 유저가 새 항목으로 「승인 = 추천을 따른다」를 명시. 따라서: 두 샘플 서술 수준을 전개 기준으로 · 배열 걸음 무대를 전개 첫머리에(S12) · 짧은 실행 결과도 증명 블록으로(S13) · 동시 셋. S2 에 P1 수식 블록 수정을 더했고, KAN-060 신규 넷 그림을 S14 로 올렸다
 - 2026-09-30T02:47 · s:62654a5c · S2 doing — 착수
 - 2026-09-30T02:49 · s:62654a5c · S2 done — check-v2.ts 에서 입력 모으기·판정을 guideFindings(target, strict) 로 떼어 export(checkOne 은 찍기만). algo-wbs isDone 을 「.md 있음」→「--strict 통과」로(비동기) — 115편 완료 7 · 남은 108(W1 4/29 · W2 1/42 · W3 2/44). P1 이 47336 수식 블록을 산문 문단으로 세던 것을 건너뛰게(연속을 끊지도 않음 — SPEC §12 「수식은 문단을 끊지 못한다」). check-v2 --all 옛 모드·--strict 결과가 고치기 전과 줄 단위로 같음. 시험 191 통과(P1 수식 1 추가). 인용 remap 11곳(카드 문서 5 · FEEDBACK · 대장, 줄번호만)
+- 2026-09-30T02:49 · s:62654a5c · S12 doing — 착수
+- 2026-09-30T02:53 · s:62654a5c · S12 done — src/_viz/player/arrayStage.ts — 걸음 필드 array · range(쥔 구간, 비면 null) · read · write · pointers · calc · vars, 패널 옵션 arrayName · rangeLabel. StepPlayer 에 STAGES.array · ArrayPlayerSpec, StageKind 를 옵션 타입으로 일반화. binarySearch: fig.tsx 가 필름과 패널 걸음을 모두 arrayStage 로 만들고(ARRAY_OPTIONS), sim.ts 두 벌을 player:stage · stage:array 로 다시 뽑음(정본 실행 → 리터럴). walk-probe · walk-miss SVG 재렌더. 시험: StepPlayer 배열 무대 1 추가 · _viz 27 통과 · binarySearch 가이드 시험 19 · --strict · check-proof 16 · build-html · render-figs --check 통과. SPEC §13 무대 셋과 배열 걸음 필드. 인용 remap 3곳

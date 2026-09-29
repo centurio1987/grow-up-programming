@@ -125,3 +125,42 @@ test("그래프 무대 — 정점 · 간선 · 두 스택을 그리고, 걸음�
 
   await act(async () => root.unmount());
 });
+
+test("배열 무대 — 배열 전체와 후보 괄호를 그리고, 구간 밖은 대시 · 찾은 칸은 새로 씀이다", async () => {
+  const spec = (
+    await import(
+      "../../algorithms/binary-search/binarySearch/binarySearch-guide.sim.ts"
+    )
+  ).probe as unknown as PlayerSpec;
+  document.body.innerHTML = '<div id="a"></div>';
+  const host = document.getElementById("a") as HTMLElement;
+  const root = createRoot(host);
+  await act(async () => root.render(<StepPlayer {...spec} />));
+
+  const stage = () =>
+    host.querySelector(".gs-player-stage") as HTMLElement | null;
+  const h0 = stage()?.style.height;
+  // T1 — 후보가 배열 전체다: 괄호 [0,5], 대시 칸 없음
+  const range = () => host.querySelector("[data-viz-range]");
+  expect(range()?.getAttribute("data-viz-from")).toBe("0");
+  expect(range()?.getAttribute("data-viz-to")).toBe("5");
+  expect(host.querySelectorAll('[data-viz-state="out"]').length).toBe(0);
+
+  // T3 — A[2] = 5 를 읽고 lo = 3: 괄호가 [3,5] 로 옮겨 간다. 앞 세 칸 중 이번에 읽은 칸 2 는
+  // 「읽음」이 이기고(강조는 이번 걸음의 읽음과 새로 씀), 나머지 둘이 대시다
+  const badge = (id: string) =>
+    [...host.querySelectorAll(".gs-player-badge")].find(
+      (b) => b.textContent === id,
+    ) as HTMLButtonElement;
+  await act(async () => badge("T3").click());
+  expect(stage()?.style.height).toBe(h0);
+  expect(range()?.getAttribute("data-viz-from")).toBe("3");
+  expect(host.querySelectorAll('[data-viz-state="out"]').length).toBe(2);
+  expect(host.querySelectorAll('[data-viz-state="read"]').length).toBe(1);
+
+  // 마지막 걸음 — 찾은 칸 하나가 새로 씀이다
+  await act(async () => badge("T7").click());
+  expect(host.querySelectorAll('[data-viz-state="focus"]').length).toBe(1);
+
+  await act(async () => root.unmount());
+});
