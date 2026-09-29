@@ -59,14 +59,14 @@ A[1] 을 1 에서 7 로 고쳤다면
 
 - **구간 합**이 무엇인지. 인덱스 `l` 부터 `r` 까지의 값을 **건너뛰지 않고** 전부 더한 수예요.
 - **연속 부분 배열**과 부분집합의 차이. 여기서 다루는 것은 연속된 한 토막입니다. 흐릿하면
-  [`longestSubarrayAtMostSum`](../longestSubarrayAtMostSum/longestSubarrayAtMostSum-problem.md)
+  [`longestSubarrayAtMostSum`](../longestSubarrayAtMostSum/longestSubarrayAtMostSum-guide.md)
   를 먼저 봅니다.
 - **정적 배열**과 **동적 배열**의 차이 — 여기서 정적이라는 말은 「질의를 처리하는 동안 원소가
   바뀌지 않는다」는 뜻이지 크기가 고정이라는 뜻이 아닙니다.
 - 배열을 한 번 지나가는 `for` 루프와, 배열 인덱스가 `0` 부터 시작한다는 것.
 
 「구간 합을 구한다」와 「합이 조건을 만족하는 구간을 찾는다」는 다른 문제입니다. 뒤쪽은
-[`subarraySumEqualsK`](../subarraySumEqualsK/subarraySumEqualsK-problem.md) 가 다루는 것이고,
+[`subarraySumEqualsK`](../subarraySumEqualsK/subarraySumEqualsK-guide.md) 가 다루는 것이고,
 이 글은 **주어진 구간의 합을 답하는 것**만 합니다.
 
 ```text
@@ -569,7 +569,7 @@ P[r+1] = A[0] + … + A[r]        ─┘
 
 마지막 줄이 다른 자료구조가 필요해지는 자리입니다. 구간 최솟값을 묻는 문제가
 [`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-guide.md) 이나
-[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-problem.md) 으로 가는
+[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-guide.md) 으로 가는
 이유가 이것이에요 — 최댓값에는 역원이 없어서 두 칸의 차이로 구간을 만들 수 없습니다.
 
 ```text
@@ -634,7 +634,7 @@ n = 100,000 일 때 (덧셈·뺄셈만 센다)
 ```
 
 두 번째 무리가 보이면 다른 절차로 갑니다. 갱신이 섞이면
-[`fenwickRangeSum`](../fenwickRangeSum/fenwickRangeSum-problem.md) 쪽이고, 최솟값이면
+[`fenwickRangeSum`](../fenwickRangeSum/fenwickRangeSum-guide.md) 쪽이고, 최솟값이면
 [`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-guide.md) 쪽이에요.
 
 #### 실제로 쓰이는 곳
@@ -1057,3 +1057,71 @@ T10   l=4  r=4    P[5] = 14   P[4] = 9   답 5
 - 갱신이 섞인 문제에서 누적합 표를 쓰되 **표를 다시 만들지 않는** 방법을 하나 생각해 보세요.
   갱신을 모아 두었다가 질의 때 반영하는 길이 있습니다. 그때 질의 비용이 얼마가 되는지가
   답입니다.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 구간 합 질의 (정적 배열)
+
+풀 파일: [`prefixSumRangeQuery.ts`](./prefixSumRangeQuery.ts) · 테스트: [`prefixSumRangeQuery.test.ts`](./prefixSumRangeQuery.test.ts) · 실행: `bun test src/algorithms/array/prefixSumRangeQuery/prefixSumRangeQuery.test.ts`
+
+#### 한 줄 요약
+
+> 정수 배열과 구간 질의 목록을 받아, **각 질의에 해당하는 구간 합**을 순서대로 담은 배열을 반환한다.
+
+#### 스토리
+
+도서관 사서 유진은 서가에 꽂힌 책들의 쪽수를 기록한 목록을 가지고 있다. 서가는 절대 바뀌지 않는다.
+
+독서 클럽 회원들이 질문을 쏟아낸다. "서가 인덱스 $l$번부터 $r$번까지의 책을 모두 읽으면 총 몇 쪽이야?" 같은 질의다. 질의는 수없이 들어오지만 서가 목록 자체는 변하지 않는다.
+
+유진은 모든 질의의 결과를 빠르게 계산해 순서대로 반환해야 한다.
+
+#### 함수 인터페이스
+
+```ts
+export function prefixSumRangeQuery(
+  A: number[],
+  queries: Array<[number, number]>,
+): number[];
+```
+
+- `A` — 정적 정수 배열. 질의 중 변경되지 않는다.
+- `queries` — 질의 목록. 각 원소 `[l, r]`은 인덱스 $[l, r]$ 구간의 합을 요청한다.
+- 반환 — 각 질의의 합을 입력 순서대로 담은 배열.
+
+#### 제약 조건
+
+- $1 \leq N \leq 100{,}000$ (여기서 $N$은 `A`의 길이)
+- $0 \leq Q \leq 100{,}000$ (여기서 $Q$는 `queries`의 길이)
+- $-10{,}000 \leq A[i] \leq 10{,}000$ (정수)
+- 각 질의 $[l, r]$는 $0 \leq l \leq r \leq N - 1$
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+각 질의 $[l, r]$에 대해
+
+$$\text{sum}(l, r) = \sum_{k=l}^{r} A[k]$$
+
+을 계산한다. 배열 $A$는 질의 중 변하지 않는다(정적). 질의가 없으면 빈 배열을 반환한다. 동일한 질의가 여러 번 들어와도 각각 개별 결과로 반환한다.
+
+#### 예시
+
+```ts
+prefixSumRangeQuery(
+  [1, 2, 3, 4, 5],
+  [[0, 4], [1, 3], [2, 2], [0, 0]],
+); // [15, 9, 3, 1]
+// [0,4]: 1+2+3+4+5=15, [1,3]: 2+3+4=9, [2,2]: 3, [0,0]: 1
+
+prefixSumRangeQuery([-1, 2, -3, 4], [[0, 3], [1, 2]]);
+// [2, -1]  — [0,3]: -1+2-3+4=2, [1,2]: 2+(-3)=-1
+
+prefixSumRangeQuery([1, 2, 3], []);
+// []  — 질의 없음
+
+prefixSumRangeQuery([10, 20, 30], [[0, 0], [2, 2], [0, 2]]);
+// [10, 30, 60]  — 첫 원소, 마지막 원소, 전체 합
+```

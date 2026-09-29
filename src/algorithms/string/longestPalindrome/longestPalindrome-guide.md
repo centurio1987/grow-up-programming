@@ -1407,3 +1407,61 @@ T5 에서 6 으로, T7 에서 8 로, T10 에서 12 로, T14 에서 14 로 갔고
 3. 이 절차를 고쳐 **회문인 부분 문자열이 모두 몇 개인지**를 세려면 어디를 바꿔야 할까요?
    반지름 배열 하나에서 그 값이 나온다는 것을 먼저 확인하고, 홀수 자리와 짝수 자리에서 세는
    식이 같은지 다른지도 함께 생각해 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 최장 회문 부분 문자열
+
+풀 파일: [`longestPalindrome.ts`](./longestPalindrome.ts) · 테스트: [`longestPalindrome.test.ts`](./longestPalindrome.test.ts) · 실행: `bun test src/algorithms/string/longestPalindrome/longestPalindrome.test.ts`
+
+#### 한 줄 요약
+
+> `longestPalindrome(s)`는 문자열을 받아, 그 안에서 앞뒤로 읽어도 동일한 가장 긴 부분 문자열을 반환한다.
+
+#### 스토리
+
+언어학 연구소의 지호는 고대 암호문에서 좌우 대칭 구조를 가진 가장 긴 구절을 찾아야 한다. 암호문 해독의 실마리가 바로 그 대칭 구절에 숨어 있다고 한다.
+
+암호문은 수십만 자에 달하고, 가능한 모든 부분 문자열을 일일이 확인하면 해가 바뀌어도 끝나지 않는다. 지호에게는 문자열 전체를 단번에 훑으며 가장 긴 대칭 구절을 찾아주는 도구가 필요하다.
+
+#### 함수 인터페이스
+
+```ts
+export function longestPalindrome(s: string): string;
+```
+
+- `s` — 입력 문자열
+- 반환 — `s`의 부분 문자열 중 회문이면서 길이가 가장 긴 것. 동일 길이의 회문이 여러 개면 그 중 어느 하나를 반환해도 된다. 빈 문자열 입력 시 빈 문자열을 반환한다.
+
+#### 제약 조건
+
+- $0 \leq |s| \leq 10^5$
+- 문자 집합: 소문자 영문 알파벳 (`a`–`z`)
+- 시간 복잡도: $O(n)$
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+문자열 $s$가 주어질 때, $s$의 연속 부분 문자열 $s[i \ldots j]$ 중 회문이면서 길이 $j - i + 1$이 최대인 것을 반환한다.
+
+부분 문자열 $s[i \ldots j]$가 회문인 조건:
+
+$$\forall k \in [0,\, j - i],\; s[i + k] = s[j - k]$$
+
+답이 여러 개라면(동일 길이의 회문이 두 곳 이상) 그 중 어느 것이든 반환해도 된다.
+
+- $s$가 빈 문자열이면 빈 문자열 `""`을 반환한다.
+- 모든 문자가 다르면 길이 1의 임의 문자를 반환한다.
+
+#### 예시
+
+```ts
+longestPalindrome("babad");             // "bab" 또는 "aba" — 길이 3의 회문 두 가지 모두 정답
+longestPalindrome("cbbd");              // "bb" — 길이 2, 짝수 회문
+longestPalindrome("racecar");           // "racecar" — 전체가 회문
+longestPalindrome("forgeeksskeegfor");  // "geeksskeeg" — 길이 10
+longestPalindrome("a");                 // "a" — 단일 문자
+longestPalindrome("");                  // "" — 빈 입력
+```

@@ -91,9 +91,9 @@
   절차**를 만드는 것이 목표라서, 무엇을 없애는지 알려면 먼저 이것을 알아야 합니다.
 
 이 글이 다루는 것은 **상한 하나를 받아 그 아래 소수를 전부 내는 일**입니다. 수 하나가
-소수인지만 묻는 것은 [`isPrimeTrial`](../isPrimeTrial/isPrimeTrial-problem.md) 과
-[`millerRabin`](../millerRabin/millerRabin-problem.md) 이 다루고, 큰 수 하나를 인수로
-가르는 것은 [`pollardRho`](../pollardRho/pollardRho-problem.md) 가 다뤄요.
+소수인지만 묻는 것은 [`isPrimeTrial`](../isPrimeTrial/isPrimeTrial-guide.md) 과
+[`millerRabin`](../millerRabin/millerRabin-guide.md) 이 다루고, 큰 수 하나를 인수로
+가르는 것은 [`pollardRho`](../pollardRho/pollardRho-guide.md) 가 다뤄요.
 
 ```text
   상한 아래 소수를 전부 낸다        <- 이 글이 다루는 것
@@ -711,8 +711,8 @@ sieveOfEratosthenes(0)    →  []
 ```
 
 세 번째 무리가 보이면 다른 절차로 갑니다. 수 하나의 소수 판정은
-[`millerRabin`](../millerRabin/millerRabin-problem.md) 쪽이고, 인수를 가르는 것은
-[`pollardRho`](../pollardRho/pollardRho-problem.md) 쪽이에요.
+[`millerRabin`](../millerRabin/millerRabin-guide.md) 쪽이고, 인수를 가르는 것은
+[`pollardRho`](../pollardRho/pollardRho-guide.md) 쪽이에요.
 
 #### 실제로 쓰이는 곳
 
@@ -1177,3 +1177,63 @@ T4 가 적었으며, 20 은 `2 × 10` 이라 T2 가 적었어요. 일반적으�
 - 조각으로 갈라 채우는 체는 조각 길이가 1,024 였습니다. 그 길이를 64 로 줄이면 잡는 칸과
   배열 칸 접근이 각각 어느 방향으로 움직일까요? 두 축을 식으로 세우고, 상한 1,000,000 에서
   어느 조각 길이가 두 축을 가장 고르게 만드는지 따져 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 에라토스테네스의 체 (Sieve of Eratosthenes)
+
+풀 파일: [`sieveOfEratosthenes.ts`](./sieveOfEratosthenes.ts) · 테스트: [`sieveOfEratosthenes.test.ts`](./sieveOfEratosthenes.test.ts) · 실행: `bun test src/algorithms/number-theory/sieveOfEratosthenes/sieveOfEratosthenes.test.ts`
+
+#### 한 줄 요약
+
+> 함수는 정수 `n`을 받아 `n` 이하의 모든 소수를 오름차순으로 담은 배열을 반환한다.
+
+#### 스토리
+
+수학 교육 플랫폼이 학생들에게 소수 목록을 빠르게 제공해야 한다. 학생이 "100까지의 소수를 모두 보여줘"라고 요청하면 즉시 응답해야 한다. 하나씩 소수 판정을 하면 요청마다 오래 걸린다.
+
+한 번에 범위 안의 소수를 모두 구하면 이후 어떤 쿼리에도 즉시 답할 수 있다. $n$이 $10^6$ 수준으로 커져도 1초 안에 전체 소수 목록을 생성해야 한다.
+
+$n$이 2 미만이면 소수가 없으므로 빈 배열을 반환한다. 소수는 오름차순이어야 한다.
+
+#### 함수 인터페이스
+
+```ts
+export function sieveOfEratosthenes(n: number): number[];
+```
+
+- `n` — 상한값, 음이 아닌 정수
+- 반환 — $n$ 이하의 소수를 오름차순으로 담은 배열; $n < 2$이면 `[]`
+
+#### 제약 조건
+
+- $n \geq 0$ (음이 아닌 정수)
+- $n < 2$이면 빈 배열 반환
+- 결과는 오름차순 정렬
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+$n$ 이하의 모든 소수를 오름차순으로 담은 배열을 반환한다.
+
+소수 정의: $2$ 이상이며 $1$과 자기 자신 외의 약수가 없는 수.
+
+경계 동작:
+
+- $n < 2$이면 `[]`
+- $n = 2$이면 `[2]`
+- 결과 배열의 마지막 원소는 $n$ 이하의 가장 큰 소수
+
+#### 예시
+
+```ts
+sieveOfEratosthenes(0);   // []       — 2 미만이므로 없음
+sieveOfEratosthenes(1);   // []       — 2 미만이므로 없음
+sieveOfEratosthenes(2);   // [2]      — 2는 유일한 짝수 소수
+sieveOfEratosthenes(10);  // [2, 3, 5, 7]
+sieveOfEratosthenes(20);  // [2, 3, 5, 7, 11, 13, 17, 19]
+sieveOfEratosthenes(7);   // [2, 3, 5, 7]  — n이 소수인 경우 n도 포함
+sieveOfEratosthenes(30);  // [2, 3, 5, 7, 11, 13, 17, 19, 23, 29]
+```

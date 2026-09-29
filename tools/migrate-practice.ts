@@ -80,11 +80,51 @@ export function toPractice(
   if (!head.startsWith("### ")) throw new Error(`제목 줄이 없다: ${head}`);
   const title = head.slice(4).trim();
   const runLine = `풀 파일: [\`${stub}\`](./${stub}) · 테스트: [\`${suite}\`](./${suite}) · 실행: \`bun test ${suitePath}\``;
-  const { rest, meta } = liftGrade(moved.slice(1));
+  const { rest, meta } = liftGrade(splitDisplayMath(moved.slice(1)));
   return {
     title,
     block: [`### ${title}`, "", runLine, ...meta, ...rest].join("\n"),
   };
+}
+
+/**
+ * 여러 줄 디스플레이 수식의 `$$` 를 제 줄로 뗀다. 문제 문서 다섯이 `$$\text{…} = \begin{cases}` 로
+ * 열고 `\end{cases}$$` 로 닫았는데, 렌더러(remark-math)는 닫는 `$$` 가 제 줄에 있어야 닫힘으로 읽는다.
+ * 못 닫힌 수식이 뒤따르는 `#### 예시` 헤딩을 삼켜 `build-html` 이 헤딩 수 어긋남으로 잡았다
+ * (2026-09-29 `S6`). 한 줄에서 열고 닫는 수식(`$$…$$`)과 펜스 안은 건드리지 않는다.
+ */
+export function splitDisplayMath(lines: string[]): string[] {
+  const out: string[] = [];
+  let fenced = false;
+  let open = false;
+  for (const line of lines) {
+    if (line.trimStart().startsWith("```")) fenced = !fenced;
+    if (fenced) {
+      out.push(line);
+      continue;
+    }
+    const t = line.trim();
+    if (
+      !open &&
+      t.startsWith("$$") &&
+      t !== "$$" &&
+      !(t.length > 4 && t.endsWith("$$"))
+    ) {
+      out.push("$$", t.slice(2));
+      open = true;
+      continue;
+    }
+    if (open && t.endsWith("$$")) {
+      const body = t.slice(0, -2);
+      if (body !== "") out.push(body);
+      out.push("$$");
+      open = false;
+      continue;
+    }
+    if (t === "$$") open = !open;
+    out.push(line);
+  }
+  return out;
 }
 
 /**

@@ -91,8 +91,8 @@ mask = 1011 의 서브마스크 여덟 개
   경계가 되는지는 두 번째 「짚고 가기」에서 값으로 확인합니다.
 
 같은 저장소 안에서 비트 하나를 다루는 도구는
-[`lowestSetBit`](../lowestSetBit/lowestSetBit-problem.md) 이 다루고, 비트 연산의 상쇄 성질을
-쓰는 문제로는 [`singleNumberXor`](../singleNumberXor/singleNumberXor-problem.md) 이 있어요.
+[`lowestSetBit`](../lowestSetBit/lowestSetBit-guide.md) 이 다루고, 비트 연산의 상쇄 성질을
+쓰는 문제로는 [`singleNumberXor`](../singleNumberXor/singleNumberXor-guide.md) 이 있어요.
 
 ```text
 이 글이 다루는 것과 이웃한 것
@@ -695,7 +695,7 @@ enumerateSubmasks(0)        -> [0]
 | 식 | 무엇을 하는가 | 어디서 다시 만나는가 |
 | --- | --- | --- |
 | `x & (x - 1)` | 최하위 1 비트를 지운다 | 1 비트 개수 세기 — 0 이 될 때까지 이 식을 되풀이한 횟수가 `k` 다 |
-| `x & -x` | 최하위 1 비트만 남긴다 | [`lowestSetBit`](../lowestSetBit/lowestSetBit-problem.md) 과 펜윅 트리의 자리 이동 |
+| `x & -x` | 최하위 1 비트만 남긴다 | [`lowestSetBit`](../lowestSetBit/lowestSetBit-guide.md) 과 펜윅 트리의 자리 이동 |
 | `x \| (x + 1)` | 최하위 0 비트를 1 로 세운다 | 자리올림을 쓰는 대칭 항등식 |
 | `(x - 1) & mask` | `mask` 안에서 다음으로 작은 서브마스크를 만든다 | 이 글의 절차 |
 
@@ -1198,3 +1198,59 @@ AND 는 값의 크기와 무관한 상수 시간 연산이라 「필요할 때�
 - 오름차순으로 서브마스크를 만들려면 걸음의 식이 `(sub - mask) & mask` 가 되고 시작값이 0 이
   됩니다. `mask = 1011` 에서 이 식으로 여덟 값을 손으로 만들어 보고, 왜 이 식은 0 에서
   출발해 0 으로 끝나는지를 $\mathcal{S}(\text{mask})$ 의 정의로 적어 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 부분집합 순회 (Submask Enumeration)
+
+풀 파일: [`enumerateSubmasks.ts`](./enumerateSubmasks.ts) · 테스트: [`enumerateSubmasks.test.ts`](./enumerateSubmasks.test.ts) · 실행: `bun test src/algorithms/bit-manipulation/enumerateSubmasks/enumerateSubmasks.test.ts`
+
+#### 한 줄 요약
+
+> 정수 비트마스크를 받아, 그 마스크의 모든 부분집합(서브마스크)을 내림차순으로 담은 배열을 반환한다.
+
+#### 스토리
+
+보안 연구원 채린은 건물 출입 권한 시스템을 분석한다. 각 문은 하나의 비트로 표현되고, 특정 마스터키는 여러 문을 동시에 열 수 있다. 마스터키가 열 수 있는 문의 조합은 비트마스크로 나타낼 수 있으며, 마스터키의 부분 권한을 가진 서브키가 몇 종류나 존재하는지 알아야 한다.
+
+마스터키 `mask`가 가진 권한의 일부만 가진 모든 서브키 조합을 열거해야 한다. 서브키가 열 수 있는 문은 반드시 마스터키가 열 수 있는 문이어야 하며, 아무 문도 열지 못하는 빈 서브키도 유효한 조합으로 포함된다.
+
+#### 함수 인터페이스
+
+```ts
+export function enumerateSubmasks(mask: number): number[];
+```
+
+- `mask` — 0 이상의 정수 비트마스크
+- 반환 — `mask`의 모든 서브마스크를 내림차순으로 나열한 배열 (빈 집합 `0` 포함)
+
+#### 제약 조건
+
+- $0 \leq \text{mask} \leq 2^{20}$ (정수 비트마스크)
+- 반환 배열은 내림차순 정렬이어야 한다.
+- `0`은 항상 마지막 원소로 포함된다.
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+정수 비트마스크 $m$이 주어질 때, $m$의 모든 서브마스크를 열거한다.
+
+정수 $s$가 $m$의 서브마스크라는 것은 $s$의 모든 1-비트가 $m$에서도 1로 켜져 있다는 의미이다.
+
+$$s \text{ is submask of } m \iff (s\ \&\ m) = s$$
+
+반환값은 $m$의 모든 서브마스크를 내림차순으로 나열한 배열이며, 빈 집합을 나타내는 $s = 0$도 반드시 포함된다.
+
+$m$의 1-비트 수를 $k$라 하면 서브마스크의 개수는 $2^{k}$개이다.
+
+#### 예시
+
+```ts
+enumerateSubmasks(0b1011);  // [11, 10, 9, 8, 3, 2, 1, 0] — 4비트 중 3개 세팅, 2^3=8개
+enumerateSubmasks(0b101);   // [5, 4, 1, 0] — 2개 세팅, 2^2=4개
+enumerateSubmasks(0b1000);  // [8, 0] — 1개 세팅, 2^1=2개
+enumerateSubmasks(1);       // [1, 0] — 최하위 비트만 세팅
+enumerateSubmasks(0);       // [0]   — 세팅된 비트 없음, 2^0=1개 (빈 집합만)
+```

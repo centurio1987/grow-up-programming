@@ -1287,3 +1287,77 @@ edges = [[3,4], [4,5], [0,1], [1,2], [2,0]]   ← 같은 그래프에 번호만 
   한 줄을 더해야 합니까.
 - 여분 간선의 개수는 `E − V + k` 였습니다. 정점 100,000 개와 간선 100,000 개인 그래프에서 이
   값이 가장 작아지는 것은 어떤 모양일 때이고, 그때에도 사이클이 반드시 있다고 말할 수 있습니까.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### Undirected Cycle Detection (무향 그래프 사이클 탐지)
+
+풀 파일: [`undirectedCycleDetection.ts`](./undirectedCycleDetection.ts) · 테스트: [`undirectedCycleDetection.test.ts`](./undirectedCycleDetection.test.ts) · 실행: `bun test src/algorithms/graph/undirectedCycleDetection/undirectedCycleDetection.test.ts`
+
+#### 한 줄 요약
+
+> 함수는 정점 수 `n`과 무향 간선 목록을 받아, 그래프에 사이클이 존재하면 `true`, 없으면 `false`를 반환한다.
+
+#### 스토리
+
+도시 계획팀이 새로운 공원 산책로 네트워크를 설계하고 있다. 산책로는 양방향으로 걸을 수 있고, 각 교차점이 하나의 정점이다. 팀은 산책로가 트리 구조인지 — 즉 어떤 두 지점 사이에도 경로가 딱 하나뿐인지 — 를 확인하고 싶다.
+
+경로가 하나보다 많다는 것은 어딘가에 순환 고리(사이클)가 있다는 뜻이다. 사이클이 있으면 같은 구간을 중복 시공한 셈이므로 예산을 낭비한 것이다.
+
+또한 같은 두 교차점을 잇는 산책로가 두 개 이상 있거나, 한 지점에서 그냥 맴도는 루프가 있어도 역시 불필요한 중복이다.
+
+#### 함수 인터페이스
+
+```ts
+export function undirectedCycleDetection(
+  n: number,
+  edges: [number, number][],
+): boolean;
+```
+
+- `n` — 정점 수. 정점 번호는 $0 \ldots n-1$
+- `edges` — 무향 간선 목록. 각 원소 `[u, v]`는 정점 `u`와 `v` 사이의 무향 간선
+- 반환 — 사이클이 존재하면 `true`, 존재하지 않으면 `false`
+
+#### 제약 조건
+
+- $1 \leq V \leq 10^{5}$ (여기서 $V = n$)
+- $0 \leq E \leq 10^{5}$ (여기서 $E$는 `edges`의 길이)
+- 무방향 그래프
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+무향 그래프에 **사이클이 존재하는지 여부** 를 판별한다.
+
+사이클은 3개 이상의 서로 다른 정점으로 이루어진 닫힌 경로이다.
+
+추가 규칙:
+- 자기 루프 `[v, v]`도 사이클로 간주한다.
+- 같은 정점 쌍에 대한 다중 간선(중복 간선)이 있으면 사이클로 간주한다.
+- 그래프가 분리된 여러 성분으로 이루어진 경우, 어느 하나에라도 사이클이 있으면 `true`를 반환한다.
+- 간선이 없으면 사이클이 없다.
+
+#### 예시
+
+```ts
+// 삼각형: 0-1-2-0
+undirectedCycleDetection(3, [[0,1],[1,2],[2,0]]); // true
+
+// 자기 루프: 0-0
+undirectedCycleDetection(2, [[0,0]]); // true
+
+// 중복 간선: [0,1]이 두 번
+undirectedCycleDetection(2, [[0,1],[0,1]]); // true
+
+// 선형 트리: 0-1-2-3
+undirectedCycleDetection(4, [[0,1],[1,2],[2,3]]); // false
+
+// 포레스트: 0-1-2 | 3-4-5 (두 개의 트리)
+undirectedCycleDetection(6, [[0,1],[1,2],[3,4],[4,5]]); // false
+
+// 간선 없음
+undirectedCycleDetection(5, []); // false
+```

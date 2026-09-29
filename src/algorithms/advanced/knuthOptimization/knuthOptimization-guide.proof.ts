@@ -62,7 +62,7 @@ export function tail(n: number): number[] {
  */
 export const NEG = [1, 1, 2, -2];
 
-/** 제약 상한. `knuthOptimization-problem.md` 의 「제약 조건」과 같다. */
+/** 제약 상한. `knuthOptimization-guide.md` 실습 절의 「제약 조건」과 같다. */
 const N_LIMIT = 5000;
 
 /* ────────────────────────── 칸 맞춤 ────────────────────────── */

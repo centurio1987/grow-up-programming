@@ -67,7 +67,7 @@ A[3] 을 1 에서 10 으로 바꾸면
 - **재귀 함수와 종료 조건**. 이 글의 절차는 자기 자신을 두 번 부르고, 구간이 한 칸이 되면
   멈춥니다.
 - **미리 계산해 두고 질의에 답하는 방식**이 무엇인지. 흐릿하면
-  [`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-problem.md) 를 먼저 봅니다.
+  [`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-guide.md) 를 먼저 봅니다.
 
 「구간의 값을 묻는다」와 「구간이 안 바뀐다」는 다른 조건입니다. 배열이 안 바뀌는 문제는
 [`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-guide.md) 이 다루고, 이
@@ -744,7 +744,7 @@ segmentTreeRangeMin([5], 질의 [0,0] · 갱신 i=0 v=99 · 질의 [0,0])   → 
 | 행렬 곱 | 단위행렬 | 됩니다. 순서를 지켜 합치면 됩니다 | 안 됩니다 |
 
 마지막 줄이 결합 법칙만 요구한다는 말의 뜻입니다 — 행렬 곱은 교환 법칙이 성립하지 않는데도
-됩니다. [`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-problem.md) 가 쓰는
+됩니다. [`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-guide.md) 가 쓰는
 접두 표는 그보다 강한 조건(역원)을 요구하고, 그 대신 질의가 뺄셈 한 번으로 끝나요.
 
 | 같은 이름을 다시 만나는 자리 | 무엇을 하는가 | 요구하는 조건 |
@@ -754,7 +754,7 @@ segmentTreeRangeMin([5], 질의 [0,0] · 갱신 i=0 v=99 · 질의 [0,0])   → 
 | 스파스 테이블 | 겹치는 두 칸으로 덮는다 | 결합 법칙 + 멱등성 |
 
 셋이 요구하는 조건이 다 다르고, 이 트리가 그중 가장 약한 것만 씁니다. 거듭제곱 쪽은
-[`fastPower`](../../number-theory/fastPower/fastPower-problem.md) 가 같은 조건을 같은 이름으로
+[`fastPower`](../../number-theory/fastPower/fastPower-guide.md) 가 같은 조건을 같은 이름으로
 다뤄요.
 
 ## 파트 2 — 적용 조건 · 보장 · 비용
@@ -812,7 +812,7 @@ N = 100,000 일 때 (배열 접근만 센다)
 
 두 번째 무리가 보이면 다른 절차로 갑니다. 배열이 안 바뀌면
 [`sparseTableRangeMin`](../sparseTableRangeMin/sparseTableRangeMin-guide.md) 쪽이고, 구간
-합에 갱신이 붙으면 [`fenwickRangeSum`](../fenwickRangeSum/fenwickRangeSum-problem.md) 쪽이에요.
+합에 갱신이 붙으면 [`fenwickRangeSum`](../fenwickRangeSum/fenwickRangeSum-guide.md) 쪽이에요.
 
 #### 실제로 쓰이는 곳
 
@@ -1301,3 +1301,84 @@ T13   질의 [3,4]   구간의 칸 수 2   들어간 노드 3
   때(T7\~T9)와 어디가 다른지까지 확인해 보세요.
 - 갱신이 「구간 `[l, r]` 의 모든 값에 `x` 를 더한다」로 바뀌면 이 절차의 어디가 성립하지 않을까요?
   갱신 하나가 고쳐야 하는 리프의 개수부터 세어 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 구간 최솟값 질의 (동적 갱신)
+
+풀 파일: [`segmentTreeRangeMin.ts`](./segmentTreeRangeMin.ts) · 테스트: [`segmentTreeRangeMin.test.ts`](./segmentTreeRangeMin.test.ts) · 실행: `bun test src/algorithms/array/segmentTreeRangeMin/segmentTreeRangeMin.test.ts`
+
+#### 한 줄 요약
+
+> 정수 배열과 갱신·질의 연산 목록을 받아, **각 질의(구간 최솟값)의 결과**를 순서대로 담은 배열을 반환한다.
+
+#### 스토리
+
+물류 창고 모니터링 시스템을 담당하는 진수는 창고 구역별 재고 최솟값을 실시간으로 추적한다.
+
+시스템에는 두 종류의 명령이 들어온다. 하나는 특정 구역의 재고를 새 값으로 교체하는 갱신이고, 다른 하나는 구간 $[l, r]$에 속한 구역들의 재고 중 가장 적은 양을 묻는 질의다.
+
+명령이 섞여 들어오므로, 갱신 결과가 이후 질의에 즉시 반영되어야 한다. 진수는 모든 질의의 결과를 순서대로 모아 반환해야 한다.
+
+#### 함수 인터페이스
+
+```ts
+export type SegOp =
+  | { type: "update"; i: number; v: number }
+  | { type: "query"; l: number; r: number };
+
+export function segmentTreeRangeMin(A: number[], ops: SegOp[]): number[];
+```
+
+- `A` — 초기 정수 배열.
+- `ops` — 순서대로 처리할 연산 목록. `update`는 점 갱신, `query`는 구간 최솟값 요청이다.
+- 반환 — `query` 연산의 결과만 등장 순서대로 담은 배열.
+
+#### 제약 조건
+
+- $1 \leq N \leq 100{,}000$ (여기서 $N$은 `A`의 길이)
+- $0 \leq Q \leq 100{,}000$ (여기서 $Q$는 `ops`의 길이)
+- $-10^9 \leq A[i],\, v \leq 10^9$ (정수)
+- `update` 연산: $0 \leq i < N$
+- `query` 연산: $0 \leq l \leq r < N$
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+연산은 두 종류다.
+
+- **update** $(i, v)$: $A[i] \leftarrow v$ (덮어쓰기, 누적이 아님).
+- **query** $(l, r)$: $\min(A[l], A[l+1], \ldots, A[r])$를 계산한다.
+
+연산은 입력 순서대로 처리된다. `update`는 이후 모든 연산에 즉시 반영된다. `query` 결과만 모아 반환하며, `update`는 결과 배열에 포함되지 않는다. `query`가 하나도 없으면 빈 배열을 반환한다.
+
+#### 예시
+
+```ts
+segmentTreeRangeMin(
+  [5, 2, 4, 1, 3],
+  [
+    { type: "query",  l: 0, r: 4 },   // 1  — 초기 전체 최솟값
+    { type: "query",  l: 0, r: 2 },   // 2  — A[0..2] 중 최솟값
+    { type: "update", i: 3, v: 10 },  // A는 이제 [5,2,4,10,3]
+    { type: "query",  l: 0, r: 4 },   // 2  — 갱신 후 전체 최솟값
+    { type: "query",  l: 3, r: 4 },   // 3  — A[3..4] 중 최솟값
+  ],
+); // [1, 2, 2, 3]
+
+segmentTreeRangeMin([5], [
+  { type: "query",  l: 0, r: 0 },
+  { type: "update", i: 0, v: 99 },
+  { type: "query",  l: 0, r: 0 },
+]); // [5, 99]  — 단일 원소, 갱신 전후
+
+segmentTreeRangeMin([1, 2, 3], []);
+// []  — 연산 없음
+
+segmentTreeRangeMin(
+  [1, 2, 3],
+  [{ type: "update", i: 1, v: -1000 }, { type: "query", l: 0, r: 2 }],
+); // [-1000]  — 음수 갱신 후 최솟값
+```

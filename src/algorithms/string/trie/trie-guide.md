@@ -88,8 +88,8 @@
   정해져 있지 않습니다.
 
 이 글이 다루는 것은 **접두사를 묻는 조회**입니다. 자식이 하나뿐인 사슬을 한 노드로 접는 변형은
-[`radixTree`](../radixTree/radixTree-problem.md) 가 다루고, 여러 단어를 한 번의 순회로 동시에
-찾는 것은 [`ahoCorasick`](../ahoCorasick/ahoCorasick-problem.md) 가 다뤄요.
+[`radixTree`](../radixTree/radixTree-guide.md) 가 다루고, 여러 단어를 한 번의 순회로 동시에
+찾는 것은 [`ahoCorasick`](../ahoCorasick/ahoCorasick-guide.md) 가 다뤄요.
 
 ```text
   담긴 단어의 접두사인지 묻는다              <- 이 글이 다루는 것
@@ -706,7 +706,7 @@ app 을 두 번 담은 뒤 search("app")  참
 └ 셋 다 키를 한 덩어리로 보지 않고 자리 하나씩 갈라 후보를 좁힌다
 ```
 
-자리별 분해를 정렬에 쓴 것이 [`radixSort`](../../sorting/radixSort/radixSort-problem.md) 이고,
+자리별 분해를 정렬에 쓴 것이 [`radixSort`](../../sorting/radixSort/radixSort-guide.md) 이고,
 이 글은 같은 생각을 **조회**에 쓴 것이에요.
 
 ## 파트 2 — 적용 조건 · 보장 · 비용
@@ -762,8 +762,8 @@ app 을 두 번 담은 뒤 search("app")  참
 ```
 
 마지막 무리가 보이면 다른 구조로 갑니다. 자식이 하나뿐인 사슬이 길게 이어지는 사전이면
-[`radixTree`](../radixTree/radixTree-problem.md) 쪽이고, 접두사가 아니라 문자열 가운데의 조각을
-물으면 [`suffixArray`](../suffixArray/suffixArray-problem.md) 쪽이에요.
+[`radixTree`](../radixTree/radixTree-guide.md) 쪽이고, 접두사가 아니라 문자열 가운데의 조각을
+물으면 [`suffixArray`](../suffixArray/suffixArray-guide.md) 쪽이에요.
 
 #### 실제로 쓰이는 곳
 
@@ -1226,3 +1226,71 @@ T5   insert("apple") 의 a p p   읽은 글자 3   새 노드 0   노드 수 4 �
   달라질까요? 자식을 `Σ` 칸 배열로 담는 구현과 맵으로 담는 구현을 각각 적어 보세요.
 - 담는 일이 전부 끝난 뒤에만 묻는 문제로 바뀌면, 접두사 트리와 정렬 배열의 저장 칸을 공통 접두사
   길이 `p` 로 각각 쓸 수 있을까요? 두 식을 세우고 어느 `p` 부터 순서가 뒤집히는지 따져 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 접두사 트리 사전
+
+풀 파일: [`trie.ts`](./trie.ts) · 테스트: [`trie.test.ts`](./trie.test.ts) · 실행: `bun test src/algorithms/string/trie/trie.test.ts`
+
+#### 한 줄 요약
+
+> `Trie`는 단어를 삽입하고, 정확한 단어 존재 여부와 특정 접두사로 시작하는 단어의 존재 여부를 각각 조회할 수 있는 자료구조다.
+
+#### 스토리
+
+모바일 키보드 앱을 만드는 수현은 사용자가 글자를 입력할 때마다 그 접두사로 시작하는 단어가 사전에 있는지 즉시 알아야 한다. 자동 완성 목록을 띄울지 말지 결정하기 위해서다.
+
+동시에 사용자가 입력한 단어가 정확히 사전에 등록된 단어인지도 확인해야 맞춤법 검사가 가능하다. 수현에게는 단어 삽입, 정확 일치 검색, 접두사 검색 세 가지를 각각 단어 길이에 비례하는 시간 안에 처리하는 자료구조가 필요하다.
+
+#### 함수 인터페이스
+
+```ts
+export class Trie {
+  insert(word: string): void;
+  search(word: string): boolean;
+  startsWith(prefix: string): boolean;
+}
+```
+
+- `insert(word)` — `word`를 자료구조에 삽입한다. 반환값 없음.
+- `search(word)` — `word`가 이전에 삽입된 적이 있으면 `true`, 없으면 `false`.
+- `startsWith(prefix)` — `prefix`로 시작하는 단어가 하나라도 삽입되어 있으면 `true`, 없으면 `false`.
+
+#### 제약 조건
+
+- 단어/접두사 길이 $L \leq 10^5$
+- 삽입된 모든 단어의 길이 합 $\leq 10^5$
+- 각 연산의 시간 복잡도: $O(L)$
+- 문자 집합: 소문자 영문 알파벳 (`a`–`z`)
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+삽입된 적 없는 단어는 `search`에서 `false`를 반환한다. `startsWith`는 삽입된 단어 중 `prefix`로 시작하는 것이 하나라도 있으면 `true`다.
+
+동일한 단어를 중복 삽입해도 오류 없이 동작해야 한다. 같은 단어를 여러 번 `insert`한 뒤 `search`하면 여전히 `true`를 반환한다.
+
+빈 자료구조에서 `search`나 `startsWith`를 호출하면 항상 `false`를 반환한다.
+
+`search`와 `startsWith`의 차이: `insert("apple")` 후 `search("app")`은 `false`이지만 `startsWith("app")`은 `true`다.
+
+#### 예시
+
+```ts
+const trie = new Trie();
+
+trie.insert("apple");
+trie.search("apple");     // true  — 삽입된 단어
+trie.search("app");       // false — 접두사는 단어가 아님
+trie.startsWith("app");   // true  — "apple"이 "app"으로 시작함
+
+trie.insert("app");
+trie.search("app");       // true  — 이제 "app" 자체도 삽입됨
+
+trie.startsWith("ap");    // true  — "apple"과 "app" 모두 해당
+trie.startsWith("b");     // false — "b"로 시작하는 단어 없음
+trie.search("appl");      // false — "appl" 자체는 삽입된 적 없음
+```

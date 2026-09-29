@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { kthSmallest } from "./kthSmallest";
 
 describe("kthSmallest", () => {
-  // 본문 예시 = 테스트 케이스 (problem.md "예시"와 기대값이 1:1로 일치해야 한다)
+  // 본문 예시 = 테스트 케이스 (가이드 실습 절의 「예시」와 기대값이 1:1로 일치해야 한다)
   describe("문서 예시", () => {
     test("[3,1,2] — k=1/2/3", () => {
       expect(kthSmallest([3, 1, 2], 1)).toBe(1);

@@ -1417,3 +1417,65 @@ cut[e] 의 분할에서 끝 글자를 떼어 cut[e−1] 의 분할을 만든다
   낱말이 달라질까요.
 - 답이 `n − 1` 이 되는 조건이 길이 2·3 회문의 부재였습니다. 그러면 답이 `n − 2` 가 되는 조건은
   무엇일지, 그리고 그 조건을 이웃 몇 자리까지 보고 판정할 수 있을지 적어 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 팰린드롬 분할 최소 컷
+
+풀 파일: [`palindromePartitioningMinCut.ts`](./palindromePartitioningMinCut.ts) · 테스트: [`palindromePartitioningMinCut.test.ts`](./palindromePartitioningMinCut.test.ts) · 실행: `bun test src/algorithms/dp/palindromePartitioningMinCut/palindromePartitioningMinCut.test.ts`
+
+#### 한 줄 요약
+
+> 함수는 문자열을 받아, 모든 부분 문자열이 팰린드롬이 되도록 분할할 때 필요한 최소 컷 횟수를 반환한다.
+
+#### 스토리
+
+편집 도구를 만드는 서준은 텍스트를 '회문 블록'으로 나누는 기능을 구현 중이다. 회문 블록이란 앞에서 읽어도 뒤에서 읽어도 같은 문자열이다. 사용자가 긴 문자열을 입력하면, 최소한 몇 번만 잘라야 모든 조각이 회문이 되는지를 실시간으로 보여주고 싶다.
+
+서준은 문자열이 $2000$자까지 커질 수 있어서 처리 속도가 중요하다. 컷 한 번으로 두 조각이 만들어지고, $k$번 자르면 $k+1$개의 조각이 생긴다.
+
+#### 함수 인터페이스
+
+```ts
+export function palindromePartitioningMinCut(s: string): number;
+```
+
+- `s` — 분할할 영문 소문자 문자열
+- 반환 — 모든 부분 문자열이 팰린드롬이 되도록 분할하는 데 필요한 최소 컷 횟수
+
+#### 제약 조건
+
+- $1 \leq |s| \leq 2000$
+- `s`는 영문 소문자(`a`~`z`)만 포함한다.
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+팰린드롬이란 앞에서 읽은 문자열과 뒤에서 읽은 문자열이 동일한 문자열이다. 길이 1인 문자열은 항상 팰린드롬이다.
+
+문자열 전체가 이미 팰린드롬이면 컷이 필요 없으므로 $0$을 반환한다.
+
+최악의 경우 길이 $|s|$인 문자열은 각 문자를 하나씩 분리하면 되므로 최대 $|s| - 1$번의 컷이 필요하다.
+
+분할 후 어떤 조각도 빈 문자열이 될 수 없다.
+
+#### 예시
+
+```ts
+palindromePartitioningMinCut("a");
+// 0 — 길이 1은 그 자체로 팰린드롬
+
+palindromePartitioningMinCut("aab");
+// 1 — "aa" | "b" 로 한 번 자르면 두 조각 모두 팰린드롬
+
+palindromePartitioningMinCut("abcde");
+// 4 — 모든 글자가 달라 최소 단위로 자를 수밖에 없음: "a"|"b"|"c"|"d"|"e"
+
+palindromePartitioningMinCut("abba");
+// 0 — 전체가 팰린드롬
+
+palindromePartitioningMinCut("noonracecar");
+// 1 — "noon" | "racecar"
+```

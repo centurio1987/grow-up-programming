@@ -90,9 +90,9 @@ nums   2  1  2  4  3
 ```
 
 창이 움직이는 문제는 양 끝에서 넣고 빼는 통이 필요해
-[`slidingWindowMaximum`](../slidingWindowMaximum/slidingWindowMaximum-problem.md) 쪽이고,
+[`slidingWindowMaximum`](../slidingWindowMaximum/slidingWindowMaximum-guide.md) 쪽이고,
 답을 값이 아니라 넓이로 묶는 문제는
-[`largestRectangleInHistogram`](../largestRectangleInHistogram/largestRectangleInHistogram-problem.md)
+[`largestRectangleInHistogram`](../largestRectangleInHistogram/largestRectangleInHistogram-guide.md)
 쪽입니다.
 
 ### 아이디어 상세 — 답을 미뤄 둔 자리만 남기는 방법을 떠올리는 과정
@@ -585,7 +585,7 @@ nextGreaterElement([2, 7, 3, 5, 1, 6])→  [7, -1, 5, 6, 6, -1]
 | 이 글의 기다리는 구간 | 자리가 들어간 때부터 꺼내진 때까지 | `stack` |
 
 깊이 우선 탐색 쪽은 이 성질을 **괄호 정리**라는 이름으로 부르고,
-[`dfsTraversal`](../../graph/dfsTraversal/dfsTraversal-problem.md) 이 같은 구조를 다룹니다.
+[`dfsTraversal`](../../graph/dfsTraversal/dfsTraversal-guide.md) 이 같은 구조를 다룹니다.
 
 ## 파트 2 — 적용 조건 · 보장 · 비용
 
@@ -643,9 +643,9 @@ nextGreaterElement([2, 7, 3, 5, 1, 6])→  [7, -1, 5, 6, 6, -1]
 
 마지막 무리가 보이면 다른 절차로 갑니다. 창이 움직이면
 [`monotonicQueue`](../../../data-structures/linear/monotonicQueue/monotonicQueue.ts) ·
-[`slidingWindowMaximum`](../slidingWindowMaximum/slidingWindowMaximum-problem.md) 쪽이고,
+[`slidingWindowMaximum`](../slidingWindowMaximum/slidingWindowMaximum-guide.md) 쪽이고,
 구간 질의가 붙으면
-[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-problem.md) 쪽이에요.
+[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-guide.md) 쪽이에요.
 
 #### 실제로 쓰이는 곳
 
@@ -1146,3 +1146,60 @@ T6    자리 0 을 꺼냈다      지금 값이 4              2 < 4 라 꺼냈�
 - 배열이 **순환한다고** 가정하면(마지막 자리 다음이 다시 첫 자리) `[2 1 2 4 3]` 에서 자리
   4 의 답이 어떻게 바뀔까요? 이 코드의 어디를 고치면 되는지, 그때 자리를 넣는 횟수와 꺼내는
   횟수가 각각 얼마가 되는지 세어 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### Next Greater Element
+
+풀 파일: [`nextGreaterElement.ts`](./nextGreaterElement.ts) · 테스트: [`nextGreaterElement.test.ts`](./nextGreaterElement.test.ts) · 실행: `bun test src/algorithms/array/nextGreaterElement/nextGreaterElement.test.ts`
+
+#### 한 줄 요약
+
+> 정수 배열을 받아, 각 원소에 대해 **오른쪽에서 처음으로 자신보다 엄격하게 큰 값**을 담은 배열을 반환한다.
+
+#### 스토리
+
+기상 예보 팀의 분석가 나연은 일별 기온 기록을 들여다보고 있다. 각 날짜에 대해, 이후 날들 중 처음으로 오늘보다 더 더웠던 날의 기온을 알고 싶다.
+
+단, "더 덥다"는 기준은 엄격하다. 같은 온도는 해당되지 않는다. 나연이 보는 날짜 이후로 더 더운 날이 없으면 특별 표시 $-1$을 기록한다.
+
+배열의 끝에 위치한 원소들은 오른쪽에 다음 날이 없으므로 항상 $-1$을 가진다.
+
+#### 함수 인터페이스
+
+```ts
+export function nextGreaterElement(nums: number[]): number[];
+```
+
+- `nums` — 정수 배열.
+- 반환 — 길이 $N$의 배열. `result[i]`는 `nums[i]`보다 오른쪽에 있는 원소 중 처음으로 엄격하게 큰 값. 없으면 `-1`.
+
+#### 제약 조건
+
+- $1 \leq N \leq 100{,}000$ (여기서 $N$은 `nums`의 길이)
+- $-10^9 \leq nums[i] \leq 10^9$ (정수)
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+결과 배열 $R$의 정의:
+
+$$R[i] = \begin{cases} nums[j] & j = \min\{\, j > i \mid nums[j] > nums[i] \,\} \\ -1 & \text{그런 } j \text{가 없는 경우} \end{cases}$$
+
+"엄격하게 크다"는 $nums[j] > nums[i]$를 의미한다. 같은 값은 포함하지 않는다. 마지막 원소(`i = N-1`)는 오른쪽에 아무것도 없으므로 항상 $-1$이다.
+
+#### 예시
+
+```ts
+nextGreaterElement([2, 1, 2, 4, 3]);    // [4, 2, 4, -1, -1]  — 각 원소의 다음 큰 값
+nextGreaterElement([1, 2, 3, 4]);       // [2, 3, 4, -1]  — 엄격 증가, 마지막은 -1
+nextGreaterElement([2, 7, 3, 5, 1, 6]); // [7, -1, 5, 6, 6, -1]
+
+nextGreaterElement([4, 3, 2, 1]);       // [-1, -1, -1, -1]  — 엄격 감소, 모두 -1
+nextGreaterElement([5, 5, 5]);          // [-1, -1, -1]  — 같은 값은 포함 안 됨
+
+nextGreaterElement([5]);                // [-1]  — 단일 원소, 오른쪽 없음
+nextGreaterElement([1, 2]);             // [2, -1]  — 두 원소, 첫 것만 다음 큰 값 존재
+```

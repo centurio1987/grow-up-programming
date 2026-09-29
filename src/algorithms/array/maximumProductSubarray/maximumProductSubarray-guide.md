@@ -91,12 +91,12 @@ A 의 값         2    -3    -2    4    0    -1
 - **배열의 칸을 읽는 일이 한 번에 얼마나 드는지.** 칸 번호로 바로 찾아가므로 칸 하나를 읽는
   데 드는 일이 배열 길이와 상관없습니다.
 - **합이 가장 큰 부분 배열을 어떻게 구하는지.** 같은 모양의 문제를 덧셈으로 푼 것이고, 흐릿하면
-  [`kadane`](../kadane/kadane-problem.md) 을 먼저 봅니다. 거기서는 이어받는 값이 하나인데 왜
+  [`kadane`](../kadane/kadane-guide.md) 을 먼저 봅니다. 거기서는 이어받는 값이 하나인데 왜
   여기서는 둘인지가 이 글의 주제예요.
 
 「곱이 가장 큰 구간 하나」와 「합이 가장 큰 구간 하나」는 다른 문제입니다. 뒤쪽은
-[`kadane`](../kadane/kadane-problem.md) 이 다루는 것이고, 구간을 여러 번 묻는 것은
-[`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-problem.md) 쪽이에요.
+[`kadane`](../kadane/kadane-guide.md) 이 다루는 것이고, 구간을 여러 번 묻는 것은
+[`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-guide.md) 쪽이에요.
 
 ```text
 곱이 가장 큰 구간의 곱 하나      ← 이 글이 다루는 것
@@ -740,8 +740,8 @@ maximumProductSubarray([-2])                    →  -2
 ```
 
 세 번째 무리가 보이면 다른 절차로 갑니다. 합을 다루면
-[`kadane`](../kadane/kadane-problem.md) 쪽이고, 값이 바뀌며 질의가 반복되면
-[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-problem.md) 과 같은 트리
+[`kadane`](../kadane/kadane-guide.md) 쪽이고, 값이 바뀌며 질의가 반복되면
+[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-guide.md) 과 같은 트리
 쪽이에요.
 
 #### 실제로 쓰이는 곳
@@ -1244,3 +1244,67 @@ N = 100,000 이면 기본 연산이 정확히 699,993 번, 잡는 칸이 3 개�
 - 값이 바뀌며 답을 `Q` 번 다시 묻는 문제로 바꾸면, 칸마다 이어받기와 세그먼트 트리의 연산 수를
   각각 `N`, `Q` 로 어떻게 쓸 수 있을까요? 두 식을 세우고 어느 `Q` 부터 순서가 뒤집히는지 따져
   보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### Maximum Product Subarray
+
+풀 파일: [`maximumProductSubarray.ts`](./maximumProductSubarray.ts) · 테스트: [`maximumProductSubarray.test.ts`](./maximumProductSubarray.test.ts) · 실행: `bun test src/algorithms/array/maximumProductSubarray/maximumProductSubarray.test.ts`
+
+#### 한 줄 요약
+
+> 정수 배열을 받아, **연속된 부분 배열의 곱 중 최댓값**을 반환한다.
+
+#### 스토리
+
+화학 실험실의 연구원 태영은 일련의 실험 데이터를 분석한다. 각 시점의 측정값은 양수일 수도, 음수일 수도, $0$일 수도 있다.
+
+태영은 연속된 구간의 측정값을 모두 곱했을 때 가장 큰 값을 찾아야 한다. 두 음수를 곱하면 양수가 되므로, 음수가 포함된 구간이 오히려 더 큰 곱을 만들 수 있다.
+
+부분 배열은 하나 이상의 원소를 반드시 포함해야 한다.
+
+#### 함수 인터페이스
+
+```ts
+export function maximumProductSubarray(A: number[]): number;
+```
+
+- `A` — 정수 배열.
+- 반환 — 비어 있지 않은 연속 부분 배열의 곱 중 최댓값.
+
+#### 제약 조건
+
+- $1 \leq N \leq 100{,}000$ (여기서 $N$은 `A`의 길이)
+- $-10 \leq A[i] \leq 10$ (정수, 음수 가능)
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+인덱스 구간 $[l, r]$ ($0 \leq l \leq r < N$)의 곱을
+
+$$P(l, r) = \prod_{k=l}^{r} A[k]$$
+
+로 정의하면, 답은
+
+$$\text{answer} = \max_{0 \leq l \leq r < N}\, P(l, r)$$
+
+이다.
+
+배열에 $0$이 포함되어 있으면 그 $0$을 경계로 구간이 분리되는 효과가 있다. 음수가 홀수 개인 구간보다 짝수 개인 구간의 곱이 더 클 수 있으므로 음수 개수에 주의해야 한다. 모든 원소가 음수이면 단일 원소를 반드시 포함해야 하므로 가장 큰 음수(절댓값이 가장 작은 음수)가 답이 된다.
+
+#### 예시
+
+```ts
+maximumProductSubarray([2, 3, -2, 4]);   // 6   — 구간 [0,1]: 2×3=6
+maximumProductSubarray([-2, 3, -4]);     // 24  — 구간 [0,2]: (-2)×3×(-4)=24
+maximumProductSubarray([2, 3, 4]);       // 24  — 전체: 2×3×4=24
+
+maximumProductSubarray([-2, 0, -1]);     // 0   — 0을 포함한 단일 원소 [0]이 최대
+maximumProductSubarray([0, 2]);          // 2   — [0]과 [2] 중 2가 최대
+
+maximumProductSubarray([-2]);            // -2  — 단일 음수 원소
+maximumProductSubarray([-10, -10]);      // 100 — 두 음수의 곱이 양수
+maximumProductSubarray([2, -5, -2, -4, 3]); // 24 — 구간 [-2,-4,3]: (-2)×(-4)×3=24
+```

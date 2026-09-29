@@ -104,7 +104,7 @@
 
 이 글이 다루는 것은 **접두사를 묻는 조회에서 노드 수를 줄이는 것**입니다. 노드를 줄이지 않는
 쪽은 [`trie`](../trie/trie-guide.md) 가 다루고, 여러 단어를 한 번의 순회로 동시에 찾는 것은
-[`ahoCorasick`](../ahoCorasick/ahoCorasick-problem.md) 가 다뤄요.
+[`ahoCorasick`](../ahoCorasick/ahoCorasick-guide.md) 가 다뤄요.
 
 ```text
   글자마다 노드를 두고 접두사를 묻는다             <- 다른 글이 다루는 것
@@ -982,8 +982,8 @@ app 을 두 번 담은 뒤 search("app")   참
 ```
 
 마지막 무리가 보이면 다른 구조로 갑니다. 접두사가 아니라 문자열 가운데의 조각을 물으면
-[`suffixArray`](../suffixArray/suffixArray-problem.md) 쪽이고, 여러 단어를 한 번의 순회로
-동시에 찾으면 [`ahoCorasick`](../ahoCorasick/ahoCorasick-problem.md) 쪽이에요.
+[`suffixArray`](../suffixArray/suffixArray-guide.md) 쪽이고, 여러 단어를 한 번의 순회로
+동시에 찾으면 [`ahoCorasick`](../ahoCorasick/ahoCorasick-guide.md) 쪽이에요.
 
 #### 실제로 쓰이는 곳
 
@@ -1563,3 +1563,72 @@ T4   insert("app")   대조한 글자 3   라벨 appl 을 app 과 l 로 가른�
 - 조회만 아주 많고 삽입이 거의 없는 작업 목록이라면, 접은 트리와 글자마다 노드를 둔 트리 중
   어느 쪽을 골라야 할까요? 조회 기본 연산 62,000 대 61,000 과 저장 칸 5,264 대 6,412 를 함께
   놓고 어느 축을 먼저 볼지 정해 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 압축 접두사 사전
+
+풀 파일: [`radixTree.ts`](./radixTree.ts) · 테스트: [`radixTree.test.ts`](./radixTree.test.ts) · 실행: `bun test src/algorithms/string/radixTree/radixTree.test.ts`
+
+#### 한 줄 요약
+
+> `RadixTree`는 단어를 삽입하고, 정확한 단어 존재 여부와 특정 접두사로 시작하는 단어의 존재 여부를 각각 조회할 수 있는 자료구조다.
+
+#### 스토리
+
+자동 완성 서비스를 개발하는 유진은 수백만 개의 단어를 저장하고 실시간으로 접두사 검색을 처리해야 한다. 단어마다 글자 수만큼 노드를 만드는 방식은 저장 공간이 너무 크게 불어난다.
+
+유진은 공통 접두사를 하나의 묶음으로 저장해 노드 수를 줄이면서도, 삽입과 검색 모두 단어 길이에 비례하는 시간을 유지하는 자료구조가 필요하다.
+
+#### 함수 인터페이스
+
+```ts
+export class RadixTree {
+  insert(word: string): void;
+  search(word: string): boolean;
+  startsWith(prefix: string): boolean;
+}
+```
+
+- `insert(word)` — `word`를 자료구조에 삽입한다. 기존 엣지와 공통 접두사가 있으면 엣지를 분할한다. 반환값 없음.
+- `search(word)` — `word`가 이전에 삽입된 적이 있으면 `true`, 없으면 `false`.
+- `startsWith(prefix)` — `prefix`로 시작하는 단어가 하나라도 삽입되어 있으면 `true`, 없으면 `false`.
+
+#### 제약 조건
+
+- 단어/접두사 길이 $L \leq 10^5$
+- 삽입된 모든 단어의 길이 합 $\leq 10^5$
+- 각 연산의 시간 복잡도: $O(L)$
+- 문자 집합: 소문자 영문 알파벳 (`a`–`z`)
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+삽입된 적 없는 단어는 `search`에서 `false`를 반환한다. `startsWith`는 삽입된 단어 중 `prefix`로 시작하는 것이 하나라도 있으면 `true`다.
+
+동일한 단어를 중복 삽입해도 오류 없이 동작해야 한다. 같은 단어를 여러 번 `insert`한 뒤 `search`하면 여전히 `true`를 반환한다.
+
+빈 자료구조에서 `search`나 `startsWith`를 호출하면 항상 `false`를 반환한다.
+
+`search`와 `startsWith`의 차이: `insert("apple")` 후 `search("app")`은 `false`이지만 `startsWith("app")`은 `true`다.
+
+#### 예시
+
+```ts
+const rt = new RadixTree();
+
+rt.insert("apple");
+rt.search("apple");     // true — 삽입된 단어
+rt.search("app");       // false — 접두사는 단어가 아님
+rt.startsWith("app");   // true  — "apple"이 "app"으로 시작함
+
+rt.insert("app");
+rt.search("app");       // true  — 이제 "app" 자체도 삽입됨
+
+rt.insert("application");
+rt.startsWith("appl");  // true  — "apple", "application" 모두 해당
+rt.search("appl");      // false — "appl" 자체는 삽입된 적 없음
+rt.search("apply");     // false — 삽입된 적 없음
+```

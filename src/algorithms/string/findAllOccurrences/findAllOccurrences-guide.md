@@ -97,8 +97,8 @@ P = a b a b
   그 셋을 다 답으로 셉니다.
 
 이 글이 다루는 것은 **패턴 하나를 텍스트 하나에서 찾는 일**입니다. 패턴 여러 개를 한 번의
-대조로 함께 찾는 것은 [`ahoCorasick`](../ahoCorasick/ahoCorasick-problem.md) 이 다루고, 텍스트
-가운데의 조각을 여러 번 묻는 것은 [`suffixArray`](../suffixArray/suffixArray-problem.md) 가
+대조로 함께 찾는 것은 [`ahoCorasick`](../ahoCorasick/ahoCorasick-guide.md) 이 다루고, 텍스트
+가운데의 조각을 여러 번 묻는 것은 [`suffixArray`](../suffixArray/suffixArray-guide.md) 가
 다뤄요.
 
 ```text
@@ -703,7 +703,7 @@ T8 · T10 · T12 는 상태 3 에서 `b` 를 받아 시작 자리를 적은 걸�
 
 실패 함수는 그 표를 **통째로 적어 두지 않고 필요한 만큼만** 만드는 방법이에요. 표를 다 적으면
 칸이 `m × 26` 개인데 실패 함수는 `m` 개이고, 그 대신 전이 하나에 줄이기가 여러 번 들 수
-있습니다. 여러 패턴을 함께 찾는 [`ahoCorasick`](../ahoCorasick/ahoCorasick-problem.md) 은 같은
+있습니다. 여러 패턴을 함께 찾는 [`ahoCorasick`](../ahoCorasick/ahoCorasick-guide.md) 은 같은
 생각을 트리 위로 옮긴 것이에요.
 
 ## 파트 2 — 적용 조건 · 보장 · 비용
@@ -764,8 +764,8 @@ T8 · T10 · T12 는 상태 3 에서 `b` 를 받아 시작 자리를 적은 걸�
 ```
 
 세 번째 무리가 보이면 다른 절차로 갑니다. 패턴이 여럿이면
-[`ahoCorasick`](../ahoCorasick/ahoCorasick-problem.md) 쪽이고, 텍스트가 고정이고 질의가
-반복되면 [`suffixArray`](../suffixArray/suffixArray-problem.md) 쪽이에요.
+[`ahoCorasick`](../ahoCorasick/ahoCorasick-guide.md) 쪽이고, 텍스트가 고정이고 질의가
+반복되면 [`suffixArray`](../suffixArray/suffixArray-guide.md) 쪽이에요.
 
 #### 실제로 쓰이는 곳
 
@@ -1238,3 +1238,59 @@ T9 가 하는 일      T[8] 을 P[2] 와 견준다   앞 두 글자는 이미 �
   것은 왜 참일까요? `fail[m-1] < m` 이라는 사실이 어디에 쓰이는지 적어 보세요.
 - 문자 집합이 `a`–`z` 가 아니라 유니코드 전체라면 두 설계의 저장 칸이 어떻게 달라질까요? 두
   식을 세우고 어느 패턴 길이부터 순서가 뒤집히는지 따져 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 부분 문자열 등장 위치 검색
+
+풀 파일: [`findAllOccurrences.ts`](./findAllOccurrences.ts) · 테스트: [`findAllOccurrences.test.ts`](./findAllOccurrences.test.ts) · 실행: `bun test src/algorithms/string/findAllOccurrences/findAllOccurrences.test.ts`
+
+#### 한 줄 요약
+
+> `findAllOccurrences(text, pattern)`은 텍스트와 패턴을 받아, 패턴이 텍스트 안에서 등장하는 모든 시작 위치를 오름차순 배열로 반환한다.
+
+#### 스토리
+
+편집자 준호는 수십만 글자짜리 원고 안에서 특정 단어가 몇 군데나 쓰였는지 전수 확인해야 한다. "찾기" 기능이 처음 발견한 위치만 알려줄 때는 나머지를 일일이 손으로 넘겨야 했다.
+
+준호에게는 패턴이 나타나는 위치를 모조리 돌려주는 도구가 필요하다. 원고가 길어도 빠르게, 그리고 겹쳐서 등장하는 경우도 빠짐없이 잡아야 한다.
+
+#### 함수 인터페이스
+
+```ts
+export function findAllOccurrences(text: string, pattern: string): number[];
+```
+
+- `text` — 검색 대상 텍스트
+- `pattern` — 검색할 패턴
+- 반환 — 패턴이 시작하는 인덱스(0-based) 배열, 오름차순 정렬. 등장하지 않으면 빈 배열.
+
+#### 제약 조건
+
+- $0 \leq |text| \leq 10^5$
+- $0 \leq |pattern| \leq 10^5$
+- 문자 집합: 소문자 영문 알파벳 (`a`–`z`)
+- 시간 복잡도: $O(|text| + |pattern|)$
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+텍스트 $T$(길이 $n$)와 패턴 $P$(길이 $m$)가 주어질 때, $T$ 내에서 $P$가 등장하는 모든 시작 위치를 오름차순으로 반환한다.
+
+$$\text{Occ}(T, P) = \{\, i \mid 0 \leq i \leq n - m,\; T[i \ldots i+m-1] = P \,\}$$
+
+겹치는 등장도 모두 포함한다. 예를 들어 `"aaaa"`에서 `"aa"`는 위치 0, 1, 2에서 모두 매칭된다.
+
+**빈 패턴 규약**: $m = 0$이면 빈 배열을 반환한다. 빈 텍스트($n = 0$)에 비어 있지 않은 패턴을 검색하면 빈 배열을 반환한다.
+
+#### 예시
+
+```ts
+findAllOccurrences("ababcababab", "abab");  // [0, 5, 7] — 겹침 포함 전체 매칭
+findAllOccurrences("aaaa", "aa");           // [0, 1, 2] — 겹치는 3곳
+findAllOccurrences("abc", "d");             // [] — 패턴 없음
+findAllOccurrences("abc", "");              // [] — 빈 패턴 규약
+findAllOccurrences("", "a");               // [] — 빈 텍스트
+```

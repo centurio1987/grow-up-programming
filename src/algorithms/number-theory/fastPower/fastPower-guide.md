@@ -107,10 +107,10 @@
   없는지는 첫 번째 「짚고 가기」에서 값으로 확인합니다.
 
 비트를 하나씩 보는 도구가 필요하면
-[`lowestSetBit`](../../bit-manipulation/lowestSetBit/lowestSetBit-problem.md) 이 그 자리이고,
+[`lowestSetBit`](../../bit-manipulation/lowestSetBit/lowestSetBit-guide.md) 이 그 자리이고,
 이 글이 구하는 값을 재료로 쓰는 문제로는
-[`millerRabin`](../millerRabin/millerRabin-problem.md) 과
-[`binomialModP`](../binomialModP/binomialModP-problem.md) 가 있습니다.
+[`millerRabin`](../millerRabin/millerRabin-guide.md) 과
+[`binomialModP`](../binomialModP/binomialModP-guide.md) 가 있습니다.
 
 ```text
 이 글이 다루는 것과 이웃한 것
@@ -681,7 +681,7 @@ fastPower(1005n, 2n, 1000n)        -> 25n
 | 그래프의 인접 행렬 | min-plus 곱 | 간선을 정확히 몇 개 쓰는 최단 거리 |
 
 행렬로 바꾼 사례는
-[`matrixPowerFibonacci`](../../bit-manipulation/matrixPowerFibonacci/matrixPowerFibonacci-problem.md)
+[`matrixPowerFibonacci`](../../bit-manipulation/matrixPowerFibonacci/matrixPowerFibonacci-guide.md)
 가 다룹니다. 지수를 거꾸로 찾는 문제인
 [`babyStepGiantStep`](../babyStepGiantStep/babyStepGiantStep-guide.md) 의 정본은 같은 절차를
 `power` 라는 이름으로 싣고, 큰 걸음의 보폭을 구하는 데 씁니다.
@@ -1267,3 +1267,65 @@ T6   e = 1   비트 1   b = 721   result 49 에서 329 로   ④ 가 b 를 841 �
 - 밑이 고정이고 지수만 `Q` 번 바뀌는 문제로 바꾸면, 5 비트 창 방식의 표 16 칸을 한 번만 만들어
   `Q` 번 재사용할 수 있습니다. 두 설계의 곱셈 횟수를 `Q` 와 지수의 비트 수로 각각 쓰고, 어느
   `Q` 부터 순서가 뒤집히는지 따져 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 빠른 거듭제곱 (Fast Exponentiation)
+
+풀 파일: [`fastPower.ts`](./fastPower.ts) · 테스트: [`fastPower.test.ts`](./fastPower.test.ts) · 실행: `bun test src/algorithms/number-theory/fastPower/fastPower.test.ts`
+
+#### 한 줄 요약
+
+> 함수는 밑 `base`, 지수 `exp`, 모듈러 `mod`를 받아 $\text{base}^{\text{exp}} \bmod \text{mod}$를 반환한다.
+
+#### 스토리
+
+보안 팀이 RSA 암호화 시스템을 구현하고 있다. 암호화 과정에서 수백 자리 수를 수만 번 거듭제곱해야 한다. $2^{1{,}000{,}000{,}000}$처럼 지수가 10억 단위인 계산을 반복해야 한다.
+
+단순히 `base`를 `exp`번 곱하면 수십 년이 걸린다. 수십 밀리초 안에 결과를 내야 하는 실시간 통신에는 쓸 수 없다.
+
+결과는 모듈러 연산으로 항상 일정 범위 내로 유지되어야 하며, 결과가 $[0, \text{mod})$ 범위를 벗어나면 안 된다.
+
+#### 함수 인터페이스
+
+```ts
+export function fastPower(base: bigint, exp: bigint, mod: bigint): bigint;
+```
+
+- `base` — 밑, 임의의 bigint
+- `exp` — 지수, $\text{exp} \geq 0$인 bigint
+- `mod` — 모듈러, $\text{mod} \geq 1$인 bigint
+- 반환 — $\text{base}^{\text{exp}} \bmod \text{mod}$, 범위 $[0,\ \text{mod})$
+
+#### 제약 조건
+
+- $\text{exp} \geq 0$ (bigint)
+- $\text{mod} \geq 1$ (bigint)
+- `base`는 임의의 정수 (음수 포함)
+- 결과는 항상 $[0,\ \text{mod})$ 범위로 정규화
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+다음 값을 계산해 반환한다.
+
+$$\text{base}^{\text{exp}} \bmod \text{mod}$$
+
+경계 동작:
+
+- $\text{exp} = 0$이면 결과는 $1 \bmod \text{mod}$
+- $\text{mod} = 1$이면 결과는 항상 $0$
+- `base`가 `mod`보다 클 때도 먼저 $\bmod \text{mod}$로 정규화한 뒤 계산한다
+
+#### 예시
+
+```ts
+fastPower(2n, 10n, 1000n);              // 24n  — 2^10 = 1024, 1024 mod 1000 = 24
+fastPower(3n, 5n, 100n);               // 43n  — 3^5 = 243, 243 mod 100 = 43
+fastPower(123n, 0n, 1000n);            // 1n   — 지수 0이면 1 mod 1000 = 1
+fastPower(5n, 100n, 1n);               // 0n   — mod 1이면 항상 0
+fastPower(1005n, 2n, 1000n);           // 25n  — 1005 mod 1000 = 5, 5^2 = 25
+fastPower(2n, 1000000000n, 1000000007n); // 페르마 소정리 활용 가능 케이스
+```

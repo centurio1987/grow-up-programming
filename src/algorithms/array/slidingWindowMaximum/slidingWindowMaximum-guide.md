@@ -115,9 +115,9 @@ nums = [1 3 -1 -3 5 3 6 7] 에서
 ```
 
 합처럼 모든 칸이 값에 기여하는 것은 누적합 쪽이고, 창 없이 자리마다 답하는 문제는
-[`nextGreaterElement`](../nextGreaterElement/nextGreaterElement-problem.md) 쪽입니다. 길이가
+[`nextGreaterElement`](../nextGreaterElement/nextGreaterElement-guide.md) 쪽입니다. 길이가
 질의마다 다른 구간 최댓값은
-[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-problem.md) 쪽이에요.
+[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-guide.md) 쪽이에요.
 
 ### 아이디어 상세 — 앞으로 답이 될 자리를 줄 세우는 방법을 떠올리는 과정
 
@@ -703,9 +703,9 @@ slidingWindowMaximum([-3, -1, -4, -2], 2)            →  [-1, -1, -2]
 ```
 
 마지막 무리가 보이면 다른 절차로 갑니다. 길이가 질의마다 다르면
-[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-problem.md) 쪽이고,
+[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-guide.md) 쪽이고,
 양 끝이 함께 움직이는 문제는
-[`longestSubarrayAtMostSum`](../longestSubarrayAtMostSum/longestSubarrayAtMostSum-problem.md)
+[`longestSubarrayAtMostSum`](../longestSubarrayAtMostSum/longestSubarrayAtMostSum-guide.md)
 쪽이에요.
 
 #### 실제로 쓰이는 곳
@@ -1241,3 +1241,65 @@ T5    자리 1 이 창을 벗어난다
 - 창의 오른쪽 끝이 아니라 **왼쪽 끝을 한 칸씩 줄이며** 왼쪽으로 이동하는 문제라면 이 절차를
   그대로 쓸 수 있을까요? 못 쓴다면 어느 갈래가 성립하지 않는지 적고, 배열을 뒤집어 푸는
   방법이 왜 되는지도 함께 적어 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### Sliding Window Maximum
+
+풀 파일: [`slidingWindowMaximum.ts`](./slidingWindowMaximum.ts) · 테스트: [`slidingWindowMaximum.test.ts`](./slidingWindowMaximum.test.ts) · 실행: `bun test src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum.test.ts`
+
+#### 한 줄 요약
+
+> 정수 배열과 윈도우 크기 $k$를 받아, **크기 $k$의 윈도우가 왼쪽에서 오른쪽으로 이동하며 방문하는 각 위치의 최댓값**을 담은 배열을 반환한다.
+
+#### 스토리
+
+공기 질 모니터링 센터의 담당자 수빈은 연속된 $k$일의 오염 수치 중 최댓값을 각 일자별로 기록해야 한다.
+
+센서 데이터는 날마다 들어온다. 수빈은 오늘 포함 직전 $k$일($k$일 구간)의 수치 중 가장 높은 값을 해당 일자의 대표값으로 기록한다.
+
+윈도우가 배열 끝에 닿을 때까지 이 작업을 반복한 결과 배열을 반환해야 한다.
+
+#### 함수 인터페이스
+
+```ts
+export function slidingWindowMaximum(nums: number[], k: number): number[];
+```
+
+- `nums` — 정수 배열.
+- `k` — 윈도우의 크기 (연속된 원소의 개수).
+- 반환 — 각 윈도우 위치의 최댓값을 순서대로 담은 배열. 길이는 $N - k + 1$.
+
+#### 제약 조건
+
+- $1 \leq N \leq 100{,}000$ (여기서 $N$은 `nums`의 길이)
+- $1 \leq k \leq N$
+- $-10{,}000 \leq nums[i] \leq 10{,}000$ (정수)
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+윈도우 시작 인덱스 $i$는 $0, 1, \ldots, N - k$의 값을 가진다. 결과 배열의 $i$번째 원소는
+
+$$\text{result}[i] = \max_{i \leq j < i + k}\, nums[j]$$
+
+이다. 결과 배열의 길이는 정확히 $N - k + 1$이다. $k = 1$이면 배열 자체가 결과이고, $k = N$이면 원소 하나인 배열이 반환된다.
+
+#### 예시
+
+```ts
+slidingWindowMaximum([1, 3, -1, -3, 5, 3, 6, 7], 3);
+// [3, 3, 5, 5, 6, 7]
+// [1,3,-1]→3, [3,-1,-3]→3, [-1,-3,5]→5, [-3,5,3]→5, [5,3,6]→6, [3,6,7]→7
+
+slidingWindowMaximum([1, 2, 3, 4, 5], 3); // [3, 4, 5]  — 증가 배열
+slidingWindowMaximum([5, 4, 3, 2, 1], 2); // [5, 4, 3, 2]  — 감소 배열
+
+slidingWindowMaximum([5, 5, 5, 5], 2);    // [5, 5, 5]  — 모두 같은 값
+slidingWindowMaximum([3, 1, 5, 2], 1);    // [3, 1, 5, 2]  — k=1, 원본 그대로
+slidingWindowMaximum([3, 1, 5, 2], 4);    // [5]  — k=N, 전체 최댓값 하나
+
+slidingWindowMaximum([7], 1);             // [7]  — 단일 원소
+```

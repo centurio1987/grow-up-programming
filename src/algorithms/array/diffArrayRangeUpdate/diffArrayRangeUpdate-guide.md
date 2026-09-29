@@ -87,7 +87,7 @@ N = 7 · 갱신 셋
 
 - **누적합**이 무엇인지. 배열의 앞에서부터 `i` 개를 더한 값이고, 이 글에서는 차이를 적어 둔
   차이를 적어 둔 배열에서 원래 배열을 다시 만드는 데 씁니다. 흐릿하면
-  [`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-problem.md) 를 먼저 봅니다.
+  [`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-guide.md) 를 먼저 봅니다.
 - **구간이 무엇인지.** 인덱스 `l` 부터 `r` 까지를 **건너뛰지 않고** 전부 고른 자리이고,
   양끝을 포함합니다.
 - **배열의 칸을 읽고 쓰는 일이 한 번에 얼마나 드는지.** 인덱스로 바로 찾아가므로 칸 하나를
@@ -95,8 +95,8 @@ N = 7 · 갱신 셋
 - 배열 인덱스가 `0` 부터 시작한다는 것과, 배열을 한 번 지나가는 `for` 루프.
 
 「갱신을 전부 받은 뒤 배열을 한 번 본다」와 「갱신 사이사이에 값을 묻는다」는 다른 문제입니다.
-뒤쪽은 [`fenwickRangeSum`](../fenwickRangeSum/fenwickRangeSum-problem.md) 이나
-[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-problem.md) 이 다루는 것이고,
+뒤쪽은 [`fenwickRangeSum`](../fenwickRangeSum/fenwickRangeSum-guide.md) 이나
+[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-guide.md) 이 다루는 것이고,
 이 글은 **마지막에 배열 전체를 한 번** 냅니다.
 
 ```text
@@ -707,8 +707,8 @@ diffArrayRangeUpdate(3, [])                             →  [0, 0, 0]
 ```
 
 두 번째 무리가 보이면 다른 절차로 갑니다. 갱신과 조회가 섞이면
-[`fenwickRangeSum`](../fenwickRangeSum/fenwickRangeSum-problem.md) 쪽이고, 구간의 최솟값이나
-최댓값을 다루면 [`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-problem.md)
+[`fenwickRangeSum`](../fenwickRangeSum/fenwickRangeSum-guide.md) 쪽이고, 구간의 최솟값이나
+최댓값을 다루면 [`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-guide.md)
 쪽이에요.
 
 #### 실제로 쓰이는 곳
@@ -1157,3 +1157,75 @@ D 의 칸 수를 N 으로 잡으면
 - 갱신 `Q` 개 사이에 점 조회가 `P` 번 섞이는 문제로 바꾸면, 차분 배열과 펜윅 트리의 비용을
   각각 `N`, `Q`, `P` 로 어떻게 쓸 수 있을까요? 두 식을 세우고 어느 `P` 부터 순서가 뒤집히는지
   따져 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 구간 갱신 + 배열 반환 (Difference Array Range Update)
+
+풀 파일: [`diffArrayRangeUpdate.ts`](./diffArrayRangeUpdate.ts) · 테스트: [`diffArrayRangeUpdate.test.ts`](./diffArrayRangeUpdate.test.ts) · 실행: `bun test src/algorithms/array/diffArrayRangeUpdate/diffArrayRangeUpdate.test.ts`
+
+#### 한 줄 요약
+
+> 길이 $N$의 제로 배열에 구간 덧셈 연산들을 적용한 뒤 **최종 배열**을 반환한다.
+
+#### 스토리
+
+물류 창고 관리자 민준은 창고 $N$칸의 재고를 관리한다. 처음에는 모든 칸의 재고가 $0$이다.
+
+하루에 여러 번 입출고 지시가 들어온다. 각 지시는 "칸 $l$부터 칸 $r$까지 $v$만큼 더하라"는 형태다. $v$가 양수이면 입고, 음수이면 출고다.
+
+하루 업무가 끝났을 때, 모든 칸의 최종 재고 상태를 배열로 출력해야 한다.
+
+#### 함수 인터페이스
+
+```ts
+export function diffArrayRangeUpdate(
+  N: number,
+  updates: Array<[number, number, number]>,
+): number[];
+```
+
+- `N` — 배열의 길이. 초기 값은 모두 `0`.
+- `updates` — 갱신 연산 목록. 각 원소 `[l, r, v]`는 인덱스 $[l, r]$ 범위에 $v$를 더하는 연산이다.
+- 반환 — 모든 갱신을 적용한 뒤의 길이 $N$ 배열.
+
+#### 제약 조건
+
+- $1 \leq N \leq 100{,}000$
+- $0 \leq Q \leq 100{,}000$ (여기서 $Q$는 `updates`의 길이)
+- 각 갱신 $[l, r, v]$는 $0 \leq l \leq r \leq N - 1$, $-10{,}000 \leq v \leq 10{,}000$ (정수)
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+길이 $N$의 배열 $A$는 모든 원소가 $0$으로 초기화된다. 각 갱신 $[l, r, v]$는 다음을 의미한다.
+
+$$\forall\, i \in [l, r],\quad A[i] \mathrel{+}= v$$
+
+모든 갱신을 순서대로 적용한 뒤의 배열 $A$를 반환한다. 갱신 순서는 결과에 영향을 주지 않는다(덧셈은 교환·결합 법칙이 성립하므로). 갱신이 없으면 모든 원소가 $0$인 배열을 반환한다.
+
+#### 예시
+
+```ts
+diffArrayRangeUpdate(5, [[0, 2, 3]]);
+// [3, 3, 3, 0, 0]  — 인덱스 0~2에 3을 더함
+
+diffArrayRangeUpdate(5, [
+  [0, 2, 3],
+  [1, 4, 2],
+  [2, 2, -10],
+]);
+// [3, 5, -5, 2, 2]
+// A[0]+=3 → 3, A[1]+=3+2=5, A[2]+=3+2-10=-5, A[3]+=2, A[4]+=2
+
+diffArrayRangeUpdate(3, []);
+// [0, 0, 0]  — 갱신 없음, 초기 상태 그대로
+
+diffArrayRangeUpdate(1, [[0, 0, 5]]);
+// [5]  — 단일 원소에 대한 갱신
+
+diffArrayRangeUpdate(4, [[0, 3, 5]]);
+// [5, 5, 5, 5]  — 전체 구간에 동일한 값 적용
+```

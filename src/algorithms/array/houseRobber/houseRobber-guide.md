@@ -90,12 +90,12 @@ A 의 값   2   7   9   3   1   5
 - **배열의 칸을 읽는 일이 한 번에 얼마나 드는지.** 칸 번호로 바로 찾아가므로 칸 하나를 읽는
   데 드는 일이 배열 길이와 상관없습니다.
 - **합이 가장 큰 이어진 구간을 어떻게 구하는지.** 칸마다 직전 결과를 이어받아 답을 정한다는
-  점이 이 글과 같아요. 흐릿하면 [`kadane`](../kadane/kadane-problem.md) 을 먼저 봅니다 —
+  점이 이 글과 같아요. 흐릿하면 [`kadane`](../kadane/kadane-guide.md) 을 먼저 봅니다 —
   거기서는 이어받는 값이 하나인데 왜 여기서는 둘인지가 이 글의 주제예요.
 
 「이웃을 피해 고르는 최대 합」과 「이어진 구간의 최대 합」은 다른 문제입니다. 뒤쪽은
-[`kadane`](../kadane/kadane-problem.md) 이 다루는 것이고, 집이 일렬이 아니라 나무 모양으로
-놓이면 [`treeMaxIndependentSet`](../../dp/treeMaxIndependentSet/treeMaxIndependentSet-problem.md)
+[`kadane`](../kadane/kadane-guide.md) 이 다루는 것이고, 집이 일렬이 아니라 나무 모양으로
+놓이면 [`treeMaxIndependentSet`](../../dp/treeMaxIndependentSet/treeMaxIndependentSet-guide.md)
 쪽이에요.
 
 ```text
@@ -729,8 +729,8 @@ houseRobber([])                   →      0
 ```
 
 세 번째 무리가 보이면 다른 절차로 갑니다. 구간을 다루면
-[`kadane`](../kadane/kadane-problem.md) 쪽이고, 놓인 모양이 나무면
-[`treeMaxIndependentSet`](../../dp/treeMaxIndependentSet/treeMaxIndependentSet-problem.md)
+[`kadane`](../kadane/kadane-guide.md) 쪽이고, 놓인 모양이 나무면
+[`treeMaxIndependentSet`](../../dp/treeMaxIndependentSet/treeMaxIndependentSet-guide.md)
 쪽이에요.
 
 #### 실제로 쓰이는 곳
@@ -1199,3 +1199,59 @@ T5 가 그 값을 바로 씁니다. 집 4 를 고른 답이 `prev + 1 = 12` 인�
 - 첫 집과 마지막 집이 이웃인 원형 배열로 바꾸면 이 절차를 어떻게 고쳐야 할까요? 집 0 을 고르는
   경우와 안 고르는 경우로 갈라 각각 한 번씩 순회하는 방법을 세우고, 그때 기본 연산 수가 몇 번이
   되는지 `N` 으로 적어 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### House Robber
+
+풀 파일: [`houseRobber.ts`](./houseRobber.ts) · 테스트: [`houseRobber.test.ts`](./houseRobber.test.ts) · 실행: `bun test src/algorithms/array/houseRobber/houseRobber.test.ts`
+
+#### 한 줄 요약
+
+> 일렬로 늘어선 집들의 현금 배열을 받아, **인접한 두 집을 동시에 선택하지 않는 조건** 아래 선택 합의 최댓값을 반환한다.
+
+#### 스토리
+
+도둑 기민은 일렬로 늘어선 주택가를 훑어보고 있다. 각 집에는 훔칠 수 있는 현금이 있다.
+
+경보 시스템이 연결되어 있어, 같은 밤에 바로 이웃한 두 집을 연달아 털면 경보가 울린다. 기민은 경보 없이 최대한 많은 돈을 챙기고 싶다.
+
+어떤 집들을 골라야 경보 없이 가장 많은 돈을 가져갈 수 있을까? 집을 한 채도 고르지 않아도 되며 그 경우 수확은 $0$이다.
+
+#### 함수 인터페이스
+
+```ts
+export function houseRobber(nums: number[]): number;
+```
+
+- `nums` — 각 집의 현금 금액. `nums[i]`는 $i$번째 집의 현금이다.
+- 반환 — 인접하지 않은 집들을 선택해 얻을 수 있는 현금 합의 최댓값.
+
+#### 제약 조건
+
+- $0 \leq N \leq 100{,}000$ (여기서 $N$은 `nums`의 길이, 집의 수)
+- $0 \leq nums[i] \leq 10{,}000$ (각 집의 현금, 정수)
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+선택한 집의 인덱스 집합 $S$에 대해, 임의의 두 인덱스 $i, j \in S$에 대해 $|i - j| \geq 2$를 만족해야 한다. 즉, 인접한 두 인덱스를 동시에 선택할 수 없다.
+
+답은 $\displaystyle\max_{S}\sum_{i \in S} nums[i]$이다. 집이 없거나($N = 0$), 모든 집의 현금이 $0$이면 답은 $0$이다.
+
+#### 예시
+
+```ts
+houseRobber([1, 2, 3, 1]);    // 4  — 인덱스 0, 2 선택: 1+3=4
+houseRobber([2, 7, 9, 3, 1]); // 12 — 인덱스 0, 2, 4 선택: 2+9+1=12
+houseRobber([2, 1, 1, 2]);    // 4  — 인덱스 0, 3 선택: 2+2=4
+
+houseRobber([]);              // 0  — 집 없음
+houseRobber([0, 0, 0]);       // 0  — 현금 없음
+
+houseRobber([5]);             // 5  — 집 하나, 무조건 선택
+houseRobber([2, 7]);          // 7  — 둘 중 큰 값만 선택 가능
+houseRobber([10000, 1, 10000]); // 20000  — 최댓값 원소 두 개 비인접
+```

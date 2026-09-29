@@ -136,8 +136,8 @@
 ```
 
 둘째 줄은 [`dijkstra`](../dijkstra/dijkstra-guide.md), 셋째 줄은
-[`bellmanFord`](../bellmanFord/bellmanFord-problem.md), 넷째 줄은
-[`floydWarshall`](../floydWarshall/floydWarshall-problem.md) 가 다룹니다.
+[`bellmanFord`](../bellmanFord/bellmanFord-guide.md), 넷째 줄은
+[`floydWarshall`](../floydWarshall/floydWarshall-guide.md) 가 다룹니다.
 
 ### 아이디어 상세 — 위상 순서로 한 번씩 고쳐 적는 방법을 떠올리는 과정
 
@@ -822,9 +822,9 @@ dagShortestPath(1, [], 0)                                                       
 ```
 
 가장 뒤 무리가 보이면 다른 절차로 갑니다. 사이클이 있으면
-[`bellmanFord`](../bellmanFord/bellmanFord-problem.md) 나
+[`bellmanFord`](../bellmanFord/bellmanFord-guide.md) 나
 [`dijkstra`](../dijkstra/dijkstra-guide.md), 정점 쌍 전부를 물으면
-[`floydWarshall`](../floydWarshall/floydWarshall-problem.md) 쪽이에요.
+[`floydWarshall`](../floydWarshall/floydWarshall-guide.md) 쪽이에요.
 
 #### 실제로 쓰이는 곳
 
@@ -1318,3 +1318,87 @@ $$A(V, E) = \underbrace{8V}_{\text{배열과 줄}} + \underbrace{6E}_{\text{간�
 - 배열 칸 접근이 264 만에서 200 만으로 24 퍼센트만 줄었습니다. 같은 `V` 와 `E` 에서 그 값을 더
   줄이려면 그래프의 무엇을 바꿔야 할까요. 총식의 여덟 항 중 입력으로 바꿀 수 있는 것이 무엇
   인지부터 세어 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### DAG 최단 경로
+
+풀 파일: [`dagShortestPath.ts`](./dagShortestPath.ts) · 테스트: [`dagShortestPath.test.ts`](./dagShortestPath.test.ts) · 실행: `bun test src/algorithms/shortest-path/dagShortestPath/dagShortestPath.test.ts`
+
+#### 한 줄 요약
+
+> 함수는 사이클이 없는 방향 그래프와 시작 정점을 받아 각 정점까지의 최단 거리 배열을 반환한다.
+
+#### 스토리
+
+소프트웨어 빌드 시스템을 설계하는 나영은 작업 간 의존성을 나타내는 그래프를 분석하고 있다. 어떤 작업은 선행 작업이 끝난 뒤에만 시작할 수 있고, 의존성 사이에 순환은 없다.
+
+각 작업 사이의 전환 비용은 양수일 수도 있고 음수일 수도 있다. 예를 들어 캐시가 유효한 경우 비용을 줄여주는 최적화가 있어서 특정 전환에는 마이너스 비용이 붙는다.
+
+나영은 시작 작업에서 각 작업까지 누적 비용이 얼마인지 알고 싶다. 순환이 없다는 특성 덕분에 모든 작업에 대해 최소 누적 비용을 정확히 계산할 수 있다.
+
+#### 함수 인터페이스
+
+```ts
+export function dagShortestPath(
+  n: number,
+  edges: [number, number, number][],
+  src: number,
+): number[];
+```
+
+- `n` — 정점 수. 정점 번호는 $0$부터 $n - 1$.
+- `edges` — 방향 간선 목록. 각 원소는 $[u, v, w]$ 형태이며 가중치 $w$ (음수 허용)인 방향 간선 $u \to v$.
+- `src` — 시작 정점 번호.
+- 반환 — 길이 $n$인 배열. 인덱스 $v$에는 $\text{src} \to v$의 최단 거리. 도달할 수 없는 정점은 `Infinity`.
+
+#### 제약 조건
+
+- $1 \leq V \leq 10^5$ (정점 수)
+- $0 \leq E \leq 2 \cdot 10^5$ (간선 수)
+- $-10^9 \leq w(u, v) \leq 10^9$ (가중치; 음수 허용)
+- $0 \leq \text{src} < V$
+- 입력 그래프는 DAG (사이클 없음)
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+사이클이 없는 방향 그래프 (DAG) $G = (V, E)$가 주어진다. 시작 정점 $\text{src}$에서 모든 정점 $v$까지의 최단 거리 $d(\text{src}, v)$를 구하라.
+
+DAG이므로 음수 가중치가 있어도 음수 사이클이 존재할 수 없다. 따라서 음수 가중치 간선이 포함되어 있어도 최단 거리를 유한하게 계산할 수 있다.
+
+- $\text{src}$ 자신까지의 거리는 $0$이다.
+- 도달할 수 없는 정점의 거리는 `Infinity`다.
+- 동일한 두 정점 사이에 다중 간선이 있으면 모두 고려해야 한다.
+- 입력 간선의 순서가 위상 순서와 다를 수 있다.
+
+#### 예시
+
+```ts
+// 음수 간선이 포함된 DAG
+const edges: [number, number, number][] = [
+  [0, 1, 2],
+  [0, 2, 4],
+  [1, 2, -3],
+  [1, 3, 5],
+  [2, 3, 1],
+];
+dagShortestPath(4, edges, 0);
+// [0, 2, -1, 0]
+// — 0→2 최단: 0→1→2 = -1 (직접 간선 4보다 짧음)
+// — 0→3 최단: 0→1→2→3 = 0
+
+// 도달 불가능한 정점은 Infinity
+dagShortestPath(3, [[0, 1, 1]], 0);
+// [0, 1, Infinity] — 정점 2로 가는 간선 없음
+
+// 시작점이 나가는 간선이 없는 sink 정점인 경우
+dagShortestPath(3, [[0, 2, 1], [1, 2, 1]], 2);
+// [Infinity, Infinity, 0] — src=2는 어디로도 갈 수 없음
+
+// 입력 순서가 위상 순서와 다른 경우
+dagShortestPath(4, [[2, 3, 1], [1, 2, 1], [0, 1, 1]], 0);
+// [0, 1, 2, 3] — 입력 순서와 무관하게 올바른 최단 거리 계산
+```

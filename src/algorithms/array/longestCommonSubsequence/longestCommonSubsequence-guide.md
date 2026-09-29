@@ -87,9 +87,9 @@ t = a c e            t 에서 0 1 2 번 글자를 고르면
 
 이 글이 다루는 것은 **길이만** 구하는 문제입니다. 같은 표를 쓰되 글자를 바꾸고 넣고 지우는
 비용까지 재는 문제는
-[`editDistance`](../editDistance/editDistance-problem.md) 가 다루고, 한 문자열 안에서
+[`editDistance`](../editDistance/editDistance-guide.md) 가 다루고, 한 문자열 안에서
 증가하는 부분 수열을 찾는 문제는
-[`longestIncreasingSubsequence`](../longestIncreasingSubsequence/longestIncreasingSubsequence-problem.md)
+[`longestIncreasingSubsequence`](../longestIncreasingSubsequence/longestIncreasingSubsequence-guide.md)
 가 다룹니다.
 
 ```text
@@ -755,7 +755,7 @@ f(2,2) 를 펼치면 — s = "abcde" 와 t = "ace"
 ```
 
 첫 무리와 마지막 무리를 가르는 것이 「연속」 한 단어입니다. 연속을 요구하면
-[`editDistance`](../editDistance/editDistance-problem.md) 쪽의 격자 표가 아니라 불일치 칸에 0 을
+[`editDistance`](../editDistance/editDistance-guide.md) 쪽의 격자 표가 아니라 불일치 칸에 0 을
 적는 표가 되고, 답도 오른쪽 아래가 아니라 표 전체의 최댓값이에요.
 
 #### 실제로 쓰이는 곳
@@ -1256,3 +1256,64 @@ T3   i=2   s 의 글자 'b'   줄 = 0 1 1 1   윗줄 T2 와 글자 하나 다르
 - 두 문자열의 길이가 각각 100,000 이라면 이 표를 못 깝니다. 「경쟁 설계와의 대조」의 일치 쌍
   따라가기가 그 규모에서 몇 번의 기본 연산이 되는지 `r` 로 식을 세우고, `r` 이 얼마 이하일 때
   1 초 안에 끝나는지 따져 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### Longest Common Subsequence
+
+풀 파일: [`longestCommonSubsequence.ts`](./longestCommonSubsequence.ts) · 테스트: [`longestCommonSubsequence.test.ts`](./longestCommonSubsequence.test.ts) · 실행: `bun test src/algorithms/array/longestCommonSubsequence/longestCommonSubsequence.test.ts`
+
+#### 한 줄 요약
+
+> 두 문자열을 받아, 두 문자열에 공통으로 존재하는 **가장 긴 부분 수열의 길이**를 반환한다.
+
+#### 스토리
+
+유전공학 연구소의 분석가 은지는 두 DNA 염기 서열을 비교한다. 두 서열에 공통으로 나타나는 염기 패턴의 최대 길이를 찾는 것이 목표다.
+
+두 서열에서 일부 염기를 제거해 나머지를 원래 순서대로 이었을 때 같아지는 최장 서열, 즉 공통 부분 수열을 구해야 한다. 제거된 염기가 연속될 필요는 없다.
+
+은지는 이 최장 공통 부분 수열의 길이를 계산해 두 서열의 유사도를 수치화하려 한다.
+
+#### 함수 인터페이스
+
+```ts
+export function longestCommonSubsequence(s: string, t: string): number;
+```
+
+- `s` — 첫 번째 문자열.
+- `t` — 두 번째 문자열.
+- 반환 — 두 문자열의 최장 공통 부분 수열의 길이.
+
+#### 제약 조건
+
+- $0 \leq |s| \leq 1{,}000$
+- $0 \leq |t| \leq 1{,}000$
+- 문자열의 문자는 ASCII 범위로 가정한다
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+문자열 $x$의 **부분 수열**이란 $x$에서 일부 문자를 골라(0개 이상) **원래 순서를 유지**한 채 이어 붙인 문자열이다. 인접하지 않아도 되며, 모두 제거할 수도 있다.
+
+**공통 부분 수열** $w$는 $s$와 $t$ 모두의 부분 수열이 되는 문자열이다. 그 중 가장 긴 $w$의 길이를 반환한다($w$ 자체가 아닌 길이만).
+
+한쪽 또는 양쪽이 빈 문자열이면 공통 부분 수열이 없으므로 $0$을 반환한다.
+
+#### 예시
+
+```ts
+longestCommonSubsequence("abcde", "ace");      // 3  — 공통 부분 수열 "ace"
+longestCommonSubsequence("AGGTAB", "GXTXAYB"); // 4  — 공통 부분 수열 "GTAB"
+longestCommonSubsequence("abc", "aabbcc");     // 3  — 공통 부분 수열 "abc"
+
+longestCommonSubsequence("abc", "abc");        // 3  — 동일 문자열, 전체가 공통
+longestCommonSubsequence("abc", "def");        // 0  — 공통 문자 없음
+
+longestCommonSubsequence("", "abc");           // 0  — 빈 문자열은 공통 부분 수열 없음
+longestCommonSubsequence("", "");              // 0  — 둘 다 빈 문자열
+
+longestCommonSubsequence("a", "a");            // 1  — 단일 문자 일치
+```

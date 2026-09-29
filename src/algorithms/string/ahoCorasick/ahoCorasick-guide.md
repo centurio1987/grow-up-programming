@@ -112,10 +112,10 @@ he · she · hers 를 한 트리에 담으면
   접미사예요. `hers` 의 접두사는 빈 문자열 · `h` · `he` · `her` · `hers` 이고, 접미사는 빈
   문자열 · `s` · `rs` · `ers` · `hers` 입니다.
 - **글자마다 갈래를 하나 만드는 트리.** 여러 문자열의 같은 앞부분을 한 경로에 담는 구조이고,
-  [`trie`](../trie/trie-problem.md) 가 그것만 따로 다룹니다. 이 글은 그 위에 링크 두 종류를
+  [`trie`](../trie/trie-guide.md) 가 그것만 따로 다룹니다. 이 글은 그 위에 링크 두 종류를
   더합니다.
 - **패턴 하나를 찾을 때 이미 맞은 부분을 다시 쓰는 방법.** 텍스트 자리를 되돌리지 않고 맞은
-  길이만 줄이는 것이고, [`findAllOccurrences`](../findAllOccurrences/findAllOccurrences-problem.md)
+  길이만 줄이는 것이고, [`findAllOccurrences`](../findAllOccurrences/findAllOccurrences-guide.md)
   가 그것을 다룹니다. 이 글의 실패 링크가 그 생각을 패턴 여럿으로 넓힌 것이에요.
 - **큐로 하는 너비 우선 순회.** 깊이가 얕은 것부터 차례로 꺼내는 순회입니다. 실패 링크를 어떤
   순서로 채워야 하는지가 여기에 달려 있어요.
@@ -934,8 +934,8 @@ export function ahoCorasick(text: string, patterns: string[]): Match[] {
 ```
 
 마지막 무리가 보이면 다른 구조로 갑니다. 패턴이 하나면
-[`findAllOccurrences`](../findAllOccurrences/findAllOccurrences-problem.md) 쪽이고, 텍스트가
-고정이고 질의가 계속 들어오면 [`suffixArray`](../suffixArray/suffixArray-problem.md) 쪽이에요.
+[`findAllOccurrences`](../findAllOccurrences/findAllOccurrences-guide.md) 쪽이고, 텍스트가
+고정이고 질의가 계속 들어오면 [`suffixArray`](../suffixArray/suffixArray-guide.md) 쪽이에요.
 
 #### 실제로 쓰이는 곳
 
@@ -1434,3 +1434,83 @@ T7   텍스트 자리 4 의 글자 r   she -> her   두 상태 다 깊이 3
 - 반환 배열을 시작 자리 순서로 정렬하지 않아도 된다면 총식에서 어느 항이 사라질까요? 그리고
   그때 패턴마다 실패 함수를 따로 만드는 설계와의 경계 40 은 어느 쪽으로 움직일까요? 두 설계의
   값을 각각 어떻게 고쳐야 하는지 적어 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 다중 패턴 검색
+
+풀 파일: [`ahoCorasick.ts`](./ahoCorasick.ts) · 테스트: [`ahoCorasick.test.ts`](./ahoCorasick.test.ts) · 실행: `bun test src/algorithms/string/ahoCorasick/ahoCorasick.test.ts`
+
+#### 한 줄 요약
+
+> `ahoCorasick(text, patterns)`은 텍스트와 패턴 배열을 받아, 각 패턴이 텍스트 내에서 등장하는 모든 (패턴 인덱스, 시작 위치) 쌍을 반환한다.
+
+#### 스토리
+
+바이러스 분석 연구실의 미나는 수십만 염기서열 중에서 알려진 위험 패턴 수백 개를 동시에 찾아야 한다. 패턴마다 텍스트 전체를 따로 훑으면 퇴근도 못 한다. 그녀는 모든 패턴을 한 번의 텍스트 순회만으로 처리할 수 있는 방법이 필요하다.
+
+단순한 반복 검색은 패턴이 늘어날수록 시간이 선형으로 불어난다. 미나에게는 패턴 수와 무관하게 텍스트 길이에 비례하는 시간 안에 결과를 내놓는 도구가 필요하다.
+
+#### 함수 인터페이스
+
+```ts
+export function ahoCorasick(
+  text: string,
+  patterns: string[],
+): Array<{ patternIndex: number; position: number }>;
+```
+
+- `text` — 검색 대상 텍스트 문자열
+- `patterns` — 검색할 패턴 문자열 배열 (인덱스 0부터 시작)
+- 반환 — `{ patternIndex, position }` 매칭 결과 배열. `position`은 텍스트 내 패턴 시작 인덱스(0-based). 결과는 `position` 오름차순, 동률 시 `patternIndex` 오름차순으로 정렬된다.
+
+#### 제약 조건
+
+- $1 \leq |text| \leq 10^5$
+- $1 \leq |\text{patterns}|$
+- 모든 패턴 길이의 합 $\sum |p_i| \leq 10^5$
+- 문자 집합: 소문자 영문 알파벳 (`a`–`z`)
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+텍스트 $T$와 패턴 집합 $P = \{p_0, p_1, \ldots, p_{k-1}\}$가 주어질 때, 각 패턴이 $T$ 안에서 등장하는 모든 (패턴 인덱스, 시작 위치) 쌍을 반환한다.
+
+반환 집합의 정의:
+
+$$\text{result} = \{\, (i, j) \mid 0 \leq i < k,\; 0 \leq j \leq |T| - |p_i|,\; T[j \ldots j + |p_i| - 1] = p_i \,\}$$
+
+겹치는 등장도 모두 포함한다. 결과는 `position` 오름차순으로 정렬하며, 같은 위치에 여러 패턴이 매칭되면 `patternIndex` 오름차순으로 정렬한다.
+
+패턴이 하나도 매칭되지 않으면 빈 배열을 반환한다.
+
+#### 예시
+
+```ts
+// text = "ahishers" = a h i s h e r s (자리 0..7)
+ahoCorasick("ahishers", ["he", "she", "his", "hers"]);
+// [
+//   { patternIndex: 2, position: 1 },  // "his"  at 1
+//   { patternIndex: 1, position: 3 },  // "she"  at 3
+//   { patternIndex: 0, position: 4 },  // "he"   at 4
+//   { patternIndex: 3, position: 4 },  // "hers" at 4
+// ]
+
+ahoCorasick("aaaa", ["aa"]);
+// [
+//   { patternIndex: 0, position: 0 },  // 위치 0에서 겹침 시작
+//   { patternIndex: 0, position: 1 },
+//   { patternIndex: 0, position: 2 },
+// ]
+
+ahoCorasick("abc", ["abc", "bc"]);
+// [
+//   { patternIndex: 0, position: 0 },  // "abc" at 0
+//   { patternIndex: 1, position: 1 },  // "bc"  at 1
+// ]
+
+ahoCorasick("abcdef", ["xyz", "qrs"]);
+// []  — 어떤 패턴도 매칭되지 않음
+```

@@ -103,14 +103,14 @@ P 의 값      0   3   7  14  16  13  14  18  20     앞 j 개의 합, 칸이 �
   원소를 골라 담는 부분집합과 다릅니다.
 - **접두 합**이 무엇인지. 배열의 앞에서부터 `j` 개를 더한 값이고, 구간 합을 두 칸의 뺄셈으로
   만들 때 씁니다. 흐릿하면
-  [`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-problem.md) 를 먼저 봅니다.
+  [`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-guide.md) 를 먼저 봅니다.
 - **키-값 표**(자바스크립트의 `Map`)에서 값을 찾고 넣는 일. 여기서는 「이 수가 몇 번
   나왔는가」를 담는 데 씁니다.
 - 배열을 한 번 지나가는 `for` 루프와, 배열 인덱스가 `0` 부터 시작한다는 것.
 
 「합이 `k` 인 구간이 몇 개인가」와 「합이 조건을 만족하는 구간 중 가장 긴 것」은 다른
 문제입니다. 뒤쪽은
-[`longestSubarrayAtMostSum`](../longestSubarrayAtMostSum/longestSubarrayAtMostSum-problem.md)
+[`longestSubarrayAtMostSum`](../longestSubarrayAtMostSum/longestSubarrayAtMostSum-guide.md)
 이 다루는 것이고, 이 글은 **개수**를 셉니다.
 
 ```text
@@ -708,8 +708,8 @@ subarraySumEqualsK([], 7)                          →  0
 ```
 
 두 번째 무리가 보이면 다른 절차로 갑니다. 합이 최대인 구간이면
-[`kadane`](../kadane/kadane-problem.md) 쪽이고, 원소가 전부 비음이고 상한이 걸린 문제면
-[`longestSubarrayAtMostSum`](../longestSubarrayAtMostSum/longestSubarrayAtMostSum-problem.md)
+[`kadane`](../kadane/kadane-guide.md) 쪽이고, 원소가 전부 비음이고 상한이 걸린 문제면
+[`longestSubarrayAtMostSum`](../longestSubarrayAtMostSum/longestSubarrayAtMostSum-guide.md)
 쪽이에요.
 
 #### 실제로 쓰이는 곳
@@ -1124,3 +1124,63 @@ T7   prefix = 14   찾는 값 7   표에서 찾은 개수 1   답 누적 3
   되고, 답 전체는 몇이 될까요? 표의 첫 칸이 어디에 걸리는지까지 확인해 보세요.
 - 반환값이 `n(n+1)/2` 까지 커질 수 있다는 것을 위에서 확인했습니다. 언어가 32 비트 정수만
   쓴다면 어느 입력에서 값이 넘치는지, 그리고 그것을 어떻게 알아챌 수 있을지 생각해 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### Subarray Sum Equals K
+
+풀 파일: [`subarraySumEqualsK.ts`](./subarraySumEqualsK.ts) · 테스트: [`subarraySumEqualsK.test.ts`](./subarraySumEqualsK.test.ts) · 실행: `bun test src/algorithms/array/subarraySumEqualsK/subarraySumEqualsK.test.ts`
+
+#### 한 줄 요약
+
+> 정수 배열과 목표값 $k$를 받아, **합이 정확히 $k$인 연속 부분 배열의 개수**를 반환한다.
+
+#### 스토리
+
+출납 감사관 혜린은 수천 건의 거래 기록을 검토하고 있다. 각 거래는 입금(양수) 또는 출금(음수)이다.
+
+감사 규정상 연속된 거래들의 합이 정확히 $k$인 구간이 몇 개인지 파악해야 한다. 같은 합을 가진 구간이라도 시작·끝 인덱스가 다르면 별개로 센다.
+
+혜린은 조건을 만족하는 구간의 총 개수를 계산해야 한다.
+
+#### 함수 인터페이스
+
+```ts
+export function subarraySumEqualsK(nums: number[], k: number): number;
+```
+
+- `nums` — 정수 배열. 음수 포함 가능.
+- `k` — 찾을 목표 합.
+- 반환 — 합이 정확히 $k$인 연속 부분 배열의 개수.
+
+#### 제약 조건
+
+- $1 \leq N \leq 100{,}000$ (여기서 $N$은 `nums`의 길이)
+- $-10{,}000 \leq nums[i] \leq 10{,}000$ (정수, 음수 가능)
+- $-10^9 \leq k \leq 10^9$ (정수)
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+인덱스 쌍 $(l, r)$ ($0 \leq l \leq r < N$)로 표현된 구간 중
+
+$$\sum_{i=l}^{r} nums[i] = k$$
+
+를 만족하는 쌍의 개수를 반환한다. 같은 합을 가진 서로 다른 인덱스 쌍은 각각 개별적으로 센다. 결과가 $0$인 것도 합법적인 목표값이다. 만족하는 구간이 없으면 $0$을 반환한다.
+
+#### 예시
+
+```ts
+subarraySumEqualsK([1, 1, 1], 2);    // 2  — [1,1](0..1), [1,1](1..2)
+subarraySumEqualsK([1, 2, 3], 3);    // 2  — [1,2](0..1), [3](2..2)
+subarraySumEqualsK([3, 4, 7, 2, -3, 1, 4, 2], 7); // 4
+
+subarraySumEqualsK([1, -1, 1, -1], 0); // 4  — 합 0인 구간이 4개
+subarraySumEqualsK([0, 0, 0], 0);      // 6  — 길이 1, 2, 3짜리 구간이 각각 3, 2, 1개
+
+subarraySumEqualsK([1, 2, 3], 100);  // 0  — 만족하는 구간 없음
+subarraySumEqualsK([5], 5);          // 1  — 단일 원소 일치
+subarraySumEqualsK([5], 1);          // 0  — 단일 원소 불일치
+```

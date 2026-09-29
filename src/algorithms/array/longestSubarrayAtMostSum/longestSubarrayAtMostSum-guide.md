@@ -47,13 +47,13 @@ r=5 로 넓히면 합이 다시 5 가 되어 l 을 2 로 옮긴다
 - **연속 부분 배열**이 무엇인지. 인덱스 `l` 부터 `r` 까지를 **건너뛰지 않고** 전부 고른 것이고,
   원소를 골라 담는 부분집합과 다릅니다.
 - **구간 합**이 무엇인지. 그 구간에 든 값을 전부 더한 수예요. 흐릿하면
-  [`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-problem.md) 를 먼저 봅니다.
+  [`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-guide.md) 를 먼저 봅니다.
 - **비음의 정수**라는 말의 뜻 — `0` 이거나 `0` 보다 큰 정수입니다. 이 조건 하나가 이 글의
   전부를 떠받치므로 여기서 확인하고 갑니다.
 - 배열을 한 번 지나가는 `for` 루프와, 조건이 참인 동안 반복하는 `while` 루프.
 
 「가장 긴 구간을 찾는다」와 「가장 큰 합을 찾는다」는 다른 문제입니다. 뒤쪽은
-[`kadane`](../kadane/kadane-problem.md) 이 다루는 것이고, 이 글은 **길이**를 최대로 만듭니다.
+[`kadane`](../kadane/kadane-guide.md) 이 다루는 것이고, 이 글은 **길이**를 최대로 만듭니다.
 
 ```text
 [1 2 1 0 1 1 0] 에서
@@ -910,3 +910,69 @@ T5   r=3  l=0   r − l + 1 = 3 − 0 + 1 = 4
   아니면서 연산이 `2n` 에 가까운 입력을 만들 수 있을까요?
 - 불변식의 뒤 문장(「`l-1` 을 포함하면 `S` 를 넘는다」)이 없어도 답이 최댓값이라고 말할 수
   있는지 확인해 보세요. 없으면 무엇을 못 말하게 되는지가 답입니다.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### Longest Subarray with Sum at Most S
+
+풀 파일: [`longestSubarrayAtMostSum.ts`](./longestSubarrayAtMostSum.ts) · 테스트: [`longestSubarrayAtMostSum.test.ts`](./longestSubarrayAtMostSum.test.ts) · 실행: `bun test src/algorithms/array/longestSubarrayAtMostSum/longestSubarrayAtMostSum.test.ts`
+
+#### 한 줄 요약
+
+> 비음의 정수 배열과 상한 $S$를 받아, **합이 $S$ 이하인 연속 부분 배열 중 가장 긴 것의 길이**를 반환한다.
+
+#### 스토리
+
+영양사 소연은 하루 칼로리 예산 $S$ 킬로칼로리 안에서 연속된 음식 메뉴를 최대한 많이 골라야 한다. 메뉴 목록은 순서가 고정되어 있고, 건너뛸 수 없다.
+
+소연은 어느 위치에서 시작해 어느 위치에서 멈출지를 정해, 그 구간의 메뉴를 모두 고를 때 칼로리 합이 $S$를 넘지 않으면서 가장 많은 메뉴를 포함하려 한다.
+
+이 조건을 만족하는 최대 메뉴 수를 구하는 함수를 작성해야 한다.
+
+#### 함수 인터페이스
+
+```ts
+export function longestSubarrayAtMostSum(nums: number[], S: number): number;
+```
+
+- `nums` — 비음의 정수 배열. `nums[i]`는 $i$번째 메뉴의 칼로리.
+- `S` — 합의 상한 (비음의 정수).
+- 반환 — 합이 $S$ 이하인 연속 부분 배열의 최대 길이. 그러한 부분 배열이 없으면 `0`.
+
+#### 제약 조건
+
+- $1 \leq N \leq 100{,}000$ (여기서 $N$은 `nums`의 길이)
+- $0 \leq nums[i] \leq 10{,}000$ (비음의 정수)
+- $0 \leq S \leq 10^9$ (비음의 정수)
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+인덱스 구간 $[l, r]$ ($0 \leq l \leq r < N$)의 합을
+
+$$\text{sum}(l, r) = \sum_{k=l}^{r} nums[k]$$
+
+로 정의하면, 답은
+
+$$\max\{\, r - l + 1 \mid 0 \leq l \leq r < N,\; \text{sum}(l, r) \leq S \,\}$$
+
+이다.
+
+모든 단일 원소가 $S$를 초과하면 합 조건을 만족하는 부분 배열이 없으므로 $0$을 반환한다. `nums`의 모든 원소가 $0$이면 전체 길이가 답이 된다.
+
+#### 예시
+
+```ts
+longestSubarrayAtMostSum([1, 2, 1, 0, 1, 1, 0], 4); // 5  — 인덱스 [1,5] 합=1+0+1+1+0=3
+longestSubarrayAtMostSum([1, 1, 1, 1, 1], 3);       // 3  — 어느 연속 세 원소든 합=3
+longestSubarrayAtMostSum([1, 2, 3], 10);            // 3  — 전체 합 6 ≤ 10
+
+longestSubarrayAtMostSum([5, 6, 7], 4);             // 0  — 단일 원소도 S 초과
+longestSubarrayAtMostSum([1, 2, 3], 0);             // 0  — S=0이고 모든 원소 양수
+
+longestSubarrayAtMostSum([0, 0, 0, 0], 0);          // 4  — 모든 원소 0, 전체 길이
+longestSubarrayAtMostSum([5], 10);                  // 1  — 단일 원소, 조건 충족
+longestSubarrayAtMostSum([5], 1);                   // 0  — 단일 원소, 조건 초과
+```

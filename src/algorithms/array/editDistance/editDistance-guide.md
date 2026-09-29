@@ -94,7 +94,7 @@
 쓰되 두 문자열이 공유하는 가장 긴 부분 수열의 길이를 재는 문제는
 [`longestCommonSubsequence`](../longestCommonSubsequence/longestCommonSubsequence-guide.md)
 가 다루고, 문제 지문과 제약은
-[`editDistance-problem.md`](./editDistance-problem.md) 에 있어요.
+[`editDistance-problem.md`](./editDistance-guide.md) 에 있어요.
 
 ```text
 두 문자열을 같게 만드는 최소 편집 횟수   ← 이 글이 다루는 것
@@ -1286,3 +1286,65 @@ T5 의 세 칸이 갈리는 자리
 - 두 문자열의 길이가 각각 100,000 이면 이 표를 못 깝니다. 「경쟁 설계와의 대조」의 띠 계산이
   문턱 `k` 로 한 바퀴 채울 때 몇 칸을 채우는지 `k` 와 두 길이로 식을 세우고, 문턱을 배로
   늘리는 바퀴까지 더하면 답이 얼마 이하일 때 1 초 안에 끝나는지 따져 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### Edit Distance
+
+풀 파일: [`editDistance.ts`](./editDistance.ts) · 테스트: [`editDistance.test.ts`](./editDistance.test.ts) · 실행: `bun test src/algorithms/array/editDistance/editDistance.test.ts`
+
+#### 한 줄 요약
+
+> 두 문자열 `s`와 `t`를 받아, `s`를 `t`로 변환하는 데 필요한 **최소 편집 횟수**를 반환한다.
+
+#### 스토리
+
+철자 교정 엔진을 만드는 개발자 하린은 사용자가 입력한 단어가 사전에 없을 때 가장 가까운 단어를 찾아야 한다.
+
+"가까운"의 기준은 변환 비용이다. 문자 하나를 삽입하거나, 문자 하나를 삭제하거나, 문자 하나를 다른 문자로 교체할 수 있다. 세 연산 각각의 비용은 동일하다.
+
+두 단어 사이의 거리가 작을수록 더 비슷한 단어다. 하린은 이 최소 변환 비용을 계산하는 함수를 작성해야 한다.
+
+#### 함수 인터페이스
+
+```ts
+export function editDistance(s: string, t: string): number;
+```
+
+- `s` — 변환 대상 문자열 (원본).
+- `t` — 목표 문자열.
+- 반환 — `s`를 `t`로 변환하는 데 필요한 최소 편집 횟수.
+
+#### 제약 조건
+
+- $0 \leq |s| \leq 1{,}000$
+- $0 \leq |t| \leq 1{,}000$
+- 문자열의 문자는 ASCII 범위로 가정한다
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+허용되는 편집 연산은 세 가지이며 각각의 비용은 $1$이다.
+
+- **삽입**: `s`의 임의 위치에 문자 하나를 끼워 넣는다.
+- **삭제**: `s`의 임의 위치에서 문자 하나를 제거한다.
+- **교체**: `s`의 임의 위치에 있는 문자 하나를 다른 문자로 바꾼다.
+
+`s`와 `t`가 같으면 비용은 $0$이다. 한쪽이 빈 문자열이면 다른 쪽의 길이가 곧 비용이다. 연산 순서는 비용에 영향을 주지 않으며, 최소 비용만 구하면 된다(변환 경로 자체는 반환하지 않는다).
+
+#### 예시
+
+```ts
+editDistance("kitten", "sitting"); // 3  — k→s, e→i, 끝에 g 삽입
+editDistance("flaw", "lawn");      // 2  — f 삭제, 끝에 n 삽입
+editDistance("horse", "ros");      // 3  — h→r, r 삭제, e 삭제
+
+editDistance("same", "same");      // 0  — 동일 문자열, 변환 불필요
+editDistance("", "abc");           // 3  — 문자 3개 삽입
+editDistance("abc", "");           // 3  — 문자 3개 삭제
+editDistance("", "");              // 0  — 둘 다 빈 문자열
+
+editDistance("a", "b");            // 1  — 문자 하나 교체
+```

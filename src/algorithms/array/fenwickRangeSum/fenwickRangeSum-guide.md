@@ -61,7 +61,7 @@
 
 - **구간 합**이 무엇인지. 인덱스 `l` 부터 `r` 까지의 값을 건너뛰는 칸 없이 전부 더한 값입니다.
 - **누적합**이 무엇인지. 앞에서부터 쌓아 둔 합 두 개의 차이로 구간의 합을 만드는 방법이고,
-  흐릿하면 [`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-problem.md) 를
+  흐릿하면 [`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-guide.md) 를
   먼저 봅니다. 이 글은 그 표에 **갱신이 섞여 들어올 때**를 다룹니다.
 - **정수의 이진 표기**. 어떤 자연수든 2 의 거듭제곱 몇 개의 합으로 한 가지 방법으로 적힙니다.
 - **비트 연산 `&` 와 음수의 표현**. `-i` 는 `i` 의 비트를 뒤집고 1 을 더한 값이라, `i & -i` 가
@@ -76,9 +76,9 @@ i & -i = 0010     가장 낮은 자리의 1 비트만 남는다. 값은 2 다
 
 「구간의 값을 묻는다」만으로는 어느 절차를 쓸지 안 정해집니다. **무엇을 묻는가**와 **배열이
 바뀌는가** 둘이 함께 있어야 갈려요. 합이 아니라 최솟값을 묻는 문제는
-[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-problem.md) 이 다루고,
+[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-guide.md) 이 다루고,
 배열이 아예 안 바뀌는 문제는
-[`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-problem.md) 쪽입니다.
+[`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-guide.md) 쪽입니다.
 
 ```text
 [1 2 3 4 5] 에서
@@ -715,7 +715,7 @@ fenwickRangeSum([1, 2, 3], 갱신 i=0 v=-5 · 질의 [0,2])  →  [0]
 | 이 글의 앞부분 합 | 앞에서 센 개수 `r` | 길이 `2^j` 짜리 구간의 합을 읽는다 |
 
 셋 다 조각의 개수가 **1 비트의 개수**이고, 그래서 비용이 자릿수로 정해집니다. 거듭제곱 쪽은
-[`fastPower`](../../number-theory/fastPower/fastPower-problem.md) 가 같은 분해를 같은 이름으로
+[`fastPower`](../../number-theory/fastPower/fastPower-guide.md) 가 같은 분해를 같은 이름으로
 다뤄요.
 
 ## 파트 2 — 적용 조건 · 보장 · 비용
@@ -773,10 +773,10 @@ N = 100,000 에서 두 방식을 견주면 (배열 접근만 센다)
 ```
 
 두 번째 무리가 보이면 다른 절차로 갑니다. 배열이 안 바뀌면
-[`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-problem.md) 쪽이고, 최솟값을
+[`prefixSumRangeQuery`](../prefixSumRangeQuery/prefixSumRangeQuery-guide.md) 쪽이고, 최솟값을
 묻거나 구간 갱신이 붙으면
-[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-problem.md) ·
-[`diffArrayRangeUpdate`](../diffArrayRangeUpdate/diffArrayRangeUpdate-problem.md) 쪽이에요.
+[`segmentTreeRangeMin`](../segmentTreeRangeMin/segmentTreeRangeMin-guide.md) ·
+[`diffArrayRangeUpdate`](../diffArrayRangeUpdate/diffArrayRangeUpdate-guide.md) 쪽이에요.
 
 #### 실제로 쓰이는 곳
 
@@ -1272,3 +1272,80 @@ T13   질의 [2,3]   앞 4 개 − 앞 2 개    칸 4 · 칸 2             읽�
   어떻게 바꿔야 하는지까지 확인해 보세요.
 - 갱신이 「구간 `[l, r]` 의 모든 값에 `x` 를 더한다」로 바뀌면 이 절차의 어디가 성립하지
   않을까요? 갱신 하나가 고쳐야 하는 칸의 개수부터 세어 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 구간 합 질의 (동적 갱신)
+
+풀 파일: [`fenwickRangeSum.ts`](./fenwickRangeSum.ts) · 테스트: [`fenwickRangeSum.test.ts`](./fenwickRangeSum.test.ts) · 실행: `bun test src/algorithms/array/fenwickRangeSum/fenwickRangeSum.test.ts`
+
+#### 한 줄 요약
+
+> 정수 배열과 갱신·질의 연산 목록을 받아, **각 질의(구간 합)의 결과**를 순서대로 담은 배열을 반환한다.
+
+#### 스토리
+
+온라인 게임의 점수 집계 서버를 담당하는 재원은 실시간으로 들어오는 두 종류의 요청을 처리해야 한다.
+
+첫 번째는 특정 플레이어의 점수를 새 값으로 바꾸는 갱신 요청이다. 두 번째는 플레이어 구간 $[l, r]$에 속한 모든 플레이어의 점수 합계를 묻는 질의 요청이다.
+
+요청이 섞여서 들어오기 때문에, 질의를 처리할 때마다 이미 반영된 갱신이 결과에 영향을 준다. 재원은 모든 질의의 결과를 순서대로 모아 반환해야 한다.
+
+#### 함수 인터페이스
+
+```ts
+export type FenwickOp =
+  | { type: "update"; i: number; v: number }
+  | { type: "query"; l: number; r: number };
+
+export function fenwickRangeSum(A: number[], ops: FenwickOp[]): number[];
+```
+
+- `A` — 초기 정수 배열.
+- `ops` — 순서대로 처리할 연산 목록. `update`는 점 갱신, `query`는 구간 합 요청이다.
+- 반환 — `query` 연산의 결과만 등장 순서대로 담은 배열.
+
+#### 제약 조건
+
+- $1 \leq N \leq 100{,}000$ (여기서 $N$은 `A`의 길이)
+- $0 \leq Q \leq 100{,}000$ (여기서 $Q$는 `ops`의 길이)
+- $-10{,}000 \leq A[i],\, v \leq 10{,}000$ (정수)
+- `update` 연산: $0 \leq i < N$
+- `query` 연산: $0 \leq l \leq r < N$
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+연산은 두 종류다.
+
+- **update** $(i, v)$: $A[i] \leftarrow v$ (덮어쓰기, 누적이 아님).
+- **query** $(l, r)$: $\displaystyle\sum_{k=l}^{r} A[k]$를 계산한다.
+
+연산은 입력 순서대로 처리된다. `update`는 이후 모든 연산에 즉시 반영된다. `query` 결과만 모아 반환하며, `update`는 결과 배열에 포함되지 않는다. `query`가 하나도 없으면 빈 배열을 반환한다.
+
+#### 예시
+
+```ts
+fenwickRangeSum(
+  [1, 2, 3, 4, 5],
+  [
+    { type: "query",  l: 0, r: 4 },   // 15  — 초기 전체 합 1+2+3+4+5
+    { type: "update", i: 2, v: 10 },  // A는 이제 [1,2,10,4,5]
+    { type: "query",  l: 0, r: 4 },   // 22  — 갱신 후 전체 합
+    { type: "query",  l: 2, r: 3 },   // 14  — A[2]+A[3]=10+4
+  ],
+); // [15, 22, 14]
+
+fenwickRangeSum([7], [{ type: "query", l: 0, r: 0 }]);
+// [7]  — 단일 원소, l=r=0
+
+fenwickRangeSum([1, 2, 3], []);
+// []  — 연산 없음, 빈 배열 반환
+
+fenwickRangeSum(
+  [1, 2, 3],
+  [{ type: "update", i: 0, v: -5 }, { type: "query", l: 0, r: 2 }],
+); // [0]  — [-5,2,3]의 합, 음수 갱신 후 질의
+```

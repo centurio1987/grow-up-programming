@@ -1249,3 +1249,62 @@ hold[2] 가 오늘 올라간 값으로 오늘 팔면
   보세요.
 - 거래 상한 `k` 를 고정하고 날 수 `N` 만 늘리면 두 설계의 연산 수가 각각 어떻게 되나요? 표 쪽과
   벌금 쪽의 식을 `N` 과 `k` 로 세우고, 뒤집히는 자리가 `N` 에 따라 어떻게 움직이는지 따져 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### Best Time to Buy and Sell Stock K
+
+풀 파일: [`bestTimeToBuyAndSellStockK.ts`](./bestTimeToBuyAndSellStockK.ts) · 테스트: [`bestTimeToBuyAndSellStockK.test.ts`](./bestTimeToBuyAndSellStockK.test.ts) · 실행: `bun test src/algorithms/array/bestTimeToBuyAndSellStockK/bestTimeToBuyAndSellStockK.test.ts`
+
+#### 한 줄 요약
+
+> 날짜별 주식 가격 배열과 최대 거래 횟수 $k$를 받아, **최대 $k$번의 매수·매도**로 얻을 수 있는 최대 이익을 반환한다.
+
+#### 스토리
+
+펀드 매니저 수아는 지난 $N$일간의 주가 데이터를 분석하고 있다. 회사 규정상 분기 내에 최대 $k$번까지만 거래할 수 있다.
+
+수아는 동시에 두 주식을 보유할 수 없다. 즉, 지금 보유하고 있다면 먼저 팔아야 다시 살 수 있다. 같은 날 팔고 바로 사는 것은 허용된다.
+
+이 규칙 아래에서 가능한 가장 큰 총 이익을 계산해야 한다. 거래를 전혀 하지 않아도 되며 그 경우 이익은 $0$이다.
+
+#### 함수 인터페이스
+
+```ts
+export function bestTimeToBuyAndSellStockK(k: number, prices: number[]): number;
+```
+
+- `k` — 허용되는 최대 매수·매도 쌍의 수. $k = 0$이면 거래 불가.
+- `prices` — 날짜 순서로 정렬된 주식 종가 배열.
+- 반환 — 최대 $k$번 거래로 얻을 수 있는 최대 이익. 이익이 없으면 `0`.
+
+#### 제약 조건
+
+- $1 \leq N \leq 1{,}000$ (여기서 $N$은 `prices`의 길이)
+- $0 \leq k \leq 100$ (최대 거래 횟수)
+- $0 \leq prices[i] \leq 10{,}000$ (각 날의 가격, 정수)
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+거래 횟수는 매수 한 번 + 매도 한 번을 한 쌍으로 센다. 동시에 두 주식을 보유하는 것은 불가능하다. 즉 이전 거래가 완료(매도)되기 전에 새로운 매수가 이루어질 수 없다.
+
+같은 날 매도 후 매수는 허용된다. 거래를 $k$번보다 적게 해도 된다.
+
+배열이 비거나($N < 2$) $k = 0$이면 이익은 $0$이다.
+
+#### 예시
+
+```ts
+bestTimeToBuyAndSellStockK(2, [3, 2, 6, 5, 0, 3]); // 7  — [2→6] 이익 4 + [0→3] 이익 3
+bestTimeToBuyAndSellStockK(2, [2, 4, 1]);          // 2  — [2→4] 한 번만으로 충분
+bestTimeToBuyAndSellStockK(1, [7, 1, 5, 3, 6, 4]); // 5  — 단 한 번, 1에 사서 6에 판다
+
+bestTimeToBuyAndSellStockK(0, [1, 5, 3, 8]);       // 0  — 거래 횟수 0, 아무것도 못 함
+bestTimeToBuyAndSellStockK(3, [5, 4, 3, 2, 1]);    // 0  — 계속 하락, 이익 낼 방법 없음
+
+bestTimeToBuyAndSellStockK(2, [5]);                // 0  — 원소 하나, 거래 불가
+bestTimeToBuyAndSellStockK(100, [0, 10000]);       // 10000  — k가 충분히 크고 최대 상승폭
+```

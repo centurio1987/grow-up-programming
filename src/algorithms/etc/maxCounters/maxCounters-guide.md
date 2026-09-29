@@ -65,7 +65,7 @@ A[6]=4        3  2  2  4  2    답
 - **길이 `N` 배열의 모든 칸에 같은 값을 적는 데 `N` 번의 쓰기가 든다**는 것. `fill` 한 줄로
   적어도 비용은 `N` 입니다.
 - 갱신을 적어만 두었다가 나중에 한꺼번에 적용하는 방식이 낯설면
-  [`diffArrayRangeUpdate`](../../array/diffArrayRangeUpdate/diffArrayRangeUpdate-problem.md)
+  [`diffArrayRangeUpdate`](../../array/diffArrayRangeUpdate/diffArrayRangeUpdate-guide.md)
   를 먼저 봅니다. 구간 덧셈을 양 끝 두 칸에만 적어 두었다가 마지막에 펼치는 문제예요.
 
 「모든 카운터를 최댓값으로 맞춘다」와 「가장 큰 카운터를 찾는다」는 다른 요구입니다. 뒤쪽은
@@ -586,8 +586,8 @@ maxCounters(1, [2])                    →  [0]
 ```
 
 두 자리 모두 「지금 `N` 칸을 적을 것인가, 나중에 필요한 칸만 적을 것인가」라는 같은 선택을
-합니다([`segmentTreeRangeMin`](../../array/segmentTreeRangeMin/segmentTreeRangeMin-problem.md)
-· [`diffArrayRangeUpdate`](../../array/diffArrayRangeUpdate/diffArrayRangeUpdate-problem.md)).
+합니다([`segmentTreeRangeMin`](../../array/segmentTreeRangeMin/segmentTreeRangeMin-guide.md)
+· [`diffArrayRangeUpdate`](../../array/diffArrayRangeUpdate/diffArrayRangeUpdate-guide.md)).
 이 글의 바닥값은 그중 가장 단순한 모양이에요 — 기록할 갱신이 **언제나 하나뿐**이고 대상이
 배열 전체라, 적어 둘 자리가 수 하나면 됩니다.
 
@@ -975,3 +975,74 @@ T6 이 보는 것    저장값 counter[0] = 0,  base = 2
   가까우면서 답의 칸들이 서로 다른 값을 갖는 입력을 만들 수 있을까요?
 - 불변식의 가운데 문장(「`base` 는 마지막 최대 맞추기가 정한 값이다」)이 없어도 답이 옳다고
   말할 수 있는지 확인해 보세요. 없으면 무엇을 못 말하게 되는지가 답입니다.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### Max Counters
+
+풀 파일: [`maxCounters.ts`](./maxCounters.ts) · 테스트: [`maxCounters.test.ts`](./maxCounters.test.ts) · 실행: `bun test src/algorithms/etc/maxCounters/maxCounters.test.ts`
+
+#### 한 줄 요약
+
+> 함수는 카운터 수와 연산 배열을 받아, 모든 연산을 수행한 뒤 최종 카운터 배열을 반환한다.
+
+#### 스토리
+
+게임 서버에 $N$개의 점수 카운터가 있다. 모두 0으로 시작한다. 게임 중 두 종류의 이벤트가 발생한다. 첫 번째는 특정 카운터 하나를 1 올리는 이벤트고, 두 번째는 모든 카운터를 현재 최고값으로 맞추는 이벤트다.
+
+이벤트는 숫자 배열 $A$로 기록된다. $1$부터 $N$ 사이의 숫자는 해당 번호 카운터를 1 증가시키고, $N+1$은 모든 카운터를 현재 최댓값으로 일제히 갱신한다.
+
+모든 이벤트를 처리한 후 각 카운터의 최종 값을 구하라.
+
+#### 함수 인터페이스
+
+```ts
+export function maxCounters(N: number, A: number[]): number[];
+```
+
+- `N` — 카운터의 수
+- `A` — 연산 배열 (길이 $M$). 각 원소는 $1 \leq A[K] \leq N+1$인 정수
+- 반환 — 길이 $N$인 정수 배열. 모든 연산 후 각 카운터의 최종 값
+
+#### 제약 조건
+
+- $1 \leq N \leq 100{,}000$
+- $1 \leq M \leq 100{,}000$ ($M$은 `A`의 길이)
+- `A`의 각 원소는 $1 \leq A[K] \leq N+1$인 정수
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+$N$개의 카운터 $C = [c_1, c_2, \ldots, c_N]$가 모두 $0$으로 초기화된다. 연산 배열 $A$의 각 원소는 다음 두 연산 중 하나다.
+
+$$
+\text{op}(K) = \begin{cases}
+  c_{A[K]} \leftarrow c_{A[K]} + 1 & \text{if } 1 \leq A[K] \leq N \\
+  c_i \leftarrow \max(C) \quad \forall i & \text{if } A[K] = N + 1
+\end{cases}
+$$
+
+모든 연산을 순서대로 수행한 뒤 최종 카운터 배열(길이 $N$)을 반환한다.
+
+#### 예시
+
+```ts
+maxCounters(5, [3, 4, 4, 6, 1, 4, 4]);
+// [3, 2, 2, 4, 2]
+// 초기:         (0, 0, 0, 0, 0)
+// A[0]=3 → +1: (0, 0, 1, 0, 0)
+// A[1]=4 → +1: (0, 0, 1, 1, 0)
+// A[2]=4 → +1: (0, 0, 1, 2, 0)
+// A[3]=6 → max: (2, 2, 2, 2, 2)   ← N+1=6, 현재 최대=2
+// A[4]=1 → +1: (3, 2, 2, 2, 2)
+// A[5]=4 → +1: (3, 2, 2, 3, 2)
+// A[6]=4 → +1: (3, 2, 2, 4, 2)
+
+maxCounters(3, [1, 2, 3, 1]);
+// [2, 1, 1] — 증가 연산만 존재
+
+maxCounters(3, [4, 4, 4]);
+// [0, 0, 0] — max counter만 있고 증가가 없어 최댓값이 계속 0
+```

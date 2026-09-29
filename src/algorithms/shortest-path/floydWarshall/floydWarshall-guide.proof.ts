@@ -44,7 +44,7 @@ export const WALK_EDGES: [number, number, number][] = [
   [4, 3, 2],
 ];
 
-/** 제약 상한. `floydWarshall-problem.md` 의 「제약 조건」과 같다. */
+/** 제약 상한. `floydWarshall-guide.md` 실습 절의 「제약 조건」과 같다. */
 const V_LIMIT = 500;
 
 /** 정점 `n` 개를 한 줄로 잇는다. 간선 `n-1` 개이고 뒤로만 갈 수 있다. */

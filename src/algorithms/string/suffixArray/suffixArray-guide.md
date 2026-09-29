@@ -108,7 +108,7 @@ sa[5]            2  nana              4
 
 이 글이 다루는 것은 **접미사의 순서를 정하는 일 하나**입니다. 그 순서를 얻은 뒤에 이웃한 두
 접미사가 앞부분을 몇 글자나 공유하는지(최장 공통 접두사)를 구하는 것은 별개의 절차이고,
-[`kasaiLcp`](../kasaiLcp/kasaiLcp-problem.md) 가 그것을 다뤄요. 이 글은 그 값을 만들지도, 쓰지도
+[`kasaiLcp`](../kasaiLcp/kasaiLcp-guide.md) 가 그것을 다뤄요. 이 글은 그 값을 만들지도, 쓰지도
 않습니다.
 
 ```text
@@ -925,8 +925,8 @@ T9 에서 `{1,3}` 과 `{2,4}` 가 각각 둘로 갈리는 것이 마지막 갈�
 
 두 번째 무리의 마지막 줄이 이 절차의 한계입니다. 접미사 배열은 문자열이 고정이라는 것에 통째로
 기대고 있어서, 글자 하나가 바뀌면 순위 배열 전체를 다시 만들어야 해요. 패턴 하나만 찾으면
-되는 자리는 [`findAllOccurrences`](../findAllOccurrences/findAllOccurrences-problem.md) 쪽이고,
-패턴이 여럿이면 [`ahoCorasick`](../ahoCorasick/ahoCorasick-problem.md) 쪽입니다.
+되는 자리는 [`findAllOccurrences`](../findAllOccurrences/findAllOccurrences-guide.md) 쪽이고,
+패턴이 여럿이면 [`ahoCorasick`](../ahoCorasick/ahoCorasick-guide.md) 쪽입니다.
 
 #### 실제로 쓰이는 곳
 
@@ -1475,3 +1475,67 @@ T8 이 낸 줄        [5, 3, 1, 0, 4, 2]        3 이 1 보다 앞이다
   바꾸지 못하는지**를 한 문장으로 적어 보세요.
 - 글자 집합이 소문자 26 글자가 아니라 유니코드 전체라면 총식의 어느 항이 달라질까요? 두 설계
   중 어느 쪽이 그 변화에 더 크게 흔들리는지 값으로 따져 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 접미사 정렬 배열
+
+풀 파일: [`suffixArray.ts`](./suffixArray.ts) · 테스트: [`suffixArray.test.ts`](./suffixArray.test.ts) · 실행: `bun test src/algorithms/string/suffixArray/suffixArray.test.ts`
+
+#### 한 줄 요약
+
+> `suffixArray(s)`는 문자열을 받아, 모든 접미사를 사전순으로 정렬했을 때 각 접미사의 시작 인덱스를 순서대로 담은 배열을 반환한다.
+
+#### 스토리
+
+생물정보학 연구소의 태호는 긴 유전자 서열 안에서 반복 구간이나 패턴 분포를 분석하고 싶다. 모든 위치에서 시작하는 부분 서열을 정렬된 상태로 보면 이런 분석이 훨씬 쉬워진다.
+
+서열의 길이가 수십만에 달하는 만큼, 모든 접미사를 단순 정렬로 처리하는 방법은 시간이 너무 오래 걸린다. 태호에게는 대규모 문자열에서도 빠르게 접미사 순서를 결정하는 도구가 필요하다.
+
+#### 함수 인터페이스
+
+```ts
+export function suffixArray(s: string): number[];
+```
+
+- `s` — 입력 문자열
+- 반환 — 길이 $n = |s|$의 정수 배열. `result[k]`는 $k$번째로 작은 접미사의 시작 인덱스(0-based).
+
+#### 제약 조건
+
+- $1 \leq |s| \leq 10^5$
+- 문자 집합: 소문자 영문 알파벳 (`a`–`z`)
+- 시간 복잡도: $O(n \log n)$
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+문자열 $s$(길이 $n$)의 모든 접미사 $\{ s[i \ldots n-1] \mid 0 \leq i < n \}$를 사전순(lexicographic order)으로 정렬했을 때, 각 접미사의 시작 인덱스를 담은 배열을 반환한다.
+
+$$\text{SA}[k] = i \;\iff\; s[i \ldots n-1] \text{은 } (k+1)\text{번째로 작은 접미사}$$
+
+두 접미사 $s[i \ldots]$와 $s[j \ldots]$의 사전 순서는 일반적인 문자열 비교 규칙을 따른다.
+
+#### 예시
+
+```ts
+suffixArray("banana");
+// [5, 3, 1, 0, 4, 2]
+// sa[0]=5 → "a"
+// sa[1]=3 → "ana"
+// sa[2]=1 → "anana"
+// sa[3]=0 → "banana"
+// sa[4]=4 → "na"
+// sa[5]=2 → "nana"
+
+suffixArray("abc");
+// [0, 1, 2] — "a" < "ab" < "abc"... 가장 짧은 접미사부터 순서대로
+
+suffixArray("aaaa");
+// [3, 2, 1, 0] — 짧은 접미사일수록 사전순 앞
+
+suffixArray("a");
+// [0] — 단일 문자
+```

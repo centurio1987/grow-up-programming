@@ -721,8 +721,8 @@ minMaxPair([100, 50, 70, -10]      )  →  { min: -10, max: 100 }
 `2n − 3` 이 `n + ⌈log₂ n⌉ − 2` 가 됩니다. 이 편의 쌍 안 비교는 그 구조의 1 회전만 쓰는
 가장 단순한 경우예요.
 
-같은 짝짓기가 [`kthSmallest`](../../sorting/kthSmallest/kthSmallest-problem.md) 의 선택
-문제와 [`quicksort`](../../sorting/quicksort/quicksort-problem.md) 의 기준값 고르기에서도
+같은 짝짓기가 [`kthSmallest`](../../sorting/kthSmallest/kthSmallest-guide.md) 의 선택
+문제와 [`quicksort`](../../sorting/quicksort/quicksort-guide.md) 의 기준값 고르기에서도
 나옵니다. 셋 다 「비교 결과를 버리지 않고 다음 비교를 줄이는 데 쓴다」가 같은 자리예요.
 
 ## 파트 2 — 적용 조건 · 보장 · 비용
@@ -1230,3 +1230,60 @@ T10  hi=6 > max=9      거짓    max = 9 그대로         비교 1 번
   만들어 보세요. 그런 입력이 존재하는지부터 확인하면 됩니다.
 - 하한 논증은 「표시 없는 두 원소끼리의 비교가 `⌊n/2⌋` 번을 넘을 수 없다」를 씁니다. 이
   절차가 그 `⌊n/2⌋` 번을 실제로 다 쓰는지, 쓴다면 어느 단계들이 그것인지 확인해 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### 최솟값·최댓값 동시 찾기
+
+풀 파일: [`minMaxPair.ts`](./minMaxPair.ts) · 테스트: [`minMaxPair.test.ts`](./minMaxPair.test.ts) · 실행: `bun test src/algorithms/advanced/minMaxPair/minMaxPair.test.ts`
+
+#### 한 줄 요약
+
+> 정수 배열을 받아 최솟값과 최댓값을 `{ min, max }` 객체로 반환한다.
+
+#### 스토리
+
+기상 관측소 운영자 유진은 하루 동안 측정된 온도 기록에서 가장 낮은 온도와 가장 높은 온도를 함께 보고서에 기재해야 한다. 관측 데이터는 수십만 건에 달하며, 최솟값과 최댓값을 각각 따로 구하는 것보다 한 번에 같이 구하는 방식을 원한다.
+
+유진은 배열 전체를 한 번만 훑어서 두 값을 동시에 추출하는 함수를 필요로 한다. 배열에는 음수 온도도 포함될 수 있고, 모든 측정값이 동일한 날도 있다.
+
+#### 함수 인터페이스
+
+```ts
+export function minMaxPair(arr: number[]): { min: number; max: number };
+```
+
+- `arr` — 길이 1 이상의 정수 배열
+- 반환 — `{ min: 배열의 최솟값, max: 배열의 최댓값 }`
+
+#### 제약 조건
+
+- $1 \leq n \leq 10^5$ (여기서 $n$은 `arr`의 길이)
+- `arr`의 원소는 정수 (음수 포함 가능)
+- 빈 배열은 입력으로 주어지지 않는다
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+길이 $n$인 정수 배열 $A$에 대해 최솟값과 최댓값을 함께 구해 객체 `{ min, max }` 형태로 반환하라.
+
+$$\text{minMaxPair}(A) = \left( \min_{0 \leq i < n} A[i],\; \max_{0 \leq i < n} A[i] \right)$$
+
+- 배열의 모든 원소가 같으면 `min`과 `max`는 동일한 값이다.
+- 음수만으로 이루어진 배열에서도 정확히 동작해야 한다.
+
+#### 예시
+
+```ts
+minMaxPair([3, 1, 4, 1, 5, 9, 2, 6]); // { min: 1, max: 9 }
+minMaxPair([1, 2, 3, 4, 5]);           // { min: 1, max: 5 }
+minMaxPair([5, 4, 3, 2, 1]);           // { min: 1, max: 5 }
+
+// 경계 케이스
+minMaxPair([7]);           // { min: 7, max: 7 } — 원소 하나, min = max
+minMaxPair([5, 5, 5, 5]);  // { min: 5, max: 5 } — 모두 같은 값
+minMaxPair([-3, -1, -4, -1, -5]); // { min: -5, max: -1 } — 음수만
+minMaxPair([-10, 0, 10]);  // { min: -10, max: 10 } — 음수·양수 혼합
+```

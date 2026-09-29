@@ -14,7 +14,7 @@
  *    대조(`bruteForce`)도 매칭을 넷만 낸다. 아래 「문제의 예시」 케이스가 그 넷이고, 전수 대조
  *    케이스가 같은 판정을 작은 입력 전부에서 낸다.
  * 2. 원본 `ahoCorasick.test.ts:19` 의 텍스트 `"hello world"` 는 빈칸을 담고 있는데,
- *    `ahoCorasick-problem.md` 의 제약은 문자 집합을 소문자 영문 `a`–`z` 로 정한다. 정본은 그
+ *    `ahoCorasick-guide.md` 실습 절의 제약은 문자 집합을 소문자 영문 `a`–`z` 로 정한다. 정본은 그
  *    제약 안에서만 동작하므로 빈칸을 뺀 `"helloworld"` 로 옮겼다.
  */
 import { expect, test } from "bun:test";

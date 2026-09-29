@@ -81,9 +81,9 @@ XOR 이 자리마다 따로 걸리는 연산이라 이 셈이 자리별로 각�
   경계가 되는지는 두 번째 「짚고 가기」에서 값으로 확인합니다.
 
 같은 저장소 안에서 정수 하나의 최하위 1 비트를 다루는 문제는
-[`lowestSetBit`](../lowestSetBit/lowestSetBit-problem.md) 이고, 뺄셈이 만드는 자리내림을
+[`lowestSetBit`](../lowestSetBit/lowestSetBit-guide.md) 이고, 뺄셈이 만드는 자리내림을
 `&` 로 잘라 쓰는 문제는
-[`enumerateSubmasks`](../enumerateSubmasks/enumerateSubmasks-problem.md) 예요.
+[`enumerateSubmasks`](../enumerateSubmasks/enumerateSubmasks-guide.md) 예요.
 
 ```text
 이 글이 다루는 것과 이웃한 것
@@ -1156,3 +1156,56 @@ T4 시점에 읽은 부분만 따로 놓고 보면
 - 값이 `2^32 + 5` 인 배열에서 답이 5 로 나왔습니다. 같은 배열을 `BigInt` 로 옮기면 그
   어긋남이 없어지는데, 그때 `acc` 의 초기값과 `^` 연산자를 어떻게 고쳐 적어야 하는지,
   그리고 빈 배열에서 여전히 `0n` 이 나오는지 확인해 보세요.
+
+## 실습 — 직접 풀어 보기
+
+이 글의 알고리즘으로 풀어 볼 문제입니다. 스텁을 채운 뒤 테스트로 확인하세요.
+
+### XOR 누적 트릭 (Single Number)
+
+풀 파일: [`singleNumberXor.ts`](./singleNumberXor.ts) · 테스트: [`singleNumberXor.test.ts`](./singleNumberXor.test.ts) · 실행: `bun test src/algorithms/bit-manipulation/singleNumberXor/singleNumberXor.test.ts`
+
+#### 한 줄 요약
+
+> 정수 배열을 받아, 홀수 번 등장하는 유일한 원소를 반환한다.
+
+#### 스토리
+
+창고 관리자 태양은 물건을 짝 지어 보관하는 규칙으로 창고를 운영한다. 모든 물건은 쌍으로 입고되어 쌍으로 출고된다. 그런데 어느 날 점검 결과 짝이 없는 물건이 하나 남아 있다는 사실이 확인됐다.
+
+태양은 수십만 개의 목록을 하나씩 꺼내 각각 정렬하거나 카운트하면 창고 공간이 부족해진다. 별도의 저장 공간 없이 목록을 한 번만 훑어서 짝이 없는 물건을 찾아야 한다.
+
+#### 함수 인터페이스
+
+```ts
+export function singleNumberXor(nums: number[]): number;
+```
+
+- `nums` — 정수 배열. 정확히 하나의 원소만 홀수 번 등장하고 나머지는 모두 짝수 번 등장한다.
+- 반환 — 홀수 번 등장하는 유일한 원소
+
+#### 제약 조건
+
+- $1 \leq N \leq 10^{6}$ ($N$은 배열 길이)
+- $|\text{nums}[i]| < 2^{31}$ (32비트 정수)
+- 배열에서 정확히 하나의 원소만 홀수 번 등장한다.
+- 시간 복잡도 $O(N)$, 공간 복잡도 $O(1)$ 조건을 만족해야 한다.
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+$N$개의 정수로 이루어진 배열 $\text{nums}$가 주어진다. 정확히 하나의 원소만 홀수 번 등장하고, 나머지는 모두 짝수 번(0번 포함) 등장한다.
+
+홀수 번 등장하는 그 유일한 원소를 $O(N)$ 시간, $O(1)$ 공간으로 찾아 반환한다.
+
+#### 예시
+
+```ts
+singleNumberXor([4, 1, 2, 1, 2]);       //  4 — 4가 1번, 나머지는 2번씩
+singleNumberXor([2, 2, 1]);             //  1 — 1이 1번, 2는 2번
+singleNumberXor([7]);                   //  7 — 원소가 하나인 경우
+singleNumberXor([7, 1, 1, 2, 2]);       //  7 — 홀수 번 등장 원소가 맨 앞
+singleNumberXor([1, 1, 2, 2, 7]);       //  7 — 홀수 번 등장 원소가 맨 뒤
+singleNumberXor([-5, 1, 1]);            // -5 — 음수 원소가 정답
+singleNumberXor([5, 5, 5, 1, 1]);       //  5 — 3번(홀수 번) 등장
+```
