@@ -47,9 +47,9 @@ const CASES: [number[], number[]][] = [
     [2, 1],
     [1, 2],
   ],
-  // 문제 문서가 명시한 빈 입력. 원본 테스트에는 없지만 계약에 있다.
+  // 계약이 명시한 빈 입력. 실습 시험에는 없지만 계약에 있다.
   [[], []],
-  // 값 범위의 끝. 문제 제약이 -10^9 … 10^9 이다.
+  // 값 범위의 끝 — -10^9 … 10^9.
   [
     [1_000_000_000, -1_000_000_000, 0],
     [-1_000_000_000, 0, 1_000_000_000],
@@ -63,7 +63,7 @@ for (const [input, want] of CASES) {
 }
 
 test("입력 배열을 바꾸지 않고 다른 배열을 돌려준다", () => {
-  // 문제의 계약이다 — 「원본 A 를 수정해서는 안 되며, 정렬된 새 배열을 반환해야 한다」.
+  // 과제의 계약이다 — 「원본 A 를 수정해서는 안 되며, 정렬된 새 배열을 반환해야 한다」.
   const A = [5, 2, 4, 6, 1, 3];
   const before = [...A];
   const out = insertionSort(A);
@@ -100,4 +100,22 @@ test("거의 정렬된 큰 입력에서도 값이 정확하다", () => {
   const out = insertionSort(A);
   expect(out.length).toBe(N);
   for (let t = 0; t < N; t++) expect(out[t]).toBe(t);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본과 걸음마다 대조한 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면
+ * 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./insertionSort-guide.sim.ts");
+  const { simStepsFromRef } = await import("./insertionSort-guide.fig.tsx");
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.walk6.steps)).toEqual(plain(want.walk6));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.walk6.result).toBe(
+    `[${insertionSort([5, 2, 4, 6, 1, 3]).join(", ")}]`,
+  );
 });

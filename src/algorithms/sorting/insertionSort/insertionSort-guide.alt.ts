@@ -13,7 +13,7 @@
  *
  * 계수 둘의 정의를 여기서 못 박는다.
  *
- * - **견주기** — 배열의 두 값을 견준 횟수. 인덱스 판정(`j >= 0`·`t < N`)은 안 센다.
+ * - **비교** — 배열의 두 값을 비교한 횟수. 인덱스 판정(`j >= 0`·`t < N`)은 안 센다.
  * - **쓰기** — 배열 칸에 값을 적은 횟수. **처음 복사본을 만드는 `N` 칸은 빼고** 센다 —
  *   두 설계가 똑같이 한 번 복사하므로 그 칸은 대조에 아무것도 더하지 않는다.
  */
@@ -21,14 +21,17 @@
 /** 전개가 쓰는 입력. */
 export const SIX = [5, 2, 4, 6, 1, 3];
 
-/** 칸 수. 64 로 둔 이유는 견주기 상한 `N(N−1)/2` 가 2,016 이라 손으로 대조되기 때문이다. */
+/** 칸 수. 64 로 둔 이유는 비교 상한 `N(N−1)/2` 가 2,016 이라 손으로 대조되기 때문이다. */
 const N = 64;
 
 /** 이미 오름차순인 입력. `A[t] = t`, `t = 0 … 63`. 역순쌍 0 개. */
 export const SORTED: number[] = Array.from({ length: N }, (_, t) => t);
 
 /** 완전한 역순 입력. `A[t] = 63 − t`. 역순쌍 2,016 개로 가능한 최댓값이다. */
-export const REVERSED: number[] = Array.from({ length: N }, (_, t) => N - 1 - t);
+export const REVERSED: number[] = Array.from(
+  { length: N },
+  (_, t) => N - 1 - t,
+);
 
 /**
  * 거의 정렬된 입력. `A[t] = t` 로 두고 `t = 0, 16, 32, 48` 에서 이웃 두 칸을 맞바꾼다.
@@ -45,7 +48,7 @@ export const NEARLY: number[] = (() => {
 })();
 
 interface Counts {
-  /** 배열의 두 값을 견준 횟수. */
+  /** 배열의 두 값을 비교한 횟수. */
   compares: number;
   /** 배열 칸에 값을 적은 횟수. 처음 복사본을 만드는 칸은 빼고 센다. */
   writes: number;
@@ -109,13 +112,13 @@ function selectionCounts(A: number[]): Counts {
 
 function counts(sort: (A: number[]) => Counts): Record<string, number> {
   return {
-    "여섯 칸 입력 견주기": sort(SIX).compares,
+    "여섯 칸 입력 비교": sort(SIX).compares,
     "여섯 칸 입력 쓰기": sort(SIX).writes,
-    "이미 정렬된 입력 견주기": sort(SORTED).compares,
+    "이미 정렬된 입력 비교": sort(SORTED).compares,
     "이미 정렬된 입력 쓰기": sort(SORTED).writes,
-    "거의 정렬된 입력 견주기": sort(NEARLY).compares,
+    "거의 정렬된 입력 비교": sort(NEARLY).compares,
     "거의 정렬된 입력 쓰기": sort(NEARLY).writes,
-    "역순 입력 견주기": sort(REVERSED).compares,
+    "역순 입력 비교": sort(REVERSED).compares,
     "역순 입력 쓰기": sort(REVERSED).writes,
   };
 }
