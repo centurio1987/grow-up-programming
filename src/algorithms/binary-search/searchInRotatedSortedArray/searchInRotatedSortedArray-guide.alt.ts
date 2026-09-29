@@ -9,7 +9,7 @@
  * **입력은 전개 절과 같은 것이다**(L20) — `A = [17, 18, 19, 20, 0, 1, …, 16]` 스물한 칸.
  * 질의 목록도 그 배열의 원소를 자리 순서대로 쓰므로 난수가 없고 시드가 없다. 갱신은
  * 배열을 왼쪽으로 한 칸 회전시키는 것이고, 그러면 원소 집합은 그대로이면서 끊긴 자리만
- * 바뀐다 — 두 설계가 같은 답을 내야 하는 조건이 유지된다.
+ * 바뀐다 — 두 설계가 같은 답을 내야 하는 조건이 그대로 남는다.
  *
  * 세는 것은 **배열 칸 접근**(`A[...]` 를 한 번 읽는 것) 하나다.
  */
@@ -27,13 +27,13 @@ interface Meter {
   n: number;
 }
 
-/* ───────────────── 이 가이드가 가르치는 설계 — 한 번 통과 ───────────────── */
+/* ───────────────── 이 가이드가 가르치는 설계 — 정렬된 반쪽 가리기 ───────────────── */
 
 /**
- * 걸음마다 `A[mid]` 와 `A[lo]` 를 함께 읽어 어느 조각에 끊긴 자리가 없는지 정하고, 그 조각의
+ * 걸음마다 `A[mid]` 와 `A[lo]` 를 함께 읽어 어느 반쪽에 끊긴 자리가 없는지 가리고, 그 반쪽의
  * 값 범위로 갈래를 정한다. 전처리가 없다.
  */
-function onePass(A: number[], target: number, m: Meter): number {
+function sortedHalfSearch(A: number[], target: number, m: Meter): number {
   let lo = 0;
   let hi = A.length - 1;
   while (lo <= hi) {
@@ -59,7 +59,7 @@ function onePass(A: number[], target: number, m: Meter): number {
 /* ───────── 경쟁 설계 — 최솟값이 있는 자리를 먼저 찾는 두 번 통과 ───────── */
 
 /**
- * 최솟값이 있는 자리 `p`(끊긴 자리 바로 다음 칸)를 이분 탐색으로 찾는다. 배열 하나당 한 번만 한다.
+ * 최솟값이 있는 자리 `p`(끊긴 자리 바로 다음 칸)를 이진 탐색으로 찾는다. 배열 하나당 한 번만 한다.
  * 걸음마다 `A[mid]` 와 `A[hi]` 를 읽는다.
  */
 function findPivot(A: number[], m: Meter): number {
@@ -78,8 +78,8 @@ function findPivot(A: number[], m: Meter): number {
 }
 
 /**
- * `p` 를 알고 나면 논리 인덱스 `j` 를 물리 자리 `(j + p) mod N` 으로 사상해 표준 이분 탐색을
- * 한다. 걸음마다 읽는 칸이 하나다 — 정렬된 쪽을 판정할 필요가 없다.
+ * `p` 를 알고 나면 논리 인덱스 `j` 를 물리 자리 `(j + p) mod N` 으로 사상해 표준 이진 탐색을
+ * 한다. 걸음마다 읽는 칸이 하나다 — 정렬된 반쪽을 가릴 필요가 없다.
  */
 function searchWithPivot(
   A: number[],
@@ -107,7 +107,7 @@ function searchWithPivot(
 /** 두 설계가 같은 답을 냈는지 그 자리에서 확인한다. 다르면 대조가 성립하지 않는다. */
 function agree(A: number[], p: number, target: number, a: Meter, b: Meter) {
   const want = A.indexOf(target);
-  const one = onePass(A, target, a);
+  const one = sortedHalfSearch(A, target, a);
   const two = searchWithPivot(A, p, target, b);
   if (one !== want || two !== want) {
     throw new Error(
@@ -157,7 +157,7 @@ const u7 = withUpdates(7);
 const u8 = withUpdates(8);
 
 export const cases = {
-  "한 번 통과": () => ({
+  "정렬된 반쪽 가리기": () => ({
     "질의 1 회 칸 접근": q1.one,
     "질의 2 회 칸 접근": q2.one,
     "질의 3 회 칸 접근": q3.one,

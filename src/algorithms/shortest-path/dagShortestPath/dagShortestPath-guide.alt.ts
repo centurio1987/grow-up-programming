@@ -18,7 +18,7 @@
  *
  * **갈리는 축은 간선 목록의 순서다.** 같은 그래프의 같은 간선을 `b` 조각으로 가르고 **뒤
  * 조각부터** 적으면, 벨만-포드가 값을 확정하는 데 필요한 라운드 수가 `b` 에 따라 늘어난다.
- * 이 가이드의 절차는 그 순서를 읽지 않으므로 계수가 `b` 와 무관하다.
+ * 이 가이드의 절차는 간선 목록의 순서를 읽지 않으므로 계수가 `b` 와 무관하다.
  */
 
 import type { Edge } from "./dagShortestPath-guide.ref.ts";
@@ -82,30 +82,30 @@ const show = (dist: number[]): string =>
  * 이 가이드의 절차. 정본(`dagShortestPath-guide.ref.ts`)과 같고 세는 자리만 덧붙였다.
  *
  * `ops` 는 간선 하나를 읽은 한 번과 정점 하나를 읽은 한 번을 각각 하나로 센다.
- * `cells` 는 이웃 목록 · 남은 선행 정점 수 · 줄 · 거리 배열의 칸을 더한 것이다.
+ * `cells` 는 이웃 목록 · 진입 차수 · 위상 순서 · 거리 배열의 칸을 더한 것이다.
  */
 function 이가이드의절차(n: number, edges: Edge[], src: number): Count {
   let ops = 0;
   const adj: [number, number][][] = Array.from({ length: n }, () => []);
-  const remaining: number[] = Array.from({ length: n }, () => 0);
+  const indegree: number[] = Array.from({ length: n }, () => 0);
   for (const [u, v, w] of edges) {
     ops++;
     (adj[u] as [number, number][]).push([v, w]);
-    remaining[v] = (remaining[v] as number) + 1;
+    indegree[v] = (indegree[v] as number) + 1;
   }
 
   const order: number[] = [];
   for (let v = 0; v < n; v++) {
     ops++;
-    if (remaining[v] === 0) order.push(v);
+    if (indegree[v] === 0) order.push(v);
   }
   for (let i = 0; i < order.length; i++) {
     ops++;
     const u = order[i] as number;
     for (const [v] of adj[u] as [number, number][]) {
       ops++;
-      remaining[v] = (remaining[v] as number) - 1;
-      if (remaining[v] === 0) order.push(v);
+      indegree[v] = (indegree[v] as number) - 1;
+      if (indegree[v] === 0) order.push(v);
     }
   }
 

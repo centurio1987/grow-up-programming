@@ -188,3 +188,38 @@ test("정점 만 개짜리 DAG — 원본 성능 케이스와 같은 그래프",
   // 사슬 간선이 모두 있으므로 어느 정점도 도달하지 못하는 일이 없다.
   expect(dist.every((d) => d !== INF)).toBe(true);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./dagShortestPath-guide.sim.ts");
+  const fig = await import("./dagShortestPath-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.dagWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.dagWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 정점 값을 정본의 답에 직접 다시 묻는다.
+  const answer = dagShortestPath(
+    6,
+    [
+      [2, 3, 2],
+      [0, 1, 3],
+      [1, 2, -4],
+      [0, 2, 5],
+      [1, 3, 6],
+      [4, 0, 2],
+      [0, 3, 7],
+    ],
+    0,
+  );
+  const last = sim.dagWalk.steps.at(-1);
+  expect(last?.nodes.map((n) => n.value)).toEqual(
+    answer.map((d) => (d === INF ? "Infinity" : `거리 ${d}`)),
+  );
+  expect(sim.dagWalk.result).toBe(
+    `[${answer.map((d) => (d === INF ? "Infinity" : String(d))).join(",")}]`,
+  );
+});

@@ -3,7 +3,7 @@
  *
  * 원본 `src/algorithms/binary-search/searchInRotatedSortedArray/searchInRotatedSortedArray.ts`
  * 는 학습자가 채우는 스텁이라 그쪽을 가져오지 않는다. 절차는 폐구간 `[lo, hi]` 를 후보로 두고,
- * 가운데 칸을 읽은 뒤 **어느 절반에 끊긴 자리가 없는지**를 먼저 정하고, 그 정렬된 조각의 양 끝
+ * 가운데 칸을 읽은 뒤 **어느 반쪽에 끊긴 자리가 없는지**를 먼저 정하고, 그 정렬된 반쪽의 양 끝
  * 값으로 `target` 의 자리를 정하는 것이다. 이름은 가이드 기호표와 같다(`lo`·`hi`·`mid`).
  * 가이드 본문의 코드는 이 파일에서 옮긴다.
  */
@@ -32,22 +32,22 @@ export function searchInRotatedSortedArray(
 
     const vLo = A[lo] as number;
     if (vLo <= vMid) {
-      // 왼쪽 조각 [lo, mid] 에 끊긴 자리가 없다 — 그 조각은 오름차순이다.
+      // 왼쪽 반쪽 [lo, mid] 에 끊긴 자리가 없다 — 그 반쪽은 정렬돼 있다.
       if (vLo <= target && target < vMid) {
-        // ② target 이 정렬된 왼쪽 조각의 값 범위 안이다.
+        // ② target 이 정렬된 왼쪽 반쪽의 값 범위 안이다.
         hi = mid - 1;
       } else {
-        // ③ 왼쪽 조각의 값 범위 밖이다 — A 안에 있다면 오른쪽이다.
+        // ③ 왼쪽 반쪽의 값 범위 밖이다 — A 안에 있다면 오른쪽이다.
         lo = mid + 1;
       }
     } else {
-      // 오른쪽 조각 [mid, hi] 에 끊긴 자리가 없다 — 그 조각은 오름차순이다.
+      // 오른쪽 반쪽 [mid, hi] 에 끊긴 자리가 없다 — 그 반쪽은 정렬돼 있다.
       const vHi = A[hi] as number;
       if (vMid < target && target <= vHi) {
-        // ④ target 이 정렬된 오른쪽 조각의 값 범위 안이다.
+        // ④ target 이 정렬된 오른쪽 반쪽의 값 범위 안이다.
         lo = mid + 1;
       } else {
-        // ⑤ 오른쪽 조각의 값 범위 밖이다 — A 안에 있다면 왼쪽이다.
+        // ⑤ 오른쪽 반쪽의 값 범위 밖이다 — A 안에 있다면 왼쪽이다.
         hi = mid - 1;
       }
     }
