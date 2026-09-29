@@ -66,7 +66,7 @@ scope: src/algorithms/**, src/_viz/**, design/viz/**, sandbox/algo-guide-v2/**, 
 - [x] `S12` 배열·구간 걸음 무대 — SPEC §13 「다른 갈래의 무대」의 배열 줄을 `STAGES` 에 더하고 `binarySearch` 패널을 옮긴다(KAN-058.1 검토 3 승인 — 전개 첫머리에 만든다). 완료: `bun test src/_viz` · `binarySearch` 편 완료 명령 통과
 - [x] `S13` 지시서 보강 — 짧은 실행 결과도 증명 블록으로(KAN-058.1 검토 4 승인), 배열 무대·그래프 무대를 쓰는 법을 가리킨다, `binarySearch` 의 남은 손 값도 바꾼다. 완료: `check-links` · `binarySearch` 편 완료 명령 통과
 - [ ] `S14` KAN-060 신규 넷에 그림 — `twoSum`·`missingInteger`·`numberOfDisintersection`·`binaryGap` 에 `fig.tsx`·`figs/` 를 더한다(KAN-060 검토 3 「그림은 KAN-058 때」). 웨이브 편과 함께 동시 셋 안에서 돈다. 완료: 네 편 편 완료 명령 통과 · 본문 `<!--fig:` 1 이상
-- [ ] `S7` W1 나머지 전개. 시작 때 샘플 실측으로 배치 문서를 나눈다(`batch-init`). 완료: W1 남은 편 0(`algo-wbs`) · `ci.ts gates` 통과
+- [>] `S7` W1 나머지 전개. 시작 때 샘플 실측으로 배치 문서를 나눈다(`batch-init`). 완료: W1 남은 편 0(`algo-wbs`) · `ci.ts gates` 통과 <!-- claim:s=62654a5c t=2026-09-30T03:00 -->
 - [ ] `S8` W2 전개. 완료: S7 과 같은 기준으로 W2 남은 편 0
 - [ ] `S9` W3 전개. 완료: S7 과 같은 기준으로 W3 남은 편 0
 
@@ -130,3 +130,5 @@ bunx tsc --noEmit
 - 2026-09-30T02:53 · s:62654a5c · S12 done — src/_viz/player/arrayStage.ts — 걸음 필드 array · range(쥔 구간, 비면 null) · read · write · pointers · calc · vars, 패널 옵션 arrayName · rangeLabel. StepPlayer 에 STAGES.array · ArrayPlayerSpec, StageKind 를 옵션 타입으로 일반화. binarySearch: fig.tsx 가 필름과 패널 걸음을 모두 arrayStage 로 만들고(ARRAY_OPTIONS), sim.ts 두 벌을 player:stage · stage:array 로 다시 뽑음(정본 실행 → 리터럴). walk-probe · walk-miss SVG 재렌더. 시험: StepPlayer 배열 무대 1 추가 · _viz 27 통과 · binarySearch 가이드 시험 19 · --strict · check-proof 16 · build-html · render-figs --check 통과. SPEC §13 무대 셋과 배열 걸음 필드. 인용 remap 3곳
 - 2026-09-30T02:53 · s:62654a5c · S13 doing — 착수
 - 2026-09-30T03:00 · s:62654a5c · S13 done — 지시서(ab7b833): 짧은 실행 결과도 증명 블록으로 · 옛 패널은 무대 셋(배열·층·그래프) 중 하나로 · 승인된 샘플 둘을 본보기로. binarySearch 손 값 전환(서브에이전트 두 번 이어서, 토큰 약 40만 · 4분 + 추가분): 증명 블록 16 → 32 — walk 1~3 · 전체 코드 아래 호출 · deep.math 검산·유도·접기 · 불변식 m 값·③ 변이·② 경계 입력 표 · selfcheck 두 곳(표로) · perf.derive 비교·후보 수 · 코드 주석의 기대값. 옛 원고의 틀린 값 하나를 실행이 잡아 고침(경계 입력 [42] 에서 7: lo = 1 이 아니라 hi = -1). 남긴 것: 벤치 표(.bench.json 과 P10 이 대조) · 「축」 표(같은 값 되풀이) · 산문 속 수. 메인 재확인: --strict · check-proof 32/32 · 시험 19 · build-html · biome 0 · 실습 절 무변경
+- 2026-09-30T03:00 · s:62654a5c · S7 doing — 착수
+- 2026-09-30T03:19 · s:62654a5c — S7 W1 longestSubarrayAtMostSum — 토큰 363,929 · 16분 52초. 두 포인터·슬라이딩 윈도 첫 편, 배열 무대(창 · l·r · 합은 calc · best 는 vars). 증명 36 · 시험 14 · --strict 통과(메인 재확인). 낯선 개념 절 없음, deep.build 4단계. 검토 때 볼 것: 옛 원고의 검증 없던 값(25 번)을 잴 수 있는 15 번으로 교체 · 전제 표 둘째 줄 새 내용(「창의 값을 칸 하나씩 더하고 뺄 수 있다」) · 뺀 칸을 「읽음」으로 그리는 방식을 무대 규약 없이 정함
