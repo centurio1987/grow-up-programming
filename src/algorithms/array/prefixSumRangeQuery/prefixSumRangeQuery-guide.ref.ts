@@ -21,8 +21,8 @@ export function prefixSumRangeQuery(
   queries: Array<[number, number]>,
 ): number[] {
   const n = A.length;
-  // 표의 칸 `i` 에는 A 의 앞 `i` 개 원소의 합을 담는다. 칸이 n+1 개라 오른쪽 끝이
-  // 배열의 마지막인 질의도 표 밖으로 나가지 않는다.
+  // 누적합 배열의 칸 `i` 에는 A 의 앞 `i` 개 원소의 합을 담는다. 칸이 n+1 개라 오른쪽
+  // 끝이 배열의 마지막인 질의도 누적합 배열 밖으로 나가지 않는다.
   const P = new Array<number>(n + 1);
   // 빈 구간의 합은 0 이다. 이 한 칸이 왼쪽 끝 0 을 특수한 경우로 가르지 않게 한다.
   P[0] = 0;

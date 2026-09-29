@@ -193,3 +193,39 @@ test("배열 무대 · 값이 좌표인 줄 — 인덱스 줄이 없고 괄호�
 
   await act(async () => root.unmount());
 });
+
+test("배열 무대 · 배열에서 만드는 구조 — 누적합 배열과 답 목록을 첫 걸음부터 칸째로 쌓는다", async () => {
+  const spec = (
+    await import(
+      "../../algorithms/array/prefixSumRangeQuery/prefixSumRangeQuery-guide.sim.ts"
+    )
+  ).walk as unknown as PlayerSpec;
+  document.body.innerHTML = '<div id="p"></div>';
+  const host = document.getElementById("p") as HTMLElement;
+  const root = createRoot(host);
+  await act(async () => root.render(<StepPlayer {...spec} />));
+
+  const stage = () =>
+    host.querySelector(".gs-player-stage") as HTMLElement | null;
+  const count = (sel: string) => host.querySelectorAll(sel).length;
+  const h0 = stage()?.style.height;
+  // T1 — 입력 배열 · 누적합 배열 · 답 목록 세 줄이다. 격자는 누적합 배열의 n + 1 칸에 맞춘다.
+  // 칸 0 만 새로 썼고, 나머지 여섯 칸과 답 다섯 칸은 아직 안 쓴 칸이다
+  expect(count('[data-viz-role="stage-cells"]')).toBe(3);
+  expect(count("[data-viz-index]")).toBe(7);
+  expect(count('[data-viz-state="empty"]')).toBe(11);
+  expect(count('[data-viz-state="focus"]')).toBe(1);
+
+  // 마지막 걸음 — 빈 칸이 없고, 두 칸을 읽고 답 한 칸을 새로 쓴다. 무대 높이는 그대로다
+  const badge = (id: string) =>
+    [...host.querySelectorAll(".gs-player-badge")].find(
+      (b) => b.textContent === id,
+    ) as HTMLButtonElement;
+  await act(async () => badge("T12").click());
+  expect(stage()?.style.height).toBe(h0);
+  expect(count('[data-viz-state="empty"]')).toBe(0);
+  expect(count('[data-viz-state="focus"]')).toBe(1);
+  expect(count('[data-viz-state="read"]')).toBe(2);
+
+  await act(async () => root.unmount());
+});

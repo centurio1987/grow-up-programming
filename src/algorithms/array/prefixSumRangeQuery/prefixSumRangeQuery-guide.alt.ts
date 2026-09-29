@@ -42,7 +42,7 @@ type Op = ["q", number] | ["u", number];
 /**
  * 갱신 `u` 회를 질의 `Q` 회 사이에 고르게 끼운 작업 목록. **두 설계가 같은 목록을 받는다.**
  *
- * 갱신을 앞에 몰면 누적합 쪽이 표를 한 번만 다시 만들면 되어 대조가 연출이 된다 — 갱신과
+ * 갱신을 앞에 몰면 누적합 쪽이 배열을 한 번만 다시 채우면 되어 대조가 연출이 된다 — 갱신과
  * 질의가 섞여 들어오는 것이 이 대조가 재려는 상황이다.
  */
 export function workload(u: number): Op[] {
@@ -64,8 +64,8 @@ export function workload(u: number): Op[] {
 }
 
 /**
- * 이 가이드가 가르치는 절차 — **누적합 표**. `prefixSumRangeQuery-guide.ref.ts` 와 같은
- * 절차이고 접근 계수만 덧붙였다. 갱신이 들어오면 표를 처음부터 다시 만든다.
+ * 이 가이드가 가르치는 절차 — **누적합 배열**. `prefixSumRangeQuery-guide.ref.ts` 와 같은
+ * 절차이고 접근 계수만 덧붙였다. 갱신이 들어오면 누적합 배열을 처음부터 다시 채운다.
  */
 function prefixAccesses(u: number): number {
   const a = A.slice();
@@ -155,6 +155,6 @@ function counts(run: (u: number) => number): Record<string, number> {
 }
 
 export const cases = {
-  "누적합 표": () => counts(prefixAccesses),
+  "누적합 배열": () => counts(prefixAccesses),
   "펜윅 트리": () => counts(fenwickAccesses),
 };
