@@ -1,34 +1,35 @@
-import type { Frame } from "#guide-sim";
+import type { TablePlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(7)를 넘지 않는다 — P3 이 그 관계를 잰다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `s = "abcde"` · `t = "ace"`.
+ * `row12` 는 테두리를 까는 T1 과 i=1 · i=2 줄의 T2~T7, `row34` 는 i=3 · i=4 줄의 T8~T13, `row5` 는
+ * i=5 줄의 T14~T16 과 답을 읽는 T17 이다. 한 벌에 모으면 정적 필름이 열일곱 장이라 줄 둘씩 가른다.
+ * `result` 는 앞의 둘이 그 벌에서 마지막으로 다 채운 줄, `row5` 가 반환값이다.
+ *
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "table"` 이
+ * 2 차원 표 무대(`tableStage.ts`)를 고른다. 줄 머리는 `s` 의 글자, 열 머리는 `t` 의 글자다. `table` 은
+ * 그 걸음이 끝난 뒤의 DP 테이블(아직 안 쓴 칸은 `null`), `write` 는 이번에 정한 칸, `read` 는 그 칸이
+ * 읽은 이웃이다 — ③ 이면 왼쪽 위 하나, ④ 면 위와 왼쪽.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
- *
- * ## `matrix` 단독으로 그린다
- *
- * 이 알고리즘의 상태는 표 하나가 전부다. `knapsack01-guide.sim.ts` 가 세운 선례를 그대로
- * 따른다 — 배열 패널을 덧붙이면 같은 값을 두 번 보이게 된다.
- *
- * 1. **`matrix` 의 `null` 은 아직 안 채운 칸이다.** 0 번째 줄과 0 번째 열은 첫 프레임에서
- *    이미 값이 있다 — 계산 결과가 아니라 정의에서 바로 나온 0 이기 때문이다.
- * 2. **`rowLabels` 는 `i` 와 그 줄에서 새로 들어온 `s` 의 글자**, `colLabels` 는 `j` 와 그
- *    열에서 새로 들어온 `t` 의 글자다. 본문 기호표의 `i`·`j` 와 글자 그대로 같다.
- * 3. **`cells` 는 그 프레임에서 새로 정해진 칸**이다. 줄 하나가 한 프레임이라 세 칸씩이고,
- *    마지막 프레임만 답을 읽는 칸 하나다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본 실행에서 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `longestCommonSubsequence-guide.test.ts` 가 잰다.
  */
-export const lcsTable = {
-  view: ["matrix"] as const,
+
+export const row12 = {
+  player: "stage",
+  stage: "table",
+  rowHeads: ["i=0 · ∅", "i=1 · a", "i=2 · b", "i=3 · c", "i=4 · d", "i=5 · e"],
+  colHeads: ["∅", "a", "c", "e"],
+  colLabel: "t 의 글자",
   title: 'longestCommonSubsequence("abcde", "ace")',
-  result: "3",
+  result: "[0, 1, 1, 1]",
   steps: [
     {
-      title: "T1 표를 깐다",
-      detail:
-        "dp[i][j] = s 의 앞 i 글자와 t 의 앞 j 글자의 최장 공통 부분 수열 길이. 0 번째 줄과 0 번째 열은 한쪽이 빈 문자열이라 전부 0 이다.",
-      matrix: [
+      title: "T1 테두리 = 0",
+      text: "DP 테이블을 6 줄 × 4 칸으로 깔고 0 으로 채웁니다. 0 번째 줄은 s 가 빈 문자열, 0 번째 열은 t 가 빈 문자열인 자리라 그 9 칸은 정의에서 바로 0 입니다.",
+      table: [
         [0, 0, 0, 0],
         [0, null, null, null],
         [0, null, null, null],
@@ -36,9 +37,7 @@ export const lcsTable = {
         [0, null, null, null],
         [0, null, null, null],
       ],
-      rowLabels: ["i=0 ∅", "i=1 a", "i=2 b", "i=3 c", "i=4 d", "i=5 e"],
-      colLabels: ["j=0 ∅", "j=1 a", "j=2 c", "j=3 e"],
-      cells: [
+      write: [
         [0, 0],
         [0, 1],
         [0, 2],
@@ -48,73 +47,253 @@ export const lcsTable = {
         [3, 0],
         [4, 0],
         [5, 0],
-      ] as [number, number][],
+      ],
+      calc: {
+        expr: "dp[0][j] = dp[i][0] =",
+        result: "0",
+      },
     },
     {
-      title: "T2 첫째 줄 — s 의 'a'",
-      detail:
-        "j=1 은 ③ ('a' = 'a') 이라 대각선 0 에 1 을 더해 1. j=2·j=3 은 ④ 라 윗칸 0 과 왼쪽 칸 1 중 큰 1 을 이어받는다.",
-      matrix: [
+      title: "T2 dp[1][1] = 1 ③",
+      text: "s[0] = 'a' 와 t[0] = 'a' 가 같아 ③ 입니다. 왼쪽 위 dp[0][0] = 0 에 1 을 더해 dp[1][1] = 1 입니다.",
+      table: [
         [0, 0, 0, 0],
-        [0, 1, 1, 1],
+        [0, 1, null, null],
         [0, null, null, null],
         [0, null, null, null],
         [0, null, null, null],
         [0, null, null, null],
       ],
-      rowLabels: ["i=0 ∅", "i=1 a", "i=2 b", "i=3 c", "i=4 d", "i=5 e"],
-      colLabels: ["j=0 ∅", "j=1 a", "j=2 c", "j=3 e"],
-      cells: [
+      read: [[0, 0]],
+      write: [[1, 1]],
+      calc: {
+        expr: "dp[0][0] + 1 = 0 + 1 =",
+        result: "1",
+      },
+    },
+    {
+      title: "T3 dp[1][2] = 1 ④",
+      text: "s[0] = 'a' 와 t[1] = 'c' 가 달라 ④ 입니다. 위 dp[0][2] = 0 과 왼쪽 dp[1][1] = 1 중 큰 쪽을 이어받아 dp[1][2] = 1 입니다.",
+      table: [
+        [0, 0, 0, 0],
+        [0, 1, 1, null],
+        [0, null, null, null],
+        [0, null, null, null],
+        [0, null, null, null],
+        [0, null, null, null],
+      ],
+      read: [
+        [0, 2],
         [1, 1],
+      ],
+      write: [[1, 2]],
+      calc: {
+        expr: "max(dp[0][2], dp[1][1]) = max(0, 1) =",
+        result: "1",
+      },
+    },
+    {
+      title: "T4 dp[1][3] = 1 ④",
+      text: "s[0] = 'a' 와 t[2] = 'e' 가 달라 ④ 입니다. 위 dp[0][3] = 0 과 왼쪽 dp[1][2] = 1 중 큰 쪽을 이어받아 dp[1][3] = 1 입니다.",
+      table: [
+        [0, 0, 0, 0],
+        [0, 1, 1, 1],
+        [0, null, null, null],
+        [0, null, null, null],
+        [0, null, null, null],
+        [0, null, null, null],
+      ],
+      read: [
+        [0, 3],
         [1, 2],
-        [1, 3],
-      ] as [number, number][],
+      ],
+      write: [[1, 3]],
+      calc: {
+        expr: "max(dp[0][3], dp[1][2]) = max(0, 1) =",
+        result: "1",
+      },
     },
     {
-      title: "T3 둘째 줄 — s 의 'b'",
-      detail:
-        "'b' 는 t 의 어느 글자와도 다르다. 세 칸 모두 ④ 이고, 윗줄의 값이 그대로 내려온다.",
-      matrix: [
+      title: "T5 dp[2][1] = 1 ④",
+      text: "s[1] = 'b' 와 t[0] = 'a' 가 달라 ④ 입니다. 위 dp[1][1] = 1 과 왼쪽 dp[2][0] = 0 중 큰 쪽을 이어받아 dp[2][1] = 1 입니다.",
+      table: [
         [0, 0, 0, 0],
         [0, 1, 1, 1],
-        [0, 1, 1, 1],
+        [0, 1, null, null],
         [0, null, null, null],
         [0, null, null, null],
         [0, null, null, null],
       ],
-      rowLabels: ["i=0 ∅", "i=1 a", "i=2 b", "i=3 c", "i=4 d", "i=5 e"],
-      colLabels: ["j=0 ∅", "j=1 a", "j=2 c", "j=3 e"],
-      cells: [
+      read: [
+        [1, 1],
+        [2, 0],
+      ],
+      write: [[2, 1]],
+      calc: {
+        expr: "max(dp[1][1], dp[2][0]) = max(1, 0) =",
+        result: "1",
+      },
+    },
+    {
+      title: "T6 dp[2][2] = 1 ④",
+      text: "s[1] = 'b' 와 t[1] = 'c' 가 달라 ④ 입니다. 위 dp[1][2] = 1 과 왼쪽 dp[2][1] = 1 중 큰 쪽을 이어받아 dp[2][2] = 1 입니다.",
+      table: [
+        [0, 0, 0, 0],
+        [0, 1, 1, 1],
+        [0, 1, 1, null],
+        [0, null, null, null],
+        [0, null, null, null],
+        [0, null, null, null],
+      ],
+      read: [
+        [1, 2],
         [2, 1],
+      ],
+      write: [[2, 2]],
+      calc: {
+        expr: "max(dp[1][2], dp[2][1]) = max(1, 1) =",
+        result: "1",
+      },
+    },
+    {
+      title: "T7 dp[2][3] = 1 ④",
+      text: "s[1] = 'b' 와 t[2] = 'e' 가 달라 ④ 입니다. 위 dp[1][3] = 1 과 왼쪽 dp[2][2] = 1 중 큰 쪽을 이어받아 dp[2][3] = 1 입니다.",
+      table: [
+        [0, 0, 0, 0],
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+        [0, null, null, null],
+        [0, null, null, null],
+        [0, null, null, null],
+      ],
+      read: [
+        [1, 3],
         [2, 2],
+      ],
+      write: [[2, 3]],
+      calc: {
+        expr: "max(dp[1][3], dp[2][2]) = max(1, 1) =",
+        result: "1",
+      },
+    },
+  ],
+} satisfies TablePlayerSpec;
+
+export const row34 = {
+  player: "stage",
+  stage: "table",
+  rowHeads: ["i=0 · ∅", "i=1 · a", "i=2 · b", "i=3 · c", "i=4 · d", "i=5 · e"],
+  colHeads: ["∅", "a", "c", "e"],
+  colLabel: "t 의 글자",
+  title: 'longestCommonSubsequence("abcde", "ace")',
+  result: "[0, 1, 2, 2]",
+  steps: [
+    {
+      title: "T8 dp[3][1] = 1 ④",
+      text: "s[2] = 'c' 와 t[0] = 'a' 가 달라 ④ 입니다. 위 dp[2][1] = 1 과 왼쪽 dp[3][0] = 0 중 큰 쪽을 이어받아 dp[3][1] = 1 입니다.",
+      table: [
+        [0, 0, 0, 0],
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+        [0, 1, null, null],
+        [0, null, null, null],
+        [0, null, null, null],
+      ],
+      read: [
+        [2, 1],
+        [3, 0],
+      ],
+      write: [[3, 1]],
+      calc: {
+        expr: "max(dp[2][1], dp[3][0]) = max(1, 0) =",
+        result: "1",
+      },
+    },
+    {
+      title: "T9 dp[3][2] = 2 ③",
+      text: "s[2] = 'c' 와 t[1] = 'c' 가 같아 ③ 입니다. 왼쪽 위 dp[2][1] = 1 에 1 을 더해 dp[3][2] = 2 입니다.",
+      table: [
+        [0, 0, 0, 0],
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+        [0, 1, 2, null],
+        [0, null, null, null],
+        [0, null, null, null],
+      ],
+      read: [[2, 1]],
+      write: [[3, 2]],
+      calc: {
+        expr: "dp[2][1] + 1 = 1 + 1 =",
+        result: "2",
+      },
+    },
+    {
+      title: "T10 dp[3][3] = 2 ④",
+      text: "s[2] = 'c' 와 t[2] = 'e' 가 달라 ④ 입니다. 위 dp[2][3] = 1 과 왼쪽 dp[3][2] = 2 중 큰 쪽을 이어받아 dp[3][3] = 2 입니다.",
+      table: [
+        [0, 0, 0, 0],
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+        [0, 1, 2, 2],
+        [0, null, null, null],
+        [0, null, null, null],
+      ],
+      read: [
         [2, 3],
-      ] as [number, number][],
-    },
-    {
-      title: "T4 셋째 줄 — s 의 'c'",
-      detail:
-        "j=2 에서 ③ ('c' = 'c') 이 두 번째로 나온다. 대각선 dp[2][1] = 1 에 1 을 더해 2 이고, 그 2 가 오른쪽으로 이어진다.",
-      matrix: [
-        [0, 0, 0, 0],
-        [0, 1, 1, 1],
-        [0, 1, 1, 1],
-        [0, 1, 2, 2],
-        [0, null, null, null],
-        [0, null, null, null],
-      ],
-      rowLabels: ["i=0 ∅", "i=1 a", "i=2 b", "i=3 c", "i=4 d", "i=5 e"],
-      colLabels: ["j=0 ∅", "j=1 a", "j=2 c", "j=3 e"],
-      cells: [
-        [3, 1],
         [3, 2],
-        [3, 3],
-      ] as [number, number][],
+      ],
+      write: [[3, 3]],
+      calc: {
+        expr: "max(dp[2][3], dp[3][2]) = max(1, 2) =",
+        result: "2",
+      },
     },
     {
-      title: "T5 넷째 줄 — s 의 'd'",
-      detail:
-        "'d' 도 t 에 없다. 세 칸 모두 ④ 이고 윗줄이 그대로 내려온다 — 얻은 2 가 사라지지 않는다.",
-      matrix: [
+      title: "T11 dp[4][1] = 1 ④",
+      text: "s[3] = 'd' 와 t[0] = 'a' 가 달라 ④ 입니다. 위 dp[3][1] = 1 과 왼쪽 dp[4][0] = 0 중 큰 쪽을 이어받아 dp[4][1] = 1 입니다.",
+      table: [
+        [0, 0, 0, 0],
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+        [0, 1, 2, 2],
+        [0, 1, null, null],
+        [0, null, null, null],
+      ],
+      read: [
+        [3, 1],
+        [4, 0],
+      ],
+      write: [[4, 1]],
+      calc: {
+        expr: "max(dp[3][1], dp[4][0]) = max(1, 0) =",
+        result: "1",
+      },
+    },
+    {
+      title: "T12 dp[4][2] = 2 ④",
+      text: "s[3] = 'd' 와 t[1] = 'c' 가 달라 ④ 입니다. 위 dp[3][2] = 2 와 왼쪽 dp[4][1] = 1 중 큰 쪽을 이어받아 dp[4][2] = 2 입니다.",
+      table: [
+        [0, 0, 0, 0],
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+        [0, 1, 2, 2],
+        [0, 1, 2, null],
+        [0, null, null, null],
+      ],
+      read: [
+        [3, 2],
+        [4, 1],
+      ],
+      write: [[4, 2]],
+      calc: {
+        expr: "max(dp[3][2], dp[4][1]) = max(2, 1) =",
+        result: "2",
+      },
+    },
+    {
+      title: "T13 dp[4][3] = 2 ④",
+      text: "s[3] = 'd' 와 t[2] = 'e' 가 달라 ④ 입니다. 위 dp[3][3] = 2 와 왼쪽 dp[4][2] = 2 중 큰 쪽을 이어받아 dp[4][3] = 2 입니다.",
+      table: [
         [0, 0, 0, 0],
         [0, 1, 1, 1],
         [0, 1, 1, 1],
@@ -122,39 +301,74 @@ export const lcsTable = {
         [0, 1, 2, 2],
         [0, null, null, null],
       ],
-      rowLabels: ["i=0 ∅", "i=1 a", "i=2 b", "i=3 c", "i=4 d", "i=5 e"],
-      colLabels: ["j=0 ∅", "j=1 a", "j=2 c", "j=3 e"],
-      cells: [
-        [4, 1],
+      read: [
+        [3, 3],
         [4, 2],
-        [4, 3],
-      ] as [number, number][],
+      ],
+      write: [[4, 3]],
+      calc: {
+        expr: "max(dp[3][3], dp[4][2]) = max(2, 2) =",
+        result: "2",
+      },
     },
+  ],
+} satisfies TablePlayerSpec;
+
+export const row5 = {
+  player: "stage",
+  stage: "table",
+  rowHeads: ["i=0 · ∅", "i=1 · a", "i=2 · b", "i=3 · c", "i=4 · d", "i=5 · e"],
+  colHeads: ["∅", "a", "c", "e"],
+  colLabel: "t 의 글자",
+  title: 'longestCommonSubsequence("abcde", "ace")',
+  result: "3",
+  steps: [
     {
-      title: "T6 다섯째 줄 — s 의 'e'",
-      detail:
-        "j=3 에서 ③ ('e' = 'e') 이 세 번째로 나온다. 대각선 dp[4][2] = 2 에 1 을 더해 3 이다.",
-      matrix: [
+      title: "T14 dp[5][1] = 1 ④",
+      text: "s[4] = 'e' 와 t[0] = 'a' 가 달라 ④ 입니다. 위 dp[4][1] = 1 과 왼쪽 dp[5][0] = 0 중 큰 쪽을 이어받아 dp[5][1] = 1 입니다.",
+      table: [
         [0, 0, 0, 0],
         [0, 1, 1, 1],
         [0, 1, 1, 1],
         [0, 1, 2, 2],
         [0, 1, 2, 2],
-        [0, 1, 2, 3],
+        [0, 1, null, null],
       ],
-      rowLabels: ["i=0 ∅", "i=1 a", "i=2 b", "i=3 c", "i=4 d", "i=5 e"],
-      colLabels: ["j=0 ∅", "j=1 a", "j=2 c", "j=3 e"],
-      cells: [
+      read: [
+        [4, 1],
+        [5, 0],
+      ],
+      write: [[5, 1]],
+      calc: {
+        expr: "max(dp[4][1], dp[5][0]) = max(1, 0) =",
+        result: "1",
+      },
+    },
+    {
+      title: "T15 dp[5][2] = 2 ④",
+      text: "s[4] = 'e' 와 t[1] = 'c' 가 달라 ④ 입니다. 위 dp[4][2] = 2 와 왼쪽 dp[5][1] = 1 중 큰 쪽을 이어받아 dp[5][2] = 2 입니다.",
+      table: [
+        [0, 0, 0, 0],
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+        [0, 1, 2, 2],
+        [0, 1, 2, 2],
+        [0, 1, 2, null],
+      ],
+      read: [
+        [4, 2],
         [5, 1],
-        [5, 2],
-        [5, 3],
-      ] as [number, number][],
+      ],
+      write: [[5, 2]],
+      calc: {
+        expr: "max(dp[4][2], dp[5][1]) = max(2, 1) =",
+        result: "2",
+      },
     },
     {
-      title: "T7 오른쪽 아래를 읽는다",
-      detail:
-        "dp[5][3] = 3. 공통 부분 수열 'ace' 의 길이이고, s 에서는 0·2·4 번, t 에서는 0·1·2 번 자리다.",
-      matrix: [
+      title: "T16 dp[5][3] = 3 ③",
+      text: "s[4] = 'e' 와 t[2] = 'e' 가 같아 ③ 입니다. 왼쪽 위 dp[4][2] = 2 에 1 을 더해 dp[5][3] = 3 입니다.",
+      table: [
         [0, 0, 0, 0],
         [0, 1, 1, 1],
         [0, 1, 1, 1],
@@ -162,9 +376,29 @@ export const lcsTable = {
         [0, 1, 2, 2],
         [0, 1, 2, 3],
       ],
-      rowLabels: ["i=0 ∅", "i=1 a", "i=2 b", "i=3 c", "i=4 d", "i=5 e"],
-      colLabels: ["j=0 ∅", "j=1 a", "j=2 c", "j=3 e"],
-      cells: [[5, 3]] as [number, number][],
+      read: [[4, 2]],
+      write: [[5, 3]],
+      calc: {
+        expr: "dp[4][2] + 1 = 2 + 1 =",
+        result: "3",
+      },
     },
-  ] satisfies Frame[],
-};
+    {
+      title: "T17 dp[5][3] = 3 반환",
+      text: "오른쪽 아래 칸 dp[5][3] 를 읽어 3 을 돌려줍니다.",
+      table: [
+        [0, 0, 0, 0],
+        [0, 1, 1, 1],
+        [0, 1, 1, 1],
+        [0, 1, 2, 2],
+        [0, 1, 2, 2],
+        [0, 1, 2, 3],
+      ],
+      read: [[5, 3]],
+      calc: {
+        expr: "dp[5][3] =",
+        result: "3",
+      },
+    },
+  ],
+} satisfies TablePlayerSpec;

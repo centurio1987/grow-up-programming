@@ -8,7 +8,7 @@
  *   bun run ../../../../tools/bench-alt.ts longestCommonSubsequence-guide.alt.ts
  *
  * **전개 입력을 그대로 못 쓰는 이유**(L20). 전개는 `s = "abcde"` · `t = "ace"` 를 쓰는데,
- * 그 크기에서는 표가 15 칸뿐이라 두 설계의 계수가 준비 비용에 묻힌다(표 30 · 일치 쌍
+ * 그 크기에서는 DP 테이블이 15 칸뿐이라 두 설계의 계수가 준비 비용에 묻힌다(DP 테이블 30 · 일치 쌍
  * 따라가기 13). 그래서 같은 규칙으로 만든 길이 200 짜리 입력을 쓰고, **알파벳 크기만**
  * 바꿔 가며 잰다 — 이 대조에서 갈리는 것이 일치 쌍의 개수이기 때문이다.
  *
@@ -46,7 +46,7 @@ interface Counted {
 }
 
 /**
- * 이 가이드가 가르치는 설계 — **표 채우기**. 절차는
+ * 이 가이드가 가르치는 설계 — **DP 테이블 채우기**. 절차는
  * `longestCommonSubsequence-guide.ref.ts` 와 같고 계수만 덧붙였다.
  *
  * 칸 하나마다 문자 비교 한 번과 (덧셈 한 번 또는 값 비교 한 번)이라 기본 연산이 `2nm` 이다.
@@ -83,7 +83,7 @@ export function byTable(s: string, t: string): Counted {
 /**
  * 경쟁 설계 — **일치 쌍 따라가기**(Hunt–Szymanski, 1977).
  *
- * 표를 만들지 않고 **글자가 같은 자리 쌍만** 방문한다. `t` 의 글자마다 등장 위치를
+ * DP 테이블을 만들지 않고 **글자가 같은 자리 쌍만** 방문한다. `t` 의 글자마다 등장 위치를
  * 내림차순으로 모아 두고, `s` 를 왼쪽부터 읽으며 그 위치들을 문턱 배열 `thresh` 에 넣는다.
  * `thresh[k]` 는 「길이 `k` 짜리 공통 부분 수열을 만들 수 있는 `t` 쪽 끝 자리 중 가장 왼쪽」
  * 이고, 자리 하나를 넣을 때마다 이분 탐색으로 들어갈 `k` 를 찾는다.
@@ -148,7 +148,7 @@ function agree(s: string, t: string): [Counted, Counted] {
   const b = byMatchPairs(s, t);
   if (a.answer !== b.answer) {
     throw new Error(
-      `두 설계의 답이 다르다 — 표 ${a.answer} ≠ 일치 쌍 ${b.answer}`,
+      `두 설계의 답이 다르다 — DP 테이블 ${a.answer} ≠ 일치 쌍 ${b.answer}`,
     );
   }
   return [a, b];
@@ -158,7 +158,7 @@ function agree(s: string, t: string): [Counted, Counted] {
 const SAME = "a".repeat(N);
 
 export const cases = {
-  "표 채우기": () => {
+  "DP 테이블 채우기": () => {
     const out: Record<string, number> = {};
     for (const a of ALPHABETS) {
       const [s, t] = pair(a);

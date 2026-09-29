@@ -20,15 +20,15 @@ export function longestCommonSubsequence(s: string, t: string): number {
   const n = s.length;
   const m = t.length;
 
-  // ① 표를 (n+1) × (m+1) 로 깔고 전부 0 으로 둔다. 0 번째 줄과 0 번째 열은 한쪽이 빈
+  // ① DP 테이블을 (n+1) × (m+1) 로 깔고 전부 0 으로 둔다. 0 번째 줄과 0 번째 열은 한쪽이 빈
   //    문자열인 자리라, 그 0 이 계산 결과가 아니라 정의에서 바로 나온 값이다.
   const dp: number[][] = Array.from({ length: n + 1 }, () =>
     new Array<number>(m + 1).fill(0),
   );
 
   for (let i = 1; i <= n; i++) {
-    const prev = dp[i - 1] as number[]; // 윗줄 — s 의 앞 i-1 글자까지만 본 층
-    const cur = dp[i] as number[]; // 이번 줄 — s 의 앞 i 글자까지 본 층
+    const prev = dp[i - 1] as number[]; // 윗 줄 — s 의 앞 i-1 글자까지만 본 줄
+    const cur = dp[i] as number[]; // 이번 줄 — s 의 앞 i 글자까지 본 줄
 
     for (let j = 1; j <= m; j++) {
       // ② 채울 칸이 남았는가 — 남아 있으면 아래 두 갈래 중 하나로 이 칸을 정한다.
