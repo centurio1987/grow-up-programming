@@ -67,3 +67,23 @@ test("N = 100,000 입력에서도 반환값이 정확하다", () => {
   expect(feasible(A, 100, answer)).toBe(true);
   expect(feasible(A, 100, answer - 1)).toBe(false);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./parametricBinarySearch-guide.sim.ts");
+  const { simStepsFromRef } = await import(
+    "./parametricBinarySearch-guide.fig.tsx"
+  );
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.probe.steps)).toEqual(plain(want.probe));
+  expect(plain(sim.upper.steps)).toEqual(plain(want.upper));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  const A = [7, 2, 5, 10, 8];
+  expect(sim.probe.result).toBe(String(parametricBinarySearch(A, 2)));
+  expect(sim.upper.result).toBe(String(parametricBinarySearch(A, 1)));
+});

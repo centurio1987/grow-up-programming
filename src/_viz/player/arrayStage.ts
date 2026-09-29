@@ -9,7 +9,8 @@
  * (시안 규칙 5).
  *
  * 값은 `.sim.ts` 가 싣고, 그 값이 정본 실행과 같은지는 가이드의 시험이 잰다 — 여기서는 계산하지
- * 않고 **배치만** 한다. 배열에서 만드는 구조를 층으로 쌓는 편은 「층」 무대를 쓴다.
+ * 않고 **배치만** 한다. 배열에서 만드는 구조가 한두 줄이면(누적합 배열 · 답 목록) `layers` 로 괄호
+ * 아래에 쌓는다. 층이 거듭제곱으로 쌓이는 구조(Sparse Table)는 「층」 무대를 쓴다.
  */
 
 import type { CellState } from "../patterns/ArrayStrip";
@@ -31,6 +32,46 @@ export interface ArrayStep {
   readonly calc?: { readonly expr: string; readonly result: string } | null;
   /** 무대 어디에도 자리가 없는 값만(누적 셈 등). 없으면 `null`. */
   readonly vars?: string | null;
+  /**
+   * 배열에서 만드는 구조 — 입력 배열과 괄호 아래에 한 줄씩 쌓는다(SPEC §13 배열 줄 「배열에서 만드는
+   * 구조가 있으면 그 구조를 층으로 아래에 쌓는다」). 누적합 배열 `P` 나 답 목록처럼 걸음마다 칸이
+   * 채워지는 줄이다. 첫 걸음부터 칸을 모두 두고 아직 안 쓴 칸은 `null`(점선)로 둔다. 없으면 입력 배열
+   * 하나만 그린다.
+   */
+  readonly layers?: readonly ArrayLayer[];
+  /**
+   * 쥔 구간 안의 조각 — 쥔 구간 괄호 아래에 조각마다 괄호 줄을 하나씩 더한다. 병합 정렬이 가르는 두
+   * 조각이나 합치는 동안 두 조각에 남은 값처럼, 한 구간을 이웃한 조각으로 나눠 보일 때 쓴다. 비어 있는
+   * 조각은 싣지 않는다. 없으면 쥔 구간 괄호 하나만 그린다.
+   */
+  readonly pieces?: readonly ArrayPiece[];
+}
+
+/** 쥔 구간 안의 조각 하나 — 왼쪽 조각은 실선, 오른쪽 조각은 대시 괄호다(`CellStage` 의 괄호 규칙). */
+export interface ArrayPiece {
+  /** 괄호 머리 이름(예: 「왼쪽」 · `L`). */
+  readonly label: string;
+  /** 조각 `[from, to]`(양 끝 포함). */
+  readonly from: number;
+  readonly to: number;
+  readonly tone: "left" | "right";
+  /** 괄호 안쪽 글자. 없으면 `[from,to]`. */
+  readonly text?: string;
+}
+
+/**
+ * 배열에서 만드는 구조 한 줄. 칸 `i` 는 격자의 `i` 번째 자리 — 입력 배열의 인덱스 `i` 와 같은 열 — 에
+ * 선다. 줄의 길이가 입력 배열과 달라도 된다(누적합 배열은 `n + 1` 칸).
+ */
+export interface ArrayLayer {
+  /** 줄 머리 이름(예: `P` · 「답」). */
+  readonly name: string;
+  /** 줄의 칸 전부. 아직 쓰지 않은 칸은 `null`. */
+  readonly values: readonly (number | string | null)[];
+  /** 이번에 읽은 칸 — ▲ 와 「읽음」. */
+  readonly read?: readonly number[];
+  /** 이번에 새로 쓴 칸 — 「새로 씀」. */
+  readonly write?: readonly number[];
 }
 
 export interface ArrayOptions {
@@ -38,9 +79,15 @@ export interface ArrayOptions {
   readonly arrayName?: string;
   /** 쥔 구간의 이름 — 괄호 머리에 쓴다(예: 「후보」 · 「창」). */
   readonly rangeLabel: string;
+  /**
+   * 칸의 값이 곧 좌표인 줄이면 `true` — 파라메트릭 이진 탐색의 답 후보값 줄(10 · 11 · … · 32)처럼
+   * 칸 자리보다 칸의 값으로 구간을 부르는 무대다. 인덱스 줄을 빼고, 괄호 글자를 인덱스 대신 양 끝
+   * 칸의 값으로 적는다(`[10,32]`). 기본은 `false` — 인덱스 줄을 두고 괄호도 인덱스로 적는다.
+   */
+  readonly valueAxis?: boolean;
 }
 
-/** 걸음 하나의 무대 줄 — 인덱스 · 값 · ▲ · 쥔 구간 괄호. */
+/** 걸음 하나의 무대 줄 — 인덱스(값이 좌표인 줄이면 뺀다) · 값 · ▲ · 쥔 구간 괄호. */
 export function arrayStage(s: ArrayStep, opts: ArrayOptions): StageRow[] {
   const states: Partial<Record<number, CellState>> = {};
   s.array.forEach((_, i) => {
@@ -53,7 +100,9 @@ export function arrayStage(s: ArrayStep, opts: ArrayOptions): StageRow[] {
     .map(([name, at]) => `${name} = ${at}`)
     .join(" · ");
   const rows: StageRow[] = [
-    { kind: "index", label: "인덱스", focus: s.write },
+    ...(opts.valueAxis
+      ? []
+      : [{ kind: "index", label: "인덱스", focus: s.write } as const]),
     {
       kind: "cells",
       label: opts.arrayName ?? "A",
@@ -69,20 +118,54 @@ export function arrayStage(s: ArrayStep, opts: ArrayOptions): StageRow[] {
   ];
   // 구간이 비면(`lo > hi`) 괄호 줄을 뺀다. 모든 칸이 이미 대시라 빈 구간이 무대에 보인다.
   if (s.range !== null) {
+    const [from, to] = s.range;
+    const text = opts.valueAxis
+      ? `[${s.array[from]},${s.array[to]}]`
+      : `[${from},${to}]`;
     rows.push({
       kind: "bracket",
       label: opts.rangeLabel,
-      from: s.range[0],
-      to: s.range[1],
+      from,
+      to,
       tone: "query",
-      text: `[${s.range[0]},${s.range[1]}]`,
+      text,
     });
+  }
+  // 쥔 구간 안의 조각은 쥔 구간 괄호 바로 아래에 조각마다 한 줄씩 괄호를 단다.
+  for (const p of s.pieces ?? []) {
+    rows.push({
+      kind: "bracket",
+      label: p.label,
+      from: p.from,
+      to: p.to,
+      tone: p.tone,
+      text: p.text ?? `[${p.from},${p.to}]`,
+    });
+  }
+  // 배열에서 만드는 구조는 괄호 아래에 줄마다 값 칸과 ▲ 를 쌓는다. 곁말은 채운 칸 수다(SPEC §13
+  // 「층마다 채움 x / n」). 읽는 칸이 없는 걸음에도 ▲ 줄을 빈 채로 두어 줄 구성이 걸음마다 같다.
+  for (const layer of s.layers ?? []) {
+    const layerStates: Partial<Record<number, CellState>> = {};
+    for (const i of layer.read ?? []) layerStates[i] = "read";
+    for (const i of layer.write ?? []) layerStates[i] = "focus";
+    const filled = layer.values.filter((v) => v !== null).length;
+    rows.push(
+      {
+        kind: "cells",
+        label: layer.name,
+        values: layer.values,
+        states: layerStates,
+        side: `채움 ${filled} / ${layer.values.length}`,
+      },
+      { kind: "caret", cells: layer.read ?? [] },
+    );
   }
   return rows;
 }
 
-/** 격자 칸 수 — 배열의 길이. */
-export const arrayColumns = (s: ArrayStep): number => s.array.length;
+/** 격자 칸 수 — 배열과 그 아래 쌓은 줄 가운데 가장 긴 것의 길이. */
+export const arrayColumns = (s: ArrayStep): number =>
+  Math.max(s.array.length, ...(s.layers ?? []).map((l) => l.values.length));
 
 export const arrayCalc = (s: ArrayStep) => s.calc ?? null;
 export const arrayVars = (s: ArrayStep) => s.vars ?? null;

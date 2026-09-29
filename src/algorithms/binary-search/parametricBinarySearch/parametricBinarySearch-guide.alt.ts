@@ -36,17 +36,17 @@ export const LARGE: number[] = Array.from(
 /** `LARGE` 에 거는 묶음 수. */
 export const LARGE_K = 30;
 
-interface Tally {
+export interface Tally {
   answer: number;
   steps: number;
   slots: number;
 }
 
 /**
- * 이 가이드의 설계 — 답 후보 구간에 이분 탐색을 걸고, 후보값 하나를 탐욕 순회로 판정한다.
+ * 이 가이드의 설계 — 답 후보 구간에 이진 탐색을 걸고, 후보값 하나를 탐욕 순회로 판정한다.
  * 절차는 `.ref.ts` 와 같고 계수만 덧붙인다.
  */
-function parametric(A: number[], K: number): Tally {
+export function parametric(A: number[], K: number): Tally {
   let steps = 0;
   const judge = (m: number): boolean => {
     let count = 1;
@@ -88,7 +88,7 @@ function parametric(A: number[], K: number): Tally {
  * 판정 함수가 필요 없으므로 **값의 크기와 무관**하고, 원소에 음수가 섞여도 그대로 성립한다.
  * 대신 분할점을 전부 시험하므로 단계 수가 `N` 에 제곱으로 붙는다.
  */
-function dynamicProgramming(A: number[], K: number): Tally {
+export function dynamicProgramming(A: number[], K: number): Tally {
   const N = A.length;
   let steps = 0;
 
@@ -143,6 +143,6 @@ function counts(
 }
 
 export const cases = {
-  "파라메트릭 이분 탐색": () => counts(parametric),
+  "파라메트릭 이진 탐색": () => counts(parametric),
   "동적 계획법": () => counts(dynamicProgramming),
 };

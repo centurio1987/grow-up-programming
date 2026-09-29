@@ -164,3 +164,32 @@ test("배열 무대 — 배열 전체와 후보 괄호를 그리고, 구간 밖�
 
   await act(async () => root.unmount());
 });
+
+test("배열 무대 · 값이 좌표인 줄 — 인덱스 줄이 없고 괄호를 값으로 적는다", async () => {
+  const spec = (
+    await import(
+      "../../algorithms/binary-search/parametricBinarySearch/parametricBinarySearch-guide.sim.ts"
+    )
+  ).probe as unknown as PlayerSpec;
+  document.body.innerHTML = '<div id="v"></div>';
+  const host = document.getElementById("v") as HTMLElement;
+  const root = createRoot(host);
+  await act(async () => root.render(<StepPlayer {...spec} />));
+
+  // T1 — 후보값 줄 전체가 괄호 안이고, 인덱스 눈금 줄은 그리지 않는다
+  expect(host.querySelectorAll('[data-viz-role="index"]').length).toBe(0);
+  const range = () => host.querySelector("[data-viz-range]");
+  expect(range()?.getAttribute("data-viz-from")).toBe("0");
+  expect(range()?.textContent).toContain("[10,32]");
+
+  // T3 — 21 이 참이라 hi = 20: 괄호 글자가 칸 자리 [0,10] 이 아니라 값 [10,20] 이다
+  const badge = (id: string) =>
+    [...host.querySelectorAll(".gs-player-badge")].find(
+      (b) => b.textContent === id,
+    ) as HTMLButtonElement;
+  await act(async () => badge("T3").click());
+  expect(range()?.getAttribute("data-viz-to")).toBe("10");
+  expect(range()?.textContent).toContain("[10,20]");
+
+  await act(async () => root.unmount());
+});
