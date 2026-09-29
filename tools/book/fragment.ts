@@ -407,15 +407,21 @@ export function codeLanguages(html: string): string[] {
 /**
  * 챕터 간지 — 템플릿 「03 챕터 간지」. 파트 요약은 **원고의 파트 제목과 그 첫 문단**이다
  * (111편 모두 파트 둘에 첫 문단이 있음을 실측). 요약을 새로 쓰지 않는다.
+ *
+ * **`##` 이 모두 파트는 아니다.** 2026-09-29 `KAN-060` 부터 알고리즘 가이드 끝에
+ * `## 실습 — 직접 풀어 보기` 가 붙는데, 명세가 「실습은 파트가 아니다」라고 정했다
+ * (`sandbox/algo-guide-v2/SPEC.md` §1). 그래서 `파트 ` 로 시작하는 제목만 요약에 싣는다.
  */
 function openerOf(ch: Chapter, h1: string, body: string): string {
   const parts = [
     ...body.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>\s*<p>([\s\S]*?)<\/p>/g),
-  ].map(
-    (m) =>
-      `<div><p class="bk-opener-part">${text(m[1] ?? "")}</p>` +
-      `<p class="bk-opener-lede">${text(m[2] ?? "")}</p></div>`,
-  );
+  ]
+    .filter((m) => text(m[1] ?? "").startsWith("파트 "))
+    .map(
+      (m) =>
+        `<div><p class="bk-opener-part">${text(m[1] ?? "")}</p>` +
+        `<p class="bk-opener-lede">${text(m[2] ?? "")}</p></div>`,
+    );
   const kicker = [kickerOf(ch), `제 ${NO_SLOT} 장`]
     .filter((x) => x !== "")
     .join(" · ");

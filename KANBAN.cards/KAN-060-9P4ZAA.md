@@ -2,7 +2,7 @@
 card: KAN-060-9P4ZAA
 title: 알고리즘 가이드에 문제를 통합한다.
 created: 2026-09-29
-scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/check-v2.ts, tools/check-v2.test.ts, tools/check-metaphor.ts, tools/check-metaphor.test.ts, tools/migrate-practice.ts, .claude/authoring/specs/problem/**, .claude/authoring.lock.json, .claude/skills/gen-problem/**, .claude/skills/guide-for-problem/**, .claude/authoring/voices/algorithm-guide-writer/**, README.md, CLAUDE.md, 문제_가이드_목록.md
+scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/check-v2.ts, tools/check-v2.test.ts, tools/check-metaphor.ts, tools/check-metaphor.test.ts, tools/migrate-practice.ts, tools/algo-wbs.test.ts, tools/book/fragment.ts, .claude/authoring/specs/problem/**, .claude/authoring.lock.json, .claude/skills/gen-problem/**, .claude/skills/guide-for-problem/**, .claude/authoring/voices/algorithm-guide-writer/**, README.md, CLAUDE.md, 문제_가이드_목록.md
 ---
 
 # KAN-060-9P4ZAA — 알고리즘 가이드에 문제를 통합한다.
@@ -114,3 +114,4 @@ bunx --bun @biomejs/biome check tools/migrate-practice.ts tools/check-v2.ts tool
 - 2026-09-29T11:21 · s:15cf9d75 · S12 done — 서브에이전트 집필 — 오른쪽 시프트로 낮은 자리부터 읽으며 직전 1 의 자리만 기억. ref·proof(22)·test(12). 옮긴 실습 스토리의 「왼쪽에서 오른쪽으로 읽다 보면」이 풀이 순서를 흘린다는 관찰과 「그 중」 띄어쓰기(고치지 않음, 검토 항목). 문제_가이드_목록.md 에 넷 등재(twoSum·missingInteger → 해시맵, numberOfDisintersection → 두 포인터, binaryGap → 비트 연산). 메인 재확인: --require 22/22 · 시험 12/12 · 전 편 게이트 통과. 문체 A
 - 2026-09-29T11:22 · s:15cf9d75 · S9 doing — 착수
 - 2026-09-29T11:24 · s:15cf9d75 — S9 전: 옮긴 실습 문장 바로잡음 — numberOfDisintersection 예시 주석 「[-1,1]·[0,2] 1점 공유」→「구간 [0,1] 이 겹침」(실제 겹침이 구간, 답 1 은 그대로), 「그 중」→「그중」 7곳(실습 6 · topologicalSort 본문의 실습 인용 1). binaryGap 스토리 「왼쪽에서 오른쪽으로 읽다 보면」은 풀이(낮은 자리부터 시프트)와 방향이 달라 풀이 암시가 아니라 둠
+- 2026-09-29T11:33 · s:15cf9d75 — S9 ci.ts all 첫 실행 실패 2건(① 자기시험) — algo-wbs.test 의 편수 111(26·41·44)가 신규 넷으로 115(29·42·44), 책 간지가 ## 실습 을 파트로 읽어 요약 3개. 시험 기대값을 115 로, fragment.ts openerOf 가 「파트 」로 시작하는 h2 만 싣게 고침(SPEC 「실습은 파트가 아니다」). scope 에 두 파일 추가 → 중재 셋 자동 무효, 다시 기록. KAN-039 와 겹침에 tools/algo-wbs.test.ts 가 더해졌으나 이미 직렬(060 먼저)이라 같은 순서로 풀린다고 판단해 직렬을 다시 걸었다 — 유저에게 보고한다

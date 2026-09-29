@@ -182,12 +182,14 @@ test("전개가 끝나면 활성 웨이브가 없다", () => {
   expect(claims).toEqual([]);
 });
 
-test("실물 목록 — 알고리즘 편 111 이고 웨이브가 26·41·44 로 갈린다", () => {
-  // 편수가 바뀌면 이 시험이 먼저 말한다. 카드 전략표(111 = 26+41+44)가 그 근거다.
+test("실물 목록 — 알고리즘 편 115 이고 웨이브가 29·42·44 로 갈린다", () => {
+  // 편수가 바뀌면 이 시험이 먼저 말한다. 카드 전략표(111 = 26+41+44)가 근거였고,
+  // 2026-09-29 `KAN-060` 이 가이드 없던 문제에 새 가이드 넷을 더했다 — W1 에 셋
+  // (twoSum·missingInteger·numberOfDisintersection), W2 에 하나(binaryGap).
   const units = parseIndex(
     readFileSync(join(import.meta.dir, "..", "문제_가이드_목록.md"), "utf8"),
   );
-  expect(units).toHaveLength(111);
+  expect(units).toHaveLength(115);
   const count = (w: string) => units.filter((u) => u.wave === w).length;
-  expect([count("W1"), count("W2"), count("W3")]).toEqual([26, 41, 44]);
+  expect([count("W1"), count("W2"), count("W3")]).toEqual([29, 42, 44]);
 });
