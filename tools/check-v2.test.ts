@@ -2505,3 +2505,23 @@ test("--strict — P23 은 코드 펜스의 주석도 본다(코드 자체는 �
   // 주석이 아닌 코드 줄의 문자열은 안 본다.
   expect(p23(withComment('const s = "이 문제";'), true)).toEqual([]);
 });
+
+// 흡수한 문제의 스텁·테스트만 옮겨지고 문제 서술이 실습 절에 안 들어간 자리(`KAN-060` kadane).
+test("P22 — 폴더의 실습 테스트를 실습 절이 가리키지 않으면 걸린다", () => {
+  const links = { "./twoPointer.ts": true, "./twoPointer.test.ts": true };
+  const base = {
+    text: PASSING,
+    sim: SIM,
+    bench: { 비교: 34 },
+    practiceLinks: links,
+  };
+  expect(
+    codes(check({ ...base, practiceSuites: ["twoPointer.test.ts"] })),
+  ).toEqual([]);
+  const orphan = check({
+    ...base,
+    practiceSuites: ["twoPointer.test.ts", "absorbed.test.ts"],
+  }).filter((f) => f.code === "P22");
+  expect(orphan.length).toBe(1);
+  expect(orphan[0]?.detail).toContain("absorbed.test.ts");
+});

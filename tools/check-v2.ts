@@ -2187,6 +2187,12 @@ export interface CheckInput {
    */
   practiceLinks?: Record<string, boolean>;
   /**
+   * 가이드 폴더에 있는 실습 테스트(`<이름>.test.ts` 중 같은 이름의 스텁 `<이름>.ts` 가 있는 것).
+   * P22 가 이 테스트마다 실습 절의 풀 파일 줄이 있는지 본다 — 흡수한 문제의 스텁·테스트만 옮겨지고
+   * 문제 서술이 실습 절에 안 들어간 자리가 있었다(`KAN-060` kadane, 2026-09-30 발견).
+   */
+  practiceSuites?: string[];
+  /**
    * 그림 사이드카(`<name>-guide.fig.tsx`)가 있으면 그 `FIGS` 키와, 가이드 옆 `figs/` 에 실재하는
    * SVG id. 없으면 `undefined` — 그때 본문에 그림 마커가 있으면 P6 위반이다(KAN-057).
    * SVG 가 사이드카·정본과 **같은 바이트인지**는 `render-figs --check` 몫이다.
@@ -2594,6 +2600,16 @@ export function check(input: CheckInput): Finding[] {
     }
     // ── P22 실습 절 구조 · P23 실습 문제 지칭 (`L49`, 한시 조항 — `deep.origin` 이 있는 편만) ──
     findings.push(...practiceFindings(parsed.sections, input.practiceLinks));
+    const linked = new Set(
+      Object.keys(input.practiceLinks ?? {}).map((x) => x.replace(/^\.\//, "")),
+    );
+    for (const suite of input.practiceSuites ?? []) {
+      if (linked.has(suite)) continue;
+      findings.push({
+        code: "P22",
+        detail: `폴더의 실습 테스트 \`${suite}\` 를 실습 절이 가리키지 않는다 — 그 문제를 \`### {문제 이름}\` 으로 싣는다`,
+      });
+    }
     if (strict || first(sections, "deep.origin")) {
       findings.push(...practiceReferenceFindings(text, strict));
     }
@@ -2960,6 +2976,13 @@ export async function guideFindings(
       links[x] = await Bun.file(join(dir, x)).exists();
     }
     input.practiceLinks = links;
+    const files = await readdir(dir).catch(() => [] as string[]);
+    input.practiceSuites = files.filter(
+      (f) =>
+        f.endsWith(".test.ts") &&
+        !f.includes("-guide") &&
+        files.includes(`${f.slice(0, -".test.ts".length)}.ts`),
+    );
     const refFile = Bun.file(join(dir, `${stem}.ref.ts`));
     if (await refFile.exists()) input.ref = await refFile.text();
     if (input.ref === undefined) missing.push("ref");

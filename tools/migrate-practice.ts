@@ -145,13 +145,18 @@ export function liftGrade(lines: string[]): { rest: string[]; meta: string[] } {
   return { rest, meta: ["", cells.join(" · ")] };
 }
 
-/** 가이드 끝에 실습 문제를 붙인다. 절이 없으면 절부터. 같은 제목이 이미 있으면 그대로 둔다. */
+/** 가이드 끝에 실습 문제를 붙인다. 절이 없으면 절부터. 같은 제목이 이미 있으면 멈춘다. */
 export function appendPractice(
   guide: string,
   title: string,
   block: string,
 ): string {
-  if (guide.split("\n").some((l) => l.trim() === `### ${title}`)) return guide;
+  // 같은 제목이 이미 있으면 **멈춘다**. 한때 조용히 건너뛰어, 흡수한 문제가 받는 쪽 문제와 제목이
+  // 같던 kadane 에서 문제 서술이 통째로 빠진 채 원본이 지워졌다(2026-09-30 발견). 제목을 가려
+  // 다시 부른다.
+  if (guide.split("\n").some((l) => l.trim() === `### ${title}`)) {
+    throw new Error(`실습에 같은 제목의 문제가 이미 있다: ${title}`);
+  }
   const base = guide.replace(/\s+$/, "");
   const hasSection = guide
     .split("\n")
