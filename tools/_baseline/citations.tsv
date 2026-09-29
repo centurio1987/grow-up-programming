@@ -1006,7 +1006,6 @@ sandbox/ds-guide-v2/SPEC.md	docs/ORD-006-conventions.md	1275	ba5b45ae3119	-
 sandbox/ds-guide-v2/SPEC.md	docs/ORD-006-conventions.md	1276	f422550abe2b	-
 sandbox/ds-guide-v2/SPEC.md	docs/ORD-006-conventions.md	1284	40b0470c10c6	-
 sandbox/ds-guide-v2/SPEC.md	tools/section.ts	271	8bcad19fdb91	-
-src/algorithms/advanced/minMaxPair/minMaxPair-guide.sim.ts	src/_guide-sim/index.tsx	106	7b8f42ca3250	-
 src/algorithms/dp/digitDp/digitDp-guide.sim.ts	src/_guide-sim/index.tsx	344	ea1b50e2d110	-
 src/algorithms/dp/matrixChainMultiplication/matrixChainMultiplication-guide.sim.ts	src/_guide-sim/index.tsx	374	275648121d40	-
 src/algorithms/dp/palindromePartitioningMinCut/palindromePartitioningMinCut-guide.sim.ts	src/_guide-sim/index.tsx	374	275648121d40	-

@@ -44,3 +44,27 @@ test("본문이 내미는 비교 횟수 ⌈3n/2⌉-2 가 실제 실행과 같다
   // 어긋나면 마지막 칸이 "다르다" 가 된다.
   expect(PROOFS["formula-check"]?.()).not.toContain("다르다");
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본에 계측
+ * 원소를 넘겨 실제 비교 목록을 받고, 그것을 정본의 갈래 순서로 읽어 만든 걸음 — 와 글자 그대로 같아야
+ * 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./minMaxPair-guide.sim.ts");
+  const { simStepsFromRef, A8 } = await import("./minMaxPair-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.pairwalk.steps)).toEqual(plain(simStepsFromRef().pairwalk));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  const r = minMaxPair([...A8]);
+  expect(sim.pairwalk.result).toBe(`{ min: ${r.min}, max: ${r.max} }`);
+});
+
+test("계측이 센 비교 횟수가 본문의 식 ⌈3n/2⌉ − 2 와 같다", async () => {
+  const { countOf, formula } = await import("./minMaxPair-guide.fig.tsx");
+  for (let n = 1; n <= 40; n++) {
+    const arr = Array.from({ length: n }, (_, i) => (i * 13) % 17);
+    expect(countOf(arr, (xs) => minMaxPair(xs))).toBe(formula(n));
+  }
+});
