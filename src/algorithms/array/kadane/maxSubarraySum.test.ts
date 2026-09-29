@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { maxSubarraySum } from "./kadane";
+import { maxSubarraySum } from "./maxSubarraySum";
 
 describe("maxSubarraySum", () => {
   // 기본 동작

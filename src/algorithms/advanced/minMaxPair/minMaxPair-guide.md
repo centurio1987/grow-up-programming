@@ -84,7 +84,7 @@ n = 100,000
 - **길이가 홀수인 배열은 둘씩 묶으면 하나가 남는다**는 것. 이 글의 코드가 갈래 둘로 시작하는
   이유가 그것입니다.
 - 배열을 한 번 지나가며 값 몇 개를 함께 유지하는 모양이 낯설면
-  [`tapeEquilibrium`](../../array/tapeEquilibrium/tapeEquilibrium-problem.md) 을 먼저 봅니다.
+  [`tapeEquilibrium`](../../array/prefixSumRangeQuery/prefixSumRangeQuery-guide.md#실습--직접-풀어-보기) 을 먼저 봅니다.
   한 번의 순회로 두 쪽의 합을 함께 관리하는 문제예요.
 
 「최솟값 하나만 구한다」와 「최솟값과 최댓값을 함께 구한다」는 다른 요구입니다. 앞쪽은 비교가

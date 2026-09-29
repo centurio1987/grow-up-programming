@@ -1125,3 +1125,136 @@ prefixSumRangeQuery([1, 2, 3], []);
 prefixSumRangeQuery([10, 20, 30], [[0, 0], [2, 2], [0, 2]]);
 // [10, 30, 60]  — 첫 원소, 마지막 원소, 전체 합
 ```
+
+### Genomic Range Query
+
+풀 파일: [`genomicRangeQuery.ts`](./genomicRangeQuery.ts) · 테스트: [`genomicRangeQuery.test.ts`](./genomicRangeQuery.test.ts) · 실행: `bun test src/algorithms/array/prefixSumRangeQuery/genomicRangeQuery.test.ts`
+
+#### 한 줄 요약
+
+> 함수는 DNA 문자열과 구간 쿼리 배열을 받아, 각 구간 내 뉴클레오타이드의 최소 충격 지수를 반환한다.
+
+#### 스토리
+
+생물학 연구소에서 DNA 서열을 분석하는 팀이 있다. DNA는 A, C, G, T 네 종류의 뉴클레오타이드로 구성된 긴 문자열로 기록된다. 각 뉴클레오타이드는 실험 반응 강도를 나타내는 충격 지수(impact factor)를 가지며, A는 1, C는 2, G는 3, T는 4다.
+
+연구팀은 매일 수천 건의 구간 분석 요청을 처리해야 한다. 분석 요청마다 DNA 서열의 특정 구간 $[P, Q]$를 지정하고, 그 구간에 존재하는 뉴클레오타이드 중 충격 지수가 가장 낮은 값을 알고 싶어 한다. 충격 지수가 낮은 뉴클레오타이드가 해당 구간의 반응을 지배하기 때문이다.
+
+단 한 번의 DNA 서열 전처리로 이후의 모든 구간 쿼리를 빠르게 처리할 수 있어야 한다.
+
+#### 함수 인터페이스
+
+```ts
+export function solution(S: string, P: number[], Q: number[]): number[];
+```
+
+- `S` — 대문자 `A`, `C`, `G`, `T`로만 구성된 DNA 문자열 (길이 $N$)
+- `P` — 쿼리 구간의 시작 인덱스 배열 (길이 $M$)
+- `Q` — 쿼리 구간의 종료 인덱스 배열 (길이 $M$), $P[K] \leq Q[K]$
+- 반환 — 길이 $M$인 정수 배열. $K$번째 값은 구간 $[P[K], Q[K]]$에 속한 뉴클레오타이드의 최소 충격 지수
+
+#### 제약 조건
+
+- $1 \leq N \leq 100{,}000$ ($N$은 문자열 $S$의 길이)
+- $1 \leq M \leq 50{,}000$ ($M$은 배열 $P$, $Q$의 길이)
+- $0 \leq P[K] \leq Q[K] \leq N - 1$
+- $S$는 대문자 영문자 `A`, `C`, `G`, `T`로만 구성
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+뉴클레오타이드의 충격 지수는 다음과 같이 정의된다.
+
+$$\text{impact}(c) = \begin{cases} 1 & c = \text{A} \\ 2 & c = \text{C} \\ 3 & c = \text{G} \\ 4 & c = \text{T} \end{cases}$$
+
+$M$개의 쿼리 $(P[K],\, Q[K])$에 대해, 구간 $[P[K],\, Q[K]]$ 내 최소 충격 지수를 계산한다.
+
+$$\text{answer}[K] = \min_{P[K] \leq i \leq Q[K]} \text{impact}(S[i])$$
+
+#### 예시
+
+```ts
+solution("CAGCCTA", [2, 5, 0], [4, 5, 6]);
+// [2, 4, 1]
+// 구간 [2,4] = "GCC" → impact(G)=3, impact(C)=2 → min=2
+// 구간 [5,5] = "T"   → impact(T)=4 → min=4
+// 구간 [0,6] = "CAGCCTA" → A 포함 → min=1
+
+solution("ACGT", [0, 1, 2, 3], [0, 1, 2, 3]);
+// [1, 2, 3, 4] — 각 단일 위치의 충격 지수 그대로
+
+solution("AAAA", [0, 0], [3, 1]);
+// [1, 1] — 모든 구간에 A만 존재
+
+solution("T", [0], [0]);
+// [4] — 단일 뉴클레오타이드, T의 충격 지수
+```
+
+### Tape Equilibrium
+
+풀 파일: [`tapeEquilibrium.ts`](./tapeEquilibrium.ts) · 테스트: [`tapeEquilibrium.test.ts`](./tapeEquilibrium.test.ts) · 실행: `bun test src/algorithms/array/prefixSumRangeQuery/tapeEquilibrium.test.ts`
+
+#### 한 줄 요약
+
+> 함수는 정수 배열을 받아, 배열을 두 비어있지 않은 부분으로 나눌 때 두 부분의 합 차이 절댓값의 최솟값을 반환한다.
+
+#### 스토리
+
+물류 창고에서 테이프 컨베이어 위에 $N$개의 짐이 순서대로 올려져 있다. 각 짐에는 무게가 적혀 있다. 테이프를 어느 지점에서 잘라서 두 구간으로 나눌 수 있는데, 양쪽 구간은 반드시 짐이 하나 이상 있어야 한다.
+
+균형 운반을 위해 두 구간의 무게 합 차이가 최소가 되도록 자르려 한다. 자르는 위치는 테이프 위 어디서든 가능하지만 양 끝을 잘라 한쪽이 비게 되면 안 된다.
+
+모든 자르는 위치를 고려했을 때, 두 구간 합의 차이 절댓값이 가장 작은 경우의 값을 구하라.
+
+#### 함수 인터페이스
+
+```ts
+export function tapeEquilibrium(A: number[]): number;
+```
+
+- `A` — 길이 $N \geq 2$인 정수 배열
+- 반환 — 가능한 모든 분할에 대한 두 부분 합 차이 절댓값의 최솟값
+
+#### 제약 조건
+
+- $2 \leq N \leq 100{,}000$ ($N$은 `A`의 길이)
+- 각 원소는 $-1{,}000 \leq A[i] \leq 1{,}000$인 정수
+- 시간 제한: 1초, 메모리 제한: 256 MB
+
+#### 문제 상세
+
+정수 $P$ ($1 \leq P \leq N-1$)로 배열을 다음 두 부분으로 나눈다.
+
+- 왼쪽 부분: $A[0], A[1], \ldots, A[P-1]$
+- 오른쪽 부분: $A[P], A[P+1], \ldots, A[N-1]$
+
+분할 지점 $P$에서의 차이값은 다음과 같다.
+
+$$D(P) = \left| \sum_{i=0}^{P-1} A[i] \;-\; \sum_{i=P}^{N-1} A[i] \right|$$
+
+가능한 모든 $P$에 대해 $D(P)$의 최솟값을 반환한다.
+
+$$\text{tapeEquilibrium}(A) = \min_{1 \leq P \leq N-1} D(P)$$
+
+#### 예시
+
+```ts
+tapeEquilibrium([3, 1, 2, 4, 3]);
+// 1
+// P=1: |3 - 10| = 7
+// P=2: |4 - 9|  = 5
+// P=3: |6 - 7|  = 1  ← 최솟값
+// P=4: |10 - 3| = 7
+
+tapeEquilibrium([1, 2]);
+// 1 — P=1만 가능: |1 - 2| = 1
+
+tapeEquilibrium([-1000, 1000]);
+// 2000 — P=1: |-1000 - 1000| = 2000
+
+tapeEquilibrium([5, 5, 5, 5]);
+// 0 — P=2: |10 - 10| = 0
+
+tapeEquilibrium([5, 5, 5]);
+// 5 — P=1: |5 - 10| = 5, P=2: |10 - 5| = 5, 최솟값 5
+```
