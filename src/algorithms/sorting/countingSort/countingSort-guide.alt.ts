@@ -15,14 +15,14 @@
  *
  * - **배열 접근** — 배열 칸을 읽거나 쓴 횟수 전부. 두 설계가 쓰는 배열이 서로 달라
  *   (`count`·`out` 대 복사본·보조 배열) 어느 한쪽만 빼면 대조가 성립하지 않는다.
- * - **견주기** — 배열의 두 값을 견준 횟수. 인덱스 판정(`t <= hi`)은 안 센다.
+ * - **비교** — 배열의 두 값을 비교한 횟수. 인덱스 판정(`t <= hi`)은 안 센다.
  * - **새로 잡는 칸** — 입력 말고 새로 만든 배열의 칸 수 합.
  */
 
 /** 전개가 쓰는 입력. */
 export const SEVEN = [3, 1, 3, 0, 5, 1, 3];
 
-/** 키 값 공간의 칸 수. 문제의 제약 `0 ≤ A[i] ≤ 1000` 이 정한다. */
+/** 키 값 공간의 칸 수. 과제의 값 범위 `0 ≤ A[i] ≤ 1000` 이 정한다. */
 const K = 1001;
 
 /** 난수 없는 생성식. `A[i] = (i × 37) mod 1001` 이라 값이 0 … 1000 에 고루 놓인다. */
@@ -32,7 +32,7 @@ export const spread = (n: number): number[] =>
 export interface Counts {
   /** 배열 칸을 읽거나 쓴 횟수. */
   access: number;
-  /** 배열의 두 값을 견준 횟수. */
+  /** 배열의 두 값을 비교한 횟수. */
   compares: number;
   /** 입력 말고 새로 만든 배열의 칸 수 합. */
   cells: number;
@@ -68,8 +68,8 @@ export function countingCounts(A: number[]): Counts {
  * 경쟁 설계 — **병합 정렬**.
  *
  * 같은 목표(정수 배열을 오름차순으로 정렬한 새 배열 돌려주기)를 노리고 절차가 다르다.
- * 값의 범위를 하나도 쓰지 않고 **두 값을 견주는 것만으로** 순서를 정한다. 그래서 값이
- * 어떤 범위에 있든, 심지어 견주기만 되는 값(문자열·객체)이어도 그대로 통한다.
+ * 값의 범위를 하나도 쓰지 않고 **두 값을 비교하는 것만으로** 순서를 정한다. 그래서 값이
+ * 어떤 범위에 있든, 심지어 비교만 되는 값(문자열·객체)이어도 그대로 통한다.
  *
  * 위에서 아래로 반씩 가르고, 정렬된 두 구간을 보조 배열을 거쳐 합친다.
  */
@@ -97,7 +97,7 @@ export function mergeCounts(A: number[]): Counts {
         access += 2;
         B[t] = tmp[p++] as number;
       } else {
-        access += 2; // 견주기가 읽는 두 칸
+        access += 2; // 비교가 읽는 두 칸
         compares++;
         if ((tmp[q] as number) < (tmp[p] as number)) {
           access += 2;
@@ -135,13 +135,13 @@ const BIG = spread(100_000);
 function counts(sort: (A: number[]) => Counts): Record<string, number> {
   return {
     "일곱 칸 배열 접근": sort(SEVEN).access,
-    "일곱 칸 견주기": sort(SEVEN).compares,
+    "일곱 칸 비교": sort(SEVEN).compares,
     "20 칸 배열 접근": sort(TWENTY).access,
-    "20 칸 견주기": sort(TWENTY).compares,
+    "20 칸 비교": sort(TWENTY).compares,
     "200 칸 배열 접근": sort(TWO_HUNDRED).access,
-    "200 칸 견주기": sort(TWO_HUNDRED).compares,
+    "200 칸 비교": sort(TWO_HUNDRED).compares,
     "10 만 칸 배열 접근": sort(BIG).access,
-    "10 만 칸 견주기": sort(BIG).compares,
+    "10 만 칸 비교": sort(BIG).compares,
     "10 만 칸 새로 잡는 칸": sort(BIG).cells,
   };
 }

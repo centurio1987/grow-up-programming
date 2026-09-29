@@ -115,3 +115,30 @@ test("체커보드 1000×1000 은 섬이 500,000 개다", () => {
   );
   expect(countIslands(grid)).toBe((N * N) / 2);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./countIslands-guide.sim.ts");
+  const fig = await import("./countIslands-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.islandScan.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.islandScan.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 섬 번호 최댓값을 정본의 답에 직접 다시 묻는다.
+  const grid = [
+    [1, 1, 0, 1],
+    [1, 0, 0, 1],
+    [0, 0, 1, 0],
+  ];
+  const answer = countIslands(grid);
+  const last = sim.islandScan.steps.at(-1);
+  const islands = (last?.nodes ?? []).flatMap((n) =>
+    n.value.startsWith("섬 ") ? [Number(n.value.slice(2))] : [],
+  );
+  expect(Math.max(...islands)).toBe(answer);
+  expect(sim.islandScan.result).toBe(String(answer));
+});

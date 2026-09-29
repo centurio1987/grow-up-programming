@@ -1,462 +1,1018 @@
-import type { Frame } from "#guide-sim";
-
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(12)와 같다 — P3 이 그 관계를 잰다.
+ * 걸음 재생 패널 — `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 제목은
+ * 원고의 걸음 번호(`T#`)로 연다 — P3 이 그 자리를 잰다. 걸음은 셋이다 — 바깥 반복이 새 섬을 시작한다 ·
+ * 스택에서 칸 하나를 꺼내 이웃 넷을 본다 · 바깥 반복이 이어서 건너뛴 칸들(한 걸음으로 묶는다).
  *
- * **뷰가 둘이다** — `graph` 는 격자의 칸 열둘을 제자리에 놓고 상하좌우로 맞닿은 **땅 칸
- * 사이에만** 간선을 그린다. 그러면 섬이 곧 이 그래프의 연결 성분으로 보이고, 대각선으로만
- * 맞닿은 `(1,3)` 과 `(2,2)` 사이에 간선이 없다는 것이 그림에서 확인된다. `keyValue` 는 그
- * 순간의 스택 · 표시된 칸 수 · 지금까지 센 섬 수와 어느 갈래가 실행됐는지를 적는다. 격자
- * 그림만으로는 **표시를 언제 켰는지**가 확인되지 않고 이 알고리즘의 전부가 그 자리에
- * 있으므로, 두 패널이 함께 있어야 한 프레임이 완결된다. 같은 카테고리의 `dfsTraversal` ·
- * `connectedComponents` · `bfsShortestPath` · `dfsAllPaths` 가 쓴 짝을 그대로 쓴다.
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가 실제보다
+ * 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
  *
- * 좌표는 0~100 정규화이고 격자 자리를 그대로 옮겼다 — `x` 는 열, `y` 는 행이다. 간선에
- * 방향이 없으므로 `directed` 를 붙이지 않는다. `label` 은 그 칸의 값(`1` 이면 땅, `0` 이면
- * 물)이고, `nodeValue` 는 **그 칸이 속한 섬의 번호**다. 표시가 아직 없는 칸에는 값이 없다.
+ * ## 패널 규약 — 「그래프」 무대(KAN-058, SPEC §13)
  *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "graph"` 가
+ * 무대 갈래를 고른다. 격자의 칸 열둘을 격자 자리 그대로 정점으로 놓고(`x` 는 열, `y` 는 행), 변을
+ * 공유하는 두 땅 칸 사이에만 간선을 긋는다(`layout`). 걸음마다 바뀌는 것은 정점의 값(섬 번호 · 땅 ·
+ * 물)과 상태, 간선의 종류(처음 보는 땅을 담을 때 쓴 간선은 굵은 실선)와 상태, 무대 아래 스택 띠뿐이다
+ * (`src/_viz/player/graphStage.ts`). 물 칸은 「이번 걸음 밖」, 표시가 아직 없는 땅은 「아직」이다.
+ * `islands` 는 무대에 자리가 없어 남는 변수로 둔다.
+ *
+ * **값은 손으로 적지 않았다.** 이 리터럴은 그림 사이드카의 `stageStepsFromRef()` 가 정본과 같은 절차를
+ * 실행해 낸 결과를 옮긴 것이고, 둘이 같은지는 `countIslands-guide.test.ts` 가 잰다.
  */
 export const islandScan = {
-  view: ["graph", "keyValue"] as const,
-  title: "countIslands([[1,1,0,1],[1,0,0,1],[0,0,1,0]])",
+  player: "stage",
+  stage: "graph",
+  title: "countIslands([[1,1,0,1],[1,0,0,1],[0,0,1,0]]) — 정점 안은 섬 번호",
+  sub: "T1–T12 · 걸음마다 새 섬 시작 · 꺼내기 하나 · 건너뛰기 묶음 하나",
   result: "3",
+  layout: {
+    nodes: [
+      {
+        id: 0,
+        x: 0,
+        y: 0,
+        label: "(0,0)",
+      },
+      {
+        id: 1,
+        x: 1,
+        y: 0,
+        label: "(0,1)",
+      },
+      {
+        id: 2,
+        x: 2,
+        y: 0,
+        label: "(0,2)",
+      },
+      {
+        id: 3,
+        x: 3,
+        y: 0,
+        label: "(0,3)",
+      },
+      {
+        id: 4,
+        x: 0,
+        y: 1,
+        label: "(1,0)",
+      },
+      {
+        id: 5,
+        x: 1,
+        y: 1,
+        label: "(1,1)",
+      },
+      {
+        id: 6,
+        x: 2,
+        y: 1,
+        label: "(1,2)",
+      },
+      {
+        id: 7,
+        x: 3,
+        y: 1,
+        label: "(1,3)",
+      },
+      {
+        id: 8,
+        x: 0,
+        y: 2,
+        label: "(2,0)",
+      },
+      {
+        id: 9,
+        x: 1,
+        y: 2,
+        label: "(2,1)",
+      },
+      {
+        id: 10,
+        x: 2,
+        y: 2,
+        label: "(2,2)",
+      },
+      {
+        id: 11,
+        x: 3,
+        y: 2,
+        label: "(2,3)",
+      },
+    ],
+    edges: [
+      {
+        from: 0,
+        to: 1,
+      },
+      {
+        from: 0,
+        to: 4,
+      },
+      {
+        from: 3,
+        to: 7,
+      },
+    ],
+    directed: false,
+  },
   steps: [
     {
-      title: "T1 — 바깥 반복이 칸 (0,0) 을 본다",
-      detail:
-        "땅이고 표시가 없다. 갈래 ② 로 새 섬 하나가 여기서 시작한다. 표시를 켜고 스택에 담는다.",
+      title: "T1 (0,0) — 새 섬 1 시작",
+      text: "땅이고 표시가 없는 칸이라 ② 로 갑니다. islands 를 1 로 올리고, 이 칸에 표시를 켠 뒤 스택에 담습니다.",
       nodes: [
-        { id: 0, label: "1", x: 14, y: 18 },
-        { id: 1, label: "1", x: 38, y: 18 },
-        { id: 2, label: "0", x: 62, y: 18 },
-        { id: 3, label: "1", x: 86, y: 18 },
-        { id: 4, label: "1", x: 14, y: 50 },
-        { id: 5, label: "0", x: 38, y: 50 },
-        { id: 6, label: "0", x: 62, y: 50 },
-        { id: 7, label: "1", x: 86, y: 50 },
-        { id: 8, label: "0", x: 14, y: 82 },
-        { id: 9, label: "0", x: 38, y: 82 },
-        { id: 10, label: "1", x: 62, y: 82 },
-        { id: 11, label: "0", x: 86, y: 82 },
+        {
+          value: "섬 1",
+          state: "focus",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
       ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 4 },
-        { from: 3, to: 7 },
+      edges: [{}, {}, {}],
+      strips: [
+        {
+          label: "스택",
+          values: ["(0,0)"],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
       ],
-      nodeStatus: { 0: "active" },
-      nodeValue: { 0: 1 },
-      entries: [
-        { label: "무엇을 하는가", value: "바깥 반복 (0,0)" },
-        { label: "분기", value: "② 새 섬이 시작한다" },
-        { label: "stack", value: "[(0,0)]" },
-        { label: "표시된 칸", value: 1 },
-        { label: "islands", value: 1 },
-      ],
-    },
-    {
-      title: "T2 — (0,0) 을 꺼내 네 이웃을 본다",
-      detail:
-        "위와 왼쪽은 격자 밖이라 갈래 ③ 으로 걸러진다. 아래 (1,0) 과 오른쪽 (0,1) 은 처음 보는 땅이라 갈래 ⑤ 로 표시를 켜며 담는다.",
-      nodes: [
-        { id: 0, label: "1", x: 14, y: 18 },
-        { id: 1, label: "1", x: 38, y: 18 },
-        { id: 2, label: "0", x: 62, y: 18 },
-        { id: 3, label: "1", x: 86, y: 18 },
-        { id: 4, label: "1", x: 14, y: 50 },
-        { id: 5, label: "0", x: 38, y: 50 },
-        { id: 6, label: "0", x: 62, y: 50 },
-        { id: 7, label: "1", x: 86, y: 50 },
-        { id: 8, label: "0", x: 14, y: 82 },
-        { id: 9, label: "0", x: 38, y: 82 },
-        { id: 10, label: "1", x: 62, y: 82 },
-        { id: 11, label: "0", x: 86, y: 82 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 4 },
-        { from: 3, to: 7 },
-      ],
-      nodeStatus: { 0: "active", 1: "frontier", 4: "frontier" },
-      nodeValue: { 0: 1, 1: 1, 4: 1 },
-      entries: [
-        { label: "무엇을 하는가", value: "꺼낸다 (0,0)" },
-        { label: "분기", value: "③ 밖 2 · ⑤ (1,0)·(0,1) 담기" },
-        { label: "stack", value: "[(1,0) (0,1)]" },
-        { label: "표시된 칸", value: 3 },
-        { label: "islands", value: 1 },
-      ],
-    },
-    {
-      title: "T3 — (0,1) 을 꺼내 네 이웃을 본다",
-      detail:
-        "스택은 마지막에 담은 것을 먼저 꺼낸다. 위는 격자 밖이고 아래·오른쪽은 물, 왼쪽 (0,0) 은 이미 표시돼 갈래 ④ 로 걸러진다.",
-      nodes: [
-        { id: 0, label: "1", x: 14, y: 18 },
-        { id: 1, label: "1", x: 38, y: 18 },
-        { id: 2, label: "0", x: 62, y: 18 },
-        { id: 3, label: "1", x: 86, y: 18 },
-        { id: 4, label: "1", x: 14, y: 50 },
-        { id: 5, label: "0", x: 38, y: 50 },
-        { id: 6, label: "0", x: 62, y: 50 },
-        { id: 7, label: "1", x: 86, y: 50 },
-        { id: 8, label: "0", x: 14, y: 82 },
-        { id: 9, label: "0", x: 38, y: 82 },
-        { id: 10, label: "1", x: 62, y: 82 },
-        { id: 11, label: "0", x: 86, y: 82 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 4 },
-        { from: 3, to: 7 },
-      ],
-      nodeStatus: { 0: "visited", 1: "active", 4: "frontier" },
-      nodeValue: { 0: 1, 1: 1, 4: 1 },
-      entries: [
-        { label: "무엇을 하는가", value: "꺼낸다 (0,1)" },
-        { label: "분기", value: "③ 밖 1 · ④ 막힘 3" },
-        { label: "stack", value: "[(1,0)]" },
-        { label: "표시된 칸", value: 3 },
-        { label: "islands", value: 1 },
-      ],
-    },
-    {
-      title: "T4 — (1,0) 을 꺼내 첫 섬을 끝낸다",
-      detail:
-        "담을 칸이 없어 스택이 빈다. 첫 섬의 칸 셋이 모두 표시된 상태로 바깥 반복이 이어진다.",
-      nodes: [
-        { id: 0, label: "1", x: 14, y: 18 },
-        { id: 1, label: "1", x: 38, y: 18 },
-        { id: 2, label: "0", x: 62, y: 18 },
-        { id: 3, label: "1", x: 86, y: 18 },
-        { id: 4, label: "1", x: 14, y: 50 },
-        { id: 5, label: "0", x: 38, y: 50 },
-        { id: 6, label: "0", x: 62, y: 50 },
-        { id: 7, label: "1", x: 86, y: 50 },
-        { id: 8, label: "0", x: 14, y: 82 },
-        { id: 9, label: "0", x: 38, y: 82 },
-        { id: 10, label: "1", x: 62, y: 82 },
-        { id: 11, label: "0", x: 86, y: 82 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 4 },
-        { from: 3, to: 7 },
-      ],
-      nodeStatus: { 0: "visited", 1: "visited", 4: "active" },
-      nodeValue: { 0: 1, 1: 1, 4: 1 },
-      entries: [
-        { label: "무엇을 하는가", value: "꺼낸다 (1,0)" },
-        { label: "분기", value: "③ 밖 1 · ④ 막힘 3" },
-        { label: "stack", value: "[]" },
-        { label: "표시된 칸", value: 3 },
-        { label: "islands", value: 1 },
-      ],
-    },
-    {
-      title: "T5 — 바깥 반복이 두 칸을 건너뛴다",
-      detail:
-        "(0,1) 은 이미 표시된 땅이고 (0,2) 는 물이다. 둘 다 갈래 ① 로 건너뛴다.",
-      nodes: [
-        { id: 0, label: "1", x: 14, y: 18 },
-        { id: 1, label: "1", x: 38, y: 18 },
-        { id: 2, label: "0", x: 62, y: 18 },
-        { id: 3, label: "1", x: 86, y: 18 },
-        { id: 4, label: "1", x: 14, y: 50 },
-        { id: 5, label: "0", x: 38, y: 50 },
-        { id: 6, label: "0", x: 62, y: 50 },
-        { id: 7, label: "1", x: 86, y: 50 },
-        { id: 8, label: "0", x: 14, y: 82 },
-        { id: 9, label: "0", x: 38, y: 82 },
-        { id: 10, label: "1", x: 62, y: 82 },
-        { id: 11, label: "0", x: 86, y: 82 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 4 },
-        { from: 3, to: 7 },
-      ],
-      nodeStatus: { 0: "visited", 1: "visited", 4: "visited" },
-      nodeValue: { 0: 1, 1: 1, 4: 1 },
-      entries: [
-        { label: "무엇을 하는가", value: "바깥 반복 (0,1)·(0,2)" },
-        { label: "분기", value: "① 건너뛴다" },
-        { label: "stack", value: "[]" },
-        { label: "표시된 칸", value: 3 },
-        { label: "islands", value: 1 },
-      ],
-    },
-    {
-      title: "T6 — 바깥 반복이 칸 (0,3) 을 본다",
-      detail: "표시가 없는 땅이라 갈래 ② 로 두 번째 섬이 시작한다.",
-      nodes: [
-        { id: 0, label: "1", x: 14, y: 18 },
-        { id: 1, label: "1", x: 38, y: 18 },
-        { id: 2, label: "0", x: 62, y: 18 },
-        { id: 3, label: "1", x: 86, y: 18 },
-        { id: 4, label: "1", x: 14, y: 50 },
-        { id: 5, label: "0", x: 38, y: 50 },
-        { id: 6, label: "0", x: 62, y: 50 },
-        { id: 7, label: "1", x: 86, y: 50 },
-        { id: 8, label: "0", x: 14, y: 82 },
-        { id: 9, label: "0", x: 38, y: 82 },
-        { id: 10, label: "1", x: 62, y: 82 },
-        { id: 11, label: "0", x: 86, y: 82 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 4 },
-        { from: 3, to: 7 },
-      ],
-      nodeStatus: { 0: "visited", 1: "visited", 4: "visited", 3: "active" },
-      nodeValue: { 0: 1, 1: 1, 4: 1, 3: 2 },
-      entries: [
-        { label: "무엇을 하는가", value: "바깥 반복 (0,3)" },
-        { label: "분기", value: "② 새 섬이 시작한다" },
-        { label: "stack", value: "[(0,3)]" },
-        { label: "표시된 칸", value: 4 },
-        { label: "islands", value: 2 },
-      ],
-    },
-    {
-      title: "T7 — (0,3) 을 꺼내 아래 칸을 담는다",
-      detail:
-        "위와 오른쪽은 격자 밖, 왼쪽 (0,2) 는 물이다. 아래 (1,3) 만 담긴다.",
-      nodes: [
-        { id: 0, label: "1", x: 14, y: 18 },
-        { id: 1, label: "1", x: 38, y: 18 },
-        { id: 2, label: "0", x: 62, y: 18 },
-        { id: 3, label: "1", x: 86, y: 18 },
-        { id: 4, label: "1", x: 14, y: 50 },
-        { id: 5, label: "0", x: 38, y: 50 },
-        { id: 6, label: "0", x: 62, y: 50 },
-        { id: 7, label: "1", x: 86, y: 50 },
-        { id: 8, label: "0", x: 14, y: 82 },
-        { id: 9, label: "0", x: 38, y: 82 },
-        { id: 10, label: "1", x: 62, y: 82 },
-        { id: 11, label: "0", x: 86, y: 82 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 4 },
-        { from: 3, to: 7 },
-      ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        4: "visited",
-        3: "active",
-        7: "frontier",
+      calc: {
+        expr: "islands =",
+        result: "1",
       },
-      nodeValue: { 0: 1, 1: 1, 4: 1, 3: 2, 7: 2 },
-      entries: [
-        { label: "무엇을 하는가", value: "꺼낸다 (0,3)" },
-        { label: "분기", value: "③ 밖 2 · ④ 막힘 1 · ⑤ (1,3) 담기" },
-        { label: "stack", value: "[(1,3)]" },
-        { label: "표시된 칸", value: 5 },
-        { label: "islands", value: 2 },
-      ],
+      vars: "islands = 1",
     },
     {
-      title: "T8 — (1,3) 을 꺼내 두 번째 섬을 끝낸다",
-      detail:
-        "아래 (2,3) 과 왼쪽 (1,2) 는 물이다. 대각선 아래의 (2,2) 는 이웃이 아니라 여기서 보이지 않는다.",
+      title: "T2 (0,0) 꺼내기 — 이웃 넷 확인",
+      text: "이웃 넷 가운데 격자 밖이 2 개, 물이 0 개, 이미 표시된 칸이 0 개, 처음 보는 땅이 2 개입니다. 처음 보는 땅 (1,0) (0,1) 에 표시를 켜고 스택에 담습니다.",
       nodes: [
-        { id: 0, label: "1", x: 14, y: 18 },
-        { id: 1, label: "1", x: 38, y: 18 },
-        { id: 2, label: "0", x: 62, y: 18 },
-        { id: 3, label: "1", x: 86, y: 18 },
-        { id: 4, label: "1", x: 14, y: 50 },
-        { id: 5, label: "0", x: 38, y: 50 },
-        { id: 6, label: "0", x: 62, y: 50 },
-        { id: 7, label: "1", x: 86, y: 50 },
-        { id: 8, label: "0", x: 14, y: 82 },
-        { id: 9, label: "0", x: 38, y: 82 },
-        { id: 10, label: "1", x: 62, y: 82 },
-        { id: 11, label: "0", x: 86, y: 82 },
+        {
+          value: "섬 1",
+          state: "read",
+        },
+        {
+          value: "섬 1",
+          state: "focus",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "섬 1",
+          state: "focus",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 4 },
-        { from: 3, to: 7 },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        4: "visited",
-        3: "visited",
-        7: "active",
+      strips: [
+        {
+          label: "스택",
+          values: ["(1,0)", "(0,1)"],
+          states: {
+            "0": "focus",
+            "1": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "stack.pop() =",
+        result: "(0,0)",
       },
-      nodeValue: { 0: 1, 1: 1, 4: 1, 3: 2, 7: 2 },
-      entries: [
-        { label: "무엇을 하는가", value: "꺼낸다 (1,3)" },
-        { label: "분기", value: "③ 밖 1 · ④ 막힘 3" },
-        { label: "stack", value: "[]" },
-        { label: "표시된 칸", value: 5 },
-        { label: "islands", value: 2 },
-      ],
+      vars: "islands = 1",
     },
     {
-      title: "T9 — 바깥 반복이 여섯 칸을 건너뛴다",
-      detail:
-        "행 1 의 네 칸과 행 2 의 앞 두 칸이다. 땅인 (1,0)·(1,3) 은 이미 표시됐고 나머지는 물이다.",
+      title: "T3 (0,1) 꺼내기 — 이웃 넷 확인",
+      text: "이웃 넷 가운데 격자 밖이 1 개, 물이 2 개, 이미 표시된 칸이 1 개, 처음 보는 땅이 0 개입니다. 담는 칸이 없습니다.",
       nodes: [
-        { id: 0, label: "1", x: 14, y: 18 },
-        { id: 1, label: "1", x: 38, y: 18 },
-        { id: 2, label: "0", x: 62, y: 18 },
-        { id: 3, label: "1", x: 86, y: 18 },
-        { id: 4, label: "1", x: 14, y: 50 },
-        { id: 5, label: "0", x: 38, y: 50 },
-        { id: 6, label: "0", x: 62, y: 50 },
-        { id: 7, label: "1", x: 86, y: 50 },
-        { id: 8, label: "0", x: 14, y: 82 },
-        { id: 9, label: "0", x: 38, y: 82 },
-        { id: 10, label: "1", x: 62, y: 82 },
-        { id: 11, label: "0", x: 86, y: 82 },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "섬 1",
+          state: "read",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 4 },
-        { from: 3, to: 7 },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+        },
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        4: "visited",
-        3: "visited",
-        7: "visited",
+      strips: [
+        {
+          label: "스택",
+          values: ["(1,0)"],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "stack.pop() =",
+        result: "(0,1)",
       },
-      nodeValue: { 0: 1, 1: 1, 4: 1, 3: 2, 7: 2 },
-      entries: [
-        { label: "무엇을 하는가", value: "바깥 반복 여섯 칸" },
-        { label: "분기", value: "① 건너뛴다" },
-        { label: "stack", value: "[]" },
-        { label: "표시된 칸", value: 5 },
-        { label: "islands", value: 2 },
-      ],
+      vars: "islands = 1",
     },
     {
-      title: "T10 — 바깥 반복이 칸 (2,2) 를 본다",
-      detail:
-        "(1,3) 과 대각선으로만 맞닿아 있어 표시가 안 켜져 있다. 세 번째 섬이 여기서 시작한다.",
+      title: "T4 (1,0) 꺼내기 — 이웃 넷 확인",
+      text: "이웃 넷 가운데 격자 밖이 1 개, 물이 2 개, 이미 표시된 칸이 1 개, 처음 보는 땅이 0 개입니다. 담는 칸이 없습니다. 스택이 비어 섬 1 의 표시가 끝납니다.",
       nodes: [
-        { id: 0, label: "1", x: 14, y: 18 },
-        { id: 1, label: "1", x: 38, y: 18 },
-        { id: 2, label: "0", x: 62, y: 18 },
-        { id: 3, label: "1", x: 86, y: 18 },
-        { id: 4, label: "1", x: 14, y: 50 },
-        { id: 5, label: "0", x: 38, y: 50 },
-        { id: 6, label: "0", x: 62, y: 50 },
-        { id: 7, label: "1", x: 86, y: 50 },
-        { id: 8, label: "0", x: 14, y: 82 },
-        { id: 9, label: "0", x: 38, y: 82 },
-        { id: 10, label: "1", x: 62, y: 82 },
-        { id: 11, label: "0", x: 86, y: 82 },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "섬 1",
+          state: "read",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 4 },
-        { from: 3, to: 7 },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        4: "visited",
-        3: "visited",
-        7: "visited",
-        10: "active",
+      strips: [
+        {
+          label: "스택",
+          values: [],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "stack.pop() =",
+        result: "(1,0)",
       },
-      nodeValue: { 0: 1, 1: 1, 4: 1, 3: 2, 7: 2, 10: 3 },
-      entries: [
-        { label: "무엇을 하는가", value: "바깥 반복 (2,2)" },
-        { label: "분기", value: "② 새 섬이 시작한다" },
-        { label: "stack", value: "[(2,2)]" },
-        { label: "표시된 칸", value: 6 },
-        { label: "islands", value: 3 },
-      ],
+      vars: "islands = 1",
     },
     {
-      title: "T11 — (2,2) 를 꺼내 세 번째 섬을 끝낸다",
-      detail:
-        "아래는 격자 밖이고 위·왼쪽·오른쪽은 모두 물이다. 칸 하나짜리 섬이다.",
+      title: "T5 바깥 반복 — (0,1) (0,2) 건너뛰기",
+      text: "물 칸 1 개와 이미 표시된 땅 칸 1 개라 ① 로 건너뜁니다. 새 섬을 시작하지 않습니다.",
       nodes: [
-        { id: 0, label: "1", x: 14, y: 18 },
-        { id: 1, label: "1", x: 38, y: 18 },
-        { id: 2, label: "0", x: 62, y: 18 },
-        { id: 3, label: "1", x: 86, y: 18 },
-        { id: 4, label: "1", x: 14, y: 50 },
-        { id: 5, label: "0", x: 38, y: 50 },
-        { id: 6, label: "0", x: 62, y: 50 },
-        { id: 7, label: "1", x: 86, y: 50 },
-        { id: 8, label: "0", x: 14, y: 82 },
-        { id: 9, label: "0", x: 38, y: 82 },
-        { id: 10, label: "1", x: 62, y: 82 },
-        { id: 11, label: "0", x: 86, y: 82 },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "섬 1",
+          state: "read",
+        },
+        {
+          value: "물",
+          state: "read",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 4 },
-        { from: 3, to: 7 },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        4: "visited",
-        3: "visited",
-        7: "visited",
-        10: "active",
+      strips: [
+        {
+          label: "스택",
+          values: [],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "건너뛴 칸 =",
+        result: "2 개",
       },
-      nodeValue: { 0: 1, 1: 1, 4: 1, 3: 2, 7: 2, 10: 3 },
-      entries: [
-        { label: "무엇을 하는가", value: "꺼낸다 (2,2)" },
-        { label: "분기", value: "③ 밖 1 · ④ 막힘 3" },
-        { label: "stack", value: "[]" },
-        { label: "표시된 칸", value: 6 },
-        { label: "islands", value: 3 },
-      ],
+      vars: "islands = 1",
     },
     {
-      title: "T12 — 마지막 칸을 건너뛰고 반복이 끝난다",
-      detail:
-        "(2,3) 은 물이다. 바깥 반복이 열두 칸을 모두 봤고 섬 수 3 이 반환값이 된다.",
+      title: "T6 (0,3) — 새 섬 2 시작",
+      text: "땅이고 표시가 없는 칸이라 ② 로 갑니다. islands 를 2 로 올리고, 이 칸에 표시를 켠 뒤 스택에 담습니다.",
       nodes: [
-        { id: 0, label: "1", x: 14, y: 18 },
-        { id: 1, label: "1", x: 38, y: 18 },
-        { id: 2, label: "0", x: 62, y: 18 },
-        { id: 3, label: "1", x: 86, y: 18 },
-        { id: 4, label: "1", x: 14, y: 50 },
-        { id: 5, label: "0", x: 38, y: 50 },
-        { id: 6, label: "0", x: 62, y: 50 },
-        { id: 7, label: "1", x: 86, y: 50 },
-        { id: 8, label: "0", x: 14, y: 82 },
-        { id: 9, label: "0", x: 38, y: 82 },
-        { id: 10, label: "1", x: 62, y: 82 },
-        { id: 11, label: "0", x: 86, y: 82 },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 2",
+          state: "focus",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 4 },
-        { from: 3, to: 7 },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        4: "visited",
-        3: "visited",
-        7: "visited",
-        10: "visited",
+      strips: [
+        {
+          label: "스택",
+          values: ["(0,3)"],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "islands =",
+        result: "2",
       },
-      nodeValue: { 0: 1, 1: 1, 4: 1, 3: 2, 7: 2, 10: 3 },
-      entries: [
-        { label: "무엇을 하는가", value: "바깥 반복 (2,3)" },
-        { label: "분기", value: "① 건너뛴다 — 반복이 끝난다" },
-        { label: "stack", value: "[]" },
-        { label: "표시된 칸", value: 6 },
-        { label: "islands", value: 3 },
-      ],
+      vars: "islands = 2",
     },
-  ] satisfies Frame[],
+    {
+      title: "T7 (0,3) 꺼내기 — 이웃 넷 확인",
+      text: "이웃 넷 가운데 격자 밖이 2 개, 물이 1 개, 이미 표시된 칸이 0 개, 처음 보는 땅이 1 개입니다. 처음 보는 땅 (1,3) 에 표시를 켜고 스택에 담습니다.",
+      nodes: [
+        {
+          value: "섬 1",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 2",
+          state: "read",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 2",
+          state: "focus",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+      ],
+      strips: [
+        {
+          label: "스택",
+          values: ["(1,3)"],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "stack.pop() =",
+        result: "(0,3)",
+      },
+      vars: "islands = 2",
+    },
+    {
+      title: "T8 (1,3) 꺼내기 — 이웃 넷 확인",
+      text: "이웃 넷 가운데 격자 밖이 1 개, 물이 2 개, 이미 표시된 칸이 1 개, 처음 보는 땅이 0 개입니다. 담는 칸이 없습니다. 스택이 비어 섬 2 의 표시가 끝납니다.",
+      nodes: [
+        {
+          value: "섬 1",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 2",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 2",
+          state: "read",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+      ],
+      strips: [
+        {
+          label: "스택",
+          values: [],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "stack.pop() =",
+        result: "(1,3)",
+      },
+      vars: "islands = 2",
+    },
+    {
+      title: "T9 바깥 반복 — (1,0) (1,1) (1,2) (1,3) (2,0) (2,1) 건너뛰기",
+      text: "물 칸 4 개와 이미 표시된 땅 칸 2 개라 ① 로 건너뜁니다. 새 섬을 시작하지 않습니다.",
+      nodes: [
+        {
+          value: "섬 1",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 2",
+        },
+        {
+          value: "섬 1",
+          state: "read",
+        },
+        {
+          value: "물",
+          state: "read",
+        },
+        {
+          value: "물",
+          state: "read",
+        },
+        {
+          value: "섬 2",
+          state: "read",
+        },
+        {
+          value: "물",
+          state: "read",
+        },
+        {
+          value: "물",
+          state: "read",
+        },
+        {
+          value: "땅",
+          state: "empty",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+      ],
+      strips: [
+        {
+          label: "스택",
+          values: [],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "건너뛴 칸 =",
+        result: "6 개",
+      },
+      vars: "islands = 2",
+    },
+    {
+      title: "T10 (2,2) — 새 섬 3 시작",
+      text: "땅이고 표시가 없는 칸이라 ② 로 갑니다. islands 를 3 으로 올리고, 이 칸에 표시를 켠 뒤 스택에 담습니다.",
+      nodes: [
+        {
+          value: "섬 1",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 2",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 2",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 3",
+          state: "focus",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+      ],
+      strips: [
+        {
+          label: "스택",
+          values: ["(2,2)"],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "islands =",
+        result: "3",
+      },
+      vars: "islands = 3",
+    },
+    {
+      title: "T11 (2,2) 꺼내기 — 이웃 넷 확인",
+      text: "이웃 넷 가운데 격자 밖이 1 개, 물이 3 개, 이미 표시된 칸이 0 개, 처음 보는 땅이 0 개입니다. 담는 칸이 없습니다. 스택이 비어 섬 3 의 표시가 끝납니다.",
+      nodes: [
+        {
+          value: "섬 1",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 2",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 2",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 3",
+          state: "read",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+      ],
+      strips: [
+        {
+          label: "스택",
+          values: [],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "stack.pop() =",
+        result: "(2,2)",
+      },
+      vars: "islands = 3",
+    },
+    {
+      title: "T12 바깥 반복 — (2,3) 건너뛰기",
+      text: "물 칸 1 개라 ① 로 건너뜁니다. 새 섬을 시작하지 않습니다.",
+      nodes: [
+        {
+          value: "섬 1",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 2",
+        },
+        {
+          value: "섬 1",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 2",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "물",
+          state: "out",
+        },
+        {
+          value: "섬 3",
+        },
+        {
+          value: "물",
+          state: "read",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+      ],
+      strips: [
+        {
+          label: "스택",
+          values: [],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "건너뛴 칸 =",
+        result: "1 개",
+      },
+      vars: "islands = 3",
+    },
+  ],
 };

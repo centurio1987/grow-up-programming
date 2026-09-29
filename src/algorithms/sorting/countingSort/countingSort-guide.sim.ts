@@ -1,249 +1,612 @@
-import type { Frame } from "#guide-sim";
+import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `A = [3, 1, 3, 0, 5, 1, 3]`.
- * 프레임 수(13)는 그 절의 T# 단계 수(16)를 넘지 않는다 — P3 이 그 관계를 잰다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `A = [3, 1, 3, 0, 5, 1, 3]`. 걸음은
+ * T1~T16 전부다 — ① 칸 만들기 · ② 일곱 번 세기 · ③④ 칸 0 … 5 읽어 이어 쓰기 · 칸 6 … 1000 · 반환.
+ *
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가
+ * 배열 무대(`arrayStage.ts`)를 고른다. 무대의 값 줄은 입력 `A` 이고, `layers` 가 결과 `out` 줄,
+ * `map` 이 `count` 다 — `count` 는 1,001 칸이라 입력의 최댓값까지(칸 0 … 5)만 싣고, 나머지 칸이 0 이라는
+ * 것은 곁말에 적는다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
- *
- * ## `array` + `keyValue` 조합의 다섯 규약을 그대로 따른다
- *
- * 규약은 `longestSubarrayAtMostSum-guide.sim.ts` 가 세우고 `subarraySumEqualsK-guide.sim.ts`
- * 가 키-값 표에 적용한 것이다. 이 편에서 새로 생기는 자리는 **배열이 둘이라는 것** 하나라,
- * 그 처리를 적어 둔다.
- *
- * 1. **`array` 는 입력 배열 `A` 만 담는다.** 이 절차가 만드는 배열은 둘인데(`count` 와
- *    `out`) 둘 다 `array` 에 넣으면 어느 것이 입력인지 갈리지 않는다. `count` 의 칸은
- *    규약 2 에 따라 **스칼라로 쪼개** `keyValue` 가 적고, `out` 도 같은 자리에 문자열로 적는다.
- *    칸 1001 개를 한 화면에 보이는 것은 md 쪽 ascii 그림이 진다.
- * 2. **위치는 `array`, 스칼라는 `keyValue`.** 지금 읽고 있는 자리 `i` 는 위치라서 `pointers`
- *    로 두고, 거기서 나온 수(값마다의 개수 · 결과 배열)는 `keyValue` 다.
- * 3. **`pointers` 의 키는 본문 기호표의 이름과 글자 그대로 같다** — `i`.
- * 4. **`highlight` 는 지금 읽는 칸, `marked` 는 이미 센 칸.** 출력 단계에서는 입력을 더 읽지
- *    않으므로 일곱 칸이 전부 `marked` 로 남고 `highlight` 가 없다.
- * 5. **`entries` 는 프레임마다 같은 항목을 같은 순서로 두고 값만 바꾼다.** 값이 0 인 자리
- *    (`count[2]`·`count[4]`)도 빼지 않는다 — 그 두 칸이 출력 단계의 갈래 하나를 담당한다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본 실행과 대조한 기록에서 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `countingSort-guide.test.ts` 가 잰다.
  */
+
 export const walk7 = {
-  view: ["array", "keyValue"] as const,
+  player: "stage",
+  stage: "array",
+  arrayName: "A",
+  rangeLabel: "입력",
   title: "countingSort([3, 1, 3, 0, 5, 1, 3])",
   result: "[0, 1, 1, 3, 3, 3, 5]",
   steps: [
     {
-      title: "T2 i=0 — 값 3 을 센다",
-      detail:
-        "A[0] 이 3 이므로 자리 3 의 개수를 1 로 올린다. 다른 값과 견주지 않는다.",
+      title: "T1 ① count 1,001 칸을 0 으로",
+      text: "값의 종류가 1,001 가지라 count 를 1,001 칸으로 만들고 전부 0 으로 채웁니다. 입력은 아직 한 칸도 읽지 않았습니다.",
       array: [3, 1, 3, 0, 5, 1, 3],
-      highlight: [0],
-      marked: [],
-      pointers: { i: 0 },
-      entries: [
-        { label: "count[0]", value: 0 },
-        { label: "count[1]", value: 0 },
-        { label: "count[2]", value: 0 },
-        { label: "count[3]", value: 1 },
-        { label: "count[4]", value: 0 },
-        { label: "count[5]", value: 0 },
-        { label: "out", value: "[]" },
+      range: [0, 6],
+      rangeSide: "읽음 0 / 7",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "out",
+          values: [null, null, null, null, null, null, null],
+        },
       ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 0],
+          [1, 0],
+          [2, 0],
+          [3, 0],
+          [4, 0],
+          [5, 0],
+        ],
+        slots: 6,
+        write: [0, 1, 2, 3, 4, 5],
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "new Array(1001).fill(0)",
+        result: "합 0",
+      },
+      vars: null,
     },
     {
-      title: "T3 i=1 — 값 1 을 센다",
-      detail: "A[1] 이 1 이므로 자리 1 의 개수가 1 이 된다.",
+      title: "T2 ② i=0 — 값 3 을 센다",
+      text: "A[0] = 3 이므로 칸 3 의 개수를 0 에서 1 로 올립니다. 다른 값과 비교하지 않습니다.",
       array: [3, 1, 3, 0, 5, 1, 3],
-      highlight: [1],
-      marked: [0],
-      pointers: { i: 1 },
-      entries: [
-        { label: "count[0]", value: 0 },
-        { label: "count[1]", value: 1 },
-        { label: "count[2]", value: 0 },
-        { label: "count[3]", value: 1 },
-        { label: "count[4]", value: 0 },
-        { label: "count[5]", value: 0 },
-        { label: "out", value: "[]" },
+      range: [0, 6],
+      rangeSide: "읽음 1 / 7",
+      read: [0],
+      write: [],
+      pointers: {
+        i: 0,
+      },
+      layers: [
+        {
+          name: "out",
+          values: [null, null, null, null, null, null, null],
+        },
       ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 0],
+          [1, 0],
+          [2, 0],
+          [3, 1],
+          [4, 0],
+          [5, 0],
+        ],
+        slots: 6,
+        write: [3],
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "count[3] + 1",
+        result: "1",
+      },
+      vars: "합 1",
     },
     {
-      title: "T4 i=2 — 값 3 이 두 번째로 나온다",
-      detail:
-        "이미 1 이 적혀 있던 자리 3 이 2 가 된다. 같은 값이 거듭 나오는 자리다.",
+      title: "T3 ② i=1 — 값 1 을 센다",
+      text: "A[1] = 1 이므로 칸 1 의 개수를 0 에서 1 로 올립니다. 다른 값과 비교하지 않습니다.",
       array: [3, 1, 3, 0, 5, 1, 3],
-      highlight: [2],
-      marked: [0, 1],
-      pointers: { i: 2 },
-      entries: [
-        { label: "count[0]", value: 0 },
-        { label: "count[1]", value: 1 },
-        { label: "count[2]", value: 0 },
-        { label: "count[3]", value: 2 },
-        { label: "count[4]", value: 0 },
-        { label: "count[5]", value: 0 },
-        { label: "out", value: "[]" },
+      range: [0, 6],
+      rangeSide: "읽음 2 / 7",
+      read: [1],
+      write: [],
+      pointers: {
+        i: 1,
+      },
+      layers: [
+        {
+          name: "out",
+          values: [null, null, null, null, null, null, null],
+        },
       ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 0],
+          [1, 1],
+          [2, 0],
+          [3, 1],
+          [4, 0],
+          [5, 0],
+        ],
+        slots: 6,
+        write: [1],
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "count[1] + 1",
+        result: "1",
+      },
+      vars: "합 2",
     },
     {
-      title: "T5 i=3 — 값 0 을 센다",
-      detail: "값의 최솟값도 자기 자리를 갖는다. 자리 0 의 개수가 1 이 된다.",
+      title: "T4 ② i=2 — 값 3 을 센다",
+      text: "A[2] = 3 이므로 칸 3 의 개수를 1 에서 2 로 올립니다. 다른 값과 비교하지 않습니다.",
       array: [3, 1, 3, 0, 5, 1, 3],
-      highlight: [3],
-      marked: [0, 1, 2],
-      pointers: { i: 3 },
-      entries: [
-        { label: "count[0]", value: 1 },
-        { label: "count[1]", value: 1 },
-        { label: "count[2]", value: 0 },
-        { label: "count[3]", value: 2 },
-        { label: "count[4]", value: 0 },
-        { label: "count[5]", value: 0 },
-        { label: "out", value: "[]" },
+      range: [0, 6],
+      rangeSide: "읽음 3 / 7",
+      read: [2],
+      write: [],
+      pointers: {
+        i: 2,
+      },
+      layers: [
+        {
+          name: "out",
+          values: [null, null, null, null, null, null, null],
+        },
       ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 0],
+          [1, 1],
+          [2, 0],
+          [3, 2],
+          [4, 0],
+          [5, 0],
+        ],
+        slots: 6,
+        write: [3],
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "count[3] + 1",
+        result: "2",
+      },
+      vars: "합 3",
     },
     {
-      title: "T6 i=4 — 값 5 를 센다",
-      detail:
-        "자리 4 를 건너뛰고 자리 5 에 적는다. 자리를 찾는 데 견주기가 필요 없다.",
+      title: "T5 ② i=3 — 값 0 을 센다",
+      text: "A[3] = 0 이므로 칸 0 의 개수를 0 에서 1 로 올립니다. 다른 값과 비교하지 않습니다.",
       array: [3, 1, 3, 0, 5, 1, 3],
-      highlight: [4],
-      marked: [0, 1, 2, 3],
-      pointers: { i: 4 },
-      entries: [
-        { label: "count[0]", value: 1 },
-        { label: "count[1]", value: 1 },
-        { label: "count[2]", value: 0 },
-        { label: "count[3]", value: 2 },
-        { label: "count[4]", value: 0 },
-        { label: "count[5]", value: 1 },
-        { label: "out", value: "[]" },
+      range: [0, 6],
+      rangeSide: "읽음 4 / 7",
+      read: [3],
+      write: [],
+      pointers: {
+        i: 3,
+      },
+      layers: [
+        {
+          name: "out",
+          values: [null, null, null, null, null, null, null],
+        },
       ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 1],
+          [1, 1],
+          [2, 0],
+          [3, 2],
+          [4, 0],
+          [5, 0],
+        ],
+        slots: 6,
+        write: [0],
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "count[0] + 1",
+        result: "1",
+      },
+      vars: "합 4",
     },
     {
-      title: "T7 i=5 — 값 1 이 두 번째로 나온다",
-      detail: "자리 1 이 2 가 된다. 앞에 적힌 1 을 덮어쓰지 않고 더한다.",
+      title: "T6 ② i=4 — 값 5 를 센다",
+      text: "A[4] = 5 이므로 칸 5 의 개수를 0 에서 1 로 올립니다. 다른 값과 비교하지 않습니다.",
       array: [3, 1, 3, 0, 5, 1, 3],
-      highlight: [5],
-      marked: [0, 1, 2, 3, 4],
-      pointers: { i: 5 },
-      entries: [
-        { label: "count[0]", value: 1 },
-        { label: "count[1]", value: 2 },
-        { label: "count[2]", value: 0 },
-        { label: "count[3]", value: 2 },
-        { label: "count[4]", value: 0 },
-        { label: "count[5]", value: 1 },
-        { label: "out", value: "[]" },
+      range: [0, 6],
+      rangeSide: "읽음 5 / 7",
+      read: [4],
+      write: [],
+      pointers: {
+        i: 4,
+      },
+      layers: [
+        {
+          name: "out",
+          values: [null, null, null, null, null, null, null],
+        },
       ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 1],
+          [1, 1],
+          [2, 0],
+          [3, 2],
+          [4, 0],
+          [5, 1],
+        ],
+        slots: 6,
+        write: [5],
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "count[5] + 1",
+        result: "1",
+      },
+      vars: "합 5",
     },
     {
-      title: "T8 i=6 — 값 3 이 세 번째로 나온다",
-      detail:
-        "마지막 칸이다. 자리 3 이 3 이 되고 개수의 합이 입력 칸 수 7 과 같아진다.",
+      title: "T7 ② i=5 — 값 1 을 센다",
+      text: "A[5] = 1 이므로 칸 1 의 개수를 1 에서 2 로 올립니다. 다른 값과 비교하지 않습니다.",
       array: [3, 1, 3, 0, 5, 1, 3],
-      highlight: [6],
-      marked: [0, 1, 2, 3, 4, 5],
-      pointers: { i: 6 },
-      entries: [
-        { label: "count[0]", value: 1 },
-        { label: "count[1]", value: 2 },
-        { label: "count[2]", value: 0 },
-        { label: "count[3]", value: 3 },
-        { label: "count[4]", value: 0 },
-        { label: "count[5]", value: 1 },
-        { label: "out", value: "[]" },
+      range: [0, 6],
+      rangeSide: "읽음 6 / 7",
+      read: [5],
+      write: [],
+      pointers: {
+        i: 5,
+      },
+      layers: [
+        {
+          name: "out",
+          values: [null, null, null, null, null, null, null],
+        },
       ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 1],
+          [1, 2],
+          [2, 0],
+          [3, 2],
+          [4, 0],
+          [5, 1],
+        ],
+        slots: 6,
+        write: [1],
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "count[1] + 1",
+        result: "2",
+      },
+      vars: "합 6",
     },
     {
-      title: "T9 v=0 — 개수 1 만큼 이어 쓴다",
-      detail: "자리 0 의 개수가 1 이므로 0 을 한 번 적는다.",
+      title: "T8 ② i=6 — 값 3 을 센다",
+      text: "A[6] = 3 이므로 칸 3 의 개수를 2 에서 3 으로 올립니다. 다른 값과 비교하지 않습니다.",
       array: [3, 1, 3, 0, 5, 1, 3],
-      marked: [0, 1, 2, 3, 4, 5, 6],
-      entries: [
-        { label: "count[0]", value: 1 },
-        { label: "count[1]", value: 2 },
-        { label: "count[2]", value: 0 },
-        { label: "count[3]", value: 3 },
-        { label: "count[4]", value: 0 },
-        { label: "count[5]", value: 1 },
-        { label: "out", value: "[0]" },
+      range: [0, 6],
+      rangeSide: "읽음 7 / 7",
+      read: [6],
+      write: [],
+      pointers: {
+        i: 6,
+      },
+      layers: [
+        {
+          name: "out",
+          values: [null, null, null, null, null, null, null],
+        },
       ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 1],
+          [1, 2],
+          [2, 0],
+          [3, 3],
+          [4, 0],
+          [5, 1],
+        ],
+        slots: 6,
+        write: [3],
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "count[3] + 1",
+        result: "3",
+      },
+      vars: "합 7",
     },
     {
-      title: "T10 v=1 — 개수 2 만큼 이어 쓴다",
-      detail: "1 을 두 번 적는다. 같은 값 둘이 나란히 놓인다.",
+      title: "T9 ③ v=0 — ④ 1 번",
+      text: "count[0] = 1 이라 ④ 가 1 번 실행되어 out 에 0 을 1 번 이어 씁니다.",
       array: [3, 1, 3, 0, 5, 1, 3],
-      marked: [0, 1, 2, 3, 4, 5, 6],
-      entries: [
-        { label: "count[0]", value: 1 },
-        { label: "count[1]", value: 2 },
-        { label: "count[2]", value: 0 },
-        { label: "count[3]", value: 3 },
-        { label: "count[4]", value: 0 },
-        { label: "count[5]", value: 1 },
-        { label: "out", value: "[0, 1, 1]" },
+      range: [0, 6],
+      rangeSide: "읽음 7 / 7",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "out",
+          values: [0, null, null, null, null, null, null],
+          write: [0],
+        },
       ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 1],
+          [1, 2],
+          [2, 0],
+          [3, 3],
+          [4, 0],
+          [5, 1],
+        ],
+        slots: 6,
+        read: [0],
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "count[0]",
+        result: "1 번",
+      },
+      vars: "out 1 칸",
     },
     {
-      title: "T11 v=2 — 개수 0 이라 아무것도 안 쓴다",
-      detail:
-        "입력에 없던 값이다. 안쪽 반복이 한 번도 실행되지 않고 out 이 그대로 남는다.",
+      title: "T10 ③ v=1 — ④ 2 번",
+      text: "count[1] = 2 라 ④ 가 2 번 실행되어 out 에 1 을 2 번 이어 씁니다.",
       array: [3, 1, 3, 0, 5, 1, 3],
-      marked: [0, 1, 2, 3, 4, 5, 6],
-      entries: [
-        { label: "count[0]", value: 1 },
-        { label: "count[1]", value: 2 },
-        { label: "count[2]", value: 0 },
-        { label: "count[3]", value: 3 },
-        { label: "count[4]", value: 0 },
-        { label: "count[5]", value: 1 },
-        { label: "out", value: "[0, 1, 1]" },
+      range: [0, 6],
+      rangeSide: "읽음 7 / 7",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "out",
+          values: [0, 1, 1, null, null, null, null],
+          write: [1, 2],
+        },
       ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 1],
+          [1, 2],
+          [2, 0],
+          [3, 3],
+          [4, 0],
+          [5, 1],
+        ],
+        slots: 6,
+        read: [1],
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "count[1]",
+        result: "2 번",
+      },
+      vars: "out 3 칸",
     },
     {
-      title: "T12 v=3 — 개수 3 만큼 이어 쓴다",
-      detail: "3 을 세 번 적는다. 입력에서 흩어져 있던 셋이 여기서 모인다.",
+      title: "T11 ③ v=2 — ④ 없음",
+      text: "count[2] = 0 이라 t > 0 이 처음부터 거짓입니다. out 에 아무것도 쓰지 않습니다.",
       array: [3, 1, 3, 0, 5, 1, 3],
-      marked: [0, 1, 2, 3, 4, 5, 6],
-      entries: [
-        { label: "count[0]", value: 1 },
-        { label: "count[1]", value: 2 },
-        { label: "count[2]", value: 0 },
-        { label: "count[3]", value: 3 },
-        { label: "count[4]", value: 0 },
-        { label: "count[5]", value: 1 },
-        { label: "out", value: "[0, 1, 1, 3, 3, 3]" },
+      range: [0, 6],
+      rangeSide: "읽음 7 / 7",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "out",
+          values: [0, 1, 1, null, null, null, null],
+          write: [],
+        },
       ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 1],
+          [1, 2],
+          [2, 0],
+          [3, 3],
+          [4, 0],
+          [5, 1],
+        ],
+        slots: 6,
+        read: [2],
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "count[2]",
+        result: "0 번",
+      },
+      vars: "out 3 칸",
     },
     {
-      title: "T13 v=4 — 개수 0 이라 아무것도 안 쓴다",
-      detail: "두 번째로 비어 있는 자리다. 여기서도 out 이 그대로 남는다.",
+      title: "T12 ③ v=3 — ④ 3 번",
+      text: "count[3] = 3 이라 ④ 가 3 번 실행되어 out 에 3 을 3 번 이어 씁니다.",
       array: [3, 1, 3, 0, 5, 1, 3],
-      marked: [0, 1, 2, 3, 4, 5, 6],
-      entries: [
-        { label: "count[0]", value: 1 },
-        { label: "count[1]", value: 2 },
-        { label: "count[2]", value: 0 },
-        { label: "count[3]", value: 3 },
-        { label: "count[4]", value: 0 },
-        { label: "count[5]", value: 1 },
-        { label: "out", value: "[0, 1, 1, 3, 3, 3]" },
+      range: [0, 6],
+      rangeSide: "읽음 7 / 7",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "out",
+          values: [0, 1, 1, 3, 3, 3, null],
+          write: [3, 4, 5],
+        },
       ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 1],
+          [1, 2],
+          [2, 0],
+          [3, 3],
+          [4, 0],
+          [5, 1],
+        ],
+        slots: 6,
+        read: [3],
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "count[3]",
+        result: "3 번",
+      },
+      vars: "out 6 칸",
     },
     {
-      title: "T14 v=5 — 개수 1 만큼 이어 쓴다",
-      detail:
-        "마지막 값이 자리를 잡는다. out 의 칸 수가 입력 칸 수 7 과 같아졌다.",
+      title: "T13 ③ v=4 — ④ 없음",
+      text: "count[4] = 0 이라 t > 0 이 처음부터 거짓입니다. out 에 아무것도 쓰지 않습니다.",
       array: [3, 1, 3, 0, 5, 1, 3],
-      marked: [0, 1, 2, 3, 4, 5, 6],
-      entries: [
-        { label: "count[0]", value: 1 },
-        { label: "count[1]", value: 2 },
-        { label: "count[2]", value: 0 },
-        { label: "count[3]", value: 3 },
-        { label: "count[4]", value: 0 },
-        { label: "count[5]", value: 1 },
-        { label: "out", value: "[0, 1, 1, 3, 3, 3, 5]" },
+      range: [0, 6],
+      rangeSide: "읽음 7 / 7",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "out",
+          values: [0, 1, 1, 3, 3, 3, null],
+          write: [],
+        },
       ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 1],
+          [1, 2],
+          [2, 0],
+          [3, 3],
+          [4, 0],
+          [5, 1],
+        ],
+        slots: 6,
+        read: [4],
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "count[4]",
+        result: "0 번",
+      },
+      vars: "out 6 칸",
     },
-  ] satisfies Frame[],
-};
+    {
+      title: "T14 ③ v=5 — ④ 1 번",
+      text: "count[5] = 1 이라 ④ 가 1 번 실행되어 out 에 5 를 1 번 이어 씁니다.",
+      array: [3, 1, 3, 0, 5, 1, 3],
+      range: [0, 6],
+      rangeSide: "읽음 7 / 7",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "out",
+          values: [0, 1, 1, 3, 3, 3, 5],
+          write: [6],
+        },
+      ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 1],
+          [1, 2],
+          [2, 0],
+          [3, 3],
+          [4, 0],
+          [5, 1],
+        ],
+        slots: 6,
+        read: [5],
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "count[5]",
+        result: "1 번",
+      },
+      vars: "out 7 칸",
+    },
+    {
+      title: "T15 ③ v=6 … 1000 — ④ 없음",
+      text: "남은 칸 995 개는 모두 0 이라 ③ 은 실행되지만 ④ 는 한 번도 실행되지 않습니다. v = 1001 에서 v < K 가 거짓이 되어 반복이 끝납니다.",
+      array: [3, 1, 3, 0, 5, 1, 3],
+      range: [0, 6],
+      rangeSide: "읽음 7 / 7",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "out",
+          values: [0, 1, 1, 3, 3, 3, 5],
+        },
+      ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 1],
+          [1, 2],
+          [2, 0],
+          [3, 3],
+          [4, 0],
+          [5, 1],
+        ],
+        slots: 6,
+        note: "칸 6 … 1000 은 0 — ④ 0 번",
+      },
+      calc: {
+        expr: "count[6..1000]",
+        result: "모두 0",
+      },
+      vars: "out 7 칸",
+    },
+    {
+      title: "T16 반환",
+      text: "out = [0 1 1 3 3 3 5] 을 돌려줍니다. 입력 A 는 [3 1 3 0 5 1 3] 그대로입니다.",
+      array: [3, 1, 3, 0, 5, 1, 3],
+      range: [0, 6],
+      rangeSide: "읽음 7 / 7",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "out",
+          values: [0, 1, 1, 3, 3, 3, 5],
+        },
+      ],
+      map: {
+        keyLabel: "칸 v",
+        valueLabel: "count[v]",
+        entries: [
+          [0, 1],
+          [1, 2],
+          [2, 0],
+          [3, 3],
+          [4, 0],
+          [5, 1],
+        ],
+        slots: 6,
+        note: "칸 6 … 1000 은 0",
+      },
+      calc: {
+        expr: "return out",
+        result: "[0 1 1 3 3 3 5]",
+      },
+      vars: "out 7 칸",
+    },
+  ],
+} satisfies ArrayPlayerSpec;
