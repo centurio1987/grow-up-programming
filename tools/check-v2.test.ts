@@ -2456,3 +2456,15 @@ test("--strict — voice 에서 아직 안 켠 「견주다」도 P2 로 잰다"
   expect(p2(false)).toEqual([]);
   expect(p2(true).length).toBe(1);
 });
+
+// 「견줍니다」·「견줌」은 어간 뒤 받침이 붙은 활용형이라 `견[주줘준줄줬]` 에서 빠졌다(2026-09-30, 34곳).
+test("--strict — 「견줍니다」·「견줌」도 잡는다 (활용형 누락 재발 방지)", () => {
+  for (const form of ["두 끝을 견줍니다.", "두 끝의 견줌이 끝나면"]) {
+    const text = PASSING.replace(SENTENCE, `${form} ${SENTENCE}`);
+    expect(
+      check({ text, sim: SIM, bench: { 비교: 34 }, strict: true }).some(
+        (f) => f.code === "P2" && f.detail.includes("견주"),
+      ),
+    ).toBe(true);
+  }
+});

@@ -253,7 +253,7 @@
       {
         "id": "v.common.gyeonju",
         "category": "predicate.verb",
-        "regex": "견[주줘준줄줬]",
+        "regex": "견[주줘준줄줬줍줌]",
         "label": "비교를 「견주다」로 말한 드문 표현",
         "weight": -3,
         "enabled": false,

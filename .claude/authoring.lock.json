@@ -21,7 +21,7 @@
     }
   },
   "voices": {
-    "algorithm-guide-writer": "sha256:98cdd45ce41fc028",
+    "algorithm-guide-writer": "sha256:8b2cb5adbc5dd8f4",
     "ko-book-translator": "sha256:503872b7f44fef70",
     "ppangto": "sha256:b677605294375577",
     "ppangtolab-prof": "sha256:608c357bb354a8d2",

@@ -1,6 +1,6 @@
 {
   "next_id": 61,
-  "next_seq": 437,
+  "next_seq": 438,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -254,8 +254,8 @@
       "reason_hash": "610f6687a9ec4e3ca7dcae5b097af9b36f59b69c",
       "goal": "110편이 새 구성·그림으로 서고, 한시 조항 셋을 걷고 「견주다」를 켠 뒤에도 ci.ts all 이 통과한다",
       "goal_hash": "3929129dae80cd79fc0bc4a3497569ebcc87918d",
-      "memo": "전략 재수립(2026-09-29) — 샘플 두 편(binarySearch · stronglyConnectedComponents)을 하위 카드 KAN-058.1 로 먼저 내고, 그 검토가 승인돼야 전편 전개를 시작한다(유저 지시). 몫: ① 110편 재집필(L41~L45) ② SPEC §8 한시 조항 셋 제거(deep.origin 필수 · P17·P18·P23 전 편) ③ 본문 반말(P18) ④ 「견주다」 90편 1,482곳 교정 뒤 voice v.common.gyeonju 켜기(L44, 전역 원본 수정은 유저 실행 요청 뒤) ⑤ 알고리즘 중심 서술(L49) ⑥ ASCII 를 그림으로(L46~L48, KAN-057 인계). 근거·순서·버린 대안은 KANBAN.cards/KAN-058-8XT6PC.md 「전략」",
-      "memo_hash": "1b28b9f94089b0b362572cdd09d753987676177a",
+      "memo": "전략 재수립(2026-09-29) — 샘플 두 편(binarySearch · stronglyConnectedComponents)을 하위 카드 KAN-058.1 로 먼저 내고, 그 검토가 승인돼야 전편 전개를 시작한다(유저 지시). 몫: ① 110편 재집필(L41~L45) ② SPEC §8 한시 조항 셋 제거(deep.origin 필수 · P17·P18·P23 전 편) ③ 본문 반말(P18) ④ 「견주다」 92편 1,516곳(2026-09-30 정규식 보강 뒤) 교정 뒤 voice v.common.gyeonju 켜기(L44, 전역 원본 수정은 유저 실행 요청 뒤) ⑤ 알고리즘 중심 서술(L49) ⑥ ASCII 를 그림으로(L46~L48, KAN-057 인계). 근거·순서·버린 대안은 KANBAN.cards/KAN-058-8XT6PC.md 「전략」",
+      "memo_hash": "682ad8dc3ca081a69898833dcbb8b8865253a4a5",
       "scope": [
         "src/algorithms/**",
         "src/_viz/**",
@@ -1602,6 +1602,17 @@
   ],
   "recent": [
     {
+      "seq": 437,
+      "t": "2026-09-30T01:43",
+      "a": "ai",
+      "id": "KAN-058-8XT6PC",
+      "op": "edit",
+      "w": "TMW7FW",
+      "field": "memo",
+      "before": "전략 재수립(2026-09-29) — 샘플 두 편(binarySearch · stronglyConnectedComponents)을 하위 카드 KAN-058.1 로 먼저 내고, 그 검토가 승인돼야 전편 전개를 시작한다(유저 지시). 몫: ① 110편 재집필(L41~L45) ② SPEC §8 한시 조항 셋 제거(deep.origin 필수 · P17·P18·P23 전 편) ③ 본문 반말(P18) ④ 「견주다」 90편 1,482곳 교정 뒤 voice v.common.gyeonju 켜기(L44, 전역 원본 수정은 유저 실행 요청 뒤) ⑤ 알고리즘 중심 서술(L49) ⑥ ASCII 를 그림으로(L46~L48, KAN-057 인계). 근거·순서·버린 대안은 KANBAN.cards/KAN-058-8XT6PC.md 「전략」",
+      "after": "전략 재수립(2026-09-29) — 샘플 두 편(binarySearch · stronglyConnectedComponents)을 하위 카드 KAN-058.1 로 먼저 내고, 그 검토가 승인돼야 전편 전개를 시작한다(유저 지시). 몫: ① 110편 재집필(L41~L45) ② SPEC §8 한시 조항 셋 제거(deep.origin 필수 · P17·P18·P23 전 편) ③ 본문 반말(P18) ④ 「견주다」 92편 1,516곳(2026-09-30 정규식 보강 뒤) 교정 뒤 voice v.common.gyeonju 켜기(L44, 전역 원본 수정은 유저 실행 요청 뒤) ⑤ 알고리즘 중심 서술(L49) ⑥ ASCII 를 그림으로(L46~L48, KAN-057 인계). 근거·순서·버린 대안은 KANBAN.cards/KAN-058-8XT6PC.md 「전략」"
+    },
+    {
       "seq": 436,
       "t": "2026-09-30T01:21",
       "a": "ai",
@@ -2173,16 +2184,6 @@
       "goal": "",
       "memo": "",
       "request_template": "free"
-    },
-    {
-      "seq": 395,
-      "t": "2026-09-18T21:47",
-      "a": "ai",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-042-Z02G0W",
-      "reason": "전략 재수립 완료"
     }
   ],
   "waivers": [
