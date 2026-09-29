@@ -106,3 +106,34 @@ test("최악을 만드는 입력도 거리는 정확하다", () => {
   for (let i = 0; i < V - 1; i++) chain.push([i, i + 1]);
   expect(bfsShortestPath(V, chain, 0)[V - 1]).toBe(V - 1);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./bfsShortestPath-guide.sim.ts");
+  const fig = await import("./bfsShortestPath-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.bfsWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.bfsWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 정점 값을 정본의 답에 직접 다시 묻는다.
+  const answer = bfsShortestPath(
+    6,
+    [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [3, 4],
+      [4, 0],
+    ],
+    0,
+  );
+  const last = sim.bfsWalk.steps.at(-1);
+  expect(last?.nodes.map((n) => n.value)).toEqual(
+    answer.map((d) => `거리 ${d}`),
+  );
+  expect(sim.bfsWalk.result).toBe(JSON.stringify(answer));
+});
