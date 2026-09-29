@@ -89,6 +89,7 @@
   - 이유: KAN-056 파일럿이 2026-09-28 승인됐고, 옛 구성 110편 때문에 deep.origin · P17 · P18 을 해당 절이 있을 때만 재는 한시 조항에 묶여 있다
   - 목표: 110편이 「아이디어를 떠올리는 과정」과 실현 단계 구성으로 서고, 한시 조항을 걷고 voice 「견주다」를 켠 뒤에도 ci.ts all 이 통과한다
   - 메모: 착수는 KAN-057(알고리즘 가이드 시각화 전환) 완료 뒤다 — 유저 결정(2026-09-28). 이 카드의 몫: ① 110편 재집필(SPEC L41~L45 · 파일럿 원고가 기준) ② SPEC §8 한시 조항 둘 제거 — deep.origin 을 FIGURE_REQUIRED 로, P17·P18 을 모든 편에 ③ 본문 반말 43편 168곳(P18) ④ 「견주다」 91편 1,542곳 교정 뒤 voice algorithm-guide-writer 의 v.common.gyeonju 를 enabled:true 로(L44). 규칙 정본은 KAN-056 병합 뒤의 sandbox/algo-guide-v2/SPEC.md. 근거: KANBAN.reviews/KAN-056-VPCM91.review.md 3번 추가(2026-09-29 유저 결정): 착수는 KAN-060(알고리즘 가이드에 문제 통합) 완료 뒤이고 전략 재수립이 필요하다(dep-serialize). 몫 ⑤ — KAN-060 원문 ①(가이드는 알고리즘 자체에 대한 것)의 110편 적용: SPEC L49 알고리즘 중심 서술 · §8 의 L49 한시 조항 제거. 근거: KANBAN.cards/KAN-060-9P4ZAA.md 「전략」
+  - 실행 문서: KANBAN.cards/KAN-058-8XT6PC.md (0/11 · 최근 09-29)
   - 원문:
     ```text
     110편 전개는 kan-057 완료 이후로 수행 가능하게 만들어라.
