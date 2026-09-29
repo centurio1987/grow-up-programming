@@ -8,7 +8,7 @@
  *   bun run ../../../../tools/bench-alt.ts editDistance-guide.alt.ts
  *
  * **전개 입력을 그대로 못 쓰는 이유**(L20). 전개는 `s = "horse"` · `t = "ros"` 를 쓰는데,
- * 답 3 이 `t` 의 길이와 같아 띠가 좁아질 여지가 없다. 실측이 표 24 칸 대 띠 40 칸이라
+ * 답 3 이 `t` 의 길이와 같아 띠가 좁아질 여지가 없다. 실측이 DP 테이블 24 칸 대 띠 40 칸이라
  * 경쟁 설계가 **앞서는 쪽을 아예 못 보인다**(그 두 값도 `cases` 에 담아 본문에 적는다).
  * 그래서 같은 규칙으로 만든 길이 200 짜리 입력을 쓰고 **바꾼 글자 수만** 바꿔 가며 잰다.
  *
@@ -47,14 +47,14 @@ export function pair(c: number): [string, string] {
 
 interface Counted {
   answer: number;
-  /** 값을 정한 표의 칸 수. 테두리 칸도 값을 정하는 자리라 함께 센다. */
+  /** 값을 정한 DP 테이블의 칸 수. 테두리 칸도 값을 정하는 자리라 함께 센다. */
   filled: number;
   /** 실행 중에 잡고 있는 칸 수. */
   held: number;
 }
 
 /**
- * 이 가이드가 가르치는 설계 — **표 채우기**. 절차는 `editDistance-guide.ref.ts` 와 같고
+ * 이 가이드가 가르치는 설계 — **DP 테이블 채우기**. 절차는 `editDistance-guide.ref.ts` 와 같고
  * 계수만 덧붙였다.
  *
  * 채우는 칸이 `(n+1)(m+1)` 개로 고정이다 — 입력의 글자를 아예 안 보고 두 길이만으로 정해진다.
@@ -145,7 +145,7 @@ function banded(
 /**
  * 경쟁 설계 — **띠 계산과 문턱 배가**(Ukkonen, 1985).
  *
- * 표를 통째로 채우지 않고 대각선 둘레의 띠만 채운다. 처음 문턱은 두 길이의 차이(답의
+ * DP 테이블을 통째로 채우지 않고 대각선 둘레의 띠만 채운다. 처음 문턱은 두 길이의 차이(답의
  * 하한)이고, 나온 값이 문턱을 넘으면 문턱을 배로 늘려 다시 채운다. 답이 작으면 띠가 좁아
  * 채우는 칸이 적고, 답이 크면 배가 때문에 같은 자리를 여러 번 채운다.
  */
@@ -169,7 +169,9 @@ function agree(s: string, t: string): [Counted, Counted] {
   const a = byTable(s, t);
   const b = byBand(s, t);
   if (a.answer !== b.answer) {
-    throw new Error(`두 설계의 답이 다르다 — 표 ${a.answer} ≠ 띠 ${b.answer}`);
+    throw new Error(
+      `두 설계의 답이 다르다 — DP 테이블 ${a.answer} ≠ 띠 ${b.answer}`,
+    );
   }
   return [a, b];
 }
@@ -184,7 +186,7 @@ export function flipPoint(): number {
 }
 
 export const cases = {
-  "표 채우기": () => {
+  "DP 테이블 채우기": () => {
     const out: Record<string, number> = {};
     for (const c of CHANGES) {
       const [tab] = agree(...pair(c));
@@ -204,7 +206,7 @@ export const cases = {
     }
     out["잡는 칸"] = byBand(...pair(4)).held;
     const [tab, band] = agree(...pair(flipPoint()));
-    out["뒤집히는 자리 · 표"] = tab.filled;
+    out["뒤집히는 자리 · DP 테이블"] = tab.filled;
     out["뒤집히는 자리 · 띠"] = band.filled;
     out["전개 입력 · 채운 칸"] = agree(...WALK)[1].filled;
     return out;

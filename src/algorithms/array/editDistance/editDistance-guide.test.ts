@@ -54,7 +54,7 @@ test("N=M=1,000 공통 글자 없음", () => {
 
 /**
  * 한 번의 편집으로 갈 수 있는 문자열을 전부 만들며 너비 우선으로 찾아가는 기준 구현.
- * 문제 지문을 그대로 옮긴 것이라 답의 기준이 된다.
+ * 편집 거리의 정의를 그대로 옮긴 것이라 답의 기준이 된다.
  *
  * 알파벳은 `s` 와 `t` 에 나오는 글자로 제한한다 — 최소 비용 편집 목록은 `t` 에 없는 글자를
  * 새로 넣을 이유가 없으므로 답이 달라지지 않는다.
@@ -124,4 +124,30 @@ test("답은 길이 차이 이상이고 긴 쪽의 길이 이하다", () => {
     // 세 연산의 비용이 같으므로 두 문자열의 순서를 바꿔도 답이 같다.
     expect(editDistance(t, s)).toBe(got);
   }
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./editDistance-guide.sim.ts");
+  const { simStepsFromRef, trace, TABLE_OPTIONS, S, T } = await import(
+    "./editDistance-guide.fig.tsx"
+  );
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.row12.steps)).toEqual(plain(want.row12));
+  expect(plain(sim.row34.steps)).toEqual(plain(want.row34));
+  expect(plain(sim.row5.steps)).toEqual(plain(want.row5));
+  for (const part of [sim.row12, sim.row34, sim.row5]) {
+    expect(plain(part.rowHeads)).toEqual(plain(TABLE_OPTIONS.rowHeads));
+    expect(plain(part.colHeads)).toEqual(plain(TABLE_OPTIONS.colHeads));
+  }
+  // 패널이 내미는 값이 정본의 DP 테이블 · 답과 같은지 — 정본에 직접 다시 묻는다.
+  const rows = trace(S, T).rows;
+  expect(sim.row12.result).toBe(`[${rows[2]?.join(", ")}]`);
+  expect(sim.row34.result).toBe(`[${rows[4]?.join(", ")}]`);
+  expect(sim.row5.result).toBe(String(editDistance(S, T)));
 });
