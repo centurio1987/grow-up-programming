@@ -57,8 +57,8 @@ scope: src/algorithms/**, src/_viz/**, design/viz/**, sandbox/algo-guide-v2/**, 
 (`S2` 는 id 를 유지한 채 배치 3 첫머리로 옮긴다.)
 
 **배치 2 — 샘플 (하위 카드 `KAN-058.1`)**
-- [ ] `S4` `binarySearch` 재집필(서브에이전트). 완료: 편 완료 기준 통과 · 토큰·시간 기록
-- [ ] `S5` `stronglyConnectedComponents` 재집필(서브에이전트, 그래프 패턴이 필요하면 패턴 신설 포함 — `src/_viz/patterns.test.tsx` 패턴 등록 가드 통과). 완료: 편 완료 기준 통과 · 토큰·시간 기록
+- [x] `S4` `binarySearch` 재집필(서브에이전트). 완료: 편 완료 기준 통과 · 토큰·시간 기록
+- [>] `S5` `stronglyConnectedComponents` 재집필(서브에이전트, 그래프 패턴이 필요하면 패턴 신설 포함 — `src/_viz/patterns.test.tsx` 패턴 등록 가드 통과). 완료: 편 완료 기준 통과 · 토큰·시간 기록 <!-- claim:s=62654a5c t=2026-09-30T01:43 -->
 - [ ] `S6` 샘플 검토서 — HTML 빌드 두 편, 판단 항목(두 편의 서술 수준 · 시각화 · 실측 비용과 110편 추정 · 지시서 고칠 점), `KAN-058.1` 을 검토로. 완료: 검토 화면이 열린다. **유저 승인으로 `KAN-058.1` 완료 = 전개 게이트 통과**
 
 **배치 3~ — 전개 (게이트 통과 뒤)**
@@ -113,3 +113,6 @@ bunx tsc --noEmit
 - 2026-09-30T01:26 · s:62654a5c — `검증` 섹션 교체
 - 2026-09-30T01:27 · s:62654a5c · S3 done — guide-for-problem SKILL.md 에 「알고리즘 가이드 v2 재집필 경로」 절 — 규칙 정본 세 곳(SPEC·voice 사본·파일럿) 표, 대상 판정(--strict), 입력 다섯(옛 원고·ref·proof·sim·alt/bench, sim 은 고쳐 쓰고 새로 안 만듦), 바꾸지 않는 것(실습 절·스텁·ds), 순서 여섯, 편 완료 명령 일곱, 보고 항목. 카드 「검증」 절을 같은 명령으로 맞춤. 문체 박자 등급은 합격선에서 뺐다 — 파일럿 파트 1·2 가 C(신규 twoSum·binaryGap 은 A), 등급으로 막으면 본보기가 떨어진다. check-links 1182 · check-citations 통과, 인용 remap 1곳(KAN-056 카드). 관찰: authoring.py lock 이 voices/algorithm-guide-writer 「내용 변경」으로 낡음 — main 에서도 같아 이 카드가 만든 것이 아님, 안 고침
 - 2026-09-30T01:43 · s:62654a5c — 유저 「고쳐」(2026-09-30): voice 원본 ~/.claude/authoring/voices/algorithm-guide-writer/style.json 의 v.common.gyeonju 정규식을 견[주줘준줄줬줍줌] 로(enabled 는 false 그대로) → voice-style --sync(사본 한 줄) → authoring.py lock --update(0.4.1 판으로, voice 해시 한 줄 — 처음에 0.3.0 판으로 돌려 style 항목이 빠진 것을 되돌리고 다시 함). 시험 1개 추가(176/176). 잡히는 곳 1,482 → 1,516(92편). 파일럿 149행 「견줍니다」→「비교합니다」(--strict · check-proof 25/25 · build-html 통과). ~/.claude 저장소에는 이 변경 말고도 전부터 커밋 안 된 voice.json·voice.md 변경이 있다 — 손대지 않음
+- 2026-09-30T01:43 · s:62654a5c · S4 doing — 착수
+- 2026-09-30T01:43 · s:62654a5c · S5 doing — 착수
+- 2026-09-30T02:07 · s:62654a5c · S4 done — 서브에이전트(지시서만 받음) 재집필 — 토큰 371,083 · 22분 32초 · 도구 69회. deep.origin: 선형 탐색 Q=1,000·N=10^6 에서 10^9 번(10 초) vs 가운데 읽기 20 번 · 첫 칸 읽기도 최악 10^6. deep.build 3단계(후보 구간 정하기 · 가운데 칸 고르기 · 비교해서 한쪽 빼기), 낯선 개념 절 없음(후보 구간은 concept 에서 정의·그림). 그림 7장 전부 기존 패턴(RangeCover·CellStageFilm·ApproachLadder), 새 fig.tsx·figs/. 메인 재확인: --strict · check-proof --require 16/16 · 가이드 시험 19/19 · check-metaphor 통과, 스텁·실습 절 무변경. 문체 박자 C(옛 원고도 C). 검토로 올릴 관찰 7: 배열 걸음 무대 없음(L48 미충족, 옛 array 패널) · purpose.alt 수식을 14511 로 쓰면 P1 이 산문으로 셈(검사기↔L46 어긋남) · 옛 원고 값 정정 둘 · 손으로 적은 짧은 실행 결과 펜스 남음 · proof.ts→fig.tsx import 새 의존 · 중화 실행 회피 문구 조정 · origin-one-read 표시 부정확

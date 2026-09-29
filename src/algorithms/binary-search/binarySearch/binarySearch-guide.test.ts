@@ -53,3 +53,21 @@ test("큰 배열에서도 인덱스가 정확하다", () => {
   expect(binarySearch(A, 1_999_998)).toBe(N - 1);
   expect(binarySearch(A, 999_999)).toBe(-1);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./binarySearch-guide.sim.ts");
+  const { simStepsFromRef } = await import("./binarySearch-guide.fig.tsx");
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.probe.steps)).toEqual(plain(want.probe));
+  expect(plain(sim.miss.steps)).toEqual(plain(want.miss));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  const A = [1, 3, 5, 7, 9, 11];
+  expect(sim.probe.result).toBe(String(binarySearch(A, 7)));
+  expect(sim.miss.result).toBe(String(binarySearch(A, 4)));
+});
