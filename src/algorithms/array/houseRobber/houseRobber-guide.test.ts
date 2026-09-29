@@ -37,7 +37,7 @@ test("본문 전개가 쓰는 입력", () => {
 });
 
 /**
- * 인접하지 않은 부분집합을 전부 만들어 합을 견주는 방식. 느리지만 정의를 그대로 옮긴 것이라
+ * 인접하지 않은 부분집합을 전부 만들어 합을 비교하는 방식. 느리지만 정의를 그대로 옮긴 것이라
  * 기준이 된다.
  */
 function byAllSubsets(nums: number[]): number {
@@ -130,4 +130,18 @@ test("제약 최댓값에서 답이 안전한 정수 범위 안에 든다", () =
   const got = houseRobber(new Array<number>(N).fill(10_000));
   expect(got).toBe(500_000_000);
   expect(Number.isSafeInteger(got)).toBe(true);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./houseRobber-guide.sim.ts");
+  const { simStepsFromRef, WALK } = await import("./houseRobber-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.rob.steps)).toEqual(plain(simStepsFromRef().rob));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.rob.result).toBe(String(houseRobber([...WALK])));
 });
