@@ -3,7 +3,7 @@ card: KAN-058-8XT6PC
 batch: 4
 created: 2026-09-30
 branch: KAN-058-8XT6PC
-status: 진행
+status: 완료
 steps: S7, S14
 ---
 
@@ -48,3 +48,4 @@ steps: S7, S14
 ## 4. 착수 시점 판단
 <!-- 착수할 때 채운다 — 마지막 work 를 다음 배치로 미룰지 여기서 정한다. -->
 - 2026-09-30 착수 — 첫 셋: parametricBinarySearch · longestSubarrayAtMostSum · bfsShortestPath(graph 카테고리 첫 편, 샘플의 그래프 무대를 쓴다).
+- 2026-09-30 완료 — W1 29편(S7)과 신규 넷 그림(S14)을 이 배치에서 닫았다. 편당 평균 토큰 약 45만 · 약 26분. 리스크 둘(새 무대·패턴 중복 · 공용 파일 충돌)은 무대를 한 편에 맡기는 배정과 커밋 전 tsc · _viz 시험으로 막았다. 새로 드러난 사고 둘(임시 파일 충돌 · tsc 누락)은 3항에 적었다. ci.ts gates 통과.
