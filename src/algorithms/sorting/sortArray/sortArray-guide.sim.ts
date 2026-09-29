@@ -1,78 +1,395 @@
-import type { Frame } from "#guide-sim";
+import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
  * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `A = [5, 2, 4, 1, 2, 6]`.
- * 프레임 수는 그 절의 T# 단계 수를 넘지 않는다(P3 이 그 관계를 잰다).
+ * `mergeHeads` 는 마지막 합치기 `merge([2 4 5], [1 2 6])` 를 비교 하나씩 본 T1~T6, `merge6` 은 전체 실행의
+ * 가르는 부름과 합치기 T7~T16 이다.
  *
- * 칸에 그리는 것은 **그 시점까지 확정된 조각을 제자리에 놓은 모습**이다. 실제 코드는 새 배열을
- * 만들어 돌려주지만, 한 줄로 그리면 어느 구간이 이미 오름차순인지가 한눈에 대조된다.
- * `marked` 가 정렬이 끝난 조각, `highlight` 가 지금 가르거나 합치는 구간이다.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가
+ * 배열 무대(`arrayStage.ts`)를 고른다. 정렬은 값이 걸음마다 바뀌므로 `array` 를 걸음마다 싣는다.
+ * `mergeHeads` 의 무대는 합치는 여섯 칸을 한 줄로 — 왼쪽부터 `out` 에 담긴 값 · `L` 에 남은 값 · `R` 에 남은
+ * 값이고, `pieces` 가 두 조각에 남은 자리, `write` 가 이번에 `out` 에 담은 칸, `read` 가 그 값과 비교했지만
+ * 남은 쪽 머리다. `merge6` 의 무대는 합친 조각을 제자리에 놓은 배열이고, `range` 가 지금 부른 구간,
+ * `pieces` 가 가른 두 조각, `write` 가 합치기가 새로 쓴 구간이다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본 실행에서 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `sortArray-guide.test.ts` 가 잰다.
  */
+
+export const mergeHeads = {
+  player: "stage",
+  stage: "array",
+  arrayName: "칸",
+  rangeLabel: "합치는 칸",
+  title: "merge([2, 4, 5], [1, 2, 6])",
+  result: "[1, 2, 2, 4, 5, 6]",
+  steps: [
+    {
+      title: "T1 2 <= 1 ③",
+      text: "L 의 머리 2 와 R 의 머리 1 을 비교합니다. 2 <= 1 이 거짓이라 ③ 으로 오른쪽 1 을 out 에 담습니다.",
+      array: [1, 2, 4, 5, 2, 6],
+      range: [0, 5],
+      read: [1],
+      write: [0],
+      pieces: [
+        {
+          label: "L",
+          from: 1,
+          to: 3,
+          tone: "left",
+          text: "i = 0",
+        },
+        {
+          label: "R",
+          from: 4,
+          to: 5,
+          tone: "right",
+          text: "j = 1",
+        },
+      ],
+      calc: {
+        expr: "2 <= 1",
+        result: "거짓",
+      },
+      vars: "비교 1 번",
+    },
+    {
+      title: "T2 2 <= 2 ②",
+      text: "L 의 머리 2 와 R 의 머리 2 를 비교합니다. 2 <= 2 가 참이라 ② 로 왼쪽 2 를 out 에 담습니다.",
+      array: [1, 2, 4, 5, 2, 6],
+      range: [0, 5],
+      read: [4],
+      write: [1],
+      pieces: [
+        {
+          label: "L",
+          from: 2,
+          to: 3,
+          tone: "left",
+          text: "i = 1",
+        },
+        {
+          label: "R",
+          from: 4,
+          to: 5,
+          tone: "right",
+          text: "j = 1",
+        },
+      ],
+      calc: {
+        expr: "2 <= 2",
+        result: "참",
+      },
+      vars: "비교 2 번",
+    },
+    {
+      title: "T3 4 <= 2 ③",
+      text: "L 의 머리 4 와 R 의 머리 2 를 비교합니다. 4 <= 2 가 거짓이라 ③ 으로 오른쪽 2 를 out 에 담습니다.",
+      array: [1, 2, 2, 4, 5, 6],
+      range: [0, 5],
+      read: [3],
+      write: [2],
+      pieces: [
+        {
+          label: "L",
+          from: 3,
+          to: 4,
+          tone: "left",
+          text: "i = 1",
+        },
+        {
+          label: "R",
+          from: 5,
+          to: 5,
+          tone: "right",
+          text: "j = 2",
+        },
+      ],
+      calc: {
+        expr: "4 <= 2",
+        result: "거짓",
+      },
+      vars: "비교 3 번",
+    },
+    {
+      title: "T4 4 <= 6 ②",
+      text: "L 의 머리 4 와 R 의 머리 6 을 비교합니다. 4 <= 6 이 참이라 ② 로 왼쪽 4 를 out 에 담습니다.",
+      array: [1, 2, 2, 4, 5, 6],
+      range: [0, 5],
+      read: [5],
+      write: [3],
+      pieces: [
+        {
+          label: "L",
+          from: 4,
+          to: 4,
+          tone: "left",
+          text: "i = 2",
+        },
+        {
+          label: "R",
+          from: 5,
+          to: 5,
+          tone: "right",
+          text: "j = 2",
+        },
+      ],
+      calc: {
+        expr: "4 <= 6",
+        result: "참",
+      },
+      vars: "비교 4 번",
+    },
+    {
+      title: "T5 5 <= 6 ②",
+      text: "L 의 머리 5 와 R 의 머리 6 을 비교합니다. 5 <= 6 이 참이라 ② 로 왼쪽 5 를 out 에 담습니다.",
+      array: [1, 2, 2, 4, 5, 6],
+      range: [0, 5],
+      read: [5],
+      write: [4],
+      pieces: [
+        {
+          label: "R",
+          from: 5,
+          to: 5,
+          tone: "right",
+          text: "j = 2",
+        },
+      ],
+      calc: {
+        expr: "5 <= 6",
+        result: "참",
+      },
+      vars: "비교 5 번",
+    },
+    {
+      title: "T6 ⑤ [6] 잇기",
+      text: "L 을 다 써서 반복이 끝납니다. ⑤ 가 R 에 남은 6 을 비교 없이 잇습니다.",
+      array: [1, 2, 2, 4, 5, 6],
+      range: [0, 5],
+      read: [],
+      write: [5],
+      pieces: [],
+      calc: null,
+      vars: "비교 5 번",
+    },
+  ],
+} satisfies ArrayPlayerSpec;
+
 export const merge6 = {
-  view: "array" as const,
+  player: "stage",
+  stage: "array",
+  arrayName: "A",
+  rangeLabel: "부름",
   title: "sortArray([5, 2, 4, 1, 2, 6])",
   result: "[1, 2, 2, 4, 5, 6]",
   steps: [
     {
-      title: "T1 전체를 둘로 가른다",
-      detail: "mid = 6 >> 1 = 3. 왼쪽 세 칸과 오른쪽 세 칸으로 가른다.",
+      title: "T7 [5 2 4 1 2 6] 가르기",
+      text: "sortArray([5 2 4 1 2 6]) — 칸이 6 개라 ① 이 아닙니다. mid = 3 이라서 [5 2 4] 와 [1 2 6] 으로 가릅니다.",
       array: [5, 2, 4, 1, 2, 6],
-      pointers: { mid: 3 },
+      range: [0, 5],
+      read: [],
+      write: [],
+      pieces: [
+        {
+          label: "왼쪽",
+          from: 0,
+          to: 2,
+          tone: "left",
+        },
+        {
+          label: "오른쪽",
+          from: 3,
+          to: 5,
+          tone: "right",
+        },
+      ],
+      calc: {
+        expr: "6 >> 1",
+        result: "3",
+      },
+      vars: "비교 누적 0 번",
     },
     {
-      title: "T2 왼쪽 [5 2 4] 를 다시 가른다",
-      detail: "mid = 3 >> 1 = 1. 왼쪽 한 칸 [5] 와 오른쪽 두 칸 [2 4] 다.",
+      title: "T8 [5 2 4] 가르기",
+      text: "sortArray([5 2 4]) — 칸이 3 개라 ① 이 아닙니다. mid = 1 이라서 [5] 와 [2 4] 로 가릅니다. [5] 는 칸이 하나라 ① 로 그대로 돌아옵니다.",
       array: [5, 2, 4, 1, 2, 6],
-      highlight: [0, 1, 2],
-      pointers: { mid: 1 },
+      range: [0, 2],
+      read: [],
+      write: [],
+      pieces: [
+        {
+          label: "왼쪽",
+          from: 0,
+          to: 0,
+          tone: "left",
+        },
+        {
+          label: "오른쪽",
+          from: 1,
+          to: 2,
+          tone: "right",
+        },
+      ],
+      calc: {
+        expr: "3 >> 1",
+        result: "1",
+      },
+      vars: "비교 누적 0 번",
     },
     {
-      title: "T3 [2 4] 를 한 칸씩으로 가른다",
-      detail: "[2] 와 [4] 둘 다 칸이 하나라 기저 ① 에서 그대로 돌아온다.",
+      title: "T9 [2 4] 가르기",
+      text: "sortArray([2 4]) — 칸이 2 개라 ① 이 아닙니다. mid = 1 이라서 [2] 와 [4] 로 가릅니다. [2] 와 [4] 는 칸이 하나라 ① 로 그대로 돌아옵니다.",
       array: [5, 2, 4, 1, 2, 6],
-      highlight: [1, 2],
+      range: [1, 2],
+      read: [],
+      write: [],
+      pieces: [
+        {
+          label: "왼쪽",
+          from: 1,
+          to: 1,
+          tone: "left",
+        },
+        {
+          label: "오른쪽",
+          from: 2,
+          to: 2,
+          tone: "right",
+        },
+      ],
+      calc: {
+        expr: "2 >> 1",
+        result: "1",
+      },
+      vars: "비교 누적 0 번",
     },
     {
-      title: "T4 [2] 와 [4] 를 합친다",
-      detail: "2 ≤ 4 이라 ② 로 2 를 꺼낸다. 왼쪽이 비어 ⑤ 로 4 를 이어 붙인다.",
+      title: "T10 [2] + [4] 합치기",
+      text: "2 <= 4 참 → ②. ⑤ 가 4 를 잇습니다. 결과는 [2 4] 입니다.",
       array: [5, 2, 4, 1, 2, 6],
-      marked: [1, 2],
+      range: [1, 2],
+      read: [],
+      write: [1, 2],
+      pieces: [],
+      calc: {
+        expr: "비교 1 번",
+        result: "[2 4]",
+      },
+      vars: "비교 누적 1 번",
     },
     {
-      title: "T5 [5] 와 [2 4] 를 합친다",
-      detail: "5 > 2, 5 > 4 라 ③ 이 두 번. 오른쪽이 비어 ④ 로 5 를 이어 붙인다.",
+      title: "T11 [5] + [2 4] 합치기",
+      text: "5 <= 2 거짓 → ③, 5 <= 4 거짓 → ③. ④ 가 5 를 잇습니다. 결과는 [2 4 5] 입니다.",
       array: [2, 4, 5, 1, 2, 6],
-      marked: [0, 1, 2],
+      range: [0, 2],
+      read: [],
+      write: [0, 1, 2],
+      pieces: [],
+      calc: {
+        expr: "비교 2 번",
+        result: "[2 4 5]",
+      },
+      vars: "비교 누적 3 번",
     },
     {
-      title: "T6 오른쪽 [1 2 6] 을 가른다",
-      detail: "mid = 1. [1] 과 [2 6] 으로 갈라 같은 절차를 되풀이한다.",
+      title: "T12 [1 2 6] 가르기",
+      text: "sortArray([1 2 6]) — 칸이 3 개라 ① 이 아닙니다. mid = 1 이라서 [1] 과 [2 6] 으로 가릅니다. [1] 은 칸이 하나라 ① 로 그대로 돌아옵니다.",
       array: [2, 4, 5, 1, 2, 6],
-      marked: [0, 1, 2],
-      highlight: [3, 4, 5],
-      pointers: { mid: 4 },
+      range: [3, 5],
+      read: [],
+      write: [],
+      pieces: [
+        {
+          label: "왼쪽",
+          from: 3,
+          to: 3,
+          tone: "left",
+        },
+        {
+          label: "오른쪽",
+          from: 4,
+          to: 5,
+          tone: "right",
+        },
+      ],
+      calc: {
+        expr: "3 >> 1",
+        result: "1",
+      },
+      vars: "비교 누적 3 번",
     },
     {
-      title: "T7 [2] 와 [6] 을 합친다",
-      detail: "2 ≤ 6 이라 ② 로 2 를 꺼내고 ⑤ 로 6 을 이어 붙인다.",
+      title: "T13 [2 6] 가르기",
+      text: "sortArray([2 6]) — 칸이 2 개라 ① 이 아닙니다. mid = 1 이라서 [2] 와 [6] 으로 가릅니다. [2] 와 [6] 은 칸이 하나라 ① 로 그대로 돌아옵니다.",
       array: [2, 4, 5, 1, 2, 6],
-      marked: [0, 1, 2, 4, 5],
+      range: [4, 5],
+      read: [],
+      write: [],
+      pieces: [
+        {
+          label: "왼쪽",
+          from: 4,
+          to: 4,
+          tone: "left",
+        },
+        {
+          label: "오른쪽",
+          from: 5,
+          to: 5,
+          tone: "right",
+        },
+      ],
+      calc: {
+        expr: "2 >> 1",
+        result: "1",
+      },
+      vars: "비교 누적 3 번",
     },
     {
-      title: "T8 [1] 과 [2 6] 을 합친다",
-      detail: "1 ≤ 2 라 ② 로 1 을 꺼내고, 왼쪽이 비어 ⑤ 로 2 와 6 을 잇는다.",
+      title: "T14 [2] + [6] 합치기",
+      text: "2 <= 6 참 → ②. ⑤ 가 6 을 잇습니다. 결과는 [2 6] 입니다.",
       array: [2, 4, 5, 1, 2, 6],
-      marked: [0, 1, 2, 3, 4, 5],
+      range: [4, 5],
+      read: [],
+      write: [4, 5],
+      pieces: [],
+      calc: {
+        expr: "비교 1 번",
+        result: "[2 6]",
+      },
+      vars: "비교 누적 4 번",
     },
     {
-      title: "T9 [2 4 5] 와 [1 2 6] 을 합친다",
-      detail:
-        "비교 다섯 번으로 1 2 2 4 5 를 꺼내고 ⑤ 로 6 을 잇는다. 반환값은 [1, 2, 2, 4, 5, 6] 이다.",
+      title: "T15 [1] + [2 6] 합치기",
+      text: "1 <= 2 참 → ②. ⑤ 가 2 6 을 잇습니다. 결과는 [1 2 6] 입니다.",
+      array: [2, 4, 5, 1, 2, 6],
+      range: [3, 5],
+      read: [],
+      write: [3, 4, 5],
+      pieces: [],
+      calc: {
+        expr: "비교 1 번",
+        result: "[1 2 6]",
+      },
+      vars: "비교 누적 5 번",
+    },
+    {
+      title: "T16 [2 4 5] + [1 2 6] 합치기",
+      text: "2 <= 1 거짓 → ③, 2 <= 2 참 → ②, 4 <= 2 거짓 → ③, 4 <= 6 참 → ②, 5 <= 6 참 → ②. ⑤ 가 6 을 잇습니다. 결과는 [1 2 2 4 5 6] 입니다.",
       array: [1, 2, 2, 4, 5, 6],
-      marked: [0, 1, 2, 3, 4, 5],
+      range: [0, 5],
+      read: [],
+      write: [0, 1, 2, 3, 4, 5],
+      pieces: [],
+      calc: {
+        expr: "비교 5 번",
+        result: "[1 2 2 4 5 6]",
+      },
+      vars: "비교 누적 10 번",
     },
-  ] satisfies Frame[],
-};
+  ],
+} satisfies ArrayPlayerSpec;

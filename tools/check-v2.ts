@@ -1326,7 +1326,10 @@ const PRACTICE_REFERENCES: ReadonlyArray<RegExp> = [
   /문제의 제약/,
 ];
 
-export function practiceReferenceFindings(text: string): Finding[] {
+export function practiceReferenceFindings(
+  text: string,
+  codeComments = false,
+): Finding[] {
   const out: Finding[] = [];
   let fenced = false;
   for (const [i, line] of text.split("\n").entries()) {
@@ -1335,8 +1338,13 @@ export function practiceReferenceFindings(text: string): Finding[] {
       fenced = !fenced;
       continue;
     }
-    if (fenced || trimmed.startsWith("#") || trimmed.startsWith(">")) continue;
-    const prose = line
+    // `--strict` 는 코드 펜스의 **주석**도 본다 — 독자는 본문 코드의 주석도 읽는다. 정본에서 추출한
+    // 전체 코드에 「이 문제의 계약이다」가 남아 P23 을 지나간 자리가 있었다(`KAN-058` sortArray).
+    const comment = fenced && codeComments ? commentPart(line) : null;
+    if (fenced && comment === null) continue;
+    if (!fenced && (trimmed.startsWith("#") || trimmed.startsWith(">")))
+      continue;
+    const prose = (comment ?? line)
       .replace(/`[^`]*`/g, "C")
       .replace(/「[^」]*」/g, "Q")
       .replace(/"[^"]*"/g, "Q");
@@ -1352,6 +1360,14 @@ export function practiceReferenceFindings(text: string): Finding[] {
     }
   }
   return out;
+}
+
+/** 코드 한 줄의 주석 부분 — `//` 뒤, 또는 블록 주석 줄(`/**` · ` *`)의 본문. 주석이 없으면 `null`. */
+function commentPart(line: string): string | null {
+  const block = /^\s*(?:\/\*\*?|\*)(?!\/)(.*)$/.exec(line);
+  if (block) return block[1] ?? "";
+  const at = line.indexOf("//");
+  return at >= 0 ? line.slice(at + 2) : null;
 }
 
 export function stripComments(src: string): string {
@@ -2579,7 +2595,7 @@ export function check(input: CheckInput): Finding[] {
     // ── P22 실습 절 구조 · P23 실습 문제 지칭 (`L49`, 한시 조항 — `deep.origin` 이 있는 편만) ──
     findings.push(...practiceFindings(parsed.sections, input.practiceLinks));
     if (strict || first(sections, "deep.origin")) {
-      findings.push(...practiceReferenceFindings(text));
+      findings.push(...practiceReferenceFindings(text, strict));
     }
     // `deep.origin` 은 필수 절이다 — 한시 조항 동안만 「있으면」 목록(P7b)에 있다.
     if (strict && !first(sections, "deep.origin")) {

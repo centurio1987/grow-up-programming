@@ -45,7 +45,7 @@ function merge(L: number[], R: number[]): number[] {
 /** `A` 를 오름차순으로 정렬한 **새 배열**을 돌려준다. `A` 자체는 바뀌지 않는다. */
 export function sortArray(A: number[]): number[] {
   // ① 칸이 하나 이하면 이미 정렬돼 있다. 그래도 복사본을 만든다 — 반환 배열은 입력과 다른
-  //    배열이어야 한다는 것이 이 문제의 계약이다.
+  //    배열이어야 한다는 것이 이 과제의 계약이다.
   if (A.length <= 1) {
     return A.slice();
   }

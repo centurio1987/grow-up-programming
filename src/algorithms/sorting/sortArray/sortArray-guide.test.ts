@@ -71,9 +71,7 @@ test("전개가 쓰는 입력에서 본문이 적은 값이 나온다", () => {
 
 test("최악을 만드는 입력에서도 답은 정확하다", () => {
   // perf.worst 가 세는 입력. 비교가 많은 것과 답이 틀린 것은 다른 문제다.
-  expect(sortArray([0, 4, 2, 6, 1, 5, 3, 7])).toEqual([
-    0, 1, 2, 3, 4, 5, 6, 7,
-  ]);
+  expect(sortArray([0, 4, 2, 6, 1, 5, 3, 7])).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
 });
 
 test("큰 입력에서도 값이 정확하다", () => {
@@ -90,4 +88,22 @@ test("큰 입력에서도 값이 정확하다", () => {
   // (37i mod N) 는 0 … N-1 의 재배열이므로 정렬 결과가 등차수열이다.
   expect(out[0]).toBe(-50_000);
   expect(out[N - 1]).toBe(49_999);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./sortArray-guide.sim.ts");
+  const { simStepsFromRef } = await import("./sortArray-guide.fig.tsx");
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.mergeHeads.steps)).toEqual(plain(want.mergeHeads));
+  expect(plain(sim.merge6.steps)).toEqual(plain(want.merge6));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  const answer = `[${sortArray([5, 2, 4, 1, 2, 6]).join(", ")}]`;
+  expect(sim.merge6.result).toBe(answer);
+  expect(sim.mergeHeads.result).toBe(answer);
 });

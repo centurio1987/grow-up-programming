@@ -2484,3 +2484,24 @@ test("P1 — 수식 블록은 산문 문단으로 세지 않고, 연속을 끊�
     maxProseRun([...para("가."), ...math, ...para("나."), ...para("다.")]),
   ).toBe(3);
 });
+
+// 정본에서 추출한 전체 코드에 「이 문제의 계약이다」가 남아 P23 을 지나간 자리(`KAN-058` sortArray).
+test("--strict — P23 은 코드 펜스의 주석도 본다(코드 자체는 안 본다)", () => {
+  const withComment = (c: string) =>
+    PASSING.replace(
+      SENTENCE,
+      `${SENTENCE}\n\n\`\`\`ts\n${c}\nconst x = 1;\n\`\`\``,
+    );
+  const p23 = (text: string, strict: boolean) =>
+    check({ text, sim: SIM, bench: { 비교: 34 }, strict }).filter(
+      (f) => f.code === "P23",
+    );
+  const line = withComment("// 새 배열이어야 한다는 것이 이 문제의 계약이다.");
+  expect(p23(line, false)).toEqual([]);
+  expect(p23(line, true).length).toBe(1);
+  expect(
+    p23(withComment(" * 이 문제의 제약은 칸 수가 10^6 이다."), true).length,
+  ).toBe(1);
+  // 주석이 아닌 코드 줄의 문자열은 안 본다.
+  expect(p23(withComment('const s = "이 문제";'), true)).toEqual([]);
+});
