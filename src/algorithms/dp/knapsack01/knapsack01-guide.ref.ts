@@ -16,7 +16,7 @@ export function knapsack01(
 ): number {
   const n = values.length;
 
-  // dp[i][c] = 앞의 i 개만 놓고 골랐을 때, 용량 c 로 얻는 최대 가치.
+  // dp[i][c] = 앞의 i 개만 놓고 골랐을 때, 무게 합을 c 이하로 맞춰 얻는 최대 가치.
   // 0 번째 줄은 "물건이 하나도 없다" 라 전부 0 이다.
   const dp = Array.from({ length: n + 1 }, () =>
     Array.from({ length: W + 1 }, () => 0),
@@ -25,8 +25,8 @@ export function knapsack01(
   for (let i = 1; i <= n; i++) {
     const w = weights[i - 1] as number;
     const v = values[i - 1] as number;
-    const prev = dp[i - 1] as number[]; // 윗 줄 — 이 물건을 아직 안 본 층
-    const cur = dp[i] as number[]; // 이번 줄 — 이 물건까지 본 층
+    const prev = dp[i - 1] as number[]; // 윗 줄 — 이 물건을 아직 안 본 줄
+    const cur = dp[i] as number[]; // 이번 줄 — 이 물건까지 본 줄
 
     for (let c = 0; c <= W; c++) {
       if (c < w) {

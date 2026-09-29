@@ -34,3 +34,33 @@ test("무게 1짜리 100개는 전부 담긴다", () => {
   const v = new Array(100).fill(7);
   expect(knapsack01(w, v, 10_000)).toBe(700);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./knapsack01-guide.sim.ts");
+  const { simStepsFromRef, trace, TABLE_OPTIONS } = await import(
+    "./knapsack01-guide.fig.tsx"
+  );
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.row1.steps)).toEqual(plain(want.row1));
+  expect(plain(sim.row2.steps)).toEqual(plain(want.row2));
+  expect(plain(sim.row3.steps)).toEqual(plain(want.row3));
+  expect(plain(sim.row4.steps)).toEqual(plain(want.row4));
+  for (const part of [sim.row1, sim.row2, sim.row3, sim.row4]) {
+    expect(plain(part.rowHeads)).toEqual(plain(TABLE_OPTIONS.rowHeads));
+    expect(plain(part.colHeads)).toEqual(plain(TABLE_OPTIONS.colHeads));
+  }
+  // 패널이 내미는 값이 정본의 DP 테이블 · 답과 같은지 — 정본에 직접 다시 묻는다.
+  const rows = trace([1, 3, 4, 5], [1, 4, 5, 7], 7).rows;
+  expect(sim.row1.result).toBe(`[${rows[1]?.join(", ")}]`);
+  expect(sim.row2.result).toBe(`[${rows[2]?.join(", ")}]`);
+  expect(sim.row3.result).toBe(`[${rows[3]?.join(", ")}]`);
+  expect(sim.row4.result).toBe(
+    String(knapsack01([1, 3, 4, 5], [1, 4, 5, 7], 7)),
+  );
+});
