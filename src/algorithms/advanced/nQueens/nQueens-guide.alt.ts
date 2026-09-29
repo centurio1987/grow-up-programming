@@ -17,7 +17,7 @@
 /** 두 설계가 나눠 쓰는 고정 입력. 한 번 정하면 바꾸지 않는다. */
 export const N = 8;
 
-interface Counts {
+export interface Counts {
   "방문 노드": number;
   "상태 연산": number;
   "새로 잡는 칸": number;
@@ -29,7 +29,7 @@ interface Counts {
  * `상태 연산` 은 비트를 읽거나 쓴 횟수다 — 열 후보 하나마다 검사 세 번, 실제로 놓을 때
  * 설정 세 번. 새로 잡는 칸은 없다(정수 셋을 인자로 넘긴다).
  */
-function 가이드절차(n: number): Counts {
+export function 가이드절차(n: number): Counts {
   let 방문노드 = 0;
   let 상태연산 = 0;
   const go = (row: number, cols: number, d1m: number, d2m: number): void => {
@@ -61,7 +61,7 @@ function 가이드절차(n: number): Counts {
  * 하나도 안 남는 행이 생기면 그 행까지 내려가기 전에 이 자리에서 가지를 접는다. 노드를 줄이는
  * 대신 행마다 후보 목록을 들고 다녀야 해서 재귀 한 단마다 새 배열을 잡는다.
  */
-function 앞을내다보는검사(n: number): Counts {
+export function 앞을내다보는검사(n: number): Counts {
   let 방문노드 = 0;
   let 상태연산 = 0;
   let 새칸 = 0;
