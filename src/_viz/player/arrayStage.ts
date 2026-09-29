@@ -10,11 +10,17 @@
  *
  * 값은 `.sim.ts` 가 싣고, 그 값이 정본 실행과 같은지는 가이드의 시험이 잰다 — 여기서는 계산하지
  * 않고 **배치만** 한다. 배열에서 만드는 구조가 한두 줄이면(누적합 배열 · 답 목록) `layers` 로 괄호
- * 아래에 쌓는다. 층이 거듭제곱으로 쌓이는 구조(Sparse Table)는 「층」 무대를 쓴다.
+ * 아래에 쌓는다. 층이 거듭제곱으로 쌓이는 구조(Sparse Table)는 「층」 무대를 쓴다. 키로 찾는 해시 맵은
+ * `map` 으로 맨 아래에 키 줄 · 값 줄을 쌓는다(패턴 `KeyValueTable`).
  */
 
 import type { CellState } from "../patterns/ArrayStrip";
 import type { StageRow } from "../patterns/CellStage";
+import {
+  type KeyValueData,
+  keyValueColumns,
+  keyValueRows,
+} from "../patterns/KeyValueTable";
 
 /** 걸음 하나. */
 export interface ArrayStep {
@@ -33,6 +39,12 @@ export interface ArrayStep {
   /** 무대 어디에도 자리가 없는 값만(누적 셈 등). 없으면 `null`. */
   readonly vars?: string | null;
   /**
+   * 값 줄 곁말 — 없으면 「{쥔 구간 이름} {칸 수} 칸」이다. 쥔 구간이 칸 수로 세어지지 않는 무대에서
+   * 쓴다. 삼진 탐색의 후보는 실수 구간이라 칸 줄은 잰 자리를 늘어놓은 것일 뿐이고, 괄호 안의 칸 수는
+   * 후보의 크기가 아니다 — 그때 곁말에 구간 길이(「길이 2.667」)를 적는다.
+   */
+  readonly rangeSide?: string;
+  /**
    * 배열에서 만드는 구조 — 입력 배열과 괄호 아래에 한 줄씩 쌓는다(SPEC §13 배열 줄 「배열에서 만드는
    * 구조가 있으면 그 구조를 층으로 아래에 쌓는다」). 누적합 배열 `P` 나 답 목록처럼 걸음마다 칸이
    * 채워지는 줄이다. 첫 걸음부터 칸을 모두 두고 아직 안 쓴 칸은 `null`(점선)로 둔다. 없으면 입력 배열
@@ -45,6 +57,12 @@ export interface ArrayStep {
    * 조각은 싣지 않는다. 없으면 쥔 구간 괄호 하나만 그린다.
    */
   readonly pieces?: readonly ArrayPiece[];
+  /**
+   * 알고리즘이 드는 해시 맵 하나 — 쌓은 줄 아래에 키 줄 · 값 줄 · ▲ 줄로 더한다(패턴 `KeyValueTable`).
+   * 누적합의 개수를 세는 맵처럼 키로 찾는 구조라, 열은 키를 넣은 순서이고 인덱스와 짝짓지 않는다.
+   * 첫 걸음부터 `slots` 로 자리를 모두 잡아 두면 아직 안 넣은 자리는 점선이다. 없으면 그리지 않는다.
+   */
+  readonly map?: KeyValueData;
 }
 
 /** 쥔 구간 안의 조각 하나 — 왼쪽 조각은 실선, 오른쪽 조각은 대시 괄호다(`CellStage` 의 괄호 규칙). */
@@ -108,7 +126,7 @@ export function arrayStage(s: ArrayStep, opts: ArrayOptions): StageRow[] {
       label: opts.arrayName ?? "A",
       values: s.array,
       states,
-      side: `${opts.rangeLabel} ${held} 칸`,
+      side: s.rangeSide ?? `${opts.rangeLabel} ${held} 칸`,
     },
     {
       kind: "caret",
@@ -160,12 +178,18 @@ export function arrayStage(s: ArrayStep, opts: ArrayOptions): StageRow[] {
       { kind: "caret", cells: layer.read ?? [] },
     );
   }
+  // 해시 맵은 맨 아래에 키 줄 · 값 줄 · ▲ 줄로 쌓는다. 자리 수가 걸음마다 같으면 무대도 같다.
+  if (s.map) rows.push(...keyValueRows(s.map));
   return rows;
 }
 
-/** 격자 칸 수 — 배열과 그 아래 쌓은 줄 가운데 가장 긴 것의 길이. */
+/** 격자 칸 수 — 배열과 그 아래 쌓은 줄(해시 맵 포함) 가운데 가장 긴 것의 길이. */
 export const arrayColumns = (s: ArrayStep): number =>
-  Math.max(s.array.length, ...(s.layers ?? []).map((l) => l.values.length));
+  Math.max(
+    s.array.length,
+    ...(s.layers ?? []).map((l) => l.values.length),
+    s.map ? keyValueColumns(s.map) : 0,
+  );
 
 export const arrayCalc = (s: ArrayStep) => s.calc ?? null;
 export const arrayVars = (s: ArrayStep) => s.vars ?? null;

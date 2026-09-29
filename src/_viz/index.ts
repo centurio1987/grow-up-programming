@@ -30,6 +30,14 @@ export {
   type StageTone,
 } from "./patterns/CellStage";
 export {
+  type KeyValueData,
+  KeyValueTable,
+  type KeyValueTableProps,
+  keyValueColumns,
+  keyValueRows,
+  type MapKey,
+} from "./patterns/KeyValueTable";
+export {
   type LayerBar,
   LayerBars,
   type LayerBarsProps,

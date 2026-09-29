@@ -595,6 +595,63 @@ describe("P8 NodeGraph · 그래프 무대", () => {
   });
 });
 
+describe("P9 KeyValueTable · 해시 맵", () => {
+  const count = (svg: string, re: RegExp) => svg.match(re)?.length ?? 0;
+  // 누적합의 개수를 세는 맵 — 키 넷을 넣었고, 자리는 여섯을 미리 잡았다.
+  const data = {
+    keyLabel: "seen 키",
+    valueLabel: "개수",
+    entries: [
+      [0, 1],
+      [3, 1],
+      [7, 1],
+      [14, 2],
+    ] as const,
+    slots: 6,
+    read: [7],
+    write: [14],
+    note: "찾는 키 7 · 개수 1",
+  };
+
+  test("키 줄과 값 줄이 같은 열에 서고, 찾은 키는 읽음 · 고친 키는 새로 씀 · 남은 자리는 아직이다", async () => {
+    const { KeyValueTable } = await import("./patterns/KeyValueTable");
+    const el = <KeyValueTable title="개수 맵" {...data} />;
+    const svg = await renderToSvg(el, "t-kv");
+    expect(svg).toBe(await renderToSvg(el, "t-kv"));
+    expect(count(svg, /data-viz-label="seen 키"/g)).toBe(1);
+    expect(count(svg, /data-viz-label="개수"/g)).toBe(1);
+    // 두 줄 × 자리 여섯
+    expect(count(svg, /data-viz-cell="/g)).toBe(12);
+    // 키 7 과 그 값 칸이 읽음, 키 14 와 그 값 칸이 새로 씀
+    expect(count(svg, /data-viz-state="read"/g)).toBe(2);
+    expect(count(svg, /data-viz-state="focus"/g)).toBe(2);
+    expect(count(svg, /data-viz-state="empty"/g)).toBe(4);
+    expect(svg).toContain('data-viz-role="caret" data-viz-cells="2"');
+    expect(svg).toContain("찾는 키 7 · 개수 1");
+  });
+
+  test("배열 무대의 map — 쌓은 줄 아래에 키 줄 · 값 줄 · ▲ 줄을 더하고 격자를 자리 수에 맞춘다", async () => {
+    const { arrayColumns, arrayStage } = await import("./player/arrayStage");
+    const step = {
+      array: [3, 4, 7],
+      range: [0, 2] as const,
+      read: [2],
+      map: { ...data, read: [], note: "찾는 키 -4 · 없음" },
+    };
+    const rows = arrayStage(step, { arrayName: "nums", rangeLabel: "앞부분" });
+    const kinds = rows.map((r) => r.kind);
+    expect(kinds.slice(-3)).toEqual(["cells", "cells", "caret"]);
+    expect(arrayColumns(step)).toBe(6);
+    const svg = await renderToSvg(
+      <CellStage title="map" rows={rows} columns={arrayColumns(step)} />,
+      "t-kv-stage",
+    );
+    expect(svg).toContain("찾는 키 -4 · 없음");
+    // 없던 키는 칸이 없으니 맵 ▲ 줄은 비고, 배열 ▲ 줄만 칸 2 를 가리킨다.
+    expect(count(svg, /data-viz-role="caret" data-viz-cells=""/g)).toBe(1);
+  });
+});
+
 describe("패턴 등록 가드", () => {
   // SPEC §12 「패턴을 더하는 법」 — 새 패턴은 한 벌로 선다. 유저 지시(2026-09-28): 맞는 시각화가 없으면
   // 표로 대신하지 말고 패턴부터 만들어 적용한다. 만들다 만 패턴이 조용히 남지 않게 여기서 잡는다.

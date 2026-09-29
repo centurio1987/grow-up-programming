@@ -9,7 +9,7 @@
  * | 부분 | 자리 | 상태 |
  * | --- | --- | --- |
  * | foundation | `foundations` · `foundationPresets`(밝은·어두운·흑백) · `extendedFoundations` | 시안 방향 A(tokens.ts, S12) |
- * | pattern | `patterns` — P1~P8(`src/_viz/patterns/`) · 걸음 재생 패널 `src/_viz/player/` | 섰다(S4~S6 · S13 · 검토 지적 6·7 · KAN-058 P8) |
+ * | pattern | `patterns` — P1~P9(`src/_viz/patterns/`) · 걸음 재생 패널 `src/_viz/player/` | 섰다(S4~S6 · S13 · 검토 지적 6·7 · KAN-058 P8 · P9) |
  * | visual motif | `visualMotif` | 시안 컴포넌트 여덟과 사용 규칙(S12) |
  * | component | `wrapperComponents` — LogBarChart(로그 척도 막대) | 섰다(S6) |
  * | guideline | `guidelines` | 그림 형식 선택 규칙(카드 전략 1) |
@@ -27,6 +27,7 @@ import { LogBarChart } from "../../src/_viz/components/LogBarChart";
 import { ApproachLadder } from "../../src/_viz/patterns/ApproachLadder";
 import { ArrayStrip } from "../../src/_viz/patterns/ArrayStrip";
 import { CellStage } from "../../src/_viz/patterns/CellStage";
+import { KeyValueTable } from "../../src/_viz/patterns/KeyValueTable";
 import { LayerBars } from "../../src/_viz/patterns/LayerBars";
 import { LevelTable } from "../../src/_viz/patterns/LevelTable";
 import { NodeGraph } from "../../src/_viz/patterns/NodeGraph";
@@ -327,5 +328,6 @@ export const algoVizStyleGuide: VisualizationStyleGuide = {
     ApproachLadder,
     CellStage,
     NodeGraph,
+    KeyValueTable,
   },
 };

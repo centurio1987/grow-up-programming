@@ -229,3 +229,36 @@ test("배열 무대 · 배열에서 만드는 구조 — 누적합 배열과 답
 
   await act(async () => root.unmount());
 });
+
+test("배열 무대 · 칸 수로 세지 않는 후보 — 값 줄 곁말이 구간 길이이고, 아직 재지 않은 자리는 빈 칸이다", async () => {
+  const spec = (
+    await import(
+      "../../algorithms/binary-search/ternarySearch/ternarySearch-guide.sim.ts"
+    )
+  ).narrow as unknown as PlayerSpec;
+  document.body.innerHTML = '<div id="t"></div>';
+  const host = document.getElementById("t") as HTMLElement;
+  const root = createRoot(host);
+  await act(async () => root.render(<StepPlayer {...spec} />));
+
+  const stage = () =>
+    host.querySelector(".gs-player-stage") as HTMLElement | null;
+  const count = (sel: string) => host.querySelectorAll(sel).length;
+  const h0 = stage()?.style.height;
+  // T1 — 두 끝만 잰 상태라 나머지 열두 자리는 빈 칸이고, 곁말은 칸 수가 아니라 길이다
+  expect(count('[data-viz-state="empty"]')).toBe(12);
+  expect(stage()?.textContent).toContain("길이 9");
+  expect(stage()?.textContent).not.toContain("후보 14 칸");
+
+  // 마지막 걸음 — 잰 자리가 모두 찼고, 무대 높이는 그대로다
+  const badge = (id: string) =>
+    [...host.querySelectorAll(".gs-player-badge")].find(
+      (b) => b.textContent === id,
+    ) as HTMLButtonElement;
+  await act(async () => badge("T8").click());
+  expect(stage()?.style.height).toBe(h0);
+  expect(count('[data-viz-state="empty"]')).toBe(0);
+  expect(stage()?.textContent).toContain("길이 0.790");
+
+  await act(async () => root.unmount());
+});

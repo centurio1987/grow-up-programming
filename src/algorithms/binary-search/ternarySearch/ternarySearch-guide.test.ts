@@ -106,3 +106,20 @@ test("f 호출 수는 f 의 모양이 아니라 L 과 ε 만 따라간다", () =
   expect(new Set(counts).size).toBe(1);
   expect(counts[0]).toBe(80);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./ternarySearch-guide.sim.ts");
+  const { simStepsFromRef, d3 } = await import("./ternarySearch-guide.fig.tsx");
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.narrow.steps)).toEqual(plain(want.narrow));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.narrow.result).toBe(
+    d3(ternarySearch((x) => (x - 2) ** 2, 0, 9, 1)),
+  );
+});

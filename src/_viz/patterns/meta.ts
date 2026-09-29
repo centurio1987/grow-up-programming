@@ -150,4 +150,21 @@ export const ALGO_VIZ_META: readonly AlgoVizMeta[] = [
       "구조가 배열 위에 쌓이는 층이면 LevelTable · CellStage",
     ],
   },
+  {
+    id: "ALGO-P9",
+    name: "Key Value Table",
+    exportName: "KeyValueTable",
+    summary:
+      "해시 맵 하나를 키 줄과 값 줄로 — 항목 하나가 한 열, 이번 걸음에 찾은 키(읽음)와 넣거나 고친 키(새로 씀)를 가른다",
+    dataShape: ["key-value", "change-over-time"],
+    structuralTraits: ["categorical", "paired"],
+    useWhen: [
+      "알고리즘이 드는 해시 맵의 내용(키마다 값)을 보일 때 — 누적합의 개수 · 값에서 인덱스로 가는 맵",
+      "이번 걸음에 어느 키를 찾았고 어느 키의 값이 바뀌었는지 보일 때(걸음 재생 패널에서는 배열 무대의 `map`)",
+    ],
+    avoidWhen: [
+      "키가 인덱스 그대로면 배열이다 — ArrayStrip · CellStage 의 칸 줄",
+      "키가 열여섯을 넘으면 그림이 넓어진다 — 관련 키만 남기거나 표",
+    ],
+  },
 ];
