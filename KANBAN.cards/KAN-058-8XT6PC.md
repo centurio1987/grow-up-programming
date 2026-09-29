@@ -51,7 +51,7 @@ scope: src/algorithms/**, src/_viz/**, design/viz/**, sandbox/algo-guide-v2/**, 
 ## 실행 계획
 <!-- `S<n>`은 고정 id — 이름을 바꾸지 않는다. 체크 상태는 doc-step 이 갱신한다. -->
 **배치 1 — 잴 수 있게 하기**
-- [ ] `S1` `check-v2 --strict <편>` — 한시 조항 셋을 끈 판정(`deep.origin` 필수 · P17·P18·P23 · 「견주다」 활용형 전부, `style.json:254` `v.common.gyeonju` 의 형태 목록을 읽는다). 완료: 시험 추가·통과, 파일럿 통과, 신규 넷 결과 기록(걸리면 전개 대상에 더함), `binarySearch` 에서 위반 목록이 나온다
+- [x] `S1` `check-v2 --strict <편>` — 한시 조항 셋을 끈 판정(`deep.origin` 필수 · P17·P18·P23 · 「견주다」 활용형 전부, `style.json:254` `v.common.gyeonju` 의 형태 목록을 읽는다). 완료: 시험 추가·통과, 파일럿 통과, 신규 넷 결과 기록(걸리면 전개 대상에 더함), `binarySearch` 에서 위반 목록이 나온다
 - [ ] `S3` 재집필 지시서 — `.claude/skills/guide-for-problem/SKILL.md` 에 「v2 재집필 경로」 절(입력: 옛 원고·`ref.ts`·`proof.ts`·기존 `sim.ts`(걸음 패널이 남으면 고쳐 쓰고 새로 만들지 않는다)·파일럿 · 순서 · 편 완료 명령). 규칙은 다시 쓰지 않고 SPEC·voice·파일럿을 가리킨다. 완료: `check-links` 통과
 
 (`S2` 는 id 를 유지한 채 배치 3 첫머리로 옮긴다.)
@@ -103,3 +103,5 @@ bunx tsc --noEmit
 - 2026-09-29T18:21 · s:62654a5c — `실행 계획` 섹션 교체
 - 2026-09-29T18:21 · s:62654a5c — `검증` 섹션 교체
 - 2026-09-30T01:21 · s:62654a5c — `실행 계획` 섹션 교체
+- 2026-09-30T01:21 · s:62654a5c · S1 doing — 착수
+- 2026-09-30T01:25 · s:62654a5c · S1 done — check-v2 --strict — 한시 조항 셋을 끈다(deep.origin 없음 P7 · P17 단계 0 · P18 · P23 을 조건 없이), voice 에서 아직 안 켠 금지 어휘를 voice-style.ts DEFERRED_METAPHORS(weight -3 · enabled:false, 지금 v.common.gyeonju 하나)로 읽어 P2 로. 시험 4개 추가(175/175). 결과: 파일럿·신규 넷 모두 --strict 통과(전개 대상에 더할 편 0). --all --strict 위반 110편 = 옛 구성 전부, 한시 조항 모드 --all 은 그대로 통과. binarySearch: P7 deep.origin 없음 · P17 단계 0 · P23 「이 문제」 3곳. SPEC §8 에 --strict 안내 한 줄. 발견: voice 정규식 견[주줘준줄줬] 이 「견줍」 32곳·「견줌」 2곳을 놓친다(93편 1,516곳 중 1,482곳만 잡음) — 원본이 전역이라 안 고쳤고 유저에게 묻는다. 인용 remap 6곳(KAN-034.8·KAN-035 카드 문서 · FEEDBACK.md — scope 밖, 줄번호만)

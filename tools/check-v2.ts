@@ -38,7 +38,12 @@ import {
   pick,
   type Section,
 } from "./section.ts";
-import { FORBIDDEN_PHRASES, MAX_PROSE_RUN, METAPHORS } from "./voice-style.ts";
+import {
+  DEFERRED_METAPHORS,
+  FORBIDDEN_PHRASES,
+  MAX_PROSE_RUN,
+  METAPHORS,
+} from "./voice-style.ts";
 
 export { METAPHORS } from "./voice-style.ts";
 
@@ -1037,10 +1042,13 @@ export function definitionRestated(text: string): Finding[] {
  * **한시 조항** — 옛 구성 110편에는 단계 헤딩이 없다. `deep.build` 안에 하위 절이 하나라도
  * 있을 때만 잰다(`deep.origin` 과 같은 방식, `SPEC.md` §8).
  */
-export function buildStageFindings(sections: Section[]): Finding[] {
+export function buildStageFindings(
+  sections: Section[],
+  strict = false,
+): Finding[] {
   const head = first(sections, "deep.build");
   const kids = sections.filter((s) => s.id.startsWith("deep.build."));
-  if (!head || kids.length === 0) return [];
+  if (!head || (kids.length === 0 && !strict)) return [];
   const out: Finding[] = [];
   const stages = pick(sections, "deep.build.stage");
   if (stages.length < 2) {
@@ -2139,6 +2147,14 @@ export interface CheckInput {
   directMemory?: boolean;
   maxProseRun?: number;
   /**
+   * **최종 기준으로 잰다**(`--strict`, `KAN-058`). `SPEC.md` §8 의 한시 조항 셋을 끈다 —
+   * `deep.origin` 은 필수 절, P17·P18 은 `deep.build` 에 하위 절이 없어도, P23 은 `deep.origin`
+   * 이 없어도 잰다. voice 에서 아직 안 켠 금지 어휘(`DEFERRED_METAPHORS`, 「견주다」)도 P2 로
+   * 잰다. 옛 구성 편을 다시 쓴 뒤 그 편 하나가 끝났는지를 여기서 본다. 전개 카드가 닫히면
+   * 이것이 기본이 되고 한시 조항은 지워진다. 알고리즘 골격에만 뜻이 있다.
+   */
+  strict?: boolean;
+  /**
    * 실습 문제의 풀 파일 줄이 링크한 대상(가이드 기준 상대 경로)과 그것이 실재하는가. algo 전용이고
    * P22 가 쓴다(`KAN-060`). 없으면 P22 는 구조만 보고 실재는 건너뛴다 — 시험은 파일을 안 읽는다.
    */
@@ -2300,6 +2316,11 @@ export function check(input: CheckInput): Finding[] {
   // 지적 원문을 큰따옴표로 옮긴 자리가 글쓴이의 문장으로 집계되면, 인용을 지우는 쪽으로
   // 원고가 움직인다. 금지 문형·표기 혼용은 인용 안에서도 그대로 본다 — 그쪽은 인용이든
   // 아니든 독자가 읽는 표기다.
+  // `--strict` 는 voice 에서 아직 안 켠 금지 어휘까지 잰다(알고리즘 골격만).
+  const metaphors =
+    input.strict === true && kind === "algo"
+      ? [...METAPHORS, ...DEFERRED_METAPHORS]
+      : METAPHORS;
   let inQuote = false;
   for (const [index, line] of text.split("\n").entries()) {
     const outside = stripQuotes(line, inQuote);
@@ -2312,7 +2333,7 @@ export function check(input: CheckInput): Finding[] {
         detail: `금지 문형 "${phrase}"`,
       });
     }
-    for (const { re, label } of METAPHORS) {
+    for (const { re, label } of metaphors) {
       const hit = re.exec(outside);
       if (hit === null) continue;
       findings.push({
@@ -2538,15 +2559,20 @@ export function check(input: CheckInput): Finding[] {
   }
   // ── P17 아이디어 상세의 단계 골격 · P18 본문 반말 (`L42` · `L45`, 한시 조항) ──
   if (kind === "algo") {
-    const staged = buildStageFindings(sections);
+    const strict = input.strict === true;
+    const staged = buildStageFindings(sections, strict);
     findings.push(...staged);
-    if (sections.some((s) => s.id.startsWith("deep.build."))) {
+    if (strict || sections.some((s) => s.id.startsWith("deep.build."))) {
       findings.push(...banmalFindings(text));
     }
     // ── P22 실습 절 구조 · P23 실습 문제 지칭 (`L49`, 한시 조항 — `deep.origin` 이 있는 편만) ──
     findings.push(...practiceFindings(parsed.sections, input.practiceLinks));
-    if (first(sections, "deep.origin")) {
+    if (strict || first(sections, "deep.origin")) {
       findings.push(...practiceReferenceFindings(text));
+    }
+    // `deep.origin` 은 필수 절이다 — 한시 조항 동안만 「있으면」 목록(P7b)에 있다.
+    if (strict && !first(sections, "deep.origin")) {
+      findings.push({ code: "P7", detail: "`deep.origin` 절이 없다" });
     }
   }
 
@@ -2836,6 +2862,7 @@ async function checkOne(
   target: string,
   json: boolean,
   notes = false,
+  strict = false,
 ): Promise<{ bad: number; missing: string[]; warnings: number }> {
   const file = Bun.file(target);
   if (!(await file.exists())) {
@@ -2849,7 +2876,7 @@ async function checkOne(
   // 그 실패는 원인에서 멀리 떨어진 자리에서 드러난다. 두 트랙 **밖**(시험용 임시 파일)만
   // `algo` 로 떨어지고, 트랙 안 경로는 `kindOf` 가 확실히 잡는다.
   const kind = kindOfOr(target, "algo");
-  const input: CheckInput = { text, kind };
+  const input: CheckInput = { text, kind, strict };
   const simFile = Bun.file(join(dir, `${stem}.sim.ts`));
   const benchFile = Bun.file(join(dir, `${stem}.bench.json`));
   if (await simFile.exists()) input.sim = await simFile.text();
@@ -2930,7 +2957,7 @@ async function checkOne(
       JSON.stringify({ target, findings, warnings, missing }, null, 2),
     );
   } else if (findings.length === 0) {
-    console.log(`${target} — P1~P23 통과.`);
+    console.log(`${target} — P1~P23 통과${strict ? "(--strict)" : ""}.`);
     if (notes) for (const line of skipNotes(missing)) console.log(`  ${line}`);
   } else {
     console.error(`${target} — 위반 ${findings.length}건.`);
@@ -2976,6 +3003,8 @@ export function skipNotes(missing: string[]): string[] {
 if (import.meta.main) {
   const args = Bun.argv.slice(2);
   const json = args.includes("--json");
+  // 한시 조항(`SPEC.md` §8)을 끈 최종 기준. 옛 구성 편을 다시 쓴 뒤 그 편이 끝났는지 본다.
+  const strict = args.includes("--strict");
 
   // **`--all` 은 대상 집합을 손으로 적지 않는다.** CI 가 글롭을 인자로 펴서 넘기면
   // 그 글롭이 ci.ts 안에 굳고, 새 편이 늘 때 아무도 그 자리를 안 고친다.
@@ -2991,7 +3020,7 @@ if (import.meta.main) {
     let warnedGuides = 0;
     const skipped = new Map<string, number>();
     for (const t of targets) {
-      const r = await checkOne(t, json);
+      const r = await checkOne(t, json, false, strict);
       bad += r.bad;
       warned += r.warnings;
       if (r.warnings > 0) warnedGuides++;
@@ -3021,7 +3050,7 @@ if (import.meta.main) {
   const target = args.find((a) => !a.startsWith("--"));
   if (target === undefined) {
     console.error(
-      "용법: bun run tools/check-v2.ts [--json] <guide.md> | --all",
+      "용법: bun run tools/check-v2.ts [--json] [--strict] <guide.md> | --all",
     );
     process.exit(2);
   }
@@ -3032,6 +3061,6 @@ if (import.meta.main) {
     console.error(`대상이 없다: ${target}`);
     process.exit(2);
   }
-  const { bad } = await checkOne(target, json, true);
+  const { bad } = await checkOne(target, json, true, strict);
   process.exit(bad === 0 ? 0 : 1);
 }

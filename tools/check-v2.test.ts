@@ -2406,3 +2406,53 @@ test("P23 — 문제 일반을 말하는 자리 · 인용 · 코드는 안 본�
     codes(check({ text: ok, sim: SIM, bench: { 비교: 34 } })),
   ).not.toContain("P23");
 });
+
+/* ── --strict — 한시 조항을 끈 최종 기준(`KAN-058`, `SPEC.md` §8) ── */
+
+// `PASSING` 은 옛 구성이다 — 한시 조항 아래에서는 통과하고, 최종 기준에서는 옛 구성이라 걸려야 한다.
+const strictCodes = (text: string, strict: boolean) =>
+  codes(check({ text, sim: SIM, bench: { 비교: 34 }, strict }));
+
+const SENTENCE = "양 끝에서 좁히면 한 번의 순회로 끝납니다.";
+
+test("--strict — 옛 구성은 deep.origin 없음 · 실현 단계 없음으로 걸린다", () => {
+  const findings = check({
+    text: PASSING,
+    sim: SIM,
+    bench: { 비교: 34 },
+    strict: true,
+  });
+  expect(
+    findings.some(
+      (f) => f.code === "P7" && f.detail.includes("`deep.origin` 절이 없다"),
+    ),
+  ).toBe(true);
+  expect(
+    findings.some(
+      (f) => f.code === "P17" && f.detail.includes("실현 단계가 0 개"),
+    ),
+  ).toBe(true);
+  expect(strictCodes(PASSING, false)).not.toContain("P17");
+});
+
+test("--strict — 단계 헤딩이 없어도 본문 반말(P18)을 잰다", () => {
+  const text = PASSING.replace(SENTENCE, `${SENTENCE} 끝은 이렇게 정해진다.`);
+  expect(strictCodes(text, false)).not.toContain("P18");
+  expect(strictCodes(text, true)).toContain("P18");
+});
+
+test("--strict — deep.origin 이 없어도 실습 문제 지칭(P23)을 잰다", () => {
+  const text = PASSING.replace(SENTENCE, `이 문제의 제약이면 ${SENTENCE}`);
+  expect(strictCodes(text, false)).not.toContain("P23");
+  expect(strictCodes(text, true)).toContain("P23");
+});
+
+test("--strict — voice 에서 아직 안 켠 「견주다」도 P2 로 잰다", () => {
+  const text = PASSING.replace(SENTENCE, `두 끝을 견주어 ${SENTENCE}`);
+  const p2 = (strict: boolean) =>
+    check({ text, sim: SIM, bench: { 비교: 34 }, strict }).filter(
+      (f) => f.code === "P2" && f.detail.includes("견주"),
+    );
+  expect(p2(false)).toEqual([]);
+  expect(p2(true).length).toBe(1);
+});
