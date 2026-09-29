@@ -1,6 +1,6 @@
 {
   "next_id": 61,
-  "next_seq": 439,
+  "next_seq": 440,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1506,7 +1506,7 @@
       ]
     },
     "KAN-058.1-9TBXDA": {
-      "col": "doing",
+      "col": "review",
       "title": "샘플 두 편 — binarySearch · stronglyConnectedComponents",
       "verbatim": "kan-058 전략 수립, 실행 계획 수립, 칸반 카드 반영\n\n개념이 단순한 가이드, sparseTable보다 개념이 어려운 가이드 결과를 샘플로 제공하는 절차를 포함해라. 샘플을 통해, 검토할 것이고, 검토를 통과 하면 전편 전개하도록 계획해라",
       "생성": "ai",
@@ -1524,7 +1524,13 @@
       "goal_hash": "95d79e27333c886985bcae2c7819f246536bc5b0",
       "memo": "상위 KAN-058 의 배치 2(S4·S5·S6)를 이 카드의 검토로 판정한다. SCC 는 웨이브 순서의 예외이고 graph 카테고리 선례를 겸하지 않는다. 근거: KANBAN.cards/KAN-058-8XT6PC.md 「전략」",
       "memo_hash": "5f5624589a1d14e9cc2497b7d7a13ae51dfd33d5",
-      "parent": "KAN-058-8XT6PC"
+      "parent": "KAN-058-8XT6PC",
+      "scope": [
+        "src/algorithms/binary-search/binarySearch/**",
+        "src/algorithms/graph/stronglyConnectedComponents/**",
+        "src/_viz/**",
+        "design/viz/**"
+      ]
     }
   },
   "order": [
@@ -1601,6 +1607,16 @@
     "KAN-058.1-9TBXDA"
   ],
   "recent": [
+    {
+      "seq": 439,
+      "t": "2026-09-30T02:32",
+      "a": "ai",
+      "id": "KAN-058.1-9TBXDA",
+      "op": "move",
+      "w": "TMW7FW",
+      "from": "doing",
+      "to": "review"
+    },
     {
       "seq": 438,
       "t": "2026-09-30T01:43",
@@ -2165,17 +2181,6 @@
         "reason": "",
         "goal": ""
       }
-    },
-    {
-      "seq": 397,
-      "t": "2026-09-24T15:30",
-      "a": "유저",
-      "id": "KAN-056-VPCM91",
-      "op": "edit",
-      "w": "46PCAX",
-      "field": "verbatim",
-      "before": "",
-      "after": "지금은 아이디어 상세가, naive에서 시작해서 핵심 알고리즘에 도달하는 서사로 구성되어 있다. 그런데, 이 구성을 별도 항목으로 빼고, 아이디어 상세 자체는 아이디어에 초점을 맞춰서 상세히 집필해라. 집필 시, 최대한 자세히 이해하기 쉽도록 해야한다는 지시가 CLAUDE.md 때문에 무시당하는 문제가 있으니, /output-style을 learning으로  설정하여 작업하기 바란다.\n\n결과물은 src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md에 대한 파일럿 가이드 생성을 통해 확인하겠다."
     }
   ],
   "waivers": [
