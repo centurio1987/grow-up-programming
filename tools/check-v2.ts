@@ -118,10 +118,21 @@ export function maxProseRun(body: string[]): number {
   let run = 0;
   let worst = 0;
   let fenced = false;
+  let inMath = false;
   let inParagraph = false;
   const proofLines = closedProofLines(body);
 
   for (const [index, line] of body.entries()) {
+    // 수식 블록(`$$…$$`)은 산문 문단이 아니다. 그렇다고 그림도 아니라 연속을 끊지도 않는다
+    // (`SPEC.md` §12 「식의 전개」 — 수식은 문단을 끊지 못한다). 한때 산문 한 문단으로 세어서,
+    // 식을 수식 블록으로 옮긴 편이 P1 에 걸려 텍스트 펜스로 되돌아갔다(`KAN-058` 샘플 binarySearch).
+    const trimmed = line.trim();
+    if (!fenced && (inMath || trimmed.startsWith("$$"))) {
+      const marks = trimmed.match(/\$\$/g)?.length ?? 0;
+      if (marks % 2 === 1) inMath = !inMath;
+      inParagraph = false;
+      continue;
+    }
     if (proofLines.has(index)) {
       run = 0;
       inParagraph = false;
@@ -2858,17 +2869,15 @@ function norm(s: string): string {
  * `--all` 이면 끈다 — 111편 × 세 줄이면 통과 화면이 안내로 덮인다(`--all` 은 대신
  * 끝에서 편 수로 요약한다).
  */
-async function checkOne(
+/**
+ * 가이드 한 편을 읽어 사이드카까지 모은 뒤 판정한다 — 화면에 아무것도 찍지 않는다.
+ * `checkOne` 이 이것을 찍고, `algo-wbs.ts` 가 전개 진척(`--strict` 통과 여부)을 셀 때 부른다.
+ */
+export async function guideFindings(
   target: string,
-  json: boolean,
-  notes = false,
   strict = false,
-): Promise<{ bad: number; missing: string[]; warnings: number }> {
+): Promise<{ findings: Finding[]; warnings: Finding[]; missing: string[] }> {
   const file = Bun.file(target);
-  if (!(await file.exists())) {
-    console.error(`대상이 없다: ${target}`);
-    return { bad: 1, missing: [], warnings: 0 };
-  }
   const text = await file.text();
   const stem = basename(target).replace(/\.md$/, "");
   const dir = dirname(target);
@@ -2952,6 +2961,20 @@ async function checkOne(
   // **경고는 판정에 안 들어간다.** 화면에는 뜨고 `--json` 에도 실린다 — 안 뜨면 넓힌
   // 규칙이 잡은 자리를 아무도 못 보고, 위반으로 세면 53편이 한꺼번에 빨개진다.
   const warnings = checkWarnings(input);
+  return { findings, warnings, missing };
+}
+
+async function checkOne(
+  target: string,
+  json: boolean,
+  notes = false,
+  strict = false,
+): Promise<{ bad: number; missing: string[]; warnings: number }> {
+  if (!(await Bun.file(target).exists())) {
+    console.error(`대상이 없다: ${target}`);
+    return { bad: 1, missing: [], warnings: 0 };
+  }
+  const { findings, warnings, missing } = await guideFindings(target, strict);
   if (json) {
     console.log(
       JSON.stringify({ target, findings, warnings, missing }, null, 2),

@@ -2468,3 +2468,19 @@ test("--strict — 「견줍니다」·「견줌」도 잡는다 (활용형 누�
     ).toBe(true);
   }
 });
+
+// 식을 수식 블록으로 옮긴 편이 P1 에 걸려 텍스트 펜스로 되돌아간 자리(`KAN-058` 샘플 binarySearch).
+test("P1 — 수식 블록은 산문 문단으로 세지 않고, 연속을 끊지도 않는다", () => {
+  const para = (s: string) => [s, ""];
+  const math = ["$$", "x = \\frac{a}{b}", "$$", ""];
+  // 산문 둘 사이의 수식은 문단이 아니다 — 연속은 둘이다.
+  expect(maxProseRun([...para("가."), ...math, ...para("나.")])).toBe(2);
+  // 한 줄 수식도 같다.
+  expect(maxProseRun([...para("가."), "$$ x = 1 $$", "", ...para("나.")])).toBe(
+    2,
+  );
+  // 수식이 끊지 못하므로 산문 셋은 셋이다.
+  expect(
+    maxProseRun([...para("가."), ...math, ...para("나."), ...para("다.")]),
+  ).toBe(3);
+});
