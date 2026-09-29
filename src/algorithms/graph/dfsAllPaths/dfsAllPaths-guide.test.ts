@@ -12,97 +12,103 @@
 import { expect, test } from "bun:test";
 import { dfsAllPaths } from "./dfsAllPaths-guide.ref.ts";
 
-const CASES: [string, number, [number, number][], number, number, number[][]][] =
+const CASES: [
+  string,
+  number,
+  [number, number][],
+  number,
+  number,
+  number[][],
+][] = [
   [
+    "다이아몬드 DAG — 두 경로",
+    4,
     [
-      "다이아몬드 DAG — 두 경로",
-      4,
-      [
-        [0, 1],
-        [0, 2],
-        [1, 3],
-        [2, 3],
-      ],
-      0,
-      3,
-      [
-        [0, 1, 3],
-        [0, 2, 3],
-      ],
+      [0, 1],
+      [0, 2],
+      [1, 3],
+      [2, 3],
     ],
+    0,
+    3,
     [
-      "여러 경로 — 사전식 정렬",
-      4,
-      [
-        [0, 1],
-        [0, 2],
-        [1, 2],
-        [1, 3],
-        [2, 3],
-      ],
-      0,
-      3,
-      [
-        [0, 1, 2, 3],
-        [0, 1, 3],
-        [0, 2, 3],
-      ],
+      [0, 1, 3],
+      [0, 2, 3],
     ],
-    ["경로가 없으면 빈 배열", 3, [[0, 1]], 0, 2, []],
-    ["역방향 간선만 있어 도달 불가", 2, [[1, 0]], 0, 1, []],
+  ],
+  [
+    "여러 경로 — 사전식 정렬",
+    4,
     [
-      "source === target — 길이 1 경로 하나",
-      3,
-      [
-        [0, 1],
-        [1, 2],
-      ],
-      1,
-      1,
-      [[1]],
+      [0, 1],
+      [0, 2],
+      [1, 2],
+      [1, 3],
+      [2, 3],
     ],
+    0,
+    3,
     [
-      "사이클이 있어도 단순 경로만 반환",
-      3,
-      [
-        [0, 1],
-        [1, 2],
-        [2, 0],
-        [0, 2],
-      ],
-      0,
-      2,
-      [
-        [0, 1, 2],
-        [0, 2],
-      ],
+      [0, 1, 2, 3],
+      [0, 1, 3],
+      [0, 2, 3],
     ],
+  ],
+  ["경로가 없으면 빈 배열", 3, [[0, 1]], 0, 2, []],
+  ["역방향 간선만 있어 도달 불가", 2, [[1, 0]], 0, 1, []],
+  [
+    "source === target — 길이 1 경로 하나",
+    3,
     [
-      "자기 루프는 무시된다",
-      2,
-      [
-        [0, 0],
-        [0, 1],
-      ],
-      0,
-      1,
-      [[0, 1]],
+      [0, 1],
+      [1, 2],
     ],
+    1,
+    1,
+    [[1]],
+  ],
+  [
+    "사이클이 있어도 단순 경로만 반환",
+    3,
     [
-      "중복 간선은 경로를 중복 생성하지 않는다",
-      3,
-      [
-        [0, 1],
-        [0, 1],
-        [1, 2],
-      ],
-      0,
-      2,
-      [[0, 1, 2]],
+      [0, 1],
+      [1, 2],
+      [2, 0],
+      [0, 2],
     ],
-    ["최소 입력 n=1, source=target", 1, [], 0, 0, [[0]]],
-    ["직접 간선 하나", 2, [[0, 1]], 0, 1, [[0, 1]]],
-  ];
+    0,
+    2,
+    [
+      [0, 1, 2],
+      [0, 2],
+    ],
+  ],
+  [
+    "자기 루프는 무시된다",
+    2,
+    [
+      [0, 0],
+      [0, 1],
+    ],
+    0,
+    1,
+    [[0, 1]],
+  ],
+  [
+    "중복 간선은 경로를 중복 생성하지 않는다",
+    3,
+    [
+      [0, 1],
+      [0, 1],
+      [1, 2],
+    ],
+    0,
+    2,
+    [[0, 1, 2]],
+  ],
+  ["최소 입력 n=1, source=target", 1, [], 0, 0, [[0]]],
+  ["직접 간선 하나", 2, [[0, 1]], 0, 1, [[0, 1]]],
+];
 
 for (const [name, n, edges, source, target, want] of CASES) {
   test(`정본 — ${name}`, () => {
@@ -172,4 +178,41 @@ test("정점 1,000 개짜리 사슬에서도 결과가 나온다", () => {
   const got = dfsAllPaths(V, edges, 0, V - 1);
   expect(got.length).toBe(1);
   expect((got[0] as number[]).length).toBe(V);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./dfsAllPaths-guide.sim.ts");
+  const fig = await import("./dfsAllPaths-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.allPathsWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.allPathsWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 result 띠를 정본의 답에 직접 다시 묻는다.
+  const answer = dfsAllPaths(
+    6,
+    [
+      [0, 2],
+      [0, 1],
+      [1, 2],
+      [1, 4],
+      [2, 0],
+      [2, 4],
+      [2, 5],
+      [5, 5],
+    ],
+    0,
+    4,
+  );
+  const last = sim.allPathsWalk.steps.at(-1);
+  const rows = (last?.strips ?? [])
+    .filter((s) => s.label.startsWith("result["))
+    .map((s) => s.values);
+  expect(rows).toEqual(answer);
+  expect(last?.strips.find((s) => s.label === "path")?.values).toEqual([]);
+  expect(sim.allPathsWalk.result).toBe(JSON.stringify(answer));
 });
