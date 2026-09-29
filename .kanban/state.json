@@ -1,6 +1,6 @@
 {
   "next_id": 61,
-  "next_seq": 436,
+  "next_seq": 437,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -238,12 +238,12 @@
       "memo_hash": "6aa93b8ff5c660cd56c867eb16e720afbefdb163"
     },
     "KAN-058-8XT6PC": {
-      "col": "todo",
+      "col": "doing",
       "title": "알고리즘 가이드 110편 v2 재구성 전개 — KAN-056 파일럿 구성을 나머지 편에 적용",
       "verbatim": "110편 전개는 kan-057 완료 이후로 수행 가능하게 만들어라.",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-29",
+      "갱신": "2026-09-30",
       "title_hash": "87d8a43354f28c5694770e1715dd521715a72511",
       "verbatim_hash": "026debc00e6e229230f5dc6bfdf21c7ee8025ee0",
       "short": "알고리즘 110편 전개",
@@ -1597,10 +1597,20 @@
     "KAN-057-J36E1B",
     "KAN-059-PSFTN4",
     "KAN-060-9P4ZAA",
-    "KAN-058-8XT6PC",
-    "KAN-058.1-9TBXDA"
+    "KAN-058.1-9TBXDA",
+    "KAN-058-8XT6PC"
   ],
   "recent": [
+    {
+      "seq": 436,
+      "t": "2026-09-30T01:21",
+      "a": "ai",
+      "id": "KAN-058-8XT6PC",
+      "op": "move",
+      "w": "TMW7FW",
+      "from": "todo",
+      "to": "doing"
+    },
     {
       "seq": 435,
       "t": "2026-09-29T19:04",
@@ -2172,16 +2182,6 @@
       "op": "serialize",
       "w": "46PCAX",
       "with_": "KAN-042-Z02G0W",
-      "reason": "전략 재수립 완료"
-    },
-    {
-      "seq": 394,
-      "t": "2026-09-18T21:47",
-      "a": "ai",
-      "id": "KAN-036-0G05DE",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-046-ZFDFCQ",
       "reason": "전략 재수립 완료"
     }
   ],
