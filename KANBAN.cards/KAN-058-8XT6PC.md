@@ -87,6 +87,7 @@ bun test src/algorithms/<카테고리>/<편>/<편>-guide.test.ts
 bun run tools/build-html.ts $G
 bun run tools/check-metaphor.ts $G
 bun run tools/guide-core.ts check
+bunx tsc --noEmit
 ```
 
 문체 박자 등급(실습 앞까지, `scan_ai_style.py --voice algorithm-guide-writer`)은 합격선이 아니라 보고할 값이다 — 파일럿 파트 1·2 도 C 다.
@@ -133,3 +134,5 @@ bunx tsc --noEmit
 - 2026-09-30T03:00 · s:62654a5c · S7 doing — 착수
 - 2026-09-30T03:19 · s:62654a5c — S7 W1 longestSubarrayAtMostSum — 토큰 363,929 · 16분 52초. 두 포인터·슬라이딩 윈도 첫 편, 배열 무대(창 · l·r · 합은 calc · best 는 vars). 증명 36 · 시험 14 · --strict 통과(메인 재확인). 낯선 개념 절 없음, deep.build 4단계. 검토 때 볼 것: 옛 원고의 검증 없던 값(25 번)을 잴 수 있는 15 번으로 교체 · 전제 표 둘째 줄 새 내용(「창의 값을 칸 하나씩 더하고 뺄 수 있다」) · 뺀 칸을 「읽음」으로 그리는 방식을 무대 규약 없이 정함
 - 2026-09-30T03:21 · s:62654a5c — S7 W1 bfsShortestPath — 토큰 433,296 · 19분 41초. graph 첫 편, 그래프 무대(대기열은 띠, 거리는 정점 값)·NodeGraph 그림 6, 새 패턴 없음. 증명 31 · 시험 11 · --strict 통과(메인 재확인). 검토 때 볼 것: 옛 원고 두 표의 셈 기준이 어긋나 있던 것을 실행 기준 하나로(V=10 에서 180 · 10만에서 19,999,800,000) · 걸음이 T1~T10 → T1~T12 · 「경로를 전부 만들면 지수」 주장을 근거 없어 뺌 · deep.math 를 남긴 것이 L36(식이 본문 값만으로 안 나오는 것을 주는가)을 넘는지
+- 2026-09-30T03:31 · s:62654a5c — `검증` 섹션 교체
+- 2026-09-30T03:31 · s:62654a5c — 지적 없이 스스로 찾은 누락: 편 검증에 tsc 가 없어 longestSubarrayAtMostSum proof.ts 의 타입 오류(실행은 맞음)를 커밋함(4add202 에서 정정). 편 완료 명령(지시서 · 카드 검증 절)에 bunx tsc --noEmit 을 더했다 — 메인 재확인도 이것을 돈다

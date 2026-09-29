@@ -69,6 +69,7 @@ bun test src/algorithms/<카테고리>/<편>/<편>-guide.test.ts
 bun run tools/build-html.ts $G
 bun run tools/check-metaphor.ts $G
 bun run tools/guide-core.ts check
+bunx tsc --noEmit                      # 사이드카 타입 — bun 은 타입을 안 보고 실행하므로 따로 잰다
 ```
 
 문체 박자 등급은 합격선이 아니라 보고할 값이다. 실습 절 앞까지만 잘라서 잰다(실습은 옮겨 온 문제
