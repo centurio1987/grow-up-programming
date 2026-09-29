@@ -25,3 +25,5 @@
 {"at": "2026-09-30", "by": "유저", "id": "60debc1360de2c10", "kind": "note", "ref": "09c098ebe68f", "seq": 24, "t": "2026-09-30T02:43", "text": "추천을 따름", "via": "화면", "w": "TMW7FW"}
 {"at": "2026-09-30", "by": "유저", "id": "9cb02e043acf67b4", "kind": "note", "ref": "ee156837faa1", "seq": 25, "t": "2026-09-30T02:43", "text": "추천을 따름", "via": "화면", "w": "TMW7FW"}
 {"at": "2026-09-30", "by": "유저", "id": "4fffcc2e51de62b8", "kind": "note", "ref": "72625b9bf7c7", "seq": 26, "t": "2026-09-30T02:43", "text": "추천을 따름", "via": "화면", "w": "TMW7FW"}
+{"at": "2026-09-30", "by": "유저", "id": "af9c806f4e7aa372", "kind": "judge", "ref": "2e09635bd40b", "seq": 27, "t": "2026-09-30T02:46", "verdict": "승인", "via": "CLI", "w": "TMW7FW"}
+{"at": "2026-09-30", "by": "ai", "id": "fa6cc0faa2305d4a", "kind": "judge", "seq": 28, "t": "2026-09-30T02:46", "verdict": "승인", "via": "CLI", "w": "TMW7FW"}

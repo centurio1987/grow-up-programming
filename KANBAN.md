@@ -135,21 +135,6 @@
     ```
 
 ## 검토
-- `KAN-058.1-9TBXDA` 샘플 두 편 — binarySearch · stronglyConnectedComponents — 생성:ai · 최종:ai · 갱신:2026-09-30
-  - 상위: `KAN-058-8XT6PC` (진행 중)
-  - 짧은 제목: 전개 전 샘플 두 편
-  - 목적: 개념이 단순한 binarySearch 와 sparseTable 보다 어려운 stronglyConnectedComponents 를 전개용 지시서 그대로 서브에이전트가 재집필한다
-  - 이유: 유저가 샘플 검토를 통과해야 전편을 전개하라고 지시했다(2026-09-29)
-  - 목표: 두 편이 편 완료 기준을 통과하고, 이 카드의 검토가 승인되면 KAN-058 전개(S2·S7 이후)가 열린다
-  - 메모: 상위 KAN-058 의 배치 2(S4·S5·S6)를 이 카드의 검토로 판정한다. SCC 는 웨이브 순서의 예외이고 graph 카테고리 선례를 겸하지 않는다. 근거: KANBAN.cards/KAN-058-8XT6PC.md 「전략」
-  - 실행 문서: KANBAN.cards/KAN-058.1-9TBXDA.md (1/2 · 최근 09-30)
-  - 검토 문서: KANBAN.reviews/KAN-058.1-9TBXDA.review.md (승인 5/6 · 추가 의견 총 5 · 검토 대기)
-  - 원문:
-    ```text
-    kan-058 전략 수립, 실행 계획 수립, 칸반 카드 반영
-    
-    개념이 단순한 가이드, sparseTable보다 개념이 어려운 가이드 결과를 샘플로 제공하는 절차를 포함해라. 샘플을 통해, 검토할 것이고, 검토를 통과 하면 전편 전개하도록 계획해라
-    ```
 
 ## 완료
 - `KAN-029` [P0-a·29] 집필 엔진 가용성 확보 — 플러그인 설치·활성화 + lock 버전 재고정 — 생성:ai · 최종:ai · 갱신:2026-08-04
@@ -537,4 +522,19 @@
     - guide는 문제에 대한 guide가 아니라, 알고리즘 자체에 대한 guide여야 한다.
     - guide 마지막에 문제를 만들어서 실습 항목으로 배치한다.
     - 기존 problem.md는 삭제한다.
+    ```
+- `KAN-058.1-9TBXDA` 샘플 두 편 — binarySearch · stronglyConnectedComponents — 생성:ai · 최종:ai · 갱신:2026-09-30
+  - 상위: `KAN-058-8XT6PC` (진행 중)
+  - 짧은 제목: 전개 전 샘플 두 편
+  - 목적: 개념이 단순한 binarySearch 와 sparseTable 보다 어려운 stronglyConnectedComponents 를 전개용 지시서 그대로 서브에이전트가 재집필한다
+  - 이유: 유저가 샘플 검토를 통과해야 전편을 전개하라고 지시했다(2026-09-29)
+  - 목표: 두 편이 편 완료 기준을 통과하고, 이 카드의 검토가 승인되면 KAN-058 전개(S2·S7 이후)가 열린다
+  - 메모: 상위 KAN-058 의 배치 2(S4·S5·S6)를 이 카드의 검토로 판정한다. SCC 는 웨이브 순서의 예외이고 graph 카테고리 선례를 겸하지 않는다. 근거: KANBAN.cards/KAN-058-8XT6PC.md 「전략」
+  - 실행 문서: KANBAN.cards/KAN-058.1-9TBXDA.md (2/2 · 최근 09-30)
+  - 검토 문서: KANBAN.reviews/KAN-058.1-9TBXDA.review.md (승인 6/6 · 추가 의견 총 5 · 승인)
+  - 원문:
+    ```text
+    kan-058 전략 수립, 실행 계획 수립, 칸반 카드 반영
+    
+    개념이 단순한 가이드, sparseTable보다 개념이 어려운 가이드 결과를 샘플로 제공하는 절차를 포함해라. 샘플을 통해, 검토할 것이고, 검토를 통과 하면 전편 전개하도록 계획해라
     ```
