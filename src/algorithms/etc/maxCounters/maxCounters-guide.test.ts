@@ -5,13 +5,13 @@
  * 가져오므로 그대로 재사용할 수 없다. **케이스만** 옮겨 정본에 다시 건다.
  *
  * 벽시계를 재는 케이스는 옮기지 않았다 — 실행마다 값이 달라 판정이 안 된다. 그 케이스의
- * **입출력**(N=M=100,000 혼합 연산)은 문제 서술을 그대로 옮긴 절차와 대조하는 것으로 남겼다.
+ * **입출력**(N=M=100,000 혼합 연산)은 정의를 그대로 옮긴 절차와 대조하는 것으로 남겼다.
  */
 import { expect, test } from "bun:test";
 import { maxCounters } from "./maxCounters-guide.ref.ts";
 
 const CASES: [number, number[], number[]][] = [
-  // 기본 동작 — 문제 예시
+  // 기본 동작 — 본문 전개 입력
   [5, [3, 4, 4, 6, 1, 4, 4], [3, 2, 2, 4, 2]],
   // 최대 맞추기 없음
   [3, [1, 2, 3, 1], [2, 1, 1]],
@@ -51,7 +51,7 @@ test("본문 전개가 쓰는 입력", () => {
   expect(maxCounters(5, [3, 4, 4, 6, 1, 4, 4])).toEqual([3, 2, 2, 4, 2]);
 });
 
-test("혼합 연산에서 문제 서술 그대로의 절차와 답이 같다", () => {
+test("혼합 연산에서 정의 그대로의 절차와 답이 같다", () => {
   // 원본의 성능 케이스와 같은 생성식이되 규모만 줄였다 — 대조군이 N·M 이라
   // 100,000 에서는 대조 자체가 30 억 번을 넘는다. 그 규모는 위의 전부 최대 맞추기 케이스가 진다.
   const N = 2_000;
@@ -59,7 +59,7 @@ test("혼합 연산에서 문제 서술 그대로의 절차와 답이 같다", (
     k % 3 === 0 ? N + 1 : (k % N) + 1,
   );
 
-  // 문제 서술을 그대로 옮긴 절차. 느리지만 답은 정의 그대로다.
+  // 정의를 그대로 옮긴 절차. 느리지만 답은 정의 그대로다.
   const naive = (): number[] => {
     const c = new Array<number>(N).fill(0);
     let max = 0;
@@ -83,4 +83,21 @@ test("최악을 만드는 입력도 답은 정확하다", () => {
   const N = 1_000;
   const A = [...new Array<number>(N - 1).fill(1), N + 1];
   expect(maxCounters(N, A)).toEqual(new Array<number>(N).fill(N - 1));
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./maxCounters-guide.sim.ts");
+  const { simStepsFromRef, WALK_N, WALK } = await import(
+    "./maxCounters-guide.fig.tsx"
+  );
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.counters.steps)).toEqual(plain(simStepsFromRef().counters));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  const want = maxCounters(WALK_N, [...WALK]);
+  expect(sim.counters.result).toBe(`[${want.join(", ")}]`);
 });

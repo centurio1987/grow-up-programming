@@ -262,3 +262,33 @@ test("배열 무대 · 칸 수로 세지 않는 후보 — 값 줄 곁말이 구
 
   await act(async () => root.unmount());
 });
+
+test("배열 무대 · 층 곁말 — 처음부터 가득 찬 줄은 채움 대신 걸음마다 적은 곁말을 싣는다", async () => {
+  const spec = (
+    await import("../../algorithms/etc/maxCounters/maxCounters-guide.sim.ts")
+  ).counters as unknown as PlayerSpec;
+  document.body.innerHTML = '<div id="m"></div>';
+  const host = document.getElementById("m") as HTMLElement;
+  const root = createRoot(host);
+  await act(async () => root.render(<StepPlayer {...spec} />));
+
+  const stage = () =>
+    host.querySelector(".gs-player-stage") as HTMLElement | null;
+  const h0 = stage()?.style.height;
+  // T1 — 저장값 줄과 참값 줄이 모두 0 으로 차 있지만 곁말은 「채움 5 / 5」가 아니다
+  expect(stage()?.textContent).toContain("옛 값 0 칸");
+  expect(stage()?.textContent).toContain("base = 0");
+  expect(stage()?.textContent).not.toContain("채움");
+
+  // 최대 맞추기 걸음 — 저장값은 그대로이고 곁말만 바뀐다. 무대 높이는 그대로다
+  const badge = (id: string) =>
+    [...host.querySelectorAll(".gs-player-badge")].find(
+      (b) => b.textContent === id,
+    ) as HTMLButtonElement;
+  await act(async () => badge("T5").click());
+  expect(stage()?.style.height).toBe(h0);
+  expect(stage()?.textContent).toContain("옛 값 4 칸");
+  expect(stage()?.textContent).toContain("base = 2");
+
+  await act(async () => root.unmount());
+});

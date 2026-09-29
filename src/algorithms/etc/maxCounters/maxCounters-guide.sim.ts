@@ -1,165 +1,308 @@
-import type { Frame } from "#guide-sim";
+import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(9)를 넘지 않는다 — P3 이 그 관계를 잰다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `N = 5`, `A = [3, 4, 4, 6, 1, 4, 4]`.
+ * `counters` 는 시작 T1, 연산 하나씩을 처리하는 T2~T8, 마지막 채우기 T9 다.
+ *
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가
+ * 배열 무대(`arrayStage.ts`)를 고른다. 맨 위 줄은 연산 배열 `A` 이고, 괄호는 지금까지 처리한 연산 `[0,k]`,
+ * ▲ 는 이번에 꺼낸 연산이다. 그 아래에 알고리즘이 드는 저장값 배열 `counter` 와, 저장값과 바닥값으로 정해지는
+ * 참값 줄을 `layers` 로 쌓는다(SPEC §13 배열 줄). 두 줄의 칸 `i` 는 카운터 `i` 다. 저장값 줄의 곁말은 저장값이
+ * 바닥값보다 작은 칸(옛 값)의 수이고, 참값 줄의 곁말이 바닥값 `base` 다. 계산 한 줄은 알약(`calc`), 자리가 없는 `high` 는
+ * 남는 변수다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
- *
- * ## `array` + `keyValue` 조합의 두 번째 편 — 선례의 다섯을 이어받는다
- *
- * 다섯은 `longestSubarrayAtMostSum-guide.sim.ts` 가 세웠다. 이 편에서 달라지는 것은 1번
- * 하나이고, 나머지 넷은 그대로다.
- *
- * 1. **`array` 는 카운터 배열 하나만 담는다.** 선례가 「입력 배열 그 자체」라고 적은 자리인데,
- *    이 문제는 입력이 둘이다 — 카운터 배열(길이 `N`)과 연산 배열 `A`(길이 `M`). 자리를
- *    가리키는 것은 카운터 배열 쪽이라 그것이 `array` 로 가고, `A` 는 진행 위치가 수 하나(`k`)
- *    라 `keyValue` 의 `A[k]` 항목이 적는다. 두 배열을 한 패널에 번갈아 담으면 화면의 배열이
- *    무엇인지 프레임마다 다시 읽어야 한다.
- * 2. **위치는 `array`, 스칼라는 `keyValue`.** 인덱스 `i` 는 `array` 가 그리고, `base`·`high`
- *    처럼 자리가 없는 수는 `keyValue` 가 적는다. 한 값을 두 패널에 함께 두지 않는다.
- * 3. **`pointers` 의 키는 본문 기호표의 이름과 글자 그대로 같게 쓴다.** 여기서는 `i` 다.
- *    **최대 맞추기 프레임처럼 `i` 가 없는 자리는 그 프레임에서 뺀다** — 없는 값을 `0` 으로
- *    적으면 0번 카운터를 건드린 것으로 보인다.
- * 4. **`highlight` 는 이번 연산이 값을 적은 칸, `marked` 는 저장값이 `base` 보다 작아 아직
- *    옛 값을 들고 있는 칸.** 둘이 겹치면 프리셋이 `highlight` 색으로 그리므로
- *    (`src/_guide-sim/index.tsx` 의 `ArrayView`), `marked` 는 이번에 안 건드린 칸을 보이는
- *    자리로 쓴다.
- * 5. **`entries` 는 프레임마다 같은 항목을 같은 순서로 두고 값만 바꾼다.** 첫 항목은 분기
- *    조건이 보는 값(`A[k]`), 마지막 항목은 **답을 결정하는 값**(`base`) 으로 고정한다.
- *    값이 없는 자리는 `—` 로 적는다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본 실행에서 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `maxCounters-guide.test.ts` 가 잰다.
  */
+
 export const counters = {
-  view: ["array", "keyValue"] as const,
+  player: "stage",
+  stage: "array",
+  arrayName: "A",
+  rangeLabel: "처리한 연산",
   title: "maxCounters(5, [3, 4, 4, 6, 1, 4, 4])",
   result: "[3, 2, 2, 4, 2]",
   steps: [
     {
       title: "T1 시작",
-      detail: "연산을 하나도 처리하지 않은 상태. 모든 칸이 0 이고 바닥값도 0 이다.",
-      array: [0, 0, 0, 0, 0],
-      highlight: [],
-      marked: [],
-      entries: [
-        { label: "A[k]", value: "—" },
-        { label: "counter[i]", value: "—" },
-        { label: "high", value: 0 },
-        { label: "base", value: 0 },
+      text: "연산을 하나도 처리하지 않은 상태입니다. 카운터 5 칸이 모두 0 이고 base 와 high 도 0 입니다.",
+      array: [3, 4, 4, 6, 1, 4, 4],
+      range: null,
+      read: [],
+      write: [],
+      calc: null,
+      vars: "high = 0",
+      layers: [
+        {
+          name: "counter",
+          values: [0, 0, 0, 0, 0],
+          read: [],
+          write: [],
+          side: "옛 값 0 칸",
+        },
+        {
+          name: "참값",
+          values: [0, 0, 0, 0, 0],
+          read: [],
+          write: [],
+          side: "base = 0",
+        },
       ],
     },
     {
-      title: "T2 k=0 · A[k]=3 — ①",
-      detail: "3 번 카운터를 증가시킨다. 저장값 0 이 바닥값 0 보다 작지 않아 그대로 출발한다.",
-      array: [0, 0, 1, 0, 0],
-      highlight: [2],
-      marked: [],
-      pointers: { i: 2 },
-      entries: [
-        { label: "A[k]", value: 3 },
-        { label: "counter[i]", value: 1 },
-        { label: "high", value: 1 },
-        { label: "base", value: 0 },
+      title: "T2 k=0 · A[k]=3 ①",
+      text: "3 번 카운터(i = 2)를 증가시킵니다. 저장값 0 이 base 0 보다 작지 않아 저장값에서 출발합니다. counter[2] = 1 입니다. high 가 1 로 오릅니다.",
+      array: [3, 4, 4, 6, 1, 4, 4],
+      range: [0, 0],
+      read: [0],
+      write: [],
+      pointers: {
+        k: 0,
+      },
+      calc: {
+        expr: "max(0, 0) + 1",
+        result: "1",
+      },
+      vars: "high = 1",
+      layers: [
+        {
+          name: "counter",
+          values: [0, 0, 1, 0, 0],
+          read: [2],
+          write: [2],
+          side: "옛 값 0 칸",
+        },
+        {
+          name: "참값",
+          values: [0, 0, 1, 0, 0],
+          read: [],
+          write: [2],
+          side: "base = 0",
+        },
       ],
     },
     {
-      title: "T3 k=1 · A[k]=4 — ①",
-      detail: "4 번 카운터를 증가시킨다. 최댓값은 1 그대로다.",
-      array: [0, 0, 1, 1, 0],
-      highlight: [3],
-      marked: [],
-      pointers: { i: 3 },
-      entries: [
-        { label: "A[k]", value: 4 },
-        { label: "counter[i]", value: 1 },
-        { label: "high", value: 1 },
-        { label: "base", value: 0 },
+      title: "T3 k=1 · A[k]=4 ①",
+      text: "4 번 카운터(i = 3)를 증가시킵니다. 저장값 0 이 base 0 보다 작지 않아 저장값에서 출발합니다. counter[3] = 1 입니다.",
+      array: [3, 4, 4, 6, 1, 4, 4],
+      range: [0, 1],
+      read: [1],
+      write: [],
+      pointers: {
+        k: 1,
+      },
+      calc: {
+        expr: "max(0, 0) + 1",
+        result: "1",
+      },
+      vars: "high = 1",
+      layers: [
+        {
+          name: "counter",
+          values: [0, 0, 1, 1, 0],
+          read: [3],
+          write: [3],
+          side: "옛 값 0 칸",
+        },
+        {
+          name: "참값",
+          values: [0, 0, 1, 1, 0],
+          read: [],
+          write: [3],
+          side: "base = 0",
+        },
       ],
     },
     {
-      title: "T4 k=2 · A[k]=4 — ①",
-      detail: "같은 칸을 한 번 더 증가시켜 2 가 된다. 최댓값이 2 로 올라간다.",
-      array: [0, 0, 1, 2, 0],
-      highlight: [3],
-      marked: [],
-      pointers: { i: 3 },
-      entries: [
-        { label: "A[k]", value: 4 },
-        { label: "counter[i]", value: 2 },
-        { label: "high", value: 2 },
-        { label: "base", value: 0 },
+      title: "T4 k=2 · A[k]=4 ①",
+      text: "4 번 카운터(i = 3)를 증가시킵니다. 저장값 1 이 base 0 보다 작지 않아 저장값에서 출발합니다. counter[3] = 2 입니다. high 가 2 로 오릅니다.",
+      array: [3, 4, 4, 6, 1, 4, 4],
+      range: [0, 2],
+      read: [2],
+      write: [],
+      pointers: {
+        k: 2,
+      },
+      calc: {
+        expr: "max(1, 0) + 1",
+        result: "2",
+      },
+      vars: "high = 2",
+      layers: [
+        {
+          name: "counter",
+          values: [0, 0, 1, 2, 0],
+          read: [3],
+          write: [3],
+          side: "옛 값 0 칸",
+        },
+        {
+          name: "참값",
+          values: [0, 0, 1, 2, 0],
+          read: [],
+          write: [3],
+          side: "base = 0",
+        },
       ],
     },
     {
-      title: "T5 k=3 · A[k]=6 — ②",
-      detail:
-        "최대 맞추기. 배열에 아무것도 적지 않고 바닥값만 2 로 옮긴다. 네 칸이 옛 값이 된다.",
-      array: [0, 0, 1, 2, 0],
-      highlight: [],
-      marked: [0, 1, 2, 4],
-      entries: [
-        { label: "A[k]", value: 6 },
-        { label: "counter[i]", value: "—" },
-        { label: "high", value: 2 },
-        { label: "base", value: 2 },
+      title: "T5 k=3 · A[k]=6 ②",
+      text: "A[k] = 6 이 N + 1 이라 최대 맞추기입니다. counter 는 그대로 두고 base 를 high 인 2 로 옮깁니다. 참값이 4 칸에서 바뀝니다.",
+      array: [3, 4, 4, 6, 1, 4, 4],
+      range: [0, 3],
+      read: [3],
+      write: [],
+      pointers: {
+        k: 3,
+      },
+      calc: {
+        expr: "base = high",
+        result: "2",
+      },
+      vars: "high = 2",
+      layers: [
+        {
+          name: "counter",
+          values: [0, 0, 1, 2, 0],
+          read: [],
+          write: [],
+          side: "옛 값 4 칸",
+        },
+        {
+          name: "참값",
+          values: [2, 2, 2, 2, 2],
+          read: [],
+          write: [0, 1, 2, 4],
+          side: "base = 2",
+        },
       ],
     },
     {
-      title: "T6 k=4 · A[k]=1 — ①",
-      detail:
-        "1 번 카운터의 저장값 0 이 바닥값 2 보다 작다. 2 에서 출발해 3 을 적는다.",
-      array: [3, 0, 1, 2, 0],
-      highlight: [0],
-      marked: [1, 2, 4],
-      pointers: { i: 0 },
-      entries: [
-        { label: "A[k]", value: 1 },
-        { label: "counter[i]", value: 3 },
-        { label: "high", value: 3 },
-        { label: "base", value: 2 },
+      title: "T6 k=4 · A[k]=1 ①",
+      text: "1 번 카운터(i = 0)를 증가시킵니다. 저장값 0 이 base 2 보다 작아 base 에서 출발합니다. counter[0] = 3 입니다. high 가 3 으로 오릅니다.",
+      array: [3, 4, 4, 6, 1, 4, 4],
+      range: [0, 4],
+      read: [4],
+      write: [],
+      pointers: {
+        k: 4,
+      },
+      calc: {
+        expr: "max(0, 2) + 1",
+        result: "3",
+      },
+      vars: "high = 3",
+      layers: [
+        {
+          name: "counter",
+          values: [3, 0, 1, 2, 0],
+          read: [0],
+          write: [0],
+          side: "옛 값 3 칸",
+        },
+        {
+          name: "참값",
+          values: [3, 2, 2, 2, 2],
+          read: [],
+          write: [0],
+          side: "base = 2",
+        },
       ],
     },
     {
-      title: "T7 k=5 · A[k]=4 — ①",
-      detail: "4 번 카운터의 저장값 2 는 바닥값과 같다. 그대로 출발해 3 을 적는다.",
-      array: [3, 0, 1, 3, 0],
-      highlight: [3],
-      marked: [1, 2, 4],
-      pointers: { i: 3 },
-      entries: [
-        { label: "A[k]", value: 4 },
-        { label: "counter[i]", value: 3 },
-        { label: "high", value: 3 },
-        { label: "base", value: 2 },
+      title: "T7 k=5 · A[k]=4 ①",
+      text: "4 번 카운터(i = 3)를 증가시킵니다. 저장값 2 가 base 2 보다 작지 않아 저장값에서 출발합니다. counter[3] = 3 입니다.",
+      array: [3, 4, 4, 6, 1, 4, 4],
+      range: [0, 5],
+      read: [5],
+      write: [],
+      pointers: {
+        k: 5,
+      },
+      calc: {
+        expr: "max(2, 2) + 1",
+        result: "3",
+      },
+      vars: "high = 3",
+      layers: [
+        {
+          name: "counter",
+          values: [3, 0, 1, 3, 0],
+          read: [3],
+          write: [3],
+          side: "옛 값 3 칸",
+        },
+        {
+          name: "참값",
+          values: [3, 2, 2, 3, 2],
+          read: [],
+          write: [3],
+          side: "base = 2",
+        },
       ],
     },
     {
-      title: "T8 k=6 · A[k]=4 — ①",
-      detail: "같은 칸이 4 가 된다. 최댓값이 4 로 올라가지만 바닥값은 2 그대로다.",
-      array: [3, 0, 1, 4, 0],
-      highlight: [3],
-      marked: [1, 2, 4],
-      pointers: { i: 3 },
-      entries: [
-        { label: "A[k]", value: 4 },
-        { label: "counter[i]", value: 4 },
-        { label: "high", value: 4 },
-        { label: "base", value: 2 },
+      title: "T8 k=6 · A[k]=4 ①",
+      text: "4 번 카운터(i = 3)를 증가시킵니다. 저장값 3 이 base 2 보다 작지 않아 저장값에서 출발합니다. counter[3] = 4 입니다. high 가 4 로 오릅니다.",
+      array: [3, 4, 4, 6, 1, 4, 4],
+      range: [0, 6],
+      read: [6],
+      write: [],
+      pointers: {
+        k: 6,
+      },
+      calc: {
+        expr: "max(3, 2) + 1",
+        result: "4",
+      },
+      vars: "high = 4",
+      layers: [
+        {
+          name: "counter",
+          values: [3, 0, 1, 4, 0],
+          read: [3],
+          write: [3],
+          side: "옛 값 3 칸",
+        },
+        {
+          name: "참값",
+          values: [3, 2, 2, 4, 2],
+          read: [],
+          write: [3],
+          side: "base = 2",
+        },
       ],
     },
     {
-      title: "T9 마지막 채우기 — ③",
-      detail:
-        "바닥값 2 에 못 미치는 세 칸에만 2 를 적는다. 최댓값 4 는 여기서 쓰지 않는다.",
-      array: [3, 2, 2, 4, 2],
-      highlight: [1, 2, 4],
-      marked: [],
-      entries: [
-        { label: "A[k]", value: "—" },
-        { label: "counter[i]", value: "—" },
-        { label: "high", value: 4 },
-        { label: "base", value: 2 },
+      title: "T9 마지막 채우기 ③",
+      text: "base 2 에 못 미치는 3 칸에만 2 를 적습니다. 저장값과 참값이 모든 칸에서 같아집니다.",
+      array: [3, 4, 4, 6, 1, 4, 4],
+      range: [0, 6],
+      read: [],
+      write: [],
+      calc: {
+        expr: "counter[i] < 2 인 칸",
+        result: "3 칸에 2",
+      },
+      vars: "high = 4",
+      layers: [
+        {
+          name: "counter",
+          values: [3, 2, 2, 4, 2],
+          read: [],
+          write: [1, 2, 4],
+          side: "옛 값 0 칸",
+        },
+        {
+          name: "참값",
+          values: [3, 2, 2, 4, 2],
+          read: [],
+          write: [],
+          side: "base = 2",
+        },
       ],
     },
-  ] satisfies Frame[],
-};
+  ],
+} satisfies ArrayPlayerSpec;

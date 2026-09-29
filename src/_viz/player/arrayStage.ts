@@ -90,6 +90,11 @@ export interface ArrayLayer {
   readonly read?: readonly number[];
   /** 이번에 새로 쓴 칸 — 「새로 씀」. */
   readonly write?: readonly number[];
+  /**
+   * 줄 곁말 — 없으면 「채움 x / n」이다. 처음부터 모든 칸에 값이 있어 채움이 늘 가득인 줄(모두 0 으로
+   * 시작하는 카운터 배열)에서, 걸음마다 달라지는 셈(「옛 값 3 칸」)이나 그 줄을 읽는 규칙을 적는다.
+   */
+  readonly side?: string;
 }
 
 export interface ArrayOptions {
@@ -173,7 +178,7 @@ export function arrayStage(s: ArrayStep, opts: ArrayOptions): StageRow[] {
         label: layer.name,
         values: layer.values,
         states: layerStates,
-        side: `채움 ${filled} / ${layer.values.length}`,
+        side: layer.side ?? `채움 ${filled} / ${layer.values.length}`,
       },
       { kind: "caret", cells: layer.read ?? [] },
     );
