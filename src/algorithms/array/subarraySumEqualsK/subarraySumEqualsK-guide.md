@@ -637,7 +637,7 @@ subarraySumEqualsK([], 7)                          →  0
 
 | 문제 | 표에 담는 것 | 필요한 나머지 |
 | --- | --- | --- |
-| [`twoSum`](../twoSum/twoSum-problem.md) | 지나온 원소의 값 → 인덱스 | `target − nums[i]` |
+| [`twoSum`](../twoSum/twoSum-guide.md) | 지나온 원소의 값 → 인덱스 | `target − nums[i]` |
 | 이 문제 | 지나온 접두 합 → 개수 | `prefix − k` |
 | 합이 `M` 의 배수인 구간 세기 | 접두 합을 `M` 으로 나눈 나머지 → 개수 | 같은 나머지 |
 
