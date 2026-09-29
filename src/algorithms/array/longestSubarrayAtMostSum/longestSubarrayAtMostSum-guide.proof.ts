@@ -343,7 +343,7 @@ export const PROOFS: Record<string, () => string> = {
 
   /** `deep.build` 3단계 — 넓혔더니 상한을 넘어 왼쪽 끝을 옮기는 경우 전부. */
   "build-shrink": () => {
-    const groups: string[][] = [];
+    const groups: string[][][] = [];
     for (const r of walk().rounds.filter((x) => x.removed.length > 0)) {
       const prev = roundAt(r.r - 1);
       const rows: string[][] = [
