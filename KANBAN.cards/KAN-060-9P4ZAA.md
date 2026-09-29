@@ -59,7 +59,7 @@ scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/chec
 
 - [x] `S8` 신규 가이드 `array/missingInteger` — v2 규격(파일럿 구성 · ref·proof·test 사이드카, sim·fig 는 걸음 패널·그림이 있을 때) + 실습 절(`migrate-practice --only`), `problem.md` 삭제. S5 확정(2026-09-29)으로 편마다 나눴다 — 나머지 셋은 S10~S12. 완료 기준: `check-v2` · `check-proof --require` · `build-html` · `check-metaphor` · 가이드 시험 통과
 - [x] `S10` 신규 가이드 `array/twoSum` — S8 과 같은 규격. 완료 기준: S8 과 같다
-- [>] `S11` 신규 가이드 `etc/numberOfDisintersection` — S8 과 같은 규격. 완료 기준: S8 과 같다 <!-- claim:s=15cf9d75 t=2026-09-29T10:43 -->
+- [x] `S11` 신규 가이드 `etc/numberOfDisintersection` — S8 과 같은 규격. 완료 기준: S8 과 같다
 - [>] `S12` 신규 가이드 `bit-manipulation/binaryGap` — S8 과 같은 규격. 넷을 다 쓰면 `문제_가이드_목록.md` 에 올린다(메인이 한 번). 완료 기준: S8 과 같다 · 목록 등재 <!-- claim:s=15cf9d75 t=2026-09-29T11:01 -->
 
 **배치 5 — 검증·검토**
@@ -110,3 +110,4 @@ bunx --bun @biomejs/biome check tools/migrate-practice.ts tools/check-v2.ts tool
 - 2026-09-29T11:01 · s:15cf9d75 · S12 doing — 착수
 - 2026-09-29T11:21 · s:15cf9d75 · S8 done — 서브에이전트 집필 — 직접 주소 표(값을 칸 번호로)로 가장 작은 빠진 양의 정수. ref·proof(26)·test(13)·alt·bench. 메인 재확인: check-proof --require 26/26 · 가이드 시험 13/13 · 전 편 게이트 통과. 문체 파트 1·2 A(실습 절 포함 C — 옮긴 스토리 문장). 스텁 missingInteger.ts:4 의 noDoubleEquals 는 학습자 파일이라 둠
 - 2026-09-29T11:21 · s:15cf9d75 · S10 done — 서브에이전트 집필 — 한 번 지나가며 보수를 해시 맵에서 먼저 조회. ref·proof(23)·test(12)·alt·bench(정렬 후 두 포인터 대조). 과제 규모를 n ≤ 100,000 으로 잡음(실습은 N ≤ 10,000 — 수치 반박이 서도록, 본문에 명시). 이전 도구가 subarraySumEqualsK 의 twoSum 링크를 가이드로 돌림(설계대로). 메인 재확인: --require 23/23 · 시험 12/12. 문체 A
+- 2026-09-29T11:21 · s:15cf9d75 · S11 done — 서브에이전트 집필 — 양 끝을 따로 정렬하고 오른쪽 끝마다 열린 수를 세는 스윕으로 교차 쌍 세기. ref·proof(23)·test(14, 전수 대조 포함). 사용자 메모 numberOfDisintersection.md 는 둠. 옮긴 실습 예시 주석 「[1,1] … 1점 공유」가 사실과 다르다는 관찰(고치지 않음, 검토 항목). 메인 재확인: --require 23/23 · 시험 14/14. 문체 A
