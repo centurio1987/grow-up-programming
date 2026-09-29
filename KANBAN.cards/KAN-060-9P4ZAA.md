@@ -37,6 +37,7 @@ scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/chec
 **버린 대안.** 058 에 흡수(`problem.md` 가 058 완료까지 남는다) · 060 이 110편 본문까지 재집필(058 과 이중 작업) · 새 실습 문제 창작(편마다 스텁·테스트·정답 확인) · `.ts` JSDoc 이관(유저가 「가이드 끝」을 지정).
 
 ## 실행 계획
+## 실행 계획
 <!-- `S<n>`은 고정 id — 이름을 바꾸지 않는다. 체크 상태는 doc-step 이 갱신한다. -->
 **배치 1 — 명세·도구**
 
@@ -56,7 +57,10 @@ scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/chec
 
 **배치 4 — 신규 가이드**
 
-- [ ] `S8` 신규 가이드 집필 — S5 가 정한 편마다 v2 규격(ref·sim·fig·proof·test 사이드카) + 실습 절, `problem.md` 삭제, `문제_가이드_목록.md` 등재. S5 확정 뒤 둘째 편부터는 `S10` 이후 id 로 나누고 이 줄은 첫 편으로 좁힌다. 셋을 넘으면 배치를 나눈다. 완료 기준: 편마다 `check-v2`·`check-proof --require`·`render-figs --check`·`build-html` 통과
+- [ ] `S8` 신규 가이드 `array/missingInteger` — v2 규격(파일럿 구성 · ref·proof·test 사이드카, sim·fig 는 걸음 패널·그림이 있을 때) + 실습 절(`migrate-practice --only`), `problem.md` 삭제. S5 확정(2026-09-29)으로 편마다 나눴다 — 나머지 셋은 S10~S12. 완료 기준: `check-v2` · `check-proof --require` · `build-html` · `check-metaphor` · 가이드 시험 통과
+- [ ] `S10` 신규 가이드 `array/twoSum` — S8 과 같은 규격. 완료 기준: S8 과 같다
+- [ ] `S11` 신규 가이드 `etc/numberOfDisintersection` — S8 과 같은 규격. 완료 기준: S8 과 같다
+- [ ] `S12` 신규 가이드 `bit-manipulation/binaryGap` — S8 과 같은 규격. 넷을 다 쓰면 `문제_가이드_목록.md` 에 올린다(메인이 한 번). 완료 기준: S8 과 같다 · 목록 등재
 
 **배치 5 — 검증·검토**
 
@@ -99,3 +103,4 @@ bunx --bun @biomejs/biome check tools/migrate-practice.ts tools/check-v2.ts tool
 - 2026-09-29T10:40 · s:15cf9d75 · S6 done — migrate-practice.ts 실행 — 문제 110개를 가이드 110편 끝 ## 실습 으로(파일럿 포함 111편), problem.md 110개 삭제, 링크 131개(36개 파일)를 가이드로. 여러 줄 디스플레이 수식의 $$ 를 제 줄로 떼는 정규화 추가 — 다섯 편(binarySearch·searchInRotatedSortedArray·maxCounters·crt·medianFromDataStream)이 `$$…\\end{cases}$$` 꼴이라 렌더러가 #### 예시 를 수식으로 삼켰다(build-html 헤딩 수 어긋남으로 발견). 코드 주석 넷 정정. 검사: check-v2 --all 0 · check-links 1153 전부 · check-metaphor · build-html 114 · check-proof --all · guide-core · render-figs · guide-rhythm · check-citations 통과. check-links refs 의 -problem.md 는 대기분(tapeEquilibrium·twoSum) 2곳뿐. _scratch 밖 *.ts 의 problem\.md 0, _scratch 안 30개 파일은 그대로 둠. 남은 problem.md 8개(흡수 넷·신규 넷)
 - 2026-09-29T10:40 · s:15cf9d75 · S7 doing — 착수
 - 2026-09-29T10:42 · s:15cf9d75 · S7 done — 흡수 넷 — etc/kadane 의 kadane.ts·test 를 array/kadane/maxSubarraySum.ts·test 로(이름 충돌, import 고침), etc/maxProfit 의 ts·test·maxProfit.md 를 array/bestTimeToBuyAndSellStock 로, tapeEquilibrium ts·test 와 genomicRangeQuery ts·test·.md·_solved.md·_solved.ts 를 array/prefixSumRangeQuery 로 옮기고(메모 파일 안 지움) migrate-practice --absorb 로 받는 가이드 실습에 문제로 더함, problem.md 4개 삭제, 빈 폴더 넷 제거, minMaxPair 의 tapeEquilibrium 링크를 prefixSumRangeQuery 실습 앵커로. 옮긴 테스트: maxProfit 23/23 · tapeEquilibrium 13/13 · genomicRangeQuery 15/15 통과, maxSubarraySum 은 스텁이라 Not implemented 로만 실패(정상). 완료 기준의 「ci.ts practice 실행 목록」은 틀렸다 — practice 모드는 src/data-structures 만 채점해 알고리즘 테스트는 CI 에 없다, 새 경로에서 bun test 로 직접 확인. check-v2 --all · check-links 1159 · build-html · check-metaphor 통과. 남은 problem.md 4개는 신규 가이드 대기(missingInteger·twoSum·numberOfDisintersection·binaryGap)
+- 2026-09-29T10:42 · s:15cf9d75 — `실행 계획` 섹션 교체

@@ -4,7 +4,7 @@ batch: 4
 created: 2026-09-29
 branch: KAN-060-9P4ZAA
 status: 계획
-steps: S8
+steps: S8, S10, S11, S12
 ---
 
 # KAN-060-9P4ZAA 배치4 — 신규 가이드
