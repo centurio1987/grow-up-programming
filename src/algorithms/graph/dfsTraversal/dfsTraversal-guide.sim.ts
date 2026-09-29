@@ -1,377 +1,733 @@
-import type { Frame } from "#guide-sim";
-
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(11)와 같다 — P3 이 그 관계를 잰다.
+ * 걸음 재생 패널 — `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 제목은
+ * 원고의 걸음 번호(`T#`)로 연다 — P3 이 그 자리를 잰다. T1 이 시작, 꺼내기 한 번이 걸음 하나,
+ * 마지막 걸음이 스택이 비어 끝나는 자리다.
  *
- * **뷰가 둘이다** — `graph` 는 정점의 상태(아직 안 꺼냄 · 스택에 있음 · 지금 꺼낸 것 · 결과에
- * 들어감)와 지금 따라가는 간선을 그리고, `keyValue` 는 그 순간의 스택 · 꺼낸 정점 · 결과
- * 배열 · 분기를 적는다. 그래프 그림만으로는 **스택의 순서**가 안 보이고, 이 알고리즘의 방문
- * 순서가 바로 그 순서에서 나오므로 두 패널이 함께 있어야 한 프레임이 완결된다.
- * 앞선 `bfsShortestPath`·`connectedComponents` 가 쓴 짝을 그대로 쓴다.
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가 실제보다
+ * 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
  *
- * 좌표는 0~100 정규화다. 정점 0 에서 두 갈래가 갈리는 모양을 그대로 그리고, 간선이 하나도
- * 없는 정점 5 는 오른쪽에 떨어뜨려 둔다.
+ * ## 패널 규약 — 「그래프」 무대(KAN-058, SPEC §13)
  *
- * `nodeValue` 는 **결과 배열에서의 자리**(1 부터)다. 거리가 아니라 순서를 재는 편이라
- * 정점 옆에 붙는 수도 순서여야 한다.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "graph"` 가
+ * 무대 갈래를 고른다. 정점과 간선의 자리(`layout`)는 패널에 한 번만 적고, 걸음마다 정점의 방문 차례와
+ * 상태, 간선의 종류(정점을 처음 꺼내게 한 간선은 굵은 실선)와 상태, 무대 아래 띠 둘(스택 · order)만
+ * 바꾼다(`src/_viz/player/graphStage.ts`). 스택 띠는 아래에서 위로 왼쪽에서 오른쪽이고, 이번 걸음에
+ * 넣은 칸이 새로 씀이다. 칸 수는 스택이 가장 컸을 때에 맞춰 고정한다.
  *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * **값은 손으로 적지 않았다.** 이 리터럴은 그림 사이드카의 `stageStepsFromRef()` 가 정본과 같은 절차를
+ * 실행해 낸 결과를 옮긴 것이고, 둘이 같은지는 `dfsTraversal-guide.test.ts` 가 잰다.
  */
 export const dfsWalk = {
-  view: ["graph", "keyValue"] as const,
-  title: "dfsTraversal(6, [[0,2],[0,1],[1,3],[2,4]], 0)",
+  player: "stage",
+  stage: "graph",
+  title:
+    "dfsTraversal(6, [[0,2],[0,1],[1,3],[2,4]], 0) — 정점 안의 수는 방문 차례",
+  sub: "T1–T11 · 걸음마다 꺼내기 하나",
   result: "[0,1,3,2,4]",
+  layout: {
+    nodes: [
+      {
+        id: 0,
+        x: 1,
+        y: 0,
+      },
+      {
+        id: 1,
+        x: 0,
+        y: 1,
+      },
+      {
+        id: 2,
+        x: 2,
+        y: 1,
+      },
+      {
+        id: 3,
+        x: 0,
+        y: 2,
+      },
+      {
+        id: 4,
+        x: 2,
+        y: 2,
+      },
+      {
+        id: 5,
+        x: 3.3,
+        y: 1,
+      },
+    ],
+    edges: [
+      {
+        from: 0,
+        to: 2,
+      },
+      {
+        from: 0,
+        to: 1,
+      },
+      {
+        from: 1,
+        to: 3,
+      },
+      {
+        from: 2,
+        to: 4,
+      },
+    ],
+    directed: false,
+  },
   steps: [
     {
-      title: "T1 시작",
-      detail: "시작 정점 0 을 스택에 넣는다. 결과 배열은 아직 비어 있다.",
+      title: "T1 시작 정점 0 을 스택에 넣는다",
+      text: "스택에 시작 정점 0 하나만 넣습니다. 결과 배열은 비어 있고, 방문 표시는 꺼낼 때 합니다.",
       nodes: [
-        { id: 0, x: 40, y: 8 },
-        { id: 1, x: 14, y: 42 },
-        { id: 2, x: 66, y: 42 },
-        { id: 3, x: 14, y: 80 },
-        { id: 4, x: 66, y: 80 },
-        { id: 5, x: 94, y: 60 },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 2 },
-        { from: 1, to: 3 },
-        { from: 2, to: 4 },
+      edges: [{}, {}, {}, {}],
+      strips: [
+        {
+          label: "스택",
+          values: [0],
+          states: {
+            "0": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "order",
+          values: [],
+          states: {},
+          slots: 5,
+        },
       ],
-      nodeStatus: { 0: "frontier" },
-      entries: [
-        { label: "스택", value: "[0]" },
-        { label: "꺼낸 정점", value: "—" },
-        { label: "order", value: "[]" },
-        { label: "분기", value: "—" },
-      ],
-    },
-    {
-      title: "T2 정점 0 을 꺼낸다",
-      detail:
-        "처음 꺼내는 정점이다. 결과에 넣고 이웃 [1, 2] 를 큰 번호부터 스택에 넣는다.",
-      nodes: [
-        { id: 0, x: 40, y: 8 },
-        { id: 1, x: 14, y: 42 },
-        { id: 2, x: 66, y: 42 },
-        { id: 3, x: 14, y: 80 },
-        { id: 4, x: 66, y: 80 },
-        { id: 5, x: 94, y: 60 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 2 },
-        { from: 1, to: 3 },
-        { from: 2, to: 4 },
-      ],
-      nodeStatus: { 0: "active", 1: "frontier", 2: "frontier" },
-      nodeValue: { 0: 1 },
-      activeEdge: { from: 0, to: 1 },
-      entries: [
-        { label: "스택", value: "[2, 1]" },
-        { label: "꺼낸 정점", value: "0" },
-        { label: "order", value: "[0]" },
-        { label: "분기", value: "① 처음 꺼내는 정점" },
-      ],
-    },
-    {
-      title: "T3 정점 1 을 꺼낸다",
-      detail:
-        "스택 맨 위가 1 이라 2 보다 먼저 나온다. 이웃 [0, 3] 을 큰 번호부터 넣는다.",
-      nodes: [
-        { id: 0, x: 40, y: 8 },
-        { id: 1, x: 14, y: 42 },
-        { id: 2, x: 66, y: 42 },
-        { id: 3, x: 14, y: 80 },
-        { id: 4, x: 66, y: 80 },
-        { id: 5, x: 94, y: 60 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 2 },
-        { from: 1, to: 3 },
-        { from: 2, to: 4 },
-      ],
-      nodeStatus: {
-        0: "visited",
-        1: "active",
-        2: "frontier",
-        3: "frontier",
+      calc: {
+        expr: "stack =",
+        result: "[0]",
       },
-      nodeValue: { 0: 1, 1: 2 },
-      activeEdge: { from: 1, to: 3 },
-      entries: [
-        { label: "스택", value: "[2, 3, 0]" },
-        { label: "꺼낸 정점", value: "1" },
-        { label: "order", value: "[0, 1]" },
-        { label: "분기", value: "① 처음 꺼내는 정점" },
-      ],
+      vars: "꺼내기 0 / 9",
     },
     {
-      title: "T4 정점 0 을 꺼낸다",
-      detail: "이미 결과에 들어간 정점이다. 아무것도 하지 않고 그대로 버린다.",
+      title: "T2 정점 0 을 꺼낸다 — 처음 꺼낸다",
+      text: "시작 정점 0 을 처음 꺼냈습니다. 결과에 넣고, 이웃 목록 [1, 2] 를 큰 번호부터 스택에 넣습니다.",
       nodes: [
-        { id: 0, x: 40, y: 8 },
-        { id: 1, x: 14, y: 42 },
-        { id: 2, x: 66, y: 42 },
-        { id: 3, x: 14, y: 80 },
-        { id: 4, x: 66, y: 80 },
-        { id: 5, x: 94, y: 60 },
+        {
+          value: "차례 1",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 2 },
-        { from: 1, to: 3 },
-        { from: 2, to: 4 },
+      edges: [{}, {}, {}, {}],
+      strips: [
+        {
+          label: "스택",
+          values: [2, 1],
+          states: {
+            "0": "focus",
+            "1": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "order",
+          values: [0],
+          states: {
+            "0": "focus",
+          },
+          slots: 5,
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "frontier",
-        3: "frontier",
+      calc: {
+        expr: "visited[0] →",
+        result: "거짓",
       },
-      nodeValue: { 0: 1, 1: 2 },
-      activeEdge: { from: 0, to: 1 },
-      entries: [
-        { label: "스택", value: "[2, 3]" },
-        { label: "꺼낸 정점", value: "0" },
-        { label: "order", value: "[0, 1]" },
-        { label: "분기", value: "② 이미 결과에 있다" },
-      ],
+      vars: "꺼내기 1 / 9",
     },
     {
-      title: "T5 정점 3 을 꺼낸다",
-      detail: "처음 꺼내는 정점이다. 이웃은 [1] 하나뿐이라 1 만 넣는다.",
+      title: "T3 정점 1 을 꺼낸다 — 처음 꺼낸다",
+      text: "정점 0 이 넣은 정점 1 을 처음 꺼냈습니다. 결과에 넣고, 이웃 목록 [0, 3] 을 큰 번호부터 스택에 넣습니다.",
       nodes: [
-        { id: 0, x: 40, y: 8 },
-        { id: 1, x: 14, y: 42 },
-        { id: 2, x: 66, y: 42 },
-        { id: 3, x: 14, y: 80 },
-        { id: 4, x: 66, y: 80 },
-        { id: 5, x: 94, y: 60 },
+        {
+          value: "차례 1",
+        },
+        {
+          value: "차례 2",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 2 },
-        { from: 1, to: 3 },
-        { from: 2, to: 4 },
+        {},
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {},
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "frontier",
-        3: "active",
+      strips: [
+        {
+          label: "스택",
+          values: [2, 3, 0],
+          states: {
+            "1": "focus",
+            "2": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "order",
+          values: [0, 1],
+          states: {
+            "1": "focus",
+          },
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "visited[1] →",
+        result: "거짓",
       },
-      nodeValue: { 0: 1, 1: 2, 3: 3 },
-      activeEdge: { from: 1, to: 3 },
-      entries: [
-        { label: "스택", value: "[2, 1]" },
-        { label: "꺼낸 정점", value: "3" },
-        { label: "order", value: "[0, 1, 3]" },
-        { label: "분기", value: "① 처음 꺼내는 정점" },
-      ],
+      vars: "꺼내기 2 / 9",
     },
     {
-      title: "T6 정점 1 을 꺼낸다",
-      detail:
-        "왼쪽 갈래에는 더 갈 곳이 없다. 이미 결과에 있는 정점이라 버린다.",
+      title: "T4 정점 0 을 꺼낸다 — 이미 결과에 있다",
+      text: "정점 1 이 넣은 정점 0 은 이미 결과에 있습니다. 아무것도 넣지 않고 버립니다.",
       nodes: [
-        { id: 0, x: 40, y: 8 },
-        { id: 1, x: 14, y: 42 },
-        { id: 2, x: 66, y: 42 },
-        { id: 3, x: 14, y: 80 },
-        { id: 4, x: 66, y: 80 },
-        { id: 5, x: 94, y: 60 },
+        {
+          value: "차례 1",
+          state: "read",
+        },
+        {
+          value: "차례 2",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 2 },
-        { from: 1, to: 3 },
-        { from: 2, to: 4 },
+        {},
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {},
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "frontier",
-        3: "visited",
+      strips: [
+        {
+          label: "스택",
+          values: [2, 3],
+          states: {},
+          slots: 3,
+        },
+        {
+          label: "order",
+          values: [0, 1],
+          states: {},
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "visited[0] →",
+        result: "참",
       },
-      nodeValue: { 0: 1, 1: 2, 3: 3 },
-      activeEdge: { from: 1, to: 3 },
-      entries: [
-        { label: "스택", value: "[2]" },
-        { label: "꺼낸 정점", value: "1" },
-        { label: "order", value: "[0, 1, 3]" },
-        { label: "분기", value: "② 이미 결과에 있다" },
-      ],
+      vars: "꺼내기 3 / 9",
     },
     {
-      title: "T7 정점 2 를 꺼낸다",
-      detail:
-        "T2 에서 정점 0 이 넣어 둔 2 다. 갈림길로 되돌아간 것이 스택 하나로 처리된다.",
+      title: "T5 정점 3 을 꺼낸다 — 처음 꺼낸다",
+      text: "정점 1 이 넣은 정점 3 을 처음 꺼냈습니다. 결과에 넣고, 이웃 목록 [1] 을 큰 번호부터 스택에 넣습니다.",
       nodes: [
-        { id: 0, x: 40, y: 8 },
-        { id: 1, x: 14, y: 42 },
-        { id: 2, x: 66, y: 42 },
-        { id: 3, x: 14, y: 80 },
-        { id: 4, x: 66, y: 80 },
-        { id: 5, x: 94, y: 60 },
+        {
+          value: "차례 1",
+        },
+        {
+          value: "차례 2",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "차례 3",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 2 },
-        { from: 1, to: 3 },
-        { from: 2, to: 4 },
+        {},
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "active",
-        3: "visited",
-        4: "frontier",
+      strips: [
+        {
+          label: "스택",
+          values: [2, 1],
+          states: {
+            "1": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "order",
+          values: [0, 1, 3],
+          states: {
+            "2": "focus",
+          },
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "visited[3] →",
+        result: "거짓",
       },
-      nodeValue: { 0: 1, 1: 2, 3: 3, 2: 4 },
-      activeEdge: { from: 0, to: 2 },
-      entries: [
-        { label: "스택", value: "[4, 0]" },
-        { label: "꺼낸 정점", value: "2" },
-        { label: "order", value: "[0, 1, 3, 2]" },
-        { label: "분기", value: "① 처음 꺼내는 정점" },
-      ],
+      vars: "꺼내기 4 / 9",
     },
     {
-      title: "T8 정점 0 을 꺼낸다",
-      detail: "정점 2 의 이웃 중 작은 쪽이지만 이미 결과에 있어 버린다.",
+      title: "T6 정점 1 을 꺼낸다 — 이미 결과에 있다",
+      text: "정점 3 이 넣은 정점 1 은 이미 결과에 있습니다. 아무것도 넣지 않고 버립니다.",
       nodes: [
-        { id: 0, x: 40, y: 8 },
-        { id: 1, x: 14, y: 42 },
-        { id: 2, x: 66, y: 42 },
-        { id: 3, x: 14, y: 80 },
-        { id: 4, x: 66, y: 80 },
-        { id: 5, x: 94, y: 60 },
+        {
+          value: "차례 1",
+        },
+        {
+          value: "차례 2",
+          state: "read",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "차례 3",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 2 },
-        { from: 1, to: 3 },
-        { from: 2, to: 4 },
+        {},
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "frontier",
+      strips: [
+        {
+          label: "스택",
+          values: [2],
+          states: {},
+          slots: 3,
+        },
+        {
+          label: "order",
+          values: [0, 1, 3],
+          states: {},
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "visited[1] →",
+        result: "참",
       },
-      nodeValue: { 0: 1, 1: 2, 3: 3, 2: 4 },
-      activeEdge: { from: 0, to: 2 },
-      entries: [
-        { label: "스택", value: "[4]" },
-        { label: "꺼낸 정점", value: "0" },
-        { label: "order", value: "[0, 1, 3, 2]" },
-        { label: "분기", value: "② 이미 결과에 있다" },
-      ],
+      vars: "꺼내기 5 / 9",
     },
     {
-      title: "T9 정점 4 를 꺼낸다",
-      detail: "마지막으로 처음 꺼내는 정점이다. 이웃 [2] 를 넣는다.",
+      title: "T7 정점 2 를 꺼낸다 — 처음 꺼낸다",
+      text: "정점 0 이 넣은 정점 2 를 처음 꺼냈습니다. 결과에 넣고, 이웃 목록 [0, 4] 를 큰 번호부터 스택에 넣습니다.",
       nodes: [
-        { id: 0, x: 40, y: 8 },
-        { id: 1, x: 14, y: 42 },
-        { id: 2, x: 66, y: 42 },
-        { id: 3, x: 14, y: 80 },
-        { id: 4, x: 66, y: 80 },
-        { id: 5, x: 94, y: 60 },
+        {
+          value: "차례 1",
+        },
+        {
+          value: "차례 2",
+        },
+        {
+          value: "차례 4",
+          state: "focus",
+        },
+        {
+          value: "차례 3",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 2 },
-        { from: 1, to: 3 },
-        { from: 2, to: 4 },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "active",
+      strips: [
+        {
+          label: "스택",
+          values: [4, 0],
+          states: {
+            "0": "focus",
+            "1": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "order",
+          values: [0, 1, 3, 2],
+          states: {
+            "3": "focus",
+          },
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "visited[2] →",
+        result: "거짓",
       },
-      nodeValue: { 0: 1, 1: 2, 3: 3, 2: 4, 4: 5 },
-      activeEdge: { from: 2, to: 4 },
-      entries: [
-        { label: "스택", value: "[2]" },
-        { label: "꺼낸 정점", value: "4" },
-        { label: "order", value: "[0, 1, 3, 2, 4]" },
-        { label: "분기", value: "① 처음 꺼내는 정점" },
-      ],
+      vars: "꺼내기 6 / 9",
     },
     {
-      title: "T10 정점 2 를 꺼낸다",
-      detail: "이미 결과에 있다. 스택이 비어 다음 반복에서 끝난다.",
+      title: "T8 정점 0 을 꺼낸다 — 이미 결과에 있다",
+      text: "정점 2 가 넣은 정점 0 은 이미 결과에 있습니다. 아무것도 넣지 않고 버립니다.",
       nodes: [
-        { id: 0, x: 40, y: 8 },
-        { id: 1, x: 14, y: 42 },
-        { id: 2, x: 66, y: 42 },
-        { id: 3, x: 14, y: 80 },
-        { id: 4, x: 66, y: 80 },
-        { id: 5, x: 94, y: 60 },
+        {
+          value: "차례 1",
+          state: "read",
+        },
+        {
+          value: "차례 2",
+        },
+        {
+          value: "차례 4",
+        },
+        {
+          value: "차례 3",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 2 },
-        { from: 1, to: 3 },
-        { from: 2, to: 4 },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "visited",
+      strips: [
+        {
+          label: "스택",
+          values: [4],
+          states: {},
+          slots: 3,
+        },
+        {
+          label: "order",
+          values: [0, 1, 3, 2],
+          states: {},
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "visited[0] →",
+        result: "참",
       },
-      nodeValue: { 0: 1, 1: 2, 3: 3, 2: 4, 4: 5 },
-      activeEdge: { from: 2, to: 4 },
-      entries: [
-        { label: "스택", value: "[]" },
-        { label: "꺼낸 정점", value: "2" },
-        { label: "order", value: "[0, 1, 3, 2, 4]" },
-        { label: "분기", value: "② 이미 결과에 있다" },
-      ],
+      vars: "꺼내기 7 / 9",
     },
     {
-      title: "T11 종료",
-      detail:
-        "스택이 비어 반복이 끝난다. 정점 5 는 한 번도 스택에 안 들어가 결과에서 빠진다.",
+      title: "T9 정점 4 를 꺼낸다 — 처음 꺼낸다",
+      text: "정점 2 가 넣은 정점 4 를 처음 꺼냈습니다. 결과에 넣고, 이웃 목록 [2] 를 큰 번호부터 스택에 넣습니다.",
       nodes: [
-        { id: 0, x: 40, y: 8 },
-        { id: 1, x: 14, y: 42 },
-        { id: 2, x: 66, y: 42 },
-        { id: 3, x: 14, y: 80 },
-        { id: 4, x: 66, y: 80 },
-        { id: 5, x: 94, y: 60 },
+        {
+          value: "차례 1",
+        },
+        {
+          value: "차례 2",
+        },
+        {
+          value: "차례 4",
+        },
+        {
+          value: "차례 3",
+        },
+        {
+          value: "차례 5",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 0, to: 2 },
-        { from: 1, to: 3 },
-        { from: 2, to: 4 },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "visited",
+      strips: [
+        {
+          label: "스택",
+          values: [2],
+          states: {
+            "0": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "order",
+          values: [0, 1, 3, 2, 4],
+          states: {
+            "4": "focus",
+          },
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "visited[4] →",
+        result: "거짓",
       },
-      nodeValue: { 0: 1, 1: 2, 3: 3, 2: 4, 4: 5 },
-      entries: [
-        { label: "스택", value: "[]" },
-        { label: "꺼낸 정점", value: "—" },
-        { label: "order", value: "[0, 1, 3, 2, 4]" },
-        { label: "분기", value: "스택이 비어 반복이 끝난다" },
-      ],
+      vars: "꺼내기 8 / 9",
     },
-  ] satisfies Frame[],
+    {
+      title: "T10 정점 2 를 꺼낸다 — 이미 결과에 있다",
+      text: "정점 4 가 넣은 정점 2 는 이미 결과에 있습니다. 아무것도 넣지 않고 버립니다.",
+      nodes: [
+        {
+          value: "차례 1",
+        },
+        {
+          value: "차례 2",
+        },
+        {
+          value: "차례 4",
+          state: "read",
+        },
+        {
+          value: "차례 3",
+        },
+        {
+          value: "차례 5",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+      ],
+      strips: [
+        {
+          label: "스택",
+          values: [],
+          states: {},
+          slots: 3,
+        },
+        {
+          label: "order",
+          values: [0, 1, 3, 2, 4],
+          states: {},
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "visited[2] →",
+        result: "참",
+      },
+      vars: "꺼내기 9 / 9",
+    },
+    {
+      title: "T11 스택이 비어 끝난다",
+      text: "스택이 비어 반복이 끝납니다. 스택에 한 번도 안 들어간 정점 5 는 결과에 없고, 반환값은 [0, 1, 3, 2, 4] 입니다.",
+      nodes: [
+        {
+          value: "차례 1",
+        },
+        {
+          value: "차례 2",
+        },
+        {
+          value: "차례 4",
+        },
+        {
+          value: "차례 3",
+        },
+        {
+          value: "차례 5",
+        },
+        {
+          value: "",
+          state: "out",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+      ],
+      strips: [
+        {
+          label: "스택",
+          values: [],
+          states: {},
+          slots: 3,
+        },
+        {
+          label: "order",
+          values: [0, 1, 3, 2, 4],
+          states: {},
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "stack.length > 0 →",
+        result: "거짓",
+      },
+      vars: "꺼내기 9 / 9",
+    },
+  ],
 };
