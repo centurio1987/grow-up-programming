@@ -7,8 +7,8 @@
  * 상태만 바꾼다. 강조는 이번 걸음의 읽음과 새로 씀 둘뿐이고, 새로 쓴 칸은 다음 걸음에 끝남으로
  * 내려간다. 걸음 사이 전환은 즉시 교체다(애니메이션 없음).
  *
- * 무대 갈래는 `STAGES` 에 등록한다. 「층」·「배열」(칸 무대 `CellStage`)과 「그래프」(`NodeGraph`)
- * 셋이다 — 트리 · 힙 · 2 차원 표는 시안 4절의 원칙을 따라 KAN-058 에서 필요한 편이 나올 때 더한다.
+ * 무대 갈래는 `STAGES` 에 등록한다. 「층」·「배열」·「2 차원 표」(칸 무대 `CellStage`)와 「그래프」
+ * (`NodeGraph`) 넷이다 — 트리 · 힙은 시안 4절의 원칙을 따라 KAN-058 에서 필요한 편이 나올 때 더한다.
  *
  * 무대 높이는 첫 걸음 전에 모든 걸음의 무대 크기 중 가장 큰 것으로 고정한다(시안 규칙 5).
  */
@@ -46,6 +46,14 @@ import {
   levelsVars,
 } from "./levelsStage";
 import { PLAYER_CSS } from "./playerStyle";
+import {
+  type TableOptions,
+  type TableStep,
+  tableCalc,
+  tableColumns,
+  tableStage,
+  tableVars,
+} from "./tableStage";
 
 /** 걸음 하나에 공통으로 붙는 것. `title` 은 `T3 1 층 칸 0 만들기` 처럼 걸음 번호로 연다. */
 export interface PlayerStepBase {
@@ -89,7 +97,15 @@ const array: StageKind<ArrayStep, ArrayOptions> = {
   vars: arrayVars,
 };
 
-export const STAGES = { levels, graph, array } as const;
+/** 2 차원 표 무대 — 열 머리 · 줄 머리와 표 전체, 쓰는 칸 하나와 그 칸이 읽는 이웃(KAN-058). */
+const table: StageKind<TableStep, TableOptions> = {
+  rows: tableStage,
+  columns: tableColumns,
+  calc: tableCalc,
+  vars: tableVars,
+};
+
+export const STAGES = { levels, graph, array, table } as const;
 export type StageName = keyof typeof STAGES;
 
 interface PlayerSpecBase {
@@ -117,8 +133,18 @@ export interface ArrayPlayerSpec extends PlayerSpecBase, ArrayOptions {
   readonly steps: readonly (PlayerStepBase & ArrayStep)[];
 }
 
+/** 「2 차원 표」 무대 패널 — 행·열 두 축으로 칸을 채우는 표. */
+export interface TablePlayerSpec extends PlayerSpecBase, TableOptions {
+  readonly stage: "table";
+  readonly steps: readonly (PlayerStepBase & TableStep)[];
+}
+
 /** `.sim.ts` 가 내보내는 패널 하나. `player: "stage"` 가 이 패널을 고른다. */
-export type PlayerSpec = LevelsPlayerSpec | GraphPlayerSpec | ArrayPlayerSpec;
+export type PlayerSpec =
+  | LevelsPlayerSpec
+  | GraphPlayerSpec
+  | ArrayPlayerSpec
+  | TablePlayerSpec;
 
 export const isPlayerSpec = (spec: unknown): spec is PlayerSpec =>
   typeof spec === "object" &&
@@ -158,6 +184,21 @@ export function playerFrames(spec: PlayerSpec): PlayerFrame[] {
         columns: 0,
         scene: kind.scene(s, spec),
         calc: kind.calc(s),
+        vars: kind.vars(s),
+      };
+    });
+  }
+  if (spec.stage === "table") {
+    const kind = STAGES.table;
+    return spec.steps.map((s) => {
+      const { id, rest } = splitTitle(s.title);
+      return {
+        id,
+        title: rest,
+        text: s.text,
+        rows: kind.rows(s, spec),
+        columns: kind.columns(s),
+        calc: kind.calc(s, spec),
         vars: kind.vars(s),
       };
     });

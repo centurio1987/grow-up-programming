@@ -9,7 +9,7 @@
 /**
  * `coins` 의 동전을 몇 개든 써서 `amount` 를 만드는 서로 다른 조합의 수.
  *
- * 동전 종류를 바깥 루프로, 금액을 안쪽 루프로 둔다. 그래야 한 조합이 「액면가 순서대로 쓴
+ * 동전 종류를 바깥 루프로, 금액을 안쪽 루프로 둔다. 그래야 한 조합이 「동전 종류 순서대로 쓴
  * 것」 한 벌로만 세어진다.
  */
 export function coinChangeWays(coins: number[], amount: number): number {
@@ -24,8 +24,8 @@ export function coinChangeWays(coins: number[], amount: number): number {
 
   for (let i = 1; i <= n; i++) {
     const c = coins[i - 1] as number;
-    const prev = dp[i - 1] as number[]; // 윗 줄 — 이 동전을 아직 안 연 층
-    const cur = dp[i] as number[]; // 이번 줄 — 이 동전까지 연 층
+    const prev = dp[i - 1] as number[]; // 윗 줄 — 이 동전을 아직 넣지 않은 줄
+    const cur = dp[i] as number[]; // 이번 줄 — 이 동전까지 넣은 줄
 
     for (let a = 0; a <= amount; a++) {
       if (a < c) {

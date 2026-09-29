@@ -292,3 +292,44 @@ test("배열 무대 · 층 곁말 — 처음부터 가득 찬 줄은 채움 대�
 
   await act(async () => root.unmount());
 });
+
+test("2 차원 표 무대 — 열 머리와 표 전체를 첫 걸음부터 그리고, 쓰는 칸 하나와 그 칸이 읽는 이웃만 강조한다", async () => {
+  const spec = (
+    await import(
+      "../../algorithms/dp/coinChangeWays/coinChangeWays-guide.sim.ts"
+    )
+  ).row2 as unknown as PlayerSpec;
+  document.body.innerHTML = '<div id="d"></div>';
+  const host = document.getElementById("d") as HTMLElement;
+  const root = createRoot(host);
+  await act(async () => root.render(<StepPlayer {...spec} />));
+
+  const stage = () =>
+    host.querySelector(".gs-player-stage") as HTMLElement | null;
+  const count = (sel: string) => host.querySelectorAll(sel).length;
+  const h0 = stage()?.style.height;
+  // T8 — 줄 넷이 모두 그려져 있고, i=2 줄은 첫 칸만 정했으며 i=3 줄은 아직 전부 빈 칸이다.
+  // 열 머리는 금액 0 … 5 이고, 쓴 칸의 열 머리 하나가 반전된다. 2 차원에서는 ▲ 줄이 없다
+  expect(count('[data-viz-role="stage-cells"]')).toBe(4);
+  expect(count("[data-viz-index]")).toBe(6);
+  expect(count('[data-viz-focus="true"]')).toBe(1);
+  expect(count('[data-viz-role="caret"]')).toBe(0);
+  expect(count('[data-viz-state="empty"]')).toBe(11);
+  expect(count('[data-viz-state="focus"]')).toBe(1);
+  expect(count('[data-viz-state="read"]')).toBe(1);
+
+  // T12 — dp[2][4] 는 윗 칸과 같은 줄 두 칸 왼쪽을 읽는다. 무대 높이는 그대로다
+  const badge = (id: string) =>
+    [...host.querySelectorAll(".gs-player-badge")].find(
+      (b) => b.textContent === id,
+    ) as HTMLButtonElement;
+  await act(async () => badge("T12").click());
+  expect(stage()?.style.height).toBe(h0);
+  expect(count('[data-viz-state="read"]')).toBe(2);
+  expect(count('[data-viz-state="focus"]')).toBe(1);
+  expect(host.querySelector(".gs-player-pill")?.textContent).toBe(
+    "dp[1][4] + dp[2][2] = 1 + 2 =3",
+  );
+
+  await act(async () => root.unmount());
+});

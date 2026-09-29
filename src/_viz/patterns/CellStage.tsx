@@ -6,7 +6,8 @@
  * *"알고리즘의 주요 개념들이 어떤 구조로 생겼고, 진행에 따라, 상태가 어떻게 바뀌는지 시각적으로 전혀
  * 정보가 없다."* 무대는 그 구조를 그린다 — 줄 넷을 한 격자에 쌓는다.
  *
- * - `index` 인덱스 눈금. `focus` 칸은 글자를 반전해 「새로 쓴 칸이 덮는 자리」를 보인다.
+ * - `index` 인덱스 눈금. `focus` 칸은 글자를 반전해 「새로 쓴 칸이 덮는 자리」를 보인다. `labels` 를
+ *   주면 칸 번호 대신 그 글자를 적는다 — 2 차원 표의 열 머리다(「2 차원 표」 무대).
  * - `cells` 값 칸 한 줄(배열 · 층 · 답 목록). `level` 을 주면 머리에 층 라벨(P3 과 같은 모양)을 단다.
  * - `caret` 칸 아래 ▲ — 이번 걸음에 읽는 칸.
  * - `bracket` 구간 괄호 — 질의(위 3px) · 왼쪽 조각(아래 2px) · 오른쪽 조각(아래 2px 대시) ·
@@ -46,6 +47,11 @@ export type StageRow =
       readonly label?: string;
       /** 글자를 반전할 칸 — 새로 쓴 칸이 덮는 자리. */
       readonly focus?: readonly number[];
+      /**
+       * 칸 번호 대신 적을 열 머리 — 2 차원 표의 열 머리(금액 · 문자열의 글자)처럼 열마다 이름이 있을 때
+       * 쓴다. 없으면 칸 번호 0 · 1 · 2 … 를 적는다.
+       */
+      readonly labels?: readonly (number | string)[];
     }
   | {
       readonly kind: "cells";
@@ -233,7 +239,7 @@ function StageRowView(props: {
                   fontWeight: focus.has(i) ? 700 : 400,
                 }}
               >
-                {i}
+                {row.labels?.[i] ?? i}
               </text>
             </g>
           ))}

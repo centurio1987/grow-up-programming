@@ -1389,7 +1389,8 @@ Table 의 층)는 어느 뷰에도 없었다. 유저 지적(2026-09-28): *"알�
   `player: "stage"` 를 가지면 빌더가 이 패널을 붙이고, 없으면 옛 패널(`AlgorithmSimulation`)을 붙인다.
 - 무대 갈래는 `STAGES` 에 등록한다. 지금은 「층」(`stage: "levels"`, `levelsStage.ts`) · 「그래프」
   (`stage: "graph"`, `graphStage.ts`, `KAN-058` 샘플 `stronglyConnectedComponents`) · 「배열」(`stage: "array"`,
-  `arrayStage.ts`, `KAN-058` S12 · 첫 편 `binarySearch`) 셋이다. 「층」의 걸음 필드는
+  `arrayStage.ts`, `KAN-058` S12 · 첫 편 `binarySearch`) · 「2 차원 표」(`stage: "table"`, `tableStage.ts`, `KAN-058`
+  첫 편 `coinChangeWays`) 넷이다. 「층」의 걸음 필드는
   쌓는 걸음이 `levels`(아직 안 쓴 칸은 `null`) · `read` · `write`, 답하는 걸음이 `query` · `level` ·
   `lookup` · `pieces` · `overlap` · `answers` · `answerSlots` 다. 계산 알약과 남는 변수는 이 필드에서
   패널이 만든다. 「그래프」는 정점 자리와 간선을 패널에 한 번 적고(`layout`), 걸음에는 `nodes`(상태·값) ·
@@ -1405,7 +1406,13 @@ Table 의 층)는 어느 뷰에도 없었다. 유저 지적(2026-09-28): *"알�
   맵) 걸음마다 `map` 에 `keyLabel` · `valueLabel` · `entries`(키를 넣은 순서의 `[키, 값]`) · `slots`(첫 걸음부터
   잡는 자리 수 — 맵이 가장 커졌을 때의 키 수) · `read`(찾아서 있던 키) · `write`(넣거나 고친 키) · `note` 를 싣는다 —
   맨 아래에 키 줄 · 값 줄 · ▲ 줄로 쌓이고(패턴 `KeyValueTable`), 찾았는데 없던 키는 칸이 없으니 `note` 로 ▲ 줄
-  곁말에 적는다(첫 편 `subarraySumEqualsK`).
+  곁말에 적는다(첫 편 `subarraySumEqualsK`). 「2 차원 표」는 패널에 `rowHeads`(줄 머리 — 동전 · 첫째 문자열의
+  글자) · `colHeads`(열 머리 — 금액 · 둘째 문자열의 글자) · `colLabel`(열 머리 줄의 이름)을 한 번 적고, 걸음마다
+  `table`(그 걸음이 끝난 뒤의 표 전체, 아직 안 쓴 칸은 `null`) · `read`(쓰는 칸이 읽은 이웃 `[줄, 열]`) ·
+  `write`(쓴 칸) · `calc` · `vars` 를 싣는다. 열 머리가 맨 위 줄이고(패턴 `CellStage` 의 `index` 줄에 `labels`),
+  줄마다 칸 한 줄이 쌓이며, 쓴 칸의 열 머리는 반전한다. ▲ 줄은 두지 않는다. 줄 곁말은 「채움 x / n」이고,
+  줄마다 다른 곁말이 필요하면 `rowSide` 에 적는다. 칸 하나가 어느 범위를 뜻하는지 보이려고 나머지 칸을
+  흐리려면 `out` 에 적는다(「이번 걸음 밖」).
 - **걸음 값은 손으로 적지 않는다.** `steps` 는 P3 이 정적으로 세도록 인라인 리터럴이지만, 그 리터럴은 그림
   사이드카가 정본을 실행해 만든 걸음을 옮긴 것이고 가이드 시험이 둘을 맞댄다(파일럿
   `sparseTableRangeMin-guide.test.ts` 의 「걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다」).
