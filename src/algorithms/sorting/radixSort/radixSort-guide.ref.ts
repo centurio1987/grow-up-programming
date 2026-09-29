@@ -1,13 +1,12 @@
 /**
  * `deep.walk.final`(전체 코드) 이 싣는 코드의 정본.
  *
- * 원본 `src/algorithms/sorting/radixSort/radixSort.ts` 는 학습자가 채우는 자리라 가이드가 그
- * 파일을 인용하지 않는다. 여기 있는 것이 가이드가 가르치는 절차 — **자릿수 정렬**(LSD radix
+ * 실습 스텁 `src/algorithms/sorting/radixSort/radixSort.ts` 는 학습자가 채우는 자리라 가이드가
+ * 그 파일을 인용하지 않는다. 여기 있는 것이 가이드가 가르치는 절차 — **자릿수 정렬**(LSD radix
  * sort)이다. 값을 `BASE` 진법의 자리 여럿으로 보고, **자리 하나를 키로 하는 안정 계수 정렬**을
  * **낮은 자리부터** 최댓값의 자릿수만큼 되풀이한다.
  *
- * 계약은 원본 문제와 같다 — 오름차순으로 정렬한 **새 배열**을 돌려주고 입력 `A` 는 바꾸지
- * 않는다. 가이드 본문의 코드는 이 파일에서 옮긴다.
+ * 계약 — 오름차순으로 정렬한 **새 배열**을 돌려주고 입력 `A` 는 바꾸지 않는다. 가이드 본문의 코드는 이 파일에서 옮긴다.
  *
  * **변이는 이 소스에서 기계로 만든다**(`tools/check-proof.ts` 의 `loadMutant`). 배치 반복의
  * 머리줄이 변이 대상이라 모양을 바꿀 때 `radixSort-guide.proof.ts` 의 정규식도 함께 봐야
@@ -31,7 +30,7 @@ export function radixSort(A: number[]): number[] {
 
   // ② 자리를 낮은 쪽부터 하나씩 올린다. `place` 가 지금 보는 자리의 크기다.
   for (let place = 1; Math.floor(max / place) > 0; place *= BASE) {
-    // ③ 이 자리의 값마다 몇 개인지 센다. 여기에 두 값을 견주는 자리가 없다.
+    // ③ 이 자리의 값마다 몇 개인지 센다. 여기에 두 값을 비교하는 자리가 없다.
     const count = new Array<number>(BASE).fill(0);
     for (const x of src) {
       const dig = Math.floor(x / place) % BASE;

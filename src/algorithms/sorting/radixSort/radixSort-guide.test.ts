@@ -1,7 +1,7 @@
 /**
  * L9 — 가이드가 싣는 코드가 **기존 테스트의 입출력 케이스**를 통과하는가.
  *
- * 원본 `src/algorithms/sorting/radixSort/radixSort.test.ts` 는 학습자가 채우는 파일을
+ * 실습 시험 `src/algorithms/sorting/radixSort/radixSort.test.ts` 는 학습자가 채우는 파일을
  * 가져오므로 그대로 재사용하지 않는다. **케이스만** 옮겨 정본에 다시 건다.
  * 벽시계를 재는 성능 케이스(`N=100,000` 을 100ms 이내)는 옮기지 않았다 — 실행마다 값이
  * 달라 판정이 안 된다. 그 자리는 「제약 상한 크기의 입력에서 값이 정확하고 다중집합이
@@ -43,7 +43,7 @@ const CASES: [number[], number[]][] = [
     [1_000_000_000, 0, 999_999_999, 1],
     [0, 1, 999_999_999, 1_000_000_000],
   ],
-  // 문제 문서가 명시한 빈 입력과 값이 전부 0 인 입력. 둘 다 바퀴가 한 번도 실행되지 않는다.
+  // 계약이 명시한 빈 입력과 값이 전부 0 인 입력. 둘 다 바퀴가 한 번도 실행되지 않는다.
   [[], []],
   [
     [0, 0, 0],
@@ -63,7 +63,7 @@ for (const [input, want] of CASES) {
 }
 
 test("입력 배열을 바꾸지 않고 다른 배열을 돌려준다", () => {
-  // 문제의 계약이다 — 「`A` 의 모든 원소를 오름차순으로 정렬한 새 배열」을 반환한다.
+  // 과제의 계약이다 — 「`A` 의 모든 원소를 오름차순으로 정렬한 새 배열」을 반환한다.
   const A = [513, 45, 258, 2, 66, 90, 301];
   const before = [...A];
   const out = radixSort(A);
@@ -114,4 +114,22 @@ test("값의 상한 10^9 이 자기 자리를 갖는다", () => {
   // 걸린다.
   const A = [1_000_000_000, 16_777_215, 16_777_216, 0];
   expect(radixSort(A)).toEqual([0, 16_777_215, 16_777_216, 1_000_000_000]);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본과 놓기마다 대조한 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면
+ * 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./radixSort-guide.sim.ts");
+  const { simStepsFromRef } = await import("./radixSort-guide.fig.tsx");
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.walk7.steps)).toEqual(plain(want.walk7));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.walk7.result).toBe(
+    `[${radixSort([513, 45, 258, 2, 66, 90, 301]).join(", ")}]`,
+  );
 });

@@ -1,138 +1,914 @@
-import type { Frame } from "#guide-sim";
+import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 —
- * `A = [513, 45, 258, 2, 66, 90, 301]`. 프레임 수(12)는 그 절의 T# 단계 수(22)를 넘지
- * 않는다 — P3 이 그 관계를 잰다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `A = [513, 45, 258, 2, 66, 90, 301]`. 걸음은
+ * T1~T22 전부다 — 최댓값 · (바퀴마다) 세기 · 누적합 · 놓기 일곱 번 · 맞바꾸기 · 반환.
+ *
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가
+ * 배열 무대(`arrayStage.ts`)를 고른다. 무대의 값 줄은 그 바퀴가 읽는 `src` 이고, 바퀴가 바뀌면 통째로
+ * 바뀌므로 `array` 를 걸음마다 싣는다. `layers` 가 `src` 칸마다의 자리 값 줄과 이번 바퀴가 채우는
+ * `dst` 줄이고, `map` 이 `count` 다 — `count` 는 256 칸이라 그 바퀴에 나온 자리 값의 칸만 키로 싣고,
+ * 나머지 칸이 0 이라는 것은 곁말에 적는다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
- *
- * ## `array` 한 뷰로 가는 이유와 그때의 규약
- *
- * 이 절차는 배열 셋을 쓴다 — 읽는 쪽 `src`, 쓰는 쪽 `dst`, 자리 값의 개수를 담는 `count`.
- * 셋을 다 그리면 어느 것이 입력인지 갈리지 않아서, **화면에 두는 것은 그 바퀴가 읽는
- * 배열 하나**로 정하고 나머지는 `detail` 이 값으로 적는다. `count` 의 칸이 256 개라 화면에
- * 담을 수 없다는 것도 같은 자리의 이유이고, 그 표는 md 쪽 ascii 그림이 진다.
- *
- * 1. **`array` 는 그 바퀴가 읽는 배열이다.** 첫 바퀴는 입력 그대로이고, 둘째 바퀴는 첫
- *    바퀴가 낸 `[513, 258, 2, 45, 301, 66, 90]` 이다. 바퀴가 바뀌는 자리에서 배열이
- *    통째로 바뀌는 것이 이 절차의 모양이라 그대로 보인다.
- * 2. **`pointers` 의 키는 본문 기호표의 이름과 글자 그대로 같다** — `i`.
- * 3. **`highlight` 는 지금 읽는 칸.** 배치는 뒤에서 앞으로 가므로 `i` 가 6 에서 0 으로 준다.
- * 4. **`marked` 는 정렬이 확정된 칸.** 마지막 바퀴가 끝나야 확정이므로 앞의 열 프레임에는
- *    없다 — 첫 바퀴가 낸 순서는 자리 0 기준일 뿐이라 확정이 아니다.
- * 5. **배치 일곱 번을 다 싣지 않고 셋만 싣는다**(`i` 가 6 · 3 · 0). 일곱을 다 실으면
- *    프레임이 스물을 넘는데, 갈래는 그 셋으로 이미 다 나온다 — 같은 자리 값이 겹치는 칸
- *    (`i` = 6)과 겹치지 않는 칸(`i` = 3 · 0)이다. 나머지 넷은 md 쪽 표가 값으로 적는다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본 실행에서 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `radixSort-guide.test.ts` 가 잰다.
  */
+
 export const walk7 = {
-  view: "array" as const,
+  player: "stage",
+  stage: "array",
+  arrayName: "src",
+  rangeLabel: "읽는 쪽",
   title: "radixSort([513, 45, 258, 2, 66, 90, 301])",
   result: "[2, 45, 66, 90, 258, 301, 513]",
   steps: [
     {
-      title: "T1 — 최댓값이 바퀴 수를 정한다",
-      detail:
-        "최댓값이 513 이고 256 진법으로 두 자리라, 자리 0 과 자리 1 로 두 바퀴를 돈다는 뜻이다.",
+      title: "T1 최댓값 513 — 바퀴 2 번",
+      text: "src 의 7 칸을 한 번씩 읽어 최댓값 513 을 찾습니다. 513 이 256 진법으로 2 자리라 바퀴가 2 번입니다.",
       array: [513, 45, 258, 2, 66, 90, 301],
-      highlight: [0],
-      marked: [],
-      pointers: { i: 0 },
+      range: [0, 6],
+      rangeSide: "바퀴 수 2",
+      read: [0, 1, 2, 3, 4, 5, 6],
+      write: [],
+      layers: [
+        {
+          name: "자리 값",
+          values: [null, null, null, null, null, null, null],
+        },
+        {
+          name: "dst",
+          values: [null, null, null, null, null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [],
+        slots: 5,
+        note: "아직 없음",
+      },
+      calc: {
+        expr: "max",
+        result: "513",
+      },
+      vars: null,
     },
     {
-      title: "T2 — 첫 바퀴: 자리 0 의 값을 센다",
-      detail:
-        "자리 0 은 256 으로 나눈 나머지다. 차례로 1 · 45 · 2 · 2 · 66 · 90 · 45 이고, 값 2 와 값 45 가 각각 두 번 나온다.",
+      title: "T2 바퀴 1 — 자리 0 의 값을 센다",
+      text: "⌊513 / 1⌋ > 0 이 참이라 바퀴를 시작합니다. 자리 값은 ⌊x / 1⌋ mod 256 이고, 값 7 개의 자리 0 이 1 45 2 2 66 90 45 입니다. 자리 값마다 개수를 count 에 적습니다.",
       array: [513, 45, 258, 2, 66, 90, 301],
-      highlight: [0, 1, 2, 3, 4, 5, 6],
-      marked: [],
+      range: [0, 6],
+      rangeSide: "바퀴 1 · place = 1",
+      read: [0, 1, 2, 3, 4, 5, 6],
+      write: [],
+      layers: [
+        {
+          name: "자리 0",
+          values: [1, 45, 2, 2, 66, 90, 45],
+          write: [0, 1, 2, 3, 4, 5, 6],
+        },
+        {
+          name: "dst",
+          values: [null, null, null, null, null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [1, 1],
+          [2, 2],
+          [45, 2],
+          [66, 1],
+          [90, 1],
+        ],
+        slots: 5,
+        write: [1, 2, 45, 66, 90],
+        note: "나머지 251 칸은 0",
+      },
+      calc: {
+        expr: "개수",
+        result: "1 2 2 1 1",
+      },
+      vars: null,
     },
     {
-      title: "T4 — 첫 바퀴: i = 6 을 놓는다",
-      detail:
-        "301 의 자리 0 은 45 다. 누적합이 알려 준 자리 45 의 마지막 칸이 4 번이라 dst 의 칸 4 에 놓는다.",
+      title: "T3 바퀴 1 — 누적합으로 통의 끝을 정한다",
+      text: "count 를 왼쪽부터 누적합으로 덮습니다. count[d] 가 자리 값이 d 이하인 원소의 개수가 되고, 자리 값 d 의 통은 dst 의 칸 count[d] − 1 에서 끝납니다.",
       array: [513, 45, 258, 2, 66, 90, 301],
-      highlight: [6],
-      marked: [],
-      pointers: { i: 6 },
+      range: [0, 6],
+      rangeSide: "바퀴 1 · place = 1",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "자리 0",
+          values: [1, 45, 2, 2, 66, 90, 45],
+        },
+        {
+          name: "dst",
+          values: [null, null, null, null, null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [1, 1],
+          [2, 3],
+          [45, 5],
+          [66, 6],
+          [90, 7],
+        ],
+        slots: 5,
+        write: [2, 45, 66, 90],
+        note: "나머지 251 칸은 0",
+      },
+      calc: {
+        expr: "누적합",
+        result: "1 3 5 6 7",
+      },
+      vars: null,
     },
     {
-      title: "T7 — 첫 바퀴: i = 3 을 놓는다",
-      detail:
-        "2 의 자리 0 은 2 다. 자리 2 의 남은 마지막 칸이 2 번이라 dst 의 칸 2 에 놓는다. 같은 자리 값 2 를 가진 258 은 아직 안 놓였다.",
+      title: "T4 바퀴 1 — i=6 값 301 을 칸 4 에",
+      text: "src[6] = 301 의 자리 0 이 45 입니다. count[45] 를 5 에서 4 로 줄이고 dst 의 칸 4 에 301 을 놓습니다.",
       array: [513, 45, 258, 2, 66, 90, 301],
-      highlight: [3],
-      marked: [],
-      pointers: { i: 3 },
+      range: [0, 6],
+      rangeSide: "바퀴 1 · place = 1",
+      read: [6],
+      write: [],
+      pointers: {
+        i: 6,
+      },
+      layers: [
+        {
+          name: "자리 0",
+          values: [1, 45, 2, 2, 66, 90, 45],
+          read: [6],
+        },
+        {
+          name: "dst",
+          values: [null, null, null, null, 301, null, null],
+          write: [4],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [1, 1],
+          [2, 3],
+          [45, 4],
+          [66, 6],
+          [90, 7],
+        ],
+        slots: 5,
+        read: [45],
+        write: [45],
+        note: "나머지 251 칸은 0",
+      },
+      calc: {
+        expr: "count[45] − 1",
+        result: "4",
+      },
+      vars: null,
     },
     {
-      title: "T10 — 첫 바퀴: i = 0 을 놓는다",
-      detail:
-        "513 의 자리 0 은 1 이다. 자리 1 의 칸이 0 번 하나뿐이라 dst 의 칸 0 에 놓고 첫 바퀴가 끝난다.",
+      title: "T5 바퀴 1 — i=5 값 90 을 칸 6 에",
+      text: "src[5] = 90 의 자리 0 이 90 입니다. count[90] 을 7 에서 6 으로 줄이고 dst 의 칸 6 에 90 을 놓습니다.",
       array: [513, 45, 258, 2, 66, 90, 301],
-      highlight: [0],
-      marked: [],
-      pointers: { i: 0 },
+      range: [0, 6],
+      rangeSide: "바퀴 1 · place = 1",
+      read: [5],
+      write: [],
+      pointers: {
+        i: 5,
+      },
+      layers: [
+        {
+          name: "자리 0",
+          values: [1, 45, 2, 2, 66, 90, 45],
+          read: [5],
+        },
+        {
+          name: "dst",
+          values: [null, null, null, null, 301, null, 90],
+          write: [6],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [1, 1],
+          [2, 3],
+          [45, 4],
+          [66, 6],
+          [90, 6],
+        ],
+        slots: 5,
+        read: [90],
+        write: [90],
+        note: "나머지 251 칸은 0",
+      },
+      calc: {
+        expr: "count[90] − 1",
+        result: "6",
+      },
+      vars: null,
     },
     {
-      title: "T11 — 첫 바퀴의 결과",
-      detail:
-        "자리 0 기준으로는 1 · 2 · 2 · 45 · 45 · 66 · 90 순서다. 아직 정렬이 아니다 — 자리 1 을 한 번도 안 봤다.",
+      title: "T6 바퀴 1 — i=4 값 66 을 칸 5 에",
+      text: "src[4] = 66 의 자리 0 이 66 입니다. count[66] 을 6 에서 5 로 줄이고 dst 의 칸 5 에 66 을 놓습니다.",
+      array: [513, 45, 258, 2, 66, 90, 301],
+      range: [0, 6],
+      rangeSide: "바퀴 1 · place = 1",
+      read: [4],
+      write: [],
+      pointers: {
+        i: 4,
+      },
+      layers: [
+        {
+          name: "자리 0",
+          values: [1, 45, 2, 2, 66, 90, 45],
+          read: [4],
+        },
+        {
+          name: "dst",
+          values: [null, null, null, null, 301, 66, 90],
+          write: [5],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [1, 1],
+          [2, 3],
+          [45, 4],
+          [66, 5],
+          [90, 6],
+        ],
+        slots: 5,
+        read: [66],
+        write: [66],
+        note: "나머지 251 칸은 0",
+      },
+      calc: {
+        expr: "count[66] − 1",
+        result: "5",
+      },
+      vars: null,
+    },
+    {
+      title: "T7 바퀴 1 — i=3 값 2 를 칸 2 에",
+      text: "src[3] = 2 의 자리 0 이 2 입니다. count[2] 를 3 에서 2 로 줄이고 dst 의 칸 2 에 2 를 놓습니다.",
+      array: [513, 45, 258, 2, 66, 90, 301],
+      range: [0, 6],
+      rangeSide: "바퀴 1 · place = 1",
+      read: [3],
+      write: [],
+      pointers: {
+        i: 3,
+      },
+      layers: [
+        {
+          name: "자리 0",
+          values: [1, 45, 2, 2, 66, 90, 45],
+          read: [3],
+        },
+        {
+          name: "dst",
+          values: [null, null, 2, null, 301, 66, 90],
+          write: [2],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [1, 1],
+          [2, 2],
+          [45, 4],
+          [66, 5],
+          [90, 6],
+        ],
+        slots: 5,
+        read: [2],
+        write: [2],
+        note: "나머지 251 칸은 0",
+      },
+      calc: {
+        expr: "count[2] − 1",
+        result: "2",
+      },
+      vars: null,
+    },
+    {
+      title: "T8 바퀴 1 — i=2 값 258 을 칸 1 에",
+      text: "src[2] = 258 의 자리 0 이 2 입니다. count[2] 를 2 에서 1 로 줄이고 dst 의 칸 1 에 258 을 놓습니다.",
+      array: [513, 45, 258, 2, 66, 90, 301],
+      range: [0, 6],
+      rangeSide: "바퀴 1 · place = 1",
+      read: [2],
+      write: [],
+      pointers: {
+        i: 2,
+      },
+      layers: [
+        {
+          name: "자리 0",
+          values: [1, 45, 2, 2, 66, 90, 45],
+          read: [2],
+        },
+        {
+          name: "dst",
+          values: [null, 258, 2, null, 301, 66, 90],
+          write: [1],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [1, 1],
+          [2, 1],
+          [45, 4],
+          [66, 5],
+          [90, 6],
+        ],
+        slots: 5,
+        read: [2],
+        write: [2],
+        note: "나머지 251 칸은 0",
+      },
+      calc: {
+        expr: "count[2] − 1",
+        result: "1",
+      },
+      vars: null,
+    },
+    {
+      title: "T9 바퀴 1 — i=1 값 45 를 칸 3 에",
+      text: "src[1] = 45 의 자리 0 이 45 입니다. count[45] 를 4 에서 3 으로 줄이고 dst 의 칸 3 에 45 를 놓습니다.",
+      array: [513, 45, 258, 2, 66, 90, 301],
+      range: [0, 6],
+      rangeSide: "바퀴 1 · place = 1",
+      read: [1],
+      write: [],
+      pointers: {
+        i: 1,
+      },
+      layers: [
+        {
+          name: "자리 0",
+          values: [1, 45, 2, 2, 66, 90, 45],
+          read: [1],
+        },
+        {
+          name: "dst",
+          values: [null, 258, 2, 45, 301, 66, 90],
+          write: [3],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [1, 1],
+          [2, 1],
+          [45, 3],
+          [66, 5],
+          [90, 6],
+        ],
+        slots: 5,
+        read: [45],
+        write: [45],
+        note: "나머지 251 칸은 0",
+      },
+      calc: {
+        expr: "count[45] − 1",
+        result: "3",
+      },
+      vars: null,
+    },
+    {
+      title: "T10 바퀴 1 — i=0 값 513 을 칸 0 에",
+      text: "src[0] = 513 의 자리 0 이 1 입니다. count[1] 을 1 에서 0 으로 줄이고 dst 의 칸 0 에 513 을 놓습니다.",
+      array: [513, 45, 258, 2, 66, 90, 301],
+      range: [0, 6],
+      rangeSide: "바퀴 1 · place = 1",
+      read: [0],
+      write: [],
+      pointers: {
+        i: 0,
+      },
+      layers: [
+        {
+          name: "자리 0",
+          values: [1, 45, 2, 2, 66, 90, 45],
+          read: [0],
+        },
+        {
+          name: "dst",
+          values: [513, 258, 2, 45, 301, 66, 90],
+          write: [0],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [1, 0],
+          [2, 1],
+          [45, 3],
+          [66, 5],
+          [90, 6],
+        ],
+        slots: 5,
+        read: [1],
+        write: [1],
+        note: "나머지 251 칸은 0",
+      },
+      calc: {
+        expr: "count[1] − 1",
+        result: "0",
+      },
+      vars: null,
+    },
+    {
+      title: "T11 바퀴 1 끝 — src 와 dst 를 맞바꾼다",
+      text: "dst 가 [513 258 2 45 301 66 90] 으로 찼고, 자리 0 기준 오름차순입니다. 두 배열의 역할을 맞바꿔 다음 바퀴가 이 배열을 읽습니다. place 는 256 이 됩니다.",
       array: [513, 258, 2, 45, 301, 66, 90],
-      highlight: [],
-      marked: [],
+      range: [0, 6],
+      rangeSide: "바퀴 1 끝",
+      read: [],
+      write: [0, 1, 2, 3, 4, 5, 6],
+      layers: [
+        {
+          name: "자리 0",
+          values: [1, 2, 2, 45, 45, 66, 90],
+        },
+        {
+          name: "dst",
+          values: [null, null, null, null, null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [1, 0],
+          [2, 1],
+          [45, 3],
+          [66, 5],
+          [90, 6],
+        ],
+        slots: 5,
+        note: "나머지 251 칸은 0",
+      },
+      calc: {
+        expr: "[src, dst] = [dst, src]",
+        result: "맞바꿈",
+      },
+      vars: null,
     },
     {
-      title: "T12 — 둘째 바퀴: 자리 1 의 값을 센다",
-      detail:
-        "자리 1 은 256 으로 나눈 몫이다. 차례로 2 · 1 · 0 · 0 · 1 · 0 · 0 이고, 값 0 이 넷 몰려 있다.",
+      title: "T12 바퀴 2 — 자리 1 의 값을 센다",
+      text: "⌊513 / 256⌋ > 0 이 참이라 바퀴를 시작합니다. 자리 값은 ⌊x / 256⌋ mod 256 이고, 값 7 개의 자리 1 이 2 1 0 0 1 0 0 입니다. 자리 값마다 개수를 count 에 적습니다.",
       array: [513, 258, 2, 45, 301, 66, 90],
-      highlight: [0, 1, 2, 3, 4, 5, 6],
-      marked: [],
+      range: [0, 6],
+      rangeSide: "바퀴 2 · place = 256",
+      read: [0, 1, 2, 3, 4, 5, 6],
+      write: [],
+      layers: [
+        {
+          name: "자리 1",
+          values: [2, 1, 0, 0, 1, 0, 0],
+          write: [0, 1, 2, 3, 4, 5, 6],
+        },
+        {
+          name: "dst",
+          values: [null, null, null, null, null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [0, 4],
+          [1, 2],
+          [2, 1],
+        ],
+        slots: 5,
+        write: [0, 1, 2],
+        note: "나머지 253 칸은 0",
+      },
+      calc: {
+        expr: "개수",
+        result: "4 2 1",
+      },
+      vars: null,
     },
     {
-      title: "T14 — 둘째 바퀴: i = 6 을 놓는다",
-      detail:
-        "90 의 자리 1 은 0 이다. 자리 0 의 마지막 칸이 3 번이라 dst 의 칸 3 에 놓는다. 자리 값이 0 인 넷 중 가장 뒤였다.",
+      title: "T13 바퀴 2 — 누적합으로 통의 끝을 정한다",
+      text: "count 를 왼쪽부터 누적합으로 덮습니다. count[d] 가 자리 값이 d 이하인 원소의 개수가 되고, 자리 값 d 의 통은 dst 의 칸 count[d] − 1 에서 끝납니다.",
       array: [513, 258, 2, 45, 301, 66, 90],
-      highlight: [6],
-      marked: [],
-      pointers: { i: 6 },
+      range: [0, 6],
+      rangeSide: "바퀴 2 · place = 256",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "자리 1",
+          values: [2, 1, 0, 0, 1, 0, 0],
+        },
+        {
+          name: "dst",
+          values: [null, null, null, null, null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [0, 4],
+          [1, 6],
+          [2, 7],
+        ],
+        slots: 5,
+        write: [1, 2],
+        note: "나머지 253 칸은 0",
+      },
+      calc: {
+        expr: "누적합",
+        result: "4 6 7",
+      },
+      vars: null,
     },
     {
-      title: "T17 — 둘째 바퀴: i = 3 을 놓는다",
-      detail:
-        "45 의 자리 1 도 0 이다. 남은 마지막 칸이 1 번이라 칸 1 에 놓는다. 자리 값이 같은 넷이 첫 바퀴의 앞뒤 그대로 칸 0 … 3 에 들어간다.",
+      title: "T14 바퀴 2 — i=6 값 90 을 칸 3 에",
+      text: "src[6] = 90 의 자리 1 이 0 입니다. count[0] 을 4 에서 3 으로 줄이고 dst 의 칸 3 에 90 을 놓습니다.",
       array: [513, 258, 2, 45, 301, 66, 90],
-      highlight: [3],
-      marked: [],
-      pointers: { i: 3 },
+      range: [0, 6],
+      rangeSide: "바퀴 2 · place = 256",
+      read: [6],
+      write: [],
+      pointers: {
+        i: 6,
+      },
+      layers: [
+        {
+          name: "자리 1",
+          values: [2, 1, 0, 0, 1, 0, 0],
+          read: [6],
+        },
+        {
+          name: "dst",
+          values: [null, null, null, 90, null, null, null],
+          write: [3],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [0, 3],
+          [1, 6],
+          [2, 7],
+        ],
+        slots: 5,
+        read: [0],
+        write: [0],
+        note: "나머지 253 칸은 0",
+      },
+      calc: {
+        expr: "count[0] − 1",
+        result: "3",
+      },
+      vars: null,
     },
     {
-      title: "T20 — 둘째 바퀴: i = 0 을 놓는다",
-      detail:
-        "513 의 자리 1 은 2 다. 자리 값이 2 인 원소가 하나뿐이라 마지막 칸 6 에 놓는다.",
+      title: "T15 바퀴 2 — i=5 값 66 을 칸 2 에",
+      text: "src[5] = 66 의 자리 1 이 0 입니다. count[0] 을 3 에서 2 로 줄이고 dst 의 칸 2 에 66 을 놓습니다.",
       array: [513, 258, 2, 45, 301, 66, 90],
-      highlight: [0],
-      marked: [],
-      pointers: { i: 0 },
+      range: [0, 6],
+      rangeSide: "바퀴 2 · place = 256",
+      read: [5],
+      write: [],
+      pointers: {
+        i: 5,
+      },
+      layers: [
+        {
+          name: "자리 1",
+          values: [2, 1, 0, 0, 1, 0, 0],
+          read: [5],
+        },
+        {
+          name: "dst",
+          values: [null, null, 66, 90, null, null, null],
+          write: [2],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [0, 2],
+          [1, 6],
+          [2, 7],
+        ],
+        slots: 5,
+        read: [0],
+        write: [0],
+        note: "나머지 253 칸은 0",
+      },
+      calc: {
+        expr: "count[0] − 1",
+        result: "2",
+      },
+      vars: null,
     },
     {
-      title: "T21 — 둘째 바퀴의 결과",
-      detail:
-        "자리 1 이 같은 원소끼리는 첫 바퀴의 순서가 남았고, 그 순서가 자리 0 기준이라 두 자리가 함께 맞았다.",
+      title: "T16 바퀴 2 — i=4 값 301 을 칸 5 에",
+      text: "src[4] = 301 의 자리 1 이 1 입니다. count[1] 을 6 에서 5 로 줄이고 dst 의 칸 5 에 301 을 놓습니다.",
+      array: [513, 258, 2, 45, 301, 66, 90],
+      range: [0, 6],
+      rangeSide: "바퀴 2 · place = 256",
+      read: [4],
+      write: [],
+      pointers: {
+        i: 4,
+      },
+      layers: [
+        {
+          name: "자리 1",
+          values: [2, 1, 0, 0, 1, 0, 0],
+          read: [4],
+        },
+        {
+          name: "dst",
+          values: [null, null, 66, 90, null, 301, null],
+          write: [5],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [0, 2],
+          [1, 5],
+          [2, 7],
+        ],
+        slots: 5,
+        read: [1],
+        write: [1],
+        note: "나머지 253 칸은 0",
+      },
+      calc: {
+        expr: "count[1] − 1",
+        result: "5",
+      },
+      vars: null,
+    },
+    {
+      title: "T17 바퀴 2 — i=3 값 45 를 칸 1 에",
+      text: "src[3] = 45 의 자리 1 이 0 입니다. count[0] 을 2 에서 1 로 줄이고 dst 의 칸 1 에 45 를 놓습니다.",
+      array: [513, 258, 2, 45, 301, 66, 90],
+      range: [0, 6],
+      rangeSide: "바퀴 2 · place = 256",
+      read: [3],
+      write: [],
+      pointers: {
+        i: 3,
+      },
+      layers: [
+        {
+          name: "자리 1",
+          values: [2, 1, 0, 0, 1, 0, 0],
+          read: [3],
+        },
+        {
+          name: "dst",
+          values: [null, 45, 66, 90, null, 301, null],
+          write: [1],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [0, 1],
+          [1, 5],
+          [2, 7],
+        ],
+        slots: 5,
+        read: [0],
+        write: [0],
+        note: "나머지 253 칸은 0",
+      },
+      calc: {
+        expr: "count[0] − 1",
+        result: "1",
+      },
+      vars: null,
+    },
+    {
+      title: "T18 바퀴 2 — i=2 값 2 를 칸 0 에",
+      text: "src[2] = 2 의 자리 1 이 0 입니다. count[0] 을 1 에서 0 으로 줄이고 dst 의 칸 0 에 2 를 놓습니다.",
+      array: [513, 258, 2, 45, 301, 66, 90],
+      range: [0, 6],
+      rangeSide: "바퀴 2 · place = 256",
+      read: [2],
+      write: [],
+      pointers: {
+        i: 2,
+      },
+      layers: [
+        {
+          name: "자리 1",
+          values: [2, 1, 0, 0, 1, 0, 0],
+          read: [2],
+        },
+        {
+          name: "dst",
+          values: [2, 45, 66, 90, null, 301, null],
+          write: [0],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [0, 0],
+          [1, 5],
+          [2, 7],
+        ],
+        slots: 5,
+        read: [0],
+        write: [0],
+        note: "나머지 253 칸은 0",
+      },
+      calc: {
+        expr: "count[0] − 1",
+        result: "0",
+      },
+      vars: null,
+    },
+    {
+      title: "T19 바퀴 2 — i=1 값 258 을 칸 4 에",
+      text: "src[1] = 258 의 자리 1 이 1 입니다. count[1] 을 5 에서 4 로 줄이고 dst 의 칸 4 에 258 을 놓습니다.",
+      array: [513, 258, 2, 45, 301, 66, 90],
+      range: [0, 6],
+      rangeSide: "바퀴 2 · place = 256",
+      read: [1],
+      write: [],
+      pointers: {
+        i: 1,
+      },
+      layers: [
+        {
+          name: "자리 1",
+          values: [2, 1, 0, 0, 1, 0, 0],
+          read: [1],
+        },
+        {
+          name: "dst",
+          values: [2, 45, 66, 90, 258, 301, null],
+          write: [4],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [0, 0],
+          [1, 4],
+          [2, 7],
+        ],
+        slots: 5,
+        read: [1],
+        write: [1],
+        note: "나머지 253 칸은 0",
+      },
+      calc: {
+        expr: "count[1] − 1",
+        result: "4",
+      },
+      vars: null,
+    },
+    {
+      title: "T20 바퀴 2 — i=0 값 513 을 칸 6 에",
+      text: "src[0] = 513 의 자리 1 이 2 입니다. count[2] 를 7 에서 6 으로 줄이고 dst 의 칸 6 에 513 을 놓습니다.",
+      array: [513, 258, 2, 45, 301, 66, 90],
+      range: [0, 6],
+      rangeSide: "바퀴 2 · place = 256",
+      read: [0],
+      write: [],
+      pointers: {
+        i: 0,
+      },
+      layers: [
+        {
+          name: "자리 1",
+          values: [2, 1, 0, 0, 1, 0, 0],
+          read: [0],
+        },
+        {
+          name: "dst",
+          values: [2, 45, 66, 90, 258, 301, 513],
+          write: [6],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [0, 0],
+          [1, 4],
+          [2, 6],
+        ],
+        slots: 5,
+        read: [2],
+        write: [2],
+        note: "나머지 253 칸은 0",
+      },
+      calc: {
+        expr: "count[2] − 1",
+        result: "6",
+      },
+      vars: null,
+    },
+    {
+      title: "T21 바퀴 2 끝 — src 와 dst 를 맞바꾼다",
+      text: "dst 가 [2 45 66 90 258 301 513] 으로 찼고, 자리 1 기준 오름차순입니다. 두 배열의 역할을 맞바꿔 방금 쓴 배열이 반환할 쪽이 됩니다. place 는 65,536 이 됩니다.",
       array: [2, 45, 66, 90, 258, 301, 513],
-      highlight: [],
-      marked: [0, 1, 2, 3, 4, 5, 6],
+      range: [0, 6],
+      rangeSide: "바퀴 2 끝",
+      read: [],
+      write: [0, 1, 2, 3, 4, 5, 6],
+      layers: [
+        {
+          name: "자리 1",
+          values: [0, 0, 0, 0, 1, 1, 2],
+        },
+        {
+          name: "dst",
+          values: [null, null, null, null, null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [
+          [0, 0],
+          [1, 4],
+          [2, 6],
+        ],
+        slots: 5,
+        note: "나머지 253 칸은 0",
+      },
+      calc: {
+        expr: "[src, dst] = [dst, src]",
+        result: "맞바꿈",
+      },
+      vars: null,
     },
     {
-      title: "T22 — 반환",
-      detail:
-        "바퀴가 둘로 끝났고 입력 배열은 그대로다. 두 값을 견준 자리는 한 곳도 없었다.",
+      title: "T22 반환 — 바퀴가 끝났다",
+      text: "place = 65,536 에서 ⌊513 / 65,536⌋ = 0 이라 반복이 끝납니다. src 가 [2 45 66 90 258 301 513] 이고, 입력 A 는 [513 45 258 2 66 90 301] 그대로입니다.",
       array: [2, 45, 66, 90, 258, 301, 513],
-      highlight: [],
-      marked: [0, 1, 2, 3, 4, 5, 6],
+      range: [0, 6],
+      rangeSide: "반환",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "자리 값",
+          values: [null, null, null, null, null, null, null],
+        },
+        {
+          name: "dst",
+          values: [null, null, null, null, null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "자리 값",
+        valueLabel: "count",
+        entries: [],
+        slots: 5,
+        note: "없음",
+      },
+      calc: {
+        expr: "⌊513 / 65,536⌋ > 0",
+        result: "거짓",
+      },
+      vars: null,
     },
-  ] satisfies Frame[],
-};
+  ],
+} satisfies ArrayPlayerSpec;
