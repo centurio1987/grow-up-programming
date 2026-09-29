@@ -28,7 +28,7 @@ scope: sandbox/algo-guide-v2/**, tools/section.ts, tools/check-v2.ts, tools/chec
 
 **버린 대안.** 아이디어 먼저·서사 뒤(유저가 서사 먼저를 골랐다) · `deep.origin` 필수 검사 즉시 적용(옛 110편이 전부 걸린다) · `build-html.ts` 라벨 추가(앵커·라벨이 id·헤딩에서 자동 생성된다).
 
-**범위 밖 기록.** `.claude/skills/guide-for-problem/SKILL.md:40` 가 알고리즘 가이드를 아직 「10단계」로 적는다(v2 명세와 어긋남). 2026-09-27 고쳤다 — 알고리즘 줄이 v2 명세와 `algorithm-guide-writer` voice 를 가리킨다.
+**범위 밖 기록.** `.claude/skills/guide-for-problem/SKILL.md:100` 가 알고리즘 가이드를 아직 「10단계」로 적는다(v2 명세와 어긋남). 2026-09-27 고쳤다 — 알고리즘 줄이 v2 명세와 `algorithm-guide-writer` voice 를 가리킨다.
 
 ## 실행 계획
 <!-- `S<n>`은 고정 id — 이름을 바꾸지 않는다. 체크 상태는 doc-step 이 갱신한다. -->

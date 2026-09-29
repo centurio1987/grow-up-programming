@@ -23,6 +23,66 @@ argument-hint: <file-name-without-extension>
 스텁 시그니처(`<name>.ts`)다 — 스텁에는 문제 주석이 없다(커밋 `29eab6e` 가 옮겼고, `KAN-060` 이 실습
 절로 다시 옮겼다). 실습 문제를 새로 쓰거나 더하는 일은 `gen-problem` 이다.
 
+## 알고리즘 가이드 v2 재집필 경로 (KAN-058)
+
+옛 구성으로 남은 알고리즘 가이드를 파일럿 구성으로 다시 쓰는 경로다. 전개 카드 `KAN-058` 이 편마다
+서브에이전트에게 이 절을 넘긴다. **규칙은 여기에 다시 쓰지 않는다** — 무엇을 어떻게 쓰는지는 아래
+세 곳이 정한다.
+
+| 무엇 | 어디 |
+| --- | --- |
+| 골격·항목별 작성법·범위 원칙 | [`sandbox/algo-guide-v2/SPEC.md`](../../../sandbox/algo-guide-v2/SPEC.md) — 특히 §3 `deep.origin`·`deep.build`(`L41`~`L45`), §6 `L49`, §12(`L46`·`L47`), §13(`L48`) |
+| 문체 | voice `algorithm-guide-writer` — 검사기가 읽는 사본은 [`.claude/authoring/voices/algorithm-guide-writer/`](../../authoring/voices/algorithm-guide-writer/voice.md) |
+| 본보기 | 파일럿 [`src/algorithms/array/sparseTableRangeMin/`](../../../src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md) — 원고와 사이드카 전부(`ref`·`proof`·`sim`·`fig`·`test`·`figs/`) |
+
+**대상인지 먼저 본다.** `bun run tools/check-v2.ts --strict <가이드>` 가 걸리는 편이 대상이다.
+전체 목록은 `bun run tools/check-v2.ts --all --strict`. 위반 목록이 첫 작업 목록이다.
+
+### 입력 — 버리지 않고 옮긴다
+
+- **옛 원고** `<name>-guide.md` — 값·예시 입력·증명·반례는 새 구성으로 옮긴다. 서술 순서만 바꾼다.
+- **정본** `<name>-guide.ref.ts` — 본문 코드의 원천이다. 고치지 않는 것이 기본이고, 고치면 `<name>-guide.test.ts` 가 통과해야 한다.
+- **증명 블록** `<name>-guide.proof.ts` — 옮긴 값은 그대로 쓰고, 새로 싣는 값은 여기에 블록으로 더한다(손으로 적은 수를 본문에 두지 않는다).
+- **걸음 표** `<name>-guide.sim.ts` — 걸음 재생 패널이 남으면 고쳐 쓰고 새로 만들지 않는다. 걸음 값은 정본 실행에서 받는다(`L48`).
+- **대안 비교** `<name>-guide.alt.ts`·`.bench.json` — 있으면 그대로 두고, `purpose.alt` 가 바뀌면 함께 맞춘다.
+
+**바꾸지 않는 것.** 문서 끝 `## 실습` 절(`KAN-060` 이 옮긴 문제 서술), 스텁 `<name>.ts`·`<name>.test.ts`,
+자료구조 트랙.
+
+### 순서
+
+1. 옛 원고와 파일럿을 함께 읽고 `--strict` 위반 목록을 본다.
+2. `deep.origin` — 알고리즘이 푸는 과제를 입출력·규모로 고정하고(`L49`), 단순한 방법의 수치 반박에서 아이디어의 이름까지 간다.
+3. `deep.build` — 단계 지도 그림, 낯선 개념이 있으면 「먼저 알아 둘 개념」(`L41`), `#### {N}단계 — …` 실현 단계(`L42`).
+4. 나머지 절 — 핵심 구조는 이름 하나로(`L43`), 「견주다」 없이(`L44`), 본문 반말 없이(`L45`), 실습 문제를 가리키지 않고(`L49`).
+5. 그림 — 자리마다 독자가 알아야 할 것을 한 문장으로 정하고 형식을 고른다(`L46`). 도식은 `<name>-guide.fig.tsx` 에 정의하고 `bun run tools/render-figs.ts <가이드>` 로 `figs/` 를 뽑아 함께 커밋한다. 맞는 패턴이 `src/_viz/patterns/` 에 없으면 SPEC §12 「패턴을 더하는 법」대로 패턴부터 만든다(`src/_viz/patterns.test.tsx` 패턴 등록 가드).
+6. 아래 완료 명령을 전부 통과시킨다.
+
+### 편 완료 명령
+
+```bash
+G=src/algorithms/<카테고리>/<편>/<편>-guide.md
+bun run tools/check-v2.ts --strict $G
+bun run tools/check-proof.ts --require $G
+bun run tools/render-figs.ts --check
+bun test src/algorithms/<카테고리>/<편>/<편>-guide.test.ts
+bun run tools/build-html.ts $G
+bun run tools/check-metaphor.ts $G
+bun run tools/guide-core.ts check
+```
+
+문체 박자 등급은 합격선이 아니라 보고할 값이다. 실습 절 앞까지만 잘라서 잰다(실습은 옮겨 온 문제
+서술이다). 파일럿의 파트 1·2 도 C 이므로(2026-09-30 실측) 등급으로 편을 막지 않는다.
+
+```bash
+sed '/^## 실습/,$d' $G > <스크래치>/body.md
+python3 ${CLAUDE_PLUGIN_ROOT}/scripts/scan_ai_style.py --voice algorithm-guide-writer <스크래치>/body.md
+```
+
+**보고할 것.** 통과한 명령 · 문체 박자 등급 · 새로 만든 패턴(있으면 이름과 쓴 자리) · 판단이 필요했던 자리(값을 정하지
+못한 곳, 옛 원고와 정본이 어긋난 곳) · 들인 토큰과 시간. 판단이 필요한 자리는 고쳐 넘기지 말고 그대로
+적는다 — 사람이 검토에서 본다.
+
 ## 기존 집필 경로
 
 `src/$ARGUMENTS.ts`의 **문제 주석**을 입력으로, 문제를 푸는 **깊은 해설서**
