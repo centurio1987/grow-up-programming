@@ -9,7 +9,7 @@
 
 import type { ReactElement } from "react";
 import { loadMutant } from "../../../../tools/check-proof.ts";
-import { 을를 } from "../../../../tools/josa.ts";
+import { 과와, 으로, 은는, 을를, 이가 } from "../../../../tools/josa.ts";
 import {
   type Approach,
   ApproachLadder,
@@ -237,7 +237,7 @@ export function cellText(cell: Cell): { expr: string; detail: string } {
   const diag = cellName([cell.i - 1, cell.j - 1]);
   const up = cellName([cell.i - 1, cell.j]);
   const left = cellName([cell.i, cell.j - 1]);
-  const cmp = `s[${cell.i - 1}] = '${cell.a}'${과와L(cell.a)} t[${cell.j - 1}] = '${cell.b}'${이가L(cell.b)}`;
+  const cmp = `s[${cell.i - 1}] = '${cell.a}'${과와(cell.a)} t[${cell.j - 1}] = '${cell.b}'${이가(cell.b)}`;
   if (cell.branch === "same") {
     return {
       expr: `${diag} =`,
@@ -381,7 +381,7 @@ function ruleFrame(i: number, j: number): StageFrame {
       : `다르다 · 가장 작은 후보 ${cell.best.map((p) => PICK_NAME[p]).join(" · ")}`;
   return {
     id: `${BRANCH_MARK[cell.branch]} ${i},${j}`,
-    text: `${cellName([i, j])} — '${cell.a}'${과와L(cell.a)} '${cell.b}'${이가L(cell.b)} ${who} · ${expr} ${cell.value}`,
+    text: `${cellName([i, j])} — '${cell.a}'${과와(cell.a)} '${cell.b}'${이가(cell.b)} ${who} · ${expr} ${cell.value}`,
     rows: fullTable({ read: cell.reads, write: [[i, j]] }),
   };
 }
@@ -530,37 +530,15 @@ export function applyScript(s: string, script: readonly Stepped[]): Applied[] {
 export const scriptResult = (s: string, script: readonly Stepped[]): string =>
   applyScript(s, script).at(-1)?.after ?? s;
 
-/**
- * 영문 글자 하나 뒤의 조사. `tools/josa.ts` 는 한글과 숫자의 받침을 보므로 영문 글자는 여기서 읽는다 —
- * 글자 이름의 끝소리로 가른다(l 엘 · r 알 은 ㄹ, m 엠 · n 엔 은 그 밖의 받침, 나머지는 받침이 없다).
- */
-const TAIL: Record<string, "none" | "rieul" | "other"> = {
-  l: "rieul",
-  r: "rieul",
-  m: "other",
-  n: "other",
-};
-const tail = (x: string) => TAIL[x.toLowerCase()] ?? "none";
-export const 을를L = (x: string): string =>
-  tail(x) === "none" ? " 를" : " 을";
-export const 으로L = (x: string): string =>
-  tail(x) === "other" ? " 으로" : " 로";
-export const 은는L = (x: string): string =>
-  tail(x) === "none" ? " 는" : " 은";
-export const 이가L = (x: string): string =>
-  tail(x) === "none" ? " 가" : " 이";
-export const 과와L = (x: string): string =>
-  tail(x) === "none" ? " 와" : " 과";
-
 /** 편집 한 번을 적은 말 — 「h 를 r 로 교체」. */
 export function editText(a: Applied): string {
   const x = a.step;
   const was = a.before[a.at] as string;
   if (x.move === "교체")
-    return `${was}${을를L(was)} ${x.letter}${으로L(x.letter)} 교체`;
-  if (x.move === "삭제") return `${x.letter}${을를L(x.letter)} 삭제`;
-  if (x.move === "삽입") return `${x.letter}${을를L(x.letter)} 삽입`;
-  return `${x.letter}${은는L(x.letter)} 그대로`;
+    return `${was}${을를(was)} ${x.letter}${으로(x.letter)} 교체`;
+  if (x.move === "삭제") return `${x.letter}${을를(x.letter)} 삭제`;
+  if (x.move === "삽입") return `${x.letter}${을를(x.letter)} 삽입`;
+  return `${x.letter}${은는(x.letter)} 그대로`;
 }
 
 /** 전체 컨셉의 필름 — 편집 하나마다 한 장, 마지막에 결과 한 장. 그대로 둔 글자는 장을 만들지 않는다. */

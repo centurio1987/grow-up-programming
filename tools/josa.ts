@@ -53,6 +53,14 @@ const DIGIT_TAIL: readonly Tail[] = [
 /** 자리 이름의 읽기 — 십(ㅂ) 백(ㄱ) 천(ㄴ) 만(ㄴ) 억(ㄱ) 조. 조만 받침이 없다. */
 const unitTail = (zeros: number): Tail => (zeros >= 12 ? "none" : "other");
 
+/** 영문 글자 이름의 끝소리 — 받침이 있는 넷만 적는다(없으면 받침 없음). */
+const LETTER_TAIL: Readonly<Record<string, Tail>> = {
+  l: "rieul",
+  r: "rieul",
+  m: "other",
+  n: "other",
+};
+
 const HANGUL_FIRST = 0xac00;
 const HANGUL_LAST = 0xd7a3;
 /** 종성 표에서 `ㄹ` 의 자리. */
@@ -77,6 +85,11 @@ export function tailOf(앞: string | number | bigint): Tail {
   const text = typeof 앞 === "string" ? 앞.trimEnd() : String(앞);
   const run = /([0-9][0-9,_]*)$/.exec(text);
   if (run?.[1] !== undefined) return tailOfDigits(run[1]);
+  // 홀로 선 영문 글자 하나(변수 이름 · 문자열의 한 글자)는 글자 이름으로 읽는다 — l 엘 · r 알 은 ㄹ,
+  // m 엠 · n 엔 은 그 밖의 받침, 나머지는 받침이 없다(「h 를」·「r 로」). 영단어는 읽는 소리를 몰라
+  // 아래 「받침 있음」 기본값을 그대로 쓴다(KAN-058 editDistance 가 한 편 안에 두었던 헬퍼를 옮김).
+  const letter = /(?:^|[^A-Za-z])([A-Za-z])$/.exec(text)?.[1];
+  if (letter !== undefined) return LETTER_TAIL[letter.toLowerCase()] ?? "none";
   const last = [...text].at(-1) ?? "";
   const code = last.codePointAt(0) ?? 0;
   if (code >= HANGUL_FIRST && code <= HANGUL_LAST) {

@@ -38,8 +38,6 @@ import {
   T,
   trace,
   walkSteps,
-  과와L,
-  이가L,
 } from "./editDistance-guide.fig.tsx";
 import { editDistance } from "./editDistance-guide.ref.ts";
 
@@ -104,7 +102,7 @@ const withNote = (tbl: string, note: string): string =>
 
 const q = (x: string): string => `"${x}"`;
 const pairName = (s: string, t: string): string =>
-  `${q(s)}${과와L(s.at(-1) ?? "")} ${q(t)}`;
+  `${q(s)}${과와(s.at(-1) ?? "")} ${q(t)}`;
 
 /* ────────────────────────── 기준 구현 ────────────────────────── */
 
@@ -429,7 +427,7 @@ function originBreadthFirst(): string {
   return [
     table(["편집 횟수", "새로 만난 문자열 수", "누적"], rows, []),
     "",
-    `└ ${got.answer} 번째에 ${q(T)}${이가L(T.at(-1) ?? "")} 나온다`,
+    `└ ${got.answer} 번째에 ${q(T)}${이가(T.at(-1) ?? "")} 나온다`,
     "",
     `과제 규모 n = m = ${comma(LIMIT)} · 글자 종류 26 이면`,
     plain(
@@ -1556,7 +1554,7 @@ function selfcheckMix(): string {
   const cells = trace(S, T).cells.filter((c) => c.i === 4);
   const rows = cells.map((c) => [
     `j=${c.j}`,
-    `'${c.a}'${과와L(c.a)} '${c.b}'`,
+    `'${c.a}'${과와(c.a)} '${c.b}'`,
     c.branch === "same" ? "같다" : "다르다",
     c.branch === "same"
       ? `dp[${c.i - 1}][${c.j - 1}] = ${c.diag}${을를(String(c.diag))} 그대로`
