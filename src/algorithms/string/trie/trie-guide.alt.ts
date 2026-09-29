@@ -102,7 +102,7 @@ function compare(a: string, b: string): { read: number; sign: number } {
   return { read, sign: Math.sign(a.length - b.length) };
 }
 
-/** 이 가이드가 가르치는 절차 — 접두사 트리. 정본과 같은 절차에 계수만 덧붙였다. */
+/** 이 가이드가 가르치는 절차 — 트라이. 정본과 같은 절차에 계수만 덧붙였다. */
 function trieOps(
   words: readonly string[],
   queries: readonly string[],
@@ -198,7 +198,7 @@ export function workloadQueries(): string[] {
 }
 
 export const cases = {
-  "접두사 트리": () => {
+  트라이: () => {
     const ops = trieOps(workloadWords(), workloadQueries());
     return {
       "삽입 1,000 개 · 기본 연산": ops.insert,

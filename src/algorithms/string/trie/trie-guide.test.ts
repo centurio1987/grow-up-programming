@@ -195,3 +195,26 @@ test("단어 개수를 늘려도 조회가 읽는 글자 수가 같다", () => {
   };
   expect(count(10)).toBe(count(10_000));
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 증명 사이드카의 걸음 기록에서
+ * 무대를 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./trie-guide.sim.ts");
+  const fig = await import("./trie-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.trieOps.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.trieOps.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 답을 정본에 직접 다시 묻는다.
+  const trie = new Trie();
+  for (const w of ["app", "apple", "ape"]) trie.insert(w);
+  expect(String(trie.startsWith("bat"))).toBe(sim.trieOps.result);
+  // 마지막 걸음의 무대에 노드가 일곱 다 있고(점선 없음), 끝 표시가 셋이다.
+  const last = sim.trieOps.steps.at(-1);
+  const nodes = last?.nodes ?? [];
+  expect(nodes.filter((n) => "state" in n && n.state === "empty")).toEqual([]);
+  expect(nodes.filter((n) => n.value === "끝 표시").length).toBe(3);
+});
