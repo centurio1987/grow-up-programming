@@ -7,12 +7,16 @@ import {
   filmCells,
   LevelTable,
   LogBarChart,
+  NodeGraph,
+  NodeGraphFilm,
+  nodeGraphSize,
   overlapCells,
   type PlayerSpec,
   playerFrames,
   RangeCover,
   renderToSvg,
   StepTrace,
+  treeLayout,
 } from "./index";
 
 // 파일럿 sparseTableRangeMin 의 전개 입력과 두 질의(「전체 컨셉」·「아이디어 상세」 4단계).
@@ -425,6 +429,169 @@ describe("P7 CellStage · 걸음 재생 패널 무대", () => {
       { y: 0, h: 310 },
       { y: 310, h: 330 },
     ]);
+  });
+});
+
+describe("P8 NodeGraph · 그래프 무대", () => {
+  const count = (svg: string, re: RegExp) => svg.match(re)?.length ?? 0;
+  // 강한 연결 요소 편(KAN-058 샘플)의 전개 입력과 같은 모양 — 정점 여섯 · 간선 일곱.
+  const nodes = [
+    { id: 0, x: 0, y: 0, value: "0 / 0" },
+    { id: 1, x: 0, y: 2, value: "1 / 0", state: "read" as const },
+    { id: 2, x: 1.2, y: 1, value: "2 / 0", state: "focus" as const },
+    { id: 3, x: 2.6, y: 1, value: "3 / 3" },
+    { id: 4, x: 3.8, y: 1, value: "4 / 3" },
+    { id: 5, x: 2.6, y: -0.6, state: "empty" as const },
+  ];
+  const edges = [
+    { from: 0, to: 1, kind: "tree" as const },
+    { from: 1, to: 2, kind: "tree" as const },
+    { from: 2, to: 0, kind: "back" as const, state: "focus" as const },
+    { from: 2, to: 3, kind: "tree" as const },
+    { from: 3, to: 4, kind: "tree" as const },
+    { from: 4, to: 3, kind: "back" as const },
+    { from: 5, to: 3, kind: "cross" as const, state: "out" as const },
+  ];
+
+  test("정점 · 간선 · 묶음 · 띠가 데이터 그대로 실리고 결정론이다", async () => {
+    const el = (
+      <NodeGraph
+        title="강한 연결 요소"
+        nodes={nodes}
+        edges={edges}
+        groups={[
+          { members: [0, 1, 2], label: "[0, 1, 2]" },
+          { members: [3, 4], label: "[3, 4]", state: "focus" },
+        ]}
+        strips={[{ label: "스택", values: [0, 1, 2], slots: 6 }]}
+      />
+    );
+    const a = await renderToSvg(el, "t-graph");
+    const b = await renderToSvg(el, "t-graph");
+    expect(a).toBe(b);
+    expect(count(a, /data-viz-node="/g)).toBe(6);
+    expect(count(a, /data-viz-edge="/g)).toBe(7);
+    expect(a).toContain('data-viz-node="2" data-viz-state="focus"');
+    expect(a).toContain('data-viz-node="5" data-viz-state="empty"');
+    expect(a).toContain(
+      'data-viz-edge="2->0" data-viz-kind="back" data-viz-state="focus"',
+    );
+    expect(a).toContain(
+      'data-viz-edge="5->3" data-viz-kind="cross" data-viz-state="out"',
+    );
+    expect(a).toContain('data-viz-group="3,4" data-viz-state="focus"');
+    // 띠는 칸 여섯 — 값 셋 + 빈 칸 셋
+    expect(a).toContain('data-viz-strip="스택"');
+    expect(count(a, /data-viz-state="empty"/g)).toBe(1 + 3);
+    expect(a).toContain("2 / 0");
+    expect(a).not.toMatch(/(href|src)="https?:/);
+  });
+
+  test("반대 방향 두 간선(3→4 · 4→3)은 휘고, 나머지는 곧다 · 자기 자신으로 가는 간선은 고리다", async () => {
+    const svg = await renderToSvg(
+      <NodeGraph
+        title="휨"
+        nodes={nodes}
+        edges={[...edges, { from: 1, to: 1 }]}
+      />,
+      "t-bend",
+    );
+    const pathOf = (id: string) =>
+      new RegExp(`data-viz-edge="${id}"[^>]*><path d="([^"]+)"`).exec(
+        svg,
+      )?.[1] ?? "";
+    expect(pathOf("3->4")).toContain(" Q ");
+    expect(pathOf("4->3")).toContain(" Q ");
+    expect(pathOf("0->1")).toContain(" L ");
+    expect(pathOf("1->1")).toContain(" C ");
+  });
+
+  test("나무 배치 — 잎이 왼쪽부터 한 칸씩, 부모는 자식 가운데, y 는 깊이다", () => {
+    const children = new Map<number, number[]>([
+      [0, [1, 4]],
+      [1, [2, 3]],
+    ]);
+    const at = treeLayout([0, 5], children);
+    expect(at.get(2)).toEqual({ x: 0, y: 2 });
+    expect(at.get(3)).toEqual({ x: 1, y: 2 });
+    expect(at.get(1)).toEqual({ x: 0.5, y: 1 });
+    expect(at.get(4)).toEqual({ x: 2, y: 1 });
+    expect(at.get(0)).toEqual({ x: 1.25, y: 0 });
+    expect(at.get(5)).toEqual({ x: 3, y: 0 });
+  });
+
+  test("걸음 재생 패널의 그래프 무대 — 자리는 한 번, 걸음마다 상태만 바뀌고 무대 크기가 같다", () => {
+    const spec: PlayerSpec = {
+      player: "stage",
+      stage: "graph",
+      title: "두 걸음",
+      layout: {
+        nodes: [
+          { id: 0, x: 0, y: 0 },
+          { id: 1, x: 1, y: 0 },
+        ],
+        edges: [{ from: 0, to: 1 }],
+      },
+      steps: [
+        {
+          title: "T1 정점 0",
+          text: "들어간다",
+          nodes: [{ value: "0", state: "focus" }, { state: "empty" }],
+          edges: [{}],
+          strips: [{ label: "스택", values: [0], slots: 2 }],
+          vars: "timer = 1",
+        },
+        {
+          title: "T2 간선 0→1",
+          text: "내려간다",
+          nodes: [
+            { value: "0", state: "read" },
+            { value: "1", state: "focus" },
+          ],
+          edges: [{ kind: "tree", state: "focus" }],
+          strips: [{ label: "스택", values: [0, 1], slots: 2 }],
+          calc: { expr: "disc[1] =", result: "1" },
+        },
+      ],
+    };
+    const frames = playerFrames(spec);
+    expect(frames.map((f) => f.id)).toEqual(["T1", "T2"]);
+    expect(frames[1]?.scene?.edges[0]).toMatchObject({
+      from: 0,
+      to: 1,
+      kind: "tree",
+      state: "focus",
+    });
+    expect(frames[0]?.vars).toBe("timer = 1");
+    expect(frames[1]?.calc).toEqual({ expr: "disc[1] =", result: "1" });
+    const sizes = frames.map((f) =>
+      f.scene ? nodeGraphSize(f.scene).height : -1,
+    );
+    expect(new Set(sizes).size).toBe(1);
+  });
+
+  test("정적 그림은 장면을 걸음마다 한 장씩 늘어놓고 칸 경계가 필름을 빈틈없이 나눈다", async () => {
+    const scene = { nodes, edges };
+    const svg = await renderToSvg(
+      <NodeGraphFilm
+        title="필름"
+        frames={[
+          { id: "T1", text: "하나", scene },
+          { id: "T2", text: "둘", scene },
+        ]}
+      />,
+      "t-graph-film",
+    );
+    const height = Number(/viewBox="0 0 \d+ (\d+)"/.exec(svg)?.[1]);
+    const cells = [
+      ...svg.matchAll(
+        /data-viz-step="T\d+" data-viz-y="(\d+)" data-viz-h="(\d+)"/g,
+      ),
+    ].map((m) => ({ y: Number(m[1]), h: Number(m[2]) }));
+    expect(cells.length).toBe(2);
+    expect(cells[0]?.y).toBe(0);
+    expect((cells[1]?.y ?? 0) + (cells[1]?.h ?? 0)).toBe(height);
+    expect(count(svg, /data-viz-node="/g)).toBe(12);
   });
 });
 

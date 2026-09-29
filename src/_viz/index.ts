@@ -42,6 +42,23 @@ export {
 } from "./patterns/LevelTable";
 export { ALGO_VIZ_META, type AlgoVizMeta } from "./patterns/meta";
 export {
+  type EdgeKind,
+  type EdgeState,
+  type GraphEdge,
+  type GraphFrame,
+  type GraphGroup,
+  type GraphNode,
+  type GraphStrip,
+  NodeGraph,
+  NodeGraphFilm,
+  type NodeGraphFilmProps,
+  type NodeGraphProps,
+  type NodeGraphScene,
+  type NodeId,
+  nodeGraphSize,
+  treeLayout,
+} from "./patterns/NodeGraph";
+export {
   overlapCells,
   type Range,
   RangeCover,
@@ -54,7 +71,10 @@ export {
   type TraceStep,
 } from "./patterns/StepTrace";
 export {
+  type GraphPlayerSpec,
   isPlayerSpec,
+  type LevelsPlayerSpec,
+  type PlayerFrame,
   type PlayerSpec,
   playerFrames,
   StepPlayer,

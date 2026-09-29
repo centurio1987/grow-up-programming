@@ -269,3 +269,38 @@ test("모든 정점이 정확히 하나의 무리에 속한다 — 무작위 그
     expect(wellFormed(got, V)).toBe(true);
   }
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차를 실행해
+ * 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./stronglyConnectedComponents-guide.sim.ts");
+  const fig = await import("./stronglyConnectedComponents-guide.fig.tsx");
+  const want = fig.stageStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.walkFirst.steps)).toEqual(plain(want.walkFirst));
+  expect(plain(sim.walkSecond.steps)).toEqual(plain(want.walkSecond));
+  expect(plain(sim.walkFirst.layout)).toEqual(
+    plain({ nodes: fig.LAYOUT.nodes, edges: fig.LAYOUT.edges }),
+  );
+  expect(plain(sim.walkSecond.layout)).toEqual(plain(sim.walkFirst.layout));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 묶음을 정본의 답에 직접 다시 묻는다.
+  const answer = stronglyConnectedComponents(6, [
+    [0, 1],
+    [1, 2],
+    [2, 0],
+    [2, 3],
+    [3, 4],
+    [4, 3],
+    [5, 3],
+  ]);
+  const last = sim.walkSecond.steps.at(-1);
+  const groups = (last?.groups ?? []).map((g) => [...g.members]);
+  expect(groups.sort((a, b) => (a[0] as number) - (b[0] as number))).toEqual(
+    answer,
+  );
+  expect(sim.walkSecond.result).toBe("[[0, 1, 2], [3, 4], [5]]");
+});

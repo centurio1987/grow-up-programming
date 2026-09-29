@@ -58,7 +58,7 @@ scope: src/algorithms/**, src/_viz/**, design/viz/**, sandbox/algo-guide-v2/**, 
 
 **배치 2 — 샘플 (하위 카드 `KAN-058.1`)**
 - [x] `S4` `binarySearch` 재집필(서브에이전트). 완료: 편 완료 기준 통과 · 토큰·시간 기록
-- [>] `S5` `stronglyConnectedComponents` 재집필(서브에이전트, 그래프 패턴이 필요하면 패턴 신설 포함 — `src/_viz/patterns.test.tsx` 패턴 등록 가드 통과). 완료: 편 완료 기준 통과 · 토큰·시간 기록 <!-- claim:s=62654a5c t=2026-09-30T01:43 -->
+- [x] `S5` `stronglyConnectedComponents` 재집필(서브에이전트, 그래프 패턴이 필요하면 패턴 신설 포함 — `src/_viz/patterns.test.tsx` 패턴 등록 가드 통과). 완료: 편 완료 기준 통과 · 토큰·시간 기록
 - [ ] `S6` 샘플 검토서 — HTML 빌드 두 편, 판단 항목(두 편의 서술 수준 · 시각화 · 실측 비용과 110편 추정 · 지시서 고칠 점), `KAN-058.1` 을 검토로. 완료: 검토 화면이 열린다. **유저 승인으로 `KAN-058.1` 완료 = 전개 게이트 통과**
 
 **배치 3~ — 전개 (게이트 통과 뒤)**
@@ -116,3 +116,4 @@ bunx tsc --noEmit
 - 2026-09-30T01:43 · s:62654a5c · S4 doing — 착수
 - 2026-09-30T01:43 · s:62654a5c · S5 doing — 착수
 - 2026-09-30T02:07 · s:62654a5c · S4 done — 서브에이전트(지시서만 받음) 재집필 — 토큰 371,083 · 22분 32초 · 도구 69회. deep.origin: 선형 탐색 Q=1,000·N=10^6 에서 10^9 번(10 초) vs 가운데 읽기 20 번 · 첫 칸 읽기도 최악 10^6. deep.build 3단계(후보 구간 정하기 · 가운데 칸 고르기 · 비교해서 한쪽 빼기), 낯선 개념 절 없음(후보 구간은 concept 에서 정의·그림). 그림 7장 전부 기존 패턴(RangeCover·CellStageFilm·ApproachLadder), 새 fig.tsx·figs/. 메인 재확인: --strict · check-proof --require 16/16 · 가이드 시험 19/19 · check-metaphor 통과, 스텁·실습 절 무변경. 문체 박자 C(옛 원고도 C). 검토로 올릴 관찰 7: 배열 걸음 무대 없음(L48 미충족, 옛 array 패널) · purpose.alt 수식을 14511 로 쓰면 P1 이 산문으로 셈(검사기↔L46 어긋남) · 옛 원고 값 정정 둘 · 손으로 적은 짧은 실행 결과 펜스 남음 · proof.ts→fig.tsx import 새 의존 · 중화 실행 회피 문구 조정 · origin-one-read 표시 부정확
+- 2026-09-30T02:19 · s:62654a5c · S5 done — 서브에이전트 재집필 — 토큰 600,343 · 34분 00초 · 도구 99회(자기 추정: 읽기 38만 · 패턴 6만 · 원고 15만). 새 패턴 P8 NodeGraph(정점·간선 종류·묶음·띠, treeLayout, 흑백 구별) + 걸음 재생 패널 「그래프」 무대(graphStage.ts, PlayerSpec 을 층|그래프 합 타입으로). deep.origin: 쌍마다 왕복 탐색 V=10^5 에서 약 10^10 번(100 초) · 앞뒤 도달 집합 2×10^10 · 스택 전부 묶기 반례. 먼저 알아 둘 개념 둘(DFS 트리 · low-link) (a)~(f), deep.build 4단계. 그림 11장(ApproachLadder·NodeGraph·NodeGraphFilm). 메인 재확인: --strict · check-proof --require 43/43 · 가이드 시험+_viz 45 통과 · render-figs --check · tsc 0 · 새 파일 biome 0(경고 9건은 손 안 댄 학습자 스텁) · 스텁·실습 절 무변경 · 파일럿 --strict 유지. 메인이 SPEC §13 「무대 갈래는 층 하나」 문장을 층·그래프 둘로, 힙 줄 「견준」→「비교한」. 문체 박자 C(파일럿도 C). 검토로 올릴 관찰: 이름 「끊다/끊겨 나간 정점」· 단순한 방법 재는 입력을 완전 DAG→사슬로 바꿔 옛 수치와 다름 · purpose.alt(Kosaraju) 생략 사유 JOURNAL 미기록 · walkFirst result 가 반환값이 아니라 끊은 차례

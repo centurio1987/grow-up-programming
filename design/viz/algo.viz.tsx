@@ -9,7 +9,7 @@
  * | 부분 | 자리 | 상태 |
  * | --- | --- | --- |
  * | foundation | `foundations` · `foundationPresets`(밝은·어두운·흑백) · `extendedFoundations` | 시안 방향 A(tokens.ts, S12) |
- * | pattern | `patterns` — P1~P7(`src/_viz/patterns/`) · 걸음 재생 패널 `src/_viz/player/` | 섰다(S4~S6 · S13 · 검토 지적 6·7) |
+ * | pattern | `patterns` — P1~P8(`src/_viz/patterns/`) · 걸음 재생 패널 `src/_viz/player/` | 섰다(S4~S6 · S13 · 검토 지적 6·7 · KAN-058 P8) |
  * | visual motif | `visualMotif` | 시안 컴포넌트 여덟과 사용 규칙(S12) |
  * | component | `wrapperComponents` — LogBarChart(로그 척도 막대) | 섰다(S6) |
  * | guideline | `guidelines` | 그림 형식 선택 규칙(카드 전략 1) |
@@ -29,6 +29,7 @@ import { ArrayStrip } from "../../src/_viz/patterns/ArrayStrip";
 import { CellStage } from "../../src/_viz/patterns/CellStage";
 import { LayerBars } from "../../src/_viz/patterns/LayerBars";
 import { LevelTable } from "../../src/_viz/patterns/LevelTable";
+import { NodeGraph } from "../../src/_viz/patterns/NodeGraph";
 import { RangeCover } from "../../src/_viz/patterns/RangeCover";
 import { StepTrace } from "../../src/_viz/patterns/StepTrace";
 import { type Colorway, DARK, FORM, LIGHT, MONO } from "./tokens";
@@ -200,6 +201,10 @@ const guidelines: Record<string, Record<string, unknown>> = {
         visual: "ArrayStrip · RangeCover · LevelTable · LayerBars",
       },
       {
+        intent: "정점과 간선의 연결, 간선 종류, 정점 묶음",
+        visual: "NodeGraph",
+      },
+      {
         intent: "걸음마다 구조의 상태 변화",
         visual:
           "걸음 재생 패널(StepPlayer) · 무대 CellStage · 한 줄 요약은 StepTrace",
@@ -222,7 +227,7 @@ const guidelines: Record<string, Record<string, unknown>> = {
 export const algoVizStyleGuide: VisualizationStyleGuide = {
   name: "algo-guide-viz-01",
   description:
-    "알고리즘 학습 가이드의 도식 — 배열·구간·층·걸음(KAN-057, 시안 방향 A)",
+    "알고리즘 학습 가이드의 도식 — 배열·구간·층·걸음·그래프(KAN-057 · KAN-058, 시안 방향 A)",
   foundations: light,
   extendedFoundations: extFor(LIGHT),
   foundationPresets: presets,
@@ -283,6 +288,25 @@ export const algoVizStyleGuide: VisualizationStyleGuide = {
           "아직 = 1px 대시 3 2, 흐린 글자",
         ],
       },
+      graphNode: {
+        description: "그래프 정점 — 칸과 같은 상태 다섯",
+        specs: [
+          "둥근 네모 66×44 · 이름 등폭 15px 굵게 · 값 한 줄 등폭 11px",
+          "새로 씀 2.5px 강조 테 · 읽음 1.5px 잉크 테 · 아직 점선 · 이번 걸음 밖 대시",
+        ],
+      },
+      graphEdge: {
+        description: "그래프 간선 — 종류는 선 모양, 상태는 색과 굵기",
+        specs: [
+          "나무 3px 실선 · 되돌아감 2px 대시 5 3 · 가로지름 2px 점선 2 3 · 앞으로 감 2px 대시 8 3 2 3 · 모름 1px 실선",
+          "새로 씀 강조색 +1px · 읽음 +0.5px · 이번 걸음 밖 흐린 선",
+          "반대 방향 두 간선은 양쪽으로 휜다 · 자기 자신으로 가는 간선은 정점 위 고리",
+        ],
+      },
+      graphGroup: {
+        description: "정점 묶음 — 둥근 대시 테와 머리말",
+        specs: ["1.5px 대시 4 3 흐린 선", "새로 생긴 묶음은 2.5px 강조색"],
+      },
       costBar: {
         description: "비용 막대",
         specs: [
@@ -302,5 +326,6 @@ export const algoVizStyleGuide: VisualizationStyleGuide = {
     LayerBars,
     ApproachLadder,
     CellStage,
+    NodeGraph,
   },
 };

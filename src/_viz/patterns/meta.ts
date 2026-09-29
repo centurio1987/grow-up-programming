@@ -126,8 +126,28 @@ export const ALGO_VIZ_META: readonly AlgoVizMeta[] = [
       "지금까지 쌓은 것과 앞으로 채울 자리를 한 화면에 둘 때",
     ],
     avoidWhen: [
-      "구조가 트리·그래프면 노드 무대(KAN-058 에서 더한다)",
+      "구조가 그래프면 NodeGraph(걸음 재생 패널의 「그래프」 무대)",
       "걸음이 한두 개면 CellStage 한 장이나 RangeCover",
+    ],
+  },
+  {
+    id: "ALGO-P8",
+    name: "Node Graph",
+    exportName: "NodeGraph",
+    summary:
+      "정점 · 간선 · 정점 묶음 · 무대 아래 배열 띠 — 간선 종류는 선 모양으로, 상태는 칸과 같은 다섯으로 가른다",
+    dataShape: ["network", "hierarchy", "change-over-time"],
+    structuralTraits: ["relational", "nested", "categorical"],
+    useWhen: [
+      "정점이 어디와 이어져 있는가가 요점일 때(탐색 · 최단 경로 · 연결 요소 · 위상 정렬)",
+      "깊이 우선 탐색 트리처럼 간선을 종류별로 갈라 보일 때(나무 · 되돌아감 · 가로지름 · 앞으로 감)",
+      "정점 집합에 이름을 붙일 때(강한 연결 요소 · 연결 요소 · 한 단계의 정점들)",
+      "그래프와 함께 알고리즘이 드는 목록(스택 · 대기열)을 한 장에 둘 때",
+    ],
+    avoidWhen: [
+      "정점이 스물을 넘으면 간선이 겹친다 — 부분 그래프로 줄이거나 인접 행렬 표",
+      "간선 없이 정점의 값만 비교하면 표",
+      "구조가 배열 위에 쌓이는 층이면 LevelTable · CellStage",
     ],
   },
 ];

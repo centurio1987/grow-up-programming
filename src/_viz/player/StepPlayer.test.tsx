@@ -88,3 +88,40 @@ test("다음 · 배지 · ← → 로 걸음을 넘기고, 무대 높이와 강�
 
   await act(async () => root.unmount());
 });
+
+test("그래프 무대 — 정점 · 간선 · 두 스택을 그리고, 걸음을 넘겨도 무대 높이가 같다", async () => {
+  const spec = (
+    await import(
+      "../../algorithms/graph/stronglyConnectedComponents/stronglyConnectedComponents-guide.sim.ts"
+    )
+  ).walkFirst as unknown as PlayerSpec;
+  document.body.innerHTML = '<div id="g"></div>';
+  const host = document.getElementById("g") as HTMLElement;
+  const root = createRoot(host);
+  await act(async () => root.render(<StepPlayer {...spec} />));
+
+  const stage = () =>
+    host.querySelector(".gs-player-stage") as HTMLElement | null;
+  const h0 = stage()?.style.height;
+  expect(host.querySelectorAll("[data-viz-node]").length).toBe(6);
+  expect(host.querySelectorAll("[data-viz-edge]").length).toBe(7);
+  expect(host.querySelectorAll("[data-viz-strip]").length).toBe(2);
+
+  const t5 = [...host.querySelectorAll(".gs-player-badge")].find(
+    (b) => b.textContent === "T5",
+  ) as HTMLButtonElement;
+  await act(async () => t5.click());
+  expect(stage()?.style.height).toBe(h0);
+  // T5 — 간선 2→0 이 low[2] 를 줄인다: 새로 쓴 정점 2 와 새로 쓴 간선 하나
+  expect(
+    host.querySelector('[data-viz-node="2"]')?.getAttribute("data-viz-state"),
+  ).toBe("focus");
+  expect(
+    host.querySelector('[data-viz-edge="2->0"]')?.getAttribute("data-viz-kind"),
+  ).toBe("back");
+  expect(host.querySelector(".gs-player-pill")?.textContent).toBe(
+    "low[2] = min(2, disc[0]) =0",
+  );
+
+  await act(async () => root.unmount());
+});

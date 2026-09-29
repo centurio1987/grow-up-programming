@@ -60,7 +60,8 @@ export const text = (color: string, size = LABEL_SIZE, mono = false) => ({
   fontSize: `${size}px`,
 });
 
-function cellStyle(state: CellState | undefined) {
+/** 칸 테와 채움 — 상태마다 굵기·대시가 갈린다. `NodeGraph` 의 정점도 같은 모양을 쓴다. */
+export function cellStyle(state: CellState | undefined) {
   const base = {
     fill: "var(--bbangto-viz-ext-cell-fill)",
     stroke: "var(--bbangto-viz-ext-cell-border)",
