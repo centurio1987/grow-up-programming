@@ -1,304 +1,646 @@
-import type { Frame } from "#guide-sim";
-
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(8)와 같다 — P3 이 그 관계를 잰다.
+ * 걸음 재생 패널 — `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 제목은
+ * 원고의 걸음 번호(`T#`)로 연다 — P3 이 그 자리를 잰다. T1 이 준비, 큐에서 꺼내기 한 번이 걸음 하나,
+ * 마지막 걸음이 큐가 비어 끝나는 자리다.
  *
- * **뷰가 둘이다** — `graph` 는 정점의 상태(아직 후보가 아님 · 큐에 있음 · 지금 꺼낸 것 ·
- * 결과에 들어감)와 지금 줄이고 있는 간선을 그리고, `keyValue` 는 그 순간의 큐 · 남은 선행
- * 정점 수 배열 · 결과 배열 · 분기를 적는다. 그래프 그림만으로는 **남은 선행 정점 수**가
- * 안 보이고, 이 알고리즘이 다음 정점을 고르는 근거가 바로 그 수라서 두 패널이 함께 있어야
- * 한 프레임이 완결된다. 앞선 `dfsTraversal`·`bfsShortestPath` 가 쓴 짝을 그대로 쓴다.
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가 실제보다
+ * 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
  *
- * 좌표는 0~100 정규화다. 간선에 방향이 있으므로 `directed: true` 를 붙인다. 출발 후보 둘
- * (4·5)을 위쪽에 두고, 도착점 1 을 맨 아래에 둔다.
+ * ## 패널 규약 — 「그래프」 무대(KAN-058, SPEC §13)
  *
- * `nodeValue` 는 **결과 배열에서의 자리**(1 부터)다. 이 편이 재는 것이 순서라 정점 옆에
- * 붙는 수도 순서여야 한다.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "graph"` 가
+ * 무대 갈래를 고른다. 정점과 간선의 자리(`layout`)는 패널에 한 번만 적고, 걸음마다 정점의 진입 차수와
+ * 상태, 간선의 상태, 무대 아래 띠 둘(`strips` — 큐 배열 전체와 order)만 바꾼다
+ * (`src/_viz/player/graphStage.ts`). 결과에 넣은 정점과 그 정점에서 나가는 간선은 「이번 걸음 밖」으로
+ * 흐리게 그린다 — 지운 셈 친 자리다. 큐 띠에서 이미 꺼낸 칸도 「이번 걸음 밖」이다.
  *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * **값은 손으로 적지 않았다.** 이 리터럴은 그림 사이드카의 `stageStepsFromRef()` 가 정본과 같은 절차를
+ * 실행해 낸 결과를 옮긴 것이고, 둘이 같은지는 `topologicalSort-guide.test.ts` 가 잰다.
  */
 export const topoWalk = {
-  view: ["graph", "keyValue"] as const,
-  title: "topologicalSort(6, [[5,2],[5,0],[4,0],[4,1],[2,3],[3,1]])",
+  player: "stage",
+  stage: "graph",
+  title:
+    "topologicalSort(6, [[5,2],[5,0],[4,0],[4,1],[2,3],[3,1]]) — 정점 안의 수는 진입 차수",
+  sub: "T1–T8 · 걸음마다 꺼내기 하나",
   result: "[4,5,2,0,3,1]",
+  layout: {
+    nodes: [
+      {
+        id: 0,
+        x: 1.2,
+        y: 1.3,
+      },
+      {
+        id: 1,
+        x: 2.4,
+        y: 2.6,
+      },
+      {
+        id: 2,
+        x: 0,
+        y: 1.3,
+      },
+      {
+        id: 3,
+        x: 0,
+        y: 2.6,
+      },
+      {
+        id: 4,
+        x: 2.4,
+        y: 0,
+      },
+      {
+        id: 5,
+        x: 0,
+        y: 0,
+      },
+    ],
+    edges: [
+      {
+        from: 5,
+        to: 2,
+      },
+      {
+        from: 5,
+        to: 0,
+      },
+      {
+        from: 4,
+        to: 0,
+      },
+      {
+        from: 4,
+        to: 1,
+      },
+      {
+        from: 2,
+        to: 3,
+      },
+      {
+        from: 3,
+        to: 1,
+      },
+    ],
+  },
   steps: [
     {
-      title: "T1 남은 선행 정점 수를 세고 0 인 정점을 큐에 담는다",
-      detail:
-        "정점 4 와 5 는 들어오는 간선이 없어 남은 수가 0 이다. 번호가 작은 것부터 담아 큐가 [4, 5] 로 시작한다.",
+      title: "T1 진입 차수를 세고 0 인 정점을 담는다",
+      text: "간선 6 개를 한 번씩 읽어 정점마다 진입 차수를 셉니다. 진입 차수가 0 인 정점 4 · 5 를 번호 순서로 큐에 담습니다.",
       nodes: [
-        { id: 5, x: 18, y: 12 },
-        { id: 4, x: 78, y: 12 },
-        { id: 2, x: 12, y: 42 },
-        { id: 0, x: 50, y: 34 },
-        { id: 3, x: 14, y: 70 },
-        { id: 1, x: 58, y: 90 },
+        {
+          value: "진입 2",
+        },
+        {
+          value: "진입 2",
+        },
+        {
+          value: "진입 1",
+        },
+        {
+          value: "진입 1",
+        },
+        {
+          value: "진입 0",
+          state: "focus",
+        },
+        {
+          value: "진입 0",
+          state: "focus",
+        },
       ],
-      edges: [
-        { from: 5, to: 2, directed: true },
-        { from: 5, to: 0, directed: true },
-        { from: 4, to: 0, directed: true },
-        { from: 4, to: 1, directed: true },
-        { from: 2, to: 3, directed: true },
-        { from: 3, to: 1, directed: true },
+      edges: [{}, {}, {}, {}, {}, {}],
+      strips: [
+        {
+          label: "큐",
+          values: [4, 5],
+          states: {
+            "0": "focus",
+            "1": "focus",
+          },
+          slots: 6,
+        },
+        {
+          label: "order",
+          values: [],
+          states: {},
+          slots: 6,
+        },
       ],
-      nodeStatus: { 4: "frontier", 5: "frontier" },
-      entries: [
-        { label: "큐", value: "[4, 5]" },
-        { label: "꺼낸 정점", value: "—" },
-        { label: "남은 선행 정점 수", value: "0:2 1:2 2:1 3:1 4:0 5:0" },
-        { label: "order", value: "[]" },
-        { label: "분기", value: "—" },
-      ],
+      calc: {
+        expr: "진입 차수가 0 인 정점 →",
+        result: "4 · 5",
+      },
+      vars: "head = 0 · 줄인 간선 0 / 6",
     },
     {
       title: "T2 정점 4 를 꺼낸다",
-      detail:
-        "정점 0 과 1 의 남은 수가 각각 2 에서 1 로 준다. 둘 다 0 이 아니라 큐에 담지 않는다.",
+      text: "정점 4 를 order 뒤에 붙이고, 나가는 간선의 머리 0 · 1 의 진입 차수를 하나씩 줄입니다. 0 · 1 의 진입 차수는 아직 0 이 아니라 담지 않습니다.",
       nodes: [
-        { id: 5, x: 18, y: 12 },
-        { id: 4, x: 78, y: 12 },
-        { id: 2, x: 12, y: 42 },
-        { id: 0, x: 50, y: 34 },
-        { id: 3, x: 14, y: 70 },
-        { id: 1, x: 58, y: 90 },
+        {
+          value: "진입 1",
+          state: "focus",
+        },
+        {
+          value: "진입 1",
+          state: "focus",
+        },
+        {
+          value: "진입 1",
+        },
+        {
+          value: "진입 1",
+        },
+        {
+          value: "진입 0",
+          state: "read",
+        },
+        {
+          value: "진입 0",
+        },
       ],
       edges: [
-        { from: 5, to: 2, directed: true },
-        { from: 5, to: 0, directed: true },
-        { from: 4, to: 0, directed: true },
-        { from: 4, to: 1, directed: true },
-        { from: 2, to: 3, directed: true },
-        { from: 3, to: 1, directed: true },
+        {},
+        {},
+        {
+          state: "read",
+        },
+        {
+          state: "read",
+        },
+        {},
+        {},
       ],
-      nodeStatus: { 4: "active", 5: "frontier" },
-      nodeValue: { 4: 1 },
-      activeEdge: { from: 4, to: 1 },
-      entries: [
-        { label: "큐", value: "[5]" },
-        { label: "꺼낸 정점", value: "4" },
-        { label: "남은 선행 정점 수", value: "0:1 1:1 2:1 3:1 4:0 5:0" },
-        { label: "order", value: "[4]" },
-        { label: "분기", value: "② 줄였지만 아직 0 이 아니다 (두 번)" },
+      strips: [
+        {
+          label: "큐",
+          values: [4, 5],
+          states: {
+            "0": "read",
+          },
+          slots: 6,
+        },
+        {
+          label: "order",
+          values: [4],
+          states: {
+            "0": "focus",
+          },
+          slots: 6,
+        },
       ],
+      calc: {
+        expr: "indegree[0] = 2 − 1 = 1 · indegree[1] = 2 − 1 =",
+        result: "1",
+      },
+      vars: "head = 1 · 줄인 간선 2 / 6",
     },
     {
       title: "T3 정점 5 를 꺼낸다",
-      detail:
-        "정점 2 의 남은 수가 1 에서 0 이 되고, 정점 0 의 남은 수도 1 에서 0 이 된다. 둘 다 그 자리에서 큐에 담는다.",
+      text: "정점 5 를 order 뒤에 붙이고, 나가는 간선의 머리 2 · 0 의 진입 차수를 하나씩 줄입니다. 2 · 0 의 진입 차수가 0 이 되어 그 자리에서 큐 뒤에 담습니다.",
       nodes: [
-        { id: 5, x: 18, y: 12 },
-        { id: 4, x: 78, y: 12 },
-        { id: 2, x: 12, y: 42 },
-        { id: 0, x: 50, y: 34 },
-        { id: 3, x: 14, y: 70 },
-        { id: 1, x: 58, y: 90 },
+        {
+          value: "진입 0",
+          state: "focus",
+        },
+        {
+          value: "진입 1",
+        },
+        {
+          value: "진입 0",
+          state: "focus",
+        },
+        {
+          value: "진입 1",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "read",
+        },
       ],
       edges: [
-        { from: 5, to: 2, directed: true },
-        { from: 5, to: 0, directed: true },
-        { from: 4, to: 0, directed: true },
-        { from: 4, to: 1, directed: true },
-        { from: 2, to: 3, directed: true },
-        { from: 3, to: 1, directed: true },
+        {
+          state: "read",
+        },
+        {
+          state: "read",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {},
+        {},
       ],
-      nodeStatus: { 4: "visited", 5: "active", 2: "frontier", 0: "frontier" },
-      nodeValue: { 4: 1, 5: 2 },
-      activeEdge: { from: 5, to: 2 },
-      entries: [
-        { label: "큐", value: "[2, 0]" },
-        { label: "꺼낸 정점", value: "5" },
-        { label: "남은 선행 정점 수", value: "0:0 1:1 2:0 3:1 4:0 5:0" },
-        { label: "order", value: "[4, 5]" },
-        { label: "분기", value: "① 0 이 된 그 순간에 담는다 (두 번)" },
+      strips: [
+        {
+          label: "큐",
+          values: [4, 5, 2, 0],
+          states: {
+            "0": "out",
+            "1": "read",
+            "2": "focus",
+            "3": "focus",
+          },
+          slots: 6,
+        },
+        {
+          label: "order",
+          values: [4, 5],
+          states: {
+            "1": "focus",
+          },
+          slots: 6,
+        },
       ],
+      calc: {
+        expr: "indegree[2] = 1 − 1 = 0 · indegree[0] = 1 − 1 =",
+        result: "0",
+      },
+      vars: "head = 2 · 줄인 간선 4 / 6",
     },
     {
       title: "T4 정점 2 를 꺼낸다",
-      detail:
-        "큐는 먼저 담은 것을 먼저 꺼낸다. 정점 2 가 정점 0 보다 먼저 담겼으므로 먼저 나온다. 정점 3 의 남은 수가 0 이 된다.",
+      text: "정점 2 를 order 뒤에 붙이고, 나가는 간선의 머리 3 의 진입 차수를 하나씩 줄입니다. 3 의 진입 차수가 0 이 되어 그 자리에서 큐 뒤에 담습니다.",
       nodes: [
-        { id: 5, x: 18, y: 12 },
-        { id: 4, x: 78, y: 12 },
-        { id: 2, x: 12, y: 42 },
-        { id: 0, x: 50, y: 34 },
-        { id: 3, x: 14, y: 70 },
-        { id: 1, x: 58, y: 90 },
+        {
+          value: "진입 0",
+        },
+        {
+          value: "진입 1",
+        },
+        {
+          value: "진입 0",
+          state: "read",
+        },
+        {
+          value: "진입 0",
+          state: "focus",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
       ],
       edges: [
-        { from: 5, to: 2, directed: true },
-        { from: 5, to: 0, directed: true },
-        { from: 4, to: 0, directed: true },
-        { from: 4, to: 1, directed: true },
-        { from: 2, to: 3, directed: true },
-        { from: 3, to: 1, directed: true },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "read",
+        },
+        {},
       ],
-      nodeStatus: {
-        4: "visited",
-        5: "visited",
-        2: "active",
-        0: "frontier",
-        3: "frontier",
+      strips: [
+        {
+          label: "큐",
+          values: [4, 5, 2, 0, 3],
+          states: {
+            "0": "out",
+            "1": "out",
+            "2": "read",
+            "4": "focus",
+          },
+          slots: 6,
+        },
+        {
+          label: "order",
+          values: [4, 5, 2],
+          states: {
+            "2": "focus",
+          },
+          slots: 6,
+        },
+      ],
+      calc: {
+        expr: "indegree[3] = 1 − 1 =",
+        result: "0",
       },
-      nodeValue: { 4: 1, 5: 2, 2: 3 },
-      activeEdge: { from: 2, to: 3 },
-      entries: [
-        { label: "큐", value: "[0, 3]" },
-        { label: "꺼낸 정점", value: "2" },
-        { label: "남은 선행 정점 수", value: "0:0 1:1 2:0 3:0 4:0 5:0" },
-        { label: "order", value: "[4, 5, 2]" },
-        { label: "분기", value: "① 0 이 된 그 순간에 담는다" },
-      ],
+      vars: "head = 3 · 줄인 간선 5 / 6",
     },
     {
       title: "T5 정점 0 을 꺼낸다",
-      detail:
-        "정점 0 은 나가는 간선이 없다. 줄일 것이 없어 큐에 새로 담기는 정점도 없다.",
+      text: "정점 0 을 order 뒤에 붙입니다. 나가는 간선이 없어 줄일 진입 차수가 없습니다.",
       nodes: [
-        { id: 5, x: 18, y: 12 },
-        { id: 4, x: 78, y: 12 },
-        { id: 2, x: 12, y: 42 },
-        { id: 0, x: 50, y: 34 },
-        { id: 3, x: 14, y: 70 },
-        { id: 1, x: 58, y: 90 },
+        {
+          value: "진입 0",
+          state: "read",
+        },
+        {
+          value: "진입 1",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
       ],
       edges: [
-        { from: 5, to: 2, directed: true },
-        { from: 5, to: 0, directed: true },
-        { from: 4, to: 0, directed: true },
-        { from: 4, to: 1, directed: true },
-        { from: 2, to: 3, directed: true },
-        { from: 3, to: 1, directed: true },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {},
       ],
-      nodeStatus: {
-        4: "visited",
-        5: "visited",
-        2: "visited",
-        0: "active",
-        3: "frontier",
+      strips: [
+        {
+          label: "큐",
+          values: [4, 5, 2, 0, 3],
+          states: {
+            "0": "out",
+            "1": "out",
+            "2": "out",
+            "3": "read",
+          },
+          slots: 6,
+        },
+        {
+          label: "order",
+          values: [4, 5, 2, 0],
+          states: {
+            "3": "focus",
+          },
+          slots: 6,
+        },
+      ],
+      calc: {
+        expr: "next[0] =",
+        result: "[]",
       },
-      nodeValue: { 4: 1, 5: 2, 2: 3, 0: 4 },
-      entries: [
-        { label: "큐", value: "[3]" },
-        { label: "꺼낸 정점", value: "0" },
-        { label: "남은 선행 정점 수", value: "0:0 1:1 2:0 3:0 4:0 5:0" },
-        { label: "order", value: "[4, 5, 2, 0]" },
-        { label: "분기", value: "나가는 간선이 없어 갈래가 실행되지 않는다" },
-      ],
+      vars: "head = 4 · 줄인 간선 5 / 6",
     },
     {
       title: "T6 정점 3 을 꺼낸다",
-      detail:
-        "정점 1 의 남은 수가 1 에서 0 이 된다. T2 에서 한 번 줄어 있었고, 여기서 두 번째로 줄어 0 이 됐다.",
+      text: "정점 3 을 order 뒤에 붙이고, 나가는 간선의 머리 1 의 진입 차수를 하나씩 줄입니다. 1 의 진입 차수가 0 이 되어 그 자리에서 큐 뒤에 담습니다.",
       nodes: [
-        { id: 5, x: 18, y: 12 },
-        { id: 4, x: 78, y: 12 },
-        { id: 2, x: 12, y: 42 },
-        { id: 0, x: 50, y: 34 },
-        { id: 3, x: 14, y: 70 },
-        { id: 1, x: 58, y: 90 },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "focus",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "read",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
       ],
       edges: [
-        { from: 5, to: 2, directed: true },
-        { from: 5, to: 0, directed: true },
-        { from: 4, to: 0, directed: true },
-        { from: 4, to: 1, directed: true },
-        { from: 2, to: 3, directed: true },
-        { from: 3, to: 1, directed: true },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "read",
+        },
       ],
-      nodeStatus: {
-        4: "visited",
-        5: "visited",
-        2: "visited",
-        0: "visited",
-        3: "active",
-        1: "frontier",
+      strips: [
+        {
+          label: "큐",
+          values: [4, 5, 2, 0, 3, 1],
+          states: {
+            "0": "out",
+            "1": "out",
+            "2": "out",
+            "3": "out",
+            "4": "read",
+            "5": "focus",
+          },
+          slots: 6,
+        },
+        {
+          label: "order",
+          values: [4, 5, 2, 0, 3],
+          states: {
+            "4": "focus",
+          },
+          slots: 6,
+        },
+      ],
+      calc: {
+        expr: "indegree[1] = 1 − 1 =",
+        result: "0",
       },
-      nodeValue: { 4: 1, 5: 2, 2: 3, 0: 4, 3: 5 },
-      activeEdge: { from: 3, to: 1 },
-      entries: [
-        { label: "큐", value: "[1]" },
-        { label: "꺼낸 정점", value: "3" },
-        { label: "남은 선행 정점 수", value: "0:0 1:0 2:0 3:0 4:0 5:0" },
-        { label: "order", value: "[4, 5, 2, 0, 3]" },
-        { label: "분기", value: "① 0 이 된 그 순간에 담는다" },
-      ],
+      vars: "head = 5 · 줄인 간선 6 / 6",
     },
     {
       title: "T7 정점 1 을 꺼낸다",
-      detail:
-        "정점 1 도 나가는 간선이 없다. 큐에 남은 것이 없어 다음 바퀴에서 반복이 끝난다.",
+      text: "정점 1 을 order 뒤에 붙입니다. 나가는 간선이 없어 줄일 진입 차수가 없습니다.",
       nodes: [
-        { id: 5, x: 18, y: 12 },
-        { id: 4, x: 78, y: 12 },
-        { id: 2, x: 12, y: 42 },
-        { id: 0, x: 50, y: 34 },
-        { id: 3, x: 14, y: 70 },
-        { id: 1, x: 58, y: 90 },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "read",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
       ],
       edges: [
-        { from: 5, to: 2, directed: true },
-        { from: 5, to: 0, directed: true },
-        { from: 4, to: 0, directed: true },
-        { from: 4, to: 1, directed: true },
-        { from: 2, to: 3, directed: true },
-        { from: 3, to: 1, directed: true },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
       ],
-      nodeStatus: {
-        4: "visited",
-        5: "visited",
-        2: "visited",
-        0: "visited",
-        3: "visited",
-        1: "active",
+      strips: [
+        {
+          label: "큐",
+          values: [4, 5, 2, 0, 3, 1],
+          states: {
+            "0": "out",
+            "1": "out",
+            "2": "out",
+            "3": "out",
+            "4": "out",
+            "5": "read",
+          },
+          slots: 6,
+        },
+        {
+          label: "order",
+          values: [4, 5, 2, 0, 3, 1],
+          states: {
+            "5": "focus",
+          },
+          slots: 6,
+        },
+      ],
+      calc: {
+        expr: "next[1] =",
+        result: "[]",
       },
-      nodeValue: { 4: 1, 5: 2, 2: 3, 0: 4, 3: 5, 1: 6 },
-      entries: [
-        { label: "큐", value: "[]" },
-        { label: "꺼낸 정점", value: "1" },
-        { label: "남은 선행 정점 수", value: "0:0 1:0 2:0 3:0 4:0 5:0" },
-        { label: "order", value: "[4, 5, 2, 0, 3, 1]" },
-        { label: "분기", value: "나가는 간선이 없어 갈래가 실행되지 않는다" },
-      ],
+      vars: "head = 6 · 줄인 간선 6 / 6",
     },
     {
-      title: "T8 종료",
-      detail:
-        "큐에서 더 꺼낼 것이 없다. 결과 길이 6 이 정점 수 6 과 같으므로 이 배열이 위상 순서다.",
+      title: "T8 큐가 비어 끝난다",
+      text: "head 가 큐 길이 6 에 이르러 꺼낼 정점이 없습니다. order 에 정점 6 개가 다 들어갔으니 [4, 5, 2, 0, 3, 1] 을 돌려줍니다.",
       nodes: [
-        { id: 5, x: 18, y: 12 },
-        { id: 4, x: 78, y: 12 },
-        { id: 2, x: 12, y: 42 },
-        { id: 0, x: 50, y: 34 },
-        { id: 3, x: 14, y: 70 },
-        { id: 1, x: 58, y: 90 },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
+        {
+          value: "진입 0",
+          state: "out",
+        },
       ],
       edges: [
-        { from: 5, to: 2, directed: true },
-        { from: 5, to: 0, directed: true },
-        { from: 4, to: 0, directed: true },
-        { from: 4, to: 1, directed: true },
-        { from: 2, to: 3, directed: true },
-        { from: 3, to: 1, directed: true },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
       ],
-      nodeStatus: {
-        4: "visited",
-        5: "visited",
-        2: "visited",
-        0: "visited",
-        3: "visited",
-        1: "visited",
+      strips: [
+        {
+          label: "큐",
+          values: [4, 5, 2, 0, 3, 1],
+          states: {
+            "0": "out",
+            "1": "out",
+            "2": "out",
+            "3": "out",
+            "4": "out",
+            "5": "out",
+          },
+          slots: 6,
+        },
+        {
+          label: "order",
+          values: [4, 5, 2, 0, 3, 1],
+          states: {},
+          slots: 6,
+        },
+      ],
+      calc: {
+        expr: "order.length === n → 6 === 6 →",
+        result: "참",
       },
-      nodeValue: { 4: 1, 5: 2, 2: 3, 0: 4, 3: 5, 1: 6 },
-      entries: [
-        { label: "큐", value: "[]" },
-        { label: "꺼낸 정점", value: "—" },
-        { label: "남은 선행 정점 수", value: "0:0 1:0 2:0 3:0 4:0 5:0" },
-        { label: "order", value: "[4, 5, 2, 0, 3, 1]" },
-        { label: "분기", value: "③ 길이 6 = n 이라 순열을 반환한다" },
-      ],
+      vars: "head = 6 · 줄인 간선 6 / 6",
     },
-  ] satisfies Frame[],
+  ],
 };

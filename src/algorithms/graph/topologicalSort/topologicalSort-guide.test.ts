@@ -173,3 +173,33 @@ test("최악을 만드는 입력도 순열이 유효하다", () => {
   expect(got).not.toBeNull();
   expect(isValidTopologicalOrder(got as number[], V, edges)).toBe(true);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙여 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./topologicalSort-guide.sim.ts");
+  const fig = await import("./topologicalSort-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.topoWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.topoWalk.layout)).toEqual(
+    plain({ nodes: fig.LAYOUT.nodes, edges: fig.LAYOUT.edges }),
+  );
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 order 띠를 정본의 답에 직접 다시 묻는다.
+  const last = sim.topoWalk.steps.at(-1);
+  const order = last?.strips.find((s) => s.label === "order")?.values;
+  expect(order).toEqual(
+    topologicalSort(6, [
+      [5, 2],
+      [5, 0],
+      [4, 0],
+      [4, 1],
+      [2, 3],
+      [3, 1],
+    ]) as number[],
+  );
+  expect(sim.topoWalk.result).toBe("[4,5,2,0,3,1]");
+});
