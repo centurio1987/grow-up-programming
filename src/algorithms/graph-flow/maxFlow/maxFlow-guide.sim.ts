@@ -1,349 +1,1065 @@
-import type { Frame } from "#guide-sim";
-
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(9)를 넘지 않는다 — P3 이 그 관계를 잰다.
+ * 걸음 재생 패널 — `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 제목은 원고의
+ * 걸음 번호(`T#`)로 연다 — P3 이 그 자리를 잰다.
  *
- * **뷰가 둘이다** — `graph` 는 정점의 상태(아직 레벨 없음 · 레벨을 받음 · 지금 지나는 중 ·
- * 처리 끝)와 간선의 **잔여 용량**을 그리고, `keyValue` 는 그 순간의 누적 유량 · 레벨 배열 ·
- * 역방향 잔여 용량 · 분기를 적는다. 그래프 그림만으로는 **역방향 잔여 용량**이 안 보이고,
- * 이 알고리즘이 최대를 내는 이유가 바로 그것이라서 두 패널이 함께 있어야 한 프레임이 완결된다.
- * 같은 짝을 `bfsShortestPath`·`kruskalMst` 도 쓴다.
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가 실제보다
+ * 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
  *
- * **간선은 원래 간선 일곱 개만 그린다.** 역방향 간선을 같은 자리에 하나 더 그리면 선과 숫자가
- * 겹쳐 어느 쪽 값인지 갈리지 않는다. 역방향 잔여 용량은 `keyValue` 패널이 적고, 역방향으로
- * 지나가는 걸음(T7)은 `activeEdge` 로 그 선을 강조한 뒤 `detail` 이 방향을 밝힌다.
+ * ## 패널 규약 — 「그래프」 무대(KAN-058, SPEC §13)
  *
- * 좌표는 0~100 정규화다. 소스 0 을 왼쪽 끝에, 싱크 5 를 오른쪽 끝에 두고 중간 정점 넷을
- * 위아래로 갈라 놓아 경로 두 갈래가 갈리게 했다.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "graph"` 가
+ * 무대 갈래를 고른다. 정점과 항목 14 개의 자리(`layout`)는 패널에 한 번만 적고, 걸음마다 정점의 값
+ * (`level / iter`)과 상태, 항목의 종류 · 상태 · 머리말, 큐와 DFS 가 지난 정점(`strips`)만 바꾼다
+ * (`src/_viz/player/graphStage.ts`). 정방향 항목의 머리말은 「유량/용량」, 역방향 항목은 대시 선이고
+ * 머리말이 잔여 용량이다. 잔여 0 인 항목은 잔여 그래프에 없으므로 흐린 선이다.
  *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * **값은 손으로 적지 않았다.** 이 리터럴은 그림 사이드카의 `stageStepsFromRef()` 가 정본과 같은 절차를
+ * 실행해 낸 결과를 옮긴 것이고, 둘이 같은지는 `maxFlow-guide.test.ts` 가 잰다.
  */
+
 export const maxFlowWalk = {
-  view: ["graph", "keyValue"] as const,
-  title:
-    "maxFlow(6, [[0,1,4],[1,2,2],[2,5,2],[0,3,3],[3,2,4],[1,4,5],[4,5,3]], 0, 5)",
+  player: "stage",
+  stage: "graph",
+  title: "정점 여섯 네트워크의 디닉 — 정점 안의 두 수는 level / iter",
+  sub: "T1–T9 · 실선은 정방향 항목(유량/용량), 대시 선은 역방향 항목(잔여)",
   result: "{ flow: 5 }",
+  layout: {
+    nodes: [
+      {
+        id: 0,
+        x: 0,
+        y: 1,
+      },
+      {
+        id: 1,
+        x: 1.5,
+        y: 0,
+      },
+      {
+        id: 2,
+        x: 3,
+        y: 2,
+      },
+      {
+        id: 3,
+        x: 1.5,
+        y: 2,
+      },
+      {
+        id: 4,
+        x: 3,
+        y: 0,
+      },
+      {
+        id: 5,
+        x: 4.5,
+        y: 1,
+      },
+    ],
+    edges: [
+      {
+        from: 0,
+        to: 1,
+        bend: 0.16,
+      },
+      {
+        from: 1,
+        to: 2,
+        bend: 0.16,
+      },
+      {
+        from: 2,
+        to: 5,
+        bend: 0.16,
+      },
+      {
+        from: 0,
+        to: 3,
+        bend: 0.16,
+      },
+      {
+        from: 3,
+        to: 2,
+        bend: 0.16,
+      },
+      {
+        from: 1,
+        to: 4,
+        bend: 0.16,
+      },
+      {
+        from: 4,
+        to: 5,
+        bend: 0.16,
+      },
+      {
+        from: 1,
+        to: 0,
+        bend: 0.16,
+      },
+      {
+        from: 2,
+        to: 1,
+        bend: 0.16,
+      },
+      {
+        from: 5,
+        to: 2,
+        bend: 0.16,
+      },
+      {
+        from: 3,
+        to: 0,
+        bend: 0.16,
+      },
+      {
+        from: 2,
+        to: 3,
+        bend: 0.16,
+      },
+      {
+        from: 4,
+        to: 1,
+        bend: 0.16,
+      },
+      {
+        from: 5,
+        to: 4,
+        bend: 0.16,
+      },
+    ],
+  },
   steps: [
     {
       title: "T1 잔여 그래프를 만든다",
-      detail:
-        "간선 일곱 개마다 정방향(잔여 = 용량)과 역방향(잔여 0)을 짝지어 넣는다. 누적 유량은 0 이다.",
+      text: "간선 7 개마다 정방향 항목(잔여 = 용량)과 역방향 항목(잔여 0)을 짝지어 넣습니다. 항목은 14 개이고 누적 유량은 0 입니다.",
       nodes: [
-        { id: 0, x: 6, y: 48 },
-        { id: 1, x: 32, y: 20 },
-        { id: 2, x: 60, y: 58 },
-        { id: 3, x: 30, y: 80 },
-        { id: 4, x: 62, y: 10 },
-        { id: 5, x: 92, y: 36 },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 1, to: 2, weight: 2, directed: true },
-        { from: 2, to: 5, weight: 2, directed: true },
-        { from: 0, to: 3, weight: 3, directed: true },
-        { from: 3, to: 2, weight: 4, directed: true },
-        { from: 1, to: 4, weight: 5, directed: true },
-        { from: 4, to: 5, weight: 3, directed: true },
+        {
+          label: "0/4",
+        },
+        {
+          label: "0/2",
+        },
+        {
+          label: "0/2",
+        },
+        {
+          label: "0/3",
+        },
+        {
+          label: "0/4",
+        },
+        {
+          label: "0/5",
+        },
+        {
+          label: "0/3",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
       ],
-      nodeStatus: { 0: "active", 5: "frontier" },
-      entries: [
-        { label: "누적 유량", value: "0" },
-        { label: "level", value: "아직 없다" },
-        { label: "역방향 잔여", value: "전부 0" },
-        { label: "분기", value: "—" },
+      strips: [
+        {
+          label: "큐",
+          values: [],
+          slots: 6,
+        },
+        {
+          label: "DFS 가 지난 정점",
+          values: [],
+          slots: 6,
+        },
       ],
+      calc: null,
+      vars: "누적 유량 0",
     },
     {
       title: "T2 라운드 1 — BFS 로 레벨을 매긴다",
-      detail:
-        "잔여 용량이 있는 간선만 지나며 소스로부터의 최단 간선 수를 적는다. 싱크의 레벨이 3 이다.",
+      text: "잔여가 있는 항목만 지나며 소스에서의 최단 간선 수를 적습니다. 싱크의 레벨은 3 입니다.",
       nodes: [
-        { id: 0, x: 6, y: 48 },
-        { id: 1, x: 32, y: 20 },
-        { id: 2, x: 60, y: 58 },
-        { id: 3, x: 30, y: 80 },
-        { id: 4, x: 62, y: 10 },
-        { id: 5, x: 92, y: 36 },
+        {
+          value: "0 / 0",
+          state: "focus",
+        },
+        {
+          value: "1 / 0",
+          state: "focus",
+        },
+        {
+          value: "2 / 0",
+          state: "focus",
+        },
+        {
+          value: "1 / 0",
+          state: "focus",
+        },
+        {
+          value: "2 / 0",
+          state: "focus",
+        },
+        {
+          value: "3 / 0",
+          state: "focus",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 1, to: 2, weight: 2, directed: true },
-        { from: 2, to: 5, weight: 2, directed: true },
-        { from: 0, to: 3, weight: 3, directed: true },
-        { from: 3, to: 2, weight: 4, directed: true },
-        { from: 1, to: 4, weight: 5, directed: true },
-        { from: 4, to: 5, weight: 3, directed: true },
+        {
+          state: "read",
+          label: "0/4",
+        },
+        {
+          state: "read",
+          label: "0/2",
+        },
+        {
+          state: "read",
+          label: "0/2",
+        },
+        {
+          state: "read",
+          label: "0/3",
+        },
+        {
+          label: "0/4",
+        },
+        {
+          state: "read",
+          label: "0/5",
+        },
+        {
+          label: "0/3",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "frontier",
-        2: "frontier",
-        3: "frontier",
-        4: "frontier",
-        5: "frontier",
+      strips: [
+        {
+          label: "큐",
+          values: [0, 1, 3, 2, 4, 5],
+          slots: 6,
+        },
+        {
+          label: "DFS 가 지난 정점",
+          values: [],
+          slots: 6,
+        },
+      ],
+      calc: {
+        expr: "level[5] =",
+        result: "3",
       },
-      nodeValue: { 0: 0, 1: 1, 2: 2, 3: 1, 4: 2, 5: 3 },
-      entries: [
-        { label: "누적 유량", value: "0" },
-        { label: "level", value: "[0, 1, 2, 1, 2, 3]" },
-        { label: "역방향 잔여", value: "전부 0" },
-        { label: "분기", value: "① 레벨을 적고 큐 뒤에 넣는다" },
-      ],
+      vars: "라운드 1 · 누적 유량 0",
     },
     {
-      title: "T3 경로 0 → 1 → 2 → 5 에 2 를 흘린다",
-      detail:
-        "레벨이 0 → 1 → 2 → 3 으로 한 칸씩 오르는 간선만 따라간다. 병목은 min(4, 2, 2) = 2 다.",
+      title: "T3 경로 0 → 1 → 2 → 5 에 2 를 보낸다",
+      text: "레벨이 한 칸씩 오르는 항목만 따라 싱크까지 갔습니다. 병목은 min(4, 2, 2) = 2 이고, 지난 항목마다 잔여가 2 줄고 짝의 잔여가 2 늡니다.",
       nodes: [
-        { id: 0, x: 6, y: 48 },
-        { id: 1, x: 32, y: 20 },
-        { id: 2, x: 60, y: 58 },
-        { id: 3, x: 30, y: 80 },
-        { id: 4, x: 62, y: 10 },
-        { id: 5, x: 92, y: 36 },
+        {
+          value: "0 / 0",
+          state: "read",
+        },
+        {
+          value: "1 / 1",
+          state: "read",
+        },
+        {
+          value: "2 / 1",
+          state: "read",
+        },
+        {
+          value: "1 / 0",
+        },
+        {
+          value: "2 / 0",
+        },
+        {
+          value: "3 / 0",
+          state: "read",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 2, directed: true },
-        { from: 1, to: 2, weight: 0, directed: true },
-        { from: 2, to: 5, weight: 0, directed: true },
-        { from: 0, to: 3, weight: 3, directed: true },
-        { from: 3, to: 2, weight: 4, directed: true },
-        { from: 1, to: 4, weight: 5, directed: true },
-        { from: 4, to: 5, weight: 3, directed: true },
+        {
+          state: "focus",
+          label: "2/4",
+        },
+        {
+          state: "focus",
+          label: "2/2",
+        },
+        {
+          state: "focus",
+          label: "2/2",
+        },
+        {
+          label: "0/3",
+        },
+        {
+          label: "0/4",
+        },
+        {
+          label: "0/5",
+        },
+        {
+          label: "0/3",
+        },
+        {
+          kind: "back",
+          state: "focus",
+          label: "2",
+        },
+        {
+          kind: "back",
+          state: "focus",
+          label: "2",
+        },
+        {
+          kind: "back",
+          state: "focus",
+          label: "2",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
       ],
-      nodeStatus: { 0: "active", 1: "active", 2: "active", 5: "active" },
-      nodeValue: { 0: 0, 1: 1, 2: 2, 3: 1, 4: 2, 5: 3 },
-      activeEdge: { from: 2, to: 5 },
-      entries: [
-        { label: "누적 유량", value: "2" },
-        { label: "level", value: "[0, 1, 2, 1, 2, 3]" },
-        { label: "역방향 잔여", value: "1→0 = 2 · 2→1 = 2 · 5→2 = 2" },
-        { label: "분기", value: "②③④ 내려가서 싱크에 도착하고 갱신한다" },
+      strips: [
+        {
+          label: "큐",
+          values: [],
+          slots: 6,
+        },
+        {
+          label: "DFS 가 지난 정점",
+          values: [0, 1, 2, 5],
+          slots: 6,
+        },
       ],
+      calc: {
+        expr: "min(4, 2, 2) =",
+        result: "2",
+      },
+      vars: "라운드 1 · 누적 유량 2",
     },
     {
-      title: "T4 경로 0 → 1 → 4 → 5 에 2 를 흘린다",
-      detail:
-        "1 → 2 가 포화라 같은 레벨 조건을 만족하는 다음 간선 1 → 4 로 옮긴다. 병목은 min(2, 5, 3) = 2 다.",
+      title: "T4 경로 0 → 1 → 4 → 5 에 2 를 보낸다",
+      text: "레벨이 한 칸씩 오르는 항목만 따라 싱크까지 갔습니다. 병목은 min(2, 5, 3) = 2 이고, 지난 항목마다 잔여가 2 줄고 짝의 잔여가 2 늡니다.",
       nodes: [
-        { id: 0, x: 6, y: 48 },
-        { id: 1, x: 32, y: 20 },
-        { id: 2, x: 60, y: 58 },
-        { id: 3, x: 30, y: 80 },
-        { id: 4, x: 62, y: 10 },
-        { id: 5, x: 92, y: 36 },
+        {
+          value: "0 / 0",
+          state: "read",
+        },
+        {
+          value: "1 / 2",
+          state: "read",
+        },
+        {
+          value: "2 / 1",
+        },
+        {
+          value: "1 / 0",
+        },
+        {
+          value: "2 / 1",
+          state: "read",
+        },
+        {
+          value: "3 / 0",
+          state: "read",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 0, directed: true },
-        { from: 1, to: 2, weight: 0, directed: true },
-        { from: 2, to: 5, weight: 0, directed: true },
-        { from: 0, to: 3, weight: 3, directed: true },
-        { from: 3, to: 2, weight: 4, directed: true },
-        { from: 1, to: 4, weight: 3, directed: true },
-        { from: 4, to: 5, weight: 1, directed: true },
+        {
+          state: "focus",
+          label: "4/4",
+        },
+        {
+          state: "read",
+          label: "2/2",
+        },
+        {
+          state: "out",
+          label: "2/2",
+        },
+        {
+          label: "0/3",
+        },
+        {
+          label: "0/4",
+        },
+        {
+          state: "focus",
+          label: "2/5",
+        },
+        {
+          state: "focus",
+          label: "2/3",
+        },
+        {
+          kind: "back",
+          state: "focus",
+          label: "4",
+        },
+        {
+          kind: "back",
+          label: "2",
+        },
+        {
+          kind: "back",
+          label: "2",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "focus",
+          label: "2",
+        },
+        {
+          kind: "back",
+          state: "focus",
+          label: "2",
+        },
       ],
-      nodeStatus: {
-        0: "active",
-        1: "active",
-        2: "visited",
-        4: "active",
-        5: "active",
+      strips: [
+        {
+          label: "큐",
+          values: [],
+          slots: 6,
+        },
+        {
+          label: "DFS 가 지난 정점",
+          values: [0, 1, 4, 5],
+          slots: 6,
+        },
+      ],
+      calc: {
+        expr: "min(2, 5, 3) =",
+        result: "2",
       },
-      nodeValue: { 0: 0, 1: 1, 2: 2, 3: 1, 4: 2, 5: 3 },
-      activeEdge: { from: 4, to: 5 },
-      entries: [
-        { label: "누적 유량", value: "4" },
-        { label: "level", value: "[0, 1, 2, 1, 2, 3]" },
-        { label: "역방향 잔여", value: "1→0 = 4 · 4→1 = 2 · 5→4 = 2" },
-        { label: "분기", value: "⑤ 포화된 간선을 건너뛰고 ②③④ 로 흘린다" },
-      ],
+      vars: "라운드 1 · 누적 유량 4",
     },
     {
-      title: "T5 라운드 1 의 차단 유량이 소진됐다",
-      detail:
-        "0 → 3 → 2 까지는 갈 수 있지만 2 의 남은 간선이 전부 조건에 안 맞아 0 이 올라온다.",
+      title: "T5 라운드 1 — 더 보낼 경로가 없다",
+      text: "DFS 가 0 → 3 → 2 까지 들어갔다가 더 내려갈 항목이 없어 0 을 올려보냅니다. 라운드 1 의 차단 유량이 됐고, 누적 유량은 4 입니다.",
       nodes: [
-        { id: 0, x: 6, y: 48 },
-        { id: 1, x: 32, y: 20 },
-        { id: 2, x: 60, y: 58 },
-        { id: 3, x: 30, y: 80 },
-        { id: 4, x: 62, y: 10 },
-        { id: 5, x: 92, y: 36 },
+        {
+          value: "0 / 2",
+          state: "read",
+        },
+        {
+          value: "1 / 2",
+        },
+        {
+          value: "2 / 3",
+          state: "read",
+        },
+        {
+          value: "1 / 2",
+          state: "read",
+        },
+        {
+          value: "2 / 1",
+        },
+        {
+          value: "3 / 0",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 0, directed: true },
-        { from: 1, to: 2, weight: 0, directed: true },
-        { from: 2, to: 5, weight: 0, directed: true },
-        { from: 0, to: 3, weight: 3, directed: true },
-        { from: 3, to: 2, weight: 4, directed: true },
-        { from: 1, to: 4, weight: 3, directed: true },
-        { from: 4, to: 5, weight: 1, directed: true },
+        {
+          state: "read",
+          label: "4/4",
+        },
+        {
+          state: "out",
+          label: "2/2",
+        },
+        {
+          state: "read",
+          label: "2/2",
+        },
+        {
+          state: "read",
+          label: "0/3",
+        },
+        {
+          state: "read",
+          label: "0/4",
+        },
+        {
+          label: "2/5",
+        },
+        {
+          label: "2/3",
+        },
+        {
+          kind: "back",
+          label: "4",
+        },
+        {
+          kind: "back",
+          label: "2",
+        },
+        {
+          kind: "back",
+          label: "2",
+        },
+        {
+          kind: "back",
+          state: "read",
+        },
+        {
+          kind: "back",
+          state: "read",
+        },
+        {
+          kind: "back",
+          label: "2",
+        },
+        {
+          kind: "back",
+          label: "2",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "visited",
-        5: "visited",
+      strips: [
+        {
+          label: "큐",
+          values: [],
+          slots: 6,
+        },
+        {
+          label: "DFS 가 지난 정점",
+          values: [0, 3, 2],
+          slots: 6,
+        },
+      ],
+      calc: {
+        expr: "dfs(0, ∞) =",
+        result: "0",
       },
-      nodeValue: { 0: 0, 1: 1, 2: 2, 3: 1, 4: 2, 5: 3 },
-      entries: [
-        { label: "누적 유량", value: "4" },
-        { label: "level", value: "[0, 1, 2, 1, 2, 3]" },
-        { label: "역방향 잔여", value: "1→0 = 4 · 2→1 = 2 · 4→1 = 2" },
-        { label: "분기", value: "⑤ 간선을 다 옮겨 0 이 올라온다" },
-      ],
+      vars: "라운드 1 · 누적 유량 4",
     },
     {
-      title: "T6 라운드 2 — 레벨을 다시 매긴다",
-      detail:
-        "0 → 1 이 포화라 이번에는 0 → 3 → 2 로 들어가고, 역방향 잔여 2 → 1 을 지나 1 에 레벨 3 이 붙는다.",
+      title: "T6 라운드 2 — BFS 로 레벨을 매긴다",
+      text: "잔여가 있는 항목만 지나며 레벨을 다시 적습니다. 역방향 항목 2→1 을 지나 정점 1 에 레벨이 붙고, 싱크의 레벨은 5 입니다.",
       nodes: [
-        { id: 0, x: 6, y: 48 },
-        { id: 1, x: 32, y: 20 },
-        { id: 2, x: 60, y: 58 },
-        { id: 3, x: 30, y: 80 },
-        { id: 4, x: 62, y: 10 },
-        { id: 5, x: 92, y: 36 },
+        {
+          value: "0 / 0",
+          state: "focus",
+        },
+        {
+          value: "3 / 0",
+          state: "focus",
+        },
+        {
+          value: "2 / 0",
+          state: "focus",
+        },
+        {
+          value: "1 / 0",
+          state: "focus",
+        },
+        {
+          value: "4 / 0",
+          state: "focus",
+        },
+        {
+          value: "5 / 0",
+          state: "focus",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 0, directed: true },
-        { from: 1, to: 2, weight: 0, directed: true },
-        { from: 2, to: 5, weight: 0, directed: true },
-        { from: 0, to: 3, weight: 3, directed: true },
-        { from: 3, to: 2, weight: 4, directed: true },
-        { from: 1, to: 4, weight: 3, directed: true },
-        { from: 4, to: 5, weight: 1, directed: true },
+        {
+          state: "out",
+          label: "4/4",
+        },
+        {
+          state: "out",
+          label: "2/2",
+        },
+        {
+          state: "out",
+          label: "2/2",
+        },
+        {
+          state: "read",
+          label: "0/3",
+        },
+        {
+          state: "read",
+          label: "0/4",
+        },
+        {
+          state: "read",
+          label: "2/5",
+        },
+        {
+          state: "read",
+          label: "2/3",
+        },
+        {
+          kind: "back",
+          label: "4",
+        },
+        {
+          kind: "back",
+          state: "read",
+          label: "2",
+        },
+        {
+          kind: "back",
+          label: "2",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          state: "out",
+        },
+        {
+          kind: "back",
+          label: "2",
+        },
+        {
+          kind: "back",
+          label: "2",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "frontier",
-        2: "frontier",
-        3: "frontier",
-        4: "frontier",
-        5: "frontier",
+      strips: [
+        {
+          label: "큐",
+          values: [0, 3, 2, 1, 4, 5],
+          slots: 6,
+        },
+        {
+          label: "DFS 가 지난 정점",
+          values: [],
+          slots: 6,
+        },
+      ],
+      calc: {
+        expr: "level[5] =",
+        result: "5",
       },
-      nodeValue: { 0: 0, 1: 3, 2: 2, 3: 1, 4: 4, 5: 5 },
-      entries: [
-        { label: "누적 유량", value: "4" },
-        { label: "level", value: "[0, 3, 2, 1, 4, 5]" },
-        { label: "역방향 잔여", value: "2→1 = 2 로 레벨이 이어진다" },
-        { label: "분기", value: "① 역방향 간선에도 레벨을 적는다" },
-      ],
+      vars: "라운드 2 · 누적 유량 4",
     },
     {
-      title: "T7 경로 0 → 3 → 2 → 1 → 4 → 5 에 1 을 흘린다",
-      detail:
-        "2 → 1 은 역방향 간선이다 — 라운드 1 에서 1 → 2 로 보낸 2 중 1 을 되돌려 4 쪽으로 보낸다. 병목은 min(3, 4, 2, 3, 1) = 1 이다.",
+      title: "T7 경로 0 → 3 → 2 → 1 → 4 → 5 에 1 을 보낸다",
+      text: "레벨이 한 칸씩 오르는 항목만 따라 싱크까지 갔습니다. 병목은 min(3, 4, 2, 3, 1) = 1 이고, 지난 항목마다 잔여가 1 줄고 짝의 잔여가 1 늡니다. 2→1 는 역방향 항목이라, 앞서 1→2 로 보낸 것 가운데 1 을 되돌린 것입니다.",
       nodes: [
-        { id: 0, x: 6, y: 48 },
-        { id: 1, x: 32, y: 20 },
-        { id: 2, x: 60, y: 58 },
-        { id: 3, x: 30, y: 80 },
-        { id: 4, x: 62, y: 10 },
-        { id: 5, x: 92, y: 36 },
+        {
+          value: "0 / 1",
+          state: "read",
+        },
+        {
+          value: "3 / 2",
+          state: "read",
+        },
+        {
+          value: "2 / 0",
+          state: "read",
+        },
+        {
+          value: "1 / 1",
+          state: "read",
+        },
+        {
+          value: "4 / 1",
+          state: "read",
+        },
+        {
+          value: "5 / 0",
+          state: "read",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 0, directed: true },
-        { from: 1, to: 2, weight: 1, directed: true },
-        { from: 2, to: 5, weight: 0, directed: true },
-        { from: 0, to: 3, weight: 2, directed: true },
-        { from: 3, to: 2, weight: 3, directed: true },
-        { from: 1, to: 4, weight: 2, directed: true },
-        { from: 4, to: 5, weight: 0, directed: true },
+        {
+          state: "read",
+          label: "4/4",
+        },
+        {
+          state: "focus",
+          label: "1/2",
+        },
+        {
+          state: "out",
+          label: "2/2",
+        },
+        {
+          state: "focus",
+          label: "1/3",
+        },
+        {
+          state: "focus",
+          label: "1/4",
+        },
+        {
+          state: "focus",
+          label: "3/5",
+        },
+        {
+          state: "focus",
+          label: "3/3",
+        },
+        {
+          kind: "back",
+          state: "read",
+          label: "4",
+        },
+        {
+          kind: "back",
+          state: "focus",
+          label: "1",
+        },
+        {
+          kind: "back",
+          label: "2",
+        },
+        {
+          kind: "back",
+          state: "focus",
+          label: "1",
+        },
+        {
+          kind: "back",
+          state: "focus",
+          label: "1",
+        },
+        {
+          kind: "back",
+          state: "focus",
+          label: "3",
+        },
+        {
+          kind: "back",
+          state: "focus",
+          label: "3",
+        },
       ],
-      nodeStatus: {
-        0: "active",
-        1: "active",
-        2: "active",
-        3: "active",
-        4: "active",
-        5: "active",
+      strips: [
+        {
+          label: "큐",
+          values: [],
+          slots: 6,
+        },
+        {
+          label: "DFS 가 지난 정점",
+          values: [0, 3, 2, 1, 4, 5],
+          slots: 6,
+        },
+      ],
+      calc: {
+        expr: "min(3, 4, 2, 3, 1) =",
+        result: "1",
       },
-      nodeValue: { 0: 0, 1: 3, 2: 2, 3: 1, 4: 4, 5: 5 },
-      activeEdge: { from: 1, to: 2 },
-      entries: [
-        { label: "누적 유량", value: "5" },
-        { label: "level", value: "[0, 3, 2, 1, 4, 5]" },
-        { label: "역방향 잔여", value: "2→1 = 1 로 줄고 1→2 = 1 이 살아난다" },
-        { label: "분기", value: "②③④ 역방향 간선으로 내려간다" },
-      ],
+      vars: "라운드 2 · 누적 유량 5",
     },
     {
-      title: "T8 라운드 2 의 차단 유량이 소진됐다",
-      detail: "4 → 5 가 포화라 같은 레벨 배치로는 더 갈 수 없다.",
+      title: "T8 라운드 2 — 더 보낼 경로가 없다",
+      text: "DFS 가 0 → 3 → 2 → 1 → 4 까지 들어갔다가 더 내려갈 항목이 없어 0 을 올려보냅니다. 라운드 2 의 차단 유량이 됐고, 누적 유량은 5 입니다.",
       nodes: [
-        { id: 0, x: 6, y: 48 },
-        { id: 1, x: 32, y: 20 },
-        { id: 2, x: 60, y: 58 },
-        { id: 3, x: 30, y: 80 },
-        { id: 4, x: 62, y: 10 },
-        { id: 5, x: 92, y: 36 },
+        {
+          value: "0 / 2",
+          state: "read",
+        },
+        {
+          value: "3 / 3",
+          state: "read",
+        },
+        {
+          value: "2 / 3",
+          state: "read",
+        },
+        {
+          value: "1 / 2",
+          state: "read",
+        },
+        {
+          value: "4 / 2",
+          state: "read",
+        },
+        {
+          value: "5 / 0",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 0, directed: true },
-        { from: 1, to: 2, weight: 1, directed: true },
-        { from: 2, to: 5, weight: 0, directed: true },
-        { from: 0, to: 3, weight: 2, directed: true },
-        { from: 3, to: 2, weight: 3, directed: true },
-        { from: 1, to: 4, weight: 2, directed: true },
-        { from: 4, to: 5, weight: 0, directed: true },
+        {
+          state: "out",
+          label: "4/4",
+        },
+        {
+          label: "1/2",
+        },
+        {
+          state: "read",
+          label: "2/2",
+        },
+        {
+          state: "read",
+          label: "1/3",
+        },
+        {
+          state: "read",
+          label: "1/4",
+        },
+        {
+          state: "read",
+          label: "3/5",
+        },
+        {
+          state: "read",
+          label: "3/3",
+        },
+        {
+          kind: "back",
+          label: "4",
+        },
+        {
+          kind: "back",
+          state: "read",
+          label: "1",
+        },
+        {
+          kind: "back",
+          label: "2",
+        },
+        {
+          kind: "back",
+          label: "1",
+        },
+        {
+          kind: "back",
+          state: "read",
+          label: "1",
+        },
+        {
+          kind: "back",
+          label: "3",
+        },
+        {
+          kind: "back",
+          label: "3",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "visited",
-        5: "visited",
+      strips: [
+        {
+          label: "큐",
+          values: [],
+          slots: 6,
+        },
+        {
+          label: "DFS 가 지난 정점",
+          values: [0, 3, 2, 1, 4],
+          slots: 6,
+        },
+      ],
+      calc: {
+        expr: "dfs(0, ∞) =",
+        result: "0",
       },
-      nodeValue: { 0: 0, 1: 3, 2: 2, 3: 1, 4: 4, 5: 5 },
-      entries: [
-        { label: "누적 유량", value: "5" },
-        { label: "level", value: "[0, 3, 2, 1, 4, 5]" },
-        { label: "역방향 잔여", value: "2→1 = 1 · 5→4 = 3 · 5→2 = 2" },
-        { label: "분기", value: "⑤ 간선을 다 옮겨 0 이 올라온다" },
-      ],
+      vars: "라운드 2 · 누적 유량 5",
     },
     {
-      title: "T9 라운드 3 — BFS 가 싱크에 레벨을 못 적는다",
-      detail:
-        "싱크로 들어가는 두 간선 2 → 5 와 4 → 5 가 둘 다 포화다. level[5] 가 -1 이라 반복이 끝난다.",
+      title: "T9 라운드 3 — 싱크에 레벨이 안 붙는다",
+      text: "싱크로 들어가는 항목의 잔여가 모두 0 이라 BFS 가 정점 0 · 1 · 2 · 3 · 4 까지만 레벨을 적습니다. level[5] = -1 이라 반복을 끝내고 { flow: 5 } 를 돌려줍니다.",
       nodes: [
-        { id: 0, x: 6, y: 48 },
-        { id: 1, x: 32, y: 20 },
-        { id: 2, x: 60, y: 58 },
-        { id: 3, x: 30, y: 80 },
-        { id: 4, x: 62, y: 10 },
-        { id: 5, x: 92, y: 36 },
+        {
+          value: "0 / 2",
+          state: "focus",
+        },
+        {
+          value: "3 / 3",
+          state: "focus",
+        },
+        {
+          value: "2 / 3",
+          state: "focus",
+        },
+        {
+          value: "1 / 2",
+          state: "focus",
+        },
+        {
+          value: "4 / 2",
+          state: "focus",
+        },
+        {
+          value: "- / 0",
+          state: "out",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 0, directed: true },
-        { from: 1, to: 2, weight: 1, directed: true },
-        { from: 2, to: 5, weight: 0, directed: true },
-        { from: 0, to: 3, weight: 2, directed: true },
-        { from: 3, to: 2, weight: 3, directed: true },
-        { from: 1, to: 4, weight: 2, directed: true },
-        { from: 4, to: 5, weight: 0, directed: true },
+        {
+          state: "out",
+          label: "4/4",
+        },
+        {
+          label: "1/2",
+        },
+        {
+          state: "out",
+          label: "2/2",
+        },
+        {
+          state: "read",
+          label: "1/3",
+        },
+        {
+          state: "read",
+          label: "1/4",
+        },
+        {
+          state: "read",
+          label: "3/5",
+        },
+        {
+          state: "out",
+          label: "3/3",
+        },
+        {
+          kind: "back",
+          label: "4",
+        },
+        {
+          kind: "back",
+          state: "read",
+          label: "1",
+        },
+        {
+          kind: "back",
+          label: "2",
+        },
+        {
+          kind: "back",
+          label: "1",
+        },
+        {
+          kind: "back",
+          label: "1",
+        },
+        {
+          kind: "back",
+          label: "3",
+        },
+        {
+          kind: "back",
+          label: "3",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "visited",
-        5: "default",
+      strips: [
+        {
+          label: "큐",
+          values: [0, 3, 2, 1, 4],
+          slots: 6,
+        },
+        {
+          label: "DFS 가 지난 정점",
+          values: [],
+          slots: 6,
+        },
+      ],
+      calc: {
+        expr: "level[5] =",
+        result: "-1",
       },
-      nodeValue: { 0: 0, 1: 3, 2: 2, 3: 1, 4: 4, 5: -1 },
-      entries: [
-        { label: "누적 유량", value: "5" },
-        { label: "level", value: "[0, 3, 2, 1, 4, -1]" },
-        { label: "도달한 정점", value: "{0, 1, 2, 3, 4}" },
-        { label: "분기", value: "⑥ level[5] 가 -1 이라 반복을 끝낸다" },
-      ],
+      vars: "라운드 3 · 누적 유량 5",
     },
-  ] satisfies Frame[],
+  ],
 };

@@ -144,7 +144,7 @@ test("본문 전개가 쓰는 고정 입력", () => {
   ).toEqual({ flow: 5 });
 });
 
-test("문제 지문의 예시", () => {
+test("용량이 다른 다리 그래프", () => {
   expect(
     maxFlow(
       4,
@@ -193,4 +193,37 @@ test("최악을 만드는 계단 입력도 유량이 정확하다", () => {
   for (let i = 1; i <= m - 2; i++) edges.push([i, i + 1, m]);
   for (let i = 1; i <= m - 1; i++) edges.push([i, m, 1]);
   expect(maxFlow(m + 1, edges, 0, m)).toEqual({ flow: m });
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차를 실행해
+ * 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./maxFlow-guide.sim.ts");
+  const fig = await import("./maxFlow-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.maxFlowWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.maxFlowWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 누적 유량을 정본의 답에 직접 다시 묻는다.
+  const want = maxFlow(
+    6,
+    [
+      [0, 1, 4],
+      [1, 2, 2],
+      [2, 5, 2],
+      [0, 3, 3],
+      [3, 2, 4],
+      [1, 4, 5],
+      [4, 5, 3],
+    ],
+    0,
+    5,
+  );
+  expect(sim.maxFlowWalk.steps.at(-1)?.vars).toBe(
+    `라운드 3 · 누적 유량 ${want.flow}`,
+  );
+  expect(sim.maxFlowWalk.result).toBe(`{ flow: ${want.flow} }`);
 });

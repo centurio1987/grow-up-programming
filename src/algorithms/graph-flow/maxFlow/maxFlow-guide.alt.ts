@@ -243,7 +243,7 @@ function measure(w: number): { dinic: Counted; ek: Counted } {
 }
 
 export const cases = {
-  "라운드마다 레벨을 매기고 차단 유량을 소진한다": () => {
+  디닉: () => {
     const out: Record<string, number> = {};
     for (const w of WIDTHS)
       out[`라운드당 경로 ${w} 기본 연산`] = measure(w).dinic.ops;
@@ -251,7 +251,7 @@ export const cases = {
     out["라운드당 경로 40 저장 칸"] = measure(40).dinic.cells;
     return out;
   },
-  "증가 경로 하나마다 최단 경로를 다시 찾는다": () => {
+  "에드먼즈–카프": () => {
     const out: Record<string, number> = {};
     for (const w of WIDTHS)
       out[`라운드당 경로 ${w} 기본 연산`] = measure(w).ek.ops;
