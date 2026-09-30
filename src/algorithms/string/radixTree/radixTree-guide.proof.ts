@@ -1507,7 +1507,7 @@ export const PROOFS: Record<string, () => string> = {
     );
   },
 
-  /** `purpose.alt` — 저장 칸이 뒤집히는 공유 길이를 스윕으로 찾는다. */
+  /** `purpose.alt` — 추가 칸이 뒤집히는 공유 길이를 스윕으로 찾는다. */
   altSweep: () => {
     const shares = [0, 50, 80, 90, 94, 95, 96, 97];
     let flip = "";
@@ -1537,8 +1537,8 @@ export const PROOFS: Record<string, () => string> = {
           "공통 접두사 길이",
           "라딕스 트리의 노드",
           "트라이의 노드",
-          "라딕스 트리 저장 칸",
-          "트라이 저장 칸",
+          "라딕스 트리 추가 칸",
+          "트라이 추가 칸",
           "적은 쪽",
         ],
         rows,

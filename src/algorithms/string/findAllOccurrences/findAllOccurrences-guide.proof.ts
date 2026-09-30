@@ -1224,7 +1224,7 @@ export const PROOFS: Record<string, () => string> = {
     const mine = altCases["실패 함수 방식"]();
     const theirs = altCases["호스풀 방식"]();
     const rows = [1, 3, 4, 26].map((sigma) => {
-      const key = `알파벳 ${sigma} 비교 횟수` as keyof typeof mine;
+      const key = `알파벳 ${sigma} 비교` as keyof typeof mine;
       const a = mine[key] as number;
       const b = theirs[key] as number;
       const fewer =
@@ -1241,7 +1241,7 @@ export const PROOFS: Record<string, () => string> = {
         "l",
       ]),
       "",
-      `저장 칸은 실패 함수 방식이 ${mine["저장 칸"]} 개, 호스풀 방식이 ${theirs["저장 칸"]} 개입니다.`,
+      `추가 칸(입력과 답 배열을 빼고 새로 잡는 표의 칸)은 실패 함수 방식이 ${mine["추가 칸"]} 개, 호스풀 방식이 ${theirs["추가 칸"]} 개입니다.`,
     ].join("\n");
   },
 
@@ -1478,7 +1478,7 @@ export const PROOFS: Record<string, () => string> = {
         `n = ${n} · m = ${m}`,
         `상한 ${3 * (n + m)} · 실측 ${mine.build + mine.scan}`,
       ],
-      ["잡는 칸", `fail 표 ${m} 칸 + 찾은 자리 ${mine.found.length} 칸`],
+      ["추가 칸", `fail 표 ${m} 칸 + 찾은 자리 ${mine.found.length} 칸`],
     ]);
   },
 

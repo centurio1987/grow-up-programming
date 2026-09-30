@@ -11,7 +11,9 @@
  * - **자료 접근** — 배열 칸을 읽거나 쓴 횟수와 문자열 글자를 읽은 횟수의 합. 칸을 잡으며 `-1` 이나 0 으로
  *   채우는 일과 반환 직전의 정렬은 세지 않는다(정렬은 두 설계가 같은 매칭 `z` 개에 똑같이 한다). 같은
  *   갈래의 접미사 배열 · 카사이 LCP · 가장 긴 회문 편과 같은 기준이다.
- * - **저장 칸** — 절차가 잡는 배열 칸의 최대 개수. 반환 배열은 두 설계가 같으므로 세지 않는다.
+ * - **추가 칸** — 입력(텍스트 · 패턴) 밖에 절차가 잡는 배열 칸 가운데 동시에 살아 있는 것의 최댓값. 자동자는
+ *   잡은 배열(용량 `cap` = 패턴 길이의 합 + 1 로 잡는다)을 끝까지 모두 들고 있으므로 그 합이고, 경쟁 설계는
+ *   실패 함수를 한 벌씩만 들고 있으므로 가장 긴 패턴의 길이다. 반환 배열은 두 설계가 같으므로 세지 않는다.
  *
  * 계수기는 정본의 줄을 그대로 옮기고 줄마다 센다. 본문의 다른 절(「아이디어를 떠올리는 과정」 ·
  * 「비용 계산」)도 이 파일의 계수기를 부른다 — 원고 한 벌에 잣대가 하나다.
@@ -83,7 +85,7 @@ export interface AhoCount {
   readonly visits: number;
   /** 실패 링크가 가리키는 노드에서 패턴이 안 끝나 그 노드의 출력 링크를 읽은 노드의 수. */
   readonly inheritOut: number;
-  /** 잡는 배열 칸. */
+  /** 추가 칸 — 잡는 배열 칸의 합. 모두 끝까지 살아 있다. */
   readonly cells: number;
   /** 노드 수. 뿌리를 포함한다. */
   readonly nodes: number;
@@ -222,7 +224,7 @@ export function countAho(text: string, patterns: readonly string[]): AhoCount {
 
 /**
  * 패턴 하나마다 실패 함수를 만들고 텍스트를 처음부터 다시 대조한다(`findAllOccurrences` 가이드의
- * 절차를 패턴 수만큼 부른다). 실패 함수를 한 벌만 들고 있으면 되므로 저장 칸은 가장 긴 패턴의 길이다.
+ * 절차를 패턴 수만큼 부른다). 실패 함수를 한 벌만 들고 있으면 되므로 추가 칸은 가장 긴 패턴의 길이다.
  */
 export function countKmpEach(
   text: string,
@@ -315,7 +317,7 @@ export const cases = {
       const r = countAho(TEXT, patterns);
       verify(TEXT, patterns, r.matches, "아호–코라식 자동자");
       out[`패턴 ${k} 개 · 자료 접근`] = r.access;
-      if (k === 1 || k === 1000) out[`패턴 ${k} 개 · 저장 칸`] = r.cells;
+      if (k === 1 || k === 1000) out[`패턴 ${k} 개 · 추가 칸`] = r.cells;
     }
     return out;
   },
@@ -326,7 +328,7 @@ export const cases = {
       const r = countKmpEach(TEXT, patterns);
       verify(TEXT, patterns, r.matches, "패턴마다 실패 함수");
       out[`패턴 ${k} 개 · 자료 접근`] = r.access;
-      if (k === 1 || k === 1000) out[`패턴 ${k} 개 · 저장 칸`] = r.cells;
+      if (k === 1 || k === 1000) out[`패턴 ${k} 개 · 추가 칸`] = r.cells;
     }
     return out;
   },

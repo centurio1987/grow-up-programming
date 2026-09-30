@@ -142,7 +142,7 @@ export function byDefinition(s: string, sa: readonly number[]): number[] {
 
 /* ───────────────────────── 정본 계측 ───────────────────────── */
 
-/** 자리 하나가 답을 적은 순간의 기록 — 계측 사본이 `lcp[inv[i]] = k;` 바로 뒤에서 남긴다. */
+/** 자리 하나가 답을 적은 순간의 기록 — 계측 사본이 `lcp[rank[i]] = len;` 바로 뒤에서 남긴다. */
 interface WriteLog {
   readonly i: number;
   readonly j: number;
@@ -155,8 +155,8 @@ const logged = await loadMutant<{
   kasaiLcp(s: string, sa: number[]): number[];
 }>(REF, {
   swap: [
-    /^(\s*)lcp\[inv\[i\] as number\] = k;$/,
-    "$1lcp[inv[i] as number] = k;\n$1(globalThis as unknown as { __kasaiLog?: { i: number; j: number; k: number }[] }).__kasaiLog?.push({ i, j, k });",
+    /^(\s*)lcp\[rank\[i\] as number\] = len;$/,
+    "$1lcp[rank[i] as number] = len;\n$1(globalThis as unknown as { __kasaiLog?: { i: number; j: number; k: number }[] }).__kasaiLog?.push({ i, j, k: len });",
   ],
 });
 
@@ -165,13 +165,13 @@ const logged = await loadMutant<{
 /** 자리 하나를 처리한 기록. */
 export interface Row {
   readonly i: number;
-  /** `inv[i]` — 이 자리의 접미사가 `sa` 의 몇 번째 칸인가. */
+  /** `rank[i]` — 이 자리의 접미사가 `sa` 의 몇 번째 칸인가. */
   readonly rank: number;
   /** 이웃이 시작하는 자리. 이웃이 없으면 `null`. */
   readonly j: number | null;
-  /** 이 자리에 들어올 때의 `k`. */
+  /** 이 자리에 들어올 때의 `len`. */
   readonly kIn: number;
-  /** 글자가 같아 `k` 를 늘린 횟수. */
+  /** 글자가 같아 `len` 을 늘린 횟수. */
   readonly eq: number;
   /** 글자가 달라 멈춘 비교 — 0 또는 1. */
   readonly ne: number;
@@ -179,7 +179,7 @@ export interface Row {
   readonly stop: "differ" | "end" | null;
   /** 적은 길이 `h(i)`. 이웃이 없으면 `null`. */
   readonly h: number | null;
-  /** 다음 자리로 넘긴 `k`. */
+  /** 다음 자리로 넘긴 `len`. */
   readonly kOut: number;
 }
 
@@ -193,7 +193,7 @@ export interface Replay {
 
 /**
  * 정본과 같은 절차를 자리마다 멈춰 기록한다. 계측이 없어 중화 실행에서도 값이 나온다. `drop` 은 적은 뒤에
- * `k` 에서 빼는 양이고 정본은 1 이다 — 1 이면 답을 정본과 대조한다. 0 은 「그대로 이어받기」 후보를 잰다.
+ * `len` 에서 빼는 양이고 정본은 1 이다 — 1 이면 답을 정본과 대조한다. 0 은 「그대로 이어받기」 후보를 잰다.
  */
 export function replay(
   s: string,
@@ -290,7 +290,7 @@ export const walkRun = (): Replay => {
 /** 셈 한 벌 — 글자 비교 두 갈래와 자료 접근. */
 export interface Cost {
   readonly lcp: number[];
-  /** 글자가 같아 `k` 를 늘린 비교. */
+  /** 글자가 같아 `len` 을 늘린 비교. */
   readonly eq: number;
   /** 글자가 달라 멈춘 비교. 문자열 끝이라 멈춘 자리는 글자를 안 읽는다. */
   readonly ne: number;
@@ -299,11 +299,11 @@ export interface Cost {
 }
 
 /**
- * 길이 이어받기에 셈만 덧붙인 것 — 정본과 같은 줄 순서다. 칸 접근은 정본이 적은 대로 센다. `inv[sa[r]] = r`
- * 이 두 번(`sa` 읽기 · `inv` 쓰기), 자리마다 `inv[i]` 읽기 한 번, 이웃이 있으면 `sa[inv[i] + 1]` 이 두 번,
- * `lcp[inv[i]] = k` 가 두 번이다. 글자 비교 하나는 글자 둘을 읽는다.
+ * 길이 이어받기에 셈만 덧붙인 것 — 정본과 같은 줄 순서다. 칸 접근은 정본이 적은 대로 센다. `rank[sa[k]] = k`
+ * 이 두 번(`sa` 읽기 · `rank` 쓰기), 자리마다 `rank[i]` 읽기 한 번, 이웃이 있으면 `sa[rank[i] + 1]` 이 두 번,
+ * `lcp[rank[i]] = len` 이 두 번이다. 글자 비교 하나는 글자 둘을 읽는다.
  *
- * `drop` 은 적은 뒤에 `k` 에서 빼는 양이다. **정본은 `drop = 1`** 이고, `Infinity` 면 자리마다 0 에서 다시
+ * `drop` 은 적은 뒤에 `len` 에서 빼는 양이다. **정본은 `drop = 1`** 이고, `Infinity` 면 자리마다 0 에서 다시
  * 센다. 그 밖의 값은 아이디어 상세가 「하나만 줄이는 까닭」을 값으로 내는 데 쓴다.
  */
 export function countKasai(s: string, sa: readonly number[], drop = 1): Cost {
@@ -348,8 +348,8 @@ export function countKasai(s: string, sa: readonly number[], drop = 1): Cost {
 }
 
 /**
- * 짝마다 처음부터 비교하는 방법 — 이웃한 두 칸 `sa[r]` · `sa[r+1]` 을 읽고(두 번), 글자를 비교하고(한 번에
- * 둘), `lcp[r]` 에 쓴다(한 번). 답은 정의와 같은지 대조한다.
+ * 짝마다 처음부터 비교하는 방법 — 이웃한 두 칸 `sa[k]` · `sa[k+1]` 을 읽고(두 번), 글자를 비교하고(한 번에
+ * 둘), `lcp[k]` 에 쓴다(한 번). 답은 정의와 같은지 대조한다.
  */
 export function countPairwise(s: string, sa: readonly number[]): Cost {
   const n = s.length;
@@ -382,8 +382,8 @@ export function countPairwise(s: string, sa: readonly number[]): Cost {
 }
 
 /**
- * 짝마다 처음부터 비교하는 방법의 셈을 **글자를 하나씩 읽지 않고** 낸다. 짝 `r` 의 비교는 같은 글자
- * `lcp[r]` 번과, 두 접미사가 다 남아 있으면 다른 글자 한 번이다. `lcp` 는 정본이 낸다. 전부 같은 글자
+ * 짝마다 처음부터 비교하는 방법의 셈을 **글자를 하나씩 읽지 않고** 낸다. 짝 `k` 의 비교는 같은 글자
+ * `lcp[k]` 번과, 두 접미사가 다 남아 있으면 다른 글자 한 번이다. `lcp` 는 정본이 낸다. 전부 같은 글자
  * 10 만 개처럼 실제로 읽으면 50 억 번을 도는 입력에 쓴다. 작은 입력에서는 실제로 읽은 셈과 같은지 대조한다.
  */
 export function pairwiseByLcp(s: string, sa: readonly number[]): Cost {
@@ -489,7 +489,7 @@ function approaches(): Approach[] {
     },
     {
       name: "앞 자리의 길이를 그대로 이어받기",
-      idea: "자리 i 에서 구한 길이 k 를 자리 i+1 의 비교 시작값으로 그대로 쓴다",
+      idea: "자리 i 에서 구한 길이 len 을 자리 i+1 의 비교 시작값으로 그대로 쓴다",
       verdict: "drop",
       checks: [
         {
@@ -543,7 +543,7 @@ function placeTitle(r: Row): string {
 
 function placeDetail(s: string, r: Row, n: number): string {
   if (r.j === null) {
-    return `inv[${r.i}] = ${r.rank}${이가(r.rank)} n − 1 = ${n - 1}${과와(n - 1)} 같아 sa 의 마지막 칸입니다. 비교할 이웃이 없어 답을 적지 않고 k 를 0 으로 둡니다.`;
+    return `rank[${r.i}] = ${r.rank}${이가(r.rank)} n − 1 = ${n - 1}${과와(n - 1)} 같아 sa 의 마지막 칸입니다. 비교할 이웃이 없어 답을 적지 않고 len 을 0 으로 둡니다.`;
   }
   const h = r.h as number;
   const a = s[r.i + h] as string;
@@ -555,11 +555,11 @@ function placeDetail(s: string, r: Row, n: number): string {
       : `자리 ${shorter} 의 접미사가 ${h} 글자에서 끝나 멈춥니다.`;
   const from =
     r.kIn > 0
-      ? `이어받은 k = ${r.kIn} 에서 비교를 시작합니다.`
-      : "k = 0 에서 비교를 시작합니다.";
+      ? `이어받은 len = ${r.kIn} 에서 비교를 시작합니다.`
+      : "len = 0 에서 비교를 시작합니다.";
   const grew =
-    r.eq > 0 ? ` 같은 글자 ${r.eq} 개로 k 가 ${h}${이가(h)} 됐고,` : "";
-  return `inv[${r.i}] = ${r.rank}${josa(r.rank, "이라", "라")} 이웃은 sa[${r.rank + 1}] = ${r.j} 입니다. ${from}${grew} ${stop} lcp[${r.rank}] = ${h}${을를(h)} 적고 k = ${r.kOut}${을를(r.kOut)} 넘깁니다.`;
+    r.eq > 0 ? ` 같은 글자 ${r.eq} 개로 len 이 ${h}${이가(h)} 됐고,` : "";
+  return `rank[${r.i}] = ${r.rank}${josa(r.rank, "이라", "라")} 이웃은 sa[${r.rank + 1}] = ${r.j} 입니다. ${from}${grew} ${stop} lcp[${r.rank}] = ${h}${을를(h)} 적고 len = ${r.kOut}${을를(r.kOut)} 넘깁니다.`;
 }
 
 /** 전개 입력의 걸음 — T1 순위 배열, 자리마다 한 걸음, 마지막에 답을 돌려준다. */
@@ -575,7 +575,7 @@ export function walkSteps(): Step[] {
     kind: "init",
     row: null,
     title: "순위 배열을 만든다",
-    detail: `sa 를 한 번 지나며 inv[sa[r]] = r 을 적습니다. inv = ${show(r.inv)} 입니다. lcp 는 칸마다 0 으로 채워 두었고 k 는 0 에서 시작합니다.`,
+    detail: `sa 를 한 번 지나며 rank[sa[k]] = k 를 적습니다. rank = ${show(r.inv)} 입니다. lcp 는 칸마다 0 으로 채워 두었고 len 은 0 에서 시작합니다.`,
     lcp: [...lcp],
     compares,
   });
@@ -606,8 +606,8 @@ export function walkSteps(): Step[] {
 
 /**
  * 걸음 하나를 배열 무대(`arrayStage`)의 걸음으로. 값 줄은 문자열 `s` 의 글자이고, 그 아래에 순위 배열
- * `inv` 한 줄을 쌓는다 — 둘 다 칸 번호가 문자열 자리다. 접미사 배열 `sa` 와 LCP 배열 `lcp` 는 칸 번호가
- * 사전순 자리 `r` 이라 문자열 자리와 같은 눈금에 두지 않고, 키 줄 `r` · 값 줄 `sa[r]` · 더한 줄 `lcp[r]` 로
+ * `rank` 한 줄을 쌓는다 — 둘 다 칸 번호가 문자열 자리다. 접미사 배열 `sa` 와 LCP 배열 `lcp` 는 칸 번호가
+ * 사전순 자리 `k` 라 문자열 자리와 같은 눈금에 두지 않고, 키 줄 `k` · 값 줄 `sa[k]` · 더한 줄 `lcp[k]` 로
  * 맨 아래에 둔다. 자리 걸음의 두 괄호는 자리 `i` 와 이웃 `j` 에서 시작해 함께 가진 앞부분이다.
  */
 function arrayStep(step: Step): ArrayStep {
@@ -653,8 +653,11 @@ function arrayStep(step: Step): ArrayStep {
         ? { expr: "돌려줄 lcp", result: show(step.lcp) }
         : null
       : row.j === null
-        ? { expr: `inv[${row.i}] = ${row.rank} = n − 1`, result: "이웃 없음" }
-        : { expr: `lcp[inv[${row.i}]] = lcp[${row.rank}]`, result: `${row.h}` };
+        ? { expr: `rank[${row.i}] = ${row.rank} = n − 1`, result: "이웃 없음" }
+        : {
+            expr: `lcp[rank[${row.i}]] = lcp[${row.rank}]`,
+            result: `${row.h}`,
+          };
   return {
     array: [...WALK],
     range: [0, n - 1],
@@ -663,7 +666,7 @@ function arrayStep(step: Step): ArrayStep {
         ? step.kind === "init"
           ? "sa 를 한 번 지난다"
           : "자리를 다 처리했다"
-        : `들어올 때 k = ${row.kIn} · 넘기는 k = ${row.kOut}`,
+        : `들어올 때 len = ${row.kIn} · 넘기는 len = ${row.kOut}`,
     read: [...new Set(read)].sort((x, y) => x - y),
     write: [],
     ...(row === null
@@ -671,7 +674,7 @@ function arrayStep(step: Step): ArrayStep {
       : { pointers: row.j === null ? { i: row.i } : { i: row.i, j: row.j } }),
     layers: [
       {
-        name: "inv",
+        name: "rank",
         values: [...r.inv],
         read: row === null ? [] : [row.i],
         write: step.kind === "init" ? all : [],
@@ -680,8 +683,8 @@ function arrayStep(step: Step): ArrayStep {
     ],
     ...(pieces.length > 0 ? { pieces } : {}),
     map: {
-      keyLabel: "r",
-      valueLabel: "sa[r]",
+      keyLabel: "k",
+      valueLabel: "sa[k]",
       entries: r.sa.map((v, k) => [k, v] as const),
       slots: n,
       read:
@@ -692,7 +695,7 @@ function arrayStep(step: Step): ArrayStep {
             : [],
       extra: [
         {
-          label: "lcp[r]",
+          label: "lcp[k]",
           values: [...step.lcp],
           write: row !== null && row.j !== null ? [row.rank] : [],
           side: `적은 칸 ${wroteSoFar} / ${writable}`,
@@ -833,7 +836,7 @@ export const FIGS: Record<string, () => ReactElement> = {
         states,
         side:
           row.j === null
-            ? "이웃이 없다 · k 를 0 으로"
+            ? "이웃이 없다 · len 을 0 으로"
             : `이웃 ${row.j} · 이어받은 ${row.kIn} · h = ${h}`,
       });
     }

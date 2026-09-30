@@ -5,7 +5,7 @@ import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
  * T1~T8 전부다 — 순위 배열 만들기 · 문자열 자리 여섯을 차례로 한 걸음씩 · 답 돌려주기.
  *
  * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가 배열
- * 무대(`arrayStage.ts`)를 고른다. 값 줄은 문자열 `s` 의 글자이고, `layers` 가 순위 배열 `inv` 한 줄이다 — 둘 다
+ * 무대(`arrayStage.ts`)를 고른다. 값 줄은 문자열 `s` 의 글자이고, `layers` 가 순위 배열 `rank` 한 줄이다 — 둘 다
  * 칸 번호가 문자열 자리다. 접미사 배열 `sa` 와 LCP 배열 `lcp` 는 칸 번호가 사전순 자리 `k` 라 `map`(키 `k` ·
  * 값 `sa[k]` · 더한 줄 `lcp[k]`)으로 맨 아래에 둔다. 자리 걸음의 `pieces` 는 자리 `i` 와 이웃 `j` 에서 시작해
  * 함께 가진 앞부분이다.
@@ -26,7 +26,7 @@ export const kasaiWalk = {
   steps: [
     {
       title: "T1 순위 배열을 만든다",
-      text: "sa 를 한 번 지나며 inv[sa[r]] = r 을 적습니다. inv = [3, 2, 5, 1, 4, 0] 입니다. lcp 는 칸마다 0 으로 채워 두었고 k 는 0 에서 시작합니다.",
+      text: "sa 를 한 번 지나며 rank[sa[k]] = k 를 적습니다. rank = [3, 2, 5, 1, 4, 0] 입니다. lcp 는 칸마다 0 으로 채워 두었고 len 은 0 에서 시작합니다.",
       array: ["b", "a", "n", "a", "n", "a"],
       range: [0, 5],
       rangeSide: "sa 를 한 번 지난다",
@@ -34,7 +34,7 @@ export const kasaiWalk = {
       write: [],
       layers: [
         {
-          name: "inv",
+          name: "rank",
           values: [3, 2, 5, 1, 4, 0],
           read: [],
           write: [0, 1, 2, 3, 4, 5],
@@ -42,8 +42,8 @@ export const kasaiWalk = {
         },
       ],
       map: {
-        keyLabel: "r",
-        valueLabel: "sa[r]",
+        keyLabel: "k",
+        valueLabel: "sa[k]",
         entries: [
           [0, 5],
           [1, 3],
@@ -56,7 +56,7 @@ export const kasaiWalk = {
         read: [0, 1, 2, 3, 4, 5],
         extra: [
           {
-            label: "lcp[r]",
+            label: "lcp[k]",
             values: [0, 0, 0, 0, 0, 0],
             write: [],
             side: "적은 칸 0 / 5",
@@ -68,10 +68,10 @@ export const kasaiWalk = {
     },
     {
       title: "T2 자리 0 — 첫 글자부터 다르다",
-      text: "inv[0] = 3 이라 이웃은 sa[4] = 4 입니다. k = 0 에서 비교를 시작합니다. s[0] = b 와 s[4] = n 이 달라 멈춥니다. lcp[3] = 0 을 적고 k = 0 을 넘깁니다.",
+      text: "rank[0] = 3 이라 이웃은 sa[4] = 4 입니다. len = 0 에서 비교를 시작합니다. s[0] = b 와 s[4] = n 이 달라 멈춥니다. lcp[3] = 0 을 적고 len = 0 을 넘깁니다.",
       array: ["b", "a", "n", "a", "n", "a"],
       range: [0, 5],
-      rangeSide: "들어올 때 k = 0 · 넘기는 k = 0",
+      rangeSide: "들어올 때 len = 0 · 넘기는 len = 0",
       read: [0, 4],
       write: [],
       pointers: {
@@ -80,7 +80,7 @@ export const kasaiWalk = {
       },
       layers: [
         {
-          name: "inv",
+          name: "rank",
           values: [3, 2, 5, 1, 4, 0],
           read: [0],
           write: [],
@@ -88,8 +88,8 @@ export const kasaiWalk = {
         },
       ],
       map: {
-        keyLabel: "r",
-        valueLabel: "sa[r]",
+        keyLabel: "k",
+        valueLabel: "sa[k]",
         entries: [
           [0, 5],
           [1, 3],
@@ -102,7 +102,7 @@ export const kasaiWalk = {
         read: [4],
         extra: [
           {
-            label: "lcp[r]",
+            label: "lcp[k]",
             values: [0, 0, 0, 0, 0, 0],
             write: [3],
             side: "적은 칸 1 / 5",
@@ -110,17 +110,17 @@ export const kasaiWalk = {
         ],
       },
       calc: {
-        expr: "lcp[inv[0]] = lcp[3]",
+        expr: "lcp[rank[0]] = lcp[3]",
         result: "0",
       },
       vars: "글자 비교 누적 1 번",
     },
     {
       title: "T3 자리 1 — 첫 글자부터 다르다",
-      text: "inv[1] = 2 라 이웃은 sa[3] = 0 입니다. k = 0 에서 비교를 시작합니다. s[1] = a 와 s[0] = b 가 달라 멈춥니다. lcp[2] = 0 을 적고 k = 0 을 넘깁니다.",
+      text: "rank[1] = 2 라 이웃은 sa[3] = 0 입니다. len = 0 에서 비교를 시작합니다. s[1] = a 와 s[0] = b 가 달라 멈춥니다. lcp[2] = 0 을 적고 len = 0 을 넘깁니다.",
       array: ["b", "a", "n", "a", "n", "a"],
       range: [0, 5],
-      rangeSide: "들어올 때 k = 0 · 넘기는 k = 0",
+      rangeSide: "들어올 때 len = 0 · 넘기는 len = 0",
       read: [0, 1],
       write: [],
       pointers: {
@@ -129,7 +129,7 @@ export const kasaiWalk = {
       },
       layers: [
         {
-          name: "inv",
+          name: "rank",
           values: [3, 2, 5, 1, 4, 0],
           read: [1],
           write: [],
@@ -137,8 +137,8 @@ export const kasaiWalk = {
         },
       ],
       map: {
-        keyLabel: "r",
-        valueLabel: "sa[r]",
+        keyLabel: "k",
+        valueLabel: "sa[k]",
         entries: [
           [0, 5],
           [1, 3],
@@ -151,7 +151,7 @@ export const kasaiWalk = {
         read: [3],
         extra: [
           {
-            label: "lcp[r]",
+            label: "lcp[k]",
             values: [0, 0, 0, 0, 0, 0],
             write: [2],
             side: "적은 칸 2 / 5",
@@ -159,17 +159,17 @@ export const kasaiWalk = {
         ],
       },
       calc: {
-        expr: "lcp[inv[1]] = lcp[2]",
+        expr: "lcp[rank[1]] = lcp[2]",
         result: "0",
       },
       vars: "글자 비교 누적 2 번",
     },
     {
       title: "T4 자리 2 — 이웃이 없다",
-      text: "inv[2] = 5 가 n − 1 = 5 와 같아 sa 의 마지막 칸입니다. 비교할 이웃이 없어 답을 적지 않고 k 를 0 으로 둡니다.",
+      text: "rank[2] = 5 가 n − 1 = 5 와 같아 sa 의 마지막 칸입니다. 비교할 이웃이 없어 답을 적지 않고 len 을 0 으로 둡니다.",
       array: ["b", "a", "n", "a", "n", "a"],
       range: [0, 5],
-      rangeSide: "들어올 때 k = 0 · 넘기는 k = 0",
+      rangeSide: "들어올 때 len = 0 · 넘기는 len = 0",
       read: [],
       write: [],
       pointers: {
@@ -177,7 +177,7 @@ export const kasaiWalk = {
       },
       layers: [
         {
-          name: "inv",
+          name: "rank",
           values: [3, 2, 5, 1, 4, 0],
           read: [2],
           write: [],
@@ -185,8 +185,8 @@ export const kasaiWalk = {
         },
       ],
       map: {
-        keyLabel: "r",
-        valueLabel: "sa[r]",
+        keyLabel: "k",
+        valueLabel: "sa[k]",
         entries: [
           [0, 5],
           [1, 3],
@@ -199,7 +199,7 @@ export const kasaiWalk = {
         read: [],
         extra: [
           {
-            label: "lcp[r]",
+            label: "lcp[k]",
             values: [0, 0, 0, 0, 0, 0],
             write: [],
             side: "적은 칸 2 / 5",
@@ -207,17 +207,17 @@ export const kasaiWalk = {
         ],
       },
       calc: {
-        expr: "inv[2] = 5 = n − 1",
+        expr: "rank[2] = 5 = n − 1",
         result: "이웃 없음",
       },
       vars: "글자 비교 누적 2 번",
     },
     {
       title: "T5 자리 3 — 글자 3 개가 같아 길이 3",
-      text: "inv[3] = 1 이라 이웃은 sa[2] = 1 입니다. k = 0 에서 비교를 시작합니다. 같은 글자 3 개로 k 가 3 이 됐고, 자리 3 의 접미사가 3 글자에서 끝나 멈춥니다. lcp[1] = 3 을 적고 k = 2 를 넘깁니다.",
+      text: "rank[3] = 1 이라 이웃은 sa[2] = 1 입니다. len = 0 에서 비교를 시작합니다. 같은 글자 3 개로 len 이 3 이 됐고, 자리 3 의 접미사가 3 글자에서 끝나 멈춥니다. lcp[1] = 3 을 적고 len = 2 를 넘깁니다.",
       array: ["b", "a", "n", "a", "n", "a"],
       range: [0, 5],
-      rangeSide: "들어올 때 k = 0 · 넘기는 k = 2",
+      rangeSide: "들어올 때 len = 0 · 넘기는 len = 2",
       read: [1, 2, 3, 4, 5],
       write: [],
       pointers: {
@@ -226,7 +226,7 @@ export const kasaiWalk = {
       },
       layers: [
         {
-          name: "inv",
+          name: "rank",
           values: [3, 2, 5, 1, 4, 0],
           read: [3],
           write: [],
@@ -250,8 +250,8 @@ export const kasaiWalk = {
         },
       ],
       map: {
-        keyLabel: "r",
-        valueLabel: "sa[r]",
+        keyLabel: "k",
+        valueLabel: "sa[k]",
         entries: [
           [0, 5],
           [1, 3],
@@ -264,7 +264,7 @@ export const kasaiWalk = {
         read: [2],
         extra: [
           {
-            label: "lcp[r]",
+            label: "lcp[k]",
             values: [0, 3, 0, 0, 0, 0],
             write: [1],
             side: "적은 칸 3 / 5",
@@ -272,17 +272,17 @@ export const kasaiWalk = {
         ],
       },
       calc: {
-        expr: "lcp[inv[3]] = lcp[1]",
+        expr: "lcp[rank[3]] = lcp[1]",
         result: "3",
       },
       vars: "글자 비교 누적 5 번",
     },
     {
       title: "T6 자리 4 — 이어받은 2 가 그대로 길이",
-      text: "inv[4] = 4 라 이웃은 sa[5] = 2 입니다. 이어받은 k = 2 에서 비교를 시작합니다. 자리 4 의 접미사가 2 글자에서 끝나 멈춥니다. lcp[4] = 2 를 적고 k = 1 을 넘깁니다.",
+      text: "rank[4] = 4 라 이웃은 sa[5] = 2 입니다. 이어받은 len = 2 에서 비교를 시작합니다. 자리 4 의 접미사가 2 글자에서 끝나 멈춥니다. lcp[4] = 2 를 적고 len = 1 을 넘깁니다.",
       array: ["b", "a", "n", "a", "n", "a"],
       range: [0, 5],
-      rangeSide: "들어올 때 k = 2 · 넘기는 k = 1",
+      rangeSide: "들어올 때 len = 2 · 넘기는 len = 1",
       read: [],
       write: [],
       pointers: {
@@ -291,7 +291,7 @@ export const kasaiWalk = {
       },
       layers: [
         {
-          name: "inv",
+          name: "rank",
           values: [3, 2, 5, 1, 4, 0],
           read: [4],
           write: [],
@@ -315,8 +315,8 @@ export const kasaiWalk = {
         },
       ],
       map: {
-        keyLabel: "r",
-        valueLabel: "sa[r]",
+        keyLabel: "k",
+        valueLabel: "sa[k]",
         entries: [
           [0, 5],
           [1, 3],
@@ -329,7 +329,7 @@ export const kasaiWalk = {
         read: [5],
         extra: [
           {
-            label: "lcp[r]",
+            label: "lcp[k]",
             values: [0, 3, 0, 0, 2, 0],
             write: [4],
             side: "적은 칸 4 / 5",
@@ -337,17 +337,17 @@ export const kasaiWalk = {
         ],
       },
       calc: {
-        expr: "lcp[inv[4]] = lcp[4]",
+        expr: "lcp[rank[4]] = lcp[4]",
         result: "2",
       },
       vars: "글자 비교 누적 5 번",
     },
     {
       title: "T7 자리 5 — 이어받은 1 이 그대로 길이",
-      text: "inv[5] = 0 이라 이웃은 sa[1] = 3 입니다. 이어받은 k = 1 에서 비교를 시작합니다. 자리 5 의 접미사가 1 글자에서 끝나 멈춥니다. lcp[0] = 1 을 적고 k = 0 을 넘깁니다.",
+      text: "rank[5] = 0 이라 이웃은 sa[1] = 3 입니다. 이어받은 len = 1 에서 비교를 시작합니다. 자리 5 의 접미사가 1 글자에서 끝나 멈춥니다. lcp[0] = 1 을 적고 len = 0 을 넘깁니다.",
       array: ["b", "a", "n", "a", "n", "a"],
       range: [0, 5],
-      rangeSide: "들어올 때 k = 1 · 넘기는 k = 0",
+      rangeSide: "들어올 때 len = 1 · 넘기는 len = 0",
       read: [],
       write: [],
       pointers: {
@@ -356,7 +356,7 @@ export const kasaiWalk = {
       },
       layers: [
         {
-          name: "inv",
+          name: "rank",
           values: [3, 2, 5, 1, 4, 0],
           read: [5],
           write: [],
@@ -380,8 +380,8 @@ export const kasaiWalk = {
         },
       ],
       map: {
-        keyLabel: "r",
-        valueLabel: "sa[r]",
+        keyLabel: "k",
+        valueLabel: "sa[k]",
         entries: [
           [0, 5],
           [1, 3],
@@ -394,7 +394,7 @@ export const kasaiWalk = {
         read: [1],
         extra: [
           {
-            label: "lcp[r]",
+            label: "lcp[k]",
             values: [1, 3, 0, 0, 2, 0],
             write: [0],
             side: "적은 칸 5 / 5",
@@ -402,7 +402,7 @@ export const kasaiWalk = {
         ],
       },
       calc: {
-        expr: "lcp[inv[5]] = lcp[0]",
+        expr: "lcp[rank[5]] = lcp[0]",
         result: "1",
       },
       vars: "글자 비교 누적 5 번",
@@ -417,7 +417,7 @@ export const kasaiWalk = {
       write: [],
       layers: [
         {
-          name: "inv",
+          name: "rank",
           values: [3, 2, 5, 1, 4, 0],
           read: [],
           write: [],
@@ -425,8 +425,8 @@ export const kasaiWalk = {
         },
       ],
       map: {
-        keyLabel: "r",
-        valueLabel: "sa[r]",
+        keyLabel: "k",
+        valueLabel: "sa[k]",
         entries: [
           [0, 5],
           [1, 3],
@@ -439,7 +439,7 @@ export const kasaiWalk = {
         read: [],
         extra: [
           {
-            label: "lcp[r]",
+            label: "lcp[k]",
             values: [1, 3, 0, 0, 2, 0],
             write: [],
             side: "적은 칸 5 / 5",

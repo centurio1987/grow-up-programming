@@ -63,7 +63,10 @@ const wr = (a: number[], i: number, v: number): void => {
   a[i] = v;
 };
 
-/** 칸을 새로 잡는다. 동시에 잡혀 있는 칸의 최댓값을 기록한다. */
+/**
+ * 칸을 새로 잡는다. 동시에 잡혀 있는 칸의 최댓값을 기록한다 — 이것이 **추가 칸**이다. 원래 문자열은
+ * 넣지 않고, 문자열을 옮긴 순위 배열과 답 배열은 넣는다. 0 으로 채우는 초기화 쓰기는 자료 접근에 넣지 않는다.
+ */
 function alloc(size: number): number[] {
   live += size;
   peak = Math.max(peak, live);
@@ -334,7 +337,7 @@ export const cases = {
     "n=1,040 자료 접근": A.mine.access,
     "n=100,000 무작위 자료 접근": R.mine.access,
     "n=100,000 전부 같은 글자 자료 접근": S.mine.access,
-    "n=100,000 잡는 칸 최대": R.mine.cells,
+    "n=100,000 추가 칸": R.mine.cells,
   }),
   "갈라 정렬": () => ({
     "n=90 자료 접근": SB.theirs.access,
@@ -343,6 +346,6 @@ export const cases = {
     "n=1,040 자료 접근": A.theirs.access,
     "n=100,000 무작위 자료 접근": R.theirs.access,
     "n=100,000 전부 같은 글자 자료 접근": S.theirs.access,
-    "n=100,000 잡는 칸 최대": R.theirs.cells,
+    "n=100,000 추가 칸": R.theirs.cells,
   }),
 };

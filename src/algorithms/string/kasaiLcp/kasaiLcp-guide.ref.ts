@@ -7,7 +7,7 @@
  * 원문자 라벨 ①~⑥ 은 본문 전개가 그대로 인용한다(P4).
  *
  * **`sa` 가 `s` 의 올바른 접미사 배열이라는 것은 부르는 쪽이 보장한다.** 이 함수는 그 전제를
- * 검사하지 않는다 — `sa` 에 중복이나 범위 밖 값이 있으면 `inv` 에 빈 칸이 생긴다.
+ * 검사하지 않는다 — `sa` 에 중복이나 범위 밖 값이 있으면 `rank` 에 빈 칸이 생긴다.
  */
 
 export function kasaiLcp(s: string, sa: number[]): number[] {
@@ -15,29 +15,29 @@ export function kasaiLcp(s: string, sa: number[]): number[] {
   const lcp = new Array<number>(n).fill(0);
 
   // ① 순위 배열 — 자리 `i` 에서 시작하는 접미사가 `sa` 의 몇 번째 칸에 있는지 적어 둔다.
-  const inv = new Array<number>(n).fill(0);
-  for (let r = 0; r < n; r++) inv[sa[r] as number] = r;
+  const rank = new Array<number>(n).fill(0);
+  for (let k = 0; k < n; k++) rank[sa[k] as number] = k;
 
-  let k = 0;
+  let len = 0;
   for (let i = 0; i < n; i++) {
     // ② 이웃이 없는 자리 — `sa` 의 마지막 칸이라 비교할 접미사가 없다. 값을 적지 않는다.
-    if (inv[i] === n - 1) {
-      k = 0;
+    if (rank[i] === n - 1) {
+      len = 0;
       continue;
     }
 
     // ③ 이웃이 시작하는 자리. 순위 배열이 있어 배열 읽기 한 번으로 얻는다.
-    const j = sa[(inv[i] as number) + 1] as number;
+    const j = sa[(rank[i] as number) + 1] as number;
 
-    // ④ 이어받은 `k` 에서 시작해 글자가 같은 동안 하나씩 늘린다. 둘 중 하나가 문자열 끝을
+    // ④ 이어받은 `len` 에서 시작해 글자가 같은 동안 하나씩 늘린다. 둘 중 하나가 문자열 끝을
     // 넘으면 거기서 멈춘다.
-    while (i + k < n && j + k < n && s[i + k] === s[j + k]) k++;
+    while (i + len < n && j + len < n && s[i + len] === s[j + len]) len++;
 
     // ⑤ 이 자리의 답은 `sa` 안에서의 순위 칸에 적는다.
-    lcp[inv[i] as number] = k;
+    lcp[rank[i] as number] = len;
 
     // ⑥ 다음 자리에는 하나만 줄여서 넘긴다.
-    if (k > 0) k--;
+    if (len > 0) len--;
   }
 
   return lcp;

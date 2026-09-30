@@ -1,9 +1,12 @@
 /**
  * `purpose.alt` 가 인용하는 수치의 출처 — L13.
  *
- * **같은 입력·같은 작업 목록**에 두 설계를 걸고 **결정론적 계수**만 센다. 세는 것은 **저장
- * 칸**(글자 · 단어 끝 표시 · 자식 가리킴을 각각 한 칸)과 **기본 연산 수**(자식 맵 조회 +
- * 글자 대조 + 노드 생성 + 끝 표시 읽기·쓰기)다. 벽시계·처리량은 실행마다 달라
+ * **같은 입력·같은 작업 목록**에 두 설계를 걸고 **결정론적 계수**만 센다. 세는 것은 **추가
+ * 칸**(입력 단어 목록 밖에 구조가 들고 있는 칸. 담기를 다 끝낸 구조에서 글자 · 단어 끝 표시 · 자식
+ * 가리킴을 각각 한 칸. 담는 동안 칸이 줄지 않으므로 동시 최댓값과 같다)과 **기본 연산**(자식 맵 조회 ·
+ * 글자 대조 한 자리 · 노드 생성 · 맵에 걸기 · 끝 표시 읽기·쓰기 각 1)이다. 트라이 편은 맵 항목 하나를
+ * 한 칸(`2V − 1`), 노드 생성과 맵에 걸기를 한 번으로 센다 — 이 편은 라벨 글자와 한 잣대로 놓으려고
+ * 가른다(2026-10-01 `KAN-062`). 벽시계·처리량은 실행마다 달라
  * "본문의 수치가 실측과 일치하는가"(P10)를 정의할 수 없다.
  *
  *   bun run ../../../../tools/bench-alt.ts radixTree-guide.alt.ts
@@ -39,7 +42,7 @@ export function CORPUS(n: number, share: number): string[] {
   );
 }
 
-/** 본문 대조가 쓰는 두 자리. 이 사이에서 저장 칸과 삽입 연산의 순서가 뒤집힌다. */
+/** 본문 대조가 쓰는 두 자리. 이 사이에서 추가 칸과 삽입 연산의 순서가 뒤집힌다. */
 export const SHARE_BEFORE = 96;
 export const SHARE_AFTER = 97;
 
@@ -167,7 +170,7 @@ function radixShape(root: RadixNode): { nodes: number; labelChars: number } {
 }
 
 /**
- * 라딕스 트리가 잡는 칸 — 라벨 글자 합 + 자식 맵의 키 글자(간선마다 하나) + 노드마다 단어 끝
+ * 라딕스 트리의 추가 칸 — 라벨 글자 합 + 자식 맵의 키 글자(간선마다 하나) + 노드마다 단어 끝
  * 표시 하나 + 간선마다 자식 가리킴 하나. 노드가 `V` 개면 간선은 `V - 1` 개다.
  */
 export function radixCells(words: readonly string[]): number {
@@ -237,7 +240,7 @@ function trieNodes(root: TrieNode): number {
 }
 
 /**
- * 트라이가 잡는 칸 — 간선마다 맵의 키 글자 하나와 자식 가리킴 하나, 노드마다 단어 끝 표시
+ * 트라이의 추가 칸 — 간선마다 맵의 키 글자 하나와 자식 가리킴 하나, 노드마다 단어 끝 표시
  * 하나. 라벨 문자열이 없으므로 글자는 간선 수만큼이다.
  */
 export function trieCells(words: readonly string[]): number {
@@ -276,8 +279,8 @@ export const cases = {
     const before = workloadWords(SHARE_BEFORE);
     const after = workloadWords(SHARE_AFTER);
     return {
-      "공유 96 글자 · 저장 칸": radixCells(before),
-      "공유 97 글자 · 저장 칸": radixCells(after),
+      "공유 96 글자 · 추가 칸": radixCells(before),
+      "공유 97 글자 · 추가 칸": radixCells(after),
       "공유 96 글자 · 삽입 기본 연산": radixInsertAll(before).ops,
       "공유 97 글자 · 삽입 기본 연산": radixInsertAll(after).ops,
       "공유 97 글자 · 조회 기본 연산": radixQueryAll(
@@ -290,8 +293,8 @@ export const cases = {
     const before = workloadWords(SHARE_BEFORE);
     const after = workloadWords(SHARE_AFTER);
     return {
-      "공유 96 글자 · 저장 칸": trieCells(before),
-      "공유 97 글자 · 저장 칸": trieCells(after),
+      "공유 96 글자 · 추가 칸": trieCells(before),
+      "공유 97 글자 · 추가 칸": trieCells(after),
       "공유 96 글자 · 삽입 기본 연산": trieInsertAll(before).ops,
       "공유 97 글자 · 삽입 기본 연산": trieInsertAll(after).ops,
       "공유 97 글자 · 조회 기본 연산": trieQueryAll(

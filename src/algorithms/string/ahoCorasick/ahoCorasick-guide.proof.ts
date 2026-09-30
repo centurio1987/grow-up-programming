@@ -839,12 +839,17 @@ export const PROOFS: Record<string, () => string> = {
     const total = brute.reads.reduce((a, b) => a + b, 0);
     return [
       md(
-        ["자리", "글자", "패턴마다 대조가 읽은 횟수", "자동자가 읽은 횟수"],
+        [
+          "자리",
+          "글자",
+          "패턴마다 대조가 읽은 횟수",
+          "아호–코라식 자동자가 읽은 횟수",
+        ],
         rows,
         ["r", "l", "r", "r"],
       ),
       "",
-      `패턴마다 대조는 텍스트 글자를 모두 ${total} 번 읽었고, 자동자는 ${WALK_TEXT.length} 번 읽었습니다. 두 방법이 찾은 매칭은 ${showMatches(brute.matches)}${으로(showMatches(brute.matches))} 같습니다.`,
+      `패턴마다 대조는 텍스트 글자를 모두 ${total} 번 읽었고, 아호–코라식 자동자는 ${WALK_TEXT.length} 번 읽었습니다. 두 방법이 찾은 매칭은 ${showMatches(brute.matches)}${으로(showMatches(brute.matches))} 같습니다.`,
     ].join("\n");
   },
 
@@ -872,7 +877,7 @@ export const PROOFS: Record<string, () => string> = {
           "텍스트 길이 n",
           "패턴마다 대조",
           "n 으로 나눈 값",
-          "자동자 전체",
+          "아호–코라식 자동자 전체",
           "그중 읽는 몫",
           "n 으로 나눈 값",
         ],
@@ -880,7 +885,7 @@ export const PROOFS: Record<string, () => string> = {
         ["r", "r", "r", "r", "r", "r"],
       ),
       "",
-      `텍스트는 "${WALK_TEXT}" 를 되풀이한 것이고 패턴은 ${WALK_P.join(" · ")} 셋입니다. 자동자 전체에서 읽는 몫을 뺀 ${num(one.access - one.scan)} 은 트라이를 만들고 링크를 채우는 몫이라 텍스트 길이와 상관없이 같습니다.`,
+      `텍스트는 "${WALK_TEXT}" 를 되풀이한 것이고 패턴은 ${WALK_P.join(" · ")} 셋입니다. 아호–코라식 자동자 전체에서 읽는 몫을 뺀 ${num(one.access - one.scan)} 은 트라이를 만들고 링크를 채우는 몫이라 텍스트 길이와 상관없이 같습니다.`,
     ].join("\n");
   },
 
@@ -956,7 +961,7 @@ export const PROOFS: Record<string, () => string> = {
     return [
       md(["진 접미사", "길이", "그 이름의 노드"], rows, ["l", "r", "l"]),
       "",
-      `노드가 있는 진 접미사 가운데 가장 긴 것은 길이 ${chosen.length} 짜리 ${chosen} 입니다. 그래서 노드 ${node} 의 실패 링크는 ${chosen} 노드이고, 정본이 만든 자동자의 실패 링크도 ${link} 노드입니다.`,
+      `노드가 있는 진 접미사 가운데 가장 긴 것은 길이 ${chosen.length} 짜리 ${chosen} 입니다. 그래서 노드 ${node} 의 실패 링크는 ${chosen} 노드이고, 정본이 만든 아호–코라식 자동자의 실패 링크도 ${link} 노드입니다.`,
     ].join("\n");
   },
 
@@ -1296,7 +1301,7 @@ export const PROOFS: Record<string, () => string> = {
       md(
         [
           "펼친 깊이 d",
-          "저장 칸",
+          "추가 칸",
           "읽는 몫의 자료 접근",
           "한 글자에 든 가장 많은 자료 접근",
         ],
@@ -1651,7 +1656,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `purpose.alt` — 저장 칸은 뒤집히지 않는다. */
+  /** `purpose.alt` — 추가 칸은 뒤집히지 않는다. */
   altCells: () => {
     const rows = [1, 1000].map((k) => {
       const patterns = makePatterns(ALT_TEXT, k, PATTERN_TOTAL);
@@ -1833,7 +1838,7 @@ export const PROOFS: Record<string, () => string> = {
         ["l", "l", "l", "l", "l"],
       ),
       "",
-      `전개 입력의 자동자에서 실패 링크가 바뀐 노드는 ${moved.join(" · ")} ${moved.length} 개입니다.`,
+      `전개 입력의 아호–코라식 자동자에서 실패 링크가 바뀐 노드는 ${moved.join(" · ")} ${moved.length} 개입니다.`,
     ].join("\n");
   },
 
@@ -1953,7 +1958,7 @@ export const PROOFS: Record<string, () => string> = {
             num(one.nodes),
           ],
           ["만드는 몫의 자료 접근", "같은 입력", num(one.insert + one.fill)],
-          ["저장 칸", "같은 입력", num(one.cells)],
+          ["추가 칸", "같은 입력", num(one.cells)],
           [
             "매칭 수(서로 다른 패턴)",
             `a 부터 a × ${m} 까지 ${m} 개 · 텍스트 a × ${num(LIMIT_TEXT)}`,
