@@ -29,8 +29,8 @@ scope: src/algorithms/advanced/convexHullTrick/**, src/algorithms/advanced/divid
 - [x] `S1` 스텁↔정본 대조 도구 — `tools/practice-ref.test.ts`(+ 제외 목록과 사유). 완료 기준: 착수 전 실측(실패 15 · import 불일치 5)을 그대로 재현하고, 제외 목록 밖 import 불일치는 실패로 잡는다. 스텁 누수(스텁이 `Not implemented` 를 안 던지는 파일) 수를 센다
 - [x] `S2` 틀린 기대값 9편 — searchInRotatedSortedArray · fastPower · matrixChainMultiplication · palindromePartitioningMinCut · largestRectangleInHistogram · ahoCorasick · matrixPowerFibonacci · polygonArea · pointInPolygon. 테스트와 실습 예시·제약을 한 쌍으로. 완료 기준: S1 도구 실패 0
 - [x] `S3` array·dp·binary-search·bit 갈래 실습·정본 결함(16편). 완료 기준: 해당 줄마다 고침 또는 사유, 편마다 `bun test <편>`·`check-v2` 통과
-- [ ] `S4` string·number-theory 갈래(15편). 완료 기준: S3 과 같음. babyStepGiantStep 은 실습 제약을 서로소로 좁히고 서로소 아닌 스텁 케이스를 뺀다
-- [ ] `S5` graph·graph-flow·shortest-path·tree·geometry·sorting·advanced 갈래(19편). 완료 기준: S3 과 같음. 정본을 고친 편은 원고 코드 블록(P16)·인용(`check-citations`)까지
+- [x] `S4` string·number-theory 갈래(15편). 완료 기준: S3 과 같음. babyStepGiantStep 은 실습 제약을 서로소로 좁히고 서로소 아닌 스텁 케이스를 뺀다
+- [x] `S5` graph·graph-flow·shortest-path·tree·geometry·sorting·advanced 갈래(19편). 완료 기준: S3 과 같음. 정본을 고친 편은 원고 코드 블록(P16)·인용(`check-citations`)까지
 - [ ] `S6` 대조표와 전체 검증 — 근거 파일 §3·§4 의 줄마다 「고침(커밋) / 사유」를 적은 표를 카드 문서에 남기고 `bun run tools/ci.ts all` 통과. 완료 기준: 표에 빈 줄 0, ci all 녹색
 - [ ] `S7` 검토서 — `review-init` 과 판단 항목(벽시계 방침 · 스텁 누수 · 정본을 안 고친 편)
 
@@ -50,3 +50,5 @@ scope: src/algorithms/advanced/convexHullTrick/**, src/algorithms/advanced/divid
 - 2026-10-01T07:06 · s:1cf4aad1 · S1 done — tools/practice-ref.ts(+test) — 117 파일 1,440 시험, 실패 10(착수 전 실측과 같은 편), 별칭 3 파일 통과, 부속 문제 2 건너뜀. 스텁에 풀이가 든 파일 24(21 은 solutions 브랜치와 바이트 동일) — 검토서로
 - 2026-10-01T07:09 · s:1cf4aad1 · S2 done — 틀린 기대값 9편 + 같은 편의 실습 결함. practice-ref 실패 10 → 0. check-v2 5편 통과. 정본은 안 바꿈(matrixPowerFibonacci 는 원고가 한계를 밝힘)
 - 2026-10-01T07:11 · s:1cf4aad1 · S3 done — array·dp·bit 11편 실습 절 · 정본 JSDoc 1. practice-ref 실패 0, check-v2 전부 통과, 인용 표류 0. 사유 넷(스텁 풀이 누수 · coinChangeWays 정본 · expectedValueDp · 층/줄)
+- 2026-10-01T07:20 · s:1cf4aad1 · S4 done — 문자열 8편(5bef3d30) · 정수론 7편(e827978b) — 서브에이전트 둘 + 메인 재확인·흘림 4곳 추가 수정
+- 2026-10-01T07:20 · s:1cf4aad1 · S5 done — 그래프·트리·기하·정렬·고급 16편(06b6b164) — 서브에이전트 + 메인 knuth 스토리 1곳. practice-ref 실패 0
