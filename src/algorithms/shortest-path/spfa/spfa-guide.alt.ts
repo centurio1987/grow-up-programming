@@ -7,16 +7,26 @@
  *   bun run tools/bench-alt.ts src/algorithms/shortest-path/spfa/spfa-guide.alt.ts
  *
  * **두 설계가 매 실행마다 같은 답을 내는지 먼저 확인한다**(`확인()`). 답이 다른 구현으로 잰
- * 계수는 저울질이 아니라 다른 문제의 값이다 — 여기서는 정본(`.ref.ts`)의 `dist` 를 두 설계
+ * 계수는 저울질이 아니라 다른 과제의 값이다 — 여기서는 정본(`.ref.ts`)의 `dist` 를 두 설계
  * 모두와 대조한다.
  *
  * **전개 입력을 그대로 쓰지 않은 이유**(L20). 전개 그래프는 정점 여섯 · 간선 여덟이라 한
  * 정점의 나가는 간선을 늘릴 자리가 없고, 그 축이 바로 두 설계의 우열이 갈리는 축이다. 전개
- * 입력의 값도 함께 내고(`전개 입력 · …`), 우열이 뒤집히는 자리를 보이는 데는 아래 `허브`
+ * 입력의 값도 함께 내고(`전개 입력 · …`), 우열이 뒤집히는 자리를 보이는 데는 아래 `hub`
  * 가족을 쓴다. 그 사실을 본문 대조 문단에도 적는다.
  *
- * **입력은 생성식으로 고정한다.** 사슬 길이 `M = 24` 를 고정하고 잎 수 `P` 하나만 바꾼다.
- * 한 번 정한 입력은 수치가 마음에 안 든다는 이유로 바꾸지 않는다(L20).
+ * **입력은 생성식으로 고정한다.** 사슬 길이 `M` 을 고정하고 잎 수 `p` 하나만 바꾼다. 한 번 정한
+ * 입력은 수치가 마음에 안 든다는 이유로 바꾸지 않는다(L20).
+ *
+ * **`M` 을 24 에서 16 으로 바꿨다(2026-09-30 `KAN-058`).** 같은 두 설계를 `bellmanFord` 편의
+ * 「경쟁 설계와의 대조」가 `M = 16` 의 같은 생성식으로 쟀다. 한 쌍의 설계를 두 편이 서로 다른
+ * 사슬 길이로 재면 독자가 두 편에서 경계 잎 수를 둘 만나고, 어느 쪽이 맞는지 따로 대조해야 한다.
+ * 이웃 편과 같은 입력으로 옮겨 두 편의 수가 한 벌이 되게 했다 — 결과가 마음에 안 들어 바꾼 것이
+ * 아니고, 바꾼 뒤에도 순서가 뒤집히는 자리가 그대로 남는다.
+ *
+ * **비용 기준은 `bellmanFord` 편과 같다.** 기본 연산은 간선 하나를 읽고 완화를 시도한 한 번과
+ * 큐에 넣거나 꺼낸 한 번을 각각 하나로 센다 — 큐가 없는 라운드 설계에서는 간선 읽기와 같다.
+ * 저장 칸은 정점마다 한 칸인 배열의 칸과 큐가 가장 길었을 때의 항목 수를 더한다.
  */
 
 import { type Edge, spfa } from "./spfa-guide.ref.ts";
@@ -38,8 +48,8 @@ export const WALK_EDGES: Edge[] = [
   [5, 4, 1],
 ];
 
-/** 사슬 길이. 잎 수 `P` 하나만 바꾸려고 고정한다. */
-export const M = 24;
+/** 사슬 길이. 잎 수 `p` 하나만 바꾸려고 고정한다. `bellmanFord` 편과 같은 값이다. */
+export const M = 16;
 
 /**
  * 사슬 `M` 개가 허브 하나로 들어가고 허브에서 잎 `p` 개로 나가는 그래프.
@@ -47,10 +57,10 @@ export const M = 24;
  * 정점 번호는 `0` 이 출발점, `1..M` 이 사슬, `M+1` 이 허브, 그 뒤가 잎이다. 사슬 간선의
  * 가중치는 첫 칸만 100 이고 나머지는 1 이며, 사슬 `i` 에서 허브로 가는 간선의 가중치는
  * `2(M − i)` 라 사슬을 더 깊이 지날수록 허브까지의 값이 1 씩 작아진다. 그래서 허브의 값이
- * 여러 번 줄어들고, 줄어들 때마다 허브가 대기열에 다시 담긴다.
+ * 여러 번 줄어들고, 줄어들 때마다 허브가 큐에 다시 들어간다.
  *
- * **간선 목록에서 사슬은 내림차순으로 적는다.** 목록의 순서는 문제가 주는 것이지 푸는 쪽이
- * 고르는 것이 아니고, 이 순서가 바퀴 방식에 가장 불리한 자리다.
+ * **간선 목록에서 사슬은 내림차순으로 적는다.** 목록의 순서는 입력이 정하는 것이지 푸는 쪽이
+ * 고르는 것이 아니고, 이 순서가 라운드 설계에 가장 불리한 자리다.
  */
 export function hub(p: number): { n: number; edges: Edge[] } {
   const H = M + 1;
@@ -78,11 +88,12 @@ export interface Run {
 /**
  * 이 가이드의 절차. 정본(`spfa-guide.ref.ts`)과 같고 세는 자리만 덧붙였다.
  *
- * `기본 연산` 은 간선 하나를 읽고 완화를 시도한 한 번과 대기열에 넣거나 꺼낸 한 번을 각각
- * 하나로 센다. `저장 칸` 은 거리 배열 · 대기열에 있는지 표시 · 이웃 목록 셋과 대기열이 가장
- * 길었을 때의 항목 수를 더한 것이다.
+ * `저장 칸` 은 정점마다 한 칸인 배열 셋(거리 · 큐 표시 · 이웃 목록)과 큐가 가장 길었을 때의
+ * 항목 수를 더한 것이다. 큐의 길이는 **넣은 직후**에 잰다 — 꺼낸 직후에 재면 한 걸음이 넣은 항목이
+ * 다음 꺼내기 전까지 큐에 함께 있던 순간을 놓쳐 하나 적게 나온다(`bellmanFord` 편의 `.alt.ts` 가
+ * 꺼낸 직후에 잰다 — 2026-09-30 보고).
  */
-function 대기열설계(n: number, edges: Edge[], src: number): Run {
+export function 큐에담는설계(n: number, edges: Edge[], src: number): Run {
   const adj: [number, number][][] = Array.from({ length: n }, () => []);
   for (const [u, v, w] of edges) (adj[u] as [number, number][]).push([v, w]);
 
@@ -99,7 +110,6 @@ function 대기열설계(n: number, edges: Edge[], src: number): Run {
     const u = queue[head++] as number;
     inQueue[u] = false;
     ops++;
-    peak = Math.max(peak, queue.length - head);
 
     for (const [v, w] of adj[u] as [number, number][]) {
       ops++;
@@ -110,6 +120,7 @@ function 대기열설계(n: number, edges: Edge[], src: number): Run {
           inQueue[v] = true;
           queue.push(v);
           ops++;
+          peak = Math.max(peak, queue.length - head);
         }
       }
     }
@@ -118,18 +129,17 @@ function 대기열설계(n: number, edges: Edge[], src: number): Run {
 }
 
 /**
- * 경쟁 설계 — **간선 목록 전체를 바퀴로 되풀이해 읽는다.** 대기열이라는 개념이 없고, 한
- * 바퀴가 한 칸도 못 고치면 거기서 끝낸다. 바퀴는 많아야 `V − 1` 번이다.
+ * 경쟁 설계 — 벨만-포드. **간선 목록 전체를 라운드마다 다시 읽는다.** 큐라는 개념이 없고, 한
+ * 라운드가 한 칸도 못 고치면 거기서 끝낸다. `bellmanFord` 편의 정본과 같은 반복이다.
  *
- * `기본 연산` 은 간선 하나를 읽고 완화를 시도한 한 번을 하나로 센다. `저장 칸` 은 거리 배열
- * `V` 칸에 고쳤는지를 적는 칸 하나를 더한 것이다.
+ * `저장 칸` 은 거리 배열 `V` 칸에 고쳤는지를 적는 칸 하나를 더한 것이다.
  */
-function 바퀴설계(n: number, edges: Edge[], src: number): Run {
+export function 라운드로읽는설계(n: number, edges: Edge[], src: number): Run {
   const dist = Array.from({ length: n }, () => INF);
   dist[src] = 0;
   let ops = 0;
 
-  for (let round = 1; round <= Math.max(1, n - 1); round++) {
+  for (let round = 1; round <= n; round++) {
     let changed = false;
     for (const [u, v, w] of edges) {
       ops++;
@@ -154,15 +164,15 @@ function 확인(): void {
   const inputs: [number, Edge[]][] = [
     [WALK_N, WALK_EDGES],
     [hub(1).n, hub(1).edges],
-    [hub(98).n, hub(98).edges],
+    [hub(66).n, hub(66).edges],
     [hub(4096).n, hub(4096).edges],
     [3, [[0, 1, 10] as Edge, [0, 2, 1] as Edge, [2, 1, 1] as Edge]],
     [4, [[0, 1, 4] as Edge, [0, 2, 5] as Edge, [1, 2, -3] as Edge]],
   ];
   for (const [n, edges] of inputs) {
     const want = show(spfa(n, edges, 0));
-    const a = 대기열설계(n, edges, 0);
-    const b = 바퀴설계(n, edges, 0);
+    const a = 큐에담는설계(n, edges, 0);
+    const b = 라운드로읽는설계(n, edges, 0);
     if (show(a.dist) !== want) {
       throw new Error(
         `세는 사본이 정본과 다른 답을 낸다 — ${show(a.dist)} vs ${want}`,
@@ -183,8 +193,8 @@ export function crossing(): { tie: number; ahead: number } {
   let ahead = -1;
   for (let p = 1; p <= 400; p++) {
     const { n, edges } = hub(p);
-    const a = 대기열설계(n, edges, 0);
-    const b = 바퀴설계(n, edges, 0);
+    const a = 큐에담는설계(n, edges, 0);
+    const b = 라운드로읽는설계(n, edges, 0);
     if (tie < 0 && b.ops <= a.ops) tie = p;
     if (b.ops < a.ops) {
       ahead = p;
@@ -223,10 +233,10 @@ function 재기(
 }
 
 export const cases = {
-  "이 가이드의 절차": () => 재기(대기열설계),
-  "간선 목록을 바퀴로 읽는 설계": () => 재기(바퀴설계),
+  "이 가이드의 절차": () => 재기(큐에담는설계),
+  "벨만-포드": () => 재기(라운드로읽는설계),
   경계: () => ({
     "두 계수가 같아지는 잎 수": CROSS.tie,
-    "바퀴 설계가 앞서는 첫 잎 수": CROSS.ahead,
+    "벨만-포드가 앞서는 첫 잎 수": CROSS.ahead,
   }),
 };

@@ -161,7 +161,7 @@ test("한 정점이 여러 번 꺼내지는 그래프에서도 거리는 정확�
   expect(got[H + 1]).toBe(116);
 });
 
-test("정점 200 개 · 간선 600 개 그래프에서 결과가 바퀴 방식과 같다", () => {
+test("정점 200 개 · 간선 600 개 그래프에서 결과가 라운드 방식과 같다", () => {
   const V = 200;
   const edges: Edge[] = [];
   for (let i = 0; i + 1 < V; i++) edges.push([i, i + 1, 1]);
@@ -177,7 +177,7 @@ test("정점 200 개 · 간선 600 개 그래프에서 결과가 바퀴 방식�
     edges.push([u, v, w]);
   }
 
-  // 바퀴 방식을 그 자리에서 세워 답을 대조한다. 두 절차는 같은 답을 내야 한다.
+  // 라운드 방식을 그 자리에서 세워 답을 대조한다. 두 절차는 같은 답을 내야 한다.
   const dist = Array.from({ length: V }, () => INF);
   dist[0] = 0;
   for (let round = 1; round < V; round++) {
@@ -196,7 +196,7 @@ test("정점 200 개 · 간선 600 개 그래프에서 결과가 바퀴 방식�
   expect(spfa(V, edges, 0)).toEqual(dist);
 });
 
-test("음수 간선이 섞인 큰 그래프에서도 바퀴 방식과 같은 답을 낸다", () => {
+test("음수 간선이 섞인 큰 그래프에서도 라운드 방식과 같은 답을 낸다", () => {
   const V = 500;
   const edges: Edge[] = [];
   let seed = 20260905;
@@ -229,4 +229,38 @@ test("음수 간선이 섞인 큰 그래프에서도 바퀴 방식과 같은 답
   }
 
   expect(spfa(V, edges, 0)).toEqual(dist);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./spfa-guide.sim.ts");
+  const fig = await import("./spfa-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.spfaWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.spfaWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 정점 값을 정본의 답에 직접 다시 묻는다.
+  const answer = spfa(
+    6,
+    [
+      [0, 1, 6],
+      [0, 2, 1],
+      [0, 3, 20],
+      [1, 3, 4],
+      [2, 1, -3],
+      [2, 3, 9],
+      [3, 4, 2],
+      [5, 4, 1],
+    ],
+    0,
+  );
+  const last = sim.spfaWalk.steps.at(-1);
+  expect(last?.nodes.map((n) => n.value)).toEqual(
+    answer.map((d) => (d === INF ? "Infinity" : `dist ${d}`)),
+  );
+  expect(sim.spfaWalk.result).toBe(`[${answer.join(", ")}]`);
 });

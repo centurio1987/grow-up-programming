@@ -6,8 +6,9 @@
  *
  * 원문자 라벨 ①~⑥ 은 본문 전개가 그대로 인용한다(P4).
  *
- * **음수 사이클 판정은 이 함수의 직무가 아니다.** 문제가 「`src` 에서 도달 가능한 음수
- * 사이클은 없다」를 보장하고, 그 보장이 없으면 아래 `while` 이 끝나지 않는다.
+ * **음수 사이클 판정은 이 함수의 직무가 아니다.** 가이드가 다루는 과제가 「`src` 에서 도달
+ * 가능한 음수 사이클은 없다」를 전제로 두고, 그 전제가 없으면 아래 `while` 이 끝나지 않는다.
+ * 넣은 횟수로 판정하는 변형은 가이드의 「이 방법이 기대는 전제」가 사이드카로 보인다.
  */
 
 export type Edge = [number, number, number];
@@ -24,7 +25,7 @@ export function spfa(n: number, edges: Edge[], src: number): number[] {
   );
   dist[src] = 0;
 
-  // ③ 대기열 — 값이 줄어든 정점만 담는다. `inQueue` 는 같은 정점이 두 벌 들어가는 것을 막고,
+  // ③ 큐 — 값이 줄어든 정점만 넣는다. `inQueue` 는 같은 정점이 두 벌 들어가는 것을 막고,
   // `head` 는 다음에 꺼낼 자리를 가리켜 배열 앞을 지우지 않게 한다.
   const inQueue: boolean[] = Array.from({ length: n }, () => false);
   const queue: number[] = [src];
@@ -32,8 +33,8 @@ export function spfa(n: number, edges: Edge[], src: number): number[] {
   let head = 0;
 
   while (head < queue.length) {
-    // ④ 꺼내기 — 꺼낸 그 자리에서 표시를 내린다. 이웃을 처리하는 동안 이 정점의 값이 다시
-    // 줄어들면 그때 다시 담겨야 한다.
+    // ④ 꺼내기 — 꺼낸 그 자리에서 표시를 내린다. 이 정점의 값이 뒤에 다시 줄어들면 그때
+    // 큐에 다시 들어가야 한다.
     const u = queue[head++] as number;
     inQueue[u] = false;
 
@@ -42,7 +43,7 @@ export function spfa(n: number, edges: Edge[], src: number): number[] {
       // ⑤ 완화 — 지금 적힌 값보다 작을 때만 고쳐 적는다.
       if (nd < (dist[v] as number)) {
         dist[v] = nd;
-        // ⑥ 다시 담기 — 값이 줄었으니 이 정점에서 나가는 간선을 다시 읽어야 한다.
+        // ⑥ 다시 넣기 — 값이 줄었으니 이 정점에서 나가는 간선을 다시 읽어야 한다.
         if (!inQueue[v]) {
           inQueue[v] = true;
           queue.push(v);
