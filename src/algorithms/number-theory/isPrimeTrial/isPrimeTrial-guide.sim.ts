@@ -9,7 +9,8 @@ import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
  * `valueAxis` 로 인덱스 줄을 뺀다. 후보가 아닌 수(2 · 3 자신을 뺀 2 · 3 의 배수)는 걸음마다 `out`(이번 걸음
  * 밖)이고, 지금 보는 후보 `d` 는 `read` 다. 아래 줄 「n mod d」 는 나눠 본 수마다 나머지를 적은 것이라 나눈
  * 걸음에 그 칸이 `write` 가 된다 — 정본은 이 값을 모아 두지 않지만, 어느 수를 나눴고 어느 수를 건너뛰었는지를
- * 무대에서 보이려고 걸음 기록에서 만든다. 무대에 자리가 없는 `step` 만 남는 변수로 둔다.
+ * 무대에서 보이려고 걸음 기록에서 만든다. 후보가 아닌 수는 이 줄에서도 `out` 이다. 무대에 자리가 없는
+ * `step` 만 남는 변수로 둔다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 리터럴은 그림 사이드카의
  * `simStepsFromRef()`(정본과 같은 절차의 걸음 기록)를 글자 그대로 옮긴 것이고, 둘이 같은지는
@@ -57,6 +58,7 @@ export const trialWalk = {
             null,
           ],
           write: [],
+          out: [2, 4, 6, 7, 8, 10],
           side: "나눗셈 0 번",
         },
       ],
@@ -80,6 +82,7 @@ export const trialWalk = {
           name: "n mod d",
           values: [1, 1, "—", null, "—", null, "—", "—", "—", null, "—", null],
           write: [0, 1],
+          out: [2, 4, 6, 7, 8, 10],
           side: "나눗셈 2 번",
         },
       ],
@@ -106,6 +109,7 @@ export const trialWalk = {
           name: "n mod d",
           values: [1, 1, "—", null, "—", null, "—", "—", "—", null, "—", null],
           write: [],
+          out: [2, 4, 6, 7, 8, 10],
           side: "나눗셈 2 번",
         },
       ],
@@ -132,6 +136,7 @@ export const trialWalk = {
           name: "n mod d",
           values: [1, 1, "—", 2, "—", null, "—", "—", "—", null, "—", null],
           write: [3],
+          out: [2, 4, 6, 7, 8, 10],
           side: "나눗셈 3 번",
         },
       ],
@@ -158,6 +163,7 @@ export const trialWalk = {
           name: "n mod d",
           values: [1, 1, "—", 2, "—", null, "—", "—", "—", null, "—", null],
           write: [],
+          out: [2, 4, 6, 7, 8, 10],
           side: "나눗셈 3 번",
         },
       ],
@@ -184,6 +190,7 @@ export const trialWalk = {
           name: "n mod d",
           values: [1, 1, "—", 2, "—", 5, "—", "—", "—", null, "—", null],
           write: [5],
+          out: [2, 4, 6, 7, 8, 10],
           side: "나눗셈 4 번",
         },
       ],
@@ -210,6 +217,7 @@ export const trialWalk = {
           name: "n mod d",
           values: [1, 1, "—", 2, "—", 5, "—", "—", "—", null, "—", null],
           write: [],
+          out: [2, 4, 6, 7, 8, 10],
           side: "나눗셈 4 번",
         },
       ],
@@ -236,6 +244,7 @@ export const trialWalk = {
           name: "n mod d",
           values: [1, 1, "—", 2, "—", 5, "—", "—", "—", 0, "—", null],
           write: [9],
+          out: [2, 4, 6, 7, 8, 10],
           side: "나눗셈 5 번",
         },
       ],

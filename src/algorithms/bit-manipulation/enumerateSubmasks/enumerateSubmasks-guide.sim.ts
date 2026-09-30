@@ -20,6 +20,7 @@ export const submaskWalk = {
   stage: "array",
   arrayName: "mask",
   rangeLabel: "자리내림",
+  indexLabel: "자리",
   title: "enumerateSubmasks(0b1011)",
   result: "[11, 10, 9, 8, 3, 2, 1, 0]",
   steps: [

@@ -7,9 +7,9 @@ import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
  *
  * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가
  * 배열 무대(`arrayStage.ts`)를 고른다. 정렬은 값이 걸음마다 바뀌므로 `array` 를 걸음마다 싣는다.
- * `mergeHeads` 의 무대는 합치는 여섯 칸을 한 줄로 — 왼쪽부터 `out` 에 담긴 값 · `L` 에 남은 값 · `R` 에 남은
- * 값이고, `pieces` 가 두 조각에 남은 자리, `write` 가 이번에 `out` 에 담은 칸, `read` 가 그 값과 비교했지만
- * 남은 쪽 머리다. `merge6` 의 무대는 합친 조각을 제자리에 놓은 배열이고, `range` 가 지금 부른 구간,
+ * `mergeHeads` 의 무대는 정본이 드는 배열 셋이다 — 윗줄이 `L` 과 `R` 을 이은 것(`pieces` 가 둘을 가르고
+ * 괄호 글자가 `i` · `j`), 아랫줄(`layers`)이 채워 가는 `out` 이다. `read` 는 이번에 비교한 두 머리, `out` 은
+ * 이미 꺼낸 칸, 아랫줄의 `write` 가 이번에 `out` 에 담은 칸이다. `merge6` 의 무대는 합친 조각을 제자리에 놓은 배열이고, `range` 가 지금 부른 구간,
  * `pieces` 가 가른 두 조각, `write` 가 합치기가 새로 쓴 구간이다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
@@ -21,7 +21,7 @@ import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 export const mergeHeads = {
   player: "stage",
   stage: "array",
-  arrayName: "칸",
+  arrayName: "L · R",
   rangeLabel: "합치는 칸",
   title: "merge([2, 4, 5], [1, 2, 6])",
   result: "[1, 2, 2, 4, 5, 6]",
@@ -29,21 +29,22 @@ export const mergeHeads = {
     {
       title: "T1 2 <= 1 ③",
       text: "L 의 머리 2 와 R 의 머리 1 을 비교합니다. 2 <= 1 이 거짓이라 ③ 으로 오른쪽 1 을 out 에 담습니다.",
-      array: [1, 2, 4, 5, 2, 6],
+      array: [2, 4, 5, 1, 2, 6],
       range: [0, 5],
-      read: [1],
-      write: [0],
+      read: [0, 3],
+      write: [],
+      out: [],
       pieces: [
         {
           label: "L",
-          from: 1,
-          to: 3,
+          from: 0,
+          to: 2,
           tone: "left",
           text: "i = 0",
         },
         {
           label: "R",
-          from: 4,
+          from: 3,
           to: 5,
           tone: "right",
           text: "j = 1",
@@ -54,25 +55,33 @@ export const mergeHeads = {
         result: "거짓",
       },
       vars: "비교 1 번",
+      layers: [
+        {
+          name: "out",
+          values: [1, null, null, null, null, null],
+          write: [0],
+        },
+      ],
     },
     {
       title: "T2 2 <= 2 ②",
       text: "L 의 머리 2 와 R 의 머리 2 를 비교합니다. 2 <= 2 가 참이라 ② 로 왼쪽 2 를 out 에 담습니다.",
-      array: [1, 2, 4, 5, 2, 6],
+      array: [2, 4, 5, 1, 2, 6],
       range: [0, 5],
-      read: [4],
-      write: [1],
+      read: [0, 4],
+      write: [],
+      out: [3],
       pieces: [
         {
           label: "L",
-          from: 2,
-          to: 3,
+          from: 0,
+          to: 2,
           tone: "left",
           text: "i = 1",
         },
         {
           label: "R",
-          from: 4,
+          from: 3,
           to: 5,
           tone: "right",
           text: "j = 1",
@@ -83,25 +92,33 @@ export const mergeHeads = {
         result: "참",
       },
       vars: "비교 2 번",
+      layers: [
+        {
+          name: "out",
+          values: [1, 2, null, null, null, null],
+          write: [1],
+        },
+      ],
     },
     {
       title: "T3 4 <= 2 ③",
       text: "L 의 머리 4 와 R 의 머리 2 를 비교합니다. 4 <= 2 가 거짓이라 ③ 으로 오른쪽 2 를 out 에 담습니다.",
-      array: [1, 2, 2, 4, 5, 6],
+      array: [2, 4, 5, 1, 2, 6],
       range: [0, 5],
-      read: [3],
-      write: [2],
+      read: [1, 4],
+      write: [],
+      out: [0, 3],
       pieces: [
         {
           label: "L",
-          from: 3,
-          to: 4,
+          from: 0,
+          to: 2,
           tone: "left",
           text: "i = 1",
         },
         {
           label: "R",
-          from: 5,
+          from: 3,
           to: 5,
           tone: "right",
           text: "j = 2",
@@ -112,25 +129,33 @@ export const mergeHeads = {
         result: "거짓",
       },
       vars: "비교 3 번",
+      layers: [
+        {
+          name: "out",
+          values: [1, 2, 2, null, null, null],
+          write: [2],
+        },
+      ],
     },
     {
       title: "T4 4 <= 6 ②",
       text: "L 의 머리 4 와 R 의 머리 6 을 비교합니다. 4 <= 6 이 참이라 ② 로 왼쪽 4 를 out 에 담습니다.",
-      array: [1, 2, 2, 4, 5, 6],
+      array: [2, 4, 5, 1, 2, 6],
       range: [0, 5],
-      read: [5],
-      write: [3],
+      read: [1, 5],
+      write: [],
+      out: [0, 3, 4],
       pieces: [
         {
           label: "L",
-          from: 4,
-          to: 4,
+          from: 0,
+          to: 2,
           tone: "left",
           text: "i = 2",
         },
         {
           label: "R",
-          from: 5,
+          from: 3,
           to: 5,
           tone: "right",
           text: "j = 2",
@@ -141,18 +166,33 @@ export const mergeHeads = {
         result: "참",
       },
       vars: "비교 4 번",
+      layers: [
+        {
+          name: "out",
+          values: [1, 2, 2, 4, null, null],
+          write: [3],
+        },
+      ],
     },
     {
       title: "T5 5 <= 6 ②",
       text: "L 의 머리 5 와 R 의 머리 6 을 비교합니다. 5 <= 6 이 참이라 ② 로 왼쪽 5 를 out 에 담습니다.",
-      array: [1, 2, 2, 4, 5, 6],
+      array: [2, 4, 5, 1, 2, 6],
       range: [0, 5],
-      read: [5],
-      write: [4],
+      read: [2, 5],
+      write: [],
+      out: [0, 1, 3, 4],
       pieces: [
         {
+          label: "L",
+          from: 0,
+          to: 2,
+          tone: "left",
+          text: "i = 3",
+        },
+        {
           label: "R",
-          from: 5,
+          from: 3,
           to: 5,
           tone: "right",
           text: "j = 2",
@@ -163,17 +203,47 @@ export const mergeHeads = {
         result: "참",
       },
       vars: "비교 5 번",
+      layers: [
+        {
+          name: "out",
+          values: [1, 2, 2, 4, 5, null],
+          write: [4],
+        },
+      ],
     },
     {
       title: "T6 ⑤ [6] 잇기",
       text: "L 을 다 써서 반복이 끝납니다. ⑤ 가 R 에 남은 6 을 비교 없이 잇습니다.",
-      array: [1, 2, 2, 4, 5, 6],
+      array: [2, 4, 5, 1, 2, 6],
       range: [0, 5],
-      read: [],
-      write: [5],
-      pieces: [],
+      read: [5],
+      write: [],
+      out: [0, 1, 2, 3, 4],
+      pieces: [
+        {
+          label: "L",
+          from: 0,
+          to: 2,
+          tone: "left",
+          text: "i = 3",
+        },
+        {
+          label: "R",
+          from: 3,
+          to: 5,
+          tone: "right",
+          text: "j = 3",
+        },
+      ],
       calc: null,
       vars: "비교 5 번",
+      layers: [
+        {
+          name: "out",
+          values: [1, 2, 2, 4, 5, 6],
+          write: [5],
+        },
+      ],
     },
   ],
 } satisfies ArrayPlayerSpec;

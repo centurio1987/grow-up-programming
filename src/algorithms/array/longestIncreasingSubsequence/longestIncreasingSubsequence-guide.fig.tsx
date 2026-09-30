@@ -462,9 +462,9 @@ const slotsOf = (A: readonly number[]): number =>
 
 /**
  * 걸음 하나를 배열 무대(`arrayStage`)의 걸음으로 — 걸음 재생 패널과 정적 필름이 같은 값을 쓴다.
- * 쥔 구간은 지금까지 읽은 원소 `[0, i]`, 조각 괄호는 이 원소가 들어갈 수 있는 꼬리 배열의 자리
- * `[0, 길이]`(끝 바로 뒤 칸까지)이고, 그 아래 줄이 꼬리 배열이다. 꼬리 배열 줄의 읽은 칸은 탐색이 읽은
- * `mid`, 새로 쓴 칸은 찾은 자리다.
+ * 쥔 구간은 지금까지 읽은 원소 `[0, i]` 이고 아직 읽지 않은 원소는 「아직」이다. 그 아래 줄이 꼬리
+ * 배열이고, 꼬리 배열 줄의 읽은 칸은 탐색이 읽은 `mid`, 새로 쓴 칸은 찾은 자리다. 이 원소가 들어갈 수
+ * 있는 꼬리 배열의 자리 `[0, 길이]`(끝 바로 뒤 칸까지)는 꼬리 배열 줄의 괄호(`range`)다.
  */
 function arrayStep(w: WalkStep, A: readonly number[] = WALK): ArrayStep {
   const s = w.step;
@@ -478,15 +478,9 @@ function arrayStep(w: WalkStep, A: readonly number[] = WALK): ArrayStep {
     range: [0, s.i],
     read: [s.i],
     write: [],
+    // 아직 읽지 않은 원소 — 버린 칸이 아니라 앞으로 읽을 칸이라 「아직」(점선)이다.
+    later: A.flatMap((_, k) => (k > s.i ? [k] : [])),
     pointers: { i: s.i },
-    pieces: [
-      {
-        label: "자리 후보",
-        from: 0,
-        to: s.before.length,
-        tone: "left",
-      },
-    ],
     calc: {
       expr: `lowerBound(${show(s.before)}, ${s.x})`,
       result: String(s.lo),
@@ -498,6 +492,8 @@ function arrayStep(w: WalkStep, A: readonly number[] = WALK): ArrayStep {
         values,
         read: s.probes.map((pr) => pr.mid).filter((m) => m !== s.lo),
         write: [s.lo],
+        // 이진 탐색이 쥔 자리 후보 `[0, 길이]` — 꼬리 배열의 칸 번호라 꼬리 배열 줄 아래에 단다.
+        range: { label: "자리 후보", from: 0, to: s.before.length },
       },
     ],
   };

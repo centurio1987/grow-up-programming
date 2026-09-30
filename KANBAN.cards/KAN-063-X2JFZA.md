@@ -34,10 +34,10 @@ scope: src/_viz/**, tools/check-proof.ts, tools/check-proof.test.ts, tools/check
 - [x] `S1` 증명 도구: 펜스로 시작한 증명 블록도 닫는 마커까지 대조한다 — 완료 기준: `tools/check-proof.test.ts` 에 「펜스 + 닫는 마커 + 사이 문장」 시험이 붙어 통과하고, 기존 17곳이 그대로 통과한다. SPEC §0 에 한 문장
 - [x] `S2` 배열 무대 선택 필드: `indexLabel` · 아직 안 쓴 칸(null)을 밖으로 칠하지 않기 · `later` · `ArrayLayer.out` · `ArrayLayer.range` · `strips` — 완료 기준: StepPlayer 시험이 필드마다 하나씩 붙고, SPEC §13 에 필드가 적힌다
 - [x] `S3` CellStageFilm 머리 폭을 장 전체에서 하나로 — 완료 기준: 어긋나던 6장(4편)의 칸 열이 맞고 나머지 필름은 바이트 그대로(render-figs --check)
-- [ ] `S4` 넓힌 무대를 쓰는 편 반영과 재출력: binaryGap·enumerateSubmasks·lowestSetBit(자리) · gcd 외 5편(아직/밖) · convexHullTrick · isPrimeTrial · meetInTheMiddleSubsetSum · nextGreaterElement · S3 의 4편 — 완료 기준: `bun run tools/render-figs.ts --check` 통과
-- [ ] `S5` 규약 없이 정한 자리 9편: 편마다 고치거나 SPEC §13 에 규약으로 올린다 — 완료 기준: 9편 각각의 처분이 처분표에 있고, 고친 편은 재출력 후 --check 통과
-- [ ] `S6` 그림 품질: radixTree 세로 1254px · subsetSum 참 칸 · nQueens 판을 table 무대로 — 완료 기준: radixTree 그림이 책 본문 높이(약 896px) 안, subsetSum 참/거짓이 눈으로 갈리고, nQueens 가 손그림 대신 패널로 그린다
-- [ ] `S7` 편 안에서 확인하지 않은 주장 11건: 재고 출처를 대거나 문장을 낮춘다 — 완료 기준: 건마다 명령·출력 또는 출처가 수행 내역에 있고, 본문이 그 결과와 맞는다
+- [x] `S4` 넓힌 무대를 쓰는 편 반영과 재출력: binaryGap·enumerateSubmasks·lowestSetBit(자리) · gcd 외 5편(아직/밖) · convexHullTrick · isPrimeTrial · meetInTheMiddleSubsetSum · nextGreaterElement · S3 의 4편 — 완료 기준: `bun run tools/render-figs.ts --check` 통과
+- [x] `S5` 규약 없이 정한 자리 9편: 편마다 고치거나 SPEC §13 에 규약으로 올린다 — 완료 기준: 9편 각각의 처분이 처분표에 있고, 고친 편은 재출력 후 --check 통과
+- [x] `S6` 그림 품질: radixTree 세로 1254px · subsetSum 참 칸 · nQueens 판을 table 무대로 — 완료 기준: radixTree 그림이 책 본문 높이(약 896px) 안, subsetSum 참/거짓이 눈으로 갈리고, nQueens 가 손그림 대신 패널로 그린다
+- [x] `S7` 편 안에서 확인하지 않은 주장 11건: 재고 출처를 대거나 문장을 낮춘다 — 완료 기준: 건마다 명령·출력 또는 출처가 수행 내역에 있고, 본문이 그 결과와 맞는다
 - [ ] `S8` 스캐너 P21 「최저가」 오탐 수정(check-v2) + 시험 · 플러그인 쪽 둘(P4 주석 마커 · 천 단위 쉼표)은 재현 결과와 수정안만 기록 — 완료 기준: bestTimeToBuyAndSellStock 의 P21 경고 4건이 사라지고 시험이 통과
 - [ ] `S9` 처분표와 넘김: 근거 파일 §7 처분표(아홉 갈래 전부) · 힙 무대 버린 사유 · 「견주다」 를 KAN-036 메모로 · 검사 공백은 KAN-058 S10 에서 닫힘 — 완료 기준: §7 모든 줄에 처분이 있다
 - [ ] `S10` 게이트와 검토서 — 완료 기준: `bun run tools/ci.ts gates` 통과, 검토서 발행
@@ -61,3 +61,12 @@ scope: src/_viz/**, tools/check-proof.ts, tools/check-proof.test.ts, tools/check
 - 2026-10-01T07:53 · s:df6b517e · S2 done — arrayStage: indexLabel·later·layers[].out·layers[].range·strips 추가, null 칸은 범위 밖이어도 아직. arrayStage.test.ts 6 pass. 6편 재출력(nQueens·diffArrayRangeUpdate·babyStepGiantStep·extendedEuclidean·gcd·pollardRho). SPEC §13 줄 수 유지
 - 2026-10-01T07:53 · s:df6b517e · S3 done — CellStage: stageGutter 로 필름·플레이어 전 장 공통 머리 폭. 4편 6장 재출력, 나머지 바이트 그대로. 합류: bun test tools src/_viz 630 pass · render-figs --check 115/115 · tsc 0 · biome 0. 인용 1건(KAN-059 카드 → CellStage.tsx:448→469) remap
 - 2026-10-01T07:53 · s:df6b517e — 배치1 에서 새로 나온 후보 셋(S9 처분표에 올린다): ① NodeGraphFilm 2장(convexHull walk-upper · ahoCorasick walk-ac-scan)도 장마다 첫 칸 x 가 다르다 ② check-v2 closedProofLines(97-111행)가 펜스에서 멈춰 펜스 뒤 닫힌 문장을 산문으로 센다 — S8 에서 check-v2 를 고칠 때 함께 ③ 짝 없는 닫는 마커 검사 없음
+- 2026-10-01T07:54 · s:df6b517e · S4 doing — 착수
+- 2026-10-01T07:54 · s:df6b517e · S5 doing — 착수
+- 2026-10-01T07:54 · s:df6b517e · S6 doing — 착수
+- 2026-10-01T07:54 · s:df6b517e · S7 doing — 착수
+- 2026-10-01T08:28 · s:df6b517e · S4 done — 7편 새 필드 반영: binaryGap·enumerateSubmasks·lowestSetBit indexLabel(SVG 불변) · convexHullTrick later · isPrimeTrial layers[].out · meetInTheMiddleSubsetSum layers[].range(마지막 후보, 5걸음 모두 한 칸) · nextGreaterElement strips(SVG 바이트 불변)
+- 2026-10-01T08:28 · s:df6b517e · S5 done — 9편: 고침 5(sortArray·connectedComponents·treeMaxIndependentSet·sieveOfEratosthenes·longestIncreasingSubsequence) · 규약 4(longestSubarrayAtMostSum·radixSort·countIslands·ternarySearch, SPEC §13 줄 수 유지). tMIS 복원 주장은 증명 블록 fit-reconstruct 로 실행 확인
+- 2026-10-01T08:28 · s:df6b517e · S6 done — radixTree build-over-trie 1254→878px · subsetSum 거짓을 「·」로 · nQueens 판을 table 무대 패널로(판 4칸·비트 7칸 줄이 한 표에 섞임)
+- 2026-10-01T08:28 · s:df6b517e · S7 done — 10건: 측정 3(quicksort·dfsTraversal·houseRobber, Bun 1.3.12) · 원문 대조 2(glibc qsort 는 병합 정렬로 틀린 주장 정정 · expectedValueDp 인용 확인) · 문장 정정 2(subarraySumEqualsK · kthSmallest 30%→3n/10−6) · 이미 밝힘 2(maxFlow·fftMultiply) · 해당 없음 2(palindrome 산수 맞음 · maxBipartiteMatching). quicksort 탐침은 KANBAN.batches/KAN-063-X2JFZA.probes/quicksort-stack.ts
+- 2026-10-01T08:28 · s:df6b517e — 배치2 합류: gates 첫 판이 SPEC §13 「괄호 한 줄이 선다」(배치1 에서 들어온 은유)로 실패 → 「그린다」로 고침. tMIS proof.ts 에 새로 든 「되짚」 4곳을 「복원」으로(사이드카 경고 244→240, main 과 같음). 재실행 gates 통과(14단계), 고친 21편 guide.test 354 pass, 인용 대장 지문 전부 일치

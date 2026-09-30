@@ -248,6 +248,12 @@ function walkSteps(): WalkStep[] {
           read: q.found ? reads.slice(0, -1) : reads,
           write: q.found ? reads.slice(-1) : [],
           side: `읽은 칸 ${reads.join(" → ")}`,
+          // 마지막 비교를 시작할 때의 후보 구간 — 적중이면 찾은 칸이 그 안에 있고, 아니면 이 구간이 비었다.
+          range: {
+            label: "마지막 후보",
+            from: last?.from[0] ?? 0,
+            to: last?.from[1] ?? 0,
+          },
         }),
       ],
       calc: {

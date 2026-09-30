@@ -8,7 +8,8 @@ import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
  * 배열 무대(`arrayStage.ts`)를 고른다. 맨 위 줄은 입력 `nums` 이고 쥔 구간은 그 걸음이 다루는 무리다.
  * 그 아래 두 줄이 앞 무리의 부분집합 합 목록 `sumsA` 와 뒤 무리의 부분집합 합 목록 `sumsB` 다 — 첫
  * 걸음부터 칸 여덟을 모두 두고 아직 안 쓴 칸은 비운다(SPEC `L48`). 질의 걸음에서 `sumsA` 의 읽음은 묻는
- * 합이고, `sumsB` 의 읽음은 이진 탐색이 가운데 칸으로 읽은 칸, 새로 씀은 찾은 칸이다.
+ * 합이고, `sumsB` 의 읽음은 이진 탐색이 가운데 칸으로 읽은 칸, 새로 씀은 찾은 칸이다. `sumsB` 아래 괄호
+ * 「마지막 후보」는 마지막 비교를 시작할 때의 후보 구간이고, 곁말이 읽은 차례를 적는다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
  * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
@@ -189,6 +190,11 @@ export const mitmWalk = {
           read: [3, 5, 4],
           write: [],
           side: "읽은 칸 3 → 5 → 4",
+          range: {
+            label: "마지막 후보",
+            from: 4,
+            to: 4,
+          },
         },
       ],
       calc: {
@@ -215,6 +221,11 @@ export const mitmWalk = {
           read: [3, 1, 2],
           write: [],
           side: "읽은 칸 3 → 1 → 2",
+          range: {
+            label: "마지막 후보",
+            from: 2,
+            to: 2,
+          },
         },
       ],
       calc: {
@@ -241,6 +252,11 @@ export const mitmWalk = {
           read: [3, 1, 0],
           write: [],
           side: "읽은 칸 3 → 1 → 0",
+          range: {
+            label: "마지막 후보",
+            from: 0,
+            to: 0,
+          },
         },
       ],
       calc: {
@@ -267,6 +283,11 @@ export const mitmWalk = {
           read: [3, 1, 0],
           write: [],
           side: "읽은 칸 3 → 1 → 0",
+          range: {
+            label: "마지막 후보",
+            from: 0,
+            to: 0,
+          },
         },
       ],
       calc: {
@@ -293,6 +314,11 @@ export const mitmWalk = {
           read: [3, 1],
           write: [2],
           side: "읽은 칸 3 → 1 → 2",
+          range: {
+            label: "마지막 후보",
+            from: 2,
+            to: 2,
+          },
         },
       ],
       calc: {

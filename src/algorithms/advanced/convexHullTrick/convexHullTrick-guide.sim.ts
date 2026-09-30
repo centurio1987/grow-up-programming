@@ -6,7 +6,7 @@ import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
  *
  * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가 배열
  * 무대(`arrayStage.ts`)를 고른다. 맨 위 줄은 등록할 직선을 입력 차례로 늘어놓은 것이고(쥔 구간은 지금까지
- * 읽은 직선, 버린 직선은 대시), 그 아래 `hull` 줄이 걸음 뒤의 아래 껍질을 담은 스택 띠(왼쪽이 바닥, 오른쪽이
+ * 읽은 직선, 버린 직선은 대시, 아직 읽지 않은 직선은 점선), 그 아래 `hull` 줄이 걸음 뒤의 아래 껍질을 담은 스택 띠(왼쪽이 바닥, 오른쪽이
  * 꼭대기), 맨 아래 줄이 질의 자리에서 아래 껍질의 값이다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 리터럴은 그림 사이드카의
@@ -30,6 +30,7 @@ export const hull = {
       read: [0],
       write: [],
       out: [],
+      later: [1, 2, 3, 4, 5],
       layers: [
         {
           name: "hull",
@@ -63,6 +64,7 @@ export const hull = {
       read: [1],
       write: [],
       out: [],
+      later: [2, 3, 4, 5],
       layers: [
         {
           name: "hull",
@@ -96,6 +98,7 @@ export const hull = {
       read: [2],
       write: [],
       out: [1],
+      later: [3, 4, 5],
       layers: [
         {
           name: "hull",
@@ -129,6 +132,7 @@ export const hull = {
       read: [2],
       write: [],
       out: [1],
+      later: [3, 4, 5],
       layers: [
         {
           name: "hull",
@@ -162,6 +166,7 @@ export const hull = {
       read: [3],
       write: [],
       out: [1, 2],
+      later: [4, 5],
       layers: [
         {
           name: "hull",
@@ -195,6 +200,7 @@ export const hull = {
       read: [3],
       write: [],
       out: [1, 2],
+      later: [4, 5],
       layers: [
         {
           name: "hull",
@@ -228,6 +234,7 @@ export const hull = {
       read: [4],
       write: [],
       out: [1, 2],
+      later: [5],
       layers: [
         {
           name: "hull",
@@ -261,6 +268,7 @@ export const hull = {
       read: [5],
       write: [],
       out: [1, 2],
+      later: [],
       layers: [
         {
           name: "hull",
@@ -294,6 +302,7 @@ export const hull = {
       read: [],
       write: [],
       out: [1, 2, 5],
+      later: [],
       layers: [
         {
           name: "hull",
@@ -327,6 +336,7 @@ export const hull = {
       read: [],
       write: [],
       out: [1, 2, 5],
+      later: [],
       layers: [
         {
           name: "hull",
@@ -360,6 +370,7 @@ export const hull = {
       read: [],
       write: [],
       out: [1, 2, 5],
+      later: [],
       layers: [
         {
           name: "hull",
@@ -393,6 +404,7 @@ export const hull = {
       read: [],
       write: [],
       out: [1, 2, 5],
+      later: [],
       layers: [
         {
           name: "hull",
@@ -426,6 +438,7 @@ export const hull = {
       read: [],
       write: [],
       out: [1, 2, 5],
+      later: [],
       layers: [
         {
           name: "hull",
@@ -459,6 +472,7 @@ export const hull = {
       read: [],
       write: [],
       out: [1, 2, 5],
+      later: [],
       layers: [
         {
           name: "hull",
@@ -492,6 +506,7 @@ export const hull = {
       read: [],
       write: [],
       out: [1, 2, 5],
+      later: [],
       layers: [
         {
           name: "hull",
@@ -525,6 +540,7 @@ export const hull = {
       read: [],
       write: [],
       out: [1, 2, 5],
+      later: [],
       layers: [
         {
           name: "hull",

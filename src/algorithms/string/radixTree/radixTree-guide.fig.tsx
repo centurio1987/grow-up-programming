@@ -76,8 +76,15 @@ const RADIX_UNIT = { x: 120, y: 84 } as const;
 /** 트라이 그림의 격자 — 깊이가 11 까지 가서 세로를 좁힌다. */
 const TRIE_UNIT = { x: 120, y: 62 } as const;
 
-/** 트라이 위에 라벨 묶음을 두르는 그림의 격자 — 묶음 테와 머리말이 들어갈 틈을 둔다. */
-const GROUP_UNIT = { x: 130, y: 104 } as const;
+/**
+ * 트라이 위에 라벨 묶음을 두르는 그림의 격자. 세로는 트라이 그림과 비슷하게 좁히고, 묶음이 바뀌는
+ * 깊이에서만 `GROUP_GAP` 배로 벌려 테 둘과 다음 테의 머리말이 들어갈 틈을 둔다 — 깊이마다 똑같이
+ * 벌리면 깊이 11 인 사슬이 책 한 쪽보다 길어진다.
+ */
+const GROUP_UNIT = { x: 130, y: 60 } as const;
+
+/** 묶음이 바뀌는 깊이 사이의 간격 — `GROUP_UNIT.y` 의 몇 배인가. 테 아래 · 위 여백과 머리말 한 줄이 든다. */
+const GROUP_GAP = 1.6;
 
 /** 가르기 전 간선이 휘는 정도 — 왼쪽으로 휘어 뒤에 생길 세로 간선과 겹치지 않는다. */
 const OLD_EDGE_BEND = -0.35;
@@ -171,6 +178,16 @@ function trieOf(groups?: readonly GraphGroup[]): {
     children.set(parent, [...(children.get(parent) ?? []), n.path]);
   }
   const xy = treeLayout([""], children);
+  // 묶음을 두르면 묶음이 시작하는 깊이 앞에서만 간격을 벌린다. 깊이 d 의 세로 자리는 그 앞 간격의 합이다.
+  // 묶음 머리 노드의 id 는 경로 문자열이라(뿌리는 묶음에 안 든다) 그 길이가 깊이다.
+  const opens = new Set(
+    (groups ?? []).map((g) => String(g.members[0] ?? "").length),
+  );
+  const rowY = (depth: number): number => {
+    let y = 0;
+    for (let d = 1; d <= depth; d++) y += opens.has(d) ? GROUP_GAP : 1;
+    return y;
+  };
   const nodes = shape.map((n) => {
     const at = xy.get(n.path) as { x: number; y: number };
     const pass = n.path !== "" && n.kids === 1 && !n.end;
@@ -178,7 +195,7 @@ function trieOf(groups?: readonly GraphGroup[]): {
       id: idOf(n.path),
       label: nodeName(n.path),
       x: at.x * 1.1,
-      y: at.y,
+      y: groups ? rowY(n.path.length) : at.y,
       value: n.end ? "끝 표시" : "",
       ...(pass ? { state: "out" as const } : {}),
     };

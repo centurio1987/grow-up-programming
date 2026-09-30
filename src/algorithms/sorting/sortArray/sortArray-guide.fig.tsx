@@ -520,9 +520,12 @@ interface Step {
   readonly stage: ArrayStep;
 }
 
-/** 합치기 무대의 이름표 — 합치는 칸 여섯을 한 줄로 그린다. */
+/**
+ * 합치기 무대의 이름표 — 윗줄은 합치는 두 조각 `L` · `R` 을 이어 놓은 것이다. 정렬을 마친 두 조각은 입력의
+ * 칸 `[0, mid)` · `[mid, n)` 에서 왔으므로 이 차례가 입력의 자리 그대로다.
+ */
 export const MERGE_OPTIONS: ArrayOptions = {
-  arrayName: "칸",
+  arrayName: "L · R",
   rangeLabel: "합치는 칸",
 };
 
@@ -533,75 +536,79 @@ export const RUN_OPTIONS: ArrayOptions = {
 };
 
 /**
- * 합치기 한 번을 비교 하나씩 — 무대는 합치는 칸을 한 줄로 그리고, 왼쪽부터 `out` 에 담긴 값 · `L` 에
- * 남은 값 · `R` 에 남은 값을 차례로 놓는다. 새로 쓴 칸은 이번에 `out` 에 담은 칸, 읽은 칸은 그 값과
- * 비교했지만 남은 쪽 머리다.
+ * 합치기 한 번을 비교 하나씩 — 정본이 드는 배열 셋을 그대로 그린다. 윗줄은 `L` 과 `R` 을 이은 것이고
+ * 조각 괄호가 둘을 가른다(괄호 글자는 이 걸음 뒤의 `i` · `j`). 아랫줄이 정본이 채우는 `out` 이다. 읽은
+ * 칸은 이번에 비교한 두 머리, 이미 꺼낸 칸은 「이번 걸음 밖」, 새로 쓴 칸은 이번에 `out` 에 담은 칸이다.
  */
 function mergeSteps(m: MergeEvent, from: number): Step[] {
   const size = m.L.length + m.R.length;
+  const nl = m.L.length;
   const steps: Step[] = [];
   let n = from;
-  const pieces = (at: number, i: number, j: number): ArrayPiece[] => {
-    const out: ArrayPiece[] = [];
-    const lLen = m.L.length - i;
-    const rLen = m.R.length - j;
-    if (lLen > 0) {
-      out.push({
-        label: "L",
-        from: at,
-        to: at + lLen - 1,
-        tone: "left",
-        text: `i = ${i}`,
-      });
-    }
-    if (rLen > 0) {
-      out.push({
-        label: "R",
-        from: at + lLen,
-        to: at + lLen + rLen - 1,
-        tone: "right",
-        text: `j = ${j}`,
-      });
-    }
-    return out;
-  };
+  const pieces = (i: number, j: number): ArrayPiece[] => [
+    { label: "L", from: 0, to: nl - 1, tone: "left", text: `i = ${i}` },
+    { label: "R", from: nl, to: size - 1, tone: "right", text: `j = ${j}` },
+  ];
+  /** 윗줄에서 이미 꺼낸 칸 — `L` 의 앞 `i` 칸과 `R` 의 앞 `j` 칸. */
+  const taken = (i: number, j: number): number[] => [
+    ...Array.from({ length: i }, (_, x) => x),
+    ...Array.from({ length: j }, (_, x) => nl + x),
+  ];
+  const outRow = (filled: readonly number[]): (number | null)[] =>
+    Array.from({ length: size }, (_, x) => filled[x] ?? null);
   m.cmps.forEach((c, t) => {
     const i = c.i + (c.left ? 1 : 0);
     const j = c.j + (c.left ? 0 : 1);
     const done = m.cmps.slice(0, t + 1).map((x) => (x.left ? x.a : x.b));
-    const array = [...done, ...m.L.slice(i), ...m.R.slice(j)];
-    const taken = c.left ? c.a : c.b;
-    const other = c.left ? t + 1 + (m.L.length - i) : t + 1;
+    const pick = c.left ? c.a : c.b;
     steps.push({
       id: `T${n++}`,
       title: `${c.a} <= ${c.b} ${c.left ? "②" : "③"}`,
-      detail: `L 의 머리 ${c.a}${과와(c.a)} R 의 머리 ${c.b}${을를(c.b)} 비교합니다. ${c.a} <= ${c.b}${이가(c.b)} ${c.left ? "참이라 ② 로 왼쪽" : "거짓이라 ③ 으로 오른쪽"} ${taken}${을를(taken)} out 에 담습니다.`,
+      detail: `L 의 머리 ${c.a}${과와(c.a)} R 의 머리 ${c.b}${을를(c.b)} 비교합니다. ${c.a} <= ${c.b}${이가(c.b)} ${c.left ? "참이라 ② 로 왼쪽" : "거짓이라 ③ 으로 오른쪽"} ${pick}${을를(pick)} out 에 담습니다.`,
       stage: {
-        array,
+        array: [...m.L, ...m.R],
         range: [0, size - 1],
-        read: [other],
-        write: [t],
-        pieces: pieces(t + 1, i, j),
+        read: [c.i, nl + c.j],
+        write: [],
+        out: taken(c.i, c.j),
+        pieces: pieces(i, j),
         calc: { expr: `${c.a} <= ${c.b}`, result: c.left ? "참" : "거짓" },
         vars: `비교 ${t + 1} 번`,
+        layers: [{ name: "out", values: outRow(done), write: [t] }],
       },
     });
   });
   const k = m.cmps.length;
   const mark = m.tail.side === "L" ? "④" : "⑤";
   const emptied = m.tail.side === "L" ? "R" : "L";
+  const li = m.cmps.filter((c) => c.left).length;
+  const rj = k - li;
+  const rest = m.tail.values.map((_, x) =>
+    m.tail.side === "L" ? li + x : nl + rj + x,
+  );
   steps.push({
     id: `T${n++}`,
     title: `${mark} ${show(m.tail.values)} 잇기`,
     detail: `${emptied} 을 다 써서 반복이 끝납니다. ${mark} 가 ${m.tail.side} 에 남은 ${m.tail.values.join(" ")}${을를(m.tail.values.at(-1) as number)} 비교 없이 잇습니다.`,
     stage: {
-      array: [...m.out],
+      array: [...m.L, ...m.R],
       range: [0, size - 1],
-      read: [],
-      write: m.tail.values.map((_, x) => k + x),
-      pieces: [],
+      read: rest,
+      write: [],
+      out: taken(li, rj),
+      pieces: pieces(
+        m.tail.side === "L" ? nl : li,
+        m.tail.side === "R" ? m.R.length : rj,
+      ),
       calc: null,
       vars: `비교 ${k} 번`,
+      layers: [
+        {
+          name: "out",
+          values: [...m.out],
+          write: m.tail.values.map((_, x) => k + x),
+        },
+      ],
     },
   });
   return steps;

@@ -5,10 +5,11 @@ import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
  * T1~T9 의 9 걸음이다.
  *
  * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가 배열
- * 무대(`arrayStage.ts`)를 고른다. 입력 배열 `nums` 아래에 알고리즘이 만드는 구조 셋을 `layers` 로 쌓는다 —
- * 답 배열 `result`(칸 번호가 `nums` 의 인덱스와 같다)와 스택 띠 두 줄(`stack` 이 담은 자리 번호와 그 자리의
- * 값, 바닥이 왼쪽). 스택 띠는 방향 그래프 편들의 스택 띠와 같은 약속으로 그린다 — 칸 수를 전개에서 가장
- * 깊었을 때로 고정하고, 넣은 칸은 새로 씀, 비교한 꼭대기는 읽음이다. 쥔 구간 `range` 는 이미 읽은 자리
+ * 무대(`arrayStage.ts`)를 고른다. 입력 배열 `nums` 아래에 답 배열 `result`(칸 번호가 `nums` 의 인덱스와
+ * 같다)를 `layers` 로 쌓고, 그 아래에 스택 띠 두 줄(`stack` 이 담은 자리 번호와 그 자리의 값, 바닥이 왼쪽)을
+ * `strips` 로 둔다. 스택 띠의 칸 `k` 는 쌓인 차례라 `nums` 의 인덱스와 짝이 아니다. 스택 띠는 방향 그래프
+ * 편들의 스택 띠와 같은 약속으로 그린다 — 칸 수를 전개에서 가장 깊었을 때로 고정하고(`slots`), 넣은 칸은
+ * 새로 씀, 비교한 꼭대기는 읽음이다. 쥔 구간 `range` 는 이미 읽은 자리
  * `[0, i]` 이고, 넣은 횟수와 꺼낸 횟수가 남는 변수다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가 실제보다
@@ -31,13 +32,8 @@ export const walk = {
       range: [0, 0],
       read: [0],
       write: [],
-      pointers: {
-        i: 0,
-      },
-      calc: {
-        expr: "stack.length > 0",
-        result: "거짓 · 넣는다",
-      },
+      pointers: { i: 0 },
+      calc: { expr: "stack.length > 0", result: "거짓 · 넣는다" },
       vars: "넣기 1 · 꺼내기 0",
       layers: [
         {
@@ -47,20 +43,22 @@ export const walk = {
           caret: false,
           side: "답을 받은 자리 0 / 5",
         },
+      ],
+      strips: [
         {
-          name: "stack",
-          values: [0, null],
+          label: "stack",
+          values: [0],
+          slots: 2,
           read: [],
           write: [0],
-          caret: false,
           side: "꼭대기 = 자리 0",
         },
         {
-          name: "stack 의 값",
-          values: [2, null],
+          label: "stack 의 값",
+          values: [2],
+          slots: 2,
           read: [],
           write: [0],
-          caret: false,
           side: "2",
         },
       ],
@@ -72,14 +70,8 @@ export const walk = {
       range: [0, 1],
       read: [0, 1],
       write: [],
-      pointers: {
-        top: 0,
-        i: 1,
-      },
-      calc: {
-        expr: "nums[0] < nums[1] → 2 < 1",
-        result: "거짓 · 멈춘다",
-      },
+      pointers: { top: 0, i: 1 },
+      calc: { expr: "nums[0] < nums[1] → 2 < 1", result: "거짓 · 멈춘다" },
       vars: "넣기 2 · 꺼내기 0",
       layers: [
         {
@@ -89,20 +81,22 @@ export const walk = {
           caret: false,
           side: "답을 받은 자리 0 / 5",
         },
+      ],
+      strips: [
         {
-          name: "stack",
+          label: "stack",
           values: [0, 1],
+          slots: 2,
           read: [0],
           write: [1],
-          caret: false,
           side: "꼭대기 = 자리 1",
         },
         {
-          name: "stack 의 값",
+          label: "stack 의 값",
           values: [2, 1],
+          slots: 2,
           read: [0],
           write: [1],
-          caret: false,
           side: "2 ≥ 1",
         },
       ],
@@ -114,14 +108,8 @@ export const walk = {
       range: [0, 2],
       read: [1, 2],
       write: [],
-      pointers: {
-        top: 1,
-        i: 2,
-      },
-      calc: {
-        expr: "nums[1] < nums[2] → 1 < 2",
-        result: "참 · 꺼낸다",
-      },
+      pointers: { top: 1, i: 2 },
+      calc: { expr: "nums[1] < nums[2] → 1 < 2", result: "참 · 꺼낸다" },
       vars: "넣기 2 · 꺼내기 1",
       layers: [
         {
@@ -131,20 +119,22 @@ export const walk = {
           caret: false,
           side: "답을 받은 자리 1 / 5",
         },
+      ],
+      strips: [
         {
-          name: "stack",
-          values: [0, null],
+          label: "stack",
+          values: [0],
+          slots: 2,
           read: [],
           write: [],
-          caret: false,
           side: "꼭대기 = 자리 0",
         },
         {
-          name: "stack 의 값",
-          values: [2, null],
+          label: "stack 의 값",
+          values: [2],
+          slots: 2,
           read: [],
           write: [],
-          caret: false,
           side: "2",
         },
       ],
@@ -156,14 +146,8 @@ export const walk = {
       range: [0, 2],
       read: [0, 2],
       write: [],
-      pointers: {
-        top: 0,
-        i: 2,
-      },
-      calc: {
-        expr: "nums[0] < nums[2] → 2 < 2",
-        result: "거짓 · 멈춘다",
-      },
+      pointers: { top: 0, i: 2 },
+      calc: { expr: "nums[0] < nums[2] → 2 < 2", result: "거짓 · 멈춘다" },
       vars: "넣기 3 · 꺼내기 1",
       layers: [
         {
@@ -173,20 +157,22 @@ export const walk = {
           caret: false,
           side: "답을 받은 자리 1 / 5",
         },
+      ],
+      strips: [
         {
-          name: "stack",
+          label: "stack",
           values: [0, 2],
+          slots: 2,
           read: [0],
           write: [1],
-          caret: false,
           side: "꼭대기 = 자리 2",
         },
         {
-          name: "stack 의 값",
+          label: "stack 의 값",
           values: [2, 2],
+          slots: 2,
           read: [0],
           write: [1],
-          caret: false,
           side: "2 ≥ 2",
         },
       ],
@@ -198,14 +184,8 @@ export const walk = {
       range: [0, 3],
       read: [2, 3],
       write: [],
-      pointers: {
-        top: 2,
-        i: 3,
-      },
-      calc: {
-        expr: "nums[2] < nums[3] → 2 < 4",
-        result: "참 · 꺼낸다",
-      },
+      pointers: { top: 2, i: 3 },
+      calc: { expr: "nums[2] < nums[3] → 2 < 4", result: "참 · 꺼낸다" },
       vars: "넣기 3 · 꺼내기 2",
       layers: [
         {
@@ -215,20 +195,22 @@ export const walk = {
           caret: false,
           side: "답을 받은 자리 2 / 5",
         },
+      ],
+      strips: [
         {
-          name: "stack",
-          values: [0, null],
+          label: "stack",
+          values: [0],
+          slots: 2,
           read: [],
           write: [],
-          caret: false,
           side: "꼭대기 = 자리 0",
         },
         {
-          name: "stack 의 값",
-          values: [2, null],
+          label: "stack 의 값",
+          values: [2],
+          slots: 2,
           read: [],
           write: [],
-          caret: false,
           side: "2",
         },
       ],
@@ -240,14 +222,8 @@ export const walk = {
       range: [0, 3],
       read: [0, 3],
       write: [],
-      pointers: {
-        top: 0,
-        i: 3,
-      },
-      calc: {
-        expr: "nums[0] < nums[3] → 2 < 4",
-        result: "참 · 꺼낸다",
-      },
+      pointers: { top: 0, i: 3 },
+      calc: { expr: "nums[0] < nums[3] → 2 < 4", result: "참 · 꺼낸다" },
       vars: "넣기 3 · 꺼내기 3",
       layers: [
         {
@@ -257,20 +233,22 @@ export const walk = {
           caret: false,
           side: "답을 받은 자리 3 / 5",
         },
+      ],
+      strips: [
         {
-          name: "stack",
-          values: [null, null],
+          label: "stack",
+          values: [],
+          slots: 2,
           read: [],
           write: [],
-          caret: false,
           side: "비었다",
         },
         {
-          name: "stack 의 값",
-          values: [null, null],
+          label: "stack 의 값",
+          values: [],
+          slots: 2,
           read: [],
           write: [],
-          caret: false,
           side: "비었다",
         },
       ],
@@ -282,13 +260,8 @@ export const walk = {
       range: [0, 3],
       read: [3],
       write: [],
-      pointers: {
-        i: 3,
-      },
-      calc: {
-        expr: "stack.length > 0",
-        result: "거짓 · 넣는다",
-      },
+      pointers: { i: 3 },
+      calc: { expr: "stack.length > 0", result: "거짓 · 넣는다" },
       vars: "넣기 4 · 꺼내기 3",
       layers: [
         {
@@ -298,20 +271,22 @@ export const walk = {
           caret: false,
           side: "답을 받은 자리 3 / 5",
         },
+      ],
+      strips: [
         {
-          name: "stack",
-          values: [3, null],
+          label: "stack",
+          values: [3],
+          slots: 2,
           read: [],
           write: [0],
-          caret: false,
           side: "꼭대기 = 자리 3",
         },
         {
-          name: "stack 의 값",
-          values: [4, null],
+          label: "stack 의 값",
+          values: [4],
+          slots: 2,
           read: [],
           write: [0],
-          caret: false,
           side: "4",
         },
       ],
@@ -323,14 +298,8 @@ export const walk = {
       range: [0, 4],
       read: [3, 4],
       write: [],
-      pointers: {
-        top: 3,
-        i: 4,
-      },
-      calc: {
-        expr: "nums[3] < nums[4] → 4 < 3",
-        result: "거짓 · 멈춘다",
-      },
+      pointers: { top: 3, i: 4 },
+      calc: { expr: "nums[3] < nums[4] → 4 < 3", result: "거짓 · 멈춘다" },
       vars: "넣기 5 · 꺼내기 3",
       layers: [
         {
@@ -340,20 +309,22 @@ export const walk = {
           caret: false,
           side: "답을 받은 자리 3 / 5",
         },
+      ],
+      strips: [
         {
-          name: "stack",
+          label: "stack",
           values: [3, 4],
+          slots: 2,
           read: [0],
           write: [1],
-          caret: false,
           side: "꼭대기 = 자리 4",
         },
         {
-          name: "stack 의 값",
+          label: "stack 의 값",
           values: [4, 3],
+          slots: 2,
           read: [0],
           write: [1],
-          caret: false,
           side: "4 ≥ 3",
         },
       ],
@@ -376,20 +347,22 @@ export const walk = {
           caret: false,
           side: "답을 받은 자리 3 / 5",
         },
+      ],
+      strips: [
         {
-          name: "stack",
+          label: "stack",
           values: [3, 4],
+          slots: 2,
           read: [],
           write: [],
-          caret: false,
           side: "꼭대기 = 자리 4",
         },
         {
-          name: "stack 의 값",
+          label: "stack 의 값",
           values: [4, 3],
+          slots: 2,
           read: [],
           write: [],
-          caret: false,
           side: "4 ≥ 3",
         },
       ],

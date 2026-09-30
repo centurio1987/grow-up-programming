@@ -2037,6 +2037,73 @@ function selfcheckSets(): string {
   );
 }
 
+/**
+ * `deep.optimal` — 채운 DP 테이블을 뿌리에서 아래로 따라가 고른 정점 목록을 복원한다. 부모를 골랐으면 안
+ * 고르고, 아니면 `dp1[v] > dp0[v]` 일 때만 고른다. 전개 입력의 복원 결과와, 무작위 트리에서 복원한 집합이
+ * 독립이고 합이 정본의 답과 같은지를 함께 낸다(`traced` 가 답을 정본과 맞댄다).
+ */
+function reconstruct(
+  n: number,
+  edges: Edge[],
+  weights: number[],
+): { pick: number[]; rows: string[][]; answer: number } {
+  const t = traced(n, edges, weights);
+  const f = t.steps.at(-1) as Snap;
+  const taken = new Array<boolean>(n).fill(false);
+  const rows: string[][] = [];
+  for (const v of f.order as number[]) {
+    const p = f.parent[v] as number; // 뿌리의 부모는 -1 이다(`bfsOrder`).
+    const a = f.dp1[v] as number;
+    const b = f.dp0[v] as number;
+    if (p !== -1 && taken[p] === true) {
+      rows.push([`정점 ${v}`, `부모 ${p}${을를(p)} 골랐다`, "", "→ 안 고른다"]);
+      continue;
+    }
+    taken[v] = a > b;
+    rows.push([
+      `정점 ${v}`,
+      p === -1 ? "부모 없음" : `부모 ${p}${을를(p)} 안 골랐다`,
+      `dp1[${v}] = ${a} ${a > b ? ">" : "≤"} dp0[${v}] = ${b}`,
+      a > b ? "→ 고른다" : "→ 안 고른다",
+    ]);
+  }
+  const pick = taken.flatMap((x, v) => (x ? [v] : []));
+  return { pick, rows, answer: t.answer };
+}
+
+function fitReconstruct(): string {
+  const r = reconstruct(N, EDGES, W);
+  const sum = r.pick.reduce((acc, v) => acc + (W[v] as number), 0);
+  // 무작위 트리 — 정점 v 의 부모를 0 ~ v−1 에서 고른다. 씨앗을 고정해 실행마다 같은 트리가 나온다.
+  let seed = 12345;
+  const rand = (m: number): number => {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    return seed % m;
+  };
+  const trees = 1000;
+  for (let it = 0; it < trees; it++) {
+    const n = 1 + rand(10);
+    const edges: Edge[] = [];
+    for (let v = 1; v < n; v++) edges.push([rand(v), v]);
+    const w = Array.from({ length: n }, () => rand(21) - 10);
+    const got = reconstruct(n, edges, w);
+    const set = new Set(got.pick);
+    if (edges.some(([a, b]) => set.has(a) && set.has(b))) {
+      throw new Error("복원한 집합이 독립이 아니다");
+    }
+    const total = got.pick.reduce((acc, v) => acc + (w[v] as number), 0);
+    if (total !== got.answer) throw new Error("복원한 집합의 합이 답과 다르다");
+  }
+  return fence(
+    "text",
+    [
+      columns(r.rows),
+      `고른 정점 ${setOf(r.pick)} · 가중치 합 ${sum} = 답 ${r.answer}`,
+      `무작위 트리 ${comma(trees)} 개(정점 1~10) — 이렇게 고른 집합이 모두 독립이고 합이 답과 같다`,
+    ].join("\n"),
+  );
+}
+
 export const PROOFS: Record<string, () => string> = {
   "concept-answer": conceptAnswer,
   "concept-size": conceptSize,
@@ -2083,4 +2150,5 @@ export const PROOFS: Record<string, () => string> = {
   "perf-deep": perfDeep,
   "selfcheck-state": selfcheckState,
   "selfcheck-sets": selfcheckSets,
+  "fit-reconstruct": fitReconstruct,
 };

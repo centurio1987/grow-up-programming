@@ -19,6 +19,7 @@ export const scan = {
   stage: "array",
   arrayName: "자리 i 의 비트",
   rangeLabel: "읽은 자리",
+  indexLabel: "자리",
   title: "binaryGap(322)",
   result: "4",
   steps: [

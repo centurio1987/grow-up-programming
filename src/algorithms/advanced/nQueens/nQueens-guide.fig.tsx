@@ -6,7 +6,8 @@
  * 세 정수도 따로 만든 계측 사본이 기록한다. 걸음 재생 패널의 걸음(`simStepsFromRef`)도 같은 기록에서
  * 만들고, `.sim.ts` 의 리터럴이 그것과 같은지는 `nQueens-guide.test.ts` 가 잰다.
  *
- * 판(N×N)은 새 무대를 만들지 않고 칸 줄로 그린다 — 판의 행마다 `CellStage` 의 `cells` 줄 하나다.
+ * 판(N×N)은 걸음 재생 패널의 2 차원 표 무대(`tableStage`)로 그린다 — 판의 행이 표의 줄, 판의 열이 표의
+ * 열이다. 정적 그림도 같은 함수로 줄을 만들어서, 패널과 그림의 판이 같은 모양이다.
  * 부분 배치 나무는 `NodeGraph` + `treeLayout`(dfsAllPaths 편과 같은 방식)이다.
  *
  * 증명 사이드카(`-guide.proof.ts`)가 이 파일의 계측과 비교용 절차를 가져다 쓴다 — 그림과 표가 같은
@@ -34,10 +35,10 @@ import {
   treeLayout,
 } from "../../../_viz/patterns/NodeGraph";
 import {
-  type ArrayOptions,
-  type ArrayStep,
-  arrayStage,
-} from "../../../_viz/player/arrayStage";
+  type TableOptions,
+  type TableStep,
+  tableStage,
+} from "../../../_viz/player/tableStage";
 import { nQueens } from "./nQueens-guide.ref.ts";
 
 const REF = new URL("./nQueens-guide.ref.ts", import.meta.url).pathname;
@@ -432,25 +433,42 @@ export function originNumbers() {
   };
 }
 
-/* ───────────────── 판 그림 — 판의 행마다 칸 줄 하나 ───────────────── */
+/* ───────────────── 판 그림 — 2 차원 표 무대의 표 하나 ───────────────── */
 
-/** 판 `n × n` 을 칸 줄로. `mark(r, c)` 가 칸의 글자와 상태를 준다. */
+const rowHeadsOf = (n: number): string[] =>
+  Array.from({ length: n }, (_, r) => `행 ${r}`);
+const colHeadsOf = (width: number): number[] =>
+  Array.from({ length: width }, (_, c) => c);
+
+/**
+ * 판 `n × n` 을 표 무대(`tableStage`)의 줄로. `mark(r, c)` 가 칸의 글자와 상태를 준다 — `focus` 는 표
+ * 무대의 새로 씀, `read` 는 읽음이다. 정적 그림은 걸음이 아니라서 열 머리를 반전하지 않는다.
+ */
 function boardRows(
   n: number,
-  mark: (r: number, c: number) => { v: string; s?: CellState },
+  mark: (
+    r: number,
+    c: number,
+  ) => {
+    v: string;
+    s?: Extract<CellState, "focus" | "read">;
+  },
 ): StageRow[] {
-  return [
-    { kind: "index", label: "열" },
-    ...Array.from({ length: n }, (_, r): StageRow => {
-      const states: Partial<Record<number, CellState>> = {};
-      const values = Array.from({ length: n }, (_, c) => {
-        const m = mark(r, c);
-        if (m.s) states[c] = m.s;
-        return m.v;
-      });
-      return { kind: "cells", label: `행 ${r}`, values, states };
+  const write: [number, number][] = [];
+  const read: [number, number][] = [];
+  const table = Array.from({ length: n }, (_, r) =>
+    Array.from({ length: n }, (_, c) => {
+      const m = mark(r, c);
+      if (m.s === "focus") write.push([r, c]);
+      if (m.s === "read") read.push([r, c]);
+      return m.v;
     }),
-  ];
+  );
+  const [head, ...rest] = tableStage(
+    { table, write, read, rowSide: table.map(() => "") },
+    { rowHeads: rowHeadsOf(n), colHeads: colHeadsOf(n), colLabel: "열" },
+  );
+  return [{ ...(head as StageRow), focus: [] } as StageRow, ...rest];
 }
 
 /** 퀸 하나가 공격하는 칸 — 정의(같은 행 · 같은 열 · 행 차이 = 열 차이)로 가른다. */
@@ -521,70 +539,74 @@ function stepText(t: Trace, call: Call): string {
 }
 
 /**
- * 호출 하나를 배열 무대(`arrayStage`)의 걸음으로. 「놓은 열」 줄이 행마다 놓은 퀸의 열이고, 쥔 구간은
- * 이미 채운 행이다. 그 아래에 세 정수를 비트 자리마다 칸 하나로 쌓고(읽음은 이번 판정에서 열을 막은
- * 비트, 새로 씀은 부모가 방금 켠 비트), 맨 아래 「판정」 줄에 행 `row` 의 열마다 판정을 적는다.
+ * 호출 하나를 2 차원 표 무대(`tableStage`)의 걸음으로. 위 `n` 줄이 판이다 — 이미 채운 행에는 퀸 `Q` 를,
+ * 이번 호출이 판정하는 행 `row` 에는 열마다 판정을 적고, 아직 안 간 행은 `null`(점선)로 둔다. 새로 씀은
+ * 부모가 방금 놓은 퀸이다. 그 아래 세 줄이 세 정수 `cols` · `diag1` · `diag2` 를 비트 자리마다 칸 하나로
+ * 적은 것이다(읽음은 이번 판정에서 열을 막은 비트, 새로 씀은 부모가 방금 켠 비트). 대각선 정수는 비트가
+ * `2n − 1` 개라 판보다 넓다 — 표의 열 머리는 판 줄에서는 열 번호, 정수 줄에서는 비트 자리로 읽는다.
  */
-export function walkStep(t: Trace, call: Call): ArrayStep {
+export function walkStep(t: Trace, call: Call): TableStep {
   const { n } = t;
   const w = 2 * n - 1;
   const blocked = (v: Verdict, key: "c" | "d1" | "d2") =>
     call.tries.filter((x) => x.verdict === v).map((x) => x[key]);
   const p = call.placed;
-  const array = Array.from(
-    { length: n },
-    (_, r) => call.queens.find(([qr]) => qr === r)?.[1] ?? null,
-  );
+  const queenAt = (r: number) => call.queens.find(([qr]) => qr === r)?.[1];
+  const boardRow = (r: number): (string | null)[] => {
+    if (r < call.row) {
+      return Array.from({ length: n }, (_, c) => (queenAt(r) === c ? "Q" : ""));
+    }
+    if (r === call.row) {
+      return Array.from({ length: n }, (_, c) => {
+        const x = call.tries.find((y) => y.c === c);
+        return x ? MARK[x.verdict] : null;
+      });
+    }
+    return Array.from({ length: n }, () => null);
+  };
+  const boardSide = (r: number): string => {
+    if (r < call.row) return `퀸 → 열 ${queenAt(r)}`;
+    if (r === call.row) return "판정";
+    return "아직";
+  };
+  const ints = [call.cols, call.diag1, call.diag2];
+  const at = (k: number) => n + k;
   return {
-    array,
-    range: call.row > 0 ? [0, call.row - 1] : null,
-    rangeSide: `채운 행 ${call.row} 개`,
-    read: [],
-    write: p ? [p.r] : [],
-    pointers: { row: call.row },
+    table: [
+      ...Array.from({ length: n }, (_, r) => boardRow(r)),
+      bits(call.cols, n),
+      bits(call.diag1, w),
+      bits(call.diag2, w),
+    ],
+    read: [
+      ...blocked("cols", "c").map((c): [number, number] => [at(0), c]),
+      ...blocked("diag1", "d1").map((d): [number, number] => [at(1), d]),
+      ...blocked("diag2", "d2").map((d): [number, number] => [at(2), d]),
+    ],
+    write: p
+      ? [
+          [p.r, p.c],
+          [at(0), p.c],
+          [at(1), p.d1],
+          [at(2), p.d2],
+        ]
+      : [],
+    rowSide: [
+      ...Array.from({ length: n }, (_, r) => boardSide(r)),
+      ...ints.map((x) => `켜짐 ${on(x).length}`),
+    ],
     calc: p
       ? { expr: `${cell(p.r, p.c)} 의 d1 · d2`, result: `${p.d1} · ${p.d2}` }
       : null,
     vars: `count = ${countUpTo(t, call.index)}`,
-    layers: [
-      {
-        name: "cols",
-        values: bits(call.cols, n),
-        read: blocked("cols", "c"),
-        write: p ? [p.c] : [],
-        side: `켜짐 ${on(call.cols).length}`,
-      },
-      {
-        name: "diag1",
-        values: bits(call.diag1, w),
-        read: blocked("diag1", "d1"),
-        write: p ? [p.d1] : [],
-        side: `켜짐 ${on(call.diag1).length}`,
-      },
-      {
-        name: "diag2",
-        values: bits(call.diag2, w),
-        read: blocked("diag2", "d2"),
-        write: p ? [p.d2] : [],
-        side: `켜짐 ${on(call.diag2).length}`,
-      },
-      {
-        name: "판정",
-        values:
-          call.row === n
-            ? Array.from({ length: n }, () => null)
-            : call.tries.map((x) => MARK[x.verdict]),
-        write: call.row === n ? [] : call.tries.map((x) => x.c),
-        side: call.row === n ? `row = ${n} · 판정 없음` : `행 ${call.row}`,
-      },
-    ],
   };
 }
 
-/** 배열 무대의 이름표 — 패널(`.sim.ts`)과 필름이 같이 쓴다. */
-export const ARRAY_OPTIONS: ArrayOptions = {
-  arrayName: "놓은 열",
-  rangeLabel: "채운 행",
+/** 표 무대의 이름표 — 패널(`.sim.ts`)과 필름이 같이 쓴다. */
+export const TABLE_OPTIONS: TableOptions = {
+  rowHeads: [...rowHeadsOf(WALK_N), "cols", "diag1", "diag2"],
+  colHeads: colHeadsOf(2 * WALK_N - 1),
+  colLabel: "열 · 비트",
 };
 
 /**
@@ -606,7 +628,7 @@ function walkFilm(): StageFrame[] {
   return t.calls.map((call) => ({
     id: `T${call.index + 1}`,
     text: stepTitle(t, call).replace(/^T\d+ /, ""),
-    rows: arrayStage(walkStep(t, call), ARRAY_OPTIONS),
+    rows: tableStage(walkStep(t, call), TABLE_OPTIONS),
   }));
 }
 

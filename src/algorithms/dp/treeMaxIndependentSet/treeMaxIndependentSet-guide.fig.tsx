@@ -128,16 +128,27 @@ function stage(k: number): GraphStep {
     else if (s.kind === "fold" && v === s.p) state = "focus";
     else if (s.kind === "fold" && v === s.v) state = "read";
     else if (s.kind === "answer" && v === 0) state = "read";
-    else if (!settled(k, v)) state = "empty";
+    // 두 칸을 아직 적지 않은 정점만 「아직」이다. 시작값을 적은 뒤로는 자식이 남았어도 값이 있는 칸이다.
+    else if (s.dp0[v] === null) state = "empty";
     return { value: cellOf(s, v), ...(state ? { state } : {}) };
   });
   const tree = s.kind !== "build" && s.kind !== "init";
+  // 자식의 두 칸이 이미 부모로 올라간 간선. 아직 안 올라간 나무 간선은 흐린 선(`out`)이라, 흐린 선이
+  // 아래로 남은 정점은 두 칸이 아직 끝값이 아니다.
+  const folded = new Set<number>();
+  for (let t = 0; t <= k; t++) {
+    const x = WALK.steps[t] as Snap;
+    if (x.kind !== "fold") continue;
+    EDGES.forEach((_, i) => {
+      if (touches(i, x.v as number, x.p as number)) folded.add(i);
+    });
+  }
   const edges = EDGES.map((_, i) => {
     let state: GraphEdge["state"];
     if (s.kind === "build" || s.kind === "bfs") state = "focus";
     else if (s.kind === "fold" && touches(i, s.v as number, s.p as number)) {
       state = "focus";
-    }
+    } else if (tree && !folded.has(i)) state = "out";
     return {
       ...(tree ? { kind: "tree" as const } : {}),
       ...(state ? { state } : {}),
@@ -217,7 +228,7 @@ function stepText(k: number): string {
     const leaves = Array.from({ length: N }, (_, v) => v).filter(
       (v) => (childrenOf(N, EDGES)[v] as number[]).length === 0,
     );
-    return `정점마다 dp0 에 0 을, dp1 에 자기 가중치를 적었습니다. 잎 ${leaves.join(" · ")}${은는(leaves.at(-1) as number)} 더할 자식이 없어 이 값이 끝이고, 나머지 정점은 자식을 더해야 해서 점선 테입니다.`;
+    return `정점마다 dp0 에 0 을, dp1 에 자기 가중치를 적었습니다. 잎 ${leaves.join(" · ")}${은는(leaves.at(-1) as number)} 더할 자식이 없어 이 값이 끝이고, 나머지 정점은 자식을 더해야 두 칸이 끝납니다.`;
   }
   if (s.kind === "bfs") {
     return `뿌리 0 에서 너비 우선으로 방문 순서 order 와 부모를 정했습니다. 부모 쪽 간선은 건너뛰어 간선 ${EDGES.length} 개가 모두 부모와 자식을 잇는 나무 간선이 됐습니다. 이제 order 를 뒤에서부터 읽습니다.`;
@@ -569,7 +580,7 @@ export const FIGS: Record<string, () => ReactElement> = {
     const s = WALK.steps[MOMENT_STEP] as Snap;
     return moment(
       MOMENT_STEP,
-      `${stepOf(MOMENT_STEP)} 직후 — 정점 1 은 자식 ${s.v} 하나만 더해 두 칸이 ${cellOf(s, 1)}, 자식 3 이 남아 점선 테`,
+      `${stepOf(MOMENT_STEP)} 직후 — 정점 1 은 자식 ${s.v} 하나만 더해 두 칸이 ${cellOf(s, 1)}, 자식 3 에서 오는 간선이 아직 흐린 선`,
     );
   },
 };

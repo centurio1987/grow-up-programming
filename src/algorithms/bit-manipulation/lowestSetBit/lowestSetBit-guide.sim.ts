@@ -19,6 +19,7 @@ export const lowbitWalk = {
   stage: "array",
   arrayName: "x",
   rangeLabel: "보는 자리",
+  indexLabel: "자리",
   title: "lowestSetBit(40)",
   result: "8",
   steps: [
