@@ -68,7 +68,7 @@ scope: src/algorithms/**, src/_viz/**, design/viz/**, sandbox/algo-guide-v2/**, 
 - [x] `S14` KAN-060 신규 넷에 그림 — `twoSum`·`missingInteger`·`numberOfDisintersection`·`binaryGap` 에 `fig.tsx`·`figs/` 를 더한다(KAN-060 검토 3 「그림은 KAN-058 때」). 웨이브 편과 함께 동시 셋 안에서 돈다. 완료: 네 편 편 완료 명령 통과 · 본문 `<!--fig:` 1 이상
 - [x] `S7` W1 나머지 전개. 시작 때 샘플 실측으로 배치 문서를 나눈다(`batch-init`). 완료: W1 남은 편 0(`algo-wbs`) · `ci.ts gates` 통과
 - [x] `S8` W2 전개. 완료: S7 과 같은 기준으로 W2 남은 편 0
-- [>] `S9` W3 전개. 완료: S7 과 같은 기준으로 W3 남은 편 0 <!-- claim:s=62654a5c t=2026-09-30T15:10 -->
+- [x] `S9` W3 전개. 완료: S7 과 같은 기준으로 W3 남은 편 0
 
 **마감**
 - [ ] `S10` 이전 카드가 꺼 둔 규칙과 한시 조항을 예정대로 켜고 걷는다 — 규칙 내용은 새로 쓰지 않는다(KAN-056 L44 · KAN-056/060 §8 이 「전개 카드와 함께 켠다」로 남겨 둔 것). SPEC §8 세 조항 삭제, `--strict` 를 기본으로, `deep.origin` 을 `FIGURE_REQUIRED` 로, voice `v.common.gyeonju` 의 `enabled` 를 `false` → `true`. 원본은 여러 프로젝트가 함께 쓰는 `~/.claude/authoring/voices/algorithm-guide-writer/style.json` 이고 저장소 것은 사본이다(`tools/voice-style.ts:4-18`) — 원본 값 변경 → `tools/voice-style.ts --sync` → `--check`. 원본 변경은 그 자리에서 유저 실행 요청을 받고 한다. 완료: `check-v2 --all` 0 · `ci.ts all` 통과
@@ -252,3 +252,4 @@ bunx tsc --noEmit
 - 2026-10-01T01:21 · s:62654a5c — S9 expectedValueDp v2 재집필(W3, keyValue+matrix 뷰 첫 편) — strict·증명 46·시험 21·그림 10(CellStage·CellStageFilm·ApproachLadder, 기존 표 무대), 공용 파일 변경 없음. 핵심 구조 이름을 이웃 편 따라 「DP 테이블」로 통일, bench 키도 같은 이름으로(L43, 입력·수치·우열 그대로). 옛 원고 틀린 서술(왼쪽으로 1 넓어진다 → 왼쪽 끝이 1 칸 오른쪽으로) 정정. 정본 주석 「큰 쪽부터 더하면 덜 누적」은 실측 3.09e-15 대 3.50e-15 로 차이가 작아 본문에 그대로 적음(S11 검토 항목). NumPy·Icepool 인용은 원문 재대조 안 함. 실습 결함 없음.
 - 2026-10-01T01:28 · s:62654a5c — S9 meetInTheMiddleSubsetSum v2 재집필(W3) — strict·증명 43·시험 22·그림 6(CellStage·CellStageFilm·ApproachLadder·RangeCover, 배열 무대), 공용 파일 변경 없음. 옛 원고 틀린 값 정정: 원소 64 개 안쪽 반복 4,294,967,295 → 무리당 2,147,483,647(size<<=1 이 2^31 에서 음수), 손으로 적은 「30~45 개」「50 개 넘으면 메모리 초과」 → 실측 22·42·47 개. bench 키를 이웃 이름으로(입력·값 그대로, 답을 찾으면 멈추는 쪽에 유리한 기준임을 본문에 명시). S11 검토 항목: subsetSum 편과 중간에서 만나기 측정값 불일치(생성식 곱수 37 vs 7,919 · 부분합 세는 법 · 조기 종료), 시간 어림 기준 1초 10^9(subsetSum) vs 10^8(binarySearch·이 편), subsetSum 의 「이분 탐색」 용어. 배열 무대가 layers 위 구간 괄호를 못 그려 질의 걸음의 [lo,hi] 를 곁말로 대신함(ArrayLayer range 확장 후보). 실습 결함 없음.
 - 2026-10-01T01:57 · s:62654a5c — S9 countInversions v2 재집필(W3) — strict·증명 40·시험 18·그림 5(NodeGraph·CellStageFilm·ApproachLadder·LayerBars, 배열 무대), 공용 파일·bench 변경 없음. 옛 짚고 가기의 변이(count += mid - i)가 제목·서두(「1 을 더한다」)와 어긋나 변이를 count += 1 로 맞춤(정본 머리 주석 포함). S11 검토 항목: 비용 기준이 칸 접근(펜윅 트리와 같은 잣대) — 병합 정렬 편은 비교 횟수(최악 비교 1,568,929 는 두 편 같음), 「역순쌍」/「역순 쌍」 띄어쓰기 불일치. 실습 결함 없음.
+- 2026-10-01T02:04 · s:62654a5c · S9 done — W3 44/44(algo-wbs 115/115 남은 0) · ci.ts gates 13단계 통과(2026-10-01)
