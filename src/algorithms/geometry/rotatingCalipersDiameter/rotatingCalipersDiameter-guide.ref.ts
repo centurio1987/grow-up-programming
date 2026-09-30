@@ -91,7 +91,7 @@ function buildChain(seq: Point[]): Point[] {
 export function convexHull(points: Point[]): Point[] {
   const sorted = [...points].sort((p, q) => p[0] - q[0] || p[1] - q[1]);
 
-  // 정렬해 두면 같은 좌표가 이웃하므로, 앞 점과만 견주어도 중복이 전부 걸러진다.
+  // 정렬해 두면 같은 좌표가 이웃하므로, 바로 앞 점과만 비교해도 중복이 전부 걸러진다.
   const uniq: Point[] = [];
   for (const p of sorted) {
     const last = uniq.at(-1);
@@ -111,7 +111,7 @@ export function convexHull(points: Point[]): Point[] {
  * 두 점 사이 거리의 제곱. 좌표가 정수면 이 값도 정수이므로 큰 정수로 정확히 낸다.
  *
  * 제곱근을 여기서 부르지 않는 것이 이 절차의 전제다 — 제곱근은 두 값의 앞뒤를 바꾸지
- * 않으므로, 제곱한 채로 견주어도 고르는 쌍이 같다.
+ * 않으므로, 제곱한 채로 비교해도 고르는 쌍이 같다.
  */
 export function squared(a: Point, b: Point): bigint {
   const dx = BigInt(a[0] - b[0]);
@@ -127,7 +127,7 @@ function larger(x: bigint, y: bigint): bigint {
 /**
  * 변 `a→b` 에서 `d` 가 `c` 보다 더 먼가.
  *
- * 두 넓이를 각각 내서 견주지 않는다. 변 `a→b` 를 밑변으로 삼은 두 삼각형의 넓이 차가
+ * 두 넓이를 각각 내서 비교하지 않는다. 변 `a→b` 를 밑변으로 삼은 두 삼각형의 넓이 차가
  * `(b − a) × (d − c)` 하나로 접히기 때문이다 — 외적 한 번이 그 판정의 전부다.
  */
 export function farther(a: Point, b: Point, c: Point, d: Point): boolean {

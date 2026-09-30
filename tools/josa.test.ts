@@ -79,6 +79,8 @@ test("끝이 0 이면 자리 이름이 마지막 음절이다 — 100 은 「백
   expect(tailOf(10_000)).toBe("other"); // 만
   expect(tailOf(100_000_000)).toBe("other"); // 억
   expect(tailOf(1_000_000_000_000)).toBe("none"); // 조 — 받침이 없다
+  expect(tailOf("8,000,000,000,000,000,000")).toBe("other"); // 팔백경 — 받침이 있다
+  expect(tailOf("100,000,000,000,000,000,000")).toBe("none"); // 일해 — 받침이 없다
   expect(을를(1_000_000_000_000)).toBe(" 를");
   expect(을를(100_000_000)).toBe(" 을");
 });

@@ -19,6 +19,7 @@ import type {
   EdgeState,
   GraphBand,
   GraphGroup,
+  GraphLine,
   GraphRule,
   GraphStrip,
   NodeGraphScene,
@@ -71,6 +72,11 @@ export interface GraphStep {
    */
   readonly rules?: readonly GraphRule[];
   readonly bands?: readonly GraphBand[];
+  /**
+   * 평면 그림의 기울어진 기준선 — 걸음마다 기울기와 자리가 바뀔 수 있다(볼록 껍질의 변에 대는 지지선과
+   * 그 반대편의 평행한 지지선). 적지 않으면 그리지 않는다(KAN-058 첫 편 `rotatingCalipersDiameter`).
+   */
+  readonly lines?: readonly GraphLine[];
   /** 이번 걸음의 계산 한 줄 — 알약에 싣는다. */
   readonly calc?: { readonly expr: string; readonly result: string } | null;
   /** 무대 어디에도 자리가 없는 값만. 없으면 `null`. */
@@ -104,6 +110,7 @@ export function graphScene(s: GraphStep, opts: GraphOptions): NodeGraphScene {
     unit: layout.unit,
     ...(s.rules !== undefined ? { rules: s.rules } : {}),
     ...(s.bands !== undefined ? { bands: s.bands } : {}),
+    ...(s.lines !== undefined ? { lines: s.lines } : {}),
   };
 }
 

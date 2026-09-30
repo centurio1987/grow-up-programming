@@ -63,6 +63,7 @@ export {
   type GraphEdge,
   type GraphFrame,
   type GraphGroup,
+  type GraphLine,
   type GraphNode,
   type GraphRule,
   type GraphStrip,

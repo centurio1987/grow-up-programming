@@ -50,8 +50,12 @@ const DIGIT_TAIL: readonly Tail[] = [
   "none",
 ];
 
-/** 자리 이름의 읽기 — 십(ㅂ) 백(ㄱ) 천(ㄴ) 만(ㄴ) 억(ㄱ) 조. 조만 받침이 없다. */
-const unitTail = (zeros: number): Tail => (zeros >= 12 ? "none" : "other");
+/**
+ * 자리 이름의 읽기 — 십(ㅂ) 백(ㄱ) 천(ㄴ) 만(ㄴ) 억(ㄱ) 조 경(ㅇ) 해. 조(10^12~)와 해(10^20~)만
+ * 받침이 없다. 8,000,000,000,000,000,000 은 「팔백경」이라 받침이 있다(KAN-058 rotatingCalipersDiameter).
+ */
+const unitTail = (zeros: number): Tail =>
+  (zeros >= 12 && zeros < 16) || zeros >= 20 ? "none" : "other";
 
 /** 영문 글자 이름의 끝소리 — 받침이 있는 넷만 적는다(없으면 받침 없음). */
 const LETTER_TAIL: Readonly<Record<string, Tail>> = {

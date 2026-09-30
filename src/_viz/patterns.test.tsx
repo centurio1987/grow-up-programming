@@ -723,6 +723,74 @@ describe("P8 NodeGraph · 그래프 무대", () => {
     expect(count(wide, /data-viz-band="-20~30"><rect [^>]*\/><path/g)).toBe(0);
   });
 
+  test("기울어진 기준선 — 정점 뒤에 깔리고, 지나는 점을 실제로 지나며, 목록을 주면 비어 있어도 자리를 잡고, 안 주면 그림이 그대로다", async () => {
+    // 회전하는 캘리퍼스 편(KAN-058)의 평면 그림 — 변 a→b 에 대는 지지선과 그 반대편 c 를 지나는 평행선.
+    const plane = [
+      { id: "a", x: 0, y: 7 },
+      { id: "b", x: 6, y: 7 },
+      { id: "c", x: 2, y: 0 },
+    ];
+    const bare = await renderToSvg(
+      <NodeGraph title="평면" nodes={plane} edges={[]} directed={false} />,
+      "t-line-bare",
+    );
+    const lined = await renderToSvg(
+      <NodeGraph
+        title="평면"
+        nodes={plane}
+        edges={[]}
+        directed={false}
+        lines={[
+          { x: 0, y: 7, dx: 6, dy: 0, label: "변의 지지선" },
+          { x: 2, y: 0, dx: 6, dy: 0 },
+          { x: 0, y: 7, dx: 2, dy: -7 },
+        ]}
+      />,
+      "t-line-bare",
+    );
+    expect(bare).not.toContain("data-viz-lines");
+    expect(lined).toContain('data-viz-line="0,7,6,0"');
+    expect(lined).toContain('data-viz-line="0,7,2,-7"');
+    expect(lined).toContain("변의 지지선");
+    // 선은 정점보다 먼저 그린다 — 정점이 그 위에 온다.
+    expect(lined.indexOf("data-viz-lines")).toBeLessThan(
+      lined.indexOf('data-viz-node="a"'),
+    );
+    // 가로선은 정점 c 의 가운데 높이를 지난다.
+    const box =
+      /data-viz-node="c"[^>]*><rect x="[\d.]+" y="([\d.]+)"[^>]*height="([\d.]+)"/.exec(
+        lined,
+      );
+    const cy = Number(box?.[1]) + Number(box?.[2]) / 2;
+    const lineY = Number(
+      /data-viz-line="2,0,6,0"><path d="M [\d.]+ ([\d.]+) /.exec(lined)?.[1],
+    );
+    expect(lineY).toBeCloseTo(cy, 1);
+    // 빈 목록도 둘레 여백을 잡는다 — 걸음 사이에 선이 생기거나 없어져도 정점 자리가 안 바뀐다.
+    expect(
+      nodeGraphSize({
+        nodes: plane,
+        edges: [],
+        lines: [{ x: 0, y: 7, dx: 1, dy: 1 }],
+      }),
+    ).toEqual(nodeGraphSize({ nodes: plane, edges: [], lines: [] }));
+    expect(
+      nodeGraphSize({ nodes: plane, edges: [], lines: [] }).height,
+    ).toBeGreaterThan(nodeGraphSize({ nodes: plane, edges: [] }).height);
+    // 그림 안을 지나지 않는 선은 긋지 않는다.
+    const outside = await renderToSvg(
+      <NodeGraph
+        title="밖"
+        nodes={plane}
+        edges={[]}
+        lines={[{ x: 0, y: 60, dx: 1, dy: 0 }]}
+      />,
+      "t-line-out",
+    );
+    expect(outside).toContain("data-viz-lines");
+    expect(outside).not.toContain("data-viz-line=");
+  });
+
   test("정적 그림은 장면을 걸음마다 한 장씩 늘어놓고 칸 경계가 필름을 빈틈없이 나눈다", async () => {
     const scene = { nodes, edges };
     const svg = await renderToSvg(

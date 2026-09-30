@@ -286,3 +286,31 @@ test("배정밀도가 못 담는 규모에서도 큰 정수 답이 정확하다"
   // 배정밀도로 옮기면 이 값은 담기지 않는다. 고른 쌍이 옳다는 것이 정본이 지는 몫이다.
   expect(BigInt(Number(d2))).toBe(4_000_000_000_000_000_000n);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은
+ * 절차의 기록에서 만든 걸음 — 과 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./rotatingCalipersDiameter-guide.sim.ts");
+  const fig = await import("./rotatingCalipersDiameter-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.calipersWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.calipersWalk.layout)).toEqual(plain(fig.LAYOUT));
+  // 걸음 번호가 T1 부터 빠짐없이 이어진다.
+  const tags = sim.calipersWalk.steps.map((s) => s.title.split(" ")[0]);
+  expect(tags).toEqual(tags.map((_, k) => `T${k + 1}`));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  const walk: Point[] = [
+    [0, 0],
+    [6, 0],
+    [8, 3],
+    [6, 6],
+    [2, 7],
+    [0, 4],
+    [3, 3],
+    [5, 2],
+  ];
+  expect(sim.calipersWalk.result).toBe(String(rotatingCalipersDiameter(walk)));
+});

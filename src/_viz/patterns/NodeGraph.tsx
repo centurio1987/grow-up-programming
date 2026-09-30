@@ -26,6 +26,9 @@
  *   (`rules`, 분할선)과 `x` 가 두 값 사이인 세로 영역(`bands`, 분할선 양옆의 띠)을 정점 뒤에 깐다. 띠는
  *   옅게 칠하고 양쪽 끝을 대시로 그어 흑백에서도 갈린다. 둘 다 없으면 그림이 그대로다(KAN-058 첫 편
  *   `closestPairOfPoints`).
+ * - **기울어진 기준선** — 한 점을 지나고 방향이 정해진 직선(`lines`)을 정점 뒤에 깐다. 볼록 다각형에
+ *   대는 평행한 두 지지선처럼 기울기가 걸음마다 바뀌는 선이다. 목록을 주면(비어 있어도) 정점 자리 둘레에
+ *   여백을 잡고 그 안에서 잘라 긋는다. 주지 않으면 그림이 그대로다(KAN-058 첫 편 `rotatingCalipersDiameter`).
  *
  * `NodeGraphFilm` 은 걸음 재생 패널의 정적 그림이다. 같은 무대를 걸음마다 한 장씩 위에서 아래로
  * 늘어놓고 장마다 걸음 배지와 한 줄을 붙인다(`CellStageFilm` 과 같은 규칙 · 같은 칸 경계).
@@ -116,6 +119,19 @@ export interface GraphBand {
   readonly label?: string;
 }
 
+/**
+ * 기울어진 기준선 — 격자 점 `(x, y)` 를 지나고 방향이 `(dx, dy)` 인 직선. `y` 는 정점 좌표와 같이 화면
+ * 아래쪽으로 커진다. 정점 자리 둘레에 잡은 여백 안에서 잘라 긋는다.
+ */
+export interface GraphLine {
+  readonly x: number;
+  readonly y: number;
+  readonly dx: number;
+  readonly dy: number;
+  /** 선 끝(오른쪽 끝, 세로선이면 아래 끝) 안쪽에 붙는 짧은 말. */
+  readonly label?: string;
+}
+
 export interface NodeGraphScene {
   readonly nodes: readonly GraphNode[];
   readonly edges: readonly GraphEdge[];
@@ -130,6 +146,8 @@ export interface NodeGraphScene {
   readonly rules?: readonly GraphRule[];
   /** 세로 띠. 자리 규칙은 `rules` 와 같다. */
   readonly bands?: readonly GraphBand[];
+  /** 기울어진 기준선. 목록을 주면(비어 있어도) 정점 자리 둘레에 선이 지나갈 여백을 잡는다. */
+  readonly lines?: readonly GraphLine[];
 }
 
 export interface NodeGraphProps extends NodeGraphScene {
@@ -148,6 +166,11 @@ const EDGE_LABEL = 11;
 const GUIDE_HEAD = 18;
 /** 기준선 · 띠가 정점 자리 위아래로 더 나가는 길이. */
 const GUIDE_OVER = 8;
+/**
+ * 기울어진 기준선의 자리 — 선 목록을 줬을 때만(비어 있어도) 정점 자리 둘레에 이만큼 여백을 더 잡는다.
+ * 정점 자리 끝에서 바로 자르면 가장자리 꼭짓점을 지나는 선이 한 뼘도 안 보인다.
+ */
+const LINE_ROOM = 48;
 const DEFAULT_UNIT = { x: 104, y: 84 } as const;
 
 const EDGE_SHAPE: Record<EdgeKind, { width: number; dash?: string }> = {
@@ -220,6 +243,8 @@ function place(scene: NodeGraphScene): {
   height: number;
   /** 격자 `x` 를 픽셀로. 기준선 · 띠를 그릴 때 정점과 같은 자리로 옮긴다. */
   toX: (x: number) => number;
+  /** 격자 `y` 를 픽셀로. 기울어진 기준선을 그릴 때 정점과 같은 자리로 옮긴다. */
+  toY: (y: number) => number;
   /** 정점 자리의 위 끝 · 아래 끝(픽셀). */
   area: { top: number; bottom: number };
 } {
@@ -238,8 +263,12 @@ function place(scene: NodeGraphScene): {
   const ys = scene.nodes.map((n) => n.y);
   const minX = Math.min(0, ...xs);
   const minY = Math.min(0, ...ys);
-  const left = FORM.pad + margin + NODE_W / 2;
-  const top = FORM.pad + margin + guideHead + NODE_H / 2 + loopRoom(scene);
+  // 기울어진 기준선 목록을 주면(비어 있어도) 둘레 여백을 잡는다 — 걸음 사이에 선이 생기거나 없어져도
+  // 정점 자리가 안 바뀐다. 안 주면 옛 그림과 바이트가 같다.
+  const lineRoom = scene.lines !== undefined ? LINE_ROOM : 0;
+  const left = FORM.pad + margin + lineRoom + NODE_W / 2;
+  const top =
+    FORM.pad + margin + guideHead + lineRoom + NODE_H / 2 + loopRoom(scene);
   const placed = new Map<NodeId, Placed>();
   let right = 0;
   let bottom = 0;
@@ -290,11 +319,13 @@ function place(scene: NodeGraphScene): {
   if (scene.rules !== undefined || scene.bands !== undefined) {
     bottom = Math.max(bottom, area.bottom + GUIDE_OVER);
   }
+  const toY = (y: number): number => top + (y - minY) * unit.y;
   return {
     placed,
-    width: Math.ceil(right + FORM.pad),
-    height: Math.ceil(bottom + FORM.pad),
+    width: Math.ceil(right + lineRoom + FORM.pad),
+    height: Math.ceil(bottom + lineRoom + FORM.pad),
     toX,
+    toY,
     area,
   };
 }
@@ -724,6 +755,102 @@ function GuideView(props: {
   );
 }
 
+/**
+ * 직선 `p + t·d` 를 사각형 `[x0, x1] × [y0, y1]` 안으로 자른 두 끝. 사각형을 안 지나면 `null`.
+ * 세로 · 가로 방향도 같은 식으로 다룬다(방향 성분이 0 인 축은 그 축의 범위 안인지만 본다).
+ */
+function clipLine(
+  p: { x: number; y: number },
+  d: { x: number; y: number },
+  box: { x0: number; x1: number; y0: number; y1: number },
+): [{ x: number; y: number }, { x: number; y: number }] | null {
+  let lo = Number.NEGATIVE_INFINITY;
+  let hi = Number.POSITIVE_INFINITY;
+  for (const [p0, d0, a, b] of [
+    [p.x, d.x, box.x0, box.x1],
+    [p.y, d.y, box.y0, box.y1],
+  ] as const) {
+    if (d0 === 0) {
+      if (p0 < a || p0 > b) return null;
+      continue;
+    }
+    const t0 = (a - p0) / d0;
+    const t1 = (b - p0) / d0;
+    lo = Math.max(lo, Math.min(t0, t1));
+    hi = Math.min(hi, Math.max(t0, t1));
+  }
+  if (!(lo < hi)) return null;
+  return [
+    { x: p.x + lo * d.x, y: p.y + lo * d.y },
+    { x: p.x + hi * d.x, y: p.y + hi * d.y },
+  ];
+}
+
+/** 기울어진 기준선 — 정점 · 간선 · 묶음보다 먼저 그려 맨 뒤에 깐다. */
+function LineView(props: {
+  scene: NodeGraphScene;
+  g: ReturnType<typeof place>;
+}) {
+  const { scene, g } = props;
+  const box = {
+    x0: FORM.pad,
+    x1: g.width - FORM.pad,
+    y0: g.area.top - LINE_ROOM,
+    y1: g.area.bottom + LINE_ROOM,
+  };
+  const unit = scene.unit ?? DEFAULT_UNIT;
+  return (
+    <g data-viz-lines="">
+      {(scene.lines ?? []).map((l) => {
+        const seg = clipLine(
+          { x: g.toX(l.x), y: g.toY(l.y) },
+          { x: l.dx * unit.x, y: l.dy * unit.y },
+          box,
+        );
+        if (!seg) return null;
+        // 머리말은 오른쪽 끝(세로선이면 아래 끝) 안쪽에 붙인다.
+        const [s, e] = seg;
+        const forward = e.x > s.x || (e.x === s.x && e.y > s.y);
+        const end = forward ? e : s;
+        const start = forward ? s : e;
+        const len = Math.hypot(end.x - start.x, end.y - start.y) || 1;
+        const ux = (end.x - start.x) / len;
+        const uy = (end.y - start.y) / len;
+        const key = `${l.x},${l.y},${l.dx},${l.dy}`;
+        return (
+          <g key={`l-${key}`} data-viz-line={key}>
+            <path
+              d={`M ${round(s.x)} ${round(s.y)} L ${round(e.x)} ${round(e.y)}`}
+              style={{
+                stroke: "var(--bbangto-viz-ext-bracket)",
+                strokeWidth: FORM.pieceWidth,
+                strokeDasharray: FORM.dashRight,
+              }}
+            />
+            {l.label ? (
+              <text
+                x={round(end.x - ux * 6)}
+                y={round(end.y - uy * 6 - 9)}
+                textAnchor="end"
+                dominantBaseline="central"
+                style={{
+                  ...text("note-color", 12),
+                  fontWeight: 700,
+                  paintOrder: "stroke",
+                  stroke: vvar("canvas", "bg"),
+                  strokeWidth: 4,
+                }}
+              >
+                {l.label}
+              </text>
+            ) : null}
+          </g>
+        );
+      })}
+    </g>
+  );
+}
+
 const STRIP_GAP = 8;
 
 function stripHeight(scene: NodeGraphScene): number {
@@ -769,6 +896,7 @@ function SceneBody({ scene, top }: { scene: NodeGraphScene; top: number }) {
       {scene.rules !== undefined || scene.bands !== undefined ? (
         <GuideView scene={scene} g={g} />
       ) : null}
+      {scene.lines !== undefined ? <LineView scene={scene} g={g} /> : null}
       {(scene.groups ?? []).map((grp) => (
         <GroupView
           key={`g-${grp.members.join(",")}`}
