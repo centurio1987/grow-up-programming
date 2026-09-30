@@ -8,7 +8,7 @@
  *   bun run ../../../../tools/bench-alt.ts segmentTreeRangeMin-guide.alt.ts
  *
  * **전개 입력을 그대로 못 쓰는 이유**(L20). 전개는 다섯 칸짜리 `[5 2 4 1 3]` 에 연산
- * 다섯을 건다. 스파스 테이블의 표는 층이 `⌊log₂N⌋ + 1` 개라 `N = 5` 에서 세 층뿐이고,
+ * 다섯을 건다. Sparse Table 의 표는 층이 `⌊log₂N⌋ + 1` 개라 `N = 5` 에서 세 층뿐이고,
  * 두 설계의 접근 수가 열 몇 번짜리 상수에 묻힌다. 그래서 같은 규칙으로 만든 1,024 칸
  * 입력을 쓴다. **난수를 쓰지 않으므로 시드가 없다** — 아래 생성식이 입력의 전부이고,
  * 그 식을 본문에도 적는다.
@@ -40,8 +40,8 @@ type Op = ["q", number] | ["u", number];
 /**
  * 갱신 `u` 회를 질의 `q` 회 사이에 고르게 끼운 작업 목록. **두 설계가 같은 목록을 받는다.**
  *
- * 갱신을 앞에 몰면 스파스 테이블이 표를 한 번만 다시 만들면 되어 대조가 연출이 된다 —
- * 갱신과 질의가 섞여 들어오는 것이 이 문제가 말하는 상황이다.
+ * 갱신을 앞에 몰면 Sparse Table 이 표를 한 번만 다시 만들면 되어 대조가 연출이 된다 —
+ * 갱신과 질의가 섞여 들어오는 것이 이 과제가 말하는 상황이다.
  */
 export function workload(q: number, u: number): Op[] {
   const ops: Op[] = [];
@@ -65,7 +65,7 @@ export function workload(q: number, u: number): Op[] {
  * 이 가이드가 가르치는 절차 — **세그먼트 트리**. `segmentTreeRangeMin-guide.ref.ts` 와 같은
  * 절차이고 접근 계수만 덧붙였다.
  */
-function segAccesses(q: number, u: number): number {
+export function segAccesses(q: number, u: number): number {
   const a = A.slice();
   const tree = new Array<number>(4 * N).fill(INF);
   let acc = 0;
@@ -123,18 +123,18 @@ function segAccesses(q: number, u: number): number {
   return acc;
 }
 
-/** 스파스 테이블의 층 수 − 1. 길이 `2^j` 짜리 구간까지 저장한다. */
+/** Sparse Table 의 층 수 − 1. 길이 `2^j` 짜리 구간까지 저장한다. */
 const K = Math.floor(Math.log2(N));
 
 /**
- * 경쟁 설계 — **스파스 테이블**.
+ * 경쟁 설계 — **Sparse Table**.
  *
  * 층 `j` 의 칸 `i` 에 `A[i .. i+2^j−1]` 의 최솟값을 저장해 둔다. 질의 `[l, r]` 은 길이
  * `2^j` 짜리 구간 **둘로 겹쳐 덮어** 답하므로 칸 두 개만 읽으면 끝난다. 겹쳐도 되는 것은
  * 최솟값이 같은 값을 두 번 넣어도 답이 안 바뀌기 때문이다. 대신 **갱신을 받지 못한다** —
  * 원소 하나가 바뀌면 그 원소를 덮는 칸이 층마다 흩어져 있어 표를 다시 만들어야 한다.
  */
-function sparseAccesses(q: number, u: number): number {
+export function sparseAccesses(q: number, u: number): number {
   const a = A.slice();
   let acc = 0;
   const table: number[][] = [];
@@ -181,7 +181,7 @@ function sparseAccesses(q: number, u: number): number {
   return acc;
 }
 
-/** 스파스 테이블이 잡는 칸 수. 층마다 길이가 다르다. */
+/** Sparse Table 이 잡는 칸 수. 층마다 길이가 다르다. */
 function sparseCells(): number {
   let cells = 0;
   for (let j = 0; j <= K; j++) cells += Math.max(0, N - (1 << j) + 1);
@@ -205,5 +205,5 @@ function counts(
 
 export const cases = {
   "세그먼트 트리": () => counts(segAccesses, 4 * N),
-  "스파스 테이블": () => counts(sparseAccesses, sparseCells()),
+  "Sparse Table": () => counts(sparseAccesses, sparseCells()),
 };

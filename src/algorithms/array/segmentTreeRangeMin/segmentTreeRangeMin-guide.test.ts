@@ -76,9 +76,9 @@ const CASES: [string, number[], SegOp[], number[]][] = [
     [7],
   ],
   ["전체 범위 질의", [5, 3, 7, 1, 9], [{ type: "query", l: 0, r: 4 }], [1]],
-  // 문제 문서의 예시
+  // 전개 예시
   [
-    "문제 문서 예시 — 갱신이 섞인 다섯 연산",
+    "갱신이 섞인 다섯 연산",
     [5, 2, 4, 1, 3],
     [
       { type: "query", l: 0, r: 4 },
@@ -90,7 +90,7 @@ const CASES: [string, number[], SegOp[], number[]][] = [
     [1, 2, 2, 3],
   ],
   [
-    "문제 문서 예시 — 음수 갱신",
+    "음수 갱신 뒤 전체 질의",
     [1, 2, 3],
     [
       { type: "update", i: 1, v: -1000 },
@@ -150,4 +150,34 @@ test("배열 길이가 2 의 거듭제곱이 아니어도 노드 번호가 트�
     // 둘째 질의는 갱신한 칸을 빼므로 남은 것 중 가장 작은 값 2 가 답이다.
     expect(segmentTreeRangeMin(A, ops)).toEqual([-1, 2]);
   }
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./segmentTreeRangeMin-guide.sim.ts");
+  const fig = await import("./segmentTreeRangeMin-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  const made = fig.stageStepsFromRef();
+  expect(plain(sim.build.steps)).toEqual(plain(made.build));
+  expect(plain(sim.ops.steps)).toEqual(plain(made.ops));
+  expect(plain(sim.build.layout)).toEqual(plain(fig.LAYOUT));
+  expect(plain(sim.ops.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 패널의 반환값을 정본의 답에 직접 다시 묻는다.
+  const answer = segmentTreeRangeMin(
+    [5, 2, 4, 1, 3],
+    [
+      { type: "query", l: 0, r: 4 },
+      { type: "query", l: 0, r: 2 },
+      { type: "update", i: 3, v: 10 },
+      { type: "query", l: 0, r: 4 },
+      { type: "query", l: 3, r: 4 },
+    ],
+  );
+  expect(sim.ops.result).toBe(`[${answer.join(", ")}]`);
+  expect(sim.ops.steps.at(-1)?.strips?.[0]?.values).toEqual(answer);
 });
