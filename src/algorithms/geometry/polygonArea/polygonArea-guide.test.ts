@@ -221,3 +221,30 @@ test("사다리꼴 식으로 잰 2 배 넓이와 같다", () => {
     expect(byTrapezoid(polygon)).toBe(shoelaceTwice(polygon));
   }
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps`·`layout` 은
+ * P3 이 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과
+ * 같은 반복을 기록한 것에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./polygonArea-guide.sim.ts");
+  const fig = await import("./polygonArea-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  const want = fig.stageStepsFromRef();
+  expect(plain(sim.areaWalk.steps)).toEqual(plain(want.walk));
+  expect(plain(sim.areaWalk.layout)).toEqual(plain(fig.WALK_LAYOUT));
+  expect(plain(sim.areaReverse.steps)).toEqual(plain(want.reverse));
+  expect(plain(sim.areaReverse.layout)).toEqual(plain(fig.REVERSE_LAYOUT));
+  // 패널이 내미는 반환값과 마지막 누적을 정본에 직접 다시 묻는다.
+  expect(sim.areaWalk.result).toBe(String(polygonArea(L_SHAPE)));
+  expect(sim.areaReverse.result).toBe(
+    String(polygonArea([...L_SHAPE].reverse())),
+  );
+  expect(sim.areaWalk.steps.at(-1)?.strips?.[1]?.values.at(-1)).toBe(
+    String(shoelaceTwice(L_SHAPE)),
+  );
+  expect(sim.areaReverse.steps.at(-1)?.strips?.[1]?.values.at(-1)).toBe(
+    String(shoelaceTwice([...L_SHAPE].reverse())),
+  );
+});
