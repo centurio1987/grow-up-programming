@@ -76,3 +76,4 @@ scope: src/_viz/**, tools/check-proof.ts, tools/check-proof.test.ts, tools/check
 - 2026-10-01T08:29 · s:df6b517e · S9 done — 처분표(batch3 문서): §7 17줄 전부 — 고침 12 · 규약 1 · 버림 1(힙 무대) · 이미 닫힘 1 · 넘김 1 · 플러그인 2 는 검토 항목. 새로 드러난 4 도 검토 항목. 근거 파일 §7 끝에 처분표 위치 한 줄
 - 2026-10-01T08:30 · s:df6b517e · S10 doing — 착수
 - 2026-10-01T08:47 · s:df6b517e · S10 done — gates 통과(14단계) · 검토서 발행(판단 항목 4)
+- 2026-10-01T08:57 · s:df6b517e — 검토자 지적(재현 수단 없는 수) 반영: 검토 항목 1 배경의 300 · 57편 94건은 조사 에이전트 보고를 재현 없이 옮긴 것이었다 → 탐침 probes/scan-false-positives.py 로 다시 내 303 · 70편 180건(422→242)으로 고침(review-ctx, 처분표). 항목 2 의 약 4,400px 는 잰 적 없음으로 고침. 같은 유형 전수: S1 기록의 4786블록도 scratchpad 에서 낸 수라 probes/proof-extract-diff.ts 로 다시 냄 → 4787블록 차이 0(배치2 에서 tMIS 증명 블록 1 추가분). 72편 필름은 git grep 으로 72 확인
