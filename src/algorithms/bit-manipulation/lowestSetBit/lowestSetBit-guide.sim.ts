@@ -1,187 +1,347 @@
-import type { Frame } from "#guide-sim";
-
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**(`lowestSetBit(40)`)을 쓴다.
- * 프레임 수는 그 절의 T# 단계 수(9)와 같다 — P3 이 그 관계를 잰다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `x = 40`(`00101000₂`). `lowbitWalk` 는
+ * 입력 T1 · 뒤집기 T2 · 자리올림이 멈출 때까지 자리마다 더하기 T3~T6 · 나머지 자리 T7 · AND T8 · 반환 T9 다.
+ *
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가
+ * 배열 무대(`arrayStage.ts`)를 고른다. 맨 윗줄이 x 의 아래 여덟 자리이고 칸 `j` 가 자리 `j` 라 이진 표기와
+ * 좌우가 거꾸로다. 그 아래 `layers` 세 줄이 `~x` · `-x` · `x & -x` 이고, 아직 정해지지 않은 자리는 비운다.
+ * 괄호 「보는 자리」는 그 걸음이 다루는 자리이고, 자리올림을 더하는 걸음에서는 자리올림이 닿은 자리다.
+ * 계산 한 줄은 알약, 자리올림은 무대에 자리가 없어 남는 변수다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
- *
- * ## `keyValue` 단독 뷰
- *
- * 기준은 `minMaxPair`·`fastPower` 가 세우고 `enumerateSubmasks` 가 이 카테고리에 들여온
- * 둘을 그대로 쓴다 — ① 그릴 배열이 상태에 없고 ② 움직이는 것이 값 몇 개뿐이다. 이 편이
- * 그렇다: 입력이 정수 하나이고 상태는 뒤집은 값·자리올림·`-x` 셋이다. `array` 를 더하면
- * 담을 배열이 32 자리의 비트열뿐인데, 그것은 이미 각 항목의 이진 표기가 보이고 있다.
- *
- * ## 이어받은 규약 — `enumerateSubmasks-guide.sim.ts` 의 여섯
- *
- * 1. **정수 항목은 `십진 (이진)` 한 칸에 함께 적는다.** 비트 연산의 이해 대상은 자리인데
- *    십진값만으로는 자리가 확인되지 않는다.
- * 2. **이진 표기는 고정 폭으로 0 을 채우고 `0b` 접두를 안 붙인다.** 이 편의 폭은 8 이다.
- * 3. **한 식이 비트 연산을 둘 이상 이으면 그 사이 값을 항목으로 둔다.** 이 편은 `~x` 와
- *    `-x` 를 각각 항목으로 둔다.
- * 4. **연산이 값을 안 바꾼 프레임에도 「무엇을 안 바꿨는가」를 값으로 적는다.** 이 편의
- *    「자리올림」·「정해진 아래 자리」가 그 자리다.
- * 5. **항목을 프레임마다 같은 것으로 같은 순서로 두고 값만 바꾼다.** 값이 없는 자리도
- *    항목을 빼지 않고 `—` 로 적는다. 첫 항목이 `갈래`, 마지막 항목이 반환될 값이다.
- * 6. **`label` 은 본문 기호표의 이름과 글자 그대로 같게 쓴다** — `x` · `~x` · `-x` 다.
- *
- * ## 넓힌 자리 둘 — 사유
- *
- * **규약 2 의 「고정 폭」을 자리 폭보다 좁게 잡았다.** 앞선 두 편은 입력의 비트 폭이 곧 표기
- * 폭이었는데(`0b1011` 이면 4, 최댓값 4 이면 3), 이 편은 자리 폭 `w` 가 32 이고 `~x` 와
- * `-x` 가 위 24 자리를 전부 1 로 채운다. 32 자리를 그대로 적으면 한 칸이 화면을 넘고, 그
- * 24 자리는 어느 프레임에서도 안 바뀐다. 그래서 **아래 여덟 자리만 그리고 십진값은 32 비트
- * 정수 그대로** 적는다. 본문 기호표의 `w` 행이 그 사실을 함께 적고, 「전체 컨셉」과 3 단계가
- * 위 24 자리에서 무슨 일이 있었는지를 따로 값으로 보인다.
- *
- * **규약 3 을 자리 단위로 넓혔다.** 앞선 편은 한 식이 이은 두 연산의 사이 값을 항목 하나로
- * 담으면 됐다. 이 편의 `~x + 1` 은 **자리마다 자리올림이 갈리는 덧셈**이라 사이 값 하나로
- * 못 담는다 — 자리올림이 어디서 멈추는가가 이 절차의 전부인데, 완성된 `-x` 만 적으면 그
- * 자리가 프레임에서 확인되지 않는다. 그래서 프레임을 자리 단위로 갈라 T3~T7 에 두고
- * 「더하는 자리」·「자리올림」·「정해진 아래 자리」 셋을 그 자리에 뒀다. 아직 안 정해진
- * 자리는 `?` 로 적는다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본 실행에서 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `lowestSetBit-guide.test.ts` 가 잰다.
  */
+
 export const lowbitWalk = {
-  view: "keyValue" as const,
-  title: "lowestSetBit(40) — 자리올림이 멈추는 자리가 곧 답이다",
+  player: "stage",
+  stage: "array",
+  arrayName: "x",
+  rangeLabel: "보는 자리",
+  title: "lowestSetBit(40)",
   result: "8",
   steps: [
     {
-      title: "T1 입력 — x 의 가장 낮은 1 비트는 자리 3 이다",
-      detail:
-        "x = 40 을 자리로 펼치면 자리 3 과 자리 5 가 1 이다. 답은 그중 낮은 쪽인 자리 3, 곧 8 이어야 한다.",
-      entries: [
-        { label: "갈래", value: "— 입력" },
-        { label: "x", value: "40 (00101000)" },
-        { label: "~x", value: "—" },
-        { label: "더하는 자리", value: "—" },
-        { label: "자리올림", value: "—" },
-        { label: "정해진 아래 자리", value: "????????" },
-        { label: "-x", value: "—" },
-        { label: "x & -x", value: "—" },
+      title: "T1 x = 40 을 받는다",
+      text: "x 의 아래 여덟 자리를 칸에 놓습니다. 칸 j 가 자리 j 라 이진 표기(00101000₂)와 좌우가 거꾸로입니다. 1 인 자리는 자리 3 · 5 이고, 최하위 1 비트는 자리 3 입니다.",
+      array: [0, 0, 0, 1, 0, 1, 0, 0],
+      range: [0, 7],
+      read: [],
+      write: [],
+      pointers: {},
+      calc: {
+        expr: "x",
+        result: "40 = 00101000₂",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "~x",
+          values: [null, null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
+        {
+          name: "-x",
+          values: [null, null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
+        {
+          name: "x & -x",
+          values: [null, null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
       ],
     },
     {
-      title: "T2 — ① 모든 자리를 뒤집는다",
-      detail:
-        "자리 3 아래가 x 에서 전부 0 이었으므로 뒤집으면 전부 1 이 된다. 자리 3 자신은 1 이었으므로 0 이 된다.",
-      entries: [
-        { label: "갈래", value: "① 뒤집기" },
-        { label: "x", value: "40 (00101000)" },
-        { label: "~x", value: "-41 (11010111)" },
-        { label: "더하는 자리", value: "—" },
-        { label: "자리올림", value: "—" },
-        { label: "정해진 아래 자리", value: "????????" },
-        { label: "-x", value: "—" },
-        { label: "x & -x", value: "—" },
+      title: "T2 ① 모든 자리를 뒤집는다",
+      text: "x 의 모든 자리를 뒤집어 ~x = -41 을 만듭니다. 자리 3 아래가 전부 1 이 되고 자리 3 이 0 이 됩니다. 그리지 않은 위 24 자리는 전부 1 입니다.",
+      array: [0, 0, 0, 1, 0, 1, 0, 0],
+      range: [0, 7],
+      read: [0, 1, 2, 3, 4, 5, 6, 7],
+      write: [],
+      pointers: {},
+      calc: {
+        expr: "~40",
+        result: "-41",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "~x",
+          values: [1, 1, 1, 0, 1, 0, 1, 1],
+          read: [],
+          write: [0, 1, 2, 3, 4, 5, 6, 7],
+        },
+        {
+          name: "-x",
+          values: [null, null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
+        {
+          name: "x & -x",
+          values: [null, null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
       ],
     },
     {
-      title: "T3 — ② 자리 0 에 1 을 더한다",
-      detail:
-        "뒤집은 값의 자리 0 이 1 인데 1 을 더하므로 그 자리가 0 이 되고 자리올림이 위로 넘어간다.",
-      entries: [
-        { label: "갈래", value: "② 1 더하기" },
-        { label: "x", value: "40 (00101000)" },
-        { label: "~x", value: "-41 (11010111)" },
-        { label: "더하는 자리", value: "자리 0" },
-        { label: "자리올림", value: "1 — 위로 넘어간다" },
-        { label: "정해진 아래 자리", value: "???????0" },
-        { label: "-x", value: "—" },
-        { label: "x & -x", value: "—" },
+      title: "T3 ② 자리 0 에 1 을 더한다",
+      text: "자리 0 의 ~x 비트 1 에 자리올림 1 을 더하면 2 라 그 자리는 0 이 되고 자리올림 1 을 위로 넘깁니다.",
+      array: [0, 0, 0, 1, 0, 1, 0, 0],
+      range: [0, 0],
+      rangeSide: "자리올림이 닿은 자리 1 칸",
+      read: [],
+      write: [],
+      pointers: {
+        j: 0,
+      },
+      calc: {
+        expr: "1 + 1",
+        result: "0, 자리올림 1",
+      },
+      vars: "자리올림 1",
+      layers: [
+        {
+          name: "~x",
+          values: [1, 1, 1, 0, 1, 0, 1, 1],
+          read: [0],
+          write: [],
+        },
+        {
+          name: "-x",
+          values: [0, null, null, null, null, null, null, null],
+          read: [],
+          write: [0],
+        },
+        {
+          name: "x & -x",
+          values: [null, null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
       ],
     },
     {
-      title: "T4 — ② 자리 1 에서도 같은 일이 일어난다",
-      detail:
-        "자리 1 도 뒤집은 값에서 1 이라 자리올림을 받으면 0 이 되고 다시 위로 넘긴다. x 에서 자리 1 이 0 이었기 때문이다.",
-      entries: [
-        { label: "갈래", value: "② 1 더하기" },
-        { label: "x", value: "40 (00101000)" },
-        { label: "~x", value: "-41 (11010111)" },
-        { label: "더하는 자리", value: "자리 1" },
-        { label: "자리올림", value: "1 — 위로 넘어간다" },
-        { label: "정해진 아래 자리", value: "??????00" },
-        { label: "-x", value: "—" },
-        { label: "x & -x", value: "—" },
+      title: "T4 ② 자리 1 에 1 을 더한다",
+      text: "자리 1 의 ~x 비트 1 에 자리올림 1 을 더하면 2 라 그 자리는 0 이 되고 자리올림 1 을 위로 넘깁니다.",
+      array: [0, 0, 0, 1, 0, 1, 0, 0],
+      range: [0, 1],
+      rangeSide: "자리올림이 닿은 자리 2 칸",
+      read: [],
+      write: [],
+      pointers: {
+        j: 1,
+      },
+      calc: {
+        expr: "1 + 1",
+        result: "0, 자리올림 1",
+      },
+      vars: "자리올림 1",
+      layers: [
+        {
+          name: "~x",
+          values: [1, 1, 1, 0, 1, 0, 1, 1],
+          read: [1],
+          write: [],
+        },
+        {
+          name: "-x",
+          values: [0, 0, null, null, null, null, null, null],
+          read: [],
+          write: [1],
+        },
+        {
+          name: "x & -x",
+          values: [null, null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
       ],
     },
     {
-      title: "T5 — ② 자리 2 가 자리올림을 마지막으로 넘긴다",
-      detail:
-        "자리 2 까지가 x 에서 0 이었던 구간이다. 그래서 여기까지 뒤집은 값이 1 이고 자리올림이 계속 위로 간다.",
-      entries: [
-        { label: "갈래", value: "② 1 더하기" },
-        { label: "x", value: "40 (00101000)" },
-        { label: "~x", value: "-41 (11010111)" },
-        { label: "더하는 자리", value: "자리 2" },
-        { label: "자리올림", value: "1 — 위로 넘어간다" },
-        { label: "정해진 아래 자리", value: "?????000" },
-        { label: "-x", value: "—" },
-        { label: "x & -x", value: "—" },
+      title: "T5 ② 자리 2 에 1 을 더한다",
+      text: "자리 2 의 ~x 비트 1 에 자리올림 1 을 더하면 2 라 그 자리는 0 이 되고 자리올림 1 을 위로 넘깁니다.",
+      array: [0, 0, 0, 1, 0, 1, 0, 0],
+      range: [0, 2],
+      rangeSide: "자리올림이 닿은 자리 3 칸",
+      read: [],
+      write: [],
+      pointers: {
+        j: 2,
+      },
+      calc: {
+        expr: "1 + 1",
+        result: "0, 자리올림 1",
+      },
+      vars: "자리올림 1",
+      layers: [
+        {
+          name: "~x",
+          values: [1, 1, 1, 0, 1, 0, 1, 1],
+          read: [2],
+          write: [],
+        },
+        {
+          name: "-x",
+          values: [0, 0, 0, null, null, null, null, null],
+          read: [],
+          write: [2],
+        },
+        {
+          name: "x & -x",
+          values: [null, null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
       ],
     },
     {
-      title: "T6 — ② 자리 3 에서 자리올림이 멈춘다",
-      detail:
-        "x 의 자리 3 이 1 이라 뒤집은 값의 자리 3 은 0 이다. 0 에 자리올림 1 을 더하면 1 이 되고 넘길 것이 없어진다. 이 자리가 x 의 가장 낮은 1 비트 자리다.",
-      entries: [
-        { label: "갈래", value: "② 1 더하기" },
-        { label: "x", value: "40 (00101000)" },
-        { label: "~x", value: "-41 (11010111)" },
-        { label: "더하는 자리", value: "자리 3" },
-        { label: "자리올림", value: "0 — 여기서 멈춘다" },
-        { label: "정해진 아래 자리", value: "????1000" },
-        { label: "-x", value: "—" },
-        { label: "x & -x", value: "—" },
+      title: "T6 ② 자리 3 에 1 을 더한다",
+      text: "자리 3 의 ~x 비트 0 에 자리올림 1 을 더하면 1 이라 그 자리가 1 이 되고, 넘길 자리올림이 없어 여기서 멈춥니다. 자리 3 은 x 의 최하위 1 비트 자리입니다.",
+      array: [0, 0, 0, 1, 0, 1, 0, 0],
+      range: [0, 3],
+      rangeSide: "자리올림이 닿은 자리 4 칸",
+      read: [],
+      write: [],
+      pointers: {
+        j: 3,
+      },
+      calc: {
+        expr: "0 + 1",
+        result: "1, 자리올림 0",
+      },
+      vars: "자리올림 0",
+      layers: [
+        {
+          name: "~x",
+          values: [1, 1, 1, 0, 1, 0, 1, 1],
+          read: [3],
+          write: [],
+        },
+        {
+          name: "-x",
+          values: [0, 0, 0, 1, null, null, null, null],
+          read: [],
+          write: [3],
+        },
+        {
+          name: "x & -x",
+          values: [null, null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
       ],
     },
     {
-      title: "T7 — ② 자리 4 위는 뒤집은 값 그대로다",
-      detail:
-        "자리올림이 0 이라 위쪽에는 더할 것이 없다. 그래서 자리 4 부터는 뒤집은 값이 그대로 남고, 그 자리들은 x 의 반대다. 여기서 -x 가 완성된다.",
-      entries: [
-        { label: "갈래", value: "② 1 더하기" },
-        { label: "x", value: "40 (00101000)" },
-        { label: "~x", value: "-41 (11010111)" },
-        { label: "더하는 자리", value: "자리 4 부터 위" },
-        { label: "자리올림", value: "0 — 더할 것이 없다" },
-        { label: "정해진 아래 자리", value: "11011000" },
-        { label: "-x", value: "-40 (11011000)" },
-        { label: "x & -x", value: "—" },
+      title: "T7 ② 자리 4 부터 위는 그대로 둔다",
+      text: "자리올림이 0 이라 자리 4 부터 위는 더할 것이 없어 ~x 의 비트가 그대로 -x 로 내려옵니다. 모은 값은 -x = -40 입니다.",
+      array: [0, 0, 0, 1, 0, 1, 0, 0],
+      range: [4, 7],
+      rangeSide: "자리올림이 없는 자리 4 칸",
+      read: [],
+      write: [],
+      pointers: {},
+      calc: {
+        expr: "자리올림 0",
+        result: "자리 4 ~ 31 은 ~x 그대로",
+      },
+      vars: "자리올림 0",
+      layers: [
+        {
+          name: "~x",
+          values: [1, 1, 1, 0, 1, 0, 1, 1],
+          read: [4, 5, 6, 7],
+          write: [],
+        },
+        {
+          name: "-x",
+          values: [0, 0, 0, 1, 1, 0, 1, 1],
+          read: [],
+          write: [4, 5, 6, 7],
+        },
+        {
+          name: "x & -x",
+          values: [null, null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
       ],
     },
     {
-      title: "T8 — ③ 두 값이 함께 1 인 자리만 남긴다",
-      detail:
-        "자리 3 아래는 두 값이 다 0 이고, 자리 3 위는 두 값이 서로 반대다. 함께 1 인 자리는 자리 3 하나뿐이다.",
-      entries: [
-        { label: "갈래", value: "③ AND" },
-        { label: "x", value: "40 (00101000)" },
-        { label: "~x", value: "-41 (11010111)" },
-        { label: "더하는 자리", value: "—" },
-        { label: "자리올림", value: "—" },
-        { label: "정해진 아래 자리", value: "11011000" },
-        { label: "-x", value: "-40 (11011000)" },
-        { label: "x & -x", value: "8 (00001000)" },
+      title: "T8 ③ x 와 -x 를 AND 한다",
+      text: "x 와 -x 를 자리마다 AND 합니다. 함께 1 인 자리는 자리 3 하나이고, 나머지 자리는 0 입니다.",
+      array: [0, 0, 0, 1, 0, 1, 0, 0],
+      range: [0, 7],
+      read: [0, 1, 2, 3, 4, 5, 6, 7],
+      write: [],
+      pointers: {},
+      calc: {
+        expr: "40 & -40",
+        result: "8",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "~x",
+          values: [1, 1, 1, 0, 1, 0, 1, 1],
+          read: [],
+          write: [],
+        },
+        {
+          name: "-x",
+          values: [0, 0, 0, 1, 1, 0, 1, 1],
+          read: [0, 1, 2, 3, 4, 5, 6, 7],
+          write: [],
+        },
+        {
+          name: "x & -x",
+          values: [0, 0, 0, 1, 0, 0, 0, 0],
+          read: [],
+          write: [0, 1, 2, 3, 4, 5, 6, 7],
+        },
       ],
     },
     {
-      title: "T9 종료 — ③ 그 값을 돌려준다",
-      detail:
-        "남은 자리 하나의 값이 2^3 = 8 이다. 검사도 반복문도 없이 두 연산으로 끝났다.",
-      entries: [
-        { label: "갈래", value: "③ 반환" },
-        { label: "x", value: "40 (00101000)" },
-        { label: "~x", value: "-41 (11010111)" },
-        { label: "더하는 자리", value: "—" },
-        { label: "자리올림", value: "—" },
-        { label: "정해진 아래 자리", value: "11011000" },
-        { label: "-x", value: "-40 (11011000)" },
-        { label: "x & -x", value: "8 (00001000)" },
+      title: "T9 ③ 값을 돌려준다",
+      text: "자리 3 하나만 남은 값 8 을 돌려줍니다.",
+      array: [0, 0, 0, 1, 0, 1, 0, 0],
+      range: [0, 7],
+      read: [],
+      write: [],
+      pointers: {
+        p: 3,
+      },
+      calc: {
+        expr: "반환",
+        result: "8 = 2^3",
+      },
+      vars: null,
+      layers: [
+        {
+          name: "~x",
+          values: [1, 1, 1, 0, 1, 0, 1, 1],
+          read: [],
+          write: [],
+        },
+        {
+          name: "-x",
+          values: [0, 0, 0, 1, 1, 0, 1, 1],
+          read: [],
+          write: [],
+        },
+        {
+          name: "x & -x",
+          values: [0, 0, 0, 1, 0, 0, 0, 0],
+          read: [3],
+          write: [],
+        },
       ],
     },
-  ] satisfies Frame[],
+  ],
 };
