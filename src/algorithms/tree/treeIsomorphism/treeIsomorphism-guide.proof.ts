@@ -6,14 +6,33 @@
  *
  *   bun run tools/check-proof.ts src/algorithms/tree/treeIsomorphism/treeIsomorphism-guide.md
  *
- * **변이가 아무것도 안 바꾸는지 검사하는 자리는 중화 실행을 비켜 간다.** `check-proof` 가 이
- * 파일을 한 번 더 부를 때는 `loadMutant` 이 정본을 그대로 돌려주므로(중화), 그 상태에서
- * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
- * 모듈의 함수가 정본과 **같은 객체인가**로 값에서 알아낸다.
+ * **사본이 셋 있다.** 정본은 걸음마다의 상태도, 기본 연산 수도 내보내지 않는다.
+ *
+ * - `traceWalk` — 정본과 같은 절차에 걸음 기록을 덧붙인 판. 걸음마다 배열을 베끼므로 전개 입력처럼
+ *   작은 입력에만 쓴다. 걸음 재생 패널과 본문 전개 표의 출처다.
+ * - `meter` — 정본과 같은 절차의 계수만 세는 판. 걸음을 베끼지 않으므로 정점 100,000 개에도 쓴다.
+ * - `variant` — 뿌리를 정점 0 하나 · 모든 정점 · 중심으로 바꿔 가며 같은 계수를 세는 판. 「아이디어를
+ *   떠올리는 과정」의 비교에만 쓴다.
+ *
+ * 비용의 기준은 원고 전체에서 하나다 — **기본 연산**. 간선 목록에서 간선 하나를 읽는 일 · 이웃 목록의
+ * 항목 하나를 읽는 일 · 잎 하나를 벗기는 일 · 방문 차례에 정점 하나를 담는 일 · 자식 번호 두 개를 한 번
+ * 비교하는 일(정렬 안에서) · 맵(모양 번호표나 간선 집합)을 한 번 찾는 일을 각각 한 번으로 센다. 메모리는
+ * 모양 번호표의 열쇠 개수와 열쇠 글자 수로 센다.
+ *
+ * **답이 맞는지는 사본이 아니라 정본이 진다** — 사본은 자기 답을 정본과 맞대고, 어긋나면 던진다.
+ * 정의대로의 답(정점 대응이 있는가)은 `byMapping` 이 되추적으로 낸다.
+ *
+ * **변이가 아무것도 안 바꾸는지 검사하는 자리는 중화 실행을 비켜 간다.** `check-proof` 가 이 파일을
+ * 한 번 더 부를 때는 `loadMutant` 이 정본을 그대로 돌려주므로(중화), 그 상태에서 「변이가 답을 안
+ * 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이 모듈의 함수가 정본과 **같은
+ * 객체인가**로 값에서 알아낸다.
+ *
+ * **무거운 계산은 부를 때 한 번만 한다(`once`).** 그림 사이드카와 가이드 시험이 이 파일에서 입력과
+ * 걸음 기록만 가져가는데, 라벨 붙은 트리 전수 같은 계산을 모듈을 읽을 때 하면 그쪽이 수 초씩 기다린다.
  */
 
 import { loadMutant } from "../../../../tools/check-proof.ts";
-import { 과와, 을를, 이가 } from "../../../../tools/josa.ts";
+import { 과와, 으로, 은는, 을를, 이가 } from "../../../../tools/josa.ts";
 import {
   centers,
   type Edge,
@@ -24,76 +43,77 @@ import {
 
 /* ────────────────────────── 표 그리기 ────────────────────────── */
 
-/**
- * 화면에 찍히는 폭. **CJK 를 2 칸으로 센다.**
- *
- * `tools/check-v2.ts` 의 `displayWidth` 와 같은 규칙이다 — 다른 규칙으로 그리면 그 스캐너의
- * 열 정렬 판정(P15)과 이 파일이 어긋난다.
- */
-const width = (s: string): number => {
-  let n = 0;
-  for (const ch of s) {
-    const c = ch.codePointAt(0) ?? 0;
-    n +=
-      (c >= 0x1100 && c <= 0x115f) ||
-      (c >= 0x2e80 && c <= 0xa4cf && c !== 0x303f) ||
-      (c >= 0xac00 && c <= 0xd7a3) ||
-      (c >= 0xf900 && c <= 0xfaff) ||
-      (c >= 0xfe30 && c <= 0xfe6f) ||
-      (c >= 0xff00 && c <= 0xff60) ||
-      (c >= 0xffe0 && c <= 0xffe6) ||
-      (c >= 0x20000 && c <= 0x3fffd)
-        ? 2
-        : 1;
-  }
-  return n;
-};
+/** 한글은 고정폭 화면에서 두 칸을 먹는다. 칸 맞춤을 글자 수로 하면 머리줄만 어긋난다. */
+const width = (s: string): number =>
+  [...s].reduce((n, c) => n + (/[ᄀ-ᇿ　-〿㄰-㆏가-힯一-鿿]/.test(c) ? 2 : 1), 0);
 
-const padRight = (s: string, to: number): string =>
+const pad = (s: string, to: number): string =>
   s + " ".repeat(Math.max(0, to - width(s)));
 
-const padLeft = (s: string, to: number): string =>
-  " ".repeat(Math.max(0, to - width(s))) + s;
-
-/** 천 단위 구분. 본문 표기와 같다. */
-const num = (n: number): string => n.toLocaleString("en-US");
-
-/** 「 N 개」를 값에서 만든다. 앞 공백을 포함하고 뒤 어미는 안 붙인다. */
-const gae = (n: number): string => ` ${num(n)} 개`;
-/** 「 N 줄」을 값에서 만든다. 뒤에는 언제나 「이다」가 붙는다. */
-const jul = (n: number): string => ` ${num(n)} 줄`;
-/** 「 N 번」을 값에서 만든다. 뒤에는 언제나 「이다」가 붙는다. */
-const beon = (n: number): string => ` ${num(n)} 번`;
-
-/**
- * 열 폭을 값에서 계산해 표를 그린다. 폭을 리터럴로 박으면 값이 바뀌어도 표가 그대로라
- * 어긋난 자리를 아무도 못 본다.
- */
-function table(head: string[], rows: string[][], align: ("l" | "r")[]): string {
-  const cols = head.length;
-  const w = Array.from({ length: cols }, (_, c) =>
-    Math.max(width(head[c] ?? ""), ...rows.map((r) => width(r[c] ?? ""))),
-  );
-  const line = (cells: string[]): string =>
-    cells
-      .map((cell, c) =>
-        align[c] === "r" ? padLeft(cell, w[c] ?? 0) : padRight(cell, w[c] ?? 0),
-      )
-      .join("  ")
-      .replace(/\s+$/, "");
-  return [line(head), ...rows.map(line)].join("\n");
+/** 열을 값의 폭에 맞춰 늘어놓는다(등폭 펜스용). */
+function columns(rows: string[][], gap = "  "): string {
+  const cols = Math.max(...rows.map((r) => r.length));
+  const widths: number[] = [];
+  for (let c = 0; c < cols; c++) {
+    widths.push(Math.max(...rows.map((r) => width(r[c] ?? ""))));
+  }
+  return rows
+    .map((r) =>
+      r
+        .map((cell, c) => pad(cell, widths[c] ?? 0))
+        .join(gap)
+        .replace(/\s+$/, ""),
+    )
+    .join("\n");
 }
 
-/** 간선 목록 하나를 한 칸에 적는다. */
-const pairs = (es: Edge[]): string =>
-  es.length === 0 ? "[]" : es.map(([u, v]) => `${u}-${v}`).join(" ");
+/** 마크다운 표. `right` 에 든 열은 오른쪽 정렬이다. */
+function md(
+  head: string[],
+  rows: string[][],
+  right: readonly number[] = [],
+): string {
+  const rule = head.map((_, c) => (right.includes(c) ? "---:" : "---"));
+  const line = (cells: string[]) => `| ${cells.join(" | ")} |`;
+  return [line(head), line(rule), ...rows.map(line)].join("\n");
+}
 
-/** 수 배열 하나를 한 칸에 적는다. */
-const cells = (a: number[]): string => a.join(" ");
+/** 천 단위 구분. 본문 표기와 같다. */
+export const comma = (n: number | bigint): string => n.toLocaleString("en-US");
+
+/** 수 목록 하나를 한 칸에 — `[1, 6]`. */
+export const show = (xs: readonly (number | string)[]): string =>
+  `[${xs.join(", ")}]`;
+
+/** 정점 모임 하나를 한 칸에 — `{3, 4, 5}`. */
+export const setOf = (xs: readonly number[]): string => `{${xs.join(", ")}}`;
+
+/** 모양 번호표의 열쇠를 적는 법 — 빈 열쇠만 `""` 로 적고 나머지는 글자 그대로다. */
+export const keyText = (key: string): string => (key === "" ? `""` : key);
+
+/** 간선 목록 하나를 한 칸에 — `0-1 1-2`. */
+const pairs = (es: readonly Edge[]): string =>
+  es.length === 0 ? "없음" : es.map(([u, v]) => `${u}-${v}`).join(" ");
+
+/** 결과를 한 번만 계산한다. */
+function once<T>(f: () => T): () => T {
+  let done = false;
+  let value: T | undefined;
+  return () => {
+    if (!done) {
+      value = f();
+      done = true;
+    }
+    return value as T;
+  };
+}
 
 /* ────────────────────────── 입력 ────────────────────────── */
 
-/** 본문 전개가 끝까지 쓰는 트리 둘. 정점 여덟 · 간선 일곱씩이고 서로 동형이다. */
+/**
+ * 본문 전개가 끝까지 쓰는 트리 둘. 정점 여덟 · 간선 일곱씩이고 서로 동형이다. 둘 다 중심이 둘이라
+ * 뿌리를 두 번 잡는 갈래가 실행되고, 한 트리 안에서 두 중심의 모양 번호가 서로 다르다.
+ */
 export const WALK_N = 8;
 export const TREE_A: Edge[] = [
   [0, 1],
@@ -114,12 +134,31 @@ export const TREE_B: Edge[] = [
   [6, 7],
 ];
 
-function chain(n: number): Edge[] {
+/** 차수 수열이 같은데 동형이 아닌 가장 작은 짝(정점 여섯). */
+export const PQ_N = 6;
+export const TREE_P: Edge[] = [
+  [2, 3],
+  [1, 2],
+  [0, 1],
+  [0, 4],
+  [0, 5],
+];
+export const TREE_Q: Edge[] = [
+  [2, 4],
+  [1, 3],
+  [0, 1],
+  [0, 4],
+  [0, 5],
+];
+
+export const N_LIMIT = 100_000;
+
+export function chain(n: number): Edge[] {
   const out: Edge[] = [];
   for (let i = 0; i < n - 1; i++) out.push([i, i + 1]);
   return out;
 }
-function star(n: number, hub: number): Edge[] {
+export function star(n: number, hub: number): Edge[] {
   const out: Edge[] = [];
   for (let v = 0; v < n; v++) if (v !== hub) out.push([hub, v]);
   return out;
@@ -134,6 +173,46 @@ function caterpillar(n: number, s: number): Edge[] {
   const out: Edge[] = [];
   for (let i = 0; i < s - 1; i++) out.push([i, i + 1]);
   for (let i = s; i < n; i++) out.push([(i - s) % s, i]);
+  return out;
+}
+/**
+ * 사슬 `0-1-…-(n−2)` 의 정점 `at` 에 잎 하나를 더 단 트리. `at` 이 1 과 2 인 둘은 정점 수 · 지름 · 중심
+ * 개수가 같고(정점 6 이상), 모양은 다르다.
+ */
+function broomAt(n: number, at: number): Edge[] {
+  const out = chain(n - 1);
+  out.push([at, n - 1]);
+  return out;
+}
+/**
+ * 가운데 정점 0 에 길이가 1 · 2 · 3 … 인 다리를 단 거미. 다리의 모양이 전부 달라 가운데 정점의 자식
+ * 번호가 모두 다르고, 다리를 적는 차례를 섞어 두어 정렬이 실제로 일을 한다.
+ */
+function spider(n: number): Edge[] {
+  const lens: number[] = [];
+  let left = n - 1;
+  for (let k = 1; left > 0; k++) {
+    const len = Math.min(k, left);
+    lens.push(len);
+    left -= len;
+  }
+  const next = makeRng(7);
+  for (let i = lens.length - 1; i > 0; i--) {
+    const j = next() % (i + 1);
+    const t = lens[i] as number;
+    lens[i] = lens[j] as number;
+    lens[j] = t;
+  }
+  const out: Edge[] = [];
+  let v = 1;
+  for (const len of lens) {
+    let prev = 0;
+    for (let k = 0; k < len; k++) {
+      out.push([prev, v]);
+      prev = v;
+      v++;
+    }
+  }
   return out;
 }
 
@@ -172,6 +251,140 @@ function relabel(n: number, edges: Edge[], seed: number): Edge[] {
   });
   out.sort((x, y) => x[0] - y[0] || x[1] - y[1]);
   return out;
+}
+
+/* ────────────────────────── 뿌리를 정한 트리 ────────────────────────── */
+
+/** 뿌리 `root` 에서 본 자식 목록 — 정본의 ③ 과 같은 차례(너비 우선)로 담는다. */
+export function childrenFrom(
+  n: number,
+  edges: readonly Edge[],
+  root: number,
+): { kids: number[][]; parent: number[]; order: number[] } {
+  const link = neighbors(n, [...edges]);
+  const parent: number[] = Array.from({ length: n }, () => -1);
+  const order: number[] = [root];
+  const kids: number[][] = Array.from({ length: n }, () => []);
+  for (let i = 0; i < order.length; i++) {
+    const v = order[i] as number;
+    for (const w of link[v] as number[]) {
+      if (w !== parent[v]) {
+        parent[w] = v;
+        (kids[v] as number[]).push(w);
+        order.push(w);
+      }
+    }
+  }
+  return { kids, parent, order };
+}
+
+/**
+ * 모양 번호표 하나를 들고 뿌리 여럿에서 차례로 번호를 매긴다 — 정본의 `shapeCode` 를 그대로 부르고,
+ * 정점마다의 번호는 정본과 같은 절차를 다시 밟아 모은다(정본은 뿌리의 번호만 돌려준다).
+ */
+export function codesFrom(
+  n: number,
+  edges: readonly Edge[],
+  root: number,
+  table: Map<string, number>,
+): number[] {
+  const { kids, order } = childrenFrom(n, edges, root);
+  const code: number[] = Array.from({ length: n }, () => -1);
+  for (let i = order.length - 1; i >= 0; i--) {
+    const v = order[i] as number;
+    const got = (kids[v] as number[])
+      .map((w) => code[w] as number)
+      .sort((a, b) => a - b);
+    const key = got.join(",");
+    let id = table.get(key);
+    if (id === undefined) {
+      id = table.size;
+      table.set(key, id);
+    }
+    code[v] = id;
+  }
+  return code;
+}
+
+/**
+ * 전개 입력의 판정을 정본 차례 그대로 한 번 한 결과 — B 를 중심마다, 그다음 A 를 첫 중심에서 매긴다.
+ * 본문 전체가 쓰는 모양 번호가 여기서 나온다. 뿌리의 번호는 정본 `shapeCode` 와 맞댄다.
+ */
+export const RUN = (() => {
+  const cA = centers(WALK_N, neighbors(WALK_N, TREE_A));
+  const cB = centers(WALK_N, neighbors(WALK_N, TREE_B));
+  const table = new Map<string, number>();
+  const refTable = new Map<string, number>();
+  const bAt = new Map<number, number[]>();
+  for (const r of cB) {
+    const code = codesFrom(WALK_N, TREE_B, r, table);
+    const want = shapeCode(WALK_N, neighbors(WALK_N, TREE_B), r, refTable);
+    if (code[r] !== want) throw new Error("B 의 뿌리 번호가 정본과 다르다");
+    bAt.set(r, code);
+  }
+  const aRoot = cA[0] as number;
+  const aCode = codesFrom(WALK_N, TREE_A, aRoot, table);
+  const want = shapeCode(WALK_N, neighbors(WALK_N, TREE_A), aRoot, refTable);
+  if (aCode[aRoot] !== want) throw new Error("A 의 뿌리 번호가 정본과 다르다");
+  if ([...table.keys()].join("|") !== [...refTable.keys()].join("|")) {
+    throw new Error("모양 번호표가 정본과 다르다");
+  }
+  return { cA, cB, table, bAt, aRoot, aCode };
+})();
+
+/** 모양 번호를 괄호 문자열로 편다 — 열쇠가 적은 자식 번호마다 그 괄호를 차례로 넣는다. */
+export function bracketOf(code: number, table: Map<string, number>): string {
+  const keys = [...table.keys()];
+  const key = keys[code] as string;
+  const kids = key === "" ? [] : key.split(",").map(Number);
+  return `(${kids.map((k) => bracketOf(k, table)).join("")})`;
+}
+
+/**
+ * 정점 대응 하나를 모양 번호에서 만든다 — 두 뿌리의 번호가 같으면 자식끼리 같은 번호를 짝지어
+ * 내려간다. 만든 대응은 `mapsEdges` 가 간선으로 확인한다.
+ */
+export function mappingFrom(
+  n: number,
+  ea: readonly Edge[],
+  ra: number,
+  eb: readonly Edge[],
+  rb: number,
+): number[] {
+  const table = new Map<string, number>();
+  const ca = codesFrom(n, ea, ra, table);
+  const cb = codesFrom(n, eb, rb, table);
+  const ka = childrenFrom(n, ea, ra).kids;
+  const kb = childrenFrom(n, eb, rb).kids;
+  const phi: number[] = Array.from({ length: n }, () => -1);
+  const pair = (x: number, y: number): void => {
+    phi[x] = y;
+    const pool = [...(kb[y] as number[])];
+    for (const c of ka[x] as number[]) {
+      const at = pool.findIndex((d) => cb[d] === ca[c]);
+      const d = pool[at] as number;
+      pool.splice(at, 1);
+      pair(c, d);
+    }
+  };
+  pair(ra, rb);
+  return phi;
+}
+
+/** 대응 `phi` 아래에서 `ea` 의 간선이 전부 `eb` 의 간선이 되는가. */
+function mapsEdges(ea: readonly Edge[], eb: readonly Edge[], phi: number[]) {
+  const has = new Set(
+    eb.map(([u, v]) => `${Math.min(u, v)}-${Math.max(u, v)}`),
+  );
+  return ea.map(([u, v]) => {
+    const a = phi[u] as number;
+    const b = phi[v] as number;
+    return {
+      from: [u, v],
+      to: [a, b],
+      ok: has.has(`${Math.min(a, b)}-${Math.max(a, b)}`),
+    };
+  });
 }
 
 /* ────────────────────────── 라벨 붙은 트리 전수 ────────────────────────── */
@@ -218,11 +431,7 @@ function* allTrees(n: number): Generator<Edge[]> {
 }
 
 /** 정본과 같은 표를 계속 쓰면 번호가 트리를 가로질러 뜻을 가진다. */
-function canonKey(
-  n: number,
-  edges: Edge[],
-  shared: Map<string, number>,
-): string {
+function canonKey(n: number, edges: Edge[], shared: Map<string, number>) {
   const link = neighbors(n, edges);
   const roots = centers(n, link);
   const codes = roots
@@ -232,12 +441,7 @@ function canonKey(
 }
 
 /** 정점 대응을 되추적으로 찾는다 — 정의를 그대로 옮긴 절차다. */
-function byPermutation(
-  n: number,
-  e1: Edge[],
-  e2: Edge[],
-  counter?: { calls: number },
-): boolean {
+export function byMapping(n: number, e1: Edge[], e2: Edge[]): boolean {
   const link1 = neighbors(n, e1);
   const link2 = neighbors(n, e2);
   const has = new Set<number>();
@@ -248,7 +452,6 @@ function byPermutation(
   const map: number[] = Array.from({ length: n }, () => -1);
   const used: boolean[] = Array.from({ length: n }, () => false);
   const place = (i: number): boolean => {
-    if (counter !== undefined) counter.calls++;
     if (i === n) return true;
     for (let j = 0; j < n; j++) {
       if (used[j] === true) continue;
@@ -277,9 +480,107 @@ function byPermutation(
   return place(0);
 }
 
-/* ────────────────────────── 계측본 ────────────────────────── */
+/**
+ * 뿌리째 동형인가 — 뿌리를 뿌리로 보내고, 자식을 대응한 정점의 자식 가운데 아직 안 쓴 것으로 보내는
+ * 대응을 되추적으로 찾는다. 모양 번호를 쓰지 않는다.
+ */
+function rootedIso(
+  ka: number[][],
+  ra: number,
+  kb: number[][],
+  rb: number,
+): boolean {
+  const ca = ka[ra] as number[];
+  const cb = kb[rb] as number[];
+  if (ca.length !== cb.length) return false;
+  const used: boolean[] = cb.map(() => false);
+  const go = (i: number): boolean => {
+    if (i === ca.length) return true;
+    for (let j = 0; j < cb.length; j++) {
+      if (used[j]) continue;
+      if (!rootedIso(ka, ca[i] as number, kb, cb[j] as number)) continue;
+      used[j] = true;
+      if (go(i + 1)) return true;
+      used[j] = false;
+    }
+    return false;
+  };
+  return go(0);
+}
 
-interface Metered {
+interface Census {
+  n: number;
+  labeled: number;
+  classes: number;
+  sameChecked: number;
+  sameFail: number;
+  crossChecked: number;
+  crossFail: number;
+  degSeqs: number;
+}
+
+/** 라벨 붙은 트리를 모양 번호로 묶고, 묶음 안과 묶음 사이를 되추적으로 다시 판정한다. */
+function census(n: number, sampleCap: number): Census {
+  const shared = new Map<string, number>();
+  const groups = new Map<string, Edge[][]>();
+  let labeled = 0;
+  for (const edges of allTrees(n)) {
+    labeled++;
+    const key = canonKey(n, edges, shared);
+    const bucket = groups.get(key);
+    if (bucket === undefined) groups.set(key, [edges]);
+    else bucket.push(edges);
+  }
+  let sameChecked = 0;
+  let sameFail = 0;
+  for (const members of groups.values()) {
+    const rep = members[0] as Edge[];
+    for (let i = 1; i < members.length && i <= sampleCap; i++) {
+      sameChecked++;
+      if (!byMapping(n, rep, members[i] as Edge[])) sameFail++;
+    }
+  }
+  const reps = [...groups.values()].map((m) => m[0] as Edge[]);
+  let crossChecked = 0;
+  let crossFail = 0;
+  for (let i = 0; i < reps.length; i++) {
+    for (let j = i + 1; j < reps.length; j++) {
+      crossChecked++;
+      if (byMapping(n, reps[i] as Edge[], reps[j] as Edge[])) crossFail++;
+    }
+  }
+  const bySeq = new Set<string>();
+  for (const rep of reps) {
+    bySeq.add(
+      neighbors(n, rep)
+        .map((row) => row.length)
+        .sort((a, b) => a - b)
+        .join(","),
+    );
+  }
+  return {
+    n,
+    labeled,
+    classes: groups.size,
+    sameChecked,
+    sameFail,
+    crossChecked,
+    crossFail,
+    degSeqs: bySeq.size,
+  };
+}
+
+/** 정점 여덟까지 — 일곱까지는 전수, 여덟은 묶음마다 200 벌까지. */
+const CENSUS = once(() => {
+  const out: Census[] = [];
+  for (let n = 1; n <= 7; n++) out.push(census(n, Number.POSITIVE_INFINITY));
+  out.push(census(8, 200));
+  return out;
+});
+
+/* ────────────────────────── 계수 ────────────────────────── */
+
+export interface Metered {
   answer: boolean;
   edgeReads: number;
   slotReads: number;
@@ -292,12 +593,16 @@ interface Metered {
   rootedRuns: number;
   centers1: number;
   centers2: number;
+  /** 기본 연산 — 여섯 계수의 합. */
+  ops: number;
+  /** 잎 벗기기에서 읽은 이웃 항목 수 — `slotReads` 가운데 벗기기 몫. */
+  peelReads: number;
 }
 
-/** 정본과 **같은 걸음**을 밟으면서 계수만 센다. 답은 매번 정본과 대조한다. */
-function meter(n: number, e1: Edge[], e2: Edge[]): Metered {
-  const m: Metered = {
-    answer: false,
+type Counter = Omit<Metered, "answer" | "ops">;
+
+function freshCounter(): Counter {
+  return {
     edgeReads: 0,
     slotReads: 0,
     peeled: 0,
@@ -309,329 +614,438 @@ function meter(n: number, e1: Edge[], e2: Edge[]): Metered {
     rootedRuns: 0,
     centers1: 0,
     centers2: 0,
+    peelReads: 0,
   };
-  const link = (edges: Edge[]): number[][] => {
-    const out: number[][] = Array.from({ length: n }, () => []);
-    for (const [u, v] of edges) {
-      m.edgeReads++;
-      (out[u] as number[]).push(v);
-      (out[v] as number[]).push(u);
-    }
-    return out;
-  };
-  const roots = (adj: number[][]): number[] => {
-    if (n === 1) return [0];
-    const left = adj.map((row) => row.length);
-    let layer: number[] = [];
-    for (let v = 0; v < n; v++) if (left[v] === 1) layer.push(v);
-    let alive = n;
-    while (alive > 2) {
-      const next: number[] = [];
-      for (const v of layer) {
-        left[v] = 0;
-        alive--;
-        m.peeled++;
-        for (const w of adj[v] as number[]) {
-          m.slotReads++;
-          if ((left[w] as number) > 0) {
-            left[w] = (left[w] as number) - 1;
-            if (left[w] === 1) next.push(w);
-          }
-        }
-      }
-      layer = next;
-    }
-    return layer;
-  };
-  const code = (
-    adj: number[][],
-    root: number,
-    shared: Map<string, number>,
-  ): number => {
-    m.rootedRuns++;
-    const parent: number[] = Array.from({ length: n }, () => -1);
-    const order: number[] = [root];
-    for (let i = 0; i < order.length; i++) {
-      const v = order[i] as number;
-      m.visits++;
-      for (const w of adj[v] as number[]) {
-        m.slotReads++;
-        if (w !== parent[v]) {
-          parent[w] = v;
-          order.push(w);
-        }
-      }
-    }
-    const id: number[] = Array.from({ length: n }, () => -1);
-    for (let i = order.length - 1; i >= 0; i--) {
-      const v = order[i] as number;
-      const kids: number[] = [];
-      for (const w of adj[v] as number[]) {
-        m.slotReads++;
-        if (w !== parent[v]) kids.push(id[w] as number);
-      }
-      kids.sort((a, b) => {
-        m.compares++;
-        return a - b;
-      });
-      const key = kids.join(",");
-      m.lookups++;
-      m.keyChars += key.length;
-      let got = shared.get(key);
-      if (got === undefined) {
-        got = shared.size;
-        shared.set(key, got);
-      }
-      id[v] = got;
-    }
-    return id[root] as number;
-  };
+}
 
-  const link1 = link(e1);
-  const link2 = link(e2);
-  const root1 = roots(link1);
-  const root2 = roots(link2);
+const opsOf = (m: Counter): number =>
+  m.edgeReads + m.slotReads + m.peeled + m.visits + m.compares + m.lookups;
+
+function countedLink(n: number, edges: Edge[], m: Counter): number[][] {
+  const out: number[][] = Array.from({ length: n }, () => []);
+  for (const [u, v] of edges) {
+    m.edgeReads++;
+    (out[u] as number[]).push(v);
+    (out[v] as number[]).push(u);
+  }
+  return out;
+}
+
+function countedCenters(n: number, adj: number[][], m: Counter): number[] {
+  if (n === 1) return [0];
+  const left = adj.map((row) => row.length);
+  let layer: number[] = [];
+  for (let v = 0; v < n; v++) if (left[v] === 1) layer.push(v);
+  let alive = n;
+  while (alive > 2) {
+    const next: number[] = [];
+    for (const v of layer) {
+      left[v] = 0;
+      alive--;
+      m.peeled++;
+      for (const w of adj[v] as number[]) {
+        m.slotReads++;
+        m.peelReads++;
+        if ((left[w] as number) > 0) {
+          left[w] = (left[w] as number) - 1;
+          if (left[w] === 1) next.push(w);
+        }
+      }
+    }
+    layer = next;
+  }
+  return layer;
+}
+
+function countedCode(
+  n: number,
+  adj: number[][],
+  root: number,
+  shared: Map<string, number>,
+  m: Counter,
+): number {
+  m.rootedRuns++;
+  const parent: number[] = Array.from({ length: n }, () => -1);
+  const order: number[] = [root];
+  for (let i = 0; i < order.length; i++) {
+    const v = order[i] as number;
+    m.visits++;
+    for (const w of adj[v] as number[]) {
+      m.slotReads++;
+      if (w !== parent[v]) {
+        parent[w] = v;
+        order.push(w);
+      }
+    }
+  }
+  const id: number[] = Array.from({ length: n }, () => -1);
+  for (let i = order.length - 1; i >= 0; i--) {
+    const v = order[i] as number;
+    const kids: number[] = [];
+    for (const w of adj[v] as number[]) {
+      m.slotReads++;
+      if (w !== parent[v]) kids.push(id[w] as number);
+    }
+    kids.sort((a, b) => {
+      m.compares++;
+      return a - b;
+    });
+    const key = kids.join(",");
+    m.lookups++;
+    let got = shared.get(key);
+    if (got === undefined) {
+      got = shared.size;
+      shared.set(key, got);
+      m.keyChars += key.length;
+    }
+    id[v] = got;
+  }
+  return id[root] as number;
+}
+
+/**
+ * 정본과 **같은 걸음**을 밟으면서 계수만 센다. 답은 매번 정본과 대조한다. `skipCount` 는 중심 개수
+ * 비교(⑦)를 뺀 판의 계수다 — 그 판의 답은 정본과 같으므로(본문 「짚고 가기」) 같은 대조를 건다.
+ */
+export function meter(
+  n: number,
+  e1: Edge[],
+  e2: Edge[],
+  skipCount = false,
+): Metered {
+  const m = freshCounter();
+  const link1 = countedLink(n, e1, m);
+  const link2 = countedLink(n, e2, m);
+  const root1 = countedCenters(n, link1, m);
+  const root2 = countedCenters(n, link2, m);
   m.centers1 = root1.length;
   m.centers2 = root2.length;
   const shared = new Map<string, number>();
-  if (root1.length === root2.length) {
-    const code2 = root2.map((r) => code(link2, r, shared));
+  let answer = false;
+  if (skipCount || root1.length === root2.length) {
+    const code2 = root2.map((r) => countedCode(n, link2, r, shared, m));
     for (const r of root1) {
-      if (code2.includes(code(link1, r, shared))) {
-        m.answer = true;
+      if (code2.includes(countedCode(n, link1, r, shared, m))) {
+        answer = true;
         break;
       }
     }
   }
   m.tableSize = shared.size;
   const want = treeIsomorphism(n, e1, e2);
-  if (m.answer !== want) {
-    throw new Error(`계측본이 정본과 다른 답을 냈다 — ${m.answer} 대 ${want}`);
+  if (answer !== want) {
+    throw new Error(`계수 사본이 정본과 다른 답을 냈다 — ${answer} 대 ${want}`);
   }
-  return m;
+  return { ...m, answer, ops: opsOf(m) };
 }
 
-/* ────────────────────────── 전개 걸음 ────────────────────────── */
+/**
+ * 뿌리 자리를 바꾼 판의 계수. `zero` 는 두 트리 다 정점 0 에 뿌리를 두고 번호 하나씩을 비교하고,
+ * `all` 은 A 의 정점 0 번호를 B 의 모든 정점 번호와 비교한다(맞는 뿌리를 만나면 멈춘다).
+ */
+function variant(
+  n: number,
+  e1: Edge[],
+  e2: Edge[],
+  mode: "zero" | "all",
+): { answer: boolean; ops: number; runs: number } {
+  const m = freshCounter();
+  const link1 = countedLink(n, e1, m);
+  const link2 = countedLink(n, e2, m);
+  const shared = new Map<string, number>();
+  const target = countedCode(n, link1, 0, shared, m);
+  let answer = false;
+  if (mode === "zero") {
+    answer = countedCode(n, link2, 0, shared, m) === target;
+  } else {
+    for (let v = 0; v < n; v++) {
+      if (countedCode(n, link2, v, shared, m) === target) {
+        answer = true;
+        break;
+      }
+    }
+  }
+  return { answer, ops: opsOf(m), runs: m.rootedRuns };
+}
 
-export interface WalkStep {
-  t: string;
-  branch: string;
+/** 뿌리 하나에서 번호를 매기는 한 벌의 기본 연산 — 어림에만 쓴다. */
+function oneRunOps(n: number, edges: Edge[]): number {
+  const m = freshCounter();
+  const link = neighbors(n, edges);
+  countedCode(n, link, 0, new Map(), m);
+  return opsOf(m);
+}
+
+/**
+ * 정의를 그대로 옮긴 절차 — 정점 대응을 하나씩 만들어(힙 알고리즘) 그 대응 아래에서 A 의 간선이 B 의
+ * 간선 집합에 있는지 차례로 찾는다. 하나라도 없으면 그 대응을 버린다.
+ */
+function naiveOps(
+  n: number,
+  e1: Edge[],
+  e2: Edge[],
+): { answer: boolean; ops: number; tried: number } {
+  let ops = 0;
+  const has = new Set<number>();
+  for (const [u, v] of e2) {
+    ops++;
+    has.add(u * n + v);
+    has.add(v * n + u);
+  }
+  const p = Array.from({ length: n }, (_, i) => i);
+  const test = (): boolean => {
+    for (const [u, v] of e1) {
+      ops += 2;
+      if (!has.has((p[u] as number) * n + (p[v] as number))) return false;
+    }
+    return true;
+  };
+  let tried = 1;
+  if (test()) return { answer: true, ops, tried };
+  const c: number[] = Array.from({ length: n }, () => 0);
+  let i = 1;
+  while (i < n) {
+    if ((c[i] as number) < i) {
+      const j = i % 2 === 0 ? 0 : (c[i] as number);
+      const t = p[j] as number;
+      p[j] = p[i] as number;
+      p[i] = t;
+      tried++;
+      if (test()) return { answer: true, ops, tried };
+      c[i] = (c[i] as number) + 1;
+      i = 1;
+    } else {
+      c[i] = 0;
+      i++;
+    }
+  }
+  return { answer: false, ops, tried };
+}
+
+const factorial = (n: number): bigint => {
+  let f = 1n;
+  for (let k = 2n; k <= BigInt(n); k++) f *= k;
+  return f;
+};
+/** `n!` 의 자릿수 — `⌊Σ log₁₀ k⌋ + 1`. */
+const factorialDigits = (n: number): number => {
+  let s = 0;
+  for (let k = 2; k <= n; k++) s += Math.log10(k);
+  return Math.floor(s) + 1;
+};
+
+/* ────────────────────────── 전개 걸음 기록 ────────────────────────── */
+
+export type Kind = "build" | "peel" | "count" | "order" | "code" | "match";
+export type Side = "A" | "B";
+
+/** 걸음 하나가 끝난 뒤의 상태. */
+export interface Snap {
+  kind: Kind;
+  /** 이 걸음이 다룬 트리. 두 트리를 함께 다루면 `null`. */
+  tree: Side | null;
+  /** 정본의 원문자 라벨. */
   labels: string;
-  tree: string;
-  root: string;
-  gave: string;
-  tableSize: number;
-  code2: string;
-  did: string;
-  /** 이 걸음에서 그릴 트리와 뿌리, 그리고 그 시점의 번호. */
-  draw: { tree: string; root: number; code: number[]; done: number[] };
+  /** 트리마다 남은 차수. 벗긴 정점은 0 이다. */
+  left: Record<Side, number[]>;
+  /** 트리마다 정점을 벗긴 바퀴(1 부터). 아직 안 벗겼으면 0. */
+  gone: Record<Side, number[]>;
+  /** 트리마다 찾은 중심. 아직이면 `null`. */
+  found: Record<Side, number[] | null>;
+  /** `peel` — 이번 바퀴. */
+  round?: number;
+  leaves?: number[];
+  touched?: number[];
+  alive?: number;
+  next?: number[];
+  /** 번호를 매기는 중인 뿌리와 그 뿌리에서의 부모 · 방문 차례 · 번호. */
+  root: number | null;
+  parent: number[] | null;
+  order: number[];
+  code: (number | null)[];
+  /** `code` — 이번에 번호를 받은 정점과 그 계산. */
+  i?: number;
+  v?: number;
+  kids?: number[];
+  raw?: number[];
+  sorted?: number[];
+  key?: string;
+  fresh?: boolean;
+  /** 모양 번호표의 열쇠 — 번호 차례. */
+  table: string[];
+  /** 지금까지 낸 B 의 중심 번호. */
+  code2: number[];
+  hit?: boolean;
+  /** `order` — `w !== parent[v]` 가 참 · 거짓이었던 횟수. */
+  branch?: [number, number];
 }
 
-/** 전개 입력을 정본과 같은 차례로 밟으며 걸음을 남긴다. */
-function walkLog(): {
-  steps: WalkStep[];
-  table: [string, number][];
-  answer: boolean;
-  numbered: number;
-} {
+export const stepOf = (k: number): string => `T${k + 1}`;
+
+/** 전개 입력을 정본과 같은 차례로 밟으며 걸음마다 상태를 베낀다. */
+function traceWalk(): { steps: Snap[]; answer: boolean } {
   const n = WALK_N;
-  const steps: WalkStep[] = [];
-  let numbered = 0;
-  const push = (
-    branch: string,
+  const link: Record<Side, number[][]> = {
+    A: neighbors(n, TREE_A),
+    B: neighbors(n, TREE_B),
+  };
+  const left: Record<Side, number[]> = {
+    A: link.A.map((r) => r.length),
+    B: link.B.map((r) => r.length),
+  };
+  const gone: Record<Side, number[]> = {
+    A: Array.from({ length: n }, () => 0),
+    B: Array.from({ length: n }, () => 0),
+  };
+  const found: Record<Side, number[] | null> = { A: null, B: null };
+  const table = new Map<string, number>();
+  const code2: number[] = [];
+  const steps: Snap[] = [];
+  let root: number | null = null;
+  let parent: number[] | null = null;
+  let order: number[] = [];
+  let code: (number | null)[] = Array.from({ length: n }, () => null);
+
+  const snap = (
+    kind: Kind,
+    tree: Side | null,
     labels: string,
-    tree: string,
-    root: string,
-    gave: string,
-    tableSize: number,
-    code2: string,
-    did: string,
-    draw: { tree: string; root: number; code: number[]; done: number[] },
+    extra: Partial<Snap> = {},
   ): void => {
     steps.push({
-      t: `T${steps.length + 1}`,
-      branch,
-      labels,
+      kind,
       tree,
+      labels,
+      left: { A: [...left.A], B: [...left.B] },
+      gone: { A: [...gone.A], B: [...gone.B] },
+      found: {
+        A: found.A === null ? null : [...found.A],
+        B: found.B === null ? null : [...found.B],
+      },
       root,
-      gave,
-      tableSize,
-      code2,
-      did,
-      draw,
+      parent: parent === null ? null : [...parent],
+      order: [...order],
+      code: [...code],
+      table: [...table.keys()],
+      code2: [...code2],
+      ...extra,
     });
   };
 
-  const linkA = neighbors(n, TREE_A);
-  const linkB = neighbors(n, TREE_B);
-  const blank: number[] = Array.from({ length: n }, () => -1);
-  push(
-    "준비",
-    "①",
-    "A 와 B",
-    "-",
-    "-",
-    0,
-    "-",
-    `간선${gae(TREE_A.length)}를 양쪽 정점에 나눠 담아 이웃 목록 둘을 만든다`,
-    { tree: "A", root: 0, code: blank, done: [] },
-  );
+  snap("build", null, "①");
 
-  /** 잎 벗기기를 바퀴마다 남긴다. */
-  const peel = (name: string, adj: number[][]): number[] => {
-    const peeledSoFar: number[] = [];
-    const left = adj.map((row) => row.length);
+  const peel = (side: Side): number[] => {
+    const adj = link[side];
+    const l = left[side];
     let layer: number[] = [];
-    for (let v = 0; v < n; v++) if (left[v] === 1) layer.push(v);
+    for (let v = 0; v < n; v++) if (l[v] === 1) layer.push(v);
     let alive = n;
+    let round = 0;
     while (alive > 2) {
-      const gone = cells(layer);
-      peeledSoFar.push(...layer);
+      round++;
+      const leaves = [...layer];
+      const touched: number[] = [];
       const next: number[] = [];
       for (const v of layer) {
-        left[v] = 0;
+        l[v] = 0;
+        gone[side][v] = round;
         alive--;
         for (const w of adj[v] as number[]) {
-          if ((left[w] as number) > 0) {
-            left[w] = (left[w] as number) - 1;
-            if (left[w] === 1) next.push(w);
+          if ((l[w] as number) > 0) {
+            l[w] = (l[w] as number) - 1;
+            touched.push(w);
+            if (l[w] === 1) next.push(w);
           }
         }
       }
       layer = next;
-      push(
-        "잎 벗기기",
-        "②",
-        name,
-        "-",
-        "-",
-        0,
-        "-",
-        `잎 ${gone}${을를(gone)} 벗긴다 — 정점${gae(alive)}가 남는다`,
-        { tree: name, root: 0, code: blank, done: [...peeledSoFar] },
-      );
+      if (alive <= 2) found[side] = [...layer];
+      snap("peel", side, "②", { round, leaves, touched, alive, next });
     }
     return layer;
   };
-  const rootA = peel("A", linkA);
-  const rootB = peel("B", linkB);
-  push(
-    "중심 개수",
-    "⑦",
-    "A 와 B",
-    "-",
-    "-",
-    0,
-    "-",
-    `A 의 중심 ${cells(rootA)}${과와(cells(rootA))} B 의 중심 ${cells(rootB)} — 개수가 둘씩이라 같다`,
-    { tree: "A", root: rootA[0] as number, code: blank, done: [] },
-  );
+  const rootA = peel("A");
+  const rootB = peel("B");
+  snap("count", null, "⑦");
 
-  const shared = new Map<string, number>();
-  const code2: number[] = [];
-
-  /** 한 뿌리에서 번호를 매기되 정점 묶음마다 걸음을 남긴다. */
-  const runOne = (
-    name: string,
-    adj: number[][],
-    root: number,
-    groups: number[][],
-  ): number => {
-    const parent: number[] = Array.from({ length: n }, () => -1);
-    const order: number[] = [root];
+  const run = (side: Side, r: number, first: boolean): number => {
+    const adj = link[side];
+    root = r;
+    parent = Array.from({ length: n }, () => -1);
+    order = [r];
+    code = Array.from({ length: n }, () => null);
+    let yes = 0;
+    let no = 0;
     for (let i = 0; i < order.length; i++) {
       const v = order[i] as number;
       for (const w of adj[v] as number[]) {
         if (w !== parent[v]) {
+          yes++;
           parent[w] = v;
           order.push(w);
-        }
+        } else no++;
       }
     }
-    push(
-      "차례 적기",
-      "③④",
-      name,
-      String(root),
-      "-",
-      shared.size,
-      code2.length === 0 ? "-" : cells(code2),
-      `뿌리 ${root} 에서 방문 차례 ${cells(order)}${을를(cells(order))} 적는다`,
-      { tree: name, root, code: blank, done: [] },
-    );
-    const id: number[] = Array.from({ length: n }, () => -1);
-    const numberedSoFar: number[] = [];
-    let cursor = order.length - 1;
-    for (const group of groups) {
-      const notes: string[] = [];
-      const marks: string[] = [];
-      for (let k = 0; k < group.length; k++) {
-        const v = order[cursor] as number;
-        cursor--;
-        const kids: number[] = [];
-        for (const w of adj[v] as number[]) {
-          if (w !== parent[v]) kids.push(id[w] as number);
+    snap("order", side, first ? "⑧③" : "③", { branch: [yes, no] });
+    for (let i = order.length - 1; i >= 0; i--) {
+      const v = order[i] as number;
+      const kids: number[] = [];
+      const raw: number[] = [];
+      for (const w of adj[v] as number[]) {
+        if (w !== parent[v]) {
+          kids.push(w);
+          raw.push(code[w] as number);
         }
-        kids.sort((a, b) => a - b);
-        const key = kids.join(",");
-        const fresh = !shared.has(key);
-        let got = shared.get(key);
-        if (got === undefined) {
-          got = shared.size;
-          shared.set(key, got);
-        }
-        id[v] = got;
-        numbered++;
-        numberedSoFar.push(v);
-        marks.push(`${v}→${got}`);
-        notes.push(`${v}: [${key}] → ${got}${fresh ? " 새" : ""}`);
       }
-      push(
-        "번호 매기기",
-        "⑤⑥",
-        name,
-        String(root),
-        marks.join(" "),
-        shared.size,
-        code2.length === 0 ? "-" : cells(code2),
-        notes.join(" · "),
-        { tree: name, root, code: [...id], done: [...numberedSoFar] },
-      );
+      const sorted = [...raw].sort((a, b) => a - b);
+      const key = sorted.join(",");
+      let id = table.get(key);
+      const fresh = id === undefined;
+      if (id === undefined) {
+        id = table.size;
+        table.set(key, id);
+      }
+      code[v] = id;
+      if (i === 0 && side === "B") code2.push(id);
+      snap("code", side, "④⑤⑥", { i, v, kids, raw, sorted, key, fresh });
     }
-    return id[root] as number;
+    return code[r] as number;
   };
 
-  code2.push(
-    runOne("B", linkB, rootB[0] as number, [[5, 4], [3], [1, 7], [2, 0], [6]]),
-  );
-  const afterFirst = steps[steps.length - 1] as WalkStep;
-  afterFirst.code2 = cells(code2);
-  afterFirst.did = `${afterFirst.did} — B 의 첫 중심 번호가 ${code2[0]} 로 정해진다`;
-
-  code2.push(
-    runOne("B", linkB, rootB[1] as number, [[1, 2, 0, 5, 4], [6], [3, 7]]),
-  );
-  const afterSecond = steps[steps.length - 1] as WalkStep;
-  afterSecond.code2 = cells(code2);
-  afterSecond.did = `${afterSecond.did} — B 의 중심 번호 둘이 ${cells(code2)} 로 찬다`;
-
-  const codeA = runOne("A", linkA, rootA[0] as number, [
-    [6, 5, 4, 7, 0, 3],
-    [1],
-    [2],
-  ]);
+  run("B", rootB[0] as number, true);
+  run("B", rootB[1] as number, false);
+  const codeA = run("A", rootA[0] as number, false);
   const hit = code2.includes(codeA);
-  const afterThird = steps[steps.length - 1] as WalkStep;
-  afterThird.branch = "견주기";
-  afterThird.labels = "⑧⑨";
-  afterThird.did = `${afterThird.did} — 뿌리 번호 ${codeA}${이가(String(codeA))} B 의 번호 ${cells(code2)} 안에 있어 ${hit} 를 돌려준다`;
+  snap("match", "A", "⑨", { hit });
 
   const answer = treeIsomorphism(n, TREE_A, TREE_B);
   if (answer !== hit) throw new Error("전개 걸음이 정본과 다른 답을 냈다");
-  return { steps, table: [...shared.entries()], answer, numbered };
+  const cA = centers(n, link.A);
+  const cB = centers(n, link.B);
+  if (show(cA) !== show(rootA) || show(cB) !== show(rootB)) {
+    throw new Error("전개 걸음의 중심이 정본과 다르다");
+  }
+  if ([...table.keys()].join("|") !== [...RUN.table.keys()].join("|")) {
+    throw new Error("전개 걸음의 모양 번호표가 정본 차례와 다르다");
+  }
+  return { steps, answer };
 }
 
-export const WALK = walkLog();
+export const WALK = traceWalk();
+
+/** 걸음 `k` 까지 같은 갈래의 걸음이 몇 번째인가. */
+export const nthOf = (k: number): number => {
+  const kind = (WALK.steps[k] as Snap).kind;
+  return WALK.steps.slice(0, k + 1).filter((s) => s.kind === kind).length;
+};
+
+/** 갈래마다 걸음 구간 — `T8~T15` 꼴. */
+function spanOf(pred: (s: Snap) => boolean): string {
+  const ks = WALK.steps.flatMap((s, k) => (pred(s) ? [k] : []));
+  const a = stepOf(ks[0] as number);
+  const b = stepOf(ks.at(-1) as number);
+  return a === b ? a : `${a}~${b}`;
+}
 
 /* ────────────────────────── 견줄 모양들 ────────────────────────── */
 
@@ -655,35 +1069,18 @@ const SHAPES: Shape[] = [
   { label: "사슬 여덟 대 별 여덟", n: 8, a: chain(8), b: star(8, 0) },
   { label: "별 여덟 대 별 여덟", n: 8, a: star(8, 0), b: star(8, 7) },
   {
-    label: "완전 이진 열다섯 대 그 라벨 바꾼 것",
+    label: "완전 이진 열다섯 대 번호를 섞은 것",
     n: 15,
     a: binary(15),
     b: relabel(15, binary(15), 9),
   },
   {
-    label: "애벌레 열둘 대 그 라벨 바꾼 것",
+    label: "애벌레 열둘 대 번호를 섞은 것",
     n: 12,
     a: caterpillar(12, 6),
     b: relabel(12, caterpillar(12, 6), 3),
   },
-  {
-    label: "차수 수열이 같은 비동형 짝",
-    n: 6,
-    a: [
-      [2, 3],
-      [1, 2],
-      [0, 1],
-      [0, 4],
-      [0, 5],
-    ],
-    b: [
-      [2, 4],
-      [1, 3],
-      [0, 1],
-      [0, 4],
-      [0, 5],
-    ],
-  },
+  { label: "P 대 Q", n: PQ_N, a: TREE_P, b: TREE_Q },
   {
     label: "잎이 한곳에 몰린 여섯 대 두 곳으로 갈린 여섯",
     n: 6,
@@ -716,7 +1113,7 @@ const SHAPES: Shape[] = [
     ],
   },
   {
-    label: "무작위 스물 대 그 라벨 바꾼 것",
+    label: "무작위 스물 대 번호를 섞은 것",
     n: 20,
     a: randomTree(20, 20260908),
     b: relabel(20, randomTree(20, 20260908), 77),
@@ -736,11 +1133,9 @@ const REF = new URL("./treeIsomorphism-guide.ref.ts", import.meta.url).pathname;
 
 const SORT_LINE = /^ {4}kids\.sort\(\(a, b\) => a - b\);$/;
 const CENTER_LINE = /^ {2}return layer;$/;
-const SHARE_LINE =
-  /^ {4}if \(code2\.includes\(shapeCode\(n, link1, r, table\)\)\) return true;$/;
 const COUNT_LINE = /^ {2}if \(root1\.length !== root2\.length\) return false;$/;
 
-/** 자식 번호를 **정렬하지 않는** 판. 자식이 적힌 차례가 그대로 번호에 들어간다. */
+/** 자식 번호를 **정렬하지 않는** 판. 자식이 적힌 차례가 그대로 열쇠에 들어간다. */
 const noSort = await loadMutant<Impl>(REF, { drop: SORT_LINE });
 
 /** 중심이 둘일 때 **앞의 하나만** 뿌리로 삼는 판. */
@@ -748,21 +1143,13 @@ const oneRoot = await loadMutant<Impl>(REF, {
   swap: [CENTER_LINE, "  return layer.slice(0, 1);"],
 });
 
-/** 트리마다 번호표를 **따로** 쓰는 판. */
-const ownTable = await loadMutant<Impl>(REF, {
-  swap: [
-    SHARE_LINE,
-    "    if (code2.includes(shapeCode(n, link1, r, new Map()))) return true;",
-  ],
-});
-
-/** 중심 개수 견주기를 **빼는** 판. 이 변이는 답을 안 바꾸므로 자기검사에서 뺀다. */
+/** 중심 개수 비교를 **빼는** 판. 이 변이는 답을 안 바꾸므로 자기검사에서 뺀다. */
 const noCount = await loadMutant<Impl>(REF, { drop: COUNT_LINE });
 
 /**
- * 중화 실행인가 — `loadMutant` 이 변이를 적용하지 않고 정본 모듈을 그대로 돌려주면 두
- * 함수가 **같은 객체**다. 중화 상태에서 아래 검사를 실행하면 언제나 던지게 되고, 그러면
- * `check-proof` 의 중화 대조가 이 편에서는 한 번도 실행되지 않는다.
+ * 중화 실행인가 — `loadMutant` 이 변이를 적용하지 않고 정본 모듈을 그대로 돌려주면 두 함수가 **같은
+ * 객체**다. 중화 상태에서 아래 검사를 실행하면 언제나 던지게 되고, 그러면 `check-proof` 의 중화 대조가
+ * 이 편에서는 한 번도 실행되지 않는다.
  */
 const 중화됨 = noSort.treeIsomorphism === treeIsomorphism;
 
@@ -770,7 +1157,6 @@ if (!중화됨) {
   const breaking: [string, Impl][] = [
     ["정렬을 뺀 판", noSort],
     ["중심 하나만 보는 판", oneRoot],
-    ["번호표를 따로 쓰는 판", ownTable],
   ];
   for (const [label, impl] of breaking) {
     const same = SHAPES.every(
@@ -782,19 +1168,14 @@ if (!중화됨) {
 }
 
 /**
- * 중심 개수 견주기를 뺀 판이 답을 바꾸는 짝이 정말 없는가 — 작은 트리를 전수로 본다.
- *
- * 중화 실행에서는 `noCount` 가 정본 그 자체라 이 스윕이 언제나 0 을 낸다. 값이 안 바뀌므로
- * 중화 대조가 이 자리에서 걸리지 않는다.
+ * 중심 개수 비교를 뺀 판이 답을 바꾸는 짝이 정말 없는가 — 작은 트리를 앞에서부터 120 벌씩 전부 짝지어
+ * 본다. 중화 실행에서는 `noCount` 가 정본 그 자체라 이 스윕이 언제나 0 을 낸다.
  */
-function countGuardSweep(
-  upTo: number,
-  cap: number,
-): { pairs: number; off: number } {
+const COUNT_SWEEP = once(() => {
   let pairs = 0;
   let off = 0;
-  for (let n = 1; n <= upTo; n++) {
-    const trees = [...allTrees(n)].slice(0, cap);
+  for (let n = 1; n <= 7; n++) {
+    const trees = [...allTrees(n)].slice(0, 120);
     for (const a of trees) {
       for (const b of trees) {
         pairs++;
@@ -804,10 +1185,9 @@ function countGuardSweep(
     }
   }
   return { pairs, off };
-}
-const COUNT_SWEEP = countGuardSweep(7, 120);
+});
 
-/* ────────────────────────── 해시 판 ────────────────────────── */
+/* ────────────────────────── 수 해시 판 ────────────────────────── */
 
 /** 32 비트 혼합 — 잘 알려진 세 번 섞기다. */
 function mix(x: number): number {
@@ -817,7 +1197,7 @@ function mix(x: number): number {
   return (h ^ (h >>> 16)) >>> 0;
 }
 
-/** 부분 트리 모양을 번호표 대신 **수 하나**로 접는다. 자식 순서를 안 타게 더한다. */
+/** 부분트리 모양을 모양 번호표 대신 **수 하나**로 접는다. 자식 순서를 안 타게 더한다. */
 function hashRooted(
   n: number,
   link: number[][],
@@ -859,7 +1239,7 @@ function hashTree(n: number, edges: Edge[], bits: number): number {
   );
 }
 
-/** 폭 `bits` 에서 서로 비동형인 두 트리가 같은 수로 접히는 첫 자리. */
+/** 폭 `bits` 에서 서로 동형이 아닌 두 트리가 같은 수로 접히는 첫 자리. */
 function firstCollision(
   bits: number,
   n: number,
@@ -886,88 +1266,10 @@ function firstCollision(
 const HASH_N = 40;
 const HASH_LIMIT = 400_000;
 const HASH_BITS = [12, 16, 20, 24, 28, 32];
-const HASH_ROWS = HASH_BITS.map((bits) => ({
-  bits,
-  hit: firstCollision(bits, HASH_N, HASH_LIMIT),
-}));
-
-/** 그림으로 보일 만큼 작은 충돌 — 폭을 좁히면 정점 아홉짜리 트리에서도 나온다. */
 const SMALL_N = 9;
-const SMALL_HIT = firstCollision(8, SMALL_N, 200_000);
-
-/* ────────────────────────── 전수 대조 결과 ────────────────────────── */
-
-interface Census {
-  n: number;
-  labeled: number;
-  classes: number;
-  sameChecked: number;
-  sameFail: number;
-  crossChecked: number;
-  crossFail: number;
-  degSeqs: number;
-  degClash: number;
-}
-
-function census(n: number, sampleCap: number): Census {
-  const shared = new Map<string, number>();
-  const groups = new Map<string, Edge[][]>();
-  let labeled = 0;
-  for (const edges of allTrees(n)) {
-    labeled++;
-    const key = canonKey(n, edges, shared);
-    const bucket = groups.get(key);
-    if (bucket === undefined) groups.set(key, [edges]);
-    else bucket.push(edges);
-  }
-  let sameChecked = 0;
-  let sameFail = 0;
-  for (const members of groups.values()) {
-    const rep = members[0] as Edge[];
-    for (let i = 1; i < members.length && i <= sampleCap; i++) {
-      sameChecked++;
-      if (!byPermutation(n, rep, members[i] as Edge[])) sameFail++;
-    }
-  }
-  const reps = [...groups.values()].map((m) => m[0] as Edge[]);
-  let crossChecked = 0;
-  let crossFail = 0;
-  for (let i = 0; i < reps.length; i++) {
-    for (let j = i + 1; j < reps.length; j++) {
-      crossChecked++;
-      if (byPermutation(n, reps[i] as Edge[], reps[j] as Edge[])) crossFail++;
-    }
-  }
-  const bySeq = new Map<string, number>();
-  for (const rep of reps) {
-    const seq = neighbors(n, rep)
-      .map((row) => row.length)
-      .sort((a, b) => a - b)
-      .join(",");
-    bySeq.set(seq, (bySeq.get(seq) ?? 0) + 1);
-  }
-  let degClash = 0;
-  for (const c of bySeq.values()) if (c > 1) degClash++;
-  return {
-    n,
-    labeled,
-    classes: groups.size,
-    sameChecked,
-    sameFail,
-    crossChecked,
-    crossFail,
-    degSeqs: bySeq.size,
-    degClash,
-  };
-}
-
-const CENSUS: Census[] = [];
-for (let n = 1; n <= 7; n++) CENSUS.push(census(n, Number.POSITIVE_INFINITY));
-CENSUS.push(census(8, 200));
 
 /* ────────────────────────── 지름과 중심 ────────────────────────── */
 
-/** 너비 우선으로 한 정점에서의 거리를 잰다. */
 function distances(n: number, link: number[][], from: number): number[] {
   const dist: number[] = Array.from({ length: n }, () => -1);
   dist[from] = 0;
@@ -983,15 +1285,17 @@ function distances(n: number, link: number[][], from: number): number[] {
   }
   return dist;
 }
-function diameter(n: number, edges: Edge[]): number {
+/** 정점마다의 이심률. */
+function eccs(n: number, edges: Edge[]): number[] {
   const link = neighbors(n, edges);
-  let best = 0;
-  for (let v = 0; v < n; v++) {
-    for (const d of distances(n, link, v)) best = Math.max(best, d);
-  }
-  return best;
+  return Array.from({ length: n }, (_, v) =>
+    Math.max(...distances(n, link, v)),
+  );
 }
-/** 잎 벗기기가 몇 바퀴 도는가. */
+function diameter(n: number, edges: Edge[]): number {
+  return Math.max(...eccs(n, edges));
+}
+/** 잎 벗기기가 몇 바퀴 도는가 — 정본의 ② 와 같은 절차에 바퀴만 센다. */
 function peelRounds(n: number, edges: Edge[]): number {
   if (n === 1) return 0;
   const link = neighbors(n, edges);
@@ -1033,44 +1337,33 @@ const DIAM_SHAPES: [string, number, Edge[]][] = [
   ["무작위 스물", 20, randomTree(20, 20260908)],
 ];
 
-/** 중심 개수와 지름의 홀짝이 어긋난 모양이 있는가 — 전수로 확인한다. */
-function centerLawSweep(upTo: number): { checked: number; broken: number } {
+/** 중심 개수 · 벗기기 바퀴 · 중심의 이심률이 식과 어긋난 트리가 있는가 — 전수로 확인한다. */
+const CENTER_LAW = once(() => {
   let checked = 0;
   let broken = 0;
-  for (let n = 1; n <= upTo; n++) {
+  for (let n = 1; n <= 8; n++) {
     for (const edges of allTrees(n)) {
       checked++;
       const link = neighbors(n, edges);
-      const d = diameter(n, edges);
+      const e = eccs(n, edges);
+      const d = Math.max(...e);
       const cs = centers(n, link);
       if (cs.length !== 1 + (d % 2)) broken++;
-      if (n >= 2 && peelRounds(n, edges) !== Math.floor(d / 2)) broken++;
-      const radius = Math.ceil(d / 2);
-      for (const c of cs) {
-        const ecc = Math.max(...distances(n, link, c));
-        if (ecc !== radius) broken++;
-      }
+      if (peelRounds(n, edges) !== Math.floor(d / 2)) broken++;
+      for (const c of cs) if (e[c] !== Math.ceil(d / 2)) broken++;
     }
   }
   return { checked, broken };
-}
-const CENTER_LAW = centerLawSweep(8);
+});
 
-/* ────────────────────────── 라벨을 바꿔도 번호가 같은가 ────────────────────────── */
-
-function relabelSweep(
-  upTo: number,
-  tries: number,
-): {
-  checked: number;
-  broken: number;
-} {
+/** 정점 번호만 섞은 트리를 다시 물으면 언제나 참인가. */
+const RELABEL = once(() => {
   let checked = 0;
   let broken = 0;
-  for (let n = 1; n <= upTo; n++) {
+  for (let n = 1; n <= 7; n++) {
     let i = 0;
     for (const edges of allTrees(n)) {
-      for (let k = 0; k < tries; k++) {
+      for (let k = 0; k < 3; k++) {
         const other = relabel(n, edges, 1000 + i * 31 + k);
         checked++;
         if (!treeIsomorphism(n, edges, other)) broken++;
@@ -1079,8 +1372,73 @@ function relabelSweep(
     }
   }
   return { checked, broken };
+});
+
+/* ────────────────────────── 전제가 깨진 입력 ────────────────────────── */
+
+/**
+ * 정본의 ② 를 그대로 옮기되 바퀴 수에 상한을 둔 사본. 트리가 아니면 벗길 잎이 없어 정본은 멈추지
+ * 않는다 — 그것을 멈추게 하지 않고는 보일 수가 없어서 상한을 둔다.
+ */
+function cappedPeel(
+  n: number,
+  edges: Edge[],
+  cap: number,
+): { rounds: number; alive: number; firstLeaves: number[] } {
+  const link = neighbors(n, edges);
+  const left = link.map((row) => row.length);
+  let layer: number[] = [];
+  for (let v = 0; v < n; v++) if (left[v] === 1) layer.push(v);
+  const firstLeaves = [...layer];
+  let alive = n;
+  let rounds = 0;
+  while (alive > 2 && rounds < cap) {
+    rounds++;
+    const next: number[] = [];
+    for (const v of layer) {
+      left[v] = 0;
+      alive--;
+      for (const w of link[v] as number[]) {
+        if ((left[w] as number) > 0) {
+          left[w] = (left[w] as number) - 1;
+          if (left[w] === 1) next.push(w);
+        }
+      }
+    }
+    layer = next;
+  }
+  return { rounds, alive, firstLeaves };
 }
-const RELABEL = relabelSweep(7, 3);
+
+/* ────────────────────────── 재귀 사본 ────────────────────────── */
+
+/** 정본의 ③④ 를 재귀 하나로 적은 사본. 사슬에서 호출 깊이가 정점 수와 같아진다. */
+function recursiveCode(n: number, edges: Edge[], root: number): number {
+  const link = neighbors(n, edges);
+  const table = new Map<string, number>();
+  const down = (v: number, p: number): number => {
+    const kids: number[] = [];
+    for (const w of link[v] as number[]) if (w !== p) kids.push(down(w, v));
+    kids.sort((a, b) => a - b);
+    const key = kids.join(",");
+    let id = table.get(key);
+    if (id === undefined) {
+      id = table.size;
+      table.set(key, id);
+    }
+    return id;
+  };
+  return down(root, -1);
+}
+
+function recursionVerdict(n: number): string {
+  try {
+    recursiveCode(n, chain(n), 0);
+    return "끝까지 실행된다";
+  } catch (e) {
+    return e instanceof RangeError ? "RangeError" : "다른 예외";
+  }
+}
 
 /* ────────────────────────── 최악 모양 ────────────────────────── */
 
@@ -1090,442 +1448,942 @@ const WORST_SHAPES: [string, (n: number) => Edge[]][] = [
   ["별", (n) => star(n, 0)],
   ["완전 이진", (n) => binary(n)],
   ["애벌레(등뼈 절반)", (n) => caterpillar(n, n >> 1)],
+  ["다리 길이가 모두 다른 거미", (n) => spider(n)],
   ["무작위", (n) => randomTree(n, 20260908)],
 ];
 
-/* ────────────────────────── 블록 ────────────────────────── */
+/** 자식 번호 정렬의 상한 `Σ kids(v) ⌈log₂ kids(v)⌉` 를 모양 하나에서 센다(뿌리 하나 기준). */
+function sortBound(n: number, edges: Edge[]): number {
+  const { kids } = childrenFrom(n, edges, 0);
+  return kids.reduce(
+    (s, k) =>
+      s + (k.length <= 1 ? 0 : k.length * Math.ceil(Math.log2(k.length))),
+    0,
+  );
+}
 
-export const PROOFS: Record<string, () => string> = {
-  /** `concept` — 정의를 그대로 옮긴 절차가 제약 규모에서 몇 번인가. */
-  "concept-perm": () => {
-    const rows = [4, 6, 8, 10, 12, 16].map((n) => {
-      let fact = 1;
-      for (let k = 2; k <= n; k++) fact *= k;
-      const a = chain(n);
-      const b = relabel(n, a, 88);
-      const m = meter(n, a, b);
-      return [
-        num(n),
-        num(fact),
-        num(n - 1),
-        num(fact * (n - 1)),
-        num(m.slotReads + m.compares + m.lookups),
-      ];
-    });
-    let worst = 0;
-    const trees = [...allTrees(7)].slice(0, 120);
-    for (const a of trees) {
-      for (const b of trees) {
-        const c = { calls: 0 };
-        byPermutation(7, a, b, c);
-        worst = Math.max(worst, c.calls);
+/** 잎 벗기기를 바퀴마다 멈춰 남은 정점을 모은다 — 정본 ② 와 같은 멈춤 조건(남은 정점 2 개 이하). */
+function peelStages(n: number, edges: Edge[]): number[][] {
+  const link = neighbors(n, edges);
+  const left = link.map((row) => row.length);
+  let alive = Array.from({ length: n }, (_, v) => v);
+  const out = [alive];
+  if (n === 1) return out;
+  let layer = alive.filter((v) => left[v] === 1);
+  while (alive.length > 2) {
+    const gone = new Set(layer);
+    const next: number[] = [];
+    for (const v of layer) {
+      left[v] = 0;
+      for (const w of link[v] as number[]) {
+        if ((left[w] as number) > 0) {
+          left[w] = (left[w] as number) - 1;
+          if (left[w] === 1) next.push(w);
+        }
       }
     }
+    alive = alive.filter((v) => !gone.has(v));
+    out.push(alive);
+    layer = next;
+  }
+  return out;
+}
+
+/** 정점 모임 `keep` 만 남긴 부분 그래프에서의 이심률. */
+function eccWithin(edges: Edge[], keep: number[]): Map<number, number> {
+  const inside = new Set(keep);
+  const link = new Map<number, number[]>(keep.map((v) => [v, []]));
+  for (const [u, v] of edges) {
+    if (!inside.has(u) || !inside.has(v)) continue;
+    (link.get(u) as number[]).push(v);
+    (link.get(v) as number[]).push(u);
+  }
+  const out = new Map<number, number>();
+  for (const s0 of keep) {
+    const dist = new Map<number, number>([[s0, 0]]);
+    const queue = [s0];
+    for (let i = 0; i < queue.length; i++) {
+      const x = queue[i] as number;
+      for (const y of link.get(x) as number[]) {
+        if (dist.has(y)) continue;
+        dist.set(y, (dist.get(x) as number) + 1);
+        queue.push(y);
+      }
+    }
+    out.set(s0, Math.max(...dist.values()));
+  }
+  return out;
+}
+
+/** 정점 100,000 짜리 두 트리 — 생성식 무작위 트리와 그 번호를 섞은 트리. */
+const BIG = once(() => {
+  const a = randomTree(N_LIMIT, 20260908);
+  const b = relabel(N_LIMIT, a, 4321);
+  return { a, b, m: meter(N_LIMIT, a, b), one: oneRunOps(N_LIMIT, a) };
+});
+
+/** 뿌리 자리 셋이 틀리는 짝 — 정점 4 ~ 7, 라벨 붙은 트리 앞의 120 벌끼리. */
+const ROOT_SWEEP = once(() => {
+  const rows: {
+    n: number;
+    seen: number;
+    zero: number;
+    all: number;
+    ctr: number;
+  }[] = [];
+  for (let n = 4; n <= 7; n++) {
+    const trees = [...allTrees(n)].slice(0, 120);
+    const row = { n, seen: 0, zero: 0, all: 0, ctr: 0 };
+    for (const a of trees) {
+      for (const b of trees) {
+        row.seen++;
+        const want = byMapping(n, a, b);
+        if (variant(n, a, b, "zero").answer !== want) row.zero++;
+        if (variant(n, a, b, "all").answer !== want) row.all++;
+        if (treeIsomorphism(n, a, b) !== want) row.ctr++;
+      }
+    }
+    rows.push(row);
+  }
+  return rows;
+});
+
+/** 「아이디어를 떠올리는 과정」의 시도 사다리가 쓰는 수. */
+export const ladderNumbers = once(() => {
+  const big = BIG();
+  return {
+    n: N_LIMIT,
+    digits: factorialDigits(N_LIMIT),
+    pqSeqSame:
+      neighbors(PQ_N, TREE_P)
+        .map((r) => r.length)
+        .sort((x, y) => x - y)
+        .join() ===
+      neighbors(PQ_N, TREE_Q)
+        .map((r) => r.length)
+        .sort((x, y) => x - y)
+        .join(),
+    pqAnswer: treeIsomorphism(PQ_N, TREE_P, TREE_Q),
+    zeroWrong: ROOT_SWEEP().reduce((s, r) => s + r.zero, 0),
+    zeroSeen: ROOT_SWEEP().reduce((s, r) => s + r.seen, 0),
+    allEstimate: 2 * (N_LIMIT - 1) + (N_LIMIT + 1) * big.one,
+    centerOps: big.m.ops,
+  };
+});
+
+/* ────────────────────────── 블록 ────────────────────────── */
+
+const WALK_METER = once(() => meter(WALK_N, TREE_A, TREE_B));
+
+/** B 를 뿌리 `r` 에 두고 매긴 번호 — 전개 입력의 실제 판정에서 받은 수. */
+const bCode = (r: number): number[] => RUN.bAt.get(r) as number[];
+
+export const PROOFS: Record<string, () => string> = {
+  /** `concept` — 정점 번호를 옮기는 대응 하나와 그 대응 아래의 간선. */
+  "concept-map": () => {
+    const phi = mappingFrom(
+      WALK_N,
+      TREE_A,
+      RUN.aRoot,
+      TREE_B,
+      RUN.cB[1] as number,
+    );
+    const rows = mapsEdges(TREE_A, TREE_B, phi).map((e) => [
+      `(${e.from[0]}, ${e.from[1]})`,
+      `(${e.to[0]}, ${e.to[1]})`,
+      e.ok ? "있다" : "없다",
+    ]);
+    const ok = rows.filter((r) => r[2] === "있다").length;
     return [
-      table(
+      md(["A 의 간선", "번호를 옮긴 간선", "B 의 간선 여부"], rows),
+      "",
+      `대응은 A 의 정점 0 ~ 7 을 차례로 B 의 ${phi.join(" · ")} 로 옮깁니다. A 의 간선 ${TREE_A.length} 개 가운데 옮긴 간선이 B 에 있는 것은 ${ok} 개입니다.`,
+    ].join("\n");
+  },
+
+  /** `concept` — 두 트리의 모양 번호와 뿌리의 번호. */
+  "concept-codes": () => {
+    const rb = RUN.cB[1] as number;
+    const phi = mappingFrom(WALK_N, TREE_A, RUN.aRoot, TREE_B, rb);
+    const cb = bCode(rb);
+    const rows = RUN.aCode.map((c, v) => [
+      `${v}`,
+      `${c}`,
+      `${phi[v]}`,
+      `${cb[phi[v] as number]}`,
+    ]);
+    const same = rows.filter((r) => r[1] === r[3]).length;
+    return [
+      md(
+        [
+          "A 의 정점",
+          `A 에서의 모양 번호 (뿌리 ${RUN.aRoot})`,
+          "대응하는 B 의 정점",
+          `B 에서의 모양 번호 (뿌리 ${rb})`,
+        ],
+        rows,
+        [1, 3],
+      ),
+      "",
+      `대응하는 두 정점의 모양 번호가 ${rows.length} 쌍 가운데 ${same} 쌍에서 같습니다. 두 뿌리의 번호는 ${RUN.aCode[RUN.aRoot]}${과와(RUN.aCode[RUN.aRoot] as number)} ${cb[rb]} 입니다.`,
+    ].join("\n");
+  },
+
+  /** `concept` — 정점 100,000 개에서 두 방법의 규모. */
+  "concept-scale": () => {
+    const m = BIG().m;
+    return columns([
+      ["정점 N", "정점 대응의 가짓수 N!", "AHU 정규형의 기본 연산"],
+      [
+        comma(N_LIMIT),
+        `${comma(factorialDigits(N_LIMIT))} 자리 수`,
+        comma(m.ops),
+      ],
+    ]);
+  },
+
+  /** `deep.origin` ② — 대응을 전부 해 보는 절차의 계수. */
+  "origin-naive": () => {
+    const rows: string[][] = [];
+    for (const n of [6, 7, 8, 9]) {
+      const a = broomAt(n, 1);
+      const b = broomAt(n, 2);
+      const naive = naiveOps(n, a, b);
+      if (naive.answer !== treeIsomorphism(n, a, b)) {
+        throw new Error("대응을 전부 해 보는 판이 정본과 다른 답을 냈다");
+      }
+      rows.push([
+        comma(n),
+        comma(factorial(n)),
+        comma(naive.tried),
+        comma(naive.ops),
+        comma(meter(n, a, b).ops),
+      ]);
+    }
+    const bigM = BIG().m;
+    rows.push([
+      comma(20),
+      comma(factorial(20)),
+      "재지 않았다",
+      "재지 않았다",
+      comma(meter(20, broomAt(20, 1), broomAt(20, 2)).ops),
+    ]);
+    rows.push([
+      comma(N_LIMIT),
+      `${comma(factorialDigits(N_LIMIT))} 자리 수`,
+      "재지 않았다",
+      "재지 않았다",
+      comma(bigM.ops),
+    ]);
+    return [
+      md(
         [
           "정점 N",
           "정점 대응의 가짓수 N!",
-          "대응 하나를 검사하는 간선 견주기 N−1",
-          "곱한 값",
-          "이 절차의 연산 수",
+          "해 본 대응",
+          "대응을 전부 해 보기의 기본 연산",
+          "AHU 정규형의 기본 연산",
         ],
         rows,
-        ["r", "r", "r", "r", "r"],
+        [0, 1, 2, 3, 4],
       ),
       "",
-      `정점 스무 개짜리 트리에서는 대응의 가짓수가 2,432,902,008,176,640,000 으로 늘어난다`,
-      `└ 차수가 다른 짝을 미리 걸러 내는 되추적으로 줄여도 값은 여전히 이 절차보다 크다 — 정점 일곱짜리 트리 ${num(trees.length * trees.length)} 짝에서 한 짝에 최대${beon(worst)}이다`,
-      `└ 제약 상한은 N = 100,000 이고, 그 자리에서 대응을 하나씩 만들어 보는 것은 적을 수 있는 크기가 아니다`,
+      `정점 6 ~ 9 와 20 은 사슬의 둘째 정점에 잎을 단 트리와 셋째 정점에 잎을 단 트리를 비교했습니다. 두 트리가 동형이 아니라 해 본 대응이 N! 과 같습니다. 정점 20 과 ${comma(N_LIMIT)} 의 N! 은 곱셈으로 계산한 값이고, 정점 ${comma(N_LIMIT)} 의 AHU 정규형은 생성식 무작위 트리와 그 번호를 섞은 트리를 비교해 센 값입니다.`,
     ].join("\n");
   },
 
-  /** `concept` — 번호가 동형류를 실제로 가르는가. 라벨 붙은 트리를 전수로 본다. */
-  "concept-shapes": () => {
-    const rows = CENSUS.map((c) => [
-      num(c.n),
-      num(c.labeled),
-      num(c.classes),
-      num(c.sameChecked),
-      num(c.sameFail),
-      num(c.crossChecked),
-      num(c.crossFail),
-    ]);
-    const bad = CENSUS.reduce((s, c) => s + c.sameFail + c.crossFail, 0);
-    const labeled = CENSUS.reduce((s, c) => s + c.labeled, 0);
-    return [
-      table(
-        [
-          "정점 N",
-          "라벨 붙은 트리",
-          "번호가 가른 묶음",
-          "같은 묶음 대조",
-          "그중 비동형",
-          "다른 묶음 대조",
-          "그중 동형",
-        ],
-        rows,
-        ["r", "r", "r", "r", "r", "r", "r"],
-      ),
-      "",
-      `트리 ${num(labeled)} 개를 번호로 묶고 되추적으로 다시 판정해, 어긋난 자리${gae(bad)}다`,
-      `└ 같은 묶음 대조는 묶음의 첫 트리와 나머지를 하나씩 되추적으로 견준 것이다`,
-      `└ 다른 묶음 대조는 묶음마다 첫 트리를 뽑아 서로 견준 것이다`,
-      `└ N = 8 만 묶음마다 200 벌까지로 끊었다. 나머지는 전수다`,
-    ].join("\n");
-  },
-
-  /** `deep.build` — 차수 수열로는 못 가르는 자리. */
-  "build-degree": () => {
-    const rows = CENSUS.map((c) => [
-      num(c.n),
-      num(c.classes),
-      num(c.degSeqs),
-      num(c.classes - c.degSeqs),
-      c.degClash === 0 ? "없다" : `${num(c.degClash)} 개`,
-    ]);
-    const first = CENSUS.find((c) => c.degClash > 0);
-    const pair = SHAPES.find(
-      (s) => s.label === "차수 수열이 같은 비동형 짝",
-    ) as Shape;
+  /** `deep.origin` ③ — 차수 수열이 같은데 동형이 아닌 짝. */
+  "origin-degree": () => {
     const seq = (e: Edge[]): string =>
-      neighbors(pair.n, e)
+      neighbors(PQ_N, e)
         .map((row) => row.length)
         .sort((a, b) => a - b)
         .join(" ");
+    const rows = [
+      ["P", pairs(TREE_P), seq(TREE_P)],
+      ["Q", pairs(TREE_Q), seq(TREE_Q)],
+    ];
+    const same = rows[0]?.[2] === rows[1]?.[2];
+    const verdict = treeIsomorphism(PQ_N, TREE_P, TREE_Q);
+    const byDef = byMapping(PQ_N, TREE_P, TREE_Q);
     return [
-      table(
-        [
-          "정점 N",
-          "서로 다른 모양",
-          "서로 다른 차수 수열",
-          "차이",
-          "겹친 수열",
-        ],
-        rows,
-        ["r", "r", "r", "r", "r"],
-      ),
+      md(["트리", "간선 목록", "차수 수열"], rows),
       "",
-      table(
-        ["처음 겹치는 자리의 두 트리", "간선 목록", "차수 수열", "정본 판정"],
-        [
-          [
-            "T1",
-            pairs(pair.a),
-            seq(pair.a),
-            String(treeIsomorphism(pair.n, pair.a, pair.b)),
-          ],
-          [
-            "T2",
-            pairs(pair.b),
-            seq(pair.b),
-            String(treeIsomorphism(pair.n, pair.b, pair.a)),
-          ],
-        ],
-        ["l", "l", "l", "l"],
-      ),
-      "",
-      `차수 수열이 모양을 가르지 못하는 첫 정점 수는 ${num(first?.n ?? 0)} 이다`,
-      `└ 정점 여섯이면 모양${gae(CENSUS[5]?.classes ?? 0)}인데 차수 수열은 ${num(CENSUS[5]?.degSeqs ?? 0)} 가지뿐이다`,
-      `└ 위 두 트리는 차수 수열이 글자 그대로 같은데 정본이 둘 다 false 를 돌려준다`,
+      `두 차수 수열이 ${same ? "글자 그대로 같습니다" : "서로 다릅니다"}. 정점 대응을 되추적으로 찾으면 ${byDef ? "대응이 있고" : "대응이 없고"}, 정본의 답도 ${verdict} 입니다.`,
     ].join("\n");
   },
 
-  /** `deep.build` — 뿌리 자리에 따라 답이 갈리는가. */
-  "build-root": () => {
+  /** `deep.origin` ③ — 차수 수열이 언제부터 모양을 못 가르는가. */
+  "origin-degree-count": () => {
+    const rows = CENSUS().map((c) => [
+      comma(c.n),
+      comma(c.classes),
+      comma(c.degSeqs),
+    ]);
+    const first = CENSUS().find((c) => c.degSeqs < c.classes) as Census;
+    return [
+      md(["정점 N", "서로 다른 모양", "서로 다른 차수 수열"], rows, [0, 1, 2]),
+      "",
+      `차수 수열의 가짓수가 모양의 가짓수보다 처음 적어지는 정점 수는 ${first.n} 이고, 그때 모양 ${first.classes} 가지에 차수 수열은 ${first.degSeqs} 가지입니다. 모양의 가짓수는 라벨 붙은 트리를 전부 만들어 모양 번호로 묶어 셌고, 묶음마다 되추적으로 다시 판정했습니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.origin` ④ — 같은 입력을 두 방식으로: 모든 정점을 뿌리로 · 중심을 뿌리로. */
+  "origin-two-ways": () => {
     const rows: string[][] = [];
-    for (let n = 4; n <= 7; n++) {
-      const trees = [...allTrees(n)];
-      const cap = Math.min(trees.length, 120);
-      let fixedWrong = 0;
-      let allRootsWrong = 0;
-      let centerWrong = 0;
-      let pairsSeen = 0;
-      for (let i = 0; i < cap; i++) {
-        for (let j = 0; j < cap; j++) {
-          pairsSeen++;
-          const a = trees[i] as Edge[];
-          const b = trees[j] as Edge[];
-          const want = byPermutation(n, a, b);
-          const shared = new Map<string, number>();
-          const la = neighbors(n, a);
-          const lb = neighbors(n, b);
-          const fixed =
-            shapeCode(n, la, 0, shared) === shapeCode(n, lb, 0, shared);
-          if (fixed !== want) fixedWrong++;
-          const target = shapeCode(n, la, 0, shared);
-          let any = false;
-          for (let v = 0; v < n; v++) {
-            if (shapeCode(n, lb, v, shared) === target) any = true;
-          }
-          if (any !== want) allRootsWrong++;
-          if (treeIsomorphism(n, a, b) !== want) centerWrong++;
+    const add = (label: string, n: number, a: Edge[], b: Edge[]) => {
+      const all = variant(n, a, b, "all");
+      const ctr = meter(n, a, b);
+      rows.push([
+        label,
+        "모든 정점을 뿌리로",
+        comma(all.runs),
+        comma(all.ops),
+        String(all.answer),
+      ]);
+      rows.push([
+        label,
+        "중심을 뿌리로",
+        comma(ctr.rootedRuns),
+        comma(ctr.ops),
+        String(ctr.answer),
+      ]);
+    };
+    add("전개 입력 (정점 8)", WALK_N, TREE_A, TREE_B);
+    add("P 대 Q (정점 6)", PQ_N, TREE_P, TREE_Q);
+    const r = randomTree(1024, 20260908);
+    add("무작위 (정점 1,024)", 1024, r, relabel(1024, r, 4321));
+    const one = BIG().one;
+    const bigC = BIG().m;
+    const label = `무작위 (정점 ${comma(N_LIMIT)})`;
+    rows.push([
+      label,
+      "모든 정점을 뿌리로",
+      `많아야 ${comma(N_LIMIT + 1)}`,
+      `어림 ${comma(2 * (N_LIMIT - 1) + (N_LIMIT + 1) * one)}`,
+      "재지 않았다",
+    ]);
+    rows.push([
+      label,
+      "중심을 뿌리로",
+      comma(bigC.rootedRuns),
+      comma(bigC.ops),
+      String(bigC.answer),
+    ]);
+    return [
+      md(
+        ["입력", "뿌리를 두는 자리", "번호를 매긴 벌 수", "기본 연산", "답"],
+        rows,
+        [2, 3],
+      ),
+      "",
+      `모든 정점을 뿌리로 두는 판은 A 의 정점 0 에서 번호를 한 벌 매기고, B 의 정점을 0 부터 차례로 뿌리로 삼다가 번호가 같은 뿌리를 만나면 멈춥니다. 앞의 세 입력은 두 판을 실제로 실행했고, 두 판의 답이 서로 같습니다. 마지막 입력의 모든 정점 판은 실행하지 않고, 뿌리 하나의 기본 연산 ${comma(one)} 번에 벌 수 ${comma(N_LIMIT + 1)}${을를(comma(N_LIMIT + 1))} 곱하고 간선 읽기를 더해 늘린 어림입니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.origin` ⑤ — 뿌리 자리 셋이 틀리는 짝. */
+  "origin-roots": () => {
+    const sweep = ROOT_SWEEP();
+    const rows = sweep.map((r) => [
+      comma(r.n),
+      comma(r.seen),
+      comma(r.zero),
+      comma(r.all),
+      comma(r.ctr),
+    ]);
+    const zeroTotal = sweep.reduce((s0, r) => s0 + r.zero, 0);
+    return [
+      md(
+        [
+          "정점 N",
+          "비교한 짝",
+          "정점 0 에 뿌리를 둔 판이 틀린 짝",
+          "모든 정점을 뿌리로 둔 판이 틀린 짝",
+          "중심에 뿌리를 둔 판이 틀린 짝",
+        ],
+        rows,
+        [0, 1, 2, 3, 4],
+      ),
+      "",
+      `정점 0 에 뿌리를 둔 판이 틀린 짝은 모두 ${comma(zeroTotal)} 개입니다. 옳은 답은 정점 대응을 되추적으로 찾아 정했고, 라벨 붙은 트리를 프뤼퍼 수열 차례로 만들어 앞의 120 벌까지 서로 전부 짝지었습니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.build` (b) — 전개 입력 A 를 중심 2 에 두고 매긴 모양 번호. */
+  "build-codes": () => {
+    const { kids } = childrenFrom(WALK_N, TREE_A, RUN.aRoot);
+    const rows = RUN.aCode.map((c, v) => {
+      const ks = kids[v] as number[];
+      const sorted = ks
+        .map((w) => RUN.aCode[w] as number)
+        .sort((a, b) => a - b);
+      return [
+        `${v}`,
+        ks.length === 0 ? "없음" : ks.join(" · "),
+        keyText(sorted.join(",")),
+        `${c}`,
+      ];
+    });
+    const kinds = new Set(RUN.aCode).size;
+    return [
+      md(["정점 v", "자식", "열쇠", "모양 번호"], rows, [3]),
+      "",
+      `정점 ${WALK_N} 개에 모양 번호가 ${kinds} 가지 붙었습니다. 잎 ${RUN.aCode.filter((c) => c === 0).length} 개가 모양 번호 0 을 함께 씁니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.build` (c) — 모양 번호 하나를 괄호 문자열로 펴 읽는다. */
+  "build-read": () => {
+    const keys = [...RUN.table.keys()];
+    const used = [...new Set(RUN.aCode)].sort(
+      (x, y) => bracketOf(x, RUN.table).length - bracketOf(y, RUN.table).length,
+    );
+    const rows = used.map((c) => {
+      const key = keys[c] as string;
+      return [`${c}`, keyText(key), bracketOf(c, RUN.table)];
+    });
+    const top = bracketOf(RUN.aCode[RUN.aRoot] as number, RUN.table);
+    return [
+      md(["모양 번호", "열쇠", "괄호 문자열"], rows),
+      "",
+      `뿌리 ${RUN.aRoot} 의 모양 번호 ${RUN.aCode[RUN.aRoot]}${을를(RUN.aCode[RUN.aRoot] as number)} 끝까지 펴면 괄호 ${top.length} 개이고, 여는 괄호 ${[...top].filter((c) => c === "(").length} 개가 정점 ${WALK_N} 개와 하나씩 짝입니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.build` (d) — 같은 번호를 받은 정점끼리는 뿌리째 동형인가. */
+  "build-relation": () => {
+    const rb = RUN.cB[1] as number;
+    const cb = bCode(rb);
+    const ka = childrenFrom(WALK_N, TREE_A, RUN.aRoot).kids;
+    const kb = childrenFrom(WALK_N, TREE_B, rb).kids;
+    const codes = [...new Set([...RUN.aCode, ...cb])].sort((x, y) => x - y);
+    let pairsChecked = 0;
+    let pairsIso = 0;
+    const rows = codes.map((c) => {
+      const inA = RUN.aCode.flatMap((x, v) => (x === c ? [v] : []));
+      const inB = cb.flatMap((x, v) => (x === c ? [v] : []));
+      for (const x of inA) {
+        for (const y of inB) {
+          pairsChecked++;
+          if (rootedIso(ka, x, kb, y)) pairsIso++;
         }
       }
-      rows.push([
-        num(n),
-        num(pairsSeen),
-        num(fixedWrong),
-        num(allRootsWrong),
-        num(centerWrong),
-      ]);
+      return [`${c}`, inA.join(" · "), inB.join(" · ")];
+    });
+    let crossChecked = 0;
+    let crossIso = 0;
+    for (let x = 0; x < WALK_N; x++) {
+      for (let y = 0; y < WALK_N; y++) {
+        if (RUN.aCode[x] === cb[y]) continue;
+        crossChecked++;
+        if (rootedIso(ka, x, kb, y)) crossIso++;
+      }
     }
-    const total = rows.reduce(
-      (s, r) => s + Number(r[2]?.replace(/,/g, "") ?? 0),
-      0,
-    );
     return [
-      table(
+      md(
         [
-          "정점 N",
-          "견준 짝",
-          "정점 0 에 뿌리내린 판이 틀린 짝",
-          "모든 정점을 뿌리로 삼은 판이 틀린 짝",
-          "중심에 뿌리내린 판이 틀린 짝",
+          "모양 번호",
+          `A 에서 받은 정점 (뿌리 ${RUN.aRoot})`,
+          `B 에서 받은 정점 (뿌리 ${rb})`,
         ],
         rows,
-        ["r", "r", "r", "r", "r"],
+        [0],
       ),
       "",
-      `정점 0 에 그냥 뿌리내리면 어긋난 짝${gae(total)}다`,
-      `└ 모든 정점을 뿌리로 삼으면 답은 맞는데 한 트리에서 번호를 N 번 매겨야 한다`,
-      `└ 중심에 뿌리내리면 번호를 많아야 두 번 매기고 답도 맞는다`,
-      `└ 정점 다섯 이상은 프뤼퍼 차례로 앞의 120 벌만 골라 그것들끼리 전부 견줬다`,
+      `번호가 같은 A · B 정점 짝 ${pairsChecked} 개 가운데 두 부분트리가 뿌리째 동형인 짝이 ${pairsIso} 개이고, 번호가 다른 짝 ${crossChecked} 개 가운데 뿌리째 동형인 짝은 ${crossIso} 개입니다. 뿌리째 동형인지는 모양 번호를 쓰지 않고 자식끼리의 대응을 되추적으로 찾아 정했습니다.`,
     ].join("\n");
   },
 
-  /** `deep.build` — 작은 트리에서 번호가 어떻게 매겨지는가. */
-  "build-code": () => {
-    const n = 7;
-    const t: Edge[] = [
-      [0, 1],
-      [0, 4],
-      [0, 6],
-      [1, 2],
-      [1, 3],
-      [4, 5],
+  /** `deep.build` (e) — 같은 트리 B 를 두 중심에 두고 매긴 번호. */
+  "build-contrast": () => {
+    const [r1, r2] = RUN.cB as [number, number];
+    const c1 = bCode(r1);
+    const c2 = bCode(r2);
+    const s1 = childrenFrom(WALK_N, TREE_B, r1).kids;
+    const s2 = childrenFrom(WALK_N, TREE_B, r2).kids;
+    const size = (kids: number[][], v: number): number =>
+      1 + (kids[v] as number[]).reduce((s, w) => s + size(kids, w), 0);
+    const rows = Array.from({ length: WALK_N }, (_, v) => [
+      `${v}`,
+      `${c1[v]}`,
+      `${size(s1, v)}`,
+      `${c2[v]}`,
+      `${size(s2, v)}`,
+    ]);
+    const diff = rows.filter((r) => r[1] !== r[3]).map((r) => r[0]);
+    return [
+      md(
+        [
+          "B 의 정점",
+          `모양 번호 (뿌리 ${r1})`,
+          `부분트리 정점 수 (뿌리 ${r1})`,
+          `모양 번호 (뿌리 ${r2})`,
+          `부분트리 정점 수 (뿌리 ${r2})`,
+        ],
+        rows,
+        [1, 2, 3, 4],
+      ),
+      "",
+      `정점 ${WALK_N} 개 가운데 뿌리에 따라 모양 번호가 달라진 정점은 ${diff.join(" · ")} 의 ${diff.length} 개입니다. 정점 번호는 그대로이고, 달라진 것은 그 정점 아래에 매달린 부분트리입니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.build` 1단계 — 이웃 목록 둘. */
+  "build-lists": () => {
+    const la = neighbors(WALK_N, TREE_A);
+    const lb = neighbors(WALK_N, TREE_B);
+    const rows = Array.from({ length: WALK_N }, (_, v) => [
+      `${v}`,
+      show(la[v] as number[]),
+      show(lb[v] as number[]),
+    ]);
+    const slots = la.reduce((s, r) => s + r.length, 0);
+    const seqA = la
+      .map((r) => r.length)
+      .sort((x, y) => x - y)
+      .join(" ");
+    const seqB = lb
+      .map((r) => r.length)
+      .sort((x, y) => x - y)
+      .join(" ");
+    return [
+      md(["정점 v", "A 의 이웃 목록", "B 의 이웃 목록"], rows),
+      "",
+      `트리마다 목록 길이를 더하면 ${slots} 이고, 간선 ${TREE_A.length} 개의 두 배입니다. 목록 길이를 크기 순으로 적으면 A 가 ${seqA}, B 가 ${seqB} 입니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.build` 2단계 — 바퀴마다 벗긴 잎. */
+  "build-peel": () => {
+    const rows = WALK.steps
+      .filter((s) => s.kind === "peel")
+      .map((s) => {
+        const side = s.tree as Side;
+        return [
+          side,
+          `${s.round}`,
+          (s.leaves as number[]).join(" · "),
+          (s.touched as number[]).length === 0
+            ? "없음"
+            : [...new Set(s.touched as number[])].join(" · "),
+          `${s.alive}`,
+          s.left[side].join(" "),
+        ];
+      });
+    const cA = RUN.cA;
+    const cB = RUN.cB;
+    return [
+      md(
+        [
+          "트리",
+          "바퀴",
+          "벗긴 잎",
+          "차수가 줄어든 이웃",
+          "남은 정점",
+          "남은 차수 (정점 0 ~ 7)",
+        ],
+        rows,
+        [1, 4],
+      ),
+      "",
+      `남은 차수는 벗긴 정점을 0 으로 적었습니다. 남은 정점이 2 개가 된 바퀴에서 멈추고, A 에는 ${cA.join(" · ")}, B 에는 ${cB.join(" · ")}${이가(cB.at(-1) as number)} 남습니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.build` 2단계 — 중심이 하나인 경우와 경계. */
+  "build-peel-edge": () => {
+    const cases: [string, number, Edge[]][] = [
+      ["정점 하나", 1, []],
+      ["정점 둘", 2, chain(2)],
+      ["사슬 다섯", 5, chain(5)],
+      ["사슬 여섯", 6, chain(6)],
+      ["별 여덟", 8, star(8, 0)],
     ];
-    const link = neighbors(n, t);
-    const shared = new Map<string, number>();
-    const root = centers(n, link)[0] as number;
-    const parent: number[] = Array.from({ length: n }, () => -1);
-    const order: number[] = [root];
+    const rows = cases.map(([label, n, e]) => {
+      const c = centers(n, neighbors(n, e));
+      return [label, comma(n), comma(peelRounds(n, e)), c.join(" · ")];
+    });
+    return [
+      md(["입력", "정점 N", "벗긴 바퀴", "중심"], rows, [1, 2]),
+      "",
+      "정점 하나는 벗기기 전에 그 정점을 돌려주고, 정점 둘은 남은 정점이 처음부터 2 개라 한 바퀴도 벗기지 않습니다.",
+    ].join("\n");
+  },
+
+  /** `deep.build` 3단계 — 중심 개수가 다르면 번호를 매기지 않는다. */
+  "build-count": () => {
+    const pick = [
+      "전개 입력",
+      "사슬 여덟 대 별 여덟",
+      "중심이 하나인 트리 대 중심이 둘인 트리",
+    ];
+    const rows = SHAPES.filter((s) => pick.includes(s.label)).map((s) => {
+      const m = meter(s.n, s.a, s.b);
+      return [
+        s.label,
+        `${m.centers1}${과와(m.centers1)} ${m.centers2}`,
+        comma(m.rootedRuns),
+        String(m.answer),
+      ];
+    });
+    return [
+      md(
+        ["입력", "두 트리의 중심 개수", "모양 번호를 매긴 벌 수", "답"],
+        rows,
+        [2],
+      ),
+      "",
+      "중심 개수가 다른 두 입력은 모양 번호를 한 벌도 매기지 않고 false 로 끝났습니다.",
+    ].join("\n");
+  },
+
+  /** `deep.build` 4단계 — B 를 중심 6 에 두고 방문 차례를 적는다. */
+  "build-order": () => {
+    const r = RUN.cB[0] as number;
+    const link = neighbors(WALK_N, TREE_B);
+    const parent: number[] = Array.from({ length: WALK_N }, () => -1);
+    const order: number[] = [r];
+    const rows: string[][] = [];
     for (let i = 0; i < order.length; i++) {
       const v = order[i] as number;
+      const added: number[] = [];
+      const skipped: number[] = [];
       for (const w of link[v] as number[]) {
         if (w !== parent[v]) {
           parent[w] = v;
           order.push(w);
-        }
+          added.push(w);
+        } else skipped.push(w);
       }
-    }
-    const id: number[] = Array.from({ length: n }, () => -1);
-    const rows: string[][] = [];
-    for (let i = order.length - 1; i >= 0; i--) {
-      const v = order[i] as number;
-      const kids: number[] = [];
-      for (const w of link[v] as number[]) {
-        if (w !== parent[v]) kids.push(id[w] as number);
-      }
-      kids.sort((a, b) => a - b);
-      const key = kids.join(",");
-      const fresh = !shared.has(key);
-      let got = shared.get(key);
-      if (got === undefined) {
-        got = shared.size;
-        shared.set(key, got);
-      }
-      id[v] = got;
       rows.push([
-        String(v),
-        key === "" ? "(없다)" : key,
-        String(got),
-        fresh ? "새로 준 번호" : "이미 있던 번호",
-        String(shared.size),
+        `${i}`,
+        `${v}`,
+        skipped.length === 0 ? "없음" : skipped.join(" · "),
+        added.length === 0 ? "없음" : added.join(" · "),
+        show(order),
       ]);
     }
+    const ok = TREE_B.filter(([a, b]) => {
+      const [p, c] = parent[b] === a ? [a, b] : [b, a];
+      return order.indexOf(p) < order.indexOf(c);
+    }).length;
     return [
-      `트리 ${pairs(t)} · 정점 ${num(n)} · 중심 ${cells(centers(n, link))} · 뿌리 ${root}`,
-      `방문 차례 ${cells(order)} 를 거꾸로 읽는다`,
-      "",
-      table(
-        ["정점", "자식 번호 목록", "받은 번호", "어디서 왔나", "표 크기"],
+      md(
+        [
+          "자리 i",
+          "읽은 정점 v",
+          "부모라 건너뛴 이웃",
+          "새로 담은 자식",
+          "그 뒤 order",
+        ],
         rows,
-        ["r", "l", "r", "l", "r"],
+        [0],
       ),
       "",
-      table(
-        ["번호표의 열쇠", "번호"],
-        [...shared.entries()].map(([k, v]) => [
-          k === "" ? "(빈 목록)" : k,
-          String(v),
-        ]),
-        ["l", "r"],
-      ),
-      "",
-      `정점 ${num(n)} 개에 번호${gae(shared.size)}가 붙었다 — 잎 넷이 번호 하나를 나눠 쓴다`,
-      `└ 뿌리 ${root} 의 번호 ${id[root]} 이 이 트리 전체의 번호다`,
+      `parent 는 ${show(parent)} 입니다. 간선 ${TREE_B.length} 개 가운데 order 에서 부모가 자식보다 앞에 놓인 간선은 ${ok} 개입니다.`,
     ].join("\n");
   },
 
-  /** `deep.walk` — 이웃 목록 둘. */
+  /** `deep.build` 5단계 — B 를 중심 6 에 두고 거꾸로 읽으며 번호를 받는다. */
+  "build-number": () => {
+    const r = RUN.cB[0] as number;
+    const rows = WALK.steps
+      .filter((s) => s.kind === "code" && s.tree === "B" && s.root === r)
+      .map((s) => [
+        `${s.i}`,
+        `${s.v}`,
+        show(s.raw as number[]),
+        keyText(s.key as string),
+        `${s.code[s.v as number]}`,
+        s.fresh ? "새로 줬다" : "있던 번호",
+      ]);
+    const fresh = rows.filter((x) => x[5] === "새로 줬다").length;
+    return [
+      md(
+        ["자리 i", "정점 v", "모은 자식 번호", "열쇠", "모양 번호", "번호표"],
+        rows,
+        [0, 4],
+      ),
+      "",
+      `번호를 받은 정점 ${rows.length} 개 가운데 번호표에 새 열쇠를 더한 정점은 ${fresh} 개입니다. 마지막에 번호를 받는 것이 뿌리 ${r} 입니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.build` 5단계 — 자식이 적힌 차례가 다른 두 정점. */
+  "build-sort": () => {
+    const aStep = WALK.steps.find(
+      (s) => s.kind === "code" && s.tree === "A" && s.v === RUN.aRoot,
+    ) as Snap;
+    const rb = RUN.cB[1] as number;
+    const bStep = WALK.steps.find(
+      (s) => s.kind === "code" && s.tree === "B" && s.root === rb && s.v === rb,
+    ) as Snap;
+    const row = (name: string, s: Snap): string[] => [
+      name,
+      (s.kids as number[]).join(" · "),
+      show(s.raw as number[]),
+      keyText((s.raw as number[]).join(",")),
+      keyText(s.key as string),
+    ];
+    const rawSame =
+      (aStep.raw as number[]).join(",") === (bStep.raw as number[]).join(",");
+    return [
+      md(
+        [
+          "정점",
+          "자식 (이웃 목록 차례)",
+          "모은 자식 번호",
+          "정렬하지 않은 열쇠",
+          "정렬한 열쇠",
+        ],
+        [
+          row(`A 의 ${aStep.v} (뿌리 ${RUN.aRoot})`, aStep),
+          row(`B 의 ${bStep.v} (뿌리 ${rb})`, bStep),
+        ],
+      ),
+      "",
+      `정렬하지 않은 두 열쇠는 ${rawSame ? "같고" : "서로 다르고"}, 정렬한 두 열쇠는 ${aStep.key === bStep.key ? "같습니다" : "서로 다릅니다"}.`,
+    ].join("\n");
+  },
+
+  /** `deep.build` 6단계 — 뿌리의 번호를 비교한다. */
+  "build-match": () => {
+    const rows: string[][] = [];
+    for (const r of RUN.cB)
+      rows.push([
+        "B",
+        `${r}`,
+        `${bCode(r)[r]}`,
+        "B 의 중심 번호 목록에 넣는다",
+      ]);
+    const code2 = RUN.cB.map((r) => bCode(r)[r] as number);
+    const a = RUN.aCode[RUN.aRoot] as number;
+    rows.push([
+      "A",
+      `${RUN.aRoot}`,
+      `${a}`,
+      `${show(code2)} 안에 ${code2.includes(a) ? "있어 true" : "없다"}`,
+    ]);
+    return [
+      md(["트리", "뿌리", "뿌리의 모양 번호", "하는 일"], rows, [2]),
+      "",
+      `A 의 중심 ${RUN.cA.join(" · ")} 가운데 첫 중심 ${RUN.aRoot} 에서 답이 정해져, 둘째 중심 ${RUN.cA[1]}${은는(RUN.cA[1] as number)} 번호를 매기지 않습니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.build` — 상태의 범위. */
+  "build-ranges": () => {
+    const w = WALK_METER();
+    const star8 = meter(8, star(8, 0), star(8, 7));
+    const chain8 = meter(8, chain(8), relabel(8, chain(8), 5));
+    const odd = SHAPES.find(
+      (s) => s.label === "잎이 한곳에 몰린 여섯 대 두 곳으로 갈린 여섯",
+    ) as Shape;
+    const oddM = meter(odd.n, odd.a, odd.b);
+    return [
+      md(
+        ["상태", "범위", "전개 입력에서 나온 값", "끝값이 나오는 자리"],
+        [
+          [
+            "중심 개수",
+            "1 또는 2",
+            `${RUN.cA.length} · ${RUN.cB.length}`,
+            `별 여덟은 1 · 사슬 여덟은 2`,
+          ],
+          [
+            "모양 번호를 매긴 벌 수",
+            "0 이상 4 이하",
+            `${w.rootedRuns}`,
+            `사슬 여덟 대 별 여덟은 0 · ${odd.label}은 ${oddM.rootedRuns}`,
+          ],
+          [
+            "모양 번호표의 열쇠 개수 K",
+            "1 이상, 매긴 벌 수 × N 이하",
+            `${w.tableSize}`,
+            `별 여덟 둘은 ${star8.tableSize} · 사슬 여덟 둘은 ${chain8.tableSize} · ${odd.label}은 ${oddM.tableSize} (N = ${odd.n})`,
+          ],
+          [
+            "모양 번호",
+            "0 이상 K − 1 이하",
+            `0 ~ ${w.tableSize - 1}`,
+            "처음 본 열쇠가 K − 1 을 받는다",
+          ],
+        ],
+      ),
+    ].join("\n");
+  },
+
+  /** `deep.build` 전제 — 트리가 아닌 입력. */
+  "build-premise": () => {
+    const cyc: Edge[] = [
+      [0, 1],
+      [1, 2],
+      [2, 3],
+      [3, 0],
+    ];
+    const tri: Edge[] = [
+      [0, 1],
+      [1, 2],
+      [2, 0],
+    ];
+    const cap = 1000;
+    const a = cappedPeel(4, cyc, cap);
+    const b = cappedPeel(4, tri, cap);
+    return [
+      md(
+        ["입력", "깨진 전제", "처음 잎", `${comma(cap)} 바퀴 뒤 남은 정점`],
+        [
+          [
+            "정점 4 · 간선 (0,1) (1,2) (2,3) (3,0)",
+            "사이클이 없다",
+            a.firstLeaves.length === 0 ? "없음" : a.firstLeaves.join(" · "),
+            `${a.alive}`,
+          ],
+          [
+            "정점 4 · 간선 (0,1) (1,2) (2,0)",
+            "이어져 있다",
+            b.firstLeaves.length === 0 ? "없음" : b.firstLeaves.join(" · "),
+            `${b.alive}`,
+          ],
+        ],
+        [3],
+      ),
+      "",
+      `두 입력 다 간선이 N − 1 개가 아니거나 하나로 이어지지 않아 차수 1 인 정점이 처음부터 없습니다. 벗길 잎이 없으니 남은 정점이 줄지 않고, 바퀴에 상한을 둔 사본이 ${comma(cap)} 바퀴에서 끊었습니다. 정본은 상한이 없어 이 입력에서 끝나지 않습니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.build` 설계 선택 — 수 해시를 폭마다 시험한다. */
+  "build-hash": () => {
+    const rows = HASH_BITS.map((bits) => {
+      const hit = firstCollision(bits, HASH_N, HASH_LIMIT);
+      return [
+        `${bits} 비트`,
+        comma(2 ** bits),
+        hit === null ? `${comma(HASH_LIMIT)} 벌까지 못 찾음` : comma(hit.at),
+      ];
+    });
+    return [
+      md(["해시 폭", "쓸 수 있는 수", "처음 충돌한 트리의 차례"], rows, [1, 2]),
+      "",
+      `정점 ${HASH_N} 짜리 생성식 무작위 트리를 차례로 만들어, 앞서 만든 트리와 같은 수로 접히는데 정본이 동형이 아니라고 답하는 첫 트리를 찾았습니다. 폭을 ${HASH_BITS[0]} 비트에서 ${HASH_BITS.at(-1)} 비트로 넓혀도 충돌이 늦게 나올 뿐 ${comma(HASH_LIMIT)} 벌 안에서 사라지지 않았습니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.build` 설계 선택 — 폭을 좁히면 정점 아홉에서도 충돌이 보인다. */
+  "build-hash-small": () => {
+    const hit = firstCollision(8, SMALL_N, 200_000);
+    if (hit === null) throw new Error("8 비트에서 충돌을 못 찾았다");
+    const seq = (e: Edge[]): string =>
+      neighbors(SMALL_N, e)
+        .map((row) => row.length)
+        .sort((a, b) => a - b)
+        .join(" ");
+    return [
+      md(
+        ["트리", "간선 목록", "차수 수열", "8 비트 해시"],
+        [
+          ["앞의 트리", pairs(hit.a), seq(hit.a), comma(hit.value)],
+          ["뒤의 트리", pairs(hit.b), seq(hit.b), comma(hit.value)],
+        ],
+        [3],
+      ),
+      "",
+      `두 트리가 같은 수 ${comma(hit.value)}${으로(comma(hit.value))} 접히는데 정본의 답은 ${treeIsomorphism(SMALL_N, hit.a, hit.b)} 입니다. 차수 수열부터 서로 다른 두 트리입니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.walk` — 끝까지 쓰는 고정 입력. */
+  "walk-input": () => {
+    const list = (es: Edge[]): string =>
+      `[${es.map(([u, v]) => `[${u}, ${v}]`).join(", ")}]`;
+    return [
+      `const n = ${WALK_N};`,
+      `const edges1: Edge[] = ${list(TREE_A)};`,
+      `const edges2: Edge[] = ${list(TREE_B)};`,
+      `// 이 절이 끝나면 반환값은 ${treeIsomorphism(WALK_N, TREE_A, TREE_B)}`,
+    ].join("\n");
+  },
+
+  /** `deep.walk` — 이웃 목록 둘(T1). */
   "walk-adj": () => {
     const la = neighbors(WALK_N, TREE_A);
     const lb = neighbors(WALK_N, TREE_B);
-    const rows = Array.from({ length: WALK_N }, (_, v) => [
-      String(v),
-      cells(la[v] as number[]),
-      String((la[v] as number[]).length),
-      cells(lb[v] as number[]),
-      String((lb[v] as number[]).length),
+    const lines = Array.from({ length: WALK_N }, (_, v) => [
+      `A link[${v}] = ${show(la[v] as number[])}`,
+      `B link[${v}] = ${show(lb[v] as number[])}`,
     ]);
     const slots = la.reduce((s, r) => s + r.length, 0);
     return [
-      table(
-        ["정점", "A 의 이웃", "A 의 차수", "B 의 이웃", "B 의 차수"],
-        rows,
-        ["r", "l", "r", "l", "r"],
-      ),
-      "",
-      `간선 ${num(TREE_A.length)} 개가 이웃 자리${gae(slots)}를 만든다`,
-      `└ A 의 차수를 크기순으로 적으면 ${la
-        .map((r) => r.length)
-        .sort((x, y) => x - y)
-        .join(" ")} 이고 B 도 같다`,
-      `└ 차수만 같아서는 모양이 같다고 말할 수 없다. 그것은 아래 멈춤에서 값으로 본다`,
+      columns(lines),
+      `항목 수의 합 A ${slots} · B ${lb.reduce((s, r) => s + r.length, 0)} = 간선 ${TREE_A.length} 개의 두 배`,
     ].join("\n");
   },
 
-  /** `deep.walk.pause` — 차수 수열이 같아도 모양이 다르다. */
+  /** `deep.walk.pause` — 차수 수열과 지름이 같아도 동형이 아니다. */
   "pause-degree": () => {
-    const pair = SHAPES.find(
-      (s) => s.label === "차수 수열이 같은 비동형 짝",
-    ) as Shape;
     const rows: string[][] = [];
+    const codes: string[] = [];
+    const table = new Map<string, number>();
     for (const [name, t] of [
-      ["T1", pair.a],
-      ["T2", pair.b],
+      ["P", TREE_P],
+      ["Q", TREE_Q],
     ] as [string, Edge[]][]) {
-      const link = neighbors(pair.n, t);
-      const shared = new Map<string, number>();
-      const roots = centers(pair.n, link);
-      const codes = roots.map((r) => shapeCode(pair.n, link, r, shared));
+      const link = neighbors(PQ_N, t);
+      const roots = centers(PQ_N, link);
+      const cs = roots.map((r) => shapeCode(PQ_N, link, r, table));
+      codes.push(cs.join(" · "));
       rows.push([
         name,
-        pairs(t),
         link
           .map((r) => r.length)
           .sort((a, b) => a - b)
           .join(" "),
-        String(diameter(pair.n, t)),
-        cells(roots),
-        cells(codes),
+        `${diameter(PQ_N, t)}`,
+        roots.join(" · "),
+        cs.join(" · "),
       ]);
     }
-    const verdict = treeIsomorphism(pair.n, pair.a, pair.b);
     return [
-      table(
-        ["트리", "간선 목록", "차수 수열", "지름", "중심 정점", "중심의 번호"],
-        rows,
-        ["l", "l", "l", "r", "l", "l"],
-      ),
+      md(["트리", "차수 수열", "지름", "중심", "중심의 모양 번호"], rows, [2]),
       "",
-      table(
-        ["무엇으로 견주는가", "T1", "T2", "판정"],
-        [
-          [
-            "차수 수열",
-            rows[0]?.[2] ?? "",
-            rows[1]?.[2] ?? "",
-            rows[0]?.[2] === rows[1]?.[2] ? "같다" : "어긋난다",
-          ],
-          [
-            "지름",
-            rows[0]?.[3] ?? "",
-            rows[1]?.[3] ?? "",
-            rows[0]?.[3] === rows[1]?.[3] ? "같다" : "어긋난다",
-          ],
-          [
-            "중심의 번호",
-            rows[0]?.[5] ?? "",
-            rows[1]?.[5] ?? "",
-            rows[0]?.[5] === rows[1]?.[5] ? "같다" : "어긋난다",
-          ],
-        ],
-        ["l", "l", "l", "l"],
-      ),
-      "",
-      `정본의 답은 ${verdict} 이고, 차수 수열도 지름도 그 답을 못 낸다`,
-      `└ 두 트리 다 정점 여섯 · 차수 수열 ${rows[0]?.[2]} · 지름 ${rows[0]?.[3]} 이다`,
-      `└ 갈리는 것은 중심의 번호뿐이다 — 그 번호는 부분 트리 모양을 아래에서 위로 접은 값이다`,
+      `두 트리의 차수 수열과 지름은 서로 같고, 중심의 모양 번호는 ${codes[0]}${과와(codes[0] as string)} ${codes[1]}${으로(codes[1] as string)} 서로 다릅니다. 정본의 답은 ${treeIsomorphism(PQ_N, TREE_P, TREE_Q)} 입니다. 두 트리는 모양 번호표 하나를 함께 썼습니다.`,
     ].join("\n");
   },
 
-  /** `deep.walk` — 잎 벗기기 걸음. */
+  /** `deep.walk` — 잎 벗기기(T2~T5). */
   "walk-center": () => {
-    const rows: string[][] = [];
-    for (const [name, t] of [
-      ["A", TREE_A],
-      ["B", TREE_B],
-    ] as [string, Edge[]][]) {
-      const link = neighbors(WALK_N, t);
-      const left = link.map((row) => row.length);
-      let layer: number[] = [];
-      for (let v = 0; v < WALK_N; v++) if (left[v] === 1) layer.push(v);
-      let alive = WALK_N;
-      let round = 0;
-      rows.push([
-        name,
-        String(round),
-        cells(layer),
-        "-",
-        String(alive),
-        cells(left),
-      ]);
-      while (alive > 2) {
-        round++;
-        const gone = [...layer];
-        const next: number[] = [];
-        for (const v of layer) {
-          left[v] = 0;
-          alive--;
-          for (const w of link[v] as number[]) {
-            if ((left[w] as number) > 0) {
-              left[w] = (left[w] as number) - 1;
-              if (left[w] === 1) next.push(w);
-            }
-          }
-        }
-        layer = next;
-        rows.push([
-          name,
-          String(round),
-          cells(layer),
-          cells(gone),
-          String(alive),
-          cells(left),
-        ]);
-      }
-    }
-    const ca = centers(WALK_N, neighbors(WALK_N, TREE_A));
-    const cb = centers(WALK_N, neighbors(WALK_N, TREE_B));
-    return [
-      table(
+    const rows = WALK.steps.flatMap((s, k) => {
+      if (s.kind !== "peel") return [];
+      const side = s.tree as Side;
+      return [
         [
+          stepOf(k),
+          side,
+          `${s.round}`,
+          (s.leaves as number[]).join(" · "),
+          `${s.alive}`,
+          `alive > 2 ${(s.alive as number) > 2 ? "참 — 다음 바퀴" : "거짓 — 멈춘다"}`,
+          s.found[side] === null
+            ? "—"
+            : (s.found[side] as number[]).join(" · "),
+        ],
+      ];
+    });
+    return [
+      md(
+        [
+          "걸음",
           "트리",
           "바퀴",
-          "이번 바퀴의 잎",
-          "벗겨 낸 정점",
-          "남은 정점",
-          "남은 차수",
+          "벗긴 잎",
+          "그 뒤 alive",
+          "반복 조건",
+          "돌려준 중심",
         ],
         rows,
-        ["l", "r", "l", "l", "r", "l"],
+        [2, 4],
       ),
-      "",
-      `A 의 중심은 ${cells(ca)} 이고 B 의 중심은 ${cells(cb)} 이다 — 둘 다${gae(ca.length)}다`,
-      `└ 남은 차수는 벗겨 낸 정점을 0 으로 적은 것이다`,
-      `└ 두 바퀴 만에 정점${gae(2)}가 남고, 그 자리에서 벗기기가 끝난다`,
     ].join("\n");
   },
 
@@ -1538,339 +2396,441 @@ export const PROOFS: Record<string, () => string> = {
       const cb = centers(s.n, neighbors(s.n, s.b));
       return [
         s.label,
-        num(s.n),
         `${ca.length}${과와(ca.length)} ${cb.length}`,
         String(want),
         String(got),
-        want === got ? "같다" : "어긋난다",
+        want === got ? "같다" : "다르다",
       ];
     });
-    const off = rows.filter((r) => r[5] === "어긋난다").length;
-    const two = rows.filter((r) => (r[2] ?? "").includes("2")).length;
     return [
-      table(
-        [
-          "입력",
-          "정점 N",
-          "두 트리의 중심 개수",
-          "정본",
-          "앞의 중심만 보는 판",
-          "대조",
-        ],
+      md(
+        ["입력", "두 트리의 중심 개수", "정본", "앞의 중심만 보는 판", "두 답"],
         rows,
-        ["l", "r", "l", "l", "l", "l"],
       ),
-      "",
-      `모양${gae(rows.length)} 가운데 답이 갈린 것${gae(off)}다`,
-      `└ 중심이 둘인 트리가 낀 줄이${jul(two)}이고, 갈린 줄은 전부 그 안에 있다`,
-      `└ 중심이 하나뿐인 트리끼리는 앞의 중심만 봐도 그 하나가 전부라 답이 같다`,
     ].join("\n");
   },
 
-  /** `deep.walk.pause` — 부분 트리 모양을 수 하나로 접으면 충돌이 답을 틀린다. */
-  "pause-hash": () => {
-    const rows = HASH_ROWS.map((r) => [
-      `${num(r.bits)} 비트`,
-      num(2 ** r.bits),
-      r.hit === null ? `${num(HASH_LIMIT)} 벌까지 못 찾음` : num(r.hit.at),
-      r.hit === null ? "-" : num(r.hit.value),
-    ]);
-    const wide = HASH_ROWS[HASH_ROWS.length - 1];
-    const narrow = HASH_ROWS[0];
-    const extra: string[] = [];
-    if (SMALL_HIT !== null) {
-      const seq = (e: Edge[]): string =>
-        neighbors(SMALL_N, e)
-          .map((row) => row.length)
-          .sort((a, b) => a - b)
-          .join(" ");
-      extra.push(
-        "",
-        table(
-          ["정점 아홉짜리 트리 둘", "간선 목록", "차수 수열", "8 비트 해시"],
-          [
-            ["T1", pairs(SMALL_HIT.a), seq(SMALL_HIT.a), num(SMALL_HIT.value)],
-            ["T2", pairs(SMALL_HIT.b), seq(SMALL_HIT.b), num(SMALL_HIT.value)],
-          ],
-          ["l", "l", "l", "r"],
-        ),
-        "",
-        `두 트리를 정본으로 판정하면 ${treeIsomorphism(SMALL_N, SMALL_HIT.a, SMALL_HIT.b)} 인데 해시 판은 같은 수를 내 true 를 답한다`,
-      );
-    }
-    return [
-      table(
-        ["해시 폭", "쓸 수 있는 수", "충돌이 처음 난 트리 자리", "그때의 수"],
-        rows,
-        ["l", "r", "r", "r"],
-      ),
-      ...extra,
-      "",
-      `위 표는 정점 ${num(HASH_N)} 짜리 무작위 트리를 차례로 만들어 잰 값이고, 아래 두 트리는 폭을 8 비트로 좁혀 정점 ${num(SMALL_N)} 짜리 트리에서 찾은 것이다`,
-      `└ 폭을 ${num(narrow?.bits ?? 0)} 에서 ${num(wide?.bits ?? 0)} 로 늘리면 첫 충돌이 ${num(narrow?.hit?.at ?? 0)} 번째에서 ${num(wide?.hit?.at ?? 0)} 번째로 옮겨 간다`,
-      `└ 늦게 날 뿐 없어지지 않는다. 번호표는 열쇠가 글자 그대로 같을 때만 같은 번호를 준다`,
-    ].join("\n");
-  },
-
-  /** `deep.walk.pause` — 중심 개수 견주기를 빼도 답이 안 틀린다. */
+  /** `deep.walk.pause` — 중심 개수 비교를 빼도 답이 안 틀린다. */
   "pause-count": () => {
     const rows = SHAPES.map((s) => {
       const want = treeIsomorphism(s.n, s.a, s.b);
       const got = noCount.treeIsomorphism(s.n, s.a, s.b);
-      const ca = centers(s.n, neighbors(s.n, s.a)).length;
-      const cb = centers(s.n, neighbors(s.n, s.b)).length;
+      const with_ = meter(s.n, s.a, s.b);
+      const without = meter(s.n, s.a, s.b, true);
       return [
         s.label,
-        `${ca}${과와(String(ca))} ${cb}`,
-        ca === cb ? "안 탄다" : "탄다",
+        `${with_.centers1}${과와(with_.centers1)} ${with_.centers2}`,
         String(want),
         String(got),
-        want === got ? "같다" : "어긋난다",
+        want === got ? "같다" : "다르다",
+        comma(with_.ops),
+        comma(without.ops),
       ];
     });
-    const off = rows.filter((r) => r[5] === "어긋난다").length;
-    const taken = rows.filter((r) => r[2] === "탄다").length;
+    const sweep = COUNT_SWEEP();
     return [
-      table(
+      md(
         [
           "입력",
           "두 트리의 중심 개수",
-          "이른 반환",
           "정본",
-          "견주기를 뺀 판",
-          "대조",
+          "비교를 뺀 판",
+          "두 답",
+          "정본의 기본 연산",
+          "뺀 판의 기본 연산",
         ],
         rows,
-        ["l", "l", "l", "l", "l", "l"],
+        [5, 6],
       ),
       "",
-      `모양${gae(rows.length)} 가운데 답이 갈린 것${gae(off)}다`,
-      `└ 이른 반환을 타는 줄이${jul(taken)}인데, 그 줄에서도 두 판의 답이 같다`,
-      `└ 트리 짝 ${num(COUNT_SWEEP.pairs)} 벌 전수 대조에서도 답이 갈린 짝${gae(COUNT_SWEEP.off)}다`,
+      `정점 일곱까지 라벨 붙은 트리를 앞에서부터 120 벌씩 전부 짝지은 ${comma(sweep.pairs)} 짝에서도 두 판의 답이 갈린 짝은 ${comma(sweep.off)} 개입니다.`,
     ].join("\n");
   },
 
-  /** `deep.walk` — 스무 걸음 전체. */
-  "walk-trace": () => {
-    const rows = WALK.steps.map((s) => [
-      s.t,
-      s.branch,
-      s.labels,
-      s.tree,
-      s.root,
-      num(s.tableSize),
-      s.code2,
-      s.did,
-    ]);
+  /** `deep.walk` — 뿌리마다의 방문 차례(T7 · T16 · T25). */
+  "walk-order": () => {
+    const rows = WALK.steps.flatMap((s, k) =>
+      s.kind === "order"
+        ? [
+            [
+              stepOf(k),
+              s.tree as string,
+              `${s.root}`,
+              show(s.order),
+              show(s.parent as number[]),
+            ],
+          ]
+        : [],
+    );
     return [
-      table(
+      md(["걸음", "트리", "뿌리", "order", "parent (정점 0 ~ 7)"], rows),
+    ].join("\n");
+  },
+
+  /** `deep.walk` — 뿌리 6 에서 번호를 받는 여덟 걸음. */
+  "walk-number": () => {
+    const r = RUN.cB[0] as number;
+    const rows = WALK.steps.flatMap((s, k) =>
+      s.kind === "code" && s.tree === "B" && s.root === r
+        ? [
+            [
+              stepOf(k),
+              `${s.i}`,
+              `${s.v}`,
+              show(s.raw as number[]),
+              show(s.sorted as number[]),
+              JSON.stringify(s.key),
+              `${s.fresh ? "undefined — 새로 준다" : "있다"}`,
+              `${s.code[s.v as number]}`,
+            ],
+          ]
+        : [],
+    );
+    return [
+      md(
         [
           "걸음",
-          "갈래",
-          "라벨",
-          "트리",
-          "뿌리",
-          "표 크기",
-          "B 의 중심 번호",
-          "이 걸음이 한 일",
+          "i",
+          "v",
+          "kids",
+          "정렬한 kids",
+          "key",
+          "table.get(key)",
+          "code[v]",
         ],
         rows,
-        ["l", "l", "l", "l", "r", "r", "l", "l"],
+        [1, 7],
       ),
-      "",
-      `걸음이${gae(WALK.steps.length)}이고 표에 남은 열쇠${gae(WALK.table.length)}다`,
-      `└ 뿌리를 세 번 잡는다 — B 의 중심 둘과 A 의 중심 하나다`,
-      `└ 마지막 걸음이 ${WALK.answer} 를 돌려준다`,
     ].join("\n");
   },
 
-  /** `deep.walk` — 표에 남은 열쇠. */
-  "walk-table": () => {
-    const rows = WALK.table.map(([key, id]) => [
-      key === "" ? "(빈 목록)" : key,
-      String(id),
-      key === "" ? "잎" : `자식 ${num(key.split(",").length)} 개짜리 모양`,
-    ]);
-    return [
-      table(["자식 번호 목록", "번호", "무엇인가"], rows, ["l", "r", "l"]),
-      "",
-      `열쇠${gae(WALK.table.length)}에 정점을 번호 매긴 횟수는${beon(WALK.numbered)}이다`,
-      `└ 정점을 ${num(WALK.numbered)} 번 번호 매기는 동안 새 열쇠는 ${num(WALK.table.length)} 번만 생겼다`,
-      `└ 나머지는 이미 있던 번호를 그대로 받았다. 그것이 같은 모양을 알아본 자리다`,
-    ].join("\n");
-  },
-
-  /** `deep.walk` — 라벨마다 몇 번 지나갔는가. */
-  "walk-coverage": () => {
-    const counts = new Map<string, number>();
-    for (const s of WALK.steps) {
-      for (const ch of s.labels) counts.set(ch, (counts.get(ch) ?? 0) + 1);
-    }
-    const names: [string, string][] = [
-      ["①", "간선을 양쪽 정점에 나눠 담는다"],
-      ["②", "잎을 한 겹 벗긴다"],
-      ["③", "뿌리에서 시작하는 방문 차례를 적는다"],
-      ["④", "그 배열을 거꾸로 읽는다"],
-      ["⑤", "자식 번호를 오름차순으로 세운다"],
-      ["⑥", "표에서 번호를 받는다"],
-      ["⑦", "중심 개수를 견준다"],
-      ["⑧", "번호표 하나를 두 트리가 함께 쓴다"],
-      ["⑨", "번호가 같은 것이 있으면 동형이다"],
-    ];
-    const rows = names.map(([mark, what]) => [
-      mark,
-      what,
-      num(counts.get(mark) ?? 0),
-    ]);
-    const zero = rows.filter((r) => r[2] === "0").length;
-    return [
-      table(["라벨", "이 갈래가 하는 일", "전개 입력에서의 걸음 수"], rows, [
-        "l",
-        "l",
-        "r",
-      ]),
-      "",
-      `라벨 아홉 가운데 0 인 줄이${jul(zero)}이다`,
-      `└ ③④ 는 뿌리를 잡을 때마다 한 번씩이라${beon(counts.get("③") ?? 0)}이다`,
-      `└ ⑤⑥ 은 정점 묶음마다 한 걸음으로 접어 적은 것이고, 번호를 매긴 정점은 모두${gae(WALK.numbered)}다`,
-    ].join("\n");
-  },
-
-  /** `deep.build` ⑥ — 뿌리 잡은 횟수와 열쇠 수가 규모에서 어떻게 정해지는가. */
-  "build-scale": () => {
-    const rows: string[][] = [];
-    for (const [name, mk] of WORST_SHAPES) {
-      for (const n of [1024]) {
-        const a = mk(n);
-        const b = relabel(n, a, 4321);
-        const m = meter(n, a, b);
-        rows.push([
-          name,
-          num(n),
-          num(m.tableSize),
-          `${((m.tableSize / n) * 100).toFixed(1)} %`,
-          num(m.lookups),
-        ]);
+  /** `deep.walk` — 걸음 전체의 조건 판정. */
+  "walk-trace": () => {
+    const rows = WALK.steps.map((s, k) => {
+      let did = "";
+      let cond = "";
+      let after = "";
+      if (s.kind === "build") {
+        did = "간선 목록 둘을 이웃 목록 둘로 옮긴다";
+        cond = "—";
+        after = `link 항목 A ${TREE_A.length * 2} · B ${TREE_B.length * 2}`;
+      } else if (s.kind === "peel") {
+        did = `${s.tree} 의 잎 ${(s.leaves as number[]).join(" · ")}${을를((s.leaves as number[]).at(-1) as number)} 벗긴다`;
+        cond = `alive > 2 참 → 벗긴 뒤 alive = ${s.alive}`;
+        after =
+          s.found[s.tree as Side] === null
+            ? `다음 잎 ${(s.next as number[]).join(" · ")}`
+            : `중심 ${(s.found[s.tree as Side] as number[]).join(" · ")} · 반복 끝`;
+      } else if (s.kind === "count") {
+        did = "두 트리의 중심 개수를 비교한다";
+        const la = (s.found.A as number[]).length;
+        cond = `root1.length !== root2.length 거짓 (${la}${과와(la)} ${(s.found.B as number[]).length})`;
+        after = "번호 매기기로 간다";
+      } else if (s.kind === "order") {
+        did = `${s.tree} 를 정점 ${s.root} 에 두고 방문 차례를 적는다`;
+        const [yes, no] = s.branch as [number, number];
+        cond = `w !== parent[v] 참 ${yes} 번 · 거짓 ${no} 번`;
+        after = `order ${show(s.order)}`;
+      } else if (s.kind === "code") {
+        did = `${s.tree} 의 정점 ${s.v} 에 모양 번호를 준다`;
+        cond = `table.get(${JSON.stringify(s.key)}) ${s.fresh ? "=== undefined 참" : "=== undefined 거짓"}`;
+        after = `code[${s.v}] = ${s.code[s.v as number]}`;
+      } else {
+        const a = s.code[s.root as number] as number;
+        did = `A 의 뿌리 번호를 B 의 중심 번호와 비교한다`;
+        cond = `${show(s.code2)}.includes(${a}) ${s.hit ? "참" : "거짓"}`;
+        after = `${s.hit} 를 돌려준다`;
       }
-    }
+      return [stepOf(k), s.labels, did, cond, after];
+    });
+    const codeSteps = WALK.steps.filter((s) => s.kind === "code");
+    const fresh = codeSteps.filter((s) => s.fresh).length;
     return [
-      table(
-        ["모양", "정점 N", "표에 남은 열쇠", "N 에 대한 비율", "표를 본 횟수"],
-        rows,
-        ["l", "r", "r", "r", "r"],
-      ),
+      md(["걸음", "갈래", "하는 일", "조건 판정", "그 뒤"], rows),
       "",
-      `모양${gae(rows.length)}를 정점 1,024 에서 잰 값이다`,
-      `└ 별은 열쇠${gae(2)}뿐이다 — 잎 하나와 뿌리 하나가 모양의 전부다`,
-      `└ 표를 본 횟수는 정점 수에 뿌리 잡은 횟수를 곱한 값이고, 그 가운데 새 열쇠만 표에 남는다`,
+      `① 은 ${spanOf((s) => s.kind === "build")}, ② 는 ${spanOf((s) => s.kind === "peel")}, ⑦ 은 ${spanOf((s) => s.kind === "count")}, ⑧ 은 ${spanOf((s) => s.labels.includes("⑧"))}, ③ 은 ${WALK.steps.flatMap((s, k) => (s.kind === "order" ? [stepOf(k)] : [])).join(" · ")}, ④⑤⑥ 은 번호를 받은 ${codeSteps.length} 걸음, ⑨ 는 ${spanOf((s) => s.kind === "match")} 에서 실행됐습니다. 번호를 받은 ${codeSteps.length} 걸음 가운데 새 열쇠를 더한 걸음은 ${fresh} 걸음입니다. 반환값은 ${WALK.answer} 입니다.`,
     ].join("\n");
   },
 
-  /** `related` — 같은 값에 대표 번호를 한 번만 주고 그 뒤로는 번호끼리 견준다. */
+  /** `deep.walk.final` — 여러 입력의 결과. */
+  "walk-result": () => {
+    const rows = SHAPES.map((s) => [
+      s.label,
+      String(treeIsomorphism(s.n, s.a, s.b)),
+    ]);
+    return columns(rows.map(([a, b]) => [a as string, "→", b as string]));
+  },
+
+  /** `related` — 같은 값에 대표 번호를 한 번만 주고 그 뒤로는 번호끼리 비교한다. */
   "related-reuse": () => {
     const used = new Map<string, number>();
-    for (const step of WALK.steps) {
-      for (const note of step.did.split(" · ")) {
-        const hit = /\[([^\]]*)\] → (\d+)/.exec(note);
-        if (hit === null) continue;
-        const key = hit[1] ?? "";
-        used.set(key, (used.get(key) ?? 0) + 1);
-      }
+    for (const s of WALK.steps) {
+      if (s.kind !== "code") continue;
+      used.set(s.key as string, (used.get(s.key as string) ?? 0) + 1);
     }
-    const keyRows = WALK.table.map(([key, id]) => [
-      key === "" ? "(빈 목록)" : key,
-      String(id),
-      num(used.get(key) ?? 0),
+    const keyRows = [...RUN.table.entries()].map(([key, id]) => [
+      keyText(key),
+      `${id}`,
+      comma(used.get(key) ?? 0),
     ]);
-    const scaleRows: string[][] = [];
+    const lookups = WALK.steps.filter((s) => s.kind === "code").length;
+    return [
+      md(["열쇠", "모양 번호", "이 열쇠를 찾은 횟수"], keyRows, [1, 2]),
+      "",
+      `전개 입력에서 모양 번호표를 ${lookups} 번 찾는 동안 새 열쇠가 ${RUN.table.size} 번 생기고, 나머지 ${lookups - RUN.table.size} 번은 있던 번호를 받았습니다.`,
+    ].join("\n");
+  },
+
+  /** `related` — 규모가 커질 때 다시 쓴 비율. */
+  "related-scale": () => {
+    const rows: string[][] = [];
     for (const [name, mk] of WORST_SHAPES) {
       if (name !== "사슬" && name !== "별" && name !== "무작위") continue;
       for (const n of [64, 4096]) {
         const a = mk(n);
-        const b = relabel(n, a, 4321);
-        const m = meter(n, a, b);
-        scaleRows.push([
-          `${name} ${num(n)}`,
-          num(m.lookups),
-          num(m.tableSize),
-          num(m.lookups - m.tableSize),
+        const m = meter(n, a, relabel(n, a, 4321));
+        rows.push([
+          `${name} ${comma(n)}`,
+          comma(m.lookups),
+          comma(m.tableSize),
           `${((1 - m.tableSize / m.lookups) * 100).toFixed(1)} %`,
         ]);
       }
     }
-    const reuse = WALK.numbered - WALK.table.length;
     return [
-      table(["자식 번호 목록", "번호", "이 번호를 받은 정점 수"], keyRows, [
-        "l",
-        "r",
-        "r",
-      ]),
-      "",
-      table(
+      md(
         [
           "모양",
-          "표를 본 횟수",
+          "번호표를 찾은 횟수",
           "새로 준 번호",
-          "이미 있던 번호를 받은 횟수",
-          "다시 쓴 비율",
+          "있던 번호를 다시 쓴 비율",
         ],
-        scaleRows,
-        ["l", "r", "r", "r", "r"],
+        rows,
+        [1, 2, 3],
+      ),
+    ].join("\n");
+  },
+
+  /** `deep.math` — 사슬 다섯의 이심률. */
+  "math-ecc": () => {
+    const e = eccs(5, chain(5));
+    const d = Math.max(...e);
+    const r = Math.min(...e);
+    const c = e.flatMap((x, v) => (x === r ? [v] : []));
+    return [
+      columns([
+        ["정점 v", ...e.map((_, v) => `${v}`)],
+        ["ecc(v)", ...e.map((x) => `${x}`)],
+      ]),
+      `d = ${d} · R = ${r} · C(T) = ${setOf(c)}`,
+    ].join("\n");
+  },
+
+  /** `deep.math` — 한 겹 벗길 때마다 이심률이 1 씩 준다. */
+  "math-peel": () => {
+    const n = 5;
+    const edges = chain(n);
+    const names = ["T", "P(T)", "P(P(T))"];
+    const lines: string[][] = [];
+    let alive = Array.from({ length: n }, (_, v) => v);
+    for (const name of names) {
+      const inside = new Set(alive);
+      const kept = edges.filter(([u, v]) => inside.has(u) && inside.has(v));
+      const link = new Map<number, number[]>(alive.map((v) => [v, []]));
+      for (const [u, v] of kept) {
+        (link.get(u) as number[]).push(v);
+        (link.get(v) as number[]).push(u);
+      }
+      const ecc = alive.map((s0) => {
+        const dist = new Map<number, number>([[s0, 0]]);
+        const queue = [s0];
+        for (let i = 0; i < queue.length; i++) {
+          const x = queue[i] as number;
+          for (const y of link.get(x) as number[]) {
+            if (dist.has(y)) continue;
+            dist.set(y, (dist.get(x) as number) + 1);
+            queue.push(y);
+          }
+        }
+        return Math.max(...dist.values());
+      });
+      lines.push([name, alive.join(" - "), `ecc ${ecc.join(" ")}`]);
+      alive = alive.filter((v) => (link.get(v) as number[]).length >= 2);
+      if (alive.length === 0) break;
+    }
+    return columns(lines);
+  },
+
+  /** `deep.math` — 가장 먼 정점은 잎인가. */
+  "math-farthest": () => {
+    const link = neighbors(WALK_N, TREE_A);
+    const e = eccs(WALK_N, TREE_A);
+    let allLeaf = 0;
+    const rows = e.map((x, v) => {
+      const d = distances(WALK_N, link, v);
+      const far = d.flatMap((y, u) => (y === x ? [u] : []));
+      const leaf = far.every((u) => (link[u] as number[]).length === 1);
+      if (leaf) allLeaf++;
+      return [
+        `${v}`,
+        `${x}`,
+        far.join(" · "),
+        leaf ? "모두 잎" : "잎이 아닌 정점이 있다",
+      ];
+    });
+    return [
+      md(["정점 v", "ecc(v)", "거리가 ecc(v) 인 정점", "잎 여부"], rows, [1]),
+      "",
+      `전개 입력의 트리 A 에서 정점 ${WALK_N} 개 가운데 가장 먼 정점이 모두 잎인 정점은 ${allLeaf} 개입니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.math` — 벗길 때마다 지름 · 반지름 · 중심. */
+  "math-shrink": () => {
+    const shapes: [string, number, Edge[]][] = [
+      ["전개 입력 A", WALK_N, TREE_A],
+      ["사슬 일곱", 7, chain(7)],
+      ["완전 이진 열다섯", 15, binary(15)],
+    ];
+    const rows: string[][] = [];
+    let checked = 0;
+    let fits = 0;
+    for (const [label, n, edges] of shapes) {
+      const stages = peelStages(n, edges);
+      const first = eccWithin(edges, stages[0] as number[]);
+      const d0 = Math.max(...first.values());
+      const r0 = Math.min(...first.values());
+      const c0 = (stages[0] as number[]).filter((v) => first.get(v) === r0);
+      stages.forEach((keep, k) => {
+        const ecc = eccWithin(edges, keep);
+        const d = Math.max(...ecc.values());
+        const r = Math.min(...ecc.values());
+        const c = keep.filter((v) => ecc.get(v) === r);
+        checked++;
+        if (d === d0 - 2 * k && r === r0 - k && c.join() === c0.join()) fits++;
+        rows.push([
+          label,
+          `${k}`,
+          `${keep.length}`,
+          `${d}`,
+          `${r}`,
+          c.join(" · "),
+        ]);
+      });
+    }
+    return [
+      md(
+        ["트리", "벗긴 바퀴 k", "남은 정점", "지름", "반지름", "중심"],
+        rows,
+        [1, 2, 3, 4],
       ),
       "",
-      `전개 입력에서는 표를 ${num(WALK.numbered)} 번 보는 동안 새 번호가 ${num(WALK.table.length)} 번 생기고 나머지${beon(reuse)}이 다시 쓴 것이다`,
-      `└ 정점 4,096 짜리 별에서는 번호${gae(2)}로 표를 ${scaleRows[3]?.[1] ?? ""} 번 본다`,
-      `└ 같은 자리에서 사슬은 번호가 ${scaleRows[1]?.[2]} 개까지 늘어 다시 쓴 비율이 ${scaleRows[1]?.[4]} 에 그친다`,
+      `${checked} 줄 가운데 지름이 d − 2k, 반지름이 R − k 이고 중심이 처음과 그대로인 줄은 ${fits} 줄입니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.math` — 세 식과 실행 값. */
+  "math-center": () => {
+    const rows = DIAM_SHAPES.map(([label, n, t]) => {
+      const e = eccs(n, t);
+      const d = Math.max(...e);
+      const c = centers(n, neighbors(n, t));
+      const r = peelRounds(n, t);
+      const ecc = e[c[0] as number] as number;
+      const ok =
+        c.length === 1 + (d % 2) &&
+        r === Math.floor(d / 2) &&
+        ecc === Math.ceil(d / 2);
+      return [
+        label,
+        comma(n),
+        comma(d),
+        comma(c.length),
+        comma(1 + (d % 2)),
+        comma(r),
+        comma(Math.floor(d / 2)),
+        comma(ecc),
+        comma(Math.ceil(d / 2)),
+        ok ? "같다" : "다르다",
+      ];
+    });
+    const law = CENTER_LAW();
+    return [
+      md(
+        [
+          "모양",
+          "정점 N",
+          "지름 d",
+          "센 중심 개수",
+          "1 + (d mod 2)",
+          "센 벗기기 바퀴",
+          "⌊d/2⌋",
+          "센 중심의 이심률",
+          "⌈d/2⌉",
+          "세 식",
+        ],
+        rows,
+        [1, 2, 3, 4, 5, 6, 7, 8],
+      ),
+      "",
+      `정점 여덟까지의 라벨 붙은 트리 ${comma(law.checked)} 개 전부에서도 세 식과 어긋난 자리는 ${comma(law.broken)} 개입니다.`,
+    ].join("\n");
+  },
+
+  /** `deep.math` — 볼록성이 상한을 정하는 자리. */
+  "math-convex": () => {
+    const f = (x: number): number => x * Math.log2(x);
+    return columns([
+      [
+        "자식 9 개를 셋씩 세 정점에",
+        `3 × (3 · log₂ 3) = ${(3 * f(3)).toFixed(1)}`,
+      ],
+      ["자식 9 개를 한 정점에", `9 · log₂ 9 = ${f(9).toFixed(1)}`],
+    ]);
+  },
+
+  /** `deep.math` — 상한에 규모를 넣는다. */
+  "math-scale": () => {
+    const rows = [16, 1024, 65536, N_LIMIT].map((n) => {
+      const lg = Math.ceil(Math.log2(n - 1));
+      return [comma(n), comma(lg), comma((n - 1) * lg)];
+    });
+    return [
+      md(["정점 N", "⌈log₂(N−1)⌉", "(N−1)⌈log₂(N−1)⌉"], rows, [0, 1, 2]),
     ].join("\n");
   },
 
   /** `invariant` — 번호가 같다는 것과 모양이 같다는 것이 같은 일인가. */
-  "invariant-relabel": () => {
-    const rows = CENSUS.map((c) => [
-      num(c.n),
-      num(c.labeled),
-      num(c.classes),
-      num(c.crossChecked),
-      num(c.crossFail),
+  "invariant-hold": () => {
+    const cs = CENSUS();
+    const rows = cs.map((c) => [
+      comma(c.n),
+      comma(c.labeled),
+      comma(c.classes),
+      comma(c.sameChecked),
+      comma(c.sameFail),
+      comma(c.crossChecked),
+      comma(c.crossFail),
     ]);
+    const rl = RELABEL();
+    const bad =
+      cs.reduce((s, c) => s + c.sameFail + c.crossFail, 0) + rl.broken;
     return [
-      table(
+      md(
         [
           "정점 N",
           "라벨 붙은 트리",
-          "번호가 가른 묶음",
-          "묶음끼리 되추적 대조",
-          "그중 동형",
+          "모양 번호가 가른 묶음",
+          "묶음 안 되추적 대조",
+          "그중 동형이 아닌 짝",
+          "묶음 사이 되추적 대조",
+          "그중 동형인 짝",
         ],
         rows,
-        ["r", "r", "r", "r", "r"],
+        [0, 1, 2, 3, 4, 5, 6],
       ),
       "",
-      table(
-        ["무엇을 확인했는가", "대조 횟수", "어긋난 자리"],
-        [
-          [
-            "번호가 같은 두 트리는 정말 동형인가",
-            num(CENSUS.reduce((s, c) => s + c.sameChecked, 0)),
-            num(CENSUS.reduce((s, c) => s + c.sameFail, 0)),
-          ],
-          [
-            "번호가 다른 두 트리는 정말 비동형인가",
-            num(CENSUS.reduce((s, c) => s + c.crossChecked, 0)),
-            num(CENSUS.reduce((s, c) => s + c.crossFail, 0)),
-          ],
-          [
-            "정점 번호만 섞으면 판정이 참인가",
-            num(RELABEL.checked),
-            num(RELABEL.broken),
-          ],
-        ],
-        ["l", "r", "r"],
-      ),
-      "",
-      `세 줄의 어긋난 자리를 더하면 ${num(CENSUS.reduce((s, c) => s + c.sameFail + c.crossFail, 0) + RELABEL.broken)} 이다`,
-      `└ 셋째 줄은 라벨 붙은 트리마다 번호를 세 벌씩 섞어 다시 건 것이다`,
-      `└ 첫 줄과 둘째 줄의 판정 근거는 정규형이 아니라 되추적으로 찾은 정점 대응이다`,
+      `정점 일곱까지는 전수이고 정점 여덟은 묶음마다 200 벌까지 대조했습니다. 따로 정점 번호만 섞은 트리를 ${comma(rl.checked)} 번 다시 물었고, 세 대조에서 어긋난 자리를 더하면 ${comma(bad)} 개입니다.`,
     ].join("\n");
   },
 
@@ -1880,35 +2840,28 @@ export const PROOFS: Record<string, () => string> = {
       const m = meter(s.n, s.a, s.b);
       return [
         s.label,
-        num(s.n),
-        num(s.a.length),
-        `${m.centers1}${과와(String(m.centers1))} ${m.centers2}`,
-        num(m.rootedRuns),
-        num(m.tableSize),
+        comma(s.n),
+        `${m.centers1}${과와(m.centers1)} ${m.centers2}`,
+        comma(m.rootedRuns),
+        comma(m.tableSize),
         String(m.answer),
-        m.answer === byPermutation(s.n, s.a, s.b) ? "같다" : "어긋난다",
+        m.answer === byMapping(s.n, s.a, s.b) ? "같다" : "다르다",
       ];
     });
-    const off = rows.filter((r) => r[7] === "어긋난다").length;
     return [
-      table(
+      md(
         [
           "입력",
           "정점 N",
-          "간선",
           "두 트리의 중심 개수",
-          "뿌리 잡은 횟수",
-          "표에 남은 열쇠",
+          "모양 번호를 매긴 벌 수",
+          "열쇠 개수",
           "정본",
-          "되추적과 대조",
+          "되추적 대조",
         ],
         rows,
-        ["l", "r", "r", "l", "r", "r", "l", "l"],
+        [1, 3, 4],
       ),
-      "",
-      `모양${gae(rows.length)} 가운데 되추적과 어긋난 줄이${jul(off)}이다`,
-      `└ 정점 하나짜리 트리는 간선이 없고 중심이 그 정점 하나다`,
-      `└ 뿌리 잡은 횟수는 많아야 셋이다 — 뒤 트리의 중심 둘과 앞 트리의 중심 하나다`,
     ].join("\n");
   },
 
@@ -1920,280 +2873,314 @@ export const PROOFS: Record<string, () => string> = {
       const m = meter(s.n, s.a, s.b);
       return [
         s.label,
-        num(m.lookups),
+        comma(m.lookups),
         String(want),
         String(got),
-        want === got ? "같다" : "어긋난다",
+        want === got ? "같다" : "다르다",
       ];
     });
-    const off = rows.filter((r) => r[4] === "어긋난다").length;
-    const walkMeter = meter(WALK_N, TREE_A, TREE_B);
     return [
-      table(
-        ["입력", "그 줄을 지나간 횟수", "정본", "정렬을 뺀 판", "대조"],
+      md(
+        ["입력", "그 줄을 지나간 횟수", "정본", "정렬을 뺀 판", "두 답"],
         rows,
-        ["l", "r", "l", "l", "l"],
+        [1],
       ),
-      "",
-      `모양${gae(rows.length)} 가운데 답이 갈린 것${gae(off)}다`,
-      `└ 이른 반환을 안 타는 입력은 그 줄을 정점 수의 배수만큼 지나간다 — 전개 입력은 ${num(walkMeter.lookups)} 번이다`,
-      `└ 답이 같은 줄은 자식이 하나뿐이거나 자식 번호가 이미 같아 세울 것이 없던 자리다`,
     ].join("\n");
   },
 
-  /** `deep.math` — 중심 개수와 지름. */
-  "math-center": () => {
-    const rows = DIAM_SHAPES.map(([label, n, t]) => {
-      const link = neighbors(n, t);
-      const d = diameter(n, t);
-      const c = centers(n, link);
-      const r = peelRounds(n, t);
-      const ecc = Math.max(...distances(n, link, c[0] as number));
-      return [
-        label,
-        num(n),
-        num(d),
-        num(c.length),
-        num(1 + (d % 2)),
-        num(r),
-        num(Math.floor(d / 2)),
-        num(ecc),
-        num(Math.ceil(d / 2)),
-        c.length === 1 + (d % 2) &&
-        r === Math.floor(d / 2) &&
-        ecc === Math.ceil(d / 2)
-          ? "같다"
-          : "어긋난다",
-      ];
-    });
-    const off = rows.filter((r) => r[9] === "어긋난다").length;
-    return [
-      table(
-        [
-          "모양",
-          "정점 N",
-          "지름 d",
-          "센 중심 개수",
-          "1 + (d mod 2)",
-          "센 벗기기 바퀴",
-          "⌊d/2⌋",
-          "센 중심의 이심률",
-          "⌈d/2⌉",
-          "세 식 대조",
-        ],
-        rows,
-        ["l", "r", "r", "r", "r", "r", "r", "r", "r", "l"],
-      ),
-      "",
-      `모양${gae(rows.length)} 가운데 식과 어긋난 줄이${jul(off)}이다`,
-      `└ 정점 ${num(CENTER_LAW.checked)} 벌 전수 스윕에서도 어긋난 자리는 ${num(CENTER_LAW.broken)} 이다`,
-      `└ 그 스윕은 정점 여덟까지의 라벨 붙은 트리 전부이고, 중심 개수 · 벗기기 바퀴 · 중심의 이심률 셋을 함께 봤다`,
-    ].join("\n");
-  },
-
-  /** `deep.math` — 제약 규모에서의 계수. */
-  "math-scale": () => {
-    const rows = [16, 1024, 65536].map((n) => {
-      const bound = (n - 1) * Math.ceil(Math.log2(n - 1));
-      const worst = meter(n, star(n, 0), star(n, n - 1));
-      return [
-        num(n),
-        num(Math.ceil(Math.log2(n - 1))),
-        num(bound),
-        num(worst.compares),
-        `${((worst.compares / bound) * 100).toFixed(1)} %`,
-      ];
-    });
-    rows.push([num(100_000), num(17), num(99_999 * 17), "재지 않았다", "-"]);
-    return [
-      table(
-        [
-          "정점 N",
-          "⌈log₂(N−1)⌉",
-          "견주기 상한 (N−1)⌈log₂(N−1)⌉",
-          "별 모양에서 실제로 센 견주기",
-          "상한에 대한 비율",
-        ],
-        rows,
-        ["r", "r", "r", "r", "r"],
-      ),
-      "",
-      `제약 상한 N = 100,000 에서 대응의 가짓수는 이 표의 어느 값과도 견줄 수 없는 크기다`,
-      `└ 같은 자리에서 이 절차의 견주기 상한은 ${num(99_999 * 17)} 이다`,
-      `└ 별 모양은 자식이 한 정점에 몰려 견주기가 상한에 가장 가까이 간다`,
-    ].join("\n");
-  },
-
-  /** `perf.derive` — 전개 입력의 계수. */
-  "perf-count": () => {
-    const m = meter(WALK_N, TREE_A, TREE_B);
-    const rows: string[][] = [
-      ["간선 목록 읽기", num(m.edgeReads), "2(N−1)"],
-      ["이웃 자리 읽기", num(m.slotReads), "케이스를 탄다"],
-      ["잎으로 벗긴 정점", num(m.peeled), "케이스를 탄다"],
-      ["방문 차례에 담은 정점", num(m.visits), "N × 뿌리 잡은 횟수"],
-      ["자식 번호 견주기", num(m.compares), "케이스를 탄다"],
-      ["표를 본 횟수", num(m.lookups), "N × 뿌리 잡은 횟수"],
-      ["표에 남은 열쇠", num(m.tableSize), "케이스를 탄다"],
-      ["뿌리 잡은 횟수", num(m.rootedRuns), "많아야 3"],
+  /** `invariant` — 정렬을 빼면 어느 정점에서 갈리는가. */
+  "mutant-sort-trace": () => {
+    const [r1, r2] = RUN.cB as [number, number];
+    const t = new Map<string, number>();
+    const b1 = codesFromUnsorted(WALK_N, TREE_B, r1, t);
+    const b2 = codesFromUnsorted(WALK_N, TREE_B, r2, t);
+    const a = codesFromUnsorted(WALK_N, TREE_A, RUN.aRoot, t);
+    const aCode = a.code[RUN.aRoot] as number;
+    const code2 = [b1.code[r1] as number, b2.code[r2] as number];
+    const rows = [
+      [
+        `A 의 ${RUN.aRoot} (뿌리)`,
+        keyText(a.key[RUN.aRoot] as string),
+        `${aCode}`,
+      ],
+      [`B 의 ${r2} (뿌리)`, keyText(b2.key[r2] as string), `${b2.code[r2]}`],
     ];
+    const sortedKey = [...RUN.table.keys()][
+      RUN.aCode[RUN.aRoot] as number
+    ] as string;
     return [
-      table(["무엇", "값", "닫힌 형태"], rows, ["l", "r", "l"]),
+      md(["정점", "정렬을 뺀 판의 열쇠", "받은 모양 번호"], rows, [2]),
       "",
-      `전개 입력 정점 ${num(WALK_N)} · 간선 ${num(TREE_A.length)} 에서 잰 값이다`,
-      `└ 간선 목록 읽기 ${num(m.edgeReads)} 가 2(N−1) = ${num(2 * (WALK_N - 1))} 와 같다`,
-      `└ 방문 차례에 담은 정점 ${num(m.visits)} 가 N × ${num(m.rootedRuns)} = ${num(WALK_N * m.rootedRuns)} 와 같다`,
+      `정렬을 뺀 판에서 B 의 중심 번호는 ${show(code2)} 이고 A 의 뿌리 번호는 ${aCode} 입니다. 목록에 ${code2.includes(aCode) ? "있어 답이 true 로 남습니다" : "없어 답이 false 로 바뀝니다"}. 정렬한 판에서는 두 뿌리의 열쇠가 모두 ${keyText(sortedKey)} 입니다.`,
+    ].join("\n");
+  },
+
+  /** `perf.derive` — 갈래마다의 기본 연산. */
+  "perf-derive": () => {
+    const m = WALK_METER();
+    const n = WALK_N;
+    const runs = m.rootedRuns;
+    const perRun = n + 4 * (n - 1) + n;
+    const numbering = m.visits + (m.slotReads - m.peelReads) + m.lookups;
+    const rows = [
+      [
+        "①",
+        "이웃 목록 둘을 만든다",
+        spanOf((s) => s.kind === "build"),
+        comma(m.edgeReads),
+        "2(N − 1)",
+      ],
+      [
+        "②",
+        "잎을 벗긴다",
+        spanOf((s) => s.kind === "peel"),
+        comma(m.peeled + m.peelReads),
+        "벗긴 정점 수 + 그 정점들의 차수 합",
+      ],
+      [
+        "③④⑥",
+        "뿌리마다 차례를 적고 번호표를 찾는다",
+        `${WALK.steps.flatMap((s, k) => (s.kind === "order" ? [stepOf(k)] : [])).join(" · ")} 부터`,
+        comma(numbering),
+        `매긴 벌 수 × (N + 4(N − 1) + N) = ${runs} × ${perRun}`,
+      ],
+      [
+        "⑤",
+        "자식 번호를 정렬한다",
+        "번호를 받는 걸음",
+        comma(m.compares),
+        "모양이 정한다",
+      ],
+    ];
+    const sum = m.edgeReads + m.peeled + m.peelReads + numbering + m.compares;
+    if (sum !== m.ops) throw new Error("갈래 합이 기본 연산과 다르다");
+    if (numbering !== runs * perRun)
+      throw new Error("번호 매기기 몫이 식과 다르다");
+    return [
+      md(
+        ["갈래", "하는 일", "전개의 걸음", "이 입력의 횟수", "N 으로"],
+        rows,
+        [3],
+      ),
+      "",
+      `네 갈래의 합 ${comma(sum)}${과와(sum)} 실행이 센 기본 연산 ${comma(m.ops)}${이가(m.ops)} 같습니다. 모양 번호를 매긴 벌 수는 ${runs} 입니다.`,
     ].join("\n");
   },
 
   /** `perf.derive` — 모양을 바꿔도 등식이 그대로인가. */
   "perf-growth": () => {
-    const rows: string[][] = [];
-    for (const [name, mk] of WORST_SHAPES) {
-      const n = 1024;
+    const n = 1024;
+    const rows = WORST_SHAPES.map(([name, mk]) => {
       const a = mk(n);
-      const b = relabel(n, a, 4321);
-      const m = meter(n, a, b);
-      rows.push([
+      const m = meter(n, a, relabel(n, a, 4321));
+      const fixed = 2 * (n - 1) + m.rootedRuns * (n + 4 * (n - 1) + n);
+      const peel = m.peeled + m.peelReads;
+      return [
         name,
-        num(n),
-        num(m.edgeReads),
-        num(2 * (n - 1)),
-        num(m.visits),
-        num(n * m.rootedRuns),
-        num(m.slotReads),
-        num(m.compares),
-        num(m.rootedRuns),
-      ]);
-    }
-    const off = rows.filter((r) => r[2] !== r[3] || r[4] !== r[5]).length;
+        comma(m.ops),
+        comma(fixed),
+        comma(peel),
+        comma(m.compares),
+        comma(m.rootedRuns),
+        m.ops === fixed + peel + m.compares ? "같다" : "다르다",
+      ];
+    });
     return [
-      table(
+      md(
         [
-          "모양",
-          "정점 N",
-          "간선 목록 읽기",
-          "2(N−1)",
-          "방문 차례",
-          "N × 뿌리 횟수",
-          "이웃 자리 읽기",
-          "견주기",
-          "뿌리 횟수",
+          "모양 (정점 1,024)",
+          "기본 연산",
+          "2(N − 1) + 벌 수 × (6N − 4)",
+          "잎 벗기기",
+          "자식 번호 비교",
+          "매긴 벌 수",
+          "세 몫의 합 대조",
         ],
         rows,
-        ["l", "r", "r", "r", "r", "r", "r", "r", "r"],
+        [1, 2, 3, 4, 5],
       ),
       "",
-      `모양${gae(rows.length)} 가운데 두 등식이 어긋난 줄이${jul(off)}이다`,
-      `└ 갈리는 것은 견주기와 뿌리 잡은 횟수 둘뿐이다`,
-      `└ 견주기가 모양을 타는 것은 자식 수가 한 정점에 몰리는가에 달렸기 때문이다`,
+      "두 트리 가운데 하나는 앞의 모양이고 다른 하나는 그 번호를 섞은 것입니다.",
     ].join("\n");
   },
 
-  /** `perf.worst` — 어떤 모양이 각 축을 최대로 만드는가. */
-  "worst-shape": () => {
+  /** `perf.worst` — 모양마다의 비용과 메모리. */
+  "perf-worst": () => {
     const n = 4096;
-    const rows: string[][] = [];
-    for (const [name, mk] of WORST_SHAPES) {
+    const rows = WORST_SHAPES.map(([name, mk]) => {
       const a = mk(n);
-      const b = relabel(n, a, 4321);
-      const m = meter(n, a, b);
-      rows.push([
+      const m = meter(n, a, relabel(n, a, 4321));
+      const most = Math.max(...childrenFrom(n, a, 0).kids.map((k) => k.length));
+      return {
         name,
-        num(m.compares),
-        num(m.peeled),
-        num(m.tableSize),
-        num(m.keyChars),
-        num(m.rootedRuns),
-      ]);
-    }
-    const maxCmp = Math.max(
-      ...rows.map((r) => Number((r[1] ?? "0").replace(/,/g, ""))),
-    );
-    const maxKey = Math.max(
-      ...rows.map((r) => Number((r[4] ?? "0").replace(/,/g, ""))),
-    );
+        ops: m.ops,
+        cmp: m.compares,
+        most,
+        bound: sortBound(n, a),
+        keys: m.tableSize,
+        chars: m.keyChars,
+      };
+    });
+    const maxOps = rows.reduce((x, y) => (y.ops > x.ops ? y : x));
+    const maxCmp = rows.reduce((x, y) => (y.cmp > x.cmp ? y : x));
+    const maxKey = rows.reduce((x, y) => (y.chars > x.chars ? y : x));
     return [
-      table(
+      md(
         [
-          "모양",
-          "자식 번호 견주기",
-          "잎으로 벗긴 정점",
-          "표에 남은 열쇠",
+          "모양 (정점 4,096)",
+          "기본 연산",
+          "자식 번호 비교",
+          "정점 0 을 뿌리로 둘 때 가장 많은 자식 수",
+          "뿌리 하나의 정렬 상한 Σ kids⌈log₂ kids⌉",
+          "열쇠 개수",
           "열쇠 글자 수",
-          "뿌리 횟수",
         ],
-        rows,
-        ["l", "r", "r", "r", "r", "r"],
+        rows.map((r) => [
+          r.name,
+          comma(r.ops),
+          comma(r.cmp),
+          comma(r.most),
+          comma(r.bound),
+          comma(r.keys),
+          comma(r.chars),
+        ]),
+        [1, 2, 3, 4, 5, 6],
       ),
       "",
-      `정점 수를 ${num(n)} 으로 못 박은 모양${gae(rows.length)}다`,
-      `└ 견주기가 가장 많은 모양은 「${rows.find((r) => Number((r[1] ?? "0").replace(/,/g, "")) === maxCmp)?.[0]}」 이고 그때${beon(maxCmp)}이다`,
-      `└ 열쇠 글자 수가 가장 많은 모양은 「${rows.find((r) => Number((r[4] ?? "0").replace(/,/g, "")) === maxKey)?.[0]}」 이고 그때 ${num(maxKey)} 글자다`,
+      `기본 연산이 가장 많은 모양은 「${maxOps.name}」이고 ${comma(maxOps.ops)} 번입니다. 자식 번호 비교가 가장 많은 모양은 「${maxCmp.name}」이고 ${comma(maxCmp.cmp)} 번, 열쇠 글자 수가 가장 많은 모양은 「${maxKey.name}」이고 ${comma(maxKey.chars)} 글자입니다.`,
     ].join("\n");
   },
 
-  /** `perf.worst` — 규모를 네 배로 늘리면 값이 어떻게 자라는가. */
-  "worst-chain": () => {
+  /** `perf.worst` — 규모를 네 배씩 늘린다. */
+  "perf-worst-growth": () => {
     const rows: string[][] = [];
-    let prev = 0;
-    for (const n of [1024, 4096, 16384, 65536]) {
-      const a = star(n, 0);
-      const b = star(n, n - 1);
-      const m = meter(n, a, b);
-      const total = m.slotReads + m.compares + m.lookups;
-      rows.push([
-        num(n),
-        num(m.compares),
-        num(m.slotReads),
-        num(total),
-        prev === 0 ? "-" : (total / prev).toFixed(2),
-        num((n - 1) * Math.ceil(Math.log2(n - 1))),
-      ]);
-      prev = total;
-    }
-    const chainRows: string[][] = [];
-    for (const n of [1024, 4096, 16384, 65536]) {
-      const a = chain(n);
-      const b = chain(n).slice().reverse();
-      const m = meter(n, a, b);
-      chainRows.push([
-        num(n),
-        num(m.compares),
-        num(m.peeled),
-        num(m.tableSize),
-        num(m.keyChars),
-      ]);
+    for (const [name, mk] of WORST_SHAPES) {
+      if (
+        name !== "사슬" &&
+        name !== "다리 길이가 모두 다른 거미" &&
+        name !== "별"
+      )
+        continue;
+      let prev = 0;
+      for (const n of [1024, 4096, 16384]) {
+        const a = mk(n);
+        const m = meter(n, a, relabel(n, a, 4321));
+        rows.push([
+          name,
+          comma(n),
+          comma(m.ops),
+          prev === 0 ? "—" : `${(m.ops / prev).toFixed(2)} 배`,
+          comma(m.keyChars),
+        ]);
+        prev = m.ops;
+      }
     }
     return [
-      table(
-        [
-          "별 모양 정점 N",
-          "견주기",
-          "이웃 자리 읽기",
-          "셋을 더한 값",
-          "직전 줄의 몇 배",
-          "(N−1)⌈log₂(N−1)⌉",
-        ],
+      md(
+        ["모양", "정점 N", "기본 연산", "직전 줄 대비", "열쇠 글자 수"],
         rows,
-        ["r", "r", "r", "r", "r", "r"],
+        [1, 2, 3, 4],
+      ),
+    ].join("\n");
+  },
+
+  /** `perf.worst` — 재귀로 적은 사본. */
+  "perf-recursion": () => {
+    const rows = [1000, 10_000, N_LIMIT].map((n) => {
+      const ok = treeIsomorphism(n, chain(n), chain(n).slice().reverse());
+      return [
+        comma(n),
+        comma(n - 1),
+        recursionVerdict(n),
+        ok ? "끝까지 실행된다" : "답이 틀린다",
+      ];
+    });
+    return [
+      md(
+        ["사슬 정점 수", "필요한 호출 깊이", "재귀 사본", "정본 (배열 차례)"],
+        rows,
+        [0, 1],
       ),
       "",
-      table(
+      "재귀 사본은 뿌리 0 에서 자식마다 자기를 다시 부르고, 정본은 방문 차례 배열 하나를 거꾸로 읽습니다.",
+    ].join("\n");
+  },
+
+  /** `selfcheck` — 정점 6 이 받은 두 번호. */
+  "selfcheck-answer": () => {
+    const [r1, r2] = RUN.cB as [number, number];
+    const s1 = childrenFrom(WALK_N, TREE_B, r1).kids;
+    const s2 = childrenFrom(WALK_N, TREE_B, r2).kids;
+    const sub = (kids: number[][], v: number): number[] => [
+      v,
+      ...(kids[v] as number[]).flatMap((w) => sub(kids, w)),
+    ];
+    const v = r1;
+    const k1 = WALK.steps.findIndex(
+      (s) => s.kind === "code" && s.root === r1 && s.v === v && s.tree === "B",
+    );
+    const k2 = WALK.steps.findIndex(
+      (s) => s.kind === "code" && s.root === r2 && s.v === v && s.tree === "B",
+    );
+    const keys = [...RUN.table.keys()];
+    return [
+      md(
+        ["걸음", "뿌리", "정점 6 아래의 부분트리", "열쇠", "모양 번호"],
         [
-          "사슬 정점 N",
-          "견주기",
-          "잎으로 벗긴 정점",
-          "표에 남은 열쇠",
-          "열쇠 글자 수",
+          [
+            stepOf(k1),
+            `${r1}`,
+            setOf(sub(s1, v).sort((x, y) => x - y)),
+            keyText(keys[bCode(r1)[v] as number] as string),
+            `${bCode(r1)[v]}`,
+          ],
+          [
+            stepOf(k2),
+            `${r2}`,
+            setOf(sub(s2, v).sort((x, y) => x - y)),
+            keyText(keys[bCode(r2)[v] as number] as string),
+            `${bCode(r2)[v]}`,
+          ],
         ],
-        chainRows,
-        ["r", "r", "r", "r", "r"],
+        [4],
       ),
-      "",
-      `정점 수를 네 배로 늘리면 별 모양의 셋을 더한 값이 네 배 남짓이 된다`,
-      `└ 별에서는 견주기가 상한 (N−1)⌈log₂(N−1)⌉ 에 가장 가까이 붙는다`,
-      `└ 정점 ${chainRows[0]?.[0]} 짜리 사슬에서는 견주기가 ${chainRows[0]?.[1]} 뿐이고 대신 열쇠${gae(Number((chainRows[0]?.[3] ?? "0").replace(/,/g, "")))}가 남는다`,
     ].join("\n");
   },
 };
+
+/**
+ * 정렬을 뺀 판과 같은 절차로 정점마다의 번호와 열쇠를 모은다 — 변이 모듈의 `shapeCode` 와 뿌리 번호를
+ * 맞댄다. 중화 실행에서는 변이 모듈이 정본이므로 이 사본도 정렬한다.
+ */
+function codesFromUnsorted(
+  n: number,
+  edges: Edge[],
+  root: number,
+  table: Map<string, number>,
+): { code: number[]; key: string[] } {
+  const probe = new Map(table);
+  const want = noSort.shapeCode(n, neighbors(n, edges), root, probe);
+  const { kids, order } = childrenFrom(n, edges, root);
+  const code: number[] = Array.from({ length: n }, () => -1);
+  const keys: string[] = Array.from({ length: n }, () => "");
+  const link = neighbors(n, edges);
+  for (let i = order.length - 1; i >= 0; i--) {
+    const v = order[i] as number;
+    const got: number[] = [];
+    for (const w of link[v] as number[]) {
+      if ((kids[v] as number[]).includes(w)) got.push(code[w] as number);
+    }
+    if (중화됨) got.sort((x, y) => x - y);
+    const key = got.join(",");
+    let id = table.get(key);
+    if (id === undefined) {
+      id = table.size;
+      table.set(key, id);
+    }
+    code[v] = id;
+    keys[v] = key;
+  }
+  if (code[root] !== want)
+    throw new Error("정렬을 뺀 사본이 변이 모듈과 다르다");
+  return { code, key: keys };
+}

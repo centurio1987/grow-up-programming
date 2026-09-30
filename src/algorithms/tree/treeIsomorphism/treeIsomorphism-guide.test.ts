@@ -295,3 +295,42 @@ test("정점 아홉 이하 무작위 트리 400 짝에서 순열 되추적과 �
     expect(treeIsomorphism(n, a, b)).toBe(byPermutation(n, a, b));
   }
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./treeIsomorphism-guide.sim.ts");
+  const fig = await import("./treeIsomorphism-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.isoWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.isoWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 패널의 반환값을 정본의 답에 직접 다시 묻는다.
+  const e1: Edge[] = [
+    [0, 1],
+    [0, 6],
+    [1, 2],
+    [1, 7],
+    [2, 3],
+    [3, 4],
+    [3, 5],
+  ];
+  const e2: Edge[] = [
+    [0, 1],
+    [0, 6],
+    [2, 6],
+    [3, 4],
+    [3, 5],
+    [3, 7],
+    [6, 7],
+  ];
+  const answer = treeIsomorphism(8, e1, e2);
+  expect(sim.isoWalk.result).toBe(String(answer));
+  expect(sim.isoWalk.steps.at(-1)?.calc?.result).toBe(String(answer));
+  expect(sim.isoWalk.steps.map((s) => s.title.split(" ")[0])).toEqual(
+    sim.isoWalk.steps.map((_, k) => `T${k + 1}`),
+  );
+});
