@@ -1,351 +1,894 @@
-import type { Frame } from "#guide-sim";
-
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(8)를 넘지 않는다 — P3 이 그 관계를 잰다.
+ * 걸음 재생 패널 — `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 제목은
+ * 원고의 걸음 번호(`T#`)로 연다 — P3 이 그 자리를 잰다. T1 이 시작값, 라운드 하나가 걸음 하나,
+ * 마지막 걸음이 dist 와 판정을 돌려주는 자리다.
  *
- * **뷰가 둘이다** — `graph` 는 정점의 상태(아직 값이 없음 · 이 바퀴에 고쳐짐 · 값이 그대로)와
- * 그 바퀴에서 마지막으로 값을 고친 간선을 그리고, `keyValue` 는 그 바퀴의 번호 · `dist` 전체 ·
- * 실행된 갈래 라벨 · 고친 자리를 적는다. 이 절차는 **한 걸음이 간선 목록 전체**라 그래프
- * 그림만으로는 「몇 번째 바퀴인가」와 「이 바퀴가 무엇을 고쳤는가」가 안 보인다.
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가 실제보다
+ * 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
  *
- * **한 프레임이 바퀴 하나다.** 간선 하나마다 프레임을 두면 8 x 6 = 48 장이 되어 무엇이
- * 남았는지가 사라진다. 대신 `detail` 과 `entries` 가 그 바퀴에서 고친 자리를 전부 적는다.
+ * ## 패널 규약 — 「그래프」 무대(KAN-058, SPEC §13)
  *
- * **`activeEdge` 는 그 바퀴에서 마지막으로 값을 고친 간선**이다. 한 바퀴가 간선 여덟 개를
- * 전부 읽으므로 「지금 보고 있는 간선」이라는 것이 없고, 그 바퀴의 결과가 어느 자리에서
- * 나왔는지를 하나만 표시한다. 값은 `bellmanFord-guide.proof.ts` 의 `counted()` 가 정본과
- * 같은 절차로 낸 것이고, 원고의 걸음 표도 같은 함수에서 나온다.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "graph"` 가
+ * 무대 갈래를 고른다. 정점과 간선의 자리(`layout`)는 패널에 한 번만 적고, 걸음마다 정점의 값(라운드가
+ * 끝난 뒤의 dist)과 상태, 간선의 종류(지금 그 정점의 값을 낸 간선은 굵은 실선)와 상태, 무대 아래 띠
+ * 둘(`strips` — 적힌 차례대로의 간선 목록과 그 라운드의 후보 dist[u] + w)만 바꾼다
+ * (`src/_viz/player/graphStage.ts`). 그렇게 정한 까닭은 그림 사이드카 머리 주석에 있다.
  *
- * **`nodeValue` 는 유한한 값만 적는다.** `Infinity` 를 다른 기호로 바꿔 그리면 원고의 표기와
- * 갈리므로(L25), 아직 값이 없는 정점은 값 없이 색으로만 구분한다.
- *
- * 좌표는 0~100 정규화다. 사슬 `0 → 1 → 2 → 3 → 4 → 5` 를 지그재그로 놓아 간선 목록에 적힌
- * 순서(내림차순)와 실제 진행 방향이 반대라는 것이 보이게 했고, 들어오는 간선이 없는 정점 6 은
- * 왼쪽 아래에 떨어뜨려 둔다.
- *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * **값은 손으로 적지 않았다.** 이 리터럴은 그림 사이드카의 `stageStepsFromRef()` 가 정본과 같은 절차를
+ * 실행해 낸 결과를 옮긴 것이고, 둘이 같은지는 `bellmanFord-guide.test.ts` 가 잰다.
  */
 export const bellmanFordWalk = {
-  view: ["graph", "keyValue"] as const,
+  player: "stage",
+  stage: "graph",
   title:
-    "bellmanFord(7, [[4,5,1],[3,4,2],[2,3,-3],[1,2,3],[0,1,4],[0,2,9],[6,5,2],[5,1,7]], 0)",
+    "bellmanFord(7, [[4,5,1],[3,4,2],[2,3,-3],[1,2,3],[0,1,4],[0,2,9],[6,5,2],[5,1,7]], 0) — 간선 옆 수는 가중치",
+  sub: "T1–T8 · 걸음마다 라운드 하나",
   result: "{ dist: [0, 4, 7, 4, 6, 7, Infinity], hasNegativeCycle: false }",
+  layout: {
+    nodes: [
+      {
+        id: 0,
+        x: 0,
+        y: 2,
+      },
+      {
+        id: 1,
+        x: 1,
+        y: 1,
+      },
+      {
+        id: 2,
+        x: 2,
+        y: 2,
+      },
+      {
+        id: 3,
+        x: 3,
+        y: 1,
+      },
+      {
+        id: 4,
+        x: 4,
+        y: 2,
+      },
+      {
+        id: 5,
+        x: 5,
+        y: 1,
+      },
+      {
+        id: 6,
+        x: 5.6,
+        y: 2.4,
+      },
+    ],
+    edges: [
+      {
+        from: 4,
+        to: 5,
+      },
+      {
+        from: 3,
+        to: 4,
+      },
+      {
+        from: 2,
+        to: 3,
+      },
+      {
+        from: 1,
+        to: 2,
+      },
+      {
+        from: 0,
+        to: 1,
+      },
+      {
+        from: 0,
+        to: 2,
+      },
+      {
+        from: 6,
+        to: 5,
+      },
+      {
+        from: 5,
+        to: 1,
+        bend: -0.22,
+      },
+    ],
+    directed: true,
+  },
   steps: [
     {
       title: "T1 시작값",
-      detail:
-        "거리 배열을 전부 Infinity 로 두고 dist[0] = 0 만 적는다. 아직 간선을 하나도 읽지 않았다.",
+      text: "dist[0] 에 0 을 적고 나머지 6 칸은 Infinity 로 둡니다. 아직 간선을 하나도 읽지 않았습니다.",
       nodes: [
-        { id: 0, x: 8, y: 50 },
-        { id: 1, x: 26, y: 16 },
-        { id: 2, x: 44, y: 54 },
-        { id: 3, x: 62, y: 16 },
-        { id: 4, x: 80, y: 54 },
-        { id: 5, x: 94, y: 18 },
-        { id: 6, x: 30, y: 90 },
-      ],
-      edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 9, directed: true },
-        { from: 1, to: 2, weight: 3, directed: true },
-        { from: 2, to: 3, weight: -3, directed: true },
-        { from: 3, to: 4, weight: 2, directed: true },
-        { from: 4, to: 5, weight: 1, directed: true },
-        { from: 5, to: 1, weight: 7, directed: true },
-        { from: 6, to: 5, weight: 2, directed: true },
-      ],
-      nodeStatus: { 0: "frontier" },
-      nodeValue: { 0: 0 },
-      entries: [
-        { label: "바퀴", value: "아직 시작하지 않았다" },
         {
-          label: "dist",
-          value:
-            "[0, Infinity, Infinity, Infinity, Infinity, Infinity, Infinity]",
-        },
-        { label: "이 바퀴가 고친 자리", value: "—" },
-        { label: "실행된 갈래", value: "① 시작값" },
-      ],
-    },
-    {
-      title: "T2 첫 바퀴",
-      detail:
-        "간선 여덟 개를 목록 순서대로 읽는다. 앞의 네 간선은 꼬리 정점의 값이 없어 ③ 으로 넘어가고, 0→1 과 0→2 만 값을 적는다.",
-      nodes: [
-        { id: 0, x: 8, y: 50 },
-        { id: 1, x: 26, y: 16 },
-        { id: 2, x: 44, y: 54 },
-        { id: 3, x: 62, y: 16 },
-        { id: 4, x: 80, y: 54 },
-        { id: 5, x: 94, y: 18 },
-        { id: 6, x: 30, y: 90 },
-      ],
-      edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 9, directed: true },
-        { from: 1, to: 2, weight: 3, directed: true },
-        { from: 2, to: 3, weight: -3, directed: true },
-        { from: 3, to: 4, weight: 2, directed: true },
-        { from: 4, to: 5, weight: 1, directed: true },
-        { from: 5, to: 1, weight: 7, directed: true },
-        { from: 6, to: 5, weight: 2, directed: true },
-      ],
-      nodeStatus: { 0: "visited", 1: "active", 2: "active" },
-      nodeValue: { 0: 0, 1: 4, 2: 9 },
-      activeEdge: { from: 0, to: 2 },
-      entries: [
-        { label: "바퀴", value: "1" },
-        {
-          label: "dist",
-          value: "[0, 4, 9, Infinity, Infinity, Infinity, Infinity]",
+          value: "dist 0",
+          state: "focus",
         },
         {
-          label: "이 바퀴가 고친 자리",
-          value: "dist[1] Infinity -> 4 · dist[2] Infinity -> 9",
+          value: "",
+          state: "empty",
         },
-        { label: "실행된 갈래", value: "② 바퀴 · ③ 건너뛰기 · ④ 완화" },
-      ],
-    },
-    {
-      title: "T3 둘째 바퀴",
-      detail:
-        "2→3 이 9 − 3 = 6 을 처음 적고, 그 뒤에 읽은 1→2 가 9 를 7 로 줄인다. 같은 바퀴 안에서 뒤에 읽은 간선이 앞 결과를 고치는 자리다.",
-      nodes: [
-        { id: 0, x: 8, y: 50 },
-        { id: 1, x: 26, y: 16 },
-        { id: 2, x: 44, y: 54 },
-        { id: 3, x: 62, y: 16 },
-        { id: 4, x: 80, y: 54 },
-        { id: 5, x: 94, y: 18 },
-        { id: 6, x: 30, y: 90 },
-      ],
-      edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 9, directed: true },
-        { from: 1, to: 2, weight: 3, directed: true },
-        { from: 2, to: 3, weight: -3, directed: true },
-        { from: 3, to: 4, weight: 2, directed: true },
-        { from: 4, to: 5, weight: 1, directed: true },
-        { from: 5, to: 1, weight: 7, directed: true },
-        { from: 6, to: 5, weight: 2, directed: true },
-      ],
-      nodeStatus: { 0: "visited", 1: "visited", 2: "active", 3: "active" },
-      nodeValue: { 0: 0, 1: 4, 2: 7, 3: 6 },
-      activeEdge: { from: 1, to: 2 },
-      entries: [
-        { label: "바퀴", value: "2" },
-        { label: "dist", value: "[0, 4, 7, 6, Infinity, Infinity, Infinity]" },
         {
-          label: "이 바퀴가 고친 자리",
-          value: "dist[3] Infinity -> 6 · dist[2] 9 -> 7",
+          value: "",
+          state: "empty",
         },
-        { label: "실행된 갈래", value: "② 바퀴 · ③ 건너뛰기 · ④ 완화" },
-      ],
-    },
-    {
-      title: "T4 셋째 바퀴",
-      detail:
-        "3→4 가 6 + 2 = 8 을 처음 적고, 2→3 이 7 − 3 = 4 로 앞 바퀴의 6 을 줄인다. 정점 3 의 값이 두 번째로 작아졌다.",
-      nodes: [
-        { id: 0, x: 8, y: 50 },
-        { id: 1, x: 26, y: 16 },
-        { id: 2, x: 44, y: 54 },
-        { id: 3, x: 62, y: 16 },
-        { id: 4, x: 80, y: 54 },
-        { id: 5, x: 94, y: 18 },
-        { id: 6, x: 30, y: 90 },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 9, directed: true },
-        { from: 1, to: 2, weight: 3, directed: true },
-        { from: 2, to: 3, weight: -3, directed: true },
-        { from: 3, to: 4, weight: 2, directed: true },
-        { from: 4, to: 5, weight: 1, directed: true },
-        { from: 5, to: 1, weight: 7, directed: true },
-        { from: 6, to: 5, weight: 2, directed: true },
+        {
+          label: "1",
+        },
+        {
+          label: "2",
+        },
+        {
+          label: "-3",
+        },
+        {
+          label: "3",
+        },
+        {
+          label: "4",
+        },
+        {
+          label: "9",
+        },
+        {
+          label: "2",
+        },
+        {
+          label: "7",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "active",
-        4: "active",
+      strips: [
+        {
+          label: "간선 목록",
+          values: ["4→5", "3→4", "2→3", "1→2", "0→1", "0→2", "6→5", "5→1"],
+          states: {},
+          slots: 8,
+        },
+        {
+          label: "dist[u] + w",
+          values: ["", "", "", "", "", "", "", ""],
+          states: {},
+          slots: 8,
+        },
+      ],
+      calc: {
+        expr: "dist[0] =",
+        result: "0",
       },
-      nodeValue: { 0: 0, 1: 4, 2: 7, 3: 4, 4: 8 },
-      activeEdge: { from: 2, to: 3 },
-      entries: [
-        { label: "바퀴", value: "3" },
-        { label: "dist", value: "[0, 4, 7, 4, 8, Infinity, Infinity]" },
+      vars: "간선 읽기 0 / 48",
+    },
+    {
+      title: "T2 라운드 1 — dist[1] · dist[2] 를 고친다",
+      text: "간선 8 개를 적힌 차례대로 읽습니다. 꼬리의 값이 없는 간선 6 개는 ③ 으로 넘어갑니다. 0→1 이 0 + 4 = 4 를 처음 적습니다. 0→2 가 0 + 9 = 9 를 처음 적습니다. 고친 칸이 있어 다음 라운드로 갑니다.",
+      nodes: [
         {
-          label: "이 바퀴가 고친 자리",
-          value: "dist[4] Infinity -> 8 · dist[3] 6 -> 4",
+          value: "dist 0",
         },
-        { label: "실행된 갈래", value: "② 바퀴 · ③ 건너뛰기 · ④ 완화" },
-      ],
-    },
-    {
-      title: "T5 넷째 바퀴",
-      detail:
-        "4→5 가 8 + 1 = 9 를 처음 적고, 3→4 가 4 + 2 = 6 으로 8 을 줄인다. 5→1 은 9 + 7 = 16 이라 dist[1] = 4 를 못 줄인다.",
-      nodes: [
-        { id: 0, x: 8, y: 50 },
-        { id: 1, x: 26, y: 16 },
-        { id: 2, x: 44, y: 54 },
-        { id: 3, x: 62, y: 16 },
-        { id: 4, x: 80, y: 54 },
-        { id: 5, x: 94, y: 18 },
-        { id: 6, x: 30, y: 90 },
-      ],
-      edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 9, directed: true },
-        { from: 1, to: 2, weight: 3, directed: true },
-        { from: 2, to: 3, weight: -3, directed: true },
-        { from: 3, to: 4, weight: 2, directed: true },
-        { from: 4, to: 5, weight: 1, directed: true },
-        { from: 5, to: 1, weight: 7, directed: true },
-        { from: 6, to: 5, weight: 2, directed: true },
-      ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "active",
-        5: "active",
-      },
-      nodeValue: { 0: 0, 1: 4, 2: 7, 3: 4, 4: 6, 5: 9 },
-      activeEdge: { from: 3, to: 4 },
-      entries: [
-        { label: "바퀴", value: "4" },
-        { label: "dist", value: "[0, 4, 7, 4, 6, 9, Infinity]" },
         {
-          label: "이 바퀴가 고친 자리",
-          value: "dist[5] Infinity -> 9 · dist[4] 8 -> 6",
+          value: "dist 4",
+          state: "focus",
         },
-        { label: "실행된 갈래", value: "② 바퀴 · ③ 건너뛰기 · ④ 완화" },
-      ],
-    },
-    {
-      title: "T6 다섯째 바퀴",
-      detail:
-        "4→5 하나만 값을 고친다. 6 + 1 = 7 이 앞 바퀴의 9 보다 작다. 이 바퀴가 마지막으로 값을 고친 바퀴다.",
-      nodes: [
-        { id: 0, x: 8, y: 50 },
-        { id: 1, x: 26, y: 16 },
-        { id: 2, x: 44, y: 54 },
-        { id: 3, x: 62, y: 16 },
-        { id: 4, x: 80, y: 54 },
-        { id: 5, x: 94, y: 18 },
-        { id: 6, x: 30, y: 90 },
-      ],
-      edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 9, directed: true },
-        { from: 1, to: 2, weight: 3, directed: true },
-        { from: 2, to: 3, weight: -3, directed: true },
-        { from: 3, to: 4, weight: 2, directed: true },
-        { from: 4, to: 5, weight: 1, directed: true },
-        { from: 5, to: 1, weight: 7, directed: true },
-        { from: 6, to: 5, weight: 2, directed: true },
-      ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "visited",
-        5: "active",
-      },
-      nodeValue: { 0: 0, 1: 4, 2: 7, 3: 4, 4: 6, 5: 7 },
-      activeEdge: { from: 4, to: 5 },
-      entries: [
-        { label: "바퀴", value: "5" },
-        { label: "dist", value: "[0, 4, 7, 4, 6, 7, Infinity]" },
-        { label: "이 바퀴가 고친 자리", value: "dist[5] 9 -> 7" },
-        { label: "실행된 갈래", value: "② 바퀴 · ③ 건너뛰기 · ④ 완화" },
-      ],
-    },
-    {
-      title: "T7 여섯째 바퀴",
-      detail:
-        "간선 여덟 개를 다시 읽었는데 고칠 것이 하나도 없다. ⑤ 가 참이 되어 여기서 반복이 끝나고, 음수 사이클은 없다는 판정이 함께 나온다.",
-      nodes: [
-        { id: 0, x: 8, y: 50 },
-        { id: 1, x: 26, y: 16 },
-        { id: 2, x: 44, y: 54 },
-        { id: 3, x: 62, y: 16 },
-        { id: 4, x: 80, y: 54 },
-        { id: 5, x: 94, y: 18 },
-        { id: 6, x: 30, y: 90 },
+        {
+          value: "dist 9",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 9, directed: true },
-        { from: 1, to: 2, weight: 3, directed: true },
-        { from: 2, to: 3, weight: -3, directed: true },
-        { from: 3, to: 4, weight: 2, directed: true },
-        { from: 4, to: 5, weight: 1, directed: true },
-        { from: 5, to: 1, weight: 7, directed: true },
-        { from: 6, to: 5, weight: 2, directed: true },
+        {
+          state: "out",
+          label: "1",
+        },
+        {
+          state: "out",
+          label: "2",
+        },
+        {
+          state: "out",
+          label: "-3",
+        },
+        {
+          state: "out",
+          label: "3",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "4",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "9",
+        },
+        {
+          state: "out",
+          label: "2",
+        },
+        {
+          state: "out",
+          label: "7",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "visited",
-        5: "visited",
+      strips: [
+        {
+          label: "간선 목록",
+          values: ["4→5", "3→4", "2→3", "1→2", "0→1", "0→2", "6→5", "5→1"],
+          states: {
+            "0": "out",
+            "1": "out",
+            "2": "out",
+            "3": "out",
+            "4": "focus",
+            "5": "focus",
+            "6": "out",
+            "7": "out",
+          },
+          slots: 8,
+        },
+        {
+          label: "dist[u] + w",
+          values: ["—", "—", "—", "—", "4", "9", "—", "—"],
+          states: {
+            "0": "out",
+            "1": "out",
+            "2": "out",
+            "3": "out",
+            "4": "focus",
+            "5": "focus",
+            "6": "out",
+            "7": "out",
+          },
+          slots: 8,
+        },
+      ],
+      calc: {
+        expr: "고친 칸 2 개 → !changed =",
+        result: "거짓",
       },
-      nodeValue: { 0: 0, 1: 4, 2: 7, 3: 4, 4: 6, 5: 7 },
-      entries: [
-        { label: "바퀴", value: "6" },
-        { label: "dist", value: "[0, 4, 7, 4, 6, 7, Infinity]" },
-        { label: "이 바퀴가 고친 자리", value: "고친 것이 없다" },
-        { label: "실행된 갈래", value: "② 바퀴 · ③ 건너뛰기 · ⑤ 조기 종료" },
-      ],
+      vars: "간선 읽기 8 / 48",
     },
     {
-      title: "T8 반환",
-      detail:
-        "정점 6 은 들어오는 간선이 하나도 없어 Infinity 로 남는다. 반환값은 dist 와 hasNegativeCycle = false 두 개다.",
+      title: "T3 라운드 2 — dist[3] · dist[2] 를 고친다",
+      text: "간선 8 개를 적힌 차례대로 읽습니다. 꼬리의 값이 없는 간선 4 개는 ③ 으로 넘어갑니다. 2→3 이 9 + (-3) = 6 을 처음 적습니다. 1→2 가 4 + 3 = 7 로 9 를 고칩니다. 고친 칸이 있어 다음 라운드로 갑니다.",
       nodes: [
-        { id: 0, x: 8, y: 50 },
-        { id: 1, x: 26, y: 16 },
-        { id: 2, x: 44, y: 54 },
-        { id: 3, x: 62, y: 16 },
-        { id: 4, x: 80, y: 54 },
-        { id: 5, x: 94, y: 18 },
-        { id: 6, x: 30, y: 90 },
+        {
+          value: "dist 0",
+        },
+        {
+          value: "dist 4",
+        },
+        {
+          value: "dist 7",
+          state: "focus",
+        },
+        {
+          value: "dist 6",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1, weight: 4, directed: true },
-        { from: 0, to: 2, weight: 9, directed: true },
-        { from: 1, to: 2, weight: 3, directed: true },
-        { from: 2, to: 3, weight: -3, directed: true },
-        { from: 3, to: 4, weight: 2, directed: true },
-        { from: 4, to: 5, weight: 1, directed: true },
-        { from: 5, to: 1, weight: 7, directed: true },
-        { from: 6, to: 5, weight: 2, directed: true },
+        {
+          state: "out",
+          label: "1",
+        },
+        {
+          state: "out",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "-3",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "3",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "4",
+        },
+        {
+          state: "read",
+          label: "9",
+        },
+        {
+          state: "out",
+          label: "2",
+        },
+        {
+          state: "out",
+          label: "7",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "visited",
-        5: "visited",
+      strips: [
+        {
+          label: "간선 목록",
+          values: ["4→5", "3→4", "2→3", "1→2", "0→1", "0→2", "6→5", "5→1"],
+          states: {
+            "0": "out",
+            "1": "out",
+            "2": "focus",
+            "3": "focus",
+            "4": "read",
+            "5": "read",
+            "6": "out",
+            "7": "out",
+          },
+          slots: 8,
+        },
+        {
+          label: "dist[u] + w",
+          values: ["—", "—", "6", "7", "4", "9", "—", "—"],
+          states: {
+            "0": "out",
+            "1": "out",
+            "2": "focus",
+            "3": "focus",
+            "4": "read",
+            "5": "read",
+            "6": "out",
+            "7": "out",
+          },
+          slots: 8,
+        },
+      ],
+      calc: {
+        expr: "고친 칸 2 개 → !changed =",
+        result: "거짓",
       },
-      nodeValue: { 0: 0, 1: 4, 2: 7, 3: 4, 4: 6, 5: 7 },
-      entries: [
-        { label: "바퀴", value: "끝났다" },
-        { label: "dist", value: "[0, 4, 7, 4, 6, 7, Infinity]" },
-        { label: "이 바퀴가 고친 자리", value: "—" },
-        { label: "실행된 갈래", value: "hasNegativeCycle = false" },
-      ],
+      vars: "간선 읽기 16 / 48",
     },
-  ] satisfies Frame[],
+    {
+      title: "T4 라운드 3 — dist[4] · dist[3] 을 고친다",
+      text: "간선 8 개를 적힌 차례대로 읽습니다. 꼬리의 값이 없는 간선 3 개는 ③ 으로 넘어갑니다. 3→4 가 6 + 2 = 8 을 처음 적습니다. 2→3 이 7 + (-3) = 4 로 6 을 고칩니다. 고친 칸이 있어 다음 라운드로 갑니다.",
+      nodes: [
+        {
+          value: "dist 0",
+        },
+        {
+          value: "dist 4",
+        },
+        {
+          value: "dist 7",
+        },
+        {
+          value: "dist 4",
+          state: "focus",
+        },
+        {
+          value: "dist 8",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          state: "out",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "-3",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "3",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "4",
+        },
+        {
+          state: "read",
+          label: "9",
+        },
+        {
+          state: "out",
+          label: "2",
+        },
+        {
+          state: "out",
+          label: "7",
+        },
+      ],
+      strips: [
+        {
+          label: "간선 목록",
+          values: ["4→5", "3→4", "2→3", "1→2", "0→1", "0→2", "6→5", "5→1"],
+          states: {
+            "0": "out",
+            "1": "focus",
+            "2": "focus",
+            "3": "read",
+            "4": "read",
+            "5": "read",
+            "6": "out",
+            "7": "out",
+          },
+          slots: 8,
+        },
+        {
+          label: "dist[u] + w",
+          values: ["—", "8", "4", "7", "4", "9", "—", "—"],
+          states: {
+            "0": "out",
+            "1": "focus",
+            "2": "focus",
+            "3": "read",
+            "4": "read",
+            "5": "read",
+            "6": "out",
+            "7": "out",
+          },
+          slots: 8,
+        },
+      ],
+      calc: {
+        expr: "고친 칸 2 개 → !changed =",
+        result: "거짓",
+      },
+      vars: "간선 읽기 24 / 48",
+    },
+    {
+      title: "T5 라운드 4 — dist[5] · dist[4] 를 고친다",
+      text: "간선 8 개를 적힌 차례대로 읽습니다. 꼬리의 값이 없는 간선 1 개는 ③ 으로 넘어갑니다. 4→5 가 8 + 1 = 9 를 처음 적습니다. 3→4 가 4 + 2 = 6 으로 8 을 고칩니다. 고친 칸이 있어 다음 라운드로 갑니다.",
+      nodes: [
+        {
+          value: "dist 0",
+        },
+        {
+          value: "dist 4",
+        },
+        {
+          value: "dist 7",
+        },
+        {
+          value: "dist 4",
+        },
+        {
+          value: "dist 6",
+          state: "focus",
+        },
+        {
+          value: "dist 9",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          state: "focus",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "-3",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "3",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "4",
+        },
+        {
+          state: "read",
+          label: "9",
+        },
+        {
+          state: "out",
+          label: "2",
+        },
+        {
+          state: "read",
+          label: "7",
+        },
+      ],
+      strips: [
+        {
+          label: "간선 목록",
+          values: ["4→5", "3→4", "2→3", "1→2", "0→1", "0→2", "6→5", "5→1"],
+          states: {
+            "0": "focus",
+            "1": "focus",
+            "2": "read",
+            "3": "read",
+            "4": "read",
+            "5": "read",
+            "6": "out",
+            "7": "read",
+          },
+          slots: 8,
+        },
+        {
+          label: "dist[u] + w",
+          values: ["9", "6", "4", "7", "4", "9", "—", "16"],
+          states: {
+            "0": "focus",
+            "1": "focus",
+            "2": "read",
+            "3": "read",
+            "4": "read",
+            "5": "read",
+            "6": "out",
+            "7": "read",
+          },
+          slots: 8,
+        },
+      ],
+      calc: {
+        expr: "고친 칸 2 개 → !changed =",
+        result: "거짓",
+      },
+      vars: "간선 읽기 32 / 48",
+    },
+    {
+      title: "T6 라운드 5 — dist[5] 를 고친다",
+      text: "간선 8 개를 적힌 차례대로 읽습니다. 꼬리의 값이 없는 간선 1 개는 ③ 으로 넘어갑니다. 4→5 가 6 + 1 = 7 로 9 를 고칩니다. 고친 칸이 있어 다음 라운드로 갑니다.",
+      nodes: [
+        {
+          value: "dist 0",
+        },
+        {
+          value: "dist 4",
+        },
+        {
+          value: "dist 7",
+        },
+        {
+          value: "dist 4",
+        },
+        {
+          value: "dist 6",
+        },
+        {
+          value: "dist 7",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          state: "focus",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "-3",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "3",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "4",
+        },
+        {
+          state: "read",
+          label: "9",
+        },
+        {
+          state: "out",
+          label: "2",
+        },
+        {
+          state: "read",
+          label: "7",
+        },
+      ],
+      strips: [
+        {
+          label: "간선 목록",
+          values: ["4→5", "3→4", "2→3", "1→2", "0→1", "0→2", "6→5", "5→1"],
+          states: {
+            "0": "focus",
+            "1": "read",
+            "2": "read",
+            "3": "read",
+            "4": "read",
+            "5": "read",
+            "6": "out",
+            "7": "read",
+          },
+          slots: 8,
+        },
+        {
+          label: "dist[u] + w",
+          values: ["7", "6", "4", "7", "4", "9", "—", "14"],
+          states: {
+            "0": "focus",
+            "1": "read",
+            "2": "read",
+            "3": "read",
+            "4": "read",
+            "5": "read",
+            "6": "out",
+            "7": "read",
+          },
+          slots: 8,
+        },
+      ],
+      calc: {
+        expr: "고친 칸 1 개 → !changed =",
+        result: "거짓",
+      },
+      vars: "간선 읽기 40 / 48",
+    },
+    {
+      title: "T7 라운드 6 — 고친 칸이 없다",
+      text: "간선 8 개를 적힌 차례대로 읽습니다. 꼬리의 값이 없는 간선 1 개는 ③ 으로 넘어갑니다. 나머지 간선도 적힌 값을 못 줄여 고친 칸이 없고, changed 가 거짓이라 여기서 반복을 끝냅니다.",
+      nodes: [
+        {
+          value: "dist 0",
+        },
+        {
+          value: "dist 4",
+        },
+        {
+          value: "dist 7",
+        },
+        {
+          value: "dist 4",
+        },
+        {
+          value: "dist 6",
+        },
+        {
+          value: "dist 7",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          state: "read",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "-3",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "3",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "4",
+        },
+        {
+          state: "read",
+          label: "9",
+        },
+        {
+          state: "out",
+          label: "2",
+        },
+        {
+          state: "read",
+          label: "7",
+        },
+      ],
+      strips: [
+        {
+          label: "간선 목록",
+          values: ["4→5", "3→4", "2→3", "1→2", "0→1", "0→2", "6→5", "5→1"],
+          states: {
+            "0": "read",
+            "1": "read",
+            "2": "read",
+            "3": "read",
+            "4": "read",
+            "5": "read",
+            "6": "out",
+            "7": "read",
+          },
+          slots: 8,
+        },
+        {
+          label: "dist[u] + w",
+          values: ["7", "6", "4", "7", "4", "9", "—", "14"],
+          states: {
+            "0": "read",
+            "1": "read",
+            "2": "read",
+            "3": "read",
+            "4": "read",
+            "5": "read",
+            "6": "out",
+            "7": "read",
+          },
+          slots: 8,
+        },
+      ],
+      calc: {
+        expr: "고친 칸 0 개 → !changed =",
+        result: "참",
+      },
+      vars: "간선 읽기 48 / 48",
+    },
+    {
+      title: "T8 dist 와 판정을 돌려준다",
+      text: "마지막 라운드가 한 칸도 못 고쳐 ⑤ 에서 끝났습니다. 음수 사이클은 없다고 판정하고 [0, 4, 7, 4, 6, 7, Infinity] 와 false 를 돌려줍니다. 들어오는 간선이 없는 정점 6 은 Infinity 로 남았습니다.",
+      nodes: [
+        {
+          value: "dist 0",
+        },
+        {
+          value: "dist 4",
+        },
+        {
+          value: "dist 7",
+        },
+        {
+          value: "dist 4",
+        },
+        {
+          value: "dist 6",
+        },
+        {
+          value: "dist 7",
+        },
+        {
+          value: "Infinity",
+          state: "out",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          label: "-3",
+        },
+        {
+          kind: "tree",
+          label: "3",
+        },
+        {
+          kind: "tree",
+          label: "4",
+        },
+        {
+          label: "9",
+        },
+        {
+          label: "2",
+        },
+        {
+          label: "7",
+        },
+      ],
+      strips: [
+        {
+          label: "간선 목록",
+          values: ["4→5", "3→4", "2→3", "1→2", "0→1", "0→2", "6→5", "5→1"],
+          states: {},
+          slots: 8,
+        },
+        {
+          label: "dist[u] + w",
+          values: ["", "", "", "", "", "", "", ""],
+          states: {},
+          slots: 8,
+        },
+      ],
+      calc: {
+        expr: "hasNegativeCycle =",
+        result: "false",
+      },
+      vars: "간선 읽기 48 / 48",
+    },
+  ],
 };

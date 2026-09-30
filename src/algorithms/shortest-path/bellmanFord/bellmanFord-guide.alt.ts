@@ -48,8 +48,8 @@ export const M = 16;
  * 가중치는 첫 칸만 100 이고 나머지는 1 이며, 사슬 `i` 에서 허브로 가는 간선의 가중치는
  * `2(M − i)` 라 사슬을 더 깊이 지날수록 허브까지의 값이 1 씩 작아진다.
  *
- * **간선 목록에서 사슬은 내림차순으로 적는다.** 목록의 순서는 문제가 주는 것이지 푸는 쪽이
- * 고르는 것이 아니고, 이 순서가 바퀴 방식에 가장 불리한 자리다.
+ * **간선 목록에서 사슬은 내림차순으로 적는다.** 목록의 순서는 입력이 정하는 것이지 푸는 쪽이
+ * 고르는 것이 아니고, 이 순서가 라운드 방식에 가장 불리한 자리다.
  */
 export function hub(p: number): { n: number; edges: Edge[] } {
   const H = M + 1;
@@ -81,7 +81,7 @@ export interface Run {
  * `기본 연산` 은 간선 하나를 읽고 완화를 시도한 한 번을 하나로 센다.
  * `저장 칸` 은 거리 배열 `V` 칸에 고쳤는지를 적는 칸 하나를 더한 것이다.
  */
-function 바퀴로읽는설계(n: number, edges: Edge[], src: number): Run {
+export function 라운드로읽는설계(n: number, edges: Edge[], src: number): Run {
   const dist = Array.from({ length: n }, () => INF);
   dist[src] = 0;
   let ops = 0;
@@ -104,15 +104,15 @@ function 바퀴로읽는설계(n: number, edges: Edge[], src: number): Run {
 }
 
 /**
- * 경쟁 설계 — **값이 바뀐 정점만 큐에 담아 그 정점의 간선만 다시 읽는다.** 바퀴라는 개념이
+ * 경쟁 설계 SPFA — **값이 바뀐 정점만 큐에 담아 그 정점의 간선만 다시 읽는다.** 라운드라는 개념이
  * 없고, 큐가 빌 때까지 이어진다. 음수 사이클은 「지금 적힌 값에 해당하는 경로가 쓰는 간선
- * 수」를 함께 들고 다가, 그것이 `V` 에 이르면 판정한다.
+ * 수」를 함께 들고 있다가, 그것이 `V` 에 이르면 판정한다.
  *
  * `기본 연산` 은 간선 하나를 읽고 완화를 시도한 한 번과 큐에 넣거나 꺼낸 한 번을 각각
  * 하나로 센다. `저장 칸` 은 거리 배열 · 큐에 들어 있는지 표시 · 간선 수 배열 셋과 큐가 가장
  * 길었을 때의 항목 수를 더한 것이다.
  */
-function 큐에담는설계(n: number, edges: Edge[], src: number): Run {
+export function 큐에담는설계(n: number, edges: Edge[], src: number): Run {
   const adj: [number, number][][] = Array.from({ length: n }, () => []);
   for (const [u, v, w] of edges) (adj[u] as [number, number][]).push([v, w]);
 
@@ -170,7 +170,7 @@ function 확인(): void {
   ];
   for (const [n, edges] of inputs) {
     const ref = bellmanFord(n, edges, 0);
-    const a = 바퀴로읽는설계(n, edges, 0);
+    const a = 라운드로읽는설계(n, edges, 0);
     const b = 큐에담는설계(n, edges, 0);
     const want = `${ref.hasNegativeCycle}|${ref.dist.join(",")}`;
     if (show(a) !== want) {
@@ -198,7 +198,7 @@ export function crossing(): { tie: number; ahead: number } {
   let ahead = -1;
   for (let p = 1; p <= 400; p++) {
     const { n, edges } = hub(p);
-    const a = 바퀴로읽는설계(n, edges, 0);
+    const a = 라운드로읽는설계(n, edges, 0);
     const b = 큐에담는설계(n, edges, 0);
     if (tie < 0 && a.ops <= b.ops) tie = p;
     if (a.ops < b.ops) {
@@ -238,7 +238,7 @@ function 재기(
 }
 
 export const cases = {
-  "이 가이드의 절차": () => 재기(바퀴로읽는설계),
+  "이 가이드의 절차": () => 재기(라운드로읽는설계),
   "값이 바뀐 정점만 큐에 담는 설계": () => 재기(큐에담는설계),
   경계: () => ({
     "두 계수가 같아지는 잎 수": CROSS.tie,

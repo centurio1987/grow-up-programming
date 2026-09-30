@@ -189,8 +189,8 @@ test("같은 두 정점 사이의 다중 간선 — 가중치가 더 작은 쪽�
   ).toEqual([0, 3]);
 });
 
-test("바퀴 수를 최대로 만드는 입력에서도 거리는 정확하다", () => {
-  // 사슬을 내림차순으로 적으면 바퀴 하나가 정점 하나씩만 확정한다 — 바퀴 수가 V 에 이른다.
+test("라운드 수를 최대로 만드는 입력에서도 거리는 정확하다", () => {
+  // 사슬을 내림차순으로 적으면 라운드 하나가 정점 하나씩만 값을 정한다 — 라운드 수가 V 에 이른다.
   const V = 200;
   const descending: Edge[] = [];
   for (let i = V - 2; i >= 0; i--) descending.push([i, i + 1, 1]);
@@ -198,7 +198,7 @@ test("바퀴 수를 최대로 만드는 입력에서도 거리는 정확하다",
   expect(got.hasNegativeCycle).toBe(false);
   expect(got.dist[V - 1]).toBe(V - 1);
 
-  // 같은 사슬을 오름차순으로 적으면 답이 같고 바퀴만 준다.
+  // 같은 사슬을 오름차순으로 적으면 답이 같고 라운드만 준다.
   const ascending: Edge[] = [...descending].reverse();
   expect(bellmanFord(V, ascending, 0).dist).toEqual(got.dist);
 });
@@ -218,4 +218,42 @@ test("정점 200 개 · 간선 600 개 그래프에서 음수 사이클이 없�
   const got = bellmanFord(V, edges, 0);
   expect(got.hasNegativeCycle).toBe(false);
   expect(got.dist[0]).toBe(0);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./bellmanFord-guide.sim.ts");
+  const fig = await import("./bellmanFord-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.bellmanFordWalk.steps)).toEqual(
+    plain(fig.stageStepsFromRef()),
+  );
+  expect(plain(sim.bellmanFordWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 정점 값을 정본의 답에 직접 다시 묻는다.
+  const answer = bellmanFord(
+    7,
+    [
+      [4, 5, 1],
+      [3, 4, 2],
+      [2, 3, -3],
+      [1, 2, 3],
+      [0, 1, 4],
+      [0, 2, 9],
+      [6, 5, 2],
+      [5, 1, 7],
+    ],
+    0,
+  );
+  const last = sim.bellmanFordWalk.steps.at(-1);
+  expect(last?.nodes.map((n) => n.value)).toEqual(
+    answer.dist.map((d) => (d === INF ? "Infinity" : `dist ${d}`)),
+  );
+  expect(sim.bellmanFordWalk.result).toBe(
+    `{ dist: [${answer.dist.join(", ")}], hasNegativeCycle: ${answer.hasNegativeCycle} }`,
+  );
 });
