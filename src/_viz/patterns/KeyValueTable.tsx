@@ -37,6 +37,25 @@ export interface KeyValueData {
   readonly write?: readonly MapKey[];
   /** ▲ 줄 곁말 — 찾은 키와 그 결과(「찾는 키 -4 · 없음」). */
   readonly note?: string;
+  /**
+   * 키마다 값이 둘 이상일 때 값 줄 아래에 더하는 줄 — 칸 번호 `k` 하나에 `sa[k]` 와 `lcp[k]` 가 함께 딸리는
+   * 편(첫 편 `kasaiLcp`)이다. 줄마다 읽음 · 새로 씀을 따로 가진다. 없으면 그림이 그대로다.
+   */
+  readonly extra?: readonly KeyValueExtraRow[];
+}
+
+/** 값 줄 아래에 더하는 줄 하나 — 값은 `entries` 와 같은 순서다. */
+export interface KeyValueExtraRow {
+  /** 줄 머리(예: `lcp[k]`). */
+  readonly label: string;
+  /** 항목마다의 값 — `entries` 의 순서. `null` 은 아직 쓰지 않은 칸이다. */
+  readonly values: readonly (MapKey | null)[];
+  /** 이 줄에서 이번에 읽은 키 — 「읽음」. */
+  readonly read?: readonly MapKey[];
+  /** 이 줄에서 이번에 새로 쓴 키 — 「새로 씀」. */
+  readonly write?: readonly MapKey[];
+  /** 줄 곁말. */
+  readonly side?: string;
 }
 
 /** 열 수 — 미리 잡은 자리와 항목 수 중 큰 쪽. */
@@ -56,6 +75,27 @@ export function keyValueRows(d: KeyValueData): StageRow[] {
     ...xs,
     ...new Array<null>(Math.max(0, cols - xs.length)).fill(null),
   ];
+  // 더하는 줄은 줄마다 제 상태를 가진다. ▲ 는 값 줄과 더한 줄에서 읽은 키의 열 전부에 선다.
+  const extraRows: StageRow[] = (d.extra ?? []).map((row) => {
+    const rowStates: Partial<Record<number, CellState>> = {};
+    for (const i of (row.read ?? []).map(at)) if (i >= 0) rowStates[i] = "read";
+    for (const i of (row.write ?? []).map(at))
+      if (i >= 0) rowStates[i] = "focus";
+    return {
+      kind: "cells",
+      label: row.label,
+      values: pad(row.values),
+      states: rowStates,
+      ...(row.side === undefined ? {} : { side: row.side }),
+    };
+  });
+  const extraRead = (d.extra ?? []).flatMap((row) =>
+    (row.read ?? []).map(at).filter((i) => i >= 0),
+  );
+  const caret =
+    extraRead.length === 0
+      ? read
+      : [...new Set([...read, ...extraRead])].sort((x, y) => x - y);
   return [
     {
       kind: "cells",
@@ -70,7 +110,8 @@ export function keyValueRows(d: KeyValueData): StageRow[] {
       values: pad(d.entries.map(([, v]) => v)),
       states,
     },
-    { kind: "caret", cells: read, side: d.note },
+    ...extraRows,
+    { kind: "caret", cells: caret, side: d.note },
   ];
 }
 

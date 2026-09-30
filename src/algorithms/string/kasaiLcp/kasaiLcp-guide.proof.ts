@@ -3,460 +3,72 @@
  *
  * 값을 여기 적지 않는다 — **정본(`.ref.ts`)을 부르고, 변이는 그 소스에서 기계로 만든다.**
  * 값을 적어 넣으면 대조가 자기 자신과의 대조가 되고, 그때 이 파일은 아무것도 증명하지 않는다.
+ * 자리마다의 상태는 그림 사이드카의 `replay`(정본과 답을 대조한 다시 쓰기)에서 받고, 셈은 그림 사이드카의
+ * 계수기에서 받는다 — 그림과 표가 같은 기록을 쓴다. 판정 줄(「같다」·「어긋난다」)이 있는 블록은 중화
+ * 실행에서도 값이 나오도록 `trace` 대신 `replay` 를 쓴다(그림 사이드카 머리 주석).
  *
  *   bun run tools/check-proof.ts src/algorithms/string/kasaiLcp/kasaiLcp-guide.md
- *
- * **계수를 세는 사본이 여럿 있다.** 정본은 몇 번 셌는지를 내보내지 않으므로, 세는 자리만
- * 덧붙인 사본이 아니면 계수를 낼 방법이 없다. **답이 맞는지는 사본이 아니라 정본이 진다** —
- * 표의 「답」 칸은 전부 정본이나 정본에서 기계로 만든 변이가 낸 값이고, 사본은 계수만 낸다.
- * 사본이 정본과 같은 답을 내는지는 `자기대조()` 가 이 파일을 읽을 때 확인한다.
- *
- * **변이가 아무것도 안 바꾸는지를 검사하는 자리는 중화 실행을 피해 간다.** `check-proof` 가
- * 이 파일을 한 번 더 부를 때는 `loadMutant` 이 정본을 그대로 돌려주므로(중화), 그 상태에서
- * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
- * 모듈의 함수가 정본과 **같은 객체인가**로 알아낸다.
- *
- * **큰 규모는 기록 없는 사본이 맡는다.** `counted` 는 자리마다 `lcp` 를 통째로 복사하므로
- * `n` 이 10 만이면 그 복사가 실행의 대부분이 된다.
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { josa, 과와, 으로, 은는, 을를, 이가 } from "../../../../tools/josa.ts";
+import {
+  byDefinition,
+  countKasai,
+  countPairwise,
+  fibonacciWord,
+  LIMIT,
+  makeText,
+  num,
+  OPS_PER_SEC,
+  pairwiseByLcp,
+  type Row,
+  replay,
+  SHAPES,
+  saOf,
+  shape,
+  show,
+  trace,
+  WALK,
+  walkSteps,
+} from "./kasaiLcp-guide.fig.tsx";
 import { kasaiLcp } from "./kasaiLcp-guide.ref.ts";
 
-/* ────────────────────────── 칸 맞춤 ────────────────────────── */
+const REF = new URL("./kasaiLcp-guide.ref.ts", import.meta.url).pathname;
 
-/** 한글은 고정폭 화면에서 두 칸을 먹는다. 칸 맞춤을 글자 수로 하면 머리줄만 어긋난다. */
-const width = (s: string): number =>
-  [...s].reduce((n, c) => n + (/[ᄀ-ᇿ　-〿㄰-㆏가-힯一-鿿]/.test(c) ? 2 : 1), 0);
+/* ────────────────────────── 표 그리기 ────────────────────────── */
 
-const pad = (s: string, to: number): string =>
-  s + " ".repeat(Math.max(0, to - width(s)));
-
-const padLeft = (s: string, to: number): string =>
-  " ".repeat(Math.max(0, to - width(s))) + s;
-
-/** `[1, 3, 0, 0, 2, 0]` 꼴 — 본문 표기와 같다. */
-const show = (xs: number[]): string => `[${xs.join(", ")}]`;
-
-/** `5,000,050,000` 꼴 — 본문 표기와 같다. */
-const comma = (n: number): string => n.toLocaleString("en-US");
-
-/** 표 한 벌을 칸에 맞춰 낸다. 첫 행이 머리줄이다. */
-function table(rows: string[][], alignRight: number[] = []): string[] {
-  const cols = rows[0]?.length ?? 0;
-  const widths: number[] = [];
-  for (let c = 0; c < cols; c++) {
-    widths.push(Math.max(...rows.map((r) => width(r[c] ?? ""))));
-  }
-  return rows.map((r) =>
-    r
-      .map((cell, c) =>
-        alignRight.includes(c)
-          ? padLeft(cell, widths[c] ?? 0)
-          : pad(cell, widths[c] ?? 0),
-      )
-      .join("  ")
-      .replace(/\s+$/, ""),
-  );
+/** 마크다운 표. `right` 에 든 열만 오른쪽 정렬이다. */
+function md(
+  head: string[],
+  rows: string[][],
+  right: readonly number[] = [],
+): string {
+  const rule = head.map((_, c) => (right.includes(c) ? "---:" : "---"));
+  const line = (cells: string[]) => `| ${cells.join(" | ")} |`;
+  return [line(head), line(rule), ...rows.map(line)].join("\n");
 }
 
-/* ────────────────────────── 고정 입력 ────────────────────────── */
+/** 표와 그 아래 문장 — 닫는 마커까지 대조하는 블록의 몸통. */
+const block = (...parts: string[]): string => parts.join("\n\n");
 
-/**
- * 본문 전개가 쓰는 문자열. 여섯 글자이고 접미사 배열은 `suffixArray` 편이 낸 것과 같다.
- *
- * 여섯 갈래를 한 입력에서 전부 실행한다 — 역배열 · 이웃 없음 · 이웃 얻기 · 글자 견주기 ·
- * 기록 · 하나 줄이기. 「글자가 달라 멈춘다」와 「문자열 끝이라 멈춘다」가 둘 다 나오고,
- * 이어받은 `k` 가 실제로 견주기를 줄이는 자리도 둘 있다.
- */
-export const WALK_S = "banana";
-export const WALK_SA = [5, 3, 1, 0, 4, 2];
+const fix = (x: number, d: number): string => x.toFixed(d);
 
-/** 본문 여러 자리가 함께 쓰는 작은 입력 여덟. `suffixArray` 편의 멈춤 표와 같은 목록이다. */
-export const SMALL: string[] = [
-  WALK_S,
-  "aaaa",
-  "abab",
-  "mississippi",
-  "abc",
-  "aab",
-  "cabbage",
-  "abracadabra",
-];
+const quote = (s: string): string => `"${s}"`;
 
-const CONSTRAINT_N = 100_000;
+/** 입력 이름 — 전개 입력은 그렇다고 밝힌다. */
+const label = (s: string): string =>
+  s === WALK ? `전개 입력 "${s}"` : quote(s);
 
-/* ─────────────────── 접미사 배열 — 입력을 만드는 재료 ─────────────────── */
-
-/**
- * 값이 `[0, span)` 안의 정수인 키로 `order` 를 **안정** 정렬한다.
- *
- * 이 편의 주제가 아니라 입력을 만드는 재료다. `suffixArray` 편이 가르치는 절차와 같은
- * 모양이고, 여기서는 시험용 `sa` 를 얻는 데만 쓴다.
- */
-function countingSortBy(
-  order: number[],
-  key: (i: number) => number,
-  span: number,
-): number[] {
-  const count = new Array<number>(span).fill(0);
-  for (const i of order) count[key(i)] = (count[key(i)] as number) + 1;
-  for (let v = 1; v < span; v++) {
-    count[v] = (count[v] as number) + (count[v - 1] as number);
-  }
-  const out = new Array<number>(order.length).fill(0);
-  for (let p = order.length - 1; p >= 0; p--) {
-    const i = order[p] as number;
-    const k = key(i);
-    count[k] = (count[k] as number) - 1;
-    out[count[k] as number] = i;
-  }
-  return out;
-}
-
-const SA_CACHE = new Map<string, number[]>();
-
-/** 문자열의 접미사 배열. 같은 문자열을 여러 블록이 쓰므로 한 번 만든 것을 다시 쓴다. */
-export function suffixArrayOf(s: string): number[] {
-  const hit = SA_CACHE.get(s);
-  if (hit !== undefined) return hit;
-  const n = s.length;
-  let sa = Array.from({ length: n }, (_, i) => i);
-  let rank = Array.from({ length: n }, (_, i) => s.charCodeAt(i));
-  let span = 128;
-  for (let gap = 1; gap < n; gap *= 2) {
-    const front = (i: number): number => rank[i] as number;
-    const back = (i: number): number =>
-      i + gap < n ? (rank[i + gap] as number) + 1 : 0;
-    for (const key of [back, front]) sa = countingSortBy(sa, key, span + 1);
-    const next = new Array<number>(n).fill(0);
-    let top = 0;
-    for (let p = 1; p < n; p++) {
-      const a = sa[p - 1] as number;
-      const b = sa[p] as number;
-      if (front(a) !== front(b) || back(a) !== back(b)) top++;
-      next[b] = top;
-    }
-    rank = next;
-    span = top + 1;
-    if (span === n) break;
-  }
-  SA_CACHE.set(s, sa);
-  return sa;
-}
-
-/* ────────────────────── 계수를 세는 사본 ────────────────────── */
-
-/** 자리 하나를 처리한 기록. */
-export interface Row {
-  i: number;
-  /** `inv[i]` — 이 자리가 접미사 배열의 몇 번째 칸인가. */
-  rank: number;
-  /** 이웃이 시작하는 자리. 이웃이 없으면 `null`. */
-  j: number | null;
-  /** 이 자리에 들어올 때의 `k`. */
-  kIn: number;
-  /** 기록한 값. 이웃이 없으면 `null`. */
-  wrote: number | null;
-  /** 다음 자리로 넘긴 `k`. */
-  kOut: number;
-  /** 이 자리에서 글자가 같음을 확인한 횟수. */
-  matched: number;
-  /** 왜 멈췄는가. */
-  why: string;
-  /** 이 자리가 쓴 배열 칸 접근. */
-  cells: number;
-  /** 자리를 처리한 뒤의 `lcp`. */
-  snapshot: number[];
-}
-
-export interface Counts {
-  lcp: number[];
-  /** 글자가 같음을 확인한 비교 — `k` 가 하나 늘어난 횟수와 같다. */
-  match: number;
-  /** 글자가 달라 반복을 멈춘 비교. 문자열 끝이라 멈춘 자리는 글자를 안 읽는다. */
-  stop: number;
-  /** 배열 칸 읽기·쓰기. 글자 읽기는 빼고 센다. */
-  cells: number;
-  rows: Row[];
-}
-
-/**
- * 정본과 같은 절차에 세는 자리만 덧붙인 사본.
- *
- * `drop` 은 기록 뒤에 `k` 에서 빼는 양이다. **정본은 `drop = 1`** 이고, 그 밖의 값은
- * `deep.build` 의 마지막 걸음이 「하필 1 인 이유」를 값으로 내는 데 쓴다.
- */
-export function counted(s: string, sa: number[], drop = 1): Counts {
-  const n = s.length;
-  const lcp = new Array<number>(n).fill(0);
-  const inv = new Array<number>(n).fill(0);
-  let cells = 0;
-  for (let r = 0; r < n; r++) {
-    inv[sa[r] as number] = r;
-    cells += 2;
-  }
-
-  const rows: Row[] = [];
-  let match = 0;
-  let stop = 0;
-  let k = 0;
-  for (let i = 0; i < n; i++) {
-    const rank = inv[i] as number;
-    cells++;
-    let here = 1;
-    const kIn = k;
-    if (rank === n - 1) {
-      k = 0;
-      rows.push({
-        i,
-        rank,
-        j: null,
-        kIn,
-        wrote: null,
-        kOut: k,
-        matched: 0,
-        why: "이웃이 없다",
-        cells: here,
-        snapshot: lcp.slice(),
-      });
-      continue;
-    }
-    const j = sa[rank + 1] as number;
-    cells++;
-    here++;
-    let matched = 0;
-    let why = "";
-    for (;;) {
-      if (i + k >= n || j + k >= n) {
-        why = "문자열 끝을 넘었다";
-        break;
-      }
-      if (s[i + k] !== s[j + k]) {
-        stop++;
-        why = "글자가 다르다";
-        break;
-      }
-      match++;
-      matched++;
-      k++;
-    }
-    lcp[rank] = k;
-    cells += 2;
-    here += 2;
-    const wrote = k;
-    if (k > 0) k = Math.max(0, k - drop);
-    rows.push({
-      i,
-      rank,
-      j,
-      kIn,
-      wrote,
-      kOut: k,
-      matched,
-      why,
-      cells: here,
-      snapshot: lcp.slice(),
-    });
-  }
-  return { lcp, match, stop, cells, rows };
-}
-
-/**
- * 자리마다의 `lcp` 사본을 남기지 않는 계수 사본.
- *
- * `counted` 는 자리마다 `lcp` 를 통째로 복사하므로 `n` 이 10 만이면 그 복사가 실행의
- * 대부분이 된다. 큰 규모에서 **계수만** 필요한 자리는 이쪽을 쓴다 — 절차는 같고 기록만 뺐다.
- */
-export function countedLite(
-  s: string,
-  sa: number[],
-  drop = 1,
-): { lcp: number[]; match: number; stop: number; cells: number } {
-  const n = s.length;
-  const lcp = new Array<number>(n).fill(0);
-  const inv = new Array<number>(n).fill(0);
-  let cells = 0;
-  for (let r = 0; r < n; r++) {
-    inv[sa[r] as number] = r;
-    cells += 2;
-  }
-  let match = 0;
-  let stop = 0;
-  let k = 0;
-  for (let i = 0; i < n; i++) {
-    const rank = inv[i] as number;
-    cells++;
-    if (rank === n - 1) {
-      k = 0;
-      continue;
-    }
-    const j = sa[rank + 1] as number;
-    cells++;
-    for (;;) {
-      if (i + k >= n || j + k >= n) break;
-      if (s[i + k] !== s[j + k]) {
-        stop++;
-        break;
-      }
-      match++;
-      k++;
-    }
-    lcp[rank] = k;
-    cells += 2;
-    if (k > 0) k = Math.max(0, k - drop);
-  }
-  return { lcp, match, stop, cells };
-}
-
-/** 접미사 배열 순서대로 짝마다 `k = 0` 에서 다시 세는 방법. 자리를 이어받지 않는다. */
-export function pairwise(
-  s: string,
-  sa: number[],
-): { lcp: number[]; match: number; stop: number; cells: number } {
-  const n = s.length;
-  const lcp = new Array<number>(n).fill(0);
-  let match = 0;
-  let stop = 0;
-  let cells = 0;
-  for (let r = 0; r + 1 < n; r++) {
-    const a = sa[r] as number;
-    const b = sa[r + 1] as number;
-    cells += 2;
-    let k = 0;
-    for (;;) {
-      if (a + k >= n || b + k >= n) break;
-      if (s[a + k] !== s[b + k]) {
-        stop++;
-        break;
-      }
-      match++;
-      k++;
-    }
-    lcp[r] = k;
-    cells++;
-  }
-  return { lcp, match, stop, cells };
-}
-
-/**
- * 자리 순서로 순회하되 **이어받지 않고** 자리마다 `k = 0` 에서 다시 세는 방법.
- *
- * 「순서만 바꾸면 되는가」를 값으로 반박하는 데 쓴다 — 순서를 바꿔도 이어받기가 없으면
- * 견주는 글자 수가 짝마다 다시 세는 것과 같다.
- */
-export function textOrderFresh(
-  s: string,
-  sa: number[],
-): { lcp: number[]; match: number; stop: number; cells: number } {
-  return countedLite(s, sa, s.length + 1);
-}
-
-/** 자리 `i` 의 진짜 공통 앞부분 길이. 정의를 그대로 옮긴 것이라 계수를 안 센다. */
-export function trueLcpAt(s: string, sa: number[], i: number): number | null {
-  const n = s.length;
-  const inv = new Array<number>(n).fill(0);
-  for (let r = 0; r < n; r++) inv[sa[r] as number] = r;
-  const rank = inv[i] as number;
-  if (rank === n - 1) return null;
-  const j = sa[rank + 1] as number;
-  let k = 0;
-  while (i + k < n && j + k < n && s[i + k] === s[j + k]) k++;
-  return k;
-}
-
-/* ────────────────────────── 입력 생성식 ────────────────────────── */
-
-/** 같은 글자 `n` 개. */
-export const same = (n: number): string => "a".repeat(n);
-
-/** 두 글자가 번갈아 나오는 문자열. */
-export const alternating = (n: number): string =>
-  "ab".repeat(Math.ceil(n / 2)).slice(0, n);
-
-/** 앞이 다 같고 끝 한 글자만 다른 문자열. */
-export const tailDiffers = (n: number): string => `${"a".repeat(n - 1)}b`;
-
-/** 주기가 `p` 인 되풀이 문자열. 주기 안의 글자는 생성식으로 고정한다. */
-export const periodic = (n: number, p: number): string => {
-  const unit = Array.from({ length: p }, (_, i) =>
-    String.fromCharCode(97 + ((i * 7 + 3) % 3)),
-  ).join("");
-  return unit.repeat(Math.ceil(n / p)).slice(0, n);
-};
-
-/** mulberry32 난수로 만든 알파벳 `sigma` 글자짜리 문자열. 씨앗을 고정한다. */
-export function randomString(n: number, sigma: number, seed0: number): string {
-  let seed = seed0;
-  const next = (): number => {
-    seed = (seed + 0x6d2b79f5) >>> 0;
-    let t = seed;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-  const out: string[] = [];
-  for (let i = 0; i < n; i++) {
-    out.push(String.fromCharCode(97 + Math.floor(next() * sigma)));
-  }
-  return out.join("");
-}
-
-/**
- * 피보나치 문자열 — `f(1) = "b"`, `f(2) = "a"`, `f(k) = f(k-1) + f(k-2)`.
- *
- * 되풀이 주기가 하나로 정해지지 않는 문자열이라 「주기가 짧으면 최악」이라는 통념을 시험하는
- * 데 쓴다.
- */
-export function fibonacciWord(n: number): string {
-  let a = "b";
-  let b = "a";
-  while (b.length < n) {
-    const c = b + a;
-    a = b;
-    b = c;
-  }
-  return b.slice(0, n);
-}
-
-/** 글자가 오름차순으로 늘어선 문자열. */
-export const ascending = (n: number): string =>
-  Array.from({ length: n }, (_, i) => String.fromCharCode(97 + (i % 26))).join(
-    "",
-  );
-
-/* ────────────────────────── 자기대조 ────────────────────────── */
-
-/** 사본이 정본과 같은 답을 내는지 이 파일을 읽을 때 한 번 확인한다. */
-function 자기대조(): void {
-  const inputs = [...SMALL, "a", "aa", "ab", "ba", periodic(30, 6)];
-  for (const s of inputs) {
-    const sa = suffixArrayOf(s);
-    const ref = show(kasaiLcp(s, sa));
-    if (show(counted(s, sa).lcp) !== ref) {
-      throw new Error("세는 사본이 정본과 다른 답을 낸다");
-    }
-    if (show(countedLite(s, sa).lcp) !== ref) {
-      throw new Error("기록 없는 사본이 정본과 다른 답을 낸다");
-    }
-    if (show(pairwise(s, sa).lcp) !== ref) {
-      throw new Error("짝마다 다시 세는 사본이 정본과 다른 답을 낸다");
-    }
-    if (show(textOrderFresh(s, sa).lcp) !== ref) {
-      throw new Error("이어받지 않는 사본이 정본과 다른 답을 낸다");
-    }
-  }
-}
-자기대조();
+/** 1 초에 1 억 번 기준의 초. */
+const secs = (access: number): string => `${fix(access / OPS_PER_SEC, 1)} 초`;
 
 /* ────────────────────────── 변이 ────────────────────────── */
-
-const REF = new URL("./kasaiLcp-guide.ref.ts", import.meta.url).pathname;
 
 interface Impl {
   kasaiLcp(s: string, sa: number[]): number[];
 }
 
-/** 역배열을 반대 방향으로 채운 사본 — 「순위 → 자리」를 「자리 → 순위」 자리에 넣는다. */
+/** 순위 배열을 반대로 채운 사본 — 값과 자리를 안 맞바꿨다. */
 const invFlipped = await loadMutant<Impl>(REF, {
   swap: [/inv\[sa\[r\] as number\] = r;/, "inv[r] = sa[r] as number;"],
 });
@@ -471,762 +83,1066 @@ const noReset = await loadMutant<Impl>(REF, {
   drop: /^\s+k = 0;$/,
 });
 
-/** **불변식을 지키던 줄** 하나 — 기록 뒤에 `k` 를 하나 줄이는 줄을 뺀 사본. */
+/** **불변식을 지키던 줄** 하나 — 적은 뒤에 `k` 를 하나 줄이는 줄을 뺀 사본. */
 const noDecrement = await loadMutant<Impl>(REF, {
   drop: /if \(k > 0\) k--;/,
 });
 
-/**
- * 중화 실행인가 — `loadMutant` 이 변이를 적용하지 않고 정본 모듈을 그대로 돌려주면 두
- * 함수가 **같은 객체**다. 중화 상태에서 아래 검사를 돌리면 언제나 던지게 되고, 그러면
- * `check-proof` 의 중화 대조가 이 편에서는 실행되지 않는다.
- */
-const 중화됨 = invFlipped.kasaiLcp === kasaiLcp;
+/* ────────────────────────── 사례 목록 ────────────────────────── */
 
-// 하나도 안 갈리면 그 절의 주장이 성립하지 않는다. 실행이 그것을 판정한다.
-// `noReset` 은 여기 넣지 않는다 — **어느 입력에서도 답을 안 바꾸는 것**이 그 변이의 결론이고,
-// 그 사실 자체를 멈춤 하나가 값으로 보인다.
-if (!중화됨) {
-  for (const [label, impl] of [
-    ["역배열을 반대로 채운 판", invFlipped],
-    ["자리 칸에 적은 판", textOrderWrite],
-    ["하나 줄이기를 뺀 판", noDecrement],
-  ] as [string, Impl][]) {
-    const same = SMALL.every((s) => {
-      const sa = suffixArrayOf(s);
-      return show(kasaiLcp(s, sa)) === show(impl.kasaiLcp(s, sa));
-    });
-    if (same)
-      throw new Error(`${label} 변이가 어느 입력에서도 답을 바꾸지 못했다`);
-  }
-}
+/** 본문 여러 자리가 함께 쓰는 작은 입력 여덟 — 접미사 배열 편의 짚고 가기 표와 같은 목록이다. */
+const CASES: string[] = [
+  WALK,
+  "aaaa",
+  "abab",
+  "mississippi",
+  "abc",
+  "aab",
+  "cabbage",
+  "abracadabra",
+];
 
-/** 변이 하나를 작은 입력 여덟에 걸어 정본과 나란히 놓는다. */
-function mutantTable(head: string, impl: Impl): string[] {
-  const rows = SMALL.map((s) => {
-    const sa = suffixArrayOf(s);
-    const a = show(kasaiLcp(s, sa));
-    const b = show(impl.kasaiLcp(s, sa));
-    const label = s === WALK_S ? `전개 입력 "${s}"` : `"${s}"`;
-    return [label, a, b, a === b ? "같다" : "어긋난다"];
+/** 정본과 변이를 여덟 입력에 나란히 — 판정 열은 두 답이 같은가다. */
+function contrast(
+  head: string,
+  mutant: Impl,
+): { table: string; broken: number; kept: string[] } {
+  let broken = 0;
+  const kept: string[] = [];
+  const rows = CASES.map((s) => {
+    const sa = saOf(s);
+    const a = kasaiLcp(s, [...sa]);
+    const b = mutant.kasaiLcp(s, [...sa]);
+    const ok = show(a) === show(b);
+    if (ok) kept.push(s);
+    else broken++;
+    return [label(s), show(a), show(b), ok ? "같다" : "어긋난다"];
   });
-  return table([["입력", "정본", head, "판정"], ...rows]);
+  return {
+    table: md(["입력", "정본이 낸 답", head, "판정"], rows),
+    broken,
+    kept,
+  };
 }
+
+function tally(c: { broken: number; kept: string[] }): string {
+  const n = CASES.length;
+  if (c.kept.length === 0) return `${n} 입력 모두에서 답이 어긋났습니다.`;
+  if (c.broken === 0) return `${n} 입력 모두에서 답이 같았습니다.`;
+  const kept = c.kept.map(quote).join(" · ");
+  return `${n} 입력 중 ${c.broken} 입력에서 답이 어긋났고, ${kept} 에서는 같았습니다.`;
+}
+
+/** 전개 입력의 기록 — 판정 줄이 있는 블록도 쓰므로 계측 없는 `replay` 다. */
+const walk = () => replay(WALK);
+
+/**
+ * 영문 조각 뒤의 조사 — 마지막 글자의 이름으로 받침을 본다(`a` 에이 · `n` 엔). 조각을 통째로 넘기면 헬퍼가
+ * 영단어로 보고 받침 있음을 고른다.
+ */
+const last = (w: string, pick: (x: string) => string): string =>
+  pick(w.at(-1) ?? "");
+
+/** 이웃이 없으면 `—`. */
+const dash = (x: number | null): string => (x === null ? "—" : String(x));
 
 /* ────────────────────────── 블록 ────────────────────────── */
 
-const LABELS = ["①", "②", "③", "④", "⑤", "⑥"];
-
 export const PROOFS: Record<string, () => string> = {
-  /** concept — 전개 입력의 접미사와 답을 한 표로. */
-  "concept-lcp-table": () => {
-    const sa = WALK_SA;
-    const n = WALK_S.length;
-    const lcp = kasaiLcp(WALK_S, sa);
-    const rows = sa.map((start, r) => [
-      `sa[${r}]`,
-      String(start),
-      WALK_S.slice(start),
-      r + 1 < n ? WALK_S.slice(sa[r + 1] as number) : "이웃이 없다",
-      String(lcp[r]),
+  /* ── 전체 컨셉 ── */
+
+  "concept-banana": () => {
+    const r = walk();
+    const n = WALK.length;
+    const rows = r.sa.map((p, k) => [
+      String(k),
+      String(p),
+      WALK.slice(p),
+      k + 1 < n ? WALK.slice(r.sa[k + 1] as number) : "없다",
+      String(r.lcp[k]),
     ]);
-    return table(
-      [["칸", "시작 자리", "접미사", "이웃", "공통 앞부분 길이"], ...rows],
-      [1, 4],
-    ).join("\n");
-  },
-
-  /** concept — 짝마다 처음부터 견주면 제약 규모에서 몇 번이 되는가. */
-  "concept-naive-cost": () => {
-    const rows = [6, 12, 100, 1_000, 10_000].map((n) => {
-      const s = same(n);
-      const sa = suffixArrayOf(s);
-      const p = pairwise(s, sa);
-      return [comma(n), comma(p.match + p.stop), comma((n * (n - 1)) / 2)];
-    });
-    return [
-      ...table(
-        [["n", "같은 글자만 있을 때의 글자 견주기", "n(n−1)/2"], ...rows],
-        [0, 1, 2],
+    return block(
+      md(
+        ["사전순 자리 r", "sa[r]", "접미사", "다음 칸의 접미사", "lcp[r]"],
+        rows,
+        [0, 1, 4],
       ),
-      "",
-      `제약 최댓값 n = ${comma(CONSTRAINT_N)} 에서 n(n−1)/2 = ${comma(
-        (CONSTRAINT_N * (CONSTRAINT_N - 1)) / 2,
-      )} 번이다`,
-      "1 초 안에 끝나는 규모가 아니다",
-    ].join("\n");
+      `다섯째 열을 모은 ${show(r.lcp)}${이가(show(r.lcp))} LCP 배열입니다. 마지막 칸 lcp[${n - 1}] 에는 다음 칸이 없어 처음 잡은 0 이 그대로 남습니다.`,
+    );
   },
 
-  /** deep.build ③ — 짝마다 다시 세면 같은 글자를 몇 번씩 다시 읽는가. */
-  "build-repeat": () => {
+  "concept-cost": () => {
+    const inputs: [string, string][] = [
+      [quote(WALK), WALK],
+      ["무작위 26 글자", makeText(LIMIT, 26)],
+      ["전부 같은 글자", "a".repeat(LIMIT)],
+    ];
+    const rows = inputs.map(([name, s]) => {
+      const sa = saOf(s);
+      const p = pairwiseByLcp(s, sa);
+      const k = countKasai(s, sa);
+      return [name, num(s.length), num(p.access), num(k.access)];
+    });
+    const big = "a".repeat(LIMIT);
+    const p = pairwiseByLcp(big, saOf(big));
+    const k = countKasai(big, saOf(big));
+    return block(
+      md(
+        ["입력", "n", "짝마다 처음부터 비교", "길이 이어받기"],
+        rows,
+        [1, 2, 3],
+      ),
+      `셋 다 자료 접근 횟수입니다. 무작위 26 글자는 mulberry32(씨앗 0x9e3779b9)로 만든 문자열이고, 전부 같은 글자에서 두 방법의 차이는 ${num(Math.round(p.access / k.access))} 배입니다.`,
+    );
+  },
+
+  /* ── 아이디어를 떠올리는 과정 ── */
+
+  "origin-naive-cost": () => {
+    const ns = [1_000, 10_000, LIMIT];
+    const rows = ns.map((n) => {
+      const a = "a".repeat(n);
+      const r = makeText(n, 26);
+      return [
+        num(n),
+        num(pairwiseByLcp(a, saOf(a)).access),
+        num(pairwiseByLcp(r, saOf(r)).access),
+      ];
+    });
+    const big = "a".repeat(LIMIT);
+    const p = pairwiseByLcp(big, saOf(big));
+    return block(
+      md(["n", "전부 같은 글자", "무작위 26 글자"], rows, [0, 1, 2]),
+      `전부 같은 글자 n = ${num(LIMIT)} 에서 자료 접근이 ${num(p.access)} 번이고, 1 초에 1 억 번이면 ${secs(p.access)}입니다.`,
+    );
+  },
+
+  "origin-reread": () => {
     const s = "aaaa";
-    const sa = suffixArrayOf(s);
     const n = s.length;
+    const sa = saOf(s);
+    const reads = new Array<number>(n).fill(0);
     const rows: string[][] = [];
+    let total = 0;
     for (let r = 0; r + 1 < n; r++) {
       const a = sa[r] as number;
       const b = sa[r + 1] as number;
-      let k = 0;
-      while (a + k < n && b + k < n && s[a + k] === s[b + k]) k++;
+      let t = 0;
+      let cmp = 0;
+      while (a + t < n && b + t < n) {
+        cmp++;
+        reads[a + t] = (reads[a + t] as number) + 1;
+        reads[b + t] = (reads[b + t] as number) + 1;
+        if (s[a + t] !== s[b + t]) break;
+        t++;
+      }
+      total += cmp;
       rows.push([
         `sa[${r}] · sa[${r + 1}]`,
-        `"${s.slice(a)}"`,
-        `"${s.slice(b)}"`,
-        String(k),
-        String(k),
+        s.slice(a),
+        s.slice(b),
+        String(cmp),
+        String(t),
       ]);
     }
-    const p = pairwise(s, sa);
-    const readCount = new Array<number>(n).fill(0);
-    for (let r = 0; r + 1 < n; r++) {
-      const a = sa[r] as number;
-      const b = sa[r + 1] as number;
-      let k = 0;
-      while (a + k < n && b + k < n && s[a + k] === s[b + k]) {
-        readCount[a + k] = (readCount[a + k] as number) + 1;
-        readCount[b + k] = (readCount[b + k] as number) + 1;
-        k++;
-      }
-    }
-    return [
-      `s = "${s}" · sa = ${show(sa)}`,
-      "",
-      ...table(
-        [
-          [
-            "견주는 두 칸",
-            "앞 접미사",
-            "뒤 접미사",
-            "같은 글자",
-            "공통 앞부분",
-          ],
-          ...rows,
-        ],
+    const most = Math.max(...reads);
+    const at = reads.indexOf(most);
+    return block(
+      md(
+        ["비교한 두 칸", "앞 접미사", "뒤 접미사", "글자 비교", "lcp"],
+        rows,
         [3, 4],
       ),
-      "",
-      ...table(
-        [
-          ["자리", ...Array.from({ length: n }, (_, x) => String(x))],
-          ["그 글자를 읽은 횟수", ...readCount.map(String)],
-        ],
-        Array.from({ length: n + 1 }, (_, x) => x + 1),
+      "자리마다 그 글자를 읽은 횟수를 세면 이렇습니다.",
+      md(
+        ["자리", ...reads.map((_, p) => String(p))],
+        [["읽은 횟수", ...reads.map(String)]],
       ),
-      "",
-      `같은 글자를 확인한 견주기 ${p.match} 번 · 글자가 달라 멈춘 견주기 ${p.stop} 번`,
-    ].join("\n");
+      `글자 비교는 모두 ${total} 번이고, 자리 ${at} 의 글자 하나를 ${most} 번 읽었습니다.`,
+    );
   },
 
-  /** deep.build ④ — 같은 입력을 세 방식으로 처리하고 실제 계수를 나란히 놓는다. */
-  "build-two-orders": () => {
+  "origin-order": () => {
+    const r = walk();
+    const n = WALK.length;
+    const byRank = r.sa.slice(0, n - 1).map((a, k) => `(${a}, ${r.sa[k + 1]})`);
+    const byText = r.rows
+      .filter((x) => x.j !== null)
+      .map((x) => `(${x.i}, ${x.j})`);
+    const key = (p: string) =>
+      p
+        .replace(/[()]/g, "")
+        .split(", ")
+        .map(Number)
+        .sort((x, y) => x - y)
+        .join(",");
+    const setA = new Set(byRank.map(key));
+    const same = byText.every((p) => setA.has(key(p)));
+    const rows = byRank.map((p, t) => [String(t + 1), p, byText[t] ?? "—"]);
+    return block(
+      md(
+        ["차례", "sa 의 칸 순서로 고른 짝", "문자열 자리 순서로 고른 짝"],
+        rows,
+        [0],
+      ),
+      `짝은 두 시작 자리입니다. 자리 순서로 고른 짝 ${byText.length} 개는 ${same ? "칸 순서로 고른 짝과 같은 짝이고" : "칸 순서의 짝과 다르고"}, 차례만 다릅니다.`,
+    );
+  },
+
+  "origin-three": () => {
     const inputs: [string, string][] = [
-      [`전개 입력 "${WALK_S}"`, WALK_S],
-      ['"aaaa"', "aaaa"],
-      ['"mississippi"', "mississippi"],
-      [`같은 글자 n = 1,000`, same(1_000)],
-      [`무작위 두 글자 n = 1,000`, randomString(1_000, 2, 20260905)],
+      [label(WALK), WALK],
+      [quote("aaaa"), "aaaa"],
+      [quote("mississippi"), "mississippi"],
+      ["전부 같은 글자 n = 1,000", "a".repeat(1_000)],
+      ["무작위 두 글자 n = 1,000", makeText(1_000, 2)],
     ];
-    const rows = inputs.flatMap(([label, s]) => {
-      const sa = suffixArrayOf(s);
-      const p = pairwise(s, sa);
-      const f = textOrderFresh(s, sa);
-      const c = countedLite(s, sa);
+    const rows = inputs.map(([name, s]) => {
+      const sa = saOf(s);
       return [
-        [
-          label,
-          "접미사 배열 순서 · 짝마다 0 부터",
-          comma(p.match),
-          comma(p.stop),
-          comma(p.match + p.stop),
-        ],
-        [
-          label,
-          "자리 순서 · 자리마다 0 부터",
-          comma(f.match),
-          comma(f.stop),
-          comma(f.match + f.stop),
-        ],
-        [
-          label,
-          "자리 순서 · k 를 이어받는다",
-          comma(c.match),
-          comma(c.stop),
-          comma(c.match + c.stop),
-        ],
+        name,
+        num(countPairwise(s, sa).access),
+        num(countKasai(s, sa, Number.POSITIVE_INFINITY).access),
+        num(countKasai(s, sa).access),
       ];
     });
-    return table(
-      [
+    const a = "a".repeat(1_000);
+    const fresh = countKasai(a, saOf(a), Number.POSITIVE_INFINITY);
+    const pair = countPairwise(a, saOf(a));
+    return block(
+      md(
         [
           "입력",
-          "처리 방식",
-          "같은 글자 확인",
-          "글자가 달라 멈춤",
-          "글자 견주기 합",
+          "짝마다 처음부터",
+          "자리 순서 · 자리마다 처음부터",
+          "자리 순서 · 하나 줄여 이어받기",
         ],
-        ...rows,
-      ],
-      [2, 3, 4],
-    ).join("\n");
+        rows,
+        [1, 2, 3],
+      ),
+      `셋 다 자료 접근 횟수입니다. 전부 같은 글자 1,000 개에서 자리 순서로만 바꾼 방법의 글자 비교는 ${num(fresh.eq + fresh.ne)} 번으로 짝마다 처음부터 비교한 ${num(pair.eq + pair.ne)} 번과 같습니다.`,
+    );
   },
 
-  /** deep.build ⑤ — 이어받은 값이 진짜 값을 넘지 않는지 자리마다 확인한다. */
-  "build-carry": () => {
-    const c = counted(WALK_S, WALK_SA);
-    const rows = c.rows.map((r) => {
-      const truth = trueLcpAt(WALK_S, WALK_SA, r.i);
-      return [
-        String(r.i),
-        String(r.rank),
-        r.j === null ? "없다" : String(r.j),
-        String(r.kIn),
-        truth === null ? "없다" : String(truth),
-        truth === null
-          ? "견줄 짝이 없다"
-          : r.kIn <= truth
-            ? "넘지 않는다"
-            : "넘는다",
-        String(r.matched),
-      ];
+  "origin-shift": () => {
+    const r = walk();
+    const at = r.rows.find((x) => x.j !== null && (x.h as number) >= 2) as Row;
+    const i = at.i;
+    const j = at.j as number;
+    const h = at.h as number;
+    const cut = byDefinition(WALK, [i + 1, j + 1])[0] as number;
+    const rows = [
+      [
+        `자리 ${i}${과와(i)} 이웃 ${j}`,
+        WALK.slice(i),
+        WALK.slice(j),
+        String(h),
+      ],
+      [
+        `둘 다 첫 글자를 뗀 자리 ${i + 1}${과와(i + 1)} ${j + 1}`,
+        WALK.slice(i + 1),
+        WALK.slice(j + 1),
+        String(cut),
+      ],
+    ];
+    return block(
+      md(["짝", "앞 접미사", "뒤 접미사", "함께 가진 앞부분"], rows, [3]),
+      `첫 글자가 같은 두 접미사에서 첫 글자를 하나씩 떼면 함께 가진 앞부분이 ${h} 에서 ${cut}${으로(cut)} 하나 줍니다.`,
+    );
+  },
+
+  "origin-keep": () => {
+    const good = walk();
+    const keep = replay(WALK, saOf(WALK), 0);
+    const rows = keep.rows.map((x, t) => {
+      const g = good.rows[t] as Row;
+      return [String(x.i), String(x.kIn), dash(x.h), dash(g.h)];
     });
-    return [
-      ...table(
-        [
-          [
-            "자리 i",
-            "inv[i]",
-            "이웃 j",
-            "이어받은 k",
-            "진짜 값",
-            "판정",
-            "늘린 횟수",
-          ],
-          ...rows,
-        ],
-        [0, 1, 2, 3, 4, 6],
+    const over = keep.rows.filter(
+      (x, t) => x.h !== null && x.h !== good.rows[t]?.h,
+    );
+    const first = over[0] as Row;
+    return block(
+      md(
+        ["자리 i", "들어올 때 k", "그대로 이어받은 쪽이 적은 값", "바른 값"],
+        rows,
+        [0, 1, 2, 3],
       ),
-      "",
-      `이어받기가 없앤 견주기 ${c.rows.reduce((t, r) => t + r.kIn, 0)} 번`,
-      `늘린 횟수의 합 ${c.match} · 글자가 달라 멈춘 횟수 ${c.stop}`,
+      `그대로 이어받으면 답이 ${show(keep.lcp)}${이가(show(keep.lcp))} 되고, 바른 답은 ${show(good.lcp)} 입니다. 처음 틀리는 곳은 자리 ${first.i} 입니다. 들어올 때 k = ${first.kIn}${을를(first.kIn)} 그대로 적었습니다.`,
+    );
+  },
+
+  /* ── 아이디어 상세 ── */
+
+  "build-read-one": () => {
+    const r = walk();
+    const k = r.lcp.indexOf(Math.max(...r.lcp));
+    const a = r.sa[k] as number;
+    const b = r.sa[k + 1] as number;
+    const L = r.lcp[k] as number;
+    const shorter = WALK.length - a < WALK.length - b ? a : b;
+    const last = WALK[a + L - 1] as string;
+    return [
+      `lcp[${k}] = ${L}`,
+      `  두 칸        sa[${k}] = ${a} · sa[${k + 1}] = ${b}`,
+      `  두 접미사    ${WALK.slice(a)} · ${WALK.slice(b)}`,
+      `  읽는 법      앞에서부터 ${WALK.slice(a, a + L)
+        .split("")
+        .join(" ")}${이가(last)} 같고 ${WALK.slice(shorter)} 쪽이 먼저 끝난다`,
     ].join("\n");
   },
 
-  /** deep.build ⑥ — 기록 뒤에 얼마를 빼야 하는가를 값으로 낸다. */
-  "build-drop": () => {
-    const inputs: [string, string][] = [
-      [`전개 입력 "${WALK_S}"`, WALK_S],
-      ['"mississippi"', "mississippi"],
-      [`같은 글자 n = 1,000`, same(1_000)],
-      [`무작위 두 글자 n = 1,000`, randomString(1_000, 2, 20260905)],
-    ];
-    const drops = [0, 1, 2, 3];
+  "build-range-min": () => {
+    const r = walk();
+    const n = WALK.length;
     const rows: string[][] = [];
-    for (const [label, s] of inputs) {
-      const sa = suffixArrayOf(s);
-      const truth = show(kasaiLcp(s, sa));
-      for (const d of drops) {
-        const c = countedLite(s, sa, d);
+    let same = 0;
+    for (let x = 0; x < n; x++) {
+      for (let y = x + 2; y < n; y++) {
+        const a = r.sa[x] as number;
+        const b = r.sa[y] as number;
+        const direct = byDefinition(WALK, [a, b])[0] as number;
+        const min = Math.min(...r.lcp.slice(x, y));
+        if (direct === min) same++;
+        if (x === 0 || y === x + 2)
+          rows.push([
+            `sa[${x}] · sa[${y}]`,
+            `${WALK.slice(a)} · ${WALK.slice(b)}`,
+            String(direct),
+            `min(${r.lcp.slice(x, y).join(", ")}) = ${min}`,
+          ]);
+      }
+    }
+    const total = ((n - 1) * (n - 2)) / 2;
+    return block(
+      md(
+        [
+          "떨어진 두 칸",
+          "두 접미사",
+          "함께 가진 앞부분",
+          "사이 칸 lcp 의 최솟값",
+        ],
+        rows,
+        [2],
+      ),
+      `이웃하지 않은 칸 짝 ${total} 개를 모두 재면 두 값이 같은 짝이 ${same} 개입니다. 위 표는 그중 ${rows.length} 개입니다.`,
+    );
+  },
+
+  "build-two-orders": () => {
+    const r = walk();
+    const rows = r.rows.map((x) => [
+      String(x.i),
+      WALK.slice(x.i),
+      String(x.rank),
+      dash(x.h),
+    ]);
+    const h = r.rows.map((x) => dash(x.h));
+    return block(
+      md(
+        ["자리 i", "접미사", "inv[i]", "자리 i 에서 구한 길이 h(i)"],
+        rows,
+        [0, 2, 3],
+      ),
+      `자리 순서로 늘어놓은 길이는 ${show(h)}${josa(show(h), "이고", "고")}, 그 값을 칸 inv[i] 로 옮겨 적은 LCP 배열은 ${show(r.lcp)} 입니다.`,
+    );
+  },
+
+  "build-neighbor": () => {
+    const r = walk();
+    const n = WALK.length;
+    const rows = r.rows.map((x) => [
+      String(x.i),
+      WALK.slice(x.i),
+      String(x.rank),
+      x.j === null ? "없다" : `sa[${x.rank + 1}] = ${x.j}`,
+      x.j === null ? "—" : WALK.slice(x.j),
+    ]);
+    const none = r.rows.find((x) => x.j === null) as Row;
+    return block(
+      md(
+        ["자리 i", "접미사", "inv[i]", "이웃 j", "이웃의 접미사"],
+        rows,
+        [0, 2],
+      ),
+      `자리 ${none.i}${은는(none.i)} inv[${none.i}] = ${none.rank}${이가(none.rank)} n − 1 = ${n - 1}${과와(n - 1)} 같아 이웃이 없습니다.`,
+    );
+  },
+
+  "build-extend": () => {
+    const r = walk();
+    const rows: string[][] = [];
+    for (const x of r.rows) {
+      if (x.j === null || x.eq + x.ne === 0) continue;
+      const h = x.h as number;
+      for (let t = x.kIn; t <= h; t++) {
+        const a = WALK[x.i + t];
+        const b = WALK[(x.j as number) + t];
+        if (a === undefined || b === undefined) break;
         rows.push([
-          label,
-          String(d),
-          show(c.lcp) === truth ? "예" : "아니오",
-          comma(c.match + c.stop),
+          String(x.i),
+          String(t),
+          `s[${x.i + t}] = ${a}`,
+          `s[${(x.j as number) + t}] = ${b}`,
+          a === b ? "같은 글자 — k 를 늘린다" : "다른 글자 — 멈춘다",
         ]);
       }
-      const zero = countedLite(s, sa, s.length + 1);
-      rows.push([
-        label,
-        "전부",
-        show(zero.lcp) === truth ? "예" : "아니오",
-        comma(zero.match + zero.stop),
-      ]);
     }
-    return [
-      ...table(
-        [["입력", "기록 뒤에 빼는 양", "답이 맞는가", "글자 견주기"], ...rows],
+    const five = r.rows.find((x) => x.stop === "end" && x.eq > 0) as Row;
+    const ended = WALK.slice(Math.max(five.i, five.j as number));
+    return block(
+      md(
+        ["자리 i", "k", "자리 i 쪽 글자", "이웃 쪽 글자", "결과"],
+        rows,
+        [0, 1],
+      ),
+      `자리 ${five.i} 에서는 k = ${five.h} 에서 접미사 ${ended}${last(ended, 이가)} 끝나 글자를 더 읽지 않고 멈춥니다.`,
+    );
+  },
+
+  "build-write-order": () => {
+    const r = walk();
+    const n = WALK.length;
+    const lcp: (number | null)[] = new Array<number | null>(n).fill(null);
+    const rows = r.rows.map((x) => {
+      if (x.h !== null) lcp[x.rank] = x.h;
+      return [
+        String(x.i),
+        x.j === null ? "적지 않는다" : `lcp[${x.rank}] = ${x.h}`,
+        show(lcp.map((v) => (v === null ? "·" : String(v)))),
+      ];
+    });
+    const order = r.rows.filter((x) => x.j !== null).map((x) => x.rank);
+    return block(
+      md(["자리 i", "적은 칸", "그때까지 적은 lcp"], rows, [0]),
+      `칸이 채워지는 차례는 ${order.join(" → ")}${josa(order.join(" → "), "이고", "고")}, 한 번도 안 적힌 칸 ${n - 1}${은는(n - 1)} 처음 잡은 0 을 그대로 가집니다.`,
+    );
+  },
+
+  "build-carry": () => {
+    const r = walk();
+    const rows = r.rows.map((x) => [
+      String(x.i),
+      String(x.kIn),
+      dash(x.h),
+      String(x.eq),
+      x.h === null ? "이웃 없음" : x.kIn <= x.h ? "넘지 않는다" : "넘는다",
+    ]);
+    const eq = r.rows.reduce((t, x) => t + x.eq, 0);
+    const kept = r.rows.filter((x) => x.h !== null && x.kIn === x.h).length;
+    return block(
+      md(
+        ["자리 i", "들어올 때 k", "h(i)", "새로 확인한 같은 글자", "k 와 h(i)"],
+        rows,
+        [0, 1, 2, 3],
+      ),
+      `이웃이 있는 자리 모두에서 들어올 때 k 가 h(i) 를 넘지 않았고, 새로 확인한 같은 글자는 모두 ${eq} 개입니다. 이어받은 k 가 곧 h(i) 인 자리가 ${kept} 곳입니다.`,
+    );
+  },
+
+  "build-why-safe": () => {
+    const inputs = [WALK, "abracadabra"];
+    const rows: string[][] = [];
+    let moved = 0;
+    for (const s of inputs) {
+      const r = replay(s);
+      for (let t = 0; t + 1 < r.rows.length; t++) {
+        const a = r.rows[t] as Row;
+        const b = r.rows[t + 1] as Row;
+        if (a.h === null || a.h < 2 || b.j === null) continue;
+        const jn = (a.j as number) + 1;
+        if (b.j !== jn) moved++;
+        rows.push([
+          label(s),
+          `${a.i} → ${b.i}`,
+          `${s.slice(b.i)} · ${s.slice(jn)}`,
+          String(a.h - 1),
+          `${b.j} · ${s.slice(b.j)}`,
+          String(b.h),
+        ]);
+      }
+    }
+    return block(
+      md(
+        [
+          "입력",
+          "자리",
+          "첫 글자를 뗀 짝",
+          "그 짝이 함께 가진 앞부분",
+          "진짜 이웃",
+          "h(i+1)",
+        ],
+        rows,
+        [3, 5],
+      ),
+      `${rows.length} 줄 모두에서 h(i+1) 의 값이 첫 글자를 뗀 짝의 길이 이상이고, 그중 ${moved} 줄은 진짜 이웃이 첫 글자를 뗀 짝의 뒤 접미사가 아닙니다.`,
+    );
+  },
+
+  "build-premise-sa": () => {
+    const good = saOf(WALK);
+    let bad: number[] = [...good];
+    let at = -1;
+    // 이웃한 두 칸을 맞바꿔 사전순이 아닌 배열을 만든다. 맞바꿔서 답이 갈리는 첫 자리를 고른다.
+    for (let k = 0; k + 1 < good.length && at < 0; k++) {
+      const w = [...good];
+      [w[k], w[k + 1]] = [w[k + 1] as number, w[k] as number];
+      if (show(kasaiLcp(WALK, [...w])) !== show(byDefinition(WALK, w))) {
+        at = k;
+        bad = w;
+      }
+    }
+    const a = kasaiLcp(WALK, [...bad]);
+    const b = byDefinition(WALK, bad);
+    const rows = [
+      [
+        "사전순인 sa",
+        show(good),
+        show(kasaiLcp(WALK, [...good])),
+        show(byDefinition(WALK, good)),
+      ],
+      [
+        `칸 ${at} · ${at + 1}${을를(at + 1)} 맞바꾼 sa`,
+        show(bad),
+        show(a),
+        show(b),
+      ],
+    ];
+    const k = a.findIndex((v, t) => v !== b[t]);
+    return block(
+      md(
+        [
+          "넣은 배열",
+          "sa",
+          "길이 이어받기가 낸 답",
+          "이웃한 칸을 직접 비교한 답",
+        ],
+        rows,
+      ),
+      `맞바꾼 배열에서는 lcp[${k}] 의 값이 ${a[k]}${과와(a[k] as number)} ${b[k]}${으로(b[k] as number)} 갈립니다. 이어받은 길이가 진짜 길이보다 컸기 때문입니다.`,
+    );
+  },
+
+  "build-drop": () => {
+    const inputs: [string, string][] = [
+      [label(WALK), WALK],
+      [quote("mississippi"), "mississippi"],
+      ["전부 같은 글자 n = 1,000", "a".repeat(1_000)],
+      ["무작위 두 글자 n = 1,000", makeText(1_000, 2)],
+    ];
+    const drops: [string, number][] = [
+      ["0", 0],
+      ["1", 1],
+      ["2", 2],
+      ["3", 3],
+      ["전부", Number.POSITIVE_INFINITY],
+    ];
+    const rows: string[][] = [];
+    for (const [name, s] of inputs) {
+      const sa = saOf(s);
+      const want = show(byDefinition(s, sa));
+      for (const [d, drop] of drops) {
+        const c = countKasai(s, sa, drop);
+        rows.push([
+          name,
+          d,
+          show(c.lcp) === want ? "예" : "아니오",
+          num(c.access),
+        ]);
+      }
+    }
+    const a = "a".repeat(1_000);
+    const one = countKasai(a, saOf(a), 1).access;
+    const two = countKasai(a, saOf(a), 2).access;
+    const all = countKasai(a, saOf(a), Number.POSITIVE_INFINITY).access;
+    return block(
+      md(
+        ["입력", "적은 뒤 빼는 양", "정의대로 잰 답과의 일치", "자료 접근"],
+        rows,
         [1, 3],
       ),
-      "",
-      "빼는 양이 0 이면 답이 맞지 않고, 1 보다 크면 답은 맞으면서 견주기가 는다",
-    ].join("\n");
+      `전부 같은 글자 1,000 개에서 1 을 빼면 ${num(one)} 번, 2 를 빼면 ${num(two)} 번, 자리마다 0 에서 다시 세면 ${num(all)} 번입니다.`,
+    );
   },
 
-  /** deep.walk T1 — 역배열을 만든다. */
+  /* ── 수행으로 알아보는 알고리즘 ── */
+
+  "walk-input": () =>
+    [
+      `const s = "${WALK}";`,
+      `const sa = ${show(saOf(WALK))};`,
+      `// 이 절이 끝나면 ${show(kasaiLcp(WALK, [...saOf(WALK)]))}${이가(show(kasaiLcp(WALK, [...saOf(WALK)])))} 나와야 한다`,
+    ].join("\n"),
+
   "walk-inv": () => {
-    const n = WALK_S.length;
-    const inv = new Array<number>(n).fill(0);
-    for (let r = 0; r < n; r++) inv[WALK_SA[r] as number] = r;
-    const rows = Array.from({ length: n }, (_, i) => [
-      String(i),
-      WALK_S[i] as string,
-      WALK_S.slice(i),
-      String(inv[i]),
-      String(WALK_SA[i]),
-    ]);
+    const r = walk();
+    const ok = r.sa.every((p, k) => r.inv[p] === k);
     return [
-      ...table(
-        [["자리 i", "s[i]", "접미사 s[i..]", "inv[i]", "sa[i]"], ...rows],
-        [0, 3, 4],
-      ),
-      "",
-      `sa  = ${show(WALK_SA)}`,
-      `inv = ${show(inv)}`,
-      `inv[sa[r]] = r 이 여섯 칸에서 모두 맞는가  ${
-        WALK_SA.every((v, r) => inv[v] === r) ? "예" : "아니오"
-      }`,
+      `sa  = ${show(r.sa)}`,
+      `inv = ${show(r.inv)}`,
+      `inv[sa[r]] = r 이 ${r.sa.length} 칸 모두에서 맞는가  ${ok ? "예" : "아니오"}`,
     ].join("\n");
   },
 
-  /** deep.walk T2~T4 — 앞의 세 자리. */
+  "pause-inv-flip": () => {
+    const c = contrast("순위 배열을 반대로 채운 답", invFlipped);
+    return block(c.table, tally(c));
+  },
+
+  "pause-inv-same": () => {
+    const rows = CASES.map((s) => {
+      const sa = saOf(s);
+      const inv = replay(s, sa).inv;
+      return [
+        label(s),
+        show(sa),
+        show(inv),
+        show(sa) === show(inv) ? "예" : "아니오",
+      ];
+    });
+    const same = CASES.filter((s) => {
+      const sa = saOf(s);
+      return show(sa) === show(replay(s, sa).inv);
+    });
+    return block(
+      md(["입력", "sa", "inv", "두 배열의 일치"], rows),
+      `sa 와 inv 가 글자 그대로 같은 입력은 ${same.map(quote).join(" · ")} 입니다.`,
+    );
+  },
+
   "walk-early": () => {
-    const c = counted(WALK_S, WALK_SA);
-    const rows = c.rows
+    const r = walk();
+    const rows = r.rows
       .slice(0, 3)
-      .map((r, idx) => [
-        `T${idx + 2}`,
-        String(r.i),
-        String(r.rank),
-        r.j === null ? "없다" : String(r.j),
-        String(r.kIn),
-        r.wrote === null ? "적지 않는다" : `lcp[${r.rank}] = ${r.wrote}`,
-        r.why,
-        show(r.snapshot),
+      .map((x, t) => [
+        `T${t + 2}`,
+        String(x.i),
+        String(x.rank),
+        dash(x.j),
+        String(x.kIn),
+        x.j === null ? "적지 않는다" : `lcp[${x.rank}] = ${x.h}`,
+        x.stop === null
+          ? "이웃이 없다"
+          : x.stop === "differ"
+            ? "글자가 다르다"
+            : "접미사가 끝났다",
       ]);
-    return table(
-      [
+    const cond = r.rows
+      .slice(0, 3)
+      .map(
+        (x) =>
+          `inv[${x.i}] === ${r.sa.length - 1}${이가(r.sa.length - 1)} ${x.j === null ? "참" : "거짓"}`,
+      )
+      .join(" · ");
+    return block(
+      md(
         [
           "걸음",
           "자리 i",
           "inv[i]",
           "이웃 j",
           "들어올 때 k",
-          "기록",
-          "멈춘 이유",
-          "lcp",
+          "적은 칸",
+          "멈춘 까닭",
         ],
-        ...rows,
-      ],
-      [1, 2, 3, 4],
-    ).join("\n");
-  },
-
-  /** deep.walk T5 — 글자가 같은 동안 k 를 늘린다. */
-  "walk-extend": () => {
-    const i = 3;
-    const n = WALK_S.length;
-    const inv = new Array<number>(n).fill(0);
-    for (let r = 0; r < n; r++) inv[WALK_SA[r] as number] = r;
-    const j = WALK_SA[(inv[i] as number) + 1] as number;
-    const rows: string[][] = [];
-    let k = 0;
-    for (;;) {
-      if (i + k >= n || j + k >= n) {
-        rows.push([
-          String(k),
-          `s[${i + k}]`,
-          i + k < n ? (WALK_S[i + k] as string) : "없다",
-          `s[${j + k}]`,
-          j + k < n ? (WALK_S[j + k] as string) : "없다",
-          "문자열 끝을 넘어 멈춘다",
-        ]);
-        break;
-      }
-      const same = WALK_S[i + k] === WALK_S[j + k];
-      rows.push([
-        String(k),
-        `s[${i + k}]`,
-        WALK_S[i + k] as string,
-        `s[${j + k}]`,
-        WALK_S[j + k] as string,
-        same ? "같다 — k 를 하나 늘린다" : "다르다 — 멈춘다",
-      ]);
-      if (!same) break;
-      k++;
-    }
-    return [
-      `i = ${i} 의 접미사 "${WALK_S.slice(i)}" · 이웃 j = ${j} 의 접미사 "${WALK_S.slice(j)}"`,
-      "",
-      ...table(
-        [["k", "앞 자리", "글자", "뒤 자리", "글자", "판정"], ...rows],
-        [0],
-      ),
-      "",
-      `이 자리가 적는 값        lcp[${inv[i]}] = ${k}`,
-      `다음 자리로 넘기는 값    k = ${Math.max(0, k - 1)}`,
-    ].join("\n");
-  },
-
-  /** deep.walk — 고정 입력을 끝까지 실행한 걸음별 상태. */
-  "walk-trace": () => {
-    const c = counted(WALK_S, WALK_SA);
-    const n = WALK_S.length;
-    const inv = new Array<number>(n).fill(0);
-    for (let r = 0; r < n; r++) inv[WALK_SA[r] as number] = r;
-    const rows: string[][] = [
-      [
-        "T1",
-        "-",
-        "-",
-        "-",
-        "0",
-        "역배열을 만든다",
-        show(new Array<number>(n).fill(0)),
-      ],
-    ];
-    for (const [idx, r] of c.rows.entries()) {
-      rows.push([
-        `T${idx + 2}`,
-        String(r.i),
-        String(r.rank),
-        r.j === null ? "-" : String(r.j),
-        String(r.kIn),
-        r.wrote === null
-          ? "이웃이 없어 건너뛴다"
-          : `${r.matched} 번 늘려 lcp[${r.rank}] = ${r.wrote}`,
-        show(r.snapshot),
-      ]);
-    }
-    rows.push([
-      `T${c.rows.length + 2}`,
-      "-",
-      "-",
-      "-",
-      "-",
-      "답을 돌려준다",
-      show(c.lcp),
-    ]);
-    return [
-      ...table(
-        [
-          [
-            "걸음",
-            "자리 i",
-            "inv[i]",
-            "이웃 j",
-            "들어올 때 k",
-            "이 걸음이 한 일",
-            "lcp",
-          ],
-          ...rows,
-        ],
+        rows,
         [1, 2, 3, 4],
       ),
-      "",
-      `같은 글자 확인 ${c.match} 번 · 글자가 달라 멈춤 ${c.stop} 번 · 배열 칸 접근 ${c.cells} 번`,
-    ].join("\n");
-  },
-
-  /** deep.walk — 여섯 갈래가 어느 입력에서 몇 번 실행됐는가. */
-  "walk-branch": () => {
-    const inputs: [string, string, number[]][] = [
-      [`전개 입력 "${WALK_S}"`, WALK_S, WALK_SA],
-      ['"mississippi"', "mississippi", suffixArrayOf("mississippi")],
-    ];
-    const counts = inputs.map(([, s, sa]) => {
-      const c = counted(s, sa);
-      const skipped = c.rows.filter((r) => r.j === null).length;
-      const handled = c.rows.length - skipped;
-      return [
-        1,
-        skipped,
-        handled,
-        c.match,
-        handled,
-        c.rows.filter((r) => r.wrote !== null && r.wrote > 0).length,
-      ];
-    });
-    const what = [
-      "역배열을 만든다",
-      "이웃이 없어 건너뛴다",
-      "이웃의 자리를 얻는다",
-      "글자가 같아 k 를 늘린다",
-      "순위 칸에 답을 적는다",
-      "k 를 하나 줄여 넘긴다",
-    ];
-    const rows = LABELS.map((mark, idx) => [
-      mark,
-      what[idx] as string,
-      comma((counts[0] as number[])[idx] as number),
-      comma((counts[1] as number[])[idx] as number),
-    ]);
-    return table(
-      [
-        ["갈래", "무엇", inputs[0]?.[0] as string, inputs[1]?.[0] as string],
-        ...rows,
-      ],
-      [2, 3],
-    ).join("\n");
-  },
-
-  /** 멈춤 1 — 역배열을 반대 방향으로 채우면. */
-  "pause-inv-flip": () =>
-    mutantTable("역배열을 반대로 채운 판", invFlipped).join("\n"),
-
-  /** 멈춤 1 — 역배열이 `sa` 자신과 같아지는 입력이 어느 것인가. */
-  "pause-inv-same": () => {
-    const rows = SMALL.map((s) => {
-      const sa = suffixArrayOf(s);
-      const n = s.length;
-      const inv = new Array<number>(n).fill(0);
-      for (let r = 0; r < n; r++) inv[sa[r] as number] = r;
-      return [
-        s === WALK_S ? `전개 입력 "${s}"` : `"${s}"`,
-        show(sa),
-        show(inv),
-        show(sa) === show(inv) ? "예" : "아니오",
-      ];
-    });
-    return table([["입력", "sa", "inv", "두 배열이 같은가"], ...rows]).join(
-      "\n",
+      `② 의 조건은 ${cond} 입니다.`,
     );
   },
 
-  /** 멈춤 2 — 역배열이 항등이라 자리 번호와 칸 번호가 같아지는 입력이 어느 것인가. */
-  "pause-identity": () => {
-    const rows = SMALL.map((s) => {
-      const sa = suffixArrayOf(s);
-      const n = s.length;
-      const inv = new Array<number>(n).fill(0);
-      for (let r = 0; r < n; r++) inv[sa[r] as number] = r;
-      return [
-        s === WALK_S ? `전개 입력 "${s}"` : `"${s}"`,
-        show(inv),
-        inv.every((v, x) => v === x) ? "예" : "아니오",
-      ];
-    });
-    return table([
-      ["입력", "inv", "inv[i] = i 가 모든 자리에서 성립하는가"],
-      ...rows,
-    ]).join("\n");
+  "pause-text-order": () => {
+    const c = contrast("자리 칸에 적은 답", textOrderWrite);
+    return block(c.table, tally(c));
   },
 
-  /** 멈춤 2 — 답을 자리 칸에 적으면. */
-  "pause-text-order": () =>
-    mutantTable("자리 칸에 적은 판", textOrderWrite).join("\n"),
+  "pause-identity": () => {
+    const rows = CASES.map((s) => {
+      const inv = replay(s).inv;
+      const id = inv.every((v, i) => v === i);
+      return [label(s), show(inv), id ? "예" : "아니오"];
+    });
+    const ids = CASES.filter((s) => replay(s).inv.every((v, i) => v === i));
+    return block(
+      md(["입력", "inv", "제자리 순열"], rows),
+      `inv 가 모든 자리에서 제자리인 입력은 ${ids.map(quote).join(" · ")} 입니다.`,
+    );
+  },
 
-  /** 멈춤 3 — 이웃이 없는 자리의 되돌리기를 빼면. */
-  "pause-reset": () => mutantTable("되돌리기를 뺀 판", noReset).join("\n"),
+  "walk-extend": () => {
+    const r = walk();
+    const x = r.rows.find((y) => y.eq > 0 && y.stop === "end") as Row;
+    const j = x.j as number;
+    const rows: string[][] = [];
+    for (let t = x.kIn; t <= (x.h as number); t++) {
+      const a = WALK[x.i + t];
+      const b = WALK[j + t];
+      rows.push([
+        String(t),
+        `s[${x.i + t}] = ${a ?? "없다"}`,
+        `s[${j + t}] = ${b ?? "없다"}`,
+        a === undefined || b === undefined
+          ? `i + k < n 이 ${x.i + t < WALK.length ? "참" : "거짓"}이라 멈춘다`
+          : a === b
+            ? "같은 글자 — k 를 하나 늘린다"
+            : "다른 글자 — 멈춘다",
+      ]);
+    }
+    const suf = WALK.slice(x.i);
+    return block(
+      md(["k", "자리 i 쪽 글자", "이웃 쪽 글자", "판단"], rows, [0]),
+      `비교한 두 접미사는 자리 ${x.i} 의 ${suf}${last(suf, 과와)} 이웃 ${j} 의 ${WALK.slice(j)} 입니다. ⑤ 가 lcp[${x.rank}] = ${x.h}${을를(x.h as number)} 적고, ⑥ 이 k = ${x.kOut}${을를(x.kOut)} 다음 자리로 넘깁니다.`,
+    );
+  },
 
-  /** 멈춤 3 — 되돌리기 갈래에 들어갈 때 `k` 가 이미 0 인지 전수로 확인한다. */
+  "pause-reset": () => {
+    const c = contrast("되돌리기를 뺀 답", noReset);
+    return block(c.table, tally(c));
+  },
+
   "pause-reset-why": () => {
     const inputs: [string, string][] = [
-      ...(SMALL.map((s) => [
-        s === WALK_S ? `전개 입력 "${s}"` : `"${s}"`,
-        s,
-      ]) as [string, string][]),
-      [`같은 글자 n = 1,000`, same(1_000)],
-      [`무작위 두 글자 n = 1,000`, randomString(1_000, 2, 20260905)],
-      [`무작위 26 글자 n = 1,000`, randomString(1_000, 26, 20260905)],
-      [`주기 6 되풀이 n = 1,000`, periodic(1_000, 6)],
+      ...CASES.map((s): [string, string] => [label(s), s]),
+      ...(
+        [
+          "전부 같은 글자",
+          "무작위 두 글자",
+          "무작위 26 글자",
+          "여섯 글자가 되풀이된다",
+        ] as const
+      ).map((name): [string, string] => [
+        `${name} n = 1,000`,
+        shape(name, 1_000),
+      ]),
     ];
-    const rows = inputs.map(([label, s]) => {
-      const sa = suffixArrayOf(s);
-      const c = counted(s, sa);
-      const hit = c.rows.filter((r) => r.j === null);
-      const worst = Math.max(...hit.map((r) => r.kIn));
+    const rows = inputs.map(([name, s]) => {
+      const r = replay(s);
+      const none = r.rows.filter((x) => x.j === null);
       return [
-        label,
-        comma(s.length),
-        String(hit.length),
-        String(worst),
-        worst === 0 ? "0 이다" : "0 이 아니다",
+        name,
+        num(s.length),
+        String(none.length),
+        String(Math.max(...none.map((x) => x.kIn))),
       ];
     });
-    return [
-      ...table(
-        [
-          [
-            "입력",
-            "n",
-            "되돌리기 갈래에 들어간 횟수",
-            "그때 k 의 최댓값",
-            "판정",
-          ],
-          ...rows,
-        ],
+    const once = inputs.every(
+      ([, s]) => replay(s).rows.filter((x) => x.j === null).length === 1,
+    );
+    const zero = inputs.every(([, s]) =>
+      replay(s)
+        .rows.filter((x) => x.j === null)
+        .every((x) => x.kIn === 0),
+    );
+    return block(
+      md(
+        ["입력", "n", "이웃 없는 갈래에 들어간 횟수", "그때 k 의 최댓값"],
+        rows,
         [1, 2, 3],
       ),
-      "",
-      "들어간 횟수가 1 인 것은 재 본 결과가 아니라 정해진 것이다 — inv 가 sa 의 역이라",
-      "값 n−1 을 가지는 자리가 언제나 하나뿐이다. 재서 확인한 것은 그때의 k 가 0 이라는 쪽이다",
-    ].join("\n");
+      `${inputs.length} 입력에서 이웃 없는 갈래에 들어간 횟수가 ${once ? "모두 1 번이고" : "1 번이 아닌 입력이 있고"}, 그때 k 는 ${zero ? "언제나 0 이었습니다" : "0 이 아닌 때가 있었습니다"}.`,
+    );
   },
 
-  /** related — 두 배열이 서로의 역인지 왕복으로 확인한다. */
-  "related-inverse": () => {
-    const n = WALK_S.length;
-    const inv = new Array<number>(n).fill(0);
-    for (let r = 0; r < n; r++) inv[WALK_SA[r] as number] = r;
-    const rows = Array.from({ length: n }, (_, x) => [
-      String(x),
-      String(WALK_SA[x]),
-      String(inv[WALK_SA[x] as number]),
-      String(inv[x]),
-      String(WALK_SA[inv[x] as number]),
+  "walk-trace": () => {
+    const r = trace(WALK);
+    const steps = walkSteps();
+    const rows = steps.map((st) => {
+      const x = st.row;
+      if (x === null) {
+        return [
+          st.id,
+          "—",
+          "—",
+          "—",
+          "—",
+          st.kind === "init" ? "순위 배열을 만든다" : "답을 돌려준다",
+          show(st.lcp),
+        ];
+      }
+      const cond =
+        x.j === null
+          ? `inv[${x.i}] === ${WALK.length - 1} 참`
+          : `inv[${x.i}] === ${WALK.length - 1} 거짓 · ${x.eq} 번 늘려 ${x.stop === "differ" ? "글자가 달라" : "접미사가 끝나"} 멈춤`;
+      return [
+        st.id,
+        String(x.i),
+        String(x.rank),
+        dash(x.j),
+        String(x.kIn),
+        cond,
+        show(st.lcp),
+      ];
+    });
+    const eq = r.rows.reduce((t, x) => t + x.eq, 0);
+    const ne = r.rows.reduce((t, x) => t + x.ne, 0);
+    return block(
+      md(
+        [
+          "걸음",
+          "자리 i",
+          "inv[i]",
+          "이웃 j",
+          "들어올 때 k",
+          "조건 판정",
+          "lcp",
+        ],
+        rows,
+      ),
+      `글자 비교는 같은 글자 ${eq} 번과 다른 글자 ${ne} 번, 모두 ${eq + ne} 번입니다. 답은 ${show(r.lcp)} 입니다.`,
+    );
+  },
+
+  "walk-branch": () => {
+    const count = (s: string) => {
+      const r = replay(s);
+      const withJ = r.rows.filter((x) => x.j !== null);
+      return [
+        1,
+        r.rows.length - withJ.length,
+        withJ.length,
+        withJ.reduce((t, x) => t + x.eq, 0),
+        withJ.length,
+        withJ.filter((x) => (x.h as number) > 0).length,
+      ];
+    };
+    const a = count(WALK);
+    const b = count("mississippi");
+    const names = [
+      "순위 배열을 만든다",
+      "이웃이 없어 건너뛴다",
+      "이웃의 자리를 얻는다",
+      "글자가 같아 k 를 늘린다",
+      "순위 칸에 길이를 적는다",
+      "k 를 하나 줄여 넘긴다",
+    ];
+    const marks = ["①", "②", "③", "④", "⑤", "⑥"];
+    const rows = names.map((name, t) => [
+      marks[t] as string,
+      name,
+      String(a[t]),
+      String(b[t]),
     ]);
-    return [
-      ...table(
-        [["x", "sa[x]", "inv[sa[x]]", "inv[x]", "sa[inv[x]]"], ...rows],
+    const all = [...a, ...b].every((v) => v >= 1);
+    return block(
+      md(
+        ["갈래", "하는 일", `전개 입력 "${WALK}"`, '"mississippi"'],
+        rows,
+        [2, 3],
+      ),
+      all
+        ? "여섯 갈래가 두 입력 모두에서 한 번 이상 실행됐습니다."
+        : "실행되지 않은 갈래가 있습니다.",
+    );
+  },
+
+  "walk-adjacent": () => {
+    const r = walk();
+    const n = WALK.length;
+    const rows: string[][] = [];
+    let ok = 0;
+    for (let k = 0; k + 1 < n; k++) {
+      const a = r.sa[k] as number;
+      const b = r.sa[k + 1] as number;
+      const L = byDefinition(WALK, [a, b])[0] as number;
+      if (L === r.lcp[k]) ok++;
+      const why =
+        a + L >= n || b + L >= n
+          ? `${WALK.slice(a + L >= n ? a : b)} 쪽이 먼저 끝난다`
+          : `${L + 1} 번째 글자 ${WALK[a + L]} · ${WALK[b + L]}`;
+      rows.push([
+        `sa[${k}] = ${a} · sa[${k + 1}] = ${b}`,
+        `${WALK.slice(a)} · ${WALK.slice(b)}`,
+        L === 0 ? "없다" : WALK.slice(a, a + L),
+        why,
+      ]);
+    }
+    return block(
+      md(["이웃한 두 칸", "두 접미사", "함께 가진 앞부분", "멈춘 자리"], rows),
+      `두 접미사를 직접 잘라 잰 길이가 lcp 의 칸과 같은 짝이 ${n - 1} 쌍 중 ${ok} 쌍입니다.`,
+    );
+  },
+
+  "final-calls": () => {
+    const inputs = [WALK, "aaaa", "abab", "abc", "a", "mississippi"];
+    const lines = inputs.map((s) => {
+      const call = `kasaiLcp("${s}", ${show(saOf(s))})`;
+      return [call, show(kasaiLcp(s, [...saOf(s)]))] as const;
+    });
+    const w = Math.max(...lines.map(([c]) => c.length));
+    return [...lines.map(([c, v]) => `${c.padEnd(w)}  ->  ${v}`)].join("\n");
+  },
+
+  /* ── 알아 두면 좋은 개념 ── */
+
+  "related-inverse": () => {
+    const r = walk();
+    const rows = r.sa.map((_, x) => [
+      String(x),
+      String(r.sa[x]),
+      String(r.inv[r.sa[x] as number]),
+      String(r.inv[x]),
+      String(r.sa[r.inv[x] as number]),
+    ]);
+    const ok = r.sa.every(
+      (_, x) =>
+        r.inv[r.sa[x] as number] === x && r.sa[r.inv[x] as number] === x,
+    );
+    return block(
+      md(
+        ["x", "sa[x]", "inv[sa[x]]", "inv[x]", "sa[inv[x]]"],
+        rows,
         [0, 1, 2, 3, 4],
       ),
-      "",
-      `셋째 열과 다섯째 열이 첫째 열과 같은가  ${
-        rows.every((r) => r[0] === r[2] && r[0] === r[4]) ? "예" : "아니오"
-      }`,
-    ].join("\n");
+      ok
+        ? `셋째 열과 다섯째 열이 ${rows.length} 줄 모두 첫째 열과 같습니다.`
+        : "셋째 열이나 다섯째 열이 첫째 열과 갈리는 줄이 있습니다.",
+    );
   },
 
-  /** deep.math — 정의를 전개 입력의 값에 넣어 검산한다. */
+  /* ── 수식 정의와 유도 ── */
+
   "math-check": () => {
-    const c = counted(WALK_S, WALK_SA);
-    const rows = c.rows.map((r) => {
-      const truth = trueLcpAt(WALK_S, WALK_SA, r.i);
-      const prev = r.i === 0 ? null : trueLcpAt(WALK_S, WALK_SA, r.i - 1);
-      return [
-        String(r.i),
-        truth === null ? "없다" : String(truth),
-        prev === null ? "-" : String(prev),
-        prev === null || truth === null
-          ? "-"
-          : truth >= prev - 1
+    const r = walk();
+    const rows = r.rows.map((x, t) => {
+      const prev = t > 0 ? (r.rows[t - 1] as Row).h : null;
+      const holds =
+        x.h === null || prev === null
+          ? "—"
+          : x.h >= prev - 1
             ? "맞다"
-            : "어긋난다",
-        String(r.kIn),
-      ];
+            : "아니다";
+      return [String(x.i), dash(x.h), dash(prev), holds, String(x.kIn)];
     });
-    const lcp = kasaiLcp(WALK_S, WALK_SA);
-    return [
-      ...table(
-        [
-          ["자리 i", "h(i)", "h(i−1)", "h(i) ≥ h(i−1) − 1", "이어받은 k"],
-          ...rows,
-        ],
+    return block(
+      md(
+        ["자리 i", "h(i)", "h(i−1)", "h(i) ≥ h(i−1) − 1", "들어올 때 k"],
+        rows,
         [0, 1, 2, 4],
       ),
-      "",
-      `h 를 순위 순서로 다시 늘어놓으면  ${show(WALK_SA.map((i) => trueLcpAt(WALK_S, WALK_SA, i) ?? 0))}`,
-      `정본이 낸 답                      ${show(lcp)}`,
-    ].join("\n");
+      `h 를 칸 inv[i] 로 옮겨 적으면 ${show(r.lcp)}${josa(show(r.lcp), "이고", "고")}, 정본이 낸 답은 ${show(kasaiLcp(WALK, [...saOf(WALK)]))} 입니다.`,
+    );
   },
 
-  /** deep.math — 망원합의 상한을 실측과 나란히 놓는다. */
   "math-telescope": () => {
     const inputs: [string, string][] = [
-      [`전개 입력 "${WALK_S}"`, WALK_S],
-      ['"mississippi"', "mississippi"],
-      [`같은 글자 n = 1,000`, same(1_000)],
-      [`두 글자 번갈아 n = 1,000`, alternating(1_000)],
-      [`피보나치 n = 1,000`, fibonacciWord(1_000)],
-      [`무작위 두 글자 n = 1,000`, randomString(1_000, 2, 20260905)],
-      [`무작위 26 글자 n = 1,000`, randomString(1_000, 26, 20260905)],
+      [label(WALK), WALK],
+      [quote("mississippi"), "mississippi"],
+      ...(
+        [
+          "전부 같은 글자",
+          "두 글자가 번갈아 나온다",
+          "피보나치 문자열",
+          "무작위 두 글자",
+          "무작위 26 글자",
+        ] as const
+      ).map((name): [string, string] => [
+        `${name} n = 1,000`,
+        shape(name, 1_000),
+      ]),
     ];
-    const rows = inputs.map(([label, s]) => {
-      const sa = suffixArrayOf(s);
-      const c = countedLite(s, sa);
+    let top = 0;
+    let topName = "";
+    const rows = inputs.map(([name, s]) => {
+      const c = countKasai(s, saOf(s));
       const n = s.length;
-      return [
-        label,
-        comma(n),
-        comma(c.match),
-        comma(c.stop),
-        comma(c.match + c.stop),
-        comma(2 * n - 2),
-        ((c.match + c.stop) / (2 * n - 2)).toFixed(3),
-      ];
-    });
-    return table(
-      [
-        [
-          "입력",
-          "n",
-          "같은 글자 확인 (상한 n−1)",
-          "달라서 멈춤 (상한 n−1)",
-          "합",
-          "상한 2n−2",
-          "그 비",
-        ],
-        ...rows,
-      ],
-      [1, 2, 3, 4, 5, 6],
-    ).join("\n");
-  },
-
-  /** deep.math — 결과식에 제약 규모를 넣는다. */
-  "math-scale": () => {
-    const rows = [1_000, 10_000, CONSTRAINT_N].map((n) => [
-      comma(n),
-      comma(2 * n - 2),
-      comma((n * (n - 1)) / 2),
-      comma(Math.round((n * (n - 1)) / 2 / (2 * n - 2))),
-    ]);
-    return [
-      ...table(
-        [
-          [
-            "n",
-            "이 절차의 상한 2n−2",
-            "짝마다 다시 세는 방법의 최악 n(n−1)/2",
-            "몇 배",
-          ],
-          ...rows,
-        ],
-        [0, 1, 2, 3],
-      ),
-      "",
-      `제약 최댓값 n = ${comma(CONSTRAINT_N)} 에서 글자 견주기는 ${comma(2 * CONSTRAINT_N - 2)} 번을 넘지 않는다`,
-    ].join("\n");
-  },
-
-  /** 불변식 — 자리마다 들어올 때의 k 가 진짜 값 이하인지 확인한다. */
-  "invariant-watch": () => {
-    const inputs: [string, string][] = [
-      [`전개 입력 "${WALK_S}"`, WALK_S],
-      ['"aaaa"', "aaaa"],
-      ['"mississippi"', "mississippi"],
-      ['"abracadabra"', "abracadabra"],
-      [`피보나치 n = 500`, fibonacciWord(500)],
-      [`무작위 두 글자 n = 500`, randomString(500, 2, 20260905)],
-    ];
-    const rows = inputs.map(([label, s]) => {
-      const sa = suffixArrayOf(s);
-      const c = counted(s, sa);
-      let ok = true;
-      let tight = 0;
-      for (const r of c.rows) {
-        const truth = trueLcpAt(s, sa, r.i);
-        if (truth === null) {
-          if (r.kIn !== 0) ok = false;
-          continue;
-        }
-        if (r.kIn > truth) ok = false;
-        if (r.kIn === truth) tight++;
+      const ratio = (c.eq + c.ne) / (2 * n - 2);
+      if (ratio > top) {
+        top = ratio;
+        topName = name;
       }
       return [
-        label,
-        comma(s.length),
-        comma(c.rows.length),
-        comma(tight),
-        ok ? "지킨다" : "어긋난다",
+        name,
+        num(n),
+        num(c.eq),
+        num(c.ne),
+        num(c.eq + c.ne),
+        num(2 * n - 2),
+        fix(ratio, 3),
       ];
     });
-    return table(
-      [
+    return block(
+      md(
         [
           "입력",
           "n",
-          "확인한 자리",
-          "이어받은 값이 진짜 값과 같은 자리",
-          "판정",
+          "같은 글자 (상한 n−1)",
+          "다른 글자 (상한 n−1)",
+          "합 C",
+          "상한 2n−2",
+          "C / (2n−2)",
         ],
-        ...rows,
-      ],
-      [1, 2, 3],
-    ).join("\n");
+        rows,
+        [1, 2, 3, 4, 5, 6],
+      ),
+      `${inputs.length} 입력 모두 상한 안이고, 상한에 가장 가까운 것은 ${topName} 의 ${fix(top * 100, 1)} % 입니다.`,
+    );
   },
 
-  /** 불변식 — 경계 입력을 정본에 그대로 걸어 본다. */
+  "math-scale": () => {
+    const rows = [1_000, 10_000, LIMIT].map((n) => {
+      const kasai = 11 * n - 8;
+      const a = "a".repeat(n);
+      const pair = pairwiseByLcp(a, saOf(a)).access;
+      return [num(n), num(kasai), num(pair), num(Math.round(pair / kasai))];
+    });
+    return block(
+      md(
+        [
+          "n",
+          "길이 이어받기의 상한 11n − 8",
+          "짝마다 처음부터 · 전부 같은 글자",
+          "몇 배",
+        ],
+        rows,
+        [0, 1, 2, 3],
+      ),
+      `n = ${num(LIMIT)} 에서 길이 이어받기의 자료 접근은 어떤 문자열에서도 ${num(11 * LIMIT - 8)} 번을 넘지 않습니다.`,
+    );
+  },
+
+  /* ── 불변식 ── */
+
+  "invariant-watch": () => {
+    const inputs: [string, string][] = [
+      [label(WALK), WALK],
+      [quote("aaaa"), "aaaa"],
+      [quote("mississippi"), "mississippi"],
+      [quote("abracadabra"), "abracadabra"],
+      ["피보나치 문자열 n = 500", fibonacciWord(500)],
+      ["무작위 두 글자 n = 500", makeText(500, 2)],
+    ];
+    let allHeld = true;
+    const rows = inputs.map(([name, s]) => {
+      const r = replay(s);
+      const withJ = r.rows.filter((x) => x.j !== null);
+      const held = r.rows.every((x) =>
+        x.j === null ? x.kIn === 0 : x.kIn <= (x.h as number),
+      );
+      if (!held) allHeld = false;
+      const equal = withJ.filter((x) => x.kIn === x.h).length;
+      return [
+        name,
+        num(s.length),
+        num(r.rows.length),
+        num(equal),
+        held ? "지킨다" : "어긴다",
+      ];
+    });
+    return block(
+      md(
+        ["입력", "n", "확인한 자리", "이어받은 k 가 h(i) 와 같은 자리", "문장"],
+        rows,
+        [1, 2, 3],
+      ),
+      allHeld
+        ? `${inputs.length} 입력의 모든 자리에서 문장이 지켜졌습니다.`
+        : "문장이 어긋난 자리가 있습니다.",
+    );
+  },
+
   "invariant-edges": () => {
-    const cases: [string, string][] = [
+    const inputs: [string, string][] = [
       ["길이 1", "a"],
       ["두 글자가 같다", "aa"],
       ["두 글자가 다르다", "ab"],
@@ -1236,230 +1152,242 @@ export const PROOFS: Record<string, () => string> = {
       ["되풀이", "abab"],
       ["앞이 같고 끝만 다르다", "aaab"],
     ];
-    const rows = cases.map(([label, s]) => {
-      const sa = suffixArrayOf(s);
-      const c = counted(s, sa);
+    const rows = inputs.map(([name, s]) => {
+      const sa = saOf(s);
+      const c = countKasai(s, sa);
       return [
-        label,
-        `"${s}"`,
+        name,
+        quote(s),
         show(sa),
         show(c.lcp),
-        String(c.lcp[c.lcp.length - 1]),
-        comma(c.match + c.stop),
+        String(c.eq + c.ne),
+        num(c.access),
       ];
     });
-    return table(
-      [["경계", "입력", "sa", "답", "마지막 칸", "글자 견주기"], ...rows],
-      [4, 5],
-    ).join("\n");
-  },
-
-  /** 불변식 — 기록 뒤에 하나 줄이는 줄을 뺀 변이. */
-  "mutant-no-decrement": () =>
-    mutantTable("하나 줄이기를 뺀 판", noDecrement).join("\n"),
-
-  /** perf.derive — 전개의 걸음마다 무엇을 몇 번 셌는가. */
-  "perf-count": () => {
-    const c = counted(WALK_S, WALK_SA);
-    const rows = c.rows.map((r, idx) => [
-      `T${idx + 2}`,
-      String(r.i),
-      String(r.matched),
-      r.why === "글자가 다르다" ? "1" : "0",
-      String(r.cells),
-    ]);
-    const stopped = c.rows.filter((r) => r.why === "글자가 다르다").length;
-    const cellsInLoop = c.rows.reduce((t, r) => t + r.cells, 0);
-    return [
-      ...table(
-        [
-          ["걸음", "자리 i", "같은 글자 확인", "달라서 멈춤", "배열 칸 접근"],
-          ...rows,
-        ],
-        [1, 2, 3, 4],
-      ),
-      "",
-      `역배열을 만드는 데 배열 칸 접근 ${2 * WALK_S.length} 번`,
-      `바깥 반복의 배열 칸 접근 ${cellsInLoop} 번 · 합 ${c.cells} 번`,
-      `글자 견주기는 같은 글자 확인 ${c.match} 번 + 달라서 멈춤 ${stopped} 번 = ${c.match + stopped} 번`,
-    ].join("\n");
-  },
-
-  /** perf.bounds — 입력 모양을 바꿔도 계수가 n 에 비례하는가. */
-  "perf-shapes": () => {
-    const shapes: [string, (n: number) => string][] = [
-      ["전부 같은 글자", same],
-      ["두 글자가 번갈아 나온다", alternating],
-      ["앞이 다 같고 끝만 다르다", tailDiffers],
-      ["주기 6 되풀이", (n) => periodic(n, 6)],
-      ["피보나치 문자열", fibonacciWord],
-      ["무작위 두 글자", (n) => randomString(n, 2, 20260905)],
-      ["무작위 26 글자", (n) => randomString(n, 26, 20260905)],
-      ["글자가 오름차순", ascending],
-    ];
-    const rows = shapes.map(([label, make]) => {
-      const n = 10_000;
-      const s = make(n);
-      const sa = suffixArrayOf(s);
-      const c = countedLite(s, sa);
-      const total = c.match + c.stop;
-      return [
-        label,
-        comma(c.match),
-        comma(c.stop),
-        comma(total),
-        (total / n).toFixed(3),
-        comma(c.cells),
-      ];
-    });
-    return [
-      ...table(
-        [
-          [
-            "입력 모양 (n = 10,000)",
-            "같은 글자 확인",
-            "달라서 멈춤",
-            "글자 견주기",
-            "그 값 / n",
-            "배열 칸 접근",
-          ],
-          ...rows,
-        ],
-        [1, 2, 3, 4, 5],
-      ),
-      "",
-      "배열 칸 접근은 모양과 상관없이 같다 — 바깥 반복이 자리마다 정해진 횟수만 접근한다",
-    ].join("\n");
-  },
-
-  /** perf.worst — 글자 견주기를 가장 많이 만드는 모양을 실제로 찾는다. */
-  "worst-shape": () => {
-    const shapes: [string, (n: number) => string][] = [
-      ["전부 같은 글자", same],
-      ["두 글자가 번갈아 나온다", alternating],
-      ["앞이 다 같고 끝만 다르다", tailDiffers],
-      ["주기 6 되풀이", (n) => periodic(n, 6)],
-      ["피보나치 문자열", fibonacciWord],
-      ["무작위 두 글자", (n) => randomString(n, 2, 20260905)],
-      ["무작위 세 글자", (n) => randomString(n, 3, 20260905)],
-      ["무작위 26 글자", (n) => randomString(n, 26, 20260905)],
-      ["글자가 오름차순", ascending],
-    ];
-    const n = CONSTRAINT_N;
-    const rows = shapes.map(([label, make]) => {
-      const s = make(n);
-      const sa = suffixArrayOf(s);
-      const c = countedLite(s, sa);
-      const total = c.match + c.stop;
-      return [
-        label,
-        comma(c.match),
-        comma(c.stop),
-        comma(total),
-        (total / n).toFixed(3),
-      ];
-    });
-    const best = rows.reduce((a, b) =>
-      Number((b[3] ?? "0").replaceAll(",", "")) >
-      Number((a[3] ?? "0").replaceAll(",", ""))
-        ? b
-        : a,
+    const lastZero = inputs.every(
+      ([, s]) => kasaiLcp(s, [...saOf(s)]).at(-1) === 0,
     );
-    return [
-      ...table(
-        [
-          [
-            `입력 모양 (n = ${comma(n)})`,
-            "같은 글자 확인",
-            "달라서 멈춤",
-            "글자 견주기",
-            "그 값 / n",
-          ],
-          ...rows,
-        ],
-        [1, 2, 3, 4],
-      ),
-      "",
-      `글자 견주기가 가장 많은 모양은 「${best[0]}」 이고 ${best[3]} 번이다`,
-      `상한 2n−2 = ${comma(2 * n - 2)} 이므로 그 값은 상한보다 ${comma(
-        2 * n - 2 - Number((best[3] ?? "0").replaceAll(",", "")),
-      )} 적다`,
-    ].join("\n");
+    return block(
+      md(["경계", "입력", "sa", "답", "글자 비교", "자료 접근"], rows, [4, 5]),
+      lastZero
+        ? `마지막 칸은 ${inputs.length} 경계 모두에서 0 입니다.`
+        : "마지막 칸이 0 이 아닌 경계가 있습니다.",
+    );
   },
 
-  /**
-   * perf.worst — 짧은 길이에서는 **모든 문자열을 전수로** 걸어 최댓값을 찾는다.
-   *
-   * 모양을 손으로 고르면 고른 것 중의 최댓값밖에 안 나온다. 두 글자짜리 알파벳으로 길이
-   * 8 부터 14 까지의 문자열 전부를 실행해 상한 2n−2 와 견준다.
-   */
+  "mutant-no-decrement": () => {
+    const c = contrast("하나 줄이기를 뺀 답", noDecrement);
+    return block(c.table, tally(c));
+  },
+
+  "mutant-no-decrement-where": () => {
+    const good = walk();
+    const bad = replay(WALK, saOf(WALK), 0);
+    const t = bad.rows.findIndex(
+      (x, at) => x.h !== null && x.h !== good.rows[at]?.h,
+    );
+    const g = good.rows[t] as Row;
+    const b = bad.rows[t] as Row;
+    const rows = [
+      ["정본", String(g.kIn), String(g.eq + g.ne), String(g.h)],
+      ["하나 줄이기를 뺀 판", String(b.kIn), String(b.eq + b.ne), String(b.h)],
+    ];
+    const suf = WALK.slice(g.i);
+    const nb = WALK.slice(g.j as number);
+    return block(
+      md(
+        ["판", `자리 ${g.i} 에 들어올 때 k`, "그 자리의 글자 비교", "적은 값"],
+        rows,
+        [1, 2, 3],
+      ),
+      `자리 ${g.i} 의 접미사 ${suf}${last(suf, 과와)} 이웃 ${nb}${last(nb, 은는)} 앞 ${g.h} 글자를 함께 가집니다. 뺀 판은 i + k = ${b.i + b.kIn}${이가(b.i + b.kIn)} 이미 n = ${WALK.length} 이상이라 비교를 한 번도 안 하고 ${b.h}${을를(b.h as number)} 적었습니다.`,
+    );
+  },
+
+  /* ── 비용 계산 ── */
+
+  "perf-count": () => {
+    const steps = walkSteps();
+    const n = WALK.length;
+    const rows = steps
+      .filter((st) => st.kind !== "done")
+      .map((st) => {
+        const x = st.row;
+        if (x === null) return [st.id, "—", num(2 * n), "0", num(2 * n)];
+        const cells = x.j === null ? 1 : 5;
+        const cmp = x.eq + x.ne;
+        return [
+          st.id,
+          String(x.i),
+          String(cells),
+          String(cmp),
+          num(cells + 2 * cmp),
+        ];
+      });
+    const total = countKasai(WALK, saOf(WALK)).access;
+    const cmp = replay(WALK).rows.reduce((t, x) => t + x.eq + x.ne, 0);
+    return block(
+      md(
+        ["걸음", "자리 i", "배열 칸", "글자 비교", "자료 접근"],
+        rows,
+        [1, 2, 3, 4],
+      ),
+      `합은 ${num(total)} 번입니다. 순위 배열에 ${2 * n} 번, 자리 ${n} 개의 배열 칸에 ${5 * (n - 1) + 1} 번이 들었고, 글자 비교 ${cmp} 번이 글자 ${2 * cmp} 개를 읽었습니다.`,
+    );
+  },
+
+  "perf-shapes": () => {
+    const n = 10_000;
+    let low = Number.POSITIVE_INFINITY;
+    let lowName = "";
+    const rows = SHAPES.map(([name, make]) => {
+      const s = make(n);
+      const c = countKasai(s, saOf(s));
+      if (c.access < low) {
+        low = c.access;
+        lowName = name;
+      }
+      return [name, num(c.eq), num(c.ne), num(c.access), fix(c.access / n, 3)];
+    });
+    return block(
+      md(
+        [
+          "입력 모양 (n = 10,000)",
+          "같은 글자",
+          "다른 글자",
+          "자료 접근",
+          "자료 접근 / n",
+        ],
+        rows,
+        [1, 2, 3, 4],
+      ),
+      `배열 칸 접근은 모양과 상관없이 7n − 4 = ${num(7 * n - 4)} 번이고, 모양이 바꾸는 것은 글자 비교뿐입니다. 가장 적은 모양은 「${lowName}」 의 ${num(low)} 번이고, ${low === 9 * n - 6 ? "아래 한계 9n − 6 과 같습니다" : `아래 한계 9n − 6 = ${num(9 * n - 6)} 보다 많습니다`}.`,
+    );
+  },
+
+  "worst-shape": () => {
+    const n = LIMIT;
+    let best = -1;
+    let bestName = "";
+    const rows = SHAPES.map(([name, make]) => {
+      const s = make(n);
+      const c = countKasai(s, saOf(s));
+      if (c.access > best) {
+        best = c.access;
+        bestName = name;
+      }
+      return [name, num(c.eq), num(c.ne), num(c.access), fix(c.access / n, 3)];
+    });
+    return block(
+      md(
+        [
+          "입력 모양 (n = 100,000)",
+          "같은 글자",
+          "다른 글자",
+          "자료 접근",
+          "자료 접근 / n",
+        ],
+        rows,
+        [1, 2, 3, 4],
+      ),
+      `자료 접근이 가장 많은 모양은 「${bestName}」 이고 ${num(best)} 번입니다. 상한 11n − 8 = ${num(11 * n - 8)} 보다 ${num(11 * n - 8 - best)} 적습니다.`,
+    );
+  },
+
   "worst-search": () => {
     const rows: string[][] = [];
+    let over = 0;
     for (let n = 8; n <= 14; n++) {
       let best = -1;
       let winners: string[] = [];
       for (let mask = 0; mask < 1 << n; mask++) {
         let s = "";
         for (let b = 0; b < n; b++) s += (mask >> b) & 1 ? "b" : "a";
-        const c = countedLite(s, suffixArrayOf(s));
-        const total = c.match + c.stop;
-        if (total > best) {
-          best = total;
+        const c = countKasai(s, saOf(s));
+        const cmp = c.eq + c.ne;
+        if (cmp > 2 * n - 2) over++;
+        if (cmp > best) {
+          best = cmp;
           winners = [s];
-        } else if (total === best) winners.push(s);
+        } else if (cmp === best) winners.push(s);
       }
       rows.push([
         String(n),
-        comma(1 << n),
-        comma(best),
-        comma(2 * n - 2),
+        num(1 << n),
+        String(best),
+        String(2 * n - 2),
         String(2 * n - 2 - best),
-        winners.map((w) => `"${w}"`).join(" · "),
+        winners.map(quote).join(" · "),
       ]);
     }
-    return [
-      ...table(
+    return block(
+      md(
         [
-          [
-            "n",
-            "실행한 문자열",
-            "글자 견주기의 최댓값",
-            "상한 2n\u22122",
-            "차이",
-            "그 값을 낸 문자열 전부",
-          ],
-          ...rows,
+          "n",
+          "실행한 문자열",
+          "글자 비교의 최댓값",
+          "상한 2n−2",
+          "차이",
+          "그 값을 낸 문자열 전부",
         ],
+        rows,
         [0, 1, 2, 3, 4],
       ),
-      "",
-      "전수로 걸어도 상한을 넘는 문자열이 없다",
-    ].join("\n");
+      `두 글자 알파벳의 길이 8 부터 14 까지 전수에서 글자 비교가 상한 2n−2 를 넘은 문자열은 ${over} 개입니다.`,
+    );
   },
 
-  /** perf.worst — 규모를 4 배씩 늘리며 성장률을 잰다. */
   "worst-growth": () => {
-    const rows = [1_250, 5_000, 20_000, 80_000].map((n) => {
-      const s = randomString(n, 2, 20260905);
-      const sa = suffixArrayOf(s);
-      const c = countedLite(s, sa);
-      const total = c.match + c.stop;
-      return [comma(n), comma(total), comma(c.cells), (total / n).toFixed(3)];
+    const ns = [1_250, 5_000, 20_000, 80_000];
+    const vals = ns.map((n) => {
+      const s = shape("앞이 다 같고 끝만 다르다", n);
+      return countKasai(s, saOf(s)).access;
     });
-    const growth: string[] = [];
-    for (let idx = 1; idx < rows.length; idx++) {
-      const a = Number((rows[idx - 1]?.[1] ?? "0").replaceAll(",", ""));
-      const b = Number((rows[idx]?.[1] ?? "0").replaceAll(",", ""));
-      growth.push((b / a).toFixed(3));
-    }
-    return [
-      ...table(
-        [["n", "글자 견주기", "배열 칸 접근", "글자 견주기 / n"], ...rows],
-        [0, 1, 2, 3],
+    const rows = ns.map((n, t) => [
+      num(n),
+      num(vals[t] as number),
+      fix((vals[t] as number) / n, 3),
+    ]);
+    const ratios = vals
+      .slice(1)
+      .map((v, t) => fix(v / (vals[t] as number), 3))
+      .join(" · ");
+    return block(
+      md(["n", "자료 접근", "자료 접근 / n"], rows, [0, 1, 2]),
+      `「앞이 다 같고 끝만 다르다」 에서 n 을 4 배씩 늘렸을 때 자료 접근의 비는 ${ratios} 입니다.`,
+    );
+  },
+
+  /* ── 스스로 점검하기 ── */
+
+  "check-carry-saves": () => {
+    const r = walk();
+    const carried = r.rows.filter((x) => x.j !== null && x.kIn > 0);
+    const rows = carried.map((x) => [
+      String(x.i),
+      WALK.slice(x.i),
+      WALK.slice(x.j as number),
+      String(x.kIn),
+      String(x.eq + x.ne),
+      String(x.kIn + x.eq + x.ne),
+    ]);
+    const saved = carried.reduce((t, x) => t + x.kIn, 0);
+    const a = countKasai(WALK, saOf(WALK));
+    const b = countKasai(WALK, saOf(WALK), Number.POSITIVE_INFINITY);
+    return block(
+      md(
+        [
+          "자리 i",
+          "접미사",
+          "이웃의 접미사",
+          "이어받은 k",
+          "이어받을 때 글자 비교",
+          "0 부터 셀 때 글자 비교",
+        ],
+        rows,
+        [0, 3, 4, 5],
       ),
-      "",
-      `n 을 4 배씩 늘렸을 때 글자 견주기의 비  ${growth.join(" · ")}`,
-      "네 배 입력에 네 배 값이면 성장률이 1 차다",
-    ].join("\n");
+      `이어받으면 글자 비교가 ${a.eq + a.ne} 번이고, 자리마다 0 부터 세면 ${b.eq + b.ne} 번입니다. 늘어난 ${saved} 번이 이어받은 k 의 합과 같습니다.`,
+    );
   },
 };

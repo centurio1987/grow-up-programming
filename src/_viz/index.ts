@@ -31,6 +31,7 @@ export {
 } from "./patterns/CellStage";
 export {
   type KeyValueData,
+  type KeyValueExtraRow,
   KeyValueTable,
   type KeyValueTableProps,
   keyValueColumns,

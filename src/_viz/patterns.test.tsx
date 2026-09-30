@@ -803,6 +803,58 @@ describe("P9 KeyValueTable · 해시 맵", () => {
     // 없던 키는 칸이 없으니 맵 ▲ 줄은 비고, 배열 ▲ 줄만 칸 2 를 가리킨다.
     expect(count(svg, /data-viz-role="caret" data-viz-cells=""/g)).toBe(1);
   });
+
+  test("더하는 줄(extra) — 값 줄 아래에 줄마다 제 읽음 · 새로 씀으로 서고, ▲ 는 읽은 키의 열 전부에 선다", async () => {
+    const { keyValueRows } = await import("./patterns/KeyValueTable");
+    // 칸 번호 k 하나에 sa[k] 와 lcp[k] 가 함께 딸린다 — sa[4] 를 읽고 lcp[3] 을 새로 썼다.
+    const kv = {
+      keyLabel: "k",
+      valueLabel: "sa[k]",
+      entries: [
+        [0, 5],
+        [1, 3],
+        [2, 1],
+        [3, 0],
+        [4, 4],
+        [5, 2],
+      ] as const,
+      read: [4],
+      extra: [
+        {
+          label: "lcp[k]",
+          values: [null, null, null, 0, null, null],
+          write: [3],
+          side: "적은 칸 1 개",
+        },
+      ],
+    };
+    const rows = keyValueRows(kv);
+    expect(rows.map((r) => r.kind)).toEqual([
+      "cells",
+      "cells",
+      "cells",
+      "caret",
+    ]);
+    const svg = await renderToSvg(
+      <CellStage title="sa 와 lcp" rows={rows} columns={6} />,
+      "t-kv-extra",
+    );
+    expect(count(svg, /data-viz-label="lcp\[k\]"/g)).toBe(1);
+    // 세 줄 × 자리 여섯
+    expect(count(svg, /data-viz-cell="/g)).toBe(18);
+    // 키 4 와 그 sa 칸이 읽음, lcp 줄의 키 3 칸만 새로 씀, 아직 안 쓴 lcp 칸 다섯은 아직
+    expect(count(svg, /data-viz-state="read"/g)).toBe(2);
+    expect(count(svg, /data-viz-state="focus"/g)).toBe(1);
+    expect(count(svg, /data-viz-state="empty"/g)).toBe(5);
+    expect(svg).toContain("적은 칸 1 개");
+    // extra 가 없으면 줄이 셋 그대로다 — 이 필드를 안 쓰는 편의 그림은 바뀌지 않는다.
+    const { extra: _drop, ...plain } = kv;
+    expect(keyValueRows(plain).map((r) => r.kind)).toEqual([
+      "cells",
+      "cells",
+      "caret",
+    ]);
+  });
 });
 
 describe("패턴 등록 가드", () => {
