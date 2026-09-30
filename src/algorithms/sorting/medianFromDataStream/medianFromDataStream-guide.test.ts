@@ -89,3 +89,21 @@ test("N = 100,000 을 넣어도 정의대로 고른 답과 같다", () => {
   }
   expect(mf.findMedian()).toBe(byDefinition(values));
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본의 두 힙 객체에
+ * 기록만 붙여 실행한 걸음 — 과 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./medianFromDataStream-guide.sim.ts");
+  const { simStepsFromRef } = await import(
+    "./medianFromDataStream-guide.fig.tsx"
+  );
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.medianWalk.steps)).toEqual(
+    plain(simStepsFromRef().medianWalk),
+  );
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.medianWalk.result).toBe(String(answers([5, 15, 1, 3, 5]).at(-1)));
+});
