@@ -1,493 +1,887 @@
-import type { Frame } from "#guide-sim";
-
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(13)와 같다 — P3 이 그 관계를 잰다.
+ * 걸음 재생 패널 — `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 제목은
+ * 원고의 걸음 번호(`T#`)로 연다 — P3 이 그 자리를 잰다. 시작 정점에 쪽을 적는 일 하나, 이웃 항목 확인
+ * 하나가 걸음 하나다.
  *
- * **뷰가 둘이다** — `graph` 는 정점에 적힌 쪽과 지금 견주는 간선을 그리고, `keyValue` 는 그
- * 순간의 스택 · 쪽 배열 · 갈래를 적는다. 이 절차의 판정은 **두 정점에 적힌 값을 견주는
- * 것**이라 그림만으로는 어느 값과 어느 값을 견주는 중인지 안 보이고, 스택은 그림에 자리가
- * 없어서 두 패널이 함께 있어야 한 프레임이 완결된다.
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가 실제보다
+ * 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
  *
- * 상태는 `nodeStatus` 로 옮긴다 — 쪽을 아직 안 적은 정점은 `default`(적지 않는다), 쪽을
- * 적었고 스택에 남아 있는 정점은 `frontier`, 지금 이웃을 확인하고 있는 정점은 `active`,
- * 스택에서 꺼내 확인을 마친 정점은 `visited` 다. `nodeValue` 는 **그 정점에 적힌 쪽**이다.
+ * ## 패널 규약 — 「그래프」 무대(KAN-058, SPEC §13)
  *
- * 좌표는 0~100 정규화다. **간선에 방향이 없으므로 `directed` 를 붙이지 않는다.**
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "graph"` 가
+ * 무대 갈래를 고른다. 정점과 간선의 자리(`layout`)는 패널에 한 번만 적고, 걸음마다 정점에 적힌 쪽과
+ * 상태, 간선의 종류(쪽을 적어 준 간선은 굵은 실선)와 상태, 무대 아래 스택 띠(`strips`)만 바꾼다
+ * (`src/_viz/player/graphStage.ts`). 무향 그래프라 `directed: false` 다. 확인한 이웃 항목 수는 무대에
+ * 자리가 없어 남는 변수로 둔다.
  *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * **값은 손으로 적지 않았다.** 이 리터럴은 그림 사이드카의 `stageStepsFromRef()` 가 정본과 같은 절차를
+ * 실행해 낸 결과를 옮긴 것이고, 둘이 같은지는 `isBipartite-guide.test.ts` 가 잰다.
  */
 export const bipartiteWalk = {
-  view: ["graph", "keyValue"] as const,
-  title: "isBipartite(7, [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,4]])",
+  player: "stage",
+  stage: "graph",
+  title:
+    "isBipartite(7, [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,4]]) — 정점 안은 적힌 쪽",
+  sub: "T1–T13 · 걸음마다 시작 정점 하나 또는 이웃 항목 확인 하나",
   result: "false",
+  layout: {
+    nodes: [
+      {
+        id: 0,
+        x: 0,
+        y: 0,
+      },
+      {
+        id: 1,
+        x: 1.3,
+        y: 0,
+      },
+      {
+        id: 2,
+        x: 1.3,
+        y: 1.3,
+      },
+      {
+        id: 3,
+        x: 0,
+        y: 1.3,
+      },
+      {
+        id: 4,
+        x: 3.3,
+        y: 0,
+      },
+      {
+        id: 5,
+        x: 4,
+        y: 1.3,
+      },
+      {
+        id: 6,
+        x: 2.6,
+        y: 1.3,
+      },
+    ],
+    edges: [
+      {
+        from: 0,
+        to: 1,
+      },
+      {
+        from: 1,
+        to: 2,
+      },
+      {
+        from: 2,
+        to: 3,
+      },
+      {
+        from: 3,
+        to: 0,
+      },
+      {
+        from: 4,
+        to: 5,
+      },
+      {
+        from: 5,
+        to: 6,
+      },
+      {
+        from: 6,
+        to: 4,
+      },
+    ],
+    directed: false,
+  },
   steps: [
     {
-      title: "T1 정점 0 에 쪽 0 을 적고 스택에 넣는다",
-      detail:
-        "바깥 반복이 쪽이 없는 첫 정점 0 을 잡았다. 덩어리의 첫 정점은 어느 쪽에 넣어도 되므로 0 을 적는다.",
+      title: "T1 시작 정점 0 에 쪽 0",
+      text: "바깥 반복이 쪽이 없는 정점 0 을 찾았습니다. 연결 성분의 첫 정점이라 쪽 0 을 적고 스택에 넣습니다.",
       nodes: [
-        { id: 0, x: 10, y: 14 },
-        { id: 1, x: 44, y: 14 },
-        { id: 2, x: 44, y: 50 },
-        { id: 3, x: 10, y: 50 },
-        { id: 4, x: 74, y: 12 },
-        { id: 5, x: 94, y: 48 },
-        { id: 6, x: 62, y: 48 },
+        {
+          value: "쪽 0",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 2, to: 3 },
-        { from: 3, to: 0 },
-        { from: 4, to: 5 },
-        { from: 5, to: 6 },
-        { from: 6, to: 4 },
+      edges: [{}, {}, {}, {}, {}, {}, {}],
+      strips: [
+        {
+          label: "stack",
+          values: [0],
+          slots: 2,
+          states: {
+            "0": "focus",
+          },
+        },
       ],
-      nodeStatus: { 0: "frontier" },
-      nodeValue: { 0: "쪽 0" },
-      entries: [
-        { label: "스택 (아래→위)", value: "[0]" },
-        { label: "쪽 배열", value: "0:0 1:· 2:· 3:· 4:· 5:· 6:·" },
-        { label: "지금 확인하는 이웃", value: "—" },
-        { label: "갈래", value: "—" },
-      ],
-    },
-    {
-      title: "T2 정점 0 의 이웃 1 을 확인한다",
-      detail:
-        "0 을 꺼냈다. 자기 쪽이 0 이므로 이웃에 적을 쪽은 1 이다. 정점 1 은 아직 쪽이 없으므로 1 을 적고 스택에 넣는다.",
-      nodes: [
-        { id: 0, x: 10, y: 14 },
-        { id: 1, x: 44, y: 14 },
-        { id: 2, x: 44, y: 50 },
-        { id: 3, x: 10, y: 50 },
-        { id: 4, x: 74, y: 12 },
-        { id: 5, x: 94, y: 48 },
-        { id: 6, x: 62, y: 48 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 2, to: 3 },
-        { from: 3, to: 0 },
-        { from: 4, to: 5 },
-        { from: 5, to: 6 },
-        { from: 6, to: 4 },
-      ],
-      nodeStatus: { 0: "active", 1: "frontier" },
-      nodeValue: { 0: "쪽 0", 1: "쪽 1" },
-      activeEdge: { from: 0, to: 1 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[1]" },
-        { label: "쪽 배열", value: "0:0 1:1 2:· 3:· 4:· 5:· 6:·" },
-        { label: "지금 확인하는 이웃", value: "0 의 이웃 1" },
-        { label: "갈래", value: "③ 쪽이 없어 반대쪽을 적는다" },
-      ],
-    },
-    {
-      title: "T3 정점 0 의 이웃 3 을 확인한다",
-      detail:
-        "같은 자리에서 목록의 다음 이웃 3 을 본다. 3 도 쪽이 없으므로 같은 값 1 을 적고 스택에 넣는다.",
-      nodes: [
-        { id: 0, x: 10, y: 14 },
-        { id: 1, x: 44, y: 14 },
-        { id: 2, x: 44, y: 50 },
-        { id: 3, x: 10, y: 50 },
-        { id: 4, x: 74, y: 12 },
-        { id: 5, x: 94, y: 48 },
-        { id: 6, x: 62, y: 48 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 2, to: 3 },
-        { from: 3, to: 0 },
-        { from: 4, to: 5 },
-        { from: 5, to: 6 },
-        { from: 6, to: 4 },
-      ],
-      nodeStatus: { 0: "active", 1: "frontier", 3: "frontier" },
-      nodeValue: { 0: "쪽 0", 1: "쪽 1", 3: "쪽 1" },
-      activeEdge: { from: 0, to: 3 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[1, 3]" },
-        { label: "쪽 배열", value: "0:0 1:1 2:· 3:1 4:· 5:· 6:·" },
-        { label: "지금 확인하는 이웃", value: "0 의 이웃 3" },
-        { label: "갈래", value: "③ 쪽이 없어 반대쪽을 적는다" },
-      ],
-    },
-    {
-      title: "T4 정점 3 의 이웃 2 를 확인한다",
-      detail:
-        "3 을 꺼냈다. 자기 쪽이 1 이므로 이웃에 적을 쪽은 0 이다. 정점 2 는 쪽이 없으므로 0 을 적고 스택에 넣는다.",
-      nodes: [
-        { id: 0, x: 10, y: 14 },
-        { id: 1, x: 44, y: 14 },
-        { id: 2, x: 44, y: 50 },
-        { id: 3, x: 10, y: 50 },
-        { id: 4, x: 74, y: 12 },
-        { id: 5, x: 94, y: 48 },
-        { id: 6, x: 62, y: 48 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 2, to: 3 },
-        { from: 3, to: 0 },
-        { from: 4, to: 5 },
-        { from: 5, to: 6 },
-        { from: 6, to: 4 },
-      ],
-      nodeStatus: { 0: "visited", 1: "frontier", 2: "frontier", 3: "active" },
-      nodeValue: { 0: "쪽 0", 1: "쪽 1", 2: "쪽 0", 3: "쪽 1" },
-      activeEdge: { from: 3, to: 2 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[1, 2]" },
-        { label: "쪽 배열", value: "0:0 1:1 2:0 3:1 4:· 5:· 6:·" },
-        { label: "지금 확인하는 이웃", value: "3 의 이웃 2" },
-        { label: "갈래", value: "③ 쪽이 없어 반대쪽을 적는다" },
-      ],
-    },
-    {
-      title: "T5 정점 3 의 이웃 0 을 확인한다 — 3 에 쪽을 적게 한 이웃이다",
-      detail:
-        "정점 0 은 3 에 쪽을 적게 한 이웃이다. 그때 반대쪽을 적었으므로 지금 견주면 반드시 다르고, 그래서 따로 기억해 두지 않아도 두 번째 갈래가 받아 간다.",
-      nodes: [
-        { id: 0, x: 10, y: 14 },
-        { id: 1, x: 44, y: 14 },
-        { id: 2, x: 44, y: 50 },
-        { id: 3, x: 10, y: 50 },
-        { id: 4, x: 74, y: 12 },
-        { id: 5, x: 94, y: 48 },
-        { id: 6, x: 62, y: 48 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 2, to: 3 },
-        { from: 3, to: 0 },
-        { from: 4, to: 5 },
-        { from: 5, to: 6 },
-        { from: 6, to: 4 },
-      ],
-      nodeStatus: { 0: "visited", 1: "frontier", 2: "frontier", 3: "active" },
-      nodeValue: { 0: "쪽 0", 1: "쪽 1", 2: "쪽 0", 3: "쪽 1" },
-      activeEdge: { from: 3, to: 0 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[1, 2]" },
-        { label: "쪽 배열", value: "0:0 1:1 2:0 3:1 4:· 5:· 6:·" },
-        { label: "지금 확인하는 이웃", value: "3 의 이웃 0" },
-        { label: "갈래", value: "② 이미 반대쪽이라 넘어간다" },
-      ],
-    },
-    {
-      title: "T6 정점 2 의 이웃 1 을 확인한다 — 길이 4 짜리 사이클이 닫힌다",
-      detail:
-        "2 를 꺼냈다. 정점 1 은 2 에 쪽을 적게 한 이웃이 아니라 다른 길로 쪽이 정해진 정점인데, 그 쪽이 2 와 반대라 이 간선도 두 쪽을 가른다.",
-      nodes: [
-        { id: 0, x: 10, y: 14 },
-        { id: 1, x: 44, y: 14 },
-        { id: 2, x: 44, y: 50 },
-        { id: 3, x: 10, y: 50 },
-        { id: 4, x: 74, y: 12 },
-        { id: 5, x: 94, y: 48 },
-        { id: 6, x: 62, y: 48 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 2, to: 3 },
-        { from: 3, to: 0 },
-        { from: 4, to: 5 },
-        { from: 5, to: 6 },
-        { from: 6, to: 4 },
-      ],
-      nodeStatus: { 0: "visited", 1: "frontier", 2: "active", 3: "visited" },
-      nodeValue: { 0: "쪽 0", 1: "쪽 1", 2: "쪽 0", 3: "쪽 1" },
-      activeEdge: { from: 2, to: 1 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[1]" },
-        { label: "쪽 배열", value: "0:0 1:1 2:0 3:1 4:· 5:· 6:·" },
-        { label: "지금 확인하는 이웃", value: "2 의 이웃 1" },
-        { label: "갈래", value: "② 이미 반대쪽이라 넘어간다" },
-      ],
-    },
-    {
-      title: "T7 정점 2 의 이웃 3 을 확인한다",
-      detail:
-        "목록의 다음 이웃 3 은 2 에 쪽을 적게 한 이웃이다. 여기도 쪽이 반대라 넘어간다. 스택에는 정점 1 만 남는다.",
-      nodes: [
-        { id: 0, x: 10, y: 14 },
-        { id: 1, x: 44, y: 14 },
-        { id: 2, x: 44, y: 50 },
-        { id: 3, x: 10, y: 50 },
-        { id: 4, x: 74, y: 12 },
-        { id: 5, x: 94, y: 48 },
-        { id: 6, x: 62, y: 48 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 2, to: 3 },
-        { from: 3, to: 0 },
-        { from: 4, to: 5 },
-        { from: 5, to: 6 },
-        { from: 6, to: 4 },
-      ],
-      nodeStatus: { 0: "visited", 1: "frontier", 2: "active", 3: "visited" },
-      nodeValue: { 0: "쪽 0", 1: "쪽 1", 2: "쪽 0", 3: "쪽 1" },
-      activeEdge: { from: 2, to: 3 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[1]" },
-        { label: "쪽 배열", value: "0:0 1:1 2:0 3:1 4:· 5:· 6:·" },
-        { label: "지금 확인하는 이웃", value: "2 의 이웃 3" },
-        { label: "갈래", value: "② 이미 반대쪽이라 넘어간다" },
-      ],
-    },
-    {
-      title: "T8 정점 1 의 이웃 0 을 확인한다",
-      detail:
-        "1 을 꺼냈다. 이 덩어리는 쪽이 이미 다 정해져 있어서 남은 두 이웃은 견주기만 한다.",
-      nodes: [
-        { id: 0, x: 10, y: 14 },
-        { id: 1, x: 44, y: 14 },
-        { id: 2, x: 44, y: 50 },
-        { id: 3, x: 10, y: 50 },
-        { id: 4, x: 74, y: 12 },
-        { id: 5, x: 94, y: 48 },
-        { id: 6, x: 62, y: 48 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 2, to: 3 },
-        { from: 3, to: 0 },
-        { from: 4, to: 5 },
-        { from: 5, to: 6 },
-        { from: 6, to: 4 },
-      ],
-      nodeStatus: { 0: "visited", 1: "active", 2: "visited", 3: "visited" },
-      nodeValue: { 0: "쪽 0", 1: "쪽 1", 2: "쪽 0", 3: "쪽 1" },
-      activeEdge: { from: 1, to: 0 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[]" },
-        { label: "쪽 배열", value: "0:0 1:1 2:0 3:1 4:· 5:· 6:·" },
-        { label: "지금 확인하는 이웃", value: "1 의 이웃 0" },
-        { label: "갈래", value: "② 이미 반대쪽이라 넘어간다" },
-      ],
-    },
-    {
-      title: "T9 정점 1 의 이웃 2 를 확인한다 — 스택이 빈다",
-      detail:
-        "정점 2 도 쪽이 반대다. 이 덩어리의 간선 넷을 전부 확인했고 규정을 깨뜨리는 것이 없었다.",
-      nodes: [
-        { id: 0, x: 10, y: 14 },
-        { id: 1, x: 44, y: 14 },
-        { id: 2, x: 44, y: 50 },
-        { id: 3, x: 10, y: 50 },
-        { id: 4, x: 74, y: 12 },
-        { id: 5, x: 94, y: 48 },
-        { id: 6, x: 62, y: 48 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 2, to: 3 },
-        { from: 3, to: 0 },
-        { from: 4, to: 5 },
-        { from: 5, to: 6 },
-        { from: 6, to: 4 },
-      ],
-      nodeStatus: { 0: "visited", 1: "active", 2: "visited", 3: "visited" },
-      nodeValue: { 0: "쪽 0", 1: "쪽 1", 2: "쪽 0", 3: "쪽 1" },
-      activeEdge: { from: 1, to: 2 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[]" },
-        { label: "쪽 배열", value: "0:0 1:1 2:0 3:1 4:· 5:· 6:·" },
-        { label: "지금 확인하는 이웃", value: "1 의 이웃 2" },
-        { label: "갈래", value: "② 이미 반대쪽이라 넘어간다" },
-      ],
-    },
-    {
-      title: "T10 쪽이 없는 정점 4 에서 다시 시작한다",
-      detail:
-        "바깥 반복이 1·2·3 을 쪽이 있다고 넘기고 4 를 잡는다. 정점 4·5·6 은 0 에서 걸어갈 수 없는 다른 덩어리라 쪽을 새로 정한다.",
-      nodes: [
-        { id: 0, x: 10, y: 14 },
-        { id: 1, x: 44, y: 14 },
-        { id: 2, x: 44, y: 50 },
-        { id: 3, x: 10, y: 50 },
-        { id: 4, x: 74, y: 12 },
-        { id: 5, x: 94, y: 48 },
-        { id: 6, x: 62, y: 48 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 2, to: 3 },
-        { from: 3, to: 0 },
-        { from: 4, to: 5 },
-        { from: 5, to: 6 },
-        { from: 6, to: 4 },
-      ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "frontier",
+      calc: {
+        expr: "side[0] = FIRST_SIDE =",
+        result: "0",
       },
-      nodeValue: { 0: "쪽 0", 1: "쪽 1", 2: "쪽 0", 3: "쪽 1", 4: "쪽 0" },
-      entries: [
-        { label: "스택 (아래→위)", value: "[4]" },
-        { label: "쪽 배열", value: "0:0 1:1 2:0 3:1 4:0 5:· 6:·" },
-        { label: "지금 확인하는 이웃", value: "—" },
-        { label: "갈래", value: "—" },
-      ],
+      vars: "확인한 이웃 항목 0 / 14",
     },
     {
-      title: "T11 정점 4 의 이웃 5 를 확인한다",
-      detail:
-        "4 를 꺼냈다. 자기 쪽이 0 이므로 이웃에 적을 쪽은 1 이다. 정점 5 는 쪽이 없으므로 1 을 적고 스택에 넣는다.",
+      title: "T2 정점 0 의 이웃 1 — 쪽이 없다",
+      text: "정점 0 을 스택에서 꺼냈습니다. 자기 쪽이 0 이라 이웃에 적을 쪽은 1 입니다. 이웃 1 이 아직 쪽이 없어 1 을 적고 스택에 넣습니다.",
       nodes: [
-        { id: 0, x: 10, y: 14 },
-        { id: 1, x: 44, y: 14 },
-        { id: 2, x: 44, y: 50 },
-        { id: 3, x: 10, y: 50 },
-        { id: 4, x: 74, y: 12 },
-        { id: 5, x: 94, y: 48 },
-        { id: 6, x: 62, y: 48 },
+        {
+          value: "쪽 0",
+          state: "read",
+        },
+        {
+          value: "쪽 1",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 2, to: 3 },
-        { from: 3, to: 0 },
-        { from: 4, to: 5 },
-        { from: 5, to: 6 },
-        { from: 6, to: 4 },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "active",
-        5: "frontier",
-      },
-      nodeValue: {
-        0: "쪽 0",
-        1: "쪽 1",
-        2: "쪽 0",
-        3: "쪽 1",
-        4: "쪽 0",
-        5: "쪽 1",
-      },
-      activeEdge: { from: 4, to: 5 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[5]" },
-        { label: "쪽 배열", value: "0:0 1:1 2:0 3:1 4:0 5:1 6:·" },
-        { label: "지금 확인하는 이웃", value: "4 의 이웃 5" },
-        { label: "갈래", value: "③ 쪽이 없어 반대쪽을 적는다" },
+      strips: [
+        {
+          label: "stack",
+          values: [1],
+          slots: 2,
+          states: {
+            "0": "focus",
+          },
+        },
       ],
+      calc: {
+        expr: "side[1] = 1 - side[0] = 1 - 0 =",
+        result: "1",
+      },
+      vars: "확인한 이웃 항목 1 / 14",
     },
     {
-      title: "T12 정점 4 의 이웃 6 을 확인한다",
-      detail:
-        "같은 자리에서 이웃 6 도 쪽이 없으므로 같은 값 1 을 적는다. 이제 정점 5 와 6 이 같은 쪽에 있고 둘 사이에 간선이 있다.",
+      title: "T3 정점 0 의 이웃 3 — 쪽이 없다",
+      text: "이웃 3 이 아직 쪽이 없어 1 을 적고 스택에 넣습니다.",
       nodes: [
-        { id: 0, x: 10, y: 14 },
-        { id: 1, x: 44, y: 14 },
-        { id: 2, x: 44, y: 50 },
-        { id: 3, x: 10, y: 50 },
-        { id: 4, x: 74, y: 12 },
-        { id: 5, x: 94, y: 48 },
-        { id: 6, x: 62, y: 48 },
+        {
+          value: "쪽 0",
+          state: "read",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "쪽 1",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 2, to: 3 },
-        { from: 3, to: 0 },
-        { from: 4, to: 5 },
-        { from: 5, to: 6 },
-        { from: 6, to: 4 },
+        {
+          kind: "tree",
+        },
+        {},
+        {},
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {},
+        {},
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "active",
-        5: "frontier",
-        6: "frontier",
-      },
-      nodeValue: {
-        0: "쪽 0",
-        1: "쪽 1",
-        2: "쪽 0",
-        3: "쪽 1",
-        4: "쪽 0",
-        5: "쪽 1",
-        6: "쪽 1",
-      },
-      activeEdge: { from: 4, to: 6 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[5, 6]" },
-        { label: "쪽 배열", value: "0:0 1:1 2:0 3:1 4:0 5:1 6:1" },
-        { label: "지금 확인하는 이웃", value: "4 의 이웃 6" },
-        { label: "갈래", value: "③ 쪽이 없어 반대쪽을 적는다" },
+      strips: [
+        {
+          label: "stack",
+          values: [1, 3],
+          slots: 2,
+          states: {
+            "1": "focus",
+          },
+        },
       ],
+      calc: {
+        expr: "side[3] = 1 - side[0] = 1 - 0 =",
+        result: "1",
+      },
+      vars: "확인한 이웃 항목 2 / 14",
     },
     {
-      title: "T13 정점 6 의 이웃 5 를 확인한다 — 쪽이 같다",
-      detail:
-        "6 을 꺼냈다. 이웃 5 의 쪽이 6 과 같은 1 이다. 간선 [5,6] 의 두 끝이 한 쪽에 함께 들어가므로 false 를 반환한다.",
+      title: "T4 정점 3 의 이웃 2 — 쪽이 없다",
+      text: "정점 3 을 스택에서 꺼냈습니다. 자기 쪽이 1 이라 이웃에 적을 쪽은 0 입니다. 이웃 2 가 아직 쪽이 없어 0 을 적고 스택에 넣습니다.",
       nodes: [
-        { id: 0, x: 10, y: 14 },
-        { id: 1, x: 44, y: 14 },
-        { id: 2, x: 44, y: 50 },
-        { id: 3, x: 10, y: 50 },
-        { id: 4, x: 74, y: 12 },
-        { id: 5, x: 94, y: 48 },
-        { id: 6, x: 62, y: 48 },
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "쪽 0",
+          state: "focus",
+        },
+        {
+          value: "쪽 1",
+          state: "read",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 2, to: 3 },
-        { from: 3, to: 0 },
-        { from: 4, to: 5 },
-        { from: 5, to: 6 },
-        { from: 6, to: 4 },
+        {
+          kind: "tree",
+        },
+        {},
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+        },
+        {},
+        {},
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "visited",
-        5: "frontier",
-        6: "active",
-      },
-      nodeValue: {
-        0: "쪽 0",
-        1: "쪽 1",
-        2: "쪽 0",
-        3: "쪽 1",
-        4: "쪽 0",
-        5: "쪽 1",
-        6: "쪽 1",
-      },
-      activeEdge: { from: 6, to: 5 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[5]" },
-        { label: "쪽 배열", value: "0:0 1:1 2:0 3:1 4:0 5:1 6:1" },
-        { label: "지금 확인하는 이웃", value: "6 의 이웃 5" },
-        { label: "갈래", value: "① 쪽이 같아 false 를 반환한다" },
+      strips: [
+        {
+          label: "stack",
+          values: [1, 2],
+          slots: 2,
+          states: {
+            "1": "focus",
+          },
+        },
       ],
+      calc: {
+        expr: "side[2] = 1 - side[3] = 1 - 1 =",
+        result: "0",
+      },
+      vars: "확인한 이웃 항목 3 / 14",
     },
-  ] satisfies Frame[],
+    {
+      title: "T5 정점 3 의 이웃 0 — 이미 반대쪽",
+      text: "이웃 0 의 쪽 0 이 자기 쪽 1 과 달라 넘어갑니다.",
+      nodes: [
+        {
+          value: "쪽 0",
+          state: "read",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+          state: "read",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {},
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {},
+        {},
+        {},
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [1, 2],
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "side[0] === side[3] → 0 === 1 →",
+        result: "거짓",
+      },
+      vars: "확인한 이웃 항목 4 / 14",
+    },
+    {
+      title: "T6 정점 2 의 이웃 1 — 이미 반대쪽",
+      text: "정점 2 를 스택에서 꺼냈습니다. 자기 쪽이 0 이라 이웃에 적을 쪽은 1 입니다. 이웃 1 의 쪽 1 이 자기 쪽 0 과 달라 넘어갑니다.",
+      nodes: [
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+          state: "read",
+        },
+        {
+          value: "쪽 0",
+          state: "read",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          state: "read",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {},
+        {},
+        {},
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [1],
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "side[1] === side[2] → 1 === 0 →",
+        result: "거짓",
+      },
+      vars: "확인한 이웃 항목 5 / 14",
+    },
+    {
+      title: "T7 정점 2 의 이웃 3 — 이미 반대쪽",
+      text: "이웃 3 의 쪽 1 이 자기 쪽 0 과 달라 넘어갑니다.",
+      nodes: [
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "쪽 0",
+          state: "read",
+        },
+        {
+          value: "쪽 1",
+          state: "read",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {},
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+        },
+        {},
+        {},
+        {},
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [1],
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "side[3] === side[2] → 1 === 0 →",
+        result: "거짓",
+      },
+      vars: "확인한 이웃 항목 6 / 14",
+    },
+    {
+      title: "T8 정점 1 의 이웃 0 — 이미 반대쪽",
+      text: "정점 1 을 스택에서 꺼냈습니다. 자기 쪽이 1 이라 이웃에 적을 쪽은 0 입니다. 이웃 0 의 쪽 0 이 자기 쪽 1 과 달라 넘어갑니다.",
+      nodes: [
+        {
+          value: "쪽 0",
+          state: "read",
+        },
+        {
+          value: "쪽 1",
+          state: "read",
+        },
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {},
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {},
+        {},
+        {},
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [],
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "side[0] === side[1] → 0 === 1 →",
+        result: "거짓",
+      },
+      vars: "확인한 이웃 항목 7 / 14",
+    },
+    {
+      title: "T9 정점 1 의 이웃 2 — 이미 반대쪽",
+      text: "이웃 2 의 쪽 0 이 자기 쪽 1 과 달라 넘어갑니다.",
+      nodes: [
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+          state: "read",
+        },
+        {
+          value: "쪽 0",
+          state: "read",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          state: "read",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {},
+        {},
+        {},
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [],
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "side[2] === side[1] → 0 === 1 →",
+        result: "거짓",
+      },
+      vars: "확인한 이웃 항목 8 / 14",
+    },
+    {
+      title: "T10 시작 정점 4 에 쪽 0",
+      text: "바깥 반복이 쪽이 없는 정점 4 를 찾았습니다. 연결 성분의 첫 정점이라 쪽 0 을 적고 스택에 넣습니다.",
+      nodes: [
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "쪽 0",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {},
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {},
+        {},
+        {},
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [4],
+          slots: 2,
+          states: {
+            "0": "focus",
+          },
+        },
+      ],
+      calc: {
+        expr: "side[4] = FIRST_SIDE =",
+        result: "0",
+      },
+      vars: "확인한 이웃 항목 8 / 14",
+    },
+    {
+      title: "T11 정점 4 의 이웃 5 — 쪽이 없다",
+      text: "정점 4 를 스택에서 꺼냈습니다. 자기 쪽이 0 이라 이웃에 적을 쪽은 1 입니다. 이웃 5 가 아직 쪽이 없어 1 을 적고 스택에 넣습니다.",
+      nodes: [
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "쪽 0",
+          state: "read",
+        },
+        {
+          value: "쪽 1",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {},
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {},
+        {},
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [5],
+          slots: 2,
+          states: {
+            "0": "focus",
+          },
+        },
+      ],
+      calc: {
+        expr: "side[5] = 1 - side[4] = 1 - 0 =",
+        result: "1",
+      },
+      vars: "확인한 이웃 항목 9 / 14",
+    },
+    {
+      title: "T12 정점 4 의 이웃 6 — 쪽이 없다",
+      text: "이웃 6 이 아직 쪽이 없어 1 을 적고 스택에 넣습니다.",
+      nodes: [
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "쪽 0",
+          state: "read",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "쪽 1",
+          state: "focus",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {},
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {},
+        {
+          kind: "tree",
+          state: "focus",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [5, 6],
+          slots: 2,
+          states: {
+            "1": "focus",
+          },
+        },
+      ],
+      calc: {
+        expr: "side[6] = 1 - side[4] = 1 - 0 =",
+        result: "1",
+      },
+      vars: "확인한 이웃 항목 10 / 14",
+    },
+    {
+      title: "T13 정점 6 의 이웃 5 — 쪽이 같다",
+      text: "정점 6 을 스택에서 꺼냈습니다. 자기 쪽이 1 이라 이웃에 적을 쪽은 0 입니다. 이웃 5 의 쪽 1 이 자기 쪽 1 과 같습니다. 간선 [6,5] 의 두 끝이 한 쪽에 들어가므로 false 를 반환합니다.",
+      nodes: [
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+        },
+        {
+          value: "쪽 0",
+        },
+        {
+          value: "쪽 1",
+          state: "read",
+        },
+        {
+          value: "쪽 1",
+          state: "read",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {},
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          state: "read",
+          label: "두 끝이 같은 쪽",
+        },
+        {
+          kind: "tree",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [5],
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "side[5] === side[6] → 1 === 1 →",
+        result: "참",
+      },
+      vars: "확인한 이웃 항목 11 / 14",
+    },
+  ],
 };

@@ -51,7 +51,7 @@ const BIPARTITE: [string, number, Edge[]][] = [
   ["정점 하나 · 간선 없음", 1, []],
   ["간선이 없는 열 정점", 10, []],
   [
-    "나뉜 덩어리가 모두 이분",
+    "나뉜 연결 성분이 모두 이분",
     6,
     [
       [0, 1],
@@ -99,7 +99,7 @@ const NOT_BIPARTITE: [string, number, Edge[]][] = [
     ],
   ],
   [
-    "덩어리 둘 중 하나만 홀수 사이클",
+    "연결 성분 둘 중 하나만 홀수 사이클",
     7,
     [
       [0, 1],
@@ -197,4 +197,36 @@ test("정점 100,000 짜리 별 모양은 이분이다", () => {
   const edges: Edge[] = [];
   for (let i = 1; i < V; i++) edges.push([0, i]);
   expect(isBipartite(V, edges)).toBe(true);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차를 실행해
+ * 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./isBipartite-guide.sim.ts");
+  const fig = await import("./isBipartite-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.bipartiteWalk.steps)).toEqual(
+    plain(fig.stageStepsFromRef()),
+  );
+  expect(plain(sim.bipartiteWalk.layout)).toEqual(
+    plain({
+      nodes: fig.LAYOUT.nodes,
+      edges: fig.LAYOUT.edges,
+      directed: false,
+    }),
+  );
+  // 사이드카가 정본을 제대로 불렀는지 — 결과를 정본에 직접 다시 묻는다.
+  const answer = isBipartite(7, [
+    [0, 1],
+    [1, 2],
+    [2, 3],
+    [3, 0],
+    [4, 5],
+    [5, 6],
+    [6, 4],
+  ]);
+  expect(sim.bipartiteWalk.result).toBe(String(answer));
 });
