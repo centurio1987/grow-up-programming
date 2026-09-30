@@ -522,3 +522,7 @@
 {"seq": 404, "t": "2026-09-28T17:55", "a": "유저", "id": "KAN-057-J36E1B", "op": "waive", "w": "977NDY", "with_": "KAN-039-FG8HWZ", "reason": "경로 글롭만 겹친다 — KAN-039 는 src/algorithms/*/huffman*/**, KAN-057 은 src/algorithms/array/sparseTableRangeMin/** 라 실제 파일이 다르다(유저 용인 2026-09-28)"}
 {"seq": 404, "t": "2026-09-28T17:55", "a": "유저", "id": "KAN-059-PSFTN4", "op": "serialize", "w": "46PCAX", "with_": "KAN-057-J36E1B", "reason": "책 인쇄 경로는 KAN-057 이 만드는 fig(SVG)가 있어야 세울 수 있다(유저 결정 2026-09-28)"}
 {"seq": 405, "t": "2026-09-28T17:55", "a": "유저", "id": "KAN-057-J36E1B", "op": "waive", "w": "977NDY", "with_": "KAN-036-0G05DE", "reason": "tools/ci.ts 게이트 목록에 각자 다른 줄을 더한다. 병합 때 충돌하면 두 줄을 다 남긴다(유저 용인 2026-09-28)"}
+{"seq": 405, "t": "2026-09-28T17:55", "a": "유저", "id": "KAN-058-8XT6PC", "op": "serialize", "w": "46PCAX", "with_": "KAN-059-PSFTN4", "reason": "110편을 fig 로 바꾸기 전에 책 인쇄 경로가 서야 한다(유저 결정 2026-09-28)"}
+{"seq": 406, "t": "2026-09-28T21:16", "a": "ai", "id": "KAN-057-J36E1B", "op": "move", "w": "977NDY", "from": "doing", "to": "review"}
+{"seq": 406, "t": "2026-09-28T18:09", "a": "유저", "id": "KAN-060-9P4ZAA", "op": "create", "w": "46PCAX", "col": "backlog", "title": "알고리즘 가이드에 문제를 통합한다.", "verbatim": "", "parent": null, "short": "", "purpose": "", "reason": "", "goal": "", "memo": ""}
+{"seq": 407, "t": "2026-09-29T01:16", "a": "ai", "id": "KAN-057-J36E1B", "op": "move", "w": "977NDY", "from": "review", "to": "done"}

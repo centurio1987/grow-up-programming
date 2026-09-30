@@ -1,6 +1,6 @@
 {
   "next_id": 65,
-  "next_seq": 453,
+  "next_seq": 457,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1650,7 +1650,7 @@
       "memo_hash": "d247c719f910875e2bc08ffc62922deb3840a8f7"
     },
     "KAN-064-4YZZV2": {
-      "col": "backlog",
+      "col": "done",
       "title": "실습 스텁에 새어 든 풀이 24편 되돌리기 — solutions 브랜치 병합 방향을 먼저 정한다",
       "verbatim": "KAN-061 검토서 판단 항목 1 「스텁에 풀이가 든 24편을 새 카드로 뗄 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
       "생성": "ai",
@@ -1667,7 +1667,37 @@
       "goal": "24편 스텁이 Not implemented 를 던지고 solutions 쪽 풀이는 한 편도 잃지 않는다",
       "goal_hash": "f3a9a136ca553aeb930beceefd22d694e3cbf7a8",
       "memo": "근거: KANBAN.cards/KAN-061-YVQBCF.md 의 S1 수행 내역(24편 · 21편 바이트 동일). main 에서 바로 되돌리면 다음 main→solutions 병합이 풀이를 덮는다 — 병합 방향부터",
-      "memo_hash": "5c5db09f9877e99e930e69a574f4f337447950bc"
+      "memo_hash": "5c5db09f9877e99e930e69a574f4f337447950bc",
+      "scope": [
+        "src/algorithms/array/bestTimeToBuyAndSellStock/bestTimeToBuyAndSellStock.ts",
+        "src/algorithms/array/bestTimeToBuyAndSellStock/maxProfit.ts",
+        "src/algorithms/array/bestTimeToBuyAndSellStockK/bestTimeToBuyAndSellStockK.ts",
+        "src/algorithms/array/houseRobber/houseRobber.ts",
+        "src/algorithms/array/missingInteger/missingInteger.ts",
+        "src/algorithms/array/prefixSumRangeQuery/genomicRangeQuery.ts",
+        "src/algorithms/array/prefixSumRangeQuery/prefixSumRangeQuery.ts",
+        "src/algorithms/array/prefixSumRangeQuery/tapeEquilibrium.ts",
+        "src/algorithms/array/twoSum/twoSum.ts",
+        "src/algorithms/binary-search/binarySearch/binarySearch.ts",
+        "src/algorithms/binary-search/parametricBinarySearch/parametricBinarySearch.ts",
+        "src/algorithms/bit-manipulation/binaryGap/binaryGap.ts",
+        "src/algorithms/bit-manipulation/enumerateSubmasks/enumerateSubmasks.ts",
+        "src/algorithms/dp/knapsack01/knapsack01.ts",
+        "src/algorithms/etc/maxCounters/maxCounters.ts",
+        "src/algorithms/etc/numberOfDisintersection/numberOfDisintersection.ts",
+        "src/algorithms/graph-flow/kruskalMst/kruskalMst.ts",
+        "src/algorithms/graph/bfsShortestPath/bfsShortestPath.ts",
+        "src/algorithms/shortest-path/dijkstra/dijkstra.ts",
+        "src/algorithms/sorting/countingSort/countingSort.ts",
+        "src/algorithms/sorting/insertionSort/insertionSort.ts",
+        "src/algorithms/sorting/kthSmallest/kthSmallest.ts",
+        "src/algorithms/sorting/quicksort/quicksort.ts",
+        "src/algorithms/sorting/radixSort/radixSort.ts",
+        "tools/practice-ref.ts",
+        "tools/practice-ref.test.ts",
+        "tools/solutions-merge.ts",
+        "tools/solutions-merge.test.ts"
+      ]
     }
   },
   "order": [
@@ -1685,7 +1715,6 @@
     "KAN-055-4N4T6A",
     "KAN-062-Z0V30H",
     "KAN-063-X2JFZA",
-    "KAN-064-4YZZV2",
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
@@ -1745,9 +1774,50 @@
     "KAN-060-9P4ZAA",
     "KAN-058.1-9TBXDA",
     "KAN-058-8XT6PC",
-    "KAN-061-YVQBCF"
+    "KAN-061-YVQBCF",
+    "KAN-064-4YZZV2"
   ],
   "recent": [
+    {
+      "seq": 456,
+      "t": "2026-10-01T08:51",
+      "a": "ai",
+      "id": "KAN-064-4YZZV2",
+      "op": "move",
+      "w": "7JZJ8C",
+      "from": "review",
+      "to": "done"
+    },
+    {
+      "seq": 455,
+      "t": "2026-10-01T08:49",
+      "a": "ai",
+      "id": "KAN-064-4YZZV2",
+      "op": "move",
+      "w": "7JZJ8C",
+      "from": "doing",
+      "to": "review"
+    },
+    {
+      "seq": 454,
+      "t": "2026-10-01T08:26",
+      "a": "유저",
+      "id": "KAN-039-FG8HWZ",
+      "op": "waive",
+      "w": "7JZJ8C",
+      "with_": "KAN-064-4YZZV2",
+      "reason": "검사기 오탐 — KAN-039 글롭 src/algorithms/*/huffman*/** 에 KAN-064 scope 24편 중 맞는 경로 0개(fnmatch 확인). 유저 승인 2026-10-01"
+    },
+    {
+      "seq": 453,
+      "t": "2026-10-01T08:18",
+      "a": "ai",
+      "id": "KAN-064-4YZZV2",
+      "op": "move",
+      "w": "7JZJ8C",
+      "from": "backlog",
+      "to": "doing"
+    },
     {
       "seq": 452,
       "t": "2026-10-01T08:05",
@@ -2273,53 +2343,6 @@
       "field": "verbatim",
       "before": "",
       "after": "지금은 문제가 *-guide.md로 분리 되어 있다. 그리고 그 문제를 전제로 가이드가 구성되어 있다. 그래서 문제를 모르면 guide에서 맥락을 읽기 어려운 경우가 생긴다.\n\n- guide는 문제에 대한 guide가 아니라, 알고리즘 자체에 대한 guide여야 한다.\n- guide 마지막에 문제를 만들어서 실습 항목으로 배치한다.\n- 기존 problem.md는 삭제한다."
-    },
-    {
-      "seq": 407,
-      "t": "2026-09-29T01:16",
-      "a": "ai",
-      "id": "KAN-057-J36E1B",
-      "op": "move",
-      "w": "977NDY",
-      "from": "review",
-      "to": "done"
-    },
-    {
-      "seq": 406,
-      "t": "2026-09-28T18:09",
-      "a": "유저",
-      "id": "KAN-060-9P4ZAA",
-      "op": "create",
-      "w": "46PCAX",
-      "col": "backlog",
-      "title": "알고리즘 가이드에 문제를 통합한다.",
-      "verbatim": "",
-      "parent": null,
-      "short": "",
-      "purpose": "",
-      "reason": "",
-      "goal": "",
-      "memo": ""
-    },
-    {
-      "seq": 406,
-      "t": "2026-09-28T21:16",
-      "a": "ai",
-      "id": "KAN-057-J36E1B",
-      "op": "move",
-      "w": "977NDY",
-      "from": "doing",
-      "to": "review"
-    },
-    {
-      "seq": 405,
-      "t": "2026-09-28T17:55",
-      "a": "유저",
-      "id": "KAN-058-8XT6PC",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-059-PSFTN4",
-      "reason": "110편을 fig 로 바꾸기 전에 책 인쇄 경로가 서야 한다(유저 결정 2026-09-28)"
     }
   ],
   "waivers": [
@@ -2398,6 +2421,13 @@
       "scope_hash": "175b3b897f80b0f3",
       "reason": "글롭 대 글롭 오탐 — KAN-061 범위 폴더에 huffman* 이 없다(유저 승인 2026-10-01, scope 에 alt 주석 세 편을 더해 다시 기록)",
       "created": "2026-10-01T07:14",
+      "by": "유저"
+    },
+    {
+      "pair": "KAN-039-FG8HWZ|KAN-064-4YZZV2",
+      "scope_hash": "7029a9d83e00b460",
+      "reason": "검사기 오탐 — KAN-039 글롭 src/algorithms/*/huffman*/** 에 KAN-064 scope 24편 중 맞는 경로 0개(fnmatch 확인). 유저 승인 2026-10-01",
+      "created": "2026-10-01T08:26",
       "by": "유저"
     }
   ],

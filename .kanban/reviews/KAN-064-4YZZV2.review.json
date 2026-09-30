@@ -1,0 +1,27 @@
+{
+ "card": "KAN-064-4YZZV2",
+ "front": {
+  "base": "d61a1b8a",
+  "branch": "KAN-064-4YZZV2",
+  "card": "KAN-064-4YZZV2",
+  "created": "2026-10-01",
+  "inherits": null,
+  "merged": null,
+  "status": "검토 대기",
+  "title": "실습 스텁에 새어 든 풀이 24편 되돌리기 — solutions 브랜치 병합 방향을 먼저 정한다",
+  "worktree": "/Users/centurio/orca/workspaces/code_test/KAN-064-4YZZV2"
+ },
+ "inherited_md": "",
+ "md_fp": "28a89a051b08e473934c6e145c365eb32b8923e6",
+ "md_src_fp": "fad0395a2f1db7f90f0bf65e2ccd8fb1cb0c99ce",
+ "schema": 1,
+ "target_md": "| 항목 | 값 |\n|---|---|\n| 브랜치 | `KAN-064-4YZZV2` |\n| 워크트리 | `/Users/centurio/orca/workspaces/code_test/KAN-064-4YZZV2` |\n| 베이스 | `d61a1b8a` |\n| 변경 훑기 | `git diff d61a1b8a...HEAD` |\n\n**커밋 8건**\n\n```text\ne86c8d56 KAN-064 S4: ci all 통과\n799951a6 KAN-064 S5: solutions 에 병합(93876975) — 풀이 24편 보존\n911373ed kanban: KAN-064 실행 계획에 S5(solutions 실제 병합) 추가\nda0c0b80 KAN-064 S3: solutions-merge 도구 — main 병합 때 solutions 풀이를 스텁으로 덮지 않는다\n64373179 KAN-064 S2: 스텁 누수 가드 — 풀이가 든 실습 스텁을 CI 가 잡는다\n19fccc13 KAN-064 S1: 실습 스텁 24편을 Not implemented 로 되돌린다\n81b3c86f kanban: KAN-039↔KAN-064 scope 겹침 용인(검사기 오탐, 유저 승인)\n6f1ed0b4 KAN-064 착수: 실행 문서(전략·WBS·검증) · 배치1 · 계획 리포트 · 진행 중으로 이동\n```\n\n**변경 파일 36개 (+1006 −934)**\n\n| 파일 | 상태 | 추가 | 삭제 |\n|---|:--:|---:|---:|\n| `.kanban/archive.jsonl` | M | 2 | 0 |\n| `.kanban/log.md` | M | 2 | 2 |\n| `.kanban/state.json` | M | 62 | 25 |\n| `KANBAN.batches/KAN-064-4YZZV2.batch1.md` | M | 47 | 0 |\n| `KANBAN.board.html` | M | 4 | 4 |\n| `KANBAN.cards/KAN-064-4YZZV2.md` | M | 56 | 0 |\n| `KANBAN.md` | M | 12 | 10 |\n| `KANBAN.reports/KAN-064-4YZZV2.report.html` | M | 490 | 0 |\n| `src/algorithms/array/bestTimeToBuyAndSellStock/bestTimeToBuyAndSellStock.ts` | M | 1 | 16 |\n| `src/algorithms/array/bestTimeToBuyAndSellStock/maxProfit.ts` | M | 1 | 48 |\n| `src/algorithms/array/bestTimeToBuyAndSellStockK/bestTimeToBuyAndSellStockK.ts` | M | 1 | 26 |\n| `src/algorithms/array/houseRobber/houseRobber.ts` | M | 1 | 43 |\n| `src/algorithms/array/missingInteger/missingInteger.ts` | M | 1 | 8 |\n| `src/algorithms/array/prefixSumRangeQuery/genomicRangeQuery.ts` | M | 1 | 64 |\n| `src/algorithms/array/prefixSumRangeQuery/prefixSumRangeQuery.ts` | M | 2 | 17 |\n| `src/algorithms/array/prefixSumRangeQuery/tapeEquilibrium.ts` | M | 2 | 14 |\n| `src/algorithms/array/twoSum/twoSum.ts` | M | 1 | 16 |\n| `src/algorithms/binary-search/binarySearch/binarySearch.ts` | M | 1 | 24 |\n| `src/algorithms/binary-search/parametricBinarySearch/parametricBinarySearch.ts` | M | 2 | 51 |\n| `src/algorithms/bit-manipulation/binaryGap/binaryGap.ts` | M | 1 | 20 |\n| `src/algorithms/bit-manipulation/enumerateSubmasks/enumerateSubmasks.ts` | M | 1 | 30 |\n| `src/algorithms/dp/knapsack01/knapsack01.ts` | M | 1 | 24 |\n| `src/algorithms/etc/maxCounters/maxCounters.ts` | M | 1 | 47 |\n| `src/algorithms/etc/numberOfDisintersection/numberOfDisintersection.ts` | M | 1 | 38 |\n| `src/algorithms/graph-flow/kruskalMst/kruskalMst.ts` | M | 3 | 73 |\n| `src/algorithms/graph/bfsShortestPath/bfsShortestPath.ts` | M | 1 | 65 |\n| `src/algorithms/shortest-path/dijkstra/dijkstra.ts` | M | 6 | 117 |\n| `src/algorithms/sorting/countingSort/countingSort.ts` | M | 1 | 15 |\n| `src/algorithms/sorting/insertionSort/insertionSort.ts` | M | 1 | 20 |\n| `src/algorithms/sorting/kthSmallest/kthSmallest.ts` | M | 1 | 40 |\n| `src/algorithms/sorting/quicksort/quicksort.ts` | M | 4 | 41 |\n| `src/algorithms/sorting/radixSort/radixSort.ts` | M | 1 | 31 |\n| `tools/practice-ref.test.ts` | M | 19 | 3 |\n| `tools/practice-ref.ts` | M | 28 | 2 |\n| `tools/solutions-merge.test.ts` | M | 83 | 0 |\n| `tools/solutions-merge.ts` | M | 164 | 0 |\n\n**롤백 태그 5개**\n\n```text\nkan/KAN-064-4YZZV2/S1\nkan/KAN-064-4YZZV2/S2\nkan/KAN-064-4YZZV2/S3\nkan/KAN-064-4YZZV2/S4\nkan/KAN-064-4YZZV2/S5\n```",
+ "verdicts": [
+  {
+   "at": "2026-10-01",
+   "by": "유저",
+   "verdict": "승인"
+  }
+ ],
+ "verify_md": "<!-- 기준은 카드 실행 문서 「검증」 절의 사본이다. 정본은 KANBAN.cards/KAN-064-4YZZV2.md 이므로\n     기준이 바뀌면 그쪽을 고치고 review-init --refresh 로 이 항만 다시 뜬다.\n     결과는 착수한 쪽이 이미 돌린 것이다 — 검토자에게 다시 돌리라고 시키지 않는다.\n     **다시 돌려 아래와 다르게 나오면 그 자체가 반려 사유다.** -->\n\n**기준**\n\n- `bun run tools/ci.ts all` 통과(practice 모드의 미구현 실패는 정상)\n- `bun test tools/practice-ref.test.ts` — 스텁 누수 0\n- 모의 병합(S3): 도구를 거친 병합 뒤 `git diff fba671d3 -- <24편의 solutions 쪽 경로>` 가 비어 있다 — solutions 풀이 손실 0\n- 24편 각각 `bun test <편>` 이 `Not implemented` 로 떨어진다\n\n**실행 결과**\n\n```text\nbun run tools/ci.ts all — all 모드 통과, 단계 20개(③ 실습 채점의 미구현 실패는 판정 제외)\nbun run tools/practice-ref.ts — 파일 117 · 시험 1,443 · 실패 0 · 스텁 누수 0 (되돌리기 전 트리에서는 누수 24)\nbun test tools/solutions-merge.test.ts — 2 pass(도구 없는 병합은 풀이를 덮고, 도구를 거치면 남고, 그다음 병합에서도 남는다)\nsolutions 실제 병합 93876975 — 되살린 풀이 24(경로 이동 3 포함), 병합 전 solutions(7288f68a) 판과 바이트 불일치 0, 병합 전 풀이였던 파일 중 스텁이 된 것 0\n```"
+}
