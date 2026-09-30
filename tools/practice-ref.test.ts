@@ -1,15 +1,16 @@
 /**
  * `practice-ref.ts` — 스텁 테스트를 정본에 물려 돌렸을 때 실패가 없는가.
  *
- * 앞의 둘은 도구 자기시험이다. 틀린 기대값을 실제로 잡는지, 별칭 shim 이 이름을 옮기는지를
- * 가짜 저장소 하나로 잰다. 마지막 하나가 집행이다 — 저장소 전체를 돌려 실패 0 을 요구한다.
+ * 도구 자기시험은 가짜 저장소 하나로 잰다 — 틀린 기대값을 실제로 잡는지, 별칭 shim 이 이름을
+ * 옮기는지, 풀이가 든 스텁을 누수로 세는지. 저장소 전체를 도는 둘이 집행이다 — 정본에서 실패 0,
+ * 스텁 누수 0 을 요구한다.
  */
 
 import { afterAll, expect, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { rewrite, run } from "./practice-ref.ts";
+import { leakedStubs, rewrite, run } from "./practice-ref.ts";
 
 const fake = mkdtempSync(join(tmpdir(), "practice-ref-fake-"));
 afterAll(() => rmSync(fake, { recursive: true, force: true }));
@@ -60,6 +61,21 @@ test("import 는 정본으로 돌고 스텁은 안 부른다", () => {
     src: `import { double } from "/repo/${dir}/double-guide.ref";`,
     shim: undefined,
   });
+});
+
+test("풀이가 든 스텁을 누수로 세고 미구현 스텁은 안 센다", async () => {
+  const leak = "src/algorithms/array/triple";
+  put(
+    `${leak}/triple.ts`,
+    "export function triple(n: number): number { return 3 * n; }\n",
+  );
+  put(`${leak}/triple.test.ts`, 'import { triple } from "./triple";\n');
+  expect(await leakedStubs(fake)).toEqual([`${leak}/triple.ts`]);
+  rmSync(join(fake, leak), { recursive: true, force: true });
+});
+
+test("저장소의 실습 스텁에 풀이가 새어 들지 않았다", async () => {
+  expect(await leakedStubs(process.cwd())).toEqual([]);
 });
 
 test("저장소의 스텁 테스트가 정본에서 전부 통과한다", async () => {

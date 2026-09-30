@@ -7,7 +7,11 @@
  * 같은 폴더의 `<name>-guide.ref.ts` 로 돌린 뒤 `bun test` 로 돌린다. 정본은 원고의 전체 코드와
  * 같다고 P16 이 대조하므로, 여기서 떨어지는 시험은 테스트 쪽 결함이거나 정본 결함이다.
  *
- * 실행: `bun run tools/practice-ref.ts` (실패 목록을 내고 실패가 있으면 exit 1).
+ * 같은 자리에서 스텁 누수도 센다 — 스텁 테스트가 부르는 `./<stub>.ts` 가 `Not implemented` 를
+ * 던지지 않으면 학습자가 풀 파일에 답이 이미 들어 있다는 뜻이다. solutions 브랜치에서 갈라진
+ * 브랜치가 main 에 병합되면 이렇게 새어 든다(KAN-064 — 24편이 그렇게 들어왔다).
+ *
+ * 실행: `bun run tools/practice-ref.ts` (실패·누수 목록을 내고 하나라도 있으면 exit 1).
  * 집행: `tools/practice-ref.test.ts` 가 `ci.ts` 의 `bun test tools` 단계에서 돈다.
  */
 
@@ -56,6 +60,24 @@ export function stubTests(root: string): string[] {
   ]
     .filter((t) => !t.includes("-guide.") && !t.includes("/_"))
     .sort();
+}
+
+/** 스텁 테스트가 부르는 스텁 파일 중 `Not implemented` 를 던지지 않는 것(풀이가 든 스텁). */
+export async function leakedStubs(root: string): Promise<string[]> {
+  const leaked = new Set<string>();
+  for (const file of stubTests(root)) {
+    const dir = file.slice(0, file.lastIndexOf("/"));
+    const src = await Bun.file(join(root, file)).text();
+    for (const m of src.matchAll(/from\s+"\.\/([^"]+)"/g)) {
+      const base = (m[1] as string).replace(/\.ts$/, "");
+      if (base.endsWith("-guide.ref")) continue;
+      const stub = `${dir}/${base}.ts`;
+      const f = Bun.file(join(root, stub));
+      if (!(await f.exists())) continue;
+      if (!(await f.text()).includes("Not implemented")) leaked.add(stub);
+    }
+  }
+  return [...leaked].sort();
 }
 
 /** 테스트 본문의 `./<stub>` import 를 정본 쪽으로 돌린다. 쓸 shim 이 있으면 함께 낸다. */
@@ -167,5 +189,9 @@ if (import.meta.main) {
   for (const f of r.failures) console.log(`실패  ${f.file} — ${f.test}`);
   for (const f of r.loadErrors) console.log(`불러오기 실패  ${f}`);
   for (const s of r.skipped) console.log(`건너뜀  ${s.file} — ${s.reason}`);
-  if (r.failures.length + r.loadErrors.length > 0) process.exit(1);
+  const leaked = await leakedStubs(root);
+  console.log(`스텁 누수 ${leaked.length}`);
+  for (const f of leaked) console.log(`누수  ${f}`);
+  if (r.failures.length + r.loadErrors.length + leaked.length > 0)
+    process.exit(1);
 }
