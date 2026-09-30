@@ -117,7 +117,7 @@ export interface Count {
  * 이 가이드의 절차 — 정본과 같은 절차에 계수만 붙였다.
  *
  * `bridgesInGraph-guide.ref.ts` 를 그대로 부를 수 없는 것은 그 파일에 계수가 없기 때문이고,
- * 그래서 `measure` 가 매 실행마다 정본의 답과 견준다.
+ * 그래서 `measure` 가 매 실행마다 정본의 답과 대조한다.
  */
 export function 이가이드의절차(n: number, edges: Edge[]): Count {
   let ops = 0;
