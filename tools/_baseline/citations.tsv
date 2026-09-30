@@ -324,7 +324,7 @@ docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	5222	af1b578a07c2	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	5244	2c32a9e04a1f	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	5325	2beeb4b3ae6c	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	5331	21a512b049d3	-
-docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	5500	5b84edfe5dd6	-
+docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	5500	81b77cccc2e0	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	5521	d815fd32ff49	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	5524	79692eafa769	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	5526	ec995b9bf81d	-
@@ -402,7 +402,7 @@ docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6304	df72268b5a0f	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6305	d53dcb2332a8	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6306	76336b54ef92	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6307	e6ad04e24f93	-
-docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6308	7a5bd985688f	-
+docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6308	1cc3052e4e80	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6309	93ad4fa6bb6d	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6310	b97b72df0e17	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6311	283d508ed59e	-
@@ -427,7 +427,7 @@ docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6339	a5d1c6ec5c23	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6340	21cef10fc522	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6341	038afdea44a4	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6342	1326807d9916	-
-docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6343	5b29b7efc593	-
+docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6343	8585e3d5bbfc	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6344	b674b4eed6eb	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6345	11ab743f8cfe	-
 docs/ORD-006-conventions.md	docs/ORD-006-conventions.md	6346	446897dea7fd	-
@@ -633,7 +633,7 @@ docs/ORD-006-conventions.md	docs/ORD-006-wbs.md	152	6c5e19cbd1b9	-
 docs/ORD-006-conventions.md	docs/ORD-006-wbs.md	154	957bf9fabc3c	-
 docs/ORD-006-conventions.md	rust/structures/tests/xor_linked_list.rs	126	b52f89b36b56	-
 docs/ORD-006-conventions.md	src/algorithms/array/nextGreaterElement/nextGreaterElement.ts	1	7305293aa090	-
-docs/ORD-006-conventions.md	src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.md	100	8ae4ead80e38	-
+docs/ORD-006-conventions.md	src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.md	71	8ef5a5cd9481	-
 docs/ORD-006-conventions.md	src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum.ts	1	33aa1c1aa986	-
 docs/ORD-006-conventions.md	src/algorithms/graph/dfsTraversal/dfsTraversal.ts	1	df200b8b2424	-
 docs/ORD-006-conventions.md	src/algorithms/string/findAllOccurrences/findAllOccurrences.ts	1	8f67e3cf301a	-

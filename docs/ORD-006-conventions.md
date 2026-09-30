@@ -5497,7 +5497,7 @@ S1 처분표의 예상(큐 「추천안이면 `complexity`」)과 같다. 두 �
 4. `docs/ORD-006-p4-triage.md:44-45` — 「단조가 불변식」. 잠정 문서다.
 5. `KANBAN.cards/KAN-026.md` 「전략」 · `KANBAN.batches/KAN-026.batch5.md` WP1 — `largestRectangleInHistogram-guide.md:753` ·
    `nextGreaterElement-guide.md:645` 를 스택 문서 링크로 적었는데 실제로는 큐 문서 링크였다(`check-links refs` 실측). 계획 문서라 두었다.
-6. `src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.md:100` — 「덱 … 흐릿하면 …를 먼저 봅니다」.
+6. `src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.md:71` — 「덱 … 흐릿하면 …를 먼저 봅니다」.
    **뜻 어긋남이 없다** — 그 줄의 실제 교체는 `linear/deque` 헤더로 갔다(커밋 `6cd5b0c`). 같은 낡은 서술이 런북
    불변 사실 282 와 `tools/ord006-wbs.ts` TA-06 note 에도 있었고 세 곳을 함께 고쳤다.
 7. `src/data-structures/linear/monotonicStack/monotonicStack-guide.mdx` · `monotonicQueue/monotonicQueue-guide.mdx` — 상태 없는 함수
@@ -6305,7 +6305,7 @@ S1 예상과 같다. 이름 `minHash` 는 기법의 이름이라 임시다(불�
 | `docs/ORD-006-conventions.md:4837` | ⑥ 민해시 「S17 이 정한다」 · `minHash.ts:26-29` 인용 | 표면 교체 완료 · 인용은 착수 시점 | 병합 뒤(문장) · 둔다(인용) |
 | `docs/ORD-006-conventions.md:5045` | 「곁에 긴 낱말 시나리오를 스위트에 넣지 않았다 — 사람 결정 대기」 | S20 이 넣음 | 병합 뒤 |
 | `docs/ORD-006-conventions.md:5151` | 「핸들을 얻는 조회 판별은 S5 몫」 | S5 가 닫음(결론 같다) | 병합 뒤 |
-| `docs/ORD-006-conventions.md:5500` | 「`slidingWindowMaximum-guide.md:100` 은 링크 대상만 새 계약 헤더로 바꿔 뜻이 어긋난다」 | **실제 교체는 `deque` 가이드로 갔다**(`src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.md:100`, 커밋 `6cd5b0c`) — 뜻 어긋남이 없다. 런북 불변 사실 282 · `tools/ord006-wbs.ts:395` TA-06 note 도 같은 낡은 서술 | 병합 뒤(세 곳 함께) |
+| `docs/ORD-006-conventions.md:5500` | 「`slidingWindowMaximum-guide.md:71` 은 링크 대상만 새 계약 헤더로 바꿔 뜻이 어긋난다」 | **실제 교체는 `deque` 가이드로 갔다**(`src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.md:71`, 커밋 `6cd5b0c`) — 뜻 어긋남이 없다. 런북 불변 사실 282 · `tools/ord006-wbs.ts:395` TA-06 note 도 같은 낡은 서술 | 병합 뒤(세 곳 함께) |
 | `docs/ORD-006-conventions.md:5728` | 「`dynamicArray.toArray` 에 같은 판별이 걸린다 — 판정하지 않았다」 | S18 판정: **뺀다**(배제 없음). 원칙 A 판정표 ① 10 이 A2 · A4 · A5 로 확정했고 `S23` 이 적용했다 | 고침(`S23` · `S29`) |
 | `docs/ORD-006-conventions.md:5972` | 「뒤 확률 work(S15 · S16 · S17)에 넘기는 것」 | 셋 다 받음 | 병합 뒤 |
 | `docs/ORD-006-conventions.md:5976` | 「`minHash` 는 원소가 집합이라 다시 본다」 | 원소는 문자열 · 주입 없음이 그대로 섬 | 병합 뒤 |
@@ -6340,7 +6340,7 @@ S1 예상과 같다. 이름 `minHash` 는 기법의 이름이라 임시다(불�
 | `src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:27` | 「`trie/trie` 는 자식을 표로 들고 있어 쓰인 문자만큼만 자리를 쓴다」 | 옛 스텁 private 필드에 기댄 문장 — 지금은 `trie` 정본에 대해서만 참 | 병합 뒤(정본 쪽 파일 한 단어) |
 | `src/data-structures/trie/ternarySearchTree/ternarySearchTree-guide.mdx:292` | `trie.ts:26` 인용 | 헤더 산문을 가리킴 | KAN-036 |
 | `src/data-structures/_contract/_fixtures/copySplitRadixTree.ts:13` | (S20 절이 「축3이 잡지 못한다」로 적었다) | 이미 「S20 이 더해 지금은 그 둘에서 걸린다」로 정정돼 있다 | 정정됨 |
-| `src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.md:100` | 「덱 … `deque` 를 먼저 봅니다」 | 뜻이 맞는 링크다(위 `:5500` 행) | 정정됨 |
+| `src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.md:71` | 「덱 … `deque` 를 먼저 봅니다」 | 뜻이 맞는 링크다(위 `:5500` 행) | 정정됨 |
 | `문제_가이드_목록.md:44` | 「단조 스택 · 단조 덱」 항목이 옛 `.mdx` 에 걸림 | 두 구조가 최댓값 스택 · 큐 계약이 됨(링크는 삶) | KAN-036 |
 | `docs/ORD-006-p4-triage.md:38` · `:40` · `:42` · `:44` · `:49` | 잠정 등급 · 「비순환 · 앞뒤 링크 · 단조가 불변식」 | 전환 work 가 확정 등급으로 닫음 | 둔다(잠정 문서) |
 | `docs/ORD-006-strategy.md:140` | `bitArray` 를 `invariant` 예시로 든 표 | `basic` | 둔다(초안 문서) |
@@ -6891,7 +6891,7 @@ KAN-027 이 쓰지 않고 반납한 `380–389`(검토 #11 승인)를 **앞으�
 | 97 | A군 마감(KAN-026 S18) · `:6340` | `src/data-structures/trie/ternarySearchTree/ternarySearchTree.ts:27` | 026·S27 | KAN-026 배치14 — KAN-027 재병합 전 |  |
 | 98 | A군 마감(KAN-026 S18) · `:6341` | `src/data-structures/trie/ternarySearchTree/ternarySearchTree-guide.mdx:292` | KAN-036 | 가이드 전개 때(편마다) |  |
 | 99 | A군 마감(KAN-026 S18) · `:6342` | `src/data-structures/_contract/_fixtures/copySplitRadixTree.ts:13` | 둔다 | — | 정정됨 |
-| 100 | A군 마감(KAN-026 S18) · `:6343` | `src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.md:100` | 둔다 | — | 정정됨 |
+| 100 | A군 마감(KAN-026 S18) · `:6343` | `src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.md:71` | 둔다 | — | 정정됨 |
 | 101 | A군 마감(KAN-026 S18) · `:6344` | `문제_가이드_목록.md:44` | KAN-036 | 가이드 전개 때(편마다) |  |
 | 102 | A군 마감(KAN-026 S18) · `:6345` | `docs/ORD-006-p4-triage.md:38` · `:40` · `:42` · `:44` · `:49` | 둔다 | — |  |
 | 103 | A군 마감(KAN-026 S18) · `:6346` | `docs/ORD-006-strategy.md:140` | 둔다 | — |  |

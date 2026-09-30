@@ -1,173 +1,645 @@
-import type { Frame } from "#guide-sim";
+import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(8)를 넘지 않는다 — P3 이 그 관계를 잰다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `nums = [1, 3, -1, -3, 5, 3, 6, 7]` ·
+ * `k = 3`. `walk` 는 T1~T15 의 15 걸음이다.
  *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가
- * 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가 배열
+ * 무대(`arrayStage.ts`)를 고른다. 쥔 구간 `range` 는 창이다(`longestSubarrayAtMostSum` 의 창과 같은 약속).
+ * 입력 배열 `nums` 아래에 알고리즘이 만드는 구조 셋을 `layers` 로 쌓는다 — 답 배열 `result`(칸 `j` 가 왼쪽
+ * 끝이 `j` 인 창의 답)와 단조 덱 띠 두 줄(`cand` 가 담은 자리 번호와 그 자리의 값). 단조 덱 띠는
+ * `nextGreaterElement` 의 스택 띠와 같은 약속으로 그린다 — 칸 수를 전개에서 가장 길었을 때로 고정하고, 넣은
+ * 칸은 새로 씀, 비교한 뒤 자리는 읽음이다. 스택의 바닥 자리가 덱의 **앞**(왼쪽 끝)이고, 곁말이 앞과 뒤를 적는다.
+ * 앞에서 버리는 걸음은 창 밖으로 나간 그 자리를 `nums` 줄에서 읽음(▲)으로 보인다.
  *
- * ## 이 편에서 `array` 와 `keyValue` 가 각각 무엇을 담는가
- *
- * 이 절차는 배열 하나를 왼쪽에서 오른쪽으로 한 번 지나면서, 앞으로 답이 될 수 있는 **자리**
- * 를 통에 줄 세워 둔다. 화면에 나와야 하는 것이 넷이고 성질이 다르다 — 입력 배열은 칸 번호가
- * 뜻을 가지고, 창은 그 칸 위의 구간이며, 후보 통은 순서가 뜻을 가지고, 답 배열은 창 하나에
- * 값 하나씩 붙는다.
- *
- * 1. **`array` 는 입력 배열 `nums` 만 담는다.** 칸 번호가 본문의 `nums[i]` 와 그대로 맞는다.
- * 2. **`highlight` 는 지금 읽는 자리 `i`, `marked` 는 통에 남아 있는 후보 자리.** 둘이 만나는
- *    프레임이 「뒤쪽 후보와 맞대 본다」가 실제로 일어나는 자리다.
- * 3. **`pointers` 의 키는 본문 기호표의 이름과 글자 그대로 같다** — `i` 와 `front`.
- * 4. **창·후보 통·답은 `keyValue` 가 적는다.** 통은 앞에서 뒤로 적고, 답은 지금까지 정해진
- *    것만 값 나열로 적어 창 하나에 답 하나가 붙는 것이 한 줄에서 확인된다.
- * 5. **`entries` 는 프레임마다 같은 항목을 같은 순서로 두고 값만 바꾼다.** 한 걸음이 곧 자리
- *    하나라, 그 걸음이 앞에서 버렸는지 뒤에서 버렸는지를 「지금 하는 일」 한 칸에 적었다.
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가 실제보다
+ * 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의 `simStepsFromRef()`(정본 실행에서
+ * 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는 `slidingWindowMaximum-guide.test.ts` 가 잰다.
  */
+
 export const walk = {
-  view: ["array", "keyValue"] as const,
-  title:
-    "후보를 줄 세워 창 최댓값 구하기 — nums = [1, 3, -1, -3, 5, 3, 6, 7], k = 3",
+  player: "stage",
+  stage: "array",
+  arrayName: "nums",
+  rangeLabel: "창",
+  title: "slidingWindowMaximum([1, 3, -1, -3, 5, 3, 6, 7], 3)",
   result: "[3, 3, 5, 5, 6, 7]",
   steps: [
     {
-      title: "T1 자리 0 을 통에 붙인다",
-      detail:
-        "통이 비어 있어 버릴 것이 없다. 자리 0(값 1)을 붙인다. 창이 아직 세 칸을 못 채워 답은 안 적는다.",
+      title: "T1 자리 0 넣기",
+      text: "단조 덱이 비어 비교할 뒤 자리가 없습니다. 자리 0 을 넣습니다. 창이 아직 덜 차서 답은 적지 않습니다.",
       array: [1, 3, -1, -3, 5, 3, 6, 7],
-      highlight: [0],
-      marked: [0],
-      pointers: { i: 0, front: 0 },
-      entries: [
-        { label: "지금 하는 일", value: "자리 0 을 붙였다" },
-        { label: "창", value: "아직 덜 찼다" },
-        { label: "후보 통(앞→뒤)", value: "[0]" },
-        { label: "그 자리의 값", value: "1" },
-        { label: "답", value: "—" },
-      ],
-    },
-    {
-      title: "T2 뒤쪽 후보 1 이 3 보다 작아 버린다",
-      detail:
-        "맨 앞 자리 0 은 아직 창 안이다. 뒤쪽 후보 자리 0 의 값 1 이 지금 값 3 보다 작아 버리고, 자리 1 을 붙인다.",
-      array: [1, 3, -1, -3, 5, 3, 6, 7],
-      highlight: [1],
-      marked: [1],
-      pointers: { i: 1, front: 1 },
-      entries: [
+      range: [0, 0],
+      read: [0],
+      write: [],
+      pointers: {
+        i: 0,
+      },
+      calc: {
+        expr: "cand.length > 0",
+        result: "거짓 · 넣는다",
+      },
+      vars: "넣기 1 · 뒤에서 버림 0 · 앞에서 버림 0",
+      layers: [
         {
-          label: "지금 하는 일",
-          value: "자리 0 을 뒤에서 버리고 자리 1 을 붙였다",
+          name: "result",
+          values: [null, null, null, null, null, null],
+          write: [],
+          caret: false,
         },
-        { label: "창", value: "아직 덜 찼다" },
-        { label: "후보 통(앞→뒤)", value: "[1]" },
-        { label: "그 자리의 값", value: "3" },
-        { label: "답", value: "—" },
-      ],
-    },
-    {
-      title: "T3 뒤쪽 후보 3 이 -1 보다 커서 멈춘다",
-      detail:
-        "자리 1 의 값 3 은 지금 값 -1 보다 크므로 버리지 않고 멈춘다. 자리 2 를 붙이면 창 [0,2] 가 다 차고, 맨 앞 자리 1 의 값 3 이 그 창의 답이다.",
-      array: [1, 3, -1, -3, 5, 3, 6, 7],
-      highlight: [2],
-      marked: [1, 2],
-      pointers: { i: 2, front: 1 },
-      entries: [
-        { label: "지금 하는 일", value: "멈추고 자리 2 를 붙였다" },
-        { label: "창", value: "[0,2]" },
-        { label: "후보 통(앞→뒤)", value: "[1 2]" },
-        { label: "그 자리의 값", value: "3 -1" },
-        { label: "답", value: "[3]" },
-      ],
-    },
-    {
-      title: "T4 뒤쪽 후보 -1 이 -3 보다 커서 멈춘다",
-      detail:
-        "값이 음수여도 견주는 방법은 같다. 자리 3 을 붙이면 통에 셋이 남고, 창 [1,3] 의 답은 여전히 맨 앞 자리 1 의 값 3 이다.",
-      array: [1, 3, -1, -3, 5, 3, 6, 7],
-      highlight: [3],
-      marked: [1, 2, 3],
-      pointers: { i: 3, front: 1 },
-      entries: [
-        { label: "지금 하는 일", value: "멈추고 자리 3 을 붙였다" },
-        { label: "창", value: "[1,3]" },
-        { label: "후보 통(앞→뒤)", value: "[1 2 3]" },
-        { label: "그 자리의 값", value: "3 -1 -3" },
-        { label: "답", value: "[3 3]" },
-      ],
-    },
-    {
-      title: "T5 맨 앞이 창을 벗어나고 뒤쪽 둘이 함께 버려진다",
-      detail:
-        "창 [2,4] 의 왼쪽 끝이 2 이므로 자리 1 은 창 밖이다. 앞에서 하나 버리고, 값 5 보다 작은 자리 3 과 자리 2 를 뒤에서 버린 뒤 자리 4 를 붙인다.",
-      array: [1, 3, -1, -3, 5, 3, 6, 7],
-      highlight: [4],
-      marked: [4],
-      pointers: { i: 4, front: 4 },
-      entries: [
         {
-          label: "지금 하는 일",
-          value: "앞에서 자리 1 · 뒤에서 자리 3 과 2 를 버렸다",
+          name: "cand",
+          values: [0, null, null],
+          read: [],
+          write: [0],
+          caret: false,
+          side: "앞 = 자리 0 · 뒤 = 자리 0",
         },
-        { label: "창", value: "[2,4]" },
-        { label: "후보 통(앞→뒤)", value: "[4]" },
-        { label: "그 자리의 값", value: "5" },
-        { label: "답", value: "[3 3 5]" },
-      ],
-    },
-    {
-      title: "T6 뒤쪽 후보 5 가 3 보다 커서 멈춘다",
-      detail:
-        "자리 4 의 값 5 는 지금 값 3 보다 크므로 남는다. 자리 5 를 붙이면 창 [3,5] 의 답이 맨 앞 자리 4 의 값 5 다.",
-      array: [1, 3, -1, -3, 5, 3, 6, 7],
-      highlight: [5],
-      marked: [4, 5],
-      pointers: { i: 5, front: 4 },
-      entries: [
-        { label: "지금 하는 일", value: "멈추고 자리 5 를 붙였다" },
-        { label: "창", value: "[3,5]" },
-        { label: "후보 통(앞→뒤)", value: "[4 5]" },
-        { label: "그 자리의 값", value: "5 3" },
-        { label: "답", value: "[3 3 5 5]" },
-      ],
-    },
-    {
-      title: "T7 값 6 이 뒤쪽 후보 둘을 함께 버린다",
-      detail:
-        "맨 앞 자리 4 는 창 [4,6] 안이라 그대로 둔다. 값 3 인 자리 5 와 값 5 인 자리 4 가 6 보다 작아 둘 다 버려지고, 자리 6 이 혼자 남는다.",
-      array: [1, 3, -1, -3, 5, 3, 6, 7],
-      highlight: [6],
-      marked: [6],
-      pointers: { i: 6, front: 6 },
-      entries: [
         {
-          label: "지금 하는 일",
-          value: "뒤에서 자리 5 와 4 를 버리고 자리 6 을 붙였다",
+          name: "cand 의 값",
+          values: [1, null, null],
+          read: [],
+          write: [0],
+          caret: false,
+          side: "1",
         },
-        { label: "창", value: "[4,6]" },
-        { label: "후보 통(앞→뒤)", value: "[6]" },
-        { label: "그 자리의 값", value: "6" },
-        { label: "답", value: "[3 3 5 5 6]" },
       ],
     },
     {
-      title: "T8 값 7 이 마지막 후보를 버린다",
-      detail:
-        "자리 6 의 값 6 이 7 보다 작아 버려지고 자리 7 이 붙는다. 창 [5,7] 의 답이 7 이고, 창 여섯 개의 답이 모두 나왔다.",
+      title: "T2 1 < 3 · 뒤 자리 0 버리기",
+      text: "뒤 자리 0 의 값 1 이 지금 값 3 보다 작아 뒤에서 버립니다.",
       array: [1, 3, -1, -3, 5, 3, 6, 7],
-      highlight: [7],
-      marked: [7],
-      pointers: { i: 7, front: 7 },
-      entries: [
+      range: [0, 1],
+      read: [0, 1],
+      write: [],
+      pointers: {
+        back: 0,
+        i: 1,
+      },
+      calc: {
+        expr: "nums[0] < nums[1] → 1 < 3",
+        result: "참 · 뒤에서 버린다",
+      },
+      vars: "넣기 1 · 뒤에서 버림 1 · 앞에서 버림 0",
+      layers: [
         {
-          label: "지금 하는 일",
-          value: "뒤에서 자리 6 을 버리고 자리 7 을 붙였다",
+          name: "result",
+          values: [null, null, null, null, null, null],
+          write: [],
+          caret: false,
         },
-        { label: "창", value: "[5,7]" },
-        { label: "후보 통(앞→뒤)", value: "[7]" },
-        { label: "그 자리의 값", value: "7" },
-        { label: "답", value: "[3 3 5 5 6 7]" },
+        {
+          name: "cand",
+          values: [null, null, null],
+          read: [],
+          write: [],
+          caret: false,
+          side: "비었다",
+        },
+        {
+          name: "cand 의 값",
+          values: [null, null, null],
+          read: [],
+          write: [],
+          caret: false,
+          side: "비었다",
+        },
       ],
     },
-  ] satisfies Frame[],
-};
+    {
+      title: "T3 자리 1 넣기",
+      text: "버릴 뒤 자리가 더 없어 단조 덱이 비었습니다. 자리 1 을 넣습니다. 창이 아직 덜 차서 답은 적지 않습니다.",
+      array: [1, 3, -1, -3, 5, 3, 6, 7],
+      range: [0, 1],
+      read: [1],
+      write: [],
+      pointers: {
+        i: 1,
+      },
+      calc: {
+        expr: "cand.length > 0",
+        result: "거짓 · 넣는다",
+      },
+      vars: "넣기 2 · 뒤에서 버림 1 · 앞에서 버림 0",
+      layers: [
+        {
+          name: "result",
+          values: [null, null, null, null, null, null],
+          write: [],
+          caret: false,
+        },
+        {
+          name: "cand",
+          values: [1, null, null],
+          read: [],
+          write: [0],
+          caret: false,
+          side: "앞 = 자리 1 · 뒤 = 자리 1",
+        },
+        {
+          name: "cand 의 값",
+          values: [3, null, null],
+          read: [],
+          write: [0],
+          caret: false,
+          side: "3",
+        },
+      ],
+    },
+    {
+      title: "T4 3 ≥ -1 · 멈추고 자리 2 넣기 · 답 3",
+      text: "뒤 자리 1 의 값 3 은 지금 값 -1 보다 작지 않아 멈추고, 자리 2 를 뒤에 넣습니다. 창 [0,2] 의 칸이 다 찼으니 앞 자리 1 의 값 3 을 답으로 적습니다.",
+      array: [1, 3, -1, -3, 5, 3, 6, 7],
+      range: [0, 2],
+      read: [1, 2],
+      write: [],
+      pointers: {
+        back: 1,
+        front: 1,
+        i: 2,
+      },
+      calc: {
+        expr: "nums[1] < nums[2] → 3 < -1",
+        result: "거짓 · 멈춘다",
+      },
+      vars: "넣기 3 · 뒤에서 버림 1 · 앞에서 버림 0",
+      layers: [
+        {
+          name: "result",
+          values: [3, null, null, null, null, null],
+          write: [0],
+          caret: false,
+        },
+        {
+          name: "cand",
+          values: [1, 2, null],
+          read: [0],
+          write: [1],
+          caret: false,
+          side: "앞 = 자리 1 · 뒤 = 자리 2",
+        },
+        {
+          name: "cand 의 값",
+          values: [3, -1, null],
+          read: [0],
+          write: [1],
+          caret: false,
+          side: "3 ≥ -1",
+        },
+      ],
+    },
+    {
+      title: "T5 -1 ≥ -3 · 멈추고 자리 3 넣기 · 답 3",
+      text: "뒤 자리 2 의 값 -1 은 지금 값 -3 보다 작지 않아 멈추고, 자리 3 을 뒤에 넣습니다. 창 [1,3] 의 칸이 다 찼으니 앞 자리 1 의 값 3 을 답으로 적습니다.",
+      array: [1, 3, -1, -3, 5, 3, 6, 7],
+      range: [1, 3],
+      read: [1, 2, 3],
+      write: [],
+      pointers: {
+        back: 2,
+        front: 1,
+        i: 3,
+      },
+      calc: {
+        expr: "nums[2] < nums[3] → -1 < -3",
+        result: "거짓 · 멈춘다",
+      },
+      vars: "넣기 4 · 뒤에서 버림 1 · 앞에서 버림 0",
+      layers: [
+        {
+          name: "result",
+          values: [3, 3, null, null, null, null],
+          write: [1],
+          caret: false,
+        },
+        {
+          name: "cand",
+          values: [1, 2, 3],
+          read: [1],
+          write: [2],
+          caret: false,
+          side: "앞 = 자리 1 · 뒤 = 자리 3",
+        },
+        {
+          name: "cand 의 값",
+          values: [3, -1, -3],
+          read: [1],
+          write: [2],
+          caret: false,
+          side: "3 ≥ -1 ≥ -3",
+        },
+      ],
+    },
+    {
+      title: "T6 자리 1 이 창 밖 · 앞에서 버리기",
+      text: "자리 4 를 오른쪽 끝으로 하는 창의 왼쪽 끝은 2 입니다. 앞 자리 1 은 창 밖이라 앞에서 버립니다.",
+      array: [1, 3, -1, -3, 5, 3, 6, 7],
+      range: [2, 4],
+      read: [1],
+      write: [],
+      pointers: {
+        front: 1,
+        i: 4,
+      },
+      calc: {
+        expr: "cand[0] <= i - k → 1 <= 1",
+        result: "참 · 앞에서 버린다",
+      },
+      vars: "넣기 4 · 뒤에서 버림 1 · 앞에서 버림 1",
+      layers: [
+        {
+          name: "result",
+          values: [3, 3, null, null, null, null],
+          write: [],
+          caret: false,
+        },
+        {
+          name: "cand",
+          values: [2, 3, null],
+          read: [],
+          write: [],
+          caret: false,
+          side: "앞 = 자리 2 · 뒤 = 자리 3",
+        },
+        {
+          name: "cand 의 값",
+          values: [-1, -3, null],
+          read: [],
+          write: [],
+          caret: false,
+          side: "-1 ≥ -3",
+        },
+      ],
+    },
+    {
+      title: "T7 -3 < 5 · 뒤 자리 3 버리기",
+      text: "뒤 자리 3 의 값 -3 이 지금 값 5 보다 작아 뒤에서 버립니다.",
+      array: [1, 3, -1, -3, 5, 3, 6, 7],
+      range: [2, 4],
+      read: [3, 4],
+      write: [],
+      pointers: {
+        back: 3,
+        i: 4,
+      },
+      calc: {
+        expr: "nums[3] < nums[4] → -3 < 5",
+        result: "참 · 뒤에서 버린다",
+      },
+      vars: "넣기 4 · 뒤에서 버림 2 · 앞에서 버림 1",
+      layers: [
+        {
+          name: "result",
+          values: [3, 3, null, null, null, null],
+          write: [],
+          caret: false,
+        },
+        {
+          name: "cand",
+          values: [2, null, null],
+          read: [],
+          write: [],
+          caret: false,
+          side: "앞 = 자리 2 · 뒤 = 자리 2",
+        },
+        {
+          name: "cand 의 값",
+          values: [-1, null, null],
+          read: [],
+          write: [],
+          caret: false,
+          side: "-1",
+        },
+      ],
+    },
+    {
+      title: "T8 -1 < 5 · 뒤 자리 2 버리기",
+      text: "뒤 자리 2 의 값 -1 이 지금 값 5 보다 작아 뒤에서 버립니다.",
+      array: [1, 3, -1, -3, 5, 3, 6, 7],
+      range: [2, 4],
+      read: [2, 4],
+      write: [],
+      pointers: {
+        back: 2,
+        i: 4,
+      },
+      calc: {
+        expr: "nums[2] < nums[4] → -1 < 5",
+        result: "참 · 뒤에서 버린다",
+      },
+      vars: "넣기 4 · 뒤에서 버림 3 · 앞에서 버림 1",
+      layers: [
+        {
+          name: "result",
+          values: [3, 3, null, null, null, null],
+          write: [],
+          caret: false,
+        },
+        {
+          name: "cand",
+          values: [null, null, null],
+          read: [],
+          write: [],
+          caret: false,
+          side: "비었다",
+        },
+        {
+          name: "cand 의 값",
+          values: [null, null, null],
+          read: [],
+          write: [],
+          caret: false,
+          side: "비었다",
+        },
+      ],
+    },
+    {
+      title: "T9 자리 4 넣기 · 답 5",
+      text: "버릴 뒤 자리가 더 없어 단조 덱이 비었습니다. 자리 4 를 넣습니다. 창 [2,4] 의 칸이 다 찼으니 앞 자리 4 의 값 5 를 답으로 적습니다.",
+      array: [1, 3, -1, -3, 5, 3, 6, 7],
+      range: [2, 4],
+      read: [4],
+      write: [],
+      pointers: {
+        front: 4,
+        i: 4,
+      },
+      calc: {
+        expr: "cand.length > 0",
+        result: "거짓 · 넣는다",
+      },
+      vars: "넣기 5 · 뒤에서 버림 3 · 앞에서 버림 1",
+      layers: [
+        {
+          name: "result",
+          values: [3, 3, 5, null, null, null],
+          write: [2],
+          caret: false,
+        },
+        {
+          name: "cand",
+          values: [4, null, null],
+          read: [],
+          write: [0],
+          caret: false,
+          side: "앞 = 자리 4 · 뒤 = 자리 4",
+        },
+        {
+          name: "cand 의 값",
+          values: [5, null, null],
+          read: [],
+          write: [0],
+          caret: false,
+          side: "5",
+        },
+      ],
+    },
+    {
+      title: "T10 5 ≥ 3 · 멈추고 자리 5 넣기 · 답 5",
+      text: "뒤 자리 4 의 값 5 는 지금 값 3 보다 작지 않아 멈추고, 자리 5 를 뒤에 넣습니다. 창 [3,5] 의 칸이 다 찼으니 앞 자리 4 의 값 5 를 답으로 적습니다.",
+      array: [1, 3, -1, -3, 5, 3, 6, 7],
+      range: [3, 5],
+      read: [4, 5],
+      write: [],
+      pointers: {
+        back: 4,
+        front: 4,
+        i: 5,
+      },
+      calc: {
+        expr: "nums[4] < nums[5] → 5 < 3",
+        result: "거짓 · 멈춘다",
+      },
+      vars: "넣기 6 · 뒤에서 버림 3 · 앞에서 버림 1",
+      layers: [
+        {
+          name: "result",
+          values: [3, 3, 5, 5, null, null],
+          write: [3],
+          caret: false,
+        },
+        {
+          name: "cand",
+          values: [4, 5, null],
+          read: [0],
+          write: [1],
+          caret: false,
+          side: "앞 = 자리 4 · 뒤 = 자리 5",
+        },
+        {
+          name: "cand 의 값",
+          values: [5, 3, null],
+          read: [0],
+          write: [1],
+          caret: false,
+          side: "5 ≥ 3",
+        },
+      ],
+    },
+    {
+      title: "T11 3 < 6 · 뒤 자리 5 버리기",
+      text: "뒤 자리 5 의 값 3 이 지금 값 6 보다 작아 뒤에서 버립니다.",
+      array: [1, 3, -1, -3, 5, 3, 6, 7],
+      range: [4, 6],
+      read: [5, 6],
+      write: [],
+      pointers: {
+        back: 5,
+        i: 6,
+      },
+      calc: {
+        expr: "nums[5] < nums[6] → 3 < 6",
+        result: "참 · 뒤에서 버린다",
+      },
+      vars: "넣기 6 · 뒤에서 버림 4 · 앞에서 버림 1",
+      layers: [
+        {
+          name: "result",
+          values: [3, 3, 5, 5, null, null],
+          write: [],
+          caret: false,
+        },
+        {
+          name: "cand",
+          values: [4, null, null],
+          read: [],
+          write: [],
+          caret: false,
+          side: "앞 = 자리 4 · 뒤 = 자리 4",
+        },
+        {
+          name: "cand 의 값",
+          values: [5, null, null],
+          read: [],
+          write: [],
+          caret: false,
+          side: "5",
+        },
+      ],
+    },
+    {
+      title: "T12 5 < 6 · 뒤 자리 4 버리기",
+      text: "뒤 자리 4 의 값 5 가 지금 값 6 보다 작아 뒤에서 버립니다.",
+      array: [1, 3, -1, -3, 5, 3, 6, 7],
+      range: [4, 6],
+      read: [4, 6],
+      write: [],
+      pointers: {
+        back: 4,
+        i: 6,
+      },
+      calc: {
+        expr: "nums[4] < nums[6] → 5 < 6",
+        result: "참 · 뒤에서 버린다",
+      },
+      vars: "넣기 6 · 뒤에서 버림 5 · 앞에서 버림 1",
+      layers: [
+        {
+          name: "result",
+          values: [3, 3, 5, 5, null, null],
+          write: [],
+          caret: false,
+        },
+        {
+          name: "cand",
+          values: [null, null, null],
+          read: [],
+          write: [],
+          caret: false,
+          side: "비었다",
+        },
+        {
+          name: "cand 의 값",
+          values: [null, null, null],
+          read: [],
+          write: [],
+          caret: false,
+          side: "비었다",
+        },
+      ],
+    },
+    {
+      title: "T13 자리 6 넣기 · 답 6",
+      text: "버릴 뒤 자리가 더 없어 단조 덱이 비었습니다. 자리 6 을 넣습니다. 창 [4,6] 의 칸이 다 찼으니 앞 자리 6 의 값 6 을 답으로 적습니다.",
+      array: [1, 3, -1, -3, 5, 3, 6, 7],
+      range: [4, 6],
+      read: [6],
+      write: [],
+      pointers: {
+        front: 6,
+        i: 6,
+      },
+      calc: {
+        expr: "cand.length > 0",
+        result: "거짓 · 넣는다",
+      },
+      vars: "넣기 7 · 뒤에서 버림 5 · 앞에서 버림 1",
+      layers: [
+        {
+          name: "result",
+          values: [3, 3, 5, 5, 6, null],
+          write: [4],
+          caret: false,
+        },
+        {
+          name: "cand",
+          values: [6, null, null],
+          read: [],
+          write: [0],
+          caret: false,
+          side: "앞 = 자리 6 · 뒤 = 자리 6",
+        },
+        {
+          name: "cand 의 값",
+          values: [6, null, null],
+          read: [],
+          write: [0],
+          caret: false,
+          side: "6",
+        },
+      ],
+    },
+    {
+      title: "T14 6 < 7 · 뒤 자리 6 버리기",
+      text: "뒤 자리 6 의 값 6 이 지금 값 7 보다 작아 뒤에서 버립니다.",
+      array: [1, 3, -1, -3, 5, 3, 6, 7],
+      range: [5, 7],
+      read: [6, 7],
+      write: [],
+      pointers: {
+        back: 6,
+        i: 7,
+      },
+      calc: {
+        expr: "nums[6] < nums[7] → 6 < 7",
+        result: "참 · 뒤에서 버린다",
+      },
+      vars: "넣기 7 · 뒤에서 버림 6 · 앞에서 버림 1",
+      layers: [
+        {
+          name: "result",
+          values: [3, 3, 5, 5, 6, null],
+          write: [],
+          caret: false,
+        },
+        {
+          name: "cand",
+          values: [null, null, null],
+          read: [],
+          write: [],
+          caret: false,
+          side: "비었다",
+        },
+        {
+          name: "cand 의 값",
+          values: [null, null, null],
+          read: [],
+          write: [],
+          caret: false,
+          side: "비었다",
+        },
+      ],
+    },
+    {
+      title: "T15 자리 7 넣기 · 답 7",
+      text: "버릴 뒤 자리가 더 없어 단조 덱이 비었습니다. 자리 7 을 넣습니다. 창 [5,7] 의 칸이 다 찼으니 앞 자리 7 의 값 7 을 답으로 적습니다.",
+      array: [1, 3, -1, -3, 5, 3, 6, 7],
+      range: [5, 7],
+      read: [7],
+      write: [],
+      pointers: {
+        front: 7,
+        i: 7,
+      },
+      calc: {
+        expr: "cand.length > 0",
+        result: "거짓 · 넣는다",
+      },
+      vars: "넣기 8 · 뒤에서 버림 6 · 앞에서 버림 1",
+      layers: [
+        {
+          name: "result",
+          values: [3, 3, 5, 5, 6, 7],
+          write: [5],
+          caret: false,
+        },
+        {
+          name: "cand",
+          values: [7, null, null],
+          read: [],
+          write: [0],
+          caret: false,
+          side: "앞 = 자리 7 · 뒤 = 자리 7",
+        },
+        {
+          name: "cand 의 값",
+          values: [7, null, null],
+          read: [],
+          write: [0],
+          caret: false,
+          side: "7",
+        },
+      ],
+    },
+  ],
+} satisfies ArrayPlayerSpec;

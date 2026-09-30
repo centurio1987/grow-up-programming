@@ -28,9 +28,9 @@ const CASES: [string, number[], number, number[]][] = [
   ["N=1, k=1", [7], 1, [7]],
   ["최댓값이 첫 창에만", [10, 1, 1, 1], 2, [10, 1, 1]],
   ["최댓값이 마지막 창에만", [1, 1, 1, 10], 2, [1, 1, 10]],
-  // 문제 문서의 예시
-  ["문제 문서 예시 — 증가 배열", [1, 2, 3, 4, 5], 3, [3, 4, 5]],
-  ["문제 문서 예시 — 감소 배열", [5, 4, 3, 2, 1], 2, [5, 4, 3, 2]],
+  // 실습 절의 예시
+  ["실습 예시 — 증가 배열", [1, 2, 3, 4, 5], 3, [3, 4, 5]],
+  ["실습 예시 — 감소 배열", [5, 4, 3, 2, 1], 2, [5, 4, 3, 2]],
 ];
 
 for (const [name, nums, k, want] of CASES) {
@@ -95,4 +95,22 @@ test("정의를 그대로 만족한다", () => {
       expect(result[i]).toBe(want);
     }
   }
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이 정적으로
+ * 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본이 읽은 칸을 기록해 걸음을
+ * 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./slidingWindowMaximum-guide.sim.ts");
+  const { simStepsFromRef } = await import(
+    "./slidingWindowMaximum-guide.fig.tsx"
+  );
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.walk.steps)).toEqual(plain(simStepsFromRef()));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.walk.result).toBe(
+    `[${slidingWindowMaximum([1, 3, -1, -3, 5, 3, 6, 7], 3).join(", ")}]`,
+  );
 });
