@@ -159,3 +159,23 @@ test("첫 글자만 다른 100,000 글자에서도 답이 맞다", () => {
   expect(sam.contains(s)).toBe(true);
   expect(sam.contains("ba")).toBe(false);
 });
+
+/* ────────────── 걸음 재생 패널 ────────────── */
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 증명 사이드카의 걸음 기록에서
+ * 무대를 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./suffixAutomaton-guide.sim.ts");
+  const fig = await import("./suffixAutomaton-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.samWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.samWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 알약과 패널의 결과를 정본의 개수와 맞댄다.
+  const want = String(new SuffixAutomaton("aabab").countDistinctSubstrings());
+  expect(sim.samWalk.steps.at(-1)?.calc?.result).toBe(want);
+  expect(sim.samWalk.result).toBe(want);
+});
