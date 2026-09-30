@@ -8,9 +8,9 @@
  * 값이 달라 판정이 안 된다. 그 케이스가 지키던 것은 **큰 bigint 에서 항등식이 성립한다**는
  * 것이라 반환값으로 다시 건다. 같은 규모의 비용은 「최악을 만드는 입력」이 걸음 수로 진다.
  *
- * **원본에 없던 케이스 넷을 더 걸었다.** ① 작은 값 전수에서 항등식과 `g` 가 정의대로인가
+ * **원본에 없던 케이스 다섯을 더 걸었다.** ① 작은 값 전수에서 항등식과 `g` 가 정의대로인가
  * ② 두 인자 순서를 바꾸면 계수도 자리를 바꾸는가 ③ 계수 상한 `|x| ≤ B/(2g)` 를 지키는가
- * ④ 본문 「수식 정의와 유도」가 세운 항등식이 걸음마다 참인가.
+ * ④ 본문 「수식 정의와 유도」가 세운 항등식이 걸음마다 참인가 ⑤ 걸음 재생 패널이 정본 실행과 같은가.
  */
 import { expect, test } from "bun:test";
 import { extendedEuclidean } from "./extendedEuclidean-guide.ref.ts";
@@ -142,4 +142,20 @@ test("피보나치 이웃 같은 큰 bigint 에서 항등식이 성립한다", (
   const three = extendedEuclidean(y * 3n, x * 3n);
   expect(three.g).toBe(3n);
   expect(y * 3n * three.x + x * 3n * three.y).toBe(3n);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./extendedEuclidean-guide.sim.ts");
+  const { simStepsFromRef } = await import("./extendedEuclidean-guide.fig.tsx");
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.eeaWalk.steps)).toEqual(plain(want.eeaWalk));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  const { g, x, y } = extendedEuclidean(-510n, 183n);
+  expect(sim.eeaWalk.result).toBe(`{ g: ${g}n, x: ${x}n, y: ${y}n }`);
 });
