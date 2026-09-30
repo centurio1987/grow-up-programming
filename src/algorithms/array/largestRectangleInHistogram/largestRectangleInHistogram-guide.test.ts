@@ -27,7 +27,7 @@ const CASES: [string, number[], number][] = [
   ["N=1, 단일 높이", [7], 7],
   ["N=1, 0", [0], 0],
   ["최대 높이 단일", [10_000], 10_000],
-  // 문제 문서의 나머지 예시
+  // 실습 절의 나머지 예시
   ["[1,1,1,1]", [1, 1, 1, 1], 4],
 ];
 
@@ -119,4 +119,22 @@ test("길이 1~7 · 값 0~3 인 배열을 전수로 구간 열거와 맞춘다",
   };
   walk([]);
   expect(checked).toBe(21_844);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이 정적으로
+ * 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본이 읽은 칸을 기록해 걸음을
+ * 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./largestRectangleInHistogram-guide.sim.ts");
+  const { simStepsFromRef } = await import(
+    "./largestRectangleInHistogram-guide.fig.tsx"
+  );
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.walk.steps)).toEqual(plain(simStepsFromRef()));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.walk.result).toBe(
+    String(largestRectangleInHistogram([2, 1, 5, 6, 2, 3])),
+  );
 });
