@@ -1,6 +1,6 @@
 {
   "next_id": 65,
-  "next_seq": 456,
+  "next_seq": 457,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1650,7 +1650,7 @@
       "memo_hash": "d247c719f910875e2bc08ffc62922deb3840a8f7"
     },
     "KAN-064-4YZZV2": {
-      "col": "review",
+      "col": "done",
       "title": "실습 스텁에 새어 든 풀이 24편 되돌리기 — solutions 브랜치 병합 방향을 먼저 정한다",
       "verbatim": "KAN-061 검토서 판단 항목 1 「스텁에 풀이가 든 24편을 새 카드로 뗄 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
       "생성": "ai",
@@ -1778,6 +1778,16 @@
     "KAN-064-4YZZV2"
   ],
   "recent": [
+    {
+      "seq": 456,
+      "t": "2026-10-01T08:51",
+      "a": "ai",
+      "id": "KAN-064-4YZZV2",
+      "op": "move",
+      "w": "7JZJ8C",
+      "from": "review",
+      "to": "done"
+    },
     {
       "seq": 455,
       "t": "2026-10-01T08:49",
@@ -2333,16 +2343,6 @@
       "field": "verbatim",
       "before": "",
       "after": "지금은 문제가 *-guide.md로 분리 되어 있다. 그리고 그 문제를 전제로 가이드가 구성되어 있다. 그래서 문제를 모르면 guide에서 맥락을 읽기 어려운 경우가 생긴다.\n\n- guide는 문제에 대한 guide가 아니라, 알고리즘 자체에 대한 guide여야 한다.\n- guide 마지막에 문제를 만들어서 실습 항목으로 배치한다.\n- 기존 problem.md는 삭제한다."
-    },
-    {
-      "seq": 407,
-      "t": "2026-09-29T01:16",
-      "a": "ai",
-      "id": "KAN-057-J36E1B",
-      "op": "move",
-      "w": "977NDY",
-      "from": "review",
-      "to": "done"
     }
   ],
   "waivers": [
