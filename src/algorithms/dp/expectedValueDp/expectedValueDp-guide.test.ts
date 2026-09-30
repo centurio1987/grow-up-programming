@@ -172,3 +172,30 @@ test("⑤ 배정밀도 값이 정확한 분수와 같은 자리에서만 갈린�
     expect(Number(dn) / Number(dd)).toBe(v);
   }
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./expectedValueDp-guide.sim.ts");
+  const { simStepsFromRef, trace, frac, TABLE_OPTIONS, WALK_N, WALK_K } =
+    await import("./expectedValueDp-guide.fig.tsx");
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.row1.steps)).toEqual(plain(want.row1));
+  expect(plain(sim.row2.steps)).toEqual(plain(want.row2));
+  expect(plain(sim.tail.steps)).toEqual(plain(want.tail));
+  for (const part of [sim.row1, sim.row2, sim.tail]) {
+    expect(plain(part.rowHeads)).toEqual(plain(TABLE_OPTIONS.rowHeads));
+    expect(plain(part.colHeads)).toEqual(plain(TABLE_OPTIONS.colHeads));
+  }
+  // 패널이 내미는 값이 정본의 DP 테이블 · 답과 같은지 — 정본에 직접 다시 묻는다.
+  const t = trace(WALK_N, WALK_K);
+  const row = (i: number) =>
+    `[${(t.rows[i] ?? []).map((p) => frac(p, i)).join(", ")}]`;
+  expect(sim.row1.result).toBe(row(1));
+  expect(sim.row2.result).toBe(row(2));
+  expect(sim.tail.result).toBe(String(expectedValueDp(WALK_N, WALK_K)));
+});
