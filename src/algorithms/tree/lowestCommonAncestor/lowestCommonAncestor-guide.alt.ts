@@ -221,37 +221,76 @@ export function liftCounted(
   return { answer, setup, query, jumps, cells: n * LOG + n };
 }
 
-/** 한 칸씩 부모로 오르는 방법. 위로 옮긴 횟수를 함께 센다. */
-export function naiveClimb(
+/**
+ * 한 칸씩 부모로 오르는 방법에 **배열 칸 접근**을 덧붙인 사본. 준비는 `liftCounted` 와 같은 기준으로
+ * 센다 — 부모를 `anc` 의 0 층 대신 `parent` 배열에 적고, 층을 쌓는 칸이 없다.
+ *
+ * 질의 하나는 두 정점이 같아질 때까지 한 번에 한 칸씩 올라간다. 한 번 오를 때 `depth` 두 칸과
+ * `parent` 한 칸을 읽는다.
+ */
+export function naiveCounted(
   n: number,
   edges: Edge[],
   root: number,
   qs: Query[],
-): { answer: number[]; moves: number } {
-  const { depth, parent } = rootTree(n, edges, root);
+): { answer: number[]; setup: number; query: number; moves: number } {
+  let setup = 0;
+  let query = 0;
   let moves = 0;
+
+  const near: number[][] = Array.from({ length: n }, () => []);
+  setup += n;
+  for (const [u, v] of edges) {
+    (near[u] as number[]).push(v);
+    (near[v] as number[]).push(u);
+    setup += 2;
+  }
+  const depth: number[] = Array.from({ length: n }, () => 0);
+  setup += n;
+  const parent: number[] = Array.from({ length: n }, () => root);
+  setup += n;
+  const seen: boolean[] = Array.from({ length: n }, () => false);
+  setup += n;
+  const stack: number[] = [root];
+  seen[root] = true;
+  setup += 2;
+  while (stack.length > 0) {
+    const u = stack.pop() as number;
+    setup += 1;
+    for (const v of near[u] as number[]) {
+      setup += 2; // 이웃 항목 읽기와 `seen` 읽기
+      if (seen[v]) continue;
+      seen[v] = true;
+      depth[v] = (depth[u] as number) + 1;
+      parent[v] = u;
+      stack.push(v);
+      setup += 5; // `seen` 쓰기 · `depth` 읽기와 쓰기 · `parent` 쓰기 · 스택 넣기
+    }
+  }
+
   const answer = qs.map(([a, b]) => {
     let u = a;
     let v = b;
     while (u !== v) {
+      query += 3; // `depth` 두 칸과 `parent` 한 칸
+      moves += 1;
       if ((depth[u] as number) > (depth[v] as number)) u = parent[u] as number;
       else v = parent[v] as number;
-      moves += 1;
     }
     return u;
   });
   assertSame(answer, n, edges, root, qs, "한 칸씩 오르는 방법");
-  return { answer, moves };
+  return { answer, setup, query, moves };
 }
 
-/* ────────────────────── 경쟁 설계 — 오일러 투어와 희소 표 ────────────────────── */
+/* ────────────────── 경쟁 설계 — 오일러 투어와 Sparse Table ────────────────── */
 
 /**
  * 트리를 한 줄로 편 뒤 구간 최솟값으로 답한다.
  *
  * 뿌리에서 따라가며 지나는 정점을 순서대로 적으면 길이 `2V-1` 짜리 줄이 되고, 두 정점이 처음
- * 나온 자리 사이에서 깊이가 가장 작은 정점이 답이다. 그 구간 최솟값을 희소 표로 미리 만들어
- * 두면 질의 하나가 표 두 칸을 읽는 것으로 끝난다 — 질의 비용이 트리 크기와 무관해진다.
+ * 나온 자리 사이에서 깊이가 가장 작은 정점이 답이다. 그 구간 최솟값을 Sparse Table 로 미리
+ * 만들어 두면 질의 하나가 두 칸을 읽는 것으로 끝난다 — 질의 비용이 트리 크기와 무관해진다.
  */
 export function eulerSparse(
   n: number,
@@ -350,7 +389,7 @@ export function eulerSparse(
     return tour[best] as number;
   });
 
-  assertSame(answer, n, edges, root, qs, "희소 표");
+  assertSame(answer, n, edges, root, qs, "오일러 투어와 Sparse Table");
   return { answer, setup, query, cells: K * m + m + m + n + n };
 }
 
@@ -374,7 +413,7 @@ export const cases = {
     }
     return out;
   },
-  "오일러 투어와 희소 표": () => {
+  "오일러 투어와 Sparse Table": () => {
     const out: Record<string, number> = {};
     for (const q of BENCH_QUERY_COUNTS) {
       const got = eulerSparse(BENCH_N, BENCH_EDGES, 0, queries(BENCH_N, q));
