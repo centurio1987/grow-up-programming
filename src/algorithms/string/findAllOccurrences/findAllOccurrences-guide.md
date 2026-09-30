@@ -1292,7 +1292,6 @@ export function findAllOccurrences(text: string, pattern: string): number[];
 - $0 \leq |text| \leq 10^5$
 - $0 \leq |pattern| \leq 10^5$
 - 문자 집합: 소문자 영문 알파벳 (`a`–`z`)
-- 시간 복잡도: $O(|text| + |pattern|)$
 - 시간 제한: 1초, 메모리 제한: 256 MB
 
 #### 문제 상세

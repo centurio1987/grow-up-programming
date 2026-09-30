@@ -5,7 +5,7 @@ describe("findAllOccurrences", () => {
   // 기본 동작
   describe("기본 동작", () => {
     test("단일 등장 위치를 찾는다", () => {
-      expect(findAllOccurrences("hello world", "world")).toEqual([6]);
+      expect(findAllOccurrences("helloworld", "world")).toEqual([5]);
     });
 
     test("여러 등장 위치를 찾는다", () => {
@@ -43,7 +43,7 @@ describe("findAllOccurrences", () => {
       expect(findAllOccurrences("aaaaa", "aaa")).toEqual([0, 1, 2]);
     });
 
-    test("KMP failure function 동작 검증 — 'abababab'에서 'abab' 검색", () => {
+    test("겹치는 등장이 여러 번 — 'abababab'에서 'abab' 검색", () => {
       expect(findAllOccurrences("abababab", "abab")).toEqual([0, 2, 4]);
     });
   });

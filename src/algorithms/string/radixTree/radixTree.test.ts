@@ -23,7 +23,7 @@ describe("RadixTree", () => {
       expect(tree.startsWith("app")).toBe(true);
     });
 
-    test("엣지 분할이 일어나는 경우 — 'apple' 후 'app' 삽입", () => {
+    test("앞부분만 겹치는 단어 — 'apple' 후 'app' 삽입", () => {
       const tree = new RadixTree();
       tree.insert("apple");
       tree.insert("app");
