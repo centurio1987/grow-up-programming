@@ -6,18 +6,25 @@
  * 찾아 지수를 역산한다. 곱셈은 더 많이 하고 저장은 상수라 **시간과 메모리를 맞바꾼 쪽**이다.
  *
  * **왜 전개 입력을 안 쓰는가**(L20). 전개는 `m = 58` 인데, 그 크기에서는 아기 걸음 표가
- * 8칸이라 두 설계의 추가 칸이 8 대 6 으로 갈리지 않는다. 대조는 `m = 10007` 을 쓰고
+ * 8 항목이라 두 설계의 추가 칸이 18 대 6(수 하나 = 한 칸)이고, 표가 커질수록 차이가 벌어진다는 것을 확인할 수 없다. 대조는 `m = 10007` 을 쓰고
  * 그 사실을 본문에도 적는다.
  *
  * **입력은 고정이다.** `p = 10007`(소수) · `a = 3`(곱셈 위수 5003, 소수) · `k = 4321` 로
  * 두고 `b = a^k mod p` 를 생성식으로 만든다. rho 는 위수가 소수여야 역원 계산이 항상
  * 성립하므로 `a = 3` 을 골랐다 — 그 제약 자체가 본문이 적는 「내주는 것」이다.
  *
- * **추가 칸의 단위가 두 설계에서 다르다.** BSGS 는 아기 걸음 표의 항목 수(값·지수 한 쌍을 한 칸 —
- * 본문 전체가 `Map` 항목 하나를 한 칸으로 센다)이고, rho 는 재지 않고 적은 수 여섯(두 벌의
- * `(값, 지수, 지수)`)이다. 수 하나를 한 칸으로 맞추면 BSGS 쪽이 항목마다 두 칸이 되어 차이가 더 벌어질
- * 뿐 우열은 같다. 두 설계 모두 입력과 반복 변수는 뺀다. 모듈러 곱셈은 법 `p` 위의 곱셈만 센다 — rho 의
- * 지수 쪽 `mod q` 갱신은 세지 않는다.
+ * **추가 칸은 두 설계를 한 잣대로 잰다 — 수 하나가 한 칸이다.** 입력 밖에 새로 잡아 동시에 살아
+ * 있는 수의 최댓값을 실행 중에 잰다. BSGS 는 아기 걸음 표의 항목 하나가 수 둘(값 · 지수)이라 두 칸이고,
+ * 그 위에 걸음 사이로 넘기는 상태(표를 채울 때 `baby`, 보폭을 구할 때 `stride` · `base`, 큰 걸음 때
+ * `stride` · `giant`)를 더한다. rho 는 걸음 사이로 넘기는 두 벌의 `(값, 지수, 지수)` 튜플 길이를 더한다.
+ * 두 설계 모두 입력 · 반복 변수(`j` · `i` · `e`) · 한 걸음 안에서만 쓰는 임시 값은 뺀다. 모듈러 곱셈은
+ * 법 `p` 위의 곱셈만 센다 — rho 의 지수 쪽 `mod q` 갱신은 세지 않는다.
+ *
+ * **바뀐 값**(L20, 2026-10-01 `KAN-062` 배치 4). 전에는 BSGS 를 표 항목 하나 = 한 칸(101)으로, rho 를
+ * 재지 않고 적은 상수(6)로 셌다. 수 하나 = 한 칸으로 맞추고 둘 다 실행 중에 재면서 BSGS 추가 칸이
+ * 101 → 204, rho 추가 칸이 6 → 6(이제 잰 값)이 됐다. 입력(`p` · `a` · `k`)과 모듈러 곱셈(155 · 408)은
+ * 그대로다. rho 쪽에 유리해졌고(차이 95 → 198), 우열(곱셈은 BSGS, 추가 칸은 rho)과 뒤집히는 조건
+ * (아기 걸음 표를 담을 수 있는가)은 그대로다.
  */
 import type { BenchCase } from "../../../../tools/bench-alt.ts";
 
@@ -41,7 +48,7 @@ function ceilSqrt(m: bigint): bigint {
   return x * x === m ? x : x + 1n;
 }
 
-/** Baby-step Giant-step — 이 가이드가 가르치는 절차. 곱셈과 표 칸을 센다. */
+/** Baby-step Giant-step — 이 가이드가 가르치는 절차. 곱셈과 추가 칸을 센다. */
 const bsgs: BenchCase = () => {
   const { p, a } = INPUT;
   const b = makeB();
@@ -49,11 +56,17 @@ const bsgs: BenchCase = () => {
 
   const n = ceilSqrt(p);
   const table = new Map<bigint, bigint>();
+  // 추가 칸 — 동시에 살아 있는 수의 최댓값. 표 항목 하나는 수 둘(값 · 지수)이다.
+  let peak = 0;
+  const live = (state: number) => {
+    peak = Math.max(peak, table.size * 2 + state);
+  };
   let baby = b % p;
   for (let j = 0n; j < n; j++) {
     table.set(baby, j);
     baby = (baby * a) % p;
     mul++;
+    live(1); // baby
   }
 
   // stride = a^n mod p — 지수를 이진 자리로 나눈 거듭제곱
@@ -68,16 +81,18 @@ const bsgs: BenchCase = () => {
     base = (base * base) % p;
     mul++;
     e /= 2n;
+    live(2); // stride · base
   }
 
   let giant = 1n;
   for (let i = 1n; i <= n; i++) {
     giant = (giant * stride) % p;
     mul++;
+    live(2); // stride · giant
     if (table.has(giant)) break;
   }
 
-  return { "모듈러 곱셈": mul, "추가 칸": table.size };
+  return { "모듈러 곱셈": mul, "추가 칸": peak };
 };
 
 /**
@@ -85,12 +100,14 @@ const bsgs: BenchCase = () => {
  *
  * 값을 세 구역으로 나눠 각각 다른 갱신을 하고(`x·b` · `x²` · `x·a`), 같은 값이 두 경로에서
  * 나오는 지점을 Floyd 의 두 속도로 찾는다. 그 지점의 지수 두 벌을 빼면 `x` 가 나온다.
- * 저장하는 것은 두 벌의 `(값, 지수, 지수)` 여섯 개뿐이다.
+ * 걸음 사이로 넘기는 것은 두 벌의 `(값, 지수, 지수)` 뿐이고, 추가 칸은 그 튜플 길이의 합을 걸음마다
+ * 재서 최댓값을 낸다.
  */
 const pollardRho: BenchCase = () => {
   const { p, a, order: q } = INPUT;
   const b = makeB();
   let mul = 0;
+  let peak = 0;
 
   const step = (
     x: bigint,
@@ -110,11 +127,12 @@ const pollardRho: BenchCase = () => {
   for (let i = 0; i < 1_000_000; i++) {
     slow = step(...slow);
     fast = step(...step(...fast));
+    // 추가 칸 — 걸음 사이로 넘기는 두 벌의 (값, 지수, 지수) 에 든 수의 개수.
+    peak = Math.max(peak, slow.length + fast.length);
     if (slow[0] === fast[0]) break;
   }
 
-  // 저장하는 것은 두 벌의 (값, 지수, 지수) 여섯 개다.
-  return { "모듈러 곱셈": mul, "추가 칸": 6 };
+  return { "모듈러 곱셈": mul, "추가 칸": peak };
 };
 
 export const cases: Record<string, BenchCase> = {
