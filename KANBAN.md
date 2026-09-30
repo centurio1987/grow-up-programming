@@ -122,19 +122,20 @@
   - 실행 문서: KANBAN.cards/KAN-036-0G05DE.md (0/7 · 최근 09-18)
 
 ## 진행 중
-- `KAN-058-8XT6PC` 알고리즘 가이드 110편 v2 재구성 전개 — KAN-056 파일럿 구성을 나머지 편에 적용 — 생성:ai · 최종:ai · 갱신:2026-09-30
+
+## 검토
+- `KAN-058-8XT6PC` 알고리즘 가이드 110편 v2 재구성 전개 — KAN-056 파일럿 구성을 나머지 편에 적용 — 생성:ai · 최종:ai · 갱신:2026-10-01
   - 짧은 제목: 알고리즘 110편 전개
   - 목적: src/algorithms/ 의 나머지 110편을 KAN-056 파일럿(sparseTableRangeMin) 구성으로 다시 쓰고 SPEC §8 한시 조항을 걷는다
   - 이유: KAN-056 파일럿이 2026-09-28 승인됐고, 옛 구성 110편 때문에 deep.origin · P17 · P18 을 해당 절이 있을 때만 재는 한시 조항에 묶여 있다
   - 목표: 110편이 새 구성·그림으로 서고, 한시 조항 셋을 걷고 「견주다」를 켠 뒤에도 ci.ts all 이 통과한다
   - 메모: 전략 재수립(2026-09-29) — 샘플 두 편(binarySearch · stronglyConnectedComponents)을 하위 카드 KAN-058.1 로 먼저 내고, 그 검토가 승인돼야 전편 전개를 시작한다(유저 지시). 몫: ① 110편 재집필(L41~L45) ② SPEC §8 한시 조항 셋 제거(deep.origin 필수 · P17·P18·P23 전 편) ③ 본문 반말(P18) ④ 「견주다」 92편 1,516곳(2026-09-30 정규식 보강 뒤) 교정 뒤 voice v.common.gyeonju 켜기(L44, 전역 원본 수정은 유저 실행 요청 뒤) ⑤ 알고리즘 중심 서술(L49) ⑥ ASCII 를 그림으로(L46~L48, KAN-057 인계). 근거·순서·버린 대안은 KANBAN.cards/KAN-058-8XT6PC.md 「전략」
-  - 실행 문서: KANBAN.cards/KAN-058-8XT6PC.md (12/14 · 최근 10-01)
+  - 실행 문서: KANBAN.cards/KAN-058-8XT6PC.md (13/14 · 최근 10-01)
+  - 검토 문서: KANBAN.reviews/KAN-058-8XT6PC.review.md (승인 0/8 · 검토 대기)
   - 원문:
     ```text
     110편 전개는 kan-057 완료 이후로 수행 가능하게 만들어라.
     ```
-
-## 검토
 
 ## 완료
 - `KAN-029` [P0-a·29] 집필 엔진 가용성 확보 — 플러그인 설치·활성화 + lock 버전 재고정 — 생성:ai · 최종:ai · 갱신:2026-08-04
@@ -524,7 +525,7 @@
     - 기존 problem.md는 삭제한다.
     ```
 - `KAN-058.1-9TBXDA` 샘플 두 편 — binarySearch · stronglyConnectedComponents — 생성:ai · 최종:ai · 갱신:2026-09-30
-  - 상위: `KAN-058-8XT6PC` (진행 중)
+  - 상위: `KAN-058-8XT6PC` (검토)
   - 짧은 제목: 전개 전 샘플 두 편
   - 목적: 개념이 단순한 binarySearch 와 sparseTable 보다 어려운 stronglyConnectedComponents 를 전개용 지시서 그대로 서브에이전트가 재집필한다
   - 이유: 유저가 샘플 검토를 통과해야 전편을 전개하라고 지시했다(2026-09-29)

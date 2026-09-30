@@ -1,6 +1,6 @@
 {
   "next_id": 61,
-  "next_seq": 441,
+  "next_seq": 442,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -238,12 +238,12 @@
       "memo_hash": "6aa93b8ff5c660cd56c867eb16e720afbefdb163"
     },
     "KAN-058-8XT6PC": {
-      "col": "doing",
+      "col": "review",
       "title": "알고리즘 가이드 110편 v2 재구성 전개 — KAN-056 파일럿 구성을 나머지 편에 적용",
       "verbatim": "110편 전개는 kan-057 완료 이후로 수행 가능하게 만들어라.",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-30",
+      "갱신": "2026-10-01",
       "title_hash": "87d8a43354f28c5694770e1715dd521715a72511",
       "verbatim_hash": "026debc00e6e229230f5dc6bfdf21c7ee8025ee0",
       "short": "알고리즘 110편 전개",
@@ -1603,10 +1603,20 @@
     "KAN-057-J36E1B",
     "KAN-059-PSFTN4",
     "KAN-060-9P4ZAA",
-    "KAN-058-8XT6PC",
-    "KAN-058.1-9TBXDA"
+    "KAN-058.1-9TBXDA",
+    "KAN-058-8XT6PC"
   ],
   "recent": [
+    {
+      "seq": 441,
+      "t": "2026-10-01T03:14",
+      "a": "ai",
+      "id": "KAN-058-8XT6PC",
+      "op": "move",
+      "w": "TMW7FW",
+      "from": "doing",
+      "to": "review"
+    },
     {
       "seq": 440,
       "t": "2026-09-30T02:46",
@@ -2161,16 +2171,6 @@
       "reason": "시각화가 필요한 자리까지 ASCII 로 그려 한글 폭에 열이 어긋나고 설명선이 무엇을 가리키는지 안 읽혀 글보다 이해가 안 된다",
       "goal": "스타일 가이드 다섯 부분과 알고리즘 패턴이 서고 sparseTableRangeMin 파일럿이 새 그림으로 전환돼 유저가 HTML 로 판정할 수 있다",
       "memo": "결정(유저 2026-09-27): 새 패턴은 이 저장소에서 먼저, 검증 뒤 bbangto-ui 승격은 별도 카드 · claude-design 에 foundation·visual motif·component 생김새를 요구사항서로 의뢰, 패턴 구현과 guideline 은 직접 · 파일럿 sparseTableRangeMin"
-    },
-    {
-      "seq": 399,
-      "t": "2026-09-26T21:52",
-      "a": "ai",
-      "id": "KAN-056-VPCM91",
-      "op": "move",
-      "w": "BKSVJ0",
-      "from": "backlog",
-      "to": "doing"
     }
   ],
   "waivers": [
