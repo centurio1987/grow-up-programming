@@ -1,7 +1,7 @@
 /**
  * `purpose.alt`(경쟁 설계와의 대조) 의 계수를 실측하는 하네스 — `L13`.
  *
- * 재는 것은 **기본 연산 수**와 **저장 칸 수** 둘이다. 기본 연산은 본문 전체와 같은 단위다 — 나머지
+ * 재는 것은 **나머지 연산 수**와 **추가 칸 수** 둘이다. 기본 연산은 본문 전체와 같은 단위다 — 나머지
  * 연산(`%`) 한 번을 하나로 센다. 사전 나눗셈 `n % p`, 이진 거듭제곱이 시작할 때의 `1n % n` · `a % n`,
  * 모듈러 곱셈 `(x * y) % n` 이 각각 하나다. 곱셈 · 비교 · 비트 연산은 세지 않는다(시행 나눗셈 편과 같은
  * 단위). 두 설계가 같은 단위를 쓰고, 같은 입력에서 늘 같은 값이 나오는 결정론적 계수다 — 벽시계는 안 잰다.
@@ -146,10 +146,13 @@ export function altOps(n: bigint): { ops: number; result: boolean } {
   return sieved(n, TABLE_SIZE);
 }
 
-/** 정본이 동시에 들고 있는 칸 — 밑 열둘과 `n`·`d`·`s`·`a`·`x`·`i` 다. */
+/**
+ * 정본의 추가 칸 — 밑 목록 열둘이다. 재지 않고 적은 개수이고, 입력 `n` 과 두 설계가 똑같이 드는
+ * `d`·`s`·`a`·`x`·`i` 는 대조에서 갈리지 않아 뺐다.
+ */
 export const OUR_CELLS = BASES.length;
 
-/** 경쟁 판이 들고 있는 칸 — 밑 열둘이 표에 흡수되고 표가 그만큼 커진다. */
+/** 경쟁 판의 추가 칸 — 소수 표의 칸 수다. 밑 열둘이 표에 흡수되고 표가 그만큼 커진다. 뺀 것은 정본과 같다. */
 export const ALT_CELLS = TABLE_SIZE;
 
 /* ────────────────────── 작업 묶음과 규모 스윕 ────────────────────── */
@@ -236,7 +239,7 @@ export const cases = {
     "10^12 묶음 총 나머지 연산": workloadOps(12, BASES.length),
     "10^13 묶음 총 나머지 연산": workloadOps(13, BASES.length),
     "10^18 묶음 총 나머지 연산": workloadOps(18, BASES.length),
-    "저장 칸": OUR_CELLS,
+    "추가 칸": OUR_CELLS,
   }),
   [`소수 ${TABLE_SIZE} 개 사전 나눗셈`]: () => ({
     "전개 입력 n=49,141 나머지 연산": altOps(WALK).ops,
@@ -245,7 +248,7 @@ export const cases = {
     "10^12 묶음 총 나머지 연산": workloadOps(12, TABLE_SIZE),
     "10^13 묶음 총 나머지 연산": workloadOps(13, TABLE_SIZE),
     "10^18 묶음 총 나머지 연산": workloadOps(18, TABLE_SIZE),
-    "저장 칸": ALT_CELLS,
+    "추가 칸": ALT_CELLS,
   }),
 };
 

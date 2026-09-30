@@ -1178,6 +1178,9 @@ function altCounts(): string {
     ]);
   }
   const first = totals(1);
+  const last = totals(QUERY_COUNTS[QUERY_COUNTS.length - 1] as number);
+  const lastQ = QUERY_COUNTS[QUERY_COUNTS.length - 1] as number;
+  const times = (last.merge.divisions / last.oneShot.divisions).toFixed(1);
   return withNote(
     md(
       [
@@ -1189,7 +1192,7 @@ function altCounts(): string {
       rows,
       [0, 1, 2],
     ),
-    `질의 사이에 들고 있는 값은 합동식 합치기 ${first.held.merge} 개 · 한 번에 합치는 판 ${first.held.oneShot} 개입니다. 순서는 질의 ${뒤집히는_자리()} 회에서 뒤집힙니다.`,
+    `질의 사이에 남기는 추가 칸은 합동식 합치기 ${first.held.merge} 개 · 한 번에 합치는 판 ${first.held.oneShot} 개입니다. 순서는 질의 ${뒤집히는_자리()} 회에서 뒤집히고, 질의 ${num(lastQ)} 회에서는 합동식 합치기의 나눗셈이 한 번에 합치는 판의 ${times} 배입니다.`,
   );
 }
 

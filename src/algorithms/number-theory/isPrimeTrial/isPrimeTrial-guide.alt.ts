@@ -61,7 +61,7 @@ export function ourOps(n: number): { ops: number; result: boolean } {
   return { ops: c.divisions, result: c.prime };
 }
 
-/** 이 절차가 동시에 들고 있는 칸 — `n`·`d`·`step` 셋이다. */
+/** 이 절차가 동시에 들고 있는 칸(저장 칸, 입력 `n` 포함) — `n`·`d`·`step` 셋이다. 재지 않고 적은 개수다. */
 export const OUR_CELLS = 3;
 
 /* ─────────────── 경쟁 설계 — 결정론적 밀러-라빈 ─────────────── */
@@ -156,7 +156,7 @@ export function millerOps(value: number): MillerCount {
   return out(true);
 }
 
-/** 밀러-라빈 판이 들고 있는 칸 — `n`·`r`·`s`·`a`·`x`·`i`·`witness` 일곱 + 밑 목록. */
+/** 밀러-라빈 판이 들고 있는 칸(저장 칸, 입력 `n` 포함) — `n`·`r`·`s`·`a`·`x`·`i`·`witness` 일곱 + 밑 목록. 재지 않고 적은 개수다. */
 export function millerCells(value: number): number {
   return 7 + basesFor(BigInt(value)).length;
 }
