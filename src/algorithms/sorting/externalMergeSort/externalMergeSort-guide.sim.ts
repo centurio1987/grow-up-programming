@@ -1,279 +1,594 @@
-import type { Frame } from "#guide-sim";
+import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — 정수 여덟
- * `5 1 8 3 7 2 9 4` 와 조각 크기 3 이고 답이 `1 2 3 4 5 7 8 9` 다. 프레임 수(13)가 그 절의
- * T# 단계 수(13)와 같다 — P3 이 그 관계를 잰다. **T# 하나에 프레임 하나를 둔다.**
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — 정수 여덟 `5 1 8 3 7 2 9 4` 와
+ * 메모리 3 이고, 답이 `1 2 3 4 5 7 8 9` 다. `runWalk` 가 런을 만드는 T1~T4, `mergeWalk` 가 런 셋을
+ * 합치는 T5~T13 이다. **T# 하나에 걸음 하나를 둔다.**
  *
- * `keyValue` 와 `priorityQueue` 조합을 고른 이유를 적어 둔다. 이 조합의 선례는
- * `src/algorithms/sorting/medianFromDataStream/medianFromDataStream-guide.sim.ts` 가 다섯
- * 규약으로 세워 뒀고, 그 앞에 `dijkstra` 가 있다. 여기서는 그 다섯을 이렇게 이어받는다.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가
+ * 배열 무대(`arrayStage.ts`)를 고른다.
  *
- * 1. **`heap` 은 정렬한 목록이 아니라 배열의 실제 순서다.** dijkstra 규약 1 을 그대로
- *    이어받는다. T8 의 `5 7 9` 와 T10 의 `7 9 8` 이 그 자리다 — 배열이 정렬돼 있지 않은데
- *    꼭대기만 최솟값이다. 정렬해 그리면 「꼭대기가 최솟값이다」가 그림의 성질이 되어 버려서
- *    힙이 **왜** 그 순서를 만드는지가 사라진다.
- * 2. **`label` 은 그 값이 나온 조각의 번호이고 `key` 는 값이다.** 이 절차는 값 하나를 낼
- *    때마다 **그 값이 나온 조각**에서만 다음 값을 올리므로, 라벨이 없으면 다음 걸음에 어느
- *    값이 올라오는지가 그림에서 안 정해진다.
- * 3. **`highlight` 는 꼭대기 한 자리다** — `[0]`. dijkstra 규약 2 와 같다. 이 절차는 꼭대기
- *    하나만 꺼내 출력에 적는다.
- * 4. **`keyValue` 가 디스크 쪽을 진다.** 힙만 보면 이 편의 비용 축인 **입출력**이 안 보인다.
- *    읽고 적은 정수의 누적 개수와 이번 걸음이 만든 조각의 내용을 그 표가 나른다.
- * 5. **조각을 만드는 세 걸음(T2·T3·T4)에서는 힙이 비어 있다.** 그 단계에는 힙이 아직 없기
- *    때문이고, 빈 배열이 그 사실을 그대로 말한다. 조각의 내용은 `keyValue` 쪽에 적는다.
+ * - `runWalk` — 윗줄은 입력 파일이고 쥔 구간 `range` 가 이번에 메모리로 읽어 들인 값이다. `pieces` 가
+ *   지금까지 적은 런의 자리이고, `layers` 의 「런 파일」이 적은 런의 값을 입력의 같은 자리에 놓은 줄이다.
+ * - `mergeWalk` — 윗줄은 런 파일 셋을 이어 놓은 줄이다. `out` 이 이미 메모리로 읽어 들인 칸, `read` 가 이번에
+ *   읽은 칸, `pieces` 가 런마다 아직 안 읽은 자리다. `layers` 의 두 줄이 최소 힙을 **꺼낼 차례대로**
+ *   늘어놓은 띠(`dijkstra` 편이 세운 우선순위 큐 규약)이고, 첫 칸이 꼭대기다. 맨 아래 줄이 출력 파일이다.
+ *
+ * 누적 정수 입출력과 메모리에 든 정수는 무대 어디에도 자리가 없으므로 `vars` 에 둔다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본 실행에서 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `externalMergeSort-guide.test.ts` 가 잰다.
  */
+
+export const runWalk = {
+  player: "stage",
+  stage: "array",
+  arrayName: "입력 파일",
+  rangeLabel: "메모리",
+  title: "externalMergeSort(5 1 8 3 7 2 9 4, 메모리 3) — 런 셋을 만든다",
+  result: "런 0 1 5 8 · 런 1 2 3 7 · 런 2 4 9",
+  steps: [
+    {
+      title: "T1 아직 아무것도 읽지 않았다",
+      text: "입력 파일에 정수가 8 개 있고, 메모리에는 한 번에 3 개까지 듭니다. 아직 런도 최소 힙도 없습니다.",
+      array: [5, 1, 8, 3, 7, 2, 9, 4],
+      range: null,
+      read: [],
+      write: [],
+      calc: null,
+      vars: "읽은 정수 0 · 적은 정수 0 · 메모리 0 개",
+      pieces: [],
+      layers: [
+        {
+          name: "런 파일",
+          values: [null, null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
+      ],
+    },
+    {
+      title: "T2 런 0 을 적는다 ①",
+      text: "5 1 8 을 메모리에 모았습니다. 3 === 3 이 참이라 ①, 정렬한 1 5 8 을 런 파일 하나로 적습니다.",
+      array: [5, 1, 8, 3, 7, 2, 9, 4],
+      range: [0, 2],
+      read: [0, 1, 2],
+      write: [],
+      calc: {
+        expr: "sort(5 1 8)",
+        result: "1 5 8",
+      },
+      vars: "읽은 정수 3 · 적은 정수 3 · 메모리 3 개",
+      pieces: [
+        {
+          label: "런 0",
+          from: 0,
+          to: 2,
+          tone: "left",
+        },
+      ],
+      layers: [
+        {
+          name: "런 파일",
+          values: [1, 5, 8, null, null, null, null, null],
+          read: [],
+          write: [0, 1, 2],
+        },
+      ],
+    },
+    {
+      title: "T3 런 1 을 적는다 ①",
+      text: "3 7 2 를 메모리에 모았습니다. 3 === 3 이 참이라 ①, 정렬한 2 3 7 을 런 파일 하나로 적습니다.",
+      array: [5, 1, 8, 3, 7, 2, 9, 4],
+      range: [3, 5],
+      read: [3, 4, 5],
+      write: [],
+      calc: {
+        expr: "sort(3 7 2)",
+        result: "2 3 7",
+      },
+      vars: "읽은 정수 6 · 적은 정수 6 · 메모리 3 개",
+      pieces: [
+        {
+          label: "런 0",
+          from: 0,
+          to: 2,
+          tone: "left",
+        },
+        {
+          label: "런 1",
+          from: 3,
+          to: 5,
+          tone: "right",
+        },
+      ],
+      layers: [
+        {
+          name: "런 파일",
+          values: [1, 5, 8, 2, 3, 7, null, null],
+          read: [],
+          write: [3, 4, 5],
+        },
+      ],
+    },
+    {
+      title: "T4 자투리 런 2 를 적는다 ②",
+      text: "9 4 를 메모리에 모았습니다. 2 === 3 은 거짓이지만 입력이 끝났고 값이 남아 ②, 정렬한 4 9 를 런 파일 하나로 적습니다.",
+      array: [5, 1, 8, 3, 7, 2, 9, 4],
+      range: [6, 7],
+      read: [6, 7],
+      write: [],
+      calc: {
+        expr: "sort(9 4)",
+        result: "4 9",
+      },
+      vars: "읽은 정수 8 · 적은 정수 8 · 메모리 2 개",
+      pieces: [
+        {
+          label: "런 0",
+          from: 0,
+          to: 2,
+          tone: "left",
+        },
+        {
+          label: "런 1",
+          from: 3,
+          to: 5,
+          tone: "right",
+        },
+        {
+          label: "런 2",
+          from: 6,
+          to: 7,
+          tone: "left",
+        },
+      ],
+      layers: [
+        {
+          name: "런 파일",
+          values: [1, 5, 8, 2, 3, 7, 4, 9],
+          read: [],
+          write: [6, 7],
+        },
+      ],
+    },
+  ],
+} satisfies ArrayPlayerSpec;
+
 export const mergeWalk = {
-  view: ["keyValue", "priorityQueue"] as const,
-  title:
-    "externalMergeSort(5 1 8 3 7 2 9 4, 조각 크기 3) — 조각 셋을 하나로 합친다",
+  player: "stage",
+  stage: "array",
+  arrayName: "런 파일",
+  rangeLabel: "합치는 런",
+  title: "externalMergeSort(5 1 8 3 7 2 9 4, 메모리 3) — 런 셋을 하나로 합친다",
   result: "1 2 3 4 5 7 8 9",
   steps: [
     {
-      title: "T1 조각을 하나도 만들기 전",
-      detail:
-        "입력 파일에 정수가 여덟 개 있고 한 번에 메모리에 올릴 수 있는 것은 세 개다. 아직 아무것도 읽지 않았으므로 조각도 힙도 없다.",
-      entries: [
-        { label: "이번 걸음이 만든 조각", value: "—" },
-        { label: "조각 수", value: 0 },
-        { label: "힙 크기", value: 0 },
-        { label: "출력에 낸 값", value: "—" },
-        { label: "힙에 올린 값", value: "—" },
-        { label: "읽은 정수", value: 0 },
-        { label: "적은 정수", value: 0 },
-        { label: "갈래", value: "—" },
+      title: "T5 런마다 첫 값을 올린다 ③",
+      text: "런 3 개의 첫 값 1 · 2 · 4 를 최소 힙에 올립니다. 메모리에 든 정수는 3 개입니다.",
+      array: [1, 5, 8, 2, 3, 7, 4, 9],
+      range: [0, 7],
+      rangeSide: "안 읽은 값 5 개",
+      read: [0, 3, 6],
+      write: [],
+      out: [0, 3, 6],
+      calc: null,
+      vars: "읽은 정수 11 · 적은 정수 8 · 메모리 3 개",
+      pieces: [
+        {
+          label: "런 0",
+          from: 1,
+          to: 2,
+          tone: "left",
+        },
+        {
+          label: "런 1",
+          from: 4,
+          to: 5,
+          tone: "right",
+        },
+        {
+          label: "런 2",
+          from: 7,
+          to: 7,
+          tone: "left",
+        },
       ],
-      heap: [],
+      layers: [
+        {
+          name: "최소 힙 · 값",
+          values: [1, 2, 4],
+          read: [],
+          write: [0, 1, 2],
+          side: "꺼낼 차례 · 크기 3",
+          caret: false,
+        },
+        {
+          name: "최소 힙 · 런",
+          values: [0, 1, 2],
+          read: [],
+          write: [0, 1, 2],
+          side: "값이 나온 런",
+        },
+        {
+          name: "출력 파일",
+          values: [null, null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
+      ],
     },
     {
-      title: "T2 앞의 세 개를 정렬해 조각 0 으로 적는다",
-      detail:
-        "5 1 8 을 읽으면 조각이 가득 찬다. 메모리에서 정렬하면 1 5 8 이고 그것을 파일 하나로 적는다.",
-      entries: [
-        { label: "이번 걸음이 만든 조각", value: "1 5 8" },
-        { label: "조각 수", value: 1 },
-        { label: "힙 크기", value: 0 },
-        { label: "출력에 낸 값", value: "—" },
-        { label: "힙에 올린 값", value: "—" },
-        { label: "읽은 정수", value: 3 },
-        { label: "적은 정수", value: 3 },
-        { label: "갈래", value: "① 조각이 가득 찼다" },
+      title: "T6 1 을 적고 5 를 올린다 ④",
+      text: "꼭대기 1 을 꺼내 출력 파일에 적습니다. 런 0 에서 다음 값 5 를 읽어 최소 힙에 올립니다.",
+      array: [1, 5, 8, 2, 3, 7, 4, 9],
+      range: [0, 7],
+      rangeSide: "안 읽은 값 4 개",
+      read: [1],
+      write: [],
+      out: [0, 1, 3, 6],
+      calc: {
+        expr: "min(1, 2, 4)",
+        result: "1",
+      },
+      vars: "읽은 정수 12 · 적은 정수 9 · 메모리 3 개",
+      pieces: [
+        {
+          label: "런 0",
+          from: 2,
+          to: 2,
+          tone: "left",
+        },
+        {
+          label: "런 1",
+          from: 4,
+          to: 5,
+          tone: "right",
+        },
+        {
+          label: "런 2",
+          from: 7,
+          to: 7,
+          tone: "left",
+        },
       ],
-      heap: [],
+      layers: [
+        {
+          name: "최소 힙 · 값",
+          values: [2, 4, 5],
+          read: [],
+          write: [2],
+          side: "꺼낼 차례 · 크기 3",
+          caret: false,
+        },
+        {
+          name: "최소 힙 · 런",
+          values: [1, 2, 0],
+          read: [],
+          write: [2],
+          side: "값이 나온 런",
+        },
+        {
+          name: "출력 파일",
+          values: [1, null, null, null, null, null, null, null],
+          read: [],
+          write: [0],
+        },
+      ],
     },
     {
-      title: "T3 다음 세 개를 정렬해 조각 1 로 적는다",
-      detail:
-        "3 7 2 를 읽으면 다시 가득 찬다. 정렬하면 2 3 7 이다. 앞 조각은 이미 디스크에 있고 메모리에 남아 있지 않다.",
-      entries: [
-        { label: "이번 걸음이 만든 조각", value: "2 3 7" },
-        { label: "조각 수", value: 2 },
-        { label: "힙 크기", value: 0 },
-        { label: "출력에 낸 값", value: "—" },
-        { label: "힙에 올린 값", value: "—" },
-        { label: "읽은 정수", value: 6 },
-        { label: "적은 정수", value: 6 },
-        { label: "갈래", value: "① 조각이 가득 찼다" },
+      title: "T7 2 를 적고 3 을 올린다 ④",
+      text: "꼭대기 2 를 꺼내 출력 파일에 적습니다. 런 1 에서 다음 값 3 을 읽어 최소 힙에 올립니다.",
+      array: [1, 5, 8, 2, 3, 7, 4, 9],
+      range: [0, 7],
+      rangeSide: "안 읽은 값 3 개",
+      read: [4],
+      write: [],
+      out: [0, 1, 3, 4, 6],
+      calc: {
+        expr: "min(2, 4, 5)",
+        result: "2",
+      },
+      vars: "읽은 정수 13 · 적은 정수 10 · 메모리 3 개",
+      pieces: [
+        {
+          label: "런 0",
+          from: 2,
+          to: 2,
+          tone: "left",
+        },
+        {
+          label: "런 1",
+          from: 5,
+          to: 5,
+          tone: "right",
+        },
+        {
+          label: "런 2",
+          from: 7,
+          to: 7,
+          tone: "left",
+        },
       ],
-      heap: [],
+      layers: [
+        {
+          name: "최소 힙 · 값",
+          values: [3, 4, 5],
+          read: [],
+          write: [0],
+          side: "꺼낼 차례 · 크기 3",
+          caret: false,
+        },
+        {
+          name: "최소 힙 · 런",
+          values: [1, 2, 0],
+          read: [],
+          write: [0],
+          side: "값이 나온 런",
+        },
+        {
+          name: "출력 파일",
+          values: [1, 2, null, null, null, null, null, null],
+          read: [],
+          write: [1],
+        },
+      ],
     },
     {
-      title: "T4 남은 두 개를 자투리 조각 2 로 적는다",
-      detail:
-        "9 4 를 읽은 다음 입력이 끝난다. 조각이 가득 차지 않았지만 값이 남아 있으므로 자투리 갈래가 실행돼 4 9 를 적는다. 조각 크기 3 이 정수 여덟 개를 나누지 못해 생기는 자리다.",
-      entries: [
-        { label: "이번 걸음이 만든 조각", value: "4 9" },
-        { label: "조각 수", value: 3 },
-        { label: "힙 크기", value: 0 },
-        { label: "출력에 낸 값", value: "—" },
-        { label: "힙에 올린 값", value: "—" },
-        { label: "읽은 정수", value: 8 },
-        { label: "적은 정수", value: 8 },
-        { label: "갈래", value: "② 자투리가 남았다" },
+      title: "T8 3 을 적고 7 을 올린다 ④",
+      text: "꼭대기 3 을 꺼내 출력 파일에 적습니다. 런 1 에서 다음 값 7 을 읽어 최소 힙에 올립니다.",
+      array: [1, 5, 8, 2, 3, 7, 4, 9],
+      range: [0, 7],
+      rangeSide: "안 읽은 값 2 개",
+      read: [5],
+      write: [],
+      out: [0, 1, 3, 4, 5, 6],
+      calc: {
+        expr: "min(3, 4, 5)",
+        result: "3",
+      },
+      vars: "읽은 정수 14 · 적은 정수 11 · 메모리 3 개",
+      pieces: [
+        {
+          label: "런 0",
+          from: 2,
+          to: 2,
+          tone: "left",
+        },
+        {
+          label: "런 2",
+          from: 7,
+          to: 7,
+          tone: "left",
+        },
       ],
-      heap: [],
+      layers: [
+        {
+          name: "최소 힙 · 값",
+          values: [4, 5, 7],
+          read: [],
+          write: [2],
+          side: "꺼낼 차례 · 크기 3",
+          caret: false,
+        },
+        {
+          name: "최소 힙 · 런",
+          values: [2, 0, 1],
+          read: [],
+          write: [2],
+          side: "값이 나온 런",
+        },
+        {
+          name: "출력 파일",
+          values: [1, 2, 3, null, null, null, null, null],
+          read: [],
+          write: [2],
+        },
+      ],
     },
     {
-      title: "T5 조각마다 첫 값 하나씩만 힙에 올린다",
-      detail:
-        "조각 셋의 첫 값 1 · 2 · 4 를 올린다. 메모리에 든 정수가 셋뿐이고, 조각 안의 나머지 값은 아직 디스크에 있다.",
-      entries: [
-        { label: "이번 걸음이 만든 조각", value: "—" },
-        { label: "조각 수", value: 3 },
-        { label: "힙 크기", value: 3 },
-        { label: "출력에 낸 값", value: "—" },
-        { label: "힙에 올린 값", value: "1 2 4" },
-        { label: "읽은 정수", value: 11 },
-        { label: "적은 정수", value: 8 },
-        { label: "갈래", value: "③ 첫 값 하나씩 올린다" },
+      title: "T9 4 를 적고 9 를 올린다 ④",
+      text: "꼭대기 4 를 꺼내 출력 파일에 적습니다. 런 2 에서 다음 값 9 를 읽어 최소 힙에 올립니다.",
+      array: [1, 5, 8, 2, 3, 7, 4, 9],
+      range: [0, 7],
+      rangeSide: "안 읽은 값 1 개",
+      read: [7],
+      write: [],
+      out: [0, 1, 3, 4, 5, 6, 7],
+      calc: {
+        expr: "min(4, 5, 7)",
+        result: "4",
+      },
+      vars: "읽은 정수 15 · 적은 정수 12 · 메모리 3 개",
+      pieces: [
+        {
+          label: "런 0",
+          from: 2,
+          to: 2,
+          tone: "left",
+        },
       ],
-      heap: [
-        { label: "조각 0", key: 1 },
-        { label: "조각 1", key: 2 },
-        { label: "조각 2", key: 4 },
+      layers: [
+        {
+          name: "최소 힙 · 값",
+          values: [5, 7, 9],
+          read: [],
+          write: [2],
+          side: "꺼낼 차례 · 크기 3",
+          caret: false,
+        },
+        {
+          name: "최소 힙 · 런",
+          values: [0, 1, 2],
+          read: [],
+          write: [2],
+          side: "값이 나온 런",
+        },
+        {
+          name: "출력 파일",
+          values: [1, 2, 3, 4, null, null, null, null],
+          read: [],
+          write: [3],
+        },
       ],
-      highlight: [0],
     },
     {
-      title: "T6 꼭대기 1 을 내고 조각 0 에서 5 를 올린다",
-      detail:
-        "꼭대기가 세 조각의 첫 값 중 최솟값이라 그것이 답의 첫 값이다. 1 은 조각 0 에서 왔으므로 다음 값도 조각 0 에서만 올린다.",
-      entries: [
-        { label: "이번 걸음이 만든 조각", value: "—" },
-        { label: "조각 수", value: 3 },
-        { label: "힙 크기", value: 3 },
-        { label: "출력에 낸 값", value: 1 },
-        { label: "힙에 올린 값", value: 5 },
-        { label: "읽은 정수", value: 12 },
-        { label: "적은 정수", value: 9 },
-        { label: "갈래", value: "④ 내고 그 조각에서 올린다" },
+      title: "T10 5 를 적고 8 을 올린다 ④",
+      text: "꼭대기 5 를 꺼내 출력 파일에 적습니다. 런 0 에서 다음 값 8 을 읽어 최소 힙에 올립니다.",
+      array: [1, 5, 8, 2, 3, 7, 4, 9],
+      range: [0, 7],
+      rangeSide: "안 읽은 값 0 개",
+      read: [2],
+      write: [],
+      out: [0, 1, 2, 3, 4, 5, 6, 7],
+      calc: {
+        expr: "min(5, 7, 9)",
+        result: "5",
+      },
+      vars: "읽은 정수 16 · 적은 정수 13 · 메모리 3 개",
+      pieces: [],
+      layers: [
+        {
+          name: "최소 힙 · 값",
+          values: [7, 8, 9],
+          read: [],
+          write: [1],
+          side: "꺼낼 차례 · 크기 3",
+          caret: false,
+        },
+        {
+          name: "최소 힙 · 런",
+          values: [1, 0, 2],
+          read: [],
+          write: [1],
+          side: "값이 나온 런",
+        },
+        {
+          name: "출력 파일",
+          values: [1, 2, 3, 4, 5, null, null, null],
+          read: [],
+          write: [4],
+        },
       ],
-      heap: [
-        { label: "조각 1", key: 2 },
-        { label: "조각 2", key: 4 },
-        { label: "조각 0", key: 5 },
-      ],
-      highlight: [0],
     },
     {
-      title: "T7 꼭대기 2 를 내고 조각 1 에서 3 을 올린다",
-      detail:
-        "새로 올린 3 이 5 와 4 보다 작아 꼭대기로 올라간다. 배열은 3 5 4 로 정렬돼 있지 않은데 꼭대기만 최솟값이다.",
-      entries: [
-        { label: "이번 걸음이 만든 조각", value: "—" },
-        { label: "조각 수", value: 3 },
-        { label: "힙 크기", value: 3 },
-        { label: "출력에 낸 값", value: 2 },
-        { label: "힙에 올린 값", value: 3 },
-        { label: "읽은 정수", value: 13 },
-        { label: "적은 정수", value: 10 },
-        { label: "갈래", value: "④ 내고 그 조각에서 올린다" },
+      title: "T11 7 을 적고 런 1 이 끝난다 ④",
+      text: "꼭대기 7 을 꺼내 출력 파일에 적습니다. 런 1 의 다음 값이 null 이라 올리지 않고, 최소 힙이 2 개로 줄어듭니다.",
+      array: [1, 5, 8, 2, 3, 7, 4, 9],
+      range: [0, 7],
+      rangeSide: "안 읽은 값 0 개",
+      read: [],
+      write: [],
+      out: [0, 1, 2, 3, 4, 5, 6, 7],
+      calc: {
+        expr: "min(7, 8, 9)",
+        result: "7",
+      },
+      vars: "읽은 정수 16 · 적은 정수 14 · 메모리 2 개",
+      pieces: [],
+      layers: [
+        {
+          name: "최소 힙 · 값",
+          values: [8, 9, null],
+          read: [],
+          write: [],
+          side: "꺼낼 차례 · 크기 2",
+          caret: false,
+        },
+        {
+          name: "최소 힙 · 런",
+          values: [0, 2, null],
+          read: [],
+          write: [],
+          side: "값이 나온 런",
+        },
+        {
+          name: "출력 파일",
+          values: [1, 2, 3, 4, 5, 7, null, null],
+          read: [],
+          write: [5],
+        },
       ],
-      heap: [
-        { label: "조각 1", key: 3 },
-        { label: "조각 0", key: 5 },
-        { label: "조각 2", key: 4 },
-      ],
-      highlight: [0],
     },
     {
-      title: "T8 꼭대기 3 을 내고 조각 1 에서 7 을 올린다",
-      detail:
-        "같은 조각에서 두 번 잇달아 값이 나왔다. 조각 1 의 2 와 3 이 이웃한 값이라 그렇고, 어느 조각에서 몇 번 나오는지는 값이 정한다.",
-      entries: [
-        { label: "이번 걸음이 만든 조각", value: "—" },
-        { label: "조각 수", value: 3 },
-        { label: "힙 크기", value: 3 },
-        { label: "출력에 낸 값", value: 3 },
-        { label: "힙에 올린 값", value: 7 },
-        { label: "읽은 정수", value: 14 },
-        { label: "적은 정수", value: 11 },
-        { label: "갈래", value: "④ 내고 그 조각에서 올린다" },
+      title: "T12 8 을 적고 런 0 이 끝난다 ④",
+      text: "꼭대기 8 을 꺼내 출력 파일에 적습니다. 런 0 의 다음 값이 null 이라 올리지 않고, 최소 힙이 1 개로 줄어듭니다.",
+      array: [1, 5, 8, 2, 3, 7, 4, 9],
+      range: [0, 7],
+      rangeSide: "안 읽은 값 0 개",
+      read: [],
+      write: [],
+      out: [0, 1, 2, 3, 4, 5, 6, 7],
+      calc: {
+        expr: "min(8, 9)",
+        result: "8",
+      },
+      vars: "읽은 정수 16 · 적은 정수 15 · 메모리 1 개",
+      pieces: [],
+      layers: [
+        {
+          name: "최소 힙 · 값",
+          values: [9, null, null],
+          read: [],
+          write: [],
+          side: "꺼낼 차례 · 크기 1",
+          caret: false,
+        },
+        {
+          name: "최소 힙 · 런",
+          values: [2, null, null],
+          read: [],
+          write: [],
+          side: "값이 나온 런",
+        },
+        {
+          name: "출력 파일",
+          values: [1, 2, 3, 4, 5, 7, 8, null],
+          read: [],
+          write: [6],
+        },
       ],
-      heap: [
-        { label: "조각 2", key: 4 },
-        { label: "조각 0", key: 5 },
-        { label: "조각 1", key: 7 },
-      ],
-      highlight: [0],
     },
     {
-      title: "T9 꼭대기 4 를 내고 조각 2 에서 9 를 올린다",
-      detail:
-        "자투리 조각 2 는 값이 둘뿐이라 이 걸음에서 마지막 값 9 를 내놓는다. 조각 크기가 달라도 절차는 그대로다.",
-      entries: [
-        { label: "이번 걸음이 만든 조각", value: "—" },
-        { label: "조각 수", value: 3 },
-        { label: "힙 크기", value: 3 },
-        { label: "출력에 낸 값", value: 4 },
-        { label: "힙에 올린 값", value: 9 },
-        { label: "읽은 정수", value: 15 },
-        { label: "적은 정수", value: 12 },
-        { label: "갈래", value: "④ 내고 그 조각에서 올린다" },
+      title: "T13 9 를 적고 런 2 가 끝난다 ④",
+      text: "꼭대기 9 를 꺼내 출력 파일에 적습니다. 런 2 의 다음 값이 null 이라 올리지 않고, 최소 힙이 0 개로 줄어듭니다.",
+      array: [1, 5, 8, 2, 3, 7, 4, 9],
+      range: [0, 7],
+      rangeSide: "안 읽은 값 0 개",
+      read: [],
+      write: [],
+      out: [0, 1, 2, 3, 4, 5, 6, 7],
+      calc: {
+        expr: "min(9)",
+        result: "9",
+      },
+      vars: "읽은 정수 16 · 적은 정수 16 · 메모리 0 개",
+      pieces: [],
+      layers: [
+        {
+          name: "최소 힙 · 값",
+          values: [null, null, null],
+          read: [],
+          write: [],
+          side: "꺼낼 차례 · 크기 0",
+          caret: false,
+        },
+        {
+          name: "최소 힙 · 런",
+          values: [null, null, null],
+          read: [],
+          write: [],
+          side: "값이 나온 런",
+        },
+        {
+          name: "출력 파일",
+          values: [1, 2, 3, 4, 5, 7, 8, 9],
+          read: [],
+          write: [7],
+        },
       ],
-      heap: [
-        { label: "조각 0", key: 5 },
-        { label: "조각 1", key: 7 },
-        { label: "조각 2", key: 9 },
-      ],
-      highlight: [0],
     },
-    {
-      title: "T10 꼭대기 5 를 내고 조각 0 에서 8 을 올린다",
-      detail:
-        "배열이 7 9 8 이 된다. 8 은 9 보다 작지만 부모 7 보다 크므로 자기 자리에서 멈춘다 — 힙은 부모와 자식 사이만 지킨다.",
-      entries: [
-        { label: "이번 걸음이 만든 조각", value: "—" },
-        { label: "조각 수", value: 3 },
-        { label: "힙 크기", value: 3 },
-        { label: "출력에 낸 값", value: 5 },
-        { label: "힙에 올린 값", value: 8 },
-        { label: "읽은 정수", value: 16 },
-        { label: "적은 정수", value: 13 },
-        { label: "갈래", value: "④ 내고 그 조각에서 올린다" },
-      ],
-      heap: [
-        { label: "조각 1", key: 7 },
-        { label: "조각 2", key: 9 },
-        { label: "조각 0", key: 8 },
-      ],
-      highlight: [0],
-    },
-    {
-      title: "T11 꼭대기 7 을 내지만 조각 1 이 끝나 아무것도 안 올린다",
-      detail:
-        "조각 1 의 값 세 개를 다 냈으므로 다음 값이 없다. 힙이 하나 줄고, 읽은 정수도 늘지 않는다. 여기부터 힙이 조각 수보다 작아진다.",
-      entries: [
-        { label: "이번 걸음이 만든 조각", value: "—" },
-        { label: "조각 수", value: 3 },
-        { label: "힙 크기", value: 2 },
-        { label: "출력에 낸 값", value: 7 },
-        { label: "힙에 올린 값", value: "—" },
-        { label: "읽은 정수", value: 16 },
-        { label: "적은 정수", value: 14 },
-        { label: "갈래", value: "④ 내고 그 조각에서 올린다" },
-      ],
-      heap: [
-        { label: "조각 0", key: 8 },
-        { label: "조각 2", key: 9 },
-      ],
-      highlight: [0],
-    },
-    {
-      title: "T12 꼭대기 8 을 내고 조각 0 도 끝난다",
-      detail:
-        "조각 0 의 1 5 8 을 다 냈다. 힙에는 조각 2 의 마지막 값 9 하나만 남는다.",
-      entries: [
-        { label: "이번 걸음이 만든 조각", value: "—" },
-        { label: "조각 수", value: 3 },
-        { label: "힙 크기", value: 1 },
-        { label: "출력에 낸 값", value: 8 },
-        { label: "힙에 올린 값", value: "—" },
-        { label: "읽은 정수", value: 16 },
-        { label: "적은 정수", value: 15 },
-        { label: "갈래", value: "④ 내고 그 조각에서 올린다" },
-      ],
-      heap: [{ label: "조각 2", key: 9 }],
-      highlight: [0],
-    },
-    {
-      title: "T13 마지막 값 9 를 내고 힙이 빈다",
-      detail:
-        "힙이 비면 아직 안 낸 값이 하나도 없다는 뜻이라 반복이 끝난다. 출력 파일에 1 2 3 4 5 7 8 9 가 적혀 있고 읽은 정수와 적은 정수가 각각 16 이다.",
-      entries: [
-        { label: "이번 걸음이 만든 조각", value: "—" },
-        { label: "조각 수", value: 3 },
-        { label: "힙 크기", value: 0 },
-        { label: "출력에 낸 값", value: 9 },
-        { label: "힙에 올린 값", value: "—" },
-        { label: "읽은 정수", value: 16 },
-        { label: "적은 정수", value: 16 },
-        { label: "갈래", value: "④ 내고 그 조각에서 올린다" },
-      ],
-      heap: [],
-    },
-  ] satisfies Frame[],
-};
+  ],
+} satisfies ArrayPlayerSpec;

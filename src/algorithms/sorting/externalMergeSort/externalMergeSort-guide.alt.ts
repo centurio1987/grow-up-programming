@@ -1,7 +1,7 @@
 /**
  * `purpose.alt`(경쟁 설계와의 대조)가 내미는 계수의 출처, 그리고 이 편이 쓰는 **세는 사본**.
  *
- * 이 편의 비용 축은 견주기가 아니라 **입출력**이다. 그런데 정본은 실제로 파일을 읽고 적으므로
+ * 이 편의 비용 축은 비교 횟수가 아니라 **입출력**이다. 그런데 정본은 실제로 파일을 읽고 적으므로
  * 계수를 내보내지 않고, `bench-alt.ts` 의 계약(`cases`)은 **동기 함수**라 파일 입출력을 넣을
  * 수 없다. 그래서 여기 있는 것은 정본과 **같은 절차를 메모리 위에서 흉내 내며 세는 사본**이다.
  *
@@ -10,9 +10,9 @@
  * 계수는 저울질이 아니라 다른 문제의 값이다(`FEEDBACK.md` §5, 2026-09-03 `S34`).
  * 사본과 정본이 파일 위에서도 같은 개수를 내는지는 `-guide.test.ts` 의 케이스 ②③ 이 진다.
  *
- * 경쟁 설계는 **두 조각씩 여러 바퀴 합치는 판**이다. 정본은 조각 전부를 한 번에 합쳐 합치기가
- * 한 바퀴로 끝나고, 경쟁 설계는 한 바퀴에 두 조각씩만 합쳐 바퀴 수가 늘어난다. 두 판은
- * 조각을 만드는 단계가 글자 그대로 같아서 그 단계의 계수는 갈리지 않는다.
+ * 경쟁 설계는 **두 런씩 여러 바퀴 합치는 판**이다. 정본은 런 전부를 한 번에 합쳐 합치기가
+ * 한 바퀴로 끝나고, 경쟁 설계는 한 바퀴에 두 런씩만 합쳐 바퀴 수가 늘어난다. 두 판은
+ * 런을 만드는 단계가 글자 그대로 같아서 그 단계의 계수는 갈리지 않는다.
  */
 
 /* ────────────────────────── 입력 ────────────────────────── */
@@ -27,10 +27,10 @@ export function 생성식(N: number): number[] {
   return out;
 }
 
-/** 대조가 쓰는 규모. 전개 입력(정수 아홉·조각 크기 3)으로는 조각이 셋뿐이라 바퀴가 안 갈린다. */
+/** 대조가 쓰는 규모. 전개 입력(정수 여덟·런 크기 3)으로는 런이 셋뿐이라 바퀴가 안 갈린다. */
 export const 대조_N = 100_000;
 export const 대조_M = 100;
-/** 경쟁 설계가 한 바퀴에 합치는 조각 수. */
+/** 경쟁 설계가 한 바퀴에 합치는 런 수. */
 export const 대조_k = 2;
 
 /* ────────────────────────── 계수 ────────────────────────── */
@@ -40,17 +40,17 @@ export interface 계수 {
   읽은: number;
   /** 디스크로 적은 정수 개수. */
   적은: number;
-  /** 조각을 정렬하며 든 견주기. */
-  정렬_견주기: number;
-  /** 조각을 합치며 힙이 든 견주기. */
-  합치기_견주기: number;
+  /** 런을 정렬하며 든 비교. */
+  정렬_비교: number;
+  /** 런을 합치며 힙이 든 비교. */
+  합치기_비교: number;
   /** 한 번에 메모리에 든 정수의 최대 개수. */
   최대_정수_칸: number;
-  /** 한 번에 동시에 연 조각 파일의 최대 개수. */
-  연_조각_파일: number;
-  /** 조각 개수. */
-  조각: number;
-  /** 조각을 하나로 줄일 때까지 합치기를 되풀이한 횟수. */
+  /** 한 번에 동시에 연 런 파일의 최대 개수. */
+  연_런_파일: number;
+  /** 런 개수. */
+  런: number;
+  /** 런을 하나로 줄일 때까지 합치기를 되풀이한 횟수. */
   합치기_바퀴: number;
 }
 
@@ -59,10 +59,10 @@ interface 항목 {
   run: number;
 }
 
-/** 정본의 `MinHeap` 과 같은 절차에 견주기 횟수만 덧붙인 사본. */
+/** 정본의 `MinHeap` 과 같은 절차에 비교 횟수만 덧붙인 사본. */
 class 세는힙 {
   private items: 항목[] = [];
-  견주기 = 0;
+  비교 = 0;
 
   get size(): number {
     return this.items.length;
@@ -74,7 +74,7 @@ class 세는힙 {
     let i = items.length - 1;
     while (i > 0) {
       const parent = (i - 1) >> 1;
-      this.견주기++;
+      this.비교++;
       if ((items[parent] as 항목).value <= (items[i] as 항목).value) break;
       [items[i], items[parent]] = [items[parent] as 항목, items[i] as 항목];
       i = parent;
@@ -93,12 +93,12 @@ class 세는힙 {
         const left = 2 * i + 1;
         const right = 2 * i + 2;
         if (left < items.length) {
-          this.견주기++;
+          this.비교++;
           if ((items[left] as 항목).value < (items[small] as 항목).value)
             small = left;
         }
         if (right < items.length) {
-          this.견주기++;
+          this.비교++;
           if ((items[right] as 항목).value < (items[small] as 항목).value)
             small = right;
         }
@@ -111,13 +111,13 @@ class 세는힙 {
   }
 }
 
-/** 조각 하나를 만드는 단계. 두 판이 글자 그대로 같이 쓴다. */
-function 조각_만들기(
+/** 런 하나를 만드는 단계. 두 판이 글자 그대로 같이 쓴다. */
+function 런_만들기(
   values: number[],
   M: number,
-): { 조각들: number[][]; 정렬_견주기: number; 최대_정수_칸: number } {
-  const 조각들: number[][] = [];
-  let 정렬_견주기 = 0;
+): { 런들: number[][]; 정렬_비교: number; 최대_정수_칸: number } {
+  const 런들: number[][] = [];
+  let 정렬_비교 = 0;
   let 최대_정수_칸 = 0;
   let chunk: number[] = [];
   let i = 0;
@@ -131,33 +131,33 @@ function 조각_만들기(
     const tail = value === null && chunk.length > 0;
     if (full || tail) {
       chunk.sort((a, b) => {
-        정렬_견주기++;
+        정렬_비교++;
         return a - b;
       });
-      조각들.push(chunk);
+      런들.push(chunk);
       chunk = [];
     }
     if (value === null) break;
   }
-  return { 조각들, 정렬_견주기, 최대_정수_칸 };
+  return { 런들, 정렬_비교, 최대_정수_칸 };
 }
 
-/** 조각 여럿을 힙 하나로 합쳐 정렬된 배열 하나로 만든다. 읽고 적은 개수도 함께 센다. */
-function 합치기(조각들: number[][]): {
+/** 런 여럿을 힙 하나로 합쳐 정렬된 배열 하나로 만든다. 읽고 적은 개수도 함께 센다. */
+function 합치기(런들: number[][]): {
   합친것: number[];
-  견주기: number;
+  비교: number;
   읽은: number;
   적은: number;
   최대_정수_칸: number;
 } {
   const heap = new 세는힙();
-  const 자리 = 조각들.map(() => 0);
+  const 자리 = 런들.map(() => 0);
   let 읽은 = 0;
-  for (let run = 0; run < 조각들.length; run++) {
-    const 조각 = 조각들[run] as number[];
-    if (조각.length > 0) {
+  for (let run = 0; run < 런들.length; run++) {
+    const 런 = 런들[run] as number[];
+    if (런.length > 0) {
       읽은++;
-      heap.push({ value: 조각[자리[run] as number] as number, run });
+      heap.push({ value: 런[자리[run] as number] as number, run });
       (자리 as number[])[run] = (자리[run] as number) + 1;
     }
   }
@@ -166,17 +166,17 @@ function 합치기(조각들: number[][]): {
   while (heap.size > 0) {
     const { value, run } = heap.pop();
     합친것.push(value);
-    const 조각 = 조각들[run] as number[];
-    if ((자리[run] as number) < 조각.length) {
+    const 런 = 런들[run] as number[];
+    if ((자리[run] as number) < 런.length) {
       읽은++;
-      heap.push({ value: 조각[자리[run] as number] as number, run });
+      heap.push({ value: 런[자리[run] as number] as number, run });
       (자리 as number[])[run] = (자리[run] as number) + 1;
     }
     if (heap.size > 최대_정수_칸) 최대_정수_칸 = heap.size;
   }
   return {
     합친것,
-    견주기: heap.견주기,
+    비교: heap.비교,
     읽은,
     적은: 합친것.length,
     최대_정수_칸,
@@ -198,42 +198,42 @@ function 답_확인(합친것: number[], values: number[], 이름: string): void
   }
 }
 
-/** 정본 — 조각을 만든 뒤 **전부 한 번에** 합친다. 합치기가 한 바퀴로 끝난다. */
+/** 정본 — 런을 만든 뒤 **전부 한 번에** 합친다. 합치기가 한 바퀴로 끝난다. */
 export function 한번에_합치기(values: number[], M: number): 계수 {
-  const 만들기 = 조각_만들기(values, M);
-  const 조각들 = 만들기.조각들;
-  const 합침 = 합치기(조각들);
+  const 만들기 = 런_만들기(values, M);
+  const 런들 = 만들기.런들;
+  const 합침 = 합치기(런들);
   답_확인(합침.합친것, values, "한 번에 합치는 판");
   return {
     읽은: values.length + 합침.읽은,
     적은: values.length + 합침.적은,
-    정렬_견주기: 만들기.정렬_견주기,
-    합치기_견주기: 합침.견주기,
+    정렬_비교: 만들기.정렬_비교,
+    합치기_비교: 합침.비교,
     최대_정수_칸: Math.max(만들기.최대_정수_칸, 합침.최대_정수_칸),
-    연_조각_파일: 조각들.length,
-    조각: 조각들.length,
+    연_런_파일: 런들.length,
+    런: 런들.length,
     합치기_바퀴: 1,
   };
 }
 
-/** 경쟁 설계 — 한 바퀴에 `k` 조각씩만 합쳐 조각이 하나가 될 때까지 되풀이한다. */
+/** 경쟁 설계 — 한 바퀴에 `k` 런씩만 합쳐 런이 하나가 될 때까지 되풀이한다. */
 export function 여러바퀴_합치기(values: number[], M: number, k: number): 계수 {
-  const 만들기 = 조각_만들기(values, M);
-  let 층: number[][] = 만들기.조각들;
+  const 만들기 = 런_만들기(values, M);
+  let 층: number[][] = 만들기.런들;
   let 읽은 = values.length;
   let 적은 = values.length;
-  let 견주기 = 0;
+  let 비교 = 0;
   let 최대_정수_칸 = 만들기.최대_정수_칸;
   let 바퀴 = 0;
-  const 조각 = 층.length;
+  const 런 = 층.length;
 
   if (층.length === 1) {
-    // 조각이 하나여도 출력 파일은 따로 있어야 하므로 한 바퀴가 든다.
+    // 런이 하나여도 출력 파일은 따로 있어야 하므로 한 바퀴가 든다.
     바퀴 = 1;
     const 합침 = 합치기(층);
     읽은 += 합침.읽은;
     적은 += 합침.적은;
-    견주기 += 합침.견주기;
+    비교 += 합침.비교;
     최대_정수_칸 = Math.max(최대_정수_칸, 합침.최대_정수_칸);
     답_확인(합침.합친것, values, "여러 바퀴 합치는 판");
     층 = [합침.합친것];
@@ -245,14 +245,14 @@ export function 여러바퀴_합치기(values: number[], M: number, k: number): 
     for (let at = 0; at < 층.length; at += k) {
       const 묶음 = 층.slice(at, at + k);
       if (묶음.length === 1) {
-        // 짝이 없는 조각은 읽지도 적지도 않고 다음 바퀴로 넘긴다.
+        // 짝이 없는 런은 읽지도 적지도 않고 다음 바퀴로 넘긴다.
         다음.push(묶음[0] as number[]);
         continue;
       }
       const 합침 = 합치기(묶음);
       읽은 += 합침.읽은;
       적은 += 합침.적은;
-      견주기 += 합침.견주기;
+      비교 += 합침.비교;
       최대_정수_칸 = Math.max(최대_정수_칸, 합침.최대_정수_칸);
       다음.push(합침.합친것);
     }
@@ -263,26 +263,26 @@ export function 여러바퀴_합치기(values: number[], M: number, k: number): 
   return {
     읽은,
     적은,
-    정렬_견주기: 만들기.정렬_견주기,
-    합치기_견주기: 견주기,
+    정렬_비교: 만들기.정렬_비교,
+    합치기_비교: 비교,
     최대_정수_칸,
-    연_조각_파일: Math.min(k, 조각),
-    조각,
+    연_런_파일: Math.min(k, 런),
+    런,
     합치기_바퀴: 바퀴,
   };
 }
 
 /* ─────────────── 규모가 커도 셀 수 있는 닫힌 형태 ─────────────── */
 
-/** 조각 수 `R = ⌈N/M⌉`. */
-export const 조각수 = (N: number, M: number): number => Math.ceil(N / M);
+/** 런 수 `R = ⌈N/M⌉`. */
+export const 런수 = (N: number, M: number): number => Math.ceil(N / M);
 
 /** 한 번에 합칠 때 메모리에 드는 정수 칸 — `max(min(N, M), R)`. */
 export function 메모리_칸(N: number, M: number): number {
-  return Math.max(Math.min(N, M), 조각수(N, M));
+  return Math.max(Math.min(N, M), 런수(N, M));
 }
 
-/** `k` 조각씩 합칠 때의 합치기 바퀴 수. 조각이 하나여도 출력 한 바퀴가 든다. */
+/** `k` 런씩 합칠 때의 합치기 바퀴 수. 런이 하나여도 출력 한 바퀴가 든다. */
 export function 바퀴수(R: number, k: number): number {
   if (R <= 1) return 1;
   let 남은 = R;
@@ -294,7 +294,7 @@ export function 바퀴수(R: number, k: number): number {
   return 바퀴;
 }
 
-/** 읽고 적은 정수 개수 — 조각 만들기 `2N` 에 합치기 바퀴마다 `2N` 이 붙는다. */
+/** 읽고 적은 정수 개수 — 런 만들기 `2N` 에 합치기 바퀴마다 `2N` 이 붙는다. */
 export const 입출력 = (N: number, R: number, k: number): number =>
   2 * N + 2 * N * 바퀴수(R, k);
 
@@ -303,12 +303,12 @@ export const 입출력 = (N: number, R: number, k: number): number =>
 export function 메모리와_입출력(
   N: number,
   M: number,
-): { 최대_정수_칸: number; 입출력: number; 조각: number } {
+): { 최대_정수_칸: number; 입출력: number; 런: number } {
   const c = 한번에_합치기(생성식(N), M);
   return {
     최대_정수_칸: c.최대_정수_칸,
     입출력: c.읽은 + c.적은,
-    조각: c.조각,
+    런: c.런,
   };
 }
 
@@ -319,22 +319,22 @@ const 한번에 = 한번에_합치기(값, 대조_M);
 const 여러바퀴 = 여러바퀴_합치기(값, 대조_M, 대조_k);
 
 export const cases: Record<string, () => Record<string, number>> = {
-  "조각을 한 번에 합치기": () => {
+  "런을 한 번에 합치기": () => {
     const c = 한번에_합치기(생성식(대조_N), 대조_M);
     return {
       입출력: c.읽은 + c.적은,
-      합치기_견주기: c.합치기_견주기,
+      합치기_비교: c.합치기_비교,
       메모리_정수_칸: c.최대_정수_칸,
-      연_조각_파일: c.연_조각_파일,
+      연_런_파일: c.연_런_파일,
     };
   },
-  "두 조각씩 여러 바퀴 합치기": () => {
+  "두 런씩 여러 바퀴 합치기": () => {
     const c = 여러바퀴_합치기(생성식(대조_N), 대조_M, 대조_k);
     return {
       입출력: c.읽은 + c.적은,
-      합치기_견주기: c.합치기_견주기,
+      합치기_비교: c.합치기_비교,
       메모리_정수_칸: c.최대_정수_칸,
-      연_조각_파일: c.연_조각_파일,
+      연_런_파일: c.연_런_파일,
     };
   },
 };
