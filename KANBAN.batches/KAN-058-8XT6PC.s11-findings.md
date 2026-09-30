@@ -160,3 +160,5 @@ spfa · segmentsIntersect(s3 한 점, 값 그대로) · closestPairOfPoints(내�
 - 스캐너 오탐 주장: P21 「최저가」 〔오탐으로 봄〕 · P4 `!==` 〔재현 안 됨〕 · 천 단위 쉼표 〔재현 안 됨〕.
 - 편 안에서 확인하지 않은 주장: quicksort 호출 스택 넘침 · subarraySumEqualsK 좌표압축 · kthSmallest 30% · treeMaxIndependentSet 역추적 · palindromePartitioningMinCut 8바이트/칸 · maxFlow 최악 칸 · fftMultiply 반올림 · expectedValueDp NumPy·Icepool 인용 · maxBipartiteMatching 「쿤」 출처 · dfsTraversal·houseRobber 스택 한도.
 - 「견주다」: 알고리즘 가이드 0곳. 자료구조 가이드 19편 124곳(이 카드 범위 밖). voice 원본(`~/.claude/authoring/voices/algorithm-guide-writer/style.json`)에서는 아직 꺼져 있고, 저장소 검사기 `check-v2` 가 알고리즘 편에만 직접 잰다.
+
+처분(2026-10-01, KAN-063): 줄마다의 처분은 `KANBAN.batches/KAN-063-X2JFZA.batch3.md` 「처분표」.

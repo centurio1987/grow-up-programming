@@ -813,6 +813,35 @@ test("P1 — 닫힌 증명 블록 안 문장과 주석 줄은 산문으로 세�
   expect(maxProseRun(body)).toBe(2);
 });
 
+test("P21 경고 — 값 「가(價)」로 끝나는 명사 칸은 문장이 아니다(KAN-063)", () => {
+  const price =
+    "| 어제까지의 최저가 | 오늘 값 |\n| --- | --- |\n| 1 | 5 |";
+  expect(tableHeaderWarnings(price)).toEqual([]);
+  const sentence =
+    "| 이 칸이 답이 되는 이유가 | 값 |\n| --- | --- |\n| 1 | 5 |";
+  expect(tableHeaderWarnings(sentence)).toHaveLength(1);
+});
+
+test("P1 — 펜스로 연 증명 블록도 닫는 마커까지 산문으로 세지 않는다(KAN-063)", () => {
+  const body = [
+    "첫 문단입니다.",
+    "",
+    "<!--proof:x-->",
+    "```text",
+    "# 펜스 안의 줄",
+    "```",
+    "",
+    "펜스가 낸 수를 적은 문장입니다.",
+    "",
+    "<!--/proof-->",
+    "",
+    "둘째 문단입니다.",
+    "",
+    "셋째 문단입니다.",
+  ];
+  expect(maxProseRun(body)).toBe(2);
+});
+
 test("P7 — 그림을 져야 하는 절에 그림이 없으면 걸린다", () => {
   const text = PASSING.replace("```text\n[1 2 3 100]  목표 101\n```\n", "");
   expect(

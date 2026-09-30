@@ -38,9 +38,9 @@ scope: src/_viz/**, tools/check-proof.ts, tools/check-proof.test.ts, tools/check
 - [x] `S5` 규약 없이 정한 자리 9편: 편마다 고치거나 SPEC §13 에 규약으로 올린다 — 완료 기준: 9편 각각의 처분이 처분표에 있고, 고친 편은 재출력 후 --check 통과
 - [x] `S6` 그림 품질: radixTree 세로 1254px · subsetSum 참 칸 · nQueens 판을 table 무대로 — 완료 기준: radixTree 그림이 책 본문 높이(약 896px) 안, subsetSum 참/거짓이 눈으로 갈리고, nQueens 가 손그림 대신 패널로 그린다
 - [x] `S7` 편 안에서 확인하지 않은 주장 11건: 재고 출처를 대거나 문장을 낮춘다 — 완료 기준: 건마다 명령·출력 또는 출처가 수행 내역에 있고, 본문이 그 결과와 맞는다
-- [ ] `S8` 스캐너 P21 「최저가」 오탐 수정(check-v2) + 시험 · 플러그인 쪽 둘(P4 주석 마커 · 천 단위 쉼표)은 재현 결과와 수정안만 기록 — 완료 기준: bestTimeToBuyAndSellStock 의 P21 경고 4건이 사라지고 시험이 통과
-- [ ] `S9` 처분표와 넘김: 근거 파일 §7 처분표(아홉 갈래 전부) · 힙 무대 버린 사유 · 「견주다」 를 KAN-036 메모로 · 검사 공백은 KAN-058 S10 에서 닫힘 — 완료 기준: §7 모든 줄에 처분이 있다
-- [ ] `S10` 게이트와 검토서 — 완료 기준: `bun run tools/ci.ts gates` 통과, 검토서 발행
+- [x] `S8` 스캐너 P21 「최저가」 오탐 수정(check-v2) + 시험 · 플러그인 쪽 둘(P4 주석 마커 · 천 단위 쉼표)은 재현 결과와 수정안만 기록 — 완료 기준: bestTimeToBuyAndSellStock 의 P21 경고 4건이 사라지고 시험이 통과
+- [x] `S9` 처분표와 넘김: 근거 파일 §7 처분표(아홉 갈래 전부) · 힙 무대 버린 사유 · 「견주다」 를 KAN-036 메모로 · 검사 공백은 KAN-058 S10 에서 닫힘 — 완료 기준: §7 모든 줄에 처분이 있다
+- [>] `S10` 게이트와 검토서 — 완료 기준: `bun run tools/ci.ts gates` 통과, 검토서 발행 <!-- claim:s=df6b517e t=2026-10-01T08:30 -->
 
 ## 검증
 - `bun run tools/render-figs.ts --check` — 「그림 사이드카가 있는 가이드 115편 / 대상 115편」 대조 통과
@@ -70,3 +70,8 @@ scope: src/_viz/**, tools/check-proof.ts, tools/check-proof.test.ts, tools/check
 - 2026-10-01T08:28 · s:df6b517e · S6 done — radixTree build-over-trie 1254→878px · subsetSum 거짓을 「·」로 · nQueens 판을 table 무대 패널로(판 4칸·비트 7칸 줄이 한 표에 섞임)
 - 2026-10-01T08:28 · s:df6b517e · S7 done — 10건: 측정 3(quicksort·dfsTraversal·houseRobber, Bun 1.3.12) · 원문 대조 2(glibc qsort 는 병합 정렬로 틀린 주장 정정 · expectedValueDp 인용 확인) · 문장 정정 2(subarraySumEqualsK · kthSmallest 30%→3n/10−6) · 이미 밝힘 2(maxFlow·fftMultiply) · 해당 없음 2(palindrome 산수 맞음 · maxBipartiteMatching). quicksort 탐침은 KANBAN.batches/KAN-063-X2JFZA.probes/quicksort-stack.ts
 - 2026-10-01T08:28 · s:df6b517e — 배치2 합류: gates 첫 판이 SPEC §13 「괄호 한 줄이 선다」(배치1 에서 들어온 은유)로 실패 → 「그린다」로 고침. tMIS proof.ts 에 새로 든 「되짚」 4곳을 「복원」으로(사이드카 경고 244→240, main 과 같음). 재실행 gates 통과(14단계), 고친 21편 guide.test 354 pass, 인용 대장 지문 전부 일치
+- 2026-10-01T08:28 · s:df6b517e · S8 doing — 착수
+- 2026-10-01T08:29 · s:df6b517e · S8 done — check-v2: P21 값 「가(價)」 명사 제외(PRICE_NOUN) · closedProofLines 가 펜스를 건너 닫는 마커를 찾음. 시험 2 추가(고치기 전 판에서 산문 연속 3·P21 1 로 실패 확인). bestTimeToBuyAndSellStock P21 경고 4→0. 플러그인 쪽 P4·쉼표는 고치지 않음(검토 항목)
+- 2026-10-01T08:29 · s:df6b517e · S9 doing — 착수
+- 2026-10-01T08:29 · s:df6b517e · S9 done — 처분표(batch3 문서): §7 17줄 전부 — 고침 12 · 규약 1 · 버림 1(힙 무대) · 이미 닫힘 1 · 넘김 1 · 플러그인 2 는 검토 항목. 새로 드러난 4 도 검토 항목. 근거 파일 §7 끝에 처분표 위치 한 줄
+- 2026-10-01T08:30 · s:df6b517e · S10 doing — 착수
