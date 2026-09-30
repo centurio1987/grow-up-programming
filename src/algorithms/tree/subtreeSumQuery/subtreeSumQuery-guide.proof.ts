@@ -764,7 +764,7 @@ interface Impl {
   };
 }
 
-/** **불변식을 지키던 줄** — 끝 자리를 마지막으로 나간 자리가 아니라 자기 자리로 둔 사본. */
+/** **불변식을 지키던 줄** — 끝 자리를 마지막으로 준 자리가 아니라 자기 자리로 둔 사본. */
 const selfOnly = await loadMutant<Impl>(REF, {
   swap: [/this\.tout\[v\] = timer - 1;/, "this.tout[v] = this.tin[v];"],
 });

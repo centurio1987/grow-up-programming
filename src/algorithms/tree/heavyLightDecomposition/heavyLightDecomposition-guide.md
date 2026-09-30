@@ -992,7 +992,7 @@ T9 에서 두 정점을 맞바꿨습니다. 정점 2 의 머리 0 이 깊이 0 �
 update(node, value) {
   const delta = value - val[node];
   val[node] = value;
-  // ⑥ 켜진 가장 낮은 자리를 더해 가며 이 칸을 담고 있는 마디를 전부 고친다
+  // ⑥ 켜진 가장 낮은 자리를 더해 가며 이 자리를 담고 있는 펜윅 트리의 칸을 전부 고친다
   for (let i = pos[node] + 1; i <= n; i += i & -i) {
     bit[i] += delta;
   }
@@ -1181,8 +1181,8 @@ export class HeavyLightDecomposition {
       }
     }
 
-    // 자리 번호대로 늘어놓은 기저 배열 위에 펜윅 트리를 세운다. 칸마다 값을 넣고 한 번
-    // 차례로 읽으면서 자기를 담는 마디에 더하면 전체가 `n` 칸 접근으로 완성된다.
+    // 자리 번호대로 늘어놓은 기저 배열 위에 펜윅 트리를 세운다. 자리마다 값을 칸에 넣고 한 번
+    // 차례로 읽으면서 자기를 담는 위 칸에 더하면 전체가 `n` 칸 접근으로 완성된다.
     const val: number[] = Array.from({ length: n }, () => 0);
     const bit: number[] = Array.from({ length: n + 1 }, () => 0);
     for (let w = 0; w < n; w++) {
@@ -1207,7 +1207,7 @@ export class HeavyLightDecomposition {
   update(node: number, value: number): void {
     const delta = value - (this.val[node] as number);
     this.val[node] = value;
-    // ⑥ 켜진 가장 낮은 자리를 더해 가며 이 칸을 담고 있는 마디를 전부 고친다.
+    // ⑥ 켜진 가장 낮은 자리를 더해 가며 이 자리를 담고 있는 펜윅 트리의 칸을 전부 고친다.
     for (let i = (this.pos[node] as number) + 1; i <= this.n; i += i & -i) {
       this.bit[i] = (this.bit[i] as number) + delta;
     }

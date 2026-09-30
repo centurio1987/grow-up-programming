@@ -56,7 +56,12 @@ describe("topKFrequent", () => {
   test("N=100,000 입력을 100ms 이내에 처리한다", () => {
     const N = 100_000;
     const A: number[] = new Array(N);
-    for (let i = 0; i < N; i++) A[i] = Math.floor(Math.random() * 1000);
+    // 시드 있는 선형 합동 생성기 — 돌릴 때마다 같은 입력이 나온다
+    let seed = 12345;
+    for (let i = 0; i < N; i++) {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      A[i] = seed % 1000;
+    }
 
     const start = performance.now();
     const result = topKFrequent(A, 10);

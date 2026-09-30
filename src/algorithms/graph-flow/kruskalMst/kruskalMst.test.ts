@@ -6,7 +6,7 @@ describe("kruskalMst", () => {
     test("CLRS 예시 그래프 → MST 가중치 합 37", () => {
       // CLRS Fig. 23.1 그래프 (정점 9, 간선 14)
       // 정점: a=0,b=1,c=2,d=3,e=4,f=5,g=6,h=7,i=8
-      // MST 간선: (a,b)=4, (b,c)=8, (c,d)=7, (d,e)=9, (c,f)=4, (f,g)=2, (g,h)=1, (g,i)=6 ... 합 = 37
+      // MST 간선: (a,b)=4, (b,c)=8, (c,d)=7, (d,e)=9, (c,f)=4, (f,g)=2, (g,h)=1, (c,i)=2 → 합 = 37
       const edges: [number, number, number][] = [
         [0, 1, 4],
         [0, 7, 8],
@@ -24,6 +24,17 @@ describe("kruskalMst", () => {
         [7, 8, 7],
       ];
       expect(kruskalMst(9, edges)).toBe(37);
+    });
+
+    test("네 정점 한 줄 + 무거운 닫는 간선 → 6 (실습 예시 1)", () => {
+      // (0,1)=1, (1,2)=2, (2,3)=3 을 고르고 (0,3)=10 은 사이클이라 빠진다
+      const edges: [number, number, number][] = [
+        [0, 1, 1],
+        [1, 2, 2],
+        [2, 3, 3],
+        [0, 3, 10],
+      ];
+      expect(kruskalMst(4, edges)).toBe(6);
     });
 
     test("삼각형 그래프 → MST는 가장 가벼운 두 간선의 합", () => {

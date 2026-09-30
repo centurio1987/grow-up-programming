@@ -41,6 +41,18 @@ describe("divideAndConquerDp", () => {
     expect(divideAndConquerDp(cost, 2)).toBe(52);
   });
 
+  test("실습 예시의 3×3 행렬 — k=1·3·2", () => {
+    const cost = [
+      [0, 2, 5],
+      [0, 0, 3],
+      [0, 0, 0],
+    ];
+    expect(divideAndConquerDp(cost, 1)).toBe(5);
+    expect(divideAndConquerDp(cost, 3)).toBe(0);
+    // [0,1]+[2,2] = 2 가 [0,0]+[1,2] = 3 보다 작다
+    expect(divideAndConquerDp(cost, 2)).toBe(2);
+  });
+
   // 엣지 케이스
   test("n=1, k=1 → cost[0][0]", () => {
     const cost = [[7]];

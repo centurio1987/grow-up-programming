@@ -1501,9 +1501,9 @@ export class ConvexHullTrick {
 
 #### 제약 조건
 
-- 기울기 $m$: $-10^9 \leq m \leq 10^9$, `addLine` 호출 시 $m$은 **비감소(non-decreasing) 순서**를 보장한다
-- 절편 $b$: $-10^{18} \leq b \leq 10^{18}$
-- 쿼리 지점 $x$: $-10^9 \leq x \leq 10^9$ (임의 순서 가능)
+- 기울기 $m$: $-10^6 \leq m \leq 10^6$ 인 정수, `addLine` 호출 시 $m$은 **비감소(non-decreasing) 순서**를 보장한다
+- 절편 $b$: $-10^9 \leq b \leq 10^9$ 인 정수
+- 쿼리 지점 $x$: $-10^6 \leq x \leq 10^6$ 인 정수 (임의 순서 가능)
 - `query`는 최소 한 번 이상 `addLine`이 호출된 후에만 호출된다
 - 시간 제한: 1초, 메모리 제한: 256 MB
 

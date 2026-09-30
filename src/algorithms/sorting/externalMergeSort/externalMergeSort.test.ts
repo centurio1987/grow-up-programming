@@ -86,7 +86,12 @@ describe("externalMergeSort", () => {
   test("N=10,000 입력을 1000ms 이내에 처리한다", async () => {
     const N = 10_000;
     const data: number[] = new Array(N);
-    for (let i = 0; i < N; i++) data[i] = Math.floor(Math.random() * 1_000_000);
+    // 시드 있는 선형 합동 생성기 — 돌릴 때마다 같은 입력이 나온다
+    let seed = 12345;
+    for (let i = 0; i < N; i++) {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      data[i] = seed % 1_000_000;
+    }
 
     const input = await writeInput("perf.txt", data);
     const output = join(tmpDir, "perf.out");

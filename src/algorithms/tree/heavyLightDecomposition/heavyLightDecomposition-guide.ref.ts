@@ -7,8 +7,8 @@
  * 것을 무거운 자식으로 골라 사슬을 만들고, 사슬 순서대로 자리 번호를 붙인 기저 배열 위에
  * 펜윅 트리를 세운다. 질의는 그 배열의 구간 합 몇 개를 더한 것이다.
  *
- * **재귀를 쓰지 않는다.** 제약이 정점 100,000 개까지이고 그 정점이 한 줄로 이어진 입력이
- * 들어올 수 있어서, 재귀로 적으면 호출 깊이가 그대로 100,000 이 된다. 스택 배열 둘로 옮기면
+ * **재귀를 쓰지 않는다.** 정점이 100,000 개쯤 되는 트리가 한 줄로 이어져 있으면
+ * 재귀로 적은 호출 깊이가 그대로 100,000 이 된다. 스택 배열 둘로 옮기면
  * 깊이가 배열 길이가 되어 그 제한을 받지 않는다.
  *
  * 변이는 이 파일 원문에서 기계로 만든다(`tools/check-proof.ts` 의 `loadMutant`) — 아래 두
@@ -113,8 +113,8 @@ export class HeavyLightDecomposition {
       }
     }
 
-    // 자리 번호대로 늘어놓은 기저 배열 위에 펜윅 트리를 세운다. 칸마다 값을 넣고 한 번
-    // 차례로 읽으면서 자기를 담는 마디에 더하면 전체가 `n` 칸 접근으로 완성된다.
+    // 자리 번호대로 늘어놓은 기저 배열 위에 펜윅 트리를 세운다. 자리마다 값을 칸에 넣고 한 번
+    // 차례로 읽으면서 자기를 담는 위 칸에 더하면 전체가 `n` 칸 접근으로 완성된다.
     const val: number[] = Array.from({ length: n }, () => 0);
     const bit: number[] = Array.from({ length: n + 1 }, () => 0);
     for (let w = 0; w < n; w++) {
@@ -139,7 +139,7 @@ export class HeavyLightDecomposition {
   update(node: number, value: number): void {
     const delta = value - (this.val[node] as number);
     this.val[node] = value;
-    // ⑥ 켜진 가장 낮은 자리를 더해 가며 이 칸을 담고 있는 마디를 전부 고친다.
+    // ⑥ 켜진 가장 낮은 자리를 더해 가며 이 자리를 담고 있는 펜윅 트리의 칸을 전부 고친다.
     for (let i = (this.pos[node] as number) + 1; i <= this.n; i += i & -i) {
       this.bit[i] = (this.bit[i] as number) + delta;
     }

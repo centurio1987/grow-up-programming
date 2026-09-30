@@ -7,8 +7,8 @@
  * **이 절차의 비용 축은 비교 횟수가 아니라 입출력이다.** 파일을 한 번에 `memoryLimit` 개씩만
  * 메모리에 올려 정렬하고 런(run) 파일로 적은 다음, 런마다 값 하나씩만 최소 힙에 올려 합친다.
  * 입력 전체를 배열에 담는 자리가 한 곳도 없다 — 읽기는 `LineReader`, 쓰기는 `FileSink` 가
- * 각각 스트림으로 하고, 메모리에 드는 정수는 런 하나(`memoryLimit` 개)와 최소 힙(런 수만큼)
- * 뿐이다. 그 개수를 실제로 세는 사본은 `-guide.alt.ts` 에 있다.
+ * 각각 스트림으로 한다. 정수 개수로 세면 런 하나(`memoryLimit` 개)와 최소 힙(런 수만큼)뿐이고,
+ * 바이트로 세면 런마다 스트림이 읽어 둔 블록이 더 든다. 정수 개수를 세는 사본은 `-guide.alt.ts`.
  *
  * 변이는 이 파일 원문에서 기계로 만든다(`tools/check-proof.ts` 의 `loadMutant`) — 아래 다섯
  * 자리가 각각 정확히 한 줄이라 「한 곳만 바꿨다」가 검사된다.
@@ -23,8 +23,8 @@
 import { unlink } from "node:fs/promises";
 
 /**
- * 파일 하나를 줄 단위로 읽는다. 파일을 통째로 메모리에 올리지 않고, 스트림이 주는 블록을
- * 받아 줄이 완성되는 대로 하나씩 내준다.
+ * 파일 하나를 줄 단위로 읽는다. 스트림이 주는 블록을 받아 줄이 완성되는 대로 하나씩 내준다.
+ * 블록 크기는 런타임이 정한다 — Bun 은 256 KiB 까지를 블록 하나로 주어, 작은 파일은 통째 온다.
  */
 class LineReader {
   private reader: ReadableStreamDefaultReader<Uint8Array>;
@@ -116,7 +116,7 @@ class MinHeap {
 
 /**
  * `inputPath` 의 정수를 오름차순으로 정렬해 `outputPath` 에 적고 그 경로를 낸다.
- * 메모리에 한 번에 올리는 정수는 `memoryLimit` 개와 런 수만큼의 최소 힙 항목뿐이다.
+ * 정수 개수로 세면 한 번에 드는 것은 `memoryLimit` 개와 런 수만큼의 힙 항목이다(읽기 블록은 따로).
  */
 export async function externalMergeSort(
   inputPath: string,
@@ -143,7 +143,7 @@ export async function externalMergeSort(
     if (value === null) break;
   }
 
-  // ③ 런마다 첫 값 하나씩만 최소 힙에 올린다. 메모리에 드는 것은 런 수만큼이다.
+  // ③ 런마다 첫 값 하나씩만 최소 힙에 올린다. 힙에 드는 정수는 런 수만큼이다.
   const readers = runPaths.map((path) => new LineReader(path));
   const heap = new MinHeap();
   for (let run = 0; run < readers.length; run++) {

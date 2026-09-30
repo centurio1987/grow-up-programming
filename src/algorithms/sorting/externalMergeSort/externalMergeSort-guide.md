@@ -635,7 +635,7 @@ const readers = runPaths.map((path) => new LineReader(path));
 const heap = new MinHeap();
 for (let run = 0; run < readers.length; run++) {
   const value = await (readers[run] as LineReader).next();
-  // ③ 런마다 첫 값 하나씩만 최소 힙에 올린다. 메모리에 드는 것은 런 수만큼이다.
+  // ③ 런마다 첫 값 하나씩만 최소 힙에 올린다. 힙에 드는 정수는 런 수만큼이다.
   if (value !== null) heap.push({ value, run });
 }
 ```
@@ -791,8 +791,8 @@ const sink = Bun.file(outputPath).writer();
 import { unlink } from "node:fs/promises";
 
 /**
- * 파일 하나를 줄 단위로 읽는다. 파일을 통째로 메모리에 올리지 않고, 스트림이 주는 블록을
- * 받아 줄이 완성되는 대로 하나씩 내준다.
+ * 파일 하나를 줄 단위로 읽는다. 스트림이 주는 블록을 받아 줄이 완성되는 대로 하나씩 내준다.
+ * 블록 크기는 런타임이 정한다 — Bun 은 256 KiB 까지를 블록 하나로 주어, 작은 파일은 통째 온다.
  */
 class LineReader {
   private reader: ReadableStreamDefaultReader<Uint8Array>;
@@ -884,7 +884,7 @@ class MinHeap {
 
 /**
  * `inputPath` 의 정수를 오름차순으로 정렬해 `outputPath` 에 적고 그 경로를 낸다.
- * 메모리에 한 번에 올리는 정수는 `memoryLimit` 개와 런 수만큼의 최소 힙 항목뿐이다.
+ * 정수 개수로 세면 한 번에 드는 것은 `memoryLimit` 개와 런 수만큼의 힙 항목이다(읽기 블록은 따로).
  */
 export async function externalMergeSort(
   inputPath: string,
@@ -911,7 +911,7 @@ export async function externalMergeSort(
     if (value === null) break;
   }
 
-  // ③ 런마다 첫 값 하나씩만 최소 힙에 올린다. 메모리에 드는 것은 런 수만큼이다.
+  // ③ 런마다 첫 값 하나씩만 최소 힙에 올린다. 힙에 드는 정수는 런 수만큼이다.
   const readers = runPaths.map((path) => new LineReader(path));
   const heap = new MinHeap();
   for (let run = 0; run < readers.length; run++) {

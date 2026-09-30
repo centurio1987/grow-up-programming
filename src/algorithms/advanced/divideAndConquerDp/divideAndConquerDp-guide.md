@@ -1639,7 +1639,7 @@ const c = [
 
 divideAndConquerDp(c, 1); // 5 — 전체 구간 [0,2] 하나로 묶음, cost[0][2] = 5
 divideAndConquerDp(c, 3); // 0 — 각 원소 단독 구간, cost[0][0]+cost[1][1]+cost[2][2] = 0
-divideAndConquerDp(c, 2); // 3 — [0,1]+[2,2] = 2+0=2 또는 [0,0]+[1,2] = 0+3=3, 최솟값 = 2
+divideAndConquerDp(c, 2); // 2 — [0,1]+[2,2] = 2+0=2 또는 [0,0]+[1,2] = 0+3=3, 최솟값 = 2
 
 // 단일 원소
 divideAndConquerDp([[7]], 1); // 7 — n=1, k=1, cost[0][0] = 7
