@@ -10,20 +10,28 @@
  * 정확하다. 칸의 한 변은 `⌈√n⌉` 등분으로 정해 매개변수를 남기지 않는다.
  *
  * 두 설계는 **어떤 입력에서도 같은 답**을 낸다. `measure()` 가 매 실행마다 정본과 대조하고,
- * 다르면 던진다 — 답이 다른 구현으로 잰 계수는 저울질이 아니라 다른 문제의 값이다.
+ * 다르면 던진다 — 답이 다른 구현으로 잰 계수는 비교가 아니라 다른 과제의 값이다.
  *
- * **계수 셋을 센다.**
+ * **세는 기준은 가이드 전체와 하나다**(KAN-058). 가이드의 비용은 전부 **기본 연산**이고,
+ * 메모리는 **추가로 잡는 칸**이다. 증명 사이드카(`*.proof.ts`)도 이 파일의 계측본을 불러
+ * 같은 기준으로 센다.
  *
- *   정수 곱셈  판정에 쓰는 정수 곱셈의 횟수. 방향 판정 2 · 자리 대소 2~4 · 위아래 판정 4 ·
- *              기울기 대소 2 · 교차 자리 계산 6(자리를 만들면 4 를 더한다)
- *   자료 접근  배열·사전·집합의 읽기와 쓰기를 각각 1 로 센 것
- *   잡는 칸    절차가 입력 밖에 새로 잡는 칸의 총수
+ *   기본 연산    정수 곱셈과 자료 접근을 각각 1 로 센 합
+ *     정수 곱셈  판정에 쓰는 정수 곱셈. 방향 판정 2 · 자리 대소 2~4 · 위아래 판정 4 ·
+ *                기울기 대소 2 · 교차점 계산 6(자리를 만들면 4 를 더한다)
+ *     자료 접근  배열·사전·집합의 읽기와 쓰기
+ *   잡는 칸      절차가 입력 밖에 새로 잡는 칸의 총수
+ *
+ * 2026-09-30 전까지는 정수 곱셈과 자료 접근을 따로 싣고 비교했다. 가이드가 기준을 하나로 두면서
+ * 둘을 더한 기본 연산으로 옮겼고, 그 때문에 순서가 뒤집히는 자리가 옮겨 갔다(격자무늬 80 →
+ * 88, 흩어 놓은 길이 2048 → 4096). 입력 가족과 씨앗은 그대로다.
  *
  * **벽시계는 재지 않는다** — 실행마다 값이 달라 「일치」를 정의할 수 없다.
  *
  * **입력을 결과에 맞춰 고르지 않는다**(L20). 가족 둘을 고정하고 각각 매개변수 하나만 바꾼다 —
- * 격자무늬 가족은 선분 수 `n`, 흩어 놓은 가족은 선분 길이다. 전개 입력(선분 다섯)은 계수가
- * 세 자리라 순서가 뒤집히는 자리가 안 나오므로 표의 첫 줄로 함께 싣는다.
+ * 격자무늬 가족은 선분 수 `n`, 흩어 놓은 가족은 선분 길이다. 뒤집히는 자리는 두 가족 모두
+ * 실행이 찾는다(`flipMesh` · `flipLength`). 전개 입력(선분 다섯)은 계수가 세 자리라 순서가
+ * 뒤집히는 자리가 안 나오므로 표의 첫 줄로 함께 싣는다.
  */
 import {
   bentleyOttmann,
@@ -56,16 +64,19 @@ const WALK_SEGMENTS: Segment[] = [
 ];
 
 /** 두 가족이 함께 쓰는 좌표 상자의 한 변. */
-const SPAN = 4096;
+export const SPAN = 4096;
 
 /** 흩어 놓은 가족의 선분 수와 난수 씨앗. */
-const SCATTER_N = 512;
-const SCATTER_SEED = 20_260_907;
+export const SCATTER_N = 512;
+export const SCATTER_SEED = 20_260_907;
 
-/** 격자무늬 가족에서 곱셈의 순서가 처음 뒤집히는 선분 수. `flipMesh()` 가 그 자리인지 본다. */
-const FLIP_N = 80;
+/** 격자무늬 가족에서 기본 연산의 순서가 처음 뒤집히는 선분 수. `flipMesh()` 가 그 자리인지 본다. */
+export const FLIP_N = 88;
 
-interface Counted {
+/** 흩어 놓은 가족에서 기본 연산의 순서가 처음 뒤집히는 길이. `flipLength()` 가 그 자리인지 본다. */
+export const FLIP_LEN = 4096;
+
+export interface Counted {
   /** 판정에 쓰는 정수 곱셈의 횟수. */
   mul: number;
   /** 배열·사전·집합의 읽기와 쓰기. */
@@ -73,6 +84,12 @@ interface Counted {
   /** 입력 밖에 새로 잡는 칸의 총수. */
   cells: number;
 }
+
+/** 빈 계수. */
+export const zero = (): Counted => ({ mul: 0, reads: 0, cells: 0 });
+
+/** 기본 연산 — 정수 곱셈과 자료 접근의 합. 가이드의 비용은 전부 이것이다. */
+export const ops = (c: Counted): number => c.mul + c.reads;
 
 /* ─────────────── 두 설계가 함께 쓰는 정수 원시 ─────────────── */
 
@@ -96,7 +113,7 @@ function inBox(a: Point, b: Point, p: Point, c: Counted): boolean {
 }
 
 /** 두 선분이 점 하나라도 공유하는가. `segmentsIntersect` 편이 세운 판정과 같다. */
-function meets(s1: Segment, s2: Segment, c: Counted): boolean {
+export function meets(s1: Segment, s2: Segment, c: Counted): boolean {
   const [p1, p2] = s1;
   const [p3, p4] = s2;
   const d1 = sideOf(p3, p4, p1, c);
@@ -117,7 +134,7 @@ function meets(s1: Segment, s2: Segment, c: Counted): boolean {
 /* ─────────────── 설계 둘 — 격자 나누기 ─────────────── */
 
 /** 좌표 상자를 `⌈√n⌉` 등분한 칸에 선분 이름을 적고, 같은 칸의 짝만 확인한다. */
-function byGrid(segs: Segment[], c: Counted): number {
+export function byGrid(segs: Segment[], c: Counted): number {
   const n = segs.length;
   if (n < 2) return 0;
   let minX = Number.POSITIVE_INFINITY;
@@ -174,13 +191,13 @@ function byGrid(segs: Segment[], c: Counted): number {
 
 /* ─────────────── 설계 하나 — 이 가이드의 스위프 ─────────────── */
 
-interface Spot {
+export interface Spot {
   x: bigint;
   y: bigint;
   d: bigint;
 }
 
-interface Seg {
+export interface Seg {
   id: number;
   lox: bigint;
   loy: bigint;
@@ -191,7 +208,7 @@ interface Seg {
   vertical: boolean;
 }
 
-function sign(v: bigint): number {
+export function sign(v: bigint): number {
   return v > 0n ? 1 : v < 0n ? -1 : 0;
 }
 
@@ -206,12 +223,12 @@ function gcd(a: bigint, b: bigint): bigint {
   return x;
 }
 
-function reduced(x: bigint, y: bigint, d: bigint): Spot {
+export function reduced(x: bigint, y: bigint, d: bigint): Spot {
   const g = gcd(gcd(x, y), d);
   return g > 1n ? { x: x / g, y: y / g, d: d / g } : { x, y, d };
 }
 
-function cmpSpot(a: Spot, b: Spot, c: Counted): number {
+export function cmpSpot(a: Spot, b: Spot, c: Counted): number {
   c.mul += 2;
   const dx = a.x * b.d - b.x * a.d;
   if (dx !== 0n) return sign(dx);
@@ -219,21 +236,21 @@ function cmpSpot(a: Spot, b: Spot, c: Counted): number {
   return sign(a.y * b.d - b.y * a.d);
 }
 
-function spotKey(p: Spot): string {
+export function spotKey(p: Spot): string {
   return `${p.x}/${p.y}/${p.d}`;
 }
 
-function orient(s: Seg, p: Spot, c: Counted): number {
+export function orient(s: Seg, p: Spot, c: Counted): number {
   c.mul += 4;
   return sign(s.dx * (p.y - s.loy * p.d) - s.dy * (p.x - s.lox * p.d));
 }
 
-function slopeOrder(a: Seg, b: Seg, c: Counted): number {
+export function slopeOrder(a: Seg, b: Seg, c: Counted): number {
   c.mul += 2;
   return sign(a.dy * b.dx - b.dy * a.dx);
 }
 
-function toSeg(raw: Segment, id: number): Seg {
+export function toSeg(raw: Segment, id: number): Seg {
   const [a, b] = raw;
   const front = a[0] < b[0] || (a[0] === b[0] && a[1] <= b[1]);
   const lo = front ? a : b;
@@ -254,7 +271,7 @@ function toSeg(raw: Segment, id: number): Seg {
   };
 }
 
-function crossingSpot(a: Seg, b: Seg, c: Counted): Spot | null {
+export function crossingSpot(a: Seg, b: Seg, c: Counted): Spot | null {
   c.mul += 6;
   let den = a.dx * b.dy - a.dy * b.dx;
   if (den === 0n) return null;
@@ -272,7 +289,7 @@ function crossingSpot(a: Seg, b: Seg, c: Counted): Spot | null {
   return reduced(a.lox * den + tn * a.dx, a.loy * den + tn * a.dy, den);
 }
 
-function heapPush(heap: Spot[], p: Spot, c: Counted): void {
+export function heapPush(heap: Spot[], p: Spot, c: Counted): void {
   heap.push(p);
   c.cells += 1;
   let at = heap.length - 1;
@@ -288,7 +305,7 @@ function heapPush(heap: Spot[], p: Spot, c: Counted): void {
   }
 }
 
-function heapPop(heap: Spot[], c: Counted): Spot {
+export function heapPop(heap: Spot[], c: Counted): Spot {
   const top = heap[0] as Spot;
   const last = heap.pop() as Spot;
   c.reads += 2;
@@ -323,8 +340,18 @@ function heapPop(heap: Spot[], c: Counted): Spot {
   return top;
 }
 
-/** 이 가이드가 가르치는 설계. 정본과 같은 절차에 세는 자리만 덧붙였다. */
-function bySweep(segments: Segment[], c: Counted): number {
+/**
+ * 이 가이드가 가르치는 설계. 정본과 같은 절차에 세는 자리만 덧붙였다.
+ *
+ * `onEvent` 를 주면 끝점을 사건 큐에 다 넣은 직후에 한 번, 그 뒤 사건점 하나를 다 처리할
+ * 때마다 한 번, 그때까지의 누적 계수로 부른다 — 증명 사이드카가 준비와 걸음마다의 기본 연산을
+ * 이것으로 받는다.
+ */
+export function bySweep(
+  segments: Segment[],
+  c: Counted,
+  onEvent?: (c: Counted) => void,
+): number {
   const n = segments.length;
   if (n < 2) return 0;
   const segs = segments.map(toSeg);
@@ -399,6 +426,7 @@ function bySweep(segments: Segment[], c: Counted): number {
     if (q !== null && cmpSpot(q, now, c) > 0) heapPush(events, q, c);
   };
 
+  onEvent?.(c);
   while (events.length > 0) {
     const now = heapPop(events, c);
     while (events.length > 0 && cmpSpot(events[0] as Spot, now, c) === 0) {
@@ -453,6 +481,7 @@ function bySweep(segments: Segment[], c: Counted): number {
 
     scheduleAt(now, from - 1, from);
     scheduleAt(now, from + after.length - 1, from + after.length);
+    onEvent?.(c);
   }
 
   return pairs;
@@ -477,7 +506,7 @@ function rng(seed: number): () => number {
  * 흩어 놓은 가족 — 길이 `len` 인 선분 `n` 개를 한 변 `SPAN` 인 상자 안에 놓는다.
  * 방향은 넷(오른쪽 위 · 왼쪽 위 · 가로 · 세로) 중 하나이고, 길이만 매개변수다.
  */
-function scattered(n: number, len: number): Segment[] {
+export function scattered(n: number, len: number): Segment[] {
   const next = rng(SCATTER_SEED);
   const out: Segment[] = [];
   for (let i = 0; i < n; i++) {
@@ -495,7 +524,7 @@ function scattered(n: number, len: number): Segment[] {
  * 격자무늬 가족 — 상자를 가로지르는 긴 가로 선분 `n/2` 개와 긴 세로 선분 `n/2` 개.
  * 교차 쌍이 `(n/2)²` 로 정해져 있어 `n` 하나가 교차 수를 정한다.
  */
-function mesh(n: number): Segment[] {
+export function mesh(n: number): Segment[] {
   const out: Segment[] = [];
   const half = n >> 1;
   for (let i = 0; i < half; i++) {
@@ -512,9 +541,9 @@ function mesh(n: number): Segment[] {
 /* ─────────────── 계측 ─────────────── */
 
 /** 두 설계가 **정본과 같은 답**을 내는지 매번 확인한다. */
-function measure(segs: Segment[]): { mine: Counted; theirs: Counted } {
-  const mine: Counted = { mul: 0, reads: 0, cells: 0 };
-  const theirs: Counted = { mul: 0, reads: 0, cells: 0 };
+export function measure(segs: Segment[]): { mine: Counted; theirs: Counted } {
+  const mine = zero();
+  const theirs = zero();
   const want = bentleyOttmann(segs);
   if (bySweep(segs, mine) !== want) {
     throw new Error("스위프 계수용 절차가 정본과 다른 답을 냈다");
@@ -525,18 +554,32 @@ function measure(segs: Segment[]): { mine: Counted; theirs: Counted } {
   return { mine, theirs };
 }
 
-/** 격자무늬 가족에서 정수 곱셈의 순서가 처음 뒤집히는 선분 수. 짝수만 본다. */
+/** 격자무늬 가족에서 기본 연산의 순서가 처음 뒤집히는 선분 수. 짝수만 본다. */
 function flipMesh(): number {
   for (let n = 64; n <= 128; n += 2) {
     const { mine, theirs } = measure(mesh(n));
-    if (mine.mul < theirs.mul) return n;
+    if (ops(mine) < ops(theirs)) return n;
   }
-  throw new Error("격자무늬 가족에서 곱셈의 순서가 안 뒤집혔다");
+  throw new Error("격자무늬 가족에서 기본 연산의 순서가 안 뒤집혔다");
+}
+
+/** 흩어 놓은 가족에서 기본 연산의 순서가 처음 뒤집히는 길이. 길이를 두 배씩 늘려 본다. */
+function flipLength(): number {
+  for (let len = 16; len <= 8192; len *= 2) {
+    const { mine, theirs } = measure(scattered(SCATTER_N, len));
+    if (ops(mine) < ops(theirs)) return len;
+  }
+  throw new Error("흩어 놓은 가족에서 기본 연산의 순서가 안 뒤집혔다");
 }
 
 if (flipMesh() !== FLIP_N) {
   throw new Error(
-    `곱셈이 뒤집히는 선분 수가 ${flipMesh()} 이다 — 상수와 어긋난다`,
+    `기본 연산이 뒤집히는 선분 수가 ${flipMesh()} 이다 — 상수와 어긋난다`,
+  );
+}
+if (flipLength() !== FLIP_LEN) {
+  throw new Error(
+    `기본 연산이 뒤집히는 길이가 ${flipLength()} 이다 — 상수와 어긋난다`,
   );
 }
 
@@ -545,31 +588,32 @@ const MESH_IN = measure(mesh(FLIP_N - 2));
 const MESH_OUT = measure(mesh(FLIP_N));
 const MESH_FAR = measure(mesh(256));
 const SHORT = measure(scattered(SCATTER_N, 16));
-const LONG = measure(scattered(SCATTER_N, 2048));
+const LONG_IN = measure(scattered(SCATTER_N, FLIP_LEN / 2));
+const LONG_OUT = measure(scattered(SCATTER_N, FLIP_LEN));
 
 export const cases = {
-  스위프: () => ({
-    "전개 입력 정수 곱셈": WALK.mine.mul,
-    "전개 입력 자료 접근": WALK.mine.reads,
-    "격자무늬 78 정수 곱셈": MESH_IN.mine.mul,
-    "격자무늬 80 정수 곱셈": MESH_OUT.mine.mul,
-    "격자무늬 256 정수 곱셈": MESH_FAR.mine.mul,
-    "격자무늬 256 자료 접근": MESH_FAR.mine.reads,
+  "이웃 교차 예약": () => ({
+    "전개 입력 기본 연산": ops(WALK.mine),
+    "전개 입력 잡는 칸": WALK.mine.cells,
+    "격자무늬 86 기본 연산": ops(MESH_IN.mine),
+    "격자무늬 88 기본 연산": ops(MESH_OUT.mine),
+    "격자무늬 256 기본 연산": ops(MESH_FAR.mine),
     "격자무늬 256 잡는 칸": MESH_FAR.mine.cells,
-    "흩어 놓은 길이 16 정수 곱셈": SHORT.mine.mul,
+    "흩어 놓은 길이 16 기본 연산": ops(SHORT.mine),
     "흩어 놓은 길이 16 잡는 칸": SHORT.mine.cells,
-    "흩어 놓은 길이 2048 자료 접근": LONG.mine.reads,
+    "흩어 놓은 길이 2048 기본 연산": ops(LONG_IN.mine),
+    "흩어 놓은 길이 4096 기본 연산": ops(LONG_OUT.mine),
   }),
   "격자 나누기": () => ({
-    "전개 입력 정수 곱셈": WALK.theirs.mul,
-    "전개 입력 자료 접근": WALK.theirs.reads,
-    "격자무늬 78 정수 곱셈": MESH_IN.theirs.mul,
-    "격자무늬 80 정수 곱셈": MESH_OUT.theirs.mul,
-    "격자무늬 256 정수 곱셈": MESH_FAR.theirs.mul,
-    "격자무늬 256 자료 접근": MESH_FAR.theirs.reads,
+    "전개 입력 기본 연산": ops(WALK.theirs),
+    "전개 입력 잡는 칸": WALK.theirs.cells,
+    "격자무늬 86 기본 연산": ops(MESH_IN.theirs),
+    "격자무늬 88 기본 연산": ops(MESH_OUT.theirs),
+    "격자무늬 256 기본 연산": ops(MESH_FAR.theirs),
     "격자무늬 256 잡는 칸": MESH_FAR.theirs.cells,
-    "흩어 놓은 길이 16 정수 곱셈": SHORT.theirs.mul,
+    "흩어 놓은 길이 16 기본 연산": ops(SHORT.theirs),
     "흩어 놓은 길이 16 잡는 칸": SHORT.theirs.cells,
-    "흩어 놓은 길이 2048 자료 접근": LONG.theirs.reads,
+    "흩어 놓은 길이 2048 기본 연산": ops(LONG_IN.theirs),
+    "흩어 놓은 길이 4096 기본 연산": ops(LONG_OUT.theirs),
   }),
 };

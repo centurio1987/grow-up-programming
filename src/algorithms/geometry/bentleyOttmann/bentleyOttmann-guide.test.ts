@@ -291,3 +291,32 @@ test("좌표 상한 10^9 무작위 배치 — 전부 대조와 같은 답", () =
     expect(bentleyOttmann(segs)).toBe(bruteForce(segs));
   }
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은
+ * 절차의 기록에서 만든 걸음 — 과 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./bentleyOttmann-guide.sim.ts");
+  const fig = await import("./bentleyOttmann-guide.fig.tsx");
+  const want = fig.stageStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.sweepFirst.steps)).toEqual(plain(want.sweepFirst));
+  expect(plain(sim.sweepSecond.steps)).toEqual(plain(want.sweepSecond));
+  expect(plain(sim.sweepFirst.layout)).toEqual(plain(fig.LAYOUT));
+  expect(plain(sim.sweepSecond.layout)).toEqual(plain(fig.LAYOUT));
+  // 두 벌을 이으면 T1 부터 빠짐없이 이어진다.
+  const tags = [...sim.sweepFirst.steps, ...sim.sweepSecond.steps].map(
+    (s) => s.title.split(" ")[0],
+  );
+  expect(tags).toEqual(tags.map((_, k) => `T${k + 1}`));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  const proof = await import("./bentleyOttmann-guide.proof.ts");
+  expect(String(sim.sweepSecond.result)).toBe(
+    String(bentleyOttmann(proof.WALK)),
+  );
+  expect(String(sim.sweepFirst.result)).toBe(
+    String(bentleyOttmann(proof.WALK)),
+  );
+});

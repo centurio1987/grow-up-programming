@@ -1,174 +1,1738 @@
-import type { Frame } from "#guide-sim";
+import type { GraphPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(12)를 넘지 않는다 — P3 이 그 관계를 잰다.
+ * 걸음 재생 패널 두 벌 — `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임
+ * 제목은 원고의 걸음 번호(`T#`)로 연다 — P3 이 그 자리를 잰다. 첫 벌은 x = 0 의 세 선분부터 첫 교차점
+ * 사건까지(T1–T6), 둘째 벌은 둘째 교차점부터 끝까지(T7–T12)다.
  *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가 실제보다
+ * 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
  *
- * ## 왜 `keyValue` 하나로 그리는가
+ * ## 패널 규약 — 「그래프」 무대(KAN-058, SPEC §13)
  *
- * 이 절차가 걸음마다 바꾸는 것은 **이름 붙은 값 다섯**이다 — 지금 처리하는 사건 자리 `now`,
- * 상태 배열 `status`, 열린 세로 목록 `upright`, 이 걸음에서 큐에 새로 넣은 교차 자리, 누적
- * 교차 쌍 `pairs`. 선분이 평면 어디에 놓였는지는 걸음이 지나도 안 바뀌므로 프레임에 실을
- * 것이 아니고, 본문의 ascii 그림이 그 몫을 진다. 배열도 격자도 그래프도 이 다섯을 담을
- * 자리가 아니고, 상태 패널이 그대로 그 모양이다.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "graph"` 가
+ * 무대 갈래를 고른다. 끝점과 교차점의 자리(`layout`)는 패널에 한 번만 적고 — 좌표 그대로, `y` 만
+ * 뒤집는다 — 걸음마다 정점과 선분 토막의 상태, 스위프 선(`rules`), 띠 넷(`status` · `upright` ·
+ * 꺼낼 차례대로의 사건 큐 x · y)만 바꾼다(`src/_viz/player/graphStage.ts`).
  *
- * 규약 셋을 그대로 따른다.
- *
- * 1. **`entries` 의 라벨은 본문 기호표의 이름과 글자 그대로 같다** — `now`·`status`·
- *    `upright`·`pairs`, 그리고 「예약」.
- * 2. **아직 정해지지 않은 값은 `—` 로 둔다.** `0` 으로 두면 「값이 0 으로 정해졌다」와 겹친다.
- * 3. **마지막 프레임이 반환값을 담는다**. `result` 가 그 값을 적는다.
+ * **값은 손으로 적지 않았다.** 이 리터럴은 그림 사이드카의 `stageStepsFromRef()` 가 정본과 같은 절차를
+ * 실행해 낸 결과를 옮긴 것이고, 둘이 같은지는 `bentleyOttmann-guide.test.ts` 가 잰다.
  */
-export const sweepWalk = {
-  view: "keyValue" as const,
-  title: "선분 다섯 개에서 교차 쌍 넷을 센다",
+
+export const sweepFirst = {
+  player: "stage",
+  stage: "graph",
+  title: "선분 다섯 개 — 세 선분이 들어오고 첫 교차점까지",
+  sub: "T1–T6 · 끝점 사건과 세로 선분, 첫 교차점",
   result: "4",
+  layout: {
+    nodes: [
+      {
+        id: 0,
+        x: 0,
+        y: 8,
+        label: "(0,0)",
+      },
+      {
+        id: 1,
+        x: 8,
+        y: 0,
+        label: "(8,8)",
+      },
+      {
+        id: 2,
+        x: 0,
+        y: 2,
+        label: "(0,6)",
+      },
+      {
+        id: 3,
+        x: 6,
+        y: 8,
+        label: "(6,0)",
+      },
+      {
+        id: 4,
+        x: 2,
+        y: 7,
+        label: "(2,1)",
+      },
+      {
+        id: 5,
+        x: 2,
+        y: 3,
+        label: "(2,5)",
+      },
+      {
+        id: 6,
+        x: 0,
+        y: 0,
+        label: "(0,8)",
+      },
+      {
+        id: 7,
+        x: 8,
+        y: 4,
+        label: "(8,4)",
+      },
+      {
+        id: 8,
+        x: 9,
+        y: 8,
+        label: "(9,0)",
+      },
+      {
+        id: 9,
+        x: 11,
+        y: 6,
+        label: "(11,2)",
+      },
+      {
+        id: 10,
+        x: 2,
+        y: 6,
+        label: "(2,2)",
+      },
+      {
+        id: 11,
+        x: 2,
+        y: 4,
+        label: "(2,4)",
+      },
+      {
+        id: 12,
+        x: 3,
+        y: 5,
+        label: "(3,3)",
+      },
+      {
+        id: 13,
+        x: 5.333333333333333,
+        y: 2.666666666666667,
+        label: "(16/3,16/3)",
+      },
+    ],
+    edges: [
+      {
+        from: 0,
+        to: 10,
+      },
+      {
+        from: 10,
+        to: 12,
+      },
+      {
+        from: 12,
+        to: 13,
+      },
+      {
+        from: 13,
+        to: 1,
+      },
+      {
+        from: 2,
+        to: 11,
+      },
+      {
+        from: 11,
+        to: 12,
+      },
+      {
+        from: 12,
+        to: 3,
+      },
+      {
+        from: 4,
+        to: 10,
+      },
+      {
+        from: 10,
+        to: 11,
+      },
+      {
+        from: 11,
+        to: 5,
+      },
+      {
+        from: 6,
+        to: 13,
+      },
+      {
+        from: 13,
+        to: 7,
+      },
+      {
+        from: 8,
+        to: 9,
+      },
+    ],
+    directed: false,
+    unit: {
+      x: 100,
+      y: 64,
+    },
+  },
   steps: [
     {
-      title: "T1 (0,0) — s0 이 시작한다",
-      detail:
-        "상태 배열이 비어 있으므로 s0 이 그대로 첫 자리에 들어간다. 이웃이 없어 예약할 짝도 없다.",
-      entries: [
-        { label: "now", value: "(0,0)" },
-        { label: "status", value: "s0" },
-        { label: "upright", value: "—" },
-        { label: "예약", value: "—" },
-        { label: "pairs", value: 0 },
+      title: "T1 (0,0) — 시작 s0",
+      text: "s0 이 시작해 상태 배열이 s0 이 됩니다.",
+      nodes: [
+        {
+          value: "now",
+          state: "read",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
       ],
+      edges: [
+        {
+          kind: "tree",
+          state: "focus",
+          label: "s0",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          state: "out",
+          label: "s1",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+          label: "s2",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+          label: "s3",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+          label: "s4",
+        },
+      ],
+      groups: [],
+      strips: [
+        {
+          label: "status",
+          values: ["s0"],
+          states: {
+            "0": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "upright",
+          values: [],
+          states: {},
+          slots: 1,
+        },
+        {
+          label: "큐 · x",
+          values: ["0", "0", "2", "2", "6", "8", "8", "9", "11"],
+          states: {},
+          slots: 9,
+        },
+        {
+          label: "큐 · y",
+          values: ["6", "8", "1", "5", "0", "4", "8", "0", "2"],
+          states: {},
+          slots: 9,
+        },
+      ],
+      rules: [
+        {
+          x: 0,
+          label: "스위프 선 x = 0",
+        },
+      ],
+      calc: null,
+      vars: "pairs 0",
     },
     {
-      title: "T2 (0,6) — s1 이 시작하고 첫 예약이 붙는다",
-      detail:
-        "x = 0 에서 s0 은 y = 0, s1 은 y = 6 이라 s1 이 위다. 새로 이웃이 된 s0·s1 의 교차 자리 (3,3) 을 큐에 넣는다.",
-      entries: [
-        { label: "now", value: "(0,6)" },
-        { label: "status", value: "s0 s1" },
-        { label: "upright", value: "—" },
-        { label: "예약", value: "(3,3)" },
-        { label: "pairs", value: 0 },
+      title: "T2 (0,6) — 시작 s1",
+      text: "s1 이 시작해 상태 배열이 s0 s1 이 됩니다. 새 이웃 s0–s1 의 교차점 (3,3) 을 사건 큐에 넣습니다.",
+      nodes: [
+        {},
+        {
+          state: "empty",
+        },
+        {
+          value: "now",
+          state: "read",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "focus",
+        },
+        {
+          state: "out",
+        },
       ],
+      edges: [
+        {
+          kind: "tree",
+          state: "read",
+          label: "s0",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "s1",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          state: "out",
+          label: "s2",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+          label: "s3",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+          label: "s4",
+        },
+      ],
+      groups: [],
+      strips: [
+        {
+          label: "status",
+          values: ["s0", "s1"],
+          states: {
+            "1": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "upright",
+          values: [],
+          states: {},
+          slots: 1,
+        },
+        {
+          label: "큐 · x",
+          values: ["0", "2", "2", "3", "6", "8", "8", "9", "11"],
+          states: {
+            "3": "focus",
+          },
+          slots: 9,
+        },
+        {
+          label: "큐 · y",
+          values: ["8", "1", "5", "3", "0", "4", "8", "0", "2"],
+          states: {
+            "3": "focus",
+          },
+          slots: 9,
+        },
+      ],
+      rules: [
+        {
+          x: 0,
+          label: "스위프 선 x = 0",
+        },
+      ],
+      calc: {
+        expr: "s0–s1 의 교차점 =",
+        result: "(3,3)",
+      },
+      vars: "pairs 0",
     },
     {
-      title: "T3 (0,8) — s3 이 맨 위에 들어간다",
-      detail:
-        "x = 0 에서 s3 은 y = 8 이라 s1 보다 위다. 새 이웃은 s1·s3 인데 두 직선은 x = −4 에서 만나 두 선분 밖이라 예약이 없다.",
-      entries: [
-        { label: "now", value: "(0,8)" },
-        { label: "status", value: "s0 s1 s3" },
-        { label: "upright", value: "—" },
-        { label: "예약", value: "—" },
-        { label: "pairs", value: 0 },
+      title: "T3 (0,8) — 시작 s3",
+      text: "s3 이 시작해 상태 배열이 s0 s1 s3 이 됩니다.",
+      nodes: [
+        {},
+        {
+          state: "empty",
+        },
+        {},
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          value: "now",
+          state: "read",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "out",
+        },
       ],
+      edges: [
+        {
+          kind: "tree",
+          label: "s0",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "s1",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          state: "out",
+          label: "s2",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "s3",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          state: "out",
+          label: "s4",
+        },
+      ],
+      groups: [],
+      strips: [
+        {
+          label: "status",
+          values: ["s0", "s1", "s3"],
+          states: {
+            "2": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "upright",
+          values: [],
+          states: {},
+          slots: 1,
+        },
+        {
+          label: "큐 · x",
+          values: ["2", "2", "3", "6", "8", "8", "9", "11"],
+          states: {},
+          slots: 9,
+        },
+        {
+          label: "큐 · y",
+          values: ["1", "5", "3", "0", "4", "8", "0", "2"],
+          states: {},
+          slots: 9,
+        },
+      ],
+      rules: [
+        {
+          x: 0,
+          label: "스위프 선 x = 0",
+        },
+      ],
+      calc: null,
+      vars: "pairs 0",
     },
     {
-      title: "T4 (2,1) — 세로 선분 s2 가 열리고 두 쌍이 잡힌다",
-      detail:
-        "s2 는 x = 2 에서 y 가 1 부터 5 까지다. 상태 배열에서 x = 2 일 때의 y 가 그 구간에 드는 선분은 s0(y = 2)과 s1(y = 4)이라 두 쌍을 바로 센다. s3 은 y = 7 이라 구간 밖이다.",
-      entries: [
-        { label: "now", value: "(2,1)" },
-        { label: "status", value: "s0 s1 s3" },
-        { label: "upright", value: "s2" },
-        { label: "예약", value: "—" },
-        { label: "pairs", value: 2 },
+      title: "T4 (2,1) — 세로 열기 s2",
+      text: "세로 선분 s2 를 열고, x = 2 에서 y 범위에 드는 s0 s1 과 짝을 셉니다.",
+      nodes: [
+        {},
+        {
+          state: "empty",
+        },
+        {},
+        {
+          state: "empty",
+        },
+        {
+          value: "now",
+          state: "read",
+        },
+        {
+          state: "empty",
+        },
+        {},
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "focus",
+        },
+        {
+          state: "focus",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "out",
+        },
       ],
+      edges: [
+        {
+          kind: "tree",
+          state: "read",
+          label: "s0",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "s1",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "s2",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+          label: "s3",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          state: "out",
+          label: "s4",
+        },
+      ],
+      groups: [],
+      strips: [
+        {
+          label: "status",
+          values: ["s0", "s1", "s3"],
+          states: {},
+          slots: 3,
+        },
+        {
+          label: "upright",
+          values: ["s2"],
+          states: {
+            "0": "focus",
+          },
+          slots: 1,
+        },
+        {
+          label: "큐 · x",
+          values: ["2", "3", "6", "8", "8", "9", "11"],
+          states: {},
+          slots: 9,
+        },
+        {
+          label: "큐 · y",
+          values: ["5", "3", "0", "4", "8", "0", "2"],
+          states: {},
+          slots: 9,
+        },
+      ],
+      rules: [
+        {
+          x: 2,
+          label: "스위프 선 x = 2",
+        },
+      ],
+      calc: {
+        expr: "센 짝 s0–s2, s1–s2 →",
+        result: "pairs 2",
+      },
+      vars: "pairs 2",
     },
     {
-      title: "T5 (2,5) — 세로 선분 s2 를 닫는다",
-      detail:
-        "s2 의 위 끝점이다. 열린 세로 목록에서 빼고 나면 이 열에서 세로 선분이 관여할 일이 없다. 상태 배열은 그대로다.",
-      entries: [
-        { label: "now", value: "(2,5)" },
-        { label: "status", value: "s0 s1 s3" },
-        { label: "upright", value: "—" },
-        { label: "예약", value: "—" },
-        { label: "pairs", value: 2 },
+      title: "T5 (2,5) — 세로 닫기 s2",
+      text: "세로 선분 s2 를 닫습니다.",
+      nodes: [
+        {},
+        {
+          state: "empty",
+        },
+        {},
+        {
+          state: "empty",
+        },
+        {},
+        {
+          value: "now",
+          state: "read",
+        },
+        {},
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {},
+        {},
+        {
+          state: "empty",
+        },
+        {
+          state: "out",
+        },
       ],
+      edges: [
+        {
+          kind: "tree",
+          label: "s0",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "s1",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          state: "focus",
+          label: "s2",
+        },
+        {
+          state: "focus",
+        },
+        {
+          state: "focus",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "s3",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          state: "out",
+          label: "s4",
+        },
+      ],
+      groups: [],
+      strips: [
+        {
+          label: "status",
+          values: ["s0", "s1", "s3"],
+          states: {},
+          slots: 3,
+        },
+        {
+          label: "upright",
+          values: [],
+          states: {},
+          slots: 1,
+        },
+        {
+          label: "큐 · x",
+          values: ["3", "6", "8", "8", "9", "11"],
+          states: {},
+          slots: 9,
+        },
+        {
+          label: "큐 · y",
+          values: ["3", "0", "4", "8", "0", "2"],
+          states: {},
+          slots: 9,
+        },
+      ],
+      rules: [
+        {
+          x: 2,
+          label: "스위프 선 x = 2",
+        },
+      ],
+      calc: null,
+      vars: "pairs 2",
     },
     {
-      title: "T6 (3,3) — 예약해 둔 교차 자리에서 순서가 뒤집힌다",
-      detail:
-        "방향 판정이 0 인 토막이 s0·s1 둘이라 한 쌍을 센다. 이 자리 뒤의 순서는 기울기가 큰 쪽이 위이므로 s1(기울기 −1)이 아래, s0(기울기 1)이 위다. 위로 올라온 s0 은 s3 과 새 이웃이 되고, 그 교차 자리 (16/3,16/3) 이 예약된다.",
-      entries: [
-        { label: "now", value: "(3,3)" },
-        { label: "status", value: "s1 s0 s3" },
-        { label: "upright", value: "—" },
-        { label: "예약", value: "(16/3,16/3)" },
-        { label: "pairs", value: 3 },
+      title: "T6 (3,3) — 교차",
+      text: "이 점을 지나는 토막 s0 s1 을 기울기 순 s1 s0 으로 다시 놓습니다. 새 이웃 s0–s3 의 교차점 (16/3,16/3) 을 사건 큐에 넣습니다.",
+      nodes: [
+        {},
+        {
+          state: "empty",
+        },
+        {},
+        {
+          state: "empty",
+        },
+        {},
+        {},
+        {},
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {},
+        {},
+        {
+          value: "now",
+          state: "read",
+        },
+        {
+          state: "focus",
+        },
       ],
+      edges: [
+        {
+          kind: "tree",
+          state: "focus",
+          label: "s0",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "s1",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          label: "s2",
+        },
+        {},
+        {},
+        {
+          kind: "tree",
+          state: "read",
+          label: "s3",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          state: "out",
+          label: "s4",
+        },
+      ],
+      groups: [],
+      strips: [
+        {
+          label: "status",
+          values: ["s1", "s0", "s3"],
+          states: {
+            "0": "focus",
+            "1": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "upright",
+          values: [],
+          states: {},
+          slots: 1,
+        },
+        {
+          label: "큐 · x",
+          values: ["16/3", "6", "8", "8", "9", "11"],
+          states: {
+            "0": "focus",
+          },
+          slots: 9,
+        },
+        {
+          label: "큐 · y",
+          values: ["16/3", "0", "4", "8", "0", "2"],
+          states: {
+            "0": "focus",
+          },
+          slots: 9,
+        },
+      ],
+      rules: [
+        {
+          x: 3,
+          label: "스위프 선 x = 3",
+        },
+      ],
+      calc: {
+        expr: "센 짝 s0–s1 →",
+        result: "pairs 3",
+      },
+      vars: "pairs 3",
+    },
+  ],
+} as const satisfies GraphPlayerSpec;
+
+export const sweepSecond = {
+  player: "stage",
+  stage: "graph",
+  title: "선분 다섯 개 — 둘째 교차점부터 사건 큐가 빌 때까지",
+  sub: "T7–T12 · 둘째 교차점과 끝점 사건",
+  result: "4",
+  layout: {
+    nodes: [
+      {
+        id: 0,
+        x: 0,
+        y: 8,
+        label: "(0,0)",
+      },
+      {
+        id: 1,
+        x: 8,
+        y: 0,
+        label: "(8,8)",
+      },
+      {
+        id: 2,
+        x: 0,
+        y: 2,
+        label: "(0,6)",
+      },
+      {
+        id: 3,
+        x: 6,
+        y: 8,
+        label: "(6,0)",
+      },
+      {
+        id: 4,
+        x: 2,
+        y: 7,
+        label: "(2,1)",
+      },
+      {
+        id: 5,
+        x: 2,
+        y: 3,
+        label: "(2,5)",
+      },
+      {
+        id: 6,
+        x: 0,
+        y: 0,
+        label: "(0,8)",
+      },
+      {
+        id: 7,
+        x: 8,
+        y: 4,
+        label: "(8,4)",
+      },
+      {
+        id: 8,
+        x: 9,
+        y: 8,
+        label: "(9,0)",
+      },
+      {
+        id: 9,
+        x: 11,
+        y: 6,
+        label: "(11,2)",
+      },
+      {
+        id: 10,
+        x: 2,
+        y: 6,
+        label: "(2,2)",
+      },
+      {
+        id: 11,
+        x: 2,
+        y: 4,
+        label: "(2,4)",
+      },
+      {
+        id: 12,
+        x: 3,
+        y: 5,
+        label: "(3,3)",
+      },
+      {
+        id: 13,
+        x: 5.333333333333333,
+        y: 2.666666666666667,
+        label: "(16/3,16/3)",
+      },
+    ],
+    edges: [
+      {
+        from: 0,
+        to: 10,
+      },
+      {
+        from: 10,
+        to: 12,
+      },
+      {
+        from: 12,
+        to: 13,
+      },
+      {
+        from: 13,
+        to: 1,
+      },
+      {
+        from: 2,
+        to: 11,
+      },
+      {
+        from: 11,
+        to: 12,
+      },
+      {
+        from: 12,
+        to: 3,
+      },
+      {
+        from: 4,
+        to: 10,
+      },
+      {
+        from: 10,
+        to: 11,
+      },
+      {
+        from: 11,
+        to: 5,
+      },
+      {
+        from: 6,
+        to: 13,
+      },
+      {
+        from: 13,
+        to: 7,
+      },
+      {
+        from: 8,
+        to: 9,
+      },
+    ],
+    directed: false,
+    unit: {
+      x: 100,
+      y: 64,
+    },
+  },
+  steps: [
+    {
+      title: "T7 (16/3,16/3) — 교차",
+      text: "이 점을 지나는 토막 s0 s3 을 기울기 순 s3 s0 으로 다시 놓습니다.",
+      nodes: [
+        {},
+        {
+          state: "empty",
+        },
+        {},
+        {
+          state: "empty",
+        },
+        {},
+        {},
+        {},
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {},
+        {},
+        {},
+        {
+          value: "now",
+          state: "read",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          state: "focus",
+          label: "s0",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "s1",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          label: "s2",
+        },
+        {},
+        {},
+        {
+          kind: "tree",
+          state: "focus",
+          label: "s3",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          state: "out",
+          label: "s4",
+        },
+      ],
+      groups: [],
+      strips: [
+        {
+          label: "status",
+          values: ["s1", "s3", "s0"],
+          states: {
+            "1": "focus",
+            "2": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "upright",
+          values: [],
+          states: {},
+          slots: 1,
+        },
+        {
+          label: "큐 · x",
+          values: ["6", "8", "8", "9", "11"],
+          states: {},
+          slots: 9,
+        },
+        {
+          label: "큐 · y",
+          values: ["0", "4", "8", "0", "2"],
+          states: {},
+          slots: 9,
+        },
+      ],
+      rules: [
+        {
+          x: 5.333333333333333,
+          label: "스위프 선 x = 16/3",
+        },
+      ],
+      calc: {
+        expr: "센 짝 s0–s3 →",
+        result: "pairs 4",
+      },
+      vars: "pairs 4",
     },
     {
-      title: "T7 (16/3,16/3) — 좌표가 분수인 사건 자리",
-      detail:
-        "s0 과 s3 이 여기서 만나 네 번째 쌍이 된다. 자리의 좌표가 정수가 아니라 분자 16 과 분모 3 으로 적어 둔 값이고, 큐의 앞뒤도 그 세 정수의 곱셈으로 정했다.",
-      entries: [
-        { label: "now", value: "(16/3,16/3)" },
-        { label: "status", value: "s1 s3 s0" },
-        { label: "upright", value: "—" },
-        { label: "예약", value: "—" },
-        { label: "pairs", value: 4 },
+      title: "T8 (6,0) — 끝 s1",
+      text: "s1 이 끝나 상태 배열에서 빠집니다.",
+      nodes: [
+        {},
+        {
+          state: "empty",
+        },
+        {},
+        {
+          value: "now",
+          state: "read",
+        },
+        {},
+        {},
+        {},
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {},
+        {},
+        {},
+        {},
       ],
+      edges: [
+        {
+          kind: "tree",
+          label: "s0",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          state: "focus",
+          label: "s1",
+        },
+        {
+          state: "focus",
+        },
+        {
+          state: "focus",
+        },
+        {
+          label: "s2",
+        },
+        {},
+        {},
+        {
+          kind: "tree",
+          label: "s3",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          state: "out",
+          label: "s4",
+        },
+      ],
+      groups: [],
+      strips: [
+        {
+          label: "status",
+          values: ["s3", "s0"],
+          states: {},
+          slots: 3,
+        },
+        {
+          label: "upright",
+          values: [],
+          states: {},
+          slots: 1,
+        },
+        {
+          label: "큐 · x",
+          values: ["8", "8", "9", "11"],
+          states: {},
+          slots: 9,
+        },
+        {
+          label: "큐 · y",
+          values: ["4", "8", "0", "2"],
+          states: {},
+          slots: 9,
+        },
+      ],
+      rules: [
+        {
+          x: 6,
+          label: "스위프 선 x = 6",
+        },
+      ],
+      calc: null,
+      vars: "pairs 4",
     },
     {
-      title: "T8 (6,0) — s1 이 끝난다",
-      detail:
-        "s1 은 상태 배열의 맨 아래에 있어서, 빼도 새로 맞닿는 짝이 생기지 않는다. 예약할 것이 없다.",
-      entries: [
-        { label: "now", value: "(6,0)" },
-        { label: "status", value: "s3 s0" },
-        { label: "upright", value: "—" },
-        { label: "예약", value: "—" },
-        { label: "pairs", value: 4 },
+      title: "T9 (8,4) — 끝 s3",
+      text: "s3 이 끝나 상태 배열에서 빠집니다.",
+      nodes: [
+        {},
+        {
+          state: "empty",
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {
+          value: "now",
+          state: "read",
+        },
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {},
+        {},
+        {},
+        {},
       ],
+      edges: [
+        {
+          kind: "tree",
+          label: "s0",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          label: "s1",
+        },
+        {},
+        {},
+        {
+          label: "s2",
+        },
+        {},
+        {},
+        {
+          state: "focus",
+          label: "s3",
+        },
+        {
+          state: "focus",
+        },
+        {
+          state: "out",
+          label: "s4",
+        },
+      ],
+      groups: [],
+      strips: [
+        {
+          label: "status",
+          values: ["s0"],
+          states: {},
+          slots: 3,
+        },
+        {
+          label: "upright",
+          values: [],
+          states: {},
+          slots: 1,
+        },
+        {
+          label: "큐 · x",
+          values: ["8", "9", "11"],
+          states: {},
+          slots: 9,
+        },
+        {
+          label: "큐 · y",
+          values: ["8", "0", "2"],
+          states: {},
+          slots: 9,
+        },
+      ],
+      rules: [
+        {
+          x: 8,
+          label: "스위프 선 x = 8",
+        },
+      ],
+      calc: null,
+      vars: "pairs 4",
     },
     {
-      title: "T9 (8,4) — s3 이 끝난다",
-      detail: "s3 을 빼면 s0 하나만 남는다. 남은 것이 하나라 이웃 짝이 없다.",
-      entries: [
-        { label: "now", value: "(8,4)" },
-        { label: "status", value: "s0" },
-        { label: "upright", value: "—" },
-        { label: "예약", value: "—" },
-        { label: "pairs", value: 4 },
+      title: "T10 (8,8) — 끝 s0",
+      text: "s0 이 끝나 상태 배열에서 빠집니다.",
+      nodes: [
+        {},
+        {
+          value: "now",
+          state: "read",
+        },
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {
+          state: "empty",
+        },
+        {
+          state: "empty",
+        },
+        {},
+        {},
+        {},
+        {},
       ],
+      edges: [
+        {
+          state: "focus",
+          label: "s0",
+        },
+        {
+          state: "focus",
+        },
+        {
+          state: "focus",
+        },
+        {
+          state: "focus",
+        },
+        {
+          label: "s1",
+        },
+        {},
+        {},
+        {
+          label: "s2",
+        },
+        {},
+        {},
+        {
+          label: "s3",
+        },
+        {},
+        {
+          state: "out",
+          label: "s4",
+        },
+      ],
+      groups: [],
+      strips: [
+        {
+          label: "status",
+          values: [],
+          states: {},
+          slots: 3,
+        },
+        {
+          label: "upright",
+          values: [],
+          states: {},
+          slots: 1,
+        },
+        {
+          label: "큐 · x",
+          values: ["9", "11"],
+          states: {},
+          slots: 9,
+        },
+        {
+          label: "큐 · y",
+          values: ["0", "2"],
+          states: {},
+          slots: 9,
+        },
+      ],
+      rules: [
+        {
+          x: 8,
+          label: "스위프 선 x = 8",
+        },
+      ],
+      calc: null,
+      vars: "pairs 4",
     },
     {
-      title: "T10 (8,8) — s0 이 끝나 상태 배열이 빈다",
-      detail:
-        "여기서 상태 배열이 한 번 비지만 큐에는 아직 s4 의 두 끝점이 남아 있다. 큐가 빌 때까지 계속한다.",
-      entries: [
-        { label: "now", value: "(8,8)" },
-        { label: "status", value: "(비어 있음)" },
-        { label: "upright", value: "—" },
-        { label: "예약", value: "—" },
-        { label: "pairs", value: 4 },
+      title: "T11 (9,0) — 시작 s4",
+      text: "s4 가 시작해 상태 배열이 s4 가 됩니다.",
+      nodes: [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {
+          value: "now",
+          state: "read",
+        },
+        {
+          state: "empty",
+        },
+        {},
+        {},
+        {},
+        {},
       ],
+      edges: [
+        {
+          label: "s0",
+        },
+        {},
+        {},
+        {},
+        {
+          label: "s1",
+        },
+        {},
+        {},
+        {
+          label: "s2",
+        },
+        {},
+        {},
+        {
+          label: "s3",
+        },
+        {},
+        {
+          kind: "tree",
+          state: "focus",
+          label: "s4",
+        },
+      ],
+      groups: [],
+      strips: [
+        {
+          label: "status",
+          values: ["s4"],
+          states: {
+            "0": "focus",
+          },
+          slots: 3,
+        },
+        {
+          label: "upright",
+          values: [],
+          states: {},
+          slots: 1,
+        },
+        {
+          label: "큐 · x",
+          values: ["11"],
+          states: {},
+          slots: 9,
+        },
+        {
+          label: "큐 · y",
+          values: ["2"],
+          states: {},
+          slots: 9,
+        },
+      ],
+      rules: [
+        {
+          x: 9,
+          label: "스위프 선 x = 9",
+        },
+      ],
+      calc: null,
+      vars: "pairs 4",
     },
     {
-      title: "T11 (9,0) — 멀리 떨어진 s4 가 시작한다",
-      detail:
-        "s4 는 x 가 9 부터 11 까지라 앞의 넷과 겹치는 구간이 없다. 상태 배열에 혼자 들어가고, 앞의 네 선분과는 한 번도 견주지 않는다.",
-      entries: [
-        { label: "now", value: "(9,0)" },
-        { label: "status", value: "s4" },
-        { label: "upright", value: "—" },
-        { label: "예약", value: "—" },
-        { label: "pairs", value: 4 },
+      title: "T12 (11,2) — 끝 s4",
+      text: "s4 가 끝나 상태 배열에서 빠집니다.",
+      nodes: [
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {
+          value: "now",
+          state: "read",
+        },
+        {},
+        {},
+        {},
+        {},
       ],
-    },
-    {
-      title: "T12 (11,2) — 큐가 비고 4 를 반환한다",
-      detail:
-        "마지막 끝점을 처리하면 큐가 빈다. 센 쌍은 s0·s2, s1·s2, s0·s1, s0·s3 넷이다.",
-      entries: [
-        { label: "now", value: "(11,2)" },
-        { label: "status", value: "(비어 있음)" },
-        { label: "upright", value: "—" },
-        { label: "예약", value: "—" },
-        { label: "pairs", value: 4 },
+      edges: [
+        {
+          label: "s0",
+        },
+        {},
+        {},
+        {},
+        {
+          label: "s1",
+        },
+        {},
+        {},
+        {
+          label: "s2",
+        },
+        {},
+        {},
+        {
+          label: "s3",
+        },
+        {},
+        {
+          state: "focus",
+          label: "s4",
+        },
       ],
+      groups: [],
+      strips: [
+        {
+          label: "status",
+          values: [],
+          states: {},
+          slots: 3,
+        },
+        {
+          label: "upright",
+          values: [],
+          states: {},
+          slots: 1,
+        },
+        {
+          label: "큐 · x",
+          values: [],
+          states: {},
+          slots: 9,
+        },
+        {
+          label: "큐 · y",
+          values: [],
+          states: {},
+          slots: 9,
+        },
+      ],
+      rules: [
+        {
+          x: 11,
+          label: "스위프 선 x = 11",
+        },
+      ],
+      calc: null,
+      vars: "pairs 4",
     },
-  ] satisfies Frame[],
-};
+  ],
+} as const satisfies GraphPlayerSpec;
