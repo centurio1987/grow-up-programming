@@ -40,7 +40,7 @@ scope: src/_viz/**, tools/check-proof.ts, tools/check-proof.test.ts, tools/check
 - [x] `S7` 편 안에서 확인하지 않은 주장 11건: 재고 출처를 대거나 문장을 낮춘다 — 완료 기준: 건마다 명령·출력 또는 출처가 수행 내역에 있고, 본문이 그 결과와 맞는다
 - [x] `S8` 스캐너 P21 「최저가」 오탐 수정(check-v2) + 시험 · 플러그인 쪽 둘(P4 주석 마커 · 천 단위 쉼표)은 재현 결과와 수정안만 기록 — 완료 기준: bestTimeToBuyAndSellStock 의 P21 경고 4건이 사라지고 시험이 통과
 - [x] `S9` 처분표와 넘김: 근거 파일 §7 처분표(아홉 갈래 전부) · 힙 무대 버린 사유 · 「견주다」 를 KAN-036 메모로 · 검사 공백은 KAN-058 S10 에서 닫힘 — 완료 기준: §7 모든 줄에 처분이 있다
-- [>] `S10` 게이트와 검토서 — 완료 기준: `bun run tools/ci.ts gates` 통과, 검토서 발행 <!-- claim:s=df6b517e t=2026-10-01T08:30 -->
+- [x] `S10` 게이트와 검토서 — 완료 기준: `bun run tools/ci.ts gates` 통과, 검토서 발행
 
 ## 검증
 - `bun run tools/render-figs.ts --check` — 「그림 사이드카가 있는 가이드 115편 / 대상 115편」 대조 통과
@@ -75,3 +75,4 @@ scope: src/_viz/**, tools/check-proof.ts, tools/check-proof.test.ts, tools/check
 - 2026-10-01T08:29 · s:df6b517e · S9 doing — 착수
 - 2026-10-01T08:29 · s:df6b517e · S9 done — 처분표(batch3 문서): §7 17줄 전부 — 고침 12 · 규약 1 · 버림 1(힙 무대) · 이미 닫힘 1 · 넘김 1 · 플러그인 2 는 검토 항목. 새로 드러난 4 도 검토 항목. 근거 파일 §7 끝에 처분표 위치 한 줄
 - 2026-10-01T08:30 · s:df6b517e · S10 doing — 착수
+- 2026-10-01T08:47 · s:df6b517e · S10 done — gates 통과(14단계) · 검토서 발행(판단 항목 4)

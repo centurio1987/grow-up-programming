@@ -1,6 +1,6 @@
 {
   "next_id": 64,
-  "next_seq": 449,
+  "next_seq": 450,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1573,7 +1573,7 @@
       "memo_hash": "d0ea12e7511e9e10c1f3f4ad54cb0ef77441ce35"
     },
     "KAN-063-X2JFZA": {
-      "col": "doing",
+      "col": "review",
       "title": "그림 무대·증명 도구 개선 후보 — KAN-058 전개 중 모인 한계 목록",
       "verbatim": "KAN-058 검토서 판단 항목 7 「그림 무대와 도구에 남은 개선 후보를 어떻게 다룰 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드 하나에 후보 목록으로 넘긴다」",
       "생성": "ai",
@@ -1656,7 +1656,6 @@
     "KAN-032",
     "KAN-034.10-8M6T6P",
     "KAN-036-0G05DE",
-    "KAN-063-X2JFZA",
     "KAN-029",
     "KAN-030",
     "KAN-007",
@@ -1711,9 +1710,20 @@
     "KAN-059-PSFTN4",
     "KAN-060-9P4ZAA",
     "KAN-058.1-9TBXDA",
-    "KAN-058-8XT6PC"
+    "KAN-058-8XT6PC",
+    "KAN-063-X2JFZA"
   ],
   "recent": [
+    {
+      "seq": 449,
+      "t": "2026-10-01T08:47",
+      "a": "ai",
+      "id": "KAN-063-X2JFZA",
+      "op": "move",
+      "w": "VKFNNV",
+      "from": "doing",
+      "to": "review"
+    },
     {
       "seq": 448,
       "t": "2026-10-01T07:22",
@@ -2269,23 +2279,6 @@
       "w": "977NDY",
       "with_": "KAN-039-FG8HWZ",
       "reason": "경로 글롭만 겹친다 — KAN-039 는 src/algorithms/*/huffman*/**, KAN-057 은 src/algorithms/array/sparseTableRangeMin/** 라 실제 파일이 다르다(유저 용인 2026-09-28)"
-    },
-    {
-      "seq": 403,
-      "t": "2026-09-28T17:51",
-      "a": "ai",
-      "id": "KAN-059-PSFTN4",
-      "op": "create",
-      "w": "46PCAX",
-      "col": "backlog",
-      "title": "책 빌더의 SVG 그림 인쇄 — 알고리즘 가이드 fig 자리를 책(PDF)에서 어떻게 찍는가",
-      "verbatim": "",
-      "parent": null,
-      "short": "책 빌더 SVG 인쇄",
-      "purpose": "KAN-057 이 가이드 도식을 ASCII 에서 SVG(fig)로 바꾸면서 책 빌더가 그 자리를 인쇄할 수 있게 한다",
-      "reason": "책 빌더는 pre.gs-ascii 를 전제로 짜여 있어(build-book.ts:57 · print-css.ts:155-245 · fragment.ts:23 · build-sample.ts:164) fig 로 바뀐 자리가 인쇄에서 빠지거나 깨질 수 있다",
-      "goal": "fig 가 있는 가이드가 책 빌드에서 그림으로 인쇄되고, 110편 전개(KAN-058) 전에 인쇄 경로가 선다",
-      "memo": "KAN-057 전략 2 에서 범위 밖으로 뺀 곁가지(플랜 검토 지적 4, 2026-09-28). 근거 자료: KAN-057 S14 가 기록할 「책 빌드에서 fig 자리가 어떻게 나오는가」"
     }
   ],
   "waivers": [
