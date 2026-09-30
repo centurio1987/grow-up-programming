@@ -1,393 +1,1163 @@
-import type { Frame } from "#guide-sim";
-
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수(12)는 그 절의
- * `T#` 단계 수(19)를 넘지 않는다 — P3 이 그 관계를 잰다. 걸음 열아홉 중 상태가 실제로 바뀌는
- * 자리 열둘을 골랐고, 건너뛴 걸음은 `detail` 이 이름으로 짚는다.
+ * 걸음 재생 패널 — `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 제목은
+ * 원고의 걸음 번호(`T#`)로 연다 — P3 이 그 자리를 잰다. T1 이 준비, T2 부터 T18 까지가 갈래 하나씩,
+ * T19 가 반환이다.
  *
- * **뷰가 둘이다.** `graph` 는 정점의 상태(아직 안 봄 · 호출 스택에 있음 · 지금 보는 중 ·
- * 이웃을 다 봄)와 지금 읽는 간선을 그리고, `keyValue` 는 그 순간의 호출 스택 · `disc` ·
- * `low` · 단절점 목록 · 갈래를 적는다. 이 편에서 갈리는 것은 **`low` 가 어디까지 내려갔는가**
- * 라 그래프 그림의 색만으로는 판정의 근거가 안 보인다.
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가 실제보다
+ * 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
  *
- * `nodeValue` 는 `disc/low` 를 한 칸에 적는다 — 자식의 `low` 와 부모의 `disc` 를 맞대는 것이
- * 이 절차의 판정이라, 두 값을 떼어 놓으면 독자가 매 프레임 두 줄을 맞대야 한다.
+ * ## 패널 규약 — 「그래프」 무대(KAN-058, SPEC §13)
  *
- * 좌표는 0~100 정규화다. 삼각형 `0−1−2` 를 왼쪽에 두고 꼬리 `0−3−4` 를 오른쪽으로 늘어뜨려,
- * 단절점 0 과 3 이 그림에서 목이 되는 자리에 오게 했다.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "graph"` 가
+ * 무대 갈래를 고른다. 정점과 간선의 자리(`layout`)는 패널에 한 번만 적고, 걸음마다 정점의 값(`disc / low`)과
+ * 상태, 간선의 종류(나무 · 되돌아감)와 상태, 무대 아래 두 띠(호출 스택 · 단절점)만 바꾼다
+ * (`src/_viz/player/graphStage.ts`). 간선에 방향이 없으므로 `directed: false` 다.
  *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가
- * 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * **값은 손으로 적지 않았다.** 이 리터럴은 그림 사이드카의 `stageStepsFromRef()` 가 정본과 같은 절차를
+ * 실행해 낸 결과를 옮긴 것이고, 둘이 같은지는 `articulationPoints-guide.test.ts` 가 잰다.
  */
+
 export const apWalk = {
-  view: ["graph", "keyValue"] as const,
-  title: "articulationPoints(5, [[0,1],[1,2],[2,0],[0,3],[3,4]])",
+  player: "stage",
+  stage: "graph",
+  title:
+    "articulationPoints(5, [[0,1],[1,2],[2,0],[0,3],[3,4]]) — 정점 안의 두 수는 disc / low",
+  sub: "T1–T19 · 걸음마다 이웃 자리 하나 또는 정점 하나",
   result: "[0, 3]",
+  layout: {
+    nodes: [
+      {
+        id: 0,
+        x: 1,
+        y: 0,
+      },
+      {
+        id: 1,
+        x: 0,
+        y: 1.2,
+      },
+      {
+        id: 2,
+        x: 2,
+        y: 1.2,
+      },
+      {
+        id: 3,
+        x: 3,
+        y: 0,
+      },
+      {
+        id: 4,
+        x: 4.2,
+        y: 0,
+      },
+    ],
+    edges: [
+      {
+        from: 0,
+        to: 1,
+      },
+      {
+        from: 1,
+        to: 2,
+      },
+      {
+        from: 2,
+        to: 0,
+      },
+      {
+        from: 0,
+        to: 3,
+      },
+      {
+        from: 3,
+        to: 4,
+      },
+    ],
+    directed: false,
+  },
   steps: [
     {
       title: "T1 준비",
-      detail:
-        "간선 목록을 꼬리와 머리 양쪽에 나눠 담아 이웃 목록을 만들고, disc 와 low 를 전부 -1 로, cut 을 전부 거짓으로 둔다. 호출 스택은 비어 있고 timer 는 0 이다.",
+      text: "간선마다 두 끝의 이웃 목록에 서로를 넣고, disc · low 를 모두 -1 로, cut 을 모두 거짓으로 둡니다. 아직 들어간 정점이 없어 호출 스택이 비어 있습니다.",
       nodes: [
-        { id: 0, x: 30, y: 16 },
-        { id: 1, x: 10, y: 72 },
-        { id: 2, x: 46, y: 74 },
-        { id: 3, x: 68, y: 34 },
-        { id: 4, x: 92, y: 82 },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
-      edges: [
-        { from: 0, to: 1, directed: false },
-        { from: 1, to: 2, directed: false },
-        { from: 2, to: 0, directed: false },
-        { from: 0, to: 3, directed: false },
-        { from: 3, to: 4, directed: false },
+      edges: [{}, {}, {}, {}, {}],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [],
+          slots: 5,
+        },
+        {
+          label: "단절점",
+          values: [],
+          slots: 5,
+        },
       ],
-      nodeStatus: {},
-      nodeValue: { 0: "-/-", 1: "-/-", 2: "-/-", 3: "-/-", 4: "-/-" },
-      entries: [
-        { label: "호출 스택", value: "[]" },
-        { label: "disc", value: "[-, -, -, -, -]" },
-        { label: "low", value: "[-, -, -, -, -]" },
-        { label: "단절점", value: "[]" },
-        { label: "갈래", value: "①② 준비" },
-      ],
+      calc: null,
+      vars: "timer = 0 · 읽은 이웃 자리 0 / 10",
     },
     {
-      title: "T2 정점 0 에 처음 들어간다",
-      detail:
-        "바깥 반복이 disc[0] = -1 을 보고 정점 0 으로 들어간다. disc[0] 과 low[0] 에 같은 수 0 을 적고 호출 스택에 담는다.",
+      title: "T2 정점 0 에 들어간다",
+      text: "바깥 반복이 아직 안 들어간 정점 0 을 찾아 들어갑니다. 발견 순서 0 을 disc 와 low 에 함께 적고, 부모 칸에는 뿌리 표시 -1 을 넣습니다.",
       nodes: [
-        { id: 0, x: 30, y: 16 },
-        { id: 1, x: 10, y: 72 },
-        { id: 2, x: 46, y: 74 },
-        { id: 3, x: 68, y: 34 },
-        { id: 4, x: 92, y: 82 },
+        {
+          value: "0 / 0",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
-      edges: [
-        { from: 0, to: 1, directed: false },
-        { from: 1, to: 2, directed: false },
-        { from: 2, to: 0, directed: false },
-        { from: 0, to: 3, directed: false },
-        { from: 3, to: 4, directed: false },
+      edges: [{}, {}, {}, {}, {}],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0],
+          slots: 5,
+          states: {
+            "0": "focus",
+          },
+        },
+        {
+          label: "단절점",
+          values: [],
+          slots: 5,
+        },
       ],
-      nodeStatus: { 0: "active" },
-      nodeValue: { 0: "0/0", 1: "-/-", 2: "-/-", 3: "-/-", 4: "-/-" },
-      entries: [
-        { label: "호출 스택", value: "[0]" },
-        { label: "disc", value: "[0, -, -, -, -]" },
-        { label: "low", value: "[0, -, -, -, -]" },
-        { label: "단절점", value: "[]" },
-        { label: "갈래", value: "③ 정점에 처음 들어간다" },
-      ],
-    },
-    {
-      title: "T3 간선 0−1 을 읽고 정점 1 로 내려간다",
-      detail:
-        "이웃 목록에서 처음 보는 정점 1 을 만나 나무 간선으로 내려간다. 뿌리 0 의 나무 자식 수가 1 이 된다.",
-      nodes: [
-        { id: 0, x: 30, y: 16 },
-        { id: 1, x: 10, y: 72 },
-        { id: 2, x: 46, y: 74 },
-        { id: 3, x: 68, y: 34 },
-        { id: 4, x: 92, y: 82 },
-      ],
-      edges: [
-        { from: 0, to: 1, directed: false },
-        { from: 1, to: 2, directed: false },
-        { from: 2, to: 0, directed: false },
-        { from: 0, to: 3, directed: false },
-        { from: 3, to: 4, directed: false },
-      ],
-      nodeStatus: { 0: "frontier", 1: "active" },
-      nodeValue: { 0: "0/0", 1: "1/1", 2: "-/-", 3: "-/-", 4: "-/-" },
-      activeEdge: { from: 0, to: 1 },
-      entries: [
-        { label: "호출 스택", value: "[0, 1]" },
-        { label: "disc", value: "[0, 1, -, -, -]" },
-        { label: "low", value: "[0, 1, -, -, -]" },
-        { label: "단절점", value: "[]" },
-        { label: "갈래", value: "④③ 처음 보는 이웃으로 내려간다" },
-      ],
-    },
-    {
-      title: "T5 간선 1−2 를 읽고 정점 2 로 내려간다",
-      detail:
-        "T4 는 정점 1 에서 부모 0 을 다시 본 걸음이라 아무것도 하지 않았다. T5 가 처음 보는 정점 2 로 내려간다.",
-      nodes: [
-        { id: 0, x: 30, y: 16 },
-        { id: 1, x: 10, y: 72 },
-        { id: 2, x: 46, y: 74 },
-        { id: 3, x: 68, y: 34 },
-        { id: 4, x: 92, y: 82 },
-      ],
-      edges: [
-        { from: 0, to: 1, directed: false },
-        { from: 1, to: 2, directed: false },
-        { from: 2, to: 0, directed: false },
-        { from: 0, to: 3, directed: false },
-        { from: 3, to: 4, directed: false },
-      ],
-      nodeStatus: { 0: "frontier", 1: "frontier", 2: "active" },
-      nodeValue: { 0: "0/0", 1: "1/1", 2: "2/2", 3: "-/-", 4: "-/-" },
-      activeEdge: { from: 1, to: 2 },
-      entries: [
-        { label: "호출 스택", value: "[0, 1, 2]" },
-        { label: "disc", value: "[0, 1, 2, -, -]" },
-        { label: "low", value: "[0, 1, 2, -, -]" },
-        { label: "단절점", value: "[]" },
-        { label: "갈래", value: "④③ 처음 보는 이웃으로 내려간다" },
-      ],
-    },
-    {
-      title: "T7 되돌아가는 간선 2−0 을 읽는다",
-      detail:
-        "정점 0 은 이미 들어갔던 정점이고 2 의 부모도 아니다. 되돌아가는 간선이므로 low[2] 를 disc[0] = 0 까지 내린다.",
-      nodes: [
-        { id: 0, x: 30, y: 16 },
-        { id: 1, x: 10, y: 72 },
-        { id: 2, x: 46, y: 74 },
-        { id: 3, x: 68, y: 34 },
-        { id: 4, x: 92, y: 82 },
-      ],
-      edges: [
-        { from: 0, to: 1, directed: false },
-        { from: 1, to: 2, directed: false },
-        { from: 2, to: 0, directed: false },
-        { from: 0, to: 3, directed: false },
-        { from: 3, to: 4, directed: false },
-      ],
-      nodeStatus: { 0: "frontier", 1: "frontier", 2: "active" },
-      nodeValue: { 0: "0/0", 1: "1/1", 2: "2/0", 3: "-/-", 4: "-/-" },
-      activeEdge: { from: 2, to: 0 },
-      entries: [
-        { label: "호출 스택", value: "[0, 1, 2]" },
-        { label: "disc", value: "[0, 1, 2, -, -]" },
-        { label: "low", value: "[0, 1, 0, -, -]" },
-        { label: "단절점", value: "[]" },
-        { label: "갈래", value: "⑤ 되돌아가는 간선에서 값을 내린다" },
-      ],
-    },
-    {
-      title: "T8 정점 2 를 호출 스택에서 뺀다",
-      detail:
-        "정점 2 의 이웃을 다 봤다. low[2] = 0 을 부모 1 에게 전달하고, low[2] = 0 이 disc[1] = 1 보다 작아 정점 1 은 단절점이 아니다.",
-      nodes: [
-        { id: 0, x: 30, y: 16 },
-        { id: 1, x: 10, y: 72 },
-        { id: 2, x: 46, y: 74 },
-        { id: 3, x: 68, y: 34 },
-        { id: 4, x: 92, y: 82 },
-      ],
-      edges: [
-        { from: 0, to: 1, directed: false },
-        { from: 1, to: 2, directed: false },
-        { from: 2, to: 0, directed: false },
-        { from: 0, to: 3, directed: false },
-        { from: 3, to: 4, directed: false },
-      ],
-      nodeStatus: { 0: "frontier", 1: "active", 2: "visited" },
-      nodeValue: { 0: "0/0", 1: "1/0", 2: "2/0", 3: "-/-", 4: "-/-" },
-      entries: [
-        { label: "호출 스택", value: "[0, 1]" },
-        { label: "disc", value: "[0, 1, 2, -, -]" },
-        { label: "low", value: "[0, 0, 0, -, -]" },
-        { label: "단절점", value: "[]" },
-        { label: "갈래", value: "⑦ 이웃을 다 본 정점을 뺀다" },
-      ],
-    },
-    {
-      title: "T9 정점 1 을 호출 스택에서 뺀다",
-      detail:
-        "low[1] = 0 을 부모 0 에게 전달한다. 부모 0 은 뿌리라 이 자리의 판정을 쓰지 않는다.",
-      nodes: [
-        { id: 0, x: 30, y: 16 },
-        { id: 1, x: 10, y: 72 },
-        { id: 2, x: 46, y: 74 },
-        { id: 3, x: 68, y: 34 },
-        { id: 4, x: 92, y: 82 },
-      ],
-      edges: [
-        { from: 0, to: 1, directed: false },
-        { from: 1, to: 2, directed: false },
-        { from: 2, to: 0, directed: false },
-        { from: 0, to: 3, directed: false },
-        { from: 3, to: 4, directed: false },
-      ],
-      nodeStatus: { 0: "active", 1: "visited", 2: "visited" },
-      nodeValue: { 0: "0/0", 1: "1/0", 2: "2/0", 3: "-/-", 4: "-/-" },
-      entries: [
-        { label: "호출 스택", value: "[0]" },
-        { label: "disc", value: "[0, 1, 2, -, -]" },
-        { label: "low", value: "[0, 0, 0, -, -]" },
-        { label: "단절점", value: "[]" },
-        { label: "갈래", value: "⑦ 이웃을 다 본 정점을 뺀다" },
-      ],
-    },
-    {
-      title: "T11 간선 0−3 을 읽고 정점 3 으로 내려간다",
-      detail:
-        "T10 은 뿌리 0 에서 되돌아가는 간선 0−2 를 읽었지만 low[0] 이 이미 0 이라 값이 안 바뀌었다. T11 에서 뿌리의 나무 자식 수가 2 가 된다.",
-      nodes: [
-        { id: 0, x: 30, y: 16 },
-        { id: 1, x: 10, y: 72 },
-        { id: 2, x: 46, y: 74 },
-        { id: 3, x: 68, y: 34 },
-        { id: 4, x: 92, y: 82 },
-      ],
-      edges: [
-        { from: 0, to: 1, directed: false },
-        { from: 1, to: 2, directed: false },
-        { from: 2, to: 0, directed: false },
-        { from: 0, to: 3, directed: false },
-        { from: 3, to: 4, directed: false },
-      ],
-      nodeStatus: { 0: "frontier", 1: "visited", 2: "visited", 3: "active" },
-      nodeValue: { 0: "0/0", 1: "1/0", 2: "2/0", 3: "3/3", 4: "-/-" },
-      activeEdge: { from: 0, to: 3 },
-      entries: [
-        { label: "호출 스택", value: "[0, 3]" },
-        { label: "disc", value: "[0, 1, 2, 3, -]" },
-        { label: "low", value: "[0, 0, 0, 3, -]" },
-        { label: "단절점", value: "[]" },
-        { label: "갈래", value: "④③ 처음 보는 이웃으로 내려간다" },
-      ],
-    },
-    {
-      title: "T13 간선 3−4 를 읽고 정점 4 로 내려간다",
-      detail:
-        "정점 4 는 잎이다. 되돌아가는 간선이 하나도 없어 low[4] 가 자기 진입 시각 4 에 그대로 남는다.",
-      nodes: [
-        { id: 0, x: 30, y: 16 },
-        { id: 1, x: 10, y: 72 },
-        { id: 2, x: 46, y: 74 },
-        { id: 3, x: 68, y: 34 },
-        { id: 4, x: 92, y: 82 },
-      ],
-      edges: [
-        { from: 0, to: 1, directed: false },
-        { from: 1, to: 2, directed: false },
-        { from: 2, to: 0, directed: false },
-        { from: 0, to: 3, directed: false },
-        { from: 3, to: 4, directed: false },
-      ],
-      nodeStatus: {
-        0: "frontier",
-        1: "visited",
-        2: "visited",
-        3: "frontier",
-        4: "active",
+      calc: {
+        expr: "disc[0] = low[0] = timer =",
+        result: "0",
       },
-      nodeValue: { 0: "0/0", 1: "1/0", 2: "2/0", 3: "3/3", 4: "4/4" },
-      activeEdge: { from: 3, to: 4 },
-      entries: [
-        { label: "호출 스택", value: "[0, 3, 4]" },
-        { label: "disc", value: "[0, 1, 2, 3, 4]" },
-        { label: "low", value: "[0, 0, 0, 3, 4]" },
-        { label: "단절점", value: "[]" },
-        { label: "갈래", value: "④③ 처음 보는 이웃으로 내려간다" },
-      ],
+      vars: "timer = 1 · 읽은 이웃 자리 0 / 10",
     },
     {
-      title: "T15 정점 4 를 빼면서 정점 3 을 단절점으로 적는다",
-      detail:
-        "low[4] = 4 가 disc[3] = 3 이상이다. 정점 4 의 나무 아래에서 정점 3 위로 가는 길이 없다는 뜻이라 정점 3 이 단절점이다.",
+      title: "T3 간선 0−1 로 내려간다",
+      text: "정점 0 의 이웃 1 이 처음 보는 정점이라 내려갑니다. disc 와 low 에 1 을 적고, 부모 칸에 0 을 넣습니다.",
       nodes: [
-        { id: 0, x: 30, y: 16 },
-        { id: 1, x: 10, y: 72 },
-        { id: 2, x: 46, y: 74 },
-        { id: 3, x: 68, y: 34 },
-        { id: 4, x: 92, y: 82 },
+        {
+          value: "0 / 0",
+          state: "read",
+        },
+        {
+          value: "1 / 1",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1, directed: false },
-        { from: 1, to: 2, directed: false },
-        { from: 2, to: 0, directed: false },
-        { from: 0, to: 3, directed: false },
-        { from: 3, to: 4, directed: false },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {},
+        {},
+        {},
+        {},
       ],
-      nodeStatus: {
-        0: "frontier",
-        1: "visited",
-        2: "visited",
-        3: "active",
-        4: "visited",
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0, 1],
+          slots: 5,
+          states: {
+            "1": "focus",
+          },
+        },
+        {
+          label: "단절점",
+          values: [],
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "disc[1] = low[1] = timer =",
+        result: "1",
       },
-      nodeValue: { 0: "0/0", 1: "1/0", 2: "2/0", 3: "3/3", 4: "4/4" },
-      entries: [
-        { label: "호출 스택", value: "[0, 3]" },
-        { label: "disc", value: "[0, 1, 2, 3, 4]" },
-        { label: "low", value: "[0, 0, 0, 3, 4]" },
-        { label: "단절점", value: "[3]" },
-        { label: "갈래", value: "⑦⑧ 뿌리가 아닌 부모를 단절점으로 적는다" },
-      ],
+      vars: "timer = 2 · 읽은 이웃 자리 1 / 10",
     },
     {
-      title: "T17 정점 0 을 빼고 호출 스택이 빈다",
-      detail:
-        "T16 이 정점 3 을 뺐고, 그 부모 0 은 뿌리라 판정을 안 쓴다. T17 에서 뿌리 자신이 빠지며 이 성분의 탐색이 끝난다.",
+      title: "T4 이웃 0 — 부모라 건너뛴다",
+      text: "이웃 0 은 정점 1 의 부모입니다. 방금 내려온 나무 간선을 거꾸로 본 것이라 low[1] 을 건드리지 않습니다.",
       nodes: [
-        { id: 0, x: 30, y: 16 },
-        { id: 1, x: 10, y: 72 },
-        { id: 2, x: 46, y: 74 },
-        { id: 3, x: 68, y: 34 },
-        { id: 4, x: 92, y: 82 },
+        {
+          value: "0 / 0",
+          state: "read",
+        },
+        {
+          value: "1 / 1",
+          state: "read",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1, directed: false },
-        { from: 1, to: 2, directed: false },
-        { from: 2, to: 0, directed: false },
-        { from: 0, to: 3, directed: false },
-        { from: 3, to: 4, directed: false },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {},
+        {},
+        {},
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "visited",
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0, 1],
+          slots: 5,
+          states: {
+            "1": "read",
+          },
+        },
+        {
+          label: "단절점",
+          values: [],
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "callP 맨 위 = 0 = 이웃",
+        result: "건너뜀",
       },
-      nodeValue: { 0: "0/0", 1: "1/0", 2: "2/0", 3: "3/3", 4: "4/4" },
-      entries: [
-        { label: "호출 스택", value: "[]" },
-        { label: "disc", value: "[0, 1, 2, 3, 4]" },
-        { label: "low", value: "[0, 0, 0, 3, 4]" },
-        { label: "단절점", value: "[3]" },
-        { label: "갈래", value: "⑦ 이웃을 다 본 정점을 뺀다" },
-      ],
+      vars: "timer = 2 · 읽은 이웃 자리 2 / 10",
     },
     {
-      title: "T18 뿌리 0 을 자식 수로 판정한다",
-      detail:
-        "뿌리 0 의 나무 자식은 1 과 3 둘이다. 둘 이상이므로 뿌리 규칙으로 정점 0 도 단절점이다.",
+      title: "T5 간선 1−2 로 내려간다",
+      text: "정점 1 의 이웃 2 가 처음 보는 정점이라 내려갑니다. disc 와 low 에 2 를 적고, 부모 칸에 1 을 넣습니다.",
       nodes: [
-        { id: 0, x: 30, y: 16 },
-        { id: 1, x: 10, y: 72 },
-        { id: 2, x: 46, y: 74 },
-        { id: 3, x: 68, y: 34 },
-        { id: 4, x: 92, y: 82 },
+        {
+          value: "0 / 0",
+        },
+        {
+          value: "1 / 1",
+          state: "read",
+        },
+        {
+          value: "2 / 2",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1, directed: false },
-        { from: 1, to: 2, directed: false },
-        { from: 2, to: 0, directed: false },
-        { from: 0, to: 3, directed: false },
-        { from: 3, to: 4, directed: false },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {},
+        {},
+        {},
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "visited",
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0, 1, 2],
+          slots: 5,
+          states: {
+            "2": "focus",
+          },
+        },
+        {
+          label: "단절점",
+          values: [],
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "disc[2] = low[2] = timer =",
+        result: "2",
       },
-      nodeValue: { 0: "0/0", 1: "1/0", 2: "2/0", 3: "3/3", 4: "4/4" },
-      entries: [
-        { label: "호출 스택", value: "[]" },
-        { label: "disc", value: "[0, 1, 2, 3, 4]" },
-        { label: "low", value: "[0, 0, 0, 3, 4]" },
-        { label: "단절점", value: "[0, 3]" },
-        { label: "갈래", value: "⑨ 뿌리를 자식 수로 판정한다" },
-      ],
+      vars: "timer = 3 · 읽은 이웃 자리 3 / 10",
     },
-  ] satisfies Frame[],
+    {
+      title: "T6 이웃 1 — 부모라 건너뛴다",
+      text: "이웃 1 은 정점 2 의 부모입니다. 방금 내려온 나무 간선을 거꾸로 본 것이라 low[2] 를 건드리지 않습니다.",
+      nodes: [
+        {
+          value: "0 / 0",
+        },
+        {
+          value: "1 / 1",
+          state: "read",
+        },
+        {
+          value: "2 / 2",
+          state: "read",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {},
+        {},
+        {},
+      ],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0, 1, 2],
+          slots: 5,
+          states: {
+            "2": "read",
+          },
+        },
+        {
+          label: "단절점",
+          values: [],
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "callP 맨 위 = 1 = 이웃",
+        result: "건너뜀",
+      },
+      vars: "timer = 3 · 읽은 이웃 자리 4 / 10",
+    },
+    {
+      title: "T7 이웃 0 — 이미 들어갔던 정점",
+      text: "이웃 0 은 이미 들어갔던 정점이고 부모가 아닙니다. 되돌아가는 간선이라 low[2] 를 disc[0] = 0 까지 줄입니다.",
+      nodes: [
+        {
+          value: "0 / 0",
+          state: "read",
+        },
+        {
+          value: "1 / 1",
+        },
+        {
+          value: "2 / 0",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "back",
+          state: "focus",
+        },
+        {},
+        {},
+      ],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0, 1, 2],
+          slots: 5,
+          states: {
+            "2": "read",
+          },
+        },
+        {
+          label: "단절점",
+          values: [],
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "low[2] = min(2, disc[0]) =",
+        result: "0",
+      },
+      vars: "timer = 3 · 읽은 이웃 자리 5 / 10",
+    },
+    {
+      title: "T8 정점 2 를 뺀다",
+      text: "정점 2 의 이웃을 다 봐서 호출 스택에서 뺍니다. low[2] = 0 을 부모 1 에게 넘깁니다. 0 이 disc[1] = 1 보다 작아 부모를 적지 않습니다.",
+      nodes: [
+        {
+          value: "0 / 0",
+        },
+        {
+          value: "1 / 0",
+          state: "focus",
+        },
+        {
+          value: "2 / 0",
+          state: "read",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "back",
+        },
+        {},
+        {},
+      ],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0, 1],
+          slots: 5,
+          states: {
+            "1": "read",
+          },
+        },
+        {
+          label: "단절점",
+          values: [],
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "low[1] = min(1, low[2]) =",
+        result: "0",
+      },
+      vars: "timer = 3 · 읽은 이웃 자리 5 / 10",
+    },
+    {
+      title: "T9 정점 1 을 뺀다",
+      text: "정점 1 의 이웃을 다 봐서 호출 스택에서 뺍니다. low[1] = 0 을 부모 0 에게 넘기고, 부모가 뿌리라 판정하지 않습니다.",
+      nodes: [
+        {
+          value: "0 / 0",
+          state: "read",
+        },
+        {
+          value: "1 / 0",
+          state: "read",
+        },
+        {
+          value: "2 / 0",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "back",
+        },
+        {},
+        {},
+      ],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0],
+          slots: 5,
+          states: {
+            "0": "read",
+          },
+        },
+        {
+          label: "단절점",
+          values: [],
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "low[0] = min(0, low[1]) =",
+        result: "0",
+      },
+      vars: "timer = 3 · 읽은 이웃 자리 5 / 10",
+    },
+    {
+      title: "T10 이웃 2 — 이미 들어갔던 정점",
+      text: "이웃 2 는 이미 들어갔다 나온 자손입니다. disc[2] = 2 가 low[0] = 0 보다 커서 값이 그대로입니다.",
+      nodes: [
+        {
+          value: "0 / 0",
+          state: "read",
+        },
+        {
+          value: "1 / 0",
+        },
+        {
+          value: "2 / 0",
+          state: "read",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "back",
+          state: "read",
+        },
+        {},
+        {},
+      ],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0],
+          slots: 5,
+          states: {
+            "0": "read",
+          },
+        },
+        {
+          label: "단절점",
+          values: [],
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "low[0] = min(0, disc[2]) =",
+        result: "0",
+      },
+      vars: "timer = 3 · 읽은 이웃 자리 6 / 10",
+    },
+    {
+      title: "T11 간선 0−3 으로 내려간다",
+      text: "정점 0 의 이웃 3 이 처음 보는 정점이라 내려갑니다. disc 와 low 에 3 을 적고, 부모 칸에 0 을 넣습니다.",
+      nodes: [
+        {
+          value: "0 / 0",
+          state: "read",
+        },
+        {
+          value: "1 / 0",
+        },
+        {
+          value: "2 / 0",
+        },
+        {
+          value: "3 / 3",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "back",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {},
+      ],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0, 3],
+          slots: 5,
+          states: {
+            "1": "focus",
+          },
+        },
+        {
+          label: "단절점",
+          values: [],
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "disc[3] = low[3] = timer =",
+        result: "3",
+      },
+      vars: "timer = 4 · 읽은 이웃 자리 7 / 10",
+    },
+    {
+      title: "T12 이웃 0 — 부모라 건너뛴다",
+      text: "이웃 0 은 정점 3 의 부모입니다. 방금 내려온 나무 간선을 거꾸로 본 것이라 low[3] 을 건드리지 않습니다.",
+      nodes: [
+        {
+          value: "0 / 0",
+          state: "read",
+        },
+        {
+          value: "1 / 0",
+        },
+        {
+          value: "2 / 0",
+        },
+        {
+          value: "3 / 3",
+          state: "read",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "back",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {},
+      ],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0, 3],
+          slots: 5,
+          states: {
+            "1": "read",
+          },
+        },
+        {
+          label: "단절점",
+          values: [],
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "callP 맨 위 = 0 = 이웃",
+        result: "건너뜀",
+      },
+      vars: "timer = 4 · 읽은 이웃 자리 8 / 10",
+    },
+    {
+      title: "T13 간선 3−4 로 내려간다",
+      text: "정점 3 의 이웃 4 가 처음 보는 정점이라 내려갑니다. disc 와 low 에 4 를 적고, 부모 칸에 3 을 넣습니다.",
+      nodes: [
+        {
+          value: "0 / 0",
+        },
+        {
+          value: "1 / 0",
+        },
+        {
+          value: "2 / 0",
+        },
+        {
+          value: "3 / 3",
+          state: "read",
+        },
+        {
+          value: "4 / 4",
+          state: "focus",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "back",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+      ],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0, 3, 4],
+          slots: 5,
+          states: {
+            "2": "focus",
+          },
+        },
+        {
+          label: "단절점",
+          values: [],
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "disc[4] = low[4] = timer =",
+        result: "4",
+      },
+      vars: "timer = 5 · 읽은 이웃 자리 9 / 10",
+    },
+    {
+      title: "T14 이웃 3 — 부모라 건너뛴다",
+      text: "이웃 3 은 정점 4 의 부모입니다. 방금 내려온 나무 간선을 거꾸로 본 것이라 low[4] 를 건드리지 않습니다.",
+      nodes: [
+        {
+          value: "0 / 0",
+        },
+        {
+          value: "1 / 0",
+        },
+        {
+          value: "2 / 0",
+        },
+        {
+          value: "3 / 3",
+          state: "read",
+        },
+        {
+          value: "4 / 4",
+          state: "read",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "back",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+      ],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0, 3, 4],
+          slots: 5,
+          states: {
+            "2": "read",
+          },
+        },
+        {
+          label: "단절점",
+          values: [],
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "callP 맨 위 = 3 = 이웃",
+        result: "건너뜀",
+      },
+      vars: "timer = 5 · 읽은 이웃 자리 10 / 10",
+    },
+    {
+      title: "T15 정점 4 를 빼며 3 을 단절점으로 적는다",
+      text: "정점 4 의 이웃을 다 봐서 호출 스택에서 뺍니다. low[4] = 4 가 disc[3] = 3 이상이라, 서브트리가 정점 3 위로 못 갑니다. 정점 3 을 단절점으로 적습니다.",
+      nodes: [
+        {
+          value: "0 / 0",
+        },
+        {
+          value: "1 / 0",
+        },
+        {
+          value: "2 / 0",
+        },
+        {
+          value: "3 / 3",
+          state: "focus",
+        },
+        {
+          value: "4 / 4",
+          state: "read",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "back",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+      ],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0, 3],
+          slots: 5,
+          states: {
+            "1": "read",
+          },
+        },
+        {
+          label: "단절점",
+          values: [3],
+          slots: 5,
+          states: {
+            "0": "focus",
+          },
+        },
+      ],
+      calc: {
+        expr: "low[4] = 4 ≥ disc[3] = 3 →",
+        result: "참",
+      },
+      vars: "timer = 5 · 읽은 이웃 자리 10 / 10",
+    },
+    {
+      title: "T16 정점 3 을 뺀다",
+      text: "정점 3 의 이웃을 다 봐서 호출 스택에서 뺍니다. low[3] = 3 을 부모 0 에게 넘기고, 부모가 뿌리라 판정하지 않습니다.",
+      nodes: [
+        {
+          value: "0 / 0",
+          state: "read",
+        },
+        {
+          value: "1 / 0",
+        },
+        {
+          value: "2 / 0",
+        },
+        {
+          value: "3 / 3",
+          state: "read",
+        },
+        {
+          value: "4 / 4",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "back",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          kind: "tree",
+        },
+      ],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [0],
+          slots: 5,
+          states: {
+            "0": "read",
+          },
+        },
+        {
+          label: "단절점",
+          values: [3],
+          slots: 5,
+        },
+      ],
+      calc: {
+        expr: "low[0] = min(0, low[3]) =",
+        result: "0",
+      },
+      vars: "timer = 5 · 읽은 이웃 자리 10 / 10",
+    },
+    {
+      title: "T17 정점 0 을 뺀다",
+      text: "정점 0 의 이웃을 다 봤습니다. 부모가 없는 뿌리라 넘길 곳이 없고, 호출 스택이 비었습니다.",
+      nodes: [
+        {
+          value: "0 / 0",
+          state: "read",
+        },
+        {
+          value: "1 / 0",
+        },
+        {
+          value: "2 / 0",
+        },
+        {
+          value: "3 / 3",
+        },
+        {
+          value: "4 / 4",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "back",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+      ],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [],
+          slots: 5,
+        },
+        {
+          label: "단절점",
+          values: [3],
+          slots: 5,
+        },
+      ],
+      calc: null,
+      vars: "timer = 5 · 읽은 이웃 자리 10 / 10",
+    },
+    {
+      title: "T18 뿌리 0 을 판정한다",
+      text: "뿌리 0 의 탐색이 끝났습니다. 나무 자식이 2 개라 뿌리 0 을 단절점으로 적습니다.",
+      nodes: [
+        {
+          value: "0 / 0",
+          state: "focus",
+        },
+        {
+          value: "1 / 0",
+        },
+        {
+          value: "2 / 0",
+        },
+        {
+          value: "3 / 3",
+        },
+        {
+          value: "4 / 4",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "back",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+      ],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [],
+          slots: 5,
+        },
+        {
+          label: "단절점",
+          values: [0, 3],
+          slots: 5,
+          states: {
+            "0": "focus",
+          },
+        },
+      ],
+      calc: {
+        expr: "rootKids ≥ 2 →",
+        result: "참",
+      },
+      vars: "timer = 5 · 읽은 이웃 자리 10 / 10",
+    },
+    {
+      title: "T19 반환",
+      text: "cut 이 참인 정점을 번호 순서로 모아 [0, 3] 을 돌려줍니다.",
+      nodes: [
+        {
+          value: "0 / 0",
+          state: "read",
+        },
+        {
+          value: "1 / 0",
+        },
+        {
+          value: "2 / 0",
+        },
+        {
+          value: "3 / 3",
+        },
+        {
+          value: "4 / 4",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "back",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+      ],
+      strips: [
+        {
+          label: "호출 스택",
+          values: [],
+          slots: 5,
+        },
+        {
+          label: "단절점",
+          values: [0, 3],
+          slots: 5,
+        },
+      ],
+      calc: null,
+      vars: "timer = 5 · 읽은 이웃 자리 10 / 10",
+    },
+  ],
 };

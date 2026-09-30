@@ -6,7 +6,7 @@
  *
  * 원문자 라벨 ①~⑨ 는 본문 전개가 그대로 인용한다(P4).
  *
- * **재귀를 쓰지 않는다.** 제약이 `V ≤ 10^5` 인데 정점 10 만 개짜리 사슬을 재귀로 내려가면
+ * **재귀를 쓰지 않는다.** 규모의 상한이 `V ≤ 10^5` 인데 정점 10 만 개짜리 사슬을 재귀로 내려가면
  * 자바스크립트 호출 스택이 먼저 끝난다. 그래서 호출 스택을 배열 셋으로 직접 들고 있다.
  */
 
@@ -22,8 +22,8 @@ export function articulationPoints(
     (adj[v] as number[]).push(u);
   }
 
-  // ② 정점마다 적는 칸 — 진입 시각 `disc`, 거슬러 도달하는 최소 진입 시각 `low`,
-  // 그리고 단절점으로 판정됐는지를 적는 `cut`.
+  // ② 정점마다 적는 칸 — 발견 순서 `disc`, 서브트리가 되돌아가는 간선으로 이르는 가장 이른
+  // 발견 순서 `low`, 그리고 단절점으로 판정됐는지를 적는 `cut`.
   const disc: number[] = Array.from({ length: n }, () => -1);
   const low: number[] = Array.from({ length: n }, () => -1);
   const cut: boolean[] = Array.from({ length: n }, () => false);
@@ -61,15 +61,15 @@ export function articulationPoints(
           if (v === root) rootKids++;
           enter(w, v);
         } else if (w !== (callP[callP.length - 1] as number)) {
-          // ⑤ 이미 들어갔던 정점 — 되돌아가는 간선이다. 그 진입 시각까지 도달할 수 있다.
+          // ⑤ 이미 들어갔던 정점 — 조상이면 그 발견 순서까지 되돌아갈 수 있다.
           low[v] = Math.min(low[v] as number, disc[w] as number);
         } else {
-          // ⑥ 부모 방향 — 되돌아가는 간선이 아니므로 아무것도 하지 않는다.
+          // ⑥ 부모 — 방금 내려온 나무 간선을 거꾸로 본 것이라 건너뛴다.
         }
         continue;
       }
 
-      // ⑦ 이웃을 다 본 정점 — 호출 스택에서 빼고, 자기 `low` 를 부모에게 전달한다.
+      // ⑦ 이웃을 다 본 정점 — 호출 스택에서 빼고, 자기 `low` 를 부모에게 넘긴다.
       callV.pop();
       callI.pop();
       const parent = callP.pop() as number;
