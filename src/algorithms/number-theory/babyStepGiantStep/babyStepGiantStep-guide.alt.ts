@@ -35,7 +35,7 @@ function ceilSqrt(m: bigint): bigint {
   return x * x === m ? x : x + 1n;
 }
 
-/** 시작 큰 걸음 — 이 가이드가 가르치는 절차. 곱셈과 표 칸을 센다. */
+/** Baby-step Giant-step — 이 가이드가 가르치는 절차. 곱셈과 표 칸을 센다. */
 const bsgs: BenchCase = () => {
   const { p, a } = INPUT;
   const b = makeB();
@@ -112,6 +112,6 @@ const pollardRho: BenchCase = () => {
 };
 
 export const cases: Record<string, BenchCase> = {
-  "시작 큰 걸음 (이 가이드)": bsgs,
+  "Baby-step Giant-step (이 가이드)": bsgs,
   "Pollard 의 rho": pollardRho,
 };

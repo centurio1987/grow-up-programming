@@ -23,7 +23,9 @@ const CASES: [bigint, bigint, bigint, bigint][] = [
   [2n, 3n, 4n, -1n], // 해가 없다
   [3n, 3n, 7n, 1n],
   [2n, 5n, 13n, 9n],
-  [15n, 3n, 12n, 1n], // a 를 m 으로 정규화한다. 가이드 두 번째 멈춤의 입력이다
+  [15n, 3n, 12n, 1n], // a 를 m 으로 정규화한다
+  [3n, 3n, 13n, 1n], // 아기 걸음 표에 같은 값이 다시 나온다 — 큰 j 를 남겨야 가장 작은 해다
+  [63n, -25n, 58n, 9n], // 음수와 m 이상의 입력을 법 안으로 옮긴다
 ];
 
 for (const [a, b, m, want] of CASES) {
@@ -56,4 +58,18 @@ test("power 는 반복 제곱으로 같은 값을 낸다", () => {
   expect(power(5n, 8n, 58n)).toBe(53n);
   expect(power(5n, 9n, 58n)).toBe(33n); // 전개의 검산
   expect(power(3n, 0n, 7n)).toBe(1n);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./babyStepGiantStep-guide.sim.ts");
+  const { simStepsFromRef } = await import("./babyStepGiantStep-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.walk.steps)).toEqual(plain(simStepsFromRef().walk));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.walk.result).toBe(String(babyStepGiantStep(5n, 33n, 58n)));
 });
