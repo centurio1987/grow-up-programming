@@ -72,6 +72,9 @@ bun run tools/guide-core.ts check
 bunx tsc --noEmit                      # 사이드카 타입 — bun 은 타입을 안 보고 실행하므로 따로 잰다
 ```
 
+수식 블록의 `$$` 는 수식과 같은 줄에 붙이지 않고 따로 한 줄에 둔다. `$$\begin{aligned}` 처럼 붙이면
+remark-math 가 블록을 닫지 못해 뒤 헤딩이 모두 사라진다 — `build-html` 이 헤딩 수 어긋남으로 잡는다(2026-09-30).
+
 린트는 **만든·고친 파일 경로만** 줘서 돌린다(`bunx --bun @biomejs/biome check <파일…>`). 폴더 전체에 `--write` 를
 걸면 손대지 말아야 할 스텁·`_scratch/`·메모 파일까지 고쳐진다 — 전개에서 네 번 되풀이됐다(2026-09-30).
 
