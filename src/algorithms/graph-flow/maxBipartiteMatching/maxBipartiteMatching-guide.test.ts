@@ -18,7 +18,7 @@ type Edge = [number, number];
  * 홉크로프트-카프 — 같은 문제를 다른 절차로 푼다.
  *
  * 정본과 답이 같은지 대조하는 데만 쓴다. 층을 매기는 너비 우선 탐색과 그 층을 지키는 깊이
- * 우선 탐색으로 짧은 증대 경로를 한 라운드에 여럿 뒤집는다.
+ * 우선 탐색으로 짧은 증가 경로를 한 라운드에 여럿 뒤집는다.
  */
 function hopcroftKarp(left: number, right: number, edges: Edge[]): number {
   const adj: number[][] = Array.from({ length: left }, () => []);
@@ -271,4 +271,33 @@ test("작은 무작위 그래프 500 벌에서 간선 부분집합 전수와 답
     expect(got).toBe(bruteForce(L, R, edges));
     expect(got).toBe(hopcroftKarp(L, R, edges));
   }
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차를 실행해
+ * 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./maxBipartiteMatching-guide.sim.ts");
+  const fig = await import("./maxBipartiteMatching-guide.fig.tsx");
+  const want = fig.stageStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.matchWalk.steps)).toEqual(plain(want.matchWalk));
+  expect(plain(sim.matchWalk.layout)).toEqual(plain(fig.LAYOUT));
+  expect(sim.matchWalk.steps).toHaveLength(14);
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 굵은 간선 수를 정본의 답에 직접 다시 묻는다.
+  const answer = maxBipartiteMatching(3, 3, [
+    [0, 0],
+    [0, 1],
+    [1, 0],
+    [2, 0],
+  ]);
+  const last = sim.matchWalk.steps.at(-1);
+  const matched = (last?.edges ?? []).filter(
+    (e) => (e as { kind?: string }).kind === "tree",
+  ).length;
+  expect(matched).toBe(answer);
+  expect(sim.matchWalk.result).toBe(String(answer));
 });

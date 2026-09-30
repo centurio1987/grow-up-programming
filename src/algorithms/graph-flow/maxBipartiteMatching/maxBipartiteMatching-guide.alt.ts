@@ -68,18 +68,18 @@ export interface Run {
   size: number;
   ops: number;
   cells: number;
-  /** 라운드 수 — 이 가이드의 절차에는 라운드가 없으므로 언제나 0 이다. */
+  /** 라운드 수 — 증가 경로 뒤집기에는 라운드가 없으므로 언제나 0 이다. */
   rounds: number;
 }
 
 /**
- * 이 가이드의 절차. 정본(`maxBipartiteMatching-guide.ref.ts`)과 같고 세는 자리만 덧붙였다.
+ * 증가 경로 뒤집기. 정본(`maxBipartiteMatching-guide.ref.ts`)과 같고 세는 자리만 덧붙였다.
  *
- * `기본 연산` 은 **이웃 목록의 자리를 하나 읽은 것 · 방문 표에 한 칸 쓴 것 · 간선 목록에서
+ * `기본 연산` 은 **이웃 목록의 자리를 하나 읽은 것 · 방문 배열에 한 칸 쓴 것 · 간선 목록에서
  * 간선 하나를 읽은 것**을 각각 하나로 센다. `저장 칸` 은 정점 수만큼 잡는 배열의 칸 수다 —
- * 이쪽은 짝 표와 방문 표 둘이라 `2R` 이다.
+ * 이쪽은 짝 배열와 방문 배열 둘이라 `2R` 이다.
  */
-export function 증대경로설계(left: number, right: number, edges: Edge[]): Run {
+export function 증가경로설계(left: number, right: number, edges: Edge[]): Run {
   let ops = 0;
   const adj: number[][] = Array.from({ length: left }, () => []);
   for (const [u, v] of edges) {
@@ -113,10 +113,10 @@ export function 증대경로설계(left: number, right: number, edges: Edge[]): 
 
 /**
  * 홉크로프트-카프. 라운드마다 너비 우선 탐색으로 층을 매기고, 그 층을 지키는 깊이 우선
- * 탐색으로 **길이가 가장 짧은 증대 경로를 한꺼번에** 뒤집는다.
+ * 탐색으로 **길이가 가장 짧은 증가 경로를 한꺼번에** 뒤집는다.
  *
- * 같은 잣대로 센다 — 이웃 자리 읽기 · 층 표에 한 칸 쓰기 · 간선 목록 읽기. 층 표는 라운드
- * 마다 왼쪽 정점 수만큼 채우므로 `라운드 수 × L` 이 된다. `저장 칸` 은 짝 표 둘과 층 표
+ * 같은 잣대로 센다 — 이웃 자리 읽기 · 층 배열에 한 칸 쓰기 · 간선 목록 읽기. 층 배열는 라운드
+ * 마다 왼쪽 정점 수만큼 채우므로 `라운드 수 × L` 이 된다. `저장 칸` 은 짝 배열 둘과 층 배열
  * 하나라 `2L + R` 이다.
  */
 export function 홉크로프트카프설계(
@@ -200,7 +200,7 @@ const 확인_입력: [number, number, Edge[]][] = [
 function 확인(): void {
   for (const [l, r, e] of 확인_입력) {
     const want = maxBipartiteMatching(l, r, e);
-    if (증대경로설계(l, r, e).size !== want) {
+    if (증가경로설계(l, r, e).size !== want) {
       throw new Error("세는 사본이 정본과 다른 답을 낸다");
     }
     if (홉크로프트카프설계(l, r, e).size !== want) {
@@ -223,7 +223,7 @@ export function crossings(): { at: number; before: number }[] {
   let prev: boolean | null = null;
   for (let e = 200; e <= E_MAX; e += 100) {
     const g = graph(e);
-    const cur = 증대경로설계(N, N, g).ops < 홉크로프트카프설계(N, N, g).ops;
+    const cur = 증가경로설계(N, N, g).ops < 홉크로프트카프설계(N, N, g).ops;
     if (prev !== null && cur !== prev) out.push({ at: e, before: e - 100 });
     prev = cur;
   }
@@ -256,20 +256,21 @@ function 재기(
   };
 }
 
-const 증대경로 = 재기(증대경로설계);
+const 증가경로 = 재기(증가경로설계);
 const 홉크로프트카프 = 재기(홉크로프트카프설계);
 
 export const cases = {
-  "이 가이드의 절차": () => 증대경로,
+  "증가 경로 뒤집기": () => 증가경로,
   "홉크로프트-카프": () => 홉크로프트카프,
   경계: () => ({
     "홉크로프트-카프가 앞서는 마지막 간선 수": 첫째.before,
-    "이 절차가 앞서는 첫 간선 수": 첫째.at,
+    "증가 경로 뒤집기가 앞서는 첫 간선 수": 첫째.at,
     "다시 홉크로프트-카프가 앞서는 첫 간선 수": 둘째.at,
   }),
   "홉크로프트-카프의 라운드 수": () => ({
     [`간선 ${첫째.at} 개`]: 홉크로프트카프설계(N, N, graph(첫째.at)).rounds,
-    [`간선 ${둘째.before} 개`]: 홉크로프트카프설계(N, N, graph(둘째.before)).rounds,
+    [`간선 ${둘째.before} 개`]: 홉크로프트카프설계(N, N, graph(둘째.before))
+      .rounds,
     [`간선 ${둘째.at} 개`]: 홉크로프트카프설계(N, N, graph(둘째.at)).rounds,
   }),
 };

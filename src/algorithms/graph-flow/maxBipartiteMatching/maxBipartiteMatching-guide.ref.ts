@@ -9,7 +9,7 @@
  *
  * **재귀를 쓴다.** `augment` 가 자기를 다시 부르는 깊이는 왼쪽 정점 수를 넘지 못하고
  * (`seen` 이 오른쪽 정점을 한 번씩만 통과시키므로 재배정 사슬이 길어야 `L` 칸이다),
- * 제약이 `L ≤ 10^3` 이라 호출 자리가 1,000 개를 안 넘는다.
+ * 가이드가 잡은 규모의 상한이 `L = 10^3` 이라 호출 자리가 1,000 개를 안 넘는다.
  */
 
 export function maxBipartiteMatching(
@@ -22,12 +22,12 @@ export function maxBipartiteMatching(
   const adj: number[][] = Array.from({ length: left }, () => []);
   for (const [u, v] of edges) (adj[u] as number[]).push(v);
 
-  // ② 짝 표와 방문 표 — `matchR[v]` 는 오른쪽 정점 `v` 에 이어진 왼쪽 정점 번호이고 `-1`
+  // ② 짝 배열과 방문 배열 — `matchR[v]` 는 오른쪽 정점 `v` 에 이어진 왼쪽 정점 번호이고 `-1`
   // 이 빈자리다. `seen[v]` 는 지금 실행 중인 탐색 하나가 `v` 를 이미 본 적이 있는가다.
   const matchR: number[] = Array.from({ length: right }, () => -1);
   const seen: boolean[] = Array.from({ length: right }, () => false);
 
-  // ③ 증대 경로 탐색 — `u` 에서 시작해 빈 오른쪽 정점에 도달하면 참을 돌려준다.
+  // ③ 증가 경로 탐색 — `u` 에서 시작해 빈 오른쪽 정점에 도달하면 참을 돌려준다.
   const augment = (u: number): boolean => {
     for (const v of adj[u] as number[]) {
       // ④ 이번 탐색이 이미 본 오른쪽 정점이라 다시 보지 않는다.
@@ -40,13 +40,13 @@ export function maxBipartiteMatching(
         return true;
       }
     }
-    // ⑧ 어느 이웃으로도 증대 경로가 없다.
+    // ⑧ 어느 이웃으로도 증가 경로가 없다.
     return false;
   };
 
   let size = 0;
   for (let u = 0; u < left; u++) {
-    // ⑨ 왼쪽 정점 하나마다 방문 표를 새로 채운다. 탐색끼리 표를 나눠 쓰면 안 된다.
+    // ⑨ 왼쪽 정점 하나마다 방문 배열을 새로 채운다. 탐색끼리 배열을 나눠 쓰면 안 된다.
     seen.fill(false);
     if (augment(u)) size++;
   }
