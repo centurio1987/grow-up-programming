@@ -7,8 +7,8 @@
  * 원문자 라벨 ①~⑥ 은 본문 전개가 그대로 인용한다(P4).
  *
  * **사각 부등식 판정은 이 함수의 직무가 아니다.** 비용이 구간 합이고 `freq[i] ≥ 0` 이라는
- * 문제의 제약이 그 조건을 보장한다. 보장이 없는 비용에서는 아래 후보 범위가 진짜 최적
- * 분할점을 잘라 낸다.
+ * 과제의 전제가 그 조건을 보장한다. 보장이 없는 비용에서는 아래 후보 범위가 진짜 최적
+ * 가르는 자리를 잘라 낸다.
  */
 
 /** 아직 확정하지 않은 칸에 넣어 두는 값. 어떤 유한한 비용보다 크다. */
@@ -30,7 +30,7 @@ export function knuthOptimization(freq: number[]): number {
   const opt: number[][] = Array.from({ length: n }, () =>
     new Array<number>(n).fill(0),
   );
-  // ③ 기저 — 길이 1 구간은 합칠 것이 없어 비용이 0 이고 분할점이 자기 번호다.
+  // ③ 기저 — 길이 1 구간은 합칠 것이 없어 비용이 0 이고 가르는 자리가 자기 번호다.
   for (let i = 0; i < n; i++) (opt[i] as number[])[i] = i;
 
   for (let len = 2; len <= n; len++) {
@@ -38,21 +38,21 @@ export function knuthOptimization(freq: number[]): number {
       const j = i + len - 1;
       let best = INF;
       let bestK = i;
-      // ④ 후보 범위 — 하한은 왼쪽 이웃 칸의 최적 분할점이다.
+      // ④ 후보 범위 — 하한은 왼쪽 이웃 칸의 최적 가르는 자리다.
       const lo = (opt[i] as number[])[j - 1] as number;
-      // 상한은 아래 이웃 칸의 최적 분할점을 j-1 로 한 번 더 자른 값이다.
+      // 상한은 아래 이웃 칸의 최적 가르는 자리를 j-1 로 한 번 더 자른 값이다.
       const hi = Math.min((opt[i + 1] as number[])[j] as number, j - 1);
       for (let k = lo; k <= hi; k++) {
         const val =
           ((dp[i] as number[])[k] as number) +
           ((dp[k + 1] as number[])[j] as number);
-        // ⑤ 최솟값 갱신 — 값과 그 값이 나온 분할점을 함께 남긴다.
+        // ⑤ 최솟값 갱신 — 값과 그 값이 나온 가르는 자리를 함께 남긴다.
         if (val < best) {
           best = val;
           bestK = k;
         }
       }
-      // ⑥ 칸 확정 — 구간 합은 분할점과 무관하므로 마지막에 한 번만 더한다.
+      // ⑥ 칸 채우기 — 구간 합은 가르는 자리와 무관하므로 마지막에 한 번만 더한다.
       (dp[i] as number[])[j] =
         best + ((prefix[j + 1] as number) - (prefix[i] as number));
       (opt[i] as number[])[j] = bestK;
