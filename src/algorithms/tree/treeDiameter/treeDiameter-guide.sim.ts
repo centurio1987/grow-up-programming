@@ -1,406 +1,1451 @@
-import type { Frame } from "#guide-sim";
-
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(8)와 같다 — P3 이 그 관계를 잰다.
+ * 걸음 재생 패널 — `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 제목은
+ * 원고의 걸음 번호(`T#`)로 연다 — P3 이 그 자리를 잰다. 이웃 목록 만들기 하나, 탐색마다 시작 하나와
+ * 정점을 꺼내는 일 하나하나가 각각 걸음 하나다. 마지막 걸음이 둘째 탐색을 끝내고 지름을 반환하는 자리다.
  *
- * **`tree` 카테고리의 첫 편이고, `tree` 뷰에서 뿌리가 도중에 바뀌는 첫 편이다.**
- * `trie`(`S12`)가 박고 `radixTree`(`S13`)가 넓힌 다섯 규약 중 셋을 그대로 이어받고 둘이
- * 어긋난다. 어긋나는 자리와 사유를 여기 적는다.
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가 실제보다
+ * 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
  *
- * 1. **이어받음 — `root` 는 그 걸음 끝의 구조 전체다.** 프레임마다 트리 한 벌을 통째로 적는다.
- * 2. **어긋남 — 뿌리가 T5 와 T6 사이에서 0 에서 6 으로 바뀐다.** 앞선 두 편은 자료구조의
- *    뿌리가 고정이었지만, 이 절차는 **같은 트리를 다른 정점에서 다시 본다**는 것이 요점이다.
- *    뿌리를 고정해 두고 거리만 갈아 끼우면 「다시 시작한다」가 그림에서 사라진다.
- * 3. **어긋남 — `label` 이 글자 하나가 아니라 셋을 담는다**(`3 ←4 · 6` 꼴). 정점 번호 ·
- *    부모와 잇는 간선의 가중치 · 시작점에서 그 정점까지의 거리다. `TreeFrame` 에는 간선마다의
- *    표기가 없어서, 가중치를 자식 라벨에 붙이지 않으면 그림에서 통째로 사라진다. 뿌리는
- *    부모가 없으므로 화살표 없이 `0 · 0` 이다. 거리를 아직 안 정한 정점은 `–` 로 둔다.
- * 4. **이어받음 — `children` 에 `null` 을 넣지 않는다.** 이 트리에는 「빈 자리」가 없다.
- * 5. **이어받음 — `nodeStatus` 대신 노드의 `status` 를 쓰고 값 넷을 한 축으로 나눈다.**
- *    `default` 거리를 아직 안 정했다 · `frontier` 스택에 들어 있다 · `active` 이 걸음에서
- *    꺼내 이웃을 본 정점 · `visited` 꺼내서 처리를 마쳤다.
+ * ## 패널 규약 — 「그래프」 무대(KAN-058, SPEC §13)
  *
- * `keyValue` 는 트리가 못 담는 것을 진다 — 지금 어느 탐색인지, 스택의 내용, 거리 배열 전체,
- * 지금까지 가장 먼 정점, 그리고 실행된 갈래. 트리 그림만으로는 **스택 순서**가 안 보이는데
- * 이 절차가 다음에 어느 정점을 꺼내는지가 그것으로 정해진다.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "graph"` 가
+ * 무대 갈래를 고른다. 정점과 간선의 자리(`layout`)는 패널에 한 번만 적는다 — 정점 0 에서 매단 탐색 트리를
+ * `treeLayout` 으로 놓은 자리이고, 둘째 탐색이 정점 6 에서 다시 시작해도 자리는 그대로다. 걸음마다
+ * 정점 안의 값(시작 정점에서의 거리)과 상태, 간선의 모양(나무 간선은 굵은 실선)과 상태, 가장 먼 정점을
+ * 두른 「best」 묶음, 무대 아래 스택 띠만 바꾼다(`src/_viz/player/graphStage.ts`). 간선 머리말은 가중치다.
+ * 간선에 방향이 없으므로 `directed: false` 다. 거리를 아직 안 정한 정점은 점선 테(아직), 나무 간선이 아닌
+ * 간선은 흐린 선이다. 띠의 칸 수는 스택이 가장 깊었을 때에 맞춰 고정한다.
  *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * **값은 손으로 적지 않았다.** 이 리터럴은 그림 사이드카의 `stageStepsFromRef()` 가 정본과 같은 절차를
+ * 실행해 낸 결과를 옮긴 것이고, 둘이 같은지는 `treeDiameter-guide.test.ts` 가 잰다.
  */
 export const diameterWalk = {
-  view: ["tree", "keyValue"] as const,
-  title: "treeDiameter(7, [[0,1,2],[0,2,3],[1,3,4],[1,4,1],[2,5,5],[5,6,2]])",
+  player: "stage",
+  stage: "graph",
+  title:
+    "treeDiameter(7, [[0,1,2],[0,2,3],[1,3,4],[1,4,1],[2,5,5],[5,6,2]]) — 정점 안은 시작 정점에서의 거리, 간선 머리말은 가중치",
+  sub: "T1–T17 · 걸음마다 준비 하나 또는 정점 하나를 꺼낸다",
   result: "16",
+  layout: {
+    nodes: [
+      {
+        id: 0,
+        x: 1.5625,
+        y: 0,
+      },
+      {
+        id: 1,
+        x: 0.625,
+        y: 1,
+      },
+      {
+        id: 2,
+        x: 2.5,
+        y: 1,
+      },
+      {
+        id: 3,
+        x: 0,
+        y: 2,
+      },
+      {
+        id: 4,
+        x: 1.25,
+        y: 2,
+      },
+      {
+        id: 5,
+        x: 2.5,
+        y: 2,
+      },
+      {
+        id: 6,
+        x: 2.5,
+        y: 3,
+      },
+    ],
+    edges: [
+      {
+        from: 0,
+        to: 1,
+      },
+      {
+        from: 0,
+        to: 2,
+      },
+      {
+        from: 1,
+        to: 3,
+      },
+      {
+        from: 1,
+        to: 4,
+      },
+      {
+        from: 2,
+        to: 5,
+      },
+      {
+        from: 5,
+        to: 6,
+      },
+    ],
+    directed: false,
+    unit: {
+      x: 104,
+      y: 84,
+    },
+  },
   steps: [
     {
       title: "T1 간선 목록을 이웃 목록으로 옮긴다",
-      detail:
-        "무방향이라 간선 하나를 양쪽 정점의 목록에 넣는다. 아직 아무 거리도 안 정했다. 그림은 정점 0 을 뿌리로 놓고 그린 것이고, 트리 자체에 뿌리가 있는 것은 아니다.",
-      root: {
-        id: 0,
-        label: "0 · –",
-        status: "default",
-        children: [
-          {
-            id: 1,
-            label: "1 ←2 · –",
-            status: "default",
-            children: [
-              { id: 3, label: "3 ←4 · –", status: "default" },
-              { id: 4, label: "4 ←1 · –", status: "default" },
-            ],
-          },
-          {
-            id: 2,
-            label: "2 ←3 · –",
-            status: "default",
-            children: [
-              {
-                id: 5,
-                label: "5 ←5 · –",
-                status: "default",
-                children: [{ id: 6, label: "6 ←2 · –", status: "default" }],
-              },
-            ],
-          },
-        ],
-      },
-      entries: [
-        { label: "지금 하는 탐색", value: "—" },
-        { label: "지금 꺼낸 정점", value: "—" },
-        { label: "스택", value: "[]" },
-        { label: "거리 dist", value: "0:– 1:– 2:– 3:– 4:– 5:– 6:–" },
-        { label: "가장 먼 정점", value: "—" },
-        { label: "분기", value: "—" },
-      ],
-    },
-    {
-      title: "T2 첫 탐색 — 정점 0 을 꺼낸다",
-      detail:
-        "정점 0 을 스택에 넣고 거리를 0 으로 둔 뒤 꺼낸다. 이웃 1 과 2 의 거리가 2 와 3 으로 정해지고 둘 다 스택에 들어간다. 지금까지 가장 먼 정점은 2 다.",
-      root: {
-        id: 0,
-        label: "0 · 0",
-        status: "active",
-        children: [
-          {
-            id: 1,
-            label: "1 ←2 · 2",
-            status: "frontier",
-            children: [
-              { id: 3, label: "3 ←4 · –", status: "default" },
-              { id: 4, label: "4 ←1 · –", status: "default" },
-            ],
-          },
-          {
-            id: 2,
-            label: "2 ←3 · 3",
-            status: "frontier",
-            children: [
-              {
-                id: 5,
-                label: "5 ←5 · –",
-                status: "default",
-                children: [{ id: 6, label: "6 ←2 · –", status: "default" }],
-              },
-            ],
-          },
-        ],
-      },
-      entries: [
-        { label: "지금 하는 탐색", value: "첫 번째 — 0 에서" },
-        { label: "지금 꺼낸 정점", value: "0" },
-        { label: "스택", value: "[1, 2]" },
-        { label: "거리 dist", value: "0:0 1:2 2:3 3:– 4:– 5:– 6:–" },
-        { label: "가장 먼 정점", value: "2 (거리 3)" },
-        { label: "분기", value: "② 더 먼 정점을 찾아 기록을 옮긴다 (두 번)" },
-      ],
-    },
-    {
-      title: "T3 정점 2 를 꺼낸다",
-      detail:
-        "스택은 나중에 넣은 것을 먼저 꺼낸다. 정점 2 의 이웃은 0 과 5 인데 0 은 거리가 이미 정해져 건너뛴다. 5 의 거리가 3 + 5 로 8 이 된다.",
-      root: {
-        id: 0,
-        label: "0 · 0",
-        status: "visited",
-        children: [
-          {
-            id: 1,
-            label: "1 ←2 · 2",
-            status: "frontier",
-            children: [
-              { id: 3, label: "3 ←4 · –", status: "default" },
-              { id: 4, label: "4 ←1 · –", status: "default" },
-            ],
-          },
-          {
-            id: 2,
-            label: "2 ←3 · 3",
-            status: "active",
-            children: [
-              {
-                id: 5,
-                label: "5 ←5 · 8",
-                status: "frontier",
-                children: [{ id: 6, label: "6 ←2 · –", status: "default" }],
-              },
-            ],
-          },
-        ],
-      },
-      entries: [
-        { label: "지금 하는 탐색", value: "첫 번째 — 0 에서" },
-        { label: "지금 꺼낸 정점", value: "2" },
-        { label: "스택", value: "[1, 5]" },
-        { label: "거리 dist", value: "0:0 1:2 2:3 3:– 4:– 5:8 6:–" },
-        { label: "가장 먼 정점", value: "5 (거리 8)" },
-        { label: "분기", value: "① 정점 0 을 건너뛴다 · ② 기록을 5 로 옮긴다" },
-      ],
-    },
-    {
-      title: "T4 정점 5 를 꺼낸다",
-      detail:
-        "정점 5 의 이웃은 2 와 6 이고 2 는 건너뛴다. 6 의 거리가 8 + 2 로 10 이 된다. 정점 0 에서 가장 먼 곳이 여기다.",
-      root: {
-        id: 0,
-        label: "0 · 0",
-        status: "visited",
-        children: [
-          {
-            id: 1,
-            label: "1 ←2 · 2",
-            status: "frontier",
-            children: [
-              { id: 3, label: "3 ←4 · –", status: "default" },
-              { id: 4, label: "4 ←1 · –", status: "default" },
-            ],
-          },
-          {
-            id: 2,
-            label: "2 ←3 · 3",
-            status: "visited",
-            children: [
-              {
-                id: 5,
-                label: "5 ←5 · 8",
-                status: "active",
-                children: [{ id: 6, label: "6 ←2 · 10", status: "frontier" }],
-              },
-            ],
-          },
-        ],
-      },
-      entries: [
-        { label: "지금 하는 탐색", value: "첫 번째 — 0 에서" },
-        { label: "지금 꺼낸 정점", value: "5" },
-        { label: "스택", value: "[1, 6]" },
-        { label: "거리 dist", value: "0:0 1:2 2:3 3:– 4:– 5:8 6:10" },
-        { label: "가장 먼 정점", value: "6 (거리 10)" },
+      text: "간선 6 개를 양쪽 정점의 목록에 한 번씩 넣었습니다. 아직 어느 정점의 거리도 정하지 않았습니다.",
+      nodes: [
         {
-          label: "분기",
-          value: "① 정점 2 를 건너뛴다 · ② 기록을 6 으로 옮긴다",
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
         },
       ],
-    },
-    {
-      title: "T5 남은 정점 넷을 꺼내고 첫 탐색이 끝난다",
-      detail:
-        "6 · 1 · 4 · 3 을 차례로 꺼낸다. 정점 1 에서 3 과 4 의 거리가 6 과 3 으로 정해지는데 둘 다 10 보다 작아 기록이 안 바뀐다. 스택이 비면서 첫 탐색이 끝나고, 정점 0 에서 가장 먼 곳은 거리 10 의 정점 6 이다.",
-      root: {
-        id: 0,
-        label: "0 · 0",
-        status: "visited",
-        children: [
-          {
-            id: 1,
-            label: "1 ←2 · 2",
-            status: "visited",
-            children: [
-              { id: 3, label: "3 ←4 · 6", status: "active" },
-              { id: 4, label: "4 ←1 · 3", status: "visited" },
-            ],
-          },
-          {
-            id: 2,
-            label: "2 ←3 · 3",
-            status: "visited",
-            children: [
-              {
-                id: 5,
-                label: "5 ←5 · 8",
-                status: "visited",
-                children: [{ id: 6, label: "6 ←2 · 10", status: "visited" }],
-              },
-            ],
-          },
-        ],
-      },
-      entries: [
-        { label: "지금 하는 탐색", value: "첫 번째 — 0 에서" },
-        { label: "지금 꺼낸 정점", value: "3" },
-        { label: "스택", value: "[]" },
-        { label: "거리 dist", value: "0:0 1:2 2:3 3:6 4:3 5:8 6:10" },
-        { label: "가장 먼 정점", value: "6 (거리 10)" },
+      edges: [
         {
-          label: "분기",
-          value: "① 지나온 정점을 건너뛴다 (네 번) · ③ 첫 탐색이 끝났다",
+          state: "out",
+          label: "2",
+        },
+        {
+          state: "out",
+          label: "3",
+        },
+        {
+          state: "out",
+          label: "4",
+        },
+        {
+          state: "out",
+          label: "1",
+        },
+        {
+          state: "out",
+          label: "5",
+        },
+        {
+          state: "out",
+          label: "2",
         },
       ],
-    },
-    {
-      title: "T6 둘째 탐색 — 정점 6 을 뿌리로 다시 잰다",
-      detail:
-        "거리 배열을 새로 만들고 6 에서 시작한다. 6 · 5 · 2 를 꺼내면서 5 가 2, 2 가 7, 0 이 10 이 된다. **그림의 뿌리가 0 에서 6 으로 바뀐 자리다** — 트리는 그대로이고 어디서 보는지만 달라졌다.",
-      root: {
-        id: 6,
-        label: "6 · 0",
-        status: "visited",
-        children: [
-          {
-            id: 5,
-            label: "5 ←2 · 2",
-            status: "visited",
-            children: [
-              {
-                id: 2,
-                label: "2 ←5 · 7",
-                status: "active",
-                children: [
-                  {
-                    id: 0,
-                    label: "0 ←3 · 10",
-                    status: "frontier",
-                    children: [
-                      {
-                        id: 1,
-                        label: "1 ←2 · –",
-                        status: "default",
-                        children: [
-                          { id: 3, label: "3 ←4 · –", status: "default" },
-                          { id: 4, label: "4 ←1 · –", status: "default" },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-      entries: [
-        { label: "지금 하는 탐색", value: "두 번째 — 6 에서" },
-        { label: "지금 꺼낸 정점", value: "2" },
-        { label: "스택", value: "[0]" },
-        { label: "거리 dist", value: "0:10 1:– 2:7 3:– 4:– 5:2 6:0" },
-        { label: "가장 먼 정점", value: "0 (거리 10)" },
+      groups: [],
+      strips: [
         {
-          label: "분기",
-          value: "① 지나온 정점을 건너뛴다 (두 번) · ② 기록을 0 으로 옮긴다",
+          label: "stack",
+          values: [],
+          states: {},
+          slots: 2,
         },
       ],
+      calc: {
+        expr: "near 목록 길이의 합 =",
+        result: "12 = 2E",
+      },
+      vars: "탐색 전",
     },
     {
-      title: "T7 정점 0 과 1 을 꺼낸다",
-      detail:
-        "0 을 꺼내면 1 의 거리가 12 가 되고, 1 을 꺼내면 3 이 16, 4 가 13 이 된다. 16 이 12 보다 크므로 기록이 정점 3 으로 옮겨 간다.",
-      root: {
-        id: 6,
-        label: "6 · 0",
-        status: "visited",
-        children: [
-          {
-            id: 5,
-            label: "5 ←2 · 2",
-            status: "visited",
-            children: [
-              {
-                id: 2,
-                label: "2 ←5 · 7",
-                status: "visited",
-                children: [
-                  {
-                    id: 0,
-                    label: "0 ←3 · 10",
-                    status: "visited",
-                    children: [
-                      {
-                        id: 1,
-                        label: "1 ←2 · 12",
-                        status: "active",
-                        children: [
-                          { id: 3, label: "3 ←4 · 16", status: "frontier" },
-                          { id: 4, label: "4 ←1 · 13", status: "frontier" },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-      entries: [
-        { label: "지금 하는 탐색", value: "두 번째 — 6 에서" },
-        { label: "지금 꺼낸 정점", value: "1" },
-        { label: "스택", value: "[3, 4]" },
-        { label: "거리 dist", value: "0:10 1:12 2:7 3:16 4:13 5:2 6:0" },
-        { label: "가장 먼 정점", value: "3 (거리 16)" },
-        { label: "분기", value: "② 기록을 1 로, 다시 3 으로 옮긴다" },
+      title: "T2 첫 탐색 — 정점 0 의 거리를 0 으로 두고 스택에 넣는다",
+      text: "dist 를 전부 -1 로 만들고 dist[0] = 0 으로 둔 뒤 정점 0 을 스택에 넣습니다. 지금까지 가장 먼 정점은 0 자신입니다.",
+      nodes: [
+        {
+          value: "dist 0",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
+      edges: [
+        {
+          state: "out",
+          label: "2",
+        },
+        {
+          state: "out",
+          label: "3",
+        },
+        {
+          state: "out",
+          label: "4",
+        },
+        {
+          state: "out",
+          label: "1",
+        },
+        {
+          state: "out",
+          label: "5",
+        },
+        {
+          state: "out",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [0],
+          label: "best",
+          state: "focus",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [0],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "dist[0] = 0 · best =",
+        result: "0",
+      },
+      vars: "첫 탐색 · 꺼낸 정점 0 / 7",
     },
     {
-      title: "T8 스택이 비고 16 을 반환한다",
-      detail:
-        "4 와 3 을 꺼내면 이웃이 전부 이미 정해져 있어 할 일이 없다. 스택이 비면서 둘째 탐색이 끝나고, 정점 6 에서 가장 먼 곳은 거리 16 의 정점 3 이다. 지름 경로는 3 - 1 - 0 - 2 - 5 - 6 이고 4 + 2 + 3 + 5 + 2 = 16 이다.",
-      root: {
-        id: 6,
-        label: "6 · 0",
-        status: "visited",
-        children: [
-          {
-            id: 5,
-            label: "5 ←2 · 2",
-            status: "visited",
-            children: [
-              {
-                id: 2,
-                label: "2 ←5 · 7",
-                status: "visited",
-                children: [
-                  {
-                    id: 0,
-                    label: "0 ←3 · 10",
-                    status: "visited",
-                    children: [
-                      {
-                        id: 1,
-                        label: "1 ←2 · 12",
-                        status: "visited",
-                        children: [
-                          { id: 3, label: "3 ←4 · 16", status: "visited" },
-                          { id: 4, label: "4 ←1 · 13", status: "visited" },
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      },
-      entries: [
-        { label: "지금 하는 탐색", value: "두 번째 — 6 에서" },
-        { label: "지금 꺼낸 정점", value: "3" },
-        { label: "스택", value: "[]" },
-        { label: "거리 dist", value: "0:10 1:12 2:7 3:16 4:13 5:2 6:0" },
-        { label: "가장 먼 정점", value: "3 (거리 16)" },
-        { label: "분기", value: "④ 둘째 탐색의 최댓값 16 을 반환한다" },
+      title: "T3 첫 탐색 — 0 을 꺼낸다 ②",
+      text: "0 을 꺼냈습니다. 이웃 1 에 0 + 2 = 2 를 적고 스택에 넣습니다. dist[best] 0 보다 커서 best 를 1 로 옮깁니다. 이웃 2 에 0 + 3 = 3 을 적고 스택에 넣습니다. dist[best] 2 보다 커서 best 를 2 로 옮깁니다.",
+      nodes: [
+        {
+          value: "dist 0",
+          state: "read",
+        },
+        {
+          value: "dist 2",
+          state: "focus",
+        },
+        {
+          value: "dist 3",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
+      edges: [
+        {
+          kind: "tree",
+          state: "focus",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "3",
+        },
+        {
+          state: "out",
+          label: "4",
+        },
+        {
+          state: "out",
+          label: "1",
+        },
+        {
+          state: "out",
+          label: "5",
+        },
+        {
+          state: "out",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [2],
+          label: "best",
+          state: "focus",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [1, 2],
+          states: {
+            "0": "focus",
+            "1": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "dist[1] = 0 + 2 · dist[2] = 0 + 3",
+        result: "2 · 3",
+      },
+      vars: "첫 탐색 · 꺼낸 정점 1 / 7",
     },
-  ] satisfies Frame[],
+    {
+      title: "T4 첫 탐색 — 2 를 꺼낸다 ① ②",
+      text: "2 를 꺼냈습니다. 이웃 0 은 이미 거리 0 이 적힌 부모라 건너뜁니다. 이웃 5 에 3 + 5 = 8 을 적고 스택에 넣습니다. dist[best] 3 보다 커서 best 를 5 로 옮깁니다.",
+      nodes: [
+        {
+          value: "dist 0",
+        },
+        {
+          value: "dist 2",
+        },
+        {
+          value: "dist 3",
+          state: "read",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "dist 8",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "3",
+        },
+        {
+          state: "out",
+          label: "4",
+        },
+        {
+          state: "out",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "5",
+        },
+        {
+          state: "out",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [5],
+          label: "best",
+          state: "focus",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [1, 5],
+          states: {
+            "1": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "dist[5] = 3 + 5",
+        result: "8",
+      },
+      vars: "첫 탐색 · 꺼낸 정점 2 / 7",
+    },
+    {
+      title: "T5 첫 탐색 — 5 를 꺼낸다 ① ②",
+      text: "5 를 꺼냈습니다. 이웃 2 는 이미 거리 3 이 적힌 부모라 건너뜁니다. 이웃 6 에 8 + 2 = 10 을 적고 스택에 넣습니다. dist[best] 8 보다 커서 best 를 6 으로 옮깁니다.",
+      nodes: [
+        {
+          value: "dist 0",
+        },
+        {
+          value: "dist 2",
+        },
+        {
+          value: "dist 3",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "dist 8",
+          state: "read",
+        },
+        {
+          value: "dist 10",
+          state: "focus",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          label: "3",
+        },
+        {
+          state: "out",
+          label: "4",
+        },
+        {
+          state: "out",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "5",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [6],
+          label: "best",
+          state: "focus",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [1, 6],
+          states: {
+            "1": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "dist[6] = 8 + 2",
+        result: "10",
+      },
+      vars: "첫 탐색 · 꺼낸 정점 3 / 7",
+    },
+    {
+      title: "T6 첫 탐색 — 6 을 꺼낸다 ①",
+      text: "6 을 꺼냈습니다. 이웃 5 는 이미 거리 8 이 적힌 부모라 건너뜁니다.",
+      nodes: [
+        {
+          value: "dist 0",
+        },
+        {
+          value: "dist 2",
+        },
+        {
+          value: "dist 3",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "dist 8",
+        },
+        {
+          value: "dist 10",
+          state: "read",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          label: "3",
+        },
+        {
+          state: "out",
+          label: "4",
+        },
+        {
+          state: "out",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "5",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [6],
+          label: "best",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [1],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "dist[5] = 8 ≥ 0 →",
+        result: "건너뜀",
+      },
+      vars: "첫 탐색 · 꺼낸 정점 4 / 7",
+    },
+    {
+      title: "T7 첫 탐색 — 1 을 꺼낸다 ①",
+      text: "1 을 꺼냈습니다. 이웃 0 은 이미 거리 0 이 적힌 부모라 건너뜁니다. 이웃 3 에 2 + 4 = 6 을 적고 스택에 넣습니다. dist[best] 10 보다 크지 않아 best 는 6 그대로입니다. 이웃 4 에 2 + 1 = 3 을 적고 스택에 넣습니다. dist[best] 10 보다 크지 않아 best 는 6 그대로입니다.",
+      nodes: [
+        {
+          value: "dist 0",
+        },
+        {
+          value: "dist 2",
+          state: "read",
+        },
+        {
+          value: "dist 3",
+        },
+        {
+          value: "dist 6",
+          state: "focus",
+        },
+        {
+          value: "dist 3",
+          state: "focus",
+        },
+        {
+          value: "dist 8",
+        },
+        {
+          value: "dist 10",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          state: "read",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          label: "3",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "4",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "5",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [6],
+          label: "best",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [3, 4],
+          states: {
+            "0": "focus",
+            "1": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "dist[3] = 2 + 4 · dist[4] = 2 + 1",
+        result: "6 · 3",
+      },
+      vars: "첫 탐색 · 꺼낸 정점 5 / 7",
+    },
+    {
+      title: "T8 첫 탐색 — 4 를 꺼낸다 ①",
+      text: "4 를 꺼냈습니다. 이웃 1 은 이미 거리 2 가 적힌 부모라 건너뜁니다.",
+      nodes: [
+        {
+          value: "dist 0",
+        },
+        {
+          value: "dist 2",
+        },
+        {
+          value: "dist 3",
+        },
+        {
+          value: "dist 6",
+        },
+        {
+          value: "dist 3",
+          state: "read",
+        },
+        {
+          value: "dist 8",
+        },
+        {
+          value: "dist 10",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          label: "3",
+        },
+        {
+          kind: "tree",
+          label: "4",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "5",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [6],
+          label: "best",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [3],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "dist[1] = 2 ≥ 0 →",
+        result: "건너뜀",
+      },
+      vars: "첫 탐색 · 꺼낸 정점 6 / 7",
+    },
+    {
+      title: "T9 첫 탐색 — 3 을 꺼낸다 ①",
+      text: "3 을 꺼냈습니다. 이웃 1 은 이미 거리 2 가 적힌 부모라 건너뜁니다. 스택이 비어 첫 탐색이 끝납니다. 가장 먼 정점은 6 이고 거리는 10 입니다.",
+      nodes: [
+        {
+          value: "dist 0",
+        },
+        {
+          value: "dist 2",
+        },
+        {
+          value: "dist 3",
+        },
+        {
+          value: "dist 6",
+          state: "read",
+        },
+        {
+          value: "dist 3",
+        },
+        {
+          value: "dist 8",
+        },
+        {
+          value: "dist 10",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          label: "3",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "4",
+        },
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "5",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [6],
+          label: "best",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "dist[1] = 2 ≥ 0 →",
+        result: "건너뜀",
+      },
+      vars: "첫 탐색 · 꺼낸 정점 7 / 7",
+    },
+    {
+      title: "T10 둘째 탐색 — 첫 탐색의 best 6 에서 다시 시작한다 ③",
+      text: "첫 탐색이 찾은 가장 먼 정점 6 을 새 시작 정점으로 잡습니다. dist 를 새로 만들어 전부 -1 로 두고 dist[6] = 0 입니다. 첫 탐색의 거리는 쓰지 않습니다.",
+      nodes: [
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "dist 0",
+          state: "focus",
+        },
+      ],
+      edges: [
+        {
+          state: "out",
+          label: "2",
+        },
+        {
+          state: "out",
+          label: "3",
+        },
+        {
+          state: "out",
+          label: "4",
+        },
+        {
+          state: "out",
+          label: "1",
+        },
+        {
+          state: "out",
+          label: "5",
+        },
+        {
+          state: "out",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [6],
+          label: "best",
+          state: "focus",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [6],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "a = 첫 탐색의 best =",
+        result: "6",
+      },
+      vars: "둘째 탐색 · 꺼낸 정점 0 / 7",
+    },
+    {
+      title: "T11 둘째 탐색 — 6 을 꺼낸다 ②",
+      text: "6 을 꺼냈습니다. 이웃 5 에 0 + 2 = 2 를 적고 스택에 넣습니다. dist[best] 0 보다 커서 best 를 5 로 옮깁니다.",
+      nodes: [
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "dist 2",
+          state: "focus",
+        },
+        {
+          value: "dist 0",
+          state: "read",
+        },
+      ],
+      edges: [
+        {
+          state: "out",
+          label: "2",
+        },
+        {
+          state: "out",
+          label: "3",
+        },
+        {
+          state: "out",
+          label: "4",
+        },
+        {
+          state: "out",
+          label: "1",
+        },
+        {
+          state: "out",
+          label: "5",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [5],
+          label: "best",
+          state: "focus",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [5],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "dist[5] = 0 + 2",
+        result: "2",
+      },
+      vars: "둘째 탐색 · 꺼낸 정점 1 / 7",
+    },
+    {
+      title: "T12 둘째 탐색 — 5 를 꺼낸다 ② ①",
+      text: "5 를 꺼냈습니다. 이웃 2 에 2 + 5 = 7 을 적고 스택에 넣습니다. dist[best] 2 보다 커서 best 를 2 로 옮깁니다. 이웃 6 은 이미 거리 0 이 적힌 부모라 건너뜁니다.",
+      nodes: [
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "dist 7",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "dist 2",
+          state: "read",
+        },
+        {
+          value: "dist 0",
+        },
+      ],
+      edges: [
+        {
+          state: "out",
+          label: "2",
+        },
+        {
+          state: "out",
+          label: "3",
+        },
+        {
+          state: "out",
+          label: "4",
+        },
+        {
+          state: "out",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "5",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [2],
+          label: "best",
+          state: "focus",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [2],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "dist[2] = 2 + 5",
+        result: "7",
+      },
+      vars: "둘째 탐색 · 꺼낸 정점 2 / 7",
+    },
+    {
+      title: "T13 둘째 탐색 — 2 를 꺼낸다 ② ①",
+      text: "2 를 꺼냈습니다. 이웃 0 에 7 + 3 = 10 을 적고 스택에 넣습니다. dist[best] 7 보다 커서 best 를 0 으로 옮깁니다. 이웃 5 는 이미 거리 2 가 적힌 부모라 건너뜁니다.",
+      nodes: [
+        {
+          value: "dist 10",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "dist 7",
+          state: "read",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "dist 2",
+        },
+        {
+          value: "dist 0",
+        },
+      ],
+      edges: [
+        {
+          state: "out",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "3",
+        },
+        {
+          state: "out",
+          label: "4",
+        },
+        {
+          state: "out",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "5",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [0],
+          label: "best",
+          state: "focus",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [0],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "dist[0] = 7 + 3",
+        result: "10",
+      },
+      vars: "둘째 탐색 · 꺼낸 정점 3 / 7",
+    },
+    {
+      title: "T14 둘째 탐색 — 0 을 꺼낸다 ② ①",
+      text: "0 을 꺼냈습니다. 이웃 1 에 10 + 2 = 12 를 적고 스택에 넣습니다. dist[best] 10 보다 커서 best 를 1 로 옮깁니다. 이웃 2 는 이미 거리 7 이 적힌 부모라 건너뜁니다.",
+      nodes: [
+        {
+          value: "dist 10",
+          state: "read",
+        },
+        {
+          value: "dist 12",
+          state: "focus",
+        },
+        {
+          value: "dist 7",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "dist 2",
+        },
+        {
+          value: "dist 0",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          state: "focus",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "3",
+        },
+        {
+          state: "out",
+          label: "4",
+        },
+        {
+          state: "out",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "5",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [1],
+          label: "best",
+          state: "focus",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [1],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "dist[1] = 10 + 2",
+        result: "12",
+      },
+      vars: "둘째 탐색 · 꺼낸 정점 4 / 7",
+    },
+    {
+      title: "T15 둘째 탐색 — 1 을 꺼낸다 ① ②",
+      text: "1 을 꺼냈습니다. 이웃 0 은 이미 거리 10 이 적힌 부모라 건너뜁니다. 이웃 3 에 12 + 4 = 16 을 적고 스택에 넣습니다. dist[best] 12 보다 커서 best 를 3 으로 옮깁니다. 이웃 4 에 12 + 1 = 13 을 적고 스택에 넣습니다. dist[best] 16 보다 크지 않아 best 는 3 그대로입니다.",
+      nodes: [
+        {
+          value: "dist 10",
+        },
+        {
+          value: "dist 12",
+          state: "read",
+        },
+        {
+          value: "dist 7",
+        },
+        {
+          value: "dist 16",
+          state: "focus",
+        },
+        {
+          value: "dist 13",
+          state: "focus",
+        },
+        {
+          value: "dist 2",
+        },
+        {
+          value: "dist 0",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          state: "read",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          label: "3",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "4",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "5",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [3],
+          label: "best",
+          state: "focus",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [3, 4],
+          states: {
+            "0": "focus",
+            "1": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "dist[3] = 12 + 4 · dist[4] = 12 + 1",
+        result: "16 · 13",
+      },
+      vars: "둘째 탐색 · 꺼낸 정점 5 / 7",
+    },
+    {
+      title: "T16 둘째 탐색 — 4 를 꺼낸다 ①",
+      text: "4 를 꺼냈습니다. 이웃 1 은 이미 거리 12 가 적힌 부모라 건너뜁니다.",
+      nodes: [
+        {
+          value: "dist 10",
+        },
+        {
+          value: "dist 12",
+        },
+        {
+          value: "dist 7",
+        },
+        {
+          value: "dist 16",
+        },
+        {
+          value: "dist 13",
+          state: "read",
+        },
+        {
+          value: "dist 2",
+        },
+        {
+          value: "dist 0",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          label: "3",
+        },
+        {
+          kind: "tree",
+          label: "4",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "5",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [3],
+          label: "best",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [3],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "dist[1] = 12 ≥ 0 →",
+        result: "건너뜀",
+      },
+      vars: "둘째 탐색 · 꺼낸 정점 6 / 7",
+    },
+    {
+      title: "T17 둘째 탐색 — 3 을 꺼낸다 ① ④",
+      text: "3 을 꺼냈습니다. 이웃 1 은 이미 거리 12 가 적힌 부모라 건너뜁니다. 스택이 비어 둘째 탐색이 끝납니다. dist[3] = 16 을 반환합니다.",
+      nodes: [
+        {
+          value: "dist 10",
+        },
+        {
+          value: "dist 12",
+        },
+        {
+          value: "dist 7",
+        },
+        {
+          value: "dist 16",
+          state: "read",
+        },
+        {
+          value: "dist 13",
+        },
+        {
+          value: "dist 2",
+        },
+        {
+          value: "dist 0",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+          label: "2",
+        },
+        {
+          kind: "tree",
+          label: "3",
+        },
+        {
+          kind: "tree",
+          state: "read",
+          label: "4",
+        },
+        {
+          kind: "tree",
+          label: "1",
+        },
+        {
+          kind: "tree",
+          label: "5",
+        },
+        {
+          kind: "tree",
+          label: "2",
+        },
+      ],
+      groups: [
+        {
+          members: [3],
+          label: "best",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "반환 dist[3] =",
+        result: "16",
+      },
+      vars: "둘째 탐색 · 꺼낸 정점 7 / 7",
+    },
+  ],
 };

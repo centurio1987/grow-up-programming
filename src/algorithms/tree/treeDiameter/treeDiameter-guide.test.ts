@@ -178,3 +178,28 @@ test("별 모양 정점 100,000 개에서 답이 나온다", () => {
   for (let i = 1; i < n; i++) edges.push([0, i, 1]);
   expect(treeDiameter(n, edges)).toBe(2);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./treeDiameter-guide.sim.ts");
+  const fig = await import("./treeDiameter-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.diameterWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.diameterWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 패널의 반환값을 정본의 답에 직접 다시 묻는다.
+  const answer = treeDiameter(7, [
+    [0, 1, 2],
+    [0, 2, 3],
+    [1, 3, 4],
+    [1, 4, 1],
+    [2, 5, 5],
+    [5, 6, 2],
+  ]);
+  expect(sim.diameterWalk.result).toBe(String(answer));
+  expect(sim.diameterWalk.steps.at(-1)?.calc?.result).toBe(String(answer));
+});
