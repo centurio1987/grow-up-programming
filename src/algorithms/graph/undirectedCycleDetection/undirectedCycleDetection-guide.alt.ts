@@ -3,10 +3,10 @@
  *
  * 대조하는 둘은 **같은 답을 내는 서로 다른 절차**다.
  *
- * - **이웃 목록 탐색** — 이 가이드가 가르치는 절차. `.ref.ts` 와 같은 순서로 같은 일을 하고,
+ * - **부모 건너뛰기 탐색** — 이 가이드가 가르치는 절차. `.ref.ts` 와 같은 순서로 같은 일을 하고,
  *   읽고 쓴 배열 칸만 덧붙여 센다. 정본은 계수를 내보내지 않으므로 세는 사본이 필요하다.
- * - **서로소 집합** — 이웃 목록을 만들지 않고 간선을 하나씩 받아 두 끝의 뿌리를 견주는
- *   절차다. 뿌리가 같으면 이미 이어져 있다는 뜻이라 그 간선이 사이클을 닫는다.
+ * - **유니온 파인드** — 이웃 목록을 만들지 않고 간선을 하나씩 받아 두 끝의 대표를 비교하는
+ *   절차다. 대표가 같으면 이미 이어져 있다는 뜻이라 그 간선이 사이클을 닫는다.
  *   `src/data-structures/disjoint-set/unionFind` 가 그 자료구조를 다룬다.
  *
  * **계수는 배열 칸 접근 수와 새로 잡는 칸 수 둘이다.** 칸을 한 번 읽으면 1, 한 번 쓰면 1로
@@ -32,7 +32,7 @@ interface Counted {
   answer: boolean;
 }
 
-/** 이웃 목록 탐색 — `.ref.ts` 와 같은 절차에 계수만 덧붙였다. */
+/** 부모 건너뛰기 탐색 — `.ref.ts` 와 같은 절차에 계수만 덧붙였다. */
 function search(n: number, edges: Edge[]): Counted {
   let cells = 0;
   let allocated = 0;
@@ -82,7 +82,7 @@ function search(n: number, edges: Edge[]): Counted {
   return { cells, allocated: allocated + 2 * peak, answer: false };
 }
 
-/** 서로소 집합 — 간선을 하나씩 받아 두 끝의 뿌리를 견준다. 뿌리가 같으면 사이클이다. */
+/** 유니온 파인드 — 간선을 하나씩 받아 두 끝의 대표를 비교한다. 대표가 같으면 사이클이다. */
 function disjointSet(n: number, edges: Edge[]): Counted {
   let cells = 0;
   let allocated = 0;
@@ -161,7 +161,7 @@ function triangleAt(v: number, p: number): Edge[] {
 
 /**
  * 삼각형을 **정점 번호 맨 뒤**(v-3 · v-2 · v-1)에 두고 그 간선 셋을 목록 맨 앞에 둔 것.
- * 탐색은 정점 0 부터 시작하므로 삼각형에 닿기까지 사슬 전체를 지나간다.
+ * 탐색은 정점 0 부터 시작하므로 삼각형에 이르기까지 사슬 전체를 지나간다.
  */
 function triangleAtFarEnd(v: number): Edge[] {
   const rest: Edge[] = [];
@@ -202,6 +202,6 @@ function measure(run: (n: number, e: Edge[]) => Counted) {
 }
 
 export const cases = {
-  "이웃 목록 탐색": measure(search),
-  "서로소 집합": measure(disjointSet),
+  "부모 건너뛰기 탐색": measure(search),
+  "유니온 파인드": measure(disjointSet),
 };

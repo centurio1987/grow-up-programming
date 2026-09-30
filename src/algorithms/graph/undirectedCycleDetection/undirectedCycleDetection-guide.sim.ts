@@ -1,321 +1,696 @@
-import type { Frame } from "#guide-sim";
-
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(9)와 같다 — P3 이 그 관계를 잰다.
+ * 걸음 재생 패널 — `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 제목은
+ * 원고의 걸음 번호(`T#`)로 연다 — P3 이 그 자리를 잰다. 바깥 반복이 정점을 잡는 일과, 꺼낸 정점의
+ * 이웃 항목 하나를 확인하는 일이 각각 걸음 하나다. 마지막 걸음이 표시된 이웃을 만나 반환하는 자리다.
  *
- * **뷰가 둘이다** — `graph` 는 표시된 정점과 지금 확인하는 이웃을 그리고, `keyValue` 는 그
- * 순간의 스택 · `from` 배열 · 표시된 정점 · 갈래를 적는다. 무향 간선은 양쪽에서 걸어갈 수
- * 있어서 **어느 방향으로 확인하는 중인지**가 그림만으로는 안 보이고, 이 절차가 건너뛰는
- * 이웃을 정하는 근거가 바로 그 방향이라 두 패널이 함께 있어야 한 프레임이 완결된다.
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가 실제보다
+ * 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
  *
- * 상태는 `nodeStatus` 로 옮긴다 — 표시하지 않은 정점은 `default`(적지 않는다), 표시했고
- * 스택에 남아 있는 정점은 `frontier`, 지금 이웃을 확인하고 있는 정점은 `active`, 스택에서
- * 꺼내 확인을 마친 정점은 `visited` 다. `nodeValue` 는 **그 정점을 표시하게 한 이웃**
- * (`from` 값)이고 시작 정점에는 `시작` 을 붙인다.
+ * ## 패널 규약 — 「그래프」 무대(KAN-058, SPEC §13)
  *
- * 좌표는 0~100 정규화다. **간선에 방향이 없으므로 `directed` 를 붙이지 않는다.**
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "graph"` 가
+ * 무대 갈래를 고른다. 정점과 간선의 자리(`layout`)는 패널에 한 번만 적고, 걸음마다 정점 안의 값(부모)과
+ * 상태, 간선의 모양과 상태, 무대 아래 두 띠(stack 과 from — 같은 자리끼리 짝)만 바꾼다
+ * (`src/_viz/player/graphStage.ts`). 간선에 방향이 없으므로 `directed: false` 다. 표시 없는 정점은 점선
+ * 테(아직), 아직 나무 간선이 아닌 간선은 흐린 선이다. 나무 간선은 굵은 실선, 사이클을 닫은 간선은
+ * 대시다. 띠의 칸 수는 스택이 가장 깊었을 때에 맞춰 고정한다.
  *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * **값은 손으로 적지 않았다.** 이 리터럴은 그림 사이드카의 `stageStepsFromRef()` 가 정본과 같은 절차를
+ * 실행해 낸 결과를 옮긴 것이고, 둘이 같은지는 `undirectedCycleDetection-guide.test.ts` 가 잰다.
  */
 export const undirectedWalk = {
-  view: ["graph", "keyValue"] as const,
-  title: "undirectedCycleDetection(6, [[0,1],[1,2],[3,4],[4,5],[5,3]])",
+  player: "stage",
+  stage: "graph",
+  title:
+    "undirectedCycleDetection(6, [[0,1],[1,2],[3,4],[4,5],[5,3]]) — 정점 안은 부모, 무대 아래는 stack 과 from",
+  sub: "T1–T9 · 걸음마다 시작 하나 또는 이웃 항목 하나",
   result: "true",
+  layout: {
+    nodes: [
+      {
+        id: 0,
+        x: 0,
+        y: 0.6,
+      },
+      {
+        id: 1,
+        x: 1,
+        y: 0.6,
+      },
+      {
+        id: 2,
+        x: 2,
+        y: 0.6,
+      },
+      {
+        id: 3,
+        x: 3.6,
+        y: 0,
+      },
+      {
+        id: 4,
+        x: 3.1,
+        y: 1.2,
+      },
+      {
+        id: 5,
+        x: 4.1,
+        y: 1.2,
+      },
+    ],
+    edges: [
+      {
+        from: 0,
+        to: 1,
+      },
+      {
+        from: 1,
+        to: 2,
+      },
+      {
+        from: 3,
+        to: 4,
+      },
+      {
+        from: 4,
+        to: 5,
+      },
+      {
+        from: 5,
+        to: 3,
+      },
+    ],
+    directed: false,
+  },
   steps: [
     {
       title: "T1 정점 0 을 표시하고 스택에 넣는다",
-      detail:
-        "바깥 반복이 표시되지 않은 첫 정점 0 을 잡았다. 표시는 스택에 넣는 자리에서 한다.",
+      text: "바깥 반복이 표시 없는 정점 0 을 잡았습니다. 표시하고 스택에 넣고, 짝지은 from 에는 부모가 없다는 뜻으로 -1 을 넣습니다.",
       nodes: [
-        { id: 0, x: 12, y: 18 },
-        { id: 1, x: 44, y: 10 },
-        { id: 2, x: 76, y: 18 },
-        { id: 3, x: 20, y: 62 },
-        { id: 4, x: 46, y: 92 },
-        { id: 5, x: 72, y: 62 },
+        {
+          value: "부모 없음",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 3, to: 4 },
-        { from: 4, to: 5 },
-        { from: 5, to: 3 },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
       ],
-      nodeStatus: { 0: "frontier" },
-      nodeValue: { 0: "시작" },
-      entries: [
-        { label: "스택 (아래→위)", value: "[0]" },
-        { label: "from (짝지은 이웃)", value: "[시작]" },
-        { label: "지금 확인하는 이웃", value: "—" },
-        { label: "표시된 정점", value: "0" },
-        { label: "갈래", value: "—" },
+      strips: [
+        {
+          label: "stack",
+          values: [0],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+        {
+          label: "from",
+          values: [-1],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
       ],
-    },
-    {
-      title: "T2 정점 0 의 이웃 1 을 확인한다",
-      detail:
-        "0 을 꺼내 이웃 목록 [1] 을 확인한다. 1 은 표시되지 않았으므로 표시하고 스택에 넣는다.",
-      nodes: [
-        { id: 0, x: 12, y: 18 },
-        { id: 1, x: 44, y: 10 },
-        { id: 2, x: 76, y: 18 },
-        { id: 3, x: 20, y: 62 },
-        { id: 4, x: 46, y: 92 },
-        { id: 5, x: 72, y: 62 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 3, to: 4 },
-        { from: 4, to: 5 },
-        { from: 5, to: 3 },
-      ],
-      nodeStatus: { 0: "active", 1: "frontier" },
-      nodeValue: { 0: "시작", 1: 0 },
-      activeEdge: { from: 0, to: 1 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[1]" },
-        { label: "from (짝지은 이웃)", value: "[0]" },
-        { label: "지금 확인하는 이웃", value: "0 의 이웃 1" },
-        { label: "표시된 정점", value: "0 · 1" },
-        { label: "갈래", value: "③ 처음 보는 정점이라 표시하고 넣는다" },
-      ],
-    },
-    {
-      title: "T3 정점 1 의 이웃 0 을 확인한다 — 지나온 이웃이다",
-      detail:
-        "1 을 꺼냈다. from 이 0 이므로 이웃 목록 [0, 2] 의 첫 이웃 0 은 지나온 이웃이고, 그리로 돌아가는 것은 사이클이 아니라 왔던 간선이다.",
-      nodes: [
-        { id: 0, x: 12, y: 18 },
-        { id: 1, x: 44, y: 10 },
-        { id: 2, x: 76, y: 18 },
-        { id: 3, x: 20, y: 62 },
-        { id: 4, x: 46, y: 92 },
-        { id: 5, x: 72, y: 62 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 3, to: 4 },
-        { from: 4, to: 5 },
-        { from: 5, to: 3 },
-      ],
-      nodeStatus: { 0: "visited", 1: "active" },
-      nodeValue: { 0: "시작", 1: 0 },
-      activeEdge: { from: 1, to: 0 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[]" },
-        { label: "from (짝지은 이웃)", value: "[]" },
-        { label: "지금 확인하는 이웃", value: "1 의 이웃 0" },
-        { label: "표시된 정점", value: "0 · 1" },
-        { label: "갈래", value: "① 지나온 이웃이라 건너뛴다" },
-      ],
-    },
-    {
-      title: "T4 정점 1 의 이웃 2 를 확인한다",
-      detail:
-        "같은 자리에서 목록의 다음 이웃 2 를 확인한다. 표시되지 않았으므로 표시하고 스택에 넣는다.",
-      nodes: [
-        { id: 0, x: 12, y: 18 },
-        { id: 1, x: 44, y: 10 },
-        { id: 2, x: 76, y: 18 },
-        { id: 3, x: 20, y: 62 },
-        { id: 4, x: 46, y: 92 },
-        { id: 5, x: 72, y: 62 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 3, to: 4 },
-        { from: 4, to: 5 },
-        { from: 5, to: 3 },
-      ],
-      nodeStatus: { 0: "visited", 1: "active", 2: "frontier" },
-      nodeValue: { 0: "시작", 1: 0, 2: 1 },
-      activeEdge: { from: 1, to: 2 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[2]" },
-        { label: "from (짝지은 이웃)", value: "[1]" },
-        { label: "지금 확인하는 이웃", value: "1 의 이웃 2" },
-        { label: "표시된 정점", value: "0 · 1 · 2" },
-        { label: "갈래", value: "③ 처음 보는 정점이라 표시하고 넣는다" },
-      ],
-    },
-    {
-      title: "T5 정점 2 의 이웃 1 을 확인한다 — 스택이 빈다",
-      detail:
-        "2 를 꺼냈다. 이웃은 1 하나이고 그것이 지나온 이웃이라 건너뛴다. 스택이 비어 이 덩어리가 끝났고, 여기까지 사이클이 없다.",
-      nodes: [
-        { id: 0, x: 12, y: 18 },
-        { id: 1, x: 44, y: 10 },
-        { id: 2, x: 76, y: 18 },
-        { id: 3, x: 20, y: 62 },
-        { id: 4, x: 46, y: 92 },
-        { id: 5, x: 72, y: 62 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 3, to: 4 },
-        { from: 4, to: 5 },
-        { from: 5, to: 3 },
-      ],
-      nodeStatus: { 0: "visited", 1: "visited", 2: "active" },
-      nodeValue: { 0: "시작", 1: 0, 2: 1 },
-      activeEdge: { from: 2, to: 1 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[]" },
-        { label: "from (짝지은 이웃)", value: "[]" },
-        { label: "지금 확인하는 이웃", value: "2 의 이웃 1" },
-        { label: "표시된 정점", value: "0 · 1 · 2" },
-        { label: "갈래", value: "① 지나온 이웃이라 건너뛴다" },
-      ],
-    },
-    {
-      title: "T6 표시되지 않은 정점 3 에서 다시 시작한다",
-      detail:
-        "바깥 반복이 1 과 2 를 표시돼 있다고 넘기고 3 을 잡는다. 정점 3·4·5 는 0 에서 걸어갈 수 없는 다른 덩어리다.",
-      nodes: [
-        { id: 0, x: 12, y: 18 },
-        { id: 1, x: 44, y: 10 },
-        { id: 2, x: 76, y: 18 },
-        { id: 3, x: 20, y: 62 },
-        { id: 4, x: 46, y: 92 },
-        { id: 5, x: 72, y: 62 },
-      ],
-      edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 3, to: 4 },
-        { from: 4, to: 5 },
-        { from: 5, to: 3 },
-      ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "frontier",
+      calc: {
+        expr: "visited[0] →",
+        result: "거짓 · 시작한다",
       },
-      nodeValue: { 0: "시작", 1: 0, 2: 1, 3: "시작" },
-      entries: [
-        { label: "스택 (아래→위)", value: "[3]" },
-        { label: "from (짝지은 이웃)", value: "[시작]" },
-        { label: "지금 확인하는 이웃", value: "—" },
-        { label: "표시된 정점", value: "0 · 1 · 2 · 3" },
-        { label: "갈래", value: "—" },
-      ],
+      vars: "확인한 이웃 항목 0 / 10",
     },
     {
-      title: "T7 정점 3 의 이웃 4 를 확인한다",
-      detail:
-        "3 을 꺼내 이웃 목록 [4, 5] 를 확인한다. 첫 이웃 4 는 표시되지 않았으므로 표시하고 스택에 넣는다.",
+      title: "T2 0 의 이웃 1 — 표시가 없어 표시하고 넣는다 ③",
+      text: "0 을 꺼내 이웃 1 을 봤습니다. 부모가 아니고 표시도 없으니 표시하고 스택에 넣고, from 에는 0 을 넣습니다. 이제 1 의 부모는 0 입니다.",
       nodes: [
-        { id: 0, x: 12, y: 18 },
-        { id: 1, x: 44, y: 10 },
-        { id: 2, x: 76, y: 18 },
-        { id: 3, x: 20, y: 62 },
-        { id: 4, x: 46, y: 92 },
-        { id: 5, x: 72, y: 62 },
+        {
+          value: "부모 없음",
+          state: "read",
+        },
+        {
+          value: "부모 0",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 3, to: 4 },
-        { from: 4, to: 5 },
-        { from: 5, to: 3 },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "active",
-        4: "frontier",
+      strips: [
+        {
+          label: "stack",
+          values: [1],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+        {
+          label: "from",
+          values: [0],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "visited[1] →",
+        result: "거짓",
       },
-      nodeValue: { 0: "시작", 1: 0, 2: 1, 3: "시작", 4: 3 },
-      activeEdge: { from: 3, to: 4 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[4]" },
-        { label: "from (짝지은 이웃)", value: "[3]" },
-        { label: "지금 확인하는 이웃", value: "3 의 이웃 4" },
-        { label: "표시된 정점", value: "0 · 1 · 2 · 3 · 4" },
-        { label: "갈래", value: "③ 처음 보는 정점이라 표시하고 넣는다" },
-      ],
+      vars: "확인한 이웃 항목 1 / 10",
     },
     {
-      title: "T8 정점 3 의 이웃 5 를 확인한다",
-      detail:
-        "같은 자리에서 목록의 다음 이웃 5 를 확인한다. 5 도 표시되지 않았으므로 표시하고 스택에 넣는다. 이제 스택에 4 와 5 가 함께 있다.",
+      title: "T3 1 의 이웃 0 — 부모라 건너뛴다 ①",
+      text: "1 의 이웃 0 은 1 을 표시하게 한 부모입니다. 방금 지나온 나무 간선을 반대쪽에서 읽은 것이라 건너뜁니다.",
       nodes: [
-        { id: 0, x: 12, y: 18 },
-        { id: 1, x: 44, y: 10 },
-        { id: 2, x: 76, y: 18 },
-        { id: 3, x: 20, y: 62 },
-        { id: 4, x: 46, y: 92 },
-        { id: 5, x: 72, y: 62 },
+        {
+          value: "부모 없음",
+          state: "read",
+        },
+        {
+          value: "부모 0",
+          state: "read",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 3, to: 4 },
-        { from: 4, to: 5 },
-        { from: 5, to: 3 },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "active",
-        4: "frontier",
-        5: "frontier",
+      strips: [
+        {
+          label: "stack",
+          values: [],
+          states: {},
+          slots: 2,
+        },
+        {
+          label: "from",
+          values: [],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "0 === parent(0) →",
+        result: "참",
       },
-      nodeValue: { 0: "시작", 1: 0, 2: 1, 3: "시작", 4: 3, 5: 3 },
-      activeEdge: { from: 3, to: 5 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[4, 5]" },
-        { label: "from (짝지은 이웃)", value: "[3, 3]" },
-        { label: "지금 확인하는 이웃", value: "3 의 이웃 5" },
-        { label: "표시된 정점", value: "0 · 1 · 2 · 3 · 4 · 5" },
-        { label: "갈래", value: "③ 처음 보는 정점이라 표시하고 넣는다" },
-      ],
+      vars: "확인한 이웃 항목 2 / 10",
     },
     {
-      title: "T9 정점 5 의 이웃 4 를 확인한다 — 사이클이다",
-      detail:
-        "5 를 꺼냈다. from 이 3 이라 이웃 4 는 지나온 이웃이 아닌데 이미 표시돼 있다. 4 까지 가는 길이 3 을 거치는 것 말고 하나 더 있다는 뜻이라 true 를 반환한다.",
+      title: "T4 1 의 이웃 2 — 표시가 없어 표시하고 넣는다 ③",
+      text: "1 을 꺼내 이웃 2 를 봤습니다. 부모가 아니고 표시도 없으니 표시하고 스택에 넣고, from 에는 1 을 넣습니다. 이제 2 의 부모는 1 입니다.",
       nodes: [
-        { id: 0, x: 12, y: 18 },
-        { id: 1, x: 44, y: 10 },
-        { id: 2, x: 76, y: 18 },
-        { id: 3, x: 20, y: 62 },
-        { id: 4, x: 46, y: 92 },
-        { id: 5, x: 72, y: 62 },
+        {
+          value: "부모 없음",
+        },
+        {
+          value: "부모 0",
+          state: "read",
+        },
+        {
+          value: "부모 1",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
       ],
       edges: [
-        { from: 0, to: 1 },
-        { from: 1, to: 2 },
-        { from: 3, to: 4 },
-        { from: 4, to: 5 },
-        { from: 5, to: 3 },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
       ],
-      nodeStatus: {
-        0: "visited",
-        1: "visited",
-        2: "visited",
-        3: "visited",
-        4: "frontier",
-        5: "active",
+      strips: [
+        {
+          label: "stack",
+          values: [2],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+        {
+          label: "from",
+          values: [1],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "visited[2] →",
+        result: "거짓",
       },
-      nodeValue: { 0: "시작", 1: 0, 2: 1, 3: "시작", 4: 3, 5: 3 },
-      activeEdge: { from: 5, to: 4 },
-      entries: [
-        { label: "스택 (아래→위)", value: "[4]" },
-        { label: "from (짝지은 이웃)", value: "[3]" },
-        { label: "지금 확인하는 이웃", value: "5 의 이웃 4" },
-        { label: "표시된 정점", value: "0 · 1 · 2 · 3 · 4 · 5" },
-        { label: "갈래", value: "② 표시된 정점이라 true 를 반환한다" },
-      ],
+      vars: "확인한 이웃 항목 3 / 10",
     },
-  ] satisfies Frame[],
+    {
+      title: "T5 2 의 이웃 1 — 부모라 건너뛴다 ①",
+      text: "2 의 이웃 1 은 2 를 표시하게 한 부모입니다. 방금 지나온 나무 간선을 반대쪽에서 읽은 것이라 건너뜁니다.",
+      nodes: [
+        {
+          value: "부모 없음",
+        },
+        {
+          value: "부모 0",
+          state: "read",
+        },
+        {
+          value: "부모 1",
+          state: "read",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "read",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [],
+          states: {},
+          slots: 2,
+        },
+        {
+          label: "from",
+          values: [],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "1 === parent(1) →",
+        result: "참",
+      },
+      vars: "확인한 이웃 항목 4 / 10",
+    },
+    {
+      title: "T6 정점 3 을 표시하고 스택에 넣는다",
+      text: "바깥 반복이 표시 없는 정점 3 을 잡았습니다. 표시하고 스택에 넣고, 짝지은 from 에는 부모가 없다는 뜻으로 -1 을 넣습니다.",
+      nodes: [
+        {
+          value: "부모 없음",
+        },
+        {
+          value: "부모 0",
+        },
+        {
+          value: "부모 1",
+        },
+        {
+          value: "부모 없음",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [3],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+        {
+          label: "from",
+          values: [-1],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "visited[3] →",
+        result: "거짓 · 시작한다",
+      },
+      vars: "확인한 이웃 항목 4 / 10",
+    },
+    {
+      title: "T7 3 의 이웃 4 — 표시가 없어 표시하고 넣는다 ③",
+      text: "3 을 꺼내 이웃 4 를 봤습니다. 부모가 아니고 표시도 없으니 표시하고 스택에 넣고, from 에는 3 을 넣습니다. 이제 4 의 부모는 3 입니다.",
+      nodes: [
+        {
+          value: "부모 없음",
+        },
+        {
+          value: "부모 0",
+        },
+        {
+          value: "부모 1",
+        },
+        {
+          value: "부모 없음",
+          state: "read",
+        },
+        {
+          value: "부모 3",
+          state: "focus",
+        },
+        {
+          value: "",
+          state: "empty",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+        {
+          state: "out",
+        },
+        {
+          state: "out",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [4],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+        {
+          label: "from",
+          values: [3],
+          states: {
+            "0": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "visited[4] →",
+        result: "거짓",
+      },
+      vars: "확인한 이웃 항목 5 / 10",
+    },
+    {
+      title: "T8 3 의 이웃 5 — 표시가 없어 표시하고 넣는다 ③",
+      text: "3 을 꺼내 이웃 5 를 봤습니다. 부모가 아니고 표시도 없으니 표시하고 스택에 넣고, from 에는 3 을 넣습니다. 이제 5 의 부모는 3 입니다.",
+      nodes: [
+        {
+          value: "부모 없음",
+        },
+        {
+          value: "부모 0",
+        },
+        {
+          value: "부모 1",
+        },
+        {
+          value: "부모 없음",
+          state: "read",
+        },
+        {
+          value: "부모 3",
+        },
+        {
+          value: "부모 3",
+          state: "focus",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          state: "out",
+        },
+        {
+          kind: "tree",
+          state: "focus",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [4, 5],
+          states: {
+            "1": "focus",
+          },
+          slots: 2,
+        },
+        {
+          label: "from",
+          values: [3, 3],
+          states: {
+            "1": "focus",
+          },
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "visited[5] →",
+        result: "거짓",
+      },
+      vars: "확인한 이웃 항목 6 / 10",
+    },
+    {
+      title: "T9 5 의 이웃 4 — 이미 표시돼 있어 사이클이다 ②",
+      text: "5 의 이웃 4 는 부모 3 가 아닌데 이미 표시돼 있습니다. 나무 간선을 따라 4 까지 가는 길이 따로 있으니 사이클입니다. true 를 반환합니다.",
+      nodes: [
+        {
+          value: "부모 없음",
+        },
+        {
+          value: "부모 0",
+        },
+        {
+          value: "부모 1",
+        },
+        {
+          value: "부모 없음",
+        },
+        {
+          value: "부모 3",
+          state: "read",
+        },
+        {
+          value: "부모 3",
+          state: "read",
+        },
+      ],
+      edges: [
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "tree",
+        },
+        {
+          kind: "back",
+          state: "focus",
+        },
+        {
+          kind: "tree",
+        },
+      ],
+      strips: [
+        {
+          label: "stack",
+          values: [4],
+          states: {},
+          slots: 2,
+        },
+        {
+          label: "from",
+          values: [3],
+          states: {},
+          slots: 2,
+        },
+      ],
+      calc: {
+        expr: "visited[4] →",
+        result: "참",
+      },
+      vars: "확인한 이웃 항목 7 / 10",
+    },
+  ],
 };
