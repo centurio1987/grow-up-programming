@@ -2,7 +2,7 @@
  * `purpose.alt`(경쟁 설계와의 대조)의 수치 — L13.
  *
  * 경쟁 설계는 **카라추바 곱셈**이다. 같은 문제(정수 계수 다항식의 곱)를 풀고, 부동소수를 한
- * 번도 쓰지 않으며, 길이가 짧을 때는 이 글의 절차보다 연산이 적다.
+ * 번도 쓰지 않으며, 길이가 짧을 때는 FFT 보다 연산이 적다.
  *
  * 재는 것은 셋이다.
  *
@@ -51,7 +51,7 @@ export interface Counter {
 
 const blank = (): Counter => ({ ops: 0, trig: 0, cells: 0 });
 
-/* ────────────────── 이 글의 절차 — 세는 사본 ────────────────── */
+/* ────────────────── FFT — 세는 사본 ────────────────── */
 
 /** 정본과 같은 절차에 세는 자리만 덧붙인 사본. */
 export function fftCounted(a: number[], b: number[], c: Counter): number[] {
@@ -319,7 +319,7 @@ export function lastExactCap(
 /**
  * 길이를 1 씩 올리며 두 설계의 기본 연산과 삼각함수 호출의 합을 견준다.
  *
- * 이 글의 절차는 패딩 길이가 2 배로 뛸 때만 비용이 뛰므로 **길이의 함수로 계단꼴**이고,
+ * FFT 는 패딩 길이가 2 배로 뛸 때만 비용이 뛰므로 **길이의 함수로 계단꼴**이고,
  * 카라추바는 길이에 따라 매끄럽게 늘어난다. 그래서 우열이 한 번만 갈리지 않는다.
  */
 export function flipLengths(upTo: number): number[] {
@@ -364,7 +364,7 @@ function 검산(): void {
 
     const fc = fftCost(n, n);
     if (fc.ops !== cf.ops || fc.trig !== cf.trig || fc.cells !== cf.cells) {
-      throw new Error(`길이만 세는 사본이 다른 수를 낸다(이 글) — 길이 ${n}`);
+      throw new Error(`길이만 세는 사본이 다른 수를 낸다(FFT) — 길이 ${n}`);
     }
     const kc = karatsubaCost(n, n);
     if (kc.ops !== ck.ops || kc.cells !== ck.cells) {
@@ -390,7 +390,7 @@ export const LONG_LEN = 1024;
 export const TINY_LEN = 64;
 
 export const cases: Record<string, () => Record<string, number>> = {
-  "이 글의 절차": () => {
+  FFT: () => {
     const flips = flipLengths(FLIP_UP_TO);
     return {
       "길이 512 기본 연산": fftCost(SHORT_LEN, SHORT_LEN).ops,

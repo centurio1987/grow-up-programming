@@ -405,3 +405,43 @@ test("배열 무대 · 구간 안의 이번 걸음 밖 — 앞 걸음이 지운 
 
   await act(async () => root.unmount());
 });
+
+test("배열 무대 · 넓은 칸의 층 — 층에 span 을 주면 그 줄의 칸이 배열 칸과 같은 폭으로 선다", async () => {
+  const spec = (
+    await import(
+      "../../algorithms/number-theory/fftMultiply/fftMultiply-guide.sim.ts"
+    )
+  ).fftWalk as unknown as PlayerSpec;
+  document.body.innerHTML = '<div id="f"></div>';
+  const host = document.getElementById("f") as HTMLElement;
+  const root = createRoot(host);
+  await act(async () => root.render(<StepPlayer {...spec} />));
+
+  const stage = () =>
+    host.querySelector(".gs-player-stage") as HTMLElement | null;
+  const widths = (label: string) =>
+    [
+      ...host.querySelectorAll(
+        `[data-viz-role="cells"][data-viz-label="${label}"] [data-viz-cell] > rect`,
+      ),
+    ].map((r) => r.getAttribute("width"));
+  const h0 = stage()?.style.height;
+  // T1 — 배열 칸과 두 층의 칸이 모두 같은 폭(격자 두 칸)이다. 층의 칸 수는 그대로다
+  const arrayW = widths("aRe · aIm");
+  expect(arrayW.length).toBe(8);
+  expect(new Set(widths("bRe · bIm"))).toEqual(new Set(arrayW));
+  expect(widths("bRe · bIm").length).toBe(8);
+  expect(widths("반환").length).toBe(5);
+  expect(new Set(widths("반환"))).toEqual(new Set(arrayW));
+
+  // 마지막 걸음 — 반환 줄이 채워지고, 무대 높이는 그대로다
+  const badge = (id: string) =>
+    [...host.querySelectorAll(".gs-player-badge")].find(
+      (b) => b.textContent === id,
+    ) as HTMLButtonElement;
+  await act(async () => badge("T12").click());
+  expect(stage()?.style.height).toBe(h0);
+  expect(stage()?.textContent).toContain("22");
+
+  await act(async () => root.unmount());
+});

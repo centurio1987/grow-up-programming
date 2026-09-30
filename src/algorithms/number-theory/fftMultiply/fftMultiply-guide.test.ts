@@ -175,3 +175,20 @@ test("정본 — 계수가 상한 근처여도 큰 정수 곱과 같은 계수�
     expect(BigInt(got[k] as number)).toBe(want[k] as bigint);
   }
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이 정적으로
+ * 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서 만든 계측
+ * 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./fftMultiply-guide.sim.ts");
+  const { simStepsFromRef } = await import("./fftMultiply-guide.fig.tsx");
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.fftWalk.steps)).toEqual(plain(want.fftWalk));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.fftWalk.result).toBe(
+    `[${fftMultiply([3, 1, 4, 1], [2, 5]).join(", ")}]`,
+  );
+});

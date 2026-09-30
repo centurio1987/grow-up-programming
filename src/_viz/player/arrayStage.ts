@@ -113,6 +113,13 @@ export interface ArrayLayer {
    * 아랫줄)에서 윗줄에 쓴다 — ▲ 줄이 끼면 행렬 하나가 두 줄로 갈라져 보인다. 읽은 칸은 테로 보인다.
    */
   readonly caret?: boolean;
+  /**
+   * 이 줄의 칸 하나가 격자 몇 칸의 폭을 차지하는가. 기본 1 — 칸 `i` 가 격자 칸 `i` 에 선다. 2 이상이면 칸 `i`
+   * 가 격자 칸 `i · span` 부터 `span` 칸을 덮고, ▲ 도 그 폭의 가운데에 선다. 배열 칸이 `span` 으로 넓어진
+   * 무대에서 그 배열과 칸마다 짝이 되는 줄(복소수 배열 둘 — 칸마다 `3+5.41i` 꼴의 값)을 같은 폭으로 쌓을 때
+   * 쓴다(첫 편 `fftMultiply`). 주지 않으면 줄이 그대로다.
+   */
+  readonly span?: number;
 }
 
 export interface ArrayOptions {
@@ -196,15 +203,19 @@ export function arrayStage(s: ArrayStep, opts: ArrayOptions): StageRow[] {
     for (const i of layer.read ?? []) layerStates[i] = "read";
     for (const i of layer.write ?? []) layerStates[i] = "focus";
     const filled = layer.values.filter((v) => v !== null).length;
+    // 줄의 칸이 격자 여러 칸을 덮으면(`span`) 값 줄과 ▲ 줄에 같은 폭을 준다. 주지 않으면 한 칸이다.
+    const layerWide =
+      layer.span === undefined || layer.span === 1 ? {} : { span: layer.span };
     rows.push({
       kind: "cells",
       label: layer.name,
       values: layer.values,
       states: layerStates,
       side: layer.side ?? `채움 ${filled} / ${layer.values.length}`,
+      ...layerWide,
     });
     if (layer.caret !== false) {
-      rows.push({ kind: "caret", cells: layer.read ?? [] });
+      rows.push({ kind: "caret", cells: layer.read ?? [], ...layerWide });
     }
   }
   // 해시 맵은 맨 아래에 키 줄 · 값 줄 · ▲ 줄로 쌓는다. 자리 수가 걸음마다 같으면 무대도 같다.
@@ -216,7 +227,7 @@ export function arrayStage(s: ArrayStep, opts: ArrayOptions): StageRow[] {
 export const arrayColumns = (s: ArrayStep): number =>
   Math.max(
     s.array.length * (s.span ?? 1),
-    ...(s.layers ?? []).map((l) => l.values.length),
+    ...(s.layers ?? []).map((l) => l.values.length * (l.span ?? 1)),
     s.map ? keyValueColumns(s.map) : 0,
   );
 
