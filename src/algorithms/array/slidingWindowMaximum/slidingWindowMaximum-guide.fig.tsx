@@ -110,7 +110,7 @@ export type Event =
     };
 
 /**
- * 한 번의 실행을 센 값. 배열 접근은 `nums` 읽기 · 단조 덱 읽기와 쓰기 · 답 배열 쓰기를 각각 한 번으로 센다 —
+ * 한 번의 실행을 센 값. 칸 접근은 `nums` 읽기 · 단조 덱 읽기와 쓰기 · 답 배열 쓰기를 각각 한 번으로 센다 —
  * 걸음마다 지금 값 읽기 1 · 앞 자리가 창 안인지 보기 1(단조 덱이 비면 없다) · 앞에서 버리기 1 · 뒤 자리와
  * 비교하기 2(뒤 자리 읽기와 그 값 읽기) · 뒤에서 버리기 1 · 넣기 1 · 답 적기 3(앞 자리 읽기 · 그 값 읽기 ·
  * 답 쓰기). 앞 · 뒤 어느 쪽에서 넣고 빼도 한 번이다(덱의 계약).
@@ -134,7 +134,7 @@ export interface Counts {
   readonly left: number;
   /** 앞에서 버릴 때 배열의 `shift` 가 실제로 옮긴 칸 수. 덱의 계약에는 안 들어간다. */
   readonly moved: number;
-  /** 배열 접근 수(읽기 + 쓰기). */
+  /** 칸 접근 수(읽기 + 쓰기). */
   readonly acc: number;
   readonly result: number[];
 }
@@ -294,7 +294,7 @@ export const windowMax = (xs: readonly number[], k: number): number[] =>
   );
 
 /**
- * 창마다 `k` 칸을 처음부터 다시 읽는 방법. 본문 `deep.origin` 의 코드와 같은 절차이고, 배열 접근을 같은
+ * 창마다 `k` 칸을 처음부터 다시 읽는 방법. 본문 `deep.origin` 의 코드와 같은 절차이고, 칸 접근을 같은
  * 규칙으로 센다 — 창 하나에 `nums` 읽기 `k` 번과 답 쓰기 한 번. 답은 정본과 대조한다.
  */
 export function rescanEvery(
@@ -321,13 +321,13 @@ export function rescanEvery(
   return { out, acc };
 }
 
-/** 창마다 다시 읽기의 배열 접근 — 입력과 무관하게 `(k + 1)(N − k + 1)` 이다. 작은 N 에서 실측과 대조한다. */
+/** 창마다 다시 읽기의 칸 접근 — 입력과 무관하게 `(k + 1)(N − k + 1)` 이다. 작은 N 에서 실측과 대조한다. */
 export const rescanFormula = (n: number, k: number): number =>
   (k + 1) * (n - k + 1);
 
 /**
  * 최댓값 **하나와 그 자리만** 기억하는 방법. 그 자리가 창을 벗어나면 창 전체를 다시 읽는다. 답은 맞는다 —
- * 갈리는 것은 다시 읽은 걸음의 수뿐이다. 배열 접근은 `nums` 읽기와 답 쓰기를 센다.
+ * 갈리는 것은 다시 읽은 걸음의 수뿐이다. 칸 접근은 `nums` 읽기와 답 쓰기를 센다.
  */
 export function keepOneOnly(
   nums: readonly number[],
@@ -370,7 +370,7 @@ export function keepOneOnly(
 }
 
 /**
- * 뒤에서만 버리는 단조 스택 — 정본에서 앞에서 버리는 줄만 뺀 절차다. 답은 바닥(맨 앞)의 값이다. 배열 접근은
+ * 뒤에서만 버리는 단조 스택 — 정본에서 앞에서 버리는 줄만 뺀 절차다. 답은 바닥(맨 앞)의 값이다. 칸 접근은
  * 정본과 같은 규칙으로 센다(앞 자리를 보는 몫이 없다). 틀린 창의 수는 정본의 답과 맞대어 센다.
  */
 export function stackOnly(
@@ -721,7 +721,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `N = ${num(TASK_N)} · k = ${num(TASK_K)} 에서 배열 접근 ${num(naive)} 번 · ${seconds(naive)}`,
+          value: `N = ${num(TASK_N)} · k = ${num(TASK_K)} 에서 칸 접근 ${num(naive)} 번 · ${seconds(naive)}`,
           ok: false,
         },
       ],
@@ -736,7 +736,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `감소 수열 ${num(BIG_N)} 칸 · k = ${MID_K} 에서 배열 접근 ${num(one.acc)} 번 · 다시 읽기의 ${num(reOne.acc)} 번보다 많다`,
+          value: `감소 수열 ${num(BIG_N)} 칸 · k = ${MID_K} 에서 칸 접근 ${num(one.acc)} 번 · 다시 읽기의 ${num(reOne.acc)} 번보다 많다`,
           ok: false,
         },
       ],
@@ -769,7 +769,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `${num(BIG_N)} 칸 · k = ${MID_K} 에서 배열 접근 ${num(dq.acc)} 번`,
+          value: `${num(BIG_N)} 칸 · k = ${MID_K} 에서 칸 접근 ${num(dq.acc)} 번`,
           ok: true,
         },
       ],
@@ -887,7 +887,7 @@ export const FIGS: Record<string, () => ReactElement> = {
     return (
       <ApproachLadder
         title="시도한 방법 넷 — 셋은 버렸고 하나가 남았다"
-        constraint={`배열 길이 N ≤ ${num(TASK_N)} · 창 크기 k ≤ N · 1 초(단순 연산 1 초에 1 억 번 기준) · 비용은 배열 접근 수`}
+        constraint={`배열 길이 N ≤ ${num(TASK_N)} · 창 크기 k ≤ N · 1 초(단순 연산 1 초에 1 억 번 기준) · 비용은 칸 접근 수`}
         steps={steps}
         width={approachLadderWidth(steps)}
       />

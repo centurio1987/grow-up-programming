@@ -3,13 +3,16 @@
  * 걸고 계수를 센다.
  *
  * 대조 상대는 **중간에서 만나기(meet in the middle)** 다. 원소를 절반으로 갈라 양쪽의 부분합을
- * 전부 만들고, 한쪽을 정렬해 둔 뒤 다른 쪽 값마다 `target - s` 를 이분 탐색한다. 비용이
+ * 전부 만들고, 한쪽을 정렬해 둔 뒤 다른 쪽 값마다 `target - s` 를 이진 탐색한다. 비용이
  * `2^(n/2)` 에 달려 있고 목표 합의 크기와는 무관해서, **원소 개수와 목표 합 중 어느 쪽이
  * 큰가로 채택이 갈린다** — 대조가 성립하는 자리다.
  *
  * 계수 둘. **기본 연산**은 DP 테이블 쪽에서 값을 정한 칸 하나당 1, 중간에서 만나기 쪽에서 부분합
- * 하나를 만들 때마다 1 · 정렬 비교 한 번마다 1 · 이분 탐색 한 걸음마다 1 이다.
- * **새로 잡는 칸**은 두 설계가 실제로 들고 있어야 하는 원소 수다. 둘 다 실행마다 같은 값이다.
+ * 하나를 만들 때마다 1 · 정렬 비교 한 번마다 1 · 이진 탐색 한 걸음마다 1 이다.
+ * **추가 칸**은 입력 밖에 새로 잡아 동시에 들고 있는 칸의 최댓값이다. DP 테이블 쪽은 정본이 표
+ * `(n+1)(target+1)` 칸을 한 번에 잡으므로 그 크기를 식으로 적는다 — 여기 셈 판은 두 줄만 굴리지만
+ * 세는 것은 정본의 칸이다. 중간에서 만나기 쪽은 양쪽 부분합 배열 둘의 길이 합이고, 만드는 도중의
+ * 임시 배열 · 병합 정렬의 임시 배열 · 정렬된 사본은 넣지 않았다. 둘 다 실행마다 같은 값이다.
  *
  * **왜 전개 입력을 안 쓰는가**(L20). 전개는 `nums = [3, 34, 4, 12, 5, 2]` · `target = 9` 인데,
  * 그 크기에서는 두 계수가 거의 같아(값은 증명 블록 `alt-walk-input` 이 낸다) 어느 쪽이 왜 적은지가
@@ -58,7 +61,7 @@ export function fillTable(input: Input): Record<string, number> {
     }
     prev = cur;
   }
-  return { "기본 연산": ops, "새로 잡는 칸": (n + 1) * (target + 1) };
+  return { "기본 연산": ops, "추가 칸": (n + 1) * (target + 1) };
 }
 
 /** 비교 횟수를 세는 병합 정렬. `Array.prototype.sort` 는 구현마다 비교 수가 달라진다. */
@@ -83,7 +86,7 @@ function mergeSort(a: number[], count: { n: number }): number[] {
 
 /**
  * 중간에서 만나기 — 원소를 절반으로 갈라 양쪽 부분합을 전부 만들고, 한쪽을 정렬한 뒤
- * 다른 쪽 값마다 `target - s` 를 이분 탐색한다.
+ * 다른 쪽 값마다 `target - s` 를 이진 탐색한다.
  */
 export function meetInTheMiddle(input: Input): Record<string, number> {
   const { nums, target } = input;
@@ -130,7 +133,7 @@ export function meetInTheMiddle(input: Input): Record<string, number> {
 
   return {
     "기본 연산": ops,
-    "새로 잡는 칸": left.length + right.length,
+    "추가 칸": left.length + right.length,
   };
 }
 

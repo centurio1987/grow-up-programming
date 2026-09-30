@@ -1094,14 +1094,14 @@ function fitScale(): string {
 const ALT_MINE = "DP 테이블 채우기";
 const ALT_OTHER = "띠 계산";
 
-/** `purpose.alt` — 두 설계의 채운 칸 수. */
+/** `purpose.alt` — 두 설계의 값을 정한 칸. */
 function altBench(): string {
   const mine = altCases[ALT_MINE]?.() as Record<string, number>;
   const other = altCases[ALT_OTHER]?.() as Record<string, number>;
   const rows: string[][] = [];
   for (const c of [1, 2, 4, 8, 16, 32, 64, 128]) {
-    const tab = mine[`바꾼 글자 ${c} · 채운 칸`] as number;
-    const band = other[`바꾼 글자 ${c} · 채운 칸`] as number;
+    const tab = mine[`바꾼 글자 ${c} · 값을 정한 칸`] as number;
+    const band = other[`바꾼 글자 ${c} · 값을 정한 칸`] as number;
     const ans = mine[`바꾼 글자 ${c} · 답`] as number;
     const mineWins = tab <= band;
     const ratio = mineWins ? (band / tab).toFixed(1) : (tab / band).toFixed(1);
@@ -1113,15 +1113,15 @@ function altBench(): string {
       `${mineWins ? ALT_MINE : ALT_OTHER} 쪽이 ${ratio} 배 적다`,
     ]);
   }
-  const walkTab = mine["전개 입력 · 채운 칸"] as number;
-  const walkBand = other["전개 입력 · 채운 칸"] as number;
+  const walkTab = mine["전개 입력 · 값을 정한 칸"] as number;
+  const walkBand = other["전개 입력 · 값을 정한 칸"] as number;
   return withNote(
     md(
       ["바꾼 글자 수", "답", ALT_MINE, ALT_OTHER, "적은 쪽"],
       rows,
       [0, 1, 2, 3],
     ),
-    `${ALT_MINE}는 모든 줄에서 ${comma(mine["바꾼 글자 1 · 채운 칸"] as number)} 칸입니다. 전개 입력 ${pairName(S, T)} 에서는 ${ALT_MINE} ${walkTab} 칸, ${ALT_OTHER} ${walkBand} 칸입니다.`,
+    `${ALT_MINE}는 모든 줄에서 ${comma(mine["바꾼 글자 1 · 값을 정한 칸"] as number)} 칸입니다. 전개 입력 ${pairName(S, T)} 에서는 ${ALT_MINE} ${walkTab} 칸, ${ALT_OTHER} ${walkBand} 칸입니다.`,
   );
 }
 
@@ -1134,11 +1134,11 @@ function altFlip(): string {
   let lo = 1;
   while (lo * 2 < flip) lo *= 2;
   const hi = lo * 2;
-  const after = other["뒤집히는 자리 · 띠"] as number;
-  const before = other[`바꾼 글자 ${lo} · 채운 칸`];
+  const after = other["뒤집히는 자리 · 값을 정한 칸"] as number;
+  const before = other[`바꾼 글자 ${lo} · 값을 정한 칸`];
   if (before === undefined) throw new Error(`바꾼 글자 ${lo} 의 실측이 없다`);
-  const tab = other["뒤집히는 자리 · DP 테이블"] as number;
-  if (tab !== (mine["바꾼 글자 1 · 채운 칸"] as number)) {
+  const tab = other["뒤집히는 자리 · DP 테이블의 값을 정한 칸"] as number;
+  if (tab !== (mine["바꾼 글자 1 · 값을 정한 칸"] as number)) {
     throw new Error("DP 테이블 채우기의 칸 수가 입력마다 다르다");
   }
   return plain(
@@ -1164,14 +1164,14 @@ function altTrade(): string {
   const mine = altCases[ALT_MINE]?.() as Record<string, number>;
   const other = altCases[ALT_OTHER]?.() as Record<string, number>;
   const small =
-    (mine["바꾼 글자 1 · 채운 칸"] as number) /
-    (other["바꾼 글자 1 · 채운 칸"] as number);
+    (mine["바꾼 글자 1 · 값을 정한 칸"] as number) /
+    (other["바꾼 글자 1 · 값을 정한 칸"] as number);
   return plain(
     [
       [
         "내주는 것",
-        "잡는 칸",
-        `${comma(mine["잡는 칸"] as number)} 대 ${comma(other["잡는 칸"] as number)}. DP 테이블을 통째로 들고 있다`,
+        "추가 칸",
+        `${comma(mine["추가 칸"] as number)} 대 ${comma(other["추가 칸"] as number)}. DP 테이블을 통째로 들고 있다`,
       ],
       [
         "내주는 것",
@@ -1181,7 +1181,7 @@ function altTrade(): string {
       [
         "얻는 것",
         "큰 답",
-        `답이 ${mine["바꾼 글자 128 · 답"]} 이면 ${comma(other["바꾼 글자 128 · 채운 칸"] as number)} 대 ${comma(mine["바꾼 글자 128 · 채운 칸"] as number)} 로 이쪽이 적다`,
+        `답이 ${mine["바꾼 글자 128 · 답"]} 이면 ${comma(other["바꾼 글자 128 · 값을 정한 칸"] as number)} 대 ${comma(mine["바꾼 글자 128 · 값을 정한 칸"] as number)} 로 이쪽이 적다`,
       ],
       [
         "얻는 것",
@@ -1521,7 +1521,7 @@ function worstAxes(): string {
           comma(none.chars + none.picks),
         ],
         [
-          "잡는 칸",
+          "추가 칸",
           `n = m = ${comma(n)} · 글자는 무엇이든`,
           comma((n + 1) * (n + 1)),
         ],

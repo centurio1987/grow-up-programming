@@ -335,7 +335,7 @@ function buildTable(): ReactElement {
   );
 }
 
-/** `deep.origin` — 뿌리의 두 자식 아래 서브트리 둘. */
+/** `deep.origin` — 뿌리의 두 자식 아래 부분트리 둘. */
 function originSubtrees(): ReactElement {
   const kids = childrenOf(N, EDGES);
   const [c1, c2] = kids[0] as [number, number];
@@ -347,7 +347,7 @@ function originSubtrees(): ReactElement {
   ).length;
   return (
     <NodeGraph
-      title={`뿌리의 두 자식 ${c1} · ${c2} 의 서브트리 — 두 묶음 사이를 잇는 간선은 ${cross} 개`}
+      title={`뿌리의 두 자식 ${c1} · ${c2} 의 부분트리 — 두 묶음 사이를 잇는 간선은 ${cross} 개`}
       directed={false}
       unit={UNIT}
       nodes={LAYOUT.nodes.map((n) =>
@@ -355,8 +355,8 @@ function originSubtrees(): ReactElement {
       )}
       edges={plainEdges((a, b) => (a === 0 || b === 0 ? "read" : undefined))}
       groups={[
-        { members: s1, label: `정점 ${c1} 의 서브트리 ${setOf(s1)}` },
-        { members: s2, label: `정점 ${c2} 의 서브트리 ${setOf(s2)}` },
+        { members: s1, label: `정점 ${c1} 의 부분트리 ${setOf(s1)}` },
+        { members: s2, label: `정점 ${c2} 의 부분트리 ${setOf(s2)}` },
       ]}
     />
   );
@@ -379,11 +379,11 @@ function approaches(): Approach[] {
         },
       ],
       lesson:
-        "같은 서브트리의 조합이 나머지 정점의 조합마다 되풀이된다 — 서브트리마다 몇 가지만 기억하면 된다",
+        "같은 부분트리의 조합이 나머지 정점의 조합마다 되풀이된다 — 부분트리마다 몇 가지만 기억하면 된다",
     },
     {
       name: "정점마다 값 하나",
-      idea: "서브트리에서 얻는 최대 합 하나만 정점에 적어 부모에 그대로 더한다",
+      idea: "부분트리에서 얻는 최대 합 하나만 정점에 적어 부모에 그대로 더한다",
       verdict: "drop",
       checks: [
         {
@@ -421,7 +421,7 @@ function buildReadCell(): ReactElement {
   const pick = new Set(b.set);
   return (
     <NodeGraph
-      title={`dp0[${v}] = ${b.sum} — 정점 ${v}${을를(v)} 안 담고 서브트리 ${setOf(sub)} 에서 고른 ${setOf(b.set)} 의 합`}
+      title={`dp0[${v}] = ${b.sum} — 정점 ${v}${을를(v)} 안 담고 부분트리 ${setOf(sub)} 에서 고른 ${setOf(b.set)} 의 합`}
       directed={false}
       unit={UNIT}
       nodes={LAYOUT.nodes.map((n) => {
@@ -436,7 +436,7 @@ function buildReadCell(): ReactElement {
       edges={plainEdges((a, c) =>
         sub.includes(a) && sub.includes(c) ? undefined : "out",
       )}
-      groups={[{ members: sub, label: `정점 ${v} 의 서브트리` }]}
+      groups={[{ members: sub, label: `정점 ${v} 의 부분트리` }]}
     />
   );
 }

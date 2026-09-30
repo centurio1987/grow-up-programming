@@ -6,7 +6,7 @@
  *
  *   bun run tools/check-proof.ts src/algorithms/array/missingInteger/missingInteger-guide.md
  *
- * **계수를 세는 사본이 여럿 있다.** 정본은 비교 횟수나 걸음을 내보내지 않으므로, 세는 자리만
+ * **계수를 세는 사본이 여럿 있다.** 정본은 비교 수나 걸음을 내보내지 않으므로, 세는 자리만
  * 덧붙인 사본이 아니면 계수를 낼 방법이 없다. **답이 맞는지는 사본이 아니라 정본이 진다** —
  * 「답」 칸은 전부 정본이나 정본에서 기계로 만든 변이가 낸 값이고, 사본은 계수만 낸다. 사본이
  * 정본과 같은 답을 내는지는 `자기대조()` 가 이 파일을 읽을 때 확인한다.
@@ -103,7 +103,7 @@ function byDefinition(A: number[]): number {
 
 /* ────────────────────────── 계수를 세는 사본 ────────────────────────── */
 
-/** 1 부터 차례로, 배열 전체를 읽어 그 수가 있는지 본다. 세는 것은 **비교 횟수**다. */
+/** 1 부터 차례로, 배열 전체를 읽어 그 수가 있는지 본다. 세는 것은 **비교 수**다. */
 function naiveRun(A: number[]): { answer: number; compares: number } {
   let compares = 0;
   for (let x = 1; ; x++) {
@@ -119,7 +119,7 @@ function naiveRun(A: number[]): { answer: number; compares: number } {
   }
 }
 
-/** 정렬한 뒤 앞에서부터 읽는다. 세는 것은 정렬의 비교 횟수와 읽기의 비교 횟수다. */
+/** 정렬한 뒤 앞에서부터 읽는다. 세는 것은 정렬의 비교 수와 읽기의 비교 수다. */
 function sortRun(A: number[]): {
   answer: number;
   sortCompares: number;
@@ -160,7 +160,7 @@ function sortRun(A: number[]): {
   return { answer: want, sortCompares, scanCompares, sorted, scan };
 }
 
-/** 정본과 같은 절차의 비교 횟수 — 거르기의 비교(짧은 평가)와 찾기의 칸 읽기. */
+/** 정본과 같은 절차의 비교 수 — 거르기의 비교(짧은 평가)와 찾기의 칸 읽기. */
 function tableCompares(A: number[]): {
   answer: number;
   filter: number;
@@ -414,7 +414,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `deep.origin` ② — 1 부터 차례로 배열 전체를 읽는 방법의 비교 횟수. */
+  /** `deep.origin` ② — 1 부터 차례로 배열 전체를 읽는 방법의 비교 수. */
   "cost-naive": () => {
     const rows = [6, 100, 1_000, 100_000].map((n) => {
       const formula = (n * (n + 1)) / 2 + n;
@@ -424,7 +424,7 @@ export const PROOFS: Record<string, () => string> = {
       return [num(n), measured, num(formula), seconds(formula / 1e8)];
     });
     return table(
-      ["n", "비교 횟수(실측)", "n(n+1)/2 + n", "초당 1억 번 기준"],
+      ["n", "비교(실측)", "n(n+1)/2 + n", "초당 1억 번 기준"],
       rows,
       ["r", "r", "r", "r"],
     );
@@ -453,7 +453,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `deep.origin` ④ — 같은 입력을 두 방식으로 처리한 비교 횟수. */
+  /** `deep.origin` ④ — 같은 입력을 두 방식으로 처리한 비교 수. */
   "origin-two-ways": () => {
     const rows = [
       ["전개 입력", WALK],
@@ -868,9 +868,9 @@ export const PROOFS: Record<string, () => string> = {
     return table(
       [
         "설계",
-        "n = 6 배열 접근",
+        "n = 6 칸 접근",
         "n = 6 추가 칸",
-        "n = 100,000 배열 접근",
+        "n = 100,000 칸 접근",
         "n = 100,000 추가 칸",
         "실행 뒤 입력",
       ],

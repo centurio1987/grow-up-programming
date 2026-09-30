@@ -371,7 +371,7 @@ export const PROOFS: Record<string, () => string> = {
     );
   },
 
-  /** `concept` — 규모의 끝에서 구간 수와 개수 맵의 연산 수. */
+  /** `concept` — 규모의 끝에서 구간 수와 개수 맵의 기본 연산. */
   "concept-scale": () =>
     block(
       columns([
@@ -1090,7 +1090,7 @@ export const PROOFS: Record<string, () => string> = {
     );
   },
 
-  /** `deep.math` ④ — 규모의 끝에서 답의 최댓값과 연산 수의 비. */
+  /** `deep.math` ④ — 규모의 끝에서 답의 최댓값과 기본 연산의 비. */
   "math-max": () => {
     const most = rangeCount(N_MAX);
     const ops = mapOps(N_MAX);

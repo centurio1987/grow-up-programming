@@ -248,7 +248,7 @@ export interface Counted {
 /**
  * 정본과 같은 절차에 세는 자리와 기록만 덧붙인 사본.
  *
- * 배열 칸 접근은 **읽기 하나와 쓰기 하나를 각각 한 번**으로 센다 — 이 글이 끝까지 쓰는 단위다.
+ * 칸 접근은 **읽기 하나와 쓰기 하나를 각각 한 번**으로 센다 — 이 글이 끝까지 쓰는 단위다.
  */
 export function counted(
   n: number,
@@ -2303,11 +2303,11 @@ function perfDerive(): string {
       [1],
     ),
     "",
-    `만들 때의 배열 칸 접근은 ${comma(RUN.build)} 번, 작업 목록의 배열 칸 접근은 ${comma(RUN.ops)} 번이고, 들고 있는 칸은 3N + (N + 1) = ${RUN.cells} 칸입니다.`,
+    `만들 때의 칸 접근은 ${comma(RUN.build)} 번, 작업 목록의 칸 접근은 ${comma(RUN.ops)} 번이고, 들고 있는 칸은 3N + (N + 1) = ${RUN.cells} 칸입니다.`,
   ].join("\n");
 }
 
-/** `perf.bounds` — 모양을 바꿔도 작업 접근이 같은 자릿수인가. */
+/** `perf.bounds` — 모양을 바꿔도 작업 목록의 칸 접근이 같은 자릿수인가. */
 function perfBounds(): string {
   const shapes: [string, (n: number) => Edge[]][] = [
     ["사슬", chain],
@@ -2334,7 +2334,7 @@ function perfBounds(): string {
       [1, 2, 3],
     ),
     "",
-    `정점 ${comma(SHAPE_N)} 개 · 섞은 작업 ${comma(SHAPE_ROUNDS)} 바퀴에서 잰 배열 칸 접근입니다.`,
+    `정점 ${comma(SHAPE_N)} 개 · 섞은 작업 ${comma(SHAPE_ROUNDS)} 바퀴에서 잰 칸 접근입니다.`,
   ].join("\n");
 }
 

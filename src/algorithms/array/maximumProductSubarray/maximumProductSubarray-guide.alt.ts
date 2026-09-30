@@ -203,10 +203,14 @@ function counts(
     }
     out[`질의 ${p.toLocaleString("en-US")} 회 기본 연산`] = mine.ops;
   }
-  out["저장 칸"] = cells;
+  out["추가 칸"] = cells;
   return out;
 }
 
+/**
+ * `추가 칸` 은 재지 않고 코드에서 센 상수다 — 입력 배열은 넣지 않는다. 이어받기는 세 변수 `curMax` · `curMin` · `best`, 세그먼트 트리는 마디 `2N` 개에 값 여섯을
+ * 든다.
+ */
 export const cases = {
   "칸마다 이어받기": () => counts(carryOps, 3),
   "세그먼트 트리": () => counts(segmentOps, SEGMENT_CELLS),

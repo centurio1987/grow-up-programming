@@ -9,11 +9,12 @@
  *   bun run tools/check-proof.ts src/algorithms/advanced/nQueens/nQueens-guide.md
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";
-import { 과와 } from "../../../../tools/josa.ts";
+import { 과와, 으로 } from "../../../../tools/josa.ts";
 import {
   N as ALT_N,
   가이드절차,
   앞을내다보는검사,
+  앞을내다보는검사_잘게,
 } from "./nQueens-guide.alt.ts";
 import bench from "./nQueens-guide.bench.json";
 import {
@@ -1059,13 +1060,22 @@ export const PROOFS: Record<string, () => string> = {
     const a = 가이드절차(WALK_N);
     const b = 앞을내다보는검사(WALK_N);
     return md(
-      ["설계", `n = ${WALK_N} 방문 노드`, `n = ${WALK_N} 상태 연산`],
+      ["설계", `n = ${WALK_N} 방문 노드`, `n = ${WALK_N} 기본 연산`],
       [
-        ["이 가이드의 절차", comma(a["방문 노드"]), comma(a["상태 연산"])],
-        ["앞을 내다보는 검사", comma(b["방문 노드"]), comma(b["상태 연산"])],
+        ["이 가이드의 절차", comma(a["방문 노드"]), comma(a["기본 연산"])],
+        ["앞을 내다보는 검사", comma(b["방문 노드"]), comma(b["기본 연산"])],
       ],
       [1, 2],
     );
+  },
+
+  /** `purpose.alt` — 앞을 내다보는 검사를 가장 잘게 세어도 기본 연산의 순서가 그대로인가. */
+  "alt-unit": () => {
+    const ours = 가이드절차(ALT_N)["기본 연산"];
+    const coarse = 앞을내다보는검사(ALT_N)["기본 연산"];
+    const fine = 앞을내다보는검사_잘게(ALT_N);
+    const verdict = fine < ours ? "여전히 적습니다" : "많아집니다";
+    return `저쪽 남은 행 하나의 지우기를 칸 읽기 하나 · 비트 지우기 셋 · 칸 쓰기 하나로, 사본을 칸마다 읽기와 쓰기 둘로 잘게 쪼개 세면 앞을 내다보는 검사의 기본 연산이 ${comma(coarse)} 에서 ${comma(fine)}${으로(comma(fine))} 늘어납니다. 이 가이드의 ${comma(ours)} 보다는 ${verdict}.`;
   },
 
   /** `deep.math` ① — `n = 4` 의 깊이별 부분 배치 수를 세고 정의와 맞댄다. */
@@ -1376,7 +1386,7 @@ export const PROOFS: Record<string, () => string> = {
     const p = 가지치기(n);
     const a = 3 * p.시도;
     const b = 3 * (p.노드 - 1);
-    const measured = bench["이 가이드의 절차 · 상태 연산"];
+    const measured = bench["이 가이드의 절차 · 기본 연산"];
     return [
       "총 연산 = 3 × (열 시도) + 3 × (노드 수 - 1)",
       "",

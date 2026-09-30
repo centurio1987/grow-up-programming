@@ -145,7 +145,7 @@ const ref = (N: number, updates: readonly Update[]): number[] =>
   diffArrayRangeUpdate(N, copy(updates));
 
 /**
- * 구간을 통째로 순회하는 방식의 배열 접근 수 — 초기화 `N` 번 쓰기 + 덮는 칸마다 읽기 · 쓰기.
+ * 구간을 통째로 순회하는 방식의 칸 접근 수 — 초기화 `N` 번 쓰기 + 덮는 칸마다 읽기 · 쓰기.
  * 답은 정의와 같은지 대조한다.
  */
 function scanAccesses(N: number, updates: readonly Update[]): number {
@@ -157,7 +157,7 @@ function scanAccesses(N: number, updates: readonly Update[]): number {
 }
 
 /**
- * 차분 배열의 배열 접근 수 — 정본 계측 기록에서 센다. 초기화 `N + 1` 번 쓰기 + 기록 걸음마다 경계
+ * 차분 배열의 칸 접근 수 — 정본 계측 기록에서 센다. 초기화 `N + 1` 번 쓰기 + 기록 걸음마다 경계
  * 두 칸을 읽고 쓰는 네 번 + 복원 걸음마다 `D[i]` 읽기 · `A[i]` 쓰기 두 번.
  */
 function diffAccesses(N: number, updates: readonly Update[]): number {
@@ -905,7 +905,7 @@ export const PROOFS: Record<string, () => string> = {
     const f = benchCases["펜윅 트리"]();
     const p = 1024;
     const at = (c: Record<string, number>, k: number) =>
-      c[`점 조회 ${num(k)} 회 배열 접근`] as number;
+      c[`점 조회 ${num(k)} 회 칸 접근`] as number;
     const perD = (at(d, p) - at(d, 0)) / p;
     const perF = (at(f, p) - at(f, 0)) / p;
     const gap = at(f, 0) - at(d, 0);
@@ -1157,7 +1157,7 @@ export const PROOFS: Record<string, () => string> = {
     ]);
   },
 
-  /** `perf.derive` — 전개 입력에서 무리마다 센 배열 접근. */
+  /** `perf.derive` — 전개 입력에서 무리마다 센 칸 접근. */
   "perf-derive": () => {
     const steps = walkSteps();
     const rec = steps.filter((s) => s.branch === "①②③").map((s) => s.id);
@@ -1169,7 +1169,7 @@ export const PROOFS: Record<string, () => string> = {
     const formula = 3 * WALK_N + 4 * WALK_U.length + 1;
     return withNote(
       md(
-        ["무리", "걸음", "걸음마다 배열 접근", "이 입력에서"],
+        ["무리", "걸음", "걸음마다 칸 접근", "이 입력에서"],
         [
           ["초기화", steps[0]?.id ?? "", "N+1 번 쓰기", String(init)],
           [
@@ -1194,7 +1194,7 @@ export const PROOFS: Record<string, () => string> = {
   "perf-total": () => {
     const n = N_MAX;
     return block([
-      `N = Q = ${num(n)} 이면 배열 접근이 정확히 ${num(3 * n + 4 * n + 1)} 번, 잡는 칸이 ${num(2 * n + 1)} 개다`,
+      `N = Q = ${num(n)} 이면 칸 접근이 정확히 ${num(3 * n + 4 * n + 1)} 번, 추가 칸이 ${num(2 * n + 1)} 개다`,
     ]);
   },
 
@@ -1231,7 +1231,7 @@ export const PROOFS: Record<string, () => string> = {
           `입력의 모양 (N = Q = ${num(n)})`,
           "덮는 칸의 합",
           "구간 순회 접근 수",
-          "차분 배열 접근 수",
+          "차분 배열의 칸 접근 수",
         ],
         rows,
         [1, 2, 3],
@@ -1253,12 +1253,12 @@ export const PROOFS: Record<string, () => string> = {
       ["최악으로 만들 축", "입력", "값"],
       [
         [
-          "배열 접근 수",
+          "칸 접근 수",
           `N = Q = ${num(n)}, 구간 길이는 무엇이든`,
           `${num(3 * n + 4 * n + 1)} 번`,
         ],
         [
-          "잡는 칸",
+          "추가 칸",
           `N = ${num(n)}`,
           `D ${num(n + 1)} 칸 + A ${num(n)} 칸 = ${num(2 * n + 1)} 칸`,
         ],

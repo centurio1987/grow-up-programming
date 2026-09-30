@@ -392,13 +392,13 @@ function subsetCount(): string {
   return table(["원소 수", "실제로 만들어 센 부분집합", "2^n"], rows);
 }
 
-/** `deep.origin` ② — 1 초에 `10^9` 개씩 만든다면 걸리는 시간. */
+/** `deep.origin` ② — 1 초에 1 억 개씩 만든다면 걸리는 시간(§14 시간 어림). */
 function subsetTime(): string {
-  const rate = 10n ** 9n;
+  const rate = 10n ** 8n;
   const s40 = 2n ** 40n / rate;
   const sMax = subsetsAtMax() / rate;
   return [
-    "1 초에 부분집합을 10^9 개씩 만든다면",
+    "1 초에 부분집합을 1 억 개씩 만든다면",
     `  원소 40 개      2^40 개    →  ${comma(s40)} 초 (약 ${Math.round(Number(s40) / 60)} 분)`,
     `  원소 ${comma(N_MAX)} 개   2^${N_MAX} 개  →  ${big(sMax)} 초`,
   ].join("\n");
@@ -913,7 +913,7 @@ function satoshiColumns(): string {
 const TABLE_NAME = "DP 테이블 채우기 (이 가이드)";
 const MITM = "중간에서 만나기";
 const OPS = "기본 연산";
-const HELD = "새로 잡는 칸";
+const HELD = "추가 칸";
 const get = (r: Record<string, number>, k: string): number => r[k] as number;
 
 /** `purpose.alt` — 전개 입력으로는 두 설계가 갈리지 않는다. */
@@ -960,13 +960,7 @@ function altCounts(): string {
   const halfB = 2 ** (B.nums.length >> 1);
   return withNote(
     md(
-      [
-        "설계",
-        "A 기본 연산",
-        "A 새로 잡는 칸",
-        "B 기본 연산",
-        "B 새로 잡는 칸",
-      ],
+      ["설계", "A 기본 연산", "A 추가 칸", "B 기본 연산", "B 추가 칸"],
       [
         [
           `**${TABLE_NAME}**`,

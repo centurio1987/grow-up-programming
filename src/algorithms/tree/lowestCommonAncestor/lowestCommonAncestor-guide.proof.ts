@@ -6,12 +6,12 @@
  *
  *   bun run tools/check-proof.ts src/algorithms/tree/lowestCommonAncestor/lowestCommonAncestor-guide.md
  *
- * **세는 사본은 두 곳에 있다.** 정본은 배열 칸을 몇 번 읽었는지도, 걸음마다의 상태도 내보내지
+ * **세는 사본은 두 곳에 있다.** 정본은 칸을 몇 번 읽었는지도, 걸음마다의 상태도 내보내지
  * 않으므로 그 자리를 덧붙인 사본이 아니면 계수와 걸음을 낼 방법이 없다.
  *
  * - `traced`(이 파일) — 정본과 같은 절차에 걸음 기록을 덧붙인 판. 걸음마다 깊이와 2^k 조상 표
  *   전체를 베끼므로 **전개 입력처럼 작은 입력에만** 쓴다. 큰 입력에 쓰면 메모리가 모자란다.
- * - `liftCounted` · `naiveCounted` · `eulerSparse`(`-guide.alt.ts`) — 배열 칸 접근만 세는 가벼운 판.
+ * - `liftCounted` · `naiveCounted` · `eulerSparse`(`-guide.alt.ts`) — 칸 접근만 세는 가벼운 판.
  *   정점 20,000 개 · 100,000 개 같은 큰 입력은 이것만 쓴다. 대조 하네스와 같은 계수 모델을 한 벌로 쓴다.
  *
  * **답이 맞는지는 사본이 아니라 정본이 진다** — 사본은 부를 때마다 자기 답을 정본과 맞대고, 어긋나면 던진다.
@@ -581,7 +581,7 @@ function jumpSmall(): string {
   return columnsText(rows);
 }
 
-/** 거리 `d` 를 두 방식으로 오를 때 읽는 배열 칸. */
+/** 거리 `d` 를 두 방식으로 오를 때 읽는 칸 접근. */
 function climbCells(d: number): { step: number; jump: number } {
   const parent = parentsOf(CHAIN64);
   let step = 0;
@@ -614,8 +614,8 @@ function jumpVsStep(): string {
       [
         "거리 d",
         "d 의 이진수",
-        "한 칸씩 읽는 배열 칸",
-        "2^k 칸씩 뛰며 읽는 배열 칸",
+        "한 칸씩 오르는 칸 접근",
+        "2^k 칸씩 뛰는 칸 접근",
       ],
       rows,
       [0, 2, 3],
@@ -625,7 +625,7 @@ function jumpVsStep(): string {
   ].join("\n");
 }
 
-/** 적어 둘 거리를 셋으로 잡아 저장 칸과 읽는 칸을 비교한다. */
+/** 적어 둘 거리를 셋으로 잡아 추가 칸과 읽는 칸을 비교한다. */
 function candidates(): string {
   const V = 100_000;
   const LOG = columns(V);
@@ -639,15 +639,15 @@ function candidates(): string {
     md(
       [
         "정점마다 적어 두는 조상",
-        "정점마다 저장 칸",
-        "V = 100,000 의 저장 칸",
-        "d 칸 위를 찾는 배열 칸(가장 많을 때)",
+        "정점마다 추가 칸",
+        "V = 100,000 의 추가 칸",
+        "d 칸 위를 찾는 칸 접근(가장 많을 때)",
       ],
       rows,
       [1, 2, 3],
     ),
     "",
-    `저장 칸 하나를 4 바이트로 치면 256 MB 에는 ${comma(cellsIn256)} 칸이 들어갑니다. 가운데 줄은 그 ${Math.round((V * (V - 1)) / cellsIn256)} 배쯤이고, 셋째 줄은 ${comma(V * LOG)} 칸입니다.`,
+    `추가 칸 하나를 4 바이트로 치면 256 MB 에는 ${comma(cellsIn256)} 칸이 들어갑니다. 가운데 줄은 그 ${Math.round((V * (V - 1)) / cellsIn256)} 배쯤이고, 셋째 줄은 ${comma(V * LOG)} 칸입니다.`,
   ].join("\n");
 }
 
@@ -799,14 +799,14 @@ function tableVsOthers(): string {
         "사슬 정점 V",
         "층마다 적는 거리(칸 위)",
         "층 수",
-        "저장 칸",
-        "d 칸 위를 찾는 배열 칸(가장 많을 때)",
+        "추가 칸",
+        "d 칸 위를 찾는 칸 접근(가장 많을 때)",
       ],
       [...rowsFor(V), ...rowsFor(big)],
       [0, 2, 3, 4],
     ),
     "",
-    `둘째 모양은 큰 거리부터 되는 대로 뛰었고, 정점 64 개에서 d = 0 부터 63 까지 실제로 올라가 가장 많이 읽은 칸이 ${worstArith} 개였습니다. 층 수가 같은 두 모양의 저장 칸은 같고, 읽는 칸은 정점 100,000 개에서 ${comma(maxOnes(big))} 대 ${comma(Math.ceil((big - 1) / columns(big)))} 입니다.`,
+    `둘째 모양은 큰 거리부터 되는 대로 뛰었고, 정점 64 개에서 d = 0 부터 63 까지 실제로 올라가 가장 많이 읽은 칸이 ${worstArith} 개였습니다. 층 수가 같은 두 모양의 추가 칸은 같고, 읽는 칸은 정점 100,000 개에서 ${comma(maxOnes(big))} 대 ${comma(Math.ceil((big - 1) / columns(big)))} 입니다.`,
   ].join("\n");
 }
 
@@ -1095,7 +1095,7 @@ function baseSweep(): string {
     md(
       [
         "층마다 적는 거리",
-        "층 수 K(정점마다 저장 칸)",
+        "층 수 K(정점마다 추가 칸)",
         "깊이 맞추기의 가장 많은 읽기 J",
         "K + J",
         "둘 중 큰 쪽",
@@ -1345,8 +1345,8 @@ function mutantBigLog(): string {
       "정본의 답",
       "층 수를 30 으로 박은 답",
       "두 답",
-      "정본의 anc 저장 칸",
-      "박았을 때의 anc 저장 칸",
+      "정본의 anc 추가 칸",
+      "박았을 때의 anc 추가 칸",
     ],
     rows,
     [4, 5],
@@ -1467,7 +1467,7 @@ function altBench(): string {
   for (const q of BENCH_QUERY_COUNTS) {
     const [left, right] = total(q);
     rows.push([
-      q === 0 ? "준비만 · 배열 칸" : `질의 ${comma(q)} 개까지 · 배열 칸`,
+      q === 0 ? "준비만 · 칸 접근" : `질의 ${comma(q)} 개까지 · 칸 접근`,
       comma(left),
       comma(right),
       left < right
@@ -1476,7 +1476,7 @@ function altBench(): string {
     ]);
   }
   rows.push([
-    "저장 칸",
+    "추가 칸",
     comma(a0.cells),
     comma(b0.cells),
     a0.cells < b0.cells
@@ -1493,7 +1493,7 @@ function altBench(): string {
       [1, 2],
     ),
     "",
-    `질의 100,000 개에서 질의 하나가 읽고 쓴 배열 칸은 평균 ${pa.toFixed(2)} 칸 대 ${pb.toFixed(2)} 칸입니다.`,
+    `질의 100,000 개에서 질의 하나가 읽고 쓴 칸 접근은 평균 ${pa.toFixed(2)} 번 대 ${pb.toFixed(2)} 번입니다.`,
   ].join("\n");
 }
 
@@ -1633,10 +1633,10 @@ function mathScale(): string {
     [
       "정점 V",
       "층 수 L",
-      "anc 저장 칸 V · L",
+      "anc 추가 칸 V · L",
       "깊이 맞추기의 가장 많은 읽기",
       "함께 올리기와 마지막 읽기 2L + 1",
-      "질의 하나의 가장 많은 배열 칸",
+      "질의 하나의 가장 많은 칸 접근",
     ],
     rows,
     [0, 1, 2, 3, 4, 5],

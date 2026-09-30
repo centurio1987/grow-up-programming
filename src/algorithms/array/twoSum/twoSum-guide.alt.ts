@@ -3,10 +3,12 @@
  *
  * **같은 입력**에 두 설계를 걸고 **결정론적 계수**만 센다. 세는 것은 둘이다.
  *
- * - **연산 수** — 해시 맵 쪽은 해시 맵 조회·기록 호출 수, 두 포인터 쪽은 값 비교 수(정렬의 비교 +
- *   두 포인터가 합을 target 과 비교한 수)다. 둘 다 원소 하나를 다루는 기본 연산 한 번으로 센다.
- * - **추가 칸** — 입력 말고 새로 잡은 칸. 해시 맵은 돌려줄 때의 항목 수, 두 포인터는 원래 인덱스를
- *   기억하려고 만든 인덱스 배열의 길이다(입력이 이미 정렬돼 있으면 0).
+ * - **기본 연산** — 구성은 해시 맵 조회·기록 한 번과 값 비교 한 번이고 각각 1 로 센다. 해시 맵 쪽은
+ *   조회·기록 호출 수, 두 포인터 쪽은 값 비교 수(정렬의 비교 + 두 포인터가 합을 target 과 비교한 수)다.
+ *   두 설계 모두 보수 계산의 뺄셈 · 합을 만드는 덧셈 · 포인터 이동은 세지 않는다.
+ * - **추가 칸** — 입력 말고 새로 잡은 칸. 해시 맵은 돌려줄 때의 항목 수(항목 하나를 1 칸, 지우지 않으니
+ *   끝의 크기가 최댓값), 두 포인터는 원래 인덱스를 기억하려고 만든 인덱스 배열의 길이다(입력이 이미
+ *   정렬돼 있으면 0). 병합 정렬이 잠시 잡는 배열과 재귀 스택은 넣지 않는다.
  *
  *   bun run tools/bench-alt.ts src/algorithms/array/twoSum/twoSum-guide.alt.ts
  *
@@ -143,13 +145,13 @@ function assertPair(nums: number[], [i, j]: [number, number]): void {
 function hashCase(nums: number[]): Record<string, number> {
   const c = counted(nums, TARGET);
   assertPair(nums, c.answer);
-  return { "연산 수": c.gets + c.sets, "추가 칸": c.size };
+  return { "기본 연산": c.gets + c.sets, "추가 칸": c.size };
 }
 
 function pointerCase(nums: number[], sorted: boolean): Record<string, number> {
   const c = twoPointers(nums, TARGET, sorted);
   assertPair(nums, c.answer);
-  return { "연산 수": c.cmp, "추가 칸": c.cells };
+  return { "기본 연산": c.cmp, "추가 칸": c.cells };
 }
 
 export const cases = {

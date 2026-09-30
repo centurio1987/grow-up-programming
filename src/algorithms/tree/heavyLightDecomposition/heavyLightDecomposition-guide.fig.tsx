@@ -4,7 +4,7 @@
  * 그림에 들어가는 값은 전부 실행에서 받는다. 부모 · 깊이 · 부분트리 크기 · 무거운 자식 · 사슬 머리 ·
  * 자리 번호 · 기저 배열 · 걸음마다 더한 사슬 조각은 정본과 같은 절차에 걸음 기록만 덧붙인 사본
  * (`-guide.proof.ts` 의 `traced`)이 내고, 그 사본은 부를 때마다 자기 답을 정본(`-guide.ref.ts`)과
- * 맞댄다. 시도 사다리의 수는 배열 칸을 세는 사본과 사슬만 만드는 사본(`-guide.alt.ts`)이 낸다.
+ * 맞댄다. 시도 사다리의 수는 칸 접근을 세는 사본과 사슬만 만드는 사본(`-guide.alt.ts`)이 낸다.
  *
  * 걸음 재생 패널의 걸음 데이터도 여기서 만든다(`stageStepsFromRef`). `.sim.ts` 의 `steps` 는 그 결과를
  * 글자 그대로 옮긴 인라인 리터럴이고(P3 이 정적으로 세려면 리터럴이어야 한다), 둘이 같은지는
@@ -522,7 +522,7 @@ function approaches(): Approach[] {
         { label: "준비", value: "부모와 깊이만", ok: true },
         {
           label: "시간",
-          value: `사슬 ${comma(V)} 정점 · 질의 ${comma(V)} 개에서 배열 칸 ${comma(naivePer * V)}`,
+          value: `사슬 ${comma(V)} 정점 · 질의 ${comma(V)} 개에서 칸 접근 ${comma(naivePer * V)}`,
           ok: false,
         },
       ],
@@ -673,7 +673,7 @@ export const FIGS: Record<string, () => ReactElement> = {
     return (
       <ApproachLadder
         title="시도한 방법 넷 — 셋은 버렸고 하나가 남았다"
-        constraint={`규모 V ≤ ${comma(100_000)} · 연산 ≤ ${comma(100_000)} · 1 초에 배열 칸 1 억 개`}
+        constraint={`규모 V ≤ ${comma(100_000)} · 연산 ≤ ${comma(100_000)} · 1 초에 칸 접근 1 억 번`}
         steps={steps}
         width={approachLadderWidth(steps)}
       />

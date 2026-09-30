@@ -253,7 +253,7 @@ export const secondsOf = (ops: number): string =>
 
 /**
  * 가장 단순한 방법 — 시작점 `l` 마다 오른쪽 끝을 처음부터 다시 더한다. 비음의 정수라 합이 상한을
- * 넘은 뒤로는 더 늘려도 줄지 않으므로 그 자리에서 멈춘다. 세는 것은 **창의 합을 고치는 연산 수**다.
+ * 넘은 뒤로는 더 늘려도 줄지 않으므로 그 자리에서 멈춘다. 세는 것은 **창의 합을 고치는 기본 연산**이다.
  */
 export function restartEachStart(
   nums: readonly number[],
@@ -293,7 +293,7 @@ export function restartEachStart(
 
 /**
  * 왼쪽 끝을 `K` 칸까지 되돌려 보는 절차. `K = 0` 이면 되돌리지 않고, 그것이 정본과 같은 절차다
- * (연산 수를 정본 계측과 대조한다). 세는 것은 창의 합을 고치는 연산 수(덧셈 + 뺄셈)다.
+ * (기본 연산을 정본 계측과 대조한다). 세는 것은 창의 합을 고치는 기본 연산(덧셈 + 뺄셈)이다.
  */
 export function rewindBy(
   nums: readonly number[],

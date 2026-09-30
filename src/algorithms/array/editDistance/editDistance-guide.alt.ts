@@ -1,8 +1,8 @@
 /**
  * `purpose.alt` 가 인용하는 수치의 출처 — L13.
  *
- * **같은 입력·같은 계수**로 두 설계를 나란히 잰다. 세는 것은 **채운 칸 수**와 **잡는 칸
- * 수**다. 벽시계·처리량은 실행마다 달라 "본문의 수치가 실측과 일치하는가"(P10)를 정의할 수
+ * **같은 입력·같은 계수**로 두 설계를 나란히 잰다. 세는 것은 **값을 정한 칸**(테두리 초기화 포함 ·
+ * 띠를 다시 채우면 다시 센다)과 **추가 칸**(입력 두 문자열 밖에 동시에 들고 있는 칸의 최댓값)이다. 벽시계·처리량은 실행마다 달라 "본문의 수치가 실측과 일치하는가"(P10)를 정의할 수
  * 없다.
  *
  *   bun run ../../../../tools/bench-alt.ts editDistance-guide.alt.ts
@@ -176,7 +176,7 @@ function agree(s: string, t: string): [Counted, Counted] {
   return [a, b];
 }
 
-/** 두 설계의 채운 칸 수가 처음으로 뒤집히는 「바꾼 글자 수」. 1 부터 하나씩 늘려 찾는다. */
+/** 두 설계의 값을 정한 칸 수가 처음으로 뒤집히는 「바꾼 글자 수」. 1 부터 하나씩 늘려 찾는다. */
 export function flipPoint(): number {
   for (let c = 1; c <= N; c++) {
     const [tab, band] = agree(...pair(c));
@@ -190,25 +190,25 @@ export const cases = {
     const out: Record<string, number> = {};
     for (const c of CHANGES) {
       const [tab] = agree(...pair(c));
-      out[`바꾼 글자 ${c} · 채운 칸`] = tab.filled;
+      out[`바꾼 글자 ${c} · 값을 정한 칸`] = tab.filled;
       out[`바꾼 글자 ${c} · 답`] = tab.answer;
     }
-    out["잡는 칸"] = byTable(...pair(4)).held;
+    out["추가 칸"] = byTable(...pair(4)).held;
     out["뒤집히는 바꾼 글자 수"] = flipPoint();
-    out["전개 입력 · 채운 칸"] = agree(...WALK)[0].filled;
+    out["전개 입력 · 값을 정한 칸"] = agree(...WALK)[0].filled;
     return out;
   },
   "띠 계산": () => {
     const out: Record<string, number> = {};
     for (const c of CHANGES) {
       const [, band] = agree(...pair(c));
-      out[`바꾼 글자 ${c} · 채운 칸`] = band.filled;
+      out[`바꾼 글자 ${c} · 값을 정한 칸`] = band.filled;
     }
-    out["잡는 칸"] = byBand(...pair(4)).held;
+    out["추가 칸"] = byBand(...pair(4)).held;
     const [tab, band] = agree(...pair(flipPoint()));
-    out["뒤집히는 자리 · DP 테이블"] = tab.filled;
-    out["뒤집히는 자리 · 띠"] = band.filled;
-    out["전개 입력 · 채운 칸"] = agree(...WALK)[1].filled;
+    out["뒤집히는 자리 · DP 테이블의 값을 정한 칸"] = tab.filled;
+    out["뒤집히는 자리 · 값을 정한 칸"] = band.filled;
+    out["전개 입력 · 값을 정한 칸"] = agree(...WALK)[1].filled;
     return out;
   },
 };

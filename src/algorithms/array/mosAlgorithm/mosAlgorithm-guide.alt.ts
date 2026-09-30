@@ -3,7 +3,7 @@
  *
  *   bun run tools/bench-alt.ts src/algorithms/array/mosAlgorithm/mosAlgorithm-guide.alt.ts
  *
- * 두 설계를 **같은 입력 두 벌**에 걸고 **셈 연산 수**를 센다. 셈 연산은 원고 전체가 쓰는 비용 기준이다 —
+ * 두 설계를 **같은 입력 두 벌**에 걸고 **기본 연산 수**를 센다. 기본 연산은 원고 전체가 쓰는 비용 기준이다 —
  * 셈 구조의 한 자리(맵의 키 하나 · 펜윅 트리의 칸 하나)를 읽거나 고치는 일을 1 번으로 센다. 벽시계가
  * 아닌 까닭은 실행마다 같은 값이 나와야 「본문의 수치가 실측과 같은가」(P10)를 정의할 수 있어서다.
  *
@@ -30,7 +30,7 @@ import { mosAlgorithm } from "./mosAlgorithm-guide.ref.ts";
 
 type Query = [number, number];
 
-/** Mo's 알고리즘의 셈 연산 — 정본이 정렬한 차례에서 창이 옮긴 칸 수. */
+/** Mo's 알고리즘의 기본 연산 — 정본이 정렬한 차례에서 창이 옮긴 칸 수. */
 function moOps(arr: readonly number[], queries: readonly Query[]): number {
   return moves(orderOf(arr, queries).order).total;
 }
@@ -106,11 +106,11 @@ const task = makeInput(N_TASK, N_TASK);
 
 export const cases = {
   "Mo's 알고리즘": () => ({
-    "전개 입력 셈 연산": moOps(A5, Q5),
-    "과제 규모 셈 연산": moOps(task.arr, task.queries),
+    "전개 입력 기본 연산": moOps(A5, Q5),
+    "과제 규모 기본 연산": moOps(task.arr, task.queries),
   }),
   "오프라인 펜윅 트리": () => ({
-    "전개 입력 셈 연산": fenwickDistinct(A5, Q5).ops,
-    "과제 규모 셈 연산": fenwickDistinct(task.arr, task.queries).ops,
+    "전개 입력 기본 연산": fenwickDistinct(A5, Q5).ops,
+    "과제 규모 기본 연산": fenwickDistinct(task.arr, task.queries).ops,
   }),
 };

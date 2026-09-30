@@ -318,9 +318,9 @@ const sci = (x: number): string => {
   return `${m} × 10^${e}`;
 };
 
-/** `deep.origin` ② — 조합의 수와, 1 초에 `10^9` 개를 볼 때 걸리는 시간. */
+/** `deep.origin` ② — 조합의 수와, 1 초에 1 억 개를 볼 때 걸리는 시간(§14 시간 어림). */
 function bruteCount(): string {
-  const PER_SEC = 1e9;
+  const PER_SEC = 1e8;
   const YEAR = 365.25 * 24 * 3600;
   const rows = [WEIGHTS.length, 20, N_MAX].map((n) => {
     const all = 2 ** n;
@@ -331,7 +331,7 @@ function bruteCount(): string {
       sec < 1 ? "1 초 안" : `${sci(sec)} 초 ≈ ${sci(sec / YEAR)} 년`,
     ];
   });
-  return table(["물건 수 n", "조합 2^n", "1 초에 10^9 가지를 볼 때"], rows);
+  return table(["물건 수 n", "조합 2^n", "1 초에 1 억 가지를 볼 때"], rows);
 }
 
 /** `deep.origin` ③ — 앞부분이 같은 조합을 따로 센다. */
@@ -880,13 +880,13 @@ function relatedMarkov(): string {
 
 /* ────────────────────────── 파트 2 ────────────────────────── */
 
-/** 두 축의 DP 테이블 칸 수 — `.alt.ts` 와 같은 셈(가치 축은 마지막에 한 줄을 더 읽는다). */
+/** 두 축의 값을 정한 칸 — `.alt.ts` 와 같은 셈(답을 읽는 마지막 한 줄 읽기는 넣지 않는다). */
 function axisCells(ws: readonly number[], vs: readonly number[], W: number) {
   const n = ws.length;
   const total = vs.reduce((a, b) => a + b, 0);
   return {
     weight: (n + 1) * (W + 1),
-    value: (n + 1) * (total + 1) + (total + 1),
+    value: (n + 1) * (total + 1),
   };
 }
 
@@ -894,7 +894,7 @@ function axisCells(ws: readonly number[], vs: readonly number[], W: number) {
 function altSmall(): string {
   const a = axisCells(WEIGHTS, VALUES, CAP);
   return table(
-    ["입력", "무게 축 DP 테이블 칸", "가치 축 DP 테이블 칸"],
+    ["입력", "무게 축 값을 정한 칸", "가치 축 값을 정한 칸"],
     [
       [
         `${list(WEIGHTS)} · ${list(VALUES)} · ${CAP}`,
@@ -909,19 +909,19 @@ function altSmall(): string {
 function altBench(): string {
   const got = Object.entries(altCases).map(([name, run]) => {
     const r = run() as Record<string, number>;
-    return [name, r["DP 테이블 칸"] as number] as const;
+    return [name, r["값을 정한 칸"] as number] as const;
   });
   const [mine, other] = got;
   if (!mine || !other) throw new Error("벤치 대상이 둘이 아니다");
   return withNote(
     md(
-      ["설계", "DP 테이블 칸"],
+      ["설계", "값을 정한 칸"],
       got.map(([name, v], k) =>
         k === 0 ? [`**${name}**`, `**${comma(v)}**`] : [name, comma(v)],
       ),
       [1],
     ),
-    `무게 축의 DP 테이블 칸이 가치 축의 1 / ${(other[1] / mine[1]).toFixed(1)} 입니다.`,
+    `무게 축의 값을 정한 칸이 가치 축의 1 / ${(other[1] / mine[1]).toFixed(1)} 입니다.`,
   );
 }
 

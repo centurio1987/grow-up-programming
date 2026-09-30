@@ -1220,7 +1220,7 @@ export const PROOFS: Record<string, () => string> = {
     const naive = countOf(BIG, oneLoop);
     const pair = countOf(BIG, minMaxPair);
     return md(
-      ["방법", "비교 횟수"],
+      ["방법", "비교"],
       [
         ["원소마다 두 번 비교하기 (2n − 2)", num(naive)],
         ["짝지어 비교하기 (⌈3n/2⌉ − 2)", num(pair)],

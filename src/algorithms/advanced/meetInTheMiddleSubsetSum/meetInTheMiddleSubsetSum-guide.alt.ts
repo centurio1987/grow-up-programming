@@ -79,7 +79,8 @@ function mergeSortCount(a: number[]): { sorted: number[]; cmp: number } {
 /**
  * 이 가이드의 절차. 정본(`meetInTheMiddleSubsetSum-guide.ref.ts`)과 같고 세는 자리만 덧붙였다.
  *
- * `새로 잡는 칸` 은 두 합 목록이 잡는 `2^k + 2^(n-k)` 칸이다.
+ * `추가 칸` 은 두 합 목록이 잡는 `2^k + 2^(n-k)` 칸이다 — 입력 밖에 동시에 들고 있는 칸이다. 정본은
+ * 목록 B 를 제자리에서 정렬하므로, 여기서 비교를 세려고 쓴 병합 정렬의 임시 배열은 넣지 않는다.
  */
 function 두무리설계(input: Input): Run {
   const { nums, target } = input;
@@ -132,8 +133,9 @@ function 두무리설계(input: Input): Run {
  * 경쟁 설계 — **DP 테이블 채우기**. 목표 합 0 부터 `target` 까지를 열로 두고 원소를 한 줄씩
  * 더해 가며 참·거짓을 채운다.
  *
- * `기본 연산` 은 값을 정한 칸 하나마다 1 이고 `새로 잡는 칸` 은 `(n+1)(target+1)` 이다.
- * 칸 하나에 참·거짓만 담으므로 `Uint8Array` 로 잡았고, 세는 칸 수는 그 길이 그대로다.
+ * `기본 연산` 은 값을 정한 칸 하나마다 1 이고 `추가 칸` 은 `(n+1)(target+1)` 이다 — 부분집합 합 판정
+ * 편의 정본이 표 전체를 한 번에 잡으므로 그 크기를 식으로 적는다. 여기 셈 판은 두 줄만 굴리지만
+ * 세는 것은 그 정본의 칸이다. 칸 하나에 참·거짓만 담으므로 `Uint8Array` 로 잡았다.
  *
  * **원소가 음수이거나 목표 합이 클 때는 세울 수 없는 설계다.** 열의 개수가 목표 합에 그대로
  * 붙고, 음수 원소는 열의 자리를 음수로 만든다. 이 대조의 입력을 비음의 정수로 둔 이유가
@@ -248,7 +250,7 @@ function 재기(run: (input: Input) => Run): Record<string, number> {
   for (const [label, input] of 입력) {
     const r = run(input);
     out[`${label} · 기본 연산`] = r.ops;
-    out[`${label} · 새로 잡는 칸`] = r.cells;
+    out[`${label} · 추가 칸`] = r.cells;
   }
   return out;
 }
@@ -258,10 +260,10 @@ export const cases = {
   "DP 테이블 채우기": () => 재기(표설계),
   경계: () => ({
     "중간에서 만나기가 앞서는 마지막 원소 수": CROSS.last,
-    "마지막으로 앞선 자리의 중간에서 만나기": CROSS.lastOurs,
-    "마지막으로 앞선 자리의 DP 테이블 채우기": CROSS.lastTheirs,
+    "마지막으로 앞선 자리의 중간에서 만나기 기본 연산": CROSS.lastOurs,
+    "마지막으로 앞선 자리의 DP 테이블 채우기 기본 연산": CROSS.lastTheirs,
     "DP 테이블 채우기가 앞서는 첫 원소 수": CROSS.first,
-    "처음 뒤집힌 자리의 중간에서 만나기": CROSS.firstOurs,
-    "처음 뒤집힌 자리의 DP 테이블 채우기": CROSS.firstTheirs,
+    "처음 뒤집힌 자리의 중간에서 만나기 기본 연산": CROSS.firstOurs,
+    "처음 뒤집힌 자리의 DP 테이블 채우기 기본 연산": CROSS.firstTheirs,
   }),
 };

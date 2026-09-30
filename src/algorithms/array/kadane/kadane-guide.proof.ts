@@ -365,7 +365,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `deep.origin` ④ — 같은 입력을 두 방식으로 처리했을 때의 덧셈·비교 횟수. */
+  /** `deep.origin` ④ — 같은 입력을 두 방식으로 처리했을 때 센 덧셈·비교. */
   "cost-two-ways": () => {
     const pairs = byAllPairs(WALK);
     const carry = byCarrying(WALK);
@@ -1243,7 +1243,7 @@ export const PROOFS: Record<string, () => string> = {
           `N = ${num(N_MAX)}, 값은 무엇이든`,
           num(ops.adds + ops.cmps),
         ],
-        ["잡는 칸", "어떤 입력이든", "2"],
+        ["추가 칸", "어떤 입력이든", "2"],
         ["답의 크기", `10,000 이 ${num(N_MAX)} 칸`, num(kadane(big))],
       ],
       [2],
@@ -1289,7 +1289,7 @@ export const PROOFS: Record<string, () => string> = {
         [1, 2],
       ),
       "",
-      `저장 칸은 ${num(mine["저장 칸"] as number)} 개 대 ${num(other["저장 칸"] as number)} 개입니다.`,
+      `추가 칸은 ${num(mine["추가 칸"] as number)} 개 대 ${num(other["추가 칸"] as number)} 개입니다.`,
     ].join("\n");
   },
 

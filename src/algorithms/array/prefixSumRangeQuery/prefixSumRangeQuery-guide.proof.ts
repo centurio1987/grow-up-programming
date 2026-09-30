@@ -645,7 +645,7 @@ export const PROOFS: Record<string, () => string> = {
     const best = results.reduce((m, r) => (total(r) < total(m) ? r : m));
     return withNote(
       md(
-        ["저장 간격", "저장 칸", "질의 때 더한 수", "덧셈·뺄셈 합"],
+        ["저장 간격", "추가 칸", "질의 때 더한 수", "덧셈·뺄셈 합"],
         rows,
         [1, 2, 3],
       ),
@@ -864,7 +864,7 @@ export const PROOFS: Record<string, () => string> = {
     const f = benchCases["펜윅 트리"]();
     const u = 1024;
     const at = (c: Record<string, number>, k: number) =>
-      c[`갱신 ${k} 회 배열 접근`] as number;
+      c[`갱신 ${k} 회 칸 접근`] as number;
     const perP = (at(p, u) - at(p, 0)) / u;
     const perF = (at(f, u) - at(f, 0)) / u;
     const gap = at(f, 0) - at(p, 0);

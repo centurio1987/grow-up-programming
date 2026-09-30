@@ -172,12 +172,12 @@ function counts(
   cellsAt: (k: number) => number,
 ): Record<string, number> {
   return {
-    "감소 수열 · k=2 배열 접근": run(DOWN, 2),
-    "감소 수열 · k=44 배열 접근": run(DOWN, 44),
-    "감소 수열 · k=45 배열 접근": run(DOWN, 45),
-    "감소 수열 · k=1,024 배열 접근": run(DOWN, N),
-    "곱셈 나머지 · k=45 배열 접근": run(MIXED, 45),
-    "곱셈 나머지 · k=1,024 배열 접근": run(MIXED, N),
+    "감소 수열 · k=2 칸 접근": run(DOWN, 2),
+    "감소 수열 · k=44 칸 접근": run(DOWN, 44),
+    "감소 수열 · k=45 칸 접근": run(DOWN, 45),
+    "감소 수열 · k=1,024 칸 접근": run(DOWN, N),
+    "곱셈 나머지 · k=45 칸 접근": run(MIXED, 45),
+    "곱셈 나머지 · k=1,024 칸 접근": run(MIXED, N),
     "감소 수열 · k=45 추가 칸": cellsAt(45),
     "감소 수열 · k=1,024 추가 칸": cellsAt(N),
   };

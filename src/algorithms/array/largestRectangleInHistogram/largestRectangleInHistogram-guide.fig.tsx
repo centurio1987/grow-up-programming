@@ -248,7 +248,7 @@ export function run(
 /**
  * 한 번의 실행을 세는 가벼운 판 — 값만 센다(기록을 남기지 않는다). 세는 규칙은 `run` 과 같다.
  *
- * 배열 접근은 `heights` 읽기(감시 배열이 센다)에 단조 스택 읽기와 쓰기를 더한다 — 비교마다 꼭대기 읽기 한 번 ·
+ * 칸 접근은 `heights` 읽기(감시 배열이 센다)에 단조 스택 읽기와 쓰기를 더한다 — 비교마다 꼭대기 읽기 한 번 ·
  * 꺼낸 뒤 단조 스택이 비지 않았으면 왼쪽 경계로 새 꼭대기 읽기 한 번 · 자리 넣기 한 번(보초 자리까지 `N + 1`
  * 번). `heights` 읽기는 지금 높이 `N` 번 · 비교마다 한 번 · 넓이마다 한 번이다.
  */
@@ -266,7 +266,7 @@ export interface Counts {
   readonly reads: number;
   /** 단조 스택이 가장 깊었을 때의 칸 수. */
   readonly peak: number;
-  /** 배열 접근 수(읽기 + 쓰기). */
+  /** 칸 접근 수(읽기 + 쓰기). */
   readonly acc: number;
   readonly best: number;
 }
@@ -303,7 +303,7 @@ export function count(heights: readonly number[]): Counts {
   const n = heights.length;
   if (got !== best) throw new Error("재생한 답이 정본의 답과 다르다");
   if (reads !== n + cmp + pops) {
-    throw new Error("heights 읽기가 N + 비교 횟수 + 꺼낸 횟수와 다르다");
+    throw new Error("heights 읽기가 N + 비교 + 꺼낸 횟수와 다르다");
   }
   const stackReads = cmp + (pops - empties);
   return {
@@ -361,7 +361,7 @@ export function allIntervals(heights: readonly number[]): {
 
 /**
  * 막대마다 양쪽으로 뻗어 보는 방법. 자리 `j` 에서 왼쪽·오른쪽으로 `heights[j]` 이상인 동안 걸어가 폭을 잰다.
- * 배열 접근은 `heights` 읽기뿐이다. 작은 입력(64 칸 이하)에서는 자리마다 읽은 칸을 남긴다.
+ * 칸 접근은 `heights` 읽기뿐이다. 작은 입력(64 칸 이하)에서는 자리마다 읽은 칸을 남긴다.
  */
 export function expandBoth(heights: readonly number[]): {
   best: number;
@@ -399,7 +399,7 @@ export function expandBoth(heights: readonly number[]): {
 
 /**
  * 단조 스택을 두 번 쓰는 방법 — 한 번은 오른쪽 경계(오른쪽에서 처음 만나는 더 낮은 막대)를, 한 번은 왼쪽
- * 경계(왼쪽에서 처음 만나는 이하인 막대)를 배열에 적고, 마지막에 자리마다 넓이를 낸다. 배열 접근은 정본과
+ * 경계(왼쪽에서 처음 만나는 이하인 막대)를 배열에 적고, 마지막에 자리마다 넓이를 낸다. 칸 접근은 정본과
  * 같은 규칙으로 센다 — 경계 배열을 까는 쓰기 · `heights` 읽기 · 꼭대기 읽기 · 경계 쓰기 · 자리 넣기 ·
  * 마지막 순회의 세 배열 읽기.
  */
@@ -465,7 +465,7 @@ export function twoPass(heights: readonly number[]): {
 
 /**
  * 단조 스택에 자리 대신 **높이**를 담는 방법. 비교는 그대로 되지만, 폭을 내려면 왼쪽 경계의 자리가 필요해
- * 꺼낸 뒤 새 꼭대기의 높이가 `i` 왼쪽에서 가장 가까이 나오는 자리를 찾아 읽는다. 배열 접근은 정본과 같은
+ * 꺼낸 뒤 새 꼭대기의 높이가 `i` 왼쪽에서 가장 가까이 나오는 자리를 찾아 읽는다. 칸 접근은 정본과 같은
  * 규칙으로 센다 — 지금 높이 읽기 · 비교마다 꼭대기 읽기(높이가 단조 스택에 있으니 `heights` 는 안 읽는다) ·
  * 꺼낸 뒤 새 꼭대기 읽기와 그 자리를 찾는 `heights` 읽기 · 넣기.
  */
@@ -873,7 +873,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `N = ${num(TASK_N)} 에서 배열 접근 ${num(naive)} 번 · ${seconds(naive)}`,
+          value: `N = ${num(TASK_N)} 에서 칸 접근 ${num(naive)} 번 · ${seconds(naive)}`,
           ok: false,
         },
       ],
@@ -888,7 +888,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `높이가 전부 같은 ${num(BIG_N)} 칸에서 배열 접근 ${num(flatBig.acc)} 번 · 구간 열거와 같은 규모`,
+          value: `높이가 전부 같은 ${num(BIG_N)} 칸에서 칸 접근 ${num(flatBig.acc)} 번 · 구간 열거와 같은 규모`,
           ok: false,
         },
       ],
@@ -903,7 +903,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "비용",
-          value: `${num(BIG_N)} 칸에서 배열 접근 ${num(two.acc)} 번 · 추가로 잡는 칸 ${num(two.extra)} 칸`,
+          value: `${num(BIG_N)} 칸에서 칸 접근 ${num(two.acc)} 번 · 추가 칸 ${num(two.extra)} 칸`,
           ok: false,
         },
       ],
@@ -918,7 +918,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "비용",
-          value: `${num(BIG_N)} 칸에서 배열 접근 ${num(one.acc)} 번 · 추가로 잡는 칸 ${num(one.peak)} 칸`,
+          value: `${num(BIG_N)} 칸에서 칸 접근 ${num(one.acc)} 번 · 추가 칸 ${num(one.peak)} 칸`,
           ok: true,
         },
       ],
@@ -1067,7 +1067,7 @@ export const FIGS: Record<string, () => ReactElement> = {
     return (
       <ApproachLadder
         title="시도한 방법 넷 — 셋은 버렸고 하나가 남았다"
-        constraint={`배열 길이 N ≤ ${num(TASK_N)} · 1 초(단순 연산 1 초에 1 억 번 기준) · 비용은 배열 접근 수`}
+        constraint={`배열 길이 N ≤ ${num(TASK_N)} · 1 초(단순 연산 1 초에 1 억 번 기준) · 비용은 칸 접근 수`}
         steps={steps}
         width={approachLadderWidth(steps)}
       />

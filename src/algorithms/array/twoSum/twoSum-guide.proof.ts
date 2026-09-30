@@ -19,7 +19,7 @@
 
 import { loadMutant } from "../../../../tools/check-proof.ts";
 import { 과와, 으로, 을를 } from "../../../../tools/josa.ts";
-import { counted } from "./twoSum-guide.alt.ts";
+import { cases as benchCases, counted } from "./twoSum-guide.alt.ts";
 import { twoSum } from "./twoSum-guide.ref.ts";
 
 /* ────────────────────────── 표기 ────────────────────────── */
@@ -851,5 +851,14 @@ export const PROOFS: Record<string, () => string> = {
       ],
       ["l", "l", "r", "r", "r"],
     );
+  },
+  /** `purpose.alt` — 정렬 안 된 입력에서 두 설계의 기본 연산 비. `.alt.ts` 의 계수에서 낸다. */
+  "alt-ratio": () => {
+    const h = benchCases["해시 맵 · 정렬 안 된 입력"]()["기본 연산"] as number;
+    const p = benchCases["정렬 후 두 포인터 · 정렬 안 된 입력"]()[
+      "기본 연산"
+    ] as number;
+    if (!(h < p)) throw new Error("정렬 안 된 입력에서 해시 맵이 적지 않다");
+    return `**입력이 정렬돼 있는가가 순서를 뒤집습니다.** 정렬 안 된 입력에서는 해시 맵이 기본 연산 ${num(h)}${으로(num(h))} 두 포인터의 ${num(p)} 보다 약 ${Math.round(p / h)} 배 적어요.`;
   },
 };

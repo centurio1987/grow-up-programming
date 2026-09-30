@@ -5,7 +5,7 @@
  * 정본과 다른 절차가 되어 버리면 계수가 다른 문제의 값이 된다. 그래서 `measure()` 는 매 실행
  * 마다 사본과 정본의 답을 같은 작업 목록으로 대조하고, 한 자리라도 어긋나면 던진다.
  *
- * 세는 단위는 **배열 칸 접근** 하나다 — 배열의 한 칸을 읽거나 쓰는 것 하나. 벽시계는 쓰지
+ * 세는 단위는 **칸 접근** 하나다 — 배열의 한 칸을 읽거나 쓰는 것 하나. 벽시계는 쓰지
  * 않는다. 두 설계가 같은 방식으로 세도록, 배열을 만드는 것도 칸 수만큼 센다.
  *
  * 여기 있는 도구를 `<name>-guide.proof.ts` 도 함께 쓴다 — 트리 만들기 · 자식 고르는 규칙 ·
@@ -16,7 +16,7 @@ import { HeavyLightDecomposition } from "./heavyLightDecomposition-guide.ref.ts"
 
 export type Edge = [number, number];
 
-/** 배열 칸 접근 계수기. 읽기 한 번과 쓰기 한 번이 각각 1 이다. */
+/** 칸 접근 계수기. 읽기 한 번과 쓰기 한 번이 각각 1 이다. */
 export interface Counter {
   cells: number;
 }
@@ -786,15 +786,15 @@ export function measure(): {
 export const cases: Record<string, () => Record<string, number>> = {
   "무거운 경로 분할": () => {
     const m = measure();
-    const out: Record<string, number> = { "저장 칸": m.hldStore };
-    for (const q of BENCH_POINTS) out[`질의 ${q} 회 · 배열 칸`] = m.hld[q] ?? 0;
+    const out: Record<string, number> = { "추가 칸": m.hldStore };
+    for (const q of BENCH_POINTS) out[`질의 ${q} 회 · 칸 접근`] = m.hld[q] ?? 0;
     return out;
   },
   "오일러 구간 갱신과 조상 표": () => {
     const m = measure();
-    const out: Record<string, number> = { "저장 칸": m.eulerStore };
+    const out: Record<string, number> = { "추가 칸": m.eulerStore };
     for (const q of BENCH_POINTS)
-      out[`질의 ${q} 회 · 배열 칸`] = m.euler[q] ?? 0;
+      out[`질의 ${q} 회 · 칸 접근`] = m.euler[q] ?? 0;
     return out;
   },
 };

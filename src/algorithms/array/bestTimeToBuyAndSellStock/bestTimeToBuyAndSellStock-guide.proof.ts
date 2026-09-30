@@ -398,7 +398,7 @@ export const PROOFS: Record<string, () => string> = {
           "다시 읽은 사는 날",
           "만든 이익",
           "그중 최저가",
-          "읽은 칸",
+          "칸 읽기",
         ],
         rows,
         [0, 3, 4],
@@ -408,7 +408,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `deep.origin` ④ — 같은 입력을 두 방식으로 처리했을 때의 뺄셈·비교 횟수. */
+  /** `deep.origin` ④ — 같은 입력을 두 방식으로 처리했을 때 센 뺄셈·비교. */
   "cost-two-ways": () => {
     const pairs = byAllPairs(WALK);
     const carry = byCarrying(WALK);
@@ -1015,8 +1015,8 @@ export const PROOFS: Record<string, () => string> = {
         note,
       ];
     });
-    const mine = benchCases["날마다 이어받기"]?.()["저장 칸"] as number;
-    const other = benchCases["세그먼트 트리"]?.()["저장 칸"] as number;
+    const mine = benchCases["날마다 이어받기"]?.()["추가 칸"] as number;
+    const other = benchCases["세그먼트 트리"]?.()["추가 칸"] as number;
     return [
       md(
         ["섞인 질의", "날마다 이어받기", "세그먼트 트리", "적은 쪽"],
@@ -1024,7 +1024,7 @@ export const PROOFS: Record<string, () => string> = {
         [1, 2],
       ),
       "",
-      `저장 칸은 ${num(mine)} 개 대 ${num(other)} 개입니다.`,
+      `추가 칸은 ${num(mine)} 개 대 ${num(other)} 개입니다.`,
     ].join("\n");
   },
 
@@ -1388,7 +1388,7 @@ export const PROOFS: Record<string, () => string> = {
           `N = ${num(N_MAX)}, 가격은 무엇이든`,
           num(c.subs + c.cmps),
         ],
-        ["잡는 칸", "어떤 입력이든", "2"],
+        ["추가 칸", "어떤 입력이든", "2"],
         ["답의 크기", `첫날 0, 그 뒤 날마다 ${num(MAX_PRICE)}`, num(c.answer)],
       ],
       [2],
