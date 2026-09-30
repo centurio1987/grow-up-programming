@@ -285,7 +285,9 @@ function measure(
   for (const p of points) {
     const want = pointInPolygon(p, polygon);
     if (byRay(p, polygon, mine) !== want) {
-      throw new Error(`반직선 세기가 정본과 다른 답을 냈다 — ${p.join(",")}`);
+      throw new Error(
+        `반직선 교차 세기가 정본과 다른 답을 냈다 — ${p.join(",")}`,
+      );
     }
     if (byBuckets(p, polygon, table, theirs) !== want) {
       throw new Error(`높이 버킷이 정본과 다른 답을 냈다 — ${p.join(",")}`);
@@ -346,7 +348,7 @@ const RING1 = measure(ring(RING, RADIUS), queries(1));
 const RING16 = measure(ring(RING, RADIUS), queries(16));
 
 export const cases = {
-  "반직선 세기": () => ({
+  "반직선 교차 세기": () => ({
     "전개 입력 기본 연산": WALK.mine.ops,
     "톱니 질의 0 회 기본 연산": Q0.mine.ops,
     "톱니 질의 3 회 기본 연산": Q3.mine.ops,
