@@ -20,7 +20,7 @@
  * `nums[from .. to-1]` 의 모든 부분집합 합을 담은 길이 `2^(to-from)` 짜리 목록.
  *
  * 원소를 하나 더할 때마다 목록 길이가 두 배가 된다 — 앞에서 만든 합 전부와, 그 각각에 새
- * 원소를 더한 것 전부다. 자리 0 은 공집합의 합 0 이고, 새 칸에만 값을 적으므로 덧셈 횟수가
+ * 원소를 더한 것 전부다. 칸 0 은 공집합의 합 0 이고, 새 칸에만 값을 적으므로 덧셈 횟수가
  * 목록 길이보다 하나 적다.
  */
 export function subsetSums(
@@ -28,7 +28,7 @@ export function subsetSums(
   from: number,
   to: number,
 ): Float64Array {
-  // ① 합 목록 — 길이가 2^(to-from) 이고 자리 0 은 공집합의 합 0 이다.
+  // ① 부분집합 합 목록 — 길이가 2^(to-from) 이고 칸 0 은 공집합의 합 0 이다.
   const out = new Float64Array(1 << (to - from));
   let size = 1;
   for (let i = from; i < to; i++) {
@@ -45,7 +45,7 @@ export function subsetSums(
 /**
  * 오름차순으로 정렬된 `sorted` 안에 값 `value` 가 있는가.
  *
- * 후보 구간을 `[lo, hi]` 로 두고 가운데 칸과 견주어 절반을 버린다. 정렬돼 있다는 것이
+ * 후보 구간을 `[lo, hi]` 로 두고 가운데 칸과 비교해 절반을 버린다. 정렬돼 있다는 것이
  * 「버려도 된다」의 근거이고, 정렬을 빼면 그 근거가 사라진다.
  */
 export function binarySearchExists(
@@ -79,7 +79,7 @@ export function meetInTheMiddleSubsetSum(
   const mid = n >> 1;
   const sumsA = subsetSums(nums, 0, mid);
   const sumsB = subsetSums(nums, mid, n);
-  // ⑦ 뒤 무리의 합 목록만 오름차순으로 정렬한다. 이분 탐색의 전제 조건이다.
+  // ⑦ 뒤 무리의 부분집합 합 목록만 오름차순으로 정렬한다. 이진 탐색의 전제 조건이다.
   sumsB.sort();
 
   for (const sA of sumsA) {

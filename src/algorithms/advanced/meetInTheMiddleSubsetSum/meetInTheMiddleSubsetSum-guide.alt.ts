@@ -6,17 +6,17 @@
  *
  *   bun run tools/bench-alt.ts src/algorithms/advanced/meetInTheMiddleSubsetSum/meetInTheMiddleSubsetSum-guide.alt.ts
  *
- * 대조 상대는 **부분집합 합 표**다. 목표 합 0 부터 `target` 까지를 열로 두고 원소를 한 줄씩
- * 더해 가며 참·거짓을 채운다. 비용이 `n · target` 에 달려 있고 원소 수의 지수와는 무관해서,
+ * 대조 상대는 **DP 테이블 채우기**다([부분집합 합 판정](../../dp/subsetSum/subsetSum-guide.md) 편의 절차 —
+ * 이름도 그 편을 따른다). 목표 합 0 부터 `target` 까지를 열로 두고 원소를 한 줄씩 더해 가며 참·거짓을 채운다. 비용이 `n · target` 에 달려 있고 원소 수의 지수와는 무관해서,
  * **원소 개수와 목표 합 중 어느 쪽이 큰가로 채택이 갈린다** — 대조가 성립하는 자리다.
  *
  * **두 설계가 매 실행마다 같은 답을 내는지 먼저 확인한다**(`확인()`). 답이 다른 구현으로 잰
  * 계수는 저울질이 아니라 다른 문제의 값이다 — 여기서는 정본(`.ref.ts`)의 반환값을 두 설계
  * 모두와 대조한다.
  *
- * **기본 연산의 자를 두 설계에 같게 둔다.** 표 쪽은 값을 정한 칸 하나마다 1, 이쪽은 부분합
- * 하나를 만드는 덧셈마다 1 · 정렬 견주기 한 번마다 1 · 이분 탐색 한 걸음마다 1 이다.
- * **정렬 견주기는 병합 정렬로 센다** — 정본이 부르는 `Float64Array.prototype.sort()` 는 어떤
+ * **기본 연산의 자를 두 설계에 같게 둔다.** DP 테이블 쪽은 값을 정한 칸 하나마다 1, 이쪽은 부분집합 합
+ * 하나를 만드는 덧셈마다 1 · 정렬 비교 한 번마다 1 · 이진 탐색 한 걸음마다 1 이다.
+ * **정렬 비교는 병합 정렬로 센다** — 정본이 부르는 `Float64Array.prototype.sort()` 는 어떤
  * 절차를 쓰는지 언어 명세가 정하지 않아 셀 수 없다.
  *
  * **왜 전개 입력을 안 쓰는가**(L20). 전개는 원소 여섯에 목표 9 인데, 그 크기에서는 두 설계의
@@ -34,7 +34,7 @@ interface Input {
   target: number;
 }
 
-/** 자리 `t` 의 원소가 `((t+1) × 7,919) mod M + 1`, `k = 0 … n-1`. 원소가 전부 1 이상이다. */
+/** 자리 `t` 의 원소가 `((t+1) × 7,919) mod M + 1`, `t = 0 … n-1`. 원소가 전부 1 이상이다. */
 export function gen(n: number, M: number): number[] {
   return Array.from({ length: n }, (_, k) => (((k + 1) * 7919) % M) + 1);
 }
@@ -53,7 +53,7 @@ export interface Run {
   answer: boolean;
 }
 
-/** 병합 정렬 — 견주기 횟수를 결정론적으로 센다. */
+/** 병합 정렬 — 비교 횟수를 결정론적으로 센다. */
 function mergeSortCount(a: number[]): { sorted: number[]; cmp: number } {
   let cmp = 0;
   const go = (xs: number[]): number[] => {
@@ -129,7 +129,7 @@ function 두무리설계(input: Input): Run {
 }
 
 /**
- * 경쟁 설계 — **부분집합 합 표**. 목표 합 0 부터 `target` 까지를 열로 두고 원소를 한 줄씩
+ * 경쟁 설계 — **DP 테이블 채우기**. 목표 합 0 부터 `target` 까지를 열로 두고 원소를 한 줄씩
  * 더해 가며 참·거짓을 채운다.
  *
  * `기본 연산` 은 값을 정한 칸 하나마다 1 이고 `새로 잡는 칸` 은 `(n+1)(target+1)` 이다.
@@ -194,7 +194,7 @@ function 확인(): void {
 /**
  * 목표 합을 고정하고 원소 수를 늘려 가며 순서가 뒤집히는 자리를 찾는다.
  *
- * `last` 는 이 절차의 계수가 아직 적은 마지막 원소 수이고, `first` 는 표 쪽이 처음으로
+ * `last` 는 이 절차의 계수가 아직 적은 마지막 원소 수이고, `first` 는 DP 테이블 쪽이 처음으로
  * 적어지는 원소 수다. 둘이 이어져 있지 않으면 경계를 한 자리로 말할 수 없으므로 그때는 던진다.
  */
 export function crossing(): {
@@ -214,7 +214,9 @@ export function crossing(): {
     const theirs = 표설계(input).ops;
     if (ours > theirs) {
       if (last < 0) {
-        throw new Error(`원소 ${n} 개부터 이미 표가 적다 — 경계가 없다`);
+        throw new Error(
+          `원소 ${n} 개부터 이미 DP 테이블 쪽이 적다 — 경계가 없다`,
+        );
       }
       if (n !== last + 1) {
         throw new Error(
@@ -252,14 +254,14 @@ function 재기(run: (input: Input) => Run): Record<string, number> {
 }
 
 export const cases = {
-  "이 가이드의 절차": () => 재기(두무리설계),
-  "부분집합 합 표": () => 재기(표설계),
+  "중간에서 만나기 (이 가이드)": () => 재기(두무리설계),
+  "DP 테이블 채우기": () => 재기(표설계),
   경계: () => ({
-    "이 가이드의 절차가 앞서는 마지막 원소 수": CROSS.last,
-    "마지막으로 앞선 자리의 이 가이드의 절차": CROSS.lastOurs,
-    "마지막으로 앞선 자리의 부분집합 합 표": CROSS.lastTheirs,
-    "부분집합 합 표가 앞서는 첫 원소 수": CROSS.first,
-    "처음 뒤집힌 자리의 이 가이드의 절차": CROSS.firstOurs,
-    "처음 뒤집힌 자리의 부분집합 합 표": CROSS.firstTheirs,
+    "중간에서 만나기가 앞서는 마지막 원소 수": CROSS.last,
+    "마지막으로 앞선 자리의 중간에서 만나기": CROSS.lastOurs,
+    "마지막으로 앞선 자리의 DP 테이블 채우기": CROSS.lastTheirs,
+    "DP 테이블 채우기가 앞서는 첫 원소 수": CROSS.first,
+    "처음 뒤집힌 자리의 중간에서 만나기": CROSS.firstOurs,
+    "처음 뒤집힌 자리의 DP 테이블 채우기": CROSS.firstTheirs,
   }),
 };

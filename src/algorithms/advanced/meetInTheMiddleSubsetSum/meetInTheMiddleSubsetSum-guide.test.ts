@@ -137,7 +137,7 @@ test("binarySearchExists 는 정렬된 목록에서 있는 값과 없는 값을 
   expect(binarySearchExists(Float64Array.from([4]), 5)).toBe(false);
 });
 
-test("문제 설명의 예시 여덟", () => {
+test("실습 절 예시 여덟", () => {
   expect(meetInTheMiddleSubsetSum([1, 2, 3], 5)).toBe(true);
   expect(meetInTheMiddleSubsetSum([1, 2, 3], 7)).toBe(false);
   expect(meetInTheMiddleSubsetSum([1, 2, 3], 0)).toBe(true);
@@ -153,4 +153,22 @@ test("원소 절댓값 상한 10^9 에서도 합이 정확하다", () => {
   const nums = Array.from({ length: n }, () => 1000000000);
   expect(meetInTheMiddleSubsetSum(nums, 20000000000)).toBe(true);
   expect(meetInTheMiddleSubsetSum(nums, 19999999999)).toBe(false);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./meetInTheMiddleSubsetSum-guide.sim.ts");
+  const { simStepsFromRef } = await import(
+    "./meetInTheMiddleSubsetSum-guide.fig.tsx"
+  );
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.mitmWalk.steps)).toEqual(plain(simStepsFromRef()));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.mitmWalk.result).toBe(
+    String(meetInTheMiddleSubsetSum([3, 34, 4, 12, 5, 2], 9)),
+  );
 });
