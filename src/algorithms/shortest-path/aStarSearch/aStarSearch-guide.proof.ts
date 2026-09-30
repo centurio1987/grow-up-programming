@@ -4,86 +4,93 @@
  * 값을 여기 적지 않는다 — **정본(`.ref.ts`)을 부르고, 변이는 그 소스에서 기계로 만든다.**
  * 값을 적어 넣으면 대조가 자기 자신과의 대조가 되고, 그때 이 파일은 아무것도 증명하지 않는다.
  *
- *   bun run ../../../../tools/check-proof.ts aStarSearch-guide.md
+ *   bun run tools/check-proof.ts src/algorithms/shortest-path/aStarSearch/aStarSearch-guide.md
  *
  * **변이가 아무것도 안 바꾸는지를 검사하는 자리는 중화 실행을 피해 간다.** `check-proof` 가
  * 이 파일을 한 번 더 부를 때는 `loadMutant` 이 정본을 그대로 돌려주므로(중화), 그 상태에서
  * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
  * 모듈의 함수가 정본과 **같은 객체인가**로 값에서 알아낸다.
+ *
+ * ## 계측 사본 둘
+ *
+ * - `record` — 걸음마다 비용 배열 · 힙 · 부모를 **통째로 떠 두는** 사본. 본문의 걸음 표와 걸음 재생
+ *   패널이 이것에서 나온다. 걸음마다 전체를 베끼므로 **전개 입력처럼 작은 입력에만** 쓴다.
+ * - `walkRun` — 수만 세는 가벼운 사본. 격자 224×224 처럼 큰 입력은 이쪽으로만 잰다.
+ *
+ * 둘 다 부를 때마다 자기 답을 정본과 맞댄다.
+ *
+ * ## 세는 기준 — 원고 전체에서 하나
+ *
+ * **기본 연산** 은 힙 안에서 키를 한 번 비교한 것 · 간선 하나를 완화해 본 것 · 추정 함수를 한 번
+ * 부른 것을 각각 하나로 센 합이다. `purpose.alt` 의 `.alt.ts` 가 같은 기준으로 세고, 전개 입력에서
+ * 두 쪽의 값이 같은지 이 파일이 확인한다. **저장 칸** 은 비용 배열 `V` 칸과 힙이 가장 커졌을 때의
+ * 항목 수의 합이다. 간선 목록을 이웃 목록으로 옮기는 몫(`E` 칸 · `E` 번)은 두 잣대 어디에도 넣지
+ * 않고 따로 적는다.
  */
 
 import { loadMutant } from "../../../../tools/check-proof.ts";
-import { josa, 으로, 을를, 이가 } from "../../../../tools/josa.ts";
+import { josa, 과와, 으로, 을를, 이가 } from "../../../../tools/josa.ts";
+import { cases as altCases } from "./aStarSearch-guide.alt.ts";
 import { aStarSearch, type Edge } from "./aStarSearch-guide.ref.ts";
 
-/* ────────────────────────── 표 그리기 ────────────────────────── */
-
-/**
- * 화면에 찍히는 폭. **CJK 를 2 칸으로 센다.**
- *
- * `tools/check-v2.ts` 의 `displayWidth` 와 같은 규칙이다 — 다른 규칙으로 그리면 그 스캐너의
- * 열 정렬 판정(P15)과 이 파일이 어긋난다.
- */
-const width = (s: string): number => {
-  let n = 0;
-  for (const ch of s) {
-    const c = ch.codePointAt(0) ?? 0;
-    n +=
-      (c >= 0x1100 && c <= 0x115f) ||
-      (c >= 0x2e80 && c <= 0xa4cf && c !== 0x303f) ||
-      (c >= 0xac00 && c <= 0xd7a3) ||
-      (c >= 0xf900 && c <= 0xfaff) ||
-      (c >= 0xfe30 && c <= 0xfe6f) ||
-      (c >= 0xff00 && c <= 0xff60) ||
-      (c >= 0xffe0 && c <= 0xffe6) ||
-      (c >= 0x20000 && c <= 0x3fffd)
-        ? 2
-        : 1;
-  }
-  return n;
-};
-
-const padRight = (s: string, to: number): string =>
-  s + " ".repeat(Math.max(0, to - width(s)));
-
-const padLeft = (s: string, to: number): string =>
-  " ".repeat(Math.max(0, to - width(s))) + s;
-
-/** 천 단위 구분. 본문 표기와 같다. */
-const num = (n: number): string =>
-  n === Number.POSITIVE_INFINITY ? "∞" : (n + 0).toLocaleString("en-US");
-
-/**
- * 열 폭을 값에서 계산해 표를 그린다. 폭을 리터럴로 박으면 값이 바뀌어도 표가 그대로라
- * 어긋난 자리를 아무도 못 본다.
- */
-function table(head: string[], rows: string[][], align: ("l" | "r")[]): string {
-  const cols = head.length;
-  const w = Array.from({ length: cols }, (_, c) =>
-    Math.max(width(head[c] ?? ""), ...rows.map((r) => width(r[c] ?? ""))),
-  );
-  const line = (cells: string[]): string =>
-    cells
-      .map((cell, c) =>
-        align[c] === "r" ? padLeft(cell, w[c] ?? 0) : padRight(cell, w[c] ?? 0),
-      )
-      .join("  ")
-      .replace(/\s+$/, "");
-  return [line(head), ...rows.map(line)].join("\n");
-}
-
-/* ────────────────────────── 고정 입력 ────────────────────────── */
+/* ────────────────────────── 표기 ────────────────────────── */
 
 const INF = Number.POSITIVE_INFINITY;
+
+/** `19,999,800,000` 꼴 — 본문 표기와 같다. */
+export const comma = (n: number): string => (n + 0).toLocaleString("en-US");
+
+/** 비용 하나 — 무한대는 코드가 돌려주는 그대로 `Infinity` 로 적는다. */
+export const num = (d: number): string => (d === INF ? "Infinity" : comma(d));
+
+/** 배열 하나 — `[0, 3, 4, Infinity]`. */
+export const show = (xs: readonly number[]): string =>
+  `[${xs.map(num).join(", ")}]`;
+
+/** 큐 항목 하나 — `(정점, 넣을 때의 비용, 키)`. 정본의 `open.push(v, ng, ng + h(v))` 와 같은 차례다. */
+export type Item = [number, number, number];
+export const item = ([v, g, f]: readonly [number, number, number]): string =>
+  `(${v}, ${num(g)}, ${num(f)})`;
+
+const items = (xs: readonly Item[]): string =>
+  xs.length === 0 ? "비어 있음" : xs.map(item).join(" ");
+
+/** 마크다운 표. `right` 는 오른쪽 정렬할 열. */
+function md(
+  head: string[],
+  rows: string[][],
+  right: readonly number[] = [],
+): string {
+  const rule = head.map((_, c) => (right.includes(c) ? "---:" : "---"));
+  const line = (cells: string[]) => `| ${cells.join(" | ")} |`;
+  return [line(head), line(rule), ...rows.map(line)].join("\n");
+}
+
+/** 한글은 고정폭 화면에서 두 칸을 먹는다. 칸 맞춤을 글자 수로 하면 머리줄만 어긋난다. */
+const width = (s: string): number =>
+  [...s].reduce((n, c) => n + (/[ᄀ-ᇿ　-〿㄰-㆏가-힯一-鿿]/.test(c) ? 2 : 1), 0);
+
+const pad = (s: string, to: number): string =>
+  s + " ".repeat(Math.max(0, to - width(s)));
+
+/** 등폭 블록 두 칸 — 앞 칸 폭을 값에서 재서 맞춘다. */
+function lines(rows: [string, string][], indent = "  "): string[] {
+  const w = Math.max(...rows.map(([a]) => width(a)));
+  return rows.map(([a, b]) => `${indent}${pad(a, w)}  ${b}`.trimEnd());
+}
+
+/** 걸음 이름을 이어 적는다 — `T5 · T7`. */
+const tList = (ts: readonly string[]): string => ts.join(" · ");
+
+/* ────────────────────────── 고정 입력 ────────────────────────── */
 
 /**
  * 본문 전개가 쓰는 고정 입력 — 정점 여덟 · 방향 간선 여덟.
  *
- * 갈래를 하나도 안 남기고 전부 실행한다. 값이 한 번 줄어드는 정점이 있고(정점 3), 그래서
- * 같은 정점 짜리 항목이 큐에 둘 생겨 하나가 뒤처진 기록으로 버려진다. 목표와 반대쪽에 있는
- * 정점 7 은 키가 커서 한 번도 안 꺼낸다.
+ * 값이 한 번 줄어드는 정점이 있고(정점 3), 그래서 같은 정점 짜리 항목이 큐에 둘 생겨 하나가
+ * 뒤처진 기록으로 버려진다. 목표와 반대쪽에 있는 정점 7 은 키가 커서 한 번도 안 꺼낸다.
  */
-const WALK: Edge[] = [
+export const WALK_EDGES: Edge[] = [
   [0, 1, 3],
   [0, 2, 4],
   [0, 7, 5],
@@ -93,12 +100,12 @@ const WALK: Edge[] = [
   [3, 5, 2],
   [5, 6, 6],
 ];
-const WALK_N = 8;
-const WALK_SRC = 0;
-const WALK_GOAL = 6;
+export const WALK_N = 8;
+export const WALK_SRC = 0;
+export const WALK_GOAL = 6;
 
 /** 전개 입력의 정점 좌표. 추정은 여기서 잰 맨해튼 거리다. */
-const WALK_XY: [number, number][] = [
+export const WALK_XY: [number, number][] = [
   [0, 0],
   [2, 1],
   [3, 0],
@@ -110,14 +117,23 @@ const WALK_XY: [number, number][] = [
 ];
 
 /** 목표 정점까지의 맨해튼 거리. */
-function walkH(v: number): number {
+export function walkH(v: number): number {
   const [x, y] = WALK_XY[v] as [number, number];
   const [gx, gy] = WALK_XY[WALK_GOAL] as [number, number];
   return Math.abs(gx - x) + Math.abs(gy - y);
 }
 
 /** 추정이 아무것도 안 알려 주는 판. 이 절차가 다익스트라와 같아지는 자리다. */
-const zeroH = (_v: number): number => 0;
+export const zeroH = (_v: number): number => 0;
+
+/** 실제 값을 넘는 추정을 받는 정점과 그 값 — 정점 1 의 실제 최소 비용 13 을 넘는다. */
+export const OVER_AT = 1;
+export const OVER_VALUE = 20;
+
+/** 정점 하나에서만 실제 최소 비용을 넘는 추정. 나머지 정점은 맨해튼 거리 그대로다. */
+export function overH(v: number): number {
+  return v === OVER_AT ? OVER_VALUE : walkH(v);
+}
 
 /**
  * 허용 가능하지만 **일관되지 않은** 추정.
@@ -146,6 +162,13 @@ const NARROW: Edge[] = [
   [2, 3, 6],
 ];
 const narrowH = (v: number): number => [11, 10, 6, 0][v] as number;
+
+/** 음수 가중치가 하나 있는 배치 — 목표로 바로 가는 간선보다 돌아가는 쪽이 작다. */
+const NEGATIVE: Edge[] = [
+  [0, 2, 1],
+  [0, 1, 5],
+  [1, 2, -10],
+];
 
 /** 사슬 하나. 추정이 정확해도 지날 정점이 정해져 있다. */
 function chain(k: number): {
@@ -192,7 +215,7 @@ function star(k: number): {
 }
 
 /** 격자 한 변 `k`. 상하좌우로 오갈 수 있고 모든 간선의 가중치가 1 이다. */
-function grid(k: number): {
+export function grid(k: number): {
   n: number;
   edges: Edge[];
   goal: number;
@@ -235,24 +258,236 @@ function patchy(man: (v: number) => number, p: number): (v: number) => number {
   return (v: number) => (scatter(v) % 100 < p ? man(v) : 0);
 }
 
-/* ────────────────────────── 계측 ────────────────────────── */
+/** 규모의 상한 — 이 글이 정한 값이다(다익스트라 편과 같은 규모). */
+const V_LIMIT = 100_000;
+const E_LIMIT = 200_000;
 
-interface Step {
-  t: string;
-  pop: string;
-  key: string;
-  what: string;
-  cost: string;
-  open: string;
+/**
+ * 간선이 규모의 상한 안에 드는 가장 큰 정사각 격자의 한 변. 한 변 `k` 인 격자의 방향 간선은
+ * `4k(k−1)` 개다.
+ */
+const BIG_SIDE = (() => {
+  let k = 2;
+  while (4 * (k + 1) * k <= E_LIMIT) k++;
+  return k;
+})();
+
+/* ────────────────────────── 걸음마다의 상태 ────────────────────────── */
+
+/** 완화 한 번 — 간선 `u → v` 를 읽고 무엇을 했는가. */
+export interface Relax {
+  u: number;
+  v: number;
+  w: number;
+  /** 그때 꺼낸 항목의 비용 — 곧 `g[u]`. */
+  gu: number;
+  /** 읽기 전의 `g[v]`. */
+  before: number;
+  ng: number;
+  improved: boolean;
+  /** 넣은 항목의 키 `ng + h(v)`. 안 넣었으면 `NaN`. */
+  key: number;
 }
 
-interface Counted {
+/** 걸음 하나. `heap` 은 걸음이 끝난 뒤 배열에 놓인 순서 그대로다. */
+export interface Step {
+  t: string;
+  kind: "start" | "expand" | "stale" | "goal";
+  popped: Item | null;
+  relax: Relax[];
+  /** 이 걸음에 넣은 항목. */
+  pushed: Item[];
+  g: number[];
+  heap: Item[];
+  /** 정점마다 지금 비용을 낸 간선의 꼬리. 없으면 -1. */
+  pred: number[];
+  /** 한 번이라도 확장한 정점. */
+  expanded: boolean[];
+}
+
+/** 이진 힙 사본 — 정본의 `MinHeap` 과 같은 규칙이다(넣으면 올리고, 꺼내면 뿌리를 덮고 내린다). */
+export class HeapCopy {
+  items: Item[] = [];
+  compares = 0;
+  peak = 0;
+  constructor(start: readonly (readonly [number, number, number])[] = []) {
+    this.items = start.map((x) => [x[0], x[1], x[2]] as Item);
+  }
+  private key(i: number): number {
+    return (this.items[i] as Item)[2];
+  }
+  private swap(a: number, b: number): void {
+    const t = this.items[a] as Item;
+    this.items[a] = this.items[b] as Item;
+    this.items[b] = t;
+  }
+  push(node: number, cost: number, k: number): void {
+    this.items.push([node, cost, k]);
+    this.peak = Math.max(this.peak, this.items.length);
+    let i = this.items.length - 1;
+    while (i > 0) {
+      const parent = (i - 1) >> 1;
+      this.compares++;
+      if (this.key(i) >= this.key(parent)) break;
+      this.swap(i, parent);
+      i = parent;
+    }
+  }
+  pop(): Item {
+    const top = this.items[0] as Item;
+    const last = this.items.pop() as Item;
+    if (this.items.length > 0) {
+      this.items[0] = last;
+      let i = 0;
+      for (;;) {
+        const left = 2 * i + 1;
+        const right = 2 * i + 2;
+        let small = i;
+        if (left < this.items.length) {
+          this.compares++;
+          if (this.key(left) < this.key(small)) small = left;
+        }
+        if (right < this.items.length) {
+          this.compares++;
+          if (this.key(right) < this.key(small)) small = right;
+        }
+        if (small === i) break;
+        this.swap(i, small);
+        i = small;
+      }
+    }
+    return top;
+  }
+  snapshot(): Item[] {
+    return this.items.map((x) => [x[0], x[1], x[2]] as Item);
+  }
+}
+
+/** 지금 큐에 든 항목을 **꺼낼 차례대로** — 힙 사본을 하나 떠서 비울 때까지 꺼낸다. */
+export function drainOrder(
+  heap: readonly (readonly [number, number, number])[],
+): Item[] {
+  const copy = new HeapCopy(heap);
+  const out: Item[] = [];
+  while (copy.items.length > 0) out.push(copy.pop());
+  return out;
+}
+
+function adjacency(n: number, edges: Edge[]): [number, number][][] {
+  const adj: [number, number][][] = Array.from({ length: n }, () => []);
+  for (const [u, v, w] of edges) (adj[u] as [number, number][]).push([v, w]);
+  return adj;
+}
+
+/**
+ * 정본과 같은 절차에 **힙 내부를 내다보는 자리**만 덧붙인 사본. 본문의 걸음 표와 걸음 재생
+ * 패널이 둘 다 이 함수의 출력에서 나온다 — 두 곳을 손으로 맞추면 그 자리에서 어긋난다.
+ * 걸음마다 배열 넷을 통째로 떠 두므로 작은 입력에만 쓴다.
+ */
+export function record(
+  n: number,
+  edges: Edge[],
+  src: number,
+  goal: number,
+  h: (v: number) => number,
+): Step[] {
+  const adj = adjacency(n, edges);
+  const g = Array.from({ length: n }, () => INF);
+  const pred = Array.from({ length: n }, () => -1);
+  const expanded = Array.from({ length: n }, () => false);
+  g[src] = 0;
+  const heap = new HeapCopy();
+  const first: Item = [src, 0, h(src)];
+  heap.push(...first);
+  const snap = (
+    kind: Step["kind"],
+    popped: Item | null,
+    relax: Relax[],
+    pushed: Item[],
+  ): Step => ({
+    t: `T${steps.length + 1}`,
+    kind,
+    popped,
+    relax,
+    pushed,
+    g: g.slice(),
+    heap: heap.snapshot(),
+    pred: pred.slice(),
+    expanded: expanded.slice(),
+  });
+  const steps: Step[] = [];
+  steps.push(snap("start", null, [], [first]));
+  let answer = INF;
+  while (heap.items.length > 0) {
+    const top = heap.pop();
+    const [u, gu] = top;
+    if (u === goal) {
+      answer = gu;
+      steps.push(snap("goal", top, [], []));
+      break;
+    }
+    if (gu > (g[u] as number)) {
+      steps.push(snap("stale", top, [], []));
+      continue;
+    }
+    expanded[u] = true;
+    const relax: Relax[] = [];
+    const pushed: Item[] = [];
+    for (const [v, w] of adj[u] as [number, number][]) {
+      const ng = gu + w;
+      const before = g[v] as number;
+      const improved = ng < before;
+      let key = Number.NaN;
+      if (improved) {
+        g[v] = ng;
+        pred[v] = u;
+        key = ng + h(v);
+        heap.push(v, ng, key);
+        pushed.push([v, ng, key]);
+      }
+      relax.push({ u, v, w, gu, before, ng, improved, key });
+    }
+    steps.push(snap("expand", top, relax, pushed));
+  }
+  const want = aStarSearch(n, edges, src, goal, h);
+  if (answer !== want) {
+    throw new Error(`기록 사본이 정본과 다른 답을 냈다 — ${answer} vs ${want}`);
+  }
+  return steps;
+}
+
+/** 전개 입력의 걸음 전부. */
+export const WALK = record(WALK_N, WALK_EDGES, WALK_SRC, WALK_GOAL, walkH);
+
+/** 뒤처진 기록인가 — 넣을 때의 비용이 그 걸음이 끝난 뒤 적힌 비용보다 크다. */
+export const isStale = (
+  s: Step,
+  [v, g]: readonly [number, number, number],
+): boolean => g > (s.g[v] as number);
+
+/** `pred` 를 따라 `src` 까지 거슬러 올라간 경로. */
+export function pathOf(pred: readonly number[], v: number): number[] {
+  const out = [v];
+  let at = v;
+  while ((pred[at] as number) !== -1) {
+    at = pred[at] as number;
+    out.unshift(at);
+  }
+  return out;
+}
+
+const arrow = (p: readonly number[]): string => p.join("→");
+
+/* ────────────────────────── 수만 세는 사본 ────────────────────────── */
+
+export interface Counted {
   answer: number;
   pops: number;
   expands: number;
   pushes: number;
   relaxes: number;
   hcalls: number;
+  compares: number;
   stale: number;
   peak: number;
   reexpands: number;
@@ -262,11 +497,15 @@ interface Counted {
   offKey: number;
 }
 
+/** 기본 연산 — 힙 안의 비교 · 완화 시도 · 추정 호출의 합. */
+export const basicOps = (c: Counted): number =>
+  c.compares + c.relaxes + c.hcalls;
+
 /**
- * 정본과 같은 절차를 걸음마다 기록하며 실행한다.
+ * 정본과 같은 절차를 수만 세며 실행한다. 걸음마다 무엇을 베끼지 않으므로 큰 입력에도 쓴다.
  *
  * **불변식을 표에 손으로 적지 않는다** — `offKey` 가 「꺼낸 키가 답을 넘은 걸음 수」이고,
- * 그 값을 실행이 세서 돌려준다.
+ * 그 값을 실행이 세서 돌려준다(답은 추정 없이 따로 구한 실제 최소 비용이다).
  *
  * `opt` 셋은 변이·다른 설계를 **같은 힙으로** 재기 위한 것이다. 힙이 다르면 키가 같은 항목의
  * 앞뒤가 달라지고, 그때 나온 계수는 절차가 아니라 자료구조의 차이를 잰 값이 된다.
@@ -281,53 +520,13 @@ function walkRun(
   src: number,
   goal: number,
   h: (v: number) => number,
-  keep: Step[] | null = null,
   opt: { noStale?: boolean; inflate?: boolean; keyOnlyH?: boolean } = {},
+  target: number | null = null,
 ): Counted {
   const g = Array.from({ length: n }, () => INF);
-  const adj: [number, number][][] = Array.from({ length: n }, () => []);
-  for (const [u, v, w] of edges) (adj[u] as [number, number][]).push([v, w]);
+  const adj = adjacency(n, edges);
   g[src] = 0;
-
-  const items: [number, number, number][] = [];
-  let peak = 0;
-  const key = (i: number): number => (items[i] as [number, number, number])[2];
-  const swap = (a: number, b: number): void => {
-    const t = items[a] as [number, number, number];
-    items[a] = items[b] as [number, number, number];
-    items[b] = t;
-  };
-  const push = (node: number, cost: number, k: number): void => {
-    items.push([node, cost, k]);
-    peak = Math.max(peak, items.length);
-    let i = items.length - 1;
-    while (i > 0) {
-      const parent = (i - 1) >> 1;
-      if (key(i) >= key(parent)) break;
-      swap(i, parent);
-      i = parent;
-    }
-  };
-  const pop = (): [number, number, number] => {
-    const top = items[0] as [number, number, number];
-    const last = items.pop() as [number, number, number];
-    if (items.length > 0) {
-      items[0] = last;
-      let i = 0;
-      for (;;) {
-        const left = 2 * i + 1;
-        const right = 2 * i + 2;
-        let small = i;
-        if (left < items.length && key(left) < key(small)) small = left;
-        if (right < items.length && key(right) < key(small)) small = right;
-        if (small === i) break;
-        swap(i, small);
-        i = small;
-      }
-    }
-    return top;
-  };
-
+  const heap = new HeapCopy();
   const c: Counted = {
     answer: INF,
     pops: 0,
@@ -335,6 +534,7 @@ function walkRun(
     pushes: 0,
     relaxes: 0,
     hcalls: 0,
+    compares: 0,
     stale: 0,
     peak: 0,
     reexpands: 0,
@@ -344,62 +544,26 @@ function walkRun(
     offKey: 0,
   };
   const times = Array.from({ length: n }, () => 0);
-
   c.hcalls++;
-  push(src, 0, h(src));
+  heap.push(src, 0, h(src));
   c.pushes++;
-  const costs = (): string =>
-    g.map((x) => (x === INF ? "∞" : String(x))).join(" ");
-  const queue = (): string =>
-    items.length === 0
-      ? "(비어 있음)"
-      : items.map(([u, , k]) => `${u}:${k}`).join(" ");
-  if (keep !== null) {
-    keep.push({
-      t: `T${keep.length + 1}`,
-      pop: "—",
-      key: "—",
-      what: "시작값",
-      cost: costs(),
-      open: queue(),
-    });
-  }
-
-  const best = trueDist(n, edges, goal);
-  const target = best[src] as number;
-
-  while (items.length > 0) {
-    const [u, gu, f] = pop();
+  const best = target ?? (fromDist(n, edges, src)[goal] as number);
+  const done = (): Counted => {
+    c.compares = heap.compares;
+    c.peak = heap.peak;
+    return c;
+  };
+  while (heap.items.length > 0) {
+    const [u, gu, f] = heap.pop();
     c.pops++;
     c.maxKey = Math.max(c.maxKey, f);
-    if (f > target) c.offKey++;
+    if (f > best) c.offKey++;
     if (u === goal) {
       c.answer = gu;
-      if (keep !== null) {
-        keep.push({
-          t: `T${keep.length + 1}`,
-          pop: `${u}`,
-          key: `${f}`,
-          what: `목표라 ${String(gu)}${을를(String(gu))} 반환`,
-          cost: costs(),
-          open: queue(),
-        });
-      }
-      c.peak = peak;
-      return c;
+      return done();
     }
     if (opt.noStale !== true && gu > (g[u] as number)) {
       c.stale++;
-      if (keep !== null) {
-        keep.push({
-          t: `T${keep.length + 1}`,
-          pop: `${u}`,
-          key: `${f}`,
-          what: "뒤처진 기록이라 버림",
-          cost: costs(),
-          open: queue(),
-        });
-      }
       continue;
     }
     c.expands++;
@@ -407,7 +571,6 @@ function walkRun(
     if ((times[u] as number) > 1) c.reexpands++;
     c.expanded[u] = true;
     c.order.push(u);
-    const moved: string[] = [];
     for (const [v, w] of adj[u] as [number, number][]) {
       c.relaxes++;
       const ng = gu + w;
@@ -415,7 +578,7 @@ function walkRun(
         g[v] = ng;
         c.hcalls++;
         const hv = h(v);
-        push(
+        heap.push(
           v,
           ng,
           opt.keyOnlyH === true
@@ -423,25 +586,10 @@ function walkRun(
             : ng + (opt.inflate === true ? 2 * hv : hv),
         );
         c.pushes++;
-        moved.push(`${v}`);
       }
     }
-    if (keep !== null) {
-      keep.push({
-        t: `T${keep.length + 1}`,
-        pop: `${u}`,
-        key: `${f}`,
-        what:
-          moved.length === 0
-            ? "줄인 값 없음"
-            : `정점 ${moved.join("·")} 의 값을 줄임`,
-        cost: costs(),
-        open: queue(),
-      });
-    }
   }
-  c.peak = peak;
-  return c;
+  return done();
 }
 
 /** 목표 정점까지의 실제 최소 비용을 정점마다 낸다. 간선을 뒤집고 다익스트라를 돌린다. */
@@ -450,18 +598,17 @@ function trueDist(n: number, edges: Edge[], goal: number): number[] {
   for (const [u, v, w] of edges) (rev[v] as [number, number][]).push([u, w]);
   const dist = Array.from({ length: n }, () => INF);
   dist[goal] = 0;
-  const done = Array.from({ length: n }, () => false);
-  for (;;) {
-    let at = -1;
-    for (let i = 0; i < n; i++) {
-      if (done[i] || (dist[i] as number) === INF) continue;
-      if (at < 0 || (dist[i] as number) < (dist[at] as number)) at = i;
-    }
-    if (at < 0) break;
-    done[at] = true;
+  const heap = new HeapCopy();
+  heap.push(goal, 0, 0);
+  while (heap.items.length > 0) {
+    const [at, d] = heap.pop();
+    if (d > (dist[at] as number)) continue;
     for (const [u, w] of rev[at] as [number, number][]) {
-      const nd = (dist[at] as number) + w;
-      if (nd < (dist[u] as number)) dist[u] = nd;
+      const nd = d + w;
+      if (nd < (dist[u] as number)) {
+        dist[u] = nd;
+        heap.push(u, nd, nd);
+      }
     }
   }
   return dist;
@@ -474,15 +621,14 @@ function fromDist(n: number, edges: Edge[], src: number): number[] {
 }
 
 /** 계측본이 정본과 같은 답을 내는지 확인하고 계수를 돌려준다. */
-function measure(
+export function measure(
   n: number,
   edges: Edge[],
   src: number,
   goal: number,
   h: (v: number) => number,
-  keep: Step[] | null = null,
 ): Counted {
-  const got = walkRun(n, edges, src, goal, h, keep);
+  const got = walkRun(n, edges, src, goal, h);
   const want = aStarSearch(n, edges, src, goal, h);
   if (got.answer !== want) {
     throw new Error(
@@ -550,7 +696,7 @@ interface Case {
 const WALK_CASE: Case = {
   label: "전개 입력",
   n: WALK_N,
-  edges: WALK,
+  edges: WALK_EDGES,
   src: WALK_SRC,
   goal: WALK_GOAL,
   h: walkH,
@@ -588,17 +734,22 @@ const CHAIN_CASE: Case = (() => {
     h: c.h,
   };
 })();
-const GRID_CASE: Case = (() => {
-  const G = grid(8);
+const gridCase = (
+  k: number,
+  label: string,
+  h?: (v: number) => number,
+): Case => {
+  const G = grid(k);
   return {
-    label: "격자 8×8",
+    label,
     n: G.n,
     edges: G.edges,
     src: 0,
     goal: G.goal,
-    h: G.man,
+    h: h ?? G.man,
   };
-})();
+};
+const GRID_CASE = gridCase(8, "격자 8×8");
 
 if (!중화됨) {
   const breaking: [string, Impl, Case[]][] = [
@@ -606,8 +757,8 @@ if (!중화됨) {
     ["확장을 마친 정점을 다시 안 고치는 판", noReopen, [WALK_BROKEN]],
     ["추정을 두 배로 부풀린 판", inflated, [NARROW_CASE]],
   ];
-  for (const [label, impl, cases] of breaking) {
-    const same = cases.every(
+  for (const [label, impl, cs] of breaking) {
+    const same = cs.every(
       (c) =>
         aStarSearch(c.n, c.edges, c.src, c.goal, c.h) ===
         impl.aStarSearch(c.n, c.edges, c.src, c.goal, c.h),
@@ -617,1158 +768,83 @@ if (!중화됨) {
   }
 }
 
+const run = (impl: Impl, c: Case): number =>
+  impl.aStarSearch(c.n, c.edges, c.src, c.goal, c.h);
+const ref = (c: Case): number => aStarSearch(c.n, c.edges, c.src, c.goal, c.h);
+
 /** 정본과 변이의 답을 나란히 놓은 표. */
-function contrast(cases: Case[], impl: Impl, head: string): string {
-  const rows = cases.map((c) => {
-    const want = aStarSearch(c.n, c.edges, c.src, c.goal, c.h);
-    const got = impl.aStarSearch(c.n, c.edges, c.src, c.goal, c.h);
+function contrast(cs: Case[], impl: Impl, head: string): string {
+  const rows = cs.map((c) => {
+    const want = ref(c);
+    const got = run(impl, c);
     return [
       c.label,
-      num(c.n),
+      comma(c.n),
       num(want),
       num(got),
       want === got ? "같다" : "어긋난다",
     ];
   });
-  return table(["배치", "정점", "정본", head, "대조"], rows, [
-    "l",
-    "r",
-    "r",
-    "r",
-    "l",
-  ]);
+  return md(["배치", "정점", "정본", head, "두 답"], rows, [1, 2, 3]);
 }
 
-/* ────────────────────────── 블록 ────────────────────────── */
-
-const WALK_STEPS: Step[] = [];
-const WALK_COUNT = measure(
-  WALK_N,
-  WALK,
-  WALK_SRC,
-  WALK_GOAL,
-  walkH,
-  WALK_STEPS,
-);
-const WALK_ZERO_COUNT = measure(WALK_N, WALK, WALK_SRC, WALK_GOAL, zeroH);
-
-/** 여러 배치에서 추정을 쓴 판과 안 쓴 판을 나란히 잰다. */
-function bothWays(cases: Case[]): string[][] {
-  return cases.map((c) => {
-    const withH = measure(c.n, c.edges, c.src, c.goal, c.h);
-    const without = measure(c.n, c.edges, c.src, c.goal, zeroH);
-    return [
-      c.label,
-      num(c.n),
-      num(c.edges.length),
-      num(withH.answer),
-      num(withH.expands),
-      num(without.expands),
-      withH.answer === without.answer ? "같다" : "어긋난다",
-    ];
-  });
+/** 뒤처진 기록을 버리지 않는 판의 계수. 중화 실행이 아닐 때는 변이가 낸 답과 대조한다. */
+function noStaleRun(c: Case): Counted {
+  const got = walkRun(c.n, c.edges, c.src, c.goal, c.h, { noStale: true });
+  if (!중화됨 && got.answer !== run(noStale, c)) {
+    throw new Error("계측본이 변이와 다른 답을 냈다");
+  }
+  return got;
 }
 
-const RATIOS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+/** 추정을 두 배로 부풀린 판의 계수. 같은 자리에서 변이와 답을 대조한다. */
+function inflatedRun(c: Case): Counted {
+  const want = fromDist(c.n, c.edges, c.src)[c.goal] as number;
+  const got = walkRun(
+    c.n,
+    c.edges,
+    c.src,
+    c.goal,
+    c.h,
+    { inflate: true },
+    want,
+  );
+  if (!중화됨 && got.answer !== run(inflated, c)) {
+    throw new Error("계측본이 변이와 다른 답을 냈다");
+  }
+  return got;
+}
 
-export const PROOFS: Record<string, () => string> = {
-  /** `concept` — 추정을 쓴 판과 안 쓴 판의 답은 같고 확장한 정점 수만 갈린다. */
-  "concept-cases": () => {
-    const G8 = grid(8);
-    const G16 = grid(16);
-    const C = chain(64);
-    const S = star(64);
-    const rows = bothWays([
-      WALK_CASE,
-      { label: "사슬 64", n: C.n, edges: C.edges, src: 0, goal: 63, h: C.h },
-      { label: "별 64", n: S.n, edges: S.edges, src: 0, goal: 63, h: S.h },
-      {
-        label: "격자 8×8",
-        n: G8.n,
-        edges: G8.edges,
-        src: 0,
-        goal: G8.goal,
-        h: G8.man,
-      },
-      {
-        label: "격자 16×16",
-        n: G16.n,
-        edges: G16.edges,
-        src: 0,
-        goal: G16.goal,
-        h: G16.man,
-      },
-    ]);
-    const star64 = rows[2] as string[];
-    const chain64 = rows[1] as string[];
-    return [
-      table(
-        [
-          "배치",
-          "정점",
-          "간선",
-          "답",
-          "추정을 쓴 판의 확장",
-          "추정이 0 인 판의 확장",
-          "답 대조",
-        ],
-        rows,
-        ["l", "r", "r", "r", "r", "r", "l"],
-      ),
-      "",
-      `배치 ${num(rows.length)} 개 모두 답이 같다. 갈리는 것은 정점을 몇 개나 확장했는가다`,
-      `└ 별 64 에서 차이가 가장 크다 — ${star64[4]} 대 ${star64[5] ?? ""}${josa(star64[5] ?? "", "이다", "다")}`,
-      `└ 사슬 64 는 지나갈 길이 하나뿐이라 어느 판이든 ${chain64[4]} 개를 다 확장한다`,
-    ].join("\n");
-  },
+/** 키를 남은 비용의 추정 하나로 둔 판. 변이가 아니라 다른 설계라 대조할 상대가 없다. */
+function greedy(c: Case): Counted {
+  const want = fromDist(c.n, c.edges, c.src)[c.goal] as number;
+  return walkRun(c.n, c.edges, c.src, c.goal, c.h, { keyOnlyH: true }, want);
+}
 
-  /** `concept` — 격자 한 변을 2 배로 키우며 두 판이 각각 몇 배가 되는가. */
-  "concept-growth": () => {
-    const sides = [8, 16, 32, 64];
-    const got = sides.map((k) => {
-      const G = grid(k);
-      return {
-        k,
-        n: G.n,
-        withH: measure(G.n, G.edges, 0, G.goal, G.man).expands,
-        without: measure(G.n, G.edges, 0, G.goal, zeroH).expands,
-      };
-    });
-    const rows = got.map((r) => [
-      `${num(r.k)}×${num(r.k)}`,
-      num(r.n),
-      num(r.withH),
-      num(r.without),
-    ]);
-    const grow = got.slice(1).map((r, at) => {
-      const prev = got[at] as (typeof got)[number];
-      return [
-        `${num(prev.k)} → ${num(r.k)}`,
-        (r.withH / prev.withH).toFixed(2),
-        (r.without / prev.without).toFixed(2),
-      ];
-    });
-    return [
-      table(["격자", "정점", "추정을 쓴 판", "추정이 0 인 판"], rows, [
-        "l",
-        "r",
-        "r",
-        "r",
-      ]),
-      "",
-      table(
-        ["한 변을 2 배로", "추정을 쓴 판 성장률", "추정이 0 인 판 성장률"],
-        grow,
-        ["l", "r", "r"],
-      ),
-      "",
-      "한 변을 2 배로 하면 정점은 4 배가 된다",
-      "└ 추정이 0 인 판은 정점 수를 따라 4 배씩 늘고, 추정을 쓴 판은 2 배 언저리에 머문다",
-    ].join("\n");
-  },
+/* ────────────────────────── 공용 값 ────────────────────────── */
 
-  /** `deep.build` ② — 경로를 전부 만들어 보는 방법의 경로 수. */
-  "build-brute": () => {
-    // 완전 그래프에서 두 정점을 잇는 단순 경로의 수 = Σ_{k=0}^{V-2} (V-2)!/(V-2-k)!
-    const paths = (v: number): number => {
-      let sum = 0;
-      let term = 1;
-      for (let k = 0; k <= v - 2; k++) {
-        sum += term;
-        term *= v - 2 - k;
-      }
-      return sum;
-    };
-    const sizes = [5, 8, 10, 12, 15];
-    const rows = sizes.map((v) => {
-      const p = paths(v);
-      return [num(v), num(p), p.toExponential(2)];
-    });
-    const walkPaths = countPaths(WALK_N, WALK, WALK_SRC, WALK_GOAL);
-    const big = paths(15);
-    return [
-      table(["정점", "단순 경로의 수", "지수로 적으면"], rows, ["r", "r", "r"]),
-      "",
-      `전개 입력은 정점 ${num(WALK_N)} 개에 간선 ${num(WALK.length)} 개뿐이라 시작에서 목표까지의 경로가 ${num(walkPaths)} 개다`,
-      `└ 완전 그래프는 정점 15 개에서 경로가 ${num(big)} 개다`,
-      "└ 제약의 정점 수 100,000 에서는 경로를 세는 것 자체가 끝나지 않는다",
-    ].join("\n");
-  },
+const WALK_COUNT = measure(WALK_N, WALK_EDGES, WALK_SRC, WALK_GOAL, walkH);
+const WALK_ZERO_COUNT = measure(WALK_N, WALK_EDGES, WALK_SRC, WALK_GOAL, zeroH);
+export const WALK_TO_GOAL = trueDist(WALK_N, WALK_EDGES, WALK_GOAL);
+const WALK_FROM_SRC = fromDist(WALK_N, WALK_EDGES, WALK_SRC);
+const WALK_ANSWER = WALK_COUNT.answer;
+const OVER_ANSWER = aStarSearch(WALK_N, WALK_EDGES, WALK_SRC, WALK_GOAL, overH);
 
-  /** `deep.build` ④ — 같은 입력을 두 방식으로 처리한 실제 계수. */
-  "build-two": () => {
-    const rows = [
-      ["확장한 정점 수", num(WALK_COUNT.expands), num(WALK_ZERO_COUNT.expands)],
-      ["꺼낸 항목 수", num(WALK_COUNT.pops), num(WALK_ZERO_COUNT.pops)],
-      [
-        "큐에 넣은 항목 수",
-        num(WALK_COUNT.pushes),
-        num(WALK_ZERO_COUNT.pushes),
-      ],
-      [
-        "완화해 본 간선 수",
-        num(WALK_COUNT.relaxes),
-        num(WALK_ZERO_COUNT.relaxes),
-      ],
-      ["답", num(WALK_COUNT.answer), num(WALK_ZERO_COUNT.answer)],
-    ];
-    const order = (c: Counted): string => c.order.join(" → ");
-    return [
-      table(["무엇", "추정을 쓴 판", "추정이 0 인 판"], rows, ["l", "r", "r"]),
-      "",
-      table(
-        ["판", "확장한 순서"],
-        [
-          ["추정을 쓴 판", order(WALK_COUNT)],
-          ["추정이 0 인 판", order(WALK_ZERO_COUNT)],
-        ],
-        ["l", "l"],
-      ),
-      "",
-      "정점 7 은 추정을 쓴 판에서 한 번도 확장되지 않는다",
-      `└ 정점 7 의 비용 5 · 추정 ${num(walkH(7))} · 키 ${num(5 + walkH(7))} — 답 ${num(WALK_COUNT.answer)} 보다 크다`,
-    ].join("\n");
-  },
+/** 전개 입력의 최소 비용 경로 — 기록 사본의 부모를 거슬러 올라간 것. */
+const WALK_PATH = pathOf((WALK.at(-1) as Step).pred, WALK_GOAL);
 
-  /** `deep.build` ⑥ — 추정의 정보량을 바꿔 가며 확장 수를 잰다. */
-  "build-ratio": () => {
-    const G = grid(32);
-    const rows = RATIOS.map((p) => {
-      const c = measure(G.n, G.edges, 0, G.goal, patchy(G.man, p));
-      return [
-        `${num(p)}%`,
-        num(c.expands),
-        num(c.reexpands),
-        num(c.pops),
-        num(c.answer),
-      ];
-    });
-    const best = RATIOS.map(
-      (p) => measure(G.n, G.edges, 0, G.goal, patchy(G.man, p)).expands,
-    );
-    const least = Math.min(...best);
-    const most = Math.max(...best);
-    return [
-      table(
-        [
-          "정확한 추정을 받은 정점",
-          "확장한 정점 수",
-          "그중 재확장",
-          "꺼낸 항목 수",
-          "답",
-        ],
-        rows,
-        ["r", "r", "r", "r", "r"],
-      ),
-      "",
-      `격자 32×32 (정점 ${num(G.n)} · 간선 ${num(G.edges.length)}) 에서 잰 값이다. 답은 어느 비율에서도 ${num(G.man(0))}${josa(num(G.man(0)), "이다", "다")}`,
-      `└ 확장이 가장 적은 자리 ${num(least)} · 가장 많은 자리 ${num(most)} — 비율을 올리는 것이 늘 이득은 아니다`,
-      "└ 중간 구간에서 재확장이 붙는다. 정확한 값과 0 이 섞이면 이웃한 두 정점의 추정이 크게 어긋나기 때문이다",
-    ].join("\n");
-  },
+/** 완전 그래프에서 두 정점을 잇는 단순 경로의 수 = Σ_{k=0}^{V-2} (V-2)!/(V-2-k)! */
+function completePaths(v: number): number {
+  let sum = 0;
+  let term = 1;
+  for (let k = 0; k <= v - 2; k++) {
+    sum += term;
+    term *= v - 2 - k;
+  }
+  return sum;
+}
 
-  /** `deep.build` — 전개 입력의 추정이 실제 최소 비용을 넘지 않는가. */
-  "build-admissible": () => {
-    const d = trueDist(WALK_N, WALK, WALK_GOAL);
-    const rows = Array.from({ length: WALK_N }, (_, v) => {
-      const [x, y] = WALK_XY[v] as [number, number];
-      return [
-        num(v),
-        `(${x},${y})`,
-        num(walkH(v)),
-        num(d[v] as number),
-        walkH(v) <= (d[v] as number) ? "넘지 않는다" : "넘는다",
-      ];
-    });
-    const bad = rows.filter((r) => r[4] === "넘는다").length;
-    return [
-      table(["정점", "좌표", "추정", "실제 최소 비용", "대조"], rows, [
-        "r",
-        "l",
-        "r",
-        "r",
-        "l",
-      ]),
-      "",
-      `정점 ${num(WALK_N)} 개 모두 추정이 실제 최소 비용을 넘지 않는다 — 넘는 정점 ${num(bad)} 개`,
-      "└ 정점 7 은 목표로 가는 간선이 하나도 없어 실제 최소 비용이 ∞ 다",
-    ].join("\n");
-  },
-
-  /** `deep.walk.step` 1 — 시작값. */
-  "walk-init": () => {
-    const first = WALK_STEPS[0] as Step;
-    const adj: string[][] = Array.from({ length: WALK_N }, (_, u) => [
-      num(u),
-      WALK.filter(([a]) => a === u)
-        .map(([, v, w]) => `${v}(${w})`)
-        .join(" ") || "—",
-    ]);
-    return [
-      table(["정점", "나가는 간선 (도착:가중치)"], adj, ["r", "l"]),
-      "",
-      table(
-        ["무엇", "값"],
-        [
-          ["비용 배열", first.cost],
-          ["큐 (정점:키)", first.open],
-        ],
-        ["l", "l"],
-      ),
-      "",
-      `시작 정점의 키는 비용 0 에 추정 ${num(walkH(WALK_SRC))}${을를(num(walkH(WALK_SRC)))} 더한 ${num(walkH(WALK_SRC))}${josa(num(walkH(WALK_SRC)), "이다", "다")}`,
-      "└ 나머지 정점의 비용은 아직 ∞ 이고 큐에는 항목이 하나뿐이다",
-    ].join("\n");
-  },
-
-  /** `deep.walk.step` 2 — 키가 순서를 정하는 자리. */
-  "walk-key": () => {
-    const out = [1, 2, 7].map((v) => {
-      const w = (WALK.find(([a, b]) => a === 0 && b === v) as Edge)[2];
-      return { v, w, h: walkH(v), f: w + walkH(v) };
-    });
-    const rows = out.map((r) => [
-      num(r.v),
-      num(r.w),
-      num(r.w),
-      num(r.h),
-      num(r.f),
-    ]);
-    const byCost = [...out].sort(
-      (a, b) => a.w - b.w,
-    )[0] as (typeof out)[number];
-    const byKey = [...out].sort((a, b) => a.f - b.f)[0] as (typeof out)[number];
-    const far = out.find((r) => r.v === 7) as (typeof out)[number];
-    const near = out.find((r) => r.v === 2) as (typeof out)[number];
-    return [
-      table(
-        ["정점", "간선 가중치", "지금까지의 비용", "남은 비용의 추정", "키"],
-        rows,
-        ["r", "r", "r", "r", "r"],
-      ),
-      "",
-      `비용이 가장 작은 것은 정점 ${byCost.v} (비용 ${num(byCost.w)}) 이고, 키가 가장 작은 것은 정점 ${byKey.v} (키 ${num(byKey.f)}) 다`,
-      `└ 정점 7 과 정점 2 는 비용 차이가 ${num(far.w - near.w)} 인데 키 차이는 ${num(far.f - near.f)} 다 — 추정이 그만큼 벌린 것이다`,
-    ].join("\n");
-  },
-
-  /** `deep.walk.step` 3 — 값이 줄어 같은 정점 짜리 항목이 둘이 되는 자리. */
-  "walk-relax": () => {
-    const rows = WALK_STEPS.slice(2, 5).map((s) => [
-      s.t,
-      s.pop,
-      s.key,
-      s.what,
-      s.cost,
-      s.open,
-    ]);
-    return [
-      table(
-        ["걸음", "꺼낸 정점", "키", "무엇", "비용 배열", "큐 (정점:키)"],
-        rows,
-        ["l", "r", "r", "l", "l", "l"],
-      ),
-      "",
-      "T5 에서 정점 3 의 비용이 11 에서 8 로 줄고 키 11 짜리 항목이 큐에 더 들어간다",
-      "└ 먼저 들어가 있던 키 14 짜리 항목은 지우지 않는다. 이진 힙에는 가운데 항목을 지우는 연산이 없다",
-    ].join("\n");
-  },
-
-  /** `deep.walk.step` 4 — 아홉 걸음 전부. */
-  "walk-trace": () => {
-    const rows = WALK_STEPS.map((s) => [
-      s.t,
-      s.pop,
-      s.key,
-      s.what,
-      s.cost,
-      s.open,
-    ]);
-    return [
-      table(
-        ["걸음", "꺼낸 정점", "키", "무엇", "비용 배열", "큐 (정점:키)"],
-        rows,
-        ["l", "r", "r", "l", "l", "l"],
-      ),
-      "",
-      `걸음 ${num(WALK_STEPS.length)} · 확장한 정점 ${num(WALK_COUNT.expands)} · 버린 뒤처진 기록 ${num(WALK_COUNT.stale)} · 답 ${num(WALK_COUNT.answer)}`,
-      "└ 비용 배열은 정점 0 부터 7 까지 차례로 적은 것이다",
-      `└ 정점 7 짜리 항목은 키 18 로 큐에 남은 채 끝난다 — 한 번도 안 꺼낸다`,
-    ].join("\n");
-  },
-
-  /** `deep.walk.pause` — 목표의 값을 줄인 자리에서 바로 반환하는 판. */
-  "pause-early": () => {
-    const want = earlyReturn.aStarSearch(
-      DETOUR_CASE.n,
-      DETOUR_CASE.edges,
-      DETOUR_CASE.src,
-      DETOUR_CASE.goal,
-      DETOUR_CASE.h,
-    );
-    const got = aStarSearch(
-      DETOUR_CASE.n,
-      DETOUR_CASE.edges,
-      DETOUR_CASE.src,
-      DETOUR_CASE.goal,
-      DETOUR_CASE.h,
-    );
-    return [
-      contrast(
-        [DETOUR_CASE, WALK_CASE, CHAIN_CASE, GRID_CASE, NARROW_CASE],
-        earlyReturn,
-        "줄이자마자 반환하는 판",
-      ),
-      "",
-      "목표의 값을 처음 줄인 그 순간의 값은 그 시점까지 찾은 것 중 가장 작은 값일 뿐이다",
-      `└ 돌아가는 경로가 더 작은 배치에서 ${num(want)} 과 ${num(got)}${으로(num(got))} 갈린다`,
-      "└ 나머지 배치는 목표를 처음 줄인 값이 마침 최소라 답이 그대로다",
-    ].join("\n");
-  },
-
-  /** `deep.walk.pause` — 뒤처진 기록을 버리는 줄이 없는 판. 답은 안 바뀐다. */
-  "pause-stale": () => {
-    return [
-      contrast(
-        [WALK_CASE, WALK_BROKEN, DETOUR_CASE, CHAIN_CASE, GRID_CASE],
-        noStale,
-        "버리는 줄이 없는 판",
-      ),
-      "",
-      "뒤처진 기록에서 뻗어 나가는 비용은 지금 적힌 값에서 뻗어 나가는 비용보다 크다",
-      "└ 그래서 그 항목을 확장해도 값이 줄어드는 정점이 하나도 없다",
-    ].join("\n");
-  },
-
-  /** `deep.walk.pause` — 그 판이 얼마나 더 일하는가. 판정 낱말을 쓰지 않는다. */
-  "pause-stale-work": () => {
-    const G16 = grid(16);
-    const D = denseDag(128);
-    const cases: Case[] = [
-      WALK_CASE,
-      WALK_BROKEN,
-      {
-        label: "격자 16×16 · 추정 30%",
-        n: G16.n,
-        edges: G16.edges,
-        src: 0,
-        goal: G16.goal,
-        h: patchy(G16.man, 30),
-      },
-      {
-        label: "완전 DAG 128 · 추정이 정확",
-        n: D.n,
-        edges: D.edges,
-        src: 0,
-        goal: 127,
-        h: D.h,
-      },
-      {
-        label: "완전 DAG 128 · 추정이 전부 0",
-        n: D.n,
-        edges: D.edges,
-        src: 0,
-        goal: 127,
-        h: zeroH,
-      },
-    ];
-    const got = cases.map((c) => {
-      const keep = measure(c.n, c.edges, c.src, c.goal, c.h);
-      const drop = noStaleRun(c);
-      return { c, keep, drop };
-    });
-    const rows = got.map((r) => [
-      r.c.label,
-      num(r.keep.stale),
-      num(r.keep.expands),
-      num(r.drop.expands),
-      num(r.drop.expands - r.keep.expands),
-    ]);
-    const worst = got.reduce((a, b) =>
-      b.drop.expands - b.keep.expands > a.drop.expands - a.keep.expands ? b : a,
-    );
-    return [
-      table(
-        [
-          "배치",
-          "정본이 버린 항목",
-          "정본이 확장한 정점 수",
-          "버리는 줄이 없는 판",
-          "늘어난 만큼",
-        ],
-        rows,
-        ["l", "r", "r", "r", "r"],
-      ),
-      "",
-      "버리는 줄은 답을 지키지 않고 헛일을 줄인다",
-      `└ 가장 많이 늘어난 배치는 「${worst.c.label}」 이고 ${num(worst.drop.expands - worst.keep.expands)} 번 더 확장한다`,
-    ].join("\n");
-  },
-
-  /** `deep.walk.pause` — 확장을 마친 정점을 다시 안 고치는 판. */
-  "pause-closed": () => {
-    const cases = [WALK_BROKEN, WALK_CASE, WALK_ZERO, CHAIN_CASE, GRID_CASE];
-    const want = aStarSearch(
-      WALK_BROKEN.n,
-      WALK_BROKEN.edges,
-      WALK_BROKEN.src,
-      WALK_BROKEN.goal,
-      WALK_BROKEN.h,
-    );
-    const got = noReopen.aStarSearch(
-      WALK_BROKEN.n,
-      WALK_BROKEN.edges,
-      WALK_BROKEN.src,
-      WALK_BROKEN.goal,
-      WALK_BROKEN.h,
-    );
-    const same = cases.length - 1;
-    return [
-      contrast(cases, noReopen, "다시 안 고치는 판"),
-      "",
-      `일관성이 깨진 추정에서만 답이 갈린다 — ${num(want)}${이가(num(want))} 나와야 하는 자리에서 ${num(got)}${이가(num(got))} 나온다`,
-      `└ 나머지 배치 ${num(same)} 개는 추정이 일관적이라 어느 정점도 두 번 확장되지 않는다. 막을 것이 없다`,
-    ].join("\n");
-  },
-
-  /** `related` — 키를 셋으로 바꾸면 어떻게 갈리는가. */
-  "related-keys": () => {
-    const G = grid(16);
-    const cases: [string, Case][] = [
-      ["전개 입력", WALK_CASE],
-      [
-        "격자 16×16",
-        {
-          label: "격자 16×16",
-          n: G.n,
-          edges: G.edges,
-          src: 0,
-          goal: G.goal,
-          h: G.man,
-        },
-      ],
-    ];
-    const rows: string[][] = [];
-    const wrong: string[] = [];
-    for (const [name, c] of cases) {
-      const onlyG = measure(c.n, c.edges, c.src, c.goal, zeroH);
-      const both = measure(c.n, c.edges, c.src, c.goal, c.h);
-      const onlyH = greedy(c);
-      rows.push([
-        name,
-        "지금까지의 비용",
-        num(onlyG.answer),
-        num(onlyG.expands),
-      ]);
-      rows.push([
-        name,
-        "남은 비용의 추정",
-        num(onlyH.answer),
-        num(onlyH.expands),
-      ]);
-      rows.push([name, "둘의 합", num(both.answer), num(both.expands)]);
-      if (onlyH.answer !== both.answer) {
-        wrong.push(
-          `${name} 에서 ${num(both.answer)} 대신 ${num(onlyH.answer)}`,
-        );
-      }
-    }
-    return [
-      table(["배치", "키", "답", "확장한 정점 수"], rows, ["l", "l", "r", "r"]),
-      "",
-      "세 키가 같은 절차의 같은 자리에 들어간다. 갈리는 것은 답과 확장한 정점 수다",
-      `└ 키를 남은 비용의 추정 하나로 두면 답이 최소가 아닌 자리가 나온다 — ${wrong.join(" · ")}`,
-      "└ 지금까지의 비용을 함께 세는 것이 최소를 지키는 자리다",
-    ].join("\n");
-  },
-
-  /** `deep.math` — 일관성 정의를 전개 입력의 간선마다 검산한다. */
-  "math-consistent": () => {
-    const rows = WALK.map(([u, v, w]) => [
-      `${u}→${v}`,
-      num(w),
-      num(walkH(u)),
-      num(walkH(v)),
-      num(w + walkH(v)),
-      walkH(u) <= w + walkH(v) ? "성립한다" : "성립하지 않는다",
-    ]);
-    const brokenRows = WALK.map(([u, v, w]) => [
-      `${u}→${v}`,
-      num(w),
-      num(brokenH(u)),
-      num(brokenH(v)),
-      num(w + brokenH(v)),
-      brokenH(u) <= w + brokenH(v) ? "성립한다" : "성립하지 않는다",
-    ]);
-    const bad = brokenRows.filter((r) => r[5] === "성립하지 않는다").length;
-    return [
-      table(
-        ["간선", "w", "h(u)", "h(v)", "w + h(v)", "h(u) ≤ w + h(v)"],
-        rows,
-        ["l", "r", "r", "r", "r", "l"],
-      ),
-      "",
-      table(
-        ["간선", "w", "h(u)", "h(v)", "w + h(v)", "h(u) ≤ w + h(v)"],
-        brokenRows,
-        ["l", "r", "r", "r", "r", "l"],
-      ),
-      "",
-      `위는 맨해튼 거리이고 아래는 일관성이 깨진 추정이다. 아래에서 어긋나는 간선이 ${num(bad)} 개다`,
-      "└ 두 추정 다 허용 가능하다. 일관성은 허용 가능성보다 강한 조건이다",
-    ].join("\n");
-  },
-
-  /** `deep.math` — 잠재 함수로 다시 매긴 가중치와 경로 비용의 이동. */
-  "math-reweight": () => {
-    const rows = WALK.map(([u, v, w]) => [
-      `${u}→${v}`,
-      num(w),
-      num(walkH(u)),
-      num(walkH(v)),
-      num(w - walkH(u) + walkH(v)),
-    ]);
-    const path = [0, 1, 4, 3, 5, 6];
-    let raw = 0;
-    let shifted = 0;
-    for (let i = 0; i + 1 < path.length; i++) {
-      const a = path[i] as number;
-      const b = path[i + 1] as number;
-      const w = (WALK.find(([x, y]) => x === a && y === b) as Edge)[2];
-      raw += w;
-      shifted += w - walkH(a) + walkH(b);
-    }
-    return [
-      table(["간선", "w", "h(u)", "h(v)", "w − h(u) + h(v)"], rows, [
-        "l",
-        "r",
-        "r",
-        "r",
-        "r",
-      ]),
-      "",
-      table(
-        ["무엇", "값"],
-        [
-          ["경로", path.join(" → ")],
-          ["원래 비용의 합", num(raw)],
-          ["다시 매긴 비용의 합", num(shifted)],
-          ["h(시작) − h(목표)", num(walkH(WALK_SRC) - walkH(WALK_GOAL))],
-        ],
-        ["l", "l"],
-      ),
-      "",
-      "다시 매긴 가중치는 하나도 음수가 아니다 — 그것이 곧 일관성이다",
-      `└ 두 비용의 차이가 ${num(raw - shifted)} 이고 그것이 h(시작) − h(목표) 와 같다`,
-      "└ 시작과 목표가 같은 경로끼리는 전부 같은 값만큼 옮겨지므로 어느 것이 가장 작은지는 안 바뀐다",
-    ].join("\n");
-  },
-
-  /** `deep.math` — 확장되는 정점을 식으로 예측하고 실측과 대조한다. */
-  "math-expand": () => {
-    const cases: [string, Case][] = [
-      ["전개 입력", WALK_CASE],
-      ["격자 8×8", GRID_CASE],
-      ["사슬 여섯", CHAIN_CASE],
-    ];
-    let broken = 0;
-    const rows = cases.map(([name, c]) => {
-      const got = measure(c.n, c.edges, c.src, c.goal, c.h);
-      const from = fromDist(c.n, c.edges, c.src);
-      const answer = got.answer;
-      let below = 0;
-      let atMost = 0;
-      let expanded = 0;
-      for (let v = 0; v < c.n; v++) {
-        const f = (from[v] as number) + c.h(v);
-        if (f < answer) below++;
-        if (f <= answer) atMost++;
-        if (got.expanded[v]) expanded++;
-      }
-      if (below > expanded || expanded > atMost) broken++;
-      return [
-        name,
-        num(c.n),
-        num(answer),
-        num(below),
-        num(expanded),
-        num(atMost),
-        below <= expanded && expanded <= atMost
-          ? "성립한다"
-          : "성립하지 않는다",
-      ];
-    });
-    return [
-      table(
-        [
-          "배치",
-          "정점",
-          "답",
-          "f < 답",
-          "확장한 정점",
-          "f ≤ 답",
-          "가운데가 사이에 드는가",
-        ],
-        rows,
-        ["l", "r", "r", "r", "r", "r", "l"],
-      ),
-      "",
-      `배치 ${num(rows.length)} 개 모두 확장한 정점 수가 「f < 답」인 정점 수와 「f ≤ 답」인 정점 수 사이에 든다 — 벗어난 배치 ${num(broken)} 개`,
-      "└ f 는 시작에서 그 정점까지의 실제 최소 비용에 그 정점의 추정을 더한 값이다",
-      "└ 격자는 가중치가 전부 1 이라 f 가 답과 같은 정점이 많고, 그래서 첫 열이 0 이고 셋째 열이 정점 전부다",
-    ].join("\n");
-  },
-
-  /** `deep.math` — 제약 규모에서의 값. */
-  "math-scale": () => {
-    const V = 100_000;
-    const E = 200_000;
-    const log = Math.ceil(Math.log2(E + 1));
-    const rows = [
-      ["확장한 정점 수", "V", num(V)],
-      ["큐에 들어가는 항목 수", "E + 1", num(E + 1)],
-      ["완화해 보는 간선 수", "E", num(E)],
-      ["추정 함수 호출 수", "E + 1", num(E + 1)],
-      ["항목 하나를 넣고 빼는 견주기", "3⌈log₂(E+1)⌉", num(3 * log)],
-      ["힙 견주기 전부", "3(E+1)⌈log₂(E+1)⌉", num(3 * (E + 1) * log)],
-    ];
-    return [
-      table(["무엇", "닫힌 형태", "상한"], rows, ["l", "l", "r"]),
-      "",
-      `제약의 정점 수 ${num(V)} · 간선 수 ${num(E)}${을를(num(E))} 넣은 값이고, 추정이 일관적일 때의 상한이다`,
-      "└ 추정이 걸러 내는 만큼 실제 값은 이보다 작아지고, 걸러 내지 못하면 상한이 그대로 값이 된다",
-      "└ 일관성이 없으면 첫 줄이 V 로 안 막히고, 그러면 아래 다섯 줄의 상한도 함께 풀린다",
-    ].join("\n");
-  },
-
-  /** `invariant` — 걸음마다 꺼낸 키가 답을 넘는지 실행이 판정한다. */
-  "invariant-steps": () => {
-    const G8 = grid(8);
-    const G16 = grid(16);
-    const cases: Case[] = [
-      WALK_CASE,
-      WALK_ZERO,
-      WALK_BROKEN,
-      DETOUR_CASE,
-      CHAIN_CASE,
-      {
-        label: "격자 8×8",
-        n: G8.n,
-        edges: G8.edges,
-        src: 0,
-        goal: G8.goal,
-        h: G8.man,
-      },
-      {
-        label: "격자 16×16 · 추정 30%",
-        n: G16.n,
-        edges: G16.edges,
-        src: 0,
-        goal: G16.goal,
-        h: patchy(G16.man, 30),
-      },
-    ];
-    let bad = 0;
-    const rows = cases.map((c) => {
-      const got = measure(c.n, c.edges, c.src, c.goal, c.h);
-      bad += got.offKey;
-      return [
-        c.label,
-        num(got.pops),
-        num(got.answer),
-        num(got.maxKey),
-        num(got.offKey),
-      ];
-    });
-    return [
-      table(
-        ["배치", "꺼낸 항목 수", "답", "가장 큰 키", "답을 넘은 걸음 수"],
-        rows,
-        ["l", "r", "r", "r", "r"],
-      ),
-      "",
-      `배치 ${num(rows.length)} 개를 걸음마다 견줘 답을 넘은 걸음이 ${num(bad)} 개다`,
-      "└ 가장 큰 키는 어느 배치에서도 답과 같다 — 그 걸음이 목표를 꺼내는 마지막 걸음이다",
-      "└ 실행이 걸음마다 견준 결과다. 어긋난 걸음이 있으면 마지막 열이 0 이 아니다",
-    ].join("\n");
-  },
-
-  /** `invariant` — 엣지 케이스. */
-  "invariant-edges": () => {
-    const cases: Case[] = [
-      {
-        label: "정점 하나 · 시작이 곧 목표",
-        n: 1,
-        edges: [],
-        src: 0,
-        goal: 0,
-        h: zeroH,
-      },
-      {
-        label: "간선이 없고 목표가 다르다",
-        n: 2,
-        edges: [],
-        src: 0,
-        goal: 1,
-        h: zeroH,
-      },
-      {
-        label: "목표로 가는 간선이 없다",
-        n: 3,
-        edges: [[0, 1, 1]],
-        src: 0,
-        goal: 2,
-        h: zeroH,
-      },
-      {
-        label: "가중치가 전부 0",
-        n: 3,
-        edges: [
-          [0, 1, 0],
-          [1, 2, 0],
-        ],
-        src: 0,
-        goal: 2,
-        h: zeroH,
-      },
-      {
-        label: "같은 두 정점 사이에 간선 셋",
-        n: 2,
-        edges: [
-          [0, 1, 10],
-          [0, 1, 3],
-          [0, 1, 7],
-        ],
-        src: 0,
-        goal: 1,
-        h: zeroH,
-      },
-      {
-        label: "가중치가 10^9",
-        n: 3,
-        edges: [
-          [0, 1, 1_000_000_000],
-          [1, 2, 1_000_000_000],
-        ],
-        src: 0,
-        goal: 2,
-        h: zeroH,
-      },
-      {
-        label: "자기 자신으로 가는 간선",
-        n: 2,
-        edges: [
-          [0, 0, 5],
-          [0, 1, 2],
-        ],
-        src: 0,
-        goal: 1,
-        h: zeroH,
-      },
-      WALK_BROKEN,
-    ];
-    const rows = cases.map((c) => {
-      const got = measure(c.n, c.edges, c.src, c.goal, c.h);
-      const zero = aStarSearch(c.n, c.edges, c.src, c.goal, zeroH);
-      return [
-        c.label,
-        num(c.n),
-        num(got.answer),
-        num(zero),
-        got.answer === zero ? "같다" : "어긋난다",
-      ];
-    });
-    return [
-      table(["배치", "정점", "답", "추정을 0 으로 둔 답", "대조"], rows, [
-        "l",
-        "r",
-        "r",
-        "r",
-        "l",
-      ]),
-      "",
-      `배치 ${num(rows.length)} 개 모두 추정을 0 으로 바꿔도 답이 같다`,
-      "└ 시작이 곧 목표면 큐에서 꺼내는 첫 항목이 목표라 0 이 그대로 나온다",
-    ].join("\n");
-  },
-
-  /** `invariant` ③ — 추정을 두 배로 부풀린 판. */
-  "mutant-inflate": () => {
-    const rows = [
-      NARROW_CASE,
-      WALK_CASE,
-      DETOUR_CASE,
-      CHAIN_CASE,
-      GRID_CASE,
-    ].map((c) => {
-      const want = aStarSearch(c.n, c.edges, c.src, c.goal, c.h);
-      const got = inflated.aStarSearch(c.n, c.edges, c.src, c.goal, c.h);
-      return [
-        c.label,
-        num(c.n),
-        num(want),
-        num(got),
-        want === got ? "같다" : "어긋난다",
-      ];
-    });
-    const keyRows = [NARROW_CASE, WALK_CASE, GRID_CASE].map((c) => {
-      const plain = measure(c.n, c.edges, c.src, c.goal, c.h);
-      const twice = inflatedRun(c);
-      return [
-        c.label,
-        num(plain.maxKey),
-        num(twice.maxKey),
-        num(plain.answer),
-        num(twice.offKey),
-      ];
-    });
-    const want = aStarSearch(
-      NARROW_CASE.n,
-      NARROW_CASE.edges,
-      NARROW_CASE.src,
-      NARROW_CASE.goal,
-      NARROW_CASE.h,
-    );
-    const got = inflated.aStarSearch(
-      NARROW_CASE.n,
-      NARROW_CASE.edges,
-      NARROW_CASE.src,
-      NARROW_CASE.goal,
-      NARROW_CASE.h,
-    );
-    return [
-      table(["배치", "정점", "정본", "두 배로 부풀린 판", "대조"], rows, [
-        "l",
-        "r",
-        "r",
-        "r",
-        "l",
-      ]),
-      "",
-      table(
-        [
-          "배치",
-          "정본의 가장 큰 키",
-          "부풀린 판의 가장 큰 키",
-          "답",
-          "부풀린 판에서 답을 넘은 걸음",
-        ],
-        keyRows,
-        ["l", "r", "r", "r", "r"],
-      ),
-      "",
-      "두 배로 부풀리면 꺼낸 키가 답을 넘어서고, 그 걸음이 목표를 앞당겨 꺼내게 만든다",
-      `└ 두 경로의 비용 차이가 1 인 배치에서 ${num(want)}${이가(num(want))} 나와야 하는 자리에 ${num(got)}${이가(num(got))} 나온다`,
-    ].join("\n");
-  },
-
-  /** `perf.derive` — 전개 입력의 계수. */
-  "perf-count": () => {
-    const rows = [
-      ["꺼낸 항목 수", num(WALK_COUNT.pops)],
-      ["확장한 정점 수", num(WALK_COUNT.expands)],
-      ["버린 뒤처진 기록", num(WALK_COUNT.stale)],
-      ["큐에 넣은 항목 수", num(WALK_COUNT.pushes)],
-      ["완화해 본 간선 수", num(WALK_COUNT.relaxes)],
-      ["추정 함수 호출 수", num(WALK_COUNT.hcalls)],
-      ["큐의 최대 항목 수", num(WALK_COUNT.peak)],
-    ];
-    return [
-      table(["무엇", "값"], rows, ["l", "r"]),
-      "",
-      `전개 입력 정점 ${num(WALK_N)} · 간선 ${num(WALK.length)} 에서 잰 값이다`,
-      `└ 큐에 넣은 항목 수와 추정 함수 호출 수가 ${num(WALK_COUNT.pushes)} 로 같다 — 항목을 넣을 때마다 한 번씩 부른다`,
-      `└ 꺼낸 항목 ${num(WALK_COUNT.pops)} 개 가운데 ${num(WALK_COUNT.stale)} 개가 뒤처진 기록이고 ${num(WALK_COUNT.expands)} 개가 확장으로 갔다`,
-    ].join("\n");
-  },
-
-  /** `perf.derive` — 격자를 키우며 계수가 어떻게 자라는가. */
-  "perf-growth": () => {
-    const sides = [8, 16, 32, 64];
-    const got = sides.map((k) => {
-      const G = grid(k);
-      const c = measure(G.n, G.edges, 0, G.goal, G.man);
-      return { k, n: G.n, e: G.edges.length, c };
-    });
-    const rows = got.map((r) => [
-      `${num(r.k)}×${num(r.k)}`,
-      num(r.n),
-      num(r.e),
-      num(r.c.pushes),
-      num(r.c.relaxes),
-      num(r.c.peak),
-    ]);
-    const grow = got.slice(1).map((r, at) => {
-      const prev = got[at] as (typeof got)[number];
-      return [
-        `${num(prev.k)} → ${num(r.k)}`,
-        (r.n / prev.n).toFixed(2),
-        (r.c.pushes / prev.c.pushes).toFixed(2),
-        (r.c.relaxes / prev.c.relaxes).toFixed(2),
-      ];
-    });
-    return [
-      table(
-        ["격자", "정점", "간선", "넣은 항목", "완화 시도", "큐 최대"],
-        rows,
-        ["l", "r", "r", "r", "r", "r"],
-      ),
-      "",
-      table(
-        [
-          "한 변을 2 배로",
-          "정점 성장률",
-          "넣은 항목 성장률",
-          "완화 시도 성장률",
-        ],
-        grow,
-        ["l", "r", "r", "r"],
-      ),
-      "",
-      "추정이 정확한 격자에서는 정점이 4 배가 되어도 넣은 항목은 2 배 언저리로만 늘어난다",
-      "└ 확장이 시작과 목표를 잇는 좁은 띠에 머물기 때문이다",
-    ].join("\n");
-  },
-
-  /** `perf.worst` — 모양마다 무엇이 가장 커지는가. */
-  "worst-shape": () => {
-    const SIZE = 256;
-    const G = grid(16);
-    const C = chain(SIZE);
-    const S = star(SIZE);
-    const D = denseDag(SIZE);
-    const cases: Case[] = [
-      {
-        label: "격자 16×16 · 추정이 정확",
-        n: G.n,
-        edges: G.edges,
-        src: 0,
-        goal: G.goal,
-        h: G.man,
-      },
-      {
-        label: "격자 16×16 · 추정이 전부 0",
-        n: G.n,
-        edges: G.edges,
-        src: 0,
-        goal: G.goal,
-        h: zeroH,
-      },
-      {
-        label: "격자 16×16 · 추정 30%",
-        n: G.n,
-        edges: G.edges,
-        src: 0,
-        goal: G.goal,
-        h: patchy(G.man, 30),
-      },
-      {
-        label: "사슬 256 · 추정이 정확",
-        n: C.n,
-        edges: C.edges,
-        src: 0,
-        goal: SIZE - 1,
-        h: C.h,
-      },
-      {
-        label: "별 256 · 추정이 정확",
-        n: S.n,
-        edges: S.edges,
-        src: 0,
-        goal: SIZE - 1,
-        h: S.h,
-      },
-      {
-        label: "완전 DAG 256 · 추정이 정확",
-        n: D.n,
-        edges: D.edges,
-        src: 0,
-        goal: SIZE - 1,
-        h: D.h,
-      },
-    ];
-    const got = cases.map((c) => ({
-      c,
-      count: measure(c.n, c.edges, c.src, c.goal, c.h),
-    }));
-    const rows = got.map((r) => [
-      r.c.label,
-      num(r.c.edges.length),
-      num(r.count.expands),
-      num(r.count.reexpands),
-      num(r.count.pushes),
-      num(r.count.peak),
-    ]);
-    const worst = got.reduce((a, b) =>
-      b.count.expands > a.count.expands ? b : a,
-    );
-    const most = got.reduce((a, b) => (b.count.peak > a.count.peak ? b : a));
-    const pushy = got.reduce((a, b) =>
-      b.count.pushes > a.count.pushes ? b : a,
-    );
-    return [
-      table(
-        ["배치", "간선", "확장", "그중 재확장", "넣은 항목", "큐 최대"],
-        rows,
-        ["l", "r", "r", "r", "r", "r"],
-      ),
-      "",
-      `정점 수가 ${num(SIZE)} 로 같은 모양 ${num(rows.length)} 개다. 확장이 가장 많은 것은 「${worst.c.label}」 이고 ${num(worst.count.expands)} 개다`,
-      `└ 그 확장 수가 정점 수 ${num(SIZE)} 보다 크다 — 같은 정점을 ${num(worst.count.reexpands)} 번 다시 확장한다`,
-      `└ 넣은 항목이 가장 많은 것은 「${pushy.c.label}」 이고 ${num(pushy.count.pushes)} 개다 — 간선 수 ${num(pushy.c.edges.length)} 에 1 을 더한 값이다`,
-      `└ 큐가 가장 커지는 것은 「${most.c.label}」 이고 ${num(most.count.peak)} 개다. 셋이 서로 다른 배치다`,
-    ].join("\n");
-  },
-
-  /** `perf.worst` — 재확장이 규모에 따라 어떻게 자라는가. */
-  "worst-reopen": () => {
-    const sides = [8, 16, 32, 64];
-    const got = sides.map((k) => {
-      const G = grid(k);
-      let worst = { p: -1, expands: 0, re: 0 };
-      for (const p of RATIOS) {
-        const c = measure(G.n, G.edges, 0, G.goal, patchy(G.man, p));
-        if (c.expands > worst.expands)
-          worst = { p, expands: c.expands, re: c.reexpands };
-      }
-      return { k, n: G.n, worst };
-    });
-    const rows = got.map((r) => [
-      `${num(r.k)}×${num(r.k)}`,
-      num(r.n),
-      `${num(r.worst.p)}%`,
-      num(r.worst.expands),
-      num(r.worst.re),
-      (r.worst.expands / r.n).toFixed(2),
-    ]);
-    const top = got.reduce((a, b) =>
-      b.worst.expands / b.n > a.worst.expands / a.n ? b : a,
-    );
-    const over = got.filter((r) => r.worst.expands > r.n).length;
-    return [
-      table(
-        [
-          "격자",
-          "정점",
-          "가장 나쁜 비율",
-          "확장",
-          "그중 재확장",
-          "확장 ÷ 정점",
-        ],
-        rows,
-        ["l", "r", "r", "r", "r", "r"],
-      ),
-      "",
-      `${num(RATIOS.length)} 개 비율에서 재고 가장 나쁜 자리를 골랐다. 마지막 열이 1 을 넘는 규모가 ${num(over)} 개다`,
-      `└ 가장 큰 자리는 ${num(top.k)}×${num(top.k)} 격자의 ${(top.worst.expands / top.n).toFixed(2)} 다 — 규모에 따라 오르내린다`,
-      "└ 정점마다 확장이 한 번이라는 보장은 추정이 일관적일 때만 성립한다",
-    ].join("\n");
-  },
-};
-
-/* ────────────────────────── 보조 ────────────────────────── */
-
-/** 단순 경로의 수를 센다. 전개 입력은 작아서 전부 세어도 끝난다. */
+/** 단순 경로의 수를 센다. 작은 입력은 전부 세어도 끝난다. */
 function countPaths(
   n: number,
   edges: Edge[],
@@ -1779,53 +855,1573 @@ function countPaths(
   for (const [u, v] of edges) (adj[u] as number[]).push(v);
   const seen = Array.from({ length: n }, () => false);
   let total = 0;
-  const walk = (u: number): void => {
+  const go = (u: number): void => {
     if (u === goal) {
       total++;
       return;
     }
     seen[u] = true;
-    for (const v of adj[u] as number[]) if (!seen[v]) walk(v);
+    for (const v of adj[u] as number[]) if (!seen[v]) go(v);
     seen[u] = false;
   };
-  walk(src);
+  go(src);
   return total;
 }
 
-/**
- * 뒤처진 기록을 버리지 않는 판의 계수.
- *
- * 변이 모듈은 답만 돌려주므로 계수는 같은 절차의 계측본으로 잰다. **중화 실행이 아닐 때는
- * 변이가 낸 답과 대조해** 계측본이 그 판을 실제로 흉내내는지 확인한다.
- */
-function noStaleRun(c: Case): Counted {
-  const got = walkRun(c.n, c.edges, c.src, c.goal, c.h, null, {
-    noStale: true,
-  });
-  if (
-    !중화됨 &&
-    got.answer !== noStale.aStarSearch(c.n, c.edges, c.src, c.goal, c.h)
-  ) {
-    throw new Error("계측본이 변이와 다른 답을 냈다");
+/** 완전 그래프 여섯에서 실제로 세어 식과 맞댄다 — 식이 틀리면 표 전체가 거짓이다. */
+for (const v of [3, 4, 5, 6, 7]) {
+  const edges: Edge[] = [];
+  for (let a = 0; a < v; a++) {
+    for (let b = 0; b < v; b++) if (a !== b) edges.push([a, b, 1]);
   }
-  return got;
+  if (countPaths(v, edges, 0, v - 1) !== completePaths(v)) {
+    throw new Error(`완전 그래프 ${v} 의 경로 수가 식과 다르다`);
+  }
 }
 
-/** 추정을 두 배로 부풀린 판의 계수. 같은 자리에서 변이와 답을 대조한다. */
-function inflatedRun(c: Case): Counted {
-  const got = walkRun(c.n, c.edges, c.src, c.goal, c.h, null, {
-    inflate: true,
-  });
-  if (
-    !중화됨 &&
-    got.answer !== inflated.aStarSearch(c.n, c.edges, c.src, c.goal, c.h)
-  ) {
-    throw new Error("계측본이 변이와 다른 답을 냈다");
-  }
-  return got;
+const PER_SEC = 100_000_000;
+const sec = (ops: number): string => `${comma(Math.round(ops / PER_SEC))} 초`;
+
+/** 규모의 상한에 드는 가장 큰 격자에서 두 키를 잰 값. */
+const BIG = (() => {
+  const G = grid(BIG_SIDE);
+  return {
+    side: BIG_SIDE,
+    n: G.n,
+    e: G.edges.length,
+    withH: measure(G.n, G.edges, 0, G.goal, G.man),
+    zero: measure(G.n, G.edges, 0, G.goal, zeroH),
+  };
+})();
+
+const GRID16 = gridCase(16, "격자 16×16");
+
+/** 「아이디어를 떠올리는 과정」의 시도 넷이 쓰는 수. 그림 사이드카가 이것을 받는다. */
+export function originNumbers() {
+  const greedyWalk = greedy(WALK_CASE);
+  return {
+    bruteV: 15,
+    brutePaths: completePaths(15),
+    bruteSec: sec(completePaths(15)),
+    bigSide: BIG.side,
+    bigN: BIG.n,
+    bigE: BIG.e,
+    zeroExpands: BIG.zero.expands,
+    withExpands: BIG.withH.expands,
+    greedyAnswer: greedyWalk.answer,
+    walkAnswer: WALK_ANSWER,
+    vLimit: V_LIMIT,
+    eLimit: E_LIMIT,
+  };
 }
 
-/** 키를 남은 비용의 추정 하나로 둔 판. 변이가 아니라 다른 설계라 대조할 상대가 없다. */
-function greedy(c: Case): Counted {
-  return walkRun(c.n, c.edges, c.src, c.goal, c.h, null, { keyOnlyH: true });
+/** 격자 한 변 `k` 에서 두 판이 확장한 정점과 그 차례. 그림 사이드카가 격자 그림에 쓴다. */
+export function gridExpansion(k: number): {
+  withH: Counted;
+  zero: Counted;
+  goal: number;
+} {
+  const G = grid(k);
+  return {
+    withH: measure(G.n, G.edges, 0, G.goal, G.man),
+    zero: measure(G.n, G.edges, 0, G.goal, zeroH),
+    goal: G.goal,
+  };
 }
+
+/* ────────────────────────── 블록 ────────────────────────── */
+
+const RATIOS = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100];
+
+/** 여러 배치에서 추정을 쓴 판과 안 쓴 판을 나란히 잰다. */
+function bothWays(cs: Case[]): string[][] {
+  return cs.map((c) => {
+    const withH = measure(c.n, c.edges, c.src, c.goal, c.h);
+    const without = measure(c.n, c.edges, c.src, c.goal, zeroH);
+    return [
+      c.label,
+      comma(c.n),
+      comma(c.edges.length),
+      num(withH.answer),
+      comma(withH.expands),
+      comma(without.expands),
+      withH.answer === without.answer ? "같다" : "어긋난다",
+    ];
+  });
+}
+
+function conceptCases(): string {
+  const C = chain(64);
+  const S = star(64);
+  const cs: Case[] = [
+    WALK_CASE,
+    { label: "사슬 64", n: C.n, edges: C.edges, src: 0, goal: 63, h: C.h },
+    { label: "별 64", n: S.n, edges: S.edges, src: 0, goal: 63, h: S.h },
+    GRID_CASE,
+    GRID16,
+  ];
+  const rows = bothWays(cs);
+  const same = rows.filter((r) => r[6] === "같다").length;
+  const gap = rows.reduce((a, r) =>
+    Number((r[5] ?? "0").replaceAll(",", "")) -
+      Number((r[4] ?? "0").replaceAll(",", "")) >
+    Number((a[5] ?? "0").replaceAll(",", "")) -
+      Number((a[4] ?? "0").replaceAll(",", ""))
+      ? r
+      : a,
+  );
+  const chainRow = rows[1] as string[];
+  return [
+    md(
+      [
+        "배치",
+        "정점",
+        "간선",
+        "답",
+        "추정을 쓴 판의 확장",
+        "추정이 0 인 판의 확장",
+        "두 답",
+      ],
+      rows,
+      [1, 2, 3, 4, 5],
+    ),
+    "",
+    `배치 ${comma(rows.length)} 개 가운데 두 판의 답이 같은 배치가 ${comma(same)} 개입니다. 확장한 정점 수의 차이가 가장 큰 배치는 ${gap[0]} 이고 ${gap[4]} 대 ${gap[5]} 입니다. 사슬 64 는 지나갈 길이 하나뿐이라 두 판 모두 ${chainRow[4]} 개를 확장합니다.`,
+  ].join("\n");
+}
+
+function conceptGrowth(): string {
+  const sides = [8, 16, 32, 64];
+  const got = sides.map((k) => {
+    const G = grid(k);
+    return {
+      k,
+      n: G.n,
+      withH: measure(G.n, G.edges, 0, G.goal, G.man).expands,
+      without: measure(G.n, G.edges, 0, G.goal, zeroH).expands,
+    };
+  });
+  const rows = got.map((r) => [
+    `${r.k}×${r.k}`,
+    comma(r.n),
+    comma(r.withH),
+    comma(r.without),
+  ]);
+  const grow = got.slice(1).map((r, at) => {
+    const prev = got[at] as (typeof got)[number];
+    return [
+      `${prev.k} → ${r.k}`,
+      (r.n / prev.n).toFixed(2),
+      (r.withH / prev.withH).toFixed(2),
+      (r.without / prev.without).toFixed(2),
+    ];
+  });
+  return [
+    md(
+      ["격자", "정점", "추정을 쓴 판의 확장", "추정이 0 인 판의 확장"],
+      rows,
+      [1, 2, 3],
+    ),
+    "",
+    "한 변을 두 배로 늘릴 때마다 몇 배가 되었는지 나누면 이렇습니다.",
+    "",
+    md(
+      ["한 변", "정점", "추정을 쓴 판의 확장", "추정이 0 인 판의 확장"],
+      grow,
+      [1, 2, 3],
+    ),
+    "",
+    `정점이 ${(got[1] as (typeof got)[number]).n / (got[0] as (typeof got)[number]).n} 배가 될 때 추정이 0 인 판의 확장은 ${grow.map((g) => g[3]).join(" · ")} 배이고, 추정을 쓴 판은 ${grow.map((g) => g[2]).join(" · ")} 배입니다.`,
+  ].join("\n");
+}
+
+function originBrute(): string {
+  const sizes = [5, 8, 10, 12, 15];
+  const rows = sizes.map((v) => {
+    const p = completePaths(v);
+    return [comma(v), comma(p), p >= PER_SEC ? sec(p) : "1 초 안"];
+  });
+  const walkPaths = countPaths(WALK_N, WALK_EDGES, WALK_SRC, WALK_GOAL);
+  const small = [3, 4, 5, 6, 7];
+  return [
+    md(["정점", "단순 경로의 수", "1 초에 1 억 개를 만들 때"], rows, [0, 1]),
+    "",
+    `정점 ${small.join(" · ")} 개인 완전 그래프 ${comma(small.length)} 개에서 경로를 하나씩 세어 식과 맞댔고, 모두 일치했습니다. 전개 입력은 간선이 ${comma(WALK_EDGES.length)} 개뿐이라 시작에서 목표까지의 경로가 ${comma(walkPaths)} 개입니다.`,
+  ].join("\n");
+}
+
+function originDijkstra(): string {
+  const far = WALK_FROM_SRC[7] as number;
+  const order = (c: Counted): string => c.order.join(" → ");
+  const rows = [
+    [
+      "비용 g",
+      order(WALK_ZERO_COUNT),
+      comma(WALK_ZERO_COUNT.expands),
+      WALK_ZERO_COUNT.expanded[7] ? "확장한다" : "안 한다",
+      num(WALK_ZERO_COUNT.answer),
+    ],
+    [
+      "비용 g + 추정 h",
+      order(WALK_COUNT),
+      comma(WALK_COUNT.expands),
+      WALK_COUNT.expanded[7] ? "확장한다" : "안 한다",
+      num(WALK_COUNT.answer),
+    ],
+  ];
+  return [
+    md(["키", "확장한 차례", "확장한 정점 수", "정점 7", "답"], rows, [2, 4]),
+    "",
+    `두 판의 답은 ${num(WALK_ANSWER)}${으로(num(WALK_ANSWER))} 같습니다. 정점 7 의 키는 비용 ${far} 에 추정 ${walkH(7)}${을를(walkH(7))} 더한 ${far + walkH(7)} 입니다.`,
+  ].join("\n");
+}
+
+function originScale(): string {
+  const cols = (c: Counted): string[] => [
+    comma(c.expands),
+    comma(c.pushes),
+    comma(basicOps(c)),
+    num(c.answer),
+  ];
+  const rows = [
+    ["비용 g", ...cols(BIG.zero)],
+    ["비용 g + 추정 h", ...cols(BIG.withH)],
+  ];
+  const ratio = basicOps(BIG.zero) / basicOps(BIG.withH);
+  return [
+    md(
+      ["키", "확장한 정점", "큐에 넣은 항목", "기본 연산", "답"],
+      rows,
+      [1, 2, 3, 4],
+    ),
+    "",
+    `격자 ${BIG.side}×${BIG.side} 는 정점 ${comma(BIG.n)} 개 · 방향 간선 ${comma(BIG.e)} 개로, 간선이 규모의 상한 ${comma(E_LIMIT)} 안에 드는 가장 큰 정사각 격자입니다. 키가 비용뿐인 판은 정점 ${comma(BIG.n)} 개 가운데 ${comma(BIG.zero.expands)} 개를 확장했고, 기본 연산이 추정을 더한 판의 ${ratio.toFixed(1)} 배입니다.`,
+  ].join("\n");
+}
+
+function originKeys(): string {
+  const cs: Case[] = [WALK_CASE, GRID16];
+  const rows: string[][] = [];
+  for (const c of cs) {
+    const onlyG = measure(c.n, c.edges, c.src, c.goal, zeroH);
+    const onlyH = greedy(c);
+    const both = measure(c.n, c.edges, c.src, c.goal, c.h);
+    const want = fromDist(c.n, c.edges, c.src)[c.goal] as number;
+    for (const [key, x] of [
+      ["비용 g", onlyG],
+      ["추정 h", onlyH],
+      ["비용 g + 추정 h", both],
+    ] as const) {
+      rows.push([
+        c.label,
+        key,
+        num(x.answer),
+        comma(x.expands),
+        x.answer === want ? "최소다" : "최소가 아니다",
+      ]);
+    }
+  }
+  const wrong = rows.filter((r) => r[4] === "최소가 아니다");
+  return [
+    md(["배치", "키", "답", "확장한 정점 수", "최소 여부"], rows, [2, 3]),
+    "",
+    `여섯 줄 가운데 답이 최소가 아닌 줄은 ${comma(wrong.length)} 개이고, 모두 키가 추정 h 하나인 줄입니다.`,
+  ].join("\n");
+}
+
+function buildAdmissible(): string {
+  const rows = Array.from({ length: WALK_N }, (_, v) => {
+    const [x, y] = WALK_XY[v] as [number, number];
+    const d = WALK_TO_GOAL[v] as number;
+    return [
+      String(v),
+      `(${x}, ${y})`,
+      String(walkH(v)),
+      num(d),
+      walkH(v) <= d ? "넘지 않는다" : "넘는다",
+    ];
+  });
+  const over = rows.filter((r) => r[4] === "넘는다").length;
+  return [
+    md(
+      [
+        "정점",
+        "좌표",
+        "추정 h(v)",
+        "실제 최소 비용 d(v, goal)",
+        "실제 값과의 비교",
+      ],
+      rows,
+      [2, 3],
+    ),
+    "",
+    `정점 ${comma(WALK_N)} 개 가운데 추정이 실제 최소 비용을 넘는 정점은 ${comma(over)} 개입니다.`,
+  ].join("\n");
+}
+
+function buildReadOne(): string {
+  const v = 4;
+  const [x, y] = WALK_XY[v] as [number, number];
+  const [gx, gy] = WALK_XY[WALK_GOAL] as [number, number];
+  const path = pathOfTo(v);
+  const costs = path.slice(1).map((b, i) => {
+    const a = path[i] as number;
+    return (WALK_EDGES.find(([p, q]) => p === a && q === b) as Edge)[2];
+  });
+  const d = WALK_TO_GOAL[v] as number;
+  const rows = [
+    ["정점의 좌표", "xy[4]", `(${x}, ${y})`],
+    ["목표의 좌표", "xy[6]", `(${gx}, ${gy})`],
+    ["추정", `\\|${gx} − ${x}\\| + \\|${gy} − ${y}\\|`, String(walkH(v))],
+    ["비용이 가장 작은 경로", arrow(path), `${costs.join(" + ")} = ${d}`],
+    [
+      "둘의 관계",
+      `${walkH(v)} ≤ ${d}`,
+      walkH(v) <= d ? "넘지 않는다" : "넘는다",
+    ],
+  ];
+  return md(["항", "보는 것", "값"], rows);
+}
+
+/** 정점 `v` 에서 목표까지 실제로 가장 싼 경로 — 뒤집은 그래프의 최단 경로를 따라간다. */
+function pathOfTo(v: number): number[] {
+  const out = [v];
+  let at = v;
+  while (at !== WALK_GOAL) {
+    const next = WALK_EDGES.find(
+      ([a, b, w]) =>
+        a === at &&
+        (WALK_TO_GOAL[b] as number) + w === (WALK_TO_GOAL[at] as number),
+    );
+    if (!next) break;
+    at = next[1];
+    out.push(at);
+  }
+  return out;
+}
+
+function buildEdge(): string {
+  const rows = WALK_EDGES.map(([u, v, w]) => {
+    const drop = walkH(u) - walkH(v);
+    return [
+      `${u}→${v}`,
+      String(w),
+      String(walkH(u)),
+      String(walkH(v)),
+      String(drop),
+      drop <= w ? "넘지 않는다" : "넘는다",
+    ];
+  });
+  const over = rows.filter((r) => r[5] === "넘는다").length;
+  const neg = rows.filter((r) => Number(r[4]) < 0).length;
+  return [
+    md(
+      [
+        "간선",
+        "가중치 w",
+        "h(u)",
+        "h(v)",
+        "줄어든 추정 h(u) − h(v)",
+        "w 와의 비교",
+      ],
+      rows,
+      [1, 2, 3, 4],
+    ),
+    "",
+    `간선 ${comma(rows.length)} 개 가운데 줄어든 추정이 가중치를 넘는 간선은 ${comma(over)} 개입니다. 줄어든 추정이 음수인 간선(목표에서 멀어지는 간선)은 ${comma(neg)} 개입니다.`,
+  ].join("\n");
+}
+
+function buildOver(): string {
+  const plain = record(WALK_N, WALK_EDGES, WALK_SRC, WALK_GOAL, walkH);
+  const over = record(WALK_N, WALK_EDGES, WALK_SRC, WALK_GOAL, overH);
+  const popped = (s: Step[]): string =>
+    s
+      .filter((x) => x.popped)
+      .map((x) => String((x.popped as Item)[0]))
+      .join(" → ");
+  const pathOver = pathOf((over.at(-1) as Step).pred, WALK_GOAL);
+  const rows = [
+    [
+      "맨해튼 거리",
+      String(walkH(OVER_AT)),
+      popped(plain),
+      arrow(WALK_PATH),
+      num(WALK_ANSWER),
+    ],
+    [
+      `정점 ${OVER_AT} 만 ${OVER_VALUE}`,
+      String(overH(OVER_AT)),
+      popped(over),
+      arrow(pathOver),
+      num(OVER_ANSWER),
+    ],
+  ];
+  const d1 = WALK_TO_GOAL[OVER_AT] as number;
+  return [
+    md(["추정", `h(${OVER_AT})`, "꺼낸 차례", "답의 경로", "답"], rows, [1, 4]),
+    "",
+    `두 추정은 정점 ${OVER_AT} 하나에서만 다르고, 정점 ${OVER_AT} 의 실제 최소 비용은 ${d1} 입니다. 정점 ${OVER_AT} 의 추정을 ${OVER_VALUE}${으로(OVER_VALUE)} 두면 답이 ${num(WALK_ANSWER)} 에서 ${num(OVER_ANSWER)}${으로(num(OVER_ANSWER))} 바뀝니다.`,
+  ].join("\n");
+}
+
+function buildWhy(): string {
+  const rows = WALK_PATH.map((v) => {
+    const g = WALK_FROM_SRC[v] as number;
+    return [
+      String(v),
+      num(g),
+      String(walkH(v)),
+      num(g + walkH(v)),
+      String(overH(v)),
+      num(g + overH(v)),
+    ];
+  });
+  const overKey = (WALK_FROM_SRC[OVER_AT] as number) + OVER_VALUE;
+  return [
+    md(
+      [
+        "최소 비용 경로의 정점",
+        "시작에서의 최소 비용",
+        "맨해튼 추정",
+        "맨해튼 키",
+        "정점 1 만 넘는 추정",
+        "그때의 키",
+      ],
+      rows,
+      [1, 2, 3, 4, 5],
+    ),
+    "",
+    `맨해튼 거리에서는 최소 비용 경로 위 정점의 키가 모두 답 ${num(WALK_ANSWER)} 이하입니다. 정점 ${OVER_AT} 만 넘는 추정에서는 정점 ${OVER_AT} 의 키가 ${overKey}${josa(overKey, "이라서", "라서")}, 키 ${num(OVER_ANSWER)}${으로(num(OVER_ANSWER))} 목표를 먼저 꺼냅니다.`,
+  ].join("\n");
+}
+
+function stageStart(): string {
+  const first = WALK[0] as Step;
+  const rows = Array.from({ length: WALK_N }, (_, u) => [
+    String(u),
+    WALK_EDGES.filter(([a]) => a === u)
+      .map(([, v, w]) => `(${v}, ${w})`)
+      .join(" ") || "없음",
+    num(first.g[u] as number),
+    String(walkH(u)),
+  ]);
+  return [
+    md(["정점", "adj — (이웃, 가중치)", "g", "h"], rows, [3]),
+    "",
+    `이웃 목록의 칸은 모두 ${comma(WALK_EDGES.length)} 개로 간선 수와 같고, 우선순위 큐에는 항목 ${item(first.heap[0] as Item)} 하나가 들어 있습니다.`,
+  ].join("\n");
+}
+
+function stageKey(): string {
+  const s = WALK[1] as Step;
+  const order = drainOrder(s.heap);
+  const rows = s.pushed.map(([v, g, f]) => {
+    const w = (WALK_EDGES.find(([a, b]) => a === 0 && b === v) as Edge)[2];
+    return [
+      String(v),
+      String(w),
+      String(g),
+      String(walkH(v)),
+      String(f),
+      String(order.findIndex((x) => x[0] === v) + 1),
+    ];
+  });
+  const byCost = [...s.pushed].sort((a, b) => a[1] - b[1])[0] as Item;
+  const byKey = order[0] as Item;
+  return [
+    md(
+      ["정점", "간선 가중치", "비용 g", "추정 h", "키 g + h", "꺼낼 차례"],
+      rows,
+      [1, 2, 3, 4, 5],
+    ),
+    "",
+    `비용이 가장 작은 것은 정점 ${byCost[0]} 이고 키가 가장 작은 것은 정점 ${byKey[0]} 입니다. 큐 맨 앞은 정점 ${byKey[0]} 입니다.`,
+  ].join("\n");
+}
+
+function stageRelax(): string {
+  const at = WALK.slice(2, 5);
+  const rows = at.map((s) => {
+    const did = s.relax
+      .map((r) => `${r.u}→${r.v} g[${r.v}] = ${num(r.before)} → ${num(r.ng)}`)
+      .join(" / ");
+    const order = drainOrder(s.heap);
+    const stale = order.filter((x) => isStale(s, x));
+    return [
+      s.t,
+      item(s.popped as Item),
+      did,
+      items(order),
+      stale.length === 0 ? "없음" : items(stale),
+    ];
+  });
+  const t5 = WALK[4] as Step;
+  const two = drainOrder(t5.heap).filter((x) => x[0] === 3);
+  return [
+    md(
+      [
+        "걸음",
+        "꺼낸 항목",
+        "완화",
+        "걸음이 끝난 뒤 큐 — 꺼낼 차례",
+        "그중 뒤처진 기록",
+      ],
+      rows,
+    ),
+    "",
+    `${t5.t}${이가(t5.t)} 끝나면 정점 3 짜리 항목이 ${comma(two.length)} 개 들어 있고, 그중 뒤처진 기록은 ${items(two.filter((x) => isStale(t5, x)))} 입니다.`,
+  ].join("\n");
+}
+
+function premiseNegative(): string {
+  const c: Case = {
+    label: "0→2(1) 0→1(5) 1→2(-10)",
+    n: 3,
+    edges: NEGATIVE,
+    src: 0,
+    goal: 2,
+    h: zeroH,
+  };
+  const got = ref(c);
+  const all = allPathsMin(c);
+  return [
+    md(
+      ["입력", "추정", "정본의 답", "경로를 전부 만든 답", "두 답"],
+      [
+        [
+          c.label,
+          "전부 0",
+          num(got),
+          num(all),
+          got === all ? "같다" : "어긋난다",
+        ],
+      ],
+      [2, 3],
+    ),
+    "",
+    `정본은 목표 ${c.goal}${을를(c.goal)} 키 ${num(got)}${으로(num(got))} 먼저 꺼내 멈추고, 비용이 ${num(all)} 인 경로를 보지 못합니다.`,
+  ].join("\n");
+}
+
+/** 단순 경로를 전부 만들어 가장 작은 비용을 고른다 — 음수 가중치의 답을 따로 구하는 데 쓴다. */
+function allPathsMin(c: Case): number {
+  const adj = adjacency(c.n, c.edges);
+  const seen = Array.from({ length: c.n }, () => false);
+  let best = INF;
+  const go = (u: number, spent: number): void => {
+    if (u === c.goal) best = Math.min(best, spent);
+    seen[u] = true;
+    for (const [v, w] of adj[u] as [number, number][]) {
+      if (!seen[v]) go(v, spent + w);
+    }
+    seen[u] = false;
+  };
+  go(c.src, 0);
+  return best;
+}
+
+function buildRatio(): string {
+  const G = grid(32);
+  const got = RATIOS.map((p) => ({
+    p,
+    c: measure(G.n, G.edges, 0, G.goal, patchy(G.man, p)),
+  }));
+  const rows = got.map(({ p, c }) => [
+    `${p}%`,
+    comma(c.expands),
+    comma(c.reexpands),
+    comma(basicOps(c)),
+    num(c.answer),
+  ]);
+  const least = got.reduce((a, b) => (b.c.expands < a.c.expands ? b : a));
+  const most = got.reduce((a, b) => (b.c.expands > a.c.expands ? b : a));
+  const answers = new Set(got.map((x) => x.c.answer));
+  const reopened = got.filter((x) => x.c.reexpands > 0).map((x) => `${x.p}%`);
+  return [
+    md(
+      [
+        "정확한 추정을 받은 정점",
+        "확장한 정점",
+        "그중 재확장",
+        "기본 연산",
+        "답",
+      ],
+      rows,
+      [1, 2, 3, 4],
+    ),
+    "",
+    `격자 32×32 (정점 ${comma(G.n)} · 방향 간선 ${comma(G.edges.length)}) 에서 잰 값이고, 답의 종류는 ${comma(answers.size)} 가지입니다. 확장이 가장 적은 비율은 ${least.p}% (${comma(least.c.expands)} 개), 가장 많은 비율은 ${most.p}% (${comma(most.c.expands)} 개)입니다. 재확장이 0 이 아닌 비율은 ${reopened.join(" · ")} 입니다.`,
+  ].join("\n");
+}
+
+function walkInput(): string {
+  const edges = WALK_EDGES.map((e) => `[${e.join(", ")}]`).join(", ");
+  const xy = WALK_XY.map(([x, y]) => `[${x}, ${y}]`).join(", ");
+  return [
+    `const n = ${WALK_N};`,
+    "const edges: [number, number, number][] = [",
+    `  ${edges},`,
+    "];",
+    `const src = ${WALK_SRC};`,
+    `const goal = ${WALK_GOAL};`,
+    `const xy: [number, number][] = [${xy}];`,
+    "const h = (v: number): number =>",
+    "  Math.abs(xy[goal][0] - xy[v][0]) + Math.abs(xy[goal][1] - xy[v][1]);",
+    `// 이 절이 끝나면 나와야 하는 값: ${num(WALK_ANSWER)}`,
+  ].join("\n");
+}
+
+function walkT1(): string {
+  const s = WALK[0] as Step;
+  const adj = Array.from(
+    { length: WALK_N },
+    (_, u) =>
+      `${u}:[${WALK_EDGES.filter(([a]) => a === u)
+        .map(([, v, w]) => `(${v}, ${w})`)
+        .join(" ")}]`,
+  ).join("  ");
+  return [
+    "T1 이 끝난 시점",
+    ...lines([
+      ["g", show(s.g)],
+      ["adj", adj],
+      ["open", items(drainOrder(s.heap))],
+    ]),
+  ].join("\n");
+}
+
+function walkHeap(): string {
+  const t2 = WALK[1] as Step;
+  const heap = new HeapCopy();
+  const rows: [string, string][] = [["넣기 전", "[]"]];
+  for (const x of t2.pushed) {
+    heap.push(...x);
+    rows.push([
+      `${item(x)}${을를(x[2])} 넣은 뒤`,
+      `[${heap.items.map(item).join(", ")}]`,
+    ]);
+  }
+  const out = heap.pop();
+  rows.push([
+    "한 번 꺼낸 뒤",
+    `[${heap.items.map(item).join(", ")}]  꺼낸 항목 ${item(out)}`,
+  ]);
+  return [
+    "T2 가 넣는 항목 셋을 빈 힙에 차례로 넣고 한 번 꺼낸다 — 배열에 놓인 순서 그대로",
+    ...lines(rows),
+  ].join("\n");
+}
+
+function walkT2(): string {
+  const s = WALK[1] as Step;
+  const [u, gu, f] = s.popped as Item;
+  const before = (WALK[0] as Step).g[u] as number;
+  const rows: string[][] = [
+    ["꺼낸 항목", item([u, gu, f])],
+    ["목표인가", `${u} === ${WALK_GOAL} 이 거짓`],
+    ["뒤처진 기록인가", `${gu} > g[${u}] = ${num(before)} 이 거짓`],
+    ...s.relax.map((r) => [
+      `${r.u}→${r.v} 완화`,
+      `${num(r.before)} > ${r.gu} + ${r.w}${josa(r.w, "이라", "라")} g[${r.v}] = ${r.ng} · 키 ${r.ng} + ${walkH(r.v)} = ${r.key} · 큐에 ${item([r.v, r.ng, r.key])}`,
+    ]),
+    ["큐 — 꺼낼 차례", items(drainOrder(s.heap))],
+  ];
+  return md([`${s.t} 에서 본 것`, "값"], rows);
+}
+
+function pauseEarly(): string {
+  const want = ref(DETOUR_CASE);
+  const got = run(earlyReturn, DETOUR_CASE);
+  return [
+    contrast(
+      [DETOUR_CASE, WALK_CASE, CHAIN_CASE, GRID_CASE, NARROW_CASE],
+      earlyReturn,
+      "줄이자마자 반환하는 판",
+    ),
+    "",
+    `돌아가는 경로가 더 작은 배치에서 정본은 ${num(want)}, 줄이자마자 반환하는 판은 ${num(got)}${을를(num(got))} 냅니다.`,
+  ].join("\n");
+}
+
+function walkT5T8(): string {
+  const t5 = WALK[4] as Step;
+  const t8 = WALK[7] as Step;
+  const r = t5.relax[0] as Relax;
+  const [u8, g8, f8] = t8.popped as Item;
+  const g8now = (WALK[6] as Step).g[u8] as number;
+  const rows: string[][] = [
+    [t5.t, "꺼낸 항목", item(t5.popped as Item)],
+    [
+      t5.t,
+      `${r.u}→${r.v} 완화`,
+      `${num(r.before)} > ${r.gu} + ${r.w}${josa(r.w, "이라", "라")} g[${r.v}] = ${r.ng} · 큐에 ${item([r.v, r.ng, r.key])}`,
+    ],
+    [t5.t, "큐 — 꺼낼 차례", items(drainOrder(t5.heap))],
+    [t8.t, "꺼낸 항목", item([u8, g8, f8])],
+    [
+      t8.t,
+      "뒤처진 기록인가",
+      `${g8} > g[${u8}] = ${num(g8now)} 이 참이라 버린다`,
+    ],
+    [t8.t, "큐 — 꺼낼 차례", items(drainOrder(t8.heap))],
+  ];
+  return md(["걸음", "본 것", "값"], rows);
+}
+
+const PAUSE_STALE_CASES = [
+  WALK_CASE,
+  WALK_BROKEN,
+  DETOUR_CASE,
+  CHAIN_CASE,
+  GRID_CASE,
+];
+
+function pauseStale(): string {
+  return [
+    contrast(PAUSE_STALE_CASES, noStale, "버리는 줄이 없는 판"),
+    "",
+    `배치 ${comma(PAUSE_STALE_CASES.length)} 개 가운데 두 답이 같은 배치는 ${comma(PAUSE_STALE_CASES.filter((c) => ref(c) === run(noStale, c)).length)} 개입니다.`,
+  ].join("\n");
+}
+
+function pauseStaleWork(): string {
+  const D = denseDag(128);
+  const cs: Case[] = [
+    WALK_CASE,
+    WALK_BROKEN,
+    gridCase(16, "격자 16×16 · 추정 30%", patchy(grid(16).man, 30)),
+    {
+      label: "완전 DAG 128 · 추정이 정확",
+      n: D.n,
+      edges: D.edges,
+      src: 0,
+      goal: 127,
+      h: D.h,
+    },
+    {
+      label: "완전 DAG 128 · 추정이 전부 0",
+      n: D.n,
+      edges: D.edges,
+      src: 0,
+      goal: 127,
+      h: zeroH,
+    },
+  ];
+  const got = cs.map((c) => ({
+    c,
+    keep: measure(c.n, c.edges, c.src, c.goal, c.h),
+    drop: noStaleRun(c),
+  }));
+  const rows = got.map((r) => [
+    r.c.label,
+    comma(r.keep.stale),
+    comma(r.keep.expands),
+    comma(r.drop.expands),
+    comma(r.drop.expands - r.keep.expands),
+  ]);
+  const worst = got.reduce((a, b) =>
+    b.drop.expands - b.keep.expands > a.drop.expands - a.keep.expands ? b : a,
+  );
+  return [
+    md(
+      [
+        "배치",
+        "정본이 버린 항목",
+        "정본의 확장",
+        "버리는 줄이 없는 판의 확장",
+        "늘어난 확장",
+      ],
+      rows,
+      [1, 2, 3, 4],
+    ),
+    "",
+    `늘어난 확장이 가장 많은 배치는 「${worst.c.label}」 이고, 정본이 버린 항목 ${comma(worst.keep.stale)} 개를 그 판은 하나씩 확장합니다.`,
+  ].join("\n");
+}
+
+/** 전개 표의 조건 칸 — 꺼낸 걸음마다 ③ 과 ④ 를 실제 값으로 판정한다. */
+function walkTrace(): string {
+  const hit: Record<string, string[]> = {
+    start: [],
+    loopTrue: [],
+    goalTrue: [],
+    goalFalse: [],
+    staleTrue: [],
+    staleFalse: [],
+    fixed: [],
+    kept: [],
+  };
+  const rows = WALK.map((s, i) => {
+    let cond = "";
+    let did = "";
+    if (s.kind === "start") {
+      cond = `\`g[${WALK_SRC}] = 0\``;
+      did = `① 시작값 · 큐에 ${item(s.pushed[0] as Item)}`;
+      hit.start?.push(s.t);
+    } else {
+      const [u, gu] = s.popped as Item;
+      hit.loopTrue?.push(s.t);
+      const before = (WALK[i - 1] as Step).g[u] as number;
+      if (s.kind === "goal") {
+        cond = `\`${u} === goal\` 이 **참**`;
+        did = `③ ${num(gu)}${을를(num(gu))} 돌려준다`;
+        hit.goalTrue?.push(s.t);
+      } else {
+        hit.goalFalse?.push(s.t);
+        if (s.kind === "stale") {
+          cond = `\`${u} === goal\` 거짓 · \`${gu} > g[${u}]\` 이 **참** (${gu} > ${num(before)})`;
+          did = "④ 뒤처진 기록이라 버린다";
+          hit.staleTrue?.push(s.t);
+        } else {
+          cond = `\`${u} === goal\` 거짓 · \`${gu} > g[${u}]\` 이 **거짓** (${gu} > ${num(before)})`;
+          hit.staleFalse?.push(s.t);
+          const parts = s.relax.map((r) =>
+            r.improved
+              ? `${r.u}→${r.v} ${r.ng} < ${num(r.before)} 참 · 키 ${r.key}`
+              : `${r.u}→${r.v} ${r.ng} < ${num(r.before)} 거짓 · 그대로`,
+          );
+          if (s.relax.some((r) => r.improved)) hit.fixed?.push(s.t);
+          if (s.relax.some((r) => !r.improved)) hit.kept?.push(s.t);
+          did = `⑤ ${parts.join(" / ")}`;
+        }
+      }
+    }
+    return [
+      s.t,
+      s.popped ? item(s.popped) : "—",
+      cond,
+      did,
+      show(s.g),
+      items(drainOrder(s.heap)),
+    ];
+  });
+  const t = (k: string) => tList(hit[k] ?? []);
+  const end = WALK.at(-1) as Step;
+  const left = drainOrder(end.heap);
+  return [
+    md(
+      ["걸음", "꺼낸 항목", "조건 판정", "한 일", "g", "큐 — 꺼낼 차례"],
+      rows,
+    ),
+    "",
+    `① 은 ${t("start")} 에서 실행됐습니다. ② 는 ${t("loopTrue")} 에서 참입니다. ③ 은 ${t("goalTrue")} 에서 참이고 ${t("goalFalse")} 에서 거짓, ④ 는 ${t("staleTrue")} 에서 참이고 ${t("staleFalse")} 에서 거짓입니다. ⑤ 가 값을 고친 걸음은 ${t("fixed")} 이고, 고치지 않은 간선이 나온 걸음은 ${hit.kept?.length ? t("kept") : "없습니다"}. 반환값은 ${num((end.popped as Item)[1])} 이고, 큐에 남은 항목은 ${items(left)} 입니다.`,
+  ].join("\n");
+}
+
+/** 전개 입력에서 거짓 쪽이 안 나온 두 조건을 작은 입력 둘로 실행한다. */
+function walkBranches(): string {
+  const cs: { label: string; c: Case; which: string }[] = [
+    {
+      label: "0→1(2), 목표 2",
+      c: { label: "", n: 3, edges: [[0, 1, 2]], src: 0, goal: 2, h: zeroH },
+      which: "②",
+    },
+    {
+      label: "0→1(3) 0→1(10), 목표 1",
+      c: {
+        label: "",
+        n: 2,
+        edges: [
+          [0, 1, 3],
+          [0, 1, 10],
+        ],
+        src: 0,
+        goal: 1,
+        h: zeroH,
+      },
+      which: "⑤",
+    },
+  ];
+  const rows = cs.map(({ label, c, which }) => {
+    const steps = record(c.n, c.edges, c.src, c.goal, c.h);
+    const kept = steps.flatMap((s) => s.relax.filter((r) => !r.improved));
+    const endEmpty = (steps.at(-1) as Step).kind !== "goal";
+    const what =
+      which === "②"
+        ? endEmpty
+          ? "큐가 비어 반복이 끝난다 — `open.size() > 0` 이 거짓"
+          : "목표를 꺼냈다"
+        : kept.length > 0
+          ? kept
+              .map(
+                (r) => `${r.u}→${r.v} ${r.ng} < ${num(r.before)} 거짓 · 그대로`,
+              )
+              .join(" / ")
+          : "고치지 않은 간선이 없다";
+    return [label, which, what, num(ref(c))];
+  });
+  return md(["입력", "조건", "거짓이 된 자리", "반환값"], rows, [3]);
+}
+
+function pauseClosed(): string {
+  const cs = [WALK_BROKEN, WALK_CASE, WALK_ZERO, CHAIN_CASE, GRID_CASE];
+  const want = ref(WALK_BROKEN);
+  const got = run(noReopen, WALK_BROKEN);
+  const broken = measure(
+    WALK_BROKEN.n,
+    WALK_BROKEN.edges,
+    WALK_BROKEN.src,
+    WALK_BROKEN.goal,
+    WALK_BROKEN.h,
+  );
+  return [
+    contrast(cs, noReopen, "다시 안 고치는 판"),
+    "",
+    `일관성이 깨진 추정에서 정본은 정점을 ${comma(broken.reexpands)} 번 다시 확장해 ${num(want)}${을를(num(want))} 내고, 다시 안 고치는 판은 ${num(got)}${을를(num(got))} 냅니다.`,
+  ].join("\n");
+}
+
+function pauseClosedWhere(): string {
+  const steps = record(
+    WALK_BROKEN.n,
+    WALK_BROKEN.edges,
+    WALK_BROKEN.src,
+    WALK_BROKEN.goal,
+    WALK_BROKEN.h,
+  );
+  const threes = steps.filter(
+    (s) => s.kind === "expand" && (s.popped as Item)[0] === 3,
+  );
+  const rows = steps
+    .filter((s) => s.popped)
+    .map((s, i) => [
+      String(i + 1),
+      item(s.popped as Item),
+      s.kind === "expand"
+        ? `확장 · ${s.relax.map((r) => (r.improved ? `g[${r.v}] = ${r.ng}` : `${r.v} 그대로`)).join(" · ") || "나가는 간선 없음"}`
+        : s.kind === "stale"
+          ? "뒤처진 기록이라 버림"
+          : "목표라 반환",
+    ]);
+  return [
+    md(["꺼낸 차례", "꺼낸 항목", "한 일"], rows, [0]),
+    "",
+    `정본은 정점 3 을 ${comma(threes.length)} 번 확장합니다 — 처음은 비용 ${((threes[0] as Step).popped as Item)[1]}, 다음은 비용 ${((threes[1] as Step).popped as Item)[1]} 입니다.`,
+  ].join("\n");
+}
+
+function walkResult(): string {
+  const calls: [
+    string,
+    number,
+    Edge[],
+    number,
+    number,
+    (v: number) => number,
+  ][] = [
+    [
+      `aStarSearch(8, [${WALK_EDGES.map((e) => `[${e.join(",")}]`).join(",")}], 0, 6, h)`,
+      WALK_N,
+      WALK_EDGES,
+      WALK_SRC,
+      WALK_GOAL,
+      walkH,
+    ],
+    [
+      "aStarSearch(8, 같은 간선, 0, 6, () => 0)",
+      WALK_N,
+      WALK_EDGES,
+      0,
+      6,
+      zeroH,
+    ],
+    ["aStarSearch(3, [[0,1,2]], 0, 2, () => 0)", 3, [[0, 1, 2]], 0, 2, zeroH],
+    ["aStarSearch(3, [[0,1,10]], 1, 1, () => 0)", 3, [[0, 1, 10]], 1, 1, zeroH],
+    ["aStarSearch(1, [], 0, 0, () => 0)", 1, [], 0, 0, zeroH],
+  ];
+  const w = Math.max(...calls.map(([s]) => width(s)));
+  return [
+    ...calls.map(
+      ([s, n, e, a, b, h]) =>
+        `${pad(s, w)}  -> ${num(aStarSearch(n, e, a, b, h))}`,
+    ),
+  ].join("\n");
+}
+
+function altAdjacency(): string {
+  const mine = altCases["이 가이드의 절차"]();
+  const rival = altCases["양방향 다익스트라"]();
+  const G = grid(32);
+  const rowsFor = (label: string, key: string, e: number): string[] => {
+    const a = (mine[key] as number) + e;
+    const b = (rival[key] as number) + 2 * e;
+    return [
+      label,
+      comma(e),
+      comma(a),
+      comma(2 * e),
+      comma(b),
+      a < b ? "이 절차" : "양방향",
+    ];
+  };
+  const rows = [
+    rowsFor("전개 입력", "전개 입력 · 기본 연산", WALK_EDGES.length),
+    rowsFor("격자 · 추정 0%", "격자 · 추정 0% · 기본 연산", G.edges.length),
+    rowsFor("격자 · 추정 100%", "격자 · 추정 100% · 기본 연산", G.edges.length),
+  ];
+  return [
+    md(
+      [
+        "입력",
+        "이 절차가 만드는 이웃 목록 칸",
+        "이 절차 · 합",
+        "양방향이 만드는 이웃 목록 칸",
+        "양방향 · 합",
+        "적은 쪽",
+      ],
+      rows,
+      [1, 2, 3, 4],
+    ),
+    "",
+    "합은 위 표의 기본 연산에 이웃 목록의 칸 수를 한 칸에 한 번씩 더한 값입니다.",
+  ].join("\n");
+}
+
+function mathConsistent(): string {
+  const rowsOf = (h: (v: number) => number) =>
+    WALK_EDGES.map(([u, v, w]) => [
+      `${u}→${v}`,
+      String(w),
+      String(h(u)),
+      String(h(v)),
+      String(w + h(v)),
+      h(u) <= w + h(v) ? "성립한다" : "성립하지 않는다",
+    ]);
+  const head = ["간선", "w", "h(u)", "h(v)", "w + h(v)", "h(u) ≤ w + h(v)"];
+  const good = rowsOf(walkH);
+  const bad = rowsOf(brokenH);
+  const badCount = bad.filter((r) => r[5] === "성립하지 않는다").length;
+  const admissible = Array.from({ length: WALK_N }, (_, v) => v).every(
+    (v) => brokenH(v) <= (WALK_TO_GOAL[v] as number),
+  );
+  return [
+    "맨해튼 거리입니다.",
+    "",
+    md(head, good, [1, 2, 3, 4]),
+    "",
+    "정점 3 에 0, 정점 4 에 11 을 준 추정입니다.",
+    "",
+    md(head, bad, [1, 2, 3, 4]),
+    "",
+    `아래 추정에서 조건이 성립하지 않는 간선은 ${comma(badCount)} 개이고, 그 추정도 정점마다 실제 최소 비용을 ${admissible ? "넘지 않습니다" : "넘습니다"}.`,
+  ].join("\n");
+}
+
+function mathReweight(): string {
+  const rows = WALK_EDGES.map(([u, v, w]) => [
+    `${u}→${v}`,
+    String(w),
+    String(walkH(u)),
+    String(walkH(v)),
+    String(w - walkH(u) + walkH(v)),
+  ]);
+  let raw = 0;
+  let shifted = 0;
+  for (let i = 0; i + 1 < WALK_PATH.length; i++) {
+    const a = WALK_PATH[i] as number;
+    const b = WALK_PATH[i + 1] as number;
+    const w = (WALK_EDGES.find(([x, y]) => x === a && y === b) as Edge)[2];
+    raw += w;
+    shifted += w - walkH(a) + walkH(b);
+  }
+  const neg = rows.filter((r) => Number(r[4]) < 0).length;
+  return [
+    md(["간선", "w", "h(u)", "h(v)", "w − h(u) + h(v)"], rows, [1, 2, 3, 4]),
+    "",
+    `다시 매긴 가중치가 음수인 간선은 ${comma(neg)} 개입니다. 최소 비용 경로 ${arrow(WALK_PATH)} 의 원래 비용은 ${raw}, 다시 매긴 비용은 ${shifted} 이고, 그 차이 ${raw - shifted}${이가(raw - shifted)} h(${WALK_SRC}) − h(${WALK_GOAL}) = ${walkH(WALK_SRC) - walkH(WALK_GOAL)}${과와(walkH(WALK_SRC) - walkH(WALK_GOAL))} 같습니다.`,
+  ].join("\n");
+}
+
+function mathExpand(): string {
+  const cs: Case[] = [WALK_CASE, GRID_CASE, CHAIN_CASE];
+  let broken = 0;
+  const rows = cs.map((c) => {
+    const got = measure(c.n, c.edges, c.src, c.goal, c.h);
+    const from = fromDist(c.n, c.edges, c.src);
+    let below = 0;
+    let atMost = 0;
+    let expanded = 0;
+    for (let v = 0; v < c.n; v++) {
+      const f = (from[v] as number) + c.h(v);
+      if (f < got.answer) below++;
+      if (f <= got.answer) atMost++;
+      if (got.expanded[v]) expanded++;
+    }
+    const inside = below <= expanded && expanded <= atMost;
+    if (!inside) broken++;
+    return [
+      c.label,
+      comma(c.n),
+      num(got.answer),
+      comma(below),
+      comma(expanded),
+      comma(atMost),
+      inside ? "사이에 든다" : "벗어난다",
+    ];
+  });
+  return [
+    md(
+      [
+        "배치",
+        "정점",
+        "답 C",
+        "F(v) < C 인 정점",
+        "확장한 정점",
+        "F(v) ≤ C 인 정점",
+        "확장한 정점 수의 자리",
+      ],
+      rows,
+      [1, 2, 3, 4, 5],
+    ),
+    "",
+    `배치 ${comma(rows.length)} 개 가운데 확장한 정점 수가 두 수 사이를 벗어난 배치는 ${comma(broken)} 개입니다.`,
+  ].join("\n");
+}
+
+function mathScale(): string {
+  const log = Math.ceil(Math.log2(E_LIMIT + 1));
+  const rows = [
+    ["확장한 정점", "V", comma(V_LIMIT)],
+    ["큐에 들어가는 항목", "E + 1", comma(E_LIMIT + 1)],
+    ["완화 시도", "E", comma(E_LIMIT)],
+    ["추정 호출", "E + 1", comma(E_LIMIT + 1)],
+    ["항목 하나를 넣고 꺼내는 힙 안의 비교", "3⌈log₂(E+1)⌉", comma(3 * log)],
+    ["힙 안의 비교 전부", "3(E+1)⌈log₂(E+1)⌉", comma(3 * (E_LIMIT + 1) * log)],
+    [
+      "기본 연산 전부",
+      "E + (E+1) + 3(E+1)⌈log₂(E+1)⌉",
+      comma(E_LIMIT + (E_LIMIT + 1) + 3 * (E_LIMIT + 1) * log),
+    ],
+  ];
+  return [
+    md(["항", "닫힌 형태", "규모의 상한에서"], rows, [2]),
+    "",
+    `V = ${comma(V_LIMIT)} · E = ${comma(E_LIMIT)} 을 넣은 값이고, 기본 연산 전부는 1 초에 1 억 번 기준으로 ${((E_LIMIT + (E_LIMIT + 1) + 3 * (E_LIMIT + 1) * log) / PER_SEC).toFixed(3)} 초입니다.`,
+  ].join("\n");
+}
+
+function invariantSteps(): string {
+  const cs: Case[] = [
+    WALK_CASE,
+    WALK_ZERO,
+    WALK_BROKEN,
+    DETOUR_CASE,
+    CHAIN_CASE,
+    GRID_CASE,
+    gridCase(16, "격자 16×16 · 추정 30%", patchy(grid(16).man, 30)),
+  ];
+  let bad = 0;
+  let equal = 0;
+  const rows = cs.map((c) => {
+    const got = measure(c.n, c.edges, c.src, c.goal, c.h);
+    bad += got.offKey;
+    if (got.maxKey === got.answer) equal++;
+    return [
+      c.label,
+      comma(got.pops),
+      num(got.answer),
+      num(got.maxKey),
+      comma(got.offKey),
+    ];
+  });
+  return [
+    md(
+      ["배치", "꺼낸 항목", "답", "가장 큰 꺼낸 키", "키가 답을 넘은 꺼내기"],
+      rows,
+      [1, 2, 3, 4],
+    ),
+    "",
+    `배치 ${comma(rows.length)} 개에서 꺼낼 때마다 비교해 키가 답을 넘은 꺼내기는 모두 ${comma(bad)} 번이고, 가장 큰 꺼낸 키가 답과 같은 배치가 ${comma(equal)} 개입니다.`,
+  ].join("\n");
+}
+
+function invariantEdges(): string {
+  const cs: Case[] = [
+    {
+      label: "정점 하나 · 시작이 곧 목표",
+      n: 1,
+      edges: [],
+      src: 0,
+      goal: 0,
+      h: zeroH,
+    },
+    {
+      label: "간선이 없고 목표가 다르다",
+      n: 2,
+      edges: [],
+      src: 0,
+      goal: 1,
+      h: zeroH,
+    },
+    {
+      label: "목표로 가는 간선이 없다",
+      n: 3,
+      edges: [[0, 1, 1]],
+      src: 0,
+      goal: 2,
+      h: zeroH,
+    },
+    {
+      label: "가중치가 전부 0",
+      n: 3,
+      edges: [
+        [0, 1, 0],
+        [1, 2, 0],
+      ],
+      src: 0,
+      goal: 2,
+      h: zeroH,
+    },
+    {
+      label: "같은 두 정점 사이에 간선 셋",
+      n: 2,
+      edges: [
+        [0, 1, 10],
+        [0, 1, 3],
+        [0, 1, 7],
+      ],
+      src: 0,
+      goal: 1,
+      h: zeroH,
+    },
+    {
+      label: "가중치가 10^9",
+      n: 3,
+      edges: [
+        [0, 1, 1_000_000_000],
+        [1, 2, 1_000_000_000],
+      ],
+      src: 0,
+      goal: 2,
+      h: zeroH,
+    },
+    {
+      label: "자기 자신으로 가는 간선",
+      n: 2,
+      edges: [
+        [0, 0, 5],
+        [0, 1, 2],
+      ],
+      src: 0,
+      goal: 1,
+      h: zeroH,
+    },
+  ];
+  const rows = cs.map((c) => {
+    const got = measure(c.n, c.edges, c.src, c.goal, c.h);
+    const all = allPathsMin(c);
+    return [
+      c.label,
+      comma(c.n),
+      num(got.answer),
+      num(all),
+      comma(got.pops),
+      got.answer === all ? "같다" : "어긋난다",
+    ];
+  });
+  const same = rows.filter((r) => r[5] === "같다").length;
+  return [
+    md(
+      [
+        "배치",
+        "정점",
+        "정본의 답",
+        "경로를 전부 만든 답",
+        "꺼낸 항목",
+        "두 답",
+      ],
+      rows,
+      [1, 2, 3, 4],
+    ),
+    "",
+    `배치 ${comma(rows.length)} 개 가운데 두 답이 같은 배치는 ${comma(same)} 개입니다.`,
+  ].join("\n");
+}
+
+function mutantInflate(): string {
+  const table1 = contrast(
+    [NARROW_CASE, WALK_CASE, DETOUR_CASE, CHAIN_CASE, GRID_CASE],
+    inflated,
+    "두 배로 부풀린 판",
+  );
+  const keyRows = [NARROW_CASE, WALK_CASE, GRID_CASE].map((c) => {
+    const plain = measure(c.n, c.edges, c.src, c.goal, c.h);
+    const twice = inflatedRun(c);
+    return [
+      c.label,
+      num(plain.maxKey),
+      num(twice.maxKey),
+      num(plain.answer),
+      comma(twice.offKey),
+    ];
+  });
+  const want = ref(NARROW_CASE);
+  const got = run(inflated, NARROW_CASE);
+  return [
+    table1,
+    "",
+    "같은 배치에서 꺼낸 키가 답을 넘은 꺼내기를 세면 이렇습니다.",
+    "",
+    md(
+      [
+        "배치",
+        "정본의 가장 큰 꺼낸 키",
+        "부풀린 판의 가장 큰 꺼낸 키",
+        "답",
+        "부풀린 판에서 키가 답을 넘은 꺼내기",
+      ],
+      keyRows,
+      [1, 2, 3, 4],
+    ),
+    "",
+    `두 경로의 비용 차이가 1 인 배치에서 정본은 ${num(want)}${을를(num(want))}, 부풀린 판은 ${num(got)}${을를(num(got))} 냅니다.`,
+  ].join("\n");
+}
+
+function perfCount(): string {
+  const c = WALK_COUNT;
+  const bench = altCases["이 가이드의 절차"]()[
+    "전개 입력 · 기본 연산"
+  ] as number;
+  if (basicOps(c) !== bench) {
+    throw new Error(
+      `기본 연산이 대안 비교의 값과 다르다 — ${basicOps(c)} vs ${bench}`,
+    );
+  }
+  const expandT = WALK.filter((s) => s.kind === "expand").map((s) => s.t);
+  const staleT = WALK.filter((s) => s.kind === "stale").map((s) => s.t);
+  const goalT = WALK.filter((s) => s.kind === "goal").map((s) => s.t);
+  const rows = [
+    ["이웃 목록 만들기", "T1", comma(WALK_EDGES.length)],
+    ["큐에 넣기", "T1 과 값을 고친 걸음", comma(c.pushes)],
+    ["큐에서 꺼내기", `T2 ~ ${goalT[0]}`, comma(c.pops)],
+    ["그중 확장", tList(expandT), comma(c.expands)],
+    ["그중 뒤처진 기록 버리기", tList(staleT), comma(c.stale)],
+    ["그중 목표라 돌려주기", tList(goalT), "1"],
+    ["완화 시도", tList(expandT), comma(c.relaxes)],
+    ["추정 호출", "큐에 넣을 때마다", comma(c.hcalls)],
+    ["힙 안의 비교", "넣기와 꺼내기 안에서", comma(c.compares)],
+  ];
+  return [
+    md(["무리", "걸음", "횟수"], rows, [2]),
+    "",
+    `정점 V = ${WALK_N} · 간선 E = ${WALK_EDGES.length} 인 입력입니다. 기본 연산은 비교 ${c.compares} + 완화 시도 ${c.relaxes} + 추정 호출 ${c.hcalls} = ${basicOps(c)} 번이고, 「경쟁 설계와의 대조」의 전개 입력 값 ${bench}${과와(bench)} 같습니다. 큐가 가장 컸을 때 항목은 ${c.peak} 개입니다.`,
+  ].join("\n");
+}
+
+function perfGrowth(): string {
+  const sides = [8, 16, 32, 64];
+  const got = sides.map((k) => {
+    const G = grid(k);
+    return {
+      k,
+      n: G.n,
+      e: G.edges.length,
+      c: measure(G.n, G.edges, 0, G.goal, G.man),
+    };
+  });
+  const rows = got.map((r) => [
+    `${r.k}×${r.k}`,
+    comma(r.n),
+    comma(r.e),
+    comma(r.c.pushes),
+    comma(r.c.relaxes),
+    comma(basicOps(r.c)),
+  ]);
+  const grow = got.slice(1).map((r, at) => {
+    const prev = got[at] as (typeof got)[number];
+    return [
+      `${prev.k} → ${r.k}`,
+      (r.n / prev.n).toFixed(2),
+      (r.c.pushes / prev.c.pushes).toFixed(2),
+      (basicOps(r.c) / basicOps(prev.c)).toFixed(2),
+    ];
+  });
+  return [
+    md(
+      ["격자", "정점", "간선", "넣은 항목", "완화 시도", "기본 연산"],
+      rows,
+      [1, 2, 3, 4, 5],
+    ),
+    "",
+    "한 변을 두 배로 늘릴 때마다 몇 배가 되었는지 나누면 이렇습니다.",
+    "",
+    md(["한 변", "정점", "넣은 항목", "기본 연산"], grow, [1, 2, 3]),
+  ].join("\n");
+}
+
+function worstShape(): string {
+  const SIZE = 256;
+  const G = grid(16);
+  const C = chain(SIZE);
+  const S = star(SIZE);
+  const D = denseDag(SIZE);
+  const cs: Case[] = [
+    gridCase(16, "격자 16×16 · 추정이 정확"),
+    gridCase(16, "격자 16×16 · 추정이 전부 0", zeroH),
+    gridCase(16, "격자 16×16 · 추정 30%", patchy(G.man, 30)),
+    {
+      label: "사슬 256 · 추정이 정확",
+      n: C.n,
+      edges: C.edges,
+      src: 0,
+      goal: SIZE - 1,
+      h: C.h,
+    },
+    {
+      label: "별 256 · 추정이 정확",
+      n: S.n,
+      edges: S.edges,
+      src: 0,
+      goal: SIZE - 1,
+      h: S.h,
+    },
+    {
+      label: "완전 DAG 256 · 추정이 정확",
+      n: D.n,
+      edges: D.edges,
+      src: 0,
+      goal: SIZE - 1,
+      h: D.h,
+    },
+  ];
+  const got = cs.map((c) => ({
+    c,
+    count: measure(c.n, c.edges, c.src, c.goal, c.h),
+  }));
+  const rows = got.map((r) => [
+    r.c.label,
+    comma(r.c.edges.length),
+    comma(r.count.expands),
+    comma(r.count.reexpands),
+    comma(r.count.pushes),
+    comma(r.count.peak),
+    comma(basicOps(r.count)),
+  ]);
+  const top = (f: (c: Counted) => number) =>
+    got.reduce((a, b) => (f(b.count) > f(a.count) ? b : a));
+  const byExpand = top((c) => c.expands);
+  const byPush = top((c) => c.pushes);
+  const byPeak = top((c) => c.peak);
+  const byOps = top(basicOps);
+  return [
+    md(
+      [
+        "배치",
+        "간선",
+        "확장",
+        "그중 재확장",
+        "넣은 항목",
+        "큐가 가장 컸을 때",
+        "기본 연산",
+      ],
+      rows,
+      [1, 2, 3, 4, 5, 6],
+    ),
+    "",
+    `정점이 ${SIZE} 개인 모양 ${comma(rows.length)} 개입니다. 확장이 가장 많은 것은 「${byExpand.c.label}」 로 ${comma(byExpand.count.expands)} 개이고 그중 ${comma(byExpand.count.reexpands)} 개가 재확장입니다. 넣은 항목이 가장 많은 것은 「${byPush.c.label}」 로 ${comma(byPush.count.pushes)} 개 — 간선 수 ${comma(byPush.c.edges.length)} 에 1 을 더한 값 — 이고, 큐가 가장 커지는 것도 「${byPeak.c.label}」 로 ${comma(byPeak.count.peak)} 개입니다. 기본 연산이 가장 많은 것은 「${byOps.c.label}」 입니다.`,
+  ].join("\n");
+}
+
+function worstReopen(): string {
+  const sides = [8, 16, 32, 64];
+  const got = sides.map((k) => {
+    const G = grid(k);
+    let worst = { p: -1, expands: 0, re: 0 };
+    for (const p of RATIOS) {
+      const c = measure(G.n, G.edges, 0, G.goal, patchy(G.man, p));
+      if (c.expands > worst.expands)
+        worst = { p, expands: c.expands, re: c.reexpands };
+    }
+    return { k, n: G.n, worst };
+  });
+  const rows = got.map((r) => [
+    `${r.k}×${r.k}`,
+    comma(r.n),
+    `${r.worst.p}%`,
+    comma(r.worst.expands),
+    comma(r.worst.re),
+    (r.worst.expands / r.n).toFixed(2),
+  ]);
+  const top = got.reduce((a, b) =>
+    b.worst.expands / b.n > a.worst.expands / a.n ? b : a,
+  );
+  const over = got.filter((r) => r.worst.expands > r.n).length;
+  return [
+    md(
+      [
+        "격자",
+        "정점",
+        "확장이 가장 많은 비율",
+        "확장",
+        "그중 재확장",
+        "확장 ÷ 정점",
+      ],
+      rows,
+      [1, 3, 4, 5],
+    ),
+    "",
+    `비율 ${comma(RATIOS.length)} 가지를 재고 확장이 가장 많은 자리를 골랐습니다. 확장이 정점 수를 넘는 격자가 ${comma(over)} 개이고, 가장 큰 배수는 ${top.k}×${top.k} 격자의 ${(top.worst.expands / top.n).toFixed(2)} 입니다.`,
+  ].join("\n");
+}
+
+function selfcheckT7(): string {
+  const t7 = WALK[6] as Step;
+  const order = drainOrder(t7.heap);
+  return [
+    ...lines(
+      [
+        [`${t7.t}${이가(t7.t)} 끝난 뒤 큐(꺼낼 차례)`, items(order)],
+        ["그때의 g[6]", num(t7.g[6] as number)],
+        ["그때의 g[3]", num(t7.g[3] as number)],
+      ],
+      "",
+    ),
+  ].join("\n");
+}
+
+export const PROOFS: Record<string, () => string> = {
+  "concept-cases": conceptCases,
+  "concept-growth": conceptGrowth,
+  "origin-brute": originBrute,
+  "origin-dijkstra": originDijkstra,
+  "origin-scale": originScale,
+  "origin-keys": originKeys,
+  "build-admissible": buildAdmissible,
+  "build-read-one": buildReadOne,
+  "build-edge": buildEdge,
+  "build-over": buildOver,
+  "build-why": buildWhy,
+  "stage-start": stageStart,
+  "stage-key": stageKey,
+  "stage-relax": stageRelax,
+  "premise-negative": premiseNegative,
+  "build-ratio": buildRatio,
+  "walk-input": walkInput,
+  "walk-t1": walkT1,
+  "walk-heap": walkHeap,
+  "walk-t2": walkT2,
+  "pause-early": pauseEarly,
+  "walk-t5t8": walkT5T8,
+  "pause-stale": pauseStale,
+  "pause-stale-work": pauseStaleWork,
+  "walk-trace": walkTrace,
+  "walk-branches": walkBranches,
+  "pause-closed": pauseClosed,
+  "pause-closed-where": pauseClosedWhere,
+  "walk-result": walkResult,
+  "alt-adjacency": altAdjacency,
+  "math-consistent": mathConsistent,
+  "math-reweight": mathReweight,
+  "math-expand": mathExpand,
+  "math-scale": mathScale,
+  "invariant-steps": invariantSteps,
+  "invariant-edges": invariantEdges,
+  "mutant-inflate": mutantInflate,
+  "perf-count": perfCount,
+  "perf-growth": perfGrowth,
+  "worst-shape": worstShape,
+  "worst-reopen": worstReopen,
+  "selfcheck-t7": selfcheckT7,
+};

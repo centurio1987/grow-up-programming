@@ -234,3 +234,46 @@ test("최악을 만드는 입력에서도 답은 정확하다", () => {
   expect(aStarSearch(k * k, edges, 0, at(k - 1, k - 1), patchy)).toBe(62);
   expect(aStarSearch(k * k, edges, 0, at(k - 1, k - 1), man)).toBe(62);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./aStarSearch-guide.sim.ts");
+  const fig = await import("./aStarSearch-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.aStarWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.aStarWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 목표 정점 값을 정본의 답에 직접 다시 묻는다.
+  const xy: [number, number][] = [
+    [0, 0],
+    [2, 1],
+    [3, 0],
+    [5, 0],
+    [4, 1],
+    [6, 0],
+    [8, 0],
+    [0, 5],
+  ];
+  const man = (v: number): number => {
+    const [x, y] = xy[v] as [number, number];
+    return Math.abs(8 - x) + Math.abs(0 - y);
+  };
+  const edges: Edge[] = [
+    [0, 1, 3],
+    [0, 2, 4],
+    [0, 7, 5],
+    [1, 4, 2],
+    [2, 3, 7],
+    [4, 3, 3],
+    [3, 5, 2],
+    [5, 6, 6],
+  ];
+  const answer = aStarSearch(8, edges, 0, 6, man);
+  const last = sim.aStarWalk.steps.at(-1);
+  expect(last?.nodes[6]?.value).toBe(`g ${answer}`);
+  expect(sim.aStarWalk.result).toBe(String(answer));
+});
