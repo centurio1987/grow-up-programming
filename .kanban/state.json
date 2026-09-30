@@ -1,6 +1,6 @@
 {
   "next_id": 65,
-  "next_seq": 454,
+  "next_seq": 455,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1779,6 +1779,16 @@
   ],
   "recent": [
     {
+      "seq": 454,
+      "t": "2026-10-01T08:26",
+      "a": "유저",
+      "id": "KAN-039-FG8HWZ",
+      "op": "waive",
+      "w": "7JZJ8C",
+      "with_": "KAN-064-4YZZV2",
+      "reason": "검사기 오탐 — KAN-039 글롭 src/algorithms/*/huffman*/** 에 KAN-064 scope 24편 중 맞는 경로 0개(fnmatch 확인). 유저 승인 2026-10-01"
+    },
+    {
       "seq": 453,
       "t": "2026-10-01T08:18",
       "a": "ai",
@@ -2340,16 +2350,6 @@
       "reason": "",
       "goal": "",
       "memo": ""
-    },
-    {
-      "seq": 406,
-      "t": "2026-09-28T21:16",
-      "a": "ai",
-      "id": "KAN-057-J36E1B",
-      "op": "move",
-      "w": "977NDY",
-      "from": "doing",
-      "to": "review"
     }
   ],
   "waivers": [
@@ -2428,6 +2428,13 @@
       "scope_hash": "175b3b897f80b0f3",
       "reason": "글롭 대 글롭 오탐 — KAN-061 범위 폴더에 huffman* 이 없다(유저 승인 2026-10-01, scope 에 alt 주석 세 편을 더해 다시 기록)",
       "created": "2026-10-01T07:14",
+      "by": "유저"
+    },
+    {
+      "pair": "KAN-039-FG8HWZ|KAN-064-4YZZV2",
+      "scope_hash": "7029a9d83e00b460",
+      "reason": "검사기 오탐 — KAN-039 글롭 src/algorithms/*/huffman*/** 에 KAN-064 scope 24편 중 맞는 경로 0개(fnmatch 확인). 유저 승인 2026-10-01",
+      "created": "2026-10-01T08:26",
       "by": "유저"
     }
   ],
