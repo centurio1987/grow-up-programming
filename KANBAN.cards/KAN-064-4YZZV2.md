@@ -23,7 +23,7 @@ scope: src/algorithms/array/bestTimeToBuyAndSellStock/bestTimeToBuyAndSellStock.
 **scope 겹침 경고.** dep-check 가 KAN-039 와 24건 겹침을 내지만 KAN-039 쪽 글롭 `src/algorithms/*/huffman*/**` 에 24편 중 맞는 경로는 0개다(fnmatch 로 확인). 검사기의 오탐이다.
 
 ## 실행 계획
-- [>] `S1` 스텁 24편 되돌리기. 이력에 스텁 판이 있는 20편은 그 판(`fb61a7bd`·`3aa95994`)을 쓰고, 없는 넷(binaryGap · maxProfit · genomicRangeQuery · tapeEquilibrium)은 현재 시그니처를 두고 본문만 `throw new Error("Not implemented")` 로. 완료 기준: 24편 모두 `Not implemented` 를 던지고 export 이름·시그니처가 테스트 import 와 맞는다(`bunx tsc --noEmit` 통과), `bun run tools/practice-ref.ts` 실패 0 <!-- claim:s=9483b98c t=2026-10-01T08:26 -->
+- [x] `S1` 스텁 24편 되돌리기. 이력에 스텁 판이 있는 20편은 그 판(`fb61a7bd`·`3aa95994`)을 쓰고, 없는 넷(binaryGap · maxProfit · genomicRangeQuery · tapeEquilibrium)은 현재 시그니처를 두고 본문만 `throw new Error("Not implemented")` 로. 완료 기준: 24편 모두 `Not implemented` 를 던지고 export 이름·시그니처가 테스트 import 와 맞는다(`bunx tsc --noEmit` 통과), `bun run tools/practice-ref.ts` 실패 0
 - [ ] `S2` 누수 가드 — `tools/practice-ref.test.ts` 에 스텁이 `Not implemented` 를 던지는지 검사를 더한다. 완료 기준: S1 전 트리에서 24건 실패, S1 뒤 0건
 - [ ] `S3` 병합 도구 — `tools/solutions-merge.ts`(+test). 병합 결과에서 첫째 부모의 풀이가 스텁으로 바뀐 파일을 되살린다. 완료 기준: 임시 워크트리에서 solutions(`fba671d3`)에 이 브랜치를 병합하는 모의 실행으로 ① 도구 없이 병합하면 24편이 스텁이 되는 것 ② 도구를 거치면 24편 모두 solutions 판과 바이트 동일 ③ 그다음 main 에 변경을 하나 더 얹어 다시 병합해도 24편이 그대로인 것을 확인
 - [ ] `S4` 전체 검증과 검토서. 완료 기준: `bun run tools/ci.ts all` 통과, 검토서에 모의 병합 결과와 유저가 solutions 에서 돌릴 명령을 싣는다
@@ -40,3 +40,4 @@ scope: src/algorithms/array/bestTimeToBuyAndSellStock/bestTimeToBuyAndSellStock.
 - 2026-10-01T08:17 · s:9483b98c — `실행 계획` 섹션 교체
 - 2026-10-01T08:17 · s:9483b98c — `검증` 섹션 교체
 - 2026-10-01T08:26 · s:9483b98c · S1 doing — 착수
+- 2026-10-01T08:27 · s:9483b98c · S1 done — 스텁 24편 되돌림 — 이력 판 20(fb61a7bd·3aa95994) · 손 스텁 4(binaryGap·maxProfit·genomicRangeQuery·tapeEquilibrium). tsc 통과, practice-ref 1,443 시험 실패 0. houseRobber 는 Dp1·Dp2·Naive export 가 빠진다(쓰는 곳은 _scratch·analysis.md 뿐)
