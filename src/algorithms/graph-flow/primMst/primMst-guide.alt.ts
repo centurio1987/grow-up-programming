@@ -15,7 +15,7 @@
  * 정점 번호 순이라 같은 `E` 면 언제나 같은 그래프다.
  *
  * **`kruskalMst` 편의 `.alt.ts` 와 같은 생성식이다.** 그 편은 경쟁 설계로 **인접 행렬을 두고
- * 라운드마다 정점을 전수로 보는** 프림을 세웠고, 이 편이 가르치는 것은 **최소 힙을 쓰는**
+ * 라운드마다 정점을 전수로 보는** 프림을 세웠고, 이 편이 가르치는 것은 **우선순위 큐를 쓰는**
  * 프림이라 같은 그래프에서도 계수가 다르다. 그래서 두 편의 표를 나란히 놓을 수 없고, 이
  * 파일은 이 편의 절차를 다시 잰다. `primMst-guide.proof.ts` 도 같은 생성식을 쓴다.
  *
@@ -71,7 +71,7 @@ interface Counted {
 }
 
 /**
- * 이 가이드가 가르치는 절차 — 후보를 최소 힙에 담고 트리 밖에서 가장 가까운 정점을 꺼낸다.
+ * 이 가이드가 가르치는 절차 — 후보를 우선순위 큐(이진 힙)에 담고 트리 밖에서 가장 가까운 정점을 꺼낸다.
  * 계수를 세는 자리만 덧붙였고 절차는 `primMst-guide.ref.ts` 와 같다.
  */
 function byHeapPrim(edges: Edge[]): Counted {
@@ -203,8 +203,8 @@ function mergeSort(xs: Edge[]): { sorted: Edge[]; ops: number } {
 
 /**
  * 경쟁 설계 — 크러스컬(Kruskal). 간선을 가중치 오름차순으로 놓고 하나씩 보면서, 두 끝점이
- * 서로 다른 덩어리일 때만 고른다. 덩어리는 정점마다 대표를 가리키는 배열로 들고 있고, 붙이는
- * 방향과 경로 압축을 둘 다 쓴다 — `kruskalMst` 편의 정본과 같은 절차다.
+ * 서로 다른 덩어리일 때만 고른다. 덩어리는 유니온 파인드(정점마다 대표 쪽을 가리키는 배열)로 들고
+ * 있고, 붙이는 방향과 경로 압축을 둘 다 쓴다 — `kruskalMst` 편의 정본과 같은 절차다.
  */
 function byKruskal(edges: Edge[]): Counted {
   const { sorted, ops: sortOps } = mergeSort([...edges]);
@@ -275,7 +275,7 @@ function measure(e: number): { prim: Counted; kruskal: Counted } {
 }
 
 export const cases = {
-  "후보를 최소 힙에 담아 하나씩 붙인다": () => {
+  "후보를 우선순위 큐에 담아 하나씩 붙인다": () => {
     const out: Record<string, number> = {};
     for (const e of DENSITIES) out[`E=${e} 기본 연산`] = measure(e).prim.ops;
     out["E=199 저장 칸"] = byHeapPrim(graphOf(199)).cells;
@@ -285,7 +285,7 @@ export const cases = {
     }
     return out;
   },
-  "간선을 정렬하고 대표 배열로 판정한다": () => {
+  "간선을 정렬하고 유니온 파인드로 판정": () => {
     const out: Record<string, number> = {};
     for (const e of DENSITIES) out[`E=${e} 기본 연산`] = measure(e).kruskal.ops;
     out["E=199 저장 칸"] = byKruskal(graphOf(199)).cells;
