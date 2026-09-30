@@ -353,3 +353,39 @@ test("뿌리를 바꿔도 같은 두 정점의 경로 합은 같다", () => {
     }
   }
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./heavyLightDecomposition-guide.sim.ts");
+  const fig = await import("./heavyLightDecomposition-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.hldWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.hldWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 패널의 반환값을 정본의 답에 직접 다시 묻는다.
+  const hld = new HeavyLightDecomposition(
+    9,
+    [
+      [0, 1],
+      [0, 2],
+      [1, 5],
+      [5, 6],
+      [2, 3],
+      [2, 4],
+      [4, 7],
+      [7, 8],
+    ],
+    0,
+    [1, 2, 3, 4, 5, 6, 7, 8, 9],
+  );
+  const answer = [hld.queryPath(0, 7), hld.queryPath(3, 6)];
+  hld.update(4, 100);
+  answer.push(hld.queryPath(8, 6));
+  expect(sim.hldWalk.result).toBe(`[${answer.join(", ")}]`);
+  const last = sim.hldWalk.steps.at(-1)?.strips?.at(-1)?.values;
+  expect(last).toEqual(answer);
+});
