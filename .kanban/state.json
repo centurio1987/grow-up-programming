@@ -1,6 +1,6 @@
 {
   "next_id": 64,
-  "next_seq": 447,
+  "next_seq": 448,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1553,7 +1553,7 @@
       "memo_hash": "e51a3d622cffa67f486ab94b0ba6fb1fda40100f"
     },
     "KAN-062-Z0V30H": {
-      "col": "backlog",
+      "col": "doing",
       "title": "알고리즘 가이드 편 사이 셈 기준·용어 정합 — 갈래별 기준표를 규격에 먼저 적고 편을 맞춘다",
       "verbatim": "KAN-058 검토서 판단 항목 5 「편 사이에 어긋난 셈 기준과 용어를 맞출 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
       "생성": "ai",
@@ -1570,7 +1570,15 @@
       "goal": "SPEC 에 갈래별 기준표가 서고, 근거 파일 §5 의 불일치가 모두 해소되거나 사유가 적힌다",
       "goal_hash": "f6ed130fdf1a9e0739f0dd7b007a2555b46d4370",
       "memo": "목록 정본: KANBAN.batches/KAN-058-8XT6PC.s11-findings.md §5(5-1 셈 기준 · 5-2 용어). KAN-058 검토 5",
-      "memo_hash": "d0ea12e7511e9e10c1f3f4ad54cb0ef77441ce35"
+      "memo_hash": "d0ea12e7511e9e10c1f3f4ad54cb0ef77441ce35",
+      "scope": [
+        "sandbox/algo-guide-v2/SPEC.md",
+        "src/algorithms/**/*-guide.*",
+        "tools/check-v2.ts",
+        "tools/check-v2.test.ts",
+        "tools/check-proof.ts",
+        "tools/cost-vocab.ts"
+      ]
     },
     "KAN-063-X2JFZA": {
       "col": "backlog",
@@ -1607,12 +1615,12 @@
     "KAN-054-1YWN4M",
     "KAN-055-4N4T6A",
     "KAN-061-YVQBCF",
-    "KAN-062-Z0V30H",
     "KAN-063-X2JFZA",
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
     "KAN-036-0G05DE",
+    "KAN-062-Z0V30H",
     "KAN-029",
     "KAN-030",
     "KAN-007",
@@ -1670,6 +1678,16 @@
     "KAN-058-8XT6PC"
   ],
   "recent": [
+    {
+      "seq": 447,
+      "t": "2026-10-01T06:59",
+      "a": "ai",
+      "id": "KAN-062-Z0V30H",
+      "op": "move",
+      "w": "YT59JH",
+      "from": "backlog",
+      "to": "doing"
+    },
     {
       "seq": 446,
       "t": "2026-10-01T06:52",
@@ -2232,16 +2250,6 @@
       "w": "977NDY",
       "from": "todo",
       "to": "doing"
-    },
-    {
-      "seq": 402,
-      "t": "2026-09-28T17:06",
-      "a": "유저",
-      "id": "KAN-058-8XT6PC",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-057-J36E1B",
-      "reason": "유저 결정(2026-09-28): 110편 전개는 KAN-057 완료 이후로 수행 가능하게 만든다"
     }
   ],
   "waivers": [
