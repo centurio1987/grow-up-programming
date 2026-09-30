@@ -1183,7 +1183,7 @@ $$\text{나눗셈} \le 2 + C(\lfloor\sqrt{n}\rfloor) = 2 + \left\lfloor \frac{\l
 
 소수는 1과 자기 자신 외에 약수가 없는 2 이상의 자연수다. 0이나 1, 음수는 소수가 아니다. 9처럼 제곱수도 합성수이므로 소수가 아니다.
 
-감사 도구는 $10^9$ 수준의 큰 수까지 1초 안에 판정해야 한다. 잘못된 판정이 나오면 취약한 키를 사용하게 되므로 정확성이 핵심이다.
+감사 도구는 $10^{12}$까지의 수를 1초 안에 판정해야 한다. 잘못된 판정이 나오면 취약한 키를 사용하게 되므로 정확성이 핵심이다.
 
 #### 함수 인터페이스
 
@@ -1198,7 +1198,7 @@ export function isPrimeTrial(n: number): boolean;
 
 - $n$은 임의의 정수 (음수·0·1 포함)
 - $n < 2$이면 소수가 아님
-- 입력 권장 범위: $n \leq 10^{12}$
+- $n \leq 10^{12}$
 - 시간 제한: 1초, 메모리 제한: 256 MB
 
 #### 문제 상세
@@ -1222,7 +1222,7 @@ isPrimeTrial(4);           // false — 2의 배수
 isPrimeTrial(9);           // false — 3 × 3, 제곱수
 isPrimeTrial(17);          // true  — 소수
 isPrimeTrial(25);          // false — 5 × 5
-isPrimeTrial(1);           // false — 소수 정의에 따라 1 미만
+isPrimeTrial(1);           // false — 2 미만은 소수가 아님
 isPrimeTrial(-7);          // false — 음수는 소수 아님
 isPrimeTrial(1_000_003);   // true  — 큰 소수
 ```

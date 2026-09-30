@@ -1211,16 +1211,16 @@ n 번 곱하기  8 + 8 + 2 = 18 번
 export function babyStepGiantStep(a: bigint, b: bigint, m: bigint): bigint;
 ```
 
-- `a` — 밑 (base), bigint
+- `a` — 밑 (base), $\gcd(a, m) = 1$인 bigint
 - `b` — 목표값, bigint
 - `m` — 모듈러, $m \geq 2$인 bigint
 - 반환 — $a^x \equiv b \pmod{m}$을 만족하는 최솟값 $x \geq 0$; 해가 없으면 $-1n$
 
 #### 제약 조건
 
-- $m \geq 2$ (bigint)
-- $a$, $b$는 임의의 bigint
-- $0 \leq x < m$ 범위에서 탐색
+- $2 \leq m \leq 10^9 + 7$ (bigint)
+- $a$와 $m$은 서로소다: $\gcd(a, m) = 1$
+- $b$는 임의의 bigint
 - 시간 제한: 1초, 메모리 제한: 256 MB
 
 #### 문제 상세
@@ -1229,6 +1229,7 @@ export function babyStepGiantStep(a: bigint, b: bigint, m: bigint): bigint;
 
 $$a^x \equiv b \pmod{m}$$
 
+- $a$와 $m$이 서로소가 아닌 입력은 과제 밖이다.
 - 해가 존재하지 않으면 $-1n$을 반환한다.
 - 복수의 해가 있으면 가장 작은 $x \geq 0$을 반환한다.
 - `a`, `b`가 `m`보다 크거나 음수일 수 있으며, 연산 전 $\bmod m$으로 정규화한다.
@@ -1239,6 +1240,6 @@ $$a^x \equiv b \pmod{m}$$
 babyStepGiantStep(2n, 1n, 5n);   // 0n  — 2^0 = 1 ≡ 1 (mod 5)
 babyStepGiantStep(2n, 3n, 5n);   // 3n  — 2^3 = 8 ≡ 3 (mod 5)
 babyStepGiantStep(3n, 13n, 17n); // 4n  — 3^4 = 81 ≡ 13 (mod 17)
-babyStepGiantStep(2n, 3n, 4n);   // -1n — 2의 거듭제곱은 mod 4에서 {1,2,0}만 순환, 3 없음
+babyStepGiantStep(2n, 3n, 7n);   // -1n — 2의 거듭제곱은 mod 7에서 {1,2,4}만 순환, 3 없음
 babyStepGiantStep(7n, 1n, 13n);  // 0n  — 7^0 = 1 ≡ 1 (mod 13)
 ```

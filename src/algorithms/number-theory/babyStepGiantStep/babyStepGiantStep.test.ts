@@ -28,9 +28,9 @@ describe("babyStepGiantStep", () => {
       expect(babyStepGiantStep(7n, 1n, 13n)).toBe(0n);
     });
 
-    test("해가 존재하지 않는 경우 - 2^x ≡ 3 (mod 4)", () => {
-      // 2^0=1, 2^1=2, 2^2=0, 2^3=0, ... → 3은 없음
-      expect(babyStepGiantStep(2n, 3n, 4n)).toBe(-1n);
+    test("해가 존재하지 않는 경우 - 2^x ≡ 3 (mod 7)", () => {
+      // 2^0=1, 2^1=2, 2^2=4, 2^3=1, ... → 3은 없음
+      expect(babyStepGiantStep(2n, 3n, 7n)).toBe(-1n);
     });
 
     test("a^1 = b 인 단순 케이스 (3^1 ≡ 3 mod 7)", () => {
@@ -62,9 +62,9 @@ describe("babyStepGiantStep", () => {
       expect(lhs).toBe(b);
     });
 
-    test("a, b가 m으로 정규화 - a=15, b=3, m=12 (a mod m = 3)", () => {
-      // 15 ≡ 3 (mod 12) → 3^x ≡ 3 (mod 12) → x=1
-      const x = babyStepGiantStep(15n, 3n, 12n);
+    test("a, b가 m으로 정규화 - a=20, b=-14, m=17 (a mod m = 3, b mod m = 3)", () => {
+      // 20 ≡ 3, -14 ≡ 3 (mod 17) → 3^x ≡ 3 (mod 17) → x=1
+      const x = babyStepGiantStep(20n, -14n, 17n);
       expect(x).toBe(1n);
     });
   });
