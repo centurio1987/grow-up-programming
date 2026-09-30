@@ -89,7 +89,7 @@ KANBAN.cards/KAN-046-ZFDFCQ.md	KANBAN.cards/KAN-046-ZFDFCQ.md	61	afd4bf48e750	-
 KANBAN.cards/KAN-046-ZFDFCQ.md	KANBAN.cards/KAN-046-ZFDFCQ.md	62	3a9c5fb7d50f	-
 KANBAN.cards/KAN-046-ZFDFCQ.md	tools/ord006-inventory.ts	231	adc80ebe6e4d	-
 KANBAN.cards/KAN-047-394V9A.md	tools/check-citations.ts	7	a82e46180ef3	-
-KANBAN.cards/KAN-056-VPCM91.md	.claude/skills/guide-for-problem/SKILL.md	104	be975b01d2ee	-
+KANBAN.cards/KAN-056-VPCM91.md	.claude/skills/guide-for-problem/SKILL.md	107	be975b01d2ee	-
 KANBAN.cards/KAN-057-J36E1B.md	.claude/authoring/voices/algorithm-guide-writer/voice.md	33	bc8db68a78af	-
 KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	520	494eba45f6f1	-
 KANBAN.cards/KAN-057-J36E1B.md	sandbox/algo-guide-v2/SPEC.md	704	34892273d7c1	-
@@ -112,7 +112,6 @@ KANBAN.cards/KAN-060-9P4ZAA.md	.claude/authoring/voices/algorithm-guide-writer/v
 KANBAN.cards/KAN-060-9P4ZAA.md	sandbox/algo-guide-v2/SPEC.md	334	41bdbc35f8fb	-
 KANBAN.cards/KAN-060-9P4ZAA.md	sandbox/algo-guide-v2/SPEC.md	776	c466296f2816	-
 KANBAN.cards/KAN-060-9P4ZAA.md	src/algorithms/advanced/knuthOptimization/knuthOptimization-guide.proof.ts	65	e3654465f83a	-
-KANBAN.cards/KAN-060-9P4ZAA.md	src/algorithms/shortest-path/floydWarshall/floydWarshall-guide.proof.ts	47	136712860e63	-
 KANBAN.cards/KAN-060-9P4ZAA.md	src/algorithms/sorting/kthSmallest/kthSmallest.test.ts	5	868d49c9ddc8	-
 KANBAN.cards/KAN-060-9P4ZAA.md	src/algorithms/string/ahoCorasick/ahoCorasick-guide.test.ts	17	fb4a410e823f	-
 KANBAN.cards/KAN-060-9P4ZAA.md	tools/ci.ts	106	61d0814a2055	-

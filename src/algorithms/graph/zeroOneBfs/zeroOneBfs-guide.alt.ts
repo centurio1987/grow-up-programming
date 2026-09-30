@@ -77,7 +77,7 @@ export function lateShortcut(m: number): { n: number; edges: Edge[] } {
 
 /* ────────────────────────── 두 설계 ────────────────────────── */
 
-interface Counted {
+export interface Counted {
   dist: number[];
   ops: number;
   cells: number;
@@ -98,7 +98,7 @@ const answer = (dist: number[]): number[] =>
  * 이 가이드의 절차 — 덱. 정본(`zeroOneBfs-guide.ref.ts`)과 같은 절차이고 세는 자리만 덧붙였다.
  * 덱은 배열 두 개로 만들었으므로 원소를 옮기는 자리가 `front` 가 비었을 때의 뒤집기뿐이다.
  */
-function 덱(n: number, edges: Edge[], source: number): Counted {
+export function 덱(n: number, edges: Edge[], source: number): Counted {
   const adj = adjacency(n, edges);
   const dist = Array.from({ length: n }, () => Number.POSITIVE_INFINITY);
   dist[source] = 0;
@@ -136,7 +136,11 @@ function 덱(n: number, edges: Edge[], source: number): Counted {
  * 항목부터 꺼낸다. 가중치가 0 이거나 1 이라는 것을 쓰지 않으므로 **임의의 음이 아닌
  * 가중치**에 그대로 걸리고, 그 대신 항목을 꺼낼 때마다 힙 높이만큼 키를 견준다.
  */
-function 힙다익스트라(n: number, edges: Edge[], source: number): Counted {
+export function 힙다익스트라(
+  n: number,
+  edges: Edge[],
+  source: number,
+): Counted {
   const adj = adjacency(n, edges);
   const dist = Array.from({ length: n }, () => Number.POSITIVE_INFINITY);
   dist[source] = 0;

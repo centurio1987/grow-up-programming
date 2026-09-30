@@ -215,3 +215,44 @@ test("정본 — 단순 경로를 전부 만든 답과 같다 (정점 1~7 · 간
     }
   }
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이 정적으로
+ * 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./floydWarshall-guide.sim.ts");
+  const fig = await import("./floydWarshall-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.floydWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.floydWalk.rowHeads)).toEqual(
+    plain(fig.TABLE_OPTIONS.rowHeads),
+  );
+  expect(plain(sim.floydWalk.colHeads)).toEqual(
+    plain(fig.TABLE_OPTIONS.colHeads),
+  );
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 거리 행렬을 정본의 답에 직접 다시 묻는다.
+  const edges: [number, number, number][] = [
+    [0, 1, 3],
+    [0, 1, 4],
+    [1, 2, -2],
+    [2, 0, 5],
+    [2, 3, 3],
+    [3, 1, 1],
+    [4, 3, 2],
+  ];
+  const answer = floydWarshall(5, edges);
+  const last = sim.floydWalk.steps.at(-1);
+  expect(plain(last?.table)).toEqual(
+    answer.map((row) => row.map((x) => (x === INF ? null : x))),
+  );
+  expect(sim.floydWalk.result).toBe(
+    answer
+      .map((row) => row.map((x) => (x === INF ? "INF" : String(x))).join(" "))
+      .join(" · "),
+  );
+  // 걸음 수 — 준비 한 걸음 + 라운드 V 걸음 + 반환 한 걸음.
+  expect(sim.floydWalk.steps.length).toBe(1 + 5 + 1);
+});
