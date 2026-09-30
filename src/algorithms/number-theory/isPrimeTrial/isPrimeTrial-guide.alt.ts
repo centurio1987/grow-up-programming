@@ -1,19 +1,25 @@
 /**
  * `purpose.alt`(경쟁 설계와의 대조) 의 계수를 실측하는 하네스 — `L13`.
  *
- * 재는 것은 **기본 연산 수**와 **저장 칸 수** 둘이다. 기본 연산은 곱셈 · 나눗셈 · 나머지를
- * 각각 한 번으로 세고, 두 설계가 같은 단위를 쓴다. 둘 다 같은 입력에서 늘 같은 값이 나오는
- * 결정론적 계수다 — 벽시계는 안 잰다.
+ * 재는 것은 **기본 연산 수**와 **저장 칸 수** 둘이다. 기본 연산은 본문 전체와 같은 단위다 — 나머지 연산
+ * (나눗셈) 한 번 · 배열 칸 하나를 읽거나 쓰는 것 한 번을 각각 하나로 세고, 반복 변수를 올리고 비교하는 일은
+ * 세지 않는다(체 편 `sieveOfEratosthenes-guide.md` 와 같은 단위). 두 설계 다 배열을 안 쓰므로 세는 것은
+ * `%` 와 `/` 뿐이다. 둘 다 같은 입력에서 늘 같은 값이 나오는 결정론적 계수다 — 벽시계는 안 잰다.
  *
  *   bun run tools/bench-alt.ts src/algorithms/number-theory/isPrimeTrial/isPrimeTrial-guide.alt.ts
  *
  * **입력을 왜 전개 입력만으로 안 두는가.** 전개가 쓰는 `n` 은 187 이라 후보가 셋뿐이고, 두
  * 설계가 갈리는 축이 「후보 수가 `√n` 에 비례해 늘어나는 것 대 밑마다 거듭제곱 한 번」이라
- * `n` 이 작으면 그 축이 거의 안 벌어진다. 그래서 전개 입력을 그대로 한 줄로 두고, 계약이
- * 권장하는 상한 `10^12` 까지 규모를 올린 소수들을 더한다. 입력은 **각 규모의 가장 큰 소수**
+ * `n` 이 작으면 그 축이 거의 안 벌어진다. 그래서 전개 입력을 그대로 한 줄로 두고, 과제 규모의
+ * 상한 `10^12` 까지 규모를 올린 소수들을 더한다. 입력은 **각 규모의 가장 큰 소수**
  * 하나로 정하는 생성식이고 난수가 없다 — 소수가 이 절차의 최악 입력이라 대조가 이쪽에
  * 유리하게 기울지 않는다.
+ *
+ * **2026-09-30 세는 단위를 바꿨다**(KAN-058 재집필). 옛 단위는 곱셈 한 번 · 나머지 연산 한 번이었고, 본문의
+ * 다른 절은 나눗셈만 셌다. 원고 전체의 단위를 하나로 두면서 체 편과 같은 단위로 맞췄다. 입력은 그대로다.
  */
+
+import { countRun, LARGEST_PRIME_AT } from "./isPrimeTrial-guide.fig.tsx";
 
 /** 전개 절이 쓰는 입력. */
 export const WALK = 187;
@@ -47,30 +53,12 @@ export function basesFor(n: bigint): bigint[] {
 /* ─────────────── 이 글의 절차 — √n 까지의 6k±1 시행 나눗셈 ─────────────── */
 
 /**
- * 정본과 같은 절차에 기본 연산 계수만 덧붙인 사본. 답이 맞는지는 정본이 지고
- * (`*.proof.ts` 가 정본을 부른다), 여기서는 계수만 낸다.
- *
- * 세는 자리는 셋이다 — 사전 판정의 나머지(`n % 2` 와 `n % 3` 을 각각 실행한 만큼), 루프
- * 조건의 곱셈 `d * d`, 루프 안의 나머지 `n % d`.
+ * 정본과 같은 절차의 기본 연산 — 나머지 연산 `n % 2` · `n % 3` · `n % d` 를 실행한 만큼. 루프 조건의 `d * d`
+ * 는 비교하는 일이라 세지 않는다. 세는 사본은 그림 사이드카의 `countRun` 이고, 답은 거기서 정본과 대조한다.
  */
 export function ourOps(n: number): { ops: number; result: boolean } {
-  let ops = 0;
-  if (n < 2) return { ops, result: false };
-  if (n === 2 || n === 3) return { ops, result: true };
-  ops += 1; // n % 2
-  if (n % 2 === 0) return { ops, result: false };
-  ops += 1; // n % 3
-  if (n % 3 === 0) return { ops, result: false };
-  let d = 5;
-  let step = 2;
-  for (;;) {
-    ops += 1; // d * d
-    if (d * d > n) return { ops, result: true };
-    ops += 1; // n % d
-    if (n % d === 0) return { ops, result: false };
-    d += step;
-    step = 6 - step;
-  }
+  const c = countRun(n);
+  return { ops: c.divisions, result: c.prime };
 }
 
 /** 이 절차가 동시에 들고 있는 칸 — `n`·`d`·`step` 셋이다. */
@@ -82,17 +70,35 @@ export const OUR_CELLS = 3;
  * 밑을 고정한 밀러-라빈. 상한마다 알려진 밑 목록을 쓰므로 그 상한 아래에서는 확률이 아니라
  * **확정 판정**이다.
  *
- * 기본 연산은 모듈러 곱셈 한 번을 둘(곱셈 하나 · 나머지 하나)로 세고, `n - 1` 을 `r · 2^s`
- * 로 가르는 자리도 나머지 하나와 나눗셈 하나로 함께 센다. 나눗셈을 시프트로 바꾸는 구현이
- * 흔하지만, 그렇게 하면 이 글의 절차가 쓰는 나머지 연산과 단위가 달라진다.
+ * 기본 연산은 이 절차가 실행하는 `%` 와 `/` 를 한 번씩 센다 — 모듈러 곱셈 `(a * b) % n` 은 나머지 연산 한
+ * 번이고, `n - 1` 을 `r · 2^s` 로 가르는 자리의 `r % 2` 와 `r / 2` 도 각각 센다. 곱셈과 비트 연산은 이 글의
+ * 절차의 `d * d` 처럼 세지 않는다. `r / 2` 를 시프트로 바꾸는 구현이 흔하지만, 그렇게 하면 나눗셈을 세는
+ * 이 글의 단위와 어긋나므로 나눗셈으로 둔다.
  */
-export function millerOps(value: number): { ops: number; result: boolean } {
+export interface MillerCount {
+  readonly ops: number;
+  readonly result: boolean;
+  /** `n - 1` 을 `r · 2^s` 로 가르는 데 든 기본 연산. */
+  readonly split: number;
+  /** 밑마다 든 기본 연산 — 밑 목록 순서. 판정이 도중에 끝나면 거기까지만. */
+  readonly perBase: readonly number[];
+}
+
+export function millerOps(value: number): MillerCount {
   const n = BigInt(value);
   let ops = 0;
-  if (n < 2n) return { ops, result: false };
-  if (n === 2n) return { ops, result: true };
+  let split = 0;
+  const perBase: number[] = [];
+  const out = (result: boolean): MillerCount => ({
+    ops,
+    result,
+    split,
+    perBase,
+  });
+  if (n < 2n) return out(false);
+  if (n === 2n) return out(true);
   ops += 1; // n % 2
-  if (n % 2n === 0n) return { ops, result: false };
+  if (n % 2n === 0n) return out(false);
 
   // n - 1 = r · 2^s
   let r = n - 1n;
@@ -104,13 +110,15 @@ export function millerOps(value: number): { ops: number; result: boolean } {
     r /= 2n;
     s += 1n;
   }
+  split = ops - 1;
 
   const modMul = (a: bigint, b: bigint): bigint => {
-    ops += 2; // 곱셈 하나와 나머지 하나
+    ops += 1; // (a * b) % n
     return (a * b) % n;
   };
   const modPow = (base: bigint, exp: bigint): bigint => {
     let acc = 1n;
+    ops += 1; // base % n
     let b = base % n;
     let e = exp;
     while (e > 0n) {
@@ -122,9 +130,18 @@ export function millerOps(value: number): { ops: number; result: boolean } {
   };
 
   for (const a of basesFor(n)) {
-    if (a % n === 0n) continue; // 밑이 n 의 배수면 이 밑으로는 판정할 수 없다
+    const before = ops;
+    const closeBase = () => perBase.push(ops - before);
+    ops += 1; // a % n
+    if (a % n === 0n) {
+      closeBase();
+      continue; // 밑이 n 의 배수면 이 밑으로는 판정할 수 없다
+    }
     let x = modPow(a, r);
-    if (x === 1n || x === n - 1n) continue;
+    if (x === 1n || x === n - 1n) {
+      closeBase();
+      continue;
+    }
     let witness = true;
     for (let i = 1n; i < s; i++) {
       x = modMul(x, x);
@@ -133,9 +150,10 @@ export function millerOps(value: number): { ops: number; result: boolean } {
         break;
       }
     }
-    if (witness) return { ops, result: false };
+    closeBase();
+    if (witness) return out(false);
   }
-  return { ops, result: true };
+  return out(true);
 }
 
 /** 밀러-라빈 판이 들고 있는 칸 — `n`·`r`·`s`·`a`·`x`·`i`·`witness` 일곱 + 밑 목록. */
@@ -144,15 +162,6 @@ export function millerCells(value: number): number {
 }
 
 /* ───────────────────────── 뒤집히는 자리 찾기 ───────────────────────── */
-
-/** 각 규모의 가장 큰 소수. 이 절차의 최악 입력이라 대조가 이쪽에 유리하지 않다. */
-export const LARGEST_PRIME_AT: Record<string, number> = {
-  "10^3": 997,
-  "10^4": 9_973,
-  "10^6": 999_983,
-  "10^9": 999_999_937,
-  "10^12": 999_999_999_989,
-};
 
 /** 소수인지 정직하게 확인한다 — 스윕이 쓰는 보조 함수다. */
 function isPrime(n: number): boolean {

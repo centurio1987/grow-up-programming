@@ -125,3 +125,17 @@ test("불변식 — 루프가 끝날 때까지 √n 이하의 모든 6k±1 후�
     expect(isPrimeTrial(n)).toBe(found === -1);
   }
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이 정적으로
+ * 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본과 같은 절차를 따라가며
+ * 남긴 걸음 기록(답은 정본과 대조한다) — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./isPrimeTrial-guide.sim.ts");
+  const { simStepsFromRef } = await import("./isPrimeTrial-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.trialWalk.steps)).toEqual(plain(simStepsFromRef()));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.trialWalk.result).toBe(String(isPrimeTrial(187)));
+});
