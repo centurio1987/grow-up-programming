@@ -28,6 +28,8 @@ scope: src/algorithms/array/bestTimeToBuyAndSellStock/bestTimeToBuyAndSellStock.
 - [x] `S3` 병합 도구 — `tools/solutions-merge.ts`(+test). 병합 결과에서 첫째 부모의 풀이가 스텁으로 바뀐 파일을 되살린다. 완료 기준: 임시 워크트리에서 solutions(`fba671d3`)에 이 브랜치를 병합하는 모의 실행으로 ① 도구 없이 병합하면 24편이 스텁이 되는 것 ② 도구를 거치면 24편 모두 solutions 판과 바이트 동일 ③ 그다음 main 에 변경을 하나 더 얹어 다시 병합해도 24편이 그대로인 것을 확인
 - [ ] `S4` 전체 검증과 검토서. 완료 기준: `bun run tools/ci.ts all` 통과, 검토서에 모의 병합 결과와 유저가 solutions 에서 돌릴 명령을 싣는다
 
+- [ ] `S5` solutions 실제 병합 — solutions 체크아웃(`/Users/centurio/code_test`)에서 `bun run <이 워크트리>/tools/solutions-merge.ts KAN-064-4YZZV2`. 무관한 충돌 `.claude/authoring/specs/problem/spec.json` 은 main 쪽 삭제를 따른다(KAN-060 S3 이 problem spec 을 퇴역시켰다). 완료 기준: 병합 커밋 뒤 solutions 에서 24편(옮긴 셋은 새 경로)이 병합 전 solutions 판과 바이트 동일, 병합 전 solutions 에서 풀이였던 파일 중 스텁이 된 것 0, push 는 하지 않는다
+
 ## 검증
 - `bun run tools/ci.ts all` 통과(practice 모드의 미구현 실패는 정상)
 - `bun test tools/practice-ref.test.ts` — 스텁 누수 0
@@ -46,3 +48,5 @@ scope: src/algorithms/array/bestTimeToBuyAndSellStock/bestTimeToBuyAndSellStock.
 - 2026-10-01T08:30 · s:9483b98c · S3 doing — 착수
 - 2026-10-01T08:30 · s:9483b98c · S3 done — tools/solutions-merge.ts(+test 2). 모의 병합(solutions fba671d3 ← 이 브랜치): 도구 없이 24편 전부 스텁 · 도구로 24편 되살림(경로 이동 3 포함), solutions 판과 바이트 불일치 0. 무관한 충돌 1 — .claude/authoring/specs/problem/spec.json(main 삭제 · solutions 수정)
 - 2026-10-01T08:30 · s:9483b98c — 유저가 solutions 병합까지 이 카드에서 하기로 함(2026-10-01). solutions 체크아웃은 7288f68a 커밋으로 깨끗해짐 — S5 로 실제 병합을 더한다
+- 2026-10-01T08:31 · s:9483b98c — `실행 계획` 섹션 교체
+- 2026-10-01T08:31 · s:9483b98c — `실행 계획` 섹션 교체

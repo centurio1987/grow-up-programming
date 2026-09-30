@@ -148,7 +148,7 @@
   - 이유: solutions 브랜치 병합(3aa95994)으로 풀이가 main 에 들어와 학습자가 풀 파일을 열면 답이 보인다
   - 목표: 24편 스텁이 Not implemented 를 던지고 solutions 쪽 풀이는 한 편도 잃지 않는다
   - 메모: 근거: KANBAN.cards/KAN-061-YVQBCF.md 의 S1 수행 내역(24편 · 21편 바이트 동일). main 에서 바로 되돌리면 다음 main→solutions 병합이 풀이를 덮는다 — 병합 방향부터
-  - 실행 문서: KANBAN.cards/KAN-064-4YZZV2.md (3/4 · 최근 10-01)
+  - 실행 문서: KANBAN.cards/KAN-064-4YZZV2.md (3/5 · 최근 10-01)
   - 계획 리포트: KANBAN.reports/KAN-064-4YZZV2.report.html (낡음)
   - 원문:
     ```text

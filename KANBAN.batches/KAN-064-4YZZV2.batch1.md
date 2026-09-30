@@ -4,7 +4,7 @@ batch: 1
 created: 2026-10-01
 branch: KAN-064-4YZZV2
 status: 계획
-steps: S1, S2, S3, S4
+steps: S1, S2, S3, S4, S5
 ---
 
 # KAN-064-4YZZV2 배치1 — 스텁 되돌림 · 누수 가드 · 병합 도구 · 검증
