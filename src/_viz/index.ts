@@ -55,6 +55,15 @@ export {
   type LevelTableProps,
   levelLabel,
 } from "./patterns/LevelTable";
+export {
+  type EnvelopeLine,
+  type EnvelopeLineState,
+  type EnvelopeMark,
+  type EnvelopePoint,
+  type EnvelopeSpan,
+  LineEnvelope,
+  type LineEnvelopeProps,
+} from "./patterns/LineEnvelope";
 export { ALGO_VIZ_META, type AlgoVizMeta } from "./patterns/meta";
 export {
   type EdgeKind,

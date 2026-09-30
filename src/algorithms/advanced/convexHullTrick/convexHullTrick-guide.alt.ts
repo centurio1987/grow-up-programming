@@ -22,7 +22,7 @@
  * 그 크기에서는 `⌈log₂ 3⌉ = 2` 와 리 차오의 마디 수가 둘 다 한 자리라 어느 쪽이 왜 적은지가
  * 값에서 나오지 않는다. 그래서 대조는 **제약 규모**에서 한다 — 직선 1,024 개와 질의
  * 16,384 개를 고정하고 **좌표 범위 `C` 만** 갈아 끼운다. 세 값 다 같은 생성식이고, `2^30` 이
- * 문제의 제약(`|x| ≤ 10^9`)에 가장 가까운 자리다.
+ * 과제의 자리 범위(`|x| ≤ 10^9`)에 가장 가까운 자리다.
  *
  * ```
  * s      = C / 1024                          좌표 범위에 맞춘 배율
@@ -46,7 +46,7 @@ const N = 1024;
 /** 질의 수. 셋 다 같다. */
 const Q = 16_384;
 
-/** 좌표 범위 셋. 2^30 이 문제의 제약(`|x| ≤ 10^9`)에 가장 가깝다. */
+/** 좌표 범위 셋. 2^30 이 과제의 자리 범위(`|x| ≤ 10^9`)에 가장 가깝다. */
 const RANGES = [2 ** 30, 2 ** 11, 2 ** 10] as const;
 
 let ops = 0;
@@ -227,6 +227,68 @@ class LiChao {
 }
 
 /* ────────────────────────── 계측 ────────────────────────── */
+
+/* ──────────────── 본문이 쓰는 계수 — 같은 잣대(기본 연산)로 ──────────────── */
+
+/**
+ * 본문 전체가 비용을 이 파일의 잣대 하나로 센다 — 산술 연산 하나 · 자료 읽기나 쓰기 하나 · 비교 하나를
+ * 각각 1 로 센다. 아래 둘은 그 잣대로 잰 값을 돌려준다. 답과 아래 껍질이 정본과 같은지 매번 확인한다.
+ */
+
+/** 직선을 넣고 질의를 답하며 등록 · 질의의 기본 연산을 따로 센다. 아래 껍질과 답은 정본과 대조한다. */
+export function countHull(
+  lines: readonly (readonly [number, number])[],
+  xs: readonly number[],
+): { addOps: number; queryOps: number; answers: number[]; hull: Line[] } {
+  const ref = new ConvexHullTrick();
+  const it = new CountedHull();
+  ops = 0;
+  for (const [m, b] of lines) {
+    ref.addLine(m, b);
+    it.addLine(m, b);
+  }
+  const addOps = ops;
+  const same = (p: Line[], q: Line[]): boolean =>
+    p.length === q.length &&
+    p.every((l, i) => l.m === (q[i] as Line).m && l.b === (q[i] as Line).b);
+  if (!same(it.hull, ref.hull)) {
+    throw new Error("계수를 단 사본의 아래 껍질이 정본과 다르다");
+  }
+  ops = 0;
+  const answers = xs.map((x) => {
+    const got = it.query(x);
+    const want = ref.query(x);
+    if (got !== want) throw new Error(`x=${x} 의 답이 정본과 다르다`);
+    return got;
+  });
+  return { addOps, queryOps: ops, answers, hull: [...ref.hull] };
+}
+
+/**
+ * 직선 목록을 질의마다 전부 계산하는 방법 — 같은 잣대로 센다. 최솟값 자리 초기화 1 · 직선마다 반복
+ * 검사 1 과 직선 읽고 계산 3(읽기 1 · 곱셈 1 · 덧셈 1)과 비교 1 · 반복이 끝나는 검사 1 이라 질의 하나가
+ * `5n + 2` 다. 아래 껍질만 계산할 때도 같은 함수에 아래 껍질을 넘긴다.
+ */
+export function countScan(
+  lines: readonly (readonly [number, number])[],
+  xs: readonly number[],
+): { ops: number; answers: number[] } {
+  ops = 0;
+  const answers = xs.map((x) => {
+    bump(1);
+    let best = Number.POSITIVE_INFINITY;
+    for (const [m, b] of lines) {
+      bump(1);
+      bump(3);
+      const v = m * x + b;
+      bump(1);
+      if (v < best) best = v;
+    }
+    bump(1);
+    return best;
+  });
+  return { ops, answers };
+}
 
 /** 정본의 답. 대조가 답을 바꾸지 않았는지 매 실행마다 확인하는 기준이다. */
 function reference(C: number): number[] {

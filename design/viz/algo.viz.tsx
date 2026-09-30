@@ -31,6 +31,7 @@ import { CumulativeCurve } from "../../src/_viz/patterns/CumulativeCurve";
 import { KeyValueTable } from "../../src/_viz/patterns/KeyValueTable";
 import { LayerBars } from "../../src/_viz/patterns/LayerBars";
 import { LevelTable } from "../../src/_viz/patterns/LevelTable";
+import { LineEnvelope } from "../../src/_viz/patterns/LineEnvelope";
 import { NodeGraph } from "../../src/_viz/patterns/NodeGraph";
 import { RangeCover } from "../../src/_viz/patterns/RangeCover";
 import { StepTrace } from "../../src/_viz/patterns/StepTrace";
@@ -331,5 +332,6 @@ export const algoVizStyleGuide: VisualizationStyleGuide = {
     NodeGraph,
     KeyValueTable,
     CumulativeCurve,
+    LineEnvelope,
   },
 };

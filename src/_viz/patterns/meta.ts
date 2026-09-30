@@ -184,4 +184,21 @@ export const ALGO_VIZ_META: readonly AlgoVizMeta[] = [
       "가로가 단위로 늘어나는 양이 아니라 범주면 표나 막대 — 선분의 증분이 뜻을 잃는다",
     ],
   },
+  {
+    id: "ALGO-P11",
+    name: "Line Envelope",
+    exportName: "LineEnvelope",
+    summary:
+      "평면 위에 직선 y = m·x + b 여럿을 긋고 자리마다 가장 낮은 직선을 이은 꺾은선(아래 껍질)을 굵게 — 버린 직선은 대시, 가장 낮은 직선이 바뀌는 경계는 세로선",
+    dataShape: ["relationship", "magnitude"],
+    structuralTraits: ["quantitative", "paired"],
+    useWhen: [
+      "일차 함수 여럿의 최솟값(또는 최댓값)이 자리마다 어느 직선에서 나오는지 보일 때 — 볼록 껍질 트릭의 아래 껍질",
+      "직선 하나가 가장 낮은 자리의 범위(담당 구간)를 가로축 위 괄호로 보일 때",
+    ],
+    avoidWhen: [
+      "평면 위의 점과 그 연결이 요점이면 NodeGraph — 점의 좌표를 정점 자리로",
+      "직선이 여덟을 넘으면 이름이 겹친다 — 몇 개만 골라 그리고 나머지는 표",
+    ],
+  },
 ];

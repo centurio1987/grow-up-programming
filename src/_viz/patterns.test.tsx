@@ -961,6 +961,74 @@ describe("P10 CumulativeCurve · 누적 값 곡선", () => {
   });
 });
 
+describe("P11 LineEnvelope · 직선 무리와 아래 껍질", () => {
+  const count = (svg: string, re: RegExp) => svg.match(re)?.length ?? 0;
+  // 볼록 껍질 트릭 편의 작은 입력 — 다섯 직선 가운데 (-1, 5) 만 어디서도 가장 낮지 않다.
+  const lines = [
+    { m: -2, b: 0, label: "(-2, 0)" },
+    { m: -1, b: 5, label: "(-1, 5) 버림", state: "out" as const, labelX: 2 },
+    { m: 0, b: -1, label: "(0, -1)" },
+    { m: 1, b: 2, label: "(1, 2)", state: "read" as const },
+    { m: 2, b: 8, label: "(2, 8)", state: "focus" as const },
+  ];
+  const envelope = [
+    { x: -8, y: -8 },
+    { x: -6, y: -4 },
+    { x: -3, y: -1 },
+    { x: 0.5, y: -1 },
+    { x: 6, y: -12 },
+  ];
+
+  test("직선마다 상태를 싣고, 아래 껍질 · 경계 세로선 · 구간 괄호 · 짚은 점을 그리며 결정론이다", async () => {
+    const { LineEnvelope } = await import("./patterns/LineEnvelope");
+    const el = (
+      <LineEnvelope
+        title="직선 다섯과 아래 껍질"
+        xRange={[-8, 6]}
+        yRange={[-12, 14]}
+        lines={lines}
+        envelope={envelope}
+        marks={[
+          { x: 0.5, label: "X_0 = 0.5" },
+          { x: -3, label: "X_1 = -3" },
+        ]}
+        spans={[{ from: -8, to: -6, label: "hull[3]" }]}
+        points={[{ x: -4, y: -2, label: "x = -4 → -2" }]}
+      />
+    );
+    const svg = await renderToSvg(el, "t-envelope");
+    expect(svg).toBe(await renderToSvg(el, "t-envelope"));
+    expect(count(svg, /data-viz-line="/g)).toBe(5);
+    expect(count(svg, /data-viz-state="out"/g)).toBe(1);
+    expect(count(svg, /data-viz-state="read"/g)).toBe(1);
+    expect(count(svg, /data-viz-state="focus"/g)).toBe(1);
+    expect(count(svg, /data-viz-state="done"/g)).toBe(2);
+    expect(svg).toContain('data-viz-envelope="5"');
+    expect(count(svg, /data-viz-mark="/g)).toBe(2);
+    expect(svg).toContain('data-viz-span="hull[3]"');
+    expect(svg).toContain('data-viz-point="-4"');
+    expect(svg).toContain("(-1, 5) 버림");
+  });
+
+  test("그림 칸을 안 지나는 직선은 긋지 않는다", async () => {
+    const { LineEnvelope } = await import("./patterns/LineEnvelope");
+    const svg = await renderToSvg(
+      <LineEnvelope
+        title="칸 밖 직선"
+        xRange={[0, 4]}
+        yRange={[0, 4]}
+        lines={[
+          { m: 0, b: 2, label: "안" },
+          { m: 0, b: 100, label: "밖" },
+        ]}
+      />,
+      "t-envelope-clip",
+    );
+    expect(count(svg, /data-viz-line="/g)).toBe(1);
+    expect(svg).not.toContain(">밖<");
+  });
+});
+
 describe("패턴 등록 가드", () => {
   // SPEC §12 「패턴을 더하는 법」 — 새 패턴은 한 벌로 선다. 유저 지시(2026-09-28): 맞는 시각화가 없으면
   // 표로 대신하지 말고 패턴부터 만들어 적용한다. 만들다 만 패턴이 조용히 남지 않게 여기서 잡는다.

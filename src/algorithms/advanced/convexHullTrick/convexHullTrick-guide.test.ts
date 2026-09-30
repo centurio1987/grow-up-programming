@@ -181,3 +181,25 @@ test("본문 수식 절이 드는 자리 — isCovered 는 세 점의 방향 판
   }
   expect(checked).toBe(220);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본과 걸음마다
+ * 대조하는 기록에서 만든 걸음 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./convexHullTrick-guide.sim.ts");
+  const { simStepsFromRef } = await import("./convexHullTrick-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.hull.steps)).toEqual(plain(simStepsFromRef()));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  const cht = build([
+    [-2, 0],
+    [-1, 5],
+    [0, -1],
+    [0, -3],
+    [2, 0],
+    [2, 7],
+  ]);
+  expect(sim.hull.result).toBe([0, -4, 4].map((x) => cht.query(x)).join(" · "));
+});
