@@ -1404,6 +1404,7 @@ export function polygonArea(polygon: Point[]): number;
 
 - $3 \leq N \leq 10^5$ — 여기서 $N$ 은 꼭짓점 배열의 길이
 - $-10^9 \leq x, y \leq 10^9$ — 각 꼭짓점 좌표의 범위
+- 좌표는 모두 정수다
 - `polygon` 은 자기교차가 없는 단순 다각형 (볼록·오목 모두 가능)
 - 꼭짓점 순서는 시계 방향과 반시계 방향 모두 유효한 입력이다
 - 시간 제한: 1초, 메모리 제한: 256 MB

@@ -56,7 +56,7 @@ describe("fastPower", () => {
   describe("바운더리", () => {
     test("매우 큰 mod (mod = 10^18+9)", () => {
       const mod = 1000000000000000009n;
-      expect(fastPower(2n, 60n, mod)).toBe(1152921504606846976n);
+      expect(fastPower(2n, 60n, mod)).toBe(152921504606846967n); // 2^60 = 1152921504606846976 은 법보다 커서 한 번 줄어든다
     });
 
     test("지수 = 1", () => {

@@ -15,8 +15,8 @@ describe("ahoCorasick", () => {
   // 기본 동작
   describe("기본 동작", () => {
     test("단일 패턴 단일 매칭", () => {
-      const result = ahoCorasick("hello world", ["world"]);
-      expect(sortMatches(result)).toEqual([{ patternIndex: 0, position: 6 }]);
+      const result = ahoCorasick("helloworld", ["world"]);
+      expect(sortMatches(result)).toEqual([{ patternIndex: 0, position: 5 }]);
     });
 
     test("여러 패턴 동시 매칭", () => {

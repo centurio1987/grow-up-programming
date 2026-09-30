@@ -63,22 +63,20 @@ describe("matrixPowerFibonacci", () => {
     expect(typeof matrixPowerFibonacci(10n)).toBe("bigint");
   });
 
-  // 바운더리 — n = 10^18
-  test("n=10^18 은 양의 bigint 값을 반환한다", () => {
-    const result = matrixPowerFibonacci(10n ** 18n);
-    expect(typeof result).toBe("bigint");
-    expect(result > 0n).toBe(true);
+  // 바운더리 — 상한 n = 10^6. 자릿수와 끝 아홉 자리는 10^9 로 나눈 나머지만 들고 백만 번 더해 따로 구했다.
+  test("n=10^6 은 208,988 자리이고 끝 아홉 자리가 242546875 다", () => {
+    const result = matrixPowerFibonacci(1_000_000n);
+    expect(result.toString().length).toBe(208_988);
+    expect(result % 10n ** 9n).toBe(242_546_875n);
   });
 
-  // 성능 테스트 — n=10^18 을 100ms 이내 (O(log n) 검증)
-  test("n=10^18 입력을 100ms 이내에 처리한다", () => {
-    const n = 10n ** 18n;
-
+  // 성능 테스트 — 상한 n = 10^6 을 제한 시간 1초 안에
+  test("n=10^6 입력을 1초 이내에 처리한다", () => {
     const start = performance.now();
-    const result = matrixPowerFibonacci(n);
+    const result = matrixPowerFibonacci(1_000_000n);
     const elapsed = performance.now() - start;
 
     expect(typeof result).toBe("bigint");
-    expect(elapsed).toBeLessThan(100);
+    expect(elapsed).toBeLessThan(1000);
   });
 });

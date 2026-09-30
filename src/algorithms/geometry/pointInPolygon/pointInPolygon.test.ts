@@ -141,12 +141,15 @@ describe("pointInPolygon", () => {
       const polygon: Point[] = new Array(N);
       for (let i = 0; i < N; i++) {
         const t = (2 * Math.PI * i) / N;
-        polygon[i] = [Math.cos(t) * 1_000_000, Math.sin(t) * 1_000_000];
+        polygon[i] = [
+          Math.round(Math.cos(t) * 1e8),
+          Math.round(Math.sin(t) * 1e8),
+        ];
       }
 
       const start = performance.now();
       const inside = pointInPolygon([0, 0], polygon);
-      const outside = pointInPolygon([2_000_000, 0], polygon);
+      const outside = pointInPolygon([200_000_000, 0], polygon);
       const elapsed = performance.now() - start;
 
       expect(inside).toBe(true);

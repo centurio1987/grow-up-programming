@@ -73,7 +73,7 @@ describe("searchInRotatedSortedArray", () => {
 
   test("두 번째 위치에서 회전된 배열 [7,1,2,3,4,5,6]", () => {
     expect(searchInRotatedSortedArray([7, 1, 2, 3, 4, 5, 6], 7)).toBe(0);
-    expect(searchInRotatedSortedArray([7, 1, 2, 3, 4, 5, 6], 5)).toBe(4);
+    expect(searchInRotatedSortedArray([7, 1, 2, 3, 4, 5, 6], 5)).toBe(5);
   });
 
   // 성능 테스트 — O(log N) 이라 N=10^6 도 매우 빠르게 처리

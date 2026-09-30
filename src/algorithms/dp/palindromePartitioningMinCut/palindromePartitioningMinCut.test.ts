@@ -56,11 +56,10 @@ describe("palindromePartitioningMinCut", () => {
       expect(palindromePartitioningMinCut(s)).toBe(0);
     });
 
-    test("길이 2000 'ab' 반복 — 1999컷", () => {
+    test("길이 2000 'ab' 반복 — 1컷", () => {
       const s = "ab".repeat(1000);
-      // ab반복은 어떤 부분 문자열도 길이 2 이상 팰린드롬이 아니므로 (각 글자만 가능)
-      // 결과는 (n-1)컷이 아니라 더 적을 수도 있지만, "ab"반복은 단일문자만 팰린드롬이므로 1999
-      expect(palindromePartitioningMinCut(s)).toBe(s.length - 1);
+      // 앞 1999 글자 "abab…a" 가 홀수 길이 팰린드롬이라 "abab…a" | "b" 로 한 번만 자른다.
+      expect(palindromePartitioningMinCut(s)).toBe(1);
     });
   });
 

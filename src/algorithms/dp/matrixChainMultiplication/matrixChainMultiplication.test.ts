@@ -47,8 +47,8 @@ describe("matrixChainMultiplication", () => {
       expect(matrixChainMultiplication([10])).toBe(0);
     });
 
-    test("dims 모두 1 → 0", () => {
-      expect(matrixChainMultiplication([1, 1, 1, 1, 1])).toBe(0);
+    test("dims 모두 1 → 3 (1×1 행렬 넷을 곱하는 세 번이 각각 1)", () => {
+      expect(matrixChainMultiplication([1, 1, 1, 1, 1])).toBe(3);
     });
 
     test("차원이 큰 값", () => {

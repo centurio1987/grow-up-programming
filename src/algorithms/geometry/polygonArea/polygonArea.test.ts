@@ -130,7 +130,10 @@ describe("polygonArea", () => {
       const polygon: Point[] = new Array(N);
       for (let i = 0; i < N; i++) {
         const t = (2 * Math.PI * i) / N;
-        polygon[i] = [Math.cos(t) * 1000, Math.sin(t) * 1000];
+        polygon[i] = [
+          Math.round(Math.cos(t) * 1e8),
+          Math.round(Math.sin(t) * 1e8),
+        ];
       }
       const start = performance.now();
       const area = polygonArea(polygon);
