@@ -10,7 +10,7 @@
  *
  * **비용은 한 기준으로 센다.** 기본 연산 = 좌표 비교(정렬의 비교 + 같은 좌표 확인) + 방향 판정
  * (`crossSign` 호출) + 거리 계산(`squared` 한 번과 그 값을 `best` 와 비교한 일). 정렬은 합치기 정렬로
- * 센다. 추가로 잡는 칸 = 정렬 사본 `n` + 중복을 지운 목록 `u` + 뒤집은 사본 `u` + 껍질 `m` + 캘리퍼스의
+ * 센다. 추가 칸 = 정렬 사본 `n` + 중복을 지운 목록 `m` + 뒤집은 사본 `m` + 껍질 `h` + 캘리퍼스의
  * 값 칸 셋(`best` · `far` · `i`). 껍질을 세우는 쪽은 `convexHull` 편과 같은 기준이고, 거리 계산은
  * `closestPairOfPoints` 편과 같은 기준이다. 원고 전체와 `.alt.ts` 가 같은 기준을 쓴다.
  *
@@ -465,7 +465,7 @@ export interface Cost {
   /** 껍질을 세운 뒤의 기본 연산. */
   readonly calOps: number;
   readonly ops: number;
-  /** 추가로 잡는 칸. */
+  /** 추가 칸. */
   readonly cells: number;
   /** 변마다의 far — 처음부터 찾는 판의 계수를 셀 때 쓴다. */
   readonly fars: readonly number[];
@@ -589,7 +589,7 @@ export const cost = memo(costMake);
 
 /* ────────────────────────── 버린 방법들 ────────────────────────── */
 
-/** 껍질을 세운 뒤 껍질 꼭짓점 쌍을 전부 잰다 — 거리 계산 `m(m−1)/2` 번. */
+/** 껍질을 세운 뒤 껍질 꼭짓점 쌍을 전부 잰다 — 거리 계산 `h(h−1)/2` 번. */
 const hullPairsOps = (c: Cost): number => c.hullOps + (c.m * (c.m - 1)) / 2;
 
 /**
@@ -837,7 +837,7 @@ export const PROOFS: Record<string, () => string> = {
         [
           "입력",
           "점 n",
-          "껍질 꼭짓점 m",
+          "껍질 꼭짓점 h",
           "점 쌍",
           "껍질 꼭짓점 쌍",
           "대척점 쌍",
@@ -925,7 +925,7 @@ export const PROOFS: Record<string, () => string> = {
       md(
         [
           "입력",
-          "껍질 꼭짓점 m",
+          "껍질 꼭짓점 h",
           "껍질을 세우는 기본 연산",
           "껍질 꼭짓점 쌍",
           "기본 연산 합",
@@ -979,7 +979,7 @@ export const PROOFS: Record<string, () => string> = {
       md(
         [
           "입력",
-          "껍질 꼭짓점 m",
+          "껍질 꼭짓점 h",
           "변마다 처음부터 찾을 때의 방향 판정",
           "far 를 이어 쓸 때의 방향 판정",
         ],
@@ -1028,7 +1028,7 @@ export const PROOFS: Record<string, () => string> = {
     return md(
       [
         "입력",
-        "껍질 꼭짓점 m",
+        "껍질 꼭짓점 h",
         "껍질을 세우는 기본 연산",
         "껍질을 세운 뒤의 기본 연산",
         "기본 연산 합",
@@ -1760,7 +1760,7 @@ export const PROOFS: Record<string, () => string> = {
       md(
         [
           "입력",
-          "껍질 꼭짓점 m",
+          "껍질 꼭짓점 h",
           "회전하는 캘리퍼스",
           "껍질 위 모든 쌍",
           "기본 연산이 적은 쪽",
@@ -1768,7 +1768,7 @@ export const PROOFS: Record<string, () => string> = {
         rows,
         [1, 2, 3],
       ),
-      `껍질 꼭짓점 1,024 개에서 거리 계산은 ${num(big.캘리퍼스.거리)} 대 ${num(big.모든쌍.거리)}${josa(num(big.모든쌍.거리), "이고", "고")} 방향 판정은 ${num(big.캘리퍼스.방향)} 대 ${num(big.모든쌍.방향)} 입니다. 잡는 칸은 ${num(big.캘리퍼스.칸)} 대 ${num(big.모든쌍.칸)}${으로(num(big.모든쌍.칸))} 같고, 기본 연산이 적은 쪽은 껍질 꼭짓점이 ${num(뒤집히는_껍질_크기())} 개가 되는 자리에서 바뀝니다.`,
+      `껍질 꼭짓점 1,024 개에서 거리 계산은 ${num(big.캘리퍼스.거리)} 대 ${num(big.모든쌍.거리)}${josa(num(big.모든쌍.거리), "이고", "고")} 방향 판정은 ${num(big.캘리퍼스.방향)} 대 ${num(big.모든쌍.방향)} 입니다. 추가 칸은 ${num(big.캘리퍼스.칸)} 대 ${num(big.모든쌍.칸)}${으로(num(big.모든쌍.칸))} 같고, 기본 연산이 적은 쪽은 껍질 꼭짓점이 ${num(뒤집히는_껍질_크기())} 개가 되는 자리에서 바뀝니다.`,
     );
   },
 
@@ -2048,7 +2048,7 @@ export const PROOFS: Record<string, () => string> = {
       why,
     ]);
     return md(
-      ["입력", "껍질 꼭짓점 m", "제곱 거리", "경계인 까닭"],
+      ["입력", "껍질 꼭짓점 h", "제곱 거리", "경계인 까닭"],
       rows,
       [1, 2],
     );
@@ -2279,11 +2279,11 @@ export const PROOFS: Record<string, () => string> = {
     return withNote(
       md(
         [
-          "껍질 꼭짓점 m",
+          "껍질 꼭짓점 h",
           "전진 판정",
           "거리 계산",
           "껍질을 세운 뒤의 기본 연산",
-          "m 으로 나눈 값",
+          "h 로 나눈 값",
           "앞 줄과의 비",
         ],
         rows,
@@ -2313,7 +2313,7 @@ export const PROOFS: Record<string, () => string> = {
       ];
     });
     return md(
-      ["입력", "n", "u", "m", "기본 연산 상한", "기본 연산 실측", "잡는 칸"],
+      ["입력", "n", "m", "h", "기본 연산 상한", "기본 연산 실측", "추가 칸"],
       rows,
       [1, 2, 3, 4, 5, 6],
     );
@@ -2348,17 +2348,17 @@ export const PROOFS: Record<string, () => string> = {
       md(
         [
           "모양",
-          "서로 다른 점 u",
-          "껍질 꼭짓점 m",
+          "서로 다른 점 m",
+          "껍질 꼭짓점 h",
           "껍질을 세우는 기본 연산",
           "껍질을 세운 뒤의 기본 연산",
           "기본 연산 합",
-          "잡는 칸",
+          "추가 칸",
         ],
         rows,
         [1, 2, 3, 4, 5, 6],
       ),
-      `점은 다섯 모양 모두 ${num(N)} 개입니다. 기본 연산 합이 가장 많은 모양은 ${most.name}(${num(most.c.ops)} 번), 껍질을 세운 뒤의 기본 연산이 가장 많은 모양은 ${cal.name}(${num(cal.c.calOps)} 번), 잡는 칸이 가장 많은 모양은 ${cells.name}(${num(cells.c.cells)} 칸)입니다.`,
+      `점은 다섯 모양 모두 ${num(N)} 개입니다. 기본 연산 합이 가장 많은 모양은 ${most.name}(${num(most.c.ops)} 번), 껍질을 세운 뒤의 기본 연산이 가장 많은 모양은 ${cal.name}(${num(cal.c.calOps)} 번), 추가 칸이 가장 많은 모양은 ${cells.name}(${num(cells.c.cells)} 칸)입니다.`,
     );
   },
 

@@ -7,7 +7,7 @@
  * 표가 같은 실행을 쓴다.
  *
  * **비용은 한 기준으로 센다.** 기본 연산 = 좌표 비교(정렬의 비교 + 같은 좌표 확인) + 방향 판정.
- * 추가로 잡는 칸 = 정렬 사본 `n` + 중복을 지운 목록 `m` + 뒤집은 사본 `m` + 끝점을 뗀 두 사슬 `h`.
+ * 추가 칸 = 정렬 사본 `n` + 중복을 지운 목록 `m` + 뒤집은 사본 `m` + 끝점을 뗀 두 사슬 `h`.
  * 원고 전체와 `.alt.ts` 가 같은 두 기준을 쓴다.
  *
  *   bun run tools/check-proof.ts src/algorithms/geometry/convexHull/convexHull-guide.md
@@ -259,7 +259,7 @@ export function chainEvents(seq: readonly Point[]): Push[] {
   return out;
 }
 
-/** 값만 세는 한 번의 실행 — 기본 연산과 잡는 칸. 큰 입력에 쓴다. */
+/** 값만 세는 한 번의 실행 — 기본 연산과 추가 칸. 큰 입력에 쓴다. */
 export interface Cost {
   readonly hull: Point[];
   readonly n: number;
@@ -280,7 +280,7 @@ export interface Cost {
   readonly exact: number;
   /** 기본 연산 = 좌표 비교 + 방향 판정. */
   readonly ops: number;
-  /** 추가로 잡는 칸 = n + 2m + h. */
+  /** 추가 칸 = n + 2m + h. */
   readonly cells: number;
 }
 
@@ -1224,7 +1224,7 @@ export const PROOFS: Record<string, () => string> = {
       bound(c).toFixed(6),
       bound(c) < 1 ? "필요 없다" : "필요하다",
     ]);
-    // 한계가 1 을 넘기 시작하는 자리를 이분 탐색으로 찾는다.
+    // 한계가 1 을 넘기 시작하는 자리를 이진 탐색으로 찾는다.
     let lo = 1;
     let hi = COORD;
     while (lo < hi) {
@@ -1420,7 +1420,7 @@ export const PROOFS: Record<string, () => string> = {
           "방향 판정 상한",
           "기본 연산 상한",
           "기본 연산 실측",
-          "잡는 칸",
+          "추가 칸",
         ],
         rows,
         [1, 2, 3, 4, 5, 6, 7],
@@ -1504,12 +1504,12 @@ export const PROOFS: Record<string, () => string> = {
     };
     return [
       md(
-        ["모양", "m", "h", "방향 판정", "4m − h − 6", "비율", "잡는 칸"],
+        ["모양", "m", "h", "방향 판정", "4m − h − 6", "비율", "추가 칸"],
         rows,
         [1, 2, 3, 4, 5, 6],
       ),
       "",
-      `방향 판정이 가장 많은 모양은 ${byTests.label}(${num(byTests.c.tests)} 번)이고, 잡는 칸이 가장 많은 모양은 ${byCells.label}(${num(byCells.c.cells)} 칸)입니다. 한 직선 위의 점은 방향 판정이 상한의 ${(line.c.tests / testBound(line.c.m, line.c.h)).toFixed(3)} 배에 그칩니다.`,
+      `방향 판정이 가장 많은 모양은 ${byTests.label}(${num(byTests.c.tests)} 번)이고, 추가 칸이 가장 많은 모양은 ${byCells.label}(${num(byCells.c.cells)} 칸)입니다. 한 직선 위의 점은 방향 판정이 상한의 ${(line.c.tests / testBound(line.c.m, line.c.h)).toFixed(3)} 배에 그칩니다.`,
     ].join("\n");
   },
 

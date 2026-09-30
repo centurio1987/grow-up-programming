@@ -16,7 +16,9 @@
  *
  *   기본 연산    좌표 읽기 + 자료형 변환 + 곱 + 덧셈·뺄셈 + 비교 + 나눗셈을 각각 1 로 센 것
  *   큰 정수 연산 그중 큰 정수 자료형이 하는 것만 (변환 · 곱 · 덧셈 · 뺄셈 · 비교)
- *   잡는 칸      절차가 입력 밖에 새로 잡는 칸의 수
+ *   추가 칸      입력 밖에 새로 잡아 동시에 들고 있는 칸의 최댓값. 두 설계 모두 배열을 잡지 않으므로
+ *                재지 않고 누산기 스칼라 변수의 개수를 적는다 — 정수 누적은 `twice` 하나, 블록 누적은
+ *                `total` · `block` · `bound` 셋. 반복문 안의 임시 값은 넣지 않는다
  *
  * 「기본 연산」의 정의는 원고 전체(`deep.origin` 이 정하고 `perf` 가 센다)와 같다 — 한 낱말이 두 절에서 다른 것을
  * 세면 표를 나란히 놓을 수 없다. **벽시계는 재지 않는다** — 실행마다 값이 달라 「일치」를
@@ -69,7 +71,7 @@ interface Counted {
   ops: number;
   /** 그중 큰 정수 자료형이 하는 것. */
   big: number;
-  /** 절차가 입력 밖에 새로 잡는 칸. */
+  /** 추가 칸 — 누산기 스칼라 변수의 개수(재지 않고 적은 상수). */
   cells: number;
 }
 
@@ -175,7 +177,7 @@ function measure(polygon: Point[]): { mine: Counted; theirs: Counted } {
   return { mine, theirs };
 }
 
-/** 큰 정수 연산의 순서가 처음 뒤집히는 반지름. 이분으로 좁힌다. */
+/** 큰 정수 연산의 순서가 처음 뒤집히는 반지름. 이진 탐색으로 좁힌다. */
 function flipRadius(): number {
   const blockWins = (r: number): boolean => {
     const { mine, theirs } = measure(ring(RING, r, 0, 0));
@@ -247,7 +249,7 @@ export const cases = {
     "거리 67109586 큰 정수 연산": SHIFT_IN.mine.big,
     "거리 67109587 큰 정수 연산": SHIFT_OUT.mine.big,
     "거리 5×10^8 큰 정수 연산": FAR.mine.big,
-    "잡는 칸": HUGE.mine.cells,
+    "추가 칸": HUGE.mine.cells,
   }),
   "블록 누적": () => ({
     "전개 입력 기본 연산": WALK.theirs.ops,
@@ -261,6 +263,6 @@ export const cases = {
     "거리 67109586 큰 정수 연산": SHIFT_IN.theirs.big,
     "거리 67109587 큰 정수 연산": SHIFT_OUT.theirs.big,
     "거리 5×10^8 큰 정수 연산": FAR.theirs.big,
-    "잡는 칸": HUGE.theirs.cells,
+    "추가 칸": HUGE.theirs.cells,
   }),
 };

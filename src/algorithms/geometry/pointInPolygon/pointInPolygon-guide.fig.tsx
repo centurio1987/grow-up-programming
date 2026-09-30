@@ -611,9 +611,9 @@ export const FIGS: Record<string, () => ReactElement> = {
   "build-direction": () => {
     // 세 장면 — 같은 L 자의 변 둘을 점 셋에 대어 본다. 장면마다 좌표를 옆으로 옮겨 한 장에 놓는다.
     const scenes: { tag: string; edge: string; p: Point; name: string }[] = [
-      { tag: "a", edge: "e3", p: Q1, name: "q1" },
-      { tag: "b", edge: "e1", p: LEFT_OUT[0]?.[1] as Point, name: "r1" },
-      { tag: "c", edge: "e1", p: Q1, name: "q1" },
+      { tag: "a", edge: "e2", p: Q1, name: "q1" },
+      { tag: "b", edge: "e6", p: LEFT_OUT[0]?.[1] as Point, name: "r1" },
+      { tag: "c", edge: "e6", p: Q1, name: "q1" },
     ];
     const nodes: GraphNode[] = [];
     const lines: GraphEdge[] = [];

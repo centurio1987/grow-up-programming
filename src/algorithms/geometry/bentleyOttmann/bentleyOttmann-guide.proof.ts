@@ -7,7 +7,7 @@
  *   bun run ../../../../tools/check-proof.ts bentleyOttmann-guide.md
  *
  * **비용은 대조 하네스(`*.alt.ts`)의 계측본으로 센다.** 가이드 전체가 기준 하나 — 기본 연산(정수
- * 곱셈과 자료 접근을 각각 1 로 센 합)과 추가로 잡는 칸 — 을 쓰므로, 본문의 비용과 「경쟁 설계와의
+ * 곱셈과 자료 접근을 각각 1 로 센 합)과 할당 칸 — 을 쓰므로, 본문의 비용과 「경쟁 설계와의
  * 대조」의 비용이 같은 계측본에서 나와야 한다. 그 계측본은 부를 때마다 자기 답을 정본과 맞댄다.
  *
  * **걸음 기록은 이 파일의 사본(`walkRun`)이 낸다.** 정본과 같은 절차에 걸음마다의 상태를 적는
@@ -700,7 +700,7 @@ function walkRun(segments: Segment[], keep: Step[] | null): Tally {
 export interface Measured extends Tally {
   /** 기본 연산 — 정수 곱셈과 자료 접근의 합(`*.alt.ts` 의 계측본). */
   ops: number;
-  /** 추가로 잡는 칸. */
+  /** 할당 칸. */
   cells: number;
   /** 누적 기본 연산과 칸 — 첫 칸이 준비(끝점을 사건 큐에 넣은 뒤), 그 뒤가 사건점마다. */
   perStep: { ops: number; cells: number }[];
@@ -2119,9 +2119,9 @@ function perfCount(): string {
     rows.push([s.tag, kindOf(s), num(d), num(cur.cells - prev.cells)]);
   }
   return [
-    md(["걸음", "하는 일", "기본 연산", "추가로 잡는 칸"], rows, [2, 3]),
+    md(["걸음", "하는 일", "기본 연산", "할당 칸"], rows, [2, 3]),
     "",
-    `합은 기본 연산 ${num(WALK_RUN.ops)} 번 · 추가로 잡는 칸 ${num(WALK_RUN.cells)} 칸이고, 준비의 몫이 기본 연산 ${num(setup.ops)} 번입니다. 걸음 가운데 기본 연산이 가장 많은 걸음은 ${heaviest.tag} 입니다.`,
+    `합은 기본 연산 ${num(WALK_RUN.ops)} 번 · 할당 칸 ${num(WALK_RUN.cells)} 칸이고, 준비의 몫이 기본 연산 ${num(setup.ops)} 번입니다. 걸음 가운데 기본 연산이 가장 많은 걸음은 ${heaviest.tag} 입니다.`,
   ].join("\n");
 }
 
@@ -2154,7 +2154,7 @@ function perfGrowth(): string {
         "기본 연산",
         "앞 줄의 몇 배",
         "n log₂ n 의 몇 배",
-        "추가로 잡는 칸",
+        "할당 칸",
       ],
       rows,
       [0, 1, 2, 3, 4, 5, 6],
@@ -2195,7 +2195,7 @@ function worstShape(): string {
         "큐 최대",
         "status 최대",
         "기본 연산",
-        "추가로 잡는 칸",
+        "할당 칸",
       ],
       rows,
       [1, 2, 3, 4, 5, 6],

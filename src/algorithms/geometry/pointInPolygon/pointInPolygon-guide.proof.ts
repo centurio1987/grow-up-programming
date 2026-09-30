@@ -16,6 +16,7 @@
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";
 import { josa, 으로, 은는, 을를, 이가 } from "../../../../tools/josa.ts";
+import { cases as altCases } from "./pointInPolygon-guide.alt.ts";
 import {
   type Point,
   pointInPolygon,
@@ -103,7 +104,7 @@ export const LEFT_OUT: [string, Point][] = [
 export const AT_VERTEX_OUT: Point = [5, 2];
 export const AT_VERTEX_IN: Point = [1, 2];
 
-/** 변 이름과 두 끝점. `prev → at` 순서가 정본의 반복 순서와 같다. */
+/** 변 이름과 두 끝점. `prev → at` 순서가 정본의 반복 순서와 같다. 이름은 나가는 꼭짓점 `prev` 를 따라 `e1` 이 첫 꼭짓점에서 나가는 변이다(SPEC §14 · `polygonArea` 와 같은 이름). */
 export function edges(polygon: Point[]): [string, Point, Point][] {
   const out: [string, Point, Point][] = [];
   for (
@@ -111,11 +112,7 @@ export function edges(polygon: Point[]): [string, Point, Point][] {
     at < polygon.length;
     prev = at++
   ) {
-    out.push([
-      `e${out.length + 1}`,
-      polygon[prev] as Point,
-      polygon[at] as Point,
-    ]);
+    out.push([`e${prev + 1}`, polygon[prev] as Point, polygon[at] as Point]);
   }
   return out;
 }
@@ -1033,8 +1030,8 @@ export const PROOFS: Record<string, () => string> = {
   /** `deep.build` 1단계 — 판정 하나가 어느 겹에서 끝나는가. */
   "build-side": () => {
     const cases: [string, Point, Point, Point][] = [
-      ["전개 입력 q1 · e3", [4, 0], [4, 2], Q1],
-      ["전개 입력 q2 · e5", [2, 2], [2, 4], Q2],
+      ["전개 입력 q1 · e2", [4, 0], [4, 2], Q1],
+      ["전개 입력 q2 · e4", [2, 2], [2, 4], Q2],
       ["좌표 상한의 정사각형", [-COORD, -COORD], [COORD, -COORD], [0, 0]],
       [
         "겨냥해 만든 배치",
@@ -1077,10 +1074,10 @@ export const PROOFS: Record<string, () => string> = {
   /** `deep.build` 2단계 — 판정값 0 과 좌표 칸이 변 위를 가른다. */
   "build-boundary": () => {
     const cases: [string, Point, Point, Point][] = [
-      ["q3 과 e5", [2, 2], [2, 4], Q3],
-      ["(2,5) 와 e5", [2, 2], [2, 4], [2, 5]],
-      ["(0,0) 과 e1", [0, 4], [0, 0], [0, 0]],
-      ["q1 과 e2", [0, 0], [4, 0], Q1],
+      ["q3 과 e4", [2, 2], [2, 4], Q3],
+      ["(2,5) 와 e4", [2, 2], [2, 4], [2, 5]],
+      ["(0,0) 과 e6", [0, 4], [0, 0], [0, 0]],
+      ["q1 과 e1", [0, 0], [4, 0], Q1],
     ];
     const rows = cases.map(([label, a, b, p]) => {
       const d = sideOf(a, b, p);
@@ -1308,7 +1305,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `deep.walk` 2 — q3 이 e5 위인지 보는 자리. */
+  /** `deep.walk` 2 — q3 이 e4 위인지 보는 자리. */
   "walk-boundary": () => {
     const { logs } = trace(Q3, L);
     const hit = logs.find((e) => e.onEdge) as EdgeLog;
@@ -1332,7 +1329,7 @@ export const PROOFS: Record<string, () => string> = {
     return [
       md(["검사", "식", "결과"], rows, [2]),
       "",
-      `③ 이 참이 된 질의는 ${other.join(" · ")} 하나이고, 그 자리가 ${edges(L).length} 변 가운데 ${hit.name.slice(1)} 번째 변 ${hit.name} 입니다. 남은 변 ${edges(L).length - logs.length} 개는 보지 않습니다.`,
+      `③ 이 참이 된 질의는 ${other.join(" · ")} 하나이고, 그 자리는 반복문이 ${edges(L).length} 변 가운데 ${logs.indexOf(hit) + 1} 번째로 보는 변 ${hit.name} 입니다. 남은 변 ${edges(L).length - logs.length} 개는 보지 않습니다.`,
     ].join("\n");
   },
 
@@ -1944,5 +1941,115 @@ export const PROOFS: Record<string, () => string> = {
       "",
       `변 하나당 기본 연산이 가장 많은 배치는 「${best}」${으로(best)} ${bestPer.toFixed(2)} 이고, 가장 적은 배치는 「${least}」${으로(least)} ${leastPer.toFixed(2)} 입니다. 기본 연산 총량이 가장 큰 배치는 「${most}」${으로(most)} ${num(mostOps)} 입니다.`,
     ].join("\n");
+  },
+
+  /**
+   * `purpose.alt` — 두 설계의 계수 표. 값과 「적은 쪽」 열의 차 · 배수를 `.alt.ts` 의 계수에서
+   * 계산한다(SPEC §14 `L51`). 뒤집힌다고 적는 줄은 앞 줄과 적은 쪽이 실제로 바뀌었는지 확인한다.
+   */
+  "alt-table": () => {
+    const ray = altCases["반직선 교차 세기"]() as Record<string, number>;
+    const bucket = altCases["높이 버킷"]() as Record<string, number>;
+    const RAY = "반직선 교차 세기가";
+    const BUCKET = "높이 버킷이";
+    const pick = (key: string): [number, number] => {
+      const a = ray[key];
+      const b = bucket[key];
+      if (a === undefined || b === undefined)
+        throw new Error(`계수 없음 — ${key}`);
+      return [a, b];
+    };
+    const rayWins = (key: string): boolean => {
+      const [a, b] = pick(key);
+      return a < b;
+    };
+    const diff = (key: string): string => {
+      const [a, b] = pick(key);
+      return `${a < b ? RAY : BUCKET} ${num(Math.abs(a - b))} 적습니다`;
+    };
+    const times = (key: string): string => {
+      const [a, b] = pick(key);
+      return `${a < b ? RAY : BUCKET} ${(Math.max(a, b) / Math.min(a, b)).toFixed(2)} 배 적습니다`;
+    };
+    const flip = (before: string, key: string, text: string): string => {
+      if (rayWins(before) === rayWins(key)) {
+        throw new Error(`뒤집히지 않았다 — ${before} → ${key}`);
+      }
+      return text;
+    };
+    const rows: [string, string, string][] = [
+      [
+        "전개 입력(L 자 여섯 변 · 질의 셋)",
+        "전개 입력 기본 연산",
+        diff("전개 입력 기본 연산"),
+      ],
+      [
+        "톱니 `h`=512 · 질의 0 회",
+        "톱니 질의 0 회 기본 연산",
+        "전처리가 없는 쪽이 적습니다",
+      ],
+      [
+        "톱니 `h`=512 · 질의 3 회",
+        "톱니 질의 3 회 기본 연산",
+        diff("톱니 질의 3 회 기본 연산"),
+      ],
+      [
+        "톱니 `h`=512 · 질의 4 회",
+        "톱니 질의 4 회 기본 연산",
+        flip(
+          "톱니 질의 3 회 기본 연산",
+          "톱니 질의 4 회 기본 연산",
+          "**여기서 순서가 뒤집힙니다**",
+        ),
+      ],
+      [
+        "톱니 `h`=512 · 질의 16 회",
+        "톱니 질의 16 회 기본 연산",
+        times("톱니 질의 16 회 기본 연산"),
+      ],
+      [
+        "톱니 `h`=1302 · 질의 8 회",
+        "이빨 1302 기본 연산",
+        diff("이빨 1302 기본 연산"),
+      ],
+      [
+        "톱니 `h`=1303 · 질의 8 회",
+        "이빨 1303 기본 연산",
+        flip(
+          "이빨 1302 기본 연산",
+          "이빨 1303 기본 연산",
+          "**여기서 다시 뒤집힙니다**",
+        ),
+      ],
+      [
+        "원형 · 질의 1 회",
+        "원형 질의 1 회 기본 연산",
+        rayWins("원형 질의 1 회 기본 연산")
+          ? diff("원형 질의 1 회 기본 연산")
+          : "원형은 1 회부터 높이 버킷이 적습니다",
+      ],
+      [
+        "원형 · 질의 16 회",
+        "원형 질의 16 회 기본 연산",
+        times("원형 질의 16 회 기본 연산"),
+      ],
+      [
+        "톱니 · 추가 칸",
+        "톱니 추가 칸",
+        rayWins("톱니 추가 칸")
+          ? "어느 축에서도 안 뒤집힙니다"
+          : diff("톱니 추가 칸"),
+      ],
+    ];
+    const bold = (mine: number, other: number): string =>
+      mine < other ? `**${num(mine)}**` : num(mine);
+    return md(
+      ["입력", "반직선 교차 세기", "높이 버킷", "적은 쪽"],
+      rows.map(([label, key, note]) => {
+        const [a, b] = pick(key);
+        return [label, bold(a, b), bold(b, a), note];
+      }),
+      [1, 2],
+    );
   },
 };

@@ -15,6 +15,7 @@
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";
 import { josa, 과와, 으로, 을를 } from "../../../../tools/josa.ts";
+import { cases as altCases } from "./segmentsIntersect-guide.alt.ts";
 import {
   type Point,
   type Segment,
@@ -1813,6 +1814,80 @@ export const PROOFS: Record<string, () => string> = {
       ["걸음", "판정값 넷", "0 인 판정값", "칸 검사", "답"],
       [["T5", r.d.join(" "), `${zeros} 개`, `${r.boxes} 번`, String(r.answer)]],
       [],
+    );
+  },
+
+  /**
+   * `purpose.alt` — 두 설계의 기본 연산 표. 값과 「적은 쪽」 열의 차 · 배수를 `.alt.ts` 의 계수에서
+   * 계산한다(SPEC §14 `L51`). 뒤집힌다고 적는 줄은 앞 줄과 적은 쪽이 실제로 바뀌었는지 확인한다.
+   */
+  "alt-table": () => {
+    const mine = altCases.걸러내기() as Record<string, number>;
+    const theirs = altCases["큰 정수 전용"]() as Record<string, number>;
+    const pick = (key: string): [number, number] => {
+      const a = mine[key];
+      const b = theirs[key];
+      if (a === undefined || b === undefined) {
+        throw new Error(`계수 없음 — ${key}`);
+      }
+      return [a, b];
+    };
+    const mineWins = (key: string): boolean => {
+      const [a, b] = pick(key);
+      return a < b;
+    };
+    const who = (key: string): string =>
+      mineWins(key) ? "걸러내기가" : "큰 정수 전용이";
+    const diff = (key: string): string => {
+      const [a, b] = pick(key);
+      return `${who(key)} ${num(Math.abs(a - b))} 적습니다`;
+    };
+    const times = (key: string): string => {
+      const [a, b] = pick(key);
+      return `${who(key)} ${(Math.max(a, b) / Math.min(a, b)).toFixed(2)} 배 적습니다`;
+    };
+    const flip = (before: string, key: string): string => {
+      if (mineWins(before) === mineWins(key)) {
+        throw new Error(`뒤집히지 않았다 — ${before} → ${key}`);
+      }
+      return "**여기서 순서가 뒤집힙니다**";
+    };
+    const rows: [string, string, string][] = [
+      [
+        "전개 입력(세 쌍 · 좌표 9 이하)",
+        "전개 입력 기본 연산",
+        diff("전개 입력 기본 연산"),
+      ],
+      [
+        "좌표 상한 2^6 · 4,096 쌍",
+        "좌표 상한 2^6 기본 연산",
+        times("좌표 상한 2^6 기본 연산"),
+      ],
+      [
+        "좌표 상한 2^7 · 4,096 쌍",
+        "좌표 상한 2^7 기본 연산",
+        flip("좌표 상한 2^6 기본 연산", "좌표 상한 2^7 기본 연산"),
+      ],
+      [
+        "좌표 상한 10^9 · 4,096 쌍",
+        "좌표 상한 10^9 기본 연산",
+        times("좌표 상한 10^9 기본 연산"),
+      ],
+      [
+        "같은 직선 위 · 10^9 · 4,096 쌍",
+        "같은 직선 위 기본 연산",
+        diff("같은 직선 위 기본 연산"),
+      ],
+    ];
+    const bold = (x: number, y: number): string =>
+      x < y ? `**${num(x)}**` : num(x);
+    return md(
+      ["입력", "걸러내기", "큰 정수 전용", "적은 쪽"],
+      rows.map(([label, key, note]) => {
+        const [a, b] = pick(key);
+        return [label, bold(a, b), bold(b, a), note];
+      }),
+      [1, 2],
     );
   },
 };
