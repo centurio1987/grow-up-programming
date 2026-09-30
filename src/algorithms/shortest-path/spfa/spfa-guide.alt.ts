@@ -90,8 +90,8 @@ export interface Run {
  *
  * `저장 칸` 은 정점마다 한 칸인 배열 셋(거리 · 큐 표시 · 이웃 목록)과 큐가 가장 길었을 때의
  * 항목 수를 더한 것이다. 큐의 길이는 **넣은 직후**에 잰다 — 꺼낸 직후에 재면 한 걸음이 넣은 항목이
- * 다음 꺼내기 전까지 큐에 함께 있던 순간을 놓쳐 하나 적게 나온다(`bellmanFord` 편의 `.alt.ts` 가
- * 꺼낸 직후에 잰다 — 2026-09-30 보고).
+ * 다음 꺼내기 전까지 큐에 함께 있던 순간을 놓쳐 하나 적게 나온다(`bellmanFord` 편의 `.alt.ts` 도
+ * 2026-09-30 에 같은 자리로 맞췄다).
  */
 export function 큐에담는설계(n: number, edges: Edge[], src: number): Run {
   const adj: [number, number][][] = Array.from({ length: n }, () => []);

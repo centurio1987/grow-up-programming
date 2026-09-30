@@ -105,24 +105,30 @@ export function 라운드로읽는설계(n: number, edges: Edge[], src: number):
 
 /**
  * 경쟁 설계 SPFA — **값이 바뀐 정점만 큐에 담아 그 정점의 간선만 다시 읽는다.** 라운드라는 개념이
- * 없고, 큐가 빌 때까지 이어진다. 음수 사이클은 「지금 적힌 값에 해당하는 경로가 쓰는 간선
- * 수」를 함께 들고 있다가, 그것이 `V` 에 이르면 판정한다.
+ * 없고, 큐가 빌 때까지 이어진다. 음수 사이클은 정점마다 큐에 넣은 횟수를 세다가, 그것이 `V` 에
+ * 이르면 판정한다 — `spfa` 편 「이 방법이 기대는 전제」와 같은 방식이다(NetworkX · igraph 도 이렇게
+ * 판정한다). 2026-09-30 까지는 「지금 적힌 값에 해당하는 경로가 쓰는 간선 수」가 `V` 에 이르면
+ * 판정했다. 두 편이 같은 설계를 서로 다른 판정으로 적지 않게 맞췄고, 음수 사이클이 없는 입력에서는
+ * 판정이 끝까지 걸리지 않으므로 `bench.json` 의 수는 판정 방식에 따라 바뀌지 않는다.
  *
  * `기본 연산` 은 간선 하나를 읽고 완화를 시도한 한 번과 큐에 넣거나 꺼낸 한 번을 각각
- * 하나로 센다. `저장 칸` 은 거리 배열 · 큐에 들어 있는지 표시 · 간선 수 배열 셋과 큐가 가장
- * 길었을 때의 항목 수를 더한 것이다.
+ * 하나로 센다. `저장 칸` 은 거리 배열 · 큐에 들어 있는지 표시 · 넣은 횟수 배열 셋과 큐가 가장
+ * 길었을 때의 항목 수를 더한 것이다. 큐의 길이는 **넣은 직후**에 잰다 — 꺼낸 직후에 재면 한
+ * 걸음이 넣은 항목이 다음 꺼내기 전까지 큐에 함께 있던 순간을 놓쳐 하나 적게 나온다(2026-09-30
+ * `spfa` 편 집필 때 드러나 고쳤다. 그 전에는 꺼낸 직후에 재서 저장 칸이 하나씩 적었다).
  */
 export function 큐에담는설계(n: number, edges: Edge[], src: number): Run {
   const adj: [number, number][][] = Array.from({ length: n }, () => []);
   for (const [u, v, w] of edges) (adj[u] as [number, number][]).push([v, w]);
 
   const dist = Array.from({ length: n }, () => INF);
-  const hops = Array.from({ length: n }, () => 0);
+  const cnt = Array.from({ length: n }, () => 0);
   const inQueue = Array.from({ length: n }, () => false);
   dist[src] = 0;
 
   const queue: number[] = [src];
   inQueue[src] = true;
+  cnt[src] = 1;
   let head = 0;
   let ops = 1;
   let peak = 1;
@@ -131,21 +137,21 @@ export function 큐에담는설계(n: number, edges: Edge[], src: number): Run {
     const u = queue[head++] as number;
     ops++;
     inQueue[u] = false;
-    peak = Math.max(peak, queue.length - head);
 
     for (const [v, w] of adj[u] as [number, number][]) {
       ops++;
       const nd = (dist[u] as number) + w;
       if (nd < (dist[v] as number)) {
         dist[v] = nd;
-        hops[v] = (hops[u] as number) + 1;
-        if ((hops[v] as number) >= n) {
-          return { ops, cells: 3 * n + peak, dist, neg: true };
-        }
         if (!inQueue[v]) {
+          cnt[v] = (cnt[v] as number) + 1;
+          if ((cnt[v] as number) >= n) {
+            return { ops, cells: 3 * n + peak, dist, neg: true };
+          }
           inQueue[v] = true;
           queue.push(v);
           ops++;
+          peak = Math.max(peak, queue.length - head);
         }
       }
     }
