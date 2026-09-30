@@ -1,224 +1,924 @@
-import type { Frame } from "#guide-sim";
+import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(12)를 넘지 않는다 — P3 이 그 관계를 잰다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `A = [4, 4, 4, 2, 2, 1, 1, 3, 5]`, `k = 3`.
+ * `build` 는 빈도 버킷을 채우는 T1~T15(① 세기 · 버킷 만들기 · ② 담기), `collect` 는 큰 버킷부터
+ * 모으는 T16~T20(③④⑤) 이다.
+ *
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가
+ * 배열 무대(`arrayStage.ts`)를 고른다. 무대의 값 줄은 입력 `A` 이고(세는 동안만 쥔 구간이다),
+ * `layers` 의 첫 줄이 빈도 버킷 `slot`, 둘째 줄이 답 `result`, `map` 이 등장 횟수 맵 `freq` 다.
+ * 버킷 줄의 칸 번호가 곧 버킷 번호(등장 횟수)라 무대 눈금을 그대로 읽는다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 그대로 통과한다.
- *
- * ## `array` + `keyValue` 조합의 선례를 그대로 따른다
- *
- * 다섯 규약은 `longestSubarrayAtMostSum-guide.sim.ts` 가 세웠고
- * `segmentTreeRangeMin-guide.sim.ts` 가 파생 자료구조가 트리인 편으로 넓혔다. 이 편은
- * `array` 패널이 **입력 배열이 아니라 자리 배열**을 담는 첫 자리라, 어긋나기 쉬운 두 곳을
- * 적어 둔다.
- *
- * 1. **`array` 는 자리 배열 `slot` 의 내용만 담는다.** 입력 `A` 를 여기 넣지 않는다 —
- *    넣으면 화면의 칸 번호가 자리 번호가 아니라 입력의 인덱스가 되어 본문의 `slot[f]` 와
- *    대조할 수 없다. 칸 번호가 곧 등장 횟수이고, 그것이 이 절차의 전부다.
- * 2. **입력 `A` 와 등장 횟수 맵은 `keyValue` 가 적는다.** 맵은 자리가 아니라 이름이라
- *    `pointers` 로 배열 위에 올릴 수 없다.
- * 3. **`pointers` 의 키는 본문 기호표의 이름과 글자 그대로 같다** — `f`.
- * 4. **`highlight` 는 지금 담거나 읽는 자리, `marked` 는 이미 지나온 자리.** 둘이 어긋나는
- *    프레임이 이 절차의 판정이 갈리는 자리다.
- * 5. **`entries` 는 프레임마다 같은 항목을 같은 순서로 두고 값만 바꾼다.** 그래서 값을
- *    담는 다섯 걸음(T3~T7)을 한 프레임으로 접지 않고 그대로 폈다 — 접으면 그 구간에서
- *    「지금 보는 자리」가 빈 항목이 되고 규약 5 가 어긋난다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본 실행과 대조한 기록에서 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `topKFrequent-guide.test.ts` 가 잰다.
  */
-export const walk = {
-  view: ["array", "keyValue"] as const,
-  title: "등장 횟수를 자리 번호로 — A = [4 4 4 2 2 1 1 3 5], k = 3",
+
+export const build = {
+  player: "stage",
+  stage: "array",
+  arrayName: "A",
+  rangeLabel: "입력",
+  title: "topKFrequent([4, 4, 4, 2, 2, 1, 1, 3, 5], 3) — 빈도 버킷 채우기",
+  result: "slot[3] = [4] · slot[2] = [2 1] · slot[1] = [3 5]",
+  steps: [
+    {
+      title: "T1 ① A[0] = 4 — freq 0 → 1",
+      text: "값 4 는 처음 봅니다. freq.get(4) 가 없어 0 에서 시작해 1 로 둡니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: [0, 8],
+      rangeSide: "읽음 1 / 9",
+      read: [0],
+      write: [],
+      pointers: {
+        i: 0,
+      },
+      layers: [
+        {
+          name: "버킷",
+          values: [null, null, null, null, null, null, null, null, null, null],
+          side: "만들기 전",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [[4, 1]],
+        slots: 5,
+        write: [4],
+        note: "4 새 항목",
+      },
+      calc: {
+        expr: "(freq.get(4) ?? 0) + 1",
+        result: "1",
+      },
+      vars: null,
+    },
+    {
+      title: "T2 ① A[1] = 4 — freq 1 → 2",
+      text: "값 4 는 이미 있습니다. 앞에 센 1 에 1 을 더해 2 로 고칩니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: [0, 8],
+      rangeSide: "읽음 2 / 9",
+      read: [1],
+      write: [],
+      pointers: {
+        i: 1,
+      },
+      layers: [
+        {
+          name: "버킷",
+          values: [null, null, null, null, null, null, null, null, null, null],
+          side: "만들기 전",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [[4, 2]],
+        slots: 5,
+        write: [4],
+        note: "4 있음",
+      },
+      calc: {
+        expr: "(freq.get(4) ?? 0) + 1",
+        result: "2",
+      },
+      vars: null,
+    },
+    {
+      title: "T3 ① A[2] = 4 — freq 2 → 3",
+      text: "값 4 는 이미 있습니다. 앞에 센 2 에 1 을 더해 3 으로 고칩니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: [0, 8],
+      rangeSide: "읽음 3 / 9",
+      read: [2],
+      write: [],
+      pointers: {
+        i: 2,
+      },
+      layers: [
+        {
+          name: "버킷",
+          values: [null, null, null, null, null, null, null, null, null, null],
+          side: "만들기 전",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [[4, 3]],
+        slots: 5,
+        write: [4],
+        note: "4 있음",
+      },
+      calc: {
+        expr: "(freq.get(4) ?? 0) + 1",
+        result: "3",
+      },
+      vars: null,
+    },
+    {
+      title: "T4 ① A[3] = 2 — freq 0 → 1",
+      text: "값 2 는 처음 봅니다. freq.get(2) 가 없어 0 에서 시작해 1 로 둡니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: [0, 8],
+      rangeSide: "읽음 4 / 9",
+      read: [3],
+      write: [],
+      pointers: {
+        i: 3,
+      },
+      layers: [
+        {
+          name: "버킷",
+          values: [null, null, null, null, null, null, null, null, null, null],
+          side: "만들기 전",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 1],
+        ],
+        slots: 5,
+        write: [2],
+        note: "2 새 항목",
+      },
+      calc: {
+        expr: "(freq.get(2) ?? 0) + 1",
+        result: "1",
+      },
+      vars: null,
+    },
+    {
+      title: "T5 ① A[4] = 2 — freq 1 → 2",
+      text: "값 2 는 이미 있습니다. 앞에 센 1 에 1 을 더해 2 로 고칩니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: [0, 8],
+      rangeSide: "읽음 5 / 9",
+      read: [4],
+      write: [],
+      pointers: {
+        i: 4,
+      },
+      layers: [
+        {
+          name: "버킷",
+          values: [null, null, null, null, null, null, null, null, null, null],
+          side: "만들기 전",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+        ],
+        slots: 5,
+        write: [2],
+        note: "2 있음",
+      },
+      calc: {
+        expr: "(freq.get(2) ?? 0) + 1",
+        result: "2",
+      },
+      vars: null,
+    },
+    {
+      title: "T6 ① A[5] = 1 — freq 0 → 1",
+      text: "값 1 은 처음 봅니다. freq.get(1) 가 없어 0 에서 시작해 1 로 둡니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: [0, 8],
+      rangeSide: "읽음 6 / 9",
+      read: [5],
+      write: [],
+      pointers: {
+        i: 5,
+      },
+      layers: [
+        {
+          name: "버킷",
+          values: [null, null, null, null, null, null, null, null, null, null],
+          side: "만들기 전",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 1],
+        ],
+        slots: 5,
+        write: [1],
+        note: "1 새 항목",
+      },
+      calc: {
+        expr: "(freq.get(1) ?? 0) + 1",
+        result: "1",
+      },
+      vars: null,
+    },
+    {
+      title: "T7 ① A[6] = 1 — freq 1 → 2",
+      text: "값 1 은 이미 있습니다. 앞에 센 1 에 1 을 더해 2 로 고칩니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: [0, 8],
+      rangeSide: "읽음 7 / 9",
+      read: [6],
+      write: [],
+      pointers: {
+        i: 6,
+      },
+      layers: [
+        {
+          name: "버킷",
+          values: [null, null, null, null, null, null, null, null, null, null],
+          side: "만들기 전",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 2],
+        ],
+        slots: 5,
+        write: [1],
+        note: "1 있음",
+      },
+      calc: {
+        expr: "(freq.get(1) ?? 0) + 1",
+        result: "2",
+      },
+      vars: null,
+    },
+    {
+      title: "T8 ① A[7] = 3 — freq 0 → 1",
+      text: "값 3 은 처음 봅니다. freq.get(3) 가 없어 0 에서 시작해 1 로 둡니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: [0, 8],
+      rangeSide: "읽음 8 / 9",
+      read: [7],
+      write: [],
+      pointers: {
+        i: 7,
+      },
+      layers: [
+        {
+          name: "버킷",
+          values: [null, null, null, null, null, null, null, null, null, null],
+          side: "만들기 전",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 2],
+          [3, 1],
+        ],
+        slots: 5,
+        write: [3],
+        note: "3 새 항목",
+      },
+      calc: {
+        expr: "(freq.get(3) ?? 0) + 1",
+        result: "1",
+      },
+      vars: null,
+    },
+    {
+      title: "T9 ① A[8] = 5 — freq 0 → 1",
+      text: "값 5 는 처음 봅니다. freq.get(5) 가 없어 0 에서 시작해 1 로 둡니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: [0, 8],
+      rangeSide: "읽음 9 / 9",
+      read: [8],
+      write: [],
+      pointers: {
+        i: 8,
+      },
+      layers: [
+        {
+          name: "버킷",
+          values: [null, null, null, null, null, null, null, null, null, null],
+          side: "만들기 전",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 2],
+          [3, 1],
+          [5, 1],
+        ],
+        slots: 5,
+        write: [5],
+        note: "5 새 항목",
+      },
+      calc: {
+        expr: "(freq.get(5) ?? 0) + 1",
+        result: "1",
+      },
+      vars: null,
+    },
+    {
+      title: "T10 빈도 버킷 10 개를 만든다",
+      text: "등장 횟수는 1 이상 9 이하입니다. 버킷 번호 0 부터 9 까지 10 개를 빈 목록으로 만듭니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: null,
+      rangeSide: "세기 끝",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "버킷",
+          values: ["[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]", "[]"],
+          write: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+          side: "값 든 버킷 0 / 10",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 2],
+          [3, 1],
+          [5, 1],
+        ],
+        slots: 5,
+        note: "항목 5 개",
+      },
+      calc: {
+        expr: "Array.from({ length: 10 }, () => [])",
+        result: "버킷 0 … 9",
+      },
+      vars: null,
+    },
+    {
+      title: "T11 ② 값 4 를 버킷 3 에 담는다",
+      text: "freq 에서 값 4 의 등장 횟수 3 을 읽어, 그 수를 버킷 번호로 씁니다. 버킷 3 의 목록은 이제 [4] 입니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: null,
+      rangeSide: "세기 끝",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "버킷",
+          values: ["[]", "[]", "[]", "[4]", "[]", "[]", "[]", "[]", "[]", "[]"],
+          write: [3],
+          side: "값 든 버킷 1 / 10",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 2],
+          [3, 1],
+          [5, 1],
+        ],
+        slots: 5,
+        read: [4],
+        note: "freq[4] = 3",
+      },
+      calc: {
+        expr: "slot[3].push(4)",
+        result: "[4]",
+      },
+      vars: null,
+    },
+    {
+      title: "T12 ② 값 2 를 버킷 2 에 담는다",
+      text: "freq 에서 값 2 의 등장 횟수 2 를 읽어, 그 수를 버킷 번호로 씁니다. 버킷 2 의 목록은 이제 [2] 입니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: null,
+      rangeSide: "세기 끝",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "버킷",
+          values: [
+            "[]",
+            "[]",
+            "[2]",
+            "[4]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+          ],
+          write: [2],
+          side: "값 든 버킷 2 / 10",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 2],
+          [3, 1],
+          [5, 1],
+        ],
+        slots: 5,
+        read: [2],
+        note: "freq[2] = 2",
+      },
+      calc: {
+        expr: "slot[2].push(2)",
+        result: "[2]",
+      },
+      vars: null,
+    },
+    {
+      title: "T13 ② 값 1 을 버킷 2 에 담는다",
+      text: "freq 에서 값 1 의 등장 횟수 2 를 읽어, 그 수를 버킷 번호로 씁니다. 버킷 2 의 목록은 이제 [2 1] 입니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: null,
+      rangeSide: "세기 끝",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "버킷",
+          values: [
+            "[]",
+            "[]",
+            "[2 1]",
+            "[4]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+          ],
+          write: [2],
+          side: "값 든 버킷 2 / 10",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 2],
+          [3, 1],
+          [5, 1],
+        ],
+        slots: 5,
+        read: [1],
+        note: "freq[1] = 2",
+      },
+      calc: {
+        expr: "slot[2].push(1)",
+        result: "[2 1]",
+      },
+      vars: null,
+    },
+    {
+      title: "T14 ② 값 3 을 버킷 1 에 담는다",
+      text: "freq 에서 값 3 의 등장 횟수 1 을 읽어, 그 수를 버킷 번호로 씁니다. 버킷 1 의 목록은 이제 [3] 입니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: null,
+      rangeSide: "세기 끝",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "버킷",
+          values: [
+            "[]",
+            "[3]",
+            "[2 1]",
+            "[4]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+          ],
+          write: [1],
+          side: "값 든 버킷 3 / 10",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 2],
+          [3, 1],
+          [5, 1],
+        ],
+        slots: 5,
+        read: [3],
+        note: "freq[3] = 1",
+      },
+      calc: {
+        expr: "slot[1].push(3)",
+        result: "[3]",
+      },
+      vars: null,
+    },
+    {
+      title: "T15 ② 값 5 를 버킷 1 에 담는다",
+      text: "freq 에서 값 5 의 등장 횟수 1 을 읽어, 그 수를 버킷 번호로 씁니다. 버킷 1 의 목록은 이제 [3 5] 입니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: null,
+      rangeSide: "세기 끝",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "버킷",
+          values: [
+            "[]",
+            "[3 5]",
+            "[2 1]",
+            "[4]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+          ],
+          write: [1],
+          side: "값 든 버킷 3 / 10",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
+      ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 2],
+          [3, 1],
+          [5, 1],
+        ],
+        slots: 5,
+        read: [5],
+        note: "freq[5] = 1",
+      },
+      calc: {
+        expr: "slot[1].push(5)",
+        result: "[3 5]",
+      },
+      vars: null,
+    },
+  ],
+} satisfies ArrayPlayerSpec;
+
+export const collect = {
+  player: "stage",
+  stage: "array",
+  arrayName: "A",
+  rangeLabel: "입력",
+  title: "topKFrequent([4, 4, 4, 2, 2, 1, 1, 3, 5], 3) — 큰 버킷부터 모으기",
   result: "[4 2 1]",
   steps: [
     {
-      title: "T1 등장 횟수를 센다",
-      detail:
-        "아홉 칸을 한 번 지나며 값마다 등장 횟수를 더했다. 서로 다른 값이 다섯이고 등장 횟수의 합은 9 다.",
-      array: ["·", "·", "·", "·", "·", "·", "·", "·", "·", "·"],
-      highlight: [],
-      marked: [],
-      pointers: {},
-      entries: [
-        { label: "입력 A", value: "[4 4 4 2 2 1 1 3 5]" },
-        { label: "등장 횟수 맵", value: "4→3, 2→2, 1→2, 3→1, 5→1" },
-        { label: "지금 보는 자리", value: "—" },
-        { label: "판정", value: "세기를 마쳤다" },
-        { label: "답", value: "[]" },
+      title: "T16 ③ 버킷 9 … 4 는 비었다",
+      text: "버킷 번호를 9 부터 하나씩 내립니다. 버킷 6 개가 빈 목록이라 안쪽 반복이 한 번도 실행되지 않고, 답은 0 개 그대로입니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: null,
+      rangeSide: "세기 끝",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "버킷",
+          values: [
+            "[]",
+            "[3 5]",
+            "[2 1]",
+            "[4]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+          ],
+          read: [9, 8, 7, 6, 5, 4],
+          side: "값 든 버킷 3 / 10",
+        },
+        {
+          name: "답",
+          values: [null, null, null],
+        },
       ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 2],
+          [3, 1],
+          [5, 1],
+        ],
+        slots: 5,
+        note: "항목 5 개",
+      },
+      calc: {
+        expr: "slot[9] … slot[4]",
+        result: "모두 빈 목록",
+      },
+      vars: "f = 9 … 4",
     },
     {
-      title: "T2 자리를 열 개 만든다",
-      detail:
-        "등장 횟수는 1 이상 9 이하다. 자리 번호 0 부터 9 까지 열 개를 빈 목록으로 잡는다.",
-      array: ["·", "·", "·", "·", "·", "·", "·", "·", "·", "·"],
-      highlight: [],
-      marked: [],
-      pointers: {},
-      entries: [
-        { label: "입력 A", value: "[4 4 4 2 2 1 1 3 5]" },
-        { label: "등장 횟수 맵", value: "4→3, 2→2, 1→2, 3→1, 5→1" },
-        { label: "지금 보는 자리", value: "—" },
-        { label: "판정", value: "자리 0…9 를 빈 목록으로 잡았다" },
-        { label: "답", value: "[]" },
+      title: "T17 ④ 버킷 3 의 값 4 를 답에 담는다",
+      text: "버킷 3 의 값 4 를 답에 담습니다. 1 === 3 이 거짓이라 계속합니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: null,
+      rangeSide: "세기 끝",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "버킷",
+          values: [
+            "[]",
+            "[3 5]",
+            "[2 1]",
+            "[4]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+          ],
+          read: [3],
+          side: "값 든 버킷 3 / 10",
+        },
+        {
+          name: "답",
+          values: [4, null, null],
+          write: [0],
+        },
       ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 2],
+          [3, 1],
+          [5, 1],
+        ],
+        slots: 5,
+        note: "항목 5 개",
+      },
+      calc: {
+        expr: "result.length === k",
+        result: "1 === 3 거짓",
+      },
+      vars: "f = 3",
     },
     {
-      title: "T3 값 4 를 자리 3 에 담는다",
-      detail: "값 4 의 등장 횟수가 3 이라 자리 번호가 그대로 3 이다.",
-      array: ["·", "·", "·", "4", "·", "·", "·", "·", "·", "·"],
-      highlight: [3],
-      marked: [],
-      pointers: { f: 3 },
-      entries: [
-        { label: "입력 A", value: "[4 4 4 2 2 1 1 3 5]" },
-        { label: "등장 횟수 맵", value: "4→3, 2→2, 1→2, 3→1, 5→1" },
-        { label: "지금 보는 자리", value: "자리 3" },
-        { label: "판정", value: "등장 3 회 → 자리 3" },
-        { label: "답", value: "[]" },
+      title: "T18 ④ 버킷 2 의 값 2 를 답에 담는다",
+      text: "버킷 2 의 값 2 를 답에 담습니다. 2 === 3 이 거짓이라 계속합니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: null,
+      rangeSide: "세기 끝",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "버킷",
+          values: [
+            "[]",
+            "[3 5]",
+            "[2 1]",
+            "[4]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+          ],
+          read: [2],
+          side: "값 든 버킷 3 / 10",
+        },
+        {
+          name: "답",
+          values: [4, 2, null],
+          write: [1],
+        },
       ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 2],
+          [3, 1],
+          [5, 1],
+        ],
+        slots: 5,
+        note: "항목 5 개",
+      },
+      calc: {
+        expr: "result.length === k",
+        result: "2 === 3 거짓",
+      },
+      vars: "f = 2",
     },
     {
-      title: "T4 값 2 를 자리 2 에 담는다",
-      detail:
-        "값 2 의 등장 횟수가 2 다. 자리 2 는 아직 비어 있어 첫 값이 된다.",
-      array: ["·", "·", "2", "4", "·", "·", "·", "·", "·", "·"],
-      highlight: [2],
-      marked: [],
-      pointers: { f: 2 },
-      entries: [
-        { label: "입력 A", value: "[4 4 4 2 2 1 1 3 5]" },
-        { label: "등장 횟수 맵", value: "4→3, 2→2, 1→2, 3→1, 5→1" },
-        { label: "지금 보는 자리", value: "자리 2" },
-        { label: "판정", value: "등장 2 회 → 자리 2" },
-        { label: "답", value: "[]" },
+      title: "T19 ⑤ 버킷 2 의 값 1 에서 답이 찬다",
+      text: "값 1 을 담자 답이 3 개가 됐습니다. 3 === 3 이 참이라 버킷 2 안에서 멈춥니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: null,
+      rangeSide: "세기 끝",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "버킷",
+          values: [
+            "[]",
+            "[3 5]",
+            "[2 1]",
+            "[4]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+          ],
+          read: [2],
+          side: "값 든 버킷 3 / 10",
+        },
+        {
+          name: "답",
+          values: [4, 2, 1],
+          write: [2],
+        },
       ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 2],
+          [3, 1],
+          [5, 1],
+        ],
+        slots: 5,
+        note: "항목 5 개",
+      },
+      calc: {
+        expr: "result.length === k",
+        result: "3 === 3 참",
+      },
+      vars: "f = 2",
     },
     {
-      title: "T5 값 1 도 자리 2 에 담는다",
-      detail:
-        "값 1 의 등장 횟수도 2 다. 같은 자리에 값이 둘 들어가고, 그 둘의 순서는 A 에서 처음 나온 순서다.",
-      array: ["·", "·", "2 1", "4", "·", "·", "·", "·", "·", "·"],
-      highlight: [2],
-      marked: [],
-      pointers: { f: 2 },
-      entries: [
-        { label: "입력 A", value: "[4 4 4 2 2 1 1 3 5]" },
-        { label: "등장 횟수 맵", value: "4→3, 2→2, 1→2, 3→1, 5→1" },
-        { label: "지금 보는 자리", value: "자리 2" },
-        { label: "판정", value: "등장 2 회 → 자리 2 에 둘째" },
-        { label: "답", value: "[]" },
+      title: "T20 ③ 바깥 조건이 거짓 — 끝",
+      text: "f 를 1 로 내린 뒤 바깥 조건을 봅니다. 3 < 3 이 거짓이라 버킷 1 부터는 보지 않고 답 [4 2 1] 을 돌려줍니다.",
+      array: [4, 4, 4, 2, 2, 1, 1, 3, 5],
+      range: null,
+      rangeSide: "세기 끝",
+      read: [],
+      write: [],
+      layers: [
+        {
+          name: "버킷",
+          values: [
+            "[]",
+            "[3 5]",
+            "[2 1]",
+            "[4]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+            "[]",
+          ],
+          read: [],
+          side: "값 든 버킷 3 / 10",
+        },
+        {
+          name: "답",
+          values: [4, 2, 1],
+        },
       ],
+      map: {
+        keyLabel: "값 v",
+        valueLabel: "freq",
+        entries: [
+          [4, 3],
+          [2, 2],
+          [1, 2],
+          [3, 1],
+          [5, 1],
+        ],
+        slots: 5,
+        note: "항목 5 개",
+      },
+      calc: {
+        expr: "f >= 1 && result.length < k",
+        result: "1 >= 1 && 3 < 3 → 거짓",
+      },
+      vars: "f = 1",
     },
-    {
-      title: "T6 값 3 을 자리 1 에 담는다",
-      detail: "값 3 은 한 번만 나왔다. 자리 번호가 1 이다.",
-      array: ["·", "3", "2 1", "4", "·", "·", "·", "·", "·", "·"],
-      highlight: [1],
-      marked: [],
-      pointers: { f: 1 },
-      entries: [
-        { label: "입력 A", value: "[4 4 4 2 2 1 1 3 5]" },
-        { label: "등장 횟수 맵", value: "4→3, 2→2, 1→2, 3→1, 5→1" },
-        { label: "지금 보는 자리", value: "자리 1" },
-        { label: "판정", value: "등장 1 회 → 자리 1" },
-        { label: "답", value: "[]" },
-      ],
-    },
-    {
-      title: "T7 값 5 도 자리 1 에 담는다",
-      detail:
-        "담기가 끝났다. 자리 3 에 값 하나, 자리 2 에 둘, 자리 1 에 둘이고 나머지 자리는 비어 있다.",
-      array: ["·", "3 5", "2 1", "4", "·", "·", "·", "·", "·", "·"],
-      highlight: [1],
-      marked: [],
-      pointers: { f: 1 },
-      entries: [
-        { label: "입력 A", value: "[4 4 4 2 2 1 1 3 5]" },
-        { label: "등장 횟수 맵", value: "4→3, 2→2, 1→2, 3→1, 5→1" },
-        { label: "지금 보는 자리", value: "자리 1" },
-        { label: "판정", value: "등장 1 회 → 자리 1 에 둘째" },
-        { label: "답", value: "[]" },
-      ],
-    },
-    {
-      title: "T8 자리 9 부터 4 까지는 비어 있다",
-      detail:
-        "자리 번호를 큰 쪽에서 내려간다. 여섯 자리가 비어 있어 답이 하나도 안 늘어난다.",
-      array: ["·", "3 5", "2 1", "4", "·", "·", "·", "·", "·", "·"],
-      highlight: [],
-      marked: [4, 5, 6, 7, 8, 9],
-      pointers: { f: 4 },
-      entries: [
-        { label: "입력 A", value: "[4 4 4 2 2 1 1 3 5]" },
-        { label: "등장 횟수 맵", value: "4→3, 2→2, 1→2, 3→1, 5→1" },
-        { label: "지금 보는 자리", value: "자리 9 … 4" },
-        { label: "판정", value: "여섯 자리가 비었다" },
-        { label: "답", value: "[]" },
-      ],
-    },
-    {
-      title: "T9 자리 3 의 값 4 를 답에 담는다",
-      detail:
-        "자리 3 에 값이 하나 있다. 답이 한 개가 됐고 k = 3 이 아니라 계속 내려간다.",
-      array: ["·", "3 5", "2 1", "4", "·", "·", "·", "·", "·", "·"],
-      highlight: [3],
-      marked: [4, 5, 6, 7, 8, 9],
-      pointers: { f: 3 },
-      entries: [
-        { label: "입력 A", value: "[4 4 4 2 2 1 1 3 5]" },
-        { label: "등장 횟수 맵", value: "4→3, 2→2, 1→2, 3→1, 5→1" },
-        { label: "지금 보는 자리", value: "자리 3" },
-        { label: "판정", value: "답 1 개 ≠ k 3" },
-        { label: "답", value: "[4]" },
-      ],
-    },
-    {
-      title: "T10 자리 2 의 첫 값 2 를 답에 담는다",
-      detail: "자리 2 에는 값이 둘이다. 첫 값을 담으면 답이 두 개가 된다.",
-      array: ["·", "3 5", "2 1", "4", "·", "·", "·", "·", "·", "·"],
-      highlight: [2],
-      marked: [3, 4, 5, 6, 7, 8, 9],
-      pointers: { f: 2 },
-      entries: [
-        { label: "입력 A", value: "[4 4 4 2 2 1 1 3 5]" },
-        { label: "등장 횟수 맵", value: "4→3, 2→2, 1→2, 3→1, 5→1" },
-        { label: "지금 보는 자리", value: "자리 2" },
-        { label: "판정", value: "답 2 개 ≠ k 3" },
-        { label: "답", value: "[4 2]" },
-      ],
-    },
-    {
-      title: "T11 자리 2 의 둘째 값 1 에서 답이 찬다",
-      detail:
-        "같은 자리의 둘째 값을 담자 답이 세 개가 됐다. 이 자리에 값이 더 있어도 여기서 끝낸다.",
-      array: ["·", "3 5", "2 1", "4", "·", "·", "·", "·", "·", "·"],
-      highlight: [2],
-      marked: [3, 4, 5, 6, 7, 8, 9],
-      pointers: { f: 2 },
-      entries: [
-        { label: "입력 A", value: "[4 4 4 2 2 1 1 3 5]" },
-        { label: "등장 횟수 맵", value: "4→3, 2→2, 1→2, 3→1, 5→1" },
-        { label: "지금 보는 자리", value: "자리 2" },
-        { label: "판정", value: "답 3 개 = k 3 → 이 자리에서 끝낸다" },
-        { label: "답", value: "[4 2 1]" },
-      ],
-    },
-    {
-      title: "T12 자리 1 은 보지 않는다",
-      detail:
-        "바깥 조건이 거짓이 됐다. 자리 1 에 값 3 과 5 가 남아 있지만 답에 들어가지 않는다.",
-      array: ["·", "3 5", "2 1", "4", "·", "·", "·", "·", "·", "·"],
-      highlight: [],
-      marked: [2, 3, 4, 5, 6, 7, 8, 9],
-      pointers: {},
-      entries: [
-        { label: "입력 A", value: "[4 4 4 2 2 1 1 3 5]" },
-        { label: "등장 횟수 맵", value: "4→3, 2→2, 1→2, 3→1, 5→1" },
-        { label: "지금 보는 자리", value: "—" },
-        { label: "판정", value: "답 3 개 < k 3 이 거짓 → 끝낸다" },
-        { label: "답", value: "[4 2 1]" },
-      ],
-    },
-  ] satisfies Frame[],
-};
+  ],
+} satisfies ArrayPlayerSpec;

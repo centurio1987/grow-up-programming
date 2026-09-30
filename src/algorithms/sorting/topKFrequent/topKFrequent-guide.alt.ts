@@ -2,7 +2,7 @@
  * `purpose.alt`(경쟁 설계와의 대조) 가 인용하는 수치의 출처.
  *
  * **같은 입력·같은 `k`** 에 두 설계를 걸고 **결정론적 계수**만 센다. 세는 것은 **기본
- * 연산 수**다 — 맵 연산(읽기·쓰기) + 배열 칸 접근(읽기·쓰기) + 두 수를 견준 횟수.
+ * 연산 수**다 — 맵 연산(읽기·쓰기) + 배열 칸 접근(읽기·쓰기) + 두 수를 비교한 횟수.
  * 벽시계·처리량은 실행마다 달라 "본문의 수치가 실측과 같은가" 를 정의할 수 없다.
  *
  *   bun run ../../../../tools/bench-alt.ts topKFrequent-guide.alt.ts
@@ -48,23 +48,23 @@ function countFreq(): { freq: Map<number, number>; ops: number } {
 }
 
 /**
- * 이 가이드가 가르치는 절차 — **자리 나누기**. `topKFrequent-guide.ref.ts` 와 같은 절차이고
+ * 이 가이드가 가르치는 절차 — **빈도 버킷**. `topKFrequent-guide.ref.ts` 와 같은 절차이고
  * 기본 연산 계수만 덧붙였다.
  */
 function slotOps(k: number): number {
   const { freq, ops: base } = countFreq();
   let ops = base;
   const slot: number[][] = Array.from({ length: N + 1 }, () => []);
-  ops += N + 1; // 자리 N+1 개를 만든다
+  ops += N + 1; // 빈도 버킷 N+1 개를 만든다
   for (const [v, f] of freq) {
     ops += 2; // slot[f] 읽기 + 값 담기
     slot[f]?.push(v);
   }
   let got = 0;
   for (let f = N; f >= 1 && got < k; f--) {
-    ops += 2; // slot[f] 읽기 + 바깥 조건 견주기
+    ops += 2; // slot[f] 읽기 + 바깥 조건 비교
     for (const _v of slot[f] ?? []) {
-      ops += 2; // 답에 담기 + 개수 견주기
+      ops += 2; // 답에 담기 + 개수 비교
       got++;
       if (got === k) break;
     }
@@ -77,7 +77,7 @@ type Entry = [freq: number, value: number];
 /**
  * 경쟁 설계 — **크기 `k` 최소 힙**. 고유값을 하나씩 받으며 「지금까지의 상위 `k` 개」만
  * 들고 있는다. 새 값의 등장 횟수가 꼭대기(후보 중 가장 적은 것)보다 크면 꼭대기를 갈아
- * 끼우고, 아니면 버린다. 자리를 `N + 1` 개 잡지 않는 대신 견주기를 남긴다.
+ * 끼우고, 아니면 버린다. 빈도 버킷 `N + 1` 개를 잡지 않는 대신 비교를 남긴다.
  */
 function heapOps(k: number): number {
   const { freq, ops: base } = countFreq();
@@ -88,7 +88,7 @@ function heapOps(k: number): number {
     let i = start;
     while (i > 0) {
       const p = (i - 1) >> 1;
-      ops += 3; // 두 칸 읽기 + 견주기
+      ops += 3; // 두 칸 읽기 + 비교
       if ((h[p] as Entry)[0] <= (h[i] as Entry)[0]) break;
       ops += 2; // 두 칸 쓰기
       const t = h[p] as Entry;
@@ -123,14 +123,14 @@ function heapOps(k: number): number {
   };
 
   for (const [v, f] of freq) {
-    ops += 1; // 후보가 아직 k 개 미만인지 견주기
+    ops += 1; // 후보가 아직 k 개 미만인지 비교
     if (h.length < k) {
       ops += 1; // 새 후보를 넣는다
       h.push([f, v]);
       up(h.length - 1);
       continue;
     }
-    ops += 2; // 꼭대기 읽기 + 견주기
+    ops += 2; // 꼭대기 읽기 + 비교
     if (f > (h[0] as Entry)[0]) {
       ops += 2; // 꼭대기 덮어쓰기 + 마지막 칸 읽기
       h[0] = [f, v];
@@ -159,11 +159,12 @@ function counts(
   for (const k of POINTS) {
     out[`k=${k.toLocaleString("en-US")} 기본 연산`] = run(k);
   }
-  out["k=50,000 일 때 저장 칸"] = cells(50_000);
+  out["k=50,000 일 때 맵 밖에 더 잡는 칸"] = cells(50_000);
   return out;
 }
 
 export const cases = {
-  "자리 나누기": () => counts(slotOps, () => N + 1),
+  // 맵 밖에 더 잡는 칸 — 빈도 버킷 N+1 개와 버킷에 담긴 값 M 개. 힙은 항목 k 개다.
+  "빈도 버킷": () => counts(slotOps, () => N + 1 + countFreq().freq.size),
   "크기 k 최소 힙": () => counts(heapOps, (k) => k),
 };
