@@ -52,3 +52,34 @@ test("본문 invariant 가 드는 자리 — 원소 하나를 두 번 쓸 수 �
   expect(subsetSum([3, 4], 8)).toBe(false);
   expect(subsetSum([3, 4], 7)).toBe(true);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./subsetSum-guide.sim.ts");
+  const {
+    simStepsFromRef,
+    trace,
+    trueCols,
+    setText,
+    SPLIT_ROW,
+    TABLE_OPTIONS,
+  } = await import("./subsetSum-guide.fig.tsx");
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.upper.steps)).toEqual(plain(want.upper));
+  expect(plain(sim.lower.steps)).toEqual(plain(want.lower));
+  for (const part of [sim.upper, sim.lower]) {
+    expect(plain(part.rowHeads)).toEqual(plain(TABLE_OPTIONS.rowHeads));
+    expect(plain(part.colHeads)).toEqual(plain(TABLE_OPTIONS.colHeads));
+  }
+  // 패널이 내미는 값이 정본의 DP 테이블 · 답과 같은지 — 정본에 직접 다시 묻는다.
+  const rows = trace([3, 34, 4, 12, 5, 2], 9).rows;
+  expect(sim.upper.result).toBe(setText(trueCols(rows[SPLIT_ROW] ?? [])));
+  expect(sim.lower.result).toBe(
+    subsetSum([3, 34, 4, 12, 5, 2], 9) ? "참" : "거짓",
+  );
+});
