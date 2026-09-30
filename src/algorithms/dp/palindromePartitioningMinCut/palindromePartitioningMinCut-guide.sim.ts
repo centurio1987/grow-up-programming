@@ -1,362 +1,1053 @@
-import type { Frame } from "#guide-sim";
+import type {
+  ArrayPlayerSpec,
+  TablePlayerSpec,
+} from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**(`s = "abaab"`)을 쓴다.
- * 프레임 수(13)가 그 절의 T# 단계 수(13)와 같다 — P3 이 그 관계를 잰다.
- * **T# 하나에 프레임 하나를 둔다.** 본문이 특정 걸음을 이름으로 짚는 자리가 있어서
- * (「T9 와 T10 이 같은 칸의 후보 둘」) 프레임을 묶으면 그 걸음을 화면에서 찾을 수 없다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `s = "abaab"`.
+ * `palShort` 는 대각선을 까는 T1 과 구간 길이 2 의 T2~T5, `palLong` 은 길이 3 부터 5 까지의 T6~T11,
+ * `cutFirst` 는 컷 DP 테이블을 까는 T12 와 끝 자리 1 ~ 3 의 T13~T17, `cutLast` 는 끝 자리 4 의 T18~T21 과
+ * 답을 읽는 T22 다. 한 벌에 모으면 정적 필름이 스물두 장이라 DP 테이블마다, 그 안에서 다시 둘로 가른다.
+ * `result` 는 판정 벌이 그 벌에서 정한 칸의 값, `cutFirst` 가 그때까지의 컷 칸, `cutLast` 가 반환값이다.
  *
- * `keyValue` 와 `matrix` 조합은 `matrixChainMultiplication` 이 구간 동적 계획법 쪽에서
- * 이미 세워 뒀다. **다만 그 편은 표가 하나이고 이 편은 둘이다.** 갈라야 했던 자리 셋을
- * 적어 둔다. 표를 둘 쓰는 다음 편이 이것을 이어받는다.
- *
- * 1. **`matrix` 는 앞의 표(회문 판정)를 지고 `keyValue` 가 뒤의 표(컷)를 진다.** 둘 다
- *    `matrix` 로 그리면 화면에 표가 둘 뜨는데, 뒤의 표는 1 차원이라 행이 하나뿐인 표가
- *    되어 앞의 표와 크기가 어긋난다. 뒤의 표는 `entries` 한 줄(`cut = […]`)로 충분하다.
- * 2. **자리 이름을 표마다 갈라 둔다.** 앞의 표는 `i`(시작)·`j`(끝)이고 뒤의 표는
- *    `e`(접두사의 끝)·`b`(마지막 조각의 시작)다. 둘 다 `i`·`j` 로 적으면 컷 표가 조회하는
- *    `pal[b][e]` 가 행·열이 뒤바뀐 것으로 읽힌다 — `entries` 의 라벨도 이 이름을 쓴다.
- * 3. **칸 상태가 셋이라 표기도 셋이다.** `"-"`(`i > j` 라 구간이 아니다) · `null`(아직 안
- *    정했다) · `"T"`/`"F"`(정했다)다. `MatrixView` 가 `null` 을 빈 칸으로 그리므로
- *    (`src/_guide-sim/index.tsx:374`) 아래쪽 삼각형을 `null` 로 두면 두 상태가 화면에서
- *    같아진다.
- *
- * `rowLabels`·`colLabels` 는 본문 ascii 의 머리줄과 글자 그대로 같다 — 그 그림은
- * `.proof.ts` 의 `walkPal` 이 실행해서 만든다.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고른다. 판정 DP 테이블 벌은
+ * `stage: "table"`(2 차원 표 무대, `tableStage.ts`) — 줄 `i` · 열 `j` 이고 아래쪽 삼각형은 구간이
+ * 아니라 `out`(이번 걸음 밖)이다. 걸음 하나가 판정 칸 하나이고, `read` 는 그 칸이 읽은 안쪽 칸, 표 아래
+ * 문자열 줄(`strip`)에 걸린 `pieces` 가 칸이 맡는 구간과 그 안쪽이다. 컷 DP 테이블 벌은
+ * `stage: "array"`(배열 무대, `arrayStage.ts`) — 문자열 위에 쥔 접두사 `[0,e]` 와 앞부분 · 마지막 조각
+ * 괄호를 걸고, 아래 `layers` 에 판정 DP 테이블의 열 `e`(`pal[b][e]`)와 컷 DP 테이블(`cut`)을 쌓는다.
+ * 걸음 하나가 시작 자리 `b` 하나다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본 실행에서 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `palindromePartitioningMinCut-guide.test.ts` 가 잰다.
  */
-export const table = {
-  view: ["keyValue", "matrix"] as const,
+
+export const palShort = {
+  player: "stage",
+  stage: "table",
+  rowHeads: ["i=0 · a", "i=1 · b", "i=2 · a", "i=3 · a", "i=4 · b"],
+  colHeads: [0, 1, 2, 3, 4],
+  colLabel: "j",
+  strip: {
+    label: "s",
+    values: ["a", "b", "a", "a", "b"],
+    side: 's = "abaab"',
+  },
   title: 'palindromePartitioningMinCut("abaab")',
-  result: "1",
+  result: "[F, F, T, F]",
   steps: [
     {
-      title: "T1 판정표를 깔고 대각선을 참으로 둔다",
-      detail:
-        "pal[i][j] = s[i…j] 가 회문인가. 길이 1 구간은 글자 하나라 언제나 회문이고, i > j 인 칸은 구간이 아니라 영영 쓰지 않는다.",
-      entries: [
-        { label: "구간 길이", value: "1" },
-        {
-          label: "정한 칸",
-          value: "pal[0][0] · pal[1][1] · pal[2][2] · pal[3][3] · pal[4][4]",
-        },
-        { label: "정한 값", value: "전부 T" },
-        { label: "갈래", value: "②" },
-      ],
-      matrix: [
+      title: "T1 대각선 pal[i][i] = T ②",
+      text: "판정 DP 테이블을 5 × 5 로 만들고 거짓으로 채운 뒤 대각선 pal[0][0] … pal[4][4] 를 참으로 바꿉니다. 길이 1 구간은 글자 하나라 언제나 회문입니다.",
+      table: [
         ["T", null, null, null, null],
-        ["-", "T", null, null, null],
-        ["-", "-", "T", null, null],
-        ["-", "-", "-", "T", null],
-        ["-", "-", "-", "-", "T"],
+        [null, "T", null, null, null],
+        [null, null, "T", null, null],
+        [null, null, null, "T", null],
+        [null, null, null, null, "T"],
       ],
-      rowLabels: ["i=0  a", "i=1  b", "i=2  a", "i=3  a", "i=4  b"],
-      colLabels: ["j=0", "j=1", "j=2", "j=3", "j=4"],
-      cells: [
+      write: [
         [0, 0],
         [1, 1],
         [2, 2],
         [3, 3],
         [4, 4],
-      ] as [number, number][],
+      ],
+      out: [
+        [1, 0],
+        [2, 0],
+        [2, 1],
+        [3, 0],
+        [3, 1],
+        [3, 2],
+        [4, 0],
+        [4, 1],
+        [4, 2],
+        [4, 3],
+      ],
+      rowSide: [
+        "채움 1 / 5",
+        "채움 1 / 4",
+        "채움 1 / 3",
+        "채움 1 / 2",
+        "채움 1 / 1",
+      ],
+      calc: {
+        expr: "pal[i][i] =",
+        result: "T",
+      },
+      vars: "len = 1",
     },
     {
-      title: "T2 길이 2 — 안쪽이 빈 구간이라 양 끝 비교만으로 정해진다",
-      detail:
-        "네 칸을 한 줄로 채운다. s[2]=s[3]='a' 인 [2,3] 만 참이고 나머지 셋은 양 끝 글자가 달라 거짓이다.",
-      entries: [
-        { label: "구간 길이", value: "2" },
-        {
-          label: "정한 칸",
-          value: "pal[0][1]=F · pal[1][2]=F · pal[2][3]=T · pal[3][4]=F",
-        },
-        { label: "참인 구간", value: '[2,3] "aa"' },
-      ],
-      matrix: [
+      title: 'T2 pal[0][1] "ab" = F',
+      text: "구간 [0,1] \"ab\" 를 정합니다. 양 끝 s[0] = 'a' 와 s[1] = 'b' 가 다릅니다. 길이 2 라 안쪽이 빈 구간이고 안쪽 칸을 읽지 않습니다. pal[0][1] = F 를 적습니다.",
+      table: [
         ["T", "F", null, null, null],
-        ["-", "T", "F", null, null],
-        ["-", "-", "T", "T", null],
-        ["-", "-", "-", "T", "F"],
-        ["-", "-", "-", "-", "T"],
+        [null, "T", null, null, null],
+        [null, null, "T", null, null],
+        [null, null, null, "T", null],
+        [null, null, null, null, "T"],
       ],
-      rowLabels: ["i=0  a", "i=1  b", "i=2  a", "i=3  a", "i=4  b"],
-      colLabels: ["j=0", "j=1", "j=2", "j=3", "j=4"],
-      cells: [
-        [0, 1],
-        [1, 2],
-        [2, 3],
-        [3, 4],
-      ] as [number, number][],
+      read: [],
+      write: [[0, 1]],
+      out: [
+        [1, 0],
+        [2, 0],
+        [2, 1],
+        [3, 0],
+        [3, 1],
+        [3, 2],
+        [4, 0],
+        [4, 1],
+        [4, 2],
+        [4, 3],
+      ],
+      rowSide: [
+        "채움 2 / 5",
+        "채움 1 / 4",
+        "채움 1 / 3",
+        "채움 1 / 2",
+        "채움 1 / 1",
+      ],
+      pieces: [
+        {
+          label: "구간",
+          from: 0,
+          to: 1,
+          tone: "query",
+          text: '"ab"',
+          side: "pal[0][1]",
+        },
+      ],
+      calc: {
+        expr: "'a' ≠ 'b' →",
+        result: "F",
+      },
+      vars: "len = 2",
     },
     {
-      title: "T3 길이 3 — 여기서부터 안쪽 칸을 읽는다",
-      detail:
-        "pal[0][2] 는 s[0]=s[2]='a' 이고 안쪽 pal[1][1] 이 T 라 참이다. pal[1][3] 은 s[1]='b' 와 s[3]='a' 가 달라 거짓이고, 안쪽을 읽어 볼 것도 없다.",
-      entries: [
-        { label: "구간 길이", value: "3" },
-        { label: "정한 칸", value: "pal[0][2]=T · pal[1][3]=F · pal[2][4]=F" },
-        { label: "읽은 안쪽 칸", value: "pal[1][1] · pal[2][2] · pal[3][3]" },
-        { label: "참인 구간", value: '[0,2] "aba"' },
+      title: 'T3 pal[1][2] "ba" = F',
+      text: "구간 [1,2] \"ba\" 를 정합니다. 양 끝 s[1] = 'b' 와 s[2] = 'a' 가 다릅니다. 길이 2 라 안쪽이 빈 구간이고 안쪽 칸을 읽지 않습니다. pal[1][2] = F 를 적습니다.",
+      table: [
+        ["T", "F", null, null, null],
+        [null, "T", "F", null, null],
+        [null, null, "T", null, null],
+        [null, null, null, "T", null],
+        [null, null, null, null, "T"],
       ],
-      matrix: [
+      read: [],
+      write: [[1, 2]],
+      out: [
+        [1, 0],
+        [2, 0],
+        [2, 1],
+        [3, 0],
+        [3, 1],
+        [3, 2],
+        [4, 0],
+        [4, 1],
+        [4, 2],
+        [4, 3],
+      ],
+      rowSide: [
+        "채움 2 / 5",
+        "채움 2 / 4",
+        "채움 1 / 3",
+        "채움 1 / 2",
+        "채움 1 / 1",
+      ],
+      pieces: [
+        {
+          label: "구간",
+          from: 1,
+          to: 2,
+          tone: "query",
+          text: '"ba"',
+          side: "pal[1][2]",
+        },
+      ],
+      calc: {
+        expr: "'b' ≠ 'a' →",
+        result: "F",
+      },
+      vars: "len = 2",
+    },
+    {
+      title: 'T4 pal[2][3] "aa" = T',
+      text: "구간 [2,3] \"aa\" 를 정합니다. 양 끝 s[2] = 'a' 와 s[3] = 'a' 가 같습니다. 길이 2 라 안쪽이 빈 구간이고 안쪽 칸을 읽지 않습니다. pal[2][3] = T 를 적습니다.",
+      table: [
+        ["T", "F", null, null, null],
+        [null, "T", "F", null, null],
+        [null, null, "T", "T", null],
+        [null, null, null, "T", null],
+        [null, null, null, null, "T"],
+      ],
+      read: [],
+      write: [[2, 3]],
+      out: [
+        [1, 0],
+        [2, 0],
+        [2, 1],
+        [3, 0],
+        [3, 1],
+        [3, 2],
+        [4, 0],
+        [4, 1],
+        [4, 2],
+        [4, 3],
+      ],
+      rowSide: [
+        "채움 2 / 5",
+        "채움 2 / 4",
+        "채움 2 / 3",
+        "채움 1 / 2",
+        "채움 1 / 1",
+      ],
+      pieces: [
+        {
+          label: "구간",
+          from: 2,
+          to: 3,
+          tone: "query",
+          text: '"aa"',
+          side: "pal[2][3]",
+        },
+      ],
+      calc: {
+        expr: "'a' = 'a' →",
+        result: "T",
+      },
+      vars: "len = 2",
+    },
+    {
+      title: 'T5 pal[3][4] "ab" = F',
+      text: "구간 [3,4] \"ab\" 를 정합니다. 양 끝 s[3] = 'a' 와 s[4] = 'b' 가 다릅니다. 길이 2 라 안쪽이 빈 구간이고 안쪽 칸을 읽지 않습니다. pal[3][4] = F 를 적습니다.",
+      table: [
+        ["T", "F", null, null, null],
+        [null, "T", "F", null, null],
+        [null, null, "T", "T", null],
+        [null, null, null, "T", "F"],
+        [null, null, null, null, "T"],
+      ],
+      read: [],
+      write: [[3, 4]],
+      out: [
+        [1, 0],
+        [2, 0],
+        [2, 1],
+        [3, 0],
+        [3, 1],
+        [3, 2],
+        [4, 0],
+        [4, 1],
+        [4, 2],
+        [4, 3],
+      ],
+      rowSide: [
+        "채움 2 / 5",
+        "채움 2 / 4",
+        "채움 2 / 3",
+        "채움 2 / 2",
+        "채움 1 / 1",
+      ],
+      pieces: [
+        {
+          label: "구간",
+          from: 3,
+          to: 4,
+          tone: "query",
+          text: '"ab"',
+          side: "pal[3][4]",
+        },
+      ],
+      calc: {
+        expr: "'a' ≠ 'b' →",
+        result: "F",
+      },
+      vars: "len = 2",
+    },
+  ],
+} satisfies TablePlayerSpec;
+
+export const palLong = {
+  player: "stage",
+  stage: "table",
+  rowHeads: ["i=0 · a", "i=1 · b", "i=2 · a", "i=3 · a", "i=4 · b"],
+  colHeads: [0, 1, 2, 3, 4],
+  colLabel: "j",
+  strip: {
+    label: "s",
+    values: ["a", "b", "a", "a", "b"],
+    side: 's = "abaab"',
+  },
+  title: 'palindromePartitioningMinCut("abaab")',
+  result: "[T, F, F, F, T, F]",
+  steps: [
+    {
+      title: 'T6 pal[0][2] "aba" = T',
+      text: "구간 [0,2] \"aba\" 를 정합니다. 양 끝 s[0] = 'a' 와 s[2] = 'a' 가 같습니다. 안쪽 pal[1][1] \"b\" 는 T 입니다. pal[0][2] = T 를 적습니다.",
+      table: [
         ["T", "F", "T", null, null],
-        ["-", "T", "F", "F", null],
-        ["-", "-", "T", "T", "F"],
-        ["-", "-", "-", "T", "F"],
-        ["-", "-", "-", "-", "T"],
+        [null, "T", "F", null, null],
+        [null, null, "T", "T", null],
+        [null, null, null, "T", "F"],
+        [null, null, null, null, "T"],
       ],
-      rowLabels: ["i=0  a", "i=1  b", "i=2  a", "i=3  a", "i=4  b"],
-      colLabels: ["j=0", "j=1", "j=2", "j=3", "j=4"],
-      cells: [
-        [0, 2],
-        [1, 3],
-        [2, 4],
-      ] as [number, number][],
+      read: [[1, 1]],
+      write: [[0, 2]],
+      out: [
+        [1, 0],
+        [2, 0],
+        [2, 1],
+        [3, 0],
+        [3, 1],
+        [3, 2],
+        [4, 0],
+        [4, 1],
+        [4, 2],
+        [4, 3],
+      ],
+      rowSide: [
+        "채움 3 / 5",
+        "채움 2 / 4",
+        "채움 2 / 3",
+        "채움 2 / 2",
+        "채움 1 / 1",
+      ],
+      pieces: [
+        {
+          label: "구간",
+          from: 0,
+          to: 2,
+          tone: "query",
+          text: '"aba"',
+          side: "pal[0][2]",
+        },
+        {
+          label: "안쪽",
+          from: 1,
+          to: 1,
+          tone: "left",
+          text: '"b"',
+          side: "pal[1][1] = T",
+        },
+      ],
+      calc: {
+        expr: "'a' = 'a' 이고 pal[1][1] = T →",
+        result: "T",
+      },
+      vars: "len = 3",
     },
     {
-      title: "T4 길이 4 — 길이 2 칸을 안쪽으로 읽는다",
-      detail:
-        "pal[1][4] 는 s[1]=s[4]='b' 이고 안쪽 pal[2][3] 이 T 라 참이다. T2 가 그 칸을 이미 정해 두었다.",
-      entries: [
-        { label: "구간 길이", value: "4" },
-        { label: "정한 칸", value: "pal[0][3]=F · pal[1][4]=T" },
-        { label: "읽은 안쪽 칸", value: "pal[1][2]=F · pal[2][3]=T" },
-        { label: "참인 구간", value: '[1,4] "baab"' },
+      title: 'T7 pal[1][3] "baa" = F',
+      text: "구간 [1,3] \"baa\" 를 정합니다. 양 끝 s[1] = 'b' 와 s[3] = 'a' 가 다릅니다. 안쪽 pal[2][2] \"a\" 는 T 입니다. pal[1][3] = F 를 적습니다.",
+      table: [
+        ["T", "F", "T", null, null],
+        [null, "T", "F", "F", null],
+        [null, null, "T", "T", null],
+        [null, null, null, "T", "F"],
+        [null, null, null, null, "T"],
       ],
-      matrix: [
+      read: [[2, 2]],
+      write: [[1, 3]],
+      out: [
+        [1, 0],
+        [2, 0],
+        [2, 1],
+        [3, 0],
+        [3, 1],
+        [3, 2],
+        [4, 0],
+        [4, 1],
+        [4, 2],
+        [4, 3],
+      ],
+      rowSide: [
+        "채움 3 / 5",
+        "채움 3 / 4",
+        "채움 2 / 3",
+        "채움 2 / 2",
+        "채움 1 / 1",
+      ],
+      pieces: [
+        {
+          label: "구간",
+          from: 1,
+          to: 3,
+          tone: "query",
+          text: '"baa"',
+          side: "pal[1][3]",
+        },
+        {
+          label: "안쪽",
+          from: 2,
+          to: 2,
+          tone: "left",
+          text: '"a"',
+          side: "pal[2][2] = T",
+        },
+      ],
+      calc: {
+        expr: "'b' ≠ 'a' 이고 pal[2][2] = T →",
+        result: "F",
+      },
+      vars: "len = 3",
+    },
+    {
+      title: 'T8 pal[2][4] "aab" = F',
+      text: "구간 [2,4] \"aab\" 를 정합니다. 양 끝 s[2] = 'a' 와 s[4] = 'b' 가 다릅니다. 안쪽 pal[3][3] \"a\" 는 T 입니다. pal[2][4] = F 를 적습니다.",
+      table: [
+        ["T", "F", "T", null, null],
+        [null, "T", "F", "F", null],
+        [null, null, "T", "T", "F"],
+        [null, null, null, "T", "F"],
+        [null, null, null, null, "T"],
+      ],
+      read: [[3, 3]],
+      write: [[2, 4]],
+      out: [
+        [1, 0],
+        [2, 0],
+        [2, 1],
+        [3, 0],
+        [3, 1],
+        [3, 2],
+        [4, 0],
+        [4, 1],
+        [4, 2],
+        [4, 3],
+      ],
+      rowSide: [
+        "채움 3 / 5",
+        "채움 3 / 4",
+        "채움 3 / 3",
+        "채움 2 / 2",
+        "채움 1 / 1",
+      ],
+      pieces: [
+        {
+          label: "구간",
+          from: 2,
+          to: 4,
+          tone: "query",
+          text: '"aab"',
+          side: "pal[2][4]",
+        },
+        {
+          label: "안쪽",
+          from: 3,
+          to: 3,
+          tone: "left",
+          text: '"a"',
+          side: "pal[3][3] = T",
+        },
+      ],
+      calc: {
+        expr: "'a' ≠ 'b' 이고 pal[3][3] = T →",
+        result: "F",
+      },
+      vars: "len = 3",
+    },
+    {
+      title: 'T9 pal[0][3] "abaa" = F',
+      text: "구간 [0,3] \"abaa\" 를 정합니다. 양 끝 s[0] = 'a' 와 s[3] = 'a' 가 같습니다. 안쪽 pal[1][2] \"ba\" 는 F 입니다. pal[0][3] = F 를 적습니다.",
+      table: [
         ["T", "F", "T", "F", null],
-        ["-", "T", "F", "F", "T"],
-        ["-", "-", "T", "T", "F"],
-        ["-", "-", "-", "T", "F"],
-        ["-", "-", "-", "-", "T"],
+        [null, "T", "F", "F", null],
+        [null, null, "T", "T", "F"],
+        [null, null, null, "T", "F"],
+        [null, null, null, null, "T"],
       ],
-      rowLabels: ["i=0  a", "i=1  b", "i=2  a", "i=3  a", "i=4  b"],
-      colLabels: ["j=0", "j=1", "j=2", "j=3", "j=4"],
-      cells: [
-        [0, 3],
-        [1, 4],
-      ] as [number, number][],
+      read: [[1, 2]],
+      write: [[0, 3]],
+      out: [
+        [1, 0],
+        [2, 0],
+        [2, 1],
+        [3, 0],
+        [3, 1],
+        [3, 2],
+        [4, 0],
+        [4, 1],
+        [4, 2],
+        [4, 3],
+      ],
+      rowSide: [
+        "채움 4 / 5",
+        "채움 3 / 4",
+        "채움 3 / 3",
+        "채움 2 / 2",
+        "채움 1 / 1",
+      ],
+      pieces: [
+        {
+          label: "구간",
+          from: 0,
+          to: 3,
+          tone: "query",
+          text: '"abaa"',
+          side: "pal[0][3]",
+        },
+        {
+          label: "안쪽",
+          from: 1,
+          to: 2,
+          tone: "left",
+          text: '"ba"',
+          side: "pal[1][2] = F",
+        },
+      ],
+      calc: {
+        expr: "'a' = 'a' 이고 pal[1][2] = F →",
+        result: "F",
+      },
+      vars: "len = 4",
     },
     {
-      title: "T5 길이 5 — 판정표가 다 찼다",
-      detail:
-        "pal[0][4] 는 s[0]='a' 와 s[4]='b' 가 달라 거짓이다. 문자열 전체가 회문이 아니므로 컷이 한 번은 필요하다.",
-      entries: [
-        { label: "구간 길이", value: "5" },
-        { label: "정한 칸", value: "pal[0][4]=F" },
-        { label: "참인 칸", value: "여덟 개" },
-        { label: "판정한 칸", value: "열다섯 개" },
+      title: 'T10 pal[1][4] "baab" = T',
+      text: "구간 [1,4] \"baab\" 를 정합니다. 양 끝 s[1] = 'b' 와 s[4] = 'b' 가 같습니다. 안쪽 pal[2][3] \"aa\" 는 T 입니다. pal[1][4] = T 를 적습니다.",
+      table: [
+        ["T", "F", "T", "F", null],
+        [null, "T", "F", "F", "T"],
+        [null, null, "T", "T", "F"],
+        [null, null, null, "T", "F"],
+        [null, null, null, null, "T"],
       ],
-      matrix: [
-        ["T", "F", "T", "F", "F"],
-        ["-", "T", "F", "F", "T"],
-        ["-", "-", "T", "T", "F"],
-        ["-", "-", "-", "T", "F"],
-        ["-", "-", "-", "-", "T"],
+      read: [[2, 3]],
+      write: [[1, 4]],
+      out: [
+        [1, 0],
+        [2, 0],
+        [2, 1],
+        [3, 0],
+        [3, 1],
+        [3, 2],
+        [4, 0],
+        [4, 1],
+        [4, 2],
+        [4, 3],
       ],
-      rowLabels: ["i=0  a", "i=1  b", "i=2  a", "i=3  a", "i=4  b"],
-      colLabels: ["j=0", "j=1", "j=2", "j=3", "j=4"],
-      cells: [[0, 4]] as [number, number][],
+      rowSide: [
+        "채움 4 / 5",
+        "채움 4 / 4",
+        "채움 3 / 3",
+        "채움 2 / 2",
+        "채움 1 / 1",
+      ],
+      pieces: [
+        {
+          label: "구간",
+          from: 1,
+          to: 4,
+          tone: "query",
+          text: '"baab"',
+          side: "pal[1][4]",
+        },
+        {
+          label: "안쪽",
+          from: 2,
+          to: 3,
+          tone: "left",
+          text: '"aa"',
+          side: "pal[2][3] = T",
+        },
+      ],
+      calc: {
+        expr: "'b' = 'b' 이고 pal[2][3] = T →",
+        result: "T",
+      },
+      vars: "len = 4",
     },
     {
-      title: "T6 컷 표를 깔고 첫 칸을 0 으로 둔다",
-      detail:
-        "cut[e] = s[0…e] 를 회문 조각으로만 자를 때의 최소 컷 수. cut[0] 은 글자 하나짜리 접두사라 자를 자리가 없어 0 이고, 표를 0 으로 깔면 그 칸이 그대로 옳은 값이 된다.",
-      entries: [
-        { label: "cut", value: "[0, ·, ·, ·, ·]" },
-        { label: "정한 칸", value: "cut[0] = 0" },
-        { label: "남은 칸", value: "cut[1] · cut[2] · cut[3] · cut[4]" },
-      ],
-      matrix: [
+      title: 'T11 pal[0][4] "abaab" = F',
+      text: "구간 [0,4] \"abaab\" 를 정합니다. 양 끝 s[0] = 'a' 와 s[4] = 'b' 가 다릅니다. 안쪽 pal[1][3] \"baa\" 는 F 입니다. pal[0][4] = F 를 적습니다.",
+      table: [
         ["T", "F", "T", "F", "F"],
-        ["-", "T", "F", "F", "T"],
-        ["-", "-", "T", "T", "F"],
-        ["-", "-", "-", "T", "F"],
-        ["-", "-", "-", "-", "T"],
+        [null, "T", "F", "F", "T"],
+        [null, null, "T", "T", "F"],
+        [null, null, null, "T", "F"],
+        [null, null, null, null, "T"],
       ],
-      rowLabels: ["i=0  a", "i=1  b", "i=2  a", "i=3  a", "i=4  b"],
-      colLabels: ["j=0", "j=1", "j=2", "j=3", "j=4"],
-      cells: [[0, 0]] as [number, number][],
+      read: [[1, 3]],
+      write: [[0, 4]],
+      out: [
+        [1, 0],
+        [2, 0],
+        [2, 1],
+        [3, 0],
+        [3, 1],
+        [3, 2],
+        [4, 0],
+        [4, 1],
+        [4, 2],
+        [4, 3],
+      ],
+      rowSide: [
+        "채움 5 / 5",
+        "채움 4 / 4",
+        "채움 3 / 3",
+        "채움 2 / 2",
+        "채움 1 / 1",
+      ],
+      pieces: [
+        {
+          label: "구간",
+          from: 0,
+          to: 4,
+          tone: "query",
+          text: '"abaab"',
+          side: "pal[0][4]",
+        },
+        {
+          label: "안쪽",
+          from: 1,
+          to: 3,
+          tone: "left",
+          text: '"baa"',
+          side: "pal[1][3] = F",
+        },
+      ],
+      calc: {
+        expr: "'a' ≠ 'b' 이고 pal[1][3] = F →",
+        result: "F",
+      },
+      vars: "len = 5",
+    },
+  ],
+} satisfies TablePlayerSpec;
+
+export const cutFirst = {
+  player: "stage",
+  stage: "array",
+  arrayName: "s",
+  rangeLabel: "접두사",
+  title: 'palindromePartitioningMinCut("abaab")',
+  result: "[0, 1, 0, 1]",
+  steps: [
+    {
+      title: "T12 cut[0] = 0",
+      text: '판정 DP 테이블이 다 찼습니다. 컷 DP 테이블을 칸 5 개로 만들고 0 으로 채웁니다. cut[0] 은 글자 하나짜리 접두사 "a" 라 자를 자리가 없어, 깔아 둔 0 이 그대로 그 칸의 값입니다.',
+      array: ["a", "b", "a", "a", "b"],
+      range: [0, 0],
+      layers: [
+        {
+          name: "pal[b][e]",
+          values: ["T", "-", "-", "-", "-"],
+          read: [],
+          side: "e = 0 열",
+        },
+        {
+          name: "cut",
+          values: [0, null, null, null, null],
+          read: [],
+          write: [0],
+        },
+      ],
+      calc: {
+        expr: "cut[0] =",
+        result: "0",
+      },
+      vars: null,
     },
     {
-      title: 'T7 끝 자리 1 — 접두사 "ab" 는 회문이 아니라 후보를 센다',
-      detail:
-        'pal[0][1] 이 F 라 갈래 ③ 으로 가지 않는다. 시작 자리 b=1 하나뿐이고 마지막 조각 "b" 가 회문이라 후보가 cut[0] + 1 = 1 이다.',
-      entries: [
-        { label: "끝 자리 e", value: "1" },
-        { label: "접두사", value: '"ab" — pal[0][1] = F' },
-        { label: "시작 자리 b", value: "1" },
-        { label: "마지막 조각", value: '"b" — pal[1][1] = T' },
-        { label: "후보", value: "cut[0] + 1 = 1" },
-        { label: "cut", value: "[0, 1, ·, ·, ·]" },
-        { label: "갈래", value: "④" },
+      title: "T13 e=1 · b=1 · cut[0] + 1 = 1 ④",
+      text: '마지막 조각 "b" 의 pal[1][1] = T 라 후보입니다. 앞부분 "a" 의 cut[0] = 0 에 컷 하나를 더해 후보는 1 입니다. 1 < ∞ 이 참이라 ④ best 가 1 이 됩니다. 시작 자리를 다 봤으니 cut[1] = 1 을 적습니다.',
+      array: ["a", "b", "a", "a", "b"],
+      range: [0, 1],
+      pieces: [
+        {
+          label: "앞부분",
+          from: 0,
+          to: 0,
+          tone: "left",
+          text: '"a"',
+        },
+        {
+          label: "마지막 조각",
+          from: 1,
+          to: 1,
+          tone: "right",
+          text: '"b"',
+        },
       ],
-      matrix: [
-        ["T", "F", "T", "F", "F"],
-        ["-", "T", "F", "F", "T"],
-        ["-", "-", "T", "T", "F"],
-        ["-", "-", "-", "T", "F"],
-        ["-", "-", "-", "-", "T"],
+      layers: [
+        {
+          name: "pal[b][e]",
+          values: ["F", "T", "-", "-", "-"],
+          read: [1],
+          side: "e = 1 열",
+        },
+        {
+          name: "cut",
+          values: [0, 1, null, null, null],
+          read: [0],
+          write: [1],
+        },
       ],
-      rowLabels: ["i=0  a", "i=1  b", "i=2  a", "i=3  a", "i=4  b"],
-      colLabels: ["j=0", "j=1", "j=2", "j=3", "j=4"],
-      cells: [
-        [0, 1],
-        [1, 1],
-      ] as [number, number][],
+      calc: {
+        expr: "cut[0] + 1 = 0 + 1 =",
+        result: "1",
+      },
+      vars: "best ∞ → 1",
     },
     {
-      title: 'T8 끝 자리 2 — 접두사 "aba" 가 통째로 회문이다',
-      detail:
-        "pal[0][2] 가 T 라 갈래 ③ 이다. 후보를 하나도 세지 않고 0 을 적고 넘어간다. cut[2] 가 cut[1] 보다 작다는 것이 이 표가 오르내린다는 것을 값으로 말한다.",
-      entries: [
-        { label: "끝 자리 e", value: "2" },
-        { label: "접두사", value: '"aba" — pal[0][2] = T' },
-        { label: "검사한 후보", value: "없다" },
-        { label: "cut", value: "[0, 1, 0, ·, ·]" },
-        { label: "갈래", value: "③" },
+      title: 'T14 e=2 · 접두사 "aba" 가 통째로 회문 ③',
+      text: 'pal[0][2] = T 라 접두사 "aba" 가 통째로 회문입니다. ③ 후보를 하나도 세지 않고 cut[2] = 0 을 적습니다.',
+      array: ["a", "b", "a", "a", "b"],
+      range: [0, 2],
+      pieces: [
+        {
+          label: "마지막 조각",
+          from: 0,
+          to: 2,
+          tone: "right",
+          text: '"aba"',
+        },
       ],
-      matrix: [
-        ["T", "F", "T", "F", "F"],
-        ["-", "T", "F", "F", "T"],
-        ["-", "-", "T", "T", "F"],
-        ["-", "-", "-", "T", "F"],
-        ["-", "-", "-", "-", "T"],
+      layers: [
+        {
+          name: "pal[b][e]",
+          values: ["T", "F", "T", "-", "-"],
+          read: [0],
+          side: "e = 2 열",
+        },
+        {
+          name: "cut",
+          values: [0, 1, 0, null, null],
+          read: [],
+          write: [2],
+        },
       ],
-      rowLabels: ["i=0  a", "i=1  b", "i=2  a", "i=3  a", "i=4  b"],
-      colLabels: ["j=0", "j=1", "j=2", "j=3", "j=4"],
-      cells: [[0, 2]] as [number, number][],
+      calc: {
+        expr: "pal[0][2] =",
+        result: "T",
+      },
+      vars: null,
     },
     {
-      title: "T9 끝 자리 3 의 첫 후보 — 시작 자리 2",
-      detail:
-        'b=1 은 마지막 조각이 "baa" 라 pal[1][3] 이 F 이고 후보가 되지 않는다. b=2 는 "aa" 가 회문이라 후보가 cut[1] + 1 = 2 다. 아직 정한 값이 아니라 지금까지의 최소일 뿐이다.',
-      entries: [
-        { label: "끝 자리 e", value: "3" },
-        { label: "접두사", value: '"abaa" — pal[0][3] = F' },
-        { label: "건너뛴 시작 자리", value: 'b=1 — "baa" 는 회문이 아니다' },
-        { label: "시작 자리 b", value: "2" },
-        { label: "마지막 조각", value: '"aa" — pal[2][3] = T' },
-        { label: "후보", value: "cut[1] + 1 = 2" },
-        { label: "지금까지의 최소", value: "2" },
-        { label: "갈래", value: "④" },
+      title: 'T15 e=3 · b=1 · "baa" 는 회문이 아니다',
+      text: 'pal[0][3] = F 라 후보를 셉니다. 마지막 조각 "baa" 의 pal[1][3] = F 라 후보가 아니고, best 는 ∞ 그대로입니다.',
+      array: ["a", "b", "a", "a", "b"],
+      range: [0, 3],
+      pieces: [
+        {
+          label: "앞부분",
+          from: 0,
+          to: 0,
+          tone: "left",
+          text: '"a"',
+        },
+        {
+          label: "마지막 조각",
+          from: 1,
+          to: 3,
+          tone: "right",
+          text: '"baa"',
+        },
       ],
-      matrix: [
-        ["T", "F", "T", "F", "F"],
-        ["-", "T", "F", "F", "T"],
-        ["-", "-", "T", "T", "F"],
-        ["-", "-", "-", "T", "F"],
-        ["-", "-", "-", "-", "T"],
+      layers: [
+        {
+          name: "pal[b][e]",
+          values: ["F", "F", "T", "T", "-"],
+          read: [1],
+          side: "e = 3 열",
+        },
+        {
+          name: "cut",
+          values: [0, 1, 0, null, null],
+          read: [],
+          write: [],
+        },
       ],
-      rowLabels: ["i=0  a", "i=1  b", "i=2  a", "i=3  a", "i=4  b"],
-      colLabels: ["j=0", "j=1", "j=2", "j=3", "j=4"],
-      cells: [
-        [1, 3],
-        [2, 3],
-      ] as [number, number][],
+      calc: {
+        expr: "pal[1][3] =",
+        result: "F",
+      },
+      vars: "best ∞",
     },
     {
-      title: "T10 끝 자리 3 의 둘째 후보 — 시작 자리 3 이 최소를 1 로 낮춘다",
-      detail:
-        '마지막 조각이 "a" 하나이고 앞부분이 T8 에서 0 이 된 "aba" 다. 1 이 2 보다 적어 이 칸이 1 로 정해진다. 조각을 길게 잡는 쪽이 언제나 유리한 것이 아니라는 것이 여기서 값으로 나온다.',
-      entries: [
-        { label: "끝 자리 e", value: "3" },
-        { label: "시작 자리 b", value: "3" },
-        { label: "마지막 조각", value: '"a" — pal[3][3] = T' },
-        { label: "앞부분", value: '"aba" — cut[2] = 0' },
-        { label: "후보", value: "cut[2] + 1 = 1" },
-        { label: "cut", value: "[0, 1, 0, 1, ·]" },
-        { label: "갈래", value: "④" },
+      title: "T16 e=3 · b=2 · cut[1] + 1 = 2 ④",
+      text: '마지막 조각 "aa" 의 pal[2][3] = T 라 후보입니다. 앞부분 "ab" 의 cut[1] = 1 에 컷 하나를 더해 후보는 2 입니다. 2 < ∞ 이 참이라 ④ best 가 2 가 됩니다.',
+      array: ["a", "b", "a", "a", "b"],
+      range: [0, 3],
+      pieces: [
+        {
+          label: "앞부분",
+          from: 0,
+          to: 1,
+          tone: "left",
+          text: '"ab"',
+        },
+        {
+          label: "마지막 조각",
+          from: 2,
+          to: 3,
+          tone: "right",
+          text: '"aa"',
+        },
       ],
-      matrix: [
-        ["T", "F", "T", "F", "F"],
-        ["-", "T", "F", "F", "T"],
-        ["-", "-", "T", "T", "F"],
-        ["-", "-", "-", "T", "F"],
-        ["-", "-", "-", "-", "T"],
+      layers: [
+        {
+          name: "pal[b][e]",
+          values: ["F", "F", "T", "T", "-"],
+          read: [2],
+          side: "e = 3 열",
+        },
+        {
+          name: "cut",
+          values: [0, 1, 0, null, null],
+          read: [1],
+          write: [],
+        },
       ],
-      rowLabels: ["i=0  a", "i=1  b", "i=2  a", "i=3  a", "i=4  b"],
-      colLabels: ["j=0", "j=1", "j=2", "j=3", "j=4"],
-      cells: [[3, 3]] as [number, number][],
+      calc: {
+        expr: "cut[1] + 1 = 1 + 1 =",
+        result: "2",
+      },
+      vars: "best ∞ → 2",
     },
     {
-      title: "T11 끝 자리 4 의 첫 후보 — 시작 자리 1",
-      detail:
-        '마지막 조각이 "baab" 이고 T4 가 그 칸을 T 로 정해 두었다. 앞부분이 "a" 라 cut[0] = 0 이고 후보가 1 이다.',
-      entries: [
-        { label: "끝 자리 e", value: "4" },
-        { label: "접두사", value: '"abaab" — pal[0][4] = F' },
-        { label: "시작 자리 b", value: "1" },
-        { label: "마지막 조각", value: '"baab" — pal[1][4] = T' },
-        { label: "앞부분", value: '"a" — cut[0] = 0' },
-        { label: "후보", value: "cut[0] + 1 = 1" },
-        { label: "지금까지의 최소", value: "1" },
-        { label: "갈래", value: "④" },
+      title: "T17 e=3 · b=3 · cut[2] + 1 = 1 ④",
+      text: '마지막 조각 "a" 의 pal[3][3] = T 라 후보입니다. 앞부분 "aba" 의 cut[2] = 0 에 컷 하나를 더해 후보는 1 입니다. 1 < 2 가 참이라 ④ best 가 1 이 됩니다. 시작 자리를 다 봤으니 cut[3] = 1 을 적습니다.',
+      array: ["a", "b", "a", "a", "b"],
+      range: [0, 3],
+      pieces: [
+        {
+          label: "앞부분",
+          from: 0,
+          to: 2,
+          tone: "left",
+          text: '"aba"',
+        },
+        {
+          label: "마지막 조각",
+          from: 3,
+          to: 3,
+          tone: "right",
+          text: '"a"',
+        },
       ],
-      matrix: [
-        ["T", "F", "T", "F", "F"],
-        ["-", "T", "F", "F", "T"],
-        ["-", "-", "T", "T", "F"],
-        ["-", "-", "-", "T", "F"],
-        ["-", "-", "-", "-", "T"],
+      layers: [
+        {
+          name: "pal[b][e]",
+          values: ["F", "F", "T", "T", "-"],
+          read: [3],
+          side: "e = 3 열",
+        },
+        {
+          name: "cut",
+          values: [0, 1, 0, 1, null],
+          read: [2],
+          write: [3],
+        },
       ],
-      rowLabels: ["i=0  a", "i=1  b", "i=2  a", "i=3  a", "i=4  b"],
-      colLabels: ["j=0", "j=1", "j=2", "j=3", "j=4"],
-      cells: [
-        [0, 4],
-        [1, 4],
-      ] as [number, number][],
+      calc: {
+        expr: "cut[2] + 1 = 0 + 1 =",
+        result: "1",
+      },
+      vars: "best 2 → 1",
+    },
+  ],
+} satisfies ArrayPlayerSpec;
+
+export const cutLast = {
+  player: "stage",
+  stage: "array",
+  arrayName: "s",
+  rangeLabel: "접두사",
+  title: 'palindromePartitioningMinCut("abaab")',
+  result: "1",
+  steps: [
+    {
+      title: "T18 e=4 · b=1 · cut[0] + 1 = 1 ④",
+      text: '마지막 조각 "baab" 의 pal[1][4] = T 라 후보입니다. 앞부분 "a" 의 cut[0] = 0 에 컷 하나를 더해 후보는 1 입니다. 1 < ∞ 이 참이라 ④ best 가 1 이 됩니다.',
+      array: ["a", "b", "a", "a", "b"],
+      range: [0, 4],
+      pieces: [
+        {
+          label: "앞부분",
+          from: 0,
+          to: 0,
+          tone: "left",
+          text: '"a"',
+        },
+        {
+          label: "마지막 조각",
+          from: 1,
+          to: 4,
+          tone: "right",
+          text: '"baab"',
+        },
+      ],
+      layers: [
+        {
+          name: "pal[b][e]",
+          values: ["F", "T", "F", "F", "T"],
+          read: [1],
+          side: "e = 4 열",
+        },
+        {
+          name: "cut",
+          values: [0, 1, 0, 1, null],
+          read: [0],
+          write: [],
+        },
+      ],
+      calc: {
+        expr: "cut[0] + 1 = 0 + 1 =",
+        result: "1",
+      },
+      vars: "best ∞ → 1",
     },
     {
-      title: "T12 끝 자리 4 의 남은 후보 — 최소를 못 바꾼다",
-      detail:
-        'b=2 와 b=3 은 마지막 조각 "aab"·"ab" 가 회문이 아니라 건너뛴다. b=4 는 "b" 가 회문이지만 후보가 cut[3] + 1 = 2 라 1 보다 적지 않아 갈래 ⑤ 로 넘어간다.',
-      entries: [
-        { label: "끝 자리 e", value: "4" },
-        { label: "건너뛴 시작 자리", value: 'b=2 "aab" · b=3 "ab"' },
-        { label: "시작 자리 b", value: "4" },
-        { label: "마지막 조각", value: '"b" — pal[4][4] = T' },
-        { label: "후보", value: "cut[3] + 1 = 2" },
-        { label: "cut", value: "[0, 1, 0, 1, 1]" },
-        { label: "갈래", value: "⑤" },
+      title: 'T19 e=4 · b=2 · "aab" 는 회문이 아니다',
+      text: 'pal[0][4] = F 라 후보를 셉니다. 마지막 조각 "aab" 의 pal[2][4] = F 라 후보가 아니고, best 는 1 그대로입니다.',
+      array: ["a", "b", "a", "a", "b"],
+      range: [0, 4],
+      pieces: [
+        {
+          label: "앞부분",
+          from: 0,
+          to: 1,
+          tone: "left",
+          text: '"ab"',
+        },
+        {
+          label: "마지막 조각",
+          from: 2,
+          to: 4,
+          tone: "right",
+          text: '"aab"',
+        },
       ],
-      matrix: [
-        ["T", "F", "T", "F", "F"],
-        ["-", "T", "F", "F", "T"],
-        ["-", "-", "T", "T", "F"],
-        ["-", "-", "-", "T", "F"],
-        ["-", "-", "-", "-", "T"],
+      layers: [
+        {
+          name: "pal[b][e]",
+          values: ["F", "T", "F", "F", "T"],
+          read: [2],
+          side: "e = 4 열",
+        },
+        {
+          name: "cut",
+          values: [0, 1, 0, 1, null],
+          read: [],
+          write: [],
+        },
       ],
-      rowLabels: ["i=0  a", "i=1  b", "i=2  a", "i=3  a", "i=4  b"],
-      colLabels: ["j=0", "j=1", "j=2", "j=3", "j=4"],
-      cells: [
-        [2, 4],
-        [3, 4],
-        [4, 4],
-      ] as [number, number][],
+      calc: {
+        expr: "pal[2][4] =",
+        result: "F",
+      },
+      vars: "best 1",
     },
     {
-      title: "T13 컷 표의 마지막 칸을 읽어 돌려준다",
-      detail:
-        '답은 언제나 cut[n−1] 이다 — 문자열 전체를 덮는 접두사가 그 하나뿐이기 때문이다. 고른 시작 자리를 거슬러 확인하면 "a" | "baab" 가 나온다.',
-      entries: [
-        { label: "읽는 칸", value: "cut[4]" },
-        { label: "답", value: "1" },
-        { label: "조각", value: '"a" | "baab" — 조각 둘' },
-        { label: "고른 시작 자리", value: "e=4 에서 b=1" },
+      title: 'T20 e=4 · b=3 · "ab" 는 회문이 아니다',
+      text: 'pal[0][4] = F 라 후보를 셉니다. 마지막 조각 "ab" 의 pal[3][4] = F 라 후보가 아니고, best 는 1 그대로입니다.',
+      array: ["a", "b", "a", "a", "b"],
+      range: [0, 4],
+      pieces: [
+        {
+          label: "앞부분",
+          from: 0,
+          to: 2,
+          tone: "left",
+          text: '"aba"',
+        },
+        {
+          label: "마지막 조각",
+          from: 3,
+          to: 4,
+          tone: "right",
+          text: '"ab"',
+        },
       ],
-      matrix: [
-        ["T", "F", "T", "F", "F"],
-        ["-", "T", "F", "F", "T"],
-        ["-", "-", "T", "T", "F"],
-        ["-", "-", "-", "T", "F"],
-        ["-", "-", "-", "-", "T"],
+      layers: [
+        {
+          name: "pal[b][e]",
+          values: ["F", "T", "F", "F", "T"],
+          read: [3],
+          side: "e = 4 열",
+        },
+        {
+          name: "cut",
+          values: [0, 1, 0, 1, null],
+          read: [],
+          write: [],
+        },
       ],
-      rowLabels: ["i=0  a", "i=1  b", "i=2  a", "i=3  a", "i=4  b"],
-      colLabels: ["j=0", "j=1", "j=2", "j=3", "j=4"],
-      cells: [[1, 4]] as [number, number][],
+      calc: {
+        expr: "pal[3][4] =",
+        result: "F",
+      },
+      vars: "best 1",
     },
-  ] satisfies Frame[],
-};
+    {
+      title: "T21 e=4 · b=4 · cut[3] + 1 = 2 ⑤",
+      text: '마지막 조각 "b" 의 pal[4][4] = T 라 후보입니다. 앞부분 "abaa" 의 cut[3] = 1 에 컷 하나를 더해 후보는 2 입니다. 2 < 1 이 거짓이라 ⑤ best 는 1 그대로입니다. 시작 자리를 다 봤으니 cut[4] = 1 을 적습니다.',
+      array: ["a", "b", "a", "a", "b"],
+      range: [0, 4],
+      pieces: [
+        {
+          label: "앞부분",
+          from: 0,
+          to: 3,
+          tone: "left",
+          text: '"abaa"',
+        },
+        {
+          label: "마지막 조각",
+          from: 4,
+          to: 4,
+          tone: "right",
+          text: '"b"',
+        },
+      ],
+      layers: [
+        {
+          name: "pal[b][e]",
+          values: ["F", "T", "F", "F", "T"],
+          read: [4],
+          side: "e = 4 열",
+        },
+        {
+          name: "cut",
+          values: [0, 1, 0, 1, 1],
+          read: [3],
+          write: [4],
+        },
+      ],
+      calc: {
+        expr: "cut[3] + 1 = 1 + 1 =",
+        result: "2",
+      },
+      vars: "best 1 → 1",
+    },
+    {
+      title: "T22 cut[4] = 1 반환",
+      text: '문자열 전체가 접두사 "abaab" 이고 그 칸이 cut[4] 입니다. 값 1 을 돌려줍니다.',
+      array: ["a", "b", "a", "a", "b"],
+      range: [0, 4],
+      layers: [
+        {
+          name: "pal[b][e]",
+          values: ["F", "T", "F", "F", "T"],
+          read: [],
+          side: "e = 4 열",
+        },
+        {
+          name: "cut",
+          values: [0, 1, 0, 1, 1],
+          read: [4],
+          write: [],
+        },
+      ],
+      calc: {
+        expr: "cut[4] =",
+        result: "1",
+      },
+      vars: null,
+    },
+  ],
+} satisfies ArrayPlayerSpec;
