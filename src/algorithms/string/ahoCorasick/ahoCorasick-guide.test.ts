@@ -205,3 +205,27 @@ test("패턴을 200 개로 늘려도 답이 정의 그대로의 대조와 같다
   );
   expect(ahoCorasick(text, patterns)).toEqual(bruteForce(text, patterns));
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 증명 사이드카의 걸음 기록에서
+ * 무대를 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./ahoCorasick-guide.sim.ts");
+  const fig = await import("./ahoCorasick-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.acScan.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.acScan.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 매칭 띠를 정본의 반환값과 맞댄다.
+  const want = ahoCorasick("ushers", ["he", "she", "hers"]);
+  const last = sim.acScan.steps.at(-1);
+  const strip = last?.strips.find((s) => s.label === "돌려주는 매칭");
+  expect(strip?.values).toEqual(
+    want.map((m) => `${m.patternIndex}@${m.position}`),
+  );
+  expect(sim.acScan.result).toBe(
+    `[${want.map((m) => `{${m.patternIndex},${m.position}}`).join(",")}]`,
+  );
+});
