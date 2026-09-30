@@ -4,7 +4,7 @@
  * 원본 `src/algorithms/string/findAllOccurrences/findAllOccurrences.test.ts` 는 학습자
  * 스텁을 가져오므로 그대로 재사용할 수 없다. **케이스만** 옮겨 정본에 다시 건다. 벽시계를
  * 재는 「성능」 케이스는 옮기지 않았다 — 실행마다 값이 달라 판정이 안 된다. 그 케이스의
- * **입출력**(n=100,000 에서의 반환값)은 아래에 시작 자리를 전부 대조하는 방식과 견주어
+ * **입출력**(n=100,000 에서의 반환값)은 아래에 시작 자리를 전부 대조하는 방식과 비교해
  * 따로 확인한다.
  */
 import { expect, test } from "bun:test";
@@ -27,7 +27,7 @@ const CASES: [string, string, number[]][] = [
   ["a", "a", [0]],
   ["a", "b", []],
   ["abcabc", "abc", [0, 3]],
-  // 문제 문서의 예시
+  // 실습 절의 예시
   ["ababcababab", "abab", [0, 5, 7]],
   ["abc", "d", []],
 ];
@@ -123,4 +123,21 @@ test("겹치는 등장을 하나도 빠뜨리지 않는다", () => {
     const want = Array.from({ length: 20 - m + 1 }, (_, i) => i);
     expect(findAllOccurrences(text, "a".repeat(m))).toEqual(want);
   }
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./findAllOccurrences-guide.sim.ts");
+  const { simStepsFromRef } = await import(
+    "./findAllOccurrences-guide.fig.tsx"
+  );
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.kmpWalk.steps)).toEqual(plain(simStepsFromRef()));
+  expect(sim.kmpWalk.result).toBe(
+    `[${findAllOccurrences("abacabababab", "abab").join(", ")}]`,
+  );
 });

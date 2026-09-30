@@ -14,7 +14,7 @@
  * 텍스트 `text` 안에서 패턴 `pattern` 이 등장하는 **모든 시작 자리**를 오름차순으로 돌려준다.
  * 겹쳐서 등장하는 자리도 전부 담는다.
  *
- * 빈 패턴과 텍스트보다 긴 패턴은 빈 배열을 돌려준다(문제의 규약).
+ * 빈 패턴과 텍스트보다 긴 패턴은 빈 배열을 돌려준다(이 과제의 규약).
  */
 export function findAllOccurrences(text: string, pattern: string): number[] {
   const n = text.length;

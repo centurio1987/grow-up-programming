@@ -13,7 +13,7 @@
  * 여덟을 넘지 못해 열두 글자에서는 두 설계의 계수가 상수에 묻히기 때문이다.
  */
 
-/** 문제의 문자 집합. 호스풀의 건너뛰기 표가 이 칸 수만큼 잡힌다. */
+/** 과제의 문자 집합. 호스풀의 건너뛰기 표가 이 칸 수만큼 잡힌다. */
 const ALPHABET = "abcdefghijklmnopqrstuvwxyz";
 
 /** 텍스트 길이. 제약의 최댓값이다. */
@@ -42,8 +42,8 @@ function makePattern(sigma: number): string {
 }
 
 /**
- * 이 가이드가 가르치는 절차에 계수만 덧붙인 것. **실패 함수를 만들 때의 견주기도 센다** —
- * 호스풀은 표를 만들 때 글자를 견주지 않으므로, 전처리를 빼면 이쪽만 유리해진다.
+ * 이 가이드가 가르치는 절차에 계수만 덧붙인 것. **실패 함수를 만들 때의 비교 횟수도 센다** —
+ * 호스풀은 표를 만들 때 글자를 비교하지 않으므로, 전처리를 빼면 이쪽만 유리해진다.
  */
 function byFailureFunction(
   text: string,
@@ -148,17 +148,17 @@ const S26 = measure(26);
 
 export const cases = {
   "실패 함수 방식": () => ({
-    "알파벳 1 견주기": S1.mine.comparisons,
-    "알파벳 3 견주기": S3.mine.comparisons,
-    "알파벳 4 견주기": S4.mine.comparisons,
-    "알파벳 26 견주기": S26.mine.comparisons,
+    "알파벳 1 비교 횟수": S1.mine.comparisons,
+    "알파벳 3 비교 횟수": S3.mine.comparisons,
+    "알파벳 4 비교 횟수": S4.mine.comparisons,
+    "알파벳 26 비교 횟수": S26.mine.comparisons,
     "저장 칸": S26.mine.cells,
   }),
   "호스풀 방식": () => ({
-    "알파벳 1 견주기": S1.theirs.comparisons,
-    "알파벳 3 견주기": S3.theirs.comparisons,
-    "알파벳 4 견주기": S4.theirs.comparisons,
-    "알파벳 26 견주기": S26.theirs.comparisons,
+    "알파벳 1 비교 횟수": S1.theirs.comparisons,
+    "알파벳 3 비교 횟수": S3.theirs.comparisons,
+    "알파벳 4 비교 횟수": S4.theirs.comparisons,
+    "알파벳 26 비교 횟수": S26.theirs.comparisons,
     "저장 칸": S26.theirs.cells,
   }),
 };
