@@ -67,7 +67,7 @@ bun run tools/check-proof.ts --require $G
 bun run tools/render-figs.ts --check
 bun test src/algorithms/<카테고리>/<편>/<편>-guide.test.ts
 bun run tools/build-html.ts $G
-bun run tools/check-metaphor.ts $G
+bun run tools/check-metaphor.ts $G     # SPEC 을 고쳤으면 sandbox/algo-guide-v2/SPEC.md 도 함께 준다
 bun run tools/guide-core.ts check
 bunx tsc --noEmit                      # 사이드카 타입 — bun 은 타입을 안 보고 실행하므로 따로 잰다
 ```
