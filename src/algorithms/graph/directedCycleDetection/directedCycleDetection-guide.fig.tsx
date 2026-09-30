@@ -316,7 +316,7 @@ function originDiamonds(): ReactElement {
 /** 알아 두면 좋은 개념 — 끝까지 가른 간선 종류를 선 모양과 이름으로. */
 const KIND_SHAPE: Record<DfsEdgeKind, EdgeKind> = {
   "나무 간선": "tree",
-  "역방향 간선": "back",
+  "되돌아가는 간선": "back",
   "순방향 간선": "forward",
   "교차 간선": "cross",
 };

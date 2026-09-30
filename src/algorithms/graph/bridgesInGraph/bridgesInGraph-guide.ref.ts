@@ -28,7 +28,7 @@ export function bridgesInGraph(
     (via[v] as number[]).push(e);
   }
 
-  // ② 정점마다 적는 칸 — 발견 순서 `disc`, 서브트리가 되돌아가는 간선으로 이르는 가장 이른
+  // ② 정점마다 적는 칸 — 발견 순서 `disc`, 부분트리가 되돌아가는 간선으로 이르는 가장 이른
   // 발견 순서 `low`, 그리고 찾은 다리를 모을 `found`.
   const disc: number[] = Array.from({ length: n }, () => -1);
   const low: number[] = Array.from({ length: n }, () => -1);
@@ -83,7 +83,7 @@ export function bridgesInGraph(
       if (edge !== -1) {
         const p = stackV[stackV.length - 1] as number;
         low[p] = Math.min(low[p] as number, low[v] as number);
-        // ⑧ 내려온 나무 간선의 판정 — 자식의 서브트리가 부모에도 그 위에도 못 가면 다리다.
+        // ⑧ 내려온 나무 간선의 판정 — 자식의 부분트리가 부모에도 그 위에도 못 가면 다리다.
         if ((low[v] as number) > (disc[p] as number)) {
           found.push(p < v ? [p, v] : [v, p]);
         }

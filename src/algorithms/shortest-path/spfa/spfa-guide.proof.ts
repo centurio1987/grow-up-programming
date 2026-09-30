@@ -19,7 +19,7 @@
  *
  * **비용을 세는 기준은 하나다** — 간선 하나를 읽고 완화를 시도한 한 번(`간선 읽기`). `bellmanFord`
  * 편과 같은 기준이다. 경쟁 설계와 나란히 잴 때만 큐에 넣고 꺼낸 횟수를 더한다(`.alt.ts` 의 기본
- * 연산). 저장 칸도 `.alt.ts` 와 같은 기준 하나로 센다.
+ * 연산). 추가 칸도 `.alt.ts` 와 같은 기준 하나로 센다.
  *
  * **변이가 아무것도 안 바꾸는지를 검사하는 자리는 중화 실행을 피해 간다.** `check-proof` 가
  * 이 파일을 한 번 더 부를 때는 `loadMutant` 이 정본을 그대로 돌려주므로(중화), 그 상태에서
@@ -1878,7 +1878,7 @@ function relatedWorklist(): string {
   ]).join("\n");
 }
 
-/** purpose.alt — 두 설계의 기본 연산과 저장 칸. */
+/** purpose.alt — 두 설계의 기본 연산과 추가 칸. */
 function altTable(): string {
   const mine = altCases["이 가이드의 절차"]();
   const bf = altCases["벨만-포드"]();
@@ -1904,7 +1904,7 @@ function altTable(): string {
       [1, 2, 4],
     ),
     "",
-    `저장 칸은 잎 4,096 개에서 이 가이드의 절차가 ${comma(mine["잎 4096 개 · 저장 칸"] as number)} 개, 벨만-포드가 ${comma(bf["잎 4096 개 · 저장 칸"] as number)} 개입니다. 전개 입력에서는 기본 연산이 ${mine["전개 입력 · 기본 연산"]} 번 대 ${bf["전개 입력 · 기본 연산"]} 번, 저장 칸이 ${mine["전개 입력 · 저장 칸"]} 개 대 ${bf["전개 입력 · 저장 칸"]} 개입니다. 두 계수는 잎 ${cross.tie} 개에서 같아지고 ${cross.ahead} 개부터 벨만-포드가 적습니다.`,
+    `추가 칸은 잎 4,096 개에서 이 가이드의 절차가 ${comma(mine["잎 4096 개 · 추가 칸"] as number)} 개, 벨만-포드가 ${comma(bf["잎 4096 개 · 추가 칸"] as number)} 개입니다. 전개 입력에서는 기본 연산이 ${mine["전개 입력 · 기본 연산"]} 번 대 ${bf["전개 입력 · 기본 연산"]} 번, 추가 칸이 ${mine["전개 입력 · 추가 칸"]} 개 대 ${bf["전개 입력 · 추가 칸"]} 개입니다. 두 계수는 잎 ${cross.tie} 개에서 같아지고 ${cross.ahead} 개부터 벨만-포드가 적습니다.`,
   ].join("\n");
 }
 
@@ -2191,12 +2191,12 @@ function perfTotal(): string {
   ).join("\n");
 }
 
-/** perf.derive — 저장 칸을 전개 입력에서 센다. `.alt.ts` 와 같은 기준이다. */
+/** perf.derive — 추가 칸을 전개 입력에서 센다. `.alt.ts` 와 같은 기준이다. */
 function perfMemory(): string {
   const cells = 큐에담는설계(WALK_N, WALK_EDGES, WALK_SRC).cells;
   const pushes = WALK.c.reduce((a, k) => a + k, 0);
   if (cells !== 3 * WALK_N + WALK.peak) {
-    throw new Error("저장 칸이 경쟁 설계 사이드카의 값과 다르다");
+    throw new Error("추가 칸이 경쟁 설계 사이드카의 값과 다르다");
   }
   return [
     md(
@@ -2206,12 +2206,12 @@ function perfMemory(): string {
         ["큐 표시 inQueue", String(WALK_N)],
         ["이웃 목록의 정점별 칸 adj", String(WALK_N)],
         ["큐에 함께 든 항목이 가장 많을 때", String(WALK.peak)],
-        ["저장 칸", String(cells)],
+        ["추가 칸", String(cells)],
       ],
       [1],
     ),
     "",
-    `이웃 목록이 옮겨 담은 간선 ${WALK_EDGES.length} 개와, 꺼낸 칸을 지우지 않는 정본의 queue 배열이 끝까지 자란 길이 ${pushes} 칸은 저장 칸에 넣지 않았습니다.`,
+    `이웃 목록이 옮겨 담은 간선 ${WALK_EDGES.length} 개와, 꺼낸 칸을 지우지 않는 정본의 queue 배열이 끝까지 자란 길이 ${pushes} 칸은 추가 칸에 넣지 않았습니다.`,
   ].join("\n");
 }
 

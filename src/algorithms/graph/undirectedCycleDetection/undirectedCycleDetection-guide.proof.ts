@@ -491,7 +491,7 @@ function scanOnce(
 }
 
 /**
- * 같은 절차에 **배열 칸 접근 수**를 덧붙여 센 가벼운 사본. 칸을 한 번 읽으면 1, 한 번 쓰면 1이다.
+ * 같은 절차에 **칸 접근 수**를 덧붙여 센 가벼운 사본. 칸을 한 번 읽으면 1, 한 번 쓰면 1이다.
  * `.alt.ts` 의 세는 사본과 같은 규칙을 쓴다. 답을 정본과 맞댄다.
  */
 function countCells(
@@ -544,9 +544,9 @@ function countCells(
 }
 
 /**
- * 끝까지 확인하며 간선을 **나무 간선과 여분 간선으로 가른다.** 사이클을 만나도 멈추지 않는
- * 사본이라 여분 간선의 개수를 셀 수 있다 — 정본은 첫 여분 간선에서 반환하므로 셀 수 없다.
- * 여분 간선이 있는가를 정본의 답과 맞댄다.
+ * 끝까지 확인하며 간선을 **나무 간선과 나무 밖 간선으로 가른다.** 사이클을 만나도 멈추지 않는
+ * 사본이라 나무 밖 간선의 개수를 셀 수 있다 — 정본은 첫 나무 밖 간선에서 반환하므로 셀 수 없다.
+ * 나무 밖 간선이 있는가를 정본의 답과 맞댄다.
  */
 function classifyEdges(
   n: number,
@@ -580,7 +580,7 @@ function classifyEdges(
   const tree = isTree.filter(Boolean).length;
   const extra = edges.length - tree;
   if (extra > 0 !== undirectedCycleDetection(n, [...edges])) {
-    throw new Error("여분 간선의 유무가 정본의 답과 다르다");
+    throw new Error("나무 밖 간선의 유무가 정본의 답과 다르다");
   }
   return { tree, extra, parts, isTree };
 }
@@ -795,7 +795,7 @@ export const edgeIndex = (
 ): number =>
   edges.findIndex(([u, v]) => (u === a && v === b) || (u === b && v === a));
 
-/** 전개 입력의 사이클 — 여분 간선의 두 끝에서 부모를 따라 올라가 만나는 자리까지 잇는다. */
+/** 전개 입력의 사이클 — 나무 밖 간선의 두 끝에서 부모를 따라 올라가 만나는 자리까지 잇는다. */
 export function walkCycle(): number[] {
   const s = WALK.steps[foundStep(WALK)] as Step;
   const a = rootPath(s, s.u);
@@ -1705,7 +1705,15 @@ function circuitRank(): string {
   );
   return withSentence(
     md(
-      ["입력", "V", "E", "연결 성분 k", "나무 간선", "여분 간선", "E − V + k"],
+      [
+        "입력",
+        "V",
+        "E",
+        "연결 성분 k",
+        "나무 간선",
+        "나무 밖 간선",
+        "E − V + k",
+      ],
       runs.map(({ c, r }) => [
         c.label,
         comma(c.n),
@@ -1717,7 +1725,7 @@ function circuitRank(): string {
       ]),
       [1, 2, 3, 4, 5, 6],
     ),
-    `${runs.length} 줄 ${same ? "모두" : "가운데 일부만"} 여분 간선 칸과 E − V + k 칸이 같습니다. 여분 간선이 1 이상인 줄과 정본의 답이 true 인 줄은 ${overlap ? "정확히 겹칩니다" : "겹치지 않는 자리가 있습니다"}.`,
+    `${runs.length} 줄 ${same ? "모두" : "가운데 일부만"} 나무 밖 간선 칸과 E − V + k 칸이 같습니다. 나무 밖 간선이 1 이상인 줄과 정본의 답이 true 인 줄은 ${overlap ? "정확히 겹칩니다" : "겹치지 않는 자리가 있습니다"}.`,
   );
 }
 
@@ -1757,7 +1765,7 @@ function fitCount(): string {
       [
         "입력",
         "E",
-        "여분 간선 r",
+        "나무 밖 간선 r",
         "2^r − 1",
         "서로 다른 사이클 수",
         "있는지 답할 때 확인한 이웃 항목",
@@ -1816,7 +1824,7 @@ function altBoundary(): string {
       const a = mine[k] as number;
       const b = other[k] as number;
       return [
-        k.replace(/^삼각형 간선이 /, "").replace(/일 때 배열 칸 접근$/, ""),
+        k.replace(/^삼각형 간선이 /, "").replace(/일 때 칸 접근$/, ""),
         comma(a),
         comma(b),
         winner(a, b),
@@ -2145,7 +2153,7 @@ function perfCases(): string {
   const b = countCells(CAP, tri);
   return withSentence(
     md(
-      ["케이스", "입력", "E", "배열 칸 접근", "반환값"],
+      ["케이스", "입력", "E", "칸 접근", "반환값"],
       [
         [
           "사이클이 없다",
@@ -2164,7 +2172,7 @@ function perfCases(): string {
       ],
       [2, 3],
     ),
-    `두 입력 다 V = 100,000 이고, 배열 칸 접근은 ${(a.cells / b.cells).toFixed(1)} 배 차이가 납니다.`,
+    `두 입력 다 V = 100,000 이고, 칸 접근은 ${(a.cells / b.cells).toFixed(1)} 배 차이가 납니다.`,
   );
 }
 
@@ -2202,7 +2210,7 @@ function shapeValues(): string {
   const noCycle = countCells(V, chain(V)).cells;
   return withSentence(
     md(
-      ["입력 모양", "V", "E", "배열 칸 접근", "반환값"],
+      ["입력 모양", "V", "E", "칸 접근", "반환값"],
       cases.map((c) => {
         const r = countCells(c.n, c.edges);
         return [
@@ -2232,7 +2240,7 @@ function vertexSwap(): string {
   const a = scanOnce(WALK_N, WALK_EDGES);
   const b = scanOnce(WALK_N, SWAPPED_EDGES);
   return md(
-    ["입력", "확인한 이웃 항목", "배열 칸 접근", "반환값"],
+    ["입력", "확인한 이웃 항목", "칸 접근", "반환값"],
     [
       [
         "전개 입력 — 한 줄이 0 · 1 · 2, 삼각형이 3 · 4 · 5",

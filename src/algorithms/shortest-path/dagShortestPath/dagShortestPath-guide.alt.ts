@@ -69,7 +69,7 @@ const EDGE_COUNT = edgesInBlocks(1).length;
 interface Count {
   /** 간선 하나를 처리한 횟수와 정점 하나를 읽은 횟수의 합. */
   ops: number;
-  /** 절차가 새로 잡는 칸 수 — 거리 배열 밖의 보조 자료까지 센다. */
+  /** 추가 칸 — 입력 밖에 잡은 칸 수. 거리 배열 밖의 보조 자료까지 센다. */
   cells: number;
   /** 답이 같은지 대조하려고 문자열로 굳힌 것. */
   answer: string;
@@ -82,7 +82,8 @@ const show = (dist: number[]): string =>
  * 이 가이드의 절차. 정본(`dagShortestPath-guide.ref.ts`)과 같고 세는 자리만 덧붙였다.
  *
  * `ops` 는 간선 하나를 읽은 한 번과 정점 하나를 읽은 한 번을 각각 하나로 센다.
- * `cells` 는 이웃 목록 · 진입 차수 · 위상 순서 · 거리 배열의 칸을 더한 것이다.
+ * `cells` 는 이웃 목록 · 진입 차수 · 위상 순서 · 거리 배열의 칸을 더한 것이다. 이웃 목록은 옮겨
+ * 담은 간선 `E` 칸으로 세고 정점별 머리 칸은 넣지 않아 `3V + E` 다. 입력 간선 목록은 넣지 않는다.
  */
 function 이가이드의절차(n: number, edges: Edge[], src: number): Count {
   let ops = 0;
@@ -134,6 +135,11 @@ function 이가이드의절차(n: number, edges: Edge[], src: number): Count {
 /**
  * 벨만-포드 — 간선 목록 전체를 **고칠 것이 없을 때까지** 라운드마다 다시 읽는다.
  *
+ * `ops` 는 간선 하나를 읽은 한 번을 하나로 센다. 거리 배열을 채우는 초기화 쓰기는 이 가이드의
+ * 절차와 똑같이 세지 않는다 — 2026-10-01 `KAN-062` 전까지는 이 판만 `ops += n` 으로 초기화 `V`
+ * 칸을 더해, 정의(간선 읽기 · 정점 읽기)와 어긋나고 벨만-포드에만 `V` 가 얹혀 있었다. 뺀 뒤에도
+ * 순서가 뒤집히는 조각 수는 4 그대로다.
+ *
  * 한 라운드가 아무것도 못 고치면 멈추는 판이다(고정 `V−1` 라운드가 아니다). 사이클이 있는
  * 그래프에도 그대로 쓰이고 음수 사이클까지 판정하는 절차라, 이 문제만 놓고 열등한 상대를
  * 세운 것이 아니다.
@@ -144,7 +150,6 @@ function 벨만포드(n: number, edges: Edge[], src: number): Count {
     { length: n },
     () => Number.POSITIVE_INFINITY,
   );
-  ops += n;
   dist[src] = 0;
 
   for (let round = 0; round < n; round++) {
@@ -237,7 +242,7 @@ function 재기(run: (n: number, e: Edge[], s: number) => Count) {
     [`조각 ${FLIP - 1} · 기본 연산`]: before.ops,
     [`조각 ${FLIP} · 기본 연산`]: at.ops,
     [`조각 ${V} · 기본 연산`]: full.ops,
-    "저장 칸": full.cells,
+    "추가 칸": full.cells,
   };
 }
 

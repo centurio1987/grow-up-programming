@@ -701,7 +701,7 @@ export interface Tree {
   treeEdges: Edge[];
   /** `[아래 끝, 위 끝]`. */
   backEdges: Edge[];
-  /** `subtree[v]` — `v` 의 서브트리(자기 포함), 오름차순. */
+  /** `subtree[v]` — `v` 의 부분트리(자기 포함), 오름차순. */
   subtree: number[][];
 }
 
@@ -762,7 +762,7 @@ export function isAncestor(
 /**
  * 너비 우선 탐색으로 만든 나무에 같은 두 규칙을 적용한 판 — 「먼저 알아 둘 개념」의 헷갈리기 쉬운
  * 모양이다. 발견 순서는 너비 우선 탐색이 정점을 표시한 차례이고, `low` 는 나무 간선이 아닌 간선의
- * 반대쪽 끝의 발견 순서를 서브트리에서 모아 가장 작은 것을 고른다. 절차의 모양은 같고 나무만 다르다.
+ * 반대쪽 끝의 발견 순서를 부분트리에서 모아 가장 작은 것을 고른다. 절차의 모양은 같고 나무만 다르다.
  */
 export function bfsRule(
   n: number,
@@ -852,7 +852,7 @@ export function lowWithParent(n: number, edges: Edge[]): number[] {
 }
 
 /**
- * 정의를 그대로 계산한 `low` — `v` 의 서브트리에서 되돌아가는 간선 하나로 이르는 정점의 발견 순서와
+ * 정의를 그대로 계산한 `low` — `v` 의 부분트리에서 되돌아가는 간선 하나로 이르는 정점의 발견 순서와
  * `disc[v]` 를 통틀어 가장 작은 값. 절차의 순서를 안 쓰고 나무와 간선 분류에서 바로 계산한다.
  */
 export function lowByDefinition(n: number, edges: Edge[]): number[] {
@@ -1264,7 +1264,7 @@ function reasonOf(c: Counts, v: number): string {
 
 const yes = (b: boolean): string => (b ? "예" : "아니오");
 
-/** 나무 간선이 아닌 간선이 서브트리 `sub` 에서 `v` 가 아닌 바깥으로 나가는가 — 그 간선들. */
+/** 나무 간선이 아닌 간선이 부분트리 `sub` 에서 `v` 가 아닌 바깥으로 나가는가 — 그 간선들. */
 function upEdges(t: Tree, edges: Edge[], c: number, v: number): Edge[] {
   const sub = t.subtree[c] as number[];
   const out: Edge[] = [];
@@ -1290,7 +1290,7 @@ function pathTo(parent: readonly number[], v: number): number[] {
 }
 
 /**
- * 가장 단순한 후보가 내는 답 — 「자식의 서브트리에 되돌아가는 간선이 하나라도 있으면 부모를 지워도
+ * 가장 단순한 후보가 내는 답 — 「자식의 부분트리에 되돌아가는 간선이 하나라도 있으면 부모를 지워도
  * 붙어 있다」. 뿌리는 두 규칙과 같이 나무 자식 수로 본다.
  */
 export function candidateAnswer(n: number, edges: Edge[]): number[] {
@@ -1421,7 +1421,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** 깊이 우선 탐색 한 번이 남기는 나무 — 정점마다 부모 · 나무 자식 · 서브트리. */
+  /** 깊이 우선 탐색 한 번이 남기는 나무 — 정점마다 부모 · 나무 자식 · 부분트리. */
   treeSplit: () => {
     const t = tree(WALK_N, WALK_EDGES);
     const rows = Array.from({ length: WALK_N }, (_, v) => [
@@ -1434,13 +1434,13 @@ export const PROOFS: Record<string, () => string> = {
       set(t.subtree[v] as number[]),
     ]);
     return [
-      md(["정점", "disc", "부모", "나무 자식", "서브트리"], rows, [0, 1]),
+      md(["정점", "disc", "부모", "나무 자식", "부분트리"], rows, [0, 1]),
       "",
       `나무 간선 ${t.treeEdges.length} 개와 되돌아가는 간선 ${t.backEdges.length} 개가 간선 ${WALK_EDGES.length} 개를 나눠 가집니다. 되돌아가는 간선은 ${t.backEdges.map(([b, a]) => ed(b, a)).join(" · ")} 입니다.`,
     ].join("\n");
   },
 
-  /** 정점을 지우면 자식의 서브트리가 조각이 된다 — 위로 가는 간선이 없을 때만. */
+  /** 정점을 지우면 자식의 부분트리가 조각이 된다 — 위로 가는 간선이 없을 때만. */
   observeSplit: () => {
     const t = tree(WALK_N, WALK_EDGES);
     let agree = 0;
@@ -1480,9 +1480,9 @@ export const PROOFS: Record<string, () => string> = {
       md(
         [
           "지운 정점 v",
-          "v 의 나무 자식의 서브트리",
-          "그 서브트리에서 v 위로 가는 간선",
-          "서브트리로 센 덩어리 수",
+          "v 의 나무 자식의 부분트리",
+          "그 부분트리에서 v 위로 가는 간선",
+          "부분트리로 센 덩어리 수",
           "지운 뒤 실제 덩어리 수",
         ],
         rows,
@@ -1493,7 +1493,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** 가장 단순한 후보 — 「서브트리에 되돌아가는 간선이 하나라도 있으면 붙어 있다」. */
+  /** 가장 단순한 후보 — 「부분트리에 되돌아가는 간선이 하나라도 있으면 붙어 있다」. */
   firstCandidate: () => {
     const t = tree(BRIDGE_N, BRIDGE_EDGES);
     const truth = articulationPoints(BRIDGE_N, BRIDGE_EDGES);
@@ -1523,9 +1523,9 @@ export const PROOFS: Record<string, () => string> = {
       md(
         [
           "나무 간선",
-          "자식의 서브트리",
-          "서브트리에서 나가는 되돌아가는 간선",
-          "후보가 본 서브트리",
+          "자식의 부분트리",
+          "부분트리에서 나가는 되돌아가는 간선",
+          "후보가 본 부분트리",
           "부모를 지운 실제 결과",
         ],
         rows,
@@ -1601,7 +1601,7 @@ export const PROOFS: Record<string, () => string> = {
         "부모",
         "깊이",
         "나무 자식",
-        "서브트리",
+        "부분트리",
         "들어간 직후의 호출 스택",
       ],
       rows,
@@ -1633,7 +1633,7 @@ export const PROOFS: Record<string, () => string> = {
           "간선",
           "두 끝의 disc",
           "먼저 발견한 끝",
-          "다른 끝이 그 서브트리 안",
+          "다른 끝이 그 부분트리 안",
           "종류",
         ],
         rows,
@@ -1710,10 +1710,10 @@ export const PROOFS: Record<string, () => string> = {
         ["항", "보는 것", "값"],
         [
           ["자기 발견 순서", `disc[${v}]`, String(t.disc[v])],
-          ["서브트리", `정점 ${v} 의 서브트리`, set(sub)],
+          ["부분트리", `정점 ${v} 의 부분트리`, set(sub)],
           [
             "되돌아가는 간선",
-            "서브트리에서 나가는 되돌아가는 간선",
+            "부분트리에서 나가는 되돌아가는 간선",
             backs.length === 0
               ? "없음"
               : backs

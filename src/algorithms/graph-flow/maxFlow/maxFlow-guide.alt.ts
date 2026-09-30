@@ -32,7 +32,8 @@
  * | 병목을 갱신한다 | 비교 1 |
  * | 유량을 흘린다 | 정방향 쓰기 1 + 짝 찾기 1 + 짝 쓰기 1 = 3 |
  *
- * 저장 칸은 두 설계가 각각 들고 있는 수의 개수다 — 잔여 그래프는 두 설계가 같은 것을 쓰므로
+ * 추가 칸은 두 설계가 입력 간선 목록 밖에 새로 들고 있는 수의 개수다(큐 · 재귀 스택은 넣지
+ * 않는다. 모두 끝까지 살아 있으므로 동시 최댓값이다) — 잔여 그래프는 두 설계가 같은 것을 쓰므로
  * 간선 항목 `3 × 2E` 가 공통이고, 그 위에 디닉은 배열 둘(`level`·`iter`)로 `2V`,
  * 에드먼즈–카프는 방문 배열 `V` 와 직전 간선 배열 `2V` 로 `3V` 를 더 쓴다.
  */
@@ -247,16 +248,16 @@ export const cases = {
     const out: Record<string, number> = {};
     for (const w of WIDTHS)
       out[`라운드당 경로 ${w} 기본 연산`] = measure(w).dinic.ops;
-    out["라운드당 경로 1 저장 칸"] = measure(1).dinic.cells;
-    out["라운드당 경로 40 저장 칸"] = measure(40).dinic.cells;
+    out["라운드당 경로 1 추가 칸"] = measure(1).dinic.cells;
+    out["라운드당 경로 40 추가 칸"] = measure(40).dinic.cells;
     return out;
   },
   "에드먼즈–카프": () => {
     const out: Record<string, number> = {};
     for (const w of WIDTHS)
       out[`라운드당 경로 ${w} 기본 연산`] = measure(w).ek.ops;
-    out["라운드당 경로 1 저장 칸"] = measure(1).ek.cells;
-    out["라운드당 경로 40 저장 칸"] = measure(40).ek.cells;
+    out["라운드당 경로 1 추가 칸"] = measure(1).ek.cells;
+    out["라운드당 경로 40 추가 칸"] = measure(40).ek.cells;
     return out;
   },
 };

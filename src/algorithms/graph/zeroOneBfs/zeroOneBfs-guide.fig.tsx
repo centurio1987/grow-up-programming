@@ -14,7 +14,7 @@
  * 뒤처진 항목(넣을 때 거리가 지금 적힌 거리보다 큰 항목)은 이번 걸음 밖이다.
  *
  * 정점 좌표(`LAYOUT`)는 값이 아니라 배치다 — 정점 0 을 왼쪽에 두고 들어오는 간선이 없는 정점 5 는
- * 오른쪽 아래에 떨어뜨려 둔다. 간선 옆 수는 간선의 값(0 또는 1)이다.
+ * 오른쪽 아래에 떨어뜨려 둔다. 간선 옆 수는 간선의 가중치(0 또는 1)이다.
  */
 
 import type { ReactElement } from "react";
@@ -118,7 +118,7 @@ function approaches(): Approach[] {
   return [
     {
       name: "거리 층마다 간선 목록을 다시 읽기",
-      idea: "거리 0 인 정점부터 한 층씩, 값 0 간선으로 같은 층을 채우고 값 1 간선으로 다음 층을 연다",
+      idea: "거리 0 인 정점부터 한 층씩, 가중치 0 간선으로 같은 층을 채우고 가중치 1 간선으로 다음 층을 연다",
       verdict: "drop",
       checks: [
         { label: "답", value: "맞다", ok: true },
@@ -162,8 +162,8 @@ function approaches(): Approach[] {
         "새로 생기는 거리는 d 아니면 d + 1 두 가지뿐이다 — 비교 없이 앞과 뒤로 가르자",
     },
     {
-      name: "덱 — 값 0 간선은 앞, 값 1 간선은 뒤에 넣기",
-      idea: "거리를 고친 정점을 간선 값이 0 이면 덱 앞에, 1 이면 덱 뒤에 넣고 앞에서 꺼낸다",
+      name: "덱 — 가중치 0 간선은 앞, 가중치 1 간선은 뒤에 넣기",
+      idea: "거리를 고친 정점을 간선 가중치가 0 이면 덱 앞에, 1 이면 덱 뒤에 넣고 앞에서 꺼낸다",
       verdict: "keep",
       checks: [
         { label: "답", value: "맞다", ok: true },
@@ -278,8 +278,8 @@ function stepText(i: number): string {
   }
   const where =
     r.side === "front"
-      ? "값이 0 이라 거리가 그대로이므로 덱 앞에 넣습니다"
-      : "값이 1 이라 거리가 하나 커졌으므로 덱 뒤에 넣습니다";
+      ? "가중치가 0 이라 거리가 그대로이므로 덱 앞에 넣습니다"
+      : "가중치가 1 이라 거리가 하나 커졌으므로 덱 뒤에 넣습니다";
   return `${popLine}간선 ${r.u}→${r.v} 의 새 값 ${r.du} + ${r.w} = ${r.nd}${이가(r.nd)} 지금 dist[${r.v}] = ${num(r.before)} 보다 작아 고쳐 적고, ${where}.`;
 }
 
@@ -333,7 +333,7 @@ export const FIGS: Record<string, () => ReactElement> = {
     });
     return (
       <NodeGraph
-        title="전개 입력 — 간선 옆 수는 값, 정점 안의 수는 정점 0 에서의 거리"
+        title="전개 입력 — 간선 옆 수는 가중치, 정점 안의 수는 정점 0 에서의 거리"
         nodes={finalNodes()}
         edges={WALK_EDGES.map(([from, to, w], index) => ({
           from,

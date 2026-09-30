@@ -8,7 +8,7 @@
  * 벽시계를 재는 케이스(`V=10^4` 그래프를 100ms 안에)는 옮기지 않았다 — 실행마다 값이 달라
  * 판정이 안 된다. 그 케이스가 실제로 지키던 것은 **정점 만 개 규모의 DAG 에서 결과가
  * 나온다**는 것이라, 아래에서 같은 그래프의 반환값으로 다시 건다. 같은 규모의 비용은
- * 「최악을 만드는 입력」이 배열 칸 접근 수로 진다.
+ * 「최악을 만드는 입력」이 칸 접근 수로 진다.
  */
 import { expect, test } from "bun:test";
 import { dagShortestPath, type Edge } from "./dagShortestPath-guide.ref.ts";

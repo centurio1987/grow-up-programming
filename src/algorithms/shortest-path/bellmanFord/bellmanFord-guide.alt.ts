@@ -79,7 +79,7 @@ export interface Run {
  * 이 가이드의 절차. 정본(`bellmanFord-guide.ref.ts`)과 같고 세는 자리만 덧붙였다.
  *
  * `기본 연산` 은 간선 하나를 읽고 완화를 시도한 한 번을 하나로 센다.
- * `저장 칸` 은 거리 배열 `V` 칸에 고쳤는지를 적는 칸 하나를 더한 것이다.
+ * `추가 칸` 은 거리 배열 `V` 칸에 고쳤는지를 적는 칸 하나를 더한 것이다.
  */
 export function 라운드로읽는설계(n: number, edges: Edge[], src: number): Run {
   const dist = Array.from({ length: n }, () => INF);
@@ -112,10 +112,10 @@ export function 라운드로읽는설계(n: number, edges: Edge[], src: number):
  * 판정이 끝까지 걸리지 않으므로 `bench.json` 의 수는 판정 방식에 따라 바뀌지 않는다.
  *
  * `기본 연산` 은 간선 하나를 읽고 완화를 시도한 한 번과 큐에 넣거나 꺼낸 한 번을 각각
- * 하나로 센다. `저장 칸` 은 거리 배열 · 큐에 들어 있는지 표시 · 넣은 횟수 배열 셋과 큐가 가장
+ * 하나로 센다. `추가 칸` 은 거리 배열 · 큐에 들어 있는지 표시 · 넣은 횟수 배열 셋과 큐가 가장
  * 길었을 때의 항목 수를 더한 것이다. 큐의 길이는 **넣은 직후**에 잰다 — 꺼낸 직후에 재면 한
  * 걸음이 넣은 항목이 다음 꺼내기 전까지 큐에 함께 있던 순간을 놓쳐 하나 적게 나온다(2026-09-30
- * `spfa` 편 집필 때 드러나 고쳤다. 그 전에는 꺼낸 직후에 재서 저장 칸이 하나씩 적었다).
+ * `spfa` 편 집필 때 드러나 고쳤다. 그 전에는 꺼낸 직후에 재서 추가 칸이 하나씩 적었다).
  */
 export function 큐에담는설계(n: number, edges: Edge[], src: number): Run {
   const adj: [number, number][][] = Array.from({ length: n }, () => []);
@@ -233,13 +233,13 @@ function 재기(
   const big = hub(4096);
   return {
     "전개 입력 · 기본 연산": walk.ops,
-    "전개 입력 · 저장 칸": walk.cells,
+    "전개 입력 · 추가 칸": walk.cells,
     "잎 1 개 · 기본 연산": run(one.n, one.edges, 0).ops,
     [`잎 ${CROSS.tie - 1} 개 · 기본 연산`]: run(before.n, before.edges, 0).ops,
     [`잎 ${CROSS.tie} 개 · 기본 연산`]: run(at.n, at.edges, 0).ops,
     [`잎 ${CROSS.ahead} 개 · 기본 연산`]: run(after.n, after.edges, 0).ops,
     "잎 4096 개 · 기본 연산": run(big.n, big.edges, 0).ops,
-    "잎 4096 개 · 저장 칸": run(big.n, big.edges, 0).cells,
+    "잎 4096 개 · 추가 칸": run(big.n, big.edges, 0).cells,
   };
 }
 

@@ -1349,11 +1349,11 @@ function altTable(): string {
   const a = ALT_CASES["이 가이드의 절차"]();
   const b = ALT_CASES["도달 가능성 가지치기"]();
   const cols = [
-    "격자 · 진입한 노드",
+    "격자 · 방문 노드",
     "격자 · 이웃 검사",
-    "덫 · 진입한 노드",
+    "덫 · 방문 노드",
     "덫 · 이웃 검사",
-    "격자 · 새로 잡는 칸",
+    "격자 · 할당 칸",
   ];
   const row = (k: string, r: Record<string, number>) => [
     k,
@@ -1367,7 +1367,7 @@ function altTable(): string {
       [row("이 가이드의 절차", a), row("도달 가능성 가지치기", b)],
       [1, 2, 3, 4, 5],
     ),
-    `격자는 ${M}×${M}(정점 ${g.n} 개 · 간선 ${g.edges.length} 개), 덫 그래프는 막다른 무리 k = ${K}(정점 ${p.n} 개 · 간선 ${p.edges.length} 개)입니다. 전개 입력에서는 진입한 노드가 ${a["전개 입력 · 진입한 노드"]} 대 ${b["전개 입력 · 진입한 노드"]} 입니다.`,
+    `격자는 ${M}×${M}(정점 ${g.n} 개 · 간선 ${g.edges.length} 개), 덫 그래프는 막다른 무리 k = ${K}(정점 ${p.n} 개 · 간선 ${p.edges.length} 개)입니다. 전개 입력에서는 방문 노드가 ${a["전개 입력 · 방문 노드"]} 대 ${b["전개 입력 · 방문 노드"]} 입니다.`,
   );
 }
 
@@ -1768,7 +1768,7 @@ function gridCount(): string {
     ];
   });
   return md(
-    ["격자 m", "정점 수", "경로 수", "진입한 노드", "이웃 검사"],
+    ["격자 m", "정점 수", "경로 수", "방문 노드", "이웃 검사"],
     rows,
     [0, 1, 2, 3, 4],
   );
@@ -1781,7 +1781,7 @@ function perfSpread(): string {
   const b = traced(p.n, p.edges, 0, p.t);
   return withSentence(
     md(
-      ["그래프", "정점 수", "간선 수", "경로 수", "진입한 노드"],
+      ["그래프", "정점 수", "간선 수", "경로 수", "방문 노드"],
       [
         [
           `${M}×${M} 격자`,
@@ -1800,7 +1800,7 @@ function perfSpread(): string {
       ],
       [1, 2, 3, 4],
     ),
-    `간선 수는 ${g.edges.length}${과와(g.edges.length)} ${p.edges.length} 로 비슷한데 진입한 노드는 ${(b.enters / a.enters).toFixed(1)} 배 갈립니다.`,
+    `간선 수는 ${g.edges.length}${과와(g.edges.length)} ${p.edges.length} 로 비슷한데 방문 노드는 ${(b.enters / a.enters).toFixed(1)} 배 갈립니다.`,
   );
 }
 
@@ -1817,7 +1817,7 @@ function worstInput(): string {
     ];
   });
   return md(
-    ["막다른 무리 k", "정점 수", "간선 수", "경로 수", "진입한 노드"],
+    ["막다른 무리 k", "정점 수", "간선 수", "경로 수", "방문 노드"],
     rows,
     [0, 1, 2, 3, 4],
   );

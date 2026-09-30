@@ -20,8 +20,9 @@
  * `perf` 절과 같은 정의다. 크러스컬 쪽은 정렬까지 포함한다. `Array.prototype.sort` 의 비교
  * 횟수는 엔진이 정하므로 셀 수 없어, 정렬을 병합 정렬로 직접 적어 비교와 옮긴 횟수를 센다.
  *
- * 저장 칸은 두 설계가 각각 들고 있는 수의 개수다 — 크러스컬은 간선 사본 `3E` 와 배열 둘
- * `2V`, 프림은 인접 행렬 `V²` 와 배열 둘 `2V` 다.
+ * 추가 칸은 두 설계가 입력 간선 목록 밖에 각각 들고 있는 수의 개수다 — 크러스컬은 간선 사본
+ * `3E` 와 배열 둘 `2V`, 프림은 인접 행렬 `V²` 와 배열 둘 `2V` 다. 모두 끝까지 살아 있어 동시
+ * 최댓값이고, 병합 정렬이 잠깐 잡는 임시 배열은 넣지 않는다.
  */
 
 import { kruskalMst } from "./kruskalMst-guide.ref.ts";
@@ -249,7 +250,7 @@ function flipPoint(): number {
   return -1;
 }
 
-/** 저장 칸의 순서가 처음 뒤집히는 간선 수 — 두 설계의 저장 칸 식에 간선 수를 하나씩 넣어 찾는다. */
+/** 추가 칸의 순서가 처음 뒤집히는 간선 수 — 두 설계의 추가 칸 식에 간선 수를 하나씩 넣어 찾는다. */
 function cellFlipPoint(): number {
   const prim = byPrim([]).cells;
   for (let e = 199; e <= 19_900; e++) {
@@ -262,15 +263,15 @@ export const cases = {
   "간선을 정렬하고 유니온 파인드로 판정": () => {
     const out: Record<string, number> = {};
     for (const e of DENSITIES) out[`E=${e} 기본 연산`] = measure(e).kruskal.ops;
-    out["E=199 저장 칸"] = byKruskal(graph(199)).cells;
-    out["E=19900 저장 칸"] = byKruskal(graph(19_900)).cells;
+    out["E=199 추가 칸"] = byKruskal(graph(199)).cells;
+    out["E=19900 추가 칸"] = byKruskal(graph(19_900)).cells;
     return out;
   },
   "가장 가까운 정점을 하나씩 붙인다": () => {
     const out: Record<string, number> = {};
     for (const e of DENSITIES) out[`E=${e} 기본 연산`] = measure(e).prim.ops;
-    out["E=199 저장 칸"] = byPrim(graph(199)).cells;
-    out["E=19900 저장 칸"] = byPrim(graph(19_900)).cells;
+    out["E=199 추가 칸"] = byPrim(graph(199)).cells;
+    out["E=19900 추가 칸"] = byPrim(graph(19_900)).cells;
     return out;
   },
   경계: () => {
@@ -282,7 +283,7 @@ export const cases = {
     }
     return {
       "기본 연산이 뒤집히는 간선 수": flip,
-      "저장 칸이 뒤집히는 간선 수": cellFlipPoint(),
+      "추가 칸이 뒤집히는 간선 수": cellFlipPoint(),
     };
   },
 };

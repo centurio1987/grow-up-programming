@@ -189,7 +189,7 @@ export const COLOR_NAME = ["흰색", "회색", "검은색"] as const;
 /** 간선 종류 — 확인할 때 도착 정점의 색과 발견 차례로 정한다. */
 export type EdgeKind =
   | "나무 간선"
-  | "역방향 간선"
+  | "되돌아가는 간선"
   | "순방향 간선"
   | "교차 간선";
 
@@ -226,7 +226,7 @@ export interface Trace {
 }
 
 interface TraceOptions {
-  /** 역방향 간선을 만나도 멈추지 않고 끝까지 간선을 가른다(간선 분류용). */
+  /** 되돌아가는 간선을 만나도 멈추지 않고 끝까지 간선을 가른다(간선 분류용). */
   readonly full?: boolean;
   /** 정점 0 에서 한 번만 시작한다(바깥 반복을 지운 사본). */
   readonly onlyZero?: boolean;
@@ -297,7 +297,7 @@ export function traced(
       const seen = color[v] as Color;
       let edgeKind: EdgeKind;
       if (seen === WHITE) edgeKind = "나무 간선";
-      else if (seen === GRAY) edgeKind = "역방향 간선";
+      else if (seen === GRAY) edgeKind = "되돌아가는 간선";
       else
         edgeKind =
           (disc[u] as number) < (disc[v] as number)
@@ -1346,7 +1346,7 @@ function walkResult(): string {
 
 /* ─────────────────── 「알아 두면 좋은 개념」 ─────────────────── */
 
-/** 역방향 간선에서 멈추지 않고 끝까지 가른 기록 — 간선 번호마다 종류 하나. */
+/** 되돌아가는 간선에서 멈추지 않고 끝까지 가른 기록 — 간선 번호마다 종류 하나. */
 export function classify(
   n: number,
   edges: readonly Edge[],
@@ -1370,7 +1370,7 @@ function edgeClasses(): string {
             arrow([s.u, s.v]),
             COLOR_NAME[s.seen as Color],
             kinds.get(s.edge) as string,
-            kinds.get(s.edge) === "역방향 간선" ? "닫는다" : "아니다",
+            kinds.get(s.edge) === "되돌아가는 간선" ? "닫는다" : "아니다",
           ],
         ]
       : [],
@@ -1407,13 +1407,13 @@ function fitCount(): string {
 
 /** 경쟁 설계와 나란히 잰 값. `.alt.ts` 가 낸 것을 그대로 옮긴다. */
 const ALT_METRICS = [
-  "전개가 쓰는 여섯 정점에서 배열 칸 접근",
-  "사이클이 정점 0 에서 두 걸음일 때 배열 칸 접근",
-  "사이클이 정점 0 에서 99,992 걸음일 때 배열 칸 접근",
-  "사이클이 정점 0 에서 99,993 걸음일 때 배열 칸 접근",
-  "사이클이 씨앗을 전부 막을 때 배열 칸 접근",
-  "사이클이 없는 사슬에서 배열 칸 접근",
-  "사이클이 없는 사슬에서 새로 잡는 칸",
+  "전개가 쓰는 여섯 정점에서 칸 접근",
+  "사이클이 정점 0 에서 두 걸음일 때 칸 접근",
+  "사이클이 정점 0 에서 99,992 걸음일 때 칸 접근",
+  "사이클이 정점 0 에서 99,993 걸음일 때 칸 접근",
+  "사이클이 씨앗을 전부 막을 때 칸 접근",
+  "사이클이 없는 사슬에서 칸 접근",
+  "사이클이 없는 사슬에서 추가 칸",
 ];
 
 function altRow(m: string, label = m): string[] {
@@ -1565,7 +1565,7 @@ function costClosedForm(): string {
     ];
   });
   return withSentence(
-    md(["입력", "V", "E", "실제 배열 칸 접근", "11V + 8E"], rows, [1, 2, 3, 4]),
+    md(["입력", "V", "E", "실제 칸 접근", "11V + 8E"], rows, [1, 2, 3, 4]),
     `${cases.length} 줄 가운데 두 값이 같은 줄은 ${match} 개입니다.`,
   );
 }
@@ -1785,14 +1785,14 @@ function perfCases(): string {
   if (!none || !near) throw new Error("모양 목록이 모자라다");
   return withSentence(
     md(
-      ["케이스", "입력", "배열 칸 접근"],
+      ["케이스", "입력", "칸 접근"],
       [
         ["사이클이 없다", none.label, comma(none.run.cells)],
         ["사이클이 두 걸음 앞에 있다", near.label, comma(near.run.cells)],
       ],
       [2],
     ),
-    `두 입력 다 V = ${comma(BIG_V)} · E = ${comma(none.edges.length)} 이고, 배열 칸 접근은 ${(none.run.cells / near.run.cells).toFixed(1)} 배 차이가 납니다.`,
+    `두 입력 다 V = ${comma(BIG_V)} · E = ${comma(none.edges.length)} 이고, 칸 접근은 ${(none.run.cells / near.run.cells).toFixed(1)} 배 차이가 납니다.`,
   );
 }
 
@@ -1804,7 +1804,7 @@ function shapeValues(): string {
       "E",
       "스택의 최대 깊이",
       "가장 긴 목록",
-      "배열 칸 접근",
+      "칸 접근",
       "반환값",
     ],
     shapeRuns.map((s) => [

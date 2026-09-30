@@ -9,7 +9,7 @@
  *   담는 절차(`topologicalSort` 가이드의 것). 큐가 빈 뒤 꺼낸 정점 수가 `n` 보다 작으면
  *   남은 정점이 사이클을 이루고 있다.
  *
- * **계수는 배열 칸 접근 수와 새로 잡는 칸 수 둘이다.** 둘 다 같은 입력에서 항상 같은 값이
+ * **계수는 칸 접근 수와 추가 칸 수 둘이다.** 둘 다 같은 입력에서 항상 같은 값이
  * 나온다 — 벽시계는 쓰지 않는다.
  *
  * **전개(정점 여섯)가 쓰는 입력을 첫 계수로 함께 잰다.** 다만 그 입력 하나로는 「사이클이
@@ -178,17 +178,15 @@ const CYCLE_AT_99992 = chainWithBackEdgeAt(V, 99_992);
 
 function measure(run: (n: number, e: Edge[]) => Counted) {
   return () => ({
-    "전개가 쓰는 여섯 정점에서 배열 칸 접근": run(WALK_N, WALK_EDGES).cells,
-    "사이클이 없는 사슬에서 배열 칸 접근": run(V, NO_CYCLE).cells,
-    "사이클이 정점 0 에서 두 걸음일 때 배열 칸 접근": run(V, CYCLE_NEAR_START)
+    "전개가 쓰는 여섯 정점에서 칸 접근": run(WALK_N, WALK_EDGES).cells,
+    "사이클이 없는 사슬에서 칸 접근": run(V, NO_CYCLE).cells,
+    "사이클이 정점 0 에서 두 걸음일 때 칸 접근": run(V, CYCLE_NEAR_START).cells,
+    "사이클이 씨앗을 전부 막을 때 칸 접근": run(V, CYCLE_BLOCKS_SEEDS).cells,
+    "사이클이 정점 0 에서 99,992 걸음일 때 칸 접근": run(V, CYCLE_AT_99991)
       .cells,
-    "사이클이 씨앗을 전부 막을 때 배열 칸 접근": run(V, CYCLE_BLOCKS_SEEDS)
+    "사이클이 정점 0 에서 99,993 걸음일 때 칸 접근": run(V, CYCLE_AT_99992)
       .cells,
-    "사이클이 정점 0 에서 99,992 걸음일 때 배열 칸 접근": run(V, CYCLE_AT_99991)
-      .cells,
-    "사이클이 정점 0 에서 99,993 걸음일 때 배열 칸 접근": run(V, CYCLE_AT_99992)
-      .cells,
-    "사이클이 없는 사슬에서 새로 잡는 칸": run(V, NO_CYCLE).allocated,
+    "사이클이 없는 사슬에서 추가 칸": run(V, NO_CYCLE).allocated,
   });
 }
 

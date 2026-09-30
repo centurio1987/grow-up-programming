@@ -26,7 +26,7 @@
  *
  * **비용 기준은 `bellmanFord` 편과 같다.** 기본 연산은 간선 하나를 읽고 완화를 시도한 한 번과
  * 큐에 넣거나 꺼낸 한 번을 각각 하나로 센다 — 큐가 없는 라운드 설계에서는 간선 읽기와 같다.
- * 저장 칸은 정점마다 한 칸인 배열의 칸과 큐가 가장 길었을 때의 항목 수를 더한다.
+ * 추가 칸은 정점마다 한 칸인 배열의 칸과 큐가 가장 길었을 때의 항목 수를 더한다.
  */
 
 import { type Edge, spfa } from "./spfa-guide.ref.ts";
@@ -88,7 +88,7 @@ export interface Run {
 /**
  * 이 가이드의 절차. 정본(`spfa-guide.ref.ts`)과 같고 세는 자리만 덧붙였다.
  *
- * `저장 칸` 은 정점마다 한 칸인 배열 셋(거리 · 큐 표시 · 이웃 목록)과 큐가 가장 길었을 때의
+ * `추가 칸` 은 정점마다 한 칸인 배열 셋(거리 · 큐 표시 · 이웃 목록)과 큐가 가장 길었을 때의
  * 항목 수를 더한 것이다. 큐의 길이는 **넣은 직후**에 잰다 — 꺼낸 직후에 재면 한 걸음이 넣은 항목이
  * 다음 꺼내기 전까지 큐에 함께 있던 순간을 놓쳐 하나 적게 나온다(`bellmanFord` 편의 `.alt.ts` 도
  * 2026-09-30 에 같은 자리로 맞췄다).
@@ -132,7 +132,7 @@ export function 큐에담는설계(n: number, edges: Edge[], src: number): Run {
  * 경쟁 설계 — 벨만-포드. **간선 목록 전체를 라운드마다 다시 읽는다.** 큐라는 개념이 없고, 한
  * 라운드가 한 칸도 못 고치면 거기서 끝낸다. `bellmanFord` 편의 정본과 같은 반복이다.
  *
- * `저장 칸` 은 거리 배열 `V` 칸에 고쳤는지를 적는 칸 하나를 더한 것이다.
+ * `추가 칸` 은 거리 배열 `V` 칸에 고쳤는지를 적는 칸 하나를 더한 것이다.
  */
 export function 라운드로읽는설계(n: number, edges: Edge[], src: number): Run {
   const dist = Array.from({ length: n }, () => INF);
@@ -222,13 +222,13 @@ function 재기(
   const big = hub(4096);
   return {
     "전개 입력 · 기본 연산": walk.ops,
-    "전개 입력 · 저장 칸": walk.cells,
+    "전개 입력 · 추가 칸": walk.cells,
     "잎 1 개 · 기본 연산": run(one.n, one.edges, 0).ops,
     [`잎 ${CROSS.tie - 1} 개 · 기본 연산`]: run(before.n, before.edges, 0).ops,
     [`잎 ${CROSS.tie} 개 · 기본 연산`]: run(at.n, at.edges, 0).ops,
     [`잎 ${CROSS.ahead} 개 · 기본 연산`]: run(after.n, after.edges, 0).ops,
     "잎 4096 개 · 기본 연산": run(big.n, big.edges, 0).ops,
-    "잎 4096 개 · 저장 칸": run(big.n, big.edges, 0).cells,
+    "잎 4096 개 · 추가 칸": run(big.n, big.edges, 0).cells,
   };
 }
 

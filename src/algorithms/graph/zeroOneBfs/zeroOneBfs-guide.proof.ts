@@ -10,7 +10,7 @@
  *
  * 비용은 **기본 연산**으로 센다. 간선 하나를 읽고 새 값을 지금 값과 비교한 한 번(간선 검사)과, 담는
  * 자리(큐 · 덱 · 우선순위 큐)에서 항목 하나를 넣거나 꺼내거나 옮기거나 키를 비교한 한 번을 각각 하나로
- * 센다. 메모리는 **저장 칸**(거리 배열의 칸 + 담는 자리가 가장 길었을 때의 칸)으로 센다. 경쟁 설계의
+ * 센다. 메모리는 **추가 칸**(거리 배열의 칸 + 담는 자리가 가장 길었을 때의 칸)으로 센다. 경쟁 설계의
  * 계수(`.alt.ts` · `.bench.json`)가 같은 기준이라, 「아이디어를 떠올리는 과정」의 후보 비교는 그 파일의
  * 이진 힙 사본(`힙다익스트라`)을 그대로 부르고, 덱 사본(`덱`)과 이 파일의 `counted` 가 같은 수를 내는지
  * 맞댄다.
@@ -46,7 +46,7 @@ import { type Edge, zeroOneBfs } from "./zeroOneBfs-guide.ref.ts";
 /**
  * 본문 전개가 쓰는 그래프. 정점 여섯 · 방향 간선 여섯 · 정점 5 는 들어오는 간선이 없다.
  *
- * 네 갈래를 한 입력에서 전부 실행한다 — 값 1 간선으로 뒤에 넣기(0→1 · 2→3) · 값 0 간선으로 앞에
+ * 네 갈래를 한 입력에서 전부 실행한다 — 가중치 1 간선으로 뒤에 넣기(0→1 · 2→3) · 가중치 0 간선으로 앞에
  * 넣기(0→2 · 2→1 · 3→4) · 새 값이 작지 않아 그대로 두기(1→3 을 두 번) · 도달 못 한 정점을 -1 로 적기
  * (정점 5). 정점 1 이 덱에 두 번 들어가 같은 정점을 두 번 꺼내는 자리도 나온다.
  */
@@ -108,8 +108,8 @@ function zigzag(v: number): { n: number; edges: Edge[] } {
 }
 
 /**
- * 다이아몬드 사슬 — 다이아몬드(`a→b` · `a→c` · `b→d` · `c→d`) `k` 개를 한 줄로 잇는다. 위 갈래의 값이
- * 0, 아래 갈래의 값이 1 이다. 정점 `3k + 1` 개, 간선 `4k` 개이고 끝 정점까지의 경로가 `2^k` 개다.
+ * 다이아몬드 사슬 — 다이아몬드(`a→b` · `a→c` · `b→d` · `c→d`) `k` 개를 한 줄로 잇는다. 위 갈래의 가중치가
+ * 0, 아래 갈래의 가중치가 1 이다. 정점 `3k + 1` 개, 간선 `4k` 개이고 끝 정점까지의 경로가 `2^k` 개다.
  */
 function diamonds(k: number): { n: number; edges: Edge[] } {
   const edges: Edge[] = [];
@@ -201,7 +201,7 @@ const sameArr = (a: readonly number[], b: readonly number[]): boolean =>
 const answer = (dist: readonly number[]): number[] =>
   dist.map((d) => (d === INF ? -1 : d));
 
-/** 이웃 목록 — 원소가 `[이웃, 값, 간선 번호]` 다. */
+/** 이웃 목록 — 원소가 `[이웃, 가중치, 간선 번호]` 다. */
 function adjacency(n: number, edges: Edge[]): [number, number, number][][] {
   const adj: [number, number, number][][] = Array.from({ length: n }, () => []);
   edges.forEach(([u, v, w], i) => {
@@ -309,7 +309,7 @@ for (const g of [{ n: WALK_N, edges: WALK_EDGES }, grid(8), lateShortcut(64)]) {
 /** 가장 단순한 방법의 읽기 하나. */
 interface Sweep {
   readonly level: number;
-  /** `zero` 는 값 0 간선으로 같은 층을 채우는 읽기, `one` 은 값 1 간선으로 다음 층을 여는 읽기. */
+  /** `zero` 는 가중치 0 간선으로 같은 층을 채우는 읽기, `one` 은 가중치 1 간선으로 다음 층을 여는 읽기. */
   readonly kind: "zero" | "one";
   readonly writes: [number, number][];
 }
@@ -585,7 +585,7 @@ const 중화됨 = noFront.zeroOneBfs === zeroOneBfs;
 const MUTANT_CASES: { label: string; n: number; edges: Edge[] }[] = [
   { label: "전개 입력", n: WALK_N, edges: WALK_EDGES },
   {
-    label: "0 사슬 0→1→2 (값 전부 0)",
+    label: "0 사슬 0→1→2 (가중치 전부 0)",
     n: 3,
     edges: [
       [0, 1, 0],
@@ -593,7 +593,7 @@ const MUTANT_CASES: { label: string; n: number; edges: Edge[] }[] = [
     ],
   },
   {
-    label: "1 사슬 0→1→2→3 (값 전부 1)",
+    label: "1 사슬 0→1→2→3 (가중치 전부 1)",
     n: 4,
     edges: [
       [0, 1, 1],
@@ -657,7 +657,7 @@ function randomPushes(top: number, n: number, graphs: number) {
   return { worst, wrong };
 }
 
-/** 전제가 깨지는 작은 입력 — 값 2 간선이 하나 섞였다. */
+/** 전제가 깨지는 작은 입력 — 가중치 2 간선이 하나 섞였다. */
 export const PREMISE_N = 4;
 export const PREMISE_EDGES: Edge[] = [
   [0, 1, 2],
@@ -850,8 +850,8 @@ function sweepTrace(): string {
     String(i + 1),
     `층 ${s.level}`,
     s.kind === "zero"
-      ? "값 0 간선으로 같은 층 채우기"
-      : "값 1 간선으로 다음 층 열기",
+      ? "가중치 0 간선으로 같은 층 채우기"
+      : "가중치 1 간선으로 다음 층 열기",
     s.writes.length === 0
       ? "없음"
       : s.writes.map(([v, d]) => `dist[${v}] = ${d}`).join(" · "),
@@ -923,7 +923,7 @@ const CANDIDATES: [
   ],
   [
     "덱",
-    "값 0 간선은 앞, 값 1 간선은 뒤에 넣고 앞에서 꺼낸다",
+    "가중치 0 간선은 앞, 가중치 1 간선은 뒤에 넣고 앞에서 꺼낸다",
     (n, e) => counted(n, e, 0, "deque"),
   ],
 ];
@@ -1012,7 +1012,7 @@ function stageAdj(): string {
   ]);
   const cells = adj.reduce((a, l) => a + l.length, 0);
   return [
-    md(["정점", "adj — (이웃, 값)", "시작 dist"], rows),
+    md(["정점", "adj — (이웃, 가중치)", "시작 dist"], rows),
     "",
     `이웃 목록의 칸은 모두 ${cells} 개로 간선 수와 같고, 덱에는 항목 ${showDeque(first.dq)} 하나가 들어 있습니다.`,
   ].join("\n");
@@ -1045,7 +1045,7 @@ function groupsRead(): string {
         ["덱의 자리", "앞에서 센 칸", `${at + 1} 번째 칸 — 뒤 끝`],
         ["정점", "칸의 윗줄", String(x.v)],
         ["넣은 걸음", "그 항목을 넣은 걸음", pushedBy.t],
-        ["넣은 간선", "간선 u→v 와 그 값 w", `${r.u}→${r.v} · 값 ${r.w}`],
+        ["넣은 간선", "간선 u→v 와 그 가중치 w", `${r.u}→${r.v} · 가중치 ${r.w}`],
         ["넣을 때 거리", "dist[u] + w", `${r.du} + ${r.w} = ${r.nd}`],
         [
           "속한 무리",
@@ -1128,7 +1128,7 @@ function groupsQueue(): string {
   const drops = (xs: Item[]): number =>
     xs.filter((x, i) => i > 0 && x.key < (xs[i - 1] as Item).key).length;
   return [
-    md(["꺼낸 차례", "덱 — 값으로 가르기", "큐 — 전부 뒤에 넣기"], rows, [0]),
+    md(["꺼낸 차례", "덱 — 가중치로 가르기", "큐 — 전부 뒤에 넣기"], rows, [0]),
     "",
     `넣을 때 거리가 바로 앞에 꺼낸 항목보다 작은 항목을 꺼낸 자리는 덱이 ${drops(d)} 곳, 큐가 ${drops(q)} 곳입니다. 꺼낸 항목은 덱이 ${d.length} 개, 큐가 ${q.length} 개입니다.`,
   ].join("\n");
@@ -1196,7 +1196,7 @@ function stagePush(): string {
     .every((t) => (t.read as EdgeRead).nd === (t.popped as Item).key + 1);
   return [
     md(
-      ["걸음", "간선", "값 w", "새 거리", "넣은 자리", "넣은 뒤 덱 (앞 → 뒤)"],
+      ["걸음", "간선", "가중치 w", "새 거리", "넣은 자리", "넣은 뒤 덱 (앞 → 뒤)"],
       rows,
     ),
     "",
@@ -1266,7 +1266,7 @@ function premiseRandom(): string {
   return [
     md(
       [
-        "간선 값",
+        "간선 가중치",
         "정점 V",
         "간선 E",
         "그래프 수",
@@ -1408,7 +1408,7 @@ function walkFirstPops(): string {
       : `${r.nd} ≥ ${num(r.before)} · 그대로 둔다`;
     return [
       s.t,
-      `${r.u}→${r.v} 값 ${r.w}`,
+      `${r.u}→${r.v} 가중치 ${r.w}`,
       `새 값 ${r.du} + ${r.w} = ${r.nd}`,
       verdict,
       `덱 ${showDeque(s.dq)}`,
@@ -1491,7 +1491,7 @@ function walkTrace(): string {
     return [
       s.t,
       s.popped ? item(s.popped) : "—",
-      r ? `${r.u}→${r.v} (값 ${r.w})` : s.kind === "none" ? "없음" : "—",
+      r ? `${r.u}→${r.v} (가중치 ${r.w})` : s.kind === "none" ? "없음" : "—",
       b.cond,
       b.branch,
       s.kind === "end" ? show(s.dist) : showDist(s.dist),
@@ -1646,7 +1646,7 @@ function relatedHistory(): string {
     const r = s.read as EdgeRead;
     return [
       s.t,
-      `${r.u}→${r.v} (값 ${r.w})`,
+      `${r.u}→${r.v} (가중치 ${r.w})`,
       `${r.du} + ${r.w} = ${r.nd}`,
       num(r.before),
       num(s.dist[v] as number),
@@ -1675,16 +1675,16 @@ const B = (k: string): number => {
 };
 
 function altTable(): string {
-  const flip = B("경계 · 저장 칸의 순서가 뒤집히는 m");
+  const flip = B("경계 · 추가 칸의 순서가 뒤집히는 m");
   const keys = [
     "전개 입력 · 기본 연산",
     "격자 32×32 · 기본 연산",
     "늦은 지름길 m=64 · 기본 연산",
-    "전개 입력 · 저장 칸",
-    "격자 32×32 · 저장 칸",
-    `늦은 지름길 m=${flip - 1} · 저장 칸`,
-    `늦은 지름길 m=${flip} · 저장 칸`,
-    "늦은 지름길 m=64 · 저장 칸",
+    "전개 입력 · 추가 칸",
+    "격자 32×32 · 추가 칸",
+    `늦은 지름길 m=${flip - 1} · 추가 칸`,
+    `늦은 지름길 m=${flip} · 추가 칸`,
+    "늦은 지름길 m=64 · 추가 칸",
   ];
   const rows = keys.map((key) => {
     const a = B(`이 가이드의 절차 · ${key}`);
@@ -1695,8 +1695,8 @@ function altTable(): string {
     return [key, comma(a), comma(b), who, ratio];
   });
   const late = lateShortcut(64);
-  const dp = B("이 가이드의 절차 · 늦은 지름길 m=64 · 담는 자리에 넣은 항목");
-  const hp = B("힙 다익스트라 · 늦은 지름길 m=64 · 담는 자리에 넣은 항목");
+  const dp = B("이 가이드의 절차 · 늦은 지름길 m=64 · 넣은 항목");
+  const hp = B("힙 다익스트라 · 늦은 지름길 m=64 · 넣은 항목");
   return [
     md(
       [
@@ -1710,7 +1710,7 @@ function altTable(): string {
       [1, 2],
     ),
     "",
-    `저장 칸의 순서는 늦은 지름길 m=${flip - 1} 에서 같고 m=${flip} 에서 처음 뒤집힙니다. 늦은 지름길 m=64 는 정점 ${comma(late.n)} 개이고, 담는 자리에 넣은 항목은 덱이 ${comma(dp)} 개, 이진 힙이 ${comma(hp)} 개입니다.`,
+    `추가 칸의 순서는 늦은 지름길 m=${flip - 1} 에서 같고 m=${flip} 에서 처음 뒤집힙니다. 늦은 지름길 m=64 는 정점 ${comma(late.n)} 개이고, 넣은 항목은 덱이 ${comma(dp)} 개, 이진 힙이 ${comma(hp)} 개입니다.`,
   ].join("\n");
 }
 
@@ -1827,7 +1827,7 @@ function edgeCases(): string {
       0,
     ],
     [
-      "값 0 사이클",
+      "가중치 0 사이클",
       "zeroOneBfs(3, [[0,1,0],[1,2,0],[2,0,0]], 0)",
       3,
       [

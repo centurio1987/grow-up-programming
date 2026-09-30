@@ -9,9 +9,10 @@
  *   절차다. 대표가 같으면 이미 이어져 있다는 뜻이라 그 간선이 사이클을 닫는다.
  *   `src/data-structures/disjoint-set/unionFind` 가 그 자료구조를 다룬다.
  *
- * **계수는 배열 칸 접근 수와 새로 잡는 칸 수 둘이다.** 칸을 한 번 읽으면 1, 한 번 쓰면 1로
- * 세고 두 절차에 같은 규칙을 쓴다. 둘 다 같은 입력에서 항상 같은 값이 나온다 — 벽시계는
- * 쓰지 않는다.
+ * **계수는 칸 접근 수와 추가 칸 수 둘이다.** 칸을 한 번 읽으면 1, 한 번 쓰면 1로
+ * 세고(배열을 처음 채우는 쓰기 포함) 두 절차에 같은 규칙을 쓴다. 추가 칸은 입력 간선 목록 밖에 잡은
+ * 칸이고, 해제가 없어 끝까지 살므로 스택의 최대 길이를 더한 값이 곧 동시 최댓값이다.
+ * 둘 다 같은 입력에서 항상 같은 값이 나온다 — 벽시계는 쓰지 않는다.
  *
  * **전개(정점 여섯)가 쓰는 입력을 첫 계수로 함께 잰다.** 다만 그 입력에는 간선이 다섯뿐이라
  * 「사이클을 닫는 간선이 목록의 몇 번째에 있는가」를 바꿔 볼 자리가 없다. 그래서 제약 상한인
@@ -189,15 +190,14 @@ const CYCLE_AFTER_TIE = triangleAt(V, 33_334);
 
 function measure(run: (n: number, e: Edge[]) => Counted) {
   return () => ({
-    "전개가 쓰는 여섯 정점에서 배열 칸 접근": run(WALK_N, WALK_EDGES).cells,
-    "삼각형 간선이 목록 맨 앞일 때 배열 칸 접근": run(V, CYCLE_FIRST).cells,
-    "삼각형 간선이 33,334 번째일 때 배열 칸 접근": run(V, CYCLE_AT_TIE).cells,
-    "삼각형 간선이 33,335 번째일 때 배열 칸 접근": run(V, CYCLE_AFTER_TIE)
-      .cells,
-    "삼각형 간선이 목록 맨 뒤일 때 배열 칸 접근": run(V, CYCLE_LAST).cells,
-    "삼각형이 정점 번호 맨 뒤에 있을 때 배열 칸 접근": run(V, CYCLE_FAR).cells,
-    "사이클이 없는 한 줄에서 배열 칸 접근": run(V, NO_CYCLE).cells,
-    "사이클이 없는 한 줄에서 새로 잡는 칸": run(V, NO_CYCLE).allocated,
+    "전개가 쓰는 여섯 정점에서 칸 접근": run(WALK_N, WALK_EDGES).cells,
+    "삼각형 간선이 목록 맨 앞일 때 칸 접근": run(V, CYCLE_FIRST).cells,
+    "삼각형 간선이 33,334 번째일 때 칸 접근": run(V, CYCLE_AT_TIE).cells,
+    "삼각형 간선이 33,335 번째일 때 칸 접근": run(V, CYCLE_AFTER_TIE).cells,
+    "삼각형 간선이 목록 맨 뒤일 때 칸 접근": run(V, CYCLE_LAST).cells,
+    "삼각형이 정점 번호 맨 뒤에 있을 때 칸 접근": run(V, CYCLE_FAR).cells,
+    "사이클이 없는 한 줄에서 칸 접근": run(V, NO_CYCLE).cells,
+    "사이클이 없는 한 줄에서 추가 칸": run(V, NO_CYCLE).allocated,
   });
 }
 

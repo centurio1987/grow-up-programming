@@ -160,8 +160,9 @@ function totalCost(n: number, edges: FlowEdge[], graph: Arc[][]): number {
  * 이 가이드의 절차. 정본(`minCostMaxFlow-guide.ref.ts`)과 같고 세는 자리만 덧붙였다.
  *
  * `기본 연산` 은 **잔여 항목 하나를 견준 것**과 **경로를 따라 항목 하나를 읽거나 고친 것**을
- * 각각 하나로 센다. `저장 칸` 은 라운드가 쓰는 배열 넷(`dist`·`waiting`·`fromV`·`fromE`)의
- * `4V` 칸과 완화 큐가 가장 길어졌을 때의 길이를 더한 것이다.
+ * 각각 하나로 센다. `추가 칸` 은 라운드가 쓰는 배열 넷(`dist`·`waiting`·`fromV`·`fromE`)의
+ * `4V` 칸과 완화 큐가 가장 길어졌을 때의 길이를 더한 것이다(라운드마다 다시 잡으므로 라운드
+ * 가운데 최댓값 · 잔여 그래프는 넣지 않는다). 배열을 채우는 초기화 쓰기는 기본 연산에 넣지 않는다.
  */
 function 이가이드의절차(
   n: number,
@@ -237,7 +238,7 @@ function 이가이드의절차(
  * 값에서 최소 비용이다.
  *
  * 잣대는 위와 같다 — 잔여 항목 하나를 견준 것과 경로·사이클을 따라 항목 하나를 읽거나 고친
- * 것을 각각 하나로 센다. `저장 칸` 은 배열 셋(`fromV`·`fromE`·`seen` 또는 `dist`)의 `3V` 칸과
+ * 것을 각각 하나로 센다. `추가 칸` 은 배열 셋(`fromV`·`fromE`·`seen` 또는 `dist`)의 `3V` 칸과
  * 큐가 가장 길어졌을 때의 길이를 더한 것이다.
  */
 function 음수사이클소거(
@@ -435,7 +436,7 @@ function 재기(
   const walk = measure(run, WALK_N, WALK_EDGES, WALK_SOURCE, WALK_SINK);
   const out: Record<string, number> = {
     "전개 입력 · 기본 연산": walk.ops,
-    "전개 입력 · 저장 칸": walk.cells,
+    "전개 입력 · 추가 칸": walk.cells,
   };
   for (const cross of SPOTS) {
     const { n, edges, source, sink } = shape(cross);
@@ -445,7 +446,7 @@ function 재기(
     out[`가로 간선 ${cross} · 사이클을 없앤 라운드`] = got.cancels;
   }
   const big = shape(180);
-  out["가로 간선 180 · 저장 칸"] = measure(
+  out["가로 간선 180 · 추가 칸"] = measure(
     run,
     big.n,
     big.edges,
