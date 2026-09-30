@@ -1,6 +1,6 @@
 {
-  "next_id": 65,
-  "next_seq": 457,
+  "next_id": 66,
+  "next_seq": 458,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1698,6 +1698,26 @@
         "tools/solutions-merge.ts",
         "tools/solutions-merge.test.ts"
       ]
+    },
+    "KAN-065-CV4WP7": {
+      "col": "backlog",
+      "title": "solutions 에만 있는 비풀이 커밋과 main 의 풀이 분석 문서 정리 — 두 브랜치가 무엇을 나눠 갖는지 정한다",
+      "verbatim": "KAN-064 검토서 판단 항목 2 「solutions 에 main 에는 없는 비풀이 커밋이 섞여 있다 — 이 카드에서는 건드리지 않았다」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-10-01",
+      "title_hash": "2272d59803ececcc66286175f6d62405d1e50100",
+      "verbatim_hash": "954b404555d472ef1261632c55ddf7d2d21e9412",
+      "short": "solutions 경계 정리",
+      "short_hash": "7b5259e169bcd129417a75e06e9b5b37526d00da",
+      "purpose": "solutions 에만 있는 풀이 아닌 커밋을 main 으로 옮기는 길과, main 에 든 풀이 분석 문서(*-analysis.md 12편)·_scratch 의 자리를 정해 처리한다",
+      "purpose_hash": "62851cd4b0f5c81bc7814673d19ef543f75fd9cd",
+      "reason": "KAN-064 누수는 solutions 위에서 갈라진 브랜치가 main 에 들어오며 생겼고, 비풀이 커밋을 main 으로 가져오려 할 때마다 같은 길이 열린다. 분석 문서는 지금도 답을 드러낸다",
+      "reason_hash": "1a4d23d4ba7e05e5a9f837b194b2a464d3e18458",
+      "goal": "main 에 풀이를 드러내는 파일이 없고, solutions 에만 남은 비풀이 커밋은 main 에 반영되거나 버린 사유가 적힌다. 옮기는 절차가 문서나 도구로 남는다",
+      "goal_hash": "ea26fd7a96ccea278eb5b7aeffcd48894d2b6677",
+      "memo": "근거: KAN-064 검토서 판단 항목 2(.kanban/reviews/KAN-064-4YZZV2.events.jsonl). 비풀이 커밋 예: 807bc7b9·c4555102(훅) · 0adb1fc2·b494a300(가이드) · dcd37711·b83a1d5b(자료구조 계약). 확인: git log main..solutions",
+      "memo_hash": "cfe52a31069919431c843a3b687fdeee40cff508"
     }
   },
   "order": [
@@ -1775,9 +1795,27 @@
     "KAN-058.1-9TBXDA",
     "KAN-058-8XT6PC",
     "KAN-061-YVQBCF",
-    "KAN-064-4YZZV2"
+    "KAN-064-4YZZV2",
+    "KAN-065-CV4WP7"
   ],
   "recent": [
+    {
+      "seq": 457,
+      "t": "2026-10-01T08:52",
+      "a": "ai",
+      "id": "KAN-065-CV4WP7",
+      "op": "create",
+      "w": "46PCAX",
+      "col": "backlog",
+      "title": "solutions 에만 있는 비풀이 커밋과 main 의 풀이 분석 문서 정리 — 두 브랜치가 무엇을 나눠 갖는지 정한다",
+      "verbatim": "KAN-064 검토서 판단 항목 2 「solutions 에 main 에는 없는 비풀이 커밋이 섞여 있다 — 이 카드에서는 건드리지 않았다」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
+      "parent": null,
+      "short": "solutions 경계 정리",
+      "purpose": "solutions 에만 있는 풀이 아닌 커밋을 main 으로 옮기는 길과, main 에 든 풀이 분석 문서(*-analysis.md 12편)·_scratch 의 자리를 정해 처리한다",
+      "reason": "KAN-064 누수는 solutions 위에서 갈라진 브랜치가 main 에 들어오며 생겼고, 비풀이 커밋을 main 으로 가져오려 할 때마다 같은 길이 열린다. 분석 문서는 지금도 답을 드러낸다",
+      "goal": "main 에 풀이를 드러내는 파일이 없고, solutions 에만 남은 비풀이 커밋은 main 에 반영되거나 버린 사유가 적힌다. 옮기는 절차가 문서나 도구로 남는다",
+      "memo": "근거: KAN-064 검토서 판단 항목 2(.kanban/reviews/KAN-064-4YZZV2.events.jsonl). 비풀이 커밋 예: 807bc7b9·c4555102(훅) · 0adb1fc2·b494a300(가이드) · dcd37711·b83a1d5b(자료구조 계약). 확인: git log main..solutions"
+    },
     {
       "seq": 456,
       "t": "2026-10-01T08:51",
@@ -2332,17 +2370,6 @@
       "w": "46PCAX",
       "with_": "KAN-059-PSFTN4",
       "reason": "경로 글롭만 겹친다 — KAN-039 는 src/algorithms/*/huffman*/**, KAN-059 는 sparseTableRangeMin/figs 의 필름 SVG 둘이라 실제 파일이 다르다. 같은 모양의 겹침을 KAN-057 에서 유저가 용인했다(2026-09-28)"
-    },
-    {
-      "seq": 407,
-      "t": "2026-09-28T18:12",
-      "a": "유저",
-      "id": "KAN-060-9P4ZAA",
-      "op": "edit",
-      "w": "46PCAX",
-      "field": "verbatim",
-      "before": "",
-      "after": "지금은 문제가 *-guide.md로 분리 되어 있다. 그리고 그 문제를 전제로 가이드가 구성되어 있다. 그래서 문제를 모르면 guide에서 맥락을 읽기 어려운 경우가 생긴다.\n\n- guide는 문제에 대한 guide가 아니라, 알고리즘 자체에 대한 guide여야 한다.\n- guide 마지막에 문제를 만들어서 실습 항목으로 배치한다.\n- 기존 problem.md는 삭제한다."
     }
   ],
   "waivers": [
