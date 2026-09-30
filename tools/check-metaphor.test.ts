@@ -130,9 +130,10 @@ test("오탐 실측 — `countIslands` 의 한글 함수 이름 `돌려보기` �
   // 2026-09-10 전수에서 실제로 확인된 자리다. 줄 그대로 보면 「돌려」가 걸린다.
   const f = "src/algorithms/graph/countIslands/countIslands-guide.proof.ts";
   const src = readFileSync(`${root}${f}`, "utf8");
-  const raw = src.split("\n")[825] as string;
-  expect(raw).toContain("돌려보기");
-  expect(scan(f, src).some((h) => h.line === 826)).toBe(false);
+  // 줄 번호로 고정하지 않는다 — 편을 다시 쓰면 줄이 밀린다(`KAN-058` 재집필로 826 행이 1574 행이 됐다).
+  const at = src.split("\n").findIndex((l) => l.includes("const 돌려보기"));
+  expect(at).toBeGreaterThanOrEqual(0);
+  expect(scan(f, src).some((h) => h.line === at + 1)).toBe(false);
 });
 
 // ── 3. `"` 의 뜻이 두 종류에서 뒤집힌다 ──────────────────────────────────────

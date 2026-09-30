@@ -33,7 +33,12 @@ import {
 } from "./check-v2.ts";
 import { parseSections } from "./section.ts";
 
-/** P1~P15 를 전부 만족하는 표본. 각 결함 표본은 여기서 한 곳만 어긋뜨린다. */
+/**
+ * P1~P23 을 전부 만족하는 표본. 각 결함 표본은 여기서 한 곳만 어긋뜨린다.
+ *
+ * 새 구성(2026-09-26~28 `KAN-056`, 2026-10-01 `KAN-058` 에서 기본 동작)이다 — `deep.origin` 이 있고
+ * `deep.build` 가 `#### N단계 — …` 둘로 나뉘며, 본문 산문은 존댓말이다. 옛 구성은 `LEGACY` 에 있다.
+ */
 const PASSING = `# 시험용 — 전체를 보는 부제
 
 ## 파트 1 — 아이디어에서 동작하는 코드까지
@@ -42,7 +47,7 @@ const PASSING = `# 시험용 — 전체를 보는 부제
 
 ### 전체 컨셉
 
-두 포인터를 양 끝에서 좁혀 오면 한 번의 순회로 답이 나온다.
+두 포인터를 양 끝에서 좁혀 오면 한 번의 순회로 답이 나옵니다.
 
 \`\`\`text
 [1 2 3 4]
@@ -55,36 +60,50 @@ const PASSING = `# 시험용 — 전체를 보는 부제
 - 배열의 인덱스가 0부터라는 것
 - 부분합이 무엇인지
 
-### 아이디어 상세 — 두 포인터를 떠올리는 과정
+### 아이디어를 떠올리는 과정 — 모든 쌍 세기에서 양 끝 좁히기까지
 
-**① 문제를 고정한다.** 정렬된 배열에서 합이 target 인 두 수를 찾는다. n 은 최대 10만이다.
+먼저 무엇을 만들지 정합니다. 정렬된 배열에서 합이 target 인 두 수를 찾는 함수입니다.
 
-**② 가장 단순한 방법을 세우고 수치로 반박한다.** 모든 쌍을 세면 입력이 10만일 때 50억 번이다.
+\`\`\`ts
+function pair(xs: number[], t: number): number;
+\`\`\`
+
+모든 쌍을 세면 입력이 10만일 때 50억 번이에요.
 
 \`\`\`text
 쌍의 수 = n(n-1)/2
 \`\`\`
 
-정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓친다.
-
-**④ 비용이 무엇에 달렸는지 두 경우를 재서 보인다.** 모든 쌍은 6번, 양 끝에서 좁히면 3번이다.
+정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓칩니다.
 
 \`\`\`text
 [1 2 3 4]  모든 쌍 6번   양 끝 3번
 \`\`\`
 
-**⑤ 두 포인터를 개념으로 정의한다.** l 은 0, r 은 n-1 에서 출발해 합을 보고 한쪽만 당긴다.
+### 아이디어 상세 — 양 끝 좁히기
+
+한 문장으로 줄이면, 양 끝에서 출발해 합을 보고 한쪽만 당기는 방법입니다.
+
+\`\`\`text
+1단계 양 끝 잡기 → 2단계 한쪽 당기기
+\`\`\`
+
+#### 1단계 — 양 끝 잡기
+
+l 은 0, r 은 n-1 에서 출발합니다.
+
+#### 2단계 — 한쪽 당기기
+
+합을 보고 한쪽만 당깁니다. n = 4 에서 비교가 3번, n = 8 에서 7번입니다.
 
 \`\`\`text
 l=0 r=3  합 5 > 4 → r--
 l=0 r=2  합 4 = 4 → 찾았다
 \`\`\`
 
-**⑥ 그 개념의 결론을 값으로 낸다.** n = 4 에서 비교가 3번, n = 8 에서 7번이다.
-
 ### 수행으로 알아보는 알고리즘 — 양 끝에서 좁혀 답을 찾는다
 
-절차 전체를 한 장으로 먼저 본다.
+절차 전체를 한 장으로 먼저 봅니다.
 
 \`\`\`text
 l ← 0, r ← n-1
@@ -93,7 +112,7 @@ while l < r: 합을 보고 한쪽을 당긴다
 
 #### 1. 양 끝에서 좁히기
 
-한쪽만 당겨야 답을 안 놓친다.
+한쪽만 당겨야 답을 안 놓칩니다.
 
 \`\`\`text
 l→   ←r
@@ -101,7 +120,7 @@ l→   ←r
 
 #### 2. 합을 보고 한쪽을 당긴다
 
-목표보다 작으면 왼쪽을, 크면 오른쪽을 당긴다.
+목표보다 작으면 왼쪽을, 크면 오른쪽을 당깁니다.
 
 \`\`\`text
 합 < 목표 → l++        합 > 목표 → r--
@@ -109,7 +128,7 @@ l→   ←r
 
 #### 3. 만나면 멈춘다
 
-l 과 r 이 만나면 더 볼 쌍이 없다.
+l 과 r 이 만나면 더 볼 쌍이 없습니다.
 
 \`\`\`text
 [1 2 3 4]  l=1 r=2 → 여기서 끝
@@ -117,7 +136,7 @@ l 과 r 이 만나면 더 볼 쌍이 없다.
 
 #### 짚고 가기 — 정렬을 건너뛰고 싶어지는 자리
 
-정렬이 없으면 버리는 쪽에 답이 남는다.
+정렬이 없으면 버리는 쪽에 답이 남습니다.
 
 \`\`\`text
 [3 1 2] 에서 오해는 4 를, 옳은 답은 3 을 낸다
@@ -170,7 +189,7 @@ Go 표준 라이브러리의 sort 패키지 (https://pkg.go.dev/sort, 조회 202
 
 #### 경쟁 설계와의 대조
 
-이진 탐색으로 짝을 찾는 방법이 있다. 같은 입력에서 비교 172 회 대 34 회다.
+이진 탐색으로 짝을 찾는 방법이 있습니다. 같은 입력에서 비교 172 회 대 34 회입니다.
 
 ### 불변식 — l 왼쪽과 r 오른쪽에는 답이 될 수 있는 쌍이 남지 않는다
 
@@ -190,7 +209,7 @@ Go 표준 라이브러리의 sort 패키지 (https://pkg.go.dev/sort, 조회 202
 
 #### 비용을 세는 과정
 
-T1 부터 T6 까지 각 걸음이 포인터를 하나씩 당긴다.
+T1 부터 T6 까지 각 걸음이 포인터를 하나씩 당깁니다.
 
 \`\`\`text
 걸음 수 ≤ n
@@ -198,7 +217,7 @@ T1 부터 T6 까지 각 걸음이 포인터를 하나씩 당긴다.
 
 #### 케이스별 비용과 그 경계
 
-최악에서도 타이트하게 Θ(n) 이고, 정렬 비용을 더하면 Θ(n log n) 이다.
+최악에서도 타이트하게 Θ(n) 이고, 정렬 비용을 더하면 Θ(n log n) 입니다.
 
 #### 최악을 만드는 입력
 
@@ -217,7 +236,7 @@ T1 부터 T6 까지 각 걸음이 포인터를 하나씩 당긴다.
 \`\`\`
 
 <!--check:c1-->
-넘지 않는다. 좁히는 폭이 매번 1이라 만나는 순간 멈춘다.
+넘지 않습니다. 좁히는 폭이 매번 1이라 만나는 순간 멈춥니다.
 <!--/check-->
 
 - T3 에서 왜 l 을 옮겼는가?
@@ -392,31 +411,45 @@ test("P7 — deep.math 에 그림과 코드가 다 있으면 통과한다", () =
 });
 
 /**
- * `deep.origin`(2026-09-26 `KAN-056`)은 필수 절이지만 옛 구성 편에는 아직 없어서 **있을 때만**
- * 검사한다(`SPEC.md` §8 한시 조항). `PASSING` 이 옛 구성이므로 그것이 계속 통과하는 것이
- * 곧 무회귀다.
+ * `deep.origin`(2026-09-26 `KAN-056`)은 알고리즘 골격의 필수 절이다. 옛 구성 편에 없어서 **있을 때만**
+ * 재던 한시 조항은 2026-10-01 `KAN-058` 에서 걷었다. `PASSING` 의 `deep.origin` 본문만 갈아 끼운다.
  */
 const WITH_ORIGIN = (body: string) =>
   PASSING.replace(
-    "### 아이디어 상세 — ",
-    `### 아이디어를 떠올리는 과정 — 모든 쌍에서 두 포인터까지\n\n${body}\n\n### 아이디어 상세 — `,
+    /(### 아이디어를 떠올리는 과정 — [^\n]*\n)[\s\S]*?(?=### 아이디어 상세 — )/,
+    (_, heading: string) => `${heading}\n${body}\n\n`,
   );
 
+/** `PASSING` 에서 `deep.origin` 절을 통째로 들어낸다. */
+const WITHOUT_ORIGIN = PASSING.replace(
+  /### 아이디어를 떠올리는 과정 — [\s\S]*?(?=### 아이디어 상세 — )/,
+  "",
+);
+
 test("section — 아이디어를 떠올리는 과정은 deep.origin 으로 해소된다", () => {
-  const text = WITH_ORIGIN(
-    "```ts\nfunction f(): void;\n```\n\n```text\n그림\n```",
-  );
-  const { sections, unresolved } = parseSections(text, "algo");
+  const { sections, unresolved } = parseSections(PASSING, "algo");
   expect(unresolved).toEqual([]);
   const ids = sections.map((s) => s.id);
   expect(ids).toContain("deep.origin");
   expect(ids.indexOf("deep.origin")).toBeLessThan(ids.indexOf("deep.build"));
 });
 
-test("P7 — deep.origin 이 없는 옛 구성은 위반이 아니다", () => {
-  expect(
-    check({ text: PASSING }).some((f) => f.where?.startsWith("deep.origin")),
-  ).toBe(false);
+test("P7 — deep.origin 이 없으면 걸린다(필수 절)", () => {
+  const findings = check({
+    text: WITHOUT_ORIGIN,
+    sim: SIM,
+    bench: { 비교: 34 },
+  });
+  expect(findings).toEqual([{ code: "P7", detail: "`deep.origin` 절이 없다" }]);
+});
+
+test("P7 — 자료구조 골격에는 deep.origin 을 요구하지 않는다", () => {
+  const text = "# 시험용 — 자료구조\n\n본문입니다.\n";
+  const detail = "`deep.origin` 절이 없다";
+  expect(check({ text }).some((f) => f.detail === detail)).toBe(true);
+  expect(check({ text, kind: "ds" }).some((f) => f.detail === detail)).toBe(
+    false,
+  );
 });
 
 test("P7 — deep.origin 에 코드 펜스가 없으면 걸린다", () => {
@@ -675,7 +708,7 @@ test("P4 — 전체 코드의 분기를 전개가 안 밟으면 걸린다", () =
 
 test("P5 — perf.derive 가 T# 를 안 쓰면 걸린다", () => {
   const text = PASSING.replace(
-    "T1 부터 T6 까지 각 걸음이 포인터를 하나씩 당긴다.",
+    "T1 부터 T6 까지 각 걸음이 포인터를 하나씩 당깁니다.",
     "각 걸음이 포인터를 하나씩 당긴다.",
   );
   expect(codes(check({ text }))).toContain("P5");
@@ -807,8 +840,8 @@ test("P7 — deep.walk.step 의 코드 스니펫은 그림으로 세지 않는�
 
 test("P8 — concept 이 뒤 절 헤딩을 참조하면 걸린다", () => {
   const text = PASSING.replace(
-    "두 포인터를 양 끝에서 좁혀 오면 한 번의 순회로 답이 나온다.",
-    "자세한 것은 최악을 만드는 입력 에서 본다.",
+    "두 포인터를 양 끝에서 좁혀 오면 한 번의 순회로 답이 나옵니다.",
+    "자세한 것은 최악을 만드는 입력 에서 봅니다.",
   );
   expect(codes(check({ text }))).toContain("P8");
 });
@@ -910,7 +943,7 @@ const RELATED = `### 알아 두면 좋은 개념 — 마르코프 성질
 /** 표본에서 `#### 경쟁 설계와의 대조` 절만 들어낸다. */
 const withoutAlt = (text: string): string =>
   text.replace(
-    "#### 경쟁 설계와의 대조\n\n이진 탐색으로 짝을 찾는 방법이 있다. 같은 입력에서 비교 172 회 대 34 회다.\n\n",
+    "#### 경쟁 설계와의 대조\n\n이진 탐색으로 짝을 찾는 방법이 있습니다. 같은 입력에서 비교 172 회 대 34 회입니다.\n\n",
     "",
   );
 
@@ -972,18 +1005,18 @@ test("P10 — purpose.alt 를 생략했는데 실측값이 남아 있으면 걸�
 
 /* ────────────────── P11·P12·P13 기호 규약 (`L38`~`L40`) ────────────────── */
 
-/** 기호표를 `deep.build` ① 자리에 끼운다. 행 수와 선언은 인자로 갈아 끼운다. */
+/** 기호표를 `deep.origin` 첫머리에 끼운다. 행 수와 선언은 인자로 갈아 끼운다. */
 function withSymbols(count: string, rows: string[]): string {
   const table = [
     `이 글이 쓰는 기호는 ${count}이에요. 여기서 정하고 끝까지 같은 뜻으로 씁니다.`,
     "",
-    "| 기호 | 무엇인가 | 이 문제에서 |",
+    "| 기호 | 무엇인가 | 이 과제에서 |",
     "| --- | --- | --- |",
     ...rows,
   ].join("\n");
   return PASSING.replace(
-    "**① 문제를 고정한다.**",
-    `${table}\n\n**① 문제를 고정한다.**`,
+    "먼저 무엇을 만들지 정합니다.",
+    `${table}\n\n먼저 무엇을 만들지 정합니다.`,
   );
 }
 
@@ -1024,15 +1057,15 @@ test("P11 — 표 밖에서 정의한 기호는 위반이 아니다", () => {
   // `SPEC` `L21` 은 「그 자리 또는 앞에서」 정의를 요구한다. 파생 기호를 처음 쓰는 자리에서
   // 정의하는 것이 규격이므로, 표에 없다는 이유로 잡으면 규칙이 원고와 어긋난다.
   const text = withSymbols("둘", TWO_ROWS).replace(
-    "**① 문제를 고정한다.**",
-    "구역 크기 `B` 를 여기서 정합니다.\n\n```text\nB = 2\n```\n\n**① 문제를 고정한다.**",
+    "먼저 무엇을 만들지 정합니다.",
+    "구역 크기 `B` 를 여기서 정합니다.\n\n```text\nB = 2\n```\n\n먼저 무엇을 만들지 정합니다.",
   );
   expect(check({ text, sim: SIM, bench: { 비교: 34 } })).toEqual([]);
 });
 
 test("P12 — 밝힌 코드 이름이 코드에 없으면 걸린다", () => {
   const text = PASSING.replace(
-    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓친다.",
+    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓칩니다.",
     "식의 `B` 를 코드에서는 `block` 이라 씁니다.",
   );
   const findings = check({ text, sim: SIM, bench: { 비교: 34 } });
@@ -1043,7 +1076,7 @@ test("P12 — 밝힌 코드 이름이 코드에 없으면 걸린다", () => {
 test("P12 — 코드 펜스에 실재하면 걸리지 않는다", () => {
   // `xs` 는 통과 표본의 `ts` 펜스에 실제로 있는 이름이다.
   const text = PASSING.replace(
-    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓친다.",
+    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓칩니다.",
     "식의 `a` 를 코드에서는 `xs` 라 씁니다.\n\n```text\na → xs\n```",
   );
   expect(check({ text, sim: SIM, bench: { 비교: 34 } })).toEqual([]);
@@ -1052,7 +1085,7 @@ test("P12 — 코드 펜스에 실재하면 걸리지 않는다", () => {
 test("P12 — `text` 펜스는 식별자의 실재를 증언하지 않는다", () => {
   // 그림 안의 글자는 코드가 아니다. 그림에만 있는 이름을 「코드에서는」 이라 적으면 걸린다.
   const text = PASSING.replace(
-    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓친다.",
+    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓칩니다.",
     "식의 `B` 를 코드에서는 `blk` 라 씁니다.\n\n```text\nblk\n```",
   );
   expect(
@@ -1068,7 +1101,7 @@ const FIG = ["```text", "구역", "```"].join("\n");
 
 test("P13 — 정의식을 뒤에서 되풀어 쓰면 걸린다", () => {
   const text = PASSING.replace(
-    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓친다.",
+    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓칩니다.",
     () =>
       `${DEF}\n\n${FIG}\n\n뒤에서 다시 $\\lfloor \\frac{l}{B} \\rfloor$ 로 적습니다.`,
   );
@@ -1079,7 +1112,7 @@ test("P13 — 정의식을 뒤에서 되풀어 쓰면 걸린다", () => {
 
 test("P13 — 이름으로만 쓰면 걸리지 않는다", () => {
   const text = PASSING.replace(
-    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓친다.",
+    "정렬돼 있으면 양 끝에서 좁혀도 답을 안 놓칩니다.",
     () => `${DEF}\n\n${FIG}\n\n뒤에서는 $\\operatorname{blk}(l)$ 로 씁니다.`,
   );
   expect(check({ text, sim: SIM, bench: { 비교: 34 } })).toEqual([]);
@@ -1105,9 +1138,11 @@ test("P14 — 갈래를 하는 일의 이름으로 부르면 걸리지 않는다
 });
 
 test("P14 — 파트 1 의 원문자는 잡지 않는다 (P4 의 분기 피복이 그것으로 선다)", () => {
-  // 통과 표본의 `아이디어 상세`·`전개` 에는 원문자가 이미 있다. 그것을 안 잡는 것이
-  // 이 규칙의 범위이고, 넓히면 P4 가 재는 것이 통째로 없어진다.
-  expect(PASSING).toContain("**① 문제를 고정한다.**");
+  // 통과 표본의 `수행으로 알아보는 알고리즘`·`전체 코드` 에는 원문자가 이미 있다. 그것을 안 잡는
+  // 것이 이 규칙의 범위이고, 넓히면 P4 가 재는 것이 통째로 없어진다. (`아이디어 상세` 의 문단 머리
+  // 원문자 라벨은 P17 이 따로 잡는다 — 새 구성은 그 자리를 단계 헤딩으로 세운다.)
+  expect(PASSING).toContain("— ① 을 실행한다");
+  expect(PASSING).toContain("// ①");
   expect(check({ text: PASSING, sim: SIM, bench: { 비교: 34 } })).toEqual([]);
 });
 
@@ -2110,8 +2145,8 @@ test("TBL — 통과 표본은 111편과 같이 0 건이다", () => {
 /**
  * `deep.build` 의 실현 단계(2026-09-28 `KAN-056`, `SPEC.md` `L42`·`L45`).
  *
- * 옛 구성 110편에는 단계 헤딩이 없어서 P17·P18 은 **단계 헤딩이 있을 때만** 잰다. `PASSING` 이
- * 옛 구성이므로 그것이 계속 통과하는 것이 곧 무회귀다.
+ * 단계 헤딩이 있을 때만 재던 한시 조항은 2026-10-01 `KAN-058` 에서 걷었다. `PASSING` 이 새 구성이라
+ * 그것이 계속 통과하는 것이 곧 무회귀이고, 옛 구성(`LEGACY`)이 걸리는 것은 아래 「기본 동작」 묶음이 본다.
  */
 const STAGES_OK = [
   "#### 먼저 알아 둘 개념 — 창",
@@ -2168,7 +2203,7 @@ test("section — 아이디어 상세 안의 「짚고 가기」 는 수행 절�
   expect(pause?.id).toBe("deep.build.tail");
 });
 
-test("P17·P18 — 단계 헤딩이 없는 옛 구성은 재지 않는다", () => {
+test("P17·P18 — 통과 표본은 걸리지 않는다", () => {
   expect(findingsOf(PASSING, "P17")).toEqual([]);
   expect(findingsOf(PASSING, "P18")).toEqual([]);
 });
@@ -2251,18 +2286,6 @@ test("P18 — 존댓말 · 청유 · 그림 · 인용 · 인라인 코드는 걸
 });
 
 /* ── P22 · P23 — 실습 절(`KAN-060`, `SPEC.md` §3 `practice` · `L49`) ── */
-
-const ORIGIN = `### 아이디어를 떠올리는 과정 — 둘 다 훑기에서 양 끝 좁히기까지
-
-\`\`\`ts
-function pair(A: number[], t: number): [number, number];
-\`\`\`
-
-\`\`\`text
-[1 2 3 100]  목표 101
-\`\`\`
-
-`;
 
 test("section — 실습 아래 헤딩은 이름과 상관없이 practice 로 해소된다", () => {
   const { sections, unresolved } = parseSections(PASSING, "algo");
@@ -2352,29 +2375,17 @@ test("본문 검사는 실습을 읽지 않는다 — 문제 서술의 평서형
     "#### 문제 상세\n\n합이 목표값인 쌍이 하나 있다.",
     "#### 문제 상세\n\n**이 문제는 쌍을 찾는다.** 이 문제의 제약은 위와 같다.",
   );
-  const findings = check({
-    text: text.replace(
-      "### 수행으로 알아보는",
-      `${ORIGIN}### 수행으로 알아보는`,
-    ),
-    sim: SIM,
-    bench: { 비교: 34 },
-  });
+  const findings = check({ text, sim: SIM, bench: { 비교: 34 } });
   expect(codes(findings).filter((c) => c === "P18" || c === "P23")).toEqual([]);
 });
 
-test("P23 — deep.origin 이 있는 편에서 실습 문제를 가리키면 걸린다", () => {
-  const withOrigin = PASSING.replace(
-    "### 수행으로 알아보는",
-    `${ORIGIN}### 수행으로 알아보는`,
-  );
+const SENTENCE = "양 끝에서 좁히면 한 번의 순회로 끝납니다.";
+
+test("P23 — 본문이 실습 문제를 가리키면 걸린다", () => {
   expect(
-    codes(check({ text: withOrigin, sim: SIM, bench: { 비교: 34 } })),
+    codes(check({ text: PASSING, sim: SIM, bench: { 비교: 34 } })),
   ).not.toContain("P23");
-  const bad = withOrigin.replace(
-    "양 끝에서 좁히면 한 번의 순회로 끝납니다.",
-    "이 문제의 제약이면 양 끝에서 좁히면 한 번의 순회로 끝납니다.",
-  );
+  const bad = PASSING.replace(SENTENCE, `이 문제의 제약이면 ${SENTENCE}`);
   // 이 검사가 보는 것은 P23 하나다 — 끼워 넣은 문장이 다른 문형 검사에 걸리는지는 여기서 안 본다.
   expect(
     codes(check({ text: bad, sim: SIM, bench: { 비교: 34 } })).filter(
@@ -2383,23 +2394,9 @@ test("P23 — deep.origin 이 있는 편에서 실습 문제를 가리키면 걸
   ).toEqual(["P23"]);
 });
 
-test("P23 — deep.origin 이 없는 옛 구성은 재지 않는다(한시 조항)", () => {
-  const bad = PASSING.replace(
-    "양 끝에서 좁히면 한 번의 순회로 끝납니다.",
-    "이 문제에서는 양 끝에서 좁히면 한 번의 순회로 끝납니다.",
-  );
-  expect(
-    codes(check({ text: bad, sim: SIM, bench: { 비교: 34 } })),
-  ).not.toContain("P23");
-});
-
 test("P23 — 문제 일반을 말하는 자리 · 인용 · 코드는 안 본다", () => {
-  const withOrigin = PASSING.replace(
-    "### 수행으로 알아보는",
-    `${ORIGIN}### 수행으로 알아보는`,
-  );
-  const ok = withOrigin.replace(
-    "양 끝에서 좁히면 한 번의 순회로 끝납니다.",
+  const ok = PASSING.replace(
+    SENTENCE,
     "문제 지문에서 정렬된 배열이 보이면 이 방법을 떠올립니다. 「이 문제」라고 부르지 않고 `이 문제` 도 코드입니다.",
   );
   expect(
@@ -2407,21 +2404,33 @@ test("P23 — 문제 일반을 말하는 자리 · 인용 · 코드는 안 본�
   ).not.toContain("P23");
 });
 
-/* ── --strict — 한시 조항을 끈 최종 기준(`KAN-058`, `SPEC.md` §8) ── */
+/* ── 기본 동작 — 한시 조항 셋을 걷은 최종 기준(2026-10-01 `KAN-058`, `SPEC.md` §8) ── */
 
-// `PASSING` 은 옛 구성이다 — 한시 조항 아래에서는 통과하고, 최종 기준에서는 옛 구성이라 걸려야 한다.
-const strictCodes = (text: string, strict: boolean) =>
-  codes(check({ text, sim: SIM, bench: { 비교: 34 }, strict }));
+// 옛 구성 — `deep.origin` 이 없고 `deep.build` 가 원문자 라벨 문단으로 이어진다. 전개 전 110편의 모양이다.
+const LEGACY = PASSING.replace(
+  /### 아이디어를 떠올리는 과정 — [\s\S]*?(?=### 수행으로 알아보는 알고리즘 — )/,
+  `### 아이디어 상세 — 두 포인터를 떠올리는 과정
 
-const SENTENCE = "양 끝에서 좁히면 한 번의 순회로 끝납니다.";
+**① 문제를 고정한다.** 정렬된 배열에서 합이 target 인 두 수를 찾는다. n 은 최대 10만이다.
 
-test("--strict — 옛 구성은 deep.origin 없음 · 실현 단계 없음으로 걸린다", () => {
-  const findings = check({
-    text: PASSING,
-    sim: SIM,
-    bench: { 비교: 34 },
-    strict: true,
-  });
+\`\`\`text
+쌍의 수 = n(n-1)/2
+\`\`\`
+
+**② 두 포인터를 개념으로 정의한다.** l 은 0, r 은 n-1 에서 출발해 합을 보고 한쪽만 당긴다.
+
+\`\`\`text
+l=0 r=3  합 5 > 4 → r--
+\`\`\`
+
+`,
+);
+
+const defaultCodes = (text: string) =>
+  codes(check({ text, sim: SIM, bench: { 비교: 34 } }));
+
+test("기본 동작 — 옛 구성은 deep.origin 없음 · 실현 단계 0 개로 걸린다", () => {
+  const findings = check({ text: LEGACY, sim: SIM, bench: { 비교: 34 } });
   expect(
     findings.some(
       (f) => f.code === "P7" && f.detail.includes("`deep.origin` 절이 없다"),
@@ -2432,41 +2441,59 @@ test("--strict — 옛 구성은 deep.origin 없음 · 실현 단계 없음으�
       (f) => f.code === "P17" && f.detail.includes("실현 단계가 0 개"),
     ),
   ).toBe(true);
-  expect(strictCodes(PASSING, false)).not.toContain("P17");
 });
 
-test("--strict — 단계 헤딩이 없어도 본문 반말(P18)을 잰다", () => {
-  const text = PASSING.replace(SENTENCE, `${SENTENCE} 끝은 이렇게 정해진다.`);
-  expect(strictCodes(text, false)).not.toContain("P18");
-  expect(strictCodes(text, true)).toContain("P18");
+test("기본 동작 — 단계 헤딩이 없어도 본문 반말(P18)을 잰다", () => {
+  const legacy = WITH_STAGES("");
+  expect(
+    parseSections(legacy, "algo").sections.some((s) =>
+      s.id.startsWith("deep.build."),
+    ),
+  ).toBe(false);
+  expect(defaultCodes(legacy)).not.toContain("P18");
+  const text = legacy.replace(SENTENCE, `${SENTENCE} 끝은 이렇게 정해진다.`);
+  expect(defaultCodes(text)).toContain("P18");
 });
 
-test("--strict — deep.origin 이 없어도 실습 문제 지칭(P23)을 잰다", () => {
-  const text = PASSING.replace(SENTENCE, `이 문제의 제약이면 ${SENTENCE}`);
-  expect(strictCodes(text, false)).not.toContain("P23");
-  expect(strictCodes(text, true)).toContain("P23");
+test("기본 동작 — deep.origin 이 없어도 실습 문제 지칭(P23)을 잰다", () => {
+  expect(defaultCodes(WITHOUT_ORIGIN)).not.toContain("P23");
+  const text = WITHOUT_ORIGIN.replace(
+    SENTENCE,
+    `이 문제의 제약이면 ${SENTENCE}`,
+  );
+  expect(defaultCodes(text)).toContain("P23");
 });
 
-test("--strict — voice 에서 아직 안 켠 「견주다」도 P2 로 잰다", () => {
+test("기본 동작 — voice 에서 아직 안 켠 「견주다」도 알고리즘 골격에서 P2 로 잰다", () => {
   const text = PASSING.replace(SENTENCE, `두 끝을 견주어 ${SENTENCE}`);
-  const p2 = (strict: boolean) =>
-    check({ text, sim: SIM, bench: { 비교: 34 }, strict }).filter(
-      (f) => f.code === "P2" && f.detail.includes("견주"),
-    );
-  expect(p2(false)).toEqual([]);
-  expect(p2(true).length).toBe(1);
+  const p2 = check({ text, sim: SIM, bench: { 비교: 34 } }).filter(
+    (f) => f.code === "P2" && f.detail.includes("견주"),
+  );
+  expect(p2.length).toBe(1);
 });
 
 // 「견줍니다」·「견줌」은 어간 뒤 받침이 붙은 활용형이라 `견[주줘준줄줬]` 에서 빠졌다(2026-09-30, 34곳).
-test("--strict — 「견줍니다」·「견줌」도 잡는다 (활용형 누락 재발 방지)", () => {
+test("기본 동작 — 「견줍니다」·「견줌」도 잡는다 (활용형 누락 재발 방지)", () => {
   for (const form of ["두 끝을 견줍니다.", "두 끝의 견줌이 끝나면"]) {
     const text = PASSING.replace(SENTENCE, `${form} ${SENTENCE}`);
     expect(
-      check({ text, sim: SIM, bench: { 비교: 34 }, strict: true }).some(
+      check({ text, sim: SIM, bench: { 비교: 34 } }).some(
         (f) => f.code === "P2" && f.detail.includes("견주"),
       ),
     ).toBe(true);
   }
+});
+
+// 자료구조 가이드에 남은 「견주다」는 이 카드 범위 밖이다 — voice 원본을 켤 때 함께 걸린다.
+test("기본 동작 — 자료구조 골격에는 「견주다」를 아직 걸지 않는다", () => {
+  const text =
+    "# 시험용 — 자료구조\n\n두 끝을 견주어 봅니다. 두 끝을 견줍니다.\n";
+  const p2 = (kind: "algo" | "ds") =>
+    check({ text, kind }).filter(
+      (f) => f.code === "P2" && f.detail.includes("견주"),
+    );
+  expect(p2("algo").length).toBeGreaterThan(0);
+  expect(p2("ds")).toEqual([]);
 });
 
 // 식을 수식 블록으로 옮긴 편이 P1 에 걸려 텍스트 펜스로 되돌아간 자리(`KAN-058` 샘플 binarySearch).
@@ -2486,24 +2513,25 @@ test("P1 — 수식 블록은 산문 문단으로 세지 않고, 연속을 끊�
 });
 
 // 정본에서 추출한 전체 코드에 「이 문제의 계약이다」가 남아 P23 을 지나간 자리(`KAN-058` sortArray).
-test("--strict — P23 은 코드 펜스의 주석도 본다(코드 자체는 안 본다)", () => {
+test("기본 동작 — P23 은 코드 펜스의 주석도 본다(코드 자체는 안 본다)", () => {
   const withComment = (c: string) =>
     PASSING.replace(
       SENTENCE,
       `${SENTENCE}\n\n\`\`\`ts\n${c}\nconst x = 1;\n\`\`\``,
     );
-  const p23 = (text: string, strict: boolean) =>
-    check({ text, sim: SIM, bench: { 비교: 34 }, strict }).filter(
+  const p23 = (text: string) =>
+    check({ text, sim: SIM, bench: { 비교: 34 } }).filter(
       (f) => f.code === "P23",
     );
-  const line = withComment("// 새 배열이어야 한다는 것이 이 문제의 계약이다.");
-  expect(p23(line, false)).toEqual([]);
-  expect(p23(line, true).length).toBe(1);
+  expect(p23(withComment("const y = 2;"))).toEqual([]);
   expect(
-    p23(withComment(" * 이 문제의 제약은 칸 수가 10^6 이다."), true).length,
+    p23(withComment("// 새 배열이어야 한다는 것이 이 문제의 계약이다.")).length,
+  ).toBe(1);
+  expect(
+    p23(withComment(" * 이 문제의 제약은 칸 수가 10^6 이다.")).length,
   ).toBe(1);
   // 주석이 아닌 코드 줄의 문자열은 안 본다.
-  expect(p23(withComment('const s = "이 문제";'), true)).toEqual([]);
+  expect(p23(withComment('const s = "이 문제";'))).toEqual([]);
 });
 
 // 흡수한 문제의 스텁·테스트만 옮겨지고 문제 서술이 실습 절에 안 들어간 자리(`KAN-060` kadane).

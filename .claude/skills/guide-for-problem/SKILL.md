@@ -35,8 +35,8 @@ argument-hint: <file-name-without-extension>
 | 문체 | voice `algorithm-guide-writer` — 검사기가 읽는 사본은 [`.claude/authoring/voices/algorithm-guide-writer/`](../../authoring/voices/algorithm-guide-writer/voice.md) |
 | 본보기 | 파일럿 [`src/algorithms/array/sparseTableRangeMin/`](../../../src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md) — 원고와 사이드카 전부(`ref`·`proof`·`sim`·`fig`·`test`·`figs/`). 전개 기준으로 승인된 샘플 둘(`KAN-058.1`, 2026-09-30): 개념이 단순한 편 [`binarySearch`](../../../src/algorithms/binary-search/binarySearch/binarySearch-guide.md)(낯선 개념 절 없이 단계 셋) · 어려운 편 [`stronglyConnectedComponents`](../../../src/algorithms/graph/stronglyConnectedComponents/stronglyConnectedComponents-guide.md)(낯선 개념마다 여섯 요소) |
 
-**대상인지 먼저 본다.** `bun run tools/check-v2.ts --strict <가이드>` 가 걸리는 편이 대상이다.
-전체 목록은 `bun run tools/check-v2.ts --all --strict`. 위반 목록이 첫 작업 목록이다.
+**대상인지 먼저 본다.** `bun run tools/check-v2.ts <가이드>` 가 걸리는 편이 대상이다.
+전체 목록은 `bun run tools/check-v2.ts --all`. 위반 목록이 첫 작업 목록이다.
 
 ### 입력 — 버리지 않고 옮긴다
 
@@ -51,7 +51,7 @@ argument-hint: <file-name-without-extension>
 
 ### 순서
 
-1. 옛 원고와 파일럿을 함께 읽고 `--strict` 위반 목록을 본다.
+1. 옛 원고와 파일럿을 함께 읽고 `check-v2` 위반 목록을 본다.
 2. `deep.origin` — 알고리즘이 푸는 과제를 입출력·규모로 고정하고(`L49`), 단순한 방법의 수치 반박에서 아이디어의 이름까지 간다.
 3. `deep.build` — 단계 지도 그림, 낯선 개념이 있으면 「먼저 알아 둘 개념」(`L41`), `#### {N}단계 — …` 실현 단계(`L42`).
 4. 나머지 절 — 핵심 구조는 이름 하나로(`L43`), 「견주다」 없이(`L44`), 본문 반말 없이(`L45`), 실습 문제를 가리키지 않고(`L49` — 본문 코드의 주석도 포함. 정본에서 추출한 코드면 정본 주석을 고치고 가이드 펜스를 맞춘다).
@@ -62,7 +62,7 @@ argument-hint: <file-name-without-extension>
 
 ```bash
 G=src/algorithms/<카테고리>/<편>/<편>-guide.md
-bun run tools/check-v2.ts --strict $G
+bun run tools/check-v2.ts $G
 bun run tools/check-proof.ts --require $G
 bun run tools/render-figs.ts --check
 bun test src/algorithms/<카테고리>/<편>/<편>-guide.test.ts
@@ -75,7 +75,7 @@ bunx tsc --noEmit                      # 사이드카 타입 — bun 은 타입�
 수식 블록의 `$$` 는 수식과 같은 줄에 붙이지 않고 따로 한 줄에 둔다. `$$\begin{aligned}` 처럼 붙이면
 remark-math 가 블록을 닫지 못해 뒤 헤딩이 모두 사라진다 — `build-html` 이 헤딩 수 어긋남으로 잡는다(2026-09-30).
 
-린트는 **만든·고친 파일 경로만** 줘서 돌린다(`bunx --bun @biomejs/biome check <파일…>`). 폴더 전체에 `--write` 를
+린트는 **만든·고친 파일 경로만** 줘서 실행한다(`bunx --bun @biomejs/biome check <파일…>`). 폴더 전체에 `--write` 를
 걸면 손대지 말아야 할 스텁·`_scratch/`·메모 파일까지 고쳐진다 — 전개에서 네 번 되풀이됐다(2026-09-30).
 
 문체 박자 등급은 합격선이 아니라 보고할 값이다. 실습 절 앞까지만 잘라서 잰다(실습은 옮겨 온 문제
@@ -128,7 +128,7 @@ python3 ${CLAUDE_PLUGIN_ROOT}/scripts/authoring.py lock
 `src/$ARGUMENTS.ts` 전체와 함수 시그니처를 읽는다(알고리즘은 가이드 끝 실습 절이 문제 서술이다). 그리고:
 
 - **정답 동작 확인** — 구현이 있으면 `bun test src/$ARGUMENTS.test.ts 2>&1; true`,
-  없으면 작은 입력을 손으로 돌려 본다. **본문에 실을 수치는 여기서 확정한다.**
+  없으면 작은 입력을 손으로 실행해 본다. **본문에 실을 수치는 여기서 확정한다.**
 - **재사용 자산 확인** — 같은 주제의 기존 `*-guide.mdx` 에 `export const steps`(시뮬)나
   mermaid 블록이 있으면 가져다 쓴다. 새로 만들지 않는다.
   **가져온 것도 검증 면제가 아니다** — 파서 검증과 서사 대조를 통과해야 한다.
@@ -174,7 +174,7 @@ Skill(authoring-kit:authoring-write) --spec <algo-guide|ds-guide>
 - `simulation-scaffold.md` — `#guide-sim` 위탁 규격. 이 프로젝트의 렌더 계약
 - `../../authoring/specs/{algo-guide,ds-guide}/` — 항목 구성과 항목별 작성 방법
 - `../../authoring/paths.json` — 경로·빌드 명령
-- `../../authoring.lock.json` — 이 프로젝트가 서 있는 규칙 조합
+- `../../authoring.lock.json` — 이 프로젝트가 지금 쓰는 규칙 조합
 - `solving-problem-canvas.md` — **구 템플릿(ORD-003 이전). 새 집필에 사용 금지** (이력 보존용)
 
 ## 주의

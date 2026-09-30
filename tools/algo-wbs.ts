@@ -4,7 +4,7 @@
  * **상태를 어느 문서에도 적지 않는다.** 병렬 세션이 상태 파일을 함께 고치면 그 파일이 곧
  * 충돌 지점이 되고, 병렬화가 막으려던 것이 상태 관리에서 그대로 돌아온다(`ord006-wbs.ts` 가
  * 자료구조 트랙에서 세운 것과 같은 규약). 진실은 둘뿐이다 — **순서는 `문제_가이드_목록.md`**,
- * **완료는 파일 시스템**(`<name>-guide.md` 가 `check-v2 --strict` 를 통과하면 그 편은 끝났다 —
+ * **완료는 파일 시스템**(`<name>-guide.md` 가 `check-v2` 를 통과하면 그 편은 끝났다 —
  * `KAN-058` 이 옛 구성을 다시 쓰는 동안 「파일이 있다」로는 진척을 못 잰다). 이 도구는 그 둘을 접어
  * 보여줄 뿐이고 아무것도 쓰지 않는다.
  *
@@ -107,7 +107,7 @@ export function parseIndex(text: string): Unit[] {
 }
 
 /**
- * 편이 섰는가 = `<name>-guide.md` 가 있고 **최종 기준(`check-v2 --strict`)을 통과하는가**.
+ * 편이 섰는가 = `<name>-guide.md` 가 있고 **최종 기준(`check-v2`)을 통과하는가**.
  * `.mdx` 는 v1 이라 미완이다. 2026-09-30 `KAN-058` 전에는 「`.md` 가 있다」였다 — 옛 구성 110편도
  * `.md` 라서 그 기준으로는 전개 진척이 늘 115/115 로 나왔다.
  */
@@ -120,7 +120,7 @@ export async function isDone(unit: Unit): Promise<boolean> {
     `${unit.name}-guide.md`,
   );
   if (!existsSync(path)) return false;
-  const { findings } = await guideFindings(path, true);
+  const { findings } = await guideFindings(path);
   return findings.length === 0;
 }
 

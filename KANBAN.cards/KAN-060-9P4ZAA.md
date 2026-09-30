@@ -24,7 +24,7 @@ scope: src/algorithms/**, sandbox/algo-guide-v2/**, tools/section.ts, tools/chec
 - 새 항목 `practice` — `## 실습 — 직접 풀어 보기`, fixed · 필수 · order 90, 파트 2 뒤 문서 끝. 문제마다 `### {문제 이름}`(`practice.problem`, 반복 ≥ 1), 그 아래 `####` 5절(스토리 · 함수 인터페이스 · 제약 조건 · 문제 상세 · 예시 — 옛 problem spec 5항), 끝에 스텁·테스트 경로와 `bun test <경로>`.
 - voice 규칙 「문서 끝은 스스로 점검하기로 마무리」(`.claude/authoring/voices/algorithm-guide-writer/voice.md:95`, SPEC 이 인용하는 87행은 밀린 옛 번호)를 「파트 2 는 selfcheck 로 맺고, 문서는 실습으로 끝낸다」로 고친다.
 - 새 규칙 `L49` — 파트 1·2 는 실습 문제를 전제하지 않는다. `deep.origin` ① 은 「다룰 과제를 고정한다」(스토리 없이 입출력 계약·규모·기호표). 「이 문제」·「지문」·「문제가 정해 두었다」류를 실습 밖에서 쓰지 않는다. §8 한시 조항: `deep.origin` 이 있는 편만 잰다, 058 이 닫히면 지운다.
-- `selfcheck` 의 답 없는 문제(`sandbox/algo-guide-v2/SPEC.md:776`)는 이해 점검, 실습은 스텁을 채워 테스트를 통과시키는 과제 — 두 절에 경계를 한 줄씩.
+- `selfcheck` 의 답 없는 문제(`sandbox/algo-guide-v2/SPEC.md:774`)는 이해 점검, 실습은 스텁을 채워 테스트를 통과시키는 과제 — 두 절에 경계를 한 줄씩.
 
 **규칙 자산.** `specs/problem/` 5항을 SPEC `practice` 로 옮기고 퇴역, `.claude/authoring.lock.json` 의 problem·voice 해시 갱신(S3 에서 `lock --update`). `gen-problem` 은 가이드 실습 절과 테스트를 쓰도록 전환. 낡은 서술 `.claude/skills/guide-for-problem/SKILL.md` 의 description·입력 서술(S3 에서 고침) · `README.md:17,26-36,75` · `CLAUDE.md:11` 정정.
 

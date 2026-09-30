@@ -20,7 +20,7 @@ scope: src/algorithms/**, src/_viz/**, design/viz/**, sandbox/algo-guide-v2/**, 
 - 「견주다」 90편 1,482곳(`grep -roE '견(주|줘|준|줄|줬)'`. 카드 메모의 91편 1,542곳은 KAN-060 전 수치).
 - 시각화 패턴은 `src/_viz/patterns/` 에 배열 계열 일곱(ArrayStrip·RangeCover·LevelTable·StepTrace·ApproachLadder·CellStage·LayerBars)뿐이고 **그래프·트리 패턴이 없다.**
 - `tools/algo-wbs.ts` 는 「`-guide.md` 가 있으면 완료」로 세서 지금 「115/115 완료」라고 답한다 — 이 카드의 진척을 못 잰다.
-- `tools/check-v2.ts` 에는 한시 조항 셋(`sandbox/algo-guide-v2/SPEC.md:1053-1067`)을 끈 채 한 편을 최종 기준으로 재는 모드가 없다.
+- `tools/check-v2.ts` 에는 한시 조항 셋(당시 SPEC §8 1053~1067행 — 2026-10-01 S10 에서 지움)을 끈 채 한 편을 최종 기준으로 재는 모드가 없다.
 - 지난 v2 전개(KAN-034, 111편)는 약 59.3억 토큰이 들었다(메모리 `no-prework-idling` 의 2026-09-18 진단 기록). 이번 편당 비용은 샘플에서 잰다.
 
 ### 전략
@@ -254,3 +254,4 @@ bunx tsc --noEmit
 - 2026-10-01T01:57 · s:62654a5c — S9 countInversions v2 재집필(W3) — strict·증명 40·시험 18·그림 5(NodeGraph·CellStageFilm·ApproachLadder·LayerBars, 배열 무대), 공용 파일·bench 변경 없음. 옛 짚고 가기의 변이(count += mid - i)가 제목·서두(「1 을 더한다」)와 어긋나 변이를 count += 1 로 맞춤(정본 머리 주석 포함). S11 검토 항목: 비용 기준이 칸 접근(펜윅 트리와 같은 잣대) — 병합 정렬 편은 비교 횟수(최악 비교 1,568,929 는 두 편 같음), 「역순쌍」/「역순 쌍」 띄어쓰기 불일치. 실습 결함 없음.
 - 2026-10-01T02:04 · s:62654a5c · S9 done — W3 44/44(algo-wbs 115/115 남은 0) · ci.ts gates 13단계 통과(2026-10-01)
 - 2026-10-01T02:06 · s:62654a5c · S10 doing — 착수
+- 2026-10-01T02:43 · s:62654a5c — S10 저장소 몫 — check-v2 한시 조항 셋을 걷어 strict 동작을 기본으로(P17·P18 모든 알고리즘 편 · P23 deep.origin 없이도·코드 주석 포함 · deep.origin 을 FIGURE_REQUIRED 로, 코드 의무는 알고리즘 전용 ALGO_CODE_REQUIRED). 「견주다」(voice 에 꺼 둔 항목)는 알고리즘 골격에서 기본으로 P2, 자료구조 골격에는 걸지 않음(자료구조 가이드 19편 124곳 남음). --strict 는 받되 무시. SPEC §8 한시 조항 세 문단·--strict 문단 삭제, §3·§4·L42·L44·L45·L49 문구 정리, 지시서 편 완료 명령에서 --strict 뺌. 시험 기준 원고 PASSING 을 새 구성으로. 밀린 인용은 remap-citations 로 옮기고, 지운 조항을 가리키던 이 카드 23행 인용은 당시 기록 산문으로. ci.ts all 에서 ① 자기시험 1건 실패 — check-metaphor.test.ts 가 countIslands proof.ts 826행을 줄 번호로 고정해 두었는데 S7 재집필로 1574행으로 밀렸음(W1 부터 있던 실패, gates 는 bun test tools 를 안 돌려 못 잡음). 내용으로 찾게 고치고 이름을 지우면 실패하는 것 확인. 다시 돌린 ci.ts self 통과, 나머지 모드는 처음 실행에서 통과. 전역 voice 원본 켜기는 유저 실행 요청 대기.

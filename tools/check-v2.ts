@@ -566,6 +566,7 @@ export function framePlacement(
  */
 const FIGURE_REQUIRED = [
   "concept",
+  "deep.origin",
   "deep.build",
   "deep.walk.step",
   "deep.walk.pause",
@@ -584,14 +585,24 @@ const FIGURE_REQUIRED = [
  * `FIGURE_REQUIRED` 에 넣지 않는 이유는 `deep.math` 가 **조건부 절**이기 때문이다(`SPEC.md` §8).
  * 거기 넣으면 절이 없는 편에서 "절이 없다" 로 오탐한다. 여기서는 **있을 때만** 검사한다.
  *
- * `deep.origin`(아이디어를 떠올리는 과정)도 여기 둔다 — 조건부가 아니라 **필수**인데, 2026-09-26
- * `KAN-056` 에서 `deep.build` 의 서사를 떼어 낸 새 절이라 옛 구성 편에는 아직 없다(`SPEC.md` §8
- * 한시 조항). `FIGURE_REQUIRED` 에 넣으면 전개 전의 편이 전부 "절이 없다" 로 걸린다. 전개 카드가
- * 닫히면 그쪽으로 옮긴다. 코드를 요구하는 것은 직무 ① 의 함수 시그니처 블록 때문이다.
- *
  * 코드의 정의: `text`·`ascii`·태그 없음은 그림이지 코드가 아니다. 언어 태그가 붙은 펜스만 센다.
  */
-const CONDITIONAL_FIGURE_AND_CODE = ["deep.math", "deep.origin"] as const;
+const CONDITIONAL_FIGURE_AND_CODE = ["deep.math"] as const;
+
+/**
+ * 알고리즘 골격에만 있는 필수 절 — 자료구조 골격(`ds`)에는 이 절이 없으므로 `FIGURE_REQUIRED` 를
+ * 잴 때 `ds` 에서는 건너뛴다.
+ *
+ * `deep.origin`(아이디어를 떠올리는 과정, 2026-09-26 `KAN-056`)은 한시 조항으로 「있으면」 목록에
+ * 있다가 2026-10-01 `KAN-058` 에서 필수 절로 옮겼다.
+ */
+const ALGO_ONLY = new Set<string>(["deep.origin"]);
+
+/**
+ * 그림에 더해 **코드**도 져야 하는 필수 절(알고리즘 골격). `deep.origin` 은 직무 ① 의 함수 시그니처
+ * 블록 때문에 코드를 요구한다. 코드의 정의는 `CONDITIONAL_FIGURE_AND_CODE` 와 같다.
+ */
+const ALGO_CODE_REQUIRED = ["deep.origin"] as const;
 
 /**
  * **있으면 그림만** 져야 하는 절 — 2026-08-28 유저 지시로 생긴 `related`(알아 두면 좋은 개념).
@@ -1050,16 +1061,12 @@ export function definitionRestated(text: string): Finding[] {
  * 유지하되, 개념은 … 생소한 개념인 경우, 별도 편성"*. 골격만 잰다. 단계가 **실제로 앞 단계의
  * 결과를 쓰는 순서인가**와 따로 편성한 개념이 정말 낯선가는 의미 판정이라 사람이 본다.
  *
- * **한시 조항** — 옛 구성 110편에는 단계 헤딩이 없다. `deep.build` 안에 하위 절이 하나라도
- * 있을 때만 잰다(`deep.origin` 과 같은 방식, `SPEC.md` §8).
+ * `deep.build` 에 하위 절이 있는 편만 재던 한시 조항은 2026-10-01 `KAN-058` 에서 걷었다.
  */
-export function buildStageFindings(
-  sections: Section[],
-  strict = false,
-): Finding[] {
+export function buildStageFindings(sections: Section[]): Finding[] {
   const head = first(sections, "deep.build");
   const kids = sections.filter((s) => s.id.startsWith("deep.build."));
-  if (!head || (kids.length === 0 && !strict)) return [];
+  if (!head) return [];
   const out: Finding[] = [];
   const stages = pick(sections, "deep.build.stage");
   if (stages.length < 2) {
@@ -1132,8 +1139,7 @@ export function buildStageFindings(
  * 문단 머리와 굵게 쓴 요약 문장은 어휘 스캐너가 안 보는 자리라 여기서 잰다. 펜스(그림) ·
  * 헤딩 · 표 · 마커 · 인라인 코드 · 인용(「…」 "…")은 뺀다. `~니다.` 와 청유 `~시다.` 는 존댓말이다.
  *
- * **한시 조항** — P17 과 같다. 전수로 43편 168곳이 걸려 있어서(2026-09-28) 전개 카드가 닫힐 때까지
- * 단계 헤딩이 있는 편만 잰다.
+ * 단계 헤딩이 있는 편만 재던 한시 조항은 2026-10-01 `KAN-058` 에서 걷었다.
  */
 export function banmalFindings(text: string): Finding[] {
   const out: Finding[] = [];
@@ -1318,7 +1324,8 @@ export function practiceFindings(
  * 본문이 「이 문제」라고 부르면 독자는 그 문제를 먼저 알아야 읽을 수 있다 — 그것이 카드가
  * 고치려는 상태다. 잡는 것은 **실습 문제를 가리키는** 꼴 셋뿐이다. 「문제 지문에서 이 신호가
  * 보이면」처럼 문제 일반을 말하는 자리는 대상이 아니다. 펜스·헤딩·인용 블록·인라인 코드·낫표
- * 인용은 안 본다. **한시 조항(§8)** — `deep.origin` 이 있는 편만 부른다.
+ * 인용은 안 본다. 코드 펜스는 **주석**만 본다. `deep.origin` 이 있는 편만 부르던 한시 조항은
+ * 2026-10-01 `KAN-058` 에서 걷었다.
  */
 const PRACTICE_REFERENCES: ReadonlyArray<RegExp> = [
   /이 문제/,
@@ -1326,10 +1333,7 @@ const PRACTICE_REFERENCES: ReadonlyArray<RegExp> = [
   /문제의 제약/,
 ];
 
-export function practiceReferenceFindings(
-  text: string,
-  codeComments = false,
-): Finding[] {
+export function practiceReferenceFindings(text: string): Finding[] {
   const out: Finding[] = [];
   let fenced = false;
   for (const [i, line] of text.split("\n").entries()) {
@@ -1338,9 +1342,9 @@ export function practiceReferenceFindings(
       fenced = !fenced;
       continue;
     }
-    // `--strict` 는 코드 펜스의 **주석**도 본다 — 독자는 본문 코드의 주석도 읽는다. 정본에서 추출한
-    // 전체 코드에 「이 문제의 계약이다」가 남아 P23 을 지나간 자리가 있었다(`KAN-058` sortArray).
-    const comment = fenced && codeComments ? commentPart(line) : null;
+    // 코드 펜스는 **주석**만 본다 — 독자는 본문 코드의 주석도 읽는다. 정본에서 추출한 전체 코드에
+    // 「이 문제의 계약이다」가 남아 P23 을 지나간 자리가 있었다(`KAN-058` sortArray).
+    const comment = fenced ? commentPart(line) : null;
     if (fenced && comment === null) continue;
     if (!fenced && (trimmed.startsWith("#") || trimmed.startsWith(">")))
       continue;
@@ -2174,14 +2178,6 @@ export interface CheckInput {
   directMemory?: boolean;
   maxProseRun?: number;
   /**
-   * **최종 기준으로 잰다**(`--strict`, `KAN-058`). `SPEC.md` §8 의 한시 조항 셋을 끈다 —
-   * `deep.origin` 은 필수 절, P17·P18 은 `deep.build` 에 하위 절이 없어도, P23 은 `deep.origin`
-   * 이 없어도 잰다. voice 에서 아직 안 켠 금지 어휘(`DEFERRED_METAPHORS`, 「견주다」)도 P2 로
-   * 잰다. 옛 구성 편을 다시 쓴 뒤 그 편 하나가 끝났는지를 여기서 본다. 전개 카드가 닫히면
-   * 이것이 기본이 되고 한시 조항은 지워진다. 알고리즘 골격에만 뜻이 있다.
-   */
-  strict?: boolean;
-  /**
    * 실습 문제의 풀 파일 줄이 링크한 대상(가이드 기준 상대 경로)과 그것이 실재하는가. algo 전용이고
    * P22 가 쓴다(`KAN-060`). 없으면 P22 는 구조만 보고 실재는 건너뛴다 — 시험은 파일을 안 읽는다.
    */
@@ -2349,11 +2345,10 @@ export function check(input: CheckInput): Finding[] {
   // 지적 원문을 큰따옴표로 옮긴 자리가 글쓴이의 문장으로 집계되면, 인용을 지우는 쪽으로
   // 원고가 움직인다. 금지 문형·표기 혼용은 인용 안에서도 그대로 본다 — 그쪽은 인용이든
   // 아니든 독자가 읽는 표기다.
-  // `--strict` 는 voice 에서 아직 안 켠 금지 어휘까지 잰다(알고리즘 골격만).
+  // 알고리즘 골격은 voice 에서 아직 안 켠 금지 어휘(`DEFERRED_METAPHORS`)까지 잰다. 자료구조
+  // 골격에는 아직 걸지 않는다 — 자료구조 가이드에 남은 자리는 이 검사기의 범위 밖이다.
   const metaphors =
-    input.strict === true && kind === "algo"
-      ? [...METAPHORS, ...DEFERRED_METAPHORS]
-      : METAPHORS;
+    kind === "algo" ? [...METAPHORS, ...DEFERRED_METAPHORS] : METAPHORS;
   let inQuote = false;
   for (const [index, line] of text.split("\n").entries()) {
     const outside = stripQuotes(line, inQuote);
@@ -2590,15 +2585,11 @@ export function check(input: CheckInput): Finding[] {
       }
     }
   }
-  // ── P17 아이디어 상세의 단계 골격 · P18 본문 반말 (`L42` · `L45`, 한시 조항) ──
+  // ── P17 아이디어 상세의 단계 골격 · P18 본문 반말 (`L42` · `L45`) ──
   if (kind === "algo") {
-    const strict = input.strict === true;
-    const staged = buildStageFindings(sections, strict);
-    findings.push(...staged);
-    if (strict || sections.some((s) => s.id.startsWith("deep.build."))) {
-      findings.push(...banmalFindings(text));
-    }
-    // ── P22 실습 절 구조 · P23 실습 문제 지칭 (`L49`, 한시 조항 — `deep.origin` 이 있는 편만) ──
+    findings.push(...buildStageFindings(sections));
+    findings.push(...banmalFindings(text));
+    // ── P22 실습 절 구조 · P23 실습 문제 지칭 (`L49`) ──
     findings.push(...practiceFindings(parsed.sections, input.practiceLinks));
     const linked = new Set(
       Object.keys(input.practiceLinks ?? {}).map((x) => x.replace(/^\.\//, "")),
@@ -2610,13 +2601,7 @@ export function check(input: CheckInput): Finding[] {
         detail: `폴더의 실습 테스트 \`${suite}\` 를 실습 절이 가리키지 않는다 — 그 문제를 \`### {문제 이름}\` 으로 싣는다`,
       });
     }
-    if (strict || first(sections, "deep.origin")) {
-      findings.push(...practiceReferenceFindings(text, strict));
-    }
-    // `deep.origin` 은 필수 절이다 — 한시 조항 동안만 「있으면」 목록(P7b)에 있다.
-    if (strict && !first(sections, "deep.origin")) {
-      findings.push({ code: "P7", detail: "`deep.origin` 절이 없다" });
-    }
+    findings.push(...practiceReferenceFindings(text));
   }
 
   findings.push(...figFindings(text, input.figs));
@@ -2647,6 +2632,7 @@ export function check(input: CheckInput): Finding[] {
   // 를 열어 뒀는데, S8 이 그 가설을 실물로 시험해 거짓임을 확인했다(`SURVEY.md`).
   // 없는 예외를 코드에 남겨 두면 다음 사람이 그 문으로 나간다.
   for (const id of FIGURE_REQUIRED) {
+    if (kind !== "algo" && ALGO_ONLY.has(id)) continue;
     const group = pick(sections, id);
     if (group.length === 0) {
       findings.push({ code: "P7", detail: `\`${id}\` 절이 없다` });
@@ -2662,11 +2648,20 @@ export function check(input: CheckInput): Finding[] {
     }
   }
 
-  // ── P7b 조건부 절의 그림·코드 의무 — 정의만 늘어놓는 절을 막는다 ──
-  for (const id of CONDITIONAL_FIGURE_AND_CODE) {
+  // ── P7b 그림에 더해 코드도 져야 하는 절 — 정의만 늘어놓는 절을 막는다 ──
+  // 조건부 절(`deep.math`)은 있을 때만 그림과 코드를 본다. 필수 절(`deep.origin`, 알고리즘 골격)은
+  // 절이 없는 것을 위 P7 이 이미 잡으므로 여기서는 코드만 본다.
+  const codeDuty = [
+    ...CONDITIONAL_FIGURE_AND_CODE,
+    ...(kind === "algo" ? ALGO_CODE_REQUIRED : []),
+  ];
+  for (const id of codeDuty) {
     const group = pick(sections, id);
-    if (group.length === 0) continue; // 없어도 되는 절이다
-    if (!group.some(hasFigure)) {
+    if (group.length === 0) continue; // 조건부 절은 없어도 된다 · 필수 절의 부재는 위에서 잡았다
+    const conditional = (
+      CONDITIONAL_FIGURE_AND_CODE as readonly string[]
+    ).includes(id);
+    if (conditional && !group.some(hasFigure)) {
       findings.push({
         code: "P7",
         where: `${id}:${group[0]?.line}`,
@@ -2903,11 +2898,10 @@ function norm(s: string): string {
  */
 /**
  * 가이드 한 편을 읽어 사이드카까지 모은 뒤 판정한다 — 화면에 아무것도 찍지 않는다.
- * `checkOne` 이 이것을 찍고, `algo-wbs.ts` 가 전개 진척(`--strict` 통과 여부)을 셀 때 부른다.
+ * `checkOne` 이 이것을 찍고, `algo-wbs.ts` 가 편마다 통과 여부를 셀 때 부른다.
  */
 export async function guideFindings(
   target: string,
-  strict = false,
 ): Promise<{ findings: Finding[]; warnings: Finding[]; missing: string[] }> {
   const file = Bun.file(target);
   const text = await file.text();
@@ -2917,7 +2911,7 @@ export async function guideFindings(
   // 그 실패는 원인에서 멀리 떨어진 자리에서 드러난다. 두 트랙 **밖**(시험용 임시 파일)만
   // `algo` 로 떨어지고, 트랙 안 경로는 `kindOf` 가 확실히 잡는다.
   const kind = kindOfOr(target, "algo");
-  const input: CheckInput = { text, kind, strict };
+  const input: CheckInput = { text, kind };
   const simFile = Bun.file(join(dir, `${stem}.sim.ts`));
   const benchFile = Bun.file(join(dir, `${stem}.bench.json`));
   if (await simFile.exists()) input.sim = await simFile.text();
@@ -3007,19 +3001,18 @@ async function checkOne(
   target: string,
   json: boolean,
   notes = false,
-  strict = false,
 ): Promise<{ bad: number; missing: string[]; warnings: number }> {
   if (!(await Bun.file(target).exists())) {
     console.error(`대상이 없다: ${target}`);
     return { bad: 1, missing: [], warnings: 0 };
   }
-  const { findings, warnings, missing } = await guideFindings(target, strict);
+  const { findings, warnings, missing } = await guideFindings(target);
   if (json) {
     console.log(
       JSON.stringify({ target, findings, warnings, missing }, null, 2),
     );
   } else if (findings.length === 0) {
-    console.log(`${target} — P1~P23 통과${strict ? "(--strict)" : ""}.`);
+    console.log(`${target} — P1~P23 통과.`);
     if (notes) for (const line of skipNotes(missing)) console.log(`  ${line}`);
   } else {
     console.error(`${target} — 위반 ${findings.length}건.`);
@@ -3065,8 +3058,7 @@ export function skipNotes(missing: string[]): string[] {
 if (import.meta.main) {
   const args = Bun.argv.slice(2);
   const json = args.includes("--json");
-  // 한시 조항(`SPEC.md` §8)을 끈 최종 기준. 옛 구성 편을 다시 쓴 뒤 그 편이 끝났는지 본다.
-  const strict = args.includes("--strict");
+  // `--strict` 는 2026-10-01 `KAN-058` 에서 기본 동작이 됐다. 옛 호출이 깨지지 않게 받아서 버린다.
 
   // **`--all` 은 대상 집합을 손으로 적지 않는다.** CI 가 글롭을 인자로 펴서 넘기면
   // 그 글롭이 ci.ts 안에 굳고, 새 편이 늘 때 아무도 그 자리를 안 고친다.
@@ -3082,7 +3074,7 @@ if (import.meta.main) {
     let warnedGuides = 0;
     const skipped = new Map<string, number>();
     for (const t of targets) {
-      const r = await checkOne(t, json, false, strict);
+      const r = await checkOne(t, json, false);
       bad += r.bad;
       warned += r.warnings;
       if (r.warnings > 0) warnedGuides++;
@@ -3112,7 +3104,7 @@ if (import.meta.main) {
   const target = args.find((a) => !a.startsWith("--"));
   if (target === undefined) {
     console.error(
-      "용법: bun run tools/check-v2.ts [--json] [--strict] <guide.md> | --all",
+      "용법: bun run tools/check-v2.ts [--json] <guide.md> | --all",
     );
     process.exit(2);
   }
@@ -3123,6 +3115,6 @@ if (import.meta.main) {
     console.error(`대상이 없다: ${target}`);
     process.exit(2);
   }
-  const { bad } = await checkOne(target, json, true, strict);
+  const { bad } = await checkOne(target, json, true);
   process.exit(bad === 0 ? 0 : 1);
 }

@@ -67,7 +67,8 @@ export const METAPHORS: { re: RegExp; label: string }[] = banned
  * 금지(-3)로 정했지만 **아직 켜지 않은** 은유·다의어 항목(`enabled: false`).
  *
  * 전수로 걸리는 편이 많아 전개 카드와 함께 켜기로 미룬 규칙이다 — 지금은 `v.common.gyeonju`
- * (「견주다」, `SPEC.md` `L44`) 하나. `check-v2 --strict` 가 한 편을 최종 기준으로 잴 때만 쓴다.
+ * (「견주다」, `SPEC.md` `L44`) 하나. `check-v2` 가 알고리즘 골격에서 기본으로 잰다(2026-10-01
+ * `KAN-058`). 자료구조 골격에는 아직 걸지 않는다.
  * 켜면(`enabled: true`) `METAPHORS` 로 옮겨 가고 여기서는 빠진다 — 따로 지울 자리가 없다.
  */
 export const DEFERRED_METAPHORS: { re: RegExp; label: string }[] =
