@@ -71,7 +71,7 @@ scope: src/algorithms/**, src/_viz/**, design/viz/**, sandbox/algo-guide-v2/**, 
 - [x] `S9` W3 전개. 완료: S7 과 같은 기준으로 W3 남은 편 0
 
 **마감**
-- [>] `S10` 이전 카드가 꺼 둔 규칙과 한시 조항을 예정대로 켜고 걷는다 — 규칙 내용은 새로 쓰지 않는다(KAN-056 L44 · KAN-056/060 §8 이 「전개 카드와 함께 켠다」로 남겨 둔 것). SPEC §8 세 조항 삭제, `--strict` 를 기본으로, `deep.origin` 을 `FIGURE_REQUIRED` 로, voice `v.common.gyeonju` 의 `enabled` 를 `false` → `true`. 원본은 여러 프로젝트가 함께 쓰는 `~/.claude/authoring/voices/algorithm-guide-writer/style.json` 이고 저장소 것은 사본이다(`tools/voice-style.ts:4-18`) — 원본 값 변경 → `tools/voice-style.ts --sync` → `--check`. 원본 변경은 그 자리에서 유저 실행 요청을 받고 한다. 완료: `check-v2 --all` 0 · `ci.ts all` 통과 <!-- claim:s=62654a5c t=2026-10-01T02:06 -->
+- [x] `S10` 이전 카드가 꺼 둔 규칙과 한시 조항을 예정대로 켜고 걷는다 — 규칙 내용은 새로 쓰지 않는다(KAN-056 L44 · KAN-056/060 §8 이 「전개 카드와 함께 켠다」로 남겨 둔 것). SPEC §8 세 조항 삭제, `--strict` 를 기본으로, `deep.origin` 을 `FIGURE_REQUIRED` 로, voice `v.common.gyeonju` 의 `enabled` 를 `false` → `true`. 원본은 여러 프로젝트가 함께 쓰는 `~/.claude/authoring/voices/algorithm-guide-writer/style.json` 이고 저장소 것은 사본이다(`tools/voice-style.ts:4-18`) — 원본 값 변경 → `tools/voice-style.ts --sync` → `--check`. 원본 변경은 그 자리에서 유저 실행 요청을 받고 한다. 완료: `check-v2 --all` 0 · `ci.ts all` 통과
 - [x] `S11` 검토서 · 검토로 이동
 
 ## 검증
@@ -257,3 +257,5 @@ bunx tsc --noEmit
 - 2026-10-01T02:43 · s:62654a5c — S10 저장소 몫 — check-v2 한시 조항 셋을 걷어 strict 동작을 기본으로(P17·P18 모든 알고리즘 편 · P23 deep.origin 없이도·코드 주석 포함 · deep.origin 을 FIGURE_REQUIRED 로, 코드 의무는 알고리즘 전용 ALGO_CODE_REQUIRED). 「견주다」(voice 에 꺼 둔 항목)는 알고리즘 골격에서 기본으로 P2, 자료구조 골격에는 걸지 않음(자료구조 가이드 19편 124곳 남음). --strict 는 받되 무시. SPEC §8 한시 조항 세 문단·--strict 문단 삭제, §3·§4·L42·L44·L45·L49 문구 정리, 지시서 편 완료 명령에서 --strict 뺌. 시험 기준 원고 PASSING 을 새 구성으로. 밀린 인용은 remap-citations 로 옮기고, 지운 조항을 가리키던 이 카드 23행 인용은 당시 기록 산문으로. ci.ts all 에서 ① 자기시험 1건 실패 — check-metaphor.test.ts 가 countIslands proof.ts 826행을 줄 번호로 고정해 두었는데 S7 재집필로 1574행으로 밀렸음(W1 부터 있던 실패, gates 는 bun test tools 를 안 돌려 못 잡음). 내용으로 찾게 고치고 이름을 지우면 실패하는 것 확인. 다시 돌린 ci.ts self 통과, 나머지 모드는 처음 실행에서 통과. 전역 voice 원본 켜기는 유저 실행 요청 대기.
 - 2026-10-01T03:13 · s:62654a5c · S11 doing — 착수
 - 2026-10-01T03:14 · s:62654a5c · S11 done — 검토서 판단 항목 8개(2026-10-01)
+- 2026-10-01T06:51 · s:62654a5c — 검토 판정 8항목 승인(2026-10-01, 검토 화면) — 추천 갈래대로 처리. 1·2·3 받아들임(변경 없음). 6: ci.ts gates 끝에 bun test tools 단계 추가, gates 14단계 통과(574 pass). 8: voice 원본은 켜지 않고 KAN-036(자료구조 가이드 전개)으로 넘김 — S10 은 저장소 검사기 수준에서 닫음. 4·5·7: 새 카드 셋(실습·정본 결함 정리 · 편 사이 셈 기준·용어 정합 · 무대·도구 개선 후보)은 최상위 카드라 main 에서만 만들 수 있어 병합 뒤 main 에서 만든다.
+- 2026-10-01T06:51 · s:62654a5c · S10 done — 저장소 몫 완료 · voice 원본 켜기는 검토 8 로 KAN-036 에 넘김

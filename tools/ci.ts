@@ -154,6 +154,13 @@ const GATES: Step[] = [
     label: "v2 빌드 규약(마커 · 표 칸) — 빌드해야 드러나는 것",
     argv: ["bun", "run", "tools/build-html.ts", "--all"],
   },
+  {
+    // `self` 모드의 같은 단계를 게이트에도 둔다. 웨이브 마감에 `gates` 만 돌리는 동안 검사기
+    // 시험 하나가 편 파일의 줄 번호에 묶여 두 웨이브 내내 실패한 채 안 보였다(KAN-058 검토 6,
+    // 2026-10-01). 574 개 · 약 3초라 게이트 비용은 거의 그대로다.
+    label: "추출기·판정기 자기시험(`bun test tools`)",
+    argv: ["bun", "test", "tools"],
+  },
 ];
 
 function run(step: Step): boolean {

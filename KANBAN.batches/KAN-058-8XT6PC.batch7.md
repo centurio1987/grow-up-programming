@@ -3,7 +3,7 @@ card: KAN-058-8XT6PC
 batch: 7
 created: 2026-10-01
 branch: KAN-058-8XT6PC
-status: 진행
+status: 완료
 steps: S10, S11
 ---
 
