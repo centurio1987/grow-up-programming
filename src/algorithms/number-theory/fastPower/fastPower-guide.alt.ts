@@ -24,7 +24,7 @@ export function expOfBits(n: number): bigint {
 /** 전개 절이 쓰는 지수. 비트 다섯이다. */
 export const WALK_EXP = 26n;
 
-/** 제약 규모의 지수. 비트 예순이다. */
+/** 과제 규모의 지수. 비트 예순이다. */
 export const LIMIT_EXP = 10n ** 18n;
 
 /** 큰 지수 — 비트 1,024. RSA 의 모듈러 거듭제곱이 다루는 규모다. */
@@ -33,7 +33,7 @@ export const BIG_EXP = expOfBits(1024);
 const MOD = 1_000_000_007n;
 const BASE = 3n;
 
-/* ────────────────────────── 이진법 (이 글의 절차) ────────────────────────── */
+/* ─────────────────────── 이진 거듭제곱 (이 글의 절차) ─────────────────────── */
 
 /**
  * 이 글이 가르치는 절차 그대로에 계수만 덧붙인 것. 바퀴마다 제곱 한 번, 비트가 1 인 바퀴에
@@ -56,7 +56,7 @@ export function binaryCost(exp: bigint): number {
   return mults;
 }
 
-/** 이진법이 실제로 내는 답. 두 설계가 같은 값을 내는지 확인하는 데 쓴다. */
+/** 이진 거듭제곱이 실제로 내는 답. 두 설계가 같은 값을 내는지 확인하는 데 쓴다. */
 export function binaryValue(exp: bigint): bigint {
   let result = 1n % MOD;
   let b = ((BASE % MOD) + MOD) % MOD;
@@ -136,6 +136,11 @@ export function windowRun(exp: bigint): WindowRun {
   return { value: result, mults };
 }
 
+/** 표를 만드는 데 드는 곱셈 — 지수가 0 이라 표 말고는 곱셈이 없는 실행에서 센다. */
+export function windowTableMults(): number {
+  return windowRun(0n).mults;
+}
+
 export function windowCost(exp: bigint): number {
   return windowRun(exp).mults;
 }
@@ -158,19 +163,20 @@ export function crossoverBits(): number {
 }
 
 export const cases = {
-  이진법: () => ({
+  "이진 거듭제곱": () => ({
     "전개 입력 · 곱셈": binaryCost(WALK_EXP),
     "40 비트 · 곱셈": binaryCost(expOfBits(40)),
     "41 비트 · 곱셈": binaryCost(expOfBits(41)),
-    "제약 규모 · 곱셈": binaryCost(LIMIT_EXP),
+    "과제 규모 · 곱셈": binaryCost(LIMIT_EXP),
     "1,024 비트 · 곱셈": binaryCost(BIG_EXP),
     "저장 칸": 3,
   }),
   "5 비트 창": () => ({
+    "표 만들기 · 곱셈": windowTableMults(),
     "전개 입력 · 곱셈": windowCost(WALK_EXP),
     "40 비트 · 곱셈": windowCost(expOfBits(40)),
     "41 비트 · 곱셈": windowCost(expOfBits(41)),
-    "제약 규모 · 곱셈": windowCost(LIMIT_EXP),
+    "과제 규모 · 곱셈": windowCost(LIMIT_EXP),
     "1,024 비트 · 곱셈": windowCost(BIG_EXP),
     "저장 칸": (1 << (WINDOW - 1)) + 3,
   }),

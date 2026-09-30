@@ -1,132 +1,237 @@
-import type { Frame } from "#guide-sim";
+import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**(`fastPower(3n, 26n, 1000n)`)을
- * 쓴다. 프레임 수는 그 절의 T# 단계 수(7)를 넘지 않는다 — P3 이 그 관계를 잰다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**(`fastPower(3n, 26n, 1000n)`)을 쓴다. 걸음은
+ * 반복문 앞(T1) · 바퀴마다 하나(T2~T6) · 반복을 끝내는 걸음(T7)이다.
+ *
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가 배열
+ * 무대(`arrayStage.ts`)를 고른다. 칸 `i` 가 지수의 자리 `i` 의 비트라서 이진 표기와 좌우가 거꾸로다
+ * (bit-manipulation 편과 같은 약속). 괄호 「남은 e」는 바퀴를 시작할 때 `e` 에 남은 자리, ▲ 는 이번에 읽은
+ * 비트다. 그 아래 두 줄이 알고리즘이 쌓는 값이다 — `b` 줄의 칸 `i` 는 자리 `i` 의 거듭제곱, `result` 줄의
+ * 칸 `i` 는 바퀴 `i` 를 마친 누적값이다. 모듈러 곱셈 수는 남는 변수다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
- *
- * ## `keyValue` 단독 조합의 여섯 선례를 그대로 따른다
- *
- * 선례는 `minMaxPair-guide.sim.ts` 가 세웠다. 고르는 기준 둘이 여기서도 맞는다 —
- * ① 입력이 값 셋(`base`·`exp`·`mod`)뿐이라 그릴 배열이 없고 ② 움직이는 것이 스칼라
- * 셋(`result`·`b`·`e`)과 누적 곱셈뿐이다. `array` 를 더하면 담을 배열이 없어 빈 칸이 된다.
- *
- * 1. **`keyValue` 단독은 「보이는 것이 값뿐인 절차」의 뷰다.** 이 편이 그렇다 — 자리가 아니라
- *    값 자체가 이해의 대상이고, 지수의 비트는 `e` 의 최하위 자리 하나로만 읽힌다.
- * 2. **항목을 프레임마다 같은 것으로 같은 순서로 두고 값만 바꾼다.** 값이 없는 자리도 항목을
- *    빼지 않고 `—` 로 적는다. 하나가 빠지면 아래가 한 칸씩 올라가 독자가 자리를 다시 센다.
- * 3. **항목 순서는 「지금 실행하는 갈래 → 그 갈래가 보는 값과 결과 → 상태 → 답」이다.**
- *    첫 항목이 `갈래`, 마지막 항목이 반환값이 될 `result` 다.
- * 4. **자리도 값으로 적는다.** 배열 패널이 없으니 「비트 자리 3」처럼 자리와 값을 함께 적어야
- *    독자가 어디를 보고 있는지 안다. 표기는 본문과 글자 그대로 같게 쓴다.
- * 5. **프레임 하나가 바퀴 하나다.** 이 편이 세는 비용이 모듈러 곱셈 횟수라 `누적 곱셈` 을
- *    항목으로 두고, 마지막 프레임의 값이 본문이 유도한 `n + s` 와 같게 맞춘다.
- * 6. **`label` 은 본문 기호표의 이름과 글자 그대로 같게 쓴다** — 여기서는 `b`·`e`·`result` 다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본 실행에서 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `fastPower-guide.test.ts` 가 잰다.
  */
+
 export const powBits = {
-  view: ["keyValue"] as const,
-  title: "fastPower(3n, 26n, 1000n) — 바퀴 하나가 비트 하나다",
+  player: "stage",
+  stage: "array",
+  arrayName: "exp 의 비트",
+  rangeLabel: "남은 e",
+  title: "fastPower(3n, 26n, 1000n)",
   result: "329n",
   steps: [
     {
-      title: "T1 초기화 — ① 두 값을 법 안으로 옮긴다",
-      detail:
-        "result 를 1 % 1000 = 1 로, b 를 3 % 1000 = 3 으로, e 를 26 으로 둔다. 아직 바퀴에 들어가지 않았다.",
-      entries: [
-        { label: "갈래", value: "① 초기화" },
-        { label: "이번 비트", value: "—" },
-        { label: "비트 자리", value: "—" },
-        { label: "b", value: 3 },
-        { label: "e", value: "26 (11010)" },
-        { label: "누적 곱셈", value: 0 },
-        { label: "result", value: 1 },
+      title: "T1 반복문 앞",
+      text: "result 를 1 % 1000 = 1 로, b 를 3 을 법 안으로 옮긴 3 으로, e 를 26 으로 둡니다. b 가 자리 0 의 거듭제곱입니다.",
+      array: [0, 1, 0, 1, 1],
+      range: [0, 4],
+      rangeSide: "e = 26",
+      read: [],
+      write: [],
+      pointers: {},
+      calc: {
+        expr: "((3 % 1000) + 1000) % 1000",
+        result: "b = 3",
+      },
+      vars: "모듈러 곱셈 0",
+      layers: [
+        {
+          name: "b",
+          values: ["3", null, null, null, null, null],
+          write: [0],
+        },
+        {
+          name: "result",
+          values: [null, null, null, null, null],
+          side: "result = 1",
+        },
       ],
     },
     {
-      title: "T2 비트 자리 0 — ④ 제곱만",
-      detail:
-        "e = 26 의 최하위 비트가 0 이라 ③ 을 건너뛴다. b 가 3 에서 9 로 제곱되고 e 가 13 이 된다.",
-      entries: [
-        { label: "갈래", value: "② 참 · ③ 건너뜀 · ④⑤ 실행" },
-        { label: "이번 비트", value: 0 },
-        { label: "비트 자리", value: 0 },
-        { label: "b", value: 3 },
-        { label: "e", value: "26 (11010)" },
-        { label: "누적 곱셈", value: 1 },
-        { label: "result", value: 1 },
+      title: "T2 자리 0 · 비트 0",
+      text: "e = 26 = 11010₂ 의 최하위 비트를 읽습니다. 비트가 0 이라 result 는 1 그대로입니다. 그다음 b 를 제곱해 자리 1 의 거듭제곱 9 를 만들고, e 를 한 칸 옮겨 13 으로 둡니다.",
+      array: [0, 1, 0, 1, 1],
+      range: [0, 4],
+      rangeSide: "e = 26",
+      read: [0],
+      write: [],
+      pointers: {
+        i: 0,
+      },
+      calc: {
+        expr: "26 & 1 = 0",
+        result: "누적 건너뜀",
+      },
+      vars: "모듈러 곱셈 1",
+      layers: [
+        {
+          name: "b",
+          values: ["3", "9", null, null, null, null],
+          read: [0],
+          write: [1],
+        },
+        {
+          name: "result",
+          values: ["1", null, null, null, null],
+          write: [],
+          side: "result = 1",
+        },
       ],
     },
     {
-      title: "T3 비트 자리 1 — ③ 누적 뒤 ④ 제곱",
-      detail:
-        "e = 13 의 최하위 비트가 1 이라 result 에 b = 9 를 곱한다. 그다음 b 가 81 이 되고 e 가 6 이 된다.",
-      entries: [
-        { label: "갈래", value: "② 참 · ③④⑤ 실행" },
-        { label: "이번 비트", value: 1 },
-        { label: "비트 자리", value: 1 },
-        { label: "b", value: 9 },
-        { label: "e", value: "13 (1101)" },
-        { label: "누적 곱셈", value: 3 },
-        { label: "result", value: 9 },
+      title: "T3 자리 1 · 비트 1",
+      text: "e = 13 = 1101₂ 의 최하위 비트를 읽습니다. 비트가 1 이라 result 에 b = 9 를 곱해 9 로 둡니다. 그다음 b 를 제곱해 자리 2 의 거듭제곱 81 을 만들고, e 를 한 칸 옮겨 6 으로 둡니다.",
+      array: [0, 1, 0, 1, 1],
+      range: [1, 4],
+      rangeSide: "e = 13",
+      read: [1],
+      write: [],
+      pointers: {
+        i: 1,
+      },
+      calc: {
+        expr: "1 · 9 mod 1000",
+        result: "9",
+      },
+      vars: "모듈러 곱셈 3",
+      layers: [
+        {
+          name: "b",
+          values: ["3", "9", "81", null, null, null],
+          read: [1],
+          write: [2],
+        },
+        {
+          name: "result",
+          values: ["1", "9", null, null, null],
+          write: [1],
+          side: "result = 9",
+        },
       ],
     },
     {
-      title: "T4 비트 자리 2 — ④ 제곱만",
-      detail:
-        "e = 6 의 최하위 비트가 0 이라 result 는 9 그대로다. b 가 81 에서 561 로 제곱되고 e 가 3 이 된다.",
-      entries: [
-        { label: "갈래", value: "② 참 · ③ 건너뜀 · ④⑤ 실행" },
-        { label: "이번 비트", value: 0 },
-        { label: "비트 자리", value: 2 },
-        { label: "b", value: 81 },
-        { label: "e", value: "6 (110)" },
-        { label: "누적 곱셈", value: 4 },
-        { label: "result", value: 9 },
+      title: "T4 자리 2 · 비트 0",
+      text: "e = 6 = 110₂ 의 최하위 비트를 읽습니다. 비트가 0 이라 result 는 9 그대로입니다. 그다음 b 를 제곱해 자리 3 의 거듭제곱 561 을 만들고, e 를 한 칸 옮겨 3 으로 둡니다.",
+      array: [0, 1, 0, 1, 1],
+      range: [2, 4],
+      rangeSide: "e = 6",
+      read: [2],
+      write: [],
+      pointers: {
+        i: 2,
+      },
+      calc: {
+        expr: "6 & 1 = 0",
+        result: "누적 건너뜀",
+      },
+      vars: "모듈러 곱셈 4",
+      layers: [
+        {
+          name: "b",
+          values: ["3", "9", "81", "561", null, null],
+          read: [2],
+          write: [3],
+        },
+        {
+          name: "result",
+          values: ["1", "9", "9", null, null],
+          write: [],
+          side: "result = 9",
+        },
       ],
     },
     {
-      title: "T5 비트 자리 3 — ③ 누적 뒤 ④ 제곱",
-      detail:
-        "e = 3 의 최하위 비트가 1 이라 result 가 9 · 561 = 5049 를 법 1000 으로 줄인 49 가 된다. b 는 721 이 되고 e 는 1 이 된다.",
-      entries: [
-        { label: "갈래", value: "② 참 · ③④⑤ 실행" },
-        { label: "이번 비트", value: 1 },
-        { label: "비트 자리", value: 3 },
-        { label: "b", value: 561 },
-        { label: "e", value: "3 (11)" },
-        { label: "누적 곱셈", value: 6 },
-        { label: "result", value: 49 },
+      title: "T5 자리 3 · 비트 1",
+      text: "e = 3 = 11₂ 의 최하위 비트를 읽습니다. 비트가 1 이라 result 에 b = 561 을 곱해 49 로 둡니다. 그다음 b 를 제곱해 자리 4 의 거듭제곱 721 을 만들고, e 를 한 칸 옮겨 1 로 둡니다.",
+      array: [0, 1, 0, 1, 1],
+      range: [3, 4],
+      rangeSide: "e = 3",
+      read: [3],
+      write: [],
+      pointers: {
+        i: 3,
+      },
+      calc: {
+        expr: "9 · 561 mod 1000",
+        result: "49",
+      },
+      vars: "모듈러 곱셈 6",
+      layers: [
+        {
+          name: "b",
+          values: ["3", "9", "81", "561", "721", null],
+          read: [3],
+          write: [4],
+        },
+        {
+          name: "result",
+          values: ["1", "9", "9", "49", null],
+          write: [3],
+          side: "result = 49",
+        },
       ],
     },
     {
-      title: "T6 비트 자리 4 — 마지막 1 비트",
-      detail:
-        "e = 1 의 최하위 비트가 1 이라 result 가 49 · 721 = 35329 를 법 1000 으로 줄인 329 가 된다. e 가 0 이 되어 다음 검사에서 바퀴가 끝난다.",
-      entries: [
-        { label: "갈래", value: "② 참 · ③④⑤ 실행" },
-        { label: "이번 비트", value: 1 },
-        { label: "비트 자리", value: 4 },
-        { label: "b", value: 721 },
-        { label: "e", value: "1 (1)" },
-        { label: "누적 곱셈", value: 8 },
-        { label: "result", value: 329 },
+      title: "T6 자리 4 · 비트 1",
+      text: "e = 1 = 1₂ 의 최하위 비트를 읽습니다. 비트가 1 이라 result 에 b = 721 을 곱해 329 로 둡니다. 그다음 b 를 제곱해 자리 5 의 거듭제곱 841 을 만들고, e 를 한 칸 옮겨 0 으로 둡니다.",
+      array: [0, 1, 0, 1, 1],
+      range: [4, 4],
+      rangeSide: "e = 1",
+      read: [4],
+      write: [],
+      pointers: {
+        i: 4,
+      },
+      calc: {
+        expr: "49 · 721 mod 1000",
+        result: "329",
+      },
+      vars: "모듈러 곱셈 8",
+      layers: [
+        {
+          name: "b",
+          values: ["3", "9", "81", "561", "721", "841"],
+          read: [4],
+          write: [5],
+        },
+        {
+          name: "result",
+          values: ["1", "9", "9", "49", "329"],
+          write: [4],
+          side: "result = 329",
+        },
       ],
     },
     {
-      title: "T7 종료 — ② 거짓",
-      detail:
-        "e 가 0 이라 ② 가 거짓이 되고 result 를 돌려준다. 누적 곱셈 8 은 비트 수 5 와 1 인 비트 3 의 합이다.",
-      entries: [
-        { label: "갈래", value: "② 거짓 · 반환" },
-        { label: "이번 비트", value: "—" },
-        { label: "비트 자리", value: "—" },
-        { label: "b", value: 841 },
-        { label: "e", value: "0" },
-        { label: "누적 곱셈", value: 8 },
-        { label: "result", value: 329 },
+      title: "T7 e = 0 · 반환",
+      text: "e 가 0 이라 e > 0 이 거짓입니다. 반복을 끝내고 result 329 를 돌려줍니다. 마지막 바퀴가 만든 b = 841 은 쓰이지 않습니다.",
+      array: [0, 1, 0, 1, 1],
+      range: null,
+      rangeSide: "e = 0",
+      read: [],
+      write: [],
+      pointers: {},
+      calc: {
+        expr: "0 > 0",
+        result: "거짓 → 329 반환",
+      },
+      vars: "모듈러 곱셈 8",
+      layers: [
+        {
+          name: "b",
+          values: ["3", "9", "81", "561", "721", "841"],
+        },
+        {
+          name: "result",
+          values: ["1", "9", "9", "49", "329"],
+          read: [4],
+          side: "result = 329",
+        },
       ],
     },
-  ] satisfies Frame[],
-};
+  ],
+} satisfies ArrayPlayerSpec;
