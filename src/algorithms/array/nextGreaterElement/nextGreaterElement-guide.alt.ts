@@ -69,7 +69,10 @@ export function workload(q: number, u: number): Op[] {
  * 답 배열 한 벌을 만들어 두고 질의는 그 배열을 읽기만 한다. 갱신이 들어오면 답 배열이
  * 통째로 낡으므로, 다음 질의 앞에서 한 번 다시 만든다(갱신이 이어지면 재계산은 한 번뿐이다).
  */
-function stackAccesses(q: number, u: number): { acc: number; peak: number } {
+export function stackAccesses(
+  q: number,
+  u: number,
+): { acc: number; peak: number } {
   const a = NUMS.slice();
   let acc = 0;
   let peak = 0;
@@ -119,7 +122,10 @@ function stackAccesses(q: number, u: number): { acc: number; peak: number } {
  * 내려가며 찾는다. 최댓값이 `nums[i]` 이하인 마디는 통째로 건너뛴다. 갱신은 잎 하나를 고치고
  * 뿌리까지 올라가며 다시 합치면 끝난다.
  */
-function treeAccesses(q: number, u: number): { acc: number; cells: number } {
+export function treeAccesses(
+  q: number,
+  u: number,
+): { acc: number; cells: number } {
   const a = NUMS.slice();
   let size = 1;
   while (size < N) size *= 2;
