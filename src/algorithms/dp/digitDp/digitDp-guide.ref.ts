@@ -1,7 +1,7 @@
 /**
  * `deep.walk.final`(전체 코드) 이 싣는 코드의 정본.
  *
- * 원본 `src/algorithms/dp/digitDp/digitDp.ts` 가 요구하는 것과 **같은 계약**이다 — 상한 `N`
+ * 실습 스텁 `src/algorithms/dp/digitDp/digitDp.ts` 와 **같은 계약**이다 — 상한 `N`
  * 과 목표 합 `K` 를 받아, `1` 이상 `N` 이하의 정수 중 십진 자릿수의 합이 정확히 `K` 인 것의
  * 개수를 돌려준다. 가이드 본문의 코드는 이 파일에서 옮긴다.
  *
@@ -14,7 +14,7 @@
  * | `pos` | 지금 숫자를 정하는 자리 (0 이 맨 왼쪽) |
  * | `sum` | `pos` 앞에서 이미 정한 숫자들의 합 |
  * | `tight` | 여기까지 고른 숫자가 `N` 의 같은 자리와 전부 같은가 |
- * | `memo` | `tight` 가 아닌 상태의 값을 적어 두는 표 |
+ * | `memo` | 풀린 상태(`tight` 가 거짓)의 값을 적어 두는 DP 테이블 |
  *
  * `memo` 는 언제나 `memo[pos][sum]` 로 읽는다 — `tight` 는 첨자가 아니다.
  */
@@ -30,7 +30,7 @@ export function digitDp(N: number, K: number): number {
   const digits = [...String(N)].map(Number);
   const L = digits.length;
 
-  // memo[pos][sum] = tight 가 아닌 상태로 자리 pos 에 왔을 때의 답. -1 은 아직 안 정한 칸이다.
+  // memo[pos][sum] = 풀린 상태(tight 가 거짓)로 자리 pos 에 왔을 때의 답. -1 은 아직 안 정한 칸이다.
   const memo: number[][] = Array.from({ length: L }, () =>
     new Array<number>(K + 1).fill(-1),
   );
@@ -40,7 +40,7 @@ export function digitDp(N: number, K: number): number {
     if (sum + 9 * (L - pos) < K) return 0;
     // ② 자리를 다 정했다 — 합이 K 인 것만 하나로 센다.
     if (pos === L) return sum === K ? 1 : 0;
-    // ③ 자유 상태이고 그 칸을 이미 정해 두었다.
+    // ③ 풀린 상태이고 그 칸을 이미 정해 두었다.
     if (!tight) {
       const done = (memo[pos] as number[])[sum] as number;
       if (done !== -1) return done;
@@ -54,7 +54,7 @@ export function digitDp(N: number, K: number): number {
       total += count(pos + 1, sum + x, tight && x === (digits[pos] as number));
     }
 
-    // ⑤ 자유 상태의 값만 표에 적는다.
+    // ⑤ 풀린 상태의 값만 DP 테이블에 적는다.
     if (!tight) (memo[pos] as number[])[sum] = total;
     return total;
   }

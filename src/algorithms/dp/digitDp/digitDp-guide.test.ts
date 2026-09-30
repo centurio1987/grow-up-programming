@@ -98,3 +98,39 @@ test("본문 수식 절이 드는 자리 — N = 10^15 의 답은 W(15, K) 에 [
   for (let K = 0; K <= 135; K++) all += W(15, K);
   expect(all).toBe(10 ** 15);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./digitDp-guide.sim.ts");
+  const { simStepsFromRef, simResults, TABLE_OPTIONS, trace, WALK_N, WALK_K } =
+    await import("./digitDp-guide.fig.tsx");
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.free.steps)).toEqual(plain(want.free));
+  expect(plain(sim.tight.steps)).toEqual(plain(want.tight));
+  for (const part of [sim.free, sim.tight]) {
+    expect(plain(part.rowHeads)).toEqual(plain(TABLE_OPTIONS.rowHeads));
+    expect(plain(part.colHeads)).toEqual(plain(TABLE_OPTIONS.colHeads));
+    expect(part.colLabel).toBe(TABLE_OPTIONS.colLabel as string);
+  }
+  const results = simResults();
+  expect(sim.free.result).toBe(results.free);
+  expect(sim.tight.result).toBe(results.tight);
+  // 패널이 내미는 값이 정본의 DP 테이블 · 답과 같은지 — 정본에 직접 다시 묻는다.
+  const t = trace(WALK_N, WALK_K);
+  expect(sim.free.result).toBe(String(t.memo[1]?.[0]));
+  expect(sim.tight.result).toBe(String(digitDp(WALK_N, WALK_K)));
+  // 걸음 수 — 두 벌을 합쳐 본문의 T1~T12 다.
+  expect(sim.free.steps.length + sim.tight.steps.length).toBe(12);
+  // 마지막 걸음의 DP 테이블 풀린 줄이 정본이 끝낸 DP 테이블과 같다.
+  const last = sim.tight.steps.at(-1)?.table ?? [];
+  t.memo.forEach((row, pos) => {
+    expect(last[2 * pos + 1]).toEqual(
+      row.map((v) => (v === -1 ? null : String(v))),
+    );
+  });
+});
