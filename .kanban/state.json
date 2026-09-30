@@ -1,6 +1,6 @@
 {
   "next_id": 64,
-  "next_seq": 447,
+  "next_seq": 448,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1533,7 +1533,7 @@
       ]
     },
     "KAN-061-YVQBCF": {
-      "col": "backlog",
+      "col": "doing",
       "title": "알고리즘 실습 절·스텁 테스트 결함 약 40곳과 정본 결함 7건 정리 — KAN-058 전개 중 모은 목록",
       "verbatim": "KAN-058 검토서 판단 항목 4 「실습 절·스텁 테스트 결함 약 40곳과 정본 결함 7건을 어떻게 고칠 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드 하나로 뗀다」",
       "생성": "ai",
@@ -1550,7 +1550,10 @@
       "goal": "근거 파일 §3·§4 목록이 모두 고쳐지거나 고치지 않는 사유가 적히고, 고친 편마다 시험·ci.ts all 이 통과한다",
       "goal_hash": "982e3dd86493642b44fa2763aa6c149ca0248c3e",
       "memo": "목록 정본: KANBAN.batches/KAN-058-8XT6PC.s11-findings.md §3(실습 절·스텁) · §4(정본). 이 카드 승인이 「고쳐」 지시다(KAN-058 검토 4). 실습 절을 고치면 가이드 원고의 ## 실습 절도 함께 바뀐다",
-      "memo_hash": "e51a3d622cffa67f486ab94b0ba6fb1fda40100f"
+      "memo_hash": "e51a3d622cffa67f486ab94b0ba6fb1fda40100f",
+      "scope": [
+        "src/algorithms/**"
+      ]
     },
     "KAN-062-Z0V30H": {
       "col": "backlog",
@@ -1606,7 +1609,6 @@
     "KAN-053-2KYAED",
     "KAN-054-1YWN4M",
     "KAN-055-4N4T6A",
-    "KAN-061-YVQBCF",
     "KAN-062-Z0V30H",
     "KAN-063-X2JFZA",
     "KAN-001",
@@ -1667,9 +1669,20 @@
     "KAN-059-PSFTN4",
     "KAN-060-9P4ZAA",
     "KAN-058.1-9TBXDA",
-    "KAN-058-8XT6PC"
+    "KAN-058-8XT6PC",
+    "KAN-061-YVQBCF"
   ],
   "recent": [
+    {
+      "seq": 447,
+      "t": "2026-10-01T06:59",
+      "a": "ai",
+      "id": "KAN-061-YVQBCF",
+      "op": "move",
+      "w": "0QT8BA",
+      "from": "backlog",
+      "to": "doing"
+    },
     {
       "seq": 446,
       "t": "2026-10-01T06:52",
@@ -2232,16 +2245,6 @@
       "w": "977NDY",
       "from": "todo",
       "to": "doing"
-    },
-    {
-      "seq": 402,
-      "t": "2026-09-28T17:06",
-      "a": "유저",
-      "id": "KAN-058-8XT6PC",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-057-J36E1B",
-      "reason": "유저 결정(2026-09-28): 110편 전개는 KAN-057 완료 이후로 수행 가능하게 만든다"
     }
   ],
   "waivers": [
