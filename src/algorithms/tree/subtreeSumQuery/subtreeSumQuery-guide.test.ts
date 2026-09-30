@@ -295,3 +295,36 @@ test("정본 — 뿌리가 0 이 아니어도 부분 트리가 그 뿌리 기준
   expect(sst.querySubtree(0)).toBe(10);
   expect(sst.querySubtree(4)).toBe(5);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차에 기록만
+ * 덧붙인 사본의 기록에서 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./subtreeSumQuery-guide.sim.ts");
+  const fig = await import("./subtreeSumQuery-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.subtreeWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.subtreeWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 패널의 반환값을 정본의 답에 직접 다시 묻는다.
+  const sst = new SubtreeSumQuery(
+    6,
+    [
+      [0, 1],
+      [0, 2],
+      [1, 3],
+      [1, 4],
+      [2, 5],
+    ],
+    0,
+    [1, 2, 3, 4, 5, 6],
+  );
+  const answer = [sst.querySubtree(1)];
+  sst.update(4, 10);
+  answer.push(sst.querySubtree(1), sst.querySubtree(0));
+  expect(sim.subtreeWalk.result).toBe(`[${answer.join(", ")}]`);
+  const last = sim.subtreeWalk.steps.at(-1)?.strips?.at(-1)?.values;
+  expect(last).toEqual(answer);
+});

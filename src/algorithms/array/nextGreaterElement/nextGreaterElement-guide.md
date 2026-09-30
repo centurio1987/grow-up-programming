@@ -749,7 +749,8 @@ nextGreaterElement([2, 7, 3, 5, 1, 6])   →   [7, -1, 5, 6, 6, -1]
 | 이 글의 기다린 구간 | 자리를 넣은 걸음 · 꺼낸 걸음 | 단조 스택 |
 
 깊이 우선 탐색 쪽은 이 성질을 **괄호 정리**라는 이름으로 부르고,
-[`dfsTraversal`](../../graph/dfsTraversal/dfsTraversal-guide.md) 이 같은 구조를 다룹니다.
+[`dfsTraversal`](../../graph/dfsTraversal/dfsTraversal-guide.md) 이 같은 구조를 다룹니다. 트리에서 이 구조로 부분트리를
+배열의 한 구간에 모으는 쪽은 [`subtreeSumQuery`](../../tree/subtreeSumQuery/subtreeSumQuery-guide.md) 가 같은 이름의 절에서 다룹니다.
 
 ## 파트 2 — 적용 조건 · 보장 · 비용
 
