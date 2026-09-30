@@ -4,8 +4,8 @@
  * 원본 `src/algorithms/number-theory/millerRabin/millerRabin.test.ts` 는 학습자가 채우는
  * 파일을 가져오므로 그대로 재사용할 수 없다. **케이스만** 옮겨 정본에 다시 건다. 벽시계를
  * 재는 「성능」 케이스는 옮기지 않았다 — 실행마다 값이 달라 판정이 안 된다. 그 케이스의
- * **입출력**(메르센 소수 `2^61 − 1`)은 아래에서 반환값으로 확인하고, 같은 자리에서 이 편이
- * 세는 계수(모듈러 곱셈 2,892 기본 연산)가 상수 시간 안에 끝나는 크기라는 것도 함께 본다.
+ * **입출력**(메르센 소수 `2^61 − 1`)은 아래에서 반환값으로 확인한다. 그 입력에서 이 편이 세는
+ * 나머지 연산 수는 증명 블록 `math-bound` 가 정본과 같은 절차를 따라가며 센다.
  *
  * **두 번째 판정기로 시행 나눗셈을 쓴다.** 정본이 스스로를 근거로 통과하는 것을 막으려면
  * 다른 절차의 답과 맞춰야 한다. 시행 나눗셈은 `10^7` 안쪽에서 실용적이라 그 범위를 전수로
@@ -168,4 +168,17 @@ test("페르마의 소정리 — 소수 p 에서 2^(p−1) ≡ 1 (mod p)", () =>
     expect(millerRabin(p)).toBe(true);
     expect(modPow(2n, p - 1n, p)).toBe(1n);
   }
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이 정적으로
+ * 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본과 같은 절차를 따라가며
+ * 걸음을 만들고 답을 정본에 다시 묻는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./millerRabin-guide.sim.ts");
+  const { simStepsFromRef } = await import("./millerRabin-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.mrWalk.steps)).toEqual(plain(simStepsFromRef()));
+  expect(sim.mrWalk.result).toBe(String(millerRabin(49_141n)));
 });
