@@ -9,7 +9,7 @@
  *
  * **전개 입력을 그대로 못 쓰는 이유**(L20). 전개는 다섯 칸짜리 `[1 2 3 4 5]` 에 연산 넷을
  * 건다. 제곱근 분할의 묶음 길이가 `N = 5` 에서는 2 아니면 4 뿐이라 두 설계의 접근 수가 열
- * 몇 번짜리 상수에 묻힌다. 그래서 「아이디어 상세」 ④⑥ 이 쓰는 것과 **같은 생성식**의
+ * 몇 번짜리 상수에 묻힌다. 그래서 「아이디어를 떠올리는 과정」과 「아이디어 상세」의 1,024 칸 표가 쓰는 것과 **같은 생성식**의
  * 1,024 칸 입력을 쓰고, 질의 수와 갱신 수만 바꾼다. **난수를 쓰지 않으므로 시드가 없다** —
  * 아래 생성식이 입력의 전부이고, 그 식을 본문에도 적는다.
  */
@@ -41,7 +41,7 @@ type Op = ["q", number] | ["u", number];
  * 갱신 `u` 회를 질의 `q` 회 사이에 고르게 끼운 목록. **두 설계가 같은 목록을 받는다.**
  *
  * 갱신을 앞에 몰면 두 설계 다 갱신을 한 덩어리로 처리해 대조가 연출이 된다 — 갱신과 질의가
- * 섞여 들어오는 것이 이 문제가 말하는 상황이다.
+ * 섞여 들어오는 것이 이 과제가 다루는 상황이다.
  */
 export function workload(q: number, u: number): Op[] {
   const ops: Op[] = [];
@@ -64,7 +64,7 @@ export function workload(q: number, u: number): Op[] {
 const lowbit = (k: number): number => k & -k;
 
 /**
- * 이 가이드가 가르치는 절차 — **최하위 비트로 담당 길이를 정하는 트리**.
+ * 이 가이드가 가르치는 절차 — **펜윅 트리**(칸마다 최하위 1 비트 길이의 구간 합을 둔다).
  * `fenwickRangeSum-guide.ref.ts` 와 같은 절차이고 접근 계수만 덧붙였다.
  */
 function fenwickAccesses(q: number, u: number): number {
@@ -168,6 +168,6 @@ function counts(
 }
 
 export const cases = {
-  "최하위 비트 트리": () => counts(fenwickAccesses, N + 1),
+  "펜윅 트리": () => counts(fenwickAccesses, N + 1),
   "제곱근 분할": () => counts(blockAccesses, Math.ceil(N / B)),
 };

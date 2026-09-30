@@ -67,9 +67,9 @@ const CASES: [string, number[], FenwickOp[], number[]][] = [
     [3],
   ],
   ["전체 범위 질의", [1, 2, 3, 4, 5], [{ type: "query", l: 0, r: 4 }], [15]],
-  // 문제 문서의 예시
+  // 실습 절의 예시
   [
-    "문제 문서 예시 — 갱신이 섞인 네 연산",
+    "실습 절 예시 — 갱신이 섞인 네 연산",
     [1, 2, 3, 4, 5],
     [
       { type: "query", l: 0, r: 4 },
@@ -80,7 +80,7 @@ const CASES: [string, number[], FenwickOp[], number[]][] = [
     [15, 22, 14],
   ],
   [
-    "문제 문서 예시 — 음수 갱신",
+    "실습 절 예시 — 음수 갱신",
     [1, 2, 3],
     [
       { type: "update", i: 0, v: -5 },
@@ -144,4 +144,25 @@ test("칸 번호가 2 의 거듭제곱이 아닌 길이에서도 배열 안에 �
     ];
     expect(fenwickRangeSum(A, ops)).toEqual([whole, whole - N, whole - N - 1]);
   }
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에 기록
+ * 줄만 끼운 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./fenwickRangeSum-guide.sim.ts");
+  const { simStepsFromRef, WALK, WALK_OPS } = await import(
+    "./fenwickRangeSum-guide.fig.tsx"
+  );
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.walk.steps)).toEqual(plain(simStepsFromRef().walk));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  const want = fenwickRangeSum(
+    [...WALK],
+    WALK_OPS.map((o) => ({ ...o })),
+  );
+  expect(sim.walk.result).toBe(`[${want.join(", ")}]`);
+  expect(sim.walk.steps.at(-1)?.layers?.[2]?.values).toEqual(want);
 });
