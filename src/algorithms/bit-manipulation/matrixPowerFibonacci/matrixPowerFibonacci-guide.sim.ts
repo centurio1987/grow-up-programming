@@ -1,136 +1,324 @@
-import type { Frame } from "#guide-sim";
+import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**(`matrixPowerFibonacci(10n)`)을
- * 쓴다. 프레임 수는 그 절의 T# 단계 수(7)를 넘지 않는다 — P3 이 그 관계를 잰다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**(`matrixPowerFibonacci(10n)`)을 쓴다. 걸음은
+ * 반복문 앞(T1) · 바퀴마다 하나(T2~T5) · 반복을 끝내는 걸음(T6)이다.
+ *
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가 배열
+ * 무대(`arrayStage.ts`)를 고른다. 칸 `i` 가 `n` 의 자리 `i` 의 비트라서 이진 표기와 좌우가 거꾸로다
+ * (`fastPower` · bit-manipulation 편과 같은 약속). 자리 하나에 2×2 행렬 하나가 딸리므로 비트 칸 하나가 격자
+ * 두 칸을 덮고(`span: 2`), 그 아래에 행렬의 윗줄과 아랫줄을 칸 줄 둘로 쌓는다 — `step` 의 자리 `i` 는 자리
+ * `i` 의 거듭제곱 `M^(2^i)`, `acc` 의 자리 `i` 는 바퀴 `i` 를 마친 누적 행렬이다. 행렬 곱 수는 남는 변수다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
- *
- * ## `keyValue` 단독을 고른 이유
- *
- * ① 입력이 정수 하나뿐이라 그릴 배열이 없고 ② 걸음마다 바뀌는 것이 2×2 행렬 둘과 정수
- * 하나뿐이다. `matrix` 프리셋은 **한 뷰에 표 하나**만 담으므로 행렬 둘을 나란히 놓지
- * 못하는데, 이 절차의 요점이 「누적 행렬과 자리 행렬이 각각 무엇의 거듭제곱인가」라서
- * 둘을 한 화면에 두는 것이 먼저다. 네 칸을 한 줄 문자열로 적으면 그 요구가 채워진다.
- *
- * 항목을 프레임마다 같은 것으로 같은 순서로 두고 값만 바꾼다. 값이 없는 자리도 항목을
- * 빼지 않고 `—` 로 적는다 — 하나가 빠지면 아래가 한 칸씩 올라가 독자가 자리를 다시 센다.
- * 항목 순서는 「지금 실행하는 갈래 → 그 갈래가 보는 값 → 상태 → 답」이고, `label` 은 본문
- * 기호표의 이름과 글자 그대로 같게 쓴다 — `acc` · `step` · `e` 다.
- *
- * 행렬은 본문과 같은 표기 `[[좌상,우상],[좌하,우하]]` 로 적고, 그 행렬이 `M` 의 몇 제곱인지
- * 를 함께 붙인다. 자리 행렬이 무엇의 거듭제곱인지가 이 절차에서 가장 자주 어긋나는 자리다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본 실행에서 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `matrixPowerFibonacci-guide.test.ts` 가 잰다.
  */
+
 export const powMatrix = {
-  view: ["keyValue"] as const,
-  title: "matrixPowerFibonacci(10n) — 비트 넷으로 M^10 을 만든다",
+  player: "stage",
+  stage: "array",
+  arrayName: "n 의 비트",
+  rangeLabel: "남은 e",
+  title: "matrixPowerFibonacci(10n)",
   result: "55n",
   steps: [
     {
-      title: "T1 초기화 — ① 두 행렬과 남은 지수를 세운다",
-      detail:
-        "acc 를 단위행렬로, step 을 전이 행렬 M 으로, e 를 10 으로 둔다. 아직 바퀴에 들어가지 않았다.",
-      entries: [
-        { label: "갈래", value: "① 초기화" },
-        { label: "이번 비트", value: "—" },
-        { label: "비트 자리", value: "—" },
-        { label: "acc", value: "[[1,0],[0,1]] = M^0" },
-        { label: "step", value: "[[1,1],[1,0]] = M^1" },
-        { label: "e", value: "10 (1010)" },
-        { label: "누적 행렬 곱", value: 0 },
-        { label: "답이 될 칸", value: 0 },
+      title: "T1 반복문 앞",
+      text: "acc 를 단위행렬 M^0 으로, step 을 전이 행렬 M^1 로, e 를 10 으로 둡니다. step 이 자리 0 의 거듭제곱입니다.",
+      array: [0, 1, 0, 1],
+      span: 2,
+      range: [0, 3],
+      rangeSide: "e = 10",
+      read: [],
+      write: [],
+      pointers: {},
+      calc: {
+        expr: "step = TRANSITION",
+        result: "M^1",
+      },
+      vars: "행렬 곱 0",
+      layers: [
+        {
+          name: "step",
+          values: ["1", "1", null, null, null, null, null, null, null, null],
+          read: [],
+          write: [0, 1],
+          side: "step = M^1",
+          caret: false,
+        },
+        {
+          name: "",
+          values: ["1", "0", null, null, null, null, null, null, null, null],
+          read: [],
+          write: [0, 1],
+          side: "행렬 1 / 5",
+        },
+        {
+          name: "acc",
+          values: [null, null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+          side: "acc = M^0",
+          caret: false,
+        },
+        {
+          name: "",
+          values: [null, null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+          side: "행렬 0 / 4",
+        },
       ],
     },
     {
-      title: "T2 비트 자리 0 — ④ 제곱만",
-      detail:
-        "e = 10 의 최하위 비트가 0 이라 ③ 을 건너뛴다. step 이 M^1 에서 M^2 로 제곱되고 e 가 5 가 된다.",
-      entries: [
-        { label: "갈래", value: "② 참 · ③ 건너뜀 · ④⑤ 실행" },
-        { label: "이번 비트", value: 0 },
-        { label: "비트 자리", value: 0 },
-        { label: "acc", value: "[[1,0],[0,1]] = M^0" },
-        { label: "step", value: "[[2,1],[1,1]] = M^2" },
-        { label: "e", value: "5 (101)" },
-        { label: "누적 행렬 곱", value: 1 },
-        { label: "답이 될 칸", value: 0 },
+      title: "T2 자리 0 · 비트 0",
+      text: "e = 10 = 1010₂ 의 최하위 비트를 읽습니다. 비트가 0 이라 acc 는 M^0 그대로입니다. 그다음 step 을 제곱해 자리 1 의 거듭제곱 M^2 를 만들고, e 를 한 칸 옮겨 5 로 둡니다.",
+      array: [0, 1, 0, 1],
+      span: 2,
+      range: [0, 3],
+      rangeSide: "e = 10",
+      read: [0],
+      write: [],
+      pointers: {
+        i: 0,
+      },
+      calc: {
+        expr: "10 & 1 = 0",
+        result: "누적 건너뜀",
+      },
+      vars: "행렬 곱 1",
+      layers: [
+        {
+          name: "step",
+          values: ["1", "1", "2", "1", null, null, null, null, null, null],
+          read: [0, 1],
+          write: [2, 3],
+          side: "step = M^2",
+          caret: false,
+        },
+        {
+          name: "",
+          values: ["1", "0", "1", "1", null, null, null, null, null, null],
+          read: [0, 1],
+          write: [2, 3],
+          side: "행렬 2 / 5",
+        },
+        {
+          name: "acc",
+          values: ["1", "0", null, null, null, null, null, null],
+          read: [],
+          write: [],
+          side: "acc = M^0",
+          caret: false,
+        },
+        {
+          name: "",
+          values: ["0", "1", null, null, null, null, null, null],
+          read: [],
+          write: [],
+          side: "행렬 1 / 4",
+        },
       ],
     },
     {
-      title: "T3 비트 자리 1 — ③ 누적 뒤 ④ 제곱",
-      detail:
-        "e = 5 의 최하위 비트가 1 이라 acc 에 step = M^2 를 곱한다. 그다음 step 이 M^4 가 되고 e 가 2 가 된다.",
-      entries: [
-        { label: "갈래", value: "② 참 · ③④⑤ 실행" },
-        { label: "이번 비트", value: 1 },
-        { label: "비트 자리", value: 1 },
-        { label: "acc", value: "[[2,1],[1,1]] = M^2" },
-        { label: "step", value: "[[5,3],[3,2]] = M^4" },
-        { label: "e", value: "2 (10)" },
-        { label: "누적 행렬 곱", value: 3 },
-        { label: "답이 될 칸", value: 1 },
+      title: "T3 자리 1 · 비트 1",
+      text: "e = 5 = 101₂ 의 최하위 비트를 읽습니다. 비트가 1 이라 acc 에 step = M^2 를 곱해 M^2 로 둡니다. 그다음 step 을 제곱해 자리 2 의 거듭제곱 M^4 를 만들고, e 를 한 칸 옮겨 2 로 둡니다.",
+      array: [0, 1, 0, 1],
+      span: 2,
+      range: [1, 3],
+      rangeSide: "e = 5",
+      read: [1],
+      write: [],
+      pointers: {
+        i: 1,
+      },
+      calc: {
+        expr: "M^0 · M^2 =",
+        result: "M^2",
+      },
+      vars: "행렬 곱 3",
+      layers: [
+        {
+          name: "step",
+          values: ["1", "1", "2", "1", "5", "3", null, null, null, null],
+          read: [2, 3],
+          write: [4, 5],
+          side: "step = M^4",
+          caret: false,
+        },
+        {
+          name: "",
+          values: ["1", "0", "1", "1", "3", "2", null, null, null, null],
+          read: [2, 3],
+          write: [4, 5],
+          side: "행렬 3 / 5",
+        },
+        {
+          name: "acc",
+          values: ["1", "0", "2", "1", null, null, null, null],
+          read: [0, 1],
+          write: [2, 3],
+          side: "acc = M^2",
+          caret: false,
+        },
+        {
+          name: "",
+          values: ["0", "1", "1", "1", null, null, null, null],
+          read: [0, 1],
+          write: [2, 3],
+          side: "행렬 2 / 4",
+        },
       ],
     },
     {
-      title: "T4 비트 자리 2 — ④ 제곱만",
-      detail:
-        "e = 2 의 최하위 비트가 0 이라 acc 는 M^2 그대로다. step 이 M^4 에서 M^8 로 제곱되고 e 가 1 이 된다.",
-      entries: [
-        { label: "갈래", value: "② 참 · ③ 건너뜀 · ④⑤ 실행" },
-        { label: "이번 비트", value: 0 },
-        { label: "비트 자리", value: 2 },
-        { label: "acc", value: "[[2,1],[1,1]] = M^2" },
-        { label: "step", value: "[[34,21],[21,13]] = M^8" },
-        { label: "e", value: "1 (1)" },
-        { label: "누적 행렬 곱", value: 4 },
-        { label: "답이 될 칸", value: 1 },
+      title: "T4 자리 2 · 비트 0",
+      text: "e = 2 = 10₂ 의 최하위 비트를 읽습니다. 비트가 0 이라 acc 는 M^2 그대로입니다. 그다음 step 을 제곱해 자리 3 의 거듭제곱 M^8 을 만들고, e 를 한 칸 옮겨 1 로 둡니다.",
+      array: [0, 1, 0, 1],
+      span: 2,
+      range: [2, 3],
+      rangeSide: "e = 2",
+      read: [2],
+      write: [],
+      pointers: {
+        i: 2,
+      },
+      calc: {
+        expr: "2 & 1 = 0",
+        result: "누적 건너뜀",
+      },
+      vars: "행렬 곱 4",
+      layers: [
+        {
+          name: "step",
+          values: ["1", "1", "2", "1", "5", "3", "34", "21", null, null],
+          read: [4, 5],
+          write: [6, 7],
+          side: "step = M^8",
+          caret: false,
+        },
+        {
+          name: "",
+          values: ["1", "0", "1", "1", "3", "2", "21", "13", null, null],
+          read: [4, 5],
+          write: [6, 7],
+          side: "행렬 4 / 5",
+        },
+        {
+          name: "acc",
+          values: ["1", "0", "2", "1", "2", "1", null, null],
+          read: [],
+          write: [],
+          side: "acc = M^2",
+          caret: false,
+        },
+        {
+          name: "",
+          values: ["0", "1", "1", "1", "1", "1", null, null],
+          read: [],
+          write: [],
+          side: "행렬 3 / 4",
+        },
       ],
     },
     {
-      title: "T5 비트 자리 3 — 마지막 1 비트",
-      detail:
-        "e = 1 의 최하위 비트가 1 이라 acc 가 M^2 · M^8 = M^10 이 된다. e 가 0 이 되어 다음 검사에서 바퀴가 끝난다.",
-      entries: [
-        { label: "갈래", value: "② 참 · ③④⑤ 실행" },
-        { label: "이번 비트", value: 1 },
-        { label: "비트 자리", value: 3 },
-        { label: "acc", value: "[[89,55],[55,34]] = M^10" },
-        { label: "step", value: "[[1597,987],[987,610]] = M^16" },
-        { label: "e", value: "0" },
-        { label: "누적 행렬 곱", value: 6 },
-        { label: "답이 될 칸", value: 55 },
+      title: "T5 자리 3 · 비트 1",
+      text: "e = 1 = 1₂ 의 최하위 비트를 읽습니다. 비트가 1 이라 acc 에 step = M^8 을 곱해 M^10 으로 둡니다. 그다음 step 을 제곱해 자리 4 의 거듭제곱 M^16 을 만들고, e 를 한 칸 옮겨 0 으로 둡니다.",
+      array: [0, 1, 0, 1],
+      span: 2,
+      range: [3, 3],
+      rangeSide: "e = 1",
+      read: [3],
+      write: [],
+      pointers: {
+        i: 3,
+      },
+      calc: {
+        expr: "M^2 · M^8 =",
+        result: "M^10",
+      },
+      vars: "행렬 곱 6",
+      layers: [
+        {
+          name: "step",
+          values: ["1", "1", "2", "1", "5", "3", "34", "21", "1597", "987"],
+          read: [6, 7],
+          write: [8, 9],
+          side: "step = M^16",
+          caret: false,
+        },
+        {
+          name: "",
+          values: ["1", "0", "1", "1", "3", "2", "21", "13", "987", "610"],
+          read: [6, 7],
+          write: [8, 9],
+          side: "행렬 5 / 5",
+        },
+        {
+          name: "acc",
+          values: ["1", "0", "2", "1", "2", "1", "89", "55"],
+          read: [4, 5],
+          write: [6, 7],
+          side: "acc = M^10",
+          caret: false,
+        },
+        {
+          name: "",
+          values: ["0", "1", "1", "1", "1", "1", "55", "34"],
+          read: [4, 5],
+          write: [6, 7],
+          side: "행렬 4 / 4",
+        },
       ],
     },
     {
-      title: "T6 종료 검사 — ② 거짓",
-      detail:
-        "e 가 0 이라 ② 가 거짓이 되고 바퀴를 빠져나온다. 마지막 바퀴가 만든 M^16 은 쓸 자리가 없다.",
-      entries: [
-        { label: "갈래", value: "② 거짓" },
-        { label: "이번 비트", value: "—" },
-        { label: "비트 자리", value: "—" },
-        { label: "acc", value: "[[89,55],[55,34]] = M^10" },
-        { label: "step", value: "[[1597,987],[987,610]] = M^16" },
-        { label: "e", value: "0" },
-        { label: "누적 행렬 곱", value: 6 },
-        { label: "답이 될 칸", value: 55 },
+      title: "T6 e = 0 · 반환",
+      text: "e 가 0 이라 e > 0 이 거짓입니다. 반복을 끝내고 acc = M^10 의 오른쪽 위 칸 55 를 돌려줍니다. 마지막 바퀴가 만든 step = M^16 은 쓰이지 않습니다.",
+      array: [0, 1, 0, 1],
+      span: 2,
+      range: null,
+      rangeSide: "e = 0",
+      read: [],
+      write: [],
+      pointers: {},
+      calc: {
+        expr: "acc[0][1] =",
+        result: "55",
+      },
+      vars: "행렬 곱 6",
+      layers: [
+        {
+          name: "step",
+          values: ["1", "1", "2", "1", "5", "3", "34", "21", "1597", "987"],
+          read: [],
+          write: [],
+          side: "step = M^16",
+          caret: false,
+        },
+        {
+          name: "",
+          values: ["1", "0", "1", "1", "3", "2", "21", "13", "987", "610"],
+          read: [],
+          write: [],
+          side: "행렬 5 / 5",
+        },
+        {
+          name: "acc",
+          values: ["1", "0", "2", "1", "2", "1", "89", "55"],
+          read: [6, 7],
+          write: [],
+          side: "acc = M^10",
+          caret: false,
+        },
+        {
+          name: "",
+          values: ["0", "1", "1", "1", "1", "1", "55", "34"],
+          read: [6, 7],
+          write: [],
+          side: "행렬 4 / 4",
+        },
       ],
     },
-    {
-      title: "T7 반환 — ⑥ 오른쪽 위 칸을 읽는다",
-      detail:
-        "acc 는 M^10 이고 그 오른쪽 위 칸이 F(10) = 55 다. 누적 행렬 곱 6 은 비트 수 4 와 1 인 비트 2 의 합이다.",
-      entries: [
-        { label: "갈래", value: "⑥ 반환" },
-        { label: "이번 비트", value: "—" },
-        { label: "비트 자리", value: "—" },
-        { label: "acc", value: "[[89,55],[55,34]] = M^10" },
-        { label: "step", value: "—" },
-        { label: "e", value: "0" },
-        { label: "누적 행렬 곱", value: 6 },
-        { label: "답이 될 칸", value: 55 },
-      ],
-    },
-  ] satisfies Frame[],
-};
+  ],
+} satisfies ArrayPlayerSpec;

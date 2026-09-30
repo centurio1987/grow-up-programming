@@ -63,6 +63,13 @@ export interface ArrayStep {
    * 첫 걸음부터 `slots` 로 자리를 모두 잡아 두면 아직 안 넣은 자리는 점선이다. 없으면 그리지 않는다.
    */
   readonly map?: KeyValueData;
+  /**
+   * 배열 칸 하나가 격자 몇 칸의 폭을 차지하는가. 기본 1. 배열 칸 하나 아래에 그 칸에 딸린 여러 칸짜리
+   * 구조를 쌓을 때 쓴다 — 지수의 자리마다 2×2 행렬 하나를 두면 `2` 이고, 배열 칸 `i` 가 격자 칸 `2i` ·
+   * `2i + 1` 을 덮어 그 아래 `layers` 의 두 칸과 같은 폭이 된다. 인덱스 줄 · ▲ · 쥔 구간 괄호도 배열
+   * 칸 단위로 서고, `layers` 의 칸은 격자 칸 단위 그대로다. 걸음마다 같은 값을 적는다.
+   */
+  readonly span?: number;
 }
 
 /** 쥔 구간 안의 조각 하나 — 왼쪽 조각은 실선, 오른쪽 조각은 대시 괄호다(`CellStage` 의 괄호 규칙). */
@@ -95,6 +102,11 @@ export interface ArrayLayer {
    * 시작하는 카운터 배열)에서, 걸음마다 달라지는 셈(「옛 값 3 칸」)이나 그 줄을 읽는 규칙을 적는다.
    */
   readonly side?: string;
+  /**
+   * `false` 면 이 줄 아래에 ▲ 줄을 두지 않는다. 기본 `true`. 두 줄이 한 덩어리인 구조(2×2 행렬의 윗줄과
+   * 아랫줄)에서 윗줄에 쓴다 — ▲ 줄이 끼면 행렬 하나가 두 줄로 갈라져 보인다. 읽은 칸은 테로 보인다.
+   */
+  readonly caret?: boolean;
 }
 
 export interface ArrayOptions {
@@ -122,21 +134,26 @@ export function arrayStage(s: ArrayStep, opts: ArrayOptions): StageRow[] {
   const pointers = Object.entries(s.pointers ?? {})
     .map(([name, at]) => `${name} = ${at}`)
     .join(" · ");
+  // 배열 칸이 격자 여러 칸을 덮으면(`span`) 인덱스 · 값 · ▲ 줄에 같은 폭을 주고, 괄호는 격자 칸으로 편다.
+  const span = s.span ?? 1;
+  const wide = span === 1 ? {} : { span };
   const rows: StageRow[] = [
     ...(opts.valueAxis
       ? []
-      : [{ kind: "index", label: "인덱스", focus: s.write } as const]),
+      : [{ kind: "index", label: "인덱스", focus: s.write, ...wide } as const]),
     {
       kind: "cells",
       label: opts.arrayName ?? "A",
       values: s.array,
       states,
       side: s.rangeSide ?? `${opts.rangeLabel} ${held} 칸`,
+      ...wide,
     },
     {
       kind: "caret",
       cells: s.read ?? [],
       side: pointers === "" ? undefined : pointers,
+      ...wide,
     },
   ];
   // 구간이 비면(`lo > hi`) 괄호 줄을 뺀다. 모든 칸이 이미 대시라 빈 구간이 무대에 보인다.
@@ -148,8 +165,8 @@ export function arrayStage(s: ArrayStep, opts: ArrayOptions): StageRow[] {
     rows.push({
       kind: "bracket",
       label: opts.rangeLabel,
-      from,
-      to,
+      from: from * span,
+      to: to * span + span - 1,
       tone: "query",
       text,
     });
@@ -172,16 +189,16 @@ export function arrayStage(s: ArrayStep, opts: ArrayOptions): StageRow[] {
     for (const i of layer.read ?? []) layerStates[i] = "read";
     for (const i of layer.write ?? []) layerStates[i] = "focus";
     const filled = layer.values.filter((v) => v !== null).length;
-    rows.push(
-      {
-        kind: "cells",
-        label: layer.name,
-        values: layer.values,
-        states: layerStates,
-        side: layer.side ?? `채움 ${filled} / ${layer.values.length}`,
-      },
-      { kind: "caret", cells: layer.read ?? [] },
-    );
+    rows.push({
+      kind: "cells",
+      label: layer.name,
+      values: layer.values,
+      states: layerStates,
+      side: layer.side ?? `채움 ${filled} / ${layer.values.length}`,
+    });
+    if (layer.caret !== false) {
+      rows.push({ kind: "caret", cells: layer.read ?? [] });
+    }
   }
   // 해시 맵은 맨 아래에 키 줄 · 값 줄 · ▲ 줄로 쌓는다. 자리 수가 걸음마다 같으면 무대도 같다.
   if (s.map) rows.push(...keyValueRows(s.map));
@@ -191,7 +208,7 @@ export function arrayStage(s: ArrayStep, opts: ArrayOptions): StageRow[] {
 /** 격자 칸 수 — 배열과 그 아래 쌓은 줄(해시 맵 포함) 가운데 가장 긴 것의 길이. */
 export const arrayColumns = (s: ArrayStep): number =>
   Math.max(
-    s.array.length,
+    s.array.length * (s.span ?? 1),
     ...(s.layers ?? []).map((l) => l.values.length),
     s.map ? keyValueColumns(s.map) : 0,
   );

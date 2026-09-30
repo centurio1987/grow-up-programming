@@ -10,7 +10,7 @@
  * 메모리 제한 256 MB 의 3 억 배가 넘는 값이다. 이 절차의 문제가 아니라 출력 크기의 문제라
  * **어떤 구현으로도** 그 값을 정확히 돌려줄 수 없다. 원본 케이스가 실제로 확인하려던 것
  * (「지수 규모가 커도 걸음 수가 로그로 끝난다」)은 아래 「행렬 곱 횟수」 케이스가 값을
- * 담을 수 있는 규모에서 벽시계 없이 확인한다. 그 사실은 가이드 본문의 두 번째 「멈춤」과
+ * 담을 수 있는 규모에서 벽시계 없이 확인한다. 그 사실은 가이드 본문의 「짚고 가기」와
  * 「비용 계산」이 값으로 적어 두었다.
  */
 import { expect, test } from "bun:test";
@@ -23,7 +23,7 @@ import {
 } from "./matrixPowerFibonacci-guide.ref.ts";
 
 const CASES: [bigint, bigint][] = [
-  // 기본 동작 — 문제 예시
+  // 기본 동작 — 실습 예시
   [0n, 0n],
   [1n, 1n],
   [2n, 1n],
@@ -120,7 +120,7 @@ test("행렬 곱 횟수가 비트 수와 1 인 비트의 합이다", () => {
 });
 
 test("곱하는 두 행렬의 좌우를 바꿔도 답이 같다", () => {
-  // 같은 M 의 거듭제곱끼리는 교환된다 — 첫 번째 「멈춤」이 값으로 보인 것이다.
+  // 같은 M 의 거듭제곱끼리는 교환된다 — 두 번째 「짚고 가기」가 값으로 보인 것이다.
   const rightToLeft = (n: bigint): bigint => {
     let acc: Mat = IDENTITY;
     let step: Mat = TRANSITION;
@@ -138,7 +138,7 @@ test("곱하는 두 행렬의 좌우를 바꿔도 답이 같다", () => {
 });
 
 test("누적과 제곱의 앞뒤를 바꾸면 F(2n) 이 나온다", () => {
-  // 첫 번째 「멈춤」의 반례. 답이 여전히 피보나치 수라 눈으로는 안 갈린다.
+  // 두 번째 「짚고 가기」의 반례. 답이 여전히 피보나치 수라 눈으로는 안 갈린다.
   const squareFirst = (n: bigint): bigint => {
     let acc: Mat = IDENTITY;
     let step: Mat = TRANSITION;
@@ -154,4 +154,21 @@ test("누적과 제곱의 앞뒤를 바꾸면 F(2n) 이 나온다", () => {
     expect(squareFirst(n)).toBe(matrixPowerFibonacci(2n * n));
   }
   expect(squareFirst(10n)).toBe(6765n);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./matrixPowerFibonacci-guide.sim.ts");
+  const { simStepsFromRef } = await import(
+    "./matrixPowerFibonacci-guide.fig.tsx"
+  );
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.powMatrix.steps)).toEqual(plain(want.powMatrix));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.powMatrix.result).toBe(`${matrixPowerFibonacci(10n)}n`);
 });

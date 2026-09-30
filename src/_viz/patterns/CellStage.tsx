@@ -35,6 +35,7 @@ import {
   cellX,
   gutterFor,
   INDEX_ROW,
+  spanWidth,
   text,
 } from "./ArrayStrip";
 import { LevelTag, levelSub } from "./LevelTable";
@@ -52,6 +53,11 @@ export type StageRow =
        * 쓴다. 없으면 칸 번호 0 · 1 · 2 … 를 적는다.
        */
       readonly labels?: readonly (number | string)[];
+      /**
+       * 눈금 하나가 격자 몇 칸을 덮는가. 기본 1. 2 이상이면 눈금을 `span` 칸마다 하나씩 그 칸들의 가운데에
+       * 적고, `focus` · `labels` 의 번호도 그 묶음의 번호다(값 칸 줄의 `span` 과 짝이다).
+       */
+      readonly span?: number;
     }
   | {
       readonly kind: "cells";
@@ -62,11 +68,15 @@ export type StageRow =
       readonly values: readonly (number | string | null)[];
       readonly states?: Readonly<Partial<Record<number, CellState>>>;
       readonly side?: string;
+      /** 값 칸 하나가 격자 몇 칸의 폭을 차지하는가. 기본 1(`ArrayStrip` 의 `span`). */
+      readonly span?: number;
     }
   | {
       readonly kind: "caret";
       readonly cells: readonly number[];
       readonly side?: string;
+      /** ▲ 하나가 격자 몇 칸의 가운데에 서는가. 기본 1 — 값 칸 줄의 `span` 과 짝이다. */
+      readonly span?: number;
     }
   | {
       readonly kind: "bracket";
@@ -207,26 +217,28 @@ function StageRowView(props: {
   switch (row.kind) {
     case "index": {
       const focus = new Set(row.focus ?? []);
+      const span = row.span ?? 1;
+      const w = spanWidth(span);
       return (
         <g data-viz-role="index">
           <RowLabel y={mid} label={row.label} />
-          {Array.from({ length: columns }, (_, n) => ({
+          {Array.from({ length: Math.ceil(columns / span) }, (_, n) => ({
             at: n,
             id: `i-${n}`,
           })).map(({ at: i, id }) => (
             <g key={id} data-viz-index={i} data-viz-focus={focus.has(i)}>
               {focus.has(i) ? (
                 <rect
-                  x={cellX(gutter, i)}
+                  x={cellX(gutter, i * span)}
                   y={mid - 9}
-                  width={CELL_W}
+                  width={w}
                   height={18}
                   rx={FORM.radius}
                   style={{ fill: "var(--bbangto-viz-ext-index-focus-fill)" }}
                 />
               ) : null}
               <text
-                x={cellX(gutter, i) + CELL_W / 2}
+                x={cellX(gutter, i * span) + w / 2}
                 y={mid}
                 textAnchor="middle"
                 dominantBaseline="central"
@@ -263,6 +275,7 @@ function StageRowView(props: {
               label: row.level === undefined ? row.label : undefined,
               values: row.values.map((v) => (v === null ? "" : v)),
               states,
+              span: row.span,
             }}
           />
           <Side x={sideX} y={mid} value={row.side} />
@@ -275,7 +288,10 @@ function StageRowView(props: {
           {[...new Set(row.cells)].map((i) => (
             <text
               key={`c-${i}`}
-              x={cellX(gutter, i) + CELL_W / 2}
+              x={
+                cellX(gutter, i * (row.span ?? 1)) +
+                spanWidth(row.span ?? 1) / 2
+              }
               y={mid}
               textAnchor="middle"
               dominantBaseline="central"

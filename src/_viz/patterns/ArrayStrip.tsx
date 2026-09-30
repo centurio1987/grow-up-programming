@@ -32,6 +32,11 @@ export interface StripRow {
   readonly states?: Readonly<Partial<Record<number, CellState>>>;
   /** 이 줄이 몇 칸 밀려서 시작하는가(층별 표에서 쓴다). 기본 0. */
   readonly offset?: number;
+  /**
+   * 값 칸 하나가 격자 몇 칸의 폭을 차지하는가. 기본 1. 칸 `i` 는 격자 칸 `(i + offset) · span` 부터
+   * `span` 칸을 덮는다 — 값 하나 아래에 그 값에 딸린 여러 칸짜리 구조(2×2 행렬의 두 열)를 쌓을 때 쓴다.
+   */
+  readonly span?: number;
 }
 
 export const LABEL_SIZE = 13;
@@ -51,6 +56,10 @@ export function gutterFor(labels: readonly (string | undefined)[]): number {
 
 export const cellX = (gutter: number, i: number): number =>
   FORM.pad + gutter + i * STEP;
+
+/** 격자 칸 `span` 개를 덮는 칸의 폭. `span` 이 1 이면 `CELL_W` 다. */
+export const spanWidth = (span: number): number =>
+  span === 1 ? CELL_W : span * STEP - FORM.cellGap;
 
 export const text = (color: string, size = LABEL_SIZE, mono = false) => ({
   fill: `var(--bbangto-viz-ext-${color})`,
@@ -178,6 +187,8 @@ export function IndexRow(props: {
 export function CellRow(props: { gutter: number; row: StripRow; y: number }) {
   const { gutter, row, y } = props;
   const offset = row.offset ?? 0;
+  const span = row.span ?? 1;
+  const w = spanWidth(span);
   const hatchId = `hatch-${useId().replace(/[^A-Za-z0-9_-]/g, "")}`;
   const states = row.states ?? {};
   const hasOverlap = Object.values(states).includes("overlap");
@@ -197,14 +208,14 @@ export function CellRow(props: { gutter: number; row: StripRow; y: number }) {
       {row.values
         .map((v, n) => ({ v, at: n, id: `cell-${n + offset}` }))
         .map(({ v, at: i, id }) => {
-          const x = cellX(gutter, i + offset);
+          const x = cellX(gutter, (i + offset) * span);
           const state = states[i];
           return (
             <g key={id} data-viz-cell={i} data-viz-state={state ?? "base"}>
               <rect
                 x={x}
                 y={y}
-                width={CELL_W}
+                width={w}
                 height={CELL_H}
                 rx={FORM.radius}
                 style={cellStyle(state)}
@@ -213,7 +224,7 @@ export function CellRow(props: { gutter: number; row: StripRow; y: number }) {
                 <rect
                   x={x}
                   y={y}
-                  width={CELL_W}
+                  width={w}
                   height={CELL_H}
                   rx={FORM.radius}
                   fill={`url(#${hatchId})`}
@@ -221,7 +232,7 @@ export function CellRow(props: { gutter: number; row: StripRow; y: number }) {
                 />
               ) : null}
               <text
-                x={x + CELL_W / 2}
+                x={x + w / 2}
                 y={y + CELL_H / 2}
                 textAnchor="middle"
                 dominantBaseline="central"
