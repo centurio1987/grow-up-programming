@@ -1457,7 +1457,8 @@ export function coinChangeWays(coins: number[], amount: number): number;
 
 #### 제약 조건
 
-- $1 \leq |coins| \leq 100$
+- $0 \leq |coins| \leq 100$ (빈 배열도 입력이다)
+- `coins` 의 값은 서로 다르다
 - $1 \leq coins[i] \leq 10^4$
 - $0 \leq amount \leq 10^4$
 - 시간 제한: 1초, 메모리 제한: 256 MB

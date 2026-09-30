@@ -1429,7 +1429,7 @@ export function subsetSum(nums: number[], target: number): boolean;
 
 #### 제약 조건
 
-- $1 \leq |nums| \leq 1000$
+- $0 \leq |nums| \leq 1000$ (빈 배열도 입력이다)
 - $0 \leq nums[i] \leq 10^4$
 - $0 \leq target \leq 10^4$
 - 각 원소는 0번 또는 1번만 사용할 수 있다.

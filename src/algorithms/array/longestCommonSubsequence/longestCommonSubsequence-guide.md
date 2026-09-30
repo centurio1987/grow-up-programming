@@ -1366,7 +1366,7 @@ export function longestCommonSubsequence(s: string, t: string): number;
 
 **공통 부분 수열** $w$는 $s$와 $t$ 모두의 부분 수열이 되는 문자열이다. 그중 가장 긴 $w$의 길이를 반환한다($w$ 자체가 아닌 길이만).
 
-한쪽 또는 양쪽이 빈 문자열이면 공통 부분 수열이 없으므로 $0$을 반환한다.
+한쪽 또는 양쪽이 빈 문자열이면 공통 부분 수열은 빈 문자열 하나뿐이므로 $0$을 반환한다.
 
 #### 예시
 
@@ -1378,7 +1378,7 @@ longestCommonSubsequence("abc", "aabbcc");     // 3  — 공통 부분 수열 "a
 longestCommonSubsequence("abc", "abc");        // 3  — 동일 문자열, 전체가 공통
 longestCommonSubsequence("abc", "def");        // 0  — 공통 문자 없음
 
-longestCommonSubsequence("", "abc");           // 0  — 빈 문자열은 공통 부분 수열 없음
+longestCommonSubsequence("", "abc");           // 0  — 공통 부분 수열은 빈 문자열뿐
 longestCommonSubsequence("", "");              // 0  — 둘 다 빈 문자열
 
 longestCommonSubsequence("a", "a");            // 1  — 단일 문자 일치

@@ -7,6 +7,10 @@ describe("maximumProductSubarray", () => {
       expect(maximumProductSubarray([2, 3, -2, 4])).toBe(6);
     });
 
+    test("모두 음수 [-4,-3,-2] → 12 (가장 큰 음수가 답이 아니다)", () => {
+      expect(maximumProductSubarray([-4, -3, -2])).toBe(12);
+    });
+
     test("[-2,3,-4] → 전체 곱 24", () => {
       // (-2)*3*(-4) = 24
       expect(maximumProductSubarray([-2, 3, -4])).toBe(24);

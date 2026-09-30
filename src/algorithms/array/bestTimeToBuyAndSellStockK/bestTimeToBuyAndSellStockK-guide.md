@@ -1451,7 +1451,7 @@ export function bestTimeToBuyAndSellStockK(k: number, prices: number[]): number;
 
 같은 날 매도 후 매수는 허용된다. 거래를 $k$번보다 적게 해도 된다.
 
-배열이 비거나($N < 2$) $k = 0$이면 이익은 $0$이다.
+거래일이 하루뿐이거나($N = 1$) $k = 0$이면 이익은 $0$이다.
 
 #### 예시
 
