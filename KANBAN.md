@@ -152,7 +152,7 @@
   - 메모: 근거: KANBAN.cards/KAN-061-YVQBCF.md 의 S1 수행 내역(24편 · 21편 바이트 동일). main 에서 바로 되돌리면 다음 main→solutions 병합이 풀이를 덮는다 — 병합 방향부터
   - 실행 문서: KANBAN.cards/KAN-064-4YZZV2.md (5/5 · 최근 10-01)
   - 계획 리포트: KANBAN.reports/KAN-064-4YZZV2.report.html (낡음)
-  - 검토 문서: KANBAN.reviews/KAN-064-4YZZV2.review.md (승인 0/2 · 검토 대기)
+  - 검토 문서: KANBAN.reviews/KAN-064-4YZZV2.review.md (승인 2/2 · 승인)
   - 원문:
     ```text
     KAN-061 검토서 판단 항목 1 「스텁에 풀이가 든 24편을 새 카드로 뗄 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」
