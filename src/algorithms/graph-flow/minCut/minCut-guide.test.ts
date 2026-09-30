@@ -147,7 +147,7 @@ test("본문 전개가 쓰는 고정 입력", () => {
   ).toEqual({ cut: 7 });
 });
 
-test("문제 지문의 예시", () => {
+test("용량이 다른 다리 그래프 — maxFlow 편과 같은 입력", () => {
   expect(
     minCut(
       4,
@@ -257,4 +257,39 @@ test("컷 용량은 최대 유량과 같다 — 분할을 전수로 나열해 �
     }
     expect(minCut(n, edges, source, sink)).toEqual({ cut: best });
   }
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차를 실행해
+ * 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./minCut-guide.sim.ts");
+  const fig = await import("./minCut-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.minCutWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.minCutWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 컷을 정본의 답에 직접 다시 묻는다.
+  const want = minCut(
+    7,
+    [
+      [0, 1, 5],
+      [1, 2, 3],
+      [2, 5, 3],
+      [0, 3, 4],
+      [3, 2, 5],
+      [1, 4, 6],
+      [4, 5, 4],
+      [5, 6, 12],
+      [5, 3, 2],
+    ],
+    0,
+    6,
+  );
+  expect(sim.minCutWalk.steps.at(-1)?.vars).toBe(
+    `누적 유량 ${want.cut} · cut ${want.cut}`,
+  );
+  expect(sim.minCutWalk.result).toBe(`{ cut: ${want.cut} }`);
 });

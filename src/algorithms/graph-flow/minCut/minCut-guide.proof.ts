@@ -6,34 +6,42 @@
  *
  *   bun run tools/check-proof.ts src/algorithms/graph-flow/minCut/minCut-guide.md
  *
- * **계수를 세는 사본이 여럿 있다.** 정본은 걸음마다의 상태나 계수를 내보내지 않으므로, 세는
- * 자리만 덧붙인 사본이 아니면 계수를 낼 방법이 없다. **답이 맞는지는 사본이 아니라 정본이
- * 진다** — 아래 표의 「컷」 칸은 전부 정본이나 정본에서 기계로 만든 변이가 낸 값이고, 사본은
- * 계수와 걸음별 상태만 낸다. 사본이 정본과 같은 답을 내는지는 `자기대조()` 가 이 파일을 읽을
- * 때 확인한다.
+ * **최대 유량은 `maxFlow` 편의 정본이 낸다.** 이 편의 정본은 `maxFlow` 정본의 디닉 절차를 그대로 옮기고
+ * 끝만 바꾼 것이라(유량을 돌려주는 대신 반복을 끝내고 컷을 더한다), 「컷 용량 = 최대 유량」을 보이는 자리의
+ * 유량 칸은 그 정본에 직접 묻는다. 두 정본이 어느 줄에서 갈리는지도 소스를 읽어 기계로 낸다(`walkDiff`).
  *
- * **변이가 아무것도 안 바꾸는지를 검사하는 자리는 중화 실행을 피해 간다.** `check-proof` 가
- * 이 파일을 한 번 더 부를 때는 `loadMutant` 이 정본을 그대로 돌려주므로(중화), 그 상태에서
- * 「변이가 답을 안 바꿨다」로 던지면 중화 대조 자체가 실행되지 않는다. 중화 여부는 변이
- * 모듈의 함수가 정본과 **같은 객체인가**로 알아낸다.
+ * **계수를 세는 사본이 둘 있다.** 정본은 걸음마다의 상태나 계수를 내보내지 않는다.
+ *
+ * - `trace` — 걸음마다 레벨 · `iter` · 항목 18 개의 잔여 용량을 통째로 적는다. 작은 입력에만 쓴다.
+ *   걸음마다 전체를 베끼므로 큰 입력에 쓰면 메모리가 모자란다.
+ * - `countedLite` — 간선 검사 횟수와 라운드 수만 센다. 큰 입력(계단 · 격자)은 이쪽이다.
+ *
+ * 두 사본이 정본과 같은 답을 내는지는 이 파일이 읽힐 때 스스로 확인한다.
+ *
+ * **변이는 둘이다**(`noPush` · `noTargetCheck`). `check-proof` 는 이 파일을 한 번 더 부르면서 변이를 만들되
+ * 적용하지 않은 중화 상태로 둔다. 중화 여부는 변이 모듈의 함수가 정본과 **같은 객체인가**로 알아내고,
+ * 「변이가 답을 바꿨는가」를 스스로 확인하는 검사는 중화 상태에서 건너뛴다.
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { josa, 과와, 으로, 은는, 이가 } from "../../../../tools/josa.ts";
+import { maxFlow } from "../maxFlow/maxFlow-guide.ref.ts";
 import { minCut } from "./minCut-guide.ref.ts";
 
 export type Edge = [number, number, number];
 
-/* ────────────────────────── 고정 입력 ────────────────────────── */
+/* ────────────────────────── 입력 ────────────────────────── */
 
 /**
  * 본문 전개가 쓰는 네트워크. 정점 일곱 · 방향 간선 아홉이고 소스는 0, 싱크는 6 이다.
  *
  * 이 입력 하나로 컷 판정의 네 갈래가 전부 나온다 — 경계를 건너는 간선(`2 → 5` · `4 → 5`) ·
  * 소스 쪽 안에서만 오가는 간선(`0 → 1` 등 다섯) · 싱크 쪽에서 소스 쪽으로 들어오는 간선
- * (`5 → 3`) · 싱크 쪽 안에서만 오가는 간선(`5 → 6`). 게다가 `0 → 1` 은 포화인데 컷이 아니고
- * `5 → 6` 은 용량이 가장 큰데 컷이 아니라, 흔한 오해 둘이 같은 입력에서 반박된다.
+ * (`5 → 3`) · 싱크 쪽 안에서만 오가는 간선(`5 → 6`).
  */
 export const WALK_N = 7;
-export const WALK_EDGES: Edge[] = [
+export const WALK_SOURCE = 0;
+export const WALK_SINK = 6;
+export const WALK: Edge[] = [
   [0, 1, 5],
   [1, 2, 3],
   [2, 5, 3],
@@ -44,12 +52,22 @@ export const WALK_EDGES: Edge[] = [
   [5, 6, 12],
   [5, 3, 2],
 ];
-export const WALK_SRC = 0;
-export const WALK_SINK = 6;
 
-/** 문제 지문의 예시. 소스에서 나가는 두 간선이 그대로 컷이 되는 모양이다. */
-export const DOC_N = 4;
-export const DOC_EDGES: Edge[] = [
+/** `maxFlow` 편의 전개 입력 — 두 편의 수치가 맞는지 보는 데 쓴다. */
+export const MF_N = 6;
+export const MF: Edge[] = [
+  [0, 1, 4],
+  [1, 2, 2],
+  [2, 5, 2],
+  [0, 3, 3],
+  [3, 2, 4],
+  [1, 4, 5],
+  [4, 5, 3],
+];
+
+/** 용량이 다른 다리 그래프(`maxFlow` 편과 같은 입력). 소스에서 나가는 두 간선이 그대로 컷이 된다. */
+export const VARIED_N = 4;
+export const VARIED: Edge[] = [
   [0, 1, 3],
   [0, 2, 2],
   [1, 2, 1],
@@ -57,17 +75,17 @@ export const DOC_EDGES: Edge[] = [
   [2, 3, 3],
 ];
 
-/** 병목이 싱크 바로 앞에 있는 직렬 네트워크. 소스 쪽 무리가 정점 셋이다. */
+/** 병목이 싱크 바로 앞에 있는 직렬 네트워크. */
 export const TAIL_N = 4;
-export const TAIL_EDGES: Edge[] = [
+export const TAIL: Edge[] = [
   [0, 1, 100],
   [1, 2, 100],
   [2, 3, 1],
 ];
 
-/** 되돌릴 자리가 없으면 답이 갈리는 다리 그래프. 용량이 전부 1 이다. */
+/** 다리 그래프(`maxFlow` 편과 같은 입력). 용량이 전부 1 이다. */
 export const BRIDGE_N = 4;
-export const BRIDGE_EDGES: Edge[] = [
+export const BRIDGE: Edge[] = [
   [0, 1, 1],
   [0, 2, 1],
   [1, 2, 1],
@@ -77,35 +95,96 @@ export const BRIDGE_EDGES: Edge[] = [
 
 /** 소스에서 싱크로 가는 경로가 없다. */
 export const CUTOFF_N = 3;
-export const CUTOFF_EDGES: Edge[] = [[0, 1, 10]];
+export const CUTOFF: Edge[] = [[0, 1, 10]];
 
-const V_LIMIT = 500;
-const E_LIMIT = 10_000;
-const C_LIMIT = 1_000_000;
+/** 본문이 입력에 붙이는 이름. 표의 행 이름과 그림 제목이 같은 이름을 쓴다. */
+export const NAME = {
+  walk: "전개 입력",
+  varied: "용량이 다른 다리 그래프",
+  tail: "병목이 싱크 앞",
+  bridge: "다리 그래프",
+  cutoff: "경로 없음",
+  empty: "간선 없음",
+} as const;
+
+export const V_MAX = 500;
+export const E_MAX = 10_000;
+export const C_MAX = 1_000_000;
+
+interface Case {
+  label: string;
+  n: number;
+  edges: Edge[];
+  source: number;
+  sink: number;
+}
+
+const WALK_CASE: Case = {
+  label: NAME.walk,
+  n: WALK_N,
+  edges: WALK,
+  source: WALK_SOURCE,
+  sink: WALK_SINK,
+};
+const VARIED_CASE: Case = {
+  label: NAME.varied,
+  n: VARIED_N,
+  edges: VARIED,
+  source: 0,
+  sink: 3,
+};
+const TAIL_CASE: Case = {
+  label: NAME.tail,
+  n: TAIL_N,
+  edges: TAIL,
+  source: 0,
+  sink: 3,
+};
+const BRIDGE_CASE: Case = {
+  label: NAME.bridge,
+  n: BRIDGE_N,
+  edges: BRIDGE,
+  source: 0,
+  sink: 3,
+};
+const CUTOFF_CASE: Case = {
+  label: NAME.cutoff,
+  n: CUTOFF_N,
+  edges: CUTOFF,
+  source: 0,
+  sink: 2,
+};
+const EMPTY_CASE: Case = {
+  label: NAME.empty,
+  n: 2,
+  edges: [],
+  source: 0,
+  sink: 1,
+};
 
 /**
- * 경로 길이가 1, 2, …, `m` 으로 서로 다른 계단 네트워크.
+ * 경로 길이가 1, 2, …, `m` 으로 서로 다른 계단 네트워크(`maxFlow` 편과 같은 생성식).
  *
  * 싱크로 들어가는 간선은 용량 1 이고 사슬은 다 지날 만큼 크다. 짧은 경로부터 한 라운드에
  * 하나씩만 소진되므로 라운드 수가 `m` 을 그대로 채운다.
  */
-export function stair(m: number): { n: number; edges: Edge[] } {
+export function stair(m: number): { n: number; edges: Edge[]; sink: number } {
   const edges: Edge[] = [
     [0, m, 1],
     [0, 1, m],
   ];
   for (let i = 1; i <= m - 2; i++) edges.push([i, i + 1, m]);
   for (let i = 1; i <= m - 1; i++) edges.push([i, m, 1]);
-  return { n: m + 1, edges };
+  return { n: m + 1, edges, sink: m };
 }
 
 /** 계단에 「번호가 큰 정점에서 작은 쪽으로」 가는 간선을 덧붙인다. 라운드 수는 안 바뀐다. */
 export function stairPlus(
   m: number,
   extra: number,
-): { n: number; edges: Edge[] } {
-  const { n, edges } = stair(m);
-  const out = [...edges];
+): { n: number; edges: Edge[]; sink: number } {
+  const s = stair(m);
+  const out = [...s.edges];
   let added = 0;
   for (let gap = 2; gap < m && added < extra; gap++) {
     for (let i = gap; i < m && added < extra; i++) {
@@ -113,10 +192,10 @@ export function stairPlus(
       added++;
     }
   }
-  return { n, edges: out };
+  return { n: s.n, edges: out, sink: s.sink };
 }
 
-/** 격자 네트워크. 왼쪽 열이 소스에, 오른쪽 열이 싱크에 붙는다. */
+/** 격자 네트워크. 왼쪽 열이 소스 0 에, 오른쪽 열이 싱크 1 에 붙는다(`maxFlow` 편과 같은 생성식). */
 export function grid(w: number, h: number): { n: number; edges: Edge[] } {
   const at = (r: number, c: number): number => r * w + c + 2;
   const edges: Edge[] = [];
@@ -136,423 +215,401 @@ export function grid(w: number, h: number): { n: number; edges: Edge[] } {
   return { n: h * w + 2, edges };
 }
 
-/* ────────────────────────── 칸 맞춤 ────────────────────────── */
+/* ────────────────────────── 표기 ────────────────────────── */
 
-/** 한글은 고정폭 화면에서 두 칸을 먹는다. 칸 맞춤을 글자 수로 하면 머리줄만 어긋난다. */
+/** `1,868,253` 꼴 — 본문 표기와 같다. */
+export const comma = (n: number): string => n.toLocaleString("en-US");
+
+/** `[0, 1, 2]` 꼴. */
+export const list = (xs: readonly (number | string)[]): string =>
+  `[${xs.join(", ")}]`;
+
+/** `{0, 1, 2}` 꼴 — 정점 집합. */
+export const set = (xs: readonly number[]): string => `{${xs.join(", ")}}`;
+
+/** `0 → 1 → 2` 꼴 — 경로. */
+export const route = (xs: readonly number[]): string => xs.join(" → ");
+
+/** 간선 이름 — `1→2`. */
+export const edgeName = (e: readonly number[]): string => `${e[0]}→${e[1]}`;
+
+/** 마크다운 표 한 벌. `right` 는 오른쪽 정렬할 열 번호. */
+export function md(
+  head: readonly string[],
+  rows: readonly (readonly string[])[],
+  right: readonly number[] = [],
+): string {
+  const sep = head.map((_, i) => (right.includes(i) ? "---:" : "---"));
+  return [head, sep, ...rows].map((r) => `| ${r.join(" | ")} |`).join("\n");
+}
+
+/** 한글은 고정폭 화면에서 두 칸을 먹는다(코드 옆 짧은 결과 블록의 칸 맞춤). */
 const width = (s: string): number =>
   [...s].reduce((n, c) => n + (/[ᄀ-ᇿ　-〿㄰-㆏가-힯一-鿿]/.test(c) ? 2 : 1), 0);
-
 const pad = (s: string, to: number): string =>
   s + " ".repeat(Math.max(0, to - width(s)));
 
-const padLeft = (s: string, to: number): string =>
-  " ".repeat(Math.max(0, to - width(s))) + s;
-
-/** `[0, 1, 2, 1, 2, 3, 4]` 꼴 — 본문 표기와 같다. */
-const show = (xs: number[]): string => `[${xs.join(", ")}]`;
-
-/** `{0, 1, 2, 3, 4}` 꼴 — 본문 표기와 같다. */
-const set = (xs: number[]): string => `{${xs.join(", ")}}`;
-
-/** `10,000` 꼴 — 본문 표기와 같다. */
-const comma = (n: number): string => n.toLocaleString("en-US");
-
-/** 표 한 벌을 칸에 맞춰 낸다. 첫 행이 머리줄이다. */
-function table(rows: string[][], alignRight: number[] = []): string[] {
-  const cols = rows[0]?.length ?? 0;
-  const widths: number[] = [];
-  for (let c = 0; c < cols; c++) {
-    widths.push(Math.max(...rows.map((r) => width(r[c] ?? ""))));
-  }
+/** 등폭 열 맞춤 — 코드 조각 바로 아래의 짧은 실행 결과에 쓴다. */
+function columns(rows: readonly (readonly string[])[]): string[] {
+  const cols = Math.max(...rows.map((r) => r.length));
+  const ws: number[] = [];
+  for (let c = 0; c < cols; c++)
+    ws.push(Math.max(...rows.map((r) => width(r[c] ?? ""))));
   return rows.map((r) =>
     r
-      .map((cell, c) =>
-        alignRight.includes(c)
-          ? padLeft(cell, widths[c] ?? 0)
-          : pad(cell, widths[c] ?? 0),
-      )
-      .join("  ")
+      .map((cell, c) => (c === r.length - 1 ? cell : pad(cell, ws[c] ?? 0)))
+      .join("   ")
       .replace(/\s+$/, ""),
   );
 }
 
-/* ────────────────────── 계수를 세는 사본 ────────────────────── */
+/** 계사 「이며/며」. */
+const 이며 = (n: number): string => josa(String(n), "이며", "며");
 
-interface ResidualEdge {
-  to: number;
-  cap: number;
-  rev: number;
-}
+/* ────────────────────── 걸음을 통째로 적는 사본 ────────────────────── */
 
-/** 원문자 갈래가 몇 번 실행됐는가. 자리는 ①②③④⑤⑥⑦ 순이다. */
-export type BranchHits = [
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-];
+/** 정본 주석의 갈래 라벨. */
+export type Label = "①" | "②" | "③" | "④" | "⑤" | "⑥" | "⑦";
+export const LABELS: readonly Label[] = ["①", "②", "③", "④", "⑤", "⑥", "⑦"];
 
+/** 갈래마다 하는 일 — 정본 주석을 줄인 말. 표와 걸음 재생 패널이 같은 말을 쓴다. */
+export const LABEL_TEXT: Record<Label, string> = {
+  "①": "잔여가 있고 레벨이 없는 정점에 레벨을 적는다",
+  "②": "잔여가 있고 레벨이 한 칸 큰 항목으로 내려간다",
+  "③": "싱크에 도착해 병목을 올려보낸다",
+  "④": "짝지은 두 잔여 용량을 고친다",
+  "⑤": "iter 를 한 칸 옮겨 다음 항목을 본다",
+  "⑥": "싱크에 레벨이 없어 반복을 끝낸다",
+  "⑦": "소스 쪽에서 싱크 쪽으로 건너가는 원래 간선의 용량을 더한다",
+};
+
+export type StepKind = "build" | "bfs" | "path" | "exhaust" | "end" | "cut";
+
+/**
+ * 걸음 하나가 끝난 뒤의 상태. 항목 번호(`id`)는 원래 간선 `k` 의 정방향이 `k`, 역방향이 `E + k` 다.
+ */
 export interface Step {
-  /** `T1` 부터의 걸음 이름. */
-  label: string;
-  /** 이 걸음이 실행한 원문자 갈래. 실행에서 센 것이지 손으로 적은 것이 아니다. */
-  branches: string;
-  /** 갈래별 실행 횟수. */
-  hits: BranchHits;
-  /** 걸음이 끝난 시점의 `level`. */
-  level: number[];
-  /** 원래 간선 아홉 개의 잔여 용량. */
-  caps: number[];
-  /** 지금까지 보낸 양. 정본은 이 값을 안 세지만 걸음을 읽는 데 쓴다. */
-  sent: number;
-  /** 이 걸음이 한 일. */
-  note: string;
+  readonly kind: StepKind;
+  readonly round: number;
+  readonly level: number[];
+  readonly iter: number[];
+  /** 항목 번호마다의 잔여 용량. */
+  readonly res: number[];
+  /** 원래 간선마다 지금 실린 유량 — 용량에서 정방향 잔여를 뺀 값. */
+  readonly flow: number[];
+  readonly total: number;
+  /** BFS 가 큐에 넣은 차례. */
+  readonly queue: number[];
+  /** BFS 에서 레벨을 적게 한 항목. */
+  readonly found: number[];
+  /** 이 걸음에 유량을 보낸 경로의 정점과 항목. */
+  readonly path: number[];
+  readonly arcs: number[];
+  readonly add: number;
+  /** DFS 가 읽었지만 경로에 안 든 항목. */
+  readonly read: number[];
+  /** DFS 가 들어간 정점의 차례. */
+  readonly entered: number[];
+  /** 컷을 더한 걸음에서 더한 원래 간선 번호. */
+  readonly crossed: number[];
+  /** 컷을 더한 걸음의 컷 용량. */
+  readonly cut: number;
+  readonly hits: Record<Label, number>;
+  /** 이 걸음의 간선 검사 — 잔여 그래프 항목을 읽은 것과 원래 간선을 읽은 것을 하나씩 센다. */
+  readonly looks: number;
 }
 
-export interface Counts {
-  cut: number;
-  /** 마지막 BFS 가 레벨을 적어 둔 정점 — 소스 쪽 무리다. */
-  side: number[];
-  /** 컷에 드는 원래 간선. */
-  cutEdges: Edge[];
-  /** 소스 쪽 안에서만 오가는 원래 간선. */
-  insideEdges: Edge[];
-  /** 싱크 쪽에서 소스 쪽으로 들어오는 원래 간선. */
-  backEdges: Edge[];
-  /** 싱크 쪽 안에서만 오가는 원래 간선. */
-  outsideEdges: Edge[];
-  /** 흘린 총량. */
-  sent: number;
-  /** BFS 를 실행한 횟수. */
-  bfsRuns: number;
-  /** 유량을 실제로 보낸 라운드 수. */
-  flowRounds: number;
-  /** 잔여 간선 항목을 한 번 본 총 횟수. */
-  reads: number;
-  /** 그중 BFS 가 본 것. */
-  bfsReads: number;
-  /** 그중 DFS 가 본 것. */
-  dfsReads: number;
-  /** 컷을 더할 때 원래 간선을 본 횟수. */
-  cutReads: number;
-  /** 걸음별 기록. */
-  steps: Step[];
-  /** 라운드별 `level` 과 흘린 경로. */
-  rounds: { level: number[]; paths: { path: number[]; sent: number }[] }[];
-  /** BFS 가 끝난 시점마다의 분할 상태. */
-  snapshots: Snapshot[];
-  /** 원래 간선의 마지막 잔여 용량. */
-  finalCaps: number[];
+export interface Trace {
+  readonly steps: Step[];
+  readonly flow: number;
+  readonly cut: number;
+  readonly E: number;
+  /** 정점마다의 목록 — 항목 번호를 목록 차례대로. */
+  readonly lists: number[][];
+  /** 항목 번호마다 짝이 상대 목록에서 놓인 자리. */
+  readonly revAt: number[];
 }
 
-/** BFS 하나가 끝난 시점의 분할 상태. */
-export interface Snapshot {
-  /** 레벨이 적힌 정점. */
-  side: number[];
-  /** 싱크가 그 안에 드는가. 들면 아직 분할이 아니다. */
-  sinkInside: boolean;
-  /** 경계를 건너는 **잔여 용량**의 합. */
-  crossing: number;
-  /** 경계를 건너는 **원래 간선** 용량의 합. */
-  capacity: number;
-  /** 그때까지 보낸 양. */
-  sent: number;
-}
+const zeroHits = (): Record<Label, number> => ({
+  "①": 0,
+  "②": 0,
+  "③": 0,
+  "④": 0,
+  "⑤": 0,
+  "⑥": 0,
+  "⑦": 0,
+});
 
-/** 정본과 같은 절차에 세는 자리와 걸음 기록만 덧붙인 사본. */
-export function counted(
+/** 항목의 꼬리와 머리. */
+export const tailOf = (edges: readonly Edge[], id: number): number => {
+  const E = edges.length;
+  const e = edges[id < E ? id : id - E] as Edge;
+  return id < E ? e[0] : e[1];
+};
+export const headOf = (edges: readonly Edge[], id: number): number => {
+  const E = edges.length;
+  const e = edges[id < E ? id : id - E] as Edge;
+  return id < E ? e[1] : e[0];
+};
+/** 항목 이름 — `1→2`. 역방향이면 뒤집힌 방향으로 적는다. */
+export const arcName = (edges: readonly Edge[], id: number): string =>
+  `${tailOf(edges, id)}→${headOf(edges, id)}`;
+export const isBack = (edges: readonly Edge[], id: number): boolean =>
+  id >= edges.length;
+
+/**
+ * 정본과 같은 절차에 **걸음마다 상태를 적는 자리만** 덧붙인 사본. `noPush` 는 불변식 절의 「큐에 안
+ * 넣는다」를 사본으로 재현할 때만 쓴다 — 그 답이 기계로 만든 변이의 답과 같은지 아래에서 확인한다.
+ */
+export function trace(
   n: number,
-  edges: Edge[],
+  edges: readonly Edge[],
   source: number,
   sink: number,
-): Counts {
-  const graph: ResidualEdge[][] = Array.from({ length: n }, () => []);
-  /** 원래 간선 `i` 의 정방향 항목이 놓인 자리. */
-  const site: [number, number][] = [];
-  const link = (u: number, v: number, c: number): void => {
-    const out = graph[u] as ResidualEdge[];
-    const back = graph[v] as ResidualEdge[];
+  opt: { noPush?: boolean } = {},
+): Trace {
+  interface TArc {
+    to: number;
+    cap: number;
+    rev: number;
+    id: number;
+  }
+  const E = edges.length;
+  const g: TArc[][] = Array.from({ length: n }, () => []);
+  const byId: TArc[] = [];
+  edges.forEach(([u, v, c], k) => {
+    const out = g[u] as TArc[];
+    const back = g[v] as TArc[];
     const iOut = out.length;
-    out.push({ to: v, cap: c, rev: 0 });
+    const f: TArc = { to: v, cap: c, rev: 0, id: k };
+    out.push(f);
     const iBack = back.length;
-    back.push({ to: u, cap: 0, rev: iOut });
-    (out[iOut] as ResidualEdge).rev = iBack;
-    site.push([u, iOut]);
-  };
-  for (const [u, v, c] of edges) link(u, v, c);
-
+    const b: TArc = { to: u, cap: 0, rev: iOut, id: E + k };
+    back.push(b);
+    f.rev = iBack;
+    byId[k] = f;
+    byId[E + k] = b;
+  });
+  const lists = g.map((l) => l.map((a) => a.id));
+  const revAt = byId.map((a) => a.rev);
   const level: number[] = Array.from({ length: n }, () => -1);
   const iter: number[] = Array.from({ length: n }, () => 0);
-  const caps = (): number[] =>
-    site.map(([u, k]) => ((graph[u] as ResidualEdge[])[k] as ResidualEdge).cap);
-
-  let bfsReads = 0;
-  let dfsReads = 0;
-  let bfsRuns = 0;
-  let sent = 0;
   const steps: Step[] = [];
-  const rounds: {
-    level: number[];
-    paths: { path: number[]; sent: number }[];
-  }[] = [];
-  const snapshots: Snapshot[] = [];
+  let total = 0;
+  let round = 0;
 
-  /** 갈래별 실행 횟수 — 걸음이 끝날 때마다 걷어 낸다. */
-  let hits: BranchHits = [0, 0, 0, 0, 0, 0, 0];
-  const takeHits = (): BranchHits => {
-    const out = hits;
-    hits = [0, 0, 0, 0, 0, 0, 0];
-    return out;
-  };
-  const marks = (h: BranchHits): string => {
-    const names = "①②③④⑤⑥⑦";
-    const out = [...names].filter((_, i) => (h[i] as number) > 0).join("");
-    return out === "" ? "-" : out;
-  };
-
-  /**
-   * 이 시점의 잔여 그래프에서 레벨이 적힌 정점 무리를 잘라 본다.
-   *
-   * `crossing` 은 경계를 건너는 **잔여 용량**의 합이고, `capacity` 는 경계를 건너는 **원래
-   * 간선**의 용량 합이다. 앞엣것이 0 인 것이 BFS 가 끝난 시점의 보장이다.
-   */
-  const snapshot = (): void => {
-    const inS = (v: number): boolean => (level[v] as number) !== -1;
-    let crossing = 0;
-    for (let u = 0; u < n; u++) {
-      if (!inS(u)) continue;
-      for (const e of graph[u] as ResidualEdge[]) {
-        if (!inS(e.to)) crossing += e.cap;
-      }
-    }
-    let capacity = 0;
-    for (const [u, v, c] of edges) {
-      if (inS(u) && !inS(v)) capacity += c;
-    }
-    const side: number[] = [];
-    for (let v = 0; v < n; v++) if (inS(v)) side.push(v);
-    snapshots.push({
-      side,
-      sinkInside: inS(sink),
-      crossing,
-      capacity,
-      sent,
+  const snap = (kind: StepKind, extra: Partial<Step> = {}): void => {
+    steps.push({
+      kind,
+      round,
+      level: level.slice(),
+      iter: iter.slice(),
+      res: byId.map((a) => a.cap),
+      flow: edges.map(([, , c], k) => c - (byId[k] as TArc).cap),
+      total,
+      queue: [],
+      found: [],
+      path: [],
+      arcs: [],
+      add: 0,
+      read: [],
+      entered: [],
+      crossed: [],
+      cut: 0,
+      hits: zeroHits(),
+      looks: 0,
+      ...extra,
     });
   };
 
-  function bfs(): void {
-    bfsRuns++;
+  const bfs = () => {
+    const hits = zeroHits();
+    let looks = 0;
+    const found: number[] = [];
     level.fill(-1);
     level[source] = 0;
-    const queue: number[] = [source];
+    const queue = [source];
     let head = 0;
     while (head < queue.length) {
       const u = queue[head++] as number;
-      for (const e of graph[u] as ResidualEdge[]) {
-        bfsReads++;
+      for (const e of g[u] as TArc[]) {
+        looks++;
         if (e.cap > 0 && (level[e.to] as number) === -1) {
-          hits[0]++;
           level[e.to] = (level[u] as number) + 1;
-          queue.push(e.to);
+          if (opt.noPush !== true) queue.push(e.to);
+          found.push(e.id);
+          hits["①"]++;
         }
       }
     }
-  }
+    return { hits, looks, queue, found };
+  };
 
-  let path: number[] = [];
-  function dfs(u: number, pushed: number): number {
-    if (u === sink) {
-      hits[2]++;
-      return pushed;
-    }
-    const list = graph[u] as ResidualEdge[];
-    for (
-      ;
-      (iter[u] as number) < list.length;
-      iter[u] = (iter[u] as number) + 1
-    ) {
-      const e = list[iter[u] as number] as ResidualEdge;
-      dfsReads++;
-      if (e.cap > 0 && (level[e.to] as number) === (level[u] as number) + 1) {
-        hits[1]++;
-        path.push(e.to);
-        const d = dfs(e.to, Math.min(pushed, e.cap));
-        if (d > 0) {
-          hits[3]++;
-          const back = (graph[e.to] as ResidualEdge[])[e.rev] as ResidualEdge;
-          e.cap -= d;
-          back.cap += d;
-          return d;
-        }
-        path.pop();
+  const dfsCall = () => {
+    const hits = zeroHits();
+    let looks = 0;
+    const read: number[] = [];
+    const entered: number[] = [];
+    const arcs: number[] = [];
+    const pathV: number[] = [];
+    const dfs = (u: number, pushed: number): number => {
+      entered.push(u);
+      if (u === sink) {
+        hits["③"]++;
+        return pushed;
       }
-      hits[4]++;
-    }
-    return 0;
-  }
+      const list = g[u] as TArc[];
+      for (
+        ;
+        (iter[u] as number) < list.length;
+        iter[u] = (iter[u] as number) + 1
+      ) {
+        const e = list[iter[u] as number] as TArc;
+        looks++;
+        if (e.cap > 0 && (level[e.to] as number) === (level[u] as number) + 1) {
+          hits["②"]++;
+          const d = dfs(e.to, Math.min(pushed, e.cap));
+          if (d > 0) {
+            const back = (g[e.to] as TArc[])[e.rev] as TArc;
+            e.cap -= d;
+            back.cap += d;
+            hits["④"]++;
+            arcs.unshift(e.id);
+            pathV.unshift(e.to);
+            return d;
+          }
+        }
+        read.push(e.id);
+        hits["⑤"]++;
+      }
+      return 0;
+    };
+    const f = dfs(source, Number.POSITIVE_INFINITY);
+    return {
+      f,
+      hits,
+      looks,
+      read: [...new Set(read)],
+      entered,
+      arcs,
+      path: f > 0 ? [source, ...pathV] : [],
+    };
+  };
 
-  steps.push({
-    label: "T1",
-    branches: "-",
-    hits: takeHits(),
-    level: level.slice(),
-    caps: caps(),
-    sent: 0,
-    note: `잔여 그래프에 항목 ${edges.length * 2} 개를 만든다`,
-  });
-
-  let flowRounds = 0;
-  for (;;) {
-    bfs();
-    const roundIndex = rounds.length + 1;
-    rounds.push({ level: level.slice(), paths: [] });
-    snapshot();
-    if ((level[sink] as number) === -1) {
-      hits[5]++;
-      const h = takeHits();
-      steps.push({
-        label: `T${steps.length + 1}`,
-        branches: marks(h),
-        hits: h,
-        level: level.slice(),
-        caps: caps(),
-        sent,
-        note: `라운드 ${roundIndex} BFS — 싱크에 레벨을 못 적어 반복을 끝낸다`,
-      });
-      break;
-    }
-    const head = takeHits();
-    steps.push({
-      label: `T${steps.length + 1}`,
-      branches: marks(head),
-      hits: head,
-      level: level.slice(),
-      caps: caps(),
-      sent,
-      note: `라운드 ${roundIndex} BFS — 싱크의 레벨이 ${level[sink]} 이다`,
-    });
-    flowRounds++;
-    iter.fill(0);
+  snap("build");
+  let cut = 0;
+  if (source !== sink) {
     for (;;) {
-      path = [source];
-      const f = dfs(source, Number.POSITIVE_INFINITY);
-      if (f === 0) {
-        const tail = takeHits();
-        steps.push({
-          label: `T${steps.length + 1}`,
-          branches: marks(tail),
-          hits: tail,
-          level: level.slice(),
-          caps: caps(),
-          sent,
-          note: `라운드 ${roundIndex} 의 경로가 소진돼 0 이 올라온다`,
+      round++;
+      const b = bfs();
+      if ((level[sink] as number) === -1) {
+        const hits = b.hits;
+        hits["⑥"] = 1;
+        snap("end", {
+          queue: b.queue,
+          found: b.found,
+          hits,
+          looks: b.looks,
         });
         break;
       }
-      sent += f;
-      (
-        rounds[roundIndex - 1] as { paths: { path: number[]; sent: number }[] }
-      ).paths.push({ path: [...path], sent: f });
-      const step = takeHits();
-      steps.push({
-        label: `T${steps.length + 1}`,
-        branches: marks(step),
-        hits: step,
-        level: level.slice(),
-        caps: caps(),
-        sent,
-        note: `${path.join(" → ")} 로 ${f} 만큼 보낸다`,
+      iter.fill(0);
+      snap("bfs", {
+        queue: b.queue,
+        found: b.found,
+        hits: b.hits,
+        looks: b.looks,
       });
+      for (;;) {
+        const d = dfsCall();
+        if (d.f === 0) {
+          snap("exhaust", {
+            read: d.read,
+            entered: d.entered,
+            hits: d.hits,
+            looks: d.looks,
+          });
+          break;
+        }
+        total += d.f;
+        snap("path", {
+          path: d.path,
+          arcs: d.arcs,
+          add: d.f,
+          read: d.read.filter((id) => !d.arcs.includes(id)),
+          entered: d.entered,
+          hits: d.hits,
+          looks: d.looks,
+        });
+      }
     }
+    const hits = zeroHits();
+    const crossed: number[] = [];
+    edges.forEach(([u, v, c], k) => {
+      if ((level[u] as number) !== -1 && (level[v] as number) === -1) {
+        cut += c;
+        crossed.push(k);
+        hits["⑦"]++;
+      }
+    });
+    snap("cut", { crossed, cut, hits, looks: E });
   }
-
-  let cut = 0;
-  let cutReads = 0;
-  const cutEdges: Edge[] = [];
-  const insideEdges: Edge[] = [];
-  const backEdges: Edge[] = [];
-  const outsideEdges: Edge[] = [];
-  for (const [u, v, c] of edges) {
-    cutReads++;
-    const inU = (level[u] as number) !== -1;
-    const inV = (level[v] as number) !== -1;
-    if (inU && !inV) {
-      hits[6]++;
-      cut += c;
-      cutEdges.push([u, v, c]);
-    } else if (inU && inV) insideEdges.push([u, v, c]);
-    else if (!inU && inV) backEdges.push([u, v, c]);
-    else outsideEdges.push([u, v, c]);
-  }
-  const last = takeHits();
-  steps.push({
-    label: `T${steps.length + 1}`,
-    branches: marks(last),
-    hits: last,
-    level: level.slice(),
-    caps: caps(),
-    sent,
-    note: `원래 간선 ${edges.length} 개를 판정해 컷 용량 ${cut} 을 낸다`,
-  });
-
-  const side: number[] = [];
-  for (let v = 0; v < n; v++) if ((level[v] as number) !== -1) side.push(v);
-
-  return {
-    cut,
-    side,
-    cutEdges,
-    insideEdges,
-    backEdges,
-    outsideEdges,
-    sent,
-    bfsRuns,
-    flowRounds,
-    reads: bfsReads + dfsReads,
-    bfsReads,
-    dfsReads,
-    cutReads,
-    steps,
-    rounds,
-    snapshots,
-    finalCaps: caps(),
-  };
+  return { steps, flow: total, cut, E, lists, revAt };
 }
 
+/** 전개 입력의 기록 — 그림 사이드카와 이 파일의 블록이 같은 기록을 쓴다. */
+export const WALK_TRACE = trace(WALK_N, WALK, WALK_SOURCE, WALK_SINK);
+
+/** 걸음 번호 `T#` — 첫 걸음이 T1 이다. */
+export const tOf = (i: number): string => `T${i + 1}`;
+
+/** 레벨이 적힌 정점 — 마지막 BFS 에서는 소스 쪽 무리. */
+export const sideOf = (s: Step): number[] =>
+  s.level.flatMap((l, v) => (l >= 0 ? [v] : []));
+
+/* ────────────────────── 계수만 세는 사본 ────────────────────── */
+
 /**
- * 걸음 기록을 남기지 않는 계수 사본.
- *
- * `counted` 는 걸음마다 `level` 과 잔여 용량을 통째로 복사하므로 정점이 수백 개인 입력에서
- * 그 복사가 실행의 대부분이 된다. 큰 규모에서 **계수만** 필요한 자리는 이쪽을 쓴다 — 절차는
- * 같고 기록만 뺐다.
+ * 걸음 기록을 남기지 않는 계수 사본 — 큰 입력은 이쪽이다. 간선 검사는 BFS · DFS 가 잔여 그래프 항목을
+ * 읽은 횟수와 컷 합산이 원래 간선을 읽은 횟수의 합이다(잔여 그래프를 만드는 일은 판정 없이 넣기만 해서
+ * 세지 않는다). `extraBfs` 는 짚고 가기의 「BFS 를 한 번 더 하는 판」이다.
  */
 export function countedLite(
   n: number,
-  edges: Edge[],
+  edges: readonly Edge[],
   source: number,
   sink: number,
-): { cut: number; reads: number; bfsRuns: number; flowRounds: number } {
-  const graph: ResidualEdge[][] = Array.from({ length: n }, () => []);
-  const link = (u: number, v: number, c: number): void => {
-    const out = graph[u] as ResidualEdge[];
-    const back = graph[v] as ResidualEdge[];
+  opt: { extraBfs?: boolean } = {},
+): {
+  cut: number;
+  flow: number;
+  reads: number;
+  bfsRuns: number;
+  flowRounds: number;
+  side: number[];
+} {
+  interface A {
+    to: number;
+    cap: number;
+    rev: number;
+  }
+  const graph: A[][] = Array.from({ length: n }, () => []);
+  for (const [u, v, c] of edges) {
+    const out = graph[u] as A[];
+    const back = graph[v] as A[];
     const iOut = out.length;
     out.push({ to: v, cap: c, rev: 0 });
     const iBack = back.length;
     back.push({ to: u, cap: 0, rev: iOut });
-    (out[iOut] as ResidualEdge).rev = iBack;
-  };
-  for (const [u, v, c] of edges) link(u, v, c);
+    (out[iOut] as A).rev = iBack;
+  }
   const level: number[] = Array.from({ length: n }, () => -1);
   const iter: number[] = Array.from({ length: n }, () => 0);
   let reads = 0;
   let bfsRuns = 0;
   let flowRounds = 0;
-
-  function bfs(): void {
+  let flow = 0;
+  const bfs = (): void => {
     bfsRuns++;
     level.fill(-1);
     level[source] = 0;
@@ -560,7 +617,7 @@ export function countedLite(
     let head = 0;
     while (head < queue.length) {
       const u = queue[head++] as number;
-      for (const e of graph[u] as ResidualEdge[]) {
+      for (const e of graph[u] as A[]) {
         reads++;
         if (e.cap > 0 && (level[e.to] as number) === -1) {
           level[e.to] = (level[u] as number) + 1;
@@ -568,21 +625,21 @@ export function countedLite(
         }
       }
     }
-  }
-  function dfs(u: number, pushed: number): number {
+  };
+  const dfs = (u: number, pushed: number): number => {
     if (u === sink) return pushed;
-    const list = graph[u] as ResidualEdge[];
+    const list = graph[u] as A[];
     for (
       ;
       (iter[u] as number) < list.length;
       iter[u] = (iter[u] as number) + 1
     ) {
-      const e = list[iter[u] as number] as ResidualEdge;
+      const e = list[iter[u] as number] as A;
       reads++;
       if (e.cap > 0 && (level[e.to] as number) === (level[u] as number) + 1) {
         const d = dfs(e.to, Math.min(pushed, e.cap));
         if (d > 0) {
-          const back = (graph[e.to] as ResidualEdge[])[e.rev] as ResidualEdge;
+          const back = (graph[e.to] as A[])[e.rev] as A;
           e.cap -= d;
           back.cap += d;
           return d;
@@ -590,38 +647,67 @@ export function countedLite(
       }
     }
     return 0;
-  }
-  for (;;) {
-    bfs();
-    if ((level[sink] as number) === -1) break;
-    flowRounds++;
-    iter.fill(0);
+  };
+  if (source !== sink) {
     for (;;) {
-      if (dfs(source, Number.POSITIVE_INFINITY) === 0) break;
+      bfs();
+      if ((level[sink] as number) === -1) break;
+      flowRounds++;
+      iter.fill(0);
+      for (;;) {
+        const f = dfs(source, Number.POSITIVE_INFINITY);
+        if (f === 0) break;
+        flow += f;
+      }
     }
+  }
+  let inS = (v: number): boolean => (level[v] as number) !== -1;
+  if (opt.extraBfs === true) {
+    const seen: boolean[] = Array.from({ length: n }, () => false);
+    seen[source] = true;
+    const queue: number[] = [source];
+    let head = 0;
+    while (head < queue.length) {
+      const u = queue[head++] as number;
+      for (const e of graph[u] as A[]) {
+        reads++;
+        if (e.cap > 0 && seen[e.to] === false) {
+          seen[e.to] = true;
+          queue.push(e.to);
+        }
+      }
+    }
+    inS = (v) => seen[v] === true;
   }
   let cut = 0;
   for (const [u, v, c] of edges) {
     reads++;
-    if ((level[u] as number) !== -1 && (level[v] as number) === -1) cut += c;
+    if (inS(u) && !inS(v)) cut += c;
   }
-  return { cut, reads, bfsRuns, flowRounds };
+  const side: number[] = [];
+  for (let v = 0; v < n; v++) if (inS(v)) side.push(v);
+  return { cut, flow, reads, bfsRuns, flowRounds, side };
 }
 
 /**
  * 정점 분할을 전수로 나열해 최소 컷을 낸다. 소스와 싱크의 소속은 고정이므로 나머지 `n − 2`
- * 개 정점만 두 무리에 배정한다.
+ * 개 정점만 두 무리에 배정한다. 간선 검사는 분할마다 원래 간선을 한 번씩 읽은 횟수다.
  */
 export function bruteForce(
   n: number,
-  edges: Edge[],
+  edges: readonly Edge[],
   source: number,
   sink: number,
-): { best: number; tried: number; reads: number; values: Map<number, number> } {
+): {
+  best: number;
+  worst: number;
+  tried: number;
+  reads: number;
+  values: number[];
+} {
   const free: number[] = [];
   for (let v = 0; v < n; v++) if (v !== source && v !== sink) free.push(v);
-  const values = new Map<number, number>();
-  let best = Number.POSITIVE_INFINITY;
+  const values: number[] = [];
   let reads = 0;
   const total = 2 ** free.length;
   for (let mask = 0; mask < total; mask++) {
@@ -635,152 +721,80 @@ export function bruteForce(
       reads++;
       if (inS[u] === true && inS[v] === false) value += c;
     }
-    values.set(value, (values.get(value) ?? 0) + 1);
-    best = Math.min(best, value);
+    values.push(value);
   }
-  return { best, tried: total, reads, values };
+  return {
+    best: Math.min(...values),
+    worst: Math.max(...values),
+    tried: total,
+    reads,
+    values,
+  };
 }
 
 /** 분할 하나의 컷 용량. `S` 에 드는 정점을 그대로 받는다. */
-export function cutOf(edges: Edge[], inS: Set<number>): number {
+export function cutOf(edges: readonly Edge[], inS: readonly number[]): number {
   let value = 0;
   for (const [u, v, c] of edges) {
-    if (inS.has(u) && !inS.has(v)) value += c;
+    if (inS.includes(u) && !inS.includes(v)) value += c;
   }
   return value;
 }
 
-/** 소스에서 싱크로 흘릴 수 있는 최대 유량. 컷과 같은 값이 나오는지 견주는 데 쓴다. */
-export function maxFlowValue(
-  n: number,
-  edges: Edge[],
-  source: number,
-  sink: number,
-): number {
-  return counted(n, edges, source, sink).sent;
-}
-
-/**
- * 컷을 뽑을 때 **BFS 를 한 번 더 실행하는** 사본. 답은 정본과 같고 간선 검사만 늘어난다.
- *
- * 정본은 반복을 끝낸 BFS 가 적어 둔 `level` 을 그대로 읽는다. 이 사본은 그 배열을 버리고
- * 도달 집합을 새로 만든다 — 멈춤 절이 「답이 안 틀린다」를 값으로 보이는 자리다.
- */
-export function extraBfsCopy(
-  n: number,
-  edges: Edge[],
-  source: number,
-  sink: number,
-): { cut: number; reads: number } {
-  const base = countedLite(n, edges, source, sink);
-  // 정본이 이미 다 흘린 뒤의 잔여 그래프를 다시 만들어 도달 집합만 새로 구한다.
-  const graph: ResidualEdge[][] = Array.from({ length: n }, () => []);
-  const link = (u: number, v: number, c: number): void => {
-    const out = graph[u] as ResidualEdge[];
-    const back = graph[v] as ResidualEdge[];
-    const iOut = out.length;
-    out.push({ to: v, cap: c, rev: 0 });
-    const iBack = back.length;
-    back.push({ to: u, cap: 0, rev: iOut });
-    (out[iOut] as ResidualEdge).rev = iBack;
-  };
-  for (const [u, v, c] of edges) link(u, v, c);
-  const level: number[] = Array.from({ length: n }, () => -1);
-  const iter: number[] = Array.from({ length: n }, () => 0);
-  function bfs(): void {
-    level.fill(-1);
-    level[source] = 0;
-    const queue: number[] = [source];
-    let head = 0;
-    while (head < queue.length) {
-      const u = queue[head++] as number;
-      for (const e of graph[u] as ResidualEdge[]) {
-        if (e.cap > 0 && (level[e.to] as number) === -1) {
-          level[e.to] = (level[u] as number) + 1;
-          queue.push(e.to);
-        }
-      }
-    }
-  }
-  function dfs(u: number, pushed: number): number {
-    if (u === sink) return pushed;
-    const list = graph[u] as ResidualEdge[];
-    for (
-      ;
-      (iter[u] as number) < list.length;
-      iter[u] = (iter[u] as number) + 1
-    ) {
-      const e = list[iter[u] as number] as ResidualEdge;
-      if (e.cap > 0 && (level[e.to] as number) === (level[u] as number) + 1) {
-        const d = dfs(e.to, Math.min(pushed, e.cap));
-        if (d > 0) {
-          const back = (graph[e.to] as ResidualEdge[])[e.rev] as ResidualEdge;
-          e.cap -= d;
-          back.cap += d;
-          return d;
-        }
-      }
-    }
-    return 0;
-  }
-  for (;;) {
-    bfs();
-    if ((level[sink] as number) === -1) break;
-    iter.fill(0);
-    for (;;) {
-      if (dfs(source, Number.POSITIVE_INFINITY) === 0) break;
-    }
-  }
-  // 여기서부터가 더 실행하는 몫이다 — 방문 배열을 새로 잡고 잔여 그래프를 다시 지난다.
-  const seen: boolean[] = Array.from({ length: n }, () => false);
-  seen[source] = true;
-  const queue: number[] = [source];
-  let head = 0;
-  let extra = 0;
-  while (head < queue.length) {
-    const u = queue[head++] as number;
-    for (const e of graph[u] as ResidualEdge[]) {
-      extra++;
-      if (e.cap > 0 && seen[e.to] === false) {
-        seen[e.to] = true;
-        queue.push(e.to);
-      }
-    }
-  }
-  // 합산 걸음은 정본도 한 번 하므로 세지 않는다 — 두 판의 차이는 이 탐색 하나뿐이다.
-  let cut = 0;
-  for (const [u, v, c] of edges) {
-    if (seen[u] === true && seen[v] === false) cut += c;
-  }
-  return { cut, reads: base.reads + extra };
-}
-
-/** 포화된 원래 간선의 용량을 전부 더한다 — 「포화 = 컷」 이라는 오해가 내는 값. */
-export function saturatedSum(
-  n: number,
-  edges: Edge[],
-  source: number,
-  sink: number,
-): { value: number; saturated: Edge[] } {
-  const c = counted(n, edges, source, sink);
+/** 분할 하나의 경계를 방향을 가리지 않고 센 값 — 헷갈리기 쉬운 모양. */
+function undirectedOf(edges: readonly Edge[], inS: readonly number[]): number {
   let value = 0;
-  const saturated: Edge[] = [];
-  for (const [index, [u, v, cap]] of edges.entries()) {
-    if (cap > 0 && (c.finalCaps[index] as number) === 0) {
-      value += cap;
-      saturated.push([u, v, cap]);
-    }
+  for (const [u, v, c] of edges) {
+    if (inS.includes(u) !== inS.includes(v)) value += c;
   }
-  return { value, saturated };
+  return value;
 }
 
-/** 격자·계단처럼 생성식으로 만든 입력의 이름표. 규모를 손으로 안 적는다. */
-const label = (name: string, n: number, edges: Edge[]): string =>
-  `${name} (V=${comma(n)} · E=${comma(edges.length)})`;
+/** 유량을 다 보낸 뒤 포화된(잔여 0) 원래 간선. 용량 0 인 간선은 뺀다. */
+function saturated(c: Case): Edge[] {
+  const tr = trace(c.n, c.edges, c.source, c.sink);
+  const last = tr.steps.at(-1) as Step;
+  return c.edges.filter(([, , cap], k) => cap > 0 && last.res[k] === 0);
+}
+
+/** 유량을 다 보낸 잔여 그래프에서 **정방향 항목만** 지나 소스가 도달하는 정점 — 역방향을 빼고 읽은 오해. */
+function forwardOnlyReach(tr: Trace, edges: readonly Edge[], s: number) {
+  const last = tr.steps.at(-1) as Step;
+  const seen = new Set([s]);
+  const queue = [s];
+  while (queue.length > 0) {
+    const u = queue.shift() as number;
+    edges.forEach(([a, b], k) => {
+      if (a === u && (last.res[k] as number) > 0 && !seen.has(b)) {
+        seen.add(b);
+        queue.push(b);
+      }
+    });
+  }
+  return [...seen].sort((a, b) => a - b);
+}
+
+/** 소스에서 싱크로 가는 단순 경로 전부(작은 입력 전용). */
+function simplePaths(edges: readonly Edge[], s: number, t: number): number[][] {
+  const out: number[][] = [];
+  const go = (u: number, path: number[]): void => {
+    if (u === t) {
+      out.push(path);
+      return;
+    }
+    for (const [a, b, c] of edges) {
+      if (a === u && c > 0 && !path.includes(b)) go(b, [...path, b]);
+    }
+  };
+  go(s, [s]);
+  return out;
+}
 
 /* ────────────────────────── 변이 ────────────────────────── */
 
 const REF = new URL("./minCut-guide.ref.ts", import.meta.url).pathname;
+const MF_REF = new URL("../maxFlow/maxFlow-guide.ref.ts", import.meta.url)
+  .pathname;
 
 interface Impl {
   minCut(
@@ -804,40 +818,17 @@ const noTargetCheck = await loadMutant<Impl>(REF, {
   ],
 });
 
-const MUTANT_CASES: {
-  label: string;
-  n: number;
-  edges: Edge[];
-  source: number;
-  sink: number;
-}[] = [
-  {
-    label: "전개 입력",
-    n: WALK_N,
-    edges: WALK_EDGES,
-    source: WALK_SRC,
-    sink: WALK_SINK,
-  },
-  {
-    label: "문제 지문의 예시",
-    n: DOC_N,
-    edges: DOC_EDGES,
-    source: 0,
-    sink: 3,
-  },
-  { label: "병목이 싱크 앞", n: TAIL_N, edges: TAIL_EDGES, source: 0, sink: 3 },
-  { label: "경로 없음", n: CUTOFF_N, edges: CUTOFF_EDGES, source: 0, sink: 2 },
-  { label: "간선 없음", n: 2, edges: [], source: 0, sink: 1 },
+const MUTANT_CASES: Case[] = [
+  WALK_CASE,
+  VARIED_CASE,
+  TAIL_CASE,
+  CUTOFF_CASE,
+  EMPTY_CASE,
 ];
 
-/**
- * 중화 실행인가 — `loadMutant` 이 변이를 적용하지 않고 정본 모듈을 그대로 돌려주면 두
- * 함수가 **같은 객체**다. 중화 상태에서 아래 검사를 돌리면 언제나 던지게 되고, 그러면
- * `check-proof` 의 중화 대조가 이 편에서는 실행되지 않는다.
- */
+/** 중화 실행인가 — 변이를 적용하지 않은 모듈이면 함수가 정본과 같은 객체다. */
 const 중화됨 = noPush.minCut === minCut;
 
-// 하나도 안 갈리면 그 절의 주장이 성립하지 않는다. 실행이 그것을 판정한다.
 if (!중화됨) {
   for (const [label, impl] of [
     ["큐에 안 넣는 판", noPush],
@@ -853,500 +844,987 @@ if (!중화됨) {
       throw new Error(`${label} 변이가 어느 입력에서도 답을 바꾸지 못했다`);
     }
   }
+  // 사본으로 재현한 「큐에 안 넣는 판」이 기계로 만든 변이와 같은 답을 내는가.
+  const want = noPush.minCut(WALK_N, WALK, WALK_SOURCE, WALK_SINK).cut;
+  const got = trace(WALK_N, WALK, WALK_SOURCE, WALK_SINK, {
+    noPush: true,
+  }).cut;
+  if (want !== got)
+    throw new Error(`큐에 안 넣는 사본이 변이와 다르다 — ${got} · ${want}`);
 }
 
-/** 사본이 정본과 같은 답을 내는지 이 파일을 읽을 때 한 번 확인한다. */
-function 자기대조(): void {
-  const inputs: [number, Edge[], number, number][] = [
-    [WALK_N, WALK_EDGES, WALK_SRC, WALK_SINK],
-    [DOC_N, DOC_EDGES, 0, 3],
-    [TAIL_N, TAIL_EDGES, 0, 3],
-    [BRIDGE_N, BRIDGE_EDGES, 0, 3],
-    [CUTOFF_N, CUTOFF_EDGES, 0, 2],
-    [stair(12).n, stair(12).edges, 0, 12],
-    [grid(6, 4).n, grid(6, 4).edges, 0, 1],
-  ];
-  for (const [n, edges, s, t] of inputs) {
-    const want = minCut(n, edges, s, t).cut;
-    if (counted(n, edges, s, t).cut !== want) {
-      throw new Error("세는 사본이 정본과 다른 답을 낸다");
-    }
-    if (countedLite(n, edges, s, t).cut !== want) {
-      throw new Error("기록 없는 사본이 정본과 다른 답을 낸다");
-    }
-    if (extraBfsCopy(n, edges, s, t).cut !== want) {
-      throw new Error("BFS 를 한 번 더 도는 사본이 정본과 다른 답을 낸다");
-    }
-  }
+/* ────────────────────── 사본의 자기 대조 ────────────────────── */
+
+for (const c of [
+  WALK_CASE,
+  VARIED_CASE,
+  TAIL_CASE,
+  BRIDGE_CASE,
+  CUTOFF_CASE,
+  EMPTY_CASE,
+  { label: "maxFlow 편의 전개 입력", n: MF_N, edges: MF, source: 0, sink: 5 },
+  { label: "계단", ...stair(12), source: 0 },
+  { label: "격자", ...grid(6, 4), source: 0, sink: 1 },
+]) {
+  const want = minCut(c.n, c.edges, c.source, c.sink).cut;
+  const flow = maxFlow(c.n, c.edges, c.source, c.sink).flow;
+  const tr = trace(c.n, c.edges, c.source, c.sink);
+  const lite = countedLite(c.n, c.edges, c.source, c.sink);
+  const extra = countedLite(c.n, c.edges, c.source, c.sink, {
+    extraBfs: true,
+  });
+  if (tr.cut !== want || lite.cut !== want || extra.cut !== want)
+    throw new Error(`세는 사본이 정본과 다른 컷을 낸다 — ${c.label}`);
+  if (tr.flow !== flow || lite.flow !== flow)
+    throw new Error(`세는 사본이 maxFlow 정본과 다른 유량을 낸다 — ${c.label}`);
 }
-자기대조();
+
+/* ────────────────────── 두 정본이 갈리는 줄 ────────────────────── */
+
+/** 함수 본문의 코드 줄 — 주석과 빈 줄을 걷고, 간선 항목 타입 이름을 하나로 맞춘다. */
+async function bodyLines(path: string, fn: string): Promise<string[]> {
+  const src = await Bun.file(path).text();
+  const lines = src.split("\n");
+  const start = lines.findIndex((l) => l.startsWith(`export function ${fn}(`));
+  return lines
+    .slice(start)
+    .map((l) => l.trim())
+    .filter((l) => l !== "" && !l.startsWith("//"))
+    .map((l) => l.replace(/\bResidualEdge\b/g, "Edge"));
+}
+
+/** 두 줄 목록의 최장 공통 부분 수열로 한쪽에만 있는 줄을 낸다. */
+function lineDiff(
+  a: readonly string[],
+  b: readonly string[],
+): { onlyA: string[]; onlyB: string[]; same: number } {
+  const dp: number[][] = Array.from({ length: a.length + 1 }, () =>
+    Array.from({ length: b.length + 1 }, () => 0),
+  );
+  const at = (i: number, j: number): number => (dp[i] as number[])[j] as number;
+  for (let i = a.length - 1; i >= 0; i--)
+    for (let j = b.length - 1; j >= 0; j--)
+      (dp[i] as number[])[j] =
+        a[i] === b[j]
+          ? at(i + 1, j + 1) + 1
+          : Math.max(at(i + 1, j), at(i, j + 1));
+  const onlyA: string[] = [];
+  const onlyB: string[] = [];
+  let i = 0;
+  let j = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) {
+      i++;
+      j++;
+    } else if (at(i + 1, j) >= at(i, j + 1)) onlyA.push(a[i++] as string);
+    else onlyB.push(b[j++] as string);
+  }
+  onlyA.push(...a.slice(i));
+  onlyB.push(...b.slice(j));
+  return { onlyA, onlyB, same: at(0, 0) };
+}
+
+const DIFF = lineDiff(
+  await bodyLines(MF_REF, "maxFlow"),
+  await bodyLines(REF, "minCut"),
+);
 
 /* ────────────────────────── 블록 ────────────────────────── */
 
-const branchNames: [string, string][] = [
-  ["①", "레벨을 적고 큐 뒤에 넣는다"],
-  ["②", "레벨이 한 칸 큰 간선으로 내려간다"],
-  ["③", "싱크에 도착해 병목값을 올려보낸다"],
-  ["④", "짝지은 두 잔여 용량을 고친다"],
-  ["⑤", "다음 간선으로 옮긴다"],
-  ["⑥", "싱크에 레벨이 없어 반복을 끝낸다"],
-  ["⑦", "건너가는 원래 간선의 용량을 더한다"],
+const W = WALK_TRACE;
+const S = W.steps;
+const LAST = S.at(-1) as Step;
+const END = S.find((s) => s.kind === "end") as Step;
+/** 소스 쪽 무리 — 마지막 BFS 가 레벨을 적은 정점. */
+export const SIDE = sideOf(END);
+const WALK_FLOW = maxFlow(WALK_N, WALK, WALK_SOURCE, WALK_SINK).flow;
+const WALK_CUT = minCut(WALK_N, WALK, WALK_SOURCE, WALK_SINK).cut;
+const BRUTE = bruteForce(WALK_N, WALK, WALK_SOURCE, WALK_SINK);
+
+/** 네 갈래 — 원래 간선 번호를 갈래마다. */
+export function kindsOf(edges: readonly Edge[], inS: readonly number[]) {
+  const pick = (f: (a: boolean, b: boolean) => boolean) =>
+    edges.flatMap((e, k) =>
+      f(inS.includes(e[0]), inS.includes(e[1])) ? [k] : [],
+    );
+  return {
+    cross: pick((a, b) => a && !b),
+    inside: pick((a, b) => a && b),
+    back: pick((a, b) => !a && b),
+    outside: pick((a, b) => !a && !b),
+  };
+}
+
+const KIND_TEXT = {
+  cross: "소스 쪽에서 싱크 쪽으로 건너간다",
+  inside: "양 끝이 다 소스 쪽이다",
+  back: "싱크 쪽에서 소스 쪽으로 들어온다",
+  outside: "양 끝이 다 싱크 쪽이다",
+} as const;
+
+const edgesText = (ks: readonly number[]): string =>
+  ks.length === 0
+    ? "없음"
+    : ks
+        .map((k) => `${edgeName(WALK[k] as Edge)} (${(WALK[k] as Edge)[2]})`)
+        .join(" · ");
+
+const sumOf = (ks: readonly number[]): number =>
+  ks.reduce((a, k) => a + (WALK[k] as Edge)[2], 0);
+
+/** 본문에 싣는 분할 다섯 — 소스 하나부터 싱크만 뺀 것까지. */
+export const PICKS: number[][] = [
+  [0],
+  [0, 1],
+  [0, 3],
+  SIDE,
+  [0, 1, 2, 3, 4, 5],
 ];
 
-const edgeName = (e: Edge): string => `${e[0]}→${e[1]}`;
-
 export const PROOFS: Record<string, () => string> = {
-  /** deep.build ② — 정점 분할을 전수로 나열하면 규모가 얼마가 되는가. */
+  /* ─────────────── concept ─────────────── */
+
+  /** 분할 하나의 원래 간선 아홉 개를 네 갈래로 가른다. */
+  conceptCut: () => {
+    const k = kindsOf(WALK, SIDE);
+    const rows = (["cross", "inside", "back", "outside"] as const).map(
+      (key) => [
+        KIND_TEXT[key],
+        edgesText(k[key]),
+        key === "cross" ? "더한다" : "안 더한다",
+      ],
+    );
+    const parts = k.cross.map((i) => String((WALK[i] as Edge)[2]));
+    return [
+      md(["갈래", "간선 (용량)", "컷 용량에"], rows),
+      "",
+      `S = ${set(SIDE)} 의 컷 용량은 ${parts.join(" + ")} = ${cutOf(WALK, SIDE)} 입니다. 용량이 가장 큰 ${edgeName(WALK[k.outside[0] as number] as Edge)} 도, 싱크 쪽에서 들어오는 ${edgeName(WALK[k.back[0] as number] as Edge)} 도 세지 않습니다.`,
+    ].join("\n");
+  },
+
+  /** 유량을 다 보낸 잔여 그래프에서 소스가 도달하는 무리의 컷 용량과 최대 유량. */
+  conceptMeet: () =>
+    [
+      md(
+        ["재는 것", "전개 입력에서"],
+        [
+          ["최대 유량 (maxFlow 정본)", String(WALK_FLOW)],
+          ["유량을 다 보낸 잔여 그래프에서 소스가 도달하는 정점", set(SIDE)],
+          ["그 무리의 컷 용량 (minCut 정본)", String(WALK_CUT)],
+          [
+            `분할 ${BRUTE.tried} 가지를 전부 센 컷 용량의 최솟값`,
+            String(BRUTE.best),
+          ],
+        ],
+        [1],
+      ),
+      "",
+      `세 수가 모두 ${WALK_CUT} 입니다. 분할을 하나도 나열하지 않은 정본의 답이 ${BRUTE.tried} 가지를 전부 센 최솟값과 같습니다.`,
+    ].join("\n"),
+
+  /** maxFlow 편의 전개 입력에서도 두 정본의 값이 맞는가. */
+  maxFlowBridge: () => {
+    const tr = trace(MF_N, MF, 0, 5);
+    const end = tr.steps.find((s) => s.kind === "end") as Step;
+    const f = maxFlow(MF_N, MF, 0, 5).flow;
+    const c = minCut(MF_N, MF, 0, 5).cut;
+    return [
+      md(
+        ["재는 것", "maxFlow 편의 전개 입력에서"],
+        [
+          ["maxFlow 정본의 최대 유량", String(f)],
+          ["마지막 BFS 가 레벨을 적은 정점", set(sideOf(end))],
+          ["minCut 정본의 컷 용량", String(c)],
+        ],
+        [1],
+      ),
+      "",
+      `컷 용량 ${c}${이가(c)} 최대 유량 ${f}${과와(f)} 같습니다. 레벨을 적은 정점은 maxFlow 편이 끝에서 이름만 붙인 소스 쪽 무리와 같습니다.`,
+    ].join("\n");
+  },
+
+  /* ─────────────── deep.origin ─────────────── */
+
+  /** 전개 입력의 분할을 전수로 나열한다. */
+  naiveWalk: () => {
+    const b = BRUTE;
+    const ties = b.values.filter((v) => v === b.best).length;
+    return [
+      md(
+        [
+          "자유 정점",
+          "분할 가짓수",
+          "간선 검사",
+          "가장 작은 컷 용량",
+          "그 값을 내는 분할",
+          "가장 큰 컷 용량",
+        ],
+        [
+          [
+            String(WALK_N - 2),
+            String(b.tried),
+            comma(b.reads),
+            String(b.best),
+            `${ties} 가지`,
+            String(b.worst),
+          ],
+        ],
+        [0, 1, 2, 3, 5],
+      ),
+      "",
+      `분할 ${b.tried} 가지를 모두 만들어 원래 간선 ${WALK.length} 개씩 읽었고, 가장 작은 컷 용량 ${b.best}${은는(b.best)} 정본이 낸 값 ${WALK_CUT}${과와(WALK_CUT)} 같습니다.`,
+    ].join("\n");
+  },
+
+  /** 분할 가짓수가 정점 수에 따라 어떻게 커지는가. */
   naiveScale: () => {
-    const rows = [4, 7, 10, 20, 40].map((v) => {
+    const digits = (free: number) => Math.floor(free * Math.log10(2)) + 1;
+    const rows = [4, 7, 10, 20, 40, V_MAX].map((v) => {
       const free = v - 2;
-      const count = 2 ** free;
       return [
-        String(v),
-        String(free),
-        comma(count),
-        String(Math.floor(free * Math.log10(2)) + 1),
+        comma(v),
+        comma(free),
+        free <= 40 ? comma(2 ** free) : `2^${comma(free)}`,
+        comma(digits(free)),
       ];
     });
-    const free = V_LIMIT - 2;
-    const digits = Math.floor(free * Math.log10(2)) + 1;
+    const d = digits(V_MAX - 2);
     return [
-      ...table(
-        [
-          ["정점 V", "자유 정점 V−2", "분할 가짓수 2^(V−2)", "그 수의 자릿수"],
-          ...rows,
-        ],
+      md(
+        ["정점 V", "자유 정점 V − 2", "분할 가짓수 2^(V−2)", "자릿수"],
+        rows,
         [0, 1, 2, 3],
       ),
       "",
-      `제약 상한 V = ${comma(V_LIMIT)} 이면`,
-      `  분할 가짓수  2^${comma(free)} 이고 그것은 ${comma(digits)} 자리 수다`,
-      `  1 초에 10 억 개씩 본다고 해도 자릿수가 아홉만 줄어 ${comma(digits - 9)} 자리 초가 걸린다`,
+      `규모의 상한에서 분할의 가짓수가 ${d} 자리입니다. 1 초에 10 억 개씩 본다고 해도 자릿수가 아홉만 줄어 ${d - 9} 자리 초가 걸립니다.`,
     ].join("\n");
   },
 
-  /** deep.build ② — 전개 입력의 분할 32 가지를 전부 나열해 최솟값을 낸다. */
-  naiveWalk: () => {
-    const b = bruteForce(WALK_N, WALK_EDGES, WALK_SRC, WALK_SINK);
-    const rows = [...b.values.entries()]
-      .sort((x, y) => x[0] - y[0])
-      .map(([value, count]) => [String(value), String(count)]);
-    const c = counted(WALK_N, WALK_EDGES, WALK_SRC, WALK_SINK);
-    return [
-      `자유 정점 ${WALK_N - 2} 개 · 분할 ${b.tried} 가지 · 간선 검사 ${b.reads} 번`,
-      "",
-      ...table([["컷 용량", "그 값을 내는 분할 수"], ...rows], [0, 1]),
-      "",
-      `가장 작은 컷 용량  ${b.best}`,
-      `정본이 낸 값       ${c.cut}`,
-      `최대 유량          ${c.sent}`,
-    ].join("\n");
-  },
-
-  /** deep.build ③ — 컷 후보 넷의 용량을 최대 유량과 나란히 놓는다. */
+  /** 분할 다섯의 컷 용량을 최대 유량과 나란히 — 그리고 분할 전부. */
   weakDuality: () => {
-    const c = counted(WALK_N, WALK_EDGES, WALK_SRC, WALK_SINK);
-    const candidates: [string, number[]][] = [
-      ["{0}", [0]],
-      ["{0, 1}", [0, 1]],
-      ["{0, 3}", [0, 3]],
-      ["{0, 1, 2, 3, 4}", [0, 1, 2, 3, 4]],
-      ["{0, 1, 2, 3, 4, 5}", [0, 1, 2, 3, 4, 5]],
-    ];
-    const rows = candidates.map(([label, members]) => {
-      const value = cutOf(WALK_EDGES, new Set(members));
+    const rows = PICKS.map((sSide) => {
+      const value = cutOf(WALK, sSide);
       return [
-        label,
+        set(sSide),
         set(
           Array.from({ length: WALK_N }, (_, v) => v).filter(
-            (v) => !members.includes(v),
+            (v) => !sSide.includes(v),
           ),
         ),
         String(value),
-        String(c.sent),
-        value >= c.sent ? "예" : "아니오",
+        String(WALK_FLOW),
+        value > WALK_FLOW ? "크다" : value === WALK_FLOW ? "같다" : "작다",
       ];
     });
+    const below = BRUTE.values.filter((v) => v < WALK_FLOW).length;
+    const equal = BRUTE.values.filter((v) => v === WALK_FLOW).length;
     return [
-      ...table(
-        [
-          ["소스 쪽 S", "싱크 쪽 T", "컷 용량", "최대 유량", "유량 이상인가"],
-          ...rows,
-        ],
+      md(
+        ["소스 쪽 S", "싱크 쪽 T", "컷 용량", "최대 유량", "유량과의 비교"],
+        rows,
         [2, 3],
       ),
       "",
-      `가장 작은 컷 용량이 최대 유량과 같은 자리  S = ${set(c.side)}`,
+      `분할 ${BRUTE.tried} 가지를 전부 재면 컷 용량이 최대 유량 ${WALK_FLOW} 보다 작은 분할은 ${below} 가지이고, 같은 분할은 ${equal} 가지입니다.`,
     ].join("\n");
   },
 
-  /** deep.build ④ — 컷을 고르는 규칙 후보 셋을 같은 입력들에 실제로 걸어 본다. */
+  /** 분할을 곧바로 지목하는 규칙 후보 셋. */
   ruleCandidates: () => {
-    const inputs: [string, number, Edge[], number, number][] = [
-      ["전개 입력", WALK_N, WALK_EDGES, WALK_SRC, WALK_SINK],
-      ["문제 지문의 예시", DOC_N, DOC_EDGES, 0, 3],
-      ["병목이 싱크 앞", TAIL_N, TAIL_EDGES, 0, 3],
-      ["다리 그래프", BRIDGE_N, BRIDGE_EDGES, 0, 3],
-    ];
-    const rows = inputs.map(([label, n, edges, s, t]) => {
-      const c = counted(n, edges, s, t);
-      const onlySource = cutOf(edges, new Set([s]));
-      const sat = saturatedSum(n, edges, s, t).value;
-      const brute = bruteForce(n, edges, s, t).best;
-      return [
-        label,
-        String(onlySource),
-        String(sat),
-        String(c.cut),
-        String(brute),
-      ];
+    const rows = [WALK_CASE, VARIED_CASE, TAIL_CASE, BRIDGE_CASE].map((c) => {
+      const only = cutOf(c.edges, [c.source]);
+      const sat = saturated(c).reduce((a, e) => a + e[2], 0);
+      const reach = minCut(c.n, c.edges, c.source, c.sink).cut;
+      const brute = bruteForce(c.n, c.edges, c.source, c.sink).best;
+      return [c.label, String(only), String(sat), String(reach), String(brute)];
     });
-    return table(
-      [
+    const misses = (col: number) => rows.filter((r) => r[col] !== r[4]).length;
+    return [
+      md(
         [
           "입력",
-          "S 를 {소스} 로 둔다",
-          "포화된 간선을 다 더한다",
-          "잔여 도달 집합을 쓴다",
-          "전수 나열의 최솟값",
+          "소스 하나만 소스 쪽",
+          "포화된 간선의 용량 합",
+          "잔여 그래프에서 소스가 도달하는 무리",
+          "전수 조사의 최솟값",
         ],
-        ...rows,
-      ],
-      [1, 2, 3, 4],
-    ).join("\n");
-  },
-
-  /** deep.build ⑤ — 도달 집합이 라운드마다 어떻게 좁아지는가. */
-  reachShrink: () => {
-    const c = counted(WALK_N, WALK_EDGES, WALK_SRC, WALK_SINK);
-    const rows = c.snapshots.map((s, index) => [
-      String(index + 1),
-      show(c.rounds[index]?.level ?? []),
-      set(s.side),
-      s.sinkInside ? "레벨을 받는다" : "레벨을 못 받는다",
-      s.sinkInside ? "분할이 아니다" : String(s.capacity),
-    ]);
-    return [
-      ...table(
-        [
-          [
-            "BFS 회차",
-            "level",
-            "레벨이 적힌 정점",
-            "싱크가",
-            "그 분할의 컷 용량",
-          ],
-          ...rows,
-        ],
-        [0],
+        rows,
+        [1, 2, 3, 4],
       ),
       "",
-      `싱크가 레벨을 못 받은 그 회차의 분할이 답이다 — 컷 용량 ${c.cut} · 최대 유량 ${c.sent}`,
+      `네 입력에서 전수 조사의 최솟값과 어긋난 입력은 「소스 하나만 소스 쪽」이 ${misses(1)} 개, 「포화된 간선의 용량 합」이 ${misses(2)} 개, 「잔여 그래프에서 소스가 도달하는 무리」가 ${misses(3)} 개입니다.`,
     ].join("\n");
   },
 
-  /** deep.build ⑥ — 규칙 셋의 계수를 규모를 바꿔 가며 잰다. */
+  /** 전수 조사와 이 절차의 간선 검사. */
   ruleCost: () => {
-    const small = grid(6, 4);
-    const big = grid(20, 10);
+    const g6 = grid(6, 4);
+    const g20 = grid(20, 10);
     const st = stair(12);
     const inputs: [string, number, Edge[], number, number][] = [
-      [
-        label("전개 입력", WALK_N, WALK_EDGES),
-        WALK_N,
-        WALK_EDGES,
-        WALK_SRC,
-        WALK_SINK,
-      ],
-      [label("격자 6x4", small.n, small.edges), small.n, small.edges, 0, 1],
-      [label("격자 20x10", big.n, big.edges), big.n, big.edges, 0, 1],
-      [label("계단 m=12", st.n, st.edges), st.n, st.edges, 0, 12],
+      [NAME.walk, WALK_N, WALK, WALK_SOURCE, WALK_SINK],
+      ["계단 m = 12", st.n, st.edges, 0, st.sink],
+      ["격자 6 × 4", g6.n, g6.edges, 0, 1],
+      ["격자 20 × 10", g20.n, g20.edges, 0, 1],
     ];
     const rows = inputs.map(([label, n, edges, s, t]) => {
       const free = n - 2;
-      const brute = free <= 20 ? 2 ** free : Number.POSITIVE_INFINITY;
       const c = countedLite(n, edges, s, t);
       return [
-        label,
-        Number.isFinite(brute) ? comma(brute) : `2^${comma(free)}`,
-        Number.isFinite(brute)
-          ? comma(brute * edges.length)
+        `${label} (V=${comma(n)} · E=${comma(edges.length)})`,
+        free <= 30 ? comma(2 ** free) : `2^${comma(free)}`,
+        free <= 30
+          ? comma(2 ** free * edges.length)
           : `2^${comma(free)} × ${comma(edges.length)}`,
         comma(c.reads),
       ];
     });
-    return table(
-      [
-        ["입력", "분할 가짓수", "전수 나열의 간선 검사", "이 절차의 간선 검사"],
-        ...rows,
-      ],
+    return md(
+      ["입력", "분할 가짓수", "전수 조사의 간선 검사", "이 절차의 간선 검사"],
+      rows,
       [1, 2, 3],
-    ).join("\n");
+    );
   },
 
-  /** deep.walk — 라운드마다의 레벨과 흘린 경로. */
-  walkRounds: () => {
-    const c = counted(WALK_N, WALK_EDGES, WALK_SRC, WALK_SINK);
+  /* ─────────────── deep.build — s-t 컷 ─────────────── */
+
+  /** 간선 하나를 골라 컷에 드는지 읽는다. */
+  cutReadOne: () => {
+    const k = WALK.findIndex(([u, v]) => u === 5 && v === 3);
+    const [u, v, c] = WALK[k] as Edge;
+    const sideName = (x: number) => (SIDE.includes(x) ? "소스 쪽" : "싱크 쪽");
+    const counted = SIDE.includes(u) && !SIDE.includes(v);
+    return [
+      md(
+        ["읽는 것", `간선 ${u}→${v} 에서`],
+        [
+          ["용량", String(c)],
+          [`꼬리 ${u}${이가(u)} 든 무리`, sideName(u)],
+          [`머리 ${v}${이가(v)} 든 무리`, sideName(v)],
+          ["컷 용량에", counted ? "더한다" : "안 더한다"],
+        ],
+      ),
+      "",
+      `간선 ${u}→${v}${은는(v)} 경계를 넘지만 ${sideName(u)}에서 ${sideName(v)}으로 들어오는 방향이라 컷 용량에 들지 않습니다.`,
+    ].join("\n");
+  },
+
+  /** 네 갈래가 분할마다 몇 개씩인가. */
+  cutKinds: () => {
+    const rows = PICKS.map((sSide) => {
+      const k = kindsOf(WALK, sSide);
+      return [
+        set(sSide),
+        String(k.cross.length),
+        String(k.inside.length),
+        String(k.back.length),
+        String(k.outside.length),
+        String(cutOf(WALK, sSide)),
+      ];
+    });
+    return [
+      md(
+        [
+          "소스 쪽 S",
+          "건너가는 간선",
+          "소스 쪽 안의 간선",
+          "들어오는 간선",
+          "싱크 쪽 안의 간선",
+          "컷 용량",
+        ],
+        rows,
+        [1, 2, 3, 4, 5],
+      ),
+      "",
+      `다섯 분할 모두 네 갈래의 개수를 더하면 간선 ${WALK.length} 개입니다.`,
+    ].join("\n");
+  },
+
+  /** 방향을 가리지 않고 경계 간선을 다 센 값과의 차이. */
+  cutUndirected: () => {
+    const rows = PICKS.map((sSide) => [
+      set(sSide),
+      String(cutOf(WALK, sSide)),
+      String(undirectedOf(WALK, sSide)),
+    ]);
+    const unBest = Math.min(...PICKS.map((p) => undirectedOf(WALK, p)));
+    return [
+      md(
+        ["소스 쪽 S", "방향대로 센 컷 용량", "방향을 가리지 않고 센 값"],
+        rows,
+        [1, 2],
+      ),
+      "",
+      `S = ${set(SIDE)} 에서 방향대로 세면 ${cutOf(WALK, SIDE)}, 가리지 않고 세면 ${undirectedOf(WALK, SIDE)} 입니다. 방향을 가리지 않으면 다섯 분할 중 가장 작은 값이 ${unBest}${이가(unBest)} 되어 최대 유량 ${WALK_FLOW}${과와(WALK_FLOW)} 만나지 않습니다.`,
+    ].join("\n");
+  },
+
+  /** 소스에서 싱크로 가는 경로마다 건너가는 간선을 몇 번 지나는가. */
+  cutPaths: () => {
+    const paths = simplePaths(WALK, WALK_SOURCE, WALK_SINK);
+    const crossCount = (p: number[]) =>
+      p
+        .slice(1)
+        .filter((v, i) => SIDE.includes(p[i] as number) && !SIDE.includes(v))
+        .length;
+    const rows = paths.map((p) => [route(p), String(crossCount(p))]);
+    const min = Math.min(...paths.map(crossCount));
+    return [
+      md(
+        ["소스에서 싱크까지의 경로 목록", "건너가는 간선을 지난 횟수"],
+        rows,
+        [1],
+      ),
+      "",
+      `경로 ${paths.length} 개가 모두 건너가는 간선을 ${min} 번 이상 지납니다.`,
+    ].join("\n");
+  },
+
+  /* ─────────────── deep.build — 단계 ─────────────── */
+
+  /** 1단계 — 디닉으로 유량을 끝까지 보낸다. */
+  stageFlow: () => {
     const rows: string[][] = [];
-    for (const [index, r] of c.rounds.entries()) {
-      if (r.paths.length === 0) {
-        rows.push([String(index + 1), show(r.level), "없다", "-", "-"]);
-        continue;
-      }
-      for (const p of r.paths) {
-        const usesReverse = p.path.some(
-          (v, i) =>
-            i > 0 &&
-            !WALK_EDGES.some(([a, b]) => a === p.path[i - 1] && b === v),
-        );
+    for (const s of S) {
+      if (s.kind === "path")
         rows.push([
-          String(index + 1),
-          show(r.level),
-          p.path.join(" → "),
-          String(p.sent),
-          usesReverse ? "지난다" : "안 지난다",
+          `라운드 ${s.round}`,
+          String(s.level[WALK_SINK]),
+          route(s.path),
+          String(s.add),
+          String(s.total),
         ]);
-      }
+      if (s.kind === "end")
+        rows.push([`라운드 ${s.round}`, "없음", "없음", "0", String(s.total)]);
     }
     return [
-      ...table(
-        [["라운드", "level", "흘린 경로", "보낸 양", "역방향 간선"], ...rows],
-        [0, 3],
+      md(
+        ["라운드", "싱크의 레벨", "증가 경로", "보낸 양", "누적 유량"],
+        rows,
+        [3, 4],
       ),
       "",
-      `보낸 총량 ${c.sent} · BFS ${c.bfsRuns} 번 · 유량을 보낸 라운드 ${c.flowRounds} 번`,
+      `사본이 보낸 유량 ${W.flow}${은는(W.flow)} maxFlow 정본이 같은 입력에 낸 값 ${WALK_FLOW}${과와(WALK_FLOW)} 같습니다.`,
     ].join("\n");
   },
 
-  /** deep.walk — 고정 입력을 끝까지 실행한 걸음별 상태. */
-  walkTrace: () => {
-    const c = counted(WALK_N, WALK_EDGES, WALK_SRC, WALK_SINK);
-    const rows = c.steps.map((s) => [
-      s.label,
-      s.branches,
-      show(s.level),
-      s.caps.join(","),
-      String(s.sent),
-      s.note,
-    ]);
+  /** 2단계 — BFS 가 끝날 때마다 레벨이 붙은 정점. */
+  stageReach: () => {
+    const bfsSteps = S.filter((s) => s.kind === "bfs" || s.kind === "end");
+    const rows = bfsSteps.map((s) => {
+      const side = sideOf(s);
+      const inside = side.includes(WALK_SINK);
+      return [
+        `라운드 ${s.round}`,
+        list(s.level),
+        set(side),
+        inside ? "레벨이 붙는다" : "레벨이 없다",
+        inside ? "분할이 아니다" : String(cutOf(WALK, side)),
+      ];
+    });
     return [
-      ...table(
+      md(
+        ["BFS", "level", "레벨이 붙은 정점", "싱크", "그 무리의 컷 용량"],
+        rows,
+      ),
+      "",
+      `BFS ${bfsSteps.length} 번 중 싱크에 레벨이 없는 것은 마지막 한 번이고, 그때 레벨이 붙은 정점 ${SIDE.length} 개가 소스 쪽 무리입니다.`,
+    ].join("\n");
+  },
+
+  /** 2단계 — 가장 쉬운 경우: 용량이 다른 다리 그래프. */
+  stageEasy: () => {
+    const tr = trace(VARIED_N, VARIED, 0, 3);
+    const end = tr.steps.find((s) => s.kind === "end") as Step;
+    const out = VARIED.flatMap((e, k) => (e[0] === 0 ? [k] : []));
+    return [
+      md(
+        ["재는 것", `${NAME.varied}에서`],
         [
           [
-            "걸음",
-            "갈래",
-            "level",
-            "원래 간선 아홉 개의 잔여 용량",
-            "보낸 양",
-            "이 걸음이 한 일",
+            "소스에서 나가는 간선의 잔여",
+            out
+              .map((k) => `${edgeName(VARIED[k] as Edge)} ${end.res[k]}`)
+              .join(" · "),
           ],
-          ...rows,
+          ["소스 쪽 무리", set(sideOf(end))],
+          ["컷 용량 (minCut 정본)", String(minCut(VARIED_N, VARIED, 0, 3).cut)],
+          [
+            "최대 유량 (maxFlow 정본)",
+            String(maxFlow(VARIED_N, VARIED, 0, 3).flow),
+          ],
         ],
-        [4],
       ),
       "",
-      "잔여 용량 칸의 순서는 입력 간선 목록의 순서다",
-      `  ${WALK_EDGES.map(edgeName).join(" · ")}`,
+      "소스에서 나가는 간선이 모두 잔여 0 이라 마지막 BFS 가 소스 하나에서 멈춥니다.",
     ].join("\n");
   },
 
-  /** deep.walk — 일곱 갈래가 어느 걸음에서 실행됐는가. */
-  branchCoverage: () => {
-    const c = counted(WALK_N, WALK_EDGES, WALK_SRC, WALK_SINK);
-    const rows = branchNames.map(([mark, what]) => {
-      const at = c.steps
-        .filter((s) => s.branches.includes(mark))
-        .map((s) => s.label);
-      return [mark, what, String(at.length), at.join(" · ")];
+  /** 2단계 — 불안한 경우: 마지막 BFS 가 역방향 항목을 지나 무리를 넓힌다. */
+  stageLastBfs: () => {
+    const rows = END.queue.map((u) => {
+      const ids = W.lists[u] as number[];
+      const got = END.found.filter((id) => tailOf(WALK, id) === u);
+      const blocked = ids.filter(
+        (id) => END.res[id] === 0 && !SIDE.includes(headOf(WALK, id)),
+      );
+      return [
+        String(u),
+        got.length === 0
+          ? "없음"
+          : got
+              .map(
+                (id) =>
+                  `${headOf(WALK, id)} (${arcName(WALK, id)}${isBack(WALK, id) ? " 역방향" : ""} · 잔여 ${END.res[id]})`,
+              )
+              .join(" · "),
+        blocked.length === 0
+          ? "없음"
+          : blocked.map((id) => arcName(WALK, id)).join(" · "),
+      ];
     });
-    return table([["갈래", "무엇", "횟수", "실행된 걸음"], ...rows], [2]).join(
+    const backs = END.found.filter((id) => isBack(WALK, id));
+    const fwd = forwardOnlyReach(W, WALK, WALK_SOURCE);
+    return [
+      md(
+        [
+          "꺼낸 정점",
+          "레벨을 적은 정점 (지난 항목 · 잔여)",
+          "싱크 쪽으로 가는데 잔여 0 인 항목",
+        ],
+        rows,
+      ),
+      "",
+      `레벨을 적으며 지난 역방향 항목은 ${backs.map((id) => arcName(WALK, id)).join(" · ")} 하나이고, 소스 쪽 무리는 ${set(SIDE)} 입니다. 정방향 항목만 따라가면 무리가 ${set(fwd)} 에서 멈추고, 그 컷 용량은 ${cutOf(WALK, fwd)}${이며(cutOf(WALK, fwd))} 최대 유량 ${WALK_FLOW}${과와(WALK_FLOW)} 어긋납니다.`,
+    ].join("\n");
+  },
+
+  /** 3단계 — 경계를 넘는 원래 간선의 유량과 잔여. */
+  stageBoundary: () => {
+    const k = kindsOf(WALK, SIDE);
+    const rows = [...k.cross, ...k.back].map((i) => {
+      const [u, v, c] = WALK[i] as Edge;
+      return [
+        `${u}→${v}`,
+        k.cross.includes(i) ? "소스 쪽 → 싱크 쪽" : "싱크 쪽 → 소스 쪽",
+        String(c),
+        String(LAST.flow[i]),
+        String(LAST.res[i]),
+      ];
+    });
+    const out = k.cross.reduce((a, i) => a + (LAST.flow[i] as number), 0);
+    const inn = k.back.reduce((a, i) => a + (LAST.flow[i] as number), 0);
+    return [
+      md(["경계 간선", "방향", "용량", "유량", "정방향 잔여"], rows, [2, 3, 4]),
+      "",
+      `소스 쪽에서 나가는 간선 ${k.cross.length} 개는 유량이 용량과 같고, 들어오는 간선 ${k.back.length} 개는 유량이 0 입니다. 경계를 넘은 순량 ${out} − ${inn} = ${out - inn}${이가(out - inn)} 컷 용량 ${WALK_CUT}${과와(WALK_CUT)}도, 최대 유량 ${WALK_FLOW}${과와(WALK_FLOW)}도 같습니다.`,
+    ].join("\n");
+  },
+
+  /* ─────────────── deep.walk ─────────────── */
+
+  /** 1. 간선 하나를 두 항목으로 — 목록을 그대로 찍는다. */
+  walkGraph: () => {
+    const s0 = S[0] as Step;
+    const lines = W.lists.map(
+      (ids, v) =>
+        `graph[${v}] = [ ${ids.map((id) => `{to:${headOf(WALK, id)}, cap:${s0.res[id]}, rev:${W.revAt[id]}}`).join(", ")} ]`,
+    );
+    const total = W.lists.reduce((a, l) => a + l.length, 0);
+    return [...lines, `항목 ${total} 개 = 간선 ${WALK.length} 개 × 2`].join(
       "\n",
     );
   },
 
-  /** deep.walk — 마지막 level 로 원래 간선 아홉 개를 판정한다. */
+  /** 2. 라운드마다 레벨과 보낸 경로. */
+  walkRounds: () => {
+    const rows: string[][] = [];
+    for (const s of S) {
+      if (s.kind === "path")
+        rows.push([
+          `라운드 ${s.round}`,
+          list(s.level),
+          route(s.path),
+          `병목 ${s.add}${s.arcs.some((id) => isBack(WALK, id)) ? " · 역방향 항목을 지난다" : ""}`,
+        ]);
+      if (s.kind === "end")
+        rows.push([`라운드 ${s.round}`, list(s.level), "보낼 경로가 없다"]);
+    }
+    return [...columns(rows), `누적 유량 ${W.flow}`].join("\n");
+  },
+
+  /** 짚고 가기 — 포화된 간선을 다 더하면. */
+  pauseSaturated: () => {
+    const rows = MUTANT_CASES.map((c) => {
+      const sat = saturated(c);
+      const v = sat.reduce((a, e) => a + e[2], 0);
+      const ref = minCut(c.n, c.edges, c.source, c.sink).cut;
+      return [
+        c.label,
+        String(v),
+        String(ref),
+        v === ref ? "같다" : "다르다",
+        sat.length === 0 ? "없음" : sat.map(edgeName).join(" · "),
+      ];
+    });
+    const inner = saturated(WALK_CASE).filter(
+      ([u, v]) => SIDE.includes(u) && SIDE.includes(v),
+    );
+    return [
+      md(
+        ["입력", "포화된 간선의 용량 합", "정본", "판정", "포화된 원래 간선"],
+        rows,
+        [1, 2],
+      ),
+      "",
+      `${MUTANT_CASES.length} 입력 중 ${rows.filter((r) => r[3] === "다르다").length} 개에서 값이 어긋납니다. 전개 입력에서 포화된 ${inner.map(edgeName).join(" · ")}${은는(edgeName(inner.at(-1) as Edge))} 양 끝이 다 소스 쪽이라 경계를 넘지 않습니다.`,
+    ].join("\n");
+  },
+
+  /** 3. maxFlow 정본과 이 편의 정본이 갈리는 줄. */
+  walkDiff: () => {
+    const rows = [
+      ...DIFF.onlyA.map((l) => ["maxFlow 에만", `\`${l}\``]),
+      ...DIFF.onlyB.map((l) => ["minCut 에만", `\`${l}\``]),
+    ];
+    return [
+      md(["자리", "코드 줄"], rows),
+      "",
+      `주석과 빈 줄을 걷고 두 함수의 코드 줄을 맞대면 ${DIFF.same} 줄이 같고, maxFlow 에만 있는 줄이 ${DIFF.onlyA.length} 줄, minCut 에만 있는 줄이 ${DIFF.onlyB.length} 줄입니다. 간선 항목 타입의 이름(Edge · ResidualEdge)은 같은 것으로 보았습니다.`,
+    ].join("\n");
+  },
+
+  /** 짚고 가기 — 컷을 뽑으려고 BFS 를 한 번 더 실행하면. */
+  pauseExtraBfs: () => {
+    const g = grid(20, 10);
+    const st = stair(200);
+    const inputs: [string, number, Edge[], number, number][] = [
+      [NAME.walk, WALK_N, WALK, WALK_SOURCE, WALK_SINK],
+      ["격자 20 × 10", g.n, g.edges, 0, 1],
+      ["계단 m = 200", st.n, st.edges, 0, st.sink],
+    ];
+    const rows = inputs.map(([label, n, edges, s, t]) => {
+      const a = countedLite(n, edges, s, t);
+      const b = countedLite(n, edges, s, t, { extraBfs: true });
+      return [
+        label,
+        comma(a.cut),
+        comma(b.cut),
+        a.cut === b.cut ? "같다" : "다르다",
+        comma(a.reads),
+        comma(b.reads),
+      ];
+    });
+    return md(
+      [
+        "입력",
+        "정본",
+        "BFS 를 한 번 더 하는 판",
+        "판정",
+        "정본의 간선 검사",
+        "한 번 더 하는 판의 간선 검사",
+      ],
+      rows,
+      [1, 2, 4, 5],
+    );
+  },
+
+  /** 4. 마지막 level 로 원래 간선 아홉 개를 판정한다. */
   walkCut: () => {
-    const c = counted(WALK_N, WALK_EDGES, WALK_SRC, WALK_SINK);
-    const last = c.steps[c.steps.length - 1] as Step;
     let acc = 0;
-    const rows = WALK_EDGES.map(([u, v, cap]) => {
-      const lu = last.level[u] as number;
-      const lv = last.level[v] as number;
-      const isCut = lu !== -1 && lv === -1;
-      if (isCut) acc += cap;
-      const kind = isCut
-        ? "경계를 건넌다"
-        : lu !== -1 && lv !== -1
-          ? "소스 쪽 안에서만 오간다"
-          : lu === -1 && lv !== -1
-            ? "싱크 쪽에서 소스 쪽으로 들어온다"
-            : "싱크 쪽 안에서만 오간다";
+    const rows = WALK.map(([u, v, c]) => {
+      const lu = LAST.level[u] as number;
+      const lv = LAST.level[v] as number;
+      const cross = lu !== -1 && lv === -1;
+      if (cross) acc += c;
       return [
         `${u}→${v}`,
-        String(cap),
+        String(c),
         String(lu),
         String(lv),
-        kind,
-        isCut ? String(cap) : "0",
+        cross ? "참" : "거짓",
         String(acc),
       ];
     });
     return [
-      ...table(
-        [
-          [
-            "원래 간선",
-            "용량",
-            "level[u]",
-            "level[v]",
-            "어떤 간선인가",
-            "더하는 값",
-            "여기까지 누적",
-          ],
-          ...rows,
-        ],
-        [1, 2, 3, 5, 6],
+      md(
+        ["원래 간선", "용량", "level[u]", "level[v]", "⑦ 의 조건", "누적 cut"],
+        rows,
+        [1, 2, 3, 5],
       ),
       "",
-      `소스 쪽 무리 ${set(c.side)} · 컷 용량 ${c.cut} · 최대 유량 ${c.sent}`,
+      `조건이 참인 간선은 ${LAST.crossed.length} 개이고 cut 은 ${LAST.cut} 입니다.`,
     ].join("\n");
   },
 
-  /** 멈춤 1 — 포화된 간선을 다 더하면 몇이 나오는가. */
-  pauseSaturated: () => {
-    const rows = MUTANT_CASES.map((m) => {
-      const s = saturatedSum(m.n, m.edges, m.source, m.sink);
-      const ref = minCut(m.n, m.edges, m.source, m.sink).cut;
-      return [
-        m.label,
-        String(s.value),
-        String(ref),
-        s.value === ref ? "같다" : "다르다",
-        s.saturated.length === 0
-          ? "없다"
-          : s.saturated.map(edgeName).join(" · "),
-      ];
-    });
-    return [
-      ...table(
-        [
-          ["입력", "포화된 간선의 용량 합", "정본", "판정", "포화된 원래 간선"],
-          ...rows,
-        ],
-        [1, 2],
-      ),
-      "",
-      "전개 입력에서 포화된 간선 중 0→1 은 양 끝이 다 소스 쪽에 있어 경계를 안 건넌다",
-    ].join("\n");
-  },
-
-  /** 멈춤 2 — 도착점 검사를 뺀 변이. */
-  pauseTargetCheck: () => {
-    const rows = MUTANT_CASES.map((m) => {
-      const a = minCut(m.n, m.edges, m.source, m.sink).cut;
-      const b = noTargetCheck.minCut(m.n, m.edges, m.source, m.sink).cut;
-      return [m.label, String(a), String(b), a === b ? "같다" : "다르다"];
-    });
-    return table(
-      [["입력", "정본", "도착점 검사를 뺀 판", "판정"], ...rows],
+  /** 짚고 가기 — 도착점 검사를 뺀 변이. */
+  pauseTargetCheck: () =>
+    md(
+      ["입력", "정본", "도착점 검사를 뺀 판", "판정"],
+      MUTANT_CASES.map((c) => {
+        const a = minCut(c.n, c.edges, c.source, c.sink).cut;
+        const b = noTargetCheck.minCut(c.n, c.edges, c.source, c.sink).cut;
+        return [c.label, String(a), String(b), a === b ? "같다" : "다르다"];
+      }),
       [1, 2],
+    ),
+
+  /** 도착점 검사를 빼면 더해지는 간선. */
+  pauseTargetWhy: () => {
+    const k = kindsOf(WALK, SIDE);
+    const all = sumOf(k.cross) + sumOf(k.inside);
+    return [
+      md(
+        ["갈래", "간선 (용량)", "용량 합"],
+        [
+          [KIND_TEXT.cross, edgesText(k.cross), String(sumOf(k.cross))],
+          [KIND_TEXT.inside, edgesText(k.inside), String(sumOf(k.inside))],
+        ],
+        [2],
+      ),
+      "",
+      `도착점 검사가 거르던 것은 소스 쪽 안의 간선 ${k.inside.length} 개이고, 빼면 ${sumOf(k.cross)} + ${sumOf(k.inside)} = ${all}${이가(all)} 나옵니다.`,
+    ].join("\n");
+  },
+
+  /** 5. 열 걸음 전부. */
+  walkTrace: () => {
+    const what: Record<StepKind, string> = {
+      build: "잔여 그래프를 만든다",
+      bfs: "BFS 로 레벨을 적는다",
+      path: "증가 경로에 보낸다",
+      exhaust: "0 이 올라온다",
+      end: "싱크에 레벨이 없다",
+      cut: "원래 간선을 판정해 더한다",
+    };
+    const rows = S.map((s, i) => [
+      tOf(i),
+      s.kind === "build" || s.kind === "cut"
+        ? what[s.kind]
+        : s.kind === "path"
+          ? `라운드 ${s.round} · ${route(s.path)}`
+          : `라운드 ${s.round} · ${what[s.kind]}`,
+      LABELS.filter((l) => s.hits[l] > 0)
+        .map((l) => `${l} ${s.hits[l]}`)
+        .join(" · ") || "-",
+      list(s.level),
+      s.res.slice(0, W.E).join(", "),
+      String(s.total),
+      s.kind === "cut" ? String(s.cut) : "-",
+    ]);
+    const looks = S.reduce((a, s) => a + s.looks, 0);
+    return [
+      md(
+        [
+          "걸음",
+          "하는 일",
+          "실행한 갈래와 횟수",
+          "level",
+          `정방향 잔여 (${WALK.map(([u, v]) => `${u}→${v}`).join(", ")})`,
+          "누적 유량",
+          "cut",
+        ],
+        rows,
+        [5],
+      ),
+      "",
+      `걸음 ${S.length} 개의 간선 검사는 모두 ${looks} 번이고, 반환값은 { cut: ${LAST.cut} } 입니다.`,
+    ].join("\n");
+  },
+
+  /** 5. 갈래마다 실행 횟수와 걸음. */
+  branchCoverage: () => {
+    const rows = LABELS.map((l) => {
+      const at = S.flatMap((s, i) => (s.hits[l] > 0 ? [tOf(i)] : []));
+      const n = S.reduce((a, s) => a + s.hits[l], 0);
+      return [l, LABEL_TEXT[l], String(n), at.join(" · ")];
+    });
+    const all = LABELS.every((l) => S.some((s) => s.hits[l] > 0));
+    const backPath = S.findIndex(
+      (s) => s.kind === "path" && s.arcs.some((id) => isBack(WALK, id)),
+    );
+    return [
+      md(["라벨", "하는 일", "실행 횟수", "실행한 걸음"], rows, [2]),
+      "",
+      `일곱 갈래가 ${all ? "모두" : "모두는 아니게"} 한 번 이상 실행됐습니다. 역방향 항목으로 유량을 보낸 걸음은 ${tOf(backPath)} 하나입니다.`,
+    ].join("\n");
+  },
+
+  /** 6. 전체 코드를 여러 입력에 실행한 결과. */
+  walkResult: () => {
+    const call = (c: Case) =>
+      `minCut(${c.n}, [${c.edges.map((e) => `[${e.join(",")}]`).join(",")}], ${c.source}, ${c.sink})`;
+    const cases: Case[] = [
+      WALK_CASE,
+      { label: "", n: MF_N, edges: MF, source: 0, sink: 5 },
+      VARIED_CASE,
+      TAIL_CASE,
+      CUTOFF_CASE,
+      EMPTY_CASE,
+      {
+        label: "",
+        n: 2,
+        edges: [
+          [0, 0, 100],
+          [0, 1, 5],
+        ],
+        source: 0,
+        sink: 1,
+      },
+    ];
+    return columns(
+      cases.map((c) => [
+        call(c),
+        "→",
+        `{ cut: ${comma(minCut(c.n, c.edges, c.source, c.sink).cut)} }`,
+      ]),
     ).join("\n");
   },
 
-  /** 멈춤 3 — 컷을 뽑으려고 BFS 를 한 번 더 실행하면. */
-  pauseExtraBfs: () => {
-    const big = grid(20, 10);
-    const st = stair(200);
-    const inputs: [string, number, Edge[], number, number][] = [
-      [
-        label("전개 입력", WALK_N, WALK_EDGES),
-        WALK_N,
-        WALK_EDGES,
-        WALK_SRC,
-        WALK_SINK,
-      ],
-      [label("격자 20x10", big.n, big.edges), big.n, big.edges, 0, 1],
-      [label("계단 m=200", st.n, st.edges), st.n, st.edges, 0, 200],
-    ];
-    const rows = inputs.map(([label, n, edges, s, t]) => {
-      const base = countedLite(n, edges, s, t);
-      const more = extraBfsCopy(n, edges, s, t);
+  /* ─────────────── related ─────────────── */
+
+  /** 약한 쌍대성과 강한 쌍대성을 값으로. */
+  duality: () => {
+    const rows = [
+      WALK_CASE,
+      VARIED_CASE,
+      TAIL_CASE,
+      BRIDGE_CASE,
+      CUTOFF_CASE,
+    ].map((c) => {
+      const f = maxFlow(c.n, c.edges, c.source, c.sink).flow;
+      const b = bruteForce(c.n, c.edges, c.source, c.sink);
       return [
-        label,
-        String(base.cut),
-        String(more.cut),
-        base.cut === more.cut ? "같다" : "다르다",
-        comma(base.reads),
-        comma(more.reads),
-        comma(more.reads - base.reads),
+        c.label,
+        String(f),
+        String(b.best),
+        String(b.worst),
+        String(b.values.filter((v) => v < f).length),
       ];
     });
-    return table(
-      [
+    return [
+      md(
         [
           "입력",
-          "정본",
-          "BFS 를 한 번 더 실행하는 판",
-          "판정",
-          "정본의 간선 검사",
-          "한 번 더 실행하는 판의 간선 검사",
-          "차이",
+          "최대 유량",
+          "전수 조사의 최소 컷",
+          "가장 큰 컷",
+          "유량보다 작은 컷",
         ],
-        ...rows,
-      ],
-      [1, 2, 4, 5, 6],
-    ).join("\n");
-  },
-
-  /** 불변식 ② — BFS 가 끝날 때마다 두 문장을 확인한다. */
-  invariantWatch: () => {
-    const c = counted(WALK_N, WALK_EDGES, WALK_SRC, WALK_SINK);
-    const rows = c.snapshots.map((s, index) => [
-      String(index + 1),
-      set(s.side),
-      String(s.crossing),
-      s.sinkInside ? "-" : String(s.capacity),
-      String(s.sent),
-      s.crossing === 0 && (s.sinkInside || s.capacity === s.sent)
-        ? "지킨다"
-        : "어긋난다",
-    ]);
-    return [
-      ...table(
-        [
-          [
-            "BFS 회차",
-            "레벨이 적힌 정점 S",
-            "경계를 건너는 잔여 용량",
-            "S 의 컷 용량",
-            "그때까지 보낸 양",
-            "두 문장",
-          ],
-          ...rows,
-        ],
-        [0, 2, 3, 4],
+        rows,
+        [1, 2, 3, 4],
       ),
       "",
-      "싱크가 아직 S 안에 있는 회차는 분할이 아니라 컷 용량 칸을 비웠다",
+      `${rows.length} 입력 모두 유량보다 작은 컷이 0 개이고, 최대 유량과 최소 컷이 같습니다.`,
     ].join("\n");
   },
 
-  /** 불변식 ② — 경계 입력을 정본에 그대로 걸어 본다. */
+  /* ─────────────── deep.math ─────────────── */
+
+  /** 정의를 두 분할에 넣어 검산한다. */
+  mathCheck: () => {
+    const rows = [[0], SIDE].map((sSide) => {
+      let fwd = 0;
+      let bwd = 0;
+      for (const [k, [u, v]] of WALK.entries()) {
+        if (sSide.includes(u) && !sSide.includes(v))
+          fwd += LAST.flow[k] as number;
+        else if (!sSide.includes(u) && sSide.includes(v))
+          bwd += LAST.flow[k] as number;
+      }
+      return [
+        set(sSide),
+        String(cutOf(WALK, sSide)),
+        String(fwd),
+        String(bwd),
+        String(fwd - bwd),
+        String(W.flow),
+      ];
+    });
+    return [
+      md(
+        [
+          "분할 S",
+          "c(S,T)",
+          "f(S,T)",
+          "f(T,S)",
+          "f(S,T) − f(T,S)",
+          "보낸 총량",
+        ],
+        rows,
+        [1, 2, 3, 4, 5],
+      ),
+      "",
+      "두 분할에서 f(S,T) − f(T,S) 가 모두 |f| 와 같습니다. 컷 용량 c(S,T) 는 두 분할에서 다릅니다.",
+    ].join("\n");
+  },
+
+  /** 결과식에 규모의 상한을 넣는다. */
+  mathScale: () =>
+    [
+      md(
+        [
+          "식",
+          `V = ${comma(V_MAX)} · E = ${comma(E_MAX)} · c ≤ ${comma(C_MAX)} 에서`,
+        ],
+        [
+          ["간선 검사의 상한 V² · E", comma(V_MAX * V_MAX * E_MAX)],
+          ["컷 용량의 상한 E · c", comma(E_MAX * C_MAX)],
+          ["32 비트 부호 있는 정수의 상한", comma(2 ** 31 - 1)],
+          ["배정밀도 수가 정확히 담는 정수의 상한 2^53", comma(2 ** 53)],
+        ],
+        [1],
+      ),
+      "",
+      "컷 용량의 상한은 32 비트 정수의 상한을 넘고 2^53 보다는 작습니다.",
+    ].join("\n"),
+
+  /* ─────────────── invariant ─────────────── */
+
+  /** BFS 가 끝날 때마다 경계의 잔여 용량. */
+  invariantWatch: () => {
+    const rows = S.filter((s) => s.kind === "bfs" || s.kind === "end").map(
+      (s) => {
+        const side = sideOf(s);
+        let crossing = 0;
+        for (const u of side)
+          for (const id of W.lists[u] as number[])
+            if (!side.includes(headOf(WALK, id)))
+              crossing += s.res[id] as number;
+        const inside = side.includes(WALK_SINK);
+        return [
+          `라운드 ${s.round}`,
+          set(side),
+          String(crossing),
+          inside ? "-" : String(cutOf(WALK, side)),
+          String(s.total),
+        ];
+      },
+    );
+    return [
+      md(
+        [
+          "BFS",
+          "레벨이 적힌 정점 S",
+          "S 에서 밖으로 나가는 잔여 용량",
+          "S 의 컷 용량",
+          "그때까지 보낸 양",
+        ],
+        rows,
+        [2, 3, 4],
+      ),
+      "",
+      `BFS ${rows.length} 번 모두 밖으로 나가는 잔여 용량이 0 입니다. 싱크가 S 안에 있는 BFS 는 분할이 아니어서 컷 용량 칸을 비웠습니다.`,
+    ].join("\n");
+  },
+
+  /** 경계에 있는 입력들. */
   invariantEdges: () => {
     const cases: [string, number, Edge[], number, number][] = [
       ["간선 없음", 2, [], 0, 1],
       ["소스와 싱크가 직접 이어져 있다", 2, [[0, 1, 100]], 0, 1],
-      ["소스에서 싱크로 가는 경로가 없다", CUTOFF_N, CUTOFF_EDGES, 0, 2],
-      [
-        "용량 0 인 간선뿐",
-        2,
-        [
-          [0, 1, 0],
-          [0, 1, 0],
-        ],
-        0,
-        1,
-      ],
+      ["소스에서 싱크로 가는 경로가 없다", CUTOFF_N, CUTOFF, 0, 2],
+      ["용량 0 인 간선뿐", 2, [[0, 1, 0]], 0, 1],
       [
         "평행 간선",
         2,
@@ -1358,7 +1836,7 @@ export const PROOFS: Record<string, () => string> = {
         1,
       ],
       [
-        "자기 자신을 가리키는 간선",
+        "자기 루프",
         2,
         [
           [0, 0, 100],
@@ -1382,267 +1860,225 @@ export const PROOFS: Record<string, () => string> = {
         "용량 상한",
         3,
         [
-          [0, 1, C_LIMIT],
-          [1, 2, C_LIMIT],
+          [0, 1, C_MAX],
+          [1, 2, C_MAX],
         ],
         0,
         2,
       ],
     ];
-    const rows = cases.map(([name, n, edges, s, t]) => {
-      const c = counted(n, edges, s, t);
-      return [
-        name,
-        comma(minCut(n, edges, s, t).cut),
-        set(c.side),
-        comma(c.sent),
-        String(c.bfsRuns),
-      ];
-    });
-    return table(
-      [["입력", "컷", "소스 쪽 무리", "최대 유량", "BFS 횟수"], ...rows],
+    return md(
+      ["입력", "컷", "소스 쪽 무리", "최대 유량 (maxFlow 정본)", "BFS 횟수"],
+      cases.map(([name, n, edges, s, t]) => {
+        const c = countedLite(n, edges, s, t);
+        return [
+          name,
+          comma(minCut(n, edges, s, t).cut),
+          set(c.side),
+          comma(maxFlow(n, edges, s, t).flow),
+          String(c.bfsRuns),
+        ];
+      }),
       [1, 3, 4],
-    ).join("\n");
+    );
   },
 
-  /** 불변식 ③ — 레벨을 적은 정점을 큐에 넣는 줄을 뺀 변이. */
-  mutantNoPush: () => {
-    const rows = MUTANT_CASES.map((m) => {
-      const a = minCut(m.n, m.edges, m.source, m.sink).cut;
-      const b = noPush.minCut(m.n, m.edges, m.source, m.sink).cut;
-      return [m.label, String(a), String(b), a === b ? "같다" : "다르다"];
-    });
-    return table(
-      [["입력", "정본", "큐에 안 넣는 판", "판정"], ...rows],
+  /** 큐에 넣는 줄을 뺀 변이. */
+  mutantNoPush: () =>
+    md(
+      ["입력", "정본", "큐에 안 넣는 판", "판정"],
+      MUTANT_CASES.map((c) => {
+        const a = minCut(c.n, c.edges, c.source, c.sink).cut;
+        const b = noPush.minCut(c.n, c.edges, c.source, c.sink).cut;
+        return [c.label, String(a), String(b), a === b ? "같다" : "다르다"];
+      }),
       [1, 2],
-    ).join("\n");
-  },
+    ),
 
-  /** perf.derive — 걸음마다 간선 항목을 몇 번 봤는가. */
-  perfCount: () => {
-    const c = counted(WALK_N, WALK_EDGES, WALK_SRC, WALK_SINK);
-    const rows = [
-      [
-        "잔여 그래프 만들기",
-        comma(WALK_EDGES.length),
-        `항목 ${WALK_EDGES.length * 2} 개를 만든다`,
-      ],
-      [
-        `BFS ${c.bfsRuns} 번`,
-        comma(c.bfsReads),
-        "T2 · T6 · T9 — 라운드마다 한 번, 마지막에 한 번 더",
-      ],
-      ["DFS", comma(c.dfsReads), "T3 · T4 · T5 · T7 · T8"],
-      ["컷 합산", comma(c.cutReads), "T10 — 원래 간선 목록을 한 번 지난다"],
-    ];
+  /** 변이에서 문장이 깨진 자리 — 사본으로 재현한 상태. */
+  mutantNoPushSide: () => {
+    const tr = trace(WALK_N, WALK, WALK_SOURCE, WALK_SINK, { noPush: true });
+    const end = tr.steps.find((s) => s.kind === "end") as Step;
+    const side = sideOf(end);
+    let crossing = 0;
+    const open: string[] = [];
+    for (const u of side)
+      for (const id of tr.lists[u] as number[])
+        if (!side.includes(headOf(WALK, id)) && (end.res[id] as number) > 0) {
+          crossing += end.res[id] as number;
+          open.push(`${arcName(WALK, id)} ${end.res[id]}`);
+        }
     return [
-      ...table([["무엇", "간선을 본 횟수", "설명"], ...rows], [1]),
+      md(
+        ["재는 것", "큐에 안 넣는 판의 첫 BFS 뒤"],
+        [
+          ["레벨이 적힌 정점 S", set(side)],
+          ["S 밖으로 잔여가 남은 항목", open.join(" · ")],
+          ["S 에서 밖으로 나가는 잔여 용량", String(crossing)],
+          ["보낸 유량", String(tr.flow)],
+          ["돌려준 컷", String(tr.cut)],
+        ],
+      ),
       "",
-      `합계 ${comma(WALK_EDGES.length + c.reads + c.cutReads)} 번`,
-      `그중 컷을 뽑는 데 든 것은 ${c.cutReads} 번뿐이다 — 나머지는 유량을 흘리는 몫이다`,
+      `S 밖으로 잔여 ${crossing}${이가(crossing)} 남은 채 탐색이 끝났고, 유량 ${tr.flow} 대 컷 ${tr.cut}${으로(tr.cut)} 두 값이 만나지 않습니다.`,
     ].join("\n");
   },
 
-  /** perf.worst — 계단 입력이 라운드 수를 V−1 까지 채운다. */
+  /* ─────────────── perf ─────────────── */
+
+  /** 걸음을 몫으로 묶어 간선 검사를 센다. */
+  perfCount: () => {
+    const pick = (f: (s: Step) => boolean) => {
+      const idx = S.flatMap((s, i) => (f(s) ? [i] : []));
+      return {
+        at: idx.map(tOf).join(" · "),
+        n: idx.reduce((a, i) => a + (S[i] as Step).looks, 0),
+      };
+    };
+    const bfs = pick((s) => s.kind === "bfs" || s.kind === "end");
+    const dfs = pick((s) => s.kind === "path" || s.kind === "exhaust");
+    const cut = pick((s) => s.kind === "cut");
+    const total = bfs.n + dfs.n + cut.n;
+    const lite = countedLite(WALK_N, WALK, WALK_SOURCE, WALK_SINK).reads;
+    return [
+      md(
+        ["몫", "걸음", "간선 검사"],
+        [
+          ["BFS", bfs.at, String(bfs.n)],
+          ["DFS", dfs.at, String(dfs.n)],
+          ["컷 합산", cut.at, String(cut.n)],
+          ["합", "", String(total)],
+        ],
+        [2],
+      ),
+      "",
+      `합 ${total}${은는(total)} 계수만 세는 사본이 낸 값 ${lite}${과와(lite)} 같습니다. 이 편이 maxFlow 에 더한 몫은 컷 합산 ${cut.n} 번이고, 원래 간선 수와 같습니다.`,
+    ].join("\n");
+  },
+
+  /** 계단 입력이 라운드 수를 V−1 까지 채운다. */
   worstRounds: () => {
     const rows = [4, 8, 50, 200, 499].map((m) => {
-      const { n, edges } = stair(m);
-      const c = countedLite(n, edges, 0, m);
+      const s = stair(m);
+      const c = countedLite(s.n, s.edges, 0, s.sink);
       return [
         String(m),
-        comma(n),
-        comma(edges.length),
+        comma(s.n),
+        comma(s.edges.length),
         comma(c.flowRounds),
-        comma(n - 1),
+        comma(s.n - 1),
         comma(c.reads),
-        String(c.cut),
+        comma(c.cut),
       ];
     });
     return [
-      ...table(
+      md(
         [
-          [
-            "계단 층수 m",
-            "정점 V",
-            "간선 E",
-            "유량을 보낸 라운드",
-            "상한 V−1",
-            "간선 검사",
-            "컷",
-          ],
-          ...rows,
+          "계단 층수 m",
+          "정점 V",
+          "간선 E",
+          "유량을 보낸 라운드",
+          "상한 V − 1",
+          "간선 검사",
+          "컷",
         ],
+        rows,
         [0, 1, 2, 3, 4, 5, 6],
       ),
       "",
-      "라운드가 상한을 그대로 채운다 — 경로 길이가 1, 2, …, m 으로 서로 달라서다",
+      "다섯 줄 모두 유량을 보낸 라운드가 상한 V − 1 과 같습니다.",
     ].join("\n");
   },
 
-  /** perf.worst — 라운드 수를 그대로 두고 간선만 늘린다. */
+  /** 라운드 수를 그대로 두고 간선만 늘린다. */
   worstScale: () => {
     const rows: string[][] = [];
+    let top = 0;
     for (const extra of [0, 1_000, 5_000, 9_000]) {
-      const { n, edges } = stairPlus(499, extra);
-      const c = countedLite(n, edges, 0, 499);
+      const s = stairPlus(499, extra);
+      const c = countedLite(s.n, s.edges, 0, s.sink);
+      top = c.reads;
       rows.push([
         extra === 0 ? "계단만" : `계단 + 뒤로 가는 간선 ${comma(extra)} 개`,
-        comma(n),
-        comma(edges.length),
-        comma(c.flowRounds),
+        comma(s.n),
+        comma(s.edges.length),
+        comma(c.bfsRuns),
         comma(c.reads),
       ]);
     }
     const g = grid(20, 10);
     const gc = countedLite(g.n, g.edges, 0, 1);
     rows.push([
-      label("격자 20x10", g.n, g.edges),
+      "격자 20 × 10",
       comma(g.n),
       comma(g.edges.length),
-      comma(gc.flowRounds),
+      comma(gc.bfsRuns),
       comma(gc.reads),
     ]);
+    const bound = V_MAX * V_MAX * E_MAX;
     return [
-      ...table(
-        [["입력", "정점 V", "간선 E", "라운드", "간선 검사"], ...rows],
+      md(
+        ["입력", "정점 V", "간선 E", "BFS 횟수", "간선 검사"],
+        rows,
         [1, 2, 3, 4],
       ),
       "",
-      "격자 줄과 견주면 크기가 아니라 라운드 수가 값을 정하는 것이 나온다",
+      `가장 큰 계단의 간선 검사는 ${comma(top)} 번이고 격자의 ${comma(Math.round(top / gc.reads))} 배입니다. 이 값은 상한 ${comma(bound)} 의 ${((top / bound) * 100).toFixed(1)} % 입니다.`,
     ].join("\n");
   },
 
-  /** perf.worst — 규모를 4 배씩 늘리며 상한에 대한 비를 잰다. */
-  worstGrowth: () => {
-    const rows = [8, 32, 128, 499].map((m) => {
-      const { n, edges } = stair(m);
-      const c = countedLite(n, edges, 0, m);
-      const bound = n * n * edges.length;
-      return [
-        comma(n),
-        comma(edges.length),
-        comma(c.reads),
-        comma(bound),
-        (c.reads / bound).toFixed(5),
-      ];
-    });
-    return [
-      ...table(
-        [["정점 V", "간선 E", "간선 검사", "상한 V²E", "그 비"], ...rows],
+  /** 규모를 늘리며 상한에 대한 비를 잰다. */
+  worstGrowth: () =>
+    [
+      md(
+        ["정점 V", "간선 E", "간선 검사", "V² · E", "비"],
+        [8, 32, 128, 499].map((m) => {
+          const s = stair(m);
+          const c = countedLite(s.n, s.edges, 0, s.sink);
+          const b = s.n * s.n * s.edges.length;
+          return [
+            comma(s.n),
+            comma(s.edges.length),
+            comma(c.reads),
+            comma(b),
+            (c.reads / b).toFixed(5),
+          ];
+        }),
         [0, 1, 2, 3, 4],
       ),
       "",
-      "마지막 열이 0 쪽으로 작아진다 — 이 입력은 라운드 수만 채우고 라운드당 경로 수를 못 채운다",
-    ].join("\n");
-  },
+      "정점이 늘수록 비가 0 쪽으로 작아집니다. 이 입력은 라운드 수만 채우고 라운드당 경로 수를 채우지 못합니다.",
+    ].join("\n"),
 
-  /** deep.math ② — 정의를 전개 입력의 두 분할에 넣어 검산한다. */
-  mathCheck: () => {
-    const c = counted(WALK_N, WALK_EDGES, WALK_SRC, WALK_SINK);
-    const parts: [string, number[]][] = [
-      ["{0}", [0]],
-      ["{0, 1, 2, 3, 4}", [0, 1, 2, 3, 4]],
-    ];
-    const rows = parts.map(([label, members]) => {
-      const inS = new Set(members);
-      let forward = 0;
-      let backward = 0;
-      let cap = 0;
-      for (const [index, [u, v, capacity]] of WALK_EDGES.entries()) {
-        const sent = capacity - (c.finalCaps[index] as number);
-        if (inS.has(u) && !inS.has(v)) {
-          cap += capacity;
-          forward += sent;
-        } else if (!inS.has(u) && inS.has(v)) backward += sent;
-      }
-      return [
-        label,
-        String(cap),
-        String(forward),
-        String(backward),
-        String(forward - backward),
-        String(c.sent),
-      ];
-    });
+  /* ─────────────── selfcheck ─────────────── */
+
+  /** 5→6 의 용량이 5 라면. */
+  selfcheckCap56: () => {
+    const edges = WALK.map(
+      ([u, v, c]) => [u, v, u === 5 && v === 6 ? 5 : c] as Edge,
+    );
+    const tr = trace(WALK_N, edges, WALK_SOURCE, WALK_SINK);
+    const end = tr.steps.find((s) => s.kind === "end") as Step;
+    const side = sideOf(end);
     return [
-      ...table(
+      md(
+        ["재는 것", "5→6 의 용량이 5 일 때"],
         [
+          ["마지막 BFS 의 level", list(end.level)],
+          ["소스 쪽 무리", set(side)],
           [
-            "분할 S",
-            "c(S,T)",
-            "f(S,T)",
-            "f(T,S)",
-            "f(S,T) − f(T,S)",
-            "보낸 총량 |f|",
+            "건너가는 간선",
+            kindsOf(edges, side)
+              .cross.map((k) => edgeName(edges[k] as Edge))
+              .join(" · "),
           ],
-          ...rows,
+          ["컷 용량 (minCut 정본)", String(minCut(WALK_N, edges, 0, 6).cut)],
+          [
+            "최대 유량 (maxFlow 정본)",
+            String(maxFlow(WALK_N, edges, 0, 6).flow),
+          ],
         ],
-        [1, 2, 3, 4, 5],
       ),
-      "",
-      "두 분할에서 f(S,T) − f(T,S) 가 같은 값이다 — 어느 분할로 잘라도 건너간 순량은 |f| 다",
     ].join("\n");
-  },
-
-  /** deep.math ④ — 결과식에 제약 규모를 넣는다. */
-  mathScale: () => {
-    const rows = [
-      [50, 500],
-      [200, 4_000],
-      [V_LIMIT, E_LIMIT],
-    ].map(([v, e]) => [
-      comma(v as number),
-      comma(e as number),
-      comma((v as number) * (v as number) * (e as number)),
-      comma((e as number) * C_LIMIT),
-    ]);
-    return [
-      ...table(
-        [["정점 V", "간선 E", "V²E", "컷 용량의 상한 E·c"], ...rows],
-        [0, 1, 2, 3],
-      ),
-      "",
-      "제약 상한에서",
-      `  간선 검사의 상한  V²E = ${comma(V_LIMIT * V_LIMIT * E_LIMIT)} 번`,
-      `  컷 용량의 상한    E·c = ${comma(E_LIMIT * C_LIMIT)} 이고 이 값은 배정밀도 정수로 정확하다`,
-    ].join("\n");
-  },
-
-  /** related — 약한 쌍대성과 강한 쌍대성을 값으로 갈라 보인다. */
-  duality: () => {
-    const inputs: [string, number, Edge[], number, number][] = [
-      ["전개 입력", WALK_N, WALK_EDGES, WALK_SRC, WALK_SINK],
-      ["문제 지문의 예시", DOC_N, DOC_EDGES, 0, 3],
-      ["병목이 싱크 앞", TAIL_N, TAIL_EDGES, 0, 3],
-      ["다리 그래프", BRIDGE_N, BRIDGE_EDGES, 0, 3],
-      ["경로 없음", CUTOFF_N, CUTOFF_EDGES, 0, 2],
-    ];
-    const rows = inputs.map(([label, n, edges, s, t]) => {
-      const c = counted(n, edges, s, t);
-      const b = bruteForce(n, edges, s, t);
-      const worst = Math.max(...[...b.values.keys()].map((v) => v));
-      return [
-        label,
-        String(c.sent),
-        String(c.cut),
-        String(b.best),
-        String(worst),
-        c.sent === b.best ? "같다" : "다르다",
-      ];
-    });
-    return table(
-      [
-        [
-          "입력",
-          "최대 유량",
-          "이 절차의 컷",
-          "전수 나열의 최소 컷",
-          "가장 큰 컷",
-          "유량과 최소 컷",
-        ],
-        ...rows,
-      ],
-      [1, 2, 3, 4],
-    ).join("\n");
   },
 };
