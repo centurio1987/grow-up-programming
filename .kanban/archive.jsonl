@@ -524,3 +524,4 @@
 {"seq": 405, "t": "2026-09-28T17:55", "a": "유저", "id": "KAN-057-J36E1B", "op": "waive", "w": "977NDY", "with_": "KAN-036-0G05DE", "reason": "tools/ci.ts 게이트 목록에 각자 다른 줄을 더한다. 병합 때 충돌하면 두 줄을 다 남긴다(유저 용인 2026-09-28)"}
 {"seq": 405, "t": "2026-09-28T17:55", "a": "유저", "id": "KAN-058-8XT6PC", "op": "serialize", "w": "46PCAX", "with_": "KAN-059-PSFTN4", "reason": "110편을 fig 로 바꾸기 전에 책 인쇄 경로가 서야 한다(유저 결정 2026-09-28)"}
 {"seq": 406, "t": "2026-09-28T21:16", "a": "ai", "id": "KAN-057-J36E1B", "op": "move", "w": "977NDY", "from": "doing", "to": "review"}
+{"seq": 406, "t": "2026-09-28T18:09", "a": "유저", "id": "KAN-060-9P4ZAA", "op": "create", "w": "46PCAX", "col": "backlog", "title": "알고리즘 가이드에 문제를 통합한다.", "verbatim": "", "parent": null, "short": "", "purpose": "", "reason": "", "goal": "", "memo": ""}

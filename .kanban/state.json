@@ -1,6 +1,6 @@
 {
   "next_id": 65,
-  "next_seq": 455,
+  "next_seq": 456,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1650,7 +1650,7 @@
       "memo_hash": "d247c719f910875e2bc08ffc62922deb3840a8f7"
     },
     "KAN-064-4YZZV2": {
-      "col": "doing",
+      "col": "review",
       "title": "실습 스텁에 새어 든 풀이 24편 되돌리기 — solutions 브랜치 병합 방향을 먼저 정한다",
       "verbatim": "KAN-061 검토서 판단 항목 1 「스텁에 풀이가 든 24편을 새 카드로 뗄 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
       "생성": "ai",
@@ -1778,6 +1778,16 @@
     "KAN-064-4YZZV2"
   ],
   "recent": [
+    {
+      "seq": 455,
+      "t": "2026-10-01T08:49",
+      "a": "ai",
+      "id": "KAN-064-4YZZV2",
+      "op": "move",
+      "w": "7JZJ8C",
+      "from": "doing",
+      "to": "review"
+    },
     {
       "seq": 454,
       "t": "2026-10-01T08:26",
@@ -2333,23 +2343,6 @@
       "w": "977NDY",
       "from": "review",
       "to": "done"
-    },
-    {
-      "seq": 406,
-      "t": "2026-09-28T18:09",
-      "a": "유저",
-      "id": "KAN-060-9P4ZAA",
-      "op": "create",
-      "w": "46PCAX",
-      "col": "backlog",
-      "title": "알고리즘 가이드에 문제를 통합한다.",
-      "verbatim": "",
-      "parent": null,
-      "short": "",
-      "purpose": "",
-      "reason": "",
-      "goal": "",
-      "memo": ""
     }
   ],
   "waivers": [
