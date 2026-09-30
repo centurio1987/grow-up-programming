@@ -62,7 +62,7 @@ KANBAN.cards/KAN-034.8-BK1Q3A.md	.claude/authoring/voices/algorithm-guide-writer
 KANBAN.cards/KAN-034.8-BK1Q3A.md	.claude/authoring/voices/algorithm-guide-writer/style.json	117	5c54af96fe42	-
 KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-links.ts	24	09bf93b1e473	-
 KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-metaphor.ts	45	b7e822338e62	-
-KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-v2.ts	2490	0932dd3b8e96	-
+KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/check-v2.ts	2648	0932dd3b8e96	-
 KANBAN.cards/KAN-034.8-BK1Q3A.md	tools/ord004-manifest.json	659	6885e75903d4	drift
 KANBAN.cards/KAN-035-31T4BY.md	.claude/authoring/specs/algo-guide/spec.md	3	f8c35bec81b4	-
 KANBAN.cards/KAN-035-31T4BY.md	.claude/authoring/specs/algo-guide/spec.md	14	fe7b32a150ef	-
@@ -76,9 +76,9 @@ KANBAN.cards/KAN-035-31T4BY.md	src/data-structures/tree/treap/treap.ts	45	3f4ac5
 KANBAN.cards/KAN-035-31T4BY.md	tools/build-html.ts	194	612f977aa75d	-
 KANBAN.cards/KAN-035-31T4BY.md	tools/check-guide-rhythm.ts	34	62853505df74	-
 KANBAN.cards/KAN-035-31T4BY.md	tools/check-guide-rhythm.ts	381	982c18ceaf58	-
-KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	607	8d64a30d9de1	-
-KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	632	380a6b8d2957	-
-KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	2314	23cb8adad489	-
+KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	608	8d64a30d9de1	-
+KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	633	380a6b8d2957	-
+KANBAN.cards/KAN-035-31T4BY.md	tools/check-v2.ts	2472	23cb8adad489	-
 KANBAN.cards/KAN-035-31T4BY.md	tools/section.ts	43	643adc0227e3	-
 KANBAN.cards/KAN-035-31T4BY.md	tools/section.ts	118	358ba3f22237	-
 KANBAN.cards/KAN-046-ZFDFCQ.md	KANBAN.cards/KAN-027.md	159	d39f1eaef096	-
@@ -985,8 +985,8 @@ docs/ORD-006-strategy.md	docs/ORD-006-strategy.md	59	39edf7035b62	-
 sandbox/algo-guide-v2/FEEDBACK.md	.claude/authoring/voices/algorithm-guide-writer/style.json	103	d61467539ec6	-
 sandbox/algo-guide-v2/FEEDBACK.md	tools/build-html.ts	173	ee022ac7cf4c	-
 sandbox/algo-guide-v2/FEEDBACK.md	tools/build-html.ts	194	612f977aa75d	-
-sandbox/algo-guide-v2/FEEDBACK.md	tools/check-v2.ts	443	684888c0ebb1	-
-sandbox/algo-guide-v2/FEEDBACK.md	tools/check-v2.ts	496	29576b54e255	-
+sandbox/algo-guide-v2/FEEDBACK.md	tools/check-v2.ts	444	684888c0ebb1	-
+sandbox/algo-guide-v2/FEEDBACK.md	tools/check-v2.ts	497	29576b54e255	-
 sandbox/algo-guide-v2/README.md	tools/check-citations.ts	36	7de6ff637587	-
 sandbox/algo-guide-v2/SPEC.md	.claude/authoring/voices/algorithm-guide-writer/voice.md	95	f4ef20830146	-
 sandbox/algo-guide-v2/SPEC.md	docs/comprehension-gate-audit.md	45	c7d2eec191a9	-
