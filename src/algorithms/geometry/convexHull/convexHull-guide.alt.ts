@@ -219,7 +219,7 @@ function byGiftWrapping(points: Point[]): Counted {
   return { hull, ops, cells: total + uniq.length + hull.length };
 }
 
-/** 꼭짓점 집합을 순환 순서와 상관없이 견주기 위한 키. */
+/** 꼭짓점 집합을 순환 순서와 상관없이 비교하기 위한 키. */
 function ring(hull: Point[]): string {
   if (hull.length === 0) return "";
   let head = 0;
@@ -278,7 +278,7 @@ const D = measure(makePoints(MID, WIDEST));
 const E = measure(makePoints(BIG, WIDEST));
 
 export const cases = {
-  "정렬해 두고 사슬 둘": () => ({
+  "단조 사슬": () => ({
     "전개 입력 기본 연산": W.mine.ops,
     "n=4,096 · h=3 기본 연산": A.mine.ops,
     "n=4,096 · h=13 기본 연산": B.mine.ops,

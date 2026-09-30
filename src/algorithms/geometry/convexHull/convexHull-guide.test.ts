@@ -9,7 +9,7 @@
 import { expect, test } from "bun:test";
 import { convexHull, type Point } from "./convexHull-guide.ref.ts";
 
-/** 꼭짓점 집합을 순환 순서와 상관없이 견주기 위한 키. */
+/** 꼭짓점 집합을 순환 순서와 상관없이 비교하기 위한 키. */
 const asSet = (hull: Point[]): Set<string> =>
   new Set(hull.map((p) => `${p[0]},${p[1]}`));
 
@@ -254,4 +254,37 @@ test("답의 꼭짓점은 이웃 셋마다 왼쪽으로만 꺾인다", () => {
     const s = (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]);
     expect(s).toBeGreaterThan(0);
   }
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차의 기록에서
+ * 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./convexHull-guide.sim.ts");
+  const fig = await import("./convexHull-guide.fig.tsx");
+  const want = fig.stageStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.walkLower.steps)).toEqual(plain(want.walkLower));
+  expect(plain(sim.walkUpper.steps)).toEqual(plain(want.walkUpper));
+  expect(plain(sim.walkLower.layout)).toEqual(plain(fig.LAYOUT));
+  expect(plain(sim.walkUpper.layout)).toEqual(plain(sim.walkLower.layout));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 띠를 정본의 답에 직접 다시 묻는다.
+  const answer = convexHull([
+    [3, 2],
+    [6, 0],
+    [0, 0],
+    [3, 4],
+    [6, 3],
+    [0, 3],
+    [3, 0],
+    [6, 0],
+  ]);
+  const last = sim.walkUpper.steps.at(-1);
+  expect(last?.strips?.[0]?.values).toEqual(
+    answer.map((p) => `(${p[0]},${p[1]})`),
+  );
+  expect(sim.walkUpper.result).toBe("[[0, 0], [6, 0], [6, 3], [3, 4], [0, 3]]");
 });

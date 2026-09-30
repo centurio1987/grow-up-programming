@@ -75,7 +75,7 @@ function buildChain(seq: Point[]): Point[] {
 export function convexHull(points: Point[]): Point[] {
   const sorted = [...points].sort((p, q) => p[0] - q[0] || p[1] - q[1]);
 
-  // 정렬해 두면 같은 좌표가 이웃하므로, 앞 점과만 견주어도 중복이 전부 걸러진다.
+  // 정렬해 두면 같은 좌표가 이웃하므로, 바로 앞 점과만 비교해도 중복이 전부 걸러진다.
   const uniq: Point[] = [];
   for (const p of sorted) {
     const last = uniq.at(-1);
