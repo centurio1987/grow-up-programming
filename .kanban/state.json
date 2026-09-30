@@ -1,6 +1,6 @@
 {
-  "next_id": 64,
-  "next_seq": 452,
+  "next_id": 65,
+  "next_seq": 453,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1648,6 +1648,26 @@
       "goal_hash": "8627ed13b4f099122732cd941ec55b7d7774f502",
       "memo": "목록 정본: KANBAN.batches/KAN-058-8XT6PC.s11-findings.md §7. KAN-058 검토 7",
       "memo_hash": "d247c719f910875e2bc08ffc62922deb3840a8f7"
+    },
+    "KAN-064-4YZZV2": {
+      "col": "backlog",
+      "title": "실습 스텁에 새어 든 풀이 24편 되돌리기 — solutions 브랜치 병합 방향을 먼저 정한다",
+      "verbatim": "KAN-061 검토서 판단 항목 1 「스텁에 풀이가 든 24편을 새 카드로 뗄 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-10-01",
+      "title_hash": "8d52a00b58a1564fb3d1ea7be74e6d7622be372b",
+      "verbatim_hash": "d2f2172323037233a8525e0140737f500b7b468a",
+      "short": "스텁 풀이 누수 정리",
+      "short_hash": "9b3500f3fb337dce77d2aed6813c679decaf05c9",
+      "purpose": "풀이가 든 실습 스텁 24편을 미구현 스텁으로 되돌린다",
+      "purpose_hash": "41331efdf0988dd84545e279f6a2098e8530c295",
+      "reason": "solutions 브랜치 병합(3aa95994)으로 풀이가 main 에 들어와 학습자가 풀 파일을 열면 답이 보인다",
+      "reason_hash": "51bc55a05c03266f71ecbd11c38901fad9558b58",
+      "goal": "24편 스텁이 Not implemented 를 던지고 solutions 쪽 풀이는 한 편도 잃지 않는다",
+      "goal_hash": "f3a9a136ca553aeb930beceefd22d694e3cbf7a8",
+      "memo": "근거: KANBAN.cards/KAN-061-YVQBCF.md 의 S1 수행 내역(24편 · 21편 바이트 동일). main 에서 바로 되돌리면 다음 main→solutions 병합이 풀이를 덮는다 — 병합 방향부터",
+      "memo_hash": "5c5db09f9877e99e930e69a574f4f337447950bc"
     }
   },
   "order": [
@@ -1724,9 +1744,27 @@
     "KAN-060-9P4ZAA",
     "KAN-058.1-9TBXDA",
     "KAN-058-8XT6PC",
-    "KAN-061-YVQBCF"
+    "KAN-061-YVQBCF",
+    "KAN-064-4YZZV2"
   ],
   "recent": [
+    {
+      "seq": 452,
+      "t": "2026-10-01T08:05",
+      "a": "ai",
+      "id": "KAN-064-4YZZV2",
+      "op": "create",
+      "w": "46PCAX",
+      "col": "backlog",
+      "title": "실습 스텁에 새어 든 풀이 24편 되돌리기 — solutions 브랜치 병합 방향을 먼저 정한다",
+      "verbatim": "KAN-061 검토서 판단 항목 1 「스텁에 풀이가 든 24편을 새 카드로 뗄 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
+      "parent": null,
+      "short": "스텁 풀이 누수 정리",
+      "purpose": "풀이가 든 실습 스텁 24편을 미구현 스텁으로 되돌린다",
+      "reason": "solutions 브랜치 병합(3aa95994)으로 풀이가 main 에 들어와 학습자가 풀 파일을 열면 답이 보인다",
+      "goal": "24편 스텁이 Not implemented 를 던지고 solutions 쪽 풀이는 한 편도 잃지 않는다",
+      "memo": "근거: KANBAN.cards/KAN-061-YVQBCF.md 의 S1 수행 내역(24편 · 21편 바이트 동일). main 에서 바로 되돌리면 다음 main→solutions 병합이 풀이를 덮는다 — 병합 방향부터"
+    },
     {
       "seq": 451,
       "t": "2026-10-01T08:05",
@@ -2282,16 +2320,6 @@
       "w": "46PCAX",
       "with_": "KAN-059-PSFTN4",
       "reason": "110편을 fig 로 바꾸기 전에 책 인쇄 경로가 서야 한다(유저 결정 2026-09-28)"
-    },
-    {
-      "seq": 405,
-      "t": "2026-09-28T17:55",
-      "a": "유저",
-      "id": "KAN-057-J36E1B",
-      "op": "waive",
-      "w": "977NDY",
-      "with_": "KAN-036-0G05DE",
-      "reason": "tools/ci.ts 게이트 목록에 각자 다른 줄을 더한다. 병합 때 충돌하면 두 줄을 다 남긴다(유저 용인 2026-09-28)"
     }
   ],
   "waivers": [
