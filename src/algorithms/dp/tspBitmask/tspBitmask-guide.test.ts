@@ -164,3 +164,33 @@ test("거리가 상한 10^6 이어도 합이 정확하다", () => {
   );
   expect(tspBitmask(dist)).toBe(n * 1000000);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./tspBitmask-guide.sim.ts");
+  const { simStepsFromRef, TABLE_OPTIONS, REC, WALK } = await import(
+    "./tspBitmask-guide.fig.tsx"
+  );
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.walk1.steps)).toEqual(plain(want.walk1));
+  expect(plain(sim.walk2.steps)).toEqual(plain(want.walk2));
+  expect(plain(sim.walk3.steps)).toEqual(plain(want.walk3));
+  for (const part of [sim.walk1, sim.walk2, sim.walk3]) {
+    expect(plain(part.rowHeads)).toEqual(plain(TABLE_OPTIONS.rowHeads));
+    expect(plain(part.colHeads)).toEqual(plain(TABLE_OPTIONS.colHeads));
+  }
+  // 패널이 내미는 값이 정본과 같은지 — 정본에 직접 다시 묻는다.
+  const filled = (
+    steps: readonly { table: readonly (readonly unknown[])[] }[],
+  ) =>
+    String((steps.at(-1)?.table ?? []).flat().filter((x) => x !== null).length);
+  expect(sim.walk1.result).toBe(filled(sim.walk1.steps));
+  expect(sim.walk2.result).toBe(filled(sim.walk2.steps));
+  expect(sim.walk3.result).toBe(String(tspBitmask(WALK)));
+  expect(REC.answer).toBe(tspBitmask(WALK));
+});

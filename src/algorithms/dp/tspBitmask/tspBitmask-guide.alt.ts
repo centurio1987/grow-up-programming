@@ -71,11 +71,11 @@ export interface Run {
 /**
  * 이 가이드의 절차. 정본(`tspBitmask-guide.ref.ts`)과 같고 세는 자리만 덧붙였다.
  *
- * `기본 연산` 은 상태 `(mask, v)` 하나를 살펴본 한 번과 다음 도시 후보 `u` 하나를 살펴본
- * 한 번, 그리고 마지막에 복귀 비용을 더해 본 한 번을 각각 하나로 센다. `저장 칸` 은 상태
- * 표가 잡는 `2^n · n` 칸이다.
+ * `기본 연산` 은 칸 `(mask, v)` 하나를 살펴본 한 번과 다음 도시 후보 `u` 하나를 살펴본
+ * 한 번, 그리고 마지막에 복귀 비용을 더해 본 한 번을 각각 하나로 센다. 가이드 전체가 이 한
+ * 기준으로 센다. `저장 칸` 은 DP 테이블이 잡는 `2^n · n` 칸이다.
  */
-function 상태표설계(dist: number[][]): Run {
+function dp테이블설계(dist: number[][]): Run {
   const n = dist.length;
   const FULL = (1 << n) - 1;
   const dp = new Float64Array((FULL + 1) * n).fill(INF);
@@ -115,9 +115,15 @@ function 상태표설계(dist: number[][]): Run {
  * 찾아 둔 최선보다 작지 않으면 그 가지를 버린다. 첫 최선은 가까운 도시부터 고르는 탐욕
  * 투어에서 얻는다 — 난수를 쓰지 않으므로 계수가 실행마다 같다.
  *
- * `기본 연산` 은 다음 도시 후보 하나를 살펴본 한 번을 센다. 하한을 만드는 준비(도시마다
- * 가장 작은 출발 간선 찾기)와 첫 최선을 얻는 탐욕 투어도 같은 자로 센다. `저장 칸` 은
- * 방문 표 · 최소 간선 표 · 가장 깊을 때의 호출 틀 셋이라 `3n` 이다.
+ * `기본 연산` 은 DP 테이블 쪽과 같은 자로 센다 — 호출(접두 경로) 하나에 들어간 한 번이 칸
+ * 하나를 살펴본 한 번에, 다음 도시 후보 하나를 살펴본 한 번이 그대로, 순서를 다 만든 호출에서
+ * 복귀 비용을 더해 본 한 번이 그대로 맞선다. 하한을 만드는 준비(도시마다 가장 작은 출발 간선
+ * 찾기)와 첫 최선을 얻는 탐욕 투어도 같은 자로 센다. `저장 칸` 은 방문 표 · 최소 간선 표 ·
+ * 가장 깊을 때의 호출 틀 셋이라 `3n` 이다.
+ *
+ * 2026-09-30 `KAN-058` — 호출에 들어간 한 번과 복귀 한 번을 셈에 더했다. 그 전에는 후보만 세어
+ * DP 테이블 쪽(칸 · 후보 · 복귀를 센다)과 자가 달랐다. 이 설계의 계수만 늘어나므로 DP 테이블
+ * 쪽에 유리해진 변경이다.
  */
 function 분기한정설계(dist: number[][]): Run {
   const n = dist.length;
@@ -167,7 +173,9 @@ function 분기한정설계(dist: number[][]): Run {
     cost: number,
     remain: number,
   ): void => {
+    ops++;
     if (depth === n) {
+      ops++;
       const back = cost + ((dist[at] as number[])[0] as number);
       if (back < best) best = back;
       return;
@@ -201,7 +209,7 @@ const 입력: [string, number[][]][] = [
 function 확인(): void {
   for (const [label, dist] of 입력) {
     const want = tspBitmask(dist);
-    const a = 상태표설계(dist);
+    const a = dp테이블설계(dist);
     const b = 분기한정설계(dist);
     if (a.answer !== want) {
       throw new Error(`${label} — 세는 사본이 정본과 다른 답을 낸다`);
@@ -216,7 +224,7 @@ function 확인(): void {
 /**
  * 모든 거리가 같은 행렬에서 도시 수를 늘려 가며 순서가 뒤집히는 자리를 찾는다.
  *
- * `last` 는 분기 한정 쪽 계수가 아직 적은 마지막 도시 수이고, `first` 는 상태 표 쪽이
+ * `last` 는 분기 한정 쪽 계수가 아직 적은 마지막 도시 수이고, `first` 는 DP 테이블 쪽이
  * 처음으로 적어지는 도시 수다. 둘이 이어져 있지 않으면 경계를 한 자리로 말할 수 없으므로
  * 그때는 던진다.
  */
@@ -224,11 +232,13 @@ export function crossing(): { last: number; first: number } {
   let last = -1;
   for (let n = 3; n <= 10; n++) {
     const dist = flat(n);
-    const a = 상태표설계(dist).ops;
+    const a = dp테이블설계(dist).ops;
     const b = 분기한정설계(dist).ops;
     if (a < b) {
       if (last < 0) {
-        throw new Error(`도시 ${n} 개부터 이미 상태 표가 앞선다 — 경계가 없다`);
+        throw new Error(
+          `도시 ${n} 개부터 이미 DP 테이블이 앞선다 — 경계가 없다`,
+        );
       }
       if (n !== last + 1) {
         throw new Error(
@@ -256,10 +266,10 @@ function 재기(run: (dist: number[][]) => Run): Record<string, number> {
 }
 
 export const cases = {
-  "상태 표": () => 재기(상태표설계),
+  "DP 테이블": () => 재기(dp테이블설계),
   "분기 한정": () => 재기(분기한정설계),
   경계: () => ({
     "모든 거리가 같은 행렬에서 분기 한정이 앞서는 마지막 도시 수": CROSS.last,
-    "상태 표가 앞서는 첫 도시 수": CROSS.first,
+    "DP 테이블이 앞서는 첫 도시 수": CROSS.first,
   }),
 };
