@@ -1009,7 +1009,6 @@ sandbox/ds-guide-v2/SPEC.md	tools/section.ts	271	8bcad19fdb91	-
 src/algorithms/dp/digitDp/digitDp-guide.sim.ts	src/_guide-sim/index.tsx	344	ea1b50e2d110	-
 src/algorithms/dp/matrixChainMultiplication/matrixChainMultiplication-guide.sim.ts	src/_guide-sim/index.tsx	374	275648121d40	-
 src/algorithms/dp/palindromePartitioningMinCut/palindromePartitioningMinCut-guide.sim.ts	src/_guide-sim/index.tsx	374	275648121d40	-
-src/algorithms/dp/treeMaxIndependentSet/treeMaxIndependentSet-guide.sim.ts	src/_guide-sim/index.tsx	431	3b4b1d89303d	-
 src/data-structures/_contract/_fixtures/booleanSlotBits.ts	docs/ORD-006-conventions.md	2901	23e459a6ffea	-
 src/data-structures/_contract/_fixtures/booleanSlotBits.ts	docs/ORD-006-conventions.md	2908	568dcf8b0575	-
 src/data-structures/_contract/_fixtures/neighborListMatrixGraph.ts	docs/ORD-006-conventions.md	3068	1b6edd16acdb	-
