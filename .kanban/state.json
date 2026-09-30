@@ -1,6 +1,6 @@
 {
   "next_id": 64,
-  "next_seq": 450,
+  "next_seq": 451,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1533,7 +1533,7 @@
       ]
     },
     "KAN-061-YVQBCF": {
-      "col": "doing",
+      "col": "review",
       "title": "알고리즘 실습 절·스텁 테스트 결함 약 40곳과 정본 결함 7건 정리 — KAN-058 전개 중 모은 목록",
       "verbatim": "KAN-058 검토서 판단 항목 4 「실습 절·스텁 테스트 결함 약 40곳과 정본 결함 7건을 어떻게 고칠 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드 하나로 뗀다」",
       "생성": "ai",
@@ -1669,7 +1669,6 @@
     "KAN-032",
     "KAN-034.10-8M6T6P",
     "KAN-036-0G05DE",
-    "KAN-061-YVQBCF",
     "KAN-029",
     "KAN-030",
     "KAN-007",
@@ -1724,9 +1723,20 @@
     "KAN-059-PSFTN4",
     "KAN-060-9P4ZAA",
     "KAN-058.1-9TBXDA",
-    "KAN-058-8XT6PC"
+    "KAN-058-8XT6PC",
+    "KAN-061-YVQBCF"
   ],
   "recent": [
+    {
+      "seq": 450,
+      "t": "2026-10-01T07:55",
+      "a": "ai",
+      "id": "KAN-061-YVQBCF",
+      "op": "move",
+      "w": "0QT8BA",
+      "from": "doing",
+      "to": "review"
+    },
     {
       "seq": 449,
       "t": "2026-10-01T07:14",
@@ -2282,16 +2292,6 @@
       "w": "46PCAX",
       "with_": "KAN-057-J36E1B",
       "reason": "책 인쇄 경로는 KAN-057 이 만드는 fig(SVG)가 있어야 세울 수 있다(유저 결정 2026-09-28)"
-    },
-    {
-      "seq": 404,
-      "t": "2026-09-28T17:55",
-      "a": "유저",
-      "id": "KAN-057-J36E1B",
-      "op": "waive",
-      "w": "977NDY",
-      "with_": "KAN-039-FG8HWZ",
-      "reason": "경로 글롭만 겹친다 — KAN-039 는 src/algorithms/*/huffman*/**, KAN-057 은 src/algorithms/array/sparseTableRangeMin/** 라 실제 파일이 다르다(유저 용인 2026-09-28)"
     }
   ],
   "waivers": [

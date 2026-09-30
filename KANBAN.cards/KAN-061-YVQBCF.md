@@ -32,7 +32,7 @@ scope: src/algorithms/advanced/convexHullTrick/**, src/algorithms/advanced/divid
 - [x] `S4` string·number-theory 갈래(15편). 완료 기준: S3 과 같음. babyStepGiantStep 은 실습 제약을 서로소로 좁히고 서로소 아닌 스텁 케이스를 뺀다
 - [x] `S5` graph·graph-flow·shortest-path·tree·geometry·sorting·advanced 갈래(19편). 완료 기준: S3 과 같음. 정본을 고친 편은 원고 코드 블록(P16)·인용(`check-citations`)까지
 - [x] `S6` 대조표와 전체 검증 — 근거 파일 §3·§4 의 줄마다 「고침(커밋) / 사유」를 적은 표를 카드 문서에 남기고 `bun run tools/ci.ts all` 통과. 완료 기준: 표에 빈 줄 0, ci all 녹색
-- [ ] `S7` 검토서 — `review-init` 과 판단 항목(벽시계 방침 · 스텁 누수 · 정본을 안 고친 편)
+- [x] `S7` 검토서 — `review-init` 과 판단 항목(벽시계 방침 · 스텁 누수 · 정본을 안 고친 편)
 
 ## 검증
 - `bun test tools/practice-ref.test.ts` — 스텁 테스트를 정본에 물려 돌린 결과 실패 0(제외 목록 5파일은 사유와 함께 건너뜀)
@@ -53,3 +53,4 @@ scope: src/algorithms/advanced/convexHullTrick/**, src/algorithms/advanced/divid
 - 2026-10-01T07:20 · s:1cf4aad1 · S4 done — 문자열 8편(5bef3d30) · 정수론 7편(e827978b) — 서브에이전트 둘 + 메인 재확인·흘림 4곳 추가 수정
 - 2026-10-01T07:20 · s:1cf4aad1 · S5 done — 그래프·트리·기하·정렬·고급 16편(06b6b164) — 서브에이전트 + 메인 knuth 스토리 1곳. practice-ref 실패 0
 - 2026-10-01T07:55 · s:1cf4aad1 · S6 done — 대조표 KANBAN.batches/KAN-061-YVQBCF.ledger.md(61줄, 빈 줄 0) · ci.ts all 통과(단계 20)
+- 2026-10-01T07:55 · s:1cf4aad1 · S7 done — 검토서(판단 항목 2: 스텁 풀이 24편 · 실습을 좁힌 네 편)
