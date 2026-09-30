@@ -1,156 +1,285 @@
-import type { Frame } from "#guide-sim";
+import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다. 프레임 수는 그 절의
- * T# 단계 수(8)와 같다 — P3 이 그 관계를 잰다. 여덟 프레임이 입력 원소 여덟 개와 하나씩
- * 짝을 이룬다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `A = [10, 9, 2, 5, 3, 7, 101, 18]`.
+ * 원소 하나가 걸음 하나다(T1~T8). 걸음마다 이진 탐색으로 자리를 찾고, 끝이면 붙이고(②)
+ * 아니면 갈아 끼운다(③). 마지막 걸음이 꼬리 배열의 길이를 돌려준다(④).
  *
- * **`array` 뷰가 입력 배열이 아니라 파생 배열(`tails`)을 그린다.** 앞선 `array` 편들은
- * 입력 위에서 포인터가 옮겨 다니는 모양이었는데, 이 절차는 입력을 한 번 읽고 지나가기만 하고
- * 바뀌는 것이 `tails` 하나다. 입력을 그리면 여덟 프레임이 전부 같은 그림이 되고, 정작 값이
- * 바뀌는 자리가 안 보인다. 그래서 셋을 정한다.
- *
- * 1. **`array` 는 그 걸음이 끝난 뒤의 `tails` 다.** 길이가 프레임마다 늘거나 그대로다.
- * 2. **`highlight` 는 이 걸음에서 쓴 자리 하나다.** 붙였으면 새로 생긴 마지막 자리이고,
- *    갈아 끼웠으면 그 자리다. 두 갈래가 그림에서 같은 자리로 보이지 않게 `분기` 항목이
- *    어느 쪽인지 적는다.
- * 3. **`pointers` 로 `lo` 를 얹지 않는다.** `lo` 는 `highlight` 와 언제나 같은 값이라
- *    같은 것을 두 장치로 그리게 되고, 그러면 둘이 다른 뜻이라고 읽힌다. `lo` 는 `keyValue`
- *    항목으로만 낸다.
- *
- * `keyValue` 는 그림이 못 담는 것을 진다 — 입력 전체, 지금 보는 원소가 몇 번째인지, 이분
- * 탐색이 찾은 자리, 그 걸음에서 한 일, 목록 길이(= 지금까지의 답), 실행된 갈래.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가
+ * 배열 무대(`arrayStage.ts`)를 고른다. 쥔 구간 `range` 는 지금까지 읽은 원소 `[0,i]` 이고, 조각 괄호
+ * `pieces` 는 이 원소가 들어갈 수 있는 꼬리 배열의 자리 `[0,길이]`(끝 바로 뒤 칸까지)다. 입력 배열 아래에
+ * 꼬리 배열을 `layers` 로 쌓는다 — 칸 수는 끝난 뒤의 길이로 첫 걸음부터 잡고, 읽은 칸은 탐색이 읽은
+ * `mid`, 새로 쓴 칸은 찾은 자리다. 탐색 한 번의 결과는 알약(`calc`), 누적 비교 수는 남는 변수(`vars`)다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본 실행에서 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `longestIncreasingSubsequence-guide.test.ts` 가 잰다.
  */
+
 export const lisWalk = {
-  view: ["array", "keyValue"] as const,
+  player: "stage",
+  stage: "array",
+  arrayName: "A",
+  rangeLabel: "읽은 원소",
   title: "longestIncreasingSubsequence([10, 9, 2, 5, 3, 7, 101, 18])",
   result: "4",
   steps: [
     {
-      title: "T1 x = 10 — 목록이 비어 있어 그대로 붙인다",
-      detail:
-        "목록이 비었으므로 이분 탐색이 한 번도 실행되지 않고 lo 가 0 이다. 0 이 곧 목록의 길이라 끝에 붙인다. 길이 1 짜리 증가 부분 수열 중 끝값이 가장 작은 것이 10 이라는 뜻이다.",
-      array: [10],
-      highlight: [0],
-      entries: [
-        { label: "입력 A", value: "[10, 9, 2, 5, 3, 7, 101, 18]" },
-        { label: "지금 보는 원소", value: "A[0] = 10" },
-        { label: "찾은 자리 lo", value: "0" },
-        { label: "무엇을 했는가", value: "끝에 붙였다" },
-        { label: "목록 길이 = 답 후보", value: "1" },
-        { label: "분기", value: "② 끝에 붙인다" },
-      ],
-    },
-    {
-      title: "T2 x = 9 — 0 번 자리를 갈아 끼운다",
-      detail:
-        "목록이 [10] 이고 10 은 9 보다 작지 않으므로 lo 가 0 에 머문다. 0 은 목록의 끝이 아니라 그 자리의 값을 9 로 바꾼다. 길이 1 짜리 부분 수열의 끝값이 10 에서 9 로 내려갔다.",
-      array: [9],
-      highlight: [0],
-      entries: [
-        { label: "입력 A", value: "[10, 9, 2, 5, 3, 7, 101, 18]" },
-        { label: "지금 보는 원소", value: "A[1] = 9" },
-        { label: "찾은 자리 lo", value: "0" },
-        { label: "무엇을 했는가", value: "0 번 자리를 갈아 끼웠다" },
-        { label: "목록 길이 = 답 후보", value: "1" },
-        { label: "분기", value: "① 비교 한 번 · ③ 자리를 갈아 끼운다" },
-      ],
-    },
-    {
-      title: "T3 x = 2 — 0 번 자리를 또 갈아 끼운다",
-      detail:
-        "같은 갈래가 한 번 더 실행된다. 길이 1 짜리의 끝값이 9 에서 2 로 더 내려갔고, 답은 여전히 1 이다. 값이 내려가는 것이 뒤에 올 원소에게 자리를 열어 주는 일이다.",
-      array: [2],
-      highlight: [0],
-      entries: [
-        { label: "입력 A", value: "[10, 9, 2, 5, 3, 7, 101, 18]" },
-        { label: "지금 보는 원소", value: "A[2] = 2" },
-        { label: "찾은 자리 lo", value: "0" },
-        { label: "무엇을 했는가", value: "0 번 자리를 갈아 끼웠다" },
-        { label: "목록 길이 = 답 후보", value: "1" },
-        { label: "분기", value: "① 비교 한 번 · ③ 자리를 갈아 끼운다" },
-      ],
-    },
-    {
-      title: "T4 x = 5 — 끝에 붙여 길이가 2 가 된다",
-      detail:
-        "목록이 [2] 이고 2 는 5 보다 작으므로 lo 가 1 로 간다. 1 이 목록의 길이와 같아 끝에 붙인다. 2 다음에 5 를 놓아 길이 2 짜리가 처음 만들어졌다.",
-      array: [2, 5],
-      highlight: [1],
-      entries: [
-        { label: "입력 A", value: "[10, 9, 2, 5, 3, 7, 101, 18]" },
-        { label: "지금 보는 원소", value: "A[3] = 5" },
-        { label: "찾은 자리 lo", value: "1" },
-        { label: "무엇을 했는가", value: "끝에 붙였다" },
-        { label: "목록 길이 = 답 후보", value: "2" },
-        { label: "분기", value: "① 비교 한 번 · ② 끝에 붙인다" },
-      ],
-    },
-    {
-      title: "T5 x = 3 — 1 번 자리를 갈아 끼운다",
-      detail:
-        "2 는 3 보다 작아 오른쪽으로 가고 5 는 3 보다 작지 않아 멈춘다. lo 가 1 이고 목록의 끝이 아니라 5 를 3 으로 바꾼다. 길이 2 짜리의 끝값이 5 에서 3 으로 내려갔고 답은 그대로 2 다.",
-      array: [2, 3],
-      highlight: [1],
-      entries: [
-        { label: "입력 A", value: "[10, 9, 2, 5, 3, 7, 101, 18]" },
-        { label: "지금 보는 원소", value: "A[4] = 3" },
-        { label: "찾은 자리 lo", value: "1" },
-        { label: "무엇을 했는가", value: "1 번 자리를 갈아 끼웠다" },
-        { label: "목록 길이 = 답 후보", value: "2" },
-        { label: "분기", value: "① 비교 두 번 · ③ 자리를 갈아 끼운다" },
-      ],
-    },
-    {
-      title: "T6 x = 7 — 끝에 붙여 길이가 3 이 된다",
-      detail:
-        "목록 [2, 3] 이 둘 다 7 보다 작아 lo 가 2 로 간다. 끝이라 붙인다. T5 에서 끝값을 5 에서 3 으로 내려 둔 것이 여기서 값을 한다 — 그 자리가 아직 5 였다면 다음에 4 가 왔을 때 붙지 못하고 갈아 끼우기만 했을 것이고, 3 이라서 4 도 붙는다.",
-      array: [2, 3, 7],
-      highlight: [2],
-      entries: [
-        { label: "입력 A", value: "[10, 9, 2, 5, 3, 7, 101, 18]" },
-        { label: "지금 보는 원소", value: "A[5] = 7" },
-        { label: "찾은 자리 lo", value: "2" },
-        { label: "무엇을 했는가", value: "끝에 붙였다" },
-        { label: "목록 길이 = 답 후보", value: "3" },
-        { label: "분기", value: "① 비교 한 번 · ② 끝에 붙인다" },
-      ],
-    },
-    {
-      title: "T7 x = 101 — 끝에 붙여 길이가 4 가 된다",
-      detail:
-        "셋 다 101 보다 작아 lo 가 3 으로 간다. 길이 4 짜리가 처음 만들어졌고 그 끝값이 101 이다. 여기까지가 이 입력의 답이 되는 길이다.",
-      array: [2, 3, 7, 101],
-      highlight: [3],
-      entries: [
-        { label: "입력 A", value: "[10, 9, 2, 5, 3, 7, 101, 18]" },
-        { label: "지금 보는 원소", value: "A[6] = 101" },
-        { label: "찾은 자리 lo", value: "3" },
-        { label: "무엇을 했는가", value: "끝에 붙였다" },
-        { label: "목록 길이 = 답 후보", value: "4" },
-        { label: "분기", value: "① 비교 두 번 · ② 끝에 붙인다" },
-      ],
-    },
-    {
-      title: "T8 x = 18 — 3 번 자리를 갈아 끼우고 끝난다",
-      detail:
-        "2 · 3 · 7 은 18 보다 작고 101 은 작지 않아 lo 가 3 이다. 끝이 아니라 101 을 18 로 바꾼다. **답은 안 바뀐다** — 길이 4 짜리의 끝값만 내려갔다. 입력이 끝났으므로 목록 길이 4 가 답이다.",
-      array: [2, 3, 7, 18],
-      highlight: [3],
-      entries: [
-        { label: "입력 A", value: "[10, 9, 2, 5, 3, 7, 101, 18]" },
-        { label: "지금 보는 원소", value: "A[7] = 18" },
-        { label: "찾은 자리 lo", value: "3" },
-        { label: "무엇을 했는가", value: "3 번 자리를 갈아 끼웠다" },
-        { label: "목록 길이 = 답 후보", value: "4" },
+      title: "T1 x = 10 · ② 끝에 붙인다",
+      text: "꼬리 배열이 비어 lo = hi = 0 이고, 반복 조건 0 < 0 이 거짓이라 탐색을 한 번도 안 합니다. 자리 0 이 끝(길이 0)이라 ② 10 을 끝에 붙입니다. 길이가 1 이 됩니다.",
+      array: [10, 9, 2, 5, 3, 7, 101, 18],
+      range: [0, 0],
+      read: [0],
+      write: [],
+      pointers: {
+        i: 0,
+      },
+      pieces: [
         {
-          label: "분기",
-          value: "① 비교 두 번 · ③ 자리를 갈아 끼운다 · ④ 길이 4 를 반환한다",
+          label: "자리 후보",
+          from: 0,
+          to: 0,
+          tone: "left",
+        },
+      ],
+      calc: {
+        expr: "lowerBound([], 10)",
+        result: "0",
+      },
+      vars: "비교 누적 0 번",
+      layers: [
+        {
+          name: "꼬리 배열",
+          values: [10, null, null, null],
+          read: [],
+          write: [0],
         },
       ],
     },
-  ] satisfies Frame[],
-};
+    {
+      title: "T2 x = 9 · ③ 자리 0 을 갈아 끼운다",
+      text: "mid = 0 에서 10 < 9 가 거짓이라 hi = 0 입니다. 자리 0 이 끝(길이 1)이 아니라 ③ tails[0] 을 10 에서 9 로 바꿉니다. 길이는 1 그대로입니다.",
+      array: [10, 9, 2, 5, 3, 7, 101, 18],
+      range: [0, 1],
+      read: [1],
+      write: [],
+      pointers: {
+        i: 1,
+      },
+      pieces: [
+        {
+          label: "자리 후보",
+          from: 0,
+          to: 1,
+          tone: "left",
+        },
+      ],
+      calc: {
+        expr: "lowerBound([10], 9)",
+        result: "0",
+      },
+      vars: "비교 누적 1 번",
+      layers: [
+        {
+          name: "꼬리 배열",
+          values: [9, null, null, null],
+          read: [],
+          write: [0],
+        },
+      ],
+    },
+    {
+      title: "T3 x = 2 · ③ 자리 0 을 갈아 끼운다",
+      text: "mid = 0 에서 9 < 2 가 거짓이라 hi = 0 입니다. 자리 0 이 끝(길이 1)이 아니라 ③ tails[0] 을 9 에서 2 로 바꿉니다. 길이는 1 그대로입니다.",
+      array: [10, 9, 2, 5, 3, 7, 101, 18],
+      range: [0, 2],
+      read: [2],
+      write: [],
+      pointers: {
+        i: 2,
+      },
+      pieces: [
+        {
+          label: "자리 후보",
+          from: 0,
+          to: 1,
+          tone: "left",
+        },
+      ],
+      calc: {
+        expr: "lowerBound([9], 2)",
+        result: "0",
+      },
+      vars: "비교 누적 2 번",
+      layers: [
+        {
+          name: "꼬리 배열",
+          values: [2, null, null, null],
+          read: [],
+          write: [0],
+        },
+      ],
+    },
+    {
+      title: "T4 x = 5 · ② 끝에 붙인다",
+      text: "mid = 0 에서 2 < 5 가 참이라 lo = 1 입니다. 자리 1 이 끝(길이 1)이라 ② 5 를 끝에 붙입니다. 길이가 2 가 됩니다.",
+      array: [10, 9, 2, 5, 3, 7, 101, 18],
+      range: [0, 3],
+      read: [3],
+      write: [],
+      pointers: {
+        i: 3,
+      },
+      pieces: [
+        {
+          label: "자리 후보",
+          from: 0,
+          to: 1,
+          tone: "left",
+        },
+      ],
+      calc: {
+        expr: "lowerBound([2], 5)",
+        result: "1",
+      },
+      vars: "비교 누적 3 번",
+      layers: [
+        {
+          name: "꼬리 배열",
+          values: [2, 5, null, null],
+          read: [0],
+          write: [1],
+        },
+      ],
+    },
+    {
+      title: "T5 x = 3 · ③ 자리 1 을 갈아 끼운다",
+      text: "mid = 1 에서 5 < 3 이 거짓이라 hi = 1, mid = 0 에서 2 < 3 이 참이라 lo = 1 입니다. 자리 1 이 끝(길이 2)이 아니라 ③ tails[1] 을 5 에서 3 으로 바꿉니다. 길이는 2 그대로입니다.",
+      array: [10, 9, 2, 5, 3, 7, 101, 18],
+      range: [0, 4],
+      read: [4],
+      write: [],
+      pointers: {
+        i: 4,
+      },
+      pieces: [
+        {
+          label: "자리 후보",
+          from: 0,
+          to: 2,
+          tone: "left",
+        },
+      ],
+      calc: {
+        expr: "lowerBound([2 5], 3)",
+        result: "1",
+      },
+      vars: "비교 누적 5 번",
+      layers: [
+        {
+          name: "꼬리 배열",
+          values: [2, 3, null, null],
+          read: [0],
+          write: [1],
+        },
+      ],
+    },
+    {
+      title: "T6 x = 7 · ② 끝에 붙인다",
+      text: "mid = 1 에서 3 < 7 이 참이라 lo = 2 입니다. 자리 2 가 끝(길이 2)이라 ② 7 을 끝에 붙입니다. 길이가 3 이 됩니다.",
+      array: [10, 9, 2, 5, 3, 7, 101, 18],
+      range: [0, 5],
+      read: [5],
+      write: [],
+      pointers: {
+        i: 5,
+      },
+      pieces: [
+        {
+          label: "자리 후보",
+          from: 0,
+          to: 2,
+          tone: "left",
+        },
+      ],
+      calc: {
+        expr: "lowerBound([2 3], 7)",
+        result: "2",
+      },
+      vars: "비교 누적 6 번",
+      layers: [
+        {
+          name: "꼬리 배열",
+          values: [2, 3, 7, null],
+          read: [1],
+          write: [2],
+        },
+      ],
+    },
+    {
+      title: "T7 x = 101 · ② 끝에 붙인다",
+      text: "mid = 1 에서 3 < 101 이 참이라 lo = 2, mid = 2 에서 7 < 101 이 참이라 lo = 3 입니다. 자리 3 이 끝(길이 3)이라 ② 101 을 끝에 붙입니다. 길이가 4 가 됩니다.",
+      array: [10, 9, 2, 5, 3, 7, 101, 18],
+      range: [0, 6],
+      read: [6],
+      write: [],
+      pointers: {
+        i: 6,
+      },
+      pieces: [
+        {
+          label: "자리 후보",
+          from: 0,
+          to: 3,
+          tone: "left",
+        },
+      ],
+      calc: {
+        expr: "lowerBound([2 3 7], 101)",
+        result: "3",
+      },
+      vars: "비교 누적 8 번",
+      layers: [
+        {
+          name: "꼬리 배열",
+          values: [2, 3, 7, 101],
+          read: [1, 2],
+          write: [3],
+        },
+      ],
+    },
+    {
+      title: "T8 x = 18 · ③ 자리 3 을 갈아 끼운다",
+      text: "mid = 2 에서 7 < 18 이 참이라 lo = 3, mid = 3 에서 101 < 18 이 거짓이라 hi = 3 입니다. 자리 3 이 끝(길이 4)이 아니라 ③ tails[3] 을 101 에서 18 로 바꿉니다. 길이는 4 그대로입니다. 원소를 다 읽었으니 ④ 꼬리 배열의 길이 4 를 돌려줍니다.",
+      array: [10, 9, 2, 5, 3, 7, 101, 18],
+      range: [0, 7],
+      read: [7],
+      write: [],
+      pointers: {
+        i: 7,
+      },
+      pieces: [
+        {
+          label: "자리 후보",
+          from: 0,
+          to: 4,
+          tone: "left",
+        },
+      ],
+      calc: {
+        expr: "lowerBound([2 3 7 101], 18)",
+        result: "3",
+      },
+      vars: "비교 누적 10 번",
+      layers: [
+        {
+          name: "꼬리 배열",
+          values: [2, 3, 7, 18],
+          read: [2],
+          write: [3],
+        },
+      ],
+    },
+  ],
+} satisfies ArrayPlayerSpec;

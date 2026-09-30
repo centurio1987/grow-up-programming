@@ -11,9 +11,9 @@ import { expect, test } from "bun:test";
 import { longestIncreasingSubsequence } from "./longestIncreasingSubsequence-guide.ref.ts";
 
 const CASES: [string, number[], number][] = [
-  ["문제 예시 하나", [10, 9, 2, 5, 3, 7, 101, 18], 4],
-  ["문제 예시 둘", [0, 1, 0, 3, 2, 3], 4],
-  ["문제 예시 셋", [1, 3, 6, 7, 9, 4, 10, 5, 6], 6],
+  ["예시 하나", [10, 9, 2, 5, 3, 7, 101, 18], 4],
+  ["예시 둘", [0, 1, 0, 3, 2, 3], 4],
+  ["예시 셋", [1, 3, 6, 7, 9, 4, 10, 5, 6], 6],
   ["같은 값만 넷 — 엄격 증가가 안 된다", [7, 7, 7, 7], 1],
   ["엄격 감소 다섯", [5, 4, 3, 2, 1], 1],
   ["음수만 있는 엄격 증가", [-3, -2, -1, 0], 4],
@@ -87,4 +87,22 @@ test("제약 상한 규모의 감소 수열에서 답이 1 이다", () => {
   const a: number[] = [];
   for (let i = 0; i < n; i++) a.push(n - i);
   expect(longestIncreasingSubsequence(a)).toBe(1);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./longestIncreasingSubsequence-guide.sim.ts");
+  const { simStepsFromRef, WALK } = await import(
+    "./longestIncreasingSubsequence-guide.fig.tsx"
+  );
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.lisWalk.steps)).toEqual(plain(simStepsFromRef().lisWalk));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.lisWalk.result).toBe(
+    String(longestIncreasingSubsequence([...WALK])),
+  );
 });
