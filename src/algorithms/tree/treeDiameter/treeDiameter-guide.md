@@ -72,7 +72,7 @@
 | 과제 | 그래프 | 이 글에서 |
 | --- | --- | --- |
 | 가장 먼 두 정점 사이 거리 | 가중치가 0 이상인 트리 | 다룬다 |
-| 모든 정점에서 가장 먼 곳까지의 거리 | 트리 | 이름만 소개한다 — [`treeRerooting`](../treeRerooting/treeRerooting-guide.md) |
+| 모든 정점에서 가장 먼 곳까지의 거리 | 트리 | 이름만 소개한다 — 모든 정점을 뿌리로 삼은 값을 한꺼번에 내는 기법은 [`treeRerooting`](../treeRerooting/treeRerooting-guide.md)(그 편은 거리 합으로 보인다) |
 | 한 정점에서 나머지까지의 가장 짧은 거리 | 사이클이 있는 그래프 | 다루지 않는다 — [`bfsShortestPath`](../../graph/bfsShortestPath/bfsShortestPath-guide.md) |
 
 ### 아이디어를 떠올리는 과정 — 정점마다 한 번씩 재기에서 두 번 탐색까지
@@ -884,7 +884,7 @@ max(d(v,3), d(v,6)) 가 ecc(v) 와 같은 정점   7 / 7
 | --- | --- |
 | 시설 하나를 둘 자리 고르기 | 가장 먼 지점까지의 거리를 가장 작게 하는 자리가 중심이다 |
 | 트리를 표준 모양으로 적기 | 중심을 뿌리로 삼으면 같은 모양의 트리가 같은 표현이 된다 — [`treeIsomorphism`](../treeIsomorphism/treeIsomorphism-guide.md) |
-| 정점마다 가장 먼 곳 구하기 | 모든 정점의 이심률을 한꺼번에 낸다 — [`treeRerooting`](../treeRerooting/treeRerooting-guide.md) |
+| 정점마다 가장 먼 곳 구하기 | 모든 정점을 뿌리로 삼은 값을 한꺼번에 내는 기법으로 이심률도 낼 수 있다 — [`treeRerooting`](../treeRerooting/treeRerooting-guide.md)(그 편은 거리 합으로 보인다) |
 
 ## 파트 2 — 적용 조건 · 보장 · 비용
 
