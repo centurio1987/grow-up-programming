@@ -1067,7 +1067,7 @@ function worstTable(): string {
   const max = Math.max(...perms.map((p) => comparisons(p)));
   return proofTable(
     md(
-      ["입력", "비교 횟수"],
+      ["입력", "비교"],
       [
         [`이미 정렬 ${show(sorted)}`, String(comparisons(sorted))],
         [`역순 ${show(reversed)}`, String(comparisons(reversed))],

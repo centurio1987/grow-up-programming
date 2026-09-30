@@ -13,10 +13,11 @@
  *
  * 계수 셋의 정의를 여기서 못 박는다.
  *
- * - **배열 접근** — 배열 칸을 읽거나 쓴 횟수 전부. 두 설계가 쓰는 배열이 서로 달라
+ * - **칸 접근** — 배열 칸을 읽거나 쓴 횟수 전부. 초기화 쓰기(`count` · 보조 배열)도 넣는다. 두 설계가 쓰는 배열이 서로 달라
  *   (`count`·`out` 대 복사본·보조 배열) 어느 한쪽만 빼면 대조가 성립하지 않는다.
  * - **비교** — 배열의 두 값을 비교한 횟수. 인덱스 판정(`t <= hi`)은 안 센다.
- * - **새로 잡는 칸** — 입력 말고 새로 만든 배열의 칸 수 합.
+ * - **할당 칸** — 입력 말고 새로 만든 배열의 칸 수를 잡을 때마다 더한 합. 두 설계 모두 배열을 한 번씩만
+ *   잡으므로 동시에 살아 있는 칸의 최댓값과 같다.
  */
 
 /** 전개가 쓰는 입력. */
@@ -134,15 +135,15 @@ const BIG = spread(100_000);
 
 function counts(sort: (A: number[]) => Counts): Record<string, number> {
   return {
-    "일곱 칸 배열 접근": sort(SEVEN).access,
-    "일곱 칸 비교": sort(SEVEN).compares,
-    "20 칸 배열 접근": sort(TWENTY).access,
-    "20 칸 비교": sort(TWENTY).compares,
-    "200 칸 배열 접근": sort(TWO_HUNDRED).access,
-    "200 칸 비교": sort(TWO_HUNDRED).compares,
-    "10 만 칸 배열 접근": sort(BIG).access,
-    "10 만 칸 비교": sort(BIG).compares,
-    "10 만 칸 새로 잡는 칸": sort(BIG).cells,
+    "일곱 칸 입력의 칸 접근": sort(SEVEN).access,
+    "일곱 칸 입력의 비교": sort(SEVEN).compares,
+    "20 칸 입력의 칸 접근": sort(TWENTY).access,
+    "20 칸 입력의 비교": sort(TWENTY).compares,
+    "200 칸 입력의 칸 접근": sort(TWO_HUNDRED).access,
+    "200 칸 입력의 비교": sort(TWO_HUNDRED).compares,
+    "10 만 칸 입력의 칸 접근": sort(BIG).access,
+    "10 만 칸 입력의 비교": sort(BIG).compares,
+    "10 만 칸 입력의 할당 칸": sort(BIG).cells,
   };
 }
 

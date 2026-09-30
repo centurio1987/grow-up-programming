@@ -494,7 +494,7 @@ export const spread = (n: number): number[] =>
 
 /** 모든 쌍 비교의 횟수 `N(N−1)/2`. 작은 `N` 에서 실행과 같음은 증명 사이드카가 확인한다. */
 export const pairs = (n: number): number => (n * (n - 1)) / 2;
-/** 배열 접근의 닫힌 형태 `4N + d(7N + 4B − 3)`. 실행과 같음은 증명 사이드카가 확인한다. */
+/** 칸 접근의 닫힌 형태 `4N + d(7N + 4B − 3)`. 실행과 같음은 증명 사이드카가 확인한다. */
 export const accessOf = (n: number, base: number, d: number): number =>
   4 * n + d * (7 * n + 4 * base - 3);
 /** 최댓값을 `base` 진법으로 적은 자릿수 — 바퀴 수. */
@@ -559,7 +559,7 @@ function approaches(msdWrong: number, msdTotal: number): Approach[] {
         { label: "답", value: `시험한 ${msdTotal} 벌 모두 맞는다`, ok: true },
         {
           label: "접근",
-          value: `배열 접근 ${num(mine)} 번 · 비교 0 번`,
+          value: `칸 접근 ${num(mine)} 번 · 비교 0 번`,
           ok: true,
         },
       ],

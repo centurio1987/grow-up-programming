@@ -319,7 +319,7 @@ export function simStepsFromRef() {
 /** 모든 쌍 비교의 비교 횟수 — 증명 사이드카가 작은 칸 수에서 실행과 같음을 확인한 식이다. */
 export const allPairs = (n: number): number => (n * (n - 1)) / 2;
 
-/** 값 `v` 마다 입력 전체를 다시 읽어 세는 후보의 배열 접근 — 초기화 K · 값마다 N 번 읽기와 한 번 쓰기. */
+/** 값 `v` 마다 입력 전체를 다시 읽어 세는 후보의 칸 접근 — 초기화 K · 값마다 N 번 읽기와 한 번 쓰기. */
 export function rescanAccess(A: readonly number[], k = K): number {
   let access = k;
   for (let v = 0; v < k; v++) {
@@ -329,7 +329,7 @@ export function rescanAccess(A: readonly number[], k = K): number {
   return access;
 }
 
-/** 정본 절차의 배열 접근 — 초기화 K · 원소마다 세 번 · 칸마다 한 번 읽기 · 결과 N 번 쓰기. */
+/** 정본 절차의 칸 접근 — 초기화 K · 원소마다 세 번 · 칸마다 한 번 읽기 · 결과 N 번 쓰기. */
 export function countingAccess(A: readonly number[], k = K): number {
   let access = k;
   const count = new Array<number>(k).fill(0);
@@ -377,7 +377,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `배열 접근 ${num(rescan)} 번 · ${secondsOf(rescan)} · 예산을 다 쓴다`,
+          value: `칸 접근 ${num(rescan)} 번 · ${secondsOf(rescan)} · 예산을 다 쓴다`,
           ok: false,
         },
       ],
@@ -392,7 +392,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `배열 접근 ${num(mine)} 번 · 비교 0 번`,
+          value: `칸 접근 ${num(mine)} 번 · 비교 0 번`,
           ok: true,
         },
       ],

@@ -21,7 +21,11 @@ export const SKEWED: number[] = Array.from({ length: 1024 }, (_, i) => i * i);
 /** 두 설계가 나눠 쓰는 질의 — 각 배열의 **모든 원소**를 한 번씩 찾는다. */
 const queries = (A: number[]): number[] => A;
 
-/** 정본과 같은 절차. 읽은 칸 수만 덧붙여 센다. */
+/**
+ * 정본과 같은 절차. **칸 읽기**만 덧붙여 센다 — 가운데(보간 탐색은 비례식이 고른 자리) 한 칸을
+ * 읽는 걸음 하나를 1 로 센다. 그 칸의 값을 두 번 견주어도 1 이고, 보간 탐색이 비례식에 쓰는
+ * 양 끝 `A[lo]`·`A[hi]` 읽기는 넣지 않는다.
+ */
 function binaryReads(A: number[], target: number): number {
   let lo = 0;
   let hi = A.length - 1;
@@ -85,10 +89,10 @@ function counts(
   const uniform = tally(UNIFORM, search);
   const skewed = tally(SKEWED, search);
   return {
-    "균등 입력 읽은 칸 합": uniform.합,
-    "균등 입력 최악": uniform.최악,
-    "편향 입력 읽은 칸 합": skewed.합,
-    "편향 입력 최악": skewed.최악,
+    "균등 입력 칸 읽기": uniform.합,
+    "균등 입력 최악 질의 칸 읽기": uniform.최악,
+    "편향 입력 칸 읽기": skewed.합,
+    "편향 입력 최악 질의 칸 읽기": skewed.최악,
   };
 }
 

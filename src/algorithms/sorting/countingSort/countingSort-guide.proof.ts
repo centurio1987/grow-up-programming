@@ -9,7 +9,7 @@
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";
 import { josa, 과와, 으로, 을를, 이가 } from "../../../../tools/josa.ts";
-import { mergeCounts } from "./countingSort-guide.alt.ts";
+import { cases, mergeCounts } from "./countingSort-guide.alt.ts";
 import {
   allPairs,
   BIG,
@@ -220,7 +220,7 @@ function conceptCost(): string {
     [`생성식 ${num(BIG)} 칸`, spread(BIG)],
   ] as [string, number[]][];
   return md(
-    ["입력", "N", "K", "비교", "배열 접근"],
+    ["입력", "N", "K", "비교", "칸 접근"],
     rows.map(([name, A]) => [
       name,
       num(A.length),
@@ -305,8 +305,8 @@ function naiveVsCount(): string {
       [
         "일곱 칸 입력",
         "모든 쌍 비교",
-        "모든 쌍 배열 접근",
-        "개수를 세는 방식의 배열 접근",
+        "모든 쌍 칸 접근",
+        "개수를 세는 방식의 칸 접근",
       ],
       ARRANGED.map(([name, A], k) => {
         const r = naive(A);
@@ -327,7 +327,7 @@ function accessSplit(): string {
   const n = WALK.length;
   return withNote(
     md(
-      ["하는 일", "배열 접근"],
+      ["하는 일", "칸 접근"],
       [
         [`count 칸 ${num(K)} 개를 0 으로 채운다`, num(s.init)],
         [`입력 ${han(n)} 칸을 읽고 개수를 고친다`, num(s.tally)],
@@ -371,7 +371,7 @@ function rescanVsDirect(): string {
         num(K + 3 * A.length),
       ]),
     ),
-    `두 열 모두 count 를 채우기까지의 배열 접근입니다. 앞의 세 입력에서 두 방식이 만든 count 를 ${num(checked)} 칸 대조했고, 어긋난 칸은 ${mismatched} 개입니다.`,
+    `두 열 모두 count 를 채우기까지의 칸 접근입니다. 앞의 세 입력에서 두 방식이 만든 count 를 ${num(checked)} 칸 대조했고, 어긋난 칸은 ${mismatched} 개입니다.`,
   );
 }
 
@@ -494,8 +494,8 @@ function kSweep(): string {
     return [num(n), num(k), num(a), num1(a / n)];
   });
   return withNote(
-    md(["칸 수 N", "값의 종류 K", "배열 접근", "원소 하나당 접근"], rows),
-    `배열 접근은 ${han(ok)} 줄 모두 2K + 4N 과 같습니다.`,
+    md(["칸 수 N", "값의 종류 K", "칸 접근", "원소 하나당 접근"], rows),
+    `칸 접근은 ${han(ok)} 줄 모두 2K + 4N 과 같습니다.`,
   );
 }
 
@@ -723,6 +723,29 @@ function crossoverTable(): string {
   );
 }
 
+/** `purpose.alt` — 칸 접근이 칸 수에 따라 갈리는 모양. 값과 비는 `.alt.ts` 의 계수에서 낸다. */
+function altAccess(): string {
+  const c = cases["계수 정렬"]();
+  const m = cases["병합 정렬"]();
+  const at = (r: Record<string, number>, n: string): number => {
+    const v = r[`${n} 칸 입력의 칸 접근`];
+    if (v === undefined) throw new Error(`${n} 칸 입력의 칸 접근이 없다`);
+    return v;
+  };
+  const pair = (n: string) => `${num(at(c, n))} 대 ${num(at(m, n))}`;
+  if (
+    !(
+      at(c, "일곱") > at(m, "일곱") &&
+      at(c, "20") > at(m, "20") &&
+      at(c, "200") < at(m, "200") &&
+      at(c, "10 만") < at(m, "10 만")
+    )
+  ) {
+    throw new Error("칸 접근의 우열이 본문 서술과 다르다");
+  }
+  return `**칸 접근으로 보면 칸 수에 따라 갈립니다.** 일곱 칸에서 ${pair("일곱")} 이고 20 칸에서 ${pair("20")} 이라 병합 정렬이 적은데, 200 칸에서는 ${pair("200")} 으로 뒤집혀요. 10 만 칸에서는 ${pair("10 만")} 으로 이 절차가 약 ${num1(at(m, "10 만") / at(c, "10 만"))} 배 적습니다.`;
+}
+
 /* ───────── deep.math ───────── */
 
 function mathCheck(): string {
@@ -905,7 +928,7 @@ function perfDerive(): string {
   const last = steps.at(-1)?.id as string;
   return withNote(
     md(
-      ["단계", "갈래", "하는 일", "배열 접근"],
+      ["단계", "갈래", "하는 일", "칸 접근"],
       [
         [first, "①", `count 칸 ${num(K)} 개를 0 으로 채운다`, num(s.init)],
         [tallyIds, "②", `원소 ${han(n)} 개마다 읽기 2 · 쓰기 1`, num(s.tally)],
@@ -964,7 +987,7 @@ function worstInput(): string {
     return [`${num(n)} 칸`, num(a), num1(a / n)];
   });
   return withNote(
-    md(["K = 1001 에서의 입력", "배열 접근", "원소 하나당 접근"], rows),
+    md(["K = 1001 에서의 입력", "칸 접근", "원소 하나당 접근"], rows),
     `일곱 칸 ${show(SEVEN_SORTED)} 의 서로 다른 배치 ${num(all.length)} 가지는 접근이 모두 ${num(accesses[0] as number)} 번으로 같습니다.`,
   );
 }
@@ -975,7 +998,7 @@ function worstMake(): string {
     const a = total(split(A, k));
     return [show(A), num(k), num(a), num1(a / A.length)];
   });
-  return md(["입력", "값의 종류 K", "배열 접근", "원소 하나당 접근"], rows);
+  return md(["입력", "값의 종류 K", "칸 접근", "원소 하나당 접근"], rows);
 }
 
 /* ───────── 스스로 점검하기 ───────── */
@@ -1004,7 +1027,7 @@ function selfcheckMapAnswer(): string {
 }
 
 export const PROOFS: Record<string, () => string> = {
-  /** `concept` — 두 입력의 비교 · 배열 접근. */
+  /** `concept` — 두 입력의 비교 · 칸 접근. */
   "concept-cost": conceptCost,
   /** `deep.origin` ② — 모든 쌍 비교를 과제 규모까지. */
   "origin-naive": originNaive,
@@ -1014,7 +1037,7 @@ export const PROOFS: Record<string, () => string> = {
   "origin-multiset": originMultiset,
   /** `deep.origin` ④ — 같은 일곱 칸에서 두 방식. */
   "naive-vs-count": naiveVsCount,
-  /** `deep.origin` ④ — 배열 접근이 어디서 오는가. */
+  /** `deep.origin` ④ — 칸 접근이 어디서 오는가. */
   "access-split": accessSplit,
   /** `deep.origin` ⑤ — 개수를 세는 두 후보. */
   "rescan-vs-direct": rescanVsDirect,
@@ -1048,6 +1071,8 @@ export const PROOFS: Record<string, () => string> = {
   "final-calls": finalCalls,
   /** `purpose.alt` — 칸 수를 늘려 가며 두 설계의 순서가 뒤집히는 자리. */
   "alt-crossover": crossoverTable,
+  /** `purpose.alt` — 칸 접근의 우열과 10 만 칸의 비. */
+  "alt-access": altAccess,
   /** `deep.math` ② — 정의를 전개 입력에 넣은 검산. */
   "math-check": mathCheck,
   /** `deep.math` — 식을 옮긴 코드와 실측의 대조. */
