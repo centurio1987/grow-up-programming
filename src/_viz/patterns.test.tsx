@@ -18,6 +18,7 @@ import {
   StepTrace,
   treeLayout,
 } from "./index";
+import { type StageRow, stageGutter } from "./patterns/CellStage";
 
 // 파일럿 sparseTableRangeMin 의 전개 입력과 두 질의(「전체 컨셉」·「아이디어 상세」 4단계).
 const A = [5, 2, 7, 4, 6, 3];
@@ -421,6 +422,42 @@ describe("P7 CellStage · 걸음 재생 패널 무대", () => {
     }
     const last = cells.at(-1) as { y: number; h: number };
     expect(last.y + last.h).toBe(height);
+  });
+
+  test("필름의 장마다 줄 머리 글자 길이가 달라도 칸 열은 모든 장에서 같은 x 에 선다", async () => {
+    // 첫 장은 머리 글자가 짧고, 둘째 장은 길다. 장마다 줄 머리 폭을 따로 재면 둘째 장만 칸이 밀린다.
+    const rows = (label: string): StageRow[] => [
+      { kind: "index" },
+      { kind: "cells", label, values: [3, 1, 2] },
+    ];
+    const svg = await renderToSvg(
+      <CellStageFilm
+        title="머리 폭"
+        columns={3}
+        frames={[
+          { id: "T1", text: "짧은 머리", rows: rows("a") },
+          { id: "T2", text: "긴 머리", rows: rows("lo..hi 구간") },
+        ]}
+      />,
+      "t-film-gutter",
+    );
+    const firstX = svg
+      .split(/data-viz-step="/)
+      .slice(1)
+      .map(
+        (part) =>
+          /data-viz-cell="0"[^>]*>\s*<rect[^>]*?x="([\d.]+)"/.exec(part)?.[1],
+      );
+    expect(firstX.length).toBe(2);
+    expect(firstX.every((x) => x !== undefined)).toBe(true);
+    expect(new Set(firstX).size).toBe(1);
+    // 패널도 같은 폭을 쓴다 — 가장 긴 머리 글자의 폭이다.
+    expect(stageGutter([rows("a"), rows("lo..hi 구간")])).toBe(
+      stageGutter([rows("lo..hi 구간")]),
+    );
+    expect(stageGutter([rows("a")])).toBeLessThan(
+      stageGutter([rows("lo..hi 구간")]),
+    );
   });
 
   test("칸 경계는 앞 칸 무대 끝에 선다 — 구분선이 뒤 칸에 통째로 든다", () => {

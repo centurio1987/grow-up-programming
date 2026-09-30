@@ -31,9 +31,9 @@ scope: src/_viz/**, tools/check-proof.ts, tools/check-proof.test.ts, tools/check
 - gcd 만 고치는 opt-in 플래그 — 같은 버그가 6편에 있으므로 기본값을 고치는 편이 옳다.
 
 ## 실행 계획
-- [ ] `S1` 증명 도구: 펜스로 시작한 증명 블록도 닫는 마커까지 대조한다 — 완료 기준: `tools/check-proof.test.ts` 에 「펜스 + 닫는 마커 + 사이 문장」 시험이 붙어 통과하고, 기존 17곳이 그대로 통과한다. SPEC §0 에 한 문장
-- [ ] `S2` 배열 무대 선택 필드: `indexLabel` · 아직 안 쓴 칸(null)을 밖으로 칠하지 않기 · `later` · `ArrayLayer.out` · `ArrayLayer.range` · `strips` — 완료 기준: StepPlayer 시험이 필드마다 하나씩 붙고, SPEC §13 에 필드가 적힌다
-- [ ] `S3` CellStageFilm 머리 폭을 장 전체에서 하나로 — 완료 기준: 어긋나던 6장(4편)의 칸 열이 맞고 나머지 필름은 바이트 그대로(render-figs --check)
+- [x] `S1` 증명 도구: 펜스로 시작한 증명 블록도 닫는 마커까지 대조한다 — 완료 기준: `tools/check-proof.test.ts` 에 「펜스 + 닫는 마커 + 사이 문장」 시험이 붙어 통과하고, 기존 17곳이 그대로 통과한다. SPEC §0 에 한 문장
+- [x] `S2` 배열 무대 선택 필드: `indexLabel` · 아직 안 쓴 칸(null)을 밖으로 칠하지 않기 · `later` · `ArrayLayer.out` · `ArrayLayer.range` · `strips` — 완료 기준: StepPlayer 시험이 필드마다 하나씩 붙고, SPEC §13 에 필드가 적힌다
+- [x] `S3` CellStageFilm 머리 폭을 장 전체에서 하나로 — 완료 기준: 어긋나던 6장(4편)의 칸 열이 맞고 나머지 필름은 바이트 그대로(render-figs --check)
 - [ ] `S4` 넓힌 무대를 쓰는 편 반영과 재출력: binaryGap·enumerateSubmasks·lowestSetBit(자리) · gcd 외 5편(아직/밖) · convexHullTrick · isPrimeTrial · meetInTheMiddleSubsetSum · nextGreaterElement · S3 의 4편 — 완료 기준: `bun run tools/render-figs.ts --check` 통과
 - [ ] `S5` 규약 없이 정한 자리 9편: 편마다 고치거나 SPEC §13 에 규약으로 올린다 — 완료 기준: 9편 각각의 처분이 처분표에 있고, 고친 편은 재출력 후 --check 통과
 - [ ] `S6` 그림 품질: radixTree 세로 1254px · subsetSum 참 칸 · nQueens 판을 table 무대로 — 완료 기준: radixTree 그림이 책 본문 높이(약 896px) 안, subsetSum 참/거짓이 눈으로 갈리고, nQueens 가 손그림 대신 패널로 그린다
@@ -54,3 +54,10 @@ scope: src/_viz/**, tools/check-proof.ts, tools/check-proof.test.ts, tools/check
 - 2026-10-01T07:20 · s:df6b517e — `전략` 섹션 교체
 - 2026-10-01T07:20 · s:df6b517e — `실행 계획` 섹션 교체
 - 2026-10-01T07:20 · s:df6b517e — `검증` 섹션 교체
+- 2026-10-01T07:22 · s:df6b517e · S1 doing — 착수
+- 2026-10-01T07:22 · s:df6b517e · S2 doing — 착수
+- 2026-10-01T07:22 · s:df6b517e · S3 doing — 착수
+- 2026-10-01T07:53 · s:df6b517e · S1 done — check-proof: 펜스 opener 도 closeOf 로 닫는 마커를 찾고 사이 문장을 본문에 붙여 대조. 시험 2 추가(44 pass). 115편 추출 결과 4786블록 0차이. SPEC §0 50행 끝에 문장(줄 수 유지)
+- 2026-10-01T07:53 · s:df6b517e · S2 done — arrayStage: indexLabel·later·layers[].out·layers[].range·strips 추가, null 칸은 범위 밖이어도 아직. arrayStage.test.ts 6 pass. 6편 재출력(nQueens·diffArrayRangeUpdate·babyStepGiantStep·extendedEuclidean·gcd·pollardRho). SPEC §13 줄 수 유지
+- 2026-10-01T07:53 · s:df6b517e · S3 done — CellStage: stageGutter 로 필름·플레이어 전 장 공통 머리 폭. 4편 6장 재출력, 나머지 바이트 그대로. 합류: bun test tools src/_viz 630 pass · render-figs --check 115/115 · tsc 0 · biome 0. 인용 1건(KAN-059 카드 → CellStage.tsx:448→469) remap
+- 2026-10-01T07:53 · s:df6b517e — 배치1 에서 새로 나온 후보 셋(S9 처분표에 올린다): ① NodeGraphFilm 2장(convexHull walk-upper · ahoCorasick walk-ac-scan)도 장마다 첫 칸 x 가 다르다 ② check-v2 closedProofLines(97-111행)가 펜스에서 멈춰 펜스 뒤 닫힌 문장을 산문으로 센다 — S8 에서 check-v2 를 고칠 때 함께 ③ 짝 없는 닫는 마커 검사 없음

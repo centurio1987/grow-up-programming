@@ -94,6 +94,11 @@ export interface CellStageProps {
   readonly rows: readonly StageRow[];
   /** 격자의 칸 수 — 보통 입력 배열의 길이. */
   readonly columns: number;
+  /**
+   * 줄 머리 폭. 없으면 이 장의 줄 머리 글자로 잰다. 걸음마다 무대를 바꿔 그리는 패널은 모든 걸음의
+   * `stageGutter` 를 넘겨 칸 열이 걸음 사이에 움직이지 않게 한다.
+   */
+  readonly gutter?: number;
 }
 
 const CARET_ROW = 16;
@@ -137,13 +142,27 @@ const heightOf = (row: StageRow): number => {
   }
 };
 
-/** 줄 구성으로 정해지는 격자 치수. 같은 줄 구성이면 걸음이 달라도 같은 값이다. */
-function layout(rows: readonly StageRow[], columns: number) {
-  const labels = rows.flatMap((r) => {
+/** 줄 머리에 적히는 글자들 — 줄 머리 폭(gutter)을 정한다. */
+const rowLabels = (rows: readonly StageRow[]): string[] =>
+  rows.flatMap((r) => {
     if (r.kind === "cells" && r.level !== undefined) return [levelSub(r.level)];
     return "label" in r && r.label ? [r.label] : [];
   });
-  const gutter = gutterFor(labels);
+
+/**
+ * 여러 장(필름의 장 · 패널의 걸음)이 함께 쓰는 줄 머리 폭 — 모든 장의 줄 머리 글자를 합쳐 잰다.
+ * 장마다 따로 재면 머리 글자가 긴 장만 칸이 오른쪽으로 밀려, 장을 넘길 때 칸 열이 흔들린다(KAN-063).
+ */
+export function stageGutter(frames: readonly (readonly StageRow[])[]): number {
+  return gutterFor(frames.flatMap(rowLabels));
+}
+
+/**
+ * 줄 구성으로 정해지는 격자 치수. 같은 줄 구성이면 걸음이 달라도 같은 값이다. `gutter` 를 주면
+ * 이 장의 줄 머리 대신 그 폭을 쓴다 — 여러 장이 칸 열을 맞출 때(`stageGutter`).
+ */
+function layout(rows: readonly StageRow[], columns: number, shared?: number) {
+  const gutter = shared ?? gutterFor(rowLabels(rows));
   const sideX = cellX(gutter, columns) - FORM.cellGap + FORM.pad;
   const tops: number[] = [];
   let y = 0;
@@ -372,8 +391,8 @@ function StageBody(props: {
 }
 
 /** 무대 한 장. 너비·높이는 `cellStageSize` 와 같다. */
-export function CellStage({ title, rows, columns }: CellStageProps) {
-  const grid = layout(rows, columns);
+export function CellStage({ title, rows, columns, gutter }: CellStageProps) {
+  const grid = layout(rows, columns, gutter);
   const width = widthFor(rows, grid.sideX, grid.gutter);
   const height = grid.height + FORM.pad * 2;
   return (
@@ -390,16 +409,18 @@ export function CellStage({ title, rows, columns }: CellStageProps) {
 
 /**
  * 걸음들의 무대를 모두 담는 크기 — 패널이 무대 자리를 첫 걸음 전에 고정할 때 쓴다(시안 규칙 5).
- * 줄 구성이 같아도 곁말 길이는 걸음마다 다르므로 너비는 가장 넓은 걸음에 맞춘다.
+ * 줄 구성이 같아도 곁말 길이는 걸음마다 다르므로 너비는 가장 넓은 걸음에 맞춘다. 줄 머리 폭은
+ * 모든 걸음이 함께 쓰는 `stageGutter` 로 잰다 — 패널이 `CellStage` 에 넘기는 값과 같다.
  */
 export function cellStageSize(
   frames: readonly (readonly StageRow[])[],
   columns: number,
 ): { width: number; height: number } {
+  const gutter = stageGutter(frames);
   let width = 0;
   let height = 0;
   for (const rows of frames) {
-    const grid = layout(rows, columns);
+    const grid = layout(rows, columns, gutter);
     width = Math.max(width, widthFor(rows, grid.sideX, grid.gutter));
     height = Math.max(height, grid.height + FORM.pad * 2);
   }
@@ -450,7 +471,8 @@ export function CellStageFilm({
   frames,
   columns,
 }: CellStageFilmProps): ReactElement {
-  const grids = frames.map((f) => layout(f.rows, columns));
+  const gutter = stageGutter(frames.map((f) => f.rows));
+  const grids = frames.map((f) => layout(f.rows, columns, gutter));
   const heads = frames.map(
     (f) => FORM.pad + BADGE_W + FORM.pad + widthOf(f.text, SIDE_SIZE),
   );

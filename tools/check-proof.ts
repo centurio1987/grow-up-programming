@@ -29,6 +29,9 @@
  *   수도 실행이 낸 값이라, 그 문장까지 대조하려면 닫는 마커를 둔다. 표가 둘이고 사이에 소개 문장이
  *   있는 블록도 이 모양이다.
  * - 닫는 마커가 없으면 마커 바로 아래 `|` 줄이 이어지는 동안만 블록이다.
+ * - 펜스로 연 블록도 닫는 마커를 둘 수 있다(KAN-063). 그러면 펜스 속에 더해 펜스 끝과 닫는 마커
+ *   사이의 문장까지 글자 그대로 대조한다 — 사이드카는 펜스 속, 원고의 빈 줄, 문장을 이어 낸다.
+ *   사이가 빈 줄뿐이면 펜스 속만 대조하는 것과 같다. 닫는 마커가 없으면 펜스 속만 블록이다.
  *
  * 한때 제목 줄 `▸ ` 과 설명 줄 `└ ` 을 블록에 넣었다 — 이 저장소가 지어낸 기호라 읽는 사람이 뜻을
  * 몰랐다(KAN-057 검토 지적 8). 지금은 보통 문장을 쓰고 닫는 마커로 범위를 정한다.
@@ -134,7 +137,7 @@ export interface ProofBlock {
   id: string;
   /** 마커가 있는 줄 번호(1부터). 어긋났을 때 사람이 찾아갈 자리다. */
   line: number;
-  /** 펜스 안의 내용(펜스 줄 자체는 뺀다) 또는 표 줄 전부. */
+  /** 펜스 안의 내용(펜스 줄 자체는 뺀다, 닫는 마커가 있으면 펜스 뒤 문장까지) 또는 표 줄 전부. */
   body: string | null;
   /** 블록이 펜스인가 마크다운 표인가. 펜스가 없으면 `null`. */
   form?: "fence" | "table" | null;
@@ -158,13 +161,24 @@ export function normalize(text: string): string {
 const PROOF_OPEN = /^<!--proof:([A-Za-z0-9_-]+)-->$/;
 const PROOF_CLOSE = /^<!--\/proof-->$/;
 
-/** `from` 부터 닫는 마커를 찾는다. 다른 증명 마커나 헤딩을 먼저 만나면 없는 것이다. */
+/**
+ * `from` 부터 닫는 마커를 찾는다. 다른 증명 마커나 헤딩을 먼저 만나면 없는 것이다.
+ *
+ * 펜스는 **건너뛴다**(KAN-063). 한때 펜스 여는 줄에서 멈췄는데, 그러면 펜스로 여는 블록과 표 뒤에
+ * 펜스가 오는 블록이 닫는 마커를 잃고 그 사이 문장이 대조에서 조용히 빠졌다. 펜스 안의 `#` 줄은
+ * 코드의 주석일 수 있으므로 헤딩으로 세지 않는다.
+ */
 function closeOf(lines: string[], from: number): number {
+  let fenced = false;
   for (let i = from; i < lines.length; i++) {
     const t = (lines[i] ?? "").trim();
+    if (t.startsWith("```")) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced) continue;
     if (PROOF_CLOSE.test(t)) return i;
-    if (PROOF_OPEN.test(t) || t.startsWith("#") || t.startsWith("```"))
-      return -1;
+    if (PROOF_OPEN.test(t) || t.startsWith("#")) return -1;
   }
   return -1;
 }
@@ -208,6 +222,15 @@ export function extractBlocks(text: string): ProofBlock[] {
     ) {
       bodyLines.push(lines[i] ?? "");
       i++;
+    }
+    // 펜스 뒤에 닫는 마커가 오면 펜스 끝과 마커 사이도 블록이다(KAN-063). 표 형식과 같이
+    // 그 사이를 글자 그대로 대조한다 — 빈 줄뿐이면 펜스 속만 대조하던 때와 같다.
+    const fenceClose = i < lines.length ? closeOf(lines, i + 1) : -1;
+    if (fenceClose >= 0) {
+      const tail = lines.slice(i + 1, fenceClose);
+      while (tail.length > 0 && (tail[tail.length - 1] ?? "").trim() === "")
+        tail.pop();
+      bodyLines.push(...tail);
     }
     out.push({
       id,

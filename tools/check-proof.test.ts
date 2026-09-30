@@ -102,6 +102,28 @@ test("닫는 마커가 있으면 표와 문장까지 블록이고, 문장의 수
   expect(fails[0]?.kind).toBe("값이 다르다");
 });
 
+test("펜스 뒤 닫는 마커 사이가 빈 줄뿐이면 펜스 속만 대조한다(KAN-063)", () => {
+  const md =
+    "<!--proof:t1-->\n\n```text\n값 3\n```\n\n<!--/proof-->\n\n뒤 산문.\n";
+  const blocks = extractBlocks(md);
+  expect(blocks[0]?.form).toBe("fence");
+  expect(blocks[0]?.body).toBe("값 3");
+  expect(compare(blocks, { t1: () => "값 3" })).toEqual([]);
+});
+
+test("펜스로 연 블록도 닫는 마커까지 문장을 대조한다(KAN-063)", () => {
+  const md =
+    "<!--proof:t1-->\n\n```text\n값 3\n```\n\n칸 14 개를 대조했습니다.\n\n<!--/proof-->\n\n뒤 산문.\n";
+  const blocks = extractBlocks(md);
+  const want = "값 3\n\n칸 14 개를 대조했습니다.";
+  expect(blocks[0]?.form).toBe("fence");
+  expect(blocks[0]?.body).toBe(want);
+  expect(compare(blocks, { t1: () => want })).toEqual([]);
+  const fails = compare(blocks, { t1: () => want.replace("14", "15") });
+  expect(fails[0]?.kind).toBe("값이 다르다");
+  expect(fails[0]?.detail).toContain("3번째 줄");
+});
+
 test("표 증명도 판정 열과 지나간 횟수 열을 읽는다", () => {
   const body = [
     "| 입력 | 지나간 횟수 | 답 |",
