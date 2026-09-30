@@ -61,3 +61,39 @@ test("본문 비용 절이 드는 자리 — 차원이 전부 상한 500 이고 
   expect(answer).toBe(12_375_000_000);
   expect(answer).toBeLessThan(Number.MAX_SAFE_INTEGER);
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./matrixChainMultiplication-guide.sim.ts");
+  const { simStepsFromRef, simResults, TABLE_OPTIONS, trace, WALK } =
+    await import("./matrixChainMultiplication-guide.fig.tsx");
+  const want = simStepsFromRef();
+  const results = simResults();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.len2.steps)).toEqual(plain(want.len2));
+  expect(plain(sim.len3.steps)).toEqual(plain(want.len3));
+  expect(plain(sim.len4.steps)).toEqual(plain(want.len4));
+  for (const part of [sim.len2, sim.len3, sim.len4]) {
+    expect(plain(part.rowHeads)).toEqual(plain(TABLE_OPTIONS.rowHeads));
+    expect(plain(part.colHeads)).toEqual(plain(TABLE_OPTIONS.colHeads));
+    expect(plain(part.strip)).toEqual(plain(TABLE_OPTIONS.strip));
+  }
+  expect(sim.len2.result).toBe(results.len2);
+  expect(sim.len3.result).toBe(results.len3);
+  // 패널이 내미는 값이 정본의 DP 테이블 · 답과 같은지 — 정본에 직접 다시 묻는다.
+  const dp = trace(WALK).dp;
+  expect(sim.len2.result).toBe(
+    `[${[dp[1]?.[2], dp[2]?.[3], dp[3]?.[4]].join(", ")}]`,
+  );
+  expect(sim.len3.result).toBe(`[${[dp[1]?.[3], dp[2]?.[4]].join(", ")}]`);
+  expect(sim.len4.result).toBe(String(matrixChainMultiplication(WALK)));
+  // 걸음 수 — 대각선 한 걸음 + 후보 (n³−n)/6 개 + 답을 읽는 한 걸음.
+  const n = WALK.length - 1;
+  const total =
+    sim.len2.steps.length + sim.len3.steps.length + sim.len4.steps.length;
+  expect(total).toBe(1 + (n ** 3 - n) / 6 + 1);
+});

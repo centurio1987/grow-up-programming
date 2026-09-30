@@ -333,3 +333,45 @@ test("2 차원 표 무대 — 열 머리와 표 전체를 첫 걸음부터 그�
 
   await act(async () => root.unmount());
 });
+
+test("2 차원 표 무대 · 입력 줄과 괄호 — 표 아래 행렬 줄에 구간과 두 조각을 걸고, 아직 안 쓴 칸은 열 머리만 반전한다", async () => {
+  const spec = (
+    await import(
+      "../../algorithms/dp/matrixChainMultiplication/matrixChainMultiplication-guide.sim.ts"
+    )
+  ).len3 as unknown as PlayerSpec;
+  document.body.innerHTML = '<div id="m"></div>';
+  const host = document.getElementById("m") as HTMLElement;
+  const root = createRoot(host);
+  await act(async () => root.render(<StepPlayer {...spec} />));
+
+  const stage = () =>
+    host.querySelector(".gs-player-stage") as HTMLElement | null;
+  const count = (sel: string) => host.querySelectorAll(sel).length;
+  const h0 = stage()?.style.height;
+  // T5 — dp[1][3] 의 첫 후보. 칸은 아직 안 썼으니 새로 씀이 없고, 그 열 머리 하나만 반전한다.
+  // 표 네 줄 아래에 행렬 줄 하나가 서고, 괄호 셋(구간 · 왼쪽 · 오른쪽)이 걸린다
+  expect(count('[data-viz-role="stage-cells"]')).toBe(5);
+  expect(count('[data-viz-state="focus"]')).toBe(0);
+  expect(count('[data-viz-focus="true"]')).toBe(1);
+  expect(count('[data-viz-state="read"]')).toBe(2);
+  expect(count('[data-viz-state="out"]')).toBe(6);
+  expect(count('[data-viz-range="query"]')).toBe(1);
+  expect(count('[data-viz-range="left"]')).toBe(1);
+  expect(count('[data-viz-range="right"]')).toBe(1);
+  expect(
+    host.querySelector('[data-viz-range="query"]')?.getAttribute("data-viz-to"),
+  ).toBe("2");
+
+  // T6 — 같은 칸의 마지막 후보라 dp[1][3] 을 쓴다. 무대 높이는 그대로다
+  const badge = (id: string) =>
+    [...host.querySelectorAll(".gs-player-badge")].find(
+      (b) => b.textContent === id,
+    ) as HTMLButtonElement;
+  await act(async () => badge("T6").click());
+  expect(stage()?.style.height).toBe(h0);
+  expect(count('[data-viz-state="focus"]')).toBe(1);
+  expect(count('[data-viz-state="read"]')).toBe(2);
+
+  await act(async () => root.unmount());
+});

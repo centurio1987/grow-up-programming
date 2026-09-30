@@ -14,10 +14,33 @@
  */
 
 import type { CellState } from "../patterns/ArrayStrip";
-import type { StageRow } from "../patterns/CellStage";
+import type { StageRow, StageTone } from "../patterns/CellStage";
 
 /** 표의 칸 하나 — `[줄, 열]`. */
 export type TableCell = readonly [number, number];
+
+/**
+ * 표 아래 입력 줄에 거는 괄호 하나. `from`·`to` 는 표의 열 번호다(입력 줄의 칸이 표의 열과 짝이다).
+ * `query` 는 입력 줄 **위**에, 나머지는 입력 줄 **아래**에 선다(`CellStage` 의 괄호 규칙).
+ */
+export interface TablePiece {
+  readonly label?: string;
+  readonly from: number;
+  readonly to: number;
+  readonly tone: StageTone;
+  readonly text?: string;
+  readonly side?: string;
+}
+
+/**
+ * 표 아래에 두는 입력 한 줄 — 표의 열마다 입력의 칸 하나가 짝인 경우(행렬 체인의 열 `j` 와 행렬
+ * `A_j`). 걸음마다 같은 값을 적는다.
+ */
+export interface TableStrip {
+  readonly label?: string;
+  readonly values: readonly (number | string)[];
+  readonly side?: string;
+}
 
 /** 걸음 하나. */
 export interface TableStep {
@@ -29,6 +52,13 @@ export interface TableStep {
   readonly write?: readonly TableCell[];
   /** 이번 걸음이 보지 않는 칸 — 「이번 걸음 밖」(대시). 칸 하나가 어느 범위를 뜻하는지 보일 때 쓴다. */
   readonly out?: readonly TableCell[];
+  /**
+   * 값을 정하는 중인데 이번 걸음에는 아직 쓰지 않은 칸 — 칸은 그대로 두고 **열 머리만** 반전한다. 칸
+   * 하나를 후보 여럿으로 정하는 편(행렬 체인)에서 마지막 후보 전의 걸음이 어느 칸의 후보인지 보인다.
+   */
+  readonly target?: readonly TableCell[];
+  /** 표 아래 입력 줄(`TableOptions.strip`)에 거는 괄호 — 이번 칸이 맡는 구간과 그 구간을 가른 조각. */
+  readonly pieces?: readonly TablePiece[];
   /**
    * 줄마다 곁말 — 없으면(또는 그 줄이 `null` 이면) 「채움 x / n」이다. 처음부터 값이 차 있는 줄이나,
    * 줄마다 적을 셈이 따로 있을 때 쓴다.
@@ -47,14 +77,32 @@ export interface TableOptions {
   readonly colHeads: readonly (number | string)[];
   /** 열 머리 줄의 이름(예: 「금액 a」). */
   readonly colLabel?: string;
+  /** 표 아래에 두는 입력 줄. 없으면 표만 그린다. */
+  readonly strip?: TableStrip;
 }
 
 const has = (cells: readonly TableCell[] | undefined, r: number, c: number) =>
   (cells ?? []).some(([x, y]) => x === r && y === c);
 
-/** 걸음 하나의 무대 줄 — 열 머리 한 줄 + 표의 줄마다 칸 한 줄. */
+const bracketOf = (p: TablePiece): StageRow => ({
+  kind: "bracket",
+  label: p.label,
+  from: p.from,
+  to: p.to,
+  tone: p.tone,
+  text: p.text,
+  side: p.side,
+});
+
+/**
+ * 걸음 하나의 무대 줄 — 열 머리 한 줄 + 표의 줄마다 칸 한 줄. 입력 줄(`strip`)이 있으면 그 아래에
+ * `query` 괄호 · 입력 줄 · 조각 괄호를 차례로 더하고, 없으면 괄호만 표 아래에 더한다. 괄호가 없는
+ * 걸음은 괄호 줄을 싣지 않는다 — 패널 높이는 가장 높은 걸음에 맞춰 고정된다.
+ */
 export function tableStage(s: TableStep, opts: TableOptions): StageRow[] {
-  const writeCols = [...new Set((s.write ?? []).map(([, c]) => c))];
+  const writeCols = [
+    ...new Set([...(s.write ?? []), ...(s.target ?? [])].map(([, c]) => c)),
+  ];
   const rows: StageRow[] = [
     {
       kind: "index",
@@ -79,6 +127,19 @@ export function tableStage(s: TableStep, opts: TableOptions): StageRow[] {
       side: s.rowSide?.[r] ?? `채움 ${filled} / ${values.length}`,
     });
   });
+  const pieces = s.pieces ?? [];
+  if (opts.strip) {
+    for (const p of pieces) if (p.tone === "query") rows.push(bracketOf(p));
+    rows.push({
+      kind: "cells",
+      label: opts.strip.label,
+      values: opts.strip.values,
+      side: opts.strip.side,
+    });
+    for (const p of pieces) if (p.tone !== "query") rows.push(bracketOf(p));
+  } else {
+    for (const p of pieces) rows.push(bracketOf(p));
+  }
   return rows;
 }
 
