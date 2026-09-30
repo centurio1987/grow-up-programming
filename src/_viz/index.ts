@@ -52,10 +52,12 @@ export { ALGO_VIZ_META, type AlgoVizMeta } from "./patterns/meta";
 export {
   type EdgeKind,
   type EdgeState,
+  type GraphBand,
   type GraphEdge,
   type GraphFrame,
   type GraphGroup,
   type GraphNode,
+  type GraphRule,
   type GraphStrip,
   NodeGraph,
   NodeGraphFilm,

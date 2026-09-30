@@ -22,6 +22,11 @@
  * 그림은 가장 작은 좌표를 여백 안쪽으로 옮겨 그린다. 값은 계산하지 않는다 — 부르는 쪽(`.fig.tsx`)이
  * 정본 실행에서 받아 넘긴다. 나무 모양 배치는 `treeLayout` 이 부모 관계에서 낸다.
  *
+ * - **기준선 · 세로 띠** — 평면 위의 점을 그릴 때(점의 좌표를 정점 자리로 준다) `x` 가 일정한 세로선
+ *   (`rules`, 분할선)과 `x` 가 두 값 사이인 세로 영역(`bands`, 분할선 양옆의 띠)을 정점 뒤에 깐다. 띠는
+ *   옅게 칠하고 양쪽 끝을 대시로 그어 흑백에서도 갈린다. 둘 다 없으면 그림이 그대로다(KAN-058 첫 편
+ *   `closestPairOfPoints`).
+ *
  * `NodeGraphFilm` 은 걸음 재생 패널의 정적 그림이다. 같은 무대를 걸음마다 한 장씩 위에서 아래로
  * 늘어놓고 장마다 걸음 배지와 한 줄을 붙인다(`CellStageFilm` 과 같은 규칙 · 같은 칸 경계).
  */
@@ -92,6 +97,25 @@ export interface GraphStrip {
   readonly slots?: number;
 }
 
+/** 세로 기준선 — `x` 가 일정한 선. 격자 단위다. */
+export interface GraphRule {
+  readonly x: number;
+  /** 선 윗머리에 붙는 짧은 말(예: 「x = 5」). */
+  readonly label?: string;
+}
+
+/**
+ * 세로 띠 — `x` 가 `from` 과 `to` 사이인 영역. 정점 자리의 위아래 끝까지 옅게 칠하고, 그림 안에
+ * 들어오는 끝을 대시로 긋는다. 그림 밖으로 나가는 끝은 그림 가장자리에서 자르고 대시를 긋지 않는다 —
+ * 띠가 그 너머로 이어진다는 뜻이다.
+ */
+export interface GraphBand {
+  readonly from: number;
+  readonly to: number;
+  /** 띠 왼쪽 윗머리에 붙는 짧은 말. */
+  readonly label?: string;
+}
+
 export interface NodeGraphScene {
   readonly nodes: readonly GraphNode[];
   readonly edges: readonly GraphEdge[];
@@ -102,6 +126,10 @@ export interface NodeGraphScene {
   readonly directed?: boolean;
   /** 격자 한 단위의 픽셀. 기본 가로 104 · 세로 84. */
   readonly unit?: { readonly x: number; readonly y: number };
+  /** 세로 기준선. 목록을 주면(비어 있어도) 머리말 자리를 잡고, 안 주면 자리도 안 잡는다. */
+  readonly rules?: readonly GraphRule[];
+  /** 세로 띠. 자리 규칙은 `rules` 와 같다. */
+  readonly bands?: readonly GraphBand[];
 }
 
 export interface NodeGraphProps extends NodeGraphScene {
@@ -116,6 +144,10 @@ const ARROW = 9;
 const GROUP_PAD = 12;
 const GROUP_HEAD = 18;
 const EDGE_LABEL = 11;
+/** 기준선 · 띠의 머리말 자리. 기준선이나 띠 목록을 줬을 때만 잡는다. */
+const GUIDE_HEAD = 18;
+/** 기준선 · 띠가 정점 자리 위아래로 더 나가는 길이. */
+const GUIDE_OVER = 8;
 const DEFAULT_UNIT = { x: 104, y: 84 } as const;
 
 const EDGE_SHAPE: Record<EdgeKind, { width: number; dash?: string }> = {
@@ -186,17 +218,28 @@ function place(scene: NodeGraphScene): {
   placed: Map<NodeId, Placed>;
   width: number;
   height: number;
+  /** 격자 `x` 를 픽셀로. 기준선 · 띠를 그릴 때 정점과 같은 자리로 옮긴다. */
+  toX: (x: number) => number;
+  /** 정점 자리의 위 끝 · 아래 끝(픽셀). */
+  area: { top: number; bottom: number };
 } {
   const unit = scene.unit ?? DEFAULT_UNIT;
   // 묶음 목록을 주면(비어 있어도) 머리말 자리를 잡는다 — 걸음 사이에 묶음이 생겨도 정점 자리가 안 바뀐다.
   const hasGroups = scene.groups !== undefined;
   const margin = hasGroups ? GROUP_PAD + GROUP_HEAD : 0;
-  const xs = scene.nodes.map((n) => n.x);
+  // 기준선 · 띠 목록을 주면(비어 있어도) 머리말 자리를 잡는다 — 묶음과 같은 규칙이라 걸음 사이에
+  // 분할선이 생기거나 없어져도 정점 자리가 안 바뀐다. 둘 다 안 주면 옛 그림과 바이트가 같다.
+  const guideHead =
+    scene.rules !== undefined || scene.bands !== undefined ? GUIDE_HEAD : 0;
+  const xs = [
+    ...scene.nodes.map((n) => n.x),
+    ...(scene.rules ?? []).map((r) => r.x),
+  ];
   const ys = scene.nodes.map((n) => n.y);
   const minX = Math.min(0, ...xs);
   const minY = Math.min(0, ...ys);
   const left = FORM.pad + margin + NODE_W / 2;
-  const top = FORM.pad + margin + NODE_H / 2 + loopRoom(scene);
+  const top = FORM.pad + margin + guideHead + NODE_H / 2 + loopRoom(scene);
   const placed = new Map<NodeId, Placed>();
   let right = 0;
   let bottom = 0;
@@ -223,6 +266,19 @@ function place(scene: NodeGraphScene): {
     for (const [id, p] of placed) placed.set(id, { ...p, cx: p.cx + shift });
     right += shift;
   }
+  const toX = (x: number): number => left + (x - minX) * unit.x + shift;
+  // 기준선은 그림 안에 들어오게 폭을 잡는다. 띠는 그림 가장자리에서 자른다(`GuideView`).
+  for (const r of scene.rules ?? []) {
+    right = Math.max(
+      right,
+      toX(r.x) + (r.label ? widthOf(r.label, 12) + 6 : FORM.borderWidth),
+    );
+  }
+  const cys = [...placed.values()].map((p) => p.cy);
+  const area = {
+    top: (cys.length > 0 ? Math.min(...cys) : top) - NODE_H / 2,
+    bottom: (cys.length > 0 ? Math.max(...cys) : top) + NODE_H / 2,
+  };
   // 묶음 머리말이 테보다 넓으면 그 폭까지.
   for (const g of scene.groups ?? []) {
     const box = groupBox(g, placed);
@@ -231,10 +287,15 @@ function place(scene: NodeGraphScene): {
     right = Math.max(right, box.x + Math.max(box.w, head));
     bottom = Math.max(bottom, box.y + box.h);
   }
+  if (scene.rules !== undefined || scene.bands !== undefined) {
+    bottom = Math.max(bottom, area.bottom + GUIDE_OVER);
+  }
   return {
     placed,
     width: Math.ceil(right + FORM.pad),
     height: Math.ceil(bottom + FORM.pad),
+    toX,
+    area,
   };
 }
 
@@ -574,6 +635,95 @@ function GroupView(props: {
   );
 }
 
+/** 세로 띠와 기준선 — 정점 · 간선 · 묶음보다 먼저 그려 맨 뒤에 깐다. */
+function GuideView(props: {
+  scene: NodeGraphScene;
+  g: ReturnType<typeof place>;
+}) {
+  const { scene, g } = props;
+  const y0 = g.area.top - GUIDE_OVER;
+  const y1 = g.area.bottom + GUIDE_OVER;
+  const lo = FORM.pad;
+  const hi = g.width - FORM.pad;
+  const clamp = (x: number) => Math.min(hi, Math.max(lo, x));
+  const edgeStyle = {
+    stroke: "var(--bbangto-viz-ext-cover)",
+    strokeWidth: FORM.overlapWidth,
+    strokeDasharray: FORM.dashOut,
+  };
+  return (
+    <g data-viz-guides="">
+      {(scene.bands ?? []).map((b) => {
+        const a = g.toX(Math.min(b.from, b.to));
+        const z = g.toX(Math.max(b.from, b.to));
+        const x0 = clamp(a);
+        const x1 = clamp(z);
+        return (
+          <g key={`b-${b.from}-${b.to}`} data-viz-band={`${b.from}~${b.to}`}>
+            <rect
+              x={round(x0)}
+              y={round(y0)}
+              width={round(Math.max(0, x1 - x0))}
+              height={round(y1 - y0)}
+              style={{
+                fill: "var(--bbangto-viz-ext-cover)",
+                fillOpacity: 0.16,
+                stroke: "none",
+              }}
+            />
+            {a >= lo ? (
+              <path
+                d={`M ${round(x0)} ${round(y0)} V ${round(y1)}`}
+                style={edgeStyle}
+              />
+            ) : null}
+            {z <= hi ? (
+              <path
+                d={`M ${round(x1)} ${round(y0)} V ${round(y1)}`}
+                style={edgeStyle}
+              />
+            ) : null}
+            {b.label ? (
+              <text
+                x={round(x0 + 4)}
+                y={round(y0 - 9)}
+                dominantBaseline="central"
+                style={{ ...text("note-color", 12), fontWeight: 500 }}
+              >
+                {b.label}
+              </text>
+            ) : null}
+          </g>
+        );
+      })}
+      {(scene.rules ?? []).map((r) => {
+        const x = g.toX(r.x);
+        return (
+          <g key={`r-${r.x}`} data-viz-rule={String(r.x)}>
+            <path
+              d={`M ${round(x)} ${round(y0)} V ${round(y1)}`}
+              style={{
+                stroke: "var(--bbangto-viz-ext-bracket)",
+                strokeWidth: FORM.pieceWidth,
+              }}
+            />
+            {r.label ? (
+              <text
+                x={round(x + 4)}
+                y={round(y0 - 9)}
+                dominantBaseline="central"
+                style={{ ...text("note-color", 12), fontWeight: 700 }}
+              >
+                {r.label}
+              </text>
+            ) : null}
+          </g>
+        );
+      })}
+    </g>
+  );
+}
+
 const STRIP_GAP = 8;
 
 function stripHeight(scene: NodeGraphScene): number {
@@ -616,6 +766,9 @@ function SceneBody({ scene, top }: { scene: NodeGraphScene; top: number }) {
   );
   return (
     <g transform={top === 0 ? undefined : `translate(0 ${top})`}>
+      {scene.rules !== undefined || scene.bands !== undefined ? (
+        <GuideView scene={scene} g={g} />
+      ) : null}
       {(scene.groups ?? []).map((grp) => (
         <GroupView
           key={`g-${grp.members.join(",")}`}

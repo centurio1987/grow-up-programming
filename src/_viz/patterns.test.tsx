@@ -657,6 +657,72 @@ describe("P8 NodeGraph · 그래프 무대", () => {
     );
   });
 
+  test("기준선 · 세로 띠 — 정점 뒤에 깔리고, 목록을 주면 비어 있어도 자리를 잡으며, 안 주면 그림이 그대로다", async () => {
+    // 가장 가까운 두 점 편(KAN-058)의 평면 그림 — 분할선 x = 5 와 그 양옆 폭 2.83 의 띠.
+    const plane = [
+      { id: "a", x: 3, y: 7 },
+      { id: "b", x: 5, y: 6 },
+      { id: "c", x: 9, y: 1 },
+    ];
+    const bare = await renderToSvg(
+      <NodeGraph title="평면" nodes={plane} edges={[]} directed={false} />,
+      "t-guide-bare",
+    );
+    const guided = await renderToSvg(
+      <NodeGraph
+        title="평면"
+        nodes={plane}
+        edges={[]}
+        directed={false}
+        rules={[{ x: 5, label: "x = 5" }]}
+        bands={[{ from: 2.17, to: 7.83, label: "띠" }]}
+      />,
+      "t-guide-bare",
+    );
+    expect(bare).not.toContain("data-viz-guides");
+    expect(guided).toContain('data-viz-rule="5"');
+    expect(guided).toContain('data-viz-band="2.17~7.83"');
+    expect(guided).toContain("x = 5");
+    // 띠와 기준선은 정점보다 먼저 그린다 — 정점이 그 위에 온다.
+    expect(guided.indexOf("data-viz-guides")).toBeLessThan(
+      guided.indexOf('data-viz-node="a"'),
+    );
+    // 기준선은 정점 b(x = 5)의 가운데를 지난다.
+    const ruleX = Number(
+      /data-viz-rule="5"><path d="M ([\d.]+) /.exec(guided)?.[1],
+    );
+    const b =
+      /data-viz-node="b"[^>]*><rect x="([\d.]+)"[^>]*width="([\d.]+)"/.exec(
+        guided,
+      );
+    expect(ruleX).toBeCloseTo(Number(b?.[1]) + Number(b?.[2]) / 2, 1);
+    // 빈 목록도 머리말 자리를 잡는다 — 걸음 사이에 분할선이 생겨도 정점 자리가 안 바뀐다.
+    const empty = nodeGraphSize({
+      nodes: plane,
+      edges: [],
+      rules: [],
+      bands: [],
+    });
+    const full = nodeGraphSize({
+      nodes: plane,
+      edges: [],
+      rules: [{ x: 5, label: "x = 5" }],
+      bands: [{ from: 2.17, to: 7.83 }],
+    });
+    expect(empty.height).toBe(full.height);
+    // 그림 밖으로 나가는 띠 끝은 가장자리에서 자르고 대시를 긋지 않는다.
+    const wide = await renderToSvg(
+      <NodeGraph
+        title="넓은 띠"
+        nodes={plane}
+        edges={[]}
+        bands={[{ from: -20, to: 30 }]}
+      />,
+      "t-guide-wide",
+    );
+    expect(count(wide, /data-viz-band="-20~30"><rect [^>]*\/><path/g)).toBe(0);
+  });
+
   test("정적 그림은 장면을 걸음마다 한 장씩 늘어놓고 칸 경계가 필름을 빈틈없이 나눈다", async () => {
     const scene = { nodes, edges };
     const svg = await renderToSvg(

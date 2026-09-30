@@ -17,7 +17,9 @@ import type { CellState } from "../patterns/ArrayStrip";
 import type {
   EdgeKind,
   EdgeState,
+  GraphBand,
   GraphGroup,
+  GraphRule,
   GraphStrip,
   NodeGraphScene,
   NodeId,
@@ -63,6 +65,12 @@ export interface GraphStep {
   }[];
   readonly groups?: readonly GraphGroup[];
   readonly strips?: readonly GraphStrip[];
+  /**
+   * 평면 그림의 세로 기준선과 세로 띠 — 걸음마다 자리가 바뀔 수 있다(분할 정복이 가르는 분할선과 그
+   * 양옆의 띠). 적지 않으면 그리지 않는다(KAN-058 첫 편 `closestPairOfPoints`).
+   */
+  readonly rules?: readonly GraphRule[];
+  readonly bands?: readonly GraphBand[];
   /** 이번 걸음의 계산 한 줄 — 알약에 싣는다. */
   readonly calc?: { readonly expr: string; readonly result: string } | null;
   /** 무대 어디에도 자리가 없는 값만. 없으면 `null`. */
@@ -94,6 +102,8 @@ export function graphScene(s: GraphStep, opts: GraphOptions): NodeGraphScene {
     strips: s.strips,
     directed: layout.directed,
     unit: layout.unit,
+    ...(s.rules !== undefined ? { rules: s.rules } : {}),
+    ...(s.bands !== undefined ? { bands: s.bands } : {}),
   };
 }
 

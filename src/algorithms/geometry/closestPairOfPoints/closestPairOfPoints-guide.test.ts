@@ -203,3 +203,36 @@ test("여러 모양의 배치에서 전부 대조와 같은 답을 낸다", () =
     expect(closestPairOfPoints(points)).toBeCloseTo(bruteForce(points), 9);
   }
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은
+ * 절차의 기록에서 만든 걸음 — 과 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./closestPairOfPoints-guide.sim.ts");
+  const fig = await import("./closestPairOfPoints-guide.fig.tsx");
+  const want = fig.stageStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.walkLeft.steps)).toEqual(plain(want.walkLeft));
+  expect(plain(sim.walkRight.steps)).toEqual(plain(want.walkRight));
+  expect(plain(sim.walkLeft.layout)).toEqual(plain(fig.LAYOUT));
+  expect(plain(sim.walkRight.layout)).toEqual(plain(fig.LAYOUT));
+  // 두 벌을 이으면 T1 부터 빠짐없이 이어진다.
+  const tags = [...sim.walkLeft.steps, ...sim.walkRight.steps].map(
+    (s) => s.title.split(" ")[0],
+  );
+  expect(tags).toEqual(tags.map((_, k) => `T${k + 1}`));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  const walk: Point[] = [
+    [0, 0],
+    [2, 6],
+    [3, 1],
+    [4, 8],
+    [5, 2],
+    [6, 5],
+    [8, 3],
+    [9, 7],
+  ];
+  expect(sim.walkRight.result).toBe(closestPairOfPoints(walk).toFixed(4));
+});
