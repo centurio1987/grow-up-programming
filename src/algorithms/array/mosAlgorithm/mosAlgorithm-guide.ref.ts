@@ -12,16 +12,16 @@ export function mosAlgorithm(
 ): number[] {
   if (queries.length === 0) return [];
 
-  // 구역 크기. 식의 `B` 가 이것이다 — √n 이 이동 총량을 가장 작게 만든다(「수식 정의와 유도」 ④).
+  // 블록 크기. 식의 `B` 가 이것이다 — √n 이 두 끝이 옮기는 칸의 상한을 가장 작게 만든다(「수식 정의와 유도」).
   const block = Math.max(1, Math.floor(Math.sqrt(arr.length)));
-  // 식의 `blk(l)`. 왼쪽 끝이 `l` 인 질의의 구역 번호다.
+  // 식의 `blk(l)`. 왼쪽 끝이 `l` 인 질의의 블록 번호다.
   const blk = (l: number): number => Math.floor(l / block);
 
   // 원래 순서를 잃지 않으려고 인덱스를 함께 들고 정렬한다.
   const order = queries.map((q, i) => ({ l: q[0], r: q[1], i }));
   order.sort((x, y) => {
     if (blk(x.l) !== blk(y.l)) return blk(x.l) - blk(y.l);
-    // 같은 구역 안에서는 r 로 정렬한다. curR 이 한 방향으로만 이동하게 된다.
+    // 같은 블록 안에서는 r 로 정렬한다. curR 이 한 방향으로만 이동하게 된다.
     return x.r - y.r;
   });
 

@@ -990,7 +990,6 @@ sandbox/algo-guide-v2/FEEDBACK.md	tools/build-html.ts	173	ee022ac7cf4c	-
 sandbox/algo-guide-v2/FEEDBACK.md	tools/build-html.ts	194	612f977aa75d	-
 sandbox/algo-guide-v2/FEEDBACK.md	tools/check-v2.ts	443	684888c0ebb1	-
 sandbox/algo-guide-v2/FEEDBACK.md	tools/check-v2.ts	496	29576b54e255	-
-sandbox/algo-guide-v2/README.md	src/algorithms/array/mosAlgorithm/mosAlgorithm-guide.sim.ts	10	fd06c963de43	-
 sandbox/algo-guide-v2/README.md	tools/check-citations.ts	36	7de6ff637587	-
 sandbox/algo-guide-v2/SPEC.md	.claude/authoring/voices/algorithm-guide-writer/voice.md	95	f4ef20830146	-
 sandbox/algo-guide-v2/SPEC.md	docs/comprehension-gate-audit.md	45	c7d2eec191a9	-

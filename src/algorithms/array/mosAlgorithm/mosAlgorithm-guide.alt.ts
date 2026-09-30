@@ -1,86 +1,54 @@
 /**
  * `purpose.alt` 가 인용하는 수치의 출처 — L13.
  *
- * 세 정렬 순서를 **같은 입력**에 걸고 **포인터가 움직인 칸 수**를 센다. 벽시계가 아니라
- * 이동 칸 수인 이유는 하나다 — 실행마다 같은 값이 나와야 "본문의 수치가 실측과 일치하는가"
- * (P10)를 정의할 수 있다.
+ *   bun run tools/bench-alt.ts src/algorithms/array/mosAlgorithm/mosAlgorithm-guide.alt.ts
  *
- *   bun run ../../tools/bench-alt.ts mosAlgorithm-guide.alt.ts
+ * 두 설계를 **같은 입력 두 벌**에 걸고 **셈 연산 수**를 센다. 셈 연산은 원고 전체가 쓰는 비용 기준이다 —
+ * 셈 구조의 한 자리(맵의 키 하나 · 펜윅 트리의 칸 하나)를 읽거나 고치는 일을 1 번으로 센다. 벽시계가
+ * 아닌 까닭은 실행마다 같은 값이 나와야 「본문의 수치가 실측과 같은가」(P10)를 정의할 수 있어서다.
  *
- * **왜 전개 입력을 안 쓰는가**(L20). `makeInput` 을 전개의 `arr=[1,1,2,1,3]` ·
- * 질의 다섯으로 바꿔 돌리면 Mo 11 · 펜윅 25 로 **방향이 반대로 나온다** — 그 크기에서는
- * 펜윅의 트리 높이 상수가 그대로 드러나기 때문이다. 전개 입력을 대조에 그대로 쓰면
- * Mo 가 이기는 그림이 나오는데, 유리한 입력을 고르는 것이 L20 이 막는 자리다.
+ * - Mo's 알고리즘 — 창이 옮긴 칸 수. 칸 하나를 옮길 때 `count` 맵의 키 하나를 고친다(`add` · `remove`).
+ *   정렬된 차례는 정본이 낸다(그림 사이드카의 `orderOf`).
+ * - 오프라인 펜윅 트리 — 트리 칸을 읽거나 고친 횟수와, 원소마다 「직전 등장 자리」 맵의 키 하나를 고친
+ *   횟수의 합.
+ *
+ * 입력은 원고가 쓰는 두 벌 그대로다. 전개 입력(`arr = [1, 1, 2, 1, 3]`, 질의 다섯)과 과제 규모 입력
+ * (`n = q = 100,000`, 시드 20260930 의 선형 합동 생성기 — `makeInput`). 옛 판은 `n = 400 · q = 200` 한 벌에
+ * Mo 는 이동 칸, 펜윅은 트리 방문만 셌다. 두 설계의 계수를 한 기준으로 맞추고 원고의 과제 규모와 같은
+ * 입력을 쓰려고 바꿨다.
  */
 
-const N = 400;
-const Q = 200;
+import {
+  A5,
+  makeInput,
+  moves,
+  N_TASK,
+  orderOf,
+  Q5,
+} from "./mosAlgorithm-guide.fig.tsx";
+import { mosAlgorithm } from "./mosAlgorithm-guide.ref.ts";
 
-/** 결정론적 의사난수. 시드를 고정해 실행마다 같은 입력을 만든다. */
-function makeInput(): { arr: number[]; queries: [number, number][] } {
-  let seed = 20260819;
-  const next = (): number => (seed = (seed * 1103515245 + 12345) % 2147483648);
-  const arr = Array.from({ length: N }, () => next() % 50);
-  const queries: [number, number][] = Array.from({ length: Q }, () => {
-    const a = next() % N;
-    const b = next() % N;
-    return [Math.min(a, b), Math.max(a, b)];
-  });
-  return { arr, queries };
-}
+type Query = [number, number];
 
-type Order = (
-  queries: { l: number; r: number; i: number }[],
-  block: number,
-) => void;
-
-/** 정렬 순서만 갈아 끼우고 포인터 이동 칸 수를 센다. */
-function moveCount(order: Order): number {
-  const { arr, queries } = makeInput();
-  const list = queries.map((q, i) => ({ l: q[0], r: q[1], i }));
-  const block = Math.max(1, Math.floor(Math.sqrt(arr.length)));
-  order(list, block);
-
-  let moves = 0;
-  let curL = 0;
-  let curR = -1;
-  for (const q of list) {
-    while (curL > q.l) {
-      curL--;
-      moves++;
-    }
-    while (curR < q.r) {
-      curR++;
-      moves++;
-    }
-    while (curL < q.l) {
-      curL++;
-      moves++;
-    }
-    while (curR > q.r) {
-      curR--;
-      moves++;
-    }
-  }
-  return moves;
+/** Mo's 알고리즘의 셈 연산 — 정본이 정렬한 차례에서 창이 옮긴 칸 수. */
+function moOps(arr: readonly number[], queries: readonly Query[]): number {
+  return moves(orderOf(arr, queries).order).total;
 }
 
 /**
- * 경쟁 설계 — **오프라인 + 펜윅 트리(BIT)**.
+ * 경쟁 설계 — **오프라인 + 펜윅 트리**.
  *
- * 창을 옮기는 대신 배열을 왼쪽부터 한 번만 훑는다. 값 `v` 를 만나면 **그 값의 직전 등장
- * 자리를 지우고** 지금 자리에 1을 세운다. 그러면 임의의 시점 `i` 에서 BIT 의 구간합
- * `[l, i]` 가 곧 "그 구간의 서로 다른 값 수" 다 — 각 값이 **가장 오른쪽 등장**에서만 세지기
- * 때문이다. 질의를 `r` 로만 정렬하면 훑기 한 번으로 전부 답한다.
- *
- * Mo 와 **다른 축**이다. Mo 는 질의 순서를 바꿔 창 이동을 줄이고, 이쪽은 자료구조를 바꿔
- * 창 자체를 없앤다.
+ * 창을 옮기는 대신 배열을 왼쪽부터 한 번만 차례로 읽는다. 값 `v` 를 만나면 **그 값의 직전 등장 자리에서
+ * 1 을 빼고** 지금 자리에 1 을 더한다. 그러면 시점 `i` 에서 트리의 구간합 `[l, i]` 가 곧 그 구간의 서로
+ * 다른 값 수다 — 각 값이 **가장 오른쪽 등장**에서만 세어지기 때문이다. 질의를 `r` 로만 정렬하면 한 번
+ * 읽는 동안 전부 답한다.
  */
-function fenwickOps(): number {
-  const { arr, queries } = makeInput();
+export function fenwickDistinct(
+  arr: readonly number[],
+  queries: readonly Query[],
+): { ops: number; out: number[] } {
   const n = arr.length;
   let ops = 0;
-
   const tree = new Array<number>(n + 1).fill(0);
   const update = (i: number, delta: number): void => {
     for (let x = i + 1; x <= n; x += x & -x) {
@@ -107,27 +75,42 @@ function fenwickOps(): number {
   for (let i = 0; i < n; i++) {
     const v = arr[i] as number;
     const prev = last.get(v);
+    last.set(v, i);
+    ops++; // 직전 등장 자리 맵의 키 하나를 읽고 고친다
     if (prev !== undefined) update(prev, -1);
     update(i, 1);
-    last.set(v, i);
     while (cursor < byR.length && (byR[cursor] as { r: number }).r === i) {
       const q = byR[cursor] as { l: number; r: number; i: number };
       out[q.i] = prefix(q.r) - (q.l > 0 ? prefix(q.l - 1) : 0);
       cursor++;
     }
   }
-  return ops;
+  return { ops, out };
 }
 
+/** 펜윅 쪽 답이 정본과 같은지 — 전개 입력과, 과제 규모와 같은 생성식의 작은 입력에서 본다. */
+const small = makeInput(1_000, 1_000);
+for (const [arr, queries] of [
+  [A5, Q5],
+  [small.arr, small.queries],
+] as [number[], Query[]][]) {
+  const want = mosAlgorithm([...arr], queries);
+  if (
+    JSON.stringify(fenwickDistinct(arr, queries).out) !== JSON.stringify(want)
+  ) {
+    throw new Error("오프라인 펜윅 트리의 답이 정본과 다르다");
+  }
+}
+
+const task = makeInput(N_TASK, N_TASK);
+
 export const cases = {
-  "Mo (블록,r)": () => ({
-    이동칸: moveCount((list, block) => {
-      list.sort((x, y) => {
-        const bx = Math.floor(x.l / block);
-        const by = Math.floor(y.l / block);
-        return bx !== by ? bx - by : x.r - y.r;
-      });
-    }),
+  "Mo's 알고리즘": () => ({
+    "전개 입력 셈 연산": moOps(A5, Q5),
+    "과제 규모 셈 연산": moOps(task.arr, task.queries),
   }),
-  "펜윅 트리": () => ({ 노드방문: fenwickOps() }),
+  "오프라인 펜윅 트리": () => ({
+    "전개 입력 셈 연산": fenwickDistinct(A5, Q5).ops,
+    "과제 규모 셈 연산": fenwickDistinct(task.arr, task.queries).ops,
+  }),
 };

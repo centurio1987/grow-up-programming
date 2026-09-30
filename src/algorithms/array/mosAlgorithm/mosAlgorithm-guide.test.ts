@@ -11,8 +11,8 @@ import { mosAlgorithm } from "./mosAlgorithm-guide.ref.ts";
 const CASES: [number[], [number, number][], number[]][] = [
   [
     [1, 1, 2, 1, 3],
-    // 가이드 「한 입력으로 끝까지 굴려 보기」와 같은 입력이다. 다섯째 질의 [2,3] 은
-    // 창 옮기기의 네 갈래 중 R−(오른쪽 좁힘)를 밟게 하려고 둔 것이다.
+    // 가이드 「수행으로 알아보는 알고리즘」과 같은 입력이다. 다섯째 질의 [2,3] 은
+    // 창 옮기기의 네 갈래 중 R−(오른쪽 좁힘)를 실행하게 하려고 둔 것이다.
     [
       [0, 4],
       [0, 2],
@@ -108,6 +108,43 @@ test("무작위 교차검증 — 순진한 방법과 답이 같다", () => {
     const b = next() % 60;
     return [Math.min(a, b), Math.max(a, b)];
   });
+  const naive = queries.map(([l, r]) => new Set(arr.slice(l, r + 1)).size);
+  expect(mosAlgorithm(arr, queries)).toEqual(naive);
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본을 실행해
+ * 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./mosAlgorithm-guide.sim.ts");
+  const { simStepsFromRef } = await import("./mosAlgorithm-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.window.steps)).toEqual(plain(simStepsFromRef().window));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.window.result).toBe(
+    JSON.stringify(
+      mosAlgorithm(
+        [1, 1, 2, 1, 3],
+        [
+          [0, 4],
+          [0, 2],
+          [2, 4],
+          [1, 3],
+          [2, 3],
+        ],
+      ),
+    ),
+  );
+});
+
+test("최악을 만드는 입력에서도 답은 새로 센 값과 같다", async () => {
+  // perf.worst 가 드는 입력의 모양을 작은 규모로 줄여 답을 대조한다. 옮긴 칸이 많은 것과 틀린 것은 다른 문제다.
+  const { worstInput } = await import("./mosAlgorithm-guide.fig.tsx");
+  const n = 400;
+  const arr = Array.from({ length: n }, (_, i) => (i * 7) % 13);
+  const queries = worstInput(n, n, Math.floor(Math.sqrt(n)));
   const naive = queries.map(([l, r]) => new Set(arr.slice(l, r + 1)).size);
   expect(mosAlgorithm(arr, queries)).toEqual(naive);
 });

@@ -93,7 +93,7 @@ bunx tsc --noEmit                    # 승격 뒤로는 루트 tsc 가 v2 산출
 6. **승격은 pilot 승인 뒤.** `ViewName` 유니온 + `VIEW_REGISTRY` + `Frame` 에 추가한다.
 
 **mosAlgorithm 용 새 컴포넌트는 기본적으로 만들지 않는다.** v2 산출이 실제로 쓰는 것은
-`view: ["matrix", "array"]`(`src/algorithms/array/mosAlgorithm/mosAlgorithm-guide.sim.ts:10`)이고,
+`view: ["matrix", "array"]`(당시 mosAlgorithm-guide.sim.ts 10행 — KAN-058 에서 배열 무대 패널로 옮겼다)이고,
 질의 재배열은 `matrix`(`rowLabels`=질의 번호, `colLabels`=`[l,r,block(l)]`, `cells`),
 √n 블록 분할은 `array` 의 `pointers`+`marked` 로 덮인다 — 기존 프리셋 둘로 닫혔다. 남는 한계는 **뷰당 슬롯 1개**뿐이고
 (`src/_guide-sim/index.tsx` 의 `views.map`), 그때도 "같은 뷰 2회 렌더"가 더 작은 변경이다.
