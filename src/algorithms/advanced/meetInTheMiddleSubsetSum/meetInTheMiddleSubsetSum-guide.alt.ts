@@ -14,13 +14,22 @@
  * 계수는 저울질이 아니라 다른 문제의 값이다 — 여기서는 정본(`.ref.ts`)의 반환값을 두 설계
  * 모두와 대조한다.
  *
- * **기본 연산의 자를 두 설계에 같게 둔다.** DP 테이블 쪽은 값을 정한 칸 하나마다 1, 이쪽은 부분집합 합
- * 하나를 만드는 덧셈마다 1 · 정렬 비교 한 번마다 1 · 이진 탐색 한 걸음마다 1 이다.
+ * **기본 연산의 자를 두 설계에 같게 둔다.** DP 테이블 쪽은 값을 정한 칸 하나마다 1(0 번째 줄 포함), 이쪽은 부분집합 합
+ * 하나를 정할 때마다 1(목록마다 공집합의 합 0 을 둔 칸 하나 포함 — DP 테이블의 0 번째 줄과 같은 셈) · 정렬 비교 한 번마다 1 ·
+ * 이진 탐색 한 걸음마다 1 이다. **두 설계 다 답을 찾아도 멈추지 않는다** — DP 테이블은 언제나 칸을 전부 정하므로 이쪽만
+ * 일찍 끝내면 두 계수가 같은 일을 잰 값이 아니게 된다. 정본은 답을 찾은 질의에서 돌아오지만, 여기서는 질의를 전부 센다.
+ *
+ * **이 셈은 [부분집합 합 판정](../../dp/subsetSum/subsetSum-guide.md) 편의 같은 대조와 같다**(2026-10-01, `KAN-062` 배치 4).
+ * 그전에는 공집합의 합 0 을 세지 않고 답을 찾은 질의에서 멈췄다. 맞추면서 이쪽 기본 연산이 입력 A 4,745,705 → 7,076,428,
+ * 입력 B 20,852 → 20,854, 원소 20 개 20,150 → 21,559, 전개 입력 46 → 56 으로 늘었고(DP 테이블 쪽은 그대로) — DP 테이블
+ * 채우기에 유리해졌다. 입력 A·B 의 우열은 그대로이고, 경계는 원소 20 · 21 사이에서 19 · 20 사이로 한 칸 당겨졌다. 입력(생성식
+ * 곱수 7,919 · 시드 · 크기)은 바꾸지 않았다.
+ *
  * **정렬 비교는 병합 정렬로 센다** — 정본이 부르는 `Float64Array.prototype.sort()` 는 어떤
  * 절차를 쓰는지 언어 명세가 정하지 않아 셀 수 없다.
  *
  * **왜 전개 입력을 안 쓰는가**(L20). 전개는 원소 여섯에 목표 9 인데, 그 크기에서는 두 설계의
- * 기본 연산이 46 대 70 이라 어느 쪽이 왜 적은지가 값에서 나오지 않는다. 여기서는 같은 생성식
+ * 기본 연산이 56 대 70 이라(잣대를 맞추기 전에는 46 대 70) 어느 쪽이 왜 적은지가 값에서 나오지 않는다. 여기서는 같은 생성식
  * 자리 `t` 의 원소가 `((t+1) × 7,919) mod M + 1` 에 매개변수만 둘로 둔다 — **입력 A 는 원소가 많고 목표
  * 합이 작은 쪽**, **입력 B 는 원소가 적고 목표 합이 큰 쪽**이다. 거기에 **경계**를 하나 더
  * 잰다 — 목표 합을 1,000 으로 고정하고 원소 수만 늘린다.
@@ -77,7 +86,8 @@ function mergeSortCount(a: number[]): { sorted: number[]; cmp: number } {
 }
 
 /**
- * 이 가이드의 절차. 정본(`meetInTheMiddleSubsetSum-guide.ref.ts`)과 같고 세는 자리만 덧붙였다.
+ * 이 가이드의 절차. 정본(`meetInTheMiddleSubsetSum-guide.ref.ts`)과 같고 세는 자리만 덧붙였다. 다른 곳은 하나 —
+ * 답을 찾아도 질의를 멈추지 않는다(위 머리 주석).
  *
  * `추가 칸` 은 두 합 목록이 잡는 `2^k + 2^(n-k)` 칸이다 — 입력 밖에 동시에 들고 있는 칸이다. 정본은
  * 목록 B 를 제자리에서 정렬하므로, 여기서 비교를 세려고 쓴 병합 정렬의 임시 배열은 넣지 않는다.
@@ -89,6 +99,7 @@ function 두무리설계(input: Input): Run {
   let ops = 0;
   const build = (from: number, to: number): number[] => {
     const out = new Array<number>(1 << (to - from)).fill(0);
+    ops++; // 칸 0 — 공집합의 합 0
     let size = 1;
     for (let i = from; i < to; i++) {
       const a = nums[i] as number;
@@ -109,21 +120,16 @@ function 두무리설계(input: Input): Run {
     const need = target - sA;
     let lo = 0;
     let hi = sorted.length - 1;
-    let found = false;
     while (lo <= hi) {
       ops++;
       const m = (lo + hi) >> 1;
       const v = sorted[m] as number;
       if (v === need) {
-        found = true;
+        answer = true; // 답을 찾아도 다음 질의로 간다 — 머리 주석
         break;
       }
       if (v < need) lo = m + 1;
       else hi = m - 1;
-    }
-    if (found) {
-      answer = true;
-      break;
     }
   }
   return { ops, cells: sumsA.length + sumsB.length, answer };
@@ -178,8 +184,8 @@ const 입력: [string, Input][] = [
 function 확인(): void {
   const 대상: [string, Input][] = [
     ...입력,
+    ["경계 원소 19 개", { nums: gen(19, EDGE_M), target: EDGE_TARGET }],
     ["경계 원소 20 개", { nums: gen(20, EDGE_M), target: EDGE_TARGET }],
-    ["경계 원소 21 개", { nums: gen(21, EDGE_M), target: EDGE_TARGET }],
   ];
   for (const [label, input] of 대상) {
     const want = meetInTheMiddleSubsetSum(input.nums, input.target);

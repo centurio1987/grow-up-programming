@@ -19,6 +19,14 @@
  * 값에서 나오지 않는다. 여기서는 같은 생성식 `a_k = (k × P mod M) + 1` 에 매개변수만 둘로 둔다 —
  * **입력 A 는 원소가 많고 목표 합이 작은 쪽**, **입력 B 는 원소가 적고 목표 합이 큰 쪽**이다.
  * 거기에 **경계**를 하나 더 잰다 — 목표 합을 1,000 으로 고정하고 원소 수만 19 와 20 으로 둔다.
+ *
+ * **이 셈은 [중간에서 만나기](../../advanced/meetInTheMiddleSubsetSum/meetInTheMiddleSubsetSum-guide.md) 편의 같은 대조와
+ * 같다**(2026-10-01, `KAN-062` 배치 4) — 공집합의 합 0 을 목록마다 하나로 세고, 두 설계 다 답을 찾아도 멈추지 않는다.
+ * 맞추면서 중간에서 만나기 쪽 부분합 목록을 그 편 정본과 같은 순서로 만들게 고쳤고(그전에는 합마다 `[s, s + a]` 를 번갈아
+ * 넣었다), 병합 정렬의 비교 수가 달라져 중간에서 만나기 쪽 기본 연산이 입력 A 7,201,496 → 7,070,199 · 입력 B 20,604 → 20,364 ·
+ * 경계 원소 19 개 15,632 → 15,847 · 원소 20 개 22,008 → 21,571 · 전개 입력 51 → 56 으로 바뀌었다(DP 테이블 쪽은 그대로). 입력 A·B 와 원소 20 개에서는
+ * 중간에서 만나기에, 원소 19 개와 전개 입력에서는 DP 테이블 채우기에 유리해졌고, 우열과 경계(원소 19 · 20 사이)는 그대로다. 입력(생성식
+ * 곱수 · 시드 · 크기)은 바꾸지 않았다 — 곱수가 그 편(7,919 하나)과 다른 것은 입력의 차이라 두었다.
  */
 import type { BenchCase } from "../../../../tools/bench-alt.ts";
 import { subsetSum } from "./subsetSum-guide.ref.ts";
@@ -93,19 +101,20 @@ export function meetInTheMiddle(input: Input): Record<string, number> {
   const half = nums.length >> 1;
   let ops = 0;
 
+  // 목록을 만드는 순서는 중간에서 만나기 편의 정본(`subsetSums`)과 같다 — 앞에서 만든 합 뒤에 그 각각에 새
+  // 원소를 더한 합을 잇는다. 순서가 다르면 같은 값이라도 병합 정렬의 비교 수가 달라진다.
   const sumsOf = (part: number[]): number[] => {
-    let acc: number[] = [0];
-    ops++;
+    const out = new Array<number>(1 << part.length).fill(0);
+    ops++; // 칸 0 — 공집합의 합 0
+    let size = 1;
     for (const a of part) {
-      const next: number[] = [];
-      for (const s of acc) {
-        next.push(s);
-        next.push(s + a);
+      for (let k = 0; k < size; k++) {
+        out[size + k] = (out[k] as number) + a;
         ops++;
       }
-      acc = next;
+      size <<= 1;
     }
-    return acc;
+    return out;
   };
 
   const left = sumsOf(nums.slice(0, half));
