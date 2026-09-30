@@ -4,7 +4,7 @@
  * 원본 `src/algorithms/string/longestPalindrome/longestPalindrome.test.ts` 는 학습자 스텁을
  * 가져오므로 그대로 재사용할 수 없다. **케이스만** 옮겨 정본(`longestPalindrome-guide.ref.ts`)에
  * 다시 건다. 벽시계를 재는 케이스(`n = 100,000` 을 100ms 안에)는 옮기지 않았다 — 실행마다
- * 값이 달라 판정이 안 된다. 같은 규모를 **글자 견주기 횟수**로 재는 자리는 「최악을 만드는
+ * 값이 달라 판정이 안 된다. 같은 규모를 **글자 비교 횟수**로 재는 자리는 「최악을 만드는
  * 입력」이 진다.
  */
 import { expect, test } from "bun:test";
@@ -30,7 +30,7 @@ function bruteBest(s: string): string {
   return best;
 }
 
-/** 견주기 횟수까지 세는 사본. 정본과 같은 절차다. */
+/** 글자 비교 횟수까지 세는 사본. 정본과 같은 절차다. */
 function comparisons(s: string): number {
   if (s.length === 0) return 0;
   const t = `#${[...s].join("#")}#`;
@@ -145,11 +145,27 @@ test("n = 100,000 이 전부 같은 글자면 전체가 답이다", () => {
   expect(got).toBe(s);
 });
 
-test("글자 견주기가 제약 규모에서도 4n − 6 을 넘지 않는다", () => {
+test("글자 비교가 과제 규모에서도 4n − 6 을 넘지 않는다", () => {
   for (const n of [1_000, 10_000, 100_000]) {
     const worst = `a${"b".repeat(n - 2)}a`;
     expect(comparisons(worst)).toBe(4 * n - 6);
     expect(comparisons("a".repeat(n))).toBeLessThanOrEqual(4 * n - 6);
     expect(comparisons("ab".repeat(n / 2))).toBeLessThanOrEqual(4 * n - 6);
   }
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본과 대조한 기록으로 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./longestPalindrome-guide.sim.ts");
+  const { simStepsFromRef, WALK } = await import(
+    "./longestPalindrome-guide.fig.tsx"
+  );
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.palindromeWalk.steps)).toEqual(plain(simStepsFromRef()));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.palindromeWalk.result).toBe(`"${longestPalindrome(WALK)}"`);
 });

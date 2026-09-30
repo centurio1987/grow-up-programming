@@ -3,13 +3,11 @@
  *
  * 값을 여기 적지 않는다 — **정본(`.ref.ts`)을 부르고, 변이는 그 소스에서 기계로 만든다.**
  * 값을 적어 넣으면 대조가 자기 자신과의 대조가 되고, 그때 이 파일은 아무것도 증명하지 않는다.
+ * 자리마다의 상태는 그림 사이드카의 `replay`(정본과 답을 대조한 다시 쓰기)와 `trace`(정본 계측과 대조한
+ * 기록)에서 받고, 셈은 그림 사이드카의 계수기에서 받는다 — 그림과 표가 같은 기록을 쓴다. 판정 줄(「같다」·
+ * 「어긋난다」)이 있는 블록은 중화 실행에서도 값이 나오도록 `trace` 대신 `replay` 를 쓴다.
  *
  *   bun run tools/check-proof.ts src/algorithms/string/longestPalindrome/longestPalindrome-guide.md
- *
- * **계수를 세는 사본이 여럿 있다.** 정본은 몇 번 견줬는지를 내보내지 않으므로, 세는 자리만
- * 덧붙인 사본이 아니면 계수를 낼 방법이 없다. **답이 맞는지는 사본이 아니라 정본이 진다** —
- * 표의 「답」 칸은 전부 정본이나 정본에서 기계로 만든 변이가 낸 값이고, 사본은 계수만 낸다.
- * 사본이 정본과 같은 답을 내는지는 `자기대조()` 가 이 파일을 읽을 때 확인한다.
  *
  * **변이가 아무것도 안 바꾸는지를 검사하는 자리는 중화 실행을 피해 간다.** `check-proof` 가
  * 이 파일을 한 번 더 부를 때는 `loadMutant` 이 정본을 그대로 돌려주므로(중화), 그 상태에서
@@ -17,461 +15,93 @@
  * 모듈의 함수가 정본과 **같은 객체인가**로 알아낸다.
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { josa, 과와, 으로, 은는, 을를 } from "../../../../tools/josa.ts";
+import {
+  ALL_SAME_TEXT,
+  manacherCellsHeld,
+  manacherRun,
+  SWEEP_N,
+  SWEEP_TEXT,
+  treeCellsHeld,
+  treeRun,
+} from "./longestPalindrome-guide.alt.ts";
+import {
+  allSameClosed,
+  BRANCH_NAME,
+  bruteLength,
+  type CarryRule,
+  countBrute,
+  countCenter,
+  countManacher,
+  isPalindrome,
+  LIMIT,
+  num,
+  OPS_PER_SEC,
+  originCounts,
+  type Row,
+  RULE_NAME,
+  replay,
+  SEP,
+  SHAPES,
+  shape,
+  show,
+  trace,
+  WALK,
+  walkRun,
+  walkSteps,
+  widen,
+} from "./longestPalindrome-guide.fig.tsx";
 import { longestPalindrome } from "./longestPalindrome-guide.ref.ts";
-
-/* ────────────────────────── 칸 맞춤 ────────────────────────── */
-
-/** 한글은 고정폭 화면에서 두 칸을 먹는다. 칸 맞춤을 글자 수로 하면 머리줄만 어긋난다. */
-const width = (s: string): number =>
-  [...s].reduce((n, c) => n + (/[ᄀ-ᇿ　-〿㄰-㆏가-힯一-鿿]/.test(c) ? 2 : 1), 0);
-
-const pad = (s: string, to: number): string =>
-  s + " ".repeat(Math.max(0, to - width(s)));
-
-const padLeft = (s: string, to: number): string =>
-  " ".repeat(Math.max(0, to - width(s))) + s;
-
-/** `399,994` 꼴 — 본문 표기와 같다. */
-const comma = (n: number | bigint): string => n.toLocaleString("en-US");
-
-/** 표 한 벌을 칸에 맞춰 낸다. 첫 행이 머리줄이다. */
-function table(rows: string[][], alignRight: number[] = []): string[] {
-  const cols = rows[0]?.length ?? 0;
-  const widths: number[] = [];
-  for (let c = 0; c < cols; c++) {
-    widths.push(Math.max(...rows.map((r) => width(r[c] ?? ""))));
-  }
-  return rows.map((r) =>
-    r
-      .map((cell, c) =>
-        alignRight.includes(c)
-          ? padLeft(cell, widths[c] ?? 0)
-          : pad(cell, widths[c] ?? 0),
-      )
-      .join("  ")
-      .replace(/\s+$/, ""),
-  );
-}
-
-/** 「일곱 자리」 처럼 앞 공백을 달고 돌아오는 수사. 뒤 어미는 붙이지 않는다. */
-const 개수 = (n: number): string => {
-  const 말 = [
-    "영",
-    "하나",
-    "둘",
-    "셋",
-    "넷",
-    "다섯",
-    "여섯",
-    "일곱",
-    "여덟",
-    "아홉",
-    "열",
-  ];
-  return ` ${말[n] ?? comma(n)}`;
-};
-
-/* ────────────────────────── 고정 입력 ────────────────────────── */
-
-/**
- * 본문 전개가 쓰는 문자열. 일곱 글자이고 넓히면 열다섯 자리가 된다.
- *
- * 물려받기의 세 갈래가 한 입력에서 전부 나온다 — 대칭 자리의 값이 그대로 답이 되는 자리,
- * 오른쪽 끝에 잘리는 자리, 오른쪽 끝과 같아서 더 늘어나는 자리. 답은 짝수 길이라 중심이
- * 구분자 자리에 있고, 시작 자리가 0 도 아니라 좌표 되돌리기가 실제로 값을 한다.
- */
-export const WALK_S = "ababbaa";
-
-/** 본문 여러 자리가 함께 쓰는 작은 입력 열. 뒤 넷은 기존 시험이 쓰던 케이스다. */
-export const SMALL: string[] = [
-  WALK_S,
-  "babaaa",
-  "ababbb",
-  "aaaa",
-  "abba",
-  "abcba",
-  "abab",
-  "cbbd",
-  "racecar",
-  "abcde",
-];
-
-/** 문제가 정한 상한. */
-const CONSTRAINT_N = 100_000;
-
-/** 구분자로 쓰는 글자. 정본이 끼우는 것과 같다. */
-const SEP = "#";
-
-/* ────────────────────── 입력을 만드는 생성식 ────────────────────── */
-
-/** 같은 글자만 `n` 개. */
-export const same = (n: number): string => "a".repeat(n);
-
-/** 두 글자를 번갈아 `n` 개. */
-export const alternating = (n: number): string =>
-  Array.from({ length: n }, (_, i) => (i % 2 === 0 ? "a" : "b")).join("");
-
-/** 자리마다 다른 글자 — 알파벳 스물여섯을 돌려 쓴다. */
-export const rolling = (n: number): string =>
-  Array.from({ length: n }, (_, i) => String.fromCharCode(97 + (i % 26))).join(
-    "",
-  );
-
-/** xorshift32 로 만든 문자열. 시드를 고정해 실행마다 같은 값이 나온다. */
-export function pseudo(n: number, sigma: number, seed = 20260908): string {
-  let x = seed >>> 0;
-  let out = "";
-  for (let i = 0; i < n; i++) {
-    x ^= x << 13;
-    x >>>= 0;
-    x ^= x >> 17;
-    x ^= x << 5;
-    x >>>= 0;
-    out += String.fromCharCode(97 + (x % sigma));
-  }
-  return out;
-}
-
-/** 최악을 만드는 계열 — 양 끝만 다른 글자다. */
-export const edgesDiffer = (n: number): string => `a${"b".repeat(n - 2)}a`;
-
-/* ────────────────────── 계수를 세는 사본 ────────────────────── */
-
-/** 자리 하나를 처리한 기록. */
-export interface Row {
-  /** 넓힌 문자열에서의 자리. */
-  i: number;
-  /** 그 자리의 글자. */
-  ch: string;
-  /** 확인해 둔 구간 안이었는가. */
-  inside: boolean;
-  /** 대칭 자리. 구간 밖이면 `null`. */
-  mirror: number | null;
-  /** 대칭 자리의 반지름. 구간 밖이면 `null`. */
-  pMirror: number | null;
-  /** 물려받은 값. 구간 밖이면 `null`. */
-  carried: number | null;
-  /** 물려받기가 어느 갈래였는가. */
-  branch: string;
-  /** 같아서 반지름을 늘린 견주기. */
-  grow: number;
-  /** 달라서 멈춘 견주기. 0 또는 1 이다. */
-  stop: number;
-  /** 이 자리의 반지름. */
-  p: number;
-  /** 자리에 들어올 때의 오른쪽 끝. */
-  rBefore: number;
-  /** 자리를 끝낸 뒤의 기준 자리. */
-  c: number;
-  /** 자리를 끝낸 뒤의 오른쪽 끝. */
-  r: number;
-  /** 자리를 끝낸 뒤의 가장 큰 자리. */
-  best: number;
-  /** 이 걸음이 오른쪽 끝을 옮겼는가. */
-  movedEdge: boolean;
-  /** 이 걸음이 가장 큰 자리를 바꿨는가. */
-  movedBest: boolean;
-}
-
-export interface Counts {
-  ans: string;
-  t: string;
-  m: number;
-  p: number[];
-  rows: Row[];
-  /** 같아서 늘린 견주기. */
-  grow: number;
-  /** 달라서 멈춘 견주기. */
-  stop: number;
-  /** 글자 견주기 총합. */
-  cmp: number;
-  /** 라벨별 실행 횟수. */
-  branchHits: number[];
-}
-
-/** 정본과 같은 절차. 세는 자리만 덧붙였다. */
-export function counted(s: string): Counts {
-  const hits = [0, 0, 0, 0, 0, 0];
-  if (s.length === 0) {
-    return {
-      ans: "",
-      t: "",
-      m: 0,
-      p: [],
-      rows: [],
-      grow: 0,
-      stop: 0,
-      cmp: 0,
-      branchHits: hits,
-    };
-  }
-  const t = `${SEP}${[...s].join(SEP)}${SEP}`;
-  hits[0] = 1;
-  const m = t.length;
-  const p = new Array<number>(m).fill(0);
-  let c = 0;
-  let r = 0;
-  let best = 0;
-  let grow = 0;
-  let stop = 0;
-  const rows: Row[] = [];
-  for (let i = 0; i < m; i++) {
-    const inside = i < r;
-    const rBefore = r;
-    const mirror = inside ? 2 * c - i : null;
-    const pMirror = mirror === null ? null : (p[mirror] as number);
-    let k = inside ? Math.min(r - i, pMirror as number) : 0;
-    const carried = inside ? k : null;
-    let branch: string;
-    if (!inside) branch = "구간 밖";
-    else if ((pMirror as number) < r - i) branch = "대칭 값 그대로";
-    else if ((pMirror as number) > r - i) branch = "오른쪽 끝에 잘림";
-    else branch = "오른쪽 끝과 같음";
-    if (inside) hits[1] = (hits[1] as number) + 1;
-    let g = 0;
-    let f = 0;
-    while (i - k - 1 >= 0 && i + k + 1 < m) {
-      if (t[i - k - 1] !== t[i + k + 1]) {
-        f = 1;
-        break;
-      }
-      k++;
-      g++;
-    }
-    if (g + f > 0) hits[2] = (hits[2] as number) + 1;
-    grow += g;
-    stop += f;
-    p[i] = k;
-    let movedEdge = false;
-    let movedBest = false;
-    if (i + k > r) {
-      c = i;
-      r = i + k;
-      movedEdge = true;
-      hits[3] = (hits[3] as number) + 1;
-    }
-    if (k > (p[best] as number)) {
-      best = i;
-      movedBest = true;
-      hits[4] = (hits[4] as number) + 1;
-    }
-    rows.push({
-      i,
-      ch: t[i] as string,
-      inside,
-      mirror,
-      pMirror,
-      carried,
-      branch,
-      grow: g,
-      stop: f,
-      p: k,
-      rBefore,
-      c,
-      r,
-      best,
-      movedEdge,
-      movedBest,
-    });
-  }
-  hits[5] = 1;
-  const start = (best - (p[best] as number)) / 2;
-  return {
-    ans: s.slice(start, start + (p[best] as number)),
-    t,
-    m,
-    p,
-    rows,
-    grow,
-    stop,
-    cmp: grow + stop,
-    branchHits: hits,
-  };
-}
-
-/** 기록 없이 계수만 낸다. `n` 이 10 만이면 위 사본은 기록이 실행의 대부분이 된다. */
-export function countedLite(s: string): {
-  ans: string;
-  grow: number;
-  stop: number;
-} {
-  if (s.length === 0) return { ans: "", grow: 0, stop: 0 };
-  const t = `${SEP}${[...s].join(SEP)}${SEP}`;
-  const m = t.length;
-  const p = new Array<number>(m).fill(0);
-  let c = 0;
-  let r = 0;
-  let best = 0;
-  let grow = 0;
-  let stop = 0;
-  for (let i = 0; i < m; i++) {
-    let k = i < r ? Math.min(r - i, p[2 * c - i] as number) : 0;
-    while (i - k - 1 >= 0 && i + k + 1 < m) {
-      if (t[i - k - 1] !== t[i + k + 1]) {
-        stop++;
-        break;
-      }
-      k++;
-      grow++;
-    }
-    p[i] = k;
-    if (i + k > r) {
-      c = i;
-      r = i + k;
-    }
-    if (k > (p[best] as number)) best = i;
-  }
-  const start = (best - (p[best] as number)) / 2;
-  return { ans: s.slice(start, start + (p[best] as number)), grow, stop };
-}
-
-/* ────────────────── 견주어 볼 다른 방식 셋 ────────────────── */
-
-/** 방식 A — 부분 문자열을 전부 잘라 회문인지 확인한다. */
-export function allSubstrings(s: string): { ans: string; cmp: number } {
-  const n = s.length;
-  let cmp = 0;
-  let best = "";
-  for (let i = 0; i < n; i++) {
-    for (let j = i; j < n; j++) {
-      let ok = true;
-      for (let a = i, b = j; a < b; a++, b--) {
-        cmp++;
-        if (s[a] !== s[b]) {
-          ok = false;
-          break;
-        }
-      }
-      if (ok && j - i + 1 > best.length) best = s.slice(i, j + 1);
-    }
-  }
-  return { ans: best, cmp };
-}
-
-/** 방식 B — 중심마다 양쪽으로 넓혀 본다. 넓힌 문자열을 쓰지 않는다. */
-export function centerExpand(s: string): { ans: string; cmp: number } {
-  const n = s.length;
-  let cmp = 0;
-  let bestLen = 0;
-  let bestStart = 0;
-  for (let ctr = 0; ctr < 2 * n - 1; ctr++) {
-    let a = ctr >> 1;
-    let b = (ctr >> 1) + (ctr & 1);
-    while (a >= 0 && b < n) {
-      cmp++;
-      if (s[a] !== s[b]) break;
-      a--;
-      b++;
-    }
-    const len = b - a - 1;
-    if (len > bestLen) {
-      bestLen = len;
-      bestStart = a + 1;
-    }
-  }
-  return { ans: s.slice(bestStart, bestStart + bestLen), cmp };
-}
-
-/** 물려받기 방식을 갈아 끼울 수 있는 사본. 정본은 `"둘 중 작은 값"` 과 같다. */
-export type CarryRule =
-  | "안 물려받는다"
-  | "대칭 값 그대로"
-  | "오른쪽 끝까지만"
-  | "둘 중 작은 값";
-
-export function withCarry(
-  s: string,
-  rule: CarryRule,
-): { ans: string; cmp: number } {
-  if (s.length === 0) return { ans: "", cmp: 0 };
-  const t = `${SEP}${[...s].join(SEP)}${SEP}`;
-  const m = t.length;
-  const p = new Array<number>(m).fill(0);
-  let c = 0;
-  let r = 0;
-  let best = 0;
-  let cmp = 0;
-  for (let i = 0; i < m; i++) {
-    let k = 0;
-    if (i < r) {
-      const mirrored = p[2 * c - i] as number;
-      if (rule === "대칭 값 그대로") k = mirrored;
-      else if (rule === "오른쪽 끝까지만") k = r - i;
-      else if (rule === "둘 중 작은 값") k = Math.min(r - i, mirrored);
-    }
-    while (i - k - 1 >= 0 && i + k + 1 < m) {
-      cmp++;
-      if (t[i - k - 1] !== t[i + k + 1]) break;
-      k++;
-    }
-    p[i] = k;
-    if (i + k > r) {
-      c = i;
-      r = i + k;
-    }
-    if (k > (p[best] as number)) best = i;
-  }
-  const start = (best - (p[best] as number)) / 2;
-  return { ans: s.slice(start, start + (p[best] as number)), cmp };
-}
-
-/** 정의를 그대로 옮긴 판정 — 시험과 반례 확인에만 쓴다. */
-export function bruteBest(s: string): string {
-  let best = "";
-  for (let i = 0; i < s.length; i++) {
-    for (let j = i; j < s.length; j++) {
-      const w = s.slice(i, j + 1);
-      let ok = true;
-      for (let a = 0, b = w.length - 1; a < b; a++, b--) {
-        if (w[a] !== w[b]) {
-          ok = false;
-          break;
-        }
-      }
-      if (ok && w.length > best.length) best = w;
-    }
-  }
-  return best;
-}
-
-/* ────────────────────────── 자기대조 ────────────────────────── */
-
-/** 사본이 정본과 같은 답을 내는지 이 파일을 읽을 때 한 번 확인한다. */
-function 자기대조(): void {
-  const inputs = [...SMALL, "a", "aa", "ab", "", same(31), pseudo(120, 3)];
-  for (const s of inputs) {
-    const ref = longestPalindrome(s);
-    if (counted(s).ans !== ref)
-      throw new Error("세는 사본이 정본과 다른 답을 낸다");
-    if (countedLite(s).ans !== ref) {
-      throw new Error("기록 없는 사본이 정본과 다른 답을 낸다");
-    }
-    if (withCarry(s, "둘 중 작은 값").ans !== ref) {
-      throw new Error("물려받기 사본이 정본과 다른 답을 낸다");
-    }
-    if (allSubstrings(s).ans.length !== ref.length) {
-      throw new Error("부분 문자열 전수 사본이 다른 길이를 낸다");
-    }
-    if (centerExpand(s).ans.length !== ref.length) {
-      throw new Error("중심 넓히기 사본이 다른 길이를 낸다");
-    }
-    if (bruteBest(s).length !== ref.length) {
-      throw new Error("정의를 옮긴 판정이 다른 길이를 낸다");
-    }
-  }
-}
-자기대조();
-
-/* ────────────────────────── 변이 ────────────────────────── */
 
 const REF = new URL("./longestPalindrome-guide.ref.ts", import.meta.url)
   .pathname;
+
+/* ────────────────────────── 표 그리기 ────────────────────────── */
+
+/** 마크다운 표. `right` 에 든 열만 오른쪽 정렬이다. */
+function md(
+  head: string[],
+  rows: string[][],
+  right: readonly number[] = [],
+): string {
+  const rule = head.map((_, c) => (right.includes(c) ? "---:" : "---"));
+  const line = (cells: string[]) => `| ${cells.join(" | ")} |`;
+  return [line(head), line(rule), ...rows.map(line)].join("\n");
+}
+
+/** 표와 그 아래 문장 — 닫는 마커까지 대조하는 블록의 몸통. */
+const block = (...parts: string[]): string => parts.join("\n\n");
+
+const quote = (s: string): string => `"${s}"`;
+
+/** 입력 이름 — 전개 입력은 그렇다고 밝힌다. */
+const label = (s: string): string =>
+  s === WALK ? `전개 입력 "${s}"` : quote(s);
+
+/** 1 초에 1 억 번 기준의 초. */
+const secs = (access: number | bigint): string => {
+  const x = Number(access) / OPS_PER_SEC;
+  return x >= 10 ? `${num(Math.round(x))} 초` : `${x.toFixed(3)} 초`;
+};
+
+/** 두 글자 알파벳(a · b)의 길이 `n` 문자열 전부. */
+function* binaryStrings(n: number): Generator<string> {
+  for (let mask = 0; mask < 1 << n; mask++) {
+    let s = "";
+    for (let b = 0; b < n; b++) s += (mask >> b) & 1 ? "b" : "a";
+    yield s;
+  }
+}
+
+const LABELS = ["①", "②", "③", "④", "⑤", "⑥"];
+
+/* ────────────────────────── 변이 ────────────────────────── */
 
 interface Impl {
   longestPalindrome(s: string): string;
 }
 
-/** 물려받은 값을 오른쪽 끝에서 자르지 않는 사본. */
+/** 이어받은 값을 오른쪽 끝에서 자르지 않는 사본. */
 const noClip = await loadMutant<Impl>(REF, {
   swap: [
     /Math\.min\(r - i, p\[2 \* c - i\] as number\)/,
@@ -503,374 +133,706 @@ const noLeadingSep = await loadMutant<Impl>(REF, {
  */
 const 중화됨 = noClip.longestPalindrome === longestPalindrome;
 
-// 하나도 안 갈리면 그 절의 주장이 성립하지 않는다. 실행이 그것을 판정한다.
-// `rightmostTie` 는 여기 넣지 않는다 — **길이는 어느 입력에서도 안 바뀌는 것**이 그 변이의
-// 결론이고, 그 사실 자체를 멈춤 하나가 값으로 보인다.
+/** 본문 여러 자리가 함께 쓰는 작은 입력 열. */
+const SMALL: string[] = [
+  WALK,
+  "babaaa",
+  "ababbb",
+  "aaaa",
+  "abba",
+  "abcba",
+  "abab",
+  "cbbd",
+  "racecar",
+  "abcde",
+];
+
+// 하나도 안 갈리면 그 절의 주장이 성립하지 않는다. 실행이 그것을 판정한다. 반지름이 같을 때 자리를
+// 바꾸는 변이는 여기 넣지 않는다 — 길이가 어느 입력에서도 안 바뀌는 것이 그 변이의 결론이다.
 if (!중화됨) {
-  for (const [label, impl] of [
+  for (const [name, impl] of [
     ["자르지 않는 판", noClip],
     ["앞 구분자를 뺀 판", noLeadingSep],
   ] as [string, Impl][]) {
-    const same2 = SMALL.every(
-      (s) => longestPalindrome(s) === impl.longestPalindrome(s),
-    );
-    if (same2)
-      throw new Error(`${label} 변이가 어느 입력에서도 답을 바꾸지 못했다`);
+    if (SMALL.every((s) => longestPalindrome(s) === impl.longestPalindrome(s)))
+      throw new Error(`${name} 변이가 어느 입력에서도 답을 바꾸지 못했다`);
   }
 }
 
 /**
- * 변이 하나를 작은 입력 열에 걸어 정본과 나란히 놓는다.
- *
- * **「지나간 횟수」 열이 있어야 「같다」 가 뜻을 갖는다.** 그 값이 0 이면 변이가 바꾼 자리를
- * 그 입력이 한 번도 지나가지 않은 것이고, 그때의 「같다」 는 변이가 무해하다는 뜻이 아니다.
+ * 변이 하나를 작은 입력 열에 걸어 정본과 나란히 놓는다. **「지나간 횟수」 열이 있어야 「같다」 가 뜻을
+ * 갖는다.** 그 값이 0 이면 변이가 바꾼 자리를 그 입력이 한 번도 지나가지 않은 것이다.
  */
 function mutantTable(
   head: string,
   impl: Impl,
   passHead: string,
   passes: (s: string) => number,
-): string[] {
+): { table: string; broken: number } {
+  let broken = 0;
   const rows = SMALL.map((s) => {
     const a = longestPalindrome(s);
     const b = impl.longestPalindrome(s);
-    const label = s === WALK_S ? `전개 입력 "${s}"` : `"${s}"`;
+    if (a !== b) broken++;
     return [
-      label,
+      label(s),
       String(passes(s)),
-      `"${a}"`,
-      `"${b}"`,
+      quote(a),
+      quote(b),
       a === b ? "같다" : "어긋난다",
     ];
   });
-  return table([["입력", passHead, "정본", head, "판정"], ...rows], [1]);
+  return {
+    table: md(["입력", passHead, "정본", head, "판정"], rows, [1]),
+    broken,
+  };
 }
 
-/** 물려받은 값이 실제로 남은 칸에 잘린 자리 수 — 자르는 줄이 값을 한 횟수다. */
-function clippedPlaces(s: string): number {
-  return counted(s).rows.filter((row) => row.branch === "오른쪽 끝에 잘림")
-    .length;
-}
+/** 대칭 자리의 반지름이 남은 칸보다 커서 잘린 자리 수 — 자르는 줄이 값을 한 횟수다. */
+const clippedPlaces = (s: string): number =>
+  replay(s).rows.filter((row) => row.branch === "clip").length;
 
 /** 반지름이 지금까지의 최댓값과 같아진 자리 수 — `>` 와 `>=` 가 갈리는 횟수다. */
 function tiedPlaces(s: string): number {
-  const c = counted(s);
+  const r = replay(s);
   let tied = 0;
   let best = 0;
-  for (const row of c.rows) {
-    if (row.p === (c.p[best] as number)) tied++;
-    if (row.p > (c.p[best] as number)) best = row.i;
+  for (const row of r.rows) {
+    if (row.p === (r.p[best] as number)) tied++;
+    if (row.p > (r.p[best] as number)) best = row.i;
   }
   return tied;
 }
 
+/** 이어받는 방식만 바꾼 절차 — 자리마다의 반지름과 오른쪽 끝을 기록한다. 정본과 같은 줄 순서다. */
+function ruleRows(
+  s: string,
+  rule: CarryRule,
+): {
+  p: number[];
+  r: number[];
+  mirror: (number | null)[];
+  carried: (number | null)[];
+  ans: string;
+} {
+  const t = widen(s);
+  const m = t.length;
+  const p = new Array<number>(m).fill(0);
+  const rs: number[] = [];
+  const mirror: (number | null)[] = [];
+  const carried: (number | null)[] = [];
+  let c = 0;
+  let r = 0;
+  let best = 0;
+  for (let i = 0; i < m; i++) {
+    let k = 0;
+    mirror.push(i < r ? 2 * c - i : null);
+    if (i < r) {
+      const pm = p[2 * c - i] as number;
+      k =
+        rule === "mirror"
+          ? pm
+          : rule === "edge"
+            ? r - i
+            : rule === "min"
+              ? Math.min(r - i, pm)
+              : 0;
+    }
+    carried.push(i < r ? k : null);
+    while (i - k - 1 >= 0 && i + k + 1 < m && t[i - k - 1] === t[i + k + 1])
+      k++;
+    p[i] = k;
+    if (i + k > r) {
+      c = i;
+      r = i + k;
+    }
+    rs.push(r);
+    if (k > (p[best] as number)) best = i;
+  }
+  const start = (best - (p[best] as number)) / 2;
+  const ans = s.slice(start, start + (p[best] as number));
+  if (ans !== countManacher(s, rule).ans) {
+    throw new Error("기록하는 사본과 계수기가 다른 답을 냈다");
+  }
+  return { p, r: rs, mirror, carried, ans };
+}
+
 /* ────────────────────────── 블록 ────────────────────────── */
 
-const LABELS = ["①", "②", "③", "④", "⑤", "⑥"];
-
 export const PROOFS: Record<string, () => string> = {
-  /** concept — 넓힌 문자열의 자리마다 반지름이 얼마이고 답이 어디서 나오는가. */
-  "concept-radius": () => {
-    const c = counted(WALK_S);
-    const rows = c.rows.map((row) => {
-      const start = (row.i - row.p) / 2;
-      return [
-        String(row.i),
-        row.ch,
-        String(row.p),
-        row.p === 0 ? "없다" : `"${WALK_S.slice(start, start + row.p)}"`,
-        row.p === 0 ? "-" : String(start),
-      ];
-    });
-    return [
-      `s = "${WALK_S}"  ·  t = "${c.t}"  ·  m = ${c.m}`,
-      "",
-      ...table(
+  /* ── 전체 컨셉 ── */
+
+  "concept-cost": () => {
+    const o = originCounts();
+    const walkB = countBrute(WALK).access;
+    const walkC = countCenter(WALK).access;
+    const walkM = countManacher(WALK).access;
+    const sameM = countManacher(ALL_SAME_TEXT).access;
+    const ratio = Math.round(Number(o.closed.center) / sameM);
+    return block(
+      md(
+        ["방법", `전개 입력 "${WALK}"`, `전부 같은 글자 n = ${num(LIMIT)}`],
         [
-          ["t 의 자리", "글자", "반지름", "s 에서의 회문", "시작 자리"],
-          ...rows,
+          ["부분 문자열 전부 확인하기", num(walkB), num(o.closed.brute)],
+          ["한가운데에서 넓히기", num(walkC), num(o.closed.center)],
+          ["매내처 알고리즘", num(walkM), num(sameM)],
         ],
-        [0, 2, 4],
+        [1, 2],
       ),
-      "",
-      `반지름이 가장 큰 자리는 ${c.rows.reduce((a, b) => (b.p > a.p ? b : a)).i} 이고 답은 "${c.ans}" 다`,
-    ].join("\n");
+      `셋 다 자료 접근 횟수입니다. 전부 같은 글자 ${num(LIMIT)} 개에서 앞의 두 줄은 식으로 낸 값이고(작은 n 에서 실제로 센 값과 같습니다), 마지막 줄은 실행한 값입니다. 한가운데에서 넓히기와 매내처 알고리즘의 차이는 ${num(ratio)} 배입니다.`,
+    );
   },
 
-  /** concept — 아무 기법 없이 풀면 제약 규모에서 몇 번인가. */
-  "concept-naive": () => {
-    const rows = [8, 16, 100, 1_000].map((n) => {
-      const s = same(n);
-      return [
-        comma(n),
-        comma(allSubstrings(s).cmp),
-        comma(centerExpand(s).cmp),
-        comma(countedLite(s).grow + countedLite(s).stop),
-      ];
+  /* ── 아이디어를 떠올리는 과정 ── */
+
+  "origin-naive-cost": () => {
+    const rows = [100, 1_000].map((n) => {
+      const a = countBrute("a".repeat(n)).access;
+      return [num(n), num(a), secs(a)];
     });
-    // 제약 규모는 닫힌 형태로 낸다 — 부분 문자열 전수를 10 만에 실제로 돌리는 값이 아니다.
-    const N = BigInt(CONSTRAINT_N);
-    let allSub = 0n;
-    for (let L = 1n; L <= N; L++) allSub += (N - L + 1n) * (L / 2n);
-    const center = (N * (N + 1n)) / 2n;
-    return [
-      ...table(
-        [
-          [
-            "n (같은 글자만)",
-            "부분 문자열 전수",
-            "중심 넓히기",
-            "이 글의 방법",
-          ],
-          ...rows,
-        ],
-        [0, 1, 2, 3],
-      ),
-      "",
-      ...table(
-        [
-          ["제약 최댓값 n = 100,000 에서", "글자 견주기"],
-          ["부분 문자열 전수", comma(allSub)],
-          ["중심 넓히기", comma(center)],
-          ["이 글의 방법", comma(4 * CONSTRAINT_N - 6)],
-        ],
-        [1],
-      ),
-      "",
-      "1 초 안에 끝나는 규모는 셋째 줄뿐이다",
-    ].join("\n");
+    const big = allSameClosed(LIMIT).brute;
+    rows.push([num(LIMIT), num(big), secs(big)]);
+    return block(
+      md(["n", "자료 접근", "초당 1 억 번 기준 시간"], rows, [0, 1, 2]),
+      `전부 같은 글자에서 셌습니다. n = ${num(LIMIT)}${은는(num(LIMIT))} 실행하지 않고 식으로 낸 값이고, 그 식은 n = 300 까지 실제로 센 값과 같습니다.`,
+    );
   },
 
-  /** deep.build ④ — 같은 입력을 두 방식으로 처리하고 계수를 나란히 놓는다. */
-  "build-two-ways": () => {
-    const inputs: [string, string][] = [
-      [`전개 입력 "${WALK_S}"`, WALK_S],
-      ['"aaaa"', "aaaa"],
-      ['"abcde"', "abcde"],
-      ['"racecar"', "racecar"],
-      ["같은 글자 n = 100", same(100)],
-      ["번갈이 n = 100", alternating(100)],
-      ["다른 글자 n = 100", rolling(100)],
-    ];
-    const rows = inputs.map(([label, s]) => {
-      const a = allSubstrings(s);
-      const b = centerExpand(s);
-      return [
-        label,
-        comma(a.cmp),
-        comma(b.cmp),
-        `${(a.cmp / Math.max(1, b.cmp)).toFixed(1)} 배`,
-        a.ans.length === b.ans.length ? "같다" : "어긋난다",
-      ];
-    });
-    return table(
-      [
-        ["입력", "부분 문자열 전수", "중심 넓히기", "몇 배", "두 답의 길이"],
-        ...rows,
-      ],
-      [1, 2, 3],
-    ).join("\n");
-  },
-
-  /** deep.build ④ — 중심 넓히기도 왜 부족한가. */
-  "build-center-blowup": () => {
-    const rows = [10, 100, 1_000, 10_000].map((n) => {
-      const s = same(n);
-      const b = centerExpand(s);
-      return [comma(n), comma(b.cmp), comma((n * (n + 1)) / 2)];
-    });
-    return [
-      ...table(
-        [["n (같은 글자만)", "중심 넓히기의 글자 견주기", "n(n+1)/2"], ...rows],
-        [0, 1, 2],
-      ),
-      "",
-      `두 열이 자리마다 같다 — 중심 넓히기의 최악은 정확히 n(n+1)/2 이고`,
-      `n = ${comma(CONSTRAINT_N)} 이면 ${comma((CONSTRAINT_N * (CONSTRAINT_N + 1)) / 2)} 번이다`,
-    ].join("\n");
-  },
-
-  /** deep.build ⑥ — 물려받기 방식 넷을 실제로 갈아 끼워 잰다. */
-  "build-carry-rules": () => {
-    const inputs: [string, string][] = [
-      [`전개 입력 "${WALK_S}"`, WALK_S],
-      ['"abab"', "abab"],
-      ["같은 글자 n = 1,000", same(1_000)],
-      ["번갈이 n = 1,000", alternating(1_000)],
-      ["무작위 두 글자 n = 1,000", pseudo(1_000, 2)],
-      ["무작위 스물여섯 글자 n = 1,000", pseudo(1_000, 26)],
-    ];
-    const rules: CarryRule[] = [
-      "안 물려받는다",
-      "대칭 값 그대로",
-      "오른쪽 끝까지만",
-      "둘 중 작은 값",
-    ];
-    const rows: string[][] = [];
-    for (const [label, s] of inputs) {
-      const ref = longestPalindrome(s).length;
-      for (const rule of rules) {
-        const got = withCarry(s, rule);
-        rows.push([
-          label,
-          rule,
-          got.ans.length === ref ? "예" : "아니오",
-          comma(got.cmp),
-        ]);
+  "origin-recheck": () => {
+    const s = "aaaa";
+    const n = s.length;
+    const hits = new Map<string, string[]>();
+    for (let i = 0; i < n; i++) {
+      for (let j = i; j < n; j++) {
+        for (let a = i, b = j; a < b; a++, b--) {
+          const key = `(${a}, ${b})`;
+          const list = hits.get(key) ?? [];
+          list.push(`[${i},${j}]`);
+          hits.set(key, list);
+          if (s[a] !== s[b]) break;
+        }
       }
     }
-    return table(
-      [["입력", "물려받기 방식", "답의 길이가 맞는가", "글자 견주기"], ...rows],
-      [3],
-    ).join("\n");
+    const rows = [...hits.entries()].map(([pair, pieces]) => [
+      pair,
+      String(pieces.length),
+      pieces.join(" · "),
+    ]);
+    const total = [...hits.values()].reduce((x, l) => x + l.length, 0);
+    const again = [...hits.values()].reduce((x, l) => x + l.length - 1, 0);
+    if (total !== countBrute(s).cmp) {
+      throw new Error("맞댄 횟수가 계수기와 다르다");
+    }
+    return block(
+      md(["맞댄 두 자리", "맞댄 횟수", "그 짝을 맞댄 조각"], rows, [1]),
+      `"${s}" 에서 글자를 모두 ${total} 번 맞댔고, 그중 ${again} 번은 앞의 짧은 조각에서 이미 맞댄 짝을 다시 맞댄 것입니다.`,
+    );
   },
 
-  /** deep.build ⑥ — 전개 입력에서 자리마다 무엇을 물려받았는가. */
+  "origin-dp-cells": () => {
+    const rows = [1_000, LIMIT].map((n) => {
+      const cells = (n * (n + 1)) / 2;
+      return [num(n), num(cells), `${num(Math.round(cells / 1e6))} MB`];
+    });
+    return block(
+      md(
+        [
+          "n",
+          "판정 DP 테이블의 칸 n(n+1)/2",
+          "칸 하나를 1 바이트로 잡은 메모리",
+        ],
+        rows,
+        [0, 1, 2],
+      ),
+      `n = ${num(LIMIT)} 이면 칸 하나를 1 바이트로 잡아도 흔한 예산 256 MB 의 ${num(Math.round((LIMIT * (LIMIT + 1)) / 2 / 256e6))} 배쯤입니다.`,
+    );
+  },
+
+  "origin-two-ways": () => {
+    const inputs: [string, string][] = [
+      [label(WALK), WALK],
+      [quote("aaaa"), "aaaa"],
+      [quote("abcde"), "abcde"],
+      [quote("racecar"), "racecar"],
+      ["전부 같은 글자 n = 100", shape("전부 같은 글자", 100)],
+      ["두 글자 번갈이 n = 100", shape("두 글자 번갈이", 100)],
+      ["글자 26 개 되풀이 n = 100", shape("글자 26 개 되풀이", 100)],
+    ];
+    const rows = inputs.map(([name, s]) => {
+      const a = countBrute(s);
+      const b = countCenter(s);
+      return [
+        name,
+        num(a.access),
+        num(b.access),
+        `${(a.access / b.access).toFixed(1)} 배`,
+        a.ans.length === b.ans.length ? "같다" : "다르다",
+      ];
+    });
+    return block(
+      md(
+        [
+          "입력",
+          "부분 문자열 전부 확인하기",
+          "한가운데에서 넓히기",
+          "앞 열 ÷ 뒤 열",
+          "두 답의 길이",
+        ],
+        rows,
+        [1, 2, 3],
+      ),
+      "둘째 · 셋째 열이 자료 접근 횟수이고, 넷째 열이 그 비입니다.",
+    );
+  },
+
+  "origin-center-blowup": () => {
+    const rows = [10, 100, 1_000, 10_000].map((n) => {
+      const got = countCenter("a".repeat(n)).access;
+      return [num(n), num(got), num(n * (n + 2)), secs(got)];
+    });
+    const big = allSameClosed(LIMIT).center;
+    rows.push([num(LIMIT), "—", num(big), secs(big)]);
+    return block(
+      md(
+        ["n", "실제로 센 자료 접근", "n(n + 2)", "초당 1 억 번 기준 시간"],
+        rows,
+        [0, 1, 2, 3],
+      ),
+      `전부 같은 글자에서 실제로 센 값이 n(n + 2) 와 자리마다 같습니다. n = ${num(LIMIT)}${은는(num(LIMIT))} 그 식으로 낸 값입니다.`,
+    );
+  },
+
+  "origin-reexpand": () => {
+    const s = "aaaaaaa";
+    const r = replay(s);
+    const none = ruleRows(s, "none");
+    let same = 0;
+    let inside = 0;
+    const rows = r.rows
+      .filter((row) => row.inside)
+      .map((row) => {
+        inside++;
+        const pm = row.pMirror as number;
+        const fresh = countOne(s, row.i);
+        if (pm === row.p) same++;
+        return [
+          String(row.i),
+          `[${row.cIn - (r.p[row.cIn] as number)},${row.rIn}]`,
+          String(row.mirror),
+          String(pm),
+          String(none.p[row.i]),
+          String(fresh),
+        ];
+      });
+    return block(
+      md(
+        [
+          "t 의 자리",
+          "들어올 때 가장 오른쪽 회문",
+          "대칭 자리",
+          "대칭 자리의 반지름",
+          "처음부터 넓힌 반지름",
+          "처음부터 넓힐 때의 글자 비교",
+        ],
+        rows,
+        [0, 2, 3, 4, 5],
+      ),
+      `"${s}" 를 넓힌 문자열에서 가장 오른쪽 회문 안에 든 자리가 ${inside} 곳이고, 그중 ${same} 곳에서 대칭 자리의 반지름이 처음부터 넓힌 반지름과 같습니다.`,
+    );
+  },
+
+  "origin-mirror-wrong": () => {
+    const good = ruleRows(WALK, "min");
+    const bad = ruleRows(WALK, "mirror");
+    const rows: string[][] = [];
+    let first = -1;
+    for (let i = 0; i < good.p.length; i++) {
+      const mirror = bad.mirror[i] ?? null;
+      if (mirror === null && good.p[i] === bad.p[i]) continue;
+      if (first < 0 && good.p[i] !== bad.p[i]) first = i;
+      rows.push([
+        String(i),
+        mirror === null ? "—" : String(mirror),
+        String(bad.p[i]),
+        String(good.p[i]),
+        good.p[i] === bad.p[i] ? "맞다" : "틀리다",
+      ]);
+    }
+    if (!중화됨 && noClip.longestPalindrome(WALK) !== bad.ans) {
+      throw new Error("대칭 값 그대로 이어받는 사본이 변이와 다른 답을 낸다");
+    }
+    return block(
+      md(
+        [
+          "t 의 자리",
+          "대칭 자리",
+          "대칭 값 그대로 적은 반지름",
+          "진짜 반지름",
+          "적은 반지름",
+        ],
+        rows,
+        [0, 1, 2, 3],
+      ),
+      `대칭 값을 그대로 이어받으면 답이 "${bad.ans}" 가 되고, 바른 답은 "${good.ans}" 입니다. 처음 틀리는 곳은 자리 ${first} 입니다.`,
+    );
+  },
+
+  /* ── 아이디어 상세 ── */
+
+  "build-read-one": () => {
+    const r = walkRun();
+    const i = r.best;
+    const k = r.p[i] as number;
+    const start = (i - k) / 2;
+    return [
+      `p[${i}] = ${k}`,
+      `  덮는 t 의 자리   ${i} − ${k} = ${i - k} 부터 ${i} + ${k} = ${i + k} 까지 — ${r.t.slice(i - k, i + k + 1)}`,
+      `  그 안의 글자     홀수 자리 ${Array.from({ length: k }, (_, x) => i - k + 1 + 2 * x).join(" · ")} — ${k} 개`,
+      `  s 에서의 조각    시작 자리 (${i} − ${k}) / 2 = ${start} · 길이 ${k} — ${WALK.slice(start, start + k)}`,
+    ].join("\n");
+  },
+
+  "build-neighbors": () => {
+    const r = walkRun();
+    const c = r.best;
+    const pc = r.p[c] as number;
+    const lo = c - pc;
+    const rows: string[][] = [];
+    let same = 0;
+    let within = 0;
+    for (let d = 1; d <= pc; d++) {
+      const a = c - d;
+      const b = c + d;
+      const pa = r.p[a] as number;
+      const pb = r.p[b] as number;
+      const inside = a - pa > lo;
+      if (inside) within++;
+      if (pa === pb) same++;
+      rows.push([
+        String(d),
+        `p[${a}] = ${pa}`,
+        `p[${b}] = ${pb}`,
+        inside
+          ? `[${lo},${c + pc}] 안`
+          : `[${lo},${c + pc}] 의 끝까지 가거나 밖`,
+        pa === pb ? "같다" : "다르다",
+      ]);
+    }
+    return block(
+      md(
+        [
+          "거리 d",
+          `왼쪽 자리 ${c} − d`,
+          `오른쪽 자리 ${c} + d`,
+          "왼쪽 회문의 자리",
+          "두 반지름",
+        ],
+        rows,
+        [0],
+      ),
+      `왼쪽 회문이 구간 안에 통째로 든 ${within} 곳에서는 두 반지름이 모두 같고, 두 반지름이 같은 곳은 모두 ${same} 곳입니다.`,
+    );
+  },
+
+  "build-two-arrays": () => {
+    const n = WALK.length;
+    const r = walkRun();
+    // 넓히지 않고 잰 두 배열 — 글자 위 한가운데의 회문 길이, 글자 j − 1 과 j 사이의 회문 길이.
+    const oddLen = (j: number): number => {
+      let a = j;
+      let b = j;
+      while (a - 1 >= 0 && b + 1 < n && WALK[a - 1] === WALK[b + 1]) {
+        a--;
+        b++;
+      }
+      return b - a + 1;
+    };
+    const evenLen = (j: number): number => {
+      let a = j - 1;
+      let b = j;
+      while (a >= 0 && b < n && WALK[a] === WALK[b]) {
+        a--;
+        b++;
+      }
+      return b - a - 1;
+    };
+    const rows: string[][] = [];
+    let agree = 0;
+    for (let j = 0; j <= n; j++) {
+      const odd = j < n ? oddLen(j) : null;
+      const even = j > 0 && j < n ? evenLen(j) : null;
+      const pOdd = j < n ? (r.p[2 * j + 1] as number) : null;
+      const pEven = r.p[2 * j] as number;
+      if (odd === pOdd) agree++;
+      if ((even ?? 0) === pEven) agree++;
+      rows.push([
+        String(j),
+        odd === null ? "—" : String(odd),
+        pOdd === null ? "—" : `p[${2 * j + 1}] = ${pOdd}`,
+        even === null ? "끝" : String(even),
+        `p[${2 * j}] = ${pEven}`,
+      ]);
+    }
+    return block(
+      md(
+        [
+          "j",
+          "글자 j 위 회문 길이",
+          "p 의 홀수 자리",
+          "글자 j 앞 사이 회문 길이",
+          "p 의 짝수 자리",
+        ],
+        rows,
+        [0, 1, 3],
+      ),
+      `넓히지 않고 두 배열로 잰 길이와 p 의 값이 ${agree} 칸 모두에서 같습니다. 양 끝의 빈 자리 둘은 p 가 0 입니다.`,
+    );
+  },
+
+  "build-widen": () => {
+    const r = walkRun();
+    const n = WALK.length;
+    const js = Array.from({ length: n }, (_, j) => j);
+    return block(
+      md(
+        ["s 의 글자 j", ...js.map(String)],
+        [
+          ["글자", ...js.map((j) => WALK[j] as string)],
+          ["t 의 자리 2j + 1", ...js.map((j) => String(2 * j + 1))],
+        ],
+        js.map((j) => j + 1),
+      ),
+      `넓힌 문자열은 t = "${r.t}" 이고 m = 2 × ${n} + 1 = ${r.m} 입니다. 원래 글자 ${n} 개가 모두 홀수 자리에 있습니다.`,
+    );
+  },
+
+  "build-edge": () => {
+    const r = walkRun();
+    let moved = 0;
+    let shrank = 0;
+    for (const row of r.rows) if (row.movedEdge) moved++;
+    const rows = r.rows.map((row) => [
+      String(row.i),
+      String(row.p),
+      String(row.i + row.p),
+      String(row.rIn),
+      row.movedEdge ? `옮긴다 → c = ${row.c}` : "그대로",
+      String(row.r),
+    ]);
+    for (const row of r.rows) if (row.r < row.rIn) shrank++;
+    return block(
+      md(
+        [
+          "t 의 자리 i",
+          "p[i]",
+          "i + p[i]",
+          "들어올 때 r",
+          "c 와 r",
+          "나갈 때 r",
+        ],
+        rows,
+        [0, 1, 2, 3, 5],
+      ),
+      `자리 ${r.m} 개에서 오른쪽 끝을 옮긴 것은 ${moved} 번이고, r 이 줄어든 자리는 ${shrank} 곳입니다.`,
+    );
+  },
+
   "build-carry-detail": () => {
-    const c = counted(WALK_S);
-    const rows = c.rows
+    const r = walkRun();
+    const rows = r.rows
       .filter((row) => row.inside)
       .map((row) => [
         String(row.i),
         String(row.mirror),
         String(row.pMirror),
-        String(row.rBefore - row.i),
+        String(row.rIn - row.i),
         String(row.carried),
-        row.branch,
+        BRANCH_NAME[row.branch],
         String(row.grow),
         String(row.p),
       ]);
-    return [
-      `s = "${WALK_S}"  ·  t = "${c.t}"`,
-      "",
-      ...table(
+    const over = r.rows.filter(
+      (row) => row.inside && (row.carried as number) > row.p,
+    ).length;
+    return block(
+      md(
         [
-          [
-            "자리",
-            "대칭 자리",
-            "대칭 반지름",
-            "남은 칸",
-            "물려받은 값",
-            "갈래",
-            "늘린 횟수",
-            "반지름",
-          ],
-          ...rows,
+          "t 의 자리 i",
+          "대칭 자리 2c − i",
+          "대칭 자리의 반지름",
+          "남은 칸 r − i",
+          "이어받은 값",
+          "갈래",
+          "더 늘린 칸",
+          "p[i]",
         ],
+        rows,
         [0, 1, 2, 3, 4, 6, 7],
       ),
-      "",
-      `구간 안에서 처리한 자리${개수(rows.length)} · 물려받은 값이 진짜 반지름을 넘은 자리 0`,
-    ].join("\n");
+      `구간 안에서 시작한 자리가 ${rows.length} 곳이고, 이어받은 값이 진짜 반지름을 넘은 자리는 ${over} 곳입니다.`,
+    );
   },
 
-  /** deep.walk — 고정 입력을 걸음마다 펼친다. */
-  "walk-trace": () => {
-    const c = counted(WALK_S);
-    const head = [
-      "걸음",
-      "자리",
-      "글자",
-      "라벨",
-      "대칭 자리",
-      "물려받은 값",
-      "늘림",
-      "멈춤",
-      "반지름",
-      "기준 자리",
-      "오른쪽 끝",
-      "가장 큰 자리",
-    ];
-    const rows: string[][] = [
-      ["T1", "-", "-", "①", "-", "-", "0", "0", "-", "0", "0", "0"],
-    ];
-    for (const row of c.rows) {
-      const labels: string[] = [];
-      if (row.inside) labels.push(LABELS[1] as string);
-      if (row.grow + row.stop > 0) labels.push(LABELS[2] as string);
-      if (row.movedEdge) labels.push(LABELS[3] as string);
-      if (row.movedBest) labels.push(LABELS[4] as string);
-      rows.push([
-        `T${row.i + 2}`,
+  "build-extend": () => {
+    const r = walkRun();
+    const t = r.t;
+    const why = {
+      differ: "글자가 다르다",
+      left: "왼쪽 끝",
+      right: "오른쪽 끝",
+    };
+    let total = 0;
+    const rows = r.rows.map((row) => {
+      // 이어받지 않고 0 에서 넓힌다 — 2단계만 있는 절차다.
+      let k = 0;
+      let cmp = 0;
+      let stop: keyof typeof why = "left";
+      for (;;) {
+        if (row.i - k - 1 < 0) {
+          stop = "left";
+          break;
+        }
+        if (row.i + k + 1 >= r.m) {
+          stop = "right";
+          break;
+        }
+        cmp++;
+        if (t[row.i - k - 1] !== t[row.i + k + 1]) {
+          stop = "differ";
+          break;
+        }
+        k++;
+      }
+      if (k !== row.p) throw new Error("0 에서 넓힌 반지름이 정본과 다르다");
+      total += cmp;
+      return [String(row.i), row.ch, String(k), why[stop], String(cmp)];
+    });
+    return block(
+      md(
+        ["t 의 자리 i", "글자", "p[i]", "멈춘 까닭", "글자 비교"],
+        rows,
+        [0, 2, 4],
+      ),
+      `자리마다 0 에서 넓히면 글자 비교가 모두 ${total} 번입니다. 반지름 이어받기를 더한 정본은 같은 반지름을 ${r.grow + r.stop} 번 비교해 적습니다.`,
+    );
+  },
+
+  "build-beyond": () => {
+    const r = walkRun();
+    const why = {
+      differ: "글자가 다르다",
+      left: "왼쪽 끝",
+      right: "오른쪽 끝",
+    };
+    const rows = r.rows
+      .filter((row) => row.grow > 0)
+      .map((row) => [
         String(row.i),
-        row.ch,
-        labels.length === 0 ? "-" : labels.join(""),
-        row.mirror === null ? "-" : String(row.mirror),
-        row.carried === null ? "-" : String(row.carried),
+        row.carried === null ? "0 (구간 밖)" : String(row.carried),
         String(row.grow),
-        String(row.stop),
+        why[row.why],
         String(row.p),
-        String(row.c),
-        String(row.r),
-        String(row.best),
+        `${row.rIn} → ${row.r}`,
       ]);
-    }
-    const last = c.rows[c.rows.length - 1] as Row;
-    rows.push([
-      `T${c.m + 2}`,
-      "-",
-      "-",
-      "⑥",
-      "-",
-      "-",
-      "0",
-      "0",
-      "-",
-      String(last.c),
-      String(last.r),
-      String(last.best),
-    ]);
-    return [
-      `s = "${WALK_S}"  ·  t = "${c.t}"  ·  m = ${c.m}`,
-      "",
-      ...table(
-        rows.length > 0 ? [head, ...rows] : [head],
-        [1, 4, 5, 6, 7, 8, 9, 10, 11],
+    return block(
+      md(
+        ["t 의 자리 i", "시작값", "더 늘린 칸", "멈춘 까닭", "p[i]", "r"],
+        rows,
+        [0, 2, 4],
       ),
-      "",
-      `늘린 견주기 ${c.grow} · 멈춘 견주기 ${c.stop} · 글자 견주기 ${c.cmp}`,
-      `답 "${c.ans}" — 자리 ${(c.rows.reduce((a, b) => (b.p > a.p ? b : a)) as Row).i} 에서 시작 자리 ${((c.rows.reduce((a, b) => (b.p > a.p ? b : a)) as Row).i - (c.rows.reduce((a, b) => (b.p > a.p ? b : a)) as Row).p) / 2} 로 되돌렸다`,
-    ].join("\n");
+      `반지름을 한 칸이라도 늘린 자리가 ${rows.length} 곳이고, 그 ${rows.length} 곳 모두에서 r 이 앞으로 갔습니다.`,
+    );
   },
 
-  /** deep.walk — 여섯 갈래가 전부 실행됐는가. */
-  "walk-coverage": () => {
-    const names = [
-      "자리를 넓혀 t 를 만든다",
-      "구간 안이면 값을 물려받는다",
-      "한 칸씩 늘려 본다",
-      "오른쪽 끝을 더 멀리 옮긴다",
-      "가장 큰 자리를 바꾼다",
-      "원래 자리로 되돌려 잘라 낸다",
-    ];
-    const a = counted(WALK_S);
-    const b = counted("racecar");
-    const rows = names.map((name, idx) => [
-      LABELS[idx] as string,
-      name,
-      String(a.branchHits[idx]),
-      String(b.branchHits[idx]),
-    ]);
-    return [
-      ...table(
+  "build-restore": () => {
+    const r = walkRun();
+    const rows = r.rows
+      .filter((row) => row.p > 0)
+      .map((row) => {
+        const start = (row.i - row.p) / 2;
+        return [
+          String(row.i),
+          String(row.p),
+          String(row.i - row.p),
+          String(start),
+          WALK.slice(start, start + row.p),
+          row.i % 2 === 0 ? "짝수" : "홀수",
+        ];
+      });
+    const len = r.p[r.best] as number;
+    return block(
+      md(
         [
-          ["라벨", "그 갈래가 맡은 일", `전개 입력 "${WALK_S}"`, '"racecar"'],
-          ...rows,
+          "t 의 자리 i",
+          "p[i]",
+          "i − p[i]",
+          "시작 자리 (i − p[i]) / 2",
+          "s 에서의 조각",
+          "조각 길이의 홀짝",
         ],
-        [2, 3],
+        rows,
+        [0, 1, 2, 3],
       ),
+      `셋째 열이 ${rows.length} 줄 모두 짝수라 넷째 열이 정수로 나옵니다. 가장 긴 자리는 ${r.best} 이고, 시작 자리 ${(r.best - len) / 2} 에서 ${len} 글자를 잘라 "${r.ans}" 가 나옵니다.`,
+    );
+  },
+
+  "build-carry-rules": () => {
+    const inputs: [string, string][] = [
+      [label(WALK), WALK],
+      [quote("abab"), "abab"],
+      ["전부 같은 글자 n = 1,000", shape("전부 같은 글자", 1_000)],
+      ["두 글자 번갈이 n = 1,000", shape("두 글자 번갈이", 1_000)],
+      ["무작위 두 글자 n = 1,000", shape("무작위 두 글자", 1_000)],
+      ["무작위 26 글자 n = 1,000", shape("무작위 26 글자", 1_000)],
+    ];
+    const rules: CarryRule[] = ["none", "mirror", "edge", "min"];
+    const rows: string[][] = [];
+    const wrong = new Map<CarryRule, number>();
+    for (const [name, s] of inputs) {
+      const want = longestPalindrome(s).length;
+      for (const rule of rules) {
+        const got = countManacher(s, rule);
+        const ok = got.ans.length === want && isPalindrome(got.ans);
+        if (!ok) wrong.set(rule, (wrong.get(rule) ?? 0) + 1);
+        rows.push([
+          name,
+          RULE_NAME[rule],
+          ok ? "예" : "아니오",
+          num(got.access),
+        ]);
+      }
+    }
+    return block(
+      md(
+        ["입력", "이어받는 방식", "정의대로 잰 답과의 일치", "자료 접근"],
+        rows,
+        [3],
+      ),
+      `입력 ${inputs.length} 벌에서 답이 틀린 벌 수는 ${rules.map((rule) => `「${RULE_NAME[rule]}」 ${wrong.get(rule) ?? 0} 벌`).join(", ")}입니다.`,
+    );
+  },
+
+  /* ── 수행으로 알아보는 알고리즘 ── */
+
+  "walk-input": () =>
+    [
+      `const s = "${WALK}";`,
+      `// 이 절이 끝나면 "${longestPalindrome(WALK)}" 가 나와야 한다`,
+    ].join("\n"),
+
+  "walk-widen": () => {
+    const r = walkRun();
+    return [
+      `s = "${WALK}"  ·  n = ${WALK.length}`,
       "",
-      `여섯 줄 어디에도 0 이 없다 — 0 인 줄이 ${rows.filter((r) => r[2] === "0" || r[3] === "0").length} 개다`,
+      `t  ${[...r.t].map((ch) => ch.padStart(2)).join(" ")}`,
+      `   ${Array.from({ length: r.m }, (_, i) => String(i).padStart(2)).join(" ")}`,
+      "",
+      `m = ${r.m} = 2 × ${WALK.length} + 1`,
     ].join("\n");
   },
 
-  /** 멈춤 — 물려받은 값을 자르지 않으면. */
-  "pause-noclip": () =>
-    mutantTable("자르지 않는 판", noClip, "잘린 자리", clippedPlaces).join(
-      "\n",
-    ),
-
-  /** 멈춤 — 구분자로 쓴 글자가 입력에 있어도. */
   "pause-separator": () => {
     const alphabet = ["a", SEP, "b"];
     let checked = 0;
@@ -885,49 +847,258 @@ export const PROOFS: Record<string, () => string> = {
           x = Math.floor(x / alphabet.length);
         }
         checked++;
-        if (longestPalindrome(s).length !== bruteBest(s).length) wrong++;
+        if (longestPalindrome(s).length !== bruteLength(s)) wrong++;
       }
     }
     const cases = ["a#a", "#a#", "a##a", "#ab#", "##", "b#a#b"];
     const rows = cases.map((s) => {
       const got = longestPalindrome(s);
-      const want = bruteBest(s);
+      const want = bruteLength(s);
       return [
-        `"${s}"`,
-        `"${`${SEP}${[...s].join(SEP)}${SEP}`}"`,
-        `"${got}"`,
-        `"${want}"`,
-        got.length === want.length ? "같다" : "어긋난다",
+        quote(s),
+        quote(widen(s)),
+        quote(got),
+        String(want),
+        got.length === want ? "같다" : "다르다",
       ];
     });
-    return [
-      ...table([
-        ["입력", "넓힌 문자열", "정본", "정의를 옮긴 판정", "판정"],
-        ...rows,
-      ]),
-      "",
-      `알파벳 {a, ${SEP}, b} 의 길이 1~9 문자열 ${comma(checked)} 벌 전수 · 길이가 어긋난 벌 ${wrong}`,
-    ].join("\n");
+    return block(
+      md(
+        ["입력", "넓힌 문자열", "정본의 답", "정의대로 잰 길이", "두 길이"],
+        rows,
+      ),
+      `알파벳 {a, ${SEP}, b} 의 길이 1~9 문자열 ${num(checked)} 벌을 전부 실행했고, 길이가 다른 벌은 ${wrong} 벌입니다.`,
+    );
   },
 
-  /** 멈춤 — 반지름이 같을 때 어느 자리를 남기는가. */
+  "walk-edge": () => {
+    const r = walkRun();
+    const rows = r.rows
+      .slice(0, 4)
+      .map((row) => [
+        String(row.i),
+        String(row.p),
+        `${row.i + row.p} > ${row.rIn}${josa(row.rIn, "이", "가")} ${row.movedEdge ? "참" : "거짓"}`,
+        `c = ${row.c} · r = ${row.r}`,
+      ]);
+    return md(["자리 i", "p[i]", "i + k > r", "c 와 r"], rows, [0, 1]);
+  },
+
+  "walk-carry": () => {
+    const r = walkRun();
+    const rows = r.rows
+      .filter((row) => row.i >= 4 && row.i <= 7)
+      .map((row) => [
+        String(row.i),
+        `c = ${row.cIn} · r = ${row.rIn}`,
+        String(row.mirror),
+        `min(${row.rIn - row.i}, ${row.pMirror}) = ${row.carried}`,
+        String(row.grow),
+        String(row.stop),
+        String(row.p),
+      ]);
+    return md(
+      [
+        "자리 i",
+        "들어올 때",
+        "대칭 자리",
+        "이어받은 값",
+        "늘림",
+        "멈춤",
+        "p[i]",
+      ],
+      rows,
+      [0, 2, 4, 5, 6],
+    );
+  },
+
+  "pause-noclip": () => {
+    const t = mutantTable("자르지 않는 판", noClip, "잘린 자리", clippedPlaces);
+    return block(t.table, `열 줄 가운데 ${t.broken} 줄에서 답이 어긋납니다.`);
+  },
+
+  "pause-noclip-detail": () => {
+    const good = ruleRows(WALK, "min");
+    const bad = ruleRows(WALK, "mirror");
+    const r = walkRun();
+    const firstWrong = r.rows.find(
+      (row) => good.p[row.i] !== bad.p[row.i],
+    ) as Row;
+    const next = r.rows.find(
+      (row) => row.i > firstWrong.i && good.p[row.i] !== bad.p[row.i],
+    ) as Row;
+    const i = firstWrong.i;
+    const bi = next.i;
+    // 변이가 끝에 고른 자리와 반지름.
+    let bestBad = 0;
+    for (let x = 0; x < bad.p.length; x++) {
+      if ((bad.p[x] as number) > (bad.p[bestBad] as number)) bestBad = x;
+    }
+    const lenBad = bad.p[bestBad] as number;
+    const startBad = (bestBad - lenBad) / 2;
+    if (WALK.slice(startBad, startBad + lenBad) !== bad.ans) {
+      throw new Error("변이의 답을 다시 만들지 못했다");
+    }
+    const rows = [
+      [
+        `자리 ${i}`,
+        String(good.p[i]),
+        String(bad.p[i]),
+        `대칭 자리 ${firstWrong.mirror} 의 반지름 ${firstWrong.pMirror}${을를(firstWrong.pMirror as number)} 남은 칸 ${firstWrong.rIn - i}${으로(firstWrong.rIn - i)} 자르지 않고 받았다`,
+      ],
+      [
+        `자리 ${i} 뒤의 r`,
+        String(good.r[i]),
+        String(bad.r[i]),
+        `확인한 적 없는 자리 ${firstWrong.rIn + 1} 부터 ${bad.r[i]} 까지를 회문이라 적었다`,
+      ],
+      [
+        `자리 ${bi}`,
+        String(good.p[bi]),
+        String(bad.p[bi]),
+        `대칭 자리 ${bad.mirror[bi]} 의 반지름 ${bad.p[bad.mirror[bi] as number]}${을를(bad.p[bad.mirror[bi] as number] as number)} 이어받고 ${(bad.p[bi] as number) - (bad.carried[bi] as number)} 칸을 더 넓혔다`,
+      ],
+      [
+        "답",
+        quote(good.ans),
+        quote(bad.ans),
+        `변이는 자리 ${bestBad} 의 반지름 ${lenBad}${으로(lenBad)} 시작 자리 ${startBad} 에서 ${lenBad} 글자를 잘랐다`,
+      ],
+    ];
+    return md(["자리", "정본", "변이", "일어난 일"], rows);
+  },
+
+  "walk-trace": () => {
+    const r = walkRun();
+    const steps = walkSteps();
+    const rows: string[][] = [];
+    for (const s of steps) {
+      if (s.kind === "init") {
+        rows.push([
+          s.id,
+          "—",
+          "—",
+          "①",
+          "—",
+          "—",
+          "0",
+          "0",
+          "—",
+          "0",
+          "0",
+          "0",
+        ]);
+        continue;
+      }
+      if (s.kind === "done") {
+        const last = r.rows.at(-1) as Row;
+        rows.push([
+          s.id,
+          "—",
+          "—",
+          "⑥",
+          "—",
+          "—",
+          "0",
+          "0",
+          "—",
+          String(last.c),
+          String(last.r),
+          String(last.best),
+        ]);
+        continue;
+      }
+      const row = s.row as Row;
+      const labels: string[] = [];
+      if (row.inside) labels.push(LABELS[1] as string);
+      if (row.grow + row.stop > 0) labels.push(LABELS[2] as string);
+      if (row.movedEdge) labels.push(LABELS[3] as string);
+      if (row.movedBest) labels.push(LABELS[4] as string);
+      rows.push([
+        s.id,
+        String(row.i),
+        row.ch,
+        labels.length === 0 ? "—" : labels.join(""),
+        row.mirror === null ? "—" : String(row.mirror),
+        row.carried === null ? "—" : String(row.carried),
+        String(row.grow),
+        String(row.stop),
+        String(row.p),
+        String(row.c),
+        String(row.r),
+        String(row.best),
+      ]);
+    }
+    const len = r.p[r.best] as number;
+    return block(
+      md(
+        [
+          "걸음",
+          "자리",
+          "글자",
+          "라벨",
+          "대칭 자리",
+          "이어받은 값",
+          "늘림",
+          "멈춤",
+          "p[i]",
+          "c",
+          "r",
+          "best",
+        ],
+        rows,
+        [1, 4, 5, 6, 7, 8, 9, 10, 11],
+      ),
+      `늘린 비교 ${r.grow} 번과 멈춘 비교 ${r.stop} 번을 더해 글자 비교가 ${r.grow + r.stop} 번입니다. 답 "${r.ans}" 는 자리 ${r.best} 의 반지름 ${len}${으로(len)} 시작 자리 ${(r.best - len) / 2} 에서 잘라 낸 것입니다.`,
+    );
+  },
+
+  "walk-coverage": () => {
+    const names = [
+      "자리를 넓혀 t 를 만든다",
+      "구간 안이면 반지름을 이어받는다",
+      "한 칸씩 넓혀 본다",
+      "오른쪽 끝을 더 멀리 옮긴다",
+      "가장 긴 자리를 바꾼다",
+      "원래 자리로 되돌려 잘라 낸다",
+    ];
+    const a = walkRun();
+    const b = trace("racecar");
+    const rows = names.map((name, idx) => [
+      LABELS[idx] as string,
+      name,
+      String(a.hits[idx]),
+      String(b.hits[idx]),
+    ]);
+    const zero = rows.filter((x) => x[2] === "0").length;
+    return block(
+      md(
+        ["라벨", "그 갈래가 맡은 일", `전개 입력 "${WALK}"`, '"racecar"'],
+        rows,
+        [2, 3],
+      ),
+      `전개 입력에서 한 번도 실행되지 않은 갈래는 ${zero} 개입니다.`,
+    );
+  },
+
   "pause-tie": () => {
+    let shifted = 0;
     const rows = SMALL.map((s) => {
       const a = longestPalindrome(s);
       const b = rightmostTie.longestPalindrome(s);
-      const label = s === WALK_S ? `전개 입력 "${s}"` : `"${s}"`;
+      if (a !== b) shifted++;
       return [
-        label,
+        label(s),
         String(tiedPlaces(s)),
-        `"${a}"`,
-        `"${b}"`,
+        quote(a),
+        quote(b),
         String(a.length),
         String(b.length),
         a === b ? "같다" : "어긋난다",
       ];
     });
-    return table(
-      [
+    return block(
+      md(
         [
           "입력",
           "동점 자리",
@@ -937,72 +1108,116 @@ export const PROOFS: Record<string, () => string> = {
           "변이 길이",
           "돌려준 문자열",
         ],
-        ...rows,
-      ],
-      [1, 4, 5],
-    ).join("\n");
+        rows,
+        [1, 4, 5],
+      ),
+      `열 줄 가운데 ${shifted} 줄에서 돌려준 문자열이 어긋납니다.`,
+    );
   },
 
-  /** related — 두 좌표계의 대응. */
+  "final-calls": () =>
+    [WALK, "cbbd", "racecar", "", "a"]
+      .map((s) => {
+        const call = `longestPalindrome(${quote(s)})`;
+        return `${call.padEnd(30)}→   ${quote(longestPalindrome(s))}`;
+      })
+      .join("\n"),
+
+  /* ── 알아 두면 좋은 개념 ── */
+
   "related-coords": () => {
-    const c = counted(WALK_S);
-    const n = WALK_S.length;
-    const charRows = Array.from({ length: n }, (_, j) => [
-      "글자",
-      String(j),
-      String(2 * j + 1),
-      c.t[2 * j + 1] as string,
-    ]);
-    const gapRows = Array.from({ length: n + 1 }, (_, j) => [
-      j === 0 ? "맨 앞" : j === n ? "맨 뒤" : "빈 자리",
-      String(j),
-      String(2 * j),
-      c.t[2 * j] as string,
-    ]);
-    return [
-      `s = "${WALK_S}"  ·  t = "${c.t}"`,
-      "",
-      ...table(
-        [
-          ["무엇", "s 에서의 번호", "t 에서의 자리", "그 자리의 글자"],
-          ...charRows,
-        ],
-        [1, 2],
-      ),
-      "",
-      ...table(
-        [
-          ["무엇", "s 에서의 번호", "t 에서의 자리", "그 자리의 글자"],
-          ...gapRows,
-        ],
-        [1, 2],
-      ),
-      "",
-      `글자 ${n} 개는 홀수 자리로, 빈 자리 ${n + 1} 개는 짝수 자리로 간다 — 합쳐 ${c.m} 자리`,
-    ].join("\n");
-  },
-
-  /** deep.math ② — 정의를 작은 값에 넣어 손으로 확인한다. */
-  "math-check": () => {
+    const r = walkRun();
+    const n = WALK.length;
     const rows: string[][] = [];
-    for (const s of ["a", "aa", "aba", "abba"]) {
-      const c = counted(s);
+    for (let x = 0; x < r.m; x++) {
+      const isChar = x % 2 === 1;
       rows.push([
-        `"${s}"`,
-        String(s.length),
-        String(c.m),
-        `"${c.t}"`,
-        `[${c.p.join(", ")}]`,
-        `"${c.ans}"`,
+        String(x),
+        r.t[x] as string,
+        isChar
+          ? `글자 ${(x - 1) / 2}`
+          : x === 0
+            ? "맨 앞"
+            : x === r.m - 1
+              ? "맨 뒤"
+              : `글자 ${x / 2 - 1}${과와(x / 2 - 1)} ${x / 2} 사이`,
+        isChar ? "2j + 1" : "2j",
       ]);
     }
-    return table(
-      [["s", "n", "m = 2n+1", "t", "반지름 p", "답"], ...rows],
-      [1, 2],
-    ).join("\n");
+    return block(
+      md(["t 의 자리", "글자", "원래 좌표에서", "식"], rows, [0]),
+      `글자 ${n} 개는 홀수 자리로, 사이와 양 끝 ${n + 1} 곳은 짝수 자리로 가서 모두 ${r.m} 자리입니다.`,
+    );
   },
 
-  /** deep.math ③ — i − p[i] 가 언제나 짝수인가. */
+  /* ── 경쟁 설계와의 대조 ── */
+
+  "alt-table": () => {
+    const rows: string[][] = [];
+    const pairs: [string, (m: (t: string, q: number) => number) => number][] = [
+      [`전개 입력 "${WALK}" · 질의 0 회`, (f) => f(WALK, 0)],
+      ["무작위 26 글자 · 질의 0 회", (f) => f(SWEEP_TEXT, 0)],
+      ["무작위 26 글자 · 질의 1 회", (f) => f(SWEEP_TEXT, 1)],
+      ["무작위 26 글자 · 질의 100 회", (f) => f(SWEEP_TEXT, 100)],
+      ["전부 같은 글자 · 질의 0 회", (f) => f(ALL_SAME_TEXT, 0)],
+      ["전부 같은 글자 · 질의 1 회", (f) => f(ALL_SAME_TEXT, 1)],
+      ["전부 같은 글자 · 질의 100 회", (f) => f(ALL_SAME_TEXT, 100)],
+    ];
+    for (const [name, go] of pairs) {
+      const a = go(manacherRun);
+      const b = go(treeRun);
+      rows.push([
+        name,
+        num(a),
+        num(b),
+        a < b ? "매내처 알고리즘" : "회문 트리",
+      ]);
+    }
+    const ma = manacherCellsHeld(SWEEP_N);
+    const tr = treeCellsHeld(SWEEP_N);
+    return block(
+      md(
+        [
+          "입력 · 중간에 답을 묻는 횟수",
+          "매내처 알고리즘",
+          "회문 트리",
+          "적은 쪽",
+        ],
+        rows,
+        [1, 2],
+      ),
+      `넷째 열까지 자료 접근 횟수입니다. 저장 칸은 매내처 알고리즘이 ${num(ma)} 칸, 회문 트리가 ${num(tr)} 칸으로 ${(tr / ma).toFixed(2)} 배 차이가 나고, 이 항목은 입력이 바뀌어도 순서가 그대로입니다.`,
+    );
+  },
+
+  /* ── 수식 정의와 유도 ── */
+
+  "math-check": () => {
+    const rows = ["a", "aa", "aba", "abba"].map((s) => {
+      const r = replay(s);
+      return [
+        quote(s),
+        String(s.length),
+        String(r.m),
+        quote(r.t),
+        show(r.p),
+        quote(r.ans),
+      ];
+    });
+    return md(["s", "n", "m = 2n + 1", "t", "반지름 p", "답"], rows, [1, 2]);
+  },
+
+  "math-start": () => {
+    const r = walkRun();
+    return r.rows
+      .filter((row) => row.i === r.best || row.i === 3)
+      .map((row) => {
+        const start = (row.i - row.p) / 2;
+        return `자리 ${String(row.i).padEnd(3)} 반지름 ${row.p}   ${row.i} − ${row.p} = ${row.i - row.p}   짝수   ${row.i - row.p} / 2 = ${start}   s[${start}..${start + row.p - 1}] = ${WALK.slice(start, start + row.p)}`;
+      })
+      .join("\n");
+  },
+
   "math-parity": () => {
     let places = 0;
     let odd = 0;
@@ -1010,11 +1225,10 @@ export const PROOFS: Record<string, () => string> = {
     for (let n = 1; n <= 12; n++) {
       let nPlaces = 0;
       let nOdd = 0;
-      for (let mask = 0; mask < 1 << n; mask++) {
-        let s = "";
-        for (let b = 0; b < n; b++) s += (mask >> b) & 1 ? "b" : "a";
-        const c = counted(s);
-        for (const row of c.rows) {
+      let count = 0;
+      for (const s of binaryStrings(n)) {
+        count++;
+        for (const row of replay(s).rows) {
           nPlaces++;
           if ((row.i - row.p) % 2 !== 0) nOdd++;
         }
@@ -1022,331 +1236,470 @@ export const PROOFS: Record<string, () => string> = {
       places += nPlaces;
       odd += nOdd;
       if (n <= 4 || n === 12) {
-        rows.push([String(n), comma(1 << n), comma(nPlaces), String(nOdd)]);
+        rows.push([String(n), num(count), num(nPlaces), String(nOdd)]);
       }
     }
-    return [
-      ...table(
-        [["n", "문자열 수", "확인한 자리", "i − p[i] 가 홀수인 자리"], ...rows],
+    return block(
+      md(
+        ["n", "문자열 수", "확인한 자리", "i − p[i] 가 홀수인 자리"],
+        rows,
         [0, 1, 2, 3],
       ),
-      "",
-      `두 글자 알파벳의 길이 1~12 문자열 전수 — 자리 ${comma(places)} 개 중 홀수인 자리 ${odd}`,
-    ].join("\n");
+      `두 글자 알파벳의 길이 1~12 문자열을 전부 실행해 자리 ${num(places)} 개를 확인했고, 홀수인 자리는 ${odd} 개입니다.`,
+    );
   },
 
-  /** deep.math ④ — 견주기 상한과 실측 최댓값. */
   "math-bound": () => {
     const rows: string[][] = [];
-    for (const n of [3, 4, 6, 8, 10, 12]) {
-      let mx = -1;
+    for (const n of [4, 6, 8, 10, 12]) {
+      let mxC = -1;
+      let mxA = -1;
       let arg = "";
-      for (let mask = 0; mask < 1 << n; mask++) {
-        let s = "";
-        for (let b = 0; b < n; b++) s += (mask >> b) & 1 ? "b" : "a";
-        const c = countedLite(s);
-        if (c.grow + c.stop > mx) {
-          mx = c.grow + c.stop;
+      for (const s of binaryStrings(n)) {
+        const c = countManacher(s);
+        if (c.grow + c.stop > mxC) mxC = c.grow + c.stop;
+        if (c.access > mxA) {
+          mxA = c.access;
           arg = s;
         }
       }
-      const m = 2 * n + 1;
       rows.push([
         String(n),
-        String(m),
-        String(2 * m - 1),
-        String(mx),
-        String(4 * n - 6),
-        `"${arg}"`,
+        String(4 * n + 1),
+        String(mxC),
+        String(18 * n + 8),
+        String(mxA),
+        quote(arg),
       ]);
     }
-    const big = [100, 1_000, 10_000, CONSTRAINT_N].map((n) => {
-      const c = countedLite(edgesDiffer(n));
-      return [comma(n), comma(c.grow + c.stop), comma(4 * n - 6)];
-    });
-    return [
-      ...table(
-        [
-          [
-            "n",
-            "m",
-            "느슨한 상한 2m−1",
-            "전수 최댓값",
-            "4n−6",
-            "최댓값을 낸 입력",
-          ],
-          ...rows,
-        ],
-        [0, 1, 2, 3, 4],
-      ),
-      "",
-      ...table(
-        [["양 끝만 다른 계열 n", "글자 견주기", "4n−6"], ...big],
-        [0, 1, 2],
-      ),
-    ].join("\n");
-  },
-
-  /** invariant ② — 자리마다 양 끝이 빈 자리인가. */
-  "invariant-watch": () => {
-    const inputs: [string, string][] = [
-      [`전개 입력 "${WALK_S}"`, WALK_S],
-      ['"aaaa"', "aaaa"],
-      ['"racecar"', "racecar"],
-      ['"abcde"', "abcde"],
-      ["번갈이 n = 500", alternating(500)],
-      ["무작위 두 글자 n = 500", pseudo(500, 2)],
-      ["무작위 스물여섯 글자 n = 500", pseudo(500, 26)],
-    ];
-    const rows = inputs.map(([label, s]) => {
-      const c = counted(s);
-      let oddGap = 0;
-      let notSep = 0;
-      let outside = 0;
-      for (const row of c.rows) {
-        if ((row.i - row.p) % 2 !== 0) oddGap++;
-        if (c.t[row.i - row.p] !== SEP || c.t[row.i + row.p] !== SEP) notSep++;
-        const start = (row.i - row.p) / 2;
-        const piece = s.slice(start, start + row.p);
-        if (piece !== [...piece].reverse().join("")) outside++;
-      }
+    const big = [1_000, 10_000, LIMIT].map((n) => {
+      const c = countManacher(shape("양 끝만 다른 글자", n));
       return [
-        label,
-        String(c.m),
-        String(c.rows.length),
-        String(oddGap),
-        String(notSep),
-        String(outside),
-        oddGap + notSep + outside === 0 ? "지킨다" : "깨진다",
+        num(n),
+        num(c.grow + c.stop),
+        num(4 * n - 6),
+        num(c.access),
+        num(18 * n - 12),
       ];
     });
-    return table(
-      [
+    return block(
+      md(
         [
-          "입력",
-          "m",
-          "확인한 걸음",
-          "i − p[i] 가 홀수인 걸음",
-          "양 끝이 빈 자리가 아닌 걸음",
-          "잘라 낸 조각이 회문이 아닌 걸음",
-          "판정",
+          "n",
+          "글자 비교 상한 4n + 1",
+          "글자 비교 전수 최댓값",
+          "자료 접근 상한 18n + 8",
+          "자료 접근 전수 최댓값",
+          "최댓값을 낸 첫 문자열",
         ],
-        ...rows,
-      ],
-      [1, 2, 3, 4, 5],
-    ).join("\n");
+        rows,
+        [0, 1, 2, 3, 4],
+      ),
+      "양 끝만 다른 글자에서 규모를 키우면 이렇습니다.",
+      md(
+        ["n", "글자 비교", "4n − 6", "자료 접근", "18n − 12"],
+        big,
+        [0, 1, 2, 3, 4],
+      ),
+      `두 글자 알파벳의 길이 ${rows[0]?.[0]}~${rows.at(-1)?.[0]} 전수에서 글자 비교의 최댓값은 4n − 6, 자료 접근의 최댓값은 18n − 12 이고, 양 끝만 다른 글자가 n = ${num(LIMIT)} 까지 두 값을 그대로 냅니다.`,
+    );
   },
 
-  /** invariant ② — 경계 입력. */
+  /* ── 불변식 ── */
+
+  "invariant-watch": () => {
+    const inputs: [string, string][] = [
+      [label(WALK), WALK],
+      [quote("aaaa"), "aaaa"],
+      [quote("racecar"), "racecar"],
+      [quote("abcde"), "abcde"],
+      ["두 글자 번갈이 n = 500", shape("두 글자 번갈이", 500)],
+      ["무작위 두 글자 n = 500", shape("무작위 두 글자", 500)],
+      ["무작위 26 글자 n = 500", shape("무작위 26 글자", 500)],
+    ];
+    let broken = 0;
+    const rows = inputs.map(([name, s]) => {
+      const r = replay(s);
+      let oddGap = 0;
+      let notSep = 0;
+      let notPal = 0;
+      for (const row of r.rows) {
+        if ((row.i - row.p) % 2 !== 0) oddGap++;
+        if (r.t[row.i - row.p] !== SEP || r.t[row.i + row.p] !== SEP) notSep++;
+        const start = (row.i - row.p) / 2;
+        if (!isPalindrome(s.slice(start, start + row.p))) notPal++;
+      }
+      broken += oddGap + notSep + notPal;
+      return [name, num(r.m), String(oddGap), String(notSep), String(notPal)];
+    });
+    return block(
+      md(
+        [
+          "입력",
+          "확인한 자리",
+          "i − p[i] 가 홀수",
+          "양 끝이 구분자가 아님",
+          "잘라 낸 조각이 회문이 아님",
+        ],
+        rows,
+        [1, 2, 3, 4],
+      ),
+      `일곱 입력의 모든 자리에서 셋째부터 다섯째 열을 더한 값이 ${broken} 입니다.`,
+    );
+  },
+
   "invariant-edges": () => {
     const rows = [
       ["빈 문자열", ""],
       ["길이 1", "a"],
       ["같은 두 글자", "aa"],
       ["다른 두 글자", "ab"],
-      ["같은 글자만", "aaaa"],
-      ["다 다른 글자", "abcd"],
-      ["홀수 회문 전체", "aba"],
-      ["짝수 회문 전체", "abba"],
-    ].map(([label, s]) => {
+      ["전부 같은 글자", "aaaa"],
+      ["전부 다른 글자", "abcd"],
+      ["홀수 길이 회문 전체", "aba"],
+      ["짝수 길이 회문 전체", "abba"],
+    ].map(([name, s]) => {
       const str = s as string;
-      const c = counted(str);
+      const c = countManacher(str);
+      const ans = longestPalindrome(str);
       return [
-        label as string,
-        `"${str}"`,
+        name as string,
+        quote(str),
         String(str.length),
-        String(c.m),
-        `"${longestPalindrome(str)}"`,
-        String(longestPalindrome(str).length),
-        String(c.cmp),
+        String(widen(str).length),
+        quote(ans),
+        String(bruteLength(str)),
+        String(c.grow + c.stop),
       ];
     });
-    return table(
-      [["어느 경계", "입력", "n", "m", "답", "길이", "글자 견주기"], ...rows],
+    return md(
+      ["경계", "입력", "n", "m", "답", "정의대로 잰 길이", "글자 비교"],
+      rows,
       [2, 3, 5, 6],
-    ).join("\n");
+    );
   },
 
-  /** invariant ③ — 불변식을 지키던 줄을 바꾸면. */
-  "mutant-no-head-sep": () =>
-    mutantTable(
+  "mutant-no-head-sep": () => {
+    const t = mutantTable(
       "앞 구분자를 뺀 판",
       noLeadingSep,
       "홀짝이 뒤바뀐 글자",
       (s) => s.length,
-    ).join("\n"),
+    );
+    return block(t.table, `열 줄 가운데 ${t.broken} 줄에서 답이 어긋납니다.`);
+  },
 
-  /** perf.derive — 전개 입력의 계수. */
-  "perf-count": () => {
-    const c = counted(WALK_S);
-    const inside = c.rows.filter((row) => row.inside).length;
-    const grew = c.rows.filter((row) => row.grow > 0).length;
-    return [
-      ...table(
+  "mutant-no-head-detail": () => {
+    const s = "cbbd";
+    // 변이와 같은 절차 — 앞쪽 구분자 없이 넓힌다. 답은 변이와 대조한다.
+    const t = `${[...s].join(SEP)}${SEP}`;
+    const m = t.length;
+    const p = new Array<number>(m).fill(0);
+    let c = 0;
+    let r = 0;
+    let best = 0;
+    for (let i = 0; i < m; i++) {
+      let k = i < r ? Math.min(r - i, p[2 * c - i] as number) : 0;
+      while (i - k - 1 >= 0 && i + k + 1 < m && t[i - k - 1] === t[i + k + 1])
+        k++;
+      p[i] = k;
+      if (i + k > r) {
+        c = i;
+        r = i + k;
+      }
+      if (k > (p[best] as number)) best = i;
+    }
+    const len = p[best] as number;
+    const start = (best - len) / 2;
+    const got = s.slice(start, start + len);
+    if (!중화됨 && got !== noLeadingSep.longestPalindrome(s)) {
+      throw new Error("다시 만든 변이의 답이 변이와 다르다");
+    }
+    const ref = walkLike(s);
+    const oddAt = [...t]
+      .map((ch, i) => (ch !== SEP ? i : -1))
+      .filter((i) => i >= 0);
+    return md(
+      ["보는 값", "정본", "앞 구분자를 뺀 판"],
+      [
+        ["넓힌 문자열", quote(ref.t), quote(t)],
+        ["글자가 놓인 자리", ref.letters.join(" · "), oddAt.join(" · ")],
         [
-          ["무엇", "값", "어디서 나오는가"],
-          [
-            "넓힌 문자열의 자리 m",
-            String(c.m),
-            `2n + 1 이고 n = ${WALK_S.length}`,
-          ],
-          ["바깥 반복의 걸음", String(c.rows.length), "자리마다 한 번"],
-          ["구간 안에서 시작한 자리", String(inside), "물려받기가 실행된 걸음"],
-          ["반지름이 실제로 늘어난 자리", String(grew), "견주기가 성공한 걸음"],
-          ["늘린 견주기", String(c.grow), "반지름을 하나 늘린 횟수"],
-          ["멈춘 견주기", String(c.stop), "글자가 달라 반복이 끝난 횟수"],
-          ["글자 견주기 총합", String(c.cmp), "위 둘의 합"],
+          "가장 긴 자리 · 반지름",
+          `${ref.best} · ${ref.len}`,
+          `${best} · ${len}`,
         ],
+        ["i − p[i]", String(ref.best - ref.len), String(best - len)],
+        ["(i − p[i]) / 2", String((ref.best - ref.len) / 2), String(start)],
+        ["잘라 낸 조각", quote(ref.ans), quote(got)],
+        [
+          "회문인가",
+          isPalindrome(ref.ans) ? "예" : "아니오",
+          isPalindrome(got) ? "예" : "아니오",
+        ],
+      ],
+    );
+  },
+
+  /* ── 비용 계산 ── */
+
+  "perf-count": () => {
+    const r = walkRun();
+    const n = WALK.length;
+    const c = countManacher(WALK);
+    const len = r.p[r.best] as number;
+    const inside = r.rows.filter((row) => row.inside).length;
+    const parts: [string, number, string][] = [
+      ["자리 넓히기", n + r.m, `글자 ${n} 개 읽기 + t 의 ${r.m} 칸 쓰기 (T1)`],
+      [
+        "대칭 자리의 반지름 읽기",
+        inside,
+        `구간 안에서 시작한 자리 (T2~T16 중 ${inside} 걸음)`,
+      ],
+      [
+        "글자 비교",
+        2 * (r.grow + r.stop),
+        `비교 ${r.grow + r.stop} 번 × 글자 둘`,
+      ],
+      ["p[i] 쓰기", r.m, "자리마다 한 번"],
+      ["p[best] 읽기", r.m + 2, `자리마다 한 번 + 끝에서 두 번 (T17)`],
+      ["답의 글자 읽기", len, `잘라 낸 "${r.ans}" 의 길이 (T17)`],
+    ];
+    const total = parts.reduce((x, [, v]) => x + v, 0);
+    if (total !== c.access) throw new Error("나눠 센 합이 계수기와 다르다");
+    return block(
+      md(
+        ["몫", "자료 접근", "나온 곳"],
+        parts.map(([a, b, d]) => [a, String(b), d]),
         [1],
       ),
-      "",
-      `같은 길이의 실측 최댓값 4n−6 = ${4 * WALK_S.length - 6} 이고 이 입력은 ${c.cmp} 이다`,
-    ].join("\n");
+      `여섯 줄을 더하면 ${total} 번이고, 계수기가 센 값과 같습니다.`,
+    );
   },
 
-  /** perf.derive — 규모를 네 배씩 키우면 계수도 네 배가 되는가. */
   "perf-sweep": () => {
-    const families: [string, (n: number) => string][] = [
-      ["같은 글자", same],
-      ["번갈이", alternating],
-      ["무작위 두 글자", (n) => pseudo(n, 2)],
-      ["무작위 스물여섯 글자", (n) => pseudo(n, 26)],
-      ["양 끝만 다름", edgesDiffer],
-    ];
     const sizes = [1_000, 4_000, 16_000, 64_000];
     const rows: string[][] = [];
-    for (const [name, make] of families) {
+    for (const [name, make] of SHAPES) {
       let prev = 0;
       for (const n of sizes) {
-        const c = countedLite(make(n));
-        const total = c.grow + c.stop;
+        const c = countManacher(make(n));
         rows.push([
           name,
-          comma(n),
-          comma(c.grow),
-          comma(c.stop),
-          comma(total),
-          prev === 0 ? "-" : (total / prev).toFixed(2),
+          num(n),
+          num(c.grow + c.stop),
+          num(c.access),
+          prev === 0 ? "—" : (c.access / prev).toFixed(2),
         ]);
-        prev = total;
+        prev = c.access;
       }
     }
-    return [
-      ...table(
-        [
-          ["계열", "n", "늘린 견주기", "멈춘 견주기", "합", "네 배 키운 비"],
-          ...rows,
-        ],
-        [1, 2, 3, 4, 5],
+    return block(
+      md(
+        ["입력 모양", "n", "글자 비교", "자료 접근", "네 배로 키운 비"],
+        rows,
+        [1, 2, 3, 4],
       ),
-      "",
-      "네 배 키운 비가 전부 4 언저리다 — 계수가 n 에 비례한다",
-    ].join("\n");
+      `여섯 모양 모두 규모를 네 배로 키우면 자료 접근도 네 배가 됩니다.`,
+    );
   },
 
-  /** perf.bounds — 최선 케이스의 전수 최솟값. */
   "perf-best": () => {
     const rows = [4, 6, 8, 10, 12].map((n) => {
       let min = Number.POSITIVE_INFINITY;
       const args: string[] = [];
-      for (let mask = 0; mask < 1 << n; mask++) {
-        let s = "";
-        for (let b = 0; b < n; b++) s += (mask >> b) & 1 ? "b" : "a";
-        const c = countedLite(s);
-        const total = c.grow + c.stop;
-        if (total < min) {
-          min = total;
+      for (const s of binaryStrings(n)) {
+        const a = countManacher(s).access;
+        if (a < min) {
+          min = a;
           args.length = 0;
           args.push(s);
-        } else if (total === min) args.push(s);
+        } else if (a === min) args.push(s);
       }
       args.sort();
       return [
         String(n),
-        String(2 * n + 1),
         String(min),
-        String(2 * n - 1),
+        String(14 * n),
         String(args.length),
-        `"${args[0]}"`,
+        quote(args[0] as string),
       ];
     });
-    return [
-      ...table(
-        [
-          [
-            "n",
-            "m",
-            "전수 최솟값",
-            "2n−1",
-            "최솟값을 낸 문자열 수",
-            "그중 사전순 첫 벌",
-          ],
-          ...rows,
-        ],
-        [0, 1, 2, 3, 4],
-      ),
-      "",
-      "최솟값도 n 에 비례한다 — 넓힌 문자열을 만드는 것만으로 이미 m 칸이다",
-    ].join("\n");
+    return md(
+      [
+        "n",
+        "자료 접근 전수 최솟값",
+        "14n",
+        "최솟값을 낸 문자열 수",
+        "그중 사전순 첫 문자열",
+      ],
+      rows,
+      [0, 1, 2, 3],
+    );
   },
 
-  /** perf.worst — 최악을 만드는 입력을 전수로 찾는다. */
+  "perf-average": () => {
+    const rows = [
+      ["무작위 두 글자", 2],
+      ["무작위 26 글자", 26],
+    ].map(([name]) => {
+      const c = countManacher(shape(name as string, LIMIT));
+      return [
+        name as string,
+        num(LIMIT),
+        num(c.access),
+        (c.access / LIMIT).toFixed(2),
+      ];
+    });
+    return block(
+      md(["입력 분포", "n", "자료 접근", "n 하나당"], rows, [1, 2, 3]),
+      "두 분포 다 mulberry32(씨앗 0x9e3779b9)로 만든 문자열입니다.",
+    );
+  },
+
   "perf-worst": () => {
     const rows: string[][] = [];
     for (const n of [5, 6, 7, 8, 9, 10]) {
       let mx = -1;
       const args: string[] = [];
-      for (let mask = 0; mask < 1 << n; mask++) {
-        let s = "";
-        for (let b = 0; b < n; b++) s += (mask >> b) & 1 ? "b" : "a";
-        const c = countedLite(s);
-        const total = c.grow + c.stop;
-        if (total > mx) {
-          mx = total;
+      for (const s of binaryStrings(n)) {
+        const a = countManacher(s).access;
+        if (a > mx) {
+          mx = a;
           args.length = 0;
           args.push(s);
-        } else if (total === mx) args.push(s);
+        } else if (a === mx) args.push(s);
       }
       args.sort();
       rows.push([
         String(n),
         String(mx),
-        String(4 * n - 6),
+        String(18 * n - 12),
         String(args.length),
-        `"${args[0]}"`,
+        quote(args[0] as string),
       ]);
     }
-    const famRows: [string, (n: number) => string][] = [
-      ["양 끝만 다름", edgesDiffer],
-      ["같은 글자", same],
-      ["번갈이", alternating],
-      ["다 다른 글자", rolling],
-      ["무작위 두 글자", (n) => pseudo(n, 2)],
-    ];
     const at = 10_000;
-    const fam = famRows.map(([name, make]) => {
-      const c = countedLite(make(at));
-      return [name, `"${make(8)}"`, comma(c.grow + c.stop)];
+    const fam = SHAPES.map(([name, make]) => {
+      const c = countManacher(make(at));
+      return [name, quote(make(8)), num(c.access)];
     });
-    return [
-      ...table(
+    return block(
+      md(
         [
-          [
-            "n",
-            "전수 최댓값",
-            "4n−6",
-            "최댓값을 낸 문자열 수",
-            "그중 사전순 첫 벌",
-          ],
-          ...rows,
+          "n",
+          "자료 접근 전수 최댓값",
+          "18n − 12",
+          "최댓값을 낸 문자열 수",
+          "그중 사전순 첫 문자열",
         ],
+        rows,
         [0, 1, 2, 3],
       ),
-      "",
-      ...table(
-        [["계열", "n = 8 일 때의 모양", "n = 10,000 의 글자 견주기"], ...fam],
+      `같은 모양을 n = ${num(at)}${으로(num(at))} 키우면 이렇습니다.`,
+      md(["입력 모양", "n = 8 일 때", `n = ${num(at)} 의 자료 접근`], fam, [2]),
+    );
+  },
+
+  /* ── 스스로 점검하기 ── */
+
+  "selfcheck-t9": () => {
+    const s = walkSteps().find(
+      (x) => x.row !== null && x.row.branch === "clip",
+    );
+    const row = s?.row as Row;
+    const t = walkRun().t;
+    const last = row.pairs.at(-1) as readonly [number, number];
+    return block(
+      md(
+        [`${s?.id} 의 계산`, "식", "값"],
+        [
+          [
+            "대칭 자리",
+            `2c − i = 2 × ${row.cIn} − ${row.i}`,
+            String(row.mirror),
+          ],
+          ["대칭 자리의 반지름", `p[${row.mirror}]`, String(row.pMirror)],
+          ["남은 칸", `r − i = ${row.rIn} − ${row.i}`, String(row.rIn - row.i)],
+          [
+            "이어받는 값",
+            `min(${row.rIn - row.i}, ${row.pMirror})`,
+            String(row.carried),
+          ],
+          [
+            "그다음 비교",
+            `t[${last[0]}] = ${t[last[0]]} · t[${last[1]}] = ${t[last[1]]}`,
+            "다른 글자",
+          ],
+          ["적는 반지름", `p[${row.i}]`, String(row.p)],
+        ],
         [2],
       ),
-    ].join("\n");
+      `${s?.id}${은는(s?.id ?? "")} 자리 ${row.i}${을를(row.i)} 처리한 걸음이고, 그때 c = ${row.cIn} · r = ${row.rIn} 입니다.`,
+    );
+  },
+
+  "selfcheck-parity": () => {
+    const r = walkRun();
+    const rows = r.rows
+      .filter((row) => row.i === r.best || row.i === 3)
+      .map((row) => {
+        const odd = Array.from(
+          { length: 2 * row.p + 1 },
+          (_, x) => row.i - row.p + x,
+        ).filter((x) => x % 2 === 1);
+        const parity = (x: number) => (x % 2 === 0 ? "짝수" : "홀수");
+        return [
+          String(row.i),
+          parity(row.i),
+          `[${row.i - row.p},${row.i + row.p}]`,
+          `${odd.join(" · ")} — ${odd.length} 개`,
+          `${row.p} · ${parity(row.p)}`,
+        ];
+      });
+    return md(
+      [
+        "한가운데 자리",
+        "그 자리의 홀짝",
+        "회문 구간",
+        "구간 안의 홀수 자리",
+        "s 에서의 길이",
+      ],
+      rows,
+      [0],
+    );
   },
 };
+
+/** 한 자리에서 처음부터 넓힐 때의 글자 비교 수 — 이어받지 않는 절차의 한 자리 몫이다. */
+function countOne(s: string, i: number): number {
+  const t = widen(s);
+  const m = t.length;
+  let k = 0;
+  let cmp = 0;
+  while (i - k - 1 >= 0 && i + k + 1 < m) {
+    cmp++;
+    if (t[i - k - 1] !== t[i + k + 1]) break;
+    k++;
+  }
+  return cmp;
+}
+
+/** 정본의 넓힌 문자열과 답의 자리 — 변이와 나란히 놓는 데 쓴다. */
+function walkLike(s: string): {
+  t: string;
+  letters: number[];
+  best: number;
+  len: number;
+  ans: string;
+} {
+  const r = replay(s);
+  const len = r.p[r.best] as number;
+  return {
+    t: r.t,
+    letters: Array.from({ length: s.length }, (_, j) => 2 * j + 1),
+    best: r.best,
+    len,
+    ans: r.ans,
+  };
+}
