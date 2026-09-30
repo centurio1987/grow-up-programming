@@ -110,3 +110,28 @@ test("값이 모두 같은 배열 · 앞이 큰 배열에서도 전부 검사한
     }
   }
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본과 같은
+ * 답을 내는지 스스로 대조하는 걸음 기록에서 만든 걸음 — 와 글자 그대로 같아야 한다. 다르면 리터럴을
+ * 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./divideAndConquerDp-guide.sim.ts");
+  const { simStepsFromRef, TABLE_OPTIONS } = await import(
+    "./divideAndConquerDp-guide.fig.tsx"
+  );
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.dcdp.steps)).toEqual(plain(simStepsFromRef()));
+  expect(plain(sim.dcdp.rowHeads)).toEqual(plain(TABLE_OPTIONS.rowHeads));
+  expect(plain(sim.dcdp.colHeads)).toEqual(plain(TABLE_OPTIONS.colHeads));
+  expect(plain(sim.dcdp.strip)).toEqual(plain(TABLE_OPTIONS.strip));
+  // 패널이 내미는 답과 마지막 걸음의 DP 테이블이 정본과 같은지 — 정본에 직접 다시 묻는다.
+  const cost = buildCost([1, 2, 3, 4]);
+  expect(sim.dcdp.result).toBe(String(divideAndConquerDp(cost, 3)));
+  const last = sim.dcdp.steps.at(-1)?.table.at(-1);
+  expect(last?.at(-1)).toBe(String(divideAndConquerDp(cost, 3)));
+  // 걸음 수 — 줄 1 한 걸음 + 줄마다 칸 n 개의 호출과 교체 한 걸음 + 반환 한 걸음.
+  expect(sim.dcdp.steps.length).toBe(1 + (3 - 1) * (4 + 1) + 1);
+});

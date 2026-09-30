@@ -6,32 +6,43 @@
  *
  *   bun run tools/bench-alt.ts src/algorithms/advanced/divideAndConquerDp/divideAndConquerDp-guide.alt.ts
  *
+ * **경쟁 설계는 크누스 최적화다.** 같은 전제(사각 부등식) 아래서 최적 가르는 자리가 칸을 따라서도,
+ * 줄을 따라서도 줄지 않는다는 것(`opt(g-1, i) ≤ opt(g, i) ≤ opt(g, i+1)`)을 써서, 칸 `i` 의 후보를
+ * 이웃 두 값 사이로 가둔다. 줄 안에서 칸을 뒤에서부터 채운다. 가르는 자리를 전부 계산하는 방법은
+ * 「아이디어를 떠올리는 과정」이 이미 반박한 단순한 방법이라 여기 세우지 않는다(SPEC §3
+ * `purpose.alt` — 열등한 상대를 세우지 않는다).
+ *
+ * **잣대는 원고 전체와 같은 후보 수다.** 가르는 자리 하나를 넣어 `prev[j] + cost[j+1][i]` 를
+ * 만들고 지금까지의 최솟값과 비교한 한 번이 1 이다. 저장 칸은 설계가 새로 잡는 칸 수다 — 비용
+ * 행렬 `n × n` 은 입력이라 두 설계 모두 세지 않는다.
+ *
  * **두 설계가 매 실행마다 같은 답을 내는지 먼저 확인한다**(`확인()`). 답이 다른 구현으로 잰
- * 계수는 저울질이 아니라 다른 문제의 값이다 — 여기서는 정본(`.ref.ts`)의 반환값을 두 설계
- * 모두와 대조한다.
+ * 계수는 저울질이 아니라 다른 문제의 값이다 — 정본(`.ref.ts`)의 반환값을 두 설계와 대조한다.
  *
- * **전개 입력도 함께 낸다**(L20). 전개는 `n = 4` · `k = 3` 이라 두 계수의 순서가 갈리는
- * 자리를 보이기에는 너무 작다. 그래서 같은 생성식으로 `n` 만 늘린 가족을 함께 쓰고, 전개
- * 입력의 값도 표에 남긴다. 그 사실을 본문 대조 문단에도 적는다.
+ * **입력은 생성식으로 고정한다.** 배열은 `a = [1, 2, …, n]`(「아이디어를 떠올리는 과정」이 과제 규모에서
+ * 쓰는 것과 같은 모양), 비용은 구간 합의 제곱, 칸 수는 `n = 2,000`(과제 규모의 상한)이고 **구역 수 `k` 만
+ * 바꾼다.** 전개 입력(칸 넷)은 두 설계의 순서가 갈리는 `k` 를 보이기에 너무 작아서, 전개 입력의 값은 따로
+ * 한 줄 남긴다(L20).
  *
- * **입력은 생성식으로 고정한다.** 배열은 `a[i] = (i * 7 % 5) + 1`, 비용은 구간 합의 제곱,
- * 계층 수는 `k = 3` 이다. 한 번 정한 입력은 수치가 마음에 안 든다는 이유로 바꾸지 않는다(L20).
+ * **입력을 바꾼 이력(KAN-058, 2026-09-30).** 옛 판은 경쟁 설계가 「가르는 자리를 전부 계산하는 방법」이었고
+ * 배열이 `a[i] = (i * 7 % 5) + 1`, 구역 수 `k = 3` 고정에 칸 수를 바꿨다. 경쟁 설계를 크누스 최적화로 바꾸며
+ * 갈리는 축이 칸 수가 아니라 구역 수가 되어, 과제 규모의 칸 수에 원고 본문과 같은 배열을 쓴다.
  */
 
 import { divideAndConquerDp, INF } from "./divideAndConquerDp-guide.ref.ts";
 
 /* ────────────────────────── 고정 입력 ────────────────────────── */
 
-/** 본문 전개가 쓰는 배열과 계층 수. */
+/** 본문 전개가 쓰는 배열과 구역 수. */
 export const WALK_A = [1, 2, 3, 4];
 export const WALK_K = 3;
 
-/** 계층 수. `n` 하나만 바꾸려고 고정한다. */
-export const K = 3;
+/** 칸 수 — 과제 규모의 상한. `k` 하나만 바꾸려고 고정한다. */
+export const N = 2_000;
 
-/** `a[i] = (i * 7 % 5) + 1` — 값이 1 부터 5 사이를 되풀이하는 배열. */
-export function line(n: number): number[] {
-  return Array.from({ length: n }, (_, i) => ((i * 7) % 5) + 1);
+/** `a = [1, 2, …, n]`. */
+export function seq(n: number): number[] {
+  return Array.from({ length: n }, (_, i) => i + 1);
 }
 
 /** `cost[i][j] = (a[i] + … + a[j])^2`. 사각 부등식을 만족하는 전형 예시다. */
@@ -56,30 +67,27 @@ export function buildCost(a: number[]): number[][] {
 /* ────────────────────────── 두 설계 ────────────────────────── */
 
 export interface Run {
-  ops: number;
+  /** 줄마다의 후보 수. 첫 원소가 줄 2 다 — 앞에서부터 더하면 `k` 마다의 합이 나온다. */
+  perLayer: number[];
   cells: number;
   answer: number;
 }
 
 /**
  * 이 가이드의 절차. 정본(`divideAndConquerDp-guide.ref.ts`)과 같고 세는 자리만 덧붙였다.
- *
- * `기본 연산` 은 분할점 후보 하나를 넣어 값을 만들고 견준 한 번과 `solve` 를 한 번 부른 것을
- * 각각 하나로 센다(빈 범위로 곧장 반환하는 호출도 센다). `저장 칸` 은 이전 계층 배열과 이번
- * 계층 배열, 그리고 재귀가 가장 깊었을 때의 호출 틀 수를 더한 것이다.
+ * `저장 칸` 은 이전 줄과 이번 줄 배열, 그리고 재귀가 가장 깊었을 때의 호출 틀 수를 더한 것이다.
  */
-function 분할정복설계(cost: number[][], k: number): Run {
+export function 분할정복(cost: number[][], k: number): Run {
   const n = cost.length;
   const base = cost[0] as number[];
   let prev: number[] = new Array<number>(n).fill(INF);
   for (let i = 0; i < n; i++) prev[i] = base[i] as number;
-
-  let ops = 0;
+  const perLayer: number[] = [];
   let peak = 0;
 
   for (let g = 2; g <= k; g++) {
     const cur: number[] = new Array<number>(n).fill(INF);
-
+    let count = 0;
     const solve = (
       lo: number,
       hi: number,
@@ -87,7 +95,6 @@ function 분할정복설계(cost: number[][], k: number): Run {
       optHi: number,
       depth: number,
     ): void => {
-      ops++;
       peak = Math.max(peak, depth);
       if (lo > hi) return;
       const mid = (lo + hi) >> 1;
@@ -95,7 +102,7 @@ function 분할정복설계(cost: number[][], k: number): Run {
       let bestOpt = optLo;
       const upper = Math.min(optHi, mid - 1);
       for (let j = optLo; j <= upper; j++) {
-        ops++;
+        count++;
         const row = cost[j + 1] as number[];
         const val = (prev[j] as number) + (row[mid] as number);
         if (val < bestCost) {
@@ -107,131 +114,180 @@ function 분할정복설계(cost: number[][], k: number): Run {
       solve(lo, mid - 1, optLo, bestOpt, depth + 1);
       solve(mid + 1, hi, bestOpt, optHi, depth + 1);
     };
-
     solve(0, n - 1, 0, n - 2, 1);
+    perLayer.push(count);
     prev = cur;
   }
-
-  return { ops, cells: 2 * n + peak, answer: prev[n - 1] as number };
+  return { perLayer, cells: 2 * n + peak, answer: prev[n - 1] as number };
 }
 
 /**
- * 경쟁 설계 — **후보 범위를 안 좁히고 분할점을 전부 검사한다.** 단조성을 쓰지 않으므로
- * 사각 부등식이 성립하지 않는 비용 행렬에서도 최솟값을 놓치지 않는다.
+ * 경쟁 설계 — **크누스 최적화.** 칸 `i` 의 후보를 `[opt(g-1, i), opt(g, i+1)]` 로 가둔다. 앞은 이전
+ * 줄에서, 뒤는 같은 줄의 오른쪽 이웃에서 오므로 줄 안에서 칸을 **뒤에서부터** 채운다. 줄 하나의 후보
+ * 수는 입력에 따라 크게 갈리지만, 줄 `k` 개를 모두 더하면 대각선마다 합이 이어 붙어(망원합) 전체가
+ * `n²` 규모에 머문다.
  *
- * `기본 연산` 은 후보 하나를 검사한 한 번과 칸 하나를 처리하려고 바깥 반복에 들어간 한 번을
- * 각각 하나로 센다. `저장 칸` 은 두 계층 배열이고 재귀가 없어 호출 틀이 없다.
+ * `저장 칸` 은 이전 줄 · 이번 줄 배열에, 이전 줄 · 이번 줄의 최적 가르는 자리 배열을 더한 것이다. 재귀가
+ * 없어 호출 틀이 없다.
  */
-function 완전탐색설계(cost: number[][], k: number): Run {
+export function 크누스(cost: number[][], k: number): Run {
   const n = cost.length;
-  const base = cost[0] as number[];
-  let prev: number[] = new Array<number>(n).fill(INF);
-  for (let i = 0; i < n; i++) prev[i] = base[i] as number;
-
-  let ops = 0;
-
+  let prev = (cost[0] as number[]).slice();
+  let optPrev = new Array<number>(n).fill(0);
+  const perLayer: number[] = [];
   for (let g = 2; g <= k; g++) {
-    const cur: number[] = new Array<number>(n).fill(INF);
-    for (let i = 0; i < n; i++) {
-      ops++;
-      for (let j = 0; j < i; j++) {
-        ops++;
-        const row = cost[j + 1] as number[];
-        const val = (prev[j] as number) + (row[i] as number);
-        if (val < (cur[i] as number)) cur[i] = val;
+    const cur = new Array<number>(n).fill(INF);
+    const opt = new Array<number>(n).fill(0);
+    let count = 0;
+    for (let i = n - 1; i >= 0; i--) {
+      // 구역 수보다 칸이 적으면 만들 수 없는 칸이다. 뒤 칸의 상한으로만 쓰이므로 i - 1 을 둔다.
+      if (i < g - 1) {
+        opt[i] = Math.max(0, i - 1);
+        continue;
       }
+      const lo = Math.max(optPrev[i] as number, g - 2);
+      const hi = Math.min(i === n - 1 ? n - 2 : (opt[i + 1] as number), i - 1);
+      let best = INF;
+      let found = lo;
+      for (let j = lo; j <= hi; j++) {
+        count++;
+        const val =
+          (prev[j] as number) + ((cost[j + 1] as number[])[i] as number);
+        if (val < best) {
+          best = val;
+          found = j;
+        }
+      }
+      cur[i] = best;
+      opt[i] = found;
     }
+    perLayer.push(count);
     prev = cur;
+    optPrev = opt;
   }
-
-  return { ops, cells: 2 * n, answer: prev[n - 1] as number };
+  return { perLayer, cells: 4 * n, answer: prev[n - 1] as number };
 }
 
 /* ────────────────────────── 대조 ────────────────────────── */
 
 /** 두 설계가 **정본과 같은 답**을 내는지 확인한다. 다르면 대조가 성립하지 않는다. */
 function 확인(): void {
-  const inputs: [number[], number][] = [
-    [WALK_A, WALK_K],
-    [line(4), K],
-    [line(8), K],
-    [line(9), K],
-    [line(16), K],
-    [line(500), K],
-  ];
+  const inputs: [number[], number][] = [[WALK_A, WALK_K]];
+  for (const n of [1, 2, 5, 9, 16, 40])
+    for (const k of [1, 2, 3, n]) if (k <= n) inputs.push([seq(n), k]);
+  // 준무작위 배열 — 값 0 … 9, 칸 1 … 12, 구역 수 전부.
+  let seed = 7;
+  const rnd = (): number => {
+    seed = (seed * 48_271) % 2_147_483_647;
+    return seed;
+  };
+  for (let t = 0; t < 200; t++) {
+    const n = 1 + (rnd() % 12);
+    const a = Array.from({ length: n }, () => rnd() % 10);
+    for (let k = 1; k <= n; k++) inputs.push([a, k]);
+  }
   for (const [a, k] of inputs) {
     const cost = buildCost(a);
     const want = divideAndConquerDp(cost, k);
-    const x = 분할정복설계(cost, k);
-    const y = 완전탐색설계(cost, k);
-    if (x.answer !== want) {
+    const x = 분할정복(cost, k);
+    const y = 크누스(cost, k);
+    if (x.answer !== want)
       throw new Error(
         `세는 사본이 정본과 다른 답을 낸다 — ${x.answer} vs ${want}`,
       );
-    }
-    if (y.answer !== want) {
+    if (y.answer !== want)
       throw new Error(
-        `경쟁 설계가 정본과 다른 답을 낸다 — ${y.answer} vs ${want}`,
+        `크누스 최적화가 정본과 다른 답을 낸다 — ${y.answer} vs ${want}`,
       );
-    }
   }
 }
 확인();
 
+/** 앞에서부터 더한 합 — `k` 개 구역일 때의 후보 수는 `sums[k - 2]`. */
+const prefixSums = (xs: readonly number[]): number[] => {
+  const out: number[] = [];
+  let acc = 0;
+  for (const x of xs) {
+    acc += x;
+    out.push(acc);
+  }
+  return out;
+};
+
+interface Sweep {
+  dc: number[];
+  kn: number[];
+  dcCells: number;
+  knCells: number;
+}
+
+let cache: Sweep | null = null;
+
+/** `n = 2,000`, `k = 2,000` 을 한 번 돌리면 줄마다의 후보 수가 나오고, 그 합이 `k` 마다의 값이다. */
+export function sweepK(): Sweep {
+  if (cache === null) {
+    const cost = buildCost(seq(N));
+    const x = 분할정복(cost, N);
+    const y = 크누스(cost, N);
+    if (x.answer !== y.answer) throw new Error("두 설계의 답이 다르다");
+    cache = {
+      dc: prefixSums(x.perLayer),
+      kn: prefixSums(y.perLayer),
+      dcCells: x.cells,
+      knCells: y.cells,
+    };
+  }
+  return cache;
+}
+
+/** `k` 개 구역일 때의 후보 수. */
+export const countAt = (sums: readonly number[], k: number): number =>
+  k < 2 ? 0 : (sums[k - 2] as number);
+
 /**
- * `n` 을 늘려 가며 순서가 뒤집히는 자리를 찾는다.
- *
- * `last` 는 완전 탐색 쪽 계수가 아직 적은 마지막 거점 수이고, `first` 는 분할 정복 쪽이
- * 처음으로 적어지는 거점 수다. 둘이 이어져 있지 않으면 경계를 한 자리로 말할 수 없으므로
- * 그때는 던진다.
+ * `k` 를 늘려 가며 순서가 뒤집히는 자리를 찾는다. `last` 는 분할 정복 최적화가 아직 적은 마지막
+ * `k`, `first` 는 크누스 최적화가 처음으로 적어지는 `k` 다. 뒤집혔다가 되돌아오면 경계를 한
+ * 자리로 말할 수 없으므로 던진다.
  */
 export function crossing(): { last: number; first: number } {
-  let last = -1;
-  for (let n = K; n <= 400; n++) {
-    const cost = buildCost(line(n));
-    const a = 분할정복설계(cost, K).ops;
-    const b = 완전탐색설계(cost, K).ops;
-    if (a < b) {
-      if (last < 0) {
-        throw new Error(`n = ${n} 부터 이미 분할 정복이 앞선다 — 경계가 없다`);
-      }
-      if (n !== last + 1) {
-        throw new Error(
-          `경계가 이어져 있지 않다 — ${last} 다음이 ${n} 이 아니다`,
-        );
-      }
-      return { last, first: n };
-    }
-    last = n;
+  const { dc, kn } = sweepK();
+  let first = -1;
+  for (let k = 2; k <= N; k++) {
+    const dcFewer = countAt(dc, k) < countAt(kn, k);
+    if (!dcFewer && first < 0) first = k;
+    if (dcFewer && first >= 0)
+      throw new Error(`k = ${first} 에서 뒤집혔다가 k = ${k} 에서 되돌아온다`);
   }
-  throw new Error(
-    "n 을 400 까지 늘려도 순서가 안 뒤집힌다 — 대조가 성립하지 않는다",
-  );
+  if (first <= 2)
+    throw new Error("k 를 늘려도 순서가 뒤집히지 않거나 처음부터 뒤집혀 있다");
+  return { last: first - 1, first };
 }
 
 const CROSS = crossing();
 
+/** 표에 싣는 구역 수 — 가장 작은 k, 뒤집히기 직전과 직후, 과제 규모의 상한. */
+export const K_SHOWN = [2, CROSS.last, CROSS.first, N];
+
 function 재기(
   run: (cost: number[][], k: number) => Run,
+  sums: readonly number[],
+  cells: number,
 ): Record<string, number> {
   const walk = run(buildCost(WALK_A), WALK_K);
-  const before = run(buildCost(line(CROSS.last)), K);
-  const after = run(buildCost(line(CROSS.first)), K);
-  const big = run(buildCost(line(500)), K);
-  return {
-    "전개 입력 · 기본 연산": walk.ops,
-    [`거점 ${CROSS.last} 개 · 기본 연산`]: before.ops,
-    [`거점 ${CROSS.first} 개 · 기본 연산`]: after.ops,
-    "거점 500 개 · 기본 연산": big.ops,
-    "거점 500 개 · 저장 칸": big.cells,
+  const out: Record<string, number> = {
+    "전개 입력 · 후보 수": walk.perLayer.reduce((s, v) => s + v, 0),
   };
+  for (const k of K_SHOWN) out[`k = ${k} · 후보 수`] = countAt(sums, k);
+  out["저장 칸"] = cells;
+  return out;
 }
 
 export const cases = {
-  "이 가이드의 절차": () => 재기(분할정복설계),
-  "후보 범위를 안 좁히는 설계": () => 재기(완전탐색설계),
+  "분할 정복 최적화 (이 가이드)": () =>
+    재기(분할정복, sweepK().dc, sweepK().dcCells),
+  "크누스 최적화": () => 재기(크누스, sweepK().kn, sweepK().knCells),
   경계: () => ({
-    "완전 탐색이 앞서는 마지막 거점 수": CROSS.last,
-    "분할 정복이 앞서는 첫 거점 수": CROSS.first,
+    "분할 정복 최적화가 적은 마지막 k": CROSS.last,
+    "크누스 최적화가 적은 첫 k": CROSS.first,
   }),
 };
