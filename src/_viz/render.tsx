@@ -117,7 +117,12 @@ export async function renderToSvg(
     styleEl.textContent = css;
     clone.insertBefore(styleEl, clone.firstChild);
 
-    let out = clone.outerHTML;
+    // happy-dom 의 outerHTML 은 속성 값 속 `<` 를 그대로 둔다. 자립 SVG 는 XML 이라 그대로면
+    // 올바른 문서가 아니다 — 그림 이름·곁말에 「n < p」가 들면 뷰어가 열지 못한다.
+    let out = clone.outerHTML.replace(
+      /="([^"]*)"/g,
+      (_, v: string) => `="${v.replaceAll("<", "&lt;")}"`,
+    );
     const ids = [...new Set(out.match(/_r_[0-9a-z]+_/g) ?? [])];
     ids.forEach((raw, k) => {
       out = out.replaceAll(raw, `${id}-${k}`);
