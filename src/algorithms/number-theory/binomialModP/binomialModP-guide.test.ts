@@ -9,10 +9,10 @@
  * 범위 안이라는 것**이라 반환값으로 다시 건다. 같은 규모의 비용은 본문 「최악을 만드는
  * 입력」이 반복 횟수로 진다.
  *
- * **원본에 없던 케이스 넷을 더 걸었다.** ① 작은 값 전수에서 정의대로의 이항 계수와 같은가
+ * **원본에 없던 케이스 다섯을 더 걸었다.** ① 작은 값 전수에서 정의대로의 이항 계수와 같은가
  * ② 자릿수 분해가 정의대로의 값과 어긋나지 않는가(`n ≥ p` 를 전수로) ③ 파스칼 규칙
  * `C(n,k) = C(n-1,k-1) + C(n-1,k)` 가 법 안에서 성립하는가 ④ 본문 「불변식」이 세운 두 누적이
- * 걸음마다 참인가.
+ * 걸음마다 참인가 ⑤ 걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같은가.
  */
 import { expect, test } from "bun:test";
 import { binomialModP } from "./binomialModP-guide.ref.ts";
@@ -138,4 +138,19 @@ test("반환값이 언제나 [0, p) 안이다", () => {
       }
     }
   }
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./binomialModP-guide.sim.ts");
+  const { simStepsFromRef } = await import("./binomialModP-guide.fig.tsx");
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.lucasWalk.steps)).toEqual(plain(want.lucasWalk));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.lucasWalk.result).toBe(`${binomialModP(34n, 20n, 7n)}n`);
 });
