@@ -1,136 +1,239 @@
-import type { Frame } from "#guide-sim";
+import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**(`pollardRho(8051n)`)을 쓴다.
- * 프레임 수는 그 절의 T# 단계 수를 넘지 않는다 — P3 이 그 관계를 잰다.
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**(`pollardRho(8051n)`)을 쓴다. 걸음은 짝수 검사(T1) ·
+ * 소수 판정(T2) · 수열 시작(T3) · 두 자리를 한 걸음씩 나아가게 하기(T4~T6) · 반환(T7)이다.
  *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가 배열
+ * 무대(`arrayStage.ts`)를 고른다. 칸 `i` 가 수열의 `i` 번째 값 `x_i`(법 8,051)이고, 괄호 「만든 수열」은 지금까지
+ * 만든 칸, ▲ 는 느린 자리 `x`(칸 `k`)와 빠른 자리 `y`(칸 `2k`)다. 그 아래 두 줄은 같은 칸을 두 소인수 97 과
+ * 83 으로 나눈 나머지다 — 코드는 이 두 줄을 계산하지 않고, 최대공약수가 그 줄에서 일어난 일을 대신 알아챈다.
+ * 상수 `c` 와 나머지 연산 수는 무대에 자리가 없어 남는 변수다.
  *
- * ## `keyValue` 단독 조합을 고른 이유
+ * 옛 패널(`view: ["keyValue"]`)은 변수 여덟을 나열했다. 수열이 무대에 없어서 두 자리가 수열의 어디에 있는지,
+ * 법 97 에서 같은 값이 되는 자리가 어디인지 보이지 않았다(SPEC `L48`).
  *
- * 선례는 같은 카테고리의 `millerRabin`·`fastPower` 가 세웠고 고르는 기준 둘이 여기서도
- * 맞는다 — ① 입력이 정수 하나(`n`)뿐이라 그릴 배열이 없고 ② 움직이는 것이 스칼라 넷
- * (`c`·`x`·`y`·`d`)뿐이다. `array` 를 더하면 담을 배열이 없어 빈 칸이 된다.
- *
- * 1. **항목을 프레임마다 같은 것으로 같은 순서로 둔다.** 값이 없는 자리도 항목을 빼지 않고
- *    `—` 로 적는다. 하나가 빠지면 아래가 한 칸씩 올라가 독자가 자리를 다시 센다.
- * 2. **항목 순서는 「지금 실행하는 갈래 → 그 갈래가 보는 값 → 상태 → 답」이다.** 첫 항목이
- *    `갈래`, 마지막 항목이 반환값이 될 `판정` 이다.
- * 3. **`label` 은 본문 기호표의 이름과 글자 그대로 같게 쓴다** — `n`·`c`·`x`·`y`·`d` 다.
- * 4. **`millerRabin` 과 갈리는 자리 하나를 적어 둔다.** 그 편은 프레임 하나가 밑 하나의
- *    제곱 수열 한 자리였는데 이 편은 **프레임 하나가 두 자리를 한 번씩 나아가게 한 결과**다.
- *    소수 판정 자체는 이 편에서 한 걸음(`②`)으로 접히고, 그 안쪽은 그 편이 이미 열어 두었다.
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 리터럴은 그림 사이드카의
+ * `simStepsFromRef()`(정본과 같은 절차를 따라가며 만든 걸음)를 글자 그대로 옮긴 것이고, 둘이 같은지는
+ * `pollardRho-guide.test.ts` 가 잰다.
  */
+
 export const rhoWalk = {
-  view: ["keyValue"] as const,
-  title: "pollardRho(8051n) — 법 97 에서 먼저 겹치는 자리를 gcd 가 잡아낸다",
+  player: "stage",
+  stage: "array",
+  arrayName: "x mod 8,051",
+  rangeLabel: "만든 수열",
+  title: "pollardRho(8051n)",
   result: "97n",
   steps: [
     {
-      title: "T1 — ① 짝수인가",
-      detail:
-        "8,051 은 홀수라 ① 이 거짓이다. 짝수였다면 여기서 2 를 돌려주고 끝났다.",
-      entries: [
-        { label: "갈래", value: "① 짝수인가 — 거짓" },
-        { label: "n", value: "8,051" },
-        { label: "c", value: "—" },
-        { label: "x", value: "—" },
-        { label: "y", value: "—" },
-        { label: "|x − y|", value: "—" },
-        { label: "d", value: "—" },
-        { label: "판정", value: "미정" },
+      title: "T1 짝수인가",
+      text: "8,051 을 2 로 나눈 나머지가 1 이라 짝수가 아닙니다. 수열은 아직 한 칸도 만들지 않았습니다.",
+      array: [null, null, null, null, null, null, null],
+      range: null,
+      read: [],
+      write: [],
+      calc: {
+        expr: "8,051 mod 2",
+        result: "1",
+      },
+      vars: "c = — · 나머지 연산 1",
+      layers: [
+        {
+          name: "x mod 97",
+          values: [null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
+        {
+          name: "x mod 83",
+          values: [null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
       ],
     },
     {
-      title: "T2 — ② 소수인가",
-      detail:
-        "8,051 = 83 × 97 이라 밑 열둘을 고정한 판정이 합성수라고 답한다. 소수였다면 여기서 n 자신을 돌려주고 끝났다.",
-      entries: [
-        { label: "갈래", value: "② 소수인가 — 거짓" },
-        { label: "n", value: "8,051" },
-        { label: "c", value: "—" },
-        { label: "x", value: "—" },
-        { label: "y", value: "—" },
-        { label: "|x − y|", value: "—" },
-        { label: "d", value: "—" },
-        { label: "판정", value: "합성수 — 아래로" },
+      title: "T2 소수인가",
+      text: "밑 열둘의 판정이 합성수라고 답합니다. 이 판정이 나머지 연산 35 번을 씁니다.",
+      array: [null, null, null, null, null, null, null],
+      range: null,
+      read: [],
+      write: [],
+      calc: {
+        expr: "소수 판정(8,051)",
+        result: "합성수",
+      },
+      vars: "c = — · 나머지 연산 36",
+      layers: [
+        {
+          name: "x mod 97",
+          values: [null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
+        {
+          name: "x mod 83",
+          values: [null, null, null, null, null, null, null],
+          read: [],
+          write: [],
+        },
       ],
     },
     {
-      title: "T3 — ③④ 수열 하나를 정하고 두 자리를 같은 곳에 둔다",
-      detail:
-        "c = 1 이므로 f(t) = (t² + 1) mod 8051 이다. x 와 y 를 둘 다 2 에 두고, d 는 계산하지 않고 1 로 둔다.",
-      entries: [
-        { label: "갈래", value: "③ 수열을 시작한다 · ④ d 를 1 로 둔다" },
-        { label: "n", value: "8,051" },
-        { label: "c", value: 1 },
-        { label: "x", value: 2 },
-        { label: "y", value: 2 },
-        { label: "|x − y|", value: 0 },
-        { label: "d", value: 1 },
-        { label: "판정", value: "미정" },
+      title: "T3 수열을 시작한다",
+      text: "상수 c = 1 이 수열 하나를 정합니다. 두 자리를 칸 0 의 2 에 두고, d 는 계산하지 않고 1 로 둡니다.",
+      array: ["2", null, null, null, null, null, null],
+      range: [0, 0],
+      read: [],
+      write: [0],
+      pointers: {
+        x: 0,
+        y: 0,
+      },
+      calc: {
+        expr: "f(t) = (t² + 1) mod 8,051",
+        result: "x = y = 2 · d = 1",
+      },
+      vars: "c = 1 · 나머지 연산 36",
+      layers: [
+        {
+          name: "x mod 97",
+          values: ["2", null, null, null, null, null, null],
+          read: [],
+          write: [0],
+        },
+        {
+          name: "x mod 83",
+          values: ["2", null, null, null, null, null, null],
+          read: [],
+          write: [0],
+        },
       ],
     },
     {
-      title: "T4 — ⑤⑥ 한 걸음",
-      detail:
-        "x 는 f 를 한 번 거쳐 5 가 되고 y 는 두 번 거쳐 26 이 된다. |x − y| = 21 이고 gcd(21, 8051) = 1 이라 더 진행한다.",
-      entries: [
-        { label: "갈래", value: "⑤ 두 자리를 나아가게 한다 · ⑥ 최대공약수" },
-        { label: "n", value: "8,051" },
-        { label: "c", value: 1 },
-        { label: "x", value: 5 },
-        { label: "y", value: 26 },
-        { label: "|x − y|", value: 21 },
-        { label: "d", value: 1 },
-        { label: "판정", value: "미정" },
+      title: "T4 1 걸음",
+      text: "x 는 칸 1, y 는 칸 2 로 갑니다. 두 칸의 차와 8,051 의 최대공약수가 1 이라 한 걸음 더 갑니다.",
+      array: ["2", "5", "26", null, null, null, null],
+      range: [0, 2],
+      read: [1, 2],
+      write: [1, 2],
+      pointers: {
+        x: 1,
+        y: 2,
+      },
+      calc: {
+        expr: "gcd(|5 − 26|, 8,051)",
+        result: "1",
+      },
+      vars: "c = 1 · 나머지 연산 46",
+      layers: [
+        {
+          name: "x mod 97",
+          values: ["2", "5", "26", null, null, null, null],
+          read: [1, 2],
+          write: [1, 2],
+        },
+        {
+          name: "x mod 83",
+          values: ["2", "5", "26", null, null, null, null],
+          read: [1, 2],
+          write: [1, 2],
+        },
       ],
     },
     {
-      title: "T5 — ⑤⑥ 두 걸음",
-      detail:
-        "x = 26, y = 7,474 이다. 법 97 에서는 26 과 5 라 아직 다르고, gcd(7448, 8051) = 1 이다.",
-      entries: [
-        { label: "갈래", value: "⑤ 두 자리를 나아가게 한다 · ⑥ 최대공약수" },
-        { label: "n", value: "8,051" },
-        { label: "c", value: 1 },
-        { label: "x", value: 26 },
-        { label: "y", value: "7,474" },
-        { label: "|x − y|", value: "7,448" },
-        { label: "d", value: 1 },
-        { label: "판정", value: "미정" },
+      title: "T5 2 걸음",
+      text: "x 는 칸 2, y 는 칸 4 로 갑니다. 두 칸의 차와 8,051 의 최대공약수가 1 이라 한 걸음 더 갑니다.",
+      array: ["2", "5", "26", "677", "7,474", null, null],
+      range: [0, 4],
+      read: [2, 4],
+      write: [3, 4],
+      pointers: {
+        x: 2,
+        y: 4,
+      },
+      calc: {
+        expr: "gcd(|26 − 7,474|, 8,051)",
+        result: "1",
+      },
+      vars: "c = 1 · 나머지 연산 59",
+      layers: [
+        {
+          name: "x mod 97",
+          values: ["2", "5", "26", "95", "5", null, null],
+          read: [2, 4],
+          write: [3, 4],
+        },
+        {
+          name: "x mod 83",
+          values: ["2", "5", "26", "13", "4", null, null],
+          read: [2, 4],
+          write: [3, 4],
+        },
       ],
     },
     {
-      title: "T6 — ⑤⑥ 세 걸음",
-      detail:
-        "x = 677, y = 871 이고 둘 다 법 97 에서 95 다. 차 194 = 2 × 97 이므로 gcd(194, 8051) = 97 이 되어 루프가 끝난다.",
-      entries: [
-        { label: "갈래", value: "⑤ 두 자리를 나아가게 한다 · ⑥ 최대공약수" },
-        { label: "n", value: "8,051" },
-        { label: "c", value: 1 },
-        { label: "x", value: 677 },
-        { label: "y", value: 871 },
-        { label: "|x − y|", value: 194 },
-        { label: "d", value: 97 },
-        { label: "판정", value: "루프 종료" },
+      title: "T6 3 걸음",
+      text: "x 는 칸 3, y 는 칸 6 으로 갑니다. 두 칸이 법 97 에서 같은 값 95 가 되어 최대공약수가 97 을 냅니다.",
+      array: ["2", "5", "26", "677", "7,474", "2,839", "871"],
+      range: [0, 6],
+      read: [3, 6],
+      write: [5, 6],
+      pointers: {
+        x: 3,
+        y: 6,
+      },
+      calc: {
+        expr: "gcd(|677 − 871|, 8,051)",
+        result: "97",
+      },
+      vars: "c = 1 · 나머지 연산 65",
+      layers: [
+        {
+          name: "x mod 97",
+          values: ["2", "5", "26", "95", "5", "26", "95"],
+          read: [3, 6],
+          write: [5, 6],
+        },
+        {
+          name: "x mod 83",
+          values: ["2", "5", "26", "13", "4", "17", "41"],
+          read: [3, 6],
+          write: [5, 6],
+        },
       ],
     },
     {
-      title: "T7 — ⑦ 비자명한 약수를 반환한다",
-      detail:
-        "d = 97 이고 8,051 이 아니므로 그대로 돌려준다. 8,051 / 97 = 83 이고 둘 다 소수라 이 값은 실제로 소인수이지만, 계약이 요구하는 것은 「비자명한 약수」까지다.",
-      entries: [
-        { label: "갈래", value: "⑦ 비자명한 약수를 반환" },
-        { label: "n", value: "8,051" },
-        { label: "c", value: 1 },
-        { label: "x", value: 677 },
-        { label: "y", value: 871 },
-        { label: "|x − y|", value: 194 },
-        { label: "d", value: 97 },
-        { label: "판정", value: "97 을 반환" },
+      title: "T7 비자명한 약수를 돌려준다",
+      text: "d = 97 이 1 도 8,051 도 아니라 그대로 돌려줍니다. 8,051 ÷ 97 = 83 입니다.",
+      array: ["2", "5", "26", "677", "7,474", "2,839", "871"],
+      range: [0, 6],
+      read: [],
+      write: [],
+      pointers: {
+        x: 3,
+        y: 6,
+      },
+      calc: {
+        expr: "97 ≠ 8,051",
+        result: "97 반환",
+      },
+      vars: "c = 1 · 나머지 연산 65",
+      layers: [
+        {
+          name: "x mod 97",
+          values: ["2", "5", "26", "95", "5", "26", "95"],
+          read: [],
+          write: [],
+        },
+        {
+          name: "x mod 83",
+          values: ["2", "5", "26", "13", "4", "17", "41"],
+          read: [],
+          write: [],
+        },
       ],
     },
-  ] satisfies Frame[],
-};
+  ],
+} satisfies ArrayPlayerSpec;

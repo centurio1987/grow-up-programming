@@ -92,7 +92,7 @@ r₄ = r₂ mod r₃ = 273 mod 168 = 105
 마지막 항목이 흐릿하면 뒤가 어긋납니다. 음수를 그대로 넣으면 답이 음수로 나올 수 있고, 그 자리를 첫 번째
 「짚고 가기」에서 값으로 확인합니다. 이 글의 절차가 버리는 몫까지 살려 두면 [`extendedEuclidean`](../extendedEuclidean/extendedEuclidean-guide.md)
 이 되고, 그 결과로 [`crt`](../crt/crt-guide.md)(중국인의 나머지 정리)가 연립 합동식을 풉니다.
-[`pollardRho`](../pollardRho/pollardRho-guide.md) 는 이 글의 함수를 그대로 불러 인수를 찾아요.
+[`pollardRho`](../pollardRho/pollardRho-guide.md) 는 같은 호제법을 음이 아닌 두 수만 받는 판으로 따로 두고, 그것으로 인수를 찾아요.
 
 ### 아이디어를 떠올리는 과정 — 1 부터 전부 나눠 보기에서 유클리드 호제법까지
 

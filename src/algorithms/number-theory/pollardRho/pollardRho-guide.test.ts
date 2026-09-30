@@ -12,7 +12,7 @@
  * 대조하고, 그 밖은 소인수를 곱해 되돌리는 방식으로 확인한다.
  */
 import { expect, test } from "bun:test";
-import { counted, factorize, trialDivision } from "./pollardRho-guide.proof.ts";
+import { count, factorize, trialDivision } from "./pollardRho-guide.fig.tsx";
 import { pollardRho } from "./pollardRho-guide.ref.ts";
 
 /** 반환값이 계약을 지키는가 — `n` 의 약수이고, 합성수이면 `1 < d < n` 이다. */
@@ -74,10 +74,10 @@ test("작은 소인수를 포함한 합성수 — 3 × 1,000,000,007", () => {
 test("원본 성능 케이스와 같은 입력 — 999,999,937 × 1,000,000,007", () => {
   const n = 999_999_937n * 1_000_000_007n;
   계약을지키는가(n, true);
-  // 벽시계 대신 결정론적 계수를 본다. 이 편이 세는 단위로 백만 번 아래다.
-  const c = counted(n);
+  // 벽시계 대신 결정론적 계수를 본다. 이 편이 세는 단위(나머지 연산)로 백만 번 아래다.
+  const c = count(n);
   expect(c.ops).toBeLessThan(1_000_000);
-  expect(c.rounds).toBe(1);
+  expect(c.roundCount).toBe(1);
 });
 
 test("소수는 자기 자신을 돌려준다", () => {
@@ -95,7 +95,7 @@ test("반환값이 소수라는 보장은 없다 — 63 은 21 을 돌려준다"
 
 test("첫 상수로 못 찾는 입력 — 21 과 25 는 c 를 한 번 올린다", () => {
   for (const n of [21n, 25n]) {
-    expect(counted(n).rounds).toBe(2);
+    expect(count(n).roundCount).toBe(2);
     계약을지키는가(n, true);
   }
 });
@@ -125,7 +125,7 @@ test("반복 제곱 소인수도 특별 취급 없이 처리한다", () => {
 test("같은 입력을 두 번 넣으면 반환값도 계수도 같다", () => {
   for (const n of [8_051n, 10_403n, 63n, 1_000_036_000_099n]) {
     expect(pollardRho(n)).toBe(pollardRho(n));
-    expect(counted(n).ops).toBe(counted(n).ops);
+    expect(count(n).ops).toBe(count(n).ops);
   }
 });
 
@@ -133,4 +133,17 @@ test("전개 입력의 두 소인수가 모두 소수다", () => {
   for (const p of [83n, 97n]) {
     expect(trialDivision(p)).toBe(p);
   }
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이 정적으로
+ * 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본과 같은 절차를 따라가며
+ * 걸음을 만들고 답을 정본에 다시 묻는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./pollardRho-guide.sim.ts");
+  const { simStepsFromRef } = await import("./pollardRho-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.rhoWalk.steps)).toEqual(plain(simStepsFromRef()));
+  expect(sim.rhoWalk.result).toBe(`${pollardRho(8_051n)}n`);
 });
