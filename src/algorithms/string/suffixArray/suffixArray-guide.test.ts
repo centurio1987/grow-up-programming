@@ -142,3 +142,32 @@ test("제약 최댓값에서 답이 순열이고 사전순으로 늘어서 있�
     expect(ordered).toBe(true);
   }
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본의 바퀴 기록과 대조한 걸음 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./suffixArray-guide.sim.ts");
+  const { simStepsFromRef } = await import("./suffixArray-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.saDoubling.steps)).toEqual(plain(simStepsFromRef()));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.saDoubling.result).toBe(`[${suffixArray("banana").join(", ")}]`);
+});
+
+test("다시 쓴 절차가 정본 계측의 바퀴 기록과 같다", async () => {
+  // 그림 · 증명 사이드카가 쓰는 `trace` 는 바퀴마다 정본 계측 사본의 기록과 대조하고, 어긋나면 던진다.
+  const { trace } = await import("./suffixArray-guide.fig.tsx");
+  for (const s of [
+    "banana",
+    "aaaa",
+    "abab",
+    "mississippi",
+    "abracadabra",
+    "a",
+  ]) {
+    expect(trace(s).sa).toEqual(suffixArray(s));
+  }
+});

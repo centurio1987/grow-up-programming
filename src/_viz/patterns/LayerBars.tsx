@@ -32,8 +32,11 @@ export interface LayerBar {
 
 export interface LayerBarsProps {
   readonly title: string;
-  /** 배열 값. 첫 줄에 그대로 놓는다. */
-  readonly values: readonly number[];
+  /**
+   * 배열 값. 첫 줄에 그대로 놓는다. 글자도 받는다 — 문자열의 글자 줄 위에 접미사나 조각이 맡는 자리를
+   * 그릴 때다(첫 편 `suffixArray`). 수만 주면 그림이 그대로다.
+   */
+  readonly values: readonly (number | string)[];
   readonly valuesLabel?: string;
   readonly indexLabel?: string;
   /** 줄 묶음. 묶음 사이에는 한 줄만큼 띄운다(층이 바뀌는 자리). */

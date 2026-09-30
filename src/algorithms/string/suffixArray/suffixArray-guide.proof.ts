@@ -3,430 +3,78 @@
  *
  * 값을 여기 적지 않는다 — **정본(`.ref.ts`)을 부르고, 변이는 그 소스에서 기계로 만든다.**
  * 값을 적어 넣으면 대조가 자기 자신과의 대조가 되고, 그때 이 파일은 아무것도 증명하지 않는다.
+ * 바퀴마다의 상태는 그림 사이드카의 `trace`(정본 계측과 대조한 기록)에서 받고, 셈은 그림 사이드카의
+ * 계수기에서 받는다 — 그림과 표가 같은 기록을 쓴다. 판정 줄(「같다」·「어긋난다」)이 있는 블록은
+ * 중화 실행에서도 값이 나오도록 `trace` 대신 `replay` 를 쓴다(그림 사이드카 머리 주석).
  *
- *   bun run ../../../../tools/check-proof.ts suffixArray-guide.md
+ *   bun run tools/check-proof.ts src/algorithms/string/suffixArray/suffixArray-guide.md
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";
+import { josa, 과와, 으로, 은는, 을를, 이가 } from "../../../../tools/josa.ts";
+import {
+  compareByChars,
+  countedDoubling,
+  countedNaive,
+  generalized,
+  LIMIT,
+  levelName,
+  makeText,
+  num,
+  originCounts,
+  PLUS_ONE_N,
+  piece,
+  type Round,
+  replay,
+  show,
+  trace,
+  WALK,
+  walkRun,
+  walkSteps,
+} from "./suffixArray-guide.fig.tsx";
 import { suffixArray } from "./suffixArray-guide.ref.ts";
+
+const REF = new URL("./suffixArray-guide.ref.ts", import.meta.url).pathname;
 
 /* ────────────────────────── 표 그리기 ────────────────────────── */
 
-/** 한글·가나·한자는 고정폭 화면에서 두 칸을 먹는다. 원문자·화살표는 한 칸으로 센다. */
-const width = (s: string): number =>
-  [...s].reduce((n, c) => n + (/[ᄀ-ᇿ　-〿㄰-㆏가-힯一-鿿]/.test(c) ? 2 : 1), 0);
-
-const padRight = (s: string, to: number): string =>
-  s + " ".repeat(Math.max(0, to - width(s)));
-
-const padLeft = (s: string, to: number): string =>
-  " ".repeat(Math.max(0, to - width(s))) + s;
-
-/** 천 단위 구분. 본문 표기와 같다. */
-const num = (n: number): string => n.toLocaleString("en-US");
-
-/** 배열을 `[a, b, c]` 로 적는다. */
-const show = (xs: number[]): string => `[${xs.join(", ")}]`;
-
-/** 열 폭을 값에서 계산해 표를 그린다. 폭을 리터럴로 박으면 값이 바뀌어도 표가 그대로다. */
-function table(head: string[], rows: string[][], align: ("l" | "r")[]): string {
-  const cols = head.length;
-  const w = Array.from({ length: cols }, (_, c) =>
-    Math.max(width(head[c] ?? ""), ...rows.map((r) => width(r[c] ?? ""))),
-  );
-  const line = (cells: string[]): string =>
-    cells
-      .map((cell, c) =>
-        align[c] === "r" ? padLeft(cell, w[c] ?? 0) : padRight(cell, w[c] ?? 0),
-      )
-      .join("  ")
-      .replace(/\s+$/, "");
-  return [line(head), ...rows.map(line)].join("\n");
+/** 마크다운 표. `right` 에 든 열만 오른쪽 정렬이다. */
+function md(
+  head: string[],
+  rows: string[][],
+  right: readonly number[] = [],
+): string {
+  const rule = head.map((_, c) => (right.includes(c) ? "---:" : "---"));
+  const line = (cells: string[]) => `| ${cells.join(" | ")} |`;
+  return [line(head), line(rule), ...rows.map(line)].join("\n");
 }
 
-/* ────────────────────────── 고정 입력 ────────────────────────── */
+/** 표와 그 아래 문장 — 닫는 마커까지 대조하는 블록의 몸통. */
+const block = (...parts: string[]): string => parts.join("\n\n");
 
-/**
- * 본문 전개가 쓰는 고정 입력. `deep.build`·`deep.walk`·`.sim.ts` 가 같은 것을 쓴다.
- *
- * 여섯 글자 안에서 다섯 갈래가 모두 실행되고(첫 순위 · 범위 밖 표시 · 정렬 두 번 · 같은 쌍
- * 유지 · 종료), 바퀴가 두 번이라 「앞 바퀴의 순위를 재료로 쓴다」가 실제로 확인되며,
- * 같은 순위가 두 쌍(`ana` 계열과 `na` 계열) 남아 넷째 갈래의 「같으면 안 올린다」가 실행된다.
- */
-const WALK = "banana";
+/** 소수 자리를 정해 적는다. */
+const fix = (x: number, d: number): string => x.toFixed(d);
 
-/** 제약의 최댓값. */
-const LIMIT = 100_000;
+/** 백분율 — 둘째 값이 첫째 값보다 몇 % 많은가. */
+const pct = (base: number, more: number): string =>
+  fix((more / base - 1) * 100, 1);
 
-/* ────────────────────────── 계측기 ────────────────────────── */
-
-/**
- * **자료 접근** — 배열 칸을 읽거나 쓴 횟수와 문자열 글자를 읽은 횟수의 합.
- *
- * 두 설계를 같은 자로 재려면 단위가 하나여야 한다. 견주기 횟수만 세면 계수 정렬이 견주기를
- * 한 번도 하지 않아 0 이 되고, 글자 읽기만 세면 배가 기법이 첫 바퀴 말고는 글자를 안 읽어
- * 역시 0 이 된다.
- */
-let access = 0;
-
-const rd = (a: number[], i: number): number => {
-  access++;
-  return a[i] as number;
-};
-
-const wr = (a: number[], i: number, v: number): void => {
-  access++;
-  a[i] = v;
-};
-
-/** 정본과 같은 절차에 자료 접근 계수만 덧붙인 것. */
-function countedDoubling(s: string): {
-  sa: number[];
-  access: number;
-  rounds: number;
-  /** 바퀴마다의 자료 접근. */
-  perRound: number[];
-  /** 동시에 잡혀 있는 칸의 최댓값. */
-  cells: number;
-  /** 첫 순위를 매기는 데 든 자료 접근. */
-  first: number;
-} {
-  access = 0;
-  const n = s.length;
-  let sa = Array.from({ length: n }, (_, i) => i);
-  let rank = Array.from({ length: n }, (_, i) => s.charCodeAt(i));
-  let span = 128;
-  let rounds = 0;
-  let cells = 2 * n;
-  const perRound: number[] = [];
-  // ① 첫 순위를 매길 때 글자를 n 번 읽는다.
-  access += n;
-  let mark = access;
-  const first = access;
-
-  const sortBy = (
-    order: number[],
-    key: (i: number) => number,
-    k: number,
-  ): number[] => {
-    const count = new Array<number>(k).fill(0);
-    for (let p = 0; p < order.length; p++) {
-      const v = key(rd(order, p));
-      wr(count, v, rd(count, v) + 1);
-    }
-    for (let v = 1; v < k; v++) wr(count, v, rd(count, v) + rd(count, v - 1));
-    const out = new Array<number>(order.length).fill(0);
-    for (let p = order.length - 1; p >= 0; p--) {
-      const i = rd(order, p);
-      const v = key(i);
-      wr(count, v, rd(count, v) - 1);
-      wr(out, rd(count, v), i);
-    }
-    return out;
-  };
-
-  for (let gap = 1; gap < n; gap *= 2) {
-    rounds++;
-    const front = (i: number): number => rd(rank, i);
-    const back = (i: number): number =>
-      i + gap < n ? rd(rank, i + gap) + 1 : 0;
-    cells = Math.max(cells, 3 * n + span + 1);
-    for (const key of [back, front]) sa = sortBy(sa, key, span + 1);
-
-    const next = new Array<number>(n).fill(0);
-    let top = 0;
-    for (let j = 1; j < n; j++) {
-      const a = rd(sa, j - 1);
-      const b = rd(sa, j);
-      if (front(a) !== front(b) || back(a) !== back(b)) top++;
-      wr(next, b, top);
-    }
-    rank = next;
-    span = top + 1;
-    perRound.push(access - mark);
-    mark = access;
-    if (span === n) break;
-  }
-  return { sa, access, rounds, perRound, cells, first };
-}
-
-/* ── 가장 단순한 방법 — 접미사를 글자로 직접 견주어 정렬한다 ── */
-
-/**
- * 합치기 정렬. 엔진의 `sort` 는 구현마다 견주기 순서가 달라 계수가 결정론이 아니다.
- * `cost` 는 견주기 한 번이 읽는 글자 수를 돌려준다.
- */
-function mergeSortBy(
-  n: number,
-  compare: (a: number, b: number) => { less: boolean; cost: number },
-): number {
-  let cost = 0;
-  let cur = Array.from({ length: n }, (_, i) => i);
-  let buf = new Array<number>(n).fill(0);
-  for (let w = 1; w < n; w *= 2) {
-    for (let lo = 0; lo < n; lo += 2 * w) {
-      const mid = Math.min(lo + w, n);
-      const hi = Math.min(lo + 2 * w, n);
-      let p = lo;
-      let q = mid;
-      for (let k = lo; k < hi; k++) {
-        cost += 2; // 옮길 값을 읽고 쓴다
-        if (
-          p < mid &&
-          (q >= hi || !compare(cur[q] as number, cur[p] as number).less)
-        ) {
-          cost += q < hi ? compare(cur[q] as number, cur[p] as number).cost : 0;
-          buf[k] = cur[p] as number;
-          p++;
-        } else {
-          cost +=
-            p < mid ? compare(cur[q] as number, cur[p] as number).cost : 0;
-          buf[k] = cur[q] as number;
-          q++;
-        }
-      }
-    }
-    const t = cur;
-    cur = buf;
-    buf = t;
-  }
-  return cost;
-}
-
-/** 접미사를 글자로 직접 견주는 정렬. 답과 자료 접근 수를 함께 낸다. */
-function countedNaive(s: string): { sa: number[]; access: number } {
-  const n = s.length;
-  access = 0;
-  const compare = (a: number, b: number): { less: boolean; cost: number } => {
-    let k = 0;
-    let cost = 0;
-    while (a + k < n && b + k < n) {
-      cost += 2;
-      if (s[a + k] !== s[b + k]) {
-        return { less: (s[a + k] as string) < (s[b + k] as string), cost };
-      }
-      k++;
-    }
-    return { less: n - a < n - b, cost };
-  };
-  const cost = mergeSortBy(n, compare);
-  // 답 자체는 계수와 무관하므로 정본에 맡긴다 — 두 방식이 같은 답을 내는 것은 아래서 본다.
-  const sa = Array.from({ length: n }, (_, i) => i).sort((a, b) => {
-    const r = compare(a, b);
-    return r.less ? -1 : 1;
+/** 자리 번호로 무리를 묶는다 — 같은 값을 받은 자리끼리. */
+function groupsOf(values: readonly number[]): [number, number[]][] {
+  const groups = new Map<number, number[]>();
+  values.forEach((v, i) => {
+    groups.set(v, [...(groups.get(v) ?? []), i]);
   });
-  return { sa, access: cost };
+  return [...groups.entries()].sort((a, b) => a[0] - b[0]);
 }
 
-/**
- * 전부 같은 글자일 때의 자료 접근을 **글자를 하나씩 세지 않고** 낸다.
- *
- * `a` 만 있는 문자열에서 접미사 `i` 와 `j` 의 견주기는 짧은 쪽 길이만큼 글자를 읽고 끝난다.
- * 그래서 견주기 하나의 값이 `2·min(n−i, n−j)` 로 닫히고, 제약 최댓값에서도 실행이 끝난다.
- */
-function naiveCostAllSame(n: number): number {
-  return mergeSortBy(n, (a, b) => ({
-    less: n - a < n - b,
-    cost: 2 * Math.min(n - a, n - b),
-  }));
-}
-
-/* ── 한 바퀴에 조각을 m 배로 늘리는 일반형 ── */
-
-function generalized(
-  s: string,
-  m: number,
-  linear = false,
-): { sa: number[]; access: number; rounds: number } {
-  access = 0;
-  const n = s.length;
-  let sa = Array.from({ length: n }, (_, i) => i);
-  let rank = Array.from({ length: n }, (_, i) => s.charCodeAt(i));
-  // 첫 순위를 매길 때 글자를 n 번 읽는다 — `countedDoubling` 과 같은 자로 잰다.
-  access += n;
-  let span = 128;
-  let rounds = 0;
-  let len = 1;
-
-  const sortBy = (
-    order: number[],
-    key: (i: number) => number,
-    k: number,
-  ): number[] => {
-    const count = new Array<number>(k).fill(0);
-    for (let p = 0; p < order.length; p++) {
-      const v = key(rd(order, p));
-      wr(count, v, rd(count, v) + 1);
-    }
-    for (let v = 1; v < k; v++) wr(count, v, rd(count, v) + rd(count, v - 1));
-    const out = new Array<number>(order.length).fill(0);
-    for (let p = order.length - 1; p >= 0; p--) {
-      const i = rd(order, p);
-      const v = key(i);
-      wr(count, v, rd(count, v) - 1);
-      wr(out, rd(count, v), i);
-    }
-    return out;
-  };
-
-  while (len < n) {
-    rounds++;
-    const parts = linear ? 2 : m;
-    const offs = linear
-      ? [0, len]
-      : Array.from({ length: m }, (_, t) => t * len);
-    const keyOf = (t: number) => (i: number) => {
-      const o = offs[t] as number;
-      return i + o < n ? rd(rank, i + o) + 1 : 0;
-    };
-    for (let t = parts - 1; t >= 0; t--) sa = sortBy(sa, keyOf(t), span + 1);
-
-    const next = new Array<number>(n).fill(0);
-    let top = 0;
-    for (let j = 1; j < n; j++) {
-      const a = rd(sa, j - 1);
-      const b = rd(sa, j);
-      let same = true;
-      for (let t = 0; t < parts; t++) {
-        if (keyOf(t)(a) !== keyOf(t)(b)) {
-          same = false;
-          break;
-        }
-      }
-      if (!same) top++;
-      wr(next, b, top);
-    }
-    rank = next;
-    span = top + 1;
-    if (span === n) break;
-    len = linear ? len + 1 : len * m;
-  }
-  return { sa, access, rounds };
-}
-
-/* ────────────────────────── 결정론적 입력 ────────────────────────── */
-
-/** mulberry32. 32비트 정수 연산만 써서 배정밀도 손실이 없다. */
-export function makeText(n: number, sigma: number): string {
-  let a = 0x9e3779b9;
-  const out: string[] = [];
-  for (let i = 0; i < n; i++) {
-    a = (a + 0x6d2b79f5) | 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    out.push(String.fromCharCode(97 + (((t ^ (t >>> 14)) >>> 0) % sigma)));
-  }
-  return out.join("");
-}
-
-/* ────────────────────────── 전개 기록기 ────────────────────────── */
-
-interface Step {
-  label: string;
-  gap: number;
-  what: string;
-  sa: number[];
-  rank: number[];
-  /** 이번 걸음에서 쓴 뒤 조각 순위. 정렬·재부여 걸음에서만 있다. */
-  back: number[] | null;
-  span: number;
-}
-
-/** 정본과 같은 절차를 걸음마다 멈춰 상태를 기록한다. */
-function walkSteps(s: string): {
-  steps: Step[];
-  branch: Record<string, number>;
-} {
-  const n = s.length;
-  let sa = Array.from({ length: n }, (_, i) => i);
-  let rank = Array.from({ length: n }, (_, i) => s.charCodeAt(i));
-  let span = 128;
-  const steps: Step[] = [];
-  const branch: Record<string, number> = {
-    "①": 1,
-    "②": 0,
-    "③": 0,
-    "④": 0,
-    "⑤": 0,
-  };
-  let t = 1;
-  const push = (gap: number, what: string, back: number[] | null): void => {
-    steps.push({
-      label: `T${t++}`,
-      gap,
-      what,
-      sa: [...sa],
-      rank: [...rank],
-      back,
-      span,
-    });
-  };
-
-  const sortBy = (
-    order: number[],
-    key: (i: number) => number,
-    k: number,
-  ): number[] => {
-    const count = new Array<number>(k).fill(0);
-    for (const i of order) count[key(i)] = (count[key(i)] as number) + 1;
-    for (let v = 1; v < k; v++) {
-      count[v] = (count[v] as number) + (count[v - 1] as number);
-    }
-    const out = new Array<number>(order.length).fill(0);
-    for (let p = order.length - 1; p >= 0; p--) {
-      const i = order[p] as number;
-      const v = key(i);
-      count[v] = (count[v] as number) - 1;
-      out[count[v] as number] = i;
-    }
-    return out;
-  };
-
-  push(0, "글자 코드를 길이 1 조각의 순위로 둔다", null);
-
-  for (let gap = 1; gap < n; gap *= 2) {
-    const front = (i: number): number => rank[i] as number;
-    const back = (i: number): number =>
-      i + gap < n ? (rank[i + gap] as number) + 1 : 0;
-    const backs = Array.from({ length: n }, (_, i) => back(i));
-    for (let i = 0; i < n; i++)
-      if (i + gap >= n) branch["②"] = (branch["②"] ?? 0) + 1;
-    push(gap, `뒤 조각의 순위를 붙여 쌍을 만든다`, backs);
-
-    sa = sortBy(sa, back, span + 1);
-    branch["③"] = (branch["③"] ?? 0) + 1;
-    push(gap, "뒤 조각으로 안정 정렬한다", backs);
-    sa = sortBy(sa, front, span + 1);
-    branch["③"] = (branch["③"] ?? 0) + 1;
-    push(gap, "앞 조각으로 다시 안정 정렬한다", backs);
-
-    const next = new Array<number>(n).fill(0);
-    let top = 0;
-    for (let j = 1; j < n; j++) {
-      const a = sa[j - 1] as number;
-      const b = sa[j] as number;
-      if (front(a) !== front(b) || back(a) !== back(b)) top++;
-      else branch["④"] = (branch["④"] ?? 0) + 1;
-      next[b] = top;
-    }
-    rank = next;
-    span = top + 1;
-    push(gap, "같은 쌍끼리 묶어 새 순위를 매긴다", backs);
-    if (span === n) {
-      branch["⑤"] = (branch["⑤"] ?? 0) + 1;
-      break;
-    }
-  }
-  return { steps, branch };
-}
+const braces = (groups: [number, number[]][]): string =>
+  groups.map(([, g]) => `{${g.join(",")}}`).join(" ");
 
 /* ────────────────────────── 변이 ────────────────────────── */
 
 interface Impl {
   suffixArray(s: string): number[];
 }
-
-const REF = new URL("./suffixArray-guide.ref.ts", import.meta.url).pathname;
 
 /** 범위를 넘은 뒤 조각을 **가장 큰 값**으로 두는 사본. */
 const outOfRangeLargest = await loadMutant<Impl>(REF, {
@@ -452,7 +100,7 @@ const unstable = await loadMutant<Impl>(REF, {
   ],
 });
 
-/** 새 순위를 **앞 조각만** 보고 매기는 사본. 불변식을 지키던 그 줄이다. */
+/** 새 순위를 **앞 성분만** 보고 매기는 사본. 불변식을 지키던 그 줄이다. */
 const frontOnly = await loadMutant<Impl>(REF, {
   swap: [
     /if \(front\(a\) !== front\(b\) \|\| back\(a\) !== back\(b\)\) top\+\+;/,
@@ -468,6 +116,26 @@ const inPlace = await loadMutant<Impl>(REF, {
   ],
 });
 
+/* ────────────────────────── 경쟁 설계의 실측 ────────────────────────── */
+
+/**
+ * `bench-alt.ts` 가 `.alt.ts` 를 실행해 낸 결정론적 계수. 본문 표의 값과 비율을 여기서 만든다 —
+ * 비율을 손으로 나눠 적으면 값이 바뀔 때 비율만 남는다.
+ */
+const BENCH = (await Bun.file(
+  new URL("./suffixArray-guide.bench.json", import.meta.url),
+).json()) as Record<string, number>;
+
+const bench = (design: string, metric: string): number => {
+  const v = BENCH[`${design} · ${metric}`];
+  if (v === undefined)
+    throw new Error(`bench 에 없는 키 — ${design} · ${metric}`);
+  return v;
+};
+
+const DOUBLING = "배가 기법";
+const SKEW = "갈라 정렬";
+
 /* ────────────────────────── 사례 목록 ────────────────────────── */
 
 /** 갈리는 자리를 넓게 덮는 목록. 전개 입력을 맨 앞에 둔다. */
@@ -482,527 +150,745 @@ const CASES: string[] = [
   "abracadabra",
 ];
 
-/** 변이 하나를 사례 목록에 걸어 정본과 나란히 놓는다. */
-function contrast(mutant: Impl, head: string, cases: string[] = CASES): string {
+const quote = (s: string): string =>
+  s === WALK ? `전개 입력 "${s}"` : `"${s}"`;
+
+/**
+ * 변이 하나를 사례 목록에 걸어 정본과 나란히 놓는다. 변이가 어느 입력에서도 답을 못 바꾸면 「어긋난다」가
+ * 거짓이라 던지는데, **중화 실행에서는 건너뛴다** — 중화하면 변이 모듈의 함수가 정본 그 자체다.
+ */
+function contrast(
+  mutant: Impl,
+  head: string,
+): { table: string; broken: number; kept: string[] } {
   const rows: string[][] = [];
   let broken = 0;
-  for (const s of cases) {
+  const kept: string[] = [];
+  for (const s of CASES) {
     const want = suffixArray(s);
     const got = mutant.suffixArray(s);
     const same = want.join(",") === got.join(",");
     if (!same) broken++;
-    rows.push([
-      s === WALK ? `전개 입력 "${s}"` : `"${s}"`,
-      show(want),
-      show(got),
-      same ? "같다" : "어긋난다",
-    ]);
+    else kept.push(`"${s}"`);
+    rows.push([quote(s), show(want), show(got), same ? "같다" : "어긋난다"]);
   }
-  if (broken === 0) {
+  if (broken === 0 && mutant.suffixArray !== suffixArray) {
     throw new Error(
       "변이가 어느 입력에서도 답을 바꾸지 못했다 — 「어긋난다」가 거짓이다",
     );
   }
-  return table(["입력", "정본이 낸 답", head, "판정"], rows, [
-    "l",
-    "l",
-    "l",
-    "l",
-  ]);
-}
-
-/** 계측기가 정본과 같은 답을 내는지 확인한다. 안 같으면 다른 절차를 잰 것이다. */
-function assertSame(s: string, got: number[], who: string): number[] {
-  const want = suffixArray(s);
-  if (got.join(",") !== want.join(",")) {
-    throw new Error(`${who} 와 정본의 답이 다르다 — 계측이 다른 절차를 쟀다`);
-  }
-  return got;
-}
-
-/* ────────────────────────── 미리 재 둔 값 ────────────────────────── */
-
-const WALK_RUN = walkSteps(WALK);
-
-/** 규모를 열 배씩 키우며 두 방식을 견주는 자리. 전부 같은 글자와 무작위 글자 둘을 본다. */
-const SCALE = [12, 120, 1200, 12000];
-
-const SCALE_ROWS = SCALE.map((n) => {
-  const same = "a".repeat(n);
-  const rnd = makeText(n, 26);
-  const naiveSame = countedNaive(same);
-  const naiveRnd = countedNaive(rnd);
-  assertSame(same, naiveSame.sa, "직접 견주기");
-  assertSame(rnd, naiveRnd.sa, "직접 견주기");
-  const dblSame = countedDoubling(same);
-  const dblRnd = countedDoubling(rnd);
-  assertSame(same, dblSame.sa, "배가 계측기");
-  assertSame(rnd, dblRnd.sa, "배가 계측기");
   return {
-    n,
-    naiveSame: naiveSame.access,
-    dblSame: dblSame.access,
-    naiveRnd: naiveRnd.access,
-    dblRnd: dblRnd.access,
+    table: md(["입력", "정본이 낸 답", head, "판정"], rows),
+    broken,
+    kept,
   };
-});
+}
 
-const LIMIT_SAME = countedDoubling("a".repeat(LIMIT));
-const LIMIT_RND = countedDoubling(makeText(LIMIT, 26));
-const LIMIT_NAIVE_SAME = naiveCostAllSame(LIMIT);
-
-/** 한 바퀴에 늘리는 배수를 바꿔 가며 잰다. 전부 같은 글자가 바퀴 수를 가장 많이 쓴다. */
-const GROW_TEXT = "a".repeat(LIMIT);
-const GROW = [2, 3, 4, 8, 16].map((m) => {
-  const r = generalized(GROW_TEXT, m);
-  assertSame(GROW_TEXT, r.sa, `x${m} 배가`);
-  return { m, rounds: r.rounds, access: r.access };
-});
-/** 선형은 제약 최댓값에서 끝나지 않는다. 같은 모양의 작은 규모로 잰다. */
-const LINEAR_N = 2000;
-const LINEAR = generalized("a".repeat(LINEAR_N), 2, true);
-const LINEAR_PAIR = generalized("a".repeat(LINEAR_N), 2);
+/** 사례 목록 중 몇 입력에서 어긋났는지 적는 문장. */
+function tally(c: { broken: number; kept: string[] }): string {
+  return c.kept.length === 0
+    ? `${CASES.length} 입력 모두에서 답이 어긋났습니다.`
+    : `${CASES.length} 입력 중 ${c.broken} 입력에서 답이 어긋났고, ${c.kept.join(" · ")} 에서는 같았습니다.`;
+}
 
 /* ────────────────────────── 증명 블록 ────────────────────────── */
 
 export const PROOFS: Record<string, () => string> = {
-  /** 컨셉 — 접미사 여섯을 사전순으로 늘어놓으면 답이 된다. */
+  /* ── 전체 컨셉 ── */
+
   "concept-banana": () => {
     const sa = suffixArray(WALK);
     const rows = sa.map((i, k) => [
-      `sa[${k}]`,
+      String(k),
       String(i),
       WALK.slice(i),
       String(WALK.length - i),
     ]);
-    return table(["자리", "시작 자리 i", "접미사 s[i..]", "길이"], rows, [
-      "l",
-      "r",
-      "l",
-      "r",
-    ]);
-  },
-
-  /** 컨셉 — 잘라서 들고 있기만 해도 드는 값. */
-  "concept-slice-cost": () => {
-    const total = (LIMIT * (LIMIT + 1)) / 2;
-    const mb = Math.round(total / 1024 / 1024);
-    return [
-      table(
-        [
-          "n",
-          "접미사를 다 잘라 담을 때의 글자 수 n(n+1)/2",
-          "글자 하나를 1바이트로 잡으면",
-        ],
-        [
-          ["6", num(21), `${num(21)} 바이트`],
-          ["1,000", num((1000 * 1001) / 2), `${num((1000 * 1001) / 2)} 바이트`],
-          [num(LIMIT), num(total), `${num(mb)} MB`],
-        ],
-        ["r", "r", "r"],
+    return block(
+      md(
+        ["사전순 자리 k", "sa[k]", "접미사 s[sa[k]..]", "길이"],
+        rows,
+        [0, 1, 3],
       ),
-      "",
-      `메모리 제한은 256 MB 다. 글자 하나를 1바이트로 잡아도 ${num(mb)} MB 이고,`,
-      "자바스크립트 문자열은 글자 하나에 그보다 더 쓴다",
-    ].join("\n");
+      `셋째 열을 위에서 아래로 읽으면 사전순이고, 둘째 열을 모은 ${show(sa)}${이가(show(sa))} 접미사 배열입니다.`,
+    );
   },
 
-  /** 아이디어 상세 ④ — 같은 입력을 두 방식으로 처리하고 자료 접근을 나란히 센다. */
-  "build-two-ways": () => {
-    const rows = SCALE_ROWS.map((r) => [
-      num(r.n),
-      num(r.naiveSame),
-      num(r.dblSame),
-      num(r.naiveRnd),
-      num(r.dblRnd),
-    ]);
-    return [
-      table(
+  "concept-cost": () => {
+    const c = originCounts();
+    const w = countedDoubling(WALK);
+    const rows = [
+      [`"${WALK}"`, num(WALK.length), String(w.rounds), num(w.access)],
+      [
+        "무작위 26 글자",
+        num(LIMIT),
+        String(c.doubleRandom.rounds),
+        num(c.doubleRandom.access),
+      ],
+      [
+        "전부 같은 글자",
+        num(LIMIT),
+        String(c.doubleAllSame.rounds),
+        num(c.doubleAllSame.access),
+      ],
+    ];
+    return block(
+      md(["입력", "n", "바퀴 수", "자료 접근"], rows, [1, 2, 3]),
+      `무작위 26 글자는 mulberry32(씨앗 0x9e3779b9)로 만든 문자열입니다. 바퀴 수가 가장 많은 것은 전부 같은 글자의 ${c.doubleAllSame.rounds} 바퀴입니다.`,
+    );
+  },
+
+  /* ── 아이디어를 떠올리는 과정 ── */
+
+  "origin-slice-cost": () => {
+    const rows = [WALK.length, 1000, LIMIT].map((n) => {
+      const chars = (n * (n + 1)) / 2;
+      const mb = chars / 1024 / 1024;
+      return [
+        num(n),
+        num(chars),
+        mb < 1 ? `${num(chars)} 바이트` : `${num(Math.round(mb))} MB`,
+      ];
+    });
+    const c = originCounts();
+    return block(
+      md(
+        ["n", "잘라 낸 글자 수 n(n+1)/2", "글자 하나를 1 바이트로 잡은 메모리"],
+        rows,
+        [0, 1, 2],
+      ),
+      `n = ${num(LIMIT)} 에서 ${num(c.sliceMb)} MB 이고, 예산 256 MB 의 ${fix(c.sliceMb / 256, 1)} 배입니다.`,
+    );
+  },
+
+  "origin-two-ways": () => {
+    const rows = [12, 120, 1200, 12000].map((n) => {
+      const same = "a".repeat(n);
+      const rnd = makeText(n, 26);
+      return [
+        num(n),
+        num(countedNaive(same).access),
+        num(countedDoubling(same).access),
+        num(countedNaive(rnd).access),
+        num(countedDoubling(rnd).access),
+      ];
+    });
+    const c = originCounts();
+    const ratio = c.naiveAllSame / c.doubleAllSame.access;
+    return block(
+      md(
         [
           "n",
-          "직접 견주기(전부 a)",
-          "이 방식(전부 a)",
-          "직접 견주기(무작위)",
-          "이 방식(무작위)",
+          "글자 비교 정렬 · 전부 a",
+          "배가 기법 · 전부 a",
+          "글자 비교 정렬 · 무작위",
+          "배가 기법 · 무작위",
         ],
         rows,
-        ["r", "r", "r", "r", "r"],
+        [0, 1, 2, 3, 4],
       ),
-      "",
-      "제약 최댓값 n = 100,000 에서는",
-      table(
-        ["입력", "직접 견주기", "이 방식", "몇 배"],
+      `전부 같은 글자 n = ${num(LIMIT)} 에서는 글자 비교 정렬이 ${num(c.naiveAllSame)} 번, 배가 기법이 ${num(c.doubleAllSame.access)} 번으로 ${num(Math.round(ratio))} 배 차이입니다.`,
+    );
+  },
+
+  "origin-one-compare": () => {
+    const s = "a".repeat(10);
+    const byChars = compareByChars(s, 0, 1);
+    // 순위 쌍으로 비교하면 두 자리에서 앞 성분 · 뒤 성분을 하나씩, 모두 네 칸을 읽는다.
+    const round = trace(s).rounds.at(-1) as Round;
+    const g = round.gap;
+    const cells = [0, g, 1, 1 + g].filter((i) => i < s.length);
+    return block(
+      md(
+        ["방법", "s[0..] 과 s[1..] 을 비교하며 읽는 것", "자료 접근"],
         [
           [
-            "전부 같은 글자",
-            num(LIMIT_NAIVE_SAME),
-            num(LIMIT_SAME.access),
-            `${(LIMIT_NAIVE_SAME / LIMIT_SAME.access).toFixed(0)} 배`,
+            "글자 비교",
+            `두 접미사의 글자 ${byChars.cost / 2} 쌍`,
+            String(byChars.cost),
           ],
-          ["무작위 26 글자", "—", num(LIMIT_RND.access), "—"],
+          [
+            `순위 쌍 (gap = ${g})`,
+            cells.map((i) => `rank[${i}]`).join(" · "),
+            String(cells.length),
+          ],
         ],
-        ["l", "r", "r", "r"],
+        [2],
       ),
-      "",
-      "└ n 을 열 배로 키우면 왼쪽은 백 배가 되고 오른쪽은 열 배 남짓에 그친다",
-    ].join("\n");
+      `s 는 a 열 개입니다. 글자 비교는 짧은 쪽이 끝날 때까지 ${byChars.cost / 2} 쌍을 다 읽고, 순위 쌍은 gap 이 얼마든 ${cells.length} 칸을 읽습니다.`,
+    );
   },
 
-  /** 아이디어 상세 ⑤ — 앞 바퀴 순위만으로 두 배 긴 조각의 순서가 정해진다. */
-  "build-reuse": () => {
-    const s = WALK;
-    const n = s.length;
-    const r0 = Array.from({ length: n }, (_, i) => s.charCodeAt(i));
-    const rows: string[][] = [];
-    for (let i = 0; i < n; i++) {
-      const back = i + 1 < n ? (r0[i + 1] as number) + 1 : 0;
-      rows.push([
-        String(i),
-        s.slice(i, i + 2),
-        String(r0[i]),
-        String(back),
-        `(${r0[i]}, ${back})`,
-      ]);
-    }
-    const order = [...Array(n).keys()].sort((a, b) => {
-      const ka = [r0[a] as number, a + 1 < n ? (r0[a + 1] as number) + 1 : 0];
-      const kb = [r0[b] as number, b + 1 < n ? (r0[b + 1] as number) + 1 : 0];
-      return ka[0] !== kb[0]
-        ? (ka[0] as number) - (kb[0] as number)
-        : (ka[1] as number) - (kb[1] as number);
+  "origin-first-char": () => {
+    const groups = new Map<string, number[]>();
+    [...WALK].forEach((c, i) => {
+      groups.set(c, [...(groups.get(c) ?? []), i]);
     });
+    const rows = [...groups.entries()]
+      .sort((a, b) => (a[0] < b[0] ? -1 : 1))
+      .map(([c, at]) => [
+        c,
+        String(c.charCodeAt(0)),
+        at.join(" · "),
+        `${at.length} 개`,
+      ]);
+    const left = originCounts().firstLeft;
+    return block(
+      md(["첫 글자", "순위(글자 코드)", "자리", "무리 크기"], rows, [1, 3]),
+      `${WALK.length} 자리 중 ${left} 자리가 둘 이상인 무리에 남아, 첫 글자의 순위만으로는 순서가 정해지지 않습니다.`,
+    );
+  },
+
+  "origin-reuse": () => {
+    const round = walkRun().rounds[0] as Round;
+    const n = WALK.length;
+    const rows = Array.from({ length: n }, (_, i) => [
+      String(i),
+      piece(WALK, i, 2),
+      String(round.rank[i]),
+      i + 1 < n
+        ? `rank[${i + 1}] + 1 = ${round.backs[i]}`
+        : `${round.backs[i]} (자리 ${i + 1}${이가(i + 1)} 없다)`,
+      `(${round.rank[i]}, ${round.backs[i]})`,
+    ]);
+    const byPair = [...Array(n).keys()].sort((a, b) => {
+      const d = (round.rank[a] as number) - (round.rank[b] as number);
+      return d !== 0
+        ? d
+        : (round.backs[a] as number) - (round.backs[b] as number);
+    });
+    const byText = [...Array(n).keys()].sort((a, b) => {
+      const x = piece(WALK, a, 2);
+      const y = piece(WALK, b, 2);
+      return x < y ? -1 : x > y ? 1 : a - b;
+    });
+    const agree = byPair.join() === byText.join();
+    return block(
+      md(["i", "s[i..i+1]", "앞 성분 rank[i]", "뒤 성분", "쌍"], rows, [0, 2]),
+      `쌍을 사전식으로 늘어놓은 순서는 ${show(byPair)}${josa(show(byPair), "이고", "고")}, 두 글자를 잘라 문자열로 비교한 순서는 ${show(byText)} 입니다. 두 순서가 ${agree ? "같습니다" : "다릅니다"}.`,
+    );
+  },
+
+  "origin-plus-one": () => {
+    const c = originCounts();
+    return block(
+      md(
+        ["늘리는 방법", "바퀴 수", "자료 접근"],
+        [
+          ["한 글자씩", num(c.plusOne.rounds), num(c.plusOne.access)],
+          ["두 배씩", num(c.plusOneDouble.rounds), num(c.plusOneDouble.access)],
+        ],
+        [1, 2],
+      ),
+      `a 가 ${num(PLUS_ONE_N)} 개인 문자열에서 한 글자씩 늘리면 바퀴가 n − 1 = ${num(PLUS_ONE_N - 1)} 번이고, 자료 접근이 두 배씩의 ${fix(c.plusOne.access / c.plusOneDouble.access, 1)} 배입니다.`,
+    );
+  },
+
+  /* ── 아이디어 상세 — 먼저 알아 둘 개념 ── */
+
+  "build-read-one": () => {
+    const round = walkRun().rounds[0] as Round;
+    const i = 3;
+    const p = piece(WALK, i, 2);
+    const kinds = [
+      ...new Set(
+        Array.from({ length: WALK.length }, (_, j) => piece(WALK, j, 2)),
+      ),
+    ].sort();
+    const at = kinds.indexOf(p);
     return [
-      table(["i", "s[i..i+1]", "앞 조각 순위", "뒤 조각 순위", "쌍"], rows, [
-        "r",
-        "l",
-        "r",
-        "r",
-        "l",
-      ]),
-      "",
-      `쌍을 사전식으로 늘어놓은 순서   ${show(order)}`,
-      `두 글자로 잘라 직접 견준 순서   ${show(
-        [...Array(n).keys()].sort((a, b) => {
-          const x = s.slice(a, a + 2);
-          const y = s.slice(b, b + 2);
-          return x < y ? -1 : x > y ? 1 : a - b;
-        }),
-      )}`,
-      "└ 두 줄이 같다. 글자를 다시 읽지 않고 순위 두 개만 견주어도 순서가 같게 나온다",
+      `${levelName(1)}[${i}] = ${round.next[i]}`,
+      `  가리키는 조각   s[${i}..${i + 1}] = ${p}`,
+      `  조각의 종류     ${kinds.join(" < ")}`,
+      `  읽는 법         ${p} 보다 앞인 종류가 ${kinds.slice(0, at).join(" · ")}${으로(kinds.slice(0, at).join(" · "))} ${at} 개다`,
     ].join("\n");
   },
 
-  /** 아이디어 상세 ⑥ — 한 바퀴에 늘리는 배수를 실제로 바꿔 재 본다. */
+  "build-refine": () => {
+    const r = walkRun();
+    const levels: (readonly number[])[] = [
+      r.rank0,
+      ...r.rounds.map((x) => x.next),
+    ];
+    const rows = levels.map((rank, k) => {
+      const g = groupsOf(rank);
+      return [levelName(k), String(g.length), braces(g)];
+    });
+    // 한 번 갈린 두 자리가 위층에서 다시 같은 순위가 되는 일이 없는지 본다.
+    let merged = 0;
+    for (let k = 1; k < levels.length; k++) {
+      const a = levels[k - 1] as readonly number[];
+      const b = levels[k] as readonly number[];
+      for (let i = 0; i < a.length; i++) {
+        for (let j = 0; j < a.length; j++) {
+          if (a[i] !== a[j] && b[i] === b[j]) merged++;
+        }
+      }
+    }
+    return block(
+      md(["층", "무리 수", "같은 순위끼리 묶은 자리"], rows, [1]),
+      `아래층에서 순위가 달랐던 두 자리가 위층에서 같은 순위가 된 경우는 ${merged} 번입니다.`,
+    );
+  },
+
+  "build-inverse": () => {
+    const sa = suffixArray(WALK);
+    const inv = new Array<number>(WALK.length).fill(0);
+    sa.forEach((i, k) => {
+      inv[i] = k;
+    });
+    const two = (walkRun().rounds[0] as Round).next;
+    const rows = Array.from({ length: WALK.length }, (_, i) => [
+      String(i),
+      piece(WALK, i, 2),
+      String(two[i]),
+      String(inv[i]),
+    ]);
+    const differ = rows.filter((row) => row[2] !== row[3]).length;
+    return block(
+      md(
+        [
+          "자리 i",
+          "s[i..i+1]",
+          `${levelName(1)}의 칸 i`,
+          "접미사 배열에서의 자리 k",
+        ],
+        rows,
+        [0, 2, 3],
+      ),
+      `${WALK.length} 자리 중 ${differ} 자리에서 두 값이 다릅니다. ${levelName(1)}에는 서로 다른 값이 ${new Set(two).size} 개뿐이라 같은 값이 겹쳐 나옵니다.`,
+    );
+  },
+
+  /* ── 아이디어 상세 — 단계 ── */
+
+  "build-codes": () => {
+    const letters = [...new Set(WALK)].sort();
+    const rows = letters.map((c, d) => [c, String(c.charCodeAt(0)), String(d)]);
+    return block(
+      md(["글자", "글자 코드", "0 부터 매긴 순위"], rows, [1, 2]),
+      `두 열의 값은 다르지만 글자 ${letters.join(" < ")} 의 대소 순서를 똑같이 담습니다.`,
+    );
+  },
+
+  "build-pairs": () => {
+    const round = walkRun().rounds[1] as Round;
+    const n = WALK.length;
+    const g = round.gap;
+    const rows = Array.from({ length: n }, (_, i) => [
+      String(i),
+      piece(WALK, i, 2 * g),
+      String(round.rank[i]),
+      i + g < n
+        ? `rank[${i + g}] + 1 = ${round.backs[i]}`
+        : `${round.backs[i]} (자리 ${i + g}${이가(i + g)} 없다)`,
+      `(${round.rank[i]}, ${round.backs[i]})`,
+    ]);
+    const out = rows.filter((_, i) => i + g >= n).length;
+    return block(
+      md(
+        ["i", `s[i..i+${2 * g - 1}]`, "앞 성분 rank[i]", "뒤 성분", "쌍"],
+        rows,
+        [0, 2],
+      ),
+      `gap = ${g} 에서 뒤 조각이 문자열 끝을 넘는 자리는 ${out} 곳이고, 그 자리의 뒤 성분은 0 입니다.`,
+    );
+  },
+
+  "build-stable": () => {
+    const round = walkRun().rounds[0] as Round;
+    const front = (i: number) => round.rank[i] as number;
+    const key = front(round.saFront[0] as number);
+    const pick = (order: readonly number[]) =>
+      order.filter((i) => front(i) === key);
+    const rows = [
+      ["뒤 성분으로 정렬한 sa", ...round.saBack.map(String)],
+      ["그 자리의 앞 성분", ...round.saBack.map((i) => String(front(i)))],
+      ["앞 성분으로 정렬한 sa", ...round.saFront.map(String)],
+    ];
+    const a = pick(round.saBack);
+    const b = pick(round.saFront);
+    return block(
+      md(["사전순 자리 k", ...round.saBack.map((_, k) => String(k))], rows),
+      `앞 성분이 ${key} 인 자리는 첫 줄에서 ${a.join(" · ")} 순서였고 셋째 줄에서도 ${b.join(" · ")} 순서입니다.`,
+    );
+  },
+
+  "build-rerank": () => {
+    const round = replay(WALK).rounds[0] as Round;
+    const rows = round.judges.map((j) => [
+      String(j.j),
+      String(j.a),
+      String(j.b),
+      `(${j.pa.join(", ")})`,
+      `(${j.pb.join(", ")})`,
+      j.up ? "다르다" : "같다",
+      String(j.top),
+    ]);
+    return block(
+      md(
+        ["j", "a = sa[j−1]", "b = sa[j]", "a 의 쌍", "b 의 쌍", "두 쌍", "top"],
+        rows,
+        [0, 1, 2, 6],
+      ),
+      `마지막 top 이 ${round.spanOut - 1}${josa(round.spanOut - 1, "이라", "라")} span = ${round.spanOut}${josa(round.spanOut, "이고", "고")}, 자리 순서로 모은 새 순위 배열은 ${show(round.next)} 입니다.`,
+    );
+  },
+
+  "build-stop": () => {
+    const r = walkRun();
+    const n = WALK.length;
+    const rows = r.rounds.map((x) => [
+      String(x.n),
+      String(x.gap),
+      String(2 * x.gap),
+      String(x.spanOut),
+      String(n),
+      x.spanOut === n ? "참 — 멈춘다" : "거짓 — gap 을 두 배로",
+    ]);
+    return block(
+      md(
+        ["바퀴", "gap", "가른 조각 길이", "끝난 뒤 span", "n", "span === n"],
+        rows,
+        [0, 1, 2, 3, 4],
+      ),
+      `바퀴 ${r.rounds.length} 번으로 끝났고, 답은 ${show(r.sa)} 입니다.`,
+    );
+  },
+
+  "build-premise-ascii": () => {
+    const inputs = ["aé", "caféa", "abcΩ", "가나"];
+    const rows = inputs.map((s) => {
+      const got = suffixArray(s);
+      const want = [...Array(s.length).keys()].sort((a, b) =>
+        s.slice(a) < s.slice(b) ? -1 : 1,
+      );
+      const perm = new Set(got).size === s.length;
+      const codes = [...s].map((c) => c.charCodeAt(0));
+      return [
+        `"${s}"`,
+        num(Math.max(...codes)),
+        show(got),
+        show(want),
+        perm ? "순열이다" : "순열이 아니다",
+      ];
+    });
+    const broken = rows.filter((r) => r[4] === "순열이 아니다").length;
+    return block(
+      md(
+        ["입력", "가장 큰 글자 코드", "정본이 낸 답", "바른 답", "답의 모양"],
+        rows,
+        [1],
+      ),
+      `${rows.length} 벌 모두 예외 없이 끝났고, 그중 ${broken} 벌은 같은 자리 번호가 두 번 이상 나오는 배열을 돌려줬습니다.`,
+    );
+  },
+
   "build-growth": () => {
-    const best = GROW.reduce((a, b) => (a.access <= b.access ? a : b));
-    const two = GROW.find((g) => g.m === 2);
-    const rows = GROW.map((g) => [
+    const text = "a".repeat(LIMIT);
+    const grow = [2, 3, 4, 8, 16].map((m) => ({ m, ...generalized(text, m) }));
+    const best = grow.reduce((a, b) => (a.access <= b.access ? a : b));
+    const two = grow.find((g) => g.m === 2) as (typeof grow)[number];
+    const rows = grow.map((g) => [
       `x${g.m}`,
       String(g.rounds),
       num(g.access),
-      g.m === best.m
-        ? "가장 적다"
-        : `${(g.access / best.access).toFixed(3)} 배`,
+      g.m === best.m ? "가장 적다" : `${fix(g.access / best.access, 3)} 배`,
     ]);
-    return [
-      `전부 같은 글자 n = ${num(LIMIT)} — 한 바퀴에 조각을 몇 배로 늘리는가`,
-      table(["배수", "바퀴 수", "자료 접근", "가장 적은 것과의 비"], rows, [
-        "l",
-        "r",
-        "r",
-        "r",
-      ]),
-      "",
-      `한 바퀴에 1 씩만 늘리면 바퀴가 n 번까지 가서 제약 최댓값에서는 끝나지 않는다.`,
-      `같은 모양의 작은 규모 n = ${num(LINEAR_N)} 로 재면`,
-      table(
-        ["늘리는 방법", "바퀴 수", "자료 접근"],
-        [
-          ["+1 씩", String(LINEAR.rounds), num(LINEAR.access)],
-          ["x2 씩", String(LINEAR_PAIR.rounds), num(LINEAR_PAIR.access)],
-        ],
-        ["l", "r", "r"],
-      ),
-      `└ ${(LINEAR.access / LINEAR_PAIR.access).toFixed(2)} 배다. x2 와 x3 과 x4 는 서로 ${(
-        (Math.max(...GROW.slice(0, 3).map((g) => g.access)) /
-          Math.min(...GROW.slice(0, 3).map((g) => g.access)) -
-          1) *
-          100
-      ).toFixed(1)} % 안에 모이고, x8 부터 늘어난다`,
-      `   가장 적은 것은 x${best.m} 이고 x2 는 그보다 ${(
-        ((two?.access ?? 0) / best.access - 1) * 100
-      ).toFixed(1)} % 많다`,
-    ].join("\n");
+    return block(
+      md(["배수", "바퀴 수", "자료 접근", "가장 적은 것과의 비"], rows, [1, 2]),
+      `전부 같은 글자 ${num(LIMIT)} 개에서 가장 적은 것은 x${best.m}${josa(best.m, "이고", "고")}, x2 는 그보다 ${pct(best.access, two.access)} % 많습니다.`,
+    );
   },
 
-  /** 전개 T1 — 첫 순위. */
+  /* ── 수행으로 알아보는 알고리즘 ── */
+
+  "walk-input": () =>
+    [
+      `const s = "${WALK}";`,
+      `// 이 절이 끝나면 ${show(suffixArray(WALK))}${이가(show(suffixArray(WALK)))} 나와야 한다`,
+    ].join("\n"),
+
   "walk-init": () => {
-    const s0 = WALK_RUN.steps[0] as Step;
-    const rows = [...Array(WALK.length).keys()].map((i) => [
-      String(i),
-      WALK[i] as string,
-      String(s0.rank[i]),
-    ]);
+    const s0 = walkSteps()[0];
     return [
-      table(["i", "s[i]", "rank[i] — 글자 코드"], rows, ["r", "l", "r"]),
-      "",
-      `sa = ${show(s0.sa)}   아직 정렬 전이라 자리 번호 그대로다`,
+      `rank = ${show(walkRun().rank0)}   s 의 글자 코드 그대로`,
+      `sa   = ${show(s0?.sa ?? [])}   아직 정렬 전이라 자리 번호 그대로`,
+      `span = ${s0?.span}`,
     ].join("\n");
   },
 
-  /** 전개 T2·T3·T4·T5 — 첫 바퀴. */
-  "walk-round1": () => renderRound(1),
-
-  /** 전개 T6·T7·T8·T9 — 둘째 바퀴. */
-  "walk-round2": () => renderRound(2),
-
-  /** 전개 — 아홉 걸음의 상태를 한 표로. */
-  "walk-trace": () => {
-    const rows = WALK_RUN.steps.map((st) => [
-      st.label,
-      st.gap === 0 ? "—" : String(st.gap),
-      st.what,
-      show(st.sa),
-      show(st.rank),
-    ]);
-    return [
-      table(["걸음", "gap", "하는 일", "sa", "rank (자리 순)"], rows, [
-        "l",
-        "r",
-        "l",
-        "l",
-        "l",
-      ]),
-      "",
-      `답은 ${show(suffixArray(WALK))} 이다`,
-    ].join("\n");
-  },
-
-  /**
-   * 전개 — 사전순으로 늘어놓은 그림.
-   *
-   * 눈금과 문자열을 표의 셋째 열과 **같은 칸에서 시작하게** 맞춘다. 앞 두 열의 폭을 값에서
-   * 계산해 그만큼 들여 쓰지 않으면 눈금이 접미사와 어긋난 자리를 가리킨다.
-   */
-  "walk-picture": () => {
-    const sa = suffixArray(WALK);
+  "walk-pair": () => {
+    const round = walkRun().rounds[0] as Round;
     const n = WALK.length;
-    const head = ["k", "sa[k]", "접미사가 s 위에 놓인 자리"];
-    const rows = sa.map((i, k) => [
-      String(k),
-      String(i),
-      `${" ".repeat(i)}${WALK.slice(i)}`,
-    ]);
-    const w0 = Math.max(
-      width(head[0] as string),
-      ...rows.map((r) => width(r[0] as string)),
-    );
-    const w1 = Math.max(
-      width(head[1] as string),
-      ...rows.map((r) => width(r[1] as string)),
-    );
-    const lead = w0 + 2 + w1 + 2;
+    const out = round.backs.map((_, i) => i).filter((i) => i + round.gap >= n);
     return [
-      `${padRight("자리", lead)}${[...Array(n).keys()].join("")}`,
-      `${padRight("s", lead)}${WALK}`,
-      "",
-      table(head, rows, ["r", "r", "l"]),
+      `gap = ${round.gap}`,
+      `front(i) = rank[i]                 ${show(round.rank)}`,
+      `back(i)  = rank[i+${round.gap}] + 1 또는 0     ${show(round.backs)}`,
+      `자리 ${out.join(" · ")}${은는(out.join(" · "))} i + ${round.gap} = ${out.map((i) => i + round.gap).join(" · ")}${이가(out.map((i) => i + round.gap).join(" · "))} n = ${n} 보다 작지 않아 0 이다`,
     ].join("\n");
   },
 
-  /** 전개 — 다섯 갈래가 각각 몇 번 실행됐는가. */
-  "walk-branch": () => {
-    const b = WALK_RUN.branch;
-    const rows = [
-      ["①", "첫 순위를 글자 코드로 둔다", String(b["①"]), "실행 전 한 번"],
-      [
-        "②",
-        "뒤 조각이 문자열 끝을 넘어 0 이 된다",
-        String(b["②"]),
-        "두 바퀴 합",
-      ],
-      ["③", "계수 정렬 한 번", String(b["③"]), "두 바퀴 합"],
-      ["④", "쌍이 같아 순위를 안 올린다", String(b["④"]), "두 바퀴 합"],
-      ["⑤", "순위가 전부 달라져 멈춘다", String(b["⑤"]), "둘째 바퀴 끝"],
-    ];
-    const zero = rows.filter((r) => r[2] === "0").map((r) => r[0]);
+  "pause-sentinel": () => {
+    const c = contrast(outOfRangeLargest, "범위 밖을 가장 큰 값으로 둔 답");
+    return block(c.table, tally(c));
+  },
+
+  "walk-sort": () => {
+    const round = walkRun().rounds[0] as Round;
     return [
-      table(["갈래", "무엇", "실행 횟수", "어디서"], rows, [
-        "l",
-        "l",
-        "r",
-        "l",
-      ]),
-      "",
-      zero.length === 0
-        ? "└ 다섯 갈래가 전부 한 번 이상 실행됐다"
-        : `└ 실행되지 않은 갈래 ${zero.join("")}`,
+      `뒤 성분으로 정렬한 뒤    sa = ${show(round.saBack)}`,
+      `앞 성분으로 정렬한 뒤    sa = ${show(round.saFront)}`,
     ].join("\n");
   },
 
-  /** 멈춤 — 범위 밖을 가장 큰 값으로 두면. */
-  "pause-sentinel": () =>
-    [
-      contrast(outOfRangeLargest, "범위 밖을 가장 큰 값으로 둔 답"),
-      "",
-      "└ 짧은 접미사가 같은 앞 조각 무리 안에서 맨 뒤로 옮겨진다",
-    ].join("\n"),
+  "pause-order": () => {
+    const a = contrast(frontFirst, "앞 성분을 먼저 정렬한 답");
+    const b = contrast(unstable, "안정성을 없앤 답");
+    return block(
+      a.table,
+      `앞 성분을 먼저 정렬하면 ${tally(a)}`,
+      b.table,
+      `안정성을 없애면 ${tally(b)}`,
+    );
+  },
 
-  /** 멈춤 — 두 정렬의 순서를 뒤바꾸면. */
-  "pause-order": () =>
-    [
-      contrast(frontFirst, "앞 조각을 먼저 정렬한 답"),
-      "",
-      contrast(unstable, "안정성을 없앤 답"),
-      "",
-      "└ 두 사본 다 어떤 입력에서는 답이 같다. 답이 같은 줄만 보면 잘못을 못 찾는다",
-    ].join("\n"),
+  "walk-rerank": () => {
+    const round = walkRun().rounds[0] as Round;
+    const n = WALK.length;
+    return [
+      `next = ${show(round.next)}   자리 순서로 담은 새 순위`,
+      `span = top + 1 = ${round.spanOut - 1} + 1 = ${round.spanOut}`,
+      `span === n  →  ${round.spanOut} === ${n}${이가(n)} ${round.spanOut === n ? "참" : "거짓"}`,
+    ].join("\n");
+  },
 
-  /** 멈춤 — 순위를 제자리에서 덮어쓰면. */
-  "pause-inplace": () =>
-    [
-      contrast(inPlace, "제자리에서 덮어쓴 답"),
-      "",
-      "└ 아직 읽어야 할 앞 바퀴 순위가 이미 새 값으로 바뀐 뒤에 읽힌다",
-    ].join("\n"),
+  "pause-inplace": () => {
+    const c = contrast(inPlace, "제자리에서 덮어쓴 답");
+    return block(c.table, tally(c));
+  },
 
   /**
-   * 멈춤 — 제자리 덮어쓰기가 **어느 걸음에서** 어긋나는가.
-   *
-   * 손으로 적은 궤적을 싣지 않는다. 정본과 변이의 재부여 루프를 같은 출발 상태에서 나란히
-   * 실행해 처음 갈리는 `j` 를 실행이 내게 한다.
+   * 제자리 덮어쓰기가 **어느 걸음에서** 어긋나는가. 손으로 적은 궤적을 싣지 않는다. 정본과 변이의
+   * 재부여 루프를 같은 출발 상태에서 나란히 실행해 처음 갈리는 `j` 를 실행이 내게 한다. 중화 실행에서도
+   * 값이 나와야 하므로 `replay` 를 쓴다.
    */
   "pause-inplace-trace": () => {
     const n = WALK.length;
-    // T4 가 낸 줄과 그때의 순위. 첫 바퀴의 재부여는 이 상태에서 시작한다.
-    const t4 = WALK_RUN.steps[3] as Step;
-    const sa = t4.sa;
-    const gap = 1;
-    const base = t4.rank;
-
-    const runOne = (inPlace: boolean) => {
-      const rank = [...base];
-      const next = inPlace ? rank : new Array<number>(n).fill(0);
+    const round = replay(WALK).rounds[0] as Round;
+    const sa = round.saFront;
+    const gap = round.gap;
+    const runOne = (overwrite: boolean) => {
+      const rank = [...round.rank];
+      const next = overwrite ? rank : new Array<number>(n).fill(0);
       const front = (i: number): number => rank[i] as number;
       const back = (i: number): number =>
         i + gap < n ? (rank[i + gap] as number) + 1 : 0;
-      const log: {
-        fa: number;
-        ba: number;
-        fb: number;
-        bb: number;
-        up: boolean;
-        top: number;
-      }[] = [];
+      const log: { pa: string; top: number }[] = [];
       let top = 0;
       for (let j = 1; j < n; j++) {
         const a = sa[j - 1] as number;
         const b = sa[j] as number;
-        const fa = front(a);
-        const ba = back(a);
-        const fb = front(b);
-        const bb = back(b);
-        const up = fa !== fb || ba !== bb;
-        if (up) top++;
+        const pa = `(${front(a)}, ${back(a)})`;
+        if (front(a) !== front(b) || back(a) !== back(b)) top++;
         next[b] = top;
-        log.push({ fa, ba, fb, bb, up, top });
+        log.push({ pa, top });
       }
-      return { log, rank: [...next], span: top + 1 };
+      return { log, span: top + 1 };
     };
-
     const good = runOne(false);
     const bad = runOne(true);
     const rows = good.log.map((g, k) => {
       const m = bad.log[k] as (typeof bad.log)[number];
-      const a = sa[k] as number;
-      const b = sa[k + 1] as number;
       return [
         String(k + 1),
-        String(a),
-        String(b),
-        `(${g.fa}, ${g.ba})`,
-        `(${m.fa}, ${m.ba})`,
-        g.up ? "다르다" : "같다",
-        m.up ? "다르다" : "같다",
+        String(sa[k]),
+        String(sa[k + 1]),
+        g.pa,
+        m.pa,
+        g.pa === m.pa ? "같다" : "다르다",
         `${g.top} / ${m.top}`,
       ];
     });
-    const firstGap = good.log.findIndex(
-      (g, k) => g.fa !== (bad.log[k] as (typeof bad.log)[number]).fa,
+    const first = good.log.findIndex(
+      (g, k) => g.pa !== (bad.log[k] as (typeof bad.log)[number]).pa,
     );
-    if (firstGap < 0)
-      throw new Error("변이가 어느 걸음에서도 다른 값을 읽지 않았다");
-    return [
-      `첫 바퀴의 재부여 — 정렬이 끝난 줄 sa = ${show(sa)} 에서 (gap = ${gap})`,
-      table(
+    if (first < 1) {
+      throw new Error("변이가 둘째 걸음 뒤에서 다른 값을 읽지 않았다");
+    }
+    const wrote = sa[first] as number;
+    const put = (bad.log[first - 1] as (typeof bad.log)[number]).top;
+    return block(
+      md(
         [
           "j",
           "a",
           "b",
           "정본이 읽은 a 의 쌍",
-          "변이가 읽은 a 의 쌍",
-          "정본 판정",
-          "변이 판정",
-          "top 정본/변이",
+          "덮어쓴 쪽이 읽은 a 의 쌍",
+          "읽은 쌍",
+          "top 정본 / 덮어쓴 쪽",
         ],
         rows,
-        ["r", "r", "r", "l", "l", "l", "l", "r"],
+        [0, 1, 2],
       ),
-      "",
-      `바퀴가 끝난 시점   정본 rank = ${show(good.rank)}   span = ${good.span}`,
-      `                   변이 rank = ${show(bad.rank)}   span = ${bad.span}   n = ${n}`,
-      `└ j = ${firstGap + 1} 에서 처음으로 다른 값을 읽는다. 변이는 그 앞 걸음에서 rank[${
-        sa[firstGap] as number
-      }] 을 이미 덮어썼다`,
-      good.span === n || bad.span !== n
-        ? "└ 두 판정이 갈리지 않았다"
-        : `└ 변이의 span 은 ${bad.span} 이라 여기서 멈추고, 정본의 span 은 ${good.span} 이라 한 바퀴 더 실행한다`,
-    ].join("\n");
+      `j = ${first + 1} 에서 처음으로 읽은 쌍이 갈립니다. 바로 앞 걸음이 rank[${wrote}] 에 새 순위 ${put}${을를(put)} 써 넣었기 때문입니다. 바퀴가 끝나면 정본은 span = ${good.span}, 덮어쓴 쪽은 span = ${bad.span}${josa(bad.span, "이고", "고")} n = ${n} 입니다.`,
+    );
   },
 
-  /** 멈춤 — 답이 안 바뀌는 입력은 왜 안 바뀌는가. */
   "pause-inplace-safe": () => {
-    const rows = ["abc", "aab", "cabbage"].map((str) => {
-      const run = walkSteps(str);
-      const last = run.steps[run.steps.length - 1] as Step;
-      const rounds = run.steps.filter((st) =>
-        st.what.startsWith("같은 쌍"),
-      ).length;
+    // 답이 같게 나온 입력만 고른다. 중화 실행에서는 변이가 정본 그대로라 모든 입력이 남는다.
+    const inputs = CASES.filter(
+      (s) => suffixArray(s).join() === inPlace.suffixArray(s).join(),
+    );
+    const rows = inputs.map((s) => {
+      const r = replay(s);
       return [
-        `"${str}"`,
-        String(rounds),
-        String(last.span),
-        String(str.length),
+        `"${s}"`,
+        String(r.rounds.length),
+        String((r.rounds[0] as Round).spanOut),
+        String(s.length),
       ];
     });
-    if (rows.some((r) => r[1] !== "1")) {
-      throw new Error("첫 바퀴에 끝나지 않는 입력이 섞였다");
-    }
-    return [
-      table(["입력", "바퀴 수", "첫 바퀴 끝의 span", "n"], rows, [
-        "l",
-        "r",
-        "r",
-        "r",
-      ]),
-      "",
-      "└ 셋 다 첫 바퀴 끝에 span 이 n 과 같아 멈춘다. 덮어쓴 순위를 다시 읽을 바퀴가 없다",
-    ].join("\n");
+    const one = rows.every((row) => row[1] === "1");
+    return block(
+      md(["입력", "바퀴 수", "첫 바퀴 끝의 span", "n"], rows, [1, 2, 3]),
+      one
+        ? `${rows.length} 입력 모두 첫 바퀴 끝에 span 이 n 과 같아 바퀴가 하나로 끝납니다.`
+        : "바퀴가 둘 이상인 입력이 섞여 있습니다.",
+    );
   },
 
-  /**
-   * 경쟁 설계 — 뒤집히는 자리가 왜 1,039 와 1,040 사이인가.
-   *
-   * 「길이 4 조각으로는 안 갈린다」를 산문으로 단정하지 않고 실제로 센다.
-   */
+  "walk-trace": () => {
+    const r = walkRun();
+    const n = WALK.length;
+    const steps = walkSteps();
+    const rows = steps.map((s) => {
+      const round = s.round > 0 ? (r.rounds[s.round - 1] as Round) : null;
+      const rank =
+        round === null
+          ? r.rank0
+          : s.kind === "rerank"
+            ? round.next
+            : round.rank;
+      const cond =
+        s.kind === "pair" && round !== null
+          ? `${round.gap} < ${n} 참 · 자리 ${n - round.gap} 부터 i + ${round.gap} < ${n} 거짓`
+          : s.kind === "rerank" && round !== null
+            ? `${round.spanOut} === ${n} ${round.spanOut === n ? "참" : "거짓"}`
+            : "—";
+      return [
+        s.id,
+        s.gap === 0 ? "—" : String(s.gap),
+        s.title.replace(/^gap = \d+ · /, ""),
+        cond,
+        show(s.sa),
+        show(rank),
+      ];
+    });
+    return block(
+      md(["걸음", "gap", "하는 일", "조건 판정", "sa", "rank (자리 순)"], rows),
+      `답은 ${show(r.sa)} 입니다.`,
+    );
+  },
+
+  "walk-branch": () => {
+    const r = walkRun();
+    const n = WALK.length;
+    const out = r.rounds.reduce(
+      (acc, x) => acc + x.backs.filter((_, i) => i + x.gap >= n).length,
+      0,
+    );
+    const kept = r.rounds.reduce(
+      (acc, x) => acc + x.judges.filter((j) => !j.up).length,
+      0,
+    );
+    const stop = r.rounds.filter((x) => x.spanOut === n).length;
+    const rows = [
+      ["①", "첫 순위를 글자 코드로 둔다", "1", "바퀴 전 한 번"],
+      ["②", "뒤 조각이 문자열 끝을 넘어 0 이 된다", String(out), "두 바퀴 합"],
+      ["③", "계수 정렬 한 번", String(2 * r.rounds.length), "두 바퀴 합"],
+      ["④", "쌍이 같아 순위를 안 올린다", String(kept), "두 바퀴 합"],
+      ["⑤", "순위가 전부 달라져 멈춘다", String(stop), "둘째 바퀴 끝"],
+    ];
+    const zero = rows.filter((row) => row[2] === "0").length;
+    return block(
+      md(["갈래", "하는 일", "실행 횟수", "어디서"], rows, [2]),
+      zero === 0
+        ? "다섯 갈래가 모두 한 번 이상 실행됐습니다."
+        : `실행되지 않은 갈래가 ${zero} 개입니다.`,
+    );
+  },
+
+  "walk-adjacent": () => {
+    const sa = suffixArray(WALK);
+    const rows: string[][] = [];
+    let ok = 0;
+    for (let k = 0; k + 1 < sa.length; k++) {
+      const a = WALK.slice(sa[k] as number);
+      const b = WALK.slice(sa[k + 1] as number);
+      let d = 0;
+      while (d < a.length && d < b.length && a[d] === b[d]) d++;
+      const why =
+        d === a.length
+          ? `앞 ${d} 글자가 같고 ${a} 쪽이 먼저 끝난다`
+          : `${d + 1} 번째 글자 ${a[d]} < ${b[d]}`;
+      if (a < b) ok++;
+      rows.push([
+        `sa[${k}] = ${sa[k]} · sa[${k + 1}] = ${sa[k + 1]}`,
+        `${a} · ${b}`,
+        why,
+      ]);
+    }
+    return block(
+      md(["이웃한 두 칸", "두 접미사", "사전순을 정한 자리"], rows),
+      `이웃한 ${sa.length - 1} 쌍 중 앞 칸의 접미사가 사전순으로 앞인 쌍은 ${ok} 개입니다.`,
+    );
+  },
+
+  "final-calls": () => {
+    const inputs = ["banana", "abab", "aaaa", "abc", "a", "mississippi"];
+    const w = Math.max(...inputs.map((s) => s.length)) + 15;
+    return inputs
+      .map(
+        (s) => `${`suffixArray("${s}")`.padEnd(w)}->  ${show(suffixArray(s))}`,
+      )
+      .join("\n");
+  },
+
+  /* ── 알아 두면 좋은 개념 ── */
+
+  "related-refine": () => {
+    const r = walkRun();
+    const rows = walkSteps()
+      .filter((s) => s.kind === "init" || s.kind === "rerank")
+      .map((s) => {
+        const rank =
+          s.kind === "init" ? r.rank0 : (r.rounds[s.round - 1] as Round).next;
+        const g = groupsOf(rank);
+        return [
+          s.id,
+          String(s.kind === "init" ? 1 : 2 * s.gap),
+          String(g.length),
+          braces(g),
+        ];
+      });
+    return block(
+      md(["걸음", "가른 조각 길이", "무리 수", "무리"], rows, [1, 2]),
+      `무리 수가 ${rows.map((row) => row[2]).join(" → ")}${으로(rows.at(-1)?.[2] ?? "")} 늘기만 하고, 마지막 무리 수가 n = ${WALK.length}${과와(WALK.length)} 같습니다.`,
+    );
+  },
+
+  /* ── 경쟁 설계와의 대조 ── */
+
   "alt-boundary": () => {
     const rows = [1039, 1040].map((n) => {
       const str = makeText(n, 26);
-      const block = (i: number): string => str.slice(i, i + 4);
       const seen = new Map<string, number>();
       let pairs = 0;
       for (let i = 0; i < n; i++) {
-        const b = block(i);
+        const b = str.slice(i, i + 4);
         const c = seen.get(b) ?? 0;
         pairs += c;
         seen.set(b, c + 1);
@@ -1016,13 +902,15 @@ export const PROOFS: Record<string, () => string> = {
         while (a + d < n && b + d < n && str[a + d] === str[b + d]) d++;
         lcp = Math.max(lcp, d);
       }
-      const r = countedDoubling(str);
-      assertSame(str, r.sa, "배가 계측기");
-      return [num(n), String(pairs), String(lcp), String(r.rounds)];
+      return [
+        num(n),
+        String(pairs),
+        String(lcp),
+        String(countedDoubling(str).rounds),
+      ];
     });
-    return [
-      "같은 생성식(mulberry32 · 알파벳 26 글자)의 문자열에서",
-      table(
+    return block(
+      md(
         [
           "n",
           "길이 4 조각이 같은 자리 짝",
@@ -1030,173 +918,186 @@ export const PROOFS: Record<string, () => string> = {
           "배가 기법 바퀴 수",
         ],
         rows,
-        ["r", "r", "r", "r"],
+        [0, 1, 2, 3],
       ),
-      "",
-      "└ 1,040 에서 길이 4 조각이 같은 짝이 처음 생긴다. 그래서 바퀴가 하나 늘어난다",
-    ].join("\n");
+      `n = ${rows[1]?.[0]} 에서 길이 4 조각이 같은 짝이 처음 생기고, 바퀴가 ${rows[0]?.[3]} 번에서 ${rows[1]?.[3]} 번으로 늡니다.`,
+    );
   },
 
-  /** 알아 두면 좋은 개념 — 바퀴마다 무리가 잘게 갈린다. */
-  "related-refine": () => {
-    const rows = WALK_RUN.steps
-      .filter((st) => st.what.startsWith("같은 쌍") || st.gap === 0)
-      .map((st) => {
-        const groups = new Map<number, number[]>();
-        st.rank.forEach((r, i) => {
-          const g = groups.get(r) ?? [];
-          g.push(i);
-          groups.set(r, g);
-        });
-        const sorted = [...groups.entries()].sort((a, b) => a[0] - b[0]);
-        return [
-          st.label,
-          st.gap === 0 ? "1" : String(2 * st.gap),
-          String(sorted.length),
-          sorted.map(([, g]) => `{${g.join(",")}}`).join(" "),
-        ];
-      });
-    return table(["걸음", "가른 조각 길이", "무리 수", "무리"], rows, [
-      "l",
-      "r",
-      "r",
-      "l",
-    ]);
+  "alt-bench": () => {
+    const inputs: [string, string][] = [
+      ["무작위 26 글자 n = 90", "n=90 자료 접근"],
+      ["무작위 26 글자 n = 91", "n=91 자료 접근"],
+      ["무작위 26 글자 n = 1,039", "n=1,039 자료 접근"],
+      ["무작위 26 글자 n = 1,040", "n=1,040 자료 접근"],
+      ["무작위 26 글자 n = 100,000", "n=100,000 무작위 자료 접근"],
+      ["전부 같은 글자 n = 100,000", "n=100,000 전부 같은 글자 자료 접근"],
+    ];
+    const rows = inputs.map(([name, key]) => {
+      const a = bench(DOUBLING, key);
+      const b = bench(SKEW, key);
+      const fewer = a < b ? DOUBLING : SKEW;
+      const ratio = Math.max(a, b) / Math.min(a, b);
+      return [name, num(a), num(b), `${fewer} · ${fix(ratio, 2)} 배`];
+    });
+    const jump = (d: string, from: string, to: string) =>
+      fix((bench(d, to) / bench(d, from) - 1) * 100, 2);
+    return block(
+      md(["입력", DOUBLING, SKEW, "적은 쪽"], rows, [1, 2]),
+      `n = 90 에서 91 로 한 글자 늘 때 ${SKEW}의 자료 접근이 ${jump(SKEW, "n=90 자료 접근", "n=91 자료 접근")} % 늘고, n = 1,039 에서 1,040 으로 늘 때는 ${DOUBLING}이 ${jump(DOUBLING, "n=1,039 자료 접근", "n=1,040 자료 접근")} % · ${SKEW}이 ${jump(SKEW, "n=1,039 자료 접근", "n=1,040 자료 접근")} % 늡니다.`,
+    );
   },
 
-  /** 수식 — 정의를 작은 값에 넣어 확인한다. */
+  "alt-cells": () => {
+    const key = "n=100,000 잡는 칸 최대";
+    const a = bench(DOUBLING, key);
+    const b = bench(SKEW, key);
+    return block(
+      md(
+        ["축", DOUBLING, SKEW, "적은 쪽"],
+        [
+          [
+            "동시에 잡는 칸의 최댓값 (무작위 26 글자 n = 100,000)",
+            num(a),
+            num(b),
+            `${a < b ? DOUBLING : SKEW} · ${fix(Math.max(a, b) / Math.min(a, b), 2)} 배`,
+          ],
+        ],
+        [1, 2],
+      ),
+      `잡는 칸이 ${DOUBLING}은 n 의 ${fix(a / LIMIT, 1)} 배, ${SKEW}은 n 의 ${fix(b / LIMIT, 1)} 배입니다.`,
+    );
+  },
+
+  /* ── 수식 정의와 유도 ── */
+
   "math-check": () => {
-    const s = WALK;
-    const n = s.length;
-    const rows: string[][] = [];
-    for (const k of [0, 1, 2]) {
+    const n = WALK.length;
+    const r = walkRun();
+    const levels: (readonly number[])[] = [
+      r.rank0,
+      ...r.rounds.map((x) => x.next),
+    ];
+    const rows = levels.map((code, k) => {
       const len = 2 ** k;
-      const blocks = [...Array(n).keys()].map((i) => s.slice(i, i + len));
+      const blocks = [...Array(n).keys()].map((i) => piece(WALK, i, len));
       const uniq = [...new Set(blocks)].sort();
       const rank = blocks.map((b) => uniq.indexOf(b));
-      rows.push([
+      return [
         String(k),
         String(len),
-        blocks.map((b) => (b === "" ? "-" : b)).join(" "),
+        blocks.join(" "),
         show(rank),
+        show(code),
         String(uniq.length),
-      ]);
-    }
-    return [
-      table(
+      ];
+    });
+    const equal = rows.filter((row) => row[3] === row[4]).map((row) => row[0]);
+    return block(
+      md(
         [
           "k",
           "조각 길이 2^k",
-          "s[i..i+2^k-1]",
-          "정의대로 매긴 순위",
+          "자리 0 부터의 조각",
+          "정의대로 매긴 r",
+          "코드의 rank",
           "서로 다른 조각 수",
         ],
         rows,
-        ["r", "r", "l", "l", "r"],
+        [0, 1, 5],
       ),
-      "",
-      "└ 조각이 문자열 끝을 넘으면 남은 만큼만 잘라 쓴다. 짧은 조각이 언제나 앞이다",
-    ].join("\n");
+      `k = ${equal.join(" · ")} 인 줄은 정의의 값과 코드의 rank 가 글자 그대로 같습니다.`,
+    );
   },
 
-  /** 수식 — 바퀴 수의 닫힌 형태를 실측과 대조한다. */
   "math-rounds": () => {
     const rows = [10, 100, 1000, 10000, LIMIT].map((n) => {
       const r = countedDoubling("a".repeat(n));
-      assertSame("a".repeat(n), r.sa, "배가 계측기");
-      const bound = Math.ceil(Math.log2(n));
-      if (r.rounds !== bound) {
-        throw new Error(`전부 같은 글자에서 바퀴 수가 상한과 다르다 — ${n}`);
-      }
-      return [num(n), String(bound), String(r.rounds), num(r.access)];
-    });
-    return table(["n", "⌈log2 n⌉", "실측 바퀴 수", "자료 접근"], rows, [
-      "r",
-      "r",
-      "r",
-      "r",
-    ]);
-  },
-
-  /** 수식 — 임의의 배수 m 에서 정렬 횟수를 최소로 만드는 자리. */
-  "math-optimum": () => {
-    const rows = [2, 3, 4, 5, 8, 16].map((m) => {
-      const passes = m * Math.ceil(Math.log(LIMIT) / Math.log(m));
-      const measured = GROW.find((g) => g.m === m);
       return [
-        String(m),
-        (m / Math.log(m)).toFixed(3),
-        String(passes),
-        measured === undefined ? "—" : num(measured.access),
+        num(n),
+        String(Math.ceil(Math.log2(n))),
+        String(r.rounds),
+        num(r.access),
       ];
     });
-    const e = Math.E;
-    return [
-      table(
-        ["m", "m / ln m", `m·⌈log_m ${num(LIMIT)}⌉`, "자료 접근 실측"],
-        rows,
-        ["r", "r", "r", "r"],
-      ),
-      "",
-      `m / ln m 이 가장 작은 실수는 m = e = ${e.toFixed(3)} 이고, 그 값은 ${(
-        e / Math.log(e)
-      ).toFixed(3)} 이다`,
-      `정수는 2 와 3 이 그 자리를 사이에 두고 있어 ${(2 / Math.log(2)).toFixed(
-        3,
-      )} 과 ${(3 / Math.log(3)).toFixed(3)} 으로 5.6 % 안에 모인다`,
-    ].join("\n");
+    const tight = rows.every((row) => row[1] === row[2]);
+    return block(
+      md(["n", "⌈log₂ n⌉", "실측 바퀴 수", "자료 접근"], rows, [0, 1, 2, 3]),
+      tight
+        ? `전부 같은 글자에서는 ${rows.length} 규모 모두 실측 바퀴 수가 상한과 같습니다.`
+        : "실측 바퀴 수가 상한과 다른 규모가 있습니다.",
+    );
   },
 
-  /** 불변식 — 바퀴가 끝날 때마다 순위가 조각의 순서와 같은지 값으로 확인한다. */
+  "math-optimum": () => {
+    const text = "a".repeat(LIMIT);
+    const measured = new Map(
+      [2, 3, 4, 8, 16].map((m) => [m, generalized(text, m).access]),
+    );
+    const rows = [2, 3, 4, 5, 8, 16].map((m) => [
+      String(m),
+      fix(m / Math.log(m), 3),
+      String(m * Math.ceil(Math.log(LIMIT) / Math.log(m))),
+      measured.has(m) ? num(measured.get(m) as number) : "—",
+    ]);
+    const two = 2 / Math.log(2);
+    const three = 3 / Math.log(3);
+    return block(
+      md(
+        ["m", "m / ln m", `m·⌈log_m ${num(LIMIT)}⌉`, "자료 접근 실측"],
+        rows,
+        [0, 1, 2, 3],
+      ),
+      `m / ln m 이 가장 작은 실수는 m = e = ${fix(Math.E, 3)}${josa(fix(Math.E, 3), "이고", "고")}, 정수 2 와 3 의 값 ${fix(two, 3)}${과와(fix(two, 3))} ${fix(three, 3)}${은는(fix(three, 3))} ${pct(three, two)} % 차이입니다.`,
+    );
+  },
+
+  /* ── 불변식 ── */
+
   "invariant-rounds": () => {
     const rows: string[][] = [];
+    let pairs = 0;
     for (const s of ["banana", "aaaa", "abab", "mississippi"]) {
       const n = s.length;
-      const run = walkSteps(s);
-      for (const st of run.steps) {
-        if (!st.what.startsWith("같은 쌍")) continue;
-        const len = 2 * st.gap;
-        const block = (i: number): string => s.slice(i, i + len);
+      for (const round of trace(s).rounds) {
+        const len = 2 * round.gap;
         let ok = true;
-        for (let i = 0; i < n && ok; i++) {
-          for (let j = 0; j < n && ok; j++) {
-            const a = block(i);
-            const b = block(j);
-            const less = (st.rank[i] as number) < (st.rank[j] as number);
-            const same = st.rank[i] === st.rank[j];
-            if (less !== a < b || same !== (a === b)) ok = false;
+        for (let i = 0; i < n; i++) {
+          for (let j = 0; j < n; j++) {
+            const a = piece(s, i, len);
+            const b = piece(s, j, len);
+            const less = (round.next[i] as number) < (round.next[j] as number);
+            const eq = round.next[i] === round.next[j];
+            if (less !== a < b || eq !== (a === b)) ok = false;
+            pairs++;
           }
         }
         rows.push([
           `"${s}"`,
           String(len),
-          show(st.rank),
-          String(st.span),
-          ok ? "맞다" : "어긋난다",
+          show(round.next),
+          String(round.spanOut),
+          ok ? "맞다" : "틀리다",
         ]);
       }
     }
-    if (rows.some((r) => r[4] !== "맞다")) {
-      throw new Error("불변식이 어긋나는 바퀴가 있다");
-    }
-    return [
-      table(
+    const wrong = rows.filter((row) => row[4] !== "맞다").length;
+    return block(
+      md(
         [
           "입력",
           "가른 조각 길이",
           "바퀴가 끝난 시점의 rank",
           "span",
-          "조각 순서와 같은가",
+          "조각 순서와 대조",
         ],
         rows,
-        ["l", "r", "l", "r", "l"],
+        [1, 3],
       ),
-      "",
-      "└ 모든 자리 쌍 (i, j) 에 대해 순위의 대소·같음이 조각의 사전순 대소·같음과 맞는지 전수로 확인했다",
-    ].join("\n");
+      `바퀴 ${rows.length} 개에서 자리 짝 ${num(pairs)} 개를 전수로 대조했고, 순위의 대소 · 같음이 조각의 사전순 대소 · 같음과 틀린 바퀴는 ${wrong} 개입니다.`,
+    );
   },
 
-  /** 불변식 — 경계에 있는 입력들. */
   "invariant-edges": () => {
     const rows = [
       ["길이 1", "a"],
@@ -1206,76 +1107,94 @@ export const PROOFS: Record<string, () => string> = {
       ["전부 같은 글자", "aaaa"],
       ["전부 다른 글자", "abcd"],
       ["되풀이", "abab"],
-    ].map(([name, s]) => {
-      const str = s as string;
-      const run = walkSteps(str);
-      const rounds = run.steps.filter((st) =>
-        st.what.startsWith("같은 쌍"),
-      ).length;
-      return [
-        name as string,
-        `"${str}"`,
-        String(rounds),
-        show(suffixArray(str)),
-      ];
-    });
-    return table(["경계", "입력", "바퀴 수", "답"], rows, ["l", "l", "r", "l"]);
+    ].map(([name, s]) => [
+      name as string,
+      `"${s}"`,
+      String(trace(s as string).rounds.length),
+      show(suffixArray(s as string)),
+    ]);
+    return md(["경계", "입력", "바퀴 수", "답"], rows, [2]);
   },
 
-  /** 불변식 ③ — 앞 조각만 견주면. */
-  "mutant-front-only": () =>
-    [
-      contrast(frontOnly, "앞 조각만 견준 답"),
-      "",
-      "└ 전개 입력에서는 답이 안 바뀐다. 같은 앞 조각을 가진 자리가 서로 이웃해 있어서다",
-    ].join("\n"),
+  "mutant-front-only": () => {
+    const c = contrast(frontOnly, "앞 성분만 비교한 답");
+    return block(c.table, tally(c));
+  },
 
-  /** 비용 — 전개의 아홉 걸음이 낸 자료 접근. */
+  /** 앞 성분만 비교하면 "aaaa" 의 첫 바퀴에서 순위가 어떻게 되는가 — 두 판정을 같은 쌍 위에서 나란히. */
+  "mutant-front-only-aaaa": () => {
+    const s = "aaaa";
+    const n = s.length;
+    const round = replay(s).rounds[0] as Round;
+    const judge = (both: boolean) => {
+      const next = new Array<number>(n).fill(0);
+      let top = 0;
+      for (const j of round.judges) {
+        const up = both ? j.up : j.pa[0] !== j.pb[0];
+        if (up) top++;
+        next[j.b] = top;
+      }
+      return next;
+    };
+    const good = judge(true);
+    const bad = judge(false);
+    const rows = [
+      ["쌍의 두 성분을 다 비교", show(good), String(new Set(good).size)],
+      ["앞 성분만 비교", show(bad), String(new Set(bad).size)],
+    ];
+    const pairs = round.rank
+      .map((f, i) => `(${f}, ${round.backs[i]})`)
+      .join(" · ");
+    return block(
+      md(["재부여 판정", "첫 바퀴 뒤 rank", "무리 수"], rows, [2]),
+      `첫 바퀴의 쌍은 자리 순서로 ${pairs} 입니다. 앞 성분만 비교하면 네 자리가 무리 ${new Set(bad).size} 개로 남습니다.`,
+    );
+  },
+
+  /* ── 비용 계산 ── */
+
   "perf-count": () => {
     const r = countedDoubling(WALK);
-    assertSame(WALK, r.sa, "배가 계측기");
     const rows: string[][] = [
       ["첫 순위 매기기", "T1", num(r.first)],
       ...r.perRound.map((v, k) => [
         `${k + 1} 번째 바퀴`,
-        `T${2 + 4 * k} ~ T${5 + 4 * k}`,
+        `T${2 + 4 * k}~T${5 + 4 * k}`,
         num(v),
       ]),
-      ["합계", "T1 ~ T9", num(r.access)],
+      ["합계", `T1~T${1 + 4 * r.rounds}`, num(r.access)],
     ];
-    return [
-      `전개 입력 "${WALK}" (n = ${WALK.length})`,
-      table(["무리", "걸음", "자료 접근"], rows, ["l", "l", "r"]),
-      "",
-      "└ 바퀴 하나가 900 을 넘는데 n 은 6 이다. 계수 정렬의 칸 배열이 첫 바퀴에는",
-      "   글자 코드 범위 129 칸이라 그 항이 n 을 압도한다",
-      "",
-      table(
-        ["입력", "n", "바퀴 수 R", "자료 접근", "바퀴 하나당 n 의 몇 배"],
-        [
-          [
-            "무작위 26 글자",
-            num(LIMIT),
-            String(LIMIT_RND.rounds),
-            num(LIMIT_RND.access),
-            (LIMIT_RND.access / LIMIT / LIMIT_RND.rounds).toFixed(1),
-          ],
-          [
-            "전부 같은 글자",
-            num(LIMIT),
-            String(LIMIT_SAME.rounds),
-            num(LIMIT_SAME.access),
-            (LIMIT_SAME.access / LIMIT / LIMIT_SAME.rounds).toFixed(1),
-          ],
-        ],
-        ["l", "r", "r", "r", "r"],
-      ),
-      "",
-      "└ n 이 커지면 바퀴 하나가 n 의 스물일곱 배 언저리로 모인다. 갈리는 것은 바퀴 수뿐이다",
-    ].join("\n");
+    const second = walkRun().rounds[1] as Round;
+    return block(
+      md(["무리", "걸음", "자료 접근"], rows, [2]),
+      `첫 바퀴가 둘째 바퀴의 ${fix((r.perRound[0] as number) / (r.perRound[1] as number), 1)} 배입니다. 첫 바퀴의 계수 정렬은 글자 코드 범위에 맞춘 ${128 + 1} 칸을 잡고, 둘째 바퀴는 span + 1 = ${second.span + 1} 칸만 잡습니다.`,
+    );
   },
 
-  /** 최악 — 바퀴 수를 최대로 만드는 입력을 실제로 구성한다. */
+  "perf-scale": () => {
+    const c = originCounts();
+    const rows = (
+      [
+        ["무작위 26 글자", c.doubleRandom],
+        ["전부 같은 글자", c.doubleAllSame],
+      ] as const
+    ).map(([name, v]) => [
+      name,
+      num(LIMIT),
+      String(v.rounds),
+      num(v.access),
+      fix(v.access / LIMIT / v.rounds, 1),
+    ]);
+    return block(
+      md(
+        ["입력", "n", "바퀴 수 R", "자료 접근", "바퀴 하나당 n 의 몇 배"],
+        rows,
+        [1, 2, 3, 4],
+      ),
+      `바퀴 하나당 자료 접근이 n 의 ${rows.map((row) => row[4]).join(" 배와 ")} 배로 모이고, 두 입력을 가르는 것은 바퀴 수입니다.`,
+    );
+  },
+
   "worst-shape": () => {
     const n = LIMIT;
     const shapes: [string, string][] = [
@@ -1290,95 +1209,77 @@ export const PROOFS: Record<string, () => string> = {
         makeText(n, 26).split("").sort().join(""),
       ],
     ];
-    const rows = shapes.map(([name, s]) => {
-      const r = countedDoubling(s);
-      assertSame(s, r.sa, "배가 계측기");
-      return [name, String(r.rounds), num(r.access), num(r.cells)];
-    });
-    const worst = rows.reduce((a, b) =>
-      Number((a[2] as string).replaceAll(",", "")) >=
-      Number((b[2] as string).replaceAll(",", ""))
-        ? a
-        : b,
+    const measured = shapes.map(([name, s]) => ({
+      name,
+      r: countedDoubling(s),
+    }));
+    const rows = measured.map(({ name, r }) => [
+      name,
+      String(r.rounds),
+      num(r.access),
+      num(r.cells),
+    ]);
+    const worst = measured.reduce((a, b) => (a.r.access >= b.r.access ? a : b));
+    const bound = Math.ceil(Math.log2(n));
+    const full = measured.filter((m) => m.r.rounds === bound);
+    const lo = Math.min(...full.map((m) => m.r.access));
+    const hi = Math.max(...full.map((m) => m.r.access));
+    return block(
+      md(
+        ["입력의 모양", "바퀴 수", "자료 접근", "잡는 칸 최대"],
+        rows,
+        [1, 2, 3],
+      ),
+      `n = ${num(n)} 입니다. 바퀴 수가 상한 ${bound} 에 이른 모양이 ${full.length} 개이고, 그 안의 자료 접근 차이는 ${fix((hi / lo - 1) * 100, 4)} % 입니다. 자료 접근이 가장 많은 것은 「${worst.name}」 입니다.`,
     );
-    return [
-      `n = ${num(n)}`,
-      table(["입력의 모양", "바퀴 수", "자료 접근", "잡는 칸 최대"], rows, [
-        "l",
-        "r",
-        "r",
-        "r",
-      ]),
-      "",
-      `└ 자료 접근이 가장 많은 것은 「${worst[0]}」 이다`,
-    ].join("\n");
   },
 
-  /** 최악 — 「정렬된 입력이 최악이다」 를 실행으로 확인한다. */
   "worst-sorted": () => {
-    const rows: string[][] = [];
-    for (const n of [1000, 10000]) {
+    const rows = [1000, 10000].map((n) => {
       const rnd = makeText(n, 26);
       const sorted = rnd.split("").sort().join("");
       const a = countedDoubling(rnd);
       const b = countedDoubling(sorted);
-      assertSame(rnd, a.sa, "배가 계측기");
-      assertSame(sorted, b.sa, "배가 계측기");
-      rows.push([
+      return [
         num(n),
-        `${a.rounds} 바퀴`,
+        String(a.rounds),
         num(a.access),
-        `${b.rounds} 바퀴`,
+        String(b.rounds),
         num(b.access),
-        b.access > a.access ? "정렬된 쪽이 많다" : "정렬된 쪽이 적다",
-      ]);
-    }
-    return table(
-      ["n", "무작위 바퀴", "무작위 접근", "정렬 바퀴", "정렬 접근", "판정"],
+        b.access > a.access ? "정렬된 쪽" : "무작위 쪽",
+      ];
+    });
+    return md(
+      ["n", "무작위 바퀴", "무작위 접근", "정렬 바퀴", "정렬 접근", "많은 쪽"],
       rows,
-      ["r", "r", "r", "r", "r", "l"],
+      [0, 1, 2, 3, 4],
+    );
+  },
+
+  /* ── 스스로 점검하기 ── */
+
+  "check-why-three": () => {
+    const r = walkRun();
+    const first = r.rounds[0] as Round;
+    const second = r.rounds[1] as Round;
+    const g = second.gap;
+    const rows = [1, 3].map((i) => [
+      `자리 ${i}`,
+      piece(WALK, i, 2 * g),
+      String(second.rank[i]),
+      i + g < WALK.length
+        ? `${piece(WALK, i + g, g)} · rank[${i + g}] + 1 = ${second.backs[i]}`
+        : "없음 · 0",
+      `(${second.rank[i]}, ${second.backs[i]})`,
+    ]);
+    const pos = (i: number) => second.saFront.indexOf(i);
+    return block(
+      md(
+        ["자리", "길이 4 조각", "앞 성분", "뒤 조각 · 뒤 성분", "쌍"],
+        rows,
+        [2],
+      ),
+      `첫 바퀴가 끝난 시점에는 rank[1] = ${first.next[1]} · rank[3] = ${first.next[3]}${으로(first.next[3] as number)} 같았습니다. 둘째 바퀴의 앞 성분 정렬 뒤 자리 3 은 sa 의 칸 ${pos(3)}, 자리 1 은 칸 ${pos(1)} 에 있습니다.`,
     );
   },
 };
-
-/** 한 바퀴를 걸음별로 펼친다. `which` 는 1 부터다. */
-function renderRound(which: number): string {
-  const steps = WALK_RUN.steps.filter((st) => st.gap === 2 ** (which - 1));
-  const n = WALK.length;
-  const keys = steps[0] as Step;
-  const rows: string[][] = [];
-  const gap = keys.gap;
-  for (let i = 0; i < n; i++) {
-    const f = keys.rank[i] as number;
-    const b = (keys.back as number[])[i] as number;
-    rows.push([
-      String(i),
-      WALK.slice(i, i + 2 * gap),
-      String(f),
-      i + gap < n ? String(b) : `${b} (범위 밖)`,
-      `(${f}, ${b})`,
-    ]);
-  }
-  const after = steps[steps.length - 1] as Step;
-  return [
-    `gap = ${gap} — 길이 ${gap} 조각의 순위 ${show(keys.rank)} 로 길이 ${
-      2 * gap
-    } 조각의 쌍을 만든다`,
-    table(
-      ["i", `s[i..i+${2 * gap - 1}]`, "앞 조각 순위", "뒤 조각 순위", "쌍"],
-      rows,
-      ["r", "l", "r", "r", "l"],
-    ),
-    "",
-    table(
-      ["걸음", "하는 일", "sa"],
-      steps.slice(1).map((st) => [st.label, st.what, show(st.sa)]),
-      ["l", "l", "l"],
-    ),
-    "",
-    `바퀴가 끝난 시점   rank = ${show(after.rank)}   span = ${after.span}   n = ${n}`,
-    after.span === n
-      ? "└ span 이 n 과 같다. 순위가 전부 달라져 여기서 멈춘다"
-      : "└ span 이 n 보다 작다. 아직 같은 순위가 남아 한 바퀴 더 실행한다",
-  ].join("\n");
-}
