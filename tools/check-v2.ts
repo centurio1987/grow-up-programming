@@ -1370,11 +1370,11 @@ export function practiceReferenceFindings(text: string): Finding[] {
 /**
  * P24 · P25 · P26 — 편 사이 셈 기준과 용어(`L50`·`L51`·`L52`, 2026-10-01 `KAN-062`, SPEC §14).
  *
- * **지금은 경고다.** 세 규칙이 들어온 날 알고리즘 편 수십 편이 걸린다. 위반으로 두면 다른 편을
- * 닫는 세션이 자기 것이 아닌 빨강을 본다(`Finding.warn` 머리 주석). KAN-062 배치 2 가 0 으로
- * 내린 뒤 `COST_RULES_WARN` 을 `false` 로 바꿔 위반으로 올린다.
+ * **위반이다.** 들어온 날(2026-10-01)에는 알고리즘 편 수십 편이 걸려 경고로 두었다 — 위반으로 두면 다른
+ * 편을 닫는 세션이 자기 것이 아닌 빨강을 본다(`Finding.warn` 머리 주석). KAN-062 배치 2 가 세 규칙을
+ * 모두 0 으로 내린 뒤 위반으로 올렸다(P24 205 · P25 213 · P26 43 → 0).
  */
-export const COST_RULES_WARN = true;
+export const COST_RULES_WARN = false;
 
 function costFinding(f: Finding): Finding {
   return COST_RULES_WARN ? { ...f, warn: true } : f;
@@ -3270,7 +3270,7 @@ if (import.meta.main) {
     // 안 본 자리」가 되고, 그것이 이 규칙이 일곱 배치를 샌 방식이다.
     if (!json && warned > 0) {
       console.log(
-        `\n경고 — 열이 어긋나거나 걸음을 건너뛰거나 표 머리줄 첫 칸이 문장이거나 셈 이름·용어·배수가 SPEC §14 와 다른 자리(P24~P26) ${warned}건 (${warnedGuides}편). ` +
+        `\n경고 — 열이 어긋나거나 걸음을 건너뛰거나 표 머리줄 첫 칸이 문장인 자리 ${warned}건 (${warnedGuides}편). ` +
           `\`--json\` 의 \`warnings\` 나 편별 실행으로 자리를 본다. ` +
           `지금은 경고이고, 그 편들을 고친 뒤 위반으로 올린다.`,
       );

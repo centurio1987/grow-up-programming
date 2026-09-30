@@ -2577,9 +2577,9 @@ test("P24 — bench 계수와 대조 절 굵은 글씨의 옛 셈 이름을 경�
     ["P24", "bench"],
     ["P24", "purpose.alt:11"],
   ]);
-  expect(out.every((f) => f.warn === COST_RULES_WARN || !COST_RULES_WARN)).toBe(
-    true,
-  );
+  // 경고 시기에는 `warn: true`, 위반으로 올린 뒤에는 `warn` 이 없다.
+  const warnFlag: boolean = COST_RULES_WARN;
+  expect(out.every((f) => (f.warn === true) === warnFlag)).toBe(true);
 });
 
 test("P25 — 옛 용어는 산문에서만 잡고 코드·인용은 안 본다", () => {
