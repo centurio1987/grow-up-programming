@@ -7,13 +7,13 @@
  * 잘라 낸다. 남은 금액을 `rest`, 지금 보는 액면가를 `c` 라 하면 앞으로 필요한 동전이 적어도
  * `ceil(rest / c)` 개라, `count + ceil(rest / c) >= best` 면 그 아래를 보지 않는다.
  *
- * 표를 안 만들어 저장 칸이 액면가 종류 수 규모로 끝나는 대신, **자를 기준이 되는 첫 답을
+ * DP 테이블을 안 만들어 저장 칸이 액면가 종류 수 규모로 끝나는 대신, **자를 기준이 되는 첫 답을
  * 못 찾으면 아무것도 못 자른다.** 그래서 「답이 있는가」가 채택을 가른다 — 대조가 성립하는
  * 자리다.
  *
- * 계수 둘. **기본 연산**은 표 쪽에서 값을 정한 칸 하나당 1, 분기 한정 쪽에서 재귀 호출
+ * 계수 둘. **기본 연산**은 DP 테이블 쪽에서 값을 정한 칸 하나당 1, 분기 한정 쪽에서 재귀 호출
  * 하나당 1 · 개수를 하나 정해 보는 바퀴마다 1 이다. **새로 잡는 칸**은 두 설계가 실제로 들고
- * 있어야 하는 칸 수 — 표는 `(n+1)(amount+1)`, 분기 한정은 정렬한 액면가 배열 `n` 칸에 실제로
+ * 있어야 하는 칸 수 — DP 테이블은 `(n+1)(amount+1)`, 분기 한정은 정렬한 액면가 배열 `n` 칸에 실제로
  * 가장 깊었던 재귀 프레임 수를 더한 것이다. 둘 다 실행마다 같은 값이다.
  *
  * **왜 전개 입력을 안 쓰는가**(L20). 전개는 `coins = [3, 4, 1]` · `amount = 6` 인데, 그
@@ -38,7 +38,7 @@ const B: Input = { coins: [4, 6], amount: 9_997 };
 const C: Input = { coins: [4, 6], amount: 1_000 };
 const D: Input = { coins: [4, 6], amount: 999 };
 
-/** 표 채우기 — 이 가이드의 절차. `(n+1)(amount+1)` 칸을 언제나 전부 정한다. */
+/** DP 테이블 — 이 가이드의 절차. `(n+1)(amount+1)` 칸을 언제나 전부 정한다. */
 function fillTable(input: Input): Record<string, number> {
   const { coins, amount } = input;
   const n = coins.length;
@@ -129,12 +129,12 @@ const opsOnly = (r: Record<string, number>): Record<string, number> => ({
 });
 
 export const cases: Record<string, BenchCase> = {
-  "표 채우기 (이 가이드) · 입력 A": () => fillTable(A),
+  "DP 테이블 (이 가이드) · 입력 A": () => fillTable(A),
   "분기 한정 · 입력 A": () => branchAndBound(A),
-  "표 채우기 (이 가이드) · 입력 B": () => fillTable(B),
+  "DP 테이블 (이 가이드) · 입력 B": () => fillTable(B),
   "분기 한정 · 입력 B": () => branchAndBound(B),
-  "표 채우기 (이 가이드) · 경계 금액 1,000": () => opsOnly(fillTable(C)),
+  "DP 테이블 (이 가이드) · 경계 금액 1,000": () => opsOnly(fillTable(C)),
   "분기 한정 · 경계 금액 1,000": () => opsOnly(branchAndBound(C)),
-  "표 채우기 (이 가이드) · 경계 금액 999": () => opsOnly(fillTable(D)),
+  "DP 테이블 (이 가이드) · 경계 금액 999": () => opsOnly(fillTable(D)),
   "분기 한정 · 경계 금액 999": () => opsOnly(branchAndBound(D)),
 };
