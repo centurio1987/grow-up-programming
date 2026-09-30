@@ -7,8 +7,8 @@
  *   bun run tools/bench-alt.ts kthSmallest-guide.alt.ts
  *
  * **왜 전개 입력을 안 쓰는가**(L20). 전개가 쓰는 `[7, 10, 4, 3, 20, 15]` 는 칸이 여섯이라
- * **뒤집힘 자체가 안 일어난다** — 역산한 최악 입력을 넣어도 견주기가 15 대 26 으로 이 가이드의
- * 절차가 적다(실측). 뒤집히는 첫 칸 수는 12 이고(`n`=11 은 55 대 60, `n`=12 는 66 대 52),
+ * **뒤집힘 자체가 안 일어난다** — 역산한 최악 입력을 넣어도 이 가이드의 절차가 비교를 덜 한다.
+ * 뒤집히는 첫 칸 수는 `compareDesigns` 로 칸 수를 늘려 가며 실제로 재고(증명 블록 `alt-crossover`),
  * 그래서 대조만 `n = 1,024` 를 쓰고 그 사유를 본문에도 적는다.
  *
  * 입력 두 벌을 쓰는 이유는 이 대조의 갈림이 **입력의 모양**에 있기 때문이다. 한 벌은 생성식
@@ -28,7 +28,7 @@ export const SHUFFLED: number[] = Array.from(
 /** 뒤섞인 입력에서 묻는 순번. 가운데다. */
 export const SHUFFLED_K = 512;
 
-interface Counter {
+export interface Counter {
   cmp: number;
   cells: number;
 }
@@ -190,13 +190,24 @@ const measure = (
   return c;
 };
 
+/** 두 설계를 같은 입력에 걸어 비교 횟수와 새로 잡는 칸을 센다 — 본문의 뒤집힘 자리를 재는 데 쓴다. */
+export function compareDesigns(
+  src: number[],
+  k: number,
+): { guide: Counter; mom: Counter } {
+  return {
+    guide: measure(guideSelect, src, k),
+    mom: measure(momSelect, src, k),
+  };
+}
+
 export const cases = {
-  "이 가이드의 절차": (): Record<string, number> => {
+  퀵셀렉트: (): Record<string, number> => {
     const s = measure(guideSelect, SHUFFLED, SHUFFLED_K);
     const w = measure(guideSelect, WORST, WORST_K);
     return {
-      "뒤섞인 입력 견주기": s.cmp,
-      "최악 입력 견주기": w.cmp,
+      "뒤섞인 입력 비교 횟수": s.cmp,
+      "최악 입력 비교 횟수": w.cmp,
       "뒤섞인 입력 새로 잡는 칸": s.cells,
       "최악 입력 새로 잡는 칸": w.cells,
     };
@@ -205,8 +216,8 @@ export const cases = {
     const s = measure(momSelect, SHUFFLED, SHUFFLED_K);
     const w = measure(momSelect, WORST, WORST_K);
     return {
-      "뒤섞인 입력 견주기": s.cmp,
-      "최악 입력 견주기": w.cmp,
+      "뒤섞인 입력 비교 횟수": s.cmp,
+      "최악 입력 비교 횟수": w.cmp,
       "뒤섞인 입력 새로 잡는 칸": s.cells,
       "최악 입력 새로 잡는 칸": w.cells,
     };

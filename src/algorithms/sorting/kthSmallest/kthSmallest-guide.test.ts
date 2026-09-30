@@ -12,7 +12,7 @@
 import { expect, test } from "bun:test";
 import { kthSmallest } from "./kthSmallest-guide.ref.ts";
 
-/** `[배열, k, 기대값]`. 원본 테스트의 케이스와 문제 문서의 예시가 같은 것들이다. */
+/** `[배열, k, 기대값]`. 원본 테스트의 케이스와 실습 절의 예시가 같은 것들이다. */
 const CASES: [number[], number, number][] = [
   [[3, 1, 2], 1, 1],
   [[3, 1, 2], 2, 2],
@@ -63,4 +63,19 @@ test("고정 씨앗 난수 200 벌에서 정렬 기준값과 일치한다", () =
     const k = 1 + (next() % n);
     expect(kthSmallest([...A], k)).toBe(sorted[k - 1] as number);
   }
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본 소스에서
+ * 만든 계측 사본을 실행해 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./kthSmallest-guide.sim.ts");
+  const { simStepsFromRef } = await import("./kthSmallest-guide.fig.tsx");
+  const want = simStepsFromRef();
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.select.steps)).toEqual(plain(want.select));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.select.result).toBe(String(kthSmallest([7, 10, 4, 3, 20, 15], 4)));
 });
