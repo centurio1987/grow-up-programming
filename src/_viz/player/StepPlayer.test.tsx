@@ -375,3 +375,33 @@ test("2 차원 표 무대 · 입력 줄과 괄호 — 표 아래 행렬 줄에 �
 
   await act(async () => root.unmount());
 });
+
+test("배열 무대 · 구간 안의 이번 걸음 밖 — 앞 걸음이 지운 칸은 쥔 구간 안이어도 대시다", async () => {
+  const spec = (
+    await import(
+      "../../algorithms/number-theory/sieveOfEratosthenes/sieveOfEratosthenes-guide.sim.ts"
+    )
+  ).sieveWalk as unknown as PlayerSpec;
+  document.body.innerHTML = '<div id="s"></div>';
+  const host = document.getElementById("s") as HTMLElement;
+  const root = createRoot(host);
+  await act(async () => root.render(<StepPlayer {...spec} />));
+
+  const stage = () =>
+    host.querySelector(".gs-player-stage") as HTMLElement | null;
+  const count = (sel: string) => host.querySelectorAll(sel).length;
+  const h0 = stage()?.style.height;
+  // T1 — 쥔 구간이 줄 전체이고 아직 지운 칸이 없어 대시 칸이 없다
+  expect(count('[data-viz-state="out"]')).toBe(0);
+
+  // T3 — 앞 걸음(T2)이 지운 14 칸이 구간 안에서 대시가 된다. 무대 높이는 그대로다
+  const badge = (id: string) =>
+    [...host.querySelectorAll(".gs-player-badge")].find(
+      (b) => b.textContent === id,
+    ) as HTMLButtonElement;
+  await act(async () => badge("T3").click());
+  expect(stage()?.style.height).toBe(h0);
+  expect(count('[data-viz-state="out"]')).toBe(14);
+
+  await act(async () => root.unmount());
+});

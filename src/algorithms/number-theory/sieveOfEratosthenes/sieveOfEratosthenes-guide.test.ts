@@ -31,7 +31,7 @@ for (const [n, want] of CASES) {
 }
 
 test("본문 전개가 쓰는 입력", () => {
-  // `deep.build`·`deep.walk`·`.sim.ts` 가 모두 이 상한을 쓴다.
+  // `deep.origin`·`deep.build`·`deep.walk`·`.sim.ts` 가 모두 이 상한을 쓴다.
   expect(sieveOfEratosthenes(30)).toEqual([2, 3, 5, 7, 11, 13, 17, 19, 23, 29]);
 });
 
@@ -88,4 +88,21 @@ test("답에 든 수는 전부 소수이고 빠진 수는 전부 합성수다", 
   for (let x = 2; x <= n; x++) {
     expect(primes.has(x)).toBe(isPrimeByDefinition(x));
   }
+});
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가(SPEC `L48`). `.sim.ts` 의 `steps` 는 P3 이
+ * 정적으로 세도록 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `simStepsFromRef()` — 정본과 같은
+ * 절차를 따라가며 남긴 걸음 기록(답은 정본과 대조한다) — 와 글자 그대로 같아야 한다. 다르면 리터럴을
+ * 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./sieveOfEratosthenes-guide.sim.ts");
+  const { simStepsFromRef } = await import(
+    "./sieveOfEratosthenes-guide.fig.tsx"
+  );
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.sieveWalk.steps)).toEqual(plain(simStepsFromRef()));
+  // 패널이 내미는 반환값이 정본의 답과 같은지 — 정본에 직접 다시 묻는다.
+  expect(sim.sieveWalk.result).toBe(`[${sieveOfEratosthenes(30).join(", ")}]`);
 });

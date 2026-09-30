@@ -3,14 +3,18 @@
  *
  *   bun run ../../../../tools/bench-alt.ts sieveOfEratosthenes-guide.alt.ts
  *
- * **경쟁 설계는 조각으로 갈라 채우는 체(segmented sieve)다.** 같은 목표(`n` 이하의 소수를
+ * **경쟁 설계는 구간 분할 체(segmented sieve)다.** 같은 목표(`n` 이하의 소수를
  * 오름차순으로 전부 내는 것)를 노리되, `n + 1` 칸짜리 표를 한 번에 잡지 않는다. 먼저
  * `√n` 이하의 소수만 표준 방식으로 구해 두고, `2` 부터 `n` 까지를 길이 `SEGMENT` 짜리
  * 조각으로 갈라 조각 하나 분량의 표만 되풀이해 채운다.
  *
  * **입력을 결과에 맞춰 고르지 않는다**(L20). 입력은 상한 `n` 하나이고 난수가 없다. 전개
- * 입력 `n = 30` 을 그대로 넣고, 거기에 규모만 키운 `n` 셋을 더했다 — 조각 길이가 1,024 라
- * `n = 30` 에서는 조각이 하나뿐이라 두 설계의 잡는 칸이 갈리는 자리가 안 나온다.
+ * 입력 `n = 30` 을 그대로 넣고, 거기에 규모만 키운 `n` 넷을 더했다 — 조각 길이가 1,024 라
+ * `n = 30` 에서는 조각이 하나뿐이라 두 설계의 저장 칸이 갈리는 자리가 안 나온다. 가장 큰 `n` 은
+ * 본문 `deep.origin` ① 이 정한 과제 규모의 상한이다.
+ *
+ * **비용 기준은 본문과 같다** — 기본 연산(체 배열 칸 하나를 읽거나 쓰는 것 한 번)과 저장 칸(답 배열을 뺀,
+ * 들고 있는 칸의 개수).
  *
  * **조각 길이를 1,024 로 고정한 것이 이 대조의 유일한 상수다.** 이 값을 `n` 으로 두면
  * 조각이 하나가 되어 두 설계가 같은 절차가 되므로, 조각 길이는 경쟁 설계 쪽의 설계값이지
@@ -23,17 +27,17 @@ const SEGMENT = 1024;
 /** 대조에 쓰는 상한. 첫째가 전개 입력이다. */
 const SMALL = 30;
 const MEDIUM = 1_000;
-const LARGE = 1_000_000;
+const LARGE = 10_000_000;
 
-/** 잡는 칸이 뒤집히는 자리. 아래 `flipPoint()` 가 차례로 재서 확인한다. */
+/** 저장 칸이 뒤집히는 자리. 아래 `flipPoint()` 가 차례로 재서 확인한다. */
 const TIE = 1_067;
 const FLIP = 1_068;
 
 interface Counted {
   primes: number[];
-  /** 배열 칸 접근 — 초기화 쓰기 + 표 읽기 + 합성수 쓰기 + 수집 읽기. */
+  /** 기본 연산 — 체 배열을 만드는 쓰기 + 바깥 읽기 + 지우기 + 수집 읽기. */
   access: number;
-  /** 답 배열을 뺀, 추가로 잡는 칸. */
+  /** 저장 칸 — 답 배열을 뺀, 들고 있는 칸. */
   cells: number;
 }
 
@@ -123,17 +127,17 @@ function measure(n: number): { mine: Counted; theirs: Counted } {
   return { mine, theirs };
 }
 
-/** 잡는 칸의 순서가 처음 뒤집히는 `n`. 상수 `FLIP` 이 실제로 그 자리인지 확인한다. */
+/** 저장 칸의 순서가 처음 뒤집히는 `n`. 상수 `FLIP` 이 실제로 그 자리인지 확인한다. */
 function flipPoint(): number {
   for (let n = 2; n <= 4_000; n++) {
     if (bySegments(n, SEGMENT).cells < bySingleTable(n).cells) return n;
   }
-  throw new Error("재 본 구간 안에서 잡는 칸이 뒤집히지 않았다");
+  throw new Error("재 본 구간 안에서 저장 칸이 뒤집히지 않았다");
 }
 
 if (flipPoint() !== FLIP) {
   throw new Error(
-    `잡는 칸이 뒤집히는 자리가 ${flipPoint()} 이다 — 상수와 어긋난다`,
+    `저장 칸이 뒤집히는 자리가 ${flipPoint()} 이다 — 상수와 어긋난다`,
   );
 }
 
@@ -144,22 +148,22 @@ const T = measure(TIE);
 const F = measure(FLIP);
 
 export const cases = {
-  "배열 하나로 끝내는 체": () => ({
-    "n=30 배열 칸 접근": S.mine.access,
-    "n=1,000 배열 칸 접근": M.mine.access,
-    "n=1,000,000 배열 칸 접근": L.mine.access,
-    "n=30 잡는 칸": S.mine.cells,
-    "n=1,067 잡는 칸": T.mine.cells,
-    "n=1,068 잡는 칸": F.mine.cells,
-    "n=1,000,000 잡는 칸": L.mine.cells,
+  "에라토스테네스의 체": () => ({
+    "n=30 기본 연산": S.mine.access,
+    "n=1,000 기본 연산": M.mine.access,
+    "n=10,000,000 기본 연산": L.mine.access,
+    "n=30 저장 칸": S.mine.cells,
+    "n=1,067 저장 칸": T.mine.cells,
+    "n=1,068 저장 칸": F.mine.cells,
+    "n=10,000,000 저장 칸": L.mine.cells,
   }),
-  "조각으로 갈라 채우는 체": () => ({
-    "n=30 배열 칸 접근": S.theirs.access,
-    "n=1,000 배열 칸 접근": M.theirs.access,
-    "n=1,000,000 배열 칸 접근": L.theirs.access,
-    "n=30 잡는 칸": S.theirs.cells,
-    "n=1,067 잡는 칸": T.theirs.cells,
-    "n=1,068 잡는 칸": F.theirs.cells,
-    "n=1,000,000 잡는 칸": L.theirs.cells,
+  "구간 분할 체": () => ({
+    "n=30 기본 연산": S.theirs.access,
+    "n=1,000 기본 연산": M.theirs.access,
+    "n=10,000,000 기본 연산": L.theirs.access,
+    "n=30 저장 칸": S.theirs.cells,
+    "n=1,067 저장 칸": T.theirs.cells,
+    "n=1,068 저장 칸": F.theirs.cells,
+    "n=10,000,000 저장 칸": L.theirs.cells,
   }),
 };

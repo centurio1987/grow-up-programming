@@ -32,6 +32,12 @@ export interface ArrayStep {
   readonly read?: readonly number[];
   /** 이번에 새로 쓴 칸 — 「새로 씀」. 답으로 찾은 칸도 여기 둔다. */
   readonly write?: readonly number[];
+  /**
+   * 쥔 구간 안에 있어도 「이번 걸음 밖」(대시)으로 그릴 칸. 쥔 구간이 배열 전체인데 칸마다 이미 처리가
+   * 끝나 더 볼 일이 없는 칸이 있을 때 쓴다 — 에라토스테네스의 체에서 앞 걸음이 이미 지운 칸이다. 읽은 칸 ·
+   * 새로 쓴 칸이 이것보다 앞선다. 없으면 쥔 구간 밖의 칸만 대시다.
+   */
+  readonly out?: readonly number[];
   /** ▲ 줄 옆에 적는 포인터 이름과 자리(예: `{ lo: 3, mid: 4, hi: 5 }`). */
   readonly pointers?: Readonly<Record<string, number>>;
   /** 이번 걸음의 계산 한 줄 — 알약에 싣는다. */
@@ -128,6 +134,7 @@ export function arrayStage(s: ArrayStep, opts: ArrayOptions): StageRow[] {
   s.array.forEach((_, i) => {
     if (s.range === null || i < s.range[0] || i > s.range[1]) states[i] = "out";
   });
+  for (const i of s.out ?? []) states[i] = "out";
   for (const i of s.read ?? []) states[i] = "read";
   for (const i of s.write ?? []) states[i] = "focus";
   const held = s.range === null ? 0 : s.range[1] - s.range[0] + 1;
