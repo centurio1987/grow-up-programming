@@ -857,6 +857,42 @@ describe("P9 KeyValueTable · 해시 맵", () => {
   });
 });
 
+describe("P10 CumulativeCurve · 누적 값 곡선", () => {
+  const count = (svg: string, re: RegExp) => svg.match(re)?.length ?? 0;
+  // 유량 값마다의 최소 총비용 — 라운드가 끝난 네 자리를 짚었다. 마지막 두 점 사이만 증분이 줄어든다.
+  const points = [
+    { x: 0, y: 0, mark: "시작" },
+    { x: 1, y: 3 },
+    { x: 2, y: 6, mark: "라운드 1" },
+    { x: 3, y: 11 },
+    { x: 4, y: 14, mark: "라운드 2" },
+  ];
+
+  test("선분마다 증분을 적고, 짚은 점은 네모 · 나머지는 동그라미, 증분이 줄어든 선분은 대시다", async () => {
+    const { CumulativeCurve, increments } = await import(
+      "./patterns/CumulativeCurve"
+    );
+    expect(increments(points)).toEqual([3, 3, 5, 3]);
+    const el = (
+      <CumulativeCurve
+        title="누적 곡선"
+        xLabel="유량 값"
+        yLabel="최소 총비용"
+        points={points}
+      />
+    );
+    const svg = await renderToSvg(el, "t-curve");
+    expect(svg).toBe(await renderToSvg(el, "t-curve"));
+    expect(count(svg, /data-viz-segment="/g)).toBe(4);
+    expect(count(svg, /data-viz-state="mark"/g)).toBe(3);
+    expect(count(svg, /data-viz-state="pass"/g)).toBe(2);
+    expect(count(svg, /data-viz-state="drop"/g)).toBe(1);
+    expect(svg).toContain('data-viz-increment="5"');
+    expect(svg).toContain("+5");
+    expect(svg).toContain("라운드 2");
+  });
+});
+
 describe("패턴 등록 가드", () => {
   // SPEC §12 「패턴을 더하는 법」 — 새 패턴은 한 벌로 선다. 유저 지시(2026-09-28): 맞는 시각화가 없으면
   // 표로 대신하지 말고 패턴부터 만들어 적용한다. 만들다 만 패턴이 조용히 남지 않게 여기서 잡는다.
@@ -887,5 +923,20 @@ describe("패턴 등록 가드", () => {
       if (!section.includes(`\`${name}\``)) missing.push(`${name}: SPEC §12`);
     }
     expect(missing).toEqual([]);
+  });
+
+  // 가이드 그림이 시각화 패키지를 직접 부르면 위 가드를 비껴간다 — 패턴 없이 그린 그림이 조용히 남는다
+  // (2026-09-30 minCostMaxFlow 가 LineChart 를 직접 불렀다가 CumulativeCurve 로 옮겼다).
+  test("가이드 그림 사이드카는 시각화 패키지를 직접 import 하지 않는다", async () => {
+    const { join } = await import("node:path");
+    const root = join(import.meta.dir, "../..");
+    const glob = new Bun.Glob("src/{algorithms,data-structures}/**/*.fig.tsx");
+    const direct: string[] = [];
+    for await (const f of glob.scan({ cwd: root })) {
+      const text = await Bun.file(join(root, f)).text();
+      if (/from\s+["']@centurio1987\/bbangto-ui-visualization["']/.test(text))
+        direct.push(f);
+    }
+    expect(direct).toEqual([]);
   });
 });

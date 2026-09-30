@@ -27,6 +27,7 @@ import { LogBarChart } from "../../src/_viz/components/LogBarChart";
 import { ApproachLadder } from "../../src/_viz/patterns/ApproachLadder";
 import { ArrayStrip } from "../../src/_viz/patterns/ArrayStrip";
 import { CellStage } from "../../src/_viz/patterns/CellStage";
+import { CumulativeCurve } from "../../src/_viz/patterns/CumulativeCurve";
 import { KeyValueTable } from "../../src/_viz/patterns/KeyValueTable";
 import { LayerBars } from "../../src/_viz/patterns/LayerBars";
 import { LevelTable } from "../../src/_viz/patterns/LevelTable";
@@ -329,5 +330,6 @@ export const algoVizStyleGuide: VisualizationStyleGuide = {
     CellStage,
     NodeGraph,
     KeyValueTable,
+    CumulativeCurve,
   },
 };

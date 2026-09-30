@@ -181,3 +181,36 @@ test("이분 배정 모양 — 정점 102 · 간선 600 에서 답이 정해진�
     cost: 1175,
   });
 });
+
+/**
+ * 걸음 재생 패널(`.sim.ts`)의 값이 정본 실행과 같은가. `.sim.ts` 의 `steps` 는 P3 이 정적으로 세도록
+ * 인라인 리터럴이다. 그 리터럴이 그림 사이드카의 `stageStepsFromRef()` — 정본과 같은 절차를 실행해
+ * 걸음을 만드는 함수 — 와 글자 그대로 같아야 한다. 다르면 리터럴을 다시 뽑는다.
+ */
+test("걸음 재생 패널의 걸음이 정본 실행에서 만든 걸음과 같다", async () => {
+  const sim = await import("./minCostMaxFlow-guide.sim.ts");
+  const fig = await import("./minCostMaxFlow-guide.fig.tsx");
+  const plain = (v: unknown) => JSON.parse(JSON.stringify(v));
+  expect(plain(sim.mcmfWalk.steps)).toEqual(plain(fig.stageStepsFromRef()));
+  expect(plain(sim.mcmfWalk.layout)).toEqual(plain(fig.LAYOUT));
+
+  // 사이드카가 정본을 제대로 불렀는지 — 마지막 걸음의 누적값을 정본의 답에 직접 다시 묻는다.
+  const want = minCostMaxFlow(
+    4,
+    [
+      [0, 1, 3, 1],
+      [0, 2, 3, 4],
+      [1, 2, 2, 1],
+      [1, 3, 3, 6],
+      [2, 3, 4, 1],
+    ],
+    0,
+    3,
+  );
+  expect(sim.mcmfWalk.steps.at(-1)?.vars).toBe(
+    `라운드 5 · 누적 유량 ${want.flow} · 누적 총비용 ${want.cost}`,
+  );
+  expect(sim.mcmfWalk.result).toBe(
+    `{ flow: ${want.flow}, cost: ${want.cost} }`,
+  );
+});

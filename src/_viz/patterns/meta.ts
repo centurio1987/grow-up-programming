@@ -167,4 +167,21 @@ export const ALGO_VIZ_META: readonly AlgoVizMeta[] = [
       "키가 열여섯을 넘으면 그림이 넓어진다 — 관련 키만 남기거나 표",
     ],
   },
+  {
+    id: "ALGO-P10",
+    name: "Cumulative Curve",
+    exportName: "CumulativeCurve",
+    summary:
+      "가로 양이 한 단위씩 늘 때의 누적 값을 점과 선분으로 — 선분마다 그 한 단위가 더한 증분을 적고, 절차가 실제로 멈춘 점을 짚는다",
+    dataShape: ["change-over-time", "magnitude"],
+    structuralTraits: ["sequential", "quantitative"],
+    useWhen: [
+      "한 단위 더 늘릴 때 드는 값(증분)이 줄지 않는가 · 커지는가를 보일 때 — 최소 비용 유량의 비용 곡선",
+      "누적 값 가운데 절차가 멈춘 자리(라운드가 끝난 유량 값)를 곡선 위에 짚을 때",
+    ],
+    avoidWhen: [
+      "값들이 자릿수로 벌어지면 선형 세로축에서 작은 값이 안 보인다 — LogBarChart",
+      "가로가 단위로 늘어나는 양이 아니라 범주면 표나 막대 — 선분의 증분이 뜻을 잃는다",
+    ],
+  },
 ];

@@ -30,6 +30,12 @@ export {
   type StageTone,
 } from "./patterns/CellStage";
 export {
+  CumulativeCurve,
+  type CumulativeCurveProps,
+  type CurvePoint,
+  increments,
+} from "./patterns/CumulativeCurve";
+export {
   type KeyValueData,
   type KeyValueExtraRow,
   KeyValueTable,
