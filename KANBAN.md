@@ -148,7 +148,7 @@
   - 이유: 한 편 안에서는 기준이 하나지만 편끼리는 같은 갈래에서도 단위와 이름이 다르다
   - 목표: SPEC 에 갈래별 기준표가 서고, 근거 파일 §5 의 불일치가 모두 해소되거나 사유가 적힌다
   - 메모: 목록 정본: KANBAN.batches/KAN-058-8XT6PC.s11-findings.md §5(5-1 셈 기준 · 5-2 용어). KAN-058 검토 5
-  - 실행 문서: KANBAN.cards/KAN-062-Z0V30H.md (1/9 · 최근 10-01)
+  - 실행 문서: KANBAN.cards/KAN-062-Z0V30H.md (2/9 · 최근 10-01)
   - 계획 리포트: KANBAN.reports/KAN-062-Z0V30H.report.html (낡음)
   - 원문:
     ```text

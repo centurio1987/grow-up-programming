@@ -11,18 +11,22 @@ import {
   alignFences,
   alignmentWarnings,
   bodyNumbers,
+  COST_RULES_WARN,
   check,
   checkWarnings,
   codeNameMapping,
   continuesSentence,
+  costNameFindings,
   displayWidth,
   figFindings,
   finalCodeMatchesRef,
   generatedBlockAlignment,
+  handRatioFindings,
   hasFigure,
   maxProseRun,
   normalizeCode,
   parseSim,
+  retiredTermFindings,
   rowCells,
   skipNotes,
   stepSpan,
@@ -2552,4 +2556,69 @@ test("P22 — 폴더의 실습 테스트를 실습 절이 가리키지 않으면
   }).filter((f) => f.code === "P22");
   expect(orphan.length).toBe(1);
   expect(orphan[0]?.detail).toContain("absorbed.test.ts");
+});
+
+test("P24 — bench 계수와 대조 절 굵은 글씨의 옛 셈 이름을 경고로 잡는다", () => {
+  const alt = {
+    id: "purpose.alt",
+    heading: "#### 경쟁 설계와의 대조",
+    line: 10,
+    level: 4,
+    body: [
+      "두 설계의 **배열 접근 수**를 셌습니다.",
+      "**기본 연산 수**도 셌습니다.",
+    ],
+  };
+  const out = costNameFindings(
+    { "이 절차 · 질의 3 회 배열 접근": 1, "이 절차 · 추가 칸": 2 },
+    alt,
+  );
+  expect(out.map((f) => [f.code, f.where])).toEqual([
+    ["P24", "bench"],
+    ["P24", "purpose.alt:11"],
+  ]);
+  expect(out.every((f) => f.warn === COST_RULES_WARN || !COST_RULES_WARN)).toBe(
+    true,
+  );
+});
+
+test("P25 — 옛 용어는 산문에서만 잡고 코드·인용은 안 본다", () => {
+  const text = [
+    "서브트리의 합을 구합니다.",
+    "옛 이름 「서브트리」 대신 부분트리라고 씁니다.",
+    "```ts",
+    "// 서브트리",
+    "```",
+    "> 이분 탐색",
+    "`이분 탐색`",
+  ].join("\n");
+  expect(retiredTermFindings(text).map((f) => f.where)).toEqual([":1"]);
+});
+
+test("P26 — 증명 블록 밖의 배수만 잡고, 블록 안과 「배로」는 지나간다", () => {
+  const alt = {
+    id: "purpose.alt",
+    heading: "#### 경쟁 설계와의 대조",
+    line: 100,
+    level: 4,
+    body: [
+      "<!--proof:ratio-->",
+      "",
+      "정본이 9 배 적습니다.",
+      "<!--/proof-->",
+      "<!--proof:tbl-->",
+      "| 계수 | 비 |",
+      "| --- | --- |",
+      "| 비교 | 2.5 배 |",
+      "",
+      "입력을 2 배로 키웠습니다. 배열 3 배열은 아닙니다.",
+      "그래서 23 배예요.",
+      "```text",
+      "40 배",
+      "```",
+    ],
+  };
+  expect(handRatioFindings(alt).map((f) => f.where)).toEqual([
+    "purpose.alt:111",
+  ]);
 });

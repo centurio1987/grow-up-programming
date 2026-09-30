@@ -25,6 +25,7 @@
 import { readdir } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { headerDoc, parseContract } from "./contract-header.ts";
+import { RETIRED_TERMS, retiredCostName } from "./cost-vocab.ts";
 import { extract, GuideCoreError } from "./guide-core.ts";
 import { kindOfOr } from "./guide-v2-targets.ts";
 import { DIRECT_MEMORY, ESCALATION } from "./ord006-escalation.ts";
@@ -1366,6 +1367,163 @@ export function practiceReferenceFindings(text: string): Finding[] {
   return out;
 }
 
+/**
+ * P24 · P25 · P26 — 편 사이 셈 기준과 용어(`L50`·`L51`·`L52`, 2026-10-01 `KAN-062`, SPEC §14).
+ *
+ * **지금은 경고다.** 세 규칙이 들어온 날 알고리즘 편 수십 편이 걸린다. 위반으로 두면 다른 편을
+ * 닫는 세션이 자기 것이 아닌 빨강을 본다(`Finding.warn` 머리 주석). KAN-062 배치 2 가 0 으로
+ * 내린 뒤 `COST_RULES_WARN` 을 `false` 로 바꿔 위반으로 올린다.
+ */
+export const COST_RULES_WARN = true;
+
+function costFinding(f: Finding): Finding {
+  return COST_RULES_WARN ? { ...f, warn: true } : f;
+}
+
+/** 굵은 글씨 끝의 「수」·「횟수」는 이름의 일부가 아니다 — `**배열 접근 수**` 는 `배열 접근` 을 가리킨다. */
+function boldCostName(bold: string): string {
+  return bold.replace(/\s*(횟수|수)$/, "").trim();
+}
+
+/**
+ * P24 셈 이름(`L50`). bench 키의 계수 이름과 `purpose.alt` 가 계수를 가리키는 굵은 글씨가
+ * `tools/cost-vocab.ts` 의 옛 이름으로 끝나면 걸린다. 이름이 **맞는 뜻인가**(추가 칸이 정말
+ * 동시 최댓값인가)는 못 잰다 — 그것은 대조 절의 내역과 `.alt.ts` 를 사람이 맞춰 본다.
+ */
+export function costNameFindings(
+  bench: Record<string, number> | undefined,
+  alt: Section | undefined,
+): Finding[] {
+  const out: Finding[] = [];
+  const seen = new Set<string>();
+  for (const key of Object.keys(bench ?? {})) {
+    const metric = key.split(" · ").slice(1).join(" · ");
+    const hit = retiredCostName(metric);
+    if (hit === null || seen.has(metric)) continue;
+    seen.add(metric);
+    out.push(
+      costFinding({
+        code: "P24",
+        where: "bench",
+        detail: `계수 이름 「${metric}」 — 「${hit.name}」 은 쓰지 않는 셈 이름이다. ${hit.target}(SPEC §14)`,
+      }),
+    );
+  }
+  if (alt === undefined) return out;
+  let fenced = false;
+  for (const [i, line] of alt.body.entries()) {
+    if (line.trimStart().startsWith("```")) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced) continue;
+    for (const m of line.matchAll(/\*\*([^*]+)\*\*/g)) {
+      const name = boldCostName(m[1] ?? "");
+      const hit = retiredCostName(name);
+      if (hit === null) continue;
+      out.push(
+        costFinding({
+          code: "P24",
+          where: `purpose.alt:${alt.line + 1 + i}`,
+          detail: `굵은 글씨 「${m[1]}」 — 「${hit.name}」 은 쓰지 않는 셈 이름이다. ${hit.target}(SPEC §14)`,
+        }),
+      );
+    }
+  }
+  return out;
+}
+
+/**
+ * P25 쓰지 않는 용어(`L52`). 파트 1·2 산문과 헤딩에서 본다. 펜스 · 인라인 코드 · 낫표와 큰따옴표
+ * 인용 · 인용 블록은 자료라 안 본다(옛 이름을 인용해 설명하는 문장이 있을 수 있다).
+ */
+export function retiredTermFindings(text: string): Finding[] {
+  const out: Finding[] = [];
+  let fenced = false;
+  for (const [i, line] of text.split("\n").entries()) {
+    const trimmed = line.trimStart();
+    if (trimmed.startsWith("```")) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced || trimmed.startsWith(">")) continue;
+    const prose = line
+      .replace(/`[^`]*`/g, "C")
+      .replace(/「[^」]*」/g, "Q")
+      .replace(/"[^"]*"/g, "Q");
+    for (const [re, name, use] of RETIRED_TERMS) {
+      if (!re.test(prose)) continue;
+      out.push(
+        costFinding({
+          code: "P25",
+          where: `:${i + 1}`,
+          detail: `「${name}」 — 「${use}」 로 쓴다(SPEC §14 용어 표)`,
+        }),
+      );
+    }
+  }
+  return out;
+}
+
+/**
+ * 증명 블록이 덮는 줄(절 본문 기준 번호). 닫는 마커가 있으면 마커 사이 전부, 없으면 마커 아래
+ * 펜스 하나 또는 이어지는 `|` 줄 — `check-proof.ts` 머리 주석의 규격 그대로다.
+ */
+function proofCoveredLines(body: string[]): Set<number> {
+  const covered = closedProofLines(body);
+  for (let i = 0; i < body.length; i++) {
+    if (!/^<!--proof:[A-Za-z0-9_-]+-->$/.test((body[i] ?? "").trim())) continue;
+    if (covered.has(i)) continue;
+    let j = i + 1;
+    while (j < body.length && (body[j] ?? "").trim() === "") j++;
+    const start = (body[j] ?? "").trim();
+    if (start.startsWith("```")) {
+      covered.add(j);
+      for (j++; j < body.length; j++) {
+        covered.add(j);
+        if ((body[j] ?? "").trim().startsWith("```")) break;
+      }
+    } else {
+      for (; j < body.length && (body[j] ?? "").trim().startsWith("|"); j++)
+        covered.add(j);
+    }
+  }
+  return covered;
+}
+
+/**
+ * 측정한 비를 내미는 꼴 — 숫자 + 「배」. 「배열」·「배치」·「배포」·「배우」·「배정」 같은 낱말과,
+ * 입력 규모를 말하는 「2 배로 키운다」(「배로」)는 뺀다.
+ */
+const HAND_RATIO = /\d[\d,]*(?:\.\d+)?\s?배(?![열치포우정경로])/;
+
+/** P26 대조 절 산문의 배수(`L51`). 증명 블록 밖에서 비를 내밀면 걸린다. */
+export function handRatioFindings(alt: Section | undefined): Finding[] {
+  if (alt === undefined) return [];
+  const out: Finding[] = [];
+  const covered = proofCoveredLines(alt.body);
+  let fenced = false;
+  for (const [i, line] of alt.body.entries()) {
+    const trimmed = line.trimStart();
+    if (!covered.has(i) && trimmed.startsWith("```")) {
+      fenced = !fenced;
+      continue;
+    }
+    if (fenced || covered.has(i) || trimmed.startsWith(">")) continue;
+    const prose = line.replace(/`[^`]*`/g, "C").replace(/「[^」]*」/g, "Q");
+    const hit = HAND_RATIO.exec(prose);
+    if (hit === null) continue;
+    out.push(
+      costFinding({
+        code: "P26",
+        where: `purpose.alt:${alt.line + 1 + i}`,
+        detail: `손으로 적은 배수 「${hit[0]}」 — 비는 증명 블록이 \`.alt.ts\` 계수에서 계산한다(SPEC §14 \`L51\`)`,
+      }),
+    );
+  }
+  return out;
+}
+
 /** 코드 한 줄의 주석 부분 — `//` 뒤, 또는 블록 주석 줄(`/**` · ` *`)의 본문. 주석이 없으면 `null`. */
 function commentPart(line: string): string | null {
   const block = /^\s*(?:\/\*\*?|\*)(?!\/)(.*)$/.exec(line);
@@ -2589,6 +2747,11 @@ export function check(input: CheckInput): Finding[] {
   if (kind === "algo") {
     findings.push(...buildStageFindings(sections));
     findings.push(...banmalFindings(text));
+    // ── P24 셈 이름 · P25 용어 · P26 대조 절 배수 (`L50`·`L52`·`L51`) ──
+    const costAlt = first(sections, "purpose.alt");
+    findings.push(...costNameFindings(input.bench, costAlt));
+    findings.push(...retiredTermFindings(text));
+    findings.push(...handRatioFindings(costAlt));
     // ── P22 실습 절 구조 · P23 실습 문제 지칭 (`L49`) ──
     findings.push(...practiceFindings(parsed.sections, input.practiceLinks));
     const linked = new Set(
@@ -2858,6 +3021,20 @@ export function checkWarnings(input: CheckInput): Finding[] {
     ...alignmentWarnings(text),
     ...tableHeaderWarnings(text),
   ];
+  // P24~P26 은 `COST_RULES_WARN` 동안 경고다. `check` 가 경고를 걸러 내므로 여기서 다시 부른다.
+  if ((input.kind ?? "algo") === "algo" && parsed.unresolved.length === 0) {
+    const costSections = parsed.sections.filter(
+      (s) => !s.id.startsWith("practice"),
+    );
+    const costAlt = first(costSections, "purpose.alt");
+    out.push(
+      ...[
+        ...costNameFindings(input.bench, costAlt),
+        ...retiredTermFindings(text),
+        ...handRatioFindings(costAlt),
+      ].filter((f) => f.warn === true),
+    );
+  }
 
   const { unresolved } = parsed;
   const sections = parsed.sections.filter((s) => !s.id.startsWith("practice"));
@@ -3012,7 +3189,7 @@ async function checkOne(
       JSON.stringify({ target, findings, warnings, missing }, null, 2),
     );
   } else if (findings.length === 0) {
-    console.log(`${target} — P1~P23 통과.`);
+    console.log(`${target} — P1~P26 통과.`);
     if (notes) for (const line of skipNotes(missing)) console.log(`  ${line}`);
   } else {
     console.error(`${target} — 위반 ${findings.length}건.`);
@@ -3093,7 +3270,7 @@ if (import.meta.main) {
     // 안 본 자리」가 되고, 그것이 이 규칙이 일곱 배치를 샌 방식이다.
     if (!json && warned > 0) {
       console.log(
-        `\n경고 — 열이 어긋나거나 걸음을 건너뛰거나 표 머리줄 첫 칸이 문장인 자리 ${warned}건 (${warnedGuides}편). ` +
+        `\n경고 — 열이 어긋나거나 걸음을 건너뛰거나 표 머리줄 첫 칸이 문장이거나 셈 이름·용어·배수가 SPEC §14 와 다른 자리(P24~P26) ${warned}건 (${warnedGuides}편). ` +
           `\`--json\` 의 \`warnings\` 나 편별 실행으로 자리를 본다. ` +
           `지금은 경고이고, 그 편들을 고친 뒤 위반으로 올린다.`,
       );
