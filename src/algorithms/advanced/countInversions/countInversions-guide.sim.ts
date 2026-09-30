@@ -1,120 +1,386 @@
-import type { Frame } from "#guide-sim";
+import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
 
 /**
- * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `[4, 1, 5, 2, 6, 3]` 이고
- * 답이 6 이다. 프레임 수(9)가 그 절의 T# 단계 수(9)와 같다 — P3 이 그 관계를 잰다.
- * **T# 하나에 프레임 하나를 둔다.**
+ * `deep.walk`(수행으로 알아보는 알고리즘) 절과 **같은 입력**을 쓴다 — `A = [4, 1, 5, 2, 6, 3]` 이고 답이 6 이다.
+ * 준비 한 걸음(T1), 앞 합치기 넷(T2~T5 — 합치기 하나가 한 걸음), 마지막 합치기의 비교 다섯(T6~T10 — 비교
+ * 하나가 한 걸음), 남은 값을 옮겨 제자리에 적는 걸음(T11)이다.
  *
- * ## 왜 `array` 하나로 그리는가
+ * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가 배열
+ * 무대(`arrayStage.ts`)를 고른다. 무대의 값 줄은 정본의 사본 `a` 이고, 합치는 도중인 걸음(T6~T10)에서는 정본이
+ * `buffer` 에만 적으므로 `a` 가 그대로다. `range` 가 합치는 조각, `pieces` 가 왼쪽 조각 `[lo,mid]` 와 오른쪽 조각
+ * `[mid+1,hi]`(합치는 도중에는 괄호 안에 `i` · `j`), `read` 가 비교한 두 칸이다. `layers` 의 `buffer` 줄은 **지금
+ * 합치기가 적은 칸만** 싣는다 — 앞 합치기가 남긴 값은 다음 합치기가 덮어쓰므로 그리면 읽는 사람이 헷갈린다.
  *
- * 이 절차가 다루는 것은 **칸 여섯짜리 배열 하나**다. 합치기는 그 배열의 이어진 한 토막을
- * 오름차순으로 다시 놓는 일이라, 눈금 하나가 「배열의 몇 번째 칸인가」만 가리키면 된다.
- * 재귀가 만드는 조각의 겹침 관계는 배열 위의 구간으로 그대로 나타나므로 별도의 나무 그림이
- * 필요 없고, 그 그림이 필요한 자리(어느 조각이 어느 조각 안에 있는가)는 본문의 ascii 나무가
- * 진다.
- *
- * 규약 다섯을 그대로 따른다.
- *
- * 1. **`array` 는 그 걸음이 끝난 시점의 `a` 다.** 정본은 합치기가 끝날 때 `buffer` 의 내용을
- *    `a` 로 옮겨 적으므로, 합치는 도중인 걸음(T6~T8)에서는 `a` 가 아직 안 바뀐다. 그 세
- *    걸음에 같은 배열이 실리는 것이 실제 상태다 — 바뀐 것처럼 그리면 거짓이 된다.
- * 2. **`marked` 는 오름차순으로 놓인 것이 확정된 칸**이고, **`highlight` 는 이번 걸음이
- *    견주거나 옮긴 칸**이다.
- * 3. **`pointers` 의 키는 본문 기호표의 이름과 글자 그대로 같다** — `lo` · `mid` · `hi` ·
- *    `i` · `j`. 조각을 고르는 걸음은 앞의 셋을, 합치는 도중의 걸음은 뒤의 둘을 싣는다.
- * 4. **`detail` 에 그 걸음까지의 누적 개수를 적는다.** 마지막 프레임의 누적이 `result` 다.
- * 5. **답이 늘어나는 걸음은 넷(T2 · T5 · T7 · T8)이고 나머지는 그대로다.** 어느 걸음이
- *    개수를 더했는지가 이 절차의 핵심 장면이라 `detail` 이 매번 그것을 적는다.
- *
- * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
- * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다.
+ * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지). 정적 계수가 실제보다 적게 세면
+ * 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의 `simStepsFromRef()`(정본과 대조한 기록에서 만든 걸음)를
+ * 글자 그대로 옮긴 것이고, 둘이 같은지는 `countInversions-guide.test.ts` 가 잰다.
  */
+
 export const invWalk = {
-  view: "array" as const,
-  title:
-    "countInversions([4, 1, 5, 2, 6, 3]) — 역순쌍 여섯 개를 합치기 다섯 번으로 센다",
+  player: "stage",
+  stage: "array",
+  arrayName: "a",
+  rangeLabel: "합치는 조각",
+  title: "countInversions([4, 1, 5, 2, 6, 3])",
   result: "6",
   steps: [
     {
-      title: "T1 입력을 복사하고 버퍼를 한 번 잡는다",
-      detail:
-        "칸이 여섯이라 lo >= hi 가 거짓이고 곧바로 조각을 가른다. 입력 배열은 바꾸지 않으므로 사본 a 를 만들고, 합치기가 결과를 적을 buffer 를 칸 여섯으로 한 번만 잡는다. 누적 개수는 0 이다.",
+      title: "T1 사본과 버퍼 잡기",
+      text: "칸이 6 개라 N <= 1 이 거짓입니다. 입력의 사본 a 와 칸 6 개짜리 buffer 를 한 번 잡습니다. 누적 개수는 0 입니다.",
       array: [4, 1, 5, 2, 6, 3],
-      highlight: [0, 1, 2, 3, 4, 5],
-      marked: [],
-      pointers: { lo: 0, hi: 5 },
+      range: [0, 5],
+      read: [],
+      write: [0, 1, 2, 3, 4, 5],
+      pieces: [],
+      layers: [
+        {
+          name: "buffer",
+          values: [null, null, null, null, null, null],
+          write: [],
+        },
+      ],
+      calc: {
+        expr: "6 <= 1",
+        result: "거짓",
+      },
+      vars: "누적 0",
     },
     {
-      title: "T2 칸 두 개짜리 조각 [0, 1] 을 합친다",
-      detail:
-        "왼쪽 조각이 4 하나, 오른쪽 조각이 1 하나다. 4 <= 1 이 거짓이라 오른쪽을 꺼내고, 그 순간 왼쪽에 안 옮긴 칸이 mid - i + 1 = 0 - 0 + 1 = 1 개라 1 을 더한다. 누적 개수는 1 이다.",
+      title: "T2 조각 [0,1] 합치기",
+      text: "[4] 와 [1] 을 합칩니다. 4 <= 1 거짓 → 오른쪽 1, mid − i + 1 = 0 − 0 + 1 = 1. 왼쪽에 남은 4 를 그대로 옮기고 제자리에 적으면 [1 4] 입니다. 이 합치기가 센 개수는 1 이고 누적은 1 입니다.",
       array: [1, 4, 5, 2, 6, 3],
-      highlight: [0, 1],
-      marked: [0, 1],
-      pointers: { lo: 0, mid: 0, hi: 1 },
+      range: [0, 1],
+      read: [],
+      write: [0, 1],
+      pieces: [
+        {
+          label: "왼쪽",
+          from: 0,
+          to: 0,
+          tone: "left",
+        },
+        {
+          label: "오른쪽",
+          from: 1,
+          to: 1,
+          tone: "right",
+        },
+      ],
+      layers: [
+        {
+          name: "buffer",
+          values: [1, 4, null, null, null, null],
+          write: [],
+        },
+      ],
+      calc: {
+        expr: "0 − 0 + 1",
+        result: "+1",
+      },
+      vars: "누적 1",
     },
     {
-      title: "T3 조각 [0, 2] 를 합친다",
-      detail:
-        "왼쪽 조각이 1 4, 오른쪽 조각이 5 다. 1 <= 5 와 4 <= 5 가 둘 다 참이라 왼쪽만 두 번 꺼내고, 왼쪽이 비어 남은 5 를 그대로 옮긴다. 더한 개수가 없어 누적은 1 그대로다.",
+      title: "T3 조각 [0,2] 합치기",
+      text: "[1 4] 와 [5] 를 합칩니다. 1 <= 5 참 → 왼쪽 1, 4 <= 5 참 → 왼쪽 4. 오른쪽에 남은 5 를 그대로 옮기고 제자리에 적으면 [1 4 5] 입니다. 이 합치기가 센 개수는 0 이고 누적은 1 입니다.",
       array: [1, 4, 5, 2, 6, 3],
-      highlight: [0, 1, 2],
-      marked: [0, 1, 2],
-      pointers: { lo: 0, mid: 1, hi: 2 },
+      range: [0, 2],
+      read: [],
+      write: [0, 1, 2],
+      pieces: [
+        {
+          label: "왼쪽",
+          from: 0,
+          to: 1,
+          tone: "left",
+        },
+        {
+          label: "오른쪽",
+          from: 2,
+          to: 2,
+          tone: "right",
+        },
+      ],
+      layers: [
+        {
+          name: "buffer",
+          values: [1, 4, 5, null, null, null],
+          write: [],
+        },
+      ],
+      calc: {
+        expr: "오른쪽을 꺼낸 적 없음",
+        result: "+0",
+      },
+      vars: "누적 1",
     },
     {
-      title: "T4 칸 두 개짜리 조각 [3, 4] 를 합친다",
-      detail:
-        "왼쪽 조각이 2 하나, 오른쪽 조각이 6 하나다. 2 <= 6 이 참이라 왼쪽을 꺼내고 오른쪽은 남은 값으로 옮긴다. 더한 개수가 없어 누적은 1 그대로이고 a 도 그대로다.",
+      title: "T4 조각 [3,4] 합치기",
+      text: "[2] 와 [6] 을 합칩니다. 2 <= 6 참 → 왼쪽 2. 오른쪽에 남은 6 을 그대로 옮기고 제자리에 적으면 [2 6] 입니다. 이 합치기가 센 개수는 0 이고 누적은 1 입니다.",
       array: [1, 4, 5, 2, 6, 3],
-      highlight: [3, 4],
-      marked: [0, 1, 2, 3, 4],
-      pointers: { lo: 3, mid: 3, hi: 4 },
+      range: [3, 4],
+      read: [],
+      write: [3, 4],
+      pieces: [
+        {
+          label: "왼쪽",
+          from: 3,
+          to: 3,
+          tone: "left",
+        },
+        {
+          label: "오른쪽",
+          from: 4,
+          to: 4,
+          tone: "right",
+        },
+      ],
+      layers: [
+        {
+          name: "buffer",
+          values: [null, null, null, 2, 6, null],
+          write: [],
+        },
+      ],
+      calc: {
+        expr: "오른쪽을 꺼낸 적 없음",
+        result: "+0",
+      },
+      vars: "누적 1",
     },
     {
-      title: "T5 조각 [3, 5] 를 합친다",
-      detail:
-        "왼쪽 조각이 2 6, 오른쪽 조각이 3 이다. 2 <= 3 은 참이라 왼쪽을 꺼내고, 6 <= 3 은 거짓이라 오른쪽을 꺼내면서 mid - i + 1 = 4 - 4 + 1 = 1 을 더한다. 누적 개수는 2 다.",
+      title: "T5 조각 [3,5] 합치기",
+      text: "[2 6] 과 [3] 을 합칩니다. 2 <= 3 참 → 왼쪽 2, 6 <= 3 거짓 → 오른쪽 3, mid − i + 1 = 4 − 4 + 1 = 1. 왼쪽에 남은 6 을 그대로 옮기고 제자리에 적으면 [2 3 6] 입니다. 이 합치기가 센 개수는 1 이고 누적은 2 입니다.",
       array: [1, 4, 5, 2, 3, 6],
-      highlight: [3, 4, 5],
-      marked: [0, 1, 2, 3, 4, 5],
-      pointers: { lo: 3, mid: 4, hi: 5 },
+      range: [3, 5],
+      read: [],
+      write: [3, 4, 5],
+      pieces: [
+        {
+          label: "왼쪽",
+          from: 3,
+          to: 4,
+          tone: "left",
+        },
+        {
+          label: "오른쪽",
+          from: 5,
+          to: 5,
+          tone: "right",
+        },
+      ],
+      layers: [
+        {
+          name: "buffer",
+          values: [null, null, null, 2, 3, 6],
+          write: [],
+        },
+      ],
+      calc: {
+        expr: "4 − 4 + 1",
+        result: "+1",
+      },
+      vars: "누적 2",
     },
     {
-      title: "T6 마지막 합치기의 첫 견주기",
-      detail:
-        "왼쪽 조각이 1 4 5, 오른쪽 조각이 2 3 6 이고 둘 다 오름차순이다. a[0] = 1 과 a[3] = 2 를 견주면 1 <= 2 가 참이라 왼쪽을 꺼내고 i 가 1 로 간다. 더한 개수가 없어 누적은 2 다. a 는 합치기가 끝날 때 한꺼번에 바뀌므로 아직 그대로다.",
+      title: "T6 1 <= 2 왼쪽",
+      text: "a[0] = 1 과 a[3] = 2 를 비교합니다. 1 <= 2 가 참이라 왼쪽 1 을 buffer[0] 에 적습니다. 더하는 개수는 없고 누적은 2 입니다.",
       array: [1, 4, 5, 2, 3, 6],
-      highlight: [0, 3],
-      marked: [],
-      pointers: { i: 0, j: 3 },
+      range: [0, 5],
+      read: [0, 3],
+      write: [],
+      pieces: [
+        {
+          label: "왼쪽",
+          from: 0,
+          to: 2,
+          tone: "left",
+          text: "i = 0",
+        },
+        {
+          label: "오른쪽",
+          from: 3,
+          to: 5,
+          tone: "right",
+          text: "j = 3",
+        },
+      ],
+      layers: [
+        {
+          name: "buffer",
+          values: [1, null, null, null, null, null],
+          write: [0],
+        },
+      ],
+      calc: {
+        expr: "1 <= 2",
+        result: "참",
+      },
+      vars: "누적 2",
     },
     {
-      title: "T7 오른쪽을 꺼내며 두 쌍을 한 번에 센다",
-      detail:
-        "a[1] = 4 와 a[3] = 2 를 견주면 4 <= 2 가 거짓이다. 왼쪽에 안 옮긴 칸이 mid - i + 1 = 2 - 1 + 1 = 2 개라 2 를 한 번에 더한다. 4 와 5 가 둘 다 2 보다 크다는 것을 견주기 한 번으로 정한 자리다. 누적 개수는 4 다.",
+      title: "T7 4 <= 2 오른쪽 +2",
+      text: "a[1] = 4 와 a[3] = 2 를 비교합니다. 4 <= 2 가 거짓이라 오른쪽 2 를 buffer[1] 에 적고, 왼쪽에 남은 mid − i + 1 = 2 − 1 + 1 = 2 개를 한 번에 더합니다. 누적은 4 입니다.",
       array: [1, 4, 5, 2, 3, 6],
-      highlight: [1, 3],
-      marked: [],
-      pointers: { i: 1, j: 3 },
+      range: [0, 5],
+      read: [1, 3],
+      write: [],
+      pieces: [
+        {
+          label: "왼쪽",
+          from: 0,
+          to: 2,
+          tone: "left",
+          text: "i = 1",
+        },
+        {
+          label: "오른쪽",
+          from: 3,
+          to: 5,
+          tone: "right",
+          text: "j = 3",
+        },
+      ],
+      layers: [
+        {
+          name: "buffer",
+          values: [1, 2, null, null, null, null],
+          write: [1],
+        },
+      ],
+      calc: {
+        expr: "4 <= 2 거짓 · 2 − 1 + 1",
+        result: "+2",
+      },
+      vars: "누적 4",
     },
     {
-      title: "T8 같은 자리에서 두 쌍을 더 센다",
-      detail:
-        "a[1] = 4 와 a[4] = 3 을 견주면 4 <= 3 이 거짓이라 다시 오른쪽을 꺼낸다. i 가 그대로 1 이라 더하는 개수도 2 다. 누적 개수는 6 이고, 이것이 답과 같은 값이다.",
+      title: "T8 4 <= 3 오른쪽 +2",
+      text: "a[1] = 4 와 a[4] = 3 을 비교합니다. 4 <= 3 이 거짓이라 오른쪽 3 을 buffer[2] 에 적고, 왼쪽에 남은 mid − i + 1 = 2 − 1 + 1 = 2 개를 한 번에 더합니다. 누적은 6 입니다.",
       array: [1, 4, 5, 2, 3, 6],
-      highlight: [1, 4],
-      marked: [],
-      pointers: { i: 1, j: 4 },
+      range: [0, 5],
+      read: [1, 4],
+      write: [],
+      pieces: [
+        {
+          label: "왼쪽",
+          from: 0,
+          to: 2,
+          tone: "left",
+          text: "i = 1",
+        },
+        {
+          label: "오른쪽",
+          from: 3,
+          to: 5,
+          tone: "right",
+          text: "j = 4",
+        },
+      ],
+      layers: [
+        {
+          name: "buffer",
+          values: [1, 2, 3, null, null, null],
+          write: [2],
+        },
+      ],
+      calc: {
+        expr: "4 <= 3 거짓 · 2 − 1 + 1",
+        result: "+2",
+      },
+      vars: "누적 6",
     },
     {
-      title: "T9 남은 값을 옮기고 제자리에 적는다",
-      detail:
-        "4 <= 6 과 5 <= 6 이 참이라 왼쪽을 두 번 꺼내면 왼쪽 조각이 빈다. 남은 오른쪽 값 6 을 그대로 옮기고 buffer 를 a 로 옮겨 적으면 배열이 1 2 3 4 5 6 이 된다. 여기서는 더 셀 것이 없어 누적 개수 6 이 그대로 반환값이다.",
+      title: "T9 4 <= 6 왼쪽",
+      text: "a[1] = 4 와 a[5] = 6 을 비교합니다. 4 <= 6 이 참이라 왼쪽 4 를 buffer[3] 에 적습니다. 더하는 개수는 없고 누적은 6 입니다.",
+      array: [1, 4, 5, 2, 3, 6],
+      range: [0, 5],
+      read: [1, 5],
+      write: [],
+      pieces: [
+        {
+          label: "왼쪽",
+          from: 0,
+          to: 2,
+          tone: "left",
+          text: "i = 1",
+        },
+        {
+          label: "오른쪽",
+          from: 3,
+          to: 5,
+          tone: "right",
+          text: "j = 5",
+        },
+      ],
+      layers: [
+        {
+          name: "buffer",
+          values: [1, 2, 3, 4, null, null],
+          write: [3],
+        },
+      ],
+      calc: {
+        expr: "4 <= 6",
+        result: "참",
+      },
+      vars: "누적 6",
+    },
+    {
+      title: "T10 5 <= 6 왼쪽",
+      text: "a[2] = 5 와 a[5] = 6 을 비교합니다. 5 <= 6 이 참이라 왼쪽 5 를 buffer[4] 에 적습니다. 더하는 개수는 없고 누적은 6 입니다.",
+      array: [1, 4, 5, 2, 3, 6],
+      range: [0, 5],
+      read: [2, 5],
+      write: [],
+      pieces: [
+        {
+          label: "왼쪽",
+          from: 0,
+          to: 2,
+          tone: "left",
+          text: "i = 2",
+        },
+        {
+          label: "오른쪽",
+          from: 3,
+          to: 5,
+          tone: "right",
+          text: "j = 5",
+        },
+      ],
+      layers: [
+        {
+          name: "buffer",
+          values: [1, 2, 3, 4, 5, null],
+          write: [4],
+        },
+      ],
+      calc: {
+        expr: "5 <= 6",
+        result: "참",
+      },
+      vars: "누적 6",
+    },
+    {
+      title: "T11 남은 값 옮기고 제자리에 적기",
+      text: "왼쪽 조각이 비어 반복이 끝납니다. 오른쪽에 남은 6 을 비교 없이 buffer 에 옮기고, buffer 의 칸 [0,5] 를 a 에 옮겨 적으면 [1 2 3 4 5 6] 입니다. 더 셀 것이 없어 누적 6 이 반환값입니다.",
       array: [1, 2, 3, 4, 5, 6],
-      highlight: [2, 5],
-      marked: [0, 1, 2, 3, 4, 5],
-      pointers: { lo: 0, mid: 2, hi: 5 },
+      range: [0, 5],
+      read: [],
+      write: [0, 1, 2, 3, 4, 5],
+      pieces: [],
+      layers: [
+        {
+          name: "buffer",
+          values: [1, 2, 3, 4, 5, 6],
+          write: [5],
+        },
+      ],
+      calc: {
+        expr: "더하는 개수",
+        result: "+0",
+      },
+      vars: "누적 6",
     },
-  ] satisfies Frame[],
-};
+  ],
+} satisfies ArrayPlayerSpec;
