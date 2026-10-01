@@ -1,6 +1,6 @@
 {
   "next_id": 64,
-  "next_seq": 450,
+  "next_seq": 451,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1573,7 +1573,7 @@
       "memo_hash": "d0ea12e7511e9e10c1f3f4ad54cb0ef77441ce35"
     },
     "KAN-063-X2JFZA": {
-      "col": "review",
+      "col": "done",
       "title": "그림 무대·증명 도구 개선 후보 — KAN-058 전개 중 모인 한계 목록",
       "verbatim": "KAN-058 검토서 판단 항목 7 「그림 무대와 도구에 남은 개선 후보를 어떻게 다룰 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드 하나에 후보 목록으로 넘긴다」",
       "생성": "ai",
@@ -1714,6 +1714,16 @@
     "KAN-063-X2JFZA"
   ],
   "recent": [
+    {
+      "seq": 450,
+      "t": "2026-10-01T09:06",
+      "a": "ai",
+      "id": "KAN-063-X2JFZA",
+      "op": "move",
+      "w": "VKFNNV",
+      "from": "review",
+      "to": "done"
+    },
     {
       "seq": 449,
       "t": "2026-10-01T08:47",
@@ -2269,16 +2279,6 @@
       "w": "46PCAX",
       "with_": "KAN-057-J36E1B",
       "reason": "책 인쇄 경로는 KAN-057 이 만드는 fig(SVG)가 있어야 세울 수 있다(유저 결정 2026-09-28)"
-    },
-    {
-      "seq": 404,
-      "t": "2026-09-28T17:55",
-      "a": "유저",
-      "id": "KAN-057-J36E1B",
-      "op": "waive",
-      "w": "977NDY",
-      "with_": "KAN-039-FG8HWZ",
-      "reason": "경로 글롭만 겹친다 — KAN-039 는 src/algorithms/*/huffman*/**, KAN-057 은 src/algorithms/array/sparseTableRangeMin/** 라 실제 파일이 다르다(유저 용인 2026-09-28)"
     }
   ],
   "waivers": [
