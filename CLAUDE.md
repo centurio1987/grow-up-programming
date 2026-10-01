@@ -31,6 +31,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 진행 상황과 다음 할 일은 `KANBAN.md`.
 
+## 브랜치 — main 과 solutions
+
+`solutions` 는 학습자 풀이를 담는 브랜치다. **`main` 을 받기만 하고 `main` 으로 병합되지 않는다**(앞으로도).
+
+- 풀이가 아닌 작업(도구·가이드·계약·칸반)은 `main` 에서, 또는 `main` 에서 판 브랜치에서 한다. `solutions` 위에서
+  판 브랜치를 `main` 에 병합하면 풀이가 함께 들어온다 — KAN-064(스텁 24편)·KAN-065(분석 보고서 13편)가 그 누수다.
+- `solutions` 에서 `main` 을 받을 때는 `bun run tools/solutions-merge.ts` 로 병합한다. 그냥 `git merge main` 은
+  `main` 의 스텁과 삭제가 풀이·분석 보고서를 덮는다.
+- `main` 에 있으면 안 되는 것은 두 검사가 잡는다 — 스텁 누수(`tools/practice-ref.test.ts`)와 solutions 전용 파일
+  `*-analysis.md`·`*-analysis/`(`tools/solutions-merge.test.ts`, 규칙은 `SOLUTIONS_ONLY` 한 자리). 둘 다
+  `solutions` 체크아웃에서는 실패하는 것이 정상이다.
+
 ## 집필 규칙의 정본은 플러그인이다
 
 문제 문서와 해설 가이드의 **골격·문체·품질 기준은 이 저장소에 없다.**
