@@ -44,7 +44,7 @@ export interface TableStrip {
 
 /** 걸음 하나. */
 export interface TableStep {
-  /** 이 걸음이 끝난 뒤의 표 전체. 줄마다 칸이 같은 수다. 아직 안 쓴 칸은 `null`. */
+  /** 이 걸음이 끝난 뒤의 표 전체. 줄마다 칸 수가 달라도 되고 열은 가장 긴 줄에 맞춘다(nQueens 의 판 4칸 + 비트 7칸). 아직 안 쓴 칸은 `null`. */
   readonly table: readonly (readonly (number | string | null)[])[];
   /** 이번에 쓰는 칸이 읽은 이웃 — 「읽음」. */
   readonly read?: readonly TableCell[];

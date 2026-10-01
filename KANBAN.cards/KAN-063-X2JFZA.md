@@ -77,3 +77,4 @@ scope: src/_viz/**, tools/check-proof.ts, tools/check-proof.test.ts, tools/check
 - 2026-10-01T08:30 · s:df6b517e · S10 doing — 착수
 - 2026-10-01T08:47 · s:df6b517e · S10 done — gates 통과(14단계) · 검토서 발행(판단 항목 4)
 - 2026-10-01T08:57 · s:df6b517e — 검토자 지적(재현 수단 없는 수) 반영: 검토 항목 1 배경의 300 · 57편 94건은 조사 에이전트 보고를 재현 없이 옮긴 것이었다 → 탐침 probes/scan-false-positives.py 로 다시 내 303 · 70편 180건(422→242)으로 고침(review-ctx, 처분표). 항목 2 의 약 4,400px 는 잰 적 없음으로 고침. 같은 유형 전수: S1 기록의 4786블록도 scratchpad 에서 낸 수라 probes/proof-extract-diff.ts 로 다시 냄 → 4787블록 차이 0(배치2 에서 tMIS 증명 블록 1 추가분). 72편 필름은 git grep 으로 72 확인
+- 2026-10-01T09:06 · s:df6b517e — 검토 전체 승인(유저, 화면). 항목 2 후속: tableStage TableStep.table 설명을 「칸 수가 달라도 되고 가장 긴 줄에 맞춘다」로. 항목 1 후속: 플러그인 scan_ai_style.py 수정은 marketplace 클론에 적용·시험 13 통과했으나 커밋·배포는 권한 분류기(공용 자원 수정)에 막혀 유저에게 넘김. 항목 4 후속: 백로그 카드는 main 병합 직후 main 에서 add
