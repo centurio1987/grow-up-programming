@@ -1,6 +1,6 @@
 {
   "next_id": 67,
-  "next_seq": 459,
+  "next_seq": 460,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -302,7 +302,7 @@
       ]
     },
     "KAN-065-CV4WP7": {
-      "col": "backlog",
+      "col": "doing",
       "title": "solutions 에만 있는 비풀이 커밋과 main 의 풀이 분석 문서 정리 — 두 브랜치가 무엇을 나눠 갖는지 정한다",
       "verbatim": "KAN-064 검토서 판단 항목 2 「solutions 에 main 에는 없는 비풀이 커밋이 섞여 있다 — 이 카드에서는 건드리지 않았다」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
       "생성": "ai",
@@ -319,7 +319,19 @@
       "goal": "main 에 풀이를 드러내는 파일이 없고, solutions 에만 남은 비풀이 커밋은 main 에 반영되거나 버린 사유가 적힌다. 옮기는 절차가 문서나 도구로 남는다",
       "goal_hash": "ea26fd7a96ccea278eb5b7aeffcd48894d2b6677",
       "memo": "근거: KAN-064 검토서 판단 항목 2(.kanban/reviews/KAN-064-4YZZV2.events.jsonl). 비풀이 커밋 예: 807bc7b9·c4555102(훅) · 0adb1fc2·b494a300(가이드) · dcd37711·b83a1d5b(자료구조 계약). 확인: git log main..solutions",
-      "memo_hash": "cfe52a31069919431c843a3b687fdeee40cff508"
+      "memo_hash": "cfe52a31069919431c843a3b687fdeee40cff508",
+      "scope": [
+        "src/**/*-analysis.md",
+        "tools/solutions-merge.ts",
+        "tools/solutions-merge.test.ts",
+        "tools/solutions-only.ts",
+        "tools/solutions-only.test.ts",
+        ".claude/skills/analyze-solution/SKILL.md",
+        ".agents/skills/analyze-solution/SKILL.md",
+        "README.md",
+        "CLAUDE.md",
+        "KANBAN.cards/KAN-001.md"
+      ]
     },
     "KAN-001": {
       "col": "todo",
@@ -1805,7 +1817,6 @@
     "KAN-053-2KYAED",
     "KAN-054-1YWN4M",
     "KAN-055-4N4T6A",
-    "KAN-065-CV4WP7",
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
@@ -1869,9 +1880,20 @@
     "KAN-061-YVQBCF",
     "KAN-064-4YZZV2",
     "KAN-062-Z0V30H",
-    "KAN-066-J19ABB"
+    "KAN-066-J19ABB",
+    "KAN-065-CV4WP7"
   ],
   "recent": [
+    {
+      "seq": 459,
+      "t": "2026-10-01T09:34",
+      "a": "ai",
+      "id": "KAN-065-CV4WP7",
+      "op": "move",
+      "w": "ZF8JZY",
+      "from": "backlog",
+      "to": "doing"
+    },
     {
       "seq": 458,
       "t": "2026-10-01T09:26",
@@ -2418,16 +2440,6 @@
       "w": "92ZX3K",
       "with_": "KAN-060-9P4ZAA",
       "reason": "039 가 새로 쓰는 rollingHash·huffmanTree 가이드는 060 이 세운 practice 절 규칙을 따른다(유저 결정 2026-09-29 · S2 에서 scope 에 check-metaphor 를 더해 다시 기록, 겹침 내용 불변)"
-    },
-    {
-      "seq": 419,
-      "t": "2026-09-29T04:31",
-      "a": "ai",
-      "id": "KAN-060-9P4ZAA",
-      "op": "move",
-      "w": "92ZX3K",
-      "from": "backlog",
-      "to": "doing"
     }
   ],
   "waivers": [
