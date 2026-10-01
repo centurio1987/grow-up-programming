@@ -1,6 +1,6 @@
 {
   "next_id": 67,
-  "next_seq": 462,
+  "next_seq": 463,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -302,7 +302,7 @@
       ]
     },
     "KAN-065-CV4WP7": {
-      "col": "doing",
+      "col": "review",
       "title": "solutions 에만 있는 비풀이 커밋과 main 의 풀이 분석 문서 정리 — 두 브랜치가 무엇을 나눠 갖는지 정한다",
       "verbatim": "KAN-064 검토서 판단 항목 2 「solutions 에 main 에는 없는 비풀이 커밋이 섞여 있다 — 이 카드에서는 건드리지 않았다」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
       "생성": "ai",
@@ -1832,7 +1832,6 @@
     "KAN-032",
     "KAN-034.10-8M6T6P",
     "KAN-036-0G05DE",
-    "KAN-065-CV4WP7",
     "KAN-063-X2JFZA",
     "KAN-029",
     "KAN-030",
@@ -1891,9 +1890,20 @@
     "KAN-058-8XT6PC",
     "KAN-061-YVQBCF",
     "KAN-064-4YZZV2",
-    "KAN-062-Z0V30H"
+    "KAN-062-Z0V30H",
+    "KAN-065-CV4WP7"
   ],
   "recent": [
+    {
+      "seq": 462,
+      "t": "2026-10-01T09:50",
+      "a": "ai",
+      "id": "KAN-065-CV4WP7",
+      "op": "move",
+      "w": "ZF8JZY",
+      "from": "doing",
+      "to": "review"
+    },
     {
       "seq": 461,
       "t": "2026-10-01T09:36",
@@ -2440,16 +2450,6 @@
       "w": "92ZX3K",
       "with_": "KAN-060-9P4ZAA",
       "reason": "039 가 새로 쓰는 rollingHash·huffmanTree 가이드는 060 이 세운 practice 절 규칙을 따른다(유저 결정 2026-09-29). S9 에서 tools/algo-wbs.test.ts(알고리즘 편수 시험)가 겹침에 더해졌다 — 039 도 두 편을 더하며 같은 수를 고치므로 같은 순서(060 먼저, 039 는 전략 재수립 뒤) 안에서 풀린다"
-    },
-    {
-      "seq": 422,
-      "t": "2026-09-29T04:50",
-      "a": "유저",
-      "id": "KAN-058-8XT6PC",
-      "op": "serialize",
-      "w": "92ZX3K",
-      "with_": "KAN-060-9P4ZAA",
-      "reason": "058 의 110편 재집필이 060 이 세운 practice 절·L49 위에서 선다(유저 결정 2026-09-29 · S2 scope 추가 뒤 다시 기록)"
     }
   ],
   "waivers": [

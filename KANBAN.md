@@ -133,6 +133,8 @@
   - 실행 문서: KANBAN.cards/KAN-036-0G05DE.md (0/7 · 최근 09-18)
 
 ## 진행 중
+
+## 검토
 - `KAN-065-CV4WP7` solutions 에만 있는 비풀이 커밋과 main 의 풀이 분석 문서 정리 — 두 브랜치가 무엇을 나눠 갖는지 정한다 — 생성:ai · 최종:ai · 갱신:2026-10-01
   - 짧은 제목: solutions 경계 정리
   - 목적: solutions 에만 있는 풀이 아닌 커밋을 main 으로 옮기는 길과, main 에 든 풀이 분석 문서(*-analysis.md 12편)·_scratch 의 자리를 정해 처리한다
@@ -140,12 +142,11 @@
   - 목표: main 에 풀이를 드러내는 파일이 없고, solutions 에만 남은 비풀이 커밋은 main 에 반영되거나 버린 사유가 적힌다. 옮기는 절차가 문서나 도구로 남는다
   - 메모: 근거: KAN-064 검토서 판단 항목 2(.kanban/reviews/KAN-064-4YZZV2.events.jsonl). 비풀이 커밋 예: 807bc7b9·c4555102(훅) · 0adb1fc2·b494a300(가이드) · dcd37711·b83a1d5b(자료구조 계약). 확인: git log main..solutions
   - 실행 문서: KANBAN.cards/KAN-065-CV4WP7.md (5/5 · 최근 10-01)
+  - 검토 문서: KANBAN.reviews/KAN-065-CV4WP7.review.md (승인 0/4 · 검토 대기)
   - 원문:
     ```text
     KAN-064 검토서 판단 항목 2 「solutions 에 main 에는 없는 비풀이 커밋이 섞여 있다 — 이 카드에서는 건드리지 않았다」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」
     ```
-
-## 검토
 
 ## 완료
 - `KAN-063-X2JFZA` 그림 무대·증명 도구 개선 후보 — KAN-058 전개 중 모인 한계 목록 — 생성:ai · 최종:ai · 갱신:2026-10-01
