@@ -12,3 +12,4 @@
 {"at": "2026-10-01", "by": "ai", "id": "60bb9cb8de1f19b5", "kind": "judge", "ref": "e9a1a80a55f2", "seq": 11, "t": "2026-10-01T14:15", "verdict": "승인", "via": "검토자", "w": "ZF8JZY"}
 {"at": "2026-10-01", "by": "ai", "id": "511617be9163a650", "kind": "judge", "ref": "c04eb60cc5e3", "seq": 12, "t": "2026-10-01T14:15", "verdict": "승인", "via": "검토자", "w": "ZF8JZY"}
 {"at": "2026-10-01", "by": "ai", "id": "8e04a1babc0de9d7", "kind": "judge", "ref": "178cd7d5e026", "seq": 13, "t": "2026-10-01T14:15", "verdict": "승인", "via": "검토자", "w": "ZF8JZY"}
+{"at": "2026-10-01", "by": "유저", "id": "cf5dd638dd4bc979", "kind": "judge", "seq": 14, "t": "2026-10-01T14:19", "verdict": "승인", "via": "CLI", "w": "ZF8JZY"}
