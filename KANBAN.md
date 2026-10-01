@@ -152,7 +152,7 @@
   - 메모: 목록 정본: KANBAN.batches/KAN-058-8XT6PC.s11-findings.md §5(5-1 셈 기준 · 5-2 용어). KAN-058 검토 5
   - 실행 문서: KANBAN.cards/KAN-062-Z0V30H.md (13/13 · 최근 10-01)
   - 계획 리포트: KANBAN.reports/KAN-062-Z0V30H.report.html (낡음)
-  - 검토 문서: KANBAN.reviews/KAN-062-Z0V30H.review.md (승인 1/4 · 추가 의견 1 · 철회 2 · 추가 의견 총 5 · 검토 대기)
+  - 검토 문서: KANBAN.reviews/KAN-062-Z0V30H.review.md (승인 4/4 · 철회 2 · 추가 의견 총 5 · 승인)
   - 원문:
     ```text
     KAN-058 검토서 판단 항목 5 「편 사이에 어긋난 셈 기준과 용어를 맞출 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」
