@@ -238,7 +238,7 @@
       "memo_hash": "6aa93b8ff5c660cd56c867eb16e720afbefdb163"
     },
     "KAN-063-X2JFZA": {
-      "col": "backlog",
+      "col": "done",
       "title": "그림 무대·증명 도구 개선 후보 — KAN-058 전개 중 모인 한계 목록",
       "verbatim": "KAN-058 검토서 판단 항목 7 「그림 무대와 도구에 남은 개선 후보를 어떻게 다룰 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드 하나에 후보 목록으로 넘긴다」",
       "생성": "ai",
@@ -255,7 +255,51 @@
       "goal": "근거 파일 §7 후보마다 처리하거나 버린 사유가 적히고, 무대를 넓힌 경우 그 무대를 쓰는 편의 그림을 다시 뽑아 render-figs --check 가 통과한다",
       "goal_hash": "8627ed13b4f099122732cd941ec55b7d7774f502",
       "memo": "목록 정본: KANBAN.batches/KAN-058-8XT6PC.s11-findings.md §7. KAN-058 검토 7",
-      "memo_hash": "d247c719f910875e2bc08ffc62922deb3840a8f7"
+      "memo_hash": "d247c719f910875e2bc08ffc62922deb3840a8f7",
+      "scope": [
+        "src/_viz/**",
+        "tools/check-proof.ts",
+        "tools/check-proof.test.ts",
+        "tools/check-v2.ts",
+        "tools/check-v2.test.ts",
+        "sandbox/algo-guide-v2/SPEC.md",
+        "src/algorithms/advanced/convexHullTrick/**",
+        "src/algorithms/advanced/meetInTheMiddleSubsetSum/**",
+        "src/algorithms/advanced/nQueens/**",
+        "src/algorithms/array/diffArrayRangeUpdate/**",
+        "src/algorithms/array/houseRobber/**",
+        "src/algorithms/array/longestIncreasingSubsequence/**",
+        "src/algorithms/array/longestSubarrayAtMostSum/**",
+        "src/algorithms/array/nextGreaterElement/**",
+        "src/algorithms/array/subarraySumEqualsK/**",
+        "src/algorithms/binary-search/searchInRotatedSortedArray/**",
+        "src/algorithms/binary-search/ternarySearch/**",
+        "src/algorithms/bit-manipulation/binaryGap/**",
+        "src/algorithms/bit-manipulation/enumerateSubmasks/**",
+        "src/algorithms/bit-manipulation/lowestSetBit/**",
+        "src/algorithms/dp/expectedValueDp/**",
+        "src/algorithms/dp/palindromePartitioningMinCut/**",
+        "src/algorithms/dp/subsetSum/**",
+        "src/algorithms/dp/treeMaxIndependentSet/**",
+        "src/algorithms/graph-flow/maxFlow/**",
+        "src/algorithms/graph/connectedComponents/**",
+        "src/algorithms/graph/countIslands/**",
+        "src/algorithms/graph/dfsTraversal/**",
+        "src/algorithms/number-theory/babyStepGiantStep/**",
+        "src/algorithms/number-theory/extendedEuclidean/**",
+        "src/algorithms/number-theory/fftMultiply/**",
+        "src/algorithms/number-theory/gcd/**",
+        "src/algorithms/number-theory/isPrimeTrial/**",
+        "src/algorithms/number-theory/pollardRho/**",
+        "src/algorithms/number-theory/sieveOfEratosthenes/**",
+        "src/algorithms/sorting/insertionSort/**",
+        "src/algorithms/sorting/kthSmallest/**",
+        "src/algorithms/sorting/quicksort/**",
+        "src/algorithms/sorting/radixSort/**",
+        "src/algorithms/sorting/sortArray/**",
+        "src/algorithms/string/findAllOccurrences/**",
+        "src/algorithms/string/radixTree/**"
+      ]
     },
     "KAN-065-CV4WP7": {
       "col": "backlog",
@@ -1741,12 +1785,12 @@
     "KAN-053-2KYAED",
     "KAN-054-1YWN4M",
     "KAN-055-4N4T6A",
-    "KAN-063-X2JFZA",
     "KAN-065-CV4WP7",
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
     "KAN-036-0G05DE",
+    "KAN-063-X2JFZA",
     "KAN-029",
     "KAN-030",
     "KAN-007",
@@ -1808,6 +1852,36 @@
   ],
   "recent": [
     {
+      "seq": 450,
+      "t": "2026-10-01T09:06",
+      "a": "ai",
+      "id": "KAN-063-X2JFZA",
+      "op": "move",
+      "w": "VKFNNV",
+      "from": "review",
+      "to": "done"
+    },
+    {
+      "seq": 452,
+      "t": "2026-10-01T09:01",
+      "a": "ai",
+      "id": "KAN-062-Z0V30H",
+      "op": "move",
+      "w": "YT59JH",
+      "from": "review",
+      "to": "done"
+    },
+    {
+      "seq": 451,
+      "t": "2026-10-01T08:58",
+      "a": "ai",
+      "id": "KAN-062-Z0V30H",
+      "op": "move",
+      "w": "YT59JH",
+      "from": "doing",
+      "to": "review"
+    },
+    {
       "seq": 457,
       "t": "2026-10-01T08:52",
       "a": "ai",
@@ -1845,6 +1919,26 @@
       "to": "review"
     },
     {
+      "seq": 449,
+      "t": "2026-10-01T08:47",
+      "a": "ai",
+      "id": "KAN-063-X2JFZA",
+      "op": "move",
+      "w": "VKFNNV",
+      "from": "doing",
+      "to": "review"
+    },
+    {
+      "seq": 450,
+      "t": "2026-10-01T08:33",
+      "a": "ai",
+      "id": "KAN-062-Z0V30H",
+      "op": "move",
+      "w": "YT59JH",
+      "from": "review",
+      "to": "doing"
+    },
+    {
       "seq": 454,
       "t": "2026-10-01T08:26",
       "a": "유저",
@@ -1853,6 +1947,16 @@
       "w": "7JZJ8C",
       "with_": "KAN-064-4YZZV2",
       "reason": "검사기 오탐 — KAN-039 글롭 src/algorithms/*/huffman*/** 에 KAN-064 scope 24편 중 맞는 경로 0개(fnmatch 확인). 유저 승인 2026-10-01"
+    },
+    {
+      "seq": 449,
+      "t": "2026-10-01T08:26",
+      "a": "ai",
+      "id": "KAN-062-Z0V30H",
+      "op": "move",
+      "w": "YT59JH",
+      "from": "doing",
+      "to": "review"
     },
     {
       "seq": 453,
@@ -1882,16 +1986,6 @@
       "memo": "근거: KANBAN.cards/KAN-061-YVQBCF.md 의 S1 수행 내역(24편 · 21편 바이트 동일). main 에서 바로 되돌리면 다음 main→solutions 병합이 풀이를 덮는다 — 병합 방향부터"
     },
     {
-      "seq": 452,
-      "t": "2026-10-01T09:01",
-      "a": "ai",
-      "id": "KAN-062-Z0V30H",
-      "op": "move",
-      "w": "YT59JH",
-      "from": "review",
-      "to": "done"
-    },
-    {
       "seq": 451,
       "t": "2026-10-01T08:05",
       "a": "ai",
@@ -1900,16 +1994,6 @@
       "w": "0QT8BA",
       "from": "review",
       "to": "done"
-    },
-    {
-      "seq": 451,
-      "t": "2026-10-01T08:58",
-      "a": "ai",
-      "id": "KAN-062-Z0V30H",
-      "op": "move",
-      "w": "YT59JH",
-      "from": "doing",
-      "to": "review"
     },
     {
       "seq": 450,
@@ -1922,14 +2006,14 @@
       "to": "review"
     },
     {
-      "seq": 450,
-      "t": "2026-10-01T08:33",
-      "a": "ai",
-      "id": "KAN-062-Z0V30H",
-      "op": "move",
-      "w": "YT59JH",
-      "from": "review",
-      "to": "doing"
+      "seq": 448,
+      "t": "2026-10-01T07:22",
+      "a": "유저",
+      "id": "KAN-063-X2JFZA",
+      "op": "waive",
+      "w": "VKFNNV",
+      "with_": "KAN-039-FG8HWZ",
+      "reason": "글롭 오탐: KAN-063 scope 36편 폴더 중 huffman 으로 시작하는 것이 없다(src/algorithms/*/huffman*/** 와 실제 경로가 안 겹침). 2026-10-01 유저 승인"
     },
     {
       "seq": 449,
@@ -1940,16 +2024,6 @@
       "w": "0QT8BA",
       "with_": "KAN-061-YVQBCF",
       "reason": "글롭 대 글롭 오탐 — KAN-061 범위 폴더에 huffman* 이 없다(유저 승인 2026-10-01, scope 에 alt 주석 세 편을 더해 다시 기록)"
-    },
-    {
-      "seq": 449,
-      "t": "2026-10-01T08:26",
-      "a": "ai",
-      "id": "KAN-062-Z0V30H",
-      "op": "move",
-      "w": "YT59JH",
-      "from": "doing",
-      "to": "review"
     },
     {
       "seq": 448,
@@ -1988,6 +2062,16 @@
       "id": "KAN-062-Z0V30H",
       "op": "move",
       "w": "YT59JH",
+      "from": "backlog",
+      "to": "doing"
+    },
+    {
+      "seq": 447,
+      "t": "2026-10-01T06:58",
+      "a": "ai",
+      "id": "KAN-063-X2JFZA",
+      "op": "move",
+      "w": "VKFNNV",
       "from": "backlog",
       "to": "doing"
     },
@@ -2316,57 +2400,6 @@
       "w": "46PCAX",
       "with_": "KAN-036-0G05DE",
       "reason": "문제_가이드_목록.md 하나만 겹친다 — 두 카드가 목록의 다른 절(알고리즘·자료구조)을 고쳐 줄 단위 병합으로 합쳐진다(유저 결정 2026-09-29)"
-    },
-    {
-      "seq": 417,
-      "t": "2026-09-29T04:27",
-      "a": "유저",
-      "id": "KAN-039-FG8HWZ",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-060-9P4ZAA",
-      "reason": "039 가 새로 쓰는 rollingHash·huffmanTree 가이드는 060 이 세운 practice 절 규칙을 따른다(유저 결정 2026-09-29)"
-    },
-    {
-      "seq": 416,
-      "t": "2026-09-29T04:10",
-      "a": "ai",
-      "id": "KAN-058-8XT6PC",
-      "op": "edit",
-      "w": "46PCAX",
-      "field": "memo",
-      "before": "착수는 KAN-057(알고리즘 가이드 시각화 전환) 완료 뒤다 — 유저 결정(2026-09-28). 이 카드의 몫: ① 110편 재집필(SPEC L41~L45 · 파일럿 원고가 기준) ② SPEC §8 한시 조항 둘 제거 — deep.origin 을 FIGURE_REQUIRED 로, P17·P18 을 모든 편에 ③ 본문 반말 43편 168곳(P18) ④ 「견주다」 91편 1,542곳 교정 뒤 voice algorithm-guide-writer 의 v.common.gyeonju 를 enabled:true 로(L44). 규칙 정본은 KAN-056 병합 뒤의 sandbox/algo-guide-v2/SPEC.md. 근거: KANBAN.reviews/KAN-056-VPCM91.review.md 3번",
-      "after": "착수는 KAN-057(알고리즘 가이드 시각화 전환) 완료 뒤다 — 유저 결정(2026-09-28). 이 카드의 몫: ① 110편 재집필(SPEC L41~L45 · 파일럿 원고가 기준) ② SPEC §8 한시 조항 둘 제거 — deep.origin 을 FIGURE_REQUIRED 로, P17·P18 을 모든 편에 ③ 본문 반말 43편 168곳(P18) ④ 「견주다」 91편 1,542곳 교정 뒤 voice algorithm-guide-writer 의 v.common.gyeonju 를 enabled:true 로(L44). 규칙 정본은 KAN-056 병합 뒤의 sandbox/algo-guide-v2/SPEC.md. 근거: KANBAN.reviews/KAN-056-VPCM91.review.md 3번 추가(2026-09-29 유저 결정): 착수는 KAN-060(알고리즘 가이드에 문제 통합) 완료 뒤이고 전략 재수립이 필요하다(dep-serialize). 몫 ⑤ — KAN-060 원문 ①(가이드는 알고리즘 자체에 대한 것)의 110편 적용: SPEC L49 알고리즘 중심 서술 · §8 의 L49 한시 조항 제거. 근거: KANBAN.cards/KAN-060-9P4ZAA.md 「전략」"
-    },
-    {
-      "seq": 415,
-      "t": "2026-09-29T04:10",
-      "a": "유저",
-      "id": "KAN-058-8XT6PC",
-      "op": "serialize",
-      "w": "46PCAX",
-      "with_": "KAN-060-9P4ZAA",
-      "reason": "058 의 110편 재집필이 060 이 세운 practice 절·L49 위에서 선다(유저 결정 2026-09-29)"
-    },
-    {
-      "seq": 414,
-      "t": "2026-09-29T04:07",
-      "a": "ai",
-      "id": "KAN-060-9P4ZAA",
-      "op": "brief",
-      "w": "46PCAX",
-      "fields": {
-        "short": "가이드에 문제 통합",
-        "purpose": "가이드를 알고리즘 중심으로 세우고 문제를 끝의 실습 절로 옮긴 뒤 problem.md 119개를 지운다",
-        "reason": "가이드가 별도 문제 문서를 전제로 쓰여 문제를 모르면 가이드에서 맥락을 읽기 어렵다",
-        "goal": "problem.md 0, 모든 가이드 끝에 실습 절, 파일럿 sparseTableRangeMin 이 L49 로 서고 ci.ts all 통과. 원문 ①(알고리즘 중심 서술)의 110편 적용은 KAN-058 몫이다"
-      },
-      "before": {
-        "short": "",
-        "purpose": "",
-        "reason": "",
-        "goal": ""
-      }
     }
   ],
   "waivers": [
@@ -2459,6 +2492,13 @@
       "scope_hash": "6c78dbb9811461ec",
       "reason": "KAN-062 는 이미 있는 알고리즘 가이드 115편만 고친다. rollingHash·huffman 은 알고리즘 트랙에 아직 없어 겹치는 파일이 없다. KAN-039 는 KAN-036 뒤 직렬로 막혀 있어 착수 때 main 의 새 기준표(SPEC §14)를 따른다(유저 승인 2026-10-01)",
       "created": "2026-10-01T07:04",
+      "by": "유저"
+    },
+    {
+      "pair": "KAN-039-FG8HWZ|KAN-063-X2JFZA",
+      "scope_hash": "d9671012963cf068",
+      "reason": "글롭 오탐: KAN-063 scope 36편 폴더 중 huffman 으로 시작하는 것이 없다(src/algorithms/*/huffman*/** 와 실제 경로가 안 겹침). 2026-10-01 유저 승인",
+      "created": "2026-10-01T07:22",
       "by": "유저"
     }
   ],

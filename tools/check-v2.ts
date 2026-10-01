@@ -103,12 +103,14 @@ function closedProofLines(body: string[]): Set<number> {
         for (let k = i; k <= j; k++) inside.add(k);
         break;
       }
-      if (
-        t.startsWith("#") ||
-        t.startsWith("<!--proof:") ||
-        t.startsWith("```")
-      )
-        break;
+      // 펜스로 연 블록은 펜스를 통째로 건너 닫는 마커를 찾는다 — 펜스 뒤 문장도 블록이다
+      // (`check-proof` 와 같은 규칙, SPEC §0 · KAN-063). 펜스 안의 `#` 줄은 제목이 아니다.
+      if (t.startsWith("```")) {
+        j++;
+        while (j < body.length && !(body[j] ?? "").trim().startsWith("```")) j++;
+        continue;
+      }
+      if (t.startsWith("#") || t.startsWith("<!--proof:")) break;
     }
   }
   return inside;
@@ -2430,6 +2432,9 @@ export function symbolNoteFindings(text: string): Finding[] {
 /** 머리줄 첫 칸이 문장으로 끝나는가 — 「…고쳤다면」「…이유가 있는가」「…편다」 꼴. */
 const SENTENCE_CELL = /(다|가|면|까|요|는|은|을|를|로)$/;
 
+/** 「가」로 끝나도 조사가 아니라 값 「가(價)」인 명사 — 「최저가」「최고가」(KAN-063, bestTimeToBuyAndSellStock 오탐). */
+const PRICE_NOUN = /(최저|최고|단|원|정|시|매수|매도|평균|종)가$/;
+
 /**
  * P21(경고) — **표 머리줄 첫 칸에 제목 문장**을 넣었는가. 머리줄은 열이 갈리는 축의 이름이다.
  * 제목을 칸에 넣으면 그 열이 무엇의 열인지 사라진다(KAN-057 검토 지적 7). 문장인지는 끝말로만 짐작하므로
@@ -2453,7 +2458,9 @@ export function tableHeaderWarnings(text: string): Finding[] {
       .split("|")
       .slice(1, -1)
       .map((c) => c.replace(/`[^`]*`/g, "C").trim());
-    const bad = cells.find((c) => c.length >= 6 && SENTENCE_CELL.test(c));
+    const bad = cells.find(
+      (c) => c.length >= 6 && SENTENCE_CELL.test(c) && !PRICE_NOUN.test(c),
+    );
     if (bad === undefined) continue;
     out.push({
       code: "P21",

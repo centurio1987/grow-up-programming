@@ -897,9 +897,10 @@ quickSort([-10, 5, -3, 0, 8, -1])   →  [-10, -3, -1, 0, 5, 8]
 - **Go 표준 라이브러리 `sort`** — pdqsort(pattern-defeating quicksort)를 씁니다. 분할이 치우치는 것을
   감지하면 힙 정렬로 바꿔 최악을 `Θ(n log n)` 으로 막아요.
   ([`src/sort/zsortfunc.go`](https://cs.opensource.google/go/go/+/master:src/sort/zsortfunc.go), 조회 2026-08-19)
-- **C 표준 라이브러리 `qsort`** — 이름 그대로입니다. glibc 구현은 재귀 대신 명시적 스택을 써서 깊이가 `n` 이
-  되는 경우에도 호출 스택이 넘치지 않게 합니다.
-  ([glibc `stdlib/qsort.c`](https://sourceware.org/git/?p=glibc.git;a=blob;f=stdlib/qsort.c), 조회 2026-08-19)
+- **C 표준 라이브러리 `qsort`** — 이름은 퀵 정렬에서 왔지만, 이름만 보고 퀵 정렬이라 여기면 안 됩니다. 지금의
+  glibc 구현은 퀵 정렬을 쓰지 않아요. 병합 정렬(`qsort_r_mergesort`)로 정렬하고, 보조 버퍼를 잡지 못하면
+  재귀 없는 힙 정렬(`heapsort_r`)로 바꿔 정렬합니다.
+  ([glibc `stdlib/qsort.c`](https://sourceware.org/git/?p=glibc.git;a=blob;f=stdlib/qsort.c), 조회 2026-10-01)
 
 `Array.prototype.sort` 는 V8 에서 **TimSort**(병합 정렬 계열)라 여기 들지 않아요. 명세가 안정성을 요구하기
 때문입니다.
@@ -1208,7 +1209,9 @@ T7 · T12 · T13   즉시 반환           비교 0 번
        깊이는 반씩 갈리면 Θ(log n), 한쪽이 매번 비면 Θ(n)
 ```
 
-칸 50,000 개의 최악이면 재귀 깊이가 49,999 까지 내려가 호출 스택이 넘칠 수 있습니다(전체 컨셉의 표).
+칸 50,000 개의 최악이면 재귀 깊이가 49,999 까지 내려갑니다(전체 컨셉의 표). 그 입력을 Bun 1.3.12 에서
+정본에 넣어 실행하면 정렬을 끝내지 못하고 `RangeError: Maximum call stack size exceeded.` 로 멈춰요. 같은 방법으로
+만든 칸 10,000 개 최악 입력은 끝까지 정렬했고, 20,000 개에서는 같은 오류로 멈췄습니다.
 
 **보장의 종류가 하나 섞여 있습니다.** 최악은 최악 보장이지만 평균은 기댓값이고, 그 기댓값이 **무엇에 대한
 것인지**가 이 구현에서 중요해요. 코드에 난수가 하나도 없고 기준값을 가운데 칸에서 정해진 대로 고릅니다. 그래서

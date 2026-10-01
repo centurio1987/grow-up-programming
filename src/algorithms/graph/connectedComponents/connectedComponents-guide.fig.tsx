@@ -23,6 +23,7 @@ import {
 import type { CellState } from "../../../_viz/patterns/ArrayStrip";
 import {
   type EdgeKind,
+  type GraphBand,
   type GraphEdge,
   type GraphGroup,
   type GraphNode,
@@ -290,11 +291,16 @@ function Film({ spec }: { spec: PlayerSpec }) {
 
 /* ── 정적 그림들 ── */
 
-/** 최악을 만드는 세 모양을 정점 여섯으로 줄여 한 장에 — 별 · 고리 · 간선 없음. 번호는 정본이 낸다. */
+/**
+ * 최악을 만드는 세 모양을 정점 여섯으로 줄여 한 장에 — 별 · 고리 · 간선 없음. 번호는 정본이 낸다. 점선 테는
+ * 다른 그림과 같이 성분 하나이고(간선 없는 모양은 정점마다 테 하나), 모양의 이름과 센 값은 모양마다 세로
+ * 띠(`bands`)의 머리에 적는다 — 모양을 테로 묶으면 성분 여섯을 한 성분으로 읽게 된다.
+ */
 function worstShapes(): {
   nodes: GraphNode[];
   edges: GraphEdge[];
   groups: GraphGroup[];
+  bands: GraphBand[];
 } {
   const v = 6;
   const shapes: {
@@ -342,6 +348,7 @@ function worstShapes(): {
   const nodes: GraphNode[] = [];
   const edges: GraphEdge[] = [];
   const groups: GraphGroup[] = [];
+  const bands: GraphBand[] = [];
   for (const sh of shapes) {
     const out = connectedComponents(v, sh.edges);
     const s = stats(v, sh.edges);
@@ -360,12 +367,20 @@ function worstShapes(): {
     for (const [a, b] of sh.edges) {
       edges.push({ from: `${sh.key}${a}`, to: `${sh.key}${b}` });
     }
-    groups.push({
-      members: comp.map((_, i) => `${sh.key}${i}`),
+    out.forEach((c) => {
+      groups.push({ members: c.map((x) => `${sh.key}${x}`) });
+    });
+    // 띠 끝은 성분 테 바깥에 둔다. 맨 오른쪽 띠만 그림 폭(성분 테의 끝)에 맞춰 조금 좁힌다 — 그림 밖으로
+    // 나간 끝은 대시 없이 잘려 「띠가 더 이어진다」로 읽힌다(`GraphBand`).
+    const xs = comp.map((_, i) => sh.at(i).x);
+    const last = sh === shapes.at(-1);
+    bands.push({
+      from: Math.round((Math.min(...xs) - 0.6) * 100) / 100,
+      to: Math.round((Math.max(...xs) + (last ? 0.4 : 0.6)) * 100) / 100,
       label: `${sh.name} · 성분 ${out.length} · 큐 최대 ${s.peak}`,
     });
   }
-  return { nodes, edges, groups };
+  return { nodes, edges, groups, bands };
 }
 
 export const FIGS: Record<string, () => ReactElement> = {
@@ -449,11 +464,12 @@ export const FIGS: Record<string, () => ReactElement> = {
     const g = worstShapes();
     return (
       <NodeGraph
-        title="정점 여섯으로 줄여 그린 세 모양 — 정점 안은 성분 번호"
+        title="정점 여섯으로 줄여 그린 세 모양 — 띠 하나가 모양 하나, 점선 테 하나가 성분 하나"
         directed={false}
         nodes={g.nodes}
         edges={g.edges}
         groups={g.groups}
+        bands={g.bands}
       />
     );
   },

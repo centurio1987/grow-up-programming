@@ -1049,7 +1049,7 @@ export function expectedValueDp(N: number, K: number): number {
   *"In probability theory, the sum of two independent random variables is distributed
   according to the convolution of their individual distributions."* 라고 밝혀요. 이 글이 한 줄을 채우는 규칙이
   그 문장입니다.
-  ([공식 문서](https://numpy.org/doc/stable/reference/generated/numpy.convolve.html), 조회일 2026-09-08)
+  ([공식 문서](https://numpy.org/doc/stable/reference/generated/numpy.convolve.html), 조회일 2026-10-01)
 - **Icepool** — 주사위 확률을 다루는 파이썬 패키지입니다. `Die.__matmul__` 의 주석이
   *"Roll the left `Die`, then roll the right `Die` that many times and sum the outcomes."*
   이고 *"The sum is computed one at a time, with each additional item on the right, similar
@@ -1058,7 +1058,7 @@ export function expectedValueDp(N: number, K: number): number {
   *"This is extremely expensive computationally. If possible, use `reduce()` instead; if you
   don't care about order, `Die.pool()` is better."* 라고 경고합니다. README 는 *"Exact fractional probabilities
   using Python `int`s."* 로 정확도 방침도 밝혀요.
-  ([소스](https://github.com/HighDiceRoller/icepool/blob/main/src/icepool/population/die.py), 조회일 2026-09-08)
+  ([소스](https://github.com/HighDiceRoller/icepool/blob/main/src/icepool/population/die.py), 조회일 2026-10-01)
 
 두 자료에서 확인한 것을 나란히 놓으면 이렇습니다.
 

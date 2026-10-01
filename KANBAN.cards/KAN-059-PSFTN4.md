@@ -17,7 +17,7 @@ KAN-057 이 가이드 도식을 ASCII 에서 SVG 그림(fig)으로 바꿨다. �
 파일럿 `sparseTableRangeMin` 을 `bun run tools/book/build-book.ts` 로 찍었다(고급 권 795~854쪽, 60쪽).
 
 - **그림은 이미 책에 들어간다.** 책 조각은 `build-html` 의 `build()` 를 그대로 불러(`tools/book/fragment.ts:34`) 그림 9장이 인라인 SVG 로 실린다. 작은 그림 7장(높이 200~600px 대)은 제대로 찍힌다 — 796쪽의 층 그림이 본문 폭 안에 선다.
-- **세로로 긴 필름 그림 둘이 깨진다.** `walk-build`(712×2324)와 `walk-answer`(684×2384)는 걸음마다 한 칸씩 세로로 쌓은 `CellStageFilm` 한 장이다(`src/_viz/patterns/CellStage.tsx:448`). A4 본문 높이(297−35.4−25mm ≈ 237mm)의 세 배 가까이 된다.
+- **세로로 긴 필름 그림 둘이 깨진다.** `walk-build`(712×2324)와 `walk-answer`(684×2384)는 걸음마다 한 칸씩 세로로 쌓은 `CellStageFilm` 한 장이다(`src/_viz/patterns/CellStage.tsx:469`). A4 본문 높이(297−35.4−25mm ≈ 237mm)의 세 배 가까이 된다.
   - 823쪽·832쪽: 「시뮬레이션 / SCREEN: INTERACTIVE」 머리 줄만 있는 **빈 틀 한 쪽**이 찍힌다. `.gs-mount` 와 `figure` 가 `break-inside: avoid` 라(`tools/book/print-css.ts:156`) 한 쪽에 안 들어가는 그림을 다음 쪽으로 밀고 틀만 남긴다.
   - 그림은 824~826쪽에 틀 없이 이어지고 **쪽 경계에서 걸음 한 칸이 가운데서 잘린다**(824쪽 아래 T6).
   - 걸음 T3~T15 는 빠진 것 없이 한 번씩 찍힌다(쪽별 글자 추출로 확인).

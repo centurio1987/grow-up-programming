@@ -12,9 +12,10 @@
  * 무대 갈래를 고른다. 정점과 간선의 자리(`layout`)는 패널에 한 번만 적는다 — 뿌리 0 에서 매단 트리를
  * `treeLayout` 으로 놓은 자리다. 걸음마다 정점 안 아랫줄의 두 칸(`dp0 · dp1`)과 상태, 간선의 모양(순서를
  * 정한 뒤로는 나무 간선의 굵은 실선)과 상태, 무대 아래 `order` 띠만 바꾼다(`src/_viz/player/graphStage.ts`).
- * DP 테이블의 칸을 정점 안에 두는 까닭은 그림 사이드카 머리 주석에 있다. 자식을 아직 다 더하지 않아 두
- * 칸이 덜 된 정점은 점선 테(아직)다. 더하는 걸음에서는 읽은 자식이 읽음, 두 칸이 바뀐 부모가 새로 씀,
- * 둘을 잇는 간선이 새로 씀이고, 띠에서는 읽은 자리 `k` 가 읽음이다.
+ * DP 테이블의 칸을 정점 안에 두는 까닭은 그림 사이드카 머리 주석에 있다. 두 칸을 아직 적지 않은 정점만
+ * 점선 테(아직)이고, 자식의 두 칸이 아직 부모로 올라가지 않은 나무 간선은 흐린 선(`out`)이다 — 흐린 선이
+ * 아래로 남은 정점은 두 칸이 덜 된 정점이다. 더하는 걸음에서는 읽은 자식이 읽음, 두 칸이 바뀐 부모가 새로
+ * 씀, 둘을 잇는 간선이 새로 씀이고, 띠에서는 읽은 자리 `k` 가 읽음이다.
  *
  * **값은 손으로 적지 않았다.** 이 리터럴은 그림 사이드카의 `stageStepsFromRef()` 가 정본과 같은 절차를
  * 실행해 낸 결과를 옮긴 것이고, 둘이 같은지는 `treeMaxIndependentSet-guide.test.ts` 가 잰다.
@@ -173,7 +174,7 @@ export const misWalk = {
     },
     {
       title: "T2 정점마다 두 칸의 시작값을 적는다 ①",
-      text: "정점마다 dp0 에 0 을, dp1 에 자기 가중치를 적었습니다. 잎 3 · 4 · 6 은 더할 자식이 없어 이 값이 끝이고, 나머지 정점은 자식을 더해야 해서 점선 테입니다.",
+      text: "정점마다 dp0 에 0 을, dp1 에 자기 가중치를 적었습니다. 잎 3 · 4 · 6 은 더할 자식이 없어 이 값이 끝이고, 나머지 정점은 자식을 더해야 두 칸이 끝납니다.",
       nodes: [
         {
           value: "0 · 9",
@@ -225,15 +226,12 @@ export const misWalk = {
       nodes: [
         {
           value: "0 · 9",
-          state: "empty",
         },
         {
           value: "0 · 8",
-          state: "empty",
         },
         {
           value: "0 · -2",
-          state: "empty",
         },
         {
           value: "0 · 5",
@@ -243,7 +241,6 @@ export const misWalk = {
         },
         {
           value: "0 · 7",
-          state: "empty",
         },
         {
           value: "0 · 4",
@@ -303,15 +300,12 @@ export const misWalk = {
       nodes: [
         {
           value: "0 · 9",
-          state: "empty",
         },
         {
           value: "0 · 8",
-          state: "empty",
         },
         {
           value: "0 · -2",
-          state: "empty",
         },
         {
           value: "0 · 5",
@@ -331,18 +325,23 @@ export const misWalk = {
       edges: [
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",
@@ -371,7 +370,6 @@ export const misWalk = {
       nodes: [
         {
           value: "0 · 9",
-          state: "empty",
         },
         {
           value: "1 · 8",
@@ -379,7 +377,6 @@ export const misWalk = {
         },
         {
           value: "0 · -2",
-          state: "empty",
         },
         {
           value: "0 · 5",
@@ -398,12 +395,15 @@ export const misWalk = {
       edges: [
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",
@@ -411,6 +411,7 @@ export const misWalk = {
         },
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",
@@ -438,7 +439,6 @@ export const misWalk = {
       nodes: [
         {
           value: "0 · 9",
-          state: "empty",
         },
         {
           value: "6 · 8",
@@ -446,7 +446,6 @@ export const misWalk = {
         },
         {
           value: "0 · -2",
-          state: "empty",
         },
         {
           value: "0 · 5",
@@ -465,9 +464,11 @@ export const misWalk = {
       edges: [
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",
@@ -478,6 +479,7 @@ export const misWalk = {
         },
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",
@@ -505,7 +507,6 @@ export const misWalk = {
       nodes: [
         {
           value: "0 · 9",
-          state: "empty",
         },
         {
           value: "6 · 8",
@@ -531,9 +532,11 @@ export const misWalk = {
       edges: [
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",
@@ -596,6 +599,7 @@ export const misWalk = {
       edges: [
         {
           kind: "tree",
+          state: "out",
         },
         {
           kind: "tree",

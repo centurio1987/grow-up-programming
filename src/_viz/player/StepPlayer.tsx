@@ -16,7 +16,12 @@
 import { VisualizationStyleGuideProvider } from "@centurio1987/bbangto-ui-visualization";
 import { useEffect, useMemo, useState } from "react";
 import { algoVizStyleGuide } from "../../../design/viz/algo.viz";
-import { CellStage, cellStageSize, type StageRow } from "../patterns/CellStage";
+import {
+  CellStage,
+  cellStageSize,
+  type StageRow,
+  stageGutter,
+} from "../patterns/CellStage";
 import {
   NodeGraph,
   type NodeGraphScene,
@@ -276,6 +281,11 @@ export function StepPlayer(spec: PlayerSpec) {
   const frames = useMemo(() => playerFrames(spec), [spec]);
   const columns = frames[0]?.columns ?? 0;
   const size = useMemo(() => stageSize(frames), [frames]);
+  // 줄 머리 폭은 모든 걸음이 함께 쓴다 — 걸음마다 재면 머리 글자가 긴 걸음에서 칸 열이 밀린다.
+  const gutter = useMemo(
+    () => stageGutter(frames.map((f) => f.rows)),
+    [frames],
+  );
   const [at, setAt] = useState(0);
   const [playing, setPlaying] = useState(false);
   const dark = useDark();
@@ -355,6 +365,7 @@ export function StepPlayer(spec: PlayerSpec) {
                 title={`${cur.id} ${cur.title}`}
                 rows={cur.rows}
                 columns={columns}
+                gutter={gutter}
               />
             )}
           </div>

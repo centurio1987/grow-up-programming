@@ -247,23 +247,23 @@ const at = (m: number): number => m - 2;
 
 /** 배열 무대의 이름표 — 패널(`.sim.ts`)과 필름이 같이 쓴다. 칸의 값이 곧 수라 인덱스 줄을 뺀다. */
 export const ARRAY_OPTIONS: ArrayOptions = {
-  arrayName: "체 배열",
+  arrayName: "수",
   rangeLabel: "수",
   valueAxis: true,
 };
 
 /**
- * 체 배열 아래에 쌓는 줄의 이름 — 수마다 그 수를 처음 지운 소수를 적는다. 정본은 이 값을 저장하지 않는다.
- * 같은 칸을 여러 소수가 지우는데 그중 누가 먼저인지를 무대에서 보이려고 걸음 기록에서 만든 줄이다.
+ * 수 줄 아래에 쌓는 줄의 이름 — 정본의 체 배열 `isComposite` 를 칸마다 「참」·「거짓」으로 적는다. 수 줄의
+ * 칸 `m − 2` 아래가 `isComposite[m]` 이다(칸 0 · 1 은 정본이 읽지 않아 줄에 두지 않는다). 처음부터 모든 칸에
+ * 값이 있는 줄이라 곁말에 「참」인 칸 수를 적는다(SPEC §13 「처음부터 모든 칸에 값이 있는 줄」).
  */
-export const FIRST_LAYER = "처음 지운 p";
+export const SIEVE_LAYER = "isComposite";
 
 /** 상한 `n` 의 걸음 전부. 번호는 T1 부터 붙인다. */
 export function walkSteps(n: number = WALK_N): Step[] {
   const w = walk(n);
   const numbers = Array.from({ length: n - 1 }, (_, k) => k + 2);
   const crossed = new Set<number>();
-  const first: (number | null)[] = numbers.map(() => null);
   let marks = 0;
   const steps: Step[] = [];
   let t = 0;
@@ -294,7 +294,6 @@ export function walkSteps(n: number = WALK_N): Step[] {
       };
     } else if (e.kind === "mark") {
       for (const c of e.cells) crossed.add(c);
-      for (const c of e.fresh) first[at(c)] = e.p;
       marks += e.cells.length;
       const again = e.cells.length - e.fresh.length;
       const sq = e.p * e.p;
@@ -346,9 +345,18 @@ export function walkSteps(n: number = WALK_N): Step[] {
         vars: `지우기 ${marks} 번`,
         layers: [
           {
-            name: FIRST_LAYER,
-            values: [...first],
-            write: e.kind === "mark" ? e.fresh.map(at) : [],
+            name: SIEVE_LAYER,
+            values: numbers.map((m) => (crossed.has(m) ? "참" : "거짓")),
+            // 정본이 읽는 칸 — 바깥 반복의 `isComposite[i]` 와 마지막에 모으는 반복의 칸 전부.
+            read:
+              e.kind === "check"
+                ? [at(e.i)]
+                : e.kind === "collect"
+                  ? numbers.map(at)
+                  : [],
+            // 정본이 쓰는 칸 — 이미 「참」인 칸을 다시 쓴 것도 쓴 칸이다.
+            write: e.kind === "mark" ? e.cells.map(at) : [],
+            side: `참 ${crossed.size} 칸`,
             caret: false,
           },
         ],

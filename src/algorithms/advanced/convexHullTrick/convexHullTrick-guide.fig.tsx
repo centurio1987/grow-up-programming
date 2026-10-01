@@ -130,7 +130,7 @@ function calcOf(s: WalkStep): { expr: string; result: string } {
 
 /**
  * 걸음 하나를 배열 무대(`arrayStage`)의 걸음으로. 맨 위 줄은 등록할 직선을 입력 차례로 늘어놓은 것이고
- * (쥔 구간은 지금까지 읽은 직선, 버린 직선은 대시), 그 아래 스택 띠가 걸음 **뒤**의 아래 껍질, 맨 아래가
+ * (쥔 구간은 지금까지 읽은 직선, 버린 직선은 대시, 아직 읽지 않은 직선은 점선), 그 아래 스택 띠가 걸음 **뒤**의 아래 껍질, 맨 아래가
  * 질의 자리에서 아래 껍질의 값이다. 뺀 칸은 걸음 뒤에 없으므로 점선으로 남는다.
  */
 export function arrayStep(s: WalkStep, index: number): ArrayStep {
@@ -151,6 +151,8 @@ export function arrayStep(s: WalkStep, index: number): ArrayStep {
     read: add ? [s.line as number] : [],
     write: [],
     out: droppedUpTo(index).filter((i) => i !== s.line),
+    // 아직 읽지 않은 직선은 「아직」(점선) — 버린 직선(대시)과 가른다.
+    later: WALK.map((_, i) => i).filter((i) => i > upto),
     layers: [
       {
         name: "hull",

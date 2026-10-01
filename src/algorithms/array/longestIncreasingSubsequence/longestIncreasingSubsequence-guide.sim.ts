@@ -6,10 +6,12 @@ import type { ArrayPlayerSpec } from "../../../_viz/player/StepPlayer";
  * 아니면 갈아 끼운다(③). 마지막 걸음이 꼬리 배열의 길이를 돌려준다(④).
  *
  * `player: "stage"` 가 걸음 재생 패널(`src/_viz/player/StepPlayer.tsx`)을 고르고, `stage: "array"` 가
- * 배열 무대(`arrayStage.ts`)를 고른다. 쥔 구간 `range` 는 지금까지 읽은 원소 `[0,i]` 이고, 조각 괄호
- * `pieces` 는 이 원소가 들어갈 수 있는 꼬리 배열의 자리 `[0,길이]`(끝 바로 뒤 칸까지)다. 입력 배열 아래에
+ * 배열 무대(`arrayStage.ts`)를 고른다. 쥔 구간 `range` 는 지금까지 읽은 원소 `[0,i]` 이고, 아직 읽지 않은
+ * 원소는 `later`(아직)다. 입력 배열 아래에
  * 꼬리 배열을 `layers` 로 쌓는다 — 칸 수는 끝난 뒤의 길이로 첫 걸음부터 잡고, 읽은 칸은 탐색이 읽은
- * `mid`, 새로 쓴 칸은 찾은 자리다. 탐색 한 번의 결과는 알약(`calc`), 누적 비교 수는 남는 변수(`vars`)다.
+ * `mid`, 새로 쓴 칸은 찾은 자리다. 이 원소가 들어갈 수 있는 꼬리 배열의 자리 `[0,길이]`(끝 바로 뒤
+ * 칸까지)는 꼬리 배열의 칸 번호라 그 줄의 괄호(`layers[].range`)로 단다. 탐색 한 번의 결과는
+ * 알약(`calc`), 누적 비교 수는 남는 변수(`vars`)다.
  *
  * `steps` 는 **인라인 배열 리터럴**이어야 한다(spread·변수 참조·함수 호출 금지).
  * 정적 계수가 실제보다 적게 세면 얇은 전개가 P3 을 그냥 지나간다. 리터럴은 그림 사이드카의
@@ -32,17 +34,10 @@ export const lisWalk = {
       range: [0, 0],
       read: [0],
       write: [],
+      later: [1, 2, 3, 4, 5, 6, 7],
       pointers: {
         i: 0,
       },
-      pieces: [
-        {
-          label: "자리 후보",
-          from: 0,
-          to: 0,
-          tone: "left",
-        },
-      ],
       calc: {
         expr: "lowerBound([], 10)",
         result: "0",
@@ -54,6 +49,11 @@ export const lisWalk = {
           values: [10, null, null, null],
           read: [],
           write: [0],
+          range: {
+            label: "자리 후보",
+            from: 0,
+            to: 0,
+          },
         },
       ],
     },
@@ -64,17 +64,10 @@ export const lisWalk = {
       range: [0, 1],
       read: [1],
       write: [],
+      later: [2, 3, 4, 5, 6, 7],
       pointers: {
         i: 1,
       },
-      pieces: [
-        {
-          label: "자리 후보",
-          from: 0,
-          to: 1,
-          tone: "left",
-        },
-      ],
       calc: {
         expr: "lowerBound([10], 9)",
         result: "0",
@@ -86,6 +79,11 @@ export const lisWalk = {
           values: [9, null, null, null],
           read: [],
           write: [0],
+          range: {
+            label: "자리 후보",
+            from: 0,
+            to: 1,
+          },
         },
       ],
     },
@@ -96,17 +94,10 @@ export const lisWalk = {
       range: [0, 2],
       read: [2],
       write: [],
+      later: [3, 4, 5, 6, 7],
       pointers: {
         i: 2,
       },
-      pieces: [
-        {
-          label: "자리 후보",
-          from: 0,
-          to: 1,
-          tone: "left",
-        },
-      ],
       calc: {
         expr: "lowerBound([9], 2)",
         result: "0",
@@ -118,6 +109,11 @@ export const lisWalk = {
           values: [2, null, null, null],
           read: [],
           write: [0],
+          range: {
+            label: "자리 후보",
+            from: 0,
+            to: 1,
+          },
         },
       ],
     },
@@ -128,17 +124,10 @@ export const lisWalk = {
       range: [0, 3],
       read: [3],
       write: [],
+      later: [4, 5, 6, 7],
       pointers: {
         i: 3,
       },
-      pieces: [
-        {
-          label: "자리 후보",
-          from: 0,
-          to: 1,
-          tone: "left",
-        },
-      ],
       calc: {
         expr: "lowerBound([2], 5)",
         result: "1",
@@ -150,6 +139,11 @@ export const lisWalk = {
           values: [2, 5, null, null],
           read: [0],
           write: [1],
+          range: {
+            label: "자리 후보",
+            from: 0,
+            to: 1,
+          },
         },
       ],
     },
@@ -160,17 +154,10 @@ export const lisWalk = {
       range: [0, 4],
       read: [4],
       write: [],
+      later: [5, 6, 7],
       pointers: {
         i: 4,
       },
-      pieces: [
-        {
-          label: "자리 후보",
-          from: 0,
-          to: 2,
-          tone: "left",
-        },
-      ],
       calc: {
         expr: "lowerBound([2 5], 3)",
         result: "1",
@@ -182,6 +169,11 @@ export const lisWalk = {
           values: [2, 3, null, null],
           read: [0],
           write: [1],
+          range: {
+            label: "자리 후보",
+            from: 0,
+            to: 2,
+          },
         },
       ],
     },
@@ -192,17 +184,10 @@ export const lisWalk = {
       range: [0, 5],
       read: [5],
       write: [],
+      later: [6, 7],
       pointers: {
         i: 5,
       },
-      pieces: [
-        {
-          label: "자리 후보",
-          from: 0,
-          to: 2,
-          tone: "left",
-        },
-      ],
       calc: {
         expr: "lowerBound([2 3], 7)",
         result: "2",
@@ -214,6 +199,11 @@ export const lisWalk = {
           values: [2, 3, 7, null],
           read: [1],
           write: [2],
+          range: {
+            label: "자리 후보",
+            from: 0,
+            to: 2,
+          },
         },
       ],
     },
@@ -224,17 +214,10 @@ export const lisWalk = {
       range: [0, 6],
       read: [6],
       write: [],
+      later: [7],
       pointers: {
         i: 6,
       },
-      pieces: [
-        {
-          label: "자리 후보",
-          from: 0,
-          to: 3,
-          tone: "left",
-        },
-      ],
       calc: {
         expr: "lowerBound([2 3 7], 101)",
         result: "3",
@@ -246,6 +229,11 @@ export const lisWalk = {
           values: [2, 3, 7, 101],
           read: [1, 2],
           write: [3],
+          range: {
+            label: "자리 후보",
+            from: 0,
+            to: 3,
+          },
         },
       ],
     },
@@ -256,17 +244,10 @@ export const lisWalk = {
       range: [0, 7],
       read: [7],
       write: [],
+      later: [],
       pointers: {
         i: 7,
       },
-      pieces: [
-        {
-          label: "자리 후보",
-          from: 0,
-          to: 4,
-          tone: "left",
-        },
-      ],
       calc: {
         expr: "lowerBound([2 3 7 101], 18)",
         result: "3",
@@ -278,6 +259,11 @@ export const lisWalk = {
           values: [2, 3, 7, 18],
           read: [2],
           write: [3],
+          range: {
+            label: "자리 후보",
+            from: 0,
+            to: 4,
+          },
         },
       ],
     },

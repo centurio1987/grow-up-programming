@@ -29,6 +29,7 @@ import {
   type ArrayLayer,
   type ArrayOptions,
   type ArrayStep,
+  type ArrayStepStrip,
   arrayColumns,
   arrayStage,
 } from "../../../_viz/player/arrayStage";
@@ -388,32 +389,32 @@ export const WALK_STEPS: readonly WalkStep[] = walkOf(WALK);
 /** 스택 띠의 칸 수 — 전개에서 스택이 가장 깊었을 때(방향 그래프 편들의 스택 띠와 같은 약속). */
 export const STACK_SLOTS = Math.max(...WALK_STEPS.map((s) => s.stack.length));
 
-const pad = <T,>(xs: readonly T[], slots: number): (T | null)[] =>
-  Array.from({ length: slots }, (_, k) => xs[k] ?? null);
-
-/** 스택 띠 두 줄 — 자리 번호 줄(`stack`)과 그 자리의 값 줄. 바닥이 왼쪽, 꼭대기가 오른쪽이다. */
-export function stackLayers(
+/**
+ * 스택 띠 두 줄 — 자리 번호 줄(`stack`)과 그 자리의 값 줄. 바닥이 왼쪽, 꼭대기가 오른쪽이다. 칸 `k` 는 쌓인
+ * 차례라 `nums` 의 인덱스와 짝이 아니므로 `layers` 가 아니라 `strips` 로 싣는다.
+ */
+export function stackStrips(
   nums: readonly number[],
   stack: readonly number[],
   marks: { read?: number[]; write?: number[] } = {},
   slots = STACK_SLOTS,
-): ArrayLayer[] {
+): ArrayStepStrip[] {
   const values = stack.map((p) => nums[p] as number);
   return [
     {
-      name: "stack",
-      values: pad(stack, slots),
+      label: "stack",
+      values: [...stack],
+      slots,
       read: marks.read ?? [],
       write: marks.write ?? [],
-      caret: false,
       side: stack.length === 0 ? "비었다" : `꼭대기 = 자리 ${stack.at(-1)}`,
     },
     {
-      name: "stack 의 값",
-      values: pad(values, slots),
+      label: "stack 의 값",
+      values,
+      slots,
       read: marks.read ?? [],
       write: marks.write ?? [],
-      caret: false,
       side: values.length === 0 ? "비었다" : values.join(" ≥ "),
     },
   ];
@@ -521,8 +522,8 @@ export function arrayStep(s: WalkStep): ArrayStep {
     vars: `넣기 ${s.pushes} · 꺼내기 ${s.pops}`,
     layers: [
       resultLayer(s.result, s.pops, s.kind === "pop" ? [s.top as number] : []),
-      ...stackLayers(WALK, s.stack, { read: readTop, write: wrote }),
     ],
+    strips: stackStrips(WALK, s.stack, { read: readTop, write: wrote }),
   };
 }
 
@@ -658,10 +659,8 @@ function momentStep(
     range: [0, s.i],
     read: marks.read ?? [],
     write: [],
-    layers: [
-      resultLayer(s.result, s.pops, marks.answered ?? []),
-      ...stackLayers(WALK, s.stack),
-    ],
+    layers: [resultLayer(s.result, s.pops, marks.answered ?? [])],
+    strips: stackStrips(WALK, s.stack),
   };
 }
 
@@ -712,7 +711,8 @@ export const FIGS: Record<string, () => ReactElement> = {
         rows: arrayStage(
           {
             ...momentStep(s),
-            layers: stackLayers(WALK, s.stack, {
+            layers: [],
+            strips: stackStrips(WALK, s.stack, {
               write: [s.stack.length - 1],
             }),
           },
@@ -781,7 +781,7 @@ export const FIGS: Record<string, () => ReactElement> = {
       if (p > s.i) states[p] = "empty";
       else if (!s.stack.includes(p)) states[p] = "out";
     });
-    const layers = stackLayers(WALK, s.stack);
+    const strips = stackStrips(WALK, s.stack);
     const rows: StageRow[] = [
       { kind: "index", label: "인덱스" },
       {
@@ -791,12 +791,15 @@ export const FIGS: Record<string, () => ReactElement> = {
         states,
         side: `읽은 자리 ${s.i + 1} 칸`,
       },
-      ...layers.map(
-        (l): StageRow => ({
+      ...strips.map(
+        (t): StageRow => ({
           kind: "cells",
-          label: l.name,
-          values: l.values,
-          side: l.side,
+          label: t.label,
+          values: Array.from(
+            { length: STACK_SLOTS },
+            (_, k) => t.values[k] ?? null,
+          ),
+          side: t.side,
         }),
       ),
     ];

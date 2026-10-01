@@ -178,6 +178,13 @@ export const T_MAX = 10_000;
 /** 참/거짓을 본문 표기로 적는다. */
 export const yn = (b: boolean): string => (b ? "참" : "거짓");
 
+/**
+ * 그림 칸에 적는 참/거짓 — 참만 글자로 적고 거짓은 「·」로 둔다. 칸 무대는 읽음 · 새로 씀 · 이번 걸음
+ * 밖만 칠해서 「참」과 「거짓」을 같은 글자 칸으로 그리면 참인 칸이 눈에 안 띈다. `null`(아직 안 정한
+ * 칸, 점선)과 섞이지 않게 거짓도 빈 값이 아니라 글자 하나를 둔다.
+ */
+export const mark = (b: boolean): string => (b ? "참" : "·");
+
 /** `10011001` → `10,011,001`. `toLocaleString` 은 환경에 따라 갈려서 직접 적는다. */
 export const comma = (n: number | bigint): string =>
   String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
@@ -271,7 +278,7 @@ export function walkSteps(): Step[] {
   const t = trace(NUMS, TARGET);
   const n = NUMS.length;
   const rows: (string | null)[][] = t.init.map((row, i) =>
-    i === 0 ? row.map(yn) : row.map(() => null),
+    i === 0 ? row.map(mark) : row.map(() => null),
   );
   const snapshot = () => rows.map((r) => [...r]);
   const steps: Step[] = [];
@@ -289,7 +296,7 @@ export function walkSteps(): Step[] {
   });
   for (const seg of segments(t)) {
     const row = rows[seg.i] as (string | null)[];
-    for (const cell of seg.cells) row[cell.t] = yn(cell.value);
+    for (const cell of seg.cells) row[cell.t] = mark(cell.value);
     const reads: TableCell[] = [];
     for (const cell of seg.cells) {
       for (const r of cell.reads) {
@@ -381,7 +388,7 @@ function fullTable(extra: Partial<TableStep>): StageRow[] {
   const t = trace(NUMS, TARGET);
   return tableStage(
     {
-      table: t.rows.map((r) => r.map(yn)),
+      table: t.rows.map((r) => r.map(mark)),
       rowSide: t.rows.map((r) => rowSums(r)),
       ...extra,
     },
@@ -486,14 +493,14 @@ function oneRowContrast(): StageRow[] {
     {
       kind: "cells",
       label: `한 줄만 · ${nums[0]} 뒤`,
-      values: one.map(yn),
+      values: one.map(mark),
       states,
       side: rowSums(one),
     },
     {
       kind: "cells",
       label: `DP 테이블 i=1`,
-      values: row.map(yn),
+      values: row.map(mark),
       states,
       side: rowSums(row),
     },
@@ -531,19 +538,19 @@ function sumsetFigure(i: number): StageRow[] {
     {
       kind: "cells",
       label: `i=${i - 1} 줄`,
-      values: up.map(yn),
+      values: up.map(mark),
       side: rowSums(up),
     },
     {
       kind: "cells",
       label: `${a}${을를(a)} 더한 합`,
-      values: shifted.map(yn),
+      values: shifted.map(mark),
       side: rowSums(shifted),
     },
     {
       kind: "cells",
       label: `i=${i} 줄`,
-      values: row.map(yn),
+      values: row.map(mark),
       states: grow,
       side: rowSums(row),
     },

@@ -393,7 +393,8 @@ export const NOT_CANDIDATE = "—";
 
 /**
  * 입력 `n` 의 걸음 전부. 무대의 줄은 2 부터 `⌊√n⌋` 까지의 수이고, 수 `m` 은 칸 `m − 2` 에 선다. 후보가 아닌 수
- * (2 · 3 자신을 뺀 2 · 3 의 배수)는 걸음마다 「이번 걸음 밖」으로 둔다. 번호는 T1 부터 붙인다.
+ * (2 · 3 자신을 뺀 2 · 3 의 배수)는 걸음마다 윗줄과 「n mod d」 줄 모두에서 「이번 걸음 밖」으로 둔다. 번호는
+ * T1 부터 붙인다.
  */
 export function walkSteps(n: number = WALK): Step[] {
   const tr = traceRun(n);
@@ -479,6 +480,8 @@ export function walkSteps(n: number = WALK): Step[] {
             name: MOD_LAYER,
             values: [...mods],
             write,
+            // 후보가 아닌 수는 이 줄에서도 윗줄처럼 「이번 걸음 밖」이다.
+            out: skipped.map(at),
             side: `나눗셈 ${divisions} 번`,
           },
         ],
