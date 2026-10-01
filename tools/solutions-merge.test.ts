@@ -12,7 +12,11 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { $ } from "bun";
-import { mergeKeepingSolutions } from "./solutions-merge.ts";
+import {
+  isSolutionsOnly,
+  mergeKeepingSolutions,
+  solutionsOnlyFiles,
+} from "./solutions-merge.ts";
 
 const roots: string[] = [];
 afterAll(() => {
@@ -80,4 +84,60 @@ test("도구를 거치면 풀이가 남고, 그다음 병합에서도 남는다"
   expect(await read(dir, "a/kept.ts")).toBe(SOLVED);
   expect(await read(dir, "new/moved.ts")).toBe(SOLVED);
   expect(await read(dir, "c/other.ts")).toBe("export const x = 2;\n");
+});
+
+const REPORT = "# f 분석 보고서\n\n풀이를 그대로 인용한다.\n";
+
+/** 분석 보고서가 main 에 새어 든 뒤 main 이 지운 저장소(KAN-065). solutions 가 체크아웃된 채로. */
+async function reportFixture(): Promise<string> {
+  const dir = mkdtempSync(join(tmpdir(), "solutions-merge-report-"));
+  roots.push(dir);
+  const git = (...a: string[]) => $`git ${a}`.cwd(dir).quiet();
+  await git("init", "-q", "-b", "main");
+  await git("config", "user.email", "t@t");
+  await git("config", "user.name", "t");
+  await Bun.write(join(dir, "a/f-analysis.md"), REPORT);
+  await Bun.write(join(dir, "a/f-analysis/r02-2026-10-01-bugfix.md"), REPORT);
+  await Bun.write(join(dir, "a/f-guide.md"), "# 가이드\n");
+  await git("add", "-A");
+  await git("commit", "-q", "-m", "누수된 상태");
+  await git("branch", "solutions");
+  await git("rm", "-q", "-r", "a/f-analysis.md", "a/f-analysis");
+  await git("rm", "-q", "a/f-guide.md");
+  await git("commit", "-q", "-m", "분석 문서 걷기");
+  await git("switch", "-q", "solutions");
+  return dir;
+}
+
+test("solutions 전용 파일 규칙은 분석 보고서와 재검토 폴더만 잡는다", () => {
+  expect(isSolutionsOnly("src/a/x/x-analysis.md")).toBe(true);
+  expect(isSolutionsOnly("x-analysis.md")).toBe(true);
+  expect(isSolutionsOnly("src/a/x/x-analysis/r02-2026-10-01-bugfix.md")).toBe(
+    true,
+  );
+  expect(isSolutionsOnly("src/a/x/x-guide.md")).toBe(false);
+  expect(isSolutionsOnly("docs/analysis.md")).toBe(false);
+  expect(isSolutionsOnly("tools/check-analysis.ts")).toBe(false);
+});
+
+test("main 이 지운 분석 보고서는 solutions 에 남고, main 이 지운 다른 파일은 지워진다", async () => {
+  const dir = await reportFixture();
+  const r = await mergeKeepingSolutions(dir, "main");
+  expect(r.committed).toBe(true);
+  expect(r.plan.restored).toEqual([
+    { path: "a/f-analysis.md" },
+    { path: "a/f-analysis/r02-2026-10-01-bugfix.md" },
+  ]);
+  expect(await read(dir, "a/f-analysis.md")).toBe(REPORT);
+  expect(await read(dir, "a/f-analysis/r02-2026-10-01-bugfix.md")).toBe(REPORT);
+  expect(await Bun.file(join(dir, "a/f-guide.md")).exists()).toBe(false);
+  expect(await solutionsOnlyFiles(dir)).toEqual([
+    "a/f-analysis.md",
+    "a/f-analysis/r02-2026-10-01-bugfix.md",
+  ]);
+});
+
+test("저장소: solutions 전용 파일이 main 에 없다", async () => {
+  // solutions 체크아웃에서는 이 시험이 실패하는 것이 정상이다(스텁 누수 검사와 같다).
+  expect(await solutionsOnlyFiles(process.cwd())).toEqual([]);
 });

@@ -26,7 +26,7 @@ scope: src/**/*-analysis.md, tools/solutions-merge.ts, tools/solutions-merge.tes
 **버린 대안.** ① 분석 문서를 `_private/` 같은 무시 폴더로 옮기기 — 이력에는 그대로 남고, solutions 에서도 자리가 바뀌어 스킬 경로를 다시 짜야 한다. ② solutions 의 비풀이 커밋을 cherry-pick — 옮길 내용이 이미 없다(위 대조). ③ 이력에서 분석 문서를 지우기(filter-repo) — 공유 이력을 다시 쓰는 일이라 이 카드 범위가 아니다. 필요하면 별도 카드로 뗀다.
 
 ## 실행 계획
-- [ ] `S1` solutions 전용 파일 규칙과 누수 검사 — `tools/solutions-merge.ts` 에 `SOLUTIONS_ONLY` 와 판별 함수를 두고, main 이 지운 solutions 전용 파일을 되살리게 `plan` 을 넓힌다. 테스트에 ① 모의 저장소에서 main 이 분석 문서를 지운 병합 뒤 HEAD 판이 남는지 ② 저장소에 solutions 전용 파일이 0인지를 더한다. 완료 기준: 새 시험이 S2 전 트리에서 13건 실패, 뒤 0건. biome 경고 0
+- [x] `S1` solutions 전용 파일 규칙과 누수 검사 — `tools/solutions-merge.ts` 에 `SOLUTIONS_ONLY` 와 판별 함수를 두고, main 이 지운 solutions 전용 파일을 되살리게 `plan` 을 넓힌다. 테스트에 ① 모의 저장소에서 main 이 분석 문서를 지운 병합 뒤 HEAD 판이 남는지 ② 저장소에 solutions 전용 파일이 0인지를 더한다. 완료 기준: 새 시험이 S2 전 트리에서 13건 실패, 뒤 0건. biome 경고 0
 - [ ] `S2` main 에서 분석 문서 13편을 지우고 KAN-001 실행 문서를 가져온다 — `KANBAN.cards/KAN-001.md` 는 solutions 판(8aa553d4) 그대로. 참조 두 자리(`.claude/skills/analyze-solution/SKILL.md:19` · `README.md:62`)는 S3 에서 고친다. 완료 기준: `git ls-files | grep -c -- -analysis.md` 0, `check-links` 통과
 - [ ] `S3` 재발 방지 문서 — analyze-solution 스킬(.claude · .agents 두 벌)에 「solutions 브랜치가 아니면 쓰지 않는다」, README 분석 절에 같은 안내, CLAUDE.md 에 두 브랜치 역할. 완료 기준: 세 자리에 문구가 서고 `check-links`·`check-citations` 통과
 - [ ] `S4` solutions 실제 병합 — solutions 체크아웃에서 `bun run <이 워크트리>/tools/solutions-merge.ts KAN-065-CV4WP7`. 완료 기준: 병합 커밋 뒤 solutions 에 분석 문서 15편(13 + deque · monotonicQueue)이 병합 전과 바이트 동일, 풀이→스텁 0. push 안 함
@@ -43,3 +43,5 @@ scope: src/**/*-analysis.md, tools/solutions-merge.ts, tools/solutions-merge.tes
 - 2026-10-01T09:34 · s:3f0bb39d — `전략` 섹션 교체
 - 2026-10-01T09:34 · s:3f0bb39d — `실행 계획` 섹션 교체
 - 2026-10-01T09:34 · s:3f0bb39d — `검증` 섹션 교체
+- 2026-10-01T09:36 · s:3f0bb39d · S1 doing — 착수
+- 2026-10-01T09:36 · s:3f0bb39d · S1 done — solutions-merge.ts 에 SOLUTIONS_ONLY(*-analysis.md · *-analysis/) + isSolutionsOnly · solutionsOnlyFiles, plan 이 main 이 지운 전용 파일을 되살림. 시험 3 추가 — S2 전 트리에서 저장소 검사 13건 실패 실측. biome 경고 0

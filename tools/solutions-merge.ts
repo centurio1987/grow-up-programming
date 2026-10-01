@@ -11,6 +11,14 @@
  * 목록을 박지 않으므로 이번 24편이 아니라도 같은 규칙이 돈다. 한 번 이렇게 병합하면 기준점이
  * 되돌림 뒤로 옮겨 가서, 그 뒤로는 main 이 그 스텁을 다시 고칠 때만 이 훑기가 일을 한다.
  *
+ * solutions 전용 파일(`SOLUTIONS_ONLY` — 풀이 분석 보고서)도 같은 길로 지킨다. main 은 그 파일을
+ * 갖지 않으므로(KAN-065) main 이 지우면 병합이 삭제를 그대로 가져온다. 병합 결과에서 지워진
+ * solutions 전용 파일은 HEAD 판으로 되살린다. 같은 규칙이 main 쪽 누수 검사(`solutionsOnlyFiles`)의
+ * 기준이다 — 규칙을 이 한 자리에만 둔다.
+ *
+ * 두 브랜치의 방향은 하나다. solutions 는 main 을 받기만 하고 main 으로 병합되지 않는다(유저 확인,
+ * 2026-10-01). 풀이가 아닌 작업은 main 에서 한다.
+ *
  * 실행(solutions 체크아웃, 작업 트리가 깨끗할 때): `bun run tools/solutions-merge.ts [병합할 ref=main]`
  * 충돌이 나면 되살림까지 한 뒤 커밋하지 않고 멈춘다 — 충돌을 풀고 `git commit` 한다.
  */
@@ -18,6 +26,22 @@
 import { $ } from "bun";
 
 const STUB = "Not implemented";
+
+/** solutions 브랜치에만 두는 파일 — `analyze-solution` 이 학습자 풀이를 진단한 보고서와 재검토 폴더. */
+export const SOLUTIONS_ONLY: readonly RegExp[] = [
+  /(^|\/)[^/]+-analysis\.md$/,
+  /(^|\/)[^/]+-analysis\//,
+];
+
+export function isSolutionsOnly(path: string): boolean {
+  return SOLUTIONS_ONLY.some((re) => re.test(path));
+}
+
+/** 저장소(추적 파일)에 있는 solutions 전용 파일. main 에서는 비어 있어야 한다. */
+export async function solutionsOnlyFiles(cwd: string): Promise<string[]> {
+  const out = await $`git ls-files`.cwd(cwd).quiet().text();
+  return out.split("\n").filter((p) => p !== "" && isSolutionsOnly(p));
+}
 
 export interface Restored {
   path: string;
@@ -44,21 +68,27 @@ function base(path: string): string {
 export async function plan(cwd: string): Promise<Plan> {
   const lines = async (cmd: ReturnType<typeof $>) =>
     (await cmd.cwd(cwd).quiet().text()).split("\n").filter(Boolean);
-  // 병합 결과(index)와 HEAD 사이에 바뀐 .ts 파일. 추가(A)·수정(M)·삭제(D)만 본다.
+  // 병합 결과(index)와 HEAD 사이에 바뀐 파일. 추가(A)·수정(M)·삭제(D)만 본다.
+  // 스텁 판정은 .ts 만, solutions 전용 파일은 삭제(D)만 본다.
   const diff = await lines(
     $`git diff --cached --no-renames --name-status HEAD`,
   );
   const changed: string[] = [];
   const added: string[] = [];
   const deleted: string[] = [];
+  const keptOnly: string[] = [];
   for (const l of diff) {
     const [st, path] = l.split("\t") as [string, string];
+    if (st === "D" && isSolutionsOnly(path)) {
+      keptOnly.push(path);
+      continue;
+    }
     if (!path.endsWith(".ts")) continue;
     if (st === "M") changed.push(path);
     else if (st === "A") added.push(path);
     else if (st === "D") deleted.push(path);
   }
-  const restored: Restored[] = [];
+  const restored: Restored[] = keptOnly.map((path) => ({ path }));
   const ambiguous: Plan["ambiguous"] = [];
   const isStub = async (spec: string) =>
     (await show(cwd, spec))?.includes(STUB) ?? false;
@@ -126,7 +156,7 @@ export async function mergeKeepingSolutions(
   const msg =
     `Merge branch '${ref}' into ${branch || "HEAD"}` +
     (p.restored.length > 0
-      ? `\n\nsolutions-merge: 풀이 ${p.restored.length}편을 스텁 대신 solutions 판으로 보존\n${p.restored
+      ? `\n\nsolutions-merge: 풀이·solutions 전용 파일 ${p.restored.length}개를 solutions 판으로 보존\n${p.restored
           .map((r) => `- ${r.path}${r.from ? ` (← ${r.from})` : ""}`)
           .join("\n")}`
       : "");
@@ -148,7 +178,7 @@ if (import.meta.main) {
     process.exit(1);
   }
   const r = await mergeKeepingSolutions(cwd, ref);
-  console.log(`되살린 풀이 ${r.plan.restored.length}`);
+  console.log(`되살린 파일 ${r.plan.restored.length}`);
   for (const x of r.plan.restored)
     console.log(`  ${x.path}${x.from ? `  ← ${x.from}` : ""}`);
   for (const a of r.plan.ambiguous)

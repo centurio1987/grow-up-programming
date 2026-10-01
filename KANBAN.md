@@ -138,7 +138,7 @@
   - 이유: KAN-064 누수는 solutions 위에서 갈라진 브랜치가 main 에 들어오며 생겼고, 비풀이 커밋을 main 으로 가져오려 할 때마다 같은 길이 열린다. 분석 문서는 지금도 답을 드러낸다
   - 목표: main 에 풀이를 드러내는 파일이 없고, solutions 에만 남은 비풀이 커밋은 main 에 반영되거나 버린 사유가 적힌다. 옮기는 절차가 문서나 도구로 남는다
   - 메모: 근거: KAN-064 검토서 판단 항목 2(.kanban/reviews/KAN-064-4YZZV2.events.jsonl). 비풀이 커밋 예: 807bc7b9·c4555102(훅) · 0adb1fc2·b494a300(가이드) · dcd37711·b83a1d5b(자료구조 계약). 확인: git log main..solutions
-  - 실행 문서: KANBAN.cards/KAN-065-CV4WP7.md (0/5 · 최근 10-01)
+  - 실행 문서: KANBAN.cards/KAN-065-CV4WP7.md (1/5 · 최근 10-01)
   - 원문:
     ```text
     KAN-064 검토서 판단 항목 2 「solutions 에 main 에는 없는 비풀이 커밋이 섞여 있다 — 이 카드에서는 건드리지 않았다」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」
