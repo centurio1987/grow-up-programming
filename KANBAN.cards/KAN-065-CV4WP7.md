@@ -30,7 +30,7 @@ scope: src/algorithms/array/houseRobber/houseRobber-analysis.md, src/algorithms/
 - [x] `S2` main 에서 분석 문서 13편을 지우고 KAN-001 실행 문서를 가져온다 — `KANBAN.cards/KAN-001.md` 는 solutions 판(8aa553d4) 그대로. 참조 두 자리(analyze-solution 스킬의 보고서 경로 예시 · README 분석 절)는 S3 에서 고친다. 완료 기준: `git ls-files | grep -c -- -analysis.md` 0, `check-links` 통과
 - [x] `S3` 재발 방지 문서 — analyze-solution 스킬(.claude · .agents 두 벌)에 「solutions 브랜치가 아니면 쓰지 않는다」, README 분석 절에 같은 안내, CLAUDE.md 에 두 브랜치 역할. 완료 기준: 세 자리에 문구가 서고 `check-links`·`check-citations` 통과
 - [x] `S4` solutions 실제 병합 — solutions 체크아웃에서 `bun run <이 워크트리>/tools/solutions-merge.ts KAN-065-CV4WP7`. 완료 기준: 병합 커밋 뒤 solutions 에 분석 문서 15편(13 + deque · monotonicQueue)이 병합 전과 바이트 동일, 풀이→스텁 0. push 안 함
-- [ ] `S5` 전체 검증과 검토서. 완료 기준: `bun run tools/ci.ts all` 통과
+- [x] `S5` 전체 검증과 검토서. 완료 기준: `bun run tools/ci.ts all` 통과
 
 ## 검증
 - `bun run tools/ci.ts all` 통과(practice 모드의 미구현 실패는 정상)
@@ -52,3 +52,5 @@ scope: src/algorithms/array/houseRobber/houseRobber-analysis.md, src/algorithms/
 - 2026-10-01T09:37 · s:3f0bb39d · S3 done — analyze-solution 스킬 0단계(solutions 아니면 멈춤) · README 분석 절 · CLAUDE.md 「브랜치 — main 과 solutions」 절. .agents 판은 정본을 가리키기만 하므로 고치지 않음. check-links·check-citations 통과
 - 2026-10-01T09:37 · s:3f0bb39d · S4 doing — 착수
 - 2026-10-01T09:37 · s:3f0bb39d · S4 done — solutions 309d9173(← 93876975) — 도구가 분석 보고서 13편 되살림. 병합 전후 분석 문서 15편 차이 0, 풀이→스텁 0, KAN-001 문서 동일. push 안 함
+- 2026-10-01T09:37 · s:3f0bb39d · S5 doing — 착수
+- 2026-10-01T09:49 · s:3f0bb39d · S5 done — bun run tools/ci.ts all 통과(단계 20, practice 미구현 실패는 판정 제외). 검토서로
