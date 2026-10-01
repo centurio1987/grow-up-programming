@@ -1,6 +1,6 @@
 {
-  "next_id": 66,
-  "next_seq": 458,
+  "next_id": 67,
+  "next_seq": 459,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -1770,6 +1770,26 @@
         "tools/check-proof.ts",
         "tools/cost-vocab.ts"
       ]
+    },
+    "KAN-066-J19ABB": {
+      "col": "backlog",
+      "title": "그림 무대 남은 한계 넷 — KAN-063 에서 새로 드러난 목록",
+      "verbatim": "KAN-063 검토서 판단 항목 4 「이 카드에서 새로 드러난 한계 넷을 어디로 보낼 것인가」 승인(2026-10-01) — 추천 갈래 「백로그 카드 하나에 목록으로 넘긴다」",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-10-01",
+      "title_hash": "cd77f25d761172c4584a35676eb80fc2bb92a7eb",
+      "verbatim_hash": "244580a9d1279c499303804a157492b31193966b",
+      "short": "무대 남은 한계 넷",
+      "short_hash": "f2affc280759be655a8978ab55d72e44615f6bc0",
+      "purpose": "그래프 필름 칸 위치 어긋남 · 짝 없는 닫는 증명 표시 검사 · radixSort 자리 값 줄 · convexHullTrick 껍질 스택 띠를 고치거나 버린 사유를 적는다",
+      "purpose_hash": "b11c81579f0a3ea0fb342cbaa460fc1eda329268",
+      "reason": "KAN-063 이 같은 종류를 고치는 중에 드러났고, 처분표 한 장만으로는 다음 편에서 같은 한계가 다시 나온다",
+      "reason_hash": "241a12d750286954b442f86fb01db01acdee643e",
+      "goal": "넷마다 처리하거나 버린 사유가 적히고, 그림을 바꾼 편은 다시 뽑아 render-figs --check 가 통과한다",
+      "goal_hash": "6df35df831412e93df6eeb149e3a51201c169fb1",
+      "memo": "목록 정본: KANBAN.batches/KAN-063-X2JFZA.batch3.md 「이 카드에서 새로 드러난 것」. KAN-063 검토 4",
+      "memo_hash": "8b435e7be930adf46ca0f8026c20e2eb96ebb6f3"
     }
   },
   "order": [
@@ -1848,9 +1868,27 @@
     "KAN-058-8XT6PC",
     "KAN-061-YVQBCF",
     "KAN-064-4YZZV2",
-    "KAN-062-Z0V30H"
+    "KAN-062-Z0V30H",
+    "KAN-066-J19ABB"
   ],
   "recent": [
+    {
+      "seq": 458,
+      "t": "2026-10-01T09:26",
+      "a": "ai",
+      "id": "KAN-066-J19ABB",
+      "op": "create",
+      "w": "46PCAX",
+      "col": "backlog",
+      "title": "그림 무대 남은 한계 넷 — KAN-063 에서 새로 드러난 목록",
+      "verbatim": "KAN-063 검토서 판단 항목 4 「이 카드에서 새로 드러난 한계 넷을 어디로 보낼 것인가」 승인(2026-10-01) — 추천 갈래 「백로그 카드 하나에 목록으로 넘긴다」",
+      "parent": null,
+      "short": "무대 남은 한계 넷",
+      "purpose": "그래프 필름 칸 위치 어긋남 · 짝 없는 닫는 증명 표시 검사 · radixSort 자리 값 줄 · convexHullTrick 껍질 스택 띠를 고치거나 버린 사유를 적는다",
+      "reason": "KAN-063 이 같은 종류를 고치는 중에 드러났고, 처분표 한 장만으로는 다음 편에서 같은 한계가 다시 나온다",
+      "goal": "넷마다 처리하거나 버린 사유가 적히고, 그림을 바꾼 편은 다시 뽑아 render-figs --check 가 통과한다",
+      "memo": "목록 정본: KANBAN.batches/KAN-063-X2JFZA.batch3.md 「이 카드에서 새로 드러난 것」. KAN-063 검토 4"
+    },
     {
       "seq": 450,
       "t": "2026-10-01T09:06",
@@ -2390,16 +2428,6 @@
       "w": "92ZX3K",
       "from": "backlog",
       "to": "doing"
-    },
-    {
-      "seq": 418,
-      "t": "2026-09-29T04:27",
-      "a": "유저",
-      "id": "KAN-060-9P4ZAA",
-      "op": "waive",
-      "w": "46PCAX",
-      "with_": "KAN-036-0G05DE",
-      "reason": "문제_가이드_목록.md 하나만 겹친다 — 두 카드가 목록의 다른 절(알고리즘·자료구조)을 고쳐 줄 단위 병합으로 합쳐진다(유저 결정 2026-09-29)"
     }
   ],
   "waivers": [

@@ -66,6 +66,8 @@ S8 → S9(S8 결과를 표에 적는다) → S10.
 
 ### 이 카드에서 새로 드러난 것
 
+받는 자리: `KAN-066-J19ABB`(검토 항목 4 승인으로 2026-10-01 신설).
+
 | 무엇 | 처분 |
 | --- | --- |
 | NodeGraphFilm 2장(convexHull walk-upper · ahoCorasick walk-ac-scan)도 장마다 첫 칸 x 가 다르다 | 검토 판단 항목 |
