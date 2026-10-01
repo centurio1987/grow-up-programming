@@ -391,7 +391,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `한 줄 ${comma(n.v)} 정점에서 배열 칸 ${comma(n.everyCells)} · 약 ${n.everySeconds.toFixed(0)} 초`,
+          value: `한 줄 ${comma(n.v)} 정점에서 칸 접근 ${comma(n.everyCells)} · 약 ${n.everySeconds.toFixed(0)} 초`,
           ok: false,
         },
       ],
@@ -424,7 +424,7 @@ function approaches(): Approach[] {
         },
         {
           label: "시간",
-          value: `한 줄 ${comma(n.v)} 정점에서 배열 칸 ${comma(n.twoCells)}`,
+          value: `한 줄 ${comma(n.v)} 정점에서 칸 접근 ${comma(n.twoCells)}`,
           ok: true,
         },
       ],

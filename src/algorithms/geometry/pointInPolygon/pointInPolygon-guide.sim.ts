@@ -145,8 +145,8 @@ export const pointWalk = {
   },
   steps: [
     {
-      title: "T1 q1 · e1 — 왼쪽이라 그대로 둔다",
-      text: "e1 은 높이 1 을 지나는데 그 자리의 x 가 0 이라 점의 x 1 보다 왼쪽입니다. onLeft 는 true, goesUp 은 false 로 서로 달라 inside 는 그대로 false 입니다.",
+      title: "T1 q1 · e6 — 왼쪽이라 그대로 둔다",
+      text: "e6 은 높이 1 을 지나는데 그 자리의 x 가 0 이라 점의 x 1 보다 왼쪽입니다. onLeft 는 true, goesUp 은 false 로 서로 달라 inside 는 그대로 false 입니다.",
       nodes: [
         {
           value: "아래",
@@ -187,7 +187,7 @@ export const pointWalk = {
         {
           kind: "tree",
           state: "read",
-          label: "e1 왼쪽",
+          label: "e6 왼쪽",
         },
         {
           kind: "tree",
@@ -232,14 +232,14 @@ export const pointWalk = {
         },
       ],
       calc: {
-        expr: "e1 onLeft true === goesUp false →",
+        expr: "e6 onLeft true === goesUp false →",
         result: "그대로",
       },
       vars: "inside false · 교차 수 0",
     },
     {
-      title: "T2 q1 · e2 — 높이 밖이라 건너뛴다",
-      text: "e2 는 두 끝점이 높이 1 에 대어 둘 다 위이거나 둘 다 아래라 반직선의 높이를 지나지 않습니다. inside 는 그대로 false 입니다.",
+      title: "T2 q1 · e1 — 높이 밖이라 건너뛴다",
+      text: "e1 은 두 끝점이 높이 1 에 대어 둘 다 위이거나 둘 다 아래라 반직선의 높이를 지나지 않습니다. inside 는 그대로 false 입니다.",
       nodes: [
         {
           value: "아래",
@@ -283,7 +283,7 @@ export const pointWalk = {
         {
           kind: "tree",
           state: "read",
-          label: "e2 높이 밖",
+          label: "e1 높이 밖",
         },
         {
           kind: "tree",
@@ -325,14 +325,14 @@ export const pointWalk = {
         },
       ],
       calc: {
-        expr: "e2 aboveA false · aboveB false",
+        expr: "e1 aboveA false · aboveB false",
         result: "건너뛴다",
       },
       vars: "inside false · 교차 수 0",
     },
     {
-      title: "T3 q1 · e3 — 교차해 뒤집는다",
-      text: "e3 은 높이 1 을 지나고 그 자리의 x 가 4 라 점의 오른쪽입니다. onLeft 와 goesUp 이 둘 다 true 라 inside 가 뒤집혀 true 가 됩니다.",
+      title: "T3 q1 · e2 — 교차해 뒤집는다",
+      text: "e2 는 높이 1 을 지나고 그 자리의 x 가 4 라 점의 오른쪽입니다. onLeft 와 goesUp 이 둘 다 true 라 inside 가 뒤집혀 true 가 됩니다.",
       nodes: [
         {
           value: "아래",
@@ -379,7 +379,7 @@ export const pointWalk = {
         {
           kind: "tree",
           state: "focus",
-          label: "e3 뒤집음",
+          label: "e2 뒤집음",
         },
         {
           kind: "tree",
@@ -418,14 +418,14 @@ export const pointWalk = {
         },
       ],
       calc: {
-        expr: "e3 onLeft true === goesUp true →",
+        expr: "e2 onLeft true === goesUp true →",
         result: "뒤집는다",
       },
       vars: "inside true · 교차 수 1",
     },
     {
-      title: "T4 q1 · e4 e5 e6 — 높이 밖이라 건너뛴다",
-      text: "e4 · e5 · e6 은 두 끝점이 높이 1 에 대어 둘 다 위이거나 둘 다 아래라 반직선의 높이를 지나지 않습니다. inside 는 그대로 true 입니다.",
+      title: "T4 q1 · e3 e4 e5 — 높이 밖이라 건너뛴다",
+      text: "e3 · e4 · e5 는 두 끝점이 높이 1 에 대어 둘 다 위이거나 둘 다 아래라 반직선의 높이를 지나지 않습니다. inside 는 그대로 true 입니다.",
       nodes: [
         {
           value: "아래",
@@ -477,17 +477,17 @@ export const pointWalk = {
         {
           kind: "tree",
           state: "read",
+          label: "e3 높이 밖",
+        },
+        {
+          kind: "tree",
+          state: "read",
           label: "e4 높이 밖",
         },
         {
           kind: "tree",
           state: "read",
           label: "e5 높이 밖",
-        },
-        {
-          kind: "tree",
-          state: "read",
-          label: "e6 높이 밖",
         },
         {
           kind: "back",
@@ -528,14 +528,14 @@ export const pointWalk = {
         },
       ],
       calc: {
-        expr: "e4 aboveA true · aboveB true / e5 aboveA true · aboveB true / e6 aboveA true · aboveB true",
+        expr: "e3 aboveA true · aboveB true / e4 aboveA true · aboveB true / e5 aboveA true · aboveB true",
         result: "건너뛴다",
       },
       vars: "inside true · 교차 수 1",
     },
     {
-      title: "T5 q2 · e1 — 왼쪽이라 그대로 둔다",
-      text: "e1 은 높이 3 을 지나는데 그 자리의 x 가 0 이라 점의 x 3 보다 왼쪽입니다. onLeft 는 true, goesUp 은 false 로 서로 달라 inside 는 그대로 false 입니다.",
+      title: "T5 q2 · e6 — 왼쪽이라 그대로 둔다",
+      text: "e6 은 높이 3 을 지나는데 그 자리의 x 가 0 이라 점의 x 3 보다 왼쪽입니다. onLeft 는 true, goesUp 은 false 로 서로 달라 inside 는 그대로 false 입니다.",
       nodes: [
         {
           value: "아래",
@@ -576,7 +576,7 @@ export const pointWalk = {
         {
           kind: "tree",
           state: "read",
-          label: "e1 왼쪽",
+          label: "e6 왼쪽",
         },
         {
           kind: "tree",
@@ -621,14 +621,14 @@ export const pointWalk = {
         },
       ],
       calc: {
-        expr: "e1 onLeft true === goesUp false →",
+        expr: "e6 onLeft true === goesUp false →",
         result: "그대로",
       },
       vars: "inside false · 교차 수 0",
     },
     {
-      title: "T6 q2 · e2 e3 e4 — 높이 밖이라 건너뛴다",
-      text: "e2 · e3 · e4 는 두 끝점이 높이 3 에 대어 둘 다 위이거나 둘 다 아래라 반직선의 높이를 지나지 않습니다. inside 는 그대로 false 입니다.",
+      title: "T6 q2 · e1 e2 e3 — 높이 밖이라 건너뛴다",
+      text: "e1 · e2 · e3 은 두 끝점이 높이 3 에 대어 둘 다 위이거나 둘 다 아래라 반직선의 높이를 지나지 않습니다. inside 는 그대로 false 입니다.",
       nodes: [
         {
           value: "아래",
@@ -674,17 +674,17 @@ export const pointWalk = {
         {
           kind: "tree",
           state: "read",
+          label: "e1 높이 밖",
+        },
+        {
+          kind: "tree",
+          state: "read",
           label: "e2 높이 밖",
         },
         {
           kind: "tree",
           state: "read",
           label: "e3 높이 밖",
-        },
-        {
-          kind: "tree",
-          state: "read",
-          label: "e4 높이 밖",
         },
         {
           kind: "tree",
@@ -722,14 +722,14 @@ export const pointWalk = {
         },
       ],
       calc: {
-        expr: "e2 aboveA false · aboveB false / e3 aboveA false · aboveB false / e4 aboveA false · aboveB false",
+        expr: "e1 aboveA false · aboveB false / e2 aboveA false · aboveB false / e3 aboveA false · aboveB false",
         result: "건너뛴다",
       },
       vars: "inside false · 교차 수 0",
     },
     {
-      title: "T7 q2 · e5 — 왼쪽이라 그대로 둔다",
-      text: "e5 는 높이 3 을 지나는데 그 자리의 x 가 2 라 점의 x 3 보다 왼쪽입니다. onLeft 는 false, goesUp 은 true 로 서로 달라 inside 는 그대로 false 입니다.",
+      title: "T7 q2 · e4 — 왼쪽이라 그대로 둔다",
+      text: "e4 는 높이 3 을 지나는데 그 자리의 x 가 2 라 점의 x 3 보다 왼쪽입니다. onLeft 는 false, goesUp 은 true 로 서로 달라 inside 는 그대로 false 입니다.",
       nodes: [
         {
           value: "아래",
@@ -782,7 +782,7 @@ export const pointWalk = {
         {
           kind: "tree",
           state: "read",
-          label: "e5 왼쪽",
+          label: "e4 왼쪽",
         },
         {
           kind: "tree",
@@ -815,14 +815,14 @@ export const pointWalk = {
         },
       ],
       calc: {
-        expr: "e5 onLeft false === goesUp true →",
+        expr: "e4 onLeft false === goesUp true →",
         result: "그대로",
       },
       vars: "inside false · 교차 수 0",
     },
     {
-      title: "T8 q2 · e6 — 높이 밖이라 건너뛴다",
-      text: "e6 은 두 끝점이 높이 3 에 대어 둘 다 위이거나 둘 다 아래라 반직선의 높이를 지나지 않습니다. inside 는 그대로 false 입니다.",
+      title: "T8 q2 · e5 — 높이 밖이라 건너뛴다",
+      text: "e5 는 두 끝점이 높이 3 에 대어 둘 다 위이거나 둘 다 아래라 반직선의 높이를 지나지 않습니다. inside 는 그대로 false 입니다.",
       nodes: [
         {
           value: "아래",
@@ -878,7 +878,7 @@ export const pointWalk = {
         {
           kind: "tree",
           state: "read",
-          label: "e6 높이 밖",
+          label: "e5 높이 밖",
         },
         {
           hidden: true,
@@ -910,14 +910,14 @@ export const pointWalk = {
         },
       ],
       calc: {
-        expr: "e6 aboveA true · aboveB true",
+        expr: "e5 aboveA true · aboveB true",
         result: "건너뛴다",
       },
       vars: "inside false · 교차 수 0",
     },
     {
-      title: "T9 q3 · e1 — 왼쪽이라 그대로 둔다",
-      text: "e1 은 높이 3 을 지나는데 그 자리의 x 가 0 이라 점의 x 2 보다 왼쪽입니다. onLeft 는 true, goesUp 은 false 로 서로 달라 inside 는 그대로 false 입니다.",
+      title: "T9 q3 · e6 — 왼쪽이라 그대로 둔다",
+      text: "e6 은 높이 3 을 지나는데 그 자리의 x 가 0 이라 점의 x 2 보다 왼쪽입니다. onLeft 는 true, goesUp 은 false 로 서로 달라 inside 는 그대로 false 입니다.",
       nodes: [
         {
           value: "아래",
@@ -958,7 +958,7 @@ export const pointWalk = {
         {
           kind: "tree",
           state: "read",
-          label: "e1 왼쪽",
+          label: "e6 왼쪽",
         },
         {
           kind: "tree",
@@ -1003,14 +1003,14 @@ export const pointWalk = {
         },
       ],
       calc: {
-        expr: "e1 onLeft true === goesUp false →",
+        expr: "e6 onLeft true === goesUp false →",
         result: "그대로",
       },
       vars: "inside false · 교차 수 0",
     },
     {
-      title: "T10 q3 · e2 e3 e4 — 높이 밖이라 건너뛴다",
-      text: "e2 · e3 · e4 는 두 끝점이 높이 3 에 대어 둘 다 위이거나 둘 다 아래라 반직선의 높이를 지나지 않습니다. inside 는 그대로 false 입니다.",
+      title: "T10 q3 · e1 e2 e3 — 높이 밖이라 건너뛴다",
+      text: "e1 · e2 · e3 은 두 끝점이 높이 3 에 대어 둘 다 위이거나 둘 다 아래라 반직선의 높이를 지나지 않습니다. inside 는 그대로 false 입니다.",
       nodes: [
         {
           value: "아래",
@@ -1056,17 +1056,17 @@ export const pointWalk = {
         {
           kind: "tree",
           state: "read",
+          label: "e1 높이 밖",
+        },
+        {
+          kind: "tree",
+          state: "read",
           label: "e2 높이 밖",
         },
         {
           kind: "tree",
           state: "read",
           label: "e3 높이 밖",
-        },
-        {
-          kind: "tree",
-          state: "read",
-          label: "e4 높이 밖",
         },
         {
           kind: "tree",
@@ -1104,14 +1104,14 @@ export const pointWalk = {
         },
       ],
       calc: {
-        expr: "e2 aboveA false · aboveB false / e3 aboveA false · aboveB false / e4 aboveA false · aboveB false",
+        expr: "e1 aboveA false · aboveB false / e2 aboveA false · aboveB false / e3 aboveA false · aboveB false",
         result: "건너뛴다",
       },
       vars: "inside false · 교차 수 0",
     },
     {
-      title: "T11 q3 · e5 — 변 위라 그 자리에서 참",
-      text: "e5 는 판정값이 0 이고 점 (2,3) 이 좌표 칸 안이라 변 위입니다. 홀짝을 세기 전에 답이 true 로 정해지고 남은 변은 보지 않습니다.",
+      title: "T11 q3 · e4 — 변 위라 그 자리에서 참",
+      text: "e4 는 판정값이 0 이고 점 (2,3) 이 좌표 칸 안이라 변 위입니다. 홀짝을 세기 전에 답이 true 로 정해지고 남은 변은 보지 않습니다.",
       nodes: [
         {
           value: "아래",
@@ -1164,7 +1164,7 @@ export const pointWalk = {
         {
           kind: "tree",
           state: "focus",
-          label: "e5 변 위",
+          label: "e4 변 위",
         },
         {
           kind: "tree",
@@ -1199,7 +1199,7 @@ export const pointWalk = {
         },
       ],
       calc: {
-        expr: "e5 d = 0 · 칸 안 →",
+        expr: "e4 d = 0 · 칸 안 →",
         result: "true",
       },
       vars: "inside — · 교차 수 0",

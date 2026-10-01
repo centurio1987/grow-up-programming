@@ -17,8 +17,10 @@ import {
   CORPUS,
   QUERY_LEN,
   radixCells,
+  radixInsertOps,
   radixQueryOps,
   trieCells,
+  trieInsertOps,
   trieQueryOps,
 } from "./radixTree-guide.alt.ts";
 import { commonPrefixLength, RadixTree } from "./radixTree-guide.ref.ts";
@@ -1507,7 +1509,7 @@ export const PROOFS: Record<string, () => string> = {
     );
   },
 
-  /** `purpose.alt` — 저장 칸이 뒤집히는 공유 길이를 스윕으로 찾는다. */
+  /** `purpose.alt` — 추가 칸이 뒤집히는 공유 길이를 스윕으로 찾는다. */
   altSweep: () => {
     const shares = [0, 50, 80, 90, 94, 95, 96, 97];
     let flip = "";
@@ -1537,8 +1539,8 @@ export const PROOFS: Record<string, () => string> = {
           "공통 접두사 길이",
           "라딕스 트리의 노드",
           "트라이의 노드",
-          "라딕스 트리 저장 칸",
-          "트라이 저장 칸",
+          "라딕스 트리 추가 칸",
+          "트라이 추가 칸",
           "적은 쪽",
         ],
         rows,
@@ -1546,6 +1548,47 @@ export const PROOFS: Record<string, () => string> = {
       ),
       "",
       `${shares.length} 줄 모두 단어 ${num(DICT_N)} 개 · 길이 ${DICT_L} · 길이 합 ${num(DICT_N * DICT_L)} 이고 공통 접두사 길이만 바꿨습니다. ${flip} 사이에서 적은 쪽이 라딕스 트리에서 트라이로 바뀝니다.`,
+    ].join("\n");
+  },
+
+  /** `purpose.alt` — 삽입의 자료 접근이 뒤집히는 공유 길이를 전수로 찾는다. */
+  altInsertSweep: () => {
+    const shown = [0, 50, 90, 94, 95, 96, 97];
+    const flips: string[] = [];
+    let prev: boolean | null = null;
+    const rows: string[][] = [];
+    for (let share = 0; share <= DICT_L - 3; share++) {
+      const words = CORPUS(DICT_N, share);
+      const r = radixInsertOps(words);
+      const t = trieInsertOps(words);
+      const radixLess = r < t;
+      if (prev !== null && prev !== radixLess) {
+        const before = String(share - 1);
+        flips.push(`${before}${과와(before)} ${share}`);
+      }
+      prev = radixLess;
+      if (shown.includes(share)) {
+        rows.push([
+          String(share),
+          num(r),
+          num(t),
+          radixLess ? "라딕스 트리" : "트라이",
+        ]);
+      }
+    }
+    return [
+      md(
+        [
+          "공통 접두사 길이",
+          "라딕스 트리 삽입 자료 접근",
+          "트라이 삽입 자료 접근",
+          "적은 쪽",
+        ],
+        rows,
+        [0, 1, 2],
+      ),
+      "",
+      `공통 접두사 길이를 0 부터 ${DICT_L - 3} 까지 ${DICT_L - 2} 가지로 바꿔 쟀고, 적은 쪽이 바뀌는 자리는 ${flips.length} 곳(${flips.join(" · ")} 사이)입니다.`,
     ].join("\n");
   },
 
@@ -1565,7 +1608,7 @@ export const PROOFS: Record<string, () => string> = {
     }
     return [
       md(
-        ["설계", "조회 기본 연산이 가장 적을 때", "가장 많을 때"],
+        ["설계", "조회 자료 접근이 가장 적을 때", "가장 많을 때"],
         [
           ["라딕스 트리", num(Math.min(...radix)), num(Math.max(...radix))],
           ["트라이", num(Math.min(...trie)), num(Math.max(...trie))],
@@ -1786,7 +1829,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `perf.derive` — 전개의 걸음으로 기본 연산을 센다. */
+  /** `perf.derive` — 전개의 걸음으로 자료 접근을 센다. */
   perfCount: () => {
     const body = STEPS.slice(1);
     const ops = (s: WalkStep) => lookupsOf(s) + s.reads + madeOf(s) + s.flags;
@@ -1823,7 +1866,7 @@ export const PROOFS: Record<string, () => string> = {
           "글자 대조",
           "노드 생성",
           "끝 표시",
-          "기본 연산",
+          "자료 접근",
         ],
         rows,
         [2, 3, 4, 5, 6],

@@ -1653,7 +1653,7 @@ export const PROOFS: Record<string, () => string> = {
         "l",
         "l",
       ]),
-      `같은 자동자로 센 서로 다른 부분 문자열은 ${new SuffixAutomaton(WALK).countDistinctSubstrings()} 개입니다.`,
+      `같은 접미사 자동자로 센 서로 다른 부분 문자열은 ${new SuffixAutomaton(WALK).countDistinctSubstrings()} 개입니다.`,
     );
   },
 
@@ -2299,7 +2299,7 @@ export const PROOFS: Record<string, () => string> = {
     ];
     return block(
       md(["센 것", "횟수", "걸음"], rows, ["l", "r", "l"]),
-      `③ 이 적은 전이 ${W.fillSteps} 개와 복제가 복사한 항목 ${W.copied} 개를 더하면 ${W.fillSteps + W.copied} 이고, 다 만든 자동자의 전이 수도 ${W.trans} 개입니다.`,
+      `③ 이 적은 전이 ${W.fillSteps} 개와 복제가 복사한 항목 ${W.copied} 개를 더하면 ${W.fillSteps + W.copied} 이고, 다 만든 접미사 자동자의 전이 수도 ${W.trans} 개입니다.`,
     );
   },
 

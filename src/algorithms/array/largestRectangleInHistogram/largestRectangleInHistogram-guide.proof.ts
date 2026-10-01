@@ -3,7 +3,7 @@
  *
  * 값을 여기 적지 않는다 — **정본(`.ref.ts`)을 부르고, 변이는 그 소스에서 기계로 만든다.** 정본이 읽은 칸의
  * 기록(`run` · `count` · `eachMoment`)과 걸음(`WALK_STEPS`)은 그림 사이드카가 만든 것을 그대로 받는다 — 그림과
- * 표가 같은 기록을 쓴다. 비용은 원고 전체가 한 기준으로 센다 — **배열 접근 수**(읽기 + 쓰기)이고, 세는 규칙은
+ * 표가 같은 기록을 쓴다. 비용은 원고 전체가 한 기준으로 센다 — **칸 접근 수**(읽기 + 쓰기)이고, 세는 규칙은
  * 그림 사이드카의 `count` 머리 주석에 있다.
  *
  *   bun run tools/check-proof.ts src/algorithms/array/largestRectangleInHistogram/largestRectangleInHistogram-guide.md
@@ -252,8 +252,8 @@ export const PROOFS: Record<string, () => string> = {
       md(
         [
           "N",
-          "구간 열거의 배열 접근",
-          "이 글이 만들 절차의 배열 접근",
+          "구간 열거의 칸 접근",
+          "이 글이 만들 절차의 칸 접근",
           "구간 열거의 시간(초당 1 억 번)",
         ],
         rows,
@@ -446,15 +446,15 @@ export const PROOFS: Record<string, () => string> = {
       md(
         [
           "입력",
-          "두 번 쓰기의 배열 접근",
-          "한 번 쓰기의 배열 접근",
+          "두 번 쓰기의 칸 접근",
+          "한 번 쓰기의 칸 접근",
           "두 번 쓰기의 추가 칸",
           "한 번 쓰기의 추가 칸",
         ],
         rows,
         [1, 2, 3, 4],
       ),
-      `두 방법의 답은 네 입력 모두 같고, 배열 접근은 ${inputs.length} 벌 중 ${fewer} 벌에서 한 번 쓰기가 적습니다. 두 번 쓰기의 추가 칸은 경계 배열 둘(2N 칸)과 단조 스택이 가장 깊었을 때의 칸 수이고, 한 번 쓰기는 단조 스택뿐입니다.`,
+      `두 방법의 답은 네 입력 모두 같고, 칸 접근은 ${inputs.length} 벌 중 ${fewer} 벌에서 한 번 쓰기가 적습니다. 두 번 쓰기의 추가 칸은 경계 배열 둘(2N 칸)과 단조 스택이 가장 깊었을 때의 칸 수이고, 한 번 쓰기는 단조 스택뿐입니다.`,
     );
   },
 
@@ -1237,7 +1237,7 @@ export const PROOFS: Record<string, () => string> = {
     }
     return block(
       md(
-        ["갈래", "걸음", "식", "배열 접근"],
+        ["갈래", "걸음", "식", "칸 접근"],
         [
           ["지금 높이를 읽는다 ②", ids(starts), "N", num(n)],
           ["꼭대기와 비교한다 ③", ids(cmps), "2(P + B)", num(2 * c.cmp)],
@@ -1268,7 +1268,7 @@ export const PROOFS: Record<string, () => string> = {
       return [name, num(c.pops), num(c.stops), num(c.empties), num(c.acc)];
     });
     return block(
-      md(["입력", "P", "B", "M", "배열 접근"], rows, [1, 2, 3, 4]),
+      md(["입력", "P", "B", "M", "칸 접근"], rows, [1, 2, 3, 4]),
       `N = ${num(n)} 에서 세 줄 모두 실제로 세었습니다. 첫 줄은 4N + 1 = ${num(4 * n + 1)}, 둘째 줄은 5N + 1 = ${num(5 * n + 1)}, 셋째 줄은 8N − 2 = ${num(8 * n - 2)}${과와(num(8 * n - 2))} 같습니다. 단순 연산 1 초에 1 억 번으로 잡으면 가장 많은 줄도 ${(most / 100_000_000).toFixed(3)} 초입니다.`,
     );
   },
@@ -1356,11 +1356,11 @@ export const PROOFS: Record<string, () => string> = {
     const big = 8 * TASK_N + 1 - 3 * harmonic(TASK_N);
     return block(
       md(
-        ["N", "순열 수", "정본의 배열 접근 평균", "8N + 1 − 3H_N", "차이"],
+        ["N", "순열 수", "정본의 칸 접근 평균", "8N + 1 − 3H_N", "차이"],
         rows,
         [0, 1, 2, 3, 4],
       ),
-      `여덟 줄 가운데 차이가 0 이 아닌 줄은 ${rows.filter((r) => r[4] !== "0").length} 줄입니다. N = ${num(TASK_N)} 이면 H_N = ${harmonic(TASK_N).toFixed(4)} 이고, 평균 배열 접근은 ${big.toLocaleString("en-US", { maximumFractionDigits: 1 })} 번, 최악 8N − 2 는 ${num(8 * TASK_N - 2)} 번입니다.`,
+      `여덟 줄 가운데 차이가 0 이 아닌 줄은 ${rows.filter((r) => r[4] !== "0").length} 줄입니다. N = ${num(TASK_N)} 이면 H_N = ${harmonic(TASK_N).toFixed(4)} 이고, 평균 칸 접근은 ${big.toLocaleString("en-US", { maximumFractionDigits: 1 })} 번, 최악 8N − 2 는 ${num(8 * TASK_N - 2)} 번입니다.`,
     );
   },
 
@@ -1398,7 +1398,7 @@ export const PROOFS: Record<string, () => string> = {
           "멈춘 걸음 B",
           "비운 꺼내기 M",
           "2N + 1 + 4P + 2B − M",
-          "실측 배열 접근",
+          "실측 칸 접근",
         ],
         rows,
         [1, 2, 3, 4, 5],
@@ -1429,7 +1429,7 @@ export const PROOFS: Record<string, () => string> = {
     const c = count(a);
     return block(
       md(["읽은 자리", "꺼낸 자리", "멈춘 꼭대기"], rows),
-      `입력은 ${show(a)} 입니다. P = ${c.pops}, B = ${c.stops}, M = ${c.empties} 이고 배열 접근은 ${c.acc} = 8·${n} − 2 번입니다.`,
+      `입력은 ${show(a)} 입니다. P = ${c.pops}, B = ${c.stops}, M = ${c.empties} 이고 칸 접근은 ${c.acc} = 8·${n} − 2 번입니다.`,
     );
   },
 

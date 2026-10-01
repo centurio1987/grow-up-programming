@@ -12,7 +12,7 @@ export function mosAlgorithm(
 ): number[] {
   if (queries.length === 0) return [];
 
-  // 블록 크기. 식의 `B` 가 이것이다 — √n 이 두 끝이 옮기는 칸의 상한을 가장 작게 만든다(「수식 정의와 유도」).
+  // 블록 크기. 식의 `B` 가 이것이다 — √N 이 두 끝이 옮기는 칸의 상한을 가장 작게 만든다(「수식 정의와 유도」).
   const block = Math.max(1, Math.floor(Math.sqrt(arr.length)));
   // 식의 `blk(l)`. 왼쪽 끝이 `l` 인 질의의 블록 번호다.
   const blk = (l: number): number => Math.floor(l / block);

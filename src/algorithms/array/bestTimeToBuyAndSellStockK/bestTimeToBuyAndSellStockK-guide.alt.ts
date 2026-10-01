@@ -9,14 +9,15 @@
  * ## 입력을 왜 전개 입력으로 안 쓰는가
  *
  * 전개 입력은 날 여섯에 `k = 2` 라 두 설계가 갈리는 자리(`k` 의 크기)를 못 담는다. 벌금
- * 쪽은 벌금 후보를 이분 탐색하므로 `k` 와 무관하게 같은 일을 하고, 거래 상태 쪽은 `k` 에 그대로
+ * 쪽은 벌금 후보를 이진 탐색하므로 `k` 와 무관하게 같은 일을 하고, 거래 상태 쪽은 `k` 에 그대로
  * 비례한다 — 갈리는 것은 `k` 이므로 **과제 규모의 상한인 날 1,000 을 고정하고 `k` 만 바꾼다.**
  * 가격은 생성식 `P[j] = (j × 617) mod 1,001` 로 만든다.
  *
  * ## 무엇을 세는가
  *
  * 덧셈·뺄셈 한 번과 비교 한 번을 각각 기본 연산 하나로 센다 — `perf` 절과 같은 정의다.
- * 저장 칸은 두 설계가 각각 들고 있는 수의 개수다.
+ * 추가 칸은 입력 가격 배열을 빼고 두 설계가 각각 더 들고 있는 수의 개수다 — 재지 않고 코드에서
+ * 센 상수다. 거래 상태는 배열 둘(`free` · `held`)의 `2(k + 1)` 칸, 벌금 쪽은 보유·빈손 각각의 이익과 거래 수, 변수 넷이다.
  */
 
 import { bestTimeToBuyAndSellStockK } from "./bestTimeToBuyAndSellStockK-guide.ref.ts";
@@ -24,7 +25,7 @@ import { bestTimeToBuyAndSellStockK } from "./bestTimeToBuyAndSellStockK-guide.r
 /** 과제 규모의 상한인 날짜 수. */
 const N = 1_000;
 
-/** 과제 규모가 정한 가격의 최댓값. 벌금 이분 탐색의 위쪽 끝이기도 하다. */
+/** 과제 규모가 정한 가격의 최댓값. 벌금 이진 탐색의 위쪽 끝이기도 하다. */
 const MAX_PRICE = 10_000;
 
 /** 결정론적 생성식. `0 ≤ P[j] ≤ 10,000` 을 지킨다. */
@@ -88,7 +89,7 @@ function withPenalty(
 }
 
 /**
- * 경쟁 설계 — **거래 하나마다 벌금을 매기고 그 벌금을 이분 탐색한다**(라그랑주 완화).
+ * 경쟁 설계 — **거래 하나마다 벌금을 매기고 그 벌금을 이진 탐색한다**(라그랑주 완화).
  *
  * 거래 상한이 `k` 일 때의 최대 이익은 상한을 올릴수록 늘어나되 늘어나는 폭이 줄어든다.
  * 그래서 「벌금 `lam` 에서 최적이 되는 거래 수」가 `lam` 에 대해 단조이고, 거래 수가 `k`
@@ -127,15 +128,15 @@ export const cases = {
   "거래 상태 이어받기": () => {
     const out: Record<string, number> = {};
     for (const k of BUDGETS) out[`k=${k} 기본 연산`] = measure(k).states.ops;
-    out["k=1 저장 칸"] = byStates(1, PRICES).cells;
-    out["k=100 저장 칸"] = byStates(100, PRICES).cells;
+    out["k=1 추가 칸"] = byStates(1, PRICES).cells;
+    out["k=100 추가 칸"] = byStates(100, PRICES).cells;
     return out;
   },
-  "거래마다 벌금을 매기고 벌금을 이분 탐색": () => {
+  "거래마다 벌금을 매기고 벌금을 이진 탐색": () => {
     const out: Record<string, number> = {};
     for (const k of BUDGETS) out[`k=${k} 기본 연산`] = measure(k).penalty.ops;
-    out["k=1 저장 칸"] = byPenaltySearch(1, PRICES).cells;
-    out["k=100 저장 칸"] = byPenaltySearch(100, PRICES).cells;
+    out["k=1 추가 칸"] = byPenaltySearch(1, PRICES).cells;
+    out["k=100 추가 칸"] = byPenaltySearch(100, PRICES).cells;
     return out;
   },
 };

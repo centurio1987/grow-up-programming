@@ -949,7 +949,7 @@ export const PROOFS: Record<string, () => string> = {
   },
 
   "alt-cells": () => {
-    const key = "n=100,000 잡는 칸 최대";
+    const key = "n=100,000 추가 칸";
     const a = bench(DOUBLING, key);
     const b = bench(SKEW, key);
     return block(
@@ -957,7 +957,7 @@ export const PROOFS: Record<string, () => string> = {
         ["축", DOUBLING, SKEW, "적은 쪽"],
         [
           [
-            "동시에 잡는 칸의 최댓값 (무작위 26 글자 n = 100,000)",
+            "추가 칸 (무작위 26 글자 n = 100,000)",
             num(a),
             num(b),
             `${a < b ? DOUBLING : SKEW} · ${fix(Math.max(a, b) / Math.min(a, b), 2)} 배`,
@@ -965,7 +965,7 @@ export const PROOFS: Record<string, () => string> = {
         ],
         [1, 2],
       ),
-      `잡는 칸이 ${DOUBLING}은 n 의 ${fix(a / LIMIT, 1)} 배, ${SKEW}은 n 의 ${fix(b / LIMIT, 1)} 배입니다.`,
+      `추가 칸이 ${DOUBLING}은 n 의 ${fix(a / LIMIT, 1)} 배, ${SKEW}은 n 의 ${fix(b / LIMIT, 1)} 배입니다.`,
     );
   },
 
@@ -1225,11 +1225,7 @@ export const PROOFS: Record<string, () => string> = {
     const lo = Math.min(...full.map((m) => m.r.access));
     const hi = Math.max(...full.map((m) => m.r.access));
     return block(
-      md(
-        ["입력의 모양", "바퀴 수", "자료 접근", "잡는 칸 최대"],
-        rows,
-        [1, 2, 3],
-      ),
+      md(["입력의 모양", "바퀴 수", "자료 접근", "추가 칸"], rows, [1, 2, 3]),
       `n = ${num(n)} 입니다. 바퀴 수가 상한 ${bound} 에 이른 모양이 ${full.length} 개이고, 그 안의 자료 접근 차이는 ${fix((hi / lo - 1) * 100, 4)} % 입니다. 자료 접근이 가장 많은 것은 「${worst.name}」 입니다.`,
     );
   },

@@ -1744,20 +1744,18 @@ function altTable(): string {
       [1, 2, 4],
     ),
     "",
-    `저장 칸은 이 가이드의 절차가 ${comma(bench("이 가이드의 절차 · 저장 칸"))} 개, 벨만-포드가 ${comma(bench("벨만-포드 · 저장 칸"))} 개입니다.`,
+    `추가 칸은 이 가이드의 절차가 ${comma(bench("이 가이드의 절차 · 추가 칸"))} 개, 벨만-포드가 ${comma(bench("벨만-포드 · 추가 칸"))} 개입니다.`,
   ].join("\n");
 }
 
 /** 경계가 조각 4 개인 까닭 — 라운드 수로 푼다. */
 function altBoundary(): string {
-  // 벨만-포드의 저장 칸은 거리 배열 하나라 정점 수 V 와 같다(`.alt.ts` 의 `cells: n`).
-  const ALT_V = bench("벨만-포드 · 저장 칸");
   const mine = bench("이 가이드의 절차 · 조각 1 · 기본 연산");
   const e = bench("경계 · 간선");
   const r3 = bench("경계 · 조각 3 의 라운드");
   const r4 = bench("경계 · 조각 4 의 라운드");
-  const f3 = ALT_V + r3 * e;
-  const f4 = ALT_V + r4 * e;
+  const f3 = r3 * e;
+  const f4 = r4 * e;
   if (f3 !== bench("벨만-포드 · 조각 3 · 기본 연산")) {
     throw new Error(`식 ${f3} 이 실측과 다르다`);
   }
@@ -1774,21 +1772,16 @@ function altBoundary(): string {
           comma(mine),
           "간선 목록의 순서와 무관하게 같다",
         ],
-        [
-          "벨만-포드의 시작값",
-          comma(ALT_V),
-          `거리 배열 V = ${comma(ALT_V)} 칸을 만든다`,
-        ],
         ["벨만-포드의 한 라운드", comma(e), "간선을 E 개 읽는다"],
         [
           "조각 3 개일 때",
           `라운드 ${r3}`,
-          `${comma(ALT_V)} + ${r3} × ${comma(e)} = ${comma(f3)}`,
+          `${r3} × ${comma(e)} = ${comma(f3)}`,
         ],
         [
           "조각 4 개일 때",
           `라운드 ${r4}`,
-          `${comma(ALT_V)} + ${r4} × ${comma(e)} = ${comma(f4)}`,
+          `${r4} × ${comma(e)} = ${comma(f4)}`,
         ],
       ],
     ),
@@ -2146,21 +2139,12 @@ function costClosedForm(): string {
   });
   return [
     md(
-      [
-        "입력",
-        "V",
-        "E",
-        "R",
-        "E_R",
-        "c",
-        "실제 배열 칸 접근",
-        "8V+6E+R+2E_R+c+1",
-      ],
+      ["입력", "V", "E", "R", "E_R", "c", "실제 칸 접근", "8V+6E+R+2E_R+c+1"],
       rows,
       [1, 2, 3, 4, 5, 6, 7],
     ),
     "",
-    `다섯 입력 가운데 ${same} 개에서 실제 배열 칸 접근과 식의 값이 같습니다.`,
+    `다섯 입력 가운데 ${same} 개에서 실제 칸 접근과 식의 값이 같습니다.`,
   ].join("\n");
 }
 
@@ -2190,7 +2174,7 @@ function perfCases(): string {
   const self = countCells(V_LIMIT, SHAPE, V_LIMIT - 1);
   return [
     md(
-      ["입력 (V = 100,000 · E = 200,000)", "R", "E_R", "c", "배열 칸 접근"],
+      ["입력 (V = 100,000 · E = 200,000)", "R", "E_R", "c", "칸 접근"],
       [
         [
           "시작 정점에서 전부 갈 수 있다",
@@ -2210,7 +2194,7 @@ function perfCases(): string {
       [1, 2, 3, 4],
     ),
     "",
-    `두 입력의 배열 칸 접근은 ${(all.cells / self.cells).toFixed(2)} 배 차이이고, 둘 다 8V + 6E + 1 = ${comma(8 * V_LIMIT + 6 * E_LIMIT + 1)} 이상 9V + 9E + 1 = ${comma(9 * V_LIMIT + 9 * E_LIMIT + 1)} 이하입니다.`,
+    `두 입력의 칸 접근은 ${(all.cells / self.cells).toFixed(2)} 배 차이이고, 둘 다 8V + 6E + 1 = ${comma(8 * V_LIMIT + 6 * E_LIMIT + 1)} 이상 9V + 9E + 1 = ${comma(9 * V_LIMIT + 9 * E_LIMIT + 1)} 이하입니다.`,
   ].join("\n");
 }
 
@@ -2233,7 +2217,7 @@ function shapeValues(): string {
         "갈 수 있는 정점 R",
         "완화 시도 E_R",
         "고쳐 적기 c",
-        "배열 칸 접근",
+        "칸 접근",
       ],
       cases.map((c, i) => {
         const m = ms[i] as ReturnType<typeof countCells>;
@@ -2250,7 +2234,7 @@ function shapeValues(): string {
       [1, 2, 3, 4, 5, 6],
     ),
     "",
-    `완화 시도는 ${comma(first.edgesFromReached)} 에서 ${comma(last.edgesFromReached)} 이 되는데 배열 칸 접근은 ${comma(first.cells)} 에서 ${comma(last.cells)} 로 ${Math.round((1 - last.cells / first.cells) * 100)} 퍼센트 줄었습니다. 맨 앞에서 시작한 입력의 고쳐 적기 ${comma(first.fixes)} 번은 완화 시도의 ${Math.round((first.fixes / first.edgesFromReached) * 100)} 퍼센트입니다.`,
+    `완화 시도는 ${comma(first.edgesFromReached)} 에서 ${comma(last.edgesFromReached)} 이 되는데 칸 접근은 ${comma(first.cells)} 에서 ${comma(last.cells)} 로 ${Math.round((1 - last.cells / first.cells) * 100)} 퍼센트 줄었습니다. 맨 앞에서 시작한 입력의 고쳐 적기 ${comma(first.fixes)} 번은 완화 시도의 ${Math.round((first.fixes / first.edgesFromReached) * 100)} 퍼센트입니다.`,
   ].join("\n");
 }
 
@@ -2270,7 +2254,7 @@ function worstMax(): string {
   const cap = 9 * V_LIMIT + 9 * E_LIMIT + 1;
   return [
     md(
-      ["입력", "V", "E", "R", "E_R", "c", "배열 칸 접근", "9V + 9E + 1"],
+      ["입력", "V", "E", "R", "E_R", "c", "칸 접근", "9V + 9E + 1"],
       [
         [
           "i→i+1(1) · i→i+2(3) · i→i+3(5)",
@@ -2286,7 +2270,7 @@ function worstMax(): string {
       [1, 2, 3, 4, 5, 6, 7],
     ),
     "",
-    `R = V, E_R = E, c = E_R 가 모두 차서 배열 칸 접근이 ${m.cells === cap ? "상한과 같습니다" : "상한에 못 미칩니다"}.`,
+    `R = V, E_R = E, c = E_R 가 모두 차서 칸 접근이 ${m.cells === cap ? "상한과 같습니다" : "상한에 못 미칩니다"}.`,
   ].join("\n");
 }
 

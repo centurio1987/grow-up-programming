@@ -6,12 +6,12 @@
  *
  *   bun run tools/check-proof.ts src/algorithms/array/segmentTreeRangeMin/segmentTreeRangeMin-guide.md
  *
- * **세는 사본이 여럿 있다.** 정본은 배열 접근 수도, 걸음마다의 상태도 내보내지 않으므로 그 자리를
+ * **세는 사본이 여럿 있다.** 정본은 칸 접근 수도, 걸음마다의 상태도 내보내지 않으므로 그 자리를
  * 덧붙인 사본이 아니면 계수와 걸음을 낼 방법이 없다.
  *
  * - `traced` — 정본과 같은 절차에 걸음 기록을 덧붙인 판. 걸음마다 트리 전체와 답 목록을 베끼므로
  *   전개 입력처럼 작은 입력에만 쓴다. 큰 입력에 쓰면 메모리가 모자란다.
- * - `segCount` · `scanEachQuery` · `blockTable` · `sparseCount` · `visitCount` — 배열 접근 수나 노드
+ * - `segCount` · `scanEachQuery` · `blockTable` · `sparseCount` · `visitCount` — 칸 접근 수나 노드
  *   수만 세는 가벼운 판. `N = 100,000` 같은 큰 입력은 이것만 쓴다.
  *
  * **답이 맞는지는 사본이 아니라 정본이 진다** — 사본은 부를 때마다 자기 답을 정본과 맞대고, 어긋나면 던진다.
@@ -204,7 +204,7 @@ export function pathLen(N: number, i: number): number {
   return c;
 }
 
-/** 한 질의가 들어간 노드 수와 읽은 노드 수만 센다(큰 `N` 용 — 트리를 만들지 않는다). */
+/** 한 질의가 방문 노드 수와 읽은 노드 수만 센다(큰 `N` 용 — 트리를 만들지 않는다). */
 function visitCount(
   N: number,
   l: number,
@@ -479,10 +479,10 @@ export const span = (ids: readonly string[]): string =>
 export const stepsOfOp = (op: number): string[] =>
   stepsWhere((e) => e.kind !== "build" && e.op === op);
 
-/* ────────────────────── 계측기 — 배열 접근 수 ────────────────────── */
+/* ────────────────────── 계측기 — 칸 접근 수 ────────────────────── */
 
 /*
- * 세는 것은 **배열 접근 수**(읽기 + 쓰기)다. 원고 전체가 이 한 기준을 쓴다. 벽시계·처리량은
+ * 세는 것은 **칸 접근 수**(읽기 + 쓰기)다. 원고 전체가 이 한 기준을 쓴다. 벽시계·처리량은
  * 실행마다 값이 달라 「본문의 수치가 실측과 같은가」를 정의할 수 없다.
  */
 
@@ -756,7 +756,7 @@ export interface ScaleRow {
 }
 
 /**
- * 과제 규모에서 네 방법의 배열 접근 수. 차례로 읽기와 Sparse Table 은 실행하면 수십 초가 걸려서
+ * 과제 규모에서 네 방법의 칸 접근 수. 차례로 읽기와 Sparse Table 은 실행하면 수십 초가 걸려서
  * 식으로 센다 — 같은 식이 `N = Q = 1,000` 에서 실행한 값과 같은지를 `checkFormulas` 가 확인한다.
  */
 function scaleRows(N: number, Q: number, runAll: boolean): ScaleRow[] {
@@ -1162,7 +1162,7 @@ export const PROOFS: Record<string, () => string> = {
       seconds(formulaOf(SCALE_N)),
     ]);
     return md(
-      ["N = Q", "배열 접근(실측)", "(Q/2)(N−2) + Q/2", "초당 1 억 번 기준"],
+      ["N = Q", "칸 접근(실측)", "(Q/2)(N−2) + Q/2", "초당 1 억 번 기준"],
       rows,
       ["r", "r", "r", "r"],
     );
@@ -1241,7 +1241,7 @@ export const PROOFS: Record<string, () => string> = {
     ];
     return withNote(
       md(
-        ["묶음 크기", "미리 만들기", "질의", "갱신", "합", "저장 칸"],
+        ["묶음 크기", "미리 만들기", "질의", "갱신", "합", "추가 칸"],
         [row("B=1", b1), row("B=32", b32)],
         ["l", "r", "r", "r", "r", "r"],
       ),
@@ -1249,7 +1249,7 @@ export const PROOFS: Record<string, () => string> = {
     );
   },
 
-  /** `deep.origin` ⑤ — 과제 규모에서 방법 넷의 배열 접근 수. */
+  /** `deep.origin` ⑤ — 과제 규모에서 방법 넷의 칸 접근 수. */
   "origin-scale": () => {
     const rows = SCALE.map((r) => [
       r.name,
@@ -1429,7 +1429,7 @@ export const PROOFS: Record<string, () => string> = {
         cell(p.answer),
       ];
     });
-    return md(["질의", "들어간 노드", "읽은 노드", "읽은 자리", "답"], rows, [
+    return md(["질의", "방문 노드", "읽은 노드", "읽은 자리", "답"], rows, [
       "l",
       "r",
       "r",
@@ -1438,7 +1438,7 @@ export const PROOFS: Record<string, () => string> = {
     ]);
   },
 
-  /** `deep.build` 3단계 — 질의 [1,3] 이 들어간 노드마다의 판정. */
+  /** `deep.build` 3단계 — 질의 [1,3] 이 방문 노드마다의 판정. */
   "split-13": () => {
     const p = queryPath(WALK, 1, 3);
     const shape = new Map(treeShape(WALK).map((x) => [x.node, x]));
@@ -1603,7 +1603,7 @@ export const PROOFS: Record<string, () => string> = {
     const sum = (r: Cost) => r.build + r.queryAcc + r.updateAcc;
     const best = blocks.reduce((a, b) => (sum(b.r) < sum(a.r) ? b : a));
     return withNote(
-      md(["방법", "미리 만들기", "질의", "갱신", "합", "저장 칸"], rows, [
+      md(["방법", "미리 만들기", "질의", "갱신", "합", "추가 칸"], rows, [
         "l",
         "r",
         "r",
@@ -1968,6 +1968,68 @@ export const PROOFS: Record<string, () => string> = {
     );
   },
 
+  /** `purpose.alt` — 실측 두 표. 「적은 쪽」 열의 차이와 배수를 `.alt.ts` 계수에서 계산한다(SPEC §14 `L51`). */
+  "alt-counts": () => {
+    type Role = "gap" | "flip" | "ratio" | "ahead";
+    // 한글로 끝나면 조사를 붙여 쓰고(「트리가」), 로마자로 끝나면 띄운다(「Table 이」).
+    const subj = (w: string): string =>
+      /[가-힣]$/.test(w) ? `${w}${이가(w).trim()}` : `${w}${이가(w)}`;
+    const row = (name: string, q: number, u: number, role: Role): string[] => {
+      const s = segAccesses(q, u);
+      const p = sparseAccesses(q, u);
+      const segWins = s < p;
+      const [lo, hi] = segWins ? [s, p] : [p, s];
+      const who = segWins ? "세그먼트 트리" : "Sparse Table";
+      const note =
+        role === "gap"
+          ? `${subj(who)} ${num(hi - lo)} 번 적습니다`
+          : role === "flip"
+            ? "**여기서 순서가 뒤집힙니다**"
+            : role === "ahead"
+              ? `${subj(who)} 앞섭니다`
+              : `${subj(who)} ${f1(hi / lo)} 배 적습니다`;
+      return [
+        name,
+        segWins ? `**${num(s)}**` : num(s),
+        segWins ? num(p) : `**${num(p)}**`,
+        note,
+      ];
+    };
+    const f1 = (x: number): string =>
+      x >= 100
+        ? num(Math.round(x))
+        : x.toLocaleString("en-US", {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+          });
+    const head = (c: string) => [c, "세그먼트 트리", "Sparse Table", "적은 쪽"];
+    const L: ("l" | "r")[] = ["l", "l", "l", "l"];
+    return [
+      md(
+        head("갱신 0 회"),
+        [
+          row("질의 3,515 개", 3_515, 0, "gap"),
+          row("질의 3,516 개", 3_516, 0, "flip"),
+          row("질의 4,096 개", 4_096, 0, "ratio"),
+          row("질의 10,000 개", 10_000, 0, "ratio"),
+        ],
+        L,
+      ),
+      "",
+      "**갱신이 하나라도 섞이면 순서가 반대로 갑니다.**",
+      "",
+      md(
+        head("질의 4,096 개"),
+        [
+          row("갱신 0 회", 4_096, 0, "ahead"),
+          row("갱신 1 회", 4_096, 1, "flip"),
+          row("갱신 1,024 회", 4_096, 1_024, "ratio"),
+        ],
+        L,
+      ),
+    ].join("\n");
+  },
+
   /** `purpose.alt` — 순서가 뒤집히는 자리를 비용 항으로 가른다. */
   "alt-boundary": () => {
     const segB = segAccesses(0, 0);
@@ -1995,7 +2057,7 @@ export const PROOFS: Record<string, () => string> = {
     return withNote(
       md(
         [
-          "비용(배열 접근 수)",
+          "비용(칸 접근 수)",
           "세그먼트 트리",
           "Sparse Table",
           "Sparse Table − 세그먼트 트리",
@@ -2283,7 +2345,7 @@ export const PROOFS: Record<string, () => string> = {
     const uOps = WALK_OPS.flatMap((o, k) => (o.type === "update" ? [k] : []));
     return withNote(
       md(
-        ["갈래", "걸음", "배열 접근"],
+        ["갈래", "걸음", "칸 접근"],
         [
           ["트리를 채운다", span(buildIds), num(t.build)],
           [
@@ -2361,7 +2423,7 @@ export const PROOFS: Record<string, () => string> = {
       ["배열 전체", 0, N - 1],
       ["왼쪽 절반", 0, N / 2 - 1],
       ["한 칸", 500, 500],
-      ["들어간 노드가 최대인 짝", x.at[0], x.at[1]],
+      ["방문 노드가 최대인 짝", x.at[0], x.at[1]],
       ["읽은 노드가 최대인 짝", x.readAt[0], x.readAt[1]],
     ];
     const rows = shapes.map(([name, l, r]) => {
@@ -2375,7 +2437,7 @@ export const PROOFS: Record<string, () => string> = {
       ];
     });
     return md(
-      ["질의의 모양", "구간", "구간의 칸 수", "들어간 노드", "읽은 노드"],
+      ["질의의 모양", "구간", "구간의 칸 수", "방문 노드", "읽은 노드"],
       rows,
       ["l", "l", "r", "r", "r"],
     );
@@ -2387,9 +2449,9 @@ export const PROOFS: Record<string, () => string> = {
     const one = visitCount(SCALE_N, 1, SCALE_N - 2);
     return withNote(
       md(
-        ["항목", "배열 접근 또는 노드 수"],
+        ["항목", "칸 접근 또는 방문 노드"],
         [
-          ["질의 하나가 들어간 노드", String(one.entered)],
+          ["질의 하나가 방문 노드", String(one.entered)],
           ["질의 하나가 읽은 노드", String(one.read)],
           ["미리 만들기", num(seg.build)],
           [`질의 ${num(SCALE_Q / 2)} 개`, num(seg.query)],
@@ -2417,7 +2479,7 @@ export const PROOFS: Record<string, () => string> = {
         [span(stepsOfOp(k)), key, String(o.r - o.l + 1), String(entered)],
       ];
     });
-    return md(["걸음", "질의", "구간의 칸 수", "들어간 노드"], rows, [
+    return md(["걸음", "질의", "구간의 칸 수", "방문 노드"], rows, [
       "l",
       "l",
       "r",
@@ -2444,7 +2506,7 @@ export const PROOFS: Record<string, () => string> = {
       ];
     });
     return md(
-      ["질의", "담당 구간이 같은 노드", "그 노드의 깊이", "들어간 노드"],
+      ["질의", "담당 구간이 같은 노드", "그 노드의 깊이", "방문 노드"],
       rows,
       ["l", "l", "r", "r"],
     );

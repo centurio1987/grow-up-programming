@@ -10,6 +10,7 @@
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";
 import { 과와, 으로, 은는, 을를, 이가 } from "../../../../tools/josa.ts";
+import { cases as benchCases } from "./unboundedKnapsack-guide.alt.ts";
 import {
   A_MAX,
   AMOUNT,
@@ -264,7 +265,53 @@ for (const [coins, amount] of [
 const walk = () => trace(COINS, AMOUNT);
 const n = COINS.length;
 
+/* ────────────────────────── 경쟁 설계 ────────────────────────── */
+
+/** `.alt.ts` 의 계수 하나. */
+function bench(name: string, key: string): number {
+  const run = benchCases[name];
+  if (!run) throw new Error(`벤치 케이스 ${name} 가 없다`);
+  const v = (run() as Record<string, number>)[key];
+  if (v === undefined) throw new Error(`계수 ${name} · ${key} 가 없다`);
+  return v;
+}
+
+/** 두 계수의 비 — 100 이상이면 정수, 아래면 소수 한 자리. */
+function ratio(a: number, b: number): string {
+  const r = a / b;
+  return r >= 100 ? Math.round(r).toLocaleString("en-US") : r.toFixed(1);
+}
+
+/** `purpose.alt` — 입력 A · B 에서 기본 연산의 비. */
+function altRatio(): string {
+  const dpA = bench("DP 테이블 (이 가이드) · 입력 A", "기본 연산");
+  const bbA = bench("분기 한정 · 입력 A", "기본 연산");
+  const dpB = bench("DP 테이블 (이 가이드) · 입력 B", "기본 연산");
+  const bbB = bench("분기 한정 · 입력 B", "기본 연산");
+  return [
+    `**금액 하나로 순서가 뒤집힙니다.** A 에서는 분기 한정이 기본 연산으로 ${ratio(dpA, bbA)} 배 적어요 — 6 을 1,666 개 쓰는 답을 곧바로`,
+    `찾고, 그 뒤로는 가지치기가 거의 모든 가지를 잘라 냅니다. B 에서는 반대로 DP 테이블이 ${ratio(bbB, dpB)} 배 적습니다 — 답이 없어`,
+    "`best` 가 끝까지 무한이고, 그러면 자를 기준이 없어 개수 조합을 전부 봅니다.",
+  ].join("\n");
+}
+
+/** `purpose.alt` — 경계 금액 1,000 · 999 에서 기본 연산의 비. */
+function altEdgeRatio(): string {
+  const dp1 = bench("DP 테이블 (이 가이드) · 경계 금액 1,000", "기본 연산");
+  const bb1 = bench("분기 한정 · 경계 금액 1,000", "기본 연산");
+  const dp0 = bench("DP 테이블 (이 가이드) · 경계 금액 999", "기본 연산");
+  const bb0 = bench("분기 한정 · 경계 금액 999", "기본 연산");
+  return [
+    "**경계는 「답이 있는가」입니다.** 더 정확히는 가지치기가 기댈 첫 답을 언제 찾는가이고, 답이 아예 없으면 그 시점이",
+    `오지 않아요. 금액이 1 다를 뿐인데 한쪽은 ${ratio(dp1, bb1)} 배 앞서고 다른 쪽은 ${ratio(bb0, dp0)} 배 뒤집힙니다.`,
+  ].join("\n");
+}
+
 export const PROOFS: Record<string, () => string> = {
+  /** `purpose.alt` — 입력 A · B 의 비. */
+  "alt-ratio": altRatio,
+  /** `purpose.alt` — 경계 금액의 비. */
+  "alt-edge-ratio": altEdgeRatio,
   /** `concept` — 전개 입력으로 만드는 조합 전부. */
   "concept-combos": () => {
     const vs = vectors(COINS, AMOUNT).sort((x, y) => countOf(x) - countOf(y));

@@ -10,7 +10,7 @@
  * | 계수 | 무엇 |
  * | --- | --- |
  * | 나눗셈 | `/` 나 `%` 한 번을 하나로 센다. 나머지를 `[0, m)` 로 맞추는 `mod` 도 `%` 한 번이다 |
- * | 들고 있는 값 | 질의와 질의 사이에 남겨 두는 `bigint` 의 개수 |
+ * | 추가 칸 | 질의와 질의 사이에 남겨 두는 `bigint` 의 개수(하나를 한 칸으로). 입력인 법 목록과 질의 안에서만 쓰는 값은 뺀다 |
  *
  * **두 설계의 답을 매 실행에서 정본과 대조한다.** 계수만 세고 답을 안 맞추면 그 수치는 아무것도 재지 않는다 —
  * 특히 경쟁 설계는 법이 서로소가 아니면 답을 못 내므로, 그 경우까지 섞어 잰 계수는 「같은 과제를 푼 두 설계」의
@@ -162,7 +162,7 @@ export const heldBetween = (pre: Prepared): number =>
 export interface Totals {
   merge: Counter;
   oneShot: Counter;
-  /** 질의 사이에 들고 있는 값 — 합동식 합치기는 질의마다 새로 시작하므로 0 이다. */
+  /** 질의 사이에 남기는 추가 칸 — 합동식 합치기는 질의마다 새로 시작하므로 0 이다. */
   held: { merge: number; oneShot: number };
 }
 
@@ -218,11 +218,11 @@ const byDesign = (pick: (t: Totals) => number): Record<string, number> =>
 export const cases = {
   "합동식 합치기": () => ({
     ...byDesign((t) => t.merge.divisions),
-    "질의 사이에 들고 있는 값": (runs[0] as Totals).held.merge,
+    "질의 사이에 남기는 추가 칸": (runs[0] as Totals).held.merge,
   }),
   "한 번에 합치는 판": () => ({
     ...byDesign((t) => t.oneShot.divisions),
-    "질의 사이에 들고 있는 값": (runs[0] as Totals).held.oneShot,
+    "질의 사이에 남기는 추가 칸": (runs[0] as Totals).held.oneShot,
   }),
   "뒤집히는 자리": () => ({
     "질의 수": 뒤집히는_자리(),

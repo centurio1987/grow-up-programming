@@ -13,14 +13,17 @@
  * 다르면 던진다 — 답이 다른 구현으로 잰 계수는 비교가 아니라 다른 과제의 값이다.
  *
  * **세는 기준은 가이드 전체와 하나다**(KAN-058). 가이드의 비용은 전부 **기본 연산**이고,
- * 메모리는 **추가로 잡는 칸**이다. 증명 사이드카(`*.proof.ts`)도 이 파일의 계측본을 불러
+ * 메모리는 **할당 칸**이다. 증명 사이드카(`*.proof.ts`)도 이 파일의 계측본을 불러
  * 같은 기준으로 센다.
  *
  *   기본 연산    정수 곱셈과 자료 접근을 각각 1 로 센 합
  *     정수 곱셈  판정에 쓰는 정수 곱셈. 방향 판정 2 · 자리 대소 2~4 · 위아래 판정 4 ·
  *                기울기 대소 2 · 교차점 계산 6(자리를 만들면 4 를 더한다)
  *     자료 접근  배열·사전·집합의 읽기와 쓰기
- *   잡는 칸      절차가 입력 밖에 새로 잡는 칸의 총수
+ *   할당 칸      절차가 입력 밖에 칸을 잡을 때마다 더한 누적 합. 버린 것도 센다 — 스위프는
+ *                선분 사본 · 힙에 넣은 사건점(꺼내도 빼지 않는다) · 끝점 사전 항목 · 세로 선분 목록 ·
+ *                사건마다 만드는 임시 목록(지나는 토막 · 만나는 목록 · 다시 놓을 목록) · 짝 집합을,
+ *                격자는 칸에 적은 선분 번호와 짝 집합을 센다
  *
  * 2026-09-30 전까지는 정수 곱셈과 자료 접근을 따로 싣고 비교했다. 가이드가 기준을 하나로 두면서
  * 둘을 더한 기본 연산으로 옮겼고, 그 때문에 순서가 뒤집히는 자리가 옮겨 갔다(격자무늬 80 →
@@ -81,7 +84,7 @@ export interface Counted {
   mul: number;
   /** 배열·사전·집합의 읽기와 쓰기. */
   reads: number;
-  /** 입력 밖에 새로 잡는 칸의 총수. */
+  /** 할당 칸 — 입력 밖에 잡은 칸의 누적 합. */
   cells: number;
 }
 
@@ -594,25 +597,25 @@ const LONG_OUT = measure(scattered(SCATTER_N, FLIP_LEN));
 export const cases = {
   "이웃 교차 예약": () => ({
     "전개 입력 기본 연산": ops(WALK.mine),
-    "전개 입력 잡는 칸": WALK.mine.cells,
+    "전개 입력 할당 칸": WALK.mine.cells,
     "격자무늬 86 기본 연산": ops(MESH_IN.mine),
     "격자무늬 88 기본 연산": ops(MESH_OUT.mine),
     "격자무늬 256 기본 연산": ops(MESH_FAR.mine),
-    "격자무늬 256 잡는 칸": MESH_FAR.mine.cells,
+    "격자무늬 256 할당 칸": MESH_FAR.mine.cells,
     "흩어 놓은 길이 16 기본 연산": ops(SHORT.mine),
-    "흩어 놓은 길이 16 잡는 칸": SHORT.mine.cells,
+    "흩어 놓은 길이 16 할당 칸": SHORT.mine.cells,
     "흩어 놓은 길이 2048 기본 연산": ops(LONG_IN.mine),
     "흩어 놓은 길이 4096 기본 연산": ops(LONG_OUT.mine),
   }),
   "격자 나누기": () => ({
     "전개 입력 기본 연산": ops(WALK.theirs),
-    "전개 입력 잡는 칸": WALK.theirs.cells,
+    "전개 입력 할당 칸": WALK.theirs.cells,
     "격자무늬 86 기본 연산": ops(MESH_IN.theirs),
     "격자무늬 88 기본 연산": ops(MESH_OUT.theirs),
     "격자무늬 256 기본 연산": ops(MESH_FAR.theirs),
-    "격자무늬 256 잡는 칸": MESH_FAR.theirs.cells,
+    "격자무늬 256 할당 칸": MESH_FAR.theirs.cells,
     "흩어 놓은 길이 16 기본 연산": ops(SHORT.theirs),
-    "흩어 놓은 길이 16 잡는 칸": SHORT.theirs.cells,
+    "흩어 놓은 길이 16 할당 칸": SHORT.theirs.cells,
     "흩어 놓은 길이 2048 기본 연산": ops(LONG_IN.theirs),
     "흩어 놓은 길이 4096 기본 연산": ops(LONG_OUT.theirs),
   }),

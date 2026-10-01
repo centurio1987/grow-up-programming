@@ -1584,20 +1584,20 @@ function altOps(): string {
 }
 
 function altCells(): string {
-  const flip = bench("경계 · 저장 칸이 뒤집히는 간선 수");
+  const flip = bench("경계 · 추가 칸이 뒤집히는 간선 수");
   const rows = [199, 19_900].map((e) => {
-    const k = bench(`${KRUSKAL} · E=${e} 저장 칸`);
-    const p = bench(`${PRIM} · E=${e} 저장 칸`);
+    const k = bench(`${KRUSKAL} · E=${e} 추가 칸`);
+    const p = bench(`${PRIM} · E=${e} 추가 칸`);
     return [`E = ${comma(e)}`, comma(k), comma(p), k < p ? "크러스컬" : "프림"];
   });
   return [
     md(
-      ["정점 200 · 간선 수", "크러스컬 저장 칸", "프림 저장 칸", "적은 쪽"],
+      ["정점 200 · 간선 수", "크러스컬 추가 칸", "프림 추가 칸", "적은 쪽"],
       rows,
       [1, 2],
     ),
     "",
-    `크러스컬의 저장 칸 3E + 2V 가 프림의 V² + 2V 를 처음 넘는 간선 수는 ${comma(flip)} 개입니다.`,
+    `크러스컬의 추가 칸 3E + 2V 가 프림의 V² + 2V 를 처음 넘는 간선 수는 ${comma(flip)} 개입니다.`,
   ].join("\n");
 }
 

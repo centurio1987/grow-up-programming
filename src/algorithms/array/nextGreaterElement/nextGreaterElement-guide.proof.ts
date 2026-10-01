@@ -3,7 +3,7 @@
  *
  * 값을 여기 적지 않는다 — **정본(`.ref.ts`)을 부르고, 변이는 그 소스에서 기계로 만든다.** 정본이 읽은 칸의
  * 기록(`run` · `count`)과 걸음(`WALK_STEPS`)은 그림 사이드카가 만든 것을 그대로 받는다 — 그림과 표가 같은
- * 기록을 쓴다. 비용은 원고 전체가 한 기준으로 센다 — **배열 접근 수**(읽기 + 쓰기)이고, 세는 규칙은 그림
+ * 기록을 쓴다. 비용은 원고 전체가 한 기준으로 센다 — **칸 접근 수**(읽기 + 쓰기)이고, 세는 규칙은 그림
  * 사이드카의 `count` 머리 주석에 있다.
  *
  *   bun run tools/check-proof.ts src/algorithms/array/nextGreaterElement/nextGreaterElement-guide.md
@@ -328,8 +328,8 @@ export const PROOFS: Record<string, () => string> = {
       md(
         [
           "N",
-          "차례로 읽기의 배열 접근",
-          "이 글이 만들 절차의 배열 접근",
+          "차례로 읽기의 칸 접근",
+          "이 글이 만들 절차의 칸 접근",
           "차례로 읽기의 시간(초당 1 억 번)",
         ],
         rows,
@@ -429,7 +429,7 @@ export const PROOFS: Record<string, () => string> = {
     rows.push(["전부 · 아래까지 비교", num(all.acc), num(all.wrong)]);
     const deep = leastKeep(deepInput(BIG_N));
     return block(
-      md(["남기는 자리 수", "배열 접근", "틀린 자리"], rows, [1, 2]),
+      md(["남기는 자리 수", "칸 접근", "틀린 자리"], rows, [1, 2]),
       `입력은 nums[i] = (7919 i) mod 1009 인 ${num(BIG_N)} 칸이고, 틀린 자리가 0 이 되는 것은 ${leastKeep(BIG)} 부터입니다. 감소 수열 ${num(BIG_N - 1)} 칸 뒤에 가장 큰 값 하나를 둔 입력에서는 ${num(deep)} 부터입니다.`,
     );
   },
@@ -920,9 +920,9 @@ export const PROOFS: Record<string, () => string> = {
     const s = cases["단조 스택"]();
     const t = cases["구간 최댓값 트리"]();
     const keys = [
-      ["질의 53 개", "갱신 0 회 · 질의 53 개 배열 접근"],
-      ["질의 54 개", "갱신 0 회 · 질의 54 개 배열 접근"],
-      ["질의 4,096 개", "갱신 0 회 · 질의 4,096 개 배열 접근"],
+      ["질의 53 개", "갱신 0 회 · 질의 53 개 칸 접근"],
+      ["질의 54 개", "갱신 0 회 · 질의 54 개 칸 접근"],
+      ["질의 4,096 개", "갱신 0 회 · 질의 4,096 개 칸 접근"],
     ] as const;
     return md(
       ["갱신 0 회", "단조 스택", "구간 최댓값 트리", "적은 쪽"],
@@ -940,10 +940,10 @@ export const PROOFS: Record<string, () => string> = {
     const s = cases["단조 스택"]();
     const t = cases["구간 최댓값 트리"]();
     const keys = [
-      ["갱신 0 회", "질의 1,024 개 · 갱신 0 회 배열 접근"],
-      ["갱신 2 회", "질의 1,024 개 · 갱신 2 회 배열 접근"],
-      ["갱신 3 회", "질의 1,024 개 · 갱신 3 회 배열 접근"],
-      ["갱신 1,024 회", "질의 1,024 개 · 갱신 1,024 회 배열 접근"],
+      ["갱신 0 회", "질의 1,024 개 · 갱신 0 회 칸 접근"],
+      ["갱신 2 회", "질의 1,024 개 · 갱신 2 회 칸 접근"],
+      ["갱신 3 회", "질의 1,024 개 · 갱신 3 회 칸 접근"],
+      ["갱신 1,024 회", "질의 1,024 개 · 갱신 1,024 회 칸 접근"],
     ] as const;
     const cellsS = s["추가 칸"] as number;
     return block(
@@ -956,7 +956,7 @@ export const PROOFS: Record<string, () => string> = {
         }),
         [1, 2],
       ),
-      `추가로 잡는 칸은 단조 스택이 ${num(cellsS)} 칸(답 배열 ${num(BIG_N)} 칸 + 단조 스택이 가장 깊었을 때 ${num(cellsS - BIG_N)} 칸), 구간 최댓값 트리가 ${num(t["추가 칸"] as number)} 칸입니다.`,
+      `추가 칸은 단조 스택이 ${num(cellsS)} 칸(답 배열 ${num(BIG_N)} 칸 + 단조 스택이 가장 깊었을 때 ${num(cellsS - BIG_N)} 칸), 구간 최댓값 트리가 ${num(t["추가 칸"] as number)} 칸입니다. 두 설계 모두 입력 사본은 넣지 않았고, 트리를 내려가는 재귀 스택도 넣지 않았어요.`,
     );
   },
 
@@ -968,9 +968,9 @@ export const PROOFS: Record<string, () => string> = {
     const buildT = treeAccesses(0, 0).acc;
     const queryS = 1;
     const queryT =
-      ((t["갱신 0 회 · 질의 53 개 배열 접근"] as number) - buildT) / 53;
-    const u0 = "질의 1,024 개 · 갱신 0 회 배열 접근";
-    const u2 = "질의 1,024 개 · 갱신 2 회 배열 접근";
+      ((t["갱신 0 회 · 질의 53 개 칸 접근"] as number) - buildT) / 53;
+    const u0 = "질의 1,024 개 · 갱신 0 회 칸 접근";
+    const u2 = "질의 1,024 개 · 갱신 2 회 칸 접근";
     const updS = ((s[u2] as number) - (s[u0] as number)) / 2;
     const updT = ((t[u2] as number) - (t[u0] as number)) / 2;
     const qCross = ((buildS - buildT) / (queryT - queryS)).toFixed(1);
@@ -1080,7 +1080,7 @@ export const PROOFS: Record<string, () => string> = {
         rows,
         [0, 1, 2, 3, 4],
       ),
-      `여덟 줄 모두 차이가 0 입니다. N = ${num(TASK_N)} 이면 H_N = ${h.toFixed(4)} 이고, 평균 배열 접근 8N − 5·H_N 은 ${num(Math.round((8 * TASK_N - 5 * h) * 10) / 10)} 번, 최악 8N − 7 은 ${num(8 * TASK_N - 7)} 번으로 둘의 차이가 ${(5 * h - 7).toFixed(1)} 번입니다.`,
+      `여덟 줄 모두 차이가 0 입니다. N = ${num(TASK_N)} 이면 H_N = ${h.toFixed(4)} 이고, 평균 칸 접근 8N − 5·H_N 은 ${num(Math.round((8 * TASK_N - 5 * h) * 10) / 10)} 번, 최악 8N − 7 은 ${num(8 * TASK_N - 7)} 번으로 둘의 차이가 ${(5 * h - 7).toFixed(1)} 번입니다.`,
     );
   },
 
@@ -1229,7 +1229,7 @@ export const PROOFS: Record<string, () => string> = {
       ["합", "", "3N + 3P + 2B", num(c.acc)],
     ];
     return block(
-      md(["갈래", "걸음", "식", "배열 접근"], rows, [3]),
+      md(["갈래", "걸음", "식", "칸 접근"], rows, [3]),
       `전개는 N = ${n} · P = ${c.pops} · B = ${c.stops} 이라 식에 넣으면 ${3 * n} + ${3 * c.pops} + ${2 * c.stops} = ${c.acc} 번입니다. 같은 입력을 자리마다 오른쪽을 차례로 읽어 처리하면 ${s.acc} 번입니다.`,
     );
   },
@@ -1242,7 +1242,7 @@ export const PROOFS: Record<string, () => string> = {
     const h = harmonic(n);
     return block(
       md(
-        ["입력", "P", "B", "배열 접근"],
+        ["입력", "P", "B", "칸 접근"],
         [
           ["감소 수열", num(least.pops), num(least.stops), num(least.acc)],
           [
@@ -1296,7 +1296,7 @@ export const PROOFS: Record<string, () => string> = {
           "멈춘 걸음 B",
           "남은 자리 S",
           "3N + 3P + 2B",
-          "실측 배열 접근",
+          "실측 칸 접근",
         ],
         counted.map(({ name, c }) => [
           name,
@@ -1333,7 +1333,7 @@ export const PROOFS: Record<string, () => string> = {
           ];
         }),
       ),
-      `입력은 ${show(xs)} 입니다. 꺼낸 횟수 P = ${c.pops} = N − 1 이고, 멈춘 걸음 B = ${c.stops} = N − 2 입니다. 배열 접근은 ${c.acc} = 8·8 − 7 번입니다.`,
+      `입력은 ${show(xs)} 입니다. 꺼낸 횟수 P = ${c.pops} = N − 1 이고, 멈춘 걸음 B = ${c.stops} = N − 2 입니다. 칸 접근은 ${c.acc} = 8·8 − 7 번입니다.`,
     );
   },
 

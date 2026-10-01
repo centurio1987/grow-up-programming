@@ -27,7 +27,10 @@ export const SORTED: number[] = Array.from({ length: 64 }, (_, i) => i);
 interface Counts {
   /** 두 값을 견준 횟수. */
   compares: number;
-  /** 새로 잡은 배열 칸의 총합. 결과 배열과 중간 배열을 모두 센다. */
+  /**
+   * 할당 칸 — 입력 밖에 새로 잡은 배열 칸을 잡을 때마다 더한 누적 합. 병합 정렬은 조각으로 잘라 담은
+   * 칸과 합친 결과를 담은 칸을 모두 세고, 퀵 정렬은 원본을 지키려고 잡는 복사본 하나를 센다.
+   */
   cells: number;
 }
 
@@ -106,7 +109,7 @@ function counts(sort: (A: number[]) => Counts): Record<string, number> {
     "여섯 칸 입력 비교": sort(SIX).compares,
     "뒤섞인 입력 비교": sort(SHUFFLED).compares,
     "정렬된 입력 비교": sort(SORTED).compares,
-    "뒤섞인 입력 새로 잡는 칸": sort(SHUFFLED).cells,
+    "뒤섞인 입력 할당 칸": sort(SHUFFLED).cells,
   };
 }
 

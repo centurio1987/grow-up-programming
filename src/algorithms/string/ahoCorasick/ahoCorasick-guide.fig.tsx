@@ -605,7 +605,7 @@ export const FIGS: Record<string, () => ReactElement> = {
     });
     return (
       <NodeGraph
-        title="실패 링크를 전부 뿌리로 둔 자동자 — 강조한 셋이 정본과 다르다"
+        title="실패 링크를 전부 뿌리로 둔 아호–코라식 자동자 — 강조한 셋이 정본과 다르다"
         unit={TREE_UNIT}
         nodes={g.nodes}
         edges={g.edges}

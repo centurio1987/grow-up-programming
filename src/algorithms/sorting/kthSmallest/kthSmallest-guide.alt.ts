@@ -132,7 +132,8 @@ function medianOfMedians(
     insertionRange(a, s, e, c);
     medians.push(a[s + ((e - s) >> 1)] as number);
   }
-  // 중앙값을 모으는 배열이 이 설계가 새로 잡는 칸이다.
+  // 중앙값을 모으는 배열이 이 설계가 새로 잡는 칸이다. 재귀마다 더하므로 할당 칸(누적 합)이다.
+  // 두 설계가 똑같이 뜨는 입력 사본은 넣지 않는다.
   c.cells += medians.length;
   return selectValue(medians, (medians.length - 1) >> 1, c);
 }
@@ -190,7 +191,7 @@ const measure = (
   return c;
 };
 
-/** 두 설계를 같은 입력에 걸어 비교 횟수와 새로 잡는 칸을 센다 — 본문의 뒤집힘 자리를 재는 데 쓴다. */
+/** 두 설계를 같은 입력에 걸어 비교와 할당 칸을 센다 — 본문의 뒤집힘 자리를 재는 데 쓴다. */
 export function compareDesigns(
   src: number[],
   k: number,
@@ -206,20 +207,20 @@ export const cases = {
     const s = measure(guideSelect, SHUFFLED, SHUFFLED_K);
     const w = measure(guideSelect, WORST, WORST_K);
     return {
-      "뒤섞인 입력 비교 횟수": s.cmp,
-      "최악 입력 비교 횟수": w.cmp,
-      "뒤섞인 입력 새로 잡는 칸": s.cells,
-      "최악 입력 새로 잡는 칸": w.cells,
+      "뒤섞인 입력 비교": s.cmp,
+      "최악 입력 비교": w.cmp,
+      "뒤섞인 입력 할당 칸": s.cells,
+      "최악 입력 할당 칸": w.cells,
     };
   },
   "중앙값의 중앙값": (): Record<string, number> => {
     const s = measure(momSelect, SHUFFLED, SHUFFLED_K);
     const w = measure(momSelect, WORST, WORST_K);
     return {
-      "뒤섞인 입력 비교 횟수": s.cmp,
-      "최악 입력 비교 횟수": w.cmp,
-      "뒤섞인 입력 새로 잡는 칸": s.cells,
-      "최악 입력 새로 잡는 칸": w.cells,
+      "뒤섞인 입력 비교": s.cmp,
+      "최악 입력 비교": w.cmp,
+      "뒤섞인 입력 할당 칸": s.cells,
+      "최악 입력 할당 칸": w.cells,
     };
   },
 };

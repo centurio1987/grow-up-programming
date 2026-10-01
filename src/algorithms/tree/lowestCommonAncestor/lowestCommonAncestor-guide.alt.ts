@@ -2,8 +2,8 @@
  * `purpose.alt` 가 인용하는 수치의 출처 — L13. 세는 사본들이 여기 모여 있고
  * `<name>-guide.proof.ts` 도 이 파일을 가져다 쓴다 — 계수 모델이 두 벌이면 갈라진다.
  *
- * **같은 트리·같은 질의 목록**에 두 설계를 걸고 **결정론적 계수**만 센다. 세는 것은 **배열 칸
- * 접근**(배열의 한 칸을 읽거나 쓰는 것 하나)과 **저장 칸**이다. 벽시계·처리량은 실행마다 달라
+ * **같은 트리·같은 질의 목록**에 두 설계를 걸고 **결정론적 계수**만 센다. 세는 것은 **칸
+ * 접근**(배열의 한 칸을 읽거나 쓰는 것 하나)과 **추가 칸**이다. 벽시계·처리량은 실행마다 달라
  * "본문의 수치가 실측과 일치하는가"(P10)를 정의할 수 없다.
  *
  *   bun run ../../../../tools/bench-alt.ts lowestCommonAncestor-guide.alt.ts
@@ -120,7 +120,7 @@ function assertSame(
 /* ────────────────────── 이 가이드가 가르치는 절차 ────────────────────── */
 
 /**
- * 정본과 같은 절차에 **배열 칸 접근**과 **정점을 위로 옮긴 횟수**만 덧붙인 사본.
+ * 정본과 같은 절차에 **칸 접근**과 **정점을 위로 옮긴 횟수**만 덧붙인 사본.
  *
  * 세는 것은 `near`·`depth`·`anc`·`seen`·`stack` 의 한 칸을 읽거나 쓰는 것 하나다.
  */
@@ -222,7 +222,7 @@ export function liftCounted(
 }
 
 /**
- * 한 칸씩 부모로 오르는 방법에 **배열 칸 접근**을 덧붙인 사본. 준비는 `liftCounted` 와 같은 기준으로
+ * 한 칸씩 부모로 오르는 방법에 **칸 접근**을 덧붙인 사본. 준비는 `liftCounted` 와 같은 기준으로
  * 센다 — 부모를 `anc` 의 0 층 대신 `parent` 배열에 적고, 층을 쌓는 칸이 없다.
  *
  * 질의 하나는 두 정점이 같아질 때까지 한 번에 한 칸씩 올라간다. 한 번 오를 때 `depth` 두 칸과
@@ -407,9 +407,9 @@ export const cases = {
     const out: Record<string, number> = {};
     for (const q of BENCH_QUERY_COUNTS) {
       const got = liftCounted(BENCH_N, BENCH_EDGES, 0, queries(BENCH_N, q));
-      out[`질의 ${q.toLocaleString("en-US")} 회 · 배열 칸`] =
+      out[`질의 ${q.toLocaleString("en-US")} 회 · 칸 접근`] =
         got.setup + got.query;
-      if (q === 0) out["저장 칸"] = got.cells;
+      if (q === 0) out["추가 칸"] = got.cells;
     }
     return out;
   },
@@ -417,9 +417,9 @@ export const cases = {
     const out: Record<string, number> = {};
     for (const q of BENCH_QUERY_COUNTS) {
       const got = eulerSparse(BENCH_N, BENCH_EDGES, 0, queries(BENCH_N, q));
-      out[`질의 ${q.toLocaleString("en-US")} 회 · 배열 칸`] =
+      out[`질의 ${q.toLocaleString("en-US")} 회 · 칸 접근`] =
         got.setup + got.query;
-      if (q === 0) out["저장 칸"] = got.cells;
+      if (q === 0) out["추가 칸"] = got.cells;
     }
     return out;
   },

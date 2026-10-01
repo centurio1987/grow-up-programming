@@ -1148,7 +1148,7 @@ export const PROOFS: Record<string, () => string> = {
     return md(["읽은 접두사", "남은 후보 단어", "후보 수"], rows, [2]);
   },
 
-  /** `purpose.alt` — 저장 칸이 뒤집히는 공유 길이를 스윕으로 찾는다. */
+  /** `purpose.alt` — 추가 칸이 뒤집히는 공유 길이를 스윕으로 찾는다. */
   altCells: () => {
     const shares = [0, 20, 40, 46, 47, 48, 49, 60, 90];
     let flip = -1;
@@ -1167,7 +1167,7 @@ export const PROOFS: Record<string, () => string> = {
     });
     return [
       md(
-        ["공통 접두사 길이", "트라이 저장 칸", "정렬 배열 저장 칸", "적은 쪽"],
+        ["공통 접두사 길이", "트라이 추가 칸", "정렬 배열 추가 칸", "적은 쪽"],
         rows,
         [0, 1, 2],
       ),
@@ -1286,7 +1286,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `perf.derive` — 전개의 걸음으로 기본 연산을 센다. */
+  /** `perf.derive` — 전개의 걸음으로 자료 접근을 센다. */
   perfCount: () => {
     const root = node();
     let lookups = 0;
@@ -1346,7 +1346,7 @@ export const PROOFS: Record<string, () => string> = {
     const V = countNodes(root);
     return [
       md(
-        ["연산", "자식 맵 조회", "노드 생성", "끝 표시 읽기·쓰기", "기본 연산"],
+        ["연산", "자식 맵 조회", "노드 생성", "끝 표시 읽기·쓰기", "자료 접근"],
         rows,
         [1, 2, 3, 4],
       ),
@@ -1393,7 +1393,7 @@ export const PROOFS: Record<string, () => string> = {
         "단어 수",
         "길이 합",
         "노드 수",
-        "잡는 칸 2V − 1",
+        "추가 칸 2V − 1",
         "가장 긴 조회가 읽은 글자",
       ],
       rows,

@@ -319,13 +319,13 @@ function conceptGraph(): ReactElement {
   );
 }
 
-/** 알아 두면 좋은 개념 — 끝까지 가른 나무 간선과 여분 간선. */
+/** 알아 두면 좋은 개념 — 끝까지 가른 나무 간선과 나무 밖 간선. */
 function relatedExtra(): ReactElement {
   const isTree = walkTreeEdges();
   const extra = isTree.filter((t) => !t).length;
   return (
     <NodeGraph
-      title={`전개 입력의 간선 ${WALK_EDGES.length} 개 — 굵은 실선이 나무 간선 ${WALK_EDGES.length - extra} 개, 대시가 여분 간선 ${extra} 개`}
+      title={`전개 입력의 간선 ${WALK_EDGES.length} 개 — 굵은 실선이 나무 간선 ${WALK_EDGES.length - extra} 개, 대시가 나무 밖 간선 ${extra} 개`}
       directed={false}
       nodes={LAYOUT.nodes}
       edges={WALK_EDGES.map(([from, to], i) => ({

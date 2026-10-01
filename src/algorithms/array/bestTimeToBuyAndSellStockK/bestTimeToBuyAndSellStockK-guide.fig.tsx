@@ -306,7 +306,7 @@ export interface Counted {
   readonly answer: number;
   /** 덧셈·뺄셈 횟수. */
   readonly adds: number;
-  /** 비교 횟수. */
+  /** 비교. */
   readonly cmps: number;
   /** 만든 거래 조합의 수(조합 열거에만 있다). */
   readonly sets: number;

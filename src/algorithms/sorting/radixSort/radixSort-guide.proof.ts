@@ -4,7 +4,7 @@
  * 값을 여기 적지 않는다 — **정본(`.ref.ts`)을 부르고, 변이는 그 소스에서 기계로 만든다.**
  * 값을 적어 넣으면 대조가 자기 자신과의 대조가 되고, 그때 이 파일은 아무것도 증명하지 않는다.
  * 바퀴 안의 걸음 하나하나는 그림 사이드카의 `run`(정본 소스에서 기계로 만든 계측 사본과 놓기마다
- * 대조한 기록)에서 받는다 — 그림과 표가 같은 기록을 쓴다. 배열 접근 수는 `.alt.ts` 의 계측 사본
+ * 대조한 기록)에서 받는다 — 그림과 표가 같은 기록을 쓴다. 칸 접근 수는 `.alt.ts` 의 계측 사본
  * `radixCounts` 에서 받고, 그 사본의 답과 닫힌 형태를 여기서 정본 실행과 대조한다.
  *
  *   bun run tools/check-proof.ts src/algorithms/sorting/radixSort/radixSort-guide.md
@@ -118,7 +118,7 @@ for (const A of [WALK, ...REPO_CASES, spread(500)]) {
   }
 }
 
-// ② 배열 접근의 닫힌 형태 `4N + d(7N + 4B − 3)` 이 계측과 같은가. 본문이 이 식으로 값을 낸다.
+// ② 칸 접근의 닫힌 형태 `4N + d(7N + 4B − 3)` 이 계측과 같은가. 본문이 이 식으로 값을 낸다.
 const wide = (n: number): number[] => {
   const A = spread(n);
   if (n > 0) A[0] = MAX_VALUE;
@@ -187,7 +187,7 @@ function conceptCost(): string {
     [`생성식 ${num(BIG)} 칸`, spread(BIG)],
   ];
   return md(
-    ["입력", "최댓값", "바퀴", "비교", "배열 접근"],
+    ["입력", "최댓값", "바퀴", "비교", "칸 접근"],
     rows.map(([name, A]) => {
       const c = radixCounts(A);
       return [
@@ -229,13 +229,7 @@ const SPLIT: [string, number[]][] = [
 
 function originWide(): string {
   const table = md(
-    [
-      "입력",
-      "최댓값",
-      "count 칸 수",
-      "배열 접근",
-      "count 의 메모리(8 바이트씩)",
-    ],
+    ["입력", "최댓값", "count 칸 수", "칸 접근", "count 의 메모리(8 바이트씩)"],
     SPLIT.map(([name, A]) => {
       const m = maxOf(A);
       const k = m + 1;
@@ -264,9 +258,9 @@ function originSplit(): string {
     [
       "입력",
       "값 그대로 — count 칸 수",
-      "값 그대로 — 배열 접근",
+      "값 그대로 — 칸 접근",
       "자리로 쪼갬 — 바퀴",
-      "자리로 쪼갬 — 배열 접근",
+      "자리로 쪼갬 — 칸 접근",
     ],
     SPLIT.map(([name, A]) => {
       const m = maxOf(A);
@@ -734,7 +728,7 @@ function walkBranches(): string {
   const access = radixCounts(WALK).access;
   return proofTable(
     table,
-    `반환값은 ${show(WALK_T.out)} 이고 입력 A 는 ${show(WALK)} 그대로입니다. 배열 접근은 ${num(access)} 번, 비교는 ${radixCounts(WALK).compares} 번입니다.`,
+    `반환값은 ${show(WALK_T.out)} 이고 입력 A 는 ${show(WALK)} 그대로입니다. 칸 접근은 ${num(access)} 번, 비교는 ${radixCounts(WALK).compares} 번입니다.`,
   );
 }
 
@@ -1037,7 +1031,7 @@ function perfDerive(): string {
       ],
       [2],
     ),
-    `바퀴가 ${d} 번이라 ${num(d * per)} 번이고, 준비(사본 · dst 초기화 · 최댓값 찾기)가 4N = ${num(prep)} 번 더 들어 합이 ${num(total)} 번입니다. 계측한 배열 접근과 같습니다. 칸 만들기와 누적합만 한 바퀴 ${num(fixed)} 번으로, 원소를 세고 놓는 ${num(moving)} 번의 ${Math.floor(fixed / moving)} 배가 넘습니다.`,
+    `바퀴가 ${d} 번이라 ${num(d * per)} 번이고, 준비(사본 · dst 초기화 · 최댓값 찾기)가 4N = ${num(prep)} 번 더 들어 합이 ${num(total)} 번입니다. 계측한 칸 접근과 같습니다. 칸 만들기와 누적합만 한 바퀴 ${num(fixed)} 번으로, 원소를 세고 놓는 ${num(moving)} 번의 ${Math.floor(fixed / moving)} 배가 넘습니다.`,
   );
 }
 
@@ -1070,8 +1064,8 @@ function worstTable(): string {
   const a = radixCounts(WORST[0]?.[1] as number[]).access;
   const b = radixCounts(WORST[2]?.[1] as number[]).access;
   return proofTable(
-    md(["입력", "바퀴 수", "배열 접근", "원소당 접근"], rows, [1, 2, 3]),
-    `전개 입력의 배치 ${num(arr.length)} 가지는 배열 접근이 전부 ${num(accesses[0] as number)} 번으로 같습니다. 일곱 칸 중 최댓값 하나만 255 에서 10^9 으로 바꾸면 바퀴가 1 에서 4 로 늘어 접근이 ${num(a)} 번에서 ${num(b)} 번, ${ratio(b, a, 1)} 배가 됩니다.`,
+    md(["입력", "바퀴 수", "칸 접근", "원소당 접근"], rows, [1, 2, 3]),
+    `전개 입력의 배치 ${num(arr.length)} 가지는 칸 접근이 전부 ${num(accesses[0] as number)} 번으로 같습니다. 일곱 칸 중 최댓값 하나만 255 에서 10^9 으로 바꾸면 바퀴가 1 에서 4 로 늘어 접근이 ${num(a)} 번에서 ${num(b)} 번, ${ratio(b, a, 1)} 배가 됩니다.`,
   );
 }
 
@@ -1177,7 +1171,7 @@ function mathTotal(): string {
     ["바퀴 하나", `7 × ${n} + 4 × ${BASE} − 3`, num(per)],
     [`바퀴 ${d} 번`, `${d} × ${num(per)}`, num(d * per)],
     [
-      `합 ${num(4 * n + d * per)} — 전개 입력을 계측한 배열 접근 ${num(radixCounts(WALK).access)} 과 같다`,
+      `합 ${num(4 * n + d * per)} — 전개 입력을 계측한 칸 접근 ${num(radixCounts(WALK).access)} 과 같다`,
     ],
   ]);
 }

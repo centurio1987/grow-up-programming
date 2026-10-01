@@ -47,7 +47,7 @@ export const WALK = [4, 1, 5, 2, 6, 3];
 /** 과제 규모 — 칸 수 `N` 의 상한. */
 export const N_MAX = 100_000;
 
-/** 어림 시간의 기준 — 1 초에 배열 칸 접근 1 억 번. */
+/** 어림 시간의 기준 — 1 초에 칸 접근 1 억 번. */
 export const PER_SECOND = 100_000_000;
 
 export const num = (x: number | bigint): string => x.toLocaleString("en-US");

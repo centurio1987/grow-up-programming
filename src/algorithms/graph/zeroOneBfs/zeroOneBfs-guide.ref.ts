@@ -48,10 +48,10 @@ export function zeroOneBfs(n: number, edges: Edge[], source: number): number[] {
 
       dist[v] = nd;
       if (w === 0) {
-        // ② 값 0 — 거리가 그대로라 덱 앞에 넣는다.
+        // ② 가중치 0 — 거리가 그대로라 덱 앞에 넣는다.
         deque.pushFront(v);
       } else {
-        // ③ 값 1 — 거리가 하나 커져 덱 뒤에 넣는다.
+        // ③ 가중치 1 — 거리가 하나 커져 덱 뒤에 넣는다.
         deque.pushBack(v);
       }
     }

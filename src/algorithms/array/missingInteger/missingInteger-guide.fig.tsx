@@ -181,7 +181,7 @@ const tf = (b: boolean): string => (b ? "참" : "거짓");
 
 /* ───────────────── 「아이디어를 떠올리는 과정」의 시도 넷 ───────────────── */
 
-/** 1 부터 차례로, 배열 전체를 읽어 그 수가 있는지 본다 — 비교 횟수를 센다. */
+/** 1 부터 차례로, 배열 전체를 읽어 그 수가 있는지 본다 — 비교 수를 센다. */
 function naiveCompares(A: readonly number[]): number {
   let compares = 0;
   for (let x = 1; ; x++) {
@@ -263,7 +263,7 @@ export function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `n = ${num(N_MAX)} 에서 배열 접근 ${num(big.accesses)} 번`,
+          value: `n = ${num(N_MAX)} 에서 칸 접근 ${num(big.accesses)} 번`,
           ok: true,
         },
         {

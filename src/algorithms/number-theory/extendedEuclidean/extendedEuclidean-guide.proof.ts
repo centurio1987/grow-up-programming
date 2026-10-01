@@ -889,7 +889,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `purpose.alt` — 두 설계의 걸음 수와 기본 연산 수. */
+  /** `purpose.alt` — 두 설계의 나눗셈 횟수와 기본 연산 수. */
   "alt-counts": () => {
     const mine = cases["나머지를 0 이상으로 잡는 판"]();
     const rival = cases["최소 절댓값 나머지로 잡는 판"]();
@@ -899,8 +899,8 @@ export const PROOFS: Record<string, () => string> = {
       const rivalOps = rival[`${name} 기본 연산`] as number;
       return [
         name,
-        num(mine[`${name} 걸음`] as number),
-        num(rival[`${name} 걸음`] as number),
+        num(mine[`${name} 나눗셈`] as number),
+        num(rival[`${name} 나눗셈`] as number),
         num(mineOps),
         num(rivalOps),
         mineOps < rivalOps ? "나머지 판" : "중심 판",
@@ -910,8 +910,8 @@ export const PROOFS: Record<string, () => string> = {
       md(
         [
           "입력",
-          "나머지 판 걸음",
-          "중심 판 걸음",
+          "나머지 판 나눗셈",
+          "중심 판 나눗셈",
           "나머지 판 기본 연산",
           "중심 판 기본 연산",
           "기본 연산이 적은 쪽",
@@ -924,14 +924,14 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `purpose.alt` — 기본 연산을 걸음 수로 풀어 적는다. */
+  /** `purpose.alt` — 기본 연산을 나눗셈 횟수로 풀어 적는다. */
   altFormula: () => {
     const mine = cases["나머지를 0 이상으로 잡는 판"]();
     const rival = cases["최소 절댓값 나머지로 잡는 판"]();
     const names = ["전개 입력", "피보나치 이웃", "펠 수열 이웃", "큰 소수 쌍"];
     const rows = names.map((name) => {
-      const n = mine[`${name} 걸음`] as number;
-      const m = rival[`${name} 걸음`] as number;
+      const n = mine[`${name} 나눗셈`] as number;
+      const m = rival[`${name} 나눗셈`] as number;
       const mineOps = mine[`${name} 기본 연산`] as number;
       const rivalOps = rival[`${name} 기본 연산`] as number;
       if (mineOps !== 14 * n + 1) {
@@ -939,7 +939,7 @@ export const PROOFS: Record<string, () => string> = {
       }
       const j = (rivalOps - 17 * m - 2) / 4;
       if (!Number.isInteger(j) || j < 0 || j > m) {
-        throw new Error(`${name} — 옮긴 걸음이 0 이상 M 이하의 정수가 아니다`);
+        throw new Error(`${name} — 옮긴 바퀴가 0 이상 M 이하의 정수가 아니다`);
       }
       return [
         name,
@@ -962,10 +962,10 @@ export const PROOFS: Record<string, () => string> = {
     const table = md(
       [
         "입력",
-        "나머지 판 걸음 N",
-        "중심 판 걸음 M",
+        "나머지 판 나눗셈 N",
+        "중심 판 나눗셈 M",
         "M / N",
-        "몫을 옮긴 걸음 J",
+        "몫을 옮긴 바퀴 J",
         "14N + 1",
         "17M + 4J + 2",
       ],

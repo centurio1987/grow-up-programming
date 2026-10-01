@@ -159,12 +159,13 @@ function counts(
   for (const k of POINTS) {
     out[`k=${k.toLocaleString("en-US")} 기본 연산`] = run(k);
   }
-  out["k=50,000 일 때 맵 밖에 더 잡는 칸"] = cells(50_000);
+  out["k=50,000 일 때 추가 칸"] = cells(50_000);
   return out;
 }
 
 export const cases = {
-  // 맵 밖에 더 잡는 칸 — 빈도 버킷 N+1 개와 버킷에 담긴 값 M 개. 힙은 항목 k 개다.
+  // 추가 칸 — 입력과 빈도 맵 밖에서 동시에 들고 있는 칸의 최댓값. 재지 않고 식으로 낸다.
+  // 빈도 버킷은 버킷 N+1 개와 버킷에 담긴 값 M 개(끝까지 함께 산다), 힙은 항목 k 개(한 항목을 1 칸)다.
   "빈도 버킷": () => counts(slotOps, () => N + 1 + countFreq().freq.size),
   "크기 k 최소 힙": () => counts(heapOps, (k) => k),
 };

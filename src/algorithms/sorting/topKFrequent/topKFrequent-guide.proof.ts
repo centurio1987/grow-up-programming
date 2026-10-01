@@ -11,6 +11,7 @@
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";
 import { 과와, 으로, 은는, 을를, 이가 } from "../../../../tools/josa.ts";
+import { cases } from "./topKFrequent-guide.alt.ts";
 import {
   BIG,
   BIG_N,
@@ -150,7 +151,59 @@ const finalBuckets = () => walkTrace().places.at(-1)?.buckets ?? [];
 const toNumber = (s: string | undefined): number =>
   Number((s ?? "").replaceAll(",", ""));
 
+/* ───────────────────────── purpose.alt ───────────────────────── */
+
+/** `.alt.ts` 가 낸 `k` 의 기본 연산. 없는 키면 멈춘다. */
+function altOps(design: keyof typeof cases, k: number): number {
+  const v = cases[design]()[`k=${num(k)} 기본 연산`];
+  if (v === undefined) throw new Error(`${design} 의 k=${k} 기본 연산이 없다`);
+  return v;
+}
+
+/** 두 설계의 기본 연산을 `k` 마다 한 줄로. 적은 쪽을 굵게, 「적은 쪽」 열은 비나 차로 적는다. */
+function altRows(ks: readonly number[], flip?: number): string {
+  const rows = ks.map((k) => {
+    const b = altOps("빈도 버킷", k);
+    const h = altOps("크기 k 최소 힙", k);
+    const ratio = (x: number, y: number) =>
+      (x / y).toLocaleString("en-US", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      });
+    const note =
+      k === flip
+        ? "**여기서 순서가 뒤집힙니다**"
+        : h < b
+          ? b - h < 1_000
+            ? `힙이 ${num(b - h)} 번 적습니다`
+            : `힙이 ${ratio(b, h)} 배 적습니다`
+          : `빈도 버킷이 ${ratio(h, b)} 배 적습니다`;
+    return [
+      num(k),
+      b < h ? `**${num(b)}**` : num(b),
+      h < b ? `**${num(h)}**` : num(h),
+      note,
+    ];
+  });
+  return md(["`k`", "빈도 버킷", "크기 `k` 최소 힙", "적은 쪽"], rows);
+}
+
 export const PROOFS: Record<string, () => string> = {
+  /** `purpose.alt` — `k` 가 작을 때 두 설계의 기본 연산과 비. */
+  "alt-small-k": () => altRows([1, 100, 1_000]),
+  /** `purpose.alt` — 경계 양쪽과 `k = 50,000` 의 기본 연산과 비. */
+  "alt-large-k": () => {
+    const flip = 4_300;
+    if (
+      !(
+        altOps("빈도 버킷", flip - 1) > altOps("크기 k 최소 힙", flip - 1) &&
+        altOps("빈도 버킷", flip) < altOps("크기 k 최소 힙", flip)
+      )
+    ) {
+      throw new Error("4,300 이 뒤집히는 자리가 아니다");
+    }
+    return altRows([4_299, flip, 50_000], flip);
+  },
   /** `concept` — 전개 입력과 규모를 키운 입력에서 기본 연산과 등장 횟수끼리의 비교. */
   "concept-cost": () => {
     const small = bucketCost(WALK, WALK_K);
@@ -278,12 +331,7 @@ export const PROOFS: Record<string, () => string> = {
     const top = freq.get(b.out[0] as number) as number;
     return [
       md(
-        [
-          "방법",
-          "기본 연산",
-          "그중 등장 횟수끼리의 비교",
-          "맵 밖에 더 잡는 칸",
-        ],
+        ["방법", "기본 연산", "그중 등장 횟수끼리의 비교", "추가 칸"],
         [
           [
             "맵에 세고 전부 줄 세우기",

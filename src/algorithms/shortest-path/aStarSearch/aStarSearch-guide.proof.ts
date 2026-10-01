@@ -23,7 +23,7 @@
  *
  * **기본 연산** 은 힙 안에서 키를 한 번 비교한 것 · 간선 하나를 완화해 본 것 · 추정 함수를 한 번
  * 부른 것을 각각 하나로 센 합이다. `purpose.alt` 의 `.alt.ts` 가 같은 기준으로 세고, 전개 입력에서
- * 두 쪽의 값이 같은지 이 파일이 확인한다. **저장 칸** 은 비용 배열 `V` 칸과 힙이 가장 커졌을 때의
+ * 두 쪽의 값이 같은지 이 파일이 확인한다. **추가 칸** 은 비용 배열 `V` 칸과 힙이 가장 커졌을 때의
  * 항목 수의 합이다. 간선 목록을 이웃 목록으로 옮기는 몫(`E` 칸 · `E` 번)은 두 잣대 어디에도 넣지
  * 않고 따로 적는다.
  */
@@ -1839,6 +1839,34 @@ function walkResult(): string {
   ].join("\n");
 }
 
+/** purpose.alt — 순서가 뒤집히는 자리와 두 배수. 비는 `.alt.ts` 의 기본 연산에서 소수 한 자리로 반올림해 낸다. */
+function altFlip(): string {
+  const mine = altCases["이 가이드의 절차"]();
+  const rival = altCases["양방향 다익스트라"]();
+  const edge = altCases.경계();
+  const last = edge["양방향이 마지막으로 앞선 비율"];
+  const worst = edge["이 절차의 기본 연산이 가장 큰 비율"];
+  const at = (who: Record<string, number>, p: number | string): number =>
+    who[`격자 · 추정 ${p}% · 기본 연산`] as number;
+  const b = at(rival, 100);
+  for (const p of [0, worst, last, last + 1]) {
+    if (at(rival, p) !== b)
+      throw new Error("양방향의 계수가 추정에 따라 달라졌다");
+  }
+  const x = (a: number, c: number): string => (a / c).toFixed(1);
+  const before = at(mine, last);
+  const after = at(mine, last + 1);
+  const full = at(mine, 100);
+  const zero = at(mine, 0);
+  const peak = at(mine, worst);
+  return (
+    `**순서가 뒤집힙니다.** 정확한 추정을 받은 정점이 ${last}% 일 때는 ${comma(before)} 대 ${comma(b)}${으로(comma(b))} 양방향이 적은데, ` +
+    `${last + 1}% 가 되면 ${comma(after)} 대 ${comma(b)}${으로(comma(b))} 이 절차가 적고, 100% 에서는 ${comma(full)} 대 ${comma(b)}${으로(comma(b))} ${x(b, full)} 배까지 벌어져요. ` +
+    "표에 적은 것은 「처음 뒤집히는 자리」가 아니라 「양방향이 마지막으로 적었던 자리」입니다. 이 절차의 계수가 정보량을 따라 한쪽으로만 움직이지 않기 때문이에요 — " +
+    `${worst}% 자리에서 ${comma(peak)}${으로(comma(peak))} 0% 자리의 ${x(peak, zero)} 배가 되는 구간이 있습니다(${last}% 와 ${worst}% 는 \`bench-alt\` 가 0% 부터 100% 까지 1% 씩 재서 고른 자리입니다).`
+  );
+}
+
 function altAdjacency(): string {
   const mine = altCases["이 가이드의 절차"]();
   const rival = altCases["양방향 다익스트라"]();
@@ -2411,6 +2439,7 @@ export const PROOFS: Record<string, () => string> = {
   "pause-closed": pauseClosed,
   "pause-closed-where": pauseClosedWhere,
   "walk-result": walkResult,
+  "alt-flip": altFlip,
   "alt-adjacency": altAdjacency,
   "math-consistent": mathConsistent,
   "math-reweight": mathReweight,

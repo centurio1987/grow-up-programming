@@ -62,7 +62,7 @@ function adjacency(n: number, edges: Edge[]): [number, number][][] {
  * 이 가이드의 절차. 정본(`dijkstra-guide.ref.ts`)과 같고 세는 자리만 덧붙였다.
  *
  * `기본 연산` 은 완화 시도 한 번과 힙에서 키를 견준 한 번을 각각 하나로 센다.
- * `저장 칸` 은 거리 배열 `V` 칸과 힙이 가장 커졌을 때의 항목 수를 더한 것이다.
+ * `추가 칸` 은 거리 배열 `V` 칸과 힙이 가장 커졌을 때의 항목 수를 더한 것이다.
  */
 function 이가이드의절차(
   n: number,
@@ -137,8 +137,11 @@ function 이가이드의절차(
  * 더 작아지는가」를 모든 `(k, i, j)` 에서 한 번씩 물어, 한 번의 실행으로 **모든 출발점**의
  * 답을 함께 만든다. 출발점 하나를 물으면 그 표의 한 줄을 읽으면 된다.
  *
- * `기본 연산` 은 삼중 루프 안의 견주기 한 번과 표를 세우며 칸을 채운 한 번을 각각 하나로
- * 센다. 출발점이 몇 개든 표는 한 번만 만든다 — 그래서 이 설계의 계수는 출발점 수와 무관하다.
+ * `기본 연산` 은 삼중 루프 안의 견주기 한 번 · 표를 세우며 칸을 채운 한 번(초기화 `V²` 와 간선
+ * 넣기) · 출발점마다 표의 한 줄을 읽은 칸 하나를 각각 하나로 센다. 표는 출발점이 몇 개든 한 번만
+ * 만들고, 출발점 하나가 더하는 것은 한 줄 읽기 `V` 뿐이다. `ik` 가 무한대라 건너뛴 줄은 비교를
+ * 하지 않았으므로 세지 않는다 — 2026-10-01 `KAN-062` 전까지는 그 줄에 `V` 를 통째로 더해 정의와
+ * 어긋났다. 밀집 입력에는 무한대 칸이 없어 전개 입력의 수만 바뀌었다.
  */
 function 플로이드워셜(
   n: number,
@@ -161,10 +164,7 @@ function 플로이드워셜(
     for (let i = 0; i < n; i++) {
       const rowI = best[i] as number[];
       const ik = rowI[k] as number;
-      if (ik === Number.POSITIVE_INFINITY) {
-        ops += n;
-        continue;
-      }
+      if (ik === Number.POSITIVE_INFINITY) continue;
       for (let j = 0; j < n; j++) {
         ops++;
         const through = ik + (rowK[j] as number);
@@ -238,7 +238,7 @@ function 재기(
     [`출발점 ${FLIP - 1} 개 · 기본 연산`]: before.ops,
     [`출발점 ${FLIP} 개 · 기본 연산`]: at.ops,
     "출발점 200 개 · 기본 연산": full.ops,
-    "저장 칸": full.cells,
+    "추가 칸": full.cells,
   };
 }
 

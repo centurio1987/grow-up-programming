@@ -86,6 +86,7 @@ function byFailureFunction(
       j = fail[j - 1] as number;
     }
   }
+  // 추가 칸 — 재지 않고 표 크기를 적는다: 실패 함수 표 m 칸. 입력과 답 배열 `found` 는 넣지 않는다.
   return { found, comparisons, cells: m };
 }
 
@@ -123,6 +124,7 @@ function byHorspool(
     if (k < 0) found.push(i);
     i += shift[text.charCodeAt(i + m - 1) - 97] as number;
   }
+  // 추가 칸 — 재지 않고 표 크기를 적는다: 옮김 표 σ(=26) 칸. 입력과 답 배열 `found` 는 넣지 않는다.
   return { found, comparisons, cells: ALPHABET.length };
 }
 
@@ -148,17 +150,17 @@ const S26 = measure(26);
 
 export const cases = {
   "실패 함수 방식": () => ({
-    "알파벳 1 비교 횟수": S1.mine.comparisons,
-    "알파벳 3 비교 횟수": S3.mine.comparisons,
-    "알파벳 4 비교 횟수": S4.mine.comparisons,
-    "알파벳 26 비교 횟수": S26.mine.comparisons,
-    "저장 칸": S26.mine.cells,
+    "알파벳 1 비교": S1.mine.comparisons,
+    "알파벳 3 비교": S3.mine.comparisons,
+    "알파벳 4 비교": S4.mine.comparisons,
+    "알파벳 26 비교": S26.mine.comparisons,
+    "추가 칸": S26.mine.cells,
   }),
   "호스풀 방식": () => ({
-    "알파벳 1 비교 횟수": S1.theirs.comparisons,
-    "알파벳 3 비교 횟수": S3.theirs.comparisons,
-    "알파벳 4 비교 횟수": S4.theirs.comparisons,
-    "알파벳 26 비교 횟수": S26.theirs.comparisons,
-    "저장 칸": S26.theirs.cells,
+    "알파벳 1 비교": S1.theirs.comparisons,
+    "알파벳 3 비교": S3.theirs.comparisons,
+    "알파벳 4 비교": S4.theirs.comparisons,
+    "알파벳 26 비교": S26.theirs.comparisons,
+    "추가 칸": S26.theirs.cells,
   }),
 };

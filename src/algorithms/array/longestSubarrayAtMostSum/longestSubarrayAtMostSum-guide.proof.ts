@@ -440,7 +440,7 @@ export const PROOFS: Record<string, () => string> = {
       ];
     });
     if (rewindBy(WALK, WALK_S, 0).ops !== refOps(WALK, WALK_S)) {
-      throw new Error("되돌림 폭 0 의 연산 수가 정본 계측과 다르다");
+      throw new Error("되돌림 폭 0 의 기본 연산이 정본 계측과 다르다");
     }
     const answers = new Set(rows.map((r) => r[2]));
     const least = rows.reduce((a, b) => (Number(b[1]) < Number(a[1]) ? b : a));
@@ -629,7 +629,7 @@ export const PROOFS: Record<string, () => string> = {
     );
   },
 
-  /** `deep.walk` 4 — 두 갈래가 어디서 실행됐는가와 연산 수. */
+  /** `deep.walk` 4 — 두 갈래가 어디서 실행됐는가와 기본 연산. */
   "walk-branches": () => {
     const t = walk();
     const one = t.rounds
@@ -926,7 +926,7 @@ export const PROOFS: Record<string, () => string> = {
     ]);
   },
 
-  /** `perf.bounds` — 제약 규모에서의 최악 연산 수. */
+  /** `perf.bounds` — 제약 규모에서의 최악 기본 연산. */
   "perf-total": () =>
     block([
       `n = ${num(N_MAX)} 이면 창의 합을 고치는 연산이 최대 ${num(worstOps(N_MAX))} 번, 추가 메모리는 입력 크기와 무관하게 일정하다`,
@@ -956,7 +956,7 @@ export const PROOFS: Record<string, () => string> = {
     ]);
   },
 
-  /** `perf.worst` — 연산 수를 최대로 만드는 입력을 실제로 구성해 잰 값. */
+  /** `perf.worst` — 기본 연산을 최대로 만드는 입력을 실제로 구성해 잰 값. */
   "worst-counts": () => {
     const n = 1_000;
     const cases: [string, number[], number][] = [

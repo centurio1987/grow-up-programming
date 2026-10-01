@@ -381,7 +381,7 @@ export const PROOFS: Record<string, () => string> = {
     });
     const naive = enumerateOps(N_LIMIT);
     const dp = dpOps(N_LIMIT);
-    const years = Number(naive) / 1e9 / (365.25 * 24 * 3600);
+    const years = Number(naive) / 1e8 / (365.25 * 24 * 3600);
     return [
       ...table(
         [
@@ -405,8 +405,8 @@ export const PROOFS: Record<string, () => string> = {
         ],
         ["  DP 테이블의 기본 연산", `${comma(dp)} (${String(dp).length} 자리)`],
         [
-          "  1 초에 10^9 번으로 어림하면",
-          `순서 나열 약 ${comma(Math.round(years))} 년 · DP 테이블 약 ${(dp / 1e9).toFixed(2)} 초`,
+          "  1 초에 1 억 번으로 어림하면",
+          `순서 나열 약 ${comma(Math.round(years))} 년 · DP 테이블 약 ${(dp / 1e8).toFixed(2)} 초`,
         ],
       ]),
     ].join("\n");
@@ -1218,15 +1218,15 @@ export const PROOFS: Record<string, () => string> = {
           : `분기 한정이 ${times(a, b)} 적다`,
       ];
     });
-    const memA = dp["격자 좌표 도시 20 · 저장 칸"] as number;
-    const memB = bb["격자 좌표 도시 20 · 저장 칸"] as number;
+    const memA = dp["격자 좌표 도시 20 · 추가 칸"] as number;
+    const memB = bb["격자 좌표 도시 20 · 추가 칸"] as number;
     return withNote(
       md(
         ["입력", "DP 테이블 기본 연산", "분기 한정 기본 연산", "적은 쪽"],
         rows,
         [1, 2],
       ),
-      `모든 거리가 같은 행렬에서 도시 수를 늘리면 분기 한정이 적은 마지막 도시 수가 ${cross["모든 거리가 같은 행렬에서 분기 한정이 앞서는 마지막 도시 수"]} 개, DP 테이블이 적은 첫 도시 수가 ${cross["DP 테이블이 앞서는 첫 도시 수"]} 개입니다. 격자 좌표 도시 20 개에서 저장 칸은 DP 테이블 ${comma(memA as number)} 칸, 분기 한정 ${comma(memB as number)} 칸입니다.`,
+      `모든 거리가 같은 행렬에서 도시 수를 늘리면 분기 한정이 적은 마지막 도시 수가 ${cross["모든 거리가 같은 행렬에서 분기 한정이 앞서는 마지막 도시 수"]} 개, DP 테이블이 적은 첫 도시 수가 ${cross["DP 테이블이 앞서는 첫 도시 수"]} 개입니다. 격자 좌표 도시 20 개에서 추가 칸은 DP 테이블 ${comma(memA as number)} 칸, 분기 한정 ${comma(memB as number)} 칸입니다.`,
     );
   },
 

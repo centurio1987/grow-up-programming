@@ -457,7 +457,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `배열 접근 ${num(n.scan)} 번 · ${seconds(n.scan)}`,
+          value: `칸 접근 ${num(n.scan)} 번 · ${seconds(n.scan)}`,
           ok: false,
         },
         { label: "메모리", value: "더 적어 두는 칸이 없다", ok: true },
@@ -504,7 +504,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `배열 접근 ${num(n.block)} 번 · ${seconds(n.block)}`,
+          value: `칸 접근 ${num(n.block)} 번 · ${seconds(n.block)}`,
           ok: true,
         },
         {
@@ -524,7 +524,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `배열 접근 ${num(n.seg)} 번 · ${seconds(n.seg)}`,
+          value: `칸 접근 ${num(n.seg)} 번 · ${seconds(n.seg)}`,
           ok: true,
         },
         {

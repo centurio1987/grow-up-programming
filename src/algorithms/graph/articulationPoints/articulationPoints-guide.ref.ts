@@ -22,7 +22,7 @@ export function articulationPoints(
     (adj[v] as number[]).push(u);
   }
 
-  // ② 정점마다 적는 칸 — 발견 순서 `disc`, 서브트리가 되돌아가는 간선으로 이르는 가장 이른
+  // ② 정점마다 적는 칸 — 발견 순서 `disc`, 부분트리가 되돌아가는 간선으로 이르는 가장 이른
   // 발견 순서 `low`, 그리고 단절점으로 판정됐는지를 적는 `cut`.
   const disc: number[] = Array.from({ length: n }, () => -1);
   const low: number[] = Array.from({ length: n }, () => -1);

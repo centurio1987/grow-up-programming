@@ -22,9 +22,9 @@
  *
  * ## 무엇을 세는가
  *
- * **걸음**은 나눗셈이 실행된 횟수다. **기본 연산**은 나눗셈·곱셈·뺄셈·덧셈·비교·대입·
+ * **나눗셈**은 나눗셈이 실행된 횟수(= 바퀴 수)다. **기본 연산**은 나눗셈·곱셈·뺄셈·덧셈·비교·대입·
  * 절댓값을 각각 하나로 센 값이다. 두 계수를 따로 내는 이유는 두 설계가 **이 두 축에서 서로
- * 다른 방향으로 갈리기** 때문이다 — 중심 판은 걸음을 줄이는 대신 걸음마다 할 일을 늘린다.
+ * 다른 방향으로 갈리기** 때문이다 — 중심 판은 나눗셈을 줄이는 대신 바퀴마다 할 일을 늘린다.
  * 하나로 합치면 그 교환이 보이지 않는다.
  */
 
@@ -75,7 +75,7 @@ interface Counted {
 /**
  * 이 가이드가 가르치는 절차 — 나머지를 0 이상으로 잡는다.
  *
- * 계수를 세는 자리는 정본과 같고, 여기에는 계수기만 덧붙였다. 정본은 걸음 수를 안
+ * 계수를 세는 자리는 정본과 같고, 여기에는 계수기만 덧붙였다. 정본은 나눗셈 횟수를 안
  * 내보내므로 세는 사본이 아니면 계수를 낼 방법이 없다.
  */
 function byRemainder(a: bigint, b: bigint): Counted {
@@ -114,8 +114,8 @@ function byRemainder(a: bigint, b: bigint): Counted {
  * 경쟁 설계 — **최소 절댓값 나머지 판**. 몫을 내림 대신 **반올림**해서 나머지를 나누는 수의
  * 절반 아래로 잡는다. 나머지가 음수가 될 수 있고, 그래서 나머지 수열 자체가 정본과 다르다.
  *
- * 한 걸음이 값을 적어도 절반으로 줄이므로 걸음 수가 정본 이하다. 대신 걸음마다 반올림
- * 판정이 붙고, 몫을 한 칸 옮긴 걸음에서는 보정까지 붙는다.
+ * 한 바퀴가 값을 적어도 절반으로 줄이므로 나눗셈 횟수가 정본 이하다. 대신 바퀴마다 반올림
+ * 판정이 붙고, 몫을 한 칸 옮긴 바퀴에서는 보정까지 붙는다.
  */
 function byCentered(a: bigint, b: bigint): Counted {
   let r0 = abs(a);
@@ -203,7 +203,7 @@ export const cases = {
     const out: Record<string, number> = {};
     for (const [name, a, b] of CASES) {
       const got = measure(a, b).remainder;
-      out[`${name} 걸음`] = got.steps;
+      out[`${name} 나눗셈`] = got.steps;
       out[`${name} 기본 연산`] = got.ops;
     }
     return out;
@@ -212,7 +212,7 @@ export const cases = {
     const out: Record<string, number> = {};
     for (const [name, a, b] of CASES) {
       const got = measure(a, b).centered;
-      out[`${name} 걸음`] = got.steps;
+      out[`${name} 나눗셈`] = got.steps;
       out[`${name} 기본 연산`] = got.ops;
     }
     return out;

@@ -2008,7 +2008,7 @@ ${md([
     return withNote(
       md(
         [
-          ["입력 모양", "V", "E", "배열 칸 접근", "반환값"],
+          ["입력 모양", "V", "E", "칸 접근", "반환값"],
           ...cases.map((c, i) => [
             c.label,
             comma(c.n),

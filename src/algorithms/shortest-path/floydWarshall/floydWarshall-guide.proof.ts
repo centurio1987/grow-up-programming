@@ -9,7 +9,7 @@
  * **비용은 한 기준으로 센다 — 기본 연산.** 거리 행렬의 칸 하나를 채운 것 · 간선 하나를 읽은 것 ·
  * 행을 건너뛸지 판정한 것 · 경유 후보 하나를 비교한 것을 각각 한 번으로 센다. 다른 방법(출발점마다
  * 벨만-포드 · 경유 횟수를 배로 늘리기 · 존슨 알고리즘)도 같은 네 갈래와 그 방법에만 있는 비교(힙의 두
- * 항목 비교)를 한 번씩 센다. 메모리는 **저장 칸**(거리 행렬이 잡는 칸 수)으로 센다.
+ * 항목 비교)를 한 번씩 센다. 메모리는 **추가 칸**(거리 행렬이 잡는 칸 수)으로 센다.
  *
  * **계수를 세는 사본이 여럿 있다.** 정본은 연산을 몇 번 했는지를 내보내지 않으므로, 세는 자리만
  * 덧붙인 사본이 아니면 계수를 낼 방법이 없다. **답이 맞는지는 사본이 아니라 정본이 진다** — 아래
@@ -1375,14 +1375,14 @@ export const PROOFS: Record<string, () => string> = {
           "정점",
           "두 판의 답이 다른 칸",
           "라운드 k 가 k 행·k 열에서 고친 칸",
-          "저장 칸 (둘)",
-          "저장 칸 (하나)",
+          "추가 칸 (둘)",
+          "추가 칸 (하나)",
         ],
         rows,
         [1, 2, 3, 4, 5],
       ),
       "",
-      `정점 ${comma(V_LIMIT)} 에서는 저장 칸이 ${comma(2 * V_LIMIT * V_LIMIT)} 개 대 ${comma(V_LIMIT * V_LIMIT)} 개입니다.`,
+      `정점 ${comma(V_LIMIT)} 에서는 추가 칸이 ${comma(2 * V_LIMIT * V_LIMIT)} 개 대 ${comma(V_LIMIT * V_LIMIT)} 개입니다.`,
     ].join("\n");
   },
 
@@ -1738,7 +1738,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** purpose.alt — 두 설계의 기본 연산과 저장 칸. */
+  /** purpose.alt — 두 설계의 기본 연산과 추가 칸. */
   altTable: () => {
     const mine = altCases["이 가이드의 절차"]();
     const john = altCases["존슨 알고리즘"]();
@@ -1777,7 +1777,7 @@ export const PROOFS: Record<string, () => string> = {
         [1, 2, 4],
       ),
       "",
-      `저장 칸은 간선 400 개에서 ${comma(mine["간선 400 개 · 저장 칸"] as number)} 개 대 ${comma(john["간선 400 개 · 저장 칸"] as number)} 개, 간선을 가장 많이 둔 그래프에서 ${comma(mine["간선을 가장 많이 둔 그래프 · 저장 칸"] as number)} 개 대 ${comma(john["간선을 가장 많이 둔 그래프 · 저장 칸"] as number)} 개입니다. 순서는 간선 ${comma(cross.last)} 개와 ${comma(cross.first)} 개 사이에서 뒤집힙니다.`,
+      `추가 칸은 간선 400 개에서 ${comma(mine["간선 400 개 · 추가 칸"] as number)} 개 대 ${comma(john["간선 400 개 · 추가 칸"] as number)} 개, 간선을 가장 많이 둔 그래프에서 ${comma(mine["간선을 가장 많이 둔 그래프 · 추가 칸"] as number)} 개 대 ${comma(john["간선을 가장 많이 둔 그래프 · 추가 칸"] as number)} 개입니다. 순서는 간선 ${comma(cross.last)} 개와 ${comma(cross.first)} 개 사이에서 뒤집힙니다.`,
     ].join("\n");
   },
 
@@ -2043,12 +2043,12 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** perf.derive — 저장 칸. */
+  /** perf.derive — 추가 칸. */
   perfMemory: () => {
     const cells = V_LIMIT * V_LIMIT;
     return [
       ...fence([
-        [`V = ${comma(V_LIMIT)}`, "저장 칸 V^2", `${comma(cells)} 칸`],
+        [`V = ${comma(V_LIMIT)}`, "추가 칸 V^2", `${comma(cells)} 칸`],
         ["", "Float64Array 로 잡으면", `${comma(cells * 8)} 바이트`],
         [
           "",

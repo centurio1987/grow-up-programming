@@ -6,12 +6,12 @@
  *
  *   bun run tools/check-proof.ts src/algorithms/tree/heavyLightDecomposition/heavyLightDecomposition-guide.md
  *
- * **세는 사본은 두 곳에 있다.** 정본은 배열 칸을 몇 번 읽었는지도, 걸음마다의 상태도 내보내지
+ * **세는 사본은 두 곳에 있다.** 정본은 칸을 몇 번 읽었는지도, 걸음마다의 상태도 내보내지
  * 않으므로 그 자리를 덧붙인 사본이 아니면 계수와 걸음을 낼 방법이 없다.
  *
  * - `traced`(이 파일) — 정본과 같은 절차에 걸음 기록을 덧붙인 판. 걸음마다 배열 여섯 개를 통째로
  *   베끼므로 **전개 입력처럼 작은 입력에만** 쓴다. 큰 입력에 쓰면 메모리가 모자란다.
- * - `decompose` · `hldCounted` · `naiveWalk`(`-guide.alt.ts`) — 사슬만 만들거나 배열 칸 접근만 세는
+ * - `decompose` · `hldCounted` · `naiveWalk`(`-guide.alt.ts`) — 사슬만 만들거나 칸 접근만 세는
  *   가벼운 판. 정점 20,000 개 · 100,000 개 같은 큰 입력은 이것만 쓴다. 대조 하네스와 같은 계수
  *   모델을 한 벌로 쓴다.
  *
@@ -762,9 +762,9 @@ function naiveScale(): string {
       [
         "사슬 정점 V",
         "경로 위 정점",
-        "질의 하나의 배열 칸",
-        "질의 V 개의 배열 칸",
-        "그 시간(초당 1 억 칸)",
+        "질의 하나의 칸 접근",
+        "질의 V 개의 칸 접근",
+        "그 시간(초당 1 억 번)",
       ],
       rows,
       [0, 1, 2, 3, 4],
@@ -1677,7 +1677,7 @@ function loopVsLength(): string {
         "경로 위 정점",
         "사슬 조각",
         "반복 바퀴",
-        "배열 칸",
+        "칸 접근",
       ],
       [
         [
@@ -1702,7 +1702,7 @@ function loopVsLength(): string {
       [1, 3, 4, 5, 6],
     ),
     "",
-    `위 줄이 아래 줄보다 경로 위 정점이 ${comma(Math.round(lenC / lenB))} 배쯤 많은데, 배열 칸은 ${comma(Math.round(cellsB / cellsC))} 분의 1 쯤입니다.`,
+    `위 줄이 아래 줄보다 경로 위 정점이 ${comma(Math.round(lenC / lenB))} 배쯤 많은데, 칸 접근은 ${comma(Math.round(cellsB / cellsC))} 분의 1 쯤입니다.`,
   ].join("\n");
 }
 
@@ -1814,7 +1814,7 @@ function branchCover(): string {
   ].join("\n");
 }
 
-/** `deep.walk` 8 — 네 연산이 쓴 배열 칸. */
+/** `deep.walk` 8 — 네 연산의 칸 접근. */
 function walkOps(): string {
   const d = decompose(WALK_N, WALK_EDGES, WALK_ROOT, "size");
   const c = hldCounted(WALK_N, WALK_EDGES, WALK_ROOT, WALK_VALUES.slice());
@@ -1844,9 +1844,9 @@ function walkOps(): string {
     ]);
   }
   return [
-    md(["연산", "경로", "사슬 조각", "답", "배열 칸"], rows, [2, 3, 4]),
+    md(["연산", "경로", "사슬 조각", "답", "칸 접근"], rows, [2, 3, 4]),
     "",
-    `준비가 배열 칸 ${c.pre} 개이고 네 연산이 ${sum} 개입니다.`,
+    `준비가 칸 접근 ${c.pre} 번이고 네 연산이 ${sum} 번입니다.`,
   ].join("\n");
 }
 
@@ -2490,11 +2490,11 @@ function altFlip(): string {
       [0, 1, 2],
     ),
     "",
-    `꽉 찬 이진 트리 정점 100,000 개 · 정점 i 의 값 (i mod 97) + 1 · i 번째 질의 (i mod V, 37i mod V) 입니다. 칸 수는 준비와 그 수까지의 질의를 합친 것이고, 질의를 한 개 단위로 늘려 재면 순서가 뒤집히는 첫 자리가 ${comma(firstFlip)} 입니다.`,
+    `꽉 찬 이진 트리 정점 100,000 개 · 정점 i 의 값 (i mod 97) + 1 · i 번째 질의 (i mod V, 37i mod V) 입니다. 접근 수는 준비와 그 수까지의 질의를 합친 것이고, 질의를 한 개 단위로 늘려 재면 순서가 뒤집히는 첫 자리가 ${comma(firstFlip)} 입니다.`,
   ].join("\n");
 }
 
-/** `purpose.alt` — 배수와 저장 칸. */
+/** `purpose.alt` — 배수와 추가 칸. */
 function altTable(): string {
   const m = measured();
   const ratio = (a: number, b: number) =>
@@ -2510,18 +2510,18 @@ function altTable(): string {
   return md(
     ["재는 것", "무거운 경로 분할", "오일러 구간 갱신과 조상 표", "적은 쪽"],
     [
-      row("준비 · 배열 칸", m.hld[0] as number, m.euler[0] as number),
+      row("준비 · 칸 접근", m.hld[0] as number, m.euler[0] as number),
       row(
-        "질의 10,000 개까지 · 배열 칸",
+        "질의 10,000 개까지 · 칸 접근",
         m.hld[10_000] as number,
         m.euler[10_000] as number,
       ),
       row(
-        "질의 100,000 개까지 · 배열 칸",
+        "질의 100,000 개까지 · 칸 접근",
         m.hld[100_000] as number,
         m.euler[100_000] as number,
       ),
-      row("저장 칸", m.hldStore, m.eulerStore),
+      row("추가 칸", m.hldStore, m.eulerStore),
     ],
     [1, 2],
   );

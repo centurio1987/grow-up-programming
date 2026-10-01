@@ -673,7 +673,7 @@ export interface Tree {
   treeEdges: [number, number, number][];
   /** `[아래 끝, 위 끝, 간선 번호]` — 나무에 안 든 간선. 두 끝이 같은 간선도 여기 든다. */
   backEdges: [number, number, number][];
-  /** `subtree[v]` — `v` 의 서브트리(자기 포함), 오름차순. */
+  /** `subtree[v]` — `v` 의 부분트리(자기 포함), 오름차순. */
   subtree: number[][];
 }
 
@@ -714,7 +714,7 @@ export function tree(n: number, edges: Edge[]): Tree {
 }
 
 /**
- * 정의를 그대로 계산한 `low` — `v` 의 서브트리에서 되돌아가는 간선 하나로 이르는 정점의 발견 순서와
+ * 정의를 그대로 계산한 `low` — `v` 의 부분트리에서 되돌아가는 간선 하나로 이르는 정점의 발견 순서와
  * `disc[v]` 를 통틀어 가장 작은 값. 절차의 순서를 안 쓰고 나무와 간선 분류에서 바로 계산한다.
  */
 export function lowByDefinition(n: number, edges: Edge[]): number[] {
@@ -1047,7 +1047,7 @@ function isBridgeByDeletion(n: number, edges: Edge[], k: number): boolean {
   );
 }
 
-/** 서브트리 `c` 에서 밖의 정점으로 나가는 되돌아가는 간선 — `[아래 끝, 위 끝]`. */
+/** 부분트리 `c` 에서 밖의 정점으로 나가는 되돌아가는 간선 — `[아래 끝, 위 끝]`. */
 function leavingBack(t: Tree, c: number): [number, number][] {
   const sub = t.subtree[c] as number[];
   return t.backEdges
@@ -1203,7 +1203,7 @@ export const PROOFS: Record<string, () => string> = {
     });
     const back = t.backEdges.map(([b, a]) => ed(b, a)).join(" · ");
     return [
-      md(["정점", "disc", "부모", "나무 자식", "서브트리"], rows, [0, 1]),
+      md(["정점", "disc", "부모", "나무 자식", "부분트리"], rows, [0, 1]),
       "",
       `나무 간선 ${t.treeEdges.length} 개와 되돌아가는 간선 ${t.backEdges.length} 개가 간선 ${WALK_EDGES.length} 개를 나눠 가집니다. 되돌아가는 간선은 ${back} 입니다.`,
     ].join("\n");
@@ -1230,7 +1230,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** 나무 간선마다 자식의 서브트리 밖으로 나가는 간선을 센다. */
+  /** 나무 간선마다 자식의 부분트리 밖으로 나가는 간선을 센다. */
   observeCross: () => {
     const t = WALK_TREE;
     const rows = t.treeEdges.map(([p, c, k]) => {
@@ -1255,8 +1255,8 @@ export const PROOFS: Record<string, () => string> = {
       md(
         [
           "나무 간선",
-          "자식의 서브트리",
-          "서브트리 밖으로 나가는 간선",
+          "자식의 부분트리",
+          "부분트리 밖으로 나가는 간선",
           "개수",
           "지워 본 판정",
         ],
@@ -2128,7 +2128,7 @@ export const PROOFS: Record<string, () => string> = {
 
   /* ─────────────── invariant ─────────────── */
 
-  /** 판정한 걸음마다 「서브트리와 나머지를 잇는 간선이 하나뿐인가」를 따로 세어 맞댄다. */
+  /** 판정한 걸음마다 「부분트리와 나머지를 잇는 간선이 하나뿐인가」를 따로 세어 맞댄다. */
   invariantCross: () => {
     const t4 = triangles(4);
     const cases: [string, number, Edge[]][] = [

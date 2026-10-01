@@ -140,7 +140,7 @@ export function childrenOf(n: number, edges: Edge[]): number[][] {
   return kids;
 }
 
-/** 정점 `v` 의 서브트리에 속한 정점 전부. */
+/** 정점 `v` 의 부분트리에 속한 정점 전부. */
 export function subtree(kids: number[][], v: number): number[] {
   const out = [v];
   for (let i = 0; i < out.length; i++) {
@@ -265,7 +265,7 @@ export const cellOf = (s: Snap, v: number): string =>
 /* ────────────────── 정의를 그대로 옮긴 전수 계산 ────────────────── */
 
 /**
- * 정의를 그대로 옮긴 전수 계산 — 서브트리의 부분집합을 **전부** 만들어 독립인 것만 남기고
+ * 정의를 그대로 옮긴 전수 계산 — 부분트리의 부분집합을 **전부** 만들어 독립인 것만 남기고
  * 합이 가장 큰 것을 고른다. `want` 가 참이면 `v` 를 담은 것 중에서, 거짓이면 안 담은 것 중에서
  * 고른다. 합이 같으면 먼저 만난 집합을 남긴다. 크기가 작을 때만 쓴다.
  */
@@ -360,7 +360,7 @@ function bruteForce(
 }
 
 /**
- * **정점마다 값 하나만** 들고 올라가는 판. `best[v]` 는 「v 의 서브트리에서 얻는 최댓값」
+ * **정점마다 값 하나만** 들고 올라가는 판. `best[v]` 는 「v 의 부분트리에서 얻는 최댓값」
  * 하나이고, 부모가 그 값을 그대로 더한다 — 자식이 고른 정점이었는지를 부모가 알 수 없다.
  */
 function oneValuePerNode(
@@ -448,7 +448,7 @@ function fourStatesPerNode(
 
 /**
  * **「부모를 고르면 손자까지 못 고른다」는 오해를 그대로 전개한 판.** 고른 정점의 자식만이
- * 아니라 손자까지 통째로 버린다 — 자식의 서브트리에서 손자 아래만 쓴다.
+ * 아니라 손자까지 통째로 버린다 — 자식의 부분트리에서 손자 아래만 쓴다.
  */
 function grandchildBanned(
   n: number,
@@ -878,7 +878,7 @@ function buildReadCell(): string {
     md(
       [
         "칸",
-        "서브트리의 정점",
+        "부분트리의 정점",
         "조건",
         "합이 가장 큰 독립집합",
         "그 합",
@@ -888,7 +888,7 @@ function buildReadCell(): string {
       [4, 5],
     ),
     "",
-    `서브트리의 부분집합을 전부 만들어 고른 합과 칸의 값이 ${total} 칸 가운데 ${same} 칸에서 같습니다.`,
+    `부분트리의 부분집합을 전부 만들어 고른 합과 칸의 값이 ${total} 칸 가운데 ${same} 칸에서 같습니다.`,
   ].join("\n");
 }
 
@@ -1685,7 +1685,7 @@ function mathCheck(): string {
     md(
       [
         "정점 v",
-        "서브트리의 정점",
+        "부분트리의 정점",
         "정의로 센 A(v)",
         "dp0[v]",
         "정의로 센 B(v)",

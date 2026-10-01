@@ -1,8 +1,8 @@
 /**
  * `purpose.alt` 가 인용하는 수치의 출처 — L13.
  *
- * **같은 입력·같은 작업 목록**에 두 설계를 걸고 **결정론적 계수**만 센다. 세는 것은 **배열
- * 접근 수**(읽기 + 쓰기)다. 벽시계·처리량은 실행마다 달라 "본문의 수치가 실측과 일치하는가"
+ * **같은 입력·같은 작업 목록**에 두 설계를 걸고 **결정론적 계수**만 센다. 세는 것은 **칸
+ * 접근 수**(읽기 + 쓰기)다. 트리를 INF 로 채우는 쓰기와 층 번호 표 만들기는 세지 않는다. 벽시계·처리량은 실행마다 달라 "본문의 수치가 실측과 일치하는가"
  * (P10)를 정의할 수 없다.
  *
  *   bun run tools/bench-alt.ts src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.alt.ts
@@ -72,7 +72,7 @@ export function workload(q: number, u: number): Op[] {
   return ops;
 }
 
-/** 한 설계를 실행한 결과 — 접근 수와 답 목록, 저장 칸. */
+/** 한 설계를 실행한 결과 — 접근 수와 답 목록, 추가 칸(층 번호 표와 입력 사본은 뺀다). */
 interface Run {
   accesses: number;
   answers: number[];
@@ -277,14 +277,14 @@ function counts(pick: (r: { sparse: Run; segment: Run }) => Run) {
   return (): Record<string, number> => {
     const out: Record<string, number> = {};
     for (const q of QUERY_POINTS) {
-      out[`갱신 0 회 · 질의 ${q} 개 배열 접근`] = pick(measure(q, 0)).accesses;
+      out[`갱신 0 회 · 질의 ${q} 개 칸 접근`] = pick(measure(q, 0)).accesses;
     }
     for (const u of [1, 16]) {
-      out[`질의 ${Q_BIG} 개 · 갱신 ${u} 회 배열 접근`] = pick(
+      out[`질의 ${Q_BIG} 개 · 갱신 ${u} 회 칸 접근`] = pick(
         measure(Q_BIG, u),
       ).accesses;
     }
-    out["저장 칸"] = pick(measure(64, 0)).cells;
+    out["추가 칸"] = pick(measure(64, 0)).cells;
     return out;
   };
 }

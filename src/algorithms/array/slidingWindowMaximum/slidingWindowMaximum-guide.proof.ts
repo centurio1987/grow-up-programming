@@ -3,7 +3,7 @@
  *
  * 값을 여기 적지 않는다 — **정본(`.ref.ts`)을 부르고, 변이는 그 소스에서 기계로 만든다.** 정본이 읽은 칸의
  * 기록(`run` · `count`)과 걸음(`WALK_STEPS`)은 그림 사이드카가 만든 것을 그대로 받는다 — 그림과 표가 같은
- * 기록을 쓴다. 비용은 원고 전체가 한 기준으로 센다 — **배열 접근 수**(읽기 + 쓰기)이고, 세는 규칙은 그림
+ * 기록을 쓴다. 비용은 원고 전체가 한 기준으로 센다 — **칸 접근 수**(읽기 + 쓰기)이고, 세는 규칙은 그림
  * 사이드카의 `Counts` 머리 주석에 있다.
  *
  *   bun run tools/check-proof.ts src/algorithms/array/slidingWindowMaximum/slidingWindowMaximum-guide.md
@@ -426,8 +426,8 @@ export const PROOFS: Record<string, () => string> = {
         [
           "N",
           "k",
-          "창마다 다시 읽기의 배열 접근",
-          "이 글이 만들 절차의 배열 접근",
+          "창마다 다시 읽기의 칸 접근",
+          "이 글이 만들 절차의 칸 접근",
           "다시 읽기의 시간(초당 1 억 번)",
         ],
         rows,
@@ -480,7 +480,7 @@ export const PROOFS: Record<string, () => string> = {
         rows,
         [1, 2, 3],
       ),
-      `N = ${num(BIG_N)} · k = ${MID_K} 이고 배열 접근 수를 셉니다. 곱셈 나머지는 nums[i] = (2731 i) mod 1201, 감소 수열은 nums[i] = N − i 이고, 두 방식의 답은 두 입력 모두 정본과 같습니다.`,
+      `N = ${num(BIG_N)} · k = ${MID_K} 이고 칸 접근 수를 셉니다. 곱셈 나머지는 nums[i] = (2731 i) mod 1201, 감소 수열은 nums[i] = N − i 이고, 두 방식의 답은 두 입력 모두 정본과 같습니다.`,
     );
   },
 
@@ -742,15 +742,15 @@ export const PROOFS: Record<string, () => string> = {
       md(
         [
           "k",
-          "곱셈 나머지 · 배열 접근",
+          "곱셈 나머지 · 칸 접근",
           "곱셈 나머지 · 가장 길 때",
-          "감소 수열 · 배열 접근",
+          "감소 수열 · 칸 접근",
           "감소 수열 · 가장 길 때",
         ],
         rows,
         [0, 1, 2, 3, 4],
       ),
-      `N = ${num(BIG_N)} 고정입니다. 가장 길 때의 칸 수는 곱셈 나머지에서 ${peakMix} 칸을 넘지 않고, 감소 수열에서는 k 까지 찹니다. 배열 접근은 ${accs.length} 개 값 모두 ${num(Math.min(...accs))} 이상 ${num(Math.max(...accs))} 이하입니다.`,
+      `N = ${num(BIG_N)} 고정입니다. 가장 길 때의 칸 수는 곱셈 나머지에서 ${peakMix} 칸을 넘지 않고, 감소 수열에서는 k 까지 찹니다. 칸 접근은 ${accs.length} 개 값 모두 ${num(Math.min(...accs))} 이상 ${num(Math.max(...accs))} 이하입니다.`,
     );
   },
 
@@ -1096,8 +1096,8 @@ export const PROOFS: Record<string, () => string> = {
         [BIG_N, "k=1,024"],
       ] as const
     ).map(([k, key]) => {
-      const a = bench.dq[`감소 수열 · ${key} 배열 접근`] as number;
-      const b = bench.table[`감소 수열 · ${key} 배열 접근`] as number;
+      const a = bench.dq[`감소 수열 · ${key} 칸 접근`] as number;
+      const b = bench.table[`감소 수열 · ${key} 칸 접근`] as number;
       if (count(DOWN, k).acc !== a) {
         throw new Error(
           `k = ${k} 에서 벤치의 단조 덱 계수가 정본 실측과 다르다`,
@@ -1122,8 +1122,8 @@ export const PROOFS: Record<string, () => string> = {
         ["곱셈 나머지", "k=1,024", BIG_N],
       ] as const
     ).map(([shape, key, k]) => {
-      const a = bench.dq[`${shape} · ${key} 배열 접근`] as number;
-      const b = bench.table[`${shape} · ${key} 배열 접근`] as number;
+      const a = bench.dq[`${shape} · ${key} 칸 접근`] as number;
+      const b = bench.table[`${shape} · ${key} 칸 접근`] as number;
       const xs = shape === "감소 수열" ? DOWN : BIG;
       if (count(xs, k).acc !== a) {
         throw new Error(
@@ -1146,7 +1146,7 @@ export const PROOFS: Record<string, () => string> = {
         rows,
         [1, 2],
       ),
-      `추가로 잡는 칸은 단조 덱이 감소 수열에서 k = 45 에 ${num(c45)} 칸, k = ${num(BIG_N)} 에 ${num(cN)} 칸이고, 조각 표는 두 경우 모두 ${num(b45)} 칸입니다.`,
+      `추가 칸은 단조 덱이 감소 수열에서 k = 45 에 ${num(c45)} 칸, k = ${num(BIG_N)} 에 ${num(cN)} 칸이고, 조각 표는 두 경우 모두 ${num(b45)} 칸입니다. 답 배열은 출력이라 두 설계 모두 넣지 않았어요.`,
     );
   },
 
@@ -1161,10 +1161,10 @@ export const PROOFS: Record<string, () => string> = {
       [45, "k=45"],
       [n, "k=1,024"],
     ] as const) {
-      if (dqF(k) !== bench.dq[`감소 수열 · ${key} 배열 접근`]) {
+      if (dqF(k) !== bench.dq[`감소 수열 · ${key} 칸 접근`]) {
         throw new Error(`k = ${k} 에서 단조 덱의 식이 실측과 다르다`);
       }
-      if (tableF(k) !== bench.table[`감소 수열 · ${key} 배열 접근`]) {
+      if (tableF(k) !== bench.table[`감소 수열 · ${key} 칸 접근`]) {
         throw new Error(`k = ${k} 에서 조각 표의 식이 실측과 다르다`);
       }
     }
@@ -1178,7 +1178,7 @@ export const PROOFS: Record<string, () => string> = {
     const d = (k: number) => dqF(k) - tableF(k);
     return block(
       md(
-        ["설계", "감소 수열의 배열 접근", "k = 44", "k = 45"],
+        ["설계", "감소 수열의 칸 접근", "k = 44", "k = 45"],
         [
           ["단조 덱", "9N − 4k", num(dqF(44)), num(dqF(45))],
           [
@@ -1257,7 +1257,7 @@ export const PROOFS: Record<string, () => string> = {
           "F",
           "B",
           "3N − 1 + F + 3P + 2B + 3(N − k + 1)",
-          "실측 배열 접근",
+          "실측 칸 접근",
         ],
         rows,
         [1, 2, 3, 4, 5, 6, 7],
@@ -1276,7 +1276,7 @@ export const PROOFS: Record<string, () => string> = {
     if (c.acc > up) throw new Error("실측이 상한을 넘었다");
     return block(
       md(
-        ["방법", `N = ${num(n)} · k = ${num(k)} 의 배열 접근`],
+        ["방법", `N = ${num(n)} · k = ${num(k)} 의 칸 접근`],
         [
           ["창마다 다시 읽기 (k + 1)(N − k + 1)", num(naive)],
           ["단조 덱의 상한 11N − 3k − 5", num(up)],
@@ -1411,7 +1411,7 @@ export const PROOFS: Record<string, () => string> = {
     if (formula(c) !== c.acc) throw new Error("전개의 총식이 실측과 다르다");
     return block(
       md(
-        ["갈래", "걸음", "식", "배열 접근"],
+        ["갈래", "걸음", "식", "칸 접근"],
         [
           ["지금 값을 읽는다", idsOf(firstOfI), "N", num(N)],
           [
@@ -1476,7 +1476,7 @@ export const PROOFS: Record<string, () => string> = {
       return [name, num(c.pops), num(c.expires), num(c.stops), num(c.acc)];
     });
     return block(
-      md(["입력", "P", "F", "B", "배열 접근"], rows, [1, 2, 3, 4]),
+      md(["입력", "P", "F", "B", "칸 접근"], rows, [1, 2, 3, 4]),
       `N = ${num(n)} · k = ${num(k)} 에서 세 줄 모두 실제로 세었고, 총식과 같습니다. 상한 11N − 3k − 5 는 ${num(bound(n, k))} 이고, 단순 연산 1 초에 1 억 번으로 잡으면 가장 많은 줄도 ${(most / OPS_PER_SECOND).toFixed(3)} 초입니다.`,
     );
   },
@@ -1524,7 +1524,7 @@ export const PROOFS: Record<string, () => string> = {
           "멈춘 걸음 B",
           "가장 길 때",
           "총식",
-          "실측 배열 접근",
+          "실측 칸 접근",
         ],
         rows,
         [1, 2, 3, 4, 5, 6],
@@ -1580,7 +1580,7 @@ export const PROOFS: Record<string, () => string> = {
           show(s.dq),
         ]),
       ),
-      `입력은 ${show(xs)} · k = ${k} 입니다. P = ${c.pops} · F = ${c.expires} · B = ${c.stops} 이고, 배열 접근은 ${num(c.acc)} 번입니다.`,
+      `입력은 ${show(xs)} · k = ${k} 입니다. P = ${c.pops} · F = ${c.expires} · B = ${c.stops} 이고, 칸 접근은 ${num(c.acc)} 번입니다.`,
     );
   },
 

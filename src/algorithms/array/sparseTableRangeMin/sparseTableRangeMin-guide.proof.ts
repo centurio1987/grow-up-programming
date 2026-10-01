@@ -6,7 +6,7 @@
  *
  *   bun run tools/check-proof.ts src/algorithms/array/sparseTableRangeMin/sparseTableRangeMin-guide.md
  *
- * **계수를 세는 사본이 여럿 있다.** 정본은 비교 횟수를 내보내지 않으므로, 세는 자리만
+ * **계수를 세는 사본이 여럿 있다.** 정본은 비교를 내보내지 않으므로, 세는 자리만
  * 덧붙인 사본이 아니면 계수를 낼 방법이 없다. **답이 맞는지는 사본이 아니라 정본이 진다** —
  * Sparse Table 의 「답」 칸은 전부 정본이나 정본에서 기계로 만든 변이가 낸 값이고, 사본은 계수만 낸다.
  * 사본이 정본과 같은 답을 내는지는 `자기대조()` 가 이 파일을 읽을 때 확인한다.
@@ -152,7 +152,7 @@ function levelsOf(A: number[]): number[][] {
   return st;
 }
 
-/** 질의마다 구간을 왼쪽부터 차례로 읽는 방식. 세는 것은 **비교 횟수**다. */
+/** 질의마다 구간을 왼쪽부터 차례로 읽는 방식. 세는 것은 **비교**다. */
 function scanEachQuery(
   A: number[],
   queries: [number, number][],
@@ -174,7 +174,7 @@ function scanEachQuery(
   return { answers, perQuery, compares };
 }
 
-/** Sparse Table 을 쓰는 방식의 비교 횟수. 정본과 같은 절차다. */
+/** Sparse Table 을 쓰는 방식의 비교. 정본과 같은 절차다. */
 function tableCompares(
   A: number[],
   queries: [number, number][],
@@ -696,7 +696,7 @@ export const PROOFS: Record<string, () => string> = {
       seconds((big * (big - 1)) / 1e8),
     ]);
     return [
-      table(["n = q", "비교 횟수(실측)", "q(n−1)", "초당 1억 번 기준"], rows, [
+      table(["n = q", "비교(실측)", "q(n−1)", "초당 1억 번 기준"], rows, [
         "r",
         "r",
         "r",
@@ -972,7 +972,7 @@ export const PROOFS: Record<string, () => string> = {
             "밑",
             "층 수",
             "Sparse Table 칸 수",
-            "Sparse Table 만들기 비교 횟수",
+            "Sparse Table 만들기 비교",
             "질의당 조각 수",
           ],
           rows,
@@ -982,7 +982,7 @@ export const PROOFS: Record<string, () => string> = {
       parts.push("");
     }
     parts.push(
-      "밑을 키우면 Sparse Table 칸이 줄고, 만들기 비교 횟수와 질의당 조각 수가 늡니다. 답은 네 밑 모두 같습니다.",
+      "밑을 키우면 Sparse Table 칸이 줄고, 만들기 비교와 질의당 조각 수가 늡니다. 답은 네 밑 모두 같습니다.",
     );
     return parts.join("\n");
   },
@@ -1240,7 +1240,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `perf.derive` — 제약 규모에서 비교 횟수가 몇 번인가. 닫힌 형태와 실측을 나란히 둔다. */
+  /** `perf.derive` — 제약 규모에서 비교가 몇 번인가. 닫힌 형태와 실측을 나란히 둔다. */
   "perf-scale": () => {
     const rows = [6, 1_000, 100_000].map((n) => {
       const K = logTableOf(n)[n] as number;
@@ -1263,7 +1263,7 @@ export const PROOFS: Record<string, () => string> = {
           "Sparse Table 만들기(실측)",
           "K(n+1) − (2^(K+1) − 2)",
           "질의",
-          "비교 횟수 합",
+          "비교 합",
           "차례로 읽기 최악",
         ],
         rows,
@@ -1272,7 +1272,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `perf.worst` — 배열의 모양을 바꿔도 비교 횟수가 그대로인가. */
+  /** `perf.worst` — 배열의 모양을 바꿔도 비교가 그대로인가. */
   "worst-shape": () => {
     const n = 1_000;
     const queries: [number, number][] = Array.from({ length: n }, (_, i) => {
@@ -1385,6 +1385,61 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
+  /** `purpose.alt` — 실측 두 표. 「적은 쪽」 열의 차이와 배수를 `.alt.ts` 계수에서 계산한다(SPEC §14 `L51`). */
+  "alt-counts": () => {
+    type Role = "gap" | "flip" | "ahead" | 1 | 2;
+    const row = (name: string, q: number, u: number, role: Role): string[] => {
+      const s = sparseRun(q, u).accesses;
+      const g = segmentRun(q, u).accesses;
+      const sWins = s < g;
+      const [lo, hi] = sWins ? [s, g] : [g, s];
+      const subj = sWins ? "Sparse Table 이" : "세그먼트 트리가";
+      const note =
+        role === "gap"
+          ? `${subj} ${num(hi - lo)} 번 적습니다`
+          : role === "flip"
+            ? "**여기서 순서가 뒤집힙니다**"
+            : role === "ahead"
+              ? `${subj} 앞섭니다`
+              : `${subj} ${(hi / lo).toLocaleString("en-US", { minimumFractionDigits: role, maximumFractionDigits: role })} 배 적습니다`;
+      return [
+        name,
+        sWins ? `**${num(s)}**` : num(s),
+        sWins ? num(g) : `**${num(g)}**`,
+        note,
+      ];
+    };
+    const L: ("l" | "r")[] = ["l", "l", "l", "l"];
+    const head = (c: string) => [c, "Sparse Table", "세그먼트 트리", "적은 쪽"];
+    return [
+      table(
+        head("질의 수(갱신 0 회)"),
+        [
+          row("질의 64 개", 64, 0, 1),
+          row("질의 6,994 개", 6_994, 0, "gap"),
+          row("질의 6,995 개", 6_995, 0, "flip"),
+          row("질의 8,192 개", 8_192, 0, 2),
+        ],
+        L,
+      ),
+      "",
+      "경계 6,995 는 질의 수를 1 부터 16,384 까지 하나씩 모두 재서 찾은 값이고, 그 범위에서 순서가",
+      "뒤집히는 자리는 **한 곳뿐**입니다.",
+      "",
+      "**갱신을 하나만 넣어도 순서가 다시 뒤집힙니다.**",
+      "",
+      table(
+        head("갱신 수(질의 8,192 개)"),
+        [
+          row("갱신 0 회", 8_192, 0, "ahead"),
+          row("갱신 1 회", 8_192, 1, "flip"),
+          row("갱신 16 회", 8_192, 16, 1),
+        ],
+        L,
+      ),
+    ].join("\n");
+  },
+
   /** `purpose.alt` — 경계가 그 자리인 이유. */
   "alt-boundary": () => {
     const q = 8_192;
@@ -1404,7 +1459,7 @@ export const PROOFS: Record<string, () => string> = {
     return [
       table(
         [
-          "비용(배열 접근 수)",
+          "비용(칸 접근 수)",
           "Sparse Table",
           "세그먼트 트리",
           "Sparse Table − 세그먼트 트리",

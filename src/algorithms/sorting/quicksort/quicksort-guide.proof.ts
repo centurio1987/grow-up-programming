@@ -189,7 +189,7 @@ function originCost(): string {
   const s = scale();
   return proofTable(
     md(
-      ["방법", `칸 ${num(N)} 개의 비교`, "시간(초당 1 억 번)", "새로 잡는 칸"],
+      ["방법", `칸 ${num(N)} 개의 비교`, "시간(초당 1 억 번)", "할당 칸"],
       [["선택 정렬", num(s.selection), secondsOf(s.selection), "0"]],
       [1, 2, 3],
     ),
@@ -223,7 +223,7 @@ function originMerge(): string {
       [
         "방법",
         `정렬된 0 … ${num(N - 1)} 의 비교`,
-        "새로 잡는 칸(누적)",
+        "할당 칸",
         "가장 큰 합치기 한 번의 새 칸",
       ],
       [
@@ -424,7 +424,7 @@ function buildRegionsCopy(): string {
     show(xs.slice(xs.indexOf(pivot) + 1));
   return proofTable(
     md(
-      ["가르는 모양", "가른 결과", "새로 잡는 칸", "큰 쪽의 순서"],
+      ["가르는 모양", "가른 결과", "할당 칸", "큰 쪽의 순서"],
       [
         [
           "새 배열 둘에 나눠 담는다",

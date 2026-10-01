@@ -2,7 +2,7 @@
  * `purpose.alt` 가 인용하는 수치의 출처 — L13.
  *
  * **같은 입력·같은 계수**로 두 설계를 나란히 잰다. 세는 것은 **기본 연산 수**(문자 비교 ·
- * 값 비교 · 덧셈)와 **저장 칸**이다. 벽시계·처리량은 실행마다 달라 "본문의 수치가 실측과
+ * 값 비교 · 덧셈)와 **추가 칸**(입력 두 문자열 밖에 새로 잡는 칸)이다. 벽시계·처리량은 실행마다 달라 "본문의 수치가 실측과
  * 일치하는가"(P10)를 정의할 수 없다.
  *
  *   bun run ../../../../tools/bench-alt.ts longestCommonSubsequence-guide.alt.ts
@@ -86,7 +86,7 @@ export function byTable(s: string, t: string): Counted {
  * DP 테이블을 만들지 않고 **글자가 같은 자리 쌍만** 방문한다. `t` 의 글자마다 등장 위치를
  * 내림차순으로 모아 두고, `s` 를 왼쪽부터 읽으며 그 위치들을 문턱 배열 `thresh` 에 넣는다.
  * `thresh[k]` 는 「길이 `k` 짜리 공통 부분 수열을 만들 수 있는 `t` 쪽 끝 자리 중 가장 왼쪽」
- * 이고, 자리 하나를 넣을 때마다 이분 탐색으로 들어갈 `k` 를 찾는다.
+ * 이고, 자리 하나를 넣을 때마다 이진 탐색으로 들어갈 `k` 를 찾는다.
  *
  * 방문하는 쌍의 수가 `r` 이면 기본 연산이 `r log` 규모라, `r` 이 작을수록 앞선다.
  */
@@ -116,7 +116,7 @@ export function byMatchPairs(s: string, t: string): Counted {
     if (list === undefined) continue;
     for (const j of list) {
       pairs++;
-      // `thresh[k-1] < j ≤ thresh[k]` 인 `k` 를 이분 탐색으로 찾는다.
+      // `thresh[k-1] < j ≤ thresh[k]` 인 `k` 를 이진 탐색으로 찾는다.
       let lo = 1;
       let hi = best + 1;
       while (lo < hi) {
@@ -169,7 +169,7 @@ export const cases = {
     const [same] = agree(SAME, SAME);
     out["전부 같은 글자 · 기본 연산"] = same.ops;
     out["전부 같은 글자 · 일치 쌍"] = same.pairs;
-    out["저장 칸"] = byTable(...pair(4)).cells;
+    out["추가 칸"] = byTable(...pair(4)).cells;
     return out;
   },
   "일치 쌍 따라가기": () => {
@@ -181,7 +181,7 @@ export const cases = {
     }
     const [, same] = agree(SAME, SAME);
     out["전부 같은 글자 · 기본 연산"] = same.ops;
-    out["저장 칸"] = byMatchPairs(...pair(4)).cells;
+    out["추가 칸"] = byMatchPairs(...pair(4)).cells;
     return out;
   },
 };

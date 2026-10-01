@@ -25,6 +25,11 @@
 import { loadMutant } from "../../../../tools/check-proof.ts";
 import { 과와, 으로, 은는, 을를, 이가 } from "../../../../tools/josa.ts";
 import { maxFlow } from "../maxFlow/maxFlow-guide.ref.ts";
+import {
+  N as ALT_N,
+  증가경로설계,
+  홉크로프트카프설계,
+} from "./maxBipartiteMatching-guide.alt.ts";
 import { maxBipartiteMatching } from "./maxBipartiteMatching-guide.ref.ts";
 
 export type Edge = [number, number];
@@ -2452,5 +2457,15 @@ export const PROOFS: Record<string, () => string> = {
       ]);
     }
     return md(rows).join("\n");
+  },
+  /**
+   * purpose.alt — 계단 모양에서 두 설계의 기본 연산 비. `.alt.ts` 의 두 설계를 같은 입력에 걸어
+   * 비를 계산한다(SPEC §14 `L51`).
+   */
+  stairRatio: () => {
+    const e = stair(ALT_N);
+    const a = 증가경로설계(ALT_N, ALT_N, e).ops;
+    const b = 홉크로프트카프설계(ALT_N, ALT_N, e).ops;
+    return `계단 모양에서는 증가 경로 뒤집기가 훨씬 많이 셉니다 — ${comma(a)} 대 ${comma(b)}${으로(comma(b))} ${Math.round(a / b)} 배예요.`;
   },
 };

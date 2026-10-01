@@ -1449,7 +1449,7 @@ export const PROOFS: Record<string, () => string> = {
         [num(n), "기본 연산", num(f.ops), num(k.ops)],
         [num(n), "삼각함수 호출", num(f.trig), "0"],
         [num(n), "연산 전부", num(f.ops + f.trig), num(k.ops)],
-        [num(n), "새로 잡는 칸", num(f.cells), num(k.cells)],
+        [num(n), "할당 칸", num(f.cells), num(k.cells)],
       ];
     });
     const kara = (a: number[], b: number[]) =>
@@ -1492,7 +1492,7 @@ export const PROOFS: Record<string, () => string> = {
         less(fl.ops + fl.trig, kl.ops),
       ],
       [
-        `길이 ${num(LONG_LEN)} · 새로 잡는 칸`,
+        `길이 ${num(LONG_LEN)} · 할당 칸`,
         num(fl.cells),
         num(kl.cells),
         less(fl.cells, kl.cells),

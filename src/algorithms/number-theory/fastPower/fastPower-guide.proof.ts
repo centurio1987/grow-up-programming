@@ -1185,7 +1185,7 @@ export const PROOFS: Record<string, () => string> = {
       `  n = ⌊log2 exp⌋ + 1   ${n}`,
       `  s                    ${s}`,
       `  모듈러 곱셈 n + s    ${binaryMults(LIMIT)}`,
-      "  저장 칸              result · b · e 셋",
+      "  추가 칸              result · b · e 셋",
     ].join("\n");
   },
 

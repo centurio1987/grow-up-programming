@@ -113,16 +113,16 @@ function originNaive(): string {
   rows.push([num(N_TASK), "(실행하지 않음)", num(task), seconds(task)]);
   return [
     md(
-      ["n = q", "셈 연산(실측)", "Σ(r − l + 1)", "초당 1 억 번 기준"],
+      ["N = Q", "기본 연산(실측)", "Σ(r − l + 1)", "초당 1 억 번 기준"],
       rows,
       [0, 1, 2, 3],
     ),
     "",
-    `두 규모에서 실측이 Σ(r − l + 1) 와 같고 답도 정본과 같으니, 과제 규모에서는 식이 곧 셈 연산 수입니다. 규모마다 입력은 시드 ${SEED}${으로(SEED)} 새로 만들었습니다.`,
+    `두 규모에서 실측이 Σ(r − l + 1) 와 같고 답도 정본과 같으니, 과제 규모에서는 식이 곧 기본 연산 수입니다. 규모마다 입력은 시드 ${SEED}${으로(SEED)} 새로 만들었습니다.`,
   ].join("\n");
 }
 
-/** 겹치는 두 질의 — 새로 세기와 창 이어받기의 셈 연산. */
+/** 겹치는 두 질의 — 새로 세기와 창 이어받기의 기본 연산. */
 function originReuse(): string {
   const qs: Query[] = [
     [0, 4],
@@ -359,7 +359,7 @@ function buildVsSqrt(): string {
       ],
       [
         "블록 순서(이 편)",
-        "질의의 왼쪽 끝이 놓이는 좌표 0 … n − 1",
+        "질의의 왼쪽 끝이 놓이는 좌표 0 … N − 1",
         "0 개",
         "정렬할 때 두 질의를 비교하는 데서만",
       ],
@@ -395,7 +395,7 @@ function buildState(): string {
       [
         "curL · curR",
         "0 · −1 (빈 창)",
-        "0 ≤ curL ≤ curR + 1 ≤ n",
+        "0 ≤ curL ≤ curR + 1 ≤ N",
         `창의 길이 ${maxLen} 칸`,
       ],
       ["count", "빈 맵", "키는 창에 한 번이라도 들어온 값", `키 ${maxKeys} 개`],
@@ -499,7 +499,7 @@ function buildSweep16(): string {
       [0, 1, 3, 4, 5],
     ),
     "",
-    `가장 적은 합은 B = ${best} 에서 나왔고, 정본이 n = ${A16.length} 에서 고르는 B = ⌊√${A16.length}⌋ = ${B0}${과와(B0)} 같습니다.`,
+    `가장 적은 합은 B = ${best} 에서 나왔고, 정본이 N = ${A16.length} 에서 고르는 B = ⌊√${A16.length}⌋ = ${B0}${과와(B0)} 같습니다.`,
   ].join("\n");
 }
 
@@ -532,7 +532,7 @@ function buildSweepTask(): string {
       [0, 1, 2, 3, 4, 5],
     ),
     "",
-    `n = q = ${num(N_TASK)} 입력(시드 ${SEED})에서 잰 값입니다. 이 여섯 중 가장 적은 합은 B = ${num(best)} 에서 나왔고, 정본이 고르는 B = ⌊√${num(N_TASK)}⌋ = ${c.B}${은는(c.B)} 그다음입니다.`,
+    `N = Q = ${num(N_TASK)} 입력(시드 ${SEED})에서 잰 값입니다. 이 여섯 중 가장 적은 합은 B = ${num(best)} 에서 나왔고, 정본이 고르는 B = ⌊√${num(N_TASK)}⌋ = ${c.B}${은는(c.B)} 그다음입니다.`,
   ].join("\n");
 }
 
@@ -567,7 +567,7 @@ function walkBlock(): string {
     const rootText = Number.isInteger(root)
       ? String(root)
       : `${root.toFixed(4)}…`;
-    return `n = ${pad(num(n), 7)}  →  √n = ${pad(rootText, 9)}  →  block = ${block}`;
+    return `N = ${pad(num(n), 7)}  →  √N = ${pad(rootText, 9)}  →  block = ${block}`;
   });
   return ["```text", ...lines, "```"].join("\n");
 }
@@ -970,7 +970,7 @@ function mathCheckBound(): string {
       throw new Error("실측이 상한을 넘었다");
     return [
       name,
-      `n = ${n}, q = ${q}, B = ${B}, K = ${K}`,
+      `N = ${n}, Q = ${q}, B = ${B}, K = ${K}`,
       `${q}·${B - 1} + ${K - 1}·${B} = ${b.left}`,
       String(m.left),
       `${K}·(${2 * n} − ${K * B}) = ${b.right}`,
@@ -988,9 +988,9 @@ function mathCode(): string {
   const b = bound(N_TASK, N_TASK, 316);
   return [
     "```ts",
-    "const bound = (n: number, q: number, B: number): number => {",
-    "  const K = Math.ceil(n / B);",
-    "  return q * (B - 1) + (K - 1) * B + K * (2 * n - K * B);",
+    "const bound = (N: number, Q: number, B: number): number => {",
+    "  const K = Math.ceil(N / B);",
+    "  return Q * (B - 1) + (K - 1) * B + K * (2 * N - K * B);",
     "};",
     "",
     `bound(5, 5, 2); // → ${bound(5, 5, 2).total}`,
@@ -1019,7 +1019,7 @@ function mathScale(): string {
     md(
       [
         "B",
-        "qB + n²/B",
+        "QB + N²/B",
         "상한 식",
         "그 B 의 최악 입력 실측",
         "무작위 입력 실측",
@@ -1028,7 +1028,7 @@ function mathScale(): string {
       [0, 1, 2, 3, 4],
     ),
     "",
-    `n = q = ${num(N_TASK)} 입니다. qB + n²/B 는 소수점 아래를 반올림했고, 최악 입력은 「최악을 만드는 입력」의 방법으로 B 마다 새로 만들었습니다.`,
+    `N = Q = ${num(N_TASK)} 입니다. QB + N²/B 는 소수점 아래를 반올림했고, 최악 입력은 「최악을 만드는 입력」의 방법으로 B 마다 새로 만들었습니다.`,
   ].join("\n");
 }
 
@@ -1082,7 +1082,7 @@ function invariantEdges(): string {
         [0, 0],
       ],
     ],
-    ["n = 1", [42], [[0, 0]]],
+    ["N = 1", [42], [[0, 0]]],
     [
       "음수 · 0 · 양수",
       [-1, 0, -1, 2, 0],
@@ -1194,7 +1194,7 @@ function perfDerive(): string {
   return [
     "```text",
     ...lines,
-    `${" ".repeat(18)}└ 합 ${total} 칸 = 셈 연산 ${total} 번`,
+    `${" ".repeat(18)}└ 합 ${total} 칸 = 기본 연산 ${total} 번`,
     "```",
   ].join("\n");
 }
@@ -1204,12 +1204,12 @@ function perfTotal(): string {
   const sortOps = N_TASK * Math.ceil(Math.log2(N_TASK));
   return [
     md(
-      ["항", "n = q = 100,000 에서", "센 방법"],
+      ["항", "N = Q = 100,000 에서", "센 방법"],
       [
-        ["질의 정렬", `${num(sortOps)} 번 비교`, "q⌈log₂ q⌉ 로 낸 어림"],
+        ["질의 정렬", `${num(sortOps)} 번 비교`, "Q⌈log₂ Q⌉ 로 낸 어림"],
         [
           "창 이동",
-          `셈 연산 ${num(c.block.total)} 번`,
+          `기본 연산 ${num(c.block.total)} 번`,
           "정본이 정렬한 차례에서 실측",
         ],
         ["답 적기", `${num(N_TASK)} 번`, "질의마다 한 번"],

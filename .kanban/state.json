@@ -237,107 +237,45 @@
       "memo": "2026-09-18 재판정: **KAN-036 선행이 아니다.** 기준은 「이 카드 없이 036 의 완료 조건 중 어느 명령이 실패하는가」이고, 가이드 게이트가 읽는 것은 정본 추출 구간 · 헤더 연산 표 · 규약4 등급 · 직접 메모리 집합 · 축3 성장률뿐이라 이 카드가 다루는 자리를 안 본다. 실증도 있다 — **파일럿 3편이 이 카드들 없이 게이트를 전부 통과했다**(2026-09-14 승인). 036 뒤나 옆에서 한다. — 아래는 그때의 기록이다. 자리는 KAN-040 규약 S1 절의 「넘기는 것」 표에 있다(처분표 한 행 · 다른 절 두 자리 · 판정표 합계 줄). 기록이라 안 세는 자리 둘(정정 목록 처분 칸 · 통합 정정 표)도 그 표가 구분해 적었다. **KAN-049 가 규약 문서를 이미 담당으로 받았으므로 그 카드에 얹는 것도 길이다** — 어느 쪽인지는 사람 결정이고, 얹으면 이 카드를 닫는다. KAN-036 선행 여부는 그 넷이 등급 서술이라 가이드가 읽는다 — 선행으로 둔다.",
       "memo_hash": "6aa93b8ff5c660cd56c867eb16e720afbefdb163"
     },
-    "KAN-058-8XT6PC": {
-      "col": "done",
-      "title": "알고리즘 가이드 110편 v2 재구성 전개 — KAN-056 파일럿 구성을 나머지 편에 적용",
-      "verbatim": "110편 전개는 kan-057 완료 이후로 수행 가능하게 만들어라.",
+    "KAN-063-X2JFZA": {
+      "col": "backlog",
+      "title": "그림 무대·증명 도구 개선 후보 — KAN-058 전개 중 모인 한계 목록",
+      "verbatim": "KAN-058 검토서 판단 항목 7 「그림 무대와 도구에 남은 개선 후보를 어떻게 다룰 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드 하나에 후보 목록으로 넘긴다」",
       "생성": "ai",
       "최종": "ai",
       "갱신": "2026-10-01",
-      "title_hash": "87d8a43354f28c5694770e1715dd521715a72511",
-      "verbatim_hash": "026debc00e6e229230f5dc6bfdf21c7ee8025ee0",
-      "short": "알고리즘 110편 전개",
-      "short_hash": "edb1b6cabedaaacfa74f22e20b378c4d8502b2f2",
-      "purpose": "src/algorithms/ 의 나머지 110편을 KAN-056 파일럿(sparseTableRangeMin) 구성으로 다시 쓰고 SPEC §8 한시 조항을 걷는다",
-      "purpose_hash": "6b851ab7b99e562d8c5378646e494507b48d0aad",
-      "reason": "KAN-056 파일럿이 2026-09-28 승인됐고, 옛 구성 110편 때문에 deep.origin · P17 · P18 을 해당 절이 있을 때만 재는 한시 조항에 묶여 있다",
-      "reason_hash": "610f6687a9ec4e3ca7dcae5b097af9b36f59b69c",
-      "goal": "110편이 새 구성·그림으로 서고, 한시 조항 셋을 걷고 「견주다」를 켠 뒤에도 ci.ts all 이 통과한다",
-      "goal_hash": "3929129dae80cd79fc0bc4a3497569ebcc87918d",
-      "memo": "전략 재수립(2026-09-29) — 샘플 두 편(binarySearch · stronglyConnectedComponents)을 하위 카드 KAN-058.1 로 먼저 내고, 그 검토가 승인돼야 전편 전개를 시작한다(유저 지시). 몫: ① 110편 재집필(L41~L45) ② SPEC §8 한시 조항 셋 제거(deep.origin 필수 · P17·P18·P23 전 편) ③ 본문 반말(P18) ④ 「견주다」 92편 1,516곳(2026-09-30 정규식 보강 뒤) 교정 뒤 voice v.common.gyeonju 켜기(L44, 전역 원본 수정은 유저 실행 요청 뒤) ⑤ 알고리즘 중심 서술(L49) ⑥ ASCII 를 그림으로(L46~L48, KAN-057 인계). 근거·순서·버린 대안은 KANBAN.cards/KAN-058-8XT6PC.md 「전략」",
-      "memo_hash": "682ad8dc3ca081a69898833dcbb8b8865253a4a5",
-      "scope": [
-        "src/algorithms/**",
-        "src/_viz/**",
-        "design/viz/**",
-        "sandbox/algo-guide-v2/**",
-        "tools/check-v2.ts",
-        "tools/check-v2.test.ts",
-        "tools/section.ts",
-        "tools/algo-wbs.ts",
-        "tools/algo-wbs.test.ts",
-        ".claude/skills/guide-for-problem/**",
-        ".claude/authoring/voices/algorithm-guide-writer/**",
-        ".claude/authoring.lock.json",
-        "문제_가이드_목록.md"
-      ]
+      "title_hash": "b6ee3a5f4151b73609311ff486f8292958ec4862",
+      "verbatim_hash": "234d8e284be0907a96dbe1a08bc04b1cf05ecbc4",
+      "short": "무대·도구 개선 후보",
+      "short_hash": "1802303600f1a642b3b096044d86fbede77c8d2c",
+      "purpose": "배열 무대(자리 이름·밖 상태·구간 괄호)와 증명 도구(펜스 뒤 문장 대조) 등 후보의 우선순위를 정하고 처리한다",
+      "purpose_hash": "673fb9eafecadf2c38781150a434cfaf134ba9cd",
+      "reason": "115편은 지금 모양으로 통과했지만 같은 한계가 다음 편에서 다시 나온다",
+      "reason_hash": "5e367cb24e928ef3cfa39cb18de024122676f026",
+      "goal": "근거 파일 §7 후보마다 처리하거나 버린 사유가 적히고, 무대를 넓힌 경우 그 무대를 쓰는 편의 그림을 다시 뽑아 render-figs --check 가 통과한다",
+      "goal_hash": "8627ed13b4f099122732cd941ec55b7d7774f502",
+      "memo": "목록 정본: KANBAN.batches/KAN-058-8XT6PC.s11-findings.md §7. KAN-058 검토 7",
+      "memo_hash": "d247c719f910875e2bc08ffc62922deb3840a8f7"
     },
-    "KAN-059-PSFTN4": {
-      "col": "done",
-      "title": "책 빌더의 SVG 그림 인쇄 — 알고리즘 가이드 fig 자리를 책(PDF)에서 어떻게 찍는가",
-      "verbatim": "",
+    "KAN-065-CV4WP7": {
+      "col": "backlog",
+      "title": "solutions 에만 있는 비풀이 커밋과 main 의 풀이 분석 문서 정리 — 두 브랜치가 무엇을 나눠 갖는지 정한다",
+      "verbatim": "KAN-064 검토서 판단 항목 2 「solutions 에 main 에는 없는 비풀이 커밋이 섞여 있다 — 이 카드에서는 건드리지 않았다」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
       "생성": "ai",
       "최종": "ai",
-      "갱신": "2026-09-29",
-      "title_hash": "924a4225b02cebdc3969d06125ba2a0a372414de",
-      "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
-      "short": "책 빌더 SVG 인쇄",
-      "short_hash": "1c81560d2f0f055e7cf624f3ad462bb94fc215bb",
-      "purpose": "fig 그림이 책 PDF 에서 한 벌씩 온전히 찍히게 하고, 안 그런 그림을 책 빌드가 잡게 한다",
-      "purpose_hash": "a29ad446a51860ba2512e31919f53c18efa26427",
-      "reason": "파일럿 인쇄에서 세로로 긴 걸음 그림 둘이 빈 틀 쪽을 남기고 쪽 경계에서 잘렸다(고급 권 823·832쪽)",
-      "reason_hash": "637c48bdf0a9468490aefd44d2754e395795e89b",
-      "goal": "측정 검사 위반 0 · 빈 틀 쪽 0 · 잘린 걸음 칸 0 인 채로 KAN-058 이 그림을 늘릴 수 있다",
-      "goal_hash": "fedcf9c0b5173d070b34c189695fde9c29e8a5c7",
-      "memo": "KAN-057 전략 2 에서 범위 밖으로 뺀 곁가지(플랜 검토 지적 4, 2026-09-28). 전략·WBS·배치 2개 수립(2026-09-29) — 실측 근거와 접근은 카드 문서 「전략」. EPUB 은 feat/book-volumes 몫으로 범위 밖",
-      "memo_hash": "599e787b77ad2d90a025294e43a355ffae9f0902",
-      "scope": [
-        "tools/book/**",
-        "src/_viz/patterns/CellStage.tsx",
-        "src/_viz/patterns.test.tsx",
-        "src/algorithms/array/sparseTableRangeMin/figs/walk-build.svg",
-        "src/algorithms/array/sparseTableRangeMin/figs/walk-answer.svg"
-      ]
-    },
-    "KAN-060-9P4ZAA": {
-      "col": "done",
-      "title": "알고리즘 가이드에 문제를 통합한다.",
-      "verbatim": "지금은 문제가 *-guide.md로 분리 되어 있다. 그리고 그 문제를 전제로 가이드가 구성되어 있다. 그래서 문제를 모르면 guide에서 맥락을 읽기 어려운 경우가 생긴다.\n\n- guide는 문제에 대한 guide가 아니라, 알고리즘 자체에 대한 guide여야 한다.\n- guide 마지막에 문제를 만들어서 실습 항목으로 배치한다.\n- 기존 problem.md는 삭제한다.",
-      "생성": "유저",
-      "최종": "ai",
-      "갱신": "2026-09-29",
-      "title_hash": "98f8038a958aa1717a25f8e05bca03b82fa45e1b",
-      "verbatim_hash": "fb271c536bf618aa94c564fd5e1b66912e104eca",
-      "memo": "",
-      "memo_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
-      "short": "가이드에 문제 통합",
-      "short_hash": "339b552a72bd1188852b38e53453d543b50d580c",
-      "purpose": "가이드를 알고리즘 중심으로 세우고 문제를 끝의 실습 절로 옮긴 뒤 problem.md 119개를 지운다",
-      "purpose_hash": "c5368816c5203864ef853a8a3b1bed497b380c40",
-      "reason": "가이드가 별도 문제 문서를 전제로 쓰여 문제를 모르면 가이드에서 맥락을 읽기 어렵다",
-      "reason_hash": "38064883a8e6c6bd4e74f2d22f81bba6fcff0f1f",
-      "goal": "problem.md 0, 모든 가이드 끝에 실습 절, 파일럿 sparseTableRangeMin 이 L49 로 서고 ci.ts all 통과. 원문 ①(알고리즘 중심 서술)의 110편 적용은 KAN-058 몫이다",
-      "goal_hash": "51323de23602dbbba8eb1bc7a13723e64f028b62",
-      "scope": [
-        "src/algorithms/**",
-        "sandbox/algo-guide-v2/**",
-        "tools/section.ts",
-        "tools/check-v2.ts",
-        "tools/check-v2.test.ts",
-        "tools/check-metaphor.ts",
-        "tools/check-metaphor.test.ts",
-        "tools/migrate-practice.ts",
-        "tools/algo-wbs.test.ts",
-        "tools/book/fragment.ts",
-        ".claude/authoring/specs/problem/**",
-        ".claude/authoring.lock.json",
-        ".claude/skills/gen-problem/**",
-        ".claude/skills/guide-for-problem/**",
-        ".claude/authoring/voices/algorithm-guide-writer/**",
-        "README.md",
-        "CLAUDE.md",
-        "문제_가이드_목록.md"
-      ]
+      "갱신": "2026-10-01",
+      "title_hash": "2272d59803ececcc66286175f6d62405d1e50100",
+      "verbatim_hash": "954b404555d472ef1261632c55ddf7d2d21e9412",
+      "short": "solutions 경계 정리",
+      "short_hash": "7b5259e169bcd129417a75e06e9b5b37526d00da",
+      "purpose": "solutions 에만 있는 풀이 아닌 커밋을 main 으로 옮기는 길과, main 에 든 풀이 분석 문서(*-analysis.md 12편)·_scratch 의 자리를 정해 처리한다",
+      "purpose_hash": "62851cd4b0f5c81bc7814673d19ef543f75fd9cd",
+      "reason": "KAN-064 누수는 solutions 위에서 갈라진 브랜치가 main 에 들어오며 생겼고, 비풀이 커밋을 main 으로 가져오려 할 때마다 같은 길이 열린다. 분석 문서는 지금도 답을 드러낸다",
+      "reason_hash": "1a4d23d4ba7e05e5a9f837b194b2a464d3e18458",
+      "goal": "main 에 풀이를 드러내는 파일이 없고, solutions 에만 남은 비풀이 커밋은 main 에 반영되거나 버린 사유가 적힌다. 옮기는 절차가 문서나 도구로 남는다",
+      "goal_hash": "ea26fd7a96ccea278eb5b7aeffcd48894d2b6677",
+      "memo": "근거: KAN-064 검토서 판단 항목 2(.kanban/reviews/KAN-064-4YZZV2.events.jsonl). 비풀이 커밋 예: 807bc7b9·c4555102(훅) · 0adb1fc2·b494a300(가이드) · dcd37711·b83a1d5b(자료구조 계약). 확인: git log main..solutions",
+      "memo_hash": "cfe52a31069919431c843a3b687fdeee40cff508"
     },
     "KAN-001": {
       "col": "todo",
@@ -1505,6 +1443,73 @@
         ".github/workflows/ci.yml"
       ]
     },
+    "KAN-059-PSFTN4": {
+      "col": "done",
+      "title": "책 빌더의 SVG 그림 인쇄 — 알고리즘 가이드 fig 자리를 책(PDF)에서 어떻게 찍는가",
+      "verbatim": "",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-09-29",
+      "title_hash": "924a4225b02cebdc3969d06125ba2a0a372414de",
+      "verbatim_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "short": "책 빌더 SVG 인쇄",
+      "short_hash": "1c81560d2f0f055e7cf624f3ad462bb94fc215bb",
+      "purpose": "fig 그림이 책 PDF 에서 한 벌씩 온전히 찍히게 하고, 안 그런 그림을 책 빌드가 잡게 한다",
+      "purpose_hash": "a29ad446a51860ba2512e31919f53c18efa26427",
+      "reason": "파일럿 인쇄에서 세로로 긴 걸음 그림 둘이 빈 틀 쪽을 남기고 쪽 경계에서 잘렸다(고급 권 823·832쪽)",
+      "reason_hash": "637c48bdf0a9468490aefd44d2754e395795e89b",
+      "goal": "측정 검사 위반 0 · 빈 틀 쪽 0 · 잘린 걸음 칸 0 인 채로 KAN-058 이 그림을 늘릴 수 있다",
+      "goal_hash": "fedcf9c0b5173d070b34c189695fde9c29e8a5c7",
+      "memo": "KAN-057 전략 2 에서 범위 밖으로 뺀 곁가지(플랜 검토 지적 4, 2026-09-28). 전략·WBS·배치 2개 수립(2026-09-29) — 실측 근거와 접근은 카드 문서 「전략」. EPUB 은 feat/book-volumes 몫으로 범위 밖",
+      "memo_hash": "599e787b77ad2d90a025294e43a355ffae9f0902",
+      "scope": [
+        "tools/book/**",
+        "src/_viz/patterns/CellStage.tsx",
+        "src/_viz/patterns.test.tsx",
+        "src/algorithms/array/sparseTableRangeMin/figs/walk-build.svg",
+        "src/algorithms/array/sparseTableRangeMin/figs/walk-answer.svg"
+      ]
+    },
+    "KAN-060-9P4ZAA": {
+      "col": "done",
+      "title": "알고리즘 가이드에 문제를 통합한다.",
+      "verbatim": "지금은 문제가 *-guide.md로 분리 되어 있다. 그리고 그 문제를 전제로 가이드가 구성되어 있다. 그래서 문제를 모르면 guide에서 맥락을 읽기 어려운 경우가 생긴다.\n\n- guide는 문제에 대한 guide가 아니라, 알고리즘 자체에 대한 guide여야 한다.\n- guide 마지막에 문제를 만들어서 실습 항목으로 배치한다.\n- 기존 problem.md는 삭제한다.",
+      "생성": "유저",
+      "최종": "ai",
+      "갱신": "2026-09-29",
+      "title_hash": "98f8038a958aa1717a25f8e05bca03b82fa45e1b",
+      "verbatim_hash": "fb271c536bf618aa94c564fd5e1b66912e104eca",
+      "short": "가이드에 문제 통합",
+      "short_hash": "339b552a72bd1188852b38e53453d543b50d580c",
+      "purpose": "가이드를 알고리즘 중심으로 세우고 문제를 끝의 실습 절로 옮긴 뒤 problem.md 119개를 지운다",
+      "purpose_hash": "c5368816c5203864ef853a8a3b1bed497b380c40",
+      "reason": "가이드가 별도 문제 문서를 전제로 쓰여 문제를 모르면 가이드에서 맥락을 읽기 어렵다",
+      "reason_hash": "38064883a8e6c6bd4e74f2d22f81bba6fcff0f1f",
+      "goal": "problem.md 0, 모든 가이드 끝에 실습 절, 파일럿 sparseTableRangeMin 이 L49 로 서고 ci.ts all 통과. 원문 ①(알고리즘 중심 서술)의 110편 적용은 KAN-058 몫이다",
+      "goal_hash": "51323de23602dbbba8eb1bc7a13723e64f028b62",
+      "memo": "",
+      "memo_hash": "da39a3ee5e6b4b0d3255bfef95601890afd80709",
+      "scope": [
+        "src/algorithms/**",
+        "sandbox/algo-guide-v2/**",
+        "tools/section.ts",
+        "tools/check-v2.ts",
+        "tools/check-v2.test.ts",
+        "tools/check-metaphor.ts",
+        "tools/check-metaphor.test.ts",
+        "tools/migrate-practice.ts",
+        "tools/algo-wbs.test.ts",
+        "tools/book/fragment.ts",
+        ".claude/authoring/specs/problem/**",
+        ".claude/authoring.lock.json",
+        ".claude/skills/gen-problem/**",
+        ".claude/skills/guide-for-problem/**",
+        ".claude/authoring/voices/algorithm-guide-writer/**",
+        "README.md",
+        "CLAUDE.md",
+        "문제_가이드_목록.md"
+      ]
+    },
     "KAN-058.1-9TBXDA": {
       "col": "done",
       "title": "샘플 두 편 — binarySearch · stronglyConnectedComponents",
@@ -1530,6 +1535,41 @@
         "src/algorithms/graph/stronglyConnectedComponents/**",
         "src/_viz/**",
         "design/viz/**"
+      ]
+    },
+    "KAN-058-8XT6PC": {
+      "col": "done",
+      "title": "알고리즘 가이드 110편 v2 재구성 전개 — KAN-056 파일럿 구성을 나머지 편에 적용",
+      "verbatim": "110편 전개는 kan-057 완료 이후로 수행 가능하게 만들어라.",
+      "생성": "ai",
+      "최종": "ai",
+      "갱신": "2026-10-01",
+      "title_hash": "87d8a43354f28c5694770e1715dd521715a72511",
+      "verbatim_hash": "026debc00e6e229230f5dc6bfdf21c7ee8025ee0",
+      "short": "알고리즘 110편 전개",
+      "short_hash": "edb1b6cabedaaacfa74f22e20b378c4d8502b2f2",
+      "purpose": "src/algorithms/ 의 나머지 110편을 KAN-056 파일럿(sparseTableRangeMin) 구성으로 다시 쓰고 SPEC §8 한시 조항을 걷는다",
+      "purpose_hash": "6b851ab7b99e562d8c5378646e494507b48d0aad",
+      "reason": "KAN-056 파일럿이 2026-09-28 승인됐고, 옛 구성 110편 때문에 deep.origin · P17 · P18 을 해당 절이 있을 때만 재는 한시 조항에 묶여 있다",
+      "reason_hash": "610f6687a9ec4e3ca7dcae5b097af9b36f59b69c",
+      "goal": "110편이 새 구성·그림으로 서고, 한시 조항 셋을 걷고 「견주다」를 켠 뒤에도 ci.ts all 이 통과한다",
+      "goal_hash": "3929129dae80cd79fc0bc4a3497569ebcc87918d",
+      "memo": "전략 재수립(2026-09-29) — 샘플 두 편(binarySearch · stronglyConnectedComponents)을 하위 카드 KAN-058.1 로 먼저 내고, 그 검토가 승인돼야 전편 전개를 시작한다(유저 지시). 몫: ① 110편 재집필(L41~L45) ② SPEC §8 한시 조항 셋 제거(deep.origin 필수 · P17·P18·P23 전 편) ③ 본문 반말(P18) ④ 「견주다」 92편 1,516곳(2026-09-30 정규식 보강 뒤) 교정 뒤 voice v.common.gyeonju 켜기(L44, 전역 원본 수정은 유저 실행 요청 뒤) ⑤ 알고리즘 중심 서술(L49) ⑥ ASCII 를 그림으로(L46~L48, KAN-057 인계). 근거·순서·버린 대안은 KANBAN.cards/KAN-058-8XT6PC.md 「전략」",
+      "memo_hash": "682ad8dc3ca081a69898833dcbb8b8865253a4a5",
+      "scope": [
+        "src/algorithms/**",
+        "src/_viz/**",
+        "design/viz/**",
+        "sandbox/algo-guide-v2/**",
+        "tools/check-v2.ts",
+        "tools/check-v2.test.ts",
+        "tools/section.ts",
+        "tools/algo-wbs.ts",
+        "tools/algo-wbs.test.ts",
+        ".claude/skills/guide-for-problem/**",
+        ".claude/authoring/voices/algorithm-guide-writer/**",
+        ".claude/authoring.lock.json",
+        "문제_가이드_목록.md"
       ]
     },
     "KAN-061-YVQBCF": {
@@ -1609,46 +1649,6 @@
         "src/algorithms/shortest-path/dagShortestPath/**"
       ]
     },
-    "KAN-062-Z0V30H": {
-      "col": "backlog",
-      "title": "알고리즘 가이드 편 사이 셈 기준·용어 정합 — 갈래별 기준표를 규격에 먼저 적고 편을 맞춘다",
-      "verbatim": "KAN-058 검토서 판단 항목 5 「편 사이에 어긋난 셈 기준과 용어를 맞출 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
-      "생성": "ai",
-      "최종": "ai",
-      "갱신": "2026-10-01",
-      "title_hash": "ea903fe96faf65162611f10ad1ce5d8f3c446d01",
-      "verbatim_hash": "b24a26c407258fd5957577ae1e8536f9dc7d34be",
-      "short": "편 사이 셈 기준·용어 정합",
-      "short_hash": "200af139c567e2fb0408f88be54fb000962190b7",
-      "purpose": "갈래별 비용 셈 기준과 용어 표를 SPEC 에 적고 그 표로 편들을 맞춘다. 경쟁 설계 산문의 배수 손 계산을 증명 블록으로 옮긴다",
-      "purpose_hash": "3fa67d421631aa01b6302fab3c78efa4151c0d9b",
-      "reason": "한 편 안에서는 기준이 하나지만 편끼리는 같은 갈래에서도 단위와 이름이 다르다",
-      "reason_hash": "3b0428a3516a8dc64f77aedd890a476808f0e4ba",
-      "goal": "SPEC 에 갈래별 기준표가 서고, 근거 파일 §5 의 불일치가 모두 해소되거나 사유가 적힌다",
-      "goal_hash": "f6ed130fdf1a9e0739f0dd7b007a2555b46d4370",
-      "memo": "목록 정본: KANBAN.batches/KAN-058-8XT6PC.s11-findings.md §5(5-1 셈 기준 · 5-2 용어). KAN-058 검토 5",
-      "memo_hash": "d0ea12e7511e9e10c1f3f4ad54cb0ef77441ce35"
-    },
-    "KAN-063-X2JFZA": {
-      "col": "backlog",
-      "title": "그림 무대·증명 도구 개선 후보 — KAN-058 전개 중 모인 한계 목록",
-      "verbatim": "KAN-058 검토서 판단 항목 7 「그림 무대와 도구에 남은 개선 후보를 어떻게 다룰 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드 하나에 후보 목록으로 넘긴다」",
-      "생성": "ai",
-      "최종": "ai",
-      "갱신": "2026-10-01",
-      "title_hash": "b6ee3a5f4151b73609311ff486f8292958ec4862",
-      "verbatim_hash": "234d8e284be0907a96dbe1a08bc04b1cf05ecbc4",
-      "short": "무대·도구 개선 후보",
-      "short_hash": "1802303600f1a642b3b096044d86fbede77c8d2c",
-      "purpose": "배열 무대(자리 이름·밖 상태·구간 괄호)와 증명 도구(펜스 뒤 문장 대조) 등 후보의 우선순위를 정하고 처리한다",
-      "purpose_hash": "673fb9eafecadf2c38781150a434cfaf134ba9cd",
-      "reason": "115편은 지금 모양으로 통과했지만 같은 한계가 다음 편에서 다시 나온다",
-      "reason_hash": "5e367cb24e928ef3cfa39cb18de024122676f026",
-      "goal": "근거 파일 §7 후보마다 처리하거나 버린 사유가 적히고, 무대를 넓힌 경우 그 무대를 쓰는 편의 그림을 다시 뽑아 render-figs --check 가 통과한다",
-      "goal_hash": "8627ed13b4f099122732cd941ec55b7d7774f502",
-      "memo": "목록 정본: KANBAN.batches/KAN-058-8XT6PC.s11-findings.md §7. KAN-058 검토 7",
-      "memo_hash": "d247c719f910875e2bc08ffc62922deb3840a8f7"
-    },
     "KAN-064-4YZZV2": {
       "col": "done",
       "title": "실습 스텁에 새어 든 풀이 24편 되돌리기 — solutions 브랜치 병합 방향을 먼저 정한다",
@@ -1699,25 +1699,33 @@
         "tools/solutions-merge.test.ts"
       ]
     },
-    "KAN-065-CV4WP7": {
-      "col": "backlog",
-      "title": "solutions 에만 있는 비풀이 커밋과 main 의 풀이 분석 문서 정리 — 두 브랜치가 무엇을 나눠 갖는지 정한다",
-      "verbatim": "KAN-064 검토서 판단 항목 2 「solutions 에 main 에는 없는 비풀이 커밋이 섞여 있다 — 이 카드에서는 건드리지 않았다」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
+    "KAN-062-Z0V30H": {
+      "col": "done",
+      "title": "알고리즘 가이드 편 사이 셈 기준·용어 정합 — 갈래별 기준표를 규격에 먼저 적고 편을 맞춘다",
+      "verbatim": "KAN-058 검토서 판단 항목 5 「편 사이에 어긋난 셈 기준과 용어를 맞출 것인가」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
       "생성": "ai",
       "최종": "ai",
       "갱신": "2026-10-01",
-      "title_hash": "2272d59803ececcc66286175f6d62405d1e50100",
-      "verbatim_hash": "954b404555d472ef1261632c55ddf7d2d21e9412",
-      "short": "solutions 경계 정리",
-      "short_hash": "7b5259e169bcd129417a75e06e9b5b37526d00da",
-      "purpose": "solutions 에만 있는 풀이 아닌 커밋을 main 으로 옮기는 길과, main 에 든 풀이 분석 문서(*-analysis.md 12편)·_scratch 의 자리를 정해 처리한다",
-      "purpose_hash": "62851cd4b0f5c81bc7814673d19ef543f75fd9cd",
-      "reason": "KAN-064 누수는 solutions 위에서 갈라진 브랜치가 main 에 들어오며 생겼고, 비풀이 커밋을 main 으로 가져오려 할 때마다 같은 길이 열린다. 분석 문서는 지금도 답을 드러낸다",
-      "reason_hash": "1a4d23d4ba7e05e5a9f837b194b2a464d3e18458",
-      "goal": "main 에 풀이를 드러내는 파일이 없고, solutions 에만 남은 비풀이 커밋은 main 에 반영되거나 버린 사유가 적힌다. 옮기는 절차가 문서나 도구로 남는다",
-      "goal_hash": "ea26fd7a96ccea278eb5b7aeffcd48894d2b6677",
-      "memo": "근거: KAN-064 검토서 판단 항목 2(.kanban/reviews/KAN-064-4YZZV2.events.jsonl). 비풀이 커밋 예: 807bc7b9·c4555102(훅) · 0adb1fc2·b494a300(가이드) · dcd37711·b83a1d5b(자료구조 계약). 확인: git log main..solutions",
-      "memo_hash": "cfe52a31069919431c843a3b687fdeee40cff508"
+      "title_hash": "ea903fe96faf65162611f10ad1ce5d8f3c446d01",
+      "verbatim_hash": "b24a26c407258fd5957577ae1e8536f9dc7d34be",
+      "short": "편 사이 셈 기준·용어 정합",
+      "short_hash": "200af139c567e2fb0408f88be54fb000962190b7",
+      "purpose": "갈래별 비용 셈 기준과 용어 표를 SPEC 에 적고 그 표로 편들을 맞춘다. 경쟁 설계 산문의 배수 손 계산을 증명 블록으로 옮긴다",
+      "purpose_hash": "3fa67d421631aa01b6302fab3c78efa4151c0d9b",
+      "reason": "한 편 안에서는 기준이 하나지만 편끼리는 같은 갈래에서도 단위와 이름이 다르다",
+      "reason_hash": "3b0428a3516a8dc64f77aedd890a476808f0e4ba",
+      "goal": "SPEC 에 갈래별 기준표가 서고, 근거 파일 §5 의 불일치가 모두 해소되거나 사유가 적힌다",
+      "goal_hash": "f6ed130fdf1a9e0739f0dd7b007a2555b46d4370",
+      "memo": "목록 정본: KANBAN.batches/KAN-058-8XT6PC.s11-findings.md §5(5-1 셈 기준 · 5-2 용어). KAN-058 검토 5",
+      "memo_hash": "d0ea12e7511e9e10c1f3f4ad54cb0ef77441ce35",
+      "scope": [
+        "sandbox/algo-guide-v2/SPEC.md",
+        "src/algorithms/**/*-guide.*",
+        "tools/check-v2.ts",
+        "tools/check-v2.test.ts",
+        "tools/check-proof.ts",
+        "tools/cost-vocab.ts"
+      ]
     }
   },
   "order": [
@@ -1733,8 +1741,8 @@
     "KAN-053-2KYAED",
     "KAN-054-1YWN4M",
     "KAN-055-4N4T6A",
-    "KAN-062-Z0V30H",
     "KAN-063-X2JFZA",
+    "KAN-065-CV4WP7",
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
@@ -1796,7 +1804,7 @@
     "KAN-058-8XT6PC",
     "KAN-061-YVQBCF",
     "KAN-064-4YZZV2",
-    "KAN-065-CV4WP7"
+    "KAN-062-Z0V30H"
   ],
   "recent": [
     {
@@ -1874,6 +1882,16 @@
       "memo": "근거: KANBAN.cards/KAN-061-YVQBCF.md 의 S1 수행 내역(24편 · 21편 바이트 동일). main 에서 바로 되돌리면 다음 main→solutions 병합이 풀이를 덮는다 — 병합 방향부터"
     },
     {
+      "seq": 452,
+      "t": "2026-10-01T09:01",
+      "a": "ai",
+      "id": "KAN-062-Z0V30H",
+      "op": "move",
+      "w": "YT59JH",
+      "from": "review",
+      "to": "done"
+    },
+    {
       "seq": 451,
       "t": "2026-10-01T08:05",
       "a": "ai",
@@ -1882,6 +1900,16 @@
       "w": "0QT8BA",
       "from": "review",
       "to": "done"
+    },
+    {
+      "seq": 451,
+      "t": "2026-10-01T08:58",
+      "a": "ai",
+      "id": "KAN-062-Z0V30H",
+      "op": "move",
+      "w": "YT59JH",
+      "from": "doing",
+      "to": "review"
     },
     {
       "seq": 450,
@@ -1894,6 +1922,16 @@
       "to": "review"
     },
     {
+      "seq": 450,
+      "t": "2026-10-01T08:33",
+      "a": "ai",
+      "id": "KAN-062-Z0V30H",
+      "op": "move",
+      "w": "YT59JH",
+      "from": "review",
+      "to": "doing"
+    },
+    {
       "seq": 449,
       "t": "2026-10-01T07:14",
       "a": "유저",
@@ -1902,6 +1940,16 @@
       "w": "0QT8BA",
       "with_": "KAN-061-YVQBCF",
       "reason": "글롭 대 글롭 오탐 — KAN-061 범위 폴더에 huffman* 이 없다(유저 승인 2026-10-01, scope 에 alt 주석 세 편을 더해 다시 기록)"
+    },
+    {
+      "seq": 449,
+      "t": "2026-10-01T08:26",
+      "a": "ai",
+      "id": "KAN-062-Z0V30H",
+      "op": "move",
+      "w": "YT59JH",
+      "from": "doing",
+      "to": "review"
     },
     {
       "seq": 448,
@@ -1914,12 +1962,32 @@
       "reason": "글롭 대 글롭 오탐 — KAN-061 의 50편 폴더에 huffman* 이 없다(유저 승인 2026-10-01)"
     },
     {
+      "seq": 448,
+      "t": "2026-10-01T07:04",
+      "a": "유저",
+      "id": "KAN-039-FG8HWZ",
+      "op": "waive",
+      "w": "YT59JH",
+      "with_": "KAN-062-Z0V30H",
+      "reason": "KAN-062 는 이미 있는 알고리즘 가이드 115편만 고친다. rollingHash·huffman 은 알고리즘 트랙에 아직 없어 겹치는 파일이 없다. KAN-039 는 KAN-036 뒤 직렬로 막혀 있어 착수 때 main 의 새 기준표(SPEC §14)를 따른다(유저 승인 2026-10-01)"
+    },
+    {
       "seq": 447,
       "t": "2026-10-01T06:59",
       "a": "ai",
       "id": "KAN-061-YVQBCF",
       "op": "move",
       "w": "0QT8BA",
+      "from": "backlog",
+      "to": "doing"
+    },
+    {
+      "seq": 447,
+      "t": "2026-10-01T06:59",
+      "a": "ai",
+      "id": "KAN-062-Z0V30H",
+      "op": "move",
+      "w": "YT59JH",
       "from": "backlog",
       "to": "doing"
     },
@@ -2299,77 +2367,6 @@
         "reason": "",
         "goal": ""
       }
-    },
-    {
-      "seq": 413,
-      "t": "2026-09-29T03:13",
-      "a": "ai",
-      "id": "KAN-059-PSFTN4",
-      "op": "move",
-      "w": "MY1HCK",
-      "from": "review",
-      "to": "done"
-    },
-    {
-      "seq": 412,
-      "t": "2026-09-29T02:02",
-      "a": "ai",
-      "id": "KAN-059-PSFTN4",
-      "op": "move",
-      "w": "MY1HCK",
-      "from": "doing",
-      "to": "review"
-    },
-    {
-      "seq": 411,
-      "t": "2026-09-29T01:38",
-      "a": "ai",
-      "id": "KAN-059-PSFTN4",
-      "op": "move",
-      "w": "MY1HCK",
-      "from": "backlog",
-      "to": "doing"
-    },
-    {
-      "seq": 410,
-      "t": "2026-09-29T01:34",
-      "a": "ai",
-      "id": "KAN-059-PSFTN4",
-      "op": "edit",
-      "w": "46PCAX",
-      "field": "memo",
-      "before": "KAN-057 전략 2 에서 범위 밖으로 뺀 곁가지(플랜 검토 지적 4, 2026-09-28). 근거 자료: KAN-057 S14 가 기록할 「책 빌드에서 fig 자리가 어떻게 나오는가」",
-      "after": "KAN-057 전략 2 에서 범위 밖으로 뺀 곁가지(플랜 검토 지적 4, 2026-09-28). 전략·WBS·배치 2개 수립(2026-09-29) — 실측 근거와 접근은 카드 문서 「전략」. EPUB 은 feat/book-volumes 몫으로 범위 밖"
-    },
-    {
-      "seq": 409,
-      "t": "2026-09-29T01:34",
-      "a": "ai",
-      "id": "KAN-059-PSFTN4",
-      "op": "brief",
-      "w": "46PCAX",
-      "fields": {
-        "short": "책 빌더 SVG 인쇄",
-        "purpose": "fig 그림이 책 PDF 에서 한 벌씩 온전히 찍히게 하고, 안 그런 그림을 책 빌드가 잡게 한다",
-        "reason": "파일럿 인쇄에서 세로로 긴 걸음 그림 둘이 빈 틀 쪽을 남기고 쪽 경계에서 잘렸다(고급 권 823·832쪽)",
-        "goal": "측정 검사 위반 0 · 빈 틀 쪽 0 · 잘린 걸음 칸 0 인 채로 KAN-058 이 그림을 늘릴 수 있다"
-      },
-      "before": {
-        "short": "책 빌더 SVG 인쇄",
-        "purpose": "KAN-057 이 가이드 도식을 ASCII 에서 SVG(fig)로 바꾸면서 책 빌더가 그 자리를 인쇄할 수 있게 한다",
-        "reason": "책 빌더는 pre.gs-ascii 를 전제로 짜여 있어(build-book.ts:57 · print-css.ts:155-245 · fragment.ts:23 · build-sample.ts:164) fig 로 바뀐 자리가 인쇄에서 빠지거나 깨질 수 있다",
-        "goal": "fig 가 있는 가이드가 책 빌드에서 그림으로 인쇄되고, 110편 전개(KAN-058) 전에 인쇄 경로가 선다"
-      }
-    },
-    {
-      "seq": 408,
-      "t": "2026-09-29T01:34",
-      "a": "유저",
-      "id": "KAN-039-FG8HWZ",
-      "op": "waive",
-      "w": "46PCAX",
-      "with_": "KAN-059-PSFTN4",
-      "reason": "경로 글롭만 겹친다 — KAN-039 는 src/algorithms/*/huffman*/**, KAN-059 는 sparseTableRangeMin/figs 의 필름 SVG 둘이라 실제 파일이 다르다. 같은 모양의 겹침을 KAN-057 에서 유저가 용인했다(2026-09-28)"
     }
   ],
   "waivers": [
@@ -2455,6 +2452,13 @@
       "scope_hash": "7029a9d83e00b460",
       "reason": "검사기 오탐 — KAN-039 글롭 src/algorithms/*/huffman*/** 에 KAN-064 scope 24편 중 맞는 경로 0개(fnmatch 확인). 유저 승인 2026-10-01",
       "created": "2026-10-01T08:26",
+      "by": "유저"
+    },
+    {
+      "pair": "KAN-039-FG8HWZ|KAN-062-Z0V30H",
+      "scope_hash": "6c78dbb9811461ec",
+      "reason": "KAN-062 는 이미 있는 알고리즘 가이드 115편만 고친다. rollingHash·huffman 은 알고리즘 트랙에 아직 없어 겹치는 파일이 없다. KAN-039 는 KAN-036 뒤 직렬로 막혀 있어 착수 때 main 의 새 기준표(SPEC §14)를 따른다(유저 승인 2026-10-01)",
+      "created": "2026-10-01T07:04",
       "by": "유저"
     }
   ],

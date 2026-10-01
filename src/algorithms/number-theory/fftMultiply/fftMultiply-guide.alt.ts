@@ -10,6 +10,7 @@
  * | --- | --- |
  * | 기본 연산 | 계수 한 쌍에 대한 곱·덧셈·뺄셈 각 1 회. 두 설계가 같은 단위를 쓴다 |
  * | 삼각함수 호출 | `Math.cos`·`Math.sin` 호출 수. 카라추바는 0 이다 |
+ * | 할당 칸 | 배열을 새로 잡을 때마다 그 길이를 더한 누적 합. 입력 배열은 빼고, 다 쓰고 버린 배열도 센다 |
  * | 정확했던 마지막 계수 상한 | 계수 사다리를 올리며 정답과 처음 갈리기 직전의 상한 |
  *
  * **두 설계의 답을 매 실행에서 정본과 대조한다**(`검산()`). 계수만 세고 답을 안 맞추면 그
@@ -397,7 +398,8 @@ export const cases: Record<string, () => Record<string, number>> = {
       "길이 512 삼각함수 호출": fftCost(SHORT_LEN, SHORT_LEN).trig,
       "길이 1024 기본 연산": fftCost(LONG_LEN, LONG_LEN).ops,
       "길이 1024 삼각함수 호출": fftCost(LONG_LEN, LONG_LEN).trig,
-      "길이 1024 새로 잡는 칸": fftCost(LONG_LEN, LONG_LEN).cells,
+      "길이 512 할당 칸": fftCost(SHORT_LEN, SHORT_LEN).cells,
+      "길이 1024 할당 칸": fftCost(LONG_LEN, LONG_LEN).cells,
       "길이 64 에서 정확했던 마지막 계수 상한": lastExactCap(
         (a, b) => fftMultiply(a, b),
         TINY_LEN,
@@ -418,7 +420,8 @@ export const cases: Record<string, () => Record<string, number>> = {
       "길이 512 삼각함수 호출": 0,
       "길이 1024 기본 연산": karatsubaCost(LONG_LEN, LONG_LEN).ops,
       "길이 1024 삼각함수 호출": 0,
-      "길이 1024 새로 잡는 칸": karatsubaCost(LONG_LEN, LONG_LEN).cells,
+      "길이 512 할당 칸": karatsubaCost(SHORT_LEN, SHORT_LEN).cells,
+      "길이 1024 할당 칸": karatsubaCost(LONG_LEN, LONG_LEN).cells,
       "길이 64 에서 정확했던 마지막 계수 상한": lastExactCap(run, TINY_LEN),
       "길이 1024 에서 정확했던 마지막 계수 상한": lastExactCap(run, LONG_LEN),
     };

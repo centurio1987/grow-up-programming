@@ -199,7 +199,7 @@ function approaches(): Approach[] {
         },
         {
           label: "메모리",
-          value: `잡는 칸 n + 2m + h — ${num(big.cells)} 칸`,
+          value: `추가 칸 n + 2m + h — ${num(big.cells)} 칸`,
           ok: true,
         },
       ],

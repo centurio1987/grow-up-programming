@@ -10,6 +10,7 @@
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";
 import { josa, 과와, 을를, 이가 } from "../../../../tools/josa.ts";
+import { cases } from "./binarySearch-guide.alt.ts";
 import {
   A6,
   firstCellReads,
@@ -1122,7 +1123,19 @@ function invariantEdges(): string {
   return md(["입력", "처리되는 자리", "결과"], rows);
 }
 
+/* ───────────────── 경쟁 설계와의 대조 ───────────────── */
+
+/** 균등 입력의 칸 읽기 비 — `.alt.ts` 의 계수에서 낸다. */
+function altTrade(): string {
+  const bin = cases["이진 탐색"]()["균등 입력 칸 읽기"] as number;
+  const itp = cases["보간 탐색"]()["균등 입력 칸 읽기"] as number;
+  const ratio = Math.round(bin / itp);
+  return `**이진 탐색이 내주는 것은 균등 입력에서의 칸 읽기입니다.** ${num(itp)} 대 ${num(bin)} 이면 ${ratio} 배 차이인데, 그것을 내주고 받는 것이 둘이에요 — 값이 어떻게 놓였든 최악이 \`⌊log₂ n⌋ + 1\` 로 고정되고, 값에 뺄셈·나눗셈을 요구하지 않아 문자열처럼 비교만 되는 값에도 그대로 쓸 수 있습니다.`;
+}
+
 export const PROOFS: Record<string, () => string> = {
+  /** `purpose.alt` — 균등 입력에서 이진 탐색이 내주는 칸 읽기의 비. */
+  "alt-trade": altTrade,
   /** `deep.origin` ② — 가장 단순한 방법을 과제 규모에서 수치로 반박한다. */
   "origin-cost": originCost,
   /** `deep.origin` ④ — 같은 입력을 두 방식으로 처리하고 읽은 칸을 나란히 센다. */

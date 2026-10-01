@@ -1299,14 +1299,14 @@ export const PROOFS: Record<string, () => string> = {
     const a = ALT_CASES.탐색();
     const b = ALT_CASES["서로소 집합"]();
     const keys = [
-      "전개 입력 배열 접근",
-      "고리 입력 배열 접근",
-      "추가로 잡는 칸",
-      "온라인 배열 접근",
+      "전개 입력 칸 접근",
+      "고리 입력 칸 접근",
+      "추가 칸",
+      "온라인 칸 접근",
     ] as const;
     const rings = RING_N / RING_SIZE;
     const k = connectedComponents(RING_N, RING_EDGES).length;
-    const ratio = Math.floor(a["온라인 배열 접근"] / b["온라인 배열 접근"]);
+    const ratio = Math.floor(a["온라인 칸 접근"] / b["온라인 칸 접근"]);
     return [
       `고리 입력은 정점 ${comma(RING_N)} 개를 크기 ${RING_SIZE} 짜리 고리 ${rings} 개로 가른 것입니다. \`c\` 번째 고리의 \`j\` 번 정점은 \`${RING_SIZE}c + j\` 이고 \`${RING_SIZE}c + ((j + 1) mod ${RING_SIZE})\` 과 이어집니다. 간선은 ${comma(RING_EDGES.length)} 개이고, 정본이 낸 성분은 ${comma(k)} 개입니다.`,
       "",
@@ -1319,7 +1319,7 @@ export const PROOFS: Record<string, () => string> = {
         [1, 2, 3, 4],
       ),
       "",
-      `간선을 한 번에 다 받으면 고리 입력에서 탐색이 ${comma(a["고리 입력 배열 접근"])} 번, 서로소 집합이 ${comma(b["고리 입력 배열 접근"])} 번입니다. 간선 ${comma(RING_EDGES.length)} 개를 하나씩 받으며 받을 때마다 성분 수를 물으면 탐색이 ${comma(a["온라인 배열 접근"])} 번, 서로소 집합이 ${comma(b["온라인 배열 접근"])} 번으로 ${comma(ratio)} 배가 넘게 갈립니다.`,
+      `간선을 한 번에 다 받으면 고리 입력에서 탐색이 ${comma(a["고리 입력 칸 접근"])} 번, 서로소 집합이 ${comma(b["고리 입력 칸 접근"])} 번입니다. 간선 ${comma(RING_EDGES.length)} 개를 하나씩 받으며 받을 때마다 성분 수를 물으면 탐색이 ${comma(a["온라인 칸 접근"])} 번, 서로소 집합이 ${comma(b["온라인 칸 접근"])} 번으로 ${comma(ratio)} 배가 넘게 갈립니다.`,
     ].join("\n");
   },
 

@@ -8,14 +8,14 @@
  *
  * **잣대 둘의 세는 법을 여기서 못 박는다.**
  *
- * - **배열 칸 접근** — 배열의 한 칸을 읽거나 쓸 때마다 1. `push` 와 `pop` 도 한 칸이다.
+ * - **칸 접근** — 배열의 한 칸을 읽거나 쓸 때마다 1. `push` 와 `pop` 도 한 칸이다.
  *   두 설계에 같은 규칙을 적용한다.
- * - **저장 칸** — 절차가 잡는 배열 칸의 최대 개수. 정본은 이웃 목록의 행 `2V` 와 그 안의 자리
+ * - **추가 칸** — 입력 간선 목록 밖에 잡는 배열 칸의 최대 개수(동시 최댓값). 정본은 이웃 목록의 행 `2V` 와 그 안의 자리
  *   `4E`, `disc`·`low` `2V`, 호출 스택 셋의 최대 깊이 `3D` 를 더한 값이고, 경쟁 설계는 배열
  *   다섯 개 `5V` 다.
  *
  * **전개 입력을 그대로 쓰지 않은 이유**(L20). 전개 그래프는 정점 여섯 · 간선 여섯이라 간선
- * 수를 바꿀 자리가 없어 저장 칸이 뒤집히는 지점을 만들 수 없다. 전개 입력의 값도 함께 내고
+ * 수를 바꿀 자리가 없어 추가 칸이 뒤집히는 지점을 만들 수 없다. 전개 입력의 값도 함께 내고
  * (`전개 입력 · …`), 뒤집히는 자리를 보이는 데는 아래 `SWEEP` 을 쓴다. 그 사실은 본문 대조
  * 문단에도 적는다.
  *
@@ -105,9 +105,9 @@ export function grid(side: number): { n: number; edges: Edge[] } {
 /* ────────────────────────── 계수 ────────────────────────── */
 
 export interface Count {
-  /** 배열 칸 접근 — 읽기와 쓰기를 합쳐 센다. */
+  /** 칸 접근 — 읽기와 쓰기를 합쳐 센다. */
   ops: number;
-  /** 저장 칸 — 잡는 배열 칸의 최대 개수. */
+  /** 추가 칸 — 입력 밖에 잡는 배열 칸의 최대 개수. */
   cells: number;
   /** 사전순으로 정렬한 다리 목록. */
   answer: Edge[];
@@ -444,7 +444,7 @@ export function measure(
   return got;
 }
 
-/** 저장 칸의 순서가 처음 뒤집히는 간선 수. */
+/** 추가 칸의 순서가 처음 뒤집히는 간선 수. */
 export function storageFlip(): number {
   for (let e = 0; e <= 4 * SWEEP_V; e++) {
     const edges = sweepEdges(e);
@@ -452,10 +452,10 @@ export function storageFlip(): number {
     const rival = measure(증분판, SWEEP_V, edges);
     if (mine.cells > rival.cells) return e;
   }
-  throw new Error("간선을 4V 까지 늘려도 저장 칸의 순서가 안 뒤집힌다");
+  throw new Error("간선을 4V 까지 늘려도 추가 칸의 순서가 안 뒤집힌다");
 }
 
-/** 저장 칸에서 이 절차가 **마지막으로** 앞선 간선 수. */
+/** 추가 칸에서 이 절차가 **마지막으로** 앞선 간선 수. */
 export function lastAhead(): number {
   let last = -1;
   for (let e = 0; e <= 4 * SWEEP_V; e++) {
@@ -470,7 +470,7 @@ export function lastAhead(): number {
 const FLIP = storageFlip();
 const LAST = lastAhead();
 if (LAST < 0 || FLIP <= LAST) {
-  throw new Error("저장 칸 축에서 순서가 뒤집히는 자리를 못 찾았다");
+  throw new Error("추가 칸 축에서 순서가 뒤집히는 자리를 못 찾았다");
 }
 
 const GRID = grid(32);
@@ -490,17 +490,17 @@ function 재기(
   const largeMixed = measure(offline, 65536, shuffledChain(65536));
   const asked = online(GRID.n, GRID.edges, ONLINE_Q);
   return {
-    "전개 입력 · 배열 칸 접근": walk.ops,
-    "전개 입력 · 저장 칸": walk.cells,
-    [`간선 ${LAST} · 저장 칸`]: before.cells,
-    [`간선 ${FLIP} · 저장 칸`]: after.cells,
-    "간선 4,096 · 배열 칸 접근": wide.ops,
-    "간선 4,096 · 저장 칸": wide.cells,
-    "사슬 1,024 · 배열 칸 접근": small.ops,
-    "사슬 65,536 · 배열 칸 접근": large.ops,
-    "섞은 사슬 1,024 · 배열 칸 접근": smallMixed.ops,
-    "섞은 사슬 65,536 · 배열 칸 접근": largeMixed.ops,
-    "격자 32×32 · 질의 32 회 · 배열 칸 접근": asked.ops,
+    "전개 입력 · 칸 접근": walk.ops,
+    "전개 입력 · 추가 칸": walk.cells,
+    [`간선 ${LAST} · 추가 칸`]: before.cells,
+    [`간선 ${FLIP} · 추가 칸`]: after.cells,
+    "간선 4,096 · 칸 접근": wide.ops,
+    "간선 4,096 · 추가 칸": wide.cells,
+    "사슬 1,024 · 칸 접근": small.ops,
+    "사슬 65,536 · 칸 접근": large.ops,
+    "섞은 사슬 1,024 · 칸 접근": smallMixed.ops,
+    "섞은 사슬 65,536 · 칸 접근": largeMixed.ops,
+    "격자 32×32 · 질의 32 회 · 칸 접근": asked.ops,
   };
 }
 
@@ -518,7 +518,7 @@ export const cases = {
     return out;
   },
   경계: () => ({
-    "저장 칸이 처음 뒤집히는 간선 수": FLIP,
-    "이 절차의 저장 칸이 마지막으로 적은 간선 수": LAST,
+    "추가 칸이 처음 뒤집히는 간선 수": FLIP,
+    "이 절차의 추가 칸이 마지막으로 적은 간선 수": LAST,
   }),
 };

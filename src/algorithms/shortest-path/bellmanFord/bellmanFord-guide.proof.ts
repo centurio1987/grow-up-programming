@@ -1553,7 +1553,7 @@ function relatedFixed(): string {
   return table(rows, "  ").join("\n");
 }
 
-/** purpose.alt — 두 설계의 기본 연산과 저장 칸. */
+/** purpose.alt — 두 설계의 기본 연산과 추가 칸. */
 function altTable(): string {
   const mine = altCases["이 가이드의 절차"]();
   const spfa = altCases["값이 바뀐 정점만 큐에 담는 설계"]();
@@ -1579,7 +1579,7 @@ function altTable(): string {
       [1, 2, 4],
     ),
     "",
-    `저장 칸은 잎 4,096 개에서 이 가이드의 절차가 ${comma(mine["잎 4096 개 · 저장 칸"] as number)} 개, SPFA 가 ${comma(spfa["잎 4096 개 · 저장 칸"] as number)} 개입니다. 전개 입력에서는 기본 연산이 ${mine["전개 입력 · 기본 연산"]} 번 대 ${spfa["전개 입력 · 기본 연산"]} 번, 저장 칸이 ${mine["전개 입력 · 저장 칸"]} 개 대 ${spfa["전개 입력 · 저장 칸"]} 개입니다. 두 계수는 잎 ${cross.tie} 개에서 같아지고 ${cross.ahead} 개부터 이 절차가 적습니다.`,
+    `추가 칸은 잎 4,096 개에서 이 가이드의 절차가 ${comma(mine["잎 4096 개 · 추가 칸"] as number)} 개, SPFA 가 ${comma(spfa["잎 4096 개 · 추가 칸"] as number)} 개입니다. 전개 입력에서는 기본 연산이 ${mine["전개 입력 · 기본 연산"]} 번 대 ${spfa["전개 입력 · 기본 연산"]} 번, 추가 칸이 ${mine["전개 입력 · 추가 칸"]} 개 대 ${spfa["전개 입력 · 추가 칸"]} 개입니다. 두 계수는 잎 ${cross.tie} 개에서 같아지고 ${cross.ahead} 개부터 이 절차가 적습니다.`,
   ].join("\n");
 }
 

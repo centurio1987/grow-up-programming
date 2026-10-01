@@ -1,7 +1,7 @@
 /**
  * `purpose.alt`(경쟁 설계와의 대조) 의 계수를 실측하는 하네스 — `L13`.
  *
- * 재는 것은 **모듈러 곱셈 횟수**와 **저장 칸 수** 둘이다. 둘 다 같은 입력에서 늘 같은 값이
+ * 재는 것은 **모듈러 곱셈 횟수**와 **추가 칸 수** 둘이다. 둘 다 같은 입력에서 늘 같은 값이
  * 나오는 결정론적 계수다. 벽시계는 안 잰다 — 실행마다 달라 P10 이 정의되지 않는다.
  *
  *   bun run tools/bench-alt.ts src/algorithms/number-theory/fastPower/fastPower-guide.alt.ts
@@ -164,21 +164,25 @@ export function crossoverBits(): number {
 
 export const cases = {
   "이진 거듭제곱": () => ({
-    "전개 입력 · 곱셈": binaryCost(WALK_EXP),
-    "40 비트 · 곱셈": binaryCost(expOfBits(40)),
-    "41 비트 · 곱셈": binaryCost(expOfBits(41)),
-    "과제 규모 · 곱셈": binaryCost(LIMIT_EXP),
-    "1,024 비트 · 곱셈": binaryCost(BIG_EXP),
-    "저장 칸": 3,
+    "전개 입력 · 모듈러 곱셈": binaryCost(WALK_EXP),
+    "40 비트 · 모듈러 곱셈": binaryCost(expOfBits(40)),
+    "41 비트 · 모듈러 곱셈": binaryCost(expOfBits(41)),
+    "과제 규모 · 모듈러 곱셈": binaryCost(LIMIT_EXP),
+    "1,024 비트 · 모듈러 곱셈": binaryCost(BIG_EXP),
+    // 추가 칸 — 재지 않고 적은 개수다. 새로 잡아 끝까지 들고 있는 `result` · `b` · `e` 셋이고,
+    // 입력 `base` · `exp` · `mod` 는 세지 않는다.
+    "추가 칸": 3,
   }),
   "5 비트 창": () => ({
-    "표 만들기 · 곱셈": windowTableMults(),
-    "전개 입력 · 곱셈": windowCost(WALK_EXP),
-    "40 비트 · 곱셈": windowCost(expOfBits(40)),
-    "41 비트 · 곱셈": windowCost(expOfBits(41)),
-    "과제 규모 · 곱셈": windowCost(LIMIT_EXP),
-    "1,024 비트 · 곱셈": windowCost(BIG_EXP),
-    "저장 칸": (1 << (WINDOW - 1)) + 3,
+    "표 만들기 · 모듈러 곱셈": windowTableMults(),
+    "전개 입력 · 모듈러 곱셈": windowCost(WALK_EXP),
+    "40 비트 · 모듈러 곱셈": windowCost(expOfBits(40)),
+    "41 비트 · 모듈러 곱셈": windowCost(expOfBits(41)),
+    "과제 규모 · 모듈러 곱셈": windowCost(LIMIT_EXP),
+    "1,024 비트 · 모듈러 곱셈": windowCost(BIG_EXP),
+    // 추가 칸 — 재지 않고 적은 개수다. 표 `2^(WINDOW−1)` 칸에, 이진 거듭제곱의 셋에 대응하는
+    // 누적값 `result` · 밑 · 지수 위치 `i` 셋을 더했다. 입력은 세지 않는다.
+    "추가 칸": (1 << (WINDOW - 1)) + 3,
   }),
   "뒤집히는 자리": () => ({ "지수 비트 수": crossoverBits() }),
 };

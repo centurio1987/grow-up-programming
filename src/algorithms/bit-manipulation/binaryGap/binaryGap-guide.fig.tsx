@@ -5,6 +5,10 @@
  * 계측 사본(`stepProbe`)을 정본 소스에서 기계로 만들고, 그 기록으로 반복마다의 `i` · `x` · `last` ·
  * `best` 를 얻는다. 걸음 재생 패널의 걸음(`simStepsFromRef`)도 같은 기록에서 만들고, `.sim.ts` 의
  * 리터럴이 그것과 같은지는 `binaryGap-guide.test.ts` 가 잰다.
+ *
+ * 칸 무대는 모두 **자리 0 을 오른쪽 끝에** 둔다 — 이진 표기와 같은 방향이다(SPEC §14 용어 표 「비트 자리」).
+ * 걸음 무대는 열 머리를 자리 번호로 적을 수 있는 2 차원 표 무대(`tableStage.ts`)를 쓴다 — 배열 무대는
+ * 인덱스 줄이 왼쪽부터 0 으로 고정이다.
  */
 
 import type { ReactElement } from "react";
@@ -23,12 +27,11 @@ import {
   type StageRow,
 } from "../../../_viz/patterns/CellStage";
 import {
-  type ArrayOptions,
-  type ArrayPiece,
-  type ArrayStep,
-  arrayColumns,
-  arrayStage,
-} from "../../../_viz/player/arrayStage";
+  type TableOptions,
+  type TablePiece,
+  type TableStep,
+  tableStage,
+} from "../../../_viz/player/tableStage";
 import { binaryGap } from "./binaryGap-guide.ref.ts";
 
 const REF = new URL("./binaryGap-guide.ref.ts", import.meta.url).pathname;
@@ -308,40 +311,58 @@ export function walkSteps(n: number = WALK): Step[] {
   });
 }
 
-/** 배열 무대의 이름표 — 패널(`.sim.ts`)과 필름이 같이 쓴다. */
-export const ARRAY_OPTIONS: ArrayOptions = {
-  arrayName: "자리 i 의 비트",
-  rangeLabel: "읽은 자리",
-};
-
-/** 자리 0 부터의 비트 — 무대의 칸 `i` 가 자리 `i` 다(이진 표기와 좌우가 거꾸로다). */
+/** 자리 0 부터의 비트 — 목록의 `p` 번째가 자리 `p` 다. */
 const bitsLow = (n: number): (0 | 1)[] =>
   Array.from({ length: n.toString(2).length }, (_, p) => bitAt(n, p));
 
-/** 걸음 하나를 배열 무대(`arrayStage`)의 걸음으로 — 걸음 재생 패널과 정적 필름이 같은 값을 쓴다. */
-export function arrayStep(s: Step, n: number = WALK): ArrayStep {
+/** 높은 자리부터의 비트 — 무대의 열 `c` 가 자리 `L − 1 − c` 다(자리 0 이 오른쪽 끝). */
+const bitsHigh = (n: number): (0 | 1)[] => [...bitsLow(n)].reverse();
+
+/** 자리 `p` 가 서는 열. */
+const colOf = (p: number, n: number = WALK): number =>
+  n.toString(2).length - 1 - p;
+
+/** 표 무대의 이름표 — 패널(`.sim.ts`)과 필름이 같이 쓴다. 열 머리가 높은 자리부터의 자리 번호다. */
+export const TABLE_OPTIONS: TableOptions = {
+  rowHeads: ["비트"],
+  colHeads: bitsLow(WALK).map((_, c, all) => all.length - 1 - c),
+  colLabel: "자리",
+};
+
+/** 괄호 「읽은 자리」 — 지금까지 읽은 자리 `[0, i]`. */
+const readBracket = (i: number, n: number = WALK): TablePiece => ({
+  label: "읽은 자리",
+  from: colOf(i, n),
+  to: colOf(0, n),
+  tone: "query",
+  text: `[0,${i}]`,
+});
+
+/** 걸음 하나를 표 무대(`tableStage`)의 걸음으로 — 걸음 재생 패널과 정적 필름이 같은 값을 쓴다. */
+export function tableStep(s: Step, n: number = WALK): TableStep {
   const it = s.iter;
-  const pieces: ArrayPiece[] =
-    it.measured !== null && it.measured > 0
-      ? [
-          {
-            label: "잰 0 구간",
-            from: it.lastBefore + 1,
-            to: it.i - 1,
-            tone: "left",
-            text: `${it.measured} 개`,
-          },
-        ]
-      : [];
+  const L = n.toString(2).length;
+  const pieces: TablePiece[] = [readBracket(it.i, n)];
+  if (it.measured !== null && it.measured > 0) {
+    pieces.push({
+      label: "잰 0 구간",
+      from: colOf(it.i - 1, n),
+      to: colOf(it.lastBefore + 1, n),
+      tone: "left",
+      text: `${it.measured} 개`,
+    });
+  }
   return {
-    array: bitsLow(n),
-    range: [0, it.i],
-    read: [it.i],
-    write: it.bit === 1 ? [it.i] : [],
-    pointers: it.last >= 0 ? { last: it.last } : {},
+    table: [bitsHigh(n)],
+    read: [[0, colOf(it.i, n)]],
+    write: it.bit === 1 ? [[0, colOf(it.i, n)]] : [],
+    out: Array.from({ length: L }, (_, p) => p)
+      .filter((p) => p > it.i)
+      .map((p) => [0, colOf(p, n)] as const),
+    pieces,
+    rowSide: [`last = ${it.last}`],
     calc: { ...s.calc },
     vars: `best = ${it.best}`,
-    pieces,
   };
 }
 
@@ -355,7 +376,7 @@ export function simStepsFromRef() {
     scan: walkSteps().map((s) => ({
       title: `${s.id} ${s.title}`,
       text: s.detail,
-      ...arrayStep(s),
+      ...tableStep(s),
     })),
   };
 }
@@ -475,12 +496,12 @@ export const FIGS: Record<string, () => ReactElement> = {
     const frames: StageFrame[] = steps.map((s) => ({
       id: s.id,
       text: `${s.title} — ${s.calc.expr} → ${s.calc.result}`,
-      rows: arrayStage(arrayStep(s), ARRAY_OPTIONS),
+      rows: tableStage(tableStep(s), TABLE_OPTIONS),
     }));
     return (
       <CellStageFilm
         title={`binaryGap(${WALK}) — ${steps[0]?.id}~${steps.at(-1)?.id}`}
-        columns={arrayColumns(arrayStep(steps[0] as Step))}
+        columns={WALK.toString(2).length}
         frames={frames}
       />
     );
@@ -493,27 +514,28 @@ export const FIGS: Record<string, () => ReactElement> = {
       s.iter.last >= 0 ? s.iter.i - s.iter.last : 0;
     const s = steps.reduce((a, b) => (open(b) > open(a) ? b : a));
     const it = s.iter;
-    const base = arrayStep(s);
-    const rows = arrayStage(
+    const base = tableStep(s);
+    const rows = tableStage(
       {
         ...base,
         pieces: [
+          readBracket(it.i),
           {
             label: "위가 안 닫힌 0",
-            from: it.last + 1,
-            to: it.i,
+            from: colOf(it.i),
+            to: colOf(it.last + 1),
             tone: "right",
             text: `${open(s)} 개`,
           },
         ],
       },
-      ARRAY_OPTIONS,
+      TABLE_OPTIONS,
     );
     return (
       <CellStage
         title={`자리 ${it.i} 를 읽은 뒤 — last ${it.last}${이가(it.last)} 자리 0 ~ ${it.i} 의 가장 높은 1 이고, 위가 안 닫힌 0 은 아직 재지 않아 best = ${it.best}`}
         rows={rows}
-        columns={arrayColumns(base)}
+        columns={WALK.toString(2).length}
       />
     );
   },

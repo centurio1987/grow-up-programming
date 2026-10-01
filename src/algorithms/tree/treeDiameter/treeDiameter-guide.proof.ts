@@ -6,12 +6,12 @@
  *
  *   bun run tools/check-proof.ts src/algorithms/tree/treeDiameter/treeDiameter-guide.md
  *
- * **세는 사본이 셋 있다.** 정본은 배열 칸을 몇 번 읽었는지도, 걸음마다의 상태도 내보내지 않으므로
+ * **세는 사본이 셋 있다.** 정본은 칸을 몇 번 읽었는지도, 걸음마다의 상태도 내보내지 않으므로
  * 그 자리를 덧붙인 사본이 아니면 계수와 걸음을 낼 방법이 없다.
  *
  * - `traced` — 정본과 같은 절차에 걸음 기록을 덧붙인 판. 전개 입력처럼 작은 입력에만 쓴다. 걸음마다
  *   `dist` · 스택 · 부모 전체를 베끼므로 큰 입력에 쓰면 메모리가 모자란다.
- * - `sweep` — 탐색 한 번에서 배열 칸 접근만 세는 가벼운 판. 정점 20,000 개 같은 큰 입력은 이것만 쓴다.
+ * - `sweep` — 탐색 한 번에서 칸 접근만 세는 가벼운 판. 정점 20,000 개 같은 큰 입력은 이것만 쓴다.
  * - `doubleFrom` — 첫 탐색의 시작 정점을 바꿀 수 있게 한 두 번 탐색(설계 선택).
  *
  * **답이 맞는지는 사본이 아니라 정본이 진다** — 사본은 부를 때마다 자기 답을 정본과 맞대고, 어긋나면 던진다.
@@ -144,7 +144,7 @@ export function neighbours(n: number, edges: Edge[]): [number, number][][] {
 }
 
 /**
- * 탐색 한 번 — 가벼운 판. 배열 칸 접근을 함께 센다. `dist` 초기화의 칸마다 하나, 시작점 표시에
+ * 탐색 한 번 — 가벼운 판. 칸 접근을 함께 센다. `dist` 초기화의 칸마다 하나, 시작점 표시에
  * 둘(거리 0 적기 · 스택에 넣기), 꺼내기마다 하나, 이웃 목록 항목 하나를 읽을 때 둘(이웃 번호 ·
  * 가중치), 거리를 적고 넣을 때 셋(`dist[u]` 읽기 · `dist[v]` 쓰기 · 넣기)이다.
  */
@@ -625,7 +625,7 @@ function naiveScale(): string {
       [0, 1, 2, 3, 4],
     ),
     "",
-    `위 네 줄은 한 줄로 이은 트리에서 실제로 센 배열 칸 접근이고, 네 규모 ${same.every(Boolean) ? "모두" : "모두는 아니게"} 탐색 한 번의 칸 수가 시작 정점과 상관없이 같았습니다. 마지막 줄의 왼쪽 값은 그 한 번의 칸 수 ${comma(one)}${을를(comma(one))} 정점 수만큼 곱하고 이웃 목록을 만드는 ${comma(2 * e.length)} 칸을 더해 냈습니다.`,
+    `위 네 줄은 한 줄로 이은 트리에서 실제로 센 칸 접근이고, 네 규모 ${same.every(Boolean) ? "모두" : "모두는 아니게"} 탐색 한 번의 칸 수가 시작 정점과 상관없이 같았습니다. 마지막 줄의 왼쪽 값은 그 한 번의 칸 수 ${comma(one)}${을를(comma(one))} 정점 수만큼 곱하고 이웃 목록을 만드는 ${comma(2 * e.length)} 칸을 더해 냈습니다.`,
   ].join("\n");
 }
 
@@ -642,7 +642,7 @@ function firstSweeps(): string {
         "시작 정점 s",
         "가장 먼 정점",
         "그 거리(첫 탐색의 최댓값)",
-        "배열 칸 접근",
+        "칸 접근",
       ],
       got.map((g, s) => [
         comma(s),
@@ -653,7 +653,7 @@ function firstSweeps(): string {
       [0, 1, 2, 3],
     ),
     "",
-    `탐색 한 번이 읽고 쓴 배열 칸은 ${cells.size === 1 ? `일곱 번 모두 ${comma(got[0]?.cells ?? 0)} 개` : "시작 정점마다 달랐습니다"}입니다. 최댓값은 ${Math.min(...maxes)} 부터 ${Math.max(...maxes)} 까지 갈리고, 가장 먼 정점으로 나온 것은 ${fars.join(" · ")} 뿐입니다.`,
+    `탐색 한 번이 읽고 쓴 칸은 ${cells.size === 1 ? `일곱 번 모두 ${comma(got[0]?.cells ?? 0)} 개` : "시작 정점마다 달랐습니다"}입니다. 최댓값은 ${Math.min(...maxes)} 부터 ${Math.max(...maxes)} 까지 갈리고, 가장 먼 정점으로 나온 것은 ${fars.join(" · ")} 뿐입니다.`,
   ].join("\n");
 }
 
@@ -692,7 +692,7 @@ function bruteWalk(): string {
   if (every.answer !== two.answer) throw new Error("두 방법의 답이 갈린다");
   return [
     md(
-      ["방법", "탐색 횟수", "배열 칸 접근", "답"],
+      ["방법", "탐색 횟수", "칸 접근", "답"],
       [
         [
           "정점마다 한 번씩 재기",
@@ -705,7 +705,7 @@ function bruteWalk(): string {
       [1, 2, 3],
     ),
     "",
-    `두 방법의 답은 둘 다 ${two.answer} 이고, 배열 칸 접근은 ${comma(every.cells)} 대 ${comma(two.cells)} 입니다. 두 값 모두 이웃 목록을 만드는 ${comma(2 * WALK_EDGES.length)} 칸을 포함합니다.`,
+    `두 방법의 답은 둘 다 ${two.answer} 이고, 칸 접근은 ${comma(every.cells)} 대 ${comma(two.cells)} 입니다. 두 값 모두 이웃 목록을 만드는 ${comma(2 * WALK_EDGES.length)} 칸을 포함합니다.`,
   ].join("\n");
 }
 
@@ -1853,7 +1853,7 @@ function perfDeriveFirst(): string {
   ].join("\n");
 }
 
-/** `perf.derive` — 두 번 탐색의 배열 칸 접근을 닫힌 형태와 대조한다. */
+/** `perf.derive` — 두 번 탐색의 칸 접근을 닫힌 형태와 대조한다. */
 function costClosedForm(): string {
   const rows: string[][] = [];
   let off = 0;
@@ -1912,21 +1912,21 @@ function shapeValues(): string {
         "만드는 규칙",
         "간선 수",
         "가장 긴 경로의 간선 수",
-        "배열 칸 접근",
+        "칸 접근",
         "지름",
       ],
       rows,
       [2, 3, 4, 5],
     ),
     "",
-    `정점 ${comma(v)} 개짜리 네 모양에서 배열 칸 접근은 ${cells.size === 1 ? `모두 ${comma([...cells][0] as number)} 칸으로 같습니다` : "모양마다 다릅니다"}. 가중치는 자리 번호를 9 로 나눈 나머지 + 1 이고, 가장 긴 경로의 간선 수는 가중치를 모두 1 로 바꿔 두 번 탐색으로 쟀습니다.`,
+    `정점 ${comma(v)} 개짜리 네 모양에서 칸 접근은 ${cells.size === 1 ? `모두 ${comma([...cells][0] as number)} 칸으로 같습니다` : "모양마다 다릅니다"}. 가중치는 자리 번호를 9 로 나눈 나머지 + 1 이고, 가장 긴 경로의 간선 수는 가중치를 모두 1 로 바꿔 두 번 탐색으로 쟀습니다.`,
   ].join("\n");
 }
 
 /** `perf.worst` — 가장 적은 일을 하는 입력. */
 function perfSmallest(): string {
   const got = twoSweeps(1, []);
-  return `treeDiameter(1, [])   배열 칸 접근 ${got.cells}   답 ${got.answer}`;
+  return `treeDiameter(1, [])   칸 접근 ${got.cells}   답 ${got.answer}`;
 }
 
 /** `selfcheck` — 물음에 붙는 상태. */

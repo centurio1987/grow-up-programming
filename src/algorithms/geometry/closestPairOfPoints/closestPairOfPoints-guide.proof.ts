@@ -14,7 +14,7 @@
  *   좌표 비교  두 점의 좌표끼리, 또는 좌표 차의 제곱과 최솟값을 비교한 일(정렬 · 합치기 · 띠 거르기 · 멈춤)
  *   칸 조회    격자에서 칸 하나를 찾은 일. 격자에 나눠 담는 방법에서만 나온다(`.alt.ts`)
  *
- * **메모리는 추가로 잡는 칸**으로 센다 — 입력 밖에 새로 만든 배열 칸의 수다. 정렬한 사본 · 가른
+ * **메모리는 할당 칸**으로 센다 — 입력 밖에 새로 만든 배열 칸을 잡을 때마다 더한 누적 합이다(버린 것도 센다). 정렬한 사본 · 가른
  * 두 절반 · 합친 목록 · 띠 · 기저의 y 순서 사본이 그것이다.
  *
  * 정렬은 **합치기 정렬로 센다.** 정본은 `Array.prototype.sort` 를 부르는데, 그 안에서 비교를 몇 번
@@ -259,7 +259,7 @@ export interface Counted {
   cmp: number;
   /** 칸 조회 — 격자에서 칸 하나를 찾은 횟수. 분할 정복에서는 0 이다. */
   look: number;
-  /** 추가로 잡는 칸. */
+  /** 할당 칸. */
   cells: number;
 }
 
@@ -284,7 +284,7 @@ export function squared(a: Point, b: Point, c: Counted): number {
 }
 
 /**
- * 합치기 정렬로 `key` 좌표 순서의 사본을 만든다. 비교마다 좌표 비교 1 이고, 새로 잡는 칸은
+ * 합치기 정렬로 `key` 좌표 순서의 사본을 만든다. 비교마다 좌표 비교 1 이고, 할당 칸은
  * 부르는 쪽이 사본 하나로 센다. 안정 정렬이라 정본의 `sort` 와 같은 순서가 나온다.
  */
 export function sortBy(points: readonly Point[], key: 0 | 1, c: Counted) {
@@ -1854,7 +1854,7 @@ function mutantUnsorted(): string {
   ].join("\n");
 }
 
-/** `perf.derive` — 걸음마다의 기본 연산과 추가로 잡는 칸. */
+/** `perf.derive` — 걸음마다의 기본 연산과 할당 칸. */
 function perfCount(): string {
   const rows = WALK_RUN.steps.map((s) => [
     s.tag,
@@ -1869,12 +1869,12 @@ function perfCount(): string {
   );
   return [
     md(
-      ["걸음", "거리 계산", "좌표 비교", "기본 연산", "추가로 잡는 칸"],
+      ["걸음", "거리 계산", "좌표 비교", "기본 연산", "할당 칸"],
       rows,
       [1, 2, 3, 4],
     ),
     "",
-    `합은 기본 연산 ${num(ops(t))} 번 · 추가로 잡는 칸 ${num(t.cells)} 칸이고, 기본 연산이 가장 많은 걸음은 ${top.tag} 입니다.`,
+    `합은 기본 연산 ${num(ops(t))} 번 · 할당 칸 ${num(t.cells)} 칸이고, 기본 연산이 가장 많은 걸음은 ${top.tag} 입니다.`,
   ].join("\n");
 }
 
@@ -1900,7 +1900,7 @@ function perfGrowth(): string {
         "균등 배치의 점",
         "기본 연산",
         "앞 줄의 몇 배",
-        "추가로 잡는 칸",
+        "할당 칸",
         "앞 줄의 몇 배",
       ],
       rows,
@@ -1941,7 +1941,7 @@ function worstShape(): string {
         "거리 계산",
         "가장 큰 띠",
         "이웃의 최대",
-        "추가로 잡는 칸",
+        "할당 칸",
       ],
       rows,
       [1, 2, 3, 4, 5],

@@ -166,11 +166,11 @@ function approaches(): Approach[] {
         { label: "메모리", value: "정점마다 부모 한 칸", ok: true },
       ],
       lesson:
-        "나무 간선마다 자식의 서브트리가 부모나 그 위로 되돌아가는지를 수로 적어야 한다",
+        "나무 간선마다 자식의 부분트리가 부모나 그 위로 되돌아가는지를 수로 적어야 한다",
     },
     {
       name: "low 값으로 판정하기",
-      idea: "정점마다 서브트리가 되돌아가는 간선으로 이르는 가장 이른 발견 순서를 적고, 자식의 low 를 부모의 disc 와 맞댄다",
+      idea: "정점마다 부분트리가 되돌아가는 간선으로 이르는 가장 이른 발견 순서를 적고, 자식의 low 를 부모의 disc 와 맞댄다",
       verdict: "keep",
       checks: [
         {
@@ -241,7 +241,7 @@ function stepText(s: Step): string {
         : `정점 ${v} 의 이웃을 다 봐서 호출 스택에서 뺍니다. low[${v}] = ${s.low[s.v]}${을를(String(s.low[s.v]))} 부모 ${s.parent} 에게 넘깁니다. ${s.judge?.lowC}${이가(String(s.judge?.lowC))} disc[${s.parent}] = ${s.judge?.discP} 보다 크지 않아 간선 ${ed(s.parent, s.v)}${은는(ed(s.parent, s.v))} 다리가 아닙니다.`;
     default: {
       const e = ed(s.parent as number, s.v);
-      return `정점 ${v} 의 이웃을 다 봐서 호출 스택에서 뺍니다. low[${v}] = ${s.judge?.lowC}${이가(String(s.judge?.lowC))} disc[${s.parent}] = ${s.judge?.discP} 보다 커서, 서브트리가 간선 ${e} 없이는 부모에도 그 위에도 못 갑니다. ${e}${을를(e)} 다리로 적습니다.`;
+      return `정점 ${v} 의 이웃을 다 봐서 호출 스택에서 뺍니다. low[${v}] = ${s.judge?.lowC}${이가(String(s.judge?.lowC))} disc[${s.parent}] = ${s.judge?.discP} 보다 커서, 부분트리가 간선 ${e} 없이는 부모에도 그 위에도 못 갑니다. ${e}${을를(e)} 다리로 적습니다.`;
     }
   }
 }

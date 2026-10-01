@@ -457,7 +457,7 @@ export const PROOFS: Record<string, () => string> = {
     ].join("\n");
   },
 
-  /** `deep.origin` ④ — 같은 입력을 두 방식으로 처리했을 때의 덧셈·뺄셈·비교 횟수. */
+  /** `deep.origin` ④ — 같은 입력을 두 방식으로 처리했을 때 센 덧셈·뺄셈·비교. */
   "origin-two-ways": () => {
     const e = byEnumerating(WALK_K, WALK);
     const s = byStates(WALK_K, WALK);
@@ -592,8 +592,8 @@ export const PROOFS: Record<string, () => string> = {
       md(
         [
           "모양",
-          `잡는 칸 (N = ${WALK.length} · k = ${WALK_K})`,
-          `잡는 칸 (N = ${num(LIMIT_N)} · k = ${num(LIMIT_K)})`,
+          `추가 칸 (N = ${WALK.length} · k = ${WALK_K})`,
+          `추가 칸 (N = ${num(LIMIT_N)} · k = ${num(LIMIT_K)})`,
           "낸 답",
         ],
         [
@@ -608,7 +608,7 @@ export const PROOFS: Record<string, () => string> = {
         [1, 2, 3],
       ),
       "",
-      `두 모양이 낸 답이 같고, 과제 규모에서 잡는 칸은 ${num(bigTable)} 개 대 ${num(bigStates)} 개입니다.`,
+      `두 모양이 낸 답이 같고, 과제 규모에서 추가 칸은 ${num(bigTable)} 개 대 ${num(bigStates)} 개입니다.`,
     ].join("\n");
   },
 
@@ -754,7 +754,7 @@ export const PROOFS: Record<string, () => string> = {
     }
     if (miss[2] !== 0) throw new Error("정본이 정의와 다른 답을 냈다");
     rows.push(["어긋난 입력 수", "", ...miss.map(String)]);
-    rows.push([`잡는 칸 (k = ${WALK_K})`, "", "2", "2", num(2 * (WALK_K + 1))]);
+    rows.push([`추가 칸 (k = ${WALK_K})`, "", "2", "2", num(2 * (WALK_K + 1))]);
     return [
       md(
         ["입력", "정답", "최저가 하나", "보유 여부만", "거래 번호와 보유 여부"],
@@ -1109,11 +1109,11 @@ export const PROOFS: Record<string, () => string> = {
       .join("\n");
   },
 
-  /** `purpose.alt` — 같은 입력에서 두 설계의 기본 연산과 저장 칸. */
+  /** `purpose.alt` — 같은 입력에서 두 설계의 기본 연산과 추가 칸. */
   "alt-table": () => {
     const mine = benchCases["거래 상태 이어받기"]?.() ?? {};
     const other =
-      benchCases["거래마다 벌금을 매기고 벌금을 이분 탐색"]?.() ?? {};
+      benchCases["거래마다 벌금을 매기고 벌금을 이진 탐색"]?.() ?? {};
     const rows = [1, 17, 18, 100].map((k) => {
       const a = mine[`k=${k} 기본 연산`] as number;
       const b = other[`k=${k} 기본 연산`] as number;
@@ -1139,7 +1139,7 @@ export const PROOFS: Record<string, () => string> = {
         [0, 1, 2],
       ),
       "",
-      `저장 칸은 k = 1 에서 ${num(mine["k=1 저장 칸"] as number)} 개 대 ${num(other["k=1 저장 칸"] as number)} 개, k = 100 에서 ${num(mine["k=100 저장 칸"] as number)} 개 대 ${num(other["k=100 저장 칸"] as number)} 개입니다.`,
+      `추가 칸은 k = 1 에서 ${num(mine["k=1 추가 칸"] as number)} 개 대 ${num(other["k=1 추가 칸"] as number)} 개, k = 100 에서 ${num(mine["k=100 추가 칸"] as number)} 개 대 ${num(other["k=100 추가 칸"] as number)} 개입니다.`,
     ].join("\n");
   },
 
@@ -1147,7 +1147,7 @@ export const PROOFS: Record<string, () => string> = {
   "alt-boundary": () => {
     const mine = benchCases["거래 상태 이어받기"]?.() ?? {};
     const other =
-      benchCases["거래마다 벌금을 매기고 벌금을 이분 탐색"]?.() ?? {};
+      benchCases["거래마다 벌금을 매기고 벌금을 이진 탐색"]?.() ?? {};
     const perK = (mine["k=1 기본 연산"] as number) / 1;
     for (const k of [17, 18, 100]) {
       if (mine[`k=${k} 기본 연산`] !== perK * k) {
@@ -1543,7 +1543,7 @@ export const PROOFS: Record<string, () => string> = {
     });
     return [
       md(
-        ["N", "k", "센 기본 연산", "4Nk", "잡는 칸 2(k + 1)"],
+        ["N", "k", "센 기본 연산", "4Nk", "추가 칸 2(k + 1)"],
         rows,
         [0, 1, 2, 3, 4],
       ),
@@ -1635,7 +1635,7 @@ export const PROOFS: Record<string, () => string> = {
           `N = ${num(n)} · k = ${num(k)}, 가격은 무엇이든`,
           num(4 * n * k),
         ],
-        ["잡는 칸", `k = ${num(k)}, 가격은 무엇이든`, num(2 * (k + 1))],
+        ["추가 칸", `k = ${num(k)}, 가격은 무엇이든`, num(2 * (k + 1))],
         [
           "답의 크기",
           `N = ${num(n)} · k = ${num(k)}, 0 과 ${num(MAX_PRICE)} 이 번갈아 나온다`,

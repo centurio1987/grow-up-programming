@@ -1,8 +1,8 @@
 /**
  * `purpose.alt` 가 인용하는 수치의 출처 — L13.
  *
- * **같은 입력**에 세 설계를 걸고 **결정론적 계수**만 센다. 세는 것은 **배열 접근 수**(읽기 +
- * 쓰기, 새 배열을 채우는 쓰기 포함)와 **추가 칸 수**다. 벽시계·처리량은 실행마다 달라 "본문의
+ * **같은 입력**에 세 설계를 걸고 **결정론적 계수**만 센다. 세는 것은 **칸 접근**(읽기 +
+ * 쓰기, 새 배열을 채우는 초기화 쓰기 포함)과 **추가 칸**(입력 밖에 새로 잡아 동시에 든 칸의 최댓값)이다. 벽시계·처리량은 실행마다 달라 "본문의
  * 수치가 실측과 일치하는가"(P10)를 정의할 수 없다.
  *
  *   bun run tools/bench-alt.ts src/algorithms/array/missingInteger/missingInteger-guide.alt.ts
@@ -171,7 +171,7 @@ export const cases: Record<string, () => Record<string, number>> =
         const out: Record<string, number> = {};
         for (const [label, A] of INPUTS) {
           const run = runAll(A)[name] as Run;
-          out[`${label} 배열 접근`] = run.accesses;
+          out[`${label} 칸 접근`] = run.accesses;
           out[`${label} 추가 칸`] = run.cells;
         }
         return out;

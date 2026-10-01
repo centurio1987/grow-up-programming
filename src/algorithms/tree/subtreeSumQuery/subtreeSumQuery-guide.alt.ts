@@ -124,7 +124,7 @@ function traverse(
  * 이 가이드의 설계 — 진입 자리로 부분 트리를 구간으로 만들고 펜윅 트리에 값을 담는다.
  * 정본(`subtreeSumQuery-guide.ref.ts`)과 같고 세는 자리만 덧붙였다.
  *
- * 배열 칸 접근은 **읽기 하나와 쓰기 하나를 각각 한 번**으로 센다.
+ * 칸 접근은 **읽기 하나와 쓰기 하나를 각각 한 번**으로 센다.
  */
 function 구간설계(
   n: number,
@@ -219,7 +219,7 @@ function 구간설계(
  * 같은 문제를 푼다 — 값 교체 갱신과 임의 정점의 부분 트리 합 질의를 그대로 받는다. 이쪽이
  * 이 가이드의 절차보다 짧고, 질의가 `O(1)` 이라 열등한 상대가 아니다.
  *
- * 배열 칸 접근은 같은 기준이다 — 읽기 하나와 쓰기 하나를 각각 한 번으로 센다.
+ * 칸 접근은 같은 기준이다 — 읽기 하나와 쓰기 하나를 각각 한 번으로 센다.
  */
 function 조상사슬설계(
   n: number,
@@ -389,13 +389,13 @@ function 표(
   const limitChain = 상한(run, LIMIT_N - 1);
   const limitStar = 상한(run, 1);
   return {
-    "전개 트리 · 작업 접근": walk.ops,
-    [`사슬 길이 ${CROSS.lastAhead} · 작업 접근`]: before.ops,
-    [`사슬 길이 ${CROSS.firstBehind} · 작업 접근`]: after.ops,
-    [`사슬 길이 ${N - 1} · 작업 접근`]: chain.ops,
-    "제약 상한 사슬 · 작업 접근": limitChain.ops,
-    "제약 상한 별 · 작업 접근": limitStar.ops,
-    "제약 상한 사슬 · 저장 칸": limitChain.cells,
+    "전개 트리 · 칸 접근": walk.ops,
+    [`사슬 길이 ${CROSS.lastAhead} · 칸 접근`]: before.ops,
+    [`사슬 길이 ${CROSS.firstBehind} · 칸 접근`]: after.ops,
+    [`사슬 길이 ${N - 1} · 칸 접근`]: chain.ops,
+    "제약 상한 사슬 · 칸 접근": limitChain.ops,
+    "제약 상한 별 · 칸 접근": limitStar.ops,
+    "제약 상한 사슬 · 추가 칸": limitChain.cells,
   };
 }
 

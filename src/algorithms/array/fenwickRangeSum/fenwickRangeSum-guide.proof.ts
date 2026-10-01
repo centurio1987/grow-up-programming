@@ -417,7 +417,7 @@ export const PROOFS: Record<string, () => string> = {
     const f = scanFormula(N_MAX, N_MAX);
     rows.push([num(N_MAX), "(실행하지 않음)", num(f), seconds(f)]);
     return table(
-      ["N = Q", "배열 접근(실측)", "(Q/2)(N−2) + Q/2", "초당 1 억 번 기준"],
+      ["N = Q", "칸 접근(실측)", "(Q/2)(N−2) + Q/2", "초당 1 억 번 기준"],
       "rrrr",
       rows,
     );
@@ -1420,12 +1420,12 @@ export const PROOFS: Record<string, () => string> = {
     const uMax = run(1_024, 16_384);
     // 이 블록의 셈과 `.alt.ts` 의 셈이 같은 목록을 센 것인지 — 합을 맞댄다.
     const pairs: [number, number | undefined][] = [
-      [total(q0.f), bf["갱신 0 회 · 질의 136 개 배열 접근"]],
-      [total(q0.b), bb["갱신 0 회 · 질의 136 개 배열 접근"]],
-      [total(u0.f), bf["질의 1,024 개 · 갱신 0 회 배열 접근"]],
-      [total(u0.b), bb["질의 1,024 개 · 갱신 0 회 배열 접근"]],
-      [total(uMax.f), bf["질의 1,024 개 · 갱신 16,384 회 배열 접근"]],
-      [total(uMax.b), bb["질의 1,024 개 · 갱신 16,384 회 배열 접근"]],
+      [total(q0.f), bf["갱신 0 회 · 질의 136 개 칸 접근"]],
+      [total(q0.b), bb["갱신 0 회 · 질의 136 개 칸 접근"]],
+      [total(u0.f), bf["질의 1,024 개 · 갱신 0 회 칸 접근"]],
+      [total(u0.b), bb["질의 1,024 개 · 갱신 0 회 칸 접근"]],
+      [total(uMax.f), bf["질의 1,024 개 · 갱신 16,384 회 칸 접근"]],
+      [total(uMax.b), bb["질의 1,024 개 · 갱신 16,384 회 칸 접근"]],
     ];
     for (const [a, b] of pairs) {
       if (a !== b)
@@ -1442,7 +1442,7 @@ export const PROOFS: Record<string, () => string> = {
     return withNote(
       table(
         [
-          "비용(배열 접근 수)",
+          "비용(칸 접근 수)",
           "펜윅 트리",
           "제곱근 분할",
           "펜윅 트리 − 제곱근 분할",
@@ -1456,6 +1456,65 @@ export const PROOFS: Record<string, () => string> = {
       ),
       `만들기의 차이 ${num(buildGap)}${을를(num(buildGap))} 질의 하나의 차이 ${f1(queryGap)}${으로(f1(queryGap))} 나누면 ${f1(buildGap / queryGap)} 입니다. 질의 1,024 개에서 제곱근 분할이 더 쓴 ${num(u0Gap)}${을를(num(u0Gap))} 갱신 하나의 차이 ${f1(updGap)}${으로(f1(updGap))} 나누면 ${f1(u0Gap / updGap)} 이고, 그 갱신 수는 질의 수 1,024 의 ${f1(u0Gap / updGap / 1_024)} 배입니다.`,
     );
+  },
+
+  /** `purpose.alt` — 실측 두 표. 「적은 쪽」 열의 차이와 배수를 벤치 값에서 계산한다(SPEC §14 `L51`). */
+  "alt-counts": () => {
+    const bf = benchCases["펜윅 트리"]();
+    const bb = benchCases["제곱근 분할"]();
+    const key = (label: string) => `${label} 칸 접근`;
+    type Role = "gap" | "flip" | "ratio" | "still";
+    const row = (name: string, label: string, role: Role): string[] => {
+      const f = bf[key(label)] as number;
+      const b = bb[key(label)] as number;
+      const fWins = f < b;
+      const [lo, hi] = fWins ? [f, b] : [b, f];
+      const who = fWins ? "펜윅 트리" : "제곱근 분할";
+      const note =
+        role === "gap"
+          ? `${who}${이가(who).trim()} ${num(hi - lo)} 번 적습니다`
+          : role === "still"
+            ? `${num(hi - lo)} 번 차이로 아직 ${who}입니다`
+            : role === "flip"
+              ? "**여기서 순서가 뒤집힙니다**"
+              : `${who}${이가(who).trim()} ${f1(hi / lo)} 배 적습니다`;
+      return [
+        name,
+        fWins ? `**${num(f)}**` : num(f),
+        fWins ? num(b) : `**${num(b)}**`,
+        note,
+      ];
+    };
+    const head = (c: string) => [c, "펜윅 트리", "제곱근 분할", "적은 쪽"];
+    return [
+      table(head("갱신 0 회"), "llll", [
+        row("질의 136 개", "갱신 0 회 · 질의 136 개", "gap"),
+        row("질의 137 개", "갱신 0 회 · 질의 137 개", "flip"),
+        row("질의 4,096 개", "갱신 0 회 · 질의 4,096 개", "ratio"),
+      ]),
+      "",
+      "**갱신이 아주 많아지면 순서가 다시 반대로 갑니다.**",
+      "",
+      table(head("질의 1,024 개"), "llll", [
+        row("갱신 0 회", "질의 1,024 개 · 갱신 0 회", "ratio"),
+        row("갱신 2,684 회", "질의 1,024 개 · 갱신 2,684 회", "still"),
+        row("갱신 2,685 회", "질의 1,024 개 · 갱신 2,685 회", "flip"),
+        row("갱신 16,384 회", "질의 1,024 개 · 갱신 16,384 회", "ratio"),
+      ]),
+    ].join("\n");
+  },
+
+  /** `purpose.alt` 끝 — 결론 문장의 배수. `alt-boundary` 와 같은 나눗셈이다. */
+  "alt-verdict": () => {
+    const ops = (q: number, u: number) => {
+      const o = altOps(q, u);
+      return { f: fenwickCount(ALT_A, o), b: blockTable(ALT_A, o, ALT_B) };
+    };
+    const u0 = ops(1_024, 0);
+    const uMax = ops(1_024, 16_384);
+    const u0Gap = total(u0.b) - total(u0.f);
+    const updGap = uMax.f.update / 16_384 - uMax.b.update / 16_384;
+    return `갱신과 질의가 섞여 들어오는데 그 비율이 정해져 있지 않다면 펜윅 트리가 알맞습니다. 갱신이 질의의 ${f1(u0Gap / updGap / 1_024)} 배를 넘는다고\n정해지는 순간 이 결론을 다시 따져야 해요.`;
   },
 
   /** `deep.math` ② — 정의를 작은 값에 넣어 본다. */
@@ -1705,7 +1764,7 @@ export const PROOFS: Record<string, () => string> = {
     const f = fenwickCount(WALK, WALK_OPS);
     const bare = scanEach(WALK, WALK_OPS);
     return withNote(
-      table(["갈래", "걸음", "배열 접근"], "llr", [
+      table(["갈래", "걸음", "칸 접근"], "llr", [
         ["칸을 채운다", "T1\\~T4", num(f.build)],
         ["질의 셋", "T5\\~T6 · T10\\~T11 · T12\\~T13", num(f.query)],
         ["갱신 하나", "T7\\~T9", num(f.update)],

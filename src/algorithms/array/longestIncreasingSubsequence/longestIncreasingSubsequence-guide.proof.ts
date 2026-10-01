@@ -9,7 +9,7 @@
  *   bun run tools/check-proof.ts \
  *     src/algorithms/array/longestIncreasingSubsequence/longestIncreasingSubsequence-guide.md
  *
- * 비교 횟수를 세는 다른 절차(부분 수열 다 만들기 · 칸마다 앞을 전부 보기 · 앞에서부터 차례로 읽기)는 그림
+ * 비교를 세는 다른 절차(부분 수열 다 만들기 · 칸마다 앞을 전부 보기 · 앞에서부터 차례로 읽기)는 그림
  * 사이드카에 있고, 셋 다 답을 정본과 대조한 뒤에만 수를 내놓는다.
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";

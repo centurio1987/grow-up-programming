@@ -161,7 +161,7 @@ function approaches(): Approach[] {
     },
     {
       name: "되돌아가는 간선이 있는가",
-      idea: "깊이 우선 탐색 트리에서 자식의 서브트리에 되돌아가는 간선이 하나라도 있으면 부모를 지워도 붙어 있다고 본다",
+      idea: "깊이 우선 탐색 트리에서 자식의 부분트리에 되돌아가는 간선이 하나라도 있으면 부모를 지워도 붙어 있다고 본다",
       verdict: "drop",
       checks: [
         {
@@ -172,7 +172,7 @@ function approaches(): Approach[] {
         { label: "시간", value: "순회 한 번", ok: true },
         {
           label: "메모리",
-          value: `되돌아가는 간선 ${t.backEdges.map(([b, a]) => ed(b, a)).join(" · ")}${을를(String(t.backEdges.at(-1)?.[1] ?? ""))} 서브트리마다 찾는다`,
+          value: `되돌아가는 간선 ${t.backEdges.map(([b, a]) => ed(b, a)).join(" · ")}${을를(String(t.backEdges.at(-1)?.[1] ?? ""))} 부분트리마다 찾는다`,
           ok: null,
         },
       ],
@@ -180,7 +180,7 @@ function approaches(): Approach[] {
     },
     {
       name: "low 값으로 판정하기",
-      idea: "정점마다 서브트리가 되돌아가는 간선으로 이르는 가장 이른 발견 순서를 적고, 자식의 low 를 부모의 disc 와 맞댄다",
+      idea: "정점마다 부분트리가 되돌아가는 간선으로 이르는 가장 이른 발견 순서를 적고, 자식의 low 를 부모의 disc 와 맞댄다",
       verdict: "keep",
       checks: [
         {
@@ -250,7 +250,7 @@ function stepText(s: Step): string {
           ? `정점 ${v} 의 이웃을 다 봐서 호출 스택에서 뺍니다. low[${v}] = ${s.low[s.v]}${을를(String(s.low[s.v]))} 부모 ${s.parent} 에게 넘기고, 부모가 뿌리라 판정하지 않습니다.`
           : `정점 ${v} 의 이웃을 다 봐서 호출 스택에서 뺍니다. low[${v}] = ${s.low[s.v]}${을를(String(s.low[s.v]))} 부모 ${s.parent} 에게 넘깁니다. ${s.low[s.v]}${이가(String(s.low[s.v]))} disc[${s.parent}] = ${s.judge?.discP} 보다 작아 부모를 적지 않습니다.`;
     case "판정":
-      return `정점 ${v} 의 이웃을 다 봐서 호출 스택에서 뺍니다. low[${v}] = ${s.judge?.lowC}${이가(String(s.judge?.lowC))} disc[${s.parent}] = ${s.judge?.discP} 이상이라, 서브트리가 정점 ${s.parent} 위로 못 갑니다. 정점 ${s.parent}${을를(String(s.parent))} 단절점으로 적습니다.`;
+      return `정점 ${v} 의 이웃을 다 봐서 호출 스택에서 뺍니다. low[${v}] = ${s.judge?.lowC}${이가(String(s.judge?.lowC))} disc[${s.parent}] = ${s.judge?.discP} 이상이라, 부분트리가 정점 ${s.parent} 위로 못 갑니다. 정점 ${s.parent}${을를(String(s.parent))} 단절점으로 적습니다.`;
     default:
       return `뿌리 ${v} 의 탐색이 끝났습니다. 나무 자식이 ${s.rootKids} 개라 ${(s.rootKids ?? 0) >= 2 ? `뿌리 ${v}${을를(v)} 단절점으로 적습니다` : "뿌리를 적지 않습니다"}.`;
   }
@@ -590,7 +590,7 @@ export const FIGS: Record<string, () => ReactElement> = {
   },
   "build-low-tree": () => (
     <NodeGraph
-      title="low 값 — 되돌아가는 간선이 서브트리의 low 를 줄인다"
+      title="low 값 — 되돌아가는 간선이 부분트리의 low 를 줄인다"
       unit={TREE_UNIT}
       nodes={treeNodes(
         (v) => `${RUN.disc[v]} / ${RUN.low[v]}`,

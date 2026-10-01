@@ -70,22 +70,22 @@ interface Impl {
 
 /** 순위 배열을 반대로 채운 사본 — 값과 자리를 안 맞바꿨다. */
 const invFlipped = await loadMutant<Impl>(REF, {
-  swap: [/inv\[sa\[r\] as number\] = r;/, "inv[r] = sa[r] as number;"],
+  swap: [/rank\[sa\[k\] as number\] = k;/, "rank[k] = sa[k] as number;"],
 });
 
 /** 답을 순위 칸이 아니라 자리 칸에 적은 사본. */
 const textOrderWrite = await loadMutant<Impl>(REF, {
-  swap: [/lcp\[inv\[i\] as number\] = k;/, "lcp[i] = k;"],
+  swap: [/lcp\[rank\[i\] as number\] = len;/, "lcp[i] = len;"],
 });
 
-/** 이웃이 없는 자리에서 `k` 를 0 으로 되돌리는 줄을 뺀 사본. */
+/** 이웃이 없는 자리에서 `len` 을 0 으로 되돌리는 줄을 뺀 사본. */
 const noReset = await loadMutant<Impl>(REF, {
-  drop: /^\s+k = 0;$/,
+  drop: /^\s+len = 0;$/,
 });
 
-/** **불변식을 지키던 줄** 하나 — 적은 뒤에 `k` 를 하나 줄이는 줄을 뺀 사본. */
+/** **불변식을 지키던 줄** 하나 — 적은 뒤에 `len` 을 하나 줄이는 줄을 뺀 사본. */
 const noDecrement = await loadMutant<Impl>(REF, {
-  drop: /if \(k > 0\) k--;/,
+  drop: /if \(len > 0\) len--;/,
 });
 
 /* ────────────────────────── 사례 목록 ────────────────────────── */
@@ -163,7 +163,7 @@ export const PROOFS: Record<string, () => string> = {
     ]);
     return block(
       md(
-        ["사전순 자리 r", "sa[r]", "접미사", "다음 칸의 접미사", "lcp[r]"],
+        ["사전순 자리 k", "sa[k]", "접미사", "다음 칸의 접미사", "lcp[k]"],
         rows,
         [0, 1, 4],
       ),
@@ -364,11 +364,11 @@ export const PROOFS: Record<string, () => string> = {
     const first = over[0] as Row;
     return block(
       md(
-        ["자리 i", "들어올 때 k", "그대로 이어받은 쪽이 적은 값", "바른 값"],
+        ["자리 i", "들어올 때 len", "그대로 이어받은 쪽이 적은 값", "바른 값"],
         rows,
         [0, 1, 2, 3],
       ),
-      `그대로 이어받으면 답이 ${show(keep.lcp)}${이가(show(keep.lcp))} 되고, 바른 답은 ${show(good.lcp)} 입니다. 처음 틀리는 곳은 자리 ${first.i} 입니다. 들어올 때 k = ${first.kIn}${을를(first.kIn)} 그대로 적었습니다.`,
+      `그대로 이어받으면 답이 ${show(keep.lcp)}${이가(show(keep.lcp))} 되고, 바른 답은 ${show(good.lcp)} 입니다. 처음 틀리는 곳은 자리 ${first.i} 입니다. 들어올 때 len = ${first.kIn}${을를(first.kIn)} 그대로 적었습니다.`,
     );
   },
 
@@ -440,11 +440,11 @@ export const PROOFS: Record<string, () => string> = {
     const h = r.rows.map((x) => dash(x.h));
     return block(
       md(
-        ["자리 i", "접미사", "inv[i]", "자리 i 에서 구한 길이 h(i)"],
+        ["자리 i", "접미사", "rank[i]", "자리 i 에서 구한 길이 h(i)"],
         rows,
         [0, 2, 3],
       ),
-      `자리 순서로 늘어놓은 길이는 ${show(h)}${josa(show(h), "이고", "고")}, 그 값을 칸 inv[i] 로 옮겨 적은 LCP 배열은 ${show(r.lcp)} 입니다.`,
+      `자리 순서로 늘어놓은 길이는 ${show(h)}${josa(show(h), "이고", "고")}, 그 값을 칸 rank[i] 로 옮겨 적은 LCP 배열은 ${show(r.lcp)} 입니다.`,
     );
   },
 
@@ -461,11 +461,11 @@ export const PROOFS: Record<string, () => string> = {
     const none = r.rows.find((x) => x.j === null) as Row;
     return block(
       md(
-        ["자리 i", "접미사", "inv[i]", "이웃 j", "이웃의 접미사"],
+        ["자리 i", "접미사", "rank[i]", "이웃 j", "이웃의 접미사"],
         rows,
         [0, 2],
       ),
-      `자리 ${none.i}${은는(none.i)} inv[${none.i}] = ${none.rank}${이가(none.rank)} n − 1 = ${n - 1}${과와(n - 1)} 같아 이웃이 없습니다.`,
+      `자리 ${none.i}${은는(none.i)} rank[${none.i}] = ${none.rank}${이가(none.rank)} n − 1 = ${n - 1}${과와(n - 1)} 같아 이웃이 없습니다.`,
     );
   },
 
@@ -484,7 +484,7 @@ export const PROOFS: Record<string, () => string> = {
           String(t),
           `s[${x.i + t}] = ${a}`,
           `s[${(x.j as number) + t}] = ${b}`,
-          a === b ? "같은 글자 — k 를 늘린다" : "다른 글자 — 멈춘다",
+          a === b ? "같은 글자 — len 을 늘린다" : "다른 글자 — 멈춘다",
         ]);
       }
     }
@@ -492,11 +492,11 @@ export const PROOFS: Record<string, () => string> = {
     const ended = WALK.slice(Math.max(five.i, five.j as number));
     return block(
       md(
-        ["자리 i", "k", "자리 i 쪽 글자", "이웃 쪽 글자", "결과"],
+        ["자리 i", "len", "자리 i 쪽 글자", "이웃 쪽 글자", "결과"],
         rows,
         [0, 1],
       ),
-      `자리 ${five.i} 에서는 k = ${five.h} 에서 접미사 ${ended}${last(ended, 이가)} 끝나 글자를 더 읽지 않고 멈춥니다.`,
+      `자리 ${five.i} 에서는 len = ${five.h} 에서 접미사 ${ended}${last(ended, 이가)} 끝나 글자를 더 읽지 않고 멈춥니다.`,
     );
   },
 
@@ -532,11 +532,17 @@ export const PROOFS: Record<string, () => string> = {
     const kept = r.rows.filter((x) => x.h !== null && x.kIn === x.h).length;
     return block(
       md(
-        ["자리 i", "들어올 때 k", "h(i)", "새로 확인한 같은 글자", "k 와 h(i)"],
+        [
+          "자리 i",
+          "들어올 때 len",
+          "h(i)",
+          "새로 확인한 같은 글자",
+          "len 과 h(i)",
+        ],
         rows,
         [0, 1, 2, 3],
       ),
-      `이웃이 있는 자리 모두에서 들어올 때 k 가 h(i) 를 넘지 않았고, 새로 확인한 같은 글자는 모두 ${eq} 개입니다. 이어받은 k 가 곧 h(i) 인 자리가 ${kept} 곳입니다.`,
+      `이웃이 있는 자리 모두에서 들어올 때 len 이 h(i) 를 넘지 않았고, 새로 확인한 같은 글자는 모두 ${eq} 개입니다. 이어받은 len 이 곧 h(i) 인 자리가 ${kept} 곳입니다.`,
     );
   },
 
@@ -679,8 +685,8 @@ export const PROOFS: Record<string, () => string> = {
     const ok = r.sa.every((p, k) => r.inv[p] === k);
     return [
       `sa  = ${show(r.sa)}`,
-      `inv = ${show(r.inv)}`,
-      `inv[sa[r]] = r 이 ${r.sa.length} 칸 모두에서 맞는가  ${ok ? "예" : "아니오"}`,
+      `rank = ${show(r.inv)}`,
+      `rank[sa[k]] = k 가 ${r.sa.length} 칸 모두에서 맞는가  ${ok ? "예" : "아니오"}`,
     ].join("\n");
   },
 
@@ -705,8 +711,8 @@ export const PROOFS: Record<string, () => string> = {
       return show(sa) === show(replay(s, sa).inv);
     });
     return block(
-      md(["입력", "sa", "inv", "두 배열의 일치"], rows),
-      `sa 와 inv 가 글자 그대로 같은 입력은 ${same.map(quote).join(" · ")} 입니다.`,
+      md(["입력", "sa", "rank", "두 배열의 일치"], rows),
+      `sa 와 rank 가 글자 그대로 같은 입력은 ${same.map(quote).join(" · ")} 입니다.`,
     );
   },
 
@@ -731,7 +737,7 @@ export const PROOFS: Record<string, () => string> = {
       .slice(0, 3)
       .map(
         (x) =>
-          `inv[${x.i}] === ${r.sa.length - 1}${이가(r.sa.length - 1)} ${x.j === null ? "참" : "거짓"}`,
+          `rank[${x.i}] === ${r.sa.length - 1}${이가(r.sa.length - 1)} ${x.j === null ? "참" : "거짓"}`,
       )
       .join(" · ");
     return block(
@@ -739,9 +745,9 @@ export const PROOFS: Record<string, () => string> = {
         [
           "걸음",
           "자리 i",
-          "inv[i]",
+          "rank[i]",
           "이웃 j",
-          "들어올 때 k",
+          "들어올 때 len",
           "적은 칸",
           "멈춘 까닭",
         ],
@@ -765,8 +771,8 @@ export const PROOFS: Record<string, () => string> = {
     });
     const ids = CASES.filter((s) => replay(s).inv.every((v, i) => v === i));
     return block(
-      md(["입력", "inv", "제자리 순열"], rows),
-      `inv 가 모든 자리에서 제자리인 입력은 ${ids.map(quote).join(" · ")} 입니다.`,
+      md(["입력", "rank", "제자리 순열"], rows),
+      `rank 가 모든 자리에서 제자리인 입력은 ${ids.map(quote).join(" · ")} 입니다.`,
     );
   },
 
@@ -783,16 +789,16 @@ export const PROOFS: Record<string, () => string> = {
         `s[${x.i + t}] = ${a ?? "없다"}`,
         `s[${j + t}] = ${b ?? "없다"}`,
         a === undefined || b === undefined
-          ? `i + k < n 이 ${x.i + t < WALK.length ? "참" : "거짓"}이라 멈춘다`
+          ? `i + len < n 이 ${x.i + t < WALK.length ? "참" : "거짓"}이라 멈춘다`
           : a === b
-            ? "같은 글자 — k 를 하나 늘린다"
+            ? "같은 글자 — len 을 하나 늘린다"
             : "다른 글자 — 멈춘다",
       ]);
     }
     const suf = WALK.slice(x.i);
     return block(
-      md(["k", "자리 i 쪽 글자", "이웃 쪽 글자", "판단"], rows, [0]),
-      `비교한 두 접미사는 자리 ${x.i} 의 ${suf}${last(suf, 과와)} 이웃 ${j} 의 ${WALK.slice(j)} 입니다. ⑤ 가 lcp[${x.rank}] = ${x.h}${을를(x.h as number)} 적고, ⑥ 이 k = ${x.kOut}${을를(x.kOut)} 다음 자리로 넘깁니다.`,
+      md(["len", "자리 i 쪽 글자", "이웃 쪽 글자", "판단"], rows, [0]),
+      `비교한 두 접미사는 자리 ${x.i} 의 ${suf}${last(suf, 과와)} 이웃 ${j} 의 ${WALK.slice(j)} 입니다. ⑤ 가 lcp[${x.rank}] = ${x.h}${을를(x.h as number)} 적고, ⑥ 이 len = ${x.kOut}${을를(x.kOut)} 다음 자리로 넘깁니다.`,
     );
   },
 
@@ -836,11 +842,11 @@ export const PROOFS: Record<string, () => string> = {
     );
     return block(
       md(
-        ["입력", "n", "이웃 없는 갈래에 들어간 횟수", "그때 k 의 최댓값"],
+        ["입력", "n", "이웃 없는 갈래에 들어간 횟수", "그때 len 의 최댓값"],
         rows,
         [1, 2, 3],
       ),
-      `${inputs.length} 입력에서 이웃 없는 갈래에 들어간 횟수가 ${once ? "모두 1 번이고" : "1 번이 아닌 입력이 있고"}, 그때 k 는 ${zero ? "언제나 0 이었습니다" : "0 이 아닌 때가 있었습니다"}.`,
+      `${inputs.length} 입력에서 이웃 없는 갈래에 들어간 횟수가 ${once ? "모두 1 번이고" : "1 번이 아닌 입력이 있고"}, 그때 len 은 ${zero ? "언제나 0 이었습니다" : "0 이 아닌 때가 있었습니다"}.`,
     );
   },
 
@@ -862,8 +868,8 @@ export const PROOFS: Record<string, () => string> = {
       }
       const cond =
         x.j === null
-          ? `inv[${x.i}] === ${WALK.length - 1} 참`
-          : `inv[${x.i}] === ${WALK.length - 1} 거짓 · ${x.eq} 번 늘려 ${x.stop === "differ" ? "글자가 달라" : "접미사가 끝나"} 멈춤`;
+          ? `rank[${x.i}] === ${WALK.length - 1} 참`
+          : `rank[${x.i}] === ${WALK.length - 1} 거짓 · ${x.eq} 번 늘려 ${x.stop === "differ" ? "글자가 달라" : "접미사가 끝나"} 멈춤`;
       return [
         st.id,
         String(x.i),
@@ -881,9 +887,9 @@ export const PROOFS: Record<string, () => string> = {
         [
           "걸음",
           "자리 i",
-          "inv[i]",
+          "rank[i]",
           "이웃 j",
-          "들어올 때 k",
+          "들어올 때 len",
           "조건 판정",
           "lcp",
         ],
@@ -912,9 +918,9 @@ export const PROOFS: Record<string, () => string> = {
       "순위 배열을 만든다",
       "이웃이 없어 건너뛴다",
       "이웃의 자리를 얻는다",
-      "글자가 같아 k 를 늘린다",
+      "글자가 같아 len 을 늘린다",
       "순위 칸에 길이를 적는다",
-      "k 를 하나 줄여 넘긴다",
+      "len 을 하나 줄여 넘긴다",
     ];
     const marks = ["①", "②", "③", "④", "⑤", "⑥"];
     const rows = names.map((name, t) => [
@@ -990,7 +996,7 @@ export const PROOFS: Record<string, () => string> = {
     );
     return block(
       md(
-        ["x", "sa[x]", "inv[sa[x]]", "inv[x]", "sa[inv[x]]"],
+        ["x", "sa[x]", "rank[sa[x]]", "rank[x]", "sa[rank[x]]"],
         rows,
         [0, 1, 2, 3, 4],
       ),
@@ -1016,11 +1022,11 @@ export const PROOFS: Record<string, () => string> = {
     });
     return block(
       md(
-        ["자리 i", "h(i)", "h(i−1)", "h(i) ≥ h(i−1) − 1", "들어올 때 k"],
+        ["자리 i", "h(i)", "h(i−1)", "h(i) ≥ h(i−1) − 1", "들어올 때 len"],
         rows,
         [0, 1, 2, 4],
       ),
-      `h 를 칸 inv[i] 로 옮겨 적으면 ${show(r.lcp)}${josa(show(r.lcp), "이고", "고")}, 정본이 낸 답은 ${show(kasaiLcp(WALK, [...saOf(WALK)]))} 입니다.`,
+      `h 를 칸 rank[i] 로 옮겨 적으면 ${show(r.lcp)}${josa(show(r.lcp), "이고", "고")}, 정본이 낸 답은 ${show(kasaiLcp(WALK, [...saOf(WALK)]))} 입니다.`,
     );
   },
 
@@ -1131,7 +1137,13 @@ export const PROOFS: Record<string, () => string> = {
     });
     return block(
       md(
-        ["입력", "n", "확인한 자리", "이어받은 k 가 h(i) 와 같은 자리", "문장"],
+        [
+          "입력",
+          "n",
+          "확인한 자리",
+          "이어받은 len 이 h(i) 와 같은 자리",
+          "문장",
+        ],
         rows,
         [1, 2, 3],
       ),
@@ -1196,11 +1208,16 @@ export const PROOFS: Record<string, () => string> = {
     const nb = WALK.slice(g.j as number);
     return block(
       md(
-        ["판", `자리 ${g.i} 에 들어올 때 k`, "그 자리의 글자 비교", "적은 값"],
+        [
+          "판",
+          `자리 ${g.i} 에 들어올 때 len`,
+          "그 자리의 글자 비교",
+          "적은 값",
+        ],
         rows,
         [1, 2, 3],
       ),
-      `자리 ${g.i} 의 접미사 ${suf}${last(suf, 과와)} 이웃 ${nb}${last(nb, 은는)} 앞 ${g.h} 글자를 함께 가집니다. 뺀 판은 i + k = ${b.i + b.kIn}${이가(b.i + b.kIn)} 이미 n = ${WALK.length} 이상이라 비교를 한 번도 안 하고 ${b.h}${을를(b.h as number)} 적었습니다.`,
+      `자리 ${g.i} 의 접미사 ${suf}${last(suf, 과와)} 이웃 ${nb}${last(nb, 은는)} 앞 ${g.h} 글자를 함께 가집니다. 뺀 판은 i + len = ${b.i + b.kIn}${이가(b.i + b.kIn)} 이미 n = ${WALK.length} 이상이라 비교를 한 번도 안 하고 ${b.h}${을를(b.h as number)} 적었습니다.`,
     );
   },
 
@@ -1380,14 +1397,14 @@ export const PROOFS: Record<string, () => string> = {
           "자리 i",
           "접미사",
           "이웃의 접미사",
-          "이어받은 k",
+          "이어받은 len",
           "이어받을 때 글자 비교",
           "0 부터 셀 때 글자 비교",
         ],
         rows,
         [0, 3, 4, 5],
       ),
-      `이어받으면 글자 비교가 ${a.eq + a.ne} 번이고, 자리마다 0 부터 세면 ${b.eq + b.ne} 번입니다. 늘어난 ${saved} 번이 이어받은 k 의 합과 같습니다.`,
+      `이어받으면 글자 비교가 ${a.eq + a.ne} 번이고, 자리마다 0 부터 세면 ${b.eq + b.ne} 번입니다. 늘어난 ${saved} 번이 이어받은 len 의 합과 같습니다.`,
     );
   },
 };

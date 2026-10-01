@@ -141,7 +141,7 @@ export function run(nums: readonly number[]): Run {
 /**
  * 한 번의 실행을 세는 가벼운 판 — 값만 센다(기록을 남기지 않는다). 세는 규칙은 `run` 과 같다.
  *
- * 배열 접근은 `nums` 읽기(감시 배열이 센다)에 코드가 하는 쓰기와 스택 읽기를 더한다 — 답 배열 초기화
+ * 칸 접근은 `nums` 읽기(감시 배열이 센다)에 코드가 하는 쓰기와 스택 읽기를 더한다 — 답 배열 초기화
  * `N` 번 · 꺼낸 자리의 답 쓰기 `P` 번 · 비교마다 꼭대기 읽기 한 번 · 자리 넣기 `N` 번.
  */
 export interface Counts {
@@ -156,7 +156,7 @@ export interface Counts {
   readonly left: number;
   /** 스택이 가장 깊었을 때의 칸 수. */
   readonly peak: number;
-  /** 배열 접근 수(읽기 + 쓰기). */
+  /** 칸 접근 수(읽기 + 쓰기). */
   readonly acc: number;
   readonly result: number[];
 }
@@ -208,7 +208,7 @@ export function count(nums: readonly number[]): Counts {
 /* ───────────────────────── 다른 방법 — 비교용 ───────────────────────── */
 
 /**
- * 자리마다 오른쪽을 차례로 읽는 방법. 본문 `deep.origin` 의 코드와 같은 절차이고, 배열 접근을 같은
+ * 자리마다 오른쪽을 차례로 읽는 방법. 본문 `deep.origin` 의 코드와 같은 절차이고, 칸 접근을 같은
  * 규칙으로 센다 — 답 배열 초기화 `N` · `nums[i]` 읽기 · `nums[j]` 읽기 · 답 쓰기. 답은 정본과 대조한다.
  */
 export function scanRight(nums: readonly number[]): {
@@ -249,7 +249,7 @@ export function scanRight(nums: readonly number[]): {
 /**
  * 답을 기다리는 자리를 `keep` 개까지만 남기는 방법. 넘치면 **가장 오래된** 자리를 버린다 — 버린 자리는
  * 답을 못 받고 `-1` 로 남는다. `bottomUp` 이 참이면 꼭대기에서 멈추지 않고 남긴 자리를 **아래까지 전부**
- * 비교한다. 배열 접근은 정본과 같은 규칙으로 센다 — 남긴 자리마다 자리 읽기 한 번과 그 값 읽기 한 번.
+ * 비교한다. 칸 접근은 정본과 같은 규칙으로 센다 — 남긴 자리마다 자리 읽기 한 번과 그 값 읽기 한 번.
  */
 export function bounded(
   nums: readonly number[],
@@ -589,7 +589,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `N = ${num(TASK_N)} 감소 수열에서 배열 접근 ${num(naive)} 번 · ${seconds(naive)}`,
+          value: `N = ${num(TASK_N)} 감소 수열에서 칸 접근 ${num(naive)} 번 · ${seconds(naive)}`,
           ok: false,
         },
       ],
@@ -623,7 +623,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `${num(BIG_N)} 칸에서 배열 접근 ${num(all.acc)} 번 · 차례로 읽기의 ${num(naiveBig.acc)} 번${all.acc > naiveBig.acc ? "보다 많다" : "과 같은 규모"}`,
+          value: `${num(BIG_N)} 칸에서 칸 접근 ${num(all.acc)} 번 · 차례로 읽기의 ${num(naiveBig.acc)} 번${all.acc > naiveBig.acc ? "보다 많다" : "과 같은 규모"}`,
           ok: false,
         },
       ],
@@ -638,7 +638,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `${num(BIG_N)} 칸에서 배열 접근 ${num(stack.acc)} 번`,
+          value: `${num(BIG_N)} 칸에서 칸 접근 ${num(stack.acc)} 번`,
           ok: true,
         },
       ],
@@ -768,7 +768,7 @@ export const FIGS: Record<string, () => ReactElement> = {
     return (
       <ApproachLadder
         title="시도한 방법 넷 — 셋은 버렸고 하나가 남았다"
-        constraint={`배열 길이 N ≤ ${num(TASK_N)} · 1 초(단순 연산 1 초에 1 억 번 기준) · 비용은 배열 접근 수`}
+        constraint={`배열 길이 N ≤ ${num(TASK_N)} · 1 초(단순 연산 1 초에 1 억 번 기준) · 비용은 칸 접근 수`}
         steps={steps}
         width={approachLadderWidth(steps)}
       />

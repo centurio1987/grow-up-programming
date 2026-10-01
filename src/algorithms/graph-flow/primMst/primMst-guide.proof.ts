@@ -1727,10 +1727,10 @@ function altPops(): string {
 
 function altCells(): string {
   return md(
-    ["정점 200 · 간선 수", "프림 저장 칸", "크러스컬 저장 칸", "적은 쪽"],
+    ["정점 200 · 간선 수", "프림 추가 칸", "크러스컬 추가 칸", "적은 쪽"],
     [199, 19_900].map((e) => {
-      const p = bench(`${PRIM} · E=${e} 저장 칸`);
-      const k = bench(`${KRUSKAL} · E=${e} 저장 칸`);
+      const p = bench(`${PRIM} · E=${e} 추가 칸`);
+      const k = bench(`${KRUSKAL} · E=${e} 추가 칸`);
       return [
         `E = ${comma(e)}`,
         comma(p),

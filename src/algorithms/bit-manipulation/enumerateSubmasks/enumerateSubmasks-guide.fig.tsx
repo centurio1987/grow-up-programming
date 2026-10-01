@@ -6,8 +6,9 @@
  * 사본 — 에서 받는다. 걸음 재생 패널의 걸음(`simStepsFromRef`)도 같은 기록에서 만들고, `.sim.ts` 의
  * 리터럴이 그것과 같은지는 `enumerateSubmasks-guide.test.ts` 가 잰다.
  *
- * 칸 무대는 **자리 0 을 왼쪽에** 둔다 — 칸 `i` 가 자리 `i` 의 비트라서 이진 표기와 좌우가 거꾸로다.
- * 그래서 줄 곁말에 십진값과 이진 표기를 함께 적어 두 순서를 맞대 볼 수 있게 한다.
+ * 칸 무대는 **자리 0 을 오른쪽에** 둔다 — 이진 표기와 같은 방향이다(SPEC §14 용어 표 「비트 자리」). 열 머리가
+ * 자리 번호이고, 줄 곁말에 십진값과 이진 표기를 함께 적는다. 걸음 무대는 열 머리를 자리 번호로 적을 수 있는
+ * 2 차원 표 무대(`tableStage.ts`)를 쓴다 — 배열 무대는 인덱스 줄이 왼쪽부터 0 으로 고정이다.
  */
 
 import type { ReactElement } from "react";
@@ -25,11 +26,11 @@ import {
   type StageRow,
 } from "../../../_viz/patterns/CellStage";
 import {
-  type ArrayOptions,
-  type ArrayStep,
-  arrayColumns,
-  arrayStage,
-} from "../../../_viz/player/arrayStage";
+  type TableCell,
+  type TableOptions,
+  type TableStep,
+  tableStage,
+} from "../../../_viz/player/tableStage";
 import {
   bitAt,
   bits,
@@ -45,13 +46,20 @@ import {
 } from "./enumerateSubmasks-guide.proof.ts";
 import { enumerateSubmasks } from "./enumerateSubmasks-guide.ref.ts";
 
-/** 자리 0 부터의 비트 — 무대의 칸 `i` 가 자리 `i` 다. */
-const bitsLow = (v: number, w: number = WALK_WIDTH): (0 | 1)[] =>
-  Array.from({ length: w }, (_, i) => bitAt(v, i));
+/** 높은 자리부터의 비트 — 무대의 열 `c` 가 자리 `w − 1 − c` 다(자리 0 이 오른쪽 끝). */
+const bitsHigh = (v: number, w: number = WALK_WIDTH): (0 | 1)[] =>
+  Array.from({ length: w }, (_, c) => bitAt(v, w - 1 - c));
 
-/** 칸 번호 0 … w − 1. */
+/** 자리 번호 0 … w − 1. */
 const places = (w: number = WALK_WIDTH): number[] =>
   Array.from({ length: w }, (_, i) => i);
+
+/** 자리 `i` 가 서는 열. */
+const col = (i: number, w: number = WALK_WIDTH): number => w - 1 - i;
+
+/** 열 머리 — 높은 자리부터 자리 번호. */
+const placeHeads = (w: number = WALK_WIDTH): number[] =>
+  Array.from({ length: w }, (_, c) => w - 1 - c);
 
 /** 곁말 — 십진값과 이진 표기. */
 const both = (v: number): string => `${v} = ${bits(v, WALK_WIDTH)}`;
@@ -123,51 +131,51 @@ export interface Step {
   readonly id: string;
   readonly title: string;
   readonly detail: string;
-  readonly stage: ArrayStep;
+  readonly stage: TableStep;
 }
 
-/** 배열 무대의 이름표 — 패널(`.sim.ts`)과 필름이 같이 쓴다. */
-export const ARRAY_OPTIONS: ArrayOptions = {
-  arrayName: "mask",
-  rangeLabel: "자리내림",
+/** 표 무대의 이름표 — 패널(`.sim.ts`)과 필름이 같이 쓴다. 줄 0 이 `mask`, 1 · 2 · 3 이 `sub` · `borrowed` · `next`. */
+export const TABLE_OPTIONS: TableOptions = {
+  rowHeads: ["mask", "sub", "borrowed", "next"],
+  colHeads: placeHeads(),
+  colLabel: "자리",
 };
 
 const EMPTY = (): null[] => Array.from({ length: WALK_WIDTH }, () => null);
 
+/** 줄 `row` 에서 자리 목록 `ps` 가 서는 칸. */
+const cells = (row: number, ps: readonly number[]): TableCell[] =>
+  ps.map((i) => [row, col(i)] as const);
+
 /** 바퀴 하나의 무대 — 걸음 재생 패널과 정적 필름이 같은 값을 쓴다. */
-function roundStage(r: Round, mask: number): ArrayStep {
+function roundStage(r: Round, mask: number): TableStep {
   const below = places(r.p + 1);
+  const above = places().filter((i) => i > r.p);
   return {
-    array: bitsLow(mask),
-    range: [0, r.p],
-    read: [],
-    write: [],
-    pointers: {},
+    table: [
+      bitsHigh(mask),
+      bitsHigh(r.sub),
+      bitsHigh(r.borrowed),
+      bitsHigh(r.next),
+    ],
+    read: cells(1, [r.p]),
+    write: [...cells(2, below), ...cells(3, r.cleared)],
+    out: cells(0, above),
+    pieces: [
+      {
+        label: "자리내림",
+        from: col(r.p),
+        to: col(0),
+        tone: "query",
+        text: `[0,${r.p}]`,
+      },
+    ],
+    rowSide: [both(mask), both(r.sub), both(r.borrowed), both(r.next)],
     calc: {
       expr: `(${r.sub} − 1) & ${mask}`,
       result: `${r.borrowed} & ${mask} = ${r.next}`,
     },
     vars: `subMasks = [${r.subMasks.join(", ")}]`,
-    layers: [
-      {
-        name: "sub",
-        values: bitsLow(r.sub),
-        read: [r.p],
-        side: both(r.sub),
-      },
-      {
-        name: "borrowed",
-        values: bitsLow(r.borrowed),
-        write: below,
-        side: both(r.borrowed),
-      },
-      {
-        name: "next",
-        values: bitsLow(r.next),
-        write: r.cleared,
-        side: both(r.next),
-      },
-    ],
   };
 }
 
@@ -178,23 +186,12 @@ export function walkSteps(mask: number = WALK): Step[] {
     title: `sub = ${mask}`,
     detail: `mask ${mask}${을를(mask)} 결과의 첫 칸에 담고 sub 를 ${mask}${으로(mask)} 둡니다. 아직 바퀴에 들어가지 않았습니다.`,
     stage: {
-      array: bitsLow(mask),
-      range: null,
-      read: [],
-      write: [],
-      pointers: {},
+      table: [bitsHigh(mask), bitsHigh(mask), EMPTY(), EMPTY()],
+      write: cells(1, places()),
+      out: cells(0, places()),
+      rowSide: [both(mask), both(mask), null, null],
       calc: { expr: "subMasks = [mask]", result: `sub = ${mask}` },
       vars: `subMasks = [${mask}]`,
-      layers: [
-        {
-          name: "sub",
-          values: bitsLow(mask),
-          write: places(),
-          side: both(mask),
-        },
-        { name: "borrowed", values: EMPTY() },
-        { name: "next", values: EMPTY() },
-      ],
     },
   };
   const rounds = t.rounds.map((r): Step => {
@@ -218,18 +215,12 @@ export function walkSteps(mask: number = WALK): Step[] {
     title: "sub = 0",
     detail: `sub 가 0 이라 0 > 0 이 거짓입니다. 바퀴 ${t.rounds.length} 번으로 담은 값 ${t.answer.length} 개를 돌려줍니다.`,
     stage: {
-      array: bitsLow(mask),
-      range: null,
-      read: [],
-      write: [],
-      pointers: {},
+      table: [bitsHigh(mask), bitsHigh(0), EMPTY(), EMPTY()],
+      read: cells(1, places()),
+      out: cells(0, places()),
+      rowSide: [both(mask), both(0), null, null],
       calc: { expr: "0 > 0", result: "거짓 → subMasks 를 돌려준다" },
       vars: `subMasks = [${t.answer.join(", ")}]`,
-      layers: [
-        { name: "sub", values: bitsLow(0), read: places(), side: both(0) },
-        { name: "borrowed", values: EMPTY() },
-        { name: "next", values: EMPTY() },
-      ],
     },
   };
   return [init, ...rounds, end];
@@ -257,13 +248,13 @@ export const FIGS: Record<string, () => ReactElement> = {
     const subs = enumerateSubmasks(WALK);
     const holes = places().filter((i) => bitAt(WALK, i) === 0);
     const out: Partial<Record<number, CellState>> = {};
-    for (const i of holes) out[i] = "out";
+    for (const i of holes) out[col(i)] = "out";
     const rows: StageRow[] = [
-      { kind: "index", label: "자리" },
+      { kind: "index", label: "자리", labels: placeHeads() },
       {
         kind: "cells",
         label: "mask",
-        values: bitsLow(WALK),
+        values: bitsHigh(WALK),
         states: out,
         side: both(WALK),
       },
@@ -271,7 +262,7 @@ export const FIGS: Record<string, () => ReactElement> = {
         (s): StageRow => ({
           kind: "cells",
           label: String(s),
-          values: bitsLow(s),
+          values: bitsHigh(s),
           states: out,
           side: bits(s, WALK_WIDTH),
         }),
@@ -279,7 +270,7 @@ export const FIGS: Record<string, () => ReactElement> = {
     ];
     return (
       <CellStage
-        title={`mask = ${bits(WALK, WALK_WIDTH)} 의 서브마스크 ${subs.length} 개 — 칸 i 가 자리 i, mask 에 없는 자리 ${holes.join(" · ")}${은는(holes.at(-1) as number)} 모두 0`}
+        title={`mask = ${bits(WALK, WALK_WIDTH)} 의 서브마스크 ${subs.length} 개 — 자리 0 이 오른쪽 끝, mask 에 없는 자리 ${holes.join(" · ")}${은는(holes.at(-1) as number)} 모두 0`}
         rows={rows}
         columns={WALK_WIDTH}
       />
@@ -298,7 +289,8 @@ export const FIGS: Record<string, () => ReactElement> = {
   },
   "build-counter": () => {
     const subs = enumerateSubmasks(WALK);
-    const ones = onePlaces(WALK);
+    // 높은 자리부터 — 자리 0 이 오른쪽 끝이다.
+    const ones = [...onePlaces(WALK)].sort((x, y) => y - x);
     const k = popcount(WALK);
     const rows: StageRow[] = [
       {
@@ -325,7 +317,7 @@ export const FIGS: Record<string, () => ReactElement> = {
     ];
     return (
       <CellStage
-        title={`mask 의 1 자리 ${ones.join(" · ")} 만 떼어 놓으면 서브마스크가 ${packed(subs[0] as number, WALK)} 부터 0 까지 1 씩 줄어드는 ${k} 자리 수다`}
+        title={`mask 의 1 자리 ${[...ones].reverse().join(" · ")} 만 떼어 놓으면 서브마스크가 ${packed(subs[0] as number, WALK)} 부터 0 까지 1 씩 줄어드는 ${k} 자리 수다`}
         rows={rows}
         columns={ones.length}
       />
@@ -336,12 +328,12 @@ export const FIGS: Record<string, () => ReactElement> = {
     const frames: StageFrame[] = steps.map((s) => ({
       id: s.id,
       text: `${s.title} — ${s.stage.calc?.expr} → ${s.stage.calc?.result}`,
-      rows: arrayStage(s.stage, ARRAY_OPTIONS),
+      rows: tableStage(s.stage, TABLE_OPTIONS),
     }));
     return (
       <CellStageFilm
         title={`enumerateSubmasks(${WALK}) — ${steps[0]?.id}~${steps.at(-1)?.id}`}
-        columns={arrayColumns((steps[0] as Step).stage)}
+        columns={WALK_WIDTH}
         frames={frames}
       />
     );

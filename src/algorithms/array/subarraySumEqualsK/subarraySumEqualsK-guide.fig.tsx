@@ -162,7 +162,7 @@ export const secondsOf = (ops: number): string =>
 export const num = (x: number): string => x.toLocaleString("en-US");
 /** 모든 구간의 수 `n(n+1)/2`. */
 export const rangeCount = (n: number): number => (n * (n + 1)) / 2;
-/** 개수 맵의 연산 수 — 걸음마다 조회 하나 · 읽기 하나 · 쓰기 하나, 시작할 때 쓰기 하나. */
+/** 개수 맵의 기본 연산 — 걸음마다 조회 하나 · 읽기 하나 · 쓰기 하나, 시작할 때 쓰기 하나. */
 export const mapOps = (n: number): number => 3 * n + 1;
 
 /** `{0: 1, 3: 1}` 꼴 — 개수 맵을 적는 한 가지 표기. */

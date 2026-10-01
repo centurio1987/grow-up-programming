@@ -237,6 +237,10 @@ export class SelectMedian {
     this.c.writes++;
   }
 
+  size(): number {
+    return this.a.length;
+  }
+
   findMedian(): number {
     const n = this.a.length;
     const k = (n - 1) >> 1;
@@ -298,19 +302,50 @@ export function flipLast(): number {
   return last;
 }
 
+/**
+ * **저장 칸** — 들어온 수까지 합쳐 동시에 들고 있는 칸의 최댓값. 들어온 수가 곧 입력이라 입력을
+ * 넣는 이름을 쓴다. 두 힙은 두 힙 배열의 길이 합, 골라내기는 배열 길이이고 값 하나를 한 칸으로 센다.
+ * 물어볼 때마다 그 순간의 크기도 본다 — 골라내기는 제자리에서 가르므로 사본을 잡지 않는다.
+ */
+export function peakHeaps(q: number): number {
+  const mf = new CountedMedianFinder({ compares: 0, writes: 0 });
+  const ask = askAfter(q);
+  let peak = 0;
+  for (let i = 0; i < STREAM_LEN; i++) {
+    mf.addNum(streamValue(i));
+    if (ask.has(i)) mf.findMedian();
+    peak = Math.max(peak, mf.size());
+  }
+  return peak;
+}
+
+export function peakSelect(q: number): number {
+  const sm = new SelectMedian({ compares: 0, writes: 0 });
+  const ask = askAfter(q);
+  let peak = 0;
+  for (let i = 0; i < STREAM_LEN; i++) {
+    sm.addNum(streamValue(i));
+    if (ask.has(i)) sm.findMedian();
+    peak = Math.max(peak, sm.size());
+  }
+  return peak;
+}
+
 export const cases = {
-  "두 힙 · 질의 횟수와 무관한 기본 연산": () => ({
-    기본_연산: total(runHeaps(0)),
+  "두 힙": () => ({
+    "질의 횟수와 무관한 기본 연산": total(runHeaps(0)),
+    "질의 4096 회 저장 칸": peakHeaps(STREAM_LEN),
   }),
-  "매번 골라내기 · 질의 0 회": () => ({ 기본_연산: total(runSelect(0)) }),
-  "매번 골라내기 · 질의 16 회": () => ({ 기본_연산: total(runSelect(16)) }),
-  "매번 골라내기 · 질의 71 회": () => ({ 기본_연산: total(runSelect(71)) }),
-  "매번 골라내기 · 질의 72 회": () => ({ 기본_연산: total(runSelect(72)) }),
-  "매번 골라내기 · 질의 4096 회": () => ({
-    기본_연산: total(runSelect(STREAM_LEN)),
+  "매번 골라내기": () => ({
+    "질의 0 회 기본 연산": total(runSelect(0)),
+    "질의 16 회 기본 연산": total(runSelect(16)),
+    "질의 71 회 기본 연산": total(runSelect(71)),
+    "질의 72 회 기본 연산": total(runSelect(72)),
+    "질의 4096 회 기본 연산": total(runSelect(STREAM_LEN)),
+    "질의 4096 회 저장 칸": peakSelect(STREAM_LEN),
   }),
-  "두 힙 · 저장 칸": () => ({ 칸: STREAM_LEN }),
-  "매번 골라내기 · 저장 칸": () => ({ 칸: STREAM_LEN }),
-  "경계 · 처음 뒤집히는 질의 횟수": () => ({ 회: flipFirst() }),
-  "경계 · 골라내기가 마지막으로 적은 질의 횟수": () => ({ 회: flipLast() }),
+  경계: () => ({
+    "처음 뒤집히는 질의 횟수": flipFirst(),
+    "골라내기가 마지막으로 적은 질의 횟수": flipLast(),
+  }),
 };

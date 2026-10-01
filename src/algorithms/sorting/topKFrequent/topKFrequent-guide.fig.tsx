@@ -458,7 +458,7 @@ export function simStepsFromRef() {
  *
  * 빈도 버킷 — 정본과 같은 절차. 세기 2N(맵 읽기 + 쓰기) · 버킷 만들기 N+1 · 담기 2M(버킷 읽기 +
  * 담기) · 버킷 하나를 볼 때마다 2(버킷 읽기 + 바깥 조건) · 값을 하나 담을 때마다 2(담기 + 개수 비교).
- * 저장 칸은 맵 밖에 더 잡는 칸 — 버킷 N+1 개와 버킷에 담긴 값 M 개다.
+ * 메모리는 추가 칸(입력과 빈도 맵 밖에 동시에 들고 있는 칸) — 버킷 N+1 개와 버킷에 담긴 값 M 개다.
  */
 export function bucketCost(
   A: readonly number[],
@@ -547,7 +547,7 @@ export const rescanFormula = (n: number): number => n + 2 * n * n;
 /**
  * 맵에 세고 항목 전부를 등장 횟수 내림차순으로 줄 세우는 방법 — 아래서 위로 합치는 병합 정렬이라
  * 비교 횟수가 결정론적이다. 세기 2N · 항목 옮기기 2M(맵 읽기 + 배열 쓰기) · 합치기 한 걸음 4(두 칸
- * 읽기 + 비교 + 쓰기) · 남은 칸 옮기기 2 · 답 담기 2k. 저장 칸은 항목 배열과 합칠 때 쓰는 버퍼 2M 이다.
+ * 읽기 + 비교 + 쓰기) · 남은 칸 옮기기 2 · 답 담기 2k. 추가 칸은 항목 배열과 합칠 때 쓰는 버퍼 2M 이다.
  */
 export function sortAllCost(
   A: readonly number[],
@@ -687,7 +687,7 @@ function approaches(): Approach[] {
         },
         {
           label: "메모리",
-          value: `맵 밖에 칸 ${num(bucket.cells)} 개`,
+          value: `추가 칸 ${num(bucket.cells)} 개`,
           ok: true,
         },
       ],

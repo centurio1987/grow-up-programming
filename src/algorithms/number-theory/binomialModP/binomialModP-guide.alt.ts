@@ -1,7 +1,7 @@
 /**
  * `purpose.alt`(경쟁 설계와의 대조) 의 계수를 실측하는 하네스 — `L13`.
  *
- * 재는 것은 **모듈러 연산 수**와 **저장 칸 수** 둘이다. 모듈러 연산은 곱하거나 더한 뒤 법으로
+ * 재는 것은 **모듈러 연산 수**와 **추가 칸 수** 둘이다. 모듈러 연산은 곱하거나 더한 뒤 법으로
  * 줄이는 것 한 번을 하나로 센다 — 이 글의 절차는 전부 곱셈이라 `fastPower` 편의 「모듈러 곱셈
  * 횟수」와 같은 단위이고, 파스칼 삼각형은 전부 덧셈이다. 두 설계가 같은 단위를 쓰고, 둘 다 같은
  * 입력에서 늘 같은 값이 나오는 결정론적 계수다 — 벽시계는 안 잰다.
@@ -68,7 +68,10 @@ export function ourOps(n: bigint, k: bigint, p: bigint): { ops: number } {
   return { ops };
 }
 
-/** 이 절차가 동시에 들고 있는 칸 — `num`·`den`·`inv`·`b`·`e`·`i`·`j` 일곱이다. */
+/**
+ * 이 절차가 새로 잡아 동시에 들고 있는 칸(추가 칸) — `num`·`den`·`inv`·`b`·`e`·`i`·`j` 일곱이다. 재지 않고 적은
+ * 개수이고, 입력 `n`·`k`·`p` 와 뤼카 재귀의 호출 스택은 세지 않는다.
+ */
 export const OUR_CELLS = 7;
 
 /* ─────────────────── 경쟁 설계 — 파스칼 삼각형(덧셈만) ─────────────────── */
@@ -117,7 +120,7 @@ export function closedFormAgrees(): boolean {
   return pascalRun(wn, wk, wp).ops === pascalOps(wn, wk).ops;
 }
 
-/** 파스칼 판이 들고 있는 칸 — 한 줄의 길이다. */
+/** 파스칼 판이 새로 잡아 들고 있는 칸(추가 칸) — 한 줄의 길이다. 입력은 세지 않는다. */
 export function pascalCells(n: bigint, k: bigint): number {
   return Number(n - k < k ? n - k : k) + 1;
 }
@@ -154,7 +157,7 @@ export const cases = {
       "n=100,000 모듈러 연산": ourOps(big, bigk, BIG_P).ops,
       "법 101 n=7 모듈러 연산": ourOps(a7, b7, SMALL_P).ops,
       "법 101 n=8 모듈러 연산": ourOps(a8, b8, SMALL_P).ops,
-      "n=100,000 저장 칸": OUR_CELLS,
+      "n=100,000 추가 칸": OUR_CELLS,
       "뒤집히는 첫 n (법 10^9+7)": firstFlip(BIG_P),
       "뒤집히는 첫 n (법 101)": firstFlip(SMALL_P),
     };
@@ -173,7 +176,7 @@ export const cases = {
       "n=100,000 모듈러 연산": pascalOps(big, bigk).ops,
       "법 101 n=7 모듈러 연산": pascalOps(a7, b7).ops,
       "법 101 n=8 모듈러 연산": pascalOps(a8, b8).ops,
-      "n=100,000 저장 칸": pascalCells(big, bigk),
+      "n=100,000 추가 칸": pascalCells(big, bigk),
     };
   },
 };

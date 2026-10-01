@@ -1,8 +1,8 @@
 /**
  * `purpose.alt` 가 인용하는 수치의 출처 — L13.
  *
- * **같은 입력·같은 작업 목록**에 두 설계를 걸고 **결정론적 계수**만 센다. 세는 것은 **배열
- * 접근 수**(읽기 + 쓰기)다. 벽시계·처리량은 실행마다 달라 "본문의 수치가 실측과 일치하는가"
+ * **같은 입력·같은 작업 목록**에 두 설계를 걸고 **결정론적 계수**만 센다. 세는 것은 **칸
+ * 접근 수**(읽기 + 쓰기, 0 으로 채우는 초기화 쓰기 포함)다. 벽시계·처리량은 실행마다 달라 "본문의 수치가 실측과 일치하는가"
  * (P10)를 정의할 수 없다.
  *
  *   bun run ../../../../tools/bench-alt.ts diffArrayRangeUpdate-guide.alt.ts
@@ -170,9 +170,10 @@ function counts(
     if (JSON.stringify(mine.answers) !== JSON.stringify(other.answers)) {
       throw new Error(`점 조회 ${p} 회에서 두 설계의 답이 다르다`);
     }
-    out[`점 조회 ${p.toLocaleString("en-US")} 회 배열 접근`] = mine.acc;
+    out[`점 조회 ${p.toLocaleString("en-US")} 회 칸 접근`] = mine.acc;
   }
-  out["저장 칸"] = N + 1;
+  // 추가 칸: 입력 밖에 새로 잡는 `D`(또는 `tree`) N + 1 칸. 답으로 내는 `A` 는 두 설계 모두 뺀다.
+  out["추가 칸"] = N + 1;
   return out;
 }
 

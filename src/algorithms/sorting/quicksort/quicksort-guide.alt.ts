@@ -16,9 +16,14 @@ export const INPUT = [
   23, 4, 91, 8, 15, 42, 7, 66, 30, 1, 58, 12, 77, 25, 3, 49,
 ];
 
+/**
+ * - **비교** — 배열의 두 값을 견준 횟수.
+ * - **할당 칸** — 입력 밖에 새로 잡은 칸을 잡을 때마다 더한 누적 합. 병합 정렬은 합칠 때 잡는 결과
+ *   배열만 센다. 반으로 떼는 사본(`slice`)과 두 설계가 똑같이 만드는 처음 복사본은 넣지 않는다.
+ */
 interface Counts {
   비교: number;
-  보조칸: number;
+  "할당 칸": number;
 }
 
 /** 정본과 같은 절차. 세는 것만 덧붙였다. */
@@ -44,7 +49,7 @@ function quickCounts(src: number[]): Counts {
   };
   sort(0, a.length - 1);
   // 제자리 정렬이라 새로 잡는 칸이 없다.
-  return { 비교, 보조칸: 0 };
+  return { 비교, "할당 칸": 0 };
 }
 
 /**
@@ -55,14 +60,14 @@ function quickCounts(src: number[]): Counts {
  */
 function mergeCounts(src: number[]): Counts {
   let 비교 = 0;
-  let 보조칸 = 0;
+  let 할당칸 = 0;
   const go = (xs: number[]): number[] => {
     if (xs.length < 2) return xs;
     const mid = xs.length >> 1;
     const left = go(xs.slice(0, mid));
     const right = go(xs.slice(mid));
     // merge 가 새로 잡는 칸. 이것이 퀵과 갈리는 자리다.
-    보조칸 += xs.length;
+    할당칸 += xs.length;
     const out: number[] = [];
     let i = 0;
     let j = 0;
@@ -79,7 +84,7 @@ function mergeCounts(src: number[]): Counts {
     return out;
   };
   go([...src]);
-  return { 비교, 보조칸 };
+  return { 비교, "할당 칸": 할당칸 };
 }
 
 export const cases = {

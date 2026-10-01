@@ -375,7 +375,7 @@ function once<T>(key: string, make: () => T): T {
 /** 과제 규모의 입력(n = q = 100,000). */
 export const taskInput = () => once("task", () => makeInput(N_TASK, N_TASK));
 
-/** 질의마다 처음부터 새로 세는 방법 — 셈 연산 수(집합에 넣은 횟수)와 답. */
+/** 질의마다 처음부터 새로 세는 방법 — 기본 연산 수(집합에 넣은 횟수)와 답. */
 export function naive(
   arr: readonly number[],
   queries: readonly Query[],
@@ -392,12 +392,12 @@ export function naive(
   return { ops, out };
 }
 
-/** Σ(r − l + 1) — 새로 세는 방법의 셈 연산 수를 식으로 낸다. */
+/** Σ(r − l + 1) — 새로 세는 방법의 기본 연산 수를 식으로 낸다. */
 export const naiveByFormula = (queries: readonly Query[]): number =>
   queries.reduce((s, [l, r]) => s + (r - l + 1), 0);
 
 /**
- * 과제 규모에서 여러 방법의 셈 연산 수. 블록 순서는 정본이 정렬한 차례에서 센다.
+ * 과제 규모에서 여러 방법의 기본 연산 수. 블록 순서는 정본이 정렬한 차례에서 센다.
  * 새로 세는 방법은 Σ(r − l + 1) 이다 — 그 식이 실제 실행과 같은지는 n = q = 1,000 · 10,000 에서 잰다.
  */
 export const taskCounts = () =>
@@ -724,7 +724,7 @@ function blockOrderRows(): StageRow[] {
 
 function approaches(): Approach[] {
   const c = taskCounts();
-  const time = (ops: number) => `셈 연산 ${num(ops)} 번 · ${seconds(ops)}`;
+  const time = (ops: number) => `기본 연산 ${num(ops)} 번 · ${seconds(ops)}`;
   return [
     {
       name: "질의마다 새로 세기",
@@ -801,7 +801,7 @@ export const FIGS: Record<string, () => ReactElement> = {
     return (
       <ApproachLadder
         title={`시도한 방법 다섯 — 넷은 버렸고 하나가 남았다`}
-        constraint={`n = q = ${num(N_TASK)} · 1 초(셈 연산 1 초에 1 억 번 기준)`}
+        constraint={`N = Q = ${num(N_TASK)} · 1 초(기본 연산 1 초에 1 억 번 기준)`}
         steps={steps}
         width={approachLadderWidth(steps)}
       />

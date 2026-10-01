@@ -76,7 +76,7 @@ export interface Run {
  *
  * `기본 연산` 은 **두 값을 견준 한 번**을 하나로 센다 — 행렬 칸 하나를 채운 것 · 간선 하나를
  * 옮겨 적으며 견준 것 · 행을 건너뛸지 판정한 것 · 경유 후보 하나를 견준 것이다.
- * `저장 칸` 은 거리 행렬의 칸 수다.
+ * `추가 칸` 은 거리 행렬의 칸 수다.
  */
 function 플로이드설계(n: number, edges: [number, number, number][]): Run {
   let ops = 0;
@@ -117,7 +117,7 @@ function 플로이드설계(n: number, edges: [number, number, number][]): Run {
  *
  * `기본 연산` 은 같은 기준이다 — 벨만-포드가 간선 하나를 견준 것 · 재가중이 간선 하나를 만든
  * 것 · 이진 힙이 두 항목을 견준 것 · 힙에서 꺼낸 값이 낡았는지 견준 것 · 다익스트라가 간선
- * 하나를 견준 것 · 답 행렬의 칸 하나를 되돌려 적은 것이다. `저장 칸` 은 답 행렬 · 인접 목록 ·
+ * 하나를 견준 것 · 답 행렬의 칸 하나를 되돌려 적은 것이다. `추가 칸` 은 답 행렬 · 인접 목록 ·
  * 조정값 배열 · 힙이 가장 컸을 때의 크기를 더한 값이다.
  */
 function 존슨설계(n: number, edges: [number, number, number][]): Run {
@@ -315,8 +315,8 @@ function 재기(
     [`간선 ${CROSS.last} 개 · 기본 연산`]: before.ops,
     [`간선 ${CROSS.first} 개 · 기본 연산`]: after.ops,
     "간선을 가장 많이 둔 그래프 · 기본 연산": full.ops,
-    "간선을 가장 많이 둔 그래프 · 저장 칸": full.cells,
-    "간선 400 개 · 저장 칸": sparse.cells,
+    "간선을 가장 많이 둔 그래프 · 추가 칸": full.cells,
+    "간선 400 개 · 추가 칸": sparse.cells,
   };
 }
 

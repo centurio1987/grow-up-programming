@@ -42,7 +42,7 @@ export const RING_EDGES: Edge[] = (() => {
   return out;
 })();
 
-/** 배열 칸 접근을 세는 통. 읽기도 쓰기도 1이다. */
+/** 칸 접근을 세는 통. 읽기도 쓰기도 1이다. */
 class Meter {
   cells = 0;
   read(): void {
@@ -243,17 +243,22 @@ function online(
   return m.cells;
 }
 
+/*
+ * `추가 칸` 은 재지 않고 식으로 낸다 — 입력 간선 목록 밖에 동시에 살아 있을 수 있는 칸의 최댓값이다.
+ * 탐색은 이웃 목록 행 `V` · 항목 `2E` · `comp` `V` · 큐 최악 길이 `V`, 서로소 집합은 `parent` · `size` ·
+ * `slot` 각 `V` 다. 두 설계 모두 답으로 내는 성분 목록은 넣지 않는다.
+ */
 export const cases = {
   탐색: () => ({
-    "전개 입력 배열 접근": offline(traversal, WALK_N, WALK_EDGES),
-    "고리 입력 배열 접근": offline(traversal, RING_N, RING_EDGES),
-    "추가로 잡는 칸": 3 * RING_N + 2 * RING_EDGES.length,
-    "온라인 배열 접근": online("탐색", RING_N, RING_EDGES),
+    "전개 입력 칸 접근": offline(traversal, WALK_N, WALK_EDGES),
+    "고리 입력 칸 접근": offline(traversal, RING_N, RING_EDGES),
+    "추가 칸": 3 * RING_N + 2 * RING_EDGES.length,
+    "온라인 칸 접근": online("탐색", RING_N, RING_EDGES),
   }),
   "서로소 집합": () => ({
-    "전개 입력 배열 접근": offline(disjointSet, WALK_N, WALK_EDGES),
-    "고리 입력 배열 접근": offline(disjointSet, RING_N, RING_EDGES),
-    "추가로 잡는 칸": 3 * RING_N,
-    "온라인 배열 접근": online("서로소 집합", RING_N, RING_EDGES),
+    "전개 입력 칸 접근": offline(disjointSet, WALK_N, WALK_EDGES),
+    "고리 입력 칸 접근": offline(disjointSet, RING_N, RING_EDGES),
+    "추가 칸": 3 * RING_N,
+    "온라인 칸 접근": online("서로소 집합", RING_N, RING_EDGES),
   }),
 };

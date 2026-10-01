@@ -529,10 +529,10 @@ export function simStepsFromRef() {
   };
 }
 
-/* ───────────────── 셈하는 판 — 배열 접근 수(읽기 + 쓰기) ───────────────── */
+/* ───────────────── 셈하는 판 — 칸 접근 수(읽기 + 쓰기) ───────────────── */
 
 /**
- * 세는 것은 **배열 접근 수**(배열 칸을 읽거나 쓴 횟수)다. 벽시계는 실행마다 달라 본문의 수치가 실측과
+ * 세는 것은 **칸 접근 수**(배열 칸을 읽거나 쓴 횟수)다. 벽시계는 실행마다 달라 본문의 수치가 실측과
  * 같은지를 정의할 수 없다. 넷 모두 같은 연산 목록을 받아 같은 답을 내야 하고, `fenwickCount` 는 정본과
  * 같은 절차에 셈만 덧붙였다.
  */
@@ -789,7 +789,7 @@ function approaches(): Approach[] {
         { label: "갱신", value: "칸 하나를 쓴다", ok: true },
         {
           label: "시간",
-          value: `배열 접근 ${num(n.scan)} 번 · ${seconds(n.scan)}`,
+          value: `칸 접근 ${num(n.scan)} 번 · ${seconds(n.scan)}`,
           ok: false,
         },
       ],
@@ -816,10 +816,10 @@ function approaches(): Approach[] {
       idea: "배열을 B = ⌊√N⌋ 칸씩 끊어 묶음마다 합을 적고, 질의는 온전한 묶음과 양 끝 칸을 읽는다",
       verdict: "drop",
       checks: [
-        { label: "갱신", value: "배열 접근 4 번", ok: true },
+        { label: "갱신", value: "칸 접근 4 번", ok: true },
         {
           label: "시간",
-          value: `배열 접근 ${num(total(n.block))} 번 · ${seconds(total(n.block))}`,
+          value: `칸 접근 ${num(total(n.block))} 번 · ${seconds(total(n.block))}`,
           ok: true,
         },
         {
@@ -839,7 +839,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `배열 접근 ${num(total(n.fen))} 번 · ${seconds(total(n.fen))}`,
+          value: `칸 접근 ${num(total(n.fen))} 번 · ${seconds(total(n.fen))}`,
           ok: true,
         },
         {

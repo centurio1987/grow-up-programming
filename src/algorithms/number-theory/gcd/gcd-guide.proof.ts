@@ -213,16 +213,12 @@ export const PROOFS: Record<string, () => string> = {
     ];
     return [
       md(
-        [
-          "입력",
-          "1 부터 전부 나눠 보기의 나머지 연산",
-          "유클리드 호제법의 나머지 연산",
-        ],
+        ["입력", "1 부터 전부 나눠 보기의 나눗셈", "유클리드 호제법의 나눗셈"],
         rows,
         [1, 2],
       ),
       "",
-      `둘째 줄의 작은 쪽은 ${digits(WORST_B)} 자리 수이고, 유클리드 호제법은 그 쌍에서 나머지 연산 ${worstT.divisions.length} 번으로 끝났습니다.`,
+      `둘째 줄의 작은 쪽은 ${digits(WORST_B)} 자리 수이고, 유클리드 호제법은 그 쌍에서 나눗셈 ${worstT.divisions.length} 번으로 끝났습니다.`,
     ].join("\n");
   },
 
@@ -242,7 +238,7 @@ export const PROOFS: Record<string, () => string> = {
     if (ops !== bruteCount(WALK_A, WALK_B)) throw new Error("세는 식이 다르다");
     return pairLines([
       ["나눠 본 후보", `1 부터 ${small} 까지 ${small} 개`],
-      ["나머지 연산", `${ops} 번`],
+      ["나눗셈", `${ops} 번`],
       ["둘 다 나누는 가장 큰 수", String(best)],
     ])
       .map((l) => l.slice(2))
@@ -266,14 +262,14 @@ export const PROOFS: Record<string, () => string> = {
         [
           "작은 쪽의 자릿수",
           "작은 쪽의 값",
-          "나머지 연산",
+          "나눗셈",
           "초당 1 억 번일 때 시간",
         ],
         rows,
         [0, 1, 2, 3],
       ),
       "",
-      "자릿수마다 그 자릿수의 가장 큰 값을 작은 쪽으로 두고 셌습니다. 후보 하나에 나머지 연산이 두 번입니다.",
+      "자릿수마다 그 자릿수의 가장 큰 값을 작은 쪽으로 두고 셌습니다. 후보 하나에 나눗셈이 두 번입니다.",
     ].join("\n");
   },
 
@@ -368,12 +364,12 @@ export const PROOFS: Record<string, () => string> = {
     });
     return [
       md(
-        ["입력", "뺄셈", "나머지 연산", "뺄셈의 시간(초당 1 억 번)"],
+        ["입력", "뺄셈", "나눗셈", "뺄셈의 시간(초당 1 억 번)"],
         out,
         [1, 2, 3],
       ),
       "",
-      "뺄셈 횟수는 되풀이하지 않고 나머지 연산마다의 몫을 더해 셌습니다. 앞 표의 네 줄에서 실제로 되풀이한 횟수와 같았던 셈법입니다.",
+      "뺄셈 횟수는 되풀이하지 않고 나눗셈마다의 몫을 더해 셌습니다. 앞 표의 네 줄에서 실제로 되풀이한 횟수와 같았던 셈법입니다.",
     ].join("\n");
   },
 
@@ -486,7 +482,7 @@ export const PROOFS: Record<string, () => string> = {
       [0n, 0n],
     ];
     return md(
-      ["입력", "나머지 연산", "마지막 쌍", "반환값"],
+      ["입력", "나눗셈", "마지막 쌍", "반환값"],
       rows.map(([a, b]) => {
         const t = trace(a, b);
         const n = t.chain.length;
@@ -621,14 +617,14 @@ export const PROOFS: Record<string, () => string> = {
           "입력",
           "정본의 답",
           "먼저 정렬한 답",
-          "정본의 나머지 연산",
-          "먼저 정렬한 판의 나머지 연산",
+          "정본의 나눗셈",
+          "먼저 정렬한 판의 나눗셈",
         ],
         rows,
         [1, 2, 3, 4],
       ),
       "",
-      `네 줄 모두 두 판의 답이 같고, 나머지 연산의 차이는 많아야 ${most} 번입니다. 먼저 정렬한 판은 입력마다 비교를 한 번 더 합니다.`,
+      `네 줄 모두 두 판의 답이 같고, 나눗셈의 차이는 많아야 ${most} 번입니다. 먼저 정렬한 판은 입력마다 비교를 한 번 더 합니다.`,
     ].join("\n");
   },
 
@@ -663,7 +659,7 @@ export const PROOFS: Record<string, () => string> = {
         [3, 4],
       ),
       "",
-      `나머지 연산은 모두 ${t.divisions.length} 번이고, 돌려주는 값은 ${t.answer} 입니다.`,
+      `나눗셈은 모두 ${t.divisions.length} 번이고, 돌려주는 값은 ${t.answer} 입니다.`,
     ].join("\n");
   },
 
@@ -827,7 +823,7 @@ export const PROOFS: Record<string, () => string> = {
       `  자리     ${names.map(pad).join("  ")}`,
       `  최솟값   ${vals.map((v) => pad(String(v))).join("  ")}`,
       `  x_2 = ${next} = F(${N + 1}),  x_1 = ${cur} = F(${N + 2})`,
-      `  gcd(${cur}n, ${next}n) 의 나머지 연산   ${run} 번`,
+      `  gcd(${cur}n, ${next}n) 의 나눗셈   ${run} 번`,
     ].join("\n");
   },
 
@@ -853,19 +849,12 @@ export const PROOFS: Record<string, () => string> = {
     const under = rows.every((r) => Number(r[3]) <= Number(r[5]));
     return [
       md(
-        [
-          "k",
-          "F(k)",
-          "F(k−1)",
-          "나머지 연산 N",
-          "작은 쪽 자릿수 d",
-          "4.785d + 1",
-        ],
+        ["k", "F(k)", "F(k−1)", "나눗셈 N", "작은 쪽 자릿수 d", "4.785d + 1"],
         rows,
         [0, 1, 2, 3, 4, 5],
       ),
       "",
-      `${rows.length} 줄에서 나머지 연산 횟수가 k − 2 인가: ${always ? "예" : "아니요"}. 4.785d + 1 을 넘는 줄이 있는가: ${under ? "없습니다" : "있습니다"}.`,
+      `${rows.length} 줄에서 나눗셈 횟수가 k − 2 인가: ${always ? "예" : "아니요"}. 4.785d + 1 을 넘는 줄이 있는가: ${under ? "없습니다" : "있습니다"}.`,
     ].join("\n");
   },
 
@@ -885,7 +874,7 @@ export const PROOFS: Record<string, () => string> = {
       throw new Error("전개 입력이 이웃 피보나치 쌍의 배수가 아니다");
     }
     return [
-      `전개 입력의 나머지 연산   ${t.divisions.length} 번 — 첫 번은 몫이 0 이라 두 값을 뒤바꾸기만 한다`,
+      `전개 입력의 나눗셈   ${t.divisions.length} 번 — 첫 번은 몫이 0 이라 두 값을 뒤바꾸기만 한다`,
       `뒤바꾼 (${t.init.y}, ${t.init.x})   N = ${n}   F(N + 1) = F(${n + 1}) = ${fib(n + 1)}`,
       `작은 쪽 ${small} ≥ ${fib(n + 1)} 인가: ${small >= fib(n + 1) ? "예" : "아니요"}`,
       `몫 ${swapped.divisions.map((d) => d.q).join(" ")} 가운데 1 이 아닌 몫 ${notOne} 개`,
@@ -1005,11 +994,7 @@ export const PROOFS: Record<string, () => string> = {
     });
     const agree = rows.filter((r) => r[2] === r[3]).length;
     return [
-      md(
-        ["입력", "나머지 연산", "정본의 답", "정의로 구한 값"],
-        rows,
-        [1, 2, 3],
-      ),
+      md(["입력", "나눗셈", "정본의 답", "정의로 구한 값"], rows, [1, 2, 3]),
       "",
       `${rows.length} 입력 가운데 ${agree} 입력에서 정본의 답이 정의로 구한 값과 일치합니다. 정의로 구할 때 둘 다 0 이면 0 으로 둡니다.`,
     ].join("\n");
@@ -1053,14 +1038,14 @@ export const PROOFS: Record<string, () => string> = {
         ["일", "걸음", "횟수"],
         [
           ["부호 판정과 절댓값", "T1", "2"],
-          ["나머지 연산", `T2 ~ T${n + 1}`, String(n)],
+          ["나눗셈", `T2 ~ T${n + 1}`, String(n)],
           ["두 값 옮기기", `T2 ~ T${n + 1}`, String(2 * n)],
           ["반복 조건 판정", `T2 ~ T${n + 2}`, String(n + 1)],
         ],
         [2],
       ),
       "",
-      `나머지 연산 ${n} 번에 옮기기가 ${2 * n} 번, 반복 조건 판정이 ${n + 1} 번 따라붙었습니다.`,
+      `나눗셈 ${n} 번에 옮기기가 ${2 * n} 번, 반복 조건 판정이 ${n + 1} 번 따라붙었습니다.`,
     ].join("\n");
   },
 
@@ -1072,7 +1057,7 @@ export const PROOFS: Record<string, () => string> = {
       "두 수가 10^18 이하일 때",
       ...pairLines([
         ["작은 쪽 자릿수 d", `${d} 이하`],
-        ["나머지 연산 N ≤ 4.785d + 1", one(lame(d))],
+        ["나눗셈 N ≤ 4.785d + 1", one(lame(d))],
         ["규모 안의 최악", `${worst}   (F(${WORST_K}), F(${WORST_K - 1}))`],
         ["저장 칸", "x · y · r 셋"],
       ]),
@@ -1101,17 +1086,13 @@ export const PROOFS: Record<string, () => string> = {
     const f = rows[0] as string[];
     const s = rows[1] as string[];
     return [
-      md(
-        ["입력 모양", "작은 쪽 자릿수", "나머지 연산", "gcd"],
-        rows,
-        [1, 2, 3],
-      ),
+      md(["입력 모양", "작은 쪽 자릿수", "나눗셈", "gcd"], rows, [1, 2, 3]),
       "",
-      `첫 줄과 둘째 줄은 작은 쪽이 ${f[1]} 자리와 ${s[1]} 자리인데 나머지 연산이 ${f[2]} 번과 ${s[2]} 번입니다.`,
+      `첫 줄과 둘째 줄은 작은 쪽이 ${f[1]} 자리와 ${s[1]} 자리인데 나눗셈이 ${f[2]} 번과 ${s[2]} 번입니다.`,
     ].join("\n");
   },
 
-  /** `selfcheck` — 두 수에 21 을 곱하면 나머지 연산 횟수가 어떻게 되는가. */
+  /** `selfcheck` — 두 수에 21 을 곱하면 나눗셈 횟수가 어떻게 되는가. */
   selfcheckScaled: () => {
     const k = 12;
     const base = trace(fib(k), fib(k - 1));
@@ -1120,7 +1101,7 @@ export const PROOFS: Record<string, () => string> = {
     const scaled = trace(a, b);
     const qs = (t: typeof base) => t.divisions.map((d) => d.q).join(" ");
     return md(
-      ["입력", "나머지 연산", "몫", "gcd"],
+      ["입력", "나눗셈", "몫", "gcd"],
       [
         [
           `gcd(${fib(k)}n, ${fib(k - 1)}n)`,

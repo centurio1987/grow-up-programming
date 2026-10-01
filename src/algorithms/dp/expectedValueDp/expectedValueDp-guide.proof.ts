@@ -827,9 +827,9 @@ export const PROOFS: Record<string, () => string> = {
     const a: Record<string, number> = cases["여섯 칸을 더하는 판"]();
     const b: Record<string, number> = cases["창의 합을 이어 쓰는 판"]();
     const 키: [string, string][] = [
-      ["DP 테이블을 채우는 덧셈과 뺄셈", "DP 테이블을 채우는 덧셈과 뺄셈"],
+      ["DP 테이블을 채우는 기본 연산", "DP 테이블을 채우는 기본 연산"],
       ["나눗셈", "나눗셈"],
-      ["저장 칸", "저장 칸"],
+      ["추가 칸", "추가 칸"],
       [
         "상대 오차가 10^-9 를 넘는 K 의 수",
         "상대 오차가 10^-9 를 넘는 K 의 수",
@@ -853,6 +853,21 @@ export const PROOFS: Record<string, () => string> = {
       `채점 구간은 K = ${comma(채점_구간[0] ?? 0)}…${comma(채점_구간.at(-1) ?? 0)}${josa(String(채점_구간.at(-1) ?? 0), "이고", "고")} 그 안에서 창의 합을 이어 쓰는 판이 처음 10^-9 를 넘는 자리는 K = ${comma(K)} 다`,
     );
     return lines.join("\n");
+  },
+
+  /** 경쟁 설계 — 두 축의 크기. 연산의 비와 계약을 넘는 자리의 수. */
+  "alt-ratio": () => {
+    const a: Record<string, number> = cases["여섯 칸을 더하는 판"]();
+    const b: Record<string, number> = cases["창의 합을 이어 쓰는 판"]();
+    const key = "DP 테이블을 채우는 기본 연산";
+    const r = ((a[key] ?? 0) / (b[key] ?? 1)).toFixed(1);
+    const over = b["상대 오차가 10^-9 를 넘는 K 의 수"] ?? 0;
+    const worst = b["정확한 유효 자릿수의 최솟값"] ?? 0;
+    return [
+      `**연산 축에서는 창 판이 ${r} 배 적습니다.** 칸 하나에 여섯 번 더하던 것이 두 번으로 줄었으니까요. 그런데`,
+      `정확도 축에서는 채점 구간 ${comma(채점_구간.length)} 개 가운데 ${comma(over)} 개가 계약의 오차를 넘고, 가장 나쁜 자리에서는 **맞는 자릿수가`,
+      `하나도 남지 않습니다.** 유효 자릿수가 ${worst} 인 것이 그 뜻이에요. 상대 오차의 정수부가 ${-worst} 자리라는 말입니다.`,
+    ].join("\n");
   },
 
   /** 경쟁 설계 — 임계값을 바꿔 가며 두 판의 답을 정확한 값과 견준다. */

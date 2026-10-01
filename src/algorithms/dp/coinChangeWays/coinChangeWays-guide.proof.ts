@@ -10,6 +10,7 @@
  */
 import { loadMutant } from "../../../../tools/check-proof.ts";
 import { 과와, 으로, 을를, 이가 } from "../../../../tools/josa.ts";
+import { cases as benchCases } from "./coinChangeWays-guide.alt.ts";
 import {
   A_MAX,
   AMOUNT,
@@ -1257,6 +1258,38 @@ function selfcheckA(): string {
   ].join("\n");
 }
 
+/* ────────────────────────── 경쟁 설계 ────────────────────────── */
+
+/** `purpose.alt` — 두 입력에서 값을 정한 칸의 비와 깊이를 `.alt.ts` 계수에서 낸다. */
+function altRatio(): string {
+  const get = (name: string, key: string): number => {
+    const run = benchCases[name];
+    if (!run) throw new Error(`벤치 케이스 ${name} 가 없다`);
+    const v = (run() as Record<string, number>)[key];
+    if (v === undefined) throw new Error(`계수 ${key} 가 없다`);
+    return v;
+  };
+  const upA = get("상향식 표 (이 가이드) · 액면가 [1,2,5]", "값을 정한 칸");
+  const downA = get("하향식 메모 · 액면가 [1,2,5]", "값을 정한 칸");
+  const depthA = get("하향식 메모 · 액면가 [1,2,5]", "최대 깊이");
+  const upB = get(
+    "상향식 표 (이 가이드) · 액면가 [3000,5000,7000]",
+    "값을 정한 칸",
+  );
+  const downB = get("하향식 메모 · 액면가 [3000,5000,7000]", "값을 정한 칸");
+  const depthB = get("하향식 메모 · 액면가 [3000,5000,7000]", "최대 깊이");
+  const n = (v: number) => v.toLocaleString("en-US");
+  const rA = (upA / downA).toFixed(2);
+  const rB = n(Math.round(upB / downB));
+  const unused = Math.floor(((upB - downB) / upB) * 1000) / 10;
+  return [
+    `**입력에 따라 순서가 뒤집힙니다.** A 에서는 값을 정한 칸이 ${n(upA)} 대 ${n(downA)}${으로(n(downA))} ${rA} 배 차이인데 하향식은`,
+    `아직 못 구한 칸을 ${n(depthA)} 개까지 쌓아야 해요. 재귀로 적으면 그 깊이가 그대로 호출 스택이라 \`amount\` 가 조금만`,
+    `더 커지면 실행이 끝나지 않습니다. B 에서는 반대예요. 값을 정한 칸이 ${n(upB)} 대 ${n(downB)}${으로(n(downB))} ${rB} 배이고 깊이는 ${depthB}`,
+    `뿐이라, 상향식이 채운 칸의 ${unused.toFixed(1)} % 가 답에 쓰이지 않았습니다.`,
+  ].join("\n");
+}
+
 /* ────────────────────────── 증명 블록 ────────────────────────── */
 
 export const PROOFS: Record<string, () => string> = {
@@ -1310,6 +1343,8 @@ export const PROOFS: Record<string, () => string> = {
   "final-run": finalRun,
   /** `related` — 줄을 계수로 읽은 다항식과 급수의 곱. */
   "related-gf": relatedGf,
+  /** `purpose.alt` — 두 입력의 값을 정한 칸의 비와 깊이. */
+  "alt-ratio": altRatio,
   /** `purpose.real` — 인용한 두 자료의 값을 이 글의 코드로 재현한다. */
   "library-check": () =>
     table(

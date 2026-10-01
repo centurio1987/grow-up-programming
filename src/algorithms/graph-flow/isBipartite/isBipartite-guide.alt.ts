@@ -16,8 +16,9 @@
  * 불리하다. 대조가 정점 수와 간선 수의 비로 갈리는 자리를 보는 것이라, 정점 축이 더 가벼운
  * 쪽을 상대로 세워야 대조가 연출이 되지 않는다.
  *
- * **계수는 배열 칸 접근 수와 새로 잡는 칸 수 둘이다.** 칸을 한 번 읽으면 1, 한 번 쓰면 1로
- * 세고 두 절차에 같은 규칙을 쓴다. 둘 다 같은 입력에서 항상 같은 값이 나온다 — 벽시계는
+ * **계수는 칸 접근 수와 추가 칸 수 둘이다.** 칸을 한 번 읽으면 1, 한 번 쓰면 1로
+ * 세고 두 절차에 같은 규칙을 쓴다. 추가 칸은 입력 간선 목록 밖에 잡아 끝까지 사는 배열(이웃 목록
+ * 행 `V` · 항목 `2E` 포함)에 스택 최대 깊이를 더한 동시 최댓값이다. 둘 다 같은 입력에서 항상 같은 값이 나온다 — 벽시계는
  * 쓰지 않는다.
  *
  * **전개(정점 일곱)가 쓰는 입력을 첫 계수로 함께 잰다.** 다만 그 입력은 정점이 일곱이라
@@ -180,7 +181,7 @@ export function bipartite(v: number, e: number): Edge[] {
 /**
  * 두 계수는 간선 수에 대해 기울기가 다른 직선이라 축마다 뒤집히는 자리가 하나뿐이고, 그
  * 자리가 서로 다르다. 이분으로 좁힌 결과가 아래 넷이다 — **뒤집히는 방향도 두 축이 반대다.**
- * 배열 칸 접근은 간선이 늘수록 이 절차 쪽이 유리해지고, 새로 잡는 칸은 반대다.
+ * 칸 접근은 간선이 늘수록 이 절차 쪽이 유리해지고, 추가 칸은 반대다.
  */
 const CELL_TIE = 100_005;
 const CELL_FLIP = 100_006;
@@ -196,27 +197,27 @@ const E_FULL = bipartite(V, 200_000);
 
 function measure(run: (n: number, e: Edge[]) => Counted) {
   return () => ({
-    "전개가 쓰는 정점 일곱에서 배열 칸 접근": run(WALK_N, WALK_EDGES).cells,
-    "간선 0 개에서 배열 칸 접근": run(V, E_NONE).cells,
-    [`간선 ${CELL_TIE.toLocaleString("en-US")} 개에서 배열 칸 접근`]: run(
+    "전개가 쓰는 정점 일곱에서 칸 접근": run(WALK_N, WALK_EDGES).cells,
+    "간선 0 개에서 칸 접근": run(V, E_NONE).cells,
+    [`간선 ${CELL_TIE.toLocaleString("en-US")} 개에서 칸 접근`]: run(
       V,
       E_CELL_TIE,
     ).cells,
-    [`간선 ${CELL_FLIP.toLocaleString("en-US")} 개에서 배열 칸 접근`]: run(
+    [`간선 ${CELL_FLIP.toLocaleString("en-US")} 개에서 칸 접근`]: run(
       V,
       E_CELL_FLIP,
     ).cells,
-    "간선 200,000 개에서 배열 칸 접근": run(V, E_FULL).cells,
-    "간선 0 개에서 새로 잡는 칸": run(V, E_NONE).allocated,
-    [`간선 ${ALLOC_TIE.toLocaleString("en-US")} 개에서 새로 잡는 칸`]: run(
+    "간선 200,000 개에서 칸 접근": run(V, E_FULL).cells,
+    "간선 0 개에서 추가 칸": run(V, E_NONE).allocated,
+    [`간선 ${ALLOC_TIE.toLocaleString("en-US")} 개에서 추가 칸`]: run(
       V,
       E_ALLOC_TIE,
     ).allocated,
-    [`간선 ${ALLOC_FLIP.toLocaleString("en-US")} 개에서 새로 잡는 칸`]: run(
+    [`간선 ${ALLOC_FLIP.toLocaleString("en-US")} 개에서 추가 칸`]: run(
       V,
       E_ALLOC_FLIP,
     ).allocated,
-    "간선 200,000 개에서 새로 잡는 칸": run(V, E_FULL).allocated,
+    "간선 200,000 개에서 추가 칸": run(V, E_FULL).allocated,
   });
 }
 

@@ -182,7 +182,7 @@ export function subtractLoop(
   return { answer: x === 0n ? y : x, steps, pairs };
 }
 
-/** 1 부터 작은 쪽까지 전부 나눠 보는 방법의 나머지 연산 횟수 — 후보 하나에 두 번이다. */
+/** 1 부터 작은 쪽까지 전부 나눠 보는 방법의 나눗셈 횟수 — 후보 하나에 두 번이다. */
 export const bruteCount = (a: bigint, b: bigint): bigint => {
   const x = abs(a);
   const y = abs(b);
@@ -325,7 +325,7 @@ function approaches(): Approach[] {
         { label: "답", value: "맞다", ok: true },
         {
           label: "시간",
-          value: `작은 쪽이 10^18 언저리면 나머지 연산 ${num(bruteWorst)} 번 · 약 ${num(bruteYears)} 년`,
+          value: `작은 쪽이 10^18 언저리면 나눗셈 ${num(bruteWorst)} 번 · 약 ${num(bruteYears)} 년`,
           ok: false,
         },
       ],
