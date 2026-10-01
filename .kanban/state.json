@@ -1,6 +1,6 @@
 {
   "next_id": 67,
-  "next_seq": 459,
+  "next_seq": 464,
   "cards": {
     "KAN-028": {
       "col": "backlog",
@@ -302,7 +302,7 @@
       ]
     },
     "KAN-065-CV4WP7": {
-      "col": "backlog",
+      "col": "done",
       "title": "solutions 에만 있는 비풀이 커밋과 main 의 풀이 분석 문서 정리 — 두 브랜치가 무엇을 나눠 갖는지 정한다",
       "verbatim": "KAN-064 검토서 판단 항목 2 「solutions 에 main 에는 없는 비풀이 커밋이 섞여 있다 — 이 카드에서는 건드리지 않았다」 승인(2026-10-01, 검토 화면) — 추천 갈래 「새 카드로 뗀다」",
       "생성": "ai",
@@ -319,7 +319,29 @@
       "goal": "main 에 풀이를 드러내는 파일이 없고, solutions 에만 남은 비풀이 커밋은 main 에 반영되거나 버린 사유가 적힌다. 옮기는 절차가 문서나 도구로 남는다",
       "goal_hash": "ea26fd7a96ccea278eb5b7aeffcd48894d2b6677",
       "memo": "근거: KAN-064 검토서 판단 항목 2(.kanban/reviews/KAN-064-4YZZV2.events.jsonl). 비풀이 커밋 예: 807bc7b9·c4555102(훅) · 0adb1fc2·b494a300(가이드) · dcd37711·b83a1d5b(자료구조 계약). 확인: git log main..solutions",
-      "memo_hash": "cfe52a31069919431c843a3b687fdeee40cff508"
+      "memo_hash": "cfe52a31069919431c843a3b687fdeee40cff508",
+      "scope": [
+        "src/algorithms/array/houseRobber/houseRobber-analysis.md",
+        "src/algorithms/binary-search/parametricBinarySearch/parametricBinarySearch-analysis.md",
+        "src/algorithms/bit-manipulation/enumerateSubmasks/enumerateSubmasks-analysis.md",
+        "src/algorithms/dp/knapsack01/knapsack01-analysis.md",
+        "src/algorithms/graph-flow/kruskalMst/kruskalMst-analysis.md",
+        "src/algorithms/graph/bfsShortestPath/bfsShortestPath-analysis.md",
+        "src/algorithms/shortest-path/dijkstra/dijkstra-analysis.md",
+        "src/algorithms/sorting/countingSort/countingSort-analysis.md",
+        "src/algorithms/sorting/insertionSort/insertionSort-analysis.md",
+        "src/algorithms/sorting/kthSmallest/kthSmallest-analysis.md",
+        "src/algorithms/sorting/quicksort/quicksort-analysis.md",
+        "src/algorithms/sorting/radixSort/radixSort-analysis.md",
+        "src/data-structures/tree/binarySearchTree/binarySearchTree-analysis.md",
+        "tools/solutions-merge.ts",
+        "tools/solutions-merge.test.ts",
+        ".claude/skills/analyze-solution/SKILL.md",
+        ".agents/skills/analyze-solution/SKILL.md",
+        "README.md",
+        "CLAUDE.md",
+        "KANBAN.cards/KAN-001.md"
+      ]
     },
     "KAN-001": {
       "col": "todo",
@@ -1805,7 +1827,7 @@
     "KAN-053-2KYAED",
     "KAN-054-1YWN4M",
     "KAN-055-4N4T6A",
-    "KAN-065-CV4WP7",
+    "KAN-066-J19ABB",
     "KAN-001",
     "KAN-032",
     "KAN-034.10-8M6T6P",
@@ -1869,9 +1891,59 @@
     "KAN-061-YVQBCF",
     "KAN-064-4YZZV2",
     "KAN-062-Z0V30H",
-    "KAN-066-J19ABB"
+    "KAN-065-CV4WP7"
   ],
   "recent": [
+    {
+      "seq": 463,
+      "t": "2026-10-01T14:20",
+      "a": "ai",
+      "id": "KAN-065-CV4WP7",
+      "op": "move",
+      "w": "ZF8JZY",
+      "from": "review",
+      "to": "done"
+    },
+    {
+      "seq": 462,
+      "t": "2026-10-01T09:50",
+      "a": "ai",
+      "id": "KAN-065-CV4WP7",
+      "op": "move",
+      "w": "ZF8JZY",
+      "from": "doing",
+      "to": "review"
+    },
+    {
+      "seq": 461,
+      "t": "2026-10-01T09:36",
+      "a": "유저",
+      "id": "KAN-036-0G05DE",
+      "op": "waive",
+      "w": "ZF8JZY",
+      "with_": "KAN-065-CV4WP7",
+      "reason": "경로 글롭 검사의 오탐 — KAN-065 가 지우는 binarySearchTree-analysis.md 는 KAN-036 글롭(_reference/** · *-guide.*)에 맞지 않는다(fnmatch 확인, 2026-10-01). 실제로 같은 파일을 쓰지 않는다"
+    },
+    {
+      "seq": 460,
+      "t": "2026-10-01T09:36",
+      "a": "유저",
+      "id": "KAN-039-FG8HWZ",
+      "op": "waive",
+      "w": "ZF8JZY",
+      "with_": "KAN-065-CV4WP7",
+      "reason": "경로 글롭 검사의 오탐 — KAN-065 가 지우는 분석 보고서 13편 중 KAN-039 글롭(src/algorithms/*/huffman*/** 등)에 맞는 파일은 0개다(fnmatch 확인, 2026-10-01). 실제로 같은 파일을 쓰지 않는다"
+    },
+    {
+      "seq": 459,
+      "t": "2026-10-01T09:34",
+      "a": "ai",
+      "id": "KAN-065-CV4WP7",
+      "op": "move",
+      "w": "ZF8JZY",
+      "from": "backlog",
+      "to": "doing"
+    },
     {
       "seq": 458,
       "t": "2026-10-01T09:26",
@@ -2378,56 +2450,6 @@
       "w": "92ZX3K",
       "with_": "KAN-036-0G05DE",
       "reason": "문제_가이드_목록.md 하나만 겹친다 — 두 카드가 목록의 다른 절(알고리즘·자료구조)을 고쳐 줄 단위 병합으로 합쳐진다(유저 결정 2026-09-29 · scope 추가 뒤 다시 기록, 겹침 내용 불변)"
-    },
-    {
-      "seq": 423,
-      "t": "2026-09-29T11:33",
-      "a": "유저",
-      "id": "KAN-039-FG8HWZ",
-      "op": "serialize",
-      "w": "92ZX3K",
-      "with_": "KAN-060-9P4ZAA",
-      "reason": "039 가 새로 쓰는 rollingHash·huffmanTree 가이드는 060 이 세운 practice 절 규칙을 따른다(유저 결정 2026-09-29). S9 에서 tools/algo-wbs.test.ts(알고리즘 편수 시험)가 겹침에 더해졌다 — 039 도 두 편을 더하며 같은 수를 고치므로 같은 순서(060 먼저, 039 는 전략 재수립 뒤) 안에서 풀린다"
-    },
-    {
-      "seq": 422,
-      "t": "2026-09-29T04:50",
-      "a": "유저",
-      "id": "KAN-058-8XT6PC",
-      "op": "serialize",
-      "w": "92ZX3K",
-      "with_": "KAN-060-9P4ZAA",
-      "reason": "058 의 110편 재집필이 060 이 세운 practice 절·L49 위에서 선다(유저 결정 2026-09-29 · S2 scope 추가 뒤 다시 기록)"
-    },
-    {
-      "seq": 421,
-      "t": "2026-09-29T04:49",
-      "a": "유저",
-      "id": "KAN-060-9P4ZAA",
-      "op": "waive",
-      "w": "92ZX3K",
-      "with_": "KAN-036-0G05DE",
-      "reason": "문제_가이드_목록.md 하나만 겹친다 — 두 카드가 목록의 다른 절(알고리즘·자료구조)을 고쳐 줄 단위 병합으로 합쳐진다(유저 결정 2026-09-29 · S2 scope 추가 뒤 다시 기록, 겹침 내용 불변)"
-    },
-    {
-      "seq": 420,
-      "t": "2026-09-29T04:49",
-      "a": "유저",
-      "id": "KAN-039-FG8HWZ",
-      "op": "serialize",
-      "w": "92ZX3K",
-      "with_": "KAN-060-9P4ZAA",
-      "reason": "039 가 새로 쓰는 rollingHash·huffmanTree 가이드는 060 이 세운 practice 절 규칙을 따른다(유저 결정 2026-09-29 · S2 에서 scope 에 check-metaphor 를 더해 다시 기록, 겹침 내용 불변)"
-    },
-    {
-      "seq": 419,
-      "t": "2026-09-29T04:31",
-      "a": "ai",
-      "id": "KAN-060-9P4ZAA",
-      "op": "move",
-      "w": "92ZX3K",
-      "from": "backlog",
-      "to": "doing"
     }
   ],
   "waivers": [
@@ -2527,6 +2549,20 @@
       "scope_hash": "d9671012963cf068",
       "reason": "글롭 오탐: KAN-063 scope 36편 폴더 중 huffman 으로 시작하는 것이 없다(src/algorithms/*/huffman*/** 와 실제 경로가 안 겹침). 2026-10-01 유저 승인",
       "created": "2026-10-01T07:22",
+      "by": "유저"
+    },
+    {
+      "pair": "KAN-039-FG8HWZ|KAN-065-CV4WP7",
+      "scope_hash": "f1617a0b83724bb1",
+      "reason": "경로 글롭 검사의 오탐 — KAN-065 가 지우는 분석 보고서 13편 중 KAN-039 글롭(src/algorithms/*/huffman*/** 등)에 맞는 파일은 0개다(fnmatch 확인, 2026-10-01). 실제로 같은 파일을 쓰지 않는다",
+      "created": "2026-10-01T09:36",
+      "by": "유저"
+    },
+    {
+      "pair": "KAN-036-0G05DE|KAN-065-CV4WP7",
+      "scope_hash": "76d481363a2faa49",
+      "reason": "경로 글롭 검사의 오탐 — KAN-065 가 지우는 binarySearchTree-analysis.md 는 KAN-036 글롭(_reference/** · *-guide.*)에 맞지 않는다(fnmatch 확인, 2026-10-01). 실제로 같은 파일을 쓰지 않는다",
+      "created": "2026-10-01T09:36",
       "by": "유저"
     }
   ],

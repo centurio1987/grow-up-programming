@@ -7,6 +7,11 @@ argument-hint: <file-name-except-extension>
 
 ## 솔루션 src/$ARGUMENTS.ts에 대해 분석한다.
 
+0. 먼저 브랜치를 확인한다. 현재 브랜치: !`git symbolic-ref --short HEAD 2>/dev/null || echo detached`
+   `solutions`가 아니면 분석도 보고서도 쓰지 말고, 「분석 보고서는 solutions 브랜치에만 둡니다」라고 알리고 멈춘다.
+   보고서는 풀이를 그대로 인용하므로 main에 들어가면 답이 드러난다(KAN-065). main은 이 파일을 갖지 않는다 —
+   `tools/solutions-merge.test.ts`의 저장소 검사가 main에서 `*-analysis.md`·`*-analysis/`를 잡는다.
+
 1. 문제 해결 접근 방법에 대한 방향성이 올바른지 분석한다.
 2. !`bun test src/$ARGUMENTS.test.ts 2>&1; true` 테스트 결과에 기반하여, 정확성 측면에서 분석한다.
 3. 최적화 측면에서 분석한다.

@@ -43,6 +43,8 @@ src/<유형>/<문제명>/
 
 풀이를 작성한 뒤 `analyze-solution` 스킬로 분석 보고서를 받습니다.
 
+풀이와 분석 보고서는 **`solutions` 브랜치에만** 둡니다. `main`은 스텁(`Not implemented`)만 갖고, 스킬도 `solutions`가 아닌 브랜치에서는 보고서를 쓰지 않습니다. `solutions`는 `main`을 받아서 쓰는 브랜치이고 `main`으로 병합되지 않습니다. `main`을 받을 때는 `bun run tools/solutions-merge.ts`로 병합해야 풀이와 보고서가 `main`의 스텁·삭제에 덮이지 않습니다.
+
 ```
 /analyze-solution <파일 경로(확장자 제외)>
 ```

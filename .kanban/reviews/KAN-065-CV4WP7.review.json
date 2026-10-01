@@ -1,0 +1,27 @@
+{
+ "card": "KAN-065-CV4WP7",
+ "front": {
+  "base": "9b1e2bc6",
+  "branch": "KAN-065-CV4WP7",
+  "card": "KAN-065-CV4WP7",
+  "created": "2026-10-01",
+  "inherits": null,
+  "merged": null,
+  "status": "검토 대기",
+  "title": "solutions 에만 있는 비풀이 커밋과 main 의 풀이 분석 문서 정리 — 두 브랜치가 무엇을 나눠 갖는지 정한다",
+  "worktree": "/Users/centurio/orca/workspaces/code_test/KAN-065-CV4WP7"
+ },
+ "inherited_md": "",
+ "md_fp": "66ed5b2c272ae507f0242931b2a3ef94c39d3d67",
+ "md_src_fp": "16adf5dabd865dc7656fc324c00b1c64746e91d8",
+ "schema": 1,
+ "target_md": "| 항목 | 값 |\n|---|---|\n| 브랜치 | `KAN-065-CV4WP7` |\n| 워크트리 | `/Users/centurio/orca/workspaces/code_test/KAN-065-CV4WP7` |\n| 베이스 | `9b1e2bc6` |\n| 변경 훑기 | `git diff 9b1e2bc6...HEAD` |\n\n**커밋 6건**\n\n```text\n94db5cf0 KAN-065 S5: 전체 검증 통과\nbfab08f6 KAN-065 S4: solutions 실제 병합 기록(309d9173)\n8394003e KAN-065 S3: 분석 보고서는 solutions 에만 — 스킬·README·CLAUDE.md 에 두 브랜치의 역할을 적는다\n98837268 KAN-065 S2: main 에서 풀이 분석 보고서 13편을 걷고 KAN-001 실행 문서를 가져온다\ncf133af9 KAN-065 S1: solutions 전용 파일 규칙 — 병합에서 분석 보고서를 지키고 main 누수를 잡는다\na1b90fbf kanban: KAN-065 착수 — 실행 문서·배치1 계획\n```\n\n**변경 파일 26개 (+657 −5755)**\n\n| 파일 | 상태 | 추가 | 삭제 |\n|---|:--:|---:|---:|\n| `.claude/skills/analyze-solution/SKILL.md` | M | 5 | 0 |\n| `.kanban/archive.jsonl` | M | 3 | 0 |\n| `.kanban/log.md` | M | 3 | 3 |\n| `.kanban/state.json` | M | 72 | 36 |\n| `CLAUDE.md` | M | 12 | 0 |\n| `KANBAN.batches/KAN-065-CV4WP7.batch1.md` | M | 56 | 0 |\n| `KANBAN.board.html` | M | 4 | 4 |\n| `KANBAN.cards/KAN-001.md` | M | 337 | 0 |\n| `KANBAN.cards/KAN-065-CV4WP7.md` | M | 56 | 0 |\n| `KANBAN.md` | M | 12 | 10 |\n| `README.md` | M | 2 | 0 |\n| `src/algorithms/array/houseRobber/houseRobber-analysis.md` | M | 0 | 163 |\n| `src/algorithms/binary-search/parametricBinarySearch/parametricBinarySearch-analysis.md` | M | 0 | 389 |\n| `src/algorithms/bit-manipulation/enumerateSubmasks/enumerateSubmasks-analysis.md` | M | 0 | 219 |\n| `src/algorithms/dp/knapsack01/knapsack01-analysis.md` | M | 0 | 218 |\n| `src/algorithms/graph-flow/kruskalMst/kruskalMst-analysis.md` | M | 0 | 383 |\n| `src/algorithms/graph/bfsShortestPath/bfsShortestPath-analysis.md` | M | 0 | 356 |\n| `src/algorithms/shortest-path/dijkstra/dijkstra-analysis.md` | M | 0 | 871 |\n| `src/algorithms/sorting/countingSort/countingSort-analysis.md` | M | 0 | 111 |\n| `src/algorithms/sorting/insertionSort/insertionSort-analysis.md` | M | 0 | 855 |\n| `src/algorithms/sorting/kthSmallest/kthSmallest-analysis.md` | M | 0 | 665 |\n| `src/algorithms/sorting/quicksort/quicksort-analysis.md` | M | 0 | 402 |\n| `src/algorithms/sorting/radixSort/radixSort-analysis.md` | M | 0 | 427 |\n| `src/data-structures/tree/binarySearchTree/binarySearchTree-analysis.md` | M | 0 | 638 |\n| `tools/solutions-merge.test.ts` | M | 61 | 1 |\n| `tools/solutions-merge.ts` | M | 34 | 4 |\n\n**롤백 태그 5개**\n\n```text\nkan/KAN-065-CV4WP7/S1\nkan/KAN-065-CV4WP7/S2\nkan/KAN-065-CV4WP7/S3\nkan/KAN-065-CV4WP7/S4\nkan/KAN-065-CV4WP7/S5\n```",
+ "verdicts": [
+  {
+   "at": "2026-10-01",
+   "by": "유저",
+   "verdict": "승인"
+  }
+ ],
+ "verify_md": "<!-- 기준은 카드 실행 문서 「검증」 절의 사본이다. 정본은 KANBAN.cards/KAN-065-CV4WP7.md 이므로\n     기준이 바뀌면 그쪽을 고치고 review-init --refresh 로 이 항만 다시 뜬다.\n     결과는 착수한 쪽이 이미 돌린 것이다 — 검토자에게 다시 돌리라고 시키지 않는다.\n     **다시 돌려 아래와 다르게 나오면 그 자체가 반려 사유다.** -->\n\n**기준**\n\n- `bun run tools/ci.ts all` 통과(practice 모드의 미구현 실패는 정상)\n- `bun test tools/solutions-merge.test.ts tools/practice-ref.test.ts` — 스텁 누수 0 · solutions 전용 파일 0\n- `git ls-files | grep -- '-analysis'` 가 비어 있다\n- solutions 병합(S4) 뒤 `git diff <병합 전 solutions> HEAD -- '*-analysis.md'` 가 비어 있다\n\n**실행 결과**\n\n```text\n────────────────────────────────────────────────────────────\n판정 제외(정상): ③ 실습 채점 — 스텁(미구현 실패가 정상, 판정 제외)\nall 모드 통과 — 단계 20개.\n 10 pass\n 0 fail\n 35 expect() calls\nRan 10 tests across 2 files. [3.55s]\ngit ls-files | grep -c -- -analysis → 0\nsolutions 309d9173: 분석 문서 15편 병합 전후 차이 0 · 풀이→스텁 0\n```"
+}
