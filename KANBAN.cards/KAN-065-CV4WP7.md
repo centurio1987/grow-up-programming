@@ -2,7 +2,7 @@
 card: KAN-065-CV4WP7
 title: solutions 에만 있는 비풀이 커밋과 main 의 풀이 분석 문서 정리 — 두 브랜치가 무엇을 나눠 갖는지 정한다
 created: 2026-10-01
-scope: src/**/*-analysis.md, tools/solutions-merge.ts, tools/solutions-merge.test.ts, tools/solutions-only.ts, tools/solutions-only.test.ts, .claude/skills/analyze-solution/SKILL.md, .agents/skills/analyze-solution/SKILL.md, README.md, CLAUDE.md, KANBAN.cards/KAN-001.md
+scope: src/algorithms/array/houseRobber/houseRobber-analysis.md, src/algorithms/binary-search/parametricBinarySearch/parametricBinarySearch-analysis.md, src/algorithms/bit-manipulation/enumerateSubmasks/enumerateSubmasks-analysis.md, src/algorithms/dp/knapsack01/knapsack01-analysis.md, src/algorithms/graph-flow/kruskalMst/kruskalMst-analysis.md, src/algorithms/graph/bfsShortestPath/bfsShortestPath-analysis.md, src/algorithms/shortest-path/dijkstra/dijkstra-analysis.md, src/algorithms/sorting/countingSort/countingSort-analysis.md, src/algorithms/sorting/insertionSort/insertionSort-analysis.md, src/algorithms/sorting/kthSmallest/kthSmallest-analysis.md, src/algorithms/sorting/quicksort/quicksort-analysis.md, src/algorithms/sorting/radixSort/radixSort-analysis.md, src/data-structures/tree/binarySearchTree/binarySearchTree-analysis.md, tools/solutions-merge.ts, tools/solutions-merge.test.ts, .claude/skills/analyze-solution/SKILL.md, .agents/skills/analyze-solution/SKILL.md, README.md, CLAUDE.md, KANBAN.cards/KAN-001.md
 ---
 
 # KAN-065-CV4WP7 — solutions 에만 있는 비풀이 커밋과 main 의 풀이 분석 문서 정리 — 두 브랜치가 무엇을 나눠 갖는지 정한다
@@ -27,7 +27,7 @@ scope: src/**/*-analysis.md, tools/solutions-merge.ts, tools/solutions-merge.tes
 
 ## 실행 계획
 - [x] `S1` solutions 전용 파일 규칙과 누수 검사 — `tools/solutions-merge.ts` 에 `SOLUTIONS_ONLY` 와 판별 함수를 두고, main 이 지운 solutions 전용 파일을 되살리게 `plan` 을 넓힌다. 테스트에 ① 모의 저장소에서 main 이 분석 문서를 지운 병합 뒤 HEAD 판이 남는지 ② 저장소에 solutions 전용 파일이 0인지를 더한다. 완료 기준: 새 시험이 S2 전 트리에서 13건 실패, 뒤 0건. biome 경고 0
-- [ ] `S2` main 에서 분석 문서 13편을 지우고 KAN-001 실행 문서를 가져온다 — `KANBAN.cards/KAN-001.md` 는 solutions 판(8aa553d4) 그대로. 참조 두 자리(`.claude/skills/analyze-solution/SKILL.md:19` · `README.md:62`)는 S3 에서 고친다. 완료 기준: `git ls-files | grep -c -- -analysis.md` 0, `check-links` 통과
+- [x] `S2` main 에서 분석 문서 13편을 지우고 KAN-001 실행 문서를 가져온다 — `KANBAN.cards/KAN-001.md` 는 solutions 판(8aa553d4) 그대로. 참조 두 자리(analyze-solution 스킬의 보고서 경로 예시 · README 분석 절)는 S3 에서 고친다. 완료 기준: `git ls-files | grep -c -- -analysis.md` 0, `check-links` 통과
 - [ ] `S3` 재발 방지 문서 — analyze-solution 스킬(.claude · .agents 두 벌)에 「solutions 브랜치가 아니면 쓰지 않는다」, README 분석 절에 같은 안내, CLAUDE.md 에 두 브랜치 역할. 완료 기준: 세 자리에 문구가 서고 `check-links`·`check-citations` 통과
 - [ ] `S4` solutions 실제 병합 — solutions 체크아웃에서 `bun run <이 워크트리>/tools/solutions-merge.ts KAN-065-CV4WP7`. 완료 기준: 병합 커밋 뒤 solutions 에 분석 문서 15편(13 + deque · monotonicQueue)이 병합 전과 바이트 동일, 풀이→스텁 0. push 안 함
 - [ ] `S5` 전체 검증과 검토서. 완료 기준: `bun run tools/ci.ts all` 통과
@@ -45,3 +45,6 @@ scope: src/**/*-analysis.md, tools/solutions-merge.ts, tools/solutions-merge.tes
 - 2026-10-01T09:34 · s:3f0bb39d — `검증` 섹션 교체
 - 2026-10-01T09:36 · s:3f0bb39d · S1 doing — 착수
 - 2026-10-01T09:36 · s:3f0bb39d · S1 done — solutions-merge.ts 에 SOLUTIONS_ONLY(*-analysis.md · *-analysis/) + isSolutionsOnly · solutionsOnlyFiles, plan 이 main 이 지운 전용 파일을 되살림. 시험 3 추가 — S2 전 트리에서 저장소 검사 13건 실패 실측. biome 경고 0
+- 2026-10-01T09:36 · s:3f0bb39d · S2 doing — 착수
+- 2026-10-01T09:36 · s:3f0bb39d — `실행 계획` 섹션 교체
+- 2026-10-01T09:36 · s:3f0bb39d · S2 done — 분석 보고서 13편 git rm(알고리즘 12 · binarySearchTree 1). KAN-001 실행 문서를 solutions 판(8aa553d4) 그대로 가져옴 — 바이트 동일. 저장소 검사 13→0. scope 를 실제 경로로 좁히고 KAN-036·039 와의 글롭 오탐 겹침은 dep-waive(실제 일치 0, fnmatch)

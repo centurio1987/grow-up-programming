@@ -539,3 +539,5 @@
 {"seq": 417, "t": "2026-09-29T04:27", "a": "유저", "id": "KAN-039-FG8HWZ", "op": "serialize", "w": "46PCAX", "with_": "KAN-060-9P4ZAA", "reason": "039 가 새로 쓰는 rollingHash·huffmanTree 가이드는 060 이 세운 practice 절 규칙을 따른다(유저 결정 2026-09-29)"}
 {"seq": 418, "t": "2026-09-29T04:27", "a": "유저", "id": "KAN-060-9P4ZAA", "op": "waive", "w": "46PCAX", "with_": "KAN-036-0G05DE", "reason": "문제_가이드_목록.md 하나만 겹친다 — 두 카드가 목록의 다른 절(알고리즘·자료구조)을 고쳐 줄 단위 병합으로 합쳐진다(유저 결정 2026-09-29)"}
 {"seq": 419, "t": "2026-09-29T04:31", "a": "ai", "id": "KAN-060-9P4ZAA", "op": "move", "w": "92ZX3K", "from": "backlog", "to": "doing"}
+{"seq": 420, "t": "2026-09-29T04:49", "a": "유저", "id": "KAN-039-FG8HWZ", "op": "serialize", "w": "92ZX3K", "with_": "KAN-060-9P4ZAA", "reason": "039 가 새로 쓰는 rollingHash·huffmanTree 가이드는 060 이 세운 practice 절 규칙을 따른다(유저 결정 2026-09-29 · S2 에서 scope 에 check-metaphor 를 더해 다시 기록, 겹침 내용 불변)"}
+{"seq": 421, "t": "2026-09-29T04:49", "a": "유저", "id": "KAN-060-9P4ZAA", "op": "waive", "w": "92ZX3K", "with_": "KAN-036-0G05DE", "reason": "문제_가이드_목록.md 하나만 겹친다 — 두 카드가 목록의 다른 절(알고리즘·자료구조)을 고쳐 줄 단위 병합으로 합쳐진다(유저 결정 2026-09-29 · S2 scope 추가 뒤 다시 기록, 겹침 내용 불변)"}
